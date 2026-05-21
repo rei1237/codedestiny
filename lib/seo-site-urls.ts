@@ -54,7 +54,9 @@ export const ROUTES: SitemapRouteEntry[] = [
 
   // ── 기존 핵심 서비스 (직접 사용자 inflow) ─────────────────────
   { path: "/saju/basic",       changeFrequency: "weekly", priority: 0.95 },
+  { path: "/oracle/sukuyo",    changeFrequency: "weekly", priority: 0.93 },
   { path: "/tarot/mingri",     changeFrequency: "weekly", priority: 0.93 },
+  { path: "/vedic/jyotish",    changeFrequency: "weekly", priority: 0.93 },
   { path: "/ziwei/chart",      changeFrequency: "weekly", priority: 0.92 },
   { path: "/astrology/cosmic", changeFrequency: "weekly", priority: 0.92 },
   { path: "/tarot/love",       changeFrequency: "weekly", priority: 0.90 },

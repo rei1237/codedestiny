@@ -1875,6 +1875,8 @@ function buildPremiumContextSummary(context) {
     userId: context.userId,
     requestId: context.requestId || "",
     idempotencyKey: context.idempotencyKey || "",
+    sessionBindingId: String(context?.sessionBinding?.bindingId || "").trim(),
+    sessionBindingProfile: context?.sessionBinding?.profileSnapshot || null,
     inputHash: context.inputHash,
     calculationVersion: context.calculationVersion,
     sourceMap: context.sourceMap,
@@ -2838,6 +2840,288 @@ function normalizePremiumRequestBodyForPipeline(reportType, sourceInput = {}) {
   }
 
   return normalized;
+}
+
+function normalizePremiumBirthForBinding(raw = {}) {
+  const year = toPremiumBoundedInt(raw.year, 1000, 9999);
+  const month = toPremiumBoundedInt(raw.month, 1, 12);
+  const day = toPremiumBoundedInt(raw.day, 1, 31);
+  const hour = toPremiumBoundedInt(raw.hour, 0, 23);
+  const minute = toPremiumBoundedInt(raw.minute, 0, 59);
+  return {
+    name: pickPremiumText(raw.name),
+    gender: pickPremiumText(raw.gender).toLowerCase(),
+    year: Number.isFinite(year) ? year : null,
+    month: Number.isFinite(month) ? month : null,
+    day: Number.isFinite(day) ? day : null,
+    hour: Number.isFinite(hour) ? hour : null,
+    minute: Number.isFinite(minute) ? minute : null,
+    calendarType: normalizePremiumCalendarType(raw.calType || raw.calendarType || raw.calendar) || "",
+    timezone: pickPremiumText(raw.timezone),
+  };
+}
+
+function hasPremiumPartnerBirthData(partner = {}) {
+  return Number.isFinite(Number(partner?.year))
+    && Number.isFinite(Number(partner?.month))
+    && Number.isFinite(Number(partner?.day));
+}
+
+function buildPremiumSessionBinding(reportType, modeKey, requestBody = {}) {
+  const normalized = normalizePremiumRequestBodyForPipeline(reportType, requestBody || {});
+  const selfBirth = normalizePremiumBirthForBinding(extractPremiumSelfBirth(normalized));
+  const partnerBirth = normalizePremiumBirthForBinding(extractPremiumPartnerBirth(normalized));
+
+  const normalizedMode = String(modeKey || modeKeyFromInput(normalized) || "").trim().toLowerCase();
+  const modeCompatibility = normalizedMode.includes("compat") || normalizedMode.includes("couple");
+  const isCompatibility = modeCompatibility || hasPremiumPartnerBirthData(partnerBirth);
+  const partnerSnapshot = isCompatibility ? partnerBirth : null;
+
+  const profileSnapshot = {
+    profileId: pickPremiumText(normalized.profileId, normalized?.profile?.profileId, normalized?.birthData?.profileId),
+    self: selfBirth,
+    partner: partnerSnapshot,
+    isCompatibility,
+  };
+
+  const seed = {
+    reportType: String(reportType || ""),
+    modeKey: normalizedMode,
+    profileSnapshot,
+  };
+
+  return {
+    bindingId: `pbind_${stableHash(stringifyCompact(seed, 2200))}`,
+    reportType: String(reportType || ""),
+    modeKey: normalizedMode,
+    profileSnapshot,
+    requestDigest: stableHash(stringifyCompact(normalized, 4200)),
+  };
+}
+
+function validatePremiumSessionBinding(context, body = {}) {
+  const expectedBinding = context?.sessionBinding;
+  if (!expectedBinding || typeof expectedBinding !== "object") {
+    return { ok: true, skipped: true };
+  }
+
+  const expectedBindingId = String(expectedBinding.bindingId || "").trim();
+  if (!expectedBindingId) {
+    return { ok: true, skipped: true };
+  }
+
+  const requestBody = (body?.requestBody && typeof body.requestBody === "object")
+    ? body.requestBody
+    : null;
+  if (!requestBody) {
+    return { ok: true, skipped: true, bindingId: expectedBindingId };
+  }
+
+  const incoming = buildPremiumSessionBinding(context.reportType, context.modeKey, requestBody);
+  const incomingBindingId = String(incoming.bindingId || "").trim();
+  if (!incomingBindingId) {
+    return { ok: true, skipped: true, bindingId: expectedBindingId };
+  }
+
+  if (expectedBindingId !== incomingBindingId) {
+    return {
+      ok: false,
+      code: "PREMIUM_REPORT_SESSION_BINDING_MISMATCH",
+      message: "리포트 세션의 출생 프로필 바인딩과 현재 요청 데이터가 일치하지 않습니다.",
+      expectedBindingId,
+      incomingBindingId,
+      expectedProfileSnapshot: expectedBinding.profileSnapshot || null,
+      incomingProfileSnapshot: incoming.profileSnapshot || null,
+    };
+  }
+
+  return { ok: true, bindingId: expectedBindingId };
+}
+
+function buildPremiumCanonicalFingerprint(canonicalJson = {}) {
+  const payload = {
+    reportType: String(canonicalJson?.reportType || ""),
+    calculatedData: canonicalJson?.calculatedData || {},
+    chapterData: canonicalJson?.chapterData || {},
+    interpretationSeed: canonicalJson?.interpretationSeed || {},
+  };
+  return `pcf_${stableHash(stringifyCompact(payload, 26000))}`;
+}
+
+function buildPremiumChapterContract(reportType, featureType, mode, chapterId) {
+  const resolved = resolveChapterSpec(reportType, featureType, mode, chapterId);
+  const chapterSpec = resolved?.chapterSpec || null;
+  const chapterNo = Number(chapterId || 1);
+
+  const contract = {
+    reportType: String(reportType || ""),
+    featureType: String(featureType || ""),
+    mode: String(mode || ""),
+    chapterId: chapterNo,
+    chapterTitle: String(chapterSpec?.title || `Chapter ${chapterNo}`),
+    minChars: Number(chapterSpec?.minChars || 0),
+    targetChars: Number(chapterSpec?.targetChars || 0),
+    outputFormat: "markdown",
+    requiredHeadings: [],
+    requiredJsonFields: [],
+  };
+
+  if (reportType === "ziweiPremium") {
+    contract.outputFormat = "json+markdown";
+    contract.requiredJsonFields = [
+      "chapterTitle",
+      "chapterSubtitle",
+      "summary",
+      "sections",
+      "practicalAdvice",
+      "cautions",
+      "masterConclusion",
+      "coreStars",
+      "corePalaces",
+    ];
+    contract.requiredHeadings = [
+      "## 1. 이 챕터에서 보는 핵심",
+      "## 2. 별의 구조와 세기 분석",
+      "## 3. 별의 밝기로 본 강점과 약점",
+      "## 10. 챕터 핵심 요약",
+    ];
+  } else if (reportType === "sookyoPremium") {
+    contract.outputFormat = "json+markdown";
+    contract.requiredJsonFields = [
+      "chapterTitle",
+      "summary",
+      "sections",
+      "practicalAdvice",
+      "cautions",
+    ];
+  } else if (reportType === "westernAstrologyPremium") {
+    contract.requiredHeadings = [
+      "### 1. 사용 데이터 요약표",
+      "### 2. 핵심 해석",
+      "### 3. 심리적 작동 방식",
+      "### 4. 현실 적용",
+      "### 5. 어스펙트 심화",
+      "### 6. 그림자와 주의점",
+      "### 7. 실천 전략",
+      "### 8. 챕터 요약",
+    ];
+  } else if (reportType === "vedicPremium") {
+    contract.requiredHeadings = [
+      "### Step 1. 핵심 상담 진단",
+      "### Step 2. 차트 신호를 삶으로 번역",
+      "### Step 3. 반복 패턴과 전환 포인트",
+      "### Step 4. 실전 행동 가이드",
+      "### Step 5. 주의할 선택",
+      "### Step 6. 상담형 결론",
+    ];
+  } else if (reportType === "loveSecret") {
+    contract.requiredHeadings = [
+      "### 1. 상담 핵심 진단",
+      "### 2. 핵심 구조 진단",
+      "### 3. 관계 운영 전략",
+      "### 4. 리스크 관리",
+      "### 핵심 요약 5줄",
+    ];
+  } else if (reportType === "sajuNewYear") {
+    const chapterSpec = getSajuNewYearChapterPromptSpec(chapterNo);
+    contract.requiredHeadings = Array.isArray(chapterSpec?.markers)
+      ? chapterSpec.markers.map((row) => String(row || "").trim()).filter(Boolean)
+      : [];
+  }
+
+  return contract;
+}
+
+function formatPremiumChapterContractForPrompt(chapterContract = {}) {
+  const contract = chapterContract && typeof chapterContract === "object" ? chapterContract : {};
+  const lines = [];
+  const chapterTitle = String(contract.chapterTitle || "").trim();
+  const outputFormat = String(contract.outputFormat || "markdown").trim();
+  const minChars = Number(contract.minChars || 0);
+  const targetChars = Number(contract.targetChars || 0);
+  const requiredHeadings = Array.isArray(contract.requiredHeadings) ? contract.requiredHeadings.filter(Boolean) : [];
+  const requiredJsonFields = Array.isArray(contract.requiredJsonFields) ? contract.requiredJsonFields.filter(Boolean) : [];
+
+  if (chapterTitle) lines.push(`chapterTitle=${chapterTitle}`);
+  lines.push(`outputFormat=${outputFormat}`);
+  if (minChars > 0) lines.push(`minChars=${minChars}`);
+  if (targetChars > 0) lines.push(`targetChars=${targetChars}`);
+  if (requiredHeadings.length) lines.push(`requiredHeadings=${requiredHeadings.join(" | ")}`);
+  if (requiredJsonFields.length) lines.push(`requiredJsonFields=${requiredJsonFields.join(", ")}`);
+
+  return lines.join("\n");
+}
+
+function validatePremiumChapterResponseEnvelope({ reportType, chapterId, data, chapterContract, previousChapterTexts = [] }) {
+  const text = String(data?.text || "").trim();
+  if (!text) {
+    return {
+      ok: false,
+      code: "PREMIUM_REPORT_CHAPTER_EMPTY",
+      message: "챕터 텍스트가 비어 있습니다.",
+      details: { chapterId },
+    };
+  }
+
+  const contract = chapterContract && typeof chapterContract === "object"
+    ? chapterContract
+    : buildPremiumChapterContract(reportType, REPORT_TYPE_TO_FEATURE_TYPE[reportType] || reportType, "", chapterId);
+  const requiredHeadings = Array.isArray(contract.requiredHeadings) ? contract.requiredHeadings.filter(Boolean) : [];
+  const missingHeadings = requiredHeadings.filter((heading) => !text.includes(heading));
+  const repeatedAcross = detectCrossChapterRepeatedSentences(text, previousChapterTexts, 35);
+
+  const chapterJson = data?.chapterJson && typeof data.chapterJson === "object" ? data.chapterJson : null;
+  const requiredJsonFields = Array.isArray(contract.requiredJsonFields) ? contract.requiredJsonFields.filter(Boolean) : [];
+  const missingJsonFields = chapterJson
+    ? requiredJsonFields.filter((field) => {
+      const value = chapterJson[field];
+      if (Array.isArray(value)) return value.length === 0;
+      return !hasMeaningfulValue(value);
+    })
+    : (requiredJsonFields.length > 0 ? requiredJsonFields.slice() : []);
+
+  if (reportType === "ziweiPremium") {
+    const sections = Array.isArray(chapterJson?.sections) ? chapterJson.sections : [];
+    if (sections.length < 2) {
+      missingJsonFields.push("sections");
+    }
+  }
+
+  const shouldCheckHeadings = reportType === "westernAstrologyPremium"
+    || reportType === "vedicPremium"
+    || reportType === "ziweiPremium"
+    || reportType === "loveSecret"
+    || reportType === "sajuNewYear"
+    || reportType === "lifeBook";
+  const headingInvalid = shouldCheckHeadings && missingHeadings.length > 0;
+  const jsonInvalid = missingJsonFields.length > 0;
+  const duplicateInvalid = repeatedAcross.length > 0 && (
+    reportType === "ziweiPremium"
+    || reportType === "westernAstrologyPremium"
+    || reportType === "vedicPremium"
+    || reportType === "lifeBook"
+    || reportType === "loveSecret"
+    || reportType === "sajuNewYear"
+  );
+
+  if (headingInvalid || jsonInvalid || duplicateInvalid) {
+    return {
+      ok: false,
+      code: "PREMIUM_REPORT_CHAPTER_CONTRACT_FAILED",
+      message: "챕터 출력이 계약된 구조/필수 항목을 충족하지 못했습니다.",
+      details: {
+        chapterId,
+        missingHeadings,
+        missingJsonFields: Array.from(new Set(missingJsonFields)),
+        repeatedAcross: repeatedAcross.slice(0, 6),
+      },
+    };
+  }
+
+  return {
+    ok: true,
+    chapterContract: contract,
+  };
 }
 
 function scoreCanonicalValidation(validation) {
@@ -5464,6 +5748,9 @@ function buildPromptSourceData(reportType, chapterId, canonicalJson, prebuiltCha
   const chapterKey = `ch${Number(chapterId || 0)}`;
   const chapterMeta = canonicalJson?.chapterData?.[chapterKey] || {};
   const requiredPaths = Array.isArray(chapterMeta.requiredPaths) ? chapterMeta.requiredPaths : [];
+  const inferredFeatureType = REPORT_TYPE_TO_FEATURE_TYPE[reportType] || reportType;
+  const inferredMode = String(canonicalJson?.input?.reportMode || canonicalJson?.input?.mode || canonicalJson?.input?.reportType || "");
+  const chapterContract = buildPremiumChapterContract(reportType, inferredFeatureType, inferredMode, chapterId);
   const chapterDataSubset = {};
   requiredPaths.forEach((path) => {
     chapterDataSubset[path] = getPathValue(canonicalJson, path);
@@ -5472,29 +5759,56 @@ function buildPromptSourceData(reportType, chapterId, canonicalJson, prebuiltCha
   const evidenceChecklist = buildPromptEvidenceChecklist(reportType, chapterJsonPacks);
   const renderGuide = buildPremiumPdfRenderGuide(reportType);
   const promptMetaByType = {
-    ziweiPremium: { fortuneLabel: "자미두수 프리미엄 PDF" },
-    sookyoPremium: { fortuneLabel: "숙요 프리미엄 PDF" },
-    westernAstrologyPremium: { fortuneLabel: "서양 점성술 프리미엄 PDF" },
-    vedicPremium: { fortuneLabel: "베다 점성술 프리미엄 PDF" },
-    lifeBook: { fortuneLabel: "인생의 책 프리미엄 PDF" },
-    loveSecret: { fortuneLabel: "연애 비책 프리미엄 PDF" },
-    sajuNewYear: { fortuneLabel: "신년운세 프리미엄 PDF" },
+    ziweiPremium: {
+      fortuneLabel: "자미두수 프리미엄 PDF",
+      expertDirective: "자미두수 분야 최고 전문가로서 1:1 상담하듯 프리미엄 PDF를 작성",
+    },
+    sookyoPremium: {
+      fortuneLabel: "숙요 프리미엄 PDF",
+      expertDirective: "숙요점(27숙) 분야 최고 전문가로서 1:1 상담하듯 프리미엄 PDF를 작성",
+    },
+    westernAstrologyPremium: {
+      fortuneLabel: "서양 점성술 프리미엄 PDF",
+      expertDirective: "서양 점성술 분야 최고 전문가로서 1:1 상담하듯 프리미엄 PDF를 작성",
+    },
+    vedicPremium: {
+      fortuneLabel: "베다 점성술 프리미엄 PDF",
+      expertDirective: "베다 점성술(Jyotish) 분야 최고 전문가로서 1:1 상담하듯 프리미엄 PDF를 작성",
+    },
+    lifeBook: {
+      fortuneLabel: "인생의 책 프리미엄 PDF",
+      expertDirective: "사주 인생설계 분야 최고 전문가로서 1:1 상담하듯 프리미엄 PDF를 작성",
+    },
+    loveSecret: {
+      fortuneLabel: "연애 비책 프리미엄 PDF",
+      expertDirective: "사주 연애/궁합 분야 최고 전문가로서 1:1 상담하듯 프리미엄 PDF를 작성",
+    },
+    sajuNewYear: {
+      fortuneLabel: "신년운세 프리미엄 PDF",
+      expertDirective: "사주 신년전략 분야 최고 전문가로서 1:1 상담하듯 프리미엄 PDF를 작성",
+    },
   };
-  const promptMeta = promptMetaByType[reportType] || { fortuneLabel: "프리미엄 PDF" };
+  const promptMeta = promptMetaByType[reportType] || {
+    fortuneLabel: "프리미엄 PDF",
+    expertDirective: "해당 운세 분야 최고 전문가로서 1:1 상담하듯 프리미엄 PDF를 작성",
+  };
 
   return {
     reportType,
     chapterId: String(chapterId || ""),
     chapterTitle: String(chapterMeta.chapterTitle || `Chapter ${chapterId}`),
+    chapterContract,
     calculatedDataForThisChapter: chapterDataSubset,
     chapterJsonPacks,
     questionPromptPackage: {
       schema: "cd-question-prompt-data-v1",
       fortuneType: reportType,
       fortuneLabel: promptMeta.fortuneLabel,
+      expertDirective: promptMeta.expertDirective,
       mode: canonicalJson?.input?.reportType || canonicalJson?.input?.mode || "personal",
       chapterId: String(chapterId || ""),
       chapterTitle: String(chapterMeta.chapterTitle || `Chapter ${chapterId}`),
+      chapterContract,
       profile: canonicalJson?.input || canonicalJson?.calculatedData?.birthInfo || {},
       compatibilityTarget: canonicalJson?.input?.partnerData || canonicalJson?.input?.partnerBirthData || undefined,
       analysisResult: {
@@ -5522,9 +5836,21 @@ function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapt
   const previousChapterSummaries = Array.isArray(dedupContext.previousChapterSummaries)
     ? dedupContext.previousChapterSummaries
     : [];
+  const expertRoleRuleByType = {
+    ziweiPremium: "자미두수 분야 최고 전문가처럼 1:1 프리미엄 상담문으로 작성할 것",
+    sookyoPremium: "숙요점(27숙) 분야 최고 전문가처럼 1:1 프리미엄 상담문으로 작성할 것",
+    westernAstrologyPremium: "서양 점성술 분야 최고 전문가처럼 1:1 프리미엄 상담문으로 작성할 것",
+    vedicPremium: "베다 점성술 분야 최고 전문가처럼 1:1 프리미엄 상담문으로 작성할 것",
+    lifeBook: "사주 인생설계 분야 최고 전문가처럼 1:1 프리미엄 상담문으로 작성할 것",
+    loveSecret: "사주 연애/궁합 분야 최고 전문가처럼 1:1 프리미엄 상담문으로 작성할 것",
+    sajuNewYear: "사주 신년전략 분야 최고 전문가처럼 1:1 프리미엄 상담문으로 작성할 것",
+  };
+  const expertRoleRule = expertRoleRuleByType[reportType]
+    || "해당 운세 분야 최고 전문가처럼 1:1 프리미엄 상담문으로 작성할 것";
   const forbiddenRepeats = Array.from(new Set(previousChapterSummaries.flatMap((row) => Array.isArray(row?.keyPhrases) ? row.keyPhrases : []))).slice(0, 30);
   const typeSpecificRules = isSajuClassicReport
     ? [
+      "사주 인생설계/연애 상담 분야 최고 전문가처럼 1:1 프리미엄 상담 톤으로 작성할 것",
       "원국(년월일시), 일간, 월령을 최소 1회 이상 명시할 것",
       "십성 근거(tenGodEvidence)에서 최소 2개를 명시할 것",
       "대운/세운 데이터가 있으면 시기 전략에 반드시 반영할 것",
@@ -5532,6 +5858,7 @@ function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapt
     ]
     : isSajuNewYearReport
       ? [
+        "사주 신년 전략 분야 최고 전문가처럼 연간 운영을 상담하듯 구체적으로 작성할 것",
         "신년운세는 계산 근거 노출이 아닌 연간 운영 전략 중심으로 작성할 것",
         "년주/월주/일주/시주, 일간/월지/지장간, 오행/십성 분포 같은 내부 계산표를 본문에 직접 쓰지 말 것",
         "분기별·월별 조언이 서로 중복되지 않게 구성할 것",
@@ -5550,6 +5877,7 @@ function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapt
     doNotCalculate: true,
     rules: [
       "계산되지 않은 내용을 임의로 만들지 말 것",
+      expertRoleRule,
       "JSON에 없는 별, 행성, 궁, 십성, 숙요 관계를 지어내지 말 것",
       "reportPayload(=calculatedData)와 chapterJsonPacks에 있는 값만 근거로 사용할 것",
       "데이터 일부가 비어 있어도 주어진 계산 근거 범위 안에서 자연스럽고 전문적인 리딩으로 완성할 것",
@@ -5561,6 +5889,7 @@ function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapt
       "사용자가 이해하기 쉬운 한국어로 풀어쓸 것",
       "미신적 단정 대신 전략과 자기이해 중심으로 작성할 것",
       "chapterJsonPacks(core/signals/timing/actions)에서 최소 3개 이상 근거를 본문에 반영할 것",
+      "chapterContract.requiredHeadings/requiredJsonFields를 출력에 반영할 것",
       ...typeSpecificRules,
     ],
   };
@@ -5597,6 +5926,11 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
     _compatibilityRequired: context?.coreData?.canonicalJson?.calculatedData?._compatibilityRequired,
   });
   const chapter = getSukyoChapterBlueprint(chapterId, sukyoMode);
+  const reportType = String(context?.reportType || "sookyoPremium");
+  const chapterContract = context?.input?._premiumLlmInput?.chapterContract
+    && typeof context.input._premiumLlmInput.chapterContract === "object"
+    ? context.input._premiumLlmInput.chapterContract
+    : buildPremiumChapterContract(reportType, REPORT_TYPE_TO_FEATURE_TYPE[reportType] || reportType, sukyoMode, chapterId);
   const calculated = context?.coreData?.canonicalJson?.calculatedData || {};
   const strictPayloadMode = asBool(context?.input?._premiumStrictPayload);
   const previousFromContext = Object.entries(context?.chapterTextById || {})
@@ -5614,6 +5948,7 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
     },
   });
   sukyoContext.reportMode = sukyoMode;
+  sukyoContext.chapterContract = chapterContract;
 
   const inputValidation = validateSukyoPdfInput(sukyoContext);
   const chapterMeta = {
@@ -5687,7 +6022,40 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
     }
 
     const chapterJson = sanitizeSukyoChapterJson(chapter, parsed.parsed, sukyoContext);
-    let text = renderSukyoChapterMarkdown(chapterJson, chapter);
+    const chapterTextDraft = renderSukyoChapterMarkdown(chapterJson, chapter);
+    const envelopeValidation = validatePremiumChapterResponseEnvelope({
+      reportType,
+      chapterId,
+      data: {
+        text: chapterTextDraft,
+        chapterJson,
+      },
+      chapterContract,
+      previousChapterTexts,
+    });
+    if (!envelopeValidation.ok) {
+      if (strictPayloadMode) {
+        return {
+          ok: false,
+          code: "SUKYO_CHAPTER_CONTRACT_VIOLATION",
+          message: "숙요 챕터가 chapterContract 요구사항을 충족하지 못했습니다.",
+          chapterMeta,
+          missingFields: envelopeValidation.missingFields,
+        };
+      }
+      const fallback = createFallbackSukyoChapter(chapter, sukyoContext, "CHAPTER_CONTRACT_VIOLATION");
+      const text = renderSukyoChapterMarkdown(fallback, chapter);
+      return {
+        ok: true,
+        text,
+        chapterMeta,
+        chapterSpecificSections: [],
+        usedFallback: true,
+        fallbackReason: "CHAPTER_CONTRACT_VIOLATION",
+        missingFields: envelopeValidation.missingFields,
+      };
+    }
+    let text = chapterTextDraft;
 
     let repeatedAcross = detectSukuyoCrossRepeats(text, previousChapterTexts, 30);
     if (repeatedAcross.length > 0) {
@@ -5714,9 +6082,21 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
       const refinedParsed = parseSukyoGeminiChapterResponse(refinedRaw);
       if (refinedParsed?.ok && refinedParsed?.parsed) {
         const refinedJson = sanitizeSukyoChapterJson(chapter, refinedParsed.parsed, sukyoContext);
-        const refinedText = renderSukyoChapterMarkdown(refinedJson, chapter);
-        if (refinedText && refinedText.length >= Math.floor(text.length * 0.8)) {
-          text = refinedText;
+        const refinedEnvelopeValidation = validatePremiumChapterResponseEnvelope({
+          reportType,
+          chapterId,
+          data: {
+            text: renderSukyoChapterMarkdown(refinedJson, chapter),
+            chapterJson: refinedJson,
+          },
+          chapterContract,
+          previousChapterTexts,
+        });
+        if (refinedEnvelopeValidation.ok) {
+          const refinedText = renderSukyoChapterMarkdown(refinedJson, chapter);
+          if (refinedText && refinedText.length >= Math.floor(text.length * 0.8)) {
+            text = refinedText;
+          }
         }
       }
       repeatedAcross = detectSukuyoCrossRepeats(text, previousChapterTexts, 30);
@@ -6687,6 +7067,10 @@ function buildAstroChapterPrompt(chapterMeta, canonical, previousTexts = [], pre
   const premiumChapterJsonPacks = premiumInput && typeof premiumInput === "object"
     ? toPlainObject(premiumInput.chapterJsonPacks)
     : {};
+  const chapterContract = premiumInput && typeof premiumInput === "object"
+    ? toPlainObject(premiumInput.chapterContract)
+    : {};
+  const chapterContractText = formatPremiumChapterContractForPrompt(chapterContract);
   const profileCard = {
     name: String(canonical?.profile?.name || "").trim(),
     gender: canonical?.profile?.gender,
@@ -6728,7 +7112,7 @@ function buildAstroChapterPrompt(chapterMeta, canonical, previousTexts = [], pre
 
   return [
     "[SYSTEM]",
-    "너는 서양 점성술 해석자다. 너는 계산자가 아니다. 모든 해석은 제공된 canonicalAstroChart JSON과 profileCard 정보의 값만 사용해야 한다. JSON에 없는 행성 위치, 하우스, 어스펙트, 트랜짓, 노드, 궁합 요소를 절대 만들어내지 않는다. 입력 편차가 있더라도 제공된 계산 근거 범위 안에서 구체적이고 전문적인 해석으로 챕터를 완성한다.",
+    "너는 서양 점성술 분야 최고 전문가이자 프리미엄 PDF 상담가다. 너는 계산자가 아니다. 모든 해석은 제공된 canonicalAstroChart JSON과 profileCard 정보의 값만 사용해야 한다. JSON에 없는 행성 위치, 하우스, 어스펙트, 트랜짓, 노드, 궁합 요소를 절대 만들어내지 않는다. 입력 편차가 있더라도 제공된 계산 근거 범위 안에서 구체적이고 전문적인 해석으로 챕터를 완성한다.",
     coverageRule,
     "",
     "[USER_PROMPT]",
@@ -6738,6 +7122,7 @@ function buildAstroChapterPrompt(chapterMeta, canonical, previousTexts = [], pre
     "relevantPlanets: Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto, NorthNode, SouthNode",
     "relevantHouses: 1~12 house cusps and occupied planets",
     "relevantAspects: use canonicalAstroChart.aspects sorted by orb asc",
+    chapterContractText ? `[chapterContract]\n${chapterContractText}` : "",
     `chartSummary: ${JSON.stringify(summary)}`,
     `premiumChapterJsonPacks: ${JSON.stringify(premiumChapterJsonPacks)}`,
     `focusKeywords: ${JSON.stringify(focusKeywords)}`,
@@ -7294,7 +7679,7 @@ function buildPrompt(kind, input, chapterTitle, dataLine) {
   const guard = kind === "sukuyo"
     ? "중요: 사주명리 PDF가 아니라 숙요점 PDF입니다. 십성, 용신, 대운 중심으로 쓰지 말고 27수, 달의 리듬, 숙요 관계성, 카르마 패턴 중심으로 쓰세요."
     : "";
-  return `당신은 ${labels[kind]} 프리미엄 PDF 전문 작가입니다.
+  return `당신은 ${labels[kind]} 분야 최고 전문가이자 프리미엄 PDF 전문 작가입니다.
 ${guard}
 
 사용자: ${input.name}, 생년월일시 ${input.year}-${input.month}-${input.day} ${input.hour}:${input.minute}
@@ -8273,6 +8658,7 @@ function buildVedicPremiumPrompt(meta, chapter, reportType, context, previousCha
   const chapterGuide = chapterGuides[chapter - 1] || "현재 챕터 주제에 맞춰 베다 데이터 근거 중심으로 작성하세요.";
   const reportTitle = mode === "compatibility" ? VEDIC_REPORT_TITLE_COMPAT : VEDIC_REPORT_TITLE_PERSONAL;
   const reportSubtitle = mode === "compatibility" ? VEDIC_REPORT_SUBTITLE_COMPAT : VEDIC_REPORT_SUBTITLE_PERSONAL;
+  const chapterContractText = formatPremiumChapterContractForPrompt(context?.chapterContract || {});
   const monthlyRule = mode === "personal" && chapter === 11
     ? "챕터 11에서는 반드시 ### 1월부터 ### 12월까지 월별 블록을 만들고, 각 월마다 - Go/- Hold/- Retreat를 포함하세요."
     : "";
@@ -8283,7 +8669,7 @@ function buildVedicPremiumPrompt(meta, chapter, reportType, context, previousCha
   const banList = collectPreviousSentenceBanList(previousChapterTexts, 12);
 
   return [
-    "너는 Code:Destiny 프로젝트의 베다 점성술 프리미엄 PDF 전문 상담가다.",
+    "너는 Code:Destiny 프로젝트의 베다 점성술(Jyotish) 분야 최고 전문가이자 프리미엄 PDF 전문 상담가다.",
     "반드시 사용자 프로필 카드 정보와 canonicalVedicChart 신호를 근거로, 챕터별 Step-by-Step 상담문을 작성한다.",
     "전문 용어(라그나/찬드라/수리야/나크샤트라/다샤/그라하)는 쉬운 한국어 설명을 곁들여 해석한다.",
     "공포 마케팅, 저주성 표현, 운명론적 단정(결혼/이혼/사망/질병 확정, 투자 보장)을 금지한다.",
@@ -8298,6 +8684,7 @@ function buildVedicPremiumPrompt(meta, chapter, reportType, context, previousCha
     `[리포트 타입] ${mode}`,
     `[현재 챕터] ${chapter}. ${meta.title} — ${meta.subtitle}`,
     `[최소 분량] ${VEDIC_MIN_CHARS}자 이상 (권장 5000자 이상)`,
+    chapterContractText ? `[chapterContract]\n${chapterContractText}` : "",
     "",
     "[반드시 지킬 구조]",
     `## 챕터 ${chapter}. ${meta.title}`,
@@ -8377,7 +8764,12 @@ function buildVedicFailOpenFallbackText(chapter, meta, canonicalVedicChart, repo
 async function generateVedicPremiumChapter(env, body, input, chapter, meta, canonicalVedicChart, reportType, chapterPlan, previousChapterTexts = []) {
   const premiumInput = body?._premiumLlmInput && typeof body._premiumLlmInput === "object" ? body._premiumLlmInput : null;
   const strictPayloadMode = usePremiumStrictPayload(body, env);
-  const context = buildVedicDataContext(body, input, canonicalVedicChart, chapterPlan, premiumInput);
+  const context = {
+    ...buildVedicDataContext(body, input, canonicalVedicChart, chapterPlan, premiumInput),
+    chapterContract: premiumInput?.chapterContract && typeof premiumInput.chapterContract === "object"
+      ? premiumInput.chapterContract
+      : null,
+  };
   const prompt = buildVedicPremiumPrompt(meta, chapter, reportType, context, previousChapterTexts);
   const options = {
     temperature: 0.86,
@@ -10780,7 +11172,7 @@ function buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice, 
     : "";
 
   return [
-    "너는 30년 경력의 자미두수 명리 전문가이자, 심리 상담가, 인생 전략 컨설턴트, 프리미엄 PDF 리포트 작가다.",
+    "너는 자미두수 분야 최고 전문가이며, 30년 경력의 자미두수 명리 전문가이자 심리 상담가, 인생 전략 컨설턴트, 프리미엄 PDF 리포트 작가다.",
     "너는 계산자가 아니다. 너는 해석자다.",
     "자미두수 명반 계산은 내부 엔진에서 이미 완료되었으며, 제공된 데이터만 사용해 해석하라.",
     "JSON에 없는 별, 사화, 궁위, 대한, 유년 정보를 추측해 추가하지 마라.",
@@ -11055,6 +11447,16 @@ function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotic
 
 async function generateZiweiPremiumChapter(env, body, input, chapter, meta, canonicalZiweiChart, reportPayload, reportType, partnerOverview, dataQuality, previousChapterTexts = [], ziweiPremiumPayload = null) {
   const strictPayloadMode = usePremiumStrictPayload(body, env);
+  const premiumReportType = "ziweiPremium";
+  const chapterContract = body?._premiumLlmInput?.chapterContract
+    && typeof body._premiumLlmInput.chapterContract === "object"
+    ? body._premiumLlmInput.chapterContract
+    : buildPremiumChapterContract(
+      premiumReportType,
+      REPORT_TYPE_TO_FEATURE_TYPE[premiumReportType] || premiumReportType,
+      reportType,
+      chapter,
+    );
   const chapterSpec = ZIWEI_PDF_CHAPTERS_V2[chapter - 1] || {
     key: `ch_${chapter}`,
     title: meta?.title || `Chapter ${chapter}`,
@@ -11140,7 +11542,9 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
       }),
     }
     : null;
-  const promptContext = premiumContext ? { ...context, premiumContext } : context;
+  const promptContext = premiumContext
+    ? { ...context, premiumContext, chapterContract }
+    : { ...context, chapterContract };
   const ziweiDataContext = buildZiweiDataContext(
     body,
     input,
@@ -11258,6 +11662,41 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
   if (qualityFailed) {
     generationWarnings.push("ZIWEI_CHAPTER_QUALITY_FAILED");
     usedFallback = true;
+    chapterJson = sanitizeZiweiChapterJson(createFallbackChapter(chapterSpec, promptContext), chapterSpec);
+    markdown = ensureZiweiChapterMarkdownLength(
+      buildZiweiFallbackMarkdown(meta, chapter, input, ziweiDataContext.dataText, ziweiDataContext.missingNotice),
+      promptContext,
+      ZIWEI_MIN_CHARS,
+      ZIWEI_MAX_CHARS,
+    );
+    finalText = markdown;
+  }
+
+  const chapterEnvelopeValidation = validatePremiumChapterResponseEnvelope({
+    reportType: premiumReportType,
+    chapterId: chapter,
+    data: chapterJson,
+    chapterContract,
+    previousChapterTexts,
+  });
+
+  if (!chapterEnvelopeValidation.ok) {
+    if (strictPayloadMode) {
+      return {
+        ok: false,
+        code: "ZIWEI_CHAPTER_CONTRACT_VIOLATION",
+        message: "자미두수 챕터가 chapterContract 요구사항을 충족하지 못했습니다.",
+        chapterMeta: {
+          num: Number(chapter || 0),
+          title: String(chapterSpec?.title || meta?.title || `Chapter ${chapter}`),
+          subtitle: String(chapterSpec?.goal || meta?.subtitle || ""),
+        },
+        missingFields: chapterEnvelopeValidation.missingFields,
+      };
+    }
+
+    usedFallback = true;
+    generationWarnings.push("ZIWEI_CHAPTER_CONTRACT_VIOLATION");
     chapterJson = sanitizeZiweiChapterJson(createFallbackChapter(chapterSpec, promptContext), chapterSpec);
     markdown = ensureZiweiChapterMarkdownLength(
       buildZiweiFallbackMarkdown(meta, chapter, input, ziweiDataContext.dataText, ziweiDataContext.missingNotice),
@@ -11460,7 +11899,7 @@ function buildSukuyoChapterPromptPayload(canonical, chapterMeta, chapter, report
 }
 
 function buildSukuyoChapterPrompt(payload) {
-  const systemInstruction = "너는 숙요점 궁합 해석자다. 너는 계산자가 아니다. 모든 해석은 canonicalSukuyoCompatibility JSON에 있는 값만 사용해야 한다. JSON에 없는 숙, 관계 유형, 거리, 역할을 절대 만들어내지 않는다. compatibilityIndex, distanceMetrics, roleActionGuide, elementHarmony, strengthShadowMap을 반드시 반영하고 추측으로 대체하지 않는다. 입력 편차가 있더라도 제공된 계산 근거 범위 안에서 구체적이고 전문적인 해석으로 챕터를 완성한다. 각 챕터는 반드시 두 사람의 숙 이름, 관계 유형, 거리, 역할 중 최소 4개 이상의 구체 데이터를 포함해야 한다.";
+  const systemInstruction = "너는 숙요점(27숙) 궁합 분야 최고 전문가이자 프리미엄 PDF 상담가다. 너는 계산자가 아니다. 모든 해석은 canonicalSukuyoCompatibility JSON에 있는 값만 사용해야 한다. JSON에 없는 숙, 관계 유형, 거리, 역할을 절대 만들어내지 않는다. compatibilityIndex, distanceMetrics, roleActionGuide, elementHarmony, strengthShadowMap을 반드시 반영하고 추측으로 대체하지 않는다. 입력 편차가 있더라도 제공된 계산 근거 범위 안에서 구체적이고 전문적인 해석으로 챕터를 완성한다. 각 챕터는 반드시 두 사람의 숙 이름, 관계 유형, 거리, 역할 중 최소 4개 이상의 구체 데이터를 포함해야 한다.";
   return [
     systemInstruction,
     "",
@@ -11662,7 +12101,7 @@ function buildSukuyoNatalPromptPayload(canonicalSukuyoNatal, chapterSpec, chapte
 }
 
 function buildSukuyoNatalPrompt(payload) {
-  const systemPrompt = "너는 숙요점 개인 리포트 해석자다. 너는 숙요를 계산하지 않는다. 모든 해석은 canonicalSukuyoNatal JSON에 있는 값만 사용한다. JSON에 없는 본명숙, 월상, 삭망각, 조도, 방향, 원소, 숙요 속성을 절대 만들어내지 않는다. 각 챕터는 자기 주제에 맞는 고유한 세부 카테고리를 가져야 하며, 모든 챕터에 같은 소제목을 반복해서는 안 된다. 입력 편차가 있더라도 제공된 계산 근거 범위 안에서 챕터를 완성한다.";
+  const systemPrompt = "너는 숙요점(27숙) 개인 리포트 분야 최고 전문가이자 프리미엄 PDF 상담가다. 너는 숙요를 계산하지 않는다. 모든 해석은 canonicalSukuyoNatal JSON에 있는 값만 사용한다. JSON에 없는 본명숙, 월상, 삭망각, 조도, 방향, 원소, 숙요 속성을 절대 만들어내지 않는다. 각 챕터는 자기 주제에 맞는 고유한 세부 카테고리를 가져야 하며, 모든 챕터에 같은 소제목을 반복해서는 안 된다. 입력 편차가 있더라도 제공된 계산 근거 범위 안에서 챕터를 완성한다.";
   return [
     systemPrompt,
     "",
@@ -12897,7 +13336,7 @@ const DEFAULT_BOOK_SECTION_HEADERS = [
   "실전 행동 가이드",
 ];
 
-const LOVE_SECRET_SYSTEM_PROMPT = "너는 Code:Destiny의 프리미엄 사주 연애 비책 PDF를 작성하는 전문 상담가다. 계산은 하지 않고 canonicalSajuLoveReport JSON의 값만 해석한다. 내부 근거 데이터는 해석의 재료로만 쓰고 PDF 본문에는 노출하지 않는다. 사용된 사주 데이터 목록, 원국 계산 근거, 궁합 산출 과정, JSON/payload/engine result, 내부 점수표, 개발자용 문장(예: 이 데이터에 따르면)은 절대 출력하지 않는다. 개인 모드와 궁합 모드를 엄격히 분리하고, 각 챕터는 주제와 상담 목적이 겹치지 않게 작성한다. 궁합 모드는 A 성향, B 성향, 상호작용, 장점, 약점, 현실 패턴, 운영 전략, 최종 조언 흐름을 자연스럽게 녹인다. 자극적 표현·운명론적 단정·저주성 표현·공포 마케팅을 금지하고, 현실적인 관계 운영과 즉시 실행 가능한 행동 전략을 반드시 포함한다.";
+const LOVE_SECRET_SYSTEM_PROMPT = "너는 Code:Destiny의 프리미엄 사주 연애 비책 PDF를 작성하는 해당 분야 최고 전문가이자 1:1 관계 상담가다. 계산은 하지 않고 canonicalSajuLoveReport JSON의 값만 해석한다. 내부 근거 데이터는 해석의 재료로만 쓰고 PDF 본문에는 노출하지 않는다. 사용된 사주 데이터 목록, 원국 계산 근거, 궁합 산출 과정, JSON/payload/engine result, 내부 점수표, 개발자용 문장(예: 이 데이터에 따르면)은 절대 출력하지 않는다. 개인 모드와 궁합 모드를 엄격히 분리하고, 각 챕터는 주제와 상담 목적이 겹치지 않게 작성한다. 궁합 모드는 A 성향, B 성향, 상호작용, 장점, 약점, 현실 패턴, 운영 전략, 최종 조언 흐름을 자연스럽게 녹인다. 자극적 표현·운명론적 단정·저주성 표현·공포 마케팅을 금지하고, 현실적인 관계 운영과 즉시 실행 가능한 행동 전략을 반드시 포함한다.";
 
 const LOVE_SECRET_FORBIDDEN_REPEATED_PHRASES = [
   "현재 챕터의 핵심은 상대를 바꾸는 기술이 아니라 관계 운영 방식을 정교화하는 것입니다.",
@@ -14345,6 +14784,9 @@ function buildLoveSecretChapterPayload(modeConfig, chapterMeta, chapter, canonic
     premiumChapterJsonPacks: premiumInput && typeof premiumInput === "object"
       ? toPlainObject(premiumInput.chapterJsonPacks || premiumInput)
       : null,
+    chapterContract: premiumInput && typeof premiumInput === "object" && premiumInput.chapterContract && typeof premiumInput.chapterContract === "object"
+      ? toPlainObject(premiumInput.chapterContract)
+      : null,
     minLength: minChars,
     targetLength,
     tone: "따뜻하지만 구체적인 프리미엄 사주 연애 상담",
@@ -14356,6 +14798,13 @@ function buildLoveSecretPrompt(modeConfig, chapterMeta, chapter, canonical, minC
   const payload = buildLoveSecretChapterPayload(modeConfig, chapterMeta, chapter, canonical, minChars, premiumInput);
   const previousBan = collectPreviousSentenceBanList(previousTexts, 12);
   const isCompat = canonical?.mode === "compatibility";
+  const chapterContract = payload?.chapterContract && typeof payload.chapterContract === "object"
+    ? payload.chapterContract
+    : {};
+  const chapterContractText = formatPremiumChapterContractForPrompt(chapterContract);
+  const requiredHeadings = Array.isArray(chapterContract?.requiredHeadings)
+    ? chapterContract.requiredHeadings.map((row) => String(row || "").trim()).filter(Boolean)
+    : [];
   return [
     "[System Prompt]",
     LOVE_SECRET_SYSTEM_PROMPT,
@@ -14369,14 +14818,17 @@ function buildLoveSecretPrompt(modeConfig, chapterMeta, chapter, canonical, minC
     "- '사용 데이터 요약표', '데이터 요약표', 'JSON', 'payload', 'engine result', '내부 점수표', '산출 과정' 같은 표현을 본문에 쓰지 않는다.",
     "- '이 데이터에 따르면' 같은 개발자용 문장을 쓰지 않는다.",
     "- 장문 반복, 문장 복붙, 일반론 패딩을 금지한다.",
+    "- 너는 연애 사주 상담 분야 최고 전문가로서 독자에게 1:1 프리미엄 상담을 진행하듯 작성한다.",
     "- 각 챕터 마지막에 '### 핵심 요약 5줄'을 넣고 5개 문장으로 정리한다.",
     "- chapterSpecificSections는 실제 본문 소제목에 반영해야 한다.",
+    requiredHeadings.length ? `- chapterContract.requiredHeadings를 누락 없이 본문 소제목으로 포함한다: ${requiredHeadings.join(" | ")}` : "",
     "- 각 챕터는 이전 챕터와 주제/조언/문장 구조를 반복하지 않는다.",
     isCompat
       ? "- 궁합 모드는 A 성향, B 성향, 두 사람 상호작용, 장점, 약점, 현실 패턴, 운영 전략, 최종 조언 순서를 자연스럽게 녹여 작성한다."
       : "- 개인 모드는 한 사람의 연애 성향, 실전 전략, 장기 관계 운용 중심으로 작성한다.",
     "- 노골적 성적 표현 금지, 확정 예언 금지.",
     "- JSON에 없는 신살/용신/대운/세운/궁합 요소를 쓰지 않는다.",
+    chapterContractText ? `[chapterContract]\n${chapterContractText}` : "",
     "",
     previousBan.length ? `[이전 챕터 재사용 금지 문장]\n${JSON.stringify(previousBan)}` : "",
   ].filter(Boolean).join("\n");
@@ -14758,7 +15210,7 @@ function buildSessionPrompt(kind, title, chapter, totalChapters, body, sectionHe
 
   return [
     `You are Code Destiny's premium ${kind} writer.`,
-    "Your role: elite relationship counselor + advanced saju analyst.",
+    "Your role: top domain expert who writes premium PDF counseling content with concrete guidance.",
     "Return ONLY natural Korean markdown. Do not use English headings.",
     "Use the provided saju engine data as the source of truth.",
     "Never infer missing saju calculations from profile or birth text.",
@@ -15287,9 +15739,16 @@ function buildSajuNewYearGeminiPrompt(chapterMeta, chapter, canonical, minChars,
   const chapterLabel = String(chapterMeta?.title || `Chapter ${chapter}`);
   const chapterSubtitle = String(chapterMeta?.subtitle || "");
   const previousBan = collectPreviousSentenceBanList(previousChapterTexts, 12);
+  const chapterContract = premiumLlmInput && typeof premiumLlmInput === "object" && premiumLlmInput.chapterContract && typeof premiumLlmInput.chapterContract === "object"
+    ? premiumLlmInput.chapterContract
+    : buildPremiumChapterContract("sajuNewYear", REPORT_TYPE_TO_FEATURE_TYPE.sajuNewYear || "sajuNewYear", "personal", chapter);
+  const chapterContractText = formatPremiumChapterContractForPrompt(chapterContract);
+  const requiredHeadings = Array.isArray(chapterContract?.requiredHeadings)
+    ? chapterContract.requiredHeadings.map((row) => String(row || "").trim()).filter(Boolean)
+    : [];
 
   return [
-    "당신은 Code Destiny의 프리미엄 사주 신년운세 PDF 전문 작가입니다.",
+    "당신은 Code Destiny의 프리미엄 사주 신년운세 PDF를 작성하는 해당 분야 최고 전문가이자 연간 전략 상담가입니다.",
     "응답은 한국어 마크다운 본문만 작성하세요.",
     "완성형 상담문만 출력하고, 내부 계산 근거 목록이나 개발자 문장은 출력하지 마세요.",
     "과장된 운세 문구/공포 유도 문구/확정적 예언을 금지합니다.",
@@ -15298,7 +15757,9 @@ function buildSajuNewYearGeminiPrompt(chapterMeta, chapter, canonical, minChars,
     "섹션마다 실제 행동 기준을 포함하고, 모호한 위로 문장만 반복하지 마세요.",
     "이전 챕터의 동일 문장, 동일 비유, 동일 조언 프레이밍을 재사용하지 마세요.",
     "핵심은 올해를 어떻게 운영할지에 대한 실행 전략이며, 길흉 단정 대신 행동 설계로 작성하세요.",
+    requiredHeadings.length ? `chapterContract.requiredHeadings를 본문 소제목으로 모두 반영하세요: ${requiredHeadings.join(" | ")}` : "",
     checklist.length ? `[챕터 필수 커버리지]\n- ${checklist.join("\n- ")}` : "",
+    chapterContractText ? `[chapterContract]\n${chapterContractText}` : "",
     Number(chapter) === 9
       ? "이 챕터는 반드시 12개월 월별 테이블을 마크다운 표 형식으로 포함하세요. 월별 테이블은 각 월마다 서로 다른 지침을 제공해야 합니다."
       : "",
@@ -16496,6 +16957,7 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
   const calculationVersion = String(env.PREMIUM_CALCULATION_VERSION || "premium-report-v1");
   const inputHash = stablePayloadHash(requestBody || {});
   const modeKey = modeKeyFromInput(requestBody || {});
+  const requestBinding = buildPremiumSessionBinding(reportType, modeKey, requestBody || {});
   const cacheKey = getPremiumCacheKey(reportType, authInfo.userId, inputHash, calculationVersion, modeKey);
   const idempotencyKey = `${String(authInfo.userId || "anonymous")}:${String(featureType || reportType || "")}:${modeKey}:${inputHash}`;
   const existingSessionId = PREMIUM_REPORT_CONTEXT_INDEX.get(cacheKey);
@@ -16504,14 +16966,21 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
   if (existingSessionId) {
     const existing = PREMIUM_REPORT_CONTEXT_STORE.get(existingSessionId);
     if (existing && Number(existing.expiresAt || 0) > now) {
+      const existingBindingId = String(existing?.sessionBinding?.bindingId || "").trim();
+      const requestBindingId = String(requestBinding?.bindingId || "").trim();
+      if (existingBindingId && requestBindingId && existingBindingId !== requestBindingId) {
+        PREMIUM_REPORT_CONTEXT_INDEX.delete(cacheKey);
+      } else {
       existing.requestId = String(requestId || existing.requestId || "");
       existing.featureType = existing.featureType || featureType || REPORT_TYPE_TO_FEATURE_TYPE[reportType] || "";
       existing.idempotencyKey = existing.idempotencyKey || idempotencyKey;
+      existing.sessionBinding = existing.sessionBinding || requestBinding;
       existing.updatedAt = new Date(now).toISOString();
       existing.expiresAt = now + PREMIUM_REPORT_CONTEXT_TTL_MS;
       upsertPremiumAnalysisSnapshot(existing);
       PREMIUM_REPORT_CONTEXT_STORE.set(existingSessionId, existing);
       return { ok: true, context: existing, cacheHit: true };
+      }
     }
     PREMIUM_REPORT_CONTEXT_INDEX.delete(cacheKey);
   }
@@ -16606,10 +17075,12 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
     inputHash,
     calculationVersion,
     cacheKey,
+    sessionBinding: requestBinding,
     sourceMap,
     input: requestBody && typeof requestBody === "object" ? requestBody : {},
     coreData: {
       canonicalJson: canonicalBuild.canonicalJson,
+      canonicalFingerprint: buildPremiumCanonicalFingerprint(canonicalBuild.canonicalJson),
       reportType,
       reportId,
     },
@@ -16956,6 +17427,22 @@ async function handlePremiumReportPreflight(request, env, authInfo) {
     }, { status: 401 });
   }
 
+  const preflightBinding = validatePremiumSessionBinding(context, body);
+  if (!preflightBinding.ok) {
+    return json({
+      ok: false,
+      code: preflightBinding.code || "PREMIUM_REPORT_SESSION_BINDING_MISMATCH",
+      message: preflightBinding.message || "리포트 세션 바인딩 검증에 실패했습니다.",
+      requestId,
+      reportSessionId,
+      snapshotId: String(context?.analysisSnapshot?.snapshotId || snapshotId || "").trim(),
+      expectedBindingId: preflightBinding.expectedBindingId,
+      incomingBindingId: preflightBinding.incomingBindingId,
+      expectedProfileSnapshot: preflightBinding.expectedProfileSnapshot || null,
+      incomingProfileSnapshot: preflightBinding.incomingProfileSnapshot || null,
+    }, { status: 409 });
+  }
+
   const resolvedSnapshot = upsertPremiumAnalysisSnapshot(context);
   context.updatedAt = new Date().toISOString();
   context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
@@ -17045,6 +17532,23 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   if (String(context.userId) !== String(authInfo.userId)) {
     return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트 세션입니다.", requestId }, { status: 401 });
   }
+
+  const chapterBinding = validatePremiumSessionBinding(context, body);
+  if (!chapterBinding.ok) {
+    return json({
+      ok: false,
+      code: chapterBinding.code || "PREMIUM_REPORT_SESSION_BINDING_MISMATCH",
+      message: chapterBinding.message || "리포트 세션 바인딩 검증에 실패했습니다.",
+      requestId,
+      reportSessionId,
+      snapshotId: String(context?.analysisSnapshot?.snapshotId || snapshotId || "").trim(),
+      expectedBindingId: chapterBinding.expectedBindingId,
+      incomingBindingId: chapterBinding.incomingBindingId,
+      expectedProfileSnapshot: chapterBinding.expectedProfileSnapshot || null,
+      incomingProfileSnapshot: chapterBinding.incomingProfileSnapshot || null,
+    }, { status: 409 });
+  }
+
   context.requestId = requestId;
   const allowFailOpen = true;
 
@@ -17070,11 +17574,27 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   const applyHydrationToContext = (hydrated) => {
     if (!hydrated?.canonicalBuild || !hydrated?.prepareData) return false;
     const canonicalBuild = hydrated.canonicalBuild;
+    const nextCanonicalJson = canonicalBuild.canonicalJson || {};
+    const nextCanonicalFingerprint = buildPremiumCanonicalFingerprint(nextCanonicalJson);
+    const currentCanonicalFingerprint = String(context?.coreData?.canonicalFingerprint || "").trim();
+
+    if (
+      currentCanonicalFingerprint
+      && nextCanonicalFingerprint
+      && currentCanonicalFingerprint !== nextCanonicalFingerprint
+      && Boolean(context?.isCompleteForPdf)
+      && Boolean(context?.coreData?.canonicalJson)
+    ) {
+      context.warnings = Array.from(new Set([...(context.warnings || []), "PREMIUM_CANONICAL_DRIFT_BLOCKED"]));
+      return false;
+    }
+
     const featureKey = context.featureType || REPORT_TYPE_TO_FEATURE_TYPE[context.reportType] || context.reportType;
 
     context.sourceMap = buildPremiumSourceMap(context.reportType, context.input, hydrated.prepareData);
     context.coreData = context.coreData || {};
-    context.coreData.canonicalJson = canonicalBuild.canonicalJson;
+    context.coreData.canonicalJson = nextCanonicalJson;
+    context.coreData.canonicalFingerprint = nextCanonicalFingerprint;
 
     context.derivedData = context.derivedData || {};
     context.derivedData.validation = canonicalBuild.validation || null;
@@ -17223,8 +17743,6 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       reportType: context.reportType,
       requestBody: {
         ...(context.input || {}),
-        chapter: chapterId,
-        sessionId: chapterId,
       },
       requestId,
       reportId: context.reportId,
@@ -17428,6 +17946,43 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       text: chapterText,
     });
 
+    const chapterEnvelope = validatePremiumChapterResponseEnvelope({
+      reportType: context.reportType,
+      chapterId,
+      data: {
+        text: chapterText,
+        chapterJson: data?.chapterJson && typeof data.chapterJson === "object" ? data.chapterJson : null,
+      },
+      chapterContract: chapterRequestBody?._premiumLlmInput?.chapterContract || null,
+      previousChapterTexts: Array.isArray(context?.chapterTextById)
+        ? context.chapterTextById
+        : Object.values(context?.chapterTextById || {}).map((row) => String(row || "")).filter(Boolean),
+    });
+
+    if (!chapterEnvelope.ok) {
+      const envelopeDetails = chapterEnvelope.details || {};
+      const envelopeMissing = [];
+      if (Array.isArray(envelopeDetails.missingHeadings)) {
+        envelopeMissing.push(...envelopeDetails.missingHeadings.map((row) => `heading:${row}`));
+      }
+      if (Array.isArray(envelopeDetails.missingJsonFields)) {
+        envelopeMissing.push(...envelopeDetails.missingJsonFields.map((row) => `json:${row}`));
+      }
+      if (Array.isArray(envelopeDetails.repeatedAcross) && envelopeDetails.repeatedAcross.length) {
+        envelopeMissing.push("repeat:across-chapters");
+      }
+      lastFailure = {
+        status: 422,
+        code: String(chapterEnvelope.code || "PREMIUM_REPORT_CHAPTER_CONTRACT_FAILED"),
+        message: String(chapterEnvelope.message || "챕터 계약 검증 실패"),
+        lengthValidation: {
+          ok: false,
+          warnings: envelopeMissing,
+        },
+      };
+      continue;
+    }
+
     if (!lengthCheck.ok) {
       lengthCheck.warnings = Array.from(new Set([...(lengthCheck.warnings || []), "RECOVERABLE_LENGTH_SHORT"]));
       lengthCheck.ok = true;
@@ -17584,6 +18139,22 @@ async function handlePremiumReportRun(request, env, authInfo) {
   }
   if (String(context.userId) !== String(authInfo.userId)) {
     return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트 세션입니다.", requestId }, { status: 401 });
+  }
+
+  const runBinding = validatePremiumSessionBinding(context, body);
+  if (!runBinding.ok) {
+    return json({
+      ok: false,
+      code: runBinding.code || "PREMIUM_REPORT_SESSION_BINDING_MISMATCH",
+      message: runBinding.message || "리포트 세션 바인딩 검증에 실패했습니다.",
+      requestId,
+      reportSessionId,
+      snapshotId: String(context?.analysisSnapshot?.snapshotId || snapshotId || "").trim(),
+      expectedBindingId: runBinding.expectedBindingId,
+      incomingBindingId: runBinding.incomingBindingId,
+      expectedProfileSnapshot: runBinding.expectedProfileSnapshot || null,
+      incomingProfileSnapshot: runBinding.incomingProfileSnapshot || null,
+    }, { status: 409 });
   }
 
   upsertPremiumAnalysisSnapshot(context);
@@ -17790,6 +18361,23 @@ async function handlePremiumReportPdf(request, env, authInfo) {
   if (String(context.userId) !== String(authInfo.userId)) {
     return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 리포트 세션입니다.", requestId }, { status: 401 });
   }
+
+  const pdfBinding = validatePremiumSessionBinding(context, body);
+  if (!pdfBinding.ok) {
+    return json({
+      ok: false,
+      code: pdfBinding.code || "PREMIUM_REPORT_SESSION_BINDING_MISMATCH",
+      message: pdfBinding.message || "리포트 세션 바인딩 검증에 실패했습니다.",
+      requestId,
+      reportSessionId,
+      snapshotId: String(context?.analysisSnapshot?.snapshotId || snapshotId || "").trim(),
+      expectedBindingId: pdfBinding.expectedBindingId,
+      incomingBindingId: pdfBinding.incomingBindingId,
+      expectedProfileSnapshot: pdfBinding.expectedProfileSnapshot || null,
+      incomingProfileSnapshot: pdfBinding.incomingProfileSnapshot || null,
+    }, { status: 409 });
+  }
+
   context.requestId = requestId;
 
   upsertPremiumAnalysisSnapshot(context);
@@ -18713,6 +19301,10 @@ export const __premiumReportTestUtils = {
   normalizePremiumReportType,
   resolvePremiumTypePair,
   normalizePremiumRequestBodyForPipeline,
+  buildPremiumSessionBinding,
+  validatePremiumSessionBinding,
+  buildPremiumChapterContract,
+  validatePremiumChapterResponseEnvelope,
   getPremiumExpectedSchema,
   getPremiumNormalizedDataSummary,
   getPremiumRequiredChapters,

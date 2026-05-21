@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { logout } from "../_lib/auth-store";
-import { persistSanitizedAuthUser, readSanitizedAuthUser, resolveAuthScopeFromUser } from "../_lib/auth-storage";
+import { persistSanitizedAuthUser, readSanitizedAuthUser } from "../_lib/auth-storage";
 import WithdrawModal from "../components/WithdrawModal";
 
 type AuthUser = {
@@ -19,14 +19,11 @@ type AuthUser = {
   hasLocalAuth?: boolean;
   role?: "user" | "admin";
   points?: number;
-  birthDate?: string;
-  birthTime?: string;
-  gender?: string;
-  joinedAt?: string | null;
 };
 
 type DestinyProfile = {
   id: string;
+  profileId?: string;
   name: string;
   gender?: "M" | "F" | "OTHER";
   birth?: {
@@ -43,71 +40,26 @@ type DestinyProfile = {
     lng?: number;
     lat?: number;
   };
-  createdAt?: string;
+  createdAt?: string | null;
 };
 
-type SubscriptionStatus = {
+type ProfileSubscription = {
   tier: "free" | "standard" | "premium" | "vvip";
-  source?: "coin" | "card";
   isActive: boolean;
-  expiresAt: string | null;
   profileLimit: number;
+  expiresAt: string | null;
 };
 
-const PROFILE_NS = "FORTUNE_APP_USER_PROFILES";
+type ProfileStatePayload = {
+  ok?: boolean;
+  profiles?: DestinyProfile[];
+  currentId?: string;
+  canCreateMore?: boolean;
+  subscription?: ProfileSubscription;
+};
 
 function readCachedUser(): AuthUser | null {
   return readSanitizedAuthUser() as AuthUser | null;
-}
-
-function resolveScope(user: AuthUser | null) {
-  return resolveAuthScopeFromUser(user) || "guest";
-}
-
-function scopedListKey(scope: string) {
-  return `${PROFILE_NS}.list::${scope}`;
-}
-
-function scopedCurrentKey(scope: string) {
-  return `${PROFILE_NS}.current::${scope}`;
-}
-
-function readProfiles(scope: string) {
-  try {
-    const scoped = localStorage.getItem(scopedListKey(scope));
-    const raw = scoped ?? localStorage.getItem(`${PROFILE_NS}.list`) ?? "[]";
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as DestinyProfile[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-function readCurrentProfileId(scope: string) {
-  try {
-    return localStorage.getItem(scopedCurrentKey(scope)) || localStorage.getItem(`${PROFILE_NS}.current`) || "";
-  } catch {
-    return "";
-  }
-}
-
-function writeProfiles(scope: string, profiles: DestinyProfile[], currentId: string) {
-  localStorage.setItem(scopedListKey(scope), JSON.stringify(profiles));
-  localStorage.setItem(`${PROFILE_NS}.list`, JSON.stringify(profiles));
-  localStorage.setItem(`${PROFILE_NS}.scope`, scope);
-  localStorage.setItem(`${PROFILE_NS}.legacyOwner`, scope);
-
-  if (currentId) {
-    localStorage.setItem(scopedCurrentKey(scope), currentId);
-    localStorage.setItem(`${PROFILE_NS}.current`, currentId);
-  } else {
-    localStorage.removeItem(scopedCurrentKey(scope));
-    localStorage.removeItem(`${PROFILE_NS}.current`);
-  }
-
-  window.dispatchEvent(new CustomEvent("destinyProfileChanged", {
-    detail: profiles.find((profile) => profile.id === currentId) || null,
-  }));
 }
 
 function clearAuth() {
@@ -122,93 +74,164 @@ function formatProfileBirth(profile: DestinyProfile) {
   return `${birth.year}.${String(birth.month).padStart(2, "0")}.${String(birth.day).padStart(2, "0")} ${hour}:${minute}`;
 }
 
-function planLabel(tier: SubscriptionStatus["tier"]) {
+function planLabel(tier: ProfileSubscription["tier"]) {
   if (tier === "standard") return "스탠다드";
   if (tier === "premium") return "프리미엄";
   if (tier === "vvip") return "VVIP";
   return "무료";
 }
 
-function sourceLabel(source?: SubscriptionStatus["source"]) {
-  if (source === "card") return "카드 정기결제";
-  if (source === "coin") return "코인 구독";
-  return "미설정";
+function fallbackSubscription(): ProfileSubscription {
+  return {
+    tier: "free",
+    isActive: false,
+    profileLimit: 1,
+    expiresAt: null,
+  };
+}
+
+function emitDestinyProfileChanged(profiles: DestinyProfile[], currentId: string) {
+  const active = profiles.find((profile) => profile.id === currentId) || null;
+  window.dispatchEvent(new CustomEvent("destinyProfileChanged", { detail: active }));
 }
 
 export default function MePage() {
   const router = useRouter();
   const apiBase = useMemo(() => getApiBaseUrl(), []);
+
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authNotice, setAuthNotice] = useState("");
   const [profiles, setProfiles] = useState<DestinyProfile[]>([]);
   const [currentId, setCurrentId] = useState("");
-  const [subscription, setSubscription] = useState<SubscriptionStatus>({
-    tier: "free",
-    source: "coin",
-    isActive: false,
-    expiresAt: null,
-    profileLimit: 1,
-  });
+  const [subscription, setSubscription] = useState<ProfileSubscription>(fallbackSubscription());
+  const [canCreateMore, setCanCreateMore] = useState(true);
   const [loading, setLoading] = useState(true);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [logoutPending, setLogoutPending] = useState(false);
   const [hasLocalAuth, setHasLocalAuth] = useState(true);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [busyAction, setBusyAction] = useState<string>("");
 
-  const scope = useMemo(() => resolveScope(user), [user]);
   const currentProfile = profiles.find((profile) => profile.id === currentId) || profiles[0] || null;
   const profileLimit = subscription.profileLimit > 0 ? subscription.profileLimit : 1;
   const slotPercent = Math.min(100, Math.round((profiles.length / profileLimit) * 100));
 
-  const reloadProfiles = useCallback((nextUser: AuthUser | null) => {
-    const nextScope = resolveScope(nextUser);
-    const nextProfiles = readProfiles(nextScope);
-    const nextCurrentId = readCurrentProfileId(nextScope) || nextProfiles[0]?.id || "";
+  const applyProfilePayload = useCallback((payload: ProfileStatePayload | null) => {
+    if (!payload || payload.ok !== true) return;
+
+    const nextProfiles = Array.isArray(payload.profiles) ? payload.profiles : [];
+    const nextCurrentId = typeof payload.currentId === "string"
+      ? payload.currentId
+      : (nextProfiles[0]?.id || "");
+    const nextSubscription = payload.subscription && typeof payload.subscription === "object"
+      ? {
+          tier: (payload.subscription.tier || "free") as ProfileSubscription["tier"],
+          isActive: !!payload.subscription.isActive,
+          profileLimit: Number(payload.subscription.profileLimit || 1),
+          expiresAt: payload.subscription.expiresAt || null,
+        }
+      : fallbackSubscription();
+
     setProfiles(nextProfiles);
     setCurrentId(nextCurrentId);
+    setSubscription(nextSubscription);
+    setCanCreateMore(payload.canCreateMore !== false && nextProfiles.length < Math.max(1, nextSubscription.profileLimit));
+    emitDestinyProfileChanged(nextProfiles, nextCurrentId);
   }, []);
 
-  const syncProfilesFromServer = useCallback(async (nextUser: AuthUser | null) => {
-    if (!nextUser) return;
+  const loadProfileState = useCallback(async () => {
+    const response = await authFetch(`${apiBase}/api/profile`, {
+      method: "GET",
+      cache: "no-store",
+    }, {
+      retryOn401: true,
+      apiBase,
+    });
 
-    const nextScope = resolveScope(nextUser);
-    try {
-      const response = await authFetch(`${apiBase}/api/user/destiny-profiles`, {
-        method: "GET",
-        cache: "no-store",
-      }, {
-        retryOn401: true,
-        apiBase,
-      });
-
-      if (!response.ok) return;
-      const payload = await response.json().catch(() => null);
-      if (!payload?.ok) return;
-
-      const serverProfiles = Array.isArray(payload.profiles) ? payload.profiles as DestinyProfile[] : [];
-      const serverCurrentId = typeof payload.currentId === "string" ? payload.currentId : "";
-      const nextCurrentId = serverCurrentId || serverProfiles[0]?.id || "";
-
-      writeProfiles(nextScope, serverProfiles, nextCurrentId);
-      setProfiles(serverProfiles);
-      setCurrentId(nextCurrentId);
-    } catch {
-      // Local cache fallback is intentional when network is temporarily unstable.
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        throw new Error("auth_invalid");
+      }
+      throw new Error(String(payload?.message || "profile_state_failed"));
     }
-  }, [apiBase]);
 
-  const syncProfilesToServer = useCallback(async (nextProfiles: DestinyProfile[], nextCurrentId: string) => {
-    if (!user) return;
+    applyProfilePayload(payload);
+  }, [apiBase, applyProfilePayload]);
 
+  useEffect(() => {
+    let mounted = true;
+
+    const bootstrap = async () => {
+      const cachedUser = readCachedUser();
+      if (mounted) {
+        setUser(cachedUser);
+        setHasLocalAuth(cachedUser?.hasLocalAuth !== false);
+      }
+
+      try {
+        const response = await authFetch("/api/auth/me", {
+          method: "GET",
+          cache: "no-store",
+        }, {
+          retryOn401: true,
+          apiBase,
+        });
+
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) {
+          const code = String(payload?.code || payload?.error || "").toUpperCase();
+          if (code === "AUTH_REFRESH_TEMPORARY_FAILURE") {
+            if (mounted) {
+              setAuthNotice("로그인 세션 확인이 일시적으로 지연되고 있습니다. 잠시 후 자동으로 복구됩니다.");
+            }
+            return;
+          }
+          if (response.status === 401 || response.status === 403) {
+            throw new Error("auth_invalid");
+          }
+          throw new Error("auth_check_failed");
+        }
+
+        if (payload?.user && mounted) {
+          persistSanitizedAuthUser(payload.user);
+          setUser(payload.user);
+          setHasLocalAuth(payload.user?.hasLocalAuth !== false);
+          setAuthNotice("");
+        }
+
+        if (mounted) {
+          await loadProfileState();
+        }
+      } catch (error) {
+        if (!mounted) return;
+        if (error instanceof Error && error.message === "auth_invalid") {
+          clearAuth();
+          router.replace("/login?next=%2Fme");
+          return;
+        }
+        setAuthNotice("일시적인 네트워크 지연으로 계정 동기화가 늦어지고 있습니다. 잠시 후 다시 확인해 주세요.");
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void bootstrap();
+
+    return () => {
+      mounted = false;
+    };
+  }, [apiBase, loadProfileState, router]);
+
+  const activateProfile = async (profileId: string) => {
+    setBusyAction(`activate:${profileId}`);
     try {
-      const response = await authFetch(`${apiBase}/api/user/destiny-profiles`, {
-        method: "POST",
+      const response = await authFetch(`${apiBase}/api/profile/current`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        cache: "no-store",
-        body: JSON.stringify({
-          action: "sync",
-          profiles: nextProfiles,
-          currentId: nextCurrentId,
-        }),
+        body: JSON.stringify({ currentId: profileId }),
       }, {
         retryOn401: true,
         apiBase,
@@ -216,119 +239,59 @@ export default function MePage() {
 
       const payload = await response.json().catch(() => null);
       if (!response.ok || !payload?.ok) {
-        setAuthNotice("프로필 저장이 서버에 반영되지 않았습니다. 네트워크 상태를 확인해 주세요.");
+        setAuthNotice(String(payload?.message || "프로필 활성화에 실패했습니다."));
         return;
       }
 
-      const serverProfiles = Array.isArray(payload.profiles) ? payload.profiles as DestinyProfile[] : nextProfiles;
-      const serverCurrentId = typeof payload.currentId === "string"
-        ? payload.currentId
-        : (nextCurrentId || serverProfiles[0]?.id || "");
-
-      writeProfiles(scope, serverProfiles, serverCurrentId);
-      setProfiles(serverProfiles);
-      setCurrentId(serverCurrentId);
+      setCurrentId(profileId);
+      emitDestinyProfileChanged(profiles, profileId);
       setAuthNotice("");
     } catch {
-      setAuthNotice("프로필 저장 중 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      setAuthNotice("프로필 활성화 중 오류가 발생했습니다.");
+    } finally {
+      setBusyAction("");
     }
-  }, [apiBase, scope, user]);
-
-  useEffect(() => {
-    const cachedUser = readCachedUser();
-    setUser(cachedUser);
-    setHasLocalAuth(cachedUser?.hasLocalAuth !== false);
-    reloadProfiles(cachedUser);
-    void syncProfilesFromServer(cachedUser);
-
-    authFetch("/api/auth/me", {
-      method: "GET",
-      cache: "no-store",
-    }, {
-      retryOn401: true,
-      apiBase,
-    })
-      .then(async (response) => {
-        const payload = await response.json().catch(() => null);
-        if (!response.ok) {
-          const code = String(payload?.code || payload?.error || "").toUpperCase();
-          if (code === "AUTH_REFRESH_TEMPORARY_FAILURE") {
-            setAuthNotice("로그인 세션 확인이 일시적으로 지연되고 있습니다. 잠시 후 자동으로 복구됩니다.");
-            return null;
-          }
-          if (response.status === 401 || response.status === 403) throw new Error("auth_invalid");
-          throw new Error("auth_check_failed");
-        }
-        return payload;
-      })
-      .then((payload) => {
-        if (!payload?.user) return;
-        setAuthNotice("");
-        persistSanitizedAuthUser(payload.user);
-        setUser(payload.user);
-        setHasLocalAuth(payload.user?.hasLocalAuth !== false);
-        reloadProfiles(payload.user);
-        void syncProfilesFromServer(payload.user);
-      })
-      .catch((error) => {
-        if (error instanceof Error && error.message === "auth_invalid") {
-          clearAuth();
-          router.replace("/login?next=%2Fme");
-          return;
-        }
-        setAuthNotice("일시적인 네트워크 지연으로 계정 동기화가 늦어지고 있습니다. 잠시 후 다시 확인해 주세요.");
-      })
-      .finally(() => setLoading(false));
-  }, [apiBase, reloadProfiles, router, syncProfilesFromServer]);
-
-  useEffect(() => {
-    if (!user) return;
-    authFetch(`${apiBase}/api/subscription/me`, {
-      method: "GET",
-      cache: "no-store",
-    }, {
-      retryOn401: true,
-      apiBase,
-    })
-      .then((response) => (response.ok ? response.json() : null))
-      .then((payload) => {
-        if (!payload) return;
-        const current = payload.subscription && typeof payload.subscription === "object" ? payload.subscription : {};
-        const benefits = payload.benefits && typeof payload.benefits === "object" ? payload.benefits : {};
-        const tierFromPlanId = typeof current.planId === "string"
-          ? (current.planId === "honey_standard" ? "standard"
-            : current.planId === "honey_premium" ? "premium"
-              : current.planId === "honey_vvip" ? "vvip"
-                : "free")
-          : "free";
-        setSubscription({
-          tier: payload.tier || tierFromPlanId,
-          source: payload.source === "card" ? "card" : "coin",
-          isActive: !!(payload.isActive ?? benefits.isSubscriber),
-          expiresAt: payload.expiresAt || current.currentPeriodEnd || null,
-          profileLimit: typeof payload.profileLimit === "number"
-            ? payload.profileLimit
-            : (typeof benefits.profileLimit === "number" ? benefits.profileLimit : 1),
-        });
-      })
-      .catch(() => {});
-  }, [apiBase, user]);
-
-  const activateProfile = (profileId: string) => {
-    writeProfiles(scope, profiles, profileId);
-    setCurrentId(profileId);
-    void syncProfilesToServer(profiles, profileId);
   };
 
-  const deleteProfile = (profileId: string) => {
-    if (profiles.length <= 1) return;
+  const deleteProfile = async (profileId: string) => {
     if (!window.confirm("이 프로필 카드를 삭제할까요?")) return;
-    const nextProfiles = profiles.filter((profile) => profile.id !== profileId);
-    const nextCurrentId = currentId === profileId ? nextProfiles[0]?.id || "" : currentId;
-    writeProfiles(scope, nextProfiles, nextCurrentId);
-    setProfiles(nextProfiles);
-    setCurrentId(nextCurrentId);
-    void syncProfilesToServer(nextProfiles, nextCurrentId);
+
+    setBusyAction(`delete:${profileId}`);
+    try {
+      const response = await authFetch(`${apiBase}/api/profile/${encodeURIComponent(profileId)}`, {
+        method: "DELETE",
+      }, {
+        retryOn401: true,
+        apiBase,
+      });
+
+      const payload = await response.json().catch(() => null);
+      if (!response.ok || !payload?.ok) {
+        setAuthNotice(String(payload?.message || "프로필 삭제에 실패했습니다."));
+        return;
+      }
+
+      const nextProfiles = Array.isArray(payload?.profiles) ? payload.profiles as DestinyProfile[] : [];
+      const nextCurrentId = typeof payload?.currentId === "string" ? payload.currentId : (nextProfiles[0]?.id || "");
+
+      setProfiles(nextProfiles);
+      setCurrentId(nextCurrentId);
+      setCanCreateMore(nextProfiles.length < profileLimit);
+      emitDestinyProfileChanged(nextProfiles, nextCurrentId);
+      setAuthNotice("");
+    } catch {
+      setAuthNotice("프로필 삭제 중 오류가 발생했습니다.");
+    } finally {
+      setBusyAction("");
+    }
+  };
+
+  const handleAddProfileClick = () => {
+    if (canCreateMore) {
+      router.push("/#dpMasterCard");
+      return;
+    }
+    setShowUpgradeModal(true);
   };
 
   const handleLogout = async () => {
@@ -357,7 +320,7 @@ export default function MePage() {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-300">My Destiny</p>
             <h1 className="mt-1 text-2xl font-bold text-white sm:text-3xl">프로필 카드</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-              운세 계산에 쓰이는 생년월일, 시간, 출생지를 한곳에서 관리합니다.
+              기기와 무관하게 동일한 계정의 프로필 카드가 서버에서 동기화됩니다.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -404,7 +367,6 @@ export default function MePage() {
               <div className="h-2 rounded-full bg-amber-300" style={{ width: `${slotPercent}%` }} />
             </div>
             <p className="mt-2 text-xs text-slate-400">{planLabel(subscription.tier)} 플랜</p>
-            <p className="mt-1 text-xs text-slate-500">결제 방식: {sourceLabel(subscription.source)}</p>
           </div>
         </section>
 
@@ -446,9 +408,13 @@ export default function MePage() {
             )}
 
             <div className="mt-5 flex flex-wrap gap-2">
-              <Link href="/#dpMasterCard" className="rounded-md bg-amber-300 px-4 py-2 text-sm font-bold text-slate-950">
-                메인에서 편집
-              </Link>
+              <button
+                type="button"
+                onClick={handleAddProfileClick}
+                className={`rounded-md px-4 py-2 text-sm font-bold ${canCreateMore ? "bg-amber-300 text-slate-950" : "border border-amber-300/40 bg-amber-500/10 text-amber-100"}`}
+              >
+                프로필 카드 추가하기
+              </button>
               <Link href="/" className="rounded-md border border-white/15 px-4 py-2 text-sm font-semibold text-slate-200">
                 운세 보러가기
               </Link>
@@ -461,10 +427,14 @@ export default function MePage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Profile List</p>
                 <h2 className="mt-1 text-lg font-bold text-white">저장된 카드</h2>
               </div>
-              {profiles.length >= profileLimit ? (
-                <Link href="/points" className="rounded-md border border-amber-300/35 px-3 py-2 text-xs font-semibold text-amber-100">
+              {!canCreateMore ? (
+                <button
+                  type="button"
+                  onClick={() => setShowUpgradeModal(true)}
+                  className="rounded-md border border-amber-300/35 px-3 py-2 text-xs font-semibold text-amber-100"
+                >
                   슬롯 늘리기
-                </Link>
+                </button>
               ) : null}
             </div>
 
@@ -476,6 +446,9 @@ export default function MePage() {
               ) : (
                 profiles.map((profile) => {
                   const active = profile.id === currentId;
+                  const activating = busyAction === `activate:${profile.id}`;
+                  const deleting = busyAction === `delete:${profile.id}`;
+
                   return (
                     <div key={profile.id} className={`rounded-lg border p-3 ${active ? "border-amber-300/45 bg-amber-300/10" : "border-white/10 bg-black/10"}`}>
                       <div className="flex items-start justify-between gap-3">
@@ -488,19 +461,19 @@ export default function MePage() {
                       <div className="mt-3 flex gap-2">
                         <button
                           type="button"
-                          onClick={() => activateProfile(profile.id)}
-                          disabled={active}
+                          onClick={() => void activateProfile(profile.id)}
+                          disabled={active || activating || deleting || !!busyAction}
                           className="rounded-md border border-white/15 px-3 py-1.5 text-xs font-semibold text-slate-200 disabled:opacity-45"
                         >
-                          사용
+                          {activating ? "처리중..." : "사용"}
                         </button>
                         <button
                           type="button"
-                          onClick={() => deleteProfile(profile.id)}
-                          disabled={profiles.length <= 1}
+                          onClick={() => void deleteProfile(profile.id)}
+                          disabled={deleting || activating || !!busyAction}
                           className="rounded-md border border-rose-300/25 px-3 py-1.5 text-xs font-semibold text-rose-200 disabled:opacity-35"
                         >
-                          삭제
+                          {deleting ? "삭제중..." : "삭제"}
                         </button>
                       </div>
                     </div>
@@ -511,6 +484,33 @@ export default function MePage() {
           </aside>
         </section>
       </div>
+
+      {showUpgradeModal ? (
+        <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/70 px-4">
+          <div className="w-full max-w-md rounded-xl border border-amber-300/35 bg-[#171a34] p-5 shadow-2xl shadow-black/40">
+            <h3 className="text-lg font-bold text-amber-100">프로필 카드 한도에 도달했습니다</h3>
+            <p className="mt-3 text-sm leading-6 text-slate-200">
+              무료 계정은 프로필 카드를 1개까지만 생성할 수 있습니다. 여러 카드를 관리하려면 구독 플랜으로 업그레이드해 주세요.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowUpgradeModal(false)}
+                className="rounded-md border border-white/20 px-3 py-2 text-sm font-semibold text-slate-200"
+              >
+                닫기
+              </button>
+              <Link
+                href="/points"
+                className="rounded-md bg-amber-300 px-3 py-2 text-sm font-bold text-slate-900"
+                onClick={() => setShowUpgradeModal(false)}
+              >
+                구독하러 가기
+              </Link>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <WithdrawModal
         isOpen={isWithdrawOpen}

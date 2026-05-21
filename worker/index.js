@@ -19,6 +19,7 @@ import { handleSibylRoutes } from "./routes/sibyl.js";
 import { handleOracleRoutes } from "./routes/oracle.js";
 import { handleKasiRoutes } from "./routes/kasi.js";
 import { handleUserRoutes } from "./routes/user.js";
+import { handleProfileRoutes } from "./routes/profile.js";
 import { handleSubscriptionRoutes } from "./routes/subscriptions.js";
 import { handleAstroRoutes } from "./routes/astro.js";
 import { handleInsightsRoutes } from "./routes/insights.js";
@@ -643,6 +644,10 @@ export default {
 
       if (url.pathname === "/api/user" || url.pathname.startsWith("/api/user/")) {
         return withCorsHeaders(request, env, await handleUserRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/profile" || url.pathname.startsWith("/api/profile/")) {
+        return withCorsHeaders(request, env, await handleProfileRoutes(request, env));
       }
 
       if (url.pathname === "/api/subscriptions" || url.pathname.startsWith("/api/subscriptions/")) {

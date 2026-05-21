@@ -1,10 +1,17 @@
 import { connectDb } from "../lib/db.js";
-import { User } from "../lib/models.js";
+import { ProfileCard, User } from "../lib/models.js";
 import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 
-const MAX_DESTINY_PROFILES = 30;
+const PROFILE_LIMIT_BY_TIER = Object.freeze({
+  standard: 3,
+  premium: 7,
+  vvip: 15,
+});
+
+const MAX_SYNC_PROFILES = 30;
 const MAX_PROFILE_ID_LEN = 80;
+const MAX_NAME_LEN = 80;
 
 function buildErrorDetails(stage, error, extras = {}) {
   return {
@@ -31,37 +38,140 @@ function logUserRouteError(stage, error, request, extras = {}) {
   }
 }
 
-function sanitizeProfileId(value) {
-  return String(value || "").trim().slice(0, MAX_PROFILE_ID_LEN);
+function sanitizeString(value, maxLen) {
+  return String(value || "").trim().slice(0, maxLen);
 }
 
-function sanitizeDestinyProfiles(rawProfiles) {
+function sanitizeProfileId(value) {
+  return sanitizeString(value, MAX_PROFILE_ID_LEN).replace(/\s+/g, "_");
+}
+
+function sanitizeName(value) {
+  return sanitizeString(value, MAX_NAME_LEN) || "이름 없음";
+}
+
+function sanitizeGender(value) {
+  const normalized = String(value || "OTHER").trim().toUpperCase();
+  if (normalized === "M" || normalized === "F") return normalized;
+  return "OTHER";
+}
+
+function sanitizeInt(value, min, max, fallback) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  const i = Math.trunc(n);
+  if (i < min) return min;
+  if (i > max) return max;
+  return i;
+}
+
+function sanitizeFloat(value, min, max, fallback) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  if (n < min) return min;
+  if (n > max) return max;
+  return n;
+}
+
+function sanitizeCalType(value) {
+  const calType = String(value || "solar").trim().toLowerCase();
+  if (calType === "lunar" || calType === "lunar_leap") return calType;
+  return "solar";
+}
+
+function buildProfileId(rawProfileId, fallbackIndex) {
+  const profileId = sanitizeProfileId(rawProfileId);
+  if (profileId) return profileId;
+  return `dp_${Date.now()}_${fallbackIndex}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function normalizeIncomingProfile(raw, index) {
+  const source = raw && typeof raw === "object" ? raw : {};
+  const birth = source.birth && typeof source.birth === "object" ? source.birth : {};
+  const location = source.location && typeof source.location === "object" ? source.location : {};
+
+  return {
+    profileId: buildProfileId(source.profileId || source.id, index),
+    name: sanitizeName(source.name),
+    gender: sanitizeGender(source.gender),
+    birth: {
+      year: sanitizeInt(birth.year, 1000, 9999, 1900),
+      month: sanitizeInt(birth.month, 1, 12, 1),
+      day: sanitizeInt(birth.day, 1, 31, 1),
+      hour: sanitizeInt(birth.hour, 0, 23, 0),
+      minute: sanitizeInt(birth.minute, 0, 59, 0),
+      calType: sanitizeCalType(birth.calType),
+    },
+    location: {
+      label: sanitizeString(location.label, 120),
+      tz: sanitizeString(location.tz, 80) || "Asia/Seoul",
+      lng: sanitizeFloat(location.lng, -180, 180, 127.0),
+      lat: sanitizeFloat(location.lat, -90, 90, 37.5),
+    },
+  };
+}
+
+function normalizeProfileList(rawProfiles) {
   if (!Array.isArray(rawProfiles)) return [];
 
-  const sanitized = [];
-  const seenIds = new Set();
+  const output = [];
+  const seen = new Set();
 
   for (let i = 0; i < rawProfiles.length; i += 1) {
-    if (sanitized.length >= MAX_DESTINY_PROFILES) break;
-    const profile = rawProfiles[i];
-    if (!profile || typeof profile !== "object" || Array.isArray(profile)) continue;
+    if (output.length >= MAX_SYNC_PROFILES) break;
+    const normalized = normalizeIncomingProfile(rawProfiles[i], i);
+    if (!normalized.profileId || seen.has(normalized.profileId)) continue;
 
-    let cloned;
-    try {
-      cloned = JSON.parse(JSON.stringify(profile));
-    } catch {
-      continue;
-    }
-
-    const id = sanitizeProfileId(cloned?.id);
-    if (!id || seenIds.has(id)) continue;
-
-    cloned.id = id;
-    seenIds.add(id);
-    sanitized.push(cloned);
+    seen.add(normalized.profileId);
+    output.push(normalized);
   }
 
-  return sanitized;
+  return output;
+}
+
+function resolveSubscriptionPolicy(user) {
+  const tierRaw = String(user?.profileSubscription?.tier || "").trim().toLowerCase();
+  const expiresAtRaw = user?.profileSubscription?.expiresAt;
+  const expiresAt = expiresAtRaw ? new Date(expiresAtRaw) : null;
+  const hasPlan = Object.prototype.hasOwnProperty.call(PROFILE_LIMIT_BY_TIER, tierRaw);
+  const isActive = Boolean(
+    hasPlan
+      && expiresAt
+      && Number.isFinite(expiresAt.getTime())
+      && expiresAt.getTime() > Date.now(),
+  );
+
+  return {
+    tier: isActive ? tierRaw : "free",
+    isActive,
+    profileLimit: isActive ? PROFILE_LIMIT_BY_TIER[tierRaw] : 1,
+    expiresAt: isActive && expiresAt ? expiresAt.toISOString() : null,
+  };
+}
+
+function toClientProfile(doc) {
+  return {
+    id: String(doc.profileId || ""),
+    profileId: String(doc.profileId || ""),
+    name: String(doc.name || "이름 없음"),
+    gender: sanitizeGender(doc.gender),
+    birth: {
+      year: Number(doc?.birth?.year || 1900),
+      month: Number(doc?.birth?.month || 1),
+      day: Number(doc?.birth?.day || 1),
+      hour: Number(doc?.birth?.hour || 0),
+      minute: Number(doc?.birth?.minute || 0),
+      calType: sanitizeCalType(doc?.birth?.calType),
+    },
+    location: {
+      label: String(doc?.location?.label || ""),
+      tz: String(doc?.location?.tz || "Asia/Seoul"),
+      lng: Number(doc?.location?.lng || 127.0),
+      lat: Number(doc?.location?.lat || 37.5),
+    },
+    createdAt: doc.createdAt || null,
+    updatedAt: doc.updatedAt || null,
+  };
 }
 
 function resolveCurrentId(rawCurrentId, profiles) {
@@ -75,14 +185,19 @@ function resolveCurrentId(rawCurrentId, profiles) {
   return "";
 }
 
+async function listUserProfiles(userId) {
+  const docs = await ProfileCard.find({ userId }).sort({ createdAt: 1 }).lean();
+  return docs.map(toClientProfile);
+}
+
 async function handleGetDestinyProfiles(auth) {
   let user = null;
   try {
     user = await User.findById(auth.userId)
-      .select("destinyProfiles destinyProfilesCurrentId")
+      .select("profileSubscription destinyProfilesCurrentId")
       .lean();
   } catch (error) {
-    console.error("[worker-user-route-error]", JSON.stringify(buildErrorDetails("query-destiny-profiles", error, {
+    console.error("[worker-user-route-error]", JSON.stringify(buildErrorDetails("query-destiny-profiles-user", error, {
       userId: String(auth?.userId || ""),
     })));
     return json({
@@ -93,20 +208,31 @@ async function handleGetDestinyProfiles(auth) {
       code: "DB_FALLBACK",
       message: "프로필 동기화 서버가 일시적으로 불안정합니다.",
       debugMessage: String(error?.message || ""),
-      errorDetails: buildErrorDetails("query-destiny-profiles", error, {
+      errorDetails: buildErrorDetails("query-destiny-profiles-user", error, {
         userId: String(auth?.userId || ""),
       }),
     }, { status: 200 });
   }
 
   if (!user) {
-    return json({ ok: true, profiles: [], currentId: "" });
+    return json({ ok: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
   }
 
-  const profiles = sanitizeDestinyProfiles(user.destinyProfiles || []);
-  const currentId = resolveCurrentId(user.destinyProfilesCurrentId, profiles);
+  const subscription = resolveSubscriptionPolicy(user);
+  const profiles = await listUserProfiles(auth.userId);
+  const currentId = resolveCurrentId(user.destinyProfilesCurrentId, profiles) || profiles[0]?.id || "";
 
-  return json({ ok: true, profiles, currentId });
+  if (currentId && currentId !== String(user.destinyProfilesCurrentId || "")) {
+    await User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: currentId } });
+  }
+
+  return json({
+    ok: true,
+    profiles,
+    currentId,
+    subscription,
+    canCreateMore: profiles.length < subscription.profileLimit,
+  });
 }
 
 async function handleSyncDestinyProfiles(request, auth) {
@@ -116,41 +242,76 @@ async function handleSyncDestinyProfiles(request, auth) {
     return json({ ok: false, message: "Unsupported action." }, { status: 400 });
   }
 
-  const profiles = sanitizeDestinyProfiles(body?.profiles || []);
-  const currentId = resolveCurrentId(body?.currentId, profiles);
+  const user = await User.findById(auth.userId)
+    .select("profileSubscription destinyProfilesCurrentId")
+    .lean();
 
-  let updated = null;
+  if (!user) {
+    return json({ ok: false, message: "User not found." }, { status: 404 });
+  }
+
+  const subscription = resolveSubscriptionPolicy(user);
+  const normalizedProfiles = normalizeProfileList(body?.profiles || []);
+
+  if (normalizedProfiles.length > subscription.profileLimit) {
+    return json({
+      ok: false,
+      code: "PROFILE_LIMIT_EXCEEDED",
+      message: "무료 계정은 프로필 카드를 1개만 생성할 수 있습니다. 구독 후 추가 생성이 가능합니다.",
+      subscription,
+    }, { status: 403 });
+  }
+
   try {
-    updated = await User.findByIdAndUpdate(
-      auth.userId,
-      {
-        $set: {
-          destinyProfiles: profiles,
-          destinyProfilesCurrentId: currentId,
-        },
-      },
-      {
-        new: true,
-        projection: {
-          destinyProfiles: 1,
-          destinyProfilesCurrentId: 1,
-        },
-      },
-    ).lean();
+    if (normalizedProfiles.length > 0) {
+      await ProfileCard.bulkWrite(
+        normalizedProfiles.map((profile) => ({
+          updateOne: {
+            filter: { userId: auth.userId, profileId: profile.profileId },
+            update: {
+              $set: {
+                name: profile.name,
+                gender: profile.gender,
+                birth: profile.birth,
+                location: profile.location,
+              },
+            },
+            upsert: true,
+          },
+        })),
+        { ordered: false },
+      );
+    }
+
+    const nextIds = normalizedProfiles.map((profile) => profile.profileId);
+    if (nextIds.length > 0) {
+      await ProfileCard.deleteMany({ userId: auth.userId, profileId: { $nin: nextIds } });
+    } else {
+      await ProfileCard.deleteMany({ userId: auth.userId });
+    }
   } catch (error) {
     console.error("[worker-user-route-error]", JSON.stringify(buildErrorDetails("sync-destiny-profiles", error, {
       userId: String(auth?.userId || ""),
-      profileCount: profiles.length,
+      profileCount: normalizedProfiles.length,
     })));
     throw error;
   }
 
-  if (!updated) return json({ ok: false, message: "User not found." }, { status: 404 });
+  const profiles = await listUserProfiles(auth.userId);
+  const currentId = resolveCurrentId(body?.currentId, profiles) || profiles[0]?.id || "";
 
-  const nextProfiles = sanitizeDestinyProfiles(updated.destinyProfiles || []);
-  const nextCurrentId = resolveCurrentId(updated.destinyProfilesCurrentId, nextProfiles);
+  await User.updateOne(
+    { _id: auth.userId },
+    { $set: { destinyProfilesCurrentId: currentId } },
+  );
 
-  return json({ ok: true, profiles: nextProfiles, currentId: nextCurrentId });
+  return json({
+    ok: true,
+    profiles,
+    currentId,
+    subscription,
+    canCreateMore: profiles.length < subscription.profileLimit,
+  });
 }
 
 export async function handleUserRoutes(request, env) {

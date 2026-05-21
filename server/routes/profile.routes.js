@@ -12,7 +12,6 @@ const PROFILE_LIMIT_BY_TIER = Object.freeze({
   vvip: 15,
 });
 
-const MAX_SYNC_PROFILES = 30;
 const MAX_PROFILE_ID_LEN = 80;
 const MAX_NAME_LEN = 80;
 
@@ -89,24 +88,6 @@ function normalizeIncomingProfile(raw, index) {
   };
 }
 
-function normalizeProfileList(rawProfiles) {
-  if (!Array.isArray(rawProfiles)) return [];
-
-  const output = [];
-  const seen = new Set();
-
-  for (let i = 0; i < rawProfiles.length; i += 1) {
-    if (output.length >= MAX_SYNC_PROFILES) break;
-    const normalized = normalizeIncomingProfile(rawProfiles[i], i);
-    if (!normalized.profileId || seen.has(normalized.profileId)) continue;
-
-    seen.add(normalized.profileId);
-    output.push(normalized);
-  }
-
-  return output;
-}
-
 function resolveSubscriptionPolicy(user) {
   const tierRaw = String(user?.profileSubscription?.tier || "").trim().toLowerCase();
   const expiresAtRaw = user?.profileSubscription?.expiresAt;
@@ -155,11 +136,9 @@ function toClientProfile(doc) {
 function resolveCurrentId(rawCurrentId, profiles) {
   const currentId = sanitizeProfileId(rawCurrentId);
   if (!currentId) return "";
-
   for (let i = 0; i < profiles.length; i += 1) {
     if (String(profiles[i]?.id || "") === currentId) return currentId;
   }
-
   return "";
 }
 
@@ -170,7 +149,7 @@ async function listUserProfiles(userId) {
 
 router.use(requireAuth);
 
-router.get("/destiny-profiles", async (req, res, next) => {
+router.get("/", async (req, res, next) => {
   try {
     const user = await User.findById(req.auth.userId)
       .select("profileSubscription destinyProfilesCurrentId")
@@ -200,13 +179,8 @@ router.get("/destiny-profiles", async (req, res, next) => {
   }
 });
 
-router.post("/destiny-profiles", async (req, res, next) => {
+router.post("/", async (req, res, next) => {
   try {
-    const action = String(req.body?.action || "").trim().toLowerCase();
-    if (action && action !== "sync") {
-      return res.status(400).json({ ok: false, message: "지원하지 않는 action입니다." });
-    }
-
     const user = await User.findById(req.auth.userId)
       .select("profileSubscription destinyProfilesCurrentId")
       .lean();
@@ -216,9 +190,9 @@ router.post("/destiny-profiles", async (req, res, next) => {
     }
 
     const subscription = resolveSubscriptionPolicy(user);
-    const normalizedProfiles = normalizeProfileList(req.body?.profiles || []);
+    const count = await ProfileCard.countDocuments({ userId: req.auth.userId });
 
-    if (normalizedProfiles.length > subscription.profileLimit) {
+    if (count >= subscription.profileLimit) {
       return res.status(403).json({
         ok: false,
         code: "PROFILE_LIMIT_EXCEEDED",
@@ -227,55 +201,128 @@ router.post("/destiny-profiles", async (req, res, next) => {
       });
     }
 
-    if (normalizedProfiles.length > 0) {
-      await ProfileCard.bulkWrite(
-        normalizedProfiles.map((profile) => ({
-          updateOne: {
-            filter: {
-              userId: req.auth.userId,
-              profileId: profile.profileId,
-            },
-            update: {
-              $set: {
-                name: profile.name,
-                gender: profile.gender,
-                birth: profile.birth,
-                location: profile.location,
-              },
-            },
-            upsert: true,
-          },
-        })),
-        { ordered: false },
-      );
+    const normalized = normalizeIncomingProfile(req.body?.profile || req.body, count);
+    const duplicated = await ProfileCard.findOne({
+      userId: req.auth.userId,
+      profileId: normalized.profileId,
+    }).lean();
+
+    if (duplicated) {
+      return res.status(409).json({ ok: false, code: "PROFILE_ID_CONFLICT", message: "이미 존재하는 프로필 ID입니다." });
     }
 
-    const nextIds = normalizedProfiles.map((p) => p.profileId);
+    const created = await ProfileCard.create({
+      userId: req.auth.userId,
+      profileId: normalized.profileId,
+      name: normalized.name,
+      gender: normalized.gender,
+      birth: normalized.birth,
+      location: normalized.location,
+    });
 
-    if (nextIds.length > 0) {
-      await ProfileCard.deleteMany({
-        userId: req.auth.userId,
-        profileId: { $nin: nextIds },
-      });
-    } else {
-      await ProfileCard.deleteMany({ userId: req.auth.userId });
+    const profile = toClientProfile(created.toObject());
+    const nextCurrentId = String(user.destinyProfilesCurrentId || "") || profile.id;
+
+    if (nextCurrentId !== String(user.destinyProfilesCurrentId || "")) {
+      await User.updateOne({ _id: req.auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } });
     }
 
-    const profiles = await listUserProfiles(req.auth.userId);
-    const currentId = resolveCurrentId(req.body?.currentId, profiles) || profiles[0]?.id || "";
+    return res.status(201).json({
+      ok: true,
+      profile,
+      currentId: nextCurrentId,
+      subscription,
+      canCreateMore: count + 1 < subscription.profileLimit,
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.patch("/current", async (req, res, next) => {
+  try {
+    const requestedCurrentId = sanitizeProfileId(req.body?.currentId);
+    if (!requestedCurrentId) {
+      return res.status(400).json({ ok: false, message: "currentId가 필요합니다." });
+    }
+
+    const exists = await ProfileCard.findOne({
+      userId: req.auth.userId,
+      profileId: requestedCurrentId,
+    }).lean();
+
+    if (!exists) {
+      return res.status(404).json({ ok: false, message: "선택한 프로필 카드를 찾을 수 없습니다." });
+    }
 
     await User.updateOne(
       { _id: req.auth.userId },
-      { $set: { destinyProfilesCurrentId: currentId } },
+      { $set: { destinyProfilesCurrentId: requestedCurrentId } },
     );
 
-    return res.status(200).json({
-      ok: true,
-      profiles,
-      currentId,
-      subscription,
-      canCreateMore: profiles.length < subscription.profileLimit,
-    });
+    return res.status(200).json({ ok: true, currentId: requestedCurrentId });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.patch("/:profileId", async (req, res, next) => {
+  try {
+    const profileId = sanitizeProfileId(req.params.profileId);
+    if (!profileId) {
+      return res.status(400).json({ ok: false, message: "유효한 profileId가 필요합니다." });
+    }
+
+    const normalized = normalizeIncomingProfile({
+      ...req.body,
+      profileId,
+    }, 0);
+
+    const updated = await ProfileCard.findOneAndUpdate(
+      { userId: req.auth.userId, profileId },
+      {
+        $set: {
+          name: normalized.name,
+          gender: normalized.gender,
+          birth: normalized.birth,
+          location: normalized.location,
+        },
+      },
+      { new: true },
+    ).lean();
+
+    if (!updated) {
+      return res.status(404).json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." });
+    }
+
+    return res.status(200).json({ ok: true, profile: toClientProfile(updated) });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.delete("/:profileId", async (req, res, next) => {
+  try {
+    const profileId = sanitizeProfileId(req.params.profileId);
+    if (!profileId) {
+      return res.status(400).json({ ok: false, message: "유효한 profileId가 필요합니다." });
+    }
+
+    const deleted = await ProfileCard.findOneAndDelete({ userId: req.auth.userId, profileId }).lean();
+    if (!deleted) {
+      return res.status(404).json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." });
+    }
+
+    const profiles = await listUserProfiles(req.auth.userId);
+    const user = await User.findById(req.auth.userId).select("destinyProfilesCurrentId").lean();
+    const nextCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profiles[0]?.id || "";
+
+    await User.updateOne(
+      { _id: req.auth.userId },
+      { $set: { destinyProfilesCurrentId: nextCurrentId } },
+    );
+
+    return res.status(200).json({ ok: true, deletedProfileId: profileId, profiles, currentId: nextCurrentId });
   } catch (error) {
     return next(error);
   }

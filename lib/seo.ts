@@ -5,6 +5,24 @@ export const SEO_DEFAULT_OG_IMAGE = `${SEO_SITE_URL}/og/code-destiny-og.png`;
 export const SEO_HOME_TITLE = "무료 사주팔자 · 오늘의 운세 · 꿀꿀 만세력 | 코드 데스티니";
 export const SEO_TITLE_TEMPLATE = "%s | 코드 데스티니";
 
+const SEO_REQUIRED_PLATFORM_KEYWORDS = [
+  "코드 데스티니",
+  "Code Destiny",
+  "무료 운세",
+  "숙요점",
+  "사주팔자",
+  "자미두수 명반",
+  "타로 카드",
+  "베다 점성술",
+  "고품질 운세 리포트",
+];
+
+function mergeUniqueKeywords(input: string[] = []): string[] {
+  return Array.from(
+    new Set([...SEO_REQUIRED_PLATFORM_KEYWORDS, ...input.map((item) => String(item || "").trim()).filter(Boolean)]),
+  );
+}
+
 function cleanPath(path: string): string {
   const raw = String(path || "/").trim();
   if (!raw) return "/";
@@ -60,13 +78,14 @@ export function buildSeoMetadata(options: BuildSeoMetadataOptions): Metadata {
   }
 
   const ogImage = toAbsoluteUrl(options.ogImage || SEO_DEFAULT_OG_IMAGE);
+  const mergedKeywords = mergeUniqueKeywords(options.keywords || []);
 
   return {
     title: {
       absolute: title,
     },
     description,
-    keywords: options.keywords || [],
+    keywords: mergedKeywords,
     alternates: {
       canonical,
       ...(hasHreflang ? { languages } : {}),

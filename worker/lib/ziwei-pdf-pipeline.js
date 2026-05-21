@@ -955,13 +955,18 @@ function sanitizeZiweiOutputText(text) {
 export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummaries = [] }) {
   const chapterSpec = chapter || ZIWEI_CHAPTER_SPECS[0];
   const chapterNo = Number(chapterSpec?.chapterNo || chapterSpec?.num || 0);
-  const chapterContract = ZIWEI_CHAPTER_CONTRACTS[chapterNo] || null;
+  const runtimeChapterContract = context?.chapterContract && typeof context.chapterContract === "object"
+    ? context.chapterContract
+    : null;
+  const chapterContract = runtimeChapterContract || ZIWEI_CHAPTER_CONTRACTS[chapterNo] || null;
+  const requiredHeadings = asArray(chapterContract?.requiredHeadings).map(asText).filter(Boolean);
+  const requiredJsonFields = asArray(chapterContract?.requiredJsonFields).map(asText).filter(Boolean);
   const chapterSections = asArray(chapterSpec?.sections).join(", ");
   const premiumContext = toPlainObject(context?.premiumContext);
   const hasPremiumContext = Object.keys(premiumContext).length > 0;
 
   const systemPrompt = [
-    "너는 30년 경력의 최고급 자미두수 상담가다.",
+    "너는 자미두수 분야 최고 전문가이며, 30년 경력의 최고급 자미두수 상담가다.",
     "독자와 1:1 대면 상담을 진행하듯, 구체적이고 품격 있는 상담 문체로 운명의 구조를 풀어낸다.",
     "너의 임무는 제공된 자미두수 명반 JSON과 knowledgeBase를 바탕으로, 고급 PDF 리포트에 들어갈 장문 해석을 생성하는 것이다.",
     "중요 규칙:",
@@ -983,9 +988,11 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
     "16. 동일 문장/동일 단락을 반복해 분량을 채우지 않는다.",
     "17. 이전 챕터들과 관점이나 내용이 절대 중복되지 않도록 하라. 제공된 [이전 챕터 요약 정보]를 참조하여, 이미 다른 챕터에서 다룬 해석을 반복하지 않고 이 챕터만의 고유한 관점(예: 성격 자아 -> 직업 자아 -> 재물 성향 등)을 확실히 보여줘라.",
     "18. masterAdvice 또는 masterConclusion은 반드시 현재 챕터의 대상 궁위와 해석 목적에 맞게 작성하고, 다른 챕터에 재사용 가능한 일반론 문장을 금지한다.",
+    requiredHeadings.length ? `19. chapterContract.requiredHeadings를 sections.heading에 모두 반영한다: ${requiredHeadings.join(", ")}.` : "19. 챕터 구조 규칙을 누락 없이 반영한다.",
+    requiredJsonFields.length ? `20. chapterContract.requiredJsonFields를 응답 JSON에 모두 포함한다: ${requiredJsonFields.join(", ")}.` : "20. 출력 JSON의 필수 키를 누락하지 않는다.",
     hasPremiumContext
-      ? "19. [기본/심화 통합 보조 데이터]가 제공되면 궁/주성/강약/대운/연월운/요약 근거를 최소 5개 이상 본문에 반영하고, 추상 문장만으로 분량을 채우지 않는다."
-      : "19. 제공된 데이터 근거를 문장마다 명시적으로 반영한다.",
+      ? "21. [기본/심화 통합 보조 데이터]가 제공되면 궁/주성/강약/대운/연월운/요약 근거를 최소 5개 이상 본문에 반영하고, 추상 문장만으로 분량을 채우지 않는다."
+      : "21. 제공된 데이터 근거를 문장마다 명시적으로 반영한다.",
   ].join("\n");
 
   const duplicateAvoidanceText = previousChapterSummaries.length > 0
@@ -1026,6 +1033,8 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
     chapterContract ? `[대상 궁위] ${chapterContract.targetPalace}` : "",
     chapterContract ? `[관련 궁위] ${chapterContract.relatedPalaces.join(", ")}` : "",
     chapterContract ? `[필수 커버리지]\n- ${chapterContract.mustCover.join("\n- ")}` : "",
+    requiredHeadings.length ? `[chapterContract.requiredHeadings]\n- ${requiredHeadings.join("\n- ")}` : "",
+    requiredJsonFields.length ? `[chapterContract.requiredJsonFields]\n- ${requiredJsonFields.join("\n- ")}` : "",
     "",
     "[챕터 작성 목표 및 세부 카테고리 가이드]",
     chapterSpec.goal,

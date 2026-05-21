@@ -29,7 +29,7 @@ export const metadata = {
     template: "%s | 코드 데스티니",
   },
   description:
-    "Code Destiny(코드 데스티니)는 사주풀이, 오늘의 운세, 만세력, 궁합, 타로, 자미두수, 점성술을 한곳에서 볼 수 있는 무료 운세 플랫폼입니다.",
+    "Code Destiny(코드 데스티니)는 무료 운세, 숙요점, 사주팔자, 자미두수 명반, 타로 카드, 베다 점성술, 고품질 운세 리포트를 한곳에서 제공하는 통합 운세 플랫폼입니다.",
   keywords: SEO_CORE_KEYWORDS,
   creator: "Code Destiny",
   publisher: "Code Destiny",
@@ -85,7 +85,7 @@ export const metadata = {
     siteName: "Code Destiny",
     title: "무료 사주팔자 · 오늘의 운세 · 꿀꿀 만세력 | 코드 데스티니",
     description:
-      "Code Destiny(코드 데스티니)는 사주풀이, 오늘의 운세, 만세력, 궁합, 타로, 자미두수, 점성술을 한곳에서 볼 수 있는 무료 운세 플랫폼입니다.",
+      "Code Destiny(코드 데스티니)는 무료 운세, 숙요점, 사주팔자, 자미두수 명반, 타로 카드, 베다 점성술, 고품질 운세 리포트를 한곳에서 제공하는 통합 운세 플랫폼입니다.",
     images: [
       {
         url: "https://code-destiny.com/icons/꿀꿀 운세 로고.webp",
@@ -99,7 +99,7 @@ export const metadata = {
     card: "summary_large_image",
     title: "무료 사주팔자 · 오늘의 운세 · 꿀꿀 만세력 | 코드 데스티니",
     description:
-      "Code Destiny(코드 데스티니)는 사주풀이, 오늘의 운세, 만세력, 궁합, 타로, 자미두수, 점성술을 한곳에서 볼 수 있는 무료 운세 플랫폼입니다.",
+      "Code Destiny(코드 데스티니)는 무료 운세, 숙요점, 사주팔자, 자미두수 명반, 타로 카드, 베다 점성술, 고품질 운세 리포트를 한곳에서 제공하는 통합 운세 플랫폼입니다.",
     images: ["https://code-destiny.com/icons/꿀꿀 운세 로고.webp"],
     creator: "@codedestiny",
   },
@@ -159,6 +159,31 @@ const jsonLd = JSON.stringify({
       image: { "@id": "https://code-destiny.com/icons/꿀꿀 운세 로고.webp" },
     },
     {
+      "@type": "SoftwareApplication",
+      "@id": "https://code-destiny.com/#softwareapplication",
+      name: "Code Destiny",
+      applicationCategory: "LifestyleApplication",
+      operatingSystem: "Web",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "KRW",
+      },
+      featureList: [
+        "무료 운세",
+        "숙요점",
+        "사주팔자",
+        "자미두수 명반",
+        "타로 카드",
+        "베다 점성술",
+        "고품질 운세 리포트",
+      ],
+      applicationSubCategory: "Fortune & Astrology",
+      inLanguage: ["ko", "en", "ja", "zh"],
+      url: "https://code-destiny.com",
+      publisher: { "@id": "https://code-destiny.com/#organization" },
+    },
+    {
       "@type": "WebPage",
       "@id": "https://code-destiny.com/#webpage",
       url: "https://code-destiny.com",
@@ -169,7 +194,7 @@ const jsonLd = JSON.stringify({
       datePublished: "2024-01-01T00:00:00+09:00",
       dateModified: new Date().toISOString(),
       description:
-        "Code Destiny(코드 데스티니)는 사주풀이, 오늘의 운세, 만세력, 궁합, 타로, 자미두수, 점성술을 한곳에서 볼 수 있는 무료 운세 플랫폼입니다.",
+        "Code Destiny(코드 데스티니)는 무료 운세, 숙요점, 사주팔자, 자미두수 명반, 타로 카드, 베다 점성술, 고품질 운세 리포트를 한곳에서 제공하는 통합 운세 플랫폼입니다.",
       inLanguage: "ko",
       potentialAction: {
         "@type": "ReadAction",

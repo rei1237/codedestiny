@@ -98,6 +98,18 @@
     }
   }
 
+  function _dpWriteProfilesToLocal(scope, profiles, currentId) {
+    var safeScope = String(scope || 'guest');
+    var listKey = _dpGetScopedListKey(safeScope);
+    var currKey = _dpGetScopedCurrentKey(safeScope);
+    try {
+      localStorage.setItem(listKey, JSON.stringify(Array.isArray(profiles) ? profiles : []));
+      if (currentId) localStorage.setItem(currKey, String(currentId));
+      else localStorage.removeItem(currKey);
+      _dpMirrorScopedToLegacy(safeScope);
+    } catch (e) {}
+  }
+
   function _dpMirrorScopedToLegacy(scope) {
     try {
       var safeScope = String(scope || 'guest');
@@ -156,11 +168,9 @@
     save: function(profiles) {
       var scope = _dpEnsureScopedStorageReady();
       try {
-        localStorage.setItem(_dpGetScopedListKey(scope), JSON.stringify(profiles));
-        _dpMirrorScopedToLegacy(scope);
-        _dpSyncToServerDebounced();
-      }
-      catch(e) {}
+        var currentId = localStorage.getItem(_dpGetScopedCurrentKey(scope)) || '';
+        _dpWriteProfilesToLocal(scope, profiles, currentId);
+      } catch (e) {}
     },
     current: function() {
       try {
@@ -175,7 +185,7 @@
       try {
         localStorage.setItem(_dpGetScopedCurrentKey(scope), id || '');
         _dpMirrorScopedToLegacy(scope);
-        _dpSyncToServerDebounced();
+        _dpSetCurrentOnServerDebounced(id || '');
       } catch(e) {}
     },
     add: function(profile) {
@@ -249,8 +259,8 @@
     }
     if (path.indexOf('/api/auth/oauth/') === 0) return false;
     if (path === '/api/auth/me') return true;
-    return path.indexOf('/api/user/destiny-profiles') === 0
-      || path.indexOf('/api/fortune/pig-coin/') === 0
+    if (path.indexOf('/api/profile') === 0) return true;
+    return path.indexOf('/api/fortune/pig-coin/') === 0
       || path.indexOf('/api/billing/') === 0
       || path.indexOf('/api/payments/') === 0
       || path.indexOf('/api/subscription/') === 0;
@@ -497,7 +507,7 @@
   function _dpShouldDedupeGet(pathname, method) {
     if (String(method || '').toUpperCase() !== 'GET') return false;
     var path = String(pathname || '');
-    return path.indexOf('/api/user/destiny-profiles') === 0
+    return path.indexOf('/api/profile') === 0
       || path.indexOf('/api/subscription/me') === 0
       || path.indexOf('/api/fortune/pig-coin/profile-subscription/status') === 0
       || path.indexOf('/api/billing/balance') === 0
@@ -835,31 +845,30 @@
   // 다른 JS 모듈에서도 사용할 수 있도록 전역 노출
   window.__dpHasLoginSession = _dpHasLoginSession;
 
-  var _dpSyncTimer = null;
-  function _dpSyncToServerDebounced() {
-    if (_dpSyncTimer) clearTimeout(_dpSyncTimer);
-    _dpSyncTimer = setTimeout(function() {
-      _dpSyncTimer = null;
-      _dpSyncToServer();
-    }, 400);
-  }
+  var _dpSetCurrentTimer = null;
 
-  function _dpSyncToServer() {
-    if (!_dpHasSessionHint()) return;
+  function _dpSetCurrentOnServer(currentId) {
+    var nextId = String(currentId || '').trim();
+    if (!_dpHasSessionHint() || !nextId) return;
     _dpVerifyLoginSession(false).then(function(ok) {
       if (!ok) return;
-      var scope = _dpGetProfileScope();
-      var profiles = _dpReadListByKey(_dpGetScopedListKey(scope));
-      var currentId = '';
-      try { currentId = localStorage.getItem(_dpGetScopedCurrentKey(scope)) || ''; } catch(e) {}
-      _dpFetchJsonWithFallback('/api/user/destiny-profiles', {
-        method: 'POST',
+      _dpFetchJsonWithFallback('/api/profile/current', {
+        method: 'PATCH',
         credentials: 'include',
         cache: 'no-store',
         headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ action: 'sync', profiles: profiles, currentId: currentId })
+        body: JSON.stringify({ currentId: nextId })
       }).catch(function() {});
     }).catch(function() {});
+  }
+
+  function _dpSetCurrentOnServerDebounced(currentId) {
+    var nextId = String(currentId || '').trim();
+    if (_dpSetCurrentTimer) clearTimeout(_dpSetCurrentTimer);
+    _dpSetCurrentTimer = setTimeout(function() {
+      _dpSetCurrentTimer = null;
+      _dpSetCurrentOnServer(nextId);
+    }, 240);
   }
 
   function _dpLoadFromServer(callback) {
@@ -869,7 +878,7 @@
         if (callback) callback(false);
         return;
       }
-      _dpFetchJsonWithFallback('/api/user/destiny-profiles', {
+      _dpFetchJsonWithFallback('/api/profile', {
         credentials: 'include',
         cache: 'no-store',
         headers: _dpBuildAuthHeaders()
@@ -881,13 +890,20 @@
       .then(function(data) {
         if (!data || !data.ok || !Array.isArray(data.profiles)) { if (callback) callback(false); return; }
         var scope = _dpGetProfileScope();
-        var listKey = _dpGetScopedListKey(scope);
-        var currKey = _dpGetScopedCurrentKey(scope);
-        try {
-          localStorage.setItem(listKey, JSON.stringify(data.profiles));
-          if (data.currentId) localStorage.setItem(currKey, data.currentId);
-          _dpMirrorScopedToLegacy(scope);
-        } catch(e) {}
+        _dpWriteProfilesToLocal(scope, data.profiles, data.currentId || '');
+        if (data.subscription && typeof data.subscription === 'object') {
+          var s = data.subscription;
+          var tier = _dpNormalizeTier(s.tier);
+          var active = !!s.isActive && tier !== 'free';
+          var rawLimit = Number(s.profileLimit);
+          var resolvedLimit = (isFinite(rawLimit) && rawLimit > 0) ? rawLimit : _dpGetTierProfileLimit(tier);
+          _dpSubTier = tier;
+          _dpSubIsActive = active;
+          _dpSubProfileLimit = active ? resolvedLimit : 1;
+          _dpSubScope = scope;
+          _dpWriteSubCache(tier, active, resolvedLimit, s.expiresAt || null);
+          _dpUpdateSaveBtn();
+        }
         if (callback) callback(true);
       })
       .catch(function() { if (callback) callback(false); });
@@ -2608,14 +2624,79 @@
       return;
     }
     if (!confirm('새 프로필 카드를 생성할까요?\n한 번 생성된 프로필 카드는 수정 및 삭제가 불가능합니다.\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.')) return;
-    var saved = DPStorage.add(data);
-    DPStorage.setCurrent(saved.id);
-    spawnStardust(document.getElementById('dpSaveBtn'));
-    renderMasterCard(DPStorage.current());
-    renderProfileList();
-    broadcastProfileChange(saved);
-    _dpUpdateSaveBtn();
-    _toast('생년월일·출생시간·성별 정보는 운세 서비스 제공 목적에 한해 서버에 안전하게 저장됩니다.', 'privacy');
+    var btn = document.getElementById('dpSaveBtn');
+    if (btn) {
+      btn.disabled = true;
+      btn.style.opacity = '0.65';
+      btn.style.cursor = 'not-allowed';
+    }
+
+    _dpVerifyLoginSession(false).then(function(ok) {
+      if (!ok) {
+        throw new Error('AUTH_REQUIRED');
+      }
+      return _dpFetchJsonWithFallback('/api/profile', {
+        method: 'POST',
+        credentials: 'include',
+        cache: 'no-store',
+        headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ profile: data })
+      });
+    }).then(function(result) {
+      if (!result || !result.ok) {
+        var payload = result && result.data ? result.data : null;
+        var code = String((payload && payload.code) || '').trim().toUpperCase();
+        var msg = String((payload && payload.message) || '').trim();
+        if (result && result.status === 403 && code === 'PROFILE_LIMIT_EXCEEDED') {
+          window.alert(msg || '무료 계정은 프로필 카드를 1개만 생성할 수 있습니다. /points 페이지에서 구독 후 추가 생성해 주세요.');
+          return null;
+        }
+        throw new Error(msg || '프로필 저장 중 오류가 발생했습니다.');
+      }
+
+      var payloadOk = result.data && typeof result.data === 'object' ? result.data : {};
+      var created = payloadOk.profile && typeof payloadOk.profile === 'object' ? payloadOk.profile : null;
+      var scope = _dpGetProfileScope();
+      var list = DPStorage.list();
+      if (created && created.id) {
+        var nextId = String(created.id);
+        var replaced = false;
+        for (var i = 0; i < list.length; i += 1) {
+          if (String(list[i] && list[i].id || '') === nextId) {
+            list[i] = created;
+            replaced = true;
+            break;
+          }
+        }
+        if (!replaced) list.push(created);
+        var currentId = String(payloadOk.currentId || nextId);
+        _dpWriteProfilesToLocal(scope, list, currentId);
+      }
+
+      _dpLoadFromServer(function() {
+        var curr = DPStorage.current();
+        spawnStardust(document.getElementById('dpSaveBtn'));
+        renderMasterCard(curr);
+        renderProfileList();
+        broadcastProfileChange(curr || created || null);
+        _dpUpdateSaveBtn();
+      });
+
+      _toast('생년월일·출생시간·성별 정보는 운세 서비스 제공 목적에 한해 서버에 안전하게 저장됩니다.', 'privacy');
+      return null;
+    }).catch(function(err) {
+      var msg = String((err && err.message) || '프로필 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      if (msg === 'AUTH_REQUIRED') {
+        msg = '로그인 상태를 확인한 뒤 다시 시도해 주세요.';
+      }
+      window.alert(msg);
+    }).finally(function() {
+      if (btn) {
+        btn.disabled = false;
+        btn.style.opacity = '';
+        btn.style.cursor = '';
+      }
+    });
   };
 
   window.dpOpenList = function() {

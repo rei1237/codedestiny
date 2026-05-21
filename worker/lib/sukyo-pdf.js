@@ -510,6 +510,15 @@ function buildSukyoGeminiPrompt({ context, chapter, previousChapterTexts = [] })
   const chapterCatalog = getSukyoPdfChapters(reportMode)
     .map((row, idx) => `${idx + 1}. ${row.title}`)
     .join("\n");
+  const chapterContract = context?.chapterContract && typeof context.chapterContract === "object"
+    ? context.chapterContract
+    : {};
+  const requiredHeadings = Array.isArray(chapterContract?.requiredHeadings)
+    ? chapterContract.requiredHeadings.map((row) => String(row || "").trim()).filter(Boolean)
+    : [];
+  const requiredJsonFields = Array.isArray(chapterContract?.requiredJsonFields)
+    ? chapterContract.requiredJsonFields.map((row) => String(row || "").trim()).filter(Boolean)
+    : [];
 
   const modeSpecificRules = reportMode === "compatibility"
     ? [
@@ -525,13 +534,15 @@ function buildSukyoGeminiPrompt({ context, chapter, previousChapterTexts = [] })
     ];
 
   const systemPrompt = [
-    "너는 30년차 숙요점 전문가이자 27숙과 달의 리듬을 현대어로 해석하는 프리미엄 숙요점 PDF 작가다.",
+    "너는 숙요점(27숙) 분야 최고 전문가이며, 30년차 숙요점 전문가이자 27숙과 달의 리듬을 현대어로 해석하는 프리미엄 숙요점 PDF 작가다.",
     "계산은 하지 않는다. 제공된 숙요점 JSON과 knowledgeBase만 사용한다.",
     "본명숙/월상/삭망각/조도/관계유형/관계거리를 임의로 만들지 않는다.",
     "데이터가 부족하면 부족하다고 명시하되 생성을 중단하지 않는다.",
     "건강/가족/관계/위기/재물은 단정 예언이 아니라 경향과 전략으로 쓴다.",
     "이전 챕터와 동일 문장/동일 해석 프레이밍 재사용을 금지한다.",
     "챕터는 반드시 단계적으로 쓴다: (1) 핵심 진단 (2) 패턴 해석 (3) 현실 적용 전략 (4) 행동 기준 요약.",
+    requiredHeadings.length ? `chapterContract.requiredHeadings를 모두 sections.heading에 반영: ${requiredHeadings.join(", ")}` : "",
+    requiredJsonFields.length ? `chapterContract.requiredJsonFields 키를 응답 JSON에 모두 포함: ${requiredJsonFields.join(", ")}` : "",
     ...modeSpecificRules,
     "반드시 JSON 하나로만 응답한다.",
   ].join("\n");
@@ -567,6 +578,10 @@ function buildSukyoGeminiPrompt({ context, chapter, previousChapterTexts = [] })
     chapterTitle,
     "[챕터 작성 목표]",
     chapterGoal,
+    requiredHeadings.length ? "[chapterContract.requiredHeadings]" : null,
+    requiredHeadings.length ? JSON.stringify(requiredHeadings, null, 2) : null,
+    requiredJsonFields.length ? "[chapterContract.requiredJsonFields]" : null,
+    requiredJsonFields.length ? JSON.stringify(requiredJsonFields, null, 2) : null,
     "[작성 제한]",
     "- 본문은 완성형 상담문으로 작성한다.",
     "- 본문에 계산 근거/내부 데이터/JSON 키를 직접 출력하지 않는다.",
