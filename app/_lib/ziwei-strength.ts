@@ -40,8 +40,8 @@ export function normalizeZiweiClassicStrength(raw: string | undefined): ZiweiCla
   if (["묘", "묘왕", "묘왕지", "廟"].includes(v) || v === "◎") return "묘";
   if (["왕", "旺"].includes(v) || v === "○") return "왕";
   if (["리", "득", "득지", "리지", "得", "利", "약"].includes(v)) return "리";
-  if (["평", "평지", "함지", "平", "陷"].includes(v) || v === "△" || v === "▲") return "평";
-  if (["함", "극함", "심한함", "불", "불리", "충돌"].includes(v) || v === "×" || /^x$/i.test(v)) return "함";
+  if (["평", "평지", "平"].includes(v) || v === "△" || v === "▲") return "평";
+  if (["함", "함지", "陷", "극함", "심한함", "불", "불리", "충돌"].includes(v) || v === "×" || /^x$/i.test(v)) return "함";
   if (["한", "이"].includes(v)) return "평";
 
   return "";

@@ -82,58 +82,30 @@ const ZIWEI_VALUE_SECTIONS = [
 
 export default function ZiweiChartPage() {
   return (
-    <main style={{ background: "#040510", color: "#e2e8f0", minHeight: "100vh" }}>
-      <h1
-        style={{
-          position: "absolute",
-          width: "1px",
-          height: "1px",
-          padding: 0,
-          margin: "-1px",
-          overflow: "hidden",
-          clip: "rect(0, 0, 0, 0)",
-          whiteSpace: "nowrap",
-          border: 0,
-        }}
-      >
+    <main className="relative min-h-[100dvh] bg-[#030712] text-slate-100">
+      <h1 className="sr-only">
         자미두수 명반으로 보는 내 인생의 12궁
       </h1>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ZIWEI_FAQ_JSON_LD }} />
       <ZiweiChartClientLoader />
       <section
         aria-label="자미두수 실전 해석 가이드"
-        style={{
-          maxWidth: "980px",
-          margin: "0 auto",
-          padding: "40px 16px 72px",
-        }}
+        className="relative mx-auto max-w-5xl px-4 pb-20 pt-10"
       >
-        <h2
-          style={{
-            margin: "0 0 14px",
-            fontSize: "1.1rem",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "#c4b5fd",
-          }}
-        >
+        <div className="pointer-events-none absolute inset-0 -z-10 opacity-60 [background:radial-gradient(circle_at_80%_12%,rgba(56,189,248,0.2),transparent_40%),radial-gradient(circle_at_20%_76%,rgba(250,204,21,0.14),transparent_42%)]" />
+        <h2 className="mb-4 text-sm font-bold uppercase tracking-[0.16em] text-cyan-200">
           자미두수 명반 활용 가이드
         </h2>
-        <div style={{ display: "grid", gap: "10px" }}>
+        <div className="grid gap-3">
           {ZIWEI_VALUE_SECTIONS.map((section) => (
             <article
               key={section.title}
-              style={{
-                border: "1px solid rgba(196,181,253,0.28)",
-                borderRadius: "14px",
-                background: "rgba(17,12,40,0.62)",
-                padding: "14px",
-              }}
+              className="rounded-2xl border border-cyan-200/20 bg-[#09162d]/75 p-4 shadow-[0_12px_40px_rgba(2,6,23,0.35)]"
             >
-              <h3 style={{ margin: "0 0 6px", color: "#ddd6fe", fontSize: "0.95rem", lineHeight: 1.5 }}>
+              <h3 className="mb-2 text-base font-semibold leading-relaxed text-cyan-100">
                 {section.title}
               </h3>
-              <p style={{ margin: 0, color: "rgba(226,232,240,0.88)", lineHeight: 1.78, fontSize: "0.88rem" }}>
+              <p className="text-sm leading-8 text-slate-200/90">
                 {section.body}
               </p>
             </article>

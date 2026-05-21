@@ -26,8 +26,8 @@ export default function ZiweiPalaceOrbit({ chart, activePalaceId, onSelect }: Zi
   };
 
   return (
-    <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl md:p-5">
-      <h2 className="mb-3 text-sm font-bold tracking-wide text-amber-200">12궁 Star Chart Summary</h2>
+    <section className="rounded-3xl border border-cyan-200/20 bg-[#081428]/70 p-4 backdrop-blur-xl md:p-5">
+      <h2 className="mb-3 text-sm font-bold tracking-wide text-cyan-200">12궁 성도 요약 맵</h2>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
         {chart.palaces.map((palace) => {
           const active = palace.id === activePalaceId;
@@ -48,8 +48,8 @@ export default function ZiweiPalaceOrbit({ chart, activePalaceId, onSelect }: Zi
               onClick={() => onSelect(palace.id)}
               className={`min-h-40 rounded-2xl border p-3 text-left transition ${
                 active
-                  ? "border-amber-300/80 bg-amber-200/10 shadow-[0_0_20px_rgba(251,191,36,0.28)]"
-                  : "border-white/10 bg-slate-950/30 hover:border-amber-300/40"
+                  ? "border-cyan-300/80 bg-cyan-200/10 shadow-[0_0_24px_rgba(56,189,248,0.28)]"
+                  : "border-white/10 bg-slate-950/40 hover:border-cyan-300/45"
               }`}
               aria-label={`${ZIWEI_PALACE_NAME[palace.id]} 상세 보기`}
             >
