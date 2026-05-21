@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 
-import { buildZiweiGeminiPrompt, ensureZiweiChapterMarkdownLength } from "../../worker/lib/ziwei-pdf-pipeline.js";
+import { buildZiweiGeminiPrompt, createFallbackChapter, ensureZiweiChapterMarkdownLength } from "../../worker/lib/ziwei-pdf-pipeline.js";
 
 function makeContext() {
   return {
@@ -66,5 +66,30 @@ describe("ziwei pdf chapter length guard", () => {
     expect(prompt).toContain("[기본/심화 통합 보조 데이터]");
     expect(prompt).toContain("basicResultSummary");
     expect(prompt).toContain("chapterSignals");
+  });
+
+  test("fallback chapter는 챕터별 타겟/섹션이 분리되어야 한다", () => {
+    const context = {
+      ...makeContext(),
+      chartMeta: {
+        ...makeContext().chartMeta,
+        mingPalaceKey: "ming",
+        bodyPalaceKey: "career",
+      },
+      palaces: [
+        { key: "ming", name: "명궁(命宮)", mainStars: [{ name: "태양" }] },
+        { key: "career", name: "관록궁(官祿宮)", mainStars: [{ name: "무곡" }] },
+      ],
+    };
+
+    const ch1 = createFallbackChapter({ chapterNo: 1, title: "명궁 해석", goal: "명궁 중심" }, context);
+    const ch2 = createFallbackChapter({ chapterNo: 2, title: "신궁 해석", goal: "신궁 중심" }, context);
+
+    expect(ch1.sections[0].heading).toContain("명궁");
+    expect(ch2.sections[0].heading).toContain("신궁");
+    expect(Array.isArray(ch1.corePalaces)).toBe(true);
+    expect(Array.isArray(ch2.corePalaces)).toBe(true);
+    expect(ch1.corePalaces.join(",")).not.toBe(ch2.corePalaces.join(","));
+    expect(String(ch1.summary || "")).not.toBe(String(ch2.summary || ""));
   });
 });

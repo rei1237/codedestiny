@@ -389,8 +389,8 @@
       minute: Number(birth.minute || 0),
       targetYear: targetYearInput,
       focusArea: 'overall',
-      _premiumStrictPayload: false,
-      _premiumStrictValidation: false,
+      _premiumStrictPayload: true,
+      _premiumStrictValidation: true,
       engineData: buildEngineData(),
       sajuData: buildCompactSajuData()
     };
@@ -725,8 +725,8 @@
         reportType: 'sajuNewYear',
         featureType: 'saju_new_year_pdf',
         requestBody: Object.assign({}, state.payload || {}, {
-          _premiumStrictPayload: false,
-          _premiumStrictValidation: false
+          _premiumStrictPayload: true,
+          _premiumStrictValidation: true
         }),
         requestId: 'newyear:chapter:' + chapter + ':' + Date.now().toString(36)
       }, {

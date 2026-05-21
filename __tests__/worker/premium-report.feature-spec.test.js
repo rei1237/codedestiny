@@ -173,6 +173,62 @@ describe("Premium Report Feature Spec", () => {
     expect(summary.aspectCount).toBe(1);
   });
 
+  test("normalizePremiumRequestBodyForPipeline는 주요 PDF 타입에 strict 기본값을 적용한다", () => {
+    const { normalizePremiumRequestBodyForPipeline } = __premiumReportTestUtils;
+    const reportTypes = [
+      "ziweiPremium",
+      "sookyoPremium",
+      "westernAstrologyPremium",
+      "vedicPremium",
+      "lifeBook",
+      "loveSecret",
+      "sajuNewYear",
+    ];
+
+    for (const reportType of reportTypes) {
+      const normalized = normalizePremiumRequestBodyForPipeline(reportType, { year: 1991, month: 7, day: 11 });
+      expect(normalized._premiumStrictPayload).toBe(true);
+      expect(normalized._premiumStrictValidation).toBe(true);
+    }
+  });
+
+  test("normalizePremiumRequestBodyForPipeline는 profile/birthData 기반 입력을 profileId+birthDate+birthTime으로 정규화한다", () => {
+    const { normalizePremiumRequestBodyForPipeline } = __premiumReportTestUtils;
+    const reportTypes = ["sookyoPremium", "westernAstrologyPremium", "vedicPremium"];
+
+    for (const reportType of reportTypes) {
+      const normalized = normalizePremiumRequestBodyForPipeline(reportType, {
+        profile: {
+          profileId: "profile-42",
+          name: "테스터",
+          gender: "F",
+          birthDate: "1992-06-15",
+          birthTime: "12:30",
+          calendarType: "solar",
+          timezone: "Asia/Seoul",
+        },
+        birthData: {
+          year: 1992,
+          month: 6,
+          day: 15,
+          hour: 12,
+          minute: 30,
+          timezone: "Asia/Seoul",
+        },
+      });
+
+      expect(normalized.profileId).toBe("profile-42");
+      expect(normalized.birthDate).toBe("1992-06-15");
+      expect(normalized.birthTime).toBe("12:30");
+      expect(normalized.birthData.profileId).toBe("profile-42");
+      expect(normalized.birthData.birthDate).toBe("1992-06-15");
+      expect(normalized.birthData.birthTime).toBe("12:30");
+      expect(normalized.profile.profileId).toBe("profile-42");
+      expect(normalized.profile.birthDate).toBe("1992-06-15");
+      expect(normalized.profile.birthTime).toBe("12:30");
+    }
+  });
+
   test("chapter 길이 검증: 최소 미달이면 CHAPTER_TOO_SHORT", () => {
     const { validateChapterLength } = __premiumReportTestUtils;
     const result = validateChapterLength({

@@ -761,8 +761,8 @@
     var body = {
       mode: 'personal',
       forceRegenerate: !!forceRegenerate,
-      _premiumStrictPayload: false,
-      _premiumStrictValidation: false,
+      _premiumStrictPayload: true,
+      _premiumStrictValidation: true,
       name: name,
       gender: gender,
       year: year,

@@ -402,4 +402,60 @@ describe("Ziwei Premium Strict Tests (A~G)", () => {
     expect(data.prepared).toBe(true);
     expect(data.code).toBeUndefined();
   });
+
+  test("J. 프로필 카드 birthData/profileId만으로도 strict prepare가 성공해야 한다", async () => {
+    const authToken = await signJwt({
+      userId: "507f1f77bcf86cd799439011",
+      email: "strict-test@example.com",
+      role: "user",
+    }, "dev-secret", {
+      issuer: "code-destiny-api",
+      audience: "code-destiny-web",
+      expiresIn: "30m",
+    });
+
+    const req = new Request("https://example.com/api/ziwei-book/session", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({
+        prepareOnly: true,
+        _premiumStrictPayload: true,
+        _premiumStrictValidation: true,
+        profileId: "card-profile-001",
+        profile: {
+          profileId: "card-profile-001",
+          name: "카드유저",
+          gender: "F",
+          birthDate: "1992-06-15",
+          birthTime: "12:30",
+          calendarType: "solar",
+          timezone: "Asia/Seoul",
+        },
+        birthData: {
+          profileId: "card-profile-001",
+          name: "카드유저",
+          gender: "F",
+          birthDate: "1992-06-15",
+          birthTime: "12:30",
+          calendarType: "solar",
+          timezone: "Asia/Seoul",
+        },
+        ziweiStructured: makeStructuredPayload(),
+      }),
+    });
+
+    const res = await handleZiweiBookRoutes(req, {});
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.ok).toBe(true);
+    expect(data.prepared).toBe(true);
+    expect(data.validation?.isValid).toBe(true);
+    expect(String(data?.reportPayload?.profile?.birth?.solarDate || "")).toBe("1992-06-15");
+    expect(String(data?.reportPayload?.profile?.birth?.time || "")).toBe("12:30");
+    expect(String(data?.basicZiweiResult?.input?.profileId || "")).toBe("card-profile-001");
+  });
 });

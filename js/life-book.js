@@ -353,8 +353,8 @@
       day: birth.day,
       hour: birth.hour,
       minute: birth.minute,
-      _premiumStrictPayload: false,
-      _premiumStrictValidation: false,
+      _premiumStrictPayload: true,
+      _premiumStrictValidation: true,
       sajuData: sajuData,
       engineData: engineData
     };
@@ -675,8 +675,8 @@
         reportId: state.reportId,
         sessionId: chapter,
         chapter: chapter,
-        _premiumStrictPayload: false,
-        _premiumStrictValidation: false,
+        _premiumStrictPayload: true,
+        _premiumStrictValidation: true,
         requestId: 'lifebook-' + state.reportId + '-ch' + chapter + '-' + Date.now()
       });
 

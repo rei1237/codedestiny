@@ -400,14 +400,27 @@
     var birth = profile.birth || {};
     var location = profile.location || {};
     var mode = getSelectedMode();
+    var profileId = String(profile.profileId || profile.id || '').trim();
+    var birthDate = [
+      Number(birth.year || 0),
+      String(Number(birth.month || 0)).padStart(2, '0'),
+      String(Number(birth.day || 0)).padStart(2, '0')
+    ].join('-');
+    var birthTime = String(Number.isFinite(Number(birth.hour)) ? Number(birth.hour) : 12).padStart(2, '0')
+      + ':' + String(Number.isFinite(Number(birth.minute)) ? Number(birth.minute) : 0).padStart(2, '0');
+    var calendarType = String(birth.calType || birth.calendarType || 'solar').trim().toLowerCase();
+    var timeUnknown = !!(birth.timeUnknown || birth.birthTimeUnknown || birth.unknownTime);
+    var isLunar = calendarType === 'lunar' || calendarType === 'lunar_leap';
+    var birthPlace = String(profile.birthPlace || location.birthPlace || profile.place || '').trim();
 
     var body = {
       mode: mode,
       reportMode: mode,
       reportType: mode,
-      _premiumStrictPayload: false,
-      _premiumStrictValidation: false,
+      _premiumStrictPayload: true,
+      _premiumStrictValidation: true,
       includeCompatibility: mode === 'compatibility',
+      profileId: profileId,
       name: String(profile.name || '사용자'),
       gender: String(profile.gender || ''),
       year: Number(birth.year || 0),
@@ -415,12 +428,19 @@
       day: Number(birth.day || 0),
       hour: Number(Number.isFinite(Number(birth.hour)) ? birth.hour : 12),
       minute: Number(Number.isFinite(Number(birth.minute)) ? birth.minute : 0),
-      calType: String(birth.calType || birth.calendarType || 'solar'),
+      birthDate: birthDate,
+      birthTime: birthTime,
+      calType: calendarType,
+      calendarType: calendarType,
+      timeUnknown: timeUnknown,
+      isLunar: isLunar,
+      birthPlace: birthPlace || undefined,
       timezoneName: String(location.tz || 'Asia/Seoul'),
       timezone: String(location.tz || 'Asia/Seoul'),
       lat: Number(Number.isFinite(Number(location.lat)) ? Number(location.lat) : 37.5665),
       lon: Number(Number.isFinite(Number(location.lng)) ? Number(location.lng) : 126.9780),
       birthData: {
+        profileId: profileId,
         name: String(profile.name || '사용자'),
         gender: String(profile.gender || ''),
         year: Number(birth.year || 0),
@@ -428,10 +448,29 @@
         day: Number(birth.day || 0),
         hour: Number(Number.isFinite(Number(birth.hour)) ? birth.hour : 12),
         minute: Number(Number.isFinite(Number(birth.minute)) ? birth.minute : 0),
+        birthDate: birthDate,
+        birthTime: birthTime,
+        calType: calendarType,
+        calendarType: calendarType,
+        timeUnknown: timeUnknown,
+        isLunar: isLunar,
+        birthPlace: birthPlace || undefined,
         timezoneName: String(location.tz || 'Asia/Seoul'),
         timezone: String(location.tz || 'Asia/Seoul'),
         lat: Number(Number.isFinite(Number(location.lat)) ? Number(location.lat) : 37.5665),
         lon: Number(Number.isFinite(Number(location.lng)) ? Number(location.lng) : 126.9780)
+      },
+      profile: {
+        profileId: profileId,
+        name: String(profile.name || '사용자'),
+        gender: String(profile.gender || ''),
+        birthDate: birthDate,
+        birthTime: birthTime,
+        calendarType: calendarType,
+        isLunar: isLunar,
+        timeUnknown: timeUnknown,
+        birthPlace: birthPlace || undefined,
+        timezone: String(location.tz || 'Asia/Seoul')
       }
     };
 
@@ -451,6 +490,8 @@
         day: partner.day,
         hour: partner.hour,
         minute: partner.minute,
+        birthDate: [partner.year, String(partner.month).padStart(2, '0'), String(partner.day).padStart(2, '0')].join('-'),
+        birthTime: String(partner.hour).padStart(2, '0') + ':' + String(partner.minute).padStart(2, '0'),
         timezoneName: String(location.tz || 'Asia/Seoul'),
         timezone: String(location.tz || 'Asia/Seoul'),
         lat: Number(Number.isFinite(Number(location.lat)) ? Number(location.lat) : 37.5665),
