@@ -99,19 +99,19 @@ const STEM_SIHUA_RULES = Object.freeze({
 });
 
 const ZIWEI_CHAPTER_CATEGORY_GUIDE = Object.freeze({
-  core: ["명궁 원형", "신궁 발현", "성향 구조", "삶의 방향"],
-  stars: ["주성 강약", "보조성 작동", "살성 조율", "실전 적용"],
-  transformations: ["화록 흐름", "화권 지점", "화과 확장", "화기 리스크"],
-  career: ["직업 적성", "성과 패턴", "조직 역학", "전환 전략"],
-  wealth: ["수익 구조", "누수 패턴", "자산 배분", "재정 습관"],
-  relationship: ["애착 패턴", "갈등 구조", "회복 대화", "경계 설정"],
-  health: ["체력 리듬", "스트레스 트리거", "회복 루틴", "생활 처방"],
-  timing: ["대운 분기점", "세운 키워드", "월간 운영", "타이밍 전략"],
-  decade1: ["초반 10년", "기회 창", "준비 과제", "실행 우선순위"],
-  decade2: ["중반 10년", "전환 구간", "성장 병목", "확장 전략"],
-  decade3: ["후반 10년", "축적 자산", "관계 재편", "장기 안정"],
-  compatibility: ["관계 시너지", "갈등 방아쇠", "협업 방식", "관계 합의"],
-  summary: ["핵심 통합", "90일 실행", "리스크 관리", "마스터플랜"],
+  1: ["명궁 기본 구조", "주성/보성/살성", "사화 작동", "삼방사정 운영"],
+  2: ["신궁 위치", "명궁-신궁 차이", "후천 성장", "잠재 무기"],
+  3: ["행복 회복 구조", "복덕궁 주성", "감정 소모 패턴", "복덕-질액 연결"],
+  4: ["대외 이미지", "천이궁 사화", "이동/타지운", "평판 전략"],
+  5: ["직업 적성", "관록궁 주성", "조직/독립 성향", "커리어 도약"],
+  6: ["수익 구조", "재백궁 사화", "누수 패턴", "자산 운영"],
+  7: ["연애/결혼 패턴", "부처궁 주성", "관계 경계", "인연 유지"],
+  8: ["교우궁 인맥운", "귀인/악연 구분", "협업 전략", "커리어 연결"],
+  9: ["주거/공간 안정", "전택궁 주성", "환경 리스크", "공간 개선"],
+  10: ["체력 리듬", "질액궁 주성", "생활 패턴 리스크", "회복 루틴"],
+  11: ["현재 대한 위치", "10년 핵심 과제", "이전-현재 비교", "다음 대한 준비"],
+  12: ["유년 핵심 주제", "유년 사화", "분기 전략", "월별 Go/Hold/Retreat"],
+  13: ["핵심 패턴 통합", "성공 전략 5", "관계 전략 5", "최종 마스터플랜"],
 });
 
 const ZIWEI_CHAPTER_SPECS = Object.freeze(
@@ -120,7 +120,7 @@ const ZIWEI_CHAPTER_SPECS = Object.freeze(
     chapterNo: index + 1,
     title: chapter.title,
     goal: chapter.goal,
-    sections: ZIWEI_CHAPTER_CATEGORY_GUIDE[chapter.key] || ["핵심 구조", "현실 적용", "주의점", "실천 전략"],
+    sections: ZIWEI_CHAPTER_CATEGORY_GUIDE[index + 1] || ["핵심 구조", "현실 적용", "주의점", "실천 전략"],
     focus: chapter.key,
   })),
 );
@@ -1146,12 +1146,26 @@ export function parseZiweiGeminiResponse(rawText) {
 
 export function createFallbackChapter(chapter, context) {
   const spec = chapter || { title: "기본 챕터", goal: "기본 해석" };
-  const mingPalace = asArray(context?.palaces).find((palace) => palace?.key === (context?.chartMeta?.mingPalaceKey || "ming")) || asArray(context?.palaces)[0] || {};
-  const mingStars = asArray(mingPalace?.mainStars).map((star) => asText(star?.name)).filter(Boolean).slice(0, 3);
+  const chapterNo = Number(spec?.chapterNo || spec?.num || 0);
+  const chapterContract = ZIWEI_CHAPTER_CONTRACTS[chapterNo] || null;
+  const targetPalaceName = asText(chapterContract?.targetPalace);
+
+  let focusPalaceKey = "ming";
+  if (targetPalaceName.includes("신궁")) {
+    focusPalaceKey = asText(context?.chartMeta?.bodyPalaceKey || context?.chartMeta?.mingPalaceKey || "ming") || "ming";
+  } else if (targetPalaceName && PALACE_KEY_MAP[targetPalaceName]) {
+    focusPalaceKey = PALACE_KEY_MAP[targetPalaceName];
+  }
+
+  const focusPalace = asArray(context?.palaces).find((palace) => palace?.key === focusPalaceKey)
+    || asArray(context?.palaces).find((palace) => palace?.key === (context?.chartMeta?.mingPalaceKey || "ming"))
+    || asArray(context?.palaces)[0]
+    || {};
+  const focusStars = asArray(focusPalace?.mainStars).map((star) => asText(star?.name)).filter(Boolean).slice(0, 3);
   const annualFlow = toPlainObject(context?.cycles?.annual);
   const fallbackMasterAdvice = buildZiweiChapterMasterAdvice(spec, {
-    corePalaces: ["ming"],
-    coreStars: mingStars,
+    corePalaces: [focusPalaceKey],
+    coreStars: focusStars,
   });
   return {
     chapterTitle: spec.title,
@@ -1160,7 +1174,7 @@ export function createFallbackChapter(chapter, context) {
     sections: [
       {
         heading: "운명의 구조",
-        body: `제공된 궁의 의미와 전체 흐름을 연결해 실전적으로 읽어야 합니다. 현재 명반에서는 ${mingStars.join(", ") || "핵심 주성"}의 작동을 기반으로 성향-행동-성과의 연결 구조를 점검하는 것이 중요합니다.`,
+        body: `제공된 궁의 의미와 전체 흐름을 연결해 실전적으로 읽어야 합니다. 현재 명반에서는 ${focusStars.join(", ") || "핵심 주성"}의 작동을 기반으로 성향-행동-성과의 연결 구조를 점검하는 것이 중요합니다.`,
       },
       {
         heading: "실전 운영 전략",
@@ -1176,8 +1190,8 @@ export function createFallbackChapter(chapter, context) {
     ],
     masterAdvice: fallbackMasterAdvice,
     masterConclusion: fallbackMasterAdvice,
-    coreStars: ["자미", "천부"],
-    corePalaces: ["ming"],
+    coreStars: focusStars.length > 0 ? focusStars : ["자미", "천부"],
+    corePalaces: [focusPalaceKey],
     missingDataNotice: null,
   };
 }
