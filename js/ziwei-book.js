@@ -158,12 +158,35 @@
       };
     }
 
-    var preflight = await premiumAuthJson('/api/premium-report/preflight', {
-      reportSessionId: String(prepared.reportSessionId || ''),
-      requestId: 'ziwei:preflight:' + Date.now().toString(36)
-    }, {
-      maxAttempts: 2
-    });
+    var preflight = null;
+    for (var preflightAttempt = 0; preflightAttempt < 2; preflightAttempt += 1) {
+      preflight = await premiumAuthJson('/api/premium-report/preflight', {
+        reportSessionId: String(prepared.reportSessionId || ''),
+        reportType: ZIWEI_PREMIUM_REPORT_TYPE,
+        featureType: ZIWEI_PREMIUM_FEATURE_TYPE,
+        requestBody: requestBody || {},
+        requestId: 'ziwei:preflight:' + Date.now().toString(36)
+      }, {
+        maxAttempts: 2
+      });
+
+      var preflightCode = String((preflight && preflight.code) || '').toUpperCase();
+      var preflightStatus = Number((preflight && preflight.status) || 0);
+      var shouldRecoverSession = !preflight || !preflight.ok
+        ? (preflightStatus === 404 || preflightCode === 'PREMIUM_REPORT_SESSION_NOT_FOUND')
+        : false;
+      if (!shouldRecoverSession) break;
+
+      prepared = await premiumAuthJson('/api/premium-report/prepare', {
+        featureType: ZIWEI_PREMIUM_FEATURE_TYPE,
+        reportType: ZIWEI_PREMIUM_REPORT_TYPE,
+        requestBody: requestBody || {}
+      }, {
+        maxAttempts: 2
+      });
+      if (!prepared || !prepared.ok || !prepared.reportSessionId) break;
+      await delay(250);
+    }
 
     if (!preflight || !preflight.ok) {
       return {
@@ -225,19 +248,43 @@
   function normalizeCalType(value) {
     var v = String(value || '').trim().toLowerCase();
     if (v === 'lunar' || v === '음력' || v === 'l') return 'lunar';
+    if (v === 'lunar_leap' || v === 'leap' || v === '윤달' || v === '윤') return 'lunar_leap';
     return 'solar';
+  }
+
+  function parseDateParts(raw) {
+    var src = String(raw || '').trim();
+    var m = src.match(/^(\d{4})[-./](\d{1,2})[-./](\d{1,2})$/);
+    if (!m) return null;
+    return {
+      year: Number(m[1]),
+      month: Number(m[2]),
+      day: Number(m[3])
+    };
+  }
+
+  function parseTimeParts(raw) {
+    var src = String(raw || '').trim();
+    var m = src.match(/^(\d{1,2}):(\d{1,2})$/);
+    if (!m) return null;
+    return {
+      hour: Number(m[1]),
+      minute: Number(m[2])
+    };
   }
 
   function buildProfileFromCardRow(row) {
     if (!row || typeof row !== 'object') return null;
     var birth = (row.birth && typeof row.birth === 'object') ? row.birth : null;
-    var year = Number((birth && birth.year) || row.birthYear || row.year || 0);
-    var month = Number((birth && birth.month) || row.birthMonth || row.month || 0);
-    var day = Number((birth && birth.day) || row.birthDay || row.day || 0);
+    var parsedDate = parseDateParts((birth && birth.birthDate) || row.birthDate || row.dateOfBirth);
+    var parsedTime = parseTimeParts((birth && birth.birthTime) || row.birthTime);
+    var year = Number((birth && birth.year) || row.birthYear || row.year || (parsedDate && parsedDate.year) || 0);
+    var month = Number((birth && birth.month) || row.birthMonth || row.month || (parsedDate && parsedDate.month) || 0);
+    var day = Number((birth && birth.day) || row.birthDay || row.day || (parsedDate && parsedDate.day) || 0);
     if (!(year > 0 && month > 0 && day > 0)) return null;
 
-    var hour = Number((birth && birth.hour) || row.birthHour || row.hour);
-    var minute = Number((birth && birth.minute) || row.birthMinute || row.minute);
+    var hour = Number((birth && birth.hour) || row.birthHour || row.hour || (parsedTime && parsedTime.hour));
+    var minute = Number((birth && birth.minute) || row.birthMinute || row.minute || (parsedTime && parsedTime.minute));
     var calType = normalizeCalType((birth && (birth.calType || birth.calendarType)) || row.calType || row.calendarType || 'solar');
     var hasExplicitHour = Number.isFinite(hour);
     var hasExplicitMinute = Number.isFinite(minute);
@@ -261,7 +308,7 @@
         calType: calType,
         calendarType: calType,
         timeUnknown: timeUnknown,
-        isLunar: calType === 'lunar'
+        isLunar: calType === 'lunar' || calType === 'lunar_leap'
       },
       location: {
         tz: tz,
@@ -297,26 +344,27 @@
 
       var user = safeParseJson(localStorage.getItem('fortune_auth_user') || 'null', null);
       if (!user) return null;
-      var date = String(user.birthDate || '').trim();
-      var time = String(user.birthTime || '').trim();
-      var dm = date.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-      var tm = time.match(/^(\d{1,2}):(\d{1,2})$/);
-      if (!dm) return null;
+      var parsedDate = parseDateParts(user.birthDate || user.dateOfBirth);
+      var parsedTime = parseTimeParts(user.birthTime);
+      if (!parsedDate) return null;
+      var userTimeUnknownRaw = String(user.timeUnknown || user.birthTimeUnknown || '').trim().toLowerCase();
+      var userTimeUnknown = userTimeUnknownRaw === '1' || userTimeUnknownRaw === 'true' || userTimeUnknownRaw === 'y';
+      var userCalType = normalizeCalType(user.calendarType || user.calType || 'solar');
       return {
         id: String(user.profileId || user.id || '').trim(),
         profileId: String(user.profileId || user.id || '').trim(),
         name: String(user.name || user.nickname || '사용자'),
         gender: normalizeGender(user.gender),
         birth: {
-          year: Number(dm[1]),
-          month: Number(dm[2]),
-          day: Number(dm[3]),
-          hour: tm ? Number(tm[1]) : 12,
-          minute: tm ? Number(tm[2]) : 0,
-          calType: normalizeCalType(user.calendarType || user.calType || 'solar'),
-          calendarType: normalizeCalType(user.calendarType || user.calType || 'solar'),
-          timeUnknown: !tm,
-          isLunar: normalizeCalType(user.calendarType || user.calType || 'solar') === 'lunar'
+          year: Number(parsedDate.year),
+          month: Number(parsedDate.month),
+          day: Number(parsedDate.day),
+          hour: parsedTime ? Number(parsedTime.hour) : 12,
+          minute: parsedTime ? Number(parsedTime.minute) : 0,
+          calType: userCalType,
+          calendarType: userCalType,
+          timeUnknown: userTimeUnknown || !parsedTime,
+          isLunar: userCalType === 'lunar' || userCalType === 'lunar_leap'
         },
         location: {
           tz: String(user.timezone || user.tz || 'Asia/Seoul').trim() || 'Asia/Seoul',
@@ -347,7 +395,7 @@
     var date = [b.year, String(b.month || '').padStart(2, '0'), String(b.day || '').padStart(2, '0')].join('-');
     var time = String(Number.isFinite(Number(b.hour)) ? Number(b.hour) : 12).padStart(2, '0') + ':' + String(Number.isFinite(Number(b.minute)) ? Number(b.minute) : 0).padStart(2, '0');
     var cal = normalizeCalType(b.calType || b.calendarType || 'solar');
-    var calLabel = cal === 'lunar' ? '음력' : '양력';
+    var calLabel = cal === 'lunar' ? '음력' : (cal === 'lunar_leap' ? '음력(윤달)' : '양력');
     return [String(profile.name || '사용자') + ' · ' + date, calLabel + ' · ' + time].join(' · ');
   }
 
@@ -755,7 +803,7 @@
     var birthDate = [year, String(month).padStart(2, '0'), String(day).padStart(2, '0')].join('-');
     var birthTime = String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
     var timeUnknown = !!birth.timeUnknown;
-    var isLunar = calendarType === 'lunar';
+    var isLunar = calendarType === 'lunar' || calendarType === 'lunar_leap';
     var birthPlace = String(profile.birthPlace || (profile.location && profile.location.birthPlace) || '').trim();
 
     var body = {
@@ -770,6 +818,7 @@
       day: day,
       hour: hour,
       minute: minute,
+      calType: calendarType,
       calendarType: calendarType,
       profileId: profileId,
       birthDate: birthDate,
@@ -777,6 +826,7 @@
       isLunar: isLunar,
       timeUnknown: timeUnknown,
       birthPlace: birthPlace || undefined,
+      timezoneName: timezone,
       timezone: timezone,
       lat: lat,
       lon: lon,
@@ -802,6 +852,7 @@
         day: day,
         hour: hour,
         minute: minute,
+        calType: calendarType,
         birthDate: birthDate,
         birthTime: birthTime,
         calendarType: calendarType,

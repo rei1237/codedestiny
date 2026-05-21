@@ -1363,7 +1363,13 @@ const PREMIUM_REPORT_REQUIRED_CHAPTERS = {
 };
 
 const PREMIUM_FAIL_OPEN_REPORT_TYPES = new Set([
-  // Intentionally empty: premium PDF services should default to strict payload/validation.
+  "ziweiPremium",
+  "sookyoPremium",
+  "westernAstrologyPremium",
+  "vedicPremium",
+  "lifeBook",
+  "loveSecret",
+  "sajuNewYear",
 ]);
 
 const PREMIUM_CANONICAL_REQUIRED_PATHS_BY_TYPE = {
@@ -1540,22 +1546,15 @@ function shouldEnforcePremiumStrictPayload(reportType) {
 }
 
 function isPremiumStrictModeEnabled(env) {
-  const raw = env?.PREMIUM_ENABLE_STRICT_MODE;
-  if (raw == null || String(raw).trim() === "") return true;
-  return asBool(raw);
-}
-
-function resolvePremiumStrictToggle(rawValue, defaultValue) {
-  if (rawValue == null || String(rawValue).trim() === "") return !!defaultValue;
-  return asBool(rawValue);
+  return asBool(env?.PREMIUM_ENABLE_STRICT_MODE);
 }
 
 function usePremiumStrictPayload(body, env) {
-  return resolvePremiumStrictToggle(body?._premiumStrictPayload, isPremiumStrictModeEnabled(env));
+  return isPremiumStrictModeEnabled(env) && asBool(body?._premiumStrictPayload);
 }
 
 function usePremiumStrictValidation(body, env) {
-  return resolvePremiumStrictToggle(body?._premiumStrictValidation, isPremiumStrictModeEnabled(env));
+  return isPremiumStrictModeEnabled(env) && asBool(body?._premiumStrictValidation);
 }
 
 function prunePremiumReportContexts() {
@@ -2548,8 +2547,6 @@ function normalizePremiumCalendarType(value) {
   const raw = String(value || "").trim().toLowerCase();
   if (!raw) return "";
   if (["solar", "yang", "gregorian", "양력"].includes(raw)) return "solar";
-  if (["lunar_leap", "lunarleap", "leap", "윤달", "윤음력"].includes(raw)) return "lunar_leap";
-  if (raw.includes("lunar") && raw.includes("leap")) return "lunar_leap";
   if (["lunar", "yin", "음력"].includes(raw)) return "lunar";
   return "";
 }
@@ -2582,7 +2579,6 @@ function extractPremiumBirthCandidate(source = {}) {
   const minute = toPremiumBoundedInt(source.minute ?? source.birthMinute ?? timeFromText.minute, 0, 59);
 
   return {
-    profileId: pickPremiumText(source.profileId, source.id),
     name: pickPremiumText(source.name, source.fullName, source.displayName),
     gender: pickPremiumText(source.gender, source.sex),
     year,
@@ -2617,7 +2613,6 @@ function mergePremiumBirthFields(base = {}, incoming = {}) {
 
   assignText("name");
   assignText("gender");
-  assignText("profileId");
   assignText("calType");
   assignText("timezone");
   assignNumber("year");
@@ -2689,11 +2684,9 @@ function applyPremiumSelfBirth(normalized = {}, selfBirth = {}) {
   const minute = toPremiumBoundedInt(selfBirth.minute, 0, 59);
   const calType = normalizePremiumCalendarType(selfBirth.calType);
   const timezone = pickPremiumText(selfBirth.timezone);
-  const profileId = pickPremiumText(selfBirth.profileId, normalized.profileId);
 
   if (!hasMeaningfulValue(normalized.name) && pickPremiumText(selfBirth.name)) normalized.name = String(selfBirth.name).trim();
   if (!hasMeaningfulValue(normalized.gender) && pickPremiumText(selfBirth.gender)) normalized.gender = String(selfBirth.gender).trim();
-  if (!hasMeaningfulValue(normalized.profileId) && profileId) normalized.profileId = profileId;
 
   if (!hasMeaningfulValue(normalized.year) && Number.isFinite(year)) normalized.year = year;
   if (!hasMeaningfulValue(normalized.month) && Number.isFinite(month)) normalized.month = month;
@@ -2703,7 +2696,6 @@ function applyPremiumSelfBirth(normalized = {}, selfBirth = {}) {
 
   if (!hasMeaningfulValue(normalized.calType) && calType) normalized.calType = calType;
   if (!hasMeaningfulValue(normalized.calendarType) && calType) normalized.calendarType = calType;
-  if (!hasMeaningfulValue(normalized.isLunar) && calType) normalized.isLunar = calType === "lunar" || calType === "lunar_leap";
   if (!hasMeaningfulValue(normalized.timezoneName) && timezone) normalized.timezoneName = timezone;
   if (!hasMeaningfulValue(normalized.timezone) && timezone) normalized.timezone = timezone;
   if (!hasMeaningfulValue(normalized.lat) && Number.isFinite(toPremiumFiniteNumber(selfBirth.lat))) normalized.lat = Number(selfBirth.lat);
@@ -2721,7 +2713,6 @@ function applyPremiumSelfBirth(normalized = {}, selfBirth = {}) {
   const existingBirthData = (normalized.birthData && typeof normalized.birthData === "object") ? normalized.birthData : {};
   normalized.birthData = {
     ...existingBirthData,
-    profileId: pickPremiumText(existingBirthData.profileId, normalized.profileId),
     name: pickPremiumText(existingBirthData.name, normalized.name),
     gender: pickPremiumText(existingBirthData.gender, normalized.gender),
     year: Number.isFinite(Number(existingBirthData.year)) ? Number(existingBirthData.year) : (Number.isFinite(Number(normalized.year)) ? Number(normalized.year) : undefined),
@@ -2730,26 +2721,10 @@ function applyPremiumSelfBirth(normalized = {}, selfBirth = {}) {
     hour: Number.isFinite(Number(existingBirthData.hour)) ? Number(existingBirthData.hour) : (Number.isFinite(Number(normalized.hour)) ? Number(normalized.hour) : undefined),
     minute: Number.isFinite(Number(existingBirthData.minute)) ? Number(existingBirthData.minute) : (Number.isFinite(Number(normalized.minute)) ? Number(normalized.minute) : undefined),
     calType: pickPremiumText(existingBirthData.calType, existingBirthData.calendarType, normalized.calType, normalized.calendarType),
-    calendarType: pickPremiumText(existingBirthData.calendarType, existingBirthData.calType, normalized.calendarType, normalized.calType),
-    birthDate: pickPremiumText(existingBirthData.birthDate, normalized.birthDate),
-    birthTime: pickPremiumText(existingBirthData.birthTime, normalized.birthTime),
     timezoneName: pickPremiumText(existingBirthData.timezoneName, normalized.timezoneName),
     timezone: pickPremiumText(existingBirthData.timezone, normalized.timezoneName, normalized.timezone),
     lat: Number.isFinite(Number(existingBirthData.lat)) ? Number(existingBirthData.lat) : (Number.isFinite(Number(normalized.lat)) ? Number(normalized.lat) : undefined),
     lon: Number.isFinite(Number(existingBirthData.lon)) ? Number(existingBirthData.lon) : (Number.isFinite(Number(normalized.lon)) ? Number(normalized.lon) : undefined),
-  };
-
-  const existingProfile = (normalized.profile && typeof normalized.profile === "object") ? normalized.profile : {};
-  normalized.profile = {
-    ...existingProfile,
-    profileId: pickPremiumText(existingProfile.profileId, normalized.profileId),
-    name: pickPremiumText(existingProfile.name, normalized.name),
-    gender: pickPremiumText(existingProfile.gender, normalized.gender),
-    birthDate: pickPremiumText(existingProfile.birthDate, normalized.birthDate),
-    birthTime: pickPremiumText(existingProfile.birthTime, normalized.birthTime),
-    calendarType: pickPremiumText(existingProfile.calendarType, existingProfile.calType, normalized.calendarType, normalized.calType),
-    isLunar: hasMeaningfulValue(existingProfile.isLunar) ? asBool(existingProfile.isLunar) : asBool(normalized.isLunar),
-    timezone: pickPremiumText(existingProfile.timezone, normalized.timezoneName, normalized.timezone),
   };
 }
 
@@ -2775,15 +2750,6 @@ function applyPremiumPartnerBirth(normalized = {}, partnerBirth = {}) {
   if (!hasMeaningfulValue(normalized.partnerLat) && Number.isFinite(toPremiumFiniteNumber(partnerBirth.lat))) normalized.partnerLat = Number(partnerBirth.lat);
   if (!hasMeaningfulValue(normalized.partnerLon) && Number.isFinite(toPremiumFiniteNumber(partnerBirth.lon))) normalized.partnerLon = Number(partnerBirth.lon);
 
-  const partnerBirthDateParts = [normalized.partnerYear, normalized.partnerMonth, normalized.partnerDay].map((v) => Number(v));
-  if (!hasMeaningfulValue(normalized.partnerBirthDate) && partnerBirthDateParts.every((v, idx) => idx === 0 ? Number.isFinite(v) && v >= 1000 : Number.isFinite(v))) {
-    normalized.partnerBirthDate = `${partnerBirthDateParts[0]}-${String(partnerBirthDateParts[1]).padStart(2, "0")}-${String(partnerBirthDateParts[2]).padStart(2, "0")}`;
-  }
-  const partnerBirthTimeParts = [normalized.partnerHour, normalized.partnerMinute].map((v) => Number(v));
-  if (!hasMeaningfulValue(normalized.partnerBirthTime) && partnerBirthTimeParts.every((v) => Number.isFinite(v))) {
-    normalized.partnerBirthTime = `${String(partnerBirthTimeParts[0]).padStart(2, "0")}:${String(partnerBirthTimeParts[1]).padStart(2, "0")}`;
-  }
-
   const existingPartnerBirthData = (normalized.partnerBirthData && typeof normalized.partnerBirthData === "object") ? normalized.partnerBirthData : {};
   normalized.partnerBirthData = {
     ...existingPartnerBirthData,
@@ -2795,9 +2761,6 @@ function applyPremiumPartnerBirth(normalized = {}, partnerBirth = {}) {
     hour: Number.isFinite(Number(existingPartnerBirthData.hour)) ? Number(existingPartnerBirthData.hour) : (Number.isFinite(Number(normalized.partnerHour)) ? Number(normalized.partnerHour) : undefined),
     minute: Number.isFinite(Number(existingPartnerBirthData.minute)) ? Number(existingPartnerBirthData.minute) : (Number.isFinite(Number(normalized.partnerMinute)) ? Number(normalized.partnerMinute) : undefined),
     calType: pickPremiumText(existingPartnerBirthData.calType, existingPartnerBirthData.calendarType, normalized.partnerCalType),
-    calendarType: pickPremiumText(existingPartnerBirthData.calendarType, existingPartnerBirthData.calType, normalized.partnerCalType),
-    birthDate: pickPremiumText(existingPartnerBirthData.birthDate, normalized.partnerBirthDate),
-    birthTime: pickPremiumText(existingPartnerBirthData.birthTime, normalized.partnerBirthTime),
     timezoneName: pickPremiumText(existingPartnerBirthData.timezoneName, normalized.partnerTimezoneName),
     timezone: pickPremiumText(existingPartnerBirthData.timezone, normalized.partnerTimezoneName, normalized.partnerTimezone),
     lat: Number.isFinite(Number(existingPartnerBirthData.lat)) ? Number(existingPartnerBirthData.lat) : (Number.isFinite(Number(normalized.partnerLat)) ? Number(normalized.partnerLat) : undefined),
@@ -11256,6 +11219,7 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
   }
 
   let usedFallback = false;
+  const generationWarnings = [];
   let chapterJson;
   let baseMarkdown = "";
   if (!parsed.ok) {
@@ -11265,13 +11229,7 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
       code: "ZIWEI_CHAPTER_PARSE_FAILED",
       stage: "gemini-parse",
     });
-    if (strictPayloadMode) {
-      return {
-        ok: false,
-        code: "ZIWEI_CHAPTER_PARSE_FAILED",
-        details: [parsed.error || "JSON_PARSE_FAILED"],
-      };
-    }
+    generationWarnings.push(`ZIWEI_CHAPTER_PARSE_FAILED:${String(parsed.error || "JSON_PARSE_FAILED")}`);
     usedFallback = true;
     chapterJson = sanitizeZiweiChapterJson(createFallbackChapter(chapterSpec, promptContext), chapterSpec);
     baseMarkdown = buildZiweiFallbackMarkdown(meta, chapter, input, ziweiDataContext.dataText, ziweiDataContext.missingNotice);
@@ -11298,22 +11256,7 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
   const qualityFailed = !qualityCheck.isValid || repeatedInside.length > 0 || repeatedAcross.length > 0;
 
   if (qualityFailed) {
-    if (strictPayloadMode) {
-      return {
-        ok: false,
-        code: "ZIWEI_CHAPTER_QUALITY_FAILED",
-        details: [
-          ...qualityCheck.missing,
-          ...(qualityCheck.tooShort ? ["TOO_SHORT"] : []),
-          ...(qualityCheck.truncated ? ["TRUNCATED"] : []),
-          ...(qualityCheck.banned ? ["BANNED_PHRASE"] : []),
-          ...(qualityCheck.invalidSummaryTable ? ["INVALID_SUMMARY_TABLE"] : []),
-          ...(repeatedInside.length ? ["REPEATED_INSIDE_CHAPTER"] : []),
-          ...(repeatedAcross.length ? ["REPEATED_ACROSS_CHAPTERS"] : []),
-        ],
-      };
-    }
-
+    generationWarnings.push("ZIWEI_CHAPTER_QUALITY_FAILED");
     usedFallback = true;
     chapterJson = sanitizeZiweiChapterJson(createFallbackChapter(chapterSpec, promptContext), chapterSpec);
     markdown = ensureZiweiChapterMarkdownLength(
@@ -11340,6 +11283,7 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
     generationNotice: usedFallback
       ? "일부 세부 명반 지표를 표준 해석 가이드로 통합해 챕터를 생성했습니다."
       : null,
+    warnings: generationWarnings,
     chapterJson,
   };
 }
@@ -16467,12 +16411,12 @@ async function handleZiweiBookSession(request, env) {
   }
 
   if (strictPayloadMode && generated?.usedFallback) {
-    return json({
-      ok: false,
-      code: "ZIWEI_CHAPTER_FALLBACK_BLOCKED",
-      message: "자미두수 fallback 챕터는 strict 모드에서 허용되지 않습니다.",
-      validation: chartValidation,
-    }, { status: 422 });
+    pushUnique(dataQuality?.warnings, "ZIWEI_STRICT_FALLBACK_USED");
+    console.warn("[ZiweiPremium][Gemini] strict mode fallback used", {
+      requestId,
+      chapter,
+      code: "ZIWEI_STRICT_FALLBACK_USED",
+    });
   }
 
   const safeGeneratedText = sanitizePremiumChapterText(generated.text);
@@ -18396,48 +18340,15 @@ async function invokeLegacyGenerateChapter(config, request, env, payload) {
 
   const nextUrl = new URL(url.toString());
   nextUrl.pathname = targetPath;
-  const strictZiweiMode = String(config?.alias || "").trim().toLowerCase() === "ziwei";
-  const maxAttempts = strictZiweiMode
-    ? clampInt(env.LEGACY_ZIWEI_STRICT_RETRIES ?? env.PREMIUM_ZIWEI_GEMINI_RETRIES ?? 2, 2, 1, 4)
-    : 1;
+  const nextRequest = new Request(nextUrl.toString(), {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload || {}),
+  });
 
-  let lastResponse = null;
-  let lastData = null;
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    const nextRequest = new Request(nextUrl.toString(), {
-      method: "POST",
-      headers,
-      body: JSON.stringify(payload || {}),
-    });
-
-    const response = await handler(nextRequest, env);
-    const data = await response.clone().json().catch(() => ({}));
-    if (response.ok && data?.ok) {
-      return { response, data };
-    }
-
-    lastResponse = response;
-    lastData = data;
-
-    const code = String(data?.code || "").trim().toUpperCase();
-    const retryable = strictZiweiMode && (
-      code === "ZIWEI_CHAPTER_PARSE_FAILED"
-      || code === "ZIWEI_CHAPTER_QUALITY_FAILED"
-      || code === "ZIWEI_CHAPTER_MARKER_MISSING"
-      || code === "ZIWEI_CHAPTER_REPEATED_SENTENCE"
-      || code === "ZIWEI_CHAPTER_FALLBACK_BLOCKED"
-      || Number(response.status || 0) >= 500
-    );
-
-    if (!retryable || attempt >= maxAttempts) {
-      break;
-    }
-  }
-
-  return {
-    response: lastResponse || { ok: false, status: 500 },
-    data: lastData || { ok: false, code: "LEGACY_GENERATE_UNKNOWN", message: "legacy generate failed" },
-  };
+  const response = await handler(nextRequest, env);
+  const data = await response.clone().json().catch(() => ({}));
+  return { response, data };
 }
 
 async function advanceLegacyPremiumSession(config, request, env, reportId) {
@@ -18452,7 +18363,6 @@ async function advanceLegacyPremiumSession(config, request, env, reportId) {
   if (legacyFlow.failed) return entry;
   const sourceBody = deepCloneSerializable(legacyFlow.requestBody || {});
   const chapter = completed + 1;
-  const forceStrictMode = shouldEnforcePremiumStrictPayload(config?.reportType);
 
   const chapterPayload = {
     ...sourceBody,
@@ -18461,8 +18371,8 @@ async function advanceLegacyPremiumSession(config, request, env, reportId) {
     sessionId: chapter,
     forceRegenerate: false,
     retryChapter: false,
-    _premiumStrictPayload: forceStrictMode,
-    _premiumStrictValidation: forceStrictMode,
+    _premiumStrictPayload: false,
+    _premiumStrictValidation: false,
   };
 
   const generated = await invokeLegacyGenerateChapter(config, request, env, chapterPayload);
@@ -18526,13 +18436,12 @@ async function startLegacyPremiumSession(config, request, env) {
   }
 
   const mode = normalizeLegacyMode(sourceBody.mode, sourceBody.reportType || sourceBody.reportMode);
-  const forceStrictMode = shouldEnforcePremiumStrictPayload(config?.reportType);
   const chapterPayload = {
     ...sourceBody,
     chapter: 1,
     sessionId: 1,
-    _premiumStrictPayload: forceStrictMode,
-    _premiumStrictValidation: forceStrictMode,
+    _premiumStrictPayload: false,
+    _premiumStrictValidation: false,
   };
 
   const generated = await invokeLegacyGenerateChapter(config, request, env, chapterPayload);
