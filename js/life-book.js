@@ -632,6 +632,11 @@
 
   function clearPersistedState() {
     try { localStorage.removeItem(LIFEBOOK_STATE_STORAGE_KEY); } catch (_) {}
+    try { localStorage.removeItem('__cd_lifebook_state_v2__'); } catch (_) {}
+    try { localStorage.removeItem('__cd_lifebook_state_v1__'); } catch (_) {}
+    try { sessionStorage.removeItem(LIFEBOOK_STATE_STORAGE_KEY); } catch (_) {}
+    try { sessionStorage.removeItem('__cd_lifebook_state_v2__'); } catch (_) {}
+    try { sessionStorage.removeItem('__cd_lifebook_state_v1__'); } catch (_) {}
   }
 
   function syncStartPreviewChapters() {
@@ -1063,6 +1068,8 @@
     state.generating = false;
     state.reportId = '';
     state.paidReportId = '';
+    state.paymentContext = null;
+    state.refundInFlight = false;
     state.payload = null;
     state.chapterTexts = {};
     state.chapterMeta = {};
@@ -1114,8 +1121,8 @@
     document.body.classList.remove('lb-modal-open');
     modal.setAttribute('aria-hidden', 'true');
 
-    // 생성 완료 상태를 유지하면 다음 진입에서 이전 결과가 재사용되므로 닫을 때 초기화한다.
-    if (!state.generating && chapterCount() >= TOTAL_CHAPTERS) {
+    // 생성 결과/진행 잔존 데이터가 있으면 모달 종료 시 항상 초기화해 다음 진입을 새 세션으로 강제한다.
+    if (!state.generating && (state.reportId || state.paidReportId || chapterCount() > 0)) {
       resetState();
     }
   };
