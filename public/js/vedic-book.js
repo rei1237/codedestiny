@@ -59,7 +59,8 @@
     quoteTick: 0,
     paidGateKey: '',
     paymentContext: null,
-    refundInFlight: false
+    refundInFlight: false,
+    lastRequestBody: null
   };
 
   function qs(id) { return document.getElementById(id); }
@@ -212,7 +213,8 @@
       }
 
       var preflightCode = String((preflight && preflight.code) || '').toUpperCase();
-      if (preflightCode !== 'REPORT_SESSION_NOT_FOUND' || preflightAttempt > 0) {
+      var isSessionMiss = preflightCode === 'REPORT_SESSION_NOT_FOUND' || preflightCode === 'PREMIUM_REPORT_SESSION_NOT_FOUND' || Number((preflight && preflight.status) || 0) === 404;
+      if (!isSessionMiss || preflightAttempt > 0) {
         break;
       }
 
@@ -241,7 +243,13 @@
       };
     }
 
-    return { ok: true };
+    return {
+      ok: true,
+      reportSessionId: reportSessionId,
+      snapshotId: String((preflight && preflight.snapshotId) || (prepared && prepared.snapshotId) || ''),
+      totalChapters: Number((prepared && prepared.totalChapters) || (preflight && preflight.totalChapters) || TOTAL_CHAPTERS),
+      chapterPlan: Array.isArray(prepared && prepared.chapterPlan) ? prepared.chapterPlan : []
+    };
   }
 
   function buildProfileFromCardRow(row) {
@@ -790,6 +798,196 @@
       + '</article>';
   }
 
+  function inferChapterSummary(text) {
+    var source = String(text || '').trim();
+    if (!source) return '';
+    var compact = source.replace(/\r/g, '').replace(/\n+/g, ' ').trim();
+    if (compact.length <= 220) return compact;
+    return compact.slice(0, 220).trim() + '...';
+  }
+
+  function normalizePremiumChapterSections(rawSections, fallbackText) {
+    var sections = Array.isArray(rawSections) ? rawSections : [];
+    var normalized = sections.map(function (section) {
+      var heading = String((section && (section.heading || section.title || section.name)) || '').trim();
+      var body = String((section && (section.body || section.content || section.text)) || '').trim();
+      if (!heading && !body) return null;
+      return {
+        heading: heading || '핵심 해석',
+        body: body || ''
+      };
+    }).filter(Boolean);
+
+    if (normalized.length) return normalized;
+    var fallback = String(fallbackText || '').trim();
+    if (!fallback) return [];
+    return [{ heading: '핵심 해석', body: fallback }];
+  }
+
+  function normalizeVedicPremiumChapter(data, chapterId, chapterPlan) {
+    var chapterJson = (data && data.chapterJson && typeof data.chapterJson === 'object') ? data.chapterJson : null;
+    var chapterMeta = (data && data.chapterMeta && typeof data.chapterMeta === 'object')
+      ? data.chapterMeta
+      : ((Array.isArray(chapterPlan) ? chapterPlan[chapterId - 1] : null) || {});
+    var text = String((data && data.text) || '').trim();
+    var sections = normalizePremiumChapterSections(data && data.sections, text);
+    var title = String((chapterMeta && (chapterMeta.title || chapterMeta.name)) || (chapterJson && chapterJson.title) || ('Chapter ' + chapterId)).trim();
+    var subtitle = String((chapterMeta && chapterMeta.subtitle) || (chapterJson && chapterJson.subtitle) || '').trim();
+    var summary = String((chapterJson && chapterJson.summary) || inferChapterSummary(text)).trim();
+    var keyInsights = chapterJson
+      ? (Array.isArray(chapterJson.keyInsights) ? chapterJson.keyInsights : (Array.isArray(chapterJson.cautions) ? chapterJson.cautions : []))
+      : [];
+    var practicalAdvice = chapterJson && Array.isArray(chapterJson.practicalAdvice) ? chapterJson.practicalAdvice : [];
+
+    return {
+      chapterIndex: chapterId,
+      title: title,
+      subtitle: subtitle,
+      summary: summary,
+      sections: sections,
+      keyInsights: keyInsights,
+      practicalAdvice: practicalAdvice,
+      text: text,
+      chapterJson: chapterJson,
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  async function generateVedicViaPremiumReport(requestBody, preflightInfo) {
+    if (typeof window.__cdPremiumAuthJson !== 'function') {
+      return { ok: false, message: '인증 모듈을 초기화하지 못했습니다.' };
+    }
+
+    var preparedInfo = preflightInfo || null;
+    var reportSessionId = String((preparedInfo && preparedInfo.reportSessionId) || '').trim();
+    var snapshotId = String((preparedInfo && preparedInfo.snapshotId) || '').trim();
+    var chapterPlan = Array.isArray(preparedInfo && preparedInfo.chapterPlan) ? preparedInfo.chapterPlan.slice() : [];
+    var totalChapters = Number((preparedInfo && preparedInfo.totalChapters) || chapterPlan.length || TOTAL_CHAPTERS);
+    if (!Number.isFinite(totalChapters) || totalChapters <= 0) totalChapters = TOTAL_CHAPTERS;
+
+    if (!reportSessionId) {
+      var prepared = await premiumAuthJson('/api/premium-report/prepare', {
+        featureType: VEDIC_PREMIUM_FEATURE_TYPE,
+        reportType: VEDIC_PREMIUM_REPORT_TYPE,
+        requestBody: requestBody || {},
+        requestId: 'vedic:prepare:fallback:' + Date.now().toString(36)
+      }, {
+        maxAttempts: 2
+      });
+
+      if (!prepared || !prepared.ok || !prepared.reportSessionId) {
+        return {
+          ok: false,
+          message: buildPreflightMessage(prepared, '리포트 세션 복구에 실패했습니다.')
+        };
+      }
+
+      reportSessionId = String(prepared.reportSessionId || '');
+      snapshotId = String(prepared.snapshotId || snapshotId || '');
+      if (Array.isArray(prepared.chapterPlan) && prepared.chapterPlan.length) chapterPlan = prepared.chapterPlan.slice();
+      if (Number(prepared.totalChapters) > 0) totalChapters = Number(prepared.totalChapters);
+    }
+
+    var chapters = [];
+
+    for (var chapterId = 1; chapterId <= totalChapters; chapterId += 1) {
+      setLoadingProgress({
+        status: 'generating',
+        currentChapter: Math.max(0, chapterId - 1),
+        totalChapters: totalChapters
+      });
+
+      var chapterResult = null;
+      for (var retry = 1; retry <= 4; retry += 1) {
+        chapterResult = await premiumAuthJson('/api/premium-report/chapter', {
+          reportSessionId: reportSessionId,
+          snapshotId: snapshotId || undefined,
+          chapterId: chapterId,
+          reportType: VEDIC_PREMIUM_REPORT_TYPE,
+          featureType: VEDIC_PREMIUM_FEATURE_TYPE,
+          requestBody: requestBody || {},
+          requestId: 'vedic:chapter:' + chapterId + ':' + Date.now().toString(36) + ':' + retry
+        }, {
+          maxAttempts: 2
+        });
+
+        if (chapterResult && chapterResult.reportSessionId) reportSessionId = String(chapterResult.reportSessionId || reportSessionId);
+        if (chapterResult && chapterResult.snapshotId) snapshotId = String(chapterResult.snapshotId || snapshotId);
+
+        if (chapterResult && chapterResult.ok) break;
+
+        var status = Number((chapterResult && chapterResult.status) || 0);
+        var code = String((chapterResult && chapterResult.code) || '').toUpperCase();
+        var sessionMissing = status === 404 || code === 'PREMIUM_REPORT_SESSION_NOT_FOUND' || code === 'REPORT_SESSION_NOT_FOUND';
+        var bindingMismatch = status === 409 && code === 'PREMIUM_REPORT_SESSION_BINDING_MISMATCH';
+        if (sessionMissing || bindingMismatch) {
+          var recovered = await premiumAuthJson('/api/premium-report/prepare', {
+            featureType: VEDIC_PREMIUM_FEATURE_TYPE,
+            reportType: VEDIC_PREMIUM_REPORT_TYPE,
+            requestBody: requestBody || {},
+            requestId: 'vedic:prepare:recover:' + Date.now().toString(36) + ':' + chapterId + ':' + retry
+          }, {
+            maxAttempts: 2
+          });
+          if (recovered && recovered.ok && recovered.reportSessionId) {
+            reportSessionId = String(recovered.reportSessionId || reportSessionId);
+            snapshotId = String(recovered.snapshotId || snapshotId || '');
+            if (Array.isArray(recovered.chapterPlan) && recovered.chapterPlan.length) chapterPlan = recovered.chapterPlan.slice();
+            if (Number(recovered.totalChapters) > 0) totalChapters = Number(recovered.totalChapters);
+            await delay(220);
+            continue;
+          }
+        }
+
+        if (retry < 4) {
+          await delay(Math.min(450 * retry, 1200));
+        }
+      }
+
+      if (!chapterResult || !chapterResult.ok) {
+        return {
+          ok: false,
+          message: String((chapterResult && chapterResult.message) || ('챕터 ' + chapterId + ' 생성에 실패했습니다.'))
+        };
+      }
+
+      chapters.push(normalizeVedicPremiumChapter(chapterResult, chapterId, chapterPlan));
+
+      setLoadingProgress({
+        status: chapterId >= totalChapters ? 'completed' : 'generating',
+        currentChapter: chapterId,
+        totalChapters: totalChapters
+      });
+    }
+
+    var pdfReady = await premiumAuthJson('/api/premium-report/pdf', {
+      reportSessionId: reportSessionId,
+      snapshotId: snapshotId || undefined,
+      reportType: VEDIC_PREMIUM_REPORT_TYPE,
+      featureType: VEDIC_PREMIUM_FEATURE_TYPE,
+      requestBody: requestBody || {},
+      requestId: 'vedic:pdf:' + Date.now().toString(36)
+    }, {
+      maxAttempts: 2
+    });
+
+    if (!pdfReady || !pdfReady.ok) {
+      return {
+        ok: false,
+        message: String((pdfReady && pdfReady.message) || 'PDF 생성 준비 검증에 실패했습니다.')
+      };
+    }
+
+    return {
+      ok: true,
+      reportId: reportSessionId,
+      reportSessionId: reportSessionId,
+      snapshotId: snapshotId,
+      chapters: chapters,
+      chapterPlan: chapterPlan
+    };
+  }
+
   function renderResultScreen() {
     var toc = qs('vdToc');
     var content = qs('vdChapterContent');
@@ -840,6 +1038,20 @@
       }
 
       if (!res.ok || !data || !data.ok) {
+        var sessionMissing = Number(res.status || 0) === 404 || code === 'LEGACY_SESSION_NOT_FOUND';
+        if (sessionMissing && state.lastRequestBody && typeof window.__cdPremiumAuthJson === 'function') {
+          setLoadingProgress({ currentChapter: 0, status: 'generating', message: '리포트 세션을 복구하는 중...' });
+          var recoveredRun = await generateVedicViaPremiumReport(state.lastRequestBody, null);
+          if (recoveredRun && recoveredRun.ok) {
+            state.reportId = String(recoveredRun.reportId || state.reportId || '');
+            state.downloadUrl = '';
+            state.chapters = Array.isArray(recoveredRun.chapters) ? recoveredRun.chapters : [];
+            state.paymentContext = null;
+            renderResultScreen();
+            return true;
+          }
+        }
+
         if (attempt > 4) {
           await attemptVedicAutoRefund('베다 프리미엄 PDF 상태 조회 실패 자동 환불');
           setError(String(data.message || '리포트 상태 조회에 실패했습니다.'));
@@ -959,6 +1171,7 @@
     state.downloadUrl = '';
     state.chapters = [];
     state.quoteTick = 0;
+    state.lastRequestBody = requestInput.body;
 
     showOnly('vdLoadingScreen');
     setLoadingProgress({ currentChapter: 1, status: 'generating', message: '결제 확인 중...' });
@@ -987,8 +1200,17 @@
       });
 
       if (!res.ok || !res.data || !res.data.ok) {
+        var fallbackRun = await generateVedicViaPremiumReport(requestInput.body, preflight);
+        if (fallbackRun && fallbackRun.ok) {
+          state.reportId = String(fallbackRun.reportId || '');
+          state.downloadUrl = '';
+          state.chapters = Array.isArray(fallbackRun.chapters) ? fallbackRun.chapters : [];
+          state.paymentContext = null;
+          renderResultScreen();
+          return;
+        }
         await attemptVedicAutoRefund('베다 프리미엄 PDF 생성 시작 실패 자동 환불');
-        setError(String(res.data && res.data.message || '베다 리포트 생성 시작에 실패했습니다.'));
+        setError(String((res.data && res.data.message) || fallbackRun && fallbackRun.message || '베다 리포트 생성 시작에 실패했습니다.'));
         return;
       }
 
@@ -997,8 +1219,17 @@
       state.downloadUrl = String(res.data.downloadUrl || '');
 
       if (!state.reportId) {
+        var reportIdFallback = await generateVedicViaPremiumReport(requestInput.body, preflight);
+        if (reportIdFallback && reportIdFallback.ok) {
+          state.reportId = String(reportIdFallback.reportId || '');
+          state.downloadUrl = '';
+          state.chapters = Array.isArray(reportIdFallback.chapters) ? reportIdFallback.chapters : [];
+          state.paymentContext = null;
+          renderResultScreen();
+          return;
+        }
         await attemptVedicAutoRefund('베다 프리미엄 PDF reportId 누락 자동 환불');
-        setError('reportId를 받지 못했습니다. 잠시 후 다시 시도해 주세요.');
+        setError(String(reportIdFallback && reportIdFallback.message || 'reportId를 받지 못했습니다. 잠시 후 다시 시도해 주세요.'));
         return;
       }
 

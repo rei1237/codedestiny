@@ -942,9 +942,9 @@
           timeUnknown: timeUnknown,
           timezone: String(location.tz || 'Asia/Seoul')
         },
-        _premiumFailOpen: false,
-        _premiumStrictPayload: true,
-        _premiumStrictValidation: true
+        _premiumFailOpen: true,
+        _premiumStrictPayload: false,
+        _premiumStrictValidation: false
       };
     }
 
@@ -1127,7 +1127,7 @@
       _fetchChapter(idx).then(function(data){
         var statusCode = Number((data && data.status) || 0);
         var errorCode = String((data && data.code) || '').toUpperCase();
-        var isSessionMissing = statusCode === 404 || errorCode === 'PREMIUM_REPORT_SESSION_NOT_FOUND';
+        var isSessionMissing = statusCode === 404 || errorCode === 'PREMIUM_REPORT_SESSION_NOT_FOUND' || errorCode === 'REPORT_SESSION_NOT_FOUND';
         if (data && data.reportSessionId) _premiumReportSessionId = String(data.reportSessionId);
         if (data && data.fatal && data.errorCode === 'AUTH_REQUIRED') {
           console.error('[숙요 프리미엄 PDF][AUTH_REQUIRED]', {

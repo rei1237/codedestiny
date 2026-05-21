@@ -11675,7 +11675,10 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
   const chapterEnvelopeValidation = validatePremiumChapterResponseEnvelope({
     reportType: premiumReportType,
     chapterId: chapter,
-    data: chapterJson,
+    data: {
+      text: finalText,
+      chapterJson,
+    },
     chapterContract,
     previousChapterTexts,
   });
@@ -16837,20 +16840,80 @@ async function handleZiweiBookSession(request, env) {
     },
   };
 
-  const generated = await generateZiweiPremiumChapter(
-    env,
-    strictBody,
-    input,
-    chapter,
-    meta,
-    chapterInputChart,
-    reportPayload,
-    reportType,
-    partnerOverview,
-    dataQuality,
-    previousChapterTexts,
-    ziweiPremiumPayload,
-  );
+  let generated;
+  try {
+    generated = await generateZiweiPremiumChapter(
+      env,
+      strictBody,
+      input,
+      chapter,
+      meta,
+      chapterInputChart,
+      reportPayload,
+      reportType,
+      partnerOverview,
+      dataQuality,
+      previousChapterTexts,
+      ziweiPremiumPayload,
+    );
+  } catch (error) {
+    const chapterSpec = ZIWEI_PDF_CHAPTERS_V2[chapter - 1] || {
+      key: `ch_${chapter}`,
+      chapterNo: chapter,
+      title: meta?.title || `Chapter ${chapter}`,
+      goal: meta?.subtitle || "자미두수 핵심 해석",
+    };
+
+    const fallbackRawChart = buildZiweiPdfPipelineRawChart(reportPayload, chapterInputChart, dataQuality);
+    const fallbackContext = buildZiweiPdfContext({
+      userProfile: {
+        name: profileFromRequest?.name || input?.name || "사용자",
+        gender: profileFromRequest?.gender || input?.gender || "",
+        birthDate: profileFromRequest?.birthDate || `${input?.year || ""}-${String(input?.month || "").padStart(2, "0")}-${String(input?.day || "").padStart(2, "0")}`,
+        birthTime: profileFromRequest?.birthTime || `${String(input?.hour || 0).padStart(2, "0")}:${String(input?.minute || 0).padStart(2, "0")}`,
+        lunarDate: chapterInputChart?.profile?.birth?.lunarDate || "",
+        calendarType: profileFromRequest?.calendarType || input?.calendarType || "solar",
+        isLunar: asBool(profileFromRequest?.isLunar),
+        timeUnknown: asBool(profileFromRequest?.timeUnknown),
+        birthPlace: profileFromRequest?.birthPlace || "",
+      },
+      rawChart: fallbackRawChart,
+    });
+    const fallbackChapterJson = sanitizeZiweiChapterJson(createFallbackChapter(chapterSpec, fallbackContext), chapterSpec);
+    const fallbackDataContext = buildZiweiDataContext(
+      strictBody,
+      input,
+      chapterInputChart,
+      reportType,
+      partnerOverview,
+      dataQuality,
+      ziweiPremiumPayload,
+    );
+    const fallbackText = ensureZiweiChapterMarkdownLength(
+      buildZiweiFallbackMarkdown(meta, chapter, input, fallbackDataContext.dataText, fallbackDataContext.missingNotice),
+      fallbackContext,
+      ZIWEI_MIN_CHARS,
+      ZIWEI_MAX_CHARS,
+    );
+
+    generated = {
+      ok: true,
+      text: fallbackText,
+      sections: parseSections(fallbackText),
+      usedFallback: true,
+      generationNotice: "챕터 생성 중 예외가 발생해 프로필 기반 안전 모드로 자동 복구했습니다.",
+      warnings: [
+        `ZIWEI_CHAPTER_RUNTIME_FALLBACK:${String(error?.message || "UNKNOWN_ERROR")}`,
+      ],
+      chapterJson: fallbackChapterJson,
+    };
+
+    console.error("[ZiweiPremium][Gemini] runtime failure recovered by fallback", {
+      chapter,
+      requestId,
+      message: String(error?.message || "unknown"),
+    });
+  }
 
   if (!generated?.ok) {
     console.error("[ZiweiPremium][Gemini] failed", {

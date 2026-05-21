@@ -215,6 +215,7 @@ const FREE_FEATURES = [
 ];
 
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
+const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
 const EMPTY_UNLOCK_STATE: Record<UnlockKey, boolean> = {
   allPaidSaju: false,
   rpgCharacter: false,
@@ -933,18 +934,20 @@ export default function KkulkkulManseryukMain() {
   }, []);
 
   useEffect(() => {
-    const syncBalanceFromSession = () => {
+    const syncBalanceFromSession = (options: { forceProbe?: boolean } = {}) => {
       try {
         const raw = localStorage.getItem('fortune_auth_user');
         const user = raw ? JSON.parse(raw) : {};
         const admin = isAdminSessionClient();
         setIsAdminUser(admin);
-        if (typeof user?.points === 'number') {
-          setCurrentCoins(user.points);
+        const cachedPoints = Number(user?.points);
+        if (Number.isFinite(cachedPoints) && cachedPoints >= 0) {
+          setCurrentCoins(cachedPoints);
         }
       } catch (_) {}
 
-      if (!hasClientAuthSessionHint() && !isAdminSessionClient()) return;
+      const forceProbe = options.forceProbe === true;
+      if (!forceProbe && !hasClientAuthSessionHint() && !isAdminSessionClient()) return;
       if (bootstrapBalanceSyncInFlight.current) return;
 
       const controller = new AbortController();
@@ -959,8 +962,17 @@ export default function KkulkkulManseryukMain() {
         headers: { ...authHeaders },
         signal: controller.signal,
       })
-        .then((r) => r.json().catch(() => ({})))
+        .then((r) => {
+          if (!r.ok) {
+            if (r.status === 401 || r.status === 403) {
+              setIsAdminUser(false);
+            }
+            return null;
+          }
+          return r.json().catch(() => ({}));
+        })
         .then((d) => {
+          if (!d) return;
           const normalized = unwrapBillingPayload(d);
           const points = Number(normalized?.balance ?? normalized?.user?.points ?? NaN);
           if (Number.isFinite(points)) {
@@ -985,15 +997,51 @@ export default function KkulkkulManseryukMain() {
 
     syncBalanceFromSession();
 
-    const onAuthChanged = () => {
-      syncBalanceFromSession();
+    const onAuthChanged = (event: Event) => {
+      const detail = (event as CustomEvent<{ event?: unknown }>).detail;
+      const changedEvent = String(detail?.event || '').trim().toLowerCase();
+      syncBalanceFromSession({ forceProbe: changedEvent === 'login' || changedEvent === 'logout' });
+    };
+    const onStorage = (event: StorageEvent) => {
+      const key = String(event?.key || '').trim();
+      if (!key) return;
+      if (
+        key === 'fortune_auth_token'
+        || key === 'fortune_auth_user'
+        || key === 'fortune_auth_role'
+        || key === 'flower_admin_token'
+      ) {
+        syncBalanceFromSession();
+      }
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        syncBalanceFromSession();
+      }
     };
     window.addEventListener('cd:auth-changed', onAuthChanged as EventListener);
-    window.addEventListener('storage', onAuthChanged);
+    window.addEventListener('storage', onStorage);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    let channel: BroadcastChannel | null = null;
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        channel = new BroadcastChannel(AUTH_SYNC_CHANNEL);
+        channel.onmessage = (event) => {
+          const data = (event?.data || {}) as { event?: unknown };
+          const changedEvent = String(data?.event || '').trim().toLowerCase();
+          syncBalanceFromSession({ forceProbe: changedEvent === 'login' || changedEvent === 'logout' });
+        };
+      }
+    } catch (_) {
+      channel = null;
+    }
 
     return () => {
       window.removeEventListener('cd:auth-changed', onAuthChanged as EventListener);
-      window.removeEventListener('storage', onAuthChanged);
+      window.removeEventListener('storage', onStorage);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      channel?.close();
       bootstrapBalanceAbortRef.current?.abort();
     };
   }, []);
