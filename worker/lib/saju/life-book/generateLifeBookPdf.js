@@ -2,7 +2,6 @@ import {
   LIFE_BOOK_CHAPTERS,
   LIFE_BOOK_MIN_TOTAL_CHARS,
   LIFE_BOOK_TOTAL_CHAPTERS,
-  LIFE_BOOK_TARGET_TOTAL_CHARS,
   getLifeBookChapterByNumber,
 } from "./chapterConfig.js";
 import { buildLifeBookInputData } from "./buildLifeBookInputData.js";
@@ -38,6 +37,13 @@ function validateFullReport(fullText) {
     length,
     ok: length >= LIFE_BOOK_MIN_TOTAL_CHARS,
   };
+}
+
+function getLifeBookTargetTotalChars(chapters) {
+  return (Array.isArray(chapters) ? chapters : []).reduce(
+    (sum, chapter) => sum + Number(chapter?.targetChars || 0),
+    0,
+  );
 }
 
 function normalizeUsedThemes(chapterConfig, chapterResult) {
@@ -219,7 +225,7 @@ export async function generateLifeBookPdf(params = {}) {
     validation: {
       length: fullValidation.length,
       minTotalChars: LIFE_BOOK_MIN_TOTAL_CHARS,
-      targetTotalChars: LIFE_BOOK_TARGET_TOTAL_CHARS,
+      targetTotalChars: getLifeBookTargetTotalChars(LIFE_BOOK_CHAPTERS),
     },
   });
 
