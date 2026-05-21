@@ -1509,6 +1509,16 @@ function validateSajuReportPayload(reportType, canonicalJson) {
 
   if (reportType === "lifeBook") {
     if (!hasMeaningfulValue(payload?.saju)) missingFields.push("calculatedData.saju");
+    if (!hasMeaningfulValue(payload?.sajuCore?.pillars)) missingFields.push("calculatedData.sajuCore.pillars");
+    if (!hasMeaningfulValue(payload?.sajuCore?.dayMaster)) missingFields.push("calculatedData.sajuCore.dayMaster");
+    if (!hasMeaningfulValue(payload?.sajuCore?.monthCommand)) missingFields.push("calculatedData.sajuCore.monthCommand");
+    if (!hasMeaningfulValue(payload?.sajuCore?.tenGodEvidence)) missingFields.push("calculatedData.sajuCore.tenGodEvidence");
+    if (!hasMeaningfulValue(payload?.luckFlow?.daewoon) && !hasMeaningfulValue(payload?.sajuCore?.daewoon)) {
+      missingFields.push("calculatedData.luckFlow.daewoon");
+    }
+    if (!hasMeaningfulValue(payload?.luckFlow?.sewoon) && !hasMeaningfulValue(payload?.sajuCore?.sewoon)) {
+      missingFields.push("calculatedData.luckFlow.sewoon");
+    }
     const hasLegacyChart = hasMeaningfulValue(payload?.chart);
     if (hasLegacyChart && !hasMeaningfulValue(payload?.chart?.dayMaster) && !hasMeaningfulValue(payload?.saju?.dayMaster)) {
       missingFields.push("calculatedData.chart.dayMaster");
@@ -1523,6 +1533,10 @@ function validateSajuReportPayload(reportType, canonicalJson) {
   }
 
   if (reportType === "loveSecret") {
+    if (!hasMeaningfulValue(payload?.sajuCore?.pillars)) missingFields.push("calculatedData.sajuCore.pillars");
+    if (!hasMeaningfulValue(payload?.sajuCore?.dayMaster)) missingFields.push("calculatedData.sajuCore.dayMaster");
+    if (!hasMeaningfulValue(payload?.sajuCore?.monthCommand)) missingFields.push("calculatedData.sajuCore.monthCommand");
+    if (!hasMeaningfulValue(payload?.sajuCore?.tenGodEvidence)) missingFields.push("calculatedData.sajuCore.tenGodEvidence");
     if (!hasMeaningfulValue(payload?.self?.sajuChart?.dayMaster) && !hasMeaningfulValue(payload?.chart?.dayMaster)) {
       missingFields.push("calculatedData.chart.dayMaster");
     }
@@ -1543,6 +1557,16 @@ function validateSajuReportPayload(reportType, canonicalJson) {
     if (!hasMeaningfulValue(payload?.profile?.birth?.year)) missingFields.push("calculatedData.profile.birth.year");
     if (!hasMeaningfulValue(payload?.profile?.birth?.month)) missingFields.push("calculatedData.profile.birth.month");
     if (!hasMeaningfulValue(payload?.profile?.birth?.day)) missingFields.push("calculatedData.profile.birth.day");
+    if (!hasMeaningfulValue(payload?.sajuCore?.pillars)) missingFields.push("calculatedData.sajuCore.pillars");
+    if (!hasMeaningfulValue(payload?.sajuCore?.dayMaster)) missingFields.push("calculatedData.sajuCore.dayMaster");
+    if (!hasMeaningfulValue(payload?.sajuCore?.monthCommand)) missingFields.push("calculatedData.sajuCore.monthCommand");
+    if (!hasMeaningfulValue(payload?.sajuCore?.tenGodEvidence)) missingFields.push("calculatedData.sajuCore.tenGodEvidence");
+    if (!hasMeaningfulValue(payload?.luckFlow?.daewoon) && !hasMeaningfulValue(payload?.sajuCore?.daewoon)) {
+      missingFields.push("calculatedData.luckFlow.daewoon");
+    }
+    if (!hasMeaningfulValue(payload?.luckFlow?.sewoon) && !hasMeaningfulValue(payload?.sajuCore?.sewoon)) {
+      missingFields.push("calculatedData.luckFlow.sewoon");
+    }
     if (!hasMeaningfulValue(payload?.targetYear)) missingFields.push("calculatedData.targetYear");
     if (!Array.isArray(payload?.monthlyLuck) || payload.monthlyLuck.length !== 12) {
       missingFields.push("calculatedData.monthlyLuck");
@@ -3864,6 +3888,98 @@ function normalizeSajuPillarToken(value) {
   return `${stem}${branch}`.trim();
 }
 
+function extractSajuBranchToken(value) {
+  const token = normalizeSajuPillarToken(value);
+  if (!token) return "";
+  const match = token.match(/([자축인묘진사오미신유술해子丑寅卯辰巳午未申酉戌亥])$/);
+  return match ? String(match[1] || "").trim() : "";
+}
+
+function extractSajuMonthCommand(chart = {}, fallback = {}) {
+  const source = chart && typeof chart === "object" ? chart : {};
+  const alt = fallback && typeof fallback === "object" ? fallback : {};
+  const fromField = String(
+    source?.monthCommand
+      || source?.wollyeong
+      || source?.monthRyeong
+      || source?.monthOrder
+      || source?.seasonalOrder
+      || alt?.monthCommand
+      || alt?.wollyeong
+      || alt?.monthOrder
+      || "",
+  ).trim();
+  if (fromField) return fromField;
+  return extractSajuBranchToken(source?.monthPillar || source?.fourPillars?.month || alt?.monthPillar || "");
+}
+
+function normalizeSajuTenGodEvidence(tenGods = {}) {
+  const source = tenGods && typeof tenGods === "object" ? tenGods : {};
+  const rows = Object.entries(source)
+    .map(([name, raw]) => {
+      const count = Number(
+        raw && typeof raw === "object"
+          ? (raw?.count ?? raw?.value ?? raw?.score ?? 0)
+          : raw,
+      );
+      return {
+        name: String(name || "").trim(),
+        count: Number.isFinite(count) ? count : 0,
+      };
+    })
+    .filter((row) => row.name && row.count > 0)
+    .sort((a, b) => b.count - a.count);
+  return rows;
+}
+
+function normalizeSajuLuckFlow(source = {}, canonical = {}) {
+  const local = source && typeof source === "object" ? source : {};
+  const rawDaewoon = local?.daewoon
+    || local?.daewoonList
+    || local?.majorLuck
+    || local?.majorCycles
+    || canonical?.daewoon
+    || canonical?.daewoonList
+    || canonical?.majorLuck
+    || [];
+  const rawSewoon = local?.sewoon
+    || local?.sewoonList
+    || local?.annualLuck
+    || local?.yearlyLuck
+    || local?.yearFlow
+    || canonical?.sewoon
+    || canonical?.sewoonList
+    || canonical?.annualLuck
+    || canonical?.yearlyLuck
+    || [];
+  return {
+    daewoon: Array.isArray(rawDaewoon) ? rawDaewoon : (hasMeaningfulValue(rawDaewoon) ? [rawDaewoon] : []),
+    sewoon: Array.isArray(rawSewoon) ? rawSewoon : (hasMeaningfulValue(rawSewoon) ? [rawSewoon] : []),
+  };
+}
+
+function buildSajuCoreSnapshot(chart = {}, tenGods = {}, luckCycles = {}, canonical = {}) {
+  const normalizedChart = normalizeSajuChartShape(chart);
+  const normalizedLuck = normalizeSajuLuckFlow(
+    luckCycles,
+    canonical?.luckCycles && typeof canonical.luckCycles === "object" ? canonical.luckCycles : {},
+  );
+  return {
+    pillars: {
+      year: normalizeSajuPillarToken(normalizedChart?.yearPillar),
+      month: normalizeSajuPillarToken(normalizedChart?.monthPillar),
+      day: normalizeSajuPillarToken(normalizedChart?.dayPillar),
+      hour: normalizeSajuPillarToken(normalizedChart?.hourPillar),
+    },
+    dayMaster: String(normalizedChart?.dayMaster || "").trim(),
+    monthCommand: extractSajuMonthCommand(normalizedChart, canonical),
+    tenGods: tenGods && typeof tenGods === "object" ? tenGods : {},
+    tenGodEvidence: normalizeSajuTenGodEvidence(tenGods),
+    daewoon: normalizedLuck.daewoon,
+    sewoon: normalizedLuck.sewoon,
+  };
+}
+
 function normalizeSajuChartShape(chart = {}) {
   const source = chart && typeof chart === "object" ? chart : {};
   const fourPillars = (source?.fourPillars && typeof source.fourPillars === "object") ? source.fourPillars : {};
@@ -3873,6 +3989,8 @@ function normalizeSajuChartShape(chart = {}) {
   const hourPillar = source?.hourPillar || fourPillars?.hour || "";
   const dayMasterRaw = source?.dayMaster?.stem || source?.dayMaster || "";
   const dayMaster = String(dayMasterRaw || "").trim();
+  const monthBranch = String(source?.monthBranch || extractSajuBranchToken(monthPillar) || "").trim();
+  const monthCommand = extractSajuMonthCommand(source, { monthPillar });
 
   return {
     ...source,
@@ -3887,6 +4005,9 @@ function normalizeSajuChartShape(chart = {}) {
       hour: hourPillar,
     },
     dayMaster,
+    monthBranch,
+    monthCommand,
+    wollyeong: String(source?.wollyeong || monthCommand || "").trim(),
     tenGods: (source?.tenGods && typeof source.tenGods === "object") ? source.tenGods : {},
     spousePalace: String(source?.spousePalace || "").trim(),
   };
@@ -3924,15 +4045,27 @@ function normalizeSajuCalculatedDataForPdf(reportType, calculatedData, canonical
 
   if (reportType === "lifeBook") {
     const saju = (payload?.saju && typeof payload.saju === "object") ? payload.saju : {};
-    const chart = normalizeSajuChartShape(payload?.chart || saju?.chart || saju);
+    const canonicalSaju = (canonical?.saju && typeof canonical.saju === "object") ? canonical.saju : {};
+    const chart = normalizeSajuChartShape(payload?.chart || saju?.chart || saju || canonicalSaju?.chart || canonicalSaju);
     payload.chart = chart;
+    const normalizedLuckCycles = (saju?.luckCycles && typeof saju.luckCycles === "object") ? saju.luckCycles : {};
     payload.saju = {
       ...saju,
       chart,
       dayMaster: String(saju?.dayMaster || chart?.dayMaster || "").trim(),
       tenGods: (saju?.tenGods && typeof saju.tenGods === "object") ? saju.tenGods : chart.tenGods,
       fiveElementBalance: (saju?.fiveElementBalance && typeof saju.fiveElementBalance === "object") ? saju.fiveElementBalance : {},
-      luckCycles: (saju?.luckCycles && typeof saju.luckCycles === "object") ? saju.luckCycles : {},
+      luckCycles: normalizedLuckCycles,
+    };
+    payload.sajuCore = buildSajuCoreSnapshot(
+      chart,
+      payload.saju.tenGods,
+      normalizedLuckCycles,
+      canonicalSaju,
+    );
+    payload.luckFlow = {
+      daewoon: Array.isArray(payload.sajuCore?.daewoon) ? payload.sajuCore.daewoon : [],
+      sewoon: Array.isArray(payload.sajuCore?.sewoon) ? payload.sajuCore.sewoon : [],
     };
 
     if (!Array.isArray(payload?.integratedThemes?.coreIdentity) || payload.integratedThemes.coreIdentity.length === 0) {
@@ -4010,6 +4143,20 @@ function normalizeSajuCalculatedDataForPdf(reportType, calculatedData, canonical
       pushUnique(integrity.supplementedFields, "calculatedData.partner.sajuChart");
     }
 
+    const selfLuckCycles = (payload?.self?.sajuChart?.luckCycles && typeof payload.self.sajuChart.luckCycles === "object")
+      ? payload.self.sajuChart.luckCycles
+      : (canonical?.personA?.luckCycles && typeof canonical.personA.luckCycles === "object" ? canonical.personA.luckCycles : {});
+    payload.sajuCore = buildSajuCoreSnapshot(
+      selfChart,
+      payload?.self?.sajuChart?.tenGods || payload?.chart?.tenGods || {},
+      selfLuckCycles,
+      canonical?.personA || {},
+    );
+    payload.luckFlow = {
+      daewoon: Array.isArray(payload.sajuCore?.daewoon) ? payload.sajuCore.daewoon : [],
+      sewoon: Array.isArray(payload.sajuCore?.sewoon) ? payload.sajuCore.sewoon : [],
+    };
+
     return payload;
   }
 
@@ -4056,6 +4203,27 @@ function normalizeSajuCalculatedDataForPdf(reportType, calculatedData, canonical
       };
       pushUnique(integrity.supplementedFields, "calculatedData.actionPlan");
     }
+
+    const sajuChart = normalizeSajuChartShape(payload?.saju?.chart || payload?.saju || canonical?.saju?.chart || canonical?.saju || {});
+    payload.saju = {
+      ...(payload?.saju && typeof payload.saju === "object" ? payload.saju : {}),
+      chart: sajuChart,
+      dayMaster: String(payload?.saju?.dayMaster || sajuChart?.dayMaster || "").trim(),
+      tenGods: (payload?.saju?.tenGods && typeof payload.saju.tenGods === "object") ? payload.saju.tenGods : sajuChart.tenGods,
+      luckCycles: (payload?.saju?.luckCycles && typeof payload.saju.luckCycles === "object") ? payload.saju.luckCycles : {},
+    };
+    payload.sajuCore = buildSajuCoreSnapshot(
+      sajuChart,
+      payload.saju.tenGods,
+      payload.saju.luckCycles,
+      canonical?.saju || {},
+    );
+    payload.luckFlow = {
+      daewoon: Array.isArray(payload.sajuCore?.daewoon) ? payload.sajuCore.daewoon : [],
+      sewoon: Array.isArray(payload.sajuCore?.sewoon) ? payload.sajuCore.sewoon : [],
+      monthlyLuck: Array.isArray(payload.monthlyLuck) ? payload.monthlyLuck : [],
+    };
+
     return payload;
   }
 
@@ -4385,31 +4553,52 @@ function buildChapterDataMap(reportType, calculatedData) {
 
   if (reportType === "loveSecret") {
     return {
-      ch1: { chapterTitle: "나의 연애 본능", requiredPaths: ["calculatedData.self.sajuChart.dayMaster", "calculatedData.self.relationshipProfile"] },
-      ch2: { chapterTitle: "끌림의 구조", requiredPaths: ["calculatedData.self.fiveElementBalance", "calculatedData.self.relationshipProfile.attractionSignals"] },
-      ch3: { chapterTitle: "반복 패턴", requiredPaths: ["calculatedData.self.relationshipProfile.conflictSignals", "calculatedData.self.sajuChart.tenGods"] },
-      ch4: { chapterTitle: "상대와의 궁합", requiredPaths: ["calculatedData.compatibility"] },
-      ch5: { chapterTitle: "속궁합/조후", requiredPaths: ["calculatedData.compatibility.temperatureHumidityMatch"] },
-      ch6: { chapterTitle: "감정 소통", requiredPaths: ["calculatedData.compatibility.communicationPattern"] },
-      ch7: { chapterTitle: "결혼 가능성", requiredPaths: ["calculatedData.compatibility.longTermMarriagePotential"] },
-      ch8: { chapterTitle: "갈등 해결법", requiredPaths: ["calculatedData.compatibility.practicalAdvice"] },
-      ch9: { chapterTitle: "종합 연애 전략", requiredPaths: ["calculatedData"] },
+      ch1: { chapterTitle: "본연의 연애 자아", requiredPaths: ["calculatedData.sajuCore.dayMaster", "calculatedData.self.relationshipProfile"] },
+      ch2: { chapterTitle: "치명적 매력과 페로몬", requiredPaths: ["calculatedData.self.fiveElementBalance", "calculatedData.self.relationshipProfile.attractionSignals"] },
+      ch3: { chapterTitle: "운명의 상대방 리포트", requiredPaths: ["calculatedData.compatibility", "calculatedData.sajuCore.tenGodEvidence"] },
+      ch4: { chapterTitle: "실전 연애 전략 및 스킬", requiredPaths: ["calculatedData.self.relationshipProfile", "calculatedData.compatibility.communicationPattern"] },
+      ch5: { chapterTitle: "시기별 연애운 흐름", requiredPaths: ["calculatedData.luckFlow.daewoon", "calculatedData.luckFlow.sewoon"] },
+      ch6: { chapterTitle: "연애의 어두운 면과 위기 관리", requiredPaths: ["calculatedData.self.relationshipProfile.conflictSignals", "calculatedData.sajuCore.monthCommand"] },
+      ch7: { chapterTitle: "친밀감과 감정 리듬", requiredPaths: ["calculatedData.compatibility.temperatureHumidityMatch", "calculatedData.compatibility.communicationPattern"] },
+      ch8: { chapterTitle: "현대적 상황별 연애 비책", requiredPaths: ["calculatedData.compatibility.practicalAdvice", "calculatedData.sajuCore.tenGodEvidence"] },
+      ch9: { chapterTitle: "결혼과 정착", requiredPaths: ["calculatedData.compatibility.longTermMarriagePotential", "calculatedData.luckFlow.daewoon"] },
+      ch10: { chapterTitle: "맞춤형 연애 개운 처방전", requiredPaths: ["calculatedData.compatibility.practicalAdvice", "calculatedData.sajuCore.monthCommand"] },
+      ch11: { chapterTitle: "재회·이별·회복 시나리오", requiredPaths: ["calculatedData.self.relationshipProfile.conflictSignals", "calculatedData.luckFlow.sewoon"] },
+      ch12: { chapterTitle: "장기 관계 운영 매뉴얼", requiredPaths: ["calculatedData.compatibility", "calculatedData.sajuCore.tenGodEvidence"] },
+      ch13: { chapterTitle: "최종 사랑 마스터플랜", requiredPaths: ["calculatedData.sajuCore", "calculatedData.compatibility"] },
     };
   }
 
   if (reportType === "lifeBook") {
     return {
-      ch1: { chapterTitle: "핵심 정체성", requiredPaths: ["calculatedData.integratedThemes.coreIdentity"] },
-      ch2: { chapterTitle: "타고난 성향", requiredPaths: ["calculatedData.saju"] },
+      ch1: { chapterTitle: "핵심 정체성", requiredPaths: ["calculatedData.integratedThemes.coreIdentity", "calculatedData.sajuCore.dayMaster"] },
+      ch2: { chapterTitle: "타고난 성향", requiredPaths: ["calculatedData.sajuCore.pillars", "calculatedData.sajuCore.tenGodEvidence"] },
       ch3: { chapterTitle: "인생의 소명", requiredPaths: ["calculatedData.integratedThemes.lifeMission"] },
       ch4: { chapterTitle: "직업과 사회적 방향", requiredPaths: ["calculatedData.integratedThemes.careerDirection"] },
       ch5: { chapterTitle: "재물 흐름", requiredPaths: ["calculatedData.integratedThemes.wealthPattern"] },
       ch6: { chapterTitle: "관계와 사랑", requiredPaths: ["calculatedData.integratedThemes.relationshipPattern"] },
       ch7: { chapterTitle: "건강과 에너지", requiredPaths: ["calculatedData.integratedThemes.healthPattern"] },
-      ch8: { chapterTitle: "인생 전환점", requiredPaths: ["calculatedData.timeline"] },
+      ch8: { chapterTitle: "인생 전환점", requiredPaths: ["calculatedData.timeline", "calculatedData.luckFlow.daewoon"] },
       ch9: { chapterTitle: "반복 신호", requiredPaths: ["calculatedData.integratedThemes.repeatedSignals"] },
-      ch10: { chapterTitle: "충돌 신호", requiredPaths: ["calculatedData.integratedThemes.conflictingSignals"] },
-      ch11: { chapterTitle: "종합 인생 전략", requiredPaths: ["calculatedData"] },
+      ch10: { chapterTitle: "충돌 신호", requiredPaths: ["calculatedData.integratedThemes.conflictingSignals", "calculatedData.sajuCore.monthCommand"] },
+      ch11: { chapterTitle: "종합 인생 전략", requiredPaths: ["calculatedData.luckFlow.daewoon", "calculatedData.luckFlow.sewoon"] },
+      ch12: { chapterTitle: "인생 실행 전략", requiredPaths: ["calculatedData.sajuCore.tenGodEvidence", "calculatedData.timeline"] },
+      ch13: { chapterTitle: "최종 마스터 플랜", requiredPaths: ["calculatedData.sajuCore", "calculatedData.integratedThemes"] },
+    };
+  }
+
+  if (reportType === "sajuNewYear") {
+    return {
+      ch1: { chapterTitle: "원국 기반 연간 전략 총론", requiredPaths: ["calculatedData.sajuCore.pillars", "calculatedData.sajuCore.dayMaster", "calculatedData.sajuCore.monthCommand"] },
+      ch2: { chapterTitle: "연간 파동과 기회 창", requiredPaths: ["calculatedData.yearlySummary", "calculatedData.luckFlow.sewoon"] },
+      ch3: { chapterTitle: "커리어·사업 확장 전략", requiredPaths: ["calculatedData.yearlySummary", "calculatedData.sajuCore.tenGodEvidence"] },
+      ch4: { chapterTitle: "재물·현금흐름 관리", requiredPaths: ["calculatedData.yearlySummary", "calculatedData.sajuCore.tenGodEvidence"] },
+      ch5: { chapterTitle: "관계·인맥·파트너십", requiredPaths: ["calculatedData.yearlySummary", "calculatedData.luckFlow.sewoon"] },
+      ch6: { chapterTitle: "건강·에너지 밸런스", requiredPaths: ["calculatedData.sajuCore.monthCommand", "calculatedData.yearlySummary"] },
+      ch7: { chapterTitle: "학습·성장·전환 기회", requiredPaths: ["calculatedData.luckFlow.daewoon", "calculatedData.yearlySummary"] },
+      ch8: { chapterTitle: "리스크 관리와 손실 방어", requiredPaths: ["calculatedData.luckFlow.sewoon", "calculatedData.yearlySummary"] },
+      ch9: { chapterTitle: "12개월 월별 실행 로드맵", requiredPaths: ["calculatedData.monthlyLuck"] },
+      ch10: { chapterTitle: "최종 통합 액션 플랜", requiredPaths: ["calculatedData.actionPlan", "calculatedData.sajuCore", "calculatedData.monthlyLuck"] },
     };
   }
 
@@ -4911,6 +5100,7 @@ function buildChapterJsonPacks(reportType, chapterId, canonicalJson) {
     return {
       chapterCore,
       signals: {
+        sajuCore: toPlainObject(calculatedData.sajuCore),
         self: {
           birthInfo: toPlainObject(calculatedData?.self?.birthInfo),
           sajuChart: toPlainObject(calculatedData?.self?.sajuChart),
@@ -4924,6 +5114,7 @@ function buildChapterJsonPacks(reportType, chapterId, canonicalJson) {
       },
       timing: {
         compatibility: toPlainObject(calculatedData.compatibility),
+        luckFlow: toPlainObject(calculatedData.luckFlow),
       },
       actions: {
         optionalCrossSystems: toPlainObject(calculatedData.optionalCrossSystems),
@@ -4935,17 +5126,38 @@ function buildChapterJsonPacks(reportType, chapterId, canonicalJson) {
     return {
       chapterCore,
       signals: {
+        sajuCore: toPlainObject(calculatedData.sajuCore),
         integratedThemes: toPlainObject(calculatedData.integratedThemes),
         saju: toPlainObject(calculatedData.saju),
       },
       timing: {
         timeline: toPlainObject(calculatedData.timeline),
+        luckFlow: toPlainObject(calculatedData.luckFlow),
       },
       actions: {
         ziwei: toPlainObject(calculatedData.ziwei),
         westernAstrology: toPlainObject(calculatedData.westernAstrology),
         vedic: toPlainObject(calculatedData.vedic),
         sookyo: toPlainObject(calculatedData.sookyo),
+      },
+    };
+  }
+
+  if (reportType === "sajuNewYear") {
+    return {
+      chapterCore,
+      signals: {
+        sajuCore: toPlainObject(calculatedData.sajuCore),
+        yearlySummary: toPlainObject(calculatedData.yearlySummary),
+        actionPlan: toPlainObject(calculatedData.actionPlan),
+      },
+      timing: {
+        luckFlow: toPlainObject(calculatedData.luckFlow),
+        monthlyLuck: toTopArray(calculatedData.monthlyLuck, 12),
+      },
+      actions: {
+        focusArea: String(calculatedData.focusArea || "overall"),
+        targetYear: Number(calculatedData.targetYear || 0),
       },
     };
   }
@@ -5017,6 +5229,57 @@ function summarizePreviousPremiumChapters(context, currentChapterId) {
   return summaries.slice(-6);
 }
 
+function buildPromptEvidenceChecklist(reportType, chapterJsonPacks = {}) {
+  const isSajuReport = reportType === "lifeBook" || reportType === "loveSecret" || reportType === "sajuNewYear";
+  const common = [
+    "chapterJsonPacks.chapterCore.requiredPaths 중 최소 2개를 문장 내에 근거로 명시",
+    "signals, timing, actions에서 최소 1개씩 근거를 반영",
+  ];
+  if (!isSajuReport) return common;
+
+  const sajuCore = toPlainObject(chapterJsonPacks?.signals?.sajuCore);
+  const pillars = toPlainObject(sajuCore?.pillars);
+  const pillarTokens = [pillars.year, pillars.month, pillars.day, pillars.hour].map((v) => String(v || "").trim()).filter(Boolean);
+  const tenGodRows = Array.isArray(sajuCore?.tenGodEvidence) ? sajuCore.tenGodEvidence : [];
+  const daewoonCount = Array.isArray(chapterJsonPacks?.timing?.luckFlow?.daewoon) ? chapterJsonPacks.timing.luckFlow.daewoon.length : 0;
+  const sewoonCount = Array.isArray(chapterJsonPacks?.timing?.luckFlow?.sewoon) ? chapterJsonPacks.timing.luckFlow.sewoon.length : 0;
+
+  return [
+    ...common,
+    `원국 4주(년/월/일/시) 중 최소 2개를 명시: ${pillarTokens.slice(0, 4).join(", ") || "데이터 확인"}`,
+    `월령(monthCommand) 값을 명시하고 해석에 반영: ${String(sajuCore?.monthCommand || "데이터 확인").trim() || "데이터 확인"}`,
+    `십성 근거를 최소 2개 반영(tenGodEvidence): ${tenGodRows.length}개 항목 확보`,
+    `대운/세운 근거를 최소 1회 이상 언급: 대운 ${daewoonCount}건, 세운 ${sewoonCount}건`,
+  ];
+}
+
+function buildPremiumPdfRenderGuide(reportType) {
+  const base = {
+    layout: [
+      "## 핵심 데이터 요약",
+      "## 심층 해석",
+      "## 실행 전략",
+      "## 리스크 관리",
+    ],
+    formatting: [
+      "표/리스트/짧은 문단을 혼합해 가독성 우선",
+      "굵은 강조(**)는 문단당 최대 1회",
+      "과장·예언형 단정 문구 금지",
+    ],
+  };
+  if (reportType === "lifeBook" || reportType === "loveSecret" || reportType === "sajuNewYear") {
+    return {
+      ...base,
+      requiredSections: [
+        "원국 근거(4주/일간/월령)",
+        "십성 근거",
+        "대운·세운 타이밍",
+      ],
+    };
+  }
+  return base;
+}
+
 function buildPromptSourceData(reportType, chapterId, canonicalJson, prebuiltChapterJsonPacks = null) {
   const chapterKey = `ch${Number(chapterId || 0)}`;
   const chapterMeta = canonicalJson?.chapterData?.[chapterKey] || {};
@@ -5026,6 +5289,8 @@ function buildPromptSourceData(reportType, chapterId, canonicalJson, prebuiltCha
     chapterDataSubset[path] = getPathValue(canonicalJson, path);
   });
   const chapterJsonPacks = prebuiltChapterJsonPacks || buildChapterJsonPacks(reportType, chapterId, canonicalJson);
+  const evidenceChecklist = buildPromptEvidenceChecklist(reportType, chapterJsonPacks);
+  const renderGuide = buildPremiumPdfRenderGuide(reportType);
   const promptMetaByType = {
     ziweiPremium: { fortuneLabel: "자미두수 프리미엄 PDF" },
     sookyoPremium: { fortuneLabel: "숙요 프리미엄 PDF" },
@@ -5057,6 +5322,8 @@ function buildPromptSourceData(reportType, chapterId, canonicalJson, prebuiltCha
         chapterDataSubset,
         chapterJsonPacks,
       },
+      evidenceChecklist,
+      renderGuide,
       analysisAngles: flattenPromptDataLines(chapterJsonPacks).slice(0, 14),
       domainDataLines: flattenPromptDataLines(chapterDataSubset).slice(0, 24),
       constraints: {
@@ -5070,10 +5337,22 @@ function buildPromptSourceData(reportType, chapterId, canonicalJson, prebuiltCha
 
 function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapterJsonPacks = null, dedupContext = {}) {
   const promptSourceData = buildPromptSourceData(reportType, chapterId, canonicalJson, prebuiltChapterJsonPacks);
+  const isSajuReport = reportType === "lifeBook" || reportType === "loveSecret" || reportType === "sajuNewYear";
   const previousChapterSummaries = Array.isArray(dedupContext.previousChapterSummaries)
     ? dedupContext.previousChapterSummaries
     : [];
   const forbiddenRepeats = Array.from(new Set(previousChapterSummaries.flatMap((row) => Array.isArray(row?.keyPhrases) ? row.keyPhrases : []))).slice(0, 30);
+  const typeSpecificRules = isSajuReport
+    ? [
+      "원국(년월일시), 일간, 월령을 최소 1회 이상 명시할 것",
+      "십성 근거(tenGodEvidence)에서 최소 2개를 명시할 것",
+      "대운/세운 데이터가 있으면 시기 전략에 반드시 반영할 것",
+      "원국·대운·세운 근거를 분리해 서술하고, 마지막에 통합 결론으로 연결할 것",
+    ]
+    : [
+      "해당 운세 체계의 핵심 근거 3개 이상을 분리해 제시할 것",
+      "챕터별 실행 전략과 리스크 관리를 각각 1개 이상 포함할 것",
+    ];
   return {
     ...promptSourceData,
     tone: "Code:Destiny premium mystical but practical Korean tone",
@@ -5094,6 +5373,7 @@ function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapt
       "사용자가 이해하기 쉬운 한국어로 풀어쓸 것",
       "미신적 단정 대신 전략과 자기이해 중심으로 작성할 것",
       "chapterJsonPacks(core/signals/timing/actions)에서 최소 3개 이상 근거를 본문에 반영할 것",
+      ...typeSpecificRules,
     ],
   };
 }

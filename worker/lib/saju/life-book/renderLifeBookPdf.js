@@ -7,6 +7,15 @@ function esc(value) {
     .replace(/'/g, "&#39;");
 }
 
+function normalizeReadableText(value) {
+  return String(value == null ? "" : value)
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/__([^_]+)__/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
 function markdownToHtml(markdown) {
   const lines = String(markdown || "").replace(/\r/g, "").split("\n");
   const out = [];
@@ -20,7 +29,7 @@ function markdownToHtml(markdown) {
   };
 
   for (const raw of lines) {
-    const line = String(raw || "").trim();
+    const line = normalizeReadableText(raw);
     if (!line) {
       closeList();
       continue;
@@ -74,7 +83,13 @@ function buildChartSummary(lifeBookInputData) {
   const chart = lifeBookInputData?.sajuChart || {};
   const elements = lifeBookInputData?.fiveElements || {};
   const yongshin = lifeBookInputData?.yongshin || {};
+  const tenGods = lifeBookInputData?.tenGods || {};
   const daeun = Array.isArray(lifeBookInputData?.daeun) ? lifeBookInputData.daeun[0] : null;
+
+  const tenGodLine = Object.entries(tenGods?.verifiedStemTenGodMap || {})
+    .filter(([stem, god]) => String(stem || "").trim() && String(god || "").trim())
+    .map(([stem, god]) => `${stem}:${god}`)
+    .join(", ") || "미제공";
 
   return [
     ["이름", user.name || "사용자"],
@@ -86,6 +101,7 @@ function buildChartSummary(lifeBookInputData) {
     ["시주", chart.hourPillar || "미제공"],
     ["일간", chart.dayMaster || "미제공"],
     ["오행 분포", `목 ${Number(elements.wood || 0)} / 화 ${Number(elements.fire || 0)} / 토 ${Number(elements.earth || 0)} / 금 ${Number(elements.metal || 0)} / 수 ${Number(elements.water || 0)}`],
+    ["십성 기준표", tenGodLine],
     ["용신/희신", `${(yongshin.yongshin || []).join(", ") || "미제공"} / ${(yongshin.heeshin || []).join(", ") || "미제공"}`],
     ["현재 대운 요약", daeun ? `${daeun.ageStart || "?"}세~${daeun.ageEnd || "?"}세 ${daeun.pillar || ""} ${daeun.summary || ""}` : "미제공"],
   ];

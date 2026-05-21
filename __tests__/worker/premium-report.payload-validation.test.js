@@ -15,6 +15,16 @@ describe("Premium reportPayload severity validators", () => {
     const result = validateSajuReportPayload("lifeBook", {
       calculatedData: {
         saju: { fourPillars: { year: "갑자" } },
+        sajuCore: {
+          pillars: { year: "갑자", month: "을축", day: "병인", hour: "정묘" },
+          dayMaster: "병",
+          monthCommand: "축",
+          tenGodEvidence: [{ name: "비견", count: 2 }],
+        },
+        luckFlow: {
+          daewoon: [{ startAge: 31, pillar: "기미" }],
+          sewoon: [{ year: 2026, pillar: "병오" }],
+        },
         integratedThemes: {
           coreIdentity: ["분석형"],
           lifeMission: ["장기 성장"],

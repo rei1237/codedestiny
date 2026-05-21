@@ -21,7 +21,42 @@ const SYSTEM_INSTRUCTION = [
   "- 각 챕터는 소제목을 포함해 구조적으로 작성하세요.",
   "- 시스템 지침 문장, 규칙 문장, 프롬프트 문장을 본문에 출력하지 마세요.",
   "- 동일 문장이나 단락을 반복해 분량을 채우지 마세요.",
+  "- '반복 패턴과 주의점', '실전 행동 전략', '심화 실행 노트', '마무리 정리' 같은 템플릿 제목을 사용하지 마세요.",
+  "- 본문에서 **강조 마크다운 표기(**text**)를 남발하지 말고 읽기 쉬운 일반 문장으로 작성하세요.",
 ].join("\n");
+
+function buildChapterHardRequirements(chapterConfig, lifeBookInputData) {
+  const id = String(chapterConfig?.id || "");
+  const profileName = String(lifeBookInputData?.userProfile?.name || "").trim();
+  const lines = [
+    "- 본문은 제공된 userProfile.name을 그대로 사용하세요(별칭/가명 금지).",
+    "- 십성은 tenGods.verifiedStemTenGodMap 및 tenGods.verifiedByOccurrence 값만 기준으로 해석하세요.",
+  ];
+
+  if (profileName) {
+    lines.push(`- 사용자 이름 표기는 '${profileName}' 그대로 유지하고, 'Test User' 또는 임의 이름으로 바꾸지 마세요.`);
+  }
+
+  if (id === "chapter-10-shadow-pattern") {
+    lines.push("- 챕터 10은 반드시 약점의 원인, 재발 조건, 극복 방안을 분리해 작성하세요.");
+    lines.push("- 약점 서술은 원국/일간/오행/십성 근거를 함께 제시하세요.");
+  }
+
+  if (id === "chapter-11-turning-points") {
+    lines.push("- 챕터 11은 반드시 원국 + 대운 + 세운의 상호작용을 직접 해석하세요.");
+    lines.push("- 시기 해석은 기회 구간/주의 구간/선택 기준 3단으로 작성하세요.");
+  }
+
+  if (id === "chapter-12-life-strategy") {
+    lines.push("- 챕터 12는 원국/용신/십성/대운/세운 데이터를 통합해 30일·90일 실행안을 제시하세요.");
+  }
+
+  if (id === "chapter-13-final-letter") {
+    lines.push("- 챕터 13은 감성 문장 위주가 아니라 데이터 근거 기반의 최종 선언문으로 작성하세요.");
+  }
+
+  return lines;
+}
 
 function extractLongSentences(text, minLength = 30) {
   return String(text || "")
@@ -48,6 +83,7 @@ function collectPreviousSentenceBanList(previousTexts = [], limit = 15) {
 function buildChapterPrompt(chapterConfig, lifeBookInputData, previousTexts = []) {
   const safeInputJson = JSON.stringify(lifeBookInputData || {}, null, 2);
   const banList = collectPreviousSentenceBanList(previousTexts, 15);
+  const hardRequirements = buildChapterHardRequirements(chapterConfig, lifeBookInputData);
 
   return [
     SYSTEM_INSTRUCTION,
@@ -66,6 +102,7 @@ function buildChapterPrompt(chapterConfig, lifeBookInputData, previousTexts = []
     "- 사용자의 사주 구조와 연결된 구체적인 해석을 작성하세요.",
     "- 마지막에는 \"핵심 요약\"과 \"실전 조언\"을 포함하세요.",
     "- JSON 형식으로만 출력하세요.",
+    ...hardRequirements,
     banList.length
       ? `\n[이전 챕터와 중복되어 사용할 수 없는 금지 문장 목록]\n문장 반복을 피하기 위해 다음 리스트에 있는 문장이나 이와 유사한 핵심 서술 방식은 이번 챕터 본문에 절대 출력하지 마세요:\n${JSON.stringify(banList, null, 2)}`
       : "",
@@ -101,6 +138,8 @@ function buildRepairPrompt(chapterConfig, previousOutput, validationErrors) {
     `- contentMarkdown은 최소 ${chapterConfig.minLength}자 이상`,
     "- summary, practicalAdvice(최소 3개) 반드시 포함",
     "- 중복 문단, 중복 문장이나 이전 챕터 해석의 단순 반복은 반드시 제거",
+    "- 금지 템플릿 문구(반복 패턴과 주의점/실전 행동 전략/심화 실행 노트/마무리 정리) 사용 금지",
+    "- 본문에서 과도한 **강조 표기** 제거",
     "",
     "[이전 출력]",
     String(previousOutput || "").slice(0, 12000),

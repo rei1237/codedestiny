@@ -16,6 +16,57 @@ function toStringArray(value) {
   return value.map((item) => toStringSafe(item)).filter(Boolean);
 }
 
+const STEM_META = Object.freeze({
+  甲: { element: "wood", yinYang: "yang" },
+  乙: { element: "wood", yinYang: "yin" },
+  丙: { element: "fire", yinYang: "yang" },
+  丁: { element: "fire", yinYang: "yin" },
+  戊: { element: "earth", yinYang: "yang" },
+  己: { element: "earth", yinYang: "yin" },
+  庚: { element: "metal", yinYang: "yang" },
+  辛: { element: "metal", yinYang: "yin" },
+  壬: { element: "water", yinYang: "yang" },
+  癸: { element: "water", yinYang: "yin" },
+});
+
+const KOREAN_STEM_TO_HAN = Object.freeze({
+  갑: "甲",
+  을: "乙",
+  병: "丙",
+  정: "丁",
+  무: "戊",
+  기: "己",
+  경: "庚",
+  신: "辛",
+  임: "壬",
+  계: "癸",
+});
+
+const ELEMENT_GENERATES = Object.freeze({
+  wood: "fire",
+  fire: "earth",
+  earth: "metal",
+  metal: "water",
+  water: "wood",
+});
+
+const ELEMENT_CONTROLS = Object.freeze({
+  wood: "earth",
+  fire: "metal",
+  earth: "water",
+  metal: "wood",
+  water: "fire",
+});
+
+const PLACEHOLDER_NAME_PATTERNS = [
+  /^test\s*user$/i,
+  /^user$/i,
+  /^사용자$/,
+  /^회원$/,
+  /^guest$/i,
+  /^anonymous$/i,
+];
+
 function joinPillar(stemLike, branchLike, ganjiLike) {
   const ganji = toStringSafe(ganjiLike);
   if (ganji) return ganji;
@@ -84,6 +135,13 @@ function normalizePillars(canonical, engineData, sajuDataText) {
     toStringSafe(hourRaw.stem || hourRaw.g),
   ].filter(Boolean);
 
+  const pillarTenGods = {
+    year: toStringSafe(yearRaw.tenGod || yearRaw.tenStar || yearRaw.star || "") || undefined,
+    month: toStringSafe(monthRaw.tenGod || monthRaw.tenStar || monthRaw.star || "") || undefined,
+    day: toStringSafe(dayRaw.tenGod || dayRaw.tenStar || dayRaw.star || "") || undefined,
+    hour: toStringSafe(hourRaw.tenGod || hourRaw.tenStar || hourRaw.star || "") || undefined,
+  };
+
   const branches = [
     toStringSafe(yearRaw.branch || yearRaw.j),
     toStringSafe(monthRaw.branch || monthRaw.j),
@@ -92,10 +150,33 @@ function normalizePillars(canonical, engineData, sajuDataText) {
   ].filter(Boolean);
 
   const hiddenStems = {};
+  const hiddenStemTenGods = {};
+  const normalizeHiddenStemItem = (item) => {
+    if (item && typeof item === "object") {
+      return {
+        stem: toStringSafe(item.stem || item.gan || item.g || item.value || ""),
+        tenGod: toStringSafe(item.tenGod || item.tenStar || item.star || "") || undefined,
+      };
+    }
+    return {
+      stem: toStringSafe(item),
+      tenGod: undefined,
+    };
+  };
+
   const pushHidden = (branchKey, rawBranch) => {
     const rawHidden = Array.isArray(rawBranch.hiddenStems) ? rawBranch.hiddenStems : [];
     if (!branchKey || !rawHidden.length) return;
-    hiddenStems[branchKey] = rawHidden.map((item) => toStringSafe(item)).filter(Boolean);
+    const normalizedHidden = rawHidden
+      .map((item) => normalizeHiddenStemItem(item))
+      .filter((item) => item.stem);
+    if (!normalizedHidden.length) return;
+    hiddenStems[branchKey] = normalizedHidden.map((item) => item.stem);
+    const hasTenGod = normalizedHidden.some((item) => item.tenGod);
+    if (hasTenGod) {
+      hiddenStemTenGods[branchKey] = normalizedHidden
+        .map((item) => ({ stem: item.stem, tenGod: item.tenGod || undefined }));
+    }
   };
 
   pushHidden(toStringSafe(yearRaw.branch || yearRaw.j), yearRaw);
@@ -111,7 +192,15 @@ function normalizePillars(canonical, engineData, sajuDataText) {
     dayMaster,
     stems,
     branches,
+    pillarStems: {
+      year: toStringSafe(yearRaw.stem || yearRaw.g) || undefined,
+      month: toStringSafe(monthRaw.stem || monthRaw.g) || undefined,
+      day: toStringSafe(dayRaw.stem || dayRaw.g) || undefined,
+      hour: toStringSafe(hourRaw.stem || hourRaw.g) || undefined,
+    },
+    pillarTenGods,
     hiddenStems: Object.keys(hiddenStems).length ? hiddenStems : undefined,
+    hiddenStemTenGods: Object.keys(hiddenStemTenGods).length ? hiddenStemTenGods : undefined,
   };
 }
 
@@ -146,17 +235,119 @@ function normalizeFiveElements(canonical, engineData, sajuDataText) {
   };
 }
 
-function normalizeTenGods(canonical, engineData) {
-  const dist = asObject(canonical?.tenGods?.distribution || engineData?.tenGods?.distribution || engineData?.tenGods);
+function extractHeavenlyStem(value) {
+  const source = toStringSafe(value);
+  if (!source) return "";
+  for (const ch of source) {
+    if (STEM_META[ch]) return ch;
+  }
+  for (const [kor, han] of Object.entries(KOREAN_STEM_TO_HAN)) {
+    if (source.includes(kor)) return han;
+  }
+  return "";
+}
+
+function classifyTenGodByStem(dayMasterStem, targetStem) {
+  const dmStem = extractHeavenlyStem(dayMasterStem);
+  const tgStem = extractHeavenlyStem(targetStem);
+  if (!dmStem || !tgStem) return "";
+
+  const dmMeta = STEM_META[dmStem];
+  const tgMeta = STEM_META[tgStem];
+  if (!dmMeta || !tgMeta) return "";
+
+  const samePolarity = dmMeta.yinYang === tgMeta.yinYang;
+  const dmElement = dmMeta.element;
+  const tgElement = tgMeta.element;
+
+  if (dmElement === tgElement) return samePolarity ? "비견" : "겁재";
+  if (ELEMENT_GENERATES[dmElement] === tgElement) return samePolarity ? "식신" : "상관";
+  if (ELEMENT_CONTROLS[dmElement] === tgElement) return samePolarity ? "편재" : "정재";
+  if (ELEMENT_CONTROLS[tgElement] === dmElement) return samePolarity ? "편관" : "정관";
+  if (ELEMENT_GENERATES[tgElement] === dmElement) return samePolarity ? "편인" : "정인";
+  return "";
+}
+
+function normalizeTenGodDistribution(dist) {
+  const source = asObject(dist);
   const normalized = {};
-  for (const [key, value] of Object.entries(dist)) {
+  for (const [key, value] of Object.entries(source)) {
     const safeKey = toStringSafe(key);
     if (!safeKey) continue;
-    normalized[safeKey] = toStringSafe(value);
+    normalized[safeKey] = toNumberSafe(value, 0);
   }
-  if (!Object.keys(normalized).length) return undefined;
+  return normalized;
+}
+
+function buildVerifiedStemTenGods(sajuChart = {}) {
+  const dayMasterStem = extractHeavenlyStem(sajuChart.dayMaster);
+  if (!dayMasterStem) {
+    return {
+      dayMasterStem: "",
+      byStem: {},
+      byOccurrence: [],
+      distribution: {},
+    };
+  }
+
+  const byStem = {};
+  const byOccurrence = [];
+  const distribution = {};
+  const pushOccurrence = (stemLike, label) => {
+    const stem = extractHeavenlyStem(stemLike);
+    if (!stem) return;
+    const tenGod = classifyTenGodByStem(dayMasterStem, stem);
+    if (!tenGod) return;
+    byStem[stem] = tenGod;
+    byOccurrence.push({ stem, tenGod, label: toStringSafe(label) || undefined });
+    distribution[tenGod] = toNumberSafe(distribution[tenGod], 0) + 1;
+  };
+
+  pushOccurrence(sajuChart?.pillarStems?.year, "년간");
+  pushOccurrence(sajuChart?.pillarStems?.month, "월간");
+  pushOccurrence(sajuChart?.pillarStems?.day, "일간");
+  pushOccurrence(sajuChart?.pillarStems?.hour, "시간");
+
+  const hiddenStems = asObject(sajuChart.hiddenStems);
+  for (const [branch, stems] of Object.entries(hiddenStems)) {
+    const list = Array.isArray(stems) ? stems : [];
+    list.forEach((stem, index) => {
+      pushOccurrence(stem, `${branch} 지장간 ${index + 1}`);
+    });
+  }
+
   return {
-    byStem: normalized,
+    dayMasterStem,
+    byStem,
+    byOccurrence,
+    distribution,
+  };
+}
+
+function normalizeTenGods(canonical, engineData, sajuChart) {
+  const canonicalDist = normalizeTenGodDistribution(canonical?.tenGods?.distribution);
+  const engineDist = normalizeTenGodDistribution(engineData?.tenGods?.distribution || engineData?.tenGods);
+  const verified = buildVerifiedStemTenGods(sajuChart);
+  const verifiedDist = normalizeTenGodDistribution(verified.distribution);
+
+  const pickedDistribution = Object.keys(canonicalDist).length
+    ? canonicalDist
+    : Object.keys(engineDist).length
+      ? engineDist
+      : verifiedDist;
+
+  if (!Object.keys(pickedDistribution).length && !Object.keys(verified.byStem).length) return undefined;
+
+  return {
+    distribution: pickedDistribution,
+    sourceDistribution: {
+      canonical: canonicalDist,
+      engine: engineDist,
+      verified: verifiedDist,
+    },
+    verifiedStemTenGodMap: verified.byStem,
+    verifiedByOccurrence: verified.byOccurrence,
+    dayMasterStem: verified.dayMasterStem || extractHeavenlyStem(sajuChart?.dayMaster),
     summary: toStringSafe(canonical?.tenGods?.summary || ""),
   };
 }
@@ -275,6 +466,27 @@ function buildBirthTime(normalizedInput, profile, body) {
   return profileTime || undefined;
 }
 
+function isPlaceholderName(name) {
+  const value = toStringSafe(name);
+  if (!value) return false;
+  return PLACEHOLDER_NAME_PATTERNS.some((pattern) => pattern.test(value));
+}
+
+function resolveProfileName(normalizedInput, profile, body) {
+  const candidates = [
+    toStringSafe(profile?.name),
+    toStringSafe(normalizedInput?.name),
+    toStringSafe(body?.profile?.name),
+    toStringSafe(body?.userProfile?.name),
+    toStringSafe(body?.name),
+    toStringSafe(body?.user?.name),
+  ].filter(Boolean);
+
+  const nonPlaceholder = candidates.find((name) => !isPlaceholderName(name));
+  if (nonPlaceholder) return nonPlaceholder;
+  return candidates[0] || undefined;
+}
+
 export function buildLifeBookInputData(body = {}, normalizedInput = {}) {
   const safeBody = asObject(body);
   const canonical = asObject(safeBody.canonicalSajuChart);
@@ -285,7 +497,7 @@ export function buildLifeBookInputData(body = {}, normalizedInput = {}) {
   const sajuChart = normalizePillars(canonical, engineData, sajuDataText);
   const fiveElements = normalizeFiveElements(canonical, engineData, sajuDataText);
   const yongshin = normalizeYongshin(canonical, engineData, sajuDataText);
-  const tenGods = normalizeTenGods(canonical, engineData);
+  const tenGods = normalizeTenGods(canonical, engineData, sajuChart);
   const daeun = normalizeDaeun(canonical, engineData);
   const yearlyFortune = normalizeYearlyFortune(canonical, engineData);
 
@@ -297,10 +509,12 @@ export function buildLifeBookInputData(body = {}, normalizedInput = {}) {
 
   const birthDate = buildBirthDate(normalizedInput, profile, safeBody);
   if (!birthDate) missingCore.push("userProfile.birthDate");
+  const resolvedName = resolveProfileName(normalizedInput, profile, safeBody);
+  if (!resolvedName) missingCore.push("userProfile.name");
 
   return {
     userProfile: {
-      name: toStringSafe(safeBody.name || profile?.name || normalizedInput?.name || "") || undefined,
+      name: resolvedName,
       gender: toStringSafe(safeBody.gender || profile?.gender || normalizedInput?.gender || "") || undefined,
       birthDate,
       birthTime: buildBirthTime(normalizedInput, profile, safeBody),
