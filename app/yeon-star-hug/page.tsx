@@ -93,6 +93,7 @@ type ConsultationResult = {
   practicalTip: string;
   actionPlan: string[];
   astroEvidence: string[];
+  keywordSupportLines: string[];
   concernCategory: ConcernCategory;
   concernDomain: ConcernDomain;
   concernCategoryLabel: string;
@@ -817,6 +818,62 @@ function pickLuckyItem(category: ConcernCategory, seed: string) {
   return items[hash % items.length];
 }
 
+function collectConcernKeywords(concern: ConcernAnalysis) {
+  const seen = new Set<string>();
+  return [...concern.domainKeywords, ...concern.topKeywords].filter((keyword) => {
+    const normalized = String(keyword || "").trim().toLowerCase();
+    if (!normalized || seen.has(normalized)) return false;
+    seen.add(normalized);
+    return true;
+  });
+}
+
+function buildKeywordSupportLines(concern: ConcernAnalysis) {
+  const keywords = collectConcernKeywords(concern).slice(0, 3);
+  const plans = ACTION_PLAN_BY_DOMAIN[concern.topDomain] ?? ACTION_PLAN_BY_CATEGORY[concern.topCategory];
+  if (keywords.length === 0) {
+    return [`${DOMAIN_LABEL[concern.topDomain]} 흐름은 작은 실행 하나로 바뀔 수 있어. ${plans[0]}`];
+  }
+  return keywords.map(
+    (keyword, index) => `"${keyword}" 신호를 알아챈 건 이미 절반은 해낸 거야. ${plans[index % plans.length]}`
+  );
+}
+
+function buildWarmLetterMessage(args: {
+  selectedEmotion: EmotionKey;
+  selectedSign: ZodiacSign;
+  todaySunSign: ZodiacSign;
+  concern: ConcernAnalysis;
+  dayRuler: DayRulerSnapshot;
+  aspect: AspectSnapshot;
+  moon: MoonSnapshot;
+  elementRelation: { label: string; scoreBias: number; detail: string };
+  keywordSupportLines: string[];
+}) {
+  const {
+    selectedEmotion,
+    selectedSign,
+    todaySunSign,
+    concern,
+    dayRuler,
+    aspect,
+    moon,
+    elementRelation,
+    keywordSupportLines,
+  } = args;
+
+  const keywordBlock = keywordSupportLines.map((line) => `- ${line}`).join("\n");
+
+  return [
+    "사랑하는 너에게,",
+    `${EMOTION_OPENING[selectedEmotion]} 오늘 하늘은 ${aspect.label}, ${moon.label}, ${dayRuler.label}의 흐름으로 너를 부드럽게 밀어주고 있어.`,
+    `${selectedSign}의 결은 오늘 태양 ${todaySunSign}와 ${elementRelation.label}로 맞물리면서 ${DOMAIN_LABEL[concern.topDomain]}에 특히 집중력을 더해줘.`,
+    `지금 네 고민의 중심은 ${CATEGORY_LABEL[concern.topCategory]}이고, 키워드별로 이렇게 응원해주고 싶어.\n${keywordBlock}`,
+    `오늘의 한 줄 약속: ${ACTION_PLAN_BY_DOMAIN[concern.topDomain]?.[0] ?? ACTION_PLAN_BY_CATEGORY[concern.topCategory][0]}`,
+    "연이는 오늘도 네 편이야.",
+  ].join("\n\n");
+}
+
 function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey, concernText: string, date: Date): ConsultationResult {
   const todaySunSign = getSignByMonthDay(date.getMonth() + 1, date.getDate());
   const moon = getMoonSnapshot(date);
@@ -882,7 +939,18 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
     `주요 키워드 포착: ${concernHint}`,
   ];
 
-  const warmMessage = `${EMOTION_OPENING[selectedEmotion]} 오늘은 ${dayRuler.label}의 흐름을 타고 ${DOMAIN_LABEL[concern.topDomain]}에서 작은 한 걸음만 실행해도 충분히 좋아질 거야, 연이는 늘 네 편이야.`;
+  const keywordSupportLines = buildKeywordSupportLines(concern);
+  const warmMessage = buildWarmLetterMessage({
+    selectedEmotion,
+    selectedSign,
+    todaySunSign,
+    concern,
+    dayRuler,
+    aspect,
+    moon,
+    elementRelation,
+    keywordSupportLines,
+  });
 
   const signInfo = ZODIAC_SIGNS.find((item) => item.sign === selectedSign) ?? ZODIAC_SIGNS[0];
 
@@ -897,6 +965,7 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
     practicalTip,
     actionPlan: ACTION_PLAN_BY_DOMAIN[concern.topDomain] ?? ACTION_PLAN_BY_CATEGORY[concern.topCategory],
     astroEvidence,
+    keywordSupportLines,
     concernCategory: concern.topCategory,
     concernDomain: concern.topDomain,
     concernCategoryLabel: CATEGORY_LABEL[concern.topCategory],
@@ -1459,13 +1528,7 @@ export default function YeonStarHugPage() {
                               />
                             </svg>
                           </div>
-                          <Image
-                            src={SPRITE_SHEET}
-                            alt="연이 스프라이트 시트"
-                            width={72}
-                            height={54}
-                            className="mx-auto mt-1.5 h-auto w-full rounded-md border border-pink-100 object-cover"
-                          />
+                          <p className="mt-1.5 text-center text-[10px] font-semibold text-pink-400">선택된 스프라이트 프레임</p>
                         </div>
 
                         <AnimatePresence mode="wait">
@@ -1475,11 +1538,20 @@ export default function YeonStarHugPage() {
                             animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
                             exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
                             transition={{ duration: 0.25 }}
-                            className="rounded-lg border border-rose-100 bg-rose-50/55 px-3 py-2 text-sm font-semibold leading-relaxed text-slate-700"
+                            className="whitespace-pre-line rounded-lg border border-rose-100 bg-rose-50/55 px-3 py-2 text-sm font-semibold leading-relaxed text-slate-700"
                           >
                             {consultation.warmMessage}
                           </motion.p>
                         </AnimatePresence>
+
+                        <div className="rounded-lg border border-purple-100 bg-purple-50/50 px-3 py-2 sm:col-span-2">
+                          <p className="text-[11px] font-semibold text-purple-500">키워드별 응원 메모</p>
+                          <ul className="mt-1 space-y-1 text-xs leading-relaxed text-slate-600">
+                            {consultation.keywordSupportLines.map((line) => (
+                              <li key={line}>- {line}</li>
+                            ))}
+                          </ul>
+                        </div>
                       </div>
                     </div>
                   </div>
