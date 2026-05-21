@@ -33,6 +33,20 @@ function clean(value) {
   return String(value || "").trim();
 }
 
+function sanitizeUrlLikeEnvValue(value) {
+  let raw = clean(value);
+  if (!raw) return "";
+
+  // Strip wrapping quotes often introduced by TOML/CI env serialization.
+  if ((raw.startsWith('"') && raw.endsWith('"')) || (raw.startsWith("'") && raw.endsWith("'")) || (raw.startsWith("`") && raw.endsWith("`"))) {
+    raw = raw.slice(1, -1).trim();
+  }
+
+  // Some env injectors leave a trailing semicolon/comma for URL-like values.
+  raw = raw.replace(/[;,]+\s*$/, "").trim();
+  return raw;
+}
+
 function nd(value) {
   const n = Number(value);
   if (!Number.isFinite(n)) return NaN;
@@ -289,7 +303,7 @@ function julianDayFromInput(swe, input) {
 }
 
 function resolveEpheBaseUrl(env, options = {}) {
-  const fromEnv = clean(
+  const fromEnv = sanitizeUrlLikeEnvValue(
     getEnv(env, "SWISS_EPHEMERIS_FILES_BASE_URL")
     || getEnv(env, "SWISS_EPHE_BASE_URL")
     || getEnv(env, "PUBLIC_EPHE_BASE_URL"),
@@ -318,7 +332,7 @@ function resolveEpheBaseUrl(env, options = {}) {
 }
 
 function resolveSwissWasmPath(env, options = {}) {
-  const rawPath = clean(getEnv(env, "SWISS_WASM_PATH") || options.wasmPath);
+  const rawPath = sanitizeUrlLikeEnvValue(getEnv(env, "SWISS_WASM_PATH") || options.wasmPath);
   if (!rawPath) return undefined;
 
   const requestUrl = clean(options.requestUrl);
