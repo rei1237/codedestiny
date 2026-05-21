@@ -71,37 +71,55 @@ const SUKUYO_TITLES = [
   "영혼의 마스터플랜",
 ];
 
-const VEDIC_TITLES = [
-  "카르마 블루프린트 소개",
-  "라그나와 영혼의 목적",
-  "문 나크샤트라",
-  "다샤 흐름",
-  "부와 번영의 정렬",
-  "카르마와 천직",
-  "나밤샤 성숙도",
-  "관계 궁합 구조",
-  "인연의 깊이",
-  "생명력과 정화",
-  "요가 분석",
-  "우파야 실천",
-  "고차라 연간 전략",
-  "마스터플랜 결론",
+const VEDIC_SOLO_TITLES = [
+  "베다 차트 총론 — 영혼이 선택한 삶의 지도",
+  "라그나 완전 해석 — 세상에 태어난 방식",
+  "달과 나크샤트라 — 마음, 기억, 감정의 별자리",
+  "태양과 아트마카라카 — 영혼의 자존감과 사명",
+  "행성 배치 해석 — 내 안의 아홉 가지 힘",
+  "12하우스 인생 분석 — 삶이 펼쳐지는 무대",
+  "사랑과 결혼 — 금성, 7하우스, 다라카라카의 비밀",
+  "직업과 재물 — 2·6·10·11하우스의 성공 전략",
+  "가족·상처·카르마 — 4·8·12하우스의 깊은 이야기",
+  "요가와 도샤 — 차트에 숨은 특별한 패턴",
+  "다샤 흐름 — 인생의 시기와 전환점",
+  "최종 베다 인생 전략 — 내 차트를 현실로 살아내는 법",
 ];
 
-const ASTRO_PERSONAL_TITLES = [
-  "나의 우주적 정체성 — 태양·달·상승궁의 핵심 구조",
-  "에너지 밸런스 — 원소와 모드로 보는 삶의 리듬",
-  "인생의 네 기둥 — ASC·IC·DSC·MC 완전 해석",
-  "마음과 사고방식 — 달·수성으로 보는 내면과 언어",
-  "사랑과 욕망 — 금성·화성으로 보는 관계와 끌림",
-  "성장과 확장 — 목성·토성으로 보는 기회와 과제",
-  "깊은 변화의 서사 — 천왕성·해왕성·명왕성의 인생 테마",
-  "하우스별 인생 지도 — 삶의 12영역 해석",
-  "애스펙트와 내면 패턴 — 재능, 갈등, 반복되는 운명",
-  "직업·돈·사회적 성공 — 현실에서 빛나는 방식",
-  "올해와 가까운 미래의 운세 로드맵",
-  "점성술 인생 마스터플랜",
+const VEDIC_COMPAT_TITLES = [
+  "두 사람의 베다 궁합 총론 — 왜 끌리고 왜 흔들리는가",
+  "아쉬타쿠타 궁합 — 구나 밀란이 보여주는 기본 궁합",
+  "나크샤트라 궁합 — 감정과 본능의 끌림",
+  "라그나 궁합 — 삶의 방향과 생활 리듬",
+  "금성·화성 궁합 — 설렘, 욕망, 애정 표현",
+  "7하우스와 결혼 가능성 — 관계가 오래 갈 수 있는가",
+  "나바암샤 궁합 — 결혼 이후의 진짜 모습",
+  "망갈릭·도샤 궁합 — 갈등과 충돌의 위험도",
+  "다샤 궁합 — 두 사람의 타이밍이 맞는가",
+  "이별과 재회 가능성 — 다시 이어질 수 있는 인연인가",
+  "현실 문제 궁합 — 돈, 일, 가족, 생활 방식",
+  "최종 베다 궁합 전략 — 두 사람이 선택해야 할 방향",
 ];
+
+const VEDIC_SOLO_TARGETS = [4500, 4300, 4300, 4000, 4600, 4800, 4400, 4500, 3900, 3900, 4200, 4600];
+const VEDIC_COMPAT_TARGETS = [4600, 4800, 4200, 4200, 4300, 4500, 4100, 3900, 4000, 4000, 4100, 4300];
+
+const ASTRO_PERSONAL_TITLES = [
+  "출생차트 총론 — 하늘이 남긴 첫 설계도",
+  "태양·달·상승궁 — 자아, 감정, 페르소나의 삼각형",
+  "행성 배치 완전 해석 — 내 안의 열 가지 목소리",
+  "12하우스 분석 — 삶이 펼쳐지는 무대",
+  "주요 각도 분석 — 재능과 긴장의 숨은 회로",
+  "원소·모드·극성 — 기질의 밸런스 지도",
+  "사랑과 관계 — 금성, 화성, 7하우스가 말하는 애정 방식",
+  "직업·재물·사회적 성공 — MC와 2·6·10하우스의 전략",
+  "가족·상처·무의식 — 달, IC, 4·8·12하우스의 깊은 이야기",
+  "성장·철학·영성 — 목성, 토성이 이끄는 길",
+  "시기운과 변화의 흐름 — 지금부터 열리는 하늘의 리듬",
+  "최종 인생 전략 — 내 별자리를 현실로 살아내는 법",
+];
+
+const ASTRO_PERSONAL_TARGETS = [4500, 4500, 4300, 4800, 4500, 4000, 4200, 4500, 3800, 3600, 4100, 4300];
 
 const ASTRO_COMPAT_TITLES = [
   "두 사람의 우주적 첫인상 — 관계가 시작된 이유",
@@ -226,20 +244,28 @@ function buildSookyoPlan() {
   ));
 }
 
-function buildVedicPlan() {
-  return VEDIC_TITLES.map((title, i) => chapter(
-    i + 1,
-    "vedic-ch",
-    title,
-    4000,
-    4500,
-    [
-      "chart.lagna",
-      "chart.planets",
-      "chart.houses",
-      "dasha.timeline",
-    ],
-  ));
+function buildVedicPlan(mode = "personal") {
+  const isCompatibility = mode === "compatibility";
+  const titles = isCompatibility ? VEDIC_COMPAT_TITLES : VEDIC_SOLO_TITLES;
+  const targets = isCompatibility ? VEDIC_COMPAT_TARGETS : VEDIC_SOLO_TARGETS;
+  const prefix = isCompatibility ? "vedic-comp" : "vedic-solo";
+  return titles.map((title, i) => {
+    const target = Number(targets[i] || 4200);
+    const min = Math.max(3200, Math.floor(target * 0.85));
+    return chapter(
+      i + 1,
+      prefix,
+      title,
+      min,
+      target,
+      [
+        "chart.lagna",
+        "chart.planets",
+        "chart.houses",
+        "dasha.timeline",
+      ],
+    );
+  });
 }
 
 function buildAstroRequiredFields(order, mode = "personal") {
@@ -294,8 +320,12 @@ function buildAstroPlan(mode = "personal") {
     i + 1,
     prefix,
     title,
-    3200,
-    3900,
+    normalizedMode === "compatibility"
+      ? 3200
+      : Math.max(3000, Math.floor(Number(ASTRO_PERSONAL_TARGETS[i] || 4200) * 0.85)),
+    normalizedMode === "compatibility"
+      ? 3900
+      : Number(ASTRO_PERSONAL_TARGETS[i] || 4200),
     buildAstroRequiredFields(i + 1, normalizedMode),
   ));
 }
@@ -324,7 +354,7 @@ export function getPremiumPdfV2ChapterPlan(pdfType, mode = "default") {
   if (type === "loveSecret") return buildLoveSecretPlan(normalizedMode);
   if (type === "ziweiPremium") return buildZiweiPlan();
   if (type === "sookyoPremium") return buildSookyoPlan();
-  if (type === "vedicPremium") return buildVedicPlan();
+  if (type === "vedicPremium") return buildVedicPlan(normalizedMode);
   if (type === "westernAstrologyPremium") return buildAstroPlan(normalizedMode);
   if (type === "sajuNewYear") return buildNewYearPlan();
   return [];

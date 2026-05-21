@@ -185,7 +185,7 @@ describe("Love Secret Strict Tests", () => {
     expect(canonical.validation.hasIntimacyCompatibility).toBe(true);
   });
 
-  test("F. chapterPlanning은 chapter7에 조후 중심 mustUseData를 포함해야 한다", () => {
+  test("F. chapterPlanning은 chapter6에 조후 중심 mustUseData를 포함해야 한다", () => {
     const canonical = __loveSecretTestUtils.buildCanonicalSajuLoveReport(
       {
         sajuData: makeSajuData(),
@@ -196,15 +196,15 @@ describe("Love Secret Strict Tests", () => {
       { mode: "compatibility" }
     );
 
-    const ch7 = canonical.chapterPlanning.chapter7;
-    expect(ch7.title).toContain("친밀감");
-    expect(ch7.mustUseData).toContain("personA.johu");
-    expect(ch7.mustUseData).toContain("personB.johu");
-    expect(ch7.mustUseData).toContain("compatibility.johuCompatibility");
-    expect(ch7.dataDrivenSections.length).toBeGreaterThan(0);
+    const ch6 = canonical.chapterPlanning.chapter6;
+    expect(ch6.title).toContain("친밀감");
+    expect(ch6.mustUseData).toContain("personA.johu");
+    expect(ch6.mustUseData).toContain("personB.johu");
+    expect(ch6.mustUseData).toContain("compatibility.johuCompatibility");
+    expect(ch6.dataDrivenSections.length).toBeGreaterThan(0);
   });
 
-  test("G. chapter7 payload는 johuData/requiredDataPoints를 실어야 한다", () => {
+  test("G. chapter6 payload는 johuData/requiredDataPoints를 실어야 한다", () => {
     const canonical = __loveSecretTestUtils.buildCanonicalSajuLoveReport(
       {
         sajuData: makeSajuData(),
@@ -217,18 +217,18 @@ describe("Love Secret Strict Tests", () => {
     const payload = __loveSecretTestUtils.buildLoveSecretChapterPayload(
       { mode: "compatibility" },
       { title: "테스트7" },
-      7,
+      6,
       canonical,
       4200
     );
 
-    expect(payload.chapterTitle).toContain("친밀감");
+    expect(payload.chapterTitle).toBe("테스트7");
     expect(payload.johuData).toBeTruthy();
     expect(payload.requiredDataPoints).toContain("compatibility.johuCompatibility.temperatureBalance");
     expect(payload.chapterSpecificSections.length).toBeGreaterThan(0);
   });
 
-  test("H. Chapter7은 6000자 미만이면 QUALITY_GATE_J를 실패해야 한다", () => {
+  test("H. Chapter6은 6000자 미만이면 QUALITY_GATE_J를 실패해야 한다", () => {
     const canonical = __loveSecretTestUtils.buildCanonicalSajuLoveReport(
       {
         sajuData: makeSajuData(),
@@ -239,11 +239,11 @@ describe("Love Secret Strict Tests", () => {
       { mode: "compatibility" }
     );
     const shortText = "### 1. 사용 데이터 요약표\n|항목|값|\n|---|---|\n|월지|酉|\n" + "조후 건조 습윤 한 열 월지 계절 화 수 ".repeat(80);
-    const quality = __loveSecretTestUtils.evaluateLoveSecretQuality(shortText, 7, canonical, [], 4000);
+    const quality = __loveSecretTestUtils.evaluateLoveSecretQuality(shortText, 6, canonical, [], 4000);
     expect(quality.failedChecks).toContain("QUALITY_GATE_J_CH7_MIN_LENGTH_6000");
   });
 
-  test("I. 궁합 모드 Chapter7은 압축 흐름이 없으면 QUALITY_GATE_S를 실패해야 한다", () => {
+  test("I. 궁합 모드 Chapter6은 압축 흐름이 없으면 QUALITY_GATE_S를 실패해야 한다", () => {
     const canonical = __loveSecretTestUtils.buildCanonicalSajuLoveReport(
       {
         sajuData: makeSajuData(),
@@ -260,11 +260,11 @@ describe("Love Secret Strict Tests", () => {
       "배우자궁 일지 합 충 형 파 해를 종합",
       "### 핵심 요약 5줄",
     ].join("\n") + "\n" + "반복이 아닌 상세 분석 문장 ".repeat(400);
-    const quality = __loveSecretTestUtils.evaluateLoveSecretQuality(noTableText, 7, canonical, [], 4000);
+    const quality = __loveSecretTestUtils.evaluateLoveSecretQuality(noTableText, 6, canonical, [], 4000);
     expect(quality.failedChecks).toContain("QUALITY_GATE_S_COMPAT_COMPRESSED_FLOW");
   });
 
-  test("J. Chapter7은 기후 키워드가 부족하면 QUALITY_GATE_M을 실패해야 한다", () => {
+  test("J. Chapter6은 기후 키워드가 부족하면 QUALITY_GATE_M을 실패해야 한다", () => {
     const canonical = __loveSecretTestUtils.buildCanonicalSajuLoveReport(
       {
         sajuData: makeSajuData(),
@@ -283,11 +283,11 @@ describe("Love Secret Strict Tests", () => {
       "상대: 일지 충이 있어 갈등 리듬이 생김",
       "### 핵심 요약 5줄",
     ].join("\n") + "\n" + "분석 문장 ".repeat(650);
-    const quality = __loveSecretTestUtils.evaluateLoveSecretQuality(lowClimate, 7, canonical, [], 4000);
+    const quality = __loveSecretTestUtils.evaluateLoveSecretQuality(lowClimate, 6, canonical, [], 4000);
     expect(quality.failedChecks).toContain("QUALITY_GATE_M_CH7_CLIMATE_TERMS");
   });
 
-  test("K. Chapter7은 노골적 성 표현을 QUALITY_GATE_P로 차단해야 한다", () => {
+  test("K. Chapter6은 노골적 성 표현을 QUALITY_GATE_P로 차단해야 한다", () => {
     const canonical = __loveSecretTestUtils.buildCanonicalSajuLoveReport(
       {
         sajuData: makeSajuData(),
@@ -307,7 +307,7 @@ describe("Love Secret Strict Tests", () => {
       "성행위에서 체위와 삽입의 궁합이 강하다.",
       "### 핵심 요약 5줄",
     ].join("\n") + "\n" + "상세 분석 ".repeat(700);
-    const quality = __loveSecretTestUtils.evaluateLoveSecretQuality(explicitText, 7, canonical, [], 4000);
+    const quality = __loveSecretTestUtils.evaluateLoveSecretQuality(explicitText, 6, canonical, [], 4000);
     expect(quality.failedChecks).toContain("QUALITY_GATE_P_CH7_NO_EXPLICIT_SEXUAL");
   });
 

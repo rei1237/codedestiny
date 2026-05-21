@@ -70,6 +70,60 @@
     try { return String(localStorage.getItem('fortune_auth_token') || '').trim(); } catch (_) { return ''; }
   }
 
+  function resolveApiUrl(input) {
+    var raw = String(input || '').trim();
+    if (!raw) return raw;
+    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(raw)) return raw;
+    if (raw.indexOf('//') === 0) {
+      try { return String(window.location.protocol || 'https:') + raw; }
+      catch (_) { return raw; }
+    }
+    if (raw.charAt(0) === '/') {
+      try {
+        var origin = String(window.location.origin || '').replace(/\/$/, '');
+        return origin ? (origin + raw) : raw;
+      } catch (_) {
+        return raw;
+      }
+    }
+    try { return new URL(raw, window.location.href).toString(); }
+    catch (_) { return raw; }
+  }
+
+  function buildApiCandidates(pathname) {
+    var p = String(pathname || '');
+    if (p.charAt(0) !== '/') p = '/' + p;
+    var seen = {};
+    var out = [];
+
+    function pushBase(raw) {
+      var b = String(raw || '').trim();
+      var u = b ? (b.replace(/\/+$/, '') + p) : p;
+      if (!u || seen[u]) return;
+      seen[u] = true;
+      out.push(u);
+    }
+
+    pushBase('');
+    try { pushBase((window && window.__CD_API_BASE_URL) || ''); } catch (_) {}
+    try { pushBase((window && window.CODE_DESTINY_API_BASE_URL) || ''); } catch (_) {}
+    try { pushBase((window && window.__CF_PAGES_API_BASE_URL) || ''); } catch (_) {}
+    try { pushBase(localStorage.getItem('fortune_api_base_url') || ''); } catch (_) {}
+    try { pushBase((window && window.location && window.location.origin) || ''); } catch (_) {}
+
+    return out.length ? out : [p];
+  }
+
+  function readPremiumAccessToken() {
+    var token = '';
+    try { token = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { token = ''; }
+    if (token) return token;
+    try { token = String(sessionStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
+    if (token) return token;
+    try { token = String(localStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
+    return token;
+  }
+
   function buildAuthHeaders(base) {
     var headers = Object.assign({}, base || {});
     var token = getAuthToken();
@@ -674,7 +728,8 @@
           try { controller.abort(); } catch (_) {}
         }, API_TIMEOUT_MS);
       }
-      var res = await fetch(url, Object.assign({}, options || {}, {
+      var targetUrl = resolveApiUrl(url) || String(url || '');
+      var res = await fetch(targetUrl, Object.assign({}, options || {}, {
         credentials: 'include',
         cache: 'no-store',
         signal: controller ? controller.signal : undefined
@@ -694,14 +749,38 @@
   }
 
   async function premiumAuthJson(pathname, body, options) {
-    if (typeof window.__cdPremiumAuthJson === 'function') {
-      return window.__cdPremiumAuthJson(pathname, body || {}, options || {});
+    var payload = body && typeof body === 'object' ? Object.assign({}, body) : {};
+    if (!payload.premiumAccessToken) {
+      var premiumAccessToken = readPremiumAccessToken();
+      if (premiumAccessToken) payload.premiumAccessToken = premiumAccessToken;
     }
-    return requestJson(pathname, {
-      method: 'POST',
-      headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify(body || {})
-    });
+    var targetPath = resolveApiUrl(pathname) || pathname;
+
+    if (typeof window.__cdPremiumAuthJson === 'function') {
+      try {
+        return await window.__cdPremiumAuthJson(targetPath, payload, options || {});
+      } catch (error) {
+        try {
+          console.warn('[SajuNewYear] premium auth helper fallback:', error && error.message || error);
+        } catch (_) {}
+      }
+    }
+
+    var candidates = buildApiCandidates(pathname).map(function (u) { return resolveApiUrl(u) || u; });
+    for (var i = 0; i < candidates.length; i += 1) {
+      try {
+        var data = await requestJson(candidates[i], {
+          method: 'POST',
+          headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify(payload)
+        });
+        if (data && typeof data === 'object') return data;
+      } catch (_) {
+        // try next endpoint
+      }
+    }
+
+    return { ok: false, code: 'PREMIUM_AUTH_FALLBACK_FAILED', message: '프리미엄 인증 API 호출에 실패했습니다.' };
   }
 
   async function ensurePremiumSession() {
@@ -728,7 +807,7 @@
       var initialCode = String((prepared && prepared.code) || '').toUpperCase();
       var hasRecentPayment = !!(state.paymentContext && Number(state.paymentContext.cost) > 0);
       if (initialCode === 'PAYMENT_REQUIRED' && hasRecentPayment) {
-        var retryDelays = [450, 900, 1500];
+        var retryDelays = [450, 900, 1500, 2300, 3200, 4200];
         for (var i = 0; i < retryDelays.length; i += 1) {
           await waitMs(retryDelays[i]);
           prepared = await premiumAuthJson(

@@ -16,6 +16,41 @@ function toStringArray(value) {
   return value.map((item) => toStringSafe(item)).filter(Boolean);
 }
 
+function hasValue(value) {
+  if (value == null) return false;
+  if (typeof value === "string") return value.trim().length > 0;
+  if (typeof value === "number") return Number.isFinite(value);
+  if (typeof value === "boolean") return true;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === "object") return Object.keys(value).length > 0;
+  return false;
+}
+
+function collectAvailableFields(target, prefix = "") {
+  const rows = [];
+  if (!target || typeof target !== "object") return rows;
+
+  for (const [key, value] of Object.entries(target)) {
+    const path = prefix ? `${prefix}.${key}` : key;
+    if (Array.isArray(value)) {
+      if (value.length > 0) rows.push(path);
+      continue;
+    }
+    if (value && typeof value === "object") {
+      const nested = collectAvailableFields(value, path);
+      if (nested.length > 0) {
+        rows.push(...nested);
+      } else if (hasValue(value)) {
+        rows.push(path);
+      }
+      continue;
+    }
+    if (hasValue(value)) rows.push(path);
+  }
+
+  return rows;
+}
+
 const STEM_META = Object.freeze({
   甲: { element: "wood", yinYang: "yang" },
   乙: { element: "wood", yinYang: "yin" },
@@ -500,6 +535,7 @@ export function buildLifeBookInputData(body = {}, normalizedInput = {}) {
   const tenGods = normalizeTenGods(canonical, engineData, sajuChart);
   const daeun = normalizeDaeun(canonical, engineData);
   const yearlyFortune = normalizeYearlyFortune(canonical, engineData);
+  const promptSource = asObject(safeBody.promptContext || safeBody.questionPrompt || {});
 
   const missingCore = [];
   if (!sajuChart.yearPillar) missingCore.push("sajuChart.yearPillar");
@@ -510,15 +546,85 @@ export function buildLifeBookInputData(body = {}, normalizedInput = {}) {
   const birthDate = buildBirthDate(normalizedInput, profile, safeBody);
   if (!birthDate) missingCore.push("userProfile.birthDate");
   const resolvedName = resolveProfileName(normalizedInput, profile, safeBody);
-  if (!resolvedName) missingCore.push("userProfile.name");
+  const gender = toStringSafe(safeBody.gender || profile?.gender || normalizedInput?.gender || "") || "unknown";
+  const calendarType = toStringSafe(safeBody.calendarType || profile?.birth?.calendarType || "solar") === "lunar" ? "lunar" : "solar";
+
+  const requiredMissing = [];
+  if (!birthDate) requiredMissing.push("profile.birthDate");
+  if (!hasValue(gender)) requiredMissing.push("profile.gender");
+  if (!hasValue(calendarType)) requiredMissing.push("profile.calendarType");
+
+  const hasCoreChart = hasValue(sajuChart?.dayPillar) || hasValue(sajuChart?.dayMaster);
+  if (!hasCoreChart && !birthDate) {
+    requiredMissing.push("saju.dayPillar|profile.birthDate");
+  }
+
+  const lifeBookContext = {
+    profile: {
+      name: resolvedName,
+      gender,
+      birthDate: birthDate || "",
+      birthTime: buildBirthTime(normalizedInput, profile, safeBody),
+      calendarType,
+      birthPlace: toStringSafe(safeBody.location || profile?.birth?.locationName || safeBody.birthPlace || "") || undefined,
+    },
+    saju: {
+      yearPillar: sajuChart.yearPillar || undefined,
+      monthPillar: sajuChart.monthPillar || undefined,
+      dayPillar: sajuChart.dayPillar || undefined,
+      hourPillar: sajuChart.hourPillar || undefined,
+      dayMaster: sajuChart.dayMaster || undefined,
+      monthBranch: toStringSafe(sajuChart?.monthPillar || "").slice(1) || undefined,
+      fiveElements,
+      tenGods,
+      hiddenStems: sajuChart.hiddenStems,
+      combinationsConflicts: canonical?.relations || engineData?.relations || undefined,
+      seasonalBalance: toStringSafe(canonical?.seasonalBalance || canonical?.dayMaster?.strength || "") || undefined,
+      usefulGod: toStringArray(yongshin?.yongshin).join(", ") || undefined,
+      favorableGod: toStringArray(yongshin?.heeshin).join(", ") || undefined,
+      unfavorableGod: toStringArray(yongshin?.gishin).join(", ") || undefined,
+      structureType: toStringSafe(canonical?.geokguk?.name || engineData?.geokguk?.name || "") || undefined,
+      twelveStages: canonical?.twelveStages || engineData?.twelveStages || undefined,
+      specialStars: canonical?.specialStars || engineData?.specialStars || undefined,
+    },
+    fortuneCycles: {
+      daeun,
+      seun: yearlyFortune,
+      monthly: asObject(canonical?.monthlyLuck || engineData?.monthlyLuck),
+    },
+    promptContext: {
+      generatedQuestionPrompt: toStringSafe(promptSource?.generatedQuestionPrompt || safeBody?.generatedQuestionPrompt || "") || undefined,
+      engineSummary: toStringSafe(promptSource?.engineSummary || safeBody?.engineSummary || "") || undefined,
+      userQuestion: toStringSafe(promptSource?.userQuestion || safeBody?.userQuestion || "") || undefined,
+    },
+    meta: {
+      missingFields: [],
+      availableFields: [],
+      generatedAt: new Date().toISOString(),
+    },
+  };
+
+  const availableFields = Array.from(new Set(collectAvailableFields(lifeBookContext))).sort();
+  const optionalMissing = [
+    !hasValue(lifeBookContext?.fortuneCycles?.daeun) ? "fortuneCycles.daeun" : "",
+    !hasValue(lifeBookContext?.fortuneCycles?.seun) ? "fortuneCycles.seun" : "",
+    !hasValue(lifeBookContext?.saju?.specialStars) ? "saju.specialStars" : "",
+    !hasValue(lifeBookContext?.saju?.twelveStages) ? "saju.twelveStages" : "",
+    !hasValue(lifeBookContext?.saju?.usefulGod) ? "saju.usefulGod" : "",
+    !hasValue(lifeBookContext?.saju?.structureType) ? "saju.structureType" : "",
+    !hasValue(lifeBookContext?.promptContext?.generatedQuestionPrompt) ? "promptContext.generatedQuestionPrompt" : "",
+  ].filter(Boolean);
+
+  lifeBookContext.meta.missingFields = Array.from(new Set([...requiredMissing, ...optionalMissing]));
+  lifeBookContext.meta.availableFields = availableFields;
 
   return {
     userProfile: {
       name: resolvedName,
-      gender: toStringSafe(safeBody.gender || profile?.gender || normalizedInput?.gender || "") || undefined,
+      gender,
       birthDate,
       birthTime: buildBirthTime(normalizedInput, profile, safeBody),
-      calendarType: toStringSafe(safeBody.calendarType || profile?.birth?.calendarType || "solar") === "lunar" ? "lunar" : "solar",
+      calendarType,
       location: toStringSafe(safeBody.location || profile?.birth?.locationName || safeBody.birthPlace || "") || undefined,
     },
     sajuChart,
@@ -552,8 +658,12 @@ export function buildLifeBookInputData(body = {}, normalizedInput = {}) {
       recoveryTips: toStringArray(canonical?.healthMind?.recoveryTips || engineData?.healthMind?.recoveryTips || []),
     },
     rawEngineResult: safeBody.rawEngineResult || safeBody.engineData || safeBody.canonicalSajuChart || safeBody.sajuData || null,
+    lifeBookContext,
     dataQuality: {
       missingCore,
+      missingRequired: requiredMissing,
+      missingOptional: optionalMissing,
+      hasMinimumProfile: requiredMissing.length === 0,
       source: {
         hasCanonical: Object.keys(canonical).length > 0,
         hasEngineData: Object.keys(engineData).length > 0,

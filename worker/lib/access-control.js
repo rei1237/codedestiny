@@ -30,6 +30,12 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
   if (reportType === "sajuNewYear") {
     return [
       {
+        featureKey: "saju_new_year_pdf",
+        reason: "사주 신년운세 PDF 리포트 생성",
+        minCost: 300,
+        windowMinutes: 120,
+      },
+      {
         featureKey: "premium_pdf_saju_new_year",
         reason: "사주 신년운세 PDF 리포트 생성",
         minCost: 300,

@@ -146,6 +146,78 @@
     return out.length ? out : [p];
   }
 
+  function _resolveApiUrl(input) {
+    var raw = String(input || '').trim();
+    if (!raw) return raw;
+    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(raw)) return raw;
+    if (raw.indexOf('//') === 0) {
+      try { return String(window.location.protocol || 'https:') + raw; }
+      catch (_) { return raw; }
+    }
+    if (raw.charAt(0) === '/') {
+      try {
+        var origin = String(window.location.origin || '').replace(/\/$/, '');
+        return origin ? (origin + raw) : raw;
+      } catch (_) {
+        return raw;
+      }
+    }
+    try { return new URL(raw, window.location.href).toString(); }
+    catch (_) { return raw; }
+  }
+
+  function _postPremiumAuthFallback(pathname, payload) {
+    var token = '';
+    try { token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
+    var headers = { 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = 'Bearer ' + token;
+
+    var endpoints = _buildApiCandidates(pathname).map(function (u) { return _resolveApiUrl(u) || u; });
+    return new Promise(function (resolve) {
+      function run(at) {
+        if (at >= endpoints.length) {
+          resolve({ ok: false, code: 'PREMIUM_AUTH_FALLBACK_FAILED', message: '프리미엄 인증 API 호출에 실패했습니다.' });
+          return;
+        }
+        fetch(endpoints[at], {
+          method: 'POST',
+          headers: headers,
+          credentials: 'include',
+          cache: 'no-store',
+          body: JSON.stringify(payload || {}),
+        }).then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (data) {
+            var merged = data && typeof data === 'object' ? data : {};
+            if (res.ok) {
+              if (merged.ok == null) merged.ok = true;
+              resolve(merged);
+              return;
+            }
+            if (merged.ok == null) merged.ok = false;
+            if (merged.status == null) merged.status = res.status;
+            resolve(merged);
+          });
+        }).catch(function () {
+          run(at + 1);
+        });
+      }
+      run(0);
+    });
+  }
+
+  function _premiumAuthJson(pathname, body, options) {
+    var targetPath = _resolveApiUrl(pathname) || pathname;
+    if (typeof window.__cdPremiumAuthJson === 'function') {
+      return window.__cdPremiumAuthJson(targetPath, body || {}, options || {}).catch(function (error) {
+        try {
+          console.warn('[숙요 프리미엄 PDF] 인증 헬퍼 fallback:', error && error.message || error);
+        } catch (_) {}
+        return _postPremiumAuthFallback(pathname, body || {});
+      });
+    }
+    return _postPremiumAuthFallback(pathname, body || {});
+  }
+
   function _syncUserPoints(payload) {
     try {
       var points = Number(payload && (payload.remainingPoints != null ? payload.remainingPoints : (payload.user && payload.user.points)));
@@ -958,10 +1030,7 @@
       if (_premiumReportSessionId) {
         return Promise.resolve({ ok: true, reportSessionId: _premiumReportSessionId });
       }
-      if (typeof window.__cdPremiumAuthJson !== 'function') {
-        return Promise.resolve({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
-      }
-      return window.__cdPremiumAuthJson('/api/premium-report/prepare', {
+      return _premiumAuthJson('/api/premium-report/prepare', {
         featureType: _premiumFeatureType,
         reportType: _premiumReportType,
         requestBody: _getSukuyoPreparePayload()
@@ -1002,12 +1071,7 @@
               resolve(prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' });
               return;
             }
-            if (typeof window.__cdPremiumAuthJson !== 'function') {
-              clearTimeout(tid);
-              resolve({ ok: false, code: 'AUTH_HELPER_MISSING', message: '인증 모듈을 초기화하지 못했습니다.' });
-              return;
-            }
-            window.__cdPremiumAuthJson('/api/premium-report/chapter', {
+            _premiumAuthJson('/api/premium-report/chapter', {
               reportSessionId: _premiumReportSessionId,
               chapterId: idx + 1,
               reportType: _premiumReportType,

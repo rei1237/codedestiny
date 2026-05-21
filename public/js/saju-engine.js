@@ -3481,6 +3481,21 @@ function runDeferredSajuTasks(taskList) {
   scheduleNext();
 }
 
+function invokeOptionalGlobalRenderer(fnName, args) {
+  var name = String(fnName || '').trim();
+  if (!name) return false;
+  var fn = null;
+  try {
+    if (typeof window !== 'undefined' && typeof window[name] === 'function') fn = window[name];
+    else if (typeof globalThis !== 'undefined' && typeof globalThis[name] === 'function') fn = globalThis[name];
+  } catch (_) {
+    fn = null;
+  }
+  if (typeof fn !== 'function') return false;
+  fn.apply(null, Array.isArray(args) ? args : []);
+  return true;
+}
+
 /* ═══════════════════════════════════════
    STEP 6: 메인 계산
 ═══════════════════════════════════════ */
@@ -3780,11 +3795,23 @@ async function calculate(){
     try { renderAstroInsight(); } catch(e) { console.error('AstroInsight 에러:', e); }
     try { renderSkillTree(p,natal); } catch(e) { console.error('SkillTree 에러:', e); }
     try { renderSummary(p,johu,natal); } catch(e) { console.error('Summary 에러:', e); }
-    try { renderEnergyCoord(natal); } catch(e) { console.error('EnergyCoord 에러:', e); }
-    try { renderHealthReport(p, natal, johu, G_POWER, G_JONG); } catch(e) { console.error('HealthReport 에러:', e); }
-    try { renderTTest(p, natal, johu, G_POWER); } catch(e) { console.error('TTest 에러:', e, e.stack); }
+    try {
+      if (!invokeOptionalGlobalRenderer('renderEnergyCoord', [natal])) {
+        runDeferredSajuTasks([function(){ try { invokeOptionalGlobalRenderer('renderEnergyCoord', [natal]); } catch(_){ } }]);
+      }
+    } catch(e) { console.error('EnergyCoord 에러:', e); }
+    try {
+      if (!invokeOptionalGlobalRenderer('renderHealthReport', [p, natal, johu, G_POWER, G_JONG])) {
+        runDeferredSajuTasks([function(){ try { invokeOptionalGlobalRenderer('renderHealthReport', [p, natal, johu, G_POWER, G_JONG]); } catch(_){ } }]);
+      }
+    } catch(e) { console.error('HealthReport 에러:', e); }
+    try {
+      if (!invokeOptionalGlobalRenderer('renderTTest', [p, natal, johu, G_POWER])) {
+        runDeferredSajuTasks([function(){ try { invokeOptionalGlobalRenderer('renderTTest', [p, natal, johu, G_POWER]); } catch(_){ } }]);
+      }
+    } catch(e) { console.error('TTest 에러:', e, e.stack); }
     runDeferredSajuTasks([
-      function() { try { renderLottoNumbers(natal, bazi); } catch(e) { console.error('LottoNumbers 에러:', e); } },
+      function() { try { invokeOptionalGlobalRenderer('renderLottoNumbers', [natal, bazi]); } catch(e) { console.error('LottoNumbers 에러:', e); } },
       function() { try { renderSukuyo(p, natal, bazi, typeof lunarDateObj !== 'undefined' ? lunarDateObj : null); } catch(e) { console.error('Sukuyo 에러:', e); } },
       function() { try { renderQuantumStrategy(p, natal, bazi); } catch(e) { console.error('QuantumStrategy 에러:', e); } },
       function() { try { renderSpecialCharm(p, natal); } catch(e) { console.error('SpecialCharm 에러:', e); } },

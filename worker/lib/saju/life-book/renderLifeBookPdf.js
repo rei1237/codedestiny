@@ -78,44 +78,11 @@ function formatDate(dateInput) {
   return `${yyyy}.${mm}.${dd}`;
 }
 
-function buildChartSummary(lifeBookInputData) {
-  const user = lifeBookInputData?.userProfile || {};
-  const chart = lifeBookInputData?.sajuChart || {};
-  const elements = lifeBookInputData?.fiveElements || {};
-  const yongshin = lifeBookInputData?.yongshin || {};
-  const tenGods = lifeBookInputData?.tenGods || {};
-  const daeun = Array.isArray(lifeBookInputData?.daeun) ? lifeBookInputData.daeun[0] : null;
-
-  const tenGodLine = Object.entries(tenGods?.verifiedStemTenGodMap || {})
-    .filter(([stem, god]) => String(stem || "").trim() && String(god || "").trim())
-    .map(([stem, god]) => `${stem}:${god}`)
-    .join(", ") || "미제공";
-
-  return [
-    ["이름", user.name || "사용자"],
-    ["생년월일", user.birthDate || "미제공"],
-    ["출생시각", user.birthTime || "미제공"],
-    ["년주", chart.yearPillar || "미제공"],
-    ["월주", chart.monthPillar || "미제공"],
-    ["일주", chart.dayPillar || "미제공"],
-    ["시주", chart.hourPillar || "미제공"],
-    ["일간", chart.dayMaster || "미제공"],
-    ["오행 분포", `목 ${Number(elements.wood || 0)} / 화 ${Number(elements.fire || 0)} / 토 ${Number(elements.earth || 0)} / 금 ${Number(elements.metal || 0)} / 수 ${Number(elements.water || 0)}`],
-    ["십성 기준표", tenGodLine],
-    ["용신/희신", `${(yongshin.yongshin || []).join(", ") || "미제공"} / ${(yongshin.heeshin || []).join(", ") || "미제공"}`],
-    ["현재 대운 요약", daeun ? `${daeun.ageStart || "?"}세~${daeun.ageEnd || "?"}세 ${daeun.pillar || ""} ${daeun.summary || ""}` : "미제공"],
-  ];
-}
-
 export function renderLifeBookPdf(params = {}) {
   const reportId = String(params.reportId || "").trim();
   const lifeBookInputData = params.lifeBookInputData || {};
   const chapters = Array.isArray(params.chapters) ? params.chapters : [];
   const generatedAt = params.generatedAt || new Date().toISOString();
-
-  const chartRows = buildChartSummary(lifeBookInputData)
-    .map(([label, value]) => `<tr><th>${esc(label)}</th><td>${esc(value)}</td></tr>`)
-    .join("\n");
 
   const tocRows = chapters
     .map((chapter, index) => `<li>${esc(chapter.roman || String(index + 1))}. ${esc(chapter.title || `Chapter ${index + 1}`)}</li>`)
@@ -124,7 +91,6 @@ export function renderLifeBookPdf(params = {}) {
   const chapterBlocks = chapters
     .map((chapter, index) => {
       const advice = Array.isArray(chapter.practicalAdvice) ? chapter.practicalAdvice : [];
-      const warnings = Array.isArray(chapter.warnings) ? chapter.warnings : [];
       return [
         '<section class="lb-chapter">',
         `<h1>${esc(chapter.roman || String(index + 1))}. ${esc(chapter.title || `Chapter ${index + 1}`)}</h1>`,
@@ -136,9 +102,6 @@ export function renderLifeBookPdf(params = {}) {
         "</div>",
         advice.length
           ? `<div class="lb-advice-box"><h3>실전 조언</h3><ul>${advice.map((line) => `<li>${esc(line)}</li>`).join("")}</ul></div>`
-          : "",
-        warnings.length
-          ? `<div class="lb-warning-box"><h3>주의할 점</h3><ul>${warnings.map((line) => `<li>${esc(line)}</li>`).join("")}</ul></div>`
           : "",
         "</section>",
       ].join("\n");
@@ -156,20 +119,20 @@ export function renderLifeBookPdf(params = {}) {
     '.lb-cover{padding:26px;border-radius:16px;background:linear-gradient(135deg,#15131f,#31244a);color:#f3e9d2;margin-bottom:24px}',
     '.lb-cover h1{font-size:38px;margin:0 0 8px}',
     '.lb-cover p{margin:3px 0;color:#f0e3c4}',
+    '.lb-preface{padding:18px;border:1px solid #dccfb8;border-radius:12px;background:#fffaf2;margin-bottom:18px}',
+    '.lb-preface h2{margin:0 0 10px;color:#4f3a21}',
     '.lb-card{padding:18px;border:1px solid #dccfb8;border-radius:12px;background:#fffaf2;margin-bottom:18px}',
     '.lb-card h2{margin:0 0 12px;color:#4f3a21}',
-    '.lb-summary-table{width:100%;border-collapse:collapse}',
-    '.lb-summary-table th,.lb-summary-table td{border:1px solid #e4d9c7;padding:8px 10px;text-align:left;font-size:13px;vertical-align:top}',
-    '.lb-summary-table th{width:170px;background:#f8efe1;color:#5f4528}',
     '.lb-chapter{padding:18px;border:1px solid #e9dfcf;border-radius:14px;background:#fff;margin-bottom:20px}',
     '.lb-chapter h1{margin:0 0 8px;font-size:28px;color:#352515}',
     '.lb-subtitle{margin:0 0 14px;color:#7a5a3b}',
     '.lb-content h2{margin-top:14px;color:#5a3c21;font-size:20px}',
     '.lb-content h3{margin-top:12px;color:#69492a;font-size:17px}',
-    '.lb-summary-box,.lb-advice-box,.lb-warning-box{margin-top:14px;padding:12px;border-radius:10px}',
+    '.lb-summary-box,.lb-advice-box{margin-top:14px;padding:12px;border-radius:10px}',
     '.lb-summary-box{background:#f8f0e3;border:1px solid #e1d0b6}',
     '.lb-advice-box{background:#edf7ef;border:1px solid #b9dec0}',
-    '.lb-warning-box{background:#fff2ef;border:1px solid #efc2b6}',
+    '.lb-closing{padding:18px;border:1px solid #dccfb8;border-radius:12px;background:#fffaf2;margin-top:10px;margin-bottom:18px}',
+    '.lb-closing h2{margin:0 0 10px;color:#4f3a21}',
     '.lb-footer{padding:16px;border-radius:12px;background:#f5f5f5;border:1px solid #d9d9d9;color:#4b5563;font-size:12px}',
     '@media print{body{padding:0;background:#fff}.lb-cover,.lb-card,.lb-chapter,.lb-footer{border:none;box-shadow:none}}',
     "</style>",
@@ -180,19 +143,22 @@ export function renderLifeBookPdf(params = {}) {
     "<p>사주가 들려주는 나의 운명 사용 설명서</p>",
     `<p>${esc(lifeBookInputData?.userProfile?.name || "사용자")}</p>`,
     `<p>생성일 ${esc(formatDate(generatedAt))}</p>`,
-    reportId ? `<p>리포트 ID ${esc(reportId)}</p>` : "",
     "</section>",
-    '<section class="lb-card">',
-    "<h2>기본 명식 요약</h2>",
-    '<table class="lb-summary-table">',
-    chartRows,
-    "</table>",
+    '<section class="lb-preface">',
+    "<h2>서문</h2>",
+    "<p>이 리포트는 사용자 프로필과 사주 분석 데이터를 바탕으로 삶의 방향을 입체적으로 정리한 프리미엄 상담문입니다.</p>",
+    "<p>각 장은 서로 다른 관점에서 선택 기준과 실행 전략을 제시하며, 실제 생활에 적용 가능한 조언으로 구성되어 있습니다.</p>",
     "</section>",
     '<section class="lb-card">',
     "<h2>목차</h2>",
     `<ol>${tocRows}</ol>`,
     "</section>",
     chapterBlocks,
+    '<section class="lb-closing">',
+    "<h2>마지막 마무리</h2>",
+    "<p>당신의 운은 정해진 결론이 아니라 선택의 축적입니다. 이 책의 해석을 기준으로 현실의 우선순위를 세우고, 매일의 행동으로 운의 방향을 직접 설계하세요.</p>",
+    "<p>실천 조언: 한 번에 전부 바꾸기보다 2주 단위로 핵심 습관 하나를 고정하고, 관계·일·돈·회복의 균형을 주기적으로 점검하세요.</p>",
+    "</section>",
     '<section class="lb-footer">',
     '<p>Code Destiny Premium Report</p>',
     '<p>본 리포트는 자기이해와 성찰을 위한 콘텐츠이며, 법률/의학/투자 판단을 대체하지 않습니다.</p>',

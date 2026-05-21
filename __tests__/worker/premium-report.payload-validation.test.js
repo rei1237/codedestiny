@@ -76,7 +76,7 @@ describe("Premium reportPayload severity validators", () => {
     expect(result.missingFields).toContain("calculatedData.compatibility.distance");
   });
 
-  test("vedic compatibility payload: relationshipData 누락은 recoverable", () => {
+  test("vedic compatibility payload: partner 핵심 입력 누락은 recoverable", () => {
     const { validateVedicReportPayload } = __premiumReportTestUtils;
     const result = validateVedicReportPayload({
       calculatedData: {
@@ -91,7 +91,9 @@ describe("Premium reportPayload severity validators", () => {
     expect(result.ok).toBe(true);
     expect(result.code).toBe("");
     expect(result.generationMode).toBe("fallback");
-    expect(result.missingFields).toContain("calculatedData.relationshipData");
+    expect(result.missingFields).toContain("input.partnerBirthDate|input.partnerYear.month.day");
+    expect(result.missingFields).toContain("input.partnerBirthTime|input.partnerHour");
+    expect(result.missingFields).toContain("input.partnerBirthPlace|input.partnerPlace");
   });
 
   test("astrology compatibility payload: relationshipData 누락은 recoverable", () => {

@@ -116,6 +116,26 @@
     return new Promise(function (resolve) { setTimeout(resolve, ms); });
   }
 
+  function resolveApiUrl(input) {
+    var raw = String(input || '').trim();
+    if (!raw) return raw;
+    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(raw)) return raw;
+    if (raw.indexOf('//') === 0) {
+      try { return String(window.location.protocol || 'https:') + raw; }
+      catch (_) { return raw; }
+    }
+    if (raw.charAt(0) === '/') {
+      try {
+        var origin = String(window.location.origin || '').replace(/\/$/, '');
+        return origin ? (origin + raw) : raw;
+      } catch (_) {
+        return raw;
+      }
+    }
+    try { return new URL(raw, window.location.href).toString(); }
+    catch (_) { return raw; }
+  }
+
   function getAuthToken() {
     try { return String(localStorage.getItem('fortune_auth_token') || '').trim(); }
     catch (_) { return ''; }
@@ -123,6 +143,7 @@
 
   async function requestJson(url, options) {
     var opts = options || {};
+    var targetUrl = resolveApiUrl(url);
     var headers = new Headers(opts.headers || {});
     headers.set('Content-Type', 'application/json');
     var token = getAuthToken();
@@ -133,7 +154,7 @@
     if (controller) timer = setTimeout(function () { controller.abort(); }, API_TIMEOUT_MS);
 
     try {
-      var res = await fetch(url, {
+      var res = await fetch(targetUrl, {
         method: opts.method || 'GET',
         credentials: 'include',
         headers: headers,
@@ -155,10 +176,17 @@
   }
 
   async function premiumAuthJson(pathname, body, options) {
+    var targetPath = resolveApiUrl(pathname);
     if (typeof window.__cdPremiumAuthJson === 'function') {
-      return window.__cdPremiumAuthJson(pathname, body || {}, options || {});
+      try {
+        return await window.__cdPremiumAuthJson(targetPath || pathname, body || {}, options || {});
+      } catch (error) {
+        try {
+          console.warn('[AstroBook] premium auth helper fallback:', error && error.message || error);
+        } catch (_) {}
+      }
     }
-    var res = await requestJson(pathname, {
+    var res = await requestJson(targetPath || pathname, {
       method: 'POST',
       body: body || {}
     });
@@ -1302,6 +1330,13 @@
       if (!done && qs('abLoadingScreen') && qs('abLoadingScreen').style.display !== 'none') {
         setError('리포트 생성 중 문제가 발생했습니다.');
       }
+    } catch (error) {
+      try {
+        console.error('[AstroBook] generate failed:', error);
+      } catch (_) {}
+      await attemptAstroAutoRefund('점성술 프리미엄 예외 자동 환불');
+      state.paidGateKey = '';
+      setError(String(error && error.message || '점성술 리포트 생성 중 오류가 발생했습니다.'));
     } finally {
       state.generating = false;
     }
@@ -1420,6 +1455,7 @@
     }
 
     var downloadUrl = state.downloadUrl || ('/api/premium/astrology/download?reportId=' + encodeURIComponent(state.reportId));
+    var fetchUrl = resolveApiUrl(downloadUrl);
     var headers = new Headers();
     var token = getAuthToken();
     if (token) headers.set('Authorization', 'Bearer ' + token);
@@ -1427,7 +1463,7 @@
     var html = '';
     var fetchError = null;
     try {
-      var res = await fetch(downloadUrl, {
+      var res = await fetch(fetchUrl, {
         method: 'GET',
         credentials: 'include',
         headers: headers

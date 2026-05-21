@@ -2,120 +2,359 @@ const UNKNOWN = "unknown";
 
 const SUKYO_PDF_CHAPTERS = [
   {
-    key: "destiny_essence",
-    title: "Chapter 1. 나의 별이 말하는 운명의 본질",
-    goal: "타고난 성향의 원형, 겉과 속의 욕망, 반복되는 인생 방향, 강점/오해의 패턴을 통합해 운명의 본질을 정의한다.",
+    key: "solo_ch_01",
+    title: "Chapter I. 나의 숙명 총론 — 27숙이 말하는 인생의 첫인상",
+    goal: "사용자의 27숙을 기반으로 인생의 기본 분위기와 핵심 욕구를 정의한다.",
+    targetChars: 4500,
+    minChars: 3825,
+    sections: ["나의 숙이 가진 기본 기운", "타고난 인상과 외부 이미지", "인생을 움직이는 핵심 욕구", "내 숙명의 핵심 문장"],
   },
   {
-    key: "personality_inner_texture",
-    title: "Chapter 2. 타고난 성격과 내면의 결",
-    goal: "감정 표현, 사고 방식, 대인 태도, 예민함과 자존심의 결을 섬세하게 풀고 성향을 활용하는 방향을 제시한다.",
+    key: "solo_ch_02",
+    title: "Chapter II. 성격과 내면 구조 — 내가 나를 이해하는 법",
+    goal: "겉과 속의 성격 구조, 스트레스 반응, 성격 활용 전략을 분리해 해석한다.",
+    targetChars: 4200,
+    minChars: 3570,
+    sections: ["겉으로 드러나는 성격", "가까운 사람에게만 보이는 내면", "스트레스 상황에서 드러나는 반응", "내 성격을 장점으로 쓰는 법"],
   },
   {
-    key: "talent_success",
-    title: "Chapter 3. 재능과 성공 가능성",
-    goal: "재능 유형과 성공 조건, 맞는 환경과 막히는 환경, 커리어/창작/사업/프리랜서 현실성을 구체적으로 해석한다.",
+    key: "solo_ch_03",
+    title: "Chapter III. 인간관계와 인연의 결 — 누구와 가까워지고 멀어지는가",
+    goal: "인연 형성 방식과 반복되는 관계 문제를 구조적으로 정리한다.",
+    targetChars: 4200,
+    minChars: 3570,
+    sections: ["사람을 끌어들이는 방식", "편안한 인연과 불편한 인연", "반복되는 관계 문제", "관계를 건강하게 운영하는 법"],
   },
   {
-    key: "work_social_destiny",
-    title: "Chapter 4. 일과 사회적 운명",
-    goal: "사회적 역할, 조직/독립 적합성, 인정/오해 패턴, 반복 실패와 회피해야 할 구조, 장기 커리어 전략을 제시한다.",
+    key: "solo_ch_04",
+    title: "Chapter IV. 사랑의 방식 — 나는 어떻게 사랑하는가",
+    goal: "사랑의 진입, 욕구, 강점/약점, 장기 유지 전략을 현실적으로 제시한다.",
+    targetChars: 4500,
+    minChars: 3825,
+    sections: ["좋아하는 마음이 생기는 방식", "사랑에서 원하는 것", "연애할 때의 장점과 약점", "좋은 사랑을 만들기 위한 전략"],
   },
   {
-    key: "money_reality",
-    title: "Chapter 5. 돈과 현실 감각",
-    goal: "돈을 다루는 심리와 습관, 수입 구조 적합성, 감정과 재물의 상호작용, 실행 가능한 재정 전략을 설명한다.",
+    key: "solo_ch_05",
+    title: "Chapter V. 운명의 상대상 — 어떤 사람과 깊어지는가",
+    goal: "안정형/위험형/장기관계형 상대상을 구분해 관계 선택 기준을 제시한다.",
+    targetChars: 4000,
+    minChars: 3400,
+    sections: ["나를 안정시키는 상대", "강하게 끌리지만 위험한 상대", "장기 관계에 맞는 상대", "피해야 할 관계 패턴"],
   },
   {
-    key: "love_destiny_pattern",
-    title: "Chapter 6. 사랑과 인연의 방식",
-    goal: "사랑에 빠지는 방식, 끌림과 적합성의 차이, 반복 문제, 경계선, 오래 가는 관계 운영법을 제시한다.",
+    key: "solo_ch_06",
+    title: "Chapter VI. 일과 재능 — 내 숙이 빛나는 자리",
+    goal: "타고난 재능과 업무 작동 방식, 성과 전략을 직무 관점으로 해석한다.",
+    targetChars: 4300,
+    minChars: 3655,
+    sections: ["타고난 재능과 감각", "잘 맞는 일의 구조", "조직형·독립형·창작형·상담형 작동 방식", "성과를 만드는 실전 전략"],
   },
   {
-    key: "relationships_benefactors",
-    title: "Chapter 7. 인간관계와 귀인운",
-    goal: "사람을 끌어들이고 밀어내는 패턴, 귀인/소모 관계 구분, 오해/이용 리스크, 인맥을 운으로 바꾸는 전략을 제시한다.",
+    key: "solo_ch_07",
+    title: "Chapter VII. 재물과 현실 감각 — 돈이 모이고 새는 방식",
+    goal: "수익/손실 패턴을 분리해 실전 재정 운영 원칙을 만든다.",
+    targetChars: 3800,
+    minChars: 3230,
+    sections: ["돈을 대하는 기본 태도", "수익이 생기는 방식", "손실이 생기는 패턴", "재물을 안정시키는 운영법"],
   },
   {
-    key: "emotion_shadow_recovery",
-    title: "Chapter 8. 감정의 그림자와 마음의 회복",
-    goal: "불안·외로움·분노 반응, 소진 패턴, 회복 조건(시간/공간/사람/리듬), 실전 회복법을 안내한다.",
+    key: "solo_ch_08",
+    title: "Chapter VIII. 가족과 뿌리 — 오래된 감정의 원형",
+    goal: "가족 내 역할감, 결핍, 독립 과제를 정리하고 회복 문장을 제시한다.",
+    targetChars: 3800,
+    minChars: 3230,
+    sections: ["가족 안에서의 역할감", "인정 욕구와 결핍", "독립과 거리두기의 과제", "내면 회복 문장"],
   },
   {
-    key: "turning_points_flow",
-    title: "Chapter 9. 인생의 전환점과 운의 흐름",
-    goal: "시기별 인생 분위기, 막힘/개방 신호, 관계·일·돈·거주·마음 변화의 패턴, 밀어붙임/대기 기준을 제시한다.",
+    key: "solo_ch_09",
+    title: "Chapter IX. 위기와 전환점 — 무너질 때 다시 서는 법",
+    goal: "위기 패턴, 전환 신호, 재기 전략을 단계적으로 제시한다.",
+    targetChars: 4000,
+    minChars: 3400,
+    sections: ["위기가 오는 패턴", "감정적으로 흔들리는 순간", "인생의 전환 신호", "다시 일어서는 실전 방법"],
   },
   {
-    key: "healthy_rhythm_energy",
-    title: "Chapter 10. 건강한 생활 리듬과 에너지 관리",
-    goal: "의학적 단정 없이 생활 리듬 관점에서 소모/회복 구조를 분석하고 수면·식사·운동·휴식 루틴을 제안한다.",
+    key: "solo_ch_10",
+    title: "Chapter X. 운의 흐름과 기회 — 내 숙이 살아나는 타이밍",
+    goal: "기회/주의 흐름을 구분해 관계와 일에서 운을 현실로 전환하는 법을 안내한다.",
+    targetChars: 4100,
+    minChars: 3485,
+    sections: ["기회가 열리는 조건", "조심해야 할 흐름", "관계와 일에서 운을 살리는 법", "운을 현실로 바꾸는 준비"],
   },
   {
-    key: "near_future_strategy",
-    title: "Chapter 11. 올해와 가까운 미래의 운용 전략",
-    goal: "올해 집중 축, 확장/정비 시기 판단, 기회 신호, 주의 선택, 월별/분기별 실행 기준을 설계한다.",
+    key: "solo_ch_11",
+    title: "Chapter XI. 실전 생활 전략 — 숙명을 매일의 선택으로 바꾸는 법",
+    goal: "루틴 기반 실천 전략으로 성향을 생활 시스템으로 전환한다.",
+    targetChars: 4000,
+    minChars: 3400,
+    sections: ["하루 루틴", "관계 루틴", "일과 돈의 루틴", "감정 관리 루틴"],
   },
   {
-    key: "life_master_plan",
-    title: "Chapter 12. 숙요점 인생 마스터플랜",
-    goal: "앞선 챕터를 통합해 핵심 성향 한 줄 정의, 강점/약점, 사랑·일·돈·관계·마음의 최종 전략을 봉서형 결론으로 제시한다.",
+    key: "solo_ch_12",
+    title: "Chapter XII. 최종 숙명 선언문 — 내 삶을 다시 쓰는 문장",
+    goal: "전체 숙요 구조를 통합해 개인 맞춤 선언문으로 마무리한다.",
+    targetChars: 4600,
+    minChars: 3910,
+    sections: ["전체 숙요 구조 요약", "반드시 살려야 할 강점", "버려야 할 반복 패턴", "개인 맞춤 숙명 선언문"],
   },
 ];
 
 const SUKYO_PDF_COMPAT_CHAPTERS = [
   {
-    key: "compat_origin",
-    title: "Chapter 1. 두 별의 본질과 관계의 시작",
-    goal: "두 사람의 기본 기질, 첫 끌림, 관계의 핵심 테마를 압축해 설정한다.",
+    key: "compat_ch_01",
+    title: "Chapter I. 두 사람의 숙요 궁합 총론 — 왜 끌렸고 왜 흔들리는가",
+    goal: "두 사람의 숙요 기본 성향과 관계 핵심 문장을 도출한다.",
+    targetChars: 4600,
+    minChars: 3910,
+    sections: ["두 사람의 숙 기본 성향", "첫 끌림의 이유", "관계의 전체 분위기", "이 관계의 핵심 문장"],
   },
   {
-    key: "compat_emotion_dialogue",
-    title: "Chapter 2. 감정 온도차와 대화 방식",
-    goal: "감정 속도 차이, 애정 표현, 오해 패턴, 대화 복구법을 해석한다.",
+    key: "compat_ch_02",
+    title: "Chapter II. 숙요 관계 유형 분석 — 명·업태·영친·우쇠·안괴·위성·성위의 의미",
+    goal: "실제 relationType 기반으로 선물/시험/실전 전략을 구체화한다.",
+    targetChars: 4800,
+    minChars: 4080,
+    sections: ["두 사람의 관계 유형", "이 관계가 주는 선물", "이 관계가 주는 시험", "관계 유형을 현실에서 쓰는 법"],
   },
   {
-    key: "compat_roles_balance",
-    title: "Chapter 3. 사랑의 역할과 관계 균형",
-    goal: "주도권과 책임, 기대 충돌, 역할 분담의 균형 전략을 제시한다.",
+    key: "compat_ch_03",
+    title: "Chapter III. 거리감 분석 — 근거리·중거리·원거리의 실제 체감",
+    goal: "distanceType과 실제 체감의 간극을 설명하고 거리 조절 전략을 제시한다.",
+    targetChars: 3800,
+    minChars: 3230,
+    sections: ["두 사람의 거리감", "가까워질 때 생기는 변화", "멀어질 때 드러나는 불안", "건강한 거리 조절법"],
   },
   {
-    key: "compat_reality",
-    title: "Chapter 4. 현실 궁합",
-    goal: "일·돈·생활 조건에서의 현실 적합성과 장기 운영 가능성을 분석한다.",
+    key: "compat_ch_04",
+    title: "Chapter IV. 감정 궁합 — 마음이 통하는 지점과 막히는 지점",
+    goal: "감정 소통/오해/싸움/회복 대화법을 분리해 해석한다.",
+    targetChars: 4300,
+    minChars: 3655,
+    sections: ["감정이 잘 통하는 부분", "오해가 생기는 부분", "싸울 때의 감정 패턴", "감정을 회복시키는 대화법"],
   },
   {
-    key: "compat_surroundings_rhythm",
-    title: "Chapter 5. 주변 사람과 생활 리듬",
-    goal: "가족/친구/사회 관계의 영향, 회복 방식, 동거 리듬 적합성을 해석한다.",
+    key: "compat_ch_05",
+    title: "Chapter V. 연애 궁합 — 설렘, 집착, 안정감의 균형",
+    goal: "설렘/불안/안정의 삼각 균형을 관계 운영 규칙으로 변환한다.",
+    targetChars: 4300,
+    minChars: 3655,
+    sections: ["설렘이 생기는 이유", "집착이나 불안이 생기는 이유", "안정감을 만드는 조건", "연애를 오래 유지하는 법"],
   },
   {
-    key: "compat_conflict_breakup",
-    title: "Chapter 6. 갈등과 이별 위기",
-    goal: "상처 트리거, 갈등 반응, 이별 위기 신호, 회복 조건을 구체화한다.",
+    key: "compat_ch_06",
+    title: "Chapter VI. 결혼과 장기 관계 — 함께 살아갈 수 있는가",
+    goal: "생활 궁합과 책임감, 장기 리스크를 현실적 합의 중심으로 제시한다.",
+    targetChars: 4200,
+    minChars: 3570,
+    sections: ["생활 궁합", "책임감과 현실 감각", "장기 관계에서 강해지는 부분", "장기 관계에서 조심해야 할 부분"],
   },
   {
-    key: "compat_marriage_longterm",
-    title: "Chapter 7. 결혼과 장기 파트너 가능성",
-    goal: "결혼·동반자 구조의 현실 조건과 오래가기 위한 합의 원칙을 제시한다.",
+    key: "compat_ch_07",
+    title: "Chapter VII. 갈등 구조 — 반복되는 싸움의 진짜 원인",
+    goal: "갈등 트리거와 붕괴 패턴을 명확히 하고 분쟁 감소 규칙을 설계한다.",
+    targetChars: 4300,
+    minChars: 3655,
+    sections: ["갈등이 시작되는 지점", "서로의 약점을 건드리는 방식", "관계가 무너지는 패턴", "싸움을 줄이는 실전 규칙"],
   },
   {
-    key: "compat_yearly_final",
-    title: "Chapter 8. 올해 흐름과 최종 궁합 봉서",
-    goal: "올해 관계 흐름, 강점/약점 총정리, 최종 궁합 봉서 조언을 완성한다.",
+    key: "compat_ch_08",
+    title: "Chapter VIII. 이별과 재회 가능성 — 다시 이어질 수 있는 인연인가",
+    goal: "이별 구조와 재회 조건, 재접속 시 리스크를 현실적으로 분석한다.",
+    targetChars: 4000,
+    minChars: 3400,
+    sections: ["이별이 생기는 구조", "미련이 남는 이유", "재회가 가능한 조건", "다시 만나면 조심해야 할 점"],
+  },
+  {
+    key: "compat_ch_09",
+    title: "Chapter IX. 운명적 인연성 — 깊은 인연인가, 지나가는 인연인가",
+    goal: "인연 깊이와 상호 영향을 성장형/소모형 축으로 구분한다.",
+    targetChars: 3800,
+    minChars: 3230,
+    sections: ["인연의 깊이", "서로에게 남기는 영향", "성장형 인연인지 소모형 인연인지", "이 관계에서 배워야 할 것"],
+  },
+  {
+    key: "compat_ch_10",
+    title: "Chapter X. 현실 문제 궁합 — 돈, 일, 가족, 생활 리듬",
+    goal: "현실 이슈(돈/일/가족/리듬)에서의 운영 적합성과 조율법을 제시한다.",
+    targetChars: 4000,
+    minChars: 3400,
+    sections: ["돈과 소비 감각", "일과 목표에 대한 태도", "가족과 주변 사람의 영향", "생활 리듬을 맞추는 법"],
+  },
+  {
+    key: "compat_ch_11",
+    title: "Chapter XI. 관계 운영 전략 — 이 관계를 살리는 구체적 방법",
+    goal: "연락/사과/회복/장기 운영의 실행 프로토콜을 구체화한다.",
+    targetChars: 4100,
+    minChars: 3485,
+    sections: ["연락과 거리두기 전략", "대화와 사과 전략", "갈등 후 회복 전략", "장기 관계 운영 전략"],
+  },
+  {
+    key: "compat_ch_12",
+    title: "Chapter XII. 최종 궁합 선언문 — 두 사람이 선택해야 할 방향",
+    goal: "전체 궁합을 요약해 지킬 것/버릴 것/최종 선언문으로 마무리한다.",
+    targetChars: 4100,
+    minChars: 3485,
+    sections: ["전체 궁합 핵심 요약", "이 관계에서 지켜야 할 것", "이 관계에서 버려야 할 것", "두 사람을 위한 최종 선언문"],
   },
 ];
 
 function normalizeSukyoReportMode(value) {
   const mode = String(value || "").trim().toLowerCase();
   if (mode === "compatibility" || mode === "couple" || mode === "compat") return "compatibility";
-  return "personal";
+  return "solo";
 }
 
 function getSukyoPdfChapters(reportMode = "personal") {
   return normalizeSukyoReportMode(reportMode) === "compatibility"
     ? SUKYO_PDF_COMPAT_CHAPTERS
     : SUKYO_PDF_CHAPTERS;
+}
+
+function toCalendarType(value) {
+  const token = String(value || "").trim().toLowerCase();
+  if (token.includes("lunar") || token.includes("음")) return "lunar";
+  if (token.includes("solar") || token.includes("양")) return "solar";
+  return "solar";
+}
+
+function collectAvailableFields(bookContext) {
+  const available = [];
+  const push = (path, condition) => {
+    if (condition) available.push(path);
+  };
+  push("user.profile.birthDate", Boolean(bookContext?.user?.profile?.birthDate));
+  push("user.profile.calendarType", Boolean(bookContext?.user?.profile?.calendarType));
+  push("user.profile.gender", Boolean(bookContext?.user?.profile?.gender));
+  push("user.sukuyo.mansion", Boolean(bookContext?.user?.sukuyo?.mansion));
+  push("user.sukuyo.mansionNumber", Number.isFinite(Number(bookContext?.user?.sukuyo?.mansionNumber)));
+  push("user.sukuyo.personalitySummary", Boolean(bookContext?.user?.sukuyo?.personalitySummary));
+  push("user.sukuyo.loveStyle", Boolean(bookContext?.user?.sukuyo?.loveStyle));
+  push("user.sukuyo.relationshipStyle", Boolean(bookContext?.user?.sukuyo?.relationshipStyle));
+  push("user.sukuyo.careerStyle", Boolean(bookContext?.user?.sukuyo?.careerStyle));
+  push("user.sukuyo.moneyStyle", Boolean(bookContext?.user?.sukuyo?.moneyStyle));
+  push("user.sukuyo.fortuneFlow", Boolean(bookContext?.user?.sukuyo?.fortuneFlow));
+  push("partner.profile.birthDate", Boolean(bookContext?.partner?.profile?.birthDate));
+  push("partner.sukuyo.mansion", Boolean(bookContext?.partner?.sukuyo?.mansion));
+  push("compatibility.relationType", Boolean(bookContext?.compatibility?.relationType));
+  push("compatibility.distanceType", Boolean(bookContext?.compatibility?.distanceType));
+  push("compatibility.score", bookContext?.compatibility?.score != null);
+  push("compatibility.grade", Boolean(bookContext?.compatibility?.grade));
+  return available;
+}
+
+function collectMissingFields(bookContext) {
+  const missing = [];
+  const mode = normalizeSukyoReportMode(bookContext?.mode);
+  const requireField = (path, condition) => {
+    if (!condition) missing.push(path);
+  };
+
+  requireField("user.profile.birthDate", Boolean(bookContext?.user?.profile?.birthDate));
+  requireField("user.sukuyo.mansion", Boolean(bookContext?.user?.sukuyo?.mansion));
+  if (mode === "compatibility") {
+    requireField("partner.profile.birthDate", Boolean(bookContext?.partner?.profile?.birthDate));
+    requireField("partner.sukuyo.mansion", Boolean(bookContext?.partner?.sukuyo?.mansion));
+  }
+  return missing;
+}
+
+function buildSukuyoBookContextFromNormalized(normalized, canonical = {}, requestBody = {}) {
+  const mode = normalizeSukyoReportMode(normalized?.reportMode || requestBody?.mode || requestBody?.reportMode);
+  const personA = canonical?.personA || {};
+  const personB = canonical?.personB || {};
+  const relation = canonical?.compatibility || {};
+  const distanceLabel = String(relation?.distanceLabel || "").trim().toLowerCase();
+  const distanceType = distanceLabel.includes("근")
+    ? "near"
+    : distanceLabel.includes("원")
+      ? "far"
+      : distanceLabel.includes("중")
+        ? "middle"
+        : null;
+
+  const bookContext = {
+    mode,
+    user: {
+      profile: {
+        name: normalized?.userProfile?.name || null,
+        gender: normalized?.userProfile?.gender || null,
+        birthDate: normalized?.userProfile?.solarBirthDate || personA?.birth?.solarDate || null,
+        calendarType: toCalendarType(requestBody?.calendarType || requestBody?.calendar || "solar"),
+        birthTime: normalized?.userProfile?.birthTime || personA?.birth?.time || null,
+      },
+      sukuyo: {
+        mansion: normalized?.mainStar?.nameKo || canonical?.natalSukuyo?.nameKo || personA?.sukuyo?.nameKo || null,
+        mansionNumber: Number.isFinite(Number(canonical?.natalSukuyo?.index))
+          ? Number(canonical.natalSukuyo.index)
+          : (Number.isFinite(Number(personA?.sukuyo?.index)) ? Number(personA.sukuyo.index) : null),
+        mansionGroup: normalized?.mainStar?.group || canonical?.natalSukuyo?.group || personA?.sukuyo?.category || null,
+        mansionKeywords: Array.isArray(canonical?.natalSukuyo?.keywords)
+          ? canonical.natalSukuyo.keywords
+          : (Array.isArray(personA?.sukuyo?.keywords) ? personA.sukuyo.keywords : []),
+        personalitySummary: normalized?.mainStar?.temperament || null,
+        loveStyle: normalized?.relationship?.emotionalPattern || null,
+        relationshipStyle: normalized?.persona?.socialMask || null,
+        careerStyle: normalized?.domainScores?.find((row) => row?.domain === "work")?.summary || null,
+        moneyStyle: normalized?.domainScores?.find((row) => row?.domain === "wealth")?.summary || null,
+        lifeTheme: normalized?.persona?.rememberedAs || canonical?.natalSukuyo?.lifeTheme || null,
+        cautionPattern: normalized?.mainStar?.shadow || null,
+        fortuneFlow: canonical?.cycleData || null,
+      },
+    },
+    partner: mode === "compatibility"
+      ? {
+        profile: {
+          name: personB?.name || requestBody?.partnerName || null,
+          gender: requestBody?.partnerGender || null,
+          birthDate: personB?.birth?.solarDate || requestBody?.partnerBirthDate || null,
+          calendarType: toCalendarType(requestBody?.partnerCalendarType || requestBody?.partnerCalendar || "solar"),
+          birthTime: personB?.birth?.time || requestBody?.partnerBirthTime || null,
+        },
+        sukuyo: {
+          mansion: personB?.sukuyo?.nameKo || null,
+          mansionNumber: Number.isFinite(Number(personB?.sukuyo?.index)) ? Number(personB.sukuyo.index) : null,
+          mansionGroup: personB?.sukuyo?.category || null,
+          mansionKeywords: Array.isArray(personB?.sukuyo?.keywords) ? personB.sukuyo.keywords : [],
+          personalitySummary: personB?.sukuyo?.archetypeTitle || null,
+          loveStyle: canonical?.relationshipMatrix?.emotionalPattern?.summary || null,
+          relationshipStyle: canonical?.relationshipMatrix?.attractionPattern?.summary || null,
+        },
+      }
+      : undefined,
+    compatibility: mode === "compatibility"
+      ? {
+        relationType: relation?.relationType || null,
+        relationLabel: relation?.relationTypeHan || relation?.relationType || null,
+        distanceType,
+        attractionPattern: canonical?.relationshipMatrix?.attractionPattern?.summary || null,
+        conflictPattern: canonical?.relationshipMatrix?.conflictPattern?.summary || relation?.conflictPattern || null,
+        emotionalDynamic: canonical?.relationshipMatrix?.emotionalPattern?.summary || normalized?.relationship?.emotionalPattern || null,
+        longTermPotential: canonical?.relationshipMatrix?.longTermPotential?.summary || relation?.longTermPotential || null,
+        marriagePotential: canonical?.relationshipMatrix?.marriagePotential?.summary || null,
+        reunionPotential: relation?.reunionPotential || null,
+        riskPattern: relation?.strengthShadowMap?.complementSummary || null,
+        adviceSummary: relation?.roleActionGuide?.resetLine || null,
+        score: Number.isFinite(Number(relation?.compatibilityIndex)) ? Number(relation.compatibilityIndex) : null,
+        grade: Number.isFinite(Number(relation?.compatibilityIndex))
+          ? (Number(relation.compatibilityIndex) >= 85 ? "A" : Number(relation.compatibilityIndex) >= 70 ? "B" : "C")
+          : null,
+      }
+      : undefined,
+    promptContext: {
+      generatedQuestionPrompt: requestBody?.questionPrompt || requestBody?.prompt || null,
+      engineSummary: normalized?.rawBasicResult?.summary || relation?.summary || null,
+      userQuestion: requestBody?.question || requestBody?.userQuestion || null,
+    },
+    meta: {
+      missingFields: [],
+      availableFields: [],
+      generatedAt: new Date().toISOString(),
+    },
+  };
+
+  bookContext.meta.availableFields = collectAvailableFields(bookContext);
+  bookContext.meta.missingFields = collectMissingFields(bookContext);
+  return bookContext;
 }
 
 const SUKYO_GENERAL_MEANINGS = {
@@ -425,7 +664,7 @@ function normalizeSukyoResultForPdf(input = {}) {
   if (!moonData.moonPhaseName && moonData.elongationAngle == null && moonData.illumination == null) {
     missingSummary.push("moon.phaseData");
   }
-  if (!relationship.relationType) missingSummary.push("relationship.relationType");
+  if (reportMode === "compatibility" && !relationship.relationType) missingSummary.push("relationship.relationType");
 
   const chartMeta = {
     calculationSource: toStringOrNull(
@@ -440,7 +679,7 @@ function normalizeSukyoResultForPdf(input = {}) {
     generatedAt: new Date().toISOString(),
   };
 
-  return {
+  const normalized = {
     reportMode,
     userProfile,
     chartMeta,
@@ -453,24 +692,42 @@ function normalizeSukyoResultForPdf(input = {}) {
     missingSummary,
     knowledgeBase: SUKYO_PDF_KNOWLEDGE_BASE,
   };
+
+  normalized.sukuyoBookContext = buildSukuyoBookContextFromNormalized(normalized, canonical, requestBody);
+  return normalized;
 }
 
 function validateSukyoPdfInput(context = {}) {
   const missingFields = [];
-  const hasBirthInfo = Boolean(context?.userProfile?.solarBirthDate || context?.userProfile?.name);
+  const mode = normalizeSukyoReportMode(context?.reportMode || context?.sukuyoBookContext?.mode);
+  const book = context?.sukuyoBookContext || {};
+
+  const hasBirthInfo = Boolean(book?.user?.profile?.birthDate || context?.userProfile?.solarBirthDate);
+  const hasMainMansion = Boolean(book?.user?.sukuyo?.mansion || context?.mainStar?.nameKo);
   const hasBasicText = Boolean(
-    context?.mainStar?.nameKo
+    hasMainMansion
     || context?.mainStar?.coreKeyword
     || toArray(context?.domainScores).some((row) => Boolean(row?.summary) || toArray(row?.keywords).length > 0),
   );
 
-  if (!hasBirthInfo) missingFields.push("userProfile");
-  if (!hasBasicText) missingFields.push("basicResultText");
+  if (!hasBirthInfo) missingFields.push("user.profile.birthDate");
+  if (!hasMainMansion) missingFields.push("user.sukuyo.mansion");
+
+  let hasCompatibilityCore = true;
+  if (mode === "compatibility") {
+    const hasPartnerBirth = Boolean(book?.partner?.profile?.birthDate);
+    const hasPartnerMansion = Boolean(book?.partner?.sukuyo?.mansion);
+    if (!hasPartnerBirth) missingFields.push("partner.profile.birthDate");
+    if (!hasPartnerMansion) missingFields.push("partner.sukuyo.mansion");
+    hasCompatibilityCore = hasPartnerBirth && hasPartnerMansion;
+  }
 
   return {
-    canGenerate: hasBirthInfo || hasBasicText,
+    canGenerate: hasBirthInfo && hasBasicText && hasCompatibilityCore,
+    mode,
     hasBirthInfo,
     hasBasicText,
+    hasCompatibilityCore,
     missingFields,
   };
 }
@@ -506,10 +763,24 @@ function buildSukyoGeminiPrompt({ context, chapter, previousChapterTexts = [] })
   const reportMode = normalizeSukyoReportMode(safeContext.reportMode);
   const chapterTitle = chapter?.title || "Sukyo Chapter";
   const chapterGoal = chapter?.goal || "숙요 해석";
+  const chapterSections = Array.isArray(chapter?.sections) ? chapter.sections.map((row) => String(row || "").trim()).filter(Boolean) : [];
+  const targetChars = Number(chapter?.targetChars || 4200);
+  const minChars = Number(chapter?.minChars || Math.floor(targetChars * 0.85));
   const previousBanList = collectPreviousSentenceBanList(previousChapterTexts, 12);
+  const previousChapterSummaries = (previousChapterTexts || [])
+    .map((text, idx) => {
+      const lines = String(text || "").split(/\n+/).map((row) => row.trim()).filter(Boolean);
+      const title = lines.find((row) => row.startsWith("# ")) || `Chapter ${idx + 1}`;
+      const summary = lines.slice(0, 8).join(" ").slice(0, 700);
+      return { chapterId: idx + 1, title: title.replace(/^#\s+/, ""), summary };
+    })
+    .filter((row) => row.summary);
   const chapterCatalog = getSukyoPdfChapters(reportMode)
     .map((row, idx) => `${idx + 1}. ${row.title}`)
     .join("\n");
+  const sukuyoBookContext = safeContext?.sukuyoBookContext && typeof safeContext.sukuyoBookContext === "object"
+    ? safeContext.sukuyoBookContext
+    : null;
   const chapterContract = context?.chapterContract && typeof context.chapterContract === "object"
     ? context.chapterContract
     : {};
@@ -522,27 +793,25 @@ function buildSukyoGeminiPrompt({ context, chapter, previousChapterTexts = [] })
 
   const modeSpecificRules = reportMode === "compatibility"
     ? [
-      "궁합 리포트에서는 관계 해석에 필요한 범위를 넘는 개인 인생 총론 반복을 금지한다.",
-      "반드시 다음 요소만으로 챕터를 구성한다: 두 사람 기질, 첫 끌림, 감정 온도차, 애정 표현, 성격 충돌, 대화 방식, 역할 분담, 주도권/책임, 일·돈 현실 궁합, 주변 사람 영향, 생활 리듬/동거 가능성, 갈등/상처 패턴, 이별 위기/회복 조건, 결혼/장기 파트너 가능성, 올해 흐름, 강점/약점, 최종 궁합 봉서.",
-      "A/B 개인 성향은 관계 해석에 필요한 만큼만 압축해 넣고 장문 개인 운세를 확장하지 않는다.",
-      "본문에서 계산 근거, 내부 JSON 키, 내부 데이터 구조를 직접 노출하지 않는다.",
+      "궁합 모드에서는 두 사람의 관계를 중심으로만 작성하고 개인 인생 총론 반복을 금지한다.",
+      "두 사람의 relationType, distanceType, 관계 다이내믹을 우선 해석하되, 없는 관계값은 임의 생성하지 않는다.",
+      "상대 데이터가 부족한 항목은 단정하지 말고 확보된 범위에서만 해석한다.",
     ]
     : [
-      "개인 리포트는 운명의 본질 → 성향 → 재능 → 사회/일 → 돈 → 사랑 → 인간관계 → 감정 회복 → 전환점 → 생활 리듬 → 올해 전략 → 마스터플랜 순서로 전개한다.",
+      "솔로 모드에서는 나의 숙명, 성격, 관계, 일, 사랑, 운의 흐름 중심으로 작성한다.",
       "강점과 그림자를 동시에 다루고, 단정 예언 대신 실행 가능한 현실 전략으로 마무리한다.",
-      "본문에서 계산 근거, 내부 JSON 키, 내부 데이터 구조를 직접 노출하지 않는다.",
     ];
 
   const systemPrompt = [
-    "너는 숙요점(27숙) 분야 최고 전문가이며, 30년차 숙요점 전문가이자 27숙과 달의 리듬을 현대어로 해석하는 프리미엄 숙요점 PDF 작가다.",
-    "계산은 하지 않는다. 제공된 숙요점 JSON과 knowledgeBase만 사용한다.",
-    "본명숙/월상/삭망각/조도/관계유형/관계거리를 임의로 만들지 않는다.",
-    "데이터가 부족하면 부족하다고 명시하되 생성을 중단하지 않는다.",
-    "건강/가족/관계/위기/재물은 단정 예언이 아니라 경향과 전략으로 쓴다.",
-    "이전 챕터와 동일 문장/동일 해석 프레이밍 재사용을 금지한다.",
-    "챕터는 반드시 단계적으로 쓴다: (1) 핵심 진단 (2) 패턴 해석 (3) 현실 적용 전략 (4) 행동 기준 요약.",
+    "너는 30년차 숙요점 상담가이자 프리미엄 숙요점 PDF 전문 작가다.",
+    "제공된 SukuyoBookContext와 계산 완료 데이터 범위만 사용한다. 계산을 다시 만들지 않는다.",
+    "없는 숙, 관계 유형, 거리 구분, 궁합 점수는 절대 임의 생성하지 않는다.",
+    "본문에는 JSON, 계산표, 내부 키명, payload, API 응답 원문, 디버그 로그를 노출하지 않는다.",
+    "운명론적 단정 대신 현실적인 선택, 행동 전략, 관계 운영법으로 연결한다.",
+    "이전 챕터 문장/비유/결론을 반복하지 않는다.",
     requiredHeadings.length ? `chapterContract.requiredHeadings를 모두 sections.heading에 반영: ${requiredHeadings.join(", ")}` : "",
     requiredJsonFields.length ? `chapterContract.requiredJsonFields 키를 응답 JSON에 모두 포함: ${requiredJsonFields.join(", ")}` : "",
+    chapterSections.length ? `다음 세부 카테고리를 모두 포함하고 sections.heading에 반영: ${chapterSections.join(" | ")}` : "",
     ...modeSpecificRules,
     "반드시 JSON 하나로만 응답한다.",
   ].join("\n");
@@ -552,24 +821,23 @@ function buildSukyoGeminiPrompt({ context, chapter, previousChapterTexts = [] })
     `[리포트 모드] ${reportMode}`,
     "[모드별 챕터 구성표]",
     chapterCatalog,
-    "[사용자 정보]",
-    JSON.stringify(safeContext.userProfile || {}, null, 2),
-    "[차트 메타 정보]",
-    JSON.stringify(safeContext.chartMeta || {}, null, 2),
-    "[본명숙 정보]",
-    JSON.stringify(safeContext.mainStar || {}, null, 2),
-    "[달의 주기 정보]",
-    JSON.stringify(safeContext.moon || {}, null, 2),
-    "[페르소나 정보]",
-    JSON.stringify(safeContext.persona || {}, null, 2),
-    "[관계 정보]",
-    JSON.stringify(safeContext.relationship || {}, null, 2),
-    "[영역별 요약 점수 및 키워드]",
-    JSON.stringify(safeContext.domainScores || [], null, 2),
-    "[기본 숙요점 원본 결과]",
-    JSON.stringify(safeContext.rawBasicResult || {}, null, 2),
-    "[누락 데이터 요약]",
-    JSON.stringify(safeContext.missingSummary || [], null, 2),
+    `[목표 글자 수] ${targetChars}`,
+    `[최소 글자 수] ${minChars}`,
+    chapterSections.length ? "[세부 카테고리]" : null,
+    chapterSections.length ? JSON.stringify(chapterSections, null, 2) : null,
+    "[SukuyoBookContext]",
+    JSON.stringify(sukuyoBookContext || {}, null, 2),
+    "[정규화된 보조 데이터]",
+    JSON.stringify({
+      userProfile: safeContext.userProfile || {},
+      mainStar: safeContext.mainStar || {},
+      moon: safeContext.moon || {},
+      relationship: safeContext.relationship || {},
+      domainScores: safeContext.domainScores || [],
+      missingSummary: safeContext.missingSummary || [],
+    }, null, 2),
+    previousChapterSummaries.length ? "[이전 챕터 요약]" : null,
+    previousChapterSummaries.length ? JSON.stringify(previousChapterSummaries, null, 2) : null,
     previousBanList.length ? "[이전 챕터와 중복 금지 문장]" : null,
     previousBanList.length ? JSON.stringify(previousBanList, null, 2) : null,
     "[숙요점 Knowledge Base]",
@@ -655,22 +923,48 @@ function sanitizeList(list, fallback = []) {
   return out.length ? out : fallback;
 }
 
-function sanitizeSections(sections, fallbackSummary) {
+function sanitizeNarrativeText(value) {
+  let text = String(value || "").trim();
+  if (!text) return "";
+  text = text
+    .replace(/\b(missingFields|availableFields|reportPayload|payload|raw\s*engine\s*data|api\s*response|debug\s*log)\b/gi, "")
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/\{\s*"[^"]+"\s*:/g, "");
+  return text.replace(/\s{2,}/g, " ").trim();
+}
+
+function sanitizeSections(sections, fallbackSummary, requiredHeadings = []) {
   if (!Array.isArray(sections)) {
-    return fallbackSummary
+    const fallbackRows = fallbackSummary
       ? [{ heading: "핵심 해석", body: String(fallbackSummary) }]
       : [];
+    if (!requiredHeadings.length) return fallbackRows;
+    return requiredHeadings.map((heading) => ({
+      heading,
+      body: fallbackSummary || "확보된 숙요 데이터 범위에서 이 카테고리를 해석합니다.",
+    }));
   }
-  return sections
+  const normalized = sections
     .map((item) => ({
       heading: String(item?.heading || "").trim(),
       body: String(item?.body || "").trim(),
     }))
     .filter((item) => item.heading && item.body);
+
+  if (!requiredHeadings.length) return normalized;
+
+  const bucket = new Map(normalized.map((row) => [row.heading, row.body]));
+  return requiredHeadings.map((heading) => ({
+    heading,
+    body: bucket.get(heading) || fallbackSummary || "확보된 숙요 구조를 기준으로 현실 적용 전략을 정리합니다.",
+  }));
 }
 
 function createFallbackSukyoChapter(chapter, context, reason = "") {
   const reportMode = normalizeSukyoReportMode(context?.reportMode);
+  const sectionHeadings = Array.isArray(chapter?.sections)
+    ? chapter.sections.map((row) => String(row || "").trim()).filter(Boolean)
+    : [];
   const subtitle = reportMode === "compatibility"
     ? "궁합 리포트용 보완 해석"
     : "기본 숙요점 결과 기반 보완 해석";
@@ -682,13 +976,11 @@ function createFallbackSukyoChapter(chapter, context, reason = "") {
       "이 챕터의 일부 세부 데이터가 확인되지 않아, 제공된 기본 숙요점 결과와 27숙 해석 체계를 바탕으로 보완 해석을 제공합니다.",
     coreReading:
       "현재 확인 가능한 본명숙, 달의 리듬, 기본 성향 키워드를 중심으로 이 영역의 핵심 흐름을 해석합니다.",
-    sections: [
-      {
-        heading: "확인 가능한 숙요점 정보 중심 해석",
-        body:
-          "일부 확장 데이터가 없더라도 기본 숙요점 결과는 개인의 정서, 관계 감각, 삶의 리듬을 읽는 데 충분한 단서를 제공합니다. 이 챕터는 확인 가능한 숙요점 정보를 중심으로 작성되었습니다.",
-      },
-    ],
+    sections: (sectionHeadings.length ? sectionHeadings : ["확인 가능한 숙요점 정보 중심 해석"]).map((heading) => ({
+      heading,
+      body:
+        "일부 확장 데이터가 없더라도 기본 숙요점 결과는 개인의 정서, 관계 감각, 삶의 리듬을 읽는 데 충분한 단서를 제공합니다. 이 카테고리는 확인 가능한 숙요점 구조를 중심으로 해석되었습니다.",
+    })),
     practicalAdvice: [
       "현재 확인 가능한 숙요점 키워드에서 반복적으로 강조되는 정서 패턴과 관계 습관을 우선 점검하세요.",
     ],
@@ -699,10 +991,7 @@ function createFallbackSukyoChapter(chapter, context, reason = "") {
       "하루 중 혼자 감정을 정리하는 시간을 두고, 관계에서 느낀 신호를 짧게 기록하세요.",
     ],
     masterKeyword: "기본 숙요점 기반 보완",
-    missingDataNotice:
-      reportMode === "compatibility"
-        ? "일부 확장 데이터가 없어 관계 핵심 신호 중심으로 보완 생성된 궁합 챕터입니다."
-        : "일부 확장 데이터가 없어 기본 숙요점 결과 중심으로 생성된 챕터입니다.",
+    missingDataNotice: null,
     fallbackUsed: true,
     fallbackReason: reason || "CHAPTER_FALLBACK",
     contextHint: {
@@ -715,9 +1004,12 @@ function sanitizeSukyoChapterJson(chapter, rawJson, context) {
   const fallback = createFallbackSukyoChapter(chapter, context, "SANITIZE_FALLBACK");
   const source = rawJson && typeof rawJson === "object" ? rawJson : {};
 
-  const summary = toStringOrNull(source.summary) || fallback.summary;
-  const coreReading = toStringOrNull(source.coreReading) || summary || fallback.coreReading;
-  const sections = sanitizeSections(source.sections, summary);
+  const summary = sanitizeNarrativeText(toStringOrNull(source.summary) || fallback.summary);
+  const coreReading = sanitizeNarrativeText(toStringOrNull(source.coreReading) || summary || fallback.coreReading);
+  const requiredHeadings = Array.isArray(chapter?.sections)
+    ? chapter.sections.map((row) => String(row || "").trim()).filter(Boolean)
+    : [];
+  const sections = sanitizeSections(source.sections, summary, requiredHeadings);
 
   return {
     chapterKey: toStringOrNull(source.chapterKey) || String(chapter?.key || fallback.chapterKey),
@@ -726,11 +1018,11 @@ function sanitizeSukyoChapterJson(chapter, rawJson, context) {
     summary,
     coreReading,
     sections: sections.length ? sections : fallback.sections,
-    practicalAdvice: sanitizeList(source.practicalAdvice, fallback.practicalAdvice),
-    cautions: sanitizeList(source.cautions, fallback.cautions),
-    ritualOrRoutine: sanitizeList(source.ritualOrRoutine, fallback.ritualOrRoutine),
+    practicalAdvice: sanitizeList(source.practicalAdvice, fallback.practicalAdvice).map(sanitizeNarrativeText).filter(Boolean),
+    cautions: sanitizeList(source.cautions, fallback.cautions).map(sanitizeNarrativeText).filter(Boolean),
+    ritualOrRoutine: sanitizeList(source.ritualOrRoutine, fallback.ritualOrRoutine).map(sanitizeNarrativeText).filter(Boolean),
     masterKeyword: toStringOrNull(source.masterKeyword) || fallback.masterKeyword,
-    missingDataNotice: toStringOrNull(source.missingDataNotice),
+    missingDataNotice: null,
     fallbackUsed: false,
     fallbackReason: "",
   };
@@ -738,10 +1030,10 @@ function sanitizeSukyoChapterJson(chapter, rawJson, context) {
 
 function renderSukyoChapterMarkdown(chapterJson, chapterFallbackMeta = null) {
   const c = chapterJson || {};
-  const title = String(c.chapterTitle || chapterFallbackMeta?.title || "숙요점 챕터");
-  const subtitle = String(c.chapterSubtitle || "").trim();
-  const summary = String(c.summary || c.coreReading || "").trim();
-  const coreReading = String(c.coreReading || "").trim();
+  const title = sanitizeNarrativeText(String(c.chapterTitle || chapterFallbackMeta?.title || "숙요점 챕터"));
+  const subtitle = sanitizeNarrativeText(String(c.chapterSubtitle || "").trim());
+  const summary = sanitizeNarrativeText(String(c.summary || c.coreReading || "").trim());
+  const coreReading = sanitizeNarrativeText(String(c.coreReading || "").trim());
 
   const lines = [];
   lines.push(`# ${title}`);
@@ -751,8 +1043,8 @@ function renderSukyoChapterMarkdown(chapterJson, chapterFallbackMeta = null) {
 
   const sections = Array.isArray(c.sections) ? c.sections : [];
   for (const section of sections) {
-    const heading = String(section?.heading || "").trim();
-    const body = String(section?.body || "").trim();
+    const heading = sanitizeNarrativeText(String(section?.heading || "").trim());
+    const body = sanitizeNarrativeText(String(section?.body || "").trim());
     if (!heading || !body) continue;
     lines.push("", `## ${heading}`, body);
   }
@@ -780,11 +1072,6 @@ function renderSukyoChapterMarkdown(chapterJson, chapterFallbackMeta = null) {
     lines.push("", `## 마스터 키워드`, keyword);
   }
 
-  const notice = toStringOrNull(c.missingDataNotice);
-  if (notice) {
-    lines.push("", "## 데이터 안내", notice);
-  }
-
   return lines.join("\n").trim();
 }
 
@@ -798,6 +1085,7 @@ export {
   SUKYO_CHAPTER_FOCUS,
   SUKYO_PDF_KNOWLEDGE_BASE,
   getSukyoPdfChapters,
+  buildSukuyoBookContextFromNormalized,
   normalizeSukyoResultForPdf,
   validateSukyoPdfInput,
   buildSukyoPdfContext,

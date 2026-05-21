@@ -50,8 +50,8 @@ function makeStructuredPayload() {
       palace,
       branch: BRANCHES[idx],
       dahan: `${idx * 10}-${idx * 10 + 9}`,
-      stars: [{ name: idx % 2 === 0 ? "자미" : "무곡", strength: idx % 2 === 0 ? "묘" : "왕", symbol: idx % 2 === 0 ? "◎" : "○" }],
-      auxStars: [{ name: "문창", strength: "리", symbol: "▲" }],
+      stars: [{ name: idx % 2 === 0 ? "자미" : "무곡", strength: idx % 2 === 0 ? "묘" : "왕", symbol: idx % 2 === 0 ? "◎" : "O" }],
+      auxStars: [{ name: "문창", strength: "리", symbol: "△" }],
       badStars: [{ name: "경양", strength: "함", symbol: "X" }],
     })),
     annualLuck: { year: 2026, palace: "명궁" },
@@ -249,7 +249,7 @@ describe("Ziwei Premium Strict Tests (A~G)", () => {
   });
 
   test("F. 챕터 텍스트는 자미두수 근거 토큰 커버리지를 만족해야 한다", () => {
-    const denseText = "명궁 신궁 삼방사정 사화를 기준으로 각 궁의 주성·보성·살성을 비교하고 대한/유년/유월 타이밍과 ◎ ○ ▲ 기호를 함께 제시합니다.";
+    const denseText = "명궁 신궁 삼방사정 사화를 기준으로 각 궁의 주성·보성·살성을 비교하고 대한/유년/유월 타이밍과 ◎ O △ 기호를 함께 제시합니다.";
     expect(hasRequiredZiweiSpecificCoverage(denseText)).toBe(true);
   });
 

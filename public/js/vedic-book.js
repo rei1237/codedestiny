@@ -110,8 +110,53 @@
     catch (_) { return ''; }
   }
 
+  function resolveApiUrl(input) {
+    var raw = String(input || '').trim();
+    if (!raw) return raw;
+    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(raw)) return raw;
+    if (raw.indexOf('//') === 0) {
+      try { return String(window.location.protocol || 'https:') + raw; }
+      catch (_) { return raw; }
+    }
+    if (raw.charAt(0) === '/') {
+      try {
+        var origin = String(window.location.origin || '').replace(/\/$/, '');
+        return origin ? (origin + raw) : raw;
+      } catch (_) {
+        return raw;
+      }
+    }
+    try { return new URL(raw, window.location.href).toString(); }
+    catch (_) { return raw; }
+  }
+
+  function buildApiCandidates(pathname) {
+    var p = String(pathname || '');
+    if (p.charAt(0) !== '/') p = '/' + p;
+    var seen = {};
+    var out = [];
+
+    function pushBase(raw) {
+      var b = String(raw || '').trim();
+      var u = b ? (b.replace(/\/+$/, '') + p) : p;
+      if (!u || seen[u]) return;
+      seen[u] = true;
+      out.push(u);
+    }
+
+    pushBase('');
+    try { pushBase((window && window.__CD_API_BASE_URL) || ''); } catch (_) {}
+    try { pushBase((window && window.CODE_DESTINY_API_BASE_URL) || ''); } catch (_) {}
+    try { pushBase((window && window.__CF_PAGES_API_BASE_URL) || ''); } catch (_) {}
+    try { pushBase(localStorage.getItem('fortune_api_base_url') || ''); } catch (_) {}
+    try { pushBase((window && window.location && window.location.origin) || ''); } catch (_) {}
+
+    return out.length ? out : [p];
+  }
+
   async function requestJson(url, options) {
     var opts = options || {};
+    var fetchUrl = resolveApiUrl(url) || String(url || '');
     var headers = new Headers(opts.headers || {});
     headers.set('Content-Type', 'application/json');
     var token = getAuthToken();
@@ -122,7 +167,7 @@
     if (controller) timer = setTimeout(function () { controller.abort(); }, API_TIMEOUT_MS);
 
     try {
-      var res = await fetch(url, {
+      var res = await fetch(fetchUrl, {
         method: opts.method || 'GET',
         credentials: 'include',
         headers: headers,
@@ -143,17 +188,48 @@
     }
   }
 
-  async function premiumAuthJson(pathname, body, options) {
-    if (typeof window.__cdPremiumAuthJson === 'function') {
-      return window.__cdPremiumAuthJson(pathname, body || {}, options || {});
+  async function premiumAuthFallback(pathname, body) {
+    var payload = body || {};
+    var token = getAuthToken();
+    var headers = { 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = 'Bearer ' + token;
+
+    var endpoints = buildApiCandidates(pathname).map(function (u) { return resolveApiUrl(u) || u; });
+    for (var i = 0; i < endpoints.length; i += 1) {
+      try {
+        var res = await fetch(endpoints[i], {
+          method: 'POST',
+          headers: headers,
+          credentials: 'include',
+          cache: 'no-store',
+          body: JSON.stringify(payload)
+        });
+        var data = null;
+        try { data = await res.json(); } catch (_) { data = null; }
+        var merged = (data && typeof data === 'object') ? data : {};
+        if (merged.ok == null) merged.ok = Boolean(res.ok);
+        if (!res.ok && merged.status == null) merged.status = Number(res.status || 0);
+        return merged;
+      } catch (_) {
+        // try next candidate endpoint
+      }
     }
-    var res = await requestJson(pathname, {
-      method: 'POST',
-      body: body || {}
-    });
-    var data = (res && res.data && typeof res.data === 'object') ? res.data : {};
-    if (!res.ok) data.status = Number(data.status || res.status || 0);
-    return data;
+    return { ok: false, code: 'PREMIUM_AUTH_FALLBACK_FAILED', message: '프리미엄 인증 API 호출에 실패했습니다.' };
+  }
+
+  async function premiumAuthJson(pathname, body, options) {
+    var targetPath = resolveApiUrl(pathname) || pathname;
+    if (typeof window.__cdPremiumAuthJson === 'function') {
+      try {
+        return await window.__cdPremiumAuthJson(targetPath, body || {}, options || {});
+      } catch (error) {
+        try {
+          console.warn('[VedicBook] premium auth helper fallback:', error && error.message || error);
+        } catch (_) {}
+        return premiumAuthFallback(pathname, body || {});
+      }
+    }
+    return premiumAuthFallback(pathname, body || {});
   }
 
   function buildPreflightMessage(response, fallback) {
@@ -854,10 +930,6 @@
   }
 
   async function generateVedicViaPremiumReport(requestBody, preflightInfo) {
-    if (typeof window.__cdPremiumAuthJson !== 'function') {
-      return { ok: false, message: '인증 모듈을 초기화하지 못했습니다.' };
-    }
-
     var preparedInfo = preflightInfo || null;
     var reportSessionId = String((preparedInfo && preparedInfo.reportSessionId) || '').trim();
     var snapshotId = String((preparedInfo && preparedInfo.snapshotId) || '').trim();
@@ -1237,6 +1309,13 @@
       if (!done && qs('vdLoadingScreen') && qs('vdLoadingScreen').style.display !== 'none') {
         setError('리포트 생성 중 문제가 발생했습니다.');
       }
+    } catch (error) {
+      try {
+        console.error('[VedicBook] generation failed:', error);
+      } catch (_) {}
+      await attemptVedicAutoRefund('베다 프리미엄 예외 자동 환불');
+      state.paidGateKey = '';
+      setError(String(error && error.message || '베다 리포트 생성 중 오류가 발생했습니다.'));
     } finally {
       state.generating = false;
     }
@@ -1355,6 +1434,7 @@
     }
 
     var downloadUrl = state.downloadUrl || ('/api/premium/vedic/download?reportId=' + encodeURIComponent(state.reportId));
+    var fetchUrl = resolveApiUrl(downloadUrl) || downloadUrl;
     var headers = new Headers();
     var token = getAuthToken();
     if (token) headers.set('Authorization', 'Bearer ' + token);
@@ -1362,7 +1442,7 @@
     var html = '';
     var fetchError = null;
     try {
-      var res = await fetch(downloadUrl, {
+      var res = await fetch(fetchUrl, {
         method: 'GET',
         credentials: 'include',
         headers: headers

@@ -56,7 +56,7 @@ describe("Premium PDF v2 chapter plans", () => {
     const ch1 = plan[0];
 
     expect(plan).toHaveLength(12);
-    expect(ch1.title).toContain("태양·달·상승궁");
+    expect(ch1.title).toContain("출생차트 총론");
 
     expect(ch1.requiredFields).toEqual(expect.arrayContaining([
       "natalChart.sunSign",

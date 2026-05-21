@@ -165,6 +165,8 @@ describe("Vedic Premium Strict Tests", () => {
     const canonical = buildCanonicalVedicChart(makeBody(), makeInput(), makeChart(), "personal", null, null);
     const broken = clone(canonical);
     broken.moonNakshatra.name = null;
+    broken.moonNakshatra.moonSign = null;
+    if (broken.planets && broken.planets.Moon) broken.planets.Moon.signName = null;
 
     const result = validateCanonicalVedicChartStrict(broken, "personal");
     expect(result.isValid).toBe(false);
@@ -181,17 +183,17 @@ describe("Vedic Premium Strict Tests", () => {
     expect(chapter8.reasons.length).toBe(0);
   });
 
-  test("D. compatibility 리포트는 10챕터 플랜으로 생성되어야 한다", () => {
+  test("D. compatibility 리포트는 12챕터 플랜으로 생성되어야 한다", () => {
     const partner = makeChart();
     const ashta = { total: 29.5, totalMax: 36, rows: [{ key: "Varna", score: 1, max: 1 }] };
     const canonical = buildCanonicalVedicChart(makeBody({ partnerName: "상대" }), makeInput(), makeChart(), "compatibility", partner, ashta);
 
     const plan = buildVedicChapterPlan(canonical, "compatibility");
-    const chapter10 = plan.find((p) => p.num === 10);
+    const chapter12 = plan.find((p) => p.num === 12);
 
-    expect(plan).toHaveLength(10);
-    expect(chapter10.available).toBe(true);
-    expect(chapter10.reasons.length).toBe(0);
+    expect(plan).toHaveLength(12);
+    expect(chapter12.available).toBe(true);
+    expect(chapter12.reasons.length).toBe(0);
   });
 
   test("E. 금지 패딩/단정 표현 탐지가 동작해야 한다", () => {
@@ -200,13 +202,13 @@ describe("Vedic Premium Strict Tests", () => {
   });
 
   test("F. 개인/궁합 모드 필수 마커 누락을 탐지해야 한다", () => {
-    const personalChapter11Text = "## 챕터 11\n### Step 1. 핵심 상담 진단\n### Step 2. 차트 신호를 삶으로 번역\n### Step 3. 반복 패턴과 전환 포인트\n### Step 4. 실전 행동 가이드\n### Step 5. 주의할 선택\n### Step 6. 상담형 결론";
-    const compatibilityChapter9Text = "## 챕터 9\n### Step 1. 핵심 상담 진단\n### Step 2. 차트 신호를 삶으로 번역\n### Step 3. 반복 패턴과 전환 포인트\n### Step 4. 실전 행동 가이드\n### Step 5. 주의할 선택\n### Step 6. 상담형 결론";
+    const personalChapter11Text = "## 챕터 11\n### 1. 현재 다샤의 기본 의미\n### 2. 가까운 시기의 변화 흐름\n### 3. 기회가 열리는 조건";
+    const compatibilityChapter9Text = "## 챕터 9\n### 1. 현재 각자의 다샤 흐름\n### 2. 관계가 열리는 시기\n### 3. 갈등이 커질 수 있는 시기";
 
     const missingPersonal = vedicMissingMarkers(personalChapter11Text, 11, "personal");
     const missingCompatibility = vedicMissingMarkers(compatibilityChapter9Text, 9, "compatibility");
 
-    expect(missingPersonal.some((m) => m.includes("### 1월"))).toBe(true);
-    expect(missingCompatibility.some((m) => m.includes("### 1분기"))).toBe(true);
+    expect(missingPersonal.some((m) => m.includes("다샤를 현실 전략으로 쓰는 법"))).toBe(true);
+    expect(missingCompatibility.some((m) => m.includes("타이밍을 맞추는 관계 전략"))).toBe(true);
   });
 });
