@@ -14999,31 +14999,41 @@ function buildLoveSecretRewritePrompt(basePrompt, previousDraft, failedChecks) {
 function ensureLoveSecretSourceData(body = {}) {
   const raw = stringifyCompact(body.sajuData || "", 6000);
   if (raw && /사주\s*원국|일주\(|오행\(|일간\(|대운\(|fourPillars|dayMaster|tenGod/i.test(raw)) {
-    return { ok: true, sourceData: raw, usedFallbackData: false, warning: "" };
+    return {
+      ok: true,
+      sourceData: raw,
+      sourceType: "saju-engine-raw",
+      usedFallbackData: false,
+      warning: "",
+      code: "",
+      missingFields: [],
+      message: "",
+    };
   }
 
   const structured = buildStructuredSajuSourceData(body, normalizeBody(body));
   if (structured.ok) {
-    return { ok: true, sourceData: structured.sourceData, usedFallbackData: false, warning: structured.warning || "" };
+    return {
+      ok: true,
+      sourceData: structured.sourceData,
+      sourceType: "saju-engine-structured",
+      usedFallbackData: false,
+      warning: structured.warning || "",
+      code: "",
+      missingFields: [],
+      message: "",
+    };
   }
 
-  const fallback = [
-    "사주 원국 통합 데이터",
-    `- 이름: ${String(body.name || "사용자")}`,
-    `- 생년월일: ${String(body.year || body.birthYear || "미상")}-${String(body.month || body.birthMonth || "미상")}-${String(body.day || body.birthDay || "미상")}`,
-    `- 출생시각: ${String(body.hour || body.birthHour || "12")}:${String(body.minute || body.birthMinute || "00")}`,
-    `- 성별: ${String(body.gender || "미상")}`,
-    "- 일간: 핵심 성향 중심 해석",
-    "- 오행: 균형 점검 포인트",
-    "- 대운: 장기 흐름 관찰",
-    "- 세운/월운: 단기 실행 전략",
-  ].join("\n");
-
   return {
-    ok: true,
-    sourceData: fallback,
-    usedFallbackData: true,
-    warning: "LOVE_SECRET_SOURCE_DATA_SYNTHESIZED",
+    ok: false,
+    sourceData: "",
+    sourceType: "",
+    usedFallbackData: false,
+    warning: "SAJU_ENGINE_SOURCE_REQUIRED",
+    code: "SAJU_ENGINE_SOURCE_REQUIRED",
+    missingFields: ["sajuData", "canonicalSajuChart", "engineData"],
+    message: "연애 비책 PDF는 사주 엔진 원본 데이터(sajuData/canonicalSajuChart/engineData)가 필요합니다.",
   };
 }
 
@@ -15199,30 +15209,41 @@ function buildStructuredSajuSourceData(body = {}, input = {}) {
 function ensureLifebookSourceData(body = {}, input = {}) {
   const raw = stringifyCompact(body.sajuData || body.profile || body.birth || "", 2600);
   if (raw && /사주\s*원국|오행|일간|대운|세운|월운|십성|fourPillars|dayMaster|tenGod/i.test(raw)) {
-    return { ok: true, sourceData: raw, usedFallbackData: false, warning: "" };
+    return {
+      ok: true,
+      sourceData: raw,
+      sourceType: "saju-engine-raw",
+      usedFallbackData: false,
+      warning: "",
+      code: "",
+      missingFields: [],
+      message: "",
+    };
   }
 
   const structured = buildStructuredSajuSourceData(body, input);
   if (structured.ok) {
-    return { ok: true, sourceData: structured.sourceData, usedFallbackData: false, warning: structured.warning || "" };
+    return {
+      ok: true,
+      sourceData: structured.sourceData,
+      sourceType: "saju-engine-structured",
+      usedFallbackData: false,
+      warning: structured.warning || "",
+      code: "",
+      missingFields: [],
+      message: "",
+    };
   }
 
-  const synthesized = [
-    "사주 기반 통합 프로필",
-    `- 이름: ${String(body.name || input.name || "사용자")}`,
-    `- 생년월일: ${input.year}-${input.month}-${input.day}`,
-    `- 출생시각: ${input.hour}:${String(input.minute).padStart(2, "0")}`,
-    `- 성별: ${String(body.gender || input.gender || "미상")}`,
-    "- 오행 분포: 균형 점검 중심 해석",
-    "- 일간/십성: 성향 중심 해석",
-    "- 대운/세운: 실행 전략 중심 해석",
-  ].join("\n");
-
   return {
-    ok: true,
-    sourceData: synthesized,
-    usedFallbackData: true,
-    warning: "LIFEBOOK_SOURCE_DATA_SYNTHESIZED",
+    ok: false,
+    sourceData: "",
+    sourceType: "",
+    usedFallbackData: false,
+    warning: "SAJU_ENGINE_SOURCE_REQUIRED",
+    code: "SAJU_ENGINE_SOURCE_REQUIRED",
+    missingFields: ["sajuData", "canonicalSajuChart", "engineData"],
+    message: "인생의 책 PDF는 사주 엔진 원본 데이터(sajuData/canonicalSajuChart/engineData)가 필요합니다.",
   };
 }
 
@@ -15330,29 +15351,41 @@ async function refineChapterToMinLength(env, text, minChars, options = {}, model
 function ensureSajuNewYearSourceData(body = {}, input = {}) {
   const raw = stringifyCompact(body.sajuData || body.profile || body.birth || "", 3000);
   if (raw && /사주\s*원국|오행|일간|대운|세운|월운|십성|fourPillars|dayMaster|tenGod/i.test(raw)) {
-    return { ok: true, sourceData: raw, usedFallbackData: false, warning: "" };
+    return {
+      ok: true,
+      sourceData: raw,
+      sourceType: "saju-engine-raw",
+      usedFallbackData: false,
+      warning: "",
+      code: "",
+      missingFields: [],
+      message: "",
+    };
   }
 
   const structured = buildStructuredSajuSourceData(body, input);
   if (structured.ok) {
-    return { ok: true, sourceData: structured.sourceData, usedFallbackData: false, warning: structured.warning || "" };
+    return {
+      ok: true,
+      sourceData: structured.sourceData,
+      sourceType: "saju-engine-structured",
+      usedFallbackData: false,
+      warning: structured.warning || "",
+      code: "",
+      missingFields: [],
+      message: "",
+    };
   }
 
-  const synthesized = [
-    "사주 신년운세 통합 프로필",
-    `- 이름: ${String(body.name || input.name || "사용자")}`,
-    `- 생년월일: ${input.year}-${input.month}-${input.day}`,
-    `- 출생시각: ${input.hour}:${String(input.minute).padStart(2, "0")}`,
-    `- 성별: ${String(body.gender || input.gender || "미상")}`,
-    "- 오행 분포: 균형 중심 해석",
-    "- 연간 전략: 안정/확장 균형 중심",
-  ].join("\n");
-
   return {
-    ok: true,
-    sourceData: synthesized,
-    usedFallbackData: true,
-    warning: "SAJU_NEW_YEAR_SOURCE_DATA_SYNTHESIZED",
+    ok: false,
+    sourceData: "",
+    sourceType: "",
+    usedFallbackData: false,
+    warning: "SAJU_ENGINE_SOURCE_REQUIRED",
+    code: "SAJU_ENGINE_SOURCE_REQUIRED",
+    missingFields: ["sajuData", "canonicalSajuChart", "engineData"],
+    message: "신년운세 PDF는 사주 엔진 원본 데이터(sajuData/canonicalSajuChart/engineData)가 필요합니다.",
   };
 }
 
@@ -15918,9 +15951,9 @@ async function handleSajuNewYearSession(request, env) {
   if (!dataState.ok) {
     return json({
       ok: false,
-      code: "SAJU_REPORT_PAYLOAD_MISSING",
-      message: dataState.warning || "사주 엔진 데이터 품질 점검이 필요합니다.",
-      missingFields: ["sajuData"],
+      code: dataState.code || "SAJU_ENGINE_SOURCE_REQUIRED",
+      message: dataState.message || "사주 엔진 원본 데이터가 필요합니다.",
+      missingFields: Array.isArray(dataState.missingFields) ? dataState.missingFields : ["sajuData", "canonicalSajuChart", "engineData"],
     }, { status: 422 });
   }
 
@@ -15949,6 +15982,7 @@ async function handleSajuNewYearSession(request, env) {
       validation,
       dataQuality: {
         usedFallbackData: dataState.usedFallbackData,
+        engineSource: dataState.sourceType || "unknown",
         warning: dataState.warning,
       },
       warnings: validationWarnings,
@@ -15999,6 +16033,7 @@ async function handleSajuNewYearSession(request, env) {
       reportType: "sajuNewYear",
       featureType: "saju_new_year_pdf",
       usedFallbackData: dataState.usedFallbackData,
+      engineSource: dataState.sourceType || "unknown",
       validation,
       canonicalSajuNewYearReport: canonical,
       minTotalChars: PREMIUM_GLOBAL_MIN_TOTAL_CHARS,
@@ -16023,9 +16058,11 @@ async function handleSajuNewYearSession(request, env) {
     text,
     sections: parseSections(text),
     usedFallback: Boolean(generated?.usedFallback),
+    engineSource: dataState.sourceType || "unknown",
     quality: generated?.quality || null,
     dataQuality: {
       usedFallbackData: dataState.usedFallbackData,
+      engineSource: dataState.sourceType || "unknown",
       warning: dataState.warning,
       validation,
       warnings: validationWarnings,
@@ -16055,9 +16092,25 @@ async function handleLifebookSession(request, env) {
   const input = buildSessionInput(strictBody, LIFE_BOOK_TOTAL_CHAPTERS);
   const chapter = input.chapter;
   const reportId = String(strictBody.reportId || "").trim() || lifebookReportIdFromInput(strictBody, input);
+  const lifebookSourceState = ensureLifebookSourceData(strictBody, input);
+  if (!lifebookSourceState.ok) {
+    return json({
+      ok: false,
+      code: lifebookSourceState.code || "SAJU_ENGINE_SOURCE_REQUIRED",
+      message: lifebookSourceState.message || "사주 엔진 원본 데이터가 필요합니다.",
+      missingFields: Array.isArray(lifebookSourceState.missingFields)
+        ? lifebookSourceState.missingFields
+        : ["sajuData", "canonicalSajuChart", "engineData"],
+    }, { status: 422 });
+  }
+
+  const effectiveBody = {
+    ...strictBody,
+    sajuData: lifebookSourceState.sourceData,
+  };
 
   if (prepareOnly) {
-    const preparedInputData = buildLifeBookInputData(strictBody, input);
+    const preparedInputData = buildLifeBookInputData(effectiveBody, input);
     const quality = preparedInputData?.dataQuality || { missingCore: [] };
 
     return json({
@@ -16073,8 +16126,9 @@ async function handleLifebookSession(request, env) {
       dataQuality: {
         missingCore: Array.isArray(quality?.missingCore) ? quality.missingCore : [],
         source: quality?.source || {},
+        engineSource: lifebookSourceState.sourceType || "unknown",
       },
-      canonicalSajuChart: strictBody?.canonicalSajuChart || null,
+      canonicalSajuChart: effectiveBody?.canonicalSajuChart || null,
       missingFields: Array.isArray(quality?.missingCore) ? quality.missingCore : [],
     });
   }
@@ -16082,7 +16136,7 @@ async function handleLifebookSession(request, env) {
   if (fullGenerateRequested && !chapterRequestProvided(strictBody)) {
     const allGenerated = await generateLifeBookPdf({
       env,
-      body: strictBody,
+      body: effectiveBody,
       normalizedInput: input,
       strictMode: strictPayloadMode,
       reportId,
@@ -16139,6 +16193,7 @@ async function handleLifebookSession(request, env) {
       warnings: allGenerated.warnings || [],
       storage: lastStorage,
       dataQuality: allGenerated?.lifeBookInputData?.dataQuality || {},
+      engineSource: lifebookSourceState.sourceType || "unknown",
     });
   }
 
@@ -16155,7 +16210,7 @@ async function handleLifebookSession(request, env) {
 
   const generated = await generateLifeBookPdf({
     env,
-    body: strictBody,
+    body: effectiveBody,
     normalizedInput: input,
     strictMode: strictPayloadMode,
     reportId,
@@ -16227,6 +16282,7 @@ async function handleLifebookSession(request, env) {
     sections: parseSections(chapterResult.contentMarkdown),
     chapterResult,
     usedFallback,
+    engineSource: lifebookSourceState.sourceType || "unknown",
     dataQuality: generated?.lifeBookInputData?.dataQuality || {},
     warnings: generated.warnings || [],
     storage,
@@ -16257,9 +16313,9 @@ async function handleLoveSecretSession(request, env) {
   if (!dataState.ok) {
     return json({
       ok: false,
-      code: "SAJU_REPORT_PAYLOAD_MISSING",
-      message: dataState.warning || "사주 엔진 데이터 품질 점검이 필요합니다.",
-      missingFields: ["sajuData"],
+      code: dataState.code || "SAJU_ENGINE_SOURCE_REQUIRED",
+      message: dataState.message || "사주 엔진 원본 데이터가 필요합니다.",
+      missingFields: Array.isArray(dataState.missingFields) ? dataState.missingFields : ["sajuData", "canonicalSajuChart", "engineData"],
     }, { status: 422 });
   }
 
@@ -16365,6 +16421,7 @@ async function handleLoveSecretSession(request, env) {
       reportType: modeConfig.reportType,
       usedFallback: false,
       usedFallbackData: dataState.usedFallbackData,
+      engineSource: dataState.sourceType || "unknown",
       canonicalValidation,
     }
   );
@@ -16388,10 +16445,12 @@ async function handleLoveSecretSession(request, env) {
     text,
     sections: parseSections(text),
     usedFallback: false,
+    engineSource: dataState.sourceType || "unknown",
     quality,
     canonicalSajuLoveReport: canonical,
     dataQuality: {
       usedFallbackData: dataState.usedFallbackData,
+      engineSource: dataState.sourceType || "unknown",
       warning: dataState.warning,
       validation: canonicalValidation,
       failOpenApplied: false,
@@ -18670,6 +18729,9 @@ async function ensurePdfNo422(response) {
     message: "422 응답을 복구 모드로 변환했습니다.",
   }));
 
+  const code = String(payload?.code || "").trim();
+  const shouldBlockTextFallback = /SOURCE_REQUIRED|PAYLOAD_MISSING|CORE_CHART_MISSING|BASIC_RESULT_MISSING/i.test(code);
+
   const next = {
     ...(payload && typeof payload === "object" ? payload : {}),
     ok: true,
@@ -18678,13 +18740,18 @@ async function ensurePdfNo422(response) {
     recoveryMode: "llm-safe-recovery",
   };
 
-  if (!String(next.text || "").trim() && Number.isFinite(Number(next.chapterId || next.chapter || 0))) {
+  if (!shouldBlockTextFallback && !String(next.text || "").trim() && Number.isFinite(Number(next.chapterId || next.chapter || 0))) {
     const chapterNo = Number(next.chapterId || next.chapter || 1);
     const title = String(next.chapterTitle || next?.chapterMeta?.title || `Chapter ${chapterNo}`).trim() || `Chapter ${chapterNo}`;
     const recoveredText = buildGuaranteedPremiumChapterText({ title, subtitle: "자동 복구 생성" }, [], 1800, "");
     next.text = recoveredText;
     next.sections = parseSections(recoveredText);
     next.chapterMeta = next.chapterMeta || { num: chapterNo, title, subtitle: "자동 복구 생성" };
+  }
+
+  if (shouldBlockTextFallback) {
+    next.recoveryMode = "validation-safe-recovery";
+    next.recoveryBlocked = true;
   }
 
   return json(next, { status: 200 });
