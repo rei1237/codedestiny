@@ -870,9 +870,6 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
 
   const luckyItem = pickLuckyItem(concern.topCategory, `${selectedSign}-${selectedEmotion}-${date.toDateString()}-${concernText}`);
   const concernHint = concern.topKeywords.length > 0 ? concern.topKeywords.join(", ") : "오늘 네 마음 상태";
-  const domainHopeLine = concern.topDomain === "legal"
-    ? "법률 이슈는 불안보다 준비가 힘이 되는 영역이야. 차분한 기록과 상담 준비만으로도 충분히 유리한 흐름을 만들 수 있어."
-    : "작은 실행을 1개라도 완료하면 오늘의 별 흐름을 네 편으로 돌릴 수 있어.";
 
   const practicalTip = `${CATEGORY_LABEL[concern.topCategory]} · ${DOMAIN_LABEL[concern.topDomain]} 고민은 "작게 쪼개서 실행"할수록 정확도가 올라가. ${DOMAIN_TIP[concern.topDomain]}`;
 
@@ -885,17 +882,7 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
     `주요 키워드 포착: ${concernHint}`,
   ];
 
-  const warmMessage = [
-    `사랑하는 ${EMOTION_LABEL[selectedEmotion]}의 마음을 가진 너에게,`,
-    `${EMOTION_OPENING[selectedEmotion]} 오늘의 태양은 ${todaySunSign}에 머물며 ${sunProfile.ruler}의 결을 강화하고 있어.`,
-    `너의 기본 성향인 ${userProfile.element} 원소와 오늘 태양의 ${sunProfile.element} 원소는 ${elementRelation.label} 상태야. ${elementRelation.detail}`,
-    `달은 지금 ${moon.label} 구간이고, 달 나이는 ${moon.age.toFixed(1)}일, 밝기는 ${moonIlluminationPct}%야. 이 수치는 감정 처리 속도를 보여주는 중요한 리듬 지표야.`,
-    `또한 ${aspect.label} (${zodiacDegree}°)가 형성되어 있어. ${aspect.summary}`,
-    `${dayRuler.label}의 영향으로 오늘은 "${dayRuler.summary}"가 강해. 특히 ${DOMAIN_LABEL[concern.topDomain]} 축에서 ${concernHint} 이슈가 전면에 떠올랐어.`,
-    `따라서 지금은 감정 해석보다 근거 정리와 우선순위 확정이 먼저야. ${practicalTip}`,
-    domainHopeLine,
-    `너의 속도를 믿어도 괜찮아. 연이는 오늘도 네 편이야.`,
-  ].join("\n\n");
+  const warmMessage = `${EMOTION_OPENING[selectedEmotion]} 오늘은 ${dayRuler.label}의 흐름을 타고 ${DOMAIN_LABEL[concern.topDomain]}에서 작은 한 걸음만 실행해도 충분히 좋아질 거야, 연이는 늘 네 편이야.`;
 
   const signInfo = ZODIAC_SIGNS.find((item) => item.sign === selectedSign) ?? ZODIAC_SIGNS[0];
 
@@ -978,51 +965,18 @@ function buildHeartCardSvg(
   const mainSpriteY = 152 - mainCellY * mainScale;
   const subSpriteX = 842 - mainCellX * subScale;
   const subSpriteY = 1180 - mainCellY * subScale;
-
-  const evidenceLines = consultation.astroEvidence
-    .slice(0, 5)
-    .flatMap((line) => wrapByLength(line, 33))
-    .slice(0, 8)
+  const messageLines = wrapByLength(consultation.warmMessage, 24).slice(0, 3);
+  const messageText = messageLines
     .map((line, index) => {
-      const y = 424 + index * 32;
-      return `<text x="126" y="${y}" fill="#4b5563" font-size="25" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(line)}</text>`;
-    });
+      const y = 612 + index * 74;
+      return `<text x="128" y="${y}" fill="#374151" font-size="48" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${escapeXml(line)}</text>`;
+    })
+    .join("");
 
-  const heartSymbols = pickHeartSymbols(consultation, emotionKey);
-
-  const symbolCards = heartSymbols.map((symbol, index) => {
-    const cardX = 104 + index * 294;
-    const cardY = 666;
-    const cardCenterX = cardX + 136;
-    const cardCenterY = cardY + 74;
-    const meaningLines = wrapByLength(symbol.meaning, 14).slice(0, 2);
-    const whisperLines = wrapByLength(symbol.whisper, 14).slice(0, 2);
-
-    const meaningText = meaningLines
-      .map((line, lineIndex) => `<text x="${cardX + 26}" y="${cardY + 192 + lineIndex * 28}" fill="#4b5563" font-size="22" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(line)}</text>`)
-      .join("");
-
-    const whisperText = whisperLines
-      .map((line, lineIndex) => `<text x="${cardX + 26}" y="${cardY + 276 + lineIndex * 28}" fill="#be185d" font-size="21" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(line)}</text>`)
-      .join("");
-
-    return `
-      <g>
-        <rect x="${cardX}" y="${cardY}" width="272" height="366" rx="22" fill="#fff8fd" stroke="#fbcfe8"/>
-        <circle cx="${cardCenterX}" cy="${cardCenterY}" r="56" fill="#fffdf6" stroke="#fde68a"/>
-        ${renderHeartSymbolGlyph(symbol.id, cardCenterX, cardCenterY)}
-        <text x="${cardX + 26}" y="${cardY + 146}" fill="#db2777" font-size="27" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${escapeXml(symbol.name)}</text>
-        <text x="${cardX + 26}" y="${cardY + 170}" fill="#6b7280" font-size="18" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">상징 의미</text>
-        ${meaningText}
-        <text x="${cardX + 26}" y="${cardY + 250}" fill="#7e22ce" font-size="18" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">연이의 따뜻한 메시지</text>
-        ${whisperText}
-      </g>
-    `;
-  });
-
+  const heartSymbol = pickHeartSymbols(consultation, emotionKey)[0];
   const keywordLine = consultation.concernKeywords.length > 0
-    ? `별의 단서: ${consultation.concernKeywords.join(", ")}`
-    : `별의 단서: 감정 중심 리딩`;
+    ? consultation.concernKeywords.join(", ")
+    : "감정 중심 리딩";
 
   return `
 <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" role="img" aria-label="연이의 마음 카드 SVG">
@@ -1089,38 +1043,42 @@ function buildHeartCardSvg(
   <rect width="1080" height="1350" fill="url(#bg)" rx="48"/>
   <rect x="28" y="28" width="1024" height="1294" rx="44" fill="none" stroke="url(#goldBorder)" stroke-width="3"/>
   <circle cx="940" cy="120" r="120" fill="#ffffff" fill-opacity="0.35" filter="url(#glow)"/>
-  <circle cx="120" cy="1240" r="140" fill="#fff7d6" fill-opacity="0.62"/>
+  <circle cx="160" cy="1180" r="180" fill="#fff7d6" fill-opacity="0.62"/>
 
   <g filter="url(#soft)">
     <rect x="54" y="54" width="972" height="1242" rx="40" fill="url(#panel)"/>
   </g>
 
-  <rect x="86" y="92" width="358" height="58" rx="29" fill="#ffffff"/>
-  <text x="118" y="128" fill="#ec4899" font-size="29" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">YEON CELESTIAL LETTER</text>
+  <rect x="86" y="92" width="388" height="58" rx="29" fill="#ffffff"/>
+  <text x="118" y="128" fill="#ec4899" font-size="29" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">YEON CHEER CARD</text>
 
-  <text x="86" y="222" fill="#f43f5e" font-size="68" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="800">연이의 마음 별자리</text>
-  <text x="86" y="278" fill="#6b7280" font-size="32" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(dateLabel)} · ${escapeXml(emotionLabel)} 감정 리딩</text>
+  <text x="86" y="214" fill="#f43f5e" font-size="66" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="800">연이의 응원 카드</text>
+  <text x="86" y="268" fill="#6b7280" font-size="30" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(dateLabel)} · ${escapeXml(consultation.sign)} · ${escapeXml(emotionLabel)}</text>
 
   <rect x="830" y="152" width="146" height="146" rx="32" fill="#fff7fb" stroke="#f9a8d4"/>
   <g clip-path="url(#yeonMainClip)">
     <image href="${SPRITE_SHEET}" x="${mainSpriteX}" y="${mainSpriteY}" width="${SPRITE_IMAGE_WIDTH * mainScale}" height="${SPRITE_IMAGE_HEIGHT * mainScale}" preserveAspectRatio="none"/>
   </g>
-  <text x="842" y="328" fill="#db2777" font-size="24" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">연이의 성운 인장</text>
+  <text x="830" y="328" fill="#db2777" font-size="24" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">연이의 스프라이트 컷</text>
 
-  <rect x="86" y="332" width="908" height="250" rx="28" fill="#fff7fb" stroke="#fbcfe8"/>
-  <text x="124" y="390" fill="#db2777" font-size="34" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">오늘의 점성술 근거</text>
-  ${evidenceLines.join("")}
+  <rect x="86" y="336" width="908" height="446" rx="30" fill="#fff7fb" stroke="#fbcfe8"/>
+  <text x="124" y="404" fill="#be185d" font-size="33" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">연이가 전하는 오늘의 한 문장</text>
+  ${messageText}
 
-  <rect x="86" y="612" width="908" height="450" rx="28" fill="#ffffff" stroke="#f9a8d4"/>
-  <text x="124" y="652" fill="#be185d" font-size="31" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">오늘의 행운 · 힐링 상징 리딩</text>
-  ${symbolCards.join("")}
+  <rect x="86" y="814" width="908" height="266" rx="30" fill="#ffffff" stroke="#f9a8d4"/>
+  <text x="124" y="878" fill="#db2777" font-size="31" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">오늘의 행운 상징</text>
+  <circle cx="222" cy="952" r="72" fill="#fffdf6" stroke="#fde68a"/>
+  ${renderHeartSymbolGlyph(heartSymbol.id, 222, 952)}
+  <text x="324" y="930" fill="#be185d" font-size="35" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${escapeXml(heartSymbol.name)}</text>
+  <text x="324" y="978" fill="#4b5563" font-size="30" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(heartSymbol.whisper)}</text>
+  <text x="324" y="1022" fill="#7c3aed" font-size="27" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">키워드: ${escapeXml(keywordLine)}</text>
 
-  <rect x="86" y="1084" width="908" height="92" rx="26" fill="url(#chip)"/>
-  <text x="128" y="1140" fill="#ffffff" font-size="33" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${escapeXml(keywordLine)}</text>
+  <rect x="86" y="1100" width="908" height="80" rx="22" fill="url(#chip)"/>
+  <text x="128" y="1152" fill="#ffffff" font-size="32" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">오늘의 오라 아이템: ${escapeXml(consultation.luckyItem)}</text>
 
   <rect x="86" y="1190" width="908" height="102" rx="24" fill="#fff7fb" stroke="#fbcfe8"/>
-  <text x="126" y="1238" fill="#be185d" font-size="30" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">오늘의 오라 아이템: ${escapeXml(consultation.luckyItem)}</text>
-  <text x="126" y="1272" fill="#6b7280" font-size="24" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">Code Destiny · Yeon Celestial Counseling</text>
+  <text x="126" y="1240" fill="#be185d" font-size="28" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">연이의 응원은 짧고 선명하게, 너의 오늘을 지켜줄 거야.</text>
+  <text x="126" y="1272" fill="#6b7280" font-size="24" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">Code Destiny · Yeon Cheer Card</text>
 
   <rect x="842" y="1180" width="118" height="118" rx="26" fill="#ffffff" fill-opacity="0.5" stroke="#f9a8d4"/>
   <g clip-path="url(#yeonSubClip)">
@@ -1216,6 +1174,11 @@ export default function YeonStarHugPage() {
     },
     [today, activeEmotion.label, consultation, selectedSign, selectedEmotion]
   );
+
+  const speechSpriteFrame = useMemo(() => {
+    if (!consultation) return 0;
+    return getCardSpriteFrame(selectedSign, selectedEmotion, consultation.concernCategory, consultation.concernDomain);
+  }, [consultation, selectedSign, selectedEmotion]);
 
   const runConsultation = () => {
     if (isGenerating) return;
@@ -1481,19 +1444,43 @@ export default function YeonStarHugPage() {
                     </div>
 
                     <div className="mt-3 rounded-xl border border-pink-100 bg-white px-4 py-3">
-                      <p className="text-xs font-semibold text-pink-500">연이의 해석</p>
-                      <AnimatePresence mode="wait">
-                        <motion.p
-                          key={`${selectedEmotion}-${selectedSign}-${consultation.warmMessage}`}
-                          initial={reduceMotion ? undefined : { opacity: 0, y: 6 }}
-                          animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-                          exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
-                          transition={{ duration: 0.25 }}
-                          className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-slate-700"
-                        >
-                          {consultation.warmMessage}
-                        </motion.p>
-                      </AnimatePresence>
+                      <p className="text-xs font-semibold text-pink-500">연이의 응원</p>
+                      <div className="mt-2 grid gap-3 sm:grid-cols-[88px_minmax(0,1fr)] sm:items-center">
+                        <div className="rounded-xl border border-pink-100 bg-rose-50/60 p-1.5">
+                          <div className="mx-auto h-[72px] w-[72px] overflow-hidden rounded-lg border border-white/70 bg-white/70 shadow-sm">
+                            <svg viewBox="0 0 1 1" className="h-full w-full" role="img" aria-label="연이 스프라이트 컷">
+                              <image
+                                href={SPRITE_SHEET}
+                                x={-(speechSpriteFrame % SPRITE_GRID_COLS)}
+                                y={-Math.floor(speechSpriteFrame / SPRITE_GRID_COLS)}
+                                width={SPRITE_GRID_COLS}
+                                height={SPRITE_GRID_ROWS}
+                                preserveAspectRatio="xMinYMin slice"
+                              />
+                            </svg>
+                          </div>
+                          <Image
+                            src={SPRITE_SHEET}
+                            alt="연이 스프라이트 시트"
+                            width={72}
+                            height={54}
+                            className="mx-auto mt-1.5 h-auto w-full rounded-md border border-pink-100 object-cover"
+                          />
+                        </div>
+
+                        <AnimatePresence mode="wait">
+                          <motion.p
+                            key={`${selectedEmotion}-${selectedSign}-${consultation.warmMessage}`}
+                            initial={reduceMotion ? undefined : { opacity: 0, y: 6 }}
+                            animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+                            exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
+                            transition={{ duration: 0.25 }}
+                            className="rounded-lg border border-rose-100 bg-rose-50/55 px-3 py-2 text-sm font-semibold leading-relaxed text-slate-700"
+                          >
+                            {consultation.warmMessage}
+                          </motion.p>
+                        </AnimatePresence>
+                      </div>
                     </div>
                   </div>
                 </motion.article>
