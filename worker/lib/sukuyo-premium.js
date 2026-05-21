@@ -177,24 +177,206 @@ function clampScore(value) {
   return Math.max(5, Math.min(99, Math.round(Number(value) || 0)));
 }
 
-function buildRelationshipMatrix(relationType, distanceLabel, shortestDistance) {
+const ELEMENT_CREATE_MAP = {
+  wood: "fire",
+  fire: "earth",
+  earth: "metal",
+  metal: "water",
+  water: "wood",
+};
+
+const ELEMENT_CONTROL_MAP = {
+  wood: "earth",
+  earth: "water",
+  water: "fire",
+  fire: "metal",
+  metal: "wood",
+};
+
+const ELEMENT_KO_MAP = {
+  wood: "목",
+  fire: "화",
+  earth: "토",
+  metal: "금",
+  water: "수",
+};
+
+function normalizeElementFamily(raw) {
+  const token = String(raw || "").trim();
+  if (token === "목") return "wood";
+  if (token === "화" || token === "일") return "fire";
+  if (token === "토") return "earth";
+  if (token === "금") return "metal";
+  if (token === "수" || token === "월") return "water";
+  return "earth";
+}
+
+function distanceTierByShortest(shortestDistance) {
+  const d = Number(shortestDistance);
+  if (!Number.isFinite(d)) return "middle";
+  if (d === 0) return "same";
+  if (d <= 4) return "near";
+  if (d <= 10) return "middle";
+  return "far";
+}
+
+function buildDistanceMetrics(forwardDistance, reverseDistance, shortestDistance, distanceLabel) {
+  const tier = distanceTierByShortest(shortestDistance);
+  const tensionBand = shortestDistance <= 1
+    ? "초밀착"
+    : shortestDistance <= 4
+      ? "근접"
+      : shortestDistance <= 10
+        ? "완충"
+        : "원심";
+
+  return {
+    forwardDistance,
+    reverseDistance,
+    shortestDistance,
+    tier,
+    distanceLabel,
+    tensionBand,
+    resonanceCode: `R${(forwardDistance % 9) + 1}-${String(tier).toUpperCase()}`,
+  };
+}
+
+function buildRoleActionGuide(relationType, aRole, bRole, shortestDistance, forwardDistance) {
+  let meAction = "핵심 감정을 먼저 문장으로 공유하세요.";
+  let otherAction = "상대 감정을 요약 확인한 뒤 결론을 내리세요.";
+  let resetLine = "갈등 직후 24시간 내 사실-감정-합의 순서로 재접속하세요.";
+
+  if (relationType === "안괴") {
+    meAction = `A(${aRole})는 결론 유예를 먼저 선언하고 경계선을 명문화하세요.`;
+    otherAction = `B(${bRole})는 방어적 반응 대신 요청 문장을 먼저 확인하세요.`;
+    resetLine = "강한 파동 구간에서는 문제 해결보다 안정화 루틴을 우선하세요.";
+  } else if (relationType === "영친") {
+    meAction = `A(${aRole})는 감사와 인정 피드백을 행동으로 표현하세요.`;
+    otherAction = `B(${bRole})는 편안함 속에서도 성장 과제를 주간 단위로 고정하세요.`;
+  } else if (relationType === "우쇠") {
+    meAction = `A(${aRole})는 불편 감정을 미루지 말고 짧은 체크인으로 해소하세요.`;
+    otherAction = `B(${bRole})는 정서적 안정 신호를 반복해 피로를 낮추세요.`;
+  } else if (relationType === "위성") {
+    meAction = `A(${aRole})는 역할 목표와 감정 목표를 분리해 운영하세요.`;
+    otherAction = `B(${bRole})는 성과보다 감정 온도를 먼저 점검하세요.`;
+  }
+
+  if (Number(forwardDistance) % 2 === 0) {
+    resetLine += " 짝수 거리 조합이라 합의 후 반등 속도가 빠른 편입니다.";
+  }
+  if (Number(shortestDistance) <= 4) {
+    resetLine += " 근거리 조합에서는 회복 시간 합의를 반드시 선행하세요.";
+  }
+
+  return { meAction, otherAction, resetLine };
+}
+
+function buildElementHarmony(aStar, bStar, relationType, shortestDistance) {
+  const aElementFamily = normalizeElementFamily(aStar?.element);
+  const bElementFamily = normalizeElementFamily(bStar?.element);
+  let relation = "보완";
+  let baseScore = 72;
+
+  if (aElementFamily === bElementFamily) {
+    relation = "동류";
+    baseScore = 84;
+  } else if (ELEMENT_CREATE_MAP[aElementFamily] === bElementFamily || ELEMENT_CREATE_MAP[bElementFamily] === aElementFamily) {
+    relation = "상생";
+    baseScore = 88;
+  } else if (ELEMENT_CONTROL_MAP[aElementFamily] === bElementFamily || ELEMENT_CONTROL_MAP[bElementFamily] === aElementFamily) {
+    relation = "상극";
+    baseScore = 62;
+  }
+
+  if (relationType === "안괴") baseScore -= 7;
+  if (relationType === "영친") baseScore += 5;
+  baseScore -= Math.max(0, Number(shortestDistance) - 6);
+
+  const harmonyScore = clampScore(baseScore);
+  return {
+    aElement: ELEMENT_KO_MAP[aElementFamily] || "토",
+    bElement: ELEMENT_KO_MAP[bElementFamily] || "토",
+    relation,
+    harmonyScore,
+    summary: `A ${ELEMENT_KO_MAP[aElementFamily] || "토"} · B ${ELEMENT_KO_MAP[bElementFamily] || "토"}의 ${relation} 흐름 (${harmonyScore}점)`,
+  };
+}
+
+function buildStrengthShadowMap(aStar, bStar, relationType) {
+  const aStrength = Array.isArray(aStar?.strengths) && aStar.strengths[0] ? aStar.strengths[0] : "현실 대응력";
+  const aShadow = Array.isArray(aStar?.shadows) && aStar.shadows[0] ? aStar.shadows[0] : "과잉 해석";
+  const bStrength = Array.isArray(bStar?.strengths) && bStar.strengths[0] ? bStar.strengths[0] : "정서 회복력";
+  const bShadow = Array.isArray(bStar?.shadows) && bStar.shadows[0] ? bStar.shadows[0] : "회피 반응";
+  let complementSummary = `A의 ${aStrength}이 B의 ${bShadow}를 완충하고, B의 ${bStrength}이 A의 ${aShadow}를 정리합니다.`;
+
+  if (relationType === "안괴") {
+    complementSummary = "강점은 빠른 변화를 만들지만 그림자 버튼이 눌리면 소모가 커집니다. 강점 사용 시점 합의가 핵심입니다.";
+  }
+
+  return {
+    a: { strength: aStrength, shadow: aShadow },
+    b: { strength: bStrength, shadow: bShadow },
+    complementSummary,
+  };
+}
+
+function buildCompatibilityIndex(scores, relationType, distanceMetrics, elementHarmony, forwardDistance) {
+  const chemistryScore = Number(scores?.chemistryScore) || 0;
+  const stabilityScore = Number(scores?.stabilityScore) || 0;
+  const growthScore = Number(scores?.growthScore) || 0;
+  const communicationScore = Number(scores?.communicationScore) || 0;
+  const conflictScore = Number(scores?.conflictScore) || 0;
+  const harmonyScore = Number(elementHarmony?.harmonyScore) || 70;
+  const shortestDistance = Number(distanceMetrics?.shortestDistance) || 0;
+
+  let raw = chemistryScore * 0.24
+    + stabilityScore * 0.24
+    + growthScore * 0.20
+    + communicationScore * 0.18
+    + harmonyScore * 0.14
+    - conflictScore * 0.08
+    - shortestDistance * 1.4;
+
+  if (relationType === "영친") raw += 4;
+  if (relationType === "안괴") raw -= 5;
+  if (relationType === "업태") raw -= 3;
+
+  raw += ((Number(forwardDistance) * 13 + 7) % 9) - 4;
+  return clampScore(raw);
+}
+
+function buildRelationVariant(relationType, distanceMetrics, forwardDistance, aRole, bRole) {
+  const lane = Number(forwardDistance) === 0
+    ? "MIRROR"
+    : Number(forwardDistance) % 3 === 0
+      ? "TRIAD"
+      : Number(forwardDistance) % 2 === 0
+        ? "DUAL"
+        : "PULSE";
+  const tier = String(distanceMetrics?.tier || "middle").toUpperCase();
+  return `${relationType}-${tier}-${lane}-A${aRole}B${bRole}-D${forwardDistance}`;
+}
+
+function buildRelationshipMatrix(relationType, distanceLabel, shortestDistance, compatibility = null) {
   const key = `${relationType}:${distanceLabel}`;
+  const indexLabel = Number.isFinite(Number(compatibility?.compatibilityIndex)) ? `궁합 지수 ${compatibility.compatibilityIndex}` : "";
+  const resonanceCode = compatibility?.distanceMetrics?.resonanceCode || key;
   return {
     emotionalPattern: {
       key,
-      summary: `${relationType} 관계의 감정 파동은 ${distanceLabel} 거리에서 ${shortestDistance}칸 리듬으로 반복됩니다.`,
+      summary: `${relationType} 관계의 감정 파동은 ${distanceLabel} 거리에서 ${shortestDistance}칸 리듬으로 반복됩니다. ${indexLabel}`.trim(),
     },
     attractionPattern: {
-      summary: `${relationType}의 끌림은 역할(${relationType})과 거리(${distanceLabel})의 조합으로 강화/완충됩니다.`,
+      summary: `${relationType}의 끌림은 역할(${relationType})과 거리(${distanceLabel})의 조합으로 강화/완충됩니다. 공명 코드 ${resonanceCode}.`,
     },
     conflictPattern: {
-      summary: `${relationType} 갈등은 관계 역할 충돌이 트리거이며 거리감이 회복 속도를 결정합니다.`,
+      summary: `${relationType} 갈등은 관계 역할 충돌이 트리거이며 거리감이 회복 속도를 결정합니다. ${compatibility?.roleActionGuide?.resetLine || ""}`.trim(),
     },
     recoveryPattern: {
-      summary: `${distanceLabel}에서는 감정 냉각 시간을 합의할수록 관계 회복 확률이 높아집니다.`,
+      summary: `${distanceLabel}에서는 감정 냉각 시간을 합의할수록 관계 회복 확률이 높아집니다. ${compatibility?.strengthShadowMap?.complementSummary || ""}`.trim(),
     },
     longTermPotential: {
-      summary: `${relationType}의 장기성은 역할 분리와 경계 규칙의 선명도에 비례합니다.`,
+      summary: `${relationType}의 장기성은 역할 분리와 경계 규칙의 선명도에 비례합니다. ${compatibility?.elementHarmony?.summary || ""}`.trim(),
     },
     marriagePotential: {
       summary: `${relationType}/${distanceLabel} 조합의 결혼 잠재력은 생활 리듬 합의가 핵심 변수입니다.`,
@@ -210,6 +392,9 @@ function buildCompatibilityFromIndices(aIndexRaw, bIndexRaw) {
   const bIndex = normalizeIndex(bIndexRaw);
   if (aIndex == null || bIndex == null) return null;
 
+  const aStar = getSukuyoByIndex(aIndex);
+  const bStar = getSukuyoByIndex(bIndex);
+
   const total = 27;
   const forwardDistance = (bIndex - aIndex + total) % total;
   const reverseDistance = (aIndex - bIndex + total) % total;
@@ -222,6 +407,18 @@ function buildCompatibilityFromIndices(aIndexRaw, bIndexRaw) {
   const growthScore = clampScore(76 + (rel.relationType === "안괴" ? 12 : rel.relationType === "업태" ? 10 : 4) - shortestDistance);
   const conflictScore = clampScore(34 + shortestDistance * 3 + (rel.relationType === "안괴" ? 20 : rel.relationType === "업태" ? 14 : 0));
   const communicationScore = clampScore(78 - shortestDistance * 2 + (rel.relationType === "영친" ? 8 : rel.relationType === "위성" ? 6 : 0));
+  const distanceMetrics = buildDistanceMetrics(forwardDistance, reverseDistance, shortestDistance, distanceLabel);
+  const roleActionGuide = buildRoleActionGuide(rel.relationType, rel.aRole, rel.bRole, shortestDistance, forwardDistance);
+  const elementHarmony = buildElementHarmony(aStar, bStar, rel.relationType, shortestDistance);
+  const strengthShadowMap = buildStrengthShadowMap(aStar, bStar, rel.relationType);
+  const compatibilityIndex = buildCompatibilityIndex({
+    chemistryScore,
+    stabilityScore,
+    growthScore,
+    communicationScore,
+    conflictScore,
+  }, rel.relationType, distanceMetrics, elementHarmony, forwardDistance);
+  const relationVariant = buildRelationVariant(rel.relationType, distanceMetrics, forwardDistance, rel.aRole, rel.bRole);
 
   return {
     forwardDistance,
@@ -239,7 +436,13 @@ function buildCompatibilityFromIndices(aIndexRaw, bIndexRaw) {
     growthScore,
     conflictScore,
     communicationScore,
-    summary: `A→B ${forwardDistance}칸, B→A ${reverseDistance}칸으로 ${rel.relationType}(${rel.aRole}/${rel.bRole}) 구조가 형성됩니다.`,
+    compatibilityIndex,
+    distanceMetrics,
+    roleActionGuide,
+    elementHarmony,
+    strengthShadowMap,
+    relationVariant,
+    summary: `A→B ${forwardDistance}칸, B→A ${reverseDistance}칸으로 ${rel.relationType}(${rel.aRole}/${rel.bRole}) 구조가 형성됩니다. 지수 ${compatibilityIndex}, ${relationVariant}.`,
   };
 }
 
@@ -297,7 +500,7 @@ function buildCanonicalSukuyoCompatibility(params) {
     personB,
     compatibility,
     relationshipMatrix: reportType === "compatibility"
-      ? buildRelationshipMatrix(relationType, distanceLabel, compatibility?.shortestDistance ?? 0)
+      ? buildRelationshipMatrix(relationType, distanceLabel, compatibility?.shortestDistance ?? 0, compatibility)
       : {
         emotionalPattern: {},
         attractionPattern: {},
@@ -370,12 +573,45 @@ function validateCanonicalSukuyoCompatibility(canonical) {
     : true;
   if (reportType === "compatibility" && !hasBothDirections) missingFields.push("compatibility.direction");
 
+  const hasCompatibilityIndex = reportType === "compatibility"
+    ? Number.isFinite(Number(compatibility?.compatibilityIndex))
+    : true;
+  if (reportType === "compatibility" && !hasCompatibilityIndex) missingFields.push("compatibility.compatibilityIndex");
+
+  const hasDistanceMetrics = reportType === "compatibility"
+    ? Number.isFinite(Number(compatibility?.distanceMetrics?.shortestDistance))
+      && Boolean(String(compatibility?.distanceMetrics?.resonanceCode || "").trim())
+    : true;
+  if (reportType === "compatibility" && !Number.isFinite(Number(compatibility?.distanceMetrics?.shortestDistance))) missingFields.push("compatibility.distanceMetrics.shortestDistance");
+  if (reportType === "compatibility" && !String(compatibility?.distanceMetrics?.resonanceCode || "").trim()) missingFields.push("compatibility.distanceMetrics.resonanceCode");
+
+  const hasElementHarmony = reportType === "compatibility"
+    ? Boolean(String(compatibility?.elementHarmony?.relation || "").trim())
+    : true;
+  if (reportType === "compatibility" && !hasElementHarmony) missingFields.push("compatibility.elementHarmony.relation");
+
+  const hasRoleActionGuide = reportType === "compatibility"
+    ? Boolean(String(compatibility?.roleActionGuide?.meAction || "").trim()) && Boolean(String(compatibility?.roleActionGuide?.otherAction || "").trim())
+    : true;
+  if (reportType === "compatibility" && !String(compatibility?.roleActionGuide?.meAction || "").trim()) missingFields.push("compatibility.roleActionGuide.meAction");
+  if (reportType === "compatibility" && !String(compatibility?.roleActionGuide?.otherAction || "").trim()) missingFields.push("compatibility.roleActionGuide.otherAction");
+
+  const hasStrengthShadowMap = reportType === "compatibility"
+    ? Boolean(String(compatibility?.strengthShadowMap?.complementSummary || "").trim())
+    : true;
+  if (reportType === "compatibility" && !hasStrengthShadowMap) missingFields.push("compatibility.strengthShadowMap.complementSummary");
+
   return {
     hasPersonAHost,
     hasPersonBHost,
     hasDistance,
     hasRelationType,
     hasBothDirections,
+    hasCompatibilityIndex,
+    hasDistanceMetrics,
+    hasElementHarmony,
+    hasRoleActionGuide,
+    hasStrengthShadowMap,
     missingFields,
   };
 }
@@ -401,6 +637,12 @@ function buildSukuyoDataSummaryTable(canonical) {
     rows.push(["거리감", String(comp?.distanceLabel || "?")]);
     rows.push(["A 역할", String(comp?.aRole || "?")]);
     rows.push(["B 역할", String(comp?.bRole || "?")]);
+    rows.push(["궁합 지수", String(comp?.compatibilityIndex ?? "?")]);
+    rows.push(["거리 공명", String(comp?.distanceMetrics?.resonanceCode || "?")]);
+    rows.push(["거리 텐션", String(comp?.distanceMetrics?.tensionBand || "?")]);
+    rows.push(["오행 합", String(comp?.elementHarmony?.summary || "?")]);
+    rows.push(["역할 액션", String(comp?.roleActionGuide?.meAction || "?")]);
+    rows.push(["보완 포인트", String(comp?.strengthShadowMap?.complementSummary || "?")]);
   }
 
   const body = rows.map((r) => `| ${r[0]} | ${r[1]} |`).join("\n");

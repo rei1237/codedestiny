@@ -226,17 +226,19 @@ export default function DestinyMeetingPlacePage() {
               loading="eager"
               decoding="async"
             />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,7,24,0.14),rgba(6,7,24,0.7))]" />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,7,24,0.08)_20%,rgba(6,7,24,0.82)_100%)]" />
             <div className="absolute right-4 top-4 rounded-full border border-[#bce6ff]/45 bg-[#0b122f]/65 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-[#cff0ff] [text-shadow:0_0_10px_rgba(161,230,255,0.8)]">
               Cosmic Neon Read
             </div>
             <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-[#ffd88a] [text-shadow:0_0_10px_rgba(255,216,138,0.7)]">Night Sky Oracle</p>
-              <h2 className="mt-2 text-2xl font-black leading-tight text-white [text-shadow:0_0_16px_rgba(127,209,255,0.5)] sm:text-4xl">운명의 만남이 시작될 좌표를 별빛 지도처럼 찾아드립니다</h2>
-              <p className="mt-2 max-w-3xl text-sm font-semibold leading-relaxed text-[#f5eeff]">
-                사주 에너지 흐름을 바탕으로 <span className="text-[#ffdca7]">어떤 장소에서</span>, <span className="text-[#bfe6ff]">언제</span>, <span className="text-[#ffccf0]">어떤 분위기</span>로
-                인연 운이 상승하는지 한 화면에서 깊이 있게 안내합니다.
-              </p>
+              <div className="max-w-3xl rounded-2xl border border-white/20 bg-[linear-gradient(140deg,rgba(6,10,32,0.9),rgba(17,19,48,0.7))] p-4 shadow-[0_18px_40px_rgba(4,6,20,0.62)] backdrop-blur-[2px] sm:p-5">
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-[#ffd88a] [text-shadow:0_0_10px_rgba(255,216,138,0.62)]">Night Sky Oracle</p>
+                <h2 className="mt-2 max-w-2xl text-[1.85rem] font-black leading-[1.18] tracking-[-0.01em] text-white [text-shadow:0_3px_18px_rgba(5,11,26,0.9)] sm:text-[2.45rem]">운명의 만남이 시작될 좌표를 별빛 지도처럼 찾아드립니다</h2>
+                <p className="mt-2 max-w-3xl text-sm font-semibold leading-relaxed text-[#f5eeff] [text-shadow:0_1px_10px_rgba(8,11,30,0.65)]">
+                  사주 에너지 흐름을 바탕으로 <span className="text-[#ffdca7]">어떤 장소에서</span>, <span className="text-[#bfe6ff]">언제</span>, <span className="text-[#ffccf0]">어떤 분위기</span>로
+                  인연 운이 상승하는지 한 화면에서 깊이 있게 안내합니다.
+                </p>
+              </div>
             </div>
           </div>
         </section>

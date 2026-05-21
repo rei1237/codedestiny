@@ -128,6 +128,129 @@ const ZIWEI_CHAPTER_SPECS = Object.freeze(
 const ZIWEI_CHAPTER_MIN_LENGTH = 4000;
 const ZIWEI_CHAPTER_MAX_LENGTH = 5000;
 
+const ZIWEI_CHAPTER_MASTER_ADVICE = Object.freeze({
+  1: "명궁의 강점은 자기 규율이 붙을 때 가장 크게 열린다. 이번 챕터에서 확인한 명궁 주성/보성의 강약을 기준으로, 하루 운영 원칙을 하나로 줄여 일관되게 반복하라.",
+  2: "신궁은 시간이 지날수록 드러나는 실전 자아다. 명궁의 의도와 신궁의 행동을 분리해서 기록하고, 위기 상황에서 반복되는 반응을 실행 규칙으로 재설계하라.",
+  3: "복덕궁은 행복의 조건을 알려주는 내면 설계도다. 감정 소모를 줄이는 루틴을 먼저 고정하고, 회복 활동을 일정표의 고정 블록으로 배치해 내면 에너지의 손실을 막아라.",
+  4: "천이궁은 세상과 만나는 방식의 품질을 결정한다. 외부 평판은 일관된 행동 문장에서 만들어지므로, 대외 커뮤니케이션 원칙을 세 줄로 정의하고 반복 적용하라.",
+  5: "관록궁은 커리어 성취의 구조를 보여준다. 조직/독립 중 어디에서 성과가 극대화되는지 분기 기준을 명확히 하고, 90일 단위로 성과 지표를 추적하라.",
+  6: "재백궁은 돈의 속도보다 흐름의 안정이 핵심이다. 수입 확장보다 누수 차단을 먼저 실행하고, 지출 의사결정에 상한 규칙을 붙여 자산 체력을 확보하라.",
+  7: "부처궁은 관계의 질을 결정하는 경계선 설계도다. 애정 표현과 경계 표현을 동시에 훈련하고, 갈등 시 합의 문장을 미리 정해 관계 소모를 줄여라.",
+  8: "교우궁은 사람을 통한 확장과 손실을 함께 보여준다. 귀인과 소모 관계를 구분하는 기준표를 만들고, 협업 전 역할·책임·종료 조건을 먼저 합의하라.",
+  9: "전택궁은 공간이 운의 회복률에 미치는 영향을 드러낸다. 주거와 작업 공간의 동선을 단순화하고, 집중 구역과 회복 구역을 분리해 에너지 누수를 차단하라.",
+  10: "질액궁은 진단이 아니라 생활 리듬 관리의 나침반이다. 수면·식사·운동의 최소 기준선을 먼저 고정하고, 과부하 신호가 보이면 즉시 회복 프로토콜을 실행하라.",
+  11: "대한은 10년 단위 인생 과제를 보여주는 장기 지표다. 현재 대한의 핵심 과제를 한 문장으로 고정하고, 이전/다음 대한과의 차이를 전략 전환 기준으로 사용하라.",
+  12: "유년·유월은 올해 실행 타이밍의 미세 조정 장치다. Go/Hold/Retreat 기준을 월별로 사전에 정하고, 감정 반응보다 계획된 페이스를 우선 적용하라.",
+  13: "총결산 챕터의 목적은 해석이 아니라 실행 체계 완성이다. 핵심 패턴·성공 전략·관계 전략을 각각 5개로 고정하고, 90일 실천표를 주간 점검으로 운영하라.",
+});
+
+const ZIWEI_CHAPTER_CONTRACTS = Object.freeze({
+  1: {
+    targetPalace: "명궁",
+    relatedPalaces: ["관록궁", "재백궁", "천이궁"],
+    mustCover: [
+      "명궁 기본 의미", "기본 성격", "인생 태도", "핵심 욕망", "명궁 주성 해석", "보조성/살성", "사화", "삼방사정", "인생 캐릭터 정의", "인생 운영 전략",
+    ],
+  },
+  2: {
+    targetPalace: "신궁",
+    relatedPalaces: ["명궁", "관록궁", "재백궁", "부처궁", "천이궁", "복덕궁"],
+    mustCover: [
+      "신궁 기본 의미", "후천 성향", "위기 본능", "신궁 위치 해석", "명궁-신궁 관계", "신궁 주성/보성", "잠재 무기", "신궁 그림자", "후천운 성장 전략",
+    ],
+  },
+  3: {
+    targetPalace: "복덕궁",
+    relatedPalaces: ["명궁", "질액궁"],
+    mustCover: [
+      "복덕궁 기본 의미", "행복 설계", "주성 해석", "보조성/살성", "명궁과의 차이", "질액궁 연결", "행복 방해 패턴", "회복 루틴",
+    ],
+  },
+  4: {
+    targetPalace: "천이궁",
+    relatedPalaces: ["명궁"],
+    mustCover: [
+      "천이궁 기본 의미", "사회적 이미지", "주성 해석", "명궁 대궁 관계", "사화", "이동운/타지운", "이미지 전략", "기회 확장법",
+    ],
+  },
+  5: {
+    targetPalace: "관록궁",
+    relatedPalaces: ["명궁", "재백궁", "천이궁"],
+    mustCover: [
+      "관록궁 기본 의미", "직업 적성", "주성", "보조성/살성", "명궁 관계", "재백궁 관계", "천이궁 관계", "천직 전략",
+    ],
+  },
+  6: {
+    targetPalace: "재백궁",
+    relatedPalaces: ["관록궁", "복덕궁", "명궁"],
+    mustCover: [
+      "재백궁 기본 의미", "수익 구조", "주성", "보조성/살성", "사화", "관록궁 관계", "복덕궁 관계", "부의 운영 전략",
+    ],
+  },
+  7: {
+    targetPalace: "부처궁",
+    relatedPalaces: ["명궁", "복덕궁"],
+    mustCover: [
+      "부처궁 기본 의미", "연애/결혼 패턴", "주성", "보조성/살성", "사화", "명궁 관계", "복덕궁 관계", "인연 유지 전략",
+    ],
+  },
+  8: {
+    targetPalace: "교우궁",
+    relatedPalaces: ["명궁", "관록궁"],
+    mustCover: [
+      "교우궁 기본 의미", "인맥운", "주성", "보조성/살성", "명궁 관계", "관록궁 관계", "귀인/악연 구분", "네트워크 전략",
+    ],
+  },
+  9: {
+    targetPalace: "전택궁",
+    relatedPalaces: ["복덕궁", "재백궁"],
+    mustCover: [
+      "전택궁 기본 의미", "주거/공간", "주성", "보조성/살성", "복덕궁 관계", "재백궁 관계", "환경 리스크", "공간 개선 전략",
+    ],
+  },
+  10: {
+    targetPalace: "질액궁",
+    relatedPalaces: ["복덕궁", "명궁"],
+    mustCover: [
+      "질액궁 기본 의미", "체력 리듬", "주성", "보조성/살성", "복덕궁 관계", "명궁 관계", "생활 패턴 리스크", "회복 루틴",
+    ],
+  },
+  11: {
+    targetPalace: "대한",
+    relatedPalaces: ["명궁", "관록궁", "재백궁"],
+    mustCover: [
+      "대한 기본 의미", "현재 대한 위치", "대한 주성", "사화/살성", "이전-현재 차이", "다음 대한 준비", "10년 전략",
+    ],
+  },
+  12: {
+    targetPalace: "유년/유월",
+    relatedPalaces: ["현재 대한"],
+    mustCover: [
+      "유년 기본 의미", "유년 주성", "유년 사화", "대한과의 관계", "분기 전략", "월별 Go/Hold/Retreat", "올해 실행 원칙",
+    ],
+  },
+  13: {
+    targetPalace: "통합 총결산",
+    relatedPalaces: ["명궁", "신궁", "관록궁", "재백궁", "부처궁", "대한", "유년"],
+    mustCover: [
+      "명궁/신궁 통합", "핵심 패턴 5가지", "성공 전략 5가지", "관계 전략 5가지", "돈/일 통합", "올해/대한 최종 조언", "거장 봉서",
+    ],
+  },
+});
+
+function buildZiweiChapterMasterAdvice(chapterSpec, chapterData = {}) {
+  const chapterNo = Number(chapterSpec?.chapterNo || chapterSpec?.num || 0);
+  const corePalaces = asArray(chapterData?.corePalaces).map((token) => asText(token)).filter(Boolean);
+  const coreStars = asArray(chapterData?.coreStars).map((token) => asText(token)).filter(Boolean);
+  const primaryPalaceKey = corePalaces[0] || "";
+  const primaryPalaceName = primaryPalaceKey
+    ? (ZIWEI_PALACE_MEANINGS[primaryPalaceKey]?.name || primaryPalaceKey)
+    : (ZIWEI_CHAPTER_CONTRACTS[chapterNo]?.targetPalace || "핵심 궁위");
+  const starLabel = coreStars.length ? coreStars.slice(0, 2).join("·") : "핵심 주성";
+  const base = ZIWEI_CHAPTER_MASTER_ADVICE[chapterNo] || "현재 챕터의 핵심 데이터에 맞춰 실행 가능한 전략을 하나씩 고정해 나가면 운의 체감이 분명해진다.";
+  return `${base} 이번 장의 실행 기준은 ${primaryPalaceName}과 ${starLabel}의 작동을 주간 루틴으로 고정하는 것이다.`;
+}
+
 function asText(value) {
   return String(value == null ? "" : value).trim();
 }
@@ -815,7 +938,11 @@ function sanitizeZiweiOutputText(text) {
 
 export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummaries = [] }) {
   const chapterSpec = chapter || ZIWEI_CHAPTER_SPECS[0];
+  const chapterNo = Number(chapterSpec?.chapterNo || chapterSpec?.num || 0);
+  const chapterContract = ZIWEI_CHAPTER_CONTRACTS[chapterNo] || null;
   const chapterSections = asArray(chapterSpec?.sections).join(", ");
+  const premiumContext = toPlainObject(context?.premiumContext);
+  const hasPremiumContext = Object.keys(premiumContext).length > 0;
 
   const systemPrompt = [
     "너는 30년 경력의 최고급 자미두수 상담가다.",
@@ -839,6 +966,10 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
     "15. 시스템 지침 문장, 프롬프트 규칙 문장, JSON 키 설명 문장을 본문으로 출력하지 않는다.",
     "16. 동일 문장/동일 단락을 반복해 분량을 채우지 않는다.",
     "17. 이전 챕터들과 관점이나 내용이 절대 중복되지 않도록 하라. 제공된 [이전 챕터 요약 정보]를 참조하여, 이미 다른 챕터에서 다룬 해석을 반복하지 않고 이 챕터만의 고유한 관점(예: 성격 자아 -> 직업 자아 -> 재물 성향 등)을 확실히 보여줘라.",
+    "18. masterAdvice 또는 masterConclusion은 반드시 현재 챕터의 대상 궁위와 해석 목적에 맞게 작성하고, 다른 챕터에 재사용 가능한 일반론 문장을 금지한다.",
+    hasPremiumContext
+      ? "19. [기본/심화 통합 보조 데이터]가 제공되면 궁/주성/강약/대운/연월운/요약 근거를 최소 5개 이상 본문에 반영하고, 추상 문장만으로 분량을 채우지 않는다."
+      : "19. 제공된 데이터 근거를 문장마다 명시적으로 반영한다.",
   ].join("\n");
 
   const duplicateAvoidanceText = previousChapterSummaries.length > 0
@@ -860,6 +991,15 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
       relationships: context.relationships,
       missingSummary: context.missingSummary,
     }, null, 2),
+    hasPremiumContext
+      ? ""
+      : null,
+    hasPremiumContext
+      ? "[기본/심화 통합 보조 데이터]"
+      : null,
+    hasPremiumContext
+      ? JSON.stringify(premiumContext, null, 2)
+      : null,
     "",
     "[자미두수 기본 해석 Knowledge Base]",
     JSON.stringify(context.knowledgeBase || {}, null, 2),
@@ -867,6 +1007,9 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
     duplicateAvoidanceText,
     "[작성할 챕터]",
     chapterSpec.title,
+    chapterContract ? `[대상 궁위] ${chapterContract.targetPalace}` : "",
+    chapterContract ? `[관련 궁위] ${chapterContract.relatedPalaces.join(", ")}` : "",
+    chapterContract ? `[필수 커버리지]\n- ${chapterContract.mustCover.join("\n- ")}` : "",
     "",
     "[챕터 작성 목표 및 세부 카테고리 가이드]",
     chapterSpec.goal,
@@ -884,6 +1027,7 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
     "  ],",
     '  "practicalAdvice": ["string"],',
     '  "cautions": ["string"],',
+    '  "masterAdvice": "string",',
     '  "masterConclusion": "string",',
     '  "coreStars": ["string"],',
     '  "corePalaces": ["string"],',
@@ -896,6 +1040,10 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
     "- 챕터 총 분량은 공백 포함 4000~5000자 범위를 지키고, sections 내 각 body 항목은 450자 이상으로 작성하세요.",
     "- 데이터가 없는 경우에는 기본 궁 의미와 knowledgeBase를 활용해 자연스럽게 상담 흐름으로 보강하세요.",
     "- 데이터 부족 안내나 메모성 문구는 출력하지 마세요.",
+    "- masterAdvice는 반드시 현재 챕터의 대상 궁위와 관련 궁위를 직접 언급한 실행 조언으로 작성하세요.",
+    hasPremiumContext
+      ? "- [기본/심화 통합 보조 데이터]가 있으면 최소 5개 이상의 구체 근거(궁/별/강약/대운/연월운/요약)를 본문에 반영하세요."
+      : null,
   ].join("\n");
 
   return {
@@ -1001,6 +1149,10 @@ export function createFallbackChapter(chapter, context) {
   const mingPalace = asArray(context?.palaces).find((palace) => palace?.key === (context?.chartMeta?.mingPalaceKey || "ming")) || asArray(context?.palaces)[0] || {};
   const mingStars = asArray(mingPalace?.mainStars).map((star) => asText(star?.name)).filter(Boolean).slice(0, 3);
   const annualFlow = toPlainObject(context?.cycles?.annual);
+  const fallbackMasterAdvice = buildZiweiChapterMasterAdvice(spec, {
+    corePalaces: ["ming"],
+    coreStars: mingStars,
+  });
   return {
     chapterTitle: spec.title,
     chapterSubtitle: spec.goal || "챕터별 실행 해석",
@@ -1008,21 +1160,22 @@ export function createFallbackChapter(chapter, context) {
     sections: [
       {
         heading: "운명의 구조",
-        body: `이 영역은 자미두수의 핵심 축을 이루므로, 제공된 궁의 의미와 전체 흐름을 연결해 실전적으로 읽어야 합니다. 현재 명반에서는 ${mingStars.join(", ") || "핵심 주성"}의 작동을 명궁 중심으로 읽는 것이 중요하며, 선택의 우선순위를 명확히 할수록 운의 체감이 빨라집니다.`,
+        body: `제공된 궁의 의미와 전체 흐름을 연결해 실전적으로 읽어야 합니다. 현재 명반에서는 ${mingStars.join(", ") || "핵심 주성"}의 작동을 기반으로 성향-행동-성과의 연결 구조를 점검하는 것이 중요합니다.`,
       },
       {
         heading: "실전 운영 전략",
-        body: `단정형 예측보다 생활 리듬, 의사결정 기준, 관계 경계 설정처럼 실행 가능한 원칙을 먼저 고정하면 운의 손실을 줄이고 상승 구간을 안정적으로 확대할 수 있습니다. ${asText(annualFlow?.stemBranch) ? `${annualFlow.stemBranch} 흐름에서는` : "당해 흐름에서는"} 실행 속도보다 실행 일관성을 먼저 고정하세요.`,
+        body: `단정형 예측보다 생활 리듬, 의사결정 기준, 관계 경계 설정처럼 실행 가능한 원칙을 먼저 고정하면 운의 손실을 줄이고 상승 구간을 안정적으로 확대할 수 있습니다. ${asText(annualFlow?.stemBranch) ? `${annualFlow.stemBranch} 흐름에서는` : "당해 흐름에서는"} 핵심 목표를 줄이고 반복 가능한 행동을 고정하는 방식이 유리합니다.`,
       },
     ],
     practicalAdvice: [
-      "현재 확인 가능한 핵심 궁을 기준으로 주간 우선순위 1개를 먼저 고정하세요.",
-      "감정 강도보다 실행 지속성을 우선하는 루틴을 선택하세요.",
+      "대상 궁위 기준으로 주간 우선순위 1개를 먼저 고정하세요.",
+      "감정 반응보다 실행 기준 문장을 먼저 정하세요.",
     ],
     cautions: [
-      "단기 감정에 반응해 장기 흐름을 훼손하는 결정을 피하세요.",
+      "단기 반응으로 핵심 계획을 자주 바꾸는 패턴을 피하세요.",
     ],
-    masterConclusion: "주어진 운명 설계도를 믿고, 매 순간 나에게 집중하는 선택을 하십시오. 그것이 가장 강력한 자미두수의 운명 개척법입니다.",
+    masterAdvice: fallbackMasterAdvice,
+    masterConclusion: fallbackMasterAdvice,
     coreStars: ["자미", "천부"],
     corePalaces: ["ming"],
     missingDataNotice: null,
@@ -1041,9 +1194,14 @@ export function sanitizeZiweiChapterJson(rawChapter, chapterSpec) {
   const practicalAdvice = asArray(chapter.practicalAdvice).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
   const cautions = asArray(chapter.cautions).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
   
-  const masterConclusion = sanitizeZiweiOutputText(asText(chapter.masterConclusion)) || "인생의 매 순간을 주도적으로 이끌어가며, 지혜로운 선택으로 자신만의 길을 가꾸어가길 응원합니다.";
   const coreStars = asArray(chapter.coreStars).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
   const corePalaces = asArray(chapter.corePalaces).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
+  const normalizedMasterAdvice = sanitizeZiweiOutputText(asText(chapter.masterAdvice || chapter.masterConclusion));
+  const chapterSpecificMasterAdvice = buildZiweiChapterMasterAdvice(chapterSpec, {
+    corePalaces,
+    coreStars,
+  });
+  const masterConclusion = normalizedMasterAdvice || chapterSpecificMasterAdvice;
 
   return {
     chapterTitle: sanitizeZiweiOutputText(asText(chapter.chapterTitle)) || chapterSpec?.title || "자미두수 해석",
@@ -1052,6 +1210,7 @@ export function sanitizeZiweiChapterJson(rawChapter, chapterSpec) {
     sections,
     practicalAdvice,
     cautions,
+    masterAdvice: masterConclusion,
     masterConclusion,
     coreStars: coreStars.length > 0 ? coreStars : ["자미"],
     corePalaces: corePalaces.length > 0 ? corePalaces : ["ming"],
@@ -1136,9 +1295,10 @@ export function buildZiweiChapterMarkdown(chapterJson, chapterSpec, context, inc
     chapter.cautions.forEach((item) => lines.push(`- ${item}`));
   }
 
-  if (chapter.masterConclusion) {
+  const masterAdviceText = asText(chapter.masterAdvice || chapter.masterConclusion);
+  if (masterAdviceText) {
     lines.push("### 거장의 최종 제언");
-    lines.push(chapter.masterConclusion);
+    lines.push(masterAdviceText);
   }
 
   return lines.filter(Boolean).join("\n\n");

@@ -1209,6 +1209,11 @@
     if (_reportMode === 'compatibility') {
       rows.push(['관계 유형', comp.relationType || '정보 없음']);
       rows.push(['거리', comp.shortestDistance != null ? String(comp.shortestDistance) : '정보 없음']);
+      rows.push(['궁합 지수', comp.compatibilityIndex != null ? String(comp.compatibilityIndex) : '정보 없음']);
+      rows.push(['거리 상세', comp.distanceMetrics ? ('A→B ' + comp.distanceMetrics.forwardDistance + ' / B→A ' + comp.distanceMetrics.reverseDistance + ' / 최단 ' + comp.distanceMetrics.shortestDistance + (comp.distanceMetrics.resonanceCode ? (' · ' + comp.distanceMetrics.resonanceCode) : '')) : '정보 없음']);
+      rows.push(['역할 액션', comp.roleActionGuide ? ((comp.roleActionGuide.meAction || '') + (comp.roleActionGuide.otherAction ? (' / ' + comp.roleActionGuide.otherAction) : '')) : '정보 없음']);
+      rows.push(['오행 합', comp.elementHarmony ? (comp.elementHarmony.summary || (String(comp.elementHarmony.relation || '') + ' (' + String(comp.elementHarmony.harmonyScore || '') + ')')) : '정보 없음']);
+      rows.push(['강점-그림자 보완', comp.strengthShadowMap ? (comp.strengthShadowMap.complementSummary || '정보 없음') : '정보 없음']);
     }
     return rows;
   }

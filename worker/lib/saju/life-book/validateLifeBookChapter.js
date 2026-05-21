@@ -174,34 +174,28 @@ const BANNED_PHRASES = [
   /##\s*마무리\s*정리/i,
 ];
 
-const CHAPTER_REQUIRED_KEYWORD_GROUPS = Object.freeze({
-  "chapter-10-shadow-pattern": [
-    ["약점", "취약"],
-    ["극복", "보완"],
-    ["원국", "일간", "오행", "십성"],
-  ],
-  "chapter-11-turning-points": [
-    ["원국"],
-    ["대운"],
-    ["세운"],
-  ],
-  "chapter-12-life-strategy": [
-    ["원국", "일간"],
-    ["용신", "희신", "기신"],
-    ["대운", "세운"],
-  ],
-  "chapter-13-final-letter": [
-    ["원국", "일간"],
-    ["용신", "희신", "기신"],
-    ["십성", "대운", "세운"],
-  ],
-});
+function normalizeLooseText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[\s\t\n\r]/g, "")
+    .replace(/[\-—–·,.:;!?()\[\]{}'"`/\\]/g, "")
+    .trim();
+}
 
-function hasKeywordByGroup(text, groups = []) {
-  const source = String(text || "");
-  return groups.every((group) => {
-    return Array.isArray(group) && group.some((keyword) => source.includes(String(keyword)));
-  });
+function hasLoosePhrase(sourceText, phrase) {
+  const source = normalizeLooseText(sourceText);
+  const target = normalizeLooseText(phrase);
+  if (!target) return true;
+  if (target.length <= 1) return true;
+  return source.includes(target);
+}
+
+function findMissingRequiredCoverage(contentMarkdown, chapterConfig) {
+  const requiredCoverage = Array.isArray(chapterConfig?.requiredCoverage)
+    ? chapterConfig.requiredCoverage.map((item) => toStringSafe(item)).filter(Boolean)
+    : [];
+  if (!requiredCoverage.length) return [];
+  return requiredCoverage.filter((item) => !hasLoosePhrase(contentMarkdown, item));
 }
 
 function extractLongSentences(text, minLength = 30) {
@@ -269,10 +263,9 @@ export function validateLifeBookChapter(chapterResult, chapterConfig, previousTe
   if (practicalAdvice.length < 3) errors.push("MISSING_PRACTICAL_ADVICE");
   if (focusAreas.length > 0 && focusHits.length < 2) warnings.push("LOW_FOCUS_AREA_COVERAGE");
 
-  const chapterId = String(chapterConfig?.id || "");
-  const requiredGroups = CHAPTER_REQUIRED_KEYWORD_GROUPS[chapterId] || [];
-  if (requiredGroups.length && !hasKeywordByGroup(contentMarkdown, requiredGroups)) {
-    errors.push("CHAPTER_REQUIRED_DATA_MISSING");
+  const missingRequiredCoverage = findMissingRequiredCoverage(contentMarkdown, chapterConfig);
+  if (missingRequiredCoverage.length > 0) {
+    errors.push("CHAPTER_REQUIRED_COVERAGE_MISSING");
   }
 
   if (BANNED_PHRASES.some((pattern) => pattern.test(contentMarkdown))) {
@@ -299,6 +292,8 @@ export function validateLifeBookChapter(chapterResult, chapterConfig, previousTe
       minLength,
       headingCount,
       focusHits,
+      missingRequiredCoverageCount: missingRequiredCoverage.length,
+      missingRequiredCoveragePreview: missingRequiredCoverage.slice(0, 10),
       repeatedInsideCount: repeatedInside.length,
       repeatedAcrossCount: repeatedAcross.length,
     },
@@ -314,67 +309,54 @@ function formatTenGodEvidence(tenGods) {
   return rows.length ? rows.join(", ") : "미제공";
 }
 
+function buildCoverageSectionBody(item, profileName, lifeBookInputData) {
+  const chart = lifeBookInputData?.sajuChart || {};
+  const elements = lifeBookInputData?.fiveElements || {};
+  const yongshin = lifeBookInputData?.yongshin || {};
+  const currentDaeun = Array.isArray(lifeBookInputData?.daeun) ? lifeBookInputData.daeun[0] : null;
+  const currentYear = Array.isArray(lifeBookInputData?.yearlyFortune) ? lifeBookInputData.yearlyFortune[0] : null;
+
+  const contextTokens = [
+    `일간 ${toStringSafe(chart.dayMaster) || "미제공"}`,
+    `월주 ${toStringSafe(chart.monthPillar) || "미제공"}`,
+    `오행 분포(목${Number(elements.wood || 0)}/화${Number(elements.fire || 0)}/토${Number(elements.earth || 0)}/금${Number(elements.metal || 0)}/수${Number(elements.water || 0)})`,
+    `용신 ${toStringSafe((yongshin.yongshin || []).join(", ")) || "미제공"}`,
+    `현재 대운 ${currentDaeun ? toStringSafe(currentDaeun.pillar) || "미상" : "미제공"}`,
+    `올해 세운 ${currentYear ? `${toStringSafe(currentYear.year) || "?"}년 ${toStringSafe(currentYear.pillar) || "미상"}` : "미제공"}`,
+  ];
+
+  return `${profileName}님의 ${contextTokens.join(" · ")}을(를) 근거로 ${item}을 상담형으로 구체화합니다. 이 항목은 해석에 그치지 않고 현실 선택 기준까지 연결해 실행 가능하게 정리합니다.`;
+}
+
 function buildChapterSpecificSections(chapterConfig, profileName, lifeBookInputData) {
   const pillars = lifeBookInputData?.sajuChart || {};
   const elements = lifeBookInputData?.fiveElements || {};
-  const yongshin = lifeBookInputData?.yongshin || {};
-  const daeun = Array.isArray(lifeBookInputData?.daeun) ? lifeBookInputData.daeun : [];
-  const yearlyFortune = Array.isArray(lifeBookInputData?.yearlyFortune) ? lifeBookInputData.yearlyFortune : [];
   const tenGodLine = formatTenGodEvidence(lifeBookInputData?.tenGods);
-  const currentDaeun = daeun[0] || null;
-  const currentYear = yearlyFortune[0] || null;
+  const requiredCoverage = Array.isArray(chapterConfig?.requiredCoverage)
+    ? chapterConfig.requiredCoverage.map((item) => toStringSafe(item)).filter(Boolean)
+    : [];
 
   const common = [
     `## 데이터 근거 정리\n년주 ${toStringSafe(pillars.yearPillar) || "미제공"}, 월주 ${toStringSafe(pillars.monthPillar) || "미제공"}, 일주 ${toStringSafe(pillars.dayPillar) || "미제공"}, 시주 ${toStringSafe(pillars.hourPillar) || "미제공"}, 일간 ${toStringSafe(pillars.dayMaster) || "미제공"}를 기준으로 해석합니다.`,
     `## 오행과 십성 핵심\n오행 분포는 목 ${Number(elements.wood || 0)}, 화 ${Number(elements.fire || 0)}, 토 ${Number(elements.earth || 0)}, 금 ${Number(elements.metal || 0)}, 수 ${Number(elements.water || 0)}이며, 십성 기준표는 ${tenGodLine}입니다.`,
   ];
 
-  if (chapterConfig?.id === "chapter-10-shadow-pattern") {
-    return [
-      `## ${chapterConfig.roman}. ${chapterConfig.title} 핵심 진단\n${profileName}님의 약점은 성향 자체보다 특정 상황에서 나타나는 반응 순서에 있습니다. 일간과 월지 기준으로 취약한 조건을 먼저 정의해야 극복 전략이 작동합니다.`,
-      ...common,
-      "## 취약 지점 분석\n반응이 과열되거나 위축되는 장면을 관계/일/재정으로 나눠 기록하면 약점의 원인을 분리할 수 있습니다. 데이터상 강한 십성과 약한 오행의 충돌 구간을 우선 관리하세요.",
-      "## 극복 설계\n극복은 의지 강화보다 환경 재설계가 우선입니다. 일정/관계/지출 결정을 하루 단위가 아니라 주 단위 기준으로 통합하면 재발 빈도를 줄일 수 있습니다.",
-      "## 실행 체크포인트\n이번 주 3개 장면을 선정해 트리거-반응-결과를 기록하고, 다음 선택에서 대체 반응 1개를 반드시 실행하세요.",
-    ];
-  }
-
-  if (chapterConfig?.id === "chapter-11-turning-points") {
-    return [
-      `## ${chapterConfig.roman}. ${chapterConfig.title} 핵심 진단\n이 장은 원국의 기본 축과 대운·세운의 변화가 만나는 지점을 읽어 전환점의 의미를 정리합니다.`,
-      ...common,
-      `## 대운 해석\n현재 대운은 ${currentDaeun ? `${toStringSafe(currentDaeun.pillar) || "미상"} (${toStringSafe(currentDaeun.ageStart) || "?"}~${toStringSafe(currentDaeun.ageEnd) || "?"})` : "미제공"}이며, 원국의 강점/취약점과 결합해 확장 구간과 조정 구간을 분리해야 합니다.`,
-      `## 세운 해석\n세운 정보는 ${currentYear ? `${toStringSafe(currentYear.year) || "?"}년 ${toStringSafe(currentYear.pillar) || "미상"}` : "미제공"}이며, 대운 방향과 같은 결일 때는 가속, 반대 결일 때는 속도 조절이 필요합니다.`,
-      "## 전환점 의사결정 기준\n기회 구간에서는 선택을 좁히고, 경계 구간에서는 손실 한도를 먼저 고정하세요. 전환기는 확장보다 구조 재정렬의 효율이 높습니다.",
-    ];
-  }
-
-  if (chapterConfig?.id === "chapter-12-life-strategy") {
-    return [
-      `## ${chapterConfig.roman}. ${chapterConfig.title} 핵심 진단\n원국·용신·십성·대운·세운을 통합해 실행 우선순위를 설정합니다.`,
-      ...common,
-      `## 용신 기반 우선순위\n용신 ${toStringSafe((yongshin.yongshin || []).join(", ")) || "미제공"}, 희신 ${toStringSafe((yongshin.heeshin || []).join(", ")) || "미제공"}, 기신 ${toStringSafe((yongshin.gishin || []).join(", ")) || "미제공"}을 기준으로 환경 선택을 정리합니다.`,
-      "## 30일 실행안\n직업/돈/관계/건강 항목별로 실행 과제 1개씩만 고정하고, 완료 여부를 주 단위로 점검하세요.",
-      "## 90일 확장안\n30일 결과를 바탕으로 성과가 확인된 항목만 확장하고, 미확인 항목은 유지 또는 축소 전략을 적용하세요.",
-    ];
-  }
-
-  if (chapterConfig?.id === "chapter-13-final-letter") {
-    return [
-      `## ${chapterConfig.roman}. ${chapterConfig.title} 핵심 진단\n최종 장은 감성 문구가 아니라 데이터 근거를 다시 확인해 장기 선택 원칙을 확정하는 단계입니다.`,
-      ...common,
-      "## 장기 원칙 선언\n일간 강점, 십성 역할, 용신 방향을 기준으로 절대 지킬 원칙 3가지를 문장으로 명시하세요.",
-      "## 리스크 경계선\n대운/세운이 충돌하는 시기에는 속도보다 안정성을 우선하고, 손실 허용 범위를 숫자로 고정하세요.",
-      "## 최종 실행 서약\n다음 12주 동안 유지할 행동 3개와 중단할 행동 3개를 확정해 일관성을 확보하세요.",
-    ];
-  }
-
-  return [
+  const sections = [
     `## ${chapterConfig.roman}. ${chapterConfig.title} 핵심 진단\n${profileName}님의 사주 데이터에서 우선 점검해야 할 구조를 정리합니다.`,
     ...common,
-    "## 현실 적용\n핵심 데이터를 실제 일정과 선택 기준으로 연결하면 시행착오를 줄일 수 있습니다.",
-    "## 실행 계획\n이번 주 바로 적용할 행동을 1~2개로 좁혀서 실행하세요.",
   ];
+
+  if (requiredCoverage.length > 0) {
+    sections.push("## 필수 작성 항목 체크리스트\n아래 항목은 누락 없이 본문에 포함해야 하는 핵심 해석 지점입니다.");
+    requiredCoverage.forEach((item) => {
+      sections.push(`### ${item}\n${buildCoverageSectionBody(item, profileName, lifeBookInputData)}`);
+    });
+  } else {
+    sections.push("## 현실 적용\n핵심 데이터를 실제 일정과 선택 기준으로 연결하면 시행착오를 줄일 수 있습니다.");
+    sections.push("## 실행 계획\n이번 주 바로 적용할 행동을 1~2개로 좁혀서 실행하세요.");
+  }
+
+  return sections;
 }
 
 export function createLifeBookFallbackChapter(chapterConfig, lifeBookInputData, reason = "") {

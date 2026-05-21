@@ -33,6 +33,31 @@ function calcBasicScreenIndex(lunarMonth, lunarDay) {
   return (start + lunarDay - 1) % 27;
 }
 
+function findSukuyoByIndex(targetIndex) {
+  const target = ((Number(targetIndex) % 27) + 27) % 27;
+  for (let month = 1; month <= 12; month += 1) {
+    for (let day = 1; day <= 30; day += 1) {
+      const s = buildSukuyoFromLunarV2(month, day, { source: "test" });
+      if (s && Number(s.index) === target) return s;
+    }
+  }
+  throw new Error(`Unable to find sukuyo index ${target}`);
+}
+
+function makeCanonicalByIndices(aIndex, bIndex) {
+  return buildCanonicalSukuyoCompatibility({
+    reportType: "compatibility",
+    personAName: "A",
+    personAInput: makeInput({ year: 1992, month: 6, day: 15 }),
+    personASukuyo: findSukuyoByIndex(aIndex),
+    personBName: "B",
+    personBInput: makeInput({ year: 1990, month: 10, day: 2, hour: 9, minute: 0 }),
+    personBSukuyo: findSukuyoByIndex(bIndex),
+    calendarSource: "test",
+    methodVersion: "test-v1",
+  });
+}
+
 function makeCanonicalCompatibility() {
   const personAInput = makeInput({ year: 1992, month: 6, day: 15 });
   const personBInput = makeInput({ year: 1990, month: 10, day: 2, hour: 9, minute: 0 });
@@ -97,6 +122,11 @@ describe("Sukuyo Premium Strict Tests (A~J)", () => {
     expect(Number.isFinite(c.shortestDistance)).toBe(true);
     expect(typeof c.relationType).toBe("string");
     expect(c.relationType.length).toBeGreaterThan(0);
+    expect(Number.isFinite(Number(c.compatibilityIndex))).toBe(true);
+    expect(typeof c.distanceMetrics?.resonanceCode).toBe("string");
+    expect(typeof c.roleActionGuide?.meAction).toBe("string");
+    expect(typeof c.elementHarmony?.relation).toBe("string");
+    expect(typeof c.strengthShadowMap?.complementSummary).toBe("string");
   });
 
   test("D. A→B/B→A 방향값은 모두 존재하고 합이 27 또는 0이어야 한다", () => {
@@ -173,5 +203,19 @@ describe("Sukuyo Premium Strict Tests (A~J)", () => {
     const result = validateCanonicalSukuyoCompatibility(broken);
     expect(result.missingFields).toContain("personA.birth.lunarDate");
     expect(result.missingFields).toContain("personA.sukuyo.index");
+  });
+
+  test("K. 같은 관계 유형(영친)이라도 거리/방향이 다르면 궁합 지수와 변형 키가 달라야 한다", () => {
+    const aIndex = calcBasicScreenIndex(5, 17);
+    const nearCanonical = makeCanonicalByIndices(aIndex, (aIndex + 1) % 27); // 영친
+    const midCanonical = makeCanonicalByIndices(aIndex, (aIndex + 8) % 27); // 영친
+
+    const nearComp = nearCanonical.compatibility;
+    const midComp = midCanonical.compatibility;
+
+    expect(nearComp.relationType).toBe("영친");
+    expect(midComp.relationType).toBe("영친");
+    expect(nearComp.compatibilityIndex).not.toBe(midComp.compatibilityIndex);
+    expect(nearComp.relationVariant).not.toBe(midComp.relationVariant);
   });
 });

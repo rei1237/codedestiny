@@ -356,4 +356,50 @@ describe("Ziwei Premium Strict Tests (A~G)", () => {
     expect(data.canonicalZiweiChart.palaces).toHaveLength(12);
     expect(data.validation?.isValid).toBe(true);
   });
+
+  test("I. 성별이 없어도 생년월일 기반으로 prepareOnly가 성공해야 한다", async () => {
+    const authToken = await signJwt({
+      userId: "507f1f77bcf86cd799439011",
+      email: "strict-test@example.com",
+      role: "user",
+    }, "dev-secret", {
+      issuer: "code-destiny-api",
+      audience: "code-destiny-web",
+      expiresIn: "30m",
+    });
+
+    const ziweiLines = [
+      "【자미두수 12궁 배치】",
+      ...PALACES.map((palace, idx) => `${palace} [${BRANCHES[idx]}] → 주성: 자미·무곡 | 보성: 문창 | 살성: 경양`),
+      "명궁(命宮) 지지: 자",
+      "신궁(身宮) 지지: 오",
+    ].join("\n");
+
+    const req = new Request("https://example.com/api/ziwei-book/session", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({
+        prepareOnly: true,
+        name: "테스터",
+        year: 1992,
+        month: 6,
+        day: 15,
+        hour: 12,
+        minute: 30,
+        targetYear: 2026,
+        ziweiData: ziweiLines,
+      }),
+    });
+
+    const res = await handleZiweiBookRoutes(req, {});
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.ok).toBe(true);
+    expect(data.prepared).toBe(true);
+    expect(data.code).toBeUndefined();
+  });
 });

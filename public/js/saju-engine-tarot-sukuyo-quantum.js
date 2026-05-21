@@ -4916,6 +4916,232 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       return themes[typeKey] || themes.mirror;
     }
 
+    var COMPAT_PROFILE_27 = [
+      { element: '목', strengths: ['시작 추진력'], shadows: ['조급함'] },
+      { element: '금', strengths: ['원칙 준수'], shadows: ['경직'] },
+      { element: '토', strengths: ['인내'], shadows: ['감정 축적'] },
+      { element: '일', strengths: ['리더십'], shadows: ['지배욕'] },
+      { element: '월', strengths: ['핵심 파악'], shadows: ['의심'] },
+      { element: '화', strengths: ['도전력'], shadows: ['과열'] },
+      { element: '수', strengths: ['적응력'], shadows: ['분산'] },
+      { element: '목', strengths: ['체계화'], shadows: ['훈계'] },
+      { element: '토', strengths: ['정확성'], shadows: ['완벽주의'] },
+      { element: '일', strengths: ['사유력'], shadows: ['고립'] },
+      { element: '월', strengths: ['위기대응'], shadows: ['통제욕'] },
+      { element: '화', strengths: ['개시력'], shadows: ['급전개'] },
+      { element: '수', strengths: ['중재력'], shadows: ['회피'] },
+      { element: '목', strengths: ['정돈력'], shadows: ['보수성'] },
+      { element: '금', strengths: ['친화력'], shadows: ['피상성'] },
+      { element: '토', strengths: ['자원관리'], shadows: ['과분석'] },
+      { element: '일', strengths: ['보호력'], shadows: ['과보호'] },
+      { element: '월', strengths: ['완성도'], shadows: ['완고'] },
+      { element: '화', strengths: ['표현력'], shadows: ['날선 표현'] },
+      { element: '수', strengths: ['혁신력'], shadows: ['소진'] },
+      { element: '목', strengths: ['판단력'], shadows: ['감정 억제'] },
+      { element: '금', strengths: ['감지력'], shadows: ['불안'] },
+      { element: '토', strengths: ['지속력'], shadows: ['집착'] },
+      { element: '일', strengths: ['결단력'], shadows: ['지배욕'] },
+      { element: '월', strengths: ['확장성'], shadows: ['과시'] },
+      { element: '화', strengths: ['정밀성'], shadows: ['비판성'] },
+      { element: '수', strengths: ['마무리력'], shadows: ['결정 지연'] }
+    ];
+
+    var ELEMENT_KO = {
+      wood: '목',
+      fire: '화',
+      earth: '토',
+      metal: '금',
+      water: '수'
+    };
+
+    var ELEMENT_CREATE = {
+      wood: 'fire',
+      fire: 'earth',
+      earth: 'metal',
+      metal: 'water',
+      water: 'wood'
+    };
+
+    var ELEMENT_CONTROL = {
+      wood: 'earth',
+      earth: 'water',
+      water: 'fire',
+      fire: 'metal',
+      metal: 'wood'
+    };
+
+    function clampCompat(value, min, max) {
+      return Math.max(min, Math.min(max, Math.round(Number(value) || 0)));
+    }
+
+    function getCompatProfile(idx) {
+      var n = syWheelNormalizeIndex(idx);
+      if (n == null) return { element: '토', strengths: ['균형감'], shadows: ['망설임'] };
+      return COMPAT_PROFILE_27[n] || { element: '토', strengths: ['균형감'], shadows: ['망설임'] };
+    }
+
+    function normalizeElementFamily(el) {
+      var t = String(el || '').trim();
+      if (t === '목') return 'wood';
+      if (t === '화' || t === '일') return 'fire';
+      if (t === '토') return 'earth';
+      if (t === '금') return 'metal';
+      if (t === '수' || t === '월') return 'water';
+      return 'earth';
+    }
+
+    function buildElementHarmony(myIdx, partnerIdx, relationType) {
+      var me = getCompatProfile(myIdx);
+      var other = getCompatProfile(partnerIdx);
+      var meKey = normalizeElementFamily(me.element);
+      var otherKey = normalizeElementFamily(other.element);
+      var relation = '보완';
+      var base = 72;
+
+      if (meKey === otherKey) {
+        relation = '동류';
+        base = 84;
+      } else if (ELEMENT_CREATE[meKey] === otherKey || ELEMENT_CREATE[otherKey] === meKey) {
+        relation = '상생';
+        base = 88;
+      } else if (ELEMENT_CONTROL[meKey] === otherKey || ELEMENT_CONTROL[otherKey] === meKey) {
+        relation = '상극';
+        base = 62;
+      }
+
+      var typeText = String(relationType || '');
+      if (typeText.indexOf('안·괴') !== -1 || typeText.indexOf('안괴') !== -1) base -= 7;
+      if (typeText.indexOf('영친') !== -1) base += 5;
+
+      var harmonyScore = clampCompat(base, 38, 96);
+      return {
+        meElement: ELEMENT_KO[meKey] || '토',
+        otherElement: ELEMENT_KO[otherKey] || '토',
+        relation: relation,
+        harmonyScore: harmonyScore,
+        summary: '나 ' + (ELEMENT_KO[meKey] || '토') + ' · 상대 ' + (ELEMENT_KO[otherKey] || '토') + '의 ' + relation + ' 흐름 (' + harmonyScore + '점)'
+      };
+    }
+
+    function buildDistanceMetrics(D, distInfo) {
+      var forward = ((Number(D) % 27) + 27) % 27;
+      var reverse = (27 - forward) % 27;
+      var shortest = Math.min(forward, reverse);
+      var tensionBand = shortest <= 1 ? '초밀착' : (shortest <= 4 ? '근접' : (shortest <= 10 ? '완충' : '원심'));
+      return {
+        forwardDistance: forward,
+        reverseDistance: reverse,
+        shortestDistance: shortest,
+        tier: (distInfo && distInfo.tier) || '',
+        tensionBand: tensionBand,
+        resonanceCode: 'R' + ((forward % 9) + 1) + '-' + String((distInfo && distInfo.tier) || 'mid').toUpperCase()
+      };
+    }
+
+    function buildRoleActionGuide(rel, distInfo, D) {
+      var typeText = String((rel && (rel.typeLabel || rel.type)) || '');
+      var nearHint = (distInfo && (distInfo.tier === 'near' || distInfo.tier === 'same'))
+        ? '속도보다 회복 루틴을 먼저 합의하세요.'
+        : '정기 점검 대화로 리듬 편차를 줄이세요.';
+      var meAction = '핵심 감정을 문장으로 먼저 공유하세요.';
+      var otherAction = '상대 반응을 요약 확인한 뒤 결론을 내리세요.';
+      var resetLine = '갈등 직후 24시간 내 감정-사실-합의 순으로 재접속하세요.';
+
+      if (typeText.indexOf('안·괴') !== -1 || typeText.indexOf('안괴') !== -1) {
+        var role = rel && rel.ankaiRole;
+        var meRole = role && role.me ? role.me : '포지션';
+        var otherRole = role && role.other ? role.other : '포지션';
+        meAction = '나(' + meRole + ')는 감정 급등 시 결론 유예를 선언하세요.';
+        otherAction = '상대(' + otherRole + ')는 경계선 요청을 즉시 수용하세요.';
+        resetLine = '강한 파동 구간에서는 비난 대신 규칙 문장을 먼저 읽고 대화를 시작하세요.';
+      } else if (typeText.indexOf('영친') !== -1) {
+        meAction = '편안함 속에서도 주간 성장 주제를 하나 고정하세요.';
+        otherAction = '감사 표현을 구체 행동으로 환원해 신뢰를 누적하세요.';
+      } else if (typeText.indexOf('우쇠') !== -1) {
+        meAction = '불편을 미루지 말고 짧은 체크인으로 풀어내세요.';
+        otherAction = '정서 안정 신호를 자주 보내 관계 피로를 낮추세요.';
+      } else if (typeText.indexOf('성위') !== -1) {
+        meAction = '역할과 감정 시간을 분리해 피로 누적을 막으세요.';
+        otherAction = '목표 진행률보다 감정 온도를 먼저 확인하세요.';
+      }
+
+      if (Number(D) % 2 === 0) {
+        resetLine += ' 짝수 거리 구간이라 합의 후 반등 속도가 빠른 편입니다.';
+      }
+
+      return {
+        meAction: meAction,
+        otherAction: otherAction,
+        resetLine: resetLine + ' ' + nearHint
+      };
+    }
+
+    function buildStrengthShadowMap(myIdx, partnerIdx, relationType) {
+      var me = getCompatProfile(myIdx);
+      var other = getCompatProfile(partnerIdx);
+      var meStrength = (me.strengths && me.strengths[0]) || '현실 대응력';
+      var meShadow = (me.shadows && me.shadows[0]) || '과잉 해석';
+      var otherStrength = (other.strengths && other.strengths[0]) || '감정 회복력';
+      var otherShadow = (other.shadows && other.shadows[0]) || '회피 반응';
+      var typeText = String(relationType || '');
+      var complementSummary = '나의 ' + meStrength + '이 상대의 ' + otherShadow + '를 완충하고, 상대의 ' + otherStrength + '이 나의 ' + meShadow + '를 정리합니다.';
+
+      if (typeText.indexOf('안·괴') !== -1 || typeText.indexOf('안괴') !== -1) {
+        complementSummary = '강점은 빠른 변화에 유리하지만, 그림자 버튼이 눌리면 소모가 커집니다. 강점 사용 시점을 합의하면 보완 효과가 커집니다.';
+      }
+
+      return {
+        me: { strength: meStrength, shadow: meShadow },
+        other: { strength: otherStrength, shadow: otherShadow },
+        complementSummary: complementSummary
+      };
+    }
+
+    function buildRelationVariant(D, distInfo, rel) {
+      var type = String((rel && (rel.typeLabel || rel.type)) || '숙요').replace(/\s+/g, ' ').trim();
+      var lane = D === 0 ? 'MIRROR' : (D % 3 === 0 ? 'TRIAD' : (D % 2 === 0 ? 'DUAL' : 'PULSE'));
+      var tier = String((distInfo && distInfo.tier) || 'middle').toUpperCase();
+      return type + ' · ' + tier + '-' + lane + '-D' + D;
+    }
+
+    function buildCompatibilityIndex(rel, distInfo, elementHarmony, D) {
+      var score = Number(rel && rel.score) || 0;
+      var temp = Number(rel && rel.temperature) || 0;
+      var mg = Number(rel && rel.magnetism) || 0;
+      var harmony = Number(elementHarmony && elementHarmony.harmonyScore) || 70;
+      var shortest = Number(distInfo && distInfo.raw);
+      if (!Number.isFinite(shortest)) shortest = Math.min(((Number(D) % 27) + 27) % 27, (27 - (((Number(D) % 27) + 27) % 27)) % 27);
+
+      var typeText = String((rel && (rel.typeLabel || rel.type)) || '');
+      var volatility = 0;
+      if (typeText.indexOf('안·괴') !== -1 || typeText.indexOf('안괴') !== -1) volatility = 8;
+      else if (typeText.indexOf('업') !== -1 || typeText.indexOf('태') !== -1) volatility = 5;
+      else if (typeText.indexOf('영친') !== -1) volatility = -3;
+
+      var distancePenalty = shortest * 1.6;
+      var seedAdjust = ((Number(D) * 13 + 7) % 9) - 4;
+      var raw = score * 0.42 + temp * 0.24 + mg * 0.20 + harmony * 0.14 - distancePenalty - volatility + seedAdjust;
+      return clampCompat(raw, 25, 99);
+    }
+
+    function buildAdvancedCompatMetrics(myIdx, partnerIdx, rel, distInfo, D) {
+      var distanceMetrics = buildDistanceMetrics(D, distInfo);
+      var elementHarmony = buildElementHarmony(myIdx, partnerIdx, rel && (rel.typeLabel || rel.type));
+      var roleActionGuide = buildRoleActionGuide(rel, distInfo, D);
+      var strengthShadowMap = buildStrengthShadowMap(myIdx, partnerIdx, rel && (rel.typeLabel || rel.type));
+      var compatibilityIndex = buildCompatibilityIndex(rel, distInfo, elementHarmony, D);
+      var relationVariant = buildRelationVariant(D, distInfo, rel);
+
+      return {
+        compatibilityIndex: compatibilityIndex,
+        distanceMetrics: distanceMetrics,
+        roleActionGuide: roleActionGuide,
+        elementHarmony: elementHarmony,
+        strengthShadowMap: strengthShadowMap,
+        relationVariant: relationVariant
+      };
+    }
+
     function archiveVariantByState(base, D) {
       var score = Number(base && base.score) || 0;
       var temp = Number(base && base.temperature) || 0;
@@ -4994,7 +5220,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     }
 
     // 관계 데이터 산출
-    function resolve(D, distInfo) {
+    function resolve(D, distInfo, context) {
       var base = {};
       var tier = distInfo.tier;
 
@@ -5179,7 +5405,25 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         };
       }
 
-      return applyArchiveVariance(base, D);
+      var resolved = applyArchiveVariance(base, D);
+      var myIdx = context && context.myIdx != null ? syWheelNormalizeIndex(context.myIdx) : null;
+      var partnerIdx = context && context.partnerIdx != null ? syWheelNormalizeIndex(context.partnerIdx) : null;
+
+      if (myIdx != null && partnerIdx != null) {
+        var metrics = buildAdvancedCompatMetrics(myIdx, partnerIdx, resolved, distInfo, D);
+        resolved.compatibilityIndex = metrics.compatibilityIndex;
+        resolved.distanceMetrics = metrics.distanceMetrics;
+        resolved.roleActionGuide = metrics.roleActionGuide;
+        resolved.elementHarmony = metrics.elementHarmony;
+        resolved.strengthShadowMap = metrics.strengthShadowMap;
+        resolved.relationVariant = metrics.relationVariant;
+      } else {
+        resolved.compatibilityIndex = clampCompat(resolved.score, 25, 99);
+        resolved.distanceMetrics = buildDistanceMetrics(D, distInfo);
+        resolved.relationVariant = buildRelationVariant(D, distInfo, resolved);
+      }
+
+      return resolved;
     }
 
     return { resolve: resolve, calcDistance: calcDistance, tempLabel: tempLabel, ankaiRole: ankaiRole, magnetism: magnetism, visualTheme: visualTheme };
@@ -5374,7 +5618,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     var D = (tIdx - myIdx + 27) % 27;
     var distInfo = SukuyoCompatEngine.calcDistance(D);
-    var rel = SukuyoCompatEngine.resolve(D, distInfo);
+    var rel = SukuyoCompatEngine.resolve(D, distInfo, { myIdx: myIdx, partnerIdx: tIdx });
     var relationStory = null;
     try {
       relationStory = buildSukuyoRelationStory(rel, distInfo);
@@ -5386,6 +5630,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       : ((rel.advantages && rel.advantages[0] && rel.advantages[0].text) ? rel.advantages[0].text : '서로의 리듬을 맞추면 인연의 결이 더 또렷해집니다.');
     var tempInfo = SukuyoCompatEngine.tempLabel(rel.temperature);
     var scoreColor = rel.score >= 80 ? '#2ed573' : (rel.score >= 55 ? '#f39c12' : '#ff4757');
+    var compatibilityIndex = Number(rel.compatibilityIndex || rel.score || 0);
+    var distanceMetrics = rel.distanceMetrics || { forwardDistance: D, reverseDistance: (27 - D) % 27, shortestDistance: distInfo.raw || 0, resonanceCode: '', tensionBand: '' };
+    var roleGuide = rel.roleActionGuide || {};
+    var elementHarmony = rel.elementHarmony || {};
+    var strengthShadowMap = rel.strengthShadowMap || {};
 
     window._syLastCompat = {
       myIdx: syWheelNormalizeIndex(myIdx),
@@ -5396,7 +5645,13 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       temperature: rel.temperature || 0,
       score: rel.score || 0,
       magnetism: rel.magnetism || 0,
-      stamp: rel.stamp || ''
+      stamp: rel.stamp || '',
+      compatibilityIndex: compatibilityIndex,
+      distanceMetrics: distanceMetrics,
+      roleActionGuide: roleGuide,
+      elementHarmony: elementHarmony,
+      strengthShadowMap: strengthShadowMap,
+      relationVariant: rel.relationVariant || ''
     };
     try {
       var _wheelState = window._syWheelState;
@@ -5429,9 +5684,19 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         + '<div style="text-align:center;background:rgba(0,0,0,0.2);border-radius:8px;padding:8px 4px;"><div style="font-size:0.65rem;color:#888;margin-bottom:2px;">인연 온도</div><div style="font-size:1.6rem;font-weight:900;color:' + tempInfo.color + ';">' + rel.temperature + '°</div></div>'
         + '<div style="text-align:center;background:rgba(0,0,0,0.2);border-radius:8px;padding:8px 4px;"><div style="font-size:0.65rem;color:#888;margin-bottom:2px;">관계 유형</div><div style="font-size:0.72rem;font-weight:700;color:#a29bfe;line-height:1.3;margin-top:2px;">' + rel.icon + ' ' + (rel.typeLabel || rel.type).slice(0, 12) + '</div></div>'
       + '</div>'
+      + '<div style="background:rgba(13,16,26,0.55);border:1px solid rgba(162,155,254,0.22);border-radius:8px;padding:9px 10px;margin-bottom:8px;line-height:1.65;color:#dbeafe;font-size:0.78rem;">'
+        + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;">'
+          + '<span style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.32);padding:2px 8px;border-radius:14px;">궁합 지수 ' + compatibilityIndex + '</span>'
+          + '<span style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.32);padding:2px 8px;border-radius:14px;">거리 A→B ' + distanceMetrics.forwardDistance + ' / B→A ' + distanceMetrics.reverseDistance + '</span>'
+        + '</div>'
+        + '<div>🧭 역할 가이드: ' + (roleGuide.meAction || '역할 기반 조율이 필요합니다.') + '</div>'
+        + '<div>🧪 오행 합: ' + (elementHarmony.summary || '오행 균형 데이터를 계산 중입니다.') + '</div>'
+        + '<div>🧩 강점-그림자: ' + (strengthShadowMap.complementSummary || '서로의 장단점 보완 포인트를 확인해 보세요.') + '</div>'
+      + '</div>'
       + '<div style="font-size:0.82rem;color:#dfe6e9;line-height:1.7;background:rgba(0,0,0,0.15);padding:10px 12px;border-radius:8px;word-break:keep-all;">'
         + '<strong style="color:#a29bfe;">📜 ' + rel.stamp + '</strong><br>'
         + '<strong style="color:#f5d0fe;">관계 한 줄:</strong> ' + relationOneLine + '<br>'
+        + (rel.relationVariant ? ('<strong style="color:#93c5fd;">계산 시그니처:</strong> ' + rel.relationVariant + '<br>') : '')
         + (rel.advantages && rel.advantages[0] ? rel.advantages[0].icon + ' ' + rel.advantages[0].text : '')
       + '</div>';
   };
@@ -5601,18 +5866,26 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var relCopy = SY_RELATION_STORY_COPY[relKey] || SY_RELATION_STORY_COPY.default;
     var distCopy = SY_DISTANCE_STORY_COPY[(distInfo && distInfo.tier) || 'default'] || SY_DISTANCE_STORY_COPY.default;
     var roleLine = '';
+    var guideLine = '';
+    var variantLine = '';
     if (rel && rel.ankaiRole) {
       roleLine = ' 현재 포지션은 나 ' + rel.ankaiRole.me + ', 상대 ' + rel.ankaiRole.other + ' 흐름입니다.';
+    }
+    if (rel && rel.roleActionGuide && rel.roleActionGuide.resetLine) {
+      guideLine = ' 조율 힌트: ' + rel.roleActionGuide.resetLine;
+    }
+    if (rel && rel.relationVariant) {
+      variantLine = ' 계산 시그니처: ' + rel.relationVariant + '.';
     }
 
     return {
       relationBadge: relCopy.label + ' - ' + relCopy.badgeDesc,
       distanceBadge: distCopy.label + ' - ' + distCopy.badgeDesc,
-      lead: relCopy.lead,
+      lead: relCopy.lead + (variantLine ? ' ' + variantLine : ''),
       stages: [
         { icon: '✨', title: '첫 만남의 끌림', text: relCopy.firstMeet + ' ' + distCopy.firstMeetAddon },
         { icon: '🌙', title: '관계의 발전 양상', text: relCopy.development + ' ' + distCopy.developmentAddon },
-        { icon: '🧭', title: '주의할 점과 극복법', text: relCopy.caution + ' ' + distCopy.cautionAddon + roleLine }
+        { icon: '🧭', title: '주의할 점과 극복법', text: relCopy.caution + ' ' + distCopy.cautionAddon + roleLine + guideLine }
       ]
     };
   }
@@ -6243,13 +6516,20 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           let distInfo, rel, tempInfo;
           try {
               distInfo = SukuyoCompatEngine.calcDistance(D);
-              rel     = SukuyoCompatEngine.resolve(D, distInfo);
+              rel     = SukuyoCompatEngine.resolve(D, distInfo, { myIdx: myIdx, partnerIdx: tIdx });
               tempInfo = SukuyoCompatEngine.tempLabel(rel.temperature);
           } catch(_ce2) {
               ld.style.display = 'none';
               window._sy3Running = false;
               alert('인연 분석 중 오류가 발생했습니다. 다시 시도해주세요.'); return;
           }
+
+            const compatibilityIndex = Number(rel.compatibilityIndex || rel.score || 0);
+            const distanceMetrics = rel.distanceMetrics || { forwardDistance: D, reverseDistance: (27 - D) % 27, shortestDistance: distInfo.raw || 0, resonanceCode: '', tensionBand: '' };
+            const roleGuide = rel.roleActionGuide || {};
+            const elementHarmony = rel.elementHarmony || {};
+            const strengthShadowMap = rel.strengthShadowMap || {};
+            const relationVariant = rel.relationVariant || '';
 
           window._syLastCompat = {
             myIdx: myIdx,
@@ -6261,6 +6541,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             score: rel.score || 0,
             magnetism: rel.magnetism || 0,
             stamp: rel.stamp || '',
+            compatibilityIndex: compatibilityIndex,
+            distanceMetrics: distanceMetrics,
+            roleActionGuide: roleGuide,
+            elementHarmony: elementHarmony,
+            strengthShadowMap: strengthShadowMap,
+            relationVariant: relationVariant,
             partnerGender: partnerGenderLabel
           };
           try {
@@ -6281,6 +6567,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           const palette = rel.palette || ['#ff6b81','#ff4757'];
           const gradColor = 'linear-gradient(135deg, ' + palette[0] + ', ' + palette[1] + ')';
           const mgVal = rel.magnetism || 60;
+          const compatIndexColor = compatibilityIndex >= 85 ? '#34d399' : (compatibilityIndex >= 70 ? '#fbbf24' : '#fb7185');
           const relationStory = buildSukuyoRelationStory(rel, distInfo);
           const relationStageCards = (relationStory.stages || []).map(function(stage, idx) {
             var tint = idx === 0 ? 'rgba(125,211,252,0.11)' : (idx === 1 ? 'rgba(196,181,253,0.11)' : 'rgba(251,146,60,0.11)');
@@ -6346,6 +6633,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                 <span style="background:rgba(59,130,246,0.2); border:1px solid rgba(59,130,246,0.45); padding:3px 10px; border-radius:20px; color:#bfdbfe;">상대 성별: ${partnerGenderLabel}</span>
                 <span style="background:rgba(251,191,36,0.2); border:1px solid rgba(251,191,36,0.45); padding:3px 10px; border-radius:20px; color:#fde68a;">${relationStory.distanceBadge}</span>
                 <span style="background:rgba(196,181,253,0.2); border:1px solid rgba(196,181,253,0.45); padding:3px 10px; border-radius:20px; color:#e9d5ff;">${relationStory.relationBadge}</span>
+                ${relationVariant ? '<span style="background:rgba(147,197,253,0.18); border:1px solid rgba(147,197,253,0.45); padding:3px 10px; border-radius:20px; color:#dbeafe;">' + relationVariant + '</span>' : ''}
               </div>
             </div>
 
@@ -6375,6 +6663,28 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                   <div style="font-size:0.65rem; color:#888; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;">자력(磁力)</div>
                   <div style="font-size:2.2rem; font-weight:900; color:${th.color1}; line-height:1;">${mgVal}</div>
                   <div style="font-size:0.62rem; color:#555; margin-top:2px;">Magnetism</div>
+                </div>
+              </div>
+
+              <div style="margin-bottom:16px;background:rgba(15,23,42,0.48);border:1px solid rgba(147,197,253,0.28);border-radius:12px;padding:11px 12px;">
+                <div style="font-size:0.74rem;color:#93c5fd;letter-spacing:0.08em;text-transform:uppercase;font-weight:800;margin-bottom:8px;">정밀 궁합 확장 지표</div>
+                <div style="display:grid;grid-template-columns:1fr;gap:8px;">
+                  <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;background:rgba(2,6,23,0.45);border:1px solid rgba(52,211,153,0.25);border-radius:10px;padding:8px 9px;">
+                    <span style="font-size:0.79rem;color:#dbeafe;">궁합 지수</span>
+                    <strong style="font-size:1.05rem;color:${compatIndexColor};">${compatibilityIndex}</strong>
+                  </div>
+                  <div style="background:rgba(2,6,23,0.45);border:1px solid rgba(125,211,252,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#dbeafe;line-height:1.6;">
+                    📏 거리 정밀값: A→B ${distanceMetrics.forwardDistance} / B→A ${distanceMetrics.reverseDistance} / 최단 ${distanceMetrics.shortestDistance} · ${distanceMetrics.tensionBand || ''} ${distanceMetrics.resonanceCode ? '(' + distanceMetrics.resonanceCode + ')' : ''}
+                  </div>
+                  <div style="background:rgba(2,6,23,0.45);border:1px solid rgba(196,181,253,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#e9d5ff;line-height:1.6;">
+                    🧭 역할 액션: ${roleGuide.meAction || '나의 역할 문장을 먼저 합의하세요.'}<br>${roleGuide.otherAction || '상대의 역할 반응을 확인하세요.'}
+                  </div>
+                  <div style="background:rgba(2,6,23,0.45);border:1px solid rgba(251,191,36,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#fde68a;line-height:1.6;">
+                    🧪 오행 합: ${elementHarmony.summary || '오행 조합 데이터를 계산 중입니다.'}
+                  </div>
+                  <div style="background:rgba(2,6,23,0.45);border:1px solid rgba(248,113,113,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#fecaca;line-height:1.6;">
+                    🧩 강점-그림자 보완: ${strengthShadowMap.complementSummary || '장점과 그림자 보완 포인트를 설정해 보세요.'}
+                  </div>
                 </div>
               </div>
 

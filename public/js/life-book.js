@@ -11,19 +11,19 @@
   var LIFEBOOK_API_BASE_CANDIDATES = ['/api/premium/saju/life-book', '/api/lifebook'];
 
   var CHAPTER_DEFINITIONS = [
-    { index: 1, key: 'chapter_01_origin', title: '🌌 사주 원국 완전 해설 — 팔자 8글자의 비밀', subtitle: '천간·지지·일간·월지로 삶의 기본 구조를 해독' },
-    { index: 2, key: 'chapter_02_blueprint', title: '🏛️ 나의 설계도 — 월지·일간·조후와 기질의 뿌리', subtitle: '타고난 반응 방식과 생존 전략의 뿌리' },
-    { index: 3, key: 'chapter_03_hidden_weapon', title: '⚔️ 숨겨진 무기 — 용신·희신과 나만의 필살기', subtitle: '살리는 기운과 과잉 리스크를 행동 전략으로 번역' },
-    { index: 4, key: 'chapter_04_daewoon', title: '🌀 대운 정밀 분석 — 인생의 큰 파도', subtitle: '10년 운의 흐름과 전환 구간의 타이밍 분석' },
-    { index: 5, key: 'chapter_05_vocation', title: '👑 격국과 사회적 소명 — 나의 성공 방정식', subtitle: '사회적 역할·성취 방식·커리어 설계' },
-    { index: 6, key: 'chapter_06_relationship_strategy', title: '🤝 관계의 전략 — 인연의 법칙과 파트너십', subtitle: '사람을 읽고 관계를 지키는 실전 운영법' },
-    { index: 7, key: 'chapter_07_love_marriage', title: '💑 연애·결혼 완전 분석 — 사주가 말하는 나의 사랑', subtitle: '배우자궁·십성 균형 기반의 사랑 설계' },
-    { index: 8, key: 'chapter_08_wealth_career', title: '💰 재물·직업 완전 전략 — 부의 그릇을 키우는 천기', subtitle: '수익 구조·직업 선택·장기 자산 전략' },
-    { index: 9, key: 'chapter_09_health_energy', title: '🏥 건강·심신 에너지 완전 분석 — 오행으로 보는 회복 지도', subtitle: '오행 균형으로 읽는 회복 루틴과 에너지 관리' },
-    { index: 10, key: 'chapter_10_shadow', title: '🧠 마음의 그림자 — 약점, 트라우마, 반복되는 인생 패턴', subtitle: '반복되는 감정·행동 패턴을 성장 자원으로 전환' },
-    { index: 11, key: 'chapter_11_turning_points', title: '🧭 인생의 전환점 — 세운·대운·원국이 만나는 시기', subtitle: '현재와 향후 3년의 기회/주의 타이밍' },
-    { index: 12, key: 'chapter_12_practical_strategy', title: '🔮 내 운명을 바꾸는 실전 전략 — 삶의 사용 설명서', subtitle: '일·돈·관계·멘탈을 바꾸는 실행형 전략' },
-    { index: 13, key: 'chapter_13_final_letter', title: '📜 운명의 서문과 마지막 편지 — 나에게 보내는 인생 선언문', subtitle: '핵심 메시지 통합과 인생 선언문' }
+    { index: 1, key: 'chapter_01_original_chart', title: 'Chapter 1. 사주 원국 완전 해설 — 팔자 8글자의 비밀', subtitle: '년주·월주·일주·시주와 천간·지지 구조 해석' },
+    { index: 2, key: 'chapter_02_core_temperament', title: 'Chapter 2. 나의 본질 — 일간·월지·조후와 기질의 뿌리', subtitle: '일간 본질·월지 영향·조후·강약의 통합 진단' },
+    { index: 3, key: 'chapter_03_five_elements_balance', title: 'Chapter 3. 오행 밸런스 — 목화토금수로 읽는 인생의 에너지 지도', subtitle: '오행 분포/과부족 분석과 보완 전략' },
+    { index: 4, key: 'chapter_04_ten_gods_structure', title: 'Chapter 4. 십성 구조 — 나의 욕망, 관계, 사회성의 작동 방식', subtitle: '비겁·식상·재성·관성·인성의 동력 분석' },
+    { index: 5, key: 'chapter_05_geokguk_calling', title: 'Chapter 5. 격국과 사회적 소명 — 나의 성공 방정식', subtitle: '격국 판단과 사회적 역할·성공 조건' },
+    { index: 6, key: 'chapter_06_yongshin', title: 'Chapter 6. 용신·희신·기신 — 나만의 필살기와 피해야 할 독', subtitle: '용신 판단 근거와 직업·관계·돈 적용' },
+    { index: 7, key: 'chapter_07_hapchung', title: 'Chapter 7. 합충형파해 — 인생이 흔들리는 지점과 전환점', subtitle: '합·충·형·파·해로 읽는 변화와 대응법' },
+    { index: 8, key: 'chapter_08_wealth_career', title: 'Chapter 8. 재물과 직업 — 돈이 되는 재능과 천직의 구조', subtitle: '재물운 구조·직업운 구조·장기 수익화 전략' },
+    { index: 9, key: 'chapter_09_relationships', title: 'Chapter 9. 관계와 인연 — 사랑, 가족, 귀인의 법칙', subtitle: '연애/배우자운·가족 영향·귀인운 운용 전략' },
+    { index: 10, key: 'chapter_10_health_energy', title: 'Chapter 10. 건강과 심신 에너지 — 오행으로 보는 회복 설계', subtitle: '의학 진단이 아닌 생활 리듬 기반 회복 설계' },
+    { index: 11, key: 'chapter_11_daeun', title: 'Chapter 11. 대운 정밀 분석 — 인생의 큰 파도', subtitle: '초년·청년·현재·다음 대운의 흐름과 장기 전략' },
+    { index: 12, key: 'chapter_12_seun_roadmap', title: 'Chapter 12. 세운·월운 로드맵 — 올해와 가까운 미래의 실행 전략', subtitle: '분기별·월별 Go/Hold/Retreat 로드맵' },
+    { index: 13, key: 'chapter_13_master_plan', title: 'Chapter 13. 인생 설계도 총결산 — 사주 거장의 마스터플랜 봉서', subtitle: '핵심 패턴·성공/관계 전략·최종 봉서' }
   ];
   var CHAPTER_TITLES = CHAPTER_DEFINITIONS.map(function (chapter) { return chapter.title; });
   var ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII'];
@@ -934,6 +934,10 @@
       setTimeout(function () { URL.revokeObjectURL(url); }, 1200);
       notify('HTML 파일로 다운로드되었습니다. 브라우저에서 열어 인쇄 > PDF 저장을 선택해 주세요.');
     }
+
+    // PDF 저장 흐름이 끝나면 다음 생성을 위해 상태를 초기화한다.
+    resetState();
+    showOnly('lbStartScreen');
   }
 
   function resetState() {
@@ -990,6 +994,11 @@
     document.body.style.overflow = '';
     document.body.classList.remove('lb-modal-open');
     modal.setAttribute('aria-hidden', 'true');
+
+    // 생성 완료 상태를 유지하면 다음 진입에서 이전 결과가 재사용되므로 닫을 때 초기화한다.
+    if (!state.generating && chapterCount() >= TOTAL_CHAPTERS) {
+      resetState();
+    }
   };
 
   window.generateLifeBook = function () {

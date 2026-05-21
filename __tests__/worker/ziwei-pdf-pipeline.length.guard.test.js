@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 
-import { ensureZiweiChapterMarkdownLength } from "../../worker/lib/ziwei-pdf-pipeline.js";
+import { buildZiweiGeminiPrompt, ensureZiweiChapterMarkdownLength } from "../../worker/lib/ziwei-pdf-pipeline.js";
 
 function makeContext() {
   return {
@@ -36,5 +36,35 @@ describe("ziwei pdf chapter length guard", () => {
     const output = ensureZiweiChapterMarkdownLength(source, makeContext(), 4000, 5000);
     expect(output.length).toBeGreaterThanOrEqual(4000);
     expect(output.length).toBeLessThanOrEqual(5000);
+  });
+
+  test("기본/심화 통합 보조 데이터가 있으면 프롬프트에 포함된다", () => {
+    const context = {
+      ...makeContext(),
+      userProfile: { name: "테스터" },
+      stars: { mainStars: ["자미"] },
+      relationships: {},
+      missingSummary: [],
+      knowledgeBase: {},
+      premiumContext: {
+        basicResultSummary: "기본 자미 결과 요약",
+        chapterSignals: [{ palaceKey: "ming", coreStars: ["자미"] }],
+      },
+    };
+
+    const { prompt } = buildZiweiGeminiPrompt({
+      chapter: {
+        id: "core",
+        title: "명궁 핵심 설계도",
+        goal: "핵심 성향 해석",
+        sections: ["명궁 원형", "실행 전략"],
+      },
+      context,
+      previousChapterSummaries: [],
+    });
+
+    expect(prompt).toContain("[기본/심화 통합 보조 데이터]");
+    expect(prompt).toContain("basicResultSummary");
+    expect(prompt).toContain("chapterSignals");
   });
 });

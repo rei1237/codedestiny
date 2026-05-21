@@ -49,7 +49,7 @@ const __lazyActionLoaders = {
   openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260414-tarot-qualityfix2'),
   openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260414-tarot-qualityfix2'),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
-  gotoZiweiPremium: () => __loadScriptOnce('/js/ziwei-book.js?v=build-1779337728306'),
+  gotoZiweiPremium: () => __loadScriptOnce('/js/ziwei-book.js?v=build-1779338388848'),
   gotoAstrologyPremium: () => __loadScriptOnce('/js/astro-book.js?v=20260409-v1'),
   gotoSukuyoPremium: () => __loadScriptOnce('/js/sukuyo-book.js?v=20260409-v1'),
   gotoVedicPremium: () => __loadScriptOnce('/js/vedic-book.js?v=20260409-v1'),
@@ -60,7 +60,7 @@ const __lazyActionLoaders = {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
   openSajuNewYearModal: () => __loadScriptOnce('/js/saju-new-year.js?v=build-1779173537370'),
-  openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=20260507-sajuref1'),
+  openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=build-1779338271160'),
   openLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=20260407-sinsal-daewun-fix')
 };
 
