@@ -10733,6 +10733,9 @@ function ziweiMissingMarkers(text, chapter) {
   if (Array.isArray(chapterRule?.includes)) {
     required.push(...chapterRule.includes);
   }
+  if (Array.isArray(chapterRule?.mustCover)) {
+    required.push(...chapterRule.mustCover);
+  }
   if (chapter === 13) {
     required.push("| 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 |");
     required.push("| 1~7일 |  |  |  |  |");
@@ -10927,6 +10930,9 @@ function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotic
   const topicChecklist = Array.isArray(chapterRule?.includes) && chapterRule.includes.length
     ? chapterRule.includes.map((item) => `- ${item}: 명반 데이터 근거로 구체 해석합니다.`).join("\n")
     : "- 챕터 핵심 항목을 명반 근거와 함께 해석합니다.";
+  const mustCoverChecklist = Array.isArray(chapterRule?.mustCover) && chapterRule.mustCover.length
+    ? chapterRule.mustCover.map((item) => `- ${item}: 본문에 직접 반영합니다.`).join("\n")
+    : "";
   const cautionLine = String(chapterRule?.caution || "").trim();
   const intro = chapter === 1
     ? `# ${ZIWEI_REPORT_TITLE}\n\n# ${ZIWEI_PROLOGUE_TITLE}\n**이 명반의 가장 강한 기운은 타고난 책임감과 현실 대응력의 결합입니다.** 삶에서 반복되는 핵심 패턴은 중요한 순간에 스스로를 과도하게 압박한 뒤, 다시 균형을 회복하는 방식으로 나타납니다. 운이 열리는 방식은 큰 결심보다 작은 실행을 꾸준히 쌓을 때이며, 조심해야 할 심리적 함정은 완벽주의와 비교 의식입니다. 이 리포트는 정답을 강요하는 문서가 아니라 선택의 품질을 높이는 안내서입니다. **자미두수는 운명을 고정하는 도구가 아니라, 선택의 질을 높이는 나침반입니다.**\n\n`
@@ -10947,19 +10953,19 @@ function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotic
     : "";
 
   const chapterCategoryMap = {
-    1: ["명궁 주성/보조성/살성", "명궁-신궁 연결", "삼방사정 해석", "자기 운영 개운 루틴"],
-    2: ["형제자매 인연", "동료 협업 구조", "경쟁자 대응", "관계 거리 조절"],
-    3: ["연애 성향", "배우자상 매칭", "반복 갈등 패턴", "관계 회복 루틴"],
-    4: ["자녀/후배 인연", "창작 결실 구조", "돌봄 방식", "책임감 운영"],
-    5: ["재백궁 수익 구조", "소비 누수 구간", "투자/저축 균형", "자산 증식 실행안"],
-    6: ["체력 리듬", "생활 습관", "스트레스 신체화", "회복 전략"],
-    7: ["사회적 페르소나", "이동/여행/해외운", "귀인 접점", "이미지 개운"],
-    8: ["친구/인맥 흐름", "귀인/소인 분별", "구설 예방", "관계 회복"],
-    9: ["직업 적성", "조직/사업형", "리더십", "업무 루틴 개운"],
-    10: ["주거 안정성", "부동산 타이밍", "공간 풍수", "가정 환경 관리"],
-    11: ["내면 안정", "스트레스 해소", "심상화/명상", "감정 정화"],
-    12: ["부모/윗사람 인연", "권위자 관계", "후원자 연결", "갈등 완화"],
-    13: ["12궁 종합 결론", "1년 전략", "3년 전략", "90일 실행"],
+    1: ["명궁 기본 의미", "명궁 주성/보조성/살성", "명궁 사화", "명궁 삼방사정"],
+    2: ["신궁 기본 의미", "신궁 위치", "명궁-신궁 관계", "잠재 무기/성장 전략"],
+    3: ["복덕궁 기본 의미", "복덕궁 주성", "복덕-명궁 차이", "복덕-질액 회복"],
+    4: ["천이궁 기본 의미", "천이궁 주성/사화", "명궁-천이궁 대궁", "이동/이미지 전략"],
+    5: ["관록궁 기본 의미", "관록궁 주성", "관록-명궁/재백궁", "천직 운영 전략"],
+    6: ["재백궁 기본 의미", "재백궁 주성/사화", "재백-관록/복덕", "부의 운영 전략"],
+    7: ["부처궁 기본 의미", "부처궁 주성/사화", "명궁-부처궁", "관계 경계/유지 전략"],
+    8: ["교우궁 기본 의미", "교우궁 주성", "교우-명궁/관록", "귀인/악연 구분"],
+    9: ["전택궁 기본 의미", "전택궁 주성", "전택-복덕/재백", "공간 개선 전략"],
+    10: ["질액궁 기본 의미", "질액궁 주성", "질액-복덕/명궁", "건강 리듬 운영"],
+    11: ["대한 기본 의미", "현재 대한 위치/주성", "이전 대한과 비교", "다음 대한 준비"],
+    12: ["유년 기본 의미", "유년 주성/사화", "분기별 전략", "월별 Go/Hold/Retreat"],
+    13: ["명궁·신궁 통합", "핵심 패턴 5가지", "성공/관계 전략 5가지", "최종 봉서"],
   };
   const chapterCategories = chapterCategoryMap[chapter] || ["핵심 카테고리 1", "핵심 카테고리 2", "핵심 카테고리 3", "핵심 카테고리 4"];
   const palaceDetailText = extractZiweiPalaceDetailFromDataText(dataText);
@@ -10973,6 +10979,8 @@ function buildZiweiFallbackMarkdown(meta, chapter, input, dataText, missingNotic
     chapterHeading,
     "### 필수 포함 항목 점검",
     topicChecklist,
+    mustCoverChecklist ? "### 챕터 필수 커버리지" : "",
+    mustCoverChecklist,
     cautionLine ? `- 주의: ${cautionLine}.` : "",
     "## 1. 이 챕터에서 보는 핵심",
     "- 사용된 궁:",
@@ -11133,6 +11141,15 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
     }
     : null;
   const promptContext = premiumContext ? { ...context, premiumContext } : context;
+  const ziweiDataContext = buildZiweiDataContext(
+    body,
+    input,
+    canonicalZiweiChart,
+    reportType,
+    partnerOverview,
+    dataQuality,
+    ziweiPremiumPayload,
+  );
 
   (Array.isArray(context?.missingSummary) ? context.missingSummary : []).forEach((field) => pushUnique(dataQuality?.missingFields, field));
   (Array.isArray(context?.validation?.warnings) ? context.validation.warnings : []).forEach((warning) => pushUnique(dataQuality?.warnings, warning));
@@ -11203,6 +11220,7 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
 
   let usedFallback = false;
   let chapterJson;
+  let baseMarkdown = "";
   if (!parsed.ok) {
     console.error("[ZiweiPremium][Gemini] parse failed", {
       chapter,
@@ -11218,22 +11236,57 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
       };
     }
     usedFallback = true;
-    chapterJson = createFallbackChapter(chapterSpec, promptContext);
+    chapterJson = sanitizeZiweiChapterJson(createFallbackChapter(chapterSpec, promptContext), chapterSpec);
+    baseMarkdown = buildZiweiFallbackMarkdown(meta, chapter, input, ziweiDataContext.dataText, ziweiDataContext.missingNotice);
   } else {
     chapterJson = sanitizeZiweiChapterJson(parsed.data, chapterSpec);
+    baseMarkdown = buildZiweiChapterMarkdown(chapterJson, chapterSpec, promptContext, chapter === 1);
   }
 
-  const markdown = ensureZiweiChapterMarkdownLength(
-    buildZiweiChapterMarkdown(chapterJson, chapterSpec, promptContext, chapter === 1),
+  let markdown = ensureZiweiChapterMarkdownLength(
+    baseMarkdown,
     promptContext,
     ZIWEI_MIN_CHARS,
     ZIWEI_MAX_CHARS,
   );
 
   const repeatedSentences = detectCrossChapterRepeatedSentences(markdown, previousChapterTexts, 30);
-  const finalText = repeatedSentences.length
+  let finalText = repeatedSentences.length
     ? ensureZiweiChapterMarkdownLength(markdown, promptContext, ZIWEI_MIN_CHARS, ZIWEI_MAX_CHARS)
     : markdown;
+
+  const qualityCheck = validateGeneratedChapters(chapter, finalText);
+  const repeatedInside = detectRepeatedLongSentences(finalText, 30);
+  const repeatedAcross = detectCrossChapterRepeatedSentences(finalText, previousChapterTexts, 30);
+  const qualityFailed = !qualityCheck.isValid || repeatedInside.length > 0 || repeatedAcross.length > 0;
+
+  if (qualityFailed) {
+    if (strictPayloadMode) {
+      return {
+        ok: false,
+        code: "ZIWEI_CHAPTER_QUALITY_FAILED",
+        details: [
+          ...qualityCheck.missing,
+          ...(qualityCheck.tooShort ? ["TOO_SHORT"] : []),
+          ...(qualityCheck.truncated ? ["TRUNCATED"] : []),
+          ...(qualityCheck.banned ? ["BANNED_PHRASE"] : []),
+          ...(qualityCheck.invalidSummaryTable ? ["INVALID_SUMMARY_TABLE"] : []),
+          ...(repeatedInside.length ? ["REPEATED_INSIDE_CHAPTER"] : []),
+          ...(repeatedAcross.length ? ["REPEATED_ACROSS_CHAPTERS"] : []),
+        ],
+      };
+    }
+
+    usedFallback = true;
+    chapterJson = sanitizeZiweiChapterJson(createFallbackChapter(chapterSpec, promptContext), chapterSpec);
+    markdown = ensureZiweiChapterMarkdownLength(
+      buildZiweiFallbackMarkdown(meta, chapter, input, ziweiDataContext.dataText, ziweiDataContext.missingNotice),
+      promptContext,
+      ZIWEI_MIN_CHARS,
+      ZIWEI_MAX_CHARS,
+    );
+    finalText = markdown;
+  }
 
   console.info("[ZiweiPremium][Gemini] chapter end", {
     chapter,
@@ -16651,6 +16704,85 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
   return { ok: true, context, cacheHit: false };
 }
 
+async function recoverPremiumContextOnSessionMiss(request, env, authInfo, body, requestId) {
+  const typePair = resolvePremiumTypePair(
+    body?.reportType || body?.type,
+    body?.featureType || body?.feature || body?.kind,
+  );
+  const reportType = typePair.reportType;
+  const featureType = typePair.featureType;
+  const rawRequestBody = (body?.requestBody && typeof body.requestBody === "object") ? body.requestBody : null;
+
+  if (!reportType || !rawRequestBody) {
+    return { ok: false, recoverable: false };
+  }
+
+  const requestBody = normalizePremiumRequestBodyForPipeline(reportType, rawRequestBody);
+  const tokenFromBody = String(body?.premiumAccessToken || requestBody?.premiumAccessToken || "").trim();
+  const tokenFromCookie = String(cookieValue(request, "cd_premium_access") || "").trim();
+  const tokenFromHeader = String(request.headers.get("x-premium-access-token") || "").trim();
+  const premiumAccessToken = tokenFromBody || tokenFromCookie || tokenFromHeader;
+  const accessRequestBody = premiumAccessToken
+    ? { ...requestBody, premiumAccessToken }
+    : requestBody;
+
+  const access = await requirePremiumReportAccess(env, authInfo.userId, reportType, accessRequestBody);
+  if (!access.ok) {
+    return {
+      ok: false,
+      recoverable: true,
+      status: Number(access.status || 402),
+      data: {
+        ok: false,
+        code: access.code || "PAYMENT_REQUIRED",
+        message: access.message || "프리미엄 결제가 필요합니다.",
+        reportType,
+        featureType,
+        requestId,
+        required: access.required || null,
+      },
+    };
+  }
+
+  const prepared = await createOrReusePremiumReportContext(
+    request,
+    env,
+    authInfo,
+    reportType,
+    featureType,
+    requestBody,
+    requestId,
+  );
+
+  if (!prepared.ok) {
+    return {
+      ok: false,
+      recoverable: true,
+      status: Number(prepared.status || 422),
+      data: {
+        ...(prepared.data || { ok: false, code: "PREMIUM_REPORT_PREPARE_FAILED", message: "세션 복구 prepare 실패" }),
+        requestId,
+      },
+    };
+  }
+
+  const context = prepared.context;
+  context.requestId = String(requestId || context.requestId || "");
+  context.featureType = context.featureType || featureType || REPORT_TYPE_TO_FEATURE_TYPE[context.reportType] || "";
+  context.updatedAt = new Date().toISOString();
+  context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
+  PREMIUM_REPORT_CONTEXT_STORE.set(context.reportSessionId, context);
+  const snapshot = upsertPremiumAnalysisSnapshot(context);
+
+  return {
+    ok: true,
+    recoverable: true,
+    reportSessionId: context.reportSessionId,
+    snapshotId: snapshot?.snapshotId || "",
+    context,
+  };
+}
+
 async function handlePremiumReportPrepare(request, env, authInfo) {
   const body = await readJson(request);
   const requestedRequestId = String(body.requestId || "").trim();
@@ -16806,9 +16938,20 @@ async function handlePremiumReportPreflight(request, env, authInfo) {
     }, { status: 400 });
   }
   const resolved = resolvePremiumContextBySessionOrSnapshot(body.reportSessionId, body.snapshotId);
-  const reportSessionId = resolved.reportSessionId;
-  const snapshotId = resolved.snapshotId;
-  const context = resolved.context;
+  let reportSessionId = resolved.reportSessionId;
+  let snapshotId = resolved.snapshotId;
+  let context = resolved.context;
+
+  if (!reportSessionId || !context) {
+    const recovered = await recoverPremiumContextOnSessionMiss(request, env, authInfo, body, requestId);
+    if (recovered?.ok) {
+      reportSessionId = recovered.reportSessionId;
+      snapshotId = recovered.snapshotId || snapshotId;
+      context = recovered.context;
+    } else if (recovered?.recoverable && recovered?.status && recovered?.data) {
+      return json(recovered.data, { status: Number(recovered.status || 422) });
+    }
+  }
 
   if (!reportSessionId || !context) {
     return json({
@@ -16893,9 +17036,21 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   }
   prunePremiumReportContexts();
   const resolved = resolvePremiumContextBySessionOrSnapshot(body.reportSessionId, body.snapshotId);
-  const reportSessionId = resolved.reportSessionId;
-  const context = resolved.context;
-  const snapshotId = resolved.snapshotId;
+  let reportSessionId = resolved.reportSessionId;
+  let context = resolved.context;
+  let snapshotId = resolved.snapshotId;
+
+  if (!reportSessionId || !context) {
+    const recovered = await recoverPremiumContextOnSessionMiss(request, env, authInfo, body, requestId);
+    if (recovered?.ok) {
+      reportSessionId = recovered.reportSessionId;
+      snapshotId = recovered.snapshotId || snapshotId;
+      context = recovered.context;
+    } else if (recovered?.recoverable && recovered?.status && recovered?.data) {
+      return json(recovered.data, { status: Number(recovered.status || 422) });
+    }
+  }
+
   if (!reportSessionId || !context) {
     return json({
       ok: false,
@@ -17421,9 +17576,21 @@ async function handlePremiumReportRun(request, env, authInfo) {
   }
   prunePremiumReportContexts();
   const resolved = resolvePremiumContextBySessionOrSnapshot(body.reportSessionId, body.snapshotId);
-  const reportSessionId = resolved.reportSessionId;
-  const snapshotId = resolved.snapshotId;
+  let reportSessionId = resolved.reportSessionId;
+  let snapshotId = resolved.snapshotId;
   let context = resolved.context;
+
+  if (!reportSessionId || !context) {
+    const recovered = await recoverPremiumContextOnSessionMiss(request, env, authInfo, body, requestId);
+    if (recovered?.ok) {
+      reportSessionId = recovered.reportSessionId;
+      snapshotId = recovered.snapshotId || snapshotId;
+      context = recovered.context;
+    } else if (recovered?.recoverable && recovered?.status && recovered?.data) {
+      return json(recovered.data, { status: Number(recovered.status || 422) });
+    }
+  }
+
   if (!reportSessionId || !context) {
     return json({
       ok: false,
@@ -17614,9 +17781,21 @@ async function handlePremiumReportPdf(request, env, authInfo) {
   }
   prunePremiumReportContexts();
   const resolved = resolvePremiumContextBySessionOrSnapshot(body.reportSessionId, body.snapshotId);
-  const reportSessionId = resolved.reportSessionId;
-  const snapshotId = resolved.snapshotId;
-  const context = resolved.context;
+  let reportSessionId = resolved.reportSessionId;
+  let snapshotId = resolved.snapshotId;
+  let context = resolved.context;
+
+  if (!reportSessionId || !context) {
+    const recovered = await recoverPremiumContextOnSessionMiss(request, env, authInfo, body, requestId);
+    if (recovered?.ok) {
+      reportSessionId = recovered.reportSessionId;
+      snapshotId = recovered.snapshotId || snapshotId;
+      context = recovered.context;
+    } else if (recovered?.recoverable && recovered?.status && recovered?.data) {
+      return json(recovered.data, { status: Number(recovered.status || 422) });
+    }
+  }
+
   if (!reportSessionId || !context) {
     return json({
       ok: false,
