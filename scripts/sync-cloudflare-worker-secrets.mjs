@@ -242,16 +242,15 @@ function getSecretValue(key) {
   return "";
 }
 
-function putWorkerSecret(key, value) {
-  const command = process.platform === "win32" ? "cmd.exe" : "npx";
-  const commandArgs = process.platform === "win32"
-    ? ["/d", "/s", "/c", `npx wrangler secret put ${key} --name ${workerName} --config worker/wrangler.toml`]
+function runSecretPutCommand(key, value, useVersions = false) {
+  const wranglerArgs = useVersions
+    ? ["wrangler", "versions", "secret", "put", key, "--name", workerName, "--config", "worker/wrangler.toml"]
     : ["wrangler", "secret", "put", key, "--name", workerName, "--config", "worker/wrangler.toml"];
 
-  if (isDryRun) {
-    console.log(`[dry-run] npx wrangler secret put ${key} --name ${workerName} --config worker/wrangler.toml`);
-    return 0;
-  }
+  const command = process.platform === "win32" ? "cmd.exe" : "npx";
+  const commandArgs = process.platform === "win32"
+    ? ["/d", "/s", "/c", `npx ${wranglerArgs.join(" ")}`]
+    : wranglerArgs;
 
   const result = spawnSync(command, commandArgs, {
     input: `${value}\n`,
@@ -261,26 +260,60 @@ function putWorkerSecret(key, value) {
     env: process.env,
   });
 
-  const stdout = String(result.stdout || "");
-  const stderr = String(result.stderr || "");
-  if (stdout) process.stdout.write(stdout);
-  if (stderr) process.stderr.write(stderr);
+  return { result };
+}
 
-  if (result.error) {
-    console.error(`[worker-secrets] Failed to run wrangler for ${key}: ${result.error.message}`);
+function isWorkerLatestVersionGuardError(outputText) {
+  const text = String(outputText || "");
+  return text.includes("latest version of your Worker isn't currently deployed")
+    || (text.includes("Secret edit failed") && text.includes("wrangler versions secret put"));
+}
+
+function isBindingNameInUseError(outputText) {
+  const text = String(outputText || "");
+  return text.includes("Binding name")
+    && text.includes("already in use")
+    && text.includes("code: 10053");
+}
+
+function putWorkerSecret(key, value) {
+  if (isDryRun) {
+    console.log(`[dry-run] npx wrangler secret put ${key} --name ${workerName} --config worker/wrangler.toml`);
+    return 0;
+  }
+
+  const firstTry = runSecretPutCommand(key, value, false);
+  const firstStdout = String(firstTry.result.stdout || "");
+  const firstStderr = String(firstTry.result.stderr || "");
+  if (firstStdout) process.stdout.write(firstStdout);
+  if (firstStderr) process.stderr.write(firstStderr);
+
+  let finalResult = firstTry.result;
+  let mergedOutput = `${firstStdout}\n${firstStderr}`;
+
+  if (finalResult.status !== 0 && isWorkerLatestVersionGuardError(mergedOutput)) {
+    console.warn(`[worker-secrets] ${key}: switching to 'wrangler versions secret put' due to Worker Versions guard.`);
+    const retry = runSecretPutCommand(key, value, true);
+    const retryStdout = String(retry.result.stdout || "");
+    const retryStderr = String(retry.result.stderr || "");
+    if (retryStdout) process.stdout.write(retryStdout);
+    if (retryStderr) process.stderr.write(retryStderr);
+    finalResult = retry.result;
+    mergedOutput = `${retryStdout}\n${retryStderr}`;
+  }
+
+  if (finalResult.error) {
+    console.error(`[worker-secrets] Failed to run wrangler for ${key}: ${finalResult.error.message}`);
     return 1;
   }
 
-  if (result.status !== 0) {
-    const merged = `${stdout}\n${stderr}`;
+  if (finalResult.status !== 0 && isBindingNameInUseError(mergedOutput)) {
     // Wrangler returns this when a key already exists as a non-secret [vars] binding.
-    if (merged.includes("Binding name") && merged.includes("already in use") && merged.includes("code: 10053")) {
-      console.warn(`[worker-secrets] Skipping ${key}: already defined as non-secret binding.`);
-      return 0;
-    }
+    console.warn(`[worker-secrets] Skipping ${key}: already defined as non-secret binding.`);
+    return 0;
   }
 
-  return Number.isInteger(result.status) ? result.status : 1;
+  return Number.isInteger(finalResult.status) ? finalResult.status : 1;
 }
 
 const available = SECRET_KEYS.filter((key) => getSecretValue(key));
