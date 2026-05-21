@@ -13704,6 +13704,79 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 #juyukModalSheet .hl,
 #sukuyoModalSheet .hl,
 #astroModalSheet .hl { background:rgba(251,113,133,.2); color:#fda4af; }
+
+/* ─ 자미두수 12궁 요약 가독성 강화 ─ */
+#ziweiModalSheet .zw-summary-legend {
+  padding: 10px 14px 8px !important;
+  gap: 10px !important;
+  color: rgba(176, 193, 219, 0.95) !important;
+  font-size: 0.76rem !important;
+  line-height: 1.58;
+}
+
+#ziweiModalSheet .zw-summary-cards {
+  padding: 12px 12px 14px !important;
+  gap: 12px !important;
+}
+
+#ziweiModalSheet .zw-summary-card {
+  border-radius: 13px !important;
+  border: 1px solid rgba(148, 163, 184, 0.26) !important;
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.22);
+}
+
+#ziweiModalSheet .zw-summary-card__title {
+  font-size: 0.95rem !important;
+  color: #e9d5ff !important;
+}
+
+#ziweiModalSheet .zw-summary-card__defn {
+  margin-top: 4px !important;
+  color: rgba(148, 163, 184, 0.95) !important;
+  font-size: 0.75rem !important;
+  line-height: 1.5;
+}
+
+#ziweiModalSheet .zw-summary-card__label {
+  margin-top: 10px !important;
+  font-size: 0.8rem !important;
+  font-weight: 700;
+  color: #d8b4fe !important;
+}
+
+#ziweiModalSheet .zw-summary-card__stars {
+  font-size: 0.88rem !important;
+  line-height: 1.82 !important;
+  color: #fde68a !important;
+}
+
+#ziweiModalSheet .zw-summary-card__aux {
+  font-size: 0.79rem !important;
+  line-height: 1.62 !important;
+  color: #cbd5e1 !important;
+}
+
+#ziweiModalSheet .zw-summary-card__summary {
+  margin-top: 4px !important;
+  font-size: 0.9rem !important;
+  line-height: 1.72 !important;
+  color: #e2e8f0 !important;
+  letter-spacing: 0.005em;
+}
+
+#ziweiModalSheet .zw-summary-table-wrap {
+  padding-bottom: 4px;
+}
+
+#ziweiModalSheet .zw-summary-table th {
+  font-size: 0.78rem !important;
+  color: #d8b4fe !important;
+}
+
+#ziweiModalSheet .zw-summary-table td {
+  font-size: 0.82rem !important;
+  line-height: 1.72 !important;
+}
 .hv-reason-item.egen-item { color:#f3c4ff;border-left-color:#d980fa; }
 
 /* 중립 카드 */

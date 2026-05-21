@@ -9937,7 +9937,7 @@ var ZW_GUNG_BRIEF={
   '질액궁':'체력/컨디션의 약점과 수호 포인트를 보여줍니다.',
   '천이궁':'이동, 환경 변화, 외부 무대에서의 적응력을 보여줍니다.',
   '노복궁':'동료·부하·협력자와 함께 일하는 방식을 보여줍니다.',
-  '관록궁':'커리어 방향, 사회적 목표, 성취 천기를 보여줍니다.',
+  '관록궁':'커리어 방향, 사회적 목표, 성취 타이밍을 보여줍니다.',
   '전택궁':'주거·자산·생활 기반을 안정시키는 성향을 보여줍니다.',
   '복덕궁':'멘탈 회복력, 마음의 여유, 행복 감각을 보여줍니다.',
   '부모궁':'윗사람·가족·문서 인연에서의 흐름을 보여줍니다.'
@@ -10024,23 +10024,21 @@ function buildZwSummaryTableHtml(palace) {
     return '함';
   }
   function genSummary(gungName,mainMeta,zhi,sh,auxStars){
-    if(!mainMeta.length) return '공궁(空宮) — 대궁 차성 차용. 변통·적응력은 강하지만 주체성 축을 의식적으로 세우는 것이 핵심 과제입니다.';
+    if(!mainMeta.length) return '공궁(空宮)입니다. 주변 환경의 영향이 큰 구간이니, 기준을 먼저 정하고 속도를 조절하세요.';
     var star=mainMeta[0].name;
     var kw=ZW_STAR_KW[star]||star;
     var tier=calcStrengthTier(mainMeta,zhi);
     var isDual=(mainMeta.length>1);
-    var brightPart={묘:'강한 발현',왕:'최상급 발현',평:'표준 발현',리:'중간 발현',함:'제약 발현'}[tier]||'작동';
+    var brightPart={묘:'매우 강하게 작동',왕:'강하게 작동',평:'안정적으로 작동',리:'약하게 작동',함:'제약이 큰 상태'}[tier]||'작동';
     var dualNote=isDual?' + '+(ZW_STAR_KW[mainMeta[1].name]||mainMeta[1].name):'';
-    var hasBorrowed=mainMeta.some(function(m){ return m.isBorrowed; });
     var advPart='';
-    if(sh==='화기') advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' — 손실·구설·장애 주의. 계약·말실수·과속 확장을 특히 경계하세요.';
-    else if(sh==='화록') advPart=(tier==='묘'||tier==='왕')?' ☛ '+ZW_GUNG_DEF[gungName]+' 대길. 재물·인연 유입이 빠른 구간입니다.':' ☛ '+ZW_GUNG_DEF[gungName]+' 화록 보정 — 부침 후 이익 회수 가능성이 큽니다.';
-    else if(sh==='화권') advPart=(tier==='묘'||tier==='왕')?' ☛ '+ZW_GUNG_DEF[gungName]+' 권위·주도권 상승. 리더십을 전면에 두면 유리합니다.':' ☛ '+ZW_GUNG_DEF[gungName]+' 화권 보정 — 실력은 인정되나 독단은 감점입니다.';
-    else if(sh==='화과') advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' 명성·시험운 길. 학술·자격 분야 빛남';
-    else if(tier==='묘'||tier==='왕') advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' 자력 발휘 구간. 능동적 주도 천기가 유효합니다.';
-    else if(tier==='리' || tier==='함') advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' 에너지 손실 주의. 무리한 확장보다 복구-정비 천기가 필요합니다.';
-    else advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' 안정 유지. 강제 확장 불필요';
-    if(hasBorrowed) advPart += ' <span style="color:#facc15">(차성 차용궁: ◎(묘)→○(왕), ○(왕)→▲(평), ▲(평)→△(리))</span>';
+    if(sh==='화기') advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' 영역에서 실수 비용이 커집니다. 계약·말·과속 결정을 특히 조심하세요.';
+    else if(sh==='화록') advPart=(tier==='묘'||tier==='왕')?' ☛ '+ZW_GUNG_DEF[gungName]+' 영역에서 성과와 인연 유입이 빠른 시기입니다.':' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 천천히 쌓으면 이익 회수 가능성이 큽니다.';
+    else if(sh==='화권') advPart=(tier==='묘'||tier==='왕')?' ☛ '+ZW_GUNG_DEF[gungName]+' 영역에서 주도권을 잡기 좋은 구간입니다.':' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 실력은 인정받지만 독단은 손해가 됩니다.';
+    else if(sh==='화과') advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 평판·시험·평가에 유리합니다.';
+    else if(tier==='묘'||tier==='왕') advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 추진력이 잘 붙는 구간입니다. 중요한 일은 직접 리드하세요.';
+    else if(tier==='리' || tier==='함') advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 에너지 소모가 크니 무리한 확장보다 복구·정리가 우선입니다.';
+    else advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 현재 흐름을 안정적으로 유지하는 것이 효율적입니다.';
     var goodAux=['천괴','천월','좌보','우필','문창','문곡','녹존','천마'];
     var auxNote='';
     if(auxStars.length){var ga=auxStars.filter(function(a){return goodAux.indexOf(a)>=0;});if(ga.length)auxNote=' ['+ga.slice(0,2).join('·')+' 후원]';}
@@ -10102,7 +10100,7 @@ function buildZwSummaryTableHtml(palace) {
     });
   }
 
-  var legendHtml = '<div style="padding:8px 12px 6px;font-size:0.71rem;color:#64748b;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;gap:14px;flex-wrap:wrap">'
+  var legendHtml = '<div class="zw-summary-legend" style="padding:8px 12px 6px;font-size:0.71rem;color:#64748b;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;gap:14px;flex-wrap:wrap">'
     +'<span>밝기: <b style="color:#4ade80">◎(묘)</b>=최상 · <b style="color:#60a5fa">○(왕)</b>=우수 · <b style="color:#f59e0b">▲(평)</b>=표준 · <b style="color:#94a3b8">△(리)</b>=약화 · <b style="color:#f87171">X(함)</b>=함몰</span>'
     +'<span><b>*</b> 표시는 차성(借星) 보정 밝기이며 원성 대비 1단계 보수 해석</span>'
     +'<span>사화: <b style="color:#4ade80">화록▲</b>=재물·인연 · <b style="color:#60a5fa">화권▲</b>=권위 · <b style="color:#c084fc">화과▲</b>=명성 · <b style="color:#f87171">화기▼</b>=주의</span>'
@@ -10110,29 +10108,29 @@ function buildZwSummaryTableHtml(palace) {
 
   if (isCompactView) {
     var cardsHtml = cardRows.map(function(it) {
-      return '<div style="background:'+it.rowBg+';border:1px solid rgba(255,255,255,0.1);border-left:4px solid '+it.borderColor+';border-radius:10px;padding:10px 12px">'
-        +'<div style="font-weight:800;color:#d8b4fe;font-size:0.84rem;line-height:1.35">'+it.icon+' '+it.pNameDisplay+'</div>'
-        +'<div style="color:#64748b;font-size:0.69rem;margin-top:2px">'+it.defn+'</div>'
-        +'<div style="margin-top:8px;font-size:0.78rem;color:#c084fc">주성</div>'
-        +'<div style="margin-top:2px;color:#fde68a;font-size:0.8rem;line-height:1.75">'+it.starsDisp+'</div>'
-        +'<div style="margin-top:8px;font-size:0.78rem;color:#c084fc">보조성</div>'
-        +'<div style="margin-top:2px;font-size:0.74rem;color:#94a3b8;line-height:1.55">'+it.auxDisp+'</div>'
-        +'<div style="margin-top:8px;font-size:0.78rem;color:#c084fc">천기(天機) 요약</div>'
-        +'<div style="margin-top:2px;font-size:0.79rem;color:#e2e8f0;line-height:1.6;word-break:keep-all">'+it.summaryText+'</div>'
+      return '<div class="zw-summary-card" style="background:'+it.rowBg+';border:1px solid rgba(255,255,255,0.1);border-left:4px solid '+it.borderColor+';border-radius:10px;padding:10px 12px">'
+        +'<div class="zw-summary-card__title" style="font-weight:800;color:#d8b4fe;font-size:0.84rem;line-height:1.35">'+it.icon+' '+it.pNameDisplay+'</div>'
+        +'<div class="zw-summary-card__defn" style="color:#64748b;font-size:0.69rem;margin-top:2px">'+it.defn+'</div>'
+        +'<div class="zw-summary-card__label" style="margin-top:8px;font-size:0.78rem;color:#c084fc">주성</div>'
+        +'<div class="zw-summary-card__stars" style="margin-top:2px;color:#fde68a;font-size:0.8rem;line-height:1.75">'+it.starsDisp+'</div>'
+        +'<div class="zw-summary-card__label" style="margin-top:8px;font-size:0.78rem;color:#c084fc">보조성</div>'
+        +'<div class="zw-summary-card__aux" style="margin-top:2px;font-size:0.74rem;color:#94a3b8;line-height:1.55">'+it.auxDisp+'</div>'
+        +'<div class="zw-summary-card__label" style="margin-top:8px;font-size:0.78rem;color:#c084fc">핵심 해석</div>'
+        +'<div class="zw-summary-card__summary" style="margin-top:2px;font-size:0.79rem;color:#e2e8f0;line-height:1.6;word-break:keep-all">'+it.summaryText+'</div>'
       +'</div>';
     }).join('');
 
     return legendHtml
-      +'<div style="padding:10px 10px 12px;display:grid;grid-template-columns:1fr;gap:10px">'+cardsHtml+'</div>';
+      +'<div class="zw-summary-cards" style="padding:10px 10px 12px;display:grid;grid-template-columns:1fr;gap:10px">'+cardsHtml+'</div>';
   }
 
   return legendHtml
-    +'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:540px">'
+    +'<div class="zw-summary-table-wrap" style="overflow-x:auto"><table class="zw-summary-table" style="width:100%;border-collapse:collapse;min-width:540px">'
     +'<thead><tr style="background:rgba(88,28,220,0.3)">'
     +'<th style="padding:8px 10px;text-align:left;color:#c084fc;font-size:0.74rem;white-space:nowrap">궁(宮) · 정의</th>'
     +'<th style="padding:8px 10px;text-align:left;color:#c084fc;font-size:0.74rem">주성(밝기)</th>'
     +'<th style="padding:8px 10px;text-align:left;color:#c084fc;font-size:0.74rem;white-space:nowrap">보조성</th>'
-    +'<th style="padding:8px 10px;text-align:left;color:#c084fc;font-size:0.74rem">천기(天機) — 통변 요약</th>'
+    +'<th style="padding:8px 10px;text-align:left;color:#c084fc;font-size:0.74rem">한줄 해석</th>'
     +'</tr></thead>'
     +'<tbody>'+rows+'</tbody>'
     +'</table></div>';
@@ -15869,9 +15867,6 @@ function renderZiwei(p, natal, targetId) {
           var coreMain = mainSt.slice(0, 2).join(' · ');
           var coreKw = ZW_STAR_KW[mainSt[0]] || mainSt[0];
           coreLaw = '<b>주성법:</b> ' + coreMain + ' 중심 대한으로, <b>' + coreKw + '</b> 테마가 사건의 중심축이 됩니다.';
-          if (mainStMeta.some(function(m){ return m.isBorrowed; })) {
-            coreLaw += ' <span style="color:#facc15">(차성 차용궁: ◎(묘)→○(왕), ○(왕)→▲(평), ▲(평)→△(리))</span>';
-          }
         } else {
           coreLaw = '<b>공궁법:</b> 공궁 대한은 대궁/환경 변수의 영향이 크므로, 고정 천기보다 상황 대응력이 성패를 가릅니다.';
         }
