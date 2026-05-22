@@ -76,6 +76,12 @@
     } catch (_) {}
   }
 
+  function logVedicError(stage, payload) {
+    try {
+      console.error('[VedicBook][' + String(stage || 'Unknown') + ']', payload || {});
+    } catch (_) {}
+  }
+
   function safeParseJson(raw, fallback) {
     try { return JSON.parse(raw); } catch (_) { return fallback; }
   }
@@ -227,6 +233,11 @@
       try { data = await res.json(); } catch (_) { data = null; }
       return { ok: res.ok, status: res.status, data: data };
     } catch (error) {
+      logVedicError('RequestJsonFailed', {
+        url: fetchUrl,
+        method: String(opts.method || 'GET'),
+        message: String(error && error.message || error || 'request failed')
+      });
       return {
         ok: false,
         status: 0,
@@ -628,6 +639,15 @@
     var timeUnknown = !!(birth.timeUnknown || birth.birthTimeUnknown || birth.unknownTime);
     var isLunar = calendarType === 'lunar' || calendarType === 'lunar_leap';
     var birthPlace = String(profile.birthPlace || location.birthPlace || profile.place || '').trim();
+    var lat = Number(Number.isFinite(Number(location.lat)) ? Number(location.lat) : 37.5665);
+    var lon = Number(Number.isFinite(Number(location.lng)) ? Number(location.lng) : 126.9780);
+    var birthPlaceEffective = birthPlace;
+    if (!birthPlaceEffective && Number.isFinite(lat) && Number.isFinite(lon)) {
+      birthPlaceEffective = '좌표기반(' + lat.toFixed(4) + ',' + lon.toFixed(4) + ')';
+    }
+    if (!birthPlaceEffective) {
+      birthPlaceEffective = String(location.tz || 'Asia/Seoul').trim() || '출생지 미기재';
+    }
 
     var body = {
       mode: mode,
@@ -650,11 +670,11 @@
       calendarType: calendarType,
       timeUnknown: timeUnknown,
       isLunar: isLunar,
-      birthPlace: birthPlace || undefined,
+      birthPlace: birthPlaceEffective,
       timezoneName: String(location.tz || 'Asia/Seoul'),
       timezone: String(location.tz || 'Asia/Seoul'),
-      lat: Number(Number.isFinite(Number(location.lat)) ? Number(location.lat) : 37.5665),
-      lon: Number(Number.isFinite(Number(location.lng)) ? Number(location.lng) : 126.9780),
+      lat: lat,
+      lon: lon,
       birthData: {
         profileId: profileId,
         name: String(profile.name || '사용자'),
@@ -670,11 +690,11 @@
         calendarType: calendarType,
         timeUnknown: timeUnknown,
         isLunar: isLunar,
-        birthPlace: birthPlace || undefined,
+        birthPlace: birthPlaceEffective,
         timezoneName: String(location.tz || 'Asia/Seoul'),
         timezone: String(location.tz || 'Asia/Seoul'),
-        lat: Number(Number.isFinite(Number(location.lat)) ? Number(location.lat) : 37.5665),
-        lon: Number(Number.isFinite(Number(location.lng)) ? Number(location.lng) : 126.9780)
+        lat: lat,
+        lon: lon
       },
       profile: {
         profileId: profileId,
@@ -685,7 +705,7 @@
         calendarType: calendarType,
         isLunar: isLunar,
         timeUnknown: timeUnknown,
-        birthPlace: birthPlace || undefined,
+        birthPlace: birthPlaceEffective,
         timezone: String(location.tz || 'Asia/Seoul')
       }
     };
@@ -1333,6 +1353,13 @@
       setLoadingProgress({ currentChapter: 1, status: 'generating', message: '생성 전 데이터 점검 중...' });
       var preflight = await ensureVedicPremiumPreflight(requestInput.body);
       if (!preflight.ok) {
+        logVedicError('PreflightFailed', {
+          message: String(preflight.message || 'preflight failed'),
+          mode: String(requestInput.body && requestInput.body.mode || ''),
+          hasBirthPlace: !!(requestInput.body && requestInput.body.birthPlace),
+          lat: Number(requestInput.body && requestInput.body.lat),
+          lon: Number(requestInput.body && requestInput.body.lon)
+        });
         await attemptVedicAutoRefund('베다 프리미엄 preflight 실패 자동 환불');
         state.paidGateKey = '';
         setError(String(preflight.message || '생성 전 데이터 점검에 실패했습니다.'));
@@ -1347,6 +1374,14 @@
       });
 
       if (!res.ok || !res.data || !res.data.ok) {
+        logVedicError('GenerateStartFailed', {
+          status: Number(res.status || 0),
+          data: res.data || null,
+          mode: String(requestInput.body && requestInput.body.mode || ''),
+          birthPlace: String(requestInput.body && requestInput.body.birthPlace || ''),
+          lat: Number(requestInput.body && requestInput.body.lat),
+          lon: Number(requestInput.body && requestInput.body.lon)
+        });
         var fallbackRun = await generateVedicViaPremiumReport(requestInput.body, preflight);
         if (fallbackRun && fallbackRun.ok) {
           state.reportId = String(fallbackRun.reportId || '');
@@ -1357,6 +1392,12 @@
           return;
         }
         await attemptVedicAutoRefund('베다 프리미엄 PDF 생성 시작 실패 자동 환불');
+        if (!fallbackRun || !fallbackRun.ok) {
+          logVedicError('GenerateFallbackFailed', {
+            message: String(fallbackRun && fallbackRun.message || 'fallback failed'),
+            mode: String(requestInput.body && requestInput.body.mode || '')
+          });
+        }
         setError(String((res.data && res.data.message) || fallbackRun && fallbackRun.message || '베다 리포트 생성 시작에 실패했습니다.'));
         return;
       }
@@ -1376,6 +1417,11 @@
           return;
         }
         await attemptVedicAutoRefund('베다 프리미엄 PDF reportId 누락 자동 환불');
+        logVedicError('MissingReportId', {
+          response: res.data || null,
+          fallbackMessage: String(reportIdFallback && reportIdFallback.message || ''),
+          mode: String(requestInput.body && requestInput.body.mode || '')
+        });
         setError(String(reportIdFallback && reportIdFallback.message || 'reportId를 받지 못했습니다. 잠시 후 다시 시도해 주세요.'));
         return;
       }
