@@ -2,9 +2,9 @@
  * Cloudflare API configuration.
  *
  * In production the frontend should call same-origin /api/*. Cloudflare Pages
- * then forwards those requests to the API Worker through public/_redirects.
- * If same-origin routing is unavailable, set NEXT_PUBLIC_AUTH_API_BASE_URL
- * to an explicit Worker origin.
+ * serves those routes from the deployed Worker output.
+ * If same-origin routing is unavailable in a custom setup, set
+ * NEXT_PUBLIC_AUTH_API_BASE_URL to an explicit Worker origin.
  * Local development can override this with NEXT_PUBLIC_API_BASE_URL or
  * window.CODE_DESTINY_API_BASE_URL.
  */
