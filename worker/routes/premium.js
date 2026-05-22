@@ -17279,8 +17279,10 @@ async function handleLifebookSession(request, env) {
         },
         chapterResult.contentMarkdown,
         {
+          chapterJson: chapterResult.chapterJson || null,
           lifeBookInputData: allGenerated.lifeBookInputData,
           chapterResultsByNumber,
+          pdfData: allGenerated.pdfData || null,
           generationWarnings: allGenerated.warnings || [],
           renderMeta: {
             chapterCount: generatedChapters.length,
@@ -17298,6 +17300,7 @@ async function handleLifebookSession(request, env) {
       totalChapters: LIFE_BOOK_TOTAL_CHAPTERS,
       minTotalChars: LIFE_BOOK_MIN_TOTAL_CHARS_CONFIG,
       chapters: generatedChapters,
+      pdfData: allGenerated.pdfData || null,
       warnings: allGenerated.warnings || [],
       storage: lastStorage,
       dataQuality: allGenerated?.lifeBookInputData?.dataQuality || {},
@@ -17370,8 +17373,10 @@ async function handleLifebookSession(request, env) {
     chapterMeta,
     chapterResult.contentMarkdown,
     {
+      chapterJson: chapterResult.chapterJson || null,
       lifeBookInputData: generated.lifeBookInputData,
       chapterResultsByNumber: mergedChapterResultsByNumber,
+      pdfData: generated.pdfData || null,
       generationWarnings: generated.warnings || [],
     },
   );
@@ -17393,7 +17398,9 @@ async function handleLifebookSession(request, env) {
     text: chapterResult.contentMarkdown,
     chapterSummaryForContext: buildChapterSummaryForContext(chapterResult.contentMarkdown),
     sections: parseSections(chapterResult.contentMarkdown),
+    chapterJson: chapterResult.chapterJson || null,
     chapterResult,
+    pdfData: generated.pdfData || null,
     usedFallback,
     engineSource: lifebookSourceState.sourceType || "unknown",
     dataQuality: generated?.lifeBookInputData?.dataQuality || {},

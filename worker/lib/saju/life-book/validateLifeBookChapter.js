@@ -16,6 +16,24 @@ function normalizeAdvice(value) {
   return value.map((item) => sanitizeReadableText(item)).filter(Boolean);
 }
 
+function normalizeSections(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (item && typeof item === "object") {
+        return {
+          title: sanitizeReadableText(item.title),
+          body: sanitizeReadableText(item.body),
+        };
+      }
+      return {
+        title: "",
+        body: sanitizeReadableText(item),
+      };
+    })
+    .filter((item) => item.title || item.body);
+}
+
 function countHeadings(markdown) {
   const source = toStringSafe(markdown);
   if (!source) return 0;
@@ -107,12 +125,46 @@ function parseAdviceFromMarkdown(source) {
   return advice;
 }
 
+function parseSectionsFromMarkdown(source) {
+  const lines = String(source || "").replace(/\r/g, "").split("\n");
+  const sections = [];
+  let currentTitle = "";
+  let currentBody = [];
+
+  const flush = () => {
+    const body = sanitizeReadableText(currentBody.join("\n"));
+    if (!currentTitle && !body) return;
+    sections.push({
+      title: sanitizeReadableText(currentTitle || "핵심 해설"),
+      body,
+    });
+  };
+
+  for (const rawLine of lines) {
+    const line = String(rawLine || "");
+    const heading = line.match(/^###\s+(.+)$/) || line.match(/^##\s+(.+)$/) || line.match(/^#\s+(.+)$/);
+    if (heading) {
+      flush();
+      currentTitle = heading[1] || "";
+      currentBody = [];
+      continue;
+    }
+    currentBody.push(line);
+  }
+
+  flush();
+  return sections;
+}
+
 function buildMarkdownFallback(rawText, chapterConfig) {
   const content = sanitizeReadableText(rawText) || "제공된 계산값 기준으로 데이터 해석 문장을 안전하게 구성할 수 있는 정보가 제한적입니다.";
   const summary = parseSummaryFromMarkdown(content)
     || "제공된 계산값 기준으로 핵심 구조를 점검하고 단계적으로 실행하는 접근이 가장 안전합니다.";
 
   const practicalAdvice = parseAdviceFromMarkdown(content);
+
+  const sections = parseSectionsFromMarkdown(content);
+  const keyInsights = [summary].filter(Boolean);
 
   return {
     id: chapterConfig.id,
@@ -121,12 +173,25 @@ function buildMarkdownFallback(rawText, chapterConfig) {
     subtitle: chapterConfig.subtitle,
     contentMarkdown: content,
     summary,
+    sections,
+    keyInsights,
     practicalAdvice: practicalAdvice.length ? practicalAdvice : [
       "핵심 의사결정은 감정 반응과 현실 조건을 분리해 기록하세요.",
       "반복되는 패턴을 2주 단위로 점검해 실행 루틴을 고정하세요.",
       "무리한 확장보다 손실 방어 기준을 먼저 정한 뒤 확장하세요.",
     ],
     warnings: [],
+    chapterJson: {
+      summary,
+      sections,
+      keyInsights,
+      practicalAdvice: practicalAdvice.length ? practicalAdvice : [
+        "핵심 의사결정은 감정 반응과 현실 조건을 분리해 기록하세요.",
+        "반복되는 패턴을 2주 단위로 점검해 실행 루틴을 고정하세요.",
+        "무리한 확장보다 손실 방어 기준을 먼저 정한 뒤 확장하세요.",
+      ],
+      cautions: [],
+    },
     parseFallbackUsed: true,
   };
 }
@@ -136,6 +201,16 @@ export function parseLifeBookChapterResponse(rawText, chapterConfig) {
   if (jsonBlock) {
     try {
       const parsed = JSON.parse(jsonBlock);
+      const parsedChapterJson = (
+        parsed.chapterJson
+        && typeof parsed.chapterJson === "object"
+        && !Array.isArray(parsed.chapterJson)
+      ) ? parsed.chapterJson : {};
+      const summary = sanitizeReadableText(parsed.summary || parsedChapterJson.summary);
+      const practicalAdvice = normalizeAdvice(parsed.practicalAdvice || parsedChapterJson.practicalAdvice);
+      const warnings = normalizeAdvice(parsed.warnings || parsedChapterJson.cautions);
+      const sections = normalizeSections(parsed.sections || parsedChapterJson.sections || parseSectionsFromMarkdown(parsed.contentMarkdown));
+      const keyInsights = normalizeAdvice(parsed.keyInsights || parsedChapterJson.keyInsights || []);
       return {
         id: toStringSafe(parsed.id) || chapterConfig.id,
         roman: toStringSafe(parsed.roman) || chapterConfig.roman,
@@ -144,9 +219,18 @@ export function parseLifeBookChapterResponse(rawText, chapterConfig) {
         contentMarkdown: toStringSafe(parsed.contentMarkdown)
           .replace(/\*\*([^*]+)\*\*/g, "$1")
           .replace(/__([^_]+)__/g, "$1"),
-        summary: sanitizeReadableText(parsed.summary),
-        practicalAdvice: normalizeAdvice(parsed.practicalAdvice),
-        warnings: normalizeAdvice(parsed.warnings),
+        summary,
+        sections,
+        keyInsights,
+        practicalAdvice,
+        warnings,
+        chapterJson: {
+          summary,
+          sections,
+          keyInsights,
+          practicalAdvice,
+          cautions: warnings,
+        },
         parseFallbackUsed: false,
       };
     } catch {
@@ -394,5 +478,19 @@ export function createLifeBookFallbackChapter(chapterConfig, lifeBookInputData, 
       "7일 단위 회고에서 실패 원인보다 다음 수정 행동 1개를 확정하세요.",
     ],
     warnings: reasonLine ? [reasonLine] : [],
+    chapterJson: {
+      summary: "제공된 사주 계산 데이터 기준으로 핵심 구조를 재정리하고, 바로 실행 가능한 선택 기준으로 마무리했습니다.",
+      sections: parseSectionsFromMarkdown(contentMarkdown),
+      keyInsights: [
+        "핵심 데이터 기준으로 우선순위를 재정렬해야 실행 효율이 올라갑니다.",
+        "운세 해석은 일정·관계·재무·회복 루틴으로 나눠 관리할 때 안정성이 높아집니다.",
+      ],
+      practicalAdvice: [
+        "이번 주 핵심 목표를 1개만 정하고, 완료 기준을 먼저 숫자로 정의하세요.",
+        "의사결정 전 손실 허용 범위를 설정한 뒤 실행 여부를 판단하세요.",
+        "7일 단위 회고에서 실패 원인보다 다음 수정 행동 1개를 확정하세요.",
+      ],
+      cautions: reasonLine ? [reasonLine] : [],
+    },
   };
 }

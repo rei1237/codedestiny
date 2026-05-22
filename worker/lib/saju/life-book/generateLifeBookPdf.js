@@ -63,6 +63,69 @@ function buildChapterMemory(chapterConfig, chapterResult) {
   };
 }
 
+function normalizeLifeBookPdfChapterJson(chapterResult = {}, chapterConfig = {}) {
+  const chapterJson = chapterResult?.chapterJson && typeof chapterResult.chapterJson === "object"
+    ? chapterResult.chapterJson
+    : {};
+
+  const summary = String(chapterJson.summary || chapterResult.summary || "").trim();
+  const practicalAdvice = Array.isArray(chapterJson.practicalAdvice)
+    ? chapterJson.practicalAdvice.map((item) => String(item || "").trim()).filter(Boolean)
+    : (Array.isArray(chapterResult.practicalAdvice)
+      ? chapterResult.practicalAdvice.map((item) => String(item || "").trim()).filter(Boolean)
+      : []);
+  const cautions = Array.isArray(chapterJson.cautions)
+    ? chapterJson.cautions.map((item) => String(item || "").trim()).filter(Boolean)
+    : (Array.isArray(chapterResult.warnings)
+      ? chapterResult.warnings.map((item) => String(item || "").trim()).filter(Boolean)
+      : []);
+  const sections = Array.isArray(chapterJson.sections)
+    ? chapterJson.sections.map((item) => ({
+      title: String(item?.title || "").trim(),
+      body: String(item?.body || "").trim(),
+    })).filter((item) => item.title || item.body)
+    : [];
+  const keyInsights = Array.isArray(chapterJson.keyInsights)
+    ? chapterJson.keyInsights.map((item) => String(item || "").trim()).filter(Boolean)
+    : [];
+
+  return {
+    id: String(chapterResult.id || chapterConfig.id || "").trim(),
+    roman: String(chapterResult.roman || chapterConfig.roman || "").trim(),
+    title: String(chapterResult.title || chapterConfig.title || "").trim(),
+    subtitle: String(chapterResult.subtitle || chapterConfig.subtitle || "").trim(),
+    summary,
+    sections,
+    keyInsights,
+    practicalAdvice,
+    cautions,
+    contentMarkdown: String(chapterResult.contentMarkdown || "").trim(),
+  };
+}
+
+function buildLifeBookPdfData({ reportId, lifeBookInputData, chapters, generatedAt }) {
+  const chapterRows = (Array.isArray(chapters) ? chapters : []).map((chapterResult, index) => {
+    const chapterConfig = LIFE_BOOK_CHAPTERS[index] || {};
+    const chapterJson = normalizeLifeBookPdfChapterJson(chapterResult, chapterConfig);
+    return {
+      chapter: index + 1,
+      chapterId: chapterJson.id || `chapter-${String(index + 1).padStart(2, "0")}`,
+      chapterJson,
+      text: chapterJson.contentMarkdown,
+    };
+  });
+
+  return {
+    reportId,
+    generatedAt,
+    totalChapters: chapterRows.length,
+    minTotalChars: LIFE_BOOK_MIN_TOTAL_CHARS,
+    userProfile: lifeBookInputData?.userProfile || {},
+    dataQuality: lifeBookInputData?.dataQuality || {},
+    chapters: chapterRows,
+  };
+}
+
 export async function generateLifeBookPdf(params = {}) {
   const env = params.env || {};
   const body = params.body || {};
@@ -238,6 +301,13 @@ export async function generateLifeBookPdf(params = {}) {
     generatedAt: new Date().toISOString(),
   });
 
+  const pdfData = buildLifeBookPdfData({
+    reportId,
+    lifeBookInputData,
+    chapters,
+    generatedAt: rendered?.generatedAt || new Date().toISOString(),
+  });
+
   if (onProgress) onProgress({ code: "PDF_READY", message: "다운로드 준비 완료" });
 
   return {
@@ -249,6 +319,7 @@ export async function generateLifeBookPdf(params = {}) {
     chapterMemories,
     warnings,
     fullValidation,
+    pdfData,
     rendered,
   };
 }

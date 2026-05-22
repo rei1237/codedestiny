@@ -6,6 +6,7 @@ import {
 
 const SYSTEM_INSTRUCTION = [
   "너는 30년차 명리학자이자 프리미엄 사주 PDF 전문 작가다.",
+  "역할 기준: 최고의 사주 전문가처럼 데이터 근거를 명확히 연결하고, 챕터별로 결론과 실행전략을 분리해 집필한다.",
   "사용자의 사주 데이터와 프로필을 근거로 깊이 있고 구체적인 상담문을 작성한다.",
   "",
   "중요 규칙:",
@@ -15,8 +16,90 @@ const SYSTEM_INSTRUCTION = [
   "- 본문에는 JSON, 계산표, 내부 데이터명, 디버그 정보, payload, API 응답 원문을 절대 출력하지 않는다.",
   "- 운명론적 단정보다 현실적인 선택 전략으로 연결한다.",
   "- 각 챕터는 지정된 세부 카테고리를 모두 소제목으로 포함한다.",
+  "- 챕터 결론은 반드시 데이터 근거, 리스크, 실행 우선순위를 함께 제시한다.",
   "- 이전 챕터의 핵심 문장과 조언을 반복하지 않는다.",
 ].join("\n");
+
+function toStringSafe(value) {
+  return String(value == null ? "" : value).trim();
+}
+
+function toStringArray(value, fallback = []) {
+  if (!Array.isArray(value)) return Array.isArray(fallback) ? fallback : [];
+  return value.map((item) => toStringSafe(item)).filter(Boolean);
+}
+
+function splitMarkdownSections(markdown) {
+  const text = String(markdown || "").replace(/\r/g, "").trim();
+  if (!text) return [];
+
+  const lines = text.split("\n");
+  const sections = [];
+  let currentTitle = "";
+  let currentBody = [];
+
+  const flush = () => {
+    const body = currentBody.join("\n").trim();
+    if (!currentTitle && !body) return;
+    sections.push({
+      title: currentTitle || "핵심 해설",
+      body,
+    });
+  };
+
+  for (const rawLine of lines) {
+    const line = String(rawLine || "");
+    const heading = line.match(/^###\s+(.+)$/) || line.match(/^##\s+(.+)$/) || line.match(/^#\s+(.+)$/);
+    if (heading) {
+      flush();
+      currentTitle = toStringSafe(heading[1]);
+      currentBody = [];
+      continue;
+    }
+    currentBody.push(line);
+  }
+
+  flush();
+  return sections
+    .map((section) => ({
+      title: toStringSafe(section.title),
+      body: toStringSafe(section.body),
+    }))
+    .filter((section) => section.title || section.body);
+}
+
+function buildChapterJsonPayload(chapterConfig, parsedChapter, lifeBookInputData) {
+  const chapterCore = lifeBookInputData?.lifeBookContext?.chapterCore || {};
+  const sections = splitMarkdownSections(parsedChapter?.contentMarkdown || "");
+  const keyInsights = toStringArray(parsedChapter?.keyInsights, [])
+    .concat(toStringArray(parsedChapter?.warnings, []))
+    .slice(0, 5);
+  const practicalAdvice = toStringArray(parsedChapter?.practicalAdvice, []);
+  const summary = toStringSafe(parsedChapter?.summary);
+
+  return {
+    id: toStringSafe(parsedChapter?.id) || toStringSafe(chapterConfig?.id),
+    roman: toStringSafe(parsedChapter?.roman) || toStringSafe(chapterConfig?.roman),
+    title: toStringSafe(parsedChapter?.title) || toStringSafe(chapterConfig?.title),
+    subtitle: toStringSafe(parsedChapter?.subtitle) || toStringSafe(chapterConfig?.subtitle),
+    summary,
+    sections,
+    keyInsights,
+    practicalAdvice,
+    cautions: toStringArray(parsedChapter?.warnings, []),
+    evidence: {
+      dayMaster: toStringSafe(chapterCore?.dayMaster),
+      monthPillar: toStringSafe(chapterCore?.monthPillar),
+      season: toStringSafe(chapterCore?.season),
+      yongshin: toStringArray(chapterCore?.yongshin, []),
+      daewoonCount: Number(chapterCore?.daewoonCount || 0),
+      yearlyCount: Number(chapterCore?.yearlyCount || 0),
+      relationshipHints: toStringArray(chapterCore?.relationshipHints, []),
+      careerHints: toStringArray(chapterCore?.careerHints, []),
+      healthHints: toStringArray(chapterCore?.healthHints, []),
+    },
+  };
+}
 
 function buildChapterHardRequirements(chapterConfig, lifeBookInputData) {
   const profileName = String(lifeBookInputData?.userProfile?.name || "").trim();
@@ -98,6 +181,9 @@ function buildChapterPrompt(chapterConfig, lifeBookInputData, previousTexts = []
     "",
     "[작성 규칙]",
     "- JSON 형식으로만 출력한다.",
+    "- chapterJson.sections 각 항목은 title/body를 포함한다.",
+    "- chapterJson.keyInsights는 데이터 기반 핵심 통찰 3개 이상으로 작성한다.",
+    "- chapterJson.practicalAdvice는 즉시 실행 가능한 행동 문장 3개 이상으로 작성한다.",
     "- 마지막에는 핵심 요약과 실전 조언을 포함한다.",
     ...hardRequirements,
     requiredCoverage.length
@@ -118,8 +204,16 @@ function buildChapterPrompt(chapterConfig, lifeBookInputData, previousTexts = []
     `  \"subtitle\": \"${chapterConfig.subtitle}\",`,
     "  \"contentMarkdown\": \"본문 markdown\",",
     "  \"summary\": \"챕터 핵심 요약\",",
+    "  \"keyInsights\": [\"핵심 통찰 1\", \"핵심 통찰 2\", \"핵심 통찰 3\"],",
     "  \"practicalAdvice\": [\"실전 조언 1\", \"실전 조언 2\", \"실전 조언 3\"],",
-    "  \"warnings\": [\"주의점 1\", \"주의점 2\"]",
+    "  \"warnings\": [\"주의점 1\", \"주의점 2\"],",
+    "  \"chapterJson\": {",
+    "    \"summary\": \"챕터 핵심 요약\",",
+    "    \"sections\": [{ \"title\": \"소제목\", \"body\": \"핵심 본문\" }],",
+    "    \"keyInsights\": [\"핵심 통찰 1\", \"핵심 통찰 2\", \"핵심 통찰 3\"],",
+    "    \"practicalAdvice\": [\"실전 조언 1\", \"실전 조언 2\", \"실전 조언 3\"],",
+    "    \"cautions\": [\"주의점 1\", \"주의점 2\"]",
+    "  }",
     "}",
     "",
     "[내부 참고 데이터: LifeBookContext]",
@@ -195,12 +289,23 @@ export async function generateLifeBookChapter(params = {}) {
       lastValidation = validation;
 
       if (validation.ok) {
+        const normalizedChapter = {
+          ...parsed,
+          chapterJson: (
+            parsed?.chapterJson
+            && typeof parsed.chapterJson === "object"
+            && !Array.isArray(parsed.chapterJson)
+          )
+            ? parsed.chapterJson
+            : buildChapterJsonPayload(chapterConfig, parsed, lifeBookInputData),
+        };
+
         return {
           ok: true,
           chapterResult: {
-            ...parsed,
+            ...normalizedChapter,
             warnings: [
-              ...(Array.isArray(parsed.warnings) ? parsed.warnings : []),
+              ...(Array.isArray(normalizedChapter.warnings) ? normalizedChapter.warnings : []),
               ...(Array.isArray(validation.warnings) ? validation.warnings : []),
             ].filter(Boolean),
           },
