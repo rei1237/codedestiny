@@ -97,6 +97,14 @@ const SUKYO_PDF_CHAPTERS = [
     minChars: 3910,
     sections: ["전체 숙요 구조 요약", "반드시 살려야 할 강점", "버려야 할 반복 패턴", "개인 맞춤 숙명 선언문"],
   },
+  {
+    key: "solo_ch_13",
+    title: "Chapter XIII. 영혼의 마스터플랜 — 달빛 전략가의 10년 로드맵",
+    goal: "숙요 에너지 전체를 통합해 향후 10년의 생애 로드맵과 연도별 실천 전략을 제시한다.",
+    targetChars: 4500,
+    minChars: 3825,
+    sections: ["10년 생애 로드맵 개요", "연도별 숙요 에너지 흐름", "단계별 실천 전략", "영혼의 최종 마스터플랜"],
+  },
 ];
 
 const SUKYO_PDF_COMPAT_CHAPTERS = [
@@ -195,6 +203,14 @@ const SUKYO_PDF_COMPAT_CHAPTERS = [
     targetChars: 4100,
     minChars: 3485,
     sections: ["전체 궁합 핵심 요약", "이 관계에서 지켜야 할 것", "이 관계에서 버려야 할 것", "두 사람을 위한 최종 선언문"],
+  },
+  {
+    key: "compat_ch_13",
+    title: "Chapter XIII. 두 영혼의 마스터플랜 — 함께 그리는 10년 로드맵",
+    goal: "두 사람의 궁합 에너지를 통합해 함께 그려갈 관계 로드맵과 공동 성장 전략을 제시한다.",
+    targetChars: 4500,
+    minChars: 3825,
+    sections: ["두 사람의 10년 관계 로드맵", "함께 성장하는 시기와 방식", "갈등 예방 공동 전략", "두 영혼의 최종 선언문"],
   },
 ];
 
