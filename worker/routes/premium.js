@@ -1547,9 +1547,14 @@ const PREMIUM_CANONICAL_REQUIRED_PATHS_BY_TYPE = {
     "input.year",
     "input.month",
     "input.day",
-    "input.hour",
-    "input.birthPlace",
-    "calculatedData.lagna.sign",
+    "calculatedData.birthInfo.timezone",
+    "calculatedData.birthInfo.latitude",
+    "calculatedData.birthInfo.longitude",
+    "calculatedData.birthInfo.ayanamsa",
+    "calculatedData.planets.sun",
+    "calculatedData.planets.moon",
+    "calculatedData.planets.rahu",
+    "calculatedData.planets.ketu",
     "calculatedData.planets",
   ],
   loveSecret: [
@@ -2169,10 +2174,37 @@ function validateVedicReportPayload(canonicalJson) {
   const payload = canonicalJson?.calculatedData || {};
   const input = canonicalJson?.input || {};
   const missingFields = [];
+  const invalidFields = [];
+
+  const isUnknownTime = asBool(input?.timeUnknown)
+    || asBool(input?.birthTimeUnknown)
+    || asBool(input?.unknownTime)
+    || asBool(payload?.profile?.timeUnknown)
+    || asBool(payload?.birthInfo?.unknownTime);
+
+  const hasFinite = (value) => Number.isFinite(Number(value));
+  const toLon = (planet = {}) => {
+    const direct = Number(
+      planet?.absoluteLongitude
+      ?? planet?.longitude
+      ?? planet?.siderealLongitude
+      ?? NaN,
+    );
+    if (Number.isFinite(direct)) return normalizeDeg(direct);
+
+    const signName = String(planet?.sign || planet?.signName || "").trim();
+    const signIdx = VEDIC_SIGN_EN.findIndex((name) => String(name || "").toLowerCase() === signName.toLowerCase());
+    const degreeInSign = Number(planet?.degreeInSign ?? planet?.degree ?? NaN);
+    if (signIdx >= 0 && Number.isFinite(degreeInSign)) {
+      return normalizeDeg(signIdx * 30 + degreeInSign);
+    }
+    return NaN;
+  };
 
   const hasBirthDate = hasMeaningfulValue(input?.birthDate)
     || (hasMeaningfulValue(input?.year) && hasMeaningfulValue(input?.month) && hasMeaningfulValue(input?.day));
-  const hasBirthTime = hasMeaningfulValue(input?.birthTime)
+  const hasBirthTime = isUnknownTime
+    || hasMeaningfulValue(input?.birthTime)
     || hasMeaningfulValue(input?.hour)
     || hasMeaningfulValue(payload?.profile?.birth?.time);
   const hasBirthPlace = hasMeaningfulValue(input?.birthPlace)
@@ -2186,13 +2218,28 @@ function validateVedicReportPayload(canonicalJson) {
   if (!hasBirthTime) missingFields.push("input.birthTime|input.hour");
   if (!hasBirthPlace) missingFields.push("input.birthPlace|input.place");
 
+  const hasTimezone = hasMeaningfulValue(input?.timezone)
+    || hasMeaningfulValue(input?.timezoneName)
+    || hasMeaningfulValue(payload?.birthInfo?.timezone)
+    || hasMeaningfulValue(payload?.profile?.timezone);
+  if (!hasTimezone) missingFields.push("input.timezone|input.timezoneName");
+
+  const hasLatLon = (hasMeaningfulValue(input?.lat) && hasMeaningfulValue(input?.lon))
+    || (hasMeaningfulValue(payload?.birthInfo?.latitude) && hasMeaningfulValue(payload?.birthInfo?.longitude));
+  if (!hasLatLon) missingFields.push("input.lat|input.lon");
+
+  const hasAyanamsa = hasMeaningfulValue(payload?.birthInfo?.ayanamsa)
+    || hasMeaningfulValue(payload?.birthInfo?.ayanamsaMode)
+    || hasMeaningfulValue(input?.ayanamsa);
+  if (!hasAyanamsa) missingFields.push("calculatedData.birthInfo.ayanamsa");
+
   const canRecalculateLagna = hasMeaningfulValue(input?.year)
     && hasMeaningfulValue(input?.month)
     && hasMeaningfulValue(input?.day)
     && hasMeaningfulValue(input?.hour)
     && hasMeaningfulValue(input?.lat)
     && hasMeaningfulValue(input?.lon);
-  if (!hasMeaningfulValue(payload?.lagna?.sign)) {
+  if (!isUnknownTime && !hasMeaningfulValue(payload?.lagna?.sign)) {
     if (!canRecalculateLagna) {
       missingFields.push("calculatedData.lagna.sign|input(recalculation)");
     }
@@ -2203,6 +2250,43 @@ function validateVedicReportPayload(canonicalJson) {
     || hasMeaningfulValue(payload?.moonSign)
     || hasMeaningfulValue(payload?.planets?.moon?.sign);
   if (!hasMoonAnchor) missingFields.push("calculatedData.nakshatras.moonNakshatra.name|calculatedData.moonSign");
+
+  const hasSunAnchor = hasMeaningfulValue(payload?.planets?.sun?.sign)
+    || hasMeaningfulValue(payload?.planets?.sun?.signName)
+    || hasFinite(payload?.planets?.sun?.absoluteLongitude)
+    || hasFinite(payload?.planets?.sun?.longitude);
+  if (!hasSunAnchor) missingFields.push("calculatedData.planets.sun");
+
+  const hasMoonPlanet = hasMeaningfulValue(payload?.planets?.moon?.sign)
+    || hasMeaningfulValue(payload?.planets?.moon?.signName)
+    || hasFinite(payload?.planets?.moon?.absoluteLongitude)
+    || hasFinite(payload?.planets?.moon?.longitude);
+  if (!hasMoonPlanet) missingFields.push("calculatedData.planets.moon");
+
+  const requiredPlanets = ["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn", "rahu", "ketu"];
+  requiredPlanets.forEach((key) => {
+    const p = payload?.planets?.[key] || {};
+    const hasSign = hasMeaningfulValue(p?.sign) || hasMeaningfulValue(p?.signName);
+    const hasDegree = hasFinite(p?.degreeInSign) || hasFinite(p?.degree);
+    const hasAbsLon = hasFinite(p?.absoluteLongitude) || hasFinite(p?.longitude) || Number.isFinite(toLon(p));
+    const hasNak = hasMeaningfulValue(p?.nakshatra);
+    const hasPada = hasFinite(p?.pada) || hasFinite(p?.nakshatraPada);
+    if (!hasSign) missingFields.push(`calculatedData.planets.${key}.sign`);
+    if (!hasDegree) missingFields.push(`calculatedData.planets.${key}.degreeInSign`);
+    if (!hasAbsLon) missingFields.push(`calculatedData.planets.${key}.absoluteLongitude`);
+    if (!hasNak) missingFields.push(`calculatedData.planets.${key}.nakshatra`);
+    if (!hasPada) missingFields.push(`calculatedData.planets.${key}.pada`);
+  });
+
+  const rahuLon = toLon(payload?.planets?.rahu || {});
+  const ketuLon = toLon(payload?.planets?.ketu || {});
+  if (Number.isFinite(rahuLon) && Number.isFinite(ketuLon)) {
+    const diff = Math.abs(normalizeDeg(rahuLon - ketuLon));
+    const distance = diff > 180 ? 360 - diff : diff;
+    if (Math.abs(distance - 180) > 2.5) {
+      invalidFields.push("calculatedData.planets.rahu.ketu.angle180");
+    }
+  }
 
   const isCompat = String(canonicalJson?.input?.reportType || "").toLowerCase() === "compatibility";
   if (isCompat) {
@@ -2236,7 +2320,9 @@ function validateVedicReportPayload(canonicalJson) {
   }
 
   const deduped = Array.from(new Set(missingFields));
-  return buildSeverityPayloadValidation("VEDIC_REPORT_PAYLOAD_MISSING", deduped, canonicalJson);
+  const validation = buildSeverityPayloadValidation("VEDIC_REPORT_PAYLOAD_MISSING", deduped, canonicalJson);
+  validation.invalidFields = Array.from(new Set(invalidFields));
+  return validation;
 }
 
 function validateAstrologyReportPayload(canonicalJson) {
@@ -5630,8 +5716,52 @@ function normalizeVedicCalculatedDataForPdf(calculatedData, canonicalSource, int
   const payload = (calculatedData && typeof calculatedData === "object") ? { ...calculatedData } : {};
   const canonical = (canonicalSource && typeof canonicalSource === "object") ? canonicalSource : {};
 
+  const findSignIndex = (signName) => {
+    const token = String(signName || "").trim().toLowerCase();
+    if (!token) return -1;
+    return VEDIC_SIGN_EN.findIndex((name) => String(name || "").trim().toLowerCase() === token);
+  };
+  const ensureNumberOrNull = (value) => {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  };
+  const toNormalizedLongitude = (planet = {}) => {
+    const direct = ensureNumberOrNull(planet?.absoluteLongitude ?? planet?.longitude ?? planet?.siderealLongitude);
+    if (direct != null) return normalizeDeg(direct);
+    const signIdx = findSignIndex(planet?.sign || planet?.signName);
+    const degreeInSign = ensureNumberOrNull(planet?.degreeInSign ?? planet?.degree);
+    if (signIdx >= 0 && degreeInSign != null) return normalizeDeg(signIdx * 30 + degreeInSign);
+    return null;
+  };
+  const toNormalizedPlanet = (name, source = {}, lagnaSignIndex = -1) => {
+    const sign = String(source?.sign || source?.signName || source?.rashi || "").trim() || null;
+    const signIdx = findSignIndex(sign);
+    const degreeInSign = ensureNumberOrNull(source?.degreeInSign ?? source?.degree);
+    const absoluteLongitude = toNormalizedLongitude(source);
+    const inferredHouse = signIdx >= 0 && lagnaSignIndex >= 0 ? ((signIdx - lagnaSignIndex + 12) % 12) + 1 : null;
+    const house = ensureNumberOrNull(source?.house) ?? inferredHouse;
+    return {
+      ...(source && typeof source === "object" ? source : {}),
+      planet: name,
+      sign,
+      signLord: signIdx >= 0 ? getRashiLord(signIdx) : null,
+      degreeInSign,
+      absoluteLongitude,
+      house,
+      nakshatra: String(source?.nakshatra || source?.nakshatraName || "").trim() || null,
+      nakshatraLord: String(source?.nakshatraLord || "").trim() || null,
+      pada: ensureNumberOrNull(source?.pada ?? source?.nakshatraPada),
+      retrograde: Boolean(source?.retrograde || source?.isRetrograde),
+      combustion: Boolean(source?.combustion || source?.isCombust),
+      dignity: String(source?.dignity || "").trim() || null,
+      aspects: Array.isArray(source?.aspects) ? source.aspects : [],
+    };
+  };
+  const lagnaToken = String(payload?.lagna?.sign || payload?.lagna?.name || canonical?.lagna?.sign || canonical?.lagna?.name || canonical?.lagna?.signName || "").trim();
+  const lagnaSignIndex = findSignIndex(lagnaToken);
+
   const planets = normalizeAstroPlanetMap(payload?.planets || canonical?.planets || {});
-  const lagnaSign = String(payload?.lagna?.sign || payload?.lagna?.name || canonical?.lagna?.sign || canonical?.lagna?.name || canonical?.lagna?.signName || "").trim();
+  const lagnaSign = lagnaToken;
   const rashiHouses = payload?.rashiChart?.houses
     || canonical?.rashiChart?.houses
     || canonical?.houses
@@ -5670,11 +5800,67 @@ function normalizeVedicCalculatedDataForPdf(calculatedData, canonicalSource, int
     pushUnique(integrity.supplementedFields, "calculatedData.karakas.atmakaraka");
   }
 
-  payload.planets = planets;
+  const planetOrder = [
+    ["sun", "Sun"],
+    ["moon", "Moon"],
+    ["mars", "Mars"],
+    ["mercury", "Mercury"],
+    ["jupiter", "Jupiter"],
+    ["venus", "Venus"],
+    ["saturn", "Saturn"],
+    ["rahu", "Rahu"],
+    ["ketu", "Ketu"],
+  ];
+  const normalizedPlanets = {};
+  planetOrder.forEach(([key, name]) => {
+    normalizedPlanets[key] = toNormalizedPlanet(name, planets?.[key] || canonical?.planets?.[name] || {}, lagnaSignIndex);
+  });
+
+  const rahuLon = ensureNumberOrNull(normalizedPlanets?.rahu?.absoluteLongitude);
+  const ketuLon = ensureNumberOrNull(normalizedPlanets?.ketu?.absoluteLongitude);
+  if (rahuLon != null && ketuLon == null) {
+    normalizedPlanets.ketu.absoluteLongitude = normalizeDeg(rahuLon + 180);
+    if (normalizedPlanets.ketu.sign == null) {
+      const ketuSignIdx = Math.floor(normalizedPlanets.ketu.absoluteLongitude / 30);
+      normalizedPlanets.ketu.sign = VEDIC_SIGN_EN[ketuSignIdx] || null;
+    }
+    if (normalizedPlanets.ketu.degreeInSign == null) {
+      normalizedPlanets.ketu.degreeInSign = Math.round((normalizedPlanets.ketu.absoluteLongitude % 30) * 100) / 100;
+    }
+    pushUnique(integrity.supplementedFields, "calculatedData.planets.ketu.absoluteLongitude");
+  }
+  if (rahuLon != null && ensureNumberOrNull(normalizedPlanets?.ketu?.absoluteLongitude) != null) {
+    const diff = Math.abs(normalizeDeg(rahuLon - Number(normalizedPlanets.ketu.absoluteLongitude)));
+    const distance = diff > 180 ? 360 - diff : diff;
+    if (Math.abs(distance - 180) > 2.5) {
+      normalizedPlanets.ketu.absoluteLongitude = normalizeDeg(rahuLon + 180);
+      pushUnique(integrity.warnings, "normalized rahu/ketu opposition to 180 degrees");
+      pushUnique(integrity.supplementedFields, "calculatedData.planets.ketu.absoluteLongitude");
+    }
+  }
+
+  payload.planets = normalizedPlanets;
+  payload.birthInfo = {
+    ...(payload?.birthInfo && typeof payload.birthInfo === "object" ? payload.birthInfo : {}),
+    date: String(payload?.birthInfo?.date || canonical?.profile?.birth?.date || canonical?.profile?.birth?.solarDate || payload?.profile?.birthDate || "").trim(),
+    time: String(payload?.birthInfo?.time || canonical?.profile?.birth?.time || payload?.profile?.birthTime || "").trim(),
+    place: String(payload?.birthInfo?.place || canonical?.profile?.birth?.place || canonical?.profile?.birth?.locationName || payload?.profile?.locationName || "").trim(),
+    latitude: ensureNumberOrNull(payload?.birthInfo?.latitude ?? canonical?.profile?.birth?.latitude),
+    longitude: ensureNumberOrNull(payload?.birthInfo?.longitude ?? canonical?.profile?.birth?.longitude),
+    timezone: String(payload?.birthInfo?.timezone || canonical?.profile?.birth?.timezone || payload?.profile?.timezone || "").trim(),
+    zodiac: "sidereal",
+    ayanamsa: ensureNumberOrNull(payload?.birthInfo?.ayanamsa ?? canonical?.calculationMeta?.ayanamsa),
+    ayanamsaMode: String(payload?.birthInfo?.ayanamsaMode || canonical?.calculationMeta?.ayanamsaMode || "lahiri").trim().toLowerCase(),
+    ephemerisSource: String(payload?.birthInfo?.ephemerisSource || canonical?.calculationMeta?.ephemerisSource || canonical?.calculationMeta?.engine || "Swiss Ephemeris").trim(),
+    houseSystem: String(payload?.birthInfo?.houseSystem || "whole-sign").trim(),
+    unknownTime: Boolean(payload?.profile?.timeUnknown || payload?.birthInfo?.unknownTime),
+    julianDay: ensureNumberOrNull(payload?.birthInfo?.julianDay ?? canonical?.calculationMeta?.julianDay),
+  };
   payload.lagna = {
     ...(payload?.lagna && typeof payload.lagna === "object" ? payload.lagna : {}),
-    sign: lagnaSign || String(planets?.sun?.sign || "Mithuna"),
-    name: lagnaSign || String(planets?.sun?.sign || "Mithuna"),
+    sign: lagnaSign || String(normalizedPlanets?.sun?.sign || "Mithuna"),
+    name: lagnaSign || String(normalizedPlanets?.sun?.sign || "Mithuna"),
+    degree: ensureNumberOrNull(payload?.lagna?.degree ?? canonical?.lagna?.degree),
   };
   payload.rashiChart = {
     ...(payload?.rashiChart && typeof payload.rashiChart === "object" ? payload.rashiChart : {}),
@@ -5706,10 +5892,21 @@ function normalizeVedicCalculatedDataForPdf(calculatedData, canonicalSource, int
   payload.yogas = Array.isArray(payload?.yogas) ? payload.yogas : (Array.isArray(canonical?.yogas) ? canonical.yogas : []);
   payload.relationshipData = (payload?.relationshipData && typeof payload.relationshipData === "object") ? payload.relationshipData : {};
   payload.careerData = (payload?.careerData && typeof payload.careerData === "object") ? payload.careerData : {};
+  payload.natalChart = {
+    ...(payload?.natalChart && typeof payload.natalChart === "object" ? payload.natalChart : {}),
+    sunSign: String(normalizedPlanets?.sun?.sign || payload?.natalChart?.sunSign || "").trim(),
+    moonSign: String(normalizedPlanets?.moon?.sign || payload?.natalChart?.moonSign || "").trim(),
+    ascendant: String(payload?.lagna?.sign || payload?.natalChart?.ascendant || "").trim(),
+    planets: Object.values(normalizedPlanets).filter((item) => hasMeaningfulValue(item)),
+    houses: Array.isArray(payload?.rashiChart?.houses)
+      ? payload.rashiChart.houses
+      : (payload?.rashiChart?.houses && typeof payload.rashiChart.houses === "object" ? Object.values(payload.rashiChart.houses) : []),
+    aspects: [],
+  };
   payload.chart = {
     ...(payload?.chart && typeof payload.chart === "object" ? payload.chart : {}),
     lagna: String(payload?.lagna?.sign || payload?.lagna?.name || "").trim(),
-    planets: Object.values(planets).filter((item) => hasMeaningfulValue(item)),
+    planets: Object.values(normalizedPlanets).filter((item) => hasMeaningfulValue(item)),
     houses: Array.isArray(payload?.rashiChart?.houses)
       ? payload.rashiChart.houses
       : (payload?.rashiChart?.houses && typeof payload.rashiChart.houses === "object" ? Object.values(payload.rashiChart.houses) : []),
@@ -5807,12 +6004,12 @@ function buildChapterDataMap(reportType, calculatedData) {
     return {
       ch1: { chapterTitle: "영혼의 설계도", requiredPaths: ["calculatedData.lagna", "calculatedData.nakshatras.moonNakshatra", "calculatedData.karakas.atmakaraka"] },
       ch2: { chapterTitle: "현실 성향", requiredPaths: ["calculatedData.rashiChart"] },
-      ch3: { chapterTitle: "내면 운명", requiredPaths: ["calculatedData.navamsaChart"] },
+      ch3: { chapterTitle: "내면 운명", requiredPaths: ["calculatedData.lagna", "calculatedData.nakshatras.moonNakshatra"] },
       ch4: { chapterTitle: "카르마 과제", requiredPaths: ["calculatedData.karakas", "calculatedData.planets.saturn", "calculatedData.planets.rahu", "calculatedData.planets.ketu"] },
-      ch5: { chapterTitle: "사랑/결혼", requiredPaths: ["calculatedData.relationshipData"] },
-      ch6: { chapterTitle: "직업/소명", requiredPaths: ["calculatedData.careerData"] },
-      ch7: { chapterTitle: "인생 주기", requiredPaths: ["calculatedData.dashas.vimshottari"] },
-      ch8: { chapterTitle: "요가 분석", requiredPaths: ["calculatedData.yogas"] },
+      ch5: { chapterTitle: "사랑/결혼", requiredPaths: ["calculatedData.planets.venus", "calculatedData.planets.jupiter", "calculatedData.rashiChart"] },
+      ch6: { chapterTitle: "직업/소명", requiredPaths: ["calculatedData.planets.saturn", "calculatedData.planets.mercury", "calculatedData.rashiChart"] },
+      ch7: { chapterTitle: "인생 주기", requiredPaths: ["calculatedData.nakshatras.moonNakshatra", "calculatedData.lagna"] },
+      ch8: { chapterTitle: "요가 분석", requiredPaths: ["calculatedData.karakas", "calculatedData.planets"] },
       ch9: { chapterTitle: "종합 전략", requiredPaths: ["calculatedData"] },
     };
   }
@@ -6760,6 +6957,22 @@ function getSukyoChapterBlueprint(chapterId, reportMode = "solo") {
 }
 
 async function generateSukyoPremiumChapterFromContext({ env, context, chapterId, requestId }) {
+  const sukuyoForbiddenPhrases = [
+    "자동 복구 생성",
+    "Chapter 1",
+    "Chapter 2",
+    "fallback",
+    "recovery",
+    "placeholder",
+    "TODO",
+    "undefined",
+    "null",
+    "NaN",
+    "실행 점검 노트",
+    "핵심 신호를 바탕으로 현재 흐름을 구조적으로 해석합니다",
+    "오늘 실행할 행동 1가지를 정하고",
+    "반복 가능한 루틴은 작은 단위부터 고정",
+  ];
   const sukyoMode = resolveSukyoModeFromPayload({
     ...(context?.input || {}),
     reportMode: context?.modeKey || context?.input?.reportMode || context?.input?.reportType,
@@ -6792,6 +7005,21 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
   sukyoContext.chapterContract = chapterContract;
 
   const inputValidation = validateSukyoPdfInput(sukyoContext);
+  const hardMissing = Array.isArray(inputValidation?.hardMissingFields) ? inputValidation.hardMissingFields : [];
+  const softMissing = Array.isArray(inputValidation?.softMissingFields) ? inputValidation.softMissingFields : [];
+  console.info("[SukuyoPdfPipeline]", {
+    stage: "SukuyoPdfPayloadBuildSuccess",
+    requestId,
+    mode: sukyoMode,
+    chapterId: Number(chapterId || 0),
+    hasBirthData: Boolean(inputValidation?.hasBirthInfo),
+    hasSukuyoCoreData: Boolean(inputValidation?.hasMainMansion && inputValidation?.hasMansionNumber),
+    hasRelationshipData: Boolean(inputValidation?.hasCompatibilityCore),
+    hasChapterPlan: Boolean(inputValidation?.hasChapterPlan),
+    chapterCount: Number(inputValidation?.chapterCount || 0),
+    missingHardFields: hardMissing,
+    missingSoftFields: softMissing,
+  });
   const chapterMeta = {
     num: Number(chapterId || 1),
     title: chapter.title,
@@ -6799,14 +7027,34 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
   };
 
   if (!inputValidation.canGenerate) {
+    const status = hardMissing.some((field) => String(field || "").toLowerCase().includes("birthdate")) ? 400 : 422;
+    console.warn("[SukuyoPdfPipeline]", {
+      stage: "SukuyoPdfPreflightFailed",
+      requestId,
+      mode: sukyoMode,
+      chapterId: Number(chapterId || 0),
+      missingHardFields: hardMissing,
+      missingSoftFields: softMissing,
+      errorCode: "SUKYO_REPORT_PAYLOAD_INCOMPLETE",
+    });
     return {
       ok: false,
       code: "SUKYO_REPORT_PAYLOAD_INCOMPLETE",
       message: "숙요 canonical reportPayload가 불완전하여 챕터를 생성할 수 없습니다.",
       chapterMeta,
-      missingFields: inputValidation.missingFields,
+      missingFields: hardMissing,
+      missingSoftFields: softMissing,
+      status,
     };
   }
+
+  console.info("[SukuyoPdfPipeline]", {
+    stage: "SukuyoPdfLlmChapterStart",
+    requestId,
+    mode: sukyoMode,
+    chapterId: Number(chapterId || 0),
+    llmCallStarted: true,
+  });
 
   const prompt = buildSukyoGeminiPrompt({
     context: sukyoContext,
@@ -6827,12 +7075,22 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
     const parsed = parseSukyoGeminiChapterResponse(raw);
 
     if (!parsed.ok || !parsed.parsed) {
+      console.warn("[SukuyoPdfPipeline]", {
+        stage: "SukuyoPdfLlmChapterValidationFailed",
+        requestId,
+        mode: sukyoMode,
+        chapterId: Number(chapterId || 0),
+        llmCallSucceeded: true,
+        llmValidationFailed: true,
+        errorCode: "SUKYO_CHAPTER_GENERATION_FAILED",
+      });
       return {
         ok: false,
         code: "SUKYO_CHAPTER_GENERATION_FAILED",
         message: "숙요 챕터 JSON 파싱에 실패했습니다.",
         chapterMeta,
         missingFields: sukyoContext?.missingSummary || [],
+        status: 502,
       };
     }
 
@@ -6849,15 +7107,50 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
       previousChapterTexts,
     });
     if (!envelopeValidation.ok) {
+      console.warn("[SukuyoPdfPipeline]", {
+        stage: "SukuyoPdfLlmChapterValidationFailed",
+        requestId,
+        mode: sukyoMode,
+        chapterId: Number(chapterId || 0),
+        llmCallSucceeded: true,
+        llmValidationFailed: true,
+        errorCode: "SUKYO_CHAPTER_CONTRACT_VIOLATION",
+      });
       return {
         ok: false,
         code: "SUKYO_CHAPTER_CONTRACT_VIOLATION",
         message: "숙요 챕터가 chapterContract 요구사항을 충족하지 못했습니다.",
         chapterMeta,
         missingFields: envelopeValidation.missingFields,
+        status: 502,
       };
     }
     let text = chapterTextDraft;
+
+    const forbiddenHit = sukuyoForbiddenPhrases.find((phrase) => {
+      const token = String(phrase || "").trim();
+      if (!token) return false;
+      return String(text || "").toLowerCase().includes(token.toLowerCase());
+    });
+    if (forbiddenHit) {
+      console.warn("[SukuyoPdfPipeline]", {
+        stage: "SukuyoPdfFallbackBlocked",
+        requestId,
+        mode: sukyoMode,
+        chapterId: Number(chapterId || 0),
+        fallbackBlocked: true,
+        errorCode: "SUKYO_FORBIDDEN_CONTENT_DETECTED",
+        errorMessage: forbiddenHit,
+      });
+      return {
+        ok: false,
+        code: "SUKYO_FORBIDDEN_CONTENT_DETECTED",
+        message: "자동 복구/placeholder 문구가 감지되어 챕터 생성을 중단했습니다.",
+        chapterMeta,
+        missingFields: sukyoContext?.missingSummary || [],
+        status: 502,
+      };
+    }
 
     let repeatedAcross = detectSukuyoCrossRepeats(text, previousChapterTexts, 30);
     if (repeatedAcross.length > 0) {
@@ -6905,14 +7198,32 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
     }
 
     if (repeatedAcross.length > 0) {
+      console.warn("[SukuyoPdfPipeline]", {
+        stage: "SukuyoPdfLlmChapterValidationFailed",
+        requestId,
+        mode: sukyoMode,
+        chapterId: Number(chapterId || 0),
+        llmCallSucceeded: true,
+        llmValidationFailed: true,
+        errorCode: "SUKYO_REPEATED_ACROSS_CHAPTERS",
+      });
       return {
         ok: false,
         code: "SUKYO_REPEATED_ACROSS_CHAPTERS",
         message: "이전 챕터와 중복된 문장이 감지되어 생성을 중단했습니다.",
         chapterMeta,
         missingFields: sukyoContext?.missingSummary || [],
+        status: 502,
       };
     }
+
+    console.info("[SukuyoPdfPipeline]", {
+      stage: "SukuyoPdfLlmChapterSuccess",
+      requestId,
+      mode: sukyoMode,
+      chapterId: Number(chapterId || 0),
+      llmCallSucceeded: true,
+    });
 
     return {
       ok: true,
@@ -6945,6 +7256,7 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
       message: String(error?.message || "GEMINI_ERROR"),
       chapterMeta,
       missingFields: sukyoContext?.missingSummary || [],
+      status: 502,
     };
   }
 }
@@ -19188,7 +19500,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
         code: String(generated?.code || "SUKYO_CHAPTER_GENERATION_FAILED"),
         message: String(generated?.message || "숙요 챕터 생성에 실패했습니다."),
         missingFields: Array.isArray(generated?.missingFields) ? generated.missingFields : [],
-      }, { status: 422 });
+      }, { status: Number.isFinite(Number(generated?.status)) ? Number(generated.status) : 422 });
     }
 
     const chapterText = ensurePremiumChapterLength(String(generated?.text || "").trim(), {
@@ -20050,51 +20362,7 @@ async function handlePremiumReportPdf(request, env, authInfo) {
 async function ensurePdfNo422(response) {
   if (!(response instanceof Response)) return response;
   if (Number(response.status) !== 422) return response;
-
-  const payload = await response.clone().json().catch(() => ({
-    ok: false,
-    code: "PDF_RECOVERED_FROM_422",
-    message: "422 응답을 복구 모드로 변환했습니다.",
-  }));
-
-  const code = String(payload?.code || "").trim();
-  const isAstroFailure = /^ASTRO_/i.test(code)
-    || String(payload?.reportType || "").trim() === "westernAstrologyPremium"
-    || /점성술|astrology/i.test(String(payload?.message || ""));
-  if (isAstroFailure) {
-    return response;
-  }
-  const isZiweiFailure = /^ZIWEI_/i.test(code)
-    || String(payload?.reportType || "").trim() === "ziweiPremium"
-    || /자미두수/.test(String(payload?.message || ""));
-  if (isZiweiFailure) {
-    return response;
-  }
-  const shouldBlockTextFallback = /SOURCE_REQUIRED|PAYLOAD_MISSING|CORE_CHART_MISSING|BASIC_RESULT_MISSING/i.test(code);
-
-  const next = {
-    ...(payload && typeof payload === "object" ? payload : {}),
-    ok: true,
-    recovered: true,
-    recoveredFromStatus: 422,
-    recoveryMode: "llm-safe-recovery",
-  };
-
-  if (!shouldBlockTextFallback && !String(next.text || "").trim() && Number.isFinite(Number(next.chapterId || next.chapter || 0))) {
-    const chapterNo = Number(next.chapterId || next.chapter || 1);
-    const title = String(next.chapterTitle || next?.chapterMeta?.title || `Chapter ${chapterNo}`).trim() || `Chapter ${chapterNo}`;
-    const recoveredText = buildGuaranteedPremiumChapterText({ title, subtitle: "자동 복구 생성" }, [], 1800, "");
-    next.text = recoveredText;
-    next.sections = parseSections(recoveredText);
-    next.chapterMeta = next.chapterMeta || { num: chapterNo, title, subtitle: "자동 복구 생성" };
-  }
-
-  if (shouldBlockTextFallback) {
-    next.recoveryMode = "validation-safe-recovery";
-    next.recoveryBlocked = true;
-  }
-
-  return json(next, { status: 200 });
+  return response;
 }
 
 export async function handlePremiumReportRoutes(request, env) {

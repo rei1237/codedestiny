@@ -336,6 +336,10 @@
     if (!prepared || !prepared.ok || !prepared.reportSessionId) {
       return {
         ok: false,
+        stage: 'prepare',
+        code: String((prepared && prepared.code) || ''),
+        status: Number((prepared && prepared.status) || 0),
+        details: prepared || null,
         message: buildPreflightMessage(prepared, '결제 확인/세션 준비에 실패했습니다.'),
       };
     }
@@ -375,6 +379,10 @@
       if (!prepared || !prepared.ok || !prepared.reportSessionId) {
         return {
           ok: false,
+          stage: 'prepare:recover',
+          code: String((prepared && prepared.code) || ''),
+          status: Number((prepared && prepared.status) || 0),
+          details: prepared || null,
           message: buildPreflightMessage(prepared, '세션 복구 중 실패했습니다.'),
         };
       }
@@ -384,6 +392,10 @@
     if (!preflight || !preflight.ok) {
       return {
         ok: false,
+        stage: 'preflight',
+        code: String((preflight && preflight.code) || ''),
+        status: Number((preflight && preflight.status) || 0),
+        details: preflight || null,
         message: buildPreflightMessage(preflight, '생성 전 데이터 점검(preflight)에서 실패했습니다.'),
       };
     }
@@ -1355,14 +1367,27 @@
       if (!preflight.ok) {
         logVedicError('PreflightFailed', {
           message: String(preflight.message || 'preflight failed'),
+          stage: String(preflight.stage || ''),
+          code: String(preflight.code || ''),
+          status: Number(preflight.status || 0),
+          missingFields: Array.isArray(preflight.details && preflight.details.missingFields) ? preflight.details.missingFields : [],
+          blockedChapters: Array.isArray(preflight.details && preflight.details.blockedChapters) ? preflight.details.blockedChapters : [],
           mode: String(requestInput.body && requestInput.body.mode || ''),
           hasBirthPlace: !!(requestInput.body && requestInput.body.birthPlace),
           lat: Number(requestInput.body && requestInput.body.lat),
           lon: Number(requestInput.body && requestInput.body.lon)
         });
-        await attemptVedicAutoRefund('베다 프리미엄 preflight 실패 자동 환불');
+        var refundedOnPreflightFail = await attemptVedicAutoRefund('베다 프리미엄 preflight 실패 자동 환불');
         state.paidGateKey = '';
-        setError(String(preflight.message || '생성 전 데이터 점검에 실패했습니다.'));
+        var preflightCode = String(preflight.code || '').toUpperCase();
+        var hasDataIssue = preflightCode.indexOf('MISSING') >= 0 || preflightCode.indexOf('PREFLIGHT') >= 0 || preflightCode.indexOf('INPUT') >= 0;
+        var userMessage = hasDataIssue
+          ? '베다 차트 계산에 필요한 출생 정보 일부를 확인하지 못했습니다. 출생지, 출생시간, 시간대를 확인한 뒤 다시 시도해 주세요.'
+          : '현재 베다 차트 계산 엔진이 일시적으로 응답하지 않았습니다. 잠시 후 다시 시도해 주세요.';
+        if (refundedOnPreflightFail) {
+          userMessage += ' 코인은 차감되지 않았습니다.';
+        }
+        setError(userMessage);
         return;
       }
 

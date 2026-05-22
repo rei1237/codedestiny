@@ -253,7 +253,7 @@ describe("Ziwei Premium Strict Tests (A~G)", () => {
     expect(hasRequiredZiweiSpecificCoverage(denseText)).toBe(true);
   });
 
-  test("G. strict 모드에서 canonical 필수값 누락이면 /api/ziwei-book/session은 422를 반환해야 한다", async () => {
+  test("G. strict 모드에서 canonical 필수값 누락이면 /api/ziwei-book/session은 422를 유지해야 한다", async () => {
     const authToken = await signJwt({
       userId: "507f1f77bcf86cd799439011",
       email: "strict-test@example.com",
@@ -300,9 +300,9 @@ describe("Ziwei Premium Strict Tests (A~G)", () => {
     const res = await handleZiweiBookRoutes(req, {});
     const data = await res.json();
 
-    expect(res.status).toBe(200);
-    expect(data.ok).toBe(true);
-    expect(data.recovered).toBe(true);
+    expect(res.status).toBe(422);
+    expect(data.ok).toBe(false);
+    expect(data.recovered).toBeUndefined();
     expect(data.code).toBe("ZIWEI_CORE_CHART_MISSING");
     expect(Array.isArray(data.missingFields)).toBe(true);
     expect(data.message).toMatch(/자미두수 명반 데이터를 다시 구성/);

@@ -101,35 +101,35 @@ const STEM_SIHUA_RULES = Object.freeze({
 });
 
 const ZIWEI_CHAPTER_CATEGORY_GUIDE = Object.freeze({
-  1: ["명반 전체 분위기", "명궁과 신궁의 기본 축", "명반에서 반복되는 핵심 테마", "명반의 핵심 문장"],
-  2: ["명궁의 주성 해석", "명궁의 보조성·잡성 해석", "명궁의 강도와 작동 방식", "명궁을 살리는 방법"],
-  3: ["신궁이 놓인 궁의 의미", "신궁의 별과 변화 방향", "명궁과 신궁의 차이", "신궁을 현실에서 활용하는 법"],
-  4: ["복덕궁의 기본 성향", "정신적 피로와 회복력", "즐거움과 취미의 방향", "행복을 지키는 생활 전략"],
-  5: ["직업적 성향", "인정받는 방식", "직업에서 조심해야 할 패턴", "커리어 성장 전략"],
-  6: ["재물 감각", "수익이 열리는 구조", "손실이 생기는 패턴", "재물 운영 전략"],
-  7: ["밖에서 드러나는 모습", "이동과 변화의 운", "외부 인연과 기회", "환경을 바꾸는 전략"],
-  8: ["연애와 결혼의 기본 성향", "끌리는 상대와 안정되는 상대", "관계에서 반복되는 문제", "좋은 관계를 만드는 전략"],
-  9: ["에너지 소모 패턴", "심리적 취약점", "회복 방식", "장기적 자기관리 전략"],
-  10: ["부모궁으로 보는 뿌리", "형제궁으로 보는 가까운 관계", "교우궁으로 보는 인맥", "관계 운영 전략"],
-  11: ["전택궁으로 보는 삶의 기반", "자녀궁으로 보는 창조성", "내가 남기는 것", "기반을 안정시키는 전략"],
-  12: ["대운의 전체 흐름", "현재 또는 가까운 운의 흐름", "운이 열리는 조건", "운의 흐름을 현실로 쓰는 법"],
-  13: ["전체 명반 핵심 요약", "반드시 살려야 할 강점", "버려야 할 반복 패턴", "개인 맞춤 선언문"],
+  1: ["명궁의 주성 구조", "명궁의 보조성/잡성 해석", "명궁의 밝기와 강약", "성격, 기질, 선택 방식", "인생 초반부터 반복되는 핵심 패턴", "실전 조언"],
+  2: ["신궁 위치와 의미", "명궁과 신궁의 관계", "나이가 들수록 강해지는 성향", "사회적 역할과 후천적 방향성", "인생 후반 전략", "실전 조언"],
+  3: ["복덕궁 주성 해석", "스트레스와 회복 방식", "정신적 만족을 주는 환경", "외로움/불안/집착 패턴", "장기적인 행복 설계", "실전 조언"],
+  4: ["관록궁 주성 구조", "적성 직업과 일하는 방식", "조직형/독립형/창작형/전문가형 판단", "성공이 열리는 조건", "커리어 리스크", "실전 조언"],
+  5: ["재백궁 주성 구조", "돈 버는 방식", "돈이 새는 패턴", "투자/사업/직장 수입 성향", "재물운을 키우는 습관", "실전 조언"],
+  6: ["천이궁 주성 구조", "밖에서 만나는 기회", "이직, 이동, 여행, 해외운", "낯선 환경에서 강해지는지 약해지는지", "귀인과 외부 평판", "실전 조언"],
+  7: ["부처궁 주성 구조", "끌리는 상대 유형", "실제로 맞는 상대 유형", "연애에서 반복되는 문제", "결혼 생활의 핵심 과제", "실전 조언"],
+  8: ["교우궁 주성 구조", "친구와 동료 인연", "도움 되는 사람과 피해야 할 사람", "협업 방식", "배신/오해/고립 리스크", "실전 조언"],
+  9: ["부모궁 주성 구조", "부모와의 인연 패턴", "윗사람/상사/스승과의 관계", "보호받는 방식과 압박받는 방식", "독립 과제", "실전 조언"],
+  10: ["형제궁 주성 구조", "형제/동료/경쟁자와의 관계", "가까운 사람과의 거리감", "비교심리와 경쟁 구도", "협력 가능한 구조", "실전 조언"],
+  11: ["질액궁 주성 구조", "취약한 생활 패턴", "과로/번아웃/감정 소모 포인트", "몸과 마음의 회복법", "장기적인 건강 관리 전략", "실전 조언"],
+  12: ["현재 대운/대한의 핵심 의미", "인생에서 강하게 바뀌는 시기", "커리어 전환기", "관계 전환기", "재물 전환기", "실전 조언"],
+  13: ["명궁·신궁·관록궁·재백궁 종합", "인생의 핵심 강점", "반드시 관리해야 할 약점", "성공 방정식", "관계와 돈의 최종 전략", "앞으로의 실행 로드맵"],
 });
 
 const ZIWEI_CHAPTER_TARGET_CHARS = Object.freeze([
-  4500,
-  4500,
-  3800,
-  3800,
-  4500,
-  4200,
-  3800,
-  4500,
-  3500,
-  4000,
-  3800,
-  4500,
-  4100,
+  3600,
+  3400,
+  3400,
+  3400,
+  3400,
+  3400,
+  3400,
+  3400,
+  3400,
+  3400,
+  3400,
+  3600,
+  3600,
 ]);
 
 const ZIWEI_CHAPTER_SPECS = Object.freeze(
@@ -138,9 +138,11 @@ const ZIWEI_CHAPTER_SPECS = Object.freeze(
     chapterNo: index + 1,
     title: chapter.title,
     goal: chapter.goal,
+    purpose: chapter.goal,
     targetChars: Number(chapter.targetChars || ZIWEI_CHAPTER_TARGET_CHARS[index] || 4000),
-    minChars: Math.floor(Number(chapter.targetChars || ZIWEI_CHAPTER_TARGET_CHARS[index] || 4000) * 0.85),
+    minChars: Math.max(3000, Math.floor(Number(chapter.targetChars || ZIWEI_CHAPTER_TARGET_CHARS[index] || 4000) * 0.85)),
     sections: ZIWEI_CHAPTER_CATEGORY_GUIDE[index + 1] || ["핵심 구조", "현실 적용", "주의점", "실천 전략"],
+    requiredDataKeys: asArray(chapter.requiredDataKeys),
     focus: chapter.key,
   })),
 );
@@ -1146,13 +1148,13 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
     "9. 독자가 내 명반을 실제로 읽어준다고 느낄 정도로 구체적으로 작성한다.",
     "10. 무조건 JSON 형식으로만 응답한다.",
     "11. 마크다운 코드블록, 표, 파이프(|) 테이블, 불릿/번호 목록, HTML 태그를 출력하지 않는다.",
-    "12. chapterTitle/chapterSubtitle는 입력된 챕터 제목/의도를 따르고, 결론형 요약문 남발을 금지한다.",
+    "12. title은 입력된 챕터 title과 정확히 일치해야 하며 임시 제목(예: Chapter 1)을 금지한다.",
     "13. 본 리포트는 13챕터 고정 체계이므로 챕터 번호 체계를 임의로 변경하지 않는다.",
     "14. 데이터 부족/보완/안내/메모 같은 메타 표현을 본문에 쓰지 않는다.",
     "15. 시스템 지침 문장, 프롬프트 규칙 문장, JSON 키 설명 문장을 본문으로 출력하지 않는다.",
     "16. 동일 문장/동일 단락을 반복해 분량을 채우지 않는다.",
     "17. 이전 챕터들과 관점이나 내용이 절대 중복되지 않도록 하라. 제공된 [이전 챕터 요약 정보]를 참조하여, 이미 다른 챕터에서 다룬 해석을 반복하지 않고 이 챕터만의 고유한 관점(예: 성격 자아 -> 직업 자아 -> 재물 성향 등)을 확실히 보여줘라.",
-    "18. masterAdvice 또는 masterConclusion은 반드시 현재 챕터의 대상 궁위와 해석 목적에 맞게 작성하고, 다른 챕터에 재사용 가능한 일반론 문장을 금지한다.",
+    "18. coreAdvice와 closing은 반드시 현재 챕터의 대상 궁위와 해석 목적에 맞게 작성하고, 다른 챕터에 재사용 가능한 일반론 문장을 금지한다.",
     effectiveRequiredHeadings.length
       ? `19. sections 배열은 다음 heading을 정확한 순서로 1회씩만 사용한다: ${effectiveRequiredHeadings.join(", ")}. 다른 heading 추가를 금지한다.`
       : "19. 챕터 구조 규칙을 누락 없이 반영한다.",
@@ -1214,19 +1216,15 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
       ? `sections는 반드시 ${effectiveRequiredHeadings.length}개이며, heading은 위 [chapter 카테고리 고정 헤딩]과 완전히 동일하고 순서도 같아야 합니다.`
       : "",
     "{",
-    '  "chapterTitle": "string",',
-    '  "chapterSubtitle": "string",',
-    '  "summary": "string",',
+    '  "chapterNo": "number",',
+    '  "title": "string",',
+    '  "intro": "string",',
     '  "sections": [',
     '    { "heading": "string", "body": "string" }',
     "  ],",
-    '  "practicalAdvice": ["string"],',
-    '  "cautions": ["string"],',
-    '  "masterAdvice": "string",',
-    '  "masterConclusion": "string",',
-    '  "coreStars": ["string"],',
-    '  "corePalaces": ["string"],',
-    '  "missingDataNotice": "string | null"',
+    '  "coreAdvice": "string",',
+    '  "actionGuide": ["string", "string", "string"],',
+    '  "closing": "string"',
     "}",
     "",
     "[문체 및 분량 상세 기준]",
@@ -1235,7 +1233,7 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
     `- 챕터 총 분량은 공백 포함 ${chapterTargetChars}자 내외, 최소 ${chapterMinChars}자 이상을 지키고 sections 내 각 body 항목은 450자 이상으로 작성하세요.`,
     "- 데이터가 없는 경우에는 기본 궁 의미와 knowledgeBase를 활용해 자연스럽게 상담 흐름으로 보강하세요.",
     "- 데이터 부족 안내나 메모성 문구는 출력하지 마세요.",
-    "- masterAdvice는 반드시 현재 챕터의 대상 궁위와 관련 궁위를 직접 언급한 실행 조언으로 작성하세요.",
+    "- coreAdvice는 반드시 현재 챕터의 대상 궁위와 관련 궁위를 직접 언급한 실행 조언으로 작성하세요.",
     hasPremiumContext
       ? "- [기본/심화 통합 보조 데이터]가 있으면 최소 5개 이상의 구체 근거(궁/별/강약/대운/연월운/요약)를 본문에 반영하세요."
       : null,
@@ -1311,8 +1309,10 @@ function hasValidZiweiChapterStructure(data) {
     .map((row) => toPlainObject(row))
     .filter((row) => asText(row.heading || row.title) && asText(row.body));
   if (sections.length < 2) return false;
-  const summary = asText(chapter.summary);
-  if (!summary) return false;
+  const summary = asText(chapter.summary || chapter.intro);
+  const title = asText(chapter.chapterTitle || chapter.title);
+  const advice = asText(chapter.masterAdvice || chapter.masterConclusion || chapter.coreAdvice);
+  if (!summary || !title || !advice) return false;
   return true;
 }
 
@@ -1341,7 +1341,7 @@ export function parseZiweiGeminiResponse(rawText) {
 
 export function sanitizeZiweiChapterJson(rawChapter, chapterSpec) {
   const chapter = toPlainObject(rawChapter);
-  const rawSummary = sanitizeZiweiOutputText(asText(chapter.summary));
+  const rawSummary = sanitizeZiweiOutputText(asText(chapter.summary || chapter.intro));
   const rawSubtitle = sanitizeZiweiOutputText(asText(chapter.chapterSubtitle));
   const sections = normalizeZiweiSectionsByChapterSpec(
     asArray(chapter.sections),
@@ -1350,20 +1350,23 @@ export function sanitizeZiweiChapterJson(rawChapter, chapterSpec) {
     rawSubtitle,
   );
 
-  const practicalAdvice = asArray(chapter.practicalAdvice).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
+  const practicalAdvice = asArray(chapter.practicalAdvice || chapter.actionGuide)
+    .map((item) => sanitizeZiweiOutputText(asText(item)))
+    .filter(Boolean);
   const cautions = asArray(chapter.cautions).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
   
   const coreStars = asArray(chapter.coreStars).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
   const corePalaces = asArray(chapter.corePalaces).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
-  const normalizedMasterAdvice = sanitizeZiweiOutputText(asText(chapter.masterAdvice || chapter.masterConclusion));
+  const normalizedMasterAdvice = sanitizeZiweiOutputText(asText(chapter.masterAdvice || chapter.masterConclusion || chapter.coreAdvice));
   const chapterSpecificMasterAdvice = buildZiweiChapterMasterAdvice(chapterSpec, {
     corePalaces,
     coreStars,
   });
-  const masterConclusion = normalizedMasterAdvice || chapterSpecificMasterAdvice;
+  const normalizedClosing = sanitizeZiweiOutputText(asText(chapter.closing));
+  const masterConclusion = normalizedMasterAdvice || normalizedClosing || chapterSpecificMasterAdvice;
 
   return {
-    chapterTitle: sanitizeZiweiOutputText(asText(chapter.chapterTitle)) || chapterSpec?.title || "자미두수 해석",
+    chapterTitle: sanitizeZiweiOutputText(asText(chapter.chapterTitle || chapter.title)) || chapterSpec?.title || "자미두수 해석",
     chapterSubtitle: rawSubtitle || "심층 해석",
     summary: rawSummary || "핵심 데이터와 지식 베이스를 기반으로 챕터를 생성했습니다.",
     sections,

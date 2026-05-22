@@ -80,12 +80,36 @@ describe("Premium reportPayload severity validators", () => {
     const { validateVedicReportPayload } = __premiumReportTestUtils;
     const result = validateVedicReportPayload({
       calculatedData: {
+        birthInfo: {
+          timezone: "Asia/Seoul",
+          latitude: 37.5665,
+          longitude: 126.978,
+          ayanamsa: 23.84,
+        },
         lagna: { sign: "Mithuna" },
         nakshatras: { moonNakshatra: { name: "Hasta" } },
+        planets: {
+          sun: { sign: "Mithuna", degreeInSign: 10.5, absoluteLongitude: 70.5, nakshatra: "Ardra", pada: 2 },
+          moon: { sign: "Kanya", degreeInSign: 14.2, absoluteLongitude: 164.2, nakshatra: "Hasta", pada: 2 },
+          mars: { sign: "Karka", degreeInSign: 3.1, absoluteLongitude: 93.1, nakshatra: "Pushya", pada: 1 },
+          mercury: { sign: "Mithuna", degreeInSign: 23.4, absoluteLongitude: 83.4, nakshatra: "Punarvasu", pada: 4 },
+          jupiter: { sign: "Mina", degreeInSign: 8.9, absoluteLongitude: 338.9, nakshatra: "Uttara Bhadrapada", pada: 1 },
+          venus: { sign: "Simha", degreeInSign: 1.9, absoluteLongitude: 121.9, nakshatra: "Magha", pada: 1 },
+          saturn: { sign: "Makara", degreeInSign: 17.2, absoluteLongitude: 287.2, nakshatra: "Shravana", pada: 3 },
+          rahu: { sign: "Mesha", degreeInSign: 12.0, absoluteLongitude: 12.0, nakshatra: "Ashwini", pada: 4 },
+          ketu: { sign: "Tula", degreeInSign: 12.0, absoluteLongitude: 192.0, nakshatra: "Swati", pada: 2 },
+        },
         dashas: { vimshottari: { currentMahaDasha: { lord: "Sun" } } },
         karakas: { atmakaraka: { planet: "Sun" } },
       },
-      input: { reportType: "compatibility" },
+      input: {
+        reportType: "compatibility",
+        birthDate: "1992-06-15",
+        birthTime: "12:30",
+        timezoneName: "Asia/Seoul",
+        lat: 37.5665,
+        lon: 126.978,
+      },
     });
 
     expect(result.ok).toBe(true);
@@ -94,6 +118,78 @@ describe("Premium reportPayload severity validators", () => {
     expect(result.missingFields).toContain("input.partnerBirthDate|input.partnerYear.month.day");
     expect(result.missingFields).toContain("input.partnerBirthTime|input.partnerHour");
     expect(result.missingFields).toContain("input.partnerBirthPlace|input.partnerPlace");
+  });
+
+  test("vedic payload: unknownTime이면 lagna 누락을 허용해야 한다", () => {
+    const { validateVedicReportPayload } = __premiumReportTestUtils;
+    const result = validateVedicReportPayload({
+      calculatedData: {
+        birthInfo: {
+          timezone: "Asia/Seoul",
+          latitude: 37.5665,
+          longitude: 126.978,
+          ayanamsa: 23.84,
+          unknownTime: true,
+        },
+        nakshatras: { moonNakshatra: { name: "Hasta" } },
+        planets: {
+          sun: { sign: "Mithuna", degreeInSign: 10.5, absoluteLongitude: 70.5, nakshatra: "Ardra", pada: 2 },
+          moon: { sign: "Kanya", degreeInSign: 14.2, absoluteLongitude: 164.2, nakshatra: "Hasta", pada: 2 },
+          mars: { sign: "Karka", degreeInSign: 3.1, absoluteLongitude: 93.1, nakshatra: "Pushya", pada: 1 },
+          mercury: { sign: "Mithuna", degreeInSign: 23.4, absoluteLongitude: 83.4, nakshatra: "Punarvasu", pada: 4 },
+          jupiter: { sign: "Mina", degreeInSign: 8.9, absoluteLongitude: 338.9, nakshatra: "Uttara Bhadrapada", pada: 1 },
+          venus: { sign: "Simha", degreeInSign: 1.9, absoluteLongitude: 121.9, nakshatra: "Magha", pada: 1 },
+          saturn: { sign: "Makara", degreeInSign: 17.2, absoluteLongitude: 287.2, nakshatra: "Shravana", pada: 3 },
+          rahu: { sign: "Mesha", degreeInSign: 12.0, absoluteLongitude: 12.0, nakshatra: "Ashwini", pada: 4 },
+          ketu: { sign: "Tula", degreeInSign: 12.0, absoluteLongitude: 192.0, nakshatra: "Swati", pada: 2 },
+        },
+      },
+      input: {
+        reportType: "personal",
+        birthDate: "1992-06-15",
+        timeUnknown: true,
+        timezoneName: "Asia/Seoul",
+        lat: 37.5665,
+        lon: 126.978,
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.missingFields.includes("calculatedData.lagna.sign|input(recalculation)")).toBe(false);
+  });
+
+  test("vedic payload: 좌표가 없으면 hard missing으로 남아야 한다", () => {
+    const { validateVedicReportPayload } = __premiumReportTestUtils;
+    const result = validateVedicReportPayload({
+      calculatedData: {
+        birthInfo: {
+          timezone: "Asia/Seoul",
+          ayanamsa: 23.84,
+        },
+        lagna: { sign: "Mithuna" },
+        nakshatras: { moonNakshatra: { name: "Hasta" } },
+        planets: {
+          sun: { sign: "Mithuna", degreeInSign: 10.5, absoluteLongitude: 70.5, nakshatra: "Ardra", pada: 2 },
+          moon: { sign: "Kanya", degreeInSign: 14.2, absoluteLongitude: 164.2, nakshatra: "Hasta", pada: 2 },
+          mars: { sign: "Karka", degreeInSign: 3.1, absoluteLongitude: 93.1, nakshatra: "Pushya", pada: 1 },
+          mercury: { sign: "Mithuna", degreeInSign: 23.4, absoluteLongitude: 83.4, nakshatra: "Punarvasu", pada: 4 },
+          jupiter: { sign: "Mina", degreeInSign: 8.9, absoluteLongitude: 338.9, nakshatra: "Uttara Bhadrapada", pada: 1 },
+          venus: { sign: "Simha", degreeInSign: 1.9, absoluteLongitude: 121.9, nakshatra: "Magha", pada: 1 },
+          saturn: { sign: "Makara", degreeInSign: 17.2, absoluteLongitude: 287.2, nakshatra: "Shravana", pada: 3 },
+          rahu: { sign: "Mesha", degreeInSign: 12.0, absoluteLongitude: 12.0, nakshatra: "Ashwini", pada: 4 },
+          ketu: { sign: "Tula", degreeInSign: 12.0, absoluteLongitude: 192.0, nakshatra: "Swati", pada: 2 },
+        },
+      },
+      input: {
+        reportType: "personal",
+        birthDate: "1992-06-15",
+        birthTime: "12:30",
+        timezoneName: "Asia/Seoul",
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.missingFields).toContain("input.lat|input.lon");
   });
 
   test("astrology compatibility payload: relationshipData 누락은 recoverable", () => {

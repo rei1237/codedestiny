@@ -714,37 +714,62 @@ function normalizeSukyoResultForPdf(input = {}) {
 }
 
 function validateSukyoPdfInput(context = {}) {
-  const missingFields = [];
+  const hardMissingFields = [];
+  const softMissingFields = [];
   const mode = normalizeSukyoReportMode(context?.reportMode || context?.sukuyoBookContext?.mode);
   const book = context?.sukuyoBookContext || {};
+  const chapterPlan = getSukyoPdfChapters(mode);
 
   const hasBirthInfo = Boolean(book?.user?.profile?.birthDate || context?.userProfile?.solarBirthDate);
   const hasMainMansion = Boolean(book?.user?.sukuyo?.mansion || context?.mainStar?.nameKo);
+  const hasMansionNumber = Number.isFinite(Number(book?.user?.sukuyo?.mansionNumber || context?.mainStar?.number || context?.mainStar?.index));
+  const hasChapterPlan = Array.isArray(chapterPlan) && chapterPlan.length > 0;
+  const hasChapterSeed = hasChapterPlan && chapterPlan.some((row) => Array.isArray(row?.sections) && row.sections.length > 0);
   const hasBasicText = Boolean(
     hasMainMansion
     || context?.mainStar?.coreKeyword
     || toArray(context?.domainScores).some((row) => Boolean(row?.summary) || toArray(row?.keywords).length > 0),
   );
 
-  if (!hasBirthInfo) missingFields.push("user.profile.birthDate");
-  if (!hasMainMansion) missingFields.push("user.sukuyo.mansion");
+  if (!hasBirthInfo) hardMissingFields.push("user.profile.birthDate");
+  if (!hasMainMansion) hardMissingFields.push("user.sukuyo.mansion");
+  if (!hasMansionNumber) hardMissingFields.push("user.sukuyo.mansionNumber");
+  if (!hasChapterPlan) hardMissingFields.push("chapterPlan");
+  if (!hasChapterSeed) hardMissingFields.push("chapterSeed");
+
+  if (!book?.user?.profile?.birthTime && !context?.userProfile?.birthTime) {
+    softMissingFields.push("user.profile.birthTime");
+  }
+  if (!book?.user?.profile?.birthPlace && !context?.userProfile?.birthPlace) {
+    softMissingFields.push("user.profile.birthPlace");
+  }
 
   let hasCompatibilityCore = true;
   if (mode === "compatibility") {
     const hasPartnerBirth = Boolean(book?.partner?.profile?.birthDate);
     const hasPartnerMansion = Boolean(book?.partner?.sukuyo?.mansion);
-    if (!hasPartnerBirth) missingFields.push("partner.profile.birthDate");
-    if (!hasPartnerMansion) missingFields.push("partner.sukuyo.mansion");
+    const hasRelationType = Boolean(book?.compatibility?.relationType || context?.relationship?.relationType);
+    if (!hasPartnerBirth) hardMissingFields.push("partner.profile.birthDate");
+    if (!hasPartnerMansion) hardMissingFields.push("partner.sukuyo.mansion");
+    if (!hasRelationType) hardMissingFields.push("compatibility.relationType");
     hasCompatibilityCore = hasPartnerBirth && hasPartnerMansion;
+    if (!book?.partner?.profile?.birthTime && !context?.partner?.profile?.birthTime) {
+      softMissingFields.push("partner.profile.birthTime");
+    }
   }
 
   return {
-    canGenerate: hasBirthInfo && hasBasicText && hasCompatibilityCore,
+    canGenerate: hardMissingFields.length === 0 && hasBasicText && hasCompatibilityCore,
     mode,
     hasBirthInfo,
+    hasMansionNumber,
     hasBasicText,
     hasCompatibilityCore,
-    missingFields,
+    hasChapterPlan,
+    chapterCount: Array.isArray(chapterPlan) ? chapterPlan.length : 0,
+    hardMissingFields,
+    softMissingFields,
+    missingFields: hardMissingFields,
   };
 }
 
@@ -951,13 +976,11 @@ function sanitizeNarrativeText(value) {
 
 function sanitizeSections(sections, fallbackSummary, requiredHeadings = []) {
   if (!Array.isArray(sections)) {
-    const fallbackRows = fallbackSummary
-      ? [{ heading: "핵심 해석", body: String(fallbackSummary) }]
-      : [];
+    const fallbackRows = [];
     if (!requiredHeadings.length) return fallbackRows;
     return requiredHeadings.map((heading) => ({
       heading,
-      body: fallbackSummary || "확보된 숙요 데이터 범위에서 이 카테고리를 해석합니다.",
+      body: "",
     }));
   }
   const normalized = sections
@@ -972,7 +995,7 @@ function sanitizeSections(sections, fallbackSummary, requiredHeadings = []) {
   const bucket = new Map(normalized.map((row) => [row.heading, row.body]));
   return requiredHeadings.map((heading) => ({
     heading,
-    body: bucket.get(heading) || fallbackSummary || "확보된 숙요 구조를 기준으로 현실 적용 전략을 정리합니다.",
+    body: bucket.get(heading) || "",
   }));
 }
 
@@ -1017,27 +1040,26 @@ function createFallbackSukyoChapter(chapter, context, reason = "") {
 }
 
 function sanitizeSukyoChapterJson(chapter, rawJson, context) {
-  const fallback = createFallbackSukyoChapter(chapter, context, "SANITIZE_FALLBACK");
   const source = rawJson && typeof rawJson === "object" ? rawJson : {};
 
-  const summary = sanitizeNarrativeText(toStringOrNull(source.summary) || fallback.summary);
-  const coreReading = sanitizeNarrativeText(toStringOrNull(source.coreReading) || summary || fallback.coreReading);
+  const summary = sanitizeNarrativeText(toStringOrNull(source.summary) || "");
+  const coreReading = sanitizeNarrativeText(toStringOrNull(source.coreReading) || summary || "");
   const requiredHeadings = Array.isArray(chapter?.sections)
     ? chapter.sections.map((row) => String(row || "").trim()).filter(Boolean)
     : [];
   const sections = sanitizeSections(source.sections, summary, requiredHeadings);
 
   return {
-    chapterKey: toStringOrNull(source.chapterKey) || String(chapter?.key || fallback.chapterKey),
-    chapterTitle: toStringOrNull(source.chapterTitle) || String(chapter?.title || fallback.chapterTitle),
-    chapterSubtitle: toStringOrNull(source.chapterSubtitle) || fallback.chapterSubtitle,
+    chapterKey: toStringOrNull(source.chapterKey) || String(chapter?.key || ""),
+    chapterTitle: toStringOrNull(source.chapterTitle) || String(chapter?.title || ""),
+    chapterSubtitle: toStringOrNull(source.chapterSubtitle) || "",
     summary,
     coreReading,
-    sections: sections.length ? sections : fallback.sections,
-    practicalAdvice: sanitizeList(source.practicalAdvice, fallback.practicalAdvice).map(sanitizeNarrativeText).filter(Boolean),
-    cautions: sanitizeList(source.cautions, fallback.cautions).map(sanitizeNarrativeText).filter(Boolean),
-    ritualOrRoutine: sanitizeList(source.ritualOrRoutine, fallback.ritualOrRoutine).map(sanitizeNarrativeText).filter(Boolean),
-    masterKeyword: toStringOrNull(source.masterKeyword) || fallback.masterKeyword,
+    sections: sections.length ? sections : [],
+    practicalAdvice: sanitizeList(source.practicalAdvice, []).map(sanitizeNarrativeText).filter(Boolean),
+    cautions: sanitizeList(source.cautions, []).map(sanitizeNarrativeText).filter(Boolean),
+    ritualOrRoutine: sanitizeList(source.ritualOrRoutine, []).map(sanitizeNarrativeText).filter(Boolean),
+    masterKeyword: toStringOrNull(source.masterKeyword) || "",
     missingDataNotice: null,
     fallbackUsed: false,
     fallbackReason: "",

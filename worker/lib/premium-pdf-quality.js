@@ -28,6 +28,15 @@ export const BLOCKED_FALLBACK_PHRASES = Object.freeze([
   "현재 데이터가 부족하지만 참고용으로 작성합니다",
   "확보된 데이터 범위에서 작성합니다",
   "핵심 데이터 맥락",
+  "자동 복구 생성",
+  "fallback",
+  "복구 생성",
+  "Chapter 1 핵심 진단",
+  "Chapter 2 핵심 진단",
+  "핵심 신호를 바탕으로 현재 흐름을 구조적으로 해석합니다",
+  "오늘 실행할 행동 1가지를 정하고",
+  "반복 가능한 루틴은 작은 단위부터 고정",
+  "관계/일/재정 적용",
 ]);
 
 function normalizeText(value) {

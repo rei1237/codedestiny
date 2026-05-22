@@ -480,6 +480,24 @@
   }
 
   function _formatPremiumFailureMessage(data, fallback) {
+    var status = Number((data && data.status) || 0);
+    var code = String((data && data.code) || '').toUpperCase();
+    if (status === 400 || code === 'SUKYO_INPUT_REQUIRED') {
+      return '숙요점 계산에 필요한 출생 정보가 부족합니다. 생년월일/달력 기준을 다시 확인해 주세요.';
+      return '로그인이 필요하거나 세션이 만료되었습니다. 다시 로그인 후 시도해 주세요.';
+    }
+    if (status === 402 || status === 403 || code === 'INSUFFICIENT_COINS' || code === 'COIN_SHORTAGE') {
+      return '코인/결제 상태 확인에 실패했습니다. 결제 상태를 확인한 뒤 다시 시도해 주세요.';
+    }
+    if (status === 422 || code === 'SUKYO_REPORT_PAYLOAD_INCOMPLETE' || code === 'SUKYO_CHAPTER_SOURCE_INCOMPLETE') {
+      return '숙요점 차트 데이터 생성에 실패했습니다. 코인은 차감되지 않았거나 자동 환급됩니다.';
+    }
+    if (status === 502 || code === 'SUKYO_CHAPTER_GENERATION_FAILED' || code === 'SUKYO_FORBIDDEN_CONTENT_DETECTED') {
+      return 'PDF 본문 생성 중 일부 챕터가 실패했습니다. 자동 복구 본문은 허용되지 않아 생성을 중단했습니다. 다시 시도해 주세요.';
+    }
+    if (status === 500) {
+      return 'PDF 렌더링 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    }
     var base = (data && (data.message || data.error)) ? String(data.message || data.error) : String(fallback || '요청에 실패했습니다.');
     var missing = (data && Array.isArray(data.missingFields)) ? data.missingFields : [];
     if (missing.length) base += '\n누락 필드: ' + missing.slice(0, 5).join(', ');
@@ -1119,7 +1137,9 @@
         },
         _premiumFailOpen: true,
         _premiumStrictPayload: false,
-        _premiumStrictValidation: false
+        _premiumStrictPayload: true,
+        _premiumStrictValidation: true,
+        _premiumFailOpen: false
       };
     }
 
