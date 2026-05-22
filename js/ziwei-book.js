@@ -127,6 +127,45 @@
     return token;
   }
 
+  function extractPremiumAccessTokenFromPayload(payload) {
+    var source = payload && typeof payload === 'object' ? payload : {};
+    var nested = source.data && typeof source.data === 'object' ? source.data : null;
+    var consume = source.consume && typeof source.consume === 'object' ? source.consume : null;
+    var candidates = [
+      source.premiumAccessToken,
+      source.premium_access_token,
+      source.accessToken,
+      nested && nested.premiumAccessToken,
+      nested && nested.premium_access_token,
+      nested && nested.accessToken,
+      consume && consume.premiumAccessToken,
+      consume && consume.premium_access_token,
+      consume && consume.accessToken
+    ];
+    for (var i = 0; i < candidates.length; i += 1) {
+      var token = String(candidates[i] || '').trim();
+      if (token) return token;
+    }
+    return '';
+  }
+
+  function persistPremiumAccessToken(payload) {
+    var token = extractPremiumAccessTokenFromPayload(payload);
+    if (!token) return '';
+
+    try {
+      if (typeof window.__cdPersistPremiumAccessToken === 'function') {
+        window.__cdPersistPremiumAccessToken(token);
+        return token;
+      }
+    } catch (_) {}
+
+    try { window.__cdPremiumAccessToken = token; } catch (_) {}
+    try { sessionStorage.setItem('cd_premium_access_token', token); } catch (_) {}
+    try { localStorage.setItem('cd_premium_access_token', token); } catch (_) {}
+    return token;
+  }
+
   function normalizePremiumPayload(raw) {
     var payload = (raw && typeof raw === 'object') ? raw : {};
     var nested = (payload.data && typeof payload.data === 'object') ? payload.data : null;
@@ -1293,6 +1332,22 @@
 
     var data = (res && res.data) || {};
     var code = String((data && data.code) || '').toUpperCase();
+    var retryableGateError = (!res.ok || data.ok === false)
+      && (Number(res.status || 0) >= 500 || Number(res.status || 0) === 0 || code === 'SERVER_ERROR' || code === 'WORKER_UNHANDLED_EXCEPTION');
+
+    if (retryableGateError) {
+      res = await requestJson('/api/billing/coin-gate', {
+        method: 'POST',
+        body: {
+          featureKey: policy.featureKey,
+          reason: policy.reason,
+          forceDeduct: true,
+          requestId: requestId
+        }
+      });
+      data = (res && res.data) || {};
+      code = String((data && data.code) || '').toUpperCase();
+    }
     if (res.status === 401 || res.status === 403 || code === 'AUTH_REQUIRED') {
       if (typeof window.__cdOpenLoginRequiredModal === 'function') {
         window.__cdOpenLoginRequiredModal({
@@ -1317,12 +1372,23 @@
     }
 
     var payload = extractCoinGatePayload(data);
+    persistPremiumAccessToken(payload);
     var consume = payload && typeof payload.consume === 'object' ? payload.consume : {};
+    var sourceTransactionId = String(consume.transactionId || payload.transactionId || '');
+    var chargedCoins = Number(consume.chargedCoins || payload.chargedCoins || 0);
+    var freeBySubscription = Boolean(consume.freeBySubscription || payload.freeBySubscription);
+    var coinGateConfirmed = Number(res.status || 0) === 200
+      && (!Number(policy.cost || 0) || !!sourceTransactionId || freeBySubscription || chargedCoins <= 0);
+    if (!coinGateConfirmed) {
+      window.alert('코인 결제 확인값이 부족하여 리포트 생성을 시작하지 않았습니다. 다시 시도해 주세요.');
+      return false;
+    }
+
     state.paymentContext = {
       featureKey: String(policy.featureKey || ''),
       cost: Number(policy.cost || 0),
       requestId: String(requestId || ''),
-      sourceTransactionId: String(consume.transactionId || payload.transactionId || ''),
+      sourceTransactionId: sourceTransactionId,
       mode: String(policy.modeLabel || '')
     };
 

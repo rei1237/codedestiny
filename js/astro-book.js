@@ -141,6 +141,55 @@
     catch (_) { return ''; }
   }
 
+  function readPremiumAccessToken() {
+    var token = '';
+    try { token = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { token = ''; }
+    if (token) return token;
+    try { token = String(sessionStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
+    if (token) return token;
+    try { token = String(localStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
+    return token;
+  }
+
+  function extractPremiumAccessTokenFromPayload(payload) {
+    var source = payload && typeof payload === 'object' ? payload : {};
+    var nested = source.data && typeof source.data === 'object' ? source.data : null;
+    var consume = source.consume && typeof source.consume === 'object' ? source.consume : null;
+    var candidates = [
+      source.premiumAccessToken,
+      source.premium_access_token,
+      source.accessToken,
+      nested && nested.premiumAccessToken,
+      nested && nested.premium_access_token,
+      nested && nested.accessToken,
+      consume && consume.premiumAccessToken,
+      consume && consume.premium_access_token,
+      consume && consume.accessToken
+    ];
+    for (var i = 0; i < candidates.length; i += 1) {
+      var token = String(candidates[i] || '').trim();
+      if (token) return token;
+    }
+    return '';
+  }
+
+  function persistPremiumAccessToken(payload) {
+    var token = extractPremiumAccessTokenFromPayload(payload);
+    if (!token) return '';
+
+    try {
+      if (typeof window.__cdPersistPremiumAccessToken === 'function') {
+        window.__cdPersistPremiumAccessToken(token);
+        return token;
+      }
+    } catch (_) {}
+
+    try { window.__cdPremiumAccessToken = token; } catch (_) {}
+    try { sessionStorage.setItem('cd_premium_access_token', token); } catch (_) {}
+    try { localStorage.setItem('cd_premium_access_token', token); } catch (_) {}
+    return token;
+  }
+
   async function requestJson(url, options) {
     var opts = options || {};
     var targetUrl = resolveApiUrl(url);
@@ -177,9 +226,14 @@
 
   async function premiumAuthJson(pathname, body, options) {
     var targetPath = resolveApiUrl(pathname);
+    var payload = body && typeof body === 'object' ? Object.assign({}, body) : {};
+    if (!payload.premiumAccessToken) {
+      var premiumAccessToken = readPremiumAccessToken();
+      if (premiumAccessToken) payload.premiumAccessToken = premiumAccessToken;
+    }
     if (typeof window.__cdPremiumAuthJson === 'function') {
       try {
-        return await window.__cdPremiumAuthJson(targetPath || pathname, body || {}, options || {});
+        return await window.__cdPremiumAuthJson(targetPath || pathname, payload, options || {});
       } catch (error) {
         try {
           console.warn('[AstroBook] premium auth helper fallback:', error && error.message || error);
@@ -188,7 +242,7 @@
     }
     var res = await requestJson(targetPath || pathname, {
       method: 'POST',
-      body: body || {}
+      body: payload
     });
     var data = (res && res.data && typeof res.data === 'object') ? res.data : {};
     if (!res.ok) data.status = Number(data.status || res.status || 0);
@@ -822,6 +876,7 @@
     }
 
     var payload = extractCoinGatePayload(data);
+    persistPremiumAccessToken(payload);
     var consume = payload && typeof payload.consume === 'object' ? payload.consume : {};
     var sourceTransactionId = String(consume.transactionId || payload.transactionId || '');
     var chargedCoins = Number(consume.chargedCoins || payload.chargedCoins || 0);

@@ -154,6 +154,55 @@
     return out.length ? out : [p];
   }
 
+  function readPremiumAccessToken() {
+    var token = '';
+    try { token = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { token = ''; }
+    if (token) return token;
+    try { token = String(sessionStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
+    if (token) return token;
+    try { token = String(localStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
+    return token;
+  }
+
+  function extractPremiumAccessTokenFromPayload(payload) {
+    var source = payload && typeof payload === 'object' ? payload : {};
+    var nested = source.data && typeof source.data === 'object' ? source.data : null;
+    var consume = source.consume && typeof source.consume === 'object' ? source.consume : null;
+    var candidates = [
+      source.premiumAccessToken,
+      source.premium_access_token,
+      source.accessToken,
+      nested && nested.premiumAccessToken,
+      nested && nested.premium_access_token,
+      nested && nested.accessToken,
+      consume && consume.premiumAccessToken,
+      consume && consume.premium_access_token,
+      consume && consume.accessToken
+    ];
+    for (var i = 0; i < candidates.length; i += 1) {
+      var token = String(candidates[i] || '').trim();
+      if (token) return token;
+    }
+    return '';
+  }
+
+  function persistPremiumAccessToken(payload) {
+    var token = extractPremiumAccessTokenFromPayload(payload);
+    if (!token) return '';
+
+    try {
+      if (typeof window.__cdPersistPremiumAccessToken === 'function') {
+        window.__cdPersistPremiumAccessToken(token);
+        return token;
+      }
+    } catch (_) {}
+
+    try { window.__cdPremiumAccessToken = token; } catch (_) {}
+    try { sessionStorage.setItem('cd_premium_access_token', token); } catch (_) {}
+    try { localStorage.setItem('cd_premium_access_token', token); } catch (_) {}
+    return token;
+  }
+
   async function requestJson(url, options) {
     var opts = options || {};
     var fetchUrl = resolveApiUrl(url) || String(url || '');
@@ -189,7 +238,11 @@
   }
 
   async function premiumAuthFallback(pathname, body) {
-    var payload = body || {};
+    var payload = body && typeof body === 'object' ? Object.assign({}, body) : {};
+    if (!payload.premiumAccessToken) {
+      var premiumAccessToken = readPremiumAccessToken();
+      if (premiumAccessToken) payload.premiumAccessToken = premiumAccessToken;
+    }
     var token = getAuthToken();
     var headers = { 'Content-Type': 'application/json' };
     if (token) headers.Authorization = 'Bearer ' + token;
@@ -219,17 +272,22 @@
 
   async function premiumAuthJson(pathname, body, options) {
     var targetPath = resolveApiUrl(pathname) || pathname;
+    var payload = body && typeof body === 'object' ? Object.assign({}, body) : {};
+    if (!payload.premiumAccessToken) {
+      var premiumAccessToken = readPremiumAccessToken();
+      if (premiumAccessToken) payload.premiumAccessToken = premiumAccessToken;
+    }
     if (typeof window.__cdPremiumAuthJson === 'function') {
       try {
-        return await window.__cdPremiumAuthJson(targetPath, body || {}, options || {});
+        return await window.__cdPremiumAuthJson(targetPath, payload, options || {});
       } catch (error) {
         try {
           console.warn('[VedicBook] premium auth helper fallback:', error && error.message || error);
         } catch (_) {}
-        return premiumAuthFallback(pathname, body || {});
+        return premiumAuthFallback(pathname, payload);
       }
     }
-    return premiumAuthFallback(pathname, body || {});
+    return premiumAuthFallback(pathname, payload);
   }
 
   function buildPreflightMessage(response, fallback) {
@@ -800,6 +858,22 @@
 
     var data = (res && res.data) || {};
     var code = String((data && data.code) || '').toUpperCase();
+    var retryableGateError = (!res.ok || data.ok === false)
+      && (Number(res.status || 0) >= 500 || Number(res.status || 0) === 0 || code === 'SERVER_ERROR' || code === 'WORKER_UNHANDLED_EXCEPTION');
+
+    if (retryableGateError) {
+      res = await requestJson('/api/billing/coin-gate', {
+        method: 'POST',
+        body: {
+          featureKey: policy.featureKey,
+          reason: policy.reason,
+          forceDeduct: true,
+          requestId: requestId
+        }
+      });
+      data = (res && res.data) || {};
+      code = String((data && data.code) || '').toUpperCase();
+    }
     if (res.status === 401 || res.status === 403 || code === 'AUTH_REQUIRED') {
       if (typeof window.__cdOpenLoginRequiredModal === 'function') {
         window.__cdOpenLoginRequiredModal({
@@ -824,6 +898,7 @@
     }
 
     var payload = extractCoinGatePayload(data);
+    persistPremiumAccessToken(payload);
     var consume = payload && typeof payload.consume === 'object' ? payload.consume : {};
     var sourceTransactionId = String(consume.transactionId || payload.transactionId || '');
     var chargedCoins = Number(consume.chargedCoins || payload.chargedCoins || 0);
