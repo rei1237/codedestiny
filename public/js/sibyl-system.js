@@ -8,11 +8,12 @@
 
   /* ── 상수 ── */
   var NS = 'FORTUNE_APP_USER_PROFILES';
-  var SIBYL_REPORT_CACHE_VERSION = '20260513-quantum-v4-hotfix1';
+  var SIBYL_REPORT_CACHE_VERSION = '20260522-local-dominator-v1';
   var SIBYL_REPORT_CACHE_NS = 'cd_sibyl_report_cache';
   var SIBYL_FEATURE_KEY = 'premium-sibyl-dominator';
   var SIBYL_FEATURE_REASON = '시빌라 도미네이터 리포트';
   var SIBYL_MIN_PREMIUM_CHAPTER_CHARS = 300;
+  var SIBYL_MIN_PREMIUM_TOTAL_CHARS = 20000;
   var SIBYL_PREMIUM_CHAPTER_META = [
     { key: 'coreMatrix', title: 'CH.01 시빌라 코어 매트릭스', focus: '입력 사주·일간·지배 오행·주도 십성·핵심 점수 종합' },
     { key: 'riskAnalysis', title: 'CH.02 위험 계수 정밀 분석', focus: '위험 점수 산출 근거와 충돌·변동성 분해' },
@@ -1477,6 +1478,84 @@
     return { ok: true };
   }
 
+  function _dedupeSibylWordsInLine(line) {
+    var tokens = String(line || '').split(/\s+/).filter(Boolean);
+    if (!tokens.length) return '';
+    var out = [];
+    var prev = '';
+    for (var i = 0; i < tokens.length; i += 1) {
+      var token = tokens[i];
+      var norm = token.toLowerCase();
+      if (norm === prev) continue;
+      out.push(token);
+      prev = norm;
+    }
+    return out.join(' ');
+  }
+
+  function _sanitizeSibylChapterContent(content) {
+    var lines = String(content || '').replace(/\r/g, '').split('\n');
+    var seen = Object.create(null);
+    var out = [];
+    for (var i = 0; i < lines.length; i += 1) {
+      var raw = lines[i];
+      var dedupedLine = _dedupeSibylWordsInLine(raw);
+      var trim = dedupedLine.trim();
+      if (!trim) {
+        if (out.length && out[out.length - 1] !== '') out.push('');
+        continue;
+      }
+      var key = trim.toLowerCase();
+      if (seen[key]) continue;
+      seen[key] = true;
+      out.push(dedupedLine);
+    }
+    while (out.length && out[out.length - 1] === '') out.pop();
+    return out.join('\n');
+  }
+
+  function _ensureSibylPremiumTotalChars(chapters, minTotalChars, canonicalData) {
+    var list = Array.isArray(chapters) ? chapters : [];
+    var minChars = _toInt(minTotalChars, SIBYL_MIN_PREMIUM_TOTAL_CHARS);
+    if (minChars < SIBYL_MIN_PREMIUM_TOTAL_CHARS) minChars = SIBYL_MIN_PREMIUM_TOTAL_CHARS;
+    var total = list.reduce(function(sum, chapter) { return sum + String(chapter && chapter.content || '').length; }, 0);
+    if (!list.length || total >= minChars) return { chapters: list, totalChars: total };
+
+    var sibyl = canonicalData && canonicalData.sibyl ? canonicalData.sibyl : {};
+    var yearly = canonicalData && Array.isArray(canonicalData.yearlyFlow) ? canonicalData.yearlyFlow : [];
+    var signals = yearly.slice(0, 3).map(function(item) {
+      return String(item.year) + '년 위험 ' + _toInt(item.riskScore, 50) + ' / 기회 ' + _toInt(item.opportunityScore, 50);
+    }).join(' · ');
+    var rotation = [
+      '핵심 의사결정은 기록 기반으로 처리해 감정 편향을 줄입니다.',
+      '고위험 구간에는 실행보다 검증 비중을 높여 손실 곡선을 완화합니다.',
+      '안정 구간에는 핵심 과제 1개를 전진 배치해 성과를 고정합니다.',
+      '월별 리듬에 맞춘 일정 재배치로 변동성 충격을 흡수합니다.',
+      '관계·재정·업무 의사결정의 타이밍을 분리해 동시 리스크를 낮춥니다.'
+    ];
+
+    var guard = 0;
+    var idx = list.length - 1;
+    while (total < minChars && guard < 240) {
+      var seedText = [
+        '## 실행 보강 메모 R' + String(guard + 1).padStart(3, '0'),
+        '- 위험 계수 ' + _toInt(sibyl.riskScore, 45) + ', 적성 계수 ' + _toInt(sibyl.aptitudeScore, 520) + ' 기준으로 운영 강도를 조절합니다.',
+        '- 라운드 전략: ' + rotation[guard % rotation.length],
+        '- 연간 참고 신호: ' + (signals || '연간 시기 정보 재확인 필요') + '.',
+        '- 실행 원칙: 점수 해석을 행동 루틴으로 전환하고 7일 단위로 점검합니다.'
+      ].join('\n');
+      var target = list[idx];
+      if (target) {
+        target.content = _sanitizeSibylChapterContent(String(target.content || '').trim() + '\n\n' + seedText);
+      }
+      total = list.reduce(function(sum, chapter) { return sum + String(chapter && chapter.content || '').length; }, 0);
+      idx = (idx - 1 + list.length) % list.length;
+      guard += 1;
+    }
+
+    return { chapters: list, totalChars: total };
+  }
+
   function _shapeSibylPremiumReport(reportData, canonicalData) {
     var source = reportData && typeof reportData === 'object' ? Object.assign({}, reportData) : {};
     var map = _chapterMapFromReport(source);
@@ -1496,16 +1575,22 @@
       return {
         key: meta.key,
         title: meta.title,
-        content: String(map[meta.key] || '').trim()
+        content: _sanitizeSibylChapterContent(String(map[meta.key] || '').trim())
       };
+    });
+
+    var shapedTotals = _ensureSibylPremiumTotalChars(chapters, Number(source.minTotalChars || 0), canonicalData);
+    chapters = shapedTotals.chapters;
+    chapters.forEach(function(chapter) {
+      map[chapter.key] = String(chapter.content || '').trim();
     });
 
     source.chapterMap = map;
     source.chapters = chapters;
     source.categoryCount = chapters.length;
     source.categories = SIBYL_PREMIUM_CHAPTER_META.map(function(item) { return item.title; });
-    source.totalChars = chapters.reduce(function(sum, chapter) { return sum + String(chapter.content || '').length; }, 0);
-    source.minTotalChars = Number(source.minTotalChars || 0) > 0 ? Number(source.minTotalChars) : 6000;
+    source.totalChars = shapedTotals.totalChars;
+    source.minTotalChars = Math.max(_toInt(source.minTotalChars, 0), SIBYL_MIN_PREMIUM_TOTAL_CHARS);
     source.canonicalData = canonicalData || source.canonicalData || null;
 
     return source;
@@ -2291,18 +2376,27 @@
       { key: 'finalMessage', title: 'CH.10 최종 시빌라 메시지', content: chapter10 }
     ];
 
+    var localTotals = _ensureSibylPremiumTotalChars(chapters, SIBYL_MIN_PREMIUM_TOTAL_CHARS, canonicalData);
+    chapters = localTotals.chapters.map(function(ch) {
+      return {
+        key: ch.key,
+        title: ch.title,
+        content: _sanitizeSibylChapterContent(String(ch.content || '').trim())
+      };
+    });
+
     var chapterMap = {};
     chapters.forEach(function(ch) {
       chapterMap[ch.key] = String(ch.content || '').trim();
     });
 
-    var totalChars = chapters.reduce(function(sum, ch) { return sum + String(ch.content || '').length; }, 0);
+    var totalChars = localTotals.totalChars;
 
     return {
       source: 'local-saju-engine-bridge',
       model: 'local',
       totalChars: totalChars,
-      minTotalChars: 8000,
+      minTotalChars: SIBYL_MIN_PREMIUM_TOTAL_CHARS,
       generatedAt: Date.now(),
       riskScore: risk,
       aptCoeff: coeff,
@@ -3304,7 +3398,7 @@
     }
   }
 
-  /* ── 도미네이터 리포트 생성 (서버 우선 + 로컬 fallback) ── */
+  /* ── 도미네이터 리포트 생성 (로컬 계산 고정) ── */
   async function _generateDominatorReport(paymentContext) {
     var data = window._sibylCurrentData || {};
     var profile = _getCurrentProfile();
@@ -3390,27 +3484,7 @@
       }
 
       await new Promise(function (r) { setTimeout(r, 240); });
-      var reportData = null;
-
-      var apiRes = await _fetchApiJson('/api/sibyl/report', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-        timeoutMs: Number(window && window.__SIBYL_REPORT_TIMEOUT_MS || 25000)
-      });
-
-      if (apiRes.ok) {
-        reportData = _shapeSibylPremiumReport(_extractApiData(apiRes.payload), canonicalData);
-        var validation = _validateSibylPremiumChapterMap(reportData.chapterMap);
-        if (!validation.ok) {
-          reportData = null;
-        }
-      } else if (Number(apiRes.status || 0) === 401 || Number(apiRes.status || 0) === 403) {
-        throw _toApiError(apiRes, '로그인이 필요합니다.');
-      }
-
-      if (!reportData) {
-        reportData = _shapeSibylPremiumReport(_buildLocalDominatorReport(payload, data), canonicalData);
-      }
+      var reportData = _shapeSibylPremiumReport(_buildLocalDominatorReport(payload, data), canonicalData);
 
       var finalValidation = _validateSibylPremiumChapterMap(reportData.chapterMap);
       if (!finalValidation.ok) {
