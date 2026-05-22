@@ -2673,12 +2673,21 @@
         _dpWriteProfilesToLocal(scope, list, currentId);
       }
 
-      _dpLoadFromServer(function() {
-        var curr = DPStorage.current();
-        spawnStardust(document.getElementById('dpSaveBtn'));
-        renderMasterCard(curr);
+      // 저장 성공 직후에는 로컬 상태를 즉시 렌더링해 체감 반응 속도를 우선한다.
+      var curr = DPStorage.current();
+      spawnStardust(document.getElementById('dpSaveBtn'));
+      renderMasterCard(curr);
+      renderProfileList();
+      broadcastProfileChange(curr || created || null);
+      _dpUpdateSaveBtn();
+
+      // 서버 재조회는 백그라운드로 수행해 최종 정합성만 보정한다.
+      _dpLoadFromServer(function(loaded) {
+        if (!loaded) return;
+        var refreshedCurr = DPStorage.current();
+        renderMasterCard(refreshedCurr || curr || created || null);
         renderProfileList();
-        broadcastProfileChange(curr || created || null);
+        broadcastProfileChange(refreshedCurr || curr || created || null);
         _dpUpdateSaveBtn();
       });
 
