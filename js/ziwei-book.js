@@ -181,6 +181,42 @@
     return payload;
   }
 
+  function collectPremiumPayloadObjects(payload) {
+    var source = (payload && typeof payload === 'object') ? payload : {};
+    var raw = (source.raw && typeof source.raw === 'object') ? source.raw : null;
+    var nested = (source.data && typeof source.data === 'object') ? source.data : null;
+    var nestedRaw = (nested && nested.raw && typeof nested.raw === 'object') ? nested.raw : null;
+    var nestedData = (nested && nested.data && typeof nested.data === 'object') ? nested.data : null;
+    var rawData = (raw && raw.data && typeof raw.data === 'object') ? raw.data : null;
+    return [source, nested, nestedData, raw, rawData, nestedRaw].filter(function (row) {
+      return !!(row && typeof row === 'object');
+    });
+  }
+
+  function readFirstStringField(payload, keys) {
+    var objects = collectPremiumPayloadObjects(payload);
+    for (var i = 0; i < objects.length; i += 1) {
+      var obj = objects[i] || {};
+      for (var k = 0; k < keys.length; k += 1) {
+        var value = String(obj[keys[k]] || '').trim();
+        if (value) return value;
+      }
+    }
+    return '';
+  }
+
+  function resolveZiweiReportId(payload) {
+    return readFirstStringField(payload, ['reportId', 'report_id', 'jobId', 'job_id']);
+  }
+
+  function resolveZiweiReportSessionId(payload) {
+    return readFirstStringField(payload, ['reportSessionId', 'report_session_id', 'sessionId', 'session_id']);
+  }
+
+  function resolveZiweiDownloadUrl(payload) {
+    return readFirstStringField(payload, ['downloadUrl', 'download_url', 'pdfUrl', 'pdf_url']);
+  }
+
   async function requestJson(url, options) {
     var opts = options || {};
     var targetUrl = resolveApiUrl(url) || String(url || '');
@@ -322,7 +358,163 @@
       };
     }
 
-    return { ok: true };
+    return {
+      ok: true,
+      reportSessionId: String(prepared && prepared.reportSessionId || ''),
+      snapshotId: String((preflight && preflight.snapshotId) || (prepared && prepared.snapshotId) || ''),
+      chapterPlan: Array.isArray(preflight && preflight.chapterPlan)
+        ? preflight.chapterPlan.slice()
+        : (Array.isArray(prepared && prepared.chapterPlan) ? prepared.chapterPlan.slice() : []),
+      totalChapters: Number((preflight && preflight.totalChapters) || (prepared && prepared.totalChapters) || TOTAL_CHAPTERS),
+    };
+  }
+
+  function inferChapterSummary(text) {
+    var source = String(text || '').trim();
+    if (!source) return '';
+    var normalized = source.replace(/\r/g, '').replace(/\n+/g, ' ').trim();
+    if (normalized.length <= 220) return normalized;
+    return normalized.slice(0, 220).trim() + '...';
+  }
+
+  function normalizeZiweiPremiumChapter(data, chapterId, chapterPlan) {
+    var row = (data && typeof data === 'object') ? data : {};
+    var chapterMeta = (row.chapterMeta && typeof row.chapterMeta === 'object')
+      ? row.chapterMeta
+      : ((Array.isArray(chapterPlan) ? chapterPlan[chapterId - 1] : null) || {});
+    var chapterJson = (row.chapterJson && typeof row.chapterJson === 'object') ? row.chapterJson : null;
+    var text = String(row.text || '').trim();
+    var title = String((row.title || chapterMeta.title || chapterMeta.name || (chapterJson && chapterJson.title) || ('Chapter ' + chapterId))).trim();
+    var subtitle = String((row.subtitle || chapterMeta.subtitle || (chapterJson && chapterJson.subtitle) || '')).trim();
+    var summary = String((row.summary || (chapterJson && chapterJson.summary) || inferChapterSummary(text))).trim();
+
+    return {
+      chapterIndex: chapterId,
+      title: title,
+      subtitle: subtitle,
+      summary: summary,
+      sections: normalizeChapterSections({ sections: row.sections, content: text }),
+      keyInsights: chapterJson && Array.isArray(chapterJson.keyInsights) ? chapterJson.keyInsights : [],
+      practicalAdvice: Array.isArray(row.practicalAdvice)
+        ? row.practicalAdvice
+        : (chapterJson && Array.isArray(chapterJson.practicalAdvice) ? chapterJson.practicalAdvice : []),
+      cautions: Array.isArray(row.cautions)
+        ? row.cautions
+        : (chapterJson && Array.isArray(chapterJson.cautions) ? chapterJson.cautions : []),
+      masterConclusion: String(row.masterConclusion || (chapterJson && chapterJson.masterConclusion) || '').trim(),
+      coreStars: Array.isArray(row.coreStars)
+        ? row.coreStars
+        : (chapterJson && Array.isArray(chapterJson.coreStars) ? chapterJson.coreStars : []),
+      corePalaces: Array.isArray(row.corePalaces)
+        ? row.corePalaces
+        : (chapterJson && Array.isArray(chapterJson.corePalaces) ? chapterJson.corePalaces : []),
+      text: text,
+      chapterJson: chapterJson,
+      updatedAt: String(row.updatedAt || new Date().toISOString())
+    };
+  }
+
+  async function generateZiweiViaPremiumReport(requestBody, preflightInfo) {
+    var preparedInfo = preflightInfo || null;
+    var reportSessionId = String((preparedInfo && preparedInfo.reportSessionId) || '').trim();
+    var snapshotId = String((preparedInfo && preparedInfo.snapshotId) || '').trim();
+    var chapterPlan = Array.isArray(preparedInfo && preparedInfo.chapterPlan) ? preparedInfo.chapterPlan.slice() : [];
+    var totalChapters = Number((preparedInfo && preparedInfo.totalChapters) || chapterPlan.length || TOTAL_CHAPTERS);
+    if (!Number.isFinite(totalChapters) || totalChapters <= 0) totalChapters = TOTAL_CHAPTERS;
+
+    if (!reportSessionId) {
+      var prepared = await premiumAuthJson('/api/premium-report/prepare', {
+        featureType: ZIWEI_PREMIUM_FEATURE_TYPE,
+        reportType: ZIWEI_PREMIUM_REPORT_TYPE,
+        requestBody: requestBody || {},
+        requestId: 'ziwei:prepare:fallback:' + Date.now().toString(36)
+      }, {
+        maxAttempts: 2
+      });
+
+      if (!prepared || !prepared.ok || !prepared.reportSessionId) {
+        return {
+          ok: false,
+          message: buildPreflightMessage(prepared, '리포트 세션 복구에 실패했습니다.')
+        };
+      }
+
+      reportSessionId = String(prepared.reportSessionId || '');
+      snapshotId = String(prepared.snapshotId || snapshotId || '');
+      if (Array.isArray(prepared.chapterPlan) && prepared.chapterPlan.length) chapterPlan = prepared.chapterPlan.slice();
+      if (Number(prepared.totalChapters) > 0) totalChapters = Number(prepared.totalChapters);
+    }
+
+    var chapters = [];
+
+    for (var chapterId = 1; chapterId <= totalChapters; chapterId += 1) {
+      setLoadingProgress(Math.max(0, chapterId - 1), '챕터별 정밀 리포트를 생성하는 중...');
+
+      var chapterResult = null;
+      for (var retry = 1; retry <= 4; retry += 1) {
+        chapterResult = await premiumAuthJson('/api/premium-report/chapter', {
+          reportSessionId: reportSessionId,
+          snapshotId: snapshotId || undefined,
+          chapterId: chapterId,
+          reportType: ZIWEI_PREMIUM_REPORT_TYPE,
+          featureType: ZIWEI_PREMIUM_FEATURE_TYPE,
+          requestBody: requestBody || {},
+          requestId: 'ziwei:chapter:' + chapterId + ':' + Date.now().toString(36) + ':' + retry
+        }, {
+          maxAttempts: 2
+        });
+
+        if (chapterResult && chapterResult.reportSessionId) reportSessionId = String(chapterResult.reportSessionId || reportSessionId);
+        if (chapterResult && chapterResult.snapshotId) snapshotId = String(chapterResult.snapshotId || snapshotId);
+
+        if (chapterResult && chapterResult.ok) break;
+
+        var status = Number((chapterResult && chapterResult.status) || 0);
+        var code = String((chapterResult && chapterResult.code) || '').toUpperCase();
+        var sessionMissing = status === 404 || code === 'PREMIUM_REPORT_SESSION_NOT_FOUND' || code === 'REPORT_SESSION_NOT_FOUND';
+        var bindingMismatch = status === 409 && code === 'PREMIUM_REPORT_SESSION_BINDING_MISMATCH';
+        if (sessionMissing || bindingMismatch) {
+          var recovered = await premiumAuthJson('/api/premium-report/prepare', {
+            featureType: ZIWEI_PREMIUM_FEATURE_TYPE,
+            reportType: ZIWEI_PREMIUM_REPORT_TYPE,
+            requestBody: requestBody || {},
+            requestId: 'ziwei:prepare:recover:' + Date.now().toString(36) + ':' + chapterId + ':' + retry
+          }, {
+            maxAttempts: 2
+          });
+          if (recovered && recovered.ok && recovered.reportSessionId) {
+            reportSessionId = String(recovered.reportSessionId || reportSessionId);
+            snapshotId = String(recovered.snapshotId || snapshotId || '');
+            if (Array.isArray(recovered.chapterPlan) && recovered.chapterPlan.length) chapterPlan = recovered.chapterPlan.slice();
+            if (Number(recovered.totalChapters) > 0) totalChapters = Number(recovered.totalChapters);
+            await delay(220);
+            continue;
+          }
+        }
+
+        if (retry < 4) await delay(Math.min(450 * retry, 1200));
+      }
+
+      if (!chapterResult || !chapterResult.ok) {
+        return {
+          ok: false,
+          message: String((chapterResult && chapterResult.message) || ('챕터 ' + chapterId + ' 생성에 실패했습니다.'))
+        };
+      }
+
+      chapters.push(normalizeZiweiPremiumChapter(chapterResult, chapterId, chapterPlan));
+      setLoadingProgress(chapterId, chapterId >= totalChapters ? '리포트를 정리하고 있습니다...' : '챕터 품질을 검증하는 중...');
+    }
+
+    return {
+      ok: true,
+      reportId: reportSessionId,
+      reportSessionId: reportSessionId,
+      chapters: chapters,
+      mode: String((requestBody && requestBody.mode) || state.mode || 'personal'),
+      totalChapters: totalChapters,
+      message: '챕터 생성이 완료되었습니다.'
+    };
   }
 
   function showOnly(screenId) {
@@ -1204,8 +1396,10 @@
   function applyStatus(statusData) {
     var payload = normalizePremiumPayload(statusData);
     if (!payload || typeof payload !== 'object') return;
-    if (payload.reportId) state.reportId = String(payload.reportId);
-    if (payload.downloadUrl) state.downloadUrl = String(payload.downloadUrl);
+    var nextReportId = resolveZiweiReportId(payload);
+    if (nextReportId) state.reportId = String(nextReportId);
+    var nextDownloadUrl = resolveZiweiDownloadUrl(payload);
+    if (nextDownloadUrl) state.downloadUrl = String(nextDownloadUrl);
     if (Array.isArray(payload.chapters)) state.chapters = payload.chapters.slice();
     state.currentMessage = String(payload.message || '');
     setLoadingProgress(Number(payload.currentChapter || 0), state.currentMessage);
@@ -1483,7 +1677,29 @@
         throw new Error(String(genData && genData.message || '리포트 생성 요청에 실패했습니다.'));
       }
 
-      state.reportId = String(genData.reportId || '').trim();
+      state.reportId = resolveZiweiReportId(genData);
+      if (!state.reportId) {
+        var fallbackSeed = {
+          reportSessionId: resolveZiweiReportSessionId(genData) || String(preflight && preflight.reportSessionId || ''),
+          snapshotId: readFirstStringField(genData, ['snapshotId', 'snapshot_id']) || String(preflight && preflight.snapshotId || ''),
+          chapterPlan: Array.isArray(genData && genData.chapterPlan)
+            ? genData.chapterPlan.slice()
+            : (Array.isArray(preflight && preflight.chapterPlan) ? preflight.chapterPlan.slice() : []),
+          totalChapters: Number((genData && genData.totalChapters) || (preflight && preflight.totalChapters) || TOTAL_CHAPTERS),
+        };
+        var reportIdFallback = await generateZiweiViaPremiumReport(payloadInfo.body, fallbackSeed);
+        if (reportIdFallback && reportIdFallback.ok) {
+          state.reportId = String(reportIdFallback.reportId || fallbackSeed.reportSessionId || '');
+          state.downloadUrl = '';
+          state.chapters = Array.isArray(reportIdFallback.chapters) ? reportIdFallback.chapters : [];
+          state.paymentContext = null;
+          setLoadingProgress(TOTAL_CHAPTERS, '리포트가 완성되었습니다.');
+          renderResultScreen();
+          notify('자미두수 리포트 생성이 완료되었습니다.');
+          return;
+        }
+      }
+
       if (!state.reportId) {
         await attemptZiweiAutoRefund('자미두수 프리미엄 PDF reportId 누락 자동 환불');
         throw new Error('리포트 식별자를 받지 못했습니다.');
