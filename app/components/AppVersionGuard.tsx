@@ -137,6 +137,7 @@ async function retireLegacyServiceWorkersOnce(): Promise<void> {
 }
 
 function getWindowBooleanFlag(flagName: string): boolean {
+  if (typeof window === "undefined") return false;
   try {
     return Boolean((window as unknown as RuntimeWindow)[flagName]);
   } catch {
@@ -145,6 +146,10 @@ function getWindowBooleanFlag(flagName: string): boolean {
 }
 
 function getBlockingReason(isPaymentProcessing: boolean): string {
+  if (typeof document === "undefined") {
+    return "";
+  }
+
   if (isPaymentProcessing || getWindowBooleanFlag("__CD_PAYMENT_PROCESSING__")) {
     return "결제 처리 중";
   }
