@@ -129,6 +129,44 @@ function resolveSafeUser(user: unknown): AuthUser | null {
   return safe;
 }
 
+function mergeAuthUsers(base: AuthUser | null, patch: AuthUser | null): AuthUser | null {
+  if (!base && !patch) return null;
+  if (!base) return patch;
+  if (!patch) return base;
+
+  const merged: AuthUser = { ...base };
+
+  for (const key of ["id", "userId", "_id", "uid", "name", "email", "image", "role", "plan"] as const) {
+    const nextValue = patch[key];
+    if (typeof nextValue === "string" && nextValue.trim()) {
+      merged[key] = nextValue.trim();
+    }
+  }
+
+  if (typeof patch.hasLocalAuth === "boolean") {
+    merged.hasLocalAuth = patch.hasLocalAuth;
+  }
+
+  if (Number.isFinite(Number(patch.points)) && Number(patch.points) >= 0) {
+    merged.points = Number(patch.points);
+  }
+
+  if (patch.profileSubscription && typeof patch.profileSubscription === "object") {
+    const current = base.profileSubscription || {};
+    const next = patch.profileSubscription;
+    merged.profileSubscription = {
+      tier: typeof next.tier === "string" && next.tier.trim() ? next.tier : current.tier || "free",
+      isActive: typeof next.isActive === "boolean" ? next.isActive : !!current.isActive,
+      expiresAt: typeof next.expiresAt === "string" ? next.expiresAt : (current.expiresAt ?? null),
+      profileLimit: Number.isFinite(Number(next.profileLimit))
+        ? Number(next.profileLimit)
+        : (Number.isFinite(Number(current.profileLimit)) ? Number(current.profileLimit) : undefined),
+    };
+  }
+
+  return merged;
+}
+
 function normalizeAuthApiError(payload: LoginApiPayload, fallbackMessage: string): string {
   if (Array.isArray(payload.errors) && payload.errors.length > 0) {
     return payload.errors.join(" ");
@@ -211,8 +249,12 @@ async function refreshCoinBalanceFromServer() {
     cache: "no-store",
   });
   if (!response.ok) return;
-  const payload = (await response.json().catch(() => null)) as { user?: { points?: number } } | null;
-  const points = Number(payload?.user?.points);
+  const payload = (await response.json().catch(() => null)) as {
+    points?: number;
+    balance?: number;
+    user?: { points?: number };
+  } | null;
+  const points = Number(payload?.user?.points ?? payload?.balance ?? payload?.points);
   if (!Number.isFinite(points)) return;
 
   const base = readSanitizedAuthUser() as AuthUser | null;
@@ -233,16 +275,15 @@ async function refreshProfileSubscriptionCache() {
   const statusPayload = (await response.json().catch(() => null)) as Record<string, unknown> | null;
   if (!statusPayload) return;
 
-  const base = (readSanitizedAuthUser() || {}) as Record<string, unknown>;
-  const merged = {
-    ...base,
+  const base = readSanitizedAuthUser() as AuthUser | null;
+  const merged = mergeAuthUsers(base, {
     profileSubscription: {
       tier: String(statusPayload.tier || "free"),
       isActive: !!statusPayload.isActive,
       expiresAt: typeof statusPayload.expiresAt === "string" ? statusPayload.expiresAt : null,
       profileLimit: Number.isFinite(Number(statusPayload.profileLimit)) ? Number(statusPayload.profileLimit) : undefined,
     },
-  };
+  });
   resolveSafeUser(merged);
 }
 
@@ -306,7 +347,8 @@ async function loadMeFromServer() {
   }
 
   const payload = (await response.json()) as { user?: AuthUser };
-  const user = resolveSafeUser(payload?.user) as AuthUser | null;
+  const cachedUser = readSanitizedAuthUser() as AuthUser | null;
+  const user = resolveSafeUser(mergeAuthUsers(cachedUser, payload?.user || null)) as AuthUser | null;
   latestAppliedMeSeq = requestSeq;
 
   if (!user) {
