@@ -51,8 +51,10 @@ export default function SikojenpovailuApp() {
     <SikojenpovailuProvider>
       <div className="sikojen-app" style={{
         width: '100%',
-        height: '100%',
+        minHeight: '100dvh',
+        height: '100dvh',
         display: 'block',
+        overflow: 'hidden',
       }}>
         <PhaseRouter />
       </div>

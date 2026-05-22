@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { useSikojenpovailuContext } from '../SikojenpovailuContext';
+import { YeonSpriteAvatar } from './YeonSpriteAvatar';
 
 export function PhaseSharing() {
   const { resetGame, selectedShape } = useSikojenpovailuContext();
@@ -108,13 +108,15 @@ export function PhaseSharing() {
         {/* 연이 캐릭터 (상단 중앙) */}
         <div className="flex justify-center">
           <div className="relative">
-            <Image
-              src="/fortune/sikojen-povailu/images/yeon.webp"
-              alt="연이"
-              width={120}
-              height={120}
-              className="rounded-full shadow-lg border-4 border-pink-300 animate-bounce"
-            />
+            <div className="animate-bounce">
+              <YeonSpriteAvatar
+                frames={[8, 9, 10, 11, 12]}
+                size={120}
+                alt="연이 축하 스프라이트"
+                ringClassName="from-rose-300 to-pink-300"
+                intervalMs={700}
+              />
+            </div>
             <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-3xl">
               🌸
             </div>

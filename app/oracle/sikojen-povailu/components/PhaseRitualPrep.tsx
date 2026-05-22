@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 import { useSikojenpovailuContext } from '../SikojenpovailuContext';
+import { YeonSpriteAvatar } from './YeonSpriteAvatar';
 
 export function PhaseRitualPrep() {
   const { setPhase, selectCategory } = useSikojenpovailuContext();
@@ -70,20 +70,13 @@ export function PhaseRitualPrep() {
 
       {/* 연이 캐릭터 (화면 상단 중앙) */}
       <div className="absolute left-1/2 -translate-x-1/2 top-12 z-20">
-        <div className="relative">
-          {/* 핑크 동그란 배경 */}
-          <div className="absolute -inset-6 bg-gradient-to-br from-rose-300 to-pink-300 rounded-full shadow-lg"></div>
-          
-          {/* 연이 이미지 */}
-          <Image
-            src="/fortune/sikojen-povailu/images/yeon.webp"
-            alt="연이"
-            width={160}
-            height={160}
-            className="rounded-full shadow-lg border-3 border-white drop-shadow relative z-10"
-            style={{
-              animation: `gentle-bob 2s ease-in-out infinite`,
-            }}
+        <div style={{ animation: `gentle-bob 2s ease-in-out infinite` }}>
+          <YeonSpriteAvatar
+            frames={[7, 8, 9, 8]}
+            size={160}
+            alt="연이 준비 단계"
+            ringClassName="from-rose-300 to-pink-300"
+            intervalMs={840}
           />
         </div>
       </div>

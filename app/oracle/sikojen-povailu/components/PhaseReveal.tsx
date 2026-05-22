@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 import { useSikojenpovailuContext } from '../SikojenpovailuContext';
+import { YeonSpriteAvatar } from './YeonSpriteAvatar';
 
 export function PhaseReveal() {
   const { selectedShape, setPhase } = useSikojenpovailuContext();
@@ -57,12 +57,13 @@ export function PhaseReveal() {
       <div className="relative z-10 max-w-xl w-full" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between rounded-2xl border border-pink-200/70 bg-white/75 px-4 py-3 shadow-[0_8px_24px_rgba(190,24,93,0.12)] backdrop-blur">
           <div className="flex items-center gap-3">
-            <Image
-              src="/fortune/sikojen-povailu/images/yeon.webp"
-              alt="연이"
-              width={44}
-              height={44}
-              className="rounded-full border-2 border-pink-300 shadow"
+            <YeonSpriteAvatar
+              frames={[3, 2, 1, 2]}
+              size={44}
+              alt="연이 결과 안내"
+              ringClassName="from-rose-200 to-pink-200"
+              className="shrink-0"
+              intervalMs={920}
             />
             <div>
               <p className="text-xs font-semibold tracking-wide text-pink-500">SIKOJEN POVAILU</p>
@@ -186,13 +187,15 @@ export function PhaseReveal() {
         {/* 연이 캐릭터 - 우측 하단 */}
         <div className="mt-8 flex justify-end">
           <div className="relative">
-            <Image
-              src="/fortune/sikojen-povailu/images/yeon.webp"
-              alt="연이"
-              width={100}
-              height={100}
-              className="rounded-full shadow-lg border-4 border-pink-200 transform hover:scale-110 transition-transform"
-            />
+            <div className="transform hover:scale-110 transition-transform">
+              <YeonSpriteAvatar
+                frames={[4, 5, 6, 5]}
+                size={100}
+                alt="연이 결과 마스코트"
+                ringClassName="from-rose-200 to-pink-200"
+                intervalMs={740}
+              />
+            </div>
             <div className="absolute -top-6 -left-20 bg-pink-100/90 backdrop-blur-sm border-2 border-pink-300 rounded-2xl px-3 py-2 text-pink-700 font-bold text-xs whitespace-nowrap shadow-lg">
               {selectedShape.yeon_message.split(' ').slice(0, 4).join(' ')}... 🐷
             </div>

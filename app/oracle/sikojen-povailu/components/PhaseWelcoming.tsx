@@ -1,13 +1,26 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import { useSikojenpovailuContext } from '../SikojenpovailuContext';
+import { YeonSpriteAvatar } from './YeonSpriteAvatar';
 
 export function PhaseWelcoming() {
   const { setPhase } = useSikojenpovailuContext();
 
-  const handleStart = () => {
+  const requestImmersiveFullscreen = async () => {
+    if (typeof document === 'undefined') return;
+    if (document.fullscreenElement) return;
+    const root = document.documentElement;
+    if (!root || typeof root.requestFullscreen !== 'function') return;
+    try {
+      await root.requestFullscreen();
+    } catch {
+      // Ignore browser policy errors and continue normal flow.
+    }
+  };
+
+  const handleStart = async () => {
+    await requestImmersiveFullscreen();
     setTimeout(() => {
       setPhase('ritual-prep');
     }, 400);
@@ -47,23 +60,21 @@ export function PhaseWelcoming() {
       <div className="absolute top-20 right-20 w-64 h-64 rounded-full blur-3xl bg-gradient-to-br from-pink-200 to-rose-100 opacity-15 animate-pulse"></div>
       <div className="absolute bottom-32 left-20 w-72 h-72 rounded-full blur-3xl bg-gradient-to-tr from-yellow-100 to-pink-100 opacity-12 animate-pulse" style={{ animationDelay: '0.5s' }}></div>
 
-      {/* 연이 캐릭터 (중앙 상단) - 귀여운 핑크 배경 */}
+      {/* 연이 캐릭터 (중앙 상단) - 스프라이트 시트 순환 */}
       <div className="absolute left-1/2 -translate-x-1/2 top-10 sm:top-14 md:top-20 z-20 transform">
         <div className="relative">
-          {/* 핑크 동그란 배경 */}
-          <div className="absolute -inset-4 sm:-inset-6 md:-inset-8 bg-gradient-to-br from-rose-300 to-pink-300 rounded-full shadow-lg"></div>
-          
-          {/* 연이 이미지 */}
-          <Image
-            src="/fortune/sikojen-povailu/images/yeon.webp"
-            alt="연이"
-            width={200}
-            height={200}
-            className="w-[132px] h-[132px] sm:w-[168px] sm:h-[168px] md:w-[200px] md:h-[200px] rounded-full shadow-lg border-4 border-white drop-shadow-xl relative z-10"
-            style={{
-              animation: `gentle-bob 2.5s ease-in-out infinite`,
-            }}
-          />
+          <div
+            style={{ animation: `gentle-bob 2.5s ease-in-out infinite` }}
+            className="relative z-10"
+          >
+            <YeonSpriteAvatar
+              frames={[1, 2, 3, 4, 3, 2, 5, 6]}
+              size={200}
+              alt="연이 스프라이트"
+              ringClassName="from-rose-300 to-pink-300"
+              intervalMs={780}
+            />
+          </div>
 
           {/* 주석 국자 */}
           <div className="absolute -right-4 sm:-right-6 md:-right-8 -bottom-1 sm:-bottom-2 text-3xl sm:text-4xl md:text-5xl drop-shadow-lg transform rotate-12 hover:scale-110 transition-transform z-20">
@@ -87,8 +98,8 @@ export function PhaseWelcoming() {
 
         {/* 부제목 */}
         <p className="text-sm sm:text-base md:text-lg text-rose-700 mb-6 leading-relaxed font-medium">
-          연이와 함께하는<br />
-          마법의 돼지점에 오신 것을 환영합니다 ✨
+          연이와 함께하는 핀란드 주석점에 오신 것을 환영해요.<br />
+          녹인 주석이 물 위에서 굳는 찰나, 당신의 올해 키워드가 드러나요 ✨
         </p>
 
         {/* 핀란드 주석점 소개 카드 */}
@@ -97,8 +108,9 @@ export function PhaseWelcoming() {
           <ul className="space-y-1.5 text-xs text-rose-700">
             <li className="flex gap-2 items-start"><span>🔥</span><span>핀란드에서 수백 년 이어온 <strong>새해 주석 주조 점술</strong></span></li>
             <li className="flex gap-2 items-start"><span>💧</span><span>녹인 주석을 차가운 물에 던져 <strong>굳은 형태로 운명을 읽어요</strong></span></li>
-            <li className="flex gap-2 items-start"><span>✨</span><span><strong>20가지 형태</strong> — 각각 고유한 의미와 연이의 메시지가 담겨 있어요</span></li>
-            <li className="flex gap-2 items-start"><span>🐷</span><span>귀여운 마스코트 <strong>연이</strong>가 당신의 주석점을 함께 해석해 드려요!</span></li>
+            <li className="flex gap-2 items-start"><span>✨</span><span><strong>20가지 형태 + 그림자 해석</strong>으로 표면 의미와 숨은 메시지를 함께 읽어요</span></li>
+            <li className="flex gap-2 items-start"><span>🐷</span><span>연이 스프라이트 캐릭터가 페이즈마다 다른 모습으로 나타나 몰입감을 높여줘요</span></li>
+            <li className="flex gap-2 items-start"><span>🖥️</span><span>시작 버튼을 누르면 <strong>전체화면 몰입 모드</strong>로 의식을 진행할 수 있어요</span></li>
           </ul>
         </div>
 

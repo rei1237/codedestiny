@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { useSikojenpovailuContext } from '../SikojenpovailuContext';
+import { YeonSpriteAvatar } from './YeonSpriteAvatar';
 
 export function ShadowReading() {
   const { setPhase, selectedShape } = useSikojenpovailuContext();
@@ -63,13 +63,15 @@ export function ShadowReading() {
         
         {/* 연이와 손전등 */}
         <div className="relative w-32 h-32">
-          <Image
-            src="/fortune/sikojen-povailu/images/yeon.webp"
-            alt="연이"
-            width={120}
-            height={120}
-            className="rounded-full shadow-lg border-4 border-purple-400 relative z-20"
-          />
+          <div className="relative z-20">
+            <YeonSpriteAvatar
+              frames={[12, 11, 10, 9]}
+              size={120}
+              alt="연이 그림자 읽기"
+              ringClassName="from-violet-400 to-purple-500"
+              intervalMs={820}
+            />
+          </div>
           {/* 손전등 빛 이펙트 */}
           <div className="absolute top-0 right-0 w-16 h-16 text-3xl animate-pulse">
             🔦

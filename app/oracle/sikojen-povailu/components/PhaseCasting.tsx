@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 import { useSikojenpovailuContext } from '../SikojenpovailuContext';
+import { YeonSpriteAvatar } from './YeonSpriteAvatar';
 
 export function PhaseCasting() {
   const { setPhase, setIsCasting, generateShape, selectedCategory } = useSikojenpovailuContext();
@@ -69,19 +69,13 @@ export function PhaseCasting() {
 
       {/* 연이 캐릭터 (중앙 상단) */}
       <div className="absolute left-1/2 -translate-x-1/2 top-12 hidden lg:flex z-20">
-        <div className="relative">
-          {/* 핑크 동그란 배경 */}
-          <div className="absolute -inset-6 bg-gradient-to-br from-rose-300 to-pink-300 rounded-full shadow-lg"></div>
-          
-          {/* 연이 이미지 */}
-          <Image
-            src="/fortune/sikojen-povailu/images/yeon.webp"
-            alt="연이"
-            width={140}
-            height={140}
-            className="rounded-full shadow-lg border-3 border-white drop-shadow relative z-10"
-          />
-        </div>
+        <YeonSpriteAvatar
+          frames={[10, 11, 12, 11]}
+          size={140}
+          alt="연이 주조 단계"
+          ringClassName="from-rose-300 to-pink-300"
+          intervalMs={760}
+        />
       </div>
 
       <div className="relative z-10 w-full max-w-2xl flex flex-col items-center justify-center mt-24">
