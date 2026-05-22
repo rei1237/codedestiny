@@ -173,6 +173,15 @@ const ASTRO_PERSONAL_TARGET_CHARS = Object.freeze({
 const ASTRO_MISSING_DATA_NOTICE = "일부 세부 지표는 표준 해석 가이드에 따라 통합 분석합니다. 제공된 차트 근거 범위를 벗어나 단정하지 않습니다.";
 const ASTRO_NO_BIRTHTIME_NOTICE = "출생 시간이 없어 ASC, MC, 하우스, 차트 통치성, 일부 궁합 하우스 오버레이 분석의 정밀도가 제한됩니다. 이 리포트는 태양, 달, 행성 간 주요 각도 중심으로 보완 분석되었습니다.";
 const ASTRO_FORBIDDEN_REPEATED_PHRASES = [
+  "자동 복구 생성",
+  "fallback",
+  "복구 생성",
+  "Chapter 1 핵심 진단",
+  "Chapter 2 핵심 진단",
+  "핵심 신호를 바탕으로 현재 흐름을 구조적으로 해석합니다",
+  "오늘 실행할 행동 1가지를 정하고",
+  "반복 가능한 루틴은 작은 단위부터 고정",
+  "관계/일/재정 적용",
   "ASC·Sun·Moon은 같은 성격을 다른 각도에서 보여주는 좌표입니다.",
   "어스펙트는 저주가 아니라 에너지의 패턴이며, 관리 가능한 행동 변수입니다.",
   "장점과 약점은 같은 에너지의 사용 방식 차이에서 갈립니다.",
@@ -608,6 +617,18 @@ const ZIWEI_BANNED_PHRASES = Object.freeze([
   "실행 속도보다 실행 일관성",
   "현재 확인 가능한 핵심 궁을 기준으로",
   "단기 감정에 반응해 장기 흐름을 훼손",
+]);
+
+const FORBIDDEN_ZIWEI_PDF_PHRASES = Object.freeze([
+  "자동 복구 생성",
+  "fallback",
+  "복구 생성",
+  "Chapter 1 핵심 진단",
+  "Chapter 2 핵심 진단",
+  "핵심 신호를 바탕으로 현재 흐름을 구조적으로 해석합니다",
+  "오늘 실행할 행동 1가지를 정하고",
+  "반복 가능한 루틴은 작은 단위부터 고정",
+  "관계/일/재정 적용",
 ]);
 
 const ZIWEI_CHAPTER_GUIDES = [
@@ -7605,7 +7626,7 @@ function validateCanonicalAstroChartStrict(chart) {
   );
 
   return {
-    isValid: fatalMissingFields.length === 0,
+    isValid: fatalMissingFields.length === 0 && recoverableMissingFields.length === 0,
     missingFields: [...fatalMissingFields, ...recoverableMissingFields, ...optionalMissingFields],
     fatalMissingFields,
     recoverableMissingFields,
@@ -7616,6 +7637,50 @@ function validateCanonicalAstroChartStrict(chart) {
     hasAspects: aspects.length > 0,
     hasForecast,
     hasRelationshipData,
+  };
+}
+
+function validateAstroChartSeed(seed) {
+  const missing = [];
+  const chart = seed && typeof seed === "object" ? seed : {};
+  const planets = chart?.planets && typeof chart.planets === "object" ? chart.planets : {};
+  const houses = Array.isArray(chart?.houses) ? chart.houses : [];
+  const aspects = Array.isArray(chart?.aspects) ? chart.aspects : null;
+
+  if (!seed || typeof seed !== "object") missing.push("seed");
+
+  const requiredPlanets = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
+  for (const name of requiredPlanets) {
+    const row = planets?.[name];
+    if (!row || typeof row !== "object") {
+      missing.push(`natalChart.planets.${name}`);
+      continue;
+    }
+    if (!String(row.signKo || row.sign || "").trim()) missing.push(`natalChart.planets.${name}.sign`);
+    if (!Number.isFinite(Number(row.degree))) missing.push(`natalChart.planets.${name}.degree`);
+    if (!Number.isFinite(Number(row.house))) missing.push(`natalChart.planets.${name}.house`);
+  }
+
+  if (!chart?.ascendant || !String(chart?.ascendant?.signKo || chart?.ascendant?.sign || "").trim()) {
+    missing.push("natalChart.ascendant");
+  }
+  if (!chart?.midheaven || !String(chart?.midheaven?.signKo || chart?.midheaven?.sign || "").trim()) {
+    missing.push("natalChart.midheaven");
+  }
+
+  if (houses.length !== 12) {
+    missing.push("natalChart.houses");
+  }
+
+  if (!Array.isArray(aspects)) {
+    missing.push("natalChart.aspects");
+  }
+
+  const uniqueMissing = Array.from(new Set(missing));
+  return {
+    ok: uniqueMissing.length === 0,
+    hasChart: uniqueMissing.length === 0,
+    missingFields: uniqueMissing,
   };
 }
 
@@ -11660,6 +11725,16 @@ async function ensureZiweiReportPayload(args = {}) {
   return buildZiweiPdfReportPayload(args);
 }
 
+async function buildZiweiPremiumReportPayload(args = {}) {
+  const payload = await ensureZiweiReportPayload(args);
+  const validation = validateZiweiPdfPayload(payload, args?.birthInput || null);
+  return {
+    payload,
+    validation,
+    missingFields: Array.from(new Set([...(validation?.missingCriticalFields || []), ...(validation?.missingOptionalFields || [])])),
+  };
+}
+
 function validateZiweiPdfPayload(payload, birthInput = null) {
   const critical = [];
   const optional = [];
@@ -12029,7 +12104,71 @@ function hasZiweiBannedSummaryExpression(text) {
   if (/데이터\s*단서\s*요약|\[구조화된\s*12궁\s*요약\]|해석의 목적은 예언이 아니라 실행 가능한 선택 기준을 만드는 것입니다\.|심화\s*보충\s*노트|명반\s*데이터가\s*부족해\s*일반론으로\s*보완|구조화된\s*12궁\s*원자료가\s*부족해\s*일부는\s*보수적\s*해석으로\s*보완/.test(source)) {
     return true;
   }
-  return ZIWEI_BANNED_PHRASES.some((phrase) => source.includes(phrase));
+  return ZIWEI_BANNED_PHRASES.some((phrase) => source.includes(phrase))
+    || FORBIDDEN_ZIWEI_PDF_PHRASES.some((phrase) => source.includes(phrase));
+}
+
+function normalizeZiweiHeadingToken(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[\-_:,.()\[\]{}]/g, "");
+}
+
+function validateZiweiChapterResult(chapter, chapterSpec) {
+  const src = chapter && typeof chapter === "object" ? chapter : {};
+  const sections = Array.isArray(src.sections) ? src.sections : [];
+  const requiredSections = Array.isArray(chapterSpec?.sections) ? chapterSpec.sections : [];
+  const expectedTitle = String(chapterSpec?.title || "").trim();
+  const title = String(src.title || src.chapterTitle || "").trim();
+  const intro = String(src.intro || src.summary || "").trim();
+  const coreAdvice = String(src.coreAdvice || src.masterAdvice || src.masterConclusion || "").trim();
+  const closing = String(src.closing || src.masterConclusion || "").trim();
+  const actionGuide = Array.isArray(src.actionGuide) ? src.actionGuide : (Array.isArray(src.practicalAdvice) ? src.practicalAdvice : []);
+  const minChars = Math.max(3000, Number(chapterSpec?.minChars || 3000));
+
+  const missing = [];
+  if (!title || title !== expectedTitle) missing.push("title");
+  if (!intro) missing.push("intro");
+  if (!coreAdvice) missing.push("coreAdvice");
+  if (!closing) missing.push("closing");
+  if (!Array.isArray(actionGuide) || actionGuide.length < 3) missing.push("actionGuide");
+  if (sections.length < requiredSections.length) missing.push("sections.length");
+
+  const normalizedRequired = requiredSections.map((row) => normalizeZiweiHeadingToken(row)).filter(Boolean);
+  const normalizedActual = sections.map((row) => normalizeZiweiHeadingToken(row?.heading || row?.title)).filter(Boolean);
+  const sectionMissing = normalizedRequired.filter((token) => !normalizedActual.includes(token));
+  if (sectionMissing.length > 0) missing.push("sections.heading");
+
+  const shortBodies = sections
+    .map((row, idx) => ({ idx, body: String(row?.body || "").trim() }))
+    .filter((row) => row.body.length < 400)
+    .map((row) => `sections[${row.idx}].body`);
+  if (shortBodies.length > 0) missing.push(...shortBodies);
+
+  const textForScan = [
+    title,
+    intro,
+    ...sections.map((row) => `${String(row?.heading || "").trim()}\n${String(row?.body || "").trim()}`),
+    coreAdvice,
+    ...(Array.isArray(actionGuide) ? actionGuide : []),
+    closing,
+  ].join("\n");
+
+  const forbiddenHits = FORBIDDEN_ZIWEI_PDF_PHRASES.filter((phrase) => String(phrase || "").trim() && textForScan.includes(phrase));
+  if (/\bChapter\s*\d+\b/i.test(title)) missing.push("title.placeholder");
+  if (forbiddenHits.length > 0) missing.push("forbiddenPhrases");
+
+  const totalChars = String(textForScan || "").replace(/\s+/g, "").length;
+  if (totalChars < minChars) missing.push("minChars");
+
+  return {
+    ok: missing.length === 0,
+    missing,
+    forbiddenHits,
+    totalChars,
+    minChars,
+  };
 }
 
 function ziweiMissingMarkers(text, chapter) {
@@ -12392,9 +12531,6 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
   const chapterTargetChars = Math.max(2500, Number(chapterSpec?.targetChars || ZIWEI_MIN_CHARS));
   const chapterMinChars = Math.max(2000, Math.floor(chapterTargetChars * 0.85));
   const chapterMaxChars = Math.max(chapterTargetChars + 700, ZIWEI_MAX_CHARS);
-  let markdownFallbackText = "";
-  let usedParseFallback = false;
-
   let rawText = await callGemini(env, prompt, ["PREMIUM_ZIWEI_GEMINI_MODEL"], {
     ...genOptions,
     rawOutput: true,
@@ -12403,71 +12539,36 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
   let parsed = parseZiweiGeminiResponse(rawText);
 
   if (!parsed.ok) {
-    for (let repairAttempt = 0; repairAttempt < 2 && !parsed.ok; repairAttempt += 1) {
-      const repairPrompt = [
-        "아래 응답을 지정 스키마에 맞는 단일 JSON 객체로만 복구하세요.",
-        "필수: chapterTitle/chapterSubtitle/summary/sections/practicalAdvice/cautions/masterConclusion/coreStars/corePalaces/missingDataNotice",
-        "sections는 최소 2개이며 각 heading/body를 채우세요.",
-        "마크다운 코드펜스 없이 JSON만 출력하세요.",
-        "",
-        "[원래 응답]",
-        String(rawText || "").trim(),
-      ].join("\n");
-      rawText = await callGemini(env, repairPrompt, ["PREMIUM_ZIWEI_GEMINI_MODEL"], {
-        ...genOptions,
-        temperature: 0.1,
-        maxOutputTokens: 8192,
-        maxAttemptsPerPair: 1,
-        rawOutput: true,
-        expectJson: true,
-      });
-      parsed = parseZiweiGeminiResponse(rawText);
-    }
+    rawText = await callGemini(env, prompt, ["PREMIUM_ZIWEI_GEMINI_MODEL"], {
+      ...genOptions,
+      temperature: 0.66,
+      maxAttemptsPerPair: 1,
+      rawOutput: true,
+      expectJson: true,
+    });
+    parsed = parseZiweiGeminiResponse(rawText);
   }
 
   if (!parsed.ok) {
-    const markdownFallbackPrompt = [
-      "JSON 파싱이 반복 실패했습니다. 같은 챕터를 JSON이 아닌 마크다운 본문으로 직접 작성하세요.",
-      "중요: 코드펜스 없이 마크다운 본문만 출력하세요.",
-      "필수 형식: ### 사용 데이터 요약표, ## 1~## 10 섹션, 마지막에 --- 포함.",
-      "중복 문장과 일반론을 피하고 이 챕터 데이터 근거를 직접 반영하세요.",
+    const repairPrompt = [
+      "아래 응답을 지정 스키마에 맞는 단일 JSON 객체로만 복구하세요.",
+      "필수 키: chapterNo, title, intro, sections[{heading,body}], coreAdvice, actionGuide, closing",
+      `title은 반드시 '${String(chapterSpec?.title || "").trim()}' 와 완전히 일치해야 합니다.`,
+      "각 section.body는 400자 이상으로 작성하세요.",
+      "코드펜스 없이 JSON만 출력하세요.",
       "",
-      "[원본 챕터 프롬프트]",
-      prompt,
+      "[원래 응답]",
+      String(rawText || "").trim(),
     ].join("\n");
-    const markdownRaw = await callGemini(env, markdownFallbackPrompt, ["PREMIUM_ZIWEI_GEMINI_MODEL"], {
+    rawText = await callGemini(env, repairPrompt, ["PREMIUM_ZIWEI_GEMINI_MODEL"], {
       ...genOptions,
-      temperature: 0.44,
+      temperature: 0.1,
+      maxOutputTokens: 8192,
       maxAttemptsPerPair: 1,
+      rawOutput: true,
+      expectJson: true,
     });
-    markdownFallbackText = String(markdownRaw || "").trim();
-  }
-
-  if (!parsed.ok && markdownFallbackText) {
-    const normalizedFallbackMarkdown = ensureZiweiChapterMarkdownLength(
-      sanitizePremiumChapterText(markdownFallbackText),
-      promptContext,
-      chapterMinChars,
-      chapterMaxChars,
-    );
-    const fallbackChapterJson = sanitizeZiweiChapterJson({
-      chapterTitle: String(chapterSpec?.title || meta?.title || `Chapter ${chapter}`),
-      chapterSubtitle: String(chapterSpec?.goal || meta?.subtitle || ""),
-      summary: buildChapterSummaryForContext(normalizedFallbackMarkdown, 300),
-      sections: [{ heading: "핵심 해석", body: buildChapterSummaryForContext(normalizedFallbackMarkdown, 900) }],
-      practicalAdvice: ["챕터 핵심 문장을 7일 실천 루틴으로 변환해 실행하세요."],
-      cautions: ["이전 챕터와 중복된 표현을 반복하지 마세요."],
-      masterConclusion: buildChapterSummaryForContext(normalizedFallbackMarkdown, 220),
-      coreStars: [],
-      corePalaces: [],
-      missingDataNotice: "",
-    }, chapterSpec);
-    parsed = {
-      ok: true,
-      data: fallbackChapterJson,
-      markdownFallback: normalizedFallbackMarkdown,
-    };
-    usedParseFallback = true;
+    parsed = parseZiweiGeminiResponse(rawText);
   }
 
   if (!parsed.ok) {
@@ -12491,9 +12592,23 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
     };
   }
 
+  const chapterValidation = validateZiweiChapterResult(parsed.data, chapterSpec);
+  if (!chapterValidation.ok) {
+    return {
+      ok: false,
+      code: "ZIWEI_CHAPTER_SCHEMA_FAILED",
+      message: "생성된 자미두수 챕터 JSON이 스키마/품질 검증을 통과하지 못했습니다.",
+      details: chapterValidation.missing,
+      chapterMeta: {
+        num: Number(chapter || 0),
+        title: String(chapterSpec?.title || meta?.title || `Chapter ${chapter}`),
+        subtitle: String(chapterSpec?.goal || meta?.subtitle || ""),
+      },
+    };
+  }
+
   const chapterJson = sanitizeZiweiChapterJson(parsed.data, chapterSpec);
-  const baseMarkdown = String(parsed?.markdownFallback || "").trim()
-    || buildZiweiChapterMarkdown(chapterJson, chapterSpec, promptContext, chapter === 1);
+  const baseMarkdown = buildZiweiChapterMarkdown(chapterJson, chapterSpec, promptContext, chapter === 1);
 
   let markdown = ensureZiweiChapterMarkdownLength(
     baseMarkdown,
@@ -12508,6 +12623,12 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
     : markdown;
 
   const qualityCheck = validateGeneratedChapters(chapter, finalText, chapterSpec);
+  console.info("[ZiweiPremium][Gemini] chapter length", {
+    chapter,
+    chars: finalText.length,
+    minChars: chapterMinChars,
+    targetChars: chapterTargetChars,
+  });
   const repeatedInside = detectRepeatedLongSentences(finalText, 30);
   const repeatedAcross = detectCrossChapterRepeatedSentences(finalText, previousChapterTexts, 30);
   const qualityFailed = !qualityCheck.isValid || repeatedInside.length > 0 || repeatedAcross.length > 0;
@@ -12565,7 +12686,7 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
   console.info("[ZiweiPremium][Gemini] chapter end", {
     chapter,
     requestId: String(body?.requestId || body?.generationId || "").trim(),
-    usedFallback: usedParseFallback,
+    usedFallback: false,
     repeatedSentenceCount: repeatedSentences.length,
   });
 
@@ -12573,9 +12694,9 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
     ok: true,
     text: finalText,
     sections: parseSections(finalText),
-    usedFallback: usedParseFallback,
-    generationNotice: usedParseFallback ? "ZIWEI_JSON_PARSE_MARKDOWN_FALLBACK_APPLIED" : null,
-    warnings: usedParseFallback ? ["ZIWEI_JSON_PARSE_MARKDOWN_FALLBACK_APPLIED"] : [],
+    usedFallback: false,
+    generationNotice: null,
+    warnings: [],
     chapterJson,
   };
 }
@@ -13478,6 +13599,27 @@ async function handleAstroWestern(request, env) {
       includeMinorAspects: input.includeMinorAspects,
       strictHouseCusps: strictSwissMode,
     });
+    const seedValidation = validateAstroChartSeed(chart);
+    if (!seedValidation.ok) {
+      const debugId = `astro_seed_${Date.now().toString(36)}`;
+      console.error("[AstroSeedValidationFailed]", {
+        debugId,
+        stage: "astro-western:seed",
+        requestPath: (() => {
+          try { return new URL(request.url).pathname; } catch { return ""; }
+        })(),
+        hasChart: seedValidation.hasChart,
+        missingFields: seedValidation.missingFields,
+      });
+      return json({
+        ok: false,
+        code: "ASTRO_CHART_SEED_FAILED",
+        message: "점성술 차트 계산에 필요한 데이터 생성에 실패했습니다.",
+        debugId,
+        hasChart: false,
+        missing: seedValidation.missingFields,
+      }, { status: 422 });
+    }
     const canonicalAstroChart = buildCanonicalAstroChart(body, input, chart, "personal", null, null, null, null);
     const strict = validateCanonicalAstroChartStrict(canonicalAstroChart);
     if (!strict.isValid && strictValidationMode) {
@@ -13508,8 +13650,24 @@ async function handleAstroWestern(request, env) {
       warnings: strict.isValid ? [] : strict.missingFields,
     });
   } catch (error) {
+    const debugId = `astro_swiss_${Date.now().toString(36)}`;
     const message = error instanceof Error ? error.message : String(error || "Swiss chart generation failed");
-    return json({ ok: false, code: "ASTRO_SWISS_REQUIRED", message }, { status: 422 });
+    console.error("[AstroSwissRequired]", {
+      debugId,
+      stage: "astro-western",
+      requestPath: (() => {
+        try { return new URL(request.url).pathname; } catch { return ""; }
+      })(),
+      message,
+    });
+    return json({
+      ok: false,
+      code: "ASTRO_CHART_SEED_FAILED",
+      message: "점성술 차트 계산에 필요한 데이터 생성에 실패했습니다.",
+      debugId,
+      hasChart: false,
+      missing: ["natalChart.planets", "houses", "aspects"],
+    }, { status: 422 });
   }
 }
 
@@ -13556,9 +13714,42 @@ async function handleAstroLife(request, env) {
       includeMinorAspects: input.includeMinorAspects,
       strictHouseCusps: strictSwissMode,
     });
+    const seedValidation = validateAstroChartSeed(chart);
+    if (!seedValidation.ok) {
+      const debugId = `astro_seed_${Date.now().toString(36)}`;
+      console.error("[AstroSeedValidationFailed]", {
+        debugId,
+        stage: "astro-life:seed",
+        reportType,
+        hasChart: seedValidation.hasChart,
+        missingFields: seedValidation.missingFields,
+      });
+      return json({
+        ok: false,
+        code: "ASTRO_CHART_SEED_FAILED",
+        message: "점성술 차트 계산에 필요한 데이터 생성에 실패했습니다.",
+        debugId,
+        hasChart: false,
+        missing: seedValidation.missingFields,
+      }, { status: 422 });
+    }
   } catch (error) {
+    const debugId = `astro_swiss_${Date.now().toString(36)}`;
     const message = error instanceof Error ? error.message : String(error || "Swiss chart generation failed");
-    return json({ ok: false, code: "ASTRO_SWISS_REQUIRED", message }, { status: 422 });
+    console.error("[AstroSwissRequired]", {
+      debugId,
+      stage: "astro-life",
+      reportType,
+      message,
+    });
+    return json({
+      ok: false,
+      code: "ASTRO_CHART_SEED_FAILED",
+      message: "점성술 차트 계산에 필요한 데이터 생성에 실패했습니다.",
+      debugId,
+      hasChart: false,
+      missing: ["natalChart.planets", "houses", "aspects"],
+    }, { status: 422 });
   }
 
   let partnerChart = null;
@@ -17806,7 +17997,7 @@ async function handleZiweiBookSession(request, env) {
     ? structuredPayload.reportPayload
     : null;
 
-  const reportPayload = await ensureZiweiReportPayload({
+  const payloadBuildResult = await buildZiweiPremiumReportPayload({
     existingReportPayload: (strictBody.reportPayload && typeof strictBody.reportPayload === "object")
       ? strictBody.reportPayload
       : fallbackReportPayload,
@@ -17825,6 +18016,13 @@ async function handleZiweiBookSession(request, env) {
     dataQuality,
     preferBasicEngine: Boolean(basicZiweiResult),
   });
+  const reportPayload = payloadBuildResult.payload;
+  if (Array.isArray(payloadBuildResult?.missingFields) && payloadBuildResult.missingFields.length) {
+    console.warn("[ZiweiPDF][PayloadMissing]", {
+      requestId,
+      missingFields: payloadBuildResult.missingFields,
+    });
+  }
 
   const chapterCount = Array.isArray(ZIWEI_PDF_CHAPTERS_V2) && ZIWEI_PDF_CHAPTERS_V2.length
     ? ZIWEI_PDF_CHAPTERS_V2.length
@@ -17854,7 +18052,7 @@ async function handleZiweiBookSession(request, env) {
     samples: brightnessCheckRows.slice(0, 20),
   });
 
-  const payloadValidation = validateZiweiPdfPayload(reportPayload, birthInput);
+  const payloadValidation = payloadBuildResult.validation || validateZiweiPdfPayload(reportPayload, birthInput);
   payloadValidation.missingCriticalFields.forEach((field) => pushUnique(dataQuality?.missingFields, field));
   payloadValidation.missingOptionalFields.forEach((field) => pushUnique(dataQuality?.warnings, `optional:${field}`));
 
@@ -19860,6 +20058,18 @@ async function ensurePdfNo422(response) {
   }));
 
   const code = String(payload?.code || "").trim();
+  const isAstroFailure = /^ASTRO_/i.test(code)
+    || String(payload?.reportType || "").trim() === "westernAstrologyPremium"
+    || /점성술|astrology/i.test(String(payload?.message || ""));
+  if (isAstroFailure) {
+    return response;
+  }
+  const isZiweiFailure = /^ZIWEI_/i.test(code)
+    || String(payload?.reportType || "").trim() === "ziweiPremium"
+    || /자미두수/.test(String(payload?.message || ""));
+  if (isZiweiFailure) {
+    return response;
+  }
   const shouldBlockTextFallback = /SOURCE_REQUIRED|PAYLOAD_MISSING|CORE_CHART_MISSING|BASIC_RESULT_MISSING/i.test(code);
 
   const next = {
@@ -20052,7 +20262,7 @@ function buildLegacyChapterPayload(row, includeText = false) {
 
   const payload = {
     chapterIndex,
-    title: String(chapterMeta?.title || `Chapter ${chapterIndex}`),
+    title: String(chapterJson?.chapterTitle || chapterJson?.title || chapterMeta?.title || `Chapter ${chapterIndex}`),
     subtitle: String(chapterMeta?.subtitle || ""),
     summary,
     sections,
@@ -20300,8 +20510,8 @@ async function advanceLegacyPremiumSession(config, request, env, reportId) {
     sessionId: chapter,
     forceRegenerate: false,
     retryChapter: false,
-    _premiumStrictPayload: false,
-    _premiumStrictValidation: false,
+    _premiumStrictPayload: config.alias === "ziwei",
+    _premiumStrictValidation: config.alias === "ziwei",
   };
 
   const generated = await invokeLegacyGenerateChapter(config, request, env, chapterPayload);
@@ -20369,8 +20579,8 @@ async function startLegacyPremiumSession(config, request, env) {
     ...sourceBody,
     chapter: 1,
     sessionId: 1,
-    _premiumStrictPayload: false,
-    _premiumStrictValidation: false,
+    _premiumStrictPayload: config.alias === "ziwei",
+    _premiumStrictValidation: config.alias === "ziwei",
   };
 
   const generated = await invokeLegacyGenerateChapter(config, request, env, chapterPayload);
@@ -20573,7 +20783,9 @@ export const __ziweiTestUtils = {
   buildZiweiStandardResultFromCanonical,
   buildZiweiReportPayloadFromBasicResult,
   buildZiweiPdfReportPayload,
+  buildZiweiPremiumReportPayload,
   validateZiweiPdfPayload,
+  validateZiweiChapterResult,
   hasZiweiBannedSummaryExpression,
   hasInvalidZiweiSummaryTable,
   detectCrossChapterRepeatedSentences,
@@ -20581,8 +20793,10 @@ export const __ziweiTestUtils = {
 };
 
 export const __astroTestUtils = {
+  ensurePdfNo422,
   buildWesternChart,
   buildWesternPremiumChart,
+  validateAstroChartSeed,
   buildBasicAstroSummaryFromChart,
   buildCanonicalAstroChart,
   validateCanonicalAstroChartStrict,

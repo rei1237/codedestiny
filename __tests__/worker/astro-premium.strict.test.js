@@ -9,6 +9,8 @@ let __astroTestUtils;
 
 let buildWesternChart;
 let buildWesternPremiumChart;
+let validateAstroChartSeed;
+let ensurePdfNo422;
 let buildBasicAstroSummaryFromChart;
 let buildCanonicalAstroChart;
 let validateCanonicalAstroChartStrict;
@@ -73,6 +75,8 @@ beforeAll(async () => {
   ({
     buildWesternChart,
     buildWesternPremiumChart,
+    validateAstroChartSeed,
+    ensurePdfNo422,
     buildBasicAstroSummaryFromChart,
     buildCanonicalAstroChart,
     validateCanonicalAstroChartStrict,
@@ -240,5 +244,40 @@ describe("Astro Premium Strict Tests (A~J)", () => {
     expect(hasForbiddenAstroRawDataExposure(exposed, "compatibility")).toBe(true);
     expect(hasForbiddenAstroRawDataExposure(safe, "compatibility")).toBe(false);
     expect(hasForbiddenAstroRawDataExposure(exposed, "personal")).toBe(false);
+  });
+
+  test("M. astro chart seed 검증은 Sun/Moon/ASC/10행성/12하우스/aspects를 요구해야 한다", () => {
+    const input = makeInput();
+    const chart = makeChart(input);
+    const okResult = validateAstroChartSeed(chart);
+    expect(okResult.ok).toBe(true);
+
+    const broken = clone(chart);
+    delete broken.planets.Sun;
+    broken.houses = broken.houses.slice(0, 10);
+    broken.aspects = null;
+    const failResult = validateAstroChartSeed(broken);
+    expect(failResult.ok).toBe(false);
+    expect(failResult.missingFields).toEqual(expect.arrayContaining([
+      "natalChart.planets.Sun",
+      "natalChart.houses",
+      "natalChart.aspects",
+    ]));
+  });
+
+  test("N. ASTRO_* 422 응답은 200 recovered로 변환되면 안 된다", async () => {
+    const astroResponse = new Response(
+      JSON.stringify({ ok: false, code: "ASTRO_CHART_SEED_FAILED", message: "failed" }),
+      { status: 422, headers: { "content-type": "application/json" } },
+    );
+    const normalizedAstro = await ensurePdfNo422(astroResponse);
+    expect(normalizedAstro.status).toBe(422);
+
+    const nonAstroResponse = new Response(
+      JSON.stringify({ ok: false, code: "PREMIUM_REPORT_PREFLIGHT_FAILED", message: "failed" }),
+      { status: 422, headers: { "content-type": "application/json" } },
+    );
+    const normalizedNonAstro = await ensurePdfNo422(nonAstroResponse);
+    expect(normalizedNonAstro.status).toBe(200);
   });
 });

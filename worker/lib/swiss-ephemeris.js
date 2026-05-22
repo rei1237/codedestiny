@@ -37,6 +37,9 @@ function sanitizeUrlLikeEnvValue(value) {
   let raw = clean(value);
   if (!raw) return "";
 
+  const lowered = raw.toLowerCase();
+  if (lowered === "undefined" || lowered === "null" || lowered === "about:blank") return "";
+
   // Strip wrapping quotes often introduced by TOML/CI env serialization.
   if ((raw.startsWith('"') && raw.endsWith('"')) || (raw.startsWith("'") && raw.endsWith("'")) || (raw.startsWith("`") && raw.endsWith("`"))) {
     raw = raw.slice(1, -1).trim();
@@ -303,6 +306,19 @@ function julianDayFromInput(swe, input) {
 }
 
 function resolveEpheBaseUrl(env, options = {}) {
+  const resolveOriginLike = (value) => {
+    const normalized = sanitizeUrlLikeEnvValue(value);
+    if (!normalized) return "";
+    try {
+      const withProtocol = /^https?:\/\//i.test(normalized) ? normalized : `https://${normalized}`;
+      const parsed = new URL(withProtocol);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
+      return parsed.origin;
+    } catch {
+      return "";
+    }
+  };
+
   const fromEnv = sanitizeUrlLikeEnvValue(
     getEnv(env, "SWISS_EPHEMERIS_FILES_BASE_URL")
     || getEnv(env, "SWISS_EPHE_BASE_URL")
@@ -318,6 +334,17 @@ function resolveEpheBaseUrl(env, options = {}) {
       // Ignore malformed env URL and fallback to request origin below.
     }
   }
+
+  const originFromEnv = resolveOriginLike(
+    getEnv(env, "PUBLIC_SITE_ORIGIN")
+    || getEnv(env, "NEXT_PUBLIC_SITE_URL")
+    || getEnv(env, "SITE_URL")
+    || getEnv(env, "CF_PAGES_URL")
+    || getEnv(env, "WORKER_ORIGIN")
+    || getEnv(env, "ASTRO_SWISS_BASE_URL")
+    || getEnv(env, "ASTRO_API_BASE_URL"),
+  );
+  if (originFromEnv) return `${originFromEnv}/ephe/`;
 
   const requestUrl = clean(options.requestUrl);
   if (requestUrl) {
@@ -519,3 +546,9 @@ export async function getSwissVedicPlanets(env, payload, options = {}) {
     source: "swiss-wasm-local",
   };
 }
+
+export const __swissEphemerisTestUtils = {
+  sanitizeUrlLikeEnvValue,
+  resolveEpheBaseUrl,
+  resolveSwissWasmPath,
+};
