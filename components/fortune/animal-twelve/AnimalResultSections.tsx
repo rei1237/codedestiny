@@ -7,8 +7,8 @@ type Props = {
 
 function SectionCard({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="rounded-[26px] border border-[#e3ccab] bg-white/88 p-6 shadow-[0_12px_32px_rgba(88,58,24,0.11)]">
-      <h4 className="mb-4 text-xl font-black text-[#6b3f1d]">{title}</h4>
+    <section className="rounded-[28px] border border-[#ddcfb7] bg-[linear-gradient(165deg,rgba(255,255,255,0.97),rgba(253,247,237,0.92))] p-6 shadow-[0_18px_36px_rgba(46,31,16,0.11)]">
+      <h4 className="mb-4 text-xl font-black tracking-tight text-[#5f3618]">{title}</h4>
       {children}
     </section>
   );
@@ -16,9 +16,9 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
 
 function ParagraphList({ lines }: { lines: string[] }) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-3.5">
       {lines.map((line, index) => (
-        <p key={`${index}-${line.slice(0, 12)}`} className="text-sm leading-relaxed text-[#5f3818]">
+        <p key={`${index}-${line.slice(0, 12)}`} className="text-sm leading-[1.72] text-[#5a3416]">
           {line}
         </p>
       ))}
@@ -30,7 +30,7 @@ export default function AnimalResultSections({ animal }: Props) {
   const profile = animal.profile;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid gap-5 lg:grid-cols-2">
       <SectionCard title="성격 분석">
         <ParagraphList lines={profile.personality.paragraphs} />
       </SectionCard>
@@ -40,7 +40,7 @@ export default function AnimalResultSections({ animal }: Props) {
       </SectionCard>
 
       <SectionCard title="인간관계 스타일">
-        <div className="space-y-3 text-sm leading-relaxed text-[#5f3818]">
+        <div className="space-y-3.5 text-sm leading-[1.72] text-[#5a3416]">
           <p><span className="font-bold text-[#6b3f1d]">친구 관계:</span> {profile.relationship.friends}</p>
           <p><span className="font-bold text-[#6b3f1d]">직장/사회:</span> {profile.relationship.work}</p>
           <p><span className="font-bold text-[#6b3f1d]">가족 관계:</span> {profile.relationship.family}</p>
@@ -50,7 +50,7 @@ export default function AnimalResultSections({ animal }: Props) {
       </SectionCard>
 
       <SectionCard title="직업 · 진로 성향">
-        <div className="space-y-3 text-sm leading-relaxed text-[#5f3818]">
+        <div className="space-y-3.5 text-sm leading-[1.72] text-[#5a3416]">
           <p><span className="font-bold text-[#6b3f1d]">업무 스타일:</span> {profile.career.workStyle}</p>
           <p><span className="font-bold text-[#6b3f1d]">잘 맞는 직업군:</span> {profile.career.goodFields.join(", ")}</p>
           <p><span className="font-bold text-[#6b3f1d]">피해야 할 환경:</span> {profile.career.avoidFields.join(", ")}</p>
@@ -60,7 +60,7 @@ export default function AnimalResultSections({ animal }: Props) {
       </SectionCard>
 
       <SectionCard title="재물운 · 돈 관리">
-        <div className="space-y-3 text-sm leading-relaxed text-[#5f3818]">
+        <div className="space-y-3.5 text-sm leading-[1.72] text-[#5a3416]">
           <p><span className="font-bold text-[#6b3f1d]">돈이 들어오는 방식:</span> {profile.money.moneyFlow}</p>
           <p><span className="font-bold text-[#6b3f1d]">돈이 새는 패턴:</span> {profile.money.spendingPattern}</p>
           <p><span className="font-bold text-[#6b3f1d]">저축/투자 조언:</span> {profile.money.savingAdvice}</p>
@@ -69,7 +69,7 @@ export default function AnimalResultSections({ animal }: Props) {
       </SectionCard>
 
       <SectionCard title="오늘의 동물 운세">
-        <div className="space-y-3 text-sm leading-relaxed text-[#5f3818]">
+        <div className="space-y-3.5 text-sm leading-[1.72] text-[#5a3416]">
           <p><span className="font-bold text-[#6b3f1d]">한 줄 운세:</span> {profile.daily.message}</p>
           <p><span className="font-bold text-[#6b3f1d]">행운 행동:</span> {profile.daily.luckyAction}</p>
           <p><span className="font-bold text-[#6b3f1d]">피해야 할 행동:</span> {profile.daily.caution}</p>

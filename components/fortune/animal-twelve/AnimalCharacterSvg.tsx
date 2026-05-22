@@ -5,13 +5,13 @@ type Props = {
   className?: string;
 };
 
-function ornamentByAnimal(name: string) {
-  if (name.includes("고양이")) {
+function motifByAnimal(name: string) {
+  if (name.includes("나비")) {
     return (
       <>
-        <path d="M78 38c6-10 10-14 18-16" stroke="currentColor" strokeWidth="3" strokeLinecap="round" opacity="0.45" />
-        <circle cx="101" cy="20" r="4" fill="currentColor" opacity="0.28" />
-        <path d="M46 90c9-4 16-4 24 0" stroke="currentColor" strokeWidth="3" strokeLinecap="round" opacity="0.45" />
+        <path d="M76 74c8-6 13-15 12-24-10 2-16 7-20 15" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+        <path d="M52 74c-8-6-13-15-12-24 10 2 16 7 20 15" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+        <path d="M64 58v30" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
       </>
     );
   }
@@ -19,37 +19,47 @@ function ornamentByAnimal(name: string) {
   if (name.includes("사자")) {
     return (
       <>
-        <circle cx="64" cy="58" r="44" fill="currentColor" opacity="0.16" />
-        <path d="M62 12l4 10 10 2-8 6 2 10-8-5-8 5 2-10-8-6 10-2z" fill="currentColor" opacity="0.26" />
+        <circle cx="64" cy="66" r="21" fill="none" stroke="currentColor" strokeWidth="3.4" />
+        <circle cx="64" cy="66" r="30" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="3 4" opacity="0.75" />
       </>
     );
   }
 
-  if (name.includes("꽃돼지")) {
+  if (name.includes("고양이")) {
     return (
       <>
-        <path d="M26 94c8-6 14-8 22-8 9 0 17 3 25 8" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" opacity="0.42" />
-        <circle cx="84" cy="28" r="7" fill="currentColor" opacity="0.2" />
-        <path d="M92 36l4 4-4 4-4-4z" fill="currentColor" opacity="0.28" />
+        <path d="M48 50l8-11 8 11" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M80 50l-8-11-8 11" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M46 80c6 6 30 6 36 0" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
       </>
     );
   }
 
-  if (name.includes("나비")) {
+  if (name.includes("강아지") || name.includes("사슴") || name.includes("토끼")) {
     return (
       <>
-        <ellipse cx="43" cy="56" rx="14" ry="12" fill="currentColor" opacity="0.16" />
-        <ellipse cx="85" cy="56" rx="14" ry="12" fill="currentColor" opacity="0.16" />
-        <path d="M64 48v26" stroke="currentColor" strokeWidth="3" strokeLinecap="round" opacity="0.6" />
+        <path d="M45 51c0-7 6-13 14-13h10c8 0 14 6 14 13" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+        <path d="M44 79c8 7 32 7 40 0" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+      </>
+    );
+  }
+
+  if (name.includes("꽃돼지") || name.includes("햄스터") || name.includes("병아리")) {
+    return (
+      <>
+        <circle cx="64" cy="67" r="16" fill="none" stroke="currentColor" strokeWidth="3" />
+        <circle cx="56" cy="65" r="2.2" fill="currentColor" />
+        <circle cx="72" cy="65" r="2.2" fill="currentColor" />
+        <path d="M58 74h12" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
       </>
     );
   }
 
   return (
     <>
-      <circle cx="28" cy="38" r="5" fill="currentColor" opacity="0.22" />
-      <circle cx="100" cy="34" r="5" fill="currentColor" opacity="0.22" />
-      <path d="M28 92c10-7 20-10 36-10s26 3 36 10" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" opacity="0.28" />
+      <path d="M48 82c6 5 26 5 32 0" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+      <circle cx="52" cy="63" r="3" fill="currentColor" />
+      <circle cx="76" cy="63" r="3" fill="currentColor" />
     </>
   );
 }
@@ -72,27 +82,30 @@ export default function AnimalCharacterSvg({ animal, className }: Props) {
     >
       <defs>
         <linearGradient id={`bg-${animal.id}`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={palette.primary} stopOpacity="0.95" />
-          <stop offset="100%" stopColor={palette.secondary} stopOpacity="0.95" />
+          <stop offset="0%" stopColor={palette.primary} stopOpacity="0.9" />
+          <stop offset="100%" stopColor={palette.secondary} stopOpacity="0.92" />
+        </linearGradient>
+        <linearGradient id={`ring-${animal.id}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor={palette.accent} stopOpacity="0.92" />
+          <stop offset="100%" stopColor="#f6e5bf" stopOpacity="0.84" />
         </linearGradient>
       </defs>
 
-      <rect x="6" y="6" width="116" height="116" rx="28" fill={palette.background} opacity="0.94" />
-      <circle cx="64" cy="68" r="38" fill={`url(#bg-${animal.id})`} />
+      <rect x="8" y="8" width="112" height="112" rx="34" fill={palette.background} opacity="0.96" />
+      <circle cx="64" cy="64" r="44" fill={`url(#bg-${animal.id})`} opacity="0.28" />
+      <circle cx="64" cy="64" r="34" fill="white" opacity="0.72" />
+      <circle cx="64" cy="64" r="39" fill="none" stroke={`url(#ring-${animal.id})`} strokeWidth="2.6" opacity="0.9" />
+      <circle cx="64" cy="64" r="30" fill="none" stroke={palette.primary} strokeWidth="1.1" opacity="0.38" />
 
-      <circle cx="50" cy="64" r="4" fill="#1f1530" opacity="0.85" />
-      <circle cx="78" cy="64" r="4" fill="#1f1530" opacity="0.85" />
-      <path d="M54 82c5 5 15 5 20 0" stroke="#2f2045" strokeWidth="3" strokeLinecap="round" fill="none" opacity="0.82" />
-      <circle cx="40" cy="48" r="11" fill={palette.secondary} opacity="0.62" />
-      <circle cx="88" cy="48" r="11" fill={palette.secondary} opacity="0.62" />
+      <g style={{ color: palette.accent }}>
+        {motifByAnimal(animal.animal_ko)}
+      </g>
 
-      {ornamentByAnimal(animal.animal_ko)}
-
-      <g fill={palette.accent} opacity="0.68">
-        <circle cx="18" cy="20" r="2" />
+      <g fill={palette.accent} opacity="0.42">
+        <circle cx="20" cy="22" r="2" />
         <circle cx="108" cy="18" r="2" />
-        <circle cx="112" cy="104" r="2" />
-        <circle cx="16" cy="108" r="2" />
+        <circle cx="112" cy="108" r="2" />
+        <circle cx="18" cy="106" r="2" />
       </g>
     </svg>
   );

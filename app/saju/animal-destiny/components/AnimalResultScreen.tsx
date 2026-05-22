@@ -63,7 +63,7 @@ export default function AnimalResultScreen({
   }, [sajuResult, twelveStages]);
 
   const score = getStageScore(twelveStages.day || twelveStages.primary);
-  const oneLine = `${animal.short_copy}. ${animal.profile.personality.summary}`;
+  const oneLine = animal.short_copy;
   const representativeStage = twelveStages.day || twelveStages.primary || animal.saju_stage;
 
   return (
@@ -133,7 +133,7 @@ export default function AnimalResultScreen({
       />
 
       <div className="space-y-4 rounded-[2.5rem] border border-[#d9ccab] bg-white/90 p-6 shadow-[0_20px_46px_rgba(20,42,72,0.14)]">
-        <h3 className="text-xl font-black text-[#203c5d]">운명 증명서 카드</h3>
+        <h3 className="text-xl font-black text-[#203c5d]">십이운성 동물 카드</h3>
         <div className="overflow-hidden rounded-3xl border-4 border-[#EAD8B1] shadow-inner">
           <AnimalShareCard ref={shareCardRef} animal={animal} pillars={pillarItems} score={score} oneLine={oneLine} />
         </div>

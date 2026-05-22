@@ -8,10 +8,9 @@ interface Props {
   onSubmit: () => void;
   isBusy: boolean;
   canSubmit: boolean;
-  isUnlocked: boolean;
 }
 
-export default function AnimalDestinyInputForm({ input, onChange, onSubmit, isBusy, canSubmit, isUnlocked }: Props) {
+export default function AnimalDestinyInputForm({ input, onChange, onSubmit, isBusy, canSubmit }: Props) {
   const isLunar = (input.calendarType || "solar") === "lunar";
 
   return (
@@ -24,24 +23,10 @@ export default function AnimalDestinyInputForm({ input, onChange, onSubmit, isBu
       </div>
 
       <div className="grid gap-2 text-[11px] font-black sm:grid-cols-3">
-        <div className="rounded-xl border border-[#e5c998] bg-[#fff4dc] px-3 py-2 text-[#7f5822]">해금: 100코인</div>
+        <div className="rounded-xl border border-[#e5c998] bg-[#fff4dc] px-3 py-2 text-[#7f5822]">정밀 리딩 리포트</div>
         <div className="rounded-xl border border-[#d7c5a1] bg-[#fff7ea] px-3 py-2 text-[#6b3f1d]">분석: 약 20초</div>
         <div className="rounded-xl border border-[#ced8ae] bg-[#f4f8e7] px-3 py-2 text-[#5a6a35]">궁합 리딩 포함</div>
       </div>
-
-      {!isUnlocked ? (
-        <div className="rounded-2xl border border-[#e5c998] bg-[#fff4dc]/90 p-4">
-          <div className="space-y-2 rounded-xl border border-[#ebd4ad] bg-white/75 p-3">
-            <p className="text-xs font-black text-[#8a5a2b]">결과 미리보기 (블라인드)</p>
-            <div className="space-y-2 blur-[2px]">
-              <div className="h-4 w-2/3 rounded bg-[#ead8b8]" />
-              <div className="h-3 w-full rounded bg-[#f1e2c6]" />
-              <div className="h-3 w-5/6 rounded bg-[#f1e2c6]" />
-              <div className="h-3 w-4/6 rounded bg-[#f1e2c6]" />
-            </div>
-          </div>
-        </div>
-      ) : null}
 
       <div className="grid gap-5 md:grid-cols-2">
         <label className="space-y-2 text-sm font-bold text-[#6b3f1d]">
@@ -123,7 +108,7 @@ export default function AnimalDestinyInputForm({ input, onChange, onSubmit, isBu
         <div className="absolute inset-0 translate-x-[-100%] bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.18),transparent)] group-hover:animate-[shimmer_2s_infinite]" />
         <span className="relative inline-flex items-center gap-2">
           <span className="text-[20px]">🐾</span>
-          {isBusy ? "별의 흐름을 읽는 중..." : isUnlocked ? "결과 보기" : "100 COINS로 운명 확인하기"}
+          {isBusy ? "별의 흐름을 읽는 중..." : "결과 보기"}
         </span>
       </button>
 

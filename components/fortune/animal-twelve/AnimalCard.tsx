@@ -28,41 +28,43 @@ export default function AnimalCard({ animal, representativeStageLabel, oneLine }
 
   return (
     <article
-      className="relative overflow-hidden rounded-[30px] border p-6 shadow-[0_20px_60px_rgba(28,10,46,0.22)]"
+      className="relative overflow-hidden rounded-[34px] border p-6 shadow-[0_26px_70px_rgba(19,28,48,0.17)] sm:p-7"
       style={{
         borderColor: `${palette.accent}66`,
-        background: `linear-gradient(145deg, ${palette.background}, #ffffff)`,
+        background: `linear-gradient(160deg, rgba(255,255,255,0.95) 0%, ${palette.background} 62%, #ffffff 100%)`,
       }}
     >
       <div
-        className="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full blur-3xl"
-        style={{ backgroundColor: `${palette.primary}40` }}
+        className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full blur-3xl"
+        style={{ backgroundColor: `${palette.primary}2e` }}
       />
       <div
-        className="pointer-events-none absolute -left-14 -bottom-14 h-48 w-48 rounded-full blur-3xl"
-        style={{ backgroundColor: `${palette.secondary}66` }}
+        className="pointer-events-none absolute -left-16 -bottom-16 h-56 w-56 rounded-full blur-3xl"
+        style={{ backgroundColor: `${palette.secondary}52` }}
       />
 
-      <div className="relative z-10 grid gap-6 lg:grid-cols-[220px_1fr] lg:items-center">
-        <div className="mx-auto w-full max-w-[220px]">
+      <div className="relative z-10 grid gap-7 lg:grid-cols-[200px_1fr] lg:items-center">
+        <div className="mx-auto w-full max-w-[200px]">
           <AnimalCharacterSvg animal={animal} className="h-auto w-full" />
         </div>
 
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="space-y-5">
+          <div className="flex flex-wrap items-center gap-2.5">
             <span
-              className="rounded-full px-3 py-1 text-[11px] font-black tracking-[0.22em] uppercase"
+              className="rounded-full px-3.5 py-1.5 text-[11px] font-black tracking-[0.2em] uppercase"
               style={{ backgroundColor: `${palette.accent}22`, color: palette.accent }}
             >
               운명 동물 카드
             </span>
-            <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-bold text-[#3f2f4f]">
+            <span className="rounded-full border border-black/5 bg-white/70 px-3.5 py-1.5 text-xs font-bold text-[#3f2f4f]">
               십이운성 {representativeStageLabel}
             </span>
           </div>
 
-          <h3 className="text-3xl font-black text-[#2d1f40]">당신의 운명 동물은 {animal.animal_ko}입니다</h3>
-          <p className="text-sm font-semibold leading-relaxed text-[#4b3b60]">{oneLine}</p>
+          <div className="space-y-2">
+            <h3 className="text-[2rem] font-black leading-tight text-[#2d1f40]">당신의 운명 동물은 {animal.animal_ko}입니다</h3>
+            <p className="max-w-3xl text-[15px] font-semibold leading-relaxed text-[#4b3b60]">{oneLine}</p>
+          </div>
 
           <div className="flex flex-wrap gap-2">
             {animal.keywords.map((keyword) => (
@@ -85,7 +87,7 @@ export default function AnimalCard({ animal, representativeStageLabel, oneLine }
                     <span>{item.label}</span>
                     <span>{score}</span>
                   </div>
-                  <div className="h-2.5 rounded-full bg-[#ede8f7]">
+                  <div className="h-2.5 rounded-full bg-[#ece8f8]">
                     <div
                       className="h-2.5 rounded-full"
                       style={{

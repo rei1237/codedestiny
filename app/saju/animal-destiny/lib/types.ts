@@ -333,19 +333,19 @@ export interface AnimalCompatibilityResult {
   breakdown: {
     overall: {
       title: string;
-      body: string;
+      body: string[];
     };
     emotionCommunication: {
       title: string;
-      body: string;
+      body: string[];
     };
     valueLifestyle: {
       title: string;
-      body: string;
+      body: string[];
     };
     practicalAdvice: {
       title: string;
-      body: string;
+      body: string[];
     };
   };
 }

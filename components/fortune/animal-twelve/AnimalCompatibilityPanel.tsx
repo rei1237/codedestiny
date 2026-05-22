@@ -113,19 +113,35 @@ export default function AnimalCompatibilityPanel({
             <div className="grid gap-2 md:grid-cols-2">
               <article className="rounded-xl border border-[#ead1af] bg-white px-3 py-3">
                 <p className="text-xs font-black text-[#7b4a1e]">{partner.breakdown.overall.title}</p>
-                <p className="mt-1 text-xs leading-relaxed text-[#5f3818]">{partner.breakdown.overall.body}</p>
+                <div className="mt-1 space-y-1.5">
+                  {partner.breakdown.overall.body.map((line) => (
+                    <p key={line} className="text-xs leading-relaxed text-[#5f3818]">{line}</p>
+                  ))}
+                </div>
               </article>
               <article className="rounded-xl border border-[#ead1af] bg-white px-3 py-3">
                 <p className="text-xs font-black text-[#7b4a1e]">{partner.breakdown.emotionCommunication.title}</p>
-                <p className="mt-1 text-xs leading-relaxed text-[#5f3818]">{partner.breakdown.emotionCommunication.body}</p>
+                <div className="mt-1 space-y-1.5">
+                  {partner.breakdown.emotionCommunication.body.map((line) => (
+                    <p key={line} className="text-xs leading-relaxed text-[#5f3818]">{line}</p>
+                  ))}
+                </div>
               </article>
               <article className="rounded-xl border border-[#ead1af] bg-white px-3 py-3">
                 <p className="text-xs font-black text-[#7b4a1e]">{partner.breakdown.valueLifestyle.title}</p>
-                <p className="mt-1 text-xs leading-relaxed text-[#5f3818]">{partner.breakdown.valueLifestyle.body}</p>
+                <div className="mt-1 space-y-1.5">
+                  {partner.breakdown.valueLifestyle.body.map((line) => (
+                    <p key={line} className="text-xs leading-relaxed text-[#5f3818]">{line}</p>
+                  ))}
+                </div>
               </article>
               <article className="rounded-xl border border-[#ead1af] bg-white px-3 py-3">
                 <p className="text-xs font-black text-[#7b4a1e]">{partner.breakdown.practicalAdvice.title}</p>
-                <p className="mt-1 text-xs leading-relaxed text-[#5f3818]">{partner.breakdown.practicalAdvice.body}</p>
+                <div className="mt-1 space-y-1.5">
+                  {partner.breakdown.practicalAdvice.body.map((line) => (
+                    <p key={line} className="text-xs leading-relaxed text-[#5f3818]">{line}</p>
+                  ))}
+                </div>
               </article>
             </div>
           ) : null}

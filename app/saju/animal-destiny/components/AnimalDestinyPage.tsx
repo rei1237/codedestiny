@@ -1,9 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Toaster, toast } from "sonner";
-import { fetchBillingBalance, runBillingCoinGate } from "@/app/_lib/billing-client";
+import { useCallback, useMemo, useRef } from "react";
 import { useAnimalCardExport } from "../hooks/useAnimalCardExport";
 import type { AnimalDestinyInput } from "../lib/types";
 import { useAnimalDestinyStore } from "../store/useAnimalDestinyStore";
@@ -12,15 +10,9 @@ import AnimalDestinyHero from "./AnimalDestinyHero";
 import AnimalResultScreen from "./AnimalResultScreen";
 import AnimalRevealAnimation from "./AnimalRevealAnimation";
 
-const FEATURE_KEY = "animal-destiny-unlock";
-const UNLOCK_REASON = "십이운성 동물점 해금";
-
 export default function AnimalDestinyPage() {
   const shareCardRef = useRef<HTMLDivElement>(null);
   const formSectionRef = useRef<HTMLDivElement>(null);
-  const [isUnlocking, setIsUnlocking] = useState(false);
-  const [isUnlocked, setIsUnlocked] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const {
     status,
@@ -40,76 +32,9 @@ export default function AnimalDestinyPage() {
 
   const canSubmit = useMemo(() => Boolean(input.birthDate), [input.birthDate]);
 
-  useEffect(() => {
-    let mounted = true;
-    fetchBillingBalance()
-      .then((res) => {
-        if (!mounted || !res.ok || !res.data) return;
-        setIsLoggedIn(Boolean(res.data.authenticated));
-        setIsUnlocked(Boolean(res.data.unlockMap?.[FEATURE_KEY]));
-      })
-      .catch(() => {
-        if (!mounted) return;
-        setIsLoggedIn(false);
-        setIsUnlocked(false);
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const ensureUnlock = useCallback(async () => {
-    if (isUnlocked) return true;
-
-    setIsUnlocking(true);
-    try {
-      const balance = await fetchBillingBalance();
-      if (!balance.ok || !balance.data?.authenticated) {
-        toast.error("해금에는 로그인이 필요합니다.");
-        return false;
-      }
-
-      setIsLoggedIn(true);
-
-      if (balance.data.unlockMap?.[FEATURE_KEY]) {
-        setIsUnlocked(true);
-        return true;
-      }
-
-      const result = await runBillingCoinGate({
-        featureKey: FEATURE_KEY,
-        reason: UNLOCK_REASON,
-        forceDeduct: false,
-        requestId: `animal-destiny-unlock-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      });
-
-      if (!result.ok) {
-        if (result.error?.code === "INSUFFICIENT_COINS") {
-          toast.error("코인이 부족합니다. 100코인 후 다시 시도해 주세요.");
-          return false;
-        }
-        if (result.error?.code === "AUTH_REQUIRED") {
-          toast.error("로그인이 필요합니다.");
-          return false;
-        }
-        toast.error(result.error?.message || "해금 결제에 실패했습니다.");
-        return false;
-      }
-
-      setIsUnlocked(true);
-      toast.success("십이운성 동물점이 100코인으로 해금되었습니다.");
-      return true;
-    } finally {
-      setIsUnlocking(false);
-    }
-  }, [isUnlocked]);
-
   const handleSubmit = useCallback(async () => {
-    const ok = await ensureUnlock();
-    if (!ok) return;
     await calculate();
-  }, [ensureUnlock, calculate]);
+  }, [calculate]);
 
   const handlePartnerSubmit = useCallback(async (partnerInput: AnimalDestinyInput) => {
     await calculateCompatibility(partnerInput);
@@ -130,8 +55,7 @@ export default function AnimalDestinyPage() {
   return (
     <main className="relative min-h-[100dvh] w-full overflow-x-hidden bg-[radial-gradient(circle_at_10%_12%,rgba(250,224,177,0.45),transparent_34%),radial-gradient(circle_at_84%_8%,rgba(234,193,133,0.24),transparent_31%),radial-gradient(circle_at_48%_90%,rgba(215,165,102,0.2),transparent_33%),linear-gradient(180deg,#fff8ea_0%,#fdf1dc_52%,#fae7c5_100%)] text-[#4d311a]">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(128deg,transparent_0%,rgba(255,255,255,0.42)_38%,transparent_66%)]" />
-      <Toaster position="top-center" richColors />
-      
+
       <header className="sticky top-0 z-50 flex items-center justify-between border-b border-[#d7b792]/60 bg-[#fff7e7]/88 px-4 py-4 backdrop-blur-xl sm:px-6">
         <button 
           onClick={() => window.history.back()}
@@ -162,17 +86,6 @@ export default function AnimalDestinyPage() {
         {status !== "result" ? <AnimalDestinyHero onStart={handleStartJourney} /> : null}
 
         <div ref={formSectionRef} className="space-y-8 px-5 sm:px-6">
-          <div className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-[#d9bf96] bg-white/78 px-4 py-3 text-xs font-bold text-[#6f4624] shadow-[0_10px_24px_rgba(132,88,34,0.14)]">
-            <span className={`h-2 w-2 rounded-full ${isUnlocked ? "bg-[#7f8f52] animate-pulse" : "bg-[#d88a35]"}`} />
-            {isUnlocked ? (
-              <span>프리미엄 해금 상태: 모든 분석 결과를 볼 수 있습니다.</span>
-            ) : (
-              <span>결과 보기 버튼을 누르면 코인 게이트가 열립니다.</span>
-            )}
-            <span className="rounded-full bg-[#f7e5c6] px-2.5 py-1 text-[11px] font-black text-[#8a5a2b]">100 COINS</span>
-            {!isUnlocked && !isLoggedIn ? <span className="text-[#8a5a2b]">로그인 후 결제가 진행됩니다</span> : null}
-          </div>
-
           {(status === "idle" || status === "input" || status === "error") ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -182,9 +95,8 @@ export default function AnimalDestinyPage() {
                 input={input}
                 onChange={setInput}
                 onSubmit={handleSubmit}
-                isBusy={isUnlocking}
+                isBusy={status === "calculating" || status === "revealing"}
                 canSubmit={canSubmit}
-                isUnlocked={isUnlocked}
               />
             </motion.div>
           ) : null}
