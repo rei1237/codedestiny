@@ -95,6 +95,25 @@
     lastRequestBody: null
   };
 
+  function safeJsonStringify(value) {
+    try { return JSON.stringify(value); }
+    catch (_) { return ''; }
+  }
+
+  function logAstroDebug(stage, payload, level) {
+    var fn = (level === 'error') ? 'error' : ((level === 'warn') ? 'warn' : 'info');
+    var entry = {
+      stage: String(stage || '').trim() || 'UnknownStage',
+      ts: new Date().toISOString(),
+      payload: payload && typeof payload === 'object' ? payload : { value: payload }
+    };
+    try {
+      if (typeof console !== 'undefined' && typeof console[fn] === 'function') {
+        console[fn]('[AstroBook]', safeJsonStringify(entry) || entry);
+      }
+    } catch (_) {}
+  }
+
   function qs(id) { return document.getElementById(id); }
   function qsa(root, selector) {
     if (!root) return [];
@@ -133,7 +152,17 @@
       }
     }
     try { return new URL(raw, window.location.href).toString(); }
-    catch (_) { return raw; }
+    catch (error) {
+      logAstroDebug('ResolveApiUrlFailed', {
+        input: raw,
+        baseHref: (function () {
+          try { return String(window.location.href || ''); }
+          catch (_) { return ''; }
+        })(),
+        message: String(error && error.message || error || 'URL parse failed')
+      }, 'warn');
+      return raw;
+    }
   }
 
   function getAuthToken() {
@@ -203,6 +232,10 @@
     if (controller) timer = setTimeout(function () { controller.abort(); }, API_TIMEOUT_MS);
 
     try {
+      logAstroDebug('RequestStart', {
+        url: targetUrl,
+        method: String(opts.method || 'GET')
+      });
       var res = await fetch(targetUrl, {
         method: opts.method || 'GET',
         credentials: 'include',
@@ -212,8 +245,23 @@
       });
       var data = null;
       try { data = await res.json(); } catch (_) { data = null; }
+      if (!res.ok) {
+        logAstroDebug('RequestNonOk', {
+          url: targetUrl,
+          method: String(opts.method || 'GET'),
+          status: Number(res.status || 0),
+          responseCode: String((data && data.code) || ''),
+          responseMessage: String((data && data.message) || '')
+        }, 'warn');
+      }
       return { ok: res.ok, status: res.status, data: data };
     } catch (error) {
+      logAstroDebug('RequestFailed', {
+        url: targetUrl,
+        method: String(opts.method || 'GET'),
+        message: String(error && error.message || error || '요청 실패'),
+        name: String(error && error.name || '')
+      }, 'error');
       return {
         ok: false,
         status: 0,
@@ -235,9 +283,10 @@
       try {
         return await window.__cdPremiumAuthJson(targetPath || pathname, payload, options || {});
       } catch (error) {
-        try {
-          console.warn('[AstroBook] premium auth helper fallback:', error && error.message || error);
-        } catch (_) {}
+        logAstroDebug('PremiumAuthHelperFallback', {
+          path: targetPath || pathname,
+          message: String(error && error.message || error || 'premium auth helper failed')
+        }, 'warn');
       }
     }
     var res = await requestJson(targetPath || pathname, {
@@ -246,7 +295,130 @@
     });
     var data = (res && res.data && typeof res.data === 'object') ? res.data : {};
     if (!res.ok) data.status = Number(data.status || res.status || 0);
+    if (!res.ok || data.ok === false) {
+      logAstroDebug('PremiumAuthRequestFailed', {
+        path: targetPath || pathname,
+        status: Number(data.status || res.status || 0),
+        code: String((data && data.code) || ''),
+        message: String((data && data.message) || '')
+      }, 'warn');
+    }
     return data;
+  }
+
+  function buildAstroCanonicalSeed(requestBody, chart, source, warnings) {
+    var body = requestBody && typeof requestBody === 'object' ? requestBody : {};
+    var chartObj = chart && typeof chart === 'object' ? chart : {};
+    var planetsObj = (chartObj.planets && typeof chartObj.planets === 'object') ? chartObj.planets : {};
+    var planets = Object.keys(planetsObj).map(function (name) {
+      var row = planetsObj[name] || {};
+      return {
+        nameEn: String(name || ''),
+        nameKo: String(row.nameKo || row.name || name || ''),
+        signKo: String(row.signKo || row.signName || row.sign || ''),
+        degree: Number(Number(row.degree || 0).toFixed(2)),
+        house: Number(row.house || 0),
+        longitude: Number(Number(row.longitude || 0).toFixed(4))
+      };
+    });
+
+    var asc = chartObj.ascendant || {};
+    var mc = chartObj.midheaven || {};
+
+    var locationLabel = String(
+      body.birthPlace
+      || body.place
+      || body.location
+      || body.timezoneName
+      || body.timezone
+      || ((Number.isFinite(Number(body.lat)) && Number.isFinite(Number(body.lon)))
+        ? ('lat:' + Number(body.lat).toFixed(4) + ',lon:' + Number(body.lon).toFixed(4))
+        : '')
+      || '정보 없음'
+    ).trim();
+
+    return {
+      profile: {
+        profileId: String(body.profileId || ''),
+        name: String(body.name || '사용자'),
+        birth: {
+          date: String(body.birthDate || ''),
+          time: String(body.birthTime || ''),
+          timezone: String(body.timezone || body.timezoneName || 'Asia/Seoul'),
+          locationName: locationLabel
+        }
+      },
+      calculationMeta: {
+        engine: String(source || chartObj.source || 'astro-western'),
+        houseSystem: String(body.houseSystem || 'placidus'),
+        zodiac: String(body.zodiacType || 'tropical'),
+        generatedAt: new Date().toISOString(),
+        warnings: Array.isArray(warnings) ? warnings.slice(0, 10) : []
+      },
+      angles: {
+        ascendant: {
+          sign: String(asc.signKo || asc.signName || asc.sign || ''),
+          degree: Number(Number(asc.degree || 0).toFixed(2)),
+          longitude: Number(Number(asc.longitude || 0).toFixed(4))
+        },
+        mc: {
+          sign: String(mc.signKo || mc.signName || mc.sign || ''),
+          degree: Number(Number(mc.degree || 0).toFixed(2)),
+          longitude: Number(Number(mc.longitude || 0).toFixed(4))
+        }
+      },
+      planets: planets,
+      aspects: Array.isArray(chartObj.aspects) ? chartObj.aspects : []
+    };
+  }
+
+  async function enrichRequestBodyWithAstroSeed(baseBody) {
+    var requestBody = (baseBody && typeof baseBody === 'object') ? Object.assign({}, baseBody) : {};
+    var seedInput = {
+      year: Number(requestBody.year || 0),
+      month: Number(requestBody.month || 0),
+      day: Number(requestBody.day || 0),
+      hour: Number(Number.isFinite(Number(requestBody.hour)) ? requestBody.hour : 12),
+      minute: Number(Number.isFinite(Number(requestBody.minute)) ? requestBody.minute : 0),
+      timezone: Number(Number.isFinite(Number(requestBody.timezoneOffset)) ? requestBody.timezoneOffset : 9),
+      lat: Number(Number.isFinite(Number(requestBody.lat)) ? requestBody.lat : 37.5665),
+      lon: Number(Number.isFinite(Number(requestBody.lon)) ? requestBody.lon : 126.978)
+    };
+
+    var basic = await requestJson('/api/premium/astro-western', {
+      method: 'POST',
+      body: seedInput
+    });
+    var data = basic && basic.data && typeof basic.data === 'object' ? basic.data : {};
+    var chart = data && typeof data === 'object' ? data : {};
+    var hasChart = !!(chart.planets && chart.ascendant && chart.midheaven);
+    if (!basic.ok || !hasChart) {
+      logAstroDebug('AstroSeedUnavailable', {
+        status: Number((basic && basic.status) || 0),
+        code: String((data && data.code) || ''),
+        message: String((data && (data.message || data.error)) || ''),
+        hasChart: hasChart
+      }, 'warn');
+      return requestBody;
+    }
+
+    var source = String(data.calculationSource || data.source || chart.source || 'astro-western');
+    var warnings = Array.isArray(data.warnings) ? data.warnings : [];
+    requestBody.chart = chart;
+    requestBody.basicAstroResult = {
+      ok: true,
+      source: source,
+      warnings: warnings,
+      chart: chart
+    };
+    requestBody.canonicalAstroChart = buildAstroCanonicalSeed(requestBody, chart, source, warnings);
+    logAstroDebug('AstroSeedPrepared', {
+      source: source,
+      warnings: warnings.length,
+      aspects: Array.isArray(chart.aspects) ? chart.aspects.length : 0,
+      planets: (chart.planets && typeof chart.planets === 'object') ? Object.keys(chart.planets).length : 0
+    });
+    return requestBody;
   }
 
   function buildPreflightMessage(response, fallback) {
@@ -597,7 +769,7 @@
     var calendarType = normalizeCalType(birth.calType || birth.calendarType || 'solar');
     var timeUnknown = !!(birth.timeUnknown || birth.birthTimeUnknown || birth.unknownTime);
     var isLunar = calendarType === 'lunar' || calendarType === 'lunar_leap';
-    var birthPlace = String(profile.birthPlace || location.birthPlace || profile.place || '').trim();
+    var birthPlace = String(profile.birthPlace || location.birthPlace || location.label || profile.place || '').trim();
 
     var body = {
       mode: mode,
@@ -1053,6 +1225,14 @@
 
         if (chapterResult && chapterResult.ok) break;
 
+        logAstroDebug('PremiumChapterRetry', {
+          chapterId: chapterId,
+          retry: retry,
+          status: Number((chapterResult && chapterResult.status) || 0),
+          code: String((chapterResult && chapterResult.code) || ''),
+          message: String((chapterResult && chapterResult.message) || '')
+        }, 'warn');
+
         var status = Number((chapterResult && chapterResult.status) || 0);
         var code = String((chapterResult && chapterResult.code) || '').toUpperCase();
         var sessionMissing = status === 404 || code === 'PREMIUM_REPORT_SESSION_NOT_FOUND' || code === 'REPORT_SESSION_NOT_FOUND';
@@ -1109,6 +1289,12 @@
     });
 
     if (!pdfReady || !pdfReady.ok) {
+      logAstroDebug('PremiumPdfFinalizeFailed', {
+        status: Number((pdfReady && pdfReady.status) || 0),
+        code: String((pdfReady && pdfReady.code) || ''),
+        message: String((pdfReady && pdfReady.message) || ''),
+        reportSessionId: reportSessionId
+      }, 'error');
       return {
         ok: false,
         message: String((pdfReady && pdfReady.message) || 'PDF 생성 준비 검증에 실패했습니다.')
@@ -1319,20 +1505,24 @@
     state.downloadUrl = '';
     state.chapters = [];
     state.quoteTick = 0;
-    state.lastRequestBody = requestInput.body;
+    var generationBody = requestInput.body;
+    state.lastRequestBody = generationBody;
 
     showOnly('abLoadingScreen');
     setLoadingProgress({ currentChapter: 0, status: 'generating', message: '결제 확인 중...' });
 
     try {
-      var gateOk = await ensureAstroCoinGate(requestInput.body);
+      var gateOk = await ensureAstroCoinGate(generationBody);
       if (!gateOk) {
         showOnly('abStartScreen');
         return;
       }
 
+      generationBody = await enrichRequestBodyWithAstroSeed(generationBody);
+      state.lastRequestBody = generationBody;
+
       setLoadingProgress({ currentChapter: 0, status: 'generating', message: '생성 전 데이터 점검 중...' });
-      var preflight = await ensureAstroPremiumPreflight(requestInput.body);
+      var preflight = await ensureAstroPremiumPreflight(generationBody);
       if (!preflight.ok) {
         await attemptAstroAutoRefund('점성술 프리미엄 preflight 실패 자동 환불');
         state.paidGateKey = '';
@@ -1344,11 +1534,16 @@
 
       var res = await requestJson('/api/premium/astrology/generate', {
         method: 'POST',
-        body: requestInput.body
+        body: generationBody
       });
 
       if (!res.ok || !res.data || !res.data.ok) {
-        var fallbackRun = await generateAstroViaPremiumReport(requestInput.body, preflight);
+        logAstroDebug('LegacyGenerateFailed', {
+          status: Number(res.status || 0),
+          code: String((res.data && res.data.code) || ''),
+          message: String((res.data && res.data.message) || '')
+        }, 'warn');
+        var fallbackRun = await generateAstroViaPremiumReport(generationBody, preflight);
         if (fallbackRun && fallbackRun.ok) {
           state.reportId = String(fallbackRun.reportId || '');
           state.downloadUrl = '';
@@ -1367,7 +1562,7 @@
       state.downloadUrl = String(res.data.downloadUrl || '');
 
       if (!state.reportId) {
-        var reportIdFallback = await generateAstroViaPremiumReport(requestInput.body, preflight);
+        var reportIdFallback = await generateAstroViaPremiumReport(generationBody, preflight);
         if (reportIdFallback && reportIdFallback.ok) {
           state.reportId = String(reportIdFallback.reportId || '');
           state.downloadUrl = '';
@@ -1386,9 +1581,10 @@
         setError('리포트 생성 중 문제가 발생했습니다.');
       }
     } catch (error) {
-      try {
-        console.error('[AstroBook] generate failed:', error);
-      } catch (_) {}
+      logAstroDebug('GenerateUnhandledException', {
+        message: String(error && error.message || error || 'unknown'),
+        name: String(error && error.name || '')
+      }, 'error');
       await attemptAstroAutoRefund('점성술 프리미엄 예외 자동 환불');
       state.paidGateKey = '';
       setError(String(error && error.message || '점성술 리포트 생성 중 오류가 발생했습니다.'));

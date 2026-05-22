@@ -10,7 +10,11 @@ function normalizeBaseUrl(raw: unknown): string {
   if (!value) return "";
   try {
     return new URL(value).origin.replace(/\/$/, "");
-  } catch {
+  } catch (error) {
+    console.warn("[api/premium/astro-western] invalid base url", {
+      value,
+      message: error instanceof Error ? error.message : "Invalid URL",
+    });
     return "";
   }
 }
@@ -64,6 +68,10 @@ async function fetchSwissWesternChart(req: NextRequest, payload: Record<string, 
       }
       warnings.push("Swiss endpoint returned malformed chart payload");
     } catch (err: unknown) {
+      console.warn("[api/premium/astro-western] swiss endpoint fetch failed", {
+        endpoint,
+        message: err instanceof Error ? err.message : "Swiss endpoint request failed",
+      });
       warnings.push(err instanceof Error ? err.message : "Swiss endpoint request failed");
     }
   }

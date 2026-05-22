@@ -941,8 +941,11 @@ function getApiBaseOrigin(request, env) {
   if (preferred) {
     try {
       return new URL(preferred).origin;
-    } catch {
-      // Ignore malformed upstream origin and fallback to current request origin.
+    } catch (error) {
+      console.warn("[PremiumPDF][ApiBaseOriginInvalid]", {
+        preferred,
+        message: String(error?.message || "Invalid API_UPSTREAM_ORIGIN"),
+      });
     }
   }
   return new URL(request.url).origin;
@@ -971,6 +974,14 @@ async function postBackendJson(request, env, apiPath, payload, timeoutMs = 12000
       throw new Error(message);
     }
     return data;
+  } catch (error) {
+    console.error("[PremiumPDF][BackendJsonFailed]", {
+      apiPath,
+      url,
+      base,
+      message: String(error?.message || "backend request failed"),
+    });
+    throw error;
   } finally {
     clearTimeout(timer);
   }
@@ -2146,7 +2157,9 @@ function validateVedicReportPayload(canonicalJson) {
   const hasBirthPlace = hasMeaningfulValue(input?.birthPlace)
     || hasMeaningfulValue(input?.place)
     || hasMeaningfulValue(input?.location)
-    || hasMeaningfulValue(payload?.profile?.birth?.locationName);
+    || hasMeaningfulValue(payload?.profile?.birth?.locationName)
+    || (hasMeaningfulValue(input?.lat) && hasMeaningfulValue(input?.lon))
+    || (hasMeaningfulValue(payload?.profile?.birth?.latitude) && hasMeaningfulValue(payload?.profile?.birth?.longitude));
 
   if (!hasBirthDate) missingFields.push("input.birthDate|input.year.month.day");
   if (!hasBirthTime) missingFields.push("input.birthTime|input.hour");
@@ -2178,7 +2191,8 @@ function validateVedicReportPayload(canonicalJson) {
       || hasMeaningfulValue(input?.partnerHour);
     const hasPartnerBirthPlace = hasMeaningfulValue(input?.partnerBirthPlace)
       || hasMeaningfulValue(input?.partnerPlace)
-      || hasMeaningfulValue(input?.partnerLocation);
+      || hasMeaningfulValue(input?.partnerLocation)
+      || (hasMeaningfulValue(input?.partnerLat) && hasMeaningfulValue(input?.partnerLon));
     if (!hasPartnerBirthDate) missingFields.push("input.partnerBirthDate|input.partnerYear.month.day");
     if (!hasPartnerBirthTime) missingFields.push("input.partnerBirthTime|input.partnerHour");
     if (!hasPartnerBirthPlace) missingFields.push("input.partnerBirthPlace|input.partnerPlace");
@@ -9344,7 +9358,11 @@ function validateCanonicalVedicChartStrict(canonical, reportType = "personal") {
 
   if (!canonical?.profile?.birth?.date) missingFields.push("profile.birth.date");
   if (!canonical?.profile?.birth?.time) missingFields.push("profile.birth.time");
-  if (!canonical?.profile?.birth?.locationName) missingFields.push("profile.birth.locationName");
+  const hasBirthLocationLabel = hasMeaningfulValue(canonical?.profile?.birth?.locationName);
+  const hasBirthCoordinates = hasFinite(canonical?.profile?.birth?.latitude) && hasFinite(canonical?.profile?.birth?.longitude);
+  if (!hasBirthLocationLabel && !hasBirthCoordinates) {
+    missingFields.push("profile.birth.locationName|profile.birth.latitude.longitude");
+  }
 
   const planets = canonical?.planets || {};
   const requiredPlanets = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"];
@@ -13402,7 +13420,17 @@ async function handleAstroLife(request, env) {
   const requestedReportType = String(body.reportType || (partnerIntent ? "compatibility" : "personal")).toLowerCase();
   let reportType = requestedReportType === "compatibility" ? "compatibility" : "personal";
 
-  input.birthPlace = String(body.birthPlace || body.place || body.location || "");
+  input.birthPlace = String(
+    body.birthPlace
+    || body.place
+    || body.location
+    || body.timezoneName
+    || body.timezone
+    || ((Number.isFinite(Number(body.lat)) && Number.isFinite(Number(body.lon ?? body.lng)))
+      ? `lat:${Number(body.lat).toFixed(4)},lon:${Number(body.lon ?? body.lng).toFixed(4)}`
+      : "")
+    || "정보 없음"
+  ).trim();
   input.houseSystem = String(body.houseSystem || "placidus").toLowerCase();
   input.zodiacType = String(body.zodiacType || "tropical").toLowerCase();
   input.includeMinorAspects = body.includeMinorAspects !== false;
@@ -13632,23 +13660,47 @@ async function handleVedicLife(request, env) {
   const requestedReportType = normalizeVedicModeAlias(strictBody.mode || strictBody.reportType || (partnerIntent ? "compatibility" : "personal"));
   let reportType = requestedReportType;
 
-  const hasUserBirthPlace = hasMeaningfulValue(strictBody.birthPlace || strictBody.place || strictBody.location);
+  const userBirthPlaceRaw = String(strictBody.birthPlace || strictBody.place || strictBody.location || "").trim();
+  const hasUserBirthPlace = hasMeaningfulValue(userBirthPlaceRaw);
   const hasUserBirthTime = !asBool(strictBody.birthTimeUnknown)
     && (hasMeaningfulValue(strictBody.birthTime) || hasMeaningfulValue(strictBody.hour) || hasMeaningfulValue(strictBody.birthHour));
-  if (!hasUserBirthPlace || !hasUserBirthTime) {
+  const hasUserBirthGeo = Number.isFinite(Number(strictBody.lat)) && Number.isFinite(Number(strictBody.lon ?? strictBody.lng));
+
+  logPremiumPipelineStage("VedicInputCheck", {
+    reportType,
+    prepareOnly,
+    hasUserBirthTime,
+    hasUserBirthPlace,
+    hasUserBirthGeo,
+    hasPartnerIntent: Boolean(partnerIntent),
+    hasStrictPayload: strictPayloadMode,
+  });
+
+  if (!hasUserBirthTime || (!hasUserBirthPlace && !hasUserBirthGeo)) {
+    const requiredFields = [
+      ...(!hasUserBirthTime ? ["birthTime"] : []),
+      ...(!hasUserBirthPlace && !hasUserBirthGeo ? ["birthPlace|lat+lon"] : []),
+    ];
+    logPremiumPipelineStage("VedicInputRejected", {
+      reportType,
+      requiredFields,
+      hasUserBirthTime,
+      hasUserBirthPlace,
+      hasUserBirthGeo,
+    });
     return json({
       ok: false,
       code: "VEDIC_INPUT_REQUIRED",
       status: "input_required",
-      message: "라그나 계산을 위해 출생시간과 출생지가 필요합니다.",
-      requiredFields: [
-        ...(!hasUserBirthTime ? ["birthTime"] : []),
-        ...(!hasUserBirthPlace ? ["birthPlace"] : []),
-      ],
+      message: "라그나 계산을 위해 출생시간과 출생지 또는 좌표(lat/lon)가 필요합니다.",
+      requiredFields,
     });
   }
 
-  input.birthPlace = String(strictBody.birthPlace || strictBody.place || strictBody.location || "");
+  input.birthPlace = userBirthPlaceRaw
+    || (hasUserBirthGeo
+      ? `좌표기반(${Number(input.lat).toFixed(4)},${Number(input.lon).toFixed(4)})`
+      : "출생지 미기재");
   input.calendarType = String(strictBody.calendarType || "solar");
   input.isLeapMonth = strictBody.isLeapMonth ?? false;
   input.ayanamsa = String(strictBody.ayanamsa || "lahiri");
@@ -13682,18 +13734,29 @@ async function handleVedicLife(request, env) {
         lon: strictBody.partnerLon ?? strictBody.lon,
       });
 
-      partnerInput.birthPlace = String(strictBody.partnerBirthPlace || strictBody.birthPlace || strictBody.place || "");
+      const partnerBirthPlaceRaw = String(strictBody.partnerBirthPlace || strictBody.birthPlace || strictBody.place || "").trim();
+      const hasPartnerBirthGeo = Number.isFinite(Number(partnerInput.lat)) && Number.isFinite(Number(partnerInput.lon));
+      const hasPartnerBirthAnchor = hasMeaningfulValue(partnerBirthPlaceRaw) || hasPartnerBirthGeo;
+      partnerInput.birthPlace = partnerBirthPlaceRaw
+        || (hasPartnerBirthGeo
+          ? `좌표기반(${Number(partnerInput.lat).toFixed(4)},${Number(partnerInput.lon).toFixed(4)})`
+          : "출생지 미기재");
       partnerInput.calendarType = String(strictBody.partnerCalendarType || strictBody.calendarType || "solar");
       partnerInput.isLeapMonth = strictBody.partnerIsLeapMonth ?? false;
       partnerInput.ayanamsa = String(strictBody.ayanamsa || "lahiri");
 
-      if (!partnerInput.birthPlace) {
+      if (!hasPartnerBirthAnchor) {
+        logPremiumPipelineStage("VedicPartnerInputRejected", {
+          reportType,
+          hasPartnerBirthGeo,
+          hasPartnerBirthPlace: hasMeaningfulValue(partnerBirthPlaceRaw),
+        });
         return json({
           ok: false,
           code: "VEDIC_PARTNER_INPUT_REQUIRED",
           status: "partner_input_required",
-          message: "궁합 모드에는 상대방 출생지가 필요합니다.",
-          requiredFields: ["partnerBirthPlace"],
+          message: "궁합 모드에는 상대방 출생지 또는 좌표(lat/lon)가 필요합니다.",
+          requiredFields: ["partnerBirthPlace|partnerLat+partnerLon"],
         });
       }
 
@@ -13755,19 +13818,46 @@ async function handleVedicLife(request, env) {
     previousChapterTextsRaw,
   );
 
-  let generated = await generateVedicPremiumChapter(
-    env,
-    { ...strictBody, _premiumLlmInput: runtimeLlmInput },
-    input,
-    chapter,
-    meta,
-    canonicalVedicChart,
-    reportType,
-    chapterPlan,
-    previousChapterTexts,
-  );
+  let generated;
+  try {
+    generated = await generateVedicPremiumChapter(
+      env,
+      { ...strictBody, _premiumLlmInput: runtimeLlmInput },
+      input,
+      chapter,
+      meta,
+      canonicalVedicChart,
+      reportType,
+      chapterPlan,
+      previousChapterTexts,
+    );
+  } catch (error) {
+    console.error("[VedicPremium][ChapterGenerateThrow]", {
+      reportId,
+      reportType,
+      chapter,
+      chapterKey: meta?.key || "",
+      message: String(error?.message || error || "VEDIC_CHAPTER_GENERATE_THROWN"),
+      stack: String(error?.stack || ""),
+    });
+    return json({
+      ok: false,
+      code: "VEDIC_CHAPTER_GENERATION_THROWN",
+      message: String(error?.message || "베다 챕터 생성 중 예외가 발생했습니다."),
+    }, { status: 422 });
+  }
 
   if (!generated?.ok) {
+    console.error("[VedicPremium][ChapterGenerateFailed]", {
+      reportId,
+      reportType,
+      chapter,
+      chapterKey: meta?.key || "",
+      code: generated?.code || "VEDIC_CHAPTER_GENERATION_FAILED",
+      message: generated?.message || "베다 챕터 생성에 실패했습니다.",
+      details: Array.isArray(generated?.details) ? generated.details : [],
+      warnings: Array.isArray(generated?.warnings) ? generated.warnings : [],
+    });
     return json({
       ok: false,
       code: generated?.code || "VEDIC_CHAPTER_GENERATION_FAILED",
