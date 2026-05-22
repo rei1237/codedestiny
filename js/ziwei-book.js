@@ -786,8 +786,20 @@
     var day = Number(birth.day || 0);
     var hour = Number(Number.isFinite(Number(birth.hour)) ? birth.hour : 12);
     var minute = Number(Number.isFinite(Number(birth.minute)) ? birth.minute : 0);
+    var calType = normalizeCalType(birth.calType || birth.calendarType || 'solar');
 
     if (!(year > 0 && month > 0 && day > 0)) return null;
+
+    // 음력 생년월일은 양력으로 변환 후 엔진에 전달
+    if ((calType === 'lunar' || calType === 'lunar_leap') && year > 0 && month > 0 && day > 0) {
+      try {
+        var ke = window.KasiEngine || (typeof KasiEngine !== 'undefined' ? KasiEngine : null);
+        if (ke && typeof ke.lunarToSolar === 'function') {
+          var solarDate = ke.lunarToSolar(year, month, day, calType === 'lunar_leap');
+          if (solarDate && solarDate.year > 0) { year = solarDate.year; month = solarDate.month; day = solarDate.day; }
+        }
+      } catch (_) {}
+    }
 
     try {
       var raw = window.calcZiweiPalaces(year, month, day, hour, minute);
@@ -1415,6 +1427,32 @@
       if (!coreReady) {
         throw new Error('자미두수 엔진을 불러오지 못했습니다. 네트워크 상태를 확인한 뒤 다시 시도해 주세요.');
       }
+
+      // 엔진으로 프로필 생년월일에서 자미두수 데이터를 직접 계산해 window._currentZiweiData에 설정
+      try {
+        var _ap = getActiveProfile();
+        if (_ap && _ap.birth) {
+          var _b = _ap.birth;
+          var _by = Number(_b.year || 0), _bm = Number(_b.month || 0), _bd = Number(_b.day || 0);
+          var _bh = Number(Number.isFinite(Number(_b.hour)) ? _b.hour : 12);
+          var _bmin = Number(Number.isFinite(Number(_b.minute)) ? _b.minute : 0);
+          var _bcalType = normalizeCalType(_b.calType || _b.calendarType || 'solar');
+          if ((_bcalType === 'lunar' || _bcalType === 'lunar_leap') && _by > 0 && _bm > 0 && _bd > 0) {
+            var _ke = window.KasiEngine || (typeof KasiEngine !== 'undefined' ? KasiEngine : null);
+            if (_ke && typeof _ke.lunarToSolar === 'function') {
+              var _sd = _ke.lunarToSolar(_by, _bm, _bd, _bcalType === 'lunar_leap');
+              if (_sd && _sd.year > 0) { _by = _sd.year; _bm = _sd.month; _bd = _sd.day; }
+            }
+          }
+          if (_by > 0 && _bm > 0 && _bd > 0) {
+            var _freshRaw = window.calcZiweiPalaces(_by, _bm, _bd, _bh, _bmin);
+            if (_freshRaw && typeof _freshRaw === 'object') {
+              window._currentZiweiData = _freshRaw;
+              syncZiweiBirthContext(_ap);
+            }
+          }
+        }
+      } catch (_zce) {}
 
       var payloadInfo = buildRequestBody(forceRegenerate);
       if (payloadInfo.error) {
