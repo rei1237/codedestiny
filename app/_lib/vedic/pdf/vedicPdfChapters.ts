@@ -180,6 +180,22 @@ export const VEDIC_PDF_COMPAT_CHAPTERS: VedicPdfChapterDefinition[] = [
     icon: "📜",
     objective: "관계 강약점과 유지/정리 기준을 상담 편지 형태로 마무리한다.",
   },
+  {
+    number: 11,
+    id: "compat_reality_problems",
+    titleKo: "현실 문제 궁합 — 돈, 일, 가족, 생활 방식",
+    subtitleKo: "현실 운영 합의 전략",
+    icon: "🏠",
+    objective: "돈·일·가족·생활 방식의 충돌 포인트를 파악하고 현실 합의 기준을 제시한다.",
+  },
+  {
+    number: 12,
+    id: "compat_final_strategy",
+    titleKo: "최종 베다 궁합 전략 — 두 사람이 선택해야 할 방향",
+    subtitleKo: "최종 관계 마스터플랜",
+    icon: "🌟",
+    objective: "두 사람의 관계 전체를 통합해 지속/전환/종료 기준과 최종 전략을 제시한다.",
+  },
 ];
 
 export const VEDIC_PDF_CHAPTERS: VedicPdfChapterDefinition[] = VEDIC_PDF_PERSONAL_CHAPTERS;

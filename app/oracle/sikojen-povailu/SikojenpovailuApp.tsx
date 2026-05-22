@@ -54,7 +54,8 @@ export default function SikojenpovailuApp() {
         minHeight: '100dvh',
         height: '100dvh',
         display: 'block',
-        overflow: 'hidden',
+        overflowX: 'hidden',
+        overflowY: 'auto',
       }}>
         <PhaseRouter />
       </div>

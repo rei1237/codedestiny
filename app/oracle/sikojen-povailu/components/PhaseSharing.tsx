@@ -82,7 +82,7 @@ export function PhaseSharing() {
   };
 
   return (
-    <div className="min-h-screen w-full relative bg-gradient-to-b from-rose-50 via-pink-50 to-amber-50 flex items-center justify-center px-4 py-8">
+    <div className="min-h-[100dvh] w-full relative bg-gradient-to-b from-rose-50 via-pink-50 to-amber-50 flex items-start justify-center px-4 py-6 sm:py-8">
       
       {/* 배경 무늬 - 반짝임 효과 */}
       <div className="absolute inset-0 overflow-hidden">
@@ -103,7 +103,7 @@ export function PhaseSharing() {
         ))}
       </div>
 
-      <div className="relative z-10 flex flex-col items-center justify-center max-w-2xl w-full gap-8">
+      <div className="relative z-10 flex flex-col items-center justify-start max-w-2xl w-full gap-6 sm:gap-8 pb-8">
         
         {/* 연이 캐릭터 (상단 중앙) */}
         <div className="flex justify-center">
