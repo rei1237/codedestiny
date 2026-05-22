@@ -744,7 +744,7 @@
     return out.join('\n');
   }
 
-  function createReportId(payload, mode, partnerPayload) {
+  function createReportId(payload, mode, partnerPayload, runNonce) {
     var seed = [
       asText(payload && payload.name),
       asText(payload && payload.gender),
@@ -765,7 +765,9 @@
       hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
     }
     var shortHash = (hash >>> 0).toString(36);
-    return 'love_secret_' + shortHash + '_' + asText(mode || MODE_SOLO);
+    var nonce = asText(runNonce || '');
+    if (!nonce) nonce = Date.now().toString(36);
+    return 'love_secret_' + shortHash + '_' + asText(mode || MODE_SOLO) + '_' + nonce;
   }
 
   async function requestJson(pathname, options) {
@@ -1159,7 +1161,7 @@
     return { ok: true, payload: payload };
   }
 
-  async function startGeneration(mode, partnerPayload) {
+  async function startGeneration(mode, partnerPayload, forcedRunNonce) {
     if (state.generating) return;
 
     var built = buildGenerationPayload(mode, partnerPayload);
@@ -1169,7 +1171,10 @@
     }
 
     var nextPayload = built.payload;
-    var nextReportId = createReportId(nextPayload, mode, partnerPayload);
+    var hasCompletedReport = chapterCount() >= TOTAL_CHAPTERS;
+    var runNonce = asText(forcedRunNonce);
+    if (!runNonce && hasCompletedReport) runNonce = Date.now().toString(36);
+    var nextReportId = createReportId(nextPayload, mode, partnerPayload, runNonce);
 
     var switchedReport = asText(state.reportId) !== asText(nextReportId);
     if (switchedReport) {
@@ -1260,10 +1265,12 @@
       return;
     }
 
-    var reportId = createReportId(built.payload, mode, partnerPayload);
+    var hasCompletedReport = chapterCount() >= TOTAL_CHAPTERS;
+    var runNonce = hasCompletedReport ? Date.now().toString(36) : '';
+    var reportId = createReportId(built.payload, mode, partnerPayload, runNonce);
     var alreadyHasProgress = state.reportId === reportId && chapterCount() > 0;
-    if (alreadyHasProgress || state.paidReportId === reportId) {
-      startGeneration(mode, partnerPayload);
+    if ((alreadyHasProgress && chapterCount() < TOTAL_CHAPTERS) || (state.paidReportId === reportId && chapterCount() < TOTAL_CHAPTERS)) {
+      startGeneration(mode, partnerPayload, runNonce);
       return;
     }
 
@@ -1295,7 +1302,7 @@
           };
           state.paidReportId = reportId;
           persistState();
-          startGeneration(mode, partnerPayload);
+          startGeneration(mode, partnerPayload, runNonce);
         },
         function () {
           finalizeCoinGatePending();
@@ -1307,7 +1314,7 @@
     }
 
     finalizeCoinGatePending();
-    startGeneration(mode, partnerPayload);
+    startGeneration(mode, partnerPayload, runNonce);
   }
 
   function buildLocalPrintableHtml() {

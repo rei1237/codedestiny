@@ -4813,10 +4813,70 @@ function mapVedicCalculatedData(canonical) {
 }
 
 function mapLoveSecretCalculatedData(canonical, supplemental) {
-  const selfSajuChart = canonical?.personA?.sajuChart || {};
-  const relationshipStars = Array.isArray(selfSajuChart?.relationshipStars)
-    ? selfSajuChart.relationshipStars
+  const personA = canonical?.personA || {};
+  const personB = canonical?.personB || {};
+  const compatibility = canonical?.compatibility || {};
+  const selfFourPillars = personA?.fourPillars || {};
+  const partnerFourPillars = personB?.fourPillars || {};
+  const tenGodDistribution = (personA?.tenGods?.distribution && typeof personA.tenGods.distribution === "object")
+    ? personA.tenGods.distribution
+    : {};
+  const tenGodEvidence = Object.entries(tenGodDistribution)
+    .map(([name, count]) => ({ name: String(name || "").trim(), count: Number(count || 0) }))
+    .filter((row) => row.name && Number.isFinite(row.count) && row.count > 0)
+    .sort((a, b) => Number(b.count || 0) - Number(a.count || 0));
+
+  const attractionStars = personA?.attractionStars || {};
+  const attractionSignals = Object.values(attractionStars || {})
+    .flatMap((row) => (Array.isArray(row) ? row : []))
+    .map((row) => String(row || "").trim())
+    .filter(Boolean);
+
+  const conflictSignals = [];
+  const conflicts = compatibility?.stemBranchInteractions || {};
+  (Array.isArray(conflicts?.clashes) ? conflicts.clashes : []).slice(0, 4).forEach((row) => conflictSignals.push(String(row || "").trim()));
+  (Array.isArray(conflicts?.punishments) ? conflicts.punishments : []).slice(0, 3).forEach((row) => conflictSignals.push(String(row || "").trim()));
+  if (!conflictSignals.length && Array.isArray(compatibility?.johuCompatibility?.riskFactors)) {
+    compatibility.johuCompatibility.riskFactors.slice(0, 4).forEach((row) => conflictSignals.push(String(row || "").trim()));
+  }
+
+  const practicalAdvice = Array.isArray(compatibility?.johuCompatibility?.balancingStrategies)
+    ? compatibility.johuCompatibility.balancingStrategies.map((row) => String(row || "").trim()).filter(Boolean)
     : [];
+
+  const selfSajuChart = {
+    yearPillar: selfFourPillars?.year?.ganji || "",
+    monthPillar: selfFourPillars?.month?.ganji || "",
+    dayPillar: selfFourPillars?.day?.ganji || "",
+    hourPillar: selfFourPillars?.hour?.ganji || "",
+    dayMaster: personA?.dayMaster?.stem || "",
+    spousePalace: personA?.loveProfile?.spousePalace?.branch || selfFourPillars?.day?.branch || "",
+    tenGods: tenGodDistribution,
+    relationshipStars: attractionSignals,
+    peachBlossom: (Array.isArray(attractionStars?.dohwa) && attractionStars.dohwa[0]) || "",
+    hongyeom: (Array.isArray(attractionStars?.hongyeom) && attractionStars.hongyeom[0]) || "",
+    hwagae: (Array.isArray(attractionStars?.hwagae) && attractionStars.hwagae[0]) || "",
+    monthCommand: personA?.johu?.monthBranch || "",
+    luckCycles: {
+      daewoonList: [personA?.luck?.currentDaewoon, personA?.luck?.nextDaewoon].filter((row) => hasMeaningfulValue(row)),
+      annualLuck: personA?.luck?.annualLuck || {},
+      sewoonList: hasMeaningfulValue(personA?.luck?.annualLuck)
+        ? [personA?.luck?.annualLuck]
+        : [],
+    },
+  };
+
+  const partnerSajuChart = {
+    yearPillar: partnerFourPillars?.year?.ganji || "",
+    monthPillar: partnerFourPillars?.month?.ganji || "",
+    dayPillar: partnerFourPillars?.day?.ganji || "",
+    hourPillar: partnerFourPillars?.hour?.ganji || "",
+    dayMaster: personB?.dayMaster?.stem || "",
+    spousePalace: personB?.loveProfile?.spousePalace?.branch || partnerFourPillars?.day?.branch || "",
+    tenGods: (personB?.tenGods?.distribution && typeof personB.tenGods.distribution === "object")
+      ? personB.tenGods.distribution
+      : {},
+  };
 
   const optionalCross = {
     ziweiRelationship: supplemental?.ziweiPremium?.calculatedData?.relationshipData || {},
@@ -4828,29 +4888,50 @@ function mapLoveSecretCalculatedData(canonical, supplemental) {
   return {
     self: {
       birthInfo: canonical?.personA?.birth || {},
-      sajuChart: canonical?.personA?.sajuChart || {},
-      fiveElementBalance: canonical?.personA?.fiveElementBalance || {},
-      relationshipProfile: canonical?.personA?.relationshipProfile || {},
+      sajuChart: selfSajuChart,
+      fiveElementBalance: canonical?.personA?.fiveElements || {},
+      relationshipProfile: {
+        attractionSignals,
+        conflictSignals,
+        communicationStyle: personA?.johu?.relationshipClimate?.emotionalOpeningStyle || "관계의 맥락을 확인한 뒤 감정을 표현하는 패턴",
+      },
     },
     partner: {
       birthInfo: canonical?.personB?.birth || {},
-      sajuChart: canonical?.personB?.sajuChart || {},
-      fiveElementBalance: canonical?.personB?.fiveElementBalance || {},
-      relationshipProfile: canonical?.personB?.relationshipProfile || {},
+      sajuChart: partnerSajuChart,
+      fiveElementBalance: canonical?.personB?.fiveElements || {},
+      relationshipProfile: {
+        attractionSignals: Object.values(personB?.attractionStars || {})
+          .flatMap((row) => (Array.isArray(row) ? row : []))
+          .map((row) => String(row || "").trim())
+          .filter(Boolean),
+        communicationStyle: personB?.johu?.relationshipClimate?.emotionalOpeningStyle || "신뢰 축적 이후 감정을 단계적으로 개방하는 패턴",
+      },
     },
-    compatibility: canonical?.compatibility || {},
+    compatibility: {
+      ...compatibility,
+      temperatureHumidityMatch: [
+        compatibility?.johuCompatibility?.temperatureBalance?.label,
+        compatibility?.johuCompatibility?.moistureBalance?.label,
+      ].filter(Boolean).join(" / ") || "중립",
+      communicationPattern: compatibility?.johuCompatibility?.intimacyClimateSummary || "감정 확인 → 사실 확인 → 요청 제안 순서로 대화하면 안정적입니다.",
+      practicalAdvice,
+      longTermMarriagePotential: Number(compatibility?.marriagePotentialScore || 0),
+    },
     chart: {
-      yearPillar: selfSajuChart?.yearPillar || "",
-      monthPillar: selfSajuChart?.monthPillar || "",
-      dayPillar: selfSajuChart?.dayPillar || "",
-      hourPillar: selfSajuChart?.hourPillar || "",
-      dayMaster: selfSajuChart?.dayMaster || "",
-      spousePalace: selfSajuChart?.spousePalace || canonical?.compatibility?.spousePalace || "",
-      tenGods: selfSajuChart?.tenGods || {},
-      relationshipStars,
-      peachBlossom: selfSajuChart?.peachBlossom || relationshipStars.find((star) => String(star || "").includes("도화")) || "",
-      hongyeom: selfSajuChart?.hongyeom || relationshipStars.find((star) => String(star || "").includes("홍염")) || "",
-      hwagae: selfSajuChart?.hwagae || relationshipStars.find((star) => String(star || "").includes("화개")) || "",
+      yearPillar: selfSajuChart.yearPillar,
+      monthPillar: selfSajuChart.monthPillar,
+      dayPillar: selfSajuChart.dayPillar,
+      hourPillar: selfSajuChart.hourPillar,
+      dayMaster: selfSajuChart.dayMaster,
+      spousePalace: selfSajuChart.spousePalace || compatibility?.spousePalace || "",
+      tenGods: selfSajuChart.tenGods,
+      tenGodEvidence,
+      relationshipStars: attractionSignals,
+      peachBlossom: selfSajuChart.peachBlossom,
+      hongyeom: selfSajuChart.hongyeom,
+      hwagae: selfSajuChart.hwagae,
+      monthCommand: selfSajuChart.monthCommand,
     },
     optionalCrossSystems: optionalCross,
   };
@@ -5241,6 +5322,9 @@ function normalizeSajuCalculatedDataForPdf(reportType, calculatedData, canonical
     payload.self = {
       ...(payload?.self && typeof payload.self === "object" ? payload.self : {}),
       sajuChart: selfChart,
+      fiveElementBalance: (payload?.self?.fiveElementBalance && typeof payload.self.fiveElementBalance === "object")
+        ? payload.self.fiveElementBalance
+        : ((canonical?.personA?.fiveElements && typeof canonical.personA.fiveElements === "object") ? canonical.personA.fiveElements : {}),
       relationshipProfile: (payload?.self?.relationshipProfile && typeof payload.self.relationshipProfile === "object")
         ? payload.self.relationshipProfile
         : {
@@ -5249,6 +5333,14 @@ function normalizeSajuCalculatedDataForPdf(reportType, calculatedData, canonical
           communicationStyle: "감정의 맥락을 먼저 확인한 뒤 대화하는 방식이 안정적입니다.",
         },
     };
+    if (!Array.isArray(payload?.self?.relationshipProfile?.attractionSignals)) {
+      payload.self.relationshipProfile.attractionSignals = [];
+      pushUnique(integrity.supplementedFields, "calculatedData.self.relationshipProfile.attractionSignals");
+    }
+    if (!Array.isArray(payload?.self?.relationshipProfile?.conflictSignals)) {
+      payload.self.relationshipProfile.conflictSignals = [];
+      pushUnique(integrity.supplementedFields, "calculatedData.self.relationshipProfile.conflictSignals");
+    }
     payload.partner = {
       ...(payload?.partner && typeof payload.partner === "object" ? payload.partner : {}),
       sajuChart: partnerChart,
@@ -5271,6 +5363,17 @@ function normalizeSajuCalculatedDataForPdf(reportType, calculatedData, canonical
     if (!hasMeaningfulValue(payload.compatibility.communicationPattern)) {
       payload.compatibility.communicationPattern = "감정 확인 → 사실 확인 → 요청 제안 순서로 대화하면 안정적입니다.";
       pushUnique(integrity.supplementedFields, "calculatedData.compatibility.communicationPattern");
+    }
+    if (!Array.isArray(payload.compatibility.practicalAdvice) || payload.compatibility.practicalAdvice.length === 0) {
+      payload.compatibility.practicalAdvice = [
+        "갈등이 생기면 24시간 내 감정-사실-요청 순으로 대화를 재개하세요.",
+        "관계 온도차가 크면 주 1회 리듬 점검 루틴을 고정하세요.",
+      ];
+      pushUnique(integrity.supplementedFields, "calculatedData.compatibility.practicalAdvice");
+    }
+    if (!hasMeaningfulValue(payload.compatibility.longTermMarriagePotential)) {
+      payload.compatibility.longTermMarriagePotential = Number(canonical?.compatibility?.marriagePotentialScore || 0);
+      pushUnique(integrity.supplementedFields, "calculatedData.compatibility.longTermMarriagePotential");
     }
 
     if (needPartner && !hasMeaningfulValue(payload?.partner?.sajuChart)) {
