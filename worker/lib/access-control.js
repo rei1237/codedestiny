@@ -1,5 +1,6 @@
 import { connectDb } from "./db.js";
 import { User, PointHistory } from "./models.js";
+import { normalizePaidFeatureKey } from "./paid-feature-registry.js";
 import { verifyPremiumAccessToken } from "./premium-access-token.js";
 
 export const PREMIUM_UNLOCK_POLICY = Object.freeze({
@@ -37,6 +38,12 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
       },
       {
         featureKey: "premium_pdf_saju_new_year",
+        reason: "사주 신년운세 PDF 리포트 생성",
+        minCost: 300,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "premium_pdf_saju_yearly",
         reason: "사주 신년운세 PDF 리포트 생성",
         minCost: 300,
         windowMinutes: 120,
@@ -271,11 +278,15 @@ async function findRecentDeductionEvidence(userId, rule) {
   const minutes = Number(rule?.windowMinutes || 30);
   const minCost = Number(rule?.minCost || 0);
   const createdAtMin = new Date(Date.now() - minutes * 60 * 1000);
+  const featureKeys = uniqueStrings([
+    String(rule?.featureKey || "").trim(),
+    normalizePaidFeatureKey(rule?.featureKey || ""),
+  ]);
 
   const baseQuery = {
     userId,
     kind: "deduct",
-    featureKey: String(rule?.featureKey || "").trim(),
+    featureKey: featureKeys.length > 1 ? { $in: featureKeys } : String(rule?.featureKey || "").trim(),
     createdAt: { $gte: createdAtMin },
   };
 

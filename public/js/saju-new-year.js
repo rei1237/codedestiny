@@ -4,7 +4,7 @@
   var TOTAL_CHAPTERS = 10;
   var COST_COINS = 300;
   var COIN_REASON = '사주 신년운세 PDF 리포트 생성';
-  var COIN_FEATURE_KEY = 'premium_pdf_saju_new_year';
+  var COIN_FEATURE_KEY = 'premium-saju-newyear-report';
   var API_TIMEOUT_MS = 140000;
   var STATE_STORAGE_KEY = '__cd_saju_new_year_state_v1__';
   var NEW_YEAR_COVER_IMAGE = '/fuctionassets/신년운세.webp?v=20260519-ny-cover';
@@ -118,9 +118,50 @@
     var token = '';
     try { token = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { token = ''; }
     if (token) return token;
+    try { token = String(state.paymentContext && state.paymentContext.premiumAccessToken || '').trim(); } catch (_) { token = ''; }
+    if (token) return token;
     try { token = String(sessionStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
     if (token) return token;
     try { token = String(localStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
+    return token;
+  }
+
+  function extractPremiumAccessTokenFromPayload(payload) {
+    var source = payload && typeof payload === 'object' ? payload : {};
+    var nested = source.data && typeof source.data === 'object' ? source.data : null;
+    var consume = source.consume && typeof source.consume === 'object' ? source.consume : null;
+    var candidates = [
+      source.premiumAccessToken,
+      source.premium_access_token,
+      source.accessToken,
+      nested && nested.premiumAccessToken,
+      nested && nested.premium_access_token,
+      nested && nested.accessToken,
+      consume && consume.premiumAccessToken,
+      consume && consume.premium_access_token,
+      consume && consume.accessToken
+    ];
+    for (var i = 0; i < candidates.length; i += 1) {
+      var token = String(candidates[i] || '').trim();
+      if (token) return token;
+    }
+    return '';
+  }
+
+  function persistPremiumAccessToken(payload) {
+    var token = extractPremiumAccessTokenFromPayload(payload);
+    if (!token) return '';
+
+    try {
+      if (typeof window.__cdPersistPremiumAccessToken === 'function') {
+        window.__cdPersistPremiumAccessToken(token);
+        return token;
+      }
+    } catch (_) {}
+
+    try { window.__cdPremiumAccessToken = token; } catch (_) {}
+    try { sessionStorage.setItem('cd_premium_access_token', token); } catch (_) {}
+    try { localStorage.setItem('cd_premium_access_token', token); } catch (_) {}
     return token;
   }
 
@@ -492,10 +533,78 @@
     return compact.join('\n');
   }
 
+  function buildStructuredSajuData() {
+    var birth = normalizeBirthParts();
+    var engine = buildEngineData() || {};
+    var compact = buildCompactSajuData();
+    var pillars = engine.pillars || {};
+
+    return {
+      profile: {
+        profileId: birth.profileId || undefined,
+        name: birth.name,
+        gender: birth.gender,
+        year: birth.year,
+        month: birth.month,
+        day: birth.day,
+        hour: birth.hour,
+        minute: birth.minute,
+        birthDate: birth.birthDate,
+        birthTime: birth.birthTime,
+        calType: birth.calType,
+        calendarType: birth.calendarType,
+        isLunar: birth.isLunar,
+        timeUnknown: birth.timeUnknown,
+        birthPlace: birth.birthPlace || undefined,
+        timezoneName: birth.timezoneName,
+        timezone: birth.timezone,
+        lat: birth.lat,
+        lon: birth.lon
+      },
+      engineData: engine,
+      canonicalSajuChart: {
+        profile: {
+          name: birth.name,
+          gender: birth.gender,
+          birthDate: birth.birthDate,
+          birthTime: birth.birthTime,
+          calendarType: birth.calendarType,
+          isLunar: birth.isLunar,
+          timeUnknown: birth.timeUnknown,
+          timezone: birth.timezone
+        },
+        dayMaster: engine.dayMaster || '',
+        fourPillars: pillars,
+        pillars: pillars,
+        fiveElements: engine.elementWeights || {},
+        tenGods: engine.tenGods || {},
+        luck: {
+          daewoon: engine.daewunRows || [],
+          monthlyLuck: []
+        },
+        usefulGods: engine.usefulGods || {},
+        seasonMeta: engine.seasonMeta || undefined,
+        sourceSummary: compact
+      },
+      sajuCore: {
+        pillars: pillars,
+        dayMaster: engine.dayMaster || '',
+        monthCommand: String((pillars && pillars.m && (pillars.m.command || pillars.m.monthCommand)) || '').trim(),
+        tenGodEvidence: engine.tenGods || {},
+        usefulGods: engine.usefulGods || {},
+        elementWeights: engine.elementWeights || {},
+        daewunRows: engine.daewunRows || []
+      },
+      sourceSummary: compact,
+      sourceDigest: compact,
+    };
+  }
+
   function buildPayload() {
     var birth = normalizeBirthParts();
     var profile = null;
     try { profile = window.__cdActiveBirthProfile || null; } catch (_) { profile = null; }
+    var structuredSajuData = buildStructuredSajuData();
 
     var targetYearInput = Number(qs('nyTargetYear') && qs('nyTargetYear').value || 0);
     var thisYear = new Date().getFullYear();
@@ -527,8 +636,10 @@
       focusArea: 'overall',
       _premiumStrictPayload: true,
       _premiumStrictValidation: true,
-      engineData: buildEngineData(),
-      sajuData: buildCompactSajuData(),
+      engineData: structuredSajuData.engineData,
+      canonicalSajuChart: structuredSajuData.canonicalSajuChart,
+      sajuData: structuredSajuData,
+      sajuDataText: String(structuredSajuData.sourceSummary || ''),
       birthData: {
         profileId: birth.profileId || undefined,
         name: birth.name,
@@ -735,6 +846,8 @@
         signal: controller ? controller.signal : undefined
       }));
       var data = await res.json().catch(function () { return {}; });
+      var issuedToken = extractPremiumAccessTokenFromPayload(data);
+      if (issuedToken) persistPremiumAccessToken(issuedToken);
       if (!res.ok && data && typeof data === 'object') data.status = Number(data.status || res.status || 0);
       return data || {};
     } finally {
@@ -758,7 +871,9 @@
 
     if (typeof window.__cdPremiumAuthJson === 'function') {
       try {
-        return await window.__cdPremiumAuthJson(targetPath, payload, options || {});
+        var helperResult = await window.__cdPremiumAuthJson(targetPath, payload, options || {});
+        persistPremiumAccessToken(helperResult);
+        return helperResult;
       } catch (error) {
         try {
           console.warn('[SajuNewYear] premium auth helper fallback:', error && error.message || error);
@@ -1034,12 +1149,20 @@
       window._cdCoinGatePerUse(
         COST_COINS,
         COIN_REASON,
-        function (transactionId) {
+        function (transactionResult) {
+          var premiumAccessToken = persistPremiumAccessToken(transactionResult);
+          var transactionId = '';
+          if (transactionResult && typeof transactionResult === 'object') {
+            transactionId = String(transactionResult.transactionId || transactionResult.paymentId || transactionResult.id || '');
+          } else {
+            transactionId = String(transactionResult || '');
+          }
           state.paymentContext = {
             featureKey: COIN_FEATURE_KEY,
             cost: Number(COST_COINS || 0),
             sourceTransactionId: String(transactionId || ''),
-            requestId: String(('newyear:' + (state.reportId || Date.now())).slice(0, 120))
+            requestId: String(('newyear:' + (state.reportId || Date.now())).slice(0, 120)),
+            premiumAccessToken: premiumAccessToken || undefined
           };
           state.paidReportId = state.reportId;
           persistState();
