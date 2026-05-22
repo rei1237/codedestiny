@@ -81,6 +81,8 @@
   var PREMIUM_SUKUYO_COMPAT_FEATURE_KEY = 'premium-sukuyo-compat-extra';
   var PREMIUM_SUKUYO_TX_KEY = 'cd_premium_tx_sukuyo';
   var PREMIUM_SUKUYO_COMPAT_TX_KEY = 'cd_premium_tx_sukuyo_compat_extra';
+  var PREMIUM_SUKUYO_REPORT_FEATURE_KEY = 'premium-sukuyo-report';
+  var PREMIUM_SUKUYO_REPORT_REASON = '숙요점 프리미엄 PDF 리포트 생성';
   var _reportMode = 'personal';
   var _totalChapters = PERSONAL_CHAPTER_META.length;
   var _reportId = '';
@@ -229,6 +231,98 @@
       localStorage.setItem('fortune_auth_user', JSON.stringify(user));
       if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(points);
     } catch (_) {}
+  }
+
+  function _readSukuyoPremiumAccessToken() {
+    try { var t = window.__cdPremiumSukuyoAccessToken; if (t) return String(t); } catch (_) {}
+    try { var t2 = sessionStorage.getItem('cd_premium_token_sukuyo'); if (t2) return String(t2); } catch (_) {}
+    return '';
+  }
+
+  function _persistSukuyoPremiumAccessToken(token) {
+    if (!token) return;
+    try { window.__cdPremiumSukuyoAccessToken = String(token); } catch (_) {}
+    try { sessionStorage.setItem('cd_premium_token_sukuyo', String(token)); } catch (_) {}
+  }
+
+  function _ensureBaseSukuyoCoinGate() {
+    try {
+      var existing = sessionStorage.getItem(PREMIUM_SUKUYO_TX_KEY);
+      var existingToken = _readSukuyoPremiumAccessToken();
+      if (existing || existingToken) return Promise.resolve({ ok: true, alreadyCharged: true, premiumAccessToken: existingToken });
+    } catch (_) {}
+
+    var reportLabel = _reportMode === 'compatibility' ? '숙요점 궁합 인생 총람' : '숙요점 인생 총람';
+    if (!window.confirm('🪙 ' + reportLabel + ' 생성\n이용 시 ' + PREMIUM_SUKUYO_COST + '코인이 차감됩니다.\n지금 생성하시겠습니까?')) {
+      return Promise.resolve({ ok: false, cancelled: true, message: '생성이 취소되었습니다.' });
+    }
+
+    var requestId = 'premium-sukuyo:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+    var token = '';
+    try { token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
+    var headers = { 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = 'Bearer ' + token;
+
+    function _doGateRequest(reqId) {
+      return fetch(_resolveApiUrl('/api/billing/coin-gate'), {
+        method: 'POST',
+        headers: headers,
+        credentials: 'include',
+        cache: 'no-store',
+        body: JSON.stringify({
+          featureKey: PREMIUM_SUKUYO_REPORT_FEATURE_KEY,
+          reason: PREMIUM_SUKUYO_REPORT_REASON,
+          forceDeduct: true,
+          requestId: reqId
+        })
+      }).then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (raw) {
+          return { ok: res.ok, status: res.status, raw: raw };
+        });
+      });
+    }
+
+    return _doGateRequest(requestId).then(function (result) {
+      if (!result.ok && (Number(result.status || 0) >= 500 || Number(result.status || 0) === 0)) {
+        return _doGateRequest(requestId);
+      }
+      return result;
+    }).then(function (result) {
+      var raw = result.raw || {};
+      var innerData = (raw.data && typeof raw.data === 'object') ? raw.data : raw;
+      var code = String((innerData.code || raw.code || '')).toUpperCase();
+      var status = Number(result.status || 0);
+      if (!result.ok || raw.ok === false) {
+        if (status === 401 || status === 403) {
+          if (typeof window.__cdOpenLoginRequiredModal === 'function') window.__cdOpenLoginRequiredModal({ reason: '숙요 프리미엄 리포트 결제를 위해 로그인이 필요합니다.' });
+          else if (typeof window.openLoginModal === 'function') window.openLoginModal();
+          return { ok: false, message: '로그인이 필요합니다.' };
+        }
+        if (status === 402 || code === 'INSUFFICIENT_COINS' || code === 'COIN_SHORTAGE' || code === 'NOT_ENOUGH_COINS') {
+          if (typeof window.openCoinChargeModal === 'function') window.openCoinChargeModal();
+          return { ok: false, message: String(innerData.message || raw.message || '코인이 부족합니다. 충전 후 다시 시도해 주세요.') };
+        }
+        return { ok: false, message: String(innerData.message || raw.message || '코인 차감에 실패했습니다.') };
+      }
+      _syncUserPoints(innerData);
+      var premiumAccessToken = String(
+        (innerData.premiumAccessToken) ||
+        (innerData.consume && innerData.consume.premiumAccessToken) ||
+        (raw.premiumAccessToken) || ''
+      ).trim();
+      _persistSukuyoPremiumAccessToken(premiumAccessToken);
+      var transactionId = String(
+        (innerData.consume && innerData.consume.transactionId) ||
+        innerData.transactionId || raw.transactionId || ''
+      ).trim();
+      if (transactionId) {
+        try { sessionStorage.setItem(PREMIUM_SUKUYO_TX_KEY, transactionId); } catch (_) {}
+      }
+      return { ok: true, premiumAccessToken: premiumAccessToken, transactionId: transactionId };
+    }).catch(function (err) {
+      console.error('[숙요 프리미엄 PDF][coin-gate] 오류:', err);
+      return { ok: false, message: '코인 차감 중 오류가 발생했습니다.' };
+    });
   }
 
   function _getReportMode() {
@@ -825,13 +919,22 @@
     if(_preText)_preText.textContent='결제 확인 중...';
     if(_preChapter)_preChapter.textContent='결제 확인 중...';
 
-    _ensureCompatibilitySurchargeIfNeeded(profile, partner).then(function (chargeResult) {
-      if (!chargeResult || !chargeResult.ok) {
+    _ensureBaseSukuyoCoinGate(profile, partner).then(function (gateResult) {
+      var _premiumAccessToken = '';
+      if (!gateResult || !gateResult.ok) {
         _generating=false;
         _showScreen('skStartScreen');
-        alert((chargeResult && chargeResult.message) || '궁합 추가 코인 차감에 실패했습니다.');
+        if (!gateResult || !gateResult.cancelled) alert((gateResult && gateResult.message) || '코인 결제에 실패했습니다.');
         return;
       }
+      _premiumAccessToken = String(gateResult.premiumAccessToken || _readSukuyoPremiumAccessToken() || '');
+      return _ensureCompatibilitySurchargeIfNeeded(profile, partner).then(function (chargeResult) {
+        if (!chargeResult || !chargeResult.ok) {
+          _generating=false;
+          _showScreen('skStartScreen');
+          alert((chargeResult && chargeResult.message) || '궁합 추가 코인 차감에 실패했습니다.');
+          return;
+        }
 
       _generating=true;
       _resetChapterState();
@@ -1033,6 +1136,7 @@
       return _premiumAuthJson('/api/premium-report/prepare', {
         featureType: _premiumFeatureType,
         reportType: _premiumReportType,
+        premiumAccessToken: _premiumAccessToken || _readSukuyoPremiumAccessToken() || undefined,
         requestBody: _getSukuyoPreparePayload()
       }).then(function(prepared) {
         if (prepared && prepared.ok && prepared.reportSessionId) {
@@ -1228,7 +1332,7 @@
           var dataErrEl = _qs('skErrorMsg');
           if (dataErrEl) dataErrEl.textContent = _formatPremiumFailureMessage(data, 'PDF 생성에 필요한 계산 데이터가 부족합니다. 데이터를 다시 확인해 주세요.');
           _showScreen('skErrorScreen');
-          _autoRefundPremium(PREMIUM_SUKUYO_COST, PREMIUM_SUKUYO_FEATURE_KEY, '숙요 프리미엄 PDF', PREMIUM_SUKUYO_TX_KEY)
+          _autoRefundPremium(PREMIUM_SUKUYO_COST, PREMIUM_SUKUYO_REPORT_FEATURE_KEY, '숙요 프리미엄 PDF', PREMIUM_SUKUYO_TX_KEY)
             .then(function(){
               if (_reportMode === 'compatibility') {
                 return _autoRefundPremium(PREMIUM_SUKUYO_COMPAT_EXTRA_COST, PREMIUM_SUKUYO_COMPAT_FEATURE_KEY, '숙요 궁합 추가 결제', PREMIUM_SUKUYO_COMPAT_TX_KEY);
@@ -1259,7 +1363,7 @@
                 : '외부 API 응답 지연으로 리포트를 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.');
           }
           _showScreen('skErrorScreen');
-          _autoRefundPremium(PREMIUM_SUKUYO_COST, PREMIUM_SUKUYO_FEATURE_KEY, '숙요 프리미엄 PDF', PREMIUM_SUKUYO_TX_KEY)
+          _autoRefundPremium(PREMIUM_SUKUYO_COST, PREMIUM_SUKUYO_REPORT_FEATURE_KEY, '숙요 프리미엄 PDF', PREMIUM_SUKUYO_TX_KEY)
             .then(function(){
               if (_reportMode === 'compatibility') {
                 return _autoRefundPremium(PREMIUM_SUKUYO_COMPAT_EXTRA_COST, PREMIUM_SUKUYO_COMPAT_FEATURE_KEY, '숙요 궁합 추가 결제', PREMIUM_SUKUYO_COMPAT_TX_KEY);
@@ -1301,6 +1405,7 @@
         generateNext(idx+1);
       });
     })(0);
+      });
     }).catch(function (err) {
       _generating=false;
       _showScreen('skStartScreen');
