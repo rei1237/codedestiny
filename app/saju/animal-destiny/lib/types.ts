@@ -330,6 +330,24 @@ export interface AnimalCompatibilityResult {
   goodPoints: string[];
   clashPoints: string[];
   tips: string[];
+  breakdown: {
+    overall: {
+      title: string;
+      body: string;
+    };
+    emotionCommunication: {
+      title: string;
+      body: string;
+    };
+    valueLifestyle: {
+      title: string;
+      body: string;
+    };
+    practicalAdvice: {
+      title: string;
+      body: string;
+    };
+  };
 }
 
 export interface AnimalNarrativeInsights {
@@ -354,6 +372,7 @@ export interface PartnerResult {
   clashPoints: string[];
   tips: string[];
   stageEvidence: string | null;
+  breakdown: AnimalCompatibilityResult["breakdown"] | null;
 }
 
 export type SajuEngineResult = Record<string, unknown>;

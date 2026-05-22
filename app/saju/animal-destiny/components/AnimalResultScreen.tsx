@@ -11,7 +11,7 @@ import DestinyIcon from "@/app/components/icons/DestinyIcon";
 import AnimalCard from "@/components/fortune/animal-twelve/AnimalCard";
 import AnimalResultSections from "@/components/fortune/animal-twelve/AnimalResultSections";
 import AnimalCompatibilityPanel from "@/components/fortune/animal-twelve/AnimalCompatibilityPanel";
-import { ANIMAL_DESTINY_LIST } from "@/components/fortune/animal-twelve/animalTwelveData";
+import { ANIMAL_DESTINY_LIST, animalCollection } from "@/components/fortune/animal-twelve/animalTwelveData";
 import type { AnimalDestinyData, AnimalDestinyInput, PartnerResult, SajuEngineResult, TwelveStagePillars } from "../lib/types";
 
 type Props = {
@@ -28,20 +28,7 @@ type Props = {
 };
 
 const PILLAR_ORDER: Array<"year" | "month" | "day" | "hour"> = ["year", "month", "day", "hour"];
-const ANIMAL_EMOJI_BY_ID: Record<string, string> = {
-  cheetah: "🐆",
-  monkey: "🐵",
-  "black-panther": "🐈",
-  koala: "🐨",
-  tiger: "🐯",
-  raccoon: "🦝",
-  rhino: "🦏",
-  elephant: "🐘",
-  sheep: "🐑",
-  pegasus: "🪽",
-  wolf: "🐺",
-  fawn: "🦌",
-};
+const ANIMAL_EMOJI_BY_STAGE = Object.fromEntries(animalCollection.map((item) => [item.energy, item.emoji]));
 
 // Legacy static-test markers: buildAnimalNarrativeInsights, buildDetailedInterpretation, TAB_LABELS
 // 네 기둥 십이운성 카드 / 오늘의 대표 동물 프로필 / 사주 근거 요약
@@ -129,7 +116,7 @@ export default function AnimalResultScreen({
                 className={`rounded-2xl border p-2 text-center transition ${isSelected ? "scale-[1.03] border-[#d88a35] bg-[#fff4de] shadow-[0_10px_22px_rgba(216,138,53,0.24)]" : "border-[#e7d3b3] bg-white/92"}`}
               >
                 <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full text-2xl ${isSelected ? "bg-[#fde7c5] ring-2 ring-[#d88a35]" : "bg-[#f8f1e2]"}`}>
-                  {ANIMAL_EMOJI_BY_ID[entry.id] || "🐾"}
+                  {ANIMAL_EMOJI_BY_STAGE[entry.saju_stage] || "🐾"}
                 </div>
                 <p className="mt-2 text-xs font-black text-[#6b3f1d]">{entry.animal_ko}</p>
                 <p className="text-[11px] font-semibold text-[#8a5a2b]">{entry.saju_stage}</p>

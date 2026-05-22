@@ -70,6 +70,8 @@ export default function AnimalDestinyPage() {
         return false;
       }
 
+      setIsLoggedIn(true);
+
       if (balance.data.unlockMap?.[FEATURE_KEY]) {
         setIsUnlocked(true);
         return true;
@@ -162,13 +164,13 @@ export default function AnimalDestinyPage() {
         <div ref={formSectionRef} className="space-y-8 px-5 sm:px-6">
           <div className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-[#d9bf96] bg-white/78 px-4 py-3 text-xs font-bold text-[#6f4624] shadow-[0_10px_24px_rgba(132,88,34,0.14)]">
             <span className={`h-2 w-2 rounded-full ${isUnlocked ? "bg-[#7f8f52] animate-pulse" : "bg-[#d88a35]"}`} />
-            <span>
-              {isUnlocked
-                ? "프리미엄 해금 상태: 모든 분석 결과를 볼 수 있습니다."
-                : "해금 상태: 잠금 (분석을 위해 100코인이 필요합니다)"}
-            </span>
+            {isUnlocked ? (
+              <span>프리미엄 해금 상태: 모든 분석 결과를 볼 수 있습니다.</span>
+            ) : (
+              <span>결과 보기 버튼을 누르면 코인 게이트가 열립니다.</span>
+            )}
             <span className="rounded-full bg-[#f7e5c6] px-2.5 py-1 text-[11px] font-black text-[#8a5a2b]">100 COINS</span>
-            {!isLoggedIn ? <span className="text-rose-600">로그인이 필요합니다</span> : null}
+            {!isUnlocked && !isLoggedIn ? <span className="text-[#8a5a2b]">로그인 후 결제가 진행됩니다</span> : null}
           </div>
 
           {(status === "idle" || status === "input" || status === "error") ? (
@@ -182,6 +184,7 @@ export default function AnimalDestinyPage() {
                 onSubmit={handleSubmit}
                 isBusy={isUnlocking}
                 canSubmit={canSubmit}
+                isUnlocked={isUnlocked}
               />
             </motion.div>
           ) : null}

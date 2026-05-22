@@ -81,6 +81,21 @@ export const STAGE_KEY_TO_ID: Record<TwelveStageKey, AnimalId> = {
   yang: "fawn",
 };
 
+export const animalCollection = Object.freeze([
+  { name: "새싹 사슴", emoji: "🦌", energy: "장생" },
+  { name: "달빛 고양이", emoji: "🐈", energy: "목욕" },
+  { name: "리본 여우", emoji: "🦊", energy: "관대" },
+  { name: "별빛 강아지", emoji: "🐶", energy: "건록" },
+  { name: "태양 사자", emoji: "🦁", energy: "제왕" },
+  { name: "현자 부엉이", emoji: "🦉", energy: "쇠" },
+  { name: "구름 토끼", emoji: "🐰", energy: "병" },
+  { name: "신비 나비", emoji: "🦋", energy: "사" },
+  { name: "보물 햄스터", emoji: "🐹", energy: "묘" },
+  { name: "밤하늘 흑고양이", emoji: "🐈‍⬛", energy: "절" },
+  { name: "꿈알 병아리", emoji: "🐣", energy: "태" },
+  { name: "꽃돼지", emoji: "🐷", energy: "양" },
+] as const);
+
 const BASE = {
   jangsaeng: {
     animalName: "새싹 사슴",
@@ -141,8 +156,8 @@ const BASE = {
   },
   geonrok: {
     animalName: "별빛 강아지",
-    title: "신뢰를 지키는 건록",
-    subtitle: "꾸준함과 책임감으로 길을 여는 수호자",
+    title: "자수성가의 별, 신뢰를 쌓아올리는 건록(建祿)",
+    subtitle: "스스로의 힘으로 관록을 얻고 재물을 쌓는 가장 안정적이고 독립적인 에너지",
     keywords: ["성실함", "실력", "책임감", "안정", "신뢰"],
     symbolItems: ["수호 목걸이", "별발자국", "청금 망토", "행운종"],
     colors: { primary: "#5269b8", secondary: "#fff4d8", accent: "#d19a35", background: "#f6f8ff" },
@@ -338,6 +353,18 @@ function paragraphsForLove(stageKey: TwelveStageKey, animalName: string, attract
 
 function createProfile(stageKey: TwelveStageKey): AnimalTwelveProfile {
   const base = BASE[stageKey];
+  const isGeonrokDog = stageKey === "geonrok";
+  const personalitySummary = isGeonrokDog
+    ? "당신의 운명 동물은 별빛 강아지입니다. 명리학에서 건록(建祿)은 스스로의 힘으로 관록을 얻고 재물을 쌓는 가장 안정적이고 독립적인 에너지입니다."
+    : `${base.animalName} 타입은 ${base.keywords.slice(0, 2).join("과 ")}의 힘이 동시에 작동하는 구조입니다.`;
+  const personalityParagraphs = isGeonrokDog
+    ? [
+        "건록(建祿)의 기운을 타고난 '별빛 강아지' 타입은 땅에 단단히 뿌리를 내린 거목처럼 흔들림 없는 줏대와 책임감으로 자신만의 세계를 구축하는 사주입니다. 겉으로는 온화하고 사람과 잘 융화되는 듯 보이나, 내면에는 칼날 같은 자기 객관화와 타협하지 않는 프로페셔널한 실력이 자리 잡고 있습니다.",
+        "이 사주는 요행을 바라지 않습니다. 자신이 쏟은 땀방울만큼만 거두려 하는 정직함이 오히려 가장 큰 무기가 됩니다. '도움이 되는 역할을 맡는다 -> 완벽하게 책임진다 -> 조직과 타인의 절대적 신뢰를 얻는다'의 패턴이 평생의 운을 관통합니다.",
+        "다만, 완벽주의적 성향 탓에 모든 짐을 홀로 짊어지려는 과책임(過責任)의 늪에 빠지기 쉬우니, 때로는 타인에게 기대는 법을 배우는 것이 운의 숨통을 틔우는 개운법(開運法)이 됩니다.",
+      ]
+    : paragraphsForPersonality(stageKey, base.animalName, base.strengths, base.weaknesses);
+
   return {
     stageKey,
     stageLabel: STAGE_KEY_TO_LABEL[stageKey],
@@ -349,12 +376,12 @@ function createProfile(stageKey: TwelveStageKey): AnimalTwelveProfile {
     symbolItems: [...base.symbolItems],
     energyScores: { ...base.energyScores },
     personality: {
-      summary: `${base.animalName} 타입은 ${base.keywords.slice(0, 2).join("과 ")}의 힘이 동시에 작동하는 구조입니다.`,
+      summary: personalitySummary,
       strengths: [...base.strengths],
       weaknesses: [...base.weaknesses],
       hiddenPattern: `겉으로는 차분해 보여도 내면에서는 '더 나은 선택'을 계속 계산하는 패턴이 있습니다.`,
       advice: `성과를 내는 힘은 이미 충분하니, 감정 회복 루틴과 경계 설정을 함께 운영해 보세요.`,
-      paragraphs: paragraphsForPersonality(stageKey, base.animalName, base.strengths, base.weaknesses),
+      paragraphs: personalityParagraphs,
     },
     love: {
       style: `${base.animalName}형 연애는 진심이 빠르게 드러나는 편입니다.`,

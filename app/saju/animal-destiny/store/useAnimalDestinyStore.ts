@@ -48,6 +48,7 @@ const INITIAL_PARTNER: PartnerResult = {
   clashPoints: [],
   tips: [],
   stageEvidence: null,
+  breakdown: null,
 };
 
 function wait(ms: number) {
@@ -175,6 +176,7 @@ export const useAnimalDestinyStore = create<AnimalDestinyState>((set, get) => ({
           clashPoints: compatibility.clashPoints,
           tips: compatibility.tips,
           stageEvidence,
+          breakdown: compatibility.breakdown,
         },
         error: "",
       });

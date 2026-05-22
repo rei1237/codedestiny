@@ -11,6 +11,7 @@ type Props = {
 };
 
 function scoreLabel(score: number) {
+  if (score >= 76 && score <= 80) return "상호 보완적 인연";
   if (score >= 85) return "환상 궁합";
   if (score >= 70) return "좋은 궁합";
   if (score >= 55) return "보통 궁합";
@@ -108,6 +109,26 @@ export default function AnimalCompatibilityPanel({
             <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[#8a5a2b]">{tone}</span>
           </div>
           <p className="text-sm leading-relaxed text-[#5f3818]">{partner.summary}</p>
+          {partner.breakdown ? (
+            <div className="grid gap-2 md:grid-cols-2">
+              <article className="rounded-xl border border-[#ead1af] bg-white px-3 py-3">
+                <p className="text-xs font-black text-[#7b4a1e]">{partner.breakdown.overall.title}</p>
+                <p className="mt-1 text-xs leading-relaxed text-[#5f3818]">{partner.breakdown.overall.body}</p>
+              </article>
+              <article className="rounded-xl border border-[#ead1af] bg-white px-3 py-3">
+                <p className="text-xs font-black text-[#7b4a1e]">{partner.breakdown.emotionCommunication.title}</p>
+                <p className="mt-1 text-xs leading-relaxed text-[#5f3818]">{partner.breakdown.emotionCommunication.body}</p>
+              </article>
+              <article className="rounded-xl border border-[#ead1af] bg-white px-3 py-3">
+                <p className="text-xs font-black text-[#7b4a1e]">{partner.breakdown.valueLifestyle.title}</p>
+                <p className="mt-1 text-xs leading-relaxed text-[#5f3818]">{partner.breakdown.valueLifestyle.body}</p>
+              </article>
+              <article className="rounded-xl border border-[#ead1af] bg-white px-3 py-3">
+                <p className="text-xs font-black text-[#7b4a1e]">{partner.breakdown.practicalAdvice.title}</p>
+                <p className="mt-1 text-xs leading-relaxed text-[#5f3818]">{partner.breakdown.practicalAdvice.body}</p>
+              </article>
+            </div>
+          ) : null}
           {partner.goodPoints.length ? (
             <ul className="space-y-1.5">
               {partner.goodPoints.map((line) => (
