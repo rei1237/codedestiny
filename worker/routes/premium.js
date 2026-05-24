@@ -16793,31 +16793,20 @@ const LOVE_SECRET_PERSONAL_CHAPTER_REQUIREMENTS = {
   2: ["1. 사주가 보여주는 매력의 결", "2. 3대 매력 신살 스탯(도화·홍염·화개)", "3. 사람들이 나에게 끌리는 이유", "4. 매력이 과잉될 때의 문제", "5. 매력을 건강하게 쓰는 법"],
   3: ["1. 배우자성으로 보는 이상형", "2. 끌리지만 위험한 상대", "3. 오래 갈 수 있는 상대", "4. 만나면 성장하는 상대"],
   4: ["1. 좋아하는 순간의 패턴", "2. 불안해지는 순간의 패턴", "3. 반복되는 실수", "4. 패턴을 끊는 방법"],
-  5: ["1. 감정을 표현하는 방식", "2. 상대가 오해하기 쉬운 부분", "3. 싸울 때 드러나는 모습", "4. 관계를 살리는 대화법"],
-  6: ["1. 친밀감이 깊어지는 과정", "2. 거리감 조절 방식", "3. 애정 확인 욕구", "4. 건강한 친밀감 전략"],
-  7: ["1. 결혼에 대한 기본 태도", "2. 장기 관계에서 강해지는 부분", "3. 장기 관계에서 약해지는 부분", "4. 결혼 또는 동거를 위한 조건"],
-  8: ["1. 상처받는 방식", "2. 이별을 받아들이는 방식", "3. 미련이 생기는 이유", "4. 다시 사랑하기 위한 회복법"],
-  9: ["1. 재회 가능성을 보는 기준", "2. 다시 만나도 되는 관계", "3. 다시 만나면 위험한 관계", "4. 재회를 원할 때의 행동 전략"],
-  10: ["1. 대운·세운으로 보는 연애 흐름", "2. 인연이 들어오기 쉬운 시기", "3. 조심해야 할 시기", "4. 연애운을 현실로 만드는 준비"],
-  11: ["1. 나에게 맞는 궁합의 기준", "2. 끌림과 안정감의 차이", "3. 관계에서 필요한 균형", "4. 좋은 궁합을 만드는 태도"],
-  12: ["1. 관계 초반 전략", "2. 안정기 전략", "3. 갈등기 전략", "4. 장기 관계 전략"],
-  13: ["1. 전체 연애 구조 요약", "2. 반드시 지켜야 할 사랑의 원칙", "3. 버려야 할 연애 습관", "4. 개인 맞춤 사랑 선언문"],
+  5: ["1. 결혼에 대한 기본 태도", "2. 장기 관계에서 강해지는 부분", "3. 장기 관계에서 약해지는 부분", "4. 결혼 또는 동거를 위한 조건"],
+  6: ["1. 대운·세운으로 보는 연애 흐름", "2. 인연이 들어오기 쉬운 시기", "3. 조심해야 할 시기", "4. 연애운을 현실로 만드는 준비"],
+  7: ["1. 고백/대화/거리감 실전 전략", "2. 관계 초기 운영 체크리스트", "3. 갈등 시 복구 루틴", "4. 사랑을 지키는 개인 맞춤 실행 플랜"],
 };
 
 const LOVE_SECRET_COMPAT_CHAPTER_REQUIREMENTS = {
   1: ["1. 두 사람의 기본 연애 자아", "2. 감정이 움직이는 방식의 차이", "3. 관계에서 각자가 중요하게 여기는 것", "4. 두 사람 관계의 핵심 문장"],
-  2: ["1. 두 사람의 상호 매력 구조", "2. 3대 매력 신살 스탯(도화·홍염·화개)", "3. 서로가 끌리는 이유", "4. 매력 과잉으로 생기는 오해", "5. 매력을 건강하게 쓰는 커플 전략"],
-  3: ["1. 서로에게서 기대하는 이상형", "2. 강하게 끌리지만 위험한 결", "3. 오래 가는 조합", "4. 함께 성장하는 조합"],
-  4: ["1. 관계에서 반복되는 호감 패턴", "2. 불안 트리거 패턴", "3. 반복되는 커플 실수", "4. 패턴을 끊는 관계 설계"],
-  5: ["1. 두 사람의 감정 표현 방식", "2. 서로가 오해하기 쉬운 부분", "3. 갈등 시 드러나는 관계 타입", "4. 관계를 살리는 대화법"],
+  2: ["1. 서로의 애정 표현 방식", "2. 상처 지점과 방어 반응", "3. 관계 속도 차이", "4. 사랑의 언어를 맞추는 방법"],
+  3: ["1. 두 사람의 상호 매력 구조", "2. 3대 매력 신살 스탯(도화·홍염·화개)", "3. 서로가 끌리는 이유", "4. 매력 과잉으로 생기는 오해", "5. 매력을 건강하게 쓰는 커플 전략"],
+  4: ["1. 반복되는 갈등 트리거", "2. 자존심/질투/회피 패턴", "3. 왜 다시 끌리는가", "4. 재발을 줄이는 관계 설계"],
+  5: ["1. 결혼/동거에 대한 각자의 태도", "2. 장기 관계 강점", "3. 장기 관계 약점", "4. 함께 살기 위한 합의 조건"],
   6: ["1. 두 사람의 친밀감 형성 과정", "2. 정서적 거리 조절 방식", "3. 애정 확인 욕구의 차이", "4. 건강한 친밀감 합의 전략"],
-  7: ["1. 결혼/동거에 대한 각자의 태도", "2. 장기 관계 강점", "3. 장기 관계 약점", "4. 함께 살기 위한 합의 조건"],
-  8: ["1. 상처받는 방식의 차이", "2. 이별 수용 방식의 차이", "3. 미련이 남는 구조", "4. 관계 회복 루틴"],
-  9: ["1. 재회 가능성 판단 기준", "2. 다시 만나도 되는 구조", "3. 다시 만나면 위험한 구조", "4. 재회 행동 전략"],
-  10: ["1. 관계 타이밍 흐름", "2. 인연이 열리는 시기", "3. 조심해야 할 시기", "4. 관계운을 현실로 만드는 준비"],
-  11: ["1. 두 사람에게 맞는 궁합 기준", "2. 끌림과 안정의 차이", "3. 관계 균형 설계", "4. 좋은 궁합을 만드는 태도"],
-  12: ["1. 관계 초반 전략", "2. 안정기 전략", "3. 갈등기 전략", "4. 장기 관계 전략"],
-  13: ["1. 관계 구조 요약", "2. 반드시 지켜야 할 원칙", "3. 버려야 할 관계 습관", "4. 커플 맞춤 선언문"],
+  7: ["1. 관계 타이밍 흐름", "2. 인연이 열리는 시기", "3. 조심해야 할 시기", "4. 관계운을 현실로 만드는 준비"],
+  8: ["1. 관계 운영의 핵심 원칙", "2. 장점 극대화/약점 보완 전략", "3. 지속/정리 판단 기준", "4. 커플 맞춤 실행 선언문"],
 };
 
 const LOVE_SECRET_CHAPTER_BLUEPRINTS = {
@@ -17856,7 +17845,7 @@ function buildLoveChapterDataSections(canonical, chapter) {
     }
   }
 
-  if (chapter === 6) {
+  if (chapter === 6 && canonical?.mode === "compatibility") {
     sections.push(
       "친밀감의 핵심 진단",
       "나의 친밀감 리듬",
@@ -17900,7 +17889,7 @@ function buildLoveChapterPlanning(canonical) {
         "compatibility.intimacyCompatibility"
       );
     }
-    if (i === 6) {
+    if (i === 6 && canonical?.mode === "compatibility") {
       entry.title = "Chapter VI. 스킨십·친밀감·정서적 거리 — 가까워지는 속도";
       entry.mustUseData = [
         "personA.johu",
@@ -18291,11 +18280,11 @@ function buildLoveSecretChapterPayload(modeConfig, chapterMeta, chapter, canonic
     personB: canonical?.personB?.exists ? canonical.personB : null,
     compatibility: canonical?.compatibility?.enabled ? canonical.compatibility : null,
     chapterSpecificSections: chapterPlan.dataDrivenSections || [],
-    requiredDataPoints: chapter === 6 ? intimacyRequiredDataPoints : blueprint.requiredDataPoints,
+    requiredDataPoints: chapter === 6 && compatMode ? intimacyRequiredDataPoints : blueprint.requiredDataPoints,
     requiredSections: compatMode
       ? (LOVE_SECRET_COMPAT_CHAPTER_REQUIREMENTS[chapter] || [])
       : blueprint.requiredSections,
-    johuData: chapter === 6
+    johuData: chapter === 6 && compatMode
       ? {
         personA: canonical?.personA?.johu || null,
         personB: canonical?.personB?.exists ? canonical.personB.johu : null,
@@ -18305,7 +18294,7 @@ function buildLoveSecretChapterPayload(modeConfig, chapterMeta, chapter, canonic
       : null,
     mustUseData: chapterPlan.mustUseData || [],
     forbiddenRepeatedPhrases: LOVE_SECRET_FORBIDDEN_REPEATED_PHRASES,
-    forbidden: chapter === 6
+    forbidden: chapter === 6 && compatMode
       ? ["노골적 성 묘사", "성적 능력 단정", "무조건 잘 맞음", "무조건 안 맞음", "임신/질병/생식 관련 단정"]
       : [],
     premiumChapterJsonPacks: premiumInput && typeof premiumInput === "object"
@@ -18502,14 +18491,12 @@ function evaluateLoveSecretQuality(text, chapter, canonical, previousTexts = [],
   if (repeatedInside.length > 0 || repeatedAcross.length > 0) failedChecks.push("QUALITY_GATE_D_NO_REPEATED_SENTENCE");
   if (hasInvalidLoveShinsalMention(source, canonical)) failedChecks.push("QUALITY_GATE_E_INVALID_SHINSAL");
   if (!hasLoveCompatibilityCoverage(source, canonical)) failedChecks.push("QUALITY_GATE_F_COMPAT_COVERAGE");
-  if (chapter === 6) {
+  if (chapter === 6 && canonical?.mode === "compatibility") {
     if (source.length < 6000) failedChecks.push("QUALITY_GATE_J_CH7_MIN_LENGTH_6000");
 
-    if (canonical?.mode === "compatibility") {
-      const hasA = /(나\s*[:：]|A\s*[:：]|personA|본인)/i.test(source);
-      const hasB = /(상대\s*[:：]|B\s*[:：]|personB)/i.test(source);
-      if (!hasA || !hasB) failedChecks.push("QUALITY_GATE_L_CH7_MODE_AB");
-    }
+    const hasA = /(나\s*[:：]|A\s*[:：]|personA|본인)/i.test(source);
+    const hasB = /(상대\s*[:：]|B\s*[:：]|personB)/i.test(source);
+    if (!hasA || !hasB) failedChecks.push("QUALITY_GATE_L_CH7_MODE_AB");
 
     const climateKeywords = ["건조", "습윤", "한", "열", "월지", "계절", "화", "수", "온도", "조후"];
     const climateHitCount = climateKeywords.reduce((acc, k) => acc + (source.includes(k) ? 1 : 0), 0);
