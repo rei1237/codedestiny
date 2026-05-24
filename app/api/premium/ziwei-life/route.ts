@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 // @ts-ignore
 import { Solar } from "lunar-javascript";
 import { callVertexGemini } from "@/app/_lib/callVertexGemini";
+import { requirePremiumRouteAccess } from "@/app/_lib/premium-route-access";
 import { requireRouteAuth } from "@/app/_lib/route-auth";
 
 // ─────────────────────────────────────────────────────────────────
@@ -1961,11 +1962,21 @@ export async function POST(req: NextRequest) {
   }
 
   const b = body as Record<string, unknown>;
+  const access = await requirePremiumRouteAccess(auth.userId, "ziweiPremium", b);
+  if (!access.ok) {
+    return NextResponse.json(
+      { ok: false, code: access.code, message: access.message, reportType: access.reportType, required: access.required },
+      { status: access.status },
+    );
+  }
   const birthYear = Number(b.birthYear);
   const birthMonth = Number(b.birthMonth);
   const birthDay = Number(b.birthDay);
   const birthHour = Number(b.birthHour ?? 12);
-  const chapter = Number(b.chapter ?? 1);
+  const chapterRaw = Number(b.chapter ?? 1);
+  const chapter = Number.isFinite(chapterRaw)
+    ? Math.max(1, Math.min(15, Math.floor(chapterRaw)))
+    : 1;
 
   if (
     !birthYear || birthYear < 1900 || birthYear > 2099 ||

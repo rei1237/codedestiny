@@ -65,6 +65,7 @@ const CHAPTER_META: ChapterMeta[] = [
   { num: 10, title: "내면 회복과 영성 — 혼자 있을 때 살아나는 힘", subtitle: "회복 루틴과 영적 성장", icon: "🧭" },
   { num: 11, title: "달의 주기 — 월령 에너지 사이클", subtitle: "한 달 주기 행동 우선순위",       icon: "🌙" },
   { num: 12, title: "영혼의 마스터플랜 — 1년·3년·10년 로드맵", subtitle: "전체 종합 결론과 실행 계획", icon: "⚗️" },
+  { num: 13, title: "최종 처방과 30일 실천", subtitle: "핵심 선언문과 한 달 실행 루틴", icon: "📜" },
 ];
 
 const SUKUYO_STORAGE_KEY = "premium:sukuyo:session:v1";

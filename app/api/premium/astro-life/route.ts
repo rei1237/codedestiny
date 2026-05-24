@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ASTRO_CHAPTER_META, ASTRO_TOTAL_CHAPTERS, buildAstroPrompt, buildWesternChart, fallbackAstroText, generateAstroText, parseSections } from "../_astroCommon";
+import { requirePremiumRouteAccess } from "@/app/_lib/premium-route-access";
 import { requireRouteAuth } from "@/app/_lib/route-auth";
 
 export const runtime = "nodejs";
@@ -24,6 +25,13 @@ export async function POST(req: NextRequest) {
     if (auth.ok === false) return auth.response;
 
     const body = await req.json();
+    const access = await requirePremiumRouteAccess(auth.userId, "westernAstrologyPremium", body as Record<string, unknown>);
+    if (!access.ok) {
+      return NextResponse.json(
+        { ok: false, code: access.code, message: access.message, reportType: access.reportType, required: access.required },
+        { status: access.status },
+      );
+    }
     const year = Number.isFinite(Number(body.year)) ? Number(body.year) : 1990;
     const month = Number.isFinite(Number(body.month)) ? Math.max(1, Math.min(12, Number(body.month))) : 1;
     const day = Number.isFinite(Number(body.day)) ? Math.max(1, Math.min(31, Number(body.day))) : 1;

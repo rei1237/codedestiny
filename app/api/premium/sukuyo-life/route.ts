@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { callVertexGemini } from "@/app/_lib/callVertexGemini";
 import { requireRouteAuth } from "@/app/_lib/route-auth";
+import { requirePremiumRouteAccess } from "@/app/_lib/premium-route-access";
 
 export const runtime = "nodejs";
 export const maxDuration = 900;
@@ -42,6 +43,13 @@ const SOLO_CHAPTER_META = [
   { num: 3, title: "페르소나와 브랜딩", subtitle: "세상이 당신을 기억하는 방식", icon: "🎭" },
   { num: 4, title: "자산의 중력", subtitle: "부를 끌어당기는 달빛 전략", icon: "💰" },
   { num: 5, title: "보이지 않는 톱니바퀴", subtitle: "성공 뒤의 협력 역학", icon: "⚙️" },
+    const access = await requirePremiumRouteAccess(auth.userId, "sookyoPremium", body as Record<string, unknown>);
+    if (!access.ok) {
+      return NextResponse.json(
+        { ok: false, code: access.code, message: access.message, reportType: access.reportType, required: access.required },
+        { status: access.status },
+      );
+    }
   { num: 6, title: "관계의 정밀 레이더", subtitle: "6대 숙요 관계 역학", icon: "📡" },
   { num: 7, title: "파괴적 혁신", subtitle: "위기를 기회로 바꾸는 법", icon: "💥" },
   { num: 8, title: "조화로운 성장", subtitle: "공간과 환경의 법칙", icon: "🌿" },

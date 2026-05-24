@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Body, Ecliptic, GeoVector } from "astronomy-engine";
 import { callVertexGemini } from "@/app/_lib/callVertexGemini";
+import { requirePremiumRouteAccess } from "@/app/_lib/premium-route-access";
 import { requireRouteAuth } from "@/app/_lib/route-auth";
 import { normalizeVedicChartForPdf } from "@/app/_lib/vedic/pdf/normalizeVedicChartForPdf";
 import { buildVedicGeminiPrompt } from "@/app/_lib/vedic/pdf/buildVedicGeminiPrompt";
@@ -1262,6 +1263,13 @@ export async function POST(req: NextRequest) {
       partnerLon?: number;
       partnerBirthPlace?: string;
     };
+    const access = await requirePremiumRouteAccess(auth.userId, "vedicPremium", body as unknown as Record<string, unknown>);
+    if (!access.ok) {
+      return NextResponse.json(
+        { ok: false, code: access.code, message: access.message, reportType: access.reportType, required: access.required },
+        { status: access.status },
+      );
+    }
 
     const year = Number.isFinite(Number(body.year)) ? Number(body.year) : 1990;
     const month = Number.isFinite(Number(body.month)) ? Math.max(1, Math.min(12, Number(body.month))) : 1;

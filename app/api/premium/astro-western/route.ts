@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildWesternChart } from "../_astroCommon";
+import { requirePremiumRouteAccess } from "@/app/_lib/premium-route-access";
 import { requireRouteAuth } from "@/app/_lib/route-auth";
 
 export const runtime = "nodejs";
@@ -85,6 +86,13 @@ export async function POST(req: NextRequest) {
     if (auth.ok === false) return auth.response;
 
     const body = await req.json();
+    const access = await requirePremiumRouteAccess(auth.userId, "westernAstrologyPremium", body as Record<string, unknown>);
+    if (!access.ok) {
+      return NextResponse.json(
+        { ok: false, code: access.code, message: access.message, reportType: access.reportType, required: access.required },
+        { status: access.status },
+      );
+    }
     const missingFields: string[] = [];
     const year = Number(body.year);
     const month = Number(body.month);
