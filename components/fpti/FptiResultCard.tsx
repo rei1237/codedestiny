@@ -2,9 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { authFetch } from "@/app/_lib/auth-client";
 import { purchaseFeature } from "@/app/_lib/billing-client";
 import type { FptiAnalysisResult } from "@/lib/fpti/fpti-types";
+import {
+  buildFptiPremiumPdfText,
+  buildFptiPremiumReport,
+  type FptiPremiumReport,
+} from "@/lib/fpti/premium-report";
 import FptiElementChart from "./FptiElementChart";
 import FptiTenGodsPanel from "./FptiTenGodsPanel";
 import FptiRelationshipCard from "./FptiRelationshipCard";
@@ -15,19 +19,13 @@ type Props = {
   result: FptiAnalysisResult;
 };
 
-type DeepReportSection = {
-  title: string;
-  content: string;
-};
-
-type DeepReportPayload = {
-  title: string;
-  summary: string;
-  sections: DeepReportSection[];
-  warning?: string;
-  source?: string;
-  model?: string;
-};
+const LOADING_STAGES = [
+  "테스트 결과 계산 중",
+  "유형 분석 중",
+  "프리미엄 리포트 구성 중",
+  "챕터 정리 중",
+  "완료",
+] as const;
 
 const AXIS_CARD_LABELS: Record<string, string> = {
   A: "외향 발산형",
@@ -55,11 +53,20 @@ function AxisChip({ label, value }: { label: string; value: string }) {
   );
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export default function FptiResultCard({ result }: Props) {
   const codeParts = result.code.split("").filter(Boolean);
   const [deepLoading, setDeepLoading] = useState(false);
+  const [deepStageIndex, setDeepStageIndex] = useState(0);
   const [deepError, setDeepError] = useState("");
-  const [deepReport, setDeepReport] = useState<DeepReportPayload | null>(null);
+  const [deepReport, setDeepReport] = useState<FptiPremiumReport | null>(null);
+  const [activeChapter, setActiveChapter] = useState(0);
+
+  const stageLabel = LOADING_STAGES[Math.min(deepStageIndex, LOADING_STAGES.length - 1)];
+  const canDownloadPdf = Boolean(deepReport) && !deepLoading;
 
   const freeHighlights = useMemo(
     () => [
@@ -76,6 +83,7 @@ export default function FptiResultCard({ result }: Props) {
   const handleDeepReport = async () => {
     if (deepLoading) return;
     setDeepError("");
+    setDeepStageIndex(0);
     setDeepLoading(true);
 
     try {
@@ -100,31 +108,59 @@ export default function FptiResultCard({ result }: Props) {
         return;
       }
 
-      const response = await authFetch("/api/fpti/deep-report", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      setDeepStageIndex(1);
+      await sleep(180);
+
+      setDeepStageIndex(2);
+      const localReport = buildFptiPremiumReport({
+        result,
+        fptiType: result.code,
+        fptiSubtype: result.typeName,
+        userName: result.source?.dayMaster || "사용자",
+        scoreMap: {
+          energy: result.axisScores.A,
+          judgment: result.axisScores.H,
+          execution: result.axisScores.F,
+          vision: result.axisScores.R,
         },
-        body: JSON.stringify({ result }),
+        dimensionScores: {
+          energy: result.axisScores.A,
+          judgment: result.axisScores.H,
+          execution: result.axisScores.F,
+          vision: result.axisScores.R,
+        },
+        sajuSummary: [
+          result.elementSummary,
+          result.behaviorSummary,
+          result.relationshipSummary,
+          result.strategySummary,
+          result.loveSummary,
+          result.careerMoneySummary,
+        ].join(" "),
       });
 
-      const payload = (await response.json().catch(() => ({}))) as {
-        ok?: boolean;
-        message?: string;
-        data?: DeepReportPayload;
-      };
+      setDeepStageIndex(3);
+      await sleep(130);
 
-      if (!response.ok || payload?.ok !== true || !payload?.data) {
-        setDeepError(payload?.message || "심층 리포트 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.");
-        return;
-      }
-
-      setDeepReport(payload.data);
+      setDeepReport(localReport);
+      setActiveChapter(0);
+      setDeepStageIndex(4);
     } catch {
-      setDeepError("네트워크 문제로 리포트를 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      setDeepError("FPTI 리포트 구성 중 문제가 발생했습니다. 입력값을 다시 확인해 주세요.");
     } finally {
       setDeepLoading(false);
     }
+  };
+
+  const handleDownloadPdf = () => {
+    if (!deepReport) return;
+    const text = buildFptiPremiumPdfText(deepReport);
+    const html = `<!doctype html><html><head><meta charset=\"utf-8\"><title>${deepReport.typeName}</title><style>body{font-family: 'Noto Serif KR', Georgia, serif; padding:24px; line-height:1.7; color:#0b172a;}h1{font-size:24px;margin:0 0 8px;}h2{font-size:18px;margin:28px 0 10px;}pre{white-space:pre-wrap;word-break:break-word;font-family:'Noto Serif KR', Georgia, serif;}</style></head><body><h1>${deepReport.typeName} (${deepReport.typeCode})</h1><p>${deepReport.subtitle}</p><p>${deepReport.summary}</p><pre>${text.replace(/</g, "&lt;")}</pre><script>window.onload=()=>window.print();</script></body></html>`;
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const popup = window.open(url, "_blank", "noopener,noreferrer");
+    if (popup) popup.focus();
+    window.setTimeout(() => URL.revokeObjectURL(url), 60000);
   };
 
   return (
@@ -288,37 +324,83 @@ export default function FptiResultCard({ result }: Props) {
           <div>
             <p className="text-xs tracking-[0.18em] text-[#F6D365]">PREMIUM REPORT</p>
             <h4 className="text-lg font-semibold text-amber-100">FPTI 심층 리포트(200코인)</h4>
-            <p className="text-sm text-amber-50">10개 챕터로 나의 연애, 일, 돈, 인간관계, 성장 루틴을 사주 근거와 함께 분석합니다.</p>
+            <p className="text-sm text-amber-50">로컬 계산 엔진으로 7개 챕터 심층 리포트를 구성합니다.</p>
           </div>
-          <button
-            type="button"
-            onClick={handleDeepReport}
-            disabled={deepLoading}
-            className="rounded-full bg-[linear-gradient(120deg,#0ea5e9,#2563eb,#f59e0b)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(14,165,233,0.35)] disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {deepLoading ? "리포트 생성 중..." : "심층 리포트 열기 (200코인)"}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={handleDeepReport}
+              disabled={deepLoading}
+              className="rounded-full bg-[linear-gradient(120deg,#0ea5e9,#2563eb,#f59e0b)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(14,165,233,0.35)] disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {deepLoading ? "로컬 리포트 계산 중" : "심층 리포트 열기 (200코인)"}
+            </button>
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={!canDownloadPdf}
+              className="rounded-full border border-cyan-200/45 bg-cyan-500/10 px-4 py-2.5 text-sm font-semibold text-cyan-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              PDF 다운로드
+            </button>
+          </div>
+        </div>
+        <div className="mt-3 rounded-xl border border-white/15 bg-black/20 p-3 text-sm text-slate-100">
+          상태: {deepLoading ? stageLabel : deepReport ? "완료" : "대기"}
         </div>
         {deepError && <p className="mt-3 rounded-xl border border-rose-300/35 bg-rose-500/15 p-3 text-sm text-rose-100">{deepError}</p>}
       </div>
 
       {deepReport && (
-        <section className="rounded-3xl border border-cyan-300/30 bg-[linear-gradient(140deg,rgba(8,47,73,0.7),rgba(30,41,59,0.8))] p-4 backdrop-blur-xl">
+        <section className="rounded-3xl border border-cyan-300/30 bg-[linear-gradient(140deg,rgba(8,47,73,0.7),rgba(30,41,59,0.8))] p-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] backdrop-blur-xl">
           <p className="text-xs tracking-[0.16em] text-cyan-200">FPTI DEEP REPORT</p>
-          <h4 className="mt-1 text-lg font-semibold text-sky-100">{deepReport.title}</h4>
+          <h4 className="mt-1 text-lg font-semibold text-sky-100">{deepReport.typeName} ({deepReport.typeCode})</h4>
           <p className="mt-2 text-sm text-slate-200">{deepReport.summary}</p>
-          {deepReport.warning && (
-            <p className="mt-3 rounded-xl border border-amber-300/35 bg-amber-500/10 p-3 text-sm text-amber-100">{deepReport.warning}</p>
-          )}
 
-          <div className="mt-4 grid gap-3 lg:grid-cols-2">
-            {deepReport.sections.map((section) => (
-              <article key={section.title} className="rounded-2xl border border-white/15 bg-black/20 p-3">
-                <h5 className="text-sm font-semibold text-sky-100">{section.title}</h5>
-                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-200">{section.content}</p>
-              </article>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-xl border border-white/15 bg-black/20 p-3 text-sm text-slate-100">에너지 {deepReport.dimensionScores.energy}</div>
+            <div className="rounded-xl border border-white/15 bg-black/20 p-3 text-sm text-slate-100">판단 {deepReport.dimensionScores.judgment}</div>
+            <div className="rounded-xl border border-white/15 bg-black/20 p-3 text-sm text-slate-100">실행 {deepReport.dimensionScores.execution}</div>
+            <div className="rounded-xl border border-white/15 bg-black/20 p-3 text-sm text-slate-100">전망 {deepReport.dimensionScores.vision}</div>
+          </div>
+
+          <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+            {deepReport.chapters.map((chapter, idx) => (
+              <button
+                key={chapter.id}
+                type="button"
+                onClick={() => setActiveChapter(idx)}
+                className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold ${activeChapter === idx ? "border-cyan-200 bg-cyan-500/20 text-cyan-100" : "border-white/20 bg-white/5 text-slate-200"}`}
+              >
+                {idx + 1}장
+              </button>
             ))}
           </div>
+
+          <div className="mt-4 space-y-3">
+            {deepReport.chapters.map((chapter, idx) => {
+              const open = idx === activeChapter;
+              return (
+                <article key={chapter.id} className="rounded-2xl border border-white/15 bg-black/20">
+                  <button
+                    type="button"
+                    onClick={() => setActiveChapter(idx)}
+                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+                  >
+                    <h5 className="text-sm font-semibold text-sky-100">{chapter.title}</h5>
+                    <span className="text-xs text-slate-300">{open ? "접기" : "열기"}</span>
+                  </button>
+                  {open && (
+                    <div className="border-t border-white/10 px-4 pb-4 pt-3">
+                      <p className="whitespace-pre-wrap text-sm leading-8 text-slate-100">{chapter.content}</p>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+
+          <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-[#081329] to-transparent pb-[env(safe-area-inset-bottom)] pt-10" />
         </section>
       )}
 
