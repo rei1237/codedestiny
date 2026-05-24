@@ -1274,8 +1274,8 @@ export async function POST(req: NextRequest) {
     const year = Number.isFinite(Number(body.year)) ? Number(body.year) : 1990;
     const month = Number.isFinite(Number(body.month)) ? Math.max(1, Math.min(12, Number(body.month))) : 1;
     const day = Number.isFinite(Number(body.day)) ? Math.max(1, Math.min(31, Number(body.day))) : 1;
-    const reportType = body.reportType === "compatibility" ? "compatibility" : "personal";
-    const modeChapterDefs = getVedicPdfChapters(reportType);
+    const reportType = "personal" as const;
+    const modeChapterDefs = getVedicPdfChapters("personal");
     const modeChapterMeta = modeChapterDefs.map((chapterMeta) => ({
       num: chapterMeta.number,
       title: chapterMeta.titleKo,
@@ -1330,10 +1330,10 @@ export async function POST(req: NextRequest) {
         })
       : baseChart;
 
-    const chapterDef = getVedicChapterByNumber(chapter, reportType);
+    const chapterDef = getVedicChapterByNumber(chapter, "personal");
     const normalizedContext = normalizeVedicChartForPdf({
       chart,
-      reportMode: reportType === "compatibility" ? "compatibility" : "single",
+      reportMode: "single",
       userProfile: {
         name: body?.name,
         year,
@@ -1346,20 +1346,7 @@ export async function POST(req: NextRequest) {
         lon,
         birthPlace: body?.birthPlace,
       },
-      partnerProfile: reportType === "compatibility"
-        ? {
-            name: body?.partnerName,
-            year: body?.partnerYear,
-            month: body?.partnerMonth,
-            day: body?.partnerDay,
-            hour: body?.partnerHour,
-            minute: body?.partnerMinute,
-            timezone: body?.partnerTimezone,
-            lat: body?.partnerLat,
-            lon: body?.partnerLon,
-            birthPlace: body?.partnerBirthPlace,
-          }
-        : undefined,
+      partnerProfile: undefined,
       chartEngine: swissData ? "swiss+local" : "local-fallback",
       chartFallbackUsed: !swissData,
     });

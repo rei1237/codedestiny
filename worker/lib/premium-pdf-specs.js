@@ -25,86 +25,64 @@ const LOVE_SOLO_TITLES = LOVE_SECRET_MODE_CONFIG.solo.chapters.map((chapter) => 
 const LOVE_COMPATIBILITY_TITLES = LOVE_SECRET_MODE_CONFIG.couple.chapters.map((chapter) => String(chapter?.title || "").trim()).filter(Boolean);
 
 const ZIWEI_TITLES = [
-  "명궁 완전 해석",
-  "신궁 통합 해석",
-  "복덕궁",
-  "천이궁",
-  "관록궁",
-  "재백궁",
-  "부처궁",
-  "교우궁",
-  "전택궁",
-  "질액궁",
-  "대운/대한 흐름",
-  "유년/유월 흐름",
-  "마스터플랜 총결론",
-];
-
-const SUKYO_PERSONAL_TITLES = [
-  "나의 숙명 총론 — 27숙이 말하는 인생의 첫인상",
-  "성격과 내면 구조 — 내가 나를 이해하는 법",
-  "인간관계와 인연의 결 — 누구와 가까워지고 멀어지는가",
-  "사랑의 방식 — 나는 어떻게 사랑하는가",
-  "운명의 상대상 — 어떤 사람과 깊어지는가",
-  "일과 재능 — 내 숙이 빛나는 자리",
-  "재물과 현실 감각 — 돈이 모이고 새는 방식",
-  "가족과 뿌리 — 오래된 감정의 원형",
-  "위기와 전환점 — 무너질 때 다시 서는 법",
-  "운의 흐름과 기회 — 내 숙이 살아나는 타이밍",
-  "실전 생활 전략 — 숙명을 매일의 선택으로 바꾸는 법",
-  "최종 숙명 선언문 — 내 삶을 다시 쓰는 문장",
+  "I. 자미두수 명반 총론 — 내 운명의 기본 설계도",
+  "II. 명궁 완전 해석 — 타고난 성격과 인생의 중심축",
+  "III. 신궁 심층 분석 — 후천적 삶의 방향과 진짜 욕망",
+  "IV. 12궁 완전 해석 — 인생 영역별 운명 지도",
+  "V. 사화 분석 — 운명을 움직이는 변화의 버튼",
+  "VI. 재물·직업·성공운 — 현실 성취와 돈의 흐름",
+  "VII. 연애·결혼·인연운 — 사랑과 관계의 구조",
+  "VIII. 인간관계·귀인·사회운 — 사람을 통해 열리는 운",
+  "IX. 건강·심리·복덕운 — 마음과 몸의 균형",
+  "X. 대운 분석 — 10년 단위 인생 흐름",
+  "XI. 세운·유년운 분석 — 올해와 가까운 미래의 흐름",
+  "XII. 최종 종합 리포트 — 나의 운명 사용법",
+  "XIII. 연간 운세 로드맵 — 올해와 가까운 미래의 흐름",
+  "XIV. 생애 마스터플랜 — 시간의 축으로 보는 운명 지도",
+  "XV. 자미 거장의 최종 전략 제언 — 나의 명반 사용 설명서",
 ];
 
 const SUKYO_COMPAT_TITLES = [
-  "두 사람의 숙요 궁합 총론 — 왜 끌렸고 왜 흔들리는가",
-  "숙요 관계 유형 분석 — 명·업태·영친·우쇠·안괴·위성·성위의 의미",
-  "거리감 분석 — 근거리·중거리·원거리의 실제 체감",
-  "감정 궁합 — 마음이 통하는 지점과 막히는 지점",
-  "연애 궁합 — 설렘, 집착, 안정감의 균형",
-  "결혼과 장기 관계 — 함께 살아갈 수 있는가",
-  "갈등 구조 — 반복되는 싸움의 진짜 원인",
-  "이별과 재회 가능성 — 다시 이어질 수 있는 인연인가",
-  "운명적 인연성 — 깊은 인연인가, 지나가는 인연인가",
-  "현실 문제 궁합 — 돈, 일, 가족, 생활 리듬",
-  "관계 운영 전략 — 이 관계를 살리는 구체적 방법",
-  "최종 궁합 선언문 — 두 사람이 선택해야 할 방향",
+  "I. 두 사람의 숙요 궁합 총론 — 인연의 기본 구조",
+  "II. 27숙 개별 성향 분석 — 서로의 본질 이해",
+  "III. 숙요 관계 유형 분석 — 명·업태·영친·우쇠·안괴·위성",
+  "IV. 거리 관계 분석 — 가까운 인연인가, 먼 인연인가",
+  "V. 첫 끌림과 운명적 인연감 — 왜 서로에게 끌리는가",
+  "VI. 감정 궁합 — 마음이 통하는 방식과 어긋나는 방식",
+  "VII. 연애 궁합 — 사랑의 속도와 관계 운영 방식",
+  "VIII. 결혼 궁합 — 함께 살아갈 수 있는 관계인가",
+  "IX. 갈등 구조 분석 — 왜 싸우고 어디서 무너지는가",
+  "X. 안괴·위험 관계 집중 분석 — 강한 끌림과 파괴성",
+  "XI. 영친·업태·우쇠 관계 집중 분석 — 오래 가는 인연의 조건",
+  "XII. 속궁합과 친밀감 — 몸과 마음의 밀착도",
+  "XIII. 재회·이별·미련 분석 — 끊어지는 인연인가, 돌아오는 인연인가",
+  "XIV. 관계의 시기와 흐름 — 가까워질 때와 조심할 때",
+  "XV. 현실 궁합 — 돈, 일, 생활, 가족 문제",
+  "XVI. 최종 궁합 리포트 — 이 관계를 어떻게 다뤄야 하는가",
 ];
 
-const SUKYO_PERSONAL_TARGETS = [4500, 4200, 4200, 4500, 4000, 4300, 3800, 3800, 4000, 4100, 4000, 4600];
-const SUKYO_COMPAT_TARGETS = [4600, 4800, 3800, 4300, 4300, 4200, 4300, 4000, 3800, 4000, 4100, 4100];
+const SUKYO_COMPAT_TARGETS = [4600, 4800, 3800, 4300, 4300, 4200, 4300, 4000, 3800, 4000, 4100, 4100, 4500, 4200, 4200, 4600];
 
 const VEDIC_SOLO_TITLES = [
-  "베다 차트 총론 — 영혼이 선택한 삶의 지도",
-  "라그나 완전 해석 — 세상에 태어난 방식",
-  "달과 나크샤트라 — 마음, 기억, 감정의 별자리",
-  "태양과 아트마카라카 — 영혼의 자존감과 사명",
-  "행성 배치 해석 — 내 안의 아홉 가지 힘",
-  "12하우스 인생 분석 — 삶이 펼쳐지는 무대",
-  "사랑과 결혼 — 금성, 7하우스, 다라카라카의 비밀",
-  "직업과 재물 — 2·6·10·11하우스의 성공 전략",
-  "가족·상처·카르마 — 4·8·12하우스의 깊은 이야기",
-  "요가와 도샤 — 차트에 숨은 특별한 패턴",
-  "다샤 흐름 — 인생의 시기와 전환점",
-  "최종 베다 인생 전략 — 내 차트를 현실로 살아내는 법",
+  "I. 베다 차트 총론 — 나의 카르마 설계도",
+  "II. 라그나 분석 — 이번 생의 출발점과 인생 방향",
+  "III. 달 차트 분석 — 마음, 감정, 무의식의 흐름",
+  "IV. 태양 분석 — 자아, 명예, 삶의 중심성",
+  "V. 9행성 완전 해석 — 운명을 움직이는 행성의 힘",
+  "VI. 12하우스 분석 — 인생 영역별 카르마 지도",
+  "VII. 나크샤트라 분석 — 영혼의 성향과 본능",
+  "VIII. 요가 분석 — 성공, 재물, 명예의 특수 구조",
+  "IX. 도샤와 리스크 분석 — 막힘과 반복되는 시련",
+  "X. 직업·재물·성공운 — 현실 성취의 구조",
+  "XI. 연애·결혼·배우자운 — 인연과 파트너십 분석",
+  "XII. 건강·심리·생활운 — 몸과 마음의 균형",
+  "XIII. 다샤 분석 — 인생 시기별 운의 흐름",
+  "XIV. 고차원 차트 분석 — 세부 운명 보정",
+  "XV. 트랜짓 분석 — 현재 하늘이 여는 운의 변화",
+  "XVI. 최종 종합 리포트 — 나의 카르마 사용법",
 ];
 
-const VEDIC_COMPAT_TITLES = [
-  "두 사람의 베다 궁합 총론 — 왜 끌리고 왜 흔들리는가",
-  "아쉬타쿠타 궁합 — 구나 밀란이 보여주는 기본 궁합",
-  "나크샤트라 궁합 — 감정과 본능의 끌림",
-  "라그나 궁합 — 삶의 방향과 생활 리듬",
-  "금성·화성 궁합 — 설렘, 욕망, 애정 표현",
-  "7하우스와 결혼 가능성 — 관계가 오래 갈 수 있는가",
-  "나바암샤 궁합 — 결혼 이후의 진짜 모습",
-  "망갈릭·도샤 궁합 — 갈등과 충돌의 위험도",
-  "다샤 궁합 — 두 사람의 타이밍이 맞는가",
-  "이별과 재회 가능성 — 다시 이어질 수 있는 인연인가",
-  "현실 문제 궁합 — 돈, 일, 가족, 생활 방식",
-  "최종 베다 궁합 전략 — 두 사람이 선택해야 할 방향",
-];
-
-const VEDIC_SOLO_TARGETS = [4500, 4300, 4300, 4000, 4600, 4800, 4400, 4500, 3900, 3900, 4200, 4600];
-const VEDIC_COMPAT_TARGETS = [4600, 4800, 4200, 4200, 4300, 4500, 4100, 3900, 4000, 4000, 4100, 4300];
+const VEDIC_SOLO_TARGETS = [4500, 4300, 4300, 4000, 4600, 4800, 4400, 4500, 3900, 3900, 4200, 4100, 4200, 4100, 4000, 4600];
 
 const ASTRO_PERSONAL_TITLES = [
   "출생차트 총론 — 하늘이 남긴 첫 설계도",
@@ -178,16 +156,10 @@ export const PREMIUM_PDF_SPECS = {
   sookyo_premium: {
     title: "프리미엄 숙요점",
     featureType: "sookyo_premium",
-    supportedModes: ["personal", "compatibility"],
+    supportedModes: ["compatibility"],
     minTotalChars: 48000,
     targetTotalChars: 52000,
     chaptersByMode: {
-      personal: SUKYO_PERSONAL_TITLES.map((title, idx) => {
-        const chapter = idx + 1;
-        const targetChars = Number(SUKYO_PERSONAL_TARGETS[idx] || 4200);
-        const minChars = Math.max(3200, Math.floor(targetChars * 0.85));
-        return makeChapter(`sukyo_p_${String(chapter).padStart(2, "0")}`, title, minChars, targetChars);
-      }),
       compatibility: SUKYO_COMPAT_TITLES.map((title, idx) => {
         const chapter = idx + 1;
         const targetChars = Number(SUKYO_COMPAT_TARGETS[idx] || 4200);
@@ -200,21 +172,15 @@ export const PREMIUM_PDF_SPECS = {
   vedic_premium: {
     title: "프리미엄 베다점",
     featureType: "vedic_premium",
-    supportedModes: ["solo", "single", "personal", "compatibility"],
+    supportedModes: ["personal"],
     minTotalChars: 48000,
     targetTotalChars: 52000,
     chaptersByMode: {
-      solo: VEDIC_SOLO_TITLES.map((title, idx) => {
+      personal: VEDIC_SOLO_TITLES.map((title, idx) => {
         const chapter = idx + 1;
         const targetChars = Number(VEDIC_SOLO_TARGETS[idx] || 4200);
         const minChars = Math.max(3200, Math.floor(targetChars * 0.85));
-        return makeChapter(`vedic_s_${String(chapter).padStart(2, "0")}`, title, minChars, targetChars);
-      }),
-      compatibility: VEDIC_COMPAT_TITLES.map((title, idx) => {
-        const chapter = idx + 1;
-        const targetChars = Number(VEDIC_COMPAT_TARGETS[idx] || 4200);
-        const minChars = Math.max(3200, Math.floor(targetChars * 0.85));
-        return makeChapter(`vedic_c_${String(chapter).padStart(2, "0")}`, title, minChars, targetChars);
+        return makeChapter(`vedic_p_${String(chapter).padStart(2, "0")}`, title, minChars, targetChars);
       }),
     },
     legacyReportType: "vedicPremium",
@@ -270,17 +236,11 @@ export function getPremiumSpecByFeatureType(featureType, mode = "") {
       ? "compatibility"
       : "solo";
   } else if (normalized === "sookyo_premium") {
-    normalizedMode = (rawMode === "compatibility" || rawMode === "couple" || rawMode === "compat")
-      ? "compatibility"
-      : "personal";
+    normalizedMode = "compatibility";
   } else if (normalized === "astrology_premium") {
-    normalizedMode = (rawMode === "compatibility" || rawMode === "couple" || rawMode === "compat")
-      ? "compatibility"
-      : "personal";
+    normalizedMode = "personal";
   } else if (normalized === "vedic_premium") {
-    normalizedMode = (rawMode === "compatibility" || rawMode === "couple" || rawMode === "compat")
-      ? "compatibility"
-      : "solo";
+    normalizedMode = "personal";
   }
 
   const fallbackMode = Object.keys(spec.chaptersByMode || {})[0] || "";
@@ -299,13 +259,13 @@ export function getPremiumSpecByFeatureType(featureType, mode = "") {
   }
 
   if (normalized === "astrology_premium") {
-    minTotalChars = normalizedMode === "compatibility" ? 34000 : 48000;
-    targetTotalChars = normalizedMode === "compatibility" ? 42000 : 52000;
+    minTotalChars = 48000;
+    targetTotalChars = 52000;
   }
 
   if (normalized === "vedic_premium") {
     minTotalChars = 48000;
-    targetTotalChars = normalizedMode === "compatibility" ? 52000 : 50000;
+    targetTotalChars = 52000;
   }
 
   return {

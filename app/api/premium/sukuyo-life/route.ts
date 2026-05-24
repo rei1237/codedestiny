@@ -37,76 +37,46 @@ const MANSIONS = [
 ] as const;
 
 const MONTH_START = [11, 13, 15, 17, 19, 21, 23, 25, 0, 2, 4, 7];
-const SOLO_CHAPTER_META = [
-  { num: 1, title: "영혼의 원형", subtitle: "탄생 숙요가 새긴 운명 코드", icon: "🌑" },
-  { num: 2, title: "감정의 조수간만", subtitle: "달의 주기와 정서 파동", icon: "🌊" },
-  { num: 3, title: "페르소나와 브랜딩", subtitle: "세상이 당신을 기억하는 방식", icon: "🎭" },
-  { num: 4, title: "자산의 중력", subtitle: "부를 끌어당기는 달빛 전략", icon: "💰" },
-  { num: 5, title: "보이지 않는 톱니바퀴", subtitle: "성공 뒤의 협력 역학", icon: "⚙️" },
-    const access = await requirePremiumRouteAccess(auth.userId, "sookyoPremium", body as Record<string, unknown>);
-    if (!access.ok) {
-      return NextResponse.json(
-        { ok: false, code: access.code, message: access.message, reportType: access.reportType, required: access.required },
-        { status: access.status },
-      );
-    }
-  { num: 6, title: "관계의 정밀 레이더", subtitle: "6대 숙요 관계 역학", icon: "📡" },
-  { num: 7, title: "파괴적 혁신", subtitle: "위기를 기회로 바꾸는 법", icon: "💥" },
-  { num: 8, title: "조화로운 성장", subtitle: "공간과 환경의 법칙", icon: "🌿" },
-  { num: 9, title: "정서적 유대", subtitle: "깊은 연결을 만드는 감정 지능", icon: "❤️" },
-  { num: 10, title: "타이밍과 의식", subtitle: "달의 리듬을 쓰는 실행법", icon: "🕯️" },
-  { num: 11, title: "그림자와 회복", subtitle: "숙요 그림자 통합", icon: "🌓" },
-  { num: 12, title: "인생 로드맵", subtitle: "계절별 달빛 전략", icon: "🧭" },
-  { num: 13, title: "마스터 플랜", subtitle: "핵심 처방과 30일 실천", icon: "📜" },
-];
-
 const COMPAT_CHAPTER_META = [
-  { num: 1, title: "두 사람의 영혼 프로필", subtitle: "27숙 본질과 사랑 방식 비교", icon: "🌙" },
-  { num: 2, title: "첫 끌림의 이유", subtitle: "운명감의 심리 구조", icon: "🧲" },
-  { num: 3, title: "인연의 거리 분석", subtitle: "영·근·중·원 거리 해석", icon: "📏" },
-  { num: 4, title: "관계 유형 분석", subtitle: "안·괴·성·쇠·우·친·위·업·태", icon: "🧭" },
-  { num: 5, title: "감정 리듬 궁합", subtitle: "표현·불안·회복 속도", icon: "💞" },
-  { num: 6, title: "반복 갈등 패턴", subtitle: "방어기제와 상처 포인트", icon: "⚠️" },
-  { num: 7, title: "연애 궁합", subtitle: "설렘 유지와 현실 조율", icon: "❤️" },
-  { num: 8, title: "결혼 궁합", subtitle: "생활 리듬·돈·역할 분담", icon: "💍" },
-  { num: 9, title: "재회 가능성", subtitle: "변화 조건 중심 판단", icon: "🔁" },
-  { num: 10, title: "동업·비즈니스 궁합", subtitle: "역할·권한·계약 구조", icon: "💼" },
-  { num: 11, title: "관계 위험 신호", subtitle: "집착·통제·소진 경보", icon: "🚨" },
-  { num: 12, title: "관계를 살리는 대화법", subtitle: "상황별 실전 문장", icon: "🗣️" },
-  { num: 13, title: "두 사람의 마스터플랜", subtitle: "최종 선언문과 루틴", icon: "📜" },
-];
-
-const SOLO_CHAPTER_GUIDES = [
-  "현대적 숙요 타이틀, 영혼 키워드 5개, 강점/그림자/성장과제 3단 요약 포함",
-  "감정 반응 속도, 방어 방식, 트리거, 회복 루틴, 네빌식 심상화 포함",
-  "첫인상, 오해 포인트, 스피치 전략, 브랜딩 방향, SNS 톤 포함",
-  "돈 습관, 누수 구멍, 투자 성향, 부의 그릇, 재물 루틴 포함",
-  "적합 업무 환경, 조직 생존 전략, 번아웃 신호, 1/3/5년 전략 포함",
-  "인연 거리(영/근), 끌림 지수, 초반 갈등, 안정 조건 포함",
-  "중거리/원거리 특성, 가치관 차이, 장기 유지 조건 포함",
-  "안괴 관계의 성장/위험, 경계선, 종료 기준 포함",
-  "성쇠/우친 시너지, 권태 방지, 장기 파트너십 조건 포함",
-  "가족 숙요 패턴, 세대 갈등 완화, 건강한 거리 설정 포함",
-  "12개월 루나 캘린더 관점으로 시작/주의/회복 타이밍 포함",
-  "나쁜 인연 차단, 좋은 인연 기준, 바운더리/비폭력 대화 포함",
-  "핵심 선언문, 반드시 키울 습관 1개, 피할 선택 3개 포함",
+  { num: 1, title: "두 사람의 숙요 궁합 총론", subtitle: "인연의 기본 구조와 첫 공명", icon: "🌙" },
+  { num: 2, title: "27숙 개별 성향 분석", subtitle: "서로의 본질과 감정 결", icon: "🪞" },
+  { num: 3, title: "숙요 관계 유형 분석", subtitle: "명·업태·영친·우쇠·안괴·위성", icon: "🧭" },
+  { num: 4, title: "거리 관계 분석", subtitle: "근거리·중거리·원거리 체감", icon: "📏" },
+  { num: 5, title: "첫 끌림과 운명감", subtitle: "왜 서로에게 강하게 끌리는가", icon: "🧲" },
+  { num: 6, title: "감정 궁합", subtitle: "마음이 통하는 방식과 어긋남", icon: "💞" },
+  { num: 7, title: "연애 궁합", subtitle: "사랑의 속도와 관계 운영 방식", icon: "❤️" },
+  { num: 8, title: "결혼 궁합", subtitle: "함께 살아갈 현실 구조", icon: "💍" },
+  { num: 9, title: "갈등 구조 분석", subtitle: "왜 싸우고 어디서 무너지는가", icon: "⚠️" },
+  { num: 10, title: "안괴·위험 관계 집중 분석", subtitle: "강한 끌림과 파괴성의 경계", icon: "🚨" },
+  { num: 11, title: "영친·업태·우쇠 분석", subtitle: "오래 가는 인연의 조건", icon: "🤝" },
+  { num: 12, title: "속궁합과 친밀감", subtitle: "몸과 마음의 밀착도", icon: "🔥" },
+  { num: 13, title: "재회·이별·미련 분석", subtitle: "끊어지는가 돌아오는가", icon: "🔁" },
+  { num: 14, title: "관계의 시기와 흐름", subtitle: "가까워질 때와 조심할 때", icon: "⏳" },
+  { num: 15, title: "현실 궁합", subtitle: "돈, 일, 생활, 가족 문제", icon: "🏠" },
+  { num: 16, title: "최종 궁합 리포트", subtitle: "이 관계를 어떻게 다뤄야 하는가", icon: "📜" },
 ];
 
 const COMPAT_CHAPTER_GUIDES = [
-  "두 사람의 27숙·현대 타이틀·사랑 방식·첫 차이/공통점 포함",
-  "끌림 원인, 결핍 자극, 운명감과 투사 구분 포함",
-  "영/근/중/원 거리, 감정 속도, 피로도, 거리 조절법 포함",
-  "안괴/성쇠/우친/위/업/태의 장점·위험·유지조건 포함",
-  "감정 표현 방식, 불안 반응, 화해 속도, 감정 회복법 포함",
-  "반복 갈등 주제, 방어기제, 상처 말투, 해결 규칙 포함",
-  "연애 초반 온도, 연락/질투/데이트 스타일, 지속 가능성 포함",
-  "결혼 생활 리듬, 돈 관리, 가족관, 역할 분담 포함",
-  "재회 조건, 반복 문제, 연락 타이밍, 대화법 포함",
-  "동업 역할 분담, 수익 배분, 책임/권한, 계약 포인트 포함",
-  "관계 위험 신호 체크리스트와 대응 원칙 포함",
-  "서운할 때/회피할 때/불안할 때/화해할 때 문장 예시 포함",
-  "관계 선언문, 오래가기 위한 습관, 피해야 할 행동 포함",
+  "두 사람의 27숙, 사랑 방식, 핵심 차이와 공통점을 한 번에 요약 포함",
+  "각자 감정 구조, 상처 포인트, 본능적 반응 차이를 비교 포함",
+  "명·업태·영친·우쇠·안괴·위성의 장점과 위험을 구체적으로 포함",
+  "영·근·중·원 거리 해석과 체감상 거리 조절법 포함",
+  "첫 끌림의 원인, 투사와 진짜 운명감 구분 포함",
+  "표현 방식, 불안 반응, 화해 속도, 감정 회복법 포함",
+  "연락, 질투, 데이트, 관계 주도권, 권태기 대응 포함",
+  "돈, 가족, 역할 분담, 결혼 후 갈등 포인트 포함",
+  "반복 싸움의 주제, 방어기제, 상처 주는 말투와 해결 규칙 포함",
+  "집착·통제·소진 신호와 건강한 거리두기 원칙 포함",
+  "장기형 인연의 장점, 피로 누적 지점, 성숙 전략 포함",
+  "신체적 친밀감, 정서적 밀착, 오해 줄이는 대화 포함",
+  "이별 가능성, 재회 조건, 돌아와도 반복될 문제 포함",
+  "가까워질 때, 쉬어야 할 때, 고백·공식화 타이밍 포함",
+  "돈, 일, 생활, 가족, 책임감 문제의 현실 조율안 포함",
+  "최종 관계 선언문, 유지 전략, 절대 피할 행동 포함",
 ];
+
+const SOLO_CHAPTER_META = COMPAT_CHAPTER_META;
+const SOLO_CHAPTER_GUIDES = COMPAT_CHAPTER_GUIDES;
 
 const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
 
@@ -537,16 +507,23 @@ export async function POST(req: NextRequest) {
     if (auth.ok === false) return auth.response;
 
     const body = await req.json();
+    const access = await requirePremiumRouteAccess(auth.userId, "sookyoPremium", body as Record<string, unknown>);
+    if (!access.ok) {
+      return NextResponse.json(
+        { ok: false, code: access.code, message: access.message, reportType: access.reportType, required: access.required },
+        { status: access.status },
+      );
+    }
+
     const year = Number.isFinite(Number(body.year)) ? Number(body.year) : 1990;
     const month = Number.isFinite(Number(body.month)) ? Math.max(1, Math.min(12, Number(body.month))) : 1;
     const day = Number.isFinite(Number(body.day)) ? Math.max(1, Math.min(31, Number(body.day))) : 1;
     const hour = Number.isFinite(Number(body.hour)) ? Number(body.hour) : 12;
     const chapterRaw = Number(body.chapter ?? 1);
     const chapter = Number.isFinite(chapterRaw)
-      ? Math.max(1, Math.min(13, Math.floor(chapterRaw)))
+      ? Math.max(1, Math.min(COMPAT_CHAPTER_META.length, Math.floor(chapterRaw)))
       : 1;
-    const requestedMode = String(body.reportMode || (body.includeCompatibility ? "compatibility" : "personal")).toLowerCase();
-    let reportMode: "personal" | "compatibility" = requestedMode === "compatibility" ? "compatibility" : "personal";
+    const reportMode: "compatibility" = "compatibility";
 
     const sukuyo = await calcSukuyo(req, year, month, day);
     if (!sukuyo) {
@@ -562,7 +539,16 @@ export async function POST(req: NextRequest) {
     const hasPartner = Number.isFinite(Number(body.partnerYear))
       && Number.isFinite(Number(body.partnerMonth))
       && Number.isFinite(Number(body.partnerDay));
-    if (reportMode === "compatibility" && !hasPartner) reportMode = "personal";
+    if (!hasPartner) {
+      return NextResponse.json(
+        {
+          ok: false,
+          code: "SUKUYO_COMPAT_PARTNER_REQUIRED",
+          error: "Sukuyo premium compatibility report requires partner birth data",
+        },
+        { status: 422 },
+      );
+    }
 
     const partner = hasPartner
       ? await calcSukuyo(req, Number(body.partnerYear), Number(body.partnerMonth), Number(body.partnerDay))
@@ -619,7 +605,7 @@ export async function POST(req: NextRequest) {
       text = `${text}\n\n${fallbackText(chapter, sukuyo, rel, reportMode)}`.trim();
     }
 
-    const chapterMetaList = reportMode === "compatibility" ? COMPAT_CHAPTER_META : SOLO_CHAPTER_META;
+    const chapterMetaList = COMPAT_CHAPTER_META;
 
     return NextResponse.json({
       ok: true,

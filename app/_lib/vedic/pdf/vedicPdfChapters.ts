@@ -233,7 +233,7 @@ export const VEDIC_PDF_COMPAT_CHAPTERS: VedicPdfChapterDefinition[] = [
 export const VEDIC_PDF_CHAPTERS: VedicPdfChapterDefinition[] = VEDIC_PDF_PERSONAL_CHAPTERS;
 
 export function getVedicPdfChapters(mode: "personal" | "single" | "compatibility" = "personal"): VedicPdfChapterDefinition[] {
-  return mode === "compatibility" ? VEDIC_PDF_COMPAT_CHAPTERS : VEDIC_PDF_PERSONAL_CHAPTERS;
+  return VEDIC_PDF_PERSONAL_CHAPTERS;
 }
 
 export function getVedicChapterByNumber(

@@ -1630,11 +1630,11 @@ const PREMIUM_REPORT_KIND_MAP = {
 
 const PREMIUM_REPORT_REQUIRED_CHAPTERS = {
   ziweiPremium: 15,
-  sookyoPremium: 13,
+  sookyoPremium: 16,
   westernAstrologyPremium: 12,
-  vedicPremium: 12,
+  vedicPremium: 16,
   lifeBook: 13,
-  loveSecret: 13,
+  loveSecret: 7,
   sajuNewYear: 10,
 };
 
@@ -2057,6 +2057,10 @@ function getPremiumRequiredChapters(reportType, mode = "") {
   const spec = getPremiumSpecByReportType(reportType, mode);
   if (spec && Number(spec.chapterCount || 0) > 0) {
     return Number(spec.chapterCount);
+  }
+  if (reportType === "loveSecret") {
+    const normalizedMode = String(mode || "").trim().toLowerCase();
+    return normalizedMode.includes("compat") || normalizedMode.includes("couple") ? 8 : 7;
   }
   return Number(PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || (reportType === "ziweiPremium" ? 15 : 13));
 }
@@ -3530,7 +3534,7 @@ function buildPremiumPrepareRequestBody(reportType, sourceInput = {}, chapterId 
 
   if (reportType === "loveSecret") {
     if (!hasMeaningfulValue(base.mode)) base.mode = "solo";
-    if (!hasMeaningfulValue(base.totalChapters)) base.totalChapters = 10;
+    if (!hasMeaningfulValue(base.totalChapters)) base.totalChapters = getPremiumRequiredChapters(reportType, base.mode);
   }
 
   if (reportType === "lifeBook") {
@@ -3889,13 +3893,18 @@ function normalizePremiumRequestBodyForPipeline(reportType, sourceInput = {}) {
     if (!hasMeaningfulValue(normalized.ayanamsa)) normalized.ayanamsa = "lahiri";
   }
 
-  if (reportType === "sookyoPremium" && !hasMeaningfulValue(normalized.mode)) {
-    normalized.mode = "personal";
+  if (reportType === "sookyoPremium") {
+    if (!hasMeaningfulValue(normalized.mode)) normalized.mode = "compatibility";
+    normalized.reportMode = "compatibility";
+    normalized.reportType = "compatibility";
+    normalized.includeCompatibility = true;
+    normalized._compatibilityRequired = true;
+    if (!hasMeaningfulValue(normalized.totalChapters)) normalized.totalChapters = 16;
   }
 
   if (reportType === "loveSecret") {
     if (!hasMeaningfulValue(normalized.mode)) normalized.mode = "solo";
-    if (!hasMeaningfulValue(normalized.totalChapters)) normalized.totalChapters = 10;
+    if (!hasMeaningfulValue(normalized.totalChapters)) normalized.totalChapters = getPremiumRequiredChapters(reportType, normalized.mode);
   }
 
   if (reportType === "lifeBook" && !hasMeaningfulValue(normalized.totalChapters)) {

@@ -233,13 +233,13 @@ const SUKYO_PDF_COMPAT_CHAPTERS = [
 function normalizeSukyoReportMode(value) {
   const mode = String(value || "").trim().toLowerCase();
   if (mode === "compatibility" || mode === "couple" || mode === "compat") return "compatibility";
-  return "solo";
+  return "compatibility";
 }
 
 function getSukyoPdfChapters(reportMode = "personal") {
   return normalizeSukyoReportMode(reportMode) === "compatibility"
     ? SUKYO_PDF_COMPAT_CHAPTERS
-    : SUKYO_PDF_CHAPTERS;
+    : SUKYO_PDF_COMPAT_CHAPTERS;
 }
 
 function toCalendarType(value) {
