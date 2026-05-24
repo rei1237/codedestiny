@@ -808,7 +808,7 @@ function normalizeBody(body) {
     timezone: Number.isFinite(Number(body.timezone)) ? Number(body.timezone) : 9,
     lat: Number.isFinite(Number(body.lat)) ? Number(body.lat) : 37.5665,
     lon: Number.isFinite(Number(body.lon ?? body.lng)) ? Number(body.lon ?? body.lng) : 126.978,
-    chapter: clampInt(body.chapter ?? body.sessionId, 1, 1, VEDIC_MAX_TOTAL_CHAPTERS),
+    chapter: clampInt(body.chapter ?? body.sessionId, 1, 1, VEDIC_TOTAL_CHAPTERS),
     name: String(body.name || "사용자").slice(0, 80),
     gender: String(normalizedGender || "").slice(0, 20),
   };

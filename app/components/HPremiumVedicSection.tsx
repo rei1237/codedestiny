@@ -2,7 +2,24 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { getVedicPdfChapters } from "@/app/_lib/vedic/pdf/vedicPdfChapters";
 import { sanitizePremiumSections, sanitizePremiumText } from "@/app/_lib/vedic/premium/guards/premiumTextGuard";
-import { VedicCh1_Total, VedicCh13_Dasha } from "@/app/components/vedic-premium/chapters";
+import {
+  VedicCh1_Total,
+  VedicCh2_Lagna,
+  VedicCh3_Moon,
+  VedicCh4_Sun,
+  VedicCh5_Planets,
+  VedicCh6_Houses,
+  VedicCh7_Nakshatra,
+  VedicCh8_Yoga,
+  VedicCh9_Dosha,
+  VedicCh10_Career,
+  VedicCh11_Love,
+  VedicCh12_Health,
+  VedicCh13_Dasha,
+  VedicCh14_Divisional,
+  VedicCh15_Transit,
+  VedicCh16_Final,
+} from "@/app/components/vedic-premium/chapters";
 import PremiumPdfHistoryPanel from "./PremiumPdfHistoryPanel";
 
 
@@ -214,13 +231,22 @@ function ChapterCard({ meta, state, onGenerate }: { meta:ChapterMeta; state:Chap
     const safeText = sanitizePremiumText(state.result.text, "해석 데이터를 준비 중입니다.");
     const safeSections = sanitizePremiumSections(state.result.sections, "섹션 데이터가 아직 준비되지 않았습니다.");
 
-    if (meta.num === 1) {
-      return <VedicCh1_Total text={safeText} sections={safeSections} />;
-    }
-
-    if (meta.num === 13) {
-      return <VedicCh13_Dasha text={safeText} sections={safeSections} />;
-    }
+    if (meta.num === 1) return <VedicCh1_Total text={safeText} sections={safeSections} />;
+    if (meta.num === 2) return <VedicCh2_Lagna text={safeText} sections={safeSections} />;
+    if (meta.num === 3) return <VedicCh3_Moon text={safeText} sections={safeSections} />;
+    if (meta.num === 4) return <VedicCh4_Sun text={safeText} sections={safeSections} />;
+    if (meta.num === 5) return <VedicCh5_Planets text={safeText} sections={safeSections} />;
+    if (meta.num === 6) return <VedicCh6_Houses text={safeText} sections={safeSections} />;
+    if (meta.num === 7) return <VedicCh7_Nakshatra text={safeText} sections={safeSections} />;
+    if (meta.num === 8) return <VedicCh8_Yoga text={safeText} sections={safeSections} />;
+    if (meta.num === 9) return <VedicCh9_Dosha text={safeText} sections={safeSections} />;
+    if (meta.num === 10) return <VedicCh10_Career text={safeText} sections={safeSections} />;
+    if (meta.num === 11) return <VedicCh11_Love text={safeText} sections={safeSections} />;
+    if (meta.num === 12) return <VedicCh12_Health text={safeText} sections={safeSections} />;
+    if (meta.num === 13) return <VedicCh13_Dasha text={safeText} sections={safeSections} />;
+    if (meta.num === 14) return <VedicCh14_Divisional text={safeText} sections={safeSections} />;
+    if (meta.num === 15) return <VedicCh15_Transit text={safeText} sections={safeSections} />;
+    if (meta.num === 16) return <VedicCh16_Final text={safeText} sections={safeSections} />;
 
     return safeSections.length > 0
       ? safeSections.map((sec, i) => (
@@ -448,20 +474,10 @@ export default function HPremiumVedicSection({
   const totalChapters = chapterMeta.length;
   const createEmptyChapters = () =>
     Object.fromEntries(getChapterMetaByMode().map((m) => [m.num, { step: "idle" as ChapterStep, result: null }]));
-  const [partnerName, setPartnerName] = useState("");
-  const [partnerYear, setPartnerYear] = useState("");
-  const [partnerMonth, setPartnerMonth] = useState("");
-  const [partnerDay, setPartnerDay] = useState("");
-  const [partnerHour, setPartnerHour] = useState("12");
-  const [partnerMinute, setPartnerMinute] = useState("0");
-  const [partnerBirthPlace, setPartnerBirthPlace] = useState("");
-  const [partnerTimezone, setPartnerTimezone] = useState("9");
-  const [partnerLat, setPartnerLat] = useState("37.5665");
-  const [partnerLon, setPartnerLon] = useState("126.9780");
 
   const [chart,    setChart]    = useState<VedicChart|null>(null);
   const [chapters, setChapters] = useState<Record<number,ChapterState>>(
-    () => createEmptyChapters("personal")
+    () => createEmptyChapters()
   );
   const [calcError,   setCalcError]   = useState("");
   const [calcLoading, setCalcLoading] = useState(false);
@@ -490,16 +506,6 @@ export default function HPremiumVedicSection({
       setTimezone("9");
       setLat("37.5665");
       setLon("126.9780");
-      setPartnerName("");
-      setPartnerYear("");
-      setPartnerMonth("");
-      setPartnerDay("");
-      setPartnerHour("12");
-      setPartnerMinute("0");
-      setPartnerBirthPlace("");
-      setPartnerTimezone("9");
-      setPartnerLat("37.5665");
-      setPartnerLon("126.9780");
       try {
         localStorage.removeItem(VEDIC_STORAGE_KEY);
       } catch {
@@ -539,17 +545,6 @@ export default function HPremiumVedicSection({
         timezone?: string;
         lat?: string;
         lon?: string;
-        reportMode?: "personal" | "compatibility";
-        partnerName?: string;
-        partnerYear?: string;
-        partnerMonth?: string;
-        partnerDay?: string;
-        partnerHour?: string;
-        partnerMinute?: string;
-        partnerBirthPlace?: string;
-        partnerTimezone?: string;
-        partnerLat?: string;
-        partnerLon?: string;
         chart?: VedicChart | null;
         chapters?: Record<number, ChapterState>;
       };
@@ -563,17 +558,6 @@ export default function HPremiumVedicSection({
       if (saved.timezone) setTimezone(saved.timezone);
       if (saved.lat) setLat(saved.lat);
       if (saved.lon) setLon(saved.lon);
-      // personal-only mode
-      if (saved.partnerName) setPartnerName(saved.partnerName);
-      if (saved.partnerYear) setPartnerYear(saved.partnerYear);
-      if (saved.partnerMonth) setPartnerMonth(saved.partnerMonth);
-      if (saved.partnerDay) setPartnerDay(saved.partnerDay);
-      if (saved.partnerHour) setPartnerHour(saved.partnerHour);
-      if (saved.partnerMinute) setPartnerMinute(saved.partnerMinute);
-      if (saved.partnerBirthPlace) setPartnerBirthPlace(saved.partnerBirthPlace);
-      if (saved.partnerTimezone) setPartnerTimezone(saved.partnerTimezone);
-      if (saved.partnerLat) setPartnerLat(saved.partnerLat);
-      if (saved.partnerLon) setPartnerLon(saved.partnerLon);
       if (saved.chart) setChart(saved.chart);
       if (saved.chapters) {
         const normalized = Object.fromEntries(
@@ -608,16 +592,6 @@ export default function HPremiumVedicSection({
           lat,
           lon,
           reportMode,
-          partnerName,
-          partnerYear,
-          partnerMonth,
-          partnerDay,
-          partnerHour,
-          partnerMinute,
-          partnerBirthPlace,
-          partnerTimezone,
-          partnerLat,
-          partnerLon,
           chart,
           chapters,
         })
@@ -625,7 +599,7 @@ export default function HPremiumVedicSection({
     } catch {
       // ignore storage quota errors
     }
-  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, birthPlace, timezone, lat, lon, reportMode, partnerName, partnerYear, partnerMonth, partnerDay, partnerHour, partnerMinute, partnerBirthPlace, partnerTimezone, partnerLat, partnerLon, chart, chapters, showIntro]);
+  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, birthPlace, timezone, lat, lon, reportMode, chart, chapters, showIntro]);
 
   useEffect(() => {
     if (showIntro) {
@@ -731,25 +705,12 @@ export default function HPremiumVedicSection({
       lon: parseFloat(lon),
       birthPlace,
       chapter: chapterNum,
-      reportType: reportMode,
+      reportType: "personal",
       reportId: reportIdRef.current || undefined,
       previousChapterTexts,
     };
-
-    if (reportMode === "compatibility") {
-      payload.partnerName = partnerName;
-      payload.partnerYear = parseInt(partnerYear, 10);
-      payload.partnerMonth = parseInt(partnerMonth, 10);
-      payload.partnerDay = parseInt(partnerDay, 10);
-      payload.partnerHour = parseInt(partnerHour, 10);
-      payload.partnerMinute = parseInt(partnerMinute, 10);
-      payload.partnerBirthPlace = partnerBirthPlace;
-      payload.partnerTimezone = parseFloat(partnerTimezone);
-      payload.partnerLat = parseFloat(partnerLat);
-      payload.partnerLon = parseFloat(partnerLon);
-    }
     return payload;
-  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, lat, lon, birthPlace, reportMode, partnerName, partnerYear, partnerMonth, partnerDay, partnerHour, partnerMinute, partnerBirthPlace, partnerTimezone, partnerLat, partnerLon, chapterMeta, chapters]);
+  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, lat, lon, birthPlace, chapterMeta, chapters]);
 
   const ensureCompatibilityAddonCharged = useCallback(async () => {
     return;
@@ -815,7 +776,6 @@ export default function HPremiumVedicSection({
 
 
   const handleGenerateChapter = useCallback(async (chNum:number) => {
-
     setRequestError("");
     setChapters(prev=>({...prev,[chNum]:{step:"loading",result:null}}));
     setFlowMessage(`1/7 CHAPTER ${chNum} 입력 검증`);
@@ -829,17 +789,36 @@ export default function HPremiumVedicSection({
         reportIdRef.current = data.reportId;
       }
       setChapters(prev=>({...prev,[chNum]:{step:"done",result:{
-        chapter:chNum,
-        reportType: "personal",
-        text:sanitizePremiumText(data.text, "챕터 해석 데이터를 준비 중입니다."),
-        sections:sanitizePremiumSections(data.sections, "챕터 섹션 데이터를 준비 중입니다."),
+        chapter: chNum,
+        chapterMeta: data.chapterMeta,
+        text: sanitizePremiumText(data.text, "챕터 해석 데이터를 준비 중입니다."),
+        sections: sanitizePremiumSections(data.sections, "챕터 섹션 데이터를 준비 중입니다."),
         fallbackUsed: Boolean(data?.usedFallback),
+        missingFields: Array.isArray(data?.missingFields) ? data.missingFields : [],
+        warnings: Array.isArray(data?.warnings) ? data.warnings : [],
+      }}}));
+
+      setFlowMessage(data?.usedFallback ? `7/7 CHAPTER ${chNum} 완성 (fallback 적용)` : `7/7 CHAPTER ${chNum} 완성`);
+      onPdfFlowStateChange?.("success");
+    } catch (e: unknown) {
+      setFlowMessage(`CHAPTER ${chNum} 실패 복구 처리 중`);
+      const refund = await tryRefundCompatibilityAddon(`베다 챕터 ${chNum} 생성 실패`);
+      const enriched = e as VedicApiError;
+      enriched.refunded = refund.refunded;
+      enriched.refundMessage = refund.message;
+      const message = toVedicUiError(enriched);
       setRequestError(message);
-    }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, lat, lon, birthPlace, chapterMeta, chapters]);
+      setChapters(prev => ({
+        ...prev,
+        [chNum]: {
+          step: "error",
+          result: prev[chNum]?.result ?? null,
+        },
+      }));
       onPdfFlowStateChange?.("error", message);
       setFlowMessage("");
     }
-  }, [chart,postVedicJson,ensureCompatibilityAddonCharged,buildRequestPayload,onPdfFlowStateChange,toVedicUiError,tryRefundCompatibilityAddon]);
+  }, [postVedicJson, ensureCompatibilityAddonCharged, buildRequestPayload, onPdfFlowStateChange, toVedicUiError, tryRefundCompatibilityAddon]);
 
 
   const handleGenerateAll = useCallback(async () => {
@@ -869,7 +848,7 @@ export default function HPremiumVedicSection({
           <p style={{ color:"rgba(212,160,23,0.7)", fontSize:"0.66rem", letterSpacing:"0.28em", margin:0 }}>JYOTISH MASTER · DETAIL INTRO</p>
           <h3 style={{ color:"#fff", fontWeight:900, fontSize:"1.5rem", margin:"8px 0 6px" }}>Karmic Blueprint</h3>
           <p style={{ color:"rgba(203,213,225,0.72)", fontSize:"0.88rem", lineHeight:1.8, margin:0 }}>
-            베다 점성술 ${totalChapters}챕터 카테고리를 먼저 확인하고, 버튼 클릭 시 PDF 리포트 생성을 시작합니다.
+            베다 점성술 {totalChapters}챕터 카테고리를 먼저 확인하고, 버튼 클릭 시 PDF 리포트 생성을 시작합니다.
           </p>
           <div style={{ display:"grid", gap:8, marginTop:12 }}>
             {chapterMeta.map((ch) => (
@@ -923,7 +902,7 @@ export default function HPremiumVedicSection({
             🕉️ Karmic Blueprint
           </h2>
           <p style={{ color:"rgba(167,139,250,0.65)", fontSize:"0.84rem", marginTop:5, fontWeight:300, lineHeight:1.6 }}>
-            베다 점성술 프리미엄 리포트 · AI ${totalChapters}챕터 주티쉬 분석 · Lahiri 사이드리얼 엔진
+            베다 점성술 프리미엄 리포트 · AI {totalChapters}챕터 주티쉬 분석 · Lahiri 사이드리얼 엔진
           </p>
         </div>
         {doneCount > 0 && (
@@ -997,7 +976,7 @@ export default function HPremiumVedicSection({
                   onClick={handleGenerateAll}
                   style={{ borderRadius:10, padding:"7px 16px", fontSize:"0.76rem", fontWeight:800, background:"linear-gradient(135deg,rgba(212,160,23,0.25),rgba(99,102,241,0.15))", border:"1px solid rgba(212,160,23,0.4)", color:"rgba(253,230,138,0.95)", cursor:"pointer" }}
                 >
-                  ✦ 전체 생성 (${totalChapters}챕터)
+                  ✦ 전체 생성 ({totalChapters}챕터)
                 </button>
                 <button
                   onClick={()=>{ resetVedicState(true); }}
@@ -1020,7 +999,7 @@ export default function HPremiumVedicSection({
                 <p style={{ color:"rgba(212,160,23,0.7)", fontSize:"0.72rem", letterSpacing:"0.18em", textTransform:"uppercase", marginBottom:10, textAlign:"center" }}>KARMIC BLUEPRINT PDF</p>
                 <p style={{ color:"rgba(203,213,225,0.65)", fontSize:"0.82rem", lineHeight:1.7, marginBottom:14, textAlign:"center" }}>
                   완성된 챕터를 고급스러운 베다 점성술 PDF 리포트로 다운로드하세요.<br/>
-                  목차 · ${totalChapters}챕터 분석 · 요가 해설 · 수료증이 포함됩니다.
+                  목차 · {totalChapters}챕터 분석 · 요가 해설 · 수료증이 포함됩니다.
                 </p>
                 <PDFDownloadButton chapters={chapters} chart={chart} birthDate={birthDate} chapterMeta={chapterMeta} totalChapters={totalChapters} />
               </div>
