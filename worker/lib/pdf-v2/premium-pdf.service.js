@@ -3,6 +3,7 @@ import {
   validateChapterData,
   removeRepeatedParagraphs,
   validateGeneratedChapterText,
+  validateUniqueCategoryNamesByChapter,
 } from "./validation.js";
 import {
   createPdfDataOrchestration,
@@ -83,6 +84,82 @@ function buildProfessionalFallbackChapter(chapter = {}, params = {}, normalizedD
   ].join("\n");
 }
 
+function normalizePremiumPdfInput(input = {}, serviceKey = "") {
+  const modeRaw = String(input?.mode || input?.reportType || input?.reportMode || "").toLowerCase();
+  const mode = modeRaw === "couple" || modeRaw === "compat" ? "compatibility" : (modeRaw || "personal");
+  return {
+    ...input,
+    serviceKey: String(serviceKey || input?.serviceKey || ""),
+    mode,
+  };
+}
+
+function buildPdfSafePayload({ serviceKey, input, calculation, chapterSchema }) {
+  const normalized = {
+    serviceKey: String(serviceKey || ""),
+    mode: String(input?.mode || "personal"),
+    profile: input?.profile && typeof input.profile === "object" ? input.profile : {},
+    partnerProfile: input?.partnerProfile && typeof input.partnerProfile === "object" ? input.partnerProfile : undefined,
+    year: Number.isFinite(Number(input?.year)) ? Number(input.year) : undefined,
+    calculation: calculation && typeof calculation === "object" ? calculation : {},
+    interpretationSeed: calculation?.interpretationSeed && typeof calculation.interpretationSeed === "object"
+      ? calculation.interpretationSeed
+      : {},
+    chapterSchema: Array.isArray(chapterSchema) ? chapterSchema : [],
+    createdAt: nowIso(),
+  };
+
+  if (!normalized.partnerProfile || Object.keys(normalized.partnerProfile).length === 0) {
+    delete normalized.partnerProfile;
+  }
+  if (!Number.isFinite(Number(normalized.year))) {
+    delete normalized.year;
+  }
+
+  return normalized;
+}
+
+function validatePdfSafePayload(payload = {}) {
+  if (!payload || typeof payload !== "object") {
+    throw new Error("PDF_SAFE_PAYLOAD_INVALID");
+  }
+  if (!String(payload?.serviceKey || "").trim()) {
+    throw new Error("PDF_SAFE_PAYLOAD_SERVICE_KEY_MISSING");
+  }
+  if (!payload.calculation || typeof payload.calculation !== "object") {
+    throw new Error("PDF_SAFE_PAYLOAD_CALCULATION_MISSING");
+  }
+  if (!Array.isArray(payload.chapterSchema) || payload.chapterSchema.length === 0) {
+    throw new Error("PDF_SAFE_PAYLOAD_CHAPTER_SCHEMA_MISSING");
+  }
+  return true;
+}
+
+function ensureCategoryHeadings(chapter = {}, generatedText = "", params = {}, normalizedData = {}) {
+  const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
+  const cleaned = removeRepeatedParagraphs(String(generatedText || "").trim());
+  if (!categories.length) return cleaned;
+
+  const bodyLines = cleaned
+    .split(/\n\s*\n/)
+    .map((row) => String(row || "").trim())
+    .filter(Boolean)
+    .filter((row) => !/^#+\s+/.test(row));
+
+  const fallbackBrief = buildChapterDataBrief(normalizedData);
+  const sections = categories.map((category, index) => {
+    const title = String(category?.title || `카테고리 ${index + 1}`).trim();
+    const chunk = bodyLines[index]
+      || `${String(params?.pdfType || "premium")} 해석에서는 ${title}를 기준으로 실제 선택과 실행 기준을 정리합니다. ${fallbackBrief}`;
+    return `### ${title}\n${chunk}`;
+  });
+
+  return [
+    `## ${String(chapter?.title || "챕터").trim()}`,
+    ...sections,
+  ].join("\n\n");
+}
+
 export async function createPremiumPdfJob(params = {}, deps = {}) {
   const jobId = typeof deps.createJobId === "function"
     ? String(deps.createJobId(params) || "")
@@ -127,17 +204,27 @@ export async function createPremiumPdfJob(params = {}, deps = {}) {
   let holdId = hold?.holdId || "";
 
   try {
+    const normalizedInput = normalizePremiumPdfInput(params?.input || {}, params?.pdfType);
     const adapter = await deps.resolveAdapter(params);
-    const engineResult = await adapter.runEngine(params?.input || {});
-    const normalizedData = await adapter.normalize(engineResult, params?.input || {}, params);
-    const chapterPlan = adapter.getChapterPlan?.(params?.input?.mode || "default")
-      || getPremiumPdfV2ChapterPlan(params?.pdfType, params?.input?.mode || "default");
+    const engineResult = await adapter.runEngine(normalizedInput || {});
+    const normalizedData = await adapter.normalize(engineResult, normalizedInput || {}, params);
+    const chapterPlan = adapter.getChapterPlan?.(normalizedInput?.mode || "default")
+      || getPremiumPdfV2ChapterPlan(params?.pdfType, normalizedInput?.mode || "default");
+
+    validateUniqueCategoryNamesByChapter(chapterPlan);
+    const pdfSafePayload = buildPdfSafePayload({
+      serviceKey: params?.pdfType,
+      input: normalizedInput,
+      calculation: normalizedData,
+      chapterSchema: chapterPlan,
+    });
+    validatePdfSafePayload(pdfSafePayload);
 
     const orchestration = createPdfDataOrchestration({
       fortuneType: params?.pdfType,
       userId: resultBase.userId,
       sessionId: jobId,
-      userInput: params?.input || {},
+      userInput: normalizedInput || {},
       baseEngineResult: engineResult,
       promptGeneratedData: params?.promptGeneratedData || {},
       existingAnalysisResult: params?.existingAnalysisResult || {},
@@ -213,11 +300,14 @@ export async function createPremiumPdfJob(params = {}, deps = {}) {
       const template = templates.find((item) => String(item?.promptTemplateId || "") === String(chapter.promptTemplateId || ""))
         || {};
 
-      let generated = "";
+      const localReport = buildProfessionalFallbackChapter({ ...chapter, ...(contract || {}) }, params, orchestratedData);
+      let candidateText = localReport;
+
       try {
-        generated = await deps.generateChapter({
+        const generated = await deps.generateChapter({
           params,
           chapter,
+          localReport,
           currentChapterContract: contract,
           currentChapterEvidence: chapterEvidence,
           previousChapterSummaries,
@@ -229,24 +319,27 @@ export async function createPremiumPdfJob(params = {}, deps = {}) {
           normalizedData: orchestratedData,
           engineResult,
         });
+        if (String(generated || "").trim()) {
+          candidateText = String(generated || "");
+        }
       } catch (error) {
         recoveryNotes.push({
           code: String(error?.code || "PDF_V2_CHAPTER_GENERATION_RECOVERY"),
           chapterId: chapter.chapterId,
           message: asErrorMessage(error, "챕터 생성 보정"),
         });
-        generated = buildProfessionalFallbackChapter({ ...chapter, ...(contract || {}) }, params, orchestratedData);
       }
 
-      if (!String(generated || "").trim()) {
+      if (!String(candidateText || "").trim()) {
         recoveryNotes.push({
           code: "PDF_V2_CHAPTER_EMPTY_RECOVERY",
           chapterId: chapter.chapterId,
         });
-        generated = buildProfessionalFallbackChapter({ ...chapter, ...(contract || {}) }, params, orchestratedData);
+        candidateText = localReport;
       }
 
-      let cleaned = removeRepeatedParagraphs(generated);
+      let cleaned = removeRepeatedParagraphs(candidateText);
+      cleaned = ensureCategoryHeadings(chapter, cleaned, params, orchestratedData);
       const textValidation = validateGeneratedChapterText(cleaned, {
         minChars: chapter.minChars,
         maxChars: chapter.maxChars,
@@ -260,7 +353,8 @@ export async function createPremiumPdfJob(params = {}, deps = {}) {
           chapterId: chapter.chapterId,
           errors: textValidation.errors,
         });
-        cleaned = removeRepeatedParagraphs(buildProfessionalFallbackChapter({ ...chapter, ...(contract || {}) }, params, orchestratedData));
+        cleaned = removeRepeatedParagraphs(localReport);
+        cleaned = ensureCategoryHeadings(chapter, cleaned, params, orchestratedData);
       }
 
       const duplicateReport = detectDuplicateThemes(cleaned, previousChapterSummaries, 0.6);

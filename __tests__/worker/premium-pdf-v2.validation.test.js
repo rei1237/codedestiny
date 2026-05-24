@@ -3,6 +3,7 @@ describe("Premium PDF v2 helpers", () => {
   let validateChapterData;
   let removeRepeatedParagraphs;
   let validateGeneratedChapterText;
+  let validateUniqueCategoryNamesByChapter;
   let createPdfDataOrchestration;
 
   beforeAll(async () => {
@@ -11,6 +12,7 @@ describe("Premium PDF v2 helpers", () => {
       validateChapterData,
       removeRepeatedParagraphs,
       validateGeneratedChapterText,
+      validateUniqueCategoryNamesByChapter,
     } = await import("../../worker/lib/pdf-v2/validation.js"));
     ({ createPdfDataOrchestration } = await import("../../worker/lib/pdf-v2/orchestrator.js"));
   });
@@ -93,5 +95,35 @@ describe("Premium PDF v2 helpers", () => {
     expect(result.generationMode).toBe("fallback");
     expect(result.missingDataReport.recoverableMissing).toContain("life-ch-01:timeline.daewoon");
     expect(result.chapterEvidenceMap["life-ch-01"].contract.purpose).toBeTruthy();
+  });
+
+  test("카테고리 타이틀은 같은 리포트 내에서 챕터 간 중복되면 실패한다", () => {
+    expect(() => validateUniqueCategoryNamesByChapter([
+      {
+        chapterId: "ch-1",
+        categories: [
+          { title: "일간이 세상을 버티는 방식" },
+          { title: "월지가 만든 기질의 뿌리" },
+        ],
+      },
+      {
+        chapterId: "ch-2",
+        categories: [
+          { title: "일간이 세상을 버티는 방식" },
+        ],
+      },
+    ])).toThrow(/DUPLICATED_CATEGORY_TITLE_IN_REPORT/);
+  });
+
+  test("금지된 공통 카테고리명은 실패한다", () => {
+    expect(() => validateUniqueCategoryNamesByChapter([
+      {
+        chapterId: "ch-1",
+        categories: [
+          { title: "핵심 요약" },
+          { title: "월지가 만든 기질의 뿌리" },
+        ],
+      },
+    ])).toThrow(/FORBIDDEN_CATEGORY_TITLE/);
   });
 });

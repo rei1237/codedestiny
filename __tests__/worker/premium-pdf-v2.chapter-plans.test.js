@@ -91,4 +91,31 @@ describe("Premium PDF v2 chapter plans", () => {
     expect(ch1.requiredFields).toEqual(expect.arrayContaining(["chart.spousePalace", "chart.tenGods"]));
     expect(ch2.requiredFields).toEqual(expect.arrayContaining(["chart.peachBlossom", "chart.hongyeom", "chart.hwagae"]));
   });
+
+  test("각 서비스 챕터 카테고리 제목은 리포트 내에서 중복되지 않는다", () => {
+    const targets = [
+      getPremiumPdfV2ChapterPlan("lifeBook"),
+      getPremiumPdfV2ChapterPlan("loveSecret", "solo"),
+      getPremiumPdfV2ChapterPlan("loveSecret", "compatibility"),
+      getPremiumPdfV2ChapterPlan("sajuNewYear"),
+      getPremiumPdfV2ChapterPlan("westernAstrologyPremium", "personal"),
+      getPremiumPdfV2ChapterPlan("sookyoPremium", "personal"),
+      getPremiumPdfV2ChapterPlan("vedicPremium", "personal"),
+    ];
+
+    targets.forEach((plan) => {
+      const titles = [];
+      plan.forEach((chapter) => {
+        expect(Array.isArray(chapter.categories)).toBe(true);
+        chapter.categories.forEach((category) => {
+          const title = String(category?.title || "").trim();
+          expect(title.length).toBeGreaterThanOrEqual(4);
+          titles.push(title);
+        });
+      });
+
+      const lower = titles.map((item) => item.toLowerCase());
+      expect(new Set(lower).size).toBe(lower.length);
+    });
+  });
 });

@@ -109,6 +109,63 @@ const BANNED_PATTERNS = [
 ];
 
 const VEDIC_CROSS_DOMAIN = /(Ascendant|Solar\s*Return|Synastry|Composite)/i;
+const FORBIDDEN_CATEGORY_TITLES = new Set([
+  "핵심 요약",
+  "구조 해석",
+  "강점과 기회",
+  "주의할 패턴",
+  "현실 적용 전략",
+  "최종 제언",
+  "로드맵",
+  "강점",
+  "주의점",
+  "현실 전략",
+  "종합 분석",
+  "기본 해석",
+]);
+
+export function normalizeCategoryTitle(value) {
+  return String(value || "")
+    .replace(/[\r\n\t]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function validateUniqueCategoryNamesByChapter(chapterSchema = []) {
+  const allTitles = new Map();
+  const chapters = Array.isArray(chapterSchema) ? chapterSchema : [];
+
+  for (const chapter of chapters) {
+    const chapterId = String(chapter?.chapterId || chapter?.id || "unknown");
+    const chapterTitles = new Set();
+    const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
+
+    for (const category of categories) {
+      const title = normalizeCategoryTitle(category?.title);
+      if (!title || title.length < 4) {
+        throw new Error("CATEGORY_TITLE_TOO_SHORT");
+      }
+
+      if (FORBIDDEN_CATEGORY_TITLES.has(title)) {
+        throw new Error(`FORBIDDEN_CATEGORY_TITLE: ${title}`);
+      }
+
+      const normalizedKey = title.toLowerCase();
+
+      if (chapterTitles.has(normalizedKey)) {
+        throw new Error(`DUPLICATED_CATEGORY_TITLE_IN_CHAPTER: ${chapterId} / ${title}`);
+      }
+      if (allTitles.has(normalizedKey)) {
+        throw new Error(`DUPLICATED_CATEGORY_TITLE_IN_REPORT: ${title}`);
+      }
+
+      chapterTitles.add(normalizedKey);
+      allTitles.set(normalizedKey, chapterId);
+    }
+  }
+
+  return true;
+}
 
 export function validateGeneratedChapterText(text, options = {}) {
   const source = removeRepeatedParagraphs(String(text || "").trim());
