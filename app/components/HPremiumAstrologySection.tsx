@@ -41,19 +41,19 @@ type PremiumSectionProps = {
 // 챕터 메타 (UI 표시용)
 // ─────────────────────────────────────────────────────────────────
 const CHAPTER_META: ChapterMeta[] = [
-  { num:  1, title: "페르소나와 존재의 핵",       subtitle: "ASC·Sun·Moon의 입체적 결합",         icon: "🌌" },
-  { num:  2, title: "감정의 뿌리",                subtitle: "Moon & 4하우스",                     icon: "🌊" },
-  { num:  3, title: "인지 체계와 정보의 연금술",  subtitle: "Mercury & 3·9하우스",                icon: "🧠" },
-  { num:  4, title: "욕망의 미학과 가치 자산",    subtitle: "Venus & 2·7하우스",                  icon: "💎" },
-  { num:  5, title: "추진력과 에너지 관리",       subtitle: "Mars & 1·8하우스",                   icon: "⚡" },
-  { num:  6, title: "행운의 좌표",                subtitle: "Jupiter & 9하우스",                  icon: "🌠" },
-  { num:  7, title: "업보의 한계와 마스터의 길",  subtitle: "Saturn & 10하우스",                  icon: "🏛️" },
-  { num:  8, title: "세대적 변화와 개인의 혁신",  subtitle: "Uranus · Neptune · Pluto",           icon: "🌀" },
-  { num:  9, title: "영혼의 나침반",              subtitle: "Lunar Nodes",                         icon: "🧭" },
-  { num: 10, title: "시냅스트리 — 관계의 투사",   subtitle: "궁합 1: 심리적 행성 각도",           icon: "🔮" },
-  { num: 11, title: "컴포지트 — 우리라는 운명",   subtitle: "궁합 2: 합산 차트",                  icon: "⭕" },
-  { num: 12, title: "별들의 마스터플랜",           subtitle: "총결산 및 개운법",                   icon: "✨" },
-  { num: 13, title: "90일 현실 전환 플랜",         subtitle: "관계·커리어·재정 실천 설계",         icon: "🧭" },
+  { num:  1, title: "출생차트 총론 — 하늘이 남긴 첫 설계도", subtitle: "출생차트 전체 인상과 중심축 통합", icon: "🌌" },
+  { num:  2, title: "태양·달·상승궁 — 자아, 감정, 페르소나의 삼각형", subtitle: "자아·감정·적응 전략의 통합", icon: "🌊" },
+  { num:  3, title: "행성 배치 완전 해석 — 내 안의 열 가지 목소리", subtitle: "개인·사회·세대 행성 통합", icon: "🧠" },
+  { num:  4, title: "12하우스 분석 — 삶이 펼쳐지는 무대", subtitle: "삶의 12영역 작동 방식", icon: "💎" },
+  { num:  5, title: "주요 각도 분석 — 재능과 긴장의 숨은 회로", subtitle: "조화각·긴장각·결합의 실전 해석", icon: "⚡" },
+  { num:  6, title: "원소·모드·극성 — 기질의 밸런스 지도", subtitle: "기질 균형과 보완 전략", icon: "🌠" },
+  { num:  7, title: "사랑과 관계 — 금성, 화성, 7하우스가 말하는 애정 방식", subtitle: "관계 패턴과 회복 전략", icon: "🏛️" },
+  { num:  8, title: "직업·재물·사회적 성공 — MC와 2·6·10하우스의 전략", subtitle: "일·돈·성과의 구조 설계", icon: "🌀" },
+  { num:  9, title: "가족·상처·무의식 — 달, IC, 4·8·12하우스의 깊은 이야기", subtitle: "가족 각본과 회복 루틴", icon: "🧭" },
+  { num: 10, title: "성장·철학·영성 — 목성, 토성이 이끄는 길", subtitle: "성장축과 장기 과제", icon: "🔮" },
+  { num: 11, title: "시기운과 변화의 흐름 — 지금부터 열리는 하늘의 리듬", subtitle: "타이밍 읽기와 준비 전략", icon: "⭕" },
+  { num: 12, title: "최종 인생 전략 — 내 별자리를 현실로 살아내는 법", subtitle: "전체 통합 선언문", icon: "✨" },
+  { num: 13, title: "90일 현실 전환 플랜 — 관계·커리어·재정 실천 설계", subtitle: "관계·커리어·재정 실천 로드맵", icon: "🧭" },
 ];
 const TOTAL_CHAPTERS = CHAPTER_META.length;
 

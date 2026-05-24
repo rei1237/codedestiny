@@ -36,7 +36,9 @@ describe("Premium PDF v2 chapter plans", () => {
 
   test("숙요점 requiredFields는 27숙(본명숙) 기반 키를 포함", () => {
     const plan = getPremiumPdfV2ChapterPlan("sookyoPremium");
+    expect(plan).toHaveLength(12);
     expect(plan[0].requiredFields).toEqual(expect.arrayContaining(["宿曜.birthMansion", "宿曜.coreNature"]));
+    expect(plan[0].title).toContain("본명숙 원형 해독");
   });
 
   test("베다점 requiredFields는 라그나/행성/하우스/다샤를 포함", () => {
@@ -55,7 +57,7 @@ describe("Premium PDF v2 chapter plans", () => {
     const plan = getPremiumPdfV2ChapterPlan("westernAstrologyPremium");
     const ch1 = plan[0];
 
-    expect(plan).toHaveLength(12);
+    expect(plan).toHaveLength(13);
     expect(ch1.title).toContain("출생차트 총론");
 
     expect(ch1.requiredFields).toEqual(expect.arrayContaining([

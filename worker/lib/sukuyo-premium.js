@@ -49,18 +49,18 @@ const SUKUYO_RELATION_HAN = {
 };
 
 const SUKUYO_PERSONAL_CHAPTER_META = [
-  { key: "P1", num: 1, title: "영혼의 원형", subtitle: "당신의 숙요별이 새긴 운명 코드" },
-  { key: "P2", num: 2, title: "감정의 조수간만", subtitle: "달의 주기가 만드는 정서 파동" },
-  { key: "P3", num: 3, title: "페르소나와 브랜딩", subtitle: "세상이 당신을 기억하는 방식" },
-  { key: "P4", num: 4, title: "자산의 중력", subtitle: "부를 끌어당기는 달빛 전략" },
-  { key: "P5", num: 5, title: "보이지 않는 톱니바퀴", subtitle: "성공 뒤에 숨은 협력 역학" },
-  { key: "P6", num: 6, title: "관계의 정밀 레이더", subtitle: "안괴·성쇠·우친 방향성과 거리 해석" },
-  { key: "P7", num: 7, title: "파괴적 혁신", subtitle: "위기를 기회로 전환하는 전략" },
-  { key: "P8", num: 8, title: "조화로운 성장", subtitle: "나를 살리는 공간과 환경의 법칙" },
-  { key: "P9", num: 9, title: "정서적 유대", subtitle: "깊은 연결을 만드는 감정 지능" },
-  { key: "P10", num: 10, title: "운명적 거리", subtitle: "가까이해야 할 것과 멀리해야 할 것" },
-  { key: "P11", num: 11, title: "달의 주기", subtitle: "월령 에너지 사이클 완전 공략" },
-  { key: "P12", num: 12, title: "영혼의 마스터플랜", subtitle: "1년·3년·10년 실행 로드맵" },
+  { key: "P1", num: 1, title: "본명숙 원형 해독 — 나의 27숙 정체성", subtitle: "사용자의 본명숙 자체를 정확하게 설명" },
+  { key: "P2", num: 2, title: "달의 주기와 정서 리듬 — 월상·삭망각·조도 분석", subtitle: "lunarPhase 데이터 기반 정서 리듬 해석" },
+  { key: "P3", num: 3, title: "페르소나와 첫인상 — 세상이 나를 기억하는 방식", subtitle: "외부 이미지와 사회적 인상 분석" },
+  { key: "P4", num: 4, title: "자산 감각과 생활 기반 — 돈을 대하는 숙요적 태도", subtitle: "돈·안정감·재정 운영 성향 분석" },
+  { key: "P5", num: 5, title: "협업과 조직 적응 — 보이지 않는 톱니바퀴", subtitle: "조직·협업·역할 최적화" },
+  { key: "P6", num: 6, title: "관계 감지력 — 인간관계 레이더와 거리 조절", subtitle: "개인 숙요 기준 인간관계 감각 분석" },
+  { key: "P7", num: 7, title: "위기와 전환 — 무너질 때 다시 살아나는 방식", subtitle: "위기 대응과 회복력" },
+  { key: "P8", num: 8, title: "가족과 뿌리 — 정서적 기반과 소속감", subtitle: "가족·공간·정서적 기반" },
+  { key: "P9", num: 9, title: "욕망과 추진력 — 내가 움직이는 진짜 이유", subtitle: "욕망·동기·추진력" },
+  { key: "P10", num: 10, title: "내면 회복과 영성 — 혼자 있을 때 살아나는 힘", subtitle: "회복 루틴과 영적 성장" },
+  { key: "P11", num: 11, title: "달의 주기 — 월령 에너지 사이클", subtitle: "한 달 주기 행동 우선순위" },
+  { key: "P12", num: 12, title: "영혼의 마스터플랜 — 1년·3년·10년 로드맵", subtitle: "전체 종합 결론과 실행 계획" },
 ];
 
 const SUKUYO_COMPAT_CHAPTER_META = [

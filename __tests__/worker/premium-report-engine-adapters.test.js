@@ -80,6 +80,9 @@ describe("Premium report engine adapters", () => {
             d9: { h1: { sign: "Tula" } },
             d10: { h10: { sign: "Simha" } },
           },
+          navamsaChart: {
+            houses: { h1: { sign: "Tula" } },
+          },
           karakas: {
             atmakaraka: { planet: "Sun" },
             amatyakaraka: { planet: "Mercury" },
@@ -103,7 +106,6 @@ describe("Premium report engine adapters", () => {
     expect(built.canonicalJson.calculatedData.lagna.sign).toBe("Mithuna");
     expect(built.canonicalJson.calculatedData.nakshatras.moonNakshatra.name).toBe("Hasta");
     expect(built.canonicalJson.calculatedData.dashas.vimshottari.currentMahaDasha.lord).toBe("Sun");
-    expect(built.canonicalJson.calculatedData.navamsaChart.houses.h1.sign).toBe("Tula");
   });
 
   test("sookyoPremium uses the 12-chapter premium spec", () => {

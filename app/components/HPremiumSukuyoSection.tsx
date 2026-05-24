@@ -52,19 +52,18 @@ type PremiumSectionProps = {
 // 챕터 메타데이터
 // ─────────────────────────────────────────────────────────────────
 const CHAPTER_META: ChapterMeta[] = [
-  { num: 1,  title: "영혼의 원형",           subtitle: "당신의 별자리가 새긴 운명 코드",     icon: "🌑" },
-  { num: 2,  title: "감정의 조수간만",        subtitle: "달의 주기가 만들어내는 정서 파동",   icon: "🌊" },
-  { num: 3,  title: "페르소나와 브랜딩",      subtitle: "세상이 당신을 기억하는 방식",        icon: "🎭" },
-  { num: 4,  title: "자산의 중력",            subtitle: "부를 끌어당기는 달빛 전략",         icon: "💰" },
-  { num: 5,  title: "보이지 않는 톱니바퀴",  subtitle: "성공 뒤에 숨겨진 협력 역학",        icon: "⚙️" },
-  { num: 6,  title: "관계의 정밀 레이더",     subtitle: "6대 숙요 관계 역학 완전 분석",      icon: "📡" },
-  { num: 7,  title: "파괴적 혁신",           subtitle: "위기를 기회로 전환하는 달빛 전략",  icon: "💥" },
-  { num: 8,  title: "조화로운 성장",         subtitle: "나를 살리는 공간과 환경의 법칙",    icon: "🌿" },
-  { num: 9,  title: "정서적 유대",           subtitle: "깊은 연결을 만드는 감정 지능",      icon: "❤️" },
-  { num: 10, title: "운명적 거리",           subtitle: "가까이해야 할 것과 멀리해야 할 것", icon: "🧭" },
-  { num: 11, title: "달의 주기",            subtitle: "월령 에너지 사이클 완전 攻略",       icon: "🌙" },
-  { num: 12, title: "관계를 정화하는 연금술", subtitle: "인연의 독소를 황금으로 바꾸는 법", icon: "⚗️" },
-  { num: 13, title: "영혼의 마스터플랜",     subtitle: "달빛 전략가의 10년 로드맵",         icon: "🗺️" },
+  { num: 1,  title: "본명숙 원형 해독 — 나의 27숙 정체성", subtitle: "사용자의 본명숙 자체를 정확하게 설명",     icon: "🌑" },
+  { num: 2,  title: "달의 주기와 정서 리듬 — 월상·삭망각·조도 분석", subtitle: "lunarPhase 데이터 기반 정서 리듬 해석",   icon: "🌊" },
+  { num: 3,  title: "페르소나와 첫인상 — 세상이 나를 기억하는 방식", subtitle: "외부 이미지와 사회적 인상 분석",        icon: "🎭" },
+  { num: 4,  title: "자산 감각과 생활 기반 — 돈을 대하는 숙요적 태도", subtitle: "돈·안정감·재정 운영 성향 분석",         icon: "💰" },
+  { num: 5,  title: "협업과 조직 적응 — 보이지 않는 톱니바퀴", subtitle: "조직·협업·역할 최적화",        icon: "⚙️" },
+  { num: 6,  title: "관계 감지력 — 인간관계 레이더와 거리 조절", subtitle: "개인 숙요 기준 인간관계 감각 분석",      icon: "📡" },
+  { num: 7,  title: "위기와 전환 — 무너질 때 다시 살아나는 방식", subtitle: "위기 대응과 회복력",  icon: "💥" },
+  { num: 8,  title: "가족과 뿌리 — 정서적 기반과 소속감", subtitle: "가족·공간·정서적 기반",    icon: "🌿" },
+  { num: 9,  title: "욕망과 추진력 — 내가 움직이는 진짜 이유", subtitle: "욕망·동기·추진력",      icon: "❤️" },
+  { num: 10, title: "내면 회복과 영성 — 혼자 있을 때 살아나는 힘", subtitle: "회복 루틴과 영적 성장", icon: "🧭" },
+  { num: 11, title: "달의 주기 — 월령 에너지 사이클", subtitle: "한 달 주기 행동 우선순위",       icon: "🌙" },
+  { num: 12, title: "영혼의 마스터플랜 — 1년·3년·10년 로드맵", subtitle: "전체 종합 결론과 실행 계획", icon: "⚗️" },
 ];
 
 const SUKUYO_STORAGE_KEY = "premium:sukuyo:session:v1";
@@ -921,7 +920,7 @@ export default function HPremiumSukuyoSection({
     if (!sukuyo || allGenerating) return;
     setAllGenerating(true);
     setRequestError("");
-    for (let ch = 2; ch <= 13; ch++) {
+    for (let ch = 2; ch <= 12; ch++) {
       const idx = ch - 1;
       if (chapters[idx].step === "done") continue;
       setChapters((prev) => {
@@ -1040,7 +1039,7 @@ ${chaptersHtml}
             <p style={{ color: "rgba(125,211,252,0.7)", fontSize: "0.66rem", letterSpacing: "0.28em", margin: 0 }}>MOONLIGHT STRATEGY · DETAIL INTRO</p>
             <h3 style={{ color: "#fff", fontWeight: 900, fontSize: "1.5rem", margin: "8px 0 6px" }}>숙요점 달빛 전략 리포트</h3>
             <p style={{ color: "rgba(186,230,253,0.72)", fontSize: "0.88rem", lineHeight: 1.8, margin: 0 }}>
-              27수 별자리 흐름을 13개 챕터로 먼저 확인하고, 버튼 클릭 시 PDF 생성 단계로 진입합니다.
+              27수 별자리 흐름을 12개 챕터로 먼저 확인하고, 버튼 클릭 시 PDF 생성 단계로 진입합니다.
             </p>
 
             <div style={{ display: "grid", gap: 8, marginTop: 12 }}>
@@ -1173,7 +1172,7 @@ ${chaptersHtml}
           marginBottom: 28,
         }}
       >
-        {["13챕터 심층 분석", "27수 완전 해석", "6대 관계 역학", "달의 주기 전략", "PDF 다운로드"].map((tag) => (
+        {["12챕터 심층 분석", "27수 완전 해석", "6대 관계 역학", "달의 주기 전략", "PDF 다운로드"].map((tag) => (
           <span
             key={tag}
             style={{
