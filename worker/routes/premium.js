@@ -1454,6 +1454,68 @@ function deriveVedicChartFromPlanets(planetsPayload = {}, input = {}) {
   return derived;
 }
 
+function normalizeVedicInputNumber(value, fallback = 0) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function buildLocalBasicVedicPlanets(input = {}) {
+  const year = Math.trunc(normalizeVedicInputNumber(input?.year, 1990));
+  const month = Math.max(1, Math.min(12, Math.trunc(normalizeVedicInputNumber(input?.month, 1))));
+  const day = Math.max(1, Math.min(31, Math.trunc(normalizeVedicInputNumber(input?.day, 1))));
+  const hour = Math.max(0, Math.min(23, Math.trunc(normalizeVedicInputNumber(input?.hour, 12))));
+  const minute = Math.max(0, Math.min(59, Math.trunc(normalizeVedicInputNumber(input?.minute, 0))));
+  const lon = normalizeVedicInputNumber(input?.lon, 127.0);
+
+  const utcMs = Date.UTC(year, month - 1, day, hour, minute, 0, 0);
+  const daysFromEpoch = utcMs / 86400000;
+  const meanSeed = daysFromEpoch + (lon / 360);
+  const nd = (v) => {
+    let n = Number(v);
+    if (!Number.isFinite(n)) return 0;
+    n %= 360;
+    if (n < 0) n += 360;
+    return n;
+  };
+
+  const planets = {
+    Sun: nd(280.466 + meanSeed * 0.98564736),
+    Moon: nd(218.316 + meanSeed * 13.17639648),
+    Mars: nd(355.433 + meanSeed * 0.524039),
+    Mercury: nd(252.251 + meanSeed * 4.09233445),
+    Jupiter: nd(34.351 + meanSeed * 0.08309257),
+    Venus: nd(181.979 + meanSeed * 1.60213034),
+    Saturn: nd(50.077 + meanSeed * 0.03345965),
+    Rahu: nd(200.0 - meanSeed * 0.0529539),
+  };
+  planets.Ketu = nd(planets.Rahu + 180);
+
+  const asc = nd((hour + (minute / 60)) * 15 + lon + meanSeed * 0.25 - 24);
+
+  return {
+    planets,
+    retrograde: {
+      Sun: false,
+      Moon: false,
+      Mars: false,
+      Mercury: false,
+      Jupiter: false,
+      Venus: false,
+      Saturn: false,
+      Rahu: true,
+      Ketu: true,
+    },
+    ayanamsa: 24,
+    ascendantSidereal: asc,
+    source: "vedic-basic-local-fallback",
+  };
+}
+
+function getLocalBasicVedicChart(input = {}) {
+  const payload = buildLocalBasicVedicPlanets(input);
+  return deriveVedicChartFromPlanets(payload, input);
+}
+
 async function getSwissVedicChart(request, env, input) {
   const timeoutMs = Number(env?.PREMIUM_VEDIC_CHART_TIMEOUT_MS || env?.PREMIUM_VEDIC_ENGINE_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 15000);
   const retryMax = Math.max(1, Math.min(3, Number(env?.PREMIUM_VEDIC_CHART_RETRIES || env?.PREMIUM_VEDIC_ENGINE_RETRIES || 2)));
@@ -1499,9 +1561,21 @@ async function getSwissVedicChart(request, env, input) {
     }
   }
 
-  const finalError = lastError || new Error("VEDIC_CHART_ENGINE_FAILED");
-  finalError.code = String(finalError?.code || "VEDIC_CHART_ENGINE_FAILED");
-  throw finalError;
+  try {
+    const localChart = getLocalBasicVedicChart(input);
+    logPremiumPipelineStage("VedicChartEngineLocalFallbackUsed", {
+      retryMax,
+      fallbackSource: String(localChart?.source || "vedic-basic-local-fallback"),
+      hasLagna: Boolean(localChart?.lagna?.signName),
+      hasMoonNakshatra: Boolean(localChart?.moonNakshatra?.name),
+      reasonCode: String(lastError?.code || lastError?.name || "VEDIC_CHART_ENGINE_FAILED"),
+    });
+    return localChart;
+  } catch (fallbackError) {
+    const finalError = lastError || fallbackError || new Error("VEDIC_CHART_ENGINE_FAILED");
+    finalError.code = String(finalError?.code || "VEDIC_CHART_ENGINE_FAILED");
+    throw finalError;
+  }
 }
 
 async function runWithTimeout(promise, timeoutMs, code = "TIMEOUT") {
@@ -18853,6 +18927,24 @@ function buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars =
   const yearlySummaryText = String(canonical?.yearlySummary?.summary || `${year}년은 속도보다 방향을 정교하게 조정할수록 성과가 커지는 흐름입니다.`);
   const strongestText = top.map((row) => `${row.month}월`).join(", ") || "상대적 강점 구간 없음";
   const cautionText = caution.map((row) => `${row.month}월`).join(", ") || "주의 구간 데이터 부족";
+  const sectionActionGuides = [
+    String(canonical?.yearlySummary?.career || "핵심 목표를 줄이고 실행 밀도를 높이면 성과 변동이 줄어듭니다."),
+    "성과를 키울 시기에는 확장보다 우선순위 재정렬이 먼저입니다.",
+    "사람과 일정을 동시에 벌리기보다 유지 가능한 리듬을 먼저 고정하세요.",
+    "올해의 성과는 빠른 결정보다 기준 있는 반복에서 누적됩니다.",
+  ];
+  const sectionRiskGuides = [
+    String(canonical?.yearlySummary?.relationship || "관계 변수는 속도보다 기준 합의로 관리할 때 손실이 작아집니다."),
+    "경계선 없이 책임을 넓히면 연중 후반 피로가 빠르게 커질 수 있습니다.",
+    "감정 기복이 큰 시기일수록 설명보다 일정과 기준을 먼저 고정해야 합니다.",
+    "불확실성이 커질수록 멈춤 기준과 재시작 기준을 동시에 정해 두는 편이 안전합니다.",
+  ];
+  const sectionQuestions = [
+    "점검 질문: 지금 정한 방향이 90일 뒤에도 유지 가능한가, 체력과 자원을 같이 계산했는가, 우선순위가 과하게 늘어나지 않았는가?",
+    "점검 질문: 성과를 내야 하는 시기와 지켜야 하는 시기를 구분했는가, 과속 신호를 미리 적어 두었는가, 멈출 기준이 분명한가?",
+    "점검 질문: 관계와 감정 반응이 일정을 흔들고 있지는 않은가, 설명보다 합의가 먼저 필요한 지점은 없는가, 부담을 줄일 장치가 있는가?",
+    "점검 질문: 올해의 핵심 문장을 실제 일정표와 예산표에 반영했는가, 대체 시나리오를 확보했는가, 반복 가능한 실행만 남겼는가?",
+  ];
 
   const lines = [
     `## ${chapterLabel}`,
@@ -18903,10 +18995,10 @@ function buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars =
     }
 
     lines.push(
-      `${markerTitle}에서는 ${focusLabel} 관점의 운영 기준을 선명하게 정하는 것이 핵심입니다. 강한 구간(${strongestText})은 기회를 확대하고, 주의 구간(${cautionText})은 손실을 줄이는 방향으로 분리해 대응하세요.`,
-      `실행 전략: ${String(canonical?.yearlySummary?.career || "핵심 목표를 줄이고 실행 밀도를 높이면 성과 변동이 줄어듭니다.")}`,
-      `리스크 대응: ${String(canonical?.yearlySummary?.relationship || "관계 변수는 속도보다 기준 합의로 관리할 때 손실이 작아집니다.")}`,
-      "점검 질문: 지금 선택이 90일 뒤에도 유지 가능한가, 감정 반응이 아니라 근거 있는 행동인가, 대체 시나리오를 준비했는가?",
+      `${markerTitle}에서는 ${focusLabel} 관점의 운영 기준을 선명하게 정하는 것이 핵심입니다. ${idx + 1}번째 핵심 축으로 보면 강한 구간(${strongestText})은 기회를 확대하고, 주의 구간(${cautionText})은 손실을 줄이는 방향으로 분리해 대응하세요.`,
+      `실행 전략: ${sectionActionGuides[idx % sectionActionGuides.length]}`,
+      `리스크 대응: ${sectionRiskGuides[idx % sectionRiskGuides.length]}`,
+      sectionQuestions[idx % sectionQuestions.length],
     );
   });
 
@@ -18930,11 +19022,21 @@ function buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars =
       action: "기록 습관을 유지하세요.",
     };
     const frame = deepDiveFrames[(idx - 1) % deepDiveFrames.length];
+    const monthOpportunity = String(monthRow?.opportunity || monthRow?.actionStrategy || monthRow?.keyword || "핵심 과제 점검").trim() || "핵심 과제 점검";
+    const monthAction = String(monthRow?.action || monthRow?.go || "기록 습관을 유지하세요.").trim() || "기록 습관을 유지하세요.";
+    const monthCaution = String(monthRow?.caution || monthRow?.stop || "과속 의사결정").trim() || "과속 의사결정";
+    const reviewPrompts = [
+      `점검 질문 ${idx}: 이번 주 핵심 목표가 한 문장으로 정리되는가, 보류할 일을 함께 적어 두었는가, 체력 소모를 일정에 반영했는가?`,
+      `점검 질문 ${idx}: 성과 욕심 때문에 기준 없는 확장을 하고 있지 않은가, 손실을 멈출 숫자 기준이 있는가, 도움을 요청할 타이밍을 정했는가?`,
+      `점검 질문 ${idx}: 관계 부담이 누적되기 전에 설명 방식과 빈도를 조정했는가, 오해 가능성을 먼저 줄였는가, 휴식일을 선점했는가?`,
+      `점검 질문 ${idx}: 이번 결정이 다음 달 자원 배분과도 연결되는가, 감정적 피로를 숫자로 확인했는가, 대체 행동을 미리 정했는가?`,
+      `점검 질문 ${idx}: 수입과 지출의 흐름을 함께 보고 있는가, 지금 멈춰야 할 일 하나를 정했는가, 반복 가능한 습관으로 연결했는가?`,
+    ];
     text += `\n\n### 전략 심화 ${idx} - ${frame}`;
-    text += `\n${monthRow.month}월(${monthRow.trend})에는 "${monthRow.opportunity}"를 확장하되, ${focusLabel} 관점의 핵심 목표를 1~2개로 고정해 실행 밀도를 높이세요.`;
-    text += `\n실행 액션: ${monthRow.action}`;
-    text += `\n리스크 경고: ${monthRow.caution}`;
-    text += "\n점검 질문: 이번 선택이 90일 뒤에도 유지 가능한가, 감정 반응이 아니라 근거 데이터로 설명 가능한가, 리스크 발생 시 대체 행동이 준비되어 있는가.";
+    text += `\n${idx}차 보강에서는 ${monthRow.month}월(${monthRow.trend}) 흐름에 맞춰 ${monthOpportunity} 과제를 ${idx}회차 방식으로 확장하되, ${frame} 축에서 ${focusLabel} 핵심 목표를 1~2개로 고정해 실행 밀도를 높이세요.`;
+    text += `\n실행 액션 ${idx}: ${monthAction}`;
+    text += `\n리스크 경고 ${idx}: ${monthCaution}`;
+    text += `\n${reviewPrompts[(idx - 1) % reviewPrompts.length]}`;
     idx += 1;
   }
 
@@ -23286,6 +23388,12 @@ export const __premiumReportTestUtils = {
   dedupeReportParagraphs,
   collectDeterministicLocalFacts,
   buildDeterministicLocalChapterText,
+  detectRepeatedLongSentences,
+  ensureSajuNewYearSourceData,
+  buildCanonicalSajuNewYearReport,
+  getSajuNewYearChapterPromptSpec,
+  buildSajuNewYearChapterText,
+  evaluateSajuNewYearChapterQuality,
   attachPremiumApiMeta,
   buildPremiumAccessDeniedPayload,
 };
