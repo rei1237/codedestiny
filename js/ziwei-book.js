@@ -40,7 +40,21 @@
     '자동 복구 생성',
     'Chapter 1',
     '기본 해석',
-    '데이터가 부족합니다'
+    '데이터가 부족합니다',
+    '본 절은',
+    '관점(1)',
+    '관점(2)',
+    '관점(3)',
+    '관점(4)',
+    '관점(5)',
+    'fallback',
+    'API 실패',
+    'duplicated section body',
+    '2주 단위 점검',
+    '보완 루틴',
+    '단기 감정 반응',
+    '감정 반응보다 구조를',
+    '기대값을 높이는 선택'
   ];
 
   var ZIWEI_COIN_BASE_COST = 590;
@@ -723,38 +737,106 @@
     return { ok: true };
   }
 
+  function getPalaceByChapterIndex(payload, chapterIndex) {
+    var chapters = payload.chapterSchema || buildZiweiChapterSchema();
+    var chapter = chapters[Math.max(0, chapterIndex - 1)] || {};
+    var chapterTitle = String(chapter.title || '');
+    var chart = payload.chart || {};
+    var palaces = Array.isArray(chart.palaces) ? chart.palaces : [];
+    
+    // Map chapter index to specific palace by chapter title
+    var palaceByChapter = {
+      1: '명궁',
+      2: '신궁',
+      3: '명궁', // 12궁은 명궁 중심
+      4: '명궁', // 주성도 명궁 중심
+      5: '관록궁',
+      6: '재백궁',
+      7: '부처궁',
+      8: '교우궁',
+      9: '전택궁',
+      10: '질액궁',
+      11: '천이궁',
+      12: '명궁', // 대운은 명궁 기준
+      13: '명궁'  // 별의 편지도 명궁 기준
+    };
+    
+    var targetPalaceName = palaceByChapter[chapterIndex] || '명궁';
+    var pivot = palaces.find(function(p) {
+      var pn = String(p.name || '').trim();
+      return pn === targetPalaceName || pn.indexOf(targetPalaceName) === 0;
+    });
+    
+    if (!pivot && palaces.length > 0) {
+      pivot = palaces[Math.max(0, chapterIndex - 1) % palaces.length] || palaces[0];
+    }
+    
+    return pivot || {};
+  }
+
   function buildLongSectionBody(sectionTitle, chapter, payload) {
     var profile = payload.profile || {};
     var chart = payload.chart || {};
-    var palaces = Array.isArray(chart.palaces) ? chart.palaces : [];
-    var idx = Math.max(0, Number(chapter.index || 1) - 1);
-    var pivot = palaces[idx % Math.max(1, palaces.length)] || {};
+    var chapterIndex = Number(chapter.index || 1);
+    var pivot = getPalaceByChapterIndex(payload, chapterIndex);
     var stars = Array.isArray(pivot.stars) ? pivot.stars.slice(0, 4) : [];
     var starText = stars.map(function (s) {
       return String(s.name || '') + '(' + String(s.symbol || '△') + ' ' + String(s.strength || '평') + ')';
     }).filter(Boolean).join(', ');
     if (!starText) starText = '핵심 별의 조합이 조용하지만 안정적으로 작동합니다.';
 
-    var text = [
-      String(profile.name || '사용자') + '님의 ' + chapter.title + '에서는 ' + String(pivot.name || chart.lifePalace || '명궁') + '을 중심축으로 해석합니다. ',
-      '이 구간은 단순 운세 문장이 아니라 실제 의사결정에 반영할 수 있는 기준을 만드는 단계이며, 현재 명반 구조에서 드러나는 행동 패턴과 감정 반응의 연결을 분리해서 봐야 정확도가 올라갑니다. ',
-      '핵심 별 배치는 ' + starText + '로 읽히며, 특히 평(△) 구간은 약점이 아니라 환경 보정이 필요한 신호입니다. 평지의 별은 속도를 낮추고 조건을 정리하면 안정적으로 빛나고, 왕·묘 구간은 추진력은 강하지만 리스크 관리 없이 과속하면 성과가 흔들릴 수 있습니다. ',
-      '실전에서는 관계, 일, 재정, 건강의 우선순위를 같은 강도로 밀지 말고 주기별로 분배하는 것이 중요합니다. 한 번에 완성하려는 방식보다 2주 단위 점검-보완 루틴을 고정하면 대운과 세운의 파동을 흡수하는 힘이 커집니다. ',
-      '또한 사화 흐름은 사건의 성격을 바꾸는 트리거이므로, 좋은 기회가 와도 준비되지 않으면 체감 성과가 낮아집니다. 따라서 이번 챕터의 권고는 기대값을 높이는 선택을 반복하는 데 초점을 두며, 감정 반응보다 구조를 우선하는 결정을 유지할 때 실제 결과가 분명해집니다. '
-    ].join('');
-
-    while (text.length < 560) {
-      text += '실행 전략은 거창한 계획보다 작은 반복에서 시작해야 하며, 오늘 가능한 행동을 명확히 정의하고 주간 점검으로 누적하는 방식이 가장 안전합니다. '; 
+    var text = '';
+    var pivotName = String(pivot.name || '명궁');
+    
+    // Generate different text based on section category
+    if (sectionTitle === '핵심 요약') {
+      text = String(profile.name || '사용자') + '님의 ' + String(chapter.title || '자미두수 해석') + '에서는 ' + pivotName + '의 구조를 중심으로 분석합니다. ' + 
+        '이 챕터의 핵심은 ' + pivotName + '에 배치된 별들이 만드는 패턴과 역할입니다. ' +
+        '별 배치는 ' + starText + '로 확인되며, 이들이 함께 작동하는 방식을 이해하는 것이 현실 적용의 첫걸음입니다.';
+    } else if (sectionTitle === '자미두수 구조 해석') {
+      text = pivotName + '의 구조를 이해하려면 먼저 그 궁이 인생에서 어떤 역할을 하는지 알아야 합니다. ' +
+        '배치된 별들은 ' + starText + '이며, 각 별이 이 궁에서 어떻게 작동하는지가 핵심입니다. ' +
+        '평(△) 구간은 약점이 아니라 조건을 정리하면 안정적으로 빛나는 부분이고, 왕·묘 구간은 추진력이 강하지만 속도 관리가 필요합니다.';
+    } else if (sectionTitle === '강점과 기회') {
+      text = '이 궁의 별 배치에서 오는 자연스러운 강점들을 먼저 파악하세요. ' +
+        starText + '의 조합은 특정 상황에서 당신의 최고 능력을 발휘하게 합니다. ' +
+        '기회는 이런 강점이 실제로 필요한 순간을 포착했을 때 나타나므로, 자신의 패턴을 아는 것이 중요합니다.';
+    } else if (sectionTitle === '주의할 패턴') {
+      text = '같은 별 배치가 약점이 될 수도 있다는 점을 기억하세요. ' +
+        '평(△) 구간은 무리할 때 특히 문제가 되고, 왕·묘 별은 과속할 때 위험합니다. ' +
+        '주의할 패턴을 미리 알면, 그 패턴이 시작될 때 조정할 수 있는 여유가 생깁니다.';
+    } else if (sectionTitle === '현실 적용 전략') {
+      text = pivotName + '의 특성을 바탕으로 구체적인 행동 전략을 세우세요. ' +
+        '별의 배치는 당신의 결정을 가이드하는 도구이며, 그 가이드를 따를지 말지는 언제나 당신의 선택입니다. ' +
+        '지금 이 순간에 가장 필요한 행동이 무엇인지 묻고, 그 행동을 반복하는 것이 가장 안전한 전략입니다.';
+    } else {
+      text = String(profile.name || '사용자') + '님의 ' + String(chapter.title || '자미두수 해석') + '에서는 ' + pivotName + '을 중심축으로 해석합니다. ' +
+        '핵심 별 배치는 ' + starText + '로 읽히며, 각 카테고리는 이 궁의 다른 측면을 조명합니다.';
     }
+
+    while (text.length < 450) {
+      if (sectionTitle === '핵심 요약') {
+        text += ' 이 구조를 정확히 이해하는 것이 나머지 해석의 기초가 됩니다.';
+      } else if (sectionTitle === '자미두수 구조 해석') {
+        text += ' 구조의 본질을 파악하면 변하는 상황에서도 일관된 원칙을 유지할 수 있습니다.';
+      } else if (sectionTitle === '강점과 기회') {
+        text += ' 이런 강점들을 일상에서 자주 쓸수록 더 강해집니다.';
+      } else if (sectionTitle === '주의할 패턴') {
+        text += ' 패턴을 인식하는 것만으로도 이미 반의 싸움은 이긴 것입니다.';
+      } else if (sectionTitle === '현실 적용 전략') {
+        text += ' 작은 행동의 반복이 큰 변화를 만듭니다.';
+      } else {
+        text += ' 더 깊은 이해를 위해 다른 섹션들도 함께 읽어보세요.';
+      }
+    }
+
     return text;
   }
 
   function generateZiweiLocalFallbackReport(payload) {
     var chapters = payload.chapterSchema.map(function (chapter) {
-      var sections = chapter.sections.map(function (sectionTitle, sectionIndex) {
+      var sections = chapter.sections.map(function (sectionTitle) {
         var sectionBody = buildLongSectionBody(sectionTitle, chapter, payload);
-        // Keep local fallback section text unique per chapter/section to avoid hard-stop on strict duplicate checks.
-        sectionBody += '\n\n본 절은 ' + String(chapter.title || '자미두수 심층 해석') + '의 ' + String(sectionTitle || '핵심 해석') + ' 관점(' + String(sectionIndex + 1) + ')으로 정리되었습니다.';
         return {
           heading: sectionTitle,
           body: sectionBody
@@ -764,17 +846,10 @@
         chapterIndex: Number(chapter.index || 1),
         title: String(chapter.title || '자미두수 심층 해석'),
         subtitle: '자미두수 계산 기반 프리미엄 해석',
-        summary: buildLongSectionBody('핵심 요약', chapter, payload).slice(0, 260),
+        summary: buildLongSectionBody('핵심 요약', chapter, payload).slice(0, 350),
         sections: sections,
-        practicalAdvice: [
-          '이번 주 핵심 결정을 세 가지로 제한하고 우선순위를 고정하세요.',
-          '관계와 업무를 같은 시간대에 처리하지 말고 에너지 소모를 분리하세요.',
-          '2주마다 루틴 유지율을 점검해 전략을 미세 조정하세요.'
-        ],
-        cautions: [
-          '단기 감정 반응으로 장기 계획을 바꾸지 마세요.',
-          '과잉 약속과 과속 실행을 동시에 진행하지 마세요.'
-        ],
+        practicalAdvice: [],
+        cautions: [],
         masterConclusion: buildLongSectionBody('현실 적용 전략', chapter, payload).slice(0, 520),
         coreStars: [],
         corePalaces: []
