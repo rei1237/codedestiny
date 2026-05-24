@@ -1360,6 +1360,17 @@
           lat: Number(requestInput.body && requestInput.body.lat),
           lon: Number(requestInput.body && requestInput.body.lon)
         });
+        // preflight 실패 시 즉시 환불 대신 챕터 직접 생성으로 복구 시도
+        setLoadingProgress({ currentChapter: 1, status: 'generating', message: '데이터 점검 우회 복구 중...' });
+        var fallbackOnPreflight = await generateVedicViaPremiumReport(requestInput.body, null);
+        if (fallbackOnPreflight && fallbackOnPreflight.ok) {
+          state.reportId = String(fallbackOnPreflight.reportId || '');
+          state.downloadUrl = '';
+          state.chapters = Array.isArray(fallbackOnPreflight.chapters) ? fallbackOnPreflight.chapters : [];
+          state.paymentContext = null;
+          renderResultScreen();
+          return;
+        }
         await attemptVedicAutoRefund('베다 프리미엄 preflight 실패 자동 환불');
         state.paidGateKey = '';
         setError(String(preflight.message || '생성 전 데이터 점검에 실패했습니다.'));

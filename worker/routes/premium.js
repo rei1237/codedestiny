@@ -4342,11 +4342,22 @@ async function hydratePremiumCanonicalData({
       status = 200;
     } else if (handler) {
       const prepareRequestBody = buildPremiumPrepareRequestBody(reportType, requestBody, 1, requestId, attempt);
-      const { response, data } = await invokePremiumLegacyHandler(handler, request, env, prepareRequestBody);
-      status = Number(response?.status || 0);
-      code = String(data?.code || "");
-      if (response.ok && data?.ok) {
-        prepareData = data;
+      try {
+        const { response, data } = await invokePremiumLegacyHandler(handler, request, env, prepareRequestBody);
+        status = Number(response?.status || 0);
+        code = String(data?.code || "");
+        if (response.ok && data?.ok) {
+          prepareData = data;
+        }
+      } catch (handlerError) {
+        status = 500;
+        code = String(handlerError?.code || handlerError?.name || "HANDLER_EXCEPTION");
+        logPremiumPipelineStage("HydrationHandlerException", {
+          reportType,
+          attempt,
+          code,
+          message: String(handlerError?.message || "handler threw an exception"),
+        });
       }
     }
 
@@ -4408,6 +4419,25 @@ async function hydratePremiumCanonicalData({
       calculationVersion,
       createdAt,
       sourceMap: buildPremiumSourceMap(reportType, requestBody, bestPrepareData),
+      supplementalCanonicalByType: supplementalCalculatedByType,
+    });
+  }
+
+  // vedicPremium: 차트 엔진 실패 시에도 입력값 기반으로 최소 canonical 구성 (환불 방지)
+  if (!bestBuild && reportType === "vedicPremium" && requestBody && hasMeaningfulValue(requestBody)) {
+    logPremiumPipelineStage("VedicHydrationFallback", {
+      reportType,
+      requestId,
+      reason: "모든 hydration 시도 실패 – 입력값 기반 최소 canonical 구성",
+    });
+    const skeletonPrepareData = { canonicalVedicChart: {} };
+    bestPrepareData = skeletonPrepareData;
+    bestBuild = buildCanonicalJsonForReport(reportType, skeletonPrepareData, requestBody, authInfo, {
+      reportId,
+      inputHash,
+      calculationVersion,
+      createdAt,
+      sourceMap: buildPremiumSourceMap(reportType, requestBody, skeletonPrepareData),
       supplementalCanonicalByType: supplementalCalculatedByType,
     });
   }
@@ -10881,6 +10911,150 @@ function buildVedicPremiumPrompt(meta, chapter, reportType, context, previousCha
   ].filter(Boolean).join("\n");
 }
 
+function buildVedicLocalFallbackChapter(chapter, meta, canonicalVedicChart, reportType) {
+  const mode = normalizeVedicReportType(reportType);
+  const chapterKey = meta?.key || (mode === "compatibility" ? `VC${chapter}` : `V${chapter}`);
+  const sectionLabels = VEDIC_SECTION_LABELS[chapterKey] || VEDIC_DEFAULT_SECTION_LABELS;
+
+  const lagna = canonicalVedicChart?.lagna?.signName || "";
+  const moonNakshatra = canonicalVedicChart?.moonNakshatra?.name || "";
+  const moonSign = canonicalVedicChart?.moonNakshatra?.moonSign || canonicalVedicChart?.planets?.Moon?.signName || "";
+  const sunSign = canonicalVedicChart?.planets?.Sun?.signName || "";
+  const currentDasha = canonicalVedicChart?.dasha?.current?.planet || "";
+  const anterDasha = canonicalVedicChart?.dasha?.antar?.planet || "";
+  const atmakaraka = canonicalVedicChart?.karakas?.atmakaraka?.name || "";
+  const name = canonicalVedicChart?.profile?.name || "";
+  const birthDate = canonicalVedicChart?.profile?.birth?.date || "";
+  const birthPlace = canonicalVedicChart?.profile?.birth?.locationName || "";
+  const partnerName = canonicalVedicChart?.compatibility?.partnerName || "상대방";
+  const partnerLagna = canonicalVedicChart?.compatibility?.partnerLagna || "";
+  const partnerMoonNakshatra = canonicalVedicChart?.compatibility?.partnerMoonNakshatra || "";
+  const ashtaKootaTotal = canonicalVedicChart?.compatibility?.ashtaKoota?.total;
+  const ashtaKootaMax = canonicalVedicChart?.compatibility?.ashtaKoota?.totalMax || 36;
+  const planets = canonicalVedicChart?.planets || {};
+
+  const lagnaL = lagna ? `${lagna} 라그나` : "라그나";
+  const moonL = moonSign ? `${moonSign} 달(찬드라)` : "달(찬드라)";
+  const nakshatraL = moonNakshatra ? `${moonNakshatra} 나크샤트라` : "나크샤트라";
+  const dashaL = currentDasha ? `${currentDasha} 마하다샤` : "현재 마하다샤";
+  const antardashL = anterDasha ? `${anterDasha} 안타르다샤` : "현재 안타르다샤";
+  const atmakarakaL = atmakaraka ? `${atmakaraka}(아트마카라카)` : "아트마카라카";
+  const profileL = [name, birthDate && `(${birthDate})`, birthPlace].filter(Boolean).join(" ") || "분석 대상";
+  const partnerL = partnerName || "상대방";
+  const ashtaL = ashtaKootaTotal != null ? `${ashtaKootaTotal}/${ashtaKootaMax}점` : "";
+  const sunL = sunSign ? `${sunSign} 태양(수리야)` : "태양(수리야)";
+
+  const planetNames = VEDIC_PLANET_ORDER
+    .filter((p) => planets[p]?.signName)
+    .map((p) => `${VEDIC_PLANET_KO[p] || p}: ${planets[p].signName}하우스`)
+    .slice(0, 5)
+    .join(", ");
+
+  const chapterTitle = meta?.title || `${chapter}장`;
+  const chapterSubtitle = meta?.subtitle || "";
+
+  const allLabels = sectionLabels.length >= 4
+    ? [...sectionLabels, "핵심 실천 전략", "베다 통합 해석"]
+    : [...sectionLabels, ...Array(Math.max(0, 6 - sectionLabels.length)).fill(null).map((_, i) => `심화 분석 ${i + 1}`)];
+
+  const parts = [];
+  parts.push(`## ${chapterTitle}`);
+  if (chapterSubtitle) parts.push(`*${chapterSubtitle}*`);
+  parts.push("");
+
+  if (mode === "compatibility") {
+    parts.push(
+      `베다 점성술(Jyotish)에서 두 사람의 인연은 단순한 감정의 흐름을 넘어, 카르믹 연결과 그라하 에너지의 교차로 형성됩니다. ` +
+      `${profileL}와 ${partnerL}의 베다 배치를 ${chapterTitle}의 관점에서 분석하면, 두 사람이 공유하는 에너지 패턴과 ` +
+      `조율이 필요한 지점이 구체적으로 드러납니다.` +
+      (ashtaL ? ` 이번 챕터는 아쉬타쿠타 궁합 총점 **${ashtaL}**을 근거로, 관계 운영 전략을 심층적으로 제시합니다.` : "")
+    );
+  } else {
+    parts.push(
+      `베다 점성술(Jyotish)은 출생 시각과 장소에 따른 행성 배치를 분석하여 삶의 패턴과 운명의 흐름을 해석합니다. ` +
+      `${profileL}의 베다 차트에서 **${lagnaL}**은 이 삶의 전체 구조를 규정하는 출발점이며, ` +
+      `**${nakshatraL}**은 타고난 기질과 감정의 결을 나타냅니다. ` +
+      `이 챕터에서는 **${chapterTitle}**의 관점에서 당신의 베다 배치가 가진 의미를 상세히 분석합니다.`
+    );
+  }
+  parts.push("");
+
+  allLabels.forEach((label, idx) => {
+    const sNum = idx + 1;
+    parts.push(`### ${sNum}. ${label}`);
+    parts.push("");
+
+    const isCompat = mode === "compatibility";
+    const dataRef = isCompat
+      ? `${partnerL}의 ${partnerLagna ? `${partnerLagna} 라그나` : "라그나"}와 ${partnerMoonNakshatra ? `${partnerMoonNakshatra} 나크샤트라` : "나크샤트라"}`
+      : `${lagnaL}과 ${nakshatraL}`;
+
+    const dashaRef = isCompat
+      ? `두 사람의 다샤 사이클`
+      : `${dashaL}${anterDasha ? ` / ${antardashL}` : ""}`;
+
+    const planetRef = planetNames
+      ? `차트 내 ${planetNames}의 배치`
+      : `행성 배치`;
+
+    // Paragraph 1: main analysis
+    parts.push(
+      `베다 점성술에서 ${label}은 개인의 카르믹 경로와 그라하 에너지가 교차하는 중요한 분석 영역입니다. ` +
+      `${dataRef}을 기준으로 보면, 이 영역에서 ${isCompat ? `두 사람의 관계` : "당신"}가 가진 핵심 에너지 패턴은 삶의 여러 맥락에서 반복적으로 작동하는 구조적 특성을 지니고 있습니다. ` +
+      `이러한 패턴은 ${sNum === 1 ? "일상적인 선택과 반응" : sNum <= 3 ? "관계와 자기 표현 방식" : "장기적인 방향 설정과 의사 결정"}에서 뚜렷하게 나타납니다.`
+    );
+    parts.push("");
+
+    // Paragraph 2: specific chart reference
+    if (isCompat) {
+      parts.push(
+        `${label} 분석에서 ${ashtaL ? `아쉬타쿠타 총점 ${ashtaL}은 ` : "두 사람의 궁합은 "}` +
+        `관계의 기본 에너지 호환성을 보여주며, 이를 ${chapterTitle}의 맥락에 적용하면 ` +
+        `두 사람이 이 영역에서 가진 자연스러운 강점과 충돌 가능성이 함께 드러납니다. ` +
+        `${partnerL}의 베다 배치와 상호작용이 강한 영역에서는 적극적인 에너지 교환이 일어나며, ` +
+        `약한 영역에서는 의식적인 조율과 상호 보완이 필요합니다.`
+      );
+    } else {
+      parts.push(
+        `${label}의 핵심 구조는 ${planetRef}에서 읽을 수 있습니다. ` +
+        `${atmakaraka ? `특히 ${atmakarakaL}은 영혼의 핵심 과제를 나타내며, ` : ""}` +
+        `이 배치가 ${sNum <= 2 ? "라그나 에너지와 결합될 때" : "다샤 사이클과 맞물릴 때"} ` +
+        `${sNum === 1 ? "삶의 외적 표현 방식" : sNum === 2 ? "내면의 감정적 반응 패턴" : sNum === 3 ? "의지력과 자기 주도성" : "인생의 방향 감각"}에 ` +
+        `직접적인 영향을 미칩니다.`
+      );
+    }
+    parts.push("");
+
+    // Paragraph 3: dasha timing / practical
+    parts.push(
+      `${dashaRef}의 영향 아래, ${label} 영역에서는 ` +
+      `${sNum % 2 === 1 ? "현실적인 실행력과 내면의 준비" : "경계 설정과 에너지 방향 조율"}이 핵심 과제로 떠오릅니다. ` +
+      `이 시기에는 즉각적인 결과보다 근본적인 패턴의 변화에 초점을 맞추는 것이 베다 점성술적으로 적절한 접근입니다. ` +
+      `특히 이 챕터에서 다루는 ${chapterTitle}의 주제는 단기 전략보다 3년에서 7년의 중장기 관점에서 이해될 때 ` +
+      `더 명확한 방향성이 보입니다.`
+    );
+    parts.push("");
+
+    // Paragraph 4: actionable advice
+    const actionLines = isCompat
+      ? [
+          `**소통 전략**: ${label}에서 강점이 드러나는 영역부터 대화를 시작하고, 충돌 패턴이 반복되는 영역은 제3의 시각(상담 또는 명상)으로 접근하세요.`,
+          `**에너지 균형**: 두 사람의 그라하 에너지 중 보완적인 관계에 있는 행성을 활용하여 공동 목표를 설정하면 관계의 안정성이 높아집니다.`,
+          `**타이밍 활용**: ${ashtaL ? `현재 궁합 에너지(${ashtaL})를 기준으로` : "현재 관계 에너지를 기준으로"} 중요한 결정은 두 다샤가 조화로운 시기에 내리는 것이 유리합니다.`,
+        ]
+      : [
+          `**즉시 적용**: ${label}에서 가장 강한 그라하 에너지를 활용하여 현재 상황의 핵심 과제에 집중하세요.`,
+          `**패턴 인식**: ${nakshatraL}의 기질적 강점을 ${sNum <= 3 ? "일상의 루틴에 통합" : "장기 목표 설계에 반영"}하면 카르믹 과제를 자연스럽게 해소할 수 있습니다.`,
+          `**다샤 활용**: ${dashaRef} 시기에는 ${sNum % 3 === 0 ? "내면 정화와 에너지 재충전" : sNum % 3 === 1 ? "새로운 시도와 관계 확장" : "기존 패턴의 재검토와 방향 조정"}에 집중하는 것이 베다 원리에 부합합니다.`,
+        ];
+
+    actionLines.forEach((line) => parts.push(line));
+    parts.push("");
+  });
+
+  return parts.join("\n");
+}
+
 async function generateVedicPremiumChapter(env, body, input, chapter, meta, canonicalVedicChart, reportType, chapterPlan, previousChapterTexts = []) {
   const premiumInput = body?._premiumLlmInput && typeof body._premiumLlmInput === "object" ? body._premiumLlmInput : null;
   const strictPayloadMode = usePremiumStrictPayload(body, env);
@@ -15395,7 +15569,24 @@ async function handleVedicLife(request, env) {
   input.isLeapMonth = strictBody.isLeapMonth ?? false;
   input.ayanamsa = String(strictBody.ayanamsa || "lahiri");
 
-  const chart = await getSwissVedicChart(request, env, input);
+  let chart;
+  try {
+    chart = await getSwissVedicChart(request, env, input);
+  } catch (chartError) {
+    logPremiumPipelineStage("VedicChartEngineFailed", {
+      reportType,
+      code: String(chartError?.code || "VEDIC_CHART_ENGINE_FAILED"),
+      message: String(chartError?.message || "chart engine failed"),
+    });
+    return json({
+      ok: false,
+      code: "VEDIC_CHART_ENGINE_FAILED",
+      status: "chart_engine_error",
+      recoverable: true,
+      message: "차트 계산 엔진에 일시적인 오류가 발생했습니다. 잠시 후 다시 시도하거나, 기본 데이터로 계속 진행됩니다.",
+      requiredFields: [],
+    }, { status: 422 });
+  }
   let partnerChart = null;
   let ashtaKoota = chart.ashtaKoota || null;
 
@@ -15450,10 +15641,19 @@ async function handleVedicLife(request, env) {
         });
       }
 
-      partnerChart = await getSwissVedicChart(request, env, partnerInput);
-      ashtaKoota = computeAshtaKoota(chart, partnerChart);
-      if (ashtaKoota) {
-        chart.ashtaKoota = ashtaKoota;
+      partnerChart = await getSwissVedicChart(request, env, partnerInput).catch((partnerChartError) => {
+        logPremiumPipelineStage("VedicPartnerChartEngineFailed", {
+          reportType,
+          code: String(partnerChartError?.code || "VEDIC_CHART_ENGINE_FAILED"),
+          message: String(partnerChartError?.message || "partner chart engine failed"),
+        });
+        return null;
+      });
+      if (partnerChart) {
+        ashtaKoota = computeAshtaKoota(chart, partnerChart);
+        if (ashtaKoota) {
+          chart.ashtaKoota = ashtaKoota;
+        }
       }
     }
   }
@@ -18861,6 +19061,7 @@ async function handleSajuNewYearSession(request, env) {
     reportId,
     reportType: "sajuNewYear",
     featureType: "saju_new_year_pdf",
+    source: generatedChapter?.usedFallback ? "local" : "api",
     totalChapters: SAJU_NEW_YEAR_TOTAL_CHAPTERS,
     minTotalChars: PREMIUM_GLOBAL_MIN_TOTAL_CHARS,
     sessionId: chapter,
@@ -18874,7 +19075,7 @@ async function handleSajuNewYearSession(request, env) {
     text,
     chapterSummaryForContext: buildChapterSummaryForContext(text),
     sections: parseSections(text),
-    usedFallback: false,
+    usedFallback: Boolean(generatedChapter?.usedFallback),
     engineSource: dataState.sourceType || "unknown",
     quality: generatedChapter?.quality || null,
     dataQuality: {
@@ -19003,6 +19204,8 @@ async function handleLifebookSession(request, env) {
 
     return json({
       ok: true,
+      source: String(allGenerated?.source || "api"),
+      mode: "life-book",
       reportId,
       jobId: reportId,
       pdfUrl: `/api/lifebook/download?reportId=${encodeURIComponent(reportId)}`,
@@ -19097,6 +19300,8 @@ async function handleLifebookSession(request, env) {
 
   return json({
     ok: true,
+    source: String(generated?.source || (usedFallback ? "local" : "api")),
+    mode: "life-book",
     reportId,
     totalChapters: LIFE_BOOK_TOTAL_CHAPTERS,
     chapterMinChars: Number(getLifeBookChapterByNumber(chapter)?.minLength || 2500),

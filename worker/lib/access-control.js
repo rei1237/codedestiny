@@ -318,6 +318,85 @@ async function findRecentDeductionEvidence(userId, rule) {
     .lean();
 }
 
+function extractPaymentLookupTokens(requestBody = {}) {
+  const source = requestBody && typeof requestBody === "object" ? requestBody : {};
+  const payment = source.payment && typeof source.payment === "object" ? source.payment : {};
+  const alt = source._paymentContext && typeof source._paymentContext === "object" ? source._paymentContext : {};
+
+  const transactionId = String(
+    source.transactionId
+    || source.sourceTransactionId
+    || payment.transactionId
+    || payment.sourceTransactionId
+    || alt.transactionId
+    || alt.sourceTransactionId
+    || "",
+  ).trim();
+  const requestId = String(
+    source.requestId
+    || payment.requestId
+    || alt.requestId
+    || "",
+  ).trim();
+
+  return {
+    transactionId,
+    requestId,
+  };
+}
+
+async function findEvidenceByPaymentTokens(userId, requestBody = {}, rules = []) {
+  const tokens = extractPaymentLookupTokens(requestBody);
+  if (!tokens.transactionId && !tokens.requestId) return null;
+
+  const featureKeys = uniqueStrings(
+    (Array.isArray(rules) ? rules : []).flatMap((rule) => {
+      const key = String(rule?.featureKey || "").trim();
+      if (!key) return [];
+      return [key, normalizePaidFeatureKey(key)];
+    }),
+  );
+
+  const featureQuery = featureKeys.length
+    ? { featureKey: featureKeys.length > 1 ? { $in: featureKeys } : featureKeys[0] }
+    : {};
+
+  if (tokens.transactionId) {
+    try {
+      const byTransaction = await PointHistory.findOne({
+        userId,
+        kind: "deduct",
+        ...featureQuery,
+        $or: [
+          { _id: tokens.transactionId },
+          { "metadata.requestId": tokens.transactionId },
+        ],
+      })
+        .select("_id createdAt delta featureKey reason metadata")
+        .sort({ createdAt: -1 })
+        .lean();
+      if (byTransaction) return byTransaction;
+    } catch (_) {
+      // ignore and continue fallback lookup
+    }
+  }
+
+  if (tokens.requestId) {
+    const byRequestId = await PointHistory.findOne({
+      userId,
+      kind: "deduct",
+      ...featureQuery,
+      "metadata.requestId": tokens.requestId,
+    })
+      .select("_id createdAt delta featureKey reason metadata")
+      .sort({ createdAt: -1 })
+      .lean();
+    if (byRequestId) return byRequestId;
+  }
+
+  return null;
+}
+
 function buildPaymentRequiredResult(reportType, requiredRules = []) {
   const hint = requiredRules.length
     ? requiredRules.map((rule) => `${rule.featureKey}:${rule.minCost}`).join(", ")
@@ -404,6 +483,15 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     };
   }
 
+  const tokenEvidence = await findEvidenceByPaymentTokens(user._id, requestBody, alternativeRules);
+  if (tokenEvidence) {
+    return {
+      ok: true,
+      accessType: "recent-payment-token-lookup",
+      reportType: normalizedReportType,
+    };
+  }
+
   for (let i = 0; i < alternativeRules.length; i += 1) {
     const evidence = await findRecentDeductionEvidence(user._id, alternativeRules[i]);
     if (evidence) {
@@ -412,6 +500,29 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
         accessType: "recent-payment",
         reportType: normalizedReportType,
       };
+    }
+  }
+
+  if (alternativeRules.length > 0) {
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    const delayedTokenEvidence = await findEvidenceByPaymentTokens(user._id, requestBody, alternativeRules);
+    if (delayedTokenEvidence) {
+      return {
+        ok: true,
+        accessType: "recent-payment-delayed-token-lookup",
+        reportType: normalizedReportType,
+      };
+    }
+
+    for (let i = 0; i < alternativeRules.length; i += 1) {
+      const delayedEvidence = await findRecentDeductionEvidence(user._id, alternativeRules[i]);
+      if (delayedEvidence) {
+        return {
+          ok: true,
+          accessType: "recent-payment-delayed-lookup",
+          reportType: normalizedReportType,
+        };
+      }
     }
   }
 

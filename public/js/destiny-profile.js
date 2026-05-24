@@ -1415,7 +1415,7 @@
       } else if (chargedCoins > 0) {
         _cdShowCoinDeductNotice(chargedCoins, nb, reason);
       }
-      cb(transactionId);
+      cb(transactionId, data);
     })
     .catch(function(e) { window._cdCoinGatePerUseInFlight = false; window.__cdCoinGatePerUseLockAt = 0; _dpSetPaymentPending(false); console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); if (typeof onCancel === 'function') onCancel(); });
   };
