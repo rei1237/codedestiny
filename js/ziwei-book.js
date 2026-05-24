@@ -6,6 +6,7 @@
   var MAX_POLL_COUNT = 220;
   var API_TIMEOUT_MS = 420000;
   var ZIWEI_RESULT_STORAGE_KEY = '__cd_ziwei_premium_result_v2__';
+  var ZIWEI_RESULT_MAX_AGE_MS = 30 * 60 * 1000;
   var LOADING_QUOTES = [
     '명궁·신궁 구조를 안정적으로 정렬하고 있습니다...',
     '12궁 별 배치를 챕터 문맥으로 정제하는 중입니다...',
@@ -1120,11 +1121,22 @@
       if (!saved || typeof saved !== 'object') return null;
       var expected = makeZiweiProfileKey(profile || getActiveProfile());
       if (String(saved.profileKey || '') !== expected) return null;
+      var savedAt = Date.parse(String(saved.savedAt || ''));
+      if (!(savedAt > 0) || (Date.now() - savedAt) > ZIWEI_RESULT_MAX_AGE_MS) return null;
       if (!Array.isArray(saved.chapters) || !saved.chapters.length) return null;
+      if (saved.chapters.length < TOTAL_CHAPTERS) return null;
       return saved;
     } catch (_) {
       return null;
     }
+  }
+
+  function resetZiweiResultState() {
+    state.reportId = '';
+    state.downloadUrl = '';
+    state.chapters = [];
+    state.currentMessage = '';
+    state.stopPolling = false;
   }
 
   function ensureZiweiCinematicStyles() {
@@ -2515,12 +2527,15 @@
     } catch (_) {}
   }
 
-  window.openZiweiBookModal = function (profileArg) {
+  window.openZiweiBookModal = function (profileArg, options) {
     var modal = qs('ziweiBookModal');
     if (!modal) return;
+    var opts = options && typeof options === 'object' ? options : {};
+    var restoreFromCache = opts.restoreFromCache === true;
     applyActiveProfileArg(profileArg);
     applyBaseUi();
-    var restored = loadZiweiResult(getActiveProfile());
+    resetZiweiResultState();
+    var restored = restoreFromCache ? loadZiweiResult(getActiveProfile()) : null;
     if (restored) {
       state.mode = 'personal';
       state.reportId = String(restored.reportId || '');
@@ -2570,9 +2585,7 @@
 
   window.gotoZiweiPremium = function () {
     try { localStorage.removeItem(ZIWEI_RESULT_STORAGE_KEY); } catch (_) {}
-    state.reportId = '';
-    state.downloadUrl = '';
-    state.chapters = [];
+    resetZiweiResultState();
     window.openZiweiBookModal();
   };
 

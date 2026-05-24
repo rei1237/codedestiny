@@ -6,6 +6,7 @@
   var COIN_GATE_TIMEOUT_MS = 15000;
   var POLL_INTERVAL_MS = 1800;
   var ASTRO_RESULT_STORAGE_KEY = '__cd_astro_premium_result_v2__';
+  var ASTRO_RESULT_MAX_AGE_MS = 30 * 60 * 1000;
   var LOADING_QUOTES = [
     '행성 좌표와 하우스 축을 교차 검증하는 중입니다...',
     '챕터별 점성술 근거 데이터를 정리하는 중입니다...',
@@ -684,11 +685,21 @@
       if (!saved || typeof saved !== 'object') return null;
       var expected = makeAstroProfileKey(profile || getActiveProfile(), mode || state.mode || 'personal');
       if (String(saved.profileKey || '') !== expected) return null;
+      var savedAt = Date.parse(String(saved.savedAt || ''));
+      if (!(savedAt > 0) || (Date.now() - savedAt) > ASTRO_RESULT_MAX_AGE_MS) return null;
       if (!Array.isArray(saved.chapters) || !saved.chapters.length) return null;
+      if (saved.chapters.length < TOTAL_CHAPTERS) return null;
       return saved;
     } catch (_) {
       return null;
     }
+  }
+
+  function resetAstroResultState() {
+    state.reportId = '';
+    state.downloadUrl = '';
+    state.chapters = [];
+    state.quoteTick = 0;
   }
 
   function setAstroMode(mode) {
@@ -1474,16 +1485,19 @@
     } catch (_) {}
   }
 
-  window.openAstroBookModal = function (profileArg) {
+  window.openAstroBookModal = function (profileArg, options) {
     var modal = qs('astroBookModal');
     if (!modal) return;
+    var opts = options && typeof options === 'object' ? options : {};
+    var restoreFromCache = opts.restoreFromCache === true;
 
     applyActiveProfileArg(profileArg);
 
     ensureModeUi();
     updateStartUi();
     var selectedMode = getSelectedMode();
-    var restored = loadAstroResult(getActiveProfile(), selectedMode);
+    resetAstroResultState();
+    var restored = restoreFromCache ? loadAstroResult(getActiveProfile(), selectedMode) : null;
     if (restored) {
       setAstroMode('personal');
       updateStartUi();
@@ -1810,9 +1824,7 @@
 
   window.gotoAstrologyPremium = function () {
     try { localStorage.removeItem(ASTRO_RESULT_STORAGE_KEY); } catch (_) {}
-    state.reportId = '';
-    state.downloadUrl = '';
-    state.chapters = [];
+    resetAstroResultState();
     window.openAstroBookModal();
   };
 
