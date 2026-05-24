@@ -6317,20 +6317,36 @@ function buildChapterDataMap(reportType, calculatedData) {
   }
 
   if (reportType === "loveSecret") {
+    const modeToken = String(
+      calculatedData?.mode
+      || calculatedData?.reportMode
+      || calculatedData?.reportType
+      || ""
+    ).trim().toLowerCase();
+    const isCompatibility = modeToken.includes("compat")
+      || modeToken.includes("couple")
+      || calculatedData?.includeCompatibility === true
+      || calculatedData?._compatibilityRequired === true;
+    if (isCompatibility) {
+      return {
+        ch1: { chapterTitle: "두 사람의 궁합 총론", requiredPaths: ["calculatedData.self.sajuChart.dayMaster", "calculatedData.compatibility"] },
+        ch2: { chapterTitle: "서로의 연애 자아", requiredPaths: ["calculatedData.self.relationshipProfile", "calculatedData.compatibility.communicationPattern"] },
+        ch3: { chapterTitle: "끌림과 매력 궁합", requiredPaths: ["calculatedData.compatibility", "calculatedData.sajuCore.tenGodEvidence"] },
+        ch4: { chapterTitle: "관계 패턴 분석", requiredPaths: ["calculatedData.self.relationshipProfile.conflictSignals", "calculatedData.compatibility.communicationPattern"] },
+        ch5: { chapterTitle: "결혼 궁합과 장기 인연", requiredPaths: ["calculatedData.compatibility.longTermMarriagePotential", "calculatedData.luckFlow.daewoon"] },
+        ch6: { chapterTitle: "속궁합과 친밀감", requiredPaths: ["calculatedData.compatibility.temperatureHumidityMatch", "calculatedData.compatibility.communicationPattern"] },
+        ch7: { chapterTitle: "두 사람의 운 흐름", requiredPaths: ["calculatedData.luckFlow.daewoon", "calculatedData.luckFlow.sewoon"] },
+        ch8: { chapterTitle: "최종 궁합 비책", requiredPaths: ["calculatedData.compatibility.practicalAdvice", "calculatedData.sajuCore.tenGodEvidence"] },
+      };
+    }
     return {
       ch1: { chapterTitle: "본연의 연애 자아", requiredPaths: ["calculatedData.sajuCore.dayMaster", "calculatedData.self.relationshipProfile"] },
       ch2: { chapterTitle: "치명적 매력과 페로몬", requiredPaths: ["calculatedData.self.fiveElementBalance", "calculatedData.self.relationshipProfile.attractionSignals"] },
       ch3: { chapterTitle: "운명의 상대방 리포트", requiredPaths: ["calculatedData.compatibility", "calculatedData.sajuCore.tenGodEvidence"] },
-      ch4: { chapterTitle: "실전 연애 전략 및 스킬", requiredPaths: ["calculatedData.self.relationshipProfile", "calculatedData.compatibility.communicationPattern"] },
-      ch5: { chapterTitle: "시기별 연애운 흐름", requiredPaths: ["calculatedData.luckFlow.daewoon", "calculatedData.luckFlow.sewoon"] },
-      ch6: { chapterTitle: "연애의 어두운 면과 위기 관리", requiredPaths: ["calculatedData.self.relationshipProfile.conflictSignals", "calculatedData.sajuCore.monthCommand"] },
-      ch7: { chapterTitle: "친밀감과 감정 리듬", requiredPaths: ["calculatedData.compatibility.temperatureHumidityMatch", "calculatedData.compatibility.communicationPattern"] },
-      ch8: { chapterTitle: "현대적 상황별 연애 비책", requiredPaths: ["calculatedData.compatibility.practicalAdvice", "calculatedData.sajuCore.tenGodEvidence"] },
-      ch9: { chapterTitle: "결혼과 정착", requiredPaths: ["calculatedData.compatibility.longTermMarriagePotential", "calculatedData.luckFlow.daewoon"] },
-      ch10: { chapterTitle: "맞춤형 연애 개운 처방전", requiredPaths: ["calculatedData.compatibility.practicalAdvice", "calculatedData.sajuCore.monthCommand"] },
-      ch11: { chapterTitle: "재회·이별·회복 시나리오", requiredPaths: ["calculatedData.self.relationshipProfile.conflictSignals", "calculatedData.luckFlow.sewoon"] },
-      ch12: { chapterTitle: "장기 관계 운영 매뉴얼", requiredPaths: ["calculatedData.compatibility", "calculatedData.sajuCore.tenGodEvidence"] },
-      ch13: { chapterTitle: "최종 사랑 마스터플랜", requiredPaths: ["calculatedData.sajuCore", "calculatedData.compatibility"] },
+      ch4: { chapterTitle: "연애 패턴 분석", requiredPaths: ["calculatedData.self.relationshipProfile", "calculatedData.compatibility.communicationPattern"] },
+      ch5: { chapterTitle: "결혼운과 장기 인연", requiredPaths: ["calculatedData.compatibility.longTermMarriagePotential", "calculatedData.luckFlow.daewoon"] },
+      ch6: { chapterTitle: "사랑의 운 흐름", requiredPaths: ["calculatedData.luckFlow.daewoon", "calculatedData.luckFlow.sewoon"] },
+      ch7: { chapterTitle: "실전 연애 전략", requiredPaths: ["calculatedData.compatibility.practicalAdvice", "calculatedData.sajuCore.tenGodEvidence"] },
     };
   }
 
