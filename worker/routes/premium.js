@@ -3,6 +3,8 @@ import { callGeminiText } from "../lib/gemini.js";
 import { generateWithGemini } from "../lib/gemini-client.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
+import { connectDb } from "../lib/db.js";
+import { PremiumPdfReport } from "../lib/models.js";
 import {
   FEATURE_TYPE_TO_REPORT_TYPE,
   REPORT_TYPE_TO_FEATURE_TYPE,
@@ -10403,6 +10405,275 @@ function getStoredReportSession(kind, reportId) {
   return entry;
 }
 
+function extractSessionOwnerUserId(entry) {
+  const extra = entry && typeof entry === "object" ? (entry.extra || {}) : {};
+  return String(
+    extra.ownerUserId
+    || extra.userId
+    || extra?.legacyFlow?.ownerUserId
+    || "",
+  ).trim();
+}
+
+function ensureReportSessionOwnership(kind, reportId, viewerUserId) {
+  const normalizedReportId = String(reportId || "").trim();
+  const normalizedViewerUserId = String(viewerUserId || "").trim();
+  const entry = getStoredReportSession(kind, normalizedReportId);
+  if (!entry) {
+    return {
+      ok: false,
+      status: 404,
+      payload: {
+        ok: false,
+        code: "REPORT_SESSION_NOT_FOUND",
+        message: "리포트 세션을 찾을 수 없습니다.",
+      },
+    };
+  }
+
+  const ownerUserId = extractSessionOwnerUserId(entry);
+  if (!normalizedViewerUserId || !ownerUserId || ownerUserId !== normalizedViewerUserId) {
+    return {
+      ok: false,
+      status: 403,
+      payload: {
+        ok: false,
+        code: "PDF_HISTORY_FORBIDDEN",
+        message: "본인 소유의 리포트만 열람할 수 있습니다.",
+      },
+    };
+  }
+
+  return {
+    ok: true,
+    status: 200,
+    entry,
+    ownerUserId,
+  };
+}
+
+const PREMIUM_PDF_HISTORY_META = Object.freeze({
+  lifebook: {
+    title: "인생의 책",
+    reportType: "lifeBook",
+    statusPath: "/api/lifebook/status",
+    downloadPath: "/api/lifebook/download",
+  },
+  "love-secret": {
+    title: "연애 비책",
+    reportType: "sajuLoveSecret",
+    statusPath: "/api/love-secret/status",
+    downloadPath: "/api/love-secret/download",
+  },
+  "saju-new-year": {
+    title: "신년운세",
+    reportType: "sajuNewYear",
+    statusPath: "",
+    downloadPath: "",
+  },
+  sukuyo: {
+    title: "숙요점 프리미엄 리포트",
+    reportType: "sookyoPremium",
+    statusPath: "",
+    downloadPath: "",
+  },
+  astro: {
+    title: "점성술 프리미엄 리포트",
+    reportType: "westernAstrologyPremium",
+    statusPath: "/api/premium/astrology/status",
+    downloadPath: "/api/premium/astrology/download",
+  },
+  vedic: {
+    title: "베다 점성술 프리미엄 리포트",
+    reportType: "vedicPremium",
+    statusPath: "/api/premium/vedic/status",
+    downloadPath: "/api/premium/vedic/download",
+  },
+  ziwei: {
+    title: "자미두수 프리미엄 리포트",
+    reportType: "ziweiPremium",
+    statusPath: "/api/premium/ziwei/status",
+    downloadPath: "/api/premium/ziwei/download",
+  },
+});
+
+function resolvePremiumPdfHistoryMeta(kind, entry = null) {
+  const base = PREMIUM_PDF_HISTORY_META[String(kind || "").trim()] || {};
+  const extra = entry && typeof entry === "object" ? (entry.extra || {}) : {};
+  const legacyFlow = extra?.legacyFlow && typeof extra.legacyFlow === "object" ? extra.legacyFlow : {};
+  const mode = String(extra.mode || extra.reportType || legacyFlow.mode || legacyFlow.reportType || "").trim().toLowerCase();
+  const reportType = String(extra.reportType || legacyFlow.reportType || base.reportType || "").trim();
+
+  return {
+    title: String(base.title || "프리미엄 PDF 리포트").trim(),
+    reportType,
+    mode,
+    statusPath: String(base.statusPath || "").trim(),
+    downloadPath: String(base.downloadPath || "").trim(),
+  };
+}
+
+function buildPremiumPdfHistoryChapters(entry) {
+  const rows = Object.values(entry?.chapters || {})
+    .sort((a, b) => Number(a?.chapter || 0) - Number(b?.chapter || 0));
+
+  return rows.map((row) => {
+    const text = String(row?.text || "");
+    const chapterMeta = row?.chapterMeta || {};
+    return {
+      chapter: Number(row?.chapter || 0),
+      title: String(chapterMeta.title || "").trim(),
+      subtitle: String(chapterMeta.subtitle || "").trim(),
+      text,
+      charCount: text.length,
+      updatedAt: row?.updatedAt ? new Date(row.updatedAt) : new Date(),
+    };
+  });
+}
+
+function buildPremiumPdfHistorySummaryDoc(doc) {
+  return {
+    reportId: String(doc?.reportId || "").trim(),
+    title: String(doc?.title || "").trim(),
+    subtitle: String(doc?.subtitle || "").trim(),
+    sessionKind: String(doc?.sessionKind || "").trim(),
+    reportType: String(doc?.reportType || "").trim(),
+    mode: String(doc?.mode || "").trim(),
+    totalChapters: Number(doc?.totalChapters || 0),
+    completedChapters: Number(doc?.completedChapters || 0),
+    totalChars: Number(doc?.totalChars || 0),
+    isComplete: Boolean(doc?.isComplete),
+    statusPath: String(doc?.statusPath || "").trim(),
+    downloadPath: String(doc?.downloadPath || "").trim(),
+    updatedAt: doc?.updatedAt || null,
+    createdAt: doc?.createdAt || null,
+  };
+}
+
+function buildPremiumPdfHistoryDetailDoc(doc) {
+  const base = buildPremiumPdfHistorySummaryDoc(doc);
+  const chapterItems = Array.isArray(doc?.chapterItems)
+    ? doc.chapterItems.map((row) => ({
+      chapter: Number(row?.chapter || 0),
+      title: String(row?.title || "").trim(),
+      subtitle: String(row?.subtitle || "").trim(),
+      text: String(row?.text || ""),
+      charCount: Number(row?.charCount || 0),
+      updatedAt: row?.updatedAt || null,
+    }))
+    : [];
+
+  return {
+    ...base,
+    chapterItems,
+    qualityGate: doc?.qualityGate || null,
+    metadata: doc?.metadata || null,
+  };
+}
+
+async function persistPremiumPdfHistoryFromSession(env, kind, reportId, options = {}) {
+  const normalizedKind = String(kind || "").trim();
+  const normalizedReportId = String(reportId || "").trim();
+  if (!normalizedKind || !normalizedReportId) return null;
+
+  const entry = getStoredReportSession(normalizedKind, normalizedReportId);
+  if (!entry) return null;
+
+  const ownerUserId = String(options.ownerUserId || extractSessionOwnerUserId(entry)).trim();
+  if (!ownerUserId) return null;
+
+  const chapterItems = buildPremiumPdfHistoryChapters(entry);
+  const totalChars = chapterItems.reduce((sum, row) => sum + Number(row?.charCount || 0), 0);
+  const meta = resolvePremiumPdfHistoryMeta(normalizedKind, entry);
+  const totalChapters = Number(entry?.totalChapters || chapterItems.length || 0);
+  const completedChapters = chapterItems.length;
+  const qualityGate = options.qualityGate || entry?.extra?.qualityGate || null;
+
+  try {
+    await connectDb(env);
+
+    return await PremiumPdfReport.findOneAndUpdate(
+      { userId: ownerUserId, reportId: normalizedReportId },
+      {
+        $set: {
+          sessionKind: normalizedKind,
+          reportType: meta.reportType,
+          mode: meta.mode,
+          title: meta.title,
+          subtitle: String(options.subtitle || "").trim(),
+          totalChapters,
+          completedChapters,
+          totalChars,
+          isComplete: Boolean(totalChapters > 0 && completedChapters >= totalChapters),
+          chapterItems,
+          statusPath: meta.statusPath,
+          downloadPath: meta.downloadPath,
+          qualityGate,
+          metadata: {
+            reportSessionUpdatedAt: entry?.updatedAt || null,
+            reportSessionCreatedAt: entry?.createdAt || null,
+          },
+        },
+        $setOnInsert: {
+          userId: ownerUserId,
+          reportId: normalizedReportId,
+        },
+      },
+      { upsert: true, new: true },
+    ).lean();
+  } catch (error) {
+    console.warn("[PremiumPdfHistory] persist skipped", {
+      kind: normalizedKind,
+      reportId: normalizedReportId,
+      message: String(error?.message || "unknown"),
+    });
+    return null;
+  }
+}
+
+async function handlePremiumPdfHistoryList(request, env, authInfo) {
+  const url = new URL(request.url);
+  const limit = Math.max(1, Math.min(50, Number(url.searchParams.get("limit") || 20) || 20));
+  const reportType = String(url.searchParams.get("reportType") || "").trim();
+
+  await connectDb(env);
+  const query = { userId: String(authInfo?.userId || "").trim() };
+  if (reportType) query.reportType = reportType;
+
+  const docs = await PremiumPdfReport.find(query)
+    .sort({ updatedAt: -1 })
+    .limit(limit)
+    .lean();
+
+  return json({
+    ok: true,
+    reports: (docs || []).map(buildPremiumPdfHistorySummaryDoc),
+  });
+}
+
+async function handlePremiumPdfHistoryDetail(request, env, authInfo, reportId) {
+  const normalizedReportId = String(reportId || "").trim();
+  if (!normalizedReportId) {
+    return json({ ok: false, code: "REPORT_ID_REQUIRED", message: "reportId가 필요합니다." }, { status: 400 });
+  }
+
+  await connectDb(env);
+  const byReportId = await PremiumPdfReport.findOne({ reportId: normalizedReportId }).lean();
+  if (!byReportId) {
+    return json({ ok: false, code: "PDF_HISTORY_NOT_FOUND", message: "해당 리포트 이력을 찾을 수 없습니다." }, { status: 404 });
+  }
+
+  if (String(byReportId.userId || "") !== String(authInfo?.userId || "")) {
+    return json({
+      ok: false,
+      code: "PDF_HISTORY_FORBIDDEN",
+      message: "본인 소유의 리포트만 열람할 수 있습니다.",
+    }, { status: 403 });
+  }
+
+  return json({ ok: true, report: buildPremiumPdfHistoryDetailDoc(byReportId) });
+}
+
 function escapeLifebookHtml(value) {
   return String(value || "")
     .replace(/&/g, "&amp;")
@@ -15083,7 +15354,7 @@ async function generateSukuyoNatalChapterStrict(env, canonicalSukuyoNatal, chapt
   return { text, sections: parseSections(text), usedFallback: false };
 }
 
-async function handleSukuyoLife(request, env) {
+async function handleSukuyoLife(request, env, authInfo = null) {
   const body = await readJson(request);
   Object.assign(body, normalizePremiumRequestBodyForPipeline("sookyoPremium", body));
   const strictPayloadMode = true;
@@ -15221,8 +15492,13 @@ async function handleSukuyoLife(request, env) {
     const safeChapterText = sanitizePremiumChapterText(generated.text);
     const storage = writeReportSessionChapter("sukuyo", reportId, chapter, totalChapters, chapterMeta, safeChapterText, {
       reportType,
+      ownerUserId: String(authInfo?.userId || "").trim(),
       canonicalSukuyoNatal,
       chapterSpecificSections: chapterSpec.sections,
+    });
+
+    await persistPremiumPdfHistoryFromSession(env, "sukuyo", reportId, {
+      ownerUserId: String(authInfo?.userId || "").trim(),
     });
 
     return json({
@@ -15375,7 +15651,12 @@ async function handleSukuyoLife(request, env) {
   const safeChapterText = sanitizePremiumChapterText(generated.text);
   const storage = writeReportSessionChapter("sukuyo", reportId, chapter, totalChapters, chapterMeta, safeChapterText, {
     reportType: "compatibility",
+    ownerUserId: String(authInfo?.userId || "").trim(),
     canonicalSukuyoCompatibility,
+  });
+
+  await persistPremiumPdfHistoryFromSession(env, "sukuyo", reportId, {
+    ownerUserId: String(authInfo?.userId || "").trim(),
   });
 
   return json({
@@ -15526,7 +15807,7 @@ async function handleAstroWestern(request, env) {
   }
 }
 
-async function handleAstroLife(request, env) {
+async function handleAstroLife(request, env, authInfo = null) {
   const body = await readJson(request);
   Object.assign(body, normalizePremiumRequestBodyForPipeline("westernAstrologyPremium", body));
   const debugId = `astro_life_${Date.now().toString(36)}`;
@@ -15842,11 +16123,15 @@ async function handleAstroLife(request, env) {
     { reportType }
   );
 
+  await persistPremiumPdfHistoryFromSession(env, "astro", reportId, {
+    ownerUserId: String(authInfo?.userId || "").trim(),
+  });
+
   writeAstroCache(cacheKey, responsePayload);
   return json({ ok: true, ...responsePayload });
 }
 
-async function handleVedicLife(request, env) {
+async function handleVedicLife(request, env, authInfo = null) {
   const body = await readJson(request);
   Object.assign(body, normalizePremiumRequestBodyForPipeline("vedicPremium", body));
   const strictPayloadMode = true;
@@ -16172,6 +16457,10 @@ async function handleVedicLife(request, env) {
     safeGeneratedText,
     { reportType }
   );
+
+  await persistPremiumPdfHistoryFromSession(env, "vedic", reportId, {
+    ownerUserId: String(authInfo?.userId || "").trim(),
+  });
 
   return json({
     ok: true,
@@ -19295,7 +19584,7 @@ async function generateSajuNewYearChapterWithGemini(env, {
   };
 }
 
-async function handleSajuNewYearSession(request, env) {
+async function handleSajuNewYearSession(request, env, authInfo = null) {
   const body = await readJson(request);
   Object.assign(body, normalizePremiumRequestBodyForPipeline("sajuNewYear", body));
   const strictPayloadMode = true;
@@ -19312,6 +19601,7 @@ async function handleSajuNewYearSession(request, env) {
   const chapter = input.chapter;
   const reportId = String(strictBody.reportId || "").trim() || sajuNewYearReportIdFromInput(strictBody, input);
   const dataState = ensureSajuNewYearSourceData(strictBody, input);
+  const ownerUserId = String(authInfo?.userId || "").trim();
   if (!dataState.ok) {
     return json({
       ok: false,
@@ -19415,6 +19705,7 @@ async function handleSajuNewYearSession(request, env) {
     {
       reportType: "sajuNewYear",
       featureType: "saju_new_year_pdf",
+      ownerUserId,
       usedFallbackData: dataState.usedFallbackData,
       engineSource: dataState.sourceType || "unknown",
       validation,
@@ -19422,6 +19713,10 @@ async function handleSajuNewYearSession(request, env) {
       minTotalChars: SAJU_NEW_YEAR_MIN_TOTAL_CHARS,
     },
   );
+
+  await persistPremiumPdfHistoryFromSession(env, "saju-new-year", reportId, {
+    ownerUserId,
+  });
 
   return json({
     ok: true,
@@ -19457,7 +19752,7 @@ async function handleSajuNewYearSession(request, env) {
   });
 }
 
-async function handleLifebookSession(request, env) {
+async function handleLifebookSession(request, env, authInfo = null) {
   const body = await readJson(request);
   Object.assign(body, normalizePremiumRequestBodyForPipeline("lifeBook", body));
   const strictPayloadMode = true;
@@ -19475,6 +19770,7 @@ async function handleLifebookSession(request, env) {
   }
 
   const input = buildSessionInput(strictBody, LIFE_BOOK_TOTAL_CHAPTERS);
+  const ownerUserId = String(authInfo?.userId || "").trim();
   const chapter = input.chapter;
   const reportId = String(strictBody.reportId || "").trim() || lifebookReportIdFromInput(strictBody, input);
   const lifebookSourceState = ensureLifebookSourceData(strictBody, input);
@@ -19556,6 +19852,7 @@ async function handleLifebookSession(request, env) {
         },
         chapterResult.contentMarkdown,
         {
+          ownerUserId,
           chapterJson: chapterResult.chapterJson || null,
           lifeBookInputData: allGenerated.lifeBookInputData,
           chapterResultsByNumber,
@@ -19567,6 +19864,10 @@ async function handleLifebookSession(request, env) {
           },
         },
       );
+    });
+
+    await persistPremiumPdfHistoryFromSession(env, "lifebook", reportId, {
+      ownerUserId,
     });
 
     return json({
@@ -19652,6 +19953,7 @@ async function handleLifebookSession(request, env) {
     chapterMeta,
     chapterResult.contentMarkdown,
     {
+      ownerUserId,
       chapterJson: chapterResult.chapterJson || null,
       lifeBookInputData: generated.lifeBookInputData,
       chapterResultsByNumber: mergedChapterResultsByNumber,
@@ -19659,6 +19961,10 @@ async function handleLifebookSession(request, env) {
       generationWarnings: generated.warnings || [],
     },
   );
+
+  await persistPremiumPdfHistoryFromSession(env, "lifebook", reportId, {
+    ownerUserId,
+  });
 
   const usedFallback = Array.isArray(generated.warnings) && generated.warnings.some((row) => {
     return String(row?.chapterId || "") === String(chapterResult.id || "")
@@ -19690,7 +19996,7 @@ async function handleLifebookSession(request, env) {
   });
 }
 
-async function handleLoveSecretSession(request, env) {
+async function handleLoveSecretSession(request, env, authInfo = null) {
   const body = await readJson(request);
   Object.assign(body, normalizePremiumRequestBodyForPipeline("loveSecret", body));
   const strictPayloadMode = true;
@@ -19705,6 +20011,7 @@ async function handleLoveSecretSession(request, env) {
     return json({ ok: false, message: "sessionId 또는 chapter 값을 포함해 챕터별로만 생성할 수 있습니다." }, { status: 400 });
   }
   const input = buildSessionInput(strictBody, modeConfig.totalChapters);
+  const ownerUserId = String(authInfo?.userId || "").trim();
   const chapter = input.chapter;
   const reportId = String(strictBody.reportId || "").trim() || loveSecretReportIdFromInput(strictBody, input, mode);
   const chapterMeta = modeConfig.chapters[chapter - 1] || modeConfig.chapters[0];
@@ -19842,6 +20149,7 @@ async function handleLoveSecretSession(request, env) {
     },
     text,
     {
+      ownerUserId,
       mode,
       reportType: modeConfig.reportType,
       usedFallback: false,
@@ -19851,6 +20159,10 @@ async function handleLoveSecretSession(request, env) {
       canonicalValidation,
     }
   );
+
+  await persistPremiumPdfHistoryFromSession(env, "love-secret", reportId, {
+    ownerUserId,
+  });
 
   return json({
     ok: true,
@@ -19888,7 +20200,7 @@ async function handleLoveSecretSession(request, env) {
   });
 }
 
-async function handleZiweiBookSession(request, env) {
+async function handleZiweiBookSession(request, env, authInfo = null) {
   const body = await readJson(request);
   const strictPayloadMode = true;
   const strictValidationMode = true;
@@ -19899,6 +20211,7 @@ async function handleZiweiBookSession(request, env) {
     _premiumStrictValidation: strictValidationMode || explicitStrictValidation,
   };
   const strictValidationRequested = strictPayloadMode || strictValidationMode || explicitStrictValidation;
+  const ownerUserId = String(authInfo?.userId || "").trim();
   const prepareOnly = asBool(strictBody.prepareOnly);
   if (!prepareOnly && !chapterRequestProvided(strictBody)) {
     return json({ ok: false, message: "sessionId 또는 chapter 값을 포함해 챕터별로만 생성할 수 있습니다." }, { status: 400 });
@@ -20361,6 +20674,7 @@ async function handleZiweiBookSession(request, env) {
     meta,
     safeGeneratedText,
     {
+      ownerUserId,
       chapterJson: generated.chapterJson,
       reportType,
       requestId,
@@ -20374,6 +20688,10 @@ async function handleZiweiBookSession(request, env) {
       },
     }
   );
+
+  await persistPremiumPdfHistoryFromSession(env, "ziwei", reportId, {
+    ownerUserId,
+  });
 
   return json({
     ok: true,
@@ -22914,7 +23232,7 @@ function buildLegacyDownloadHtml(config, reportId) {
   ].join("\n");
 }
 
-async function invokeLegacyGenerateChapter(config, request, env, payload) {
+async function invokeLegacyGenerateChapter(config, request, env, payload, authInfo = null) {
   const url = new URL(request.url);
   const headers = new Headers();
   const authHeader = request.headers.get("Authorization");
@@ -22941,12 +23259,12 @@ async function invokeLegacyGenerateChapter(config, request, env, payload) {
     body: JSON.stringify(payload || {}),
   });
 
-  const response = await handler(nextRequest, env);
+  const response = await handler(nextRequest, env, authInfo);
   const data = await response.clone().json().catch(() => ({}));
   return { response, data };
 }
 
-async function advanceLegacyPremiumSession(config, request, env, reportId) {
+async function advanceLegacyPremiumSession(config, request, env, reportId, authInfo = null) {
   const entry = getStoredReportSession(config.sessionKind, reportId);
   if (!entry) return null;
 
@@ -22977,7 +23295,7 @@ async function advanceLegacyPremiumSession(config, request, env, reportId) {
     });
   }
 
-  const generated = await invokeLegacyGenerateChapter(config, request, env, chapterPayload);
+  const generated = await invokeLegacyGenerateChapter(config, request, env, chapterPayload, authInfo);
   if (!generated.response.ok || !generated.data?.ok) {
     if (config.alias === "astrology") {
       logAstroPdfStage("ChapterGenerateFailed", {
@@ -23009,7 +23327,7 @@ async function advanceLegacyPremiumSession(config, request, env, reportId) {
   });
 }
 
-async function runLegacyPremiumSessionToCompletion(config, request, env, reportId, maxSteps = 40) {
+async function runLegacyPremiumSessionToCompletion(config, request, env, reportId, maxSteps = 40, authInfo = null) {
   let entry = getStoredReportSession(config.sessionKind, reportId);
   if (!entry) return null;
 
@@ -23020,7 +23338,7 @@ async function runLegacyPremiumSessionToCompletion(config, request, env, reportI
     if (completed >= totalChapters) return entry;
     if (entry?.extra?.legacyFlow?.failed) return entry;
 
-    const advanced = await advanceLegacyPremiumSession(config, request, env, reportId);
+    const advanced = await advanceLegacyPremiumSession(config, request, env, reportId, authInfo);
     if (!advanced) return null;
 
     const nextCompleted = Object.keys(advanced.chapters || {}).length;
@@ -23031,8 +23349,9 @@ async function runLegacyPremiumSessionToCompletion(config, request, env, reportI
   return entry;
 }
 
-async function startLegacyPremiumSession(config, request, env) {
+async function startLegacyPremiumSession(config, request, env, authInfo = null) {
   const body = await readJson(request.clone());
+  const ownerUserId = String(authInfo?.userId || "").trim();
   const sourceBody = deepCloneSerializable(body);
   for (const [key, value] of LEGACY_ZIWEI_REQUEST_INDEX.entries()) {
     if (!value || Number(value.expiresAt || 0) <= Date.now()) {
@@ -23060,7 +23379,7 @@ async function startLegacyPremiumSession(config, request, env) {
     _premiumStrictValidation: config.alias === "ziwei",
   };
 
-  const generated = await invokeLegacyGenerateChapter(config, request, env, chapterPayload);
+  const generated = await invokeLegacyGenerateChapter(config, request, env, chapterPayload, authInfo);
   if (!generated.response.ok || !generated.data?.ok) {
     return json({
       ok: false,
@@ -23075,6 +23394,7 @@ async function startLegacyPremiumSession(config, request, env) {
   }
 
   const patched = upsertLegacyFlowMeta(config.sessionKind, reportId, {
+    ownerUserId,
     mode,
     reportType: mode,
     requestId,
@@ -23091,6 +23411,10 @@ async function startLegacyPremiumSession(config, request, env) {
     return json({ ok: false, code: "LEGACY_SESSION_NOT_FOUND", message: "리포트 세션을 찾을 수 없습니다." }, { status: 500 });
   }
 
+  await persistPremiumPdfHistoryFromSession(env, config.sessionKind, reportId, {
+    ownerUserId,
+  });
+
   if (requestId) {
     LEGACY_ZIWEI_REQUEST_INDEX.set(requestId, {
       reportId,
@@ -23100,7 +23424,7 @@ async function startLegacyPremiumSession(config, request, env) {
 
   // Ziwei polling frequently crosses worker instances; try to finish all chapters in one request.
   if (config.alias === "ziwei") {
-    await runLegacyPremiumSessionToCompletion(config, request, env, reportId);
+    await runLegacyPremiumSessionToCompletion(config, request, env, reportId, 40, authInfo);
   }
 
   const responsePayload = buildLegacyStatusPayload(config, reportId);
@@ -23111,7 +23435,7 @@ async function startLegacyPremiumSession(config, request, env) {
   return json(responsePayload);
 }
 
-async function handleLegacyPremiumStatus(config, request, env) {
+async function handleLegacyPremiumStatus(config, request, env, authInfo = null) {
   const url = new URL(request.url);
   const reportId = String(url.searchParams.get("reportId") || "").trim();
   if (!reportId) {
@@ -23120,26 +23444,39 @@ async function handleLegacyPremiumStatus(config, request, env) {
 
   const includeRaw = String(url.searchParams.get("includeChapters") || "").trim().toLowerCase();
   const includeChapters = includeRaw === "1" || includeRaw === "true" || includeRaw === "yes";
+  const ownership = ensureReportSessionOwnership(config.sessionKind, reportId, authInfo?.userId);
+  if (!ownership.ok) {
+    return json(ownership.payload, { status: ownership.status });
+  }
 
   const before = getStoredReportSession(config.sessionKind, reportId);
   if (!before) {
     return json({ ok: false, message: "리포트 세션을 찾을 수 없습니다." }, { status: 404 });
   }
 
-  const advanced = await advanceLegacyPremiumSession(config, request, env, reportId);
+  const advanced = await advanceLegacyPremiumSession(config, request, env, reportId, authInfo);
   const finalEntry = advanced || getStoredReportSession(config.sessionKind, reportId);
   if (!finalEntry) {
     return json({ ok: false, message: "리포트 세션이 만료되었습니다." }, { status: 404 });
   }
 
+  await persistPremiumPdfHistoryFromSession(env, config.sessionKind, reportId, {
+    ownerUserId: String(authInfo?.userId || "").trim(),
+  });
+
   return json(buildLegacyStatusPayload(config, reportId, includeChapters));
 }
 
-async function handleLegacyPremiumDownload(config, request) {
+async function handleLegacyPremiumDownload(config, request, authInfo = null) {
   const url = new URL(request.url);
   const reportId = String(url.searchParams.get("reportId") || "").trim();
   if (!reportId) {
     return json({ ok: false, message: "reportId query parameter is required." }, { status: 400 });
+  }
+
+  const ownership = ensureReportSessionOwnership(config.sessionKind, reportId, authInfo?.userId);
+  if (!ownership.ok) {
+    return json(ownership.payload, { status: ownership.status });
   }
 
   if (config.alias === "astrology") {
@@ -23171,6 +23508,14 @@ export async function handlePremiumRoutes(request, env) {
     const method = request.method.toUpperCase();
     const authInfo = await requireAuth(request, env);
     const path = getRoutePath(request, "/api/premium");
+
+    if (method === "GET" && path === "/pdf-reports") {
+      return await ensurePdfNo422(await handlePremiumPdfHistoryList(request, env, authInfo));
+    }
+    if (method === "GET" && path.startsWith("/pdf-reports/")) {
+      const reportId = decodeURIComponent(String(path.slice("/pdf-reports/".length) || "").trim());
+      return await ensurePdfNo422(await handlePremiumPdfHistoryDetail(request, env, authInfo, reportId));
+    }
 
     const legacyAliasByPath = (() => {
       if (path.startsWith("/astrology/")) return LEGACY_PREMIUM_ALIAS_CONFIG.astrology;
@@ -23215,15 +23560,15 @@ export async function handlePremiumRoutes(request, env) {
             profileId: String(rawBody?.profileId || rawBody?.selectedProfileId || ""),
           });
         }
-        return await ensurePdfNo422(await startLegacyPremiumSession(legacyAliasByPath, request, env));
+        return await ensurePdfNo422(await startLegacyPremiumSession(legacyAliasByPath, request, env, authInfo));
       }
 
       if (method === "GET" && path === `/${legacyAliasByPath.alias}/status`) {
-        return await ensurePdfNo422(await handleLegacyPremiumStatus(legacyAliasByPath, request, env));
+        return await ensurePdfNo422(await handleLegacyPremiumStatus(legacyAliasByPath, request, env, authInfo));
       }
 
       if (method === "GET" && path === `/${legacyAliasByPath.alias}/download`) {
-        return await handleLegacyPremiumDownload(legacyAliasByPath, request);
+        return await handleLegacyPremiumDownload(legacyAliasByPath, request, authInfo);
       }
 
       return methodNotAllowed();
@@ -23259,11 +23604,11 @@ export async function handlePremiumRoutes(request, env) {
       }
     }
 
-    if (path === "/sukuyo-life") return await ensurePdfNo422(await handleSukuyoLife(request, env));
+    if (path === "/sukuyo-life") return await ensurePdfNo422(await handleSukuyoLife(request, env, authInfo));
     if (path === "/astro-western") return await ensurePdfNo422(await handleAstroWestern(request, env));
-    if (path === "/astro-life") return await ensurePdfNo422(await handleAstroLife(request, env));
-    if (path === "/vedic-life") return await ensurePdfNo422(await handleVedicLife(request, env));
-    if (path === "/ziwei-life") return await ensurePdfNo422(await handleZiweiBookSession(request, env));
+    if (path === "/astro-life") return await ensurePdfNo422(await handleAstroLife(request, env, authInfo));
+    if (path === "/vedic-life") return await ensurePdfNo422(await handleVedicLife(request, env, authInfo));
+    if (path === "/ziwei-life") return await ensurePdfNo422(await handleZiweiBookSession(request, env, authInfo));
     return notFound();
   } catch (error) {
     logPremiumPipelineStage("Failed", {
@@ -23401,15 +23746,15 @@ export const __premiumReportTestUtils = {
 export async function handleLifebookRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
-    await requireAuth(request, env);
+    const authInfo = await requireAuth(request, env);
     const path = getRoutePath(request, "/api/lifebook");
     if (path === "/session") {
       if (method !== "POST") return methodNotAllowed();
-      return await ensurePdfNo422(await handleLifebookSession(request, env));
+      return await ensurePdfNo422(await handleLifebookSession(request, env, authInfo));
     }
     if (path === "/generate") {
       if (method !== "POST") return methodNotAllowed();
-      return await ensurePdfNo422(await handleLifebookSession(request, env));
+      return await ensurePdfNo422(await handleLifebookSession(request, env, authInfo));
     }
     if (path === "/status") {
       if (method !== "GET") return methodNotAllowed();
@@ -23418,8 +23763,13 @@ export async function handleLifebookRoutes(request, env) {
       if (!reportId) {
         return json({ ok: false, message: "reportId query parameter is required." }, { status: 400 });
       }
+      const ownership = ensureReportSessionOwnership("lifebook", reportId, authInfo?.userId);
+      if (!ownership.ok) return json(ownership.payload, { status: ownership.status });
       const includeTextRaw = String(url.searchParams.get("includeText") || "").trim().toLowerCase();
       const includeText = includeTextRaw === "1" || includeTextRaw === "true" || includeTextRaw === "yes";
+      await persistPremiumPdfHistoryFromSession(env, "lifebook", reportId, {
+        ownerUserId: String(authInfo?.userId || "").trim(),
+      });
       return json(buildLifebookStatusPayload(reportId, includeText));
     }
     if (path === "/download") {
@@ -23429,6 +23779,8 @@ export async function handleLifebookRoutes(request, env) {
       if (!reportId) {
         return json({ ok: false, message: "reportId query parameter is required." }, { status: 400 });
       }
+      const ownership = ensureReportSessionOwnership("lifebook", reportId, authInfo?.userId);
+      if (!ownership.ok) return json(ownership.payload, { status: ownership.status });
       const html = buildLifebookDownloadHtmlFromSession(reportId);
       if (!html) return notFound();
       return new Response(html, {
@@ -23449,11 +23801,11 @@ export async function handleLifebookRoutes(request, env) {
 export async function handleLoveSecretRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
-    await requireAuth(request, env);
+    const authInfo = await requireAuth(request, env);
     const path = getRoutePath(request, "/api/love-secret");
     if (path === "/session" || path === "/generate") {
       if (method !== "POST") return methodNotAllowed();
-      return await ensurePdfNo422(await handleLoveSecretSession(request, env));
+      return await ensurePdfNo422(await handleLoveSecretSession(request, env, authInfo));
     }
     if (path === "/status") {
       if (method !== "GET") return methodNotAllowed();
@@ -23462,8 +23814,13 @@ export async function handleLoveSecretRoutes(request, env) {
       if (!reportId) {
         return json({ ok: false, message: "reportId query parameter is required." }, { status: 400 });
       }
+      const ownership = ensureReportSessionOwnership("love-secret", reportId, authInfo?.userId);
+      if (!ownership.ok) return json(ownership.payload, { status: ownership.status });
       const includeTextRaw = String(url.searchParams.get("includeText") || "").trim().toLowerCase();
       const includeText = includeTextRaw === "1" || includeTextRaw === "true" || includeTextRaw === "yes";
+      await persistPremiumPdfHistoryFromSession(env, "love-secret", reportId, {
+        ownerUserId: String(authInfo?.userId || "").trim(),
+      });
       return json(buildLoveSecretStatusPayload(reportId, includeText));
     }
     if (path === "/download") {
@@ -23473,6 +23830,8 @@ export async function handleLoveSecretRoutes(request, env) {
       if (!reportId) {
         return json({ ok: false, message: "reportId query parameter is required." }, { status: 400 });
       }
+      const ownership = ensureReportSessionOwnership("love-secret", reportId, authInfo?.userId);
+      if (!ownership.ok) return json(ownership.payload, { status: ownership.status });
       const html = buildLoveSecretDownloadHtmlFromSession(reportId);
       if (!html) return notFound();
       return new Response(html, {
@@ -23493,9 +23852,9 @@ export async function handleLoveSecretRoutes(request, env) {
 export async function handleSajuNewYearRoutes(request, env) {
   try {
     if (request.method.toUpperCase() !== "POST") return methodNotAllowed();
-    await requireAuth(request, env);
+    const authInfo = await requireAuth(request, env);
     const path = getRoutePath(request, "/api/saju-new-year");
-    if (path === "/session") return await ensurePdfNo422(await handleSajuNewYearSession(request, env));
+    if (path === "/session") return await ensurePdfNo422(await handleSajuNewYearSession(request, env, authInfo));
     return notFound();
   } catch (error) {
     return await ensurePdfNo422(handleRouteError(error));
@@ -23505,9 +23864,9 @@ export async function handleSajuNewYearRoutes(request, env) {
 export async function handleZiweiBookRoutes(request, env) {
   try {
     if (request.method.toUpperCase() !== "POST") return methodNotAllowed();
-    await requireAuth(request, env);
+    const authInfo = await requireAuth(request, env);
     const path = getRoutePath(request, "/api/ziwei-book");
-    if (path === "/session") return await ensurePdfNo422(await handleZiweiBookSession(request, env));
+    if (path === "/session") return await ensurePdfNo422(await handleZiweiBookSession(request, env, authInfo));
     return notFound();
   } catch (error) {
     return await ensurePdfNo422(handleRouteError(error));

@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { getVedicPdfChapters } from "@/app/_lib/vedic/pdf/vedicPdfChapters";
+import PremiumPdfHistoryPanel from "./PremiumPdfHistoryPanel";
 
 
 // ─────────────────────────────────────────────────────────────────
@@ -1179,6 +1180,12 @@ export default function HPremiumVedicSection({
                 <PDFDownloadButton chapters={chapters} chart={chart} birthDate={birthDate} chapterMeta={chapterMeta} totalChapters={totalChapters} />
               </div>
             )}
+
+            <PremiumPdfHistoryPanel
+              title="베다 PDF 히스토리"
+              sessionKinds={["vedic"]}
+              limit={12}
+            />
           </>
         )}
       </div>

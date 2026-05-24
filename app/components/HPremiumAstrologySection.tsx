@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useCallback, useEffect, useRef } from "react";
+import PremiumPdfHistoryPanel from "./PremiumPdfHistoryPanel";
 
 
 // ─────────────────────────────────────────────────────────────────
@@ -902,7 +903,14 @@ ${chaptersHtml}
                 {pdfError && <p style={{ color:"rgba(252,165,165,0.85)", fontSize:"0.78rem", marginTop:8 }}>⚠ {pdfError}</p>}
                 <p style={{ color:"rgba(148,163,184,0.45)", fontSize:"0.7rem", marginTop:6 }}>전체 {TOTAL_CHAPTERS}개 챕터가 모두 완료되면 점성술 PDF 리포트를 생성할 수 있습니다 ({doneCount}/{TOTAL_CHAPTERS})</p>
               </div>
-            )}          </>
+            )}
+
+            <PremiumPdfHistoryPanel
+              title="점성술 PDF 히스토리"
+              sessionKinds={["astro"]}
+              limit={12}
+            />
+          </>
         )}
       </div>
     </section>

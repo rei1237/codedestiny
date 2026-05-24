@@ -6,6 +6,7 @@
  * - '자미두수 심화 기능' 웹 리포트와는 별개의 독립적인 PDF 전용 서비스입니다.
  */
 import { useEffect, useCallback, useRef } from "react";
+import PremiumPdfHistoryPanel from "./PremiumPdfHistoryPanel";
 
 interface HPremiumZiweiBookSectionProps {
   showIntro?: boolean;
@@ -185,6 +186,12 @@ export default function HPremiumZiweiBookSection({
         >
           PDF 생성기 다시 열기
         </button>
+
+        <PremiumPdfHistoryPanel
+          title="자미두수 PDF 히스토리"
+          sessionKinds={["ziwei"]}
+          limit={12}
+        />
       </div>
     </section>
   );

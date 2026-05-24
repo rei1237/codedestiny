@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { usePaymentProcessing } from "./PaymentProcessingContext";
+import PremiumPdfHistoryPanel from "./PremiumPdfHistoryPanel";
 
 
 // ─────────────────────────────────────────────────────────────────
@@ -1679,6 +1680,12 @@ ${chaptersHtml}
               />
             ))}
           </div>
+
+          <PremiumPdfHistoryPanel
+            title="숙요점 PDF 히스토리"
+            sessionKinds={["sukuyo"]}
+            limit={12}
+          />
         </div>
       )}
     </div>
