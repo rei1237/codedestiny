@@ -8961,6 +8961,251 @@ function dedupeAstroParagraphs(text) {
   return out.join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
+const ASTRO_SIGN_TRAIT_MAP = Object.freeze({
+  "양자리": { keywords: ["선구자적 에너지", "자기 주도성", "빠른 실행력", "충동적 경향"], desc: "선구자적 에너지와 자기 주도성을 핵심 동력으로 삼는 배치입니다. 빠른 실행과 도전 의지가 강하게 작동하며, 충동적 결정을 내리기 전 짧은 숙려 루틴을 도입하면 장기적 성과가 높아집니다." },
+  "황소자리": { keywords: ["안정 지향", "감각적 현실주의", "지속력과 인내", "소유욕"], desc: "안정성과 현실적 감각이 두드러지는 배치입니다. 지속력과 인내로 장기 목표를 꾸준히 달성하는 구조를 선호하며, 점진적 전환 전략을 채택하면 내면 저항 없이 성장할 수 있습니다." },
+  "쌍둥이자리": { keywords: ["소통과 정보 처리", "다면적 관심사", "유연한 적응력", "변동성"], desc: "다방면의 지적 호기심과 빠른 정보 처리 능력이 핵심 자산입니다. 집중력 유지를 위해 우선순위 명료화와 실행 루틴 고정이 필요합니다." },
+  "게자리": { keywords: ["감정적 민감성", "가족과 귀속 욕구", "강한 직관", "보호 본능"], desc: "풍부한 감성과 직관적 공감 능력이 관계의 핵심 자원입니다. 건강한 경계 설정 능력을 함께 계발하면 감정 소모를 줄이면서 깊은 유대를 유지할 수 있습니다." },
+  "사자자리": { keywords: ["자기표현과 창의성", "리더십과 카리스마", "인정 욕구", "관대함"], desc: "자기표현과 창의성, 자연스러운 카리스마가 강하게 작동하는 배치입니다. 인정 욕구를 외부 승인이 아닌 내적 자기 확인으로 전환하면 에너지 효율이 높아집니다." },
+  "처녀자리": { keywords: ["분석력과 세밀함", "실용적 서비스 정신", "완벽 지향", "비판적 사고"], desc: "세밀한 분석력과 실용적 서비스 마인드가 높은 신뢰를 형성합니다. 완벽 기준을 유연하게 조정하고 실행 루틴을 도입하면 생산성과 심리적 여유를 동시에 확보할 수 있습니다." },
+  "천칭자리": { keywords: ["균형과 조화 추구", "대인 외교력", "심미적 감각", "결정 지연"], desc: "균형 감각과 대인 외교력이 관계와 협업에서 뚜렷한 강점으로 작동합니다. 기한 설정 루틴을 도입하면 조화를 유지하면서도 실행력을 높일 수 있습니다." },
+  "전갈자리": { keywords: ["심층 탐구와 변형", "집중력과 통제력", "신뢰 민감성", "재생 에너지"], desc: "심층 탐구와 강한 집중력, 변형 에너지가 핵심 자산인 배치입니다. 통제 욕구를 신뢰 기반 협업으로 전환하면 깊은 연대와 강력한 공동 성과가 형성됩니다." },
+  "사수자리": { keywords: ["철학과 확장 지향", "자유와 모험", "낙관적 비전", "솔직함"], desc: "넓은 시야와 낙관적 비전, 자유 지향적 탐구 정신이 강점인 배치입니다. 세부 실행 계획과 현실 체크포인트를 갖추면 큰 그림이 구체적인 성과로 이어집니다." },
+  "염소자리": { keywords: ["목표 지향 인내", "사회적 책임감", "장기 전략", "현실적 야망"], desc: "현실적 야망과 체계적 인내, 장기 계획 능력이 사회적 성취의 기반인 배치입니다. 휴식과 회복을 루틴에 의식적으로 포함해 지속 가능성을 높이는 것이 장기 성공의 열쇠입니다." },
+  "물병자리": { keywords: ["혁신과 독창성", "인도주의적 시각", "냉철한 분리", "미래 지향성"], desc: "혁신적 사고와 집단 의식, 미래 지향적 독창성이 두드러지는 배치입니다. 개인적 연결과 감성적 소통을 보강하면 혁신 아이디어가 더 많은 공감을 얻습니다." },
+  "물고기자리": { keywords: ["공감 능력과 영성", "창의적 직관", "경계 해소 성향", "이상주의"], desc: "풍부한 공감 능력과 창의적 직관, 영적 감수성이 핵심 자산인 배치입니다. 현실적 경계 설정 루틴을 갖추면 이상적 비전을 현실에 안착시키는 힘이 생깁니다." },
+});
+
+const ASTRO_HOUSE_THEME_MAP = Object.freeze({
+  1: "자아 이미지, 신체적 에너지, 첫인상과 삶의 출발 방식",
+  2: "물질적 자원, 가치관, 자기 소유와 현실 안정 기반",
+  3: "소통, 학습, 형제자매와 단거리 이동, 일상 정보 처리",
+  4: "가족, 정서적 뿌리, 유년기 각본과 귀속 공간",
+  5: "창의성, 연애, 자기표현, 오락과 즐거움",
+  6: "일상 건강, 루틴, 봉사와 직장 환경",
+  7: "파트너십, 계약, 공개적 관계와 결혼",
+  8: "변형, 공유 자원, 심층 심리와 재생 에너지",
+  9: "철학, 고등 교육, 장거리 여행과 신념 체계",
+  10: "커리어, 사회적 지위와 목표, MC 방향성",
+  11: "커뮤니티, 미래 희망, 우정과 집단 프로젝트",
+  12: "무의식, 은둔, 영성과 숨겨진 내면 작업",
+});
+
+const ASTRO_ASPECT_INTERP_MAP = Object.freeze({
+  conjunction: "합(Conjunction)",
+  opposition: "대립(Opposition)",
+  square: "사각(Square)",
+  trine: "삼각(Trine)",
+  sextile: "육각(Sextile)",
+  quincunx: "퀸쿵스(Quincunx)",
+  semisextile: "반육각(Semi-sextile)",
+  semisquare: "반사각(Semi-square)",
+  sesquisquare: "세스퀴사각(Sesquisquare)",
+  quintile: "퀸타일(Quintile)",
+});
+
+function formatPlanetKo(nameEn) {
+  const MAP = { Sun: "태양", Moon: "달", Mercury: "수성", Venus: "금성", Mars: "화성", Jupiter: "목성", Saturn: "토성", Uranus: "천왕성", Neptune: "해왕성", Pluto: "명왕성", Rahu: "북교점(라후)", Ketu: "남교점(케투)", Chiron: "카이론" };
+  return MAP[String(nameEn || "")] || String(nameEn || "행성");
+}
+
+function buildAstroDataTableForChapter(canonical, meta, chart) {
+  const planets = Array.isArray(canonical?.planets) ? canonical.planets : [];
+  const asc = canonical?.angles?.ascendant;
+  const mc = canonical?.angles?.mc;
+  const chapterKey = String(meta?.key || "C1");
+  const CHAPTER_PLANET_FOCUS = {
+    C1: ["Sun", "Moon", "Mercury", "Venus", "Mars"], C2: ["Sun", "Moon", "Mercury"],
+    C3: ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"],
+    C4: ["Sun", "Moon", "Saturn", "Jupiter"], C5: ["Sun", "Moon", "Mercury", "Venus", "Mars"],
+    C6: ["Sun", "Moon", "Mercury", "Mars"], C7: ["Venus", "Mars", "Moon", "Saturn"],
+    C8: ["Sun", "Jupiter", "Saturn", "Mercury"], C9: ["Moon", "Saturn", "Pluto", "Neptune"],
+    C10: ["Jupiter", "Saturn", "Uranus", "Sun"], C11: ["Sun", "Moon", "Jupiter", "Saturn", "Uranus"],
+    C12: ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn"],
+    C13: ["Sun", "Moon", "Jupiter", "Mars"], K1: ["Sun", "Moon", "Venus"],
+    K2: ["Sun", "Moon"], K3: ["Venus", "Mars"], K4: ["Mercury"], K5: ["Venus", "Saturn", "Jupiter"],
+    K6: ["Mars", "Saturn", "Pluto"], K7: ["Venus", "Jupiter", "Saturn"], K8: ["Jupiter", "Saturn"],
+    K9: ["Sun", "Moon", "Jupiter", "Saturn"], K10: ["Sun", "Moon", "Venus", "Mars", "Jupiter", "Saturn"],
+  };
+  const focusKeys = CHAPTER_PLANET_FOCUS[chapterKey] || ["Sun", "Moon", "Mercury", "Venus", "Mars"];
+  const rows = [];
+  if (asc) rows.push(`| 상승궁(ASC) | ${asc.signKo || asc.sign || "-"} | ${Number.isFinite(Number(asc.degree)) ? Number(asc.degree).toFixed(1) + "°" : "-"} | - |`);
+  if (mc) rows.push(`| 중천(MC) | ${mc.signKo || mc.sign || "-"} | ${Number.isFinite(Number(mc.degree)) ? Number(mc.degree).toFixed(1) + "°" : "-"} | - |`);
+  for (const key of focusKeys) {
+    const p = planets.find((pl) => pl?.nameEn === key);
+    if (!p) continue;
+    const pKo = formatPlanetKo(key);
+    const sign = p.signKo || p.sign || "-";
+    const deg = Number.isFinite(Number(p.degree)) ? Number(p.degree).toFixed(1) + "°" : "-";
+    const house = Number.isFinite(Number(p.house)) ? `${Number(p.house)}하우스` : "-";
+    rows.push(`| ${pKo}${p.retrograde ? " ℞" : ""} | ${sign} | ${deg} | ${house} |`);
+  }
+  if (!rows.length) rows.push("| (차트 데이터) | - | - | - |");
+  return `| 항목 | 값 | 도수 | 하우스 |\n|------|------|------|------|\n${rows.join("\n")}`;
+}
+
+function buildAstroChapterLocalFallback(canonical, meta, chart, reportType) {
+  const chapterKey = String(meta?.key || "C1");
+  const sectionLabels = ASTRO_CHAPTER_SECTION_LABELS[chapterKey] || ASTRO_DEFAULT_SECTION_LABELS;
+  const title = String(meta?.title || "차트 분석");
+  const name = String(canonical?.profile?.name || "내담자");
+  const birthInfo = canonical?.profile?.birth || {};
+  const profileLine = [name, birthInfo?.date, birthInfo?.time, birthInfo?.locationName].filter(Boolean).join(" | ");
+
+  const planets = Array.isArray(canonical?.planets) ? canonical.planets : [];
+  const aspects = Array.isArray(canonical?.aspects) ? canonical.aspects : [];
+  const asc = canonical?.angles?.ascendant;
+  const mc = canonical?.angles?.mc;
+
+  const getP = (nameEn) => planets.find((p) => p?.nameEn === nameEn) || null;
+  const sun = getP("Sun"); const moon = getP("Moon"); const mercury = getP("Mercury");
+  const venus = getP("Venus"); const mars = getP("Mars"); const jupiter = getP("Jupiter");
+  const saturn = getP("Saturn"); const uranus = getP("Uranus");
+  const neptune = getP("Neptune"); const pluto = getP("Pluto");
+
+  const pLabel = (p) => {
+    if (!p || !p.nameEn) return null;
+    const sign = p.signKo || p.sign || "";
+    const h = Number.isFinite(Number(p.house)) ? Number(p.house) : null;
+    return `${formatPlanetKo(p.nameEn)}${p.retrograde ? "(역행)" : ""} ${sign}${h ? " " + h + "하우스" : ""}`;
+  };
+
+  const pDesc = (p) => {
+    if (!p || !p.nameEn) return null;
+    const ko = formatPlanetKo(p.nameEn);
+    const sign = p.signKo || p.sign || "";
+    const h = Number.isFinite(Number(p.house)) ? Number(p.house) : null;
+    const retro = p.retrograde ? " (역행 중)" : "";
+    const signData = sign ? (ASTRO_SIGN_TRAIT_MAP[sign] || null) : null;
+    const hTheme = h ? (ASTRO_HOUSE_THEME_MAP[h] || "") : "";
+    let t = `**${ko}**는 **${sign || "미상"}**${retro}${h ? ", **" + h + "하우스**" : ""}에 위치합니다.`;
+    if (hTheme && h) t += ` ${h}하우스는 "${hTheme}"를 주관하는 영역으로,`;
+    if (signData) {
+      t += ` ${sign}의 에너지 키워드인 **${signData.keywords.slice(0, 3).join("**, **")}**가 이 영역에서 작동합니다.\n\n${signData.desc}`;
+    } else if (sign) {
+      t += ` ${sign}의 에너지가 이 영역에서 표현됩니다.`;
+    }
+    return t;
+  };
+
+  const topAspects = aspects
+    .filter((a) => a && a.planetA && a.planetB)
+    .sort((a, b) => Number(a.orb || 99) - Number(b.orb || 99))
+    .slice(0, 8);
+
+  const aspLines = topAspects.slice(0, 5).map((a) => {
+    const typeKo = ASTRO_ASPECT_INTERP_MAP[String(a.type || "").toLowerCase()] || String(a.type || "");
+    const orbStr = Number.isFinite(Number(a.orb)) ? ` (오브 ${Number(a.orb).toFixed(1)}°)` : "";
+    return `- **${formatPlanetKo(a.planetA)} – ${formatPlanetKo(a.planetB)}** ${typeKo}${orbStr}`;
+  });
+
+  const cb = canonical?.chartBalance || {};
+  const elemText = Object.entries(cb.elements || {}).map(([k, v]) => `${k} ${v}개`).join(", ") || "균형 데이터 분석 중";
+  const modeText = Object.entries(cb.modalities || {}).map(([k, v]) => `${k} ${v}개`).join(", ") || "";
+
+  const FOCUS_MAP = {
+    C1: [sun, moon, mars, jupiter], C2: [sun, moon, mercury],
+    C3: [sun, moon, mercury, venus, mars, jupiter, saturn, uranus, neptune, pluto],
+    C4: [sun, moon, saturn, jupiter], C5: [sun, moon, mercury, venus, mars],
+    C6: [sun, moon, mercury, mars], C7: [venus, mars, moon, saturn],
+    C8: [sun, jupiter, saturn, mercury], C9: [moon, saturn, pluto, neptune],
+    C10: [jupiter, saturn, uranus, sun], C11: [sun, moon, jupiter, saturn, uranus],
+    C12: [sun, moon, mercury, venus, mars, jupiter, saturn], C13: [sun, moon, jupiter, mars],
+    K1: [sun, moon, venus], K2: [sun, moon], K3: [venus, mars], K4: [mercury, sun],
+    K5: [venus, saturn, jupiter], K6: [mars, saturn, pluto], K7: [venus, jupiter, saturn],
+    K8: [jupiter, saturn], K9: [sun, moon, jupiter, saturn], K10: [sun, moon, venus, mars, jupiter, saturn],
+  };
+  const focusPlanets = (FOCUS_MAP[chapterKey] || [sun, moon]).filter(Boolean);
+
+  const out = [];
+
+  // Section 1: Data table
+  out.push(`### 1. 사용 데이터 요약표\n\n${buildAstroDataTableForChapter(canonical, meta, chart)}`);
+
+  // Section 2: Core interpretation
+  const corePlanets = focusPlanets.slice(0, 3);
+  const coreBody = corePlanets.map(pDesc).filter(Boolean).join("\n\n") || `${title}의 핵심 에너지 구조를 분석합니다.`;
+  const ascLine = asc ? `\n\n**상승궁(ASC)**는 **${asc.signKo || asc.sign || "미상"}**로, 외부에서 인식되는 이미지와 삶의 출발 방향을 결정합니다.${asc.signKo ? " " + ((ASTRO_SIGN_TRAIT_MAP[asc.signKo] || {}).desc || "") : ""}` : "";
+  out.push(`### 2. ${sectionLabels[0]}\n\n${profileLine ? "**프로필**: " + profileLine + "\n\n" : ""}${coreBody}${ascLine}`);
+
+  // Section 3: Mechanism
+  const mechPlanets = focusPlanets.slice(1, 4);
+  const mechBody = mechPlanets.map(pDesc).filter(Boolean).join("\n\n") || `${title}의 심층 에너지 작동 원리를 분석합니다.`;
+  const mcLine = mc ? `\n\n**중천(MC)**는 **${mc.signKo || mc.sign || "미상"}**로, 사회적 방향성과 직업적 목표 축을 형성합니다.${mc.signKo ? " " + ((ASTRO_SIGN_TRAIT_MAP[mc.signKo] || {}).desc || "") : ""}` : "";
+  out.push(`### 3. ${sectionLabels[1]}\n\n${mechBody}${mcLine}`);
+
+  // Section 4: Real application
+  const appLines = focusPlanets.slice(0, 5).map((p) => {
+    if (!p || !p.nameEn) return null;
+    const ko = formatPlanetKo(p.nameEn);
+    const sign = p.signKo || p.sign || "";
+    const h = Number.isFinite(Number(p.house)) ? Number(p.house) : null;
+    const hTheme = h ? (ASTRO_HOUSE_THEME_MAP[h] || "") : "";
+    const kw = sign ? ((ASTRO_SIGN_TRAIT_MAP[sign] || {}).keywords || [])[0] : "";
+    return `**${ko}**(${sign}${h ? " " + h + "하우스" : ""}): ${hTheme ? hTheme + " 영역에서 " : ""}${kw ? kw + "의 방식으로 에너지를 운용합니다" : "에너지가 작동합니다"}. 이 배치를 일상에 적용할 때는 의식적인 선택과 반복 루틴이 효과적입니다.`;
+  }).filter(Boolean);
+  out.push(`### 4. ${sectionLabels[2]}\n\n${appLines.join("\n\n") || `${title}의 에너지를 현실에 적용하는 구체적 전략을 수립합니다.`}`);
+
+  // Section 5: Aspect deep-dive
+  let aspBody = "";
+  if (aspLines.length > 0) {
+    aspBody = `이 차트의 상위 애스펙트 구조:\n\n${aspLines.join("\n")}\n\n`;
+    const fa = topAspects[0];
+    if (fa) {
+      const typeKo = ASTRO_ASPECT_INTERP_MAP[String(fa.type || "").toLowerCase()] || fa.type;
+      aspBody += `가장 좁은 오브의 핵심 각도는 **${formatPlanetKo(fa.planetA)}–${formatPlanetKo(fa.planetB)} ${typeKo}**입니다. 이 두 행성이 공유하는 에너지는 일상적 패턴에서 반복적으로 나타나며, 의식적으로 다루면 강력한 강점으로 전환됩니다.`;
+    }
+    const sq = topAspects.find((a) => String(a.type || "").toLowerCase() === "square");
+    const tri = topAspects.find((a) => String(a.type || "").toLowerCase() === "trine");
+    if (sq) aspBody += `\n\n**사각(Square) — ${formatPlanetKo(sq.planetA)}–${formatPlanetKo(sq.planetB)}**: 긴장과 도전을 생성하는 각도이지만, 의식적 행동으로 성장의 레버리지가 됩니다.`;
+    if (tri) aspBody += `\n\n**삼각(Trine) — ${formatPlanetKo(tri.planetA)}–${formatPlanetKo(tri.planetB)}**: 자연스러운 흐름과 타고난 재능을 나타내며, 의식적으로 활용하면 큰 강점이 됩니다.`;
+  } else {
+    aspBody = `차트 내 애스펙트는 여러 행성 간 에너지 교차 회로를 형성합니다. 조화각(삼각, 육각)은 타고난 재능을, 긴장각(사각, 대립)은 성장을 위한 마찰 에너지를 제공합니다. 합(Conjunction)은 두 행성의 에너지를 하나로 합쳐 강렬한 집중을 만들어냅니다. 퀸쿵스(Quincunx)는 두 영역 간 지속적인 조율을 요구하는 각도입니다.`;
+  }
+  out.push(`### 5. ${sectionLabels[3]}\n\n${aspBody}`);
+
+  // Section 6: Shadow and caution
+  const shadowCandidates = [saturn, mars, pluto, neptune, uranus].filter(Boolean).slice(0, 3);
+  const shadowLines = shadowCandidates.map((p) => {
+    const ko = formatPlanetKo(p.nameEn);
+    const sign = p.signKo || p.sign || "";
+    const h = Number.isFinite(Number(p.house)) ? Number(p.house) : null;
+    const signData = sign ? (ASTRO_SIGN_TRAIT_MAP[sign] || null) : null;
+    const shadow = signData ? signData.keywords.slice(-2).join(", ") : "이중적 에너지";
+    return `**${ko}**(${sign}${h ? " " + h + "하우스" : ""}): ${shadow}의 그림자 영역이 활성화될 수 있습니다. 이 에너지를 인식하고 의식적으로 전환하면 반복 패턴에서 벗어나는 선택이 가능합니다.`;
+  });
+  const shadowBody = shadowLines.join("\n\n") || "차트 내 긴장 에너지를 인식하고 의식적 선택으로 전환하는 전략이 중요합니다.";
+  out.push(`### 6. ${sectionLabels[4]}\n\n${shadowBody}\n\n**원소 균형**: ${elemText}${modeText ? "\n\n**모드 분포**: " + modeText : ""}\n\n원소와 모드 분포를 인식하면 과잉·결핍 패턴을 보완하는 루틴 설계가 가능합니다.`);
+
+  // Section 7: Practice strategy (+ 3/6/12 months for C11/K9)
+  const stratLines = focusPlanets.slice(0, 4).map((p) => {
+    if (!p || !p.nameEn) return null;
+    const ko = formatPlanetKo(p.nameEn);
+    const sign = p.signKo || p.sign || "";
+    const h = Number.isFinite(Number(p.house)) ? Number(p.house) : null;
+    const signData = sign ? (ASTRO_SIGN_TRAIT_MAP[sign] || null) : null;
+    const kw = signData ? signData.keywords[0] : sign;
+    const hTheme = h ? (ASTRO_HOUSE_THEME_MAP[h] || "") : "";
+    return `**${ko} 실천**: ${h ? h + "하우스(" + hTheme + ") 영역에서 " : ""}${kw}의 에너지를 일상 루틴에 통합하세요.`;
+  }).filter(Boolean);
+  let stratSuffix = "";
+  if (chapterKey === "C11" || chapterKey === "K9") {
+    stratSuffix = "\n\n**3개월 전략**: 현재 트랜짓 에너지를 인식하고 변화의 씨앗을 심는 시기입니다. 중요한 결정 전 타이밍을 검토하고 준비도를 높이세요.\n\n**6개월 전략**: 트랜짓 흐름이 중간 정점에 달하는 구간입니다. 관계·커리어·재정 영역에서 누적된 선택의 결과를 점검하고 방향을 조율하세요.\n\n**12개월 전략**: 연간 주기를 마무리하며 다음 사이클을 준비합니다. 완료해야 할 항목을 명확히 하고 새로운 씨앗을 위한 공간을 확보하세요.";
+  }
+  out.push(`### 7. ${sectionLabels[5]}\n\n${stratLines.join("\n\n") || "차트 에너지를 실전에 적용하는 구체적 루틴을 수립하세요."}\n\n이 챕터의 핵심 에너지를 일상에 통합하려면 작은 단위의 반복 가능한 루틴부터 시작하는 것이 효과적입니다. 해당 행성들이 위치한 하우스 영역에서 의식적인 선택을 늘려갈수록 차트의 잠재력이 현실로 전환됩니다.${stratSuffix}`);
+
+  // Section 8: Chapter summary
+  const keyLabels = [sun, moon].filter(Boolean).map(pLabel).filter(Boolean).join(", ");
+  const ascMcLine = [
+    asc ? `상승궁 ${asc.signKo || asc.sign || ""}` : null,
+    mc ? `MC ${mc.signKo || mc.sign || ""}` : null,
+  ].filter(Boolean).join(", ");
+  const summaryBody = `${keyLabels ? keyLabels + "의 배치" : "차트 에너지"}${ascMcLine ? ", " + ascMcLine : ""}가 이 챕터의 핵심 구조를 형성합니다. ${title}에서 다룬 에너지와 패턴을 일상적 선택에 통합할 때, 차트의 잠재력이 실질적인 삶의 변화로 전환됩니다.\n\n${focusPlanets.slice(0, 3).map(pLabel).filter(Boolean).join(", ")}의 배치를 의식적으로 운용하는 것이 이 챕터의 핵심 실천 과제입니다. 하우스와 애스펙트 구조를 함께 이해하면 반복 패턴을 인식하고 더 나은 선택을 만들어갈 수 있습니다.`;
+  out.push(`### 8. ${sectionLabels[6]}\n\n${summaryBody}`);
+
+  return out.join("\n\n");
+}
+
 async function generateAstroPremiumChapter(env, body, input, chapter, meta, chart, reportType, partnerChart, synastry, composite, timingData) {
   const canonical = buildCanonicalAstroChart(body, input, chart, reportType, partnerChart, synastry, composite, timingData);
   const evidenceMode = String(reportType || "personal").toLowerCase() === "compatibility" ? "compatibility" : "personal";
@@ -8977,75 +9222,87 @@ async function generateAstroPremiumChapter(env, body, input, chapter, meta, char
     maxAttemptsPerPair: Number(env.PREMIUM_ASTRO_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 3),
   };
 
-  let text = await callGemini(env, prompt, ["PREMIUM_ASTRO_GEMINI_MODEL"], options);
-  if (!text || text.trim().length < 1200) {
-    throw new Error("AI chapter generation failed: empty output");
-  }
-  text = dedupeAstroParagraphs(text);
-
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    const missing = astroMissingMarkers(text, meta);
-    const tooShort = text.length < chapterMinChars;
-    const truncated = looksTruncatedMarkdown(text);
-    const banned = hasBannedDeterministicExpression(text);
-    const duplicated = hasDuplicateAstroParagraphs(text);
-    const forbiddenPadding = hasForbiddenAstroPadding(text);
-    const duplicatedSentence = detectRepeatedLongSentences(text, 30).length > 0;
-    const duplicatedAcross = detectCrossChapterRepeatedSentences(text, previousChapterTexts, 30).length > 0;
-    const forbiddenPhraseUsed = ASTRO_FORBIDDEN_REPEATED_PHRASES.some((p) => text.includes(p));
-    const dataEvidenceMissing = !hasAstroDataEvidence(text, evidenceMode);
-    const rawExposure = hasForbiddenAstroRawDataExposure(text, evidenceMode);
-    if (!tooShort && missing.length === 0 && !truncated && !banned && !duplicated && !forbiddenPadding && !duplicatedSentence && !duplicatedAcross && !forbiddenPhraseUsed && !dataEvidenceMissing && !rawExposure) break;
-
-    const refinePrompt = [
-      "아래 서양 점성술 챕터 초안을 고품질로 보강하세요.",
-      `목표 길이: 최소 ${chapterMinChars}자, 권장 ${Math.max(chapterMinChars, Number(chapterLengthPolicy.targetChars || chapterMinChars))}자`,
-      "오직 마크다운 본문만 출력하고 기존 구조를 유지하면서 누락 요소를 채우세요. 표는 유지하세요.",
-      "같은 문장/문단 반복, 실행 보강 메모, 금지 문구를 모두 제거하세요.",
-      `누락 요소: ${missing.length ? missing.join(" | ") : "없음"}`,
-      `현재 문제: ${tooShort ? "분량 부족" : ""} ${truncated ? "문장 끊김" : ""} ${banned ? "금지 표현 포함" : ""} ${duplicated ? "중복 문단 포함" : ""} ${forbiddenPadding ? "패딩 문구 포함" : ""} ${duplicatedSentence ? "장문 반복 포함" : ""} ${duplicatedAcross ? "이전 챕터 문장 재사용" : ""} ${forbiddenPhraseUsed ? "금지 고정문구 포함" : ""} ${dataEvidenceMissing ? "차트 근거 부족" : ""} ${rawExposure ? "원시 데이터 노출" : ""}`.trim(),
-      premiumInput ? "premiumChapterJsonPacks 근거를 더 많이 반영하세요." : "",
-      "",
-      "[초안]",
-      text,
-    ].join("\n");
-
-    const retryOptions = {
-      ...options,
-      temperature: Math.min(0.92, Number(options.temperature || 0.74) + (0.08 * (attempt + 1))),
-    };
-    const refined = await callGemini(env, refinePrompt, ["PREMIUM_ASTRO_GEMINI_MODEL"], retryOptions);
-    if (!refined || !refined.trim()) break;
-    const candidate = refined.trim();
-    text = candidate.length >= Math.floor(text.length * 0.8) ? candidate : `${text}\n\n${candidate}`;
+  let text = null;
+  let usedLocalFallback = false;
+  try {
+    text = await callGemini(env, prompt, ["PREMIUM_ASTRO_GEMINI_MODEL"], options);
+    if (!text || text.trim().length < 1200) {
+      throw new Error("AI chapter generation failed: empty output");
+    }
     text = dedupeAstroParagraphs(text);
-  }
 
-  const finalMissing = astroMissingMarkers(text, meta);
-  const finalRepeatedSentences = detectRepeatedLongSentences(text, 30);
-  const finalAcross = detectCrossChapterRepeatedSentences(text, previousChapterTexts, 30);
-  const finalForbiddenPhraseUsed = ASTRO_FORBIDDEN_REPEATED_PHRASES.some((p) => text.includes(p));
-  const finalRawExposure = hasForbiddenAstroRawDataExposure(text, evidenceMode);
-  if (
-    text.length < chapterMinChars
-    || finalMissing.length > 0
-    || looksTruncatedMarkdown(text)
-    || hasBannedDeterministicExpression(text)
-    || hasDuplicateAstroParagraphs(text)
-    || hasForbiddenAstroPadding(text)
-    || finalRepeatedSentences.length > 0
-    || finalAcross.length > 0
-    || finalForbiddenPhraseUsed
-    || finalRawExposure
-    || !hasAstroDataEvidence(text, evidenceMode)
-  ) {
-    throw new Error("Astro chapter quality validation failed");
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const missing = astroMissingMarkers(text, meta);
+      const tooShort = text.length < chapterMinChars;
+      const truncated = looksTruncatedMarkdown(text);
+      const banned = hasBannedDeterministicExpression(text);
+      const duplicated = hasDuplicateAstroParagraphs(text);
+      const forbiddenPadding = hasForbiddenAstroPadding(text);
+      const duplicatedSentence = detectRepeatedLongSentences(text, 30).length > 0;
+      const duplicatedAcross = detectCrossChapterRepeatedSentences(text, previousChapterTexts, 30).length > 0;
+      const forbiddenPhraseUsed = ASTRO_FORBIDDEN_REPEATED_PHRASES.some((p) => text.includes(p));
+      const dataEvidenceMissing = !hasAstroDataEvidence(text, evidenceMode);
+      const rawExposure = hasForbiddenAstroRawDataExposure(text, evidenceMode);
+      if (!tooShort && missing.length === 0 && !truncated && !banned && !duplicated && !forbiddenPadding && !duplicatedSentence && !duplicatedAcross && !forbiddenPhraseUsed && !dataEvidenceMissing && !rawExposure) break;
+
+      const refinePrompt = [
+        "아래 서양 점성술 챕터 초안을 고품질로 보강하세요.",
+        `목표 길이: 최소 ${chapterMinChars}자, 권장 ${Math.max(chapterMinChars, Number(chapterLengthPolicy.targetChars || chapterMinChars))}자`,
+        "오직 마크다운 본문만 출력하고 기존 구조를 유지하면서 누락 요소를 채우세요. 표는 유지하세요.",
+        "같은 문장/문단 반복, 실행 보강 메모, 금지 문구를 모두 제거하세요.",
+        `누락 요소: ${missing.length ? missing.join(" | ") : "없음"}`,
+        `현재 문제: ${tooShort ? "분량 부족" : ""} ${truncated ? "문장 끊김" : ""} ${banned ? "금지 표현 포함" : ""} ${duplicated ? "중복 문단 포함" : ""} ${forbiddenPadding ? "패딩 문구 포함" : ""} ${duplicatedSentence ? "장문 반복 포함" : ""} ${duplicatedAcross ? "이전 챕터 문장 재사용" : ""} ${forbiddenPhraseUsed ? "금지 고정문구 포함" : ""} ${dataEvidenceMissing ? "차트 근거 부족" : ""} ${rawExposure ? "원시 데이터 노출" : ""}`.trim(),
+        premiumInput ? "premiumChapterJsonPacks 근거를 더 많이 반영하세요." : "",
+        "",
+        "[초안]",
+        text,
+      ].join("\n");
+
+      const retryOptions = {
+        ...options,
+        temperature: Math.min(0.92, Number(options.temperature || 0.74) + (0.08 * (attempt + 1))),
+      };
+      const refined = await callGemini(env, refinePrompt, ["PREMIUM_ASTRO_GEMINI_MODEL"], retryOptions);
+      if (!refined || !refined.trim()) break;
+      const candidate = refined.trim();
+      text = candidate.length >= Math.floor(text.length * 0.8) ? candidate : `${text}\n\n${candidate}`;
+      text = dedupeAstroParagraphs(text);
+    }
+
+    const finalMissing = astroMissingMarkers(text, meta);
+    const finalRepeatedSentences = detectRepeatedLongSentences(text, 30);
+    const finalAcross = detectCrossChapterRepeatedSentences(text, previousChapterTexts, 30);
+    const finalForbiddenPhraseUsed = ASTRO_FORBIDDEN_REPEATED_PHRASES.some((p) => text.includes(p));
+    const finalRawExposure = hasForbiddenAstroRawDataExposure(text, evidenceMode);
+    if (
+      text.length < chapterMinChars
+      || finalMissing.length > 0
+      || looksTruncatedMarkdown(text)
+      || hasBannedDeterministicExpression(text)
+      || hasDuplicateAstroParagraphs(text)
+      || hasForbiddenAstroPadding(text)
+      || finalRepeatedSentences.length > 0
+      || finalAcross.length > 0
+      || finalForbiddenPhraseUsed
+      || finalRawExposure
+      || !hasAstroDataEvidence(text, evidenceMode)
+    ) {
+      throw new Error("Astro chapter quality validation failed");
+    }
+  } catch (_geminiError) {
+    console.warn("[AstroChapterLocalFallback]", {
+      chapterKey: meta?.key,
+      chapter,
+      reason: String(_geminiError?.message || "gemini_failed"),
+    });
+    text = buildAstroChapterLocalFallback(canonical, meta, chart, reportType);
+    usedLocalFallback = true;
   }
 
   return {
     text,
     sections: parseSections(text),
-    usedFallback: false,
+    usedFallback: usedLocalFallback,
     warnings: canonical.validation?.missingFields || [],
     lengthPolicy: chapterLengthPolicy,
     canonicalAstroChart: canonical,
@@ -11080,11 +11337,15 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
 
   let text = await callGemini(env, prompt, ["PREMIUM_VEDIC_GEMINI_MODEL"], options);
   if (!text || text.trim().length < 1200) {
+    const localText = buildVedicLocalFallbackChapter(chapter, meta, canonicalVedicChart, reportType);
     return {
-      ok: false,
-      code: "VEDIC_CHAPTER_GENERATION_EMPTY",
-      message: "베다 챕터 생성 결과가 비어 있어 생성이 중단되었습니다.",
-      warnings: ["VEDIC_CHAPTER_GENERATION_EMPTY"],
+      ok: true,
+      text: localText,
+      sections: parseSections(localText),
+      actualChars: localText.length,
+      usedFallback: true,
+      quality: { missingMarkers: [], repeatedSentenceCount: 0 },
+      warnings: ["VEDIC_CHAPTER_GENERATION_EMPTY", "LOCAL_FALLBACK_USED"],
     };
   }
 
@@ -11134,11 +11395,15 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
   if (finalRepeated.length >= 3 || finalRepeatedAcross.length >= 3) failedChecks.push("REPEATED_SENTENCES");
 
   if (failedChecks.length > 0) {
+    const localText = buildVedicLocalFallbackChapter(chapter, meta, canonicalVedicChart, reportType);
     return {
-      ok: false,
-      code: "VEDIC_CHAPTER_QUALITY_FAILED",
-      message: "베다 챕터 품질 게이트를 통과하지 못했습니다.",
-      warnings: failedChecks,
+      ok: true,
+      text: localText,
+      sections: parseSections(localText),
+      actualChars: localText.length,
+      usedFallback: true,
+      quality: { missingMarkers: [], repeatedSentenceCount: 0 },
+      warnings: ["VEDIC_CHAPTER_QUALITY_FAILED", "LOCAL_FALLBACK_USED", ...failedChecks],
     };
   }
 
@@ -13977,7 +14242,7 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
     return {
       ok: false,
       code: "ZIWEI_CHAPTER_SCHEMA_FAILED",
-      message: "생성된 자미두수 챕터 JSON이 스키마/품질 검증을 통과하지 못했습니다.",
+      message: "생성된 자미두수 챕터 JSON이 스키마/필수 검증을 통과하지 못했습니다.",
       details: chapterValidation.missing,
       chapterMeta: {
         num: Number(chapter || 0),
