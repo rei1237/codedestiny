@@ -13374,6 +13374,18 @@ function renderZiwei(p, natal, targetId) {
   }
 
   function _zwBuildLifeAnimalInsight(primary, secondary, resolved) {
+    function _zwHasBatchim(word) {
+      var text = String(word || '').trim();
+      if (!text) return false;
+      var lastChar = text.charCodeAt(text.length - 1);
+      if (lastChar < 0xac00 || lastChar > 0xd7a3) return false;
+      return ((lastChar - 0xac00) % 28) !== 0;
+    }
+
+    function _zwSubjectParticle(word) {
+      return _zwHasBatchim(word) ? '이' : '가';
+    }
+
     var kw = (primary && primary.keywords) ? primary.keywords.slice(0, 5) : [];
     var kwLine = kw.length ? kw.join(', ') : '핵심 성향 데이터 없음';
     var secLine = '';
@@ -13383,7 +13395,7 @@ function renderZiwei(p, natal, targetId) {
     var sourceBridge = (resolved && resolved.sourceMode === 'sanbang')
       ? '이번 판정은 삼방사정 흐름을 함께 반영한 보조 판정입니다. '
       : '';
-    var longNarrative = '당신의 명궁 중심 주성은 ' + primary.koreanName + '이며, 상징 동물로는 ' + primary.animal + '이 대응됩니다. '
+    var longNarrative = '당신의 명궁 중심 주성은 ' + primary.koreanName + '이며, 상징 동물로는 ' + primary.animal + _zwSubjectParticle(primary.animal) + ' 대응됩니다. '
       + primary.summary + ' 이 기질은 단순한 성격 라벨이 아니라, 위기에서 무엇을 먼저 붙잡고 어떤 기준으로 결정을 내리는지를 보여주는 운영 원리입니다. '
       + '특히 ' + kwLine + '의 축이 강할수록 대인관계와 커리어에서 역할의 무게중심을 스스로 설정하려는 경향이 선명해집니다. '
       + sourceBridge
@@ -14302,9 +14314,7 @@ function renderZiwei(p, natal, targetId) {
   html += '</div>';
   html += '</div>';
   html += '</div></div>';
-  try { html += _zwBuildBasicCanonicalCards(palace); } catch(e) { console.error('BasicCanonical 에러:', e); }
   try { html += _zwBuildLifeAnimalCards(palace); } catch(e) { console.error('LifeAnimal 에러:', e); }
-  try { html += _zwBuildDeepCanonicalCards(palace); } catch(e) { console.error('DeepCanonical 에러:', e); }
   try { html += _zwBuildDeepAiPromptPanel(); } catch(e) { console.error('DeepAiPrompt 에러:', e); }
 
   html += `
@@ -16834,6 +16844,7 @@ function renderZiwei(p, natal, targetId) {
           pd.daHanList.forEach(function(dh) {
             var dhRawStars = pd.stars[dh.idx];
             var dhMain = extractMains(dhRawStars);
+            var dhAux = extractAux(dhRawStars);
             var dhBad  = extractBad(dhRawStars);
             var dhTheme = PALACE_DAHAN_THEME[dh.palaceName] || {icon:'🔮',kw:'고유한 운명 흐름의 구간'};
             var starKw = dhMain.length > 0 ? (STAR_DAHAN_KW[dhMain[0]] ? dhMain[0]+' — '+STAR_DAHAN_KW[dhMain[0]].split(' ')[0]+' 운' : dhMain[0]) : '공궁(유연한 변화)';
@@ -16847,6 +16858,18 @@ function renderZiwei(p, natal, targetId) {
             var hasHwaroc = dhSihua.some(function(s){return s.info.type==='화록';});
             var borderCol = hasHwagi ? 'rgba(248,113,113,0.6)' : (hasHwaroc ? 'rgba(74,222,128,0.6)' : 'rgba(139,92,246,0.25)');
             var bgCol     = hasHwagi ? 'rgba(248,113,113,0.07)' : (hasHwaroc ? 'rgba(74,222,128,0.07)' : 'rgba(255,255,255,0.02)');
+            var dhSihuaTypeCnt = { '화록':0, '화권':0, '화과':0, '화기':0 };
+            dhSihua.forEach(function(s) {
+              if (dhSihuaTypeCnt.hasOwnProperty(s.info.type)) dhSihuaTypeCnt[s.info.type] += 1;
+            });
+            var momentumScore = (dhMain.length * 2) + (dhAux.length) + (dhSihuaTypeCnt['화록'] * 2) + (dhSihuaTypeCnt['화권']) + (dhSihuaTypeCnt['화과']) - (dhBad.length * 2) - (dhSihuaTypeCnt['화기'] * 3);
+            var momentumLabel = momentumScore >= 4 ? '상승 국면' : (momentumScore <= -2 ? '조정 국면' : '전환 국면');
+            var riskLabel = dhSihuaTypeCnt['화기'] > 0 || dhBad.length >= 2 ? '높음' : ((dhBad.length === 1 || dhSihuaTypeCnt['화권'] > 0) ? '보통' : '낮음');
+            var phaseAction = momentumLabel === '상승 국면'
+              ? '핵심 프로젝트 1~2개를 집중 확장하고, 성과 회수 기준을 숫자로 고정하세요.'
+              : (momentumLabel === '조정 국면'
+                ? '새 확장보다 기존 구조 점검과 손실 통제(지출·관계·일정)를 우선하세요.'
+                : '역할 재배치와 우선순위 재설계로 다음 10년 진입 비용을 낮추는 것이 유리합니다.');
             var badges = dhSihua.map(function(s){
               var bc = sihuaColors[s.info.type]||'#fff';
               return '<span style="background:'+bc+'22;color:'+bc+';border:1px solid '+bc+'55;padding:1px 5px;border-radius:4px;font-size:0.68rem;font-weight:700;margin-left:4px;">'+s.info.type+'</span>';
@@ -16859,6 +16882,12 @@ function renderZiwei(p, natal, targetId) {
                   +'<span style="color:#94a3b8;font-size:0.73rem;">'+dh.zhi+'</span>'
                 +'</div>'
                 +'<div style="font-size:0.8rem;color:#cbd5e1;margin-top:3px;"><span style="color:#6ee7b7;">'+starKw+'</span> · '+dhTheme.kw+'</div>'
+                +'<div style="font-size:0.77rem;color:#e2e8f0;margin-top:4px;line-height:1.62;">'
+                  +'<b style="color:#c4b5fd;">계산 요약:</b> 주성 '+dhMain.length+' · 보조성 '+dhAux.length+' · 흉성 '+dhBad.length+' · 사화(록/권/과/기) '+dhSihuaTypeCnt['화록']+'/'+dhSihuaTypeCnt['화권']+'/'+dhSihuaTypeCnt['화과']+'/'+dhSihuaTypeCnt['화기']+' → <b style="color:#fcd34d;">'+momentumLabel+'</b> (리스크 '+riskLabel+')'
+                +'</div>'
+                +'<div style="font-size:0.76rem;color:#bae6fd;margin-top:3px;line-height:1.58;">'
+                  +'<b>실행 포인트:</b> '+phaseAction
+                +'</div>'
               +'</div>';
           });
         }
