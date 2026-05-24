@@ -41,6 +41,7 @@
     reportId: '',
     paidReportId: '',
     paymentContext: null,
+    generationSource: 'api',
     refundInFlight: false,
     payload: null,
     chapterTexts: {},
@@ -71,6 +72,33 @@
         window.alert(String(message || ''));
       }
     } catch (_) {}
+  }
+
+  function logLifeBookStage(stage, detail) {
+    try {
+      console.info('[LifeBook] ' + String(stage || ''), detail || {});
+    } catch (_) {}
+  }
+
+  function isAuthOrPaymentError(error) {
+    var msg = String(error && error.message || '').toLowerCase();
+    return msg.indexOf('로그인') >= 0
+      || msg.indexOf('401') >= 0
+      || msg.indexOf('403') >= 0
+      || msg.indexOf('결제') >= 0
+      || msg.indexOf('402') >= 0;
+  }
+
+  function toSafeUserError(error) {
+    var raw = String(error && error.message || '').trim();
+    if (!raw) return '인생의 책 생성 중 오류가 발생했습니다.';
+    if (/챕터\s*품질\s*검증\s*실패|chapter-\d+|quality/i.test(raw)) {
+      return '리포트 품질 보정 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    if (/api\s*실패|timeout|quota|invalid\s*json/i.test(raw)) {
+      return '리포트 생성 중 일시적인 응답 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    return raw;
   }
 
   function safeParse(raw, fallback) {
@@ -782,23 +810,30 @@
     };
   }
 
-  async function generateAllChapters() {
+  async function generateAllChapters(paymentContext) {
+    logLifeBookStage('REQUEST_START', { reportId: state.reportId });
     showOnly('lbLoadingScreen');
+    logLifeBookStage('INPUT_NORMALIZE_START', { reportId: state.reportId });
     setLoadingStatusText('사주 명식 계산 중');
+    logLifeBookStage('INPUT_NORMALIZE_SUCCESS', { reportId: state.reportId });
     setLoadingProgress(1, CHAPTER_TITLES[0]);
 
     var statusInfo = await loadExistingStatus(state.reportId);
     var startFrom = Number(statusInfo.completed || 0);
+    logLifeBookStage('PAYLOAD_NORMALIZE_START', { reportId: state.reportId });
     setLoadingStatusText('인생의 책 데이터 정리 중');
+    logLifeBookStage('PAYLOAD_NORMALIZE_SUCCESS', { reportId: state.reportId });
     for (var chapter = startFrom + 1; chapter <= TOTAL_CHAPTERS; chapter += 1) {
       var chapterRoman = ROMAN_NUMERALS[chapter - 1] || String(chapter);
       setLoadingStatusText(chapterRoman + ' 챕터 생성 중');
       setLoadingProgress(chapter, CHAPTER_TITLES[chapter - 1]);
 
+      logLifeBookStage('API_GENERATION_START', { reportId: state.reportId, chapterId: 'chapter-' + String(chapter).padStart(2, '0') });
       var reqBody = Object.assign({}, state.payload, {
         reportId: state.reportId,
         sessionId: chapter,
         chapter: chapter,
+        payment: paymentContext || null,
         _premiumStrictPayload: true,
         _premiumStrictValidation: true,
         requestId: 'lifebook-' + state.reportId + '-ch' + chapter + '-' + Date.now()
@@ -820,12 +855,21 @@
         throw new Error(String(res.data && res.data.message || ('챕터 ' + chapter + ' 생성에 실패했습니다.')));
       }
 
+      var source = String(res.data && res.data.source || '').trim().toLowerCase();
+      if (source === 'local' || source === 'mixed') state.generationSource = source;
+      logLifeBookStage('API_GENERATION_SUCCESS', {
+        reportId: state.reportId,
+        chapterId: 'chapter-' + String(chapter).padStart(2, '0'),
+        source: source || 'api'
+      });
+
       state.chapterTexts[chapter] = String(res.data.text || '').trim();
       state.chapterMeta[chapter] = res.data.chapterMeta || { title: CHAPTER_TITLES[chapter - 1] };
       persistState();
       setLoadingProgress(chapter + 1 > TOTAL_CHAPTERS ? TOTAL_CHAPTERS : chapter + 1, CHAPTER_TITLES[Math.min(TOTAL_CHAPTERS - 1, chapter)]);
     }
     setLoadingStatusText('PDF 편집 중');
+    logLifeBookStage('PDF_RENDER_START', { reportId: state.reportId });
   }
 
   async function startLifeBookGeneration() {
@@ -846,23 +890,30 @@
     setGenerateButtonBusy(true);
 
     try {
-      await generateAllChapters();
+      await generateAllChapters(state.paymentContext);
       var totalChars = getTotalGeneratedChars();
       if (totalChars < LIFEBOOK_MIN_TOTAL_CHARS) {
         throw new Error('생성 결과가 최소 분량 기준(' + LIFEBOOK_MIN_TOTAL_CHARS + '자)에 미달했습니다. 다시 시도해 주세요. 현재 ' + totalChars + '자');
       }
       setLoadingStatusText('다운로드 준비 완료');
+      logLifeBookStage('PDF_RENDER_SUCCESS', { reportId: state.reportId, source: state.generationSource || 'api' });
       state.paymentContext = null;
       renderResultScreen();
       persistState();
-      notify('인생의 책 13챕터 생성이 완료되었습니다.');
+      notify('사주 인생의 책 프리미엄 리포트가 완성되었습니다.');
     } catch (err) {
       console.error('[LifeBook] generation failed:', err);
-      await attemptLifeBookAutoRefund('인생의 책 PDF 생성 실패 자동 환불');
+      logLifeBookStage('PDF_RENDER_FAILED', { reportId: state.reportId, message: String(err && err.message || '') });
+      var shouldRefund = !!(state.paymentContext && !isAuthOrPaymentError(err));
+      if (shouldRefund) {
+        logLifeBookStage('REFUND_START', { reportId: state.reportId });
+        var refunded = await attemptLifeBookAutoRefund('인생의 책 PDF 생성 실패 자동 환불');
+        if (refunded) logLifeBookStage('REFUND_SUCCESS', { reportId: state.reportId });
+      }
       if (chapterCount() > 0) {
         setErrorScreen('PDF 생성 중 일부 챕터에서 문제가 발생했습니다. 다시 시도해 주세요.');
       } else {
-        setErrorScreen(String(err && err.message || '인생의 책 생성 중 오류가 발생했습니다.'));
+        setErrorScreen(toSafeUserError(err));
       }
     } finally {
       state.generating = false;
@@ -931,11 +982,13 @@
     }
 
     if (state.paidReportId === state.reportId) {
+      logLifeBookStage('PAYMENT_CHECK_SUCCESS', { reportId: state.reportId, reused: true });
       startLifeBookGeneration();
       return;
     }
 
     if (typeof window._cdCoinGatePerUse === 'function') {
+      logLifeBookStage('PAYMENT_CHECK_START', { reportId: state.reportId });
       window._cdCoinGatePerUse(
         COST_COINS,
         COIN_REASON,
@@ -948,9 +1001,11 @@
           };
           state.paidReportId = state.reportId;
           persistState();
+          logLifeBookStage('PAYMENT_CHECK_SUCCESS', { reportId: state.reportId, transactionId: String(transactionId || '') });
           startLifeBookGeneration();
         },
         function () {
+          logLifeBookStage('PAYMENT_CHECK_FAILED', { reportId: state.reportId, reason: 'user-cancel-or-denied' });
           setGenerateButtonBusy(false);
           if (!state.generating) showOnly('lbStartScreen');
         },
@@ -961,6 +1016,7 @@
 
     setGenerateButtonBusy(false);
     if (!state.generating) showOnly('lbStartScreen');
+    logLifeBookStage('PAYMENT_CHECK_FAILED', { reportId: state.reportId, reason: 'coin-gate-unavailable' });
     notify('결제 모듈 로딩이 지연되어 생성 시작을 차단했습니다. 잠시 후 다시 시도해 주세요.');
   }
 
@@ -1069,6 +1125,7 @@
     state.reportId = '';
     state.paidReportId = '';
     state.paymentContext = null;
+    state.generationSource = 'api';
     state.refundInFlight = false;
     state.payload = null;
     state.chapterTexts = {};

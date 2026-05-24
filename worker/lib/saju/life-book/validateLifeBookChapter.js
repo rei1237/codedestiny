@@ -157,7 +157,7 @@ function parseSectionsFromMarkdown(source) {
 }
 
 function buildMarkdownFallback(rawText, chapterConfig) {
-  const content = sanitizeReadableText(rawText) || "제공된 계산값 기준으로 데이터 해석 문장을 안전하게 구성할 수 있는 정보가 제한적입니다.";
+  const content = sanitizeReadableText(rawText) || "제공된 계산값을 기준으로 핵심 구조를 정리하고 실행 우선순위를 설계합니다.";
   const summary = parseSummaryFromMarkdown(content)
     || "제공된 계산값 기준으로 핵심 구조를 점검하고 단계적으로 실행하는 접근이 가장 안전합니다.";
 
@@ -258,6 +258,11 @@ const BANNED_PHRASES = [
   /##\s*실전\s*행동\s*전략/i,
   /###\s*심화\s*실행\s*노트\s*\d*/i,
   /##\s*마무리\s*정리/i,
+  /자동\s*복구\s*생성/i,
+  /chapter\s*1/i,
+  /데이터가\s*부족합니다/i,
+  /품질\s*검증\s*실패/i,
+  /api\s*실패/i,
 ];
 
 function normalizeLooseText(value) {

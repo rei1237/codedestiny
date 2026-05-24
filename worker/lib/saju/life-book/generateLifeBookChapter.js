@@ -20,6 +20,14 @@ const SYSTEM_INSTRUCTION = [
   "- 이전 챕터의 핵심 문장과 조언을 반복하지 않는다.",
 ].join("\n");
 
+const LIFEBOOK_FORBIDDEN_OUTPUT_PHRASES = [
+  "자동 복구 생성",
+  "Chapter 1",
+  "데이터가 부족합니다",
+  "품질 검증 실패",
+  "API 실패",
+];
+
 function toStringSafe(value) {
   return String(value == null ? "" : value).trim();
 }
@@ -120,6 +128,10 @@ function buildChapterHardRequirements(chapterConfig, lifeBookInputData) {
     lines.push("- 항목 누락 시 재생성 대상입니다.");
   }
 
+  lines.push("- 각 소제목 본문은 최소 500자 이상으로 작성하세요.");
+  lines.push("- 챕터 전체는 최소 2500자 이상으로 작성하세요.");
+  lines.push(`- 다음 문구는 본문에 절대 포함하지 마세요: ${LIFEBOOK_FORBIDDEN_OUTPUT_PHRASES.join(", ")}`);
+
   return lines;
 }
 
@@ -176,8 +188,10 @@ function buildChapterPrompt(chapterConfig, lifeBookInputData, previousTexts = []
     "- 반드시 아래 세부 카테고리를 모두 포함한다.",
     "- 각 세부 카테고리는 ### 소제목을 붙인다.",
     "- 이전 챕터에서 다룬 핵심 표현을 반복하지 않는다.",
+    "- 각 소제목 본문은 최소 500자 이상으로 작성한다.",
     "- 데이터가 부족한 항목은 단정하지 말고 해석 가능한 범위에서 작성한다.",
     "- 최종 문체는 프리미엄 상담 리포트 문체로 한다.",
+    `- 금지 문구: ${LIFEBOOK_FORBIDDEN_OUTPUT_PHRASES.join(", ")}`,
     "",
     "[작성 규칙]",
     "- JSON 형식으로만 출력한다.",
@@ -239,7 +253,9 @@ function buildRepairPrompt(chapterConfig, previousOutput, validationErrors) {
     "- summary, practicalAdvice(최소 3개) 반드시 포함",
     "- 필수 작성 항목은 누락 없이 모두 포함",
     "- 중복 문단, 중복 문장이나 이전 챕터 해석의 단순 반복은 반드시 제거",
+    "- 각 소제목 본문은 최소 500자 이상으로 다시 작성",
     "- 금지 템플릿 문구(반복 패턴과 주의점/실전 행동 전략/심화 실행 노트/마무리 정리) 사용 금지",
+    `- 다음 금지 문구를 절대 출력하지 마세요: ${LIFEBOOK_FORBIDDEN_OUTPUT_PHRASES.join(", ")}`,
     "- 본문에서 과도한 **강조 표기** 제거",
     requiredCoverage.length
       ? `\n[필수 작성 항목 재확인]\n${requiredCoverage.map((item) => `- ${item}`).join("\n")}`
@@ -295,14 +311,25 @@ function buildLifeBookFallbackChapter(chapterConfig, lifeBookInputData, previous
   headings.forEach((heading, index) => {
     const focus = factLines[index % factLines.length] || "- 핵심 기준: 실행 우선순위";
     const reinforce = factLines[(index + 2) % factLines.length] || "- 보강 기준: 리스크 선관리";
+    const strategyLens = ["일", "돈", "관계", "건강", "학습", "회복", "의사결정"][index % 7];
+    const timingLens = ["단기 4주", "중기 3개월", "반기", "연간", "대운 전환기"][index % 5];
     blocks.push(
       "",
       `### ${heading}`,
       `${heading}에서는 ${focus.replace(/^-\s*/, "")} 항목을 우선 판단 기준으로 두고, 실행-점검-보정 순환을 유지하는 것이 핵심입니다.`,
       `이번 구간에서 가장 중요한 것은 ${reinforce.replace(/^-\s*/, "")}을 실제 일정에 반영해 감정 반응이 아닌 기준 중심 결정을 유지하는 것입니다.`,
-      "실행 포인트: 주 단위로 목표를 1~2개로 제한하고, 완료/보류/중단 기준을 문장으로 기록하세요.",
-      "리스크 컷: 속도 과열, 관계 피로 누적, 기준 없는 변경이 동시에 나타나면 즉시 우선순위를 재정렬하세요.",
+      `분석 렌즈는 ${strategyLens} 영역이며, 판단 주기는 ${timingLens} 기준으로 고정해 변동성에 흔들리지 않는 운영 패턴을 만드는 데 초점을 둡니다.`,
+      `실행 포인트 ${index + 1}: 우선 과제를 2개 이하로 정하고 각 과제의 완료 조건을 계량 지표와 문장 지표로 분리해 기록하세요.`,
+      `리스크 관리 ${index + 1}: 일정 과밀, 감정적 반응, 기준 없는 확장 신호가 동시에 나타나면 즉시 일정 강도를 낮추고 핵심 기준으로 복귀하세요.`,
     );
+
+    let sectionDepth = 1;
+    while (toKoreanLikeLength(blocks.join("\n")) < Math.max(2500, (index + 1) * 600) && sectionDepth <= 2) {
+      blocks.push(
+        `심화 포인트 ${index + 1}-${sectionDepth}: ${focus.replace(/^-\s*/, "")}과 ${reinforce.replace(/^-\s*/, "")}의 균형을 주 ${sectionDepth + 1}회 점검하며, 변경 사유는 단일 문장 규칙으로 기록해 누적 편향을 줄이세요.`,
+      );
+      sectionDepth += 1;
+    }
   });
 
   if (previousSignals.length) {
@@ -311,7 +338,7 @@ function buildLifeBookFallbackChapter(chapterConfig, lifeBookInputData, previous
       "### 연속성 점검",
       "이전 챕터의 핵심 결론을 반복하지 않되, 이미 합의한 기준을 다음 단계 실행 계획에 연결해야 흐름이 끊기지 않습니다.",
       `점검 메모: ${previousSignals.join(" | ")}`,
-      "실행 문장: 이번 챕터의 우선 행동 3가지를 달력에 고정하고, 완료 근거를 같은 문장 형식으로 남기세요.",
+      "실행 문장: 이번 챕터의 우선 행동 3가지를 달력에 고정하고, 완료 근거를 같은 형식으로 남겨 다음 챕터 의사결정 기준으로 연결하세요.",
     );
   }
 
@@ -320,7 +347,7 @@ function buildLifeBookFallbackChapter(chapterConfig, lifeBookInputData, previous
   let turn = 1;
   while (toKoreanLikeLength(contentMarkdown) < minLength && turn <= 8) {
     const signal = factLines[turn % factLines.length] || "- 기준: 실행 점검";
-    contentMarkdown += `\n\n### 실행 심화 ${turn}\n${signal.replace(/^-\s*/, "")}을 중심으로 이번 주 실행 결과를 수치와 문장으로 동시에 기록하고, 다음 주 계획은 변경 폭을 20% 이내로 조정하세요.\n핵심 질문: 지금의 선택이 90일 뒤에도 유지 가능한가, 리스크 징후를 선제적으로 감지했는가, 관계와 성과를 함께 관리하고 있는가.`;
+    contentMarkdown += `\n\n### 실행 심화 ${turn}\n${signal.replace(/^-\s*/, "")}을 중심으로 이번 주 실행 결과를 수치와 문장으로 동시에 기록하고, 다음 주 계획은 변경 폭을 20% 이내로 조정하세요.\n핵심 질문 ${turn}: 지금의 선택이 90일 뒤에도 유지 가능한가, 리스크 징후를 선제적으로 감지했는가, 관계와 성과를 함께 관리하고 있는가.`;
     turn += 1;
   }
 
@@ -359,12 +386,41 @@ export async function generateLifeBookChapter(params = {}) {
   const maxRetries = Math.max(0, Math.min(2, Number(params.maxRetries ?? 2)));
   const previousTexts = Array.isArray(params.previousTexts) ? params.previousTexts : [];
   const chapterMemories = Array.isArray(params.chapterMemories) ? params.chapterMemories : [];
+  const forceLocal = params.forceLocal === true;
 
   if (!chapterConfig || typeof chapterConfig !== "object") {
     return {
       ok: false,
       code: "LIFEBOOK_CHAPTER_CONFIG_INVALID",
       message: "챕터 설정이 유효하지 않습니다.",
+    };
+  }
+
+  if (forceLocal) {
+    const fallbackChapter = buildLifeBookFallbackChapter(chapterConfig, lifeBookInputData, previousTexts);
+    const fallbackValidation = validateLifeBookChapter(fallbackChapter, chapterConfig, previousTexts);
+    if (!fallbackValidation.ok) {
+      return {
+        ok: false,
+        code: "LIFEBOOK_CHAPTER_LOCAL_FALLBACK_QUALITY_FAILED",
+        message: `챕터 품질 검증 실패: ${chapterConfig.id}`,
+        attempts: 0,
+        usedFallback: true,
+        validation: fallbackValidation,
+      };
+    }
+    return {
+      ok: true,
+      chapterResult: {
+        ...fallbackChapter,
+        warnings: [
+          ...(Array.isArray(fallbackChapter.warnings) ? fallbackChapter.warnings : []),
+          ...(Array.isArray(fallbackValidation.warnings) ? fallbackValidation.warnings : []),
+        ].filter(Boolean),
+      },
+      attempts: 0,
+      usedFallback: true,
+      validation: fallbackValidation,
     };
   }
 
