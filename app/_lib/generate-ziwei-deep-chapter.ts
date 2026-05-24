@@ -16,13 +16,14 @@ import {
 import { MASTER_TEMPLATE, OVERVIEW_TEMPLATE, ZIWEI_PALACE_TEMPLATES } from "./ziwei-deep-templates";
 import { transformationTypeToLabel } from "./ziwei-advanced-normalization";
 
-type StrengthSymbol = "◎" | "○" | "△" | "×" | "";
+type StrengthSymbol = "◎" | "O" | "▲" | "△" | "X" | "";
 
 const SYMBOL_DESC: Record<Exclude<StrengthSymbol, "">, string> = {
   "◎": "묘(廟) 급으로 별의 성능이 최상 발현되는 상태",
-  "○": "왕(旺) 급으로 안정성과 지속 실행력이 높은 상태",
-  "△": "리(利)·평(平) 구간으로 환경·운영 방식에 따라 결과 편차가 생기는 상태",
-  "×": "함(陷) 구간으로 리스크 통제와 방어 전략이 최우선인 상태",
+  "O": "득(得) 급으로 안정성과 지속 실행력이 높은 상태",
+  "▲": "리(利) 구간으로 추진력과 실익이 균형 있게 작동하는 상태",
+  "△": "평(平) 구간으로 환경·운영 방식에 따라 결과 편차가 생기는 상태",
+  "X": "함/실(陷/失) 구간으로 리스크 통제와 방어 전략이 최우선인 상태",
 };
 
 const SIHUA_BADGE: Record<string, string> = {
@@ -45,10 +46,10 @@ function palaceById(chart: ZiweiDeepChart, id?: string): ZiweiPalace | null {
 function normalizeSymbol(symbol?: string): StrengthSymbol {
   const raw = String(symbol || "").trim();
   if (raw === "◎") return "◎";
-  if (raw === "○") return "○";
-  if (raw === "▲") return "△";
+  if (raw === "○" || raw === "O") return "O";
+  if (raw === "▲") return "▲";
   if (raw === "△") return "△";
-  if (raw === "×" || raw.toUpperCase() === "X") return "×";
+  if (raw === "×" || raw.toUpperCase() === "X") return "X";
   return "";
 }
 
@@ -65,13 +66,16 @@ function buildGenericStrengthHint(star: ZiweiStarMeta, group: "main" | "assistan
   if (symbol === "◎") {
     return `${role} ${star.name}의 강세(◎)는 궁의 핵심 축을 선명하게 만들며${transform}에는 장기 성과로 누적될 가능성이 큽니다.`;
   }
-  if (symbol === "○") {
-    return `${role} ${star.name}의 안정 구간(○)은 재현 가능한 성과를 만들기 좋고, 습관화하면 변동성을 크게 줄일 수 있습니다.`;
+  if (symbol === "O") {
+    return `${role} ${star.name}의 안정 구간(O)은 재현 가능한 성과를 만들기 좋고, 습관화하면 변동성을 크게 줄일 수 있습니다.`;
+  }
+  if (symbol === "▲") {
+    return `${role} ${star.name}의 이점 구간(▲)은 방향과 실행이 맞을 때 성과 가속이 붙으므로 우선순위 정렬이 중요합니다.`;
   }
   if (symbol === "△") {
     return `${role} ${star.name}의 기복 구간(△)은 환경 의존성이 커지므로 루틴·체크리스트·협업 보조 장치로 품질을 표준화해야 합니다.`;
   }
-  return `${role} ${star.name}의 충돌 구간(×)은 방치하면 손실이 커지므로 속도 제한, 손실 상한선, 의사결정 보류 규칙을 먼저 설계해야 합니다.`;
+  return `${role} ${star.name}의 충돌 구간(X)은 방치하면 손실이 커지므로 속도 제한, 손실 상한선, 의사결정 보류 규칙을 먼저 설계해야 합니다.`;
 }
 
 function buildStrengthDrivenAction(star: ZiweiStarMeta, group: "main" | "assistant" | "malefic"): string {
@@ -84,13 +88,16 @@ function buildStrengthDrivenAction(star: ZiweiStarMeta, group: "main" | "assista
   if (symbol === "◎") {
     return `${role} ${star.name}(◎)은(는) 확장 카드입니다. 고난도 과제·핵심 의사결정·대표 역할에 우선 배치하세요.`;
   }
-  if (symbol === "○") {
-    return `${role} ${star.name}(○)은(는) 안정 카드입니다. 반복 성과 구간에 고정해 장기 복리 구조를 만드세요.`;
+  if (symbol === "O") {
+    return `${role} ${star.name}(O)은(는) 안정 카드입니다. 반복 성과 구간에 고정해 장기 복리 구조를 만드세요.`;
+  }
+  if (symbol === "▲") {
+    return `${role} ${star.name}(▲)은(는) 가속 카드입니다. 핵심 과제와 맞물릴 때 실행 우선순위를 앞당기세요.`;
   }
   if (symbol === "△") {
     return `${role} ${star.name}(△)은(는) 보완 카드입니다. 단독 질주보다 협업·템플릿·리허설 기반으로 운용하세요.`;
   }
-  return `${role} ${star.name}(×)은(는) 통제 카드입니다. 감정 반응 대신 데이터 기반 단계 실행으로 리스크를 분해하세요.`;
+  return `${role} ${star.name}(X)은(는) 통제 카드입니다. 감정 반응 대신 데이터 기반 단계 실행으로 리스크를 분해하세요.`;
 }
 
 function symbolOf(star: ZiweiStarMeta): StrengthSymbol {
@@ -102,9 +109,10 @@ function strengthOf(star: ZiweiStarMeta): string {
   if (text) return text;
   const symbol = symbolOf(star);
   if (symbol === "◎") return "묘";
-  if (symbol === "○") return "왕";
+  if (symbol === "O") return "득";
+  if (symbol === "▲") return "리";
   if (symbol === "△") return "평";
-  if (symbol === "×") return "함";
+  if (symbol === "X") return "함";
   return "강약 미확인";
 }
 
@@ -144,7 +152,7 @@ function buildStarInterpretation(star: ZiweiStarMeta, group: "main" | "assistant
     specialRules.push(buildGenericStrengthHint(star, group, symbol));
   }
 
-  if (star.name === "천동" && (symbol === "△" || symbol === "×")) {
+  if (star.name === "천동" && (symbol === "△" || symbol === "X")) {
     specialRules.push("천동 약세 구간은 '편안함이 곧 불안함'으로 체감되기 쉬워, 안락함보다 성취감 중심 프로젝트에 몰입할 때 심리적 안정이 올라갑니다.");
     specialRules.push("천동의 감수성은 소모형 감정 처리보다 UI/UX, 상담 문장, 서비스 디테일 같은 시스템 설계 영역으로 전환할 때 가치가 극대화됩니다.");
     specialRules.push("루틴 명상·시각화·수면 고정은 흔들리는 천동 에너지를 묶어주는 핵심 방어막입니다.");
@@ -189,12 +197,12 @@ function buildSynergyAndConflict(palace: ZiweiPalace): { synergy: string[]; conf
     synergy.push("천동의 감수성과 경양의 절단력이 함께하면 외유내강형 문제 해결 엔진이 작동합니다.");
   }
 
-  const severeMalefic = palace.maleficStars.filter((s) => symbolOf(s) === "×");
+  const severeMalefic = palace.maleficStars.filter((s) => symbolOf(s) === "X");
   if (severeMalefic.length > 0) {
     conflicts.push(`${severeMalefic.map((s) => s.name).join(", ")}은(는) 강한 충돌 신호이므로 과속 결정과 정면충돌 커뮤니케이션을 줄여야 합니다.`);
   }
 
-  const weakMain = palace.mainStars.filter((s) => symbolOf(s) === "△" || symbolOf(s) === "×");
+  const weakMain = palace.mainStars.filter((s) => symbolOf(s) === "△" || symbolOf(s) === "X");
   if (weakMain.length > 0) {
     conflicts.push(`주성 중 ${weakMain.map((s) => s.name).join(", ")}의 기복이 커서, 의욕 편차가 큰 날에는 핵심 결정을 보류하는 운영 규칙이 필요합니다.`);
   }
@@ -294,16 +302,16 @@ function buildPalaceLongBody(chart: ZiweiDeepChart, palace: ZiweiPalace): string
   ])).slice(0, 14);
 
   const strengths = [
-    ...palace.mainStars.filter((s) => symbolOf(s) === "◎" || symbolOf(s) === "○").map((s) => `${s.name} ${symbolOf(s)} 강점이 실행 품질을 끌어올립니다.`),
-    ...palace.auxiliaryStars.filter((s) => symbolOf(s) === "◎" || symbolOf(s) === "○").map((s) => `보조성 ${s.name} ${symbolOf(s)}은(는) 협업·완충·도구 활용 효율을 끌어올립니다.`),
-    ...palace.maleficStars.filter((s) => symbolOf(s) === "◎" || symbolOf(s) === "○").map((s) => `살성 ${s.name} ${symbolOf(s)}은(는) 통제 시 고속 실행 도구로 전환될 수 있습니다.`),
+    ...palace.mainStars.filter((s) => symbolOf(s) === "◎" || symbolOf(s) === "O" || symbolOf(s) === "▲").map((s) => `${s.name} ${symbolOf(s)} 강점이 실행 품질을 끌어올립니다.`),
+    ...palace.auxiliaryStars.filter((s) => symbolOf(s) === "◎" || symbolOf(s) === "O" || symbolOf(s) === "▲").map((s) => `보조성 ${s.name} ${symbolOf(s)}은(는) 협업·완충·도구 활용 효율을 끌어올립니다.`),
+    ...palace.maleficStars.filter((s) => symbolOf(s) === "◎" || symbolOf(s) === "O" || symbolOf(s) === "▲").map((s) => `살성 ${s.name} ${symbolOf(s)}은(는) 통제 시 고속 실행 도구로 전환될 수 있습니다.`),
     "핵심 궁의 기준을 문장화하면 운의 변동성을 낮추고 재현 가능한 성과를 만들 수 있습니다.",
   ];
 
   const weaknesses = [
-    ...palace.mainStars.filter((s) => symbolOf(s) === "△" || symbolOf(s) === "×").map((s) => `${s.name} ${symbolOf(s)} 구간에서 감정·컨디션 편차가 커질 수 있습니다.`),
-    ...palace.auxiliaryStars.filter((s) => symbolOf(s) === "△" || symbolOf(s) === "×").map((s) => `보조성 ${s.name} ${symbolOf(s)}이 약하면 연결·지원 체계가 끊겨 성과가 흔들릴 수 있습니다.`),
-    ...palace.maleficStars.filter((s) => symbolOf(s) === "△" || symbolOf(s) === "×").map((s) => `살성 ${s.name} ${symbolOf(s)}이 약충돌 구간이면 과속·마찰 리스크가 빠르게 증폭될 수 있습니다.`),
+    ...palace.mainStars.filter((s) => symbolOf(s) === "△" || symbolOf(s) === "X").map((s) => `${s.name} ${symbolOf(s)} 구간에서 감정·컨디션 편차가 커질 수 있습니다.`),
+    ...palace.auxiliaryStars.filter((s) => symbolOf(s) === "△" || symbolOf(s) === "X").map((s) => `보조성 ${s.name} ${symbolOf(s)}이 약하면 연결·지원 체계가 끊겨 성과가 흔들릴 수 있습니다.`),
+    ...palace.maleficStars.filter((s) => symbolOf(s) === "△" || symbolOf(s) === "X").map((s) => `살성 ${s.name} ${symbolOf(s)}이 약충돌 구간이면 과속·마찰 리스크가 빠르게 증폭될 수 있습니다.`),
     "대궁 관점을 생략하면 단기 감정 반응이 전략을 덮어버릴 수 있습니다.",
   ];
 
@@ -324,7 +332,7 @@ function buildPalaceLongBody(chart: ZiweiDeepChart, palace: ZiweiPalace): string
     actions.push("경양 에너지는 인간관계 정면충돌보다 업상대체(코드·분석·디버깅·시스템 절단 설계)로 배출해 성과 에너지로 전환합니다.");
   }
 
-  if (palace.auxiliaryStars.some((s) => s.name === "우필" && (symbolOf(s) === "◎" || symbolOf(s) === "○"))) {
+  if (palace.auxiliaryStars.some((s) => s.name === "우필" && (symbolOf(s) === "◎" || symbolOf(s) === "O" || symbolOf(s) === "▲"))) {
     actions.push("우필 강점 구간에서는 AI/툴 자동화에 반복 작업을 위임하고, 본인은 판단·설계·통합 역할에 집중합니다.");
   }
 
@@ -341,11 +349,12 @@ function buildPalaceLongBody(chart: ZiweiDeepChart, palace: ZiweiPalace): string
     noDirectTransformationNarrative,
     "",
     "각 별의 강약 기호 기준",
-    "- 강약 서열: 묘 > 왕 > 리 > 평 > 함",
+    "- 강약 서열: 묘 > 득 > 리 > 평 > 함/실",
     "- ◎: 묘(최상 발현)",
-    "- ○: 왕(강한 안정)",
-    "- △: 리/평(실무·보통 구간)",
-    "- ×: 함(취약·충돌 구간)",
+    "- O: 득(강한 안정)",
+    "- ▲: 리(이로운 가속 구간)",
+    "- △: 평(실무·보통 구간)",
+    "- X: 함/실(취약·충돌 구간)",
     "",
     "별 하나하나의 개별 해석",
     ...starDetails.map((line, idx) => `${idx + 1}. ${line}`),
@@ -382,7 +391,7 @@ function buildPalaceLongBody(chart: ZiweiDeepChart, palace: ZiweiPalace): string
 
   return ensureMinLength(body, 6200, "심층 보강", [
     `${palace.name} 추가 보강: 대궁 관점에서 반대 전략을 쓰면 과신을 줄이고 정확도를 높일 수 있습니다.`,
-    `${palace.name} 추가 보강: 강점 별(◎/○)은 확장에, 약점 별(△/×)은 리스크 관리에 우선 배치하세요.`,
+    `${palace.name} 추가 보강: 강점 별(◎/O/▲)은 확장에, 약점 별(△/X)은 리스크 관리에 우선 배치하세요.`,
     `${palace.name} 추가 보강: 사화 작동 궁을 월간 루틴으로 추적하면 체감 성과가 빨라집니다.`,
   ]);
 }
@@ -428,7 +437,7 @@ function buildOverview(chart: ZiweiDeepChart): ZiweiDeepChapter {
     `${buildTriadLink(chart, lifePalace)}`,
     "",
     "핵심 전략",
-    "1) 명궁의 강점 별(◎/○)은 브랜드/역할로 전환하고, 약점 별(△/×)은 운영 규칙으로 관리합니다.",
+    "1) 명궁의 강점 별(◎/O/▲)은 브랜드/역할로 전환하고, 약점 별(△/X)은 운영 규칙으로 관리합니다.",
     "2) 관록궁-재백궁 연결로 수익 모델을 설계하고, 천이궁으로 외부 노출 방식을 설계합니다.",
     "3) 단기 결과보다 90일 단위 실행 루틴을 고정하면 명반 강점이 복리로 누적됩니다.",
   ].join("\n");

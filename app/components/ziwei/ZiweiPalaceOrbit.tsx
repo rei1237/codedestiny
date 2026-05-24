@@ -12,9 +12,10 @@ interface ZiweiPalaceOrbitProps {
 export default function ZiweiPalaceOrbit({ chart, activePalaceId, onSelect }: ZiweiPalaceOrbitProps) {
   const badgeTone = (symbol: string) => {
     if (symbol === "◎") return "border-emerald-300/60 bg-emerald-200/15 text-emerald-100";
-    if (symbol === "○") return "border-cyan-300/60 bg-cyan-200/15 text-cyan-100";
+    if (symbol === "O") return "border-cyan-300/60 bg-cyan-200/15 text-cyan-100";
+    if (symbol === "▲") return "border-violet-300/60 bg-violet-200/15 text-violet-100";
     if (symbol === "△") return "border-amber-300/60 bg-amber-200/15 text-amber-100";
-    if (symbol === "×") return "border-rose-300/60 bg-rose-200/15 text-rose-100";
+    if (symbol === "X") return "border-rose-300/60 bg-rose-200/15 text-rose-100";
     return "border-white/20 bg-white/10 text-slate-200";
   };
 
@@ -57,7 +58,7 @@ export default function ZiweiPalaceOrbit({ chart, activePalaceId, onSelect }: Zi
               <p className="mt-1 text-[11px] text-slate-400">
                 {palace.isEmptyMainStarPalace
                   ? "주성: 무주성궁"
-                  : `주성: ${palace.mainStars.map((s) => `${s.name}${s.strengthSymbol || s.symbol || ""}`).join(", ")}`}
+                  : `주성: ${palace.mainStars.map((s) => `${s.name}(${s.strengthSymbol || s.symbol || "△"} ${s.strength || "평"})`).join(", ")}`}
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {palace.mainStars.slice(0, 3).map((star) => {

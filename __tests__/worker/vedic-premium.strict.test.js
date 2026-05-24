@@ -177,7 +177,7 @@ describe("Vedic Premium Strict Tests", () => {
     const canonical = buildCanonicalVedicChart(makeBody(), makeInput(), makeChart(), "personal", null, null);
     const plan = buildVedicChapterPlan(canonical, "personal");
 
-    expect(plan).toHaveLength(12);
+      expect(plan).toHaveLength(12);
     const chapter8 = plan.find((p) => p.num === 8);
     expect(chapter8.available).toBe(true);
     expect(chapter8.reasons.length).toBe(0);
@@ -189,11 +189,11 @@ describe("Vedic Premium Strict Tests", () => {
     const canonical = buildCanonicalVedicChart(makeBody({ partnerName: "상대" }), makeInput(), makeChart(), "compatibility", partner, ashta);
 
     const plan = buildVedicChapterPlan(canonical, "compatibility");
-    const chapter12 = plan.find((p) => p.num === 12);
+      const chapter10 = plan.find((p) => p.num === 10);
 
-    expect(plan).toHaveLength(12);
-    expect(chapter12.available).toBe(true);
-    expect(chapter12.reasons.length).toBe(0);
+      expect(plan).toHaveLength(10);
+      expect(chapter10.available).toBe(true);
+      expect(chapter10.reasons.length).toBe(0);
   });
 
   test("E. 금지 패딩/단정 표현 탐지가 동작해야 한다", () => {

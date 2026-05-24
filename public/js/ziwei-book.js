@@ -593,8 +593,9 @@
 
   function canonicalStrengthSymbol(strength) {
     var v = String(strength || '').trim();
-    if (v === '묘' || v === '왕') return '◎';
-    if (v === '득' || v === '리') return 'O';
+    if (v === '묘') return '◎';
+    if (v === '득' || v === '왕') return 'O';
+    if (v === '리') return '▲';
     if (v === '평') return '△';
     if (v === '함' || v === '실') return 'X';
     return '△';
@@ -604,14 +605,16 @@
     var v = String(raw || '').trim();
     if (!v) return '평';
     if (v === '◎') return '묘';
-    if (v === 'O' || v === '○') return '왕';
+    if (v === 'O' || v === '○') return '득';
+    if (v === '▲') return '리';
     if (v === '△') return '평';
     if (v === 'X' || v === '×') return '함';
     if (/(묘|廟)/.test(v)) return '묘';
-    if (/(왕|旺)/.test(v)) return '왕';
-    if (/(득|리|利|得)/.test(v)) return '리';
+    if (/(득|왕|旺|得)/.test(v)) return '득';
+    if (/(리|利)/.test(v)) return '리';
     if (/(평|平)/.test(v)) return '평';
-    if (/(함|실|陷)/.test(v)) return '함';
+    if (/(실)/.test(v)) return '실';
+    if (/(함|陷)/.test(v)) return '함';
     return '평';
   }
 
@@ -816,15 +819,15 @@
 
     while (text.length < 450) {
       if (sectionTitle === '핵심 요약') {
-        text += ' 이 구조를 정확히 이해하는 것이 나머지 해석의 기초가 됩니다.';
+        text += ' 이 구조를 기준으로 다른 궁 해석의 우선순위를 정하면 판단 오차를 줄일 수 있습니다.';
       } else if (sectionTitle === '자미두수 구조 해석') {
         text += ' 구조의 본질을 파악하면 변하는 상황에서도 일관된 원칙을 유지할 수 있습니다.';
       } else if (sectionTitle === '강점과 기회') {
         text += ' 이런 강점들을 일상에서 자주 쓸수록 더 강해집니다.';
       } else if (sectionTitle === '주의할 패턴') {
-        text += ' 패턴을 인식하는 것만으로도 이미 반의 싸움은 이긴 것입니다.';
+        text += ' 패턴 신호를 조기에 확인하면 손실 확대를 막고 회복 시간을 줄일 수 있습니다.';
       } else if (sectionTitle === '현실 적용 전략') {
-        text += ' 작은 행동의 반복이 큰 변화를 만듭니다.';
+        text += ' 실행 단위를 주간 루틴으로 고정하면 결과 변동성을 낮출 수 있습니다.';
       } else {
         text += ' 더 깊은 이해를 위해 다른 섹션들도 함께 읽어보세요.';
       }

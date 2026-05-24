@@ -63,10 +63,10 @@ const ZIWEI_CORE_ANGLES = Object.freeze([
 
 const ZIWEI_STRENGTH_META = Object.freeze({
   "◎": { name: "묘", meaning: "가장 강함" },
-  "○": { name: "왕", meaning: "강함" },
+  "O": { name: "득", meaning: "강함" },
   "▲": { name: "리", meaning: "이로움" },
   "△": { name: "평", meaning: "보통 중간" },
-  "함": { name: "함", meaning: "약함" },
+  "X": { name: "함", meaning: "약함" },
 });
 
 function toText(value, fallback = DEFAULT_TEXT) {
@@ -160,7 +160,7 @@ function normalizeStar(star) {
   const strengthMeta = strengthSymbol ? ZIWEI_STRENGTH_META[strengthSymbol] : null;
   const name = raw
     .replace(/◎|○|▲|△|×|X|O|함/g, "")
-    .replace(/묘|왕|리|평/g, "")
+    .replace(/묘|득|왕|리|평|실/g, "")
     .replace(/\(차성\)/g, "")
     .trim();
   if (!name) return null;
@@ -176,15 +176,15 @@ function normalizeStrengthSymbolToken(rawSymbol, rawStrengthName = "") {
   const symbol = String(rawSymbol == null ? "" : rawSymbol).trim();
   const name = String(rawStrengthName == null ? "" : rawStrengthName).trim();
   if (symbol === "◎") return "◎";
-  if (symbol === "○" || symbol === "O") return "○";
+  if (symbol === "○" || symbol === "O" || symbol === "◉") return "O";
   if (symbol === "▲") return "▲";
   if (symbol === "△") return "△";
-  if (symbol === "함" || symbol === "×" || symbol === "X") return "함";
+  if (symbol === "함" || symbol === "×" || symbol === "X") return "X";
   if (/묘|廟/.test(name)) return "◎";
-  if (/왕|旺/.test(name)) return "○";
+  if (/득|왕|旺/.test(name)) return "O";
   if (/리|利|이로|유리|득/.test(name)) return "▲";
   if (/평|平|보통/.test(name)) return "△";
-  if (/함|陷|약|쇠/.test(name)) return "함";
+  if (/함|실|陷|약|쇠/.test(name)) return "X";
   return "";
 }
 
@@ -467,7 +467,7 @@ export function buildZiweiAIPrompt({ question, chartResult }) {
 
   const domainDataLines = [
     `질문 유형: ${questionTypeLabel}`,
-    "강약 판정 기준: ◎=묘(가장 강함), ○=왕(강함), ▲=리(이로움), △=평(보통 중간), 함=함(약함)",
+    "강약 판정 기준: ◎=묘(가장 강함), O=득(강함), ▲=리(이로움), △=평(보통 중간), X=함/실(약함)",
     `명궁/신궁: ${normalizedChart.mingGong} / ${normalizedChart.shenGong}`,
     `명궁 주성/신궁 주성: ${normalizedChart.mingMainStars} / ${normalizedChart.shenMainStars}`,
     `강세궁/약세궁: ${normalizedChart.strongestPalace} / ${normalizedChart.weakestPalace}`,

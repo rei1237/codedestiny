@@ -1291,7 +1291,7 @@
       state.paymentContext = null;
       state.paymentVerified = false;
       renderResultScreen();
-      notify('사주 신년운세 프리미엄 리포트가 완성되었습니다.');
+      notify('프리미엄 리포트가 완성되었습니다.');
     } catch (err) {
       console.error('[SajuNewYear] generation failed:', err);
       var errMsg = String((err && err.message) || '');

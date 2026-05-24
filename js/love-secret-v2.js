@@ -1250,7 +1250,7 @@
       state.paymentContext = null;
       renderResultScreen();
       persistState();
-      notify('사주 연애 비책 프리미엄 리포트가 완성되었습니다.');
+      notify('프리미엄 리포트가 완성되었습니다.');
     } catch (err) {
       console.error('[LoveSecret] generation failed:', err);
       var errMsg = asText(err && err.message);

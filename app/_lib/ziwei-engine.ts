@@ -247,7 +247,7 @@ export function calcZiweiPalaces(
   };
 }
 
-/** 묘왕평리함 간략화 로직 */
+/** 묘/득/리/평/함/실 canonical 간략화 로직 */
 function getBrightness(star: string, branch: number, starType: "main" | "aux" | "bad"): { strength: string; symbol: ZiweiStrengthSymbol } {
   const zhiHan = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"][(branch % 12 + 12) % 12];
   const classical = getZiweiClassicalStrength(star, zhiHan);
@@ -262,15 +262,15 @@ function getBrightness(star: string, branch: number, starType: "main" | "aux" | 
 
   if (starType === "bad") {
     if (miao.includes(branch)) return normalizeStarStrength("묘", "◎");
-    if (li.includes(branch)) return normalizeStarStrength("왕", "○");
-    if (weak.includes(branch)) return normalizeStarStrength("함", "×");
+    if (li.includes(branch)) return normalizeStarStrength("득", "O");
+    if (weak.includes(branch)) return normalizeStarStrength("함", "X");
     return normalizeStarStrength("평", "△");
   }
 
   if (miao.includes(branch)) return normalizeStarStrength("묘", "◎");
-  if (li.includes(branch)) return normalizeStarStrength("왕", "○");
+  if (li.includes(branch)) return normalizeStarStrength("득", "O");
   if (weak.includes(branch)) return normalizeStarStrength("평", "△");
-  return normalizeStarStrength("리", "△");
+  return normalizeStarStrength("리", "▲");
 }
 
 const PALACE_LABEL_TO_ID: Record<string, ZiweiPalaceId> = {
@@ -398,17 +398,17 @@ function dedupeStars(stars: ZiweiStarMeta[]): ZiweiStarMeta[] {
 function buildStrengthSummary(stars: ZiweiStarMeta[]) {
   const strongestStars = stars.filter((star) => {
     const symbol = starSymbol(star);
-    return symbol === "◎" || symbol === "○";
+    return symbol === "◎" || symbol === "O";
   });
   const weakStars = stars.filter((star) => {
     const symbol = starSymbol(star);
-    return symbol === "△" || symbol === "×";
+    return symbol === "△" || symbol === "X";
   });
   return {
     strongestStars,
     weakStars,
     hasMiaoWang: strongestStars.length > 0,
-    hasXianRuo: weakStars.some((star) => starSymbol(star) === "×"),
+    hasXianRuo: weakStars.some((star) => starSymbol(star) === "X"),
   };
 }
 

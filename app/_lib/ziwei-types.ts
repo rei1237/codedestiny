@@ -66,7 +66,7 @@ export interface ZiweiStarMeta {
   name: string;
   symbol: string;
   strength?: string;
-  strengthSymbol?: "◎" | "○" | "△" | "×" | "";
+  strengthSymbol?: "◎" | "O" | "▲" | "△" | "X" | "";
   starType?: "main" | "assistant" | "malefic" | "minor" | "transform";
   transformation?: "화록" | "화권" | "화과" | "화기" | null;
 }
@@ -75,7 +75,7 @@ export interface ZiweiCanonicalStar {
   name: string;
   type: "main" | "assistant" | "malefic" | "minor" | "transform";
   strength?: string;
-  strengthSymbol?: "◎" | "○" | "△" | "×" | "";
+  strengthSymbol?: "◎" | "O" | "▲" | "△" | "X" | "";
   transformation?: "화록" | "화권" | "화과" | "화기" | null;
   description?: string;
 }

@@ -1188,7 +1188,7 @@
         : '전체 챕터 정리를 완료했습니다.';
       _setStage(done < _totalChapters ? 6 : 7, _subtitle);
       if(chapterMsg&&done<_totalChapters)chapterMsg.textContent=activeLoading[done]||'분석 중...';
-      if(chapterMsg&&done>=_totalChapters)chapterMsg.textContent='숙요점 프리미엄 리포트가 완성되었습니다.';
+      if(chapterMsg&&done>=_totalChapters)chapterMsg.textContent='프리미엄 리포트가 완성되었습니다.';
       if(chapterNumEl)chapterNumEl.textContent=done<_totalChapters?'Chapter '+(done+1):'✦ 완성 ✦';
       if (chapterMsg) {
         chapterMsg.classList.remove('lb-loading__status--pulse');

@@ -1,5 +1,5 @@
-export type ZiweiStrengthSymbol = "◎" | "○" | "△" | "×" | "";
-export type ZiweiClassicStrength = "묘" | "왕" | "리" | "평" | "함" | "";
+export type ZiweiStrengthSymbol = "◎" | "O" | "▲" | "△" | "X" | "";
+export type ZiweiClassicStrength = "묘" | "득" | "리" | "평" | "함" | "실" | "";
 
 const BRANCH_ALIAS_TO_HAN: Record<string, string> = {
   자: "子",
@@ -38,10 +38,11 @@ export function normalizeZiweiClassicStrength(raw: string | undefined): ZiweiCla
   if (!v) return "";
 
   if (["묘", "묘왕", "묘왕지", "廟"].includes(v) || v === "◎") return "묘";
-  if (["왕", "旺"].includes(v) || v === "○") return "왕";
-  if (["리", "득", "득지", "리지", "得", "利", "약"].includes(v)) return "리";
-  if (["평", "평지", "平"].includes(v) || v === "△" || v === "▲") return "평";
-  if (["함", "함지", "陷", "극함", "심한함", "불", "불리", "충돌"].includes(v) || v === "×" || /^x$/i.test(v)) return "함";
+  if (["득", "왕", "旺", "득지", "得"].includes(v) || v === "○" || v === "O") return "득";
+  if (["리", "리지", "利", "약"].includes(v) || v === "▲") return "리";
+  if (["평", "평지", "平"].includes(v) || v === "△") return "평";
+  if (["실"].includes(v)) return "실";
+  if (["함", "함지", "陷", "극함", "심한함", "불", "불리", "충돌"].includes(v) || v === "×" || /^x$/i.test(v) || v === "X") return "함";
   if (["한", "이"].includes(v)) return "평";
 
   return "";
@@ -50,7 +51,7 @@ export function normalizeZiweiClassicStrength(raw: string | undefined): ZiweiCla
 export function ziweiClassicStrengthFromSymbol(raw: string | undefined): ZiweiClassicStrength {
   const s = String(raw || "").trim();
   if (s === "◎") return "묘";
-  if (s === "○") return "왕";
+  if (s === "○" || s === "O") return "득";
   if (s === "▲") return "리";
   if (s === "△") return "평";
   if (s === "×" || /^x$/i.test(s)) return "함";
@@ -60,13 +61,14 @@ export function ziweiClassicStrengthFromSymbol(raw: string | undefined): ZiweiCl
 export function ziweiClassicStrengthToSymbol(level: string | undefined): ZiweiStrengthSymbol {
   const normalized = normalizeZiweiClassicStrength(level);
   if (normalized === "묘") return "◎";
-  if (normalized === "왕") return "○";
-  if (normalized === "리" || normalized === "평") return "△";
-  if (normalized === "함") return "×";
+  if (normalized === "득") return "O";
+  if (normalized === "리") return "▲";
+  if (normalized === "평") return "△";
+  if (normalized === "함" || normalized === "실") return "X";
   return "";
 }
 
-export const ZIWEI_CLASSICAL_STATE: Record<string, Record<string, ZiweiClassicStrength>> = {
+export const ZIWEI_CLASSICAL_STATE: Record<string, Record<string, string>> = {
   자미: { 子: "평", 丑: "묘", 寅: "왕", 卯: "왕", 辰: "묘", 巳: "평", 午: "묘", 未: "묘", 申: "평", 酉: "평", 戌: "묘", 亥: "평" },
   천기: { 子: "평", 丑: "함", 寅: "왕", 卯: "왕", 辰: "평", 巳: "리", 午: "함", 未: "평", 申: "묘", 酉: "왕", 戌: "평", 亥: "묘" },
   태양: { 子: "함", 丑: "함", 寅: "묘", 卯: "묘", 辰: "왕", 巳: "왕", 午: "묘", 未: "왕", 申: "평", 酉: "함", 戌: "함", 亥: "함" },

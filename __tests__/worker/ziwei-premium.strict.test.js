@@ -50,8 +50,8 @@ function makeStructuredPayload() {
       palace,
       branch: BRANCHES[idx],
       dahan: `${idx * 10}-${idx * 10 + 9}`,
-      stars: [{ name: idx % 2 === 0 ? "자미" : "무곡", strength: idx % 2 === 0 ? "묘" : "왕", symbol: idx % 2 === 0 ? "◎" : "O" }],
-      auxStars: [{ name: "문창", strength: "리", symbol: "△" }],
+      stars: [{ name: idx % 2 === 0 ? "자미" : "무곡", strength: idx % 2 === 0 ? "묘" : "득", symbol: idx % 2 === 0 ? "◎" : "O" }],
+      auxStars: [{ name: "문창", strength: "리", symbol: "▲" }],
       badStars: [{ name: "경양", strength: "함", symbol: "X" }],
     })),
     annualLuck: { year: 2026, palace: "명궁" },
@@ -144,7 +144,7 @@ describe("Ziwei Premium Strict Tests (A~G)", () => {
     expect(q.supplementedFields.some((f) => f.includes("mainStars[0].symbol"))).toBe(true);
   });
 
-  test("B4. 왕 강약에서 기호가 비어 있으면 기본 엔진 규칙과 동일하게 O로 보강되어야 한다", () => {
+  test("B4. legacy 왕 강약은 canonical 득으로 정규화되고 기호 O로 보강되어야 한다", () => {
     const payload = makeStructuredPayload();
     payload.palaceStarData[0].stars = [{ name: "자미", strength: "왕" }];
 
@@ -155,7 +155,7 @@ describe("Ziwei Premium Strict Tests (A~G)", () => {
     const strength = String(star?.brightnessKo || star?.brightness || star?.strength || "");
 
     expect(result.isValid).toBe(true);
-    expect(strength).toBe("왕");
+    expect(strength).toBe("득");
     expect(star?.symbol).toBe("O");
   });
 

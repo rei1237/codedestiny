@@ -103,10 +103,10 @@ const ZIWEI_STRENGTH_MYO = Object.freeze({
   metaphor: "Full Optimization: 최고의 퍼포먼스 출력",
 });
 
-const ZIWEI_STRENGTH_WANG = Object.freeze({
-  name: "왕",
+const ZIWEI_STRENGTH_DEUK = Object.freeze({
+  name: "득",
   hanja: "旺",
-  label: "왕성할 왕",
+  label: "이로울 득(legacy 旺 포함)",
   meaning: "에너지가 매우 강력하고 활발하다. 주도적으로 운을 이끌어간다.",
   metaphor: "High Performance: 안정적이고 높은 처리량",
 });
@@ -137,8 +137,8 @@ const ZIWEI_STRENGTH_HAM = Object.freeze({
 
 export const ZIWEI_STAR_STRENGTHS = Object.freeze({
   "◎": ZIWEI_STRENGTH_MYO,
-  "○": ZIWEI_STRENGTH_MYO,
-  O: ZIWEI_STRENGTH_WANG,
+  "○": ZIWEI_STRENGTH_DEUK,
+  O: ZIWEI_STRENGTH_DEUK,
   "▲": ZIWEI_STRENGTH_RI,
   "△": ZIWEI_STRENGTH_PYEONG,
   "함": ZIWEI_STRENGTH_HAM,

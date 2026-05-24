@@ -41,20 +41,20 @@ const PALACE_KEY_MAP = Object.freeze({
 
 const STRENGTH_BY_SYMBOL = Object.freeze({
   "◎": "묘",
-  "○": "묘",
-  O: "왕",
+  "○": "득",
+  O: "득",
   "▲": "리",
   "△": "평",
-  "함": "실",
+  "함": "함",
   "×": "함",
-  X: "실",
+  X: "함",
 });
 
 const SYMBOL_BY_STRENGTH = Object.freeze({
   묘: "◎",
   왕: "O",
-  득: "△",
-  리: "△",
+  득: "O",
+  리: "▲",
   평: "△",
   함: "X",
   실: "X",
@@ -280,9 +280,10 @@ function normalizeStrengthSymbol(raw) {
   const token = asText(raw);
   if (!token) return null;
   if (token === "◎") return "◎";
-  if (token === "○") return "◎";
+  if (token === "○" || token === "O" || token === "◉") return "O";
+  if (token === "▲") return "▲";
   if (token === "O") return "O";
-  if (token === "▲" || token === "△") return "△";
+  if (token === "△") return "△";
   if (token === "함" || token === "X" || token === "×") return "X";
   return null;
 }
@@ -291,8 +292,7 @@ function normalizeStrengthName(raw) {
   const token = asText(raw);
   if (!token) return null;
   if (["묘", "廟", "묘왕", "묘왕지"].includes(token)) return "묘";
-  if (["왕", "旺"].includes(token)) return "왕";
-  if (["득", "得", "득지"].includes(token)) return "득";
+  if (["득", "得", "득지", "왕", "旺"].includes(token)) return "득";
   if (["리", "利", "리지", "약"].includes(token)) return "리";
   if (["평", "平", "평지"].includes(token)) return "평";
   if (["함", "陷", "함지", "극함", "심한함", "불", "불리"].includes(token)) return "함";

@@ -60,7 +60,7 @@ describe("Premium Report Canonical Validation", () => {
               key: "ming",
               palaceNameKo: "명궁",
               branch: "子",
-              mainStars: [{ nameKo: "자미", brightness: "왕", symbol: "○" }],
+              mainStars: [{ nameKo: "자미", brightness: "득", symbol: "O" }],
               minorStars: [{ nameKo: "천월", brightness: "평", symbol: "△" }],
               auxStars: [{ nameKo: "좌보", brightness: "묘", symbol: "◎" }],
             },
@@ -88,7 +88,7 @@ describe("Premium Report Canonical Validation", () => {
     expect(Array.isArray(ziwei.palaces[0].mainStars)).toBe(true);
     expect(ziwei.palaces[0].mainStars.length).toBeGreaterThan(0);
     expect(ziwei.palaces[0].mainStars[0].name).toBe("자미");
-    expect(["◎", "○", "△", "×"]).toContain(ziwei.palaces[0].mainStars[0].strengthSymbol);
+    expect(["◎", "O", "▲", "△", "X"]).toContain(ziwei.palaces[0].mainStars[0].strengthSymbol);
     expect(ziwei.chart.mingGong).toBe("子");
     expect(ziwei.chart.shenGong).toBe("丑");
   });

@@ -903,7 +903,7 @@
       state.paymentContext = null;
       renderResultScreen();
       persistState();
-      notify('사주 인생의 책 프리미엄 리포트가 완성되었습니다.');
+      notify('프리미엄 리포트가 완성되었습니다.');
     } catch (err) {
       console.error('[LifeBook] generation failed:', err);
       logLifeBookStage('PDF_RENDER_FAILED', { reportId: state.reportId, message: String(err && err.message || '') });

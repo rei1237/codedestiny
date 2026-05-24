@@ -43,9 +43,10 @@ export default function ZiweiCosmicHero({ chart }: ZiweiCosmicHeroProps) {
           <p className="text-xs font-bold text-slate-300">강약 기호 기준</p>
           <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-semibold">
             <span className="rounded-full border border-emerald-300/60 bg-emerald-200/15 px-2 py-1 text-emerald-100">◎ 묘</span>
-            <span className="rounded-full border border-cyan-300/60 bg-cyan-200/15 px-2 py-1 text-cyan-100">○ 왕</span>
-            <span className="rounded-full border border-amber-300/60 bg-amber-200/15 px-2 py-1 text-amber-100">△ 리·평</span>
-            <span className="rounded-full border border-rose-300/60 bg-rose-200/15 px-2 py-1 text-rose-100">× 함</span>
+            <span className="rounded-full border border-cyan-300/60 bg-cyan-200/15 px-2 py-1 text-cyan-100">O 득</span>
+            <span className="rounded-full border border-violet-300/60 bg-violet-200/15 px-2 py-1 text-violet-100">▲ 리</span>
+            <span className="rounded-full border border-amber-300/60 bg-amber-200/15 px-2 py-1 text-amber-100">△ 평</span>
+            <span className="rounded-full border border-rose-300/60 bg-rose-200/15 px-2 py-1 text-rose-100">X 함·실</span>
           </div>
         </div>
         <div className="rounded-2xl border border-white/15 bg-[#0b1a36]/70 px-4 py-3">

@@ -1434,7 +1434,7 @@
           state.chapters = Array.isArray(fallbackOnPreflight.chapters) ? fallbackOnPreflight.chapters : [];
           state.paymentContext = null;
           renderResultScreen();
-          notify('베다점 프리미엄 리포트가 완성되었습니다.');
+          notify('프리미엄 리포트가 완성되었습니다.');
           return;
         }
         await attemptVedicAutoRefund('LOCAL_REPORT_FAILED: preflight and local generation failed');
@@ -1466,7 +1466,7 @@
           state.chapters = Array.isArray(fallbackRun.chapters) ? fallbackRun.chapters : [];
           state.paymentContext = null;
           renderResultScreen();
-          notify('베다점 프리미엄 리포트가 완성되었습니다.');
+          notify('프리미엄 리포트가 완성되었습니다.');
           return;
         }
         await attemptVedicAutoRefund('LOCAL_REPORT_FAILED: generate start and local generation failed');
@@ -1492,7 +1492,7 @@
           state.chapters = Array.isArray(reportIdFallback.chapters) ? reportIdFallback.chapters : [];
           state.paymentContext = null;
           renderResultScreen();
-          notify('베다점 프리미엄 리포트가 완성되었습니다.');
+          notify('프리미엄 리포트가 완성되었습니다.');
           return;
         }
         await attemptVedicAutoRefund('LOCAL_REPORT_FAILED: missing reportId and local generation failed');
