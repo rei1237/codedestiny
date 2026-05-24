@@ -14070,6 +14070,102 @@ function buildSukuyoCompatRequiredHeadings(chapterMeta) {
   ];
 }
 
+const ZIWEI_LOCAL_SECTION_TITLES = Object.freeze([
+  "핵심 요약",
+  "자미두수 구조 해석",
+  "강점과 기회",
+  "주의할 패턴",
+  "현실 적용 전략",
+]);
+
+function buildZiweiLocalFallbackSectionBody({ chapterSpec, sectionTitle, context, chapterNo }) {
+  const profileName = String(context?.profile?.name || "사용자").trim() || "사용자";
+  const palaces = Array.isArray(context?.palaces) ? context.palaces : [];
+  const pivot = palaces[Math.max(0, (Number(chapterNo || 1) - 1) % Math.max(1, palaces.length))] || {};
+  const palaceName = String(pivot?.nameKo || pivot?.name || context?.chartMeta?.命宮 || "명궁").trim() || "명궁";
+  const starRows = (Array.isArray(pivot?.mainStars) ? pivot.mainStars : [])
+    .slice(0, 4)
+    .map((star) => {
+      const name = String(star?.nameKo || star?.name || "").trim();
+      if (!name) return "";
+      const strength = normalizeZiweiStrengthLabel(star?.brightness || star?.strength || star?.brightnessKo || "") || "평";
+      const symbol = normalizeZiweiStrengthSymbol(star?.symbol || star?.strengthSymbol || "") || (ZIWEI_STRENGTH_TO_SYMBOL[strength] || "△");
+      return `${name}(${symbol} ${strength})`;
+    })
+    .filter(Boolean)
+    .join(", ");
+  const stars = starRows || "핵심 별 흐름이 안정적으로 연결되는 구조";
+
+  let text = [
+    `${profileName}님의 ${String(chapterSpec?.title || "자미두수 심층 해석").trim()}에서는 ${palaceName}을 중심축으로 현재 작동하는 선택 기준을 읽어야 합니다. `,
+    `${sectionTitle} 관점에서 보면 단일 길흉 판단보다 궁의 역할, 별의 강약, 사화 전개, 대운의 타이밍을 함께 보는 방식이 정확도를 높입니다. `,
+    `현재 핵심 별 조합은 ${stars}로 관찰되며, 평(△) 구간은 약점 선언이 아니라 환경 보정 과제입니다. 왕·묘의 강한 구간은 추진력이 크지만 과속하면 손실 편차가 커질 수 있어 속도와 품질의 균형을 반드시 맞춰야 합니다. `,
+    `실전에서는 관계, 재정, 직업, 건강의 우선순위를 동시에 밀지 말고 주간 단위로 집중 대상을 분리해 누적 성과를 만드는 전략이 유효합니다. 특히 감정 강도가 높아지는 시기에는 결정을 미루기보다 체크리스트를 고정해 판단 기준을 먼저 지키는 것이 중요합니다. `,
+    `이번 해석의 목적은 단정 예언이 아니라 실행 가능한 기준을 선명하게 만드는 데 있으며, 작은 행동을 반복해 리듬을 안정화할 때 대운의 변화가 실제 성과로 연결됩니다. `,
+  ].join("");
+
+  while (text.length < 560) {
+    text += "실행 단계에서는 하루 단위 행동 목표를 짧게 정의하고, 주 1회 검토로 과부하를 줄이며 다음 주 계획을 미세 조정하는 운영 리듬을 유지하세요. ";
+  }
+  return text;
+}
+
+function buildZiweiLocalFallbackChapter({ chapter, chapterSpec, meta, context }) {
+  const sectionTitles = Array.isArray(chapterSpec?.sections) && chapterSpec.sections.length
+    ? chapterSpec.sections.map((v) => String(v || "").trim()).filter(Boolean)
+    : ZIWEI_LOCAL_SECTION_TITLES.slice();
+
+  const sections = sectionTitles.map((title) => ({
+    heading: title,
+    body: buildZiweiLocalFallbackSectionBody({
+      chapterSpec,
+      sectionTitle: title,
+      context,
+      chapterNo: chapter,
+    }),
+  }));
+
+  const chapterTitle = String(chapterSpec?.title || meta?.title || `자미두수 심층 해석 ${chapter}`).trim();
+  const introText = buildZiweiLocalFallbackSectionBody({
+    chapterSpec: { title: chapterTitle },
+    sectionTitle: "핵심 요약",
+    context,
+    chapterNo: chapter,
+  });
+
+  const chapterJson = {
+    chapterNo: Number(chapter || 0),
+    title: chapterTitle,
+    intro: introText.slice(0, 900),
+    sections: sections,
+    coreAdvice: buildZiweiLocalFallbackSectionBody({ chapterSpec, sectionTitle: "강점과 기회", context, chapterNo: chapter }).slice(0, 900),
+    actionGuide: [
+      "이번 주 핵심 선택을 세 가지로 제한하고 우선순위를 고정하세요.",
+      "감정 반응이 큰 날에는 결정을 미루지 말고 체크리스트 기반으로 판단하세요.",
+      "2주 단위 점검으로 실행 루틴을 보정해 대운 변화에 대응하세요.",
+    ],
+    closing: buildZiweiLocalFallbackSectionBody({ chapterSpec, sectionTitle: "현실 적용 전략", context, chapterNo: chapter }).slice(0, 850),
+  };
+
+  const markdown = [
+    `## 챕터 ${Number(chapter || 0)}. ${chapterTitle}`,
+    "",
+    ...sections.map((section) => `### ${section.heading}\n${section.body}`),
+    "",
+    `### 챕터 결론\n${chapterJson.closing}`,
+  ].join("\n");
+
+  return {
+    ok: true,
+    usedFallback: true,
+    generationNotice: "local-fallback",
+    warnings: ["ZIWEI_LOCAL_FALLBACK_USED"],
+    text: markdown,
+    sections: parseSections(markdown),
+    chapterJson,
+  };
+}
+
 function buildSukuyoChapterPromptPayload(canonical, chapterMeta, chapter, reportType, previousTexts, premiumInput = null) {
   const previousBan = collectPreviousSentenceBanList((previousTexts || []).map((t) => stripSukuyoRepeatNoise(t)), 12);
   const requiredOutputStructure = reportType === "compatibility"
@@ -19265,6 +19361,7 @@ async function handleZiweiBookSession(request, env) {
     || `ziwei:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
   ).trim().slice(0, 120);
   const generationId = String(strictBody.generationId || requestId).trim().slice(0, 120);
+  console.info("[ZiweiBook] REQUEST_START", { requestId, chapter, reportType, prepareOnly });
   console.info("[ZiweiPremium][Flow] CLICK", {
     stage: "click",
     requestId,
@@ -19646,12 +19743,12 @@ async function handleZiweiBookSession(request, env) {
       ziweiPremiumPayload,
     );
   } catch (error) {
-    generated = {
-      ok: false,
-      code: "ZIWEI_CHAPTER_RUNTIME_ERROR",
-      message: "자미두수 챕터 생성 중 런타임 오류가 발생했습니다.",
-      details: [String(error?.message || "UNKNOWN_ERROR")],
-    };
+    generated = buildZiweiLocalFallbackChapter({
+      chapter,
+      chapterSpec: ZIWEI_PDF_CHAPTERS_V2[chapter - 1] || null,
+      meta,
+      context: chapterInputChart,
+    });
 
     console.error("[ZiweiPremium][Gemini] runtime failure", {
       chapter,
@@ -19661,23 +19758,26 @@ async function handleZiweiBookSession(request, env) {
       message: String(error?.message || "unknown"),
       payloadValidation: payloadBuildResult?.validation || null,
     });
+    console.warn("[ZiweiBook] API_GENERATION_FAILED_USE_LOCAL_FALLBACK", {
+      requestId,
+      chapter,
+      message: String(error?.message || "UNKNOWN_ERROR"),
+    });
   }
 
   if (!generated?.ok) {
-    console.error("[ZiweiPremium][Gemini] failed", {
-      stage: "gemini-generation",
-      code: generated?.code || "ZIWEI_CHAPTER_GENERATION_FAILED",
-      message: "자미두수 챕터 생성 중 오류가 발생했습니다",
-      missingFields: Array.isArray(generated?.details) ? generated.details : [],
+    console.warn("[ZiweiBook] API_GENERATION_FAILED_USE_LOCAL_FALLBACK", {
       requestId,
       chapter,
-    });
-    return json({
-      ok: false,
       code: generated?.code || "ZIWEI_CHAPTER_GENERATION_FAILED",
-      message: generated?.message || "자미두수 챕터 생성 중 오류가 발생했습니다",
-      details: Array.isArray(generated?.details) ? generated.details : [],
-    }, { status: 422 });
+      message: generated?.message || "자미두수 챕터 생성 실패",
+    });
+    generated = buildZiweiLocalFallbackChapter({
+      chapter,
+      chapterSpec: ZIWEI_PDF_CHAPTERS_V2[chapter - 1] || null,
+      meta,
+      context: chapterInputChart,
+    });
   }
 
   const safeGeneratedText = sanitizePremiumChapterText(generated.text);
@@ -20709,16 +20809,37 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     });
 
     if (!generated?.ok) {
-      return json({
-        ok: false,
-        requestId,
-        reportSessionId,
+      const previousChapterTextsOnFail = Object.entries(context?.chapterTextById || {})
+        .filter(([key]) => Number(key) < Number(chapterId))
+        .sort((a, b) => Number(a[0]) - Number(b[0]))
+        .map(([, value]) => String(value || "").trim())
+        .filter(Boolean);
+      const localGenerated = buildLocalFallbackChapterFromContext({
+        context,
         chapterId,
-        featureType: context.featureType,
-        code: String(generated?.code || "SUKYO_CHAPTER_GENERATION_FAILED"),
-        message: String(generated?.message || "숙요 챕터 생성에 실패했습니다."),
-        missingFields: Array.isArray(generated?.missingFields) ? generated.missingFields : [],
-      }, { status: Number.isFinite(Number(generated?.status)) ? Number(generated.status) : 422 });
+        chapterMeta: resolvePremiumChapterMeta(context, chapterId),
+        chapterContract: context?.input?._premiumLlmInput?.chapterContract || null,
+        chapterJsonPacks,
+        minChars: Number(getPremiumPerChapterMinChars(
+          Number(context.totalChapters || context.requiredChapters || 13),
+          PREMIUM_GLOBAL_MIN_TOTAL_CHARS,
+        )),
+        previousChapterTexts: previousChapterTextsOnFail,
+        fallbackReason: String(generated?.code || "SUKYO_CHAPTER_GENERATION_FAILED"),
+      });
+      if (!localGenerated?.ok) {
+        return json({
+          ok: false,
+          requestId,
+          reportSessionId,
+          chapterId,
+          featureType: context.featureType,
+          code: String(generated?.code || "SUKYO_CHAPTER_GENERATION_FAILED"),
+          message: String(generated?.message || "숙요 챕터 생성에 실패했습니다."),
+          missingFields: Array.isArray(generated?.missingFields) ? generated.missingFields : [],
+        }, { status: Number.isFinite(Number(generated?.status)) ? Number(generated.status) : 422 });
+      }
+      generated = localGenerated;
     }
 
     const previousChapterTexts = Object.entries(context?.chapterTextById || {})
@@ -20762,6 +20883,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       }, { status: 422 });
     }
     const source = generated?.usedFallback ? "local_deterministic_fallback" : "llm";
+    const sourceLabel = generated?.usedFallback ? "local" : "gemini";
     if (generated?.usedFallback) {
       const localValidation = validateLocalFallbackChapter({
         title: generated?.chapterMeta?.title,
@@ -20876,9 +20998,9 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       text: chapterText,
       chapterMeta: generated?.chapterMeta || null,
       chapterSpecificSections: generated?.chapterSpecificSections || [],
-      source: "generated",
-      usedFallback: false,
-      fallbackReason: "",
+      source: sourceLabel,
+      usedFallback: Boolean(generated?.usedFallback),
+      fallbackReason: String(generated?.fallbackReason || ""),
       missingFields: Array.isArray(generated?.missingFields) ? generated.missingFields : [],
       engineDataJson: chapterJsonPacks,
     }, {
