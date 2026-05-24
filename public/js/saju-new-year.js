@@ -898,7 +898,7 @@
     return { ok: false, code: 'PREMIUM_AUTH_FALLBACK_FAILED', message: '프리미엄 인증 API 호출에 실패했습니다.' };
   }
 
-  async function ensurePremiumSession() {
+  async function ensurePremiumSession(paymentContext) {
     if (state.reportSessionId) {
       return { ok: true, reportSessionId: state.reportSessionId };
     }
@@ -920,7 +920,7 @@
 
     if (!prepared || !prepared.ok || !prepared.reportSessionId) {
       var initialCode = String((prepared && prepared.code) || '').toUpperCase();
-      var hasRecentPayment = !!(state.paymentContext && Number(state.paymentContext.cost) > 0);
+      var hasRecentPayment = !!(paymentContext && Number(paymentContext.cost) > 0);
       if (initialCode === 'PAYMENT_REQUIRED' && hasRecentPayment) {
         var retryDelays = [450, 900, 1500, 2300, 3200, 4200];
         for (var i = 0; i < retryDelays.length; i += 1) {
@@ -1032,11 +1032,11 @@
     }
   }
 
-  async function generateAllChapters() {
+  async function generateAllChapters(paymentContext) {
     showOnly('nyLoadingScreen');
     setLoadingProgress(1, CHAPTER_DEFINITIONS[0].title);
 
-    var prepared = await ensurePremiumSession();
+    var prepared = await ensurePremiumSession(paymentContext);
     if (!prepared || !prepared.ok || !state.reportSessionId) {
       var code = String((prepared && prepared.code) || '').toUpperCase();
       if (code === 'PAYMENT_REQUIRED') {
@@ -1105,7 +1105,7 @@
     }
   }
 
-  async function startNewYearGeneration() {
+  async function startNewYearGeneration(paymentContext) {
     if (state.generating) return;
 
     state.payload = buildPayload();
@@ -1121,7 +1121,7 @@
     persistState();
 
     try {
-      await generateAllChapters();
+      await generateAllChapters(paymentContext || state.paymentContext || null);
       state.paymentContext = null;
       renderResultScreen();
       notify('신년운세 PDF 10챕터 생성이 완료되었습니다.');
@@ -1157,16 +1157,17 @@
           } else {
             transactionId = String(transactionResult || '');
           }
-          state.paymentContext = {
+          var paymentContext = {
             featureKey: COIN_FEATURE_KEY,
             cost: Number(COST_COINS || 0),
             sourceTransactionId: String(transactionId || ''),
             requestId: String(('newyear:' + (state.reportId || Date.now())).slice(0, 120)),
             premiumAccessToken: premiumAccessToken || undefined
           };
+          state.paymentContext = paymentContext;
           state.paidReportId = state.reportId;
           persistState();
-          startNewYearGeneration();
+          startNewYearGeneration(paymentContext);
         },
         function () {
           setGenerateButtonBusy(false);

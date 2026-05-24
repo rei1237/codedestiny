@@ -11,19 +11,19 @@
   var LIFEBOOK_API_BASE_CANDIDATES = ['/api/premium/saju/life-book', '/api/lifebook'];
 
   var CHAPTER_DEFINITIONS = [
-    { index: 1, key: 'chapter_01_original_chart', title: 'Chapter 1. 사주 원국 완전 해설 — 팔자 8글자의 비밀', subtitle: '년주·월주·일주·시주와 천간·지지 구조 해석' },
-    { index: 2, key: 'chapter_02_core_temperament', title: 'Chapter 2. 나의 본질 — 일간·월지·조후와 기질의 뿌리', subtitle: '일간 본질·월지 영향·조후·강약의 통합 진단' },
-    { index: 3, key: 'chapter_03_five_elements_balance', title: 'Chapter 3. 오행 밸런스 — 목화토금수로 읽는 인생의 에너지 지도', subtitle: '오행 분포/과부족 분석과 보완 전략' },
-    { index: 4, key: 'chapter_04_ten_gods_structure', title: 'Chapter 4. 십성 구조 — 나의 욕망, 관계, 사회성의 작동 방식', subtitle: '비겁·식상·재성·관성·인성의 동력 분석' },
-    { index: 5, key: 'chapter_05_geokguk_calling', title: 'Chapter 5. 격국과 사회적 소명 — 나의 성공 방정식', subtitle: '격국 판단과 사회적 역할·성공 조건' },
-    { index: 6, key: 'chapter_06_yongshin', title: 'Chapter 6. 용신·희신·기신 — 나만의 필살기와 피해야 할 독', subtitle: '용신 판단 근거와 직업·관계·돈 적용' },
-    { index: 7, key: 'chapter_07_hapchung', title: 'Chapter 7. 합충형파해 — 인생이 흔들리는 지점과 전환점', subtitle: '합·충·형·파·해로 읽는 변화와 대응법' },
-    { index: 8, key: 'chapter_08_wealth_career', title: 'Chapter 8. 재물과 직업 — 돈이 되는 재능과 천직의 구조', subtitle: '재물운 구조·직업운 구조·장기 수익화 전략' },
-    { index: 9, key: 'chapter_09_relationships', title: 'Chapter 9. 관계와 인연 — 사랑, 가족, 귀인의 법칙', subtitle: '연애/배우자운·가족 영향·귀인운 운용 전략' },
-    { index: 10, key: 'chapter_10_health_energy', title: 'Chapter 10. 건강과 심신 에너지 — 오행으로 보는 회복 설계', subtitle: '의학 진단이 아닌 생활 리듬 기반 회복 설계' },
-    { index: 11, key: 'chapter_11_daeun', title: 'Chapter 11. 대운 정밀 분석 — 인생의 큰 파도', subtitle: '초년·청년·현재·다음 대운의 흐름과 장기 전략' },
-    { index: 12, key: 'chapter_12_seun_roadmap', title: 'Chapter 12. 세운·월운 로드맵 — 올해와 가까운 미래의 실행 전략', subtitle: '분기별·월별 Go/Hold/Retreat 로드맵' },
-    { index: 13, key: 'chapter_13_master_plan', title: 'Chapter 13. 인생 설계도 총결산 — 사주 거장의 마스터플랜 봉서', subtitle: '핵심 패턴·성공/관계 전략·최종 봉서' }
+    { index: 1, key: 'chapter_01_original_chart', title: '사주 원국 완전 해설 - 팔자 8글자의 비밀', subtitle: '년주·월주·일주·시주와 천간·지지 구조 해석' },
+    { index: 2, key: 'chapter_02_core_temperament', title: '나의 설계도 - 월지·일간·조후와 기질의 뿌리', subtitle: '월지 환경과 조후를 중심으로 한 적응 전략' },
+    { index: 3, key: 'chapter_03_five_elements_balance', title: '숨겨진 무기 - 용신·희신과 나만의 필살기', subtitle: '용신 방향성 기반의 현실 선택 설계' },
+    { index: 4, key: 'chapter_04_ten_gods_structure', title: '대운 정밀 분석 - 인생의 큰 파도', subtitle: '10년 주기 흐름과 시기별 전략' },
+    { index: 5, key: 'chapter_05_geokguk_calling', title: '격국과 사회적 소명 - 나의 성공 방정식', subtitle: '격국과 사회적 작동 방식의 결합 해석' },
+    { index: 6, key: 'chapter_06_yongshin', title: '관계의 전략 - 인연의 법칙과 파트너십', subtitle: '인간관계 작동 원리와 회복 시나리오' },
+    { index: 7, key: 'chapter_07_hapchung', title: '연애·결혼 완전 분석 - 사주가 말하는 나의 사랑', subtitle: '연애 본능과 관계 안정 전략' },
+    { index: 8, key: 'chapter_08_wealth_career', title: '재물·직업 완전 전략 - 부의 그릇을 키우는 천기', subtitle: '수익 구조와 직업 전략의 통합 설계' },
+    { index: 9, key: 'chapter_09_relationships', title: '건강·심신 에너지 완전 분석 - 오행으로 보는 회복법', subtitle: '오행 균형과 번아웃 회복 루틴' },
+    { index: 10, key: 'chapter_10_health_energy', title: '가족·뿌리·내면 아이 - 내가 짊어진 오래된 이야기', subtitle: '가족 영향과 독립 과제의 현실 해석' },
+    { index: 11, key: 'chapter_11_daeun', title: '인생의 위기와 전환점 - 무너질 때 다시 서는 법', subtitle: '위기 신호 분석과 현실 대응 전략' },
+    { index: 12, key: 'chapter_12_seun_roadmap', title: '나만의 성공 루틴 - 운을 현실로 바꾸는 실행법', subtitle: '하루 루틴부터 1년 계획까지 실행 설계' },
+    { index: 13, key: 'chapter_13_master_plan', title: '최종 운명 선언문 - 내 삶을 다시 쓰는 문장', subtitle: '핵심 구조 압축과 개인 맞춤 선언' }
   ];
   var CHAPTER_TITLES = CHAPTER_DEFINITIONS.map(function (chapter) { return chapter.title; });
   var ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII'];

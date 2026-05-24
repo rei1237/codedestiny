@@ -809,6 +809,7 @@
 
   function persistState() {
     try {
+      if (chapterCount() < TOTAL_CHAPTERS) return false;
       var payload = {
         reportId: asText(state.reportId),
         paidReportId: asText(state.paidReportId),
@@ -817,31 +818,70 @@
         chapterMeta: state.chapterMeta || {},
         activeChapter: Number(state.activeChapter || 1),
         mode: asText(state.mode || MODE_SOLO) || MODE_SOLO,
+        completed: true,
         updatedAt: new Date().toISOString(),
       };
       localStorage.setItem(LOVE_STATE_STORAGE_KEY, JSON.stringify(payload));
+      return true;
     } catch (_) {}
+    return false;
   }
 
-  function loadPersistedState() {
+  function getPersistedCompletedSnapshot() {
     try {
       var raw = localStorage.getItem(LOVE_STATE_STORAGE_KEY);
-      if (!raw) return;
+      if (!raw) return null;
       var saved = safeParse(raw, null);
-      if (!saved || typeof saved !== 'object') return;
-
-      state.reportId = asText(saved.reportId);
-      state.paidReportId = asText(saved.paidReportId);
-      state.payload = saved.payload || null;
-      state.chapterTexts = saved.chapterTexts && typeof saved.chapterTexts === 'object' ? saved.chapterTexts : {};
-      state.chapterMeta = saved.chapterMeta && typeof saved.chapterMeta === 'object' ? saved.chapterMeta : {};
-      state.mode = saved.mode === MODE_COMPAT ? MODE_COMPAT : MODE_SOLO;
-      state.activeChapter = clampInt(saved.activeChapter, 1, 1, TOTAL_CHAPTERS);
+      if (!saved || typeof saved !== 'object') return null;
+      var texts = saved.chapterTexts && typeof saved.chapterTexts === 'object' ? saved.chapterTexts : {};
+      var completedCount = 0;
+      for (var i = 1; i <= TOTAL_CHAPTERS; i += 1) {
+        if (asText(texts[i])) completedCount += 1;
+      }
+      if (completedCount < TOTAL_CHAPTERS) {
+        try { localStorage.removeItem(LOVE_STATE_STORAGE_KEY); } catch (_) {}
+        return null;
+      }
+      return saved;
     } catch (_) {}
+    return null;
   }
 
-  function clearPersistedState() {
-    try { localStorage.removeItem(LOVE_STATE_STORAGE_KEY); } catch (_) {}
+  function refreshSavedReportButton() {
+    var btn = qs('lsRestoreLatestBtn');
+    if (!btn) return;
+    var hasSavedReport = Boolean(getPersistedCompletedSnapshot());
+    btn.disabled = !hasSavedReport;
+    btn.setAttribute('aria-disabled', hasSavedReport ? 'false' : 'true');
+  }
+
+  function loadPersistedState(restore) {
+    var saved = getPersistedCompletedSnapshot();
+    if (!saved) return false;
+    if (restore !== true) {
+      refreshSavedReportButton();
+      return true;
+    }
+
+    state.reportId = asText(saved.reportId);
+    state.paidReportId = asText(saved.paidReportId);
+    state.payload = saved.payload || null;
+    state.chapterTexts = saved.chapterTexts && typeof saved.chapterTexts === 'object' ? saved.chapterTexts : {};
+    state.chapterMeta = saved.chapterMeta && typeof saved.chapterMeta === 'object' ? saved.chapterMeta : {};
+    state.mode = saved.mode === MODE_COMPAT ? MODE_COMPAT : MODE_SOLO;
+    state.activeChapter = clampInt(saved.activeChapter, 1, 1, TOTAL_CHAPTERS);
+    refreshSavedReportButton();
+    return true;
+  }
+
+  function restorePersistedCompletedReport() {
+    if (!loadPersistedState(true)) {
+      notify('이전 완성본이 없습니다. 먼저 연애 비책을 생성해 주세요.');
+      return false;
+    }
+    showOnly('lsResultScreen');
+    renderResultScreen();
+    return true;
   }
 
   function resetState() {
@@ -856,8 +896,8 @@
     state.chapterMeta = {};
     state.activeChapter = 1;
     state.mode = MODE_SOLO;
-    clearPersistedState();
     setGenerateButtonBusy(false);
+    refreshSavedReportButton();
     var bar = qs('lsProgressBar');
     var txt = qs('lsProgressText');
     if (bar) bar.style.width = '0%';
@@ -1424,16 +1464,12 @@
   }
 
   function renderResultRecoveryIfNeeded() {
-    if (chapterCount() >= TOTAL_CHAPTERS) {
-      showOnly('lsResultScreen');
-      renderResultScreen();
-      return true;
-    }
-    return false;
+    return restorePersistedCompletedReport();
   }
 
   window.resetLoveSecretState = function () {
     resetState();
+    refreshSavedReportButton();
     showOnly('lsStartScreen');
   };
 
@@ -1453,14 +1489,14 @@
     document.body.classList.add('lb-modal-open');
     modal.setAttribute('aria-hidden', 'false');
 
-    syncStartPreviewChapters(state.mode);
     if (state.generating) {
       showOnly('lsLoadingScreen');
       return;
     }
-    if (!renderResultRecoveryIfNeeded()) {
-      showOnly('lsStartScreen');
-    }
+    resetState();
+    syncStartPreviewChapters(state.mode);
+    refreshSavedReportButton();
+    showOnly('lsStartScreen');
   };
 
   window.closeLoveSecretModal = function () {
@@ -1474,8 +1510,13 @@
 
   window.generateLoveSecret = function () {
     if (state.generating) return;
+    resetState();
     syncStartPreviewChapters(state.mode);
     preparePartnerScreen();
+  };
+
+  window.openLoveSecretLatestReport = function () {
+    restorePersistedCompletedReport();
   };
 
   window.lsSkipPartner = function () {
@@ -1531,6 +1572,11 @@
       if (action === 'generateLoveSecret') {
         event.preventDefault();
         window.generateLoveSecret();
+        return;
+      }
+      if (action === 'openLoveSecretLatestReport') {
+        event.preventDefault();
+        window.openLoveSecretLatestReport();
         return;
       }
       if (action === 'lsSkipPartner') {
@@ -1593,23 +1639,17 @@
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
-      loadPersistedState();
+      loadPersistedState(false);
       syncStartPreviewChapters(state.mode);
       renderPartnerPreview();
-      if (!state.reportId && chapterCount() === 0) {
-        resetState();
-      } else {
-        setGenerateButtonBusy(false);
-      }
+      refreshSavedReportButton();
+      resetState();
     }, { once: true });
   } else {
-    loadPersistedState();
+    loadPersistedState(false);
     syncStartPreviewChapters(state.mode);
     renderPartnerPreview();
-    if (!state.reportId && chapterCount() === 0) {
-      resetState();
-    } else {
-      setGenerateButtonBusy(false);
-    }
+    refreshSavedReportButton();
+    resetState();
   }
 })();

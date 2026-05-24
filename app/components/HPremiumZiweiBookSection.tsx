@@ -15,19 +15,19 @@ interface HPremiumZiweiBookSectionProps {
 }
 
 const CHAPTER_META = [
-  { num: 1, title: "타고난 명(命)과 본질", subtitle: "명궁·신궁·삼방사정 통합 해석", icon: "🌌" },
-  { num: 2, title: "내면 심리와 무의식", subtitle: "복덕궁 기반 정서 패턴 분석", icon: "🧠" },
-  { num: 3, title: "사회적 페르소나", subtitle: "천이궁으로 보는 외부 활동운", icon: "🌍" },
-  { num: 4, title: "진로·직업운", subtitle: "관록궁 중심 적성/커리어 전략", icon: "👑" },
-  { num: 5, title: "재물운·자산 운영", subtitle: "재백궁 기반 수익 구조 분석", icon: "💰" },
-  { num: 6, title: "연애·배우자운", subtitle: "부처궁 관계 패턴 정밀 해석", icon: "💞" },
-  { num: 7, title: "인맥·협업 구조", subtitle: "교우궁·형제궁 귀인/소인 분석", icon: "🤝" },
-  { num: 8, title: "주거·부동산 흐름", subtitle: "전택궁 공간 에너지 전략", icon: "🏠" },
-  { num: 9, title: "건강·활력 리듬", subtitle: "질액궁 생활/회복 루틴 설계", icon: "💪" },
-  { num: 10, title: "생애 주기 대운", subtitle: "대한(10년) 흐름 전략", icon: "🌊" },
-  { num: 11, title: "연운·월운 타이밍", subtitle: "유년·유월 12개월 액션 플랜", icon: "📅" },
-  { num: 12, title: "개운법 총결산", subtitle: "액운 대응·맞춤 개운 가이드", icon: "🍀" },
-  { num: 13, title: "종합 총운 로드맵", subtitle: "90일 실행 플랜", icon: "🌅" },
+  { num: 1, title: "1장. 명궁 완전 해독 — 타고난 인생 설계도", subtitle: "명궁을 중심으로 타고난 성격, 기질, 인생 선택 패턴을 해석한다.", icon: "🌌" },
+  { num: 2, title: "2장. 신궁 심층 분석 — 후천적으로 완성되는 나", subtitle: "신궁 위치, 명궁과의 관계, 후천 성향 강화 방향을 해석한다.", icon: "🧠" },
+  { num: 3, title: "3장. 복덕궁 — 마음의 만족과 내면의 행복 구조", subtitle: "복덕궁 중심으로 스트레스-회복 구조와 내면 행복 설계를 해석한다.", icon: "🌍" },
+  { num: 4, title: "4장. 관록궁 — 직업, 커리어, 사회적 성취", subtitle: "관록궁 기반 직업 적성, 일 방식, 성취 조건과 리스크를 정리한다.", icon: "👑" },
+  { num: 5, title: "5장. 재백궁 — 돈의 흐름과 재물 그릇", subtitle: "재백궁 기반 수익 구조, 누수 패턴, 재물운 강화 습관을 제시한다.", icon: "💰" },
+  { num: 6, title: "6장. 천이궁 — 외부 세계, 이동, 기회", subtitle: "천이궁 중심으로 외부 기회, 이동운, 타지/해외 적응력을 해석한다.", icon: "💞" },
+  { num: 7, title: "7장. 부처궁 — 연애, 결혼, 배우자 인연", subtitle: "부처궁 중심 연애/결혼 반복 패턴과 파트너십 전략을 구체화한다.", icon: "🤝" },
+  { num: 8, title: "8장. 교우궁 — 인간관계, 친구, 협력자", subtitle: "교우궁 중심으로 협업/인맥 구조, 도움 인연과 리스크를 해석한다.", icon: "🏠" },
+  { num: 9, title: "9장. 부모궁 — 원가족, 윗사람, 보호와 압박", subtitle: "부모궁 중심으로 원가족/윗사람 관계의 보호와 압박 패턴을 해석한다.", icon: "💪" },
+  { num: 10, title: "10장. 형제궁 — 형제, 경쟁자, 가까운 수평 관계", subtitle: "형제궁 기반 수평 관계의 거리감, 경쟁 구도, 협력 가능 구조를 분석한다.", icon: "🌊" },
+  { num: 11, title: "11장. 질액궁 — 건강, 체력, 에너지 관리", subtitle: "질액궁 중심 취약 패턴, 번아웃 포인트, 회복 전략을 실전적으로 정리한다.", icon: "📅" },
+  { num: 12, title: "12장. 대운과 인생 전환기 — 큰 흐름의 지도", subtitle: "현재 대운/연운을 중심으로 인생 전환 시기와 분야별 전환 전략을 제시한다.", icon: "🍀" },
+  { num: 13, title: "13장. 종합 결론 — 나의 운명을 쓰는 법", subtitle: "명궁·신궁·관록궁·재백궁 축을 통합해 실행 가능한 최종 전략 로드맵을 완성한다.", icon: "🌅" },
 ];
 
 export default function HPremiumZiweiBookSection({

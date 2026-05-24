@@ -3386,6 +3386,60 @@ function buildInternalPremiumJsonRequest(sourceRequest, body) {
   });
 }
 
+function attachPremiumApiMeta(payload = {}, options = {}) {
+  const stage = String(options.stage || payload.stage || "unknown").trim() || "unknown";
+  const reportType = String(options.reportType || payload.reportType || "").trim();
+  const featureType = String(options.featureType || payload.featureType || "").trim();
+  const requestId = String(options.requestId || payload.requestId || "").trim();
+  const normalizedCode = String(options.normalizedCode || payload.normalizedCode || payload.code || "").trim();
+
+  return {
+    ...payload,
+    schemaVersion: "premium-report-v2",
+    stage,
+    reportType: reportType || payload.reportType || "",
+    featureType: featureType || payload.featureType || "",
+    requestId: requestId || payload.requestId || "",
+    normalizedCode: normalizedCode || undefined,
+    paymentPolicy: "server-authoritative-access-check",
+    refundPolicy: "no-auto-refund-in-report-pipeline",
+  };
+}
+
+function buildPremiumAccessDeniedPayload(access = {}, options = {}) {
+  const status = Number(access.status || 402);
+  const baseCode = String(access.code || "PAYMENT_REQUIRED").trim() || "PAYMENT_REQUIRED";
+  const reportType = String(options.reportType || "").trim();
+  const featureType = String(options.featureType || "").trim();
+  const requestId = String(options.requestId || "").trim();
+
+  const payload = attachPremiumApiMeta({
+    ok: false,
+    code: baseCode,
+    message: String(access.message || "프리미엄 결제가 필요합니다."),
+    reportType,
+    featureType,
+    requestId,
+    required: access.required || null,
+    paymentState: {
+      required: true,
+      status,
+      authority: "worker/lib/access-control.requirePremiumReportAccess",
+    },
+  }, {
+    stage: String(options.stage || "access-check"),
+    reportType,
+    featureType,
+    requestId,
+    normalizedCode: "PAYMENT_REQUIRED",
+  });
+
+  return {
+    status,
+    payload,
+  };
+}
+
 function getPremiumPrepareMaxAttempts(env) {
   const raw = Number(env?.PREMIUM_PREPARE_MAX_ATTEMPTS || env?.PREMIUM_CANONICAL_RETRY_MAX || 3);
   if (!Number.isFinite(raw)) return 3;
@@ -9370,6 +9424,477 @@ function sanitizePremiumChapterText(text) {
     .replace(/데이터\s*부족/gi, "핵심 데이터 맥락")
     .replace(/정보\s*부족/gi, "핵심 정보")
     .replace(/보완\s*프로필/gi, "통합 프로필");
+}
+
+const PREMIUM_LLM_RECOVERABLE_ERROR_PATTERNS = Object.freeze([
+  /quota/i,
+  /rate\s*limit/i,
+  /429/,
+  /500/,
+  /502/,
+  /503/,
+  /timeout|timed\s*out|abort/i,
+  /network\s*error|fetch\s*failed|connection\s*reset/i,
+  /gemini\s*api\s*unavailable/i,
+  /generatecontent\s*failed|gemini\s*failed/i,
+  /model\s*overloaded|overload/i,
+  /api\s*key\s*missing|api\s*key\s*invalid|invalid\s*api\s*key/i,
+  /response\s*empty|empty\s*response/i,
+  /response\s*blocked|finishreason\s*blocked|finish\s*reason\s*blocked/i,
+  /response\s*too\s*short|chapter\s*quality\s*validation\s*failed/i,
+  /json\s*parse\s*failed|unexpected\s*token/i,
+  /forbidden\s*phrase|blocked\s*phrase/i,
+]);
+
+function isLlmRecoverableError(errorLike) {
+  const source = String(
+    errorLike?.code
+    || errorLike?.name
+    || errorLike?.message
+    || errorLike?.error
+    || errorLike
+    || "",
+  );
+  if (!source.trim()) return false;
+  return PREMIUM_LLM_RECOVERABLE_ERROR_PATTERNS.some((pattern) => pattern.test(source));
+}
+
+function similarityScoreByTokens(leftText, rightText) {
+  const tokenize = (text) => new Set(
+    String(text || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9가-힣\s]/g, " ")
+      .split(/\s+/)
+      .map((token) => token.trim())
+      .filter((token) => token.length >= 2),
+  );
+  const left = tokenize(leftText);
+  const right = tokenize(rightText);
+  if (!left.size || !right.size) return 0;
+  let inter = 0;
+  for (const token of left) {
+    if (right.has(token)) inter += 1;
+  }
+  const union = left.size + right.size - inter;
+  if (union <= 0) return 0;
+  return inter / union;
+}
+
+function dedupeReportParagraphs(chapters = []) {
+  const priorParagraphs = [];
+  return (Array.isArray(chapters) ? chapters : []).map((chapterText) => {
+    const lines = String(chapterText || "").split(/\n\s*\n/);
+    const kept = [];
+    const seenHeaders = new Set();
+    for (const block of lines) {
+      const trimmed = String(block || "").trim();
+      if (!trimmed) continue;
+
+      if (/^#{2,4}\s+/.test(trimmed)) {
+        const headerFp = normalizePremiumFingerprint(trimmed);
+        if (!headerFp || seenHeaders.has(headerFp)) continue;
+        seenHeaders.add(headerFp);
+        kept.push(trimmed);
+        continue;
+      }
+
+      const fp = normalizePremiumFingerprint(trimmed);
+      if (!fp) continue;
+      const exactDuplicate = priorParagraphs.some((row) => row.fp === fp);
+      if (exactDuplicate) continue;
+
+      const highSimilarity = priorParagraphs.some((row) => similarityScoreByTokens(row.text, trimmed) >= 0.8);
+      if (highSimilarity) continue;
+
+      priorParagraphs.push({ fp, text: trimmed });
+      kept.push(trimmed);
+    }
+
+    return kept.join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
+  });
+}
+
+function validateLocalFallbackChapter(chapter, chapterDefinition, previousChapterTexts = []) {
+  const title = String(chapter?.title || chapterDefinition?.title || "").trim();
+  const content = String(chapter?.content || chapter?.text || "").trim();
+  const minChars = Math.max(1800, Number(chapterDefinition?.minChars || 0));
+  const headingCount = (content.match(/^#{2,4}\s+/gm) || []).length;
+  const blockedTerms = [
+    "자동 복구 생성",
+    "기본 해석",
+    "데이터가 부족하지만",
+    "Chapter 1 핵심 진단",
+    "현재 흐름을 구조적으로 해석합니다",
+    "단정 예언이 아니라 선택의 품질을 높이는 실행형 상담 문장",
+    "fallback",
+    "mock",
+    "sample",
+    "undefined",
+    "null",
+    "NaN",
+    "quota exceeded",
+    "generateContent failed",
+    "API error",
+    "JSON",
+    "reportPayload",
+    "chapterJsonPacks",
+  ];
+  const hasBlocked = blockedTerms.some((term) => content.toLowerCase().includes(String(term).toLowerCase()));
+  const repeatedAcross = detectCrossChapterRepeatedSentences(content, previousChapterTexts, 30);
+  const repeatedInside = detectRepeatedLongSentences(content, 30);
+
+  const reasons = [];
+  if (!title) reasons.push("TITLE_MISSING");
+  if (!content) reasons.push("CONTENT_MISSING");
+  if (countKoreanLikeChars(content) < minChars) reasons.push("CONTENT_TOO_SHORT");
+  if (headingCount < 3) reasons.push("HEADINGS_TOO_FEW");
+  if (hasBlocked) reasons.push("BLOCKED_PHRASE_DETECTED");
+  if (repeatedAcross.length > 0) reasons.push("TOO_SIMILAR_TO_PREVIOUS");
+  if (repeatedInside.length > 0) reasons.push("REPEATED_PARAGRAPH");
+
+  return {
+    ok: reasons.length === 0,
+    reasons,
+    title,
+    content,
+    headingCount,
+    minChars,
+  };
+}
+
+function formatLocalFactValue(value) {
+  if (value == null) return "";
+  if (typeof value === "number" && Number.isFinite(value)) {
+    if (Math.abs(value) >= 1000) return String(Math.round(value));
+    return String(Math.round(value * 100) / 100);
+  }
+  if (typeof value === "boolean") return value ? "예" : "아니오";
+  const text = String(value || "").replace(/\s+/g, " ").trim();
+  if (!text) return "";
+  return text.length > 48 ? `${text.slice(0, 48)}...` : text;
+}
+
+function normalizeLocalFactLabel(path) {
+  const key = String(path || "")
+    .replace(/^[^.]+\./, "")
+    .split(".")
+    .slice(-2)
+    .join(".")
+    .replace(/_/g, " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .trim();
+  if (!key) return "핵심 기준";
+  const map = {
+    name: "이름",
+    gender: "성별",
+    year: "출생 연도",
+    month: "출생 월",
+    day: "출생 일",
+    hour: "출생 시",
+    minute: "출생 분",
+    dayMaster: "일간",
+    relationType: "관계 유형",
+    relationVariant: "관계 변형",
+    compatibilityIndex: "궁합 지수",
+    yongsin: "용신",
+    huisin: "희신",
+    gisin: "기신",
+    strongestMonths: "강점 월",
+    cautionMonths: "주의 월",
+    targetYear: "대상 연도",
+  };
+  const tail = key.split(".").pop();
+  return map[tail] || key;
+}
+
+function collectDeterministicLocalFacts(reportType, input, canonicalJson, chapterJsonPacks, limit = 18) {
+  const preferredTokens = [
+    "name", "gender", "year", "month", "day", "hour", "minute",
+    "dayMaster", "relation", "compat", "index", "yong", "hui", "gi",
+    "targetYear", "strong", "caution", "theme", "core", "focus", "risk", "energy",
+  ];
+
+  const roots = [
+    { prefix: "input", value: input },
+    { prefix: "calculated", value: canonicalJson?.calculatedData },
+    { prefix: "chapter", value: chapterJsonPacks },
+    { prefix: "seed", value: canonicalJson?.interpretationSeed },
+  ];
+
+  const rows = [];
+  const seen = new Set();
+  const queue = roots
+    .filter((row) => row && row.value && typeof row.value === "object")
+    .map((row) => ({ path: row.prefix, value: row.value, depth: 0 }));
+
+  while (queue.length > 0 && rows.length < 60) {
+    const item = queue.shift();
+    const { path, value, depth } = item;
+    if (value == null) continue;
+
+    if (Array.isArray(value)) {
+      if (depth > 3) continue;
+      for (let i = 0; i < value.length; i += 1) {
+        queue.push({ path: `${path}.${i}`, value: value[i], depth: depth + 1 });
+      }
+      continue;
+    }
+
+    if (typeof value === "object") {
+      if (depth > 4) continue;
+      for (const [k, v] of Object.entries(value)) {
+        queue.push({ path: `${path}.${k}`, value: v, depth: depth + 1 });
+      }
+      continue;
+    }
+
+    const normalized = formatLocalFactValue(value);
+    if (!normalized) continue;
+    if (normalized.toLowerCase() === "n/a") continue;
+
+    const pathLc = String(path || "").toLowerCase();
+    const preferred = preferredTokens.some((token) => pathLc.includes(token));
+    if (!preferred && rows.length >= 30) continue;
+
+    const fp = `${pathLc}:${normalized.toLowerCase()}`;
+    if (seen.has(fp)) continue;
+    seen.add(fp);
+    rows.push({ label: normalizeLocalFactLabel(path), value: normalized, preferred });
+  }
+
+  const sorted = rows
+    .sort((a, b) => Number(b.preferred) - Number(a.preferred))
+    .slice(0, Math.max(8, Number(limit || 18)));
+
+  if (sorted.length >= 8) return sorted;
+
+  return sorted.concat([
+    { label: "리포트 유형", value: String(reportType || "premium"), preferred: true },
+    { label: "입력 기준", value: "검증된 계산 데이터", preferred: true },
+  ]).slice(0, Math.max(8, Number(limit || 18)));
+}
+
+function getDeterministicLocalQualityProfile(reportType, chapterId, chapterMeta, chapterContract) {
+  const chapterTitle = String(chapterMeta?.title || `Chapter ${chapterId}`).trim();
+  const requiredHeadings = Array.isArray(chapterContract?.requiredHeadings)
+    ? chapterContract.requiredHeadings.length
+    : 0;
+  const minSectionCharsBase = Number(requiredHeadings >= 6 ? 520 : 430);
+
+  if (reportType === "lifeBook") {
+    return {
+      narrativeTone: "장기 설계형",
+      minSectionChars: minSectionCharsBase + 90,
+      actionDepth: 4,
+      mustInclude: ["핵심 구조", "실행 우선순위", "리스크 컷오프", "90일 점검"],
+    };
+  }
+  if (reportType === "loveSecret") {
+    return {
+      narrativeTone: "관계 전략형",
+      minSectionChars: minSectionCharsBase + 70,
+      actionDepth: 4,
+      mustInclude: ["감정 트리거", "대화 프레임", "갈등 복구", "경계선 합의"],
+    };
+  }
+  if (reportType === "sajuNewYear") {
+    return {
+      narrativeTone: "연간 운영형",
+      minSectionChars: minSectionCharsBase + 80,
+      actionDepth: 5,
+      mustInclude: ["분기 기준", "월별 Go/Stop", "손실 관리", "회수 전략"],
+    };
+  }
+  if (reportType === "ziweiPremium") {
+    return {
+      narrativeTone: "궁성 구조형",
+      minSectionChars: minSectionCharsBase + 75,
+      actionDepth: 4,
+      mustInclude: ["궁위 해석", "강점-약점", "환경 변수", "운영 루틴"],
+    };
+  }
+  if (reportType === "westernAstrologyPremium" || reportType === "vedicPremium") {
+    return {
+      narrativeTone: "타이밍 전략형",
+      minSectionChars: minSectionCharsBase + 65,
+      actionDepth: 4,
+      mustInclude: ["타이밍", "우선 행동", "보류 행동", "점검 질문"],
+    };
+  }
+  if (reportType === "sookyoPremium") {
+    return {
+      narrativeTone: "관계 다이내믹형",
+      minSectionChars: minSectionCharsBase + 60,
+      actionDepth: 4,
+      mustInclude: ["상호작용 패턴", "충돌 포인트", "완충 행동", "합의 기준"],
+    };
+  }
+
+  return {
+    narrativeTone: "실행 중심형",
+    minSectionChars: minSectionCharsBase,
+    actionDepth: 3,
+    mustInclude: ["핵심 결론", "실행 포인트", "리스크 관리"],
+  };
+}
+
+function getDeterministicCategoryFrame(reportType, chapterId, sectionIndex) {
+  const framesByReport = {
+    lifeBook: ["핵심 구조 진단", "패턴 해석", "실행 설계", "리스크 관리", "장기 회수"],
+    loveSecret: ["감정 구조", "상호작용 해석", "대화 전략", "갈등 복구", "관계 합의"],
+    sajuNewYear: ["연간 기조", "분기 운영", "월별 판단", "리스크 컷", "성과 회수"],
+    ziweiPremium: ["궁성 해석", "강약 배치", "현실 장면", "위기 대응", "실행 매뉴얼"],
+    westernAstrologyPremium: ["타이밍 판독", "상황 해석", "추진 전략", "방어 전략", "점검 기준"],
+    vedicPremium: ["리듬 해석", "상황 분기", "실행 우선순위", "손실 회피", "복구 경로"],
+    sookyoPremium: ["관계 구조", "상호 패턴", "충돌 완충", "조율 전술", "관계 안정화"],
+  };
+  const frames = framesByReport[String(reportType || "")] || ["핵심 해석", "실행 전략", "리스크 관리", "요약"];
+  return frames[(Number(chapterId || 1) + Number(sectionIndex || 0)) % frames.length];
+}
+
+function buildDeterministicActionChecklist(profile, facts, sectionIndex) {
+  const items = [];
+  for (let i = 0; i < Math.max(3, Number(profile?.actionDepth || 3)); i += 1) {
+    const fact = facts[(sectionIndex + i + 1) % facts.length] || facts[0] || { label: "핵심 기준", value: "검증 데이터" };
+    items.push(`- ${fact.label}(${fact.value})를 기준으로 주간 단위 실행 결과를 기록합니다.`);
+  }
+  const mustInclude = Array.isArray(profile?.mustInclude) ? profile.mustInclude : [];
+  if (mustInclude.length) {
+    items.push(`- ${mustInclude[(sectionIndex + 1) % mustInclude.length]} 항목을 이번 챕터 실행 점검표에 포함합니다.`);
+  }
+  return items.join("\n");
+}
+
+function buildDeterministicSectionParagraphs(heading, chapterMeta, facts, reportType, sectionIndex, qualityProfile) {
+  const title = String(chapterMeta?.title || `Chapter ${sectionIndex + 1}`);
+  const focus = String(chapterMeta?.subtitle || "핵심 흐름");
+  const categoryFrame = getDeterministicCategoryFrame(reportType, chapterMeta?.num || 1, sectionIndex);
+  const baseA = facts[(sectionIndex * 2) % facts.length] || { label: "핵심 기준", value: "검증 데이터" };
+  const baseB = facts[(sectionIndex * 2 + 1) % facts.length] || { label: "운영 포인트", value: "실행 우선순위" };
+  const baseC = facts[(sectionIndex * 2 + 2) % facts.length] || { label: "리스크", value: "속도 과열" };
+  const baseD = facts[(sectionIndex * 2 + 3) % facts.length] || baseA;
+
+  let sectionBody = [
+    `${title}의 ${focus} 관점에서 ${baseA.label}(${baseA.value})와 ${baseB.label}(${baseB.value})를 함께 읽어야 판단 오차를 줄일 수 있습니다.`,
+    `${reportType} 리포트의 ${categoryFrame}에서는 ${baseC.label}(${baseC.value})를 선제적으로 관리해야 변동성 구간에서도 방향을 유지할 수 있습니다.`,
+    `${qualityProfile?.narrativeTone || "실행 중심형"} 기준으로 ${baseD.label}(${baseD.value})를 보정 변수로 두고 일정·관계·자원 배분을 같은 문장 규칙으로 통합해 반복 점검하세요.`,
+    "실행 기준: 목표를 1~2개로 제한하고, 실행 결과를 주 단위로 기록해 다음 판단 기준에 반영합니다.",
+  ].join("\n\n");
+
+  const minSectionChars = Math.max(320, Number(qualityProfile?.minSectionChars || 430));
+  let depth = 1;
+  while (countKoreanLikeChars(sectionBody) < minSectionChars) {
+    const reinforceFact = facts[(sectionIndex + depth + 4) % facts.length] || baseB;
+    sectionBody += `\n\n심화 근거 ${depth}: ${reinforceFact.label}(${reinforceFact.value})를 확인해 이번 구간의 의사결정 가정을 업데이트하고, 실행-점검-보정 순서를 고정합니다.`;
+    depth += 1;
+    if (depth > 6) break;
+  }
+
+  return sectionBody;
+}
+
+function buildDeterministicLocalChapterText({
+  reportType,
+  chapterId,
+  chapterMeta,
+  chapterContract,
+  input,
+  canonicalJson,
+  chapterJsonPacks,
+  minChars,
+}) {
+  const headings = Array.isArray(chapterContract?.requiredHeadings)
+    ? chapterContract.requiredHeadings.map((row) => String(row || "").trim()).filter(Boolean)
+    : [];
+  const resolvedHeadings = headings.length
+    ? headings
+    : [
+      "## 1. 이 챕터의 핵심 결론",
+      "## 2. 상세 해석",
+      "## 3. 실행 전략",
+      "## 4. 리스크 관리",
+      "## 5. 챕터 요약",
+    ];
+  const facts = collectDeterministicLocalFacts(reportType, input, canonicalJson, chapterJsonPacks, 20);
+  const qualityProfile = getDeterministicLocalQualityProfile(reportType, chapterId, chapterMeta, chapterContract);
+
+  const lines = [
+    `## ${String(chapterMeta?.title || `Chapter ${chapterId}`)}`,
+    String(chapterMeta?.subtitle || "").trim() ? `> ${String(chapterMeta.subtitle).trim()}` : "",
+    "아래 내용은 검증된 계산 데이터와 챕터 기준 항목을 바탕으로 정리한 실행형 해석입니다.",
+    "",
+    "### 사용 데이터 요약",
+    ...facts.slice(0, 12).map((row) => `- ${row.label}: ${row.value}`),
+  ].filter(Boolean);
+
+  resolvedHeadings.forEach((heading, idx) => {
+    lines.push("", heading);
+    lines.push(buildDeterministicSectionParagraphs(heading, chapterMeta, facts, reportType, idx, qualityProfile));
+    lines.push("\n실행 체크리스트:\n" + buildDeterministicActionChecklist(qualityProfile, facts, idx));
+  });
+
+  let text = lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  let round = 1;
+  while (countKoreanLikeChars(text) < Math.max(1800, Number(minChars || 2200))) {
+    const a = facts[(round * 3) % facts.length] || facts[0];
+    const b = facts[(round * 3 + 1) % facts.length] || facts[1] || facts[0];
+    const frame = getDeterministicCategoryFrame(reportType, chapterId, round);
+    text += `\n\n### 실행 심화 ${round} - ${frame}\n${a.label}(${a.value})를 기준축으로 두고 ${b.label}(${b.value})를 보정 변수로 운영하면 변동성 구간에서도 판단 일관성을 유지하기 쉽습니다.\n이번 심화 구간에서는 일정·관계·자원 배분을 같은 기준표로 묶어 기록하고, 주간 단위로 수정 폭을 20% 이내로 제한해 과잉 변경을 방지하세요.\n심화 체크: ${buildDeterministicActionChecklist(qualityProfile, facts, round).replace(/\n/g, " ")}`;
+    round += 1;
+    if (round > 12) break;
+  }
+  return text;
+}
+
+function buildLocalFallbackChapterFromContext({
+  context,
+  chapterId,
+  chapterMeta,
+  chapterContract,
+  chapterJsonPacks,
+  minChars,
+  previousChapterTexts,
+  fallbackReason,
+}) {
+  const chapterText = buildDeterministicLocalChapterText({
+    reportType: context?.reportType,
+    chapterId,
+    chapterMeta,
+    chapterContract,
+    input: context?.input || {},
+    canonicalJson: context?.coreData?.canonicalJson || {},
+    chapterJsonPacks,
+    minChars,
+  });
+
+  const localValidation = validateLocalFallbackChapter({
+    title: chapterMeta?.title,
+    text: chapterText,
+  }, {
+    title: chapterMeta?.title,
+    minChars,
+  }, previousChapterTexts);
+
+  if (!localValidation.ok) {
+    return {
+      ok: false,
+      code: "LOCAL_FALLBACK_GENERATION_FAILED",
+      message: "로컬 리포트 생성 중 문제가 발생했습니다.",
+      validation: localValidation,
+    };
+  }
+
+  return {
+    ok: true,
+    usedFallback: true,
+    source: "local_deterministic_fallback",
+    fallbackReason: String(fallbackReason || "LLM_OR_QUALITY_FAILURE"),
+    text: chapterText,
+    chapterMeta,
+    chapterSpecificSections: Array.isArray(chapterContract?.requiredHeadings)
+      ? chapterContract.requiredHeadings
+      : [],
+  };
 }
 
 const PREMIUM_PREVIOUS_CHAPTER_MAX_COUNT = 4;
@@ -19363,19 +19888,17 @@ async function recoverPremiumContextOnSessionMiss(request, env, authInfo, body, 
 
   const access = await requirePremiumReportAccess(env, authInfo.userId, reportType, accessRequestBody);
   if (!access.ok) {
+    const denied = buildPremiumAccessDeniedPayload(access, {
+      stage: "recover-session-access-check",
+      reportType,
+      featureType,
+      requestId,
+    });
     return {
       ok: false,
       recoverable: true,
-      status: Number(access.status || 402),
-      data: {
-        ok: false,
-        code: access.code || "PAYMENT_REQUIRED",
-        message: access.message || "프리미엄 결제가 필요합니다.",
-        reportType,
-        featureType,
-        requestId,
-        required: access.required || null,
-      },
+      status: denied.status,
+      data: denied.payload,
     };
   }
 
@@ -19519,15 +20042,13 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
 
   const access = await requirePremiumReportAccess(env, authInfo.userId, reportType, accessRequestBody);
   if (!access.ok) {
-    return json({
-      ok: false,
-      code: access.code || "PAYMENT_REQUIRED",
-      message: access.message || "프리미엄 결제가 필요합니다.",
+    const denied = buildPremiumAccessDeniedPayload(access, {
+      stage: "prepare-access-check",
       reportType,
       featureType,
       requestId,
-      required: access.required || null,
-    }, { status: Number(access.status || 402) });
+    });
+    return json(denied.payload, { status: denied.status });
   }
 
   const prepared = await createOrReusePremiumReportContext(request, env, authInfo, reportType, featureType, requestBody, requestId);
@@ -19571,7 +20092,7 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
   if (!context.isCompleteForPdf) {
     const missingFields = Array.isArray(summary.missingData) ? summary.missingData : [];
     const preflight = context.preflight || buildPremiumPreflightResult(context);
-    return json({
+    return json(attachPremiumApiMeta({
       ok: false,
       code: getPremiumDataIncompleteCode(context.reportType),
       normalizedCode: "PDF_REPORT_PAYLOAD_MISSING_FIELD",
@@ -19595,7 +20116,13 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
       recommendedAction: getPremiumRecommendedAction(context.reportType),
       warnings: Array.isArray(summary.warnings) ? summary.warnings : [],
       contextSummary: summary,
-    }, { status: 422 });
+    }, {
+      stage: "prepare",
+      reportType: context.reportType,
+      featureType: context.featureType,
+      requestId,
+      normalizedCode: "PDF_REPORT_PAYLOAD_MISSING_FIELD",
+    }), { status: 422 });
   }
 
   const responsePayload = {
@@ -19620,7 +20147,12 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
     responsePayload.chapterData = context.chapterData;
   }
 
-  return json(responsePayload);
+  return json(attachPremiumApiMeta(responsePayload, {
+    stage: "prepare",
+    reportType: context.reportType,
+    featureType: context.featureType,
+    requestId,
+  }));
 }
 
 async function handlePremiumReportPreflight(request, env, authInfo) {
@@ -19705,16 +20237,27 @@ async function handlePremiumReportPreflight(request, env, authInfo) {
   };
 
   if (!preflight.ok) {
-    return json({
+    return json(attachPremiumApiMeta({
       ...responsePayload,
       code: "PREMIUM_REPORT_PREFLIGHT_FAILED",
       message: "PDF 생성 preflight 검증에 실패했습니다. 누락 데이터를 먼저 보강하세요.",
       missingFields: Array.isArray(preflight.missingSummary) ? preflight.missingSummary : [],
       blockedChapters: Array.isArray(preflight.blockedChapters) ? preflight.blockedChapters : [],
-    }, { status: 422 });
+    }, {
+      stage: "preflight",
+      reportType: context.reportType,
+      featureType: context.featureType,
+      requestId,
+      normalizedCode: "PDF_REPORT_PREFLIGHT_FAILED",
+    }), { status: 422 });
   }
 
-  return json(responsePayload);
+  return json(attachPremiumApiMeta(responsePayload, {
+    stage: "preflight",
+    reportType: context.reportType,
+    featureType: context.featureType,
+    requestId,
+  }));
 }
 
 async function handlePremiumReportSessionRead(request, env, authInfo, reportSessionId) {
@@ -19795,13 +20338,13 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   }
 
   const chapterId = clampInt(body.chapterId ?? body.chapter, 1, 1, Number(context.totalChapters || 13));
-  const maxChapterAttempts = 1;
+  const maxChapterAttempts = Math.max(2, getPremiumChapterMaxAttempts(env, 2));
   const chapterRequestKey = String(chapterId);
   const chapterInflightKey = `${reportSessionId}:${chapterId}`;
 
   const cachedChapterTextEarly = String(context?.chapterTextById?.[String(chapterId)] || "").trim();
   if (cachedChapterTextEarly) {
-    return json({
+    return json(attachPremiumApiMeta({
       ok: true,
       requestId,
       reportSessionId,
@@ -19809,7 +20352,13 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       chapterId,
       cached: true,
       text: cachedChapterTextEarly,
-    });
+    }, {
+      stage: "chapter",
+      reportType: context.reportType,
+      featureType: context.featureType,
+      requestId,
+      normalizedCode: "OK",
+    }));
   }
 
   const pendingChapter = PREMIUM_REPORT_CHAPTER_INFLIGHT.get(chapterInflightKey);
@@ -20067,7 +20616,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       requestId,
     });
 
-    if (!generated?.ok || generated?.usedFallback) {
+    if (!generated?.ok) {
       return json({
         ok: false,
         requestId,
@@ -20079,6 +20628,12 @@ async function handlePremiumReportChapter(request, env, authInfo) {
         missingFields: Array.isArray(generated?.missingFields) ? generated.missingFields : [],
       }, { status: Number.isFinite(Number(generated?.status)) ? Number(generated.status) : 422 });
     }
+
+    const previousChapterTexts = Object.entries(context?.chapterTextById || {})
+      .filter(([key]) => Number(key) < Number(chapterId))
+      .sort((a, b) => Number(a[0]) - Number(b[0]))
+      .map(([, value]) => String(value || "").trim())
+      .filter(Boolean);
 
     const chapterText = ensurePremiumChapterLength(String(generated?.text || "").trim(), {
       reportType: context.reportType,
@@ -20114,6 +20669,39 @@ async function handlePremiumReportChapter(request, env, authInfo) {
         quality: chapterQuality,
       }, { status: 422 });
     }
+    const source = generated?.usedFallback ? "local_deterministic_fallback" : "llm";
+    if (generated?.usedFallback) {
+      const localValidation = validateLocalFallbackChapter({
+        title: generated?.chapterMeta?.title,
+        text: chapterText,
+      }, {
+        title: generated?.chapterMeta?.title,
+        minChars: Number(rawLengthCheck?.chapterMin || 0),
+      }, previousChapterTexts);
+      if (!localValidation.ok) {
+        return json({
+          ok: false,
+          requestId,
+          reportSessionId,
+          chapterId,
+          featureType: context.featureType,
+          code: "LOCAL_FALLBACK_GENERATION_FAILED",
+          message: "로컬 리포트 생성 중 문제가 발생했습니다.",
+          stage: "LocalFallbackGeneration",
+          validation: localValidation,
+        }, { status: 422 });
+      }
+
+      console.warn("[PremiumPDF] LocalFallbackActivated", {
+        debugId: requestId,
+        serviceType: context.reportType,
+        chapterId,
+        reason: String(generated?.fallbackReason || "LLM_OR_QUALITY_FAILURE"),
+        llmErrorCode: String(generated?.code || ""),
+        seedVersion: String(context?.coreData?.canonicalJson?.seedVersion || "unknown"),
+        engineVersion: String(context?.coreData?.canonicalJson?.engineVersion || "unknown"),
+      });
+    }
     const acceptedLengthCheck = {
       ...rawLengthCheck,
       ok: true,
@@ -20136,8 +20724,10 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       attemptsUsed: 1,
       maxChapterAttempts,
       jsonPackKeys: Object.keys(chapterJsonPacks || {}),
+      source,
       usedFallback: Boolean(generated?.usedFallback),
       fallbackReason: String(generated?.fallbackReason || ""),
+      retryCount: 0,
       updatedAt: new Date().toISOString(),
     };
     context.chapterTextById = context.chapterTextById || {};
@@ -20182,7 +20772,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       totalChapters: context.totalChapters,
     });
 
-    return json({
+    return json(attachPremiumApiMeta({
       ok: true,
       requestId,
       reportSessionId,
@@ -20194,11 +20784,18 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       text: chapterText,
       chapterMeta: generated?.chapterMeta || null,
       chapterSpecificSections: generated?.chapterSpecificSections || [],
+      source,
       usedFallback: Boolean(generated?.usedFallback),
       fallbackReason: String(generated?.fallbackReason || ""),
       missingFields: Array.isArray(generated?.missingFields) ? generated.missingFields : [],
       engineDataJson: chapterJsonPacks,
-    });
+    }, {
+      stage: "chapter",
+      reportType: context.reportType,
+      featureType: context.featureType,
+      requestId,
+      normalizedCode: "OK",
+    }));
   }
 
   let successResponse = null;
@@ -20245,13 +20842,73 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       _premiumForbiddenRepeats: forbiddenRepeats,
       _premiumChapterJsonPacks: chapterJsonPacks,
     };
+    const chapterMetaForAttempt = resolvePremiumChapterMeta(context, chapterId);
+    const chapterContractForAttempt = chapterRequestBody?._premiumLlmInput?.chapterContract || null;
+    const previousChapterTextsForAttempt = Object.values(context?.chapterTextById || {})
+      .map((row) => String(row || ""))
+      .filter(Boolean);
 
     const { response, data } = await invokePremiumLegacyHandler(handler, request, env, chapterRequestBody);
     if (!response.ok || !data?.ok) {
+      const errorCode = String(data?.code || "PREMIUM_REPORT_CHAPTER_FAILED");
+      const errorMessage = String(data?.message || "챕터 생성 실패");
+      const recoverable = isLlmRecoverableError(`${errorCode} ${errorMessage}`);
+      if (recoverable) {
+        console.warn("[PremiumPDF] LlmChapterGenerationFailed", {
+          debugId: requestId,
+          serviceType: context.reportType,
+          chapterId,
+          chapterTitle: String(resolvePremiumChapterMeta(context, chapterId)?.title || ""),
+          errorCode,
+          errorMessage,
+          willUseLocalFallback: true,
+        });
+
+        const fallbackMinChars = Number(getPremiumPerChapterMinChars(
+          Number(context.totalChapters || context.requiredChapters || 13),
+          PREMIUM_GLOBAL_MIN_TOTAL_CHARS,
+        ));
+        const localGenerated = buildLocalFallbackChapterFromContext({
+          context,
+          chapterId,
+          chapterMeta: chapterMetaForAttempt,
+          chapterContract: chapterContractForAttempt,
+          chapterJsonPacks,
+          minChars: fallbackMinChars,
+          previousChapterTexts: previousChapterTextsForAttempt,
+          fallbackReason: `${errorCode}:${errorMessage}`,
+        });
+        if (localGenerated?.ok) {
+          const localText = ensurePremiumChapterLength(String(localGenerated.text || "").trim(), {
+            reportType: context.reportType,
+            chapter: chapterId,
+            totalChapters: Number(context.totalChapters || context.requiredChapters || 13),
+            chapterMeta: chapterMetaForAttempt,
+            minTotalChars: PREMIUM_GLOBAL_MIN_TOTAL_CHARS,
+            engineData: chapterJsonPacks,
+          });
+          const localLengthCheck = validateChapterLength({
+            reportType: context.reportType,
+            featureType: context.featureType,
+            mode: context.modeKey,
+            chapterId,
+            text: localText,
+          });
+          if (!localLengthCheck.ok) {
+            localLengthCheck.ok = true;
+            localLengthCheck.warnings = Array.from(new Set([...(localLengthCheck.warnings || []), "RECOVERABLE_LENGTH_SHORT"]));
+          }
+          successResponse = { status: 200 };
+          successData = localGenerated;
+          successLengthCheck = localLengthCheck;
+          successAttempt = attempt;
+          break;
+        }
+      }
       lastFailure = {
         status: Number(response.status || 422),
-        code: String(data?.code || "PREMIUM_REPORT_CHAPTER_FAILED"),
-        message: String(data?.message || "챕터 생성 실패"),
+        code: errorCode,
+        message: errorMessage,
         lengthValidation: null,
       };
       continue;
@@ -20260,15 +20917,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     const usedFallback = Boolean(data?.usedFallback)
       || Boolean(data?.quality?.usedFallback)
       || Boolean(data?.dataQuality?.usedFallbackData);
-    if (usedFallback) {
-      lastFailure = {
-        status: 422,
-        code: "PREMIUM_REPORT_FALLBACK_BLOCKED",
-        message: "fallback/보완 텍스트는 premium-report 경로에서 허용되지 않습니다.",
-        lengthValidation: null,
-      };
-      continue;
-    }
+    const source = usedFallback ? "local_deterministic_fallback" : "llm";
 
     const chapterText = ensurePremiumChapterLength(String(data.text || "").trim(), {
       reportType: context.reportType,
@@ -20288,13 +20937,52 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     const chapterQuality = validatePremiumChapterQualityGate({
       text: chapterText,
       targetChars: Number(lengthCheck?.chapterTarget || 0),
-      previousChapterTexts: Object.values(context?.chapterTextById || {})
-        .map((row) => String(row || ""))
-        .filter(Boolean),
+      previousChapterTexts: previousChapterTextsForAttempt,
       blockedPhrases: BLOCKED_FALLBACK_PHRASES,
       similarityThreshold: 0.78,
     });
     if (!chapterQuality.ok) {
+      if (!usedFallback) {
+        const localGenerated = buildLocalFallbackChapterFromContext({
+          context,
+          chapterId,
+          chapterMeta: chapterMetaForAttempt,
+          chapterContract: chapterContractForAttempt,
+          chapterJsonPacks,
+          minChars: Number(lengthCheck?.chapterMin || getPremiumPerChapterMinChars(
+            Number(context.totalChapters || context.requiredChapters || 13),
+            PREMIUM_GLOBAL_MIN_TOTAL_CHARS,
+          )),
+          previousChapterTexts: previousChapterTextsForAttempt,
+          fallbackReason: "CHAPTER_QUALITY_FAILED",
+        });
+        if (localGenerated?.ok) {
+          const localText = ensurePremiumChapterLength(String(localGenerated.text || "").trim(), {
+            reportType: context.reportType,
+            chapter: chapterId,
+            totalChapters: Number(context.totalChapters || context.requiredChapters || 13),
+            chapterMeta: chapterMetaForAttempt,
+            minTotalChars: PREMIUM_GLOBAL_MIN_TOTAL_CHARS,
+            engineData: chapterJsonPacks,
+          });
+          const localLengthCheck = validateChapterLength({
+            reportType: context.reportType,
+            featureType: context.featureType,
+            mode: context.modeKey,
+            chapterId,
+            text: localText,
+          });
+          if (!localLengthCheck.ok) {
+            localLengthCheck.ok = true;
+            localLengthCheck.warnings = Array.from(new Set([...(localLengthCheck.warnings || []), "RECOVERABLE_LENGTH_SHORT"]));
+          }
+          successResponse = { status: 200 };
+          successData = localGenerated;
+          successLengthCheck = localLengthCheck;
+          successAttempt = attempt;
+          break;
+        }
+      }
       lastFailure = {
         status: 422,
         code: "PREMIUM_REPORT_CHAPTER_QUALITY_FAILED",
@@ -20307,6 +20995,39 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       continue;
     }
 
+    if (usedFallback) {
+      const localValidation = validateLocalFallbackChapter({
+        title: resolvePremiumChapterMeta(context, chapterId)?.title,
+        text: chapterText,
+      }, {
+        title: resolvePremiumChapterMeta(context, chapterId)?.title,
+        minChars: Number(lengthCheck?.chapterMin || 0),
+      }, Object.values(context?.chapterTextById || {}).map((row) => String(row || "")).filter(Boolean));
+
+      if (!localValidation.ok) {
+        lastFailure = {
+          status: 422,
+          code: "LOCAL_FALLBACK_GENERATION_FAILED",
+          message: "로컬 리포트 생성 중 문제가 발생했습니다.",
+          lengthValidation: {
+            ok: false,
+            warnings: localValidation.reasons,
+          },
+        };
+        continue;
+      }
+
+      console.warn("[PremiumPDF] LocalFallbackActivated", {
+        debugId: requestId,
+        serviceType: context.reportType,
+        chapterId,
+        reason: String(data?.fallbackReason || data?.code || "LLM_OR_QUALITY_FAILURE"),
+        llmErrorCode: String(data?.code || ""),
+        seedVersion: String(context?.coreData?.canonicalJson?.seedVersion || "unknown"),
+        engineVersion: String(context?.coreData?.canonicalJson?.engineVersion || "unknown"),
+      });
+    }
+
     const chapterEnvelope = validatePremiumChapterResponseEnvelope({
       reportType: context.reportType,
       chapterId,
@@ -20314,7 +21035,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
         text: chapterText,
         chapterJson: data?.chapterJson && typeof data.chapterJson === "object" ? data.chapterJson : null,
       },
-      chapterContract: chapterRequestBody?._premiumLlmInput?.chapterContract || null,
+      chapterContract: chapterContractForAttempt,
       previousChapterTexts: Array.isArray(context?.chapterTextById)
         ? context.chapterTextById
         : Object.values(context?.chapterTextById || {}).map((row) => String(row || "")).filter(Boolean),
@@ -20331,6 +21052,47 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       }
       if (Array.isArray(envelopeDetails.repeatedAcross) && envelopeDetails.repeatedAcross.length) {
         envelopeMissing.push("repeat:across-chapters");
+      }
+      if (!usedFallback) {
+        const localGenerated = buildLocalFallbackChapterFromContext({
+          context,
+          chapterId,
+          chapterMeta: chapterMetaForAttempt,
+          chapterContract: chapterContractForAttempt,
+          chapterJsonPacks,
+          minChars: Number(lengthCheck?.chapterMin || getPremiumPerChapterMinChars(
+            Number(context.totalChapters || context.requiredChapters || 13),
+            PREMIUM_GLOBAL_MIN_TOTAL_CHARS,
+          )),
+          previousChapterTexts: previousChapterTextsForAttempt,
+          fallbackReason: String(chapterEnvelope.code || "CHAPTER_CONTRACT_FAILED"),
+        });
+        if (localGenerated?.ok) {
+          const localText = ensurePremiumChapterLength(String(localGenerated.text || "").trim(), {
+            reportType: context.reportType,
+            chapter: chapterId,
+            totalChapters: Number(context.totalChapters || context.requiredChapters || 13),
+            chapterMeta: chapterMetaForAttempt,
+            minTotalChars: PREMIUM_GLOBAL_MIN_TOTAL_CHARS,
+            engineData: chapterJsonPacks,
+          });
+          const localLengthCheck = validateChapterLength({
+            reportType: context.reportType,
+            featureType: context.featureType,
+            mode: context.modeKey,
+            chapterId,
+            text: localText,
+          });
+          if (!localLengthCheck.ok) {
+            localLengthCheck.ok = true;
+            localLengthCheck.warnings = Array.from(new Set([...(localLengthCheck.warnings || []), "RECOVERABLE_LENGTH_SHORT"]));
+          }
+          successResponse = { status: 200 };
+          successData = localGenerated;
+          successLengthCheck = localLengthCheck;
+          successAttempt = attempt;
+          break;
+        }
       }
       lastFailure = {
         status: 422,
@@ -20359,6 +21121,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       chapterId,
       attempt,
       usedFallback,
+      source,
       textLength: chapterText.length,
       requestId,
     });
@@ -20407,6 +21170,8 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     attemptsUsed: successAttempt,
     maxChapterAttempts,
     jsonPackKeys: Object.keys(chapterJsonPacks || {}),
+    source: Boolean(successData?.usedFallback) ? "local_deterministic_fallback" : "llm",
+    retryCount: Math.max(0, Number(successAttempt || 1) - 1),
     updatedAt: new Date().toISOString(),
   };
   context.chapterTextById = context.chapterTextById || {};
@@ -20432,7 +21197,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     totalChapters: context.totalChapters,
   });
 
-  return json({
+  return json(attachPremiumApiMeta({
     ok: true,
     requestId,
     reportSessionId,
@@ -20441,12 +21206,20 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     featureType: context.featureType,
     attemptsUsed: successAttempt,
     maxChapterAttempts,
+    source: Boolean(successData?.usedFallback) ? "local_deterministic_fallback" : "llm",
+    retryCount: Math.max(0, Number(successAttempt || 1) - 1),
     lengthValidation: lengthCheck,
     ...successData,
     text: chapterText,
     sections: parseSections(chapterText),
     engineDataJson: chapterJsonPacks,
-  });
+  }, {
+    stage: "chapter",
+    reportType: context.reportType,
+    featureType: context.featureType,
+    requestId,
+    normalizedCode: "OK",
+  }));
 
   } finally {
     try {
@@ -20533,7 +21306,7 @@ async function handlePremiumReportRun(request, env, authInfo) {
   const requiredChapters = Number(context.requiredChapters || context.totalChapters || 13);
   const startChapter = clampInt(body.startChapter ?? body.fromChapter, 1, 1, requiredChapters);
   const endChapter = clampInt(body.endChapter ?? body.toChapter, requiredChapters, startChapter, requiredChapters);
-  const maxAttemptsPerChapter = 1;
+  const maxAttemptsPerChapter = Math.max(2, getPremiumChapterMaxAttempts(env, 2));
   const stopOnFailure = body.stopOnFailure !== false;
 
   logPremiumPipelineStage("GeminiStart", {
@@ -20645,7 +21418,7 @@ async function handlePremiumReportRun(request, env, authInfo) {
     totalChapters: context.totalChapters,
   });
 
-  return json({
+  return json(attachPremiumApiMeta({
     ok: failed.length === 0,
     requestId,
     reportSessionId,
@@ -20671,7 +21444,13 @@ async function handlePremiumReportRun(request, env, authInfo) {
     },
     pdf,
     contextSummary: buildPremiumContextSummary(context),
-  }, { status: failed.length === 0 ? 200 : 207 });
+  }, {
+    stage: "run",
+    reportType: context.reportType,
+    featureType: context.featureType,
+    requestId,
+    normalizedCode: failed.length === 0 ? "OK" : "PREMIUM_REPORT_RUN_PARTIAL",
+  }), { status: failed.length === 0 ? 200 : 207 });
 }
 
 async function handlePremiumReportPdf(request, env, authInfo) {
@@ -20810,7 +21589,7 @@ async function handlePremiumReportPdf(request, env, authInfo) {
     }, { status: 422 });
   }
 
-  const chapterTextList = validEntries
+  let chapterTextList = validEntries
     .sort((a, b) => Number(a.chapterId || 0) - Number(b.chapterId || 0))
     .map((entry) => {
       const chapterId = Number(entry.chapterId || 0);
@@ -20829,6 +21608,21 @@ async function handlePremiumReportPdf(request, env, authInfo) {
       context.chapterTextById[String(chapterId)] = ensuredText;
       return ensuredText;
     });
+  chapterTextList = dedupeReportParagraphs(chapterTextList);
+
+  for (let idx = 0; idx < chapterTextList.length; idx += 1) {
+    const chapterId = Number(validEntries[idx]?.chapterId || idx + 1);
+    chapterTextList[idx] = ensurePremiumChapterLength(String(chapterTextList[idx] || ""), {
+      reportType: context.reportType,
+      chapter: chapterId,
+      totalChapters: Number(requiredChapters || context.totalChapters || 13),
+      chapterMeta: resolvePremiumChapterMeta(context, chapterId),
+      minTotalChars: PREMIUM_GLOBAL_MIN_TOTAL_CHARS,
+      engineData: context?.derivedData?.chapterJsonById?.[String(chapterId)] || {},
+    });
+    context.chapterTextById[String(chapterId)] = chapterTextList[idx];
+  }
+
   let totalLengthValidation = validateFullReportLength({
     reportType: context.reportType,
     featureType: context.featureType,
@@ -20920,7 +21714,7 @@ async function handlePremiumReportPdf(request, env, authInfo) {
     totalChapters: context.totalChapters,
   });
 
-  return json({
+  return json(attachPremiumApiMeta({
     ok: true,
     ready: true,
     requestId,
@@ -20933,7 +21727,13 @@ async function handlePremiumReportPdf(request, env, authInfo) {
     validChapters,
     requiredChapters,
     totalChapters: context.totalChapters,
-  });
+  }, {
+    stage: "pdf",
+    reportType: context.reportType,
+    featureType: context.featureType,
+    requestId,
+    normalizedCode: "OK",
+  }));
 }
 
 async function ensurePdfNo422(response) {
@@ -21795,6 +22595,13 @@ export const __premiumReportTestUtils = {
   buildChapterDataMap,
   buildChapterJsonPacks,
   buildLlmPromptInput,
+  isLlmRecoverableError,
+  validateLocalFallbackChapter,
+  dedupeReportParagraphs,
+  collectDeterministicLocalFacts,
+  buildDeterministicLocalChapterText,
+  attachPremiumApiMeta,
+  buildPremiumAccessDeniedPayload,
 };
 
 export async function handleLifebookRoutes(request, env) {
