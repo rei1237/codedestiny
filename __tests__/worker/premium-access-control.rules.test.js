@@ -115,7 +115,7 @@ describe("Premium access-control rules", () => {
       expect.objectContaining({
         featureKey: "premium-sukuyo-report-compat",
         minCost: 490,
-        windowMinutes: 120,
+        windowMinutes: 240,
       }),
     ]));
   });

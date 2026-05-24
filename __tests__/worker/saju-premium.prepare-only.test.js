@@ -215,4 +215,52 @@ describe("Saju premium prepareOnly routes", () => {
     expect(data.chapterPlan[0].title).toBe("연간 파동 총론 - 올해의 기본 기조");
     expect(data.chapterPlan[9].title).toBe("최종 실행 로드맵 - 연말 회수 전략");
   });
+
+  test("sajuNewYear chapter generation falls back locally with source marker when Gemini is unavailable", async () => {
+    const authToken = await makeAuthToken();
+    const req = new Request("https://example.com/api/saju-new-year/session", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({
+        reportId: "saju-new-year-test-report",
+        sessionId: 1,
+        chapter: 1,
+        targetYear: 2026,
+        name: "테스트A",
+        gender: "F",
+        year: 1992,
+        month: 6,
+        day: 15,
+        hour: 12,
+        minute: 30,
+        sajuData: makeSajuData(),
+      }),
+    });
+
+    const res = await handleSajuNewYearRoutes(req, {});
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.ok).toBe(true);
+    expect(data.reportType).toBe("sajuNewYear");
+    expect(data.featureType).toBe("saju_new_year_pdf");
+    expect(data.chapter).toBe(1);
+    expect(data.source).toBe("local");
+    expect(data.usedFallback).toBe(true);
+    expect(data.engineSource).toBeTruthy();
+    expect(typeof data.text).toBe("string");
+    expect(data.text.length).toBeGreaterThanOrEqual(3200);
+    expect(Array.isArray(data.sections)).toBe(true);
+    expect(data.sections.length).toBeGreaterThan(0);
+    expect(data.storage).toMatchObject({
+      sessionKey: expect.stringContaining("saju-new-year-test-report"),
+      storedChapterCount: expect.any(Number),
+    });
+    expect(data.dataQuality).toMatchObject({
+      engineSource: expect.any(String),
+    });
+  });
 });
