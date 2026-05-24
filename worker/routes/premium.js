@@ -556,8 +556,6 @@ function buildVedicRequiredHeadings(chapterMeta, modeHint = "personal") {
   return safe.map((label, idx) => `### ${idx + 1}. ${label}`);
 }
 const VEDIC_MIN_CHARS = 3900;
-const VEDIC_SERVICE_KEY = "vedic-book";
-const VEDIC_PDF_FEATURE_KEY = "vedic-premium-pdf";
 const VEDIC_REPORT_TITLE_PERSONAL = "Professional Edition: 베다 점성술 프리미엄 리포트";
 const VEDIC_REPORT_SUBTITLE_PERSONAL = "라그나·나크샤트라·다샤로 읽는 삶의 카르믹 전략 지도";
 const VEDIC_REPORT_TITLE_COMPAT = "Professional Edition: 베다 점성술 궁합 리포트";
@@ -3429,6 +3427,7 @@ async function generateGuaranteedPremiumChapter(env, {
     timeoutMs: 90000,
     maxAttemptsPerPair: 3,
     requestId,
+    reportType: context?.reportType || "",
   });
 
   let text = sanitizePremiumChapterText(generated || "");
@@ -9831,7 +9830,60 @@ function sanitizePremiumGeneratedText(text) {
   return dedupePremiumParagraphs(dedupedSentences);
 }
 
+const PREMIUM_PDF_API_PAUSE_DEFAULT = true;
+const PREMIUM_PDF_API_PAUSED_REPORT_TYPES = new Set([
+  "sajuNewYear",
+  "lifeBook",
+  "loveSecret",
+  "ziweiPremium",
+  "sookyoPremium",
+  "westernAstrologyPremium",
+  "vedicPremium",
+]);
+
+const PREMIUM_PDF_MODEL_KEY_TO_REPORT_TYPE = Object.freeze({
+  PREMIUM_SAJU_NEW_YEAR_GEMINI_MODEL: "sajuNewYear",
+  LIFEBOOK_GEMINI_MODEL: "lifeBook",
+  LOVE_SECRET_GEMINI_MODEL: "loveSecret",
+  PREMIUM_ZIWEI_GEMINI_MODEL: "ziweiPremium",
+  PREMIUM_SUKUYO_GEMINI_MODEL: "sookyoPremium",
+  PREMIUM_ASTRO_GEMINI_MODEL: "westernAstrologyPremium",
+  PREMIUM_VEDIC_GEMINI_MODEL: "vedicPremium",
+});
+
+function isPremiumPdfApiPaused(env) {
+  const raw = String(env?.PREMIUM_PDF_API_PAUSE || "").trim();
+  if (!raw) return PREMIUM_PDF_API_PAUSE_DEFAULT;
+  return asBool(raw);
+}
+
+function resolvePausedPremiumReportType(modelEnvKeys = [], options = {}) {
+  const explicitReportType = String(options?.reportType || "").trim();
+  if (explicitReportType && PREMIUM_PDF_API_PAUSED_REPORT_TYPES.has(explicitReportType)) {
+    return explicitReportType;
+  }
+
+  const keys = Array.isArray(modelEnvKeys) ? modelEnvKeys : [];
+  for (const key of keys) {
+    const mapped = PREMIUM_PDF_MODEL_KEY_TO_REPORT_TYPE[String(key || "").trim()];
+    if (mapped && PREMIUM_PDF_API_PAUSED_REPORT_TYPES.has(mapped)) return mapped;
+  }
+  return "";
+}
+
 async function callGemini(env, prompt, modelEnvKeys = [], options = {}) {
+  if (isPremiumPdfApiPaused(env)) {
+    const pausedType = resolvePausedPremiumReportType(modelEnvKeys, options);
+    if (pausedType) {
+      console.info("[PremiumPDF][ApiPaused]", {
+        reportType: pausedType,
+        modelEnvKeys: Array.isArray(modelEnvKeys) ? modelEnvKeys : [],
+        requestId: String(options?.requestId || "").trim() || null,
+      });
+      return "";
+    }
+  }
+
   const result = await generateWithGemini(env, prompt, {
     modelEnvKeys,
     temperature: options.temperature,
@@ -11553,14 +11605,6 @@ function hasForbiddenVedicPadding(text) {
   return VEDIC_FORBIDDEN_COMMON_SECTIONS.some((token) => source.includes(token));
 }
 
-function logVedicBookStage(stage, payload = {}) {
-  try {
-    console.info(`[VedicBook] ${String(stage || "UNKNOWN")}`, payload || {});
-  } catch {
-    // no-op
-  }
-}
-
 function countVedicStepSections(text) {
   const source = String(text || "");
   const matches = source.match(/^###\s*\d+\./gim);
@@ -11788,35 +11832,9 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
     maxAttemptsPerPair: Number(env.PREMIUM_VEDIC_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 3),
   };
 
-  const safeCallGemini = async (nextPrompt) => {
-    try {
-      return await callGemini(env, nextPrompt, ["PREMIUM_VEDIC_GEMINI_MODEL"], options);
-    } catch (error) {
-      logVedicBookStage("GEMINI_ENHANCEMENT_FAILED_USE_LOCAL", {
-        chapter,
-        reportType,
-        code: String(error?.code || error?.name || "GEMINI_FAILED"),
-        message: String(error?.message || error || "GEMINI_FAILED"),
-      });
-      return "";
-    }
-  };
-
-  logVedicBookStage("GEMINI_ENHANCEMENT_START", {
-    chapter,
-    reportType,
-    featureKey: VEDIC_PDF_FEATURE_KEY,
-    serviceKey: VEDIC_SERVICE_KEY,
-  });
-  let text = await safeCallGemini(prompt);
+  let text = await callGemini(env, prompt, ["PREMIUM_VEDIC_GEMINI_MODEL"], options);
   if (!text || text.trim().length < 1200) {
     const localText = buildVedicLocalFallbackChapter(chapter, meta, canonicalVedicChart, reportType);
-    logVedicBookStage("LOCAL_REPORT_GENERATION_SUCCESS", {
-      chapter,
-      reportType,
-      source: "local-engine",
-      reason: "EMPTY_OR_FAILED_GEMINI_RESPONSE",
-    });
     return {
       ok: true,
       text: localText,
@@ -11850,7 +11868,7 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
       text,
     ].join("\n");
 
-    const refined = await safeCallGemini(refinePrompt);
+    const refined = await callGemini(env, refinePrompt, ["PREMIUM_VEDIC_GEMINI_MODEL"], options);
     if (!refined || !refined.trim()) break;
     const candidate = refined.trim();
     if (candidate.length >= Math.floor(text.length * 0.8)) {
@@ -11875,12 +11893,6 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
 
   if (failedChecks.length > 0) {
     const localText = buildVedicLocalFallbackChapter(chapter, meta, canonicalVedicChart, reportType);
-    logVedicBookStage("LOCAL_REPORT_GENERATION_SUCCESS", {
-      chapter,
-      reportType,
-      source: "local-engine",
-      reason: "GEMINI_QUALITY_FAILED",
-    });
     return {
       ok: true,
       text: localText,
@@ -16245,11 +16257,6 @@ async function handleAstroLife(request, env, authInfo = null) {
 
 async function handleVedicLife(request, env, authInfo = null) {
   const body = await readJson(request);
-  logVedicBookStage("REQUEST_START", {
-    serviceKey: VEDIC_SERVICE_KEY,
-    featureKey: VEDIC_PDF_FEATURE_KEY,
-    hasAuth: Boolean(authInfo?.userId),
-  });
   Object.assign(body, normalizePremiumRequestBodyForPipeline("vedicPremium", body));
   const strictPayloadMode = true;
   const strictBody = {
@@ -16264,12 +16271,6 @@ async function handleVedicLife(request, env, authInfo = null) {
   const partnerIntent = strictBody.partnerName || strictBody.partnerYear || strictBody.partnerMonth || strictBody.partnerDay;
   const requestedReportType = normalizeVedicModeAlias(strictBody.mode || strictBody.reportType || (partnerIntent ? "compatibility" : "personal"));
   let reportType = requestedReportType;
-  logVedicBookStage("MODE_DETECTED", {
-    reportType,
-    mode: reportType,
-  });
-
-  logVedicBookStage("INPUT_NORMALIZE_START", { reportType });
 
   const userBirthPlaceRaw = String(strictBody.birthPlace || strictBody.place || strictBody.location || "").trim();
   const hasUserBirthPlace = hasMeaningfulValue(userBirthPlaceRaw);
@@ -16287,12 +16288,10 @@ async function handleVedicLife(request, env, authInfo = null) {
     hasStrictPayload: strictPayloadMode,
   });
 
-  const hasUserBirthDate = Number.isFinite(Number(input?.year))
-    && Number.isFinite(Number(input?.month))
-    && Number.isFinite(Number(input?.day));
-  if (!hasUserBirthDate) {
+  if (!hasUserBirthTime || (!hasUserBirthPlace && !hasUserBirthGeo)) {
     const requiredFields = [
-      "birthDate|year+month+day",
+      ...(!hasUserBirthTime ? ["birthTime"] : []),
+      ...(!hasUserBirthPlace && !hasUserBirthGeo ? ["birthPlace|lat+lon"] : []),
     ];
     logPremiumPipelineStage("VedicInputRejected", {
       reportType,
@@ -16305,17 +16304,10 @@ async function handleVedicLife(request, env, authInfo = null) {
       ok: false,
       code: "VEDIC_INPUT_REQUIRED",
       status: "input_required",
-      message: "베다 리포트 생성에 필요한 기본 출생일 정보가 부족합니다.",
+      message: "라그나 계산을 위해 출생시간과 출생지 또는 좌표(lat/lon)가 필요합니다.",
       requiredFields,
     });
   }
-
-  logVedicBookStage("INPUT_NORMALIZE_SUCCESS", {
-    reportType,
-    hasUserBirthTime,
-    hasUserBirthPlace,
-    hasUserBirthGeo,
-  });
 
   input.birthPlace = userBirthPlaceRaw
     || (hasUserBirthGeo
@@ -16327,17 +16319,7 @@ async function handleVedicLife(request, env, authInfo = null) {
 
   let chart;
   try {
-    logVedicBookStage("LOCAL_CALCULATION_START", {
-      reportType,
-      engine: "swiss-or-local",
-    });
     chart = await getSwissVedicChart(request, env, input);
-    logVedicBookStage("LOCAL_CALCULATION_SUCCESS", {
-      reportType,
-      source: String(chart?.source || "unknown"),
-      hasLagna: Boolean(chart?.lagna?.signName),
-      hasMoonNakshatra: Boolean(chart?.moonNakshatra?.name),
-    });
   } catch (chartError) {
     logPremiumPipelineStage("VedicChartEngineFailed", {
       reportType,
@@ -16349,7 +16331,7 @@ async function handleVedicLife(request, env, authInfo = null) {
       code: "VEDIC_CHART_ENGINE_FAILED",
       status: "chart_engine_error",
       recoverable: true,
-      message: "차트 계산에 실패했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
+      message: "차트 계산 엔진에 일시적인 오류가 발생했습니다. 잠시 후 다시 시도하거나, 기본 데이터로 계속 진행됩니다.",
       requiredFields: [],
     }, { status: 422 });
   }
@@ -16392,6 +16374,21 @@ async function handleVedicLife(request, env, authInfo = null) {
       partnerInput.isLeapMonth = strictBody.partnerIsLeapMonth ?? false;
       partnerInput.ayanamsa = String(strictBody.ayanamsa || "lahiri");
 
+      if (!hasPartnerBirthAnchor) {
+        logPremiumPipelineStage("VedicPartnerInputRejected", {
+          reportType,
+          hasPartnerBirthGeo,
+          hasPartnerBirthPlace: hasMeaningfulValue(partnerBirthPlaceRaw),
+        });
+        return json({
+          ok: false,
+          code: "VEDIC_PARTNER_INPUT_REQUIRED",
+          status: "partner_input_required",
+          message: "궁합 모드에는 상대방 출생지 또는 좌표(lat/lon)가 필요합니다.",
+          requiredFields: ["partnerBirthPlace|partnerLat+partnerLon"],
+        });
+      }
+
       partnerChart = await getSwissVedicChart(request, env, partnerInput).catch((partnerChartError) => {
         logPremiumPipelineStage("VedicPartnerChartEngineFailed", {
           reportType,
@@ -16400,13 +16397,6 @@ async function handleVedicLife(request, env, authInfo = null) {
         });
         return null;
       });
-      if (!partnerChart) {
-        try {
-          partnerChart = getLocalBasicVedicChart(partnerInput);
-        } catch {
-          partnerChart = null;
-        }
-      }
       if (partnerChart) {
         ashtaKoota = computeAshtaKoota(chart, partnerChart);
         if (ashtaKoota) {
@@ -16426,6 +16416,14 @@ async function handleVedicLife(request, env, authInfo = null) {
       hasPartnerChart: Boolean(partnerChart),
       hasAshtaKoota: Boolean(ashtaKoota),
     });
+    return json({
+      ok: false,
+      code: "VEDIC_PDF_SEED_MISSING",
+      status: "input_required",
+      stage: "PdfSeed",
+      message: "베다 PDF seed를 만들기에 필요한 입력이 부족합니다.",
+      missingFields: seedMissingFields,
+    }, { status: 422 });
   }
 
   const totalChapters = getVedicTotalChapters(reportType);
@@ -16538,23 +16536,11 @@ async function handleVedicLife(request, env, authInfo = null) {
       message: String(error?.message || error || "VEDIC_CHAPTER_GENERATE_THROWN"),
       stack: String(error?.stack || ""),
     });
-    const localText = buildVedicLocalFallbackChapter(chapter, meta, canonicalVedicChart, reportType);
-    generated = {
-      ok: true,
-      text: localText,
-      sections: parseSections(localText),
-      actualChars: localText.length,
-      usedFallback: true,
-      quality: { missingMarkers: [], repeatedSentenceCount: 0 },
-      warnings: ["VEDIC_CHAPTER_GENERATION_THROWN", "LOCAL_FALLBACK_USED"],
-      source: "local-engine",
-    };
-    logVedicBookStage("GEMINI_ENHANCEMENT_FAILED_USE_LOCAL", {
-      reportType,
-      chapter,
-      code: String(error?.code || error?.name || "VEDIC_CHAPTER_GENERATION_THROWN"),
+    return json({
+      ok: false,
+      code: "VEDIC_CHAPTER_GENERATION_THROWN",
       message: String(error?.message || "베다 챕터 생성 중 예외가 발생했습니다."),
-    });
+    }, { status: 422 });
   }
 
   if (!generated?.ok) {
@@ -18613,23 +18599,6 @@ function ensureLoveSecretSourceData(body = {}) {
     };
   }
 
-  const normalized = normalizeBody(body);
-  const hasBirthInput = Number.isFinite(Number(normalized?.year))
-    && Number.isFinite(Number(normalized?.month))
-    && Number.isFinite(Number(normalized?.day));
-  if (hasBirthInput) {
-    return {
-      ok: true,
-      sourceData: buildProfileOnlySajuSourceData(body, normalized, "연애 비책"),
-      sourceType: "profile-only",
-      usedFallbackData: true,
-      warning: "SAJU_ENGINE_SOURCE_MISSING_PROFILE_ONLY",
-      code: "",
-      missingFields: ["sajuData", "canonicalSajuChart", "engineData"],
-      message: "",
-    };
-  }
-
   return {
     ok: false,
     sourceData: "",
@@ -18704,49 +18673,6 @@ function evaluateLoveSecretQuality(text, chapter, canonical, previousTexts = [],
     repeatedInsideCount: repeatedInside.length,
     repeatedAcrossCount: repeatedAcross.length,
   };
-}
-
-function repairLoveSecretChapterTextLocal(text, modeConfig, chapterMeta, chapter, canonical, minChars, previousTexts = []) {
-  let repaired = String(text || "").trim();
-  const missingMarkers = detectLoveMissingMarkers(repaired, chapter, canonical);
-  missingMarkers.forEach((marker) => {
-    const label = String(marker || "").trim();
-    if (!label) return;
-    repaired += `\n\n### ${label}\n${label} 항목에서는 감정 반응보다 기준 합의와 행동 루틴을 우선하고, 실행 결과를 짧은 기록으로 남겨 다음 의사결정 오차를 줄이세요.`;
-  });
-
-  const evidenceTokens = collectLoveEvidenceTokens(canonical, chapter)
-    .slice(0, 12)
-    .map((row) => String(row || "").trim())
-    .filter(Boolean);
-  if (evidenceTokens.length > 0) {
-    repaired += "\n\n### 데이터 근거 요약\n";
-    repaired += evidenceTokens.map((token) => `- ${token}`).join("\n");
-  }
-
-  if (canonical?.mode === "compatibility" && !hasLoveCompatCompressedFlow(repaired)) {
-    repaired += "\n\n### 궁합 압축 흐름\nA와 B의 속도 차이, 감정 표현 방식, 갈등 복구 리듬을 한 화면에서 비교하고 합·충·형·파·해 지점을 같은 타이밍 기준으로 정렬해 운영하세요.";
-  }
-
-  let step = 1;
-  while (countKoreanLikeChars(repaired) < Math.max(minChars, 3200) && step <= 8) {
-    const prev = Array.isArray(previousTexts) && previousTexts.length
-      ? String(previousTexts[(step - 1) % previousTexts.length] || "").replace(/\s+/g, " ").slice(0, 120)
-      : "이전 챕터 요약";
-    repaired += `\n\n### 실행 보강 ${step}\n이번 보강 구간에서는 ${prev}와 중복되지 않게 관계 운영 기준을 재정의하고, 대화-합의-후속행동 순서로 실행 체크리스트를 고정하세요.`;
-    step += 1;
-  }
-
-  if (!/핵심\s*요약\s*5줄/.test(repaired)) {
-    repaired += "\n\n### 핵심 요약 5줄\n- 이번 챕터의 핵심은 감정보다 운영 기준을 먼저 고정하는 것입니다.\n- 갈등을 줄이려면 기대치와 경계선을 문장으로 합의해야 합니다.\n- 타이밍은 속도보다 일관성이 중요합니다.\n- 실행 결과 기록은 다음 판단의 오차를 줄여 줍니다.\n- 다음 챕터 전까지 한 가지 행동 루틴을 반드시 유지하세요.";
-  }
-
-  const fallbackText = buildLoveSecretLocalFallbackText(modeConfig, chapterMeta, chapter, canonical, minChars, previousTexts, null);
-  if (countKoreanLikeChars(repaired) < Math.max(minChars, 3200)) {
-    repaired += "\n\n" + fallbackText.slice(0, 2400);
-  }
-
-  return repaired.trim();
 }
 
 function stringifyCompact(value, maxLength = 4200) {
@@ -18844,32 +18770,6 @@ function buildStructuredSajuSourceData(body = {}, input = {}) {
   };
 }
 
-function buildProfileOnlySajuSourceData(body = {}, input = {}, serviceLabel = "사주 프리미엄 리포트") {
-  const source = body && typeof body === "object" ? body : {};
-  const birthYear = String(source?.year || source?.birthYear || input?.year || "미상");
-  const birthMonth = String(source?.month || source?.birthMonth || input?.month || "미상");
-  const birthDay = String(source?.day || source?.birthDay || input?.day || "미상");
-  const birthHour = String(source?.hour || source?.birthHour || input?.hour || "미상");
-  const birthMinute = String(source?.minute || source?.birthMinute || input?.minute || "00").padStart(2, "0");
-  const gender = String(source?.gender || input?.gender || "unknown").trim() || "unknown";
-  const calType = String(source?.calendarType || source?.calType || input?.calendarType || "solar").trim() || "solar";
-  const timezone = String(source?.timezone || source?.timezoneName || input?.timezone || input?.timezoneName || "Asia/Seoul").trim() || "Asia/Seoul";
-  const targetYear = Number(source?.targetYear || 0);
-
-  const lines = [
-    `${serviceLabel} 프로필 기반 생성 데이터`,
-    `- 생년월일: ${birthYear}-${birthMonth}-${birthDay}`,
-    `- 출생시각: ${birthHour}:${birthMinute}`,
-    `- 성별: ${gender}`,
-    `- 달력 구분: ${calType}`,
-    `- 시간대: ${timezone}`,
-    targetYear > 0 ? `- 대상 연도: ${targetYear}` : "",
-    "- 원국/십성/오행/조후/용신 후보/대운/세운/월운은 내부 엔진 규칙으로 보강 해석",
-  ].filter(Boolean);
-
-  return lines.join("\n");
-}
-
 function ensureLifebookSourceData(body = {}, input = {}) {
   const raw = stringifyCompact(body.sajuData || body.profile || body.birth || "", 2600);
   if (raw && /사주\s*원국|오행|일간|대운|세운|월운|십성|fourPillars|dayMaster|tenGod/i.test(raw)) {
@@ -18895,22 +18795,6 @@ function ensureLifebookSourceData(body = {}, input = {}) {
       warning: structured.warning || "",
       code: "",
       missingFields: [],
-      message: "",
-    };
-  }
-
-  const hasBirthInput = Number.isFinite(Number(input?.year))
-    && Number.isFinite(Number(input?.month))
-    && Number.isFinite(Number(input?.day));
-  if (hasBirthInput) {
-    return {
-      ok: true,
-      sourceData: buildProfileOnlySajuSourceData(body, input, "인생의 책"),
-      sourceType: "profile-only",
-      usedFallbackData: true,
-      warning: "SAJU_ENGINE_SOURCE_MISSING_PROFILE_ONLY",
-      code: "",
-      missingFields: ["sajuData", "canonicalSajuChart", "engineData"],
       message: "",
     };
   }
@@ -19064,7 +18948,7 @@ function ensureSajuNewYearSourceData(body = {}, input = {}) {
   if (hasBirthInput && hasTargetYear) {
     return {
       ok: true,
-      sourceData: buildProfileOnlySajuSourceData(body, input, "사주 신년운세"),
+      sourceData: "",
       sourceType: "profile-only",
       usedFallbackData: true,
       warning: "SAJU_ENGINE_SOURCE_MISSING_PROFILE_ONLY",
@@ -19911,18 +19795,19 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
   if (!generatedChapter?.ok) {
     const localText = buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars);
     const localQuality = evaluateSajuNewYearChapterQuality(localText, chapter, minChars, previousChapterTexts);
-    const repairedText = localQuality.ok
-      ? localText
-      : `${localText}\n\n### 실행 보강\n이번 장은 내부 엔진 기준으로 핵심 월 운세와 실행 체크포인트를 재정렬했습니다. 월별 Go/Stop 판단을 일정표에 즉시 반영하세요.`;
-    const repairedQuality = evaluateSajuNewYearChapterQuality(repairedText, chapter, minChars, previousChapterTexts);
+    if (!localQuality.ok) {
+      return json({
+        ok: false,
+        code: generatedChapter?.code || "SAJU_NEW_YEAR_CHAPTER_GENERATION_FAILED",
+        message: generatedChapter?.message || "신년운세 챕터 생성에 실패했습니다.",
+        details: Array.isArray(generatedChapter?.details) ? generatedChapter.details : [],
+      }, { status: Number(generatedChapter?.status || 422) });
+    }
     generatedChapter = {
       ok: true,
-      text: repairedText,
+      text: localText,
       usedFallback: true,
-      quality: {
-        ...(repairedQuality || localQuality || {}),
-        repairedFromQualityFail: !localQuality.ok,
-      },
+      quality: localQuality,
       internalFallbackUsed: true,
     };
   }
@@ -19962,7 +19847,7 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
     reportId,
     reportType: "sajuNewYear",
     featureType: "saju_new_year_pdf",
-    source: generatedChapter?.usedFallback ? "local-engine" : "gemini-enhanced",
+    source: generatedChapter?.usedFallback ? "local" : "api",
     totalChapters: SAJU_NEW_YEAR_TOTAL_CHAPTERS,
     minTotalChars: PREMIUM_GLOBAL_MIN_TOTAL_CHARS,
     sessionId: chapter,
@@ -20111,9 +19996,7 @@ async function handleLifebookSession(request, env, authInfo = null) {
 
     return json({
       ok: true,
-      source: /mixed/i.test(String(allGenerated?.source || ""))
-        ? "mixed"
-        : (/local/i.test(String(allGenerated?.source || "")) ? "local-engine" : "gemini-enhanced"),
+      source: String(allGenerated?.source || "api"),
       mode: "life-book",
       reportId,
       jobId: reportId,
@@ -20214,9 +20097,7 @@ async function handleLifebookSession(request, env, authInfo = null) {
 
   return json({
     ok: true,
-    source: /mixed/i.test(String(generated?.source || ""))
-      ? "mixed"
-      : (/local/i.test(String(generated?.source || "")) || usedFallback ? "local-engine" : "gemini-enhanced"),
+    source: String(generated?.source || (usedFallback ? "local" : "api")),
     mode: "life-book",
     reportId,
     totalChapters: LIFE_BOOK_TOTAL_CHAPTERS,
@@ -20325,7 +20206,6 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
   let prompt = buildLoveSecretPrompt(modeConfig, chapterMeta, chapter, canonical, minChars, previousTexts, premiumLlmInput);
   let text = "";
   let quality = null;
-  let usedFallback = false;
   const generationPasses = Math.max(3, Math.min(5, Number(env.LOVE_SECRET_GEMINI_GENERATION_PASSES || 4)));
   for (let attempt = 0; attempt < generationPasses; attempt += 1) {
     const passOptions = {
@@ -20357,18 +20237,27 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
       premiumLlmInput,
     );
     const localQuality = evaluateLoveSecretQuality(localFallbackText, chapter, canonical, previousTexts, minChars);
-    const repairedText = localQuality.ok
-      ? localFallbackText
-      : repairLoveSecretChapterTextLocal(localFallbackText, modeConfig, chapterMeta, chapter, canonical, minChars, previousTexts);
-    const repairedQuality = evaluateLoveSecretQuality(repairedText, chapter, canonical, previousTexts, minChars);
-    text = repairedText;
+    if (!localQuality.ok) {
+      return json({
+        ok: false,
+        code: "LOVE_SECRET_CHAPTER_QUALITY_FAILED",
+        message: "연애 비책 챕터 품질 검증에 실패했습니다.",
+        quality: {
+          ok: false,
+          failedChecks: localQuality?.failedChecks || quality?.failedChecks || ["QUALITY_GATE_UNKNOWN"],
+          missingMarkers: localQuality?.missingMarkers || quality?.missingMarkers || [],
+          evidenceCount: localQuality?.evidenceCount || quality?.evidenceCount || 0,
+          repeatedInsideCount: localQuality?.repeatedInsideCount || quality?.repeatedInsideCount || 0,
+          repeatedAcrossCount: localQuality?.repeatedAcrossCount || quality?.repeatedAcrossCount || 0,
+        },
+      }, { status: 422 });
+    }
+    text = localFallbackText;
     quality = {
-      ...(repairedQuality || localQuality || {}),
+      ...localQuality,
       internalFallbackUsed: true,
-      repairedFromQualityFail: !localQuality.ok,
     };
     internalFallbackUsed = true;
-    usedFallback = true;
   }
 
   const storage = writeReportSessionChapter(
@@ -20387,7 +20276,7 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
       ownerUserId,
       mode,
       reportType: modeConfig.reportType,
-      usedFallback,
+      usedFallback: false,
       internalFallbackUsed,
       usedFallbackData: dataState.usedFallbackData,
       engineSource: dataState.sourceType || "unknown",
@@ -20418,8 +20307,7 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
     text,
     chapterSummaryForContext: buildChapterSummaryForContext(text),
     sections: parseSections(text),
-    source: usedFallback ? "local-engine" : "gemini-enhanced",
-    usedFallback,
+    usedFallback: false,
     engineSource: dataState.sourceType || "unknown",
     quality,
     canonicalSajuLoveReport: canonical,

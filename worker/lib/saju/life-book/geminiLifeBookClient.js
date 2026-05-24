@@ -5,7 +5,29 @@ function toNumber(value, fallback) {
   return Number.isFinite(n) ? n : fallback;
 }
 
+function asBool(value) {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value !== 0;
+  if (typeof value === "string") {
+    const s = value.trim().toLowerCase();
+    return s === "true" || s === "1" || s === "yes" || s === "y";
+  }
+  return false;
+}
+
+function isLifeBookApiPaused(env) {
+  const raw = String(env?.PREMIUM_PDF_API_PAUSE || "").trim();
+  if (!raw) return true;
+  return asBool(raw);
+}
+
 export async function geminiLifeBookClient(env, prompt, options = {}) {
+  if (isLifeBookApiPaused(env)) {
+    const error = new Error("LifeBook API calls are temporarily paused");
+    error.code = "LIFEBOOK_API_PAUSED";
+    throw error;
+  }
+
   const result = await generateWithGemini(env, prompt, {
     modelEnvKeys: ["LIFEBOOK_GEMINI_MODEL"],
     temperature: toNumber(options.temperature, 0.72),
