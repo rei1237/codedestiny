@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var TOTAL_CHAPTERS = 13;
+  var TOTAL_CHAPTERS = 12;
   var API_TIMEOUT_MS = 360000;
   var POLL_INTERVAL_MS = 1800;
   var LOADING_QUOTES = [

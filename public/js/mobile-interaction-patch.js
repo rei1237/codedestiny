@@ -654,6 +654,29 @@
     return runInvoke();
   }
 
+  function detectMobileBuildVersion() {
+    try {
+      var scripts = document.querySelectorAll('script[src]');
+      for (var i = 0; i < scripts.length; i += 1) {
+        var src = String(scripts[i].getAttribute('src') || '');
+        if (!src) continue;
+        if (src.indexOf('index-inline-runtime.js?v=') !== -1 || src.indexOf('mobile-interaction-patch.js?v=') !== -1) {
+          var m = src.match(/[?&]v=([^&]+)/);
+          if (m && m[1]) return m[1];
+        }
+      }
+    } catch (_) {}
+    return '';
+  }
+
+  var __CD_MOBILE_BUILD_VERSION = detectMobileBuildVersion();
+  function withMobileBuild(path) {
+    var p = String(path || '').trim();
+    if (!p) return p;
+    if (!__CD_MOBILE_BUILD_VERSION) return p;
+    return p + (p.indexOf('?') === -1 ? '?v=' : '&v=') + __CD_MOBILE_BUILD_VERSION;
+  }
+
   var LAZY_LOAD_ACTIONS = {
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
@@ -672,12 +695,13 @@
     openKemetModal: ['js/oracle-kcg.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
-    openLoveSecretModal: ['js/love-secret-v2.js?v=20260503-portraitfix1'],
-    openLifeBookModal: ['js/life-book.js?v=build-1779373697155'],
-    gotoZiweiPremium: ['js/ziwei-book.js?v=20260519-ziweipdfchapters1'],
-    gotoAstrologyPremium: ['js/astro-book.js?v=20260509-premiumapifix1'],
-    gotoSukuyoPremium: ['js/sukuyo-book.js?v=20260518-syukyo12-engine1'],
-    gotoVedicPremium: ['js/vedic-book.js?v=20260509-premiumapifix1'],
+    openLoveSecretModal: [withMobileBuild('js/love-secret-v2.js')],
+    openSajuNewYearModal: [withMobileBuild('js/saju-new-year.js')],
+    openLifeBookModal: [withMobileBuild('js/life-book.js')],
+    gotoZiweiPremium: [withMobileBuild('js/ziwei-book.js')],
+    gotoAstrologyPremium: [withMobileBuild('js/astro-book.js')],
+    gotoSukuyoPremium: [withMobileBuild('js/sukuyo-book.js')],
+    gotoVedicPremium: [withMobileBuild('js/vedic-book.js')],
     gotoNamingPremium: [],
     openSibylModal: ['js/sibyl-system.js?v=20260512-quantum-v4']
   };

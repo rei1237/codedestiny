@@ -13,36 +13,46 @@
   ];
 
   var PERSONAL_CHAPTER_PREVIEW = [
-    '기본 차트 요약',
-    '자아와 정체성',
-    '감정과 무의식',
-    '사고/소통 스타일',
-    '사랑/관계 스타일',
-    '행동/에너지 패턴',
-    '확장/행운 포인트',
-    '책임/성취 구조',
-    '변화/성장 트리거',
-    '영혼 과제/노드 축',
-    '커리어/사회적 포지션',
-    '연간 흐름/실행 로드맵',
-    '코즈믹 마스터플랜'
+    { title: '기본 차트 요약', subtitle: 'ASC·태양·달을 중심으로 기본 구조를 정리합니다.' },
+    { title: '자아와 정체성', subtitle: '외적 페르소나와 내적 의지 축을 교차 해석합니다.' },
+    { title: '감정과 무의식', subtitle: '감정 반응 패턴과 회복 트리거를 분석합니다.' },
+    { title: '사고/소통 스타일', subtitle: '판단 흐름, 말의 온도, 오해 패턴을 점검합니다.' },
+    { title: '사랑/관계 스타일', subtitle: '끌림 코드와 관계 만족도를 높이는 기준을 제시합니다.' },
+    { title: '행동/에너지 패턴', subtitle: '추진력의 상승·소진 구간을 실행 전략으로 연결합니다.' },
+    { title: '확장/행운 포인트', subtitle: '성장 기회가 열리는 영역과 타이밍을 도출합니다.' },
+    { title: '책임/성취 구조', subtitle: '지연과 압박을 성과로 전환하는 구조를 제시합니다.' },
+    { title: '변화/성장 트리거', subtitle: '전환 압력에서 기회를 만드는 선택 기준을 제공합니다.' },
+    { title: '영혼 과제/노드 축', subtitle: '익숙한 패턴을 성장 축으로 이동시키는 로드맵입니다.' },
+    { title: '커리어/사회적 포지션', subtitle: '직업·평판·성과를 연결한 현실 운영 전략입니다.' },
+    { title: '연간 흐름/실행 로드맵', subtitle: '시기운 변화와 월별 실행 우선순위를 정리합니다.' },
+    { title: '코즈믹 마스터플랜', subtitle: '90일 전환 계획과 최종 의사결정 원칙을 완성합니다.' }
   ];
 
   var COMPAT_CHAPTER_PREVIEW = [
-    '두 사람의 관계 총론',
-    '태양/달 페어링',
-    '금성/화성 케미',
-    '수성/소통 호환',
-    '갈등 트리거/힐링',
-    '장기 안정성',
-    '친밀도/성적 리듬',
-    '결혼/동거 현실성',
-    '재정/커리어 합',
-    '자녀/가정 운영',
-    '위기 시나리오',
-    '관계 운영 마스터 플랜',
-    '장기 관계 통합 선언'
+    { title: '두 사람의 관계 총론', subtitle: '왜 끌렸고 왜 흔들리는지 관계의 기본축을 해석합니다.' },
+    { title: '태양/달 페어링', subtitle: '자아와 감정의 호흡을 맞추는 핵심 포인트를 제시합니다.' },
+    { title: '금성/화성 케미', subtitle: '끌림·애정 표현·욕망의 온도차를 정밀 분석합니다.' },
+    { title: '수성/소통 호환', subtitle: '대화 습관과 오해 발생 패턴, 복구 루틴을 정리합니다.' },
+    { title: '갈등 트리거/힐링', subtitle: '충돌 방아쇠와 회복 동선을 상황별로 제시합니다.' },
+    { title: '장기 안정성', subtitle: '관계의 지속 가능성과 신뢰 구조를 진단합니다.' },
+    { title: '친밀도/성적 리듬', subtitle: '친밀감 형성 속도와 정서적 합의 지점을 설명합니다.' },
+    { title: '결혼/동거 현실성', subtitle: '생활 리듬·역할 분담·합의 난이도를 분석합니다.' },
+    { title: '재정/커리어 합', subtitle: '돈·일에서 시너지를 만드는 구조를 설계합니다.' },
+    { title: '자녀/가정 운영', subtitle: '가정 운영의 합의 지점과 장기 운영 규칙을 제안합니다.' },
+    { title: '위기 시나리오', subtitle: '관계 위기 발생 시 대응 우선순위를 제시합니다.' },
+    { title: '관계 운영 마스터 플랜', subtitle: '관계를 성장 자산으로 바꾸는 실행 계획입니다.' },
+    { title: '장기 관계 통합 선언', subtitle: '최종 의사결정 원칙과 장기 선언문을 완성합니다.' }
   ];
+
+  function getPreviewTitle(entry) {
+    if (entry && typeof entry === 'object') return String(entry.title || '').trim();
+    return String(entry || '').trim();
+  }
+
+  function getPreviewSubtitle(entry) {
+    if (entry && typeof entry === 'object') return String(entry.subtitle || '').trim();
+    return '';
+  }
 
   var ASTRO_COIN_BASE_COST = 390;
   var ASTRO_COIN_COMPAT_EXTRA_COST = 100;
@@ -896,7 +906,7 @@
     for (var i = 0; i < dots.length; i += 1) {
       var chapter = Number(dots[i].getAttribute('data-abch') || 0);
       if (chapter >= 1 && chapter <= labels.length) {
-        dots[i].setAttribute('title', 'Ch.' + chapter + ' ' + labels[chapter - 1]);
+        dots[i].setAttribute('title', 'Ch.' + chapter + ' ' + getPreviewTitle(labels[chapter - 1]));
       }
     }
   }
@@ -1409,9 +1419,11 @@
     var list = document.querySelector('#abStartScreen .lb-start__ch-list');
     if (!list) return;
     var labels = mode === 'compatibility' ? COMPAT_CHAPTER_PREVIEW : PERSONAL_CHAPTER_PREVIEW;
-    list.innerHTML = labels.map(function (title, idx) {
+    list.innerHTML = labels.map(function (entry, idx) {
       var chapter = idx + 1;
-      return '<li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.' + chapter + '</span><span>' + escapeHtml(title) + '</span></li>';
+      var title = escapeHtml(getPreviewTitle(entry));
+      var subtitle = escapeHtml(getPreviewSubtitle(entry));
+      return '<li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.' + chapter + '</span><span>' + title + (subtitle ? '<br><small style="opacity:.82;">' + subtitle + '</small>' : '') + '</span></li>';
     }).join('');
     updateDotTitles(mode);
   }

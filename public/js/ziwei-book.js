@@ -12,21 +12,25 @@
     '챕터별 품질 규칙을 검사하고 재시도하고 있습니다...'
   ];
 
-  var PERSONAL_CHAPTERS = [
-    '명궁 핵심 설계도',
-    '신궁 잠재 동력',
-    '12궁 별 배치 지도',
-    '주성 핵심 해석',
-    '관록궁 커리어 로드맵',
-    '재백궁 재정 전략',
-    '부처궁 관계 패턴',
-    '교우궁 네트워크',
-    '전택궁 공간·자산',
-    '질액궁 컨디션',
-    '대운 10년 파노라마',
-    '유년 타이밍 전략',
-    '별의 편지'
+  var PERSONAL_CHAPTER_META = [
+    { title: '명궁 핵심 설계도', subtitle: '기본 성향과 인생 운영의 중심축' },
+    { title: '신궁 잠재 동력', subtitle: '내면 욕구와 숨은 성장 동력' },
+    { title: '복덕궁 행복·회복력', subtitle: '정서 회복 포인트와 에너지 루틴' },
+    { title: '천이궁 대외 이미지', subtitle: '사회적 인상과 브랜딩 전략' },
+    { title: '관록궁 커리어 로드맵', subtitle: '성과가 나는 역할과 전환 타이밍' },
+    { title: '재백궁 재정 전략', subtitle: '수익 구조와 리스크 완화 설계' },
+    { title: '부처궁 관계 패턴', subtitle: '인연·사랑·갈등 운영의 핵심 코드' },
+    { title: '교우궁 네트워크', subtitle: '귀인/소모 관계를 구분한 협업 전략' },
+    { title: '전택궁 공간·자산', subtitle: '주거/자산 기반의 장기 안정성 설계' },
+    { title: '질액궁 컨디션', subtitle: '체력 리듬과 건강 관리 포인트' },
+    { title: '대운 10년 파노라마', subtitle: '장기 확장기와 조정기의 우선순위' },
+    { title: '유년 타이밍 전략', subtitle: '가까운 시기의 월별 실행 전술' },
+    { title: '별의 편지', subtitle: '30·60·90일 최종 실행 마스터플랜' }
   ];
+
+  var PERSONAL_CHAPTERS = PERSONAL_CHAPTER_META.map(function (chapter) {
+    return String((chapter && chapter.title) || '').trim();
+  });
 
   var ZIWEI_LOCAL_SECTION_SCHEMA = [
     '핵심 요약',
@@ -1137,10 +1141,21 @@
     if (!root) return;
     var list = root.querySelector('.lb-start__ch-list');
     if (!list) return;
-    var titles = getChapterTitles();
-    list.innerHTML = titles.map(function (title, idx) {
-      return '<li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.' + (idx + 1) + '</span><span>' + escapeHtml(title) + '</span></li>';
-    }).join('');
+
+    var existingItems = list.querySelectorAll('.lb-start__ch-item');
+    var hasDetailedMarkup = list.querySelector('small') !== null;
+    var chapterMeta = PERSONAL_CHAPTER_META;
+
+    if (!(existingItems.length === TOTAL_CHAPTERS && hasDetailedMarkup)) {
+      list.innerHTML = chapterMeta.map(function (meta, idx) {
+        var title = escapeHtml(String(meta && meta.title || ''));
+        var subtitle = escapeHtml(String(meta && meta.subtitle || ''));
+        return '<li class="lb-start__ch-item">'
+          + '<span class="lb-start__ch-num">Ch.' + (idx + 1) + '</span>'
+          + '<span>' + title + (subtitle ? '<br><small style="opacity:.82;">' + subtitle + '</small>' : '') + '</span>'
+          + '</li>';
+      }).join('');
+    }
 
     var dotTitles = getChapterTitles();
     for (var i = 0; i < TOTAL_CHAPTERS; i += 1) {
