@@ -8531,8 +8531,15 @@ function logAstroPdfStage(stage, payload = {}, level = "info") {
   });
 }
 
-function validateAstroProfileInputFields(body = {}) {
+function validateAstroProfileInputFields(body = {}, options = {}) {
   const missingFields = [];
+  const opts = options && typeof options === "object" ? options : {};
+  const requireName = opts.requireName === true;
+  const requireBirthDate = opts.requireBirthDate !== false;
+  const requireBirthTime = opts.requireBirthTime === true;
+  const requireBirthPlace = opts.requireBirthPlace === true;
+  const requireTimezone = opts.requireTimezone === true;
+  const requireGeo = opts.requireGeo === true;
   const hasLatitude = hasMeaningfulValue(body?.lat) && Number.isFinite(Number(body?.lat));
   const hasLongitude = hasMeaningfulValue(body?.lon ?? body?.lng) && Number.isFinite(Number(body?.lon ?? body?.lng));
   const hasBirthDate = Number.isFinite(Number(body?.year)) && Number.isFinite(Number(body?.month)) && Number.isFinite(Number(body?.day));
@@ -8543,13 +8550,13 @@ function validateAstroProfileInputFields(body = {}) {
   const hasGeo = hasLatitude && hasLongitude;
   const hasTimezone = hasMeaningfulValue(body?.timezone) || hasMeaningfulValue(body?.timezoneName);
 
-  if (!hasMeaningfulValue(body?.userName || body?.name)) missingFields.push("userName");
-  if (!hasBirthDate) missingFields.push("birthDate");
-  if (!hasBirthTime) missingFields.push("birthTime");
-  if (!hasBirthPlace) missingFields.push("birthPlace");
-  if (!hasTimezone) missingFields.push("timezone");
-  if (!hasLatitude) missingFields.push("latitude");
-  if (!hasLongitude) missingFields.push("longitude");
+  if (requireName && !hasMeaningfulValue(body?.userName || body?.name)) missingFields.push("userName");
+  if (requireBirthDate && !hasBirthDate) missingFields.push("birthDate");
+  if (requireBirthTime && !hasBirthTime) missingFields.push("birthTime");
+  if (requireBirthPlace && !hasBirthPlace) missingFields.push("birthPlace");
+  if (requireTimezone && !hasTimezone) missingFields.push("timezone");
+  if (requireGeo && !hasLatitude) missingFields.push("latitude");
+  if (requireGeo && !hasLongitude) missingFields.push("longitude");
 
   return {
     ok: missingFields.length === 0,
@@ -15771,7 +15778,9 @@ async function handleAstroWestern(request, env) {
   const body = await readJson(request);
   Object.assign(body, normalizePremiumRequestBodyForPipeline("westernAstrologyPremium", body));
   const debugId = `astro_${Date.now().toString(36)}`;
-  const inputValidation = validateAstroProfileInputFields(body);
+  const inputValidation = validateAstroProfileInputFields(body, {
+    requireBirthDate: true,
+  });
   logAstroPdfStage("ProfileInputReceived", {
     debugId,
     profileId: String(body?.profileId || body?.selectedProfileId || ""),
@@ -15784,8 +15793,8 @@ async function handleAstroWestern(request, env) {
   if (!inputValidation.ok) {
     return json({
       ok: false,
-      code: "ASTRO_CHART_SEED_FAILED",
-      message: "점성술 차트 계산에 필요한 데이터 생성에 실패했습니다.",
+      code: "ASTRO_INPUT_INVALID",
+      message: "점성술 차트 계산을 위해 생년월일이 필요합니다.",
       missingFields: inputValidation.missingFields,
       debugId,
     }, { status: 422 });
@@ -15796,16 +15805,16 @@ async function handleAstroWestern(request, env) {
   logAstroPdfStage("NormalizedBirthInput", {
     debugId,
     profileId: String(body?.profileId || body?.selectedProfileId || ""),
-    hasBirthDate: true,
-    hasBirthTime: true,
-    hasBirthPlace: true,
-    hasGeo: true,
+    hasBirthDate: inputValidation.hasBirthDate,
+    hasBirthTime: inputValidation.hasBirthTime,
+    hasBirthPlace: inputValidation.hasBirthPlace,
+    hasGeo: inputValidation.hasGeo,
   });
   input.houseSystem = String(body.houseSystem || "placidus").toLowerCase();
   input.zodiacType = String(body.zodiacType || "tropical").toLowerCase();
   input.includeMinorAspects = body.includeMinorAspects !== false;
 
-  const strictSwissMode = Boolean(strictValidationMode);
+  const strictSwissMode = Boolean(strictValidationMode && hasAstroBirthTimeInput(body, input));
 
   try {
     logAstroPdfStage("AstroSeedStart", { debugId, profileId: String(body?.profileId || body?.selectedProfileId || "") });
@@ -15891,7 +15900,9 @@ async function handleAstroLife(request, env, authInfo = null) {
   const body = await readJson(request);
   Object.assign(body, normalizePremiumRequestBodyForPipeline("westernAstrologyPremium", body));
   const debugId = `astro_life_${Date.now().toString(36)}`;
-  const inputValidation = validateAstroProfileInputFields(body);
+  const inputValidation = validateAstroProfileInputFields(body, {
+    requireBirthDate: true,
+  });
   logAstroPdfStage("ProfileInputReceived", {
     debugId,
     profileId: String(body?.profileId || body?.selectedProfileId || ""),
@@ -15904,8 +15915,8 @@ async function handleAstroLife(request, env, authInfo = null) {
   if (!inputValidation.ok) {
     return json({
       ok: false,
-      code: "ASTRO_CHART_SEED_FAILED",
-      message: "점성술 차트 계산에 필요한 데이터 생성에 실패했습니다.",
+      code: "ASTRO_INPUT_INVALID",
+      message: "점성술 차트 계산을 위해 생년월일이 필요합니다.",
       missingFields: inputValidation.missingFields,
       debugId,
     }, { status: 422 });
@@ -15916,10 +15927,10 @@ async function handleAstroLife(request, env, authInfo = null) {
   logAstroPdfStage("NormalizedBirthInput", {
     debugId,
     profileId: String(body?.profileId || body?.selectedProfileId || ""),
-    hasBirthDate: true,
-    hasBirthTime: true,
-    hasBirthPlace: true,
-    hasGeo: true,
+    hasBirthDate: inputValidation.hasBirthDate,
+    hasBirthTime: inputValidation.hasBirthTime,
+    hasBirthPlace: inputValidation.hasBirthPlace,
+    hasGeo: inputValidation.hasGeo,
   });
   const partnerIntent = body.partnerName || body.partnerYear || body.partnerMonth || body.partnerDay;
   const requestedReportType = String(body.reportType || (partnerIntent ? "compatibility" : "personal")).toLowerCase();
@@ -15947,7 +15958,7 @@ async function handleAstroLife(request, env, authInfo = null) {
 
   const reportId = astroReportIdFromInput(body, input, reportType);
 
-  const strictSwissMode = true;
+  const strictSwissMode = hasAstroBirthTimeInput(body, input);
 
   logAstroPdfStage("AstroSeedStart", { debugId, profileId: String(body?.profileId || body?.selectedProfileId || "") });
   const ensuredSeed = await ensureAstroPdfSeed({

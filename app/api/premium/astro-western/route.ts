@@ -94,26 +94,29 @@ export async function POST(req: NextRequest) {
     const lat = Number(body.lat);
     const lon = Number(body.lon);
     if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) missingFields.push("birthDate");
-    if (!Number.isFinite(hour) || !Number.isFinite(minute)) missingFields.push("birthTime");
-    if (!Number.isFinite(lat)) missingFields.push("latitude");
-    if (!Number.isFinite(lon)) missingFields.push("longitude");
     if (missingFields.length) {
       return NextResponse.json({
         ok: false,
-        code: "ASTRO_CHART_SEED_FAILED",
-        message: "점성술 차트 계산에 필요한 데이터 생성에 실패했습니다.",
+        code: "ASTRO_INPUT_INVALID",
+        message: "점성술 차트 계산을 위해 생년월일이 필요합니다.",
         missingFields,
       }, { status: 422 });
     }
+
+    const resolvedHour = Number.isFinite(hour) ? hour : 12;
+    const resolvedMinute = Number.isFinite(minute) ? minute : 0;
+    const resolvedLat = Number.isFinite(lat) ? lat : 37.5665;
+    const resolvedLon = Number.isFinite(lon) ? lon : 126.978;
+    const resolvedTimezone = Number(body.timezone ?? 9);
     const payload = {
       year,
       month,
       day,
-      hour,
-      minute,
-      timezone: Number(body.timezone ?? 9),
-      lat,
-      lon,
+      hour: resolvedHour,
+      minute: resolvedMinute,
+      timezone: Number.isFinite(resolvedTimezone) ? resolvedTimezone : 9,
+      lat: resolvedLat,
+      lon: resolvedLon,
     };
 
     const swiss = await fetchSwissWesternChart(req, payload);

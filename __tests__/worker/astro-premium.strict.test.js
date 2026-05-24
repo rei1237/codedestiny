@@ -287,7 +287,7 @@ describe("Astro Premium Strict Tests (A~J)", () => {
     expect(normalizedNonAstro.status).toBe(200);
   });
 
-  test("O. 프로필 필수값 누락 시 missingFields가 정확히 반환되어야 한다", () => {
+  test("O. 생년월일만 있으면 프로필 검증은 통과해야 한다", () => {
     const result = validateAstroProfileInputFields({
       name: "테스터",
       year: 1990,
@@ -299,14 +299,18 @@ describe("Astro Premium Strict Tests (A~J)", () => {
       lon: null,
       timeUnknown: true,
     });
+    expect(result.ok).toBe(true);
+    expect(result.missingFields).toHaveLength(0);
+  });
+
+  test("O-2. 생년월일이 없으면 입력 오류 필드가 반환되어야 한다", () => {
+    const result = validateAstroProfileInputFields({
+      name: "테스터",
+      birthPlace: "서울",
+      timezone: "Asia/Seoul",
+    });
     expect(result.ok).toBe(false);
-    expect(result.missingFields).toEqual(expect.arrayContaining([
-      "birthTime",
-      "birthPlace",
-      "timezone",
-      "latitude",
-      "longitude",
-    ]));
+    expect(result.missingFields).toEqual(expect.arrayContaining(["birthDate"]));
   });
 
   test("P. astro pdf payload 검증은 12챕터 입력과 핵심 천체를 요구해야 한다", () => {
