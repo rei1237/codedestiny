@@ -558,6 +558,33 @@ function buildVedicRequiredHeadings(chapterMeta, modeHint = "personal") {
   const safe = Array.isArray(labels) && labels.length >= 4 ? labels : VEDIC_DEFAULT_SECTION_LABELS;
   return safe.map((label, idx) => `### ${idx + 1}. ${label}`);
 }
+
+function normalizeChapterCategoryLabel(value) {
+  const raw = String(value || "").replace(/\r?\n/g, " ").trim();
+  if (!raw) return "";
+  return raw
+    .replace(/^#{1,6}\s*/, "")
+    .replace(/^\d+\)\s*/, "")
+    .replace(/^\d+\.\s*/, "")
+    .replace(/^chapter\s*\d+\s*[:\-]?\s*/i, "")
+    .replace(/^ch\.?\s*\d+\s*[:\-]?\s*/i, "")
+    .trim();
+}
+
+function toChapterSpecificSections(values = []) {
+  if (!Array.isArray(values)) return [];
+  const seen = new Set();
+  const normalized = [];
+  for (const value of values) {
+    const label = normalizeChapterCategoryLabel(value);
+    if (!label) continue;
+    const key = label.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    normalized.push(label);
+  }
+  return normalized;
+}
 const VEDIC_MIN_CHARS = 3900;
 const VEDIC_REPORT_TITLE_PERSONAL = "Professional Edition: 베다 점성술 프리미엄 리포트";
 const VEDIC_REPORT_SUBTITLE_PERSONAL = "라그나·나크샤트라·다샤로 읽는 삶의 카르믹 전략 지도";
@@ -3424,7 +3451,7 @@ function buildGuaranteedPremiumChapterText(meta, requiredHeadings = [], minChars
   }
   let depth = 1;
   while (countKoreanLikeChars(text) < minChars) {
-    text += `\n\n## 실행 점검 노트 ${depth}\n`;
+    text += `\n\n## 실행 점검 항목 ${depth}\n`;
     text += "오늘 실행할 행동을 하나 정하고 결과를 기록해 다음 선택 기준에 반영하세요. 루틴은 작은 단위로 시작해 안정적으로 확장하세요.";
     depth += 1;
   }
@@ -3478,21 +3505,37 @@ async function generateGuaranteedPremiumChapter(env, {
     stringifyCompact(llmInput || {}, 8000),
   ].filter(Boolean).join("\n");
 
-  const generated = await callGemini(env, prompt, ["PREMIUM_GEMINI_MODEL"], {
-    temperature: 0.72,
-    topP: 0.92,
-    maxOutputTokens: 16384,
-    timeoutMs: 90000,
-    maxAttemptsPerPair: 3,
-    requestId,
-    reportType: context?.reportType || "",
-  });
+  let generated = "";
+  try {
+    generated = await callGemini(env, prompt, ["PREMIUM_GEMINI_MODEL"], {
+      temperature: 0.72,
+      topP: 0.92,
+      maxOutputTokens: 16384,
+      timeoutMs: 90000,
+      maxAttemptsPerPair: 3,
+      requestId,
+      reportType: context?.reportType || "",
+    });
+  } catch (error) {
+    console.warn("[PremiumPDF] GuaranteedRecoveryGeminiFailed", {
+      requestId,
+      reportType: context?.reportType || "",
+      chapterId: Number(chapterId || 0),
+      error: String(error?.message || error || "unknown"),
+    });
+  }
 
   let text = sanitizePremiumChapterText(generated || "");
+  let usedFallback = false;
+  let fallbackReason = failureCode
+    ? `GUARANTEED_RECOVERY:${String(failureCode).slice(0, 80)}`
+    : "GUARANTEED_RECOVERY";
   const hasAllHeadings = requiredHeadings.length === 0
     || requiredHeadings.every((h) => text.includes(String(h || "").trim()));
   if (!text || countKoreanLikeChars(text) < minChars || !hasAllHeadings) {
     text = buildGuaranteedPremiumChapterText(meta, requiredHeadings, minChars, rawData);
+    usedFallback = true;
+    fallbackReason = "GUARANTEED_LOCAL_SKELETON";
   }
 
   return {
@@ -3500,8 +3543,8 @@ async function generateGuaranteedPremiumChapter(env, {
     text,
     chapterMeta: meta,
     chapterSpecificSections: requiredHeadings,
-    usedFallback: false,
-    fallbackReason: "",
+    usedFallback,
+    fallbackReason,
     missingFields: [],
   };
 }
@@ -9025,7 +9068,7 @@ function buildAstroChapterPrompt(chapterMeta, canonical, previousTexts = [], pre
   const isCompatibilityChapter = String(chapterMeta?.mode || "").toLowerCase() === "compatibility" || chapterKey.startsWith("K");
   const focusKeywords = ASTRO_CHAPTER_FOCUS_KEYWORDS[chapterMeta?.key] || [];
   const premiumChapterJsonPacks = premiumInput && typeof premiumInput === "object"
-    ? toPlainObject(premiumInput.chapterJsonPacks)
+    ? compactChapterJsonPacksForPrompt(premiumInput.chapterJsonPacks)
     : {};
   const chapterContract = premiumInput && typeof premiumInput === "object"
     ? toPlainObject(premiumInput.chapterContract)
@@ -9093,7 +9136,7 @@ function buildAstroChapterPrompt(chapterMeta, canonical, previousTexts = [], pre
     chapterContractText ? `[chapterContract]\n${chapterContractText}` : "",
     `astrologyBookContext: ${JSON.stringify(bookContext)}`,
     `chartSummary: ${JSON.stringify(summary)}`,
-    `premiumChapterJsonPacks: ${JSON.stringify(premiumChapterJsonPacks)}`,
+    `premiumChapterJsonPacks: ${stringifyCompact(premiumChapterJsonPacks, 2200)}`,
     `focusKeywords: ${JSON.stringify(focusKeywords)}`,
     `forbiddenRepeatedPhrases: ${JSON.stringify(ASTRO_FORBIDDEN_REPEATED_PHRASES)}`,
     `requiredOutputStructure: [${requiredOutputStructure.join(", ")}]`,
@@ -10075,6 +10118,18 @@ const PREMIUM_LLM_RECOVERABLE_ERROR_PATTERNS = Object.freeze([
   /forbidden\s*phrase|blocked\s*phrase/i,
 ]);
 
+const PREMIUM_REPORT_RECOVERABLE_CODES = new Set([
+  "PREMIUM_REPORT_PAYLOAD_MISSING_FIELD",
+  "PDF_REPORT_PAYLOAD_MISSING_FIELD",
+  "PREMIUM_REPORT_PREFLIGHT_FAILED",
+  "SAJU_REPORT_PAYLOAD_INCOMPLETE",
+  "SUKYO_REPORT_PAYLOAD_INCOMPLETE",
+  "VEDIC_REPORT_PAYLOAD_INCOMPLETE",
+  "ASTRO_REPORT_PAYLOAD_INCOMPLETE",
+  "ZIWEI_REPORT_PAYLOAD_INCOMPLETE",
+  "PREMIUM_REPORT_CHAPTER_FAILED",
+]);
+
 function isLlmRecoverableError(errorLike) {
   const source = String(
     errorLike?.code
@@ -10086,6 +10141,14 @@ function isLlmRecoverableError(errorLike) {
   );
   if (!source.trim()) return false;
   return PREMIUM_LLM_RECOVERABLE_ERROR_PATTERNS.some((pattern) => pattern.test(source));
+}
+
+function isRecoverablePremiumChapterFailure(errorCode, errorMessage, statusCode) {
+  const code = String(errorCode || "").trim();
+  if (code && PREMIUM_REPORT_RECOVERABLE_CODES.has(code)) return true;
+  const status = Number(statusCode || 0);
+  if (Number.isFinite(status) && status >= 500) return true;
+  return isLlmRecoverableError(`${code} ${String(errorMessage || "")}`);
 }
 
 function similarityScoreByTokens(leftText, rightText) {
@@ -14334,7 +14397,7 @@ function buildZiweiDataContext(body, input, canonicalZiweiChart, reportType, par
   }
 
   const premiumJsonText = premiumInput && typeof premiumInput === "object"
-    ? JSON.stringify(toPlainObject(premiumInput.chapterJsonPacks || premiumInput), null, 2)
+    ? stringifyCompact(compactChapterJsonPacksForPrompt(premiumInput.chapterJsonPacks || premiumInput), 2200)
     : "";
 
   return {
@@ -15272,7 +15335,7 @@ function buildSukuyoChapterPromptPayload(canonical, chapterMeta, chapter, report
     relationshipMatrix: canonical?.relationshipMatrix || {},
     requiredDataPoints,
     premiumChapterJsonPacks: premiumInput && typeof premiumInput === "object"
-      ? toPlainObject(premiumInput.chapterJsonPacks || premiumInput)
+      ? compactChapterJsonPacksForPrompt(premiumInput.chapterJsonPacks || premiumInput)
       : null,
     forbiddenRepeatedPhrases: SUKUYO_FORBIDDEN_REPEATED_PHRASES_V2.concat(previousBan),
     requiredOutputStructure,
@@ -15477,7 +15540,7 @@ function buildSukuyoNatalPromptPayload(canonicalSukuyoNatal, chapterSpec, chapte
     forbiddenCommonSections: SUKUYO_NATAL_FORBIDDEN_COMMON_SECTIONS,
     forbiddenRepeatedPhrases: collectPreviousSentenceBanList(previousTexts, 12),
     premiumChapterJsonPacks: premiumInput && typeof premiumInput === "object"
-      ? toPlainObject(premiumInput.chapterJsonPacks || premiumInput)
+      ? compactChapterJsonPacksForPrompt(premiumInput.chapterJsonPacks || premiumInput)
       : null,
     minLength: sukuyoNatalMinLength(chapter),
     targetLength: 4500,
@@ -15673,6 +15736,7 @@ async function handleSukuyoLife(request, env, authInfo = null) {
       num: idx + 1,
       title: chapter.title,
       subtitle: chapter.goal,
+      chapterSpecificSections: toChapterSpecificSections(chapter.sections || []),
     }));
     const totalChapters = chapterMetaList.length;
     const chapter = clampInt(strictBody.chapter, 1, 1, totalChapters);
@@ -15790,7 +15854,7 @@ async function handleSukuyoLife(request, env, authInfo = null) {
       totalChapters,
       chapter,
       chapterMeta,
-      chapterSpecificSections: chapterSpec.sections,
+      chapterSpecificSections: toChapterSpecificSections(chapterSpec.sections || chapterMeta.chapterSpecificSections || []),
       canonicalSukuyoNatal,
       validation: natalValidation,
       storage,
@@ -15820,6 +15884,7 @@ async function handleSukuyoLife(request, env, authInfo = null) {
     num: idx + 1,
     title: chapterDef.title,
     subtitle: chapterDef.goal,
+    chapterSpecificSections: toChapterSpecificSections(buildSukuyoCompatRequiredHeadings({ key: chapterDef?.key || chapterDef?.id || `C${idx + 1}` })),
   }));
   const totalChapters = chapterMetaList.length;
   const chapter = clampInt(body.chapter, 1, 1, totalChapters);
@@ -15935,6 +16000,7 @@ async function handleSukuyoLife(request, env, authInfo = null) {
     reportType: "compatibility",
     ownerUserId: String(authInfo?.userId || "").trim(),
     canonicalSukuyoCompatibility,
+    chapterSpecificSections: toChapterSpecificSections(chapterMeta.chapterSpecificSections || []),
   });
 
   await persistPremiumPdfHistoryFromSession(env, "sukuyo", reportId, {
@@ -15948,6 +16014,7 @@ async function handleSukuyoLife(request, env, authInfo = null) {
     totalChapters,
     chapter,
     chapterMeta,
+    chapterSpecificSections: toChapterSpecificSections(chapterMeta.chapterSpecificSections || []),
     canonicalSukuyoCompatibility,
     validation: chartValidation,
     storage,
@@ -16239,13 +16306,19 @@ async function handleAstroLife(request, env, authInfo = null) {
   }
 
   if (prepareOnly) {
+    const normalizedChapterPlan = chapterPlan.map((planRow) => ({
+      ...planRow,
+      chapterSpecificSections: toChapterSpecificSections(
+        buildAstroRequiredHeadings(planRow, reportType === "compatibility" ? "compatibility" : "personal"),
+      ),
+    }));
     return json({
       ok: true,
       prepared: true,
       reportId,
       reportType,
       totalChapters: chapterPlan.length,
-      chapterPlan,
+      chapterPlan: normalizedChapterPlan,
       canonicalAstroChart,
       chart,
       partnerChart,
@@ -16338,6 +16411,9 @@ async function handleAstroLife(request, env, authInfo = null) {
     totalChapters: chapterPlan.length,
     chapterPlan,
     chapterMeta: meta,
+    chapterSpecificSections: toChapterSpecificSections(
+      buildAstroRequiredHeadings(meta, reportType === "compatibility" ? "compatibility" : "personal"),
+    ),
     chart,
     partnerChart,
     synastry,
@@ -16374,7 +16450,10 @@ async function handleAstroLife(request, env, authInfo = null) {
     chapterPlan.length,
     meta,
     safeGeneratedText,
-    { reportType }
+    {
+      reportType,
+      chapterSpecificSections: responsePayload.chapterSpecificSections,
+    }
   );
 
   await persistPremiumPdfHistoryFromSession(env, "astro", reportId, {
@@ -16592,12 +16671,18 @@ async function handleVedicLife(request, env, authInfo = null) {
   }
 
   if (prepareOnly) {
+    const normalizedChapterPlan = chapterPlan.map((planRow) => ({
+      ...planRow,
+      chapterSpecificSections: toChapterSpecificSections(
+        buildVedicRequiredHeadings(planRow, reportType),
+      ),
+    }));
     return json({
       ok: true,
       prepared: true,
       reportType,
       totalChapters,
-      chapterPlan,
+      chapterPlan: normalizedChapterPlan,
       canonicalVedicChart,
       vedicPdfSeed,
       chart,
@@ -16709,7 +16794,10 @@ async function handleVedicLife(request, env, authInfo = null) {
     totalChapters,
     meta,
     safeGeneratedText,
-    { reportType }
+    {
+      reportType,
+      chapterSpecificSections: toChapterSpecificSections(buildVedicRequiredHeadings(meta, reportType)),
+    }
   );
 
   await persistPremiumPdfHistoryFromSession(env, "vedic", reportId, {
@@ -16723,6 +16811,7 @@ async function handleVedicLife(request, env, authInfo = null) {
     chapter,
     totalChapters,
     chapterMeta: meta,
+    chapterSpecificSections: toChapterSpecificSections(buildVedicRequiredHeadings(meta, reportType)),
     chart,
     canonicalVedicChart,
     partnerChart,
@@ -18562,7 +18651,7 @@ function buildLoveSecretChapterPayload(modeConfig, chapterMeta, chapter, canonic
       ? ["노골적 성 묘사", "성적 능력 단정", "무조건 잘 맞음", "무조건 안 맞음", "임신/질병/생식 관련 단정"]
       : [],
     premiumChapterJsonPacks: premiumInput && typeof premiumInput === "object"
-      ? toPlainObject(premiumInput.chapterJsonPacks || premiumInput)
+      ? compactChapterJsonPacksForPrompt(premiumInput.chapterJsonPacks || premiumInput)
       : null,
     loveBookContext,
     chapterContract: premiumInput && typeof premiumInput === "object" && premiumInput.chapterContract && typeof premiumInput.chapterContract === "object"
@@ -18815,6 +18904,41 @@ function stringifyCompact(value, maxLength = 4200) {
   }
 }
 
+function compactPromptValue(value, depth = 0, maxDepth = 3, maxItems = 8) {
+  if (value == null) return null;
+  if (typeof value === "string") return value.slice(0, 260);
+  if (typeof value === "number" || typeof value === "boolean") return value;
+  if (depth >= maxDepth) return "[truncated]";
+
+  if (Array.isArray(value)) {
+    return value
+      .slice(0, maxItems)
+      .map((item) => compactPromptValue(item, depth + 1, maxDepth, maxItems));
+  }
+
+  if (typeof value === "object") {
+    const out = {};
+    for (const [key, val] of Object.entries(value).slice(0, maxItems)) {
+      out[key] = compactPromptValue(val, depth + 1, maxDepth, maxItems);
+    }
+    return out;
+  }
+
+  return String(value).slice(0, 260);
+}
+
+function compactChapterJsonPacksForPrompt(raw) {
+  const input = toPlainObject(raw);
+  if (!input || typeof input !== "object") return null;
+  return {
+    chapterCore: compactPromptValue(input.chapterCore || null, 0, 3, 10),
+    core: compactPromptValue(input.core || null, 0, 3, 10),
+    signals: compactPromptValue(input.signals || null, 0, 3, 10),
+    timing: compactPromptValue(input.timing || null, 0, 3, 10),
+    actions: compactPromptValue(input.actions || null, 0, 3, 10),
+  };
+}
+
 function formatSajuPillarToken(value) {
   if (!value) return "";
   if (typeof value === "string") return String(value).trim();
@@ -18963,7 +19087,7 @@ function buildSessionPrompt(kind, title, chapter, totalChapters, body, sectionHe
   const minSectionChars = clampInt(options.minSectionChars, 180, 120, 2400);
   const chapterLabel = subtitle ? `${title} — ${subtitle}` : title;
   const premiumChapterJsonPacks = options?.premiumChapterJsonPacks && typeof options.premiumChapterJsonPacks === "object"
-    ? options.premiumChapterJsonPacks
+    ? compactChapterJsonPacksForPrompt(options.premiumChapterJsonPacks)
     : null;
 
   return [
@@ -18985,7 +19109,7 @@ function buildSessionPrompt(kind, title, chapter, totalChapters, body, sectionHe
     relationshipGuide,
     premiumChapterJsonPacks ? "" : null,
     premiumChapterJsonPacks ? "[Premium Chapter JSON Packs]" : null,
-    premiumChapterJsonPacks ? JSON.stringify(premiumChapterJsonPacks, null, 2) : null,
+    premiumChapterJsonPacks ? stringifyCompact(premiumChapterJsonPacks, 2200) : null,
     "",
     "Required markdown structure:",
     `## ${chapterLabel} 핵심 진단`,
@@ -19877,13 +20001,17 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
       targetChars: Number(target || 5000),
       minChars: Math.max(3200, Math.floor(Number(target || 5000) * 0.85)),
     }));
+    const chapterPlan = SAJU_NEW_YEAR_CHAPTERS.map((meta, idx) => ({
+      ...meta,
+      chapterSpecificSections: toChapterSpecificSections(getSajuNewYearChapterPromptSpec(idx + 1)?.markers || []),
+    }));
     return json({
       ok: true,
       prepared: true,
       reportType: "sajuNewYear",
       featureType: "saju_new_year_pdf",
       totalChapters: SAJU_NEW_YEAR_TOTAL_CHAPTERS,
-      chapterPlan: SAJU_NEW_YEAR_CHAPTERS,
+      chapterPlan,
       chapterMinChars: {
         default: Math.max(3200, Math.floor(Number(SAJU_NEW_YEAR_CHAPTER_TARGETS[0] || 5000) * 0.85)),
         byChapter: chapterTargets,
@@ -19904,6 +20032,7 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
   }
 
   const chapterMeta = SAJU_NEW_YEAR_CHAPTERS[chapter - 1] || SAJU_NEW_YEAR_CHAPTERS[0];
+  const chapterSpecificSections = toChapterSpecificSections(getSajuNewYearChapterPromptSpec(chapter)?.markers || []);
   const targetChars = Number(SAJU_NEW_YEAR_CHAPTER_TARGETS[chapter - 1] || 5000);
   const minChars = Math.max(3200, Math.floor(targetChars * 0.85));
   const previousChapterTexts = resolvePreviousChapterTexts(
@@ -19960,6 +20089,7 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
       reportType: "sajuNewYear",
       featureType: "saju_new_year_pdf",
       ownerUserId,
+      chapterSpecificSections,
       usedFallbackData: dataState.usedFallbackData,
       engineSource: dataState.sourceType || "unknown",
       validation,
@@ -19988,6 +20118,7 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
       subtitle: chapterMeta.subtitle,
       icon: "new-year",
     },
+    chapterSpecificSections,
     text,
     chapterSummaryForContext: buildChapterSummaryForContext(text),
     sections: parseSections(text),
@@ -20047,6 +20178,10 @@ async function handleLifebookSession(request, env, authInfo = null) {
   if (prepareOnly) {
     const preparedInputData = buildLifeBookInputData(effectiveBody, input);
     const quality = preparedInputData?.dataQuality || { missingCore: [] };
+    const chapterPlan = buildLifeBookChapterPlan().map((plan, idx) => ({
+      ...plan,
+      chapterSpecificSections: toChapterSpecificSections(plan?.sections || getLifeBookChapterByNumber(idx + 1)?.sections || []),
+    }));
 
     return json({
       ok: true,
@@ -20057,7 +20192,7 @@ async function handleLifebookSession(request, env, authInfo = null) {
         default: Number(getLifeBookChapterByNumber(1)?.minLength || 2500),
       },
       minTotalChars: LIFE_BOOK_MIN_TOTAL_CHARS_CONFIG,
-      chapterPlan: buildLifeBookChapterPlan(),
+      chapterPlan,
       dataQuality: {
         missingCore: Array.isArray(quality?.missingCore) ? quality.missingCore : [],
         source: quality?.source || {},
@@ -20092,6 +20227,11 @@ async function handleLifebookSession(request, env, authInfo = null) {
 
     generatedChapters.forEach((chapterResult, idx) => {
       const num = idx + 1;
+      const chapterSpecificSections = toChapterSpecificSections(
+        chapterResult?.chapterJson?.sections?.map((section) => section?.heading)
+          || getLifeBookChapterByNumber(num)?.sections
+          || [],
+      );
       chapterResultsByNumber[String(num)] = chapterResult;
       lastStorage = writeReportSessionChapter(
         "lifebook",
@@ -20107,6 +20247,7 @@ async function handleLifebookSession(request, env, authInfo = null) {
         chapterResult.contentMarkdown,
         {
           ownerUserId,
+          chapterSpecificSections,
           chapterJson: chapterResult.chapterJson || null,
           lifeBookInputData: allGenerated.lifeBookInputData,
           chapterResultsByNumber,
@@ -20133,7 +20274,14 @@ async function handleLifebookSession(request, env, authInfo = null) {
       pdfUrl: `/api/lifebook/download?reportId=${encodeURIComponent(reportId)}`,
       totalChapters: LIFE_BOOK_TOTAL_CHAPTERS,
       minTotalChars: LIFE_BOOK_MIN_TOTAL_CHARS_CONFIG,
-      chapters: generatedChapters,
+      chapters: generatedChapters.map((chapterResult, idx) => ({
+        ...chapterResult,
+        chapterSpecificSections: toChapterSpecificSections(
+          chapterResult?.chapterJson?.sections?.map((section) => section?.heading)
+            || getLifeBookChapterByNumber(idx + 1)?.sections
+            || [],
+        ),
+      })),
       pdfData: allGenerated.pdfData || null,
       warnings: allGenerated.warnings || [],
       storage: lastStorage,
@@ -20191,6 +20339,11 @@ async function handleLifebookSession(request, env, authInfo = null) {
     subtitle: chapterResult.subtitle,
     icon: "book",
   };
+  const chapterSpecificSections = toChapterSpecificSections(
+    chapterResult?.chapterJson?.sections?.map((section) => section?.heading)
+      || getLifeBookChapterByNumber(chapter)?.sections
+      || [],
+  );
 
   const existingEntry = getStoredReportSession("lifebook", reportId);
   const existingChapterResultsByNumber = toPlainObject(existingEntry?.extra?.chapterResultsByNumber);
@@ -20208,6 +20361,7 @@ async function handleLifebookSession(request, env, authInfo = null) {
     chapterResult.contentMarkdown,
     {
       ownerUserId,
+      chapterSpecificSections,
       chapterJson: chapterResult.chapterJson || null,
       lifeBookInputData: generated.lifeBookInputData,
       chapterResultsByNumber: mergedChapterResultsByNumber,
@@ -20236,6 +20390,7 @@ async function handleLifebookSession(request, env, authInfo = null) {
     sessionId: chapter,
     chapter,
     chapterMeta,
+    chapterSpecificSections,
     text: chapterResult.contentMarkdown,
     chapterSummaryForContext: buildChapterSummaryForContext(chapterResult.contentMarkdown),
     sections: parseSections(chapterResult.contentMarkdown),
@@ -20292,17 +20447,26 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
     : [];
 
   if (prepareOnly) {
+    const chapterPlan = (modeConfig.chapters || []).map((meta, idx) => {
+      const chapterNo = idx + 1;
+      const chapterPlanning = canonical?.chapterPlanning?.[`chapter${chapterNo}`] || {};
+      const requiredSections = mode === "couple"
+        ? (LOVE_SECRET_COMPAT_CHAPTER_REQUIREMENTS[chapterNo] || [])
+        : ((LOVE_SECRET_CHAPTER_BLUEPRINTS[chapterNo] || { requiredSections: [] }).requiredSections || []);
+      return {
+        num: chapterNo,
+        title: meta?.title || `Chapter ${chapterNo}`,
+        subtitle: meta?.subtitle || "",
+        chapterSpecificSections: toChapterSpecificSections(chapterPlanning?.dataDrivenSections || requiredSections),
+      };
+    });
     return json({
       ok: true,
       prepared: true,
       mode,
       reportType: modeConfig.reportType,
       totalChapters,
-      chapterPlan: (modeConfig.chapters || []).map((meta, idx) => ({
-        num: idx + 1,
-        title: meta?.title || `Chapter ${idx + 1}`,
-        subtitle: meta?.subtitle || "",
-      })),
+      chapterPlan,
       chapterMinChars: modeConfig.chapterMinChars || {},
       minTotalChars: modeConfig.minTotalChars,
       canonicalSajuLoveReport: canonical,
@@ -20406,6 +20570,7 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
       ownerUserId,
       mode,
       reportType: modeConfig.reportType,
+      chapterSpecificSections: toChapterSpecificSections(canonical?.chapterPlanning?.[`chapter${chapter}`]?.dataDrivenSections || []),
       usedFallback: false,
       internalFallbackUsed,
       usedFallbackData: dataState.usedFallbackData,
@@ -20434,6 +20599,7 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
       subtitle: chapterMeta.subtitle,
       icon: "heart"
     },
+    chapterSpecificSections: toChapterSpecificSections(canonical?.chapterPlanning?.[`chapter${chapter}`]?.dataDrivenSections || []),
     text,
     chapterSummaryForContext: buildChapterSummaryForContext(text),
     sections: parseSections(text),
@@ -20790,13 +20956,17 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
   }
 
   if (prepareOnly) {
+    const chapterPlan = ZIWEI_CHAPTER_META.map((metaRow, idx) => ({
+      ...metaRow,
+      chapterSpecificSections: toChapterSpecificSections((ZIWEI_PDF_CHAPTERS_V2[idx] || {}).sections || []),
+    }));
     return json({
       ok: true,
       prepared: true,
       reportId,
       reportType,
       totalChapters: chapterCount,
-      chapterPlan: ZIWEI_CHAPTER_META,
+      chapterPlan,
       canonicalZiweiChart,
       reportPayload,
       basicZiweiResult,
@@ -20930,6 +21100,7 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
     {
       ownerUserId,
       chapterJson: generated.chapterJson,
+      chapterSpecificSections: toChapterSpecificSections((ZIWEI_PDF_CHAPTERS_V2[chapter - 1] || {}).sections || []),
       reportType,
       requestId,
       generationId,
@@ -20954,6 +21125,7 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
     chapter,
     totalChapters: 13,
     chapterMeta: meta,
+    chapterSpecificSections: toChapterSpecificSections((ZIWEI_PDF_CHAPTERS_V2[chapter - 1] || {}).sections || []),
     chapterJson: generated.chapterJson || null,
     storage,
     dataQuality: {
@@ -21827,17 +21999,21 @@ async function handlePremiumReportChapter(request, env, authInfo) {
 
     if (!context.isCompleteForPdf) {
       const missingFields = Array.isArray(context.missingData) ? context.missingData : [];
-      return json({
-        ok: false,
-        code: getPremiumDataIncompleteCode(context.reportType),
-        normalizedCode: "PDF_REPORT_PAYLOAD_MISSING_FIELD",
-        message: "보고서 생성에 필요한 입력값 정합성 점검이 필요합니다. 생년월일/시간/성별/양력·음력을 확인해 주세요.",
+      context.warnings = Array.from(new Set([
+        ...(Array.isArray(context.warnings) ? context.warnings : []),
+        "PREMIUM_REPORT_FAIL_OPEN_INCOMPLETE_CANONICAL",
+        ...missingFields.map((field) => `MISSING:${field}`),
+      ]));
+      console.warn("[PremiumPDF] FailOpenIncompleteCanonical", {
         requestId,
-        missingFields,
-        missingData: missingFields,
-        warnings: context.warnings,
-        hydration: hydrated?.hydration || null,
-      }, { status: 422 });
+        reportType: context?.reportType,
+        reportSessionId,
+        chapterId,
+        missingCount: missingFields.length,
+      });
+      context.updatedAt = new Date().toISOString();
+      context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
+      PREMIUM_REPORT_CONTEXT_STORE.set(reportSessionId, context);
     }
   }
 
@@ -22213,7 +22389,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     if (!response.ok || !data?.ok) {
       const errorCode = String(data?.code || "PREMIUM_REPORT_CHAPTER_FAILED");
       const errorMessage = String(data?.message || "챕터 생성 실패");
-      const recoverable = isLlmRecoverableError(`${errorCode} ${errorMessage}`);
+      const recoverable = isRecoverablePremiumChapterFailure(errorCode, errorMessage, response.status);
       if (recoverable) {
         console.warn("[PremiumPDF] LlmChapterGenerationFailed", {
           debugId: requestId,
@@ -22490,6 +22666,55 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   }
 
   if (!successResponse || !successData) {
+    try {
+      const guaranteed = await generateGuaranteedPremiumChapter(env, {
+        context,
+        chapterId,
+        chapterJsonPacks,
+        requestId,
+        failureCode: String(lastFailure.code || "PREMIUM_REPORT_CHAPTER_FAILED"),
+        failureMessage: String(lastFailure.message || "챕터 생성 실패"),
+      });
+      if (guaranteed?.ok) {
+        const guaranteedText = ensurePremiumChapterLength(String(guaranteed.text || "").trim(), {
+          reportType: context.reportType,
+          chapter: chapterId,
+          totalChapters: Number(context.totalChapters || context.requiredChapters || 13),
+          chapterMeta: guaranteed?.chapterMeta || resolvePremiumChapterMeta(context, chapterId),
+          minTotalChars: PREMIUM_GLOBAL_MIN_TOTAL_CHARS,
+          engineData: chapterJsonPacks,
+        });
+        const guaranteedLengthCheck = validateChapterLength({
+          reportType: context.reportType,
+          featureType: context.featureType,
+          mode: context.modeKey,
+          chapterId,
+          text: guaranteedText,
+        });
+        if (!guaranteedLengthCheck.ok) {
+          guaranteedLengthCheck.ok = true;
+          guaranteedLengthCheck.warnings = Array.from(new Set([...(guaranteedLengthCheck.warnings || []), "RECOVERABLE_LENGTH_SHORT"]));
+        }
+        successResponse = { status: 200 };
+        successData = {
+          ...guaranteed,
+          text: guaranteedText,
+        };
+        successLengthCheck = guaranteedLengthCheck;
+        successAttempt = maxChapterAttempts + 1;
+      }
+    } catch (guaranteedError) {
+      console.warn("[PremiumPDF] GuaranteedRecoveryFailed", {
+        requestId,
+        reportType: context?.reportType,
+        chapterId,
+        errorCode: String(lastFailure?.code || "PREMIUM_REPORT_CHAPTER_FAILED"),
+        error: String(guaranteedError?.message || guaranteedError || "unknown"),
+      });
+    }
+  }
+
+  if (!successResponse || !successData) {
     return json({
       ok: false,
       requestId,
@@ -22571,8 +22796,8 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     retryCount: Math.max(0, Number(successAttempt || 1) - 1),
     lengthValidation: lengthCheck,
     ...successData,
-    usedFallback: false,
-    fallbackReason: "",
+    usedFallback: Boolean(successData?.usedFallback),
+    fallbackReason: String(successData?.fallbackReason || ""),
     text: chapterText,
     sections: parseSections(chapterText),
     engineDataJson: chapterJsonPacks,
@@ -24087,6 +24312,7 @@ export const __premiumReportTestUtils = {
   getSajuNewYearChapterPromptSpec,
   buildSajuNewYearChapterText,
   evaluateSajuNewYearChapterQuality,
+  generateGuaranteedPremiumChapter,
   attachPremiumApiMeta,
   buildPremiumAccessDeniedPayload,
 };

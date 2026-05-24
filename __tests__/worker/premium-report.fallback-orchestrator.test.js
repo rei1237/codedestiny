@@ -126,4 +126,37 @@ describe("Premium fallback orchestrator guards", () => {
     expect(denied.payload.paymentPolicy).toBe("server-authoritative-access-check");
     expect(denied.payload.refundPolicy).toBe("no-auto-refund-in-report-pipeline");
   });
+
+  test("generateGuaranteedPremiumChapter: LLM 공백 시 로컬 스켈레톤으로 복구하고 fallback 메타를 반환", async () => {
+    const { generateGuaranteedPremiumChapter } = __premiumReportTestUtils;
+
+    const recovered = await generateGuaranteedPremiumChapter({}, {
+      context: {
+        reportType: "lifeBook",
+        featureType: "lifebook-premium",
+        modeKey: "solo",
+        chapterPlan: [{ num: 1, key: "ch1", title: "테스트 챕터", subtitle: "기본 흐름" }],
+        coreData: {
+          canonicalJson: {
+            calculatedData: {
+              dayMaster: "갑목",
+              yongsin: "수",
+              relationType: "상생",
+            },
+          },
+        },
+      },
+      chapterId: 1,
+      chapterJsonPacks: { core: { chapter: "ch1" } },
+      requestId: "req_recovery_test_1",
+      failureCode: "PREMIUM_REPORT_CHAPTER_FAILED",
+      failureMessage: "챕터 생성 실패",
+    });
+
+    expect(recovered?.ok).toBe(true);
+    expect(typeof recovered?.text).toBe("string");
+    expect(recovered.text.length).toBeGreaterThan(1500);
+    expect(recovered.usedFallback).toBe(true);
+    expect(recovered.fallbackReason).toBe("GUARANTEED_LOCAL_SKELETON");
+  });
 });
