@@ -385,10 +385,15 @@
       lon: Number(Number.isFinite(Number(requestBody.lon)) ? requestBody.lon : 126.978)
     };
 
-    var basic = await requestJson('/api/premium/astro-western', {
-      method: 'POST',
-      body: seedInput
-    });
+    var basic = null;
+    for (var _seedAttempt = 0; _seedAttempt < 2; _seedAttempt += 1) {
+      basic = await requestJson('/api/premium/astro-western', {
+        method: 'POST',
+        body: seedInput
+      });
+      if (basic && basic.ok) break;
+      if (_seedAttempt < 1) await delay(700);
+    }
     var data = basic && basic.data && typeof basic.data === 'object' ? basic.data : {};
     var chart = data && typeof data === 'object' ? data : {};
     var hasChart = !!(chart.planets && chart.ascendant && chart.midheaven);
@@ -397,7 +402,8 @@
         status: Number((basic && basic.status) || 0),
         code: String((data && data.code) || ''),
         message: String((data && (data.message || data.error)) || ''),
-        hasChart: hasChart
+        hasChart: hasChart,
+        attempts: 2
       }, 'warn');
       return requestBody;
     }
@@ -1524,7 +1530,14 @@
       setLoadingProgress({ currentChapter: 0, status: 'generating', message: '생성 전 데이터 점검 중...' });
       var preflight = await ensureAstroPremiumPreflight(generationBody);
       if (!preflight.ok) {
-        await attemptAstroAutoRefund('점성술 프리미엄 preflight 실패 자동 환불');
+        var preflightCode = String((preflight && preflight.code) || '').toUpperCase();
+        // ASTRO_CHART_SEED_FAILED: server fallback should have prevented this,
+        // but if still occurs (transient), do NOT refund – chart calc failure is retriable
+        var isSeedFailure = preflightCode.indexOf('ASTRO_CHART_SEED') !== -1 ||
+          preflightCode.indexOf('ASTRO_CANONICAL') !== -1;
+        if (!isSeedFailure) {
+          await attemptAstroAutoRefund('점성술 프리미엄 preflight 실패 자동 환불');
+        }
         state.paidGateKey = '';
         setError(String(preflight.message || '생성 전 데이터 점검에 실패했습니다.'));
         return;

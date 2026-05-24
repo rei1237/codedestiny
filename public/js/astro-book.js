@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var TOTAL_CHAPTERS = 12;
+  var TOTAL_CHAPTERS = 13;
   var API_TIMEOUT_MS = 360000;
   var POLL_INTERVAL_MS = 1800;
   var LOADING_QUOTES = [
@@ -12,32 +12,35 @@
   ];
 
   var PERSONAL_CHAPTER_PREVIEW = [
-    'I. 출생차트 총론',
-    'II. 태양·달·상승궁',
-    'III. 행성 배치 완전 해석',
-    'IV. 12하우스 분석',
-    'V. 주요 각도 분석',
-    'VI. 원소·모드·극성',
-    'VII. 사랑과 관계',
-    'VIII. 직업·재물·사회적 성공',
-    'IX. 가족·상처·무의식',
-    'X. 성장·철학·영성',
-    'XI. 시기운과 변화의 흐름',
-    'XII. 최종 인생 전략',
-    'XIII. 90일 현실 전환 플랜'
+    '기본 차트 요약',
+    '자아와 정체성',
+    '감정과 무의식',
+    '사고/소통 스타일',
+    '사랑/관계 스타일',
+    '행동/에너지 패턴',
+    '확장/행운 포인트',
+    '책임/성취 구조',
+    '변화/성장 트리거',
+    '영혼 과제/노드 축',
+    '커리어/사회적 포지션',
+    '연간 흐름/실행 로드맵',
+    '코즈믹 마스터플랜'
   ];
 
   var COMPAT_CHAPTER_PREVIEW = [
-    'I. 두 사람의 우주적 첫인상',
-    'II. 태양과 달의 궁합',
-    'III. 금성과 화성의 끌림',
-    'IV. 수성과 대화 궁합',
-    'V. 7하우스와 파트너십',
-    'VI. 갈등과 상처 패턴',
-    'VII. 현실 궁합',
-    'VIII. 장기 인연과 성장 가능성',
-    'IX. 올해 두 사람의 관계 흐름',
-    'X. 최종 궁합 봉서'
+    '두 사람의 관계 총론',
+    '태양/달 페어링',
+    '금성/화성 케미',
+    '수성/소통 호환',
+    '갈등 트리거/힐링',
+    '장기 안정성',
+    '친밀도/성적 리듬',
+    '결혼/동거 현실성',
+    '재정/커리어 합',
+    '자녀/가정 운영',
+    '위기 시나리오',
+    '관계 운영 마스터 플랜',
+    '장기 관계 통합 선언'
   ];
 
   var ASTRO_COIN_BASE_COST = 390;
@@ -371,40 +374,26 @@
 
   async function enrichRequestBodyWithAstroSeed(baseBody) {
     var requestBody = (baseBody && typeof baseBody === 'object') ? Object.assign({}, baseBody) : {};
-    var missingFields = [];
-    if (!Number.isFinite(Number(requestBody.year)) || !Number.isFinite(Number(requestBody.month)) || !Number.isFinite(Number(requestBody.day))) {
-      missingFields.push('birthDate');
-    }
-    if (!Number.isFinite(Number(requestBody.hour)) || !Number.isFinite(Number(requestBody.minute))) {
-      missingFields.push('birthTime');
-    }
-    if (!Number.isFinite(Number(requestBody.lat))) missingFields.push('latitude');
-    if (!Number.isFinite(Number(requestBody.lon))) missingFields.push('longitude');
-    if (!String(requestBody.birthPlace || requestBody.location || '').trim()) missingFields.push('birthPlace');
-    if (missingFields.length) {
-      requestBody._astroSeedError = {
-        code: 'ASTRO_CHART_SEED_FAILED',
-        message: '점성술 차트 계산에 필요한 데이터 생성에 실패했습니다.',
-        missingFields: missingFields
-      };
-      return requestBody;
-    }
-
     var seedInput = {
       year: Number(requestBody.year || 0),
       month: Number(requestBody.month || 0),
       day: Number(requestBody.day || 0),
-      hour: Number(requestBody.hour),
-      minute: Number(requestBody.minute),
+      hour: Number(Number.isFinite(Number(requestBody.hour)) ? requestBody.hour : 12),
+      minute: Number(Number.isFinite(Number(requestBody.minute)) ? requestBody.minute : 0),
       timezone: Number(Number.isFinite(Number(requestBody.timezoneOffset)) ? requestBody.timezoneOffset : 9),
-      lat: Number(requestBody.lat),
-      lon: Number(requestBody.lon)
+      lat: Number(Number.isFinite(Number(requestBody.lat)) ? requestBody.lat : 37.5665),
+      lon: Number(Number.isFinite(Number(requestBody.lon)) ? requestBody.lon : 126.978)
     };
 
-    var basic = await requestJson('/api/premium/astro-western', {
-      method: 'POST',
-      body: seedInput
-    });
+    var basic = null;
+    for (var _seedAttempt = 0; _seedAttempt < 2; _seedAttempt += 1) {
+      basic = await requestJson('/api/premium/astro-western', {
+        method: 'POST',
+        body: seedInput
+      });
+      if (basic && basic.ok) break;
+      if (_seedAttempt < 1) await delay(700);
+    }
     var data = basic && basic.data && typeof basic.data === 'object' ? basic.data : {};
     var chart = data && typeof data === 'object' ? data : {};
     var hasChart = !!(chart.planets && chart.ascendant && chart.midheaven);
@@ -413,14 +402,9 @@
         status: Number((basic && basic.status) || 0),
         code: String((data && data.code) || ''),
         message: String((data && (data.message || data.error)) || ''),
-        hasChart: hasChart
+        hasChart: hasChart,
+        attempts: 2
       }, 'warn');
-      requestBody._astroSeedError = {
-        code: String((data && data.code) || 'ASTRO_CHART_SEED_FAILED'),
-        message: String((data && (data.message || data.error)) || '점성술 차트 계산에 필요한 데이터 생성에 실패했습니다.'),
-        missingFields: normalizeMissingFields(data),
-        debugId: String((data && data.debugId) || '')
-      };
       return requestBody;
     }
 
@@ -580,14 +564,14 @@
         year: year,
         month: month,
         day: day,
-        hour: Number.isFinite(hour) ? hour : null,
-        minute: Number.isFinite(minute) ? minute : null,
+        hour: Number.isFinite(hour) ? hour : 12,
+        minute: Number.isFinite(minute) ? minute : 0,
         calType: calType
       },
       location: {
         tz: tz,
-        lat: Number.isFinite(lat) ? lat : null,
-        lng: Number.isFinite(lng) ? lng : null,
+        lat: Number.isFinite(lat) ? lat : 37.5665,
+        lng: Number.isFinite(lng) ? lng : 126.9780,
         birthPlace: birthPlace || undefined
       },
       birthPlace: birthPlace || undefined
@@ -634,14 +618,14 @@
           year: Number(dm[1]),
           month: Number(dm[2]),
           day: Number(dm[3]),
-          hour: tm ? Number(tm[1]) : null,
-          minute: tm ? Number(tm[2]) : null,
+          hour: tm ? Number(tm[1]) : 12,
+          minute: tm ? Number(tm[2]) : 0,
           calType: normalizeCalType(user.calendarType || user.calType || 'solar')
         },
         location: {
           tz: String(user.timezone || user.tz || 'Asia/Seoul').trim() || 'Asia/Seoul',
-          lat: Number.isFinite(Number(user.lat || user.latitude)) ? Number(user.lat || user.latitude) : null,
-          lng: Number.isFinite(Number(user.lng || user.longitude)) ? Number(user.lng || user.longitude) : null,
+          lat: 37.5665,
+          lng: 126.9780,
           birthPlace: String(user.birthPlace || user.place || '').trim() || undefined
         },
         birthPlace: String(user.birthPlace || user.place || '').trim() || undefined
@@ -667,10 +651,8 @@
     if (!profile || !profile.birth) return '생년월일 정보를 찾을 수 없습니다.';
     var b = profile.birth;
     var date = [b.year, String(b.month || '').padStart(2, '0'), String(b.day || '').padStart(2, '0')].join('-');
-    var hasTime = Number.isFinite(Number(b.hour)) && Number.isFinite(Number(b.minute));
-    var time = hasTime
-      ? (String(Number(b.hour)).padStart(2, '0') + ':' + String(Number(b.minute)).padStart(2, '0'))
-      : '시간 미입력';
+    var time = String(Number.isFinite(Number(b.hour)) ? Number(b.hour) : 12).padStart(2, '0')
+      + ':' + String(Number.isFinite(Number(b.minute)) ? Number(b.minute) : 0).padStart(2, '0');
     var cal = String(b.calType || b.calendarType || 'solar').toLowerCase();
     var calLabel = cal === 'lunar' ? '음력' : (cal === 'lunar_leap' ? '음력(윤달)' : '양력');
     return [String(profile.name || '사용자') + ' · ' + date, calLabel + ' · ' + time].join(' · ');
@@ -688,45 +670,6 @@
     var el = qs('abErrorMsg');
     if (el) el.textContent = String(message || '생성 중 오류가 발생했습니다.');
     showOnly('abErrorScreen');
-  }
-
-  function setErrorWithDetails(message, missingFields, stage) {
-    setError(message);
-    var screen = qs('abErrorScreen');
-    if (!screen) return;
-    var details = qs('abErrorDetails');
-    if (!details) {
-      details = document.createElement('div');
-      details.id = 'abErrorDetails';
-      details.style.cssText = 'margin-top:10px;padding:10px 12px;border:1px solid rgba(251,191,36,0.35);border-radius:10px;background:rgba(15,23,42,0.45);font-size:12px;line-height:1.6;color:#fde68a;white-space:pre-line;';
-      screen.insertBefore(details, screen.querySelector('.lb-error__actions') || null);
-    }
-    var lines = [];
-    if (stage) lines.push('실패 단계: ' + String(stage));
-    var fields = Array.isArray(missingFields) ? missingFields.filter(Boolean) : [];
-    if (fields.length) {
-      lines.push('누락/문제 필드: ' + fields.join(', '));
-      for (var i = 0; i < fields.length; i += 1) {
-        var f = String(fields[i]);
-        if (f === 'birthTime') lines.push('• 출생시간이 없습니다. 점성술 PDF 생성을 위해 출생시간을 입력해 주세요.');
-        if (f === 'birthPlace' || f === 'location' || f === 'latitude' || f === 'longitude' || f === 'lat' || f === 'lon') {
-          lines.push('• 출생지/좌표 정보가 부족합니다. 출생지를 다시 입력해 주세요.');
-        }
-      }
-    }
-    details.textContent = lines.join('\n');
-  }
-
-  function setStageStatus(stageText) {
-    var label = qs('abLoadingChapter');
-    if (label && stageText) label.textContent = String(stageText);
-  }
-
-  function normalizeMissingFields(payload) {
-    var p = payload && typeof payload === 'object' ? payload : {};
-    if (Array.isArray(p.missingFields)) return p.missingFields;
-    if (Array.isArray(p.missing)) return p.missing;
-    return [];
   }
 
   function escapeHtml(value) {
@@ -827,55 +770,28 @@
       String(Number(birth.month || 0)).padStart(2, '0'),
       String(Number(birth.day || 0)).padStart(2, '0')
     ].join('-');
-    var hasBirthTime = Number.isFinite(Number(birth.hour)) && Number.isFinite(Number(birth.minute));
-    var birthTime = hasBirthTime
-      ? (String(Number(birth.hour)).padStart(2, '0') + ':' + String(Number(birth.minute)).padStart(2, '0'))
-      : '';
+    var birthTime = String(Number.isFinite(Number(birth.hour)) ? Number(birth.hour) : 12).padStart(2, '0')
+      + ':' + String(Number.isFinite(Number(birth.minute)) ? Number(birth.minute) : 0).padStart(2, '0');
     var calendarType = normalizeCalType(birth.calType || birth.calendarType || 'solar');
     var timeUnknown = !!(birth.timeUnknown || birth.birthTimeUnknown || birth.unknownTime);
     var isLunar = calendarType === 'lunar' || calendarType === 'lunar_leap';
     var birthPlace = String(profile.birthPlace || location.birthPlace || location.label || profile.place || '').trim();
-    var tzName = String(location.tz || profile.timezone || '').trim();
-    var latNum = Number(location.lat);
-    var lonNum = Number(location.lng);
-    var missingFields = [];
-
-    if (!String(profile.name || '').trim()) missingFields.push('userName');
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) missingFields.push('birthDate');
-    if (timeUnknown || !birthTime) missingFields.push('birthTime');
-    if (!birthPlace) missingFields.push('birthPlace');
-    if (!tzName) missingFields.push('timezone');
-    if (!Number.isFinite(latNum)) missingFields.push('latitude');
-    if (!Number.isFinite(lonNum)) missingFields.push('longitude');
-
-    if (missingFields.length) {
-      return {
-        ok: false,
-        code: 'ASTRO_INPUT_REQUIRED',
-        stage: '프로필 데이터 확인 중',
-        missingFields: missingFields,
-        message: '출생시간/출생지/차트 계산 데이터가 부족합니다.'
-      };
-    }
 
     var body = {
       mode: mode,
       reportMode: mode,
       reportType: mode,
-      _premiumStrictPayload: true,
-      _premiumStrictValidation: true,
+      _premiumStrictPayload: false,
+      _premiumStrictValidation: false,
       includeCompatibility: mode === 'compatibility',
       profileId: profileId,
-      selectedProfileId: profileId,
-      userName: String(profile.name || '사용자'),
-      targetName: String(profile.name || '사용자'),
       name: String(profile.name || '사용자'),
       gender: String(profile.gender || ''),
       year: Number(birth.year || 0),
       month: Number(birth.month || 0),
       day: Number(birth.day || 0),
-      hour: Number(birth.hour),
-      minute: Number(birth.minute),
+      hour: Number(Number.isFinite(Number(birth.hour)) ? birth.hour : 12),
+      minute: Number(Number.isFinite(Number(birth.minute)) ? birth.minute : 0),
       birthDate: birthDate,
       birthTime: birthTime,
       calType: calendarType,
@@ -883,13 +799,10 @@
       isLunar: isLunar,
       timeUnknown: timeUnknown,
       birthPlace: birthPlace || undefined,
-      location: birthPlace,
-      timezoneName: tzName,
-      timezone: tzName,
-      lat: Number(latNum),
-      lon: Number(lonNum),
-      latitude: Number(latNum),
-      longitude: Number(lonNum),
+      timezoneName: String(location.tz || 'Asia/Seoul'),
+      timezone: String(location.tz || 'Asia/Seoul'),
+      lat: Number(Number.isFinite(Number(location.lat)) ? Number(location.lat) : 37.5665),
+      lon: Number(Number.isFinite(Number(location.lng)) ? Number(location.lng) : 126.9780),
       birthData: {
         profileId: profileId,
         name: String(profile.name || '사용자'),
@@ -897,21 +810,18 @@
         year: Number(birth.year || 0),
         month: Number(birth.month || 0),
         day: Number(birth.day || 0),
-        hour: Number(birth.hour),
-        minute: Number(birth.minute),
+        hour: Number(Number.isFinite(Number(birth.hour)) ? birth.hour : 12),
+        minute: Number(Number.isFinite(Number(birth.minute)) ? birth.minute : 0),
         birthDate: birthDate,
         birthTime: birthTime,
         calendarType: calendarType,
         isLunar: isLunar,
         timeUnknown: timeUnknown,
         birthPlace: birthPlace || undefined,
-        location: birthPlace,
-        timezoneName: tzName,
-        timezone: tzName,
-        lat: Number(latNum),
-        lon: Number(lonNum),
-        latitude: Number(latNum),
-        longitude: Number(lonNum)
+        timezoneName: String(location.tz || 'Asia/Seoul'),
+        timezone: String(location.tz || 'Asia/Seoul'),
+        lat: Number(Number.isFinite(Number(location.lat)) ? Number(location.lat) : 37.5665),
+        lon: Number(Number.isFinite(Number(location.lng)) ? Number(location.lng) : 126.9780)
       },
       profile: {
         profileId: profileId,
@@ -923,10 +833,7 @@
         isLunar: isLunar,
         timeUnknown: timeUnknown,
         birthPlace: birthPlace || undefined,
-        timezone: tzName,
-        location: birthPlace,
-        latitude: Number(latNum),
-        longitude: Number(lonNum)
+        timezone: String(location.tz || 'Asia/Seoul')
       }
     };
 
@@ -946,12 +853,10 @@
         day: partner.day,
         hour: partner.hour,
         minute: partner.minute,
-        timezoneName: tzName,
-        timezone: tzName,
-        lat: Number(latNum),
-        lon: Number(lonNum),
-        latitude: Number(latNum),
-        longitude: Number(lonNum)
+        timezoneName: String(location.tz || 'Asia/Seoul'),
+        timezone: String(location.tz || 'Asia/Seoul'),
+        lat: Number(Number.isFinite(Number(location.lat)) ? Number(location.lat) : 37.5665),
+        lon: Number(Number.isFinite(Number(location.lng)) ? Number(location.lng) : 126.9780)
       };
     }
 
@@ -996,9 +901,6 @@
     var message = status === 'completed'
       ? '코즈믹 리포트 최종 편집을 마무리하고 있습니다...'
       : String(flow[Math.max(0, Math.min(flow.length - 1, nextChapter - 1))] || '점성술 리포트를 생성하는 중입니다...');
-    if (status !== 'completed') {
-      message = '챕터 ' + nextChapter + '/' + total + ' 생성 중 · ' + message;
-    }
 
     var bar = qs('abProgressBar');
     var text = qs('abProgressText');
@@ -1008,7 +910,7 @@
 
     if (bar) bar.style.width = progress + '%';
     if (text) text.textContent = completed + ' / ' + total + ' 챕터';
-    if (num) num.textContent = '챕터 ' + nextChapter + ' / ' + total;
+    if (num) num.textContent = 'Chapter ' + nextChapter;
     if (label) label.textContent = message;
     if (quote) {
       state.quoteTick += 1;
@@ -1381,7 +1283,6 @@
       });
     }
 
-    setStageStatus('PDF 조립 중');
     var pdfReady = await premiumAuthJson('/api/premium-report/pdf', {
       reportSessionId: reportSessionId,
       snapshotId: snapshotId || undefined,
@@ -1405,8 +1306,6 @@
         message: String((pdfReady && pdfReady.message) || 'PDF 생성 준비 검증에 실패했습니다.')
       };
     }
-
-    setStageStatus('완료');
 
     return {
       ok: true,
@@ -1566,14 +1465,6 @@
     showOnly(hasProfile() ? 'abStartScreen' : 'abNoProfileScreen');
     modal.style.display = 'flex';
     modal.style.zIndex = '100120';
-    var errorActions = modal.querySelector('#abErrorScreen .lb-error__actions');
-    if (errorActions) {
-      errorActions.style.paddingBottom = 'calc(10px + env(safe-area-inset-bottom, 0px))';
-    }
-    var resultActions = modal.querySelector('#abResultScreen .lb-result__actions');
-    if (resultActions) {
-      resultActions.style.paddingBottom = 'calc(10px + env(safe-area-inset-bottom, 0px))';
-    }
     document.body.style.overflow = 'hidden';
     document.body.classList.add('lb-modal-open');
     try {
@@ -1610,11 +1501,7 @@
 
     var requestInput = buildRequestBody();
     if (!requestInput.ok) {
-      setErrorWithDetails(
-        requestInput.message || '입력값을 확인해 주세요.',
-        requestInput.missingFields || [],
-        requestInput.stage || '프로필 데이터 확인 중'
-      );
+      setError(requestInput.message || '입력값을 확인해 주세요.');
       return;
     }
 
@@ -1628,39 +1515,31 @@
     state.lastRequestBody = generationBody;
 
     showOnly('abLoadingScreen');
-    setLoadingProgress({ currentChapter: 0, status: 'generating', message: '프로필 데이터 확인 중...' });
+    setLoadingProgress({ currentChapter: 0, status: 'generating', message: '결제 확인 중...' });
 
     try {
-      setStageStatus('점성술 차트 계산 중');
-      generationBody = await enrichRequestBodyWithAstroSeed(generationBody);
-      state.lastRequestBody = generationBody;
-
-      if (generationBody && generationBody._astroSeedError) {
-        state.paidGateKey = '';
-        setErrorWithDetails(
-          String(generationBody._astroSeedError.message || '점성술 차트 계산에 필요한 데이터 생성에 실패했습니다.'),
-          normalizeMissingFields(generationBody._astroSeedError),
-          '점성술 차트 계산 중'
-        );
-        return;
-      }
-
-      setLoadingProgress({ currentChapter: 0, status: 'generating', message: 'PDF 데이터 구성 중...' });
-      var preflight = await ensureAstroPremiumPreflight(generationBody);
-      if (!preflight.ok) {
-        state.paidGateKey = '';
-        setErrorWithDetails(
-          String(preflight.message || '생성 전 데이터 점검에 실패했습니다.'),
-          normalizeMissingFields(preflight),
-          'PDF 데이터 구성 중'
-        );
-        return;
-      }
-
-      setStageStatus('결제 확인 중');
       var gateOk = await ensureAstroCoinGate(generationBody);
       if (!gateOk) {
         showOnly('abStartScreen');
+        return;
+      }
+
+      generationBody = await enrichRequestBodyWithAstroSeed(generationBody);
+      state.lastRequestBody = generationBody;
+
+      setLoadingProgress({ currentChapter: 0, status: 'generating', message: '생성 전 데이터 점검 중...' });
+      var preflight = await ensureAstroPremiumPreflight(generationBody);
+      if (!preflight.ok) {
+        var preflightCode = String((preflight && preflight.code) || '').toUpperCase();
+        // ASTRO_CHART_SEED_FAILED: server fallback should have prevented this,
+        // but if still occurs (transient), do NOT refund – chart calc failure is retriable
+        var isSeedFailure = preflightCode.indexOf('ASTRO_CHART_SEED') !== -1 ||
+          preflightCode.indexOf('ASTRO_CANONICAL') !== -1;
+        if (!isSeedFailure) {
+          await attemptAstroAutoRefund('점성술 프리미엄 preflight 실패 자동 환불');
+        }
+        state.paidGateKey = '';
+        setError(String(preflight.message || '생성 전 데이터 점검에 실패했습니다.'));
         return;
       }
 
@@ -1687,11 +1566,7 @@
           return;
         }
         await attemptAstroAutoRefund('점성술 프리미엄 PDF 생성 시작 실패 자동 환불');
-        setErrorWithDetails(
-          String((res.data && res.data.message) || fallbackRun && fallbackRun.message || '점성술 리포트 생성 시작에 실패했습니다.'),
-          normalizeMissingFields(res && res.data),
-          '챕터 생성 시작'
-        );
+        setError(String((res.data && res.data.message) || fallbackRun && fallbackRun.message || '점성술 리포트 생성 시작에 실패했습니다.'));
         return;
       }
 
@@ -1710,17 +1585,13 @@
           return;
         }
         await attemptAstroAutoRefund('점성술 프리미엄 PDF reportId 누락 자동 환불');
-        setErrorWithDetails(
-          String(reportIdFallback && reportIdFallback.message || 'reportId를 받지 못했습니다. 잠시 후 다시 시도해 주세요.'),
-          normalizeMissingFields(reportIdFallback),
-          'PDF 조립 중'
-        );
+        setError(String(reportIdFallback && reportIdFallback.message || 'reportId를 받지 못했습니다. 잠시 후 다시 시도해 주세요.'));
         return;
       }
 
       var done = await pollStatusLoop();
       if (!done && qs('abLoadingScreen') && qs('abLoadingScreen').style.display !== 'none') {
-        setErrorWithDetails('리포트 생성 중 문제가 발생했습니다.', [], '생성 파이프라인');
+        setError('리포트 생성 중 문제가 발생했습니다.');
       }
     } catch (error) {
       logAstroDebug('GenerateUnhandledException', {
@@ -1729,7 +1600,7 @@
       }, 'error');
       await attemptAstroAutoRefund('점성술 프리미엄 예외 자동 환불');
       state.paidGateKey = '';
-      setErrorWithDetails(String(error && error.message || '점성술 리포트 생성 중 오류가 발생했습니다.'), [], '생성 파이프라인');
+      setError(String(error && error.message || '점성술 리포트 생성 중 오류가 발생했습니다.'));
     } finally {
       state.generating = false;
     }

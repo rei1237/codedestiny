@@ -10989,6 +10989,7 @@ function normalizeZiweiField(value, fallback = "정보 없음") {
 
 const ZIWEI_SYMBOL_TO_STRENGTH = {
   "◎": "묘",
+  "◉": "왕",
   "○": "왕",
   "O": "왕",
   "▲": "리",
@@ -10999,16 +11000,16 @@ const ZIWEI_SYMBOL_TO_STRENGTH = {
 
 const ZIWEI_STRENGTH_TO_SYMBOL = {
   "묘": "◎",
-  "왕": "O",
-  "리": "△",
+  "왕": "◎",
+  "리": "O",
   "평": "△",
   "함": "X",
   "실": "X",
   "묘왕": "◎",
   "묘왕지": "◎",
-  "득": "△",
+  "득": "O",
   "득지": "△",
-  "리지": "△",
+  "리지": "O",
   "평지": "△",
   "함지": "X",
   "극함": "X",
@@ -11021,8 +11022,9 @@ const ZIWEI_STRENGTH_TO_SYMBOL = {
 function normalizeZiweiStrengthSymbol(raw) {
   const v = String(raw || "").trim();
   if (v === "◎") return "◎";
-  if (v === "○" || v === "O") return "O";
-  if (v === "▲" || v === "△") return "△";
+  if (v === "◉" || v === "○") return "◎";
+  if (v === "O") return "O";
+  if (v === "▲") return "O";
   if (v === "△") return "△";
   if (v === "×" || /^x$/i.test(v)) return "X";
   return "";
