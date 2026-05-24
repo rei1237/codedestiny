@@ -79,6 +79,21 @@
     } catch (_) {}
   }
 
+  function toSafeUserError(error) {
+    var raw = String((error && error.message) || '').trim();
+    if (!raw) return '신년운세 생성 중 오류가 발생했습니다.';
+    if (/\b500\b|internal\s*server\s*error|http\s*500/i.test(raw)) {
+      return '리포트 생성 중 일시적인 서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    if (/quality|품질|chapter-\d+/i.test(raw)) {
+      return '리포트 품질 보정 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    if (/timeout|quota|invalid\s*json|api\s*실패/i.test(raw)) {
+      return '리포트 생성 중 일시적인 응답 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    return raw;
+  }
+
   function getAuthToken() {
     try { return String(localStorage.getItem('fortune_auth_token') || '').trim(); } catch (_) { return ''; }
   }
@@ -1203,10 +1218,11 @@
         throw new Error(String((response && response.message) || ('챕터 ' + chapter + ' 생성에 실패했습니다.')));
       }
 
-      if (String(response.source || '').toLowerCase() === 'local' || response.usedFallback === true) {
+      var responseSource = String(response.source || '').toLowerCase();
+      if (responseSource === 'local' || responseSource === 'local-engine' || response.usedFallback === true) {
         logSajuNewYear('API_PARTIAL_RESULT_COMPLETED_BY_LOCAL', {
           chapter: chapter,
-          source: String(response.source || 'local')
+          source: String(response.source || 'local-engine')
         });
       }
 
@@ -1275,17 +1291,17 @@
       state.paymentContext = null;
       state.paymentVerified = false;
       renderResultScreen();
-      notify('신년운세 PDF 10챕터 생성이 완료되었습니다.');
+      notify('사주 신년운세 프리미엄 리포트가 완성되었습니다.');
     } catch (err) {
       console.error('[SajuNewYear] generation failed:', err);
       var errMsg = String((err && err.message) || '');
-      var shouldRefund = Boolean(state.paymentVerified) && !/결제가 확인되지 않았습니다|결제 확인이 필요합니다/i.test(errMsg);
+      var shouldRefund = Boolean(state.paymentVerified) && /LOCAL_REPORT_FAILED|로컬\s*리포트\s*실패/i.test(errMsg);
       if (shouldRefund) {
-        logSajuNewYear('REFUND_START', { reason: '신년운세 PDF 생성 실패 자동 환불' });
-        var refunded = await attemptSajuNewYearAutoRefund('신년운세 PDF 생성 실패 자동 환불');
+        logSajuNewYear('REFUND_START', { reason: errMsg || 'LOCAL_REPORT_FAILED' });
+        var refunded = await attemptSajuNewYearAutoRefund(errMsg || 'LOCAL_REPORT_FAILED');
         if (refunded) logSajuNewYear('REFUND_SUCCESS');
       }
-      setErrorScreen(String((err && err.message) || '신년운세 생성 중 오류가 발생했습니다.'));
+      setErrorScreen(toSafeUserError(err));
     } finally {
       state.generating = false;
       state.paymentVerified = false;

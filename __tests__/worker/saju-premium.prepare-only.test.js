@@ -248,7 +248,7 @@ describe("Saju premium prepareOnly routes", () => {
     expect(data.reportType).toBe("sajuNewYear");
     expect(data.featureType).toBe("saju_new_year_pdf");
     expect(data.chapter).toBe(1);
-    expect(data.source).toBe("local");
+    expect(data.source).toBe("local-engine");
     expect(data.usedFallback).toBe(true);
     expect(data.engineSource).toBeTruthy();
     expect(typeof data.text).toBe("string");

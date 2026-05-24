@@ -385,15 +385,10 @@
       lon: Number(Number.isFinite(Number(requestBody.lon)) ? requestBody.lon : 126.978)
     };
 
-    var basic = null;
-    for (var _seedAttempt = 0; _seedAttempt < 2; _seedAttempt += 1) {
-      basic = await requestJson('/api/premium/astro-western', {
-        method: 'POST',
-        body: seedInput
-      });
-      if (basic && basic.ok) break;
-      if (_seedAttempt < 1) await delay(700);
-    }
+    var basic = await requestJson('/api/premium/astro-western', {
+      method: 'POST',
+      body: seedInput
+    });
     var data = basic && basic.data && typeof basic.data === 'object' ? basic.data : {};
     var chart = data && typeof data === 'object' ? data : {};
     var hasChart = !!(chart.planets && chart.ascendant && chart.midheaven);
@@ -403,7 +398,7 @@
         code: String((data && data.code) || ''),
         message: String((data && (data.message || data.error)) || ''),
         hasChart: hasChart,
-        attempts: 2
+        attempts: 1
       }, 'warn');
       return requestBody;
     }
@@ -460,6 +455,8 @@
     if (!prepared || !prepared.ok || !prepared.reportSessionId) {
       return {
         ok: false,
+        code: String((prepared && prepared.code) || ''),
+        status: Number((prepared && prepared.status) || 0),
         message: buildPreflightMessage(prepared, '결제 확인/세션 준비에 실패했습니다.'),
       };
     }
@@ -496,6 +493,8 @@
     if (!preflight || !preflight.ok) {
       return {
         ok: false,
+        code: String((preflight && preflight.code) || ''),
+        status: Number((preflight && preflight.status) || 0),
         message: buildPreflightMessage(preflight, '생성 전 데이터 점검(preflight)에서 실패했습니다.'),
       };
     }

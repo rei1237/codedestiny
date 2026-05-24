@@ -92,6 +92,9 @@
   function toSafeUserError(error) {
     var raw = String(error && error.message || '').trim();
     if (!raw) return '인생의 책 생성 중 오류가 발생했습니다.';
+    if (/\b500\b|internal\s*server\s*error|http\s*500/i.test(raw)) {
+      return '리포트 생성 중 일시적인 서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    }
     if (/챕터\s*품질\s*검증\s*실패|chapter-\d+|quality/i.test(raw)) {
       return '리포트 품질 보정 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
     }
@@ -856,7 +859,7 @@
       }
 
       var source = String(res.data && res.data.source || '').trim().toLowerCase();
-      if (source === 'local' || source === 'mixed') state.generationSource = source;
+      if (source === 'local' || source === 'local-engine' || source === 'mixed') state.generationSource = source;
       logLifeBookStage('API_GENERATION_SUCCESS', {
         reportId: state.reportId,
         chapterId: 'chapter-' + String(chapter).padStart(2, '0'),
@@ -904,10 +907,11 @@
     } catch (err) {
       console.error('[LifeBook] generation failed:', err);
       logLifeBookStage('PDF_RENDER_FAILED', { reportId: state.reportId, message: String(err && err.message || '') });
-      var shouldRefund = !!(state.paymentContext && !isAuthOrPaymentError(err));
+      var errMsg = String(err && err.message || '');
+      var shouldRefund = !!(state.paymentContext && /LOCAL_REPORT_FAILED|로컬\s*리포트\s*실패/i.test(errMsg));
       if (shouldRefund) {
         logLifeBookStage('REFUND_START', { reportId: state.reportId });
-        var refunded = await attemptLifeBookAutoRefund('인생의 책 PDF 생성 실패 자동 환불');
+        var refunded = await attemptLifeBookAutoRefund(errMsg);
         if (refunded) logLifeBookStage('REFUND_SUCCESS', { reportId: state.reportId });
       }
       if (chapterCount() > 0) {

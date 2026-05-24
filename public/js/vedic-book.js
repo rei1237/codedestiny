@@ -19,6 +19,8 @@
   var VEDIC_COIN_REASON_COMPAT = '베다 점성술 프리미엄 PDF 궁합 리포트 생성';
   var VEDIC_PREMIUM_REPORT_TYPE = 'vedicPremium';
   var VEDIC_PREMIUM_FEATURE_TYPE = 'vedic_premium';
+  var VEDIC_PDF_FEATURE_KEY = 'vedic-premium-pdf';
+  var VEDIC_SERVICE_KEY = 'vedic-book';
 
   var VEDIC_LOADING_FLOW_PERSONAL = [
     '라그나 기준점을 정밀 교정하는 중입니다...',
@@ -80,6 +82,25 @@
     try {
       console.error('[VedicBook][' + String(stage || 'Unknown') + ']', payload || {});
     } catch (_) {}
+  }
+
+  function logVedicStage(stage, payload) {
+    try {
+      console.info('[VedicBook] ' + String(stage || 'UNKNOWN'), payload || {});
+    } catch (_) {}
+  }
+
+  function sanitizeVedicUserMessage(message) {
+    var src = String(message || '').trim();
+    if (!src) return '생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    return src
+      .replace(/PreflightFailed/gi, '생성 전 점검')
+      .replace(/Internal server error/gi, '일시적 서버 오류')
+      .replace(/fallback/gi, '')
+      .replace(/API 실패/gi, '')
+      .replace(/API\s*error/gi, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
   }
 
   function safeParseJson(raw, fallback) {
@@ -531,7 +552,7 @@
 
   function setError(message) {
     var el = qs('vdErrorMsg');
-    if (el) el.textContent = String(message || '생성 중 오류가 발생했습니다.');
+    if (el) el.textContent = sanitizeVedicUserMessage(message || '생성 중 오류가 발생했습니다.');
     showOnly('vdErrorScreen');
   }
 
@@ -653,6 +674,9 @@
       mode: mode,
       reportMode: mode,
       reportType: mode,
+      premiumReportType: VEDIC_PREMIUM_REPORT_TYPE,
+      serviceKey: VEDIC_SERVICE_KEY,
+      featureKey: VEDIC_PDF_FEATURE_KEY,
       _premiumStrictPayload: true,
       _premiumStrictValidation: true,
       includeCompatibility: mode === 'compatibility',
@@ -736,6 +760,28 @@
     }
 
     return { ok: true, body: body };
+  }
+
+  function attachPaymentContext(body) {
+    var src = body && typeof body === 'object' ? Object.assign({}, body) : {};
+    var pay = state.paymentContext && typeof state.paymentContext === 'object' ? state.paymentContext : null;
+    if (!pay) return src;
+    src.payment = {
+      featureKey: String(pay.featureKey || ''),
+      canonicalFeatureKey: VEDIC_PDF_FEATURE_KEY,
+      transactionId: String(pay.transactionId || pay.sourceTransactionId || ''),
+      sourceTransactionId: String(pay.sourceTransactionId || pay.transactionId || ''),
+      receiptId: String(pay.receiptId || ''),
+      orderId: String(pay.orderId || ''),
+      requestId: String(pay.requestId || '')
+    };
+    src.transactionId = String(pay.transactionId || pay.sourceTransactionId || '');
+    src.sourceTransactionId = String(pay.sourceTransactionId || pay.transactionId || '');
+    src.receiptId = String(pay.receiptId || '');
+    src.orderId = String(pay.orderId || '');
+    src.paidFeatureKey = String(pay.featureKey || '');
+    src.featureKey = VEDIC_PDF_FEATURE_KEY;
+    return src;
   }
 
   function resetDots(activeChapter) {
@@ -934,9 +980,13 @@
 
     state.paymentContext = {
       featureKey: String(policy.featureKey || ''),
+      canonicalFeatureKey: VEDIC_PDF_FEATURE_KEY,
       cost: Number(policy.cost || 0),
       requestId: String(requestId || ''),
       sourceTransactionId: sourceTransactionId,
+      transactionId: String(consume.transactionId || payload.transactionId || sourceTransactionId || ''),
+      receiptId: String(consume.receiptId || payload.receiptId || ''),
+      orderId: String(consume.orderId || payload.orderId || ''),
       mode: String(policy.modeLabel || '')
     };
     state.paidGateKey = gateKey;
@@ -1341,17 +1391,30 @@
     state.chapters = [];
     state.quoteTick = 0;
     state.lastRequestBody = requestInput.body;
+    logVedicStage('REQUEST_START', {
+      mode: String(requestInput.body.mode || 'personal'),
+      serviceKey: VEDIC_SERVICE_KEY,
+      featureKey: VEDIC_PDF_FEATURE_KEY
+    });
 
     showOnly('vdLoadingScreen');
     setLoadingProgress({ currentChapter: 1, status: 'generating', message: '결제 확인 중...' });
 
     try {
+      logVedicStage('MODE_DETECTED', { mode: String(requestInput.body.mode || 'personal') });
+      logVedicStage('PAYMENT_CHECK_START', { mode: String(requestInput.body.mode || 'personal') });
       var gateOk = await ensureVedicCoinGate(requestInput.body);
       if (!gateOk) {
+        logVedicStage('PAYMENT_CHECK_FAILED', { mode: String(requestInput.body.mode || 'personal') });
         showOnly('vdStartScreen');
         return;
       }
+      logVedicStage('PAYMENT_CHECK_SUCCESS', {
+        mode: String(requestInput.body.mode || 'personal'),
+        transactionId: String(state.paymentContext && (state.paymentContext.transactionId || state.paymentContext.sourceTransactionId) || '')
+      });
 
+      requestInput.body = attachPaymentContext(requestInput.body);
       setLoadingProgress({ currentChapter: 1, status: 'generating', message: '생성 전 데이터 점검 중...' });
       var preflight = await ensureVedicPremiumPreflight(requestInput.body);
       if (!preflight.ok) {
@@ -1371,11 +1434,12 @@
           state.chapters = Array.isArray(fallbackOnPreflight.chapters) ? fallbackOnPreflight.chapters : [];
           state.paymentContext = null;
           renderResultScreen();
+          notify('베다점 프리미엄 리포트가 완성되었습니다.');
           return;
         }
-        await attemptVedicAutoRefund('베다 프리미엄 preflight 실패 자동 환불');
+        await attemptVedicAutoRefund('LOCAL_REPORT_FAILED: preflight and local generation failed');
         state.paidGateKey = '';
-        setError(String(preflight.message || '생성 전 데이터 점검에 실패했습니다.'));
+        setError('생성 전 점검을 통과하지 못해 리포트 생성을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.');
         return;
       }
 
@@ -1402,9 +1466,10 @@
           state.chapters = Array.isArray(fallbackRun.chapters) ? fallbackRun.chapters : [];
           state.paymentContext = null;
           renderResultScreen();
+          notify('베다점 프리미엄 리포트가 완성되었습니다.');
           return;
         }
-        await attemptVedicAutoRefund('베다 프리미엄 PDF 생성 시작 실패 자동 환불');
+        await attemptVedicAutoRefund('LOCAL_REPORT_FAILED: generate start and local generation failed');
         if (!fallbackRun || !fallbackRun.ok) {
           logVedicError('GenerateFallbackFailed', {
             message: String(fallbackRun && fallbackRun.message || 'fallback failed'),
@@ -1427,9 +1492,10 @@
           state.chapters = Array.isArray(reportIdFallback.chapters) ? reportIdFallback.chapters : [];
           state.paymentContext = null;
           renderResultScreen();
+          notify('베다점 프리미엄 리포트가 완성되었습니다.');
           return;
         }
-        await attemptVedicAutoRefund('베다 프리미엄 PDF reportId 누락 자동 환불');
+        await attemptVedicAutoRefund('LOCAL_REPORT_FAILED: missing reportId and local generation failed');
         logVedicError('MissingReportId', {
           response: res.data || null,
           fallbackMessage: String(reportIdFallback && reportIdFallback.message || ''),
@@ -1447,7 +1513,7 @@
       try {
         console.error('[VedicBook] generation failed:', error);
       } catch (_) {}
-      await attemptVedicAutoRefund('베다 프리미엄 예외 자동 환불');
+      await attemptVedicAutoRefund('LOCAL_REPORT_FAILED: unhandled exception during vedic generation');
       state.paidGateKey = '';
       setError(String(error && error.message || '베다 리포트 생성 중 오류가 발생했습니다.'));
     } finally {

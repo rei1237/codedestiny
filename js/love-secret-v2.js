@@ -32,35 +32,35 @@
   ];
 
   var SOLO_CHAPTER_TITLES = [
-    'Chapter I. 본연의 연애 자아 — 나는 사랑 앞에서 어떤 사람인가',
-    'Chapter II. 치명적 매력과 페로몬 — 나를 끌리게 만드는 힘',
-    'Chapter III. 운명의 상대방 리포트 — 어떤 사람과 사랑이 깊어지는가',
-    'Chapter IV. 연애 패턴 분석 — 반복되는 사랑의 습관',
-    'Chapter V. 감정 표현과 소통법 — 사랑을 망치지 않는 대화',
-    'Chapter VI. 스킨십·친밀감·정서적 거리 — 가까워지는 속도',
-    'Chapter VII. 결혼관과 장기 관계 — 함께 살아갈 수 있는 사랑인가',
-    'Chapter VIII. 이별·상처·미련 — 사랑이 끝날 때 드러나는 진짜 모습',
-    'Chapter IX. 재회와 관계 회복 — 다시 이어질 수 있는 인연인가',
-    'Chapter X. 연애운의 흐름 — 사랑이 들어오는 시기와 준비',
-    'Chapter XI. 궁합의 핵심 원리 — 좋은 사람보다 맞는 사람',
-    'Chapter XII. 실전 연애 전략 — 앞으로 이렇게 사랑하라',
-    'Chapter XIII. 사랑의 최종 비책 — 나를 잃지 않고 사랑하는 법'
+    '본연의 연애 자아 — 나는 사랑 앞에서 어떤 사람인가',
+    '치명적 매력과 페로몬 — 나를 끌리게 만드는 힘',
+    '운명의 상대방 리포트 — 어떤 사람과 사랑이 깊어지는가',
+    '연애 패턴 분석 — 반복되는 사랑의 습관',
+    '감정 표현과 소통법 — 사랑을 망치지 않는 대화',
+    '스킨십·친밀감·정서적 거리 — 가까워지는 속도',
+    '결혼관과 장기 관계 — 함께 살아갈 수 있는 사랑인가',
+    '이별·상처·미련 — 사랑이 끝날 때 드러나는 진짜 모습',
+    '재회와 관계 회복 — 다시 이어질 수 있는 인연인가',
+    '연애운의 흐름 — 사랑이 들어오는 시기와 준비',
+    '궁합의 핵심 원리 — 좋은 사람보다 맞는 사람',
+    '실전 연애 전략 — 앞으로 이렇게 사랑하라',
+    '사랑의 최종 비책 — 나를 잃지 않고 사랑하는 법'
   ];
 
   var COMPAT_CHAPTER_TITLES = [
-    'Chapter I. 두 사람의 관계 자아 진단 — 사랑 앞에서 각자는 어떤 사람인가',
-    'Chapter II. 상호 매력과 감정 점화 패턴 — 무엇이 서로를 끌어당기는가',
-    'Chapter III. 궁합 핵심 구조 리포트 — 잘 맞는 지점과 어긋나는 지점',
-    'Chapter IV. 실전 커뮤니케이션 전술 — 싸우지 않고 통하는 대화법',
-    'Chapter V. 시기별 관계 진전 타이밍 — 가까워질 때와 멈출 때',
-    'Chapter VI. 갈등·거리감·권태 위기 관리 — 무너질 때 다시 회복하는 법',
-    'Chapter VII. 친밀감과 조후 궁합 리듬 — 몸과 마음의 속도 맞추기',
-    'Chapter VIII. 현대 연애 상황별 운영 비책 — 현실 조건 속 관계 유지법',
-    'Chapter IX. 결혼·동거·정착 적합성 — 함께 살아갈 수 있는가',
-    'Chapter X. 커플 맞춤 개운 처방전 — 관계를 살리는 실전 루틴',
-    'Chapter XI. 재회·이별·회복 의사결정표 — 다시 만날지 놓아줄지',
-    'Chapter XII. 장기 관계 운영 매뉴얼 — 오래 가는 커플의 시스템',
-    'Chapter XIII. 커플 사랑 마스터플랜 — 두 사람이 선택할 최종 방향'
+    '두 사람의 관계 자아 진단 — 사랑 앞에서 각자는 어떤 사람인가',
+    '상호 매력과 감정 점화 패턴 — 무엇이 서로를 끌어당기는가',
+    '궁합 핵심 구조 리포트 — 잘 맞는 지점과 어긋나는 지점',
+    '실전 커뮤니케이션 전술 — 싸우지 않고 통하는 대화법',
+    '시기별 관계 진전 타이밍 — 가까워질 때와 멈출 때',
+    '갈등·거리감·권태 위기 관리 — 무너질 때 다시 회복하는 법',
+    '친밀감과 조후 궁합 리듬 — 몸과 마음의 속도 맞추기',
+    '현대 연애 상황별 운영 비책 — 현실 조건 속 관계 유지법',
+    '결혼·동거·정착 적합성 — 함께 살아갈 수 있는가',
+    '커플 맞춤 개운 처방전 — 관계를 살리는 실전 루틴',
+    '재회·이별·회복 의사결정표 — 다시 만날지 놓아줄지',
+    '장기 관계 운영 매뉴얼 — 오래 가는 커플의 시스템',
+    '커플 사랑 마스터플랜 — 두 사람이 선택할 최종 방향'
   ];
 
   var state = {
@@ -101,6 +101,21 @@
 
   function asText(value) {
     return String(value == null ? '' : value).trim();
+  }
+
+  function toSafeUserError(error) {
+    var raw = asText(error && error.message);
+    if (!raw) return '연애 비책 생성 중 오류가 발생했습니다.';
+    if (/\b500\b|internal\s*server\s*error|http\s*500/i.test(raw)) {
+      return '리포트 생성 중 일시적인 서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    if (/quality|품질|chapter-\d+/i.test(raw)) {
+      return '리포트 품질 보정 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    if (/timeout|quota|invalid\s*json|api\s*실패/i.test(raw)) {
+      return '리포트 생성 중 일시적인 응답 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    return raw;
   }
 
   function clampInt(value, fallback, min, max) {
@@ -1089,10 +1104,6 @@
       return { ok: false, message: '사주 정보가 충분하지 않습니다. 먼저 사주 분석을 실행해 주세요.' };
     }
 
-    if (!self.sajuData || !/일간\(|년주|월주|일주/.test(self.sajuData)) {
-      return { ok: false, message: '사주 원국 데이터가 부족합니다. 사주 분석을 다시 실행해 주세요.' };
-    }
-
     var payload = {
       profileId: self.profileId || undefined,
       name: self.name,
@@ -1239,13 +1250,14 @@
       state.paymentContext = null;
       renderResultScreen();
       persistState();
-      notify(state.mode === MODE_COMPAT
-        ? '커플 연애 비책 13챕터 생성이 완료되었습니다.'
-        : '연애 비책 13챕터 생성이 완료되었습니다.');
+      notify('사주 연애 비책 프리미엄 리포트가 완성되었습니다.');
     } catch (err) {
       console.error('[LoveSecret] generation failed:', err);
-      await attemptLoveSecretAutoRefund('연애 비책 PDF 생성 실패 자동 환불');
-      setErrorScreen(asText(err && err.message) || '연애 비책 생성 중 오류가 발생했습니다.');
+      var errMsg = asText(err && err.message);
+      if (/LOCAL_REPORT_FAILED|로컬\s*리포트\s*실패/i.test(errMsg)) {
+        await attemptLoveSecretAutoRefund(errMsg);
+      }
+      setErrorScreen(toSafeUserError(err));
     } finally {
       state.generating = false;
       setGenerateButtonBusy(false);

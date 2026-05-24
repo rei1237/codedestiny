@@ -64,6 +64,8 @@ function getLifeBookTargetTotalChars(chapters) {
 
 function validateLifeBookPdfPayload(payload = {}) {
   const missing = [];
+  const fatalMissing = [];
+  const recoverableMissing = [];
   if (!payload || typeof payload !== "object") missing.push("payload");
   const userProfile = payload?.userProfile || {};
   const sajuChart = payload?.sajuChart || {};
@@ -82,9 +84,22 @@ function validateLifeBookPdfPayload(payload = {}) {
   const hasTenGods = Object.keys(tenGods?.distribution || {}).length > 0;
   if (!hasFiveElements && !hasTenGods) missing.push("fiveElements|tenGods");
   if (!Array.isArray(LIFE_BOOK_CHAPTERS) || LIFE_BOOK_CHAPTERS.length === 0) missing.push("chapterSchema");
+
+  // 출생일 정보가 없으면 계산 불가이므로 입력 오류로 처리한다.
+  if (!String(userProfile?.birthDate || "").trim()) {
+    fatalMissing.push("userProfile.birthDate");
+  }
+
+  missing.forEach((field) => {
+    if (fatalMissing.includes(field)) return;
+    recoverableMissing.push(field);
+  });
+
   return {
-    ok: missing.length === 0,
+    ok: fatalMissing.length === 0,
     missing,
+    fatalMissing,
+    recoverableMissing,
   };
 }
 
@@ -313,10 +328,17 @@ export async function generateLifeBookPdf(params = {}) {
   if (!payloadValidation.ok) {
     return {
       ok: false,
-      code: "LIFEBOOK_PAYLOAD_INVALID",
-      message: "인생의 책 생성에 필요한 데이터가 부족합니다.",
-      detail: { missingFields: payloadValidation.missing },
+      code: "LIFEBOOK_REQUIRED_PROFILE_MISSING",
+      message: "인생의 책 생성을 위해 필수 입력 정보가 필요합니다.",
+      detail: { missingFields: payloadValidation.fatalMissing || payloadValidation.missing },
     };
+  }
+  if (Array.isArray(payloadValidation.recoverableMissing) && payloadValidation.recoverableMissing.length) {
+    warnings.push({
+      chapterId: "input",
+      warning: "PAYLOAD_RECOVERABLE_MISSING",
+      validation: { missingFields: payloadValidation.recoverableMissing },
+    });
   }
   logLifeBookStage("PAYLOAD_NORMALIZE_SUCCESS", { reportId });
   const strictCheck = isStrictMissingCore(lifeBookInputData);
