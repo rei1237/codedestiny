@@ -109,7 +109,7 @@ const miscDivinationItems: ServiceCardModel[] = [
 ];
 
 const premiumItems: ServiceCardModel[] = [
-  { title: "자미두수 프리미엄 PDF", description: "13챕터 심층 리포트", href: "/?action=gotoZiweiPremium", emoji: "♛", badges: [{ text: "590코인", tone: "coin" }] },
+  { title: "자미두수 프리미엄 PDF", description: "15챕터 심층 리포트", href: "/?action=gotoZiweiPremium", emoji: "♛", badges: [{ text: "590코인", tone: "coin" }] },
   { title: "서양 점성술 PDF", description: "하우스·트랜짓 종합", href: "/?action=gotoAstrologyPremium", emoji: "🌟", badges: [{ text: "390코인", tone: "coin" }] },
   { title: "숙요점 프리미엄 PDF", description: "27수 관계/카르마 분석", href: "/?action=gotoSukuyoPremium", emoji: "💫", badges: [{ text: "390코인", tone: "coin" }] },
   { title: "베다 프리미엄 PDF", description: "다샤·카르마 로드맵", href: "/?action=gotoVedicPremium", emoji: "🪷", badges: [{ text: "390코인", tone: "coin" }] },

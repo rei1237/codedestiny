@@ -19,11 +19,11 @@
     { index: 6, key: 'chapter_06_yongshin', title: '관계의 전략 - 인연의 법칙과 파트너십', subtitle: '인간관계 작동 원리와 회복 시나리오' },
     { index: 7, key: 'chapter_07_hapchung', title: '연애·결혼 완전 분석 - 사주가 말하는 나의 사랑', subtitle: '연애 본능과 관계 안정 전략' },
     { index: 8, key: 'chapter_08_wealth_career', title: '재물·직업 완전 전략 - 부의 그릇을 키우는 천기', subtitle: '수익 구조와 직업 전략의 통합 설계' },
-    { index: 9, key: 'chapter_09_relationships', title: '건강·심신 에너지 완전 분석 - 오행으로 보는 회복법', subtitle: '오행 균형과 번아웃 회복 루틴' },
-    { index: 10, key: 'chapter_10_health_energy', title: '가족·뿌리·내면 아이 - 내가 짊어진 오래된 이야기', subtitle: '가족 영향과 독립 과제의 현실 해석' },
-    { index: 11, key: 'chapter_11_daeun', title: '인생의 위기와 전환점 - 무너질 때 다시 서는 법', subtitle: '위기 신호 분석과 현실 대응 전략' },
-    { index: 12, key: 'chapter_12_seun_roadmap', title: '나만의 성공 루틴 - 운을 현실로 바꾸는 실행법', subtitle: '하루 루틴부터 1년 계획까지 실행 설계' },
-    { index: 13, key: 'chapter_13_master_plan', title: '최종 운명 선언문 - 내 삶을 다시 쓰는 문장', subtitle: '핵심 구조 압축과 개인 맞춤 선언' }
+    { index: 9, key: 'chapter_09_relationships', title: '건강·심신 에너지 완전 분석 - 오행이 말하는 신체 지도', subtitle: '오행 기반 신체·심신 취약점과 회복 루틴' },
+    { index: 10, key: 'chapter_10_health_energy', title: '신살·12운성·퀀텀 명리 - 사주의 숨겨진 비밀 코드', subtitle: '신살·12운성의 특수 코드와 현실 발현 해석' },
+    { index: 11, key: 'chapter_11_daeun', title: '2026 丙午年 실전 로드맵 - 12개월 행동 지침', subtitle: '세운 흐름과 월별 실전 액션 플랜' },
+    { index: 12, key: 'chapter_12_seun_roadmap', title: '생애 마스터플랜 - 인생 전체의 운명 지도', subtitle: '초년부터 노년까지 장기 로드맵 통합 설계' },
+    { index: 13, key: 'chapter_13_master_plan', title: '거장의 최종 전략 제언 - 나에게 주는 운명 사용 설명서', subtitle: '현재 1년과 향후 10년의 최종 실행 전략' }
   ];
   var CHAPTER_TITLES = CHAPTER_DEFINITIONS.map(function (chapter) { return chapter.title; });
   var ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII'];

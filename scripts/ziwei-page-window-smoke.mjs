@@ -60,7 +60,7 @@ function makeStructuredPayload() {
       branch: BRANCHES[idx],
       dahan: `${idx * 10}-${idx * 10 + 9}`,
       stars: [{ name: idx % 2 === 0 ? "자미" : "무곡", strength: idx % 2 === 0 ? "묘" : "왕", symbol: idx % 2 === 0 ? "◎" : "O" }],
-      auxStars: [{ name: "문창", strength: "리", symbol: "O" }],
+      auxStars: [{ name: "문창", strength: "리", symbol: "▲" }],
       badStars: [{ name: "경양", strength: "함", symbol: "X" }],
     })),
     annualLuck: { year: 2026, palace: "명궁" },

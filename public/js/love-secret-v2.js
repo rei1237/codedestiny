@@ -1,7 +1,10 @@
 (function () {
   'use strict';
 
-  var TOTAL_CHAPTERS = 13;
+  var TOTAL_CHAPTERS_BY_MODE = {
+    solo: 7,
+    compatibility: 8,
+  };
   var API_TIMEOUT_MS = 140000;
   var LOVE_STATE_STORAGE_KEY = '__cd_love_secret_state_v4__';
   var LOVE_API_BASE = '/api/love-secret';
@@ -14,8 +17,8 @@
   };
 
   var MODE_REASON = {
-    solo: '연애 비책 생성 (13챕터 · 솔로)',
-    compatibility: '연애 비책 생성 (13챕터 · 궁합)',
+    solo: '연애 비책 생성 (7챕터 · 솔로)',
+    compatibility: '연애 비책 생성 (8챕터 · 궁합)',
   };
 
   var MODE_FEATURE_KEY = {
@@ -32,35 +35,24 @@
   ];
 
   var SOLO_CHAPTER_TITLES = [
-    '본연의 연애 자아 — 나는 사랑 앞에서 어떤 사람인가',
-    '치명적 매력과 페로몬 — 나를 끌리게 만드는 힘',
-    '운명의 상대방 리포트 — 어떤 사람과 사랑이 깊어지는가',
-    '연애 패턴 분석 — 반복되는 사랑의 습관',
-    '감정 표현과 소통법 — 사랑을 망치지 않는 대화',
-    '스킨십·친밀감·정서적 거리 — 가까워지는 속도',
-    '결혼관과 장기 관계 — 함께 살아갈 수 있는 사랑인가',
-    '이별·상처·미련 — 사랑이 끝날 때 드러나는 진짜 모습',
-    '재회와 관계 회복 — 다시 이어질 수 있는 인연인가',
-    '연애운의 흐름 — 사랑이 들어오는 시기와 준비',
-    '궁합의 핵심 원리 — 좋은 사람보다 맞는 사람',
-    '실전 연애 전략 — 앞으로 이렇게 사랑하라',
-    '사랑의 최종 비책 — 나를 잃지 않고 사랑하는 법'
+    '본연의 연애 자아 — 나는 어떤 사랑을 하는 사람인가',
+    '치명적 매력과 페로몬 — 나의 연애 매력 코드',
+    '운명의 상대방 리포트 — 나에게 맞는 사람과 피해야 할 사람',
+    '연애 패턴 분석 — 왜 비슷한 사랑을 반복하는가',
+    '결혼운과 장기 인연 — 사랑이 현실이 되는 조건',
+    '사랑의 운 흐름 — 대운·세운으로 보는 연애 타이밍',
+    '실전 연애 전략 — 사랑을 얻고 지키는 비책'
   ];
 
   var COMPAT_CHAPTER_TITLES = [
-    '두 사람의 관계 자아 진단 — 사랑 앞에서 각자는 어떤 사람인가',
-    '상호 매력과 감정 점화 패턴 — 무엇이 서로를 끌어당기는가',
-    '궁합 핵심 구조 리포트 — 잘 맞는 지점과 어긋나는 지점',
-    '실전 커뮤니케이션 전술 — 싸우지 않고 통하는 대화법',
-    '시기별 관계 진전 타이밍 — 가까워질 때와 멈출 때',
-    '갈등·거리감·권태 위기 관리 — 무너질 때 다시 회복하는 법',
-    '친밀감과 조후 궁합 리듬 — 몸과 마음의 속도 맞추기',
-    '현대 연애 상황별 운영 비책 — 현실 조건 속 관계 유지법',
-    '결혼·동거·정착 적합성 — 함께 살아갈 수 있는가',
-    '커플 맞춤 개운 처방전 — 관계를 살리는 실전 루틴',
-    '재회·이별·회복 의사결정표 — 다시 만날지 놓아줄지',
-    '장기 관계 운영 매뉴얼 — 오래 가는 커플의 시스템',
-    '커플 사랑 마스터플랜 — 두 사람이 선택할 최종 방향'
+    '두 사람의 궁합 총론 — 이 관계의 기본 구조',
+    '서로의 연애 자아 — 사랑 방식의 차이와 공통점',
+    '끌림과 매력 궁합 — 왜 서로에게 끌리는가',
+    '관계 패턴 분석 — 두 사람은 왜 싸우고 왜 다시 끌리는가',
+    '결혼 궁합과 장기 인연 — 함께 살아갈 수 있는 관계인가',
+    '속궁합과 친밀감 — 몸과 마음의 밀착도',
+    '두 사람의 운 흐름 — 연애·결혼·이별·재회 타이밍',
+    '최종 궁합 비책 — 이 관계를 어떻게 다뤄야 하는가'
   ];
 
   var state = {
@@ -82,6 +74,14 @@
   function qsa(root, selector) {
     if (!root) return [];
     return Array.prototype.slice.call(root.querySelectorAll(selector));
+  }
+
+  function getTotalChaptersByMode(mode) {
+    return Number(TOTAL_CHAPTERS_BY_MODE[mode === MODE_COMPAT ? MODE_COMPAT : MODE_SOLO] || TOTAL_CHAPTERS_BY_MODE[MODE_SOLO]);
+  }
+
+  function getActiveTotalChapters() {
+    return getTotalChaptersByMode(state.mode);
   }
 
   function notify(message) {
@@ -138,7 +138,8 @@
 
   function chapterCount() {
     var count = 0;
-    for (var i = 1; i <= TOTAL_CHAPTERS; i += 1) {
+    var totalChapters = getActiveTotalChapters();
+    for (var i = 1; i <= totalChapters; i += 1) {
       if (asText(state.chapterTexts[i])) count += 1;
     }
     return count;
@@ -668,10 +669,72 @@
     if (!list) return;
     var titles = getChapterTitlesByMode(mode);
     var items = qsa(list, '.ls-chapter-item');
-    for (var i = 0; i < items.length && i < titles.length; i += 1) {
-      var titleEl = items[i].querySelector('.ls-ch-title');
-      if (titleEl) titleEl.textContent = titles[i];
+    var visibleIndex = 0;
+    for (var i = 0; i < items.length; i += 1) {
+      var item = items[i];
+      var itemMode = String(item.getAttribute('data-ls-mode') || '').trim();
+      var isVisible = !itemMode || itemMode === mode;
+      item.style.display = isVisible ? '' : 'none';
+      if (!isVisible) continue;
+      var titleEl = item.querySelector('.ls-ch-title');
+      if (titleEl && titles[visibleIndex]) titleEl.textContent = titles[visibleIndex];
+      visibleIndex += 1;
     }
+  }
+
+  function syncModeSwitch(mode) {
+    var modal = qs('loveSecretModal');
+    if (!modal) return;
+    var buttons = qsa(modal, '.ls-mode-switch__btn[data-ls-mode]');
+    for (var i = 0; i < buttons.length; i += 1) {
+      var btn = buttons[i];
+      var isActive = String(btn.getAttribute('data-ls-mode') || '') === mode;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      btn.style.border = isActive ? '1px solid #d9467a' : '1px solid rgba(236,72,153,0.28)';
+      btn.style.background = isActive ? 'linear-gradient(135deg, #be185d 0%, #f43f5e 100%)' : 'rgba(255,255,255,0.82)';
+      btn.style.color = isActive ? '#ffffff' : '#9d174d';
+      btn.style.boxShadow = isActive ? '0 12px 24px rgba(219,39,119,0.22)' : 'none';
+    }
+  }
+
+  function syncResultNavigation(mode) {
+    var modal = qs('loveSecretModal');
+    if (!modal) return;
+    var totalChapters = getTotalChaptersByMode(mode);
+    var tocButtons = qsa(modal, '.ls-toc-item[data-ls-chapter]');
+    var pills = qsa(modal, '.ls-load-pill[data-ch]');
+    for (var i = 0; i < tocButtons.length; i += 1) {
+      var tocBtn = tocButtons[i];
+      var tocChapter = Number(tocBtn.getAttribute('data-ls-chapter') || 0);
+      tocBtn.style.display = tocChapter <= totalChapters ? '' : 'none';
+    }
+    for (var j = 0; j < pills.length; j += 1) {
+      var pill = pills[j];
+      var pillChapter = Number(pill.getAttribute('data-ch') || 0);
+      pill.style.display = pillChapter <= totalChapters ? '' : 'none';
+    }
+  }
+
+  function setLoveSecretMode(nextMode) {
+    var normalized = nextMode === MODE_COMPAT ? MODE_COMPAT : MODE_SOLO;
+    state.mode = normalized;
+    state.activeChapter = 1;
+    state.chapterTexts = {};
+    state.chapterMeta = {};
+    state.payload = null;
+    state.reportId = '';
+    state.paidReportId = '';
+    state.paymentContext = null;
+    refreshSavedReportButton();
+    syncModeSwitch(state.mode);
+    syncStartPreviewChapters(state.mode);
+    syncResultNavigation(state.mode);
+    showOnly('lsStartScreen');
+    setGenerateButtonBusy(false);
+    setPartnerButtonsBusy(false);
+    var progressText = qs('lsProgressText');
+    if (progressText) progressText.textContent = '0 / ' + getActiveTotalChapters() + ' 챕터 완성';
   }
 
   function escapeHtml(value) {
@@ -824,7 +887,8 @@
 
   function persistState() {
     try {
-      if (chapterCount() < TOTAL_CHAPTERS) return false;
+      var totalChapters = getActiveTotalChapters();
+      if (chapterCount() < totalChapters) return false;
       var payload = {
         reportId: asText(state.reportId),
         paidReportId: asText(state.paidReportId),
@@ -850,10 +914,12 @@
       if (!saved || typeof saved !== 'object') return null;
       var texts = saved.chapterTexts && typeof saved.chapterTexts === 'object' ? saved.chapterTexts : {};
       var completedCount = 0;
-      for (var i = 1; i <= TOTAL_CHAPTERS; i += 1) {
+      var savedMode = asText(saved.mode).toLowerCase();
+      var totalChapters = getTotalChaptersByMode(savedMode === MODE_COMPAT || savedMode === 'couple' ? MODE_COMPAT : MODE_SOLO);
+      for (var i = 1; i <= totalChapters; i += 1) {
         if (asText(texts[i])) completedCount += 1;
       }
-      if (completedCount < TOTAL_CHAPTERS) {
+      if (completedCount < totalChapters) {
         try { localStorage.removeItem(LOVE_STATE_STORAGE_KEY); } catch (_) {}
         return null;
       }
@@ -883,8 +949,12 @@
     state.payload = saved.payload || null;
     state.chapterTexts = saved.chapterTexts && typeof saved.chapterTexts === 'object' ? saved.chapterTexts : {};
     state.chapterMeta = saved.chapterMeta && typeof saved.chapterMeta === 'object' ? saved.chapterMeta : {};
-    state.mode = saved.mode === MODE_COMPAT ? MODE_COMPAT : MODE_SOLO;
-    state.activeChapter = clampInt(saved.activeChapter, 1, 1, TOTAL_CHAPTERS);
+    var restoredMode = asText(saved.mode).toLowerCase();
+    state.mode = restoredMode === MODE_COMPAT || restoredMode === 'couple' ? MODE_COMPAT : MODE_SOLO;
+    state.activeChapter = clampInt(saved.activeChapter, 1, 1, getActiveTotalChapters());
+    syncModeSwitch(state.mode);
+    syncStartPreviewChapters(state.mode);
+    syncResultNavigation(state.mode);
     refreshSavedReportButton();
     return true;
   }
@@ -910,13 +980,15 @@
     state.chapterTexts = {};
     state.chapterMeta = {};
     state.activeChapter = 1;
-    state.mode = MODE_SOLO;
     setGenerateButtonBusy(false);
     refreshSavedReportButton();
+    syncModeSwitch(state.mode);
+    syncStartPreviewChapters(state.mode);
+    syncResultNavigation(state.mode);
     var bar = qs('lsProgressBar');
     var txt = qs('lsProgressText');
     if (bar) bar.style.width = '0%';
-    if (txt) txt.textContent = '0 / 13 챕터 완성';
+    if (txt) txt.textContent = '0 / ' + getActiveTotalChapters() + ' 챕터 완성';
   }
 
   function setGenerateButtonBusy(busy) {
@@ -987,7 +1059,7 @@
   }
 
   function openResultChapter(chapter) {
-    var num = clampInt(chapter, 1, 1, TOTAL_CHAPTERS);
+    var num = clampInt(chapter, 1, 1, getActiveTotalChapters());
     state.activeChapter = num;
     updateTocActive(num);
     renderResultChapter(num);
@@ -999,11 +1071,13 @@
     var epilogue = qs('lsEpilogueBanner');
     var owner = asText(state.payload && state.payload.name) || '사용자';
     var titleTail = state.mode === MODE_COMPAT ? '님의 커플 연애 비책' : '님의 연애 비책';
+    var totalChapters = getActiveTotalChapters();
 
     if (resultName) resultName.textContent = owner + titleTail;
     if (resultDate) resultDate.textContent = formatDateLabel() + ' 생성 완료';
-    if (epilogue) epilogue.style.display = chapterCount() >= TOTAL_CHAPTERS ? '' : 'none';
+    if (epilogue) epilogue.style.display = chapterCount() >= totalChapters ? '' : 'none';
 
+    syncResultNavigation(state.mode);
     showOnly('lsResultScreen');
     openResultChapter(1);
   }
@@ -1014,21 +1088,23 @@
     var bar = qs('lsProgressBar');
     var progressText = qs('lsProgressText');
     var completed = chapterCount();
-    var current = clampInt(chapter, 1, 1, TOTAL_CHAPTERS);
-    var percent = Math.max(0, Math.min(100, Math.round((completed / TOTAL_CHAPTERS) * 100)));
+    var totalChapters = getActiveTotalChapters();
+    var current = clampInt(chapter, 1, 1, totalChapters);
+    var percent = Math.max(0, Math.min(100, Math.round((completed / totalChapters) * 100)));
 
     if (chapterText) chapterText.textContent = asText(subtitle) || ('Chapter ' + current + ' 집필 중...');
     if (quote) quote.textContent = QUOTES[(current - 1) % QUOTES.length];
     if (bar) bar.style.width = percent + '%';
-    if (progressText) progressText.textContent = completed + ' / ' + TOTAL_CHAPTERS + ' 챕터 완성';
+    if (progressText) progressText.textContent = completed + ' / ' + totalChapters + ' 챕터 완성';
 
     var pills = qsa(qs('lsLoadPills'), '.ls-load-pill[data-ch]');
     for (var i = 0; i < pills.length; i += 1) {
       var pill = pills[i];
       var n = Number(pill.getAttribute('data-ch') || 0);
       pill.classList.remove('done', 'active');
+      pill.style.display = n <= totalChapters ? '' : 'none';
       if (n < current || (n <= completed && completed >= current)) pill.classList.add('done');
-      if (n === current && completed < TOTAL_CHAPTERS) pill.classList.add('active');
+      if (n === current && completed < totalChapters) pill.classList.add('active');
     }
   }
 
@@ -1041,11 +1117,16 @@
     if (!statusRes.ok || !statusRes.data || statusRes.data.ok !== true) return 0;
 
     var rows = Array.isArray(statusRes.data.chapters) ? statusRes.data.chapters : [];
-    if (asText(statusRes.data.mode) === MODE_COMPAT) state.mode = MODE_COMPAT;
+    var statusMode = asText(statusRes.data.mode).toLowerCase();
+    if (statusMode === MODE_COMPAT || statusMode === 'couple') state.mode = MODE_COMPAT;
+    syncModeSwitch(state.mode);
+    syncStartPreviewChapters(state.mode);
+    syncResultNavigation(state.mode);
+    var totalChapters = getActiveTotalChapters();
     for (var i = 0; i < rows.length; i += 1) {
       var row = rows[i] || {};
       var chapter = Number(row.chapter || 0);
-      if (chapter >= 1 && chapter <= TOTAL_CHAPTERS && typeof row.text === 'string' && asText(row.text)) {
+      if (chapter >= 1 && chapter <= totalChapters && typeof row.text === 'string' && asText(row.text)) {
         state.chapterTexts[chapter] = row.text;
         state.chapterMeta[chapter] = row.chapterMeta || { title: getChapterTitlesByMode(state.mode)[chapter - 1] || ('Chapter ' + chapter) };
       }
@@ -1059,7 +1140,8 @@
     setLoadingProgress(1, getChapterTitlesByMode(state.mode)[0]);
 
     var startFrom = await loadExistingStatus(state.reportId);
-    for (var chapter = startFrom + 1; chapter <= TOTAL_CHAPTERS; chapter += 1) {
+    var totalChapters = getActiveTotalChapters();
+    for (var chapter = startFrom + 1; chapter <= totalChapters; chapter += 1) {
       var title = getChapterTitlesByMode(state.mode)[chapter - 1] || ('Chapter ' + chapter);
       setLoadingProgress(chapter, title);
 
@@ -1067,7 +1149,7 @@
         reportId: state.reportId,
         mode: state.mode,
         reportMode: state.mode,
-        totalChapters: TOTAL_CHAPTERS,
+        totalChapters: totalChapters,
         sessionId: chapter,
         chapter: chapter,
         _premiumStrictPayload: true,
@@ -1094,7 +1176,7 @@
       state.chapterTexts[chapter] = asText(res.data.text);
       state.chapterMeta[chapter] = res.data.chapterMeta || { title: title };
       persistState();
-      setLoadingProgress(Math.min(TOTAL_CHAPTERS, chapter + 1), getChapterTitlesByMode(state.mode)[Math.min(TOTAL_CHAPTERS - 1, chapter)] || '집필 중...');
+      setLoadingProgress(Math.min(totalChapters, chapter + 1), getChapterTitlesByMode(state.mode)[Math.min(totalChapters - 1, chapter)] || '집필 중...');
     }
   }
 
@@ -1124,9 +1206,9 @@
       timezone: self.timezone,
       lat: self.lat,
       lon: self.lon,
-      mode: mode,
+      mode: mode === MODE_COMPAT ? 'COUPLE' : 'SOLO',
       reportMode: mode,
-      totalChapters: TOTAL_CHAPTERS,
+      totalChapters: getTotalChaptersByMode(mode),
       _premiumStrictPayload: true,
       _premiumStrictValidation: true,
       sajuData: self.sajuData,
@@ -1207,6 +1289,19 @@
           lon: 126.9780
         }
       };
+    } else {
+      payload.partnerName = undefined;
+      payload.partnerGender = undefined;
+      payload.partnerYear = undefined;
+      payload.partnerMonth = undefined;
+      payload.partnerDay = undefined;
+      payload.partnerHour = undefined;
+      payload.partnerMinute = undefined;
+      payload.partnerBirthDate = undefined;
+      payload.partnerBirthTime = undefined;
+      payload.partnerData = undefined;
+      payload.partnerCalType = undefined;
+      payload.partner = undefined;
     }
 
     return { ok: true, payload: payload };
@@ -1222,7 +1317,8 @@
     }
 
     var nextPayload = built.payload;
-    var hasCompletedReport = chapterCount() >= TOTAL_CHAPTERS;
+    var totalChapters = getTotalChaptersByMode(mode);
+    var hasCompletedReport = chapterCount() >= totalChapters;
     var runNonce = asText(forcedRunNonce);
     if (!runNonce && hasCompletedReport) runNonce = Date.now().toString(36);
     var nextReportId = createReportId(nextPayload, mode, partnerPayload, runNonce);
@@ -1319,11 +1415,12 @@
       return;
     }
 
-    var hasCompletedReport = chapterCount() >= TOTAL_CHAPTERS;
+    var totalChapters = getTotalChaptersByMode(mode);
+    var hasCompletedReport = chapterCount() >= totalChapters;
     var runNonce = hasCompletedReport ? Date.now().toString(36) : '';
     var reportId = createReportId(built.payload, mode, partnerPayload, runNonce);
     var alreadyHasProgress = state.reportId === reportId && chapterCount() > 0;
-    if ((alreadyHasProgress && chapterCount() < TOTAL_CHAPTERS) || (state.paidReportId === reportId && chapterCount() < TOTAL_CHAPTERS)) {
+    if ((alreadyHasProgress && chapterCount() < totalChapters) || (state.paidReportId === reportId && chapterCount() < totalChapters)) {
       startGeneration(mode, partnerPayload, runNonce);
       return;
     }
@@ -1375,8 +1472,9 @@
     var ownerName = asText(state.payload && state.payload.name) || '사용자';
     var coverTitle = state.mode === MODE_COMPAT ? ownerName + '님의 커플 연애 비책' : ownerName + '님의 연애 비책';
     var chapterBlocks = [];
+    var totalChapters = getActiveTotalChapters();
 
-    for (var i = 1; i <= TOTAL_CHAPTERS; i += 1) {
+    for (var i = 1; i <= totalChapters; i += 1) {
       var text = asText(state.chapterTexts[i]);
       if (!text) continue;
       var title = asText(state.chapterMeta[i] && state.chapterMeta[i].title) || getChapterTitlesByMode(state.mode)[i - 1] || ('Chapter ' + i);
@@ -1508,7 +1606,9 @@
       return;
     }
     resetState();
+    syncModeSwitch(state.mode);
     syncStartPreviewChapters(state.mode);
+    syncResultNavigation(state.mode);
     refreshSavedReportButton();
     showOnly('lsStartScreen');
   };
@@ -1526,7 +1626,13 @@
     if (state.generating) return;
     resetState();
     syncStartPreviewChapters(state.mode);
-    preparePartnerScreen();
+    syncModeSwitch(state.mode);
+    syncResultNavigation(state.mode);
+    if (state.mode === MODE_COMPAT) {
+      preparePartnerScreen();
+      return;
+    }
+    ensureCoinGateAndStart(MODE_SOLO, null);
   };
 
   window.openLoveSecretLatestReport = function () {
@@ -1586,6 +1692,11 @@
       if (action === 'generateLoveSecret') {
         event.preventDefault();
         window.generateLoveSecret();
+        return;
+      }
+      if (action === 'lsSetMode') {
+        event.preventDefault();
+        setLoveSecretMode(actionEl.getAttribute('data-ls-mode') || MODE_SOLO);
         return;
       }
       if (action === 'openLoveSecretLatestReport') {

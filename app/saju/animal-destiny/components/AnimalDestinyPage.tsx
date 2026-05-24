@@ -95,7 +95,7 @@ export default function AnimalDestinyPage() {
                 input={input}
                 onChange={setInput}
                 onSubmit={handleSubmit}
-                isBusy={status === "calculating" || status === "revealing"}
+                isBusy={false}
                 canSubmit={canSubmit}
               />
             </motion.div>

@@ -207,17 +207,6 @@ const ASTRO_CHAPTER_FOCUS_KEYWORDS = {
   C10: ["목성", "토성", "성장", "철학", "영성"],
   C11: ["트랜짓", "분기 흐름", "Go/Hold/Retreat", "전환점", "실행 전략"],
   C12: ["핵심 정체성", "강점 5", "약점 5", "관계 전략", "최종 봉서"],
-  C13: ["90일 플랜", "관계 실천", "커리어 전략", "재정 전략", "현실 전환", "30일 단위"],
-  K1: ["첫인상", "관계 시작", "심리적 역할", "기대", "핵심 테마"],
-  K2: ["태양 궁합", "달 궁합", "정서 안정", "상처 지점", "정서 회복"],
-  K3: ["금성", "화성", "끌림", "애정 표현", "열정 관리"],
-  K4: ["수성", "말투", "오해", "침묵/회피", "대화법"],
-  K5: ["7하우스", "파트너 역할", "주도권", "결혼/동거", "역할 분담"],
-  K6: ["갈등 트리거", "질투/통제", "회피", "회복 조건", "이별 위기"],
-  K7: ["돈", "일", "생활 리듬", "현실 합의", "장기 운영"],
-  K8: ["토성", "목성", "책임", "성장", "장기 파트너 조건"],
-  K9: ["연간 흐름", "가까워지는 시기", "예민 구간", "거리두기", "관계 선택"],
-  K10: ["강점 5", "약점 5", "사랑/성장/동반자", "원칙", "최종 메시지"],
 };
 
 const ASTRO_DEFAULT_SECTION_LABELS = Object.freeze([
@@ -243,17 +232,6 @@ const ASTRO_CHAPTER_SECTION_LABELS = Object.freeze({
   C10: Object.freeze(["성장·철학·영성 해석", "확장·제한 메커니즘", "장기 과제 적용", "목성/토성 관련 어스펙트", "과신/경직 주의점", "장기 성장 전략", "챕터 요약"]),
   C11: Object.freeze(["트랜짓 핵심 해석", "연간 흐름 메커니즘", "분기별 현실 적용", "주요 트랜짓 어스펙트", "변동성 주의점", "3/6/12개월 전략", "챕터 요약"]),
   C12: Object.freeze(["인생 통합 해석", "핵심 패턴 메커니즘", "관계·일·돈 통합 적용", "핵심 어스펙트 재정리", "장기 리스크 주의점", "마스터플랜 전략", "챕터 요약"]),
-  C13: Object.freeze(["90일 플랜 핵심 설계", "관계 실천 메커니즘", "커리어·재정 현실 적용", "30/60/90일 단계별 과제", "실행 리스크 주의점", "현실 전환 실천 전략", "챕터 요약"]),
-  K1: Object.freeze(["관계 시작 핵심 해석", "첫인상 심리 메커니즘", "관계 초기 적용", "관계 시작 어스펙트", "기대 불일치 주의점", "관계 시작 전략", "챕터 요약"]),
-  K2: Object.freeze(["태양·달 궁합 핵심 해석", "정서 궁합 메커니즘", "감정 교류 적용", "태양/달 궁합 어스펙트", "정서 충돌 주의점", "정서 회복 전략", "챕터 요약"]),
-  K3: Object.freeze(["금성·화성 궁합 핵심 해석", "끌림 메커니즘", "친밀감 현실 적용", "금성/화성 궁합 어스펙트", "열정 과열 주의점", "친밀감 운영 전략", "챕터 요약"]),
-  K4: Object.freeze(["수성 궁합 핵심 해석", "소통 메커니즘", "대화 현실 적용", "수성 관련 궁합 어스펙트", "오해 패턴 주의점", "소통 개선 전략", "챕터 요약"]),
-  K5: Object.freeze(["7하우스 파트너십 해석", "역할 분담 메커니즘", "연애·결혼 적용", "파트너십 어스펙트", "권력 불균형 주의점", "파트너십 전략", "챕터 요약"]),
-  K6: Object.freeze(["갈등 핵심 해석", "상처 메커니즘", "갈등 현실 적용", "갈등 유발 어스펙트", "위기 신호 주의점", "갈등 회복 전략", "챕터 요약"]),
-  K7: Object.freeze(["현실 궁합 핵심 해석", "생활 합의 메커니즘", "돈·일·생활 적용", "현실 운영 어스펙트", "생활 마찰 주의점", "현실 운영 전략", "챕터 요약"]),
-  K8: Object.freeze(["장기 인연 핵심 해석", "성장 메커니즘", "장기 관계 적용", "토성/목성 중심 어스펙트", "장기 리스크 주의점", "장기 성장 전략", "챕터 요약"]),
-  K9: Object.freeze(["연간 관계 흐름 해석", "관계 타이밍 메커니즘", "분기별 관계 적용", "연간 트랜짓 어스펙트", "변동 구간 주의점", "3/6/12개월 관계 전략", "챕터 요약"]),
-  K10: Object.freeze(["최종 궁합 통합 해석", "관계 핵심 메커니즘", "동반자 현실 적용", "핵심 궁합 어스펙트", "장기 관계 주의점", "최종 운영 전략", "챕터 요약"]),
 });
 
 const VEDIC_DASHA_SEQUENCE = [
@@ -1651,7 +1629,7 @@ const PREMIUM_REPORT_KIND_MAP = {
 };
 
 const PREMIUM_REPORT_REQUIRED_CHAPTERS = {
-  ziweiPremium: 12,
+  ziweiPremium: 15,
   sookyoPremium: 13,
   westernAstrologyPremium: 12,
   vedicPremium: 12,
@@ -2080,7 +2058,7 @@ function getPremiumRequiredChapters(reportType, mode = "") {
   if (spec && Number(spec.chapterCount || 0) > 0) {
     return Number(spec.chapterCount);
   }
-  return Number(PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || 13);
+  return Number(PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || (reportType === "ziweiPremium" ? 15 : 13));
 }
 
 function normalizePremiumReportType(value) {
@@ -3289,7 +3267,10 @@ function countPremiumValidChapters(context) {
 
 function resolvePremiumChapterMeta(context, chapterId) {
   const idx = Math.max(0, Number(chapterId || 1) - 1);
-  const fromPlan = Array.isArray(context?.chapterPlan) ? context.chapterPlan[idx] : null;
+  const chapterPlan = Array.isArray(context?.chapterPlan)
+    ? context.chapterPlan
+    : (Array.isArray(context?.derivedData?.chapterPlan) ? context.derivedData.chapterPlan : []);
+  const fromPlan = Array.isArray(chapterPlan) ? chapterPlan[idx] : null;
   const chapterKey = `ch${Number(chapterId || 1)}`;
   const fromCanonical = context?.coreData?.canonicalJson?.chapterData?.[chapterKey] || null;
   return {
@@ -4083,11 +4064,7 @@ function buildPremiumChapterContract(reportType, featureType, mode, chapterId) {
     ];
   } else if (reportType === "westernAstrologyPremium") {
     const chapterKey = String(chapterSpec?.key || "").trim();
-    const modeHint = String(
-      mode
-      || chapterSpec?.mode
-      || (chapterKey.startsWith("K") ? "compatibility" : "personal"),
-    ).toLowerCase();
+    const modeHint = "personal";
     const chapterMeta = resolveAstroChapterMeta(chapterNo, modeHint, chapterKey);
     contract.requiredHeadings = buildAstroRequiredHeadings(chapterMeta, modeHint);
   } else if (reportType === "vedicPremium") {
@@ -9196,10 +9173,6 @@ function buildAstroDataTableForChapter(canonical, meta, chart) {
     C8: ["Sun", "Jupiter", "Saturn", "Mercury"], C9: ["Moon", "Saturn", "Pluto", "Neptune"],
     C10: ["Jupiter", "Saturn", "Uranus", "Sun"], C11: ["Sun", "Moon", "Jupiter", "Saturn", "Uranus"],
     C12: ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn"],
-    C13: ["Sun", "Moon", "Jupiter", "Mars"], K1: ["Sun", "Moon", "Venus"],
-    K2: ["Sun", "Moon"], K3: ["Venus", "Mars"], K4: ["Mercury"], K5: ["Venus", "Saturn", "Jupiter"],
-    K6: ["Mars", "Saturn", "Pluto"], K7: ["Venus", "Jupiter", "Saturn"], K8: ["Jupiter", "Saturn"],
-    K9: ["Sun", "Moon", "Jupiter", "Saturn"], K10: ["Sun", "Moon", "Venus", "Mars", "Jupiter", "Saturn"],
   };
   const focusKeys = CHAPTER_PLANET_FOCUS[chapterKey] || ["Sun", "Moon", "Mercury", "Venus", "Mars"];
   const rows = [];
@@ -9284,10 +9257,7 @@ function buildAstroChapterLocalFallback(canonical, meta, chart, reportType) {
     C6: [sun, moon, mercury, mars], C7: [venus, mars, moon, saturn],
     C8: [sun, jupiter, saturn, mercury], C9: [moon, saturn, pluto, neptune],
     C10: [jupiter, saturn, uranus, sun], C11: [sun, moon, jupiter, saturn, uranus],
-    C12: [sun, moon, mercury, venus, mars, jupiter, saturn], C13: [sun, moon, jupiter, mars],
-    K1: [sun, moon, venus], K2: [sun, moon], K3: [venus, mars], K4: [mercury, sun],
-    K5: [venus, saturn, jupiter], K6: [mars, saturn, pluto], K7: [venus, jupiter, saturn],
-    K8: [jupiter, saturn], K9: [sun, moon, jupiter, saturn], K10: [sun, moon, venus, mars, jupiter, saturn],
+    C12: [sun, moon, mercury, venus, mars, jupiter, saturn],
   };
   const focusPlanets = (FOCUS_MAP[chapterKey] || [sun, moon]).filter(Boolean);
 
@@ -9351,7 +9321,7 @@ function buildAstroChapterLocalFallback(canonical, meta, chart, reportType) {
   const shadowBody = shadowLines.join("\n\n") || "차트 내 긴장 에너지를 인식하고 의식적 선택으로 전환하는 전략이 중요합니다.";
   out.push(`### 6. ${sectionLabels[4]}\n\n${shadowBody}\n\n**원소 균형**: ${elemText}${modeText ? "\n\n**모드 분포**: " + modeText : ""}\n\n원소와 모드 분포를 인식하면 과잉·결핍 패턴을 보완하는 루틴 설계가 가능합니다.`);
 
-  // Section 7: Practice strategy (+ 3/6/12 months for C11/K9)
+  // Section 7: Practice strategy (+ 3/6/12 months for C11)
   const stratLines = focusPlanets.slice(0, 4).map((p) => {
     if (!p || !p.nameEn) return null;
     const ko = formatPlanetKo(p.nameEn);
@@ -9363,7 +9333,7 @@ function buildAstroChapterLocalFallback(canonical, meta, chart, reportType) {
     return `**${ko} 실천**: ${h ? h + "하우스(" + hTheme + ") 영역에서 " : ""}${kw}의 에너지를 일상 루틴에 통합하세요.`;
   }).filter(Boolean);
   let stratSuffix = "";
-  if (chapterKey === "C11" || chapterKey === "K9") {
+  if (chapterKey === "C11") {
     stratSuffix = "\n\n**3개월 전략**: 현재 트랜짓 에너지를 인식하고 변화의 씨앗을 심는 시기입니다. 중요한 결정 전 타이밍을 검토하고 준비도를 높이세요.\n\n**6개월 전략**: 트랜짓 흐름이 중간 정점에 달하는 구간입니다. 관계·커리어·재정 영역에서 누적된 선택의 결과를 점검하고 방향을 조율하세요.\n\n**12개월 전략**: 연간 주기를 마무리하며 다음 사이클을 준비합니다. 완료해야 할 항목을 명확히 하고 새로운 씨앗을 위한 공간을 확보하세요.";
   }
   out.push(`### 7. ${sectionLabels[5]}\n\n${stratLines.join("\n\n") || "차트 에너지를 실전에 적용하는 구체적 루틴을 수립하세요."}\n\n이 챕터의 핵심 에너지를 일상에 통합하려면 작은 단위의 반복 가능한 루틴부터 시작하는 것이 효과적입니다. 해당 행성들이 위치한 하우스 영역에서 의식적인 선택을 늘려갈수록 차트의 잠재력이 현실로 전환됩니다.${stratSuffix}`);
@@ -11002,8 +10972,8 @@ function buildLifebookDownloadHtmlFromSession(reportId) {
 
 function normalizeLoveSecretStatusMode(rawMode, reportId) {
   const mode = String(rawMode || "").trim().toLowerCase();
-  if (mode === "couple" || mode === "compatibility") return "compatibility";
   if (mode === "solo" || mode === "single") return "solo";
+  if (mode === "couple" || mode === "compatibility") return "compatibility";
   const id = String(reportId || "").trim().toLowerCase();
   if (id.endsWith("_compatibility") || id.endsWith("_couple")) return "compatibility";
   return "solo";
@@ -14021,7 +13991,7 @@ function buildZiweiPremiumPayloadFromProfileAndBasicResult({
   profile = {},
   basicZiweiResult = null,
   reportPayload = null,
-  chapterCount = 12,
+  chapterCount = 15,
   totalCategoryCount = 0,
 } = {}) {
   const source = (reportPayload && typeof reportPayload === "object") ? reportPayload : {};
@@ -14060,7 +14030,7 @@ function buildZiweiPremiumPayloadFromProfileAndBasicResult({
       monthly: Array.isArray(luckSource.monthly) ? luckSource.monthly : [],
     },
     basicResultSummary: basicSummary || null,
-    chapterCount: Number.isFinite(Number(chapterCount)) ? Number(chapterCount) : 13,
+    chapterCount: Number.isFinite(Number(chapterCount)) ? Number(chapterCount) : 15,
     totalCategoryCount: Number.isFinite(Number(totalCategoryCount)) ? Number(totalCategoryCount) : 0,
   };
 }
@@ -16892,11 +16862,12 @@ const LOVE_SECRET_CHAPTER_BLUEPRINTS = {
 
 function normalizeLoveMode(modeConfigMode) {
   const mode = String(modeConfigMode || "").toLowerCase();
+  if (mode === "solo" || mode === "single") return "single";
   return mode === "couple" || mode === "compatibility" ? "compatibility" : "single";
 }
 
 function resolveLoveSecretMode(body) {
-  const explicit = String(body.mode || "").toLowerCase();
+  const explicit = String(body.mode || body.reportMode || "").toLowerCase();
   if (explicit === "solo" || explicit === "single") return "solo";
   if (explicit === "couple" || explicit === "compatibility") return "couple";
   const partnerData = stringifyCompact(body.partnerData || body.partner || "", 2400);

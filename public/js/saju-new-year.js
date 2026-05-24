@@ -13,17 +13,30 @@
   var SAJU_DATA_SNIPPET_LIMIT = 1800;
 
   var CHAPTER_DEFINITIONS = [
-    { index: 1, title: '연간 파동 총론 - 올해의 기본 기조', subtitle: '올해 운영의 중심축과 기본 태도' },
-    { index: 2, title: '커리어 전략 - 성과가 나는 월/주의 월', subtitle: '일의 성과 창과 주의 구간 운영' },
-    { index: 3, title: '재물 흐름 - 수익/지출 관리 타이밍', subtitle: '현금흐름 중심의 수익/지출 전략' },
-    { index: 4, title: '관계·인맥 - 협업과 거리두기 전략', subtitle: '사람을 통한 확장과 경계 설계' },
-    { index: 5, title: '연애·가정 - 감정 파동 관리법', subtitle: '가까운 관계의 감정 리듬 관리' },
-    { index: 6, title: '건강·에너지 - 번아웃 방지 설계', subtitle: '회복 루틴과 에너지 운영 시스템' },
+    { index: 1, title: '연간 파동 총론 — 올해의 기본 기조', subtitle: '올해 운영의 중심축과 기본 태도' },
+    { index: 2, title: '커리어 전략 — 성과가 나는 월/주의 월', subtitle: '일의 성과 창과 주의 구간 운영' },
+    { index: 3, title: '재물 흐름 — 수익/지출 관리 타이밍', subtitle: '현금흐름 중심의 수익/지출 전략' },
+    { index: 4, title: '관계·인맥 — 협업과 거리두기 전략', subtitle: '사람을 통한 확장과 경계 설계' },
+    { index: 5, title: '연애·가정 — 감정 파동 관리법', subtitle: '가까운 관계의 감정 리듬 관리' },
+    { index: 6, title: '건강·에너지 — 번아웃 방지 설계', subtitle: '회복 루틴과 에너지 운영 시스템' },
     { index: 7, title: '분기별 핵심 의사결정 포인트', subtitle: '1~4분기 선택 기준과 실행 체크' },
     { index: 8, title: '리스크 시나리오와 대응 플랜', subtitle: '문제 발생 전후 대응 단계 설계' },
     { index: 9, title: '12개월 Go/Stop 월별 테이블', subtitle: '월별 행동 판정과 즉시 실행 지침' },
-    { index: 10, title: '최종 실행 로드맵 - 연말 회수 전략', subtitle: '상하반기 운영과 연말 결과 회수' }
+    { index: 10, title: '최종 실행 로드맵 — 연말 회수 전략', subtitle: '상하반기 운영과 연말 결과 회수' }
   ];
+
+  var CHAPTER_STRUCTURED_LABELS = {
+    1: ['올해 세운의 천간 분석', '올해 세운의 지지 분석', '원국과 세운의 기본 관계', '올해 강해지는 오행', '올해 약해지는 오행', '올해 들어오는 십성', '올해의 용신·희신 작용', '올해의 기신·구신 작용', '올해의 합·충·형·파·해 구조', '올해 운세의 전체 분위기', '올해 가장 중요한 인생 주제', '올해 반드시 잡아야 할 기회', '올해 조심해야 할 흐름', '올해의 한 줄 운세 키워드'],
+    2: ['올해 직업운 총론', '관성으로 보는 직장·조직운', '식상으로 보는 성과·표현운', '재성으로 보는 실적·수익 연결성', '인성으로 보는 공부·자격·문서운', '이직 가능성', '승진·평가운', '사업 확장 가능성', '직장 내 갈등 가능성', '성과가 잘 나는 시기', '실수를 조심해야 하는 시기', '귀인과 협업운', '피해야 할 업무 방식', '올해 커리어 핵심 전략', '직업운 한 줄 조언'],
+    3: ['올해 재물운 총론', '정재 흐름 분석', '편재 흐름 분석', '고정 수입 흐름', '부수입/보너스/투자 운', '수입이 잘 붙는 시기', '큰 지출 주의 시기', '투자/확장 유리 구간', '손실 리스크 흐름', '계약/금전 약속 주의점', '재물을 돕는 오행', '재물을 막는 오행', '돈을 모으는 방법', '피해야 할 소비 습관', '재물운 한 줄 전략'],
+    4: ['올해 관계운 총론', '비견/겁재로 보는 친구·동료운', '관성으로 보는 상사·조직운', '인성으로 보는 멘토·지원운', '재성으로 보는 실리 인맥', '식상으로 보는 소통운', '도움 되는 사람 유형', '거리둘 사람 유형', '협업운', '비즈니스 파트너십운', '갈등 가능성', '오해가 잦은 시기', '귀인 시기', '관계 리셋 타이밍', '관계운 한 줄 조언'],
+    5: ['올해 연애/가정 총론', '싱글 인연운', '기존 관계 흐름', '결혼/약속운', '배우자궁-세운 관계', '남성 명식 재성 흐름', '여성 명식 관성 흐름', '도화/홍염 매력운', '가족 관계 흐름', '감정 기복 시기', '갈등 주의 시기', '관계 심화 시기', '거리/이별 주의 흐름', '가정 안정 전략', '연애·가정 한 줄 조언'],
+    6: ['올해 건강운 총론', '오행별 취약 포인트', '목-간/신경', '화-심장/혈류', '토-소화기', '금-호흡기', '수-신장/수면/면역', '조후 기준 신체 흐름', '피로 누적 시기', '스트레스 정점 시기', '번아웃 가능성', '사고/부상 주의 흐름', '회복에 유리한 리듬', '건강 우선 과제', '건강 한 줄 조언'],
+    7: ['1분기 전체 흐름', '1분기 선택할 것', '1분기 피할 것', '2분기 전체 흐름', '2분기 확장 가능성', '2분기 리스크 주의', '3분기 전체 흐름', '3분기 관계/재물/커리어 변화', '3분기 감정/건강 관리', '4분기 전체 흐름', '4분기 성과 회수 전략', '4분기 정리 과제', '분기 키워드', '분기 Go/Stop 판단', '핵심 결정 타이밍'],
+    8: ['올해 최대 리스크', '원국-세운 충돌 지점', '과합/과파 문제', '강한 충돌 영역', '형/파/해 충돌', '금전 손실 시나리오', '커리어 이슈 시나리오', '관계 이슈 시나리오', '연애/가정 이슈 시나리오', '건강/멘탈 이슈 시나리오', '위기 증폭 조건', '위기 완화 행동 규칙', '조기 경보 신호', '회복 플랜', '리스크 한 줄 전략'],
+    9: ['월별 운세 및 Go/Stop 포인트', '월별 커리어 핵심', '월별 재물 핵심', '월별 관계 핵심', '월별 건강 핵심', '월별 해야 할 것', '월별 피할 것'],
+    10: ['연간 핵심 요약', '반드시 살릴 기회', '반드시 줄일 리스크', '커리어/사업 최종 전략', '재물 최종 전략', '관계 최종 전략', '연애/가정 최종 전략', '건강/멘탈 최종 전략', '상반기 실행 계획', '하반기 실행 계획', '연말 성과 회수 전략', '다음 해로 넘기지 않을 과제', '다음 해 기반 준비', '최종 행동 가이드', '최종 한 줄 조언']
+  };
 
   var MYSTIC_QUOTES = [
     '연간 파동을 월 단위 전략으로 해석하는 중입니다...',
@@ -43,9 +56,59 @@
     refundInFlight: false,
     payload: null,
     chapterTexts: {},
+    chapterStructured: {},
     chapterMeta: {},
     activeChapter: 1
   };
+
+  function safeStructuredText(value) {
+    var raw = String(value == null ? '' : value).trim();
+    if (!raw) return '';
+    if (/about:blank/i.test(raw)) return '';
+    if (/^\s*[\[{]/.test(raw)) return '';
+    return raw;
+  }
+
+  function deriveTextFromChapterJson(chapterJson) {
+    if (!chapterJson || typeof chapterJson !== 'object') return '';
+    var sections = Array.isArray(chapterJson.sections) ? chapterJson.sections : [];
+    var parts = [];
+    for (var i = 0; i < sections.length; i += 1) {
+      var row = sections[i] || {};
+      var body = safeStructuredText(row.body || row.content || '');
+      if (!body) continue;
+      var title = safeStructuredText(row.title || row.label || '');
+      if (title) parts.push('## ' + title + '\n' + body);
+      else parts.push(body);
+    }
+    if (!parts.length) return '';
+    return parts.join('\n\n');
+  }
+
+  function renderStructuredChapterBody(chapter, chapterJson) {
+    if (!chapterJson || typeof chapterJson !== 'object') return '';
+    var sections = Array.isArray(chapterJson.sections) ? chapterJson.sections : [];
+    if (!sections.length) return '';
+
+    var labels = CHAPTER_STRUCTURED_LABELS[Number(chapter)] || [];
+    var out = [];
+
+    for (var i = 0; i < sections.length; i += 1) {
+      var row = sections[i] || {};
+      var content = safeStructuredText(row.body || row.content || '');
+      if (!content) continue;
+      var title = safeStructuredText(row.title || row.label || labels[i] || ('핵심 항목 ' + String(i + 1)));
+      out.push(
+        '<section class="lb-result-article__section">'
+          + '<h4 class="lb-result-article__section-title">' + escapeHtml(title) + '</h4>'
+          + '<div class="lb-result-article__section-body">' + markdownToHtml(content) + '</div>'
+        + '</section>'
+      );
+    }
+
+    if (!out.length) return '';
+    return '<div class="lb-result-article__structured">' + out.join('') + '</div>';
+  }
 
   function qs(id) { return document.getElementById(id); }
 
@@ -797,6 +860,7 @@
         paymentContext: state.paymentContext || null,
         payload: state.payload || null,
         chapterTexts: state.chapterTexts || {},
+        chapterStructured: state.chapterStructured || {},
         chapterMeta: state.chapterMeta || {},
         activeChapter: Number(state.activeChapter || 1),
         updatedAt: new Date().toISOString()
@@ -817,6 +881,7 @@
       state.paymentContext = saved.paymentContext && typeof saved.paymentContext === 'object' ? saved.paymentContext : null;
       state.payload = saved.payload || null;
       state.chapterTexts = saved.chapterTexts && typeof saved.chapterTexts === 'object' ? saved.chapterTexts : {};
+      state.chapterStructured = saved.chapterStructured && typeof saved.chapterStructured === 'object' ? saved.chapterStructured : {};
       state.chapterMeta = saved.chapterMeta && typeof saved.chapterMeta === 'object' ? saved.chapterMeta : {};
       state.activeChapter = Number(saved.activeChapter || 1);
       if (!Number.isFinite(state.activeChapter) || state.activeChapter < 1 || state.activeChapter > TOTAL_CHAPTERS) {
@@ -884,8 +949,11 @@
     var contentEl = qs('nyChapterContent');
     if (!contentEl) return;
     var text = String(state.chapterTexts[chapter] || '').trim();
+    var structured = state.chapterStructured[chapter] || null;
     var meta = state.chapterMeta[chapter] || {};
-    if (!text) {
+    var structuredBody = renderStructuredChapterBody(chapter, structured);
+    var bodyHtml = structuredBody || (text ? markdownToHtml(text) : '');
+    if (!bodyHtml) {
       contentEl.innerHTML = '<p>아직 생성되지 않은 챕터입니다.</p>';
       return;
     }
@@ -896,7 +964,7 @@
       '<p class="lb-result-article__chapter">CHAPTER ' + chapter + '</p>',
       '<h3 class="lb-result-article__title">' + escapeHtml(String(meta.title || CHAPTER_DEFINITIONS[chapter - 1].title || '')) + '</h3>',
       '</header>',
-      '<div class="lb-result-article__body">' + markdownToHtml(text) + '</div>',
+      '<div class="lb-result-article__body">' + bodyHtml + '</div>',
       '</article>'
     ].join('');
   }
@@ -1253,6 +1321,10 @@
       }
 
       state.chapterTexts[chapter] = String(response.text || '').trim();
+      state.chapterStructured[chapter] = response.chapterJson && typeof response.chapterJson === 'object' ? response.chapterJson : null;
+      if (!state.chapterTexts[chapter]) {
+        state.chapterTexts[chapter] = deriveTextFromChapterJson(state.chapterStructured[chapter]);
+      }
       state.chapterMeta[chapter] = response.chapterMeta || {
         title: CHAPTER_DEFINITIONS[chapter - 1].title,
         subtitle: CHAPTER_DEFINITIONS[chapter - 1].subtitle
@@ -1391,12 +1463,15 @@
 
     for (var i = 1; i <= TOTAL_CHAPTERS; i += 1) {
       var text = String(state.chapterTexts[i] || '').trim();
-      if (!text) continue;
+      var structured = state.chapterStructured[i] || null;
+      var structuredBody = renderStructuredChapterBody(i, structured);
+      var chapterBody = structuredBody || (text ? markdownToHtml(text) : '');
+      if (!chapterBody) continue;
       var meta = state.chapterMeta[i] || CHAPTER_DEFINITIONS[i - 1] || {};
       chapterBlocks.push(
         '<section class="lb-print-chapter">'
           + '<h1>' + escapeHtml(String(meta.title || ('Chapter ' + i))) + '</h1>'
-          + markdownToHtml(text)
+          + chapterBody
         + '</section>'
       );
     }

@@ -1,3 +1,5 @@
+import { renderSajuChapter } from "./renderers/index.js";
+
 function esc(value) {
   return String(value == null ? "" : value)
     .replace(/&/g, "&amp;")
@@ -88,24 +90,18 @@ export function renderLifeBookPdf(params = {}) {
     .map((chapter, index) => `<li>${esc(chapter.roman || String(index + 1))}. ${esc(chapter.title || `Chapter ${index + 1}`)}</li>`)
     .join("\n");
 
+  const seenChapterKeys = new Set();
   const chapterBlocks = chapters
     .map((chapter, index) => {
-      const advice = Array.isArray(chapter.practicalAdvice) ? chapter.practicalAdvice : [];
-      return [
-        '<section class="lb-chapter">',
-        `<h1>${esc(chapter.roman || String(index + 1))}. ${esc(chapter.title || `Chapter ${index + 1}`)}</h1>`,
-        chapter.subtitle ? `<p class="lb-subtitle">${esc(chapter.subtitle)}</p>` : "",
-        `<article class="lb-content">${markdownToHtml(chapter.contentMarkdown || "")}</article>`,
-        '<div class="lb-summary-box">',
-        '<h3>핵심 요약</h3>',
-        `<p>${esc(chapter.summary || "")}</p>`,
-        "</div>",
-        advice.length
-          ? `<div class="lb-advice-box"><h3>실전 조언</h3><ul>${advice.map((line) => `<li>${esc(line)}</li>`).join("")}</ul></div>`
-          : "",
-        "</section>",
-      ].join("\n");
+      const chapterKey = String(chapter?.id || chapter?.roman || chapter?.title || `chapter-${index + 1}`)
+        .trim()
+        .toLowerCase();
+      if (!chapterKey) return "";
+      if (seenChapterKeys.has(chapterKey)) return "";
+      seenChapterKeys.add(chapterKey);
+      return renderSajuChapter(chapter, index);
     })
+    .filter(Boolean)
     .join("\n");
 
   const html = [
@@ -131,6 +127,11 @@ export function renderLifeBookPdf(params = {}) {
     '.lb-summary-box,.lb-advice-box{margin-top:14px;padding:12px;border-radius:10px}',
     '.lb-summary-box{background:#f8f0e3;border:1px solid #e1d0b6}',
     '.lb-advice-box{background:#edf7ef;border:1px solid #b9dec0}',
+    '.lb-grid-2{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr));margin-top:14px}',
+    '.lb-section-card{padding:12px;border-radius:10px;background:#f6efe2;border:1px solid #deceb3}',
+    '.lb-split{display:grid;gap:14px;grid-template-columns:minmax(0,2fr) minmax(0,1fr)}',
+    '.lb-side-box{padding:12px;border-radius:10px;background:#f8f0e3;border:1px solid #e1d0b6}',
+    '@media(max-width:900px){.lb-grid-2,.lb-split{grid-template-columns:1fr}}',
     '.lb-closing{padding:18px;border:1px solid #dccfb8;border-radius:12px;background:#fffaf2;margin-top:10px;margin-bottom:18px}',
     '.lb-closing h2{margin:0 0 10px;color:#4f3a21}',
     '.lb-footer{padding:16px;border-radius:12px;background:#f5f5f5;border:1px solid #d9d9d9;color:#4b5563;font-size:12px}',

@@ -450,7 +450,7 @@ export default function NumerologyTarotClient() {
         await document.exitFullscreen();
       }
     } catch {
-      showToast("브라우저 정책으로 전체화면 전환이 제한되었습니다.", "warning");
+      showToast("브라우저 정책으로 전체화면 전환이 제한되었습니다.", "error");
     }
   }
 

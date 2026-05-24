@@ -1,7 +1,7 @@
 "use client";
 /**
  * [프리미엄 자미두수 PDF 기능]
- * - 12개 챕터의 정밀 리포트를 PDF 파일로 생성하여 제공하는 서비스입니다.
+ * - 15개 챕터의 정밀 리포트를 PDF 파일로 생성하여 제공하는 서비스입니다.
  * - public/js/ziwei-book.js 및 전역 window 함수를 사용하여 동작합니다.
  * - '자미두수 심화 기능' 웹 리포트와는 별개의 독립적인 PDF 전용 서비스입니다.
  */
@@ -16,18 +16,21 @@ interface HPremiumZiweiBookSectionProps {
 }
 
 const CHAPTER_META = [
-  { num: 1, title: "I. 자미두수 명반 총론", subtitle: "내 운명의 기본 설계도", icon: "🌌" },
-  { num: 2, title: "II. 명궁 완전 해석", subtitle: "타고난 성격과 인생의 중심축", icon: "👑" },
-  { num: 3, title: "III. 신궁 심층 분석", subtitle: "후천적 삶의 방향과 진짜 욕망", icon: "🧭" },
-  { num: 4, title: "IV. 12궁 완전 해석", subtitle: "인생 영역별 운명 지도", icon: "🏛️" },
-  { num: 5, title: "V. 사화 분석", subtitle: "운명을 움직이는 변화의 버튼", icon: "🔮" },
-  { num: 6, title: "VI. 재물·직업·성공운", subtitle: "현실 성취와 돈의 흐름", icon: "💰" },
-  { num: 7, title: "VII. 연애·결혼·인연운", subtitle: "사랑과 관계의 구조", icon: "💞" },
-  { num: 8, title: "VIII. 인간관계·귀인·사회운", subtitle: "사람을 통해 열리는 운", icon: "🤝" },
-  { num: 9, title: "IX. 건강·심리·복덕운", subtitle: "마음과 몸의 균형", icon: "🧠" },
-  { num: 10, title: "X. 대운 분석", subtitle: "10년 단위 인생 흐름", icon: "🕰️" },
-  { num: 11, title: "XI. 세운·유년운 분석", subtitle: "올해와 가까운 미래의 흐름", icon: "📅" },
-  { num: 12, title: "XII. 최종 종합 리포트", subtitle: "나의 운명 사용법", icon: "🌅" },
+  { num: 1, title: "I. 자미 명반 총론", subtitle: "나의 선천적 우주 지도", icon: "🌌" },
+  { num: 2, title: "II. 명궁(命宮)과 신궁(身宮) 분석", subtitle: "자아의 본질과 인생의 후반전", icon: "🏛️" },
+  { num: 3, title: "III. 선천 사화(四化) 정밀 분석", subtitle: "운명의 네 가지 핵심 동력", icon: "🎯" },
+  { num: 4, title: "IV. 14주성 완전 해석", subtitle: "내 운명을 이끄는 거장들", icon: "👑" },
+  { num: 5, title: "V. 보좌성과 살성의 역학 관계", subtitle: "수호신과 그림자의 비밀", icon: "⚔️" },
+  { num: 6, title: "VI. 재백궁·관록궁", subtitle: "현실적 성취와 부의 그릇", icon: "💰" },
+  { num: 7, title: "VII. 부처궁·자녀궁", subtitle: "인연의 깊이와 가정운", icon: "💑" },
+  { num: 8, title: "VIII. 천이궁·전택궁", subtitle: "이동, 변화, 그리고 자산의 뿌리", icon: "🏡" },
+  { num: 9, title: "IX. 노복궁·형제궁", subtitle: "인맥, 동료, 그리고 사회적 조력", icon: "🤝" },
+  { num: 10, title: "X. 복덕궁·부모궁", subtitle: "정신적 평안과 카르마의 유산", icon: "🧘" },
+  { num: 11, title: "XI. 질액궁", subtitle: "명반이 경고하는 신체 건강 지도", icon: "🏥" },
+  { num: 12, title: "XII. 대한(大限) 정밀 분석", subtitle: "10년 대운의 거대한 파도", icon: "🌀" },
+  { num: 13, title: "XIII. 2026 丙午年 유년 로드맵", subtitle: "12개월 실전 행동 지침", icon: "📅" },
+  { num: 14, title: "XIV. 생애 마스터플랜", subtitle: "시간의 축으로 보는 운명 지도", icon: "🗺️" },
+  { num: 15, title: "XV. 자미 거장의 최종 전략 제언", subtitle: "나의 명반 사용 설명서", icon: "💌" },
 ];
 
 export default function HPremiumZiweiBookSection({
@@ -75,7 +78,7 @@ export default function HPremiumZiweiBookSection({
           <p style={{ color:"rgba(167,139,250,0.72)", fontSize:"0.66rem", letterSpacing:"0.28em", margin:0 }}>ZIWEI DOUSHU PREMIUM · DETAIL INTRO</p>
           <h3 style={{ color:"#fff", fontWeight:900, fontSize:"1.5rem", margin:"8px 0 6px" }}>자미두수 인생 총람 PDF</h3>
           <p style={{ color:"rgba(203,213,225,0.78)", fontSize:"0.88rem", lineHeight:1.8, margin:0 }}>
-            자미두수 12챕터 카테고리를 먼저 확인하고, 버튼 클릭 시 PDF 생성 단계로 진입합니다.
+            자미두수 15챕터 카테고리를 먼저 확인하고, 버튼 클릭 시 PDF 생성 단계로 진입합니다.
           </p>
 
           <div style={{ display:"grid", gap:8, marginTop:12 }}>

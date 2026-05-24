@@ -119,23 +119,9 @@ const ASTRO_PERSONAL_TITLES = [
   "성장·철학·영성 — 목성, 토성이 이끄는 길",
   "시기운과 변화의 흐름 — 지금부터 열리는 하늘의 리듬",
   "최종 인생 전략 — 내 별자리를 현실로 살아내는 법",
-  "90일 현실 전환 플랜 — 관계·커리어·재정 실천 설계",
 ];
 
 const ASTRO_PERSONAL_TARGETS = [4500, 4500, 4300, 4800, 4500, 4000, 4200, 4500, 3800, 3600, 4100, 4300];
-
-const ASTRO_COMPATIBILITY_TITLES = [
-  "두 사람의 우주적 첫인상 — 관계가 시작된 이유",
-  "태양과 달의 궁합 — 자아와 감정의 조화",
-  "금성과 화성의 끌림 — 사랑, 욕망, 애정 표현",
-  "수성과 대화 궁합 — 말, 생각, 오해의 구조",
-  "7하우스와 파트너십 — 연애·결혼 관계의 핵심",
-  "갈등과 상처 패턴 — 충돌 애스펙트와 감정의 그림자",
-  "현실 궁합 — 돈, 일, 생활 리듬의 조화",
-  "장기 인연과 성장 가능성 — 토성·목성의 관계 과제",
-  "올해 두 사람의 관계 흐름",
-  "최종 궁합 봉서 — 사랑, 성장, 동반자 가능성",
-];
 
 export const PREMIUM_PDF_SPECS = {
   saju_new_year_pdf: {
@@ -236,7 +222,7 @@ export const PREMIUM_PDF_SPECS = {
   astrology_premium: {
     title: "프리미엄 점성술",
     featureType: "astrology_premium",
-    supportedModes: ["personal", "compatibility"],
+    supportedModes: ["personal"],
     minTotalChars: 48000,
     targetTotalChars: 52000,
     chaptersByMode: {
@@ -245,7 +231,6 @@ export const PREMIUM_PDF_SPECS = {
         const minChars = Math.max(3000, Math.floor(targetChars * 0.85));
         return makeChapter(`astro_p_${String(idx + 1).padStart(2, "0")}`, title, minChars, targetChars);
       }),
-      compatibility: buildIndexedChapters("astro_c", ASTRO_COMPATIBILITY_TITLES, 3200, 3900),
     },
     legacyReportType: "westernAstrologyPremium",
   },

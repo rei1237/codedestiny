@@ -1,4 +1,5 @@
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
+import { ZiweiPremiumPdfBuilder } from "@/app/components/ziwei-pdf";
 import ZiweiChartClientLoader from "./ZiweiChartClientLoader";
 
 export function generateMetadata() {
@@ -111,6 +112,16 @@ export default function ZiweiChartPage() {
             </article>
           ))}
         </div>
+      </section>
+      <section className="mx-auto max-w-5xl px-4 pb-24">
+        <details className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <summary className="cursor-pointer text-sm font-semibold text-cyan-100">
+            자미두수 15챕터 PDF 빌더 미리보기
+          </summary>
+          <div className="mt-4 rounded-2xl border border-cyan-200/20 bg-[#08111f] p-4 shadow-[0_16px_48px_rgba(2,6,23,0.38)]">
+            <ZiweiPremiumPdfBuilder report={null} />
+          </div>
+        </details>
       </section>
     </main>
   );

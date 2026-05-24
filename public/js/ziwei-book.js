@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var TOTAL_CHAPTERS = 12;
+  var TOTAL_CHAPTERS = 15;
   var POLL_INTERVAL_MS = 2500;
   var MAX_POLL_COUNT = 220;
   var API_TIMEOUT_MS = 420000;
@@ -14,18 +14,21 @@
   ];
 
   var PERSONAL_CHAPTER_META = [
-    { title: 'I. 자미두수 명반 총론', subtitle: '내 운명의 기본 설계도' },
-    { title: 'II. 명궁 완전 해석', subtitle: '타고난 성격과 인생의 중심축' },
-    { title: 'III. 신궁 심층 분석', subtitle: '후천적 삶의 방향과 진짜 욕망' },
-    { title: 'IV. 12궁 완전 해석', subtitle: '인생 영역별 운명 지도' },
-    { title: 'V. 사화 분석', subtitle: '운명을 움직이는 변화의 버튼' },
-    { title: 'VI. 재물·직업·성공운', subtitle: '현실 성취와 돈의 흐름' },
-    { title: 'VII. 연애·결혼·인연운', subtitle: '사랑과 관계의 구조' },
-    { title: 'VIII. 인간관계·귀인·사회운', subtitle: '사람을 통해 열리는 운' },
-    { title: 'IX. 건강·심리·복덕운', subtitle: '마음과 몸의 균형' },
-    { title: 'X. 대운 분석', subtitle: '10년 단위 인생 흐름' },
-    { title: 'XI. 세운·유년운 분석', subtitle: '올해와 가까운 미래의 흐름' },
-    { title: 'XII. 최종 종합 리포트', subtitle: '나의 운명 사용법' }
+    { title: 'I. 자미 명반 총론', subtitle: '나의 선천적 우주 지도' },
+    { title: 'II. 명궁·신궁 분석', subtitle: '자아의 본질과 인생의 후반전' },
+    { title: 'III. 선천 사화 정밀 분석', subtitle: '운명의 네 가지 핵심 동력' },
+    { title: 'IV. 14주성 완전 해석', subtitle: '내 운명을 이끄는 거장들' },
+    { title: 'V. 보좌성·살성 역학', subtitle: '수호신과 그림자의 비밀' },
+    { title: 'VI. 재백궁·관록궁', subtitle: '현실적 성취와 부의 그릇' },
+    { title: 'VII. 부처궁·자녀궁', subtitle: '인연의 깊이와 가정운' },
+    { title: 'VIII. 천이궁·전택궁', subtitle: '이동, 변화, 그리고 자산의 뿌리' },
+    { title: 'IX. 노복궁·형제궁', subtitle: '인맥, 동료, 그리고 사회적 조력' },
+    { title: 'X. 복덕궁·부모궁', subtitle: '정신적 평안과 카르마의 유산' },
+    { title: 'XI. 질액궁', subtitle: '명반이 경고하는 신체 건강 지도' },
+    { title: 'XII. 대한 정밀 분석', subtitle: '10년 대운의 거대한 파도' },
+    { title: 'XIII. 2026 丙午年 유년 로드맵', subtitle: '12개월 실전 행동 지침' },
+    { title: 'XIV. 생애 마스터플랜', subtitle: '시간의 축으로 보는 운명 지도' },
+    { title: 'XV. 자미 거장 최종 전략 제언', subtitle: '나의 명반 사용 설명서' }
   ];
 
   var PERSONAL_CHAPTERS = PERSONAL_CHAPTER_META.map(function (chapter) {
@@ -754,17 +757,20 @@
     // Map chapter index to specific palace by chapter title
     var palaceByChapter = {
       1: '명궁',
-      2: '명궁',
-      3: '신궁',
+      2: '신궁',
+      3: '명궁',
       4: '명궁',
       5: '명궁',
       6: '재백궁',
       7: '부처궁',
-      8: '교우궁',
-      9: '질액궁',
-      10: '명궁',
-      11: '명궁',
-      12: '명궁'
+      8: '천이궁',
+      9: '교우궁',
+      10: '복덕궁',
+      11: '질액궁',
+      12: '명궁',
+      13: '명궁',
+      14: '명궁',
+      15: '명궁'
     };
     
     var targetPalaceName = palaceByChapter[chapterIndex] || '명궁';
@@ -1202,16 +1208,35 @@
     var cta = qs('zbStartBtn');
     var heroDesc = qs('ziweiBookModal') ? qs('ziweiBookModal').querySelector('.lb-start__desc') : null;
     var chLabel = qs('ziweiBookModal') ? qs('ziweiBookModal').querySelector('.lb-start__ch-label') : null;
-    if (subtitle) subtitle.textContent = '나의 명반 기반 12챕터 자미두수 인생 PDF';
+    if (subtitle) subtitle.textContent = '나의 명반 기반 15챕터 자미두수 인생 PDF';
     if (cta) cta.textContent = '🌌 자미두수 인생 총람 생성하기';
     if (heroDesc) heroDesc.innerHTML = '복잡한 부가 화면 없이<br>자미두수 핵심 명반을 정리해<br>최종 PDF 인생 전서를 생성합니다';
-    if (chLabel) chLabel.textContent = '📖 12챕터 구성';
+    if (chLabel) chLabel.textContent = '📖 15챕터 구성';
     renderChapterList();
+  }
+
+  function ensureLoadingDots() {
+    var root = qs('ziweiBookModal');
+    if (!root) return;
+    var wrap = root.querySelector('.lb-loading__dots-wrap');
+    if (!wrap) return;
+
+    var titles = getChapterTitles();
+    var dots = qsa(wrap, '.lb-ch-dot');
+    if (dots.length !== TOTAL_CHAPTERS) {
+      var html = [];
+      for (var i = 0; i < TOTAL_CHAPTERS; i += 1) {
+        var title = escapeHtml(String(titles[i] || ''));
+        html.push('<span id="zbChDot' + i + '" class="lb-ch-dot lb-ch-dot--pending" data-zbch="' + (i + 1) + '" title="Ch.' + (i + 1) + ' ' + title + '"></span>');
+      }
+      wrap.innerHTML = html.join('');
+    }
   }
 
   function renderChapterList() {
     var root = qs('ziweiBookModal');
     if (!root) return;
+    ensureLoadingDots();
     var list = root.querySelector('.lb-start__ch-list');
     if (!list) return;
 
@@ -1656,6 +1681,7 @@
   }
 
   function resetDots(activeChapter, doneChapter) {
+    ensureLoadingDots();
     var active = Math.max(1, Math.min(TOTAL_CHAPTERS, Number(activeChapter || 1)));
     var done = Math.max(0, Math.min(TOTAL_CHAPTERS, Number(doneChapter || 0)));
     var dots = qsa(qs('ziweiBookModal'), '.lb-ch-dot');
