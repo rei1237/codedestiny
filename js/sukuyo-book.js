@@ -1470,6 +1470,7 @@
       _showScreen('skStartScreen');
       alert(String((err && err.message) || '숙요 PDF 생성 준비 중 오류가 발생했습니다.'));
     });
+    });
   };
 
   function _buildSukuyoCalcSummaryRows(profile){

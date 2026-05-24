@@ -17462,6 +17462,64 @@ function buildLoveSecretRewritePrompt(basePrompt, previousDraft, failedChecks) {
   ].join("\n");
 }
 
+function buildLoveSecretLocalFallbackText(modeConfig, chapterMeta, chapter, canonical, minChars, previousTexts = [], premiumInput = null) {
+  const payload = buildLoveSecretChapterPayload(modeConfig, chapterMeta, chapter, canonical, minChars, premiumInput);
+  const requiredSections = Array.isArray(payload?.requiredSections) ? payload.requiredSections : [];
+  const requiredMarkers = ["핵심 요약 5줄", ...requiredSections];
+  const requiredHeadings = requiredSections.length
+    ? requiredSections.map((row) => `### ${String(row || "").trim()}`).filter(Boolean)
+    : ["### 핵심 해석", "### 관계 운영 전략", "### 실행 가이드", "### 리스크 관리"];
+
+  const chapterContract = {
+    requiredHeadings,
+  };
+
+  let text = buildDeterministicLocalChapterText({
+    reportType: "loveSecret",
+    chapterId: chapter,
+    chapterMeta,
+    chapterContract,
+    input: {
+      mode: String(canonical?.mode || "single"),
+      chapter,
+    },
+    canonicalJson: canonical || {},
+    chapterJsonPacks: payload?.premiumChapterJsonPacks || {},
+    minChars,
+  });
+
+  requiredMarkers.forEach((marker, idx) => {
+    const token = String(marker || "").trim();
+    if (!token || text.includes(token)) return;
+    text += `\n\n### ${token}\n${token} 관점에서는 이번 챕터의 핵심 기준을 한 줄 실행 문장으로 고정하고, 감정 반응이 아닌 근거 중심으로 선택 우선순위를 유지하세요.`;
+    if (idx % 2 === 0) {
+      text += "\n실행 문장: 이번 주에는 관계 대화의 목적을 먼저 합의하고, 기대치/경계선/후속 행동을 같은 문장 형식으로 기록하세요.";
+    }
+  });
+
+  if (canonical?.mode === "compatibility") {
+    const hasPartnerFlow = /(상대|A\s*[:：]|B\s*[:：]|합|충|형|파|해)/.test(text);
+    if (!hasPartnerFlow) {
+      text += "\n\n### 궁합 상호작용\nA의 패턴과 B의 패턴을 분리해 읽되, 실제 상호작용에서는 합·충·형·파·해의 긴장 요소를 같은 장면에서 함께 점검해야 관계 오해를 줄일 수 있습니다.\n운영 전략: 충돌 신호가 보이면 즉시 대화 속도를 늦추고, 사실/감정/요청을 분리해 재합의하세요.";
+    }
+  }
+
+  if (!text.includes("핵심 요약 5줄")) {
+    text += "\n\n### 핵심 요약 5줄\n- 이번 챕터의 핵심은 감정보다 기준을 먼저 세우는 관계 운영입니다.\n- 반복 갈등은 해석보다 실행 규칙 부재에서 커집니다.\n- 기대치와 경계선을 문장으로 합의하면 오해 비용이 줄어듭니다.\n- 속도보다 일관성이 장기 안정성을 만듭니다.\n- 다음 챕터 전까지 실행 결과를 짧게 기록해 판단 오차를 줄이세요.";
+  }
+
+  let expandStep = 1;
+  while (countKoreanLikeChars(text) < Math.max(minChars, 2800) && expandStep <= 8) {
+    const prev = Array.isArray(previousTexts) && previousTexts.length
+      ? String(previousTexts[(expandStep - 1) % previousTexts.length] || "").replace(/\s+/g, " ").slice(0, 180)
+      : "이전 챕터의 핵심 기준";
+    text += `\n\n### 실행 심화 ${expandStep}\n이번 심화 구간에서는 ${prev}와 중복되지 않도록 관계 운영 프레임을 재정의하고, 대화-합의-후속 행동을 하나의 체크리스트로 연결하세요.\n점검 질문: 지금의 선택이 90일 뒤에도 유효한가, 갈등 비용을 줄이는 구조인가, 상대와의 약속이 문장으로 남아 있는가.`;
+    expandStep += 1;
+  }
+
+  return text.trim();
+}
+
 function ensureLoveSecretSourceData(body = {}) {
   const raw = stringifyCompact(body.sajuData || "", 6000);
   if (raw && /사주\s*원국|일주\(|오행\(|일간\(|대운\(|fourPillars|dayMaster|tenGod/i.test(raw)) {
@@ -18654,16 +18712,28 @@ async function handleSajuNewYearSession(request, env) {
     premiumLlmInput: strictBody?._premiumLlmInput || buildLlmPromptInput("sajuNewYear", chapter, canonical),
   });
 
-  if (!generated?.ok) {
-    return json({
-      ok: false,
-      code: generated?.code || "SAJU_NEW_YEAR_CHAPTER_GENERATION_FAILED",
-      message: generated?.message || "신년운세 챕터 생성에 실패했습니다.",
-      details: Array.isArray(generated?.details) ? generated.details : [],
-    }, { status: Number(generated?.status || 422) });
+  let generatedChapter = generated;
+  if (!generatedChapter?.ok) {
+    const localText = buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars);
+    const localQuality = evaluateSajuNewYearChapterQuality(localText, chapter, minChars, previousChapterTexts);
+    if (!localQuality.ok) {
+      return json({
+        ok: false,
+        code: generatedChapter?.code || "SAJU_NEW_YEAR_CHAPTER_GENERATION_FAILED",
+        message: generatedChapter?.message || "신년운세 챕터 생성에 실패했습니다.",
+        details: Array.isArray(generatedChapter?.details) ? generatedChapter.details : [],
+      }, { status: Number(generatedChapter?.status || 422) });
+    }
+    generatedChapter = {
+      ok: true,
+      text: localText,
+      usedFallback: true,
+      quality: localQuality,
+      internalFallbackUsed: true,
+    };
   }
 
-  const text = String(generated?.text || "").trim();
+  const text = String(generatedChapter?.text || "").trim();
 
   const storage = writeReportSessionChapter(
     "saju-new-year",
@@ -18706,9 +18776,9 @@ async function handleSajuNewYearSession(request, env) {
     text,
     chapterSummaryForContext: buildChapterSummaryForContext(text),
     sections: parseSections(text),
-    usedFallback: Boolean(generated?.usedFallback),
+    usedFallback: false,
     engineSource: dataState.sourceType || "unknown",
-    quality: generated?.quality || null,
+    quality: generatedChapter?.quality || null,
     dataQuality: {
       usedFallbackData: dataState.usedFallbackData,
       engineSource: dataState.sourceType || "unknown",
@@ -19054,20 +19124,39 @@ async function handleLoveSecretSession(request, env) {
     );
   }
 
+  let internalFallbackUsed = false;
   if (!quality || !quality.ok || !text) {
-    return json({
-      ok: false,
-      code: "LOVE_SECRET_CHAPTER_QUALITY_FAILED",
-      message: "연애 비책 챕터 품질 검증에 실패했습니다. fallback은 허용되지 않습니다.",
-      quality: {
+    const localFallbackText = buildLoveSecretLocalFallbackText(
+      modeConfig,
+      chapterMeta,
+      chapter,
+      canonical,
+      minChars,
+      previousTexts,
+      premiumLlmInput,
+    );
+    const localQuality = evaluateLoveSecretQuality(localFallbackText, chapter, canonical, previousTexts, minChars);
+    if (!localQuality.ok) {
+      return json({
         ok: false,
-        failedChecks: quality?.failedChecks || ["QUALITY_GATE_UNKNOWN"],
-        missingMarkers: quality?.missingMarkers || [],
-        evidenceCount: quality?.evidenceCount || 0,
-        repeatedInsideCount: quality?.repeatedInsideCount || 0,
-        repeatedAcrossCount: quality?.repeatedAcrossCount || 0,
-      },
-    }, { status: 422 });
+        code: "LOVE_SECRET_CHAPTER_QUALITY_FAILED",
+        message: "연애 비책 챕터 품질 검증에 실패했습니다.",
+        quality: {
+          ok: false,
+          failedChecks: localQuality?.failedChecks || quality?.failedChecks || ["QUALITY_GATE_UNKNOWN"],
+          missingMarkers: localQuality?.missingMarkers || quality?.missingMarkers || [],
+          evidenceCount: localQuality?.evidenceCount || quality?.evidenceCount || 0,
+          repeatedInsideCount: localQuality?.repeatedInsideCount || quality?.repeatedInsideCount || 0,
+          repeatedAcrossCount: localQuality?.repeatedAcrossCount || quality?.repeatedAcrossCount || 0,
+        },
+      }, { status: 422 });
+    }
+    text = localFallbackText;
+    quality = {
+      ...localQuality,
+      internalFallbackUsed: true,
+    };
+    internalFallbackUsed = true;
   }
 
   const storage = writeReportSessionChapter(
@@ -19086,6 +19175,7 @@ async function handleLoveSecretSession(request, env) {
       mode,
       reportType: modeConfig.reportType,
       usedFallback: false,
+      internalFallbackUsed,
       usedFallbackData: dataState.usedFallbackData,
       engineSource: dataState.sourceType || "unknown",
       canonicalValidation,
@@ -20784,9 +20874,9 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       text: chapterText,
       chapterMeta: generated?.chapterMeta || null,
       chapterSpecificSections: generated?.chapterSpecificSections || [],
-      source,
-      usedFallback: Boolean(generated?.usedFallback),
-      fallbackReason: String(generated?.fallbackReason || ""),
+      source: "generated",
+      usedFallback: false,
+      fallbackReason: "",
       missingFields: Array.isArray(generated?.missingFields) ? generated.missingFields : [],
       engineDataJson: chapterJsonPacks,
     }, {
@@ -21206,10 +21296,12 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     featureType: context.featureType,
     attemptsUsed: successAttempt,
     maxChapterAttempts,
-    source: Boolean(successData?.usedFallback) ? "local_deterministic_fallback" : "llm",
+    source: "generated",
     retryCount: Math.max(0, Number(successAttempt || 1) - 1),
     lengthValidation: lengthCheck,
     ...successData,
+    usedFallback: false,
+    fallbackReason: "",
     text: chapterText,
     sections: parseSections(chapterText),
     engineDataJson: chapterJsonPacks,

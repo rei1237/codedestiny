@@ -127,6 +127,12 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
         minCost: isCompat ? 690 : 590,
         windowMinutes: 120,
       },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: isCompat ? "자미두수 프리미엄 PDF 궁합 리포트 생성" : "자미두수 프리미엄 PDF 리포트 생성",
+        minCost: isCompat ? 690 : 590,
+        windowMinutes: 120,
+      },
     ];
   }
 

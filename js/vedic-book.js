@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var TOTAL_CHAPTERS = 12;
+  var TOTAL_CHAPTERS = 13;
   var API_TIMEOUT_MS = 360000;
   var POLL_INTERVAL_MS = 1800;
   var LOADING_QUOTES = [
@@ -88,52 +88,6 @@
 
   function delay(ms) {
     return new Promise(function (resolve) { setTimeout(resolve, ms); });
-  }
-
-  function normalizeMissingFields(value) {
-    if (!Array.isArray(value)) return [];
-    return value.map(function (item) {
-      return String(item || '').trim();
-    }).filter(Boolean);
-  }
-
-  function describeVedicMissingFields(missingFields) {
-    var map = {
-      profileId: '선택된 프로필',
-      name: '이름',
-      birthDate: '생년월일',
-      birthTime: '출생시간',
-      birthPlace: '출생지',
-      location: '출생지',
-      timezone: '타임존',
-      timezoneName: '타임존',
-      latitude: '위도',
-      longitude: '경도',
-      lat: '위도',
-      lon: '경도',
-      selectedProfileId: '선택된 프로필',
-      'core.lagna': '라그나',
-      'core.moonSign': '달 별자리',
-      'core.moonNakshatra': '달 나크샤트라',
-      grahas: '9개 행성 데이터',
-      'rashiChart.houses': '12하우스 데이터',
-      chapterInputs: '챕터 입력값',
-    };
-
-    return normalizeMissingFields(missingFields).map(function (field) {
-      return map[field] || field;
-    });
-  }
-
-  function setErrorWithDetails(message, missingFields, stage, refundMessage) {
-    var lines = [String(message || '생성 중 오류가 발생했습니다.').trim()];
-    var stageText = String(stage || '').trim();
-    if (stageText) lines.push('단계: ' + stageText);
-    var described = describeVedicMissingFields(missingFields);
-    if (described.length) lines.push('부족한 정보: ' + described.join(', '));
-    var refundText = String(refundMessage || '').trim();
-    if (refundText) lines.push(refundText);
-    setError(lines.join('\n'));
   }
 
   function normalizeCalType(value) {
@@ -382,10 +336,6 @@
     if (!prepared || !prepared.ok || !prepared.reportSessionId) {
       return {
         ok: false,
-        stage: 'prepare',
-        code: String((prepared && prepared.code) || ''),
-        status: Number((prepared && prepared.status) || 0),
-        details: prepared || null,
         message: buildPreflightMessage(prepared, '결제 확인/세션 준비에 실패했습니다.'),
       };
     }
@@ -425,10 +375,6 @@
       if (!prepared || !prepared.ok || !prepared.reportSessionId) {
         return {
           ok: false,
-          stage: 'prepare:recover',
-          code: String((prepared && prepared.code) || ''),
-          status: Number((prepared && prepared.status) || 0),
-          details: prepared || null,
           message: buildPreflightMessage(prepared, '세션 복구 중 실패했습니다.'),
         };
       }
@@ -438,10 +384,6 @@
     if (!preflight || !preflight.ok) {
       return {
         ok: false,
-        stage: 'preflight',
-        code: String((preflight && preflight.code) || ''),
-        status: Number((preflight && preflight.status) || 0),
-        details: preflight || null,
         message: buildPreflightMessage(preflight, '생성 전 데이터 점검(preflight)에서 실패했습니다.'),
       };
     }
@@ -470,32 +412,30 @@
     var minute = Number((birth && birth.minute) || (parsedTime && parsedTime.minute) || row.birthMinute || row.minute);
     var calType = normalizeCalType((birth && (birth.calType || birth.calendarType)) || row.calType || row.calendarType || 'solar');
     var location = (row.location && typeof row.location === 'object') ? row.location : {};
-    var hasBirthTime = Number.isFinite(hour) && Number.isFinite(minute);
-    var birthPlace = String(row.birthPlace || row.place || location.birthPlace || '').trim();
 
     return {
       profileId: String(row.profileId || row.id || '').trim(),
       id: String(row.id || row.profileId || '').trim(),
       name: String(row.name || row.nickname || row.profileName || '사용자'),
       gender: String(row.gender || ''),
-      birthPlace: birthPlace,
+      birthPlace: String(row.birthPlace || row.place || location.birthPlace || '').trim(),
       birth: {
         year: year,
         month: month,
         day: day,
-        hour: hasBirthTime ? hour : null,
-        minute: hasBirthTime ? minute : null,
+        hour: Number.isFinite(hour) ? hour : 12,
+        minute: Number.isFinite(minute) ? minute : 0,
         calType: calType,
         calendarType: calType,
         timeUnknown: !!((birth && (birth.timeUnknown || birth.birthTimeUnknown || birth.unknownTime)) || row.timeUnknown || row.birthTimeUnknown),
         birthDate: [year, String(month).padStart(2, '0'), String(day).padStart(2, '0')].join('-'),
-        birthTime: hasBirthTime ? (String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0')) : ''
+        birthTime: String(Number.isFinite(hour) ? hour : 12).padStart(2, '0') + ':' + String(Number.isFinite(minute) ? minute : 0).padStart(2, '0')
       },
       location: {
-        tz: String(location.tz || row.timezone || row.tz || '').trim(),
-        lat: Number.isFinite(Number(location.lat)) ? Number(location.lat) : null,
-        lng: Number.isFinite(Number(location.lng)) ? Number(location.lng) : null,
-        birthPlace: birthPlace
+        tz: String(location.tz || row.timezone || row.tz || 'Asia/Seoul').trim() || 'Asia/Seoul',
+        lat: Number(Number.isFinite(Number(location.lat)) ? Number(location.lat) : 37.5665),
+        lng: Number(Number.isFinite(Number(location.lng)) ? Number(location.lng) : 126.9780),
+        birthPlace: String(location.birthPlace || row.birthPlace || row.place || '').trim()
       }
     };
   }
@@ -528,7 +468,6 @@
       var parsedTime = parseTimeParts(user.birthTime || '');
       if (!parsedDate) return null;
       var calType = normalizeCalType(user.calType || user.calendarType || 'solar');
-      var hasBirthTime = Number.isFinite(Number(parsedTime && parsedTime.hour)) && Number.isFinite(Number(parsedTime && parsedTime.minute));
       return {
         profileId: String(user.profileId || user.id || '').trim(),
         id: String(user.id || user.profileId || '').trim(),
@@ -539,18 +478,18 @@
           year: Number(parsedDate.year),
           month: Number(parsedDate.month),
           day: Number(parsedDate.day),
-          hour: hasBirthTime ? Number(parsedTime.hour) : null,
-          minute: hasBirthTime ? Number(parsedTime.minute) : null,
+          hour: parsedTime ? Number(parsedTime.hour) : 12,
+          minute: parsedTime ? Number(parsedTime.minute) : 0,
           calType: calType,
           calendarType: calType,
           timeUnknown: !!(user.timeUnknown || user.birthTimeUnknown),
           birthDate: [parsedDate.year, String(parsedDate.month).padStart(2, '0'), String(parsedDate.day).padStart(2, '0')].join('-'),
-          birthTime: hasBirthTime ? (String(parsedTime.hour).padStart(2, '0') + ':' + String(parsedTime.minute).padStart(2, '0')) : ''
+          birthTime: String(parsedTime ? parsedTime.hour : 12).padStart(2, '0') + ':' + String(parsedTime ? parsedTime.minute : 0).padStart(2, '0')
         },
         location: {
-          tz: String(user.timezone || user.tz || '').trim(),
-          lat: null,
-          lng: null,
+          tz: String(user.timezone || user.tz || 'Asia/Seoul').trim() || 'Asia/Seoul',
+          lat: 37.5665,
+          lng: 126.9780,
           birthPlace: String(user.birthPlace || user.place || '').trim()
         }
       };
@@ -575,10 +514,8 @@
     if (!profile || !profile.birth) return '생년월일 정보를 찾을 수 없습니다.';
     var b = profile.birth;
     var date = [b.year, String(b.month || '').padStart(2, '0'), String(b.day || '').padStart(2, '0')].join('-');
-    var hasTime = Number.isFinite(Number(b.hour)) && Number.isFinite(Number(b.minute));
-    var time = hasTime
-      ? (String(Number(b.hour)).padStart(2, '0') + ':' + String(Number(b.minute)).padStart(2, '0'))
-      : '시간 미상';
+    var time = String(Number.isFinite(Number(b.hour)) ? Number(b.hour) : 12).padStart(2, '0')
+      + ':' + String(Number.isFinite(Number(b.minute)) ? Number(b.minute) : 0).padStart(2, '0');
     var cal = String(b.calType || b.calendarType || 'solar').toLowerCase();
     var calLabel = cal === 'lunar' ? '음력' : (cal === 'lunar_leap' ? '음력(윤달)' : '양력');
     return [String(profile.name || '사용자') + ' · ' + date, calLabel + ' · ' + time].join(' · ');
@@ -673,18 +610,15 @@
     var dateRaw = String((qs('vdPartnerBirthDate') && qs('vdPartnerBirthDate').value) || '').trim();
     var dm = dateRaw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
     if (!dm) return null;
-    var hourRaw = String((qs('vdPartnerHour') && qs('vdPartnerHour').value) || '').trim();
-    var minuteRaw = String((qs('vdPartnerMinute') && qs('vdPartnerMinute').value) || '').trim();
-    var hour = hourRaw === '' ? null : Number(hourRaw);
-    var minute = minuteRaw === '' ? null : Number(minuteRaw);
-    if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
+    var hour = Number((qs('vdPartnerHour') && qs('vdPartnerHour').value) || 12);
+    var minute = Number((qs('vdPartnerMinute') && qs('vdPartnerMinute').value) || 0);
     return {
       name: String((qs('vdPartnerName') && qs('vdPartnerName').value) || '').trim() || '상대',
       year: Number(dm[1]),
       month: Number(dm[2]),
       day: Number(dm[3]),
-      hour: Math.max(0, Math.min(23, hour)),
-      minute: Math.max(0, Math.min(59, minute))
+      hour: Number.isFinite(hour) ? Math.max(0, Math.min(23, hour)) : 12,
+      minute: Number.isFinite(minute) ? Math.max(0, Math.min(59, minute)) : 0
     };
   }
 
@@ -694,24 +628,25 @@
     var location = profile.location || {};
     var mode = getSelectedMode();
     var profileId = String(profile.profileId || profile.id || '').trim();
-    var hasBirthTime = Number.isFinite(Number(birth.hour)) && Number.isFinite(Number(birth.minute));
     var birthDate = [
       Number(birth.year || 0),
       String(Number(birth.month || 0)).padStart(2, '0'),
       String(Number(birth.day || 0)).padStart(2, '0')
     ].join('-');
-    var birthTime = hasBirthTime
-      ? (String(Number(birth.hour)).padStart(2, '0') + ':' + String(Number(birth.minute)).padStart(2, '0'))
-      : '';
+    var birthTime = String(Number.isFinite(Number(birth.hour)) ? Number(birth.hour) : 12).padStart(2, '0')
+      + ':' + String(Number.isFinite(Number(birth.minute)) ? Number(birth.minute) : 0).padStart(2, '0');
     var calendarType = normalizeCalType(birth.calType || birth.calendarType || 'solar');
     var timeUnknown = !!(birth.timeUnknown || birth.birthTimeUnknown || birth.unknownTime);
     var isLunar = calendarType === 'lunar' || calendarType === 'lunar_leap';
     var birthPlace = String(profile.birthPlace || location.birthPlace || profile.place || '').trim();
-    var lat = Number.isFinite(Number(location.lat)) ? Number(location.lat) : null;
-    var lon = Number.isFinite(Number(location.lng)) ? Number(location.lng) : null;
+    var lat = Number(Number.isFinite(Number(location.lat)) ? Number(location.lat) : 37.5665);
+    var lon = Number(Number.isFinite(Number(location.lng)) ? Number(location.lng) : 126.9780);
     var birthPlaceEffective = birthPlace;
     if (!birthPlaceEffective && Number.isFinite(lat) && Number.isFinite(lon)) {
       birthPlaceEffective = '좌표기반(' + lat.toFixed(4) + ',' + lon.toFixed(4) + ')';
+    }
+    if (!birthPlaceEffective) {
+      birthPlaceEffective = String(location.tz || 'Asia/Seoul').trim() || '출생지 미기재';
     }
 
     var body = {
@@ -727,8 +662,8 @@
       year: Number(birth.year || 0),
       month: Number(birth.month || 0),
       day: Number(birth.day || 0),
-      hour: hasBirthTime ? Number(birth.hour) : null,
-      minute: hasBirthTime ? Number(birth.minute) : null,
+      hour: Number(Number.isFinite(Number(birth.hour)) ? birth.hour : 12),
+      minute: Number(Number.isFinite(Number(birth.minute)) ? birth.minute : 0),
       birthDate: birthDate,
       birthTime: birthTime,
       calType: calendarType,
@@ -736,8 +671,8 @@
       timeUnknown: timeUnknown,
       isLunar: isLunar,
       birthPlace: birthPlaceEffective,
-      timezoneName: String(location.tz || '').trim(),
-      timezone: String(location.tz || '').trim(),
+      timezoneName: String(location.tz || 'Asia/Seoul'),
+      timezone: String(location.tz || 'Asia/Seoul'),
       lat: lat,
       lon: lon,
       birthData: {
@@ -747,8 +682,8 @@
         year: Number(birth.year || 0),
         month: Number(birth.month || 0),
         day: Number(birth.day || 0),
-        hour: hasBirthTime ? Number(birth.hour) : null,
-        minute: hasBirthTime ? Number(birth.minute) : null,
+        hour: Number(Number.isFinite(Number(birth.hour)) ? birth.hour : 12),
+        minute: Number(Number.isFinite(Number(birth.minute)) ? birth.minute : 0),
         birthDate: birthDate,
         birthTime: birthTime,
         calType: calendarType,
@@ -756,8 +691,8 @@
         timeUnknown: timeUnknown,
         isLunar: isLunar,
         birthPlace: birthPlaceEffective,
-        timezoneName: String(location.tz || '').trim(),
-        timezone: String(location.tz || '').trim(),
+        timezoneName: String(location.tz || 'Asia/Seoul'),
+        timezone: String(location.tz || 'Asia/Seoul'),
         lat: lat,
         lon: lon
       },
@@ -771,13 +706,13 @@
         isLunar: isLunar,
         timeUnknown: timeUnknown,
         birthPlace: birthPlaceEffective,
-        timezone: String(location.tz || '').trim()
+        timezone: String(location.tz || 'Asia/Seoul')
       }
     };
 
     if (mode === 'compatibility') {
       var partner = readPartnerInput();
-      if (!partner) return { ok: false, message: '궁합 모드는 상대 생년월일과 출생시간이 필요합니다.', stage: 'InputValidation', missingFields: ['partnerBirthDate', 'partnerBirthTime'] };
+      if (!partner) return { ok: false, message: '궁합 모드는 상대 생년월일이 필요합니다.' };
       body.partnerName = partner.name;
       body.partnerYear = partner.year;
       body.partnerMonth = partner.month;
@@ -793,10 +728,10 @@
         minute: partner.minute,
         birthDate: [partner.year, String(partner.month).padStart(2, '0'), String(partner.day).padStart(2, '0')].join('-'),
         birthTime: String(partner.hour).padStart(2, '0') + ':' + String(partner.minute).padStart(2, '0'),
-        timezoneName: String(location.tz || '').trim(),
-        timezone: String(location.tz || '').trim(),
-        lat: Number.isFinite(Number(location.lat)) ? Number(location.lat) : null,
-        lon: Number.isFinite(Number(location.lng)) ? Number(location.lng) : null
+        timezoneName: String(location.tz || 'Asia/Seoul'),
+        timezone: String(location.tz || 'Asia/Seoul'),
+        lat: Number(Number.isFinite(Number(location.lat)) ? Number(location.lat) : 37.5665),
+        lon: Number(Number.isFinite(Number(location.lng)) ? Number(location.lng) : 126.9780)
       };
     }
 
@@ -824,10 +759,9 @@
     var nextChapter = Math.max(1, Math.min(TOTAL_CHAPTERS, currentChapter || 1));
     var progress = Math.round((completed / TOTAL_CHAPTERS) * 100);
     var flow = state.mode === 'compatibility' ? VEDIC_LOADING_FLOW_COMPAT : VEDIC_LOADING_FLOW_PERSONAL;
-    var explicitMessage = String(payload && payload.message || '').trim();
-    var message = explicitMessage || (status === 'completed'
+    var message = status === 'completed'
       ? '베다 리포트 최종 편집을 마무리하고 있습니다...'
-      : String(flow[Math.max(0, Math.min(flow.length - 1, nextChapter - 1))] || '베다 챕터를 생성하는 중입니다...'));
+      : String(flow[Math.max(0, Math.min(flow.length - 1, nextChapter - 1))] || '베다 챕터를 생성하는 중입니다...');
 
     var bar = qs('vdProgressBar');
     var text = qs('vdProgressText');
@@ -1394,7 +1328,7 @@
 
     var requestInput = buildRequestBody();
     if (!requestInput.ok) {
-      setErrorWithDetails(requestInput.message || '입력값을 확인해 주세요.', requestInput.missingFields || [], requestInput.stage || 'InputValidation');
+      setError(requestInput.message || '입력값을 확인해 주세요.');
       return;
     }
 
@@ -1407,50 +1341,31 @@
     state.lastRequestBody = requestInput.body;
 
     showOnly('vdLoadingScreen');
-    setLoadingProgress({ currentChapter: 0, status: 'generating', message: '프로필 데이터 확인 중' });
+    setLoadingProgress({ currentChapter: 1, status: 'generating', message: '결제 확인 중...' });
 
     try {
-      setLoadingProgress({ currentChapter: 0, status: 'generating', message: '출생지와 타임존 확인 중' });
-      setLoadingProgress({ currentChapter: 0, status: 'generating', message: '베다 차트 계산 중' });
-      var preflight = await ensureVedicPremiumPreflight(requestInput.body);
-      if (!preflight.ok) {
-        logVedicError('PreflightFailed', {
-          message: String(preflight.message || 'preflight failed'),
-          stage: String(preflight.stage || ''),
-          code: String(preflight.code || ''),
-          status: Number(preflight.status || 0),
-          missingFields: normalizeMissingFields(preflight.details && preflight.details.missingFields),
-          mode: String(requestInput.body && requestInput.body.mode || ''),
-          hasBirthPlace: !!(requestInput.body && requestInput.body.birthPlace),
-          hasTimezone: !!(requestInput.body && requestInput.body.timezone),
-          hasLatLon: !!((requestInput.body && requestInput.body.lat != null) && (requestInput.body && requestInput.body.lon != null))
-        });
-        var refundedOnPreflightFail = await attemptVedicAutoRefund('베다 프리미엄 preflight 실패 자동 환불');
-        state.paidGateKey = '';
-        var preflightCode = String(preflight.code || '').toUpperCase();
-        var refundMessage = refundedOnPreflightFail ? '차감된 코인이 복구되었습니다.' : '코인은 차감되지 않았거나 자동 복구되지 않았습니다.';
-        var userMessage = preflightCode === 'VEDIC_INPUT_MISSING'
-          ? '베다점 PDF 생성에 필요한 출생 정보가 부족합니다.'
-          : (preflightCode === 'VEDIC_GEO_TIMEZONE_MISSING'
-            ? '베다 차트 계산에 필요한 출생지/위도/경도/타임존 정보가 부족합니다.'
-            : (preflightCode === 'VEDIC_CHART_ENGINE_TIMEOUT'
-              ? '현재 베다 차트 계산 엔진이 응답하지 않습니다. 잠시 후 다시 시도해 주세요.'
-              : (preflightCode === 'VEDIC_CHART_BUILD_FAILED'
-                ? '베다 차트 계산에 실패했습니다. 출생시간, 출생지, 타임존 정보를 확인해 주세요.'
-                : String(preflight.message || '베다 차트 계산에 필요한 데이터를 확인하지 못했습니다.'))));
-        setErrorWithDetails(userMessage, normalizeMissingFields(preflight.details && preflight.details.missingFields), String(preflight.stage || 'Preflight'), refundMessage);
-        return;
-      }
-
-      setLoadingProgress({ currentChapter: 0, status: 'generating', message: 'PDF 데이터 구성 중' });
-
       var gateOk = await ensureVedicCoinGate(requestInput.body);
       if (!gateOk) {
         showOnly('vdStartScreen');
         return;
       }
 
-      setLoadingProgress({ currentChapter: 1, status: 'generating', message: '챕터 1/12 생성 준비 중' });
+      setLoadingProgress({ currentChapter: 1, status: 'generating', message: '생성 전 데이터 점검 중...' });
+      var preflight = await ensureVedicPremiumPreflight(requestInput.body);
+      if (!preflight.ok) {
+        logVedicError('PreflightFailed', {
+          message: String(preflight.message || 'preflight failed'),
+          mode: String(requestInput.body && requestInput.body.mode || ''),
+          hasBirthPlace: !!(requestInput.body && requestInput.body.birthPlace),
+          lat: Number(requestInput.body && requestInput.body.lat),
+          lon: Number(requestInput.body && requestInput.body.lon)
+        });
+        await attemptVedicAutoRefund('베다 프리미엄 preflight 실패 자동 환불');
+        state.paidGateKey = '';
+        setError(String(preflight.message || '생성 전 데이터 점검에 실패했습니다.'));
+        return;
+      }
+
       setLoadingProgress({ currentChapter: 1, status: 'generating', message: '리포트 생성을 시작합니다...' });
 
       var res = await requestJson('/api/premium/vedic/generate', {
@@ -1483,7 +1398,7 @@
             mode: String(requestInput.body && requestInput.body.mode || '')
           });
         }
-        setErrorWithDetails(String((res.data && res.data.message) || fallbackRun && fallbackRun.message || '베다 리포트 생성 시작에 실패했습니다.'), normalizeMissingFields((res.data && res.data.missingFields) || (fallbackRun && fallbackRun.missingFields) || []), String((res.data && res.data.stage) || 'ChapterGenerate'), refundedOnStartFail ? '차감된 코인이 복구되었습니다.' : '');
+        setError(String((res.data && res.data.message) || fallbackRun && fallbackRun.message || '베다 리포트 생성 시작에 실패했습니다.'));
         return;
       }
 
@@ -1507,13 +1422,13 @@
           fallbackMessage: String(reportIdFallback && reportIdFallback.message || ''),
           mode: String(requestInput.body && requestInput.body.mode || '')
         });
-        setErrorWithDetails(String(reportIdFallback && reportIdFallback.message || 'reportId를 받지 못했습니다. 잠시 후 다시 시도해 주세요.'), normalizeMissingFields(reportIdFallback && reportIdFallback.missingFields), String(reportIdFallback && reportIdFallback.stage || 'PdfRender'), refundedOnReportIdFail ? '차감된 코인이 복구되었습니다.' : '');
+        setError(String(reportIdFallback && reportIdFallback.message || 'reportId를 받지 못했습니다. 잠시 후 다시 시도해 주세요.'));
         return;
       }
 
       var done = await pollStatusLoop();
       if (!done && qs('vdLoadingScreen') && qs('vdLoadingScreen').style.display !== 'none') {
-        setErrorWithDetails('리포트 생성 중 문제가 발생했습니다.', [], 'PdfRender');
+        setError('리포트 생성 중 문제가 발생했습니다.');
       }
     } catch (error) {
       try {
@@ -1521,7 +1436,7 @@
       } catch (_) {}
       await attemptVedicAutoRefund('베다 프리미엄 예외 자동 환불');
       state.paidGateKey = '';
-      setErrorWithDetails(String(error && error.message || '베다 리포트 생성 중 오류가 발생했습니다.'), [], 'PdfRender', '차감된 코인이 복구되었는지 확인해 주세요.');
+      setError(String(error && error.message || '베다 리포트 생성 중 오류가 발생했습니다.'));
     } finally {
       state.generating = false;
     }
