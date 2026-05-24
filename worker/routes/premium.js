@@ -16616,53 +16616,34 @@ async function handleVedicLife(request, env, authInfo = null) {
     payloadValid: Boolean(reportPayloadValidation?.ok),
   });
 
-  let generated;
-  try {
-    generated = await generateVedicPremiumChapter(
-      env,
-      { ...strictBody, _premiumLlmInput: runtimeLlmInput },
-      input,
-      chapter,
-      meta,
-      canonicalVedicChart,
-      reportType,
-      chapterPlan,
-      previousChapterTexts,
-    );
-  } catch (error) {
-    console.error("[VedicPremium][ChapterGenerateThrow]", {
-      reportId,
-      reportType,
-      chapter,
-      chapterKey: meta?.key || "",
-      message: String(error?.message || error || "VEDIC_CHAPTER_GENERATE_THROWN"),
-      stack: String(error?.stack || ""),
-    });
+  logPremiumPipelineStage("VedicChapterLocalOnly", {
+    reportId,
+    reportType,
+    chapter,
+    chapterKey: meta?.key || "",
+  });
+  const localVedicText = buildVedicLocalFallbackChapter(chapter, meta, canonicalVedicChart, reportType);
+  const localVedicMissing = vedicMissingMarkers(localVedicText, chapter, reportType, meta);
+  if (localVedicMissing.length > 0) {
     return json({
       ok: false,
-      code: "VEDIC_CHAPTER_GENERATION_THROWN",
-      message: String(error?.message || "베다 챕터 생성 중 예외가 발생했습니다."),
+      code: "VEDIC_LOCAL_CHAPTER_STRUCTURE_FAILED",
+      message: "로컬 베다 챕터 구조 검증에 실패했습니다.",
+      details: localVedicMissing,
     }, { status: 422 });
   }
-
-  if (!generated?.ok) {
-    console.error("[VedicPremium][ChapterGenerateFailed]", {
-      reportId,
-      reportType,
-      chapter,
-      chapterKey: meta?.key || "",
-      code: generated?.code || "VEDIC_CHAPTER_GENERATION_FAILED",
-      message: generated?.message || "베다 챕터 생성에 실패했습니다.",
-      details: Array.isArray(generated?.details) ? generated.details : [],
-      warnings: Array.isArray(generated?.warnings) ? generated.warnings : [],
-    });
-    return json({
-      ok: false,
-      code: generated?.code || "VEDIC_CHAPTER_GENERATION_FAILED",
-      message: generated?.message || "베다 챕터 생성에 실패했습니다.",
-      details: Array.isArray(generated?.details) ? generated.details : [],
-    }, { status: Number(generated?.status || 422) });
-  }
+  const generated = {
+    ok: true,
+    text: localVedicText,
+    sections: parseSections(localVedicText),
+    actualChars: localVedicText.length,
+    usedFallback: true,
+    quality: {
+      missingMarkers: [],
+      repeatedSentenceCount: 0,
+    },
+    warnings: ["VEDIC_LOCAL_ONLY_MODE"],
+  };
 
   const safeGeneratedText = sanitizePremiumChapterText(generated.text);
   const currentChapterPlan = chapterPlan[chapter - 1] || {};
@@ -19882,37 +19863,24 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
     strictBody?.previousChapterTexts,
     getStoredChapterTexts("saju-new-year", reportId, chapter),
   );
-  const generated = await generateSajuNewYearChapterWithGemini(env, {
-    chapter,
-    chapterMeta,
-    canonical,
-    minChars,
-    targetChars,
-    previousChapterTexts,
-    strictPayloadMode,
-    premiumLlmInput: strictBody?._premiumLlmInput || buildLlmPromptInput("sajuNewYear", chapter, canonical),
-  });
-
-  let generatedChapter = generated;
-  if (!generatedChapter?.ok) {
-    const localText = buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars);
-    const localQuality = evaluateSajuNewYearChapterQuality(localText, chapter, minChars, previousChapterTexts);
-    if (!localQuality.ok) {
-      return json({
-        ok: false,
-        code: generatedChapter?.code || "SAJU_NEW_YEAR_CHAPTER_GENERATION_FAILED",
-        message: generatedChapter?.message || "신년운세 챕터 생성에 실패했습니다.",
-        details: Array.isArray(generatedChapter?.details) ? generatedChapter.details : [],
-      }, { status: Number(generatedChapter?.status || 422) });
-    }
-    generatedChapter = {
-      ok: true,
-      text: localText,
-      usedFallback: true,
-      quality: localQuality,
-      internalFallbackUsed: true,
-    };
+  const localText = buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars);
+  const localQuality = evaluateSajuNewYearChapterQuality(localText, chapter, minChars, previousChapterTexts);
+  if (!localQuality.ok) {
+    return json({
+      ok: false,
+      code: "SAJU_NEW_YEAR_LOCAL_CHAPTER_QUALITY_FAILED",
+      message: "신년운세 로컬 챕터 품질 검증에 실패했습니다.",
+      details: localQuality.failedChecks || [],
+    }, { status: 422 });
   }
+
+  const generatedChapter = {
+    ok: true,
+    text: localText,
+    usedFallback: true,
+    quality: localQuality,
+    internalFallbackUsed: true,
+  };
 
   const text = String(generatedChapter?.text || "").trim();
 
@@ -20046,6 +20014,7 @@ async function handleLifebookSession(request, env, authInfo = null) {
       body: effectiveBody,
       normalizedInput: input,
       strictMode: strictPayloadMode,
+      localOnly: true,
       reportId,
     });
 
@@ -20134,6 +20103,7 @@ async function handleLifebookSession(request, env, authInfo = null) {
     body: effectiveBody,
     normalizedInput: input,
     strictMode: strictPayloadMode,
+    localOnly: true,
     reportId,
     requestedChapter: chapter,
     previousTexts,
@@ -20295,72 +20265,38 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
     getStoredChapterTexts("love-secret", reportId, chapter),
   );
 
-  const loveSecretGenerationOptions = {
-    temperature: 0.78,
-    topP: 0.92,
-    maxOutputTokens: 12288,
-    timeoutMs: Number(env.LOVE_SECRET_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 85000),
-    maxAttemptsPerPair: Number(env.LOVE_SECRET_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 3),
-  };
-
   const premiumLlmInput = strictBody?._premiumLlmInput || buildLlmPromptInput("loveSecret", chapter, canonical);
 
-  let prompt = buildLoveSecretPrompt(modeConfig, chapterMeta, chapter, canonical, minChars, previousTexts, premiumLlmInput);
-  let text = "";
-  let quality = null;
-  const generationPasses = Math.max(3, Math.min(5, Number(env.LOVE_SECRET_GEMINI_GENERATION_PASSES || 4)));
-  for (let attempt = 0; attempt < generationPasses; attempt += 1) {
-    const passOptions = {
-      ...loveSecretGenerationOptions,
-      temperature: Math.min(0.94, Number(loveSecretGenerationOptions.temperature || 0.78) + (0.05 * attempt)),
-    };
-    const candidate = await callGemini(env, prompt, ["LOVE_SECRET_GEMINI_MODEL"], passOptions);
-    if (!candidate || !candidate.trim()) continue;
-
-    text = candidate.trim();
-    quality = evaluateLoveSecretQuality(text, chapter, canonical, previousTexts, minChars);
-    if (quality.ok) break;
-    prompt = buildLoveSecretRewritePrompt(
-      buildLoveSecretPrompt(modeConfig, chapterMeta, chapter, canonical, minChars, previousTexts, premiumLlmInput),
-      text,
-      [...(quality.failedChecks || []), ...(quality.missingMarkers || [])]
-    );
-  }
-
-  let internalFallbackUsed = false;
-  if (!quality || !quality.ok || !text) {
-    const localFallbackText = buildLoveSecretLocalFallbackText(
-      modeConfig,
-      chapterMeta,
-      chapter,
-      canonical,
-      minChars,
-      previousTexts,
-      premiumLlmInput,
-    );
-    const localQuality = evaluateLoveSecretQuality(localFallbackText, chapter, canonical, previousTexts, minChars);
-    if (!localQuality.ok) {
-      return json({
+  const text = buildLoveSecretLocalFallbackText(
+    modeConfig,
+    chapterMeta,
+    chapter,
+    canonical,
+    minChars,
+    previousTexts,
+    premiumLlmInput,
+  );
+  const localQuality = evaluateLoveSecretQuality(text, chapter, canonical, previousTexts, minChars);
+  if (!localQuality.ok) {
+    return json({
+      ok: false,
+      code: "LOVE_SECRET_LOCAL_CHAPTER_QUALITY_FAILED",
+      message: "연애 비책 로컬 챕터 품질 검증에 실패했습니다.",
+      quality: {
         ok: false,
-        code: "LOVE_SECRET_CHAPTER_QUALITY_FAILED",
-        message: "연애 비책 챕터 품질 검증에 실패했습니다.",
-        quality: {
-          ok: false,
-          failedChecks: localQuality?.failedChecks || quality?.failedChecks || ["QUALITY_GATE_UNKNOWN"],
-          missingMarkers: localQuality?.missingMarkers || quality?.missingMarkers || [],
-          evidenceCount: localQuality?.evidenceCount || quality?.evidenceCount || 0,
-          repeatedInsideCount: localQuality?.repeatedInsideCount || quality?.repeatedInsideCount || 0,
-          repeatedAcrossCount: localQuality?.repeatedAcrossCount || quality?.repeatedAcrossCount || 0,
-        },
-      }, { status: 422 });
-    }
-    text = localFallbackText;
-    quality = {
-      ...localQuality,
-      internalFallbackUsed: true,
-    };
-    internalFallbackUsed = true;
+        failedChecks: localQuality?.failedChecks || ["QUALITY_GATE_UNKNOWN"],
+        missingMarkers: localQuality?.missingMarkers || [],
+        evidenceCount: localQuality?.evidenceCount || 0,
+        repeatedInsideCount: localQuality?.repeatedInsideCount || 0,
+        repeatedAcrossCount: localQuality?.repeatedAcrossCount || 0,
+      },
+    }, { status: 422 });
   }
+  const quality = {
+    ...localQuality,
+    internalFallbackUsed: true,
+  };
+  const internalFallbackUsed = true;
 
   const storage = writeReportSessionChapter(
     "love-secret",
@@ -20409,7 +20345,7 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
     text,
     chapterSummaryForContext: buildChapterSummaryForContext(text),
     sections: parseSections(text),
-    usedFallback: false,
+    usedFallback: true,
     engineSource: dataState.sourceType || "unknown",
     quality,
     canonicalSajuLoveReport: canonical,

@@ -309,6 +309,7 @@ export async function generateLifeBookPdf(params = {}) {
   const body = params.body || {};
   const normalizedInput = params.normalizedInput || {};
   const strictMode = params.strictMode === true;
+  const localOnly = params.localOnly === true;
   const requestedChapter = Number(params.requestedChapter || 0);
   const reportId = String(params.reportId || "").trim();
   const onProgress = typeof params.onProgress === "function" ? params.onProgress : null;
@@ -390,6 +391,7 @@ export async function generateLifeBookPdf(params = {}) {
       chapterConfig,
       lifeBookInputData,
       strictMode,
+      forceLocal: localOnly,
       maxRetries: 2,
       previousTexts: [
         ...previousTexts,
@@ -450,7 +452,7 @@ export async function generateLifeBookPdf(params = {}) {
   }
 
   if (requestedChapter >= 1) {
-    const singleSource = warnings.some((w) => String(w?.warning || "").includes("LOCAL")) ? "local" : "api";
+    const singleSource = localOnly || warnings.some((w) => String(w?.warning || "").includes("LOCAL")) ? "local" : "api";
     return {
       ok: true,
       source: singleSource,
@@ -527,6 +529,7 @@ export async function generateLifeBookPdf(params = {}) {
         chapterConfig,
         lifeBookInputData,
         strictMode: false,
+        forceLocal: localOnly,
         maxRetries: 1,
         previousTexts: [
           ...previousTexts,
@@ -582,7 +585,9 @@ export async function generateLifeBookPdf(params = {}) {
     return marker.includes("LOCAL") || marker.includes("FALLBACK");
   });
   const hasApi = chapters.length > 0;
-  const source = hasLocal && hasApi ? "mixed" : (hasLocal ? "local" : "api");
+  const source = localOnly
+    ? "local"
+    : (hasLocal && hasApi ? "mixed" : (hasLocal ? "local" : "api"));
 
   return {
     ok: true,
