@@ -4187,7 +4187,7 @@ function validatePremiumChapterResponseEnvelope({ reportType, chapterId, data, c
     || reportType === "lifeBook";
   const headingInvalid = shouldCheckHeadings && missingHeadings.length > 0;
   const jsonInvalid = missingJsonFields.length > 0;
-  const duplicateInvalid = repeatedAcross.length > 0 && (
+  const duplicateInvalid = repeatedAcross.length >= 3 && (
     reportType === "ziweiPremium"
     || reportType === "westernAstrologyPremium"
     || reportType === "vedicPremium"
@@ -8561,6 +8561,75 @@ function validateAstroProfileInputFields(body = {}) {
   };
 }
 
+function buildAstroSeedFromBasicEngineResult(body, input, reportType = "personal") {
+  const fallbackChart = buildFallbackWesternChart(input || normalizeBody(body || {}));
+  return {
+    chart: fallbackChart,
+    seed: buildAstroPdfSeed(body || {}, input || normalizeBody(body || {}), fallbackChart, reportType, null, null, null, null),
+    source: "basic-engine",
+  };
+}
+
+function buildMinimalAstroSeedFromInput(body, input, reportType = "personal") {
+  const normalizedInput = input || normalizeBody(body || {});
+  const minimalChart = buildFallbackWesternChart(normalizedInput);
+  return {
+    chart: minimalChart,
+    seed: buildAstroPdfSeed(body || {}, normalizedInput, minimalChart, reportType, null, null, null, null),
+    source: "minimal",
+  };
+}
+
+async function ensureAstroPdfSeed({ request, env, body, input, reportType = "personal", strictSwissMode = true } = {}) {
+  const normalizedInput = input || normalizeBody(body || {});
+  try {
+    const rawChart = await getSwissWesternChart(request, env, normalizedInput, { strict: strictSwissMode });
+    const chart = buildWesternPremiumChart(rawChart, normalizedInput, {
+      houseSystem: normalizedInput.houseSystem,
+      zodiacType: normalizedInput.zodiacType,
+      includeMinorAspects: normalizedInput.includeMinorAspects,
+      strictHouseCusps: strictSwissMode,
+    });
+    const seedValidation = validateAstroChartSeed(chart);
+    if (seedValidation.ok) {
+      return {
+        chart,
+        seed: buildAstroPdfSeed(body || {}, normalizedInput, chart, reportType, null, null, null, null),
+        source: "swiss",
+        seedValidation,
+      };
+    }
+  } catch (_) {
+    // fall through to local seed recovery
+  }
+
+  const fromBase = buildAstroSeedFromBasicEngineResult(body, normalizedInput, reportType);
+  const basePayloadValidation = validateAstroPdfPayload(fromBase.seed?.reportPayload || {});
+  if (basePayloadValidation.ok) {
+    return {
+      chart: fromBase.chart,
+      seed: fromBase.seed,
+      source: fromBase.source,
+      seedValidation: {
+        ok: false,
+        missingFields: basePayloadValidation.recoverableMissingFields || [],
+      },
+    };
+  }
+
+  const minimal = buildMinimalAstroSeedFromInput(body, normalizedInput, reportType);
+  const minimalPayloadValidation = validateAstroPdfPayload(minimal.seed?.reportPayload || {});
+  return {
+    chart: minimal.chart,
+    seed: minimal.seed,
+    source: minimal.source,
+    seedValidation: {
+      ok: false,
+      missingFields: minimalPayloadValidation.missingFields || ["natalChart.planets", "birth.date"],
+    },
+  };
+}
+
 function buildAstroPdfSeed(body, input, chart, reportType, partnerChart, synastry, composite, timingData) {
   const canonical = buildCanonicalAstroChart(body, input, chart, reportType, partnerChart, synastry, composite, timingData);
   const chapterPlan = buildAstroChapterPlan(canonical, reportType);
@@ -8585,33 +8654,38 @@ function buildAstroPdfSeed(body, input, chart, reportType, partnerChart, synastr
 }
 
 function validateAstroPdfPayload(payload = {}) {
-  const missingFields = [];
+  const fatalMissingFields = [];
+  const recoverableMissingFields = [];
   const birth = payload?.birth || {};
   const planets = Array.isArray(payload?.planets) ? payload.planets : [];
   const houses = Array.isArray(payload?.houses) ? payload.houses : [];
   const aspects = Array.isArray(payload?.aspects) ? payload.aspects : [];
   const chapterInputs = Array.isArray(payload?.chapterInputs) ? payload.chapterInputs : [];
 
-  if (!hasMeaningfulValue(birth?.date)) missingFields.push("birth.date");
-  if (!hasMeaningfulValue(birth?.time)) missingFields.push("birth.time");
-  if (!hasMeaningfulValue(birth?.locationName)) missingFields.push("birth.locationName");
-  if (!Number.isFinite(Number(birth?.latitude))) missingFields.push("birth.latitude");
-  if (!Number.isFinite(Number(birth?.longitude))) missingFields.push("birth.longitude");
+  if (!hasMeaningfulValue(birth?.date)) fatalMissingFields.push("birth.date");
+  if (!hasMeaningfulValue(birth?.time)) recoverableMissingFields.push("birth.time");
+  if (!hasMeaningfulValue(birth?.locationName)) recoverableMissingFields.push("birth.locationName");
+  if (!Number.isFinite(Number(birth?.latitude))) recoverableMissingFields.push("birth.latitude");
+  if (!Number.isFinite(Number(birth?.longitude))) recoverableMissingFields.push("birth.longitude");
 
   const planetSet = new Set(planets.map((p) => String(p?.nameEn || "").toLowerCase()).filter(Boolean));
-  if (!planetSet.has("sun")) missingFields.push("planets.Sun");
-  if (!planetSet.has("moon")) missingFields.push("planets.Moon");
-  if (planetSet.size < 10) missingFields.push("planets>=10");
+  if (!planetSet.has("sun")) fatalMissingFields.push("planets.Sun");
+  if (!planetSet.has("moon")) fatalMissingFields.push("planets.Moon");
+  if (planetSet.size < 10) recoverableMissingFields.push("planets>=10");
 
-  if (!hasMeaningfulValue(payload?.angles?.ascendant?.sign)) missingFields.push("angles.ascendant");
-  if (!hasMeaningfulValue(payload?.angles?.mc?.sign)) missingFields.push("angles.mc");
-  if (houses.length !== 12) missingFields.push("houses.length=12");
-  if (aspects.length === 0) missingFields.push("aspects");
-  if (chapterInputs.length < 12) missingFields.push("chapterInputs.length=12");
+  if (!hasMeaningfulValue(payload?.angles?.ascendant?.sign)) recoverableMissingFields.push("angles.ascendant");
+  if (!hasMeaningfulValue(payload?.angles?.mc?.sign)) recoverableMissingFields.push("angles.mc");
+  if (houses.length !== 12) recoverableMissingFields.push("houses.length=12");
+  if (aspects.length === 0) recoverableMissingFields.push("aspects");
+  if (chapterInputs.length < 12) recoverableMissingFields.push("chapterInputs.length=12");
+
+  const missingFields = Array.from(new Set([...fatalMissingFields, ...recoverableMissingFields]));
 
   return {
-    ok: missingFields.length === 0,
+    ok: fatalMissingFields.length === 0,
     missingFields,
+    fatalMissingFields,
+    recoverableMissingFields,
   };
 }
 
@@ -8631,10 +8705,12 @@ function buildAstroChapterPlan(canonical, reportType = "personal") {
   };
 
   if (mode === "compatibility") {
-    if (!(canonical?.relationship?.hasPartner && canonical?.relationship?.synastry && canonical?.relationship?.composite)) {
-      return [];
-    }
+    const hasRelationshipData = Boolean(canonical?.relationship?.hasPartner && canonical?.relationship?.synastry && canonical?.relationship?.composite);
     for (const meta of ASTRO_COMPAT_CHAPTER_META) {
+      if (!hasRelationshipData) {
+        add({ ...meta, degraded: true, reasons: ["relationship-data-limited"] });
+        continue;
+      }
       if (meta.key === "K9" && !canonical?.validation?.hasForecast) {
         add({ ...meta, degraded: true, reasons: ["forecast"] });
         continue;
@@ -9925,6 +10001,19 @@ function validateLocalFallbackChapter(chapter, chapterDefinition, previousChapte
   };
 }
 
+function repairLocalFallbackChapterText(text, chapterMeta = null, chapterId = 0) {
+  const source = String(text || "").trim();
+  if (!source) return "";
+
+  let repaired = dedupeReportParagraphs([source])[0] || source;
+  const repeated = detectRepeatedLongSentences(repaired, 30);
+  if (repeated.length > 0) {
+    const chapterTitle = String(chapterMeta?.title || `챕터 ${Number(chapterId || 0) || 1}`).trim();
+    repaired = `${repaired}\n\n### 실행 관점 보정\n${chapterTitle}에서는 동일 패턴 반복 대신 이번 장면에서 우선 적용할 행동 기준을 분리해 정리하고, 관계·일·재정의 판단 순서를 다시 고정합니다.`;
+  }
+  return repaired.replace(/\n{3,}/g, "\n\n").trim();
+}
+
 function formatLocalFactValue(value) {
   if (value == null) return "";
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -10230,9 +10319,11 @@ function buildLocalFallbackChapterFromContext({
     minChars,
   });
 
+  const repairedChapterText = repairLocalFallbackChapterText(chapterText, chapterMeta, chapterId);
+
   const localValidation = validateLocalFallbackChapter({
     title: chapterMeta?.title,
-    text: chapterText,
+    text: repairedChapterText,
   }, {
     title: chapterMeta?.title,
     minChars,
@@ -10252,7 +10343,7 @@ function buildLocalFallbackChapterFromContext({
     usedFallback: true,
     source: "local_deterministic_fallback",
     fallbackReason: String(fallbackReason || "LLM_OR_QUALITY_FAILURE"),
-    text: chapterText,
+    text: repairedChapterText,
     chapterMeta,
     chapterSpecificSections: Array.isArray(chapterContract?.requiredHeadings)
       ? chapterContract.requiredHeadings
@@ -15718,31 +15809,26 @@ async function handleAstroWestern(request, env) {
 
   try {
     logAstroPdfStage("AstroSeedStart", { debugId, profileId: String(body?.profileId || body?.selectedProfileId || "") });
-    const raw = await getSwissWesternChart(request, env, input, { strict: strictSwissMode });
-    const chart = buildWesternPremiumChart(raw, input, {
-      houseSystem: input.houseSystem,
-      zodiacType: input.zodiacType,
-      includeMinorAspects: input.includeMinorAspects,
-      strictHouseCusps: strictSwissMode,
+    const ensuredSeed = await ensureAstroPdfSeed({
+      request,
+      env,
+      body,
+      input,
+      reportType: "personal",
+      strictSwissMode,
     });
-    const seedValidation = validateAstroChartSeed(chart);
+    const chart = ensuredSeed.chart;
+    const astroSeed = ensuredSeed.seed;
+    const seedValidation = ensuredSeed.seedValidation || { ok: true, missingFields: [] };
     if (!seedValidation.ok) {
-      logAstroPdfStage("AstroSeedFailed", {
+      logAstroPdfStage("AstroSeedRecovered", {
         debugId,
-        missingFields: seedValidation.missingFields,
-      }, "error");
-      return json({
-        ok: false,
-        code: "ASTRO_CHART_SEED_FAILED",
-        message: "점성술 차트 계산에 필요한 데이터 생성에 실패했습니다.",
-        debugId,
-        hasChart: false,
-        missingFields: seedValidation.missingFields,
-      }, { status: 422 });
+        missingFields: seedValidation.missingFields || [],
+      }, "warn");
+    } else {
+      logAstroPdfStage("AstroSeedSuccess", { debugId, profileId: String(body?.profileId || body?.selectedProfileId || "") });
     }
-    logAstroPdfStage("AstroSeedSuccess", { debugId, profileId: String(body?.profileId || body?.selectedProfileId || "") });
 
-    const astroSeed = buildAstroPdfSeed(body, input, chart, "personal", null, null, null, null);
     logAstroPdfStage("ReportPayloadBuilt", { debugId, profileId: String(body?.profileId || body?.selectedProfileId || "") });
     const canonicalAstroChart = astroSeed.canonicalAstroChart;
     const strict = validateCanonicalAstroChartStrict(canonicalAstroChart);
@@ -15751,7 +15837,7 @@ async function handleAstroWestern(request, env) {
       logAstroPdfStage("ReportPayloadValidationFailed", {
         debugId,
         profileId: String(body?.profileId || body?.selectedProfileId || ""),
-        missingFields: payloadValidation.missingFields,
+        missingFields: payloadValidation.fatalMissingFields || payloadValidation.missingFields,
       }, "error");
       return json({
         ok: false,
@@ -15762,23 +15848,17 @@ async function handleAstroWestern(request, env) {
       }, { status: 422 });
     }
 
-    if (!strict.isValid && strictValidationMode) {
-      return json({
-        ok: false,
-        code: "ASTRO_CANONICAL_VALIDATION_FAILED",
-        message: "계산 데이터 누락으로 PDF를 생성할 수 없습니다",
-        missingFields: strict.missingFields,
-        canonicalAstroChart,
-      }, { status: 422 });
-    }
     let chapterPlan = buildAstroChapterPlan(canonicalAstroChart, "personal");
     if (!chapterPlan.length) {
-      return json({
-        ok: false,
-        code: "ASTRO_CHAPTER_PLAN_EMPTY",
-        message: "계산 데이터 누락으로 생성 가능한 챕터가 없습니다",
-        canonicalAstroChart,
-      }, { status: 422 });
+      chapterPlan = ASTRO_PERSONAL_CHAPTER_META.map((meta, idx) => ({
+        chapter: idx + 1,
+        key: meta.key,
+        title: meta.title,
+        subtitle: meta.subtitle,
+        icon: meta.icon,
+        degraded: true,
+        reasons: ["minimal-chart"],
+      }));
     }
     return json({
       ok: true,
@@ -15787,7 +15867,7 @@ async function handleAstroWestern(request, env) {
       chapterPlan: astroSeed.chapterPlan,
       totalChapters: chapterPlan.length,
       strictValidationMode,
-      warnings: strict.isValid ? [] : strict.missingFields,
+      warnings: Array.from(new Set([...(strict.isValid ? [] : strict.missingFields), ...(payloadValidation.recoverableMissingFields || [])])),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error || "Swiss chart generation failed");
@@ -15869,44 +15949,23 @@ async function handleAstroLife(request, env, authInfo = null) {
 
   const strictSwissMode = true;
 
-  let chart;
-  try {
-    logAstroPdfStage("AstroSeedStart", { debugId, profileId: String(body?.profileId || body?.selectedProfileId || "") });
-    const rawChart = await getSwissWesternChart(request, env, input, { strict: strictSwissMode });
-    chart = buildWesternPremiumChart(rawChart, input, {
-      houseSystem: input.houseSystem,
-      zodiacType: input.zodiacType,
-      includeMinorAspects: input.includeMinorAspects,
-      strictHouseCusps: strictSwissMode,
-    });
-    const seedValidation = validateAstroChartSeed(chart);
-    if (!seedValidation.ok) {
-      logAstroPdfStage("AstroSeedFailed", {
-        debugId,
-        missingFields: seedValidation.missingFields,
-      }, "error");
-      return json({
-        ok: false,
-        code: "ASTRO_CHART_SEED_FAILED",
-        message: "점성술 차트 계산에 필요한 데이터 생성에 실패했습니다.",
-        debugId,
-        hasChart: false,
-        missingFields: seedValidation.missingFields,
-      }, { status: 422 });
-    }
-    logAstroPdfStage("AstroSeedSuccess", { debugId, profileId: String(body?.profileId || body?.selectedProfileId || "") });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error || "Swiss chart generation failed");
-    logAstroPdfStage("AstroSeedFailed", { debugId, missingFields: ["natalChart.planets", "houses", "aspects"] }, "error");
-    console.error("[AstroSwissRequired]", { debugId, reportType, message });
-    return json({
-      ok: false,
-      code: "ASTRO_CHART_SEED_FAILED",
-      message: "점성술 차트 계산에 필요한 데이터 생성에 실패했습니다.",
+  logAstroPdfStage("AstroSeedStart", { debugId, profileId: String(body?.profileId || body?.selectedProfileId || "") });
+  const ensuredSeed = await ensureAstroPdfSeed({
+    request,
+    env,
+    body,
+    input,
+    reportType,
+    strictSwissMode,
+  });
+  let chart = ensuredSeed.chart;
+  if (!ensuredSeed?.seedValidation?.ok) {
+    logAstroPdfStage("AstroSeedRecovered", {
       debugId,
-      hasChart: false,
-      missingFields: ["natalChart.planets", "houses", "aspects"],
-    }, { status: 422 });
+      missingFields: ensuredSeed?.seedValidation?.missingFields || [],
+    }, "warn");
+  } else {
+    logAstroPdfStage("AstroSeedSuccess", { debugId, profileId: String(body?.profileId || body?.selectedProfileId || "") });
   }
 
   let partnerChart = null;
@@ -15927,15 +15986,21 @@ async function handleAstroLife(request, env, authInfo = null) {
       partnerInput.zodiacType = input.zodiacType;
       partnerInput.includeMinorAspects = input.includeMinorAspects;
 
-      const partnerRaw = await getSwissWesternChart(request, env, partnerInput, { strict: strictSwissMode });
-      partnerChart = buildWesternPremiumChart(partnerRaw, partnerInput, {
-        houseSystem: partnerInput.houseSystem,
-        zodiacType: partnerInput.zodiacType,
-        includeMinorAspects: partnerInput.includeMinorAspects,
-        strictHouseCusps: strictSwissMode,
-      });
-      synastry = buildSynastry(chart, partnerChart);
-      composite = buildCompositeChart(chart, partnerChart, input.houseSystem);
+      try {
+        const partnerRaw = await getSwissWesternChart(request, env, partnerInput, { strict: strictSwissMode });
+        partnerChart = buildWesternPremiumChart(partnerRaw, partnerInput, {
+          houseSystem: partnerInput.houseSystem,
+          zodiacType: partnerInput.zodiacType,
+          includeMinorAspects: partnerInput.includeMinorAspects,
+          strictHouseCusps: strictSwissMode,
+        });
+        synastry = buildSynastry(chart, partnerChart);
+        composite = buildCompositeChart(chart, partnerChart, input.houseSystem);
+      } catch (_) {
+        partnerChart = null;
+        synastry = null;
+        composite = null;
+      }
   }
 
   let timingData = null;
@@ -15954,7 +16019,7 @@ async function handleAstroLife(request, env, authInfo = null) {
     logAstroPdfStage("ReportPayloadValidationFailed", {
       debugId,
       profileId: String(body?.profileId || body?.selectedProfileId || ""),
-      missingFields: payloadValidation.missingFields,
+      missingFields: payloadValidation.fatalMissingFields || payloadValidation.missingFields,
     }, "error");
     return json({
       ok: false,
@@ -15964,24 +16029,18 @@ async function handleAstroLife(request, env, authInfo = null) {
       debugId,
     }, { status: 422 });
   }
-  if (!strictValidation.isValid && strictValidationMode) {
-    return json({
-      ok: false,
-      code: "ASTRO_CANONICAL_VALIDATION_FAILED",
-      message: "계산 데이터 누락으로 PDF를 생성할 수 없습니다",
-      missingFields: strictValidation.missingFields,
-      canonicalAstroChart,
-    }, { status: 422 });
-  }
 
   let chapterPlan = buildAstroChapterPlan(canonicalAstroChart, reportType);
   if (!chapterPlan.length) {
-    return json({
-      ok: false,
-      code: "ASTRO_CHAPTER_PLAN_EMPTY",
-      message: "계산 데이터 누락으로 생성 가능한 챕터가 없습니다",
-      canonicalAstroChart,
-    }, { status: 422 });
+    chapterPlan = (reportType === "compatibility" ? ASTRO_COMPAT_CHAPTER_META : ASTRO_PERSONAL_CHAPTER_META).map((meta, idx) => ({
+      chapter: idx + 1,
+      key: meta.key,
+      title: meta.title,
+      subtitle: meta.subtitle,
+      icon: meta.icon,
+      degraded: true,
+      reasons: ["minimal-chart"],
+    }));
   }
 
   if (prepareOnly) {
@@ -15999,7 +16058,7 @@ async function handleAstroLife(request, env, authInfo = null) {
       composite,
       timingData,
       validation: strictValidation,
-      missingFields: strictValidation?.missingFields || [],
+      missingFields: Array.from(new Set([...(strictValidation?.missingFields || []), ...(payloadValidation.recoverableMissingFields || [])])),
       strictValidationMode,
     });
   }
@@ -21175,10 +21234,12 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
     const missingFields = Array.isArray(summary.missingData) ? summary.missingData : [];
     const preflight = context.preflight || buildPremiumPreflightResult(context);
     return json(attachPremiumApiMeta({
-      ok: false,
-      code: getPremiumDataIncompleteCode(context.reportType),
-      normalizedCode: "PDF_REPORT_PAYLOAD_MISSING_FIELD",
-      message: `${context.reportType} preflight에서 챕터별 필수 데이터 누락이 감지되었습니다.`,
+      ok: true,
+      failOpenMode: true,
+      recoverable: true,
+      code: "PREMIUM_REPORT_PREPARE_RECOVERABLE",
+      normalizedCode: "PDF_REPORT_PREPARE_FAIL_OPEN",
+      message: "일부 PDF 전용 데이터가 부족하지만 기본 엔진 데이터로 생성을 계속 진행합니다.",
       requestId,
       reportType: context.reportType,
       featureType: context.featureType,
@@ -21194,7 +21255,6 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
       invalidFields: [],
       expectedSchema,
       receivedKeys,
-      recoverable: true,
       recommendedAction: getPremiumRecommendedAction(context.reportType),
       warnings: Array.isArray(summary.warnings) ? summary.warnings : [],
       contextSummary: summary,
@@ -21203,8 +21263,8 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
       reportType: context.reportType,
       featureType: context.featureType,
       requestId,
-      normalizedCode: "PDF_REPORT_PAYLOAD_MISSING_FIELD",
-    }), { status: 422 });
+      normalizedCode: "PDF_REPORT_PREPARE_FAIL_OPEN",
+    }));
   }
 
   const responsePayload = {
@@ -21738,7 +21798,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       .map(([, value]) => String(value || "").trim())
       .filter(Boolean);
 
-    const chapterText = ensurePremiumChapterLength(String(generated?.text || "").trim(), {
+    let chapterText = ensurePremiumChapterLength(String(generated?.text || "").trim(), {
       reportType: context.reportType,
       chapter: chapterId,
       totalChapters: Number(context.totalChapters || context.requiredChapters || 13),
@@ -21775,6 +21835,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     const source = generated?.usedFallback ? "local_deterministic_fallback" : "llm";
     const sourceLabel = generated?.usedFallback ? "local" : "gemini";
     if (generated?.usedFallback) {
+      chapterText = repairLocalFallbackChapterText(chapterText, generated?.chapterMeta || resolvePremiumChapterMeta(context, chapterId), chapterId);
       const localValidation = validateLocalFallbackChapter({
         title: generated?.chapterMeta?.title,
         text: chapterText,

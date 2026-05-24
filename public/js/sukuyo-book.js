@@ -561,6 +561,10 @@
   }
 
   function _autoRefundPremium(cost, featureKey, label, txStorageKey) {
+    var reasonText = String(label || '');
+    if (!/LOCAL_REPORT_FAILED|로컬\s*리포트\s*실패/i.test(reasonText)) {
+      return Promise.resolve(false);
+    }
     var token = '';
     try { token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
     var refundHeaders = {

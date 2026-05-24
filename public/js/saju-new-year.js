@@ -1107,6 +1107,8 @@
   }
 
   async function attemptSajuNewYearAutoRefund(reason) {
+    var reasonText = String(reason || '');
+    if (!/LOCAL_REPORT_FAILED|로컬\s*리포트\s*실패/i.test(reasonText)) return false;
     if (state.refundInFlight) return false;
     var ctx = state.paymentContext;
     if (!ctx || !Number(ctx.cost)) return false;
