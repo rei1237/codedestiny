@@ -7401,8 +7401,7 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
 
   const chapterJsonPacks = context?.derivedData?.chapterJsonById?.[String(chapterId)]
     || buildChapterJsonPacks(reportType, chapterId, context?.coreData?.canonicalJson || {});
-  const forceGemini = String(env?.PREMIUM_SUKUYO_CHAPTER_ENGINE || "").trim().toLowerCase() === "gemini";
-  const preferLocal = asBool(context?.input?._premiumForceLocal) || !forceGemini;
+  const preferLocal = true;
 
   if (preferLocal) {
     const previousChapterTexts = Object.entries(context?.chapterTextById || {})
@@ -7441,6 +7440,33 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
       errorCode: "LOCAL_FALLBACK_GENERATION_FAILED",
       validation: localGenerated?.validation || null,
     });
+
+    const minChars = Number(getPremiumPerChapterMinChars(
+      Number(context?.totalChapters || context?.requiredChapters || 13),
+      PREMIUM_GLOBAL_MIN_TOTAL_CHARS,
+    ));
+    const deterministicText = buildDeterministicLocalChapterText({
+      reportType,
+      chapterId: Number(chapterId || 1),
+      chapterMeta,
+      chapterContract,
+      chapterJson: chapterJsonPacks,
+      coreData: context?.coreData?.canonicalJson || {},
+      minChars,
+      previousChapterTexts,
+      fallbackReason: "SUKYO_LOCAL_FORCE_FALLBACK",
+      forbiddenPhrases: sukuyoForbiddenPhrases,
+    });
+    return {
+      ok: true,
+      content: deterministicText,
+      chapterMeta,
+      missingFields: sukyoContext?.missingSummary || hardMissing,
+      source: "local-sukuyo-deterministic-fallback",
+      localOnly: true,
+      fallbackUsed: true,
+      notes: ["SUKYO_LOCAL_FORCE_FALLBACK"],
+    };
   }
 
   if (!inputValidation.canGenerate) {
