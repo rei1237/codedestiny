@@ -1206,6 +1206,13 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
   const scopedPromptData = buildChapterScopedPromptData(chapterContract, context);
   const currentPalaceText = scopedPromptData.targetPalaceName || asText(chapterContract?.targetPalace) || "현재 챕터 대상 궁";
   const currentStarsText = scopedPromptData.currentStars.length ? scopedPromptData.currentStars.join(", ") : "데이터에 맞는 별 주입";
+  const requiredCategoryHeadings = [
+    "핵심 요약",
+    "자미두수 구조 해석",
+    "강점과 기회",
+    "주의할 패턴",
+    "현실 적용 전략",
+  ];
 
   const systemPrompt = [
     "# Role & Purpose",
@@ -1220,6 +1227,7 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
     "2) ZERO TOLERANCE FOR SENTENCE LOOPING / REPETITION",
     "- 동일 문장, 동일 결론, 동일 연결문을 반복하지 않는다.",
     "- 각 문장은 이전 문장 대비 새로운 정보 또는 실행 포인트를 제공해야 한다.",
+    "- 너는 입력된 [궁]과 [별] 데이터에 대해서만 분석해야 해. 이전에 생성한 텍스트나 의미 없는 문장을 절대 반복하지 말고, 위의 필수 카테고리 목차에 맞춰 구체적이고 논리적으로 서술해.",
     "3) PREMIUM & HIGH-END TONE",
     "- 한국어 존댓말(~합니다/~하세요) 기반의 깊이 있고 전문적인 문체를 유지한다.",
     "",
@@ -1240,6 +1248,7 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
     hasPremiumContext
       ? "- [기본/심화 통합 보조 데이터]가 있으면 최소 5개 이상의 구체 근거(궁/별/강약/대운/연월운/요약)를 본문에 반영한다."
       : "- 제공된 데이터 근거를 문장마다 명시적으로 반영한다.",
+    "- [필수 출력 카테고리 목차]의 5개 항목은 반드시 본문에서 모두 다뤄야 한다.",
   ].join("\n");
 
   const duplicateAvoidanceText = previousChapterSummaries.length > 0
@@ -1287,6 +1296,7 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
     `[현재 챕터 intro 템플릿]\n{{USER_NAME}}님의 ${currentPalaceText}에서는 ${currentPalaceText}의 구조를 중심으로 분석합니다. 이 챕터의 핵심은 ${currentPalaceText}에 배치된 별들이 만드는 패턴과 역할입니다. 별 배치는 ${currentStarsText}로 확인되며, 이들이 함께 작동하는 방식을 이해하는 것이 현실 적용의 첫걸음입니다.`,
     chapterContract ? `[필수 커버리지]\n- ${chapterContract.mustCover.join("\n- ")}` : "",
     effectiveRequiredHeadings.length ? `[chapter 카테고리 고정 헤딩]\n- ${effectiveRequiredHeadings.join("\n- ")}` : "",
+    `[필수 출력 카테고리 목차]\n- ${requiredCategoryHeadings.join("\n- ")}`,
     requiredJsonFields.length ? `[chapterContract.requiredJsonFields]\n- ${requiredJsonFields.join("\n- ")}` : "",
     "",
     "[챕터 작성 목표 및 세부 카테고리 가이드]",
@@ -1610,64 +1620,15 @@ export function ensureZiweiChapterMarkdownLength(
   maxLength = ZIWEI_CHAPTER_MAX_LENGTH,
 ) {
   let output = sanitizeZiweiOutputText(String(text || "").trim());
-  const safeMin = Math.max(8500, Number.isFinite(Number(minLength)) ? Math.floor(Number(minLength)) : ZIWEI_CHAPTER_MIN_LENGTH);
+  const safeMin = Math.max(1, Number.isFinite(Number(minLength)) ? Math.floor(Number(minLength)) : ZIWEI_CHAPTER_MIN_LENGTH);
   const safeMax = Math.max(safeMin, Number.isFinite(Number(maxLength)) ? Math.floor(Number(maxLength)) : ZIWEI_CHAPTER_MAX_LENGTH);
-  const bodyPalaceKey = asText(context?.chartMeta?.bodyPalaceKey);
-  const palaceLoop = asArray(context?.palaces).slice(0, 12);
-  const annualLabel = asText(context?.cycles?.annual?.stemBranch) || "당해 흐름";
-
-  let guard = 0;
-  while (output.length < safeMin && guard < 14) {
-    const palace = palaceLoop[guard % Math.max(1, palaceLoop.length)] || {};
-    const palaceName = asText(palace?.name) || "핵심 궁";
-    const keyStar = asText(asArray(palace?.mainStars)[0]?.name) || "핵심 주성";
-    const dynamicChunk = [
-      `### 실행 확장 분석 ${guard + 1}: ${palaceName}`,
-      `${palaceName}에서 ${keyStar}의 작동은 단기 반응보다 중기 운영 원칙을 우선 고정할 때 안정적으로 발현됩니다. 특히 ${annualLabel} 구간에는 결정을 줄이고 실행 반복을 늘리는 방식이 체감 성과를 높입니다.`,
-      "실전 기준: 목표를 늘리기보다 손실을 먼저 줄이는 순서로 설계하면, 같은 운에서도 피로 누적과 관계 충돌을 동시에 낮출 수 있습니다.",
-      bodyPalaceKey
-        ? `신궁(${bodyPalaceKey}) 축은 외부 행동 표현을 보정하는 장치이므로, 관계 대화와 일정 운영의 기준 문장을 미리 정해두면 운의 소모를 줄일 수 있습니다.`
-        : "신궁 정보가 제한적일 때는 명궁-관록궁-복덕궁의 상호작용을 기준으로 실행 피로를 관리하세요.",
-      "주간 액션: 가장 소모가 큰 선택 패턴 1개를 기록하고, 대체 행동 1개를 같은 시간대에 7일 연속 고정하세요.",
-    ].join("\n\n");
-    output = `${output}\n\n${dynamicChunk}`;
-    guard += 1;
-  }
-
   output = sanitizeZiweiOutputText(output);
   if (output.length > safeMax) {
     output = trimZiweiMarkdownToMaxLength(output, safeMax);
   }
 
-  const expansionBank = [
-    "실전 체크포인트: 같은 결정을 반복해서 틀리는 지점을 먼저 분리하면, 운이 약한 구간에서도 손실을 제한할 수 있습니다.",
-    "실행 보정: 강한 별의 장점을 과잉 확장하지 않고, 약한 별이 드러나는 상황을 미리 차단하는 방식이 장기 성과에 유리합니다.",
-    "관계 운영: 대화의 목적과 경계를 문장으로 고정해두면 감정 소모를 줄이고 핵심 협력 이슈에 에너지를 집중할 수 있습니다.",
-    "재정 운영: 수익 확장보다 변동성 관리 지표를 먼저 세우면 대운 전환기에도 현금흐름을 안정적으로 유지하기 쉽습니다.",
-    "커리어 운영: 강점 궁에서 성과를 증폭하고 약점 궁에서는 리스크를 제한하는 이중 전략이 실행 체감도를 높입니다.",
-  ];
-
-  while (output.length < safeMin && guard < 24) {
-    const extra = expansionBank[guard % expansionBank.length];
-    output = `${output}\n\n${extra}`;
-    guard += 1;
-  }
-
-  if (output.length > safeMax) {
-    output = trimZiweiMarkdownToMaxLength(output, safeMax);
-  }
-
-  let padIndex = 1;
-  while (output.length < safeMin) {
-    const pad = `\n\n추가 해석 ${padIndex}: 핵심 궁과 주성의 상호작용을 이번 주 실행 기준에 연결하고, 손실 가능성이 높은 선택을 먼저 제한하면 변동 구간에서도 해석의 실전성이 유지됩니다.`;
-    output = `${output}${pad}`;
-    padIndex += 1;
-    if (padIndex > 120) break;
-  }
-
-  if (output.length > safeMax) {
-    output = trimZiweiMarkdownToMaxLength(output, safeMax);
-  }
+  // Do not inject synthetic filler text: quality gate should fail short outputs explicitly.
+  if (output.length < safeMin) return output;
   return sanitizeZiweiOutputText(output);
 }
 

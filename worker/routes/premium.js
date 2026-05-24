@@ -20276,7 +20276,10 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
     return json({ ok: false, message: "sessionId 또는 chapter 값을 포함해 챕터별로만 생성할 수 있습니다." }, { status: 400 });
   }
   const input = normalizeBody(strictBody);
-  const chapter = clampInt(strictBody.sessionId ?? strictBody.chapter, 1, 1, 13);
+  const ziweiTotalChapters = Array.isArray(ZIWEI_PDF_CHAPTERS_V2) && ZIWEI_PDF_CHAPTERS_V2.length
+    ? ZIWEI_PDF_CHAPTERS_V2.length
+    : 15;
+  const chapter = clampInt(strictBody.sessionId ?? strictBody.chapter, 1, 1, ziweiTotalChapters);
   const partnerIntent = strictBody.partnerName || strictBody.partnerYear || strictBody.partnerMonth || strictBody.partnerDay;
   const requestedReportType = String(strictBody.reportType || (partnerIntent ? "compatibility" : "personal")).toLowerCase();
   const hasPartnerBirth = Number.isFinite(Number(strictBody.partnerYear))
@@ -20507,9 +20510,7 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
     });
   }
 
-  const chapterCount = Array.isArray(ZIWEI_PDF_CHAPTERS_V2) && ZIWEI_PDF_CHAPTERS_V2.length
-    ? ZIWEI_PDF_CHAPTERS_V2.length
-    : 13;
+  const chapterCount = ziweiTotalChapters;
   const totalCategoryCount = chapterCount * 4;
   const ziweiPremiumPayload = buildZiweiPremiumPayloadFromProfileAndBasicResult({
     profile: profileFromRequest,
@@ -20691,13 +20692,6 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
       ziweiPremiumPayload,
     );
   } catch (error) {
-    generated = buildZiweiLocalFallbackChapter({
-      chapter,
-      chapterSpec: ZIWEI_PDF_CHAPTERS_V2[chapter - 1] || null,
-      meta,
-      context: chapterInputChart,
-    });
-
     console.error("[ZiweiPremium][Gemini] runtime failure", {
       chapter,
       requestId,
@@ -20706,26 +20700,35 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
       message: String(error?.message || "unknown"),
       payloadValidation: payloadBuildResult?.validation || null,
     });
-    console.warn("[ZiweiBook] API_GENERATION_FAILED_USE_LOCAL_FALLBACK", {
-      requestId,
+    return json({
+      ok: false,
+      code: "ZIWEI_CHAPTER_GENERATION_FAILED",
+      message: "자미두수 챕터 생성 중 오류가 발생했습니다. fallback 없이 중단합니다.",
+      stage: "ziwei-chapter-generation",
       chapter,
-      message: String(error?.message || "UNKNOWN_ERROR"),
-    });
+      reportId,
+      requestId,
+      details: [String(error?.message || "UNKNOWN_ERROR")],
+    }, { status: 502 });
   }
 
   if (!generated?.ok) {
-    console.warn("[ZiweiBook] API_GENERATION_FAILED_USE_LOCAL_FALLBACK", {
+    console.warn("[ZiweiBook] API_GENERATION_FAILED_NO_FALLBACK", {
       requestId,
       chapter,
       code: generated?.code || "ZIWEI_CHAPTER_GENERATION_FAILED",
       message: generated?.message || "자미두수 챕터 생성 실패",
     });
-    generated = buildZiweiLocalFallbackChapter({
+    return json({
+      ok: false,
+      code: generated?.code || "ZIWEI_CHAPTER_GENERATION_FAILED",
+      message: generated?.message || "자미두수 챕터 생성에 실패했습니다.",
       chapter,
-      chapterSpec: ZIWEI_PDF_CHAPTERS_V2[chapter - 1] || null,
-      meta,
-      context: chapterInputChart,
-    });
+      reportId,
+      requestId,
+      details: Array.isArray(generated?.details) ? generated.details : [],
+      missingFields: Array.isArray(generated?.missingFields) ? generated.missingFields : [],
+    }, { status: 422 });
   }
 
   const safeGeneratedText = sanitizePremiumChapterText(generated.text);
@@ -21487,6 +21490,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   }
 
   const chapterId = clampInt(body.chapterId ?? body.chapter, 1, 1, Number(context.totalChapters || 13));
+  const ziweiStrictNoFallback = String(context?.reportType || "") === "ziweiPremium";
   const maxChapterAttempts = Math.max(2, getPremiumChapterMaxAttempts(env, 2));
   const chapterRequestKey = String(chapterId);
   const chapterInflightKey = `${reportSessionId}:${chapterId}`;
@@ -22029,7 +22033,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       const errorCode = String(data?.code || "PREMIUM_REPORT_CHAPTER_FAILED");
       const errorMessage = String(data?.message || "챕터 생성 실패");
       const recoverable = isRecoverablePremiumChapterFailure(errorCode, errorMessage, response.status);
-      if (recoverable) {
+      if (recoverable && !ziweiStrictNoFallback) {
         console.warn("[PremiumPDF] LlmChapterGenerationFailed", {
           debugId: requestId,
           serviceType: context.reportType,
@@ -22118,7 +22122,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       similarityThreshold: 0.78,
     });
     if (!chapterQuality.ok) {
-      if (!usedFallback) {
+      if (!usedFallback && !ziweiStrictNoFallback) {
         const localGenerated = buildLocalFallbackChapterFromContext({
           context,
           chapterId,
@@ -22172,6 +22176,18 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     }
 
     if (usedFallback) {
+      if (ziweiStrictNoFallback) {
+        lastFailure = {
+          status: 422,
+          code: "ZIWEI_FALLBACK_FORBIDDEN",
+          message: "자미두수 리포트는 fallback/mocked 텍스트를 허용하지 않습니다.",
+          lengthValidation: {
+            ok: false,
+            warnings: ["ZIWEI_STRICT_NO_FALLBACK"],
+          },
+        };
+        continue;
+      }
       const localValidation = validateLocalFallbackChapter({
         title: resolvePremiumChapterMeta(context, chapterId)?.title,
         text: chapterText,
@@ -22229,7 +22245,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       if (Array.isArray(envelopeDetails.repeatedAcross) && envelopeDetails.repeatedAcross.length) {
         envelopeMissing.push("repeat:across-chapters");
       }
-      if (!usedFallback) {
+      if (!usedFallback && !ziweiStrictNoFallback) {
         const localGenerated = buildLocalFallbackChapterFromContext({
           context,
           chapterId,
@@ -22305,6 +22321,21 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   }
 
   if (!successResponse || !successData) {
+    if (ziweiStrictNoFallback) {
+      return json({
+        ok: false,
+        requestId,
+        reportSessionId,
+        snapshotId: String(context?.analysisSnapshot?.snapshotId || "").trim(),
+        chapterId,
+        featureType: context.featureType,
+        attemptsUsed: maxChapterAttempts,
+        maxChapterAttempts,
+        code: String(lastFailure.code || "ZIWEI_CHAPTER_GENERATION_FAILED"),
+        message: String(lastFailure.message || "자미두수 챕터 생성이 실패했습니다. fallback 없이 중단합니다."),
+        lengthValidation: lastFailure.lengthValidation || null,
+      }, { status: Number(lastFailure.status || 422) });
+    }
     try {
       const guaranteed = await generateGuaranteedPremiumChapter(env, {
         context,
