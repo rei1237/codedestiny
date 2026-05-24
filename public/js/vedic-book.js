@@ -1672,6 +1672,10 @@
   };
 
   window.gotoVedicPremium = function () {
+    try { localStorage.removeItem(VEDIC_RESULT_STORAGE_KEY); } catch (_) {}
+    state.reportId = '';
+    state.downloadUrl = '';
+    state.chapters = [];
     window.openVedicBookModal();
   };
 

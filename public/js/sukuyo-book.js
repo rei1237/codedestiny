@@ -1784,6 +1784,17 @@
     if(act==='closeSukuyoBookModal'){window.closeSukuyoBookModal();e.stopPropagation();}
   });
 
-  window.gotoSukuyoPremium = function(profileArg){window.openSukuyoBookModal(profileArg);};
+  window.gotoSukuyoPremium = function(profileArg){
+    var profile=(profileArg && profileArg.birth && profileArg.birth.year) ? profileArg : _getActiveBirthProfile();
+    if (profile) {
+      try { sessionStorage.removeItem(_skMakeKey(profile)); } catch (_) {}
+    }
+    _resetChapterState();
+    _sukuyoChart=null;
+    _reportId='';
+    _canonicalSukuyoCompatibility=null;
+    _chapterMetaRuntime=[];
+    window.openSukuyoBookModal(profileArg);
+  };
   _ensureReportModeSelector();
 })();

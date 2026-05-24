@@ -2569,6 +2569,10 @@
   };
 
   window.gotoZiweiPremium = function () {
+    try { localStorage.removeItem(ZIWEI_RESULT_STORAGE_KEY); } catch (_) {}
+    state.reportId = '';
+    state.downloadUrl = '';
+    state.chapters = [];
     window.openZiweiBookModal();
   };
 

@@ -49,19 +49,19 @@ const __lazyActionLoaders = {
   openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260414-tarot-qualityfix2'),
   openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260414-tarot-qualityfix2'),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
-  gotoZiweiPremium: () => __loadScriptOnce('/js/ziwei-book.js?v=build-1779652262215'),
-  gotoAstrologyPremium: () => __loadScriptOnce('/js/astro-book.js?v=build-1779652262215'),
-  gotoSukuyoPremium: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-1779652262215'),
-  gotoVedicPremium: () => __loadScriptOnce('/js/vedic-book.js?v=build-1779652262215'),
+  gotoZiweiPremium: () => __loadScriptOnce('/js/ziwei-book.js?v=build-1779653694748'),
+  gotoAstrologyPremium: () => __loadScriptOnce('/js/astro-book.js?v=build-1779653694748'),
+  gotoSukuyoPremium: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-1779653694748'),
+  gotoVedicPremium: () => __loadScriptOnce('/js/vedic-book.js?v=build-1779653694748'),
   gotoNamingPremium: () => Promise.resolve().then(() => {
     window.location.href = '/myungwun_final.html';
   }),
   openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=20260512-quantum-v4').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
-  openSajuNewYearModal: () => __loadScriptOnce('/js/saju-new-year.js?v=build-1779652262215'),
-  openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=build-1779652262215'),
-  openLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-1779652262215')
+  openSajuNewYearModal: () => __loadScriptOnce('/js/saju-new-year.js?v=build-1779653694748'),
+  openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=build-1779653694748'),
+  openLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-1779653694748')
 };
 
 function __ensureSajuCoreScripts() {
@@ -72,8 +72,8 @@ function __ensureSajuCoreScripts() {
 }
 
 const __lazyActionState = {};
-const __INDEX_INLINE_RUNTIME_SRC = '/js/core/index-inline-runtime.js?v=build-1779652262215';
-const __MOBILE_BACKSTACK_SRC = '/js/mobile-backstack-navigation.js?v=build-1779652262215';
+const __INDEX_INLINE_RUNTIME_SRC = '/js/core/index-inline-runtime.js?v=build-1779653694748';
+const __MOBILE_BACKSTACK_SRC = '/js/mobile-backstack-navigation.js?v=build-1779653694748';
 
 function __ensureMobileBackstackLoaded() {
   return __loadScriptOnce(__MOBILE_BACKSTACK_SRC).catch((err) => {

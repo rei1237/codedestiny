@@ -1809,6 +1809,10 @@
   };
 
   window.gotoAstrologyPremium = function () {
+    try { localStorage.removeItem(ASTRO_RESULT_STORAGE_KEY); } catch (_) {}
+    state.reportId = '';
+    state.downloadUrl = '';
+    state.chapters = [];
     window.openAstroBookModal();
   };
 
