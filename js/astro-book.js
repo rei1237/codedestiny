@@ -2,7 +2,8 @@
   'use strict';
 
   var TOTAL_CHAPTERS = 13;
-  var API_TIMEOUT_MS = 360000;
+  var API_TIMEOUT_MS = 45000;
+  var COIN_GATE_TIMEOUT_MS = 15000;
   var POLL_INTERVAL_MS = 1800;
   var LOADING_QUOTES = [
     '행성 좌표와 하우스 축을 교차 검증하는 중입니다...',
@@ -135,6 +136,15 @@
     return new Promise(function (resolve) { setTimeout(resolve, ms); });
   }
 
+  function resolveRequestTimeoutMs(url, method) {
+    var normalizedMethod = String(method || 'GET').toUpperCase();
+    var normalizedUrl = String(url || '');
+    if (normalizedMethod !== 'GET' && normalizedUrl.indexOf('/api/billing/coin-gate') >= 0) {
+      return COIN_GATE_TIMEOUT_MS;
+    }
+    return API_TIMEOUT_MS;
+  }
+
   function resolveApiUrl(input) {
     var raw = String(input || '').trim();
     if (!raw) return raw;
@@ -229,7 +239,10 @@
 
     var controller = typeof AbortController === 'function' ? new AbortController() : null;
     var timer = null;
-    if (controller) timer = setTimeout(function () { controller.abort(); }, API_TIMEOUT_MS);
+    if (controller) {
+      var timeoutMs = resolveRequestTimeoutMs(targetUrl, opts.method || 'GET');
+      timer = setTimeout(function () { controller.abort(); }, timeoutMs);
+    }
 
     try {
       logAstroDebug('RequestStart', {
@@ -1122,8 +1135,50 @@
     return compact.slice(0, 220).trim() + '...';
   }
 
-  function normalizePremiumChapterSections(rawSections, fallbackText) {
+  function parseSectionsFromMarkdown(fallbackText, preferredHeadings) {
+    var text = String(fallbackText || '').replace(/\r/g, '').trim();
+    if (!text) return [];
+
+    var headingRegex = /^###\s*(?:\d+\.?\s*)?(.+)$/gm;
+    var matches = [];
+    var match = null;
+    while ((match = headingRegex.exec(text)) !== null) {
+      matches.push({
+        heading: String(match[1] || '').trim(),
+        index: Number(match.index || 0),
+        end: Number(headingRegex.lastIndex || 0)
+      });
+    }
+
+    var sections = [];
+    for (var i = 0; i < matches.length; i += 1) {
+      var current = matches[i];
+      var next = matches[i + 1] || null;
+      var bodyStart = current.end;
+      var bodyEnd = next ? next.index : text.length;
+      var body = String(text.slice(bodyStart, bodyEnd) || '').trim();
+      if (!current.heading && !body) continue;
+      sections.push({
+        heading: current.heading || '핵심 해석',
+        body: body
+      });
+    }
+
+    if (sections.length) return sections;
+
+    var preferred = Array.isArray(preferredHeadings) ? preferredHeadings.filter(Boolean) : [];
+    if (preferred.length) {
+      return [{ heading: preferred[0], body: text }];
+    }
+
+    return [{ heading: '핵심 해석', body: text }];
+  }
+
+  function normalizePremiumChapterSections(rawSections, fallbackText, chapterJson, preferredHeadings) {
     var sections = Array.isArray(rawSections) ? rawSections : [];
+    var jsonSections = chapterJson && Array.isArray(chapterJson.sections) ? chapterJson.sections : [];
+    if (!sections.length && jsonSections.length) sections = jsonSections;
+
     var normalized = sections.map(function (section) {
       var heading = String((section && (section.heading || section.title || section.name)) || '').trim();
       var body = String((section && (section.body || section.content || section.text)) || '').trim();
@@ -1135,9 +1190,7 @@
     }).filter(Boolean);
 
     if (normalized.length) return normalized;
-    var fallback = String(fallbackText || '').trim();
-    if (!fallback) return [];
-    return [{ heading: '핵심 해석', body: fallback }];
+    return parseSectionsFromMarkdown(fallbackText, preferredHeadings);
   }
 
   function normalizeAstroPremiumChapter(data, chapterId, chapterPlan) {
@@ -1146,7 +1199,10 @@
       ? data.chapterMeta
       : ((Array.isArray(chapterPlan) ? chapterPlan[chapterId - 1] : null) || {});
     var text = String((data && data.text) || '').trim();
-    var sections = normalizePremiumChapterSections(data && data.sections, text);
+    var preferredHeadings = Array.isArray(data && data.chapterSpecificSections)
+      ? data.chapterSpecificSections
+      : [];
+    var sections = normalizePremiumChapterSections(data && data.sections, text, chapterJson, preferredHeadings);
     var title = String((chapterMeta && (chapterMeta.title || chapterMeta.name)) || (chapterJson && chapterJson.title) || ('Chapter ' + chapterId)).trim();
     var subtitle = String((chapterMeta && chapterMeta.subtitle) || (chapterJson && chapterJson.subtitle) || '').trim();
     var summary = String((chapterJson && chapterJson.summary) || inferChapterSummary(text)).trim();

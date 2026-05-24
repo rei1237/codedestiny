@@ -1744,7 +1744,7 @@ const PREMIUM_REPORT_KIND_MAP = {
 const PREMIUM_REPORT_REQUIRED_CHAPTERS = {
   ziweiPremium: 12,
   sookyoPremium: 13,
-  westernAstrologyPremium: 12,
+  westernAstrologyPremium: 13,
   vedicPremium: 12,
   lifeBook: 13,
   loveSecret: 13,
@@ -4703,21 +4703,22 @@ function normalizeAstroPlanetMap(planets) {
 
 function normalizeStrengthSymbol(symbol, brightness = "") {
   const raw = String(symbol || "").trim();
-  if (raw === "O" || raw === "○") return "O";
-  if (raw === "X" || raw === "×" || raw === "함") return "×";
-  if (raw === "△" || raw === "▲") return "△";
-  if (["◎", "○", "△", "×"].includes(raw)) return raw;
+  if (raw === "◎") return "◎";
+  if (raw === "O" || raw === "○" || raw === "◉") return "O";
+  if (raw === "▲") return "▲";
+  if (raw === "△") return "△";
+  if (raw === "X" || raw === "×" || raw === "함") return "X";
   if (/(묘|廟)/.test(raw)) return "◎";
-  if (/(왕|旺)/.test(raw)) return "O";
-  if (/(리|利|이로|유리|득|평|平)/.test(raw)) return "△";
+  if (/(득|왕|旺|得)/.test(raw)) return "O";
+  if (/(리|利|이로|유리)/.test(raw)) return "▲";
   if (/(평|平|보통)/.test(raw)) return "△";
-  if (/(함|陷|약|쇠|실)/.test(raw)) return "×";
+  if (/(함|陷|약|쇠|실)/.test(raw)) return "X";
   const tone = String(brightness || "").trim();
   if (/(묘|廟)/.test(tone)) return "◎";
-  if (/(왕|旺|강)/.test(tone)) return "O";
-  if (/(리|利|이로|유리|득|평|平)/.test(tone)) return "△";
+  if (/(득|왕|旺|강)/.test(tone)) return "O";
+  if (/(리|利|이로|유리)/.test(tone)) return "▲";
   if (/(평|平|보통)/.test(tone)) return "△";
-  if (/(함|陷|약|쇠|실)/.test(tone)) return "×";
+  if (/(함|陷|약|쇠|실)/.test(tone)) return "X";
   return "△";
 }
 
@@ -12027,9 +12028,9 @@ function normalizeZiweiField(value, fallback = "정보 없음") {
 
 const ZIWEI_SYMBOL_TO_STRENGTH = {
   "◎": "묘",
-  "◉": "왕",
-  "○": "왕",
-  "O": "왕",
+  "◉": "득",
+  "○": "득",
+  "O": "득",
   "▲": "리",
   "△": "평",
   "×": "함",
@@ -12038,16 +12039,16 @@ const ZIWEI_SYMBOL_TO_STRENGTH = {
 
 const ZIWEI_STRENGTH_TO_SYMBOL = {
   "묘": "◎",
+  "득": "O",
   "왕": "O",
-  "리": "△",
+  "리": "▲",
   "평": "△",
   "함": "X",
   "실": "X",
   "묘왕": "◎",
   "묘왕지": "◎",
-  "득": "△",
   "득지": "△",
-  "리지": "△",
+  "리지": "▲",
   "평지": "△",
   "함지": "X",
   "극함": "X",
@@ -12060,9 +12061,9 @@ const ZIWEI_STRENGTH_TO_SYMBOL = {
 function normalizeZiweiStrengthSymbol(raw) {
   const v = String(raw || "").trim();
   if (v === "◎") return "◎";
-  if (v === "◉" || v === "○") return "O";
+  if (v === "◉" || v === "○" || v === "O") return "O";
+  if (v === "▲") return "▲";
   if (v === "O") return "O";
-  if (v === "▲") return "△";
   if (v === "△") return "△";
   if (v === "×" || /^x$/i.test(v)) return "X";
   return "";
@@ -12072,21 +12073,22 @@ function normalizeZiweiStrengthLabel(raw) {
   const v = String(raw || "").trim();
   if (!v) return "";
   if (["묘", "묘왕", "묘왕지", "廟"].includes(v) || v === "◎") return "묘";
-  if (["왕", "旺"].includes(v) || v === "○" || v === "O") return "왕";
-  if (["득", "리", "득지", "리지", "得", "利", "약"].includes(v) || v === "▲") return "리";
+  if (["득", "왕", "旺", "得"].includes(v) || v === "○" || v === "O") return "득";
+  if (["리", "리지", "利", "약"].includes(v) || v === "▲") return "리";
   if (["평", "평지", "平", "중", "보통"].includes(v) || v === "△") return "평";
   if (["함지", "陷"].includes(v)) return "함";
-  if (/^x$/i.test(v) || v === "X" || ["함", "실", "극함", "심한함", "불", "불리", "충돌"].includes(v) || v === "×") return "함";
+  if (["실"].includes(v)) return "실";
+  if (/^x$/i.test(v) || v === "X" || ["함", "극함", "심한함", "불", "불리", "충돌"].includes(v) || v === "×") return "함";
   return "";
 }
 
 function ziweiStrengthToHan(strength) {
   const s = normalizeZiweiStrengthLabel(strength);
   if (s === "묘") return "廟";
-  if (s === "왕") return "旺";
+  if (s === "득") return "旺";
   if (s === "리") return "利";
   if (s === "평") return "平";
-  if (s === "함") return "陷";
+  if (s === "함" || s === "실") return "陷";
   return "";
 }
 
@@ -21021,9 +21023,10 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
   const reportId = String((initialPrepareData?.reportId || data?.reportId) || `${PREMIUM_REPORT_KIND_MAP[reportType] || "premium"}_${stableHash(`${cacheKey}|report`)}`);
   const reportSessionId = `prs_${stableHash(`${cacheKey}|${reportId}`)}`;
   const specChapters = getPremiumRequiredChapters(reportType, modeKey);
+  const preparedTotalChapters = Number((initialPrepareData?.totalChapters || data?.totalChapters) || 0);
   const totalChapters = reportType === "sookyoPremium"
     ? Number(specChapters || PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || 10)
-    : Number((initialPrepareData?.totalChapters || data?.totalChapters) || specChapters || PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || 13);
+    : Number(specChapters || preparedTotalChapters || PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || 13);
 
   const hydrated = await hydratePremiumCanonicalData({
     request,

@@ -130,6 +130,30 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, delay));
 }
 
+async function withTimeout(promise, timeoutMs, code = "BILLING_TIMEOUT") {
+  const ms = Math.max(1000, Number(timeoutMs || 15000));
+  let timer = null;
+  try {
+    return await Promise.race([
+      Promise.resolve(promise),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => {
+          const error = new Error(`Billing operation timed out after ${ms}ms`);
+          error.code = code;
+          reject(error);
+        }, ms);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+function shouldRetryCoinConsumeException(error) {
+  const code = String(error?.code || "").trim().toUpperCase();
+  return code === "COIN_GATE_CONSUME_TIMEOUT" || code === "WORKER_UNHANDLED_EXCEPTION";
+}
+
 function isProductionRuntime(env) {
   const nodeEnv = String(env?.NODE_ENV || "").trim().toLowerCase();
   if (nodeEnv === "production") return true;
@@ -148,13 +172,27 @@ function logCoinGateResult(payload) {
 
 async function consumeCoinWithRetry(request, env, delegatedBody) {
   const maxAttempts = 2;
+  const consumeTimeoutMs = Math.max(2000, Number(env?.BILLING_COIN_GATE_TIMEOUT_MS || env?.COIN_GATE_TIMEOUT_MS || 15000));
   let delegatedResponse = null;
   let payload = {};
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const delegatedRequest = buildRoutedRequest(request, "/api/fortune/pig-coin/consume", "POST", delegatedBody);
-    delegatedResponse = await handleFortuneRoutes(delegatedRequest, env);
-    payload = await readPayloadSafe(delegatedResponse);
+    try {
+      delegatedResponse = await withTimeout(
+        handleFortuneRoutes(delegatedRequest, env),
+        consumeTimeoutMs,
+        "COIN_GATE_CONSUME_TIMEOUT",
+      );
+      payload = await readPayloadSafe(delegatedResponse);
+    } catch (error) {
+      payload = {};
+      if (attempt >= maxAttempts || !shouldRetryCoinConsumeException(error)) {
+        throw error;
+      }
+      await sleep(120);
+      continue;
+    }
 
     if (delegatedResponse.ok) break;
     if (attempt >= maxAttempts) break;
