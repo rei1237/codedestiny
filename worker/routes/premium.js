@@ -60,6 +60,17 @@ import {
   buildLifeBookChapterPlan,
   getLifeBookChapterByNumber,
 } from "../lib/saju/life-book/chapterConfig.js";
+import {
+  LOVE_SECRET_MODE_CONFIG,
+  SAJU_NEW_YEAR_CHAPTERS,
+  SAJU_NEW_YEAR_CHAPTER_TARGETS,
+} from "../lib/saju-premium-chapters.js";
+import {
+  VEDIC_PERSONAL_CHAPTER_META,
+  VEDIC_COMPAT_CHAPTER_META,
+  VEDIC_SOLO_TARGET_CHARS,
+  VEDIC_COMPAT_TARGET_CHARS,
+} from "../lib/vedic-premium-chapters.js";
 import { buildLifeBookInputData } from "../lib/saju/life-book/buildLifeBookInputData.js";
 import { generateLifeBookPdf } from "../lib/saju/life-book/generateLifeBookPdf.js";
 import { renderLifeBookPdf } from "../lib/saju/life-book/renderLifeBookPdf.js";
@@ -257,49 +268,6 @@ const ASTRO_CHAPTER_SECTION_LABELS = Object.freeze({
   K10: Object.freeze(["최종 궁합 통합 해석", "관계 핵심 메커니즘", "동반자 현실 적용", "핵심 궁합 어스펙트", "장기 관계 주의점", "최종 운영 전략", "챕터 요약"]),
 });
 
-const LOVE_SECRET_MODE_CONFIG = {
-  solo: {
-    mode: "solo",
-    reportType: "saju_love_solo",
-    totalChapters: 13,
-    minTotalChars: 48000,
-    chapterMinDefault: 3200,
-    chapterTargetByIndex: { 1: 4500, 2: 3800, 3: 4000, 4: 4000, 5: 4000, 6: 3800, 7: 4300, 8: 4000, 9: 3600, 10: 3600, 11: 3400, 12: 3500, 13: 3500 },
-    chapterMinByIndex: { 1: 3825, 2: 3230, 3: 3400, 4: 3400, 5: 3400, 6: 3230, 7: 3655, 8: 3400, 9: 3060, 10: 3060, 11: 2890, 12: 2975, 13: 2975 },
-    title: "프리미엄 사주 연애 비책 리포트",
-    chapters: [
-      { title: "Chapter I. 본연의 연애 자아 — 나는 사랑 앞에서 어떤 사람인가", subtitle: "연애 자아의 기본 성향과 핵심 가치" },
-      { title: "Chapter II. 치명적 매력과 페로몬 — 나를 끌리게 만드는 힘", subtitle: "매력의 결, 과잉 리스크, 건강한 활용" },
-      { title: "Chapter III. 운명의 상대방 리포트 — 어떤 사람과 사랑이 깊어지는가", subtitle: "이상형·위험형·성장형 파트너 구분" },
-      { title: "Chapter IV. 연애 패턴 분석 — 반복되는 사랑의 습관", subtitle: "호감/불안/실수 패턴과 끊는 전략" },
-      { title: "Chapter V. 감정 표현과 소통법 — 사랑을 망치지 않는 대화", subtitle: "오해 방지와 관계를 살리는 대화법" },
-      { title: "Chapter VI. 스킨십·친밀감·정서적 거리 — 가까워지는 속도", subtitle: "친밀감 리듬과 거리 조절 전략" },
-      { title: "Chapter VII. 결혼관과 장기 관계 — 함께 살아갈 수 있는 사랑인가", subtitle: "장기 안정성과 결혼/동거 조건" },
-      { title: "Chapter VIII. 이별·상처·미련 — 사랑이 끝날 때 드러나는 진짜 모습", subtitle: "상처 패턴과 회복 루틴" },
-      { title: "Chapter IX. 재회와 관계 회복 — 다시 이어질 수 있는 인연인가", subtitle: "재회 가능성과 행동 전략" },
-      { title: "Chapter X. 연애운의 흐름 — 사랑이 들어오는 시기와 준비", subtitle: "시기 해석과 현실 준비 전략" },
-      { title: "Chapter XI. 궁합의 핵심 원리 — 좋은 사람보다 맞는 사람", subtitle: "끌림과 안정의 균형 원리" },
-      { title: "Chapter XII. 실전 연애 전략 — 앞으로 이렇게 사랑하라", subtitle: "초반·안정기·갈등기·장기 전략" },
-      { title: "Chapter XIII. 사랑의 최종 비책 — 나를 잃지 않고 사랑하는 법", subtitle: "최종 원칙과 개인 선언문" },
-    ],
-  },
-  couple: {
-    mode: "couple",
-    reportType: "saju_love_couple",
-    totalChapters: 13,
-    minTotalChars: 48000,
-    chapterMinDefault: 3200,
-    chapterTargetByIndex: { 1: 4500, 2: 3800, 3: 4000, 4: 4000, 5: 4000, 6: 3800, 7: 4300, 8: 4000, 9: 3600, 10: 3600, 11: 3400, 12: 3500, 13: 3500 },
-    chapters: [
-      { title: "Chapter IX. 재회와 관계 회복 — 다시 이어질 수 있는 인연인가", subtitle: "재회 가능성과 재발 방지 전략" },
-      { title: "Chapter X. 연애운의 흐름 — 사랑이 들어오는 시기와 준비", subtitle: "두 사람 관계 타이밍과 준비" },
-      { title: "Chapter XI. 궁합의 핵심 원리 — 좋은 사람보다 맞는 사람", subtitle: "두 사람 실제 궁합 데이터의 핵심 해석" },
-      { title: "Chapter XII. 실전 연애 전략 — 앞으로 이렇게 사랑하라", subtitle: "관계 운영의 실전 액션 플랜" },
-      { title: "Chapter XIII. 사랑의 최종 비책 — 나를 잃지 않고 사랑하는 법", subtitle: "관계 선언문과 최종 원칙" },
-    ],
-  },
-};
-
 const VEDIC_DASHA_SEQUENCE = [
   { planet: "Ketu", years: 7 },
   { planet: "Venus", years: 20 },
@@ -371,36 +339,6 @@ const VEDIC_COMPAT_CHAPTER_GUIDES = [
   "돈/일/가족/생활 리듬의 현실 궁합 운영 규칙을 제시하세요.",
   "관계 핵심 요약, 지켜야 할 점, 버려야 할 패턴, 최종 선언문으로 마무리하세요.",
 ];
-const VEDIC_PERSONAL_CHAPTER_META = [
-  { key: "V1", num: 1, mode: "personal", title: "Chapter I. 라그나·달·태양 총론", subtitle: "차트 핵심 축 요약", icon: "vedic" },
-  { key: "V2", num: 2, mode: "personal", title: "Chapter II. 라그나와 외부 페르소나", subtitle: "행동 방식과 생존 전략", icon: "vedic" },
-  { key: "V3", num: 3, mode: "personal", title: "Chapter III. 달 나크샤트라와 감정 습관", subtitle: "정서 반응과 회복 루틴", icon: "vedic" },
-  { key: "V4", num: 4, mode: "personal", title: "Chapter IV. 태양·아트마카라카와 사명", subtitle: "자존감과 인생 방향", icon: "vedic" },
-  { key: "V5", num: 5, mode: "personal", title: "Chapter V. 행성·라후/케투 축 분석", subtitle: "내적 갈등과 균형", icon: "vedic" },
-  { key: "V6", num: 6, mode: "personal", title: "Chapter VI. 1~12하우스 삶의 무대", subtitle: "하우스별 현실 적용", icon: "vedic" },
-  { key: "V7", num: 7, mode: "personal", title: "Chapter VII. 사랑·결혼 구조", subtitle: "금성·7하우스 중심", icon: "vedic" },
-  { key: "V8", num: 8, mode: "personal", title: "Chapter VIII. 직업·재물 전략", subtitle: "2·6·10·11하우스 중심", icon: "vedic" },
-  { key: "V9", num: 9, mode: "personal", title: "Chapter IX. 가족·상처·카르마", subtitle: "4·8·12하우스 중심", icon: "vedic" },
-  { key: "V10", num: 10, mode: "personal", title: "Chapter X. 요가/도샤 실전 해석", subtitle: "과장 없는 구조 해석", icon: "vedic" },
-  { key: "V11", num: 11, mode: "personal", title: "Chapter XI. 다샤 타이밍 전략", subtitle: "전환 구간과 조건", icon: "vedic" },
-  { key: "V12", num: 12, mode: "personal", title: "Chapter XII. 인생 통합 마스터플랜", subtitle: "최종 선언문", icon: "vedic" },
-];
-const VEDIC_COMPAT_CHAPTER_META = [
-  { key: "VC1", num: 1, mode: "compatibility", title: "Chapter I. 두 사람의 베다 궁합 총론 — 왜 끌리고 왜 흔들리는가", subtitle: "관계 핵심 구조", icon: "vedic" },
-  { key: "VC2", num: 2, mode: "compatibility", title: "Chapter II. 아쉬타쿠타 궁합 — 구나 밀란이 보여주는 기본 궁합", subtitle: "아쉬타쿠타 해석", icon: "vedic" },
-  { key: "VC3", num: 3, mode: "compatibility", title: "Chapter III. 나크샤트라 궁합 — 감정과 본능의 끌림", subtitle: "감정 공명과 충돌", icon: "vedic" },
-  { key: "VC4", num: 4, mode: "compatibility", title: "Chapter IV. 라그나 궁합 — 삶의 방향과 생활 리듬", subtitle: "생활 리듬 조율", icon: "vedic" },
-  { key: "VC5", num: 5, mode: "compatibility", title: "Chapter V. 금성·화성 궁합 — 설렘, 욕망, 애정 표현", subtitle: "애정 에너지 운영", icon: "vedic" },
-  { key: "VC6", num: 6, mode: "compatibility", title: "Chapter VI. 7하우스와 결혼 가능성 — 관계가 오래 갈 수 있는가", subtitle: "장기 관계 가능성", icon: "vedic" },
-  { key: "VC7", num: 7, mode: "compatibility", title: "Chapter VII. 나바암샤 궁합 — 결혼 이후의 진짜 모습", subtitle: "D9 관계 심화", icon: "vedic" },
-  { key: "VC8", num: 8, mode: "compatibility", title: "Chapter VIII. 망갈릭·도샤 궁합 — 갈등과 충돌의 위험도", subtitle: "리스크 관리", icon: "vedic" },
-  { key: "VC9", num: 9, mode: "compatibility", title: "Chapter IX. 다샤 궁합 — 두 사람의 타이밍이 맞는가", subtitle: "관계 타이밍", icon: "vedic" },
-  { key: "VC10", num: 10, mode: "compatibility", title: "Chapter X. 이별과 재회 가능성 — 다시 이어질 수 있는 인연인가", subtitle: "이별/재회 조건", icon: "vedic" },
-  { key: "VC11", num: 11, mode: "compatibility", title: "Chapter XI. 현실 문제 궁합 — 돈, 일, 가족, 생활 방식", subtitle: "현실 운영 합의", icon: "vedic" },
-  { key: "VC12", num: 12, mode: "compatibility", title: "Chapter XII. 최종 베다 궁합 전략 — 두 사람이 선택해야 할 방향", subtitle: "최종 관계 전략", icon: "vedic" },
-];
-const VEDIC_SOLO_TARGET_CHARS = [4500, 4300, 4300, 4000, 4600, 4800, 4400, 4500, 3900, 3900, 4200, 4600];
-const VEDIC_COMPAT_TARGET_CHARS = [4600, 4800, 4200, 4200, 4300, 4500, 4100, 3900, 4000, 4000, 4100, 4300];
 const VEDIC_PERSONAL_TOTAL_CHAPTERS = VEDIC_PERSONAL_CHAPTER_META.length;
 const VEDIC_COMPAT_TOTAL_CHAPTERS = VEDIC_COMPAT_CHAPTER_META.length;
 const VEDIC_MAX_TOTAL_CHAPTERS = Math.max(VEDIC_PERSONAL_TOTAL_CHAPTERS, VEDIC_COMPAT_TOTAL_CHAPTERS);
@@ -437,37 +375,12 @@ function getVedicTotalChapters(reportType = "personal") {
 
 const VEDIC_DEFAULT_SECTION_LABELS = Object.freeze([
   "핵심 해석",
-  "반복 패턴",
-  "현실 전략",
-  "실행 가이드",
+  "데이터 근거",
+  "현실 적용",
+  "실행 전략",
 ]);
 
-const VEDIC_SECTION_LABELS = Object.freeze({
-  VP1: Object.freeze(["차트 전체 분위기", "라그나와 달의 중심축", "반복되는 인생 테마", "차트의 핵심 문장"]),
-  VP2: Object.freeze(["라그나의 기본 성향", "라그나 로드의 위치와 작동 방식", "외부 이미지와 생존 전략", "라그나를 현실에서 살리는 법"]),
-  VP3: Object.freeze(["달 별자리의 감정 구조", "나크샤트라와 파다의 심리적 결", "불안과 안정감의 패턴", "마음을 안정시키는 생활 전략"]),
-  VP4: Object.freeze(["태양이 보여주는 자아와 권위", "아트마카라카가 말하는 영혼의 과제", "자존감이 흔들리는 지점", "삶의 사명을 현실로 쓰는 법"]),
-  VP5: Object.freeze(["개인적 행성의 작동 방식", "사회적 행성의 작동 방식", "라후와 케투의 카르마 축", "행성 간 균형과 내면 갈등"]),
-  VP6: Object.freeze(["자아·재물·소통의 하우스", "가족·창조성·일상의 하우스", "관계·변형·철학의 하우스", "직업·성과·해탈의 하우스"]),
-  VP7: Object.freeze(["사랑에서 원하는 것", "7하우스와 배우자상", "다라카라카와 장기 관계의 과제", "좋은 관계를 만드는 전략"]),
-  VP8: Object.freeze(["직업적 방향", "돈을 버는 방식", "성과가 나는 일의 구조", "장기적 성공 전략"]),
-  VP9: Object.freeze(["가족과 내면의 뿌리", "8하우스가 보여주는 변형과 위기", "12하우스가 보여주는 고립과 해방", "카르마를 현실에서 가볍게 만드는 법"]),
-  VP10: Object.freeze(["주요 요가 해석", "도샤와 주의 패턴", "강점으로 바꿀 수 있는 조건", "요가와 도샤를 현실 전략으로 쓰는 법"]),
-  VP11: Object.freeze(["현재 다샤의 기본 의미", "가까운 시기의 변화 흐름", "기회가 열리는 조건", "다샤를 현실 전략으로 쓰는 법"]),
-  VP12: Object.freeze(["전체 차트 핵심 요약", "반드시 살려야 할 강점", "버려야 할 반복 패턴", "개인 맞춤 영혼 선언문"]),
-  VC1: Object.freeze(["두 사람의 차트 첫인상", "라그나와 달의 관계", "관계의 전체 분위기", "이 관계의 핵심 문장"]),
-  VC2: Object.freeze(["총점과 전체 의미", "8가지 항목별 해석", "점수가 높아도 조심할 부분", "점수가 낮아도 살릴 수 있는 부분"]),
-  VC3: Object.freeze(["두 사람의 달 나크샤트라", "감정적으로 통하는 지점", "본능적으로 충돌하는 지점", "감정 리듬을 맞추는 법"]),
-  VC4: Object.freeze(["두 사람의 라그나 관계", "생활 방식의 차이", "서로에게 주는 현실적 영향", "함께 살아가기 위한 조율법"]),
-  VC5: Object.freeze(["사랑의 취향 차이", "끌림과 욕망의 구조", "집착과 불안이 생기는 지점", "건강한 애정 표현 전략"]),
-  VC6: Object.freeze(["두 사람의 7하우스 구조", "배우자상과 현실 기대", "결혼 또는 장기 관계의 강점", "장기 관계에서 조심할 점"]),
-  VC7: Object.freeze(["D9 데이터가 보여주는 관계의 깊이", "시간이 지날수록 강해지는 부분", "시간이 지날수록 드러나는 갈등", "결혼 이후 관계 운영 전략"]),
-  VC8: Object.freeze(["망갈릭 여부와 의미", "도샤가 관계에 주는 압력", "감정적 폭발과 거리감 문제", "리스크를 줄이는 현실적 방법"]),
-  VC9: Object.freeze(["현재 각자의 다샤 흐름", "관계가 열리는 시기", "갈등이 커질 수 있는 시기", "타이밍을 맞추는 관계 전략"]),
-  VC10: Object.freeze(["이별이 생기는 구조", "미련이 남는 이유", "재회가 가능한 조건", "다시 만나면 조심해야 할 점"]),
-  VC11: Object.freeze(["돈과 소비 감각", "일과 목표에 대한 태도", "가족과 주변 환경의 영향", "생활 리듬을 맞추는 법"]),
-  VC12: Object.freeze(["전체 궁합 핵심 요약", "이 관계에서 지켜야 할 것", "이 관계에서 버려야 할 것", "두 사람을 위한 최종 선언문"]),
-});
+const VEDIC_SECTION_LABELS = Object.freeze({});
 
 function findVedicChapterMetaByKey(chapterKey) {
   const key = String(chapterKey || "").trim();
@@ -15070,20 +14983,6 @@ const SAJU_NEW_YEAR_FOCUS_LABELS = {
   relationship: "관계/인맥",
   health: "건강/에너지",
 };
-const SAJU_NEW_YEAR_CHAPTERS = [
-  { num: 1, title: "연간 파동 총론 - 올해의 기본 기조", subtitle: "올해 운영의 중심축과 기본 태도" },
-  { num: 2, title: "커리어 전략 - 성과가 나는 월/주의 월", subtitle: "일의 성과 창과 주의 구간 운영" },
-  { num: 3, title: "재물 흐름 - 수익/지출 관리 타이밍", subtitle: "현금흐름 중심의 수익/지출 전략" },
-  { num: 4, title: "관계·인맥 - 협업과 거리두기 전략", subtitle: "사람을 통한 확장과 경계 설계" },
-  { num: 5, title: "연애·가정 - 감정 파동 관리법", subtitle: "가까운 관계의 감정 리듬 관리" },
-  { num: 6, title: "건강·에너지 - 번아웃 방지 설계", subtitle: "회복 루틴과 에너지 운영 시스템" },
-  { num: 7, title: "분기별 핵심 의사결정 포인트", subtitle: "1~4분기 선택 기준과 실행 체크" },
-  { num: 8, title: "리스크 시나리오와 대응 플랜", subtitle: "문제 발생 전후 대응 단계 설계" },
-  { num: 9, title: "12개월 Go/Stop 월별 테이블", subtitle: "월별 행동 판정과 즉시 실행 지침" },
-  { num: 10, title: "최종 실행 로드맵 - 연말 회수 전략", subtitle: "상하반기 운영과 연말 결과 회수" },
-];
-const SAJU_NEW_YEAR_CHAPTER_TARGETS = [4800, 5200, 4800, 4400, 4800, 4200, 5200, 5200, 6200, 5200];
-
 const SAJU_NEW_YEAR_INTERNAL_DISCLOSURE_PATTERNS = [
   /(?:년주|월주|일주|시주)\s*[:：]/,
   /(?:일간|월지|지장간)\s*[:：]/,
@@ -21839,6 +21738,18 @@ export async function handleLoveSecretRoutes(request, env) {
         },
       });
     }
+    return notFound();
+  } catch (error) {
+    return await ensurePdfNo422(handleRouteError(error));
+  }
+}
+
+export async function handleSajuNewYearRoutes(request, env) {
+  try {
+    if (request.method.toUpperCase() !== "POST") return methodNotAllowed();
+    await requireAuth(request, env);
+    const path = getRoutePath(request, "/api/saju-new-year");
+    if (path === "/session") return await ensurePdfNo422(await handleSajuNewYearSession(request, env));
     return notFound();
   } catch (error) {
     return await ensurePdfNo422(handleRouteError(error));

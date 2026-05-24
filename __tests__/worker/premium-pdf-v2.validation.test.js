@@ -20,7 +20,7 @@ describe("Premium PDF v2 helpers", () => {
 
     expect(Array.isArray(plan)).toBe(true);
     expect(plan.length).toBe(13);
-    expect(plan[0].title).toContain("핵심 정체성");
+    expect(plan[0].title).toContain("사주 원국 완전 해설");
     expect(plan[0].order).toBe(1);
     expect(plan[0].minChars).toBe(6000);
     expect(plan[0].maxChars).toBe(6600);

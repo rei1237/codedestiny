@@ -1,3 +1,10 @@
+import { buildLifeBookChapterPlan } from "./saju/life-book/chapterConfig.js";
+import {
+  LOVE_SECRET_MODE_CONFIG,
+  SAJU_NEW_YEAR_CHAPTERS,
+  SAJU_NEW_YEAR_CHAPTER_TARGETS,
+} from "./saju-premium-chapters.js";
+
 const makeChapter = (id, title, minChars, targetChars, requiredDataKeys = []) => ({
   id,
   title,
@@ -9,66 +16,13 @@ const makeChapter = (id, title, minChars, targetChars, requiredDataKeys = []) =>
 const buildIndexedChapters = (prefix, titles, minChars, targetChars) =>
   titles.map((title, idx) => makeChapter(`${prefix}_${String(idx + 1).padStart(2, "0")}`, title, minChars, targetChars));
 
-const LIFE_BOOK_TITLES = [
-  "핵심 정체성",
-  "타고난 성향",
-  "인생의 소명",
-  "직업과 사회적 방향",
-  "재물 흐름",
-  "관계와 사랑",
-  "건강과 에너지",
-  "인생 전환점",
-  "반복 신호",
-  "충돌 신호",
-  "종합 인생 전략",
-  "인생 실행 전략",
-  "최종 마스터 플랜",
-];
+const LIFE_BOOK_TITLES = buildLifeBookChapterPlan().map((chapter) => String(chapter?.title || "").trim()).filter(Boolean);
 
-const SAJU_NEW_YEAR_TITLES = [
-  "연간 파동 총론 - 올해의 기본 기조",
-  "커리어 전략 - 성과가 나는 월/주의 월",
-  "재물 흐름 - 수익/지출 관리 타이밍",
-  "관계·인맥 - 협업과 거리두기 전략",
-  "연애·가정 - 감정 파동 관리법",
-  "건강·에너지 - 번아웃 방지 설계",
-  "분기별 핵심 의사결정 포인트",
-  "리스크 시나리오와 대응 플랜",
-  "12개월 Go/Stop 월별 테이블",
-  "최종 실행 로드맵 - 연말 회수 전략",
-];
+const SAJU_NEW_YEAR_TITLES = SAJU_NEW_YEAR_CHAPTERS.map((chapter) => String(chapter?.title || "").trim()).filter(Boolean);
 
-const LOVE_SOLO_TITLES = [
-  "본연의 연애 자아",
-  "치명적 매력과 페로몬",
-  "운명의 상대방 리포트",
-  "실전 연애 전략 및 스킬",
-  "시기별 연애운 흐름",
-  "연애의 어두운 면과 위기 관리",
-  "친밀감과 감정 리듬",
-  "현대적 상황별 연애 비책",
-  "결혼과 정착",
-  "맞춤형 연애 개운 처방전",
-  "재회·이별·회복 시나리오",
-  "장기 관계 운영 매뉴얼",
-  "최종 사랑 마스터플랜",
-];
+const LOVE_SOLO_TITLES = LOVE_SECRET_MODE_CONFIG.solo.chapters.map((chapter) => String(chapter?.title || "").trim()).filter(Boolean);
 
-const LOVE_COMPATIBILITY_TITLES = [
-  "두 사람의 연애 자아",
-  "상호 매력과 페로몬",
-  "운명의 상대 일치도",
-  "관계 운영 커뮤니케이션",
-  "시기별 궁합 흐름",
-  "갈등 패턴과 위기 관리",
-  "친밀감과 감정 리듬",
-  "현대적 상황별 커뮤니케이션",
-  "결혼 시기와 장기 정착",
-  "공동 개운 처방전",
-  "재회·이별·회복 시나리오",
-  "장기 관계 운영 매뉴얼",
-  "두 사람의 최종 마스터플랜",
-];
+const LOVE_COMPATIBILITY_TITLES = LOVE_SECRET_MODE_CONFIG.couple.chapters.map((chapter) => String(chapter?.title || "").trim()).filter(Boolean);
 
 const ZIWEI_TITLES = [
   "명궁 완전 해석",
@@ -190,8 +144,7 @@ export const PREMIUM_PDF_SPECS = {
     targetTotalChars: 52000,
     chapters: SAJU_NEW_YEAR_TITLES.map((title, idx) => {
       const chapter = idx + 1;
-      const chapterTargets = [4800, 5200, 4800, 4400, 4800, 4200, 5200, 5200, 6200, 5200];
-      const targetChars = Number(chapterTargets[idx] || 5000);
+      const targetChars = Number(SAJU_NEW_YEAR_CHAPTER_TARGETS[idx] || 5000);
       const minChars = Math.max(3200, Math.floor(targetChars * 0.85));
       return makeChapter(`newyear_ch_${String(chapter).padStart(2, "0")}`, title, minChars, targetChars);
     }),
@@ -214,13 +167,15 @@ export const PREMIUM_PDF_SPECS = {
     chaptersByMode: {
       solo: LOVE_SOLO_TITLES.map((title, idx) => {
         const chapter = idx + 1;
-        const minChars = chapter === 3 || chapter === 5 || chapter === 9 ? 4300 : 3900;
-        return makeChapter(`love_solo_${String(chapter).padStart(2, "0")}`, title, minChars, minChars + 500);
+        const targetChars = Number(LOVE_SECRET_MODE_CONFIG.solo.chapterTargetByIndex[chapter] || 4000);
+        const minChars = Number(LOVE_SECRET_MODE_CONFIG.solo.chapterMinByIndex[chapter] || Math.max(3200, Math.floor(targetChars * 0.85)));
+        return makeChapter(`love_solo_${String(chapter).padStart(2, "0")}`, title, minChars, targetChars);
       }),
       compatibility: LOVE_COMPATIBILITY_TITLES.map((title, idx) => {
         const chapter = idx + 1;
-        const minChars = chapter === 3 || chapter === 5 || chapter === 9 ? 5600 : 5200;
-        return makeChapter(`love_comp_${String(chapter).padStart(2, "0")}`, title, minChars, minChars + 700);
+        const targetChars = Number(LOVE_SECRET_MODE_CONFIG.couple.chapterTargetByIndex[chapter] || 4000);
+        const minChars = Number(LOVE_SECRET_MODE_CONFIG.couple.chapterMinByIndex[chapter] || Math.max(3200, Math.floor(targetChars * 0.85)));
+        return makeChapter(`love_comp_${String(chapter).padStart(2, "0")}`, title, minChars, targetChars);
       }),
     },
     legacyReportType: "loveSecret",

@@ -11,16 +11,16 @@
   var SAJU_DATA_SNIPPET_LIMIT = 1800;
 
   var CHAPTER_DEFINITIONS = [
-    { index: 1, title: '원국 기반 연간 전략 총론', subtitle: '기본 체질과 연간 선택 축' },
-    { index: 2, title: '연간 파동과 기회 창', subtitle: '상반기·하반기 리듬' },
-    { index: 3, title: '커리어·사업 확장 전략', subtitle: '기회 포착과 실행 타이밍' },
-    { index: 4, title: '재물·현금흐름 관리', subtitle: '수익/지출 밸런스' },
-    { index: 5, title: '관계·인맥·파트너십', subtitle: '협업과 경계선 관리' },
-    { index: 6, title: '건강·에너지 밸런스', subtitle: '회복력과 집중력 설계' },
-    { index: 7, title: '학습·성장·전환 기회', subtitle: '능력 확장 로드맵' },
-    { index: 8, title: '리스크 관리와 손실 방어', subtitle: '실수 예방·회복 플랜' },
-    { index: 9, title: '12개월 월별 실행 로드맵', subtitle: '월별 Go/Stop 힌트' },
-    { index: 10, title: '최종 통합 액션 플랜', subtitle: '90일 우선 실행 계획' }
+    { index: 1, title: '연간 파동 총론 - 올해의 기본 기조', subtitle: '올해 운영의 중심축과 기본 태도' },
+    { index: 2, title: '커리어 전략 - 성과가 나는 월/주의 월', subtitle: '일의 성과 창과 주의 구간 운영' },
+    { index: 3, title: '재물 흐름 - 수익/지출 관리 타이밍', subtitle: '현금흐름 중심의 수익/지출 전략' },
+    { index: 4, title: '관계·인맥 - 협업과 거리두기 전략', subtitle: '사람을 통한 확장과 경계 설계' },
+    { index: 5, title: '연애·가정 - 감정 파동 관리법', subtitle: '가까운 관계의 감정 리듬 관리' },
+    { index: 6, title: '건강·에너지 - 번아웃 방지 설계', subtitle: '회복 루틴과 에너지 운영 시스템' },
+    { index: 7, title: '분기별 핵심 의사결정 포인트', subtitle: '1~4분기 선택 기준과 실행 체크' },
+    { index: 8, title: '리스크 시나리오와 대응 플랜', subtitle: '문제 발생 전후 대응 단계 설계' },
+    { index: 9, title: '12개월 Go/Stop 월별 테이블', subtitle: '월별 행동 판정과 즉시 실행 지침' },
+    { index: 10, title: '최종 실행 로드맵 - 연말 회수 전략', subtitle: '상하반기 운영과 연말 결과 회수' }
   ];
 
   var MYSTIC_QUOTES = [
@@ -898,7 +898,7 @@
     return { ok: false, code: 'PREMIUM_AUTH_FALLBACK_FAILED', message: '프리미엄 인증 API 호출에 실패했습니다.' };
   }
 
-  async function ensurePremiumSession() {
+  async function ensurePremiumSession(paymentContext) {
     if (state.reportSessionId) {
       return { ok: true, reportSessionId: state.reportSessionId };
     }
@@ -920,7 +920,7 @@
 
     if (!prepared || !prepared.ok || !prepared.reportSessionId) {
       var initialCode = String((prepared && prepared.code) || '').toUpperCase();
-      var hasRecentPayment = !!(state.paymentContext && Number(state.paymentContext.cost) > 0);
+      var hasRecentPayment = !!(paymentContext && Number(paymentContext.cost) > 0);
       if (initialCode === 'PAYMENT_REQUIRED' && hasRecentPayment) {
         var retryDelays = [450, 900, 1500, 2300, 3200, 4200];
         for (var i = 0; i < retryDelays.length; i += 1) {
@@ -1032,11 +1032,11 @@
     }
   }
 
-  async function generateAllChapters() {
+  async function generateAllChapters(paymentContext) {
     showOnly('nyLoadingScreen');
     setLoadingProgress(1, CHAPTER_DEFINITIONS[0].title);
 
-    var prepared = await ensurePremiumSession();
+    var prepared = await ensurePremiumSession(paymentContext);
     if (!prepared || !prepared.ok || !state.reportSessionId) {
       var code = String((prepared && prepared.code) || '').toUpperCase();
       if (code === 'PAYMENT_REQUIRED') {
@@ -1105,7 +1105,7 @@
     }
   }
 
-  async function startNewYearGeneration() {
+  async function startNewYearGeneration(paymentContext) {
     if (state.generating) return;
 
     state.payload = buildPayload();
@@ -1121,7 +1121,7 @@
     persistState();
 
     try {
-      await generateAllChapters();
+      await generateAllChapters(paymentContext || state.paymentContext || null);
       state.paymentContext = null;
       renderResultScreen();
       notify('신년운세 PDF 10챕터 생성이 완료되었습니다.');
@@ -1157,16 +1157,17 @@
           } else {
             transactionId = String(transactionResult || '');
           }
-          state.paymentContext = {
+          var paymentContext = {
             featureKey: COIN_FEATURE_KEY,
             cost: Number(COST_COINS || 0),
             sourceTransactionId: String(transactionId || ''),
             requestId: String(('newyear:' + (state.reportId || Date.now())).slice(0, 120)),
             premiumAccessToken: premiumAccessToken || undefined
           };
+          state.paymentContext = paymentContext;
           state.paidReportId = state.reportId;
           persistState();
-          startNewYearGeneration();
+          startNewYearGeneration(paymentContext);
         },
         function () {
           setGenerateButtonBusy(false);

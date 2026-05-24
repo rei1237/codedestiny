@@ -5,17 +5,17 @@ describe("Premium PDF v2 chapter plans", () => {
     ({ getPremiumPdfV2ChapterPlan } = await import("../../worker/lib/pdf-v2/chapter-plans.js"));
   });
 
-  test("인생의 책/연애 비책은 기존 챕터 수와 글자수 기준 유지", () => {
+  test("인생의 책/연애 비책은 canonical 챕터 수와 글자수 기준을 따른다", () => {
     const life = getPremiumPdfV2ChapterPlan("lifeBook");
     const love = getPremiumPdfV2ChapterPlan("loveSecret", "solo");
 
     expect(life).toHaveLength(13);
-    expect(life[0].title).toContain("핵심 정체성");
+    expect(life[0].title).toContain("사주 원국 완전 해설");
     expect(life[0].minChars).toBe(6000);
     expect(life[0].maxChars).toBe(6600);
 
-    expect(love).toHaveLength(10);
-    expect(love[0].title).toContain("본연의 연애 자아");
+    expect(love).toHaveLength(13);
+    expect(love[0].title).toContain("Chapter I. 본연의 연애 자아");
     expect(love[0].minChars).toBe(5000);
   });
 

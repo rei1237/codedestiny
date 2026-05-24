@@ -1,108 +1,27 @@
-const LIFEBOOK_TITLES = [
-  "핵심 정체성",
-  "타고난 성향",
-  "인생의 소명",
-  "직업과 사회적 방향",
-  "재물 흐름",
-  "관계와 사랑",
-  "건강과 에너지",
-  "인생 전환점",
-  "반복 신호",
-  "충돌 신호",
-  "종합 인생 전략",
-  "인생 실행 전략",
-  "최종 마스터 플랜",
-];
+import { ZIWEI_PDF_CHAPTERS } from "../ziwei-pdf-knowledge-base.js";
+import { SUKUYO_PERSONAL_CHAPTER_META } from "../sukuyo-premium.js";
+import { buildLifeBookChapterPlan } from "../saju/life-book/chapterConfig.js";
+import { LOVE_SECRET_MODE_CONFIG, SAJU_NEW_YEAR_CHAPTERS } from "../saju-premium-chapters.js";
+import {
+  VEDIC_PERSONAL_CHAPTER_META,
+  VEDIC_COMPAT_CHAPTER_META,
+  VEDIC_SOLO_TARGET_CHARS,
+  VEDIC_COMPAT_TARGET_CHARS,
+} from "../vedic-premium-chapters.js";
 
-const LOVE_SOLO_TITLES = [
-  "본연의 연애 자아",
-  "치명적 매력과 페로몬",
-  "운명의 상대방 리포트",
-  "실전 연애 전략 및 스킬",
-  "시기별 연애운 흐름",
-  "연애의 어두운 면과 위기 관리",
-  "친밀감과 감정 리듬",
-  "현대적 상황별 연애 비책",
-  "결혼과 정착",
-  "맞춤형 연애 개운 처방전",
-];
+const LIFEBOOK_TITLES = buildLifeBookChapterPlan().map((chapter) => String(chapter?.title || "").trim()).filter(Boolean);
 
-const LOVE_COMPAT_TITLES = [
-  "두 사람의 연애 자아",
-  "상호 매력과 페로몬",
-  "운명의 상대 일치도",
-  "관계 운영 커뮤니케이션",
-  "시기별 궁합 흐름",
-  "갈등 패턴과 위기 관리",
-  "친밀감과 감정 리듬",
-  "현대적 상황별 커뮤니케이션",
-  "결혼 시기와 장기 정착",
-  "공동 개운 처방전",
-];
+const LOVE_SOLO_TITLES = LOVE_SECRET_MODE_CONFIG.solo.chapters.map((chapter) => String(chapter?.title || "").trim()).filter(Boolean);
 
-const ZIWEI_TITLES = [
-  "명궁 완전 해석",
-  "신궁 통합 해석",
-  "복덕궁",
-  "천이궁",
-  "관록궁",
-  "재백궁",
-  "부처궁",
-  "교우궁",
-  "전택궁",
-  "질액궁",
-  "대운/대한 흐름",
-  "유년/유월 흐름",
-  "마스터플랜 총결론",
-];
+const LOVE_COMPAT_TITLES = LOVE_SECRET_MODE_CONFIG.couple.chapters.map((chapter) => String(chapter?.title || "").trim()).filter(Boolean);
 
-const SUKUYO_TITLES = [
-  "영혼의 원형",
-  "감정의 조수간만",
-  "페르소나와 브랜딩",
-  "자산의 중력",
-  "보이지 않는 톱니바퀴",
-  "관계의 정밀 레이더",
-  "파괴적 혁신",
-  "조화로운 성장",
-  "정서적 유대",
-  "운명적 거리",
-  "달의 주기",
-  "영혼의 마스터플랜",
-];
+const ZIWEI_TITLES = ZIWEI_PDF_CHAPTERS.map((chapter) => String(chapter?.title || "").trim()).filter(Boolean);
 
-const VEDIC_SOLO_TITLES = [
-  "베다 차트 총론 — 영혼이 선택한 삶의 지도",
-  "라그나 완전 해석 — 세상에 태어난 방식",
-  "달과 나크샤트라 — 마음, 기억, 감정의 별자리",
-  "태양과 아트마카라카 — 영혼의 자존감과 사명",
-  "행성 배치 해석 — 내 안의 아홉 가지 힘",
-  "12하우스 인생 분석 — 삶이 펼쳐지는 무대",
-  "사랑과 결혼 — 금성, 7하우스, 다라카라카의 비밀",
-  "직업과 재물 — 2·6·10·11하우스의 성공 전략",
-  "가족·상처·카르마 — 4·8·12하우스의 깊은 이야기",
-  "요가와 도샤 — 차트에 숨은 특별한 패턴",
-  "다샤 흐름 — 인생의 시기와 전환점",
-  "최종 베다 인생 전략 — 내 차트를 현실로 살아내는 법",
-];
+const SUKUYO_TITLES = SUKUYO_PERSONAL_CHAPTER_META.map((meta) => String(meta?.title || "").trim()).filter(Boolean);
 
-const VEDIC_COMPAT_TITLES = [
-  "두 사람의 베다 궁합 총론 — 왜 끌리고 왜 흔들리는가",
-  "아쉬타쿠타 궁합 — 구나 밀란이 보여주는 기본 궁합",
-  "나크샤트라 궁합 — 감정과 본능의 끌림",
-  "라그나 궁합 — 삶의 방향과 생활 리듬",
-  "금성·화성 궁합 — 설렘, 욕망, 애정 표현",
-  "7하우스와 결혼 가능성 — 관계가 오래 갈 수 있는가",
-  "나바암샤 궁합 — 결혼 이후의 진짜 모습",
-  "망갈릭·도샤 궁합 — 갈등과 충돌의 위험도",
-  "다샤 궁합 — 두 사람의 타이밍이 맞는가",
-  "이별과 재회 가능성 — 다시 이어질 수 있는 인연인가",
-  "현실 문제 궁합 — 돈, 일, 가족, 생활 방식",
-  "최종 베다 궁합 전략 — 두 사람이 선택해야 할 방향",
-];
+const VEDIC_SOLO_TITLES = VEDIC_PERSONAL_CHAPTER_META.map((meta) => String(meta?.title || "").trim()).filter(Boolean);
 
-const VEDIC_SOLO_TARGETS = [4500, 4300, 4300, 4000, 4600, 4800, 4400, 4500, 3900, 3900, 4200, 4600];
-const VEDIC_COMPAT_TARGETS = [4600, 4800, 4200, 4200, 4300, 4500, 4100, 3900, 4000, 4000, 4100, 4300];
+const VEDIC_COMPAT_TITLES = VEDIC_COMPAT_CHAPTER_META.map((meta) => String(meta?.title || "").trim()).filter(Boolean);
 
 const ASTRO_PERSONAL_TITLES = [
   "출생차트 총론 — 하늘이 남긴 첫 설계도",
@@ -134,18 +53,7 @@ const ASTRO_COMPAT_TITLES = [
   "최종 궁합 봉서 — 사랑, 성장, 동반자 가능성",
 ];
 
-const NEW_YEAR_TITLES = [
-  "연간 파동 총론 - 올해의 기본 기조",
-  "커리어 전략 - 성과가 나는 월/주의 월",
-  "재물 흐름 - 수익/지출 관리 타이밍",
-  "관계·인맥 - 협업과 거리두기 전략",
-  "연애·가정 - 감정 파동 관리법",
-  "건강·에너지 - 번아웃 방지 설계",
-  "분기별 핵심 의사결정 포인트",
-  "리스크 시나리오와 대응 플랜",
-  "12개월 Go/Stop 월별 테이블",
-  "최종 실행 로드맵 - 연말 회수 전략",
-];
+const NEW_YEAR_TITLES = SAJU_NEW_YEAR_CHAPTERS.map((chapter) => String(chapter?.title || "").trim()).filter(Boolean);
 
 function chapter(order, prefix, title, minChars, maxChars, requiredFields) {
   const index = String(order).padStart(2, "0");
@@ -247,7 +155,7 @@ function buildSookyoPlan() {
 function buildVedicPlan(mode = "personal") {
   const isCompatibility = mode === "compatibility";
   const titles = isCompatibility ? VEDIC_COMPAT_TITLES : VEDIC_SOLO_TITLES;
-  const targets = isCompatibility ? VEDIC_COMPAT_TARGETS : VEDIC_SOLO_TARGETS;
+  const targets = isCompatibility ? VEDIC_COMPAT_TARGET_CHARS : VEDIC_SOLO_TARGET_CHARS;
   const prefix = isCompatibility ? "vedic-comp" : "vedic-solo";
   return titles.map((title, i) => {
     const target = Number(targets[i] || 4200);
