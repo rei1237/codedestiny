@@ -213,9 +213,38 @@ function normalizeSukyoReportMode(value) {
 }
 
 function getSukyoPdfChapters(reportMode = "personal") {
+  const sectionPersonal = ["핵심 요약", "숙요점 구조 해석", "강점과 기회", "주의할 패턴", "현실 적용 전략"];
+  const sectionCouple = ["핵심 요약", "두 사람의 숙요 구조", "관계의 장점", "충돌과 리스크", "실전 관계 전략"];
+
+  const personalChapters = [
+    { key: "solo_ch_01", title: "본명숙 총론 — 타고난 감정 구조와 인생 리듬", goal: "본명숙의 핵심 구조를 인생 리듬 관점에서 제시한다.", targetChars: 4200, minChars: 3570, sections: sectionPersonal },
+    { key: "solo_ch_02", title: "성격과 기질 — 내가 세상을 받아들이는 방식", goal: "성격 반응 구조와 정서 패턴을 분리 해석한다.", targetChars: 4200, minChars: 3570, sections: sectionPersonal },
+    { key: "solo_ch_03", title: "인연 패턴 — 끌리는 사람과 반복되는 관계 흐름", goal: "인연 형성과 반복 패턴을 분석한다.", targetChars: 4200, minChars: 3570, sections: sectionPersonal },
+    { key: "solo_ch_04", title: "사랑의 방식 — 연애에서 강해지는 지점과 흔들리는 지점", goal: "애착, 밀도, 회복 방식의 작동 원리를 제시한다.", targetChars: 4300, minChars: 3655, sections: sectionPersonal },
+    { key: "solo_ch_05", title: "일과 재능 — 숙이 보여주는 몰입 방식과 성취 전략", goal: "업무 몰입 구조와 성과 공식을 정리한다.", targetChars: 4300, minChars: 3655, sections: sectionPersonal },
+    { key: "solo_ch_06", title: "인간관계 — 가까워질수록 드러나는 거리감과 신뢰 방식", goal: "신뢰 형성/붕괴 조건을 관계 규칙으로 제시한다.", targetChars: 4100, minChars: 3485, sections: sectionPersonal },
+    { key: "solo_ch_07", title: "운의 리듬 — 선택이 잘 풀리는 흐름과 조심할 흐름", goal: "기회와 경계의 리듬을 생활 의사결정에 연결한다.", targetChars: 4000, minChars: 3400, sections: sectionPersonal },
+    { key: "solo_ch_08", title: "약점과 회복법 — 감정 소모를 줄이는 생활 전략", goal: "감정 소모 패턴과 회복 루틴을 구체화한다.", targetChars: 4100, minChars: 3485, sections: sectionPersonal },
+    { key: "solo_ch_09", title: "인생 운영 전략 — 본명숙을 현실에서 쓰는 법", goal: "성향을 실행 기준으로 전환하는 운영법을 제시한다.", targetChars: 4200, minChars: 3570, sections: sectionPersonal },
+    { key: "solo_ch_10", title: "최종 실행 로드맵 — 오늘부터 바꿔야 할 선택 기준", goal: "최종 행동 기준과 실행 로드맵으로 마무리한다.", targetChars: 4400, minChars: 3740, sections: sectionPersonal },
+  ];
+
+  const coupleChapters = [
+    { key: "compat_ch_01", title: "두 사람의 숙요 관계 총론 — 관계의 기본 온도", goal: "두 사람 관계의 기본 온도와 핵심 축을 제시한다.", targetChars: 4300, minChars: 3655, sections: sectionCouple },
+    { key: "compat_ch_02", title: "본명숙 비교 — 서로가 느끼는 첫인상과 본질", goal: "양측 본명숙의 반응 차이를 구조적으로 해석한다.", targetChars: 4300, minChars: 3655, sections: sectionCouple },
+    { key: "compat_ch_03", title: "관계 유형 분석 — 업/태/영친/안괴/위성/성위 흐름", goal: "관계 유형, 거리, 역할을 핵심 축으로 분석한다.", targetChars: 4400, minChars: 3740, sections: sectionCouple },
+    { key: "compat_ch_04", title: "끌림과 애착 — 왜 서로에게 반응하는가", goal: "끌림 메커니즘과 애착 패턴을 분리 해석한다.", targetChars: 4200, minChars: 3570, sections: sectionCouple },
+    { key: "compat_ch_05", title: "충돌 포인트 — 반복되는 오해와 감정의 엇갈림", goal: "반복 충돌 트리거와 악화 경로를 명확히 한다.", targetChars: 4300, minChars: 3655, sections: sectionCouple },
+    { key: "compat_ch_06", title: "대화와 화해 전략 — 관계를 회복시키는 말의 방식", goal: "회복 대화법과 화해 프로토콜을 제시한다.", targetChars: 4200, minChars: 3570, sections: sectionCouple },
+    { key: "compat_ch_07", title: "연애와 결혼 가능성 — 장기 관계에서의 안정성", goal: "장기 관계 안정성의 조건과 리스크를 함께 제시한다.", targetChars: 4200, minChars: 3570, sections: sectionCouple },
+    { key: "compat_ch_08", title: "현실 문제와 생활 궁합 — 돈, 시간, 습관, 책임감", goal: "생활 운영 적합성과 조율 규칙을 구체화한다.", targetChars: 4100, minChars: 3485, sections: sectionCouple },
+    { key: "compat_ch_09", title: "관계 리스크 관리 — 멀어지는 패턴을 막는 법", goal: "관계 붕괴 신호와 예방 전략을 설계한다.", targetChars: 4100, minChars: 3485, sections: sectionCouple },
+    { key: "compat_ch_10", title: "최종 관계 로드맵 — 함께 갈지, 거리를 둘지의 기준", goal: "최종 관계 운영 기준과 실행 로드맵을 제시한다.", targetChars: 4400, minChars: 3740, sections: sectionCouple },
+  ];
+
   return normalizeSukyoReportMode(reportMode) === "compatibility"
-    ? SUKYO_PDF_COMPAT_CHAPTERS
-    : SUKYO_PDF_CHAPTERS;
+    ? coupleChapters
+    : personalChapters;
 }
 
 function toCalendarType(value) {
@@ -379,7 +408,6 @@ function validateSukuyoPdfPayload(reportPayload = {}) {
   const calendarType = toCalendarType(pickFirst(birthInput.calendarType, birthInput.calType, payload.calendarType, payload.calType, "solar"));
   const timezone = toStringOrNull(birthInput.timezone || payload.timezone) || "Asia/Seoul";
 
-  pushMissing(missingFields, "selectedProfileId", Boolean(selectedProfileId));
   pushMissing(missingFields, "birthInput.year", Number.isFinite(year));
   pushMissing(missingFields, "birthInput.month", Number.isFinite(month));
   pushMissing(missingFields, "birthInput.day", Number.isFinite(day));
@@ -1283,6 +1311,8 @@ export {
   SUKYO_CHAPTER_FOCUS,
   SUKYO_PDF_KNOWLEDGE_BASE,
   getSukyoPdfChapters,
+  buildSukuyoPdfSeed,
+  validateSukuyoPdfPayload,
   buildSukuyoBookContextFromNormalized,
   normalizeSukyoResultForPdf,
   validateSukyoPdfInput,

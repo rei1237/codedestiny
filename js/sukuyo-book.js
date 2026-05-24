@@ -77,17 +77,19 @@
   var _mysticTimer = null;
   var PREMIUM_SUKUYO_COST = 390;
   var PREMIUM_SUKUYO_COMPAT_EXTRA_COST = 300;
-  var PREMIUM_SUKUYO_FEATURE_KEY = 'premium-sukuyo';
+  var PREMIUM_SUKUYO_FEATURE_KEY = 'premium-sukuyo-report';
   var PREMIUM_SUKUYO_COMPAT_FEATURE_KEY = 'premium-sukuyo-compat-extra';
   var PREMIUM_SUKUYO_TX_KEY = 'cd_premium_tx_sukuyo';
   var PREMIUM_SUKUYO_COMPAT_TX_KEY = 'cd_premium_tx_sukuyo_compat_extra';
   var PREMIUM_SUKUYO_REPORT_FEATURE_KEY = 'premium-sukuyo-report';
+  var SUKUYO_PDF_FEATURE_KEY = 'premium-sukuyo-report';
   var PREMIUM_SUKUYO_REPORT_REASON = '숙요점 프리미엄 PDF 리포트 생성';
   var _reportMode = 'personal';
   var _totalChapters = PERSONAL_CHAPTER_META.length;
   var _reportId = '';
   var _canonicalSukuyoCompatibility = null;
   var _chapterMetaRuntime = Array(_totalChapters).fill(null);
+  var _sukuyoPaymentContext = null;
 
   function _qs(id) { return document.getElementById(id); }
 
@@ -115,6 +117,7 @@
     _chapterMetaRuntime = Array(_totalChapters).fill(null);
     _reportId = '';
     _canonicalSukuyoCompatibility = null;
+    _sukuyoPaymentContext = null;
   }
 
   function _syncReportModeSelector(mode) {
@@ -268,6 +271,7 @@
       reportType: selectedMode,
       reportMode: selectedMode,
       includeCompatibility: selectedMode === 'compatibility',
+      payment: _sukuyoPaymentContext || undefined,
       lunarMonth: lunarHint ? lunarHint.lunarMonth : undefined,
       lunarDay: lunarHint ? lunarHint.lunarDay : undefined,
       isLeap: lunarHint ? lunarHint.isLeap : undefined,
@@ -439,10 +443,31 @@
         (innerData.consume && innerData.consume.transactionId) ||
         innerData.transactionId || raw.transactionId || ''
       ).trim();
+      var receiptId = String(
+        (innerData.consume && innerData.consume.receiptId) ||
+        innerData.receiptId || raw.receiptId || ''
+      ).trim();
+      var orderId = String(
+        (innerData.consume && innerData.consume.orderId) ||
+        innerData.orderId || raw.orderId || ''
+      ).trim();
       if (transactionId) {
         try { sessionStorage.setItem(PREMIUM_SUKUYO_TX_KEY, transactionId); } catch (_) {}
       }
-      return { ok: true, premiumAccessToken: premiumAccessToken, transactionId: transactionId };
+      _sukuyoPaymentContext = {
+        featureKey: SUKUYO_PDF_FEATURE_KEY,
+        transactionId: transactionId || undefined,
+        receiptId: receiptId || undefined,
+        orderId: orderId || undefined,
+      };
+      return {
+        ok: true,
+        premiumAccessToken: premiumAccessToken,
+        transactionId: transactionId,
+        receiptId: receiptId,
+        orderId: orderId,
+        featureKey: SUKUYO_PDF_FEATURE_KEY,
+      };
     }).catch(function (err) {
       console.error('[숙요 프리미엄 PDF][coin-gate] 오류:', err);
       return { ok: false, message: '코인 차감 중 오류가 발생했습니다.' };
@@ -562,7 +587,7 @@
 
   function _autoRefundPremium(cost, featureKey, label, txStorageKey) {
     var reasonText = String(label || '');
-    if (!/LOCAL_REPORT_FAILED|로컬\s*리포트\s*실패/i.test(reasonText)) {
+    if (!/LOCAL_REPORT_FAILED|로컬\s*리포트\s*실패|SUKUYO_LOCAL_CALCULATION_FAILED/i.test(reasonText)) {
       return Promise.resolve(false);
     }
     var token = '';
@@ -1163,7 +1188,7 @@
         : '전체 챕터 정리를 완료했습니다.';
       _setStage(done < _totalChapters ? 6 : 7, _subtitle);
       if(chapterMsg&&done<_totalChapters)chapterMsg.textContent=activeLoading[done]||'분석 중...';
-      if(chapterMsg&&done>=_totalChapters)chapterMsg.textContent=_getReportDisplayTitle()+'이 완성되었습니다 ✦';
+      if(chapterMsg&&done>=_totalChapters)chapterMsg.textContent='숙요점 프리미엄 리포트가 완성되었습니다.';
       if(chapterNumEl)chapterNumEl.textContent=done<_totalChapters?'Chapter '+(done+1):'✦ 완성 ✦';
       if (chapterMsg) {
         chapterMsg.classList.remove('lb-loading__status--pulse');
@@ -1242,6 +1267,7 @@
         reportType:_reportMode,
         reportMode:_reportMode,
         includeCompatibility:_reportMode==='compatibility',
+        payment:_sukuyoPaymentContext||undefined,
         previousChapterTexts: previousChapterTexts,
         lunarMonth:lunarHint?lunarHint.lunarMonth:undefined,
         lunarDay:lunarHint?lunarHint.lunarDay:undefined,
@@ -1467,10 +1493,10 @@
           var errEl=_qs('skErrorMsg');
           if(errEl)errEl.textContent='챕터 생성이 불완전합니다 ('+validCount+'/'+_totalChapters+'). 자동 환급을 시도합니다. 잠시 후 다시 시도해 주세요.';
           _showScreen('skErrorScreen');
-          _autoRefundPremium(PREMIUM_SUKUYO_COST, PREMIUM_SUKUYO_FEATURE_KEY, '숙요 프리미엄 PDF', PREMIUM_SUKUYO_TX_KEY)
+          _autoRefundPremium(PREMIUM_SUKUYO_COST, PREMIUM_SUKUYO_FEATURE_KEY, 'LOCAL_REPORT_FAILED: 숙요 프리미엄 PDF', PREMIUM_SUKUYO_TX_KEY)
             .then(function(){
               if (_reportMode === 'compatibility') {
-                return _autoRefundPremium(PREMIUM_SUKUYO_COMPAT_EXTRA_COST, PREMIUM_SUKUYO_COMPAT_FEATURE_KEY, '숙요 궁합 추가 결제', PREMIUM_SUKUYO_COMPAT_TX_KEY);
+                return _autoRefundPremium(PREMIUM_SUKUYO_COMPAT_EXTRA_COST, PREMIUM_SUKUYO_COMPAT_FEATURE_KEY, 'LOCAL_REPORT_FAILED: 숙요 궁합 추가 결제', PREMIUM_SUKUYO_COMPAT_TX_KEY);
               }
               return false;
             })
@@ -1530,10 +1556,10 @@
           var dataErrEl = _qs('skErrorMsg');
           if (dataErrEl) dataErrEl.textContent = _formatPremiumFailureMessage(data, 'PDF 생성에 필요한 계산 데이터가 부족합니다. 데이터를 다시 확인해 주세요.');
           _showScreen('skErrorScreen');
-          _autoRefundPremium(PREMIUM_SUKUYO_COST, PREMIUM_SUKUYO_REPORT_FEATURE_KEY, '숙요 프리미엄 PDF', PREMIUM_SUKUYO_TX_KEY)
+          _autoRefundPremium(PREMIUM_SUKUYO_COST, PREMIUM_SUKUYO_REPORT_FEATURE_KEY, 'LOCAL_REPORT_FAILED: 숙요 프리미엄 PDF', PREMIUM_SUKUYO_TX_KEY)
             .then(function(){
               if (_reportMode === 'compatibility') {
-                return _autoRefundPremium(PREMIUM_SUKUYO_COMPAT_EXTRA_COST, PREMIUM_SUKUYO_COMPAT_FEATURE_KEY, '숙요 궁합 추가 결제', PREMIUM_SUKUYO_COMPAT_TX_KEY);
+                return _autoRefundPremium(PREMIUM_SUKUYO_COMPAT_EXTRA_COST, PREMIUM_SUKUYO_COMPAT_FEATURE_KEY, 'LOCAL_REPORT_FAILED: 숙요 궁합 추가 결제', PREMIUM_SUKUYO_COMPAT_TX_KEY);
               }
               return false;
             })
@@ -1561,10 +1587,10 @@
                 : '외부 API 응답 지연으로 리포트를 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.');
           }
           _showScreen('skErrorScreen');
-          _autoRefundPremium(PREMIUM_SUKUYO_COST, PREMIUM_SUKUYO_REPORT_FEATURE_KEY, '숙요 프리미엄 PDF', PREMIUM_SUKUYO_TX_KEY)
+          _autoRefundPremium(PREMIUM_SUKUYO_COST, PREMIUM_SUKUYO_REPORT_FEATURE_KEY, 'LOCAL_REPORT_FAILED: 숙요 프리미엄 PDF', PREMIUM_SUKUYO_TX_KEY)
             .then(function(){
               if (_reportMode === 'compatibility') {
-                return _autoRefundPremium(PREMIUM_SUKUYO_COMPAT_EXTRA_COST, PREMIUM_SUKUYO_COMPAT_FEATURE_KEY, '숙요 궁합 추가 결제', PREMIUM_SUKUYO_COMPAT_TX_KEY);
+                return _autoRefundPremium(PREMIUM_SUKUYO_COMPAT_EXTRA_COST, PREMIUM_SUKUYO_COMPAT_FEATURE_KEY, 'LOCAL_REPORT_FAILED: 숙요 궁합 추가 결제', PREMIUM_SUKUYO_COMPAT_TX_KEY);
               }
               return false;
             })
