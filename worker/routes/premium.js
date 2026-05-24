@@ -15951,14 +15951,33 @@ async function handleAstroLife(request, env, authInfo = null) {
   const strictSwissMode = hasAstroBirthTimeInput(body, input);
 
   logAstroPdfStage("AstroSeedStart", { debugId, profileId: String(body?.profileId || body?.selectedProfileId || "") });
-  const ensuredSeed = await ensureAstroPdfSeed({
-    request,
-    env,
-    body,
-    input,
-    reportType,
-    strictSwissMode,
-  });
+  let ensuredSeed;
+  try {
+    ensuredSeed = await ensureAstroPdfSeed({
+      request,
+      env,
+      body,
+      input,
+      reportType,
+      strictSwissMode,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error || "Astro seed generation failed");
+    logAstroPdfStage("AstroSeedFailed", {
+      debugId,
+      profileId: String(body?.profileId || body?.selectedProfileId || ""),
+      missingFields: ["natalChart.planets", "houses", "aspects"],
+      message,
+    }, "error");
+    return json({
+      ok: false,
+      code: "ASTRO_CHART_SEED_FAILED",
+      message: "점성술 차트 계산에 필요한 데이터 생성에 실패했습니다.",
+      debugId,
+      hasChart: false,
+      missingFields: ["natalChart.planets", "houses", "aspects"],
+    }, { status: 422 });
+  }
   let chart = ensuredSeed.chart;
   if (!ensuredSeed?.seedValidation?.ok) {
     logAstroPdfStage("AstroSeedRecovered", {
@@ -23502,9 +23521,28 @@ async function invokeLegacyGenerateChapter(config, request, env, payload, authIn
     body: JSON.stringify(payload || {}),
   });
 
-  const response = await handler(nextRequest, env, authInfo);
-  const data = await response.clone().json().catch(() => ({}));
-  return { response, data };
+  try {
+    const response = await handler(nextRequest, env, authInfo);
+    const data = await response.clone().json().catch(() => ({}));
+    return { response, data };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error || "LEGACY_PREMIUM_GENERATION_FAILED");
+    console.error("[LegacyPremium][InvokeFailed]", {
+      alias: String(config?.alias || ""),
+      targetPath,
+      message,
+    });
+    const payloadError = {
+      ok: false,
+      code: "LEGACY_PREMIUM_GENERATION_FAILED",
+      message: "프리미엄 리포트 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+      details: message,
+    };
+    return {
+      response: json(payloadError, { status: 422 }),
+      data: payloadError,
+    };
+  }
 }
 
 async function advanceLegacyPremiumSession(config, request, env, reportId, authInfo = null) {
@@ -23633,7 +23671,7 @@ async function startLegacyPremiumSession(config, request, env, authInfo = null) 
 
   const reportId = String(generated.data?.reportId || "").trim();
   if (!reportId) {
-    return json({ ok: false, code: "REPORT_ID_MISSING", message: "리포트 식별자를 만들지 못했습니다." }, { status: 500 });
+    return json({ ok: false, code: "REPORT_ID_MISSING", message: "리포트 식별자를 만들지 못했습니다." }, { status: 422 });
   }
 
   const patched = upsertLegacyFlowMeta(config.sessionKind, reportId, {
