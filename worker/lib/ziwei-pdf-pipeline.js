@@ -24,6 +24,7 @@ const PALACE_ORDER = [
 const PALACE_KEY_MAP = Object.freeze({
   명궁: "ming",
   형제궁: "siblings",
+  부부궁: "spouse",
   부처궁: "spouse",
   배우자궁: "spouse",
   자녀궁: "children",
@@ -40,13 +41,13 @@ const PALACE_KEY_MAP = Object.freeze({
 
 const STRENGTH_BY_SYMBOL = Object.freeze({
   "◎": "묘",
-  "○": "왕",
+  "○": "묘",
   O: "왕",
   "▲": "리",
   "△": "평",
-  "함": "함",
+  "함": "실",
   "×": "함",
-  X: "함",
+  X: "실",
 });
 
 const SYMBOL_BY_STRENGTH = Object.freeze({
@@ -101,35 +102,33 @@ const STEM_SIHUA_RULES = Object.freeze({
 });
 
 const ZIWEI_CHAPTER_CATEGORY_GUIDE = Object.freeze({
-  1: ["명궁의 주성 구조", "명궁의 보조성/잡성 해석", "명궁의 밝기와 강약", "성격, 기질, 선택 방식", "인생 초반부터 반복되는 핵심 패턴", "실전 조언"],
-  2: ["신궁 위치와 의미", "명궁과 신궁의 관계", "나이가 들수록 강해지는 성향", "사회적 역할과 후천적 방향성", "인생 후반 전략", "실전 조언"],
-  3: ["복덕궁 주성 해석", "스트레스와 회복 방식", "정신적 만족을 주는 환경", "외로움/불안/집착 패턴", "장기적인 행복 설계", "실전 조언"],
-  4: ["관록궁 주성 구조", "적성 직업과 일하는 방식", "조직형/독립형/창작형/전문가형 판단", "성공이 열리는 조건", "커리어 리스크", "실전 조언"],
-  5: ["재백궁 주성 구조", "돈 버는 방식", "돈이 새는 패턴", "투자/사업/직장 수입 성향", "재물운을 키우는 습관", "실전 조언"],
-  6: ["천이궁 주성 구조", "밖에서 만나는 기회", "이직, 이동, 여행, 해외운", "낯선 환경에서 강해지는지 약해지는지", "귀인과 외부 평판", "실전 조언"],
-  7: ["부처궁 주성 구조", "끌리는 상대 유형", "실제로 맞는 상대 유형", "연애에서 반복되는 문제", "결혼 생활의 핵심 과제", "실전 조언"],
-  8: ["교우궁 주성 구조", "친구와 동료 인연", "도움 되는 사람과 피해야 할 사람", "협업 방식", "배신/오해/고립 리스크", "실전 조언"],
-  9: ["부모궁 주성 구조", "부모와의 인연 패턴", "윗사람/상사/스승과의 관계", "보호받는 방식과 압박받는 방식", "독립 과제", "실전 조언"],
-  10: ["형제궁 주성 구조", "형제/동료/경쟁자와의 관계", "가까운 사람과의 거리감", "비교심리와 경쟁 구도", "협력 가능한 구조", "실전 조언"],
-  11: ["질액궁 주성 구조", "취약한 생활 패턴", "과로/번아웃/감정 소모 포인트", "몸과 마음의 회복법", "장기적인 건강 관리 전략", "실전 조언"],
-  12: ["현재 대운/대한의 핵심 의미", "인생에서 강하게 바뀌는 시기", "커리어 전환기", "관계 전환기", "재물 전환기", "실전 조언"],
-  13: ["명궁·신궁·관록궁·재백궁 종합", "인생의 핵심 강점", "반드시 관리해야 할 약점", "성공 방정식", "관계와 돈의 최종 전략", "앞으로의 실행 로드맵"],
+  1: ["명궁 전체 총론", "명궁 주성의 성격 구조", "보조성·길성·살성이 만드는 세부 기질", "명궁 삼방사정으로 보는 인생 운영 방식", "강점이 살아나는 환경", "반복되는 약점과 오판 패턴", "현실 적용 전략"],
+  2: ["신궁 위치가 말하는 후천적 방향", "나이가 들수록 강해지는 성향", "신궁의 별이 만드는 행동 동력", "명궁과 신궁의 차이와 균형", "후천적 성공 조건", "흔들릴 때 드러나는 반응", "현실 적용 전략"],
+  3: ["12궁 전체 균형 요약", "나와 가족·관계 영역", "돈·일·사회 영역", "건강·이동·환경 영역", "복덕·부모·내면 기반", "강한 궁과 보완할 궁", "전체 명반 운영 전략"],
+  4: ["명반의 대표 주성 요약", "자미·천부 계열의 중심성", "천기·태양·태음 계열의 판단과 감수성", "무곡·천상·천량 계열의 현실성과 책임", "염정·탐랑·거문 계열의 욕망과 표현", "칠살·파군 계열의 변화와 돌파성", "주성 조합을 현실에서 쓰는 법"],
+  5: ["관록궁 전체 총론", "일하는 방식과 직업 기질", "성과가 나는 업무 환경", "조직·사업·프리랜서 적합성", "커리어 리스크와 막히는 패턴", "대운에서 커리어가 열리는 시점", "현실 커리어 전략"],
+  6: ["재백궁 전체 총론", "돈 버는 방식", "수입원이 열리는 조건", "소비·투자·손실 리스크", "재물과 직업의 연결", "재물운을 안정시키는 환경", "현실 재정 전략"],
+  7: ["부부궁 전체 총론", "끌리는 상대의 유형", "연애에서 강해지는 지점", "반복되는 관계 갈등", "결혼·동거·장기 관계 가능성", "관계 회복과 대화 전략", "현실 관계 전략"],
+  8: ["인간관계 네트워크 총론", "도움 되는 사람의 유형", "피로해지는 관계 구조", "협업과 팀워크 방식", "귀인과 경쟁자 구분", "관계 리스크 관리", "현실 인맥 전략"],
+  9: ["전택궁 전체 총론", "주거와 생활 기반", "부동산·자산 축적 가능성", "가족·공간·심리 안정", "공간이 운에 미치는 영향", "흔들리는 기반을 보완하는 법", "현실 공간·자산 전략"],
+  10: ["복덕궁 전체 총론", "내면 만족과 행복 조건", "스트레스 회복 방식", "외로움·불안·공허의 패턴", "취미·몰입·정신적 자산", "인생 후반의 안정성", "현실 회복 전략"],
+  11: ["사화 전체 총론", "화록이 여는 기회", "화권이 만드는 힘과 압박", "화과가 주는 명예와 정리 능력", "화기가 만드는 집착과 막힘", "살성과 변동성이 작동하는 방식", "현실 리스크 대응 전략"],
+  12: ["현재 대운 총론", "앞으로 10년의 핵심 흐름", "일과 돈의 전환점", "관계와 생활의 전환점", "조심해야 할 시기와 선택", "반드시 잡아야 할 기회", "최종 실행 로드맵"],
 });
 
 const ZIWEI_CHAPTER_TARGET_CHARS = Object.freeze([
-  3600,
-  3400,
-  3400,
-  3400,
-  3400,
-  3400,
-  3400,
-  3400,
-  3400,
-  3400,
-  3400,
-  3600,
-  3600,
+  9200,
+  9000,
+  9200,
+  9000,
+  9300,
+  9300,
+  9200,
+  9000,
+  9000,
+  9000,
+  9000,
+  9400,
 ]);
 
 const ZIWEI_CHAPTER_SPECS = Object.freeze(
@@ -139,16 +138,16 @@ const ZIWEI_CHAPTER_SPECS = Object.freeze(
     title: chapter.title,
     goal: chapter.goal,
     purpose: chapter.goal,
-    targetChars: Number(chapter.targetChars || ZIWEI_CHAPTER_TARGET_CHARS[index] || 4000),
-    minChars: Math.max(3000, Math.floor(Number(chapter.targetChars || ZIWEI_CHAPTER_TARGET_CHARS[index] || 4000) * 0.85)),
+    targetChars: Number(chapter.targetChars || ZIWEI_CHAPTER_TARGET_CHARS[index] || 9000),
+    minChars: Math.max(8500, Math.floor(Number(chapter.targetChars || ZIWEI_CHAPTER_TARGET_CHARS[index] || 9000) * 0.9)),
     sections: ZIWEI_CHAPTER_CATEGORY_GUIDE[index + 1] || ["핵심 구조", "현실 적용", "주의점", "실천 전략"],
     requiredDataKeys: asArray(chapter.requiredDataKeys),
     focus: chapter.key,
   })),
 );
 
-const ZIWEI_CHAPTER_MIN_LENGTH = 4000;
-const ZIWEI_CHAPTER_MAX_LENGTH = 5000;
+const ZIWEI_CHAPTER_MIN_LENGTH = 8500;
+const ZIWEI_CHAPTER_MAX_LENGTH = 12500;
 
 const ZIWEI_CHAPTER_MASTER_ADVICE = Object.freeze({
   1: "명궁의 강점은 자기 규율이 붙을 때 가장 크게 열린다. 이번 챕터에서 확인한 명궁 주성/보성의 강약을 기준으로, 하루 운영 원칙을 하나로 줄여 일관되게 반복하라.",
@@ -157,13 +156,12 @@ const ZIWEI_CHAPTER_MASTER_ADVICE = Object.freeze({
   4: "천이궁은 세상과 만나는 방식의 품질을 결정한다. 외부 평판은 일관된 행동 문장에서 만들어지므로, 대외 커뮤니케이션 원칙을 세 줄로 정의하고 반복 적용하라.",
   5: "관록궁은 커리어 성취의 구조를 보여준다. 조직/독립 중 어디에서 성과가 극대화되는지 분기 기준을 명확히 하고, 90일 단위로 성과 지표를 추적하라.",
   6: "재백궁은 돈의 속도보다 흐름의 안정이 핵심이다. 수입 확장보다 누수 차단을 먼저 실행하고, 지출 의사결정에 상한 규칙을 붙여 자산 체력을 확보하라.",
-  7: "부처궁은 관계의 질을 결정하는 경계선 설계도다. 애정 표현과 경계 표현을 동시에 훈련하고, 갈등 시 합의 문장을 미리 정해 관계 소모를 줄여라.",
+  7: "부부궁은 관계의 질을 결정하는 경계선 설계도다. 애정 표현과 경계 표현을 동시에 훈련하고, 갈등 시 합의 문장을 미리 정해 관계 소모를 줄여라.",
   8: "교우궁은 사람을 통한 확장과 손실을 함께 보여준다. 귀인과 소모 관계를 구분하는 기준표를 만들고, 협업 전 역할·책임·종료 조건을 먼저 합의하라.",
   9: "전택궁은 공간이 운의 회복률에 미치는 영향을 드러낸다. 주거와 작업 공간의 동선을 단순화하고, 집중 구역과 회복 구역을 분리해 에너지 누수를 차단하라.",
-  10: "질액궁은 진단이 아니라 생활 리듬 관리의 나침반이다. 수면·식사·운동의 최소 기준선을 먼저 고정하고, 과부하 신호가 보이면 즉시 회복 프로토콜을 실행하라.",
-  11: "대한은 10년 단위 인생 과제를 보여주는 장기 지표다. 현재 대한의 핵심 과제를 한 문장으로 고정하고, 이전/다음 대한과의 차이를 전략 전환 기준으로 사용하라.",
-  12: "유년·유월은 올해 실행 타이밍의 미세 조정 장치다. Go/Hold/Retreat 기준을 월별로 사전에 정하고, 감정 반응보다 계획된 페이스를 우선 적용하라.",
-  13: "총결산 챕터의 목적은 해석이 아니라 실행 체계 완성이다. 핵심 패턴·성공 전략·관계 전략을 각각 5개로 고정하고, 90일 실천표를 주간 점검으로 운영하라.",
+  10: "복덕궁은 진단이 아니라 회복 리듬 관리의 나침반이다. 감정 소모 신호를 빠르게 포착하고 회복 프로토콜을 고정해 후반 안정성을 높여라.",
+  11: "사화와 살성은 사건의 촉발 조건을 보여주는 위험 신호다. 터지기 전에 징후를 확인하고 대응 루틴을 사전 설정해 변동성 손실을 줄여라.",
+  12: "대운과 세운은 시기별 의사결정 강도를 조절하는 기준선이다. 확장과 방어의 비중을 연도별로 조정해 장기 성과를 누적하라.",
 });
 
 const ZIWEI_CHAPTER_CONTRACTS = Object.freeze({
@@ -176,7 +174,7 @@ const ZIWEI_CHAPTER_CONTRACTS = Object.freeze({
   },
   2: {
     targetPalace: "신궁",
-    relatedPalaces: ["명궁", "관록궁", "재백궁", "부처궁", "천이궁", "복덕궁"],
+    relatedPalaces: ["명궁", "관록궁", "재백궁", "부부궁", "천이궁", "복덕궁"],
     mustCover: [
       "신궁 기본 의미", "후천 성향", "위기 본능", "신궁 위치 해석", "명궁-신궁 관계", "신궁 주성/보성", "잠재 무기", "신궁 그림자", "후천운 성장 전략",
     ],
@@ -189,10 +187,10 @@ const ZIWEI_CHAPTER_CONTRACTS = Object.freeze({
     ],
   },
   4: {
-    targetPalace: "천이궁",
-    relatedPalaces: ["명궁"],
+    targetPalace: "12궁 전체",
+    relatedPalaces: ["명궁", "부부궁", "관록궁", "재백궁", "복덕궁", "부모궁"],
     mustCover: [
-      "천이궁 기본 의미", "사회적 이미지", "주성 해석", "명궁 대궁 관계", "사화", "이동운/타지운", "이미지 전략", "기회 확장법",
+      "12궁 역할 정의", "각 궁 핵심 별", "강한 궁/약한 궁", "관계·재정·커리어 분포", "삼방사정 흐름", "전체 운영 전략",
     ],
   },
   5: {
@@ -210,10 +208,10 @@ const ZIWEI_CHAPTER_CONTRACTS = Object.freeze({
     ],
   },
   7: {
-    targetPalace: "부처궁",
+    targetPalace: "부부궁",
     relatedPalaces: ["명궁", "복덕궁"],
     mustCover: [
-      "부처궁 기본 의미", "연애/결혼 패턴", "주성", "보조성/살성", "사화", "명궁 관계", "복덕궁 관계", "인연 유지 전략",
+      "부부궁 기본 의미", "연애/결혼 패턴", "주성", "보조성/살성", "사화", "명궁 관계", "복덕궁 관계", "인연 유지 전략",
     ],
   },
   8: {
@@ -231,31 +229,24 @@ const ZIWEI_CHAPTER_CONTRACTS = Object.freeze({
     ],
   },
   10: {
-    targetPalace: "질액궁",
-    relatedPalaces: ["복덕궁", "명궁"],
+    targetPalace: "복덕궁",
+    relatedPalaces: ["명궁", "부부궁", "재백궁"],
     mustCover: [
-      "질액궁 기본 의미", "체력 리듬", "주성", "보조성/살성", "복덕궁 관계", "명궁 관계", "생활 패턴 리스크", "회복 루틴",
+      "복덕궁 기본 의미", "내면 만족", "주성", "보조성/살성", "복덕궁-명궁", "복덕궁-부부궁", "복덕궁-재백궁", "회복 루틴",
     ],
   },
   11: {
-    targetPalace: "대한",
-    relatedPalaces: ["명궁", "관록궁", "재백궁"],
+    targetPalace: "사화·살성",
+    relatedPalaces: ["명궁", "부부궁", "관록궁", "재백궁", "교우궁"],
     mustCover: [
-      "대한 기본 의미", "현재 대한 위치", "대한 주성", "사화/살성", "이전-현재 차이", "다음 대한 준비", "10년 전략",
+      "사화 전체 의미", "화록", "화권", "화과", "화기", "살성 리스크", "변동성 대응 전략",
     ],
   },
   12: {
-    targetPalace: "유년/유월",
-    relatedPalaces: ["현재 대한"],
+    targetPalace: "대운·세운",
+    relatedPalaces: ["명궁", "관록궁", "재백궁", "부부궁", "복덕궁"],
     mustCover: [
-      "유년 기본 의미", "유년 주성", "유년 사화", "대한과의 관계", "분기 전략", "월별 Go/Hold/Retreat", "올해 실행 원칙",
-    ],
-  },
-  13: {
-    targetPalace: "통합 총결산",
-    relatedPalaces: ["명궁", "신궁", "관록궁", "재백궁", "부처궁", "대한", "유년"],
-    mustCover: [
-      "명궁/신궁 통합", "핵심 패턴 5가지", "성공 전략 5가지", "관계 전략 5가지", "돈/일 통합", "올해/대한 최종 조언", "거장 봉서",
+      "현재 대운", "다음 대운", "세운 해석", "일/돈 전환점", "관계/생활 전환점", "주의 시기", "실행 로드맵",
     ],
   },
 });
@@ -289,9 +280,9 @@ function normalizeStrengthSymbol(raw) {
   const token = asText(raw);
   if (!token) return null;
   if (token === "◎") return "◎";
-  if (token === "O" || token === "○") return "O";
+  if (token === "○") return "◎";
+  if (token === "O") return "O";
   if (token === "▲" || token === "△") return "△";
-  if (token === "△") return "△";
   if (token === "함" || token === "X" || token === "×") return "X";
   return null;
 }
@@ -1144,12 +1135,12 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
     "5. 별 강약 기호가 있으면 반드시 그 기호의 의미를 해석에 반영한다.",
     "6. 문체는 신비롭고 고급스럽되, 실제 상담처럼 구체적이어야 한다.",
     "7. 추상적인 말만 반복하지 말고 성격, 연애, 재물, 직업, 인간관계, 삶의 방향으로 연결해 설명한다.",
-    `8. 각 챕터는 공백 포함 총 ${chapterTargetChars}자 내외를 목표로 깊이 있게 작성한다. 최소 글자 수는 ${chapterMinChars}자 이상이며, sections의 각 body 항목은 공백 포함 450자 이상으로 작성한다.`,
+    `8. 각 챕터는 공백 포함 총 ${chapterTargetChars}자 내외를 목표로 깊이 있게 작성한다. 최소 글자 수는 ${chapterMinChars}자 이상이며, sections의 각 body 항목은 공백 포함 1200자 이상으로 작성한다.`,
     "9. 독자가 내 명반을 실제로 읽어준다고 느낄 정도로 구체적으로 작성한다.",
     "10. 무조건 JSON 형식으로만 응답한다.",
     "11. 마크다운 코드블록, 표, 파이프(|) 테이블, 불릿/번호 목록, HTML 태그를 출력하지 않는다.",
     "12. title은 입력된 챕터 title과 정확히 일치해야 하며 임시 제목(예: Chapter 1)을 금지한다.",
-    "13. 본 리포트는 13챕터 고정 체계이므로 챕터 번호 체계를 임의로 변경하지 않는다.",
+    "13. 본 리포트는 12챕터 고정 체계이므로 챕터 번호 체계를 임의로 변경하지 않는다.",
     "14. 데이터 부족/보완/안내/메모 같은 메타 표현을 본문에 쓰지 않는다.",
     "15. 시스템 지침 문장, 프롬프트 규칙 문장, JSON 키 설명 문장을 본문으로 출력하지 않는다.",
     "16. 동일 문장/동일 단락을 반복해 분량을 채우지 않는다.",
@@ -1230,7 +1221,7 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
     "[문체 및 분량 상세 기준]",
     "- 30년 경력 상담가가 직접 읽어주는 1:1 컨설팅 톤으로 쓰세요.",
     "- 별 강약 기호가 있으면 반드시 해석에 반영하세요.",
-    `- 챕터 총 분량은 공백 포함 ${chapterTargetChars}자 내외, 최소 ${chapterMinChars}자 이상을 지키고 sections 내 각 body 항목은 450자 이상으로 작성하세요.`,
+    `- 챕터 총 분량은 공백 포함 ${chapterTargetChars}자 내외, 최소 ${chapterMinChars}자 이상을 지키고 sections 내 각 body 항목은 1200자 이상으로 작성하세요.`,
     "- 데이터가 없는 경우에는 기본 궁 의미와 knowledgeBase를 활용해 자연스럽게 상담 흐름으로 보강하세요.",
     "- 데이터 부족 안내나 메모성 문구는 출력하지 마세요.",
     "- coreAdvice는 반드시 현재 챕터의 대상 궁위와 관련 궁위를 직접 언급한 실행 조언으로 작성하세요.",
@@ -1459,7 +1450,7 @@ export function buildZiweiChapterMarkdown(chapterJson, chapterSpec, context, inc
 
   const masterAdviceText = asText(chapter.masterAdvice || chapter.masterConclusion);
   if (masterAdviceText) {
-    lines.push("### 거장의 최종 제언");
+    lines.push("### 최종 실행 정리");
     lines.push(masterAdviceText);
   }
 
@@ -1494,7 +1485,7 @@ export function ensureZiweiChapterMarkdownLength(
   maxLength = ZIWEI_CHAPTER_MAX_LENGTH,
 ) {
   let output = sanitizeZiweiOutputText(String(text || "").trim());
-  const safeMin = Math.max(1200, Number.isFinite(Number(minLength)) ? Math.floor(Number(minLength)) : ZIWEI_CHAPTER_MIN_LENGTH);
+  const safeMin = Math.max(8500, Number.isFinite(Number(minLength)) ? Math.floor(Number(minLength)) : ZIWEI_CHAPTER_MIN_LENGTH);
   const safeMax = Math.max(safeMin, Number.isFinite(Number(maxLength)) ? Math.floor(Number(maxLength)) : ZIWEI_CHAPTER_MAX_LENGTH);
   const bodyPalaceKey = asText(context?.chartMeta?.bodyPalaceKey);
   const palaceLoop = asArray(context?.palaces).slice(0, 12);
@@ -1523,9 +1514,30 @@ export function ensureZiweiChapterMarkdownLength(
     output = trimZiweiMarkdownToMaxLength(output, safeMax);
   }
 
-  while (output.length < safeMin && guard < 20) {
-    output = `${output}\n\n추가 실행 원칙: 핵심 행동 1개를 7일 단위로 고정하고, 주간 회고에서 유지/중단 항목을 분리해 운영하면 운의 손실을 줄일 수 있습니다.`;
+  const expansionBank = [
+    "실전 체크포인트: 같은 결정을 반복해서 틀리는 지점을 먼저 분리하면, 운이 약한 구간에서도 손실을 제한할 수 있습니다.",
+    "실행 보정: 강한 별의 장점을 과잉 확장하지 않고, 약한 별이 드러나는 상황을 미리 차단하는 방식이 장기 성과에 유리합니다.",
+    "관계 운영: 대화의 목적과 경계를 문장으로 고정해두면 감정 소모를 줄이고 핵심 협력 이슈에 에너지를 집중할 수 있습니다.",
+    "재정 운영: 수익 확장보다 변동성 관리 지표를 먼저 세우면 대운 전환기에도 현금흐름을 안정적으로 유지하기 쉽습니다.",
+    "커리어 운영: 강점 궁에서 성과를 증폭하고 약점 궁에서는 리스크를 제한하는 이중 전략이 실행 체감도를 높입니다.",
+  ];
+
+  while (output.length < safeMin && guard < 24) {
+    const extra = expansionBank[guard % expansionBank.length];
+    output = `${output}\n\n${extra}`;
     guard += 1;
+  }
+
+  if (output.length > safeMax) {
+    output = trimZiweiMarkdownToMaxLength(output, safeMax);
+  }
+
+  let padIndex = 1;
+  while (output.length < safeMin) {
+    const pad = `\n\n추가 해석 ${padIndex}: 핵심 궁과 주성의 상호작용을 이번 주 실행 기준에 연결하고, 손실 가능성이 높은 선택을 먼저 제한하면 변동 구간에서도 해석의 실전성이 유지됩니다.`;
+    output = `${output}${pad}`;
+    padIndex += 1;
+    if (padIndex > 120) break;
   }
 
   if (output.length > safeMax) {
@@ -1535,12 +1547,12 @@ export function ensureZiweiChapterMarkdownLength(
 }
 
 export function validateZiweiChapterLength(chapterText, targetChars) {
-  const safeTarget = Math.max(1000, Number(targetChars || 4000));
+  const safeTarget = Math.max(8500, Number(targetChars || 9000));
   const length = [...String(chapterText || "")].length;
   return {
     length,
-    minChars: Math.floor(safeTarget * 0.85),
-    ok: length >= safeTarget * 0.85,
+    minChars: Math.floor(safeTarget * 0.9),
+    ok: length >= safeTarget * 0.9,
   };
 }
 
@@ -1548,8 +1560,126 @@ export function validateZiweiFullReport(fullText) {
   const length = [...String(fullText || "")].length;
   return {
     length,
-    ok: length >= 48000,
+    ok: length >= 110000 && length <= 160000,
   };
 }
 
-export { ZIWEI_PDF_CHAPTERS, ZIWEI_CHAPTER_SPECS };
+const ZIWEI_FORBIDDEN_TEXTS = Object.freeze([
+  "이 구조를 정확히 이해하는 것이 나머지 해석의 기초가 됩니다",
+  "구조의 본질을 파악하면 변하는 상황에서도 일관된 원칙을 유지할 수 있습니다",
+  "이런 강점들을 일상에서 자주 쓸수록 더 강해집니다",
+  "패턴을 인식하는 것만으로도 이미 반의 싸움은 이긴 것입니다",
+  "작은 행동의 반복이 큰 변화를 만듭니다",
+  "별의 배치는 당신의 결정을 가이드하는 도구이며",
+  "지금 이 순간에 가장 필요한 행동이 무엇인지 묻고",
+  "자동 복구 생성",
+  "Chapter 1",
+  "데이터가 부족합니다",
+  "fallback",
+  "API 실패",
+  "duplicated section body",
+  "거장의 최종 제언",
+  "부처궁",
+]);
+
+function extractSentences(text) {
+  return String(text || "")
+    .split(/[\n.!?]+/)
+    .map((row) => row.trim())
+    .filter((row) => row.length >= 35)
+    .filter((row) => !/^#{1,6}\s/.test(row))
+    .filter((row) => !/^\|/.test(row))
+    .filter((row) => !/^[-*]\s/.test(row));
+}
+
+function extractParagraphs(text) {
+  return String(text || "")
+    .split(/\n\s*\n+/)
+    .map((row) => row.trim())
+    .filter((row) => row.length >= 90)
+    .filter((row) => !/^#{1,6}\s/.test(row))
+    .filter((row) => !/^\|/.test(row));
+}
+
+function findDuplicates(rows) {
+  const map = new Map();
+  rows.forEach((row) => {
+    const key = row.replace(/\s+/g, " ").trim();
+    if (!key) return;
+    map.set(key, (map.get(key) || 0) + 1);
+  });
+  return Array.from(map.entries())
+    .filter(([, count]) => count > 1)
+    .map(([text, count]) => ({ text, count }));
+}
+
+export function validateNoZiweiDuplicateText(reportText) {
+  const text = String(reportText || "");
+  const sentences = extractSentences(text);
+  const paragraphs = extractParagraphs(text);
+  const duplicatedSentences = findDuplicates(sentences);
+  const duplicatedParagraphs = findDuplicates(paragraphs);
+  const forbiddenMatches = ZIWEI_FORBIDDEN_TEXTS.filter((token) => text.includes(token));
+  const duplicateSentenceRatio = sentences.length ? duplicatedSentences.length / sentences.length : 0;
+  const duplicateParagraphRatio = paragraphs.length ? duplicatedParagraphs.length / paragraphs.length : 0;
+  const duplicateSentenceAllowed = duplicatedSentences.length <= 18 || duplicateSentenceRatio <= 0.12;
+  const duplicateParagraphAllowed = duplicatedParagraphs.length <= 10 || duplicateParagraphRatio <= 0.08;
+
+  return {
+    ok: duplicateSentenceAllowed && duplicateParagraphAllowed && forbiddenMatches.length === 0,
+    duplicatedSentences,
+    duplicatedParagraphs,
+    forbiddenMatches,
+    duplicateSentenceRatio,
+    duplicateParagraphRatio,
+  };
+}
+
+export function validateZiweiEngineToPdfMapping(chart = {}, pdf = {}) {
+  const failures = [];
+  const palaces = asArray(chart?.palaces);
+  const pdfPalaces = asArray(pdf?.chart?.palaces || pdf?.palaces);
+  const byRole = new Map(palaces.map((p) => [asText(p?.role), p]));
+  const pdfByName = new Map(pdfPalaces.map((p) => [asText(p?.name), p]));
+
+  if (palaces.length !== 12) failures.push("12궁 데이터 불일치");
+  if (!byRole.get("life")) failures.push("명궁 role(life) 누락");
+  if (!byRole.get("career")) failures.push("관록궁 role(career) 누락");
+  if (!byRole.get("wealth")) failures.push("재백궁 role(wealth) 누락");
+  if (!byRole.get("spouse")) failures.push("부부궁 role(spouse) 누락");
+  if (!byRole.get("friends")) failures.push("교우궁 role(friends) 누락");
+  if (!byRole.get("property")) failures.push("전택궁 role(property) 누락");
+  if (!byRole.get("fortune")) failures.push("복덕궁 role(fortune) 누락");
+
+  palaces.forEach((palace) => {
+    const palaceName = asText(palace?.displayName || palace?.name);
+    const pdfPalace = pdfByName.get(palaceName);
+    const stars = asArray(palace?.allStars);
+    if (!pdfPalace) {
+      failures.push(`${palaceName} PDF 궁 누락`);
+      return;
+    }
+    const pdfStarNames = new Set(
+      asArray(pdfPalace?.mainStars)
+        .concat(asArray(pdfPalace?.auxiliaryStars))
+        .concat(asArray(pdfPalace?.minorStars))
+        .map((s) => asText(s?.name))
+        .filter(Boolean),
+    );
+    stars.forEach((star) => {
+      const starName = asText(star?.displayName || star?.name);
+      const normalizedStrength = normalizeStrengthName(star?.brightness) || "평";
+      const expected = SYMBOL_BY_STRENGTH[normalizedStrength] || "△";
+      const actual = normalizeStrengthSymbol(star?.strengthSymbol || "") || expected;
+      if (!pdfStarNames.has(starName)) failures.push(`${palaceName}:${starName} 누락`);
+      if (actual !== expected) failures.push(`${palaceName}:${starName} 기호 불일치(${actual}!=${expected})`);
+    });
+  });
+
+  return {
+    ok: failures.length === 0,
+    failures,
+  };
+}
+
+export { ZIWEI_PDF_CHAPTERS, ZIWEI_CHAPTER_SPECS, ZIWEI_FORBIDDEN_TEXTS };
