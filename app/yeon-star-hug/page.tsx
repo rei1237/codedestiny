@@ -65,6 +65,7 @@ type ConcernAnalysis = {
 type MoonSnapshot = {
   age: number;
   illumination: number;
+  phaseKey: string;
   label: string;
   scoreBias: { overall: number; love: number; money: number };
 };
@@ -91,6 +92,7 @@ type ConsultationResult = {
   luckyItem: string;
   warmMessage: string;
   practicalTip: string;
+  detailedForecast: string[];
   actionPlan: string[];
   astroEvidence: string[];
   keywordSupportLines: string[];
@@ -596,27 +598,27 @@ function getMoonSnapshot(date: Date): MoonSnapshot {
   const illumination = (1 - Math.cos((age / synodicMonth) * 2 * Math.PI)) / 2;
 
   if (age < 1.85) {
-    return { age, illumination, label: "신월", scoreBias: { overall: 0.1, love: 0.1, money: 0.2 } };
+    return { age, illumination, phaseKey: "new-moon", label: "신월(New Moon)", scoreBias: { overall: 0.1, love: 0.1, money: 0.2 } };
   }
   if (age < 5.54) {
-    return { age, illumination, label: "초승달", scoreBias: { overall: 0.4, love: 0.3, money: 0.2 } };
+    return { age, illumination, phaseKey: "waxing-crescent", label: "초승(Waxing Crescent)", scoreBias: { overall: 0.4, love: 0.3, money: 0.2 } };
   }
   if (age < 9.23) {
-    return { age, illumination, label: "상현달", scoreBias: { overall: 0.3, love: 0.2, money: 0.4 } };
+    return { age, illumination, phaseKey: "first-quarter", label: "상현(First Quarter)", scoreBias: { overall: 0.3, love: 0.2, money: 0.4 } };
   }
   if (age < 12.92) {
-    return { age, illumination, label: "차오르는 달", scoreBias: { overall: 0.5, love: 0.4, money: 0.3 } };
+    return { age, illumination, phaseKey: "waxing-gibbous", label: "차는달(Waxing Gibbous)", scoreBias: { overall: 0.5, love: 0.4, money: 0.3 } };
   }
   if (age < 16.61) {
-    return { age, illumination, label: "보름달", scoreBias: { overall: 0.2, love: 0.6, money: 0.1 } };
+    return { age, illumination, phaseKey: "full-moon", label: "망(Full Moon)", scoreBias: { overall: 0.2, love: 0.6, money: 0.1 } };
   }
   if (age < 20.3) {
-    return { age, illumination, label: "기우는 달", scoreBias: { overall: 0.1, love: 0.2, money: 0.4 } };
+    return { age, illumination, phaseKey: "waning-gibbous", label: "기울달(Waning Gibbous)", scoreBias: { overall: 0.1, love: 0.2, money: 0.4 } };
   }
   if (age < 23.99) {
-    return { age, illumination, label: "하현달", scoreBias: { overall: 0, love: -0.1, money: 0.5 } };
+    return { age, illumination, phaseKey: "last-quarter", label: "하현(Last Quarter)", scoreBias: { overall: 0, love: -0.1, money: 0.5 } };
   }
-  return { age, illumination, label: "그믐달", scoreBias: { overall: 0.1, love: 0, money: 0.3 } };
+  return { age, illumination, phaseKey: "waning-crescent", label: "그믐(Waning Crescent)", scoreBias: { overall: 0.1, love: 0, money: 0.3 } };
 }
 
 function getAspectSnapshot(userSign: ZodiacSign, todaySunSign: ZodiacSign): AspectSnapshot {
@@ -828,15 +830,65 @@ function collectConcernKeywords(concern: ConcernAnalysis) {
   });
 }
 
-function buildKeywordSupportLines(concern: ConcernAnalysis) {
+function buildKeywordSupportLines(
+  concern: ConcernAnalysis,
+  context: {
+    selectedSign: ZodiacSign;
+    todaySunSign: ZodiacSign;
+    moon: MoonSnapshot;
+    aspect: AspectSnapshot;
+    dayRuler: DayRulerSnapshot;
+    scores: { overall: number; love: number; money: number };
+  }
+) {
   const keywords = collectConcernKeywords(concern).slice(0, 3);
   const plans = ACTION_PLAN_BY_DOMAIN[concern.topDomain] ?? ACTION_PLAN_BY_CATEGORY[concern.topCategory];
+  const moonPct = Math.round(context.moon.illumination * 100);
+  const dominantScoreLabel =
+    context.scores.love >= context.scores.money && context.scores.love >= context.scores.overall
+      ? "관계운"
+      : context.scores.money >= context.scores.overall
+      ? "현실운"
+      : "종합운";
+
   if (keywords.length === 0) {
-    return [`${DOMAIN_LABEL[concern.topDomain]} 흐름은 작은 실행 하나로 바뀔 수 있어. ${plans[0]}`];
+    return [
+      `[핵심신호] ${DOMAIN_LABEL[concern.topDomain]}: ${context.selectedSign}·${context.todaySunSign} 각도 ${context.aspect.label} / 달 조도 ${moonPct}% / 요일 행성 ${context.dayRuler.label}`,
+      `[실행포인트] ${plans[0]}`,
+      `[운세중심] 오늘은 ${dominantScoreLabel} 우선으로 판단하면 흐름이 안정돼.`,
+    ];
   }
-  return keywords.map(
-    (keyword, index) => `"${keyword}" 신호를 알아챈 건 이미 절반은 해낸 거야. ${plans[index % plans.length]}`
-  );
+  return keywords.map((keyword, index) => {
+    const plan = plans[index % plans.length];
+    return `[키워드:${keyword}] 계산근거(${context.aspect.label} · 달조도 ${moonPct}% · ${context.dayRuler.label})를 기준으로 보면, 지금은 ${plan}`;
+  });
+}
+
+function buildDetailedForecast(args: {
+  concern: ConcernAnalysis;
+  selectedSign: ZodiacSign;
+  todaySunSign: ZodiacSign;
+  moon: MoonSnapshot;
+  aspect: AspectSnapshot;
+  dayRuler: DayRulerSnapshot;
+  elementRelation: { label: string; scoreBias: number; detail: string };
+  scores: { overall: number; love: number; money: number };
+}) {
+  const { concern, selectedSign, todaySunSign, moon, aspect, dayRuler, elementRelation, scores } = args;
+  const moonPct = Math.round(moon.illumination * 100);
+  const topTrack =
+    scores.love >= scores.money && scores.love >= scores.overall
+      ? "관계/연애 트랙"
+      : scores.money >= scores.overall
+      ? "재정/현실 트랙"
+      : "종합 균형 트랙";
+
+  return [
+    `별자리 계산 요약: 당신의 ${selectedSign}와 오늘 태양 ${todaySunSign}의 각도는 ${aspect.label}이며, ${aspect.summary}`,
+    `월령 계산 요약: 달 나이 ${moon.age.toFixed(1)}일, 조도 ${moonPct}% (${moon.label})로 감정 리듬은 일반 영역보다 ${DOMAIN_LABEL[concern.topDomain]}에서 반응이 빠르게 나타날 수 있어.`,
+    `원소/요일 계산 요약: ${elementRelation.detail} 또한 ${dayRuler.label}(${dayRuler.summary}) 영향으로 오늘은 ${topTrack}에 의사결정 에너지가 더 배분돼.`,
+    `실전 상담 결론: 종합 ${scores.overall}점 · 관계 ${scores.love}점 · 재정 ${scores.money}점 흐름이므로, ${ACTION_PLAN_BY_DOMAIN[concern.topDomain]?.[0] ?? ACTION_PLAN_BY_CATEGORY[concern.topCategory][0]}`,
+  ];
 }
 
 function buildWarmLetterMessage(args: {
@@ -863,13 +915,16 @@ function buildWarmLetterMessage(args: {
   } = args;
 
   const keywordBlock = keywordSupportLines.map((line) => `- ${line}`).join("\n");
+  const moonPct = Math.round(moon.illumination * 100);
+  const priorityDomain = DOMAIN_LABEL[concern.topDomain];
 
   return [
     "사랑하는 너에게,",
-    `${EMOTION_OPENING[selectedEmotion]} 오늘 하늘은 ${aspect.label}, ${moon.label}, ${dayRuler.label}의 흐름으로 너를 부드럽게 밀어주고 있어.`,
-    `${selectedSign}의 결은 오늘 태양 ${todaySunSign}와 ${elementRelation.label}로 맞물리면서 ${DOMAIN_LABEL[concern.topDomain]}에 특히 집중력을 더해줘.`,
-    `지금 네 고민의 중심은 ${CATEGORY_LABEL[concern.topCategory]}이고, 키워드별로 이렇게 응원해주고 싶어.\n${keywordBlock}`,
-    `오늘의 한 줄 약속: ${ACTION_PLAN_BY_DOMAIN[concern.topDomain]?.[0] ?? ACTION_PLAN_BY_CATEGORY[concern.topCategory][0]}`,
+    `${EMOTION_OPENING[selectedEmotion]} 오늘 계산된 점성술 지표는 ${aspect.label}, ${moon.label}(조도 ${moonPct}%), ${dayRuler.label} 흐름이야.`,
+    `${selectedSign}의 결은 오늘 태양 ${todaySunSign}와 ${elementRelation.label}로 맞물리면서 ${priorityDomain}에 특히 집중력을 더해줘.`,
+    `지금 네 고민의 중심은 ${CATEGORY_LABEL[concern.topCategory]}이고, 아래 키워드별 상담은 같은 계산 템플릿으로 정리했어.\n${keywordBlock}`,
+    `실행 우선순위는 "${priorityDomain} → ${CATEGORY_LABEL[concern.topCategory]}" 순서야. 첫 행동은 ${ACTION_PLAN_BY_DOMAIN[concern.topDomain]?.[0] ?? ACTION_PLAN_BY_CATEGORY[concern.topCategory][0]}`,
+    "오늘은 감정 해석보다 계산된 흐름에 맞춘 작은 행동이 운의 체감을 더 빠르게 바꿔줄 거야.",
     "연이는 오늘도 네 편이야.",
   ].join("\n\n");
 }
@@ -933,13 +988,32 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
   const astroEvidence = [
     `태양 위치: ${todaySunSign} (${sunProfile.element} 원소 · ${sunProfile.modality} 성질 · 주관 ${sunProfile.ruler})`,
     `당신 별자리: ${selectedSign} (${userProfile.element} 원소)와 태양 관계는 ${elementRelation.label}`,
-    `달 위상: ${moon.label} (달 나이 ${moon.age.toFixed(1)}일 · 조도 ${moonIlluminationPct}%)`,
+    `달 위상: ${moon.label} (phase=${moon.phaseKey}, 달 나이 ${moon.age.toFixed(1)}일 · 조도 ${moonIlluminationPct}%)`,
     `별자리 각도: ${aspect.label} (${zodiacDegree}°)`,
     `요일 행성: ${dayRuler.label} - ${dayRuler.summary}`,
     `주요 키워드 포착: ${concernHint}`,
   ];
 
-  const keywordSupportLines = buildKeywordSupportLines(concern);
+  const keywordSupportLines = buildKeywordSupportLines(concern, {
+    selectedSign,
+    todaySunSign,
+    moon,
+    aspect,
+    dayRuler,
+    scores: { overall, love, money },
+  });
+
+  const detailedForecast = buildDetailedForecast({
+    concern,
+    selectedSign,
+    todaySunSign,
+    moon,
+    aspect,
+    dayRuler,
+    elementRelation,
+    scores: { overall, love, money },
+  });
+
   const warmMessage = buildWarmLetterMessage({
     selectedEmotion,
     selectedSign,
@@ -963,6 +1037,7 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
     luckyItem,
     warmMessage,
     practicalTip,
+    detailedForecast,
     actionPlan: ACTION_PLAN_BY_DOMAIN[concern.topDomain] ?? ACTION_PLAN_BY_CATEGORY[concern.topCategory],
     astroEvidence,
     keywordSupportLines,
@@ -1548,6 +1623,24 @@ export default function YeonStarHugPage() {
                           <p className="text-[11px] font-semibold text-purple-500">키워드별 응원 메모</p>
                           <ul className="mt-1 space-y-1 text-xs leading-relaxed text-slate-600">
                             {consultation.keywordSupportLines.map((line) => (
+                              <li key={line}>- {line}</li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div className="rounded-lg border border-indigo-100 bg-indigo-50/45 px-3 py-2 sm:col-span-2">
+                          <p className="text-[11px] font-semibold text-indigo-500">계산 기반 상세 상담</p>
+                          <ul className="mt-1 space-y-1 text-xs leading-relaxed text-slate-600">
+                            {consultation.detailedForecast.map((line) => (
+                              <li key={line}>- {line}</li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div className="rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2 sm:col-span-2">
+                          <p className="text-[11px] font-semibold text-slate-600">점성술 계산 근거</p>
+                          <ul className="mt-1 space-y-1 text-xs leading-relaxed text-slate-600">
+                            {consultation.astroEvidence.map((line) => (
                               <li key={line}>- {line}</li>
                             ))}
                           </ul>
