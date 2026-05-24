@@ -6622,7 +6622,7 @@ function buildCanonicalJsonForReport(reportType, prepareData, requestBody, authI
   if (reportType === "ziweiPremium") {
     calculatedData = mapZiweiCalculatedData(prepareData?.canonicalZiweiChart || {});
   } else if (reportType === "sookyoPremium") {
-    calculatedData = mapSookyoCalculatedData(prepareData?.canonicalSukuyoCompatibility || prepareData?.canonicalSukuyoNatal || {}, requestBody);
+    calculatedData = mapSookyoCalculatedData(prepareData?.canonicalSukuyoCompatibility || {}, requestBody);
   } else if (reportType === "westernAstrologyPremium") {
     calculatedData = mapWesternAstrologyCalculatedData(prepareData?.canonicalAstroChart || {});
   } else if (reportType === "vedicPremium") {
