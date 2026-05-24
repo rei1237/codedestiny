@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var TOTAL_CHAPTERS = 13;
+  var TOTAL_CHAPTERS = 12;
   var API_TIMEOUT_MS = 45000;
   var COIN_GATE_TIMEOUT_MS = 15000;
   var POLL_INTERVAL_MS = 1800;
@@ -14,35 +14,18 @@
   ];
 
   var PERSONAL_CHAPTER_PREVIEW = [
-    { title: '기본 차트 요약', subtitle: 'ASC·태양·달을 중심으로 기본 구조를 정리합니다.' },
-    { title: '자아와 정체성', subtitle: '외적 페르소나와 내적 의지 축을 교차 해석합니다.' },
-    { title: '감정과 무의식', subtitle: '감정 반응 패턴과 회복 트리거를 분석합니다.' },
-    { title: '사고/소통 스타일', subtitle: '판단 흐름, 말의 온도, 오해 패턴을 점검합니다.' },
-    { title: '사랑/관계 스타일', subtitle: '끌림 코드와 관계 만족도를 높이는 기준을 제시합니다.' },
-    { title: '행동/에너지 패턴', subtitle: '추진력의 상승·소진 구간을 실행 전략으로 연결합니다.' },
-    { title: '확장/행운 포인트', subtitle: '성장 기회가 열리는 영역과 타이밍을 도출합니다.' },
-    { title: '책임/성취 구조', subtitle: '지연과 압박을 성과로 전환하는 구조를 제시합니다.' },
-    { title: '변화/성장 트리거', subtitle: '전환 압력에서 기회를 만드는 선택 기준을 제공합니다.' },
-    { title: '영혼 과제/노드 축', subtitle: '익숙한 패턴을 성장 축으로 이동시키는 로드맵입니다.' },
-    { title: '커리어/사회적 포지션', subtitle: '직업·평판·성과를 연결한 현실 운영 전략입니다.' },
-    { title: '연간 흐름/실행 로드맵', subtitle: '시기운 변화와 월별 실행 우선순위를 정리합니다.' },
-    { title: '코즈믹 마스터플랜', subtitle: '90일 전환 계획과 최종 의사결정 원칙을 완성합니다.' }
-  ];
-
-  var COMPAT_CHAPTER_PREVIEW = [
-    { title: '두 사람의 관계 총론', subtitle: '왜 끌렸고 왜 흔들리는지 관계의 기본축을 해석합니다.' },
-    { title: '태양/달 페어링', subtitle: '자아와 감정의 호흡을 맞추는 핵심 포인트를 제시합니다.' },
-    { title: '금성/화성 케미', subtitle: '끌림·애정 표현·욕망의 온도차를 정밀 분석합니다.' },
-    { title: '수성/소통 호환', subtitle: '대화 습관과 오해 발생 패턴, 복구 루틴을 정리합니다.' },
-    { title: '갈등 트리거/힐링', subtitle: '충돌 방아쇠와 회복 동선을 상황별로 제시합니다.' },
-    { title: '장기 안정성', subtitle: '관계의 지속 가능성과 신뢰 구조를 진단합니다.' },
-    { title: '친밀도/성적 리듬', subtitle: '친밀감 형성 속도와 정서적 합의 지점을 설명합니다.' },
-    { title: '결혼/동거 현실성', subtitle: '생활 리듬·역할 분담·합의 난이도를 분석합니다.' },
-    { title: '재정/커리어 합', subtitle: '돈·일에서 시너지를 만드는 구조를 설계합니다.' },
-    { title: '자녀/가정 운영', subtitle: '가정 운영의 합의 지점과 장기 운영 규칙을 제안합니다.' },
-    { title: '위기 시나리오', subtitle: '관계 위기 발생 시 대응 우선순위를 제시합니다.' },
-    { title: '관계 운영 마스터 플랜', subtitle: '관계를 성장 자산으로 바꾸는 실행 계획입니다.' },
-    { title: '장기 관계 통합 선언', subtitle: '최종 의사결정 원칙과 장기 선언문을 완성합니다.' }
+    { title: 'I. 출생 차트 총론', subtitle: '나의 우주적 설계도와 핵심 테마를 통합합니다.' },
+    { title: 'II. 빅3 해석', subtitle: '태양·달·상승궁의 내면/외면 축을 정밀 진단합니다.' },
+    { title: 'III. 10행성 완전 해석', subtitle: '행성별 동기와 현실 작동 방식을 해석합니다.' },
+    { title: 'IV. 12하우스 분석', subtitle: '삶의 영역별 운명 지도를 구조적으로 읽습니다.' },
+    { title: 'V. 원소와 양식 분석', subtitle: '기질의 균형과 과부족 패턴을 정리합니다.' },
+    { title: 'VI. 어스펙트 분석', subtitle: '긴장과 재능의 회로를 구체적 패턴으로 해석합니다.' },
+    { title: 'VII. 사랑과 관계운', subtitle: '연애·결혼·매력의 반복 구조와 안정 전략을 제시합니다.' },
+    { title: 'VIII. 직업·재물·성공운', subtitle: '사회적 성취와 수익화 전략을 설계합니다.' },
+    { title: 'IX. 심리·무의식·상처 분석', subtitle: '내면 그림자와 회복 루틴을 구체화합니다.' },
+    { title: 'X. 건강·생활 리듬 분석', subtitle: '몸·에너지 관리와 번아웃 예방 기준을 제공합니다.' },
+    { title: 'XI. 운의 흐름 분석', subtitle: '트랜짓·프로그레션·솔라리턴으로 시기운을 읽습니다.' },
+    { title: 'XII. 최종 종합 리포트', subtitle: '인생 로드맵과 실행 전략을 최종 확정합니다.' }
   ];
 
   function getPreviewTitle(entry) {
@@ -56,44 +39,24 @@
   }
 
   var ASTRO_COIN_BASE_COST = 390;
-  var ASTRO_COIN_COMPAT_EXTRA_COST = 100;
   var ASTRO_COIN_FEATURE_KEY = 'premium-astrology-report';
-  var ASTRO_COIN_FEATURE_KEY_COMPAT = 'premium-astrology-report-compat';
   var ASTRO_COIN_REASON = '점성술 프리미엄 PDF 리포트 생성';
-  var ASTRO_COIN_REASON_COMPAT = '점성술 프리미엄 PDF 궁합 리포트 생성';
   var ASTRO_PREMIUM_REPORT_TYPE = 'westernAstrologyPremium';
   var ASTRO_PREMIUM_FEATURE_TYPE = 'astrology_premium';
 
   var ASTRO_LOADING_FLOW_PERSONAL = [
-    '출생 차트의 기준 축을 정렬하고 있습니다...',
-    '태양·달·상승궁의 핵심 에너지를 해석하는 중입니다...',
-    '행성 간 각도를 정밀 계산해 관계를 분석하는 중입니다...',
-    '사랑·관계 패턴 챕터를 구성하는 중입니다...',
-    '커리어·성취 흐름 챕터를 다듬는 중입니다...',
-    '재정·기회 구간의 타이밍을 정리하는 중입니다...',
-    '변화 트리거와 전환 신호를 분석하는 중입니다...',
-    '갈등 완화·리스크 관리 포인트를 추출하는 중입니다...',
-    '생활 루틴 최적화 조언을 생성하는 중입니다...',
-    '영혼 과제와 노드 축 해석을 정리하는 중입니다...',
-    '연간 운세 흐름과 실천 로드맵을 연결하는 중입니다...',
-    '최종 코즈믹 리포트 문장을 검수하는 중입니다...',
-    '챕터 간 연결 문맥을 최종 보정하는 중입니다...'
-  ];
-
-  var ASTRO_LOADING_FLOW_COMPAT = [
-    '두 사람의 기준 차트를 동기화하고 있습니다...',
-    '태양·달 조합의 정서 호흡을 분석하는 중입니다...',
-    '금성·화성 케미스트리를 정밀 해석하는 중입니다...',
-    '소통 스타일과 오해 패턴을 점검하는 중입니다...',
-    '갈등 트리거와 회복 루틴을 구성하는 중입니다...',
-    '장기 안정성·신뢰 지표를 계산하는 중입니다...',
-    '친밀도와 관계 리듬을 분석하는 중입니다...',
-    '동거·결혼 현실성 챕터를 작성하는 중입니다...',
-    '재정·커리어 합을 정리하는 중입니다...',
-    '가정 운영과 장기 계획을 연결하는 중입니다...',
-    '위기 시나리오별 대응 전략을 도출하는 중입니다...',
-    '관계 운영 마스터 플랜을 완성하는 중입니다...',
-    '두 사람의 실행 합의안을 최종 보정하는 중입니다...'
+    '출생 차트 총론을 구성하는 중입니다...',
+    '빅3(태양·달·상승궁)를 해석하는 중입니다...',
+    '10행성 핵심 동력을 정리하는 중입니다...',
+    '12하우스 영역 지도를 분석하는 중입니다...',
+    '원소/양식 기질 균형을 계산하는 중입니다...',
+    '주요 어스펙트 패턴을 진단하는 중입니다...',
+    '사랑·관계운 전략을 생성하는 중입니다...',
+    '직업·재물·성공운 전략을 구성하는 중입니다...',
+    '심리·무의식·상처 분석을 정리하는 중입니다...',
+    '건강·생활 리듬 루틴을 설계하는 중입니다...',
+    '운의 흐름(트랜짓/프로그레션)을 분석하는 중입니다...',
+    '최종 종합 리포트를 검수하는 중입니다...'
   ];
 
   var state = {
@@ -729,10 +692,7 @@
   }
 
   function setAstroMode(mode) {
-    var nextMode = String(mode || 'personal') === 'compatibility' ? 'compatibility' : 'personal';
-    var target = document.querySelector('input[name="abReportMode"][value="' + nextMode + '"]');
-    if (target) target.checked = true;
-    state.mode = nextMode;
+    state.mode = 'personal';
   }
 
   function ensureAstroCinematicStyles() {
@@ -794,83 +754,18 @@
   }
 
   function getSelectedMode() {
-    var checked = document.querySelector('input[name="abReportMode"]:checked');
-    var mode = checked ? String(checked.value || '') : 'personal';
-    return mode === 'compatibility' ? 'compatibility' : 'personal';
+    return 'personal';
   }
 
   function ensureModeUi() {
-    var startScreen = qs('abStartScreen');
-    if (!startScreen) return;
-    if (qs('abModePanel')) return;
-
-    var panel = document.createElement('div');
-    panel.id = 'abModePanel';
-    panel.style.cssText = 'margin:14px 0 12px;padding:14px;border:1px solid rgba(251,191,36,0.35);border-radius:12px;background:rgba(27,12,4,0.45);';
-    panel.innerHTML = [
-      '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">',
-      '  <strong style="font-size:13px;color:#fde68a;">리포트 모드</strong>',
-      '  <div style="display:flex;gap:10px;align-items:center;">',
-      '    <label style="display:flex;gap:6px;align-items:center;font-size:12px;color:#fef3c7;cursor:pointer;">',
-      '      <input type="radio" name="abReportMode" value="personal" checked> 개인',
-      '    </label>',
-      '    <label style="display:flex;gap:6px;align-items:center;font-size:12px;color:#fef3c7;cursor:pointer;">',
-      '      <input type="radio" name="abReportMode" value="compatibility"> 궁합',
-      '    </label>',
-      '  </div>',
-      '</div>',
-      '<div id="abPartnerWrap" style="display:none;margin-top:12px;border-top:1px dashed rgba(251,191,36,0.35);padding-top:12px;">',
-      '  <p style="margin:0 0 10px;font-size:12px;color:#fde68a;">궁합 모드는 상대 생년월일이 필요합니다. (시간 미상 시 12:00 권장)</p>',
-      '  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">',
-      '    <input id="abPartnerName" type="text" placeholder="상대 이름" style="padding:10px;border-radius:10px;border:1px solid rgba(251,191,36,0.35);background:#1a0f06;color:#fff;">',
-      '    <input id="abPartnerBirthDate" type="date" style="padding:10px;border-radius:10px;border:1px solid rgba(251,191,36,0.35);background:#1a0f06;color:#fff;">',
-      '    <input id="abPartnerHour" type="number" min="0" max="23" value="12" placeholder="시(0~23)" style="padding:10px;border-radius:10px;border:1px solid rgba(251,191,36,0.35);background:#1a0f06;color:#fff;">',
-      '    <input id="abPartnerMinute" type="number" min="0" max="59" value="0" placeholder="분(0~59)" style="padding:10px;border-radius:10px;border:1px solid rgba(251,191,36,0.35);background:#1a0f06;color:#fff;">',
-      '  </div>',
-      '</div>'
-    ].join('');
-
-    var profileBox = startScreen.querySelector('.lb-start__profile-box');
-    if (profileBox && profileBox.parentNode) {
-      profileBox.parentNode.insertBefore(panel, profileBox.nextSibling);
-    } else {
-      startScreen.appendChild(panel);
-    }
-
-    function syncPartnerVisibility() {
-      var wrap = qs('abPartnerWrap');
-      if (!wrap) return;
-      wrap.style.display = getSelectedMode() === 'compatibility' ? '' : 'none';
-    }
-
-    var radios = qsa(panel, 'input[name="abReportMode"]');
-    for (var i = 0; i < radios.length; i += 1) {
-      radios[i].addEventListener('change', syncPartnerVisibility);
-    }
-    syncPartnerVisibility();
-  }
-
-  function readPartnerInput() {
-    var dateRaw = String((qs('abPartnerBirthDate') && qs('abPartnerBirthDate').value) || '').trim();
-    var dm = dateRaw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-    if (!dm) return null;
-    var hour = Number((qs('abPartnerHour') && qs('abPartnerHour').value) || 12);
-    var minute = Number((qs('abPartnerMinute') && qs('abPartnerMinute').value) || 0);
-    return {
-      name: String((qs('abPartnerName') && qs('abPartnerName').value) || '').trim() || '상대',
-      year: Number(dm[1]),
-      month: Number(dm[2]),
-      day: Number(dm[3]),
-      hour: Number.isFinite(hour) ? Math.max(0, Math.min(23, hour)) : 12,
-      minute: Number.isFinite(minute) ? Math.max(0, Math.min(59, minute)) : 0
-    };
+    state.mode = 'personal';
   }
 
   function buildRequestBody() {
     var profile = getActiveProfile() || {};
     var birth = profile.birth || {};
     var location = profile.location || {};
-    var mode = getSelectedMode();
+    var mode = 'personal';
     var profileId = String(profile.profileId || profile.id || '').trim();
     var birthDate = [
       Number(birth.year || 0),
@@ -890,7 +785,7 @@
       reportType: mode,
       _premiumStrictPayload: false,
       _premiumStrictValidation: false,
-      includeCompatibility: mode === 'compatibility',
+      includeCompatibility: false,
       profileId: profileId,
       name: String(profile.name || '사용자'),
       gender: String(profile.gender || ''),
@@ -944,29 +839,6 @@
       }
     };
 
-    if (mode === 'compatibility') {
-      var partner = readPartnerInput();
-      if (!partner) return { ok: false, message: '궁합 모드는 상대 생년월일이 필요합니다.' };
-      body.partnerName = partner.name;
-      body.partnerYear = partner.year;
-      body.partnerMonth = partner.month;
-      body.partnerDay = partner.day;
-      body.partnerHour = partner.hour;
-      body.partnerMinute = partner.minute;
-      body.partnerBirthData = {
-        name: partner.name,
-        year: partner.year,
-        month: partner.month,
-        day: partner.day,
-        hour: partner.hour,
-        minute: partner.minute,
-        timezoneName: String(location.tz || 'Asia/Seoul'),
-        timezone: String(location.tz || 'Asia/Seoul'),
-        lat: Number(Number.isFinite(Number(location.lat)) ? Number(location.lat) : 37.5665),
-        lon: Number(Number.isFinite(Number(location.lng)) ? Number(location.lng) : 126.9780)
-      };
-    }
-
     return { ok: true, body: body };
   }
 
@@ -985,7 +857,7 @@
   }
 
   function updateDotTitles(mode) {
-    var labels = mode === 'compatibility' ? COMPAT_CHAPTER_PREVIEW : PERSONAL_CHAPTER_PREVIEW;
+    var labels = PERSONAL_CHAPTER_PREVIEW;
     var modal = qs('astroBookModal');
     var dots = qsa(modal, '.ab-ch-dot');
     for (var i = 0; i < dots.length; i += 1) {
@@ -1004,7 +876,7 @@
     var completed = status === 'completed' ? total : Math.max(0, Math.min(total, currentChapter));
     var nextChapter = Math.max(1, Math.min(total, currentChapter + 1));
     var progress = Math.round((completed / total) * 100);
-    var flow = state.mode === 'compatibility' ? ASTRO_LOADING_FLOW_COMPAT : ASTRO_LOADING_FLOW_PERSONAL;
+    var flow = ASTRO_LOADING_FLOW_PERSONAL;
     var message = status === 'completed'
       ? '코즈믹 리포트 최종 편집을 마무리하고 있습니다...'
       : String(flow[Math.max(0, Math.min(flow.length - 1, nextChapter - 1))] || '점성술 리포트를 생성하는 중입니다...');
@@ -1028,29 +900,20 @@
 
   function buildAstroGateKey(body) {
     var b = body || {};
-    var mode = String(b.mode || 'personal');
     var chunks = [
-      mode,
+      'personal',
       Number(b.year || 0), Number(b.month || 0), Number(b.day || 0),
       Number(b.hour || 12), Number(b.minute || 0)
     ];
-    if (mode === 'compatibility') {
-      chunks.push(
-        Number(b.partnerYear || 0), Number(b.partnerMonth || 0), Number(b.partnerDay || 0),
-        Number(b.partnerHour || 12), Number(b.partnerMinute || 0)
-      );
-    }
     return chunks.join('|');
   }
 
   function resolveAstroCoinPolicy(body) {
-    var mode = String(body && body.mode || 'personal');
-    var isCompat = mode === 'compatibility';
     return {
-      cost: ASTRO_COIN_BASE_COST + (isCompat ? ASTRO_COIN_COMPAT_EXTRA_COST : 0),
-      featureKey: isCompat ? ASTRO_COIN_FEATURE_KEY_COMPAT : ASTRO_COIN_FEATURE_KEY,
-      reason: isCompat ? ASTRO_COIN_REASON_COMPAT : ASTRO_COIN_REASON,
-      modeLabel: isCompat ? '궁합' : '개인'
+      cost: ASTRO_COIN_BASE_COST,
+      featureKey: ASTRO_COIN_FEATURE_KEY,
+      reason: ASTRO_COIN_REASON,
+      modeLabel: '개인'
     };
   }
 
@@ -1476,7 +1339,7 @@
     var date = qs('abResultDate');
     if (!toc || !content) return;
 
-    var modeTitle = state.mode === 'compatibility' ? '점성술 궁합 리포트' : '점성술 개인 리포트';
+    var modeTitle = '점성술 개인 리포트';
     if (name) name.textContent = modeTitle;
     if (date) {
       var now = new Date();
@@ -1504,7 +1367,7 @@
   function renderChapterPreviewList(mode) {
     var list = document.querySelector('#abStartScreen .lb-start__ch-list');
     if (!list) return;
-    var labels = mode === 'compatibility' ? COMPAT_CHAPTER_PREVIEW : PERSONAL_CHAPTER_PREVIEW;
+    var labels = PERSONAL_CHAPTER_PREVIEW;
     var total = Math.max(TOTAL_CHAPTERS, labels.length);
     list.innerHTML = Array.from({ length: total }).map(function (_, idx) {
       var chapter = idx + 1;
@@ -1558,7 +1421,7 @@
         continue;
       }
 
-      state.mode = String(data.mode || state.mode || 'personal');
+      state.mode = 'personal';
       state.downloadUrl = String(data.downloadUrl || state.downloadUrl || '');
       setLoadingProgress(data);
 
@@ -1588,11 +1451,11 @@
     var summary = qs('abProfileSummary');
     if (summary) summary.textContent = formatProfileSummary(profile);
 
-    var mode = getSelectedMode();
+    var mode = 'personal';
     renderChapterPreviewList(mode);
 
     var cta = qs('abStartBtn');
-    if (cta) cta.textContent = mode === 'compatibility' ? '💞 점성술 궁합 리포트 생성하기' : '✨ 점성술 코즈믹 차트 생성하기';
+    if (cta) cta.textContent = '✨ 점성술 코즈믹 차트 생성하기';
   }
 
   function applyActiveProfileArg(profileArg) {
@@ -1622,9 +1485,9 @@
     var selectedMode = getSelectedMode();
     var restored = loadAstroResult(getActiveProfile(), selectedMode);
     if (restored) {
-      setAstroMode(restored.mode || selectedMode);
+      setAstroMode('personal');
       updateStartUi();
-      state.mode = String(restored.mode || selectedMode || 'personal');
+      state.mode = 'personal';
       state.reportId = String(restored.reportId || '');
       state.downloadUrl = String(restored.downloadUrl || '');
       state.chapters = Array.isArray(restored.chapters) ? restored.chapters.slice() : [];
@@ -1779,7 +1642,7 @@
   function buildLocalAstroPrintableHtml() {
     var profile = getActiveProfile() || {};
     var ownerName = String(profile.name || '사용자');
-    var modeLabel = state.mode === 'compatibility' ? '점성술 궁합 리포트' : '점성술 개인 리포트';
+    var modeLabel = '점성술 개인 리포트';
     var now = new Date();
     var generatedAt = now.getFullYear() + '.' + String(now.getMonth() + 1).padStart(2, '0') + '.' + String(now.getDate()).padStart(2, '0');
     var chapters = Array.isArray(state.chapters) ? state.chapters.slice() : [];
@@ -1970,14 +1833,6 @@
         article.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
       return;
-    }
-  }, false);
-
-  document.addEventListener('change', function (e) {
-    var target = e.target;
-    if (!(target instanceof Element)) return;
-    if (target.matches('input[name="abReportMode"]')) {
-      updateStartUi();
     }
   }, false);
 

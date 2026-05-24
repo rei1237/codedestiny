@@ -120,12 +120,12 @@ describe("Premium access-control rules", () => {
     ]));
   });
 
-  test("vedicPremium compatibility는 490 코인 규칙이어야 한다", () => {
+  test("vedicPremium은 mode와 무관하게 390 코인 개인 리포트 규칙이어야 한다", () => {
     const rules = utils.buildAlternativePaymentRules("vedicPremium", { mode: "compatibility" });
     expect(rules).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        featureKey: "premium-vedic-report-compat",
-        minCost: 490,
+        featureKey: "premium-vedic-report",
+        minCost: 390,
         windowMinutes: 120,
       }),
     ]));

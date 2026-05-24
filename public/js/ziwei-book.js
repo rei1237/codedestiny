@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var TOTAL_CHAPTERS = 13;
+  var TOTAL_CHAPTERS = 12;
   var POLL_INTERVAL_MS = 2500;
   var MAX_POLL_COUNT = 220;
   var API_TIMEOUT_MS = 420000;
@@ -14,19 +14,18 @@
   ];
 
   var PERSONAL_CHAPTER_META = [
-    { title: '명궁 핵심 설계도', subtitle: '기본 성향과 인생 운영의 중심축' },
-    { title: '신궁 잠재 동력', subtitle: '내면 욕구와 숨은 성장 동력' },
-    { title: '복덕궁 행복·회복력', subtitle: '정서 회복 포인트와 에너지 루틴' },
-    { title: '천이궁 대외 이미지', subtitle: '사회적 인상과 브랜딩 전략' },
-    { title: '관록궁 커리어 로드맵', subtitle: '성과가 나는 역할과 전환 타이밍' },
-    { title: '재백궁 재정 전략', subtitle: '수익 구조와 리스크 완화 설계' },
-    { title: '부처궁 관계 패턴', subtitle: '인연·사랑·갈등 운영의 핵심 코드' },
-    { title: '교우궁 네트워크', subtitle: '귀인/소모 관계를 구분한 협업 전략' },
-    { title: '전택궁 공간·자산', subtitle: '주거/자산 기반의 장기 안정성 설계' },
-    { title: '질액궁 컨디션', subtitle: '체력 리듬과 건강 관리 포인트' },
-    { title: '대운 10년 파노라마', subtitle: '장기 확장기와 조정기의 우선순위' },
-    { title: '유년 타이밍 전략', subtitle: '가까운 시기의 월별 실행 전술' },
-    { title: '별의 편지', subtitle: '30·60·90일 최종 실행 마스터플랜' }
+    { title: 'I. 자미두수 명반 총론', subtitle: '내 운명의 기본 설계도' },
+    { title: 'II. 명궁 완전 해석', subtitle: '타고난 성격과 인생의 중심축' },
+    { title: 'III. 신궁 심층 분석', subtitle: '후천적 삶의 방향과 진짜 욕망' },
+    { title: 'IV. 12궁 완전 해석', subtitle: '인생 영역별 운명 지도' },
+    { title: 'V. 사화 분석', subtitle: '운명을 움직이는 변화의 버튼' },
+    { title: 'VI. 재물·직업·성공운', subtitle: '현실 성취와 돈의 흐름' },
+    { title: 'VII. 연애·결혼·인연운', subtitle: '사랑과 관계의 구조' },
+    { title: 'VIII. 인간관계·귀인·사회운', subtitle: '사람을 통해 열리는 운' },
+    { title: 'IX. 건강·심리·복덕운', subtitle: '마음과 몸의 균형' },
+    { title: 'X. 대운 분석', subtitle: '10년 단위 인생 흐름' },
+    { title: 'XI. 세운·유년운 분석', subtitle: '올해와 가까운 미래의 흐름' },
+    { title: 'XII. 최종 종합 리포트', subtitle: '나의 운명 사용법' }
   ];
 
   var PERSONAL_CHAPTERS = PERSONAL_CHAPTER_META.map(function (chapter) {
@@ -755,18 +754,17 @@
     // Map chapter index to specific palace by chapter title
     var palaceByChapter = {
       1: '명궁',
-      2: '신궁',
-      3: '명궁', // 12궁은 명궁 중심
-      4: '명궁', // 주성도 명궁 중심
-      5: '관록궁',
+      2: '명궁',
+      3: '신궁',
+      4: '명궁',
+      5: '명궁',
       6: '재백궁',
       7: '부처궁',
       8: '교우궁',
-      9: '전택궁',
-      10: '질액궁',
-      11: '천이궁',
-      12: '명궁', // 대운은 명궁 기준
-      13: '명궁'  // 별의 편지도 명궁 기준
+      9: '질액궁',
+      10: '명궁',
+      11: '명궁',
+      12: '명궁'
     };
     
     var targetPalaceName = palaceByChapter[chapterIndex] || '명궁';
@@ -1204,10 +1202,10 @@
     var cta = qs('zbStartBtn');
     var heroDesc = qs('ziweiBookModal') ? qs('ziweiBookModal').querySelector('.lb-start__desc') : null;
     var chLabel = qs('ziweiBookModal') ? qs('ziweiBookModal').querySelector('.lb-start__ch-label') : null;
-    if (subtitle) subtitle.textContent = '나의 명반 기반 13챕터 자미두수 인생 PDF';
+    if (subtitle) subtitle.textContent = '나의 명반 기반 12챕터 자미두수 인생 PDF';
     if (cta) cta.textContent = '🌌 자미두수 인생 총람 생성하기';
     if (heroDesc) heroDesc.innerHTML = '복잡한 부가 화면 없이<br>자미두수 핵심 명반을 정리해<br>최종 PDF 인생 전서를 생성합니다';
-    if (chLabel) chLabel.textContent = '📖 13챕터 구성';
+    if (chLabel) chLabel.textContent = '📖 12챕터 구성';
     renderChapterList();
   }
 

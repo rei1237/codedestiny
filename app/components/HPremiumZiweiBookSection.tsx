@@ -1,7 +1,7 @@
 "use client";
 /**
  * [프리미엄 자미두수 PDF 기능]
- * - 13개 챕터의 정밀 리포트를 PDF 파일로 생성하여 제공하는 서비스입니다.
+ * - 12개 챕터의 정밀 리포트를 PDF 파일로 생성하여 제공하는 서비스입니다.
  * - public/js/ziwei-book.js 및 전역 window 함수를 사용하여 동작합니다.
  * - '자미두수 심화 기능' 웹 리포트와는 별개의 독립적인 PDF 전용 서비스입니다.
  */
@@ -16,19 +16,18 @@ interface HPremiumZiweiBookSectionProps {
 }
 
 const CHAPTER_META = [
-  { num: 1, title: "1장. 명궁 완전 해독 — 타고난 인생 설계도", subtitle: "명궁을 중심으로 타고난 성격, 기질, 인생 선택 패턴을 해석한다.", icon: "🌌" },
-  { num: 2, title: "2장. 신궁 심층 분석 — 후천적으로 완성되는 나", subtitle: "신궁 위치, 명궁과의 관계, 후천 성향 강화 방향을 해석한다.", icon: "🧠" },
-  { num: 3, title: "3장. 복덕궁 — 마음의 만족과 내면의 행복 구조", subtitle: "복덕궁 중심으로 스트레스-회복 구조와 내면 행복 설계를 해석한다.", icon: "🌍" },
-  { num: 4, title: "4장. 관록궁 — 직업, 커리어, 사회적 성취", subtitle: "관록궁 기반 직업 적성, 일 방식, 성취 조건과 리스크를 정리한다.", icon: "👑" },
-  { num: 5, title: "5장. 재백궁 — 돈의 흐름과 재물 그릇", subtitle: "재백궁 기반 수익 구조, 누수 패턴, 재물운 강화 습관을 제시한다.", icon: "💰" },
-  { num: 6, title: "6장. 천이궁 — 외부 세계, 이동, 기회", subtitle: "천이궁 중심으로 외부 기회, 이동운, 타지/해외 적응력을 해석한다.", icon: "💞" },
-  { num: 7, title: "7장. 부처궁 — 연애, 결혼, 배우자 인연", subtitle: "부처궁 중심 연애/결혼 반복 패턴과 파트너십 전략을 구체화한다.", icon: "🤝" },
-  { num: 8, title: "8장. 교우궁 — 인간관계, 친구, 협력자", subtitle: "교우궁 중심으로 협업/인맥 구조, 도움 인연과 리스크를 해석한다.", icon: "🏠" },
-  { num: 9, title: "9장. 부모궁 — 원가족, 윗사람, 보호와 압박", subtitle: "부모궁 중심으로 원가족/윗사람 관계의 보호와 압박 패턴을 해석한다.", icon: "💪" },
-  { num: 10, title: "10장. 형제궁 — 형제, 경쟁자, 가까운 수평 관계", subtitle: "형제궁 기반 수평 관계의 거리감, 경쟁 구도, 협력 가능 구조를 분석한다.", icon: "🌊" },
-  { num: 11, title: "11장. 질액궁 — 건강, 체력, 에너지 관리", subtitle: "질액궁 중심 취약 패턴, 번아웃 포인트, 회복 전략을 실전적으로 정리한다.", icon: "📅" },
-  { num: 12, title: "12장. 대운과 인생 전환기 — 큰 흐름의 지도", subtitle: "현재 대운/연운을 중심으로 인생 전환 시기와 분야별 전환 전략을 제시한다.", icon: "🍀" },
-  { num: 13, title: "13장. 종합 결론 — 나의 운명을 쓰는 법", subtitle: "명궁·신궁·관록궁·재백궁 축을 통합해 실행 가능한 최종 전략 로드맵을 완성한다.", icon: "🌅" },
+  { num: 1, title: "I. 자미두수 명반 총론", subtitle: "내 운명의 기본 설계도", icon: "🌌" },
+  { num: 2, title: "II. 명궁 완전 해석", subtitle: "타고난 성격과 인생의 중심축", icon: "👑" },
+  { num: 3, title: "III. 신궁 심층 분석", subtitle: "후천적 삶의 방향과 진짜 욕망", icon: "🧭" },
+  { num: 4, title: "IV. 12궁 완전 해석", subtitle: "인생 영역별 운명 지도", icon: "🏛️" },
+  { num: 5, title: "V. 사화 분석", subtitle: "운명을 움직이는 변화의 버튼", icon: "🔮" },
+  { num: 6, title: "VI. 재물·직업·성공운", subtitle: "현실 성취와 돈의 흐름", icon: "💰" },
+  { num: 7, title: "VII. 연애·결혼·인연운", subtitle: "사랑과 관계의 구조", icon: "💞" },
+  { num: 8, title: "VIII. 인간관계·귀인·사회운", subtitle: "사람을 통해 열리는 운", icon: "🤝" },
+  { num: 9, title: "IX. 건강·심리·복덕운", subtitle: "마음과 몸의 균형", icon: "🧠" },
+  { num: 10, title: "X. 대운 분석", subtitle: "10년 단위 인생 흐름", icon: "🕰️" },
+  { num: 11, title: "XI. 세운·유년운 분석", subtitle: "올해와 가까운 미래의 흐름", icon: "📅" },
+  { num: 12, title: "XII. 최종 종합 리포트", subtitle: "나의 운명 사용법", icon: "🌅" },
 ];
 
 export default function HPremiumZiweiBookSection({
@@ -76,7 +75,7 @@ export default function HPremiumZiweiBookSection({
           <p style={{ color:"rgba(167,139,250,0.72)", fontSize:"0.66rem", letterSpacing:"0.28em", margin:0 }}>ZIWEI DOUSHU PREMIUM · DETAIL INTRO</p>
           <h3 style={{ color:"#fff", fontWeight:900, fontSize:"1.5rem", margin:"8px 0 6px" }}>자미두수 인생 총람 PDF</h3>
           <p style={{ color:"rgba(203,213,225,0.78)", fontSize:"0.88rem", lineHeight:1.8, margin:0 }}>
-            자미두수 13챕터 카테고리를 먼저 확인하고, 버튼 클릭 시 PDF 생성 단계로 진입합니다.
+            자미두수 12챕터 카테고리를 먼저 확인하고, 버튼 클릭 시 PDF 생성 단계로 진입합니다.
           </p>
 
           <div style={{ display:"grid", gap:8, marginTop:12 }}>

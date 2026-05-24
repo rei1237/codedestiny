@@ -13,11 +13,8 @@
   ];
 
   var VEDIC_COIN_BASE_COST = 390;
-  var VEDIC_COIN_COMPAT_EXTRA_COST = 100;
   var VEDIC_COIN_FEATURE_KEY = 'premium-vedic-report';
-  var VEDIC_COIN_FEATURE_KEY_COMPAT = 'premium-vedic-report-compat';
   var VEDIC_COIN_REASON = '베다 점성술 프리미엄 PDF 리포트 생성';
-  var VEDIC_COIN_REASON_COMPAT = '베다 점성술 프리미엄 PDF 궁합 리포트 생성';
   var VEDIC_PREMIUM_REPORT_TYPE = 'vedicPremium';
   var VEDIC_PREMIUM_FEATURE_TYPE = 'vedic_premium';
   var VEDIC_PDF_FEATURE_KEY = 'vedic-premium-pdf';
@@ -36,21 +33,6 @@
     '실천 루틴과 실행 가이드를 작성하는 중입니다...',
     '연간 흐름과 장기 로드맵을 연결하는 중입니다...',
     '베다 리포트 최종 교정을 진행하는 중입니다...'
-  ];
-
-  var VEDIC_LOADING_FLOW_COMPAT = [
-    '두 사람의 라그나 축을 동기화하는 중입니다...',
-    '정서 교감 패턴을 해석하는 중입니다...',
-    '소통·갈등 트리거를 추적하는 중입니다...',
-    '관계 안정성 지표를 계산하는 중입니다...',
-    '친밀도와 관계 리듬을 분석하는 중입니다...',
-    '동거·결혼 현실 구간을 정리하는 중입니다...',
-    '재정·역할 분담 균형을 도출하는 중입니다...',
-    '다샤 동조/충돌 포인트를 계산하는 중입니다...',
-    '위기 대응 시나리오를 작성하는 중입니다...',
-    '장기 관계 운영 규칙을 정리하는 중입니다...',
-    '관계 성장 플랜을 통합하는 중입니다...',
-    '베다 궁합 리포트 최종 교정을 진행하는 중입니다...'
   ];
 
   var state = {
@@ -589,10 +571,7 @@
   }
 
   function setVedicMode(mode) {
-    var nextMode = String(mode || 'personal') === 'compatibility' ? 'compatibility' : 'personal';
-    var target = document.querySelector('input[name="vdReportMode"][value="' + nextMode + '"]');
-    if (target) target.checked = true;
-    state.mode = nextMode;
+    state.mode = 'personal';
   }
 
   function ensureVedicCinematicStyles() {
@@ -654,76 +633,11 @@
   }
 
   function ensureModeUi() {
-    var startScreen = qs('vdStartScreen');
-    if (!startScreen) return;
-    if (qs('vdModePanel')) return;
-
-    var panel = document.createElement('div');
-    panel.id = 'vdModePanel';
-    panel.style.cssText = 'margin:14px 0 12px;padding:14px;border:1px solid rgba(251,146,60,0.35);border-radius:12px;background:rgba(30,15,8,0.45);';
-    panel.innerHTML = [
-      '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">',
-      '  <strong style="font-size:13px;color:#fed7aa;">리포트 모드</strong>',
-      '  <div style="display:flex;gap:10px;align-items:center;">',
-      '    <label style="display:flex;gap:6px;align-items:center;font-size:12px;color:#ffe7c2;cursor:pointer;">',
-      '      <input type="radio" name="vdReportMode" id="vdModePersonal" value="personal" checked> 개인',
-      '    </label>',
-      '    <label style="display:flex;gap:6px;align-items:center;font-size:12px;color:#ffe7c2;cursor:pointer;">',
-      '      <input type="radio" name="vdReportMode" id="vdModeCompat" value="compatibility"> 궁합',
-      '    </label>',
-      '  </div>',
-      '</div>',
-      '<div id="vdPartnerWrap" style="display:none;margin-top:12px;border-top:1px dashed rgba(251,146,60,0.35);padding-top:12px;">',
-      '  <p style="margin:0 0 10px;font-size:12px;color:#fcd9b6;">궁합 모드는 상대 생년월일이 필요합니다. (시간 미상 시 12:00 권장)</p>',
-      '  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">',
-      '    <input id="vdPartnerName" type="text" placeholder="상대 이름" style="padding:10px;border-radius:10px;border:1px solid rgba(251,146,60,0.35);background:#160b04;color:#fff;">',
-      '    <input id="vdPartnerBirthDate" type="date" style="padding:10px;border-radius:10px;border:1px solid rgba(251,146,60,0.35);background:#160b04;color:#fff;">',
-      '    <input id="vdPartnerHour" type="number" min="0" max="23" value="12" placeholder="시(0~23)" style="padding:10px;border-radius:10px;border:1px solid rgba(251,146,60,0.35);background:#160b04;color:#fff;">',
-      '    <input id="vdPartnerMinute" type="number" min="0" max="59" value="0" placeholder="분(0~59)" style="padding:10px;border-radius:10px;border:1px solid rgba(251,146,60,0.35);background:#160b04;color:#fff;">',
-      '  </div>',
-      '</div>'
-    ].join('');
-
-    var profileBox = startScreen.querySelector('.lb-start__profile-box');
-    if (profileBox && profileBox.parentNode) {
-      profileBox.parentNode.insertBefore(panel, profileBox.nextSibling);
-    } else {
-      startScreen.appendChild(panel);
-    }
-
-    function syncPartnerVisibility() {
-      var wrap = qs('vdPartnerWrap');
-      if (!wrap) return;
-      wrap.style.display = getSelectedMode() === 'compatibility' ? '' : 'none';
-    }
-
-    var radios = qsa(panel, 'input[name="vdReportMode"]');
-    for (var i = 0; i < radios.length; i += 1) {
-      radios[i].addEventListener('change', syncPartnerVisibility);
-    }
-    syncPartnerVisibility();
+    state.mode = 'personal';
   }
 
   function getSelectedMode() {
-    var checked = document.querySelector('input[name="vdReportMode"]:checked');
-    var mode = checked ? String(checked.value || '') : 'personal';
-    return mode === 'compatibility' ? 'compatibility' : 'personal';
-  }
-
-  function readPartnerInput() {
-    var dateRaw = String((qs('vdPartnerBirthDate') && qs('vdPartnerBirthDate').value) || '').trim();
-    var dm = dateRaw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-    if (!dm) return null;
-    var hour = Number((qs('vdPartnerHour') && qs('vdPartnerHour').value) || 12);
-    var minute = Number((qs('vdPartnerMinute') && qs('vdPartnerMinute').value) || 0);
-    return {
-      name: String((qs('vdPartnerName') && qs('vdPartnerName').value) || '').trim() || '상대',
-      year: Number(dm[1]),
-      month: Number(dm[2]),
-      day: Number(dm[3]),
-      hour: Number.isFinite(hour) ? Math.max(0, Math.min(23, hour)) : 12,
-      minute: Number.isFinite(minute) ? Math.max(0, Math.min(59, minute)) : 0
-    };
+    return 'personal';
   }
 
   function buildRequestBody() {
@@ -762,7 +676,7 @@
       featureKey: VEDIC_PDF_FEATURE_KEY,
       _premiumStrictPayload: true,
       _premiumStrictValidation: true,
-      includeCompatibility: mode === 'compatibility',
+      includeCompatibility: false,
       profileId: profileId,
       name: String(profile.name || '사용자'),
       gender: String(profile.gender || ''),
@@ -817,31 +731,6 @@
       }
     };
 
-    if (mode === 'compatibility') {
-      var partner = readPartnerInput();
-      if (!partner) return { ok: false, message: '궁합 모드는 상대 생년월일이 필요합니다.' };
-      body.partnerName = partner.name;
-      body.partnerYear = partner.year;
-      body.partnerMonth = partner.month;
-      body.partnerDay = partner.day;
-      body.partnerHour = partner.hour;
-      body.partnerMinute = partner.minute;
-      body.partnerBirthData = {
-        name: partner.name,
-        year: partner.year,
-        month: partner.month,
-        day: partner.day,
-        hour: partner.hour,
-        minute: partner.minute,
-        birthDate: [partner.year, String(partner.month).padStart(2, '0'), String(partner.day).padStart(2, '0')].join('-'),
-        birthTime: String(partner.hour).padStart(2, '0') + ':' + String(partner.minute).padStart(2, '0'),
-        timezoneName: String(location.tz || 'Asia/Seoul'),
-        timezone: String(location.tz || 'Asia/Seoul'),
-        lat: Number(Number.isFinite(Number(location.lat)) ? Number(location.lat) : 37.5665),
-        lon: Number(Number.isFinite(Number(location.lng)) ? Number(location.lng) : 126.9780)
-      };
-    }
-
     return { ok: true, body: body };
   }
 
@@ -887,7 +776,7 @@
     var completed = status === 'completed' ? TOTAL_CHAPTERS : Math.max(0, Math.min(TOTAL_CHAPTERS, currentChapter));
     var nextChapter = Math.max(1, Math.min(TOTAL_CHAPTERS, currentChapter || 1));
     var progress = Math.round((completed / TOTAL_CHAPTERS) * 100);
-    var flow = state.mode === 'compatibility' ? VEDIC_LOADING_FLOW_COMPAT : VEDIC_LOADING_FLOW_PERSONAL;
+    var flow = VEDIC_LOADING_FLOW_PERSONAL;
     var message = status === 'completed'
       ? '베다 리포트 최종 편집을 마무리하고 있습니다...'
       : String(flow[Math.max(0, Math.min(flow.length - 1, nextChapter - 1))] || '베다 챕터를 생성하는 중입니다...');
@@ -917,23 +806,15 @@
       Number(b.year || 0), Number(b.month || 0), Number(b.day || 0),
       Number(b.hour || 12), Number(b.minute || 0)
     ];
-    if (mode === 'compatibility') {
-      chunks.push(
-        Number(b.partnerYear || 0), Number(b.partnerMonth || 0), Number(b.partnerDay || 0),
-        Number(b.partnerHour || 12), Number(b.partnerMinute || 0)
-      );
-    }
     return chunks.join('|');
   }
 
   function resolveVedicCoinPolicy(body) {
-    var mode = String(body && body.mode || 'personal');
-    var isCompat = mode === 'compatibility';
     return {
-      cost: VEDIC_COIN_BASE_COST + (isCompat ? VEDIC_COIN_COMPAT_EXTRA_COST : 0),
-      featureKey: isCompat ? VEDIC_COIN_FEATURE_KEY_COMPAT : VEDIC_COIN_FEATURE_KEY,
-      reason: isCompat ? VEDIC_COIN_REASON_COMPAT : VEDIC_COIN_REASON,
-      modeLabel: isCompat ? '궁합' : '개인'
+      cost: VEDIC_COIN_BASE_COST,
+      featureKey: VEDIC_COIN_FEATURE_KEY,
+      reason: VEDIC_COIN_REASON,
+      modeLabel: '개인'
     };
   }
 
@@ -1297,7 +1178,7 @@
     var date = qs('vdResultDate');
     if (!toc || !content) return;
 
-    var modeTitle = state.mode === 'compatibility' ? '베다 궁합 리포트' : '베다 인생 리포트';
+    var modeTitle = '베다 인생 리포트';
     if (name) name.textContent = modeTitle;
     if (date) {
       var now = new Date();
@@ -1395,8 +1276,7 @@
     if (summary) summary.textContent = formatProfileSummary(profile);
 
     var cta = qs('vdStartBtn');
-    var mode = getSelectedMode();
-    if (cta) cta.textContent = mode === 'compatibility' ? '💞 베다 궁합 리포트 생성하기' : '🪷 베다 인생 총람 생성하기';
+    if (cta) cta.textContent = '🪷 베다 인생 총람 생성하기';
   }
 
   function applyActiveProfileArg(profileArg) {
@@ -1621,7 +1501,7 @@
   function buildLocalVedicPrintableHtml() {
     var profile = getActiveProfile() || {};
     var ownerName = String(profile.name || '사용자');
-    var modeLabel = state.mode === 'compatibility' ? '베다 궁합 리포트' : '베다 인생 리포트';
+    var modeLabel = '베다 인생 리포트';
     var now = new Date();
     var generatedAt = now.getFullYear() + '.' + String(now.getMonth() + 1).padStart(2, '0') + '.' + String(now.getDate()).padStart(2, '0');
     var chapters = Array.isArray(state.chapters) ? state.chapters.slice() : [];

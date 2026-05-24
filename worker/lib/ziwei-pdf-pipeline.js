@@ -102,18 +102,18 @@ const STEM_SIHUA_RULES = Object.freeze({
 });
 
 const ZIWEI_CHAPTER_CATEGORY_GUIDE = Object.freeze({
-  1: ["명궁 전체 총론", "명궁 주성의 성격 구조", "보조성·길성·살성이 만드는 세부 기질", "명궁 삼방사정으로 보는 인생 운영 방식", "강점이 살아나는 환경", "반복되는 약점과 오판 패턴", "현실 적용 전략"],
-  2: ["신궁 위치가 말하는 후천적 방향", "나이가 들수록 강해지는 성향", "신궁의 별이 만드는 행동 동력", "명궁과 신궁의 차이와 균형", "후천적 성공 조건", "흔들릴 때 드러나는 반응", "현실 적용 전략"],
-  3: ["12궁 전체 균형 요약", "나와 가족·관계 영역", "돈·일·사회 영역", "건강·이동·환경 영역", "복덕·부모·내면 기반", "강한 궁과 보완할 궁", "전체 명반 운영 전략"],
-  4: ["명반의 대표 주성 요약", "자미·천부 계열의 중심성", "천기·태양·태음 계열의 판단과 감수성", "무곡·천상·천량 계열의 현실성과 책임", "염정·탐랑·거문 계열의 욕망과 표현", "칠살·파군 계열의 변화와 돌파성", "주성 조합을 현실에서 쓰는 법"],
-  5: ["관록궁 전체 총론", "일하는 방식과 직업 기질", "성과가 나는 업무 환경", "조직·사업·프리랜서 적합성", "커리어 리스크와 막히는 패턴", "대운에서 커리어가 열리는 시점", "현실 커리어 전략"],
-  6: ["재백궁 전체 총론", "돈 버는 방식", "수입원이 열리는 조건", "소비·투자·손실 리스크", "재물과 직업의 연결", "재물운을 안정시키는 환경", "현실 재정 전략"],
-  7: ["부부궁 전체 총론", "끌리는 상대의 유형", "연애에서 강해지는 지점", "반복되는 관계 갈등", "결혼·동거·장기 관계 가능성", "관계 회복과 대화 전략", "현실 관계 전략"],
-  8: ["인간관계 네트워크 총론", "도움 되는 사람의 유형", "피로해지는 관계 구조", "협업과 팀워크 방식", "귀인과 경쟁자 구분", "관계 리스크 관리", "현실 인맥 전략"],
-  9: ["전택궁 전체 총론", "주거와 생활 기반", "부동산·자산 축적 가능성", "가족·공간·심리 안정", "공간이 운에 미치는 영향", "흔들리는 기반을 보완하는 법", "현실 공간·자산 전략"],
-  10: ["복덕궁 전체 총론", "내면 만족과 행복 조건", "스트레스 회복 방식", "외로움·불안·공허의 패턴", "취미·몰입·정신적 자산", "인생 후반의 안정성", "현실 회복 전략"],
-  11: ["사화 전체 총론", "화록이 여는 기회", "화권이 만드는 힘과 압박", "화과가 주는 명예와 정리 능력", "화기가 만드는 집착과 막힘", "살성과 변동성이 작동하는 방식", "현실 리스크 대응 전략"],
-  12: ["현재 대운 총론", "앞으로 10년의 핵심 흐름", "일과 돈의 전환점", "관계와 생활의 전환점", "조심해야 할 시기와 선택", "반드시 잡아야 할 기회", "최종 실행 로드맵"],
+  1: ["1. 명반 기본 정보", "2. 명반의 핵심 축", "3. 전체 별자리 배치 요약", "4. 인생 전체 기조"],
+  2: ["1. 명궁 주성 분석", "2. 명궁 보조성 분석", "3. 명궁의 묘왕득리평함실 강도", "4. 명궁 삼방사정 분석", "5. 명궁 종합 진단"],
+  3: ["1. 신궁 위치 해석", "2. 신궁 별자리 분석", "3. 명궁과 신궁의 관계", "4. 신궁 기반 실전 전략"],
+  4: ["1. 형제궁", "2. 부부궁", "3. 자녀궁", "4. 재백궁", "5. 질액궁", "6. 천이궁", "7. 노복궁", "8. 관록궁", "9. 전택궁", "10. 복덕궁", "11. 부모궁", "12. 명궁 재정리"],
+  5: ["1. 화록 분석", "2. 화권 분석", "3. 화과 분석", "4. 화기 분석", "5. 사화 종합 구조"],
+  6: ["1. 재백궁 심층 분석", "2. 관록궁 심층 분석", "3. 명궁·재백궁·관록궁 연결", "4. 사업운과 독립운", "5. 재물운 실전 전략"],
+  7: ["1. 부부궁 심층 분석", "2. 배우자운 분석", "3. 연애의 반복 패턴", "4. 결혼운과 장기 관계", "5. 인연운 실전 조언"],
+  8: ["1. 노복궁 분석", "2. 형제궁 분석", "3. 천이궁 분석", "4. 귀인운 분석", "5. 인간관계 전략"],
+  9: ["1. 질액궁 분석", "2. 복덕궁 분석", "3. 심리 패턴 분석", "4. 생활 리듬과 에너지", "5. 복덕운 실전 조언"],
+  10: ["1. 대운 기본 구조", "2. 초년운", "3. 청년운", "4. 중년운", "5. 장년·후반운", "6. 대운별 핵심 전략"],
+  11: ["1. 올해의 기본 운세", "2. 올해의 재물운", "3. 올해의 직업운", "4. 올해의 연애·관계운", "5. 올해의 건강·심리운", "6. 월별 흐름(1~12월)"],
+  12: ["1. 가장 강한 운명의 무기", "2. 가장 조심해야 할 약점", "3. 인생의 핵심 성공 공식", "4. 운을 여는 실전 전략", "5. 최종 결론"],
 });
 
 const ZIWEI_CHAPTER_TARGET_CHARS = Object.freeze([
@@ -150,103 +150,103 @@ const ZIWEI_CHAPTER_MIN_LENGTH = 8500;
 const ZIWEI_CHAPTER_MAX_LENGTH = 12500;
 
 const ZIWEI_CHAPTER_MASTER_ADVICE = Object.freeze({
-  1: "명궁의 강점은 자기 규율이 붙을 때 가장 크게 열린다. 이번 챕터에서 확인한 명궁 주성/보성의 강약을 기준으로, 하루 운영 원칙을 하나로 줄여 일관되게 반복하라.",
-  2: "신궁은 시간이 지날수록 드러나는 실전 자아다. 명궁의 의도와 신궁의 행동을 분리해서 기록하고, 위기 상황에서 반복되는 반응을 실행 규칙으로 재설계하라.",
-  3: "복덕궁은 행복의 조건을 알려주는 내면 설계도다. 감정 소모를 줄이는 루틴을 먼저 고정하고, 회복 활동을 일정표의 고정 블록으로 배치해 내면 에너지의 손실을 막아라.",
-  4: "천이궁은 세상과 만나는 방식의 품질을 결정한다. 외부 평판은 일관된 행동 문장에서 만들어지므로, 대외 커뮤니케이션 원칙을 세 줄로 정의하고 반복 적용하라.",
-  5: "관록궁은 커리어 성취의 구조를 보여준다. 조직/독립 중 어디에서 성과가 극대화되는지 분기 기준을 명확히 하고, 90일 단위로 성과 지표를 추적하라.",
-  6: "재백궁은 돈의 속도보다 흐름의 안정이 핵심이다. 수입 확장보다 누수 차단을 먼저 실행하고, 지출 의사결정에 상한 규칙을 붙여 자산 체력을 확보하라.",
-  7: "부부궁은 관계의 질을 결정하는 경계선 설계도다. 애정 표현과 경계 표현을 동시에 훈련하고, 갈등 시 합의 문장을 미리 정해 관계 소모를 줄여라.",
-  8: "교우궁은 사람을 통한 확장과 손실을 함께 보여준다. 귀인과 소모 관계를 구분하는 기준표를 만들고, 협업 전 역할·책임·종료 조건을 먼저 합의하라.",
-  9: "전택궁은 공간이 운의 회복률에 미치는 영향을 드러낸다. 주거와 작업 공간의 동선을 단순화하고, 집중 구역과 회복 구역을 분리해 에너지 누수를 차단하라.",
-  10: "복덕궁은 진단이 아니라 회복 리듬 관리의 나침반이다. 감정 소모 신호를 빠르게 포착하고 회복 프로토콜을 고정해 후반 안정성을 높여라.",
-  11: "사화와 살성은 사건의 촉발 조건을 보여주는 위험 신호다. 터지기 전에 징후를 확인하고 대응 루틴을 사전 설정해 변동성 손실을 줄여라.",
-  12: "대운과 세운은 시기별 의사결정 강도를 조절하는 기준선이다. 확장과 방어의 비중을 연도별로 조정해 장기 성과를 누적하라.",
+  1: "총론 챕터는 개별 해석보다 전체 구조의 일관성을 잡는 단계다. 명반의 핵심 축을 먼저 정의하고 이후 장의 해석 기준선을 고정하라.",
+  2: "명궁은 선천적 성향의 중심축이다. 주성·보조성·강약·삼방사정을 하나의 캐릭터 모델로 통합해 실행 규칙으로 전환하라.",
+  3: "신궁은 후천적으로 드러나는 실전 자아다. 명궁과 신궁의 차이를 행동 습관으로 변환해 성장 동선으로 설계하라.",
+  4: "12궁 해석은 분절이 아니라 연결이 핵심이다. 각 궁의 기능을 분리하되 최종적으로 명궁 축으로 재정렬해 의사결정 지도를 완성하라.",
+  5: "사화는 사건의 촉발 기제다. 화록·화권·화과·화기의 방향을 구분해 기회와 리스크의 트리거를 미리 식별하라.",
+  6: "재물·직업운은 분리되지 않는다. 재백궁·관록궁·명궁의 연결을 기준으로 수익 구조와 성취 루틴을 함께 설계하라.",
+  7: "연애·결혼운은 반복 패턴을 읽는 싸움이다. 부부궁을 중심으로 관계 트리거를 정의하고 장기 관계 운영 문장을 고정하라.",
+  8: "사회운은 사람의 질과 구조의 문제다. 노복궁·형제궁·천이궁을 통해 귀인과 소모 관계를 구분하고 협업 원칙을 명확히 하라.",
+  9: "건강·심리운은 회복 리듬 관리가 핵심이다. 질액궁·복덕궁 신호를 조기에 포착해 에너지 손실을 줄이는 루틴으로 연결하라.",
+  10: "대운 해석은 시기별 전략 배분이다. 각 연령대 구간을 확장/방어 관점으로 나누어 장기 실행 우선순위를 잡아라.",
+  11: "세운·유년운은 단기 전술의 영역이다. 올해 핵심 흐름과 월별 변화를 결합해 현실적 Go/Hold/Retreat 기준을 수립하라.",
+  12: "최종 종합 챕터는 결론이 아니라 실행 안내서다. 무기·약점·성공 공식을 하나의 실전 프레임으로 고정해 반복 가능하게 만들라.",
 });
 
 const ZIWEI_CHAPTER_CONTRACTS = Object.freeze({
   1: {
-    targetPalace: "명궁",
-    relatedPalaces: ["관록궁", "재백궁", "천이궁"],
+    targetPalace: "명반 총론",
+    relatedPalaces: ["명궁", "신궁", "관록궁", "재백궁"],
     mustCover: [
-      "명궁 기본 의미", "기본 성격", "인생 태도", "핵심 욕망", "명궁 주성 해석", "보조성/살성", "사화", "삼방사정", "인생 캐릭터 정의", "인생 운영 전략",
+      "명반 기본 정보", "명반 핵심 축", "전체 별자리 배치", "인생 전체 기조",
     ],
   },
   2: {
-    targetPalace: "신궁",
-    relatedPalaces: ["명궁", "관록궁", "재백궁", "부부궁", "천이궁", "복덕궁"],
+    targetPalace: "명궁",
+    relatedPalaces: ["관록궁", "재백궁", "신궁", "복덕궁"],
     mustCover: [
-      "신궁 기본 의미", "후천 성향", "위기 본능", "신궁 위치 해석", "명궁-신궁 관계", "신궁 주성/보성", "잠재 무기", "신궁 그림자", "후천운 성장 전략",
+      "명궁 주성", "명궁 보조성", "강약", "삼방사정", "명궁 종합 진단",
     ],
   },
   3: {
-    targetPalace: "복덕궁",
-    relatedPalaces: ["명궁", "질액궁"],
+    targetPalace: "신궁",
+    relatedPalaces: ["명궁", "관록궁", "재백궁", "부부궁"],
     mustCover: [
-      "복덕궁 기본 의미", "행복 설계", "주성 해석", "보조성/살성", "명궁과의 차이", "질액궁 연결", "행복 방해 패턴", "회복 루틴",
+      "신궁 위치", "신궁 별자리", "명궁-신궁 관계", "신궁 기반 실전 전략",
     ],
   },
   4: {
-    targetPalace: "12궁 전체",
+    targetPalace: "12궁",
     relatedPalaces: ["명궁", "부부궁", "관록궁", "재백궁", "복덕궁", "부모궁"],
     mustCover: [
-      "12궁 역할 정의", "각 궁 핵심 별", "강한 궁/약한 궁", "관계·재정·커리어 분포", "삼방사정 흐름", "전체 운영 전략",
+      "형제궁", "부부궁", "자녀궁", "재백궁", "질액궁", "천이궁", "노복궁", "관록궁", "전택궁", "복덕궁", "부모궁", "명궁 재정리",
     ],
   },
   5: {
-    targetPalace: "관록궁",
-    relatedPalaces: ["명궁", "재백궁", "천이궁"],
+    targetPalace: "사화",
+    relatedPalaces: ["명궁", "관록궁", "재백궁", "부부궁"],
     mustCover: [
-      "관록궁 기본 의미", "직업 적성", "주성", "보조성/살성", "명궁 관계", "재백궁 관계", "천이궁 관계", "천직 전략",
+      "화록", "화권", "화과", "화기", "사화 종합 구조",
     ],
   },
   6: {
     targetPalace: "재백궁",
     relatedPalaces: ["관록궁", "복덕궁", "명궁"],
     mustCover: [
-      "재백궁 기본 의미", "수익 구조", "주성", "보조성/살성", "사화", "관록궁 관계", "복덕궁 관계", "부의 운영 전략",
+      "재백궁 심층", "관록궁 심층", "명궁-재백궁-관록궁 연결", "사업운", "재물운 전략",
     ],
   },
   7: {
     targetPalace: "부부궁",
     relatedPalaces: ["명궁", "복덕궁"],
     mustCover: [
-      "부부궁 기본 의미", "연애/결혼 패턴", "주성", "보조성/살성", "사화", "명궁 관계", "복덕궁 관계", "인연 유지 전략",
+      "부부궁 심층", "배우자운", "연애 반복 패턴", "결혼·장기 관계", "인연운 조언",
     ],
   },
   8: {
-    targetPalace: "교우궁",
-    relatedPalaces: ["명궁", "관록궁"],
+    targetPalace: "노복궁",
+    relatedPalaces: ["형제궁", "천이궁", "명궁", "관록궁"],
     mustCover: [
-      "교우궁 기본 의미", "인맥운", "주성", "보조성/살성", "명궁 관계", "관록궁 관계", "귀인/악연 구분", "네트워크 전략",
+      "노복궁", "형제궁", "천이궁", "귀인운", "인간관계 전략",
     ],
   },
   9: {
-    targetPalace: "전택궁",
-    relatedPalaces: ["복덕궁", "재백궁"],
+    targetPalace: "질액궁",
+    relatedPalaces: ["복덕궁", "명궁"],
     mustCover: [
-      "전택궁 기본 의미", "주거/공간", "주성", "보조성/살성", "복덕궁 관계", "재백궁 관계", "환경 리스크", "공간 개선 전략",
+      "질액궁", "복덕궁", "심리 패턴", "생활 리듬", "복덕운 조언",
     ],
   },
   10: {
-    targetPalace: "복덕궁",
-    relatedPalaces: ["명궁", "부부궁", "재백궁"],
+    targetPalace: "대운",
+    relatedPalaces: ["명궁", "관록궁", "재백궁", "부부궁", "복덕궁"],
     mustCover: [
-      "복덕궁 기본 의미", "내면 만족", "주성", "보조성/살성", "복덕궁-명궁", "복덕궁-부부궁", "복덕궁-재백궁", "회복 루틴",
+      "대운 구조", "초년운", "청년운", "중년운", "장년·후반운", "대운 핵심 전략",
     ],
   },
   11: {
-    targetPalace: "사화·살성",
-    relatedPalaces: ["명궁", "부부궁", "관록궁", "재백궁", "교우궁"],
+    targetPalace: "세운",
+    relatedPalaces: ["재백궁", "관록궁", "부부궁", "질액궁", "복덕궁"],
     mustCover: [
-      "사화 전체 의미", "화록", "화권", "화과", "화기", "살성 리스크", "변동성 대응 전략",
+      "올해 기본 운세", "올해 재물운", "올해 직업운", "올해 연애·관계운", "올해 건강·심리운", "월별 흐름",
     ],
   },
   12: {
-    targetPalace: "대운·세운",
-    relatedPalaces: ["명궁", "관록궁", "재백궁", "부부궁", "복덕궁"],
+    targetPalace: "최종 종합",
+    relatedPalaces: ["명궁", "신궁", "관록궁", "재백궁", "부부궁", "복덕궁"],
     mustCover: [
-      "현재 대운", "다음 대운", "세운 해석", "일/돈 전환점", "관계/생활 전환점", "주의 시기", "실행 로드맵",
+      "강한 운명의 무기", "조심해야 할 약점", "핵심 성공 공식", "운을 여는 실전 전략", "최종 결론",
     ],
   },
 });
@@ -1106,6 +1106,87 @@ function normalizeZiweiSectionsByChapterSpec(sections, chapterSpec, chapterSumma
   return normalized;
 }
 
+function resolveZiweiChapterTargetPalace(chapterSpec) {
+  const chapterNo = Number(chapterSpec?.chapterNo || chapterSpec?.num || 0);
+  const contract = chapterNo > 0 ? ZIWEI_CHAPTER_CONTRACTS[chapterNo] : null;
+  const raw = asText(contract?.targetPalace);
+  if (!raw) return "";
+  return raw.replace(/\(.*?\)/g, "").trim();
+}
+
+function shouldEnforceZiweiTargetPalace(targetPalaceName) {
+  return Boolean(targetPalaceName) && /궁/.test(String(targetPalaceName));
+}
+
+function ensureZiweiTargetPalaceSentence(text, targetPalaceName, starsText) {
+  const source = sanitizeZiweiOutputText(asText(text));
+  if (!shouldEnforceZiweiTargetPalace(targetPalaceName)) return source;
+  if (source.includes(targetPalaceName)) return source;
+  const prefix = `${targetPalaceName}에서는 ${targetPalaceName}의 구조와 별 배치(${starsText || "데이터에 맞는 별"})를 중심으로 해석합니다.`;
+  return sanitizeZiweiOutputText([prefix, source].filter(Boolean).join("\n\n"));
+}
+
+function formatScopedStarLabel(star) {
+  const name = asText(star?.name);
+  const symbol = asText(star?.strengthSymbol);
+  const strength = asText(star?.strengthName);
+  if (!name) return "";
+  if (symbol && strength && strength !== "미상") return `${name}(${symbol} ${strength})`;
+  if (symbol) return `${name}(${symbol})`;
+  return name;
+}
+
+function buildChapterScopedPromptData(chapterContract, context) {
+  const targetPalaceName = asText(chapterContract?.targetPalace).replace(/\(.*?\)/g, "").trim();
+  const relatedPalaceNames = asArray(chapterContract?.relatedPalaces)
+    .map((row) => asText(row).replace(/\(.*?\)/g, "").trim())
+    .filter(Boolean);
+  const palaces = asArray(context?.palaces);
+
+  const currentPalace = palaces.find((row) => asText(row?.name) === targetPalaceName) || null;
+  const currentStars = []
+    .concat(asArray(currentPalace?.mainStars))
+    .concat(asArray(currentPalace?.assistantStars))
+    .concat(asArray(currentPalace?.minorStars))
+    .map((star) => formatScopedStarLabel(star))
+    .filter(Boolean);
+
+  const scopedPalaces = [];
+  if (currentPalace) {
+    scopedPalaces.push({
+      name: asText(currentPalace?.name),
+      branch: asText(currentPalace?.branch),
+      descriptionFocus: asText(currentPalace?.description) || `${asText(currentPalace?.name)} 핵심 구조`,
+      stars: currentStars,
+    });
+  }
+
+  relatedPalaceNames.forEach((name) => {
+    const row = palaces.find((p) => asText(p?.name) === name);
+    if (!row) return;
+    const stars = []
+      .concat(asArray(row?.mainStars))
+      .concat(asArray(row?.assistantStars))
+      .concat(asArray(row?.minorStars))
+      .map((star) => formatScopedStarLabel(star))
+      .filter(Boolean)
+      .slice(0, 8);
+    scopedPalaces.push({
+      name: asText(row?.name),
+      branch: asText(row?.branch),
+      descriptionFocus: asText(row?.description) || `${asText(row?.name)} 보조 근거`,
+      stars,
+    });
+  });
+
+  return {
+    targetPalaceName,
+    relatedPalaceNames,
+    currentStars,
+    scopedPalaces,
+  };
+}
+
 export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummaries = [] }) {
   const chapterSpec = chapter || ZIWEI_CHAPTER_SPECS[0];
   const chapterTargetChars = Math.max(2500, Number(chapterSpec?.targetChars || 4000));
@@ -1119,40 +1200,46 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
   const requiredJsonFields = asArray(chapterContract?.requiredJsonFields).map(asText).filter(Boolean);
   const chapterSectionHeadings = asArray(chapterSpec?.sections).map(asText).filter(Boolean);
   const chapterSections = chapterSectionHeadings.join(", ");
-  const effectiveRequiredHeadings = chapterSectionHeadings.length ? chapterSectionHeadings : requiredHeadings;
+  const effectiveRequiredHeadings = requiredHeadings.length ? requiredHeadings : chapterSectionHeadings;
   const premiumContext = toPlainObject(context?.premiumContext);
   const hasPremiumContext = Object.keys(premiumContext).length > 0;
+  const scopedPromptData = buildChapterScopedPromptData(chapterContract, context);
+  const currentPalaceText = scopedPromptData.targetPalaceName || asText(chapterContract?.targetPalace) || "현재 챕터 대상 궁";
+  const currentStarsText = scopedPromptData.currentStars.length ? scopedPromptData.currentStars.join(", ") : "데이터에 맞는 별 주입";
 
   const systemPrompt = [
-    "너는 자미두수 분야 최고 전문가이며, 30년 경력의 최고급 자미두수 상담가다.",
-    "독자와 1:1 대면 상담을 진행하듯, 구체적이고 품격 있는 상담 문체로 운명의 구조를 풀어낸다.",
-    "너의 임무는 제공된 자미두수 명반 JSON과 knowledgeBase를 바탕으로, 고급 PDF 리포트에 들어갈 장문 해석을 생성하는 것이다.",
-    "중요 규칙:",
-    "1. 계산은 하지 않는다. 제공된 명반 데이터와 knowledgeBase만 사용한다.",
-    "2. 데이터가 비어 있는 항목은 기본 궁의 의미, 삼방사정, 명궁-신궁 연결 규칙으로 자연스럽게 보강한다.",
-    "3. palace.branch, mainStars, strength, sihua가 없더라도 해당 궁의 기본 의미와 주변 궁의 흐름을 바탕으로 해석한다.",
-    "4. 허위로 별이나 지지를 만들어내지 않는다.",
-    "5. 별 강약 기호가 있으면 반드시 그 기호의 의미를 해석에 반영한다.",
-    "6. 문체는 신비롭고 고급스럽되, 실제 상담처럼 구체적이어야 한다.",
-    "7. 추상적인 말만 반복하지 말고 성격, 연애, 재물, 직업, 인간관계, 삶의 방향으로 연결해 설명한다.",
-    `8. 각 챕터는 공백 포함 총 ${chapterTargetChars}자 내외를 목표로 깊이 있게 작성한다. 최소 글자 수는 ${chapterMinChars}자 이상이며, sections의 각 body 항목은 공백 포함 1200자 이상으로 작성한다.`,
-    "9. 독자가 내 명반을 실제로 읽어준다고 느낄 정도로 구체적으로 작성한다.",
-    "10. 무조건 JSON 형식으로만 응답한다.",
-    "11. 마크다운 코드블록, 표, 파이프(|) 테이블, 불릿/번호 목록, HTML 태그를 출력하지 않는다.",
-    "12. title은 입력된 챕터 title과 정확히 일치해야 하며 임시 제목(예: Chapter 1)을 금지한다.",
-    "13. 본 리포트는 12챕터 고정 체계이므로 챕터 번호 체계를 임의로 변경하지 않는다.",
-    "14. 데이터 부족/보완/안내/메모 같은 메타 표현을 본문에 쓰지 않는다.",
-    "15. 시스템 지침 문장, 프롬프트 규칙 문장, JSON 키 설명 문장을 본문으로 출력하지 않는다.",
-    "16. 동일 문장/동일 단락을 반복해 분량을 채우지 않는다.",
-    "17. 이전 챕터들과 관점이나 내용이 절대 중복되지 않도록 하라. 제공된 [이전 챕터 요약 정보]를 참조하여, 이미 다른 챕터에서 다룬 해석을 반복하지 않고 이 챕터만의 고유한 관점(예: 성격 자아 -> 직업 자아 -> 재물 성향 등)을 확실히 보여줘라.",
-    "18. coreAdvice와 closing은 반드시 현재 챕터의 대상 궁위와 해석 목적에 맞게 작성하고, 다른 챕터에 재사용 가능한 일반론 문장을 금지한다.",
+    "# Role & Purpose",
+    "You are the core interpretation engine for the premium astrology platform \"Code: Destiny\".",
+    "너의 임무는 검증된 로컬 계산 엔진 JSON 데이터만 사용하여 자미두수 프리미엄 리포트를 생성하는 것이다.",
+    "",
+    "# CRITICAL GENERATION RULES (STRICTLY ENFORCED)",
+    "1) NO CROSS-CONTAMINATION (궁/별 매핑 절대 독립 유지)",
+    `- 현재 챕터 대상 궁은 ${currentPalaceText}이다. 이 챕터 본문은 반드시 ${currentPalaceText}의 구조와 별만 중심으로 해석한다.`,
+    "- 다른 챕터 궁/별의 해석 문장, 관점, 결론을 재사용하지 않는다.",
+    "- 현재 챕터 데이터에 없는 별 이름을 임의로 추가하거나 암시하지 않는다.",
+    "2) ZERO TOLERANCE FOR SENTENCE LOOPING / REPETITION",
+    "- 동일 문장, 동일 결론, 동일 연결문을 반복하지 않는다.",
+    "- 각 문장은 이전 문장 대비 새로운 정보 또는 실행 포인트를 제공해야 한다.",
+    "3) PREMIUM & HIGH-END TONE",
+    "- 한국어 존댓말(~합니다/~하세요) 기반의 깊이 있고 전문적인 문체를 유지한다.",
+    "",
+    "# ENGINE DATA POLICY",
+    "- 계산은 하지 않는다. 제공된 엔진 데이터와 knowledgeBase만 사용한다.",
+    "- 별 강약(묘/왕/득/리/평/함) 정보가 있으면 반드시 해석에 반영한다.",
+    "- 데이터 부족 안내, 시스템 규칙 문장, 메모성 문구를 본문에 쓰지 않는다.",
+    "",
+    "# OUTPUT CONTRACT",
+    "- 반드시 JSON만 출력한다.",
+    "- title은 입력 챕터 제목과 정확히 일치시킨다.",
+    "- intro에는 현재 궁 이름과 현재 궁 별 목록을 명시한다.",
     effectiveRequiredHeadings.length
-      ? `19. sections 배열은 다음 heading을 정확한 순서로 1회씩만 사용한다: ${effectiveRequiredHeadings.join(", ")}. 다른 heading 추가를 금지한다.`
-      : "19. 챕터 구조 규칙을 누락 없이 반영한다.",
-    requiredJsonFields.length ? `20. chapterContract.requiredJsonFields를 응답 JSON에 모두 포함한다: ${requiredJsonFields.join(", ")}.` : "20. 출력 JSON의 필수 키를 누락하지 않는다.",
+      ? `- sections heading은 다음 순서/문구를 정확히 사용한다: ${effectiveRequiredHeadings.join(", ")}`
+      : "- sections heading은 챕터 스키마를 정확히 따른다.",
+    `- 챕터 총 분량은 공백 포함 ${chapterTargetChars}자 내외, 최소 ${chapterMinChars}자 이상으로 작성한다.`,
+    requiredJsonFields.length ? `- chapterContract.requiredJsonFields를 응답 JSON에 모두 포함한다: ${requiredJsonFields.join(", ")}.` : "- 출력 JSON의 필수 키를 누락하지 않는다.",
     hasPremiumContext
-      ? "21. [기본/심화 통합 보조 데이터]가 제공되면 궁/주성/강약/대운/연월운/요약 근거를 최소 5개 이상 본문에 반영하고, 추상 문장만으로 분량을 채우지 않는다."
-      : "21. 제공된 데이터 근거를 문장마다 명시적으로 반영한다.",
+      ? "- [기본/심화 통합 보조 데이터]가 있으면 최소 5개 이상의 구체 근거(궁/별/강약/대운/연월운/요약)를 본문에 반영한다."
+      : "- 제공된 데이터 근거를 문장마다 명시적으로 반영한다.",
   ].join("\n");
 
   const duplicateAvoidanceText = previousChapterSummaries.length > 0
@@ -1192,6 +1279,12 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
     chapterSpec.title,
     chapterContract ? `[대상 궁위] ${chapterContract.targetPalace}` : "",
     chapterContract ? `[관련 궁위] ${chapterContract.relatedPalaces.join(", ")}` : "",
+    `[현재 챕터 궁/별 스코프 데이터]\n${JSON.stringify({
+      palaceName: currentPalaceText,
+      stars: scopedPromptData.currentStars,
+      scopedPalaces: scopedPromptData.scopedPalaces,
+    }, null, 2)}`,
+    `[현재 챕터 intro 템플릿]\n{{USER_NAME}}님의 ${currentPalaceText}에서는 ${currentPalaceText}의 구조를 중심으로 분석합니다. 이 챕터의 핵심은 ${currentPalaceText}에 배치된 별들이 만드는 패턴과 역할입니다. 별 배치는 ${currentStarsText}로 확인되며, 이들이 함께 작동하는 방식을 이해하는 것이 현실 적용의 첫걸음입니다.`,
     chapterContract ? `[필수 커버리지]\n- ${chapterContract.mustCover.join("\n- ")}` : "",
     effectiveRequiredHeadings.length ? `[chapter 카테고리 고정 헤딩]\n- ${effectiveRequiredHeadings.join("\n- ")}` : "",
     requiredJsonFields.length ? `[chapterContract.requiredJsonFields]\n- ${requiredJsonFields.join("\n- ")}` : "",
@@ -1221,6 +1314,8 @@ export function buildZiweiGeminiPrompt({ chapter, context, previousChapterSummar
     "[문체 및 분량 상세 기준]",
     "- 30년 경력 상담가가 직접 읽어주는 1:1 컨설팅 톤으로 쓰세요.",
     "- 별 강약 기호가 있으면 반드시 해석에 반영하세요.",
+    "- 본 챕터는 현재 대상 궁/별에만 집중하고 타 궁/타 별 서사를 섞지 마세요.",
+    "- 문장 반복/결론 반복/문단 복제를 금지합니다.",
     `- 챕터 총 분량은 공백 포함 ${chapterTargetChars}자 내외, 최소 ${chapterMinChars}자 이상을 지키고 sections 내 각 body 항목은 1200자 이상으로 작성하세요.`,
     "- 데이터가 없는 경우에는 기본 궁 의미와 knowledgeBase를 활용해 자연스럽게 상담 흐름으로 보강하세요.",
     "- 데이터 부족 안내나 메모성 문구는 출력하지 마세요.",
@@ -1332,29 +1427,59 @@ export function parseZiweiGeminiResponse(rawText) {
 
 export function sanitizeZiweiChapterJson(rawChapter, chapterSpec) {
   const chapter = toPlainObject(rawChapter);
-  const rawSummary = sanitizeZiweiOutputText(asText(chapter.summary || chapter.intro));
+  const targetPalaceName = resolveZiweiChapterTargetPalace(chapterSpec);
   const rawSubtitle = sanitizeZiweiOutputText(asText(chapter.chapterSubtitle));
-  const sections = normalizeZiweiSectionsByChapterSpec(
+  const rawCoreStars = asArray(chapter.coreStars).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
+  const coreStars = rawCoreStars.length > 0 ? rawCoreStars : ["자미"];
+  const starsText = coreStars.join(", ");
+  const rawSummary = ensureZiweiTargetPalaceSentence(
+    sanitizeZiweiOutputText(asText(chapter.summary || chapter.intro)),
+    targetPalaceName,
+    starsText,
+  );
+  let sections = normalizeZiweiSectionsByChapterSpec(
     asArray(chapter.sections),
     chapterSpec,
     rawSummary,
     rawSubtitle,
   );
 
+  if (shouldEnforceZiweiTargetPalace(targetPalaceName)) {
+    sections = sections.map((section) => ({
+      heading: section.heading,
+      body: ensureZiweiTargetPalaceSentence(section.body, targetPalaceName, starsText),
+    }));
+  }
+
   const practicalAdvice = asArray(chapter.practicalAdvice || chapter.actionGuide)
     .map((item) => sanitizeZiweiOutputText(asText(item)))
     .filter(Boolean);
   const cautions = asArray(chapter.cautions).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
-  
-  const coreStars = asArray(chapter.coreStars).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
+
   const corePalaces = asArray(chapter.corePalaces).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
-  const normalizedMasterAdvice = sanitizeZiweiOutputText(asText(chapter.masterAdvice || chapter.masterConclusion || chapter.coreAdvice));
+  const normalizedMasterAdvice = ensureZiweiTargetPalaceSentence(
+    sanitizeZiweiOutputText(asText(chapter.masterAdvice || chapter.masterConclusion || chapter.coreAdvice)),
+    targetPalaceName,
+    starsText,
+  );
   const chapterSpecificMasterAdvice = buildZiweiChapterMasterAdvice(chapterSpec, {
-    corePalaces,
+    corePalaces: corePalaces.length > 0 ? corePalaces : (targetPalaceName ? [targetPalaceName] : []),
     coreStars,
   });
-  const normalizedClosing = sanitizeZiweiOutputText(asText(chapter.closing));
+  const normalizedClosing = ensureZiweiTargetPalaceSentence(
+    sanitizeZiweiOutputText(asText(chapter.closing)),
+    targetPalaceName,
+    starsText,
+  );
   const masterConclusion = normalizedMasterAdvice || normalizedClosing || chapterSpecificMasterAdvice;
+
+  const normalizedCorePalaces = (() => {
+    const base = corePalaces.length > 0 ? corePalaces.slice() : [];
+    if (!targetPalaceName) return base.length > 0 ? base : ["ming"];
+    const targetPalaceKey = PALACE_KEY_MAP[targetPalaceName] || targetPalaceName;
+    if (!base.includes(targetPalaceKey) && !base.includes(targetPalaceName)) base.unshift(targetPalaceKey);
+    return base;
+  })();
 
   return {
     chapterTitle: sanitizeZiweiOutputText(asText(chapter.chapterTitle || chapter.title)) || chapterSpec?.title || "자미두수 해석",
@@ -1366,7 +1491,7 @@ export function sanitizeZiweiChapterJson(rawChapter, chapterSpec) {
     masterAdvice: masterConclusion,
     masterConclusion,
     coreStars: coreStars.length > 0 ? coreStars : ["자미"],
-    corePalaces: corePalaces.length > 0 ? corePalaces : ["ming"],
+    corePalaces: normalizedCorePalaces,
     missingDataNotice: null,
   };
 }

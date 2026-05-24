@@ -1,6 +1,8 @@
 "use client";
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { getVedicPdfChapters } from "@/app/_lib/vedic/pdf/vedicPdfChapters";
+import { sanitizePremiumSections, sanitizePremiumText } from "@/app/_lib/vedic/premium/guards/premiumTextGuard";
+import { VedicCh1_Total, VedicCh13_Dasha } from "@/app/components/vedic-premium/chapters";
 import PremiumPdfHistoryPanel from "./PremiumPdfHistoryPanel";
 
 
@@ -63,20 +65,11 @@ const PERSONAL_CHAPTER_META: ChapterMeta[] = getVedicPdfChapters("personal").map
   subtitle: chapter.subtitleKo,
   icon: chapter.icon,
 }));
-const COMPAT_CHAPTER_META: ChapterMeta[] = getVedicPdfChapters("compatibility").map((chapter) => ({
-  num: chapter.number,
-  title: chapter.titleKo,
-  subtitle: chapter.subtitleKo,
-  icon: chapter.icon,
-}));
-
-function getChapterMetaByMode(mode: "personal" | "compatibility"): ChapterMeta[] {
-  return mode === "compatibility" ? COMPAT_CHAPTER_META : PERSONAL_CHAPTER_META;
+function getChapterMetaByMode(): ChapterMeta[] {
+  return PERSONAL_CHAPTER_META;
 }
 
 const VEDIC_STORAGE_KEY = "premium:vedic:session:v1";
-const VEDIC_COMPAT_ADDON_COST = 300;
-const VEDIC_COMPAT_ADDON_TX_KEY = "cd_premium_tx_veda_compat";
 
 /** 사용자 프로필 스토리지에서 베다 점성술 입력값 읽기 */
 function readVedicProfile(): { year: string; month: string; day: string; hour: string; minute: string; lat: string; lon: string; timezone: string } | null {
@@ -214,6 +207,33 @@ function VedicChartSummary({ chart }: { chart:VedicChart }) {
 // ─────────────────────────────────────────────────────────────────
 function ChapterCard({ meta, state, onGenerate }: { meta:ChapterMeta; state:ChapterState; onGenerate:()=>void }) {
   const [expanded, setExpanded] = useState(false);
+
+  const renderChapterBody = () => {
+    if (!state.result) return null;
+
+    const safeText = sanitizePremiumText(state.result.text, "해석 데이터를 준비 중입니다.");
+    const safeSections = sanitizePremiumSections(state.result.sections, "섹션 데이터가 아직 준비되지 않았습니다.");
+
+    if (meta.num === 1) {
+      return <VedicCh1_Total text={safeText} sections={safeSections} />;
+    }
+
+    if (meta.num === 13) {
+      return <VedicCh13_Dasha text={safeText} sections={safeSections} />;
+    }
+
+    return safeSections.length > 0
+      ? safeSections.map((sec, i) => (
+          <div key={i} style={{ marginBottom:22 }}>
+            <h4 style={{ color:"rgba(212,160,23,0.95)", fontWeight:800, fontSize:"0.93rem", marginBottom:8, paddingBottom:5, borderBottom:"1px solid rgba(212,160,23,0.12)" }}>
+              {sec.title}
+            </h4>
+            {renderTextBlock(sec.body)}
+          </div>
+        ))
+      : renderTextBlock(safeText);
+  };
+
   return (
     <div style={{ borderRadius:14, overflow:"hidden", background:"rgba(4,3,15,0.80)", border:`1.5px solid ${state.step==="done"?"rgba(212,160,23,0.40)":"rgba(100,116,139,0.22)"}`, boxShadow:state.step==="done"?"0 4px 24px rgba(212,160,23,0.08)":"none", transition:"border-color 0.3s" }}>
       {/* 헤더 */}
@@ -263,17 +283,7 @@ function ChapterCard({ meta, state, onGenerate }: { meta:ChapterMeta; state:Chap
       {/* 결과 */}
       {state.step==="done" && state.result && expanded && (
         <div style={{ padding:"16px 18px" }}>
-          {state.result.sections.length > 0
-            ? state.result.sections.map((sec, i) => (
-                <div key={i} style={{ marginBottom:22 }}>
-                  <h4 style={{ color:"rgba(212,160,23,0.95)", fontWeight:800, fontSize:"0.93rem", marginBottom:8, paddingBottom:5, borderBottom:"1px solid rgba(212,160,23,0.12)" }}>
-                    {sec.title}
-                  </h4>
-                  {renderTextBlock(sec.body)}
-                </div>
-              ))
-            : renderTextBlock(state.result.text)
-          }
+          {renderChapterBody()}
         </div>
       )}
     </div>
@@ -433,11 +443,11 @@ export default function HPremiumVedicSection({
   const [timezone,    setTimezone]    = useState("9");
   const [lat,         setLat]         = useState("37.5665");
   const [lon,         setLon]         = useState("126.9780");
-  const [reportMode,  setReportMode]  = useState<"personal" | "compatibility">("personal");
-  const chapterMeta = getChapterMetaByMode(reportMode);
+  const [reportMode] = useState<"personal">("personal");
+  const chapterMeta = getChapterMetaByMode();
   const totalChapters = chapterMeta.length;
-  const createEmptyChapters = (mode: "personal" | "compatibility" = reportMode) =>
-    Object.fromEntries(getChapterMetaByMode(mode).map((m) => [m.num, { step: "idle" as ChapterStep, result: null }]));
+  const createEmptyChapters = () =>
+    Object.fromEntries(getChapterMetaByMode().map((m) => [m.num, { step: "idle" as ChapterStep, result: null }]));
   const [partnerName, setPartnerName] = useState("");
   const [partnerYear, setPartnerYear] = useState("");
   const [partnerMonth, setPartnerMonth] = useState("");
@@ -465,7 +475,7 @@ export default function HPremiumVedicSection({
   const resetVedicState = useCallback((resetInputs = false) => {
     reportIdRef.current = "";
     setChart(null);
-    setChapters(createEmptyChapters(resetInputs ? "personal" : reportMode));
+    setChapters(createEmptyChapters());
     setCalcError("");
     setCalcLoading(false);
     setRequestError("");
@@ -480,7 +490,6 @@ export default function HPremiumVedicSection({
       setTimezone("9");
       setLat("37.5665");
       setLon("126.9780");
-      setReportMode("personal");
       setPartnerName("");
       setPartnerYear("");
       setPartnerMonth("");
@@ -497,7 +506,7 @@ export default function HPremiumVedicSection({
         // ignore storage cleanup errors
       }
     }
-  }, [reportMode]);
+  }, []);
 
   useEffect(() => {
     if (showIntro) return;
@@ -554,7 +563,7 @@ export default function HPremiumVedicSection({
       if (saved.timezone) setTimezone(saved.timezone);
       if (saved.lat) setLat(saved.lat);
       if (saved.lon) setLon(saved.lon);
-      if (saved.reportMode === "compatibility" || saved.reportMode === "personal") setReportMode(saved.reportMode);
+      // personal-only mode
       if (saved.partnerName) setPartnerName(saved.partnerName);
       if (saved.partnerYear) setPartnerYear(saved.partnerYear);
       if (saved.partnerMonth) setPartnerMonth(saved.partnerMonth);
@@ -567,9 +576,8 @@ export default function HPremiumVedicSection({
       if (saved.partnerLon) setPartnerLon(saved.partnerLon);
       if (saved.chart) setChart(saved.chart);
       if (saved.chapters) {
-        const savedMode = saved.reportMode === "compatibility" ? "compatibility" : "personal";
         const normalized = Object.fromEntries(
-          getChapterMetaByMode(savedMode).map((meta) => {
+          getChapterMetaByMode().map((meta) => {
             const state = saved.chapters?.[meta.num] ?? { step: "idle" as ChapterStep, result: null };
             return [meta.num, state.step === "loading" ? { step: "idle" as ChapterStep, result: state.result ?? null } : state];
           })
@@ -744,111 +752,12 @@ export default function HPremiumVedicSection({
   }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, lat, lon, birthPlace, reportMode, partnerName, partnerYear, partnerMonth, partnerDay, partnerHour, partnerMinute, partnerBirthPlace, partnerTimezone, partnerLat, partnerLon, chapterMeta, chapters]);
 
   const ensureCompatibilityAddonCharged = useCallback(async () => {
-    if (reportMode !== "compatibility") return;
-    const y = parseInt(partnerYear, 10);
-    const m = parseInt(partnerMonth, 10);
-    const d = parseInt(partnerDay, 10);
-    if (!y || !m || !d) {
-      throw new Error("2인 궁합 모드는 상대방 생년월일 입력이 필요합니다.");
-    }
+    return;
+  }, []);
 
-    try {
-      if (sessionStorage.getItem(VEDIC_COMPAT_ADDON_TX_KEY)) return;
-    } catch {
-      // ignore storage errors
-    }
-
-    const token = localStorage.getItem("fortune_auth_token");
-
-    const requestId = `premium:veda:compat-addon:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-    const res = await fetch("/api/fortune/pig-coin/consume", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({
-        cost: VEDIC_COMPAT_ADDON_COST,
-        reason: "베다 프리미엄 궁합 모드 추가",
-        featureKey: "premium-veda-compatibility-addon",
-        forceDeduct: true,
-        requestId,
-      }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.status === 402) {
-      throw new Error("코인이 부족합니다. 궁합 모드는 300코인이 추가됩니다.");
-    }
-    if (res.status === 401 || res.status === 403) {
-      throw new Error("로그인이 필요합니다. 로그인 후 궁합 리포트를 생성해 주세요.");
-    }
-    if (!res.ok) {
-      throw new Error(data?.message || "궁합 모드 추가 코인 차감에 실패했습니다.");
-    }
-    if (data?.transactionId) {
-      try {
-        sessionStorage.setItem(VEDIC_COMPAT_ADDON_TX_KEY, String(data.transactionId));
-      } catch {
-        // ignore storage errors
-      }
-    }
-  }, [reportMode, partnerYear, partnerMonth, partnerDay]);
-
-  const tryRefundCompatibilityAddon = useCallback(async (reason: string) => {
-    if (reportMode !== "compatibility") {
-      return { refunded: false, message: "" };
-    }
-
-    let sourceTransactionId = "";
-    try {
-      sourceTransactionId = String(sessionStorage.getItem(VEDIC_COMPAT_ADDON_TX_KEY) || "").trim();
-    } catch {
-      sourceTransactionId = "";
-    }
-
-    if (!sourceTransactionId) {
-      return { refunded: false, message: "" };
-    }
-
-    try {
-      const token = localStorage.getItem("fortune_auth_token");
-      const res = await fetch("/api/fortune/pig-coin/refund", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          cost: VEDIC_COMPAT_ADDON_COST,
-          featureKey: "premium-veda-compatibility-addon",
-          sourceTransactionId,
-          requestId: `premium:veda:compat-refund:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-          reason: String(reason || "Vedic chapter generation failed").slice(0, 110),
-        }),
-      });
-
-      const data = await res.json().catch(() => ({}));
-      const code = String(data?.code || "").trim();
-      const refunded = res.ok || code === "REFUND_ALREADY_PROCESSED";
-
-      if (refunded) {
-        try {
-          sessionStorage.removeItem(VEDIC_COMPAT_ADDON_TX_KEY);
-        } catch {
-          // ignore storage errors
-        }
-      }
-
-      return {
-        refunded,
-        message: typeof data?.message === "string" ? data.message : "",
-      };
-    } catch {
-      return { refunded: false, message: "" };
-    }
-  }, [reportMode]);
+  const tryRefundCompatibilityAddon = useCallback(async (_reason: string) => {
+    return { refunded: false, message: "" };
+  }, []);
 
   // 차트 미리 계산 (chapter 1 분석으로 대체)
   const handleCalcChart = useCallback(async () => {
@@ -870,8 +779,8 @@ export default function HPremiumVedicSection({
       setChapters(prev => ({ ...prev, 1: { step:"done", result:{
         chapter:1,
         chapterMeta:data.chapterMeta,
-        text:data.text,
-        sections:data.sections,
+        text:sanitizePremiumText(data.text, "차트 총론 데이터를 준비 중입니다."),
+        sections:sanitizePremiumSections(data.sections, "챕터 섹션 데이터를 준비 중입니다."),
         fallbackUsed: Boolean(data?.usedFallback),
         missingFields: Array.isArray(data?.missingFields) ? data.missingFields : [],
         warnings: Array.isArray(data?.warnings) ? data.warnings : [],
@@ -921,25 +830,12 @@ export default function HPremiumVedicSection({
       }
       setChapters(prev=>({...prev,[chNum]:{step:"done",result:{
         chapter:chNum,
-        chapterMeta:data.chapterMeta,
-        text:data.text,
-        sections:data.sections,
+        reportType: "personal",
+        text:sanitizePremiumText(data.text, "챕터 해석 데이터를 준비 중입니다."),
+        sections:sanitizePremiumSections(data.sections, "챕터 섹션 데이터를 준비 중입니다."),
         fallbackUsed: Boolean(data?.usedFallback),
-        missingFields: Array.isArray(data?.missingFields) ? data.missingFields : [],
-        warnings: Array.isArray(data?.warnings) ? data.warnings : [],
-      }}}));
-      if (data.chart&&!chart) setChart(data.chart);
-      setFlowMessage(data?.usedFallback ? `7/7 CHAPTER ${chNum} 완료 (fallback)` : `7/7 CHAPTER ${chNum} 완료`);
-      onPdfFlowStateChange?.("success");
-    } catch (e: unknown) {
-      setFlowMessage(`CHAPTER ${chNum} 실패 복구 처리 중`);
-      const refund = await tryRefundCompatibilityAddon(`베다 챕터 ${chNum} 생성 실패`);
-      const enriched = e as VedicApiError;
-      enriched.refunded = refund.refunded;
-      enriched.refundMessage = refund.message;
-      const message = toVedicUiError(enriched);
       setRequestError(message);
-      setChapters(prev=>({...prev,[chNum]:{step:"error",result:null}}));
+    }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, lat, lon, birthPlace, chapterMeta, chapters]);
       onPdfFlowStateChange?.("error", message);
       setFlowMessage("");
     }
@@ -1044,40 +940,6 @@ export default function HPremiumVedicSection({
         {!chart && (
           <div style={{ borderRadius:14, padding:"18px", marginBottom:18, background:"rgba(4,3,15,0.75)", border:"1px solid rgba(212,160,23,0.18)" }}>
             <p style={{ color:"#fff", fontWeight:800, fontSize:"0.97rem", marginBottom:14 }}>🕉️ 출생 정보 입력</p>
-            <div style={{ display:"flex", gap:8, marginBottom:12, flexWrap:"wrap" }}>
-              <button
-                type="button"
-                onClick={() => setReportMode("personal")}
-                style={{
-                  borderRadius: 999,
-                  padding: "6px 14px",
-                  fontSize: "0.74rem",
-                  fontWeight: 800,
-                  border: reportMode === "personal" ? "1px solid rgba(212,160,23,0.55)" : "1px solid rgba(100,116,139,0.35)",
-                  color: reportMode === "personal" ? "rgba(253,230,138,0.95)" : "rgba(148,163,184,0.8)",
-                  background: reportMode === "personal" ? "rgba(212,160,23,0.16)" : "rgba(15,23,42,0.45)",
-                  cursor: "pointer",
-                }}
-              >
-                1인 모드
-              </button>
-              <button
-                type="button"
-                onClick={() => setReportMode("compatibility")}
-                style={{
-                  borderRadius: 999,
-                  padding: "6px 14px",
-                  fontSize: "0.74rem",
-                  fontWeight: 800,
-                  border: reportMode === "compatibility" ? "1px solid rgba(212,160,23,0.55)" : "1px solid rgba(100,116,139,0.35)",
-                  color: reportMode === "compatibility" ? "rgba(253,230,138,0.95)" : "rgba(148,163,184,0.8)",
-                  background: reportMode === "compatibility" ? "rgba(212,160,23,0.16)" : "rgba(15,23,42,0.45)",
-                  cursor: "pointer",
-                }}
-              >
-                2인 궁합 모드 (+300코인)
-              </button>
-            </div>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"11px", marginBottom:12 }} className="vedic-input-grid">
               <style>{`@media(max-width:560px){.vedic-input-grid{grid-template-columns:1fr 1fr!important}}`}</style>
               <div><span style={labelStyle}>출생 연도</span><input style={inputStyle} type="number" placeholder="1990" value={birthYear} onChange={e=>setBirthYear(e.target.value)} /></div>
@@ -1090,23 +952,6 @@ export default function HPremiumVedicSection({
               <div><span style={labelStyle}>경도</span><input style={inputStyle} type="number" placeholder="126.9780" step={0.01} value={lon} onChange={e=>setLon(e.target.value)} /></div>
               <div style={{ gridColumn:"1 / -1" }}><span style={labelStyle}>태어난 도시</span><input style={inputStyle} type="text" placeholder="예: Seoul" value={birthPlace} onChange={e=>setBirthPlace(e.target.value)} /></div>
             </div>
-            {reportMode === "compatibility" && (
-              <div style={{ borderTop:"1px solid rgba(212,160,23,0.15)", marginTop:4, paddingTop:12, marginBottom:12 }}>
-                <p style={{ color:"rgba(253,230,138,0.9)", fontSize:"0.8rem", fontWeight:700, marginBottom:10 }}>💞 상대방 출생 정보</p>
-                <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"11px" }} className="vedic-input-grid">
-                  <div><span style={labelStyle}>상대 이름</span><input style={inputStyle} type="text" placeholder="상대 이름" value={partnerName} onChange={e=>setPartnerName(e.target.value)} /></div>
-                  <div><span style={labelStyle}>상대 출생 연도</span><input style={inputStyle} type="number" placeholder="1990" value={partnerYear} onChange={e=>setPartnerYear(e.target.value)} /></div>
-                  <div><span style={labelStyle}>상대 월</span><input style={inputStyle} type="number" placeholder="1" min={1} max={12} value={partnerMonth} onChange={e=>setPartnerMonth(e.target.value)} /></div>
-                  <div><span style={labelStyle}>상대 일</span><input style={inputStyle} type="number" placeholder="1" min={1} max={31} value={partnerDay} onChange={e=>setPartnerDay(e.target.value)} /></div>
-                  <div><span style={labelStyle}>상대 출생 시 (0-23)</span><input style={inputStyle} type="number" placeholder="12" min={0} max={23} value={partnerHour} onChange={e=>setPartnerHour(e.target.value)} /></div>
-                  <div><span style={labelStyle}>상대 출생 분</span><input style={inputStyle} type="number" placeholder="0" min={0} max={59} value={partnerMinute} onChange={e=>setPartnerMinute(e.target.value)} /></div>
-                  <div><span style={labelStyle}>상대 시간대 (UTC+)</span><input style={inputStyle} type="number" placeholder="9" step={0.5} value={partnerTimezone} onChange={e=>setPartnerTimezone(e.target.value)} /></div>
-                  <div><span style={labelStyle}>상대 위도</span><input style={inputStyle} type="number" placeholder="37.5665" step={0.01} value={partnerLat} onChange={e=>setPartnerLat(e.target.value)} /></div>
-                  <div><span style={labelStyle}>상대 경도</span><input style={inputStyle} type="number" placeholder="126.9780" step={0.01} value={partnerLon} onChange={e=>setPartnerLon(e.target.value)} /></div>
-                  <div style={{ gridColumn:"1 / -1" }}><span style={labelStyle}>상대 태어난 도시</span><input style={inputStyle} type="text" placeholder="예: Busan" value={partnerBirthPlace} onChange={e=>setPartnerBirthPlace(e.target.value)} /></div>
-                </div>
-              </div>
-            )}
             {calcError && <p style={{ color:"rgba(252,165,165,0.85)", fontSize:"0.8rem", marginBottom:10 }}>⚠ {calcError}</p>}
             {requestError && <p style={{ color:"rgba(252,165,165,0.85)", fontSize:"0.8rem", marginBottom:10 }}>⚠ {requestError}</p>}
             <button

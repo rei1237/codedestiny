@@ -34,7 +34,7 @@ describe("Premium report pricing registry", () => {
       { reportType: "sookyoPremium", requestBody: { mode: "personal" }, key: "premium-sukuyo-report", cost: 390 },
       { reportType: "sookyoPremium", requestBody: { mode: "compatibility" }, key: "premium-sukuyo-report-compat", cost: 490 },
       { reportType: "vedicPremium", requestBody: { mode: "personal" }, key: "premium-vedic-report", cost: 390 },
-      { reportType: "vedicPremium", requestBody: { mode: "compatibility" }, key: "premium-vedic-report-compat", cost: 490 },
+      { reportType: "vedicPremium", requestBody: { mode: "compatibility" }, key: "premium-vedic-report", cost: 390 },
     ];
 
     checks.forEach(({ reportType, requestBody, key, cost }) => {
@@ -45,11 +45,11 @@ describe("Premium report pricing registry", () => {
     });
   });
 
-  test("compatibility 모드는 기본 featureKey 대비 +100 과금 키를 사용해야 한다", () => {
+  test("compatibility 과금 키는 서비스별 정책을 따라야 한다", () => {
     expect(registry.FEATURE_KEY_PRICE_TABLE["premium-ziwei-report-compat"]?.cost).toBe(690);
     expect(registry.FEATURE_KEY_PRICE_TABLE["premium-astrology-report-compat"]?.cost).toBe(490);
     expect(registry.FEATURE_KEY_PRICE_TABLE["premium-sukuyo-report-compat"]?.cost).toBe(490);
-    expect(registry.FEATURE_KEY_PRICE_TABLE["premium-vedic-report-compat"]?.cost).toBe(490);
+    expect(registry.FEATURE_KEY_PRICE_TABLE["premium-vedic-report"]?.cost).toBe(390);
 
     const sukuyoRequired = accessUtils.buildRequiredPaymentRules("sookyoPremium", { reportMode: "compatibility" });
     const vedicRequired = accessUtils.buildRequiredPaymentRules("vedicPremium", { reportMode: "compatibility" });

@@ -4,9 +4,7 @@ import { buildLifeBookChapterPlan } from "../saju/life-book/chapterConfig.js";
 import { LOVE_SECRET_MODE_CONFIG, SAJU_NEW_YEAR_CHAPTERS } from "../saju-premium-chapters.js";
 import {
   VEDIC_PERSONAL_CHAPTER_META,
-  VEDIC_COMPAT_CHAPTER_META,
   VEDIC_SOLO_TARGET_CHARS,
-  VEDIC_COMPAT_TARGET_CHARS,
 } from "../vedic-premium-chapters.js";
 
 const LIFEBOOK_TITLES = buildLifeBookChapterPlan().map((chapter) => String(chapter?.title || "").trim()).filter(Boolean);
@@ -20,8 +18,6 @@ const ZIWEI_TITLES = ZIWEI_PDF_CHAPTERS.map((chapter) => String(chapter?.title |
 const SUKUYO_TITLES = SUKUYO_PERSONAL_CHAPTER_META.map((meta) => String(meta?.title || "").trim()).filter(Boolean);
 
 const VEDIC_SOLO_TITLES = VEDIC_PERSONAL_CHAPTER_META.map((meta) => String(meta?.title || "").trim()).filter(Boolean);
-
-const VEDIC_COMPAT_TITLES = VEDIC_COMPAT_CHAPTER_META.map((meta) => String(meta?.title || "").trim()).filter(Boolean);
 
 const ASTRO_PERSONAL_TITLES = [
   "출생차트 총론 — 하늘이 남긴 첫 설계도",
@@ -501,10 +497,9 @@ function buildSookyoPlan() {
 }
 
 function buildVedicPlan(mode = "personal") {
-  const isCompatibility = mode === "compatibility";
-  const titles = isCompatibility ? VEDIC_COMPAT_TITLES : VEDIC_SOLO_TITLES;
-  const targets = isCompatibility ? VEDIC_COMPAT_TARGET_CHARS : VEDIC_SOLO_TARGET_CHARS;
-  const prefix = isCompatibility ? "vedic-comp" : "vedic-solo";
+  const titles = VEDIC_SOLO_TITLES;
+  const targets = VEDIC_SOLO_TARGET_CHARS;
+  const prefix = "vedic-solo";
   const rows = titles.map((title, i) => {
     const target = Number(targets[i] || 4200);
     const min = Math.max(3200, Math.floor(target * 0.85));

@@ -385,3 +385,5 @@ export type SajuLoveSecretPdfData = {
     loveYearlyLuck: YearlyLuck[];
   };
 };
+
+export type { AstroPremiumReportData } from "./astro-premium-report";

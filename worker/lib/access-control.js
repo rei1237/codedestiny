@@ -232,25 +232,23 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
   }
 
   if (reportType === "vedicPremium") {
-    const modeToken = normalizeModeToken(requestBody);
-    const isCompat = modeToken.includes("compat");
     return [
       {
-        featureKey: isCompat ? "premium_pdf_vedic_compat" : "premium_pdf_vedic",
-        reason: isCompat ? "베다 점성술 프리미엄 PDF 궁합 리포트 생성" : "베다 점성술 프리미엄 PDF 리포트 생성",
-        minCost: isCompat ? 490 : 390,
+        featureKey: "premium_pdf_vedic",
+        reason: "베다 점성술 프리미엄 PDF 리포트 생성",
+        minCost: 390,
         windowMinutes: 120,
       },
       {
-        featureKey: isCompat ? "premium-vedic-report-compat" : "premium-vedic-report",
-        reason: isCompat ? "베다 점성술 프리미엄 PDF 궁합 리포트 생성" : "베다 점성술 프리미엄 PDF 리포트 생성",
-        minCost: isCompat ? 490 : 390,
+        featureKey: "premium-vedic-report",
+        reason: "베다 점성술 프리미엄 PDF 리포트 생성",
+        minCost: 390,
         windowMinutes: 120,
       },
       {
         featureKey: "coin-gate-per-use",
-        reason: isCompat ? "베다 점성술 프리미엄 PDF 궁합 리포트 생성" : "베다 점성술 프리미엄 PDF 리포트 생성",
-        minCost: isCompat ? 490 : 390,
+        reason: "베다 점성술 프리미엄 PDF 리포트 생성",
+        minCost: 390,
         windowMinutes: 120,
       },
     ];

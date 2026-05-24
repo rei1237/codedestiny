@@ -183,17 +183,14 @@ describe("Vedic Premium Strict Tests", () => {
     expect(chapter8.reasons.length).toBe(0);
   });
 
-  test("D. compatibility 리포트는 12챕터 플랜으로 생성되어야 한다", () => {
-    const partner = makeChart();
-    const ashta = { total: 29.5, totalMax: 36, rows: [{ key: "Varna", score: 1, max: 1 }] };
-    const canonical = buildCanonicalVedicChart(makeBody({ partnerName: "상대" }), makeInput(), makeChart(), "compatibility", partner, ashta);
-
+  test("D. personal 모드는 mode 값과 무관하게 12챕터 플랜을 유지해야 한다", () => {
+    const canonical = buildCanonicalVedicChart(makeBody({ mode: "compatibility" }), makeInput(), makeChart(), "personal", null, null);
     const plan = buildVedicChapterPlan(canonical, "compatibility");
-      const chapter10 = plan.find((p) => p.num === 10);
+    const chapter10 = plan.find((p) => p.num === 10);
 
-      expect(plan).toHaveLength(10);
-      expect(chapter10.available).toBe(true);
-      expect(chapter10.reasons.length).toBe(0);
+    expect(plan).toHaveLength(12);
+    expect(chapter10.available).toBe(true);
+    expect(chapter10.reasons.length).toBe(0);
   });
 
   test("E. 금지 패딩/단정 표현 탐지가 동작해야 한다", () => {
@@ -201,14 +198,11 @@ describe("Vedic Premium Strict Tests", () => {
     expect(hasBannedDeterministicExpression("반드시 이혼합니다.")).toBe(true);
   });
 
-  test("F. 개인/궁합 모드 필수 마커 누락을 탐지해야 한다", () => {
+  test("F. 개인 모드 필수 마커 누락을 탐지해야 한다", () => {
     const personalChapter11Text = "## 챕터 11\n### 1. 현재 다샤의 기본 의미\n### 2. 가까운 시기의 변화 흐름\n### 3. 기회가 열리는 조건";
-    const compatibilityChapter9Text = "## 챕터 9\n### 1. 현재 각자의 다샤 흐름\n### 2. 관계가 열리는 시기\n### 3. 갈등이 커질 수 있는 시기";
 
     const missingPersonal = vedicMissingMarkers(personalChapter11Text, 11, "personal");
-    const missingCompatibility = vedicMissingMarkers(compatibilityChapter9Text, 9, "compatibility");
 
     expect(missingPersonal.some((m) => m.includes("다샤를 현실 전략으로 쓰는 법"))).toBe(true);
-    expect(missingCompatibility.some((m) => m.includes("타이밍을 맞추는 관계 전략"))).toBe(true);
   });
 });

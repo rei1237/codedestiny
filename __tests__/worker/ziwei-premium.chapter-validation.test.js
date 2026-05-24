@@ -17,7 +17,12 @@ beforeAll(async () => {
 });
 
 function makeValidChapter(spec) {
-  const longBody = "자미두수 명반 근거를 중심으로 실제 상담 문체로 세부 구조를 해석합니다. ".repeat(44);
+  const sectionCount = Array.isArray(spec.sections) && spec.sections.length ? spec.sections.length : 4;
+  const minChars = Number(spec.minChars || 2200);
+  const perSectionTarget = Math.max(2600, Math.ceil((minChars * 1.6) / sectionCount));
+  const seedSentence = "자미두수 명반 근거를 중심으로 실제 상담 문체로 세부 구조를 해석합니다. ";
+  const repeatCount = Math.max(44, Math.ceil(perSectionTarget / seedSentence.length));
+  const longBody = seedSentence.repeat(repeatCount);
   return {
     chapterNo: Number(spec.chapterNo || 1),
     title: spec.title,

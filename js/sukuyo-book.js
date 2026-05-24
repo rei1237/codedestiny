@@ -21,14 +21,22 @@
   ];
 
   var COMPAT_CHAPTER_META = [
-    { title: 'Chapter 1. 두 별의 본질과 관계의 시작', subtitle: '기질, 첫 끌림, 관계 테마' },
-    { title: 'Chapter 2. 감정 온도차와 대화 방식', subtitle: '감정 속도와 오해 복구법' },
-    { title: 'Chapter 3. 사랑의 역할과 관계 균형', subtitle: '주도권·기대·책임의 균형' },
-    { title: 'Chapter 4. 현실 궁합', subtitle: '일·돈·생활 조건의 적합성' },
-    { title: 'Chapter 5. 주변 사람과 생활 리듬', subtitle: '가족/친구 영향과 동거 리듬' },
-    { title: 'Chapter 6. 갈등과 이별 위기', subtitle: '상처 패턴과 회복 조건' },
-    { title: 'Chapter 7. 결혼과 장기 파트너 가능성', subtitle: '장기 합의와 현실 조건' },
-    { title: 'Chapter 8. 올해 흐름과 최종 궁합 봉서', subtitle: '관계 흐름 총정리와 최종 조언' },
+    { title: 'I. 두 사람의 숙요 궁합 총론', subtitle: '인연의 기본 구조를 진단합니다.' },
+    { title: 'II. 27숙 개별 성향 분석', subtitle: '서로의 본질 차이를 해석합니다.' },
+    { title: 'III. 숙요 관계 유형 분석', subtitle: '명·업태·영친·우쇠·안괴·위성 구조를 풉니다.' },
+    { title: 'IV. 거리 관계 분석', subtitle: '근거리·중거리·원거리 체감을 정리합니다.' },
+    { title: 'V. 첫 끌림과 운명적 인연감', subtitle: '초기 반응과 경계 조건을 해석합니다.' },
+    { title: 'VI. 감정 궁합', subtitle: '마음이 통하는 방식과 어긋남을 분석합니다.' },
+    { title: 'VII. 연애 궁합', subtitle: '관계 운영 방식과 속도를 점검합니다.' },
+    { title: 'VIII. 결혼 궁합', subtitle: '함께 살아갈 현실 적합성을 평가합니다.' },
+    { title: 'IX. 갈등 구조 분석', subtitle: '무너지는 지점과 회복법을 제시합니다.' },
+    { title: 'X. 안괴·위험 관계 집중 분석', subtitle: '강한 끌림과 파괴성을 점검합니다.' },
+    { title: 'XI. 영친·업태·우쇠 집중 분석', subtitle: '오래 가는 인연의 조건을 해석합니다.' },
+    { title: 'XII. 속궁합과 친밀감', subtitle: '몸과 마음의 밀착도를 다룹니다.' },
+    { title: 'XIII. 재회·이별·미련 분석', subtitle: '끊어짐과 재접속 가능성을 분석합니다.' },
+    { title: 'XIV. 관계의 시기와 흐름', subtitle: '가까워질 때와 조심할 때를 구분합니다.' },
+    { title: 'XV. 현실 궁합', subtitle: '돈·일·생활·가족 문제를 정리합니다.' },
+    { title: 'XVI. 최종 궁합 리포트', subtitle: '관계 운영 최종 전략을 확정합니다.' },
   ];
 
   var PERSONAL_LOADING_MSGS = [
@@ -47,14 +55,22 @@
   ];
 
   var COMPAT_LOADING_MSGS = [
-    '두 별의 본질과 관계 시작점을 분석하는 중...',
-    '감정 온도차와 대화 패턴을 해석하는 중...',
-    '역할 균형과 책임 구조를 정리하는 중...',
-    '현실 궁합(일·돈·생활)을 계산하는 중...',
-    '주변 영향과 생활 리듬을 분석하는 중...',
-    '갈등·이별 위기와 회복 조건을 정리하는 중...',
-    '결혼/장기 파트너 가능성을 해석하는 중...',
-    '올해 흐름과 최종 궁합 봉서를 완성하는 중...',
+    '두 사람의 인연 기본 구조를 정밀 분석하는 중...',
+    '27숙 기질 차이와 매력 포인트를 해석하는 중...',
+    '숙요 관계 유형의 핵심 역학을 정리하는 중...',
+    '거리 관계와 체감 온도를 계산하는 중...',
+    '첫 끌림과 운명감 패턴을 추적하는 중...',
+    '감정 궁합과 회복 대화법을 구성하는 중...',
+    '연애 운영 방식과 속도 차이를 분석하는 중...',
+    '결혼/동거 현실 적합성을 점검하는 중...',
+    '갈등 붕괴 패턴과 완충 전략을 정리하는 중...',
+    '안괴·위험 관계 리스크를 집중 해석하는 중...',
+    '영친·업태·우쇠 장기 조건을 분석하는 중...',
+    '친밀감과 속궁합 밀착도를 계산하는 중...',
+    '이별·재회·미련 흐름을 정리하는 중...',
+    '관계 시기별 주의 구간을 매핑하는 중...',
+    '돈·일·생활 현실 궁합을 조정하는 중...',
+    '최종 관계 운영 리포트를 완성하는 중...',
   ];
 
   var MYSTIC_QUOTES = [
@@ -84,8 +100,8 @@
   var PREMIUM_SUKUYO_REPORT_FEATURE_KEY = 'premium-sukuyo-report';
   var SUKUYO_PDF_FEATURE_KEY = 'premium-sukuyo-report';
   var PREMIUM_SUKUYO_REPORT_REASON = '숙요점 프리미엄 PDF 리포트 생성';
-  var _reportMode = 'personal';
-  var _totalChapters = PERSONAL_CHAPTER_META.length;
+  var _reportMode = 'compatibility';
+  var _totalChapters = COMPAT_CHAPTER_META.length;
   var _reportId = '';
   var _canonicalSukuyoCompatibility = null;
   var _chapterMetaRuntime = Array(_totalChapters).fill(null);
@@ -102,7 +118,7 @@
   }
 
   function _getReportDisplayTitle() {
-    return _reportMode === 'compatibility' ? '숙요점 궁합 봉서' : '숙요점 인생 총람';
+    return '숙요점 프리미엄 2인 궁합 리포트';
   }
 
   function _getChapterMetaAt(idx) {
@@ -475,22 +491,19 @@
   }
 
   function _getReportMode() {
-    var yes = document.getElementById('skCompatOn');
-    return (yes && yes.checked) ? 'compatibility' : 'personal';
+    return 'compatibility';
   }
 
   function _applyReportModeUi() {
     var partnerBox = document.getElementById('skPartnerFormSection');
     var startBtn = document.getElementById('skStartBtn');
-    var mode = _getReportMode();
+    var mode = 'compatibility';
     var previousMode = _reportMode;
     _reportMode = mode;
     _totalChapters = _getActiveChapterMeta().length;
-    if (partnerBox) partnerBox.style.display = mode === 'compatibility' ? '' : 'none';
+    if (partnerBox) partnerBox.style.display = '';
     if (startBtn) {
-      startBtn.textContent = mode === 'compatibility'
-        ? '💞 숙요 궁합 인생 총람 생성하기 (690코인)'
-        : '💫 숙요점 인생 총람 생성하기 (390코인)';
+      startBtn.textContent = '💞 숙요 궁합 인생 총람 생성하기 (690코인)';
     }
     if (previousMode !== _reportMode) {
       _renderDetailedChapterPreview();
@@ -510,17 +523,12 @@
     modeBox.className = 'lb-start__profile-box';
     modeBox.style.marginTop = '12px';
     modeBox.innerHTML = ''+
-      '<div class="lb-start__profile-label">🧭 리포트 모드 선택</div>'+
-      '<div style="display:flex;gap:14px;flex-wrap:wrap;padding-top:4px;">'+
-        '<label style="display:inline-flex;align-items:center;gap:6px;color:#e0f2fe;"><input type="radio" name="skReportMode" id="skCompatOff" checked> 1인 기본 (390코인)</label>'+
-        '<label style="display:inline-flex;align-items:center;gap:6px;color:#e0f2fe;"><input type="radio" name="skReportMode" id="skCompatOn"> 궁합 포함 (+300코인)</label>'+
+      '<div class="lb-start__profile-label">🧭 리포트 모드</div>'+
+      '<div style="display:flex;gap:14px;flex-wrap:wrap;padding-top:4px;color:#e0f2fe;">'+
+        '<strong>2인 궁합 전용 (A/B 입력 필수)</strong>'+
       '</div>';
     if (profileBox && profileBox.parentNode) profileBox.parentNode.insertBefore(modeBox, profileBox.nextSibling);
     else host.insertBefore(modeBox, host.firstChild);
-    var off = document.getElementById('skCompatOff');
-    var on = document.getElementById('skCompatOn');
-    if (off) off.addEventListener('change', _applyReportModeUi);
-    if (on) on.addEventListener('change', _applyReportModeUi);
     _applyReportModeUi();
   }
 
@@ -829,7 +837,7 @@
     list.innerHTML=html;
   }
 
-  var SK_ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII'];
+  var SK_ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI'];
 
   function _renderToc(){
     var nav=document.getElementById('skToc');
@@ -948,7 +956,7 @@
     if(!window.__cdActiveBirthProfile||!window.__cdActiveBirthProfile.birth) window.__cdActiveBirthProfile=profile;
     var saved=_skLoadSaved(profile);
     if(saved&&saved.chapters&&saved.chapters.some(Boolean)){
-      _reportMode = saved.reportMode === 'compatibility' ? 'compatibility' : 'personal';
+      _reportMode = 'compatibility';
       _syncReportModeSelector(_reportMode);
       _applyReportModeUi();
       _totalChapters = Number(saved.totalChapters) || _getActiveChapterMeta().length;
