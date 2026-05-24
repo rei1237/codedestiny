@@ -220,6 +220,130 @@
     return _postPremiumAuthFallback(pathname, body || {});
   }
 
+  function _logSukuyoBookStage(stage, extra) {
+    try {
+      console.info('[SukuyoBook] ' + String(stage || 'UNKNOWN_STAGE'), extra || {});
+    } catch (_) {}
+  }
+
+  function _buildSukuyoPremiumPreparePayload(profile, partner, reportMode, reportId) {
+    var p = profile || {};
+    var b = p.birth || {};
+    var selectedMode = String(reportMode || 'personal').toLowerCase() === 'compatibility' ? 'compatibility' : 'personal';
+    var lunarHint = _resolveExistingLunarHint(p);
+    var profileId = String(p.profileId || p.id || '').trim();
+    var location = p.location || {};
+    var calendarType = String(b.calType || b.calendarType || 'solar').trim().toLowerCase();
+    var birthDate = [
+      Number(b.year || 0),
+      String(Number(b.month || 0)).padStart(2, '0'),
+      String(Number(b.day || 0)).padStart(2, '0')
+    ].join('-');
+    var birthTime = String(Number.isFinite(Number(b.hour)) ? Number(b.hour) : 12).padStart(2, '0')
+      + ':' + String(Number.isFinite(Number(b.minute)) ? Number(b.minute) : 0).padStart(2, '0');
+    var timeUnknown = !!(b.timeUnknown || b.birthTimeUnknown || b.unknownTime);
+    var isLunar = calendarType === 'lunar' || calendarType === 'lunar_leap';
+    var safePartner = partner || {};
+
+    return {
+      year: b.year,
+      month: b.month,
+      day: b.day,
+      hour: b.hour !== undefined ? b.hour : 12,
+      chapter: 1,
+      name: p.name || '사용자',
+      gender: p.gender || undefined,
+      profileId: profileId || undefined,
+      birthDate: birthDate,
+      birthTime: birthTime,
+      calType: calendarType,
+      calendarType: calendarType,
+      isLunar: isLunar,
+      timeUnknown: timeUnknown,
+      timezoneName: String(location.tz || 'Asia/Seoul'),
+      timezone: String(location.tz || 'Asia/Seoul'),
+      lat: Number(Number.isFinite(Number(location.lat)) ? Number(location.lat) : 37.5665),
+      lon: Number(Number.isFinite(Number(location.lng)) ? Number(location.lng) : 126.9780),
+      reportId: reportId || undefined,
+      reportType: selectedMode,
+      reportMode: selectedMode,
+      includeCompatibility: selectedMode === 'compatibility',
+      lunarMonth: lunarHint ? lunarHint.lunarMonth : undefined,
+      lunarDay: lunarHint ? lunarHint.lunarDay : undefined,
+      isLeap: lunarHint ? lunarHint.isLeap : undefined,
+      partnerName: safePartner.name || undefined,
+      partnerYear: safePartner.year || undefined,
+      partnerMonth: safePartner.month || undefined,
+      partnerDay: safePartner.day || undefined,
+      partnerHour: safePartner.hour !== null ? safePartner.hour : undefined,
+      partnerMinute: safePartner.minute !== null ? safePartner.minute : undefined,
+      partnerGender: safePartner.gender || undefined,
+      partnerCalType: safePartner.calType || undefined,
+      _premiumStrictPayload: true,
+      _premiumStrictValidation: true,
+      _premiumFailOpen: false
+    };
+  }
+
+  function ensureSukuyoPremiumReportValidation(options) {
+    var opts = options || {};
+    var profile = opts.profile || {};
+    var partner = opts.partner || {};
+    var reportMode = opts.reportMode || 'personal';
+    var reportId = opts.reportId || '';
+    var payload = _buildSukuyoPremiumPreparePayload(profile, partner, reportMode, reportId);
+
+    _logSukuyoBookStage('INPUT_NORMALIZE_START', { mode: reportMode });
+    _logSukuyoBookStage('PAYLOAD_NORMALIZE_START', { mode: reportMode });
+
+    return _premiumAuthJson('/api/premium-report/prepare', {
+      featureType: 'sookyo_premium',
+      reportType: 'sookyoPremium',
+      preflightOnly: true,
+      requestBody: payload,
+    }).then(function (prepared) {
+      if (prepared && prepared.ok) {
+        _logSukuyoBookStage('INPUT_NORMALIZE_SUCCESS', { mode: reportMode });
+        _logSukuyoBookStage('PAYLOAD_NORMALIZE_SUCCESS', {
+          mode: reportMode,
+          chapterCount: Number(prepared.totalChapters || 0),
+        });
+        return prepared;
+      }
+      return prepared || { ok: false, message: '입력 검증에 실패했습니다.' };
+    }).catch(function () {
+      return { ok: false, message: '입력 검증에 실패했습니다.' };
+    });
+  }
+
+  function _isSukuyoTextBanned(text) {
+    var src = String(text || '').toLowerCase();
+    if (!src) return true;
+    var banned = [
+      '자동 복구 생성',
+      'chapter 1',
+      '기본 해석',
+      '데이터가 부족합니다',
+      'gemini api',
+      'stack trace',
+      'raw json',
+      'payload'
+    ];
+    for (var i = 0; i < banned.length; i++) {
+      if (src.indexOf(String(banned[i]).toLowerCase()) >= 0) return true;
+    }
+    return false;
+  }
+
+  function _sanitizeSukuyoChapterText(text, chapterIndex) {
+    var normalized = String(text || '').trim();
+    if (!normalized) return '';
+    var meta = _getChapterMetaAt(Number(chapterIndex || 0));
+    normalized = normalized.replace(/^#\s*Chapter\s*\d+\b.*$/im, '# ' + String(meta.title || '').trim());
+    normalized = normalized.replace(/^#\s*Chapter\s*[ivx]+\b.*$/im, '# ' + String(meta.title || '').trim());
+    return normalized.trim();
+  }
+
   function _syncUserPoints(payload) {
     try {
       var points = Number(payload && (payload.remainingPoints != null ? payload.remainingPoints : (payload.user && payload.user.points)));
@@ -939,7 +1063,14 @@
     if(_preText)_preText.textContent='입력 검증 중...';
     if(_preChapter)_preChapter.textContent='입력 검증 중...';
 
-    _ensurePremiumReportValidation().then(function (validationResult) {
+    _logSukuyoBookStage('REQUEST_START', { mode: _reportMode });
+    _logSukuyoBookStage('MODE_DETECTED', { mode: _reportMode });
+    ensureSukuyoPremiumReportValidation({
+      profile: profile,
+      partner: partner,
+      reportMode: _reportMode,
+      reportId: _reportId,
+    }).then(function (validationResult) {
       if (!validationResult || !validationResult.ok) {
         _generating=false;
         _showScreen('skStartScreen');
@@ -947,14 +1078,17 @@
         return;
       }
 
+      _logSukuyoBookStage('PAYMENT_CHECK_START', { mode: _reportMode });
       _ensureBaseSukuyoCoinGate(profile, partner).then(function (gateResult) {
       var _premiumAccessToken = '';
       if (!gateResult || !gateResult.ok) {
+        _logSukuyoBookStage('PAYMENT_CHECK_FAILED', { mode: _reportMode });
         _generating=false;
         _showScreen('skStartScreen');
         if (!gateResult || !gateResult.cancelled) alert((gateResult && gateResult.message) || '코인 결제에 실패했습니다.');
         return;
       }
+      _logSukuyoBookStage('PAYMENT_CHECK_SUCCESS', { mode: _reportMode });
       _premiumAccessToken = String(gateResult.premiumAccessToken || _readSukuyoPremiumAccessToken() || '');
       return _ensureCompatibilitySurchargeIfNeeded(profile, partner).then(function (chargeResult) {
         if (!chargeResult || !chargeResult.ok) {
@@ -1066,7 +1200,8 @@
     var _recoveryPasses = 0;
 
     function _isValidChapterText(txt) {
-      return typeof txt === 'string' && txt.trim().length >= 900 && !/^⚠️/.test(txt.trim());
+      var content = String(txt || '').trim();
+      return content.length >= 900 && !/^⚠️/.test(content) && !_isSukuyoTextBanned(content);
     }
 
     function _buildSukuyoChapterPayload(idx) {
@@ -1433,7 +1568,12 @@
           return;
         }
         if(data&&data.ok&&data.text){
-          _chapters[idx]=data.text;
+          var _sanitizedText = _sanitizeSukuyoChapterText(data.text, idx);
+          if (_isValidChapterText(_sanitizedText)) {
+            _chapters[idx]=_sanitizedText;
+          } else {
+            _failCount++;
+          }
           if(!_sukuyoChart&&data.chart) _sukuyoChart=data.chart;
           if(data.chapterMeta) _chapterMetaRuntime[idx]=data.chapterMeta;
           if(data.reportId) _reportId=String(data.reportId);
