@@ -4,6 +4,7 @@
   var TOTAL_CHAPTERS = 12;
   var API_TIMEOUT_MS = 360000;
   var POLL_INTERVAL_MS = 1800;
+  var VEDIC_RESULT_STORAGE_KEY = '__cd_vedic_premium_result_v2__';
   var LOADING_QUOTES = [
     '라그나와 하우스를 교차 해석하는 중입니다...',
     '나크샤트라와 다샤 흐름을 안정적으로 정리하는 중입니다...',
@@ -540,6 +541,88 @@
     var cal = String(b.calType || b.calendarType || 'solar').toLowerCase();
     var calLabel = cal === 'lunar' ? '음력' : (cal === 'lunar_leap' ? '음력(윤달)' : '양력');
     return [String(profile.name || '사용자') + ' · ' + date, calLabel + ' · ' + time].join(' · ');
+  }
+
+  function makeVedicProfileKey(profile, mode) {
+    var p = profile && profile.birth ? profile : {};
+    var b = p.birth || {};
+    return [
+      Number(b.year || 0),
+      Number(b.month || 0),
+      Number(b.day || 0),
+      Number(Number.isFinite(Number(b.hour)) ? b.hour : 12),
+      Number(Number.isFinite(Number(b.minute)) ? b.minute : 0),
+      String(p.gender || ''),
+      String(mode || state.mode || 'personal')
+    ].join('|');
+  }
+
+  function saveVedicResult(profile) {
+    try {
+      var chapters = Array.isArray(state.chapters) ? state.chapters.slice() : [];
+      if (!chapters.length) return;
+      var payload = {
+        profileKey: makeVedicProfileKey(profile || getActiveProfile(), state.mode),
+        mode: String(state.mode || 'personal'),
+        reportId: String(state.reportId || ''),
+        downloadUrl: String(state.downloadUrl || ''),
+        chapters: chapters,
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem(VEDIC_RESULT_STORAGE_KEY, JSON.stringify(payload));
+    } catch (_) {}
+  }
+
+  function loadVedicResult(profile, mode) {
+    try {
+      var raw = localStorage.getItem(VEDIC_RESULT_STORAGE_KEY);
+      if (!raw) return null;
+      var saved = safeParseJson(raw, null);
+      if (!saved || typeof saved !== 'object') return null;
+      var expected = makeVedicProfileKey(profile || getActiveProfile(), mode || state.mode || 'personal');
+      if (String(saved.profileKey || '') !== expected) return null;
+      if (!Array.isArray(saved.chapters) || !saved.chapters.length) return null;
+      return saved;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function setVedicMode(mode) {
+    var nextMode = String(mode || 'personal') === 'compatibility' ? 'compatibility' : 'personal';
+    var target = document.querySelector('input[name="vdReportMode"][value="' + nextMode + '"]');
+    if (target) target.checked = true;
+    state.mode = nextMode;
+  }
+
+  function ensureVedicCinematicStyles() {
+    if (document.getElementById('cdPremiumLoadingCinematicStyles')) return;
+    var style = document.createElement('style');
+    style.id = 'cdPremiumLoadingCinematicStyles';
+    style.textContent = ''
+      + '.lb-loading--cinematic{position:relative;overflow:hidden;--cd-glow-a:#fb923c;--cd-glow-b:#7c2d12;--cd-ring:rgba(251,146,60,.42);}'
+      + '.lb-loading--cinematic::before{content:"";position:absolute;inset:-18% -10% auto -10%;height:65%;background:radial-gradient(circle at center,var(--cd-ring),transparent 68%);pointer-events:none;opacity:.9;filter:blur(2px);}'
+      + '.lb-loading--cinematic .lb-loading__symbol{position:relative;display:inline-flex;align-items:center;justify-content:center;animation:cd-premium-orb-pulse 2.8s ease-in-out infinite;}'
+      + '.lb-loading--cinematic .lb-loading__symbol::before,.lb-loading--cinematic .lb-loading__symbol::after{content:"";position:absolute;inset:-10px;border-radius:999px;border:1px solid var(--cd-ring);}'
+      + '.lb-loading--cinematic .lb-loading__symbol::before{animation:cd-premium-ring-spin 7.2s linear infinite;}'
+      + '.lb-loading--cinematic .lb-loading__symbol::after{inset:-16px;border-style:dashed;opacity:.7;animation:cd-premium-ring-spin 10.5s linear infinite reverse;}'
+      + '.lb-loading--cinematic .lb-progress__bar,.lb-loading--cinematic .lb-progress-bar{background:linear-gradient(90deg,var(--cd-glow-a),#ffedd5,var(--cd-glow-b));background-size:200% 100%;animation:cd-premium-bar-shimmer 2.4s linear infinite;}'
+      + '.lb-loading--cinematic .lb-loading__chapter{animation:cd-premium-float 1.8s ease-in-out infinite;}'
+      + '@keyframes cd-premium-orb-pulse{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.04)}}'
+      + '@keyframes cd-premium-ring-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}'
+      + '@keyframes cd-premium-bar-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}'
+      + '@keyframes cd-premium-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}';
+    document.head.appendChild(style);
+  }
+
+  function activateVedicCinematicLoading() {
+    ensureVedicCinematicStyles();
+    var screen = qs('vdLoadingScreen');
+    if (!screen) return;
+    screen.classList.add('lb-loading--cinematic');
+    screen.style.setProperty('--cd-glow-a', '#fb923c');
+    screen.style.setProperty('--cd-glow-b', '#7c2d12');
+    screen.style.setProperty('--cd-ring', 'rgba(251,146,60,.42)');
   }
 
   function showOnly(screenId) {
@@ -1235,6 +1318,7 @@
 
     toc.innerHTML = tocHtml.join('');
     content.innerHTML = articleHtml.join('');
+    saveVedicResult(getActiveProfile());
     showOnly('vdResultScreen');
   }
 
@@ -1339,7 +1423,19 @@
 
     ensureModeUi();
     updateStartUi();
-    showOnly(hasProfile() ? 'vdStartScreen' : 'vdNoProfileScreen');
+    var selectedMode = getSelectedMode();
+    var restored = loadVedicResult(getActiveProfile(), selectedMode);
+    if (restored) {
+      setVedicMode(restored.mode || selectedMode);
+      updateStartUi();
+      state.mode = String(restored.mode || selectedMode || 'personal');
+      state.reportId = String(restored.reportId || '');
+      state.downloadUrl = String(restored.downloadUrl || '');
+      state.chapters = Array.isArray(restored.chapters) ? restored.chapters.slice() : [];
+      renderResultScreen();
+    } else {
+      showOnly(hasProfile() ? 'vdStartScreen' : 'vdNoProfileScreen');
+    }
     modal.style.display = 'flex';
     modal.style.zIndex = '100120';
     document.body.style.overflow = 'hidden';
@@ -1398,6 +1494,7 @@
     });
 
     showOnly('vdLoadingScreen');
+    activateVedicCinematicLoading();
     setLoadingProgress({ currentChapter: 1, status: 'generating', message: '결제 확인 중...' });
 
     try {

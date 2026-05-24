@@ -5,6 +5,7 @@
   var POLL_INTERVAL_MS = 2500;
   var MAX_POLL_COUNT = 220;
   var API_TIMEOUT_MS = 420000;
+  var ZIWEI_RESULT_STORAGE_KEY = '__cd_ziwei_premium_result_v2__';
   var LOADING_QUOTES = [
     '명궁·신궁 구조를 안정적으로 정렬하고 있습니다...',
     '12궁 별 배치를 챕터 문맥으로 정제하는 중입니다...',
@@ -1078,6 +1079,80 @@
     return [String(profile.name || '사용자') + ' · ' + date, calLabel + ' · ' + time].join(' · ');
   }
 
+  function makeZiweiProfileKey(profile) {
+    var p = profile && profile.birth ? profile : {};
+    var b = p.birth || {};
+    return [
+      Number(b.year || 0),
+      Number(b.month || 0),
+      Number(b.day || 0),
+      Number(Number.isFinite(Number(b.hour)) ? b.hour : 12),
+      Number(Number.isFinite(Number(b.minute)) ? b.minute : 0),
+      String(p.gender || '')
+    ].join('|');
+  }
+
+  function saveZiweiResult(profile) {
+    try {
+      var chapters = Array.isArray(state.chapters) ? state.chapters.slice() : [];
+      if (!chapters.length) return;
+      var payload = {
+        profileKey: makeZiweiProfileKey(profile || getActiveProfile()),
+        mode: 'personal',
+        reportId: String(state.reportId || ''),
+        downloadUrl: String(state.downloadUrl || ''),
+        chapters: chapters,
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem(ZIWEI_RESULT_STORAGE_KEY, JSON.stringify(payload));
+    } catch (_) {}
+  }
+
+  function loadZiweiResult(profile) {
+    try {
+      var raw = localStorage.getItem(ZIWEI_RESULT_STORAGE_KEY);
+      if (!raw) return null;
+      var saved = safeParseJson(raw, null);
+      if (!saved || typeof saved !== 'object') return null;
+      var expected = makeZiweiProfileKey(profile || getActiveProfile());
+      if (String(saved.profileKey || '') !== expected) return null;
+      if (!Array.isArray(saved.chapters) || !saved.chapters.length) return null;
+      return saved;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function ensureZiweiCinematicStyles() {
+    if (document.getElementById('cdPremiumLoadingCinematicStyles')) return;
+    var style = document.createElement('style');
+    style.id = 'cdPremiumLoadingCinematicStyles';
+    style.textContent = ''
+      + '.lb-loading--cinematic{position:relative;overflow:hidden;--cd-glow-a:#8b5cf6;--cd-glow-b:#4338ca;--cd-ring:rgba(139,92,246,.42);}'
+      + '.lb-loading--cinematic::before{content:"";position:absolute;inset:-18% -10% auto -10%;height:65%;background:radial-gradient(circle at center,var(--cd-ring),transparent 68%);pointer-events:none;opacity:.9;filter:blur(2px);}'
+      + '.lb-loading--cinematic .lb-loading__symbol{position:relative;display:inline-flex;align-items:center;justify-content:center;animation:cd-premium-orb-pulse 2.8s ease-in-out infinite;}'
+      + '.lb-loading--cinematic .lb-loading__symbol::before,.lb-loading--cinematic .lb-loading__symbol::after{content:"";position:absolute;inset:-10px;border-radius:999px;border:1px solid var(--cd-ring);}'
+      + '.lb-loading--cinematic .lb-loading__symbol::before{animation:cd-premium-ring-spin 7.2s linear infinite;}'
+      + '.lb-loading--cinematic .lb-loading__symbol::after{inset:-16px;border-style:dashed;opacity:.7;animation:cd-premium-ring-spin 10.5s linear infinite reverse;}'
+      + '.lb-loading--cinematic .lb-progress__bar,.lb-loading--cinematic .lb-progress-bar{background:linear-gradient(90deg,var(--cd-glow-a),#f5f3ff,var(--cd-glow-b));background-size:200% 100%;animation:cd-premium-bar-shimmer 2.4s linear infinite;}'
+      + '.lb-loading--cinematic .lb-loading__chapter{animation:cd-premium-float 1.8s ease-in-out infinite;}'
+      + '@keyframes cd-premium-orb-pulse{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.04)}}'
+      + '@keyframes cd-premium-ring-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}'
+      + '@keyframes cd-premium-bar-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}'
+      + '@keyframes cd-premium-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}';
+    document.head.appendChild(style);
+  }
+
+  function activateZiweiCinematicLoading() {
+    ensureZiweiCinematicStyles();
+    var screen = qs('zbLoadingScreen');
+    if (!screen) return;
+    screen.classList.add('lb-loading--cinematic');
+    screen.style.setProperty('--cd-glow-a', '#8b5cf6');
+    screen.style.setProperty('--cd-glow-b', '#4338ca');
+    screen.style.setProperty('--cd-ring', 'rgba(139,92,246,.42)');
+  }
+
   function getChapterTitles() {
     return PERSONAL_CHAPTERS;
   }
@@ -1761,6 +1836,7 @@
 
     toc.innerHTML = tocHtml.join('');
     content.innerHTML = articleHtml.join('');
+    saveZiweiResult(getActiveProfile());
     showOnly('zbResultScreen');
   }
 
@@ -1987,6 +2063,7 @@
     state.generating = true;
     resetForGenerate();
     showOnly('zbLoadingScreen');
+    activateZiweiCinematicLoading();
     setLoadingProgress(0, '생성 준비 중...');
 
     try {
@@ -2419,7 +2496,16 @@
     if (!modal) return;
     applyActiveProfileArg(profileArg);
     applyBaseUi();
-    showOnly(hasProfile() ? 'zbStartScreen' : 'zbNoProfileScreen');
+    var restored = loadZiweiResult(getActiveProfile());
+    if (restored) {
+      state.mode = 'personal';
+      state.reportId = String(restored.reportId || '');
+      state.downloadUrl = String(restored.downloadUrl || '');
+      state.chapters = Array.isArray(restored.chapters) ? restored.chapters.slice() : [];
+      renderResultScreen();
+    } else {
+      showOnly(hasProfile() ? 'zbStartScreen' : 'zbNoProfileScreen');
+    }
     modal.style.display = 'flex';
     modal.style.zIndex = '100120';
     document.body.style.overflow = 'hidden';

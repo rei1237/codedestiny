@@ -5,6 +5,7 @@
   var API_TIMEOUT_MS = 45000;
   var COIN_GATE_TIMEOUT_MS = 15000;
   var POLL_INTERVAL_MS = 1800;
+  var ASTRO_RESULT_STORAGE_KEY = '__cd_astro_premium_result_v2__';
   var LOADING_QUOTES = [
     '행성 좌표와 하우스 축을 교차 검증하는 중입니다...',
     '챕터별 점성술 근거 데이터를 정리하는 중입니다...',
@@ -75,7 +76,8 @@
     '생활 루틴 최적화 조언을 생성하는 중입니다...',
     '영혼 과제와 노드 축 해석을 정리하는 중입니다...',
     '연간 운세 흐름과 실천 로드맵을 연결하는 중입니다...',
-    '최종 코즈믹 리포트 문장을 검수하는 중입니다...'
+    '최종 코즈믹 리포트 문장을 검수하는 중입니다...',
+    '챕터 간 연결 문맥을 최종 보정하는 중입니다...'
   ];
 
   var ASTRO_LOADING_FLOW_COMPAT = [
@@ -90,7 +92,8 @@
     '재정·커리어 합을 정리하는 중입니다...',
     '가정 운영과 장기 계획을 연결하는 중입니다...',
     '위기 시나리오별 대응 전략을 도출하는 중입니다...',
-    '관계 운영 마스터 플랜을 완성하는 중입니다...'
+    '관계 운영 마스터 플랜을 완성하는 중입니다...',
+    '두 사람의 실행 합의안을 최종 보정하는 중입니다...'
   ];
 
   var state = {
@@ -678,6 +681,88 @@
     var cal = String(b.calType || b.calendarType || 'solar').toLowerCase();
     var calLabel = cal === 'lunar' ? '음력' : (cal === 'lunar_leap' ? '음력(윤달)' : '양력');
     return [String(profile.name || '사용자') + ' · ' + date, calLabel + ' · ' + time].join(' · ');
+  }
+
+  function makeAstroProfileKey(profile, mode) {
+    var p = profile && profile.birth ? profile : {};
+    var b = p.birth || {};
+    return [
+      Number(b.year || 0),
+      Number(b.month || 0),
+      Number(b.day || 0),
+      Number(Number.isFinite(Number(b.hour)) ? b.hour : 12),
+      Number(Number.isFinite(Number(b.minute)) ? b.minute : 0),
+      String(p.gender || ''),
+      String(mode || state.mode || 'personal')
+    ].join('|');
+  }
+
+  function saveAstroResult(profile) {
+    try {
+      var chapters = Array.isArray(state.chapters) ? state.chapters.slice() : [];
+      if (!chapters.length) return;
+      var payload = {
+        profileKey: makeAstroProfileKey(profile || getActiveProfile(), state.mode),
+        mode: String(state.mode || 'personal'),
+        reportId: String(state.reportId || ''),
+        downloadUrl: String(state.downloadUrl || ''),
+        chapters: chapters,
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem(ASTRO_RESULT_STORAGE_KEY, JSON.stringify(payload));
+    } catch (_) {}
+  }
+
+  function loadAstroResult(profile, mode) {
+    try {
+      var raw = localStorage.getItem(ASTRO_RESULT_STORAGE_KEY);
+      if (!raw) return null;
+      var saved = safeParseJson(raw, null);
+      if (!saved || typeof saved !== 'object') return null;
+      var expected = makeAstroProfileKey(profile || getActiveProfile(), mode || state.mode || 'personal');
+      if (String(saved.profileKey || '') !== expected) return null;
+      if (!Array.isArray(saved.chapters) || !saved.chapters.length) return null;
+      return saved;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function setAstroMode(mode) {
+    var nextMode = String(mode || 'personal') === 'compatibility' ? 'compatibility' : 'personal';
+    var target = document.querySelector('input[name="abReportMode"][value="' + nextMode + '"]');
+    if (target) target.checked = true;
+    state.mode = nextMode;
+  }
+
+  function ensureAstroCinematicStyles() {
+    if (document.getElementById('cdPremiumLoadingCinematicStyles')) return;
+    var style = document.createElement('style');
+    style.id = 'cdPremiumLoadingCinematicStyles';
+    style.textContent = ''
+      + '.lb-loading--cinematic{position:relative;overflow:hidden;--cd-glow-a:#fb923c;--cd-glow-b:#b45309;--cd-ring:rgba(251,146,60,.42);}'
+      + '.lb-loading--cinematic::before{content:"";position:absolute;inset:-18% -10% auto -10%;height:65%;background:radial-gradient(circle at center,var(--cd-ring),transparent 68%);pointer-events:none;opacity:.9;filter:blur(2px);}'
+      + '.lb-loading--cinematic .lb-loading__symbol{position:relative;display:inline-flex;align-items:center;justify-content:center;animation:cd-premium-orb-pulse 2.8s ease-in-out infinite;}'
+      + '.lb-loading--cinematic .lb-loading__symbol::before,.lb-loading--cinematic .lb-loading__symbol::after{content:"";position:absolute;inset:-10px;border-radius:999px;border:1px solid var(--cd-ring);}'
+      + '.lb-loading--cinematic .lb-loading__symbol::before{animation:cd-premium-ring-spin 7.2s linear infinite;}'
+      + '.lb-loading--cinematic .lb-loading__symbol::after{inset:-16px;border-style:dashed;opacity:.7;animation:cd-premium-ring-spin 10.5s linear infinite reverse;}'
+      + '.lb-loading--cinematic .lb-progress__bar,.lb-loading--cinematic .lb-progress-bar{background:linear-gradient(90deg,var(--cd-glow-a),#fff7ed,var(--cd-glow-b));background-size:200% 100%;animation:cd-premium-bar-shimmer 2.4s linear infinite;}'
+      + '.lb-loading--cinematic .lb-loading__chapter{animation:cd-premium-float 1.8s ease-in-out infinite;}'
+      + '@keyframes cd-premium-orb-pulse{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.04)}}'
+      + '@keyframes cd-premium-ring-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}'
+      + '@keyframes cd-premium-bar-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}'
+      + '@keyframes cd-premium-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}';
+    document.head.appendChild(style);
+  }
+
+  function activateAstroCinematicLoading() {
+    ensureAstroCinematicStyles();
+    var screen = qs('abLoadingScreen');
+    if (!screen) return;
+    screen.classList.add('lb-loading--cinematic');
+    screen.style.setProperty('--cd-glow-a', '#fb923c');
+    screen.style.setProperty('--cd-glow-b', '#b45309');
+    screen.style.setProperty('--cd-ring', 'rgba(251,146,60,.42)');
   }
 
   function showOnly(screenId) {
@@ -1412,6 +1497,7 @@
 
     toc.innerHTML = tocHtml.join('');
     content.innerHTML = articleHtml.join('');
+    saveAstroResult(getActiveProfile());
     showOnly('abResultScreen');
   }
 
@@ -1419,8 +1505,10 @@
     var list = document.querySelector('#abStartScreen .lb-start__ch-list');
     if (!list) return;
     var labels = mode === 'compatibility' ? COMPAT_CHAPTER_PREVIEW : PERSONAL_CHAPTER_PREVIEW;
-    list.innerHTML = labels.map(function (entry, idx) {
+    var total = Math.max(TOTAL_CHAPTERS, labels.length);
+    list.innerHTML = Array.from({ length: total }).map(function (_, idx) {
       var chapter = idx + 1;
+      var entry = labels[idx] || { title: 'Chapter ' + chapter, subtitle: '챕터 세부 전략' };
       var title = escapeHtml(getPreviewTitle(entry));
       var subtitle = escapeHtml(getPreviewSubtitle(entry));
       return '<li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.' + chapter + '</span><span>' + title + (subtitle ? '<br><small style="opacity:.82;">' + subtitle + '</small>' : '') + '</span></li>';
@@ -1531,7 +1619,19 @@
 
     ensureModeUi();
     updateStartUi();
-    showOnly(hasProfile() ? 'abStartScreen' : 'abNoProfileScreen');
+    var selectedMode = getSelectedMode();
+    var restored = loadAstroResult(getActiveProfile(), selectedMode);
+    if (restored) {
+      setAstroMode(restored.mode || selectedMode);
+      updateStartUi();
+      state.mode = String(restored.mode || selectedMode || 'personal');
+      state.reportId = String(restored.reportId || '');
+      state.downloadUrl = String(restored.downloadUrl || '');
+      state.chapters = Array.isArray(restored.chapters) ? restored.chapters.slice() : [];
+      renderResultScreen();
+    } else {
+      showOnly(hasProfile() ? 'abStartScreen' : 'abNoProfileScreen');
+    }
     modal.style.display = 'flex';
     modal.style.zIndex = '100120';
     document.body.style.overflow = 'hidden';
@@ -1584,6 +1684,7 @@
     state.lastRequestBody = generationBody;
 
     showOnly('abLoadingScreen');
+    activateAstroCinematicLoading();
     setLoadingProgress({ currentChapter: 0, status: 'generating', message: '결제 확인 중...' });
 
     try {

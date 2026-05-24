@@ -833,6 +833,31 @@
     }
   }
 
+  function ensureNewYearCinematicStyles() {
+    if (document.getElementById('cdPremiumLoadingCinematicStyles')) return;
+    var style = document.createElement('style');
+    style.id = 'cdPremiumLoadingCinematicStyles';
+    style.textContent = ''
+      + '.lb-loading--cinematic{position:relative;overflow:hidden;--cd-glow-a:#f59e0b;--cd-glow-b:#b45309;--cd-ring:rgba(245,158,11,.42);}'
+      + '.lb-loading--cinematic::before{content:"";position:absolute;inset:-18% -10% auto -10%;height:65%;background:radial-gradient(circle at center,var(--cd-ring),transparent 68%);pointer-events:none;opacity:.88;filter:blur(2px);}'
+      + '.lb-loading--cinematic .lb-star{animation-duration:5.8s;}'
+      + '.lb-loading--cinematic .lb-loading-chapter-box{animation:cd-premium-float 1.8s ease-in-out infinite;}'
+      + '.lb-loading--cinematic .lb-progress-bar{background:linear-gradient(90deg,var(--cd-glow-a),#fff7ed,var(--cd-glow-b));background-size:200% 100%;animation:cd-premium-bar-shimmer 2.4s linear infinite;}'
+      + '@keyframes cd-premium-bar-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}'
+      + '@keyframes cd-premium-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}';
+    document.head.appendChild(style);
+  }
+
+  function activateNewYearCinematicLoading() {
+    ensureNewYearCinematicStyles();
+    var screen = qs('nyLoadingScreen');
+    if (!screen) return;
+    screen.classList.add('lb-loading--cinematic');
+    screen.style.setProperty('--cd-glow-a', '#f59e0b');
+    screen.style.setProperty('--cd-glow-b', '#b45309');
+    screen.style.setProperty('--cd-ring', 'rgba(245,158,11,.42)');
+  }
+
   function setGenerateButtonBusy(busy) {
     var btn = qs('nyGenerateBtn');
     if (!btn) return;
@@ -1169,6 +1194,7 @@
       hasPaymentContext: Boolean(paymentContext || state.paymentContext)
     });
     showOnly('nyLoadingScreen');
+    activateNewYearCinematicLoading();
     setLoadingProgress(1, CHAPTER_DEFINITIONS[0].title);
 
     var prepared = await ensurePremiumSession(paymentContext);
@@ -1463,6 +1489,7 @@
 
     if (state.generating) {
       showOnly('nyLoadingScreen');
+      activateNewYearCinematicLoading();
       return;
     }
 
@@ -1490,6 +1517,7 @@
     }
     setGenerateButtonBusy(true);
     showOnly('nyLoadingScreen');
+    activateNewYearCinematicLoading();
     setLoadingProgress(1, CHAPTER_DEFINITIONS[0].title);
 
     ensureCoinGateAndGenerate().catch(function (err) {
