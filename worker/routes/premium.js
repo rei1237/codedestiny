@@ -1,4 +1,4 @@
-import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+﻿import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { generateWithGemini } from "../lib/gemini-client.js";
 import { requireAuth } from "../lib/auth.js";
@@ -55,6 +55,9 @@ import {
   generateZiweiChapterPrompt,
   parseZiweiGeminiResponse,
   sanitizeZiweiChapterJson,
+  validateNoZiweiDuplicateText,
+  validateZiweiEngineToPdfMapping,
+  validateZiweiFullReport,
 } from "../lib/ziwei-pdf-pipeline.js";
 import {
   LIFE_BOOK_TOTAL_CHAPTERS,
@@ -619,8 +622,8 @@ const ZIWEI_CHAPTER_META = [
   },
   {
     num: 7,
-    title: "파트너십과 로맨스 — 부처궁(夫妻宮)의 인연 구조",
-    subtitle: "부처궁 기반 관계 패턴/경계/타이밍 전략",
+    title: "파트너십과 로맨스 — 부부궁(夫妻宮)의 인연 구조",
+    subtitle: "부부궁 기반 관계 패턴/경계/타이밍 전략",
     icon: "ziwei"
   },
   {
@@ -651,12 +654,6 @@ const ZIWEI_CHAPTER_META = [
     num: 12,
     title: "올해의 마이크로 전술 — 2026 유년(流年)·유월(流月) 로드맵",
     subtitle: "2026 분기/월별 행동 가이드와 Go/Hold/Retreat",
-    icon: "ziwei"
-  },
-  {
-    num: 13,
-    title: "인생 설계도 총결산 — 자미두수 거장의 마스터플랜 봉서",
-    subtitle: "13챕터 통합 총결산과 통합 실천 전략",
     icon: "ziwei"
   },
 ];
@@ -693,13 +690,12 @@ const ZIWEI_CHAPTER_GUIDES = [
   "천이궁 중심으로 외부 이미지와 이동/확장 전략, 사회적 평판 관리법을 제시하세요.",
   "관록궁 중심으로 직업 적성, 조직/독립 성향, 도약 타이밍 전략을 제시하세요.",
   "재백궁 중심으로 수익 파이프라인과 누수 패턴을 성향 중심으로 해석하세요.",
-  "부처궁 중심으로 관계 경계/반복 패턴/건강한 파트너십 전략을 제시하세요.",
+  "부부궁 중심으로 관계 경계/반복 패턴/건강한 파트너십 전략을 제시하세요.",
   "교우궁 중심으로 귀인 판별, 협업 성공 패턴, 네트워크 자산화 전략을 제시하세요.",
   "전택궁 중심으로 주거/공간 심리, 생활 동선, 공간 리셋 루틴을 제시하세요.",
   "질액궁은 의료 진단 금지 원칙 하에 생활 습관형 건강 설계를 제시하세요.",
   "대한 배열을 근거로 10년 단위 상승/정체/조정 흐름을 분리해 제시하세요.",
   "2026 유년/유월 데이터를 근거로 분기/월별 행동 가이드와 Go/Hold/Retreat를 제시하세요.",
-  "전체 데이터를 통합해 3가지 핵심 비책, 3가지 주의 패턴, 통합 전략으로 마무리하세요.",
 ];
 
 const ZIWEI_CHAPTER_FOCUS_KEYWORDS = [
@@ -709,13 +705,12 @@ const ZIWEI_CHAPTER_FOCUS_KEYWORDS = [
   ["천이궁", "대외 이미지", "평판", "커뮤니케이션", "화기 리스크"],
   ["관록궁", "직업 DNA", "리더십", "조직 적응", "도약 타이밍"],
   ["재백궁", "수입 구조", "지출 누수", "자산 전략", "성향 기반 재정"],
-  ["부처궁", "파트너십", "기대-실망", "경계 설정", "관계 반복"],
+  ["부부궁", "파트너십", "기대-실망", "경계 설정", "관계 반복"],
   ["교우궁", "협업", "귀인", "경쟁자", "관계 손실 방지"],
   ["전택궁", "공간 심리", "주거", "집중 동선", "안정 환경"],
   ["질액궁", "체력 리듬", "수면", "과로", "회복 루틴"],
   ["대한", "10년 흐름", "상승장", "전환장", "전생애 파노라마"],
   ["2026", "유년", "유월", "Go/Hold/Retreat", "월별 전략"],
-  ["총결산", "강한 궁 3", "주의 궁 3", "Master Habit", "거장의 봉서"],
 ];
 
 const ZIWEI_REQUIRED_CHAPTER_STRUCTURE = {
@@ -739,7 +734,7 @@ const ZIWEI_REQUIRED_CHAPTER_STRUCTURE = {
   2: {
     exactHeading: "## Ch.2. 🌟 내면의 본체 — 신궁(身宮) 심층 분석과 잠재 무기",
     targetPalace: "신궁",
-    relatedPalaces: ["명궁", "관록궁", "재백궁", "부처궁", "천이궁", "복덕궁"],
+    relatedPalaces: ["명궁", "관록궁", "재백궁", "부부궁", "천이궁", "복덕궁"],
     includes: [
       "신궁이 들어간 궁", "명궁과 신궁의 관계", "잠재 무기", "성장 전략"
     ],
@@ -793,14 +788,14 @@ const ZIWEI_REQUIRED_CHAPTER_STRUCTURE = {
     caution: "투자 수익을 단정하지 말고 성향 기반의 관리 전략으로 작성",
   },
   7: {
-    exactHeading: "## Ch.7. 💑 파트너십과 로맨스 — 부처궁(夫妻宮)의 인연 구조",
-    targetPalace: "부처궁",
+    exactHeading: "## Ch.7. 💑 파트너십과 로맨스 — 부부궁(夫妻宮)의 인연 구조",
+    targetPalace: "부부궁",
     relatedPalaces: ["명궁", "복덕궁"],
     includes: [
       "이상형 성향", "반복 감정 패턴", "경계 설정", "인연 타이밍"
     ],
     mustCover: [
-      "부처궁 기본 의미", "부처궁 주성", "보조성/살성", "부처궁 사화", "명궁-부처궁", "부처궁-복덕궁", "인연 유지 전략",
+      "부부궁 기본 의미", "부부궁 주성", "보조성/살성", "부부궁 사화", "명궁-부부궁", "부부궁-복덕궁", "인연 유지 전략",
     ],
   },
   8: {
@@ -862,7 +857,7 @@ const ZIWEI_REQUIRED_CHAPTER_STRUCTURE = {
   13: {
     exactHeading: "## Ch.13. 🌅 인생 설계도 총결산 — 자미두수 거장의 마스터플랜 봉서",
     targetPalace: "통합 총결산",
-    relatedPalaces: ["명궁", "신궁", "관록궁", "재백궁", "부처궁", "대한", "유년"],
+    relatedPalaces: ["명궁", "신궁", "관록궁", "재백궁", "부부궁", "대한", "유년"],
     includes: [
       "13챕터 핵심 통합", "기억할 3가지 비책", "피해야 할 3가지 패턴", "통합 실천 전략"
     ],
@@ -1747,7 +1742,7 @@ const PREMIUM_REPORT_KIND_MAP = {
 };
 
 const PREMIUM_REPORT_REQUIRED_CHAPTERS = {
-  ziweiPremium: 13,
+  ziweiPremium: 12,
   sookyoPremium: 13,
   westernAstrologyPremium: 12,
   vedicPremium: 12,
@@ -3246,6 +3241,17 @@ function resolveChapterSpec(reportType, featureType, mode, chapterId) {
     ? Math.max(48000, Number(spec.minTotalChars || 0))
     : Math.max(PREMIUM_GLOBAL_MIN_TOTAL_CHARS, Number(spec.minTotalChars || 0));
   const targetTotalChars = Math.max(minTotalChars, Number(spec.targetTotalChars || 0));
+  if (reportType === "ziweiPremium") {
+    const ziweiMin = ZIWEI_PAGE_RANGE.minPages * ZIWEI_PAGE_RANGE.charsPerPage;
+    const ziweiTarget = Math.floor(((ZIWEI_PAGE_RANGE.minPages + ZIWEI_PAGE_RANGE.maxPages) / 2) * ZIWEI_PAGE_RANGE.charsPerPage);
+    return {
+      featureType: spec.featureType || featureType,
+      chapterCount: Number(spec.chapterCount || spec.chapters.length || 0),
+      minTotalChars: Math.max(minTotalChars, ziweiMin),
+      targetTotalChars: Math.max(targetTotalChars, ziweiTarget),
+      chapterSpec: spec.chapters[idx] || null,
+    };
+  }
   return {
     featureType: spec.featureType || featureType,
     chapterCount: Number(spec.chapterCount || spec.chapters.length || 0),
@@ -3301,6 +3307,58 @@ function validateFullReportLength({ reportType, featureType, mode, chapterTextLi
     targetTotalChars,
     chapterCount: resolved.chapterCount,
   };
+}
+
+const ZIWEI_PAGE_RANGE = Object.freeze({
+  minPages: 80,
+  maxPages: 100,
+  charsPerPage: 1700,
+});
+
+function estimatePagesByChars(totalLength, charsPerPage = ZIWEI_PAGE_RANGE.charsPerPage) {
+  const safeCharsPerPage = Math.max(1200, Number(charsPerPage || ZIWEI_PAGE_RANGE.charsPerPage));
+  const safeLength = Math.max(0, Number(totalLength || 0));
+  return Math.max(0, Math.ceil(safeLength / safeCharsPerPage));
+}
+
+function validateZiweiPageWindowFromLength(totalLength) {
+  const pages = estimatePagesByChars(totalLength, ZIWEI_PAGE_RANGE.charsPerPage);
+  return {
+    ok: pages >= ZIWEI_PAGE_RANGE.minPages && pages <= ZIWEI_PAGE_RANGE.maxPages,
+    pages,
+    minPages: ZIWEI_PAGE_RANGE.minPages,
+    maxPages: ZIWEI_PAGE_RANGE.maxPages,
+    charsPerPage: ZIWEI_PAGE_RANGE.charsPerPage,
+    minChars: ZIWEI_PAGE_RANGE.minPages * ZIWEI_PAGE_RANGE.charsPerPage,
+    maxChars: ZIWEI_PAGE_RANGE.maxPages * ZIWEI_PAGE_RANGE.charsPerPage,
+  };
+}
+
+function trimChapterTextToApproxChars(text, targetChars) {
+  const source = String(text || "").trim();
+  const safeTarget = Math.max(3200, Number(targetChars || 0));
+  if (!source || source.length <= safeTarget) return source;
+
+  const blocks = source
+    .split(/\n\s*\n+/)
+    .map((row) => row.trim())
+    .filter(Boolean);
+
+  if (!blocks.length) {
+    return source.slice(0, safeTarget).trim();
+  }
+
+  const kept = [];
+  let total = 0;
+  for (const block of blocks) {
+    const next = total + block.length + (kept.length ? 2 : 0);
+    if (next > safeTarget) break;
+    kept.push(block);
+    total = next;
+  }
+
+  if (!kept.length) return source.slice(0, safeTarget).trim();
+  return kept.join("\n\n").trim();
 }
 
 function getPremiumChapterMaxAttempts(env, fallback = 3) {
@@ -4645,18 +4703,18 @@ function normalizeAstroPlanetMap(planets) {
 
 function normalizeStrengthSymbol(symbol, brightness = "") {
   const raw = String(symbol || "").trim();
-  if (raw === "O" || raw === "○") return "○";
+  if (raw === "O" || raw === "○") return "O";
   if (raw === "X" || raw === "×" || raw === "함") return "×";
   if (raw === "△" || raw === "▲") return "△";
   if (["◎", "○", "△", "×"].includes(raw)) return raw;
   if (/(묘|廟)/.test(raw)) return "◎";
-  if (/(왕|旺)/.test(raw)) return "○";
+  if (/(왕|旺)/.test(raw)) return "O";
   if (/(리|利|이로|유리|득|평|平)/.test(raw)) return "△";
   if (/(평|平|보통)/.test(raw)) return "△";
   if (/(함|陷|약|쇠|실)/.test(raw)) return "×";
   const tone = String(brightness || "").trim();
   if (/(묘|廟)/.test(tone)) return "◎";
-  if (/(왕|旺|강)/.test(tone)) return "○";
+  if (/(왕|旺|강)/.test(tone)) return "O";
   if (/(리|利|이로|유리|득|평|平)/.test(tone)) return "△";
   if (/(평|平|보통)/.test(tone)) return "△";
   if (/(함|陷|약|쇠|실)/.test(tone)) return "×";
@@ -6268,7 +6326,7 @@ function buildChapterDataMap(reportType, calculatedData) {
       },
       ch3: { chapterTitle: "관록궁과 직업운", requiredPaths: ["calculatedData"] },
       ch4: { chapterTitle: "재백궁과 재물운", requiredPaths: ["calculatedData"] },
-      ch5: { chapterTitle: "부처궁과 연애결혼", requiredPaths: ["calculatedData"] },
+      ch5: { chapterTitle: "부부궁과 연애결혼", requiredPaths: ["calculatedData"] },
       ch6: { chapterTitle: "복덕궁과 내면 행복", requiredPaths: ["calculatedData"] },
       ch7: { chapterTitle: "천이궁과 대외운", requiredPaths: ["calculatedData"] },
       ch8: { chapterTitle: "질액궁과 건강운", requiredPaths: ["calculatedData"] },
@@ -7339,6 +7397,50 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
     title: chapter.title,
     subtitle: chapter.goal,
   };
+
+  const chapterJsonPacks = context?.derivedData?.chapterJsonById?.[String(chapterId)]
+    || buildChapterJsonPacks(reportType, chapterId, context?.coreData?.canonicalJson || {});
+  const forceGemini = String(env?.PREMIUM_SUKUYO_CHAPTER_ENGINE || "").trim().toLowerCase() === "gemini";
+  const preferLocal = asBool(context?.input?._premiumForceLocal) || !forceGemini;
+
+  if (preferLocal) {
+    const previousChapterTexts = Object.entries(context?.chapterTextById || {})
+      .filter(([key]) => Number(key) < Number(chapterId || 1))
+      .sort((a, b) => Number(a[0]) - Number(b[0]))
+      .map(([, value]) => String(value || "").trim())
+      .filter(Boolean);
+
+    const localGenerated = buildLocalFallbackChapterFromContext({
+      context,
+      chapterId,
+      chapterMeta,
+      chapterContract,
+      chapterJsonPacks,
+      minChars: Number(getPremiumPerChapterMinChars(
+        Number(context?.totalChapters || context?.requiredChapters || 13),
+        PREMIUM_GLOBAL_MIN_TOTAL_CHARS,
+      )),
+      previousChapterTexts,
+      fallbackReason: "SUKYO_LOCAL_ENGINE",
+    });
+
+    if (localGenerated?.ok) {
+      return {
+        ...localGenerated,
+        chapterMeta,
+        missingFields: sukyoContext?.missingSummary || [],
+      };
+    }
+
+    console.warn("[SukuyoPdfPipeline]", {
+      stage: "SukuyoLocalFallbackFailed",
+      requestId,
+      mode: sukyoMode,
+      chapterId: Number(chapterId || 0),
+      errorCode: "LOCAL_FALLBACK_GENERATION_FAILED",
+      validation: localGenerated?.validation || null,
+    });
+  }
 
   if (!inputValidation.canGenerate) {
     const status = hardMissing.some((field) => String(field || "").toLowerCase().includes("birthdate")) ? 400 : 422;
@@ -11936,16 +12038,16 @@ const ZIWEI_SYMBOL_TO_STRENGTH = {
 
 const ZIWEI_STRENGTH_TO_SYMBOL = {
   "묘": "◎",
-  "왕": "◎",
-  "리": "O",
+  "왕": "O",
+  "리": "△",
   "평": "△",
   "함": "X",
   "실": "X",
   "묘왕": "◎",
   "묘왕지": "◎",
-  "득": "O",
+  "득": "△",
   "득지": "△",
-  "리지": "O",
+  "리지": "△",
   "평지": "△",
   "함지": "X",
   "극함": "X",
@@ -11958,9 +12060,9 @@ const ZIWEI_STRENGTH_TO_SYMBOL = {
 function normalizeZiweiStrengthSymbol(raw) {
   const v = String(raw || "").trim();
   if (v === "◎") return "◎";
-  if (v === "◉" || v === "○") return "◎";
+  if (v === "◉" || v === "○") return "O";
   if (v === "O") return "O";
-  if (v === "▲") return "O";
+  if (v === "▲") return "△";
   if (v === "△") return "△";
   if (v === "×" || /^x$/i.test(v)) return "X";
   return "";
@@ -12260,7 +12362,7 @@ function parseZiweiDataTextFallback(rawZiweiData, dataQuality) {
 
   const normalizePalaceLabel = (label) => {
     const token = String(label || "").trim();
-    if (token === "부부궁") return "부처궁";
+    if (token === "부부궁") return "부부궁";
     if (token === "노복궁") return "교우궁";
     return token;
   };
@@ -12464,8 +12566,8 @@ const ZIWEI_CANONICAL_PALACE_ORDER = [
 const ZIWEI_CANONICAL_PALACE_LABEL_TO_KEY = {
   "명궁": "ming",
   "형제궁": "siblings",
-  "부처궁": "spouse",
   "부부궁": "spouse",
+  "부처궁": "spouse",
   "자녀궁": "children",
   "재백궁": "wealth",
   "질액궁": "health",
@@ -12481,7 +12583,7 @@ const ZIWEI_CANONICAL_PALACE_LABEL_TO_KEY = {
 const ZIWEI_CANONICAL_PALACE_KEY_TO_KO = {
   ming: "명궁",
   siblings: "형제궁",
-  spouse: "부처궁",
+  spouse: "부부궁",
   children: "자녀궁",
   wealth: "재백궁",
   health: "질액궁",
@@ -13844,7 +13946,7 @@ function buildZiweiPdfReportPayload({
   ];
 
   merged.ziweiSeed = ziweiSeed;
-  merged.chapterInputs = Array.from({ length: 13 }, (_, idx) => {
+  merged.chapterInputs = Array.from({ length: 12 }, (_, idx) => {
     const spec = Array.isArray(ZIWEI_PDF_CHAPTERS_V2) ? ZIWEI_PDF_CHAPTERS_V2[idx] : null;
     return {
       chapterNo: idx + 1,
@@ -14061,7 +14163,7 @@ function buildZiweiPremiumPayloadFromProfileAndBasicResult({
   profile = {},
   basicZiweiResult = null,
   reportPayload = null,
-  chapterCount = 13,
+  chapterCount = 12,
   totalCategoryCount = 0,
 } = {}) {
   const source = (reportPayload && typeof reportPayload === "object") ? reportPayload : {};
@@ -20665,7 +20767,7 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
       prepared: true,
       reportId,
       reportType,
-      totalChapters: 13,
+      totalChapters: chapterCount,
       chapterPlan: ZIWEI_CHAPTER_META,
       canonicalZiweiChart,
       reportPayload,
@@ -22907,7 +23009,98 @@ async function handlePremiumReportPdf(request, env, authInfo) {
     totalLengthValidation.ok = true;
   }
 
+  let ziweiPageValidation = null;
+  if (context.reportType === "ziweiPremium") {
+    ziweiPageValidation = validateZiweiPageWindowFromLength(totalLengthValidation.totalLength);
+    let pageLoop = 0;
+    while (ziweiPageValidation.pages < ziweiPageValidation.minPages && chapterTextList.length > 0 && pageLoop < 4) {
+      const deficit = Math.max(0, ziweiPageValidation.minChars - Number(totalLengthValidation.totalLength || 0));
+      if (deficit <= 0) break;
+      const lastIndex = chapterTextList.length - 1;
+      const lastChapterId = Number(validEntries[lastIndex]?.chapterId || chapterTextList.length);
+      const currentLength = countKoreanLikeChars(chapterTextList[lastIndex]);
+      const boosted = ensurePremiumChapterLength(chapterTextList[lastIndex], {
+        reportType: context.reportType,
+        chapter: lastChapterId,
+        totalChapters: Number(requiredChapters || context.totalChapters || 12),
+        chapterMeta: resolvePremiumChapterMeta(context, lastChapterId),
+        minTotalChars: ziweiPageValidation.minChars,
+        minCharsOverride: currentLength + deficit + 900,
+        engineData: context?.derivedData?.chapterJsonById?.[String(lastChapterId)] || {},
+      });
+      chapterTextList[lastIndex] = boosted;
+      context.chapterTextById = context.chapterTextById || {};
+      context.chapterTextById[String(lastChapterId)] = boosted;
+      totalLengthValidation = validateFullReportLength({
+        reportType: context.reportType,
+        featureType: context.featureType,
+        mode: context.modeKey,
+        chapterTextList,
+      });
+      ziweiPageValidation = validateZiweiPageWindowFromLength(totalLengthValidation.totalLength);
+      pageLoop += 1;
+    }
+
+    pageLoop = 0;
+    while (ziweiPageValidation.pages > ziweiPageValidation.maxPages && chapterTextList.length > 0 && pageLoop < 4) {
+      const overflow = Math.max(0, Number(totalLengthValidation.totalLength || 0) - ziweiPageValidation.maxChars);
+      if (overflow <= 0) break;
+      const lastIndex = chapterTextList.length - 1;
+      const current = String(chapterTextList[lastIndex] || "");
+      const targetChars = countKoreanLikeChars(current) - overflow - 600;
+      const trimmed = trimChapterTextToApproxChars(current, targetChars);
+      chapterTextList[lastIndex] = trimmed;
+      totalLengthValidation = validateFullReportLength({
+        reportType: context.reportType,
+        featureType: context.featureType,
+        mode: context.modeKey,
+        chapterTextList,
+      });
+      ziweiPageValidation = validateZiweiPageWindowFromLength(totalLengthValidation.totalLength);
+      pageLoop += 1;
+    }
+  }
+
   const composedText = chapterTextList.join("\n\n");
+  if (context.reportType === "ziweiPremium") {
+    const duplicateValidation = validateNoZiweiDuplicateText(composedText);
+    const fullReportValidation = validateZiweiFullReport(composedText);
+    const mappingChart = context?.coreData?.canonicalJson?.calculatedData || {};
+    const mappingPdf = context?.coreData?.canonicalJson?.reportPayload || context?.coreData?.canonicalJson?.calculatedData || {};
+    const mappingValidation = validateZiweiEngineToPdfMapping(mappingChart, mappingPdf);
+    const finalPageValidation = ziweiPageValidation || validateZiweiPageWindowFromLength(totalLengthValidation.totalLength);
+
+    if (!duplicateValidation.ok || !fullReportValidation.ok || !mappingValidation.ok || !finalPageValidation.ok) {
+      const details = [];
+      if (!duplicateValidation.ok) {
+        if (duplicateValidation.forbiddenMatches.length) details.push(`FORBIDDEN:${duplicateValidation.forbiddenMatches.join(",")}`);
+        if (duplicateValidation.duplicatedSentences.length) details.push(`DUP_SENT:${duplicateValidation.duplicatedSentences.length}`);
+        if (duplicateValidation.duplicatedParagraphs.length) details.push(`DUP_PARA:${duplicateValidation.duplicatedParagraphs.length}`);
+      }
+      if (!fullReportValidation.ok) details.push(`FULL_LENGTH:${fullReportValidation.length}`);
+      if (!mappingValidation.ok) details.push(...mappingValidation.failures.slice(0, 24));
+      if (!finalPageValidation.ok) {
+        details.push(`PAGE_WINDOW:${finalPageValidation.pages}p`);
+        details.push(`PAGE_WINDOW_REQUIRED:${finalPageValidation.minPages}-${finalPageValidation.maxPages}`);
+      }
+      return json({
+        ok: false,
+        code: "ZIWEI_REPORT_HARD_GATE_FAILED",
+        message: "자미두수 PDF 하드 게이트(중복/매핑/분량/페이지)를 통과하지 못했습니다.",
+        requestId,
+        reportSessionId,
+        details,
+        validations: {
+          duplicateValidation,
+          fullReportValidation,
+          mappingValidation,
+          pageValidation: finalPageValidation,
+        },
+      }, { status: 422 });
+    }
+    totalLengthValidation.warnings = Array.from(new Set([...(totalLengthValidation.warnings || []), `ZIWEI_PAGE_ESTIMATE_${finalPageValidation.pages}`]));
+  }
+
   const composedByteLength = (() => {
     try {
       return new TextEncoder().encode(composedText).length;
@@ -23056,7 +23249,7 @@ const LEGACY_PREMIUM_ALIAS_CONFIG = Object.freeze({
     statusPath: "/api/premium/ziwei/status",
     generatePath: "/api/premium/ziwei/generate",
     reportType: "ziweiPremium",
-    defaultTotalChapters: 13,
+    defaultTotalChapters: 12,
   },
 });
 
@@ -23245,7 +23438,7 @@ function buildLegacyDownloadHtml(config, reportId) {
     health: "질액궁(疾厄宮)",
     wealth: "재백궁(財帛宮)",
     children: "자녀궁(子女宮)",
-    spouse: "부처궁(夫妻宮)",
+    spouse: "부부궁(夫妻宮)",
     siblings: "형제궁(兄弟宮)",
     body: "신궁(身宮)",
   };
