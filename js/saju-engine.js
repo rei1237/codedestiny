@@ -17863,13 +17863,13 @@ function _buildMonthCommandFromEngine(p, natal, pw) {
   }
 
   var seasonalEnergy = '당신의 월령은 ' + base.monthName + '입니다. ' + base.startTerm + ' 이후 ' + base.endTerm + ' 전까지의 기운으로, ' + kb.summary;
-  var summary = base.monthName + ' · ' + base.season + ' · ' + base.dominantElement + ' 왕기';
-  var careerImpact = kb.career + ' 관계값(' + (dayStem ? relation : '미확인') + ')을 고려해 실행 강도와 속도를 조절하면 커리어 성과가 안정됩니다.';
+  var summary = base.monthName + ' 태생 · ' + base.season + ' 흐름 · ' + base.dominantElement + ' 중심 기운';
+  var careerImpact = kb.career + ' 현재 흐름(' + (dayStem ? relation : '미확인') + ')에 맞춰 속도를 조절하면 성과 편차를 줄일 수 있습니다.';
   var wealthImpact = (relation === '재성' || relation === '관성')
-    ? '재물·성과 압박이 구조적으로 커질 수 있으므로 자금 흐름과 고정비 통제가 핵심입니다. '
-    : '월령의 계절 지원을 활용해 수익 구조를 천천히 확장하는 방식이 유리합니다. ';
+    ? '재물·성과 압박이 커질 수 있으니 고정비와 현금흐름을 먼저 관리하는 편이 안전합니다. '
+    : '월령의 계절 지원을 활용해 수익 구조를 무리 없이 확장하는 방식이 유리합니다. ';
   wealthImpact += '특히 ' + base.dominantElement + ' 오행이 강해지는 시기에는 투자보다 회수 규칙을 먼저 세우세요.';
-  var loveImpact = kb.love + ' 관계에서는 계절 리듬을 맞춘 소통 주기와 감정 온도 조절이 핵심입니다.';
+  var loveImpact = kb.love + ' 관계에서는 대화 주기와 감정 속도를 맞추는 것이 핵심입니다.';
   var advice = kb.personality + ' 월령의 왕기(' + base.dominantElement + ')를 일상 루틴(수면·운동·업무 리듬)에 연결하면 체감 운이 안정됩니다.';
   var caution = kb.caution + (fallbackNotice ? (' ' + fallbackNotice) : '');
   var interpretation = seasonalEnergy + ' ' + kb.personality;
@@ -18086,27 +18086,25 @@ function renderSummary(p,johu,natal){
   ─────────────────────────────── */
   if(monthCommand&&monthReading){
     html+=box('🌙 월령 해석 — 태어난 계절이 내 사주에 주는 힘',
-      subHead('월령 요약 카드','#3f51b5')+
+      subHead('월령 한눈에 보기','#3f51b5')+
       kv('월령',monthCommand.monthName+' ('+monthCommand.branch+')')+
       kv('절기 구간',monthCommand.startTerm+' ~ '+monthCommand.endTerm)+
       kv('계절',monthCommand.season)+
       kv('왕한 오행',monthCommand.dominantElement+' · '+monthCommand.seasonPower)+
       (monthCommand.fallbackUsed?'<div style="margin-top:4px;font-size:.8rem;color:#6b7280">정확한 절기 시각 데이터가 확인되지 않아, 계산된 월주 지지를 기준으로 월령을 보완 해석합니다.</div>':'')+
-      '<br>'+subHead('계절의 기운','#5c6bc0')+
+      '<br>'+subHead('핵심 해석','#5c6bc0')+
       '<div style="font-size:.84rem;line-height:1.85">'+monthReading.seasonalEnergy+'</div>'+
-      '<br>'+subHead('일간과 월령의 관계','#3949ab')+
+      '<br>'+subHead('왜 이렇게 느껴지나','#3949ab')+
       '<div style="font-size:.84rem;line-height:1.85">'+monthReading.relationToDayMaster+'</div>'+
-      '<br>'+subHead('신강/신약 판단 보조','#3949ab')+
-      '<div style="font-size:.84rem;line-height:1.85">'+monthReading.strengthAnalysis+'</div>'+
-      '<br>'+subHead('오행 균형에 미치는 영향','#5c6bc0')+
-      '<div style="font-size:.84rem;line-height:1.85">'+monthReading.elementBalanceImpact+'</div>'+
-      '<br>'+subHead('직업·재물·연애에 미치는 영향','#3949ab')+
-      '<div style="font-size:.84rem;line-height:1.85">'+
-      '<b>직업:</b> '+monthReading.careerImpact+'<br><br>'+
-      '<b>재물:</b> '+monthReading.wealthImpact+'<br><br>'+
-      '<b>연애:</b> '+monthReading.loveImpact+
-      '</div>'+
-      '<br>'+subHead('생활 조언','#5c6bc0')+
+      '<br>'+subHead('실전 영향 요약','#3949ab')+
+      '<div style="font-size:.84rem;line-height:1.8"><ul style="margin:6px 0 0 18px;padding:0">'+
+      '<li><b>신강/신약 보조:</b> '+monthReading.strengthAnalysis+'</li>'+
+      '<li><b>오행 밸런스:</b> '+monthReading.elementBalanceImpact+'</li>'+
+      '<li><b>직업:</b> '+monthReading.careerImpact+'</li>'+
+      '<li><b>재물:</b> '+monthReading.wealthImpact+'</li>'+
+      '<li><b>연애/관계:</b> '+monthReading.loveImpact+'</li>'+
+      '</ul></div>'+
+      '<br>'+subHead('생활 적용 팁','#5c6bc0')+
       '<div style="font-size:.84rem;line-height:1.85">'+monthReading.advice+'</div>'+
       '<div style="margin-top:8px;padding:9px 10px;border-radius:8px;border-left:3px solid #8b5cf6;background:rgba(129,140,248,.12);font-size:.82rem;line-height:1.72;color:#4c1d95"><b>주의:</b> '+monthReading.caution+'</div>',
       '#5c6bc0','rgba(232,236,255,.78)');
@@ -18285,10 +18283,10 @@ function renderSummary(p,johu,natal){
   // 도화살: 子午卯酉
   var _ssTao = ['子','午','卯','酉'];
   var _ssTaoPos = _ssJArr.reduce(function(a,b,i){if(b&&_ssTao.indexOf(b)>=0)a.push(_ssJLbl[i]);return a;},[]);
-  if (_ssTaoPos.length > 0) _sinsalItems.push({ icon:'🌸', name:'도화살(桃花殺)', pos:_ssTaoPos.join(', '), desc:'이성을 끌어당기는 매력의 별. '+(_ssTaoPos.indexOf('일지')>=0?'<b>일지 도화</b>는 개인의 이성 매력이 가장 강하게 발현되어 연애 인연이 끊이지 않습니다. ':'')+(_ssTaoPos.indexOf('월지')>=0?'<b>월지 도화</b>는 직업·사회생활에서 이성 인기가 높습니다. ':'')+(_ssTaoPos.indexOf('년지')>=0?'<b>년지 도화</b>는 사회적 인기와 대중적 매력으로 발현됩니다. ':'')+'도화가 강할수록 인기 많고 이성 인연이 많지만, 감정 소모와 구설에 주의가 필요합니다.' });
+  if (_ssTaoPos.length > 0) _sinsalItems.push({ icon:'🌸', name:'도화살(桃花殺)', pos:_ssTaoPos.join(', '), desc:'대인 매력과 주목도를 높이는 별입니다. '+(_ssTaoPos.indexOf('일지')>=0?'<b>일지 도화</b>는 개인 표현력이 강하게 드러나고, ':'')+(_ssTaoPos.indexOf('월지')>=0?'<b>월지 도화</b>는 사회 활동에서 존재감이 커지며, ':'')+(_ssTaoPos.indexOf('년지')>=0?'<b>년지 도화</b>는 대외 인지도 확장으로 나타나기 쉽습니다. ':'')+'주목도가 높아질수록 관계·평판 관리 기준을 함께 세우는 것이 중요합니다.' });
   // 홍염살
   var _ssHong = ['甲午','丙寅','丁未','戊辰','庚戌','辛酉','壬子'];
-  if (_ssHong.indexOf(_ssDay) >= 0) _sinsalItems.push({ icon:'💋', name:'홍염살(紅艶殺)', pos:'일주 '+_ssDay, desc:'타고난 치명적 색기와 이성을 사로잡는 강렬한 매력의 별. <b>'+_ssDay+' 일주 홍염살</b>: 가만히 있어도 이성의 시선이 쏠리는 묘한 카리스마와 섹시함이 있습니다. 의도치 않게 이성 관계가 복잡해질 수 있으며, 이 에너지를 현명하게 관리하는 것이 중요합니다.' });
+  if (_ssHong.indexOf(_ssDay) >= 0) _sinsalItems.push({ icon:'💋', name:'홍염살(紅艶殺)', pos:'일주 '+_ssDay, desc:'감정 표현의 강도와 카리스마를 높이는 별입니다. <b>'+_ssDay+' 일주 홍염살</b>은 대인관계에서 집중도 높은 존재감으로 나타나며, 표현이 과열되면 오해가 커질 수 있으니 말의 강도와 타이밍 조절이 중요합니다.' });
   // 역마살
   var _ssYem = ['寅','申','巳','亥'];
   var _ssYemPos = _ssJArr.reduce(function(a,b,i){if(b&&_ssYem.indexOf(b)>=0)a.push(_ssJLbl[i]);return a;},[]);
