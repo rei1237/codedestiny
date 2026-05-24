@@ -633,7 +633,7 @@ const STYLE_GUIDE = `[작성 지침]
 // ─────────────────────────────────────────────────────────────────
 // 12챕터 프롬프트 빌더
 // ─────────────────────────────────────────────────────────────────
-function buildPrompt(ch: number, c: VedicChart, reportType: "personal" | "compatibility" = "personal", body?: Record<string, unknown>): string {
+function buildPrompt(ch: number, c: VedicChart, reportType: "personal" = "personal", body?: Record<string, unknown>): string {
   const bd = baseData(c);
   const p = c.planets;
   const lagna = c.lagna;
@@ -1248,7 +1248,7 @@ export async function POST(req: NextRequest) {
       year:number; month:number; day:number;
       hour?:number; minute?:number; timezone?:number;
       lat?:number; lon?:number; chapter:number;
-      reportType?: "personal" | "compatibility";
+      reportType?: "personal";
       name?: string;
       partnerName?: string;
       birthPlace?: string;

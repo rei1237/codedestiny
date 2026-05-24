@@ -2129,7 +2129,7 @@ function getPremiumCacheKey(reportType, userId, inputHash, calculationVersion, m
 function getPremiumCanonicalFromPrepare(reportType, prepareData) {
   if (!prepareData || typeof prepareData !== "object") return null;
   if (reportType === "ziweiPremium") return prepareData.canonicalZiweiChart || null;
-  if (reportType === "sookyoPremium") return prepareData.canonicalSukuyoCompatibility || prepareData.canonicalSukuyoNatal || null;
+  if (reportType === "sookyoPremium") return prepareData.canonicalSukuyoCompatibility || null;
   if (reportType === "westernAstrologyPremium") return prepareData.canonicalAstroChart || null;
   if (reportType === "vedicPremium") return prepareData.canonicalVedicChart || null;
   if (reportType === "lifeBook") return prepareData.canonicalSajuChart || null;
