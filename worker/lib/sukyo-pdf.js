@@ -97,14 +97,6 @@ const SUKYO_PDF_CHAPTERS = [
     minChars: 3910,
     sections: ["전체 숙요 구조 요약", "반드시 살려야 할 강점", "버려야 할 반복 패턴", "개인 맞춤 숙명 선언문"],
   },
-  {
-    key: "solo_ch_13",
-    title: "Chapter XIII. 영혼의 마스터플랜 — 달빛 전략가의 10년 로드맵",
-    goal: "숙요 에너지 전체를 통합해 향후 10년의 생애 로드맵과 연도별 실천 전략을 제시한다.",
-    targetChars: 4500,
-    minChars: 3825,
-    sections: ["10년 생애 로드맵 개요", "연도별 숙요 에너지 흐름", "단계별 실천 전략", "영혼의 최종 마스터플랜"],
-  },
 ];
 
 const SUKYO_PDF_COMPAT_CHAPTERS = [
@@ -272,6 +264,155 @@ function collectMissingFields(bookContext) {
     requireField("partner.sukuyo.mansion", Boolean(bookContext?.partner?.sukuyo?.mansion));
   }
   return missing;
+}
+
+function buildSukuyoPdfSeed(input = {}) {
+  const reportMode = normalizeSukyoReportMode(input?.reportMode || input?.mode || input?.reportType);
+  const selectedProfile = input?.selectedProfile && typeof input.selectedProfile === "object"
+    ? input.selectedProfile
+    : (input?.profile && typeof input.profile === "object" ? input.profile : (input?.userProfile && typeof input.userProfile === "object" ? input.userProfile : {}));
+  const partnerProfile = input?.partnerProfile && typeof input.partnerProfile === "object"
+    ? input.partnerProfile
+    : (input?.partner && typeof input.partner === "object" ? input.partner : {});
+  const birthInput = input?.birthInput && typeof input.birthInput === "object"
+    ? input.birthInput
+    : (input?.birth && typeof input.birth === "object" ? input.birth : {});
+  const partnerInput = input?.partnerInput && typeof input.partnerInput === "object"
+    ? input.partnerInput
+    : (input?.partnerBirth && typeof input.partnerBirth === "object" ? input.partnerBirth : {});
+  const calendarType = toCalendarType(pickFirst(
+    selectedProfile?.calendarType,
+    selectedProfile?.calType,
+    birthInput?.calendarType,
+    birthInput?.calType,
+    input?.calendarType,
+    input?.calType,
+    "solar",
+  ));
+  const partnerCalendarType = toCalendarType(pickFirst(
+    partnerProfile?.calendarType,
+    partnerProfile?.calType,
+    partnerInput?.calendarType,
+    partnerInput?.calType,
+    input?.partnerCalendarType,
+    input?.partnerCalType,
+    "solar",
+  ));
+  const selectedProfileId = toStringOrNull(pickFirst(
+    selectedProfile?.profileId,
+    selectedProfile?.id,
+    input?.selectedProfileId,
+    input?.profileId,
+  ));
+  const partnerProfileId = toStringOrNull(pickFirst(
+    partnerProfile?.profileId,
+    partnerProfile?.id,
+    input?.partnerProfileId,
+  ));
+  const reportPayload = {
+    reportMode,
+    mode: reportMode,
+    selectedProfileId,
+    selectedProfileName: toStringOrNull(pickFirst(selectedProfile?.name, input?.profileName, input?.name)),
+    selectedProfileGender: toStringOrNull(pickFirst(selectedProfile?.gender, input?.gender)),
+    birthInput: {
+      year: toNumberOrNull(pickFirst(birthInput?.year, input?.year)),
+      month: toNumberOrNull(pickFirst(birthInput?.month, input?.month)),
+      day: toNumberOrNull(pickFirst(birthInput?.day, input?.day)),
+      hour: toNumberOrNull(pickFirst(birthInput?.hour, input?.hour)),
+      minute: toNumberOrNull(pickFirst(birthInput?.minute, input?.minute)),
+      calendarType,
+      calType: calendarType,
+      isLunar: calendarType === "lunar",
+      isLeap: Boolean(pickFirst(birthInput?.isLeap, input?.isLeap)),
+      timeUnknown: Boolean(pickFirst(birthInput?.timeUnknown, input?.timeUnknown, input?.birthTimeUnknown)),
+      timezone: toStringOrNull(pickFirst(birthInput?.timezone, input?.timezone, input?.timezoneName)) || "Asia/Seoul",
+      lat: toNumberOrNull(pickFirst(birthInput?.lat, input?.lat)),
+      lon: toNumberOrNull(pickFirst(birthInput?.lon, input?.lon)),
+    },
+    partnerInput: reportMode === "compatibility" ? {
+      partnerProfileId,
+      partnerName: toStringOrNull(pickFirst(partnerProfile?.name, input?.partnerName)),
+      partnerGender: toStringOrNull(pickFirst(partnerProfile?.gender, input?.partnerGender)),
+      year: toNumberOrNull(pickFirst(partnerInput?.year, input?.partnerYear)),
+      month: toNumberOrNull(pickFirst(partnerInput?.month, input?.partnerMonth)),
+      day: toNumberOrNull(pickFirst(partnerInput?.day, input?.partnerDay)),
+      hour: toNumberOrNull(pickFirst(partnerInput?.hour, input?.partnerHour)),
+      minute: toNumberOrNull(pickFirst(partnerInput?.minute, input?.partnerMinute)),
+      calendarType: partnerCalendarType,
+      calType: partnerCalendarType,
+      isLunar: partnerCalendarType === "lunar",
+      isLeap: Boolean(pickFirst(partnerInput?.isLeap, input?.partnerIsLeap)),
+      timeUnknown: Boolean(pickFirst(partnerInput?.timeUnknown, input?.partnerTimeUnknown)),
+      timezone: toStringOrNull(pickFirst(partnerInput?.timezone, input?.partnerTimezone)) || "Asia/Seoul",
+    } : null,
+    selectedProfile: selectedProfile && typeof selectedProfile === "object" ? selectedProfile : {},
+    partnerProfile: reportMode === "compatibility" && partnerProfile && typeof partnerProfile === "object" ? partnerProfile : null,
+    chapterCount: getSukyoPdfChapters(reportMode).length,
+    chapterKeys: getSukyoPdfChapters(reportMode).map((chapter) => String(chapter?.key || "")).filter(Boolean),
+    generatedAt: new Date().toISOString(),
+  };
+
+  return {
+    reportMode,
+    selectedProfile,
+    partnerProfile,
+    birthInput: reportPayload.birthInput,
+    partnerInput: reportPayload.partnerInput,
+    chapterPlan: getSukyoPdfChapters(reportMode),
+    reportPayload,
+  };
+}
+
+function validateSukuyoPdfPayload(reportPayload = {}) {
+  const payload = reportPayload && typeof reportPayload === "object" ? reportPayload : {};
+  const reportMode = normalizeSukyoReportMode(payload.reportMode || payload.mode);
+  const birthInput = payload.birthInput && typeof payload.birthInput === "object" ? payload.birthInput : {};
+  const partnerInput = payload.partnerInput && typeof payload.partnerInput === "object" ? payload.partnerInput : {};
+  const missingFields = [];
+  const selectedProfileId = toStringOrNull(payload.selectedProfileId || payload.profileId || payload.selectedProfile?.profileId || payload.selectedProfile?.id);
+  const year = toNumberOrNull(birthInput.year ?? payload.year);
+  const month = toNumberOrNull(birthInput.month ?? payload.month);
+  const day = toNumberOrNull(birthInput.day ?? payload.day);
+  const hour = toNumberOrNull(birthInput.hour ?? payload.hour);
+  const minute = toNumberOrNull(birthInput.minute ?? payload.minute);
+  const calendarType = toCalendarType(pickFirst(birthInput.calendarType, birthInput.calType, payload.calendarType, payload.calType, "solar"));
+  const timezone = toStringOrNull(birthInput.timezone || payload.timezone) || "Asia/Seoul";
+
+  pushMissing(missingFields, "selectedProfileId", Boolean(selectedProfileId));
+  pushMissing(missingFields, "birthInput.year", Number.isFinite(year));
+  pushMissing(missingFields, "birthInput.month", Number.isFinite(month));
+  pushMissing(missingFields, "birthInput.day", Number.isFinite(day));
+  pushMissing(missingFields, "birthInput.calendarType", Boolean(calendarType));
+  pushMissing(missingFields, "birthInput.timezone", Boolean(timezone));
+
+  if (reportMode === "compatibility") {
+    const partnerYear = toNumberOrNull(partnerInput.year ?? payload.partnerYear);
+    const partnerMonth = toNumberOrNull(partnerInput.month ?? payload.partnerMonth);
+    const partnerDay = toNumberOrNull(partnerInput.day ?? payload.partnerDay);
+    const partnerCalendarType = toCalendarType(pickFirst(partnerInput.calendarType, partnerInput.calType, payload.partnerCalendarType, payload.partnerCalType, "solar"));
+    pushMissing(missingFields, "partnerInput.year", Number.isFinite(partnerYear));
+    pushMissing(missingFields, "partnerInput.month", Number.isFinite(partnerMonth));
+    pushMissing(missingFields, "partnerInput.day", Number.isFinite(partnerDay));
+    pushMissing(missingFields, "partnerInput.calendarType", Boolean(partnerCalendarType));
+  }
+
+  return {
+    ok: missingFields.length === 0,
+    reportMode,
+    chapterCount: getSukyoPdfChapters(reportMode).length,
+    selectedProfileId,
+    birthInput: {
+      year,
+      month,
+      day,
+      hour,
+      minute,
+      calendarType,
+      timezone,
+    },
+    missingFields,
+  };
 }
 
 function buildSukuyoBookContextFromNormalized(normalized, canonical = {}, requestBody = {}) {
@@ -719,6 +860,10 @@ function validateSukyoPdfInput(context = {}) {
   const mode = normalizeSukyoReportMode(context?.reportMode || context?.sukuyoBookContext?.mode);
   const book = context?.sukuyoBookContext || {};
   const chapterPlan = getSukyoPdfChapters(mode);
+  const seed = context?.sukuyoPdfSeed && typeof context.sukuyoPdfSeed === "object"
+    ? context.sukuyoPdfSeed
+    : buildSukuyoPdfSeed(context);
+  const payloadValidation = validateSukuyoPdfPayload(seed?.reportPayload || context?.reportPayload || context);
 
   const hasBirthInfo = Boolean(book?.user?.profile?.birthDate || context?.userProfile?.solarBirthDate);
   const hasMainMansion = Boolean(book?.user?.sukuyo?.mansion || context?.mainStar?.nameKo);
@@ -736,6 +881,7 @@ function validateSukyoPdfInput(context = {}) {
   if (!hasMansionNumber) hardMissingFields.push("user.sukuyo.mansionNumber");
   if (!hasChapterPlan) hardMissingFields.push("chapterPlan");
   if (!hasChapterSeed) hardMissingFields.push("chapterSeed");
+  if (!payloadValidation.ok) hardMissingFields.push(...payloadValidation.missingFields.filter((field) => !hardMissingFields.includes(field)));
 
   if (!book?.user?.profile?.birthTime && !context?.userProfile?.birthTime) {
     softMissingFields.push("user.profile.birthTime");
@@ -767,6 +913,7 @@ function validateSukyoPdfInput(context = {}) {
     hasCompatibilityCore,
     hasChapterPlan,
     chapterCount: Array.isArray(chapterPlan) ? chapterPlan.length : 0,
+    payloadValidation,
     hardMissingFields,
     softMissingFields,
     missingFields: hardMissingFields,
@@ -774,7 +921,20 @@ function validateSukyoPdfInput(context = {}) {
 }
 
 function buildSukyoPdfContext(input = {}) {
-  return normalizeSukyoResultForPdf(input);
+  const normalized = normalizeSukyoResultForPdf(input);
+  const seed = buildSukuyoPdfSeed({
+    ...input,
+    reportMode: normalized?.reportMode || input?.reportMode || input?.mode,
+    selectedProfile: input?.selectedProfile || input?.profile || normalized?.userProfile || {},
+    partnerProfile: input?.partnerProfile || input?.partner || normalized?.sukuyoBookContext?.partner?.profile || {},
+  });
+
+  return {
+    ...normalized,
+    sukuyoPdfSeed: seed,
+    reportPayload: seed.reportPayload,
+    reportPayloadValidation: validateSukuyoPdfPayload(seed.reportPayload),
+  };
 }
 
 function extractLongSentences(text, minLength = 30) {

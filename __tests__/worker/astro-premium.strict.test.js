@@ -9,7 +9,10 @@ let __astroTestUtils;
 
 let buildWesternChart;
 let buildWesternPremiumChart;
+let validateAstroProfileInputFields;
 let validateAstroChartSeed;
+let buildAstroPdfSeed;
+let validateAstroPdfPayload;
 let ensurePdfNo422;
 let buildBasicAstroSummaryFromChart;
 let buildCanonicalAstroChart;
@@ -75,7 +78,10 @@ beforeAll(async () => {
   ({
     buildWesternChart,
     buildWesternPremiumChart,
+    validateAstroProfileInputFields,
     validateAstroChartSeed,
+    buildAstroPdfSeed,
+    validateAstroPdfPayload,
     ensurePdfNo422,
     buildBasicAstroSummaryFromChart,
     buildCanonicalAstroChart,
@@ -279,5 +285,46 @@ describe("Astro Premium Strict Tests (A~J)", () => {
     );
     const normalizedNonAstro = await ensurePdfNo422(nonAstroResponse);
     expect(normalizedNonAstro.status).toBe(200);
+  });
+
+  test("O. 프로필 필수값 누락 시 missingFields가 정확히 반환되어야 한다", () => {
+    const result = validateAstroProfileInputFields({
+      name: "테스터",
+      year: 1990,
+      month: 1,
+      day: 1,
+      birthPlace: "",
+      timezone: "",
+      lat: null,
+      lon: null,
+      timeUnknown: true,
+    });
+    expect(result.ok).toBe(false);
+    expect(result.missingFields).toEqual(expect.arrayContaining([
+      "birthTime",
+      "birthPlace",
+      "timezone",
+      "latitude",
+      "longitude",
+    ]));
+  });
+
+  test("P. astro pdf payload 검증은 12챕터 입력과 핵심 천체를 요구해야 한다", () => {
+    const input = makeInput();
+    const body = makeBody({ timezone: "Asia/Seoul", birthTime: "12:30" });
+    const chart = makeChart(input);
+    const seed = buildAstroPdfSeed(body, input, chart, "personal", null, null, null, null);
+    const ok = validateAstroPdfPayload(seed.reportPayload);
+    expect(ok.ok).toBe(true);
+
+    const brokenPayload = clone(seed.reportPayload);
+    brokenPayload.chapterInputs = brokenPayload.chapterInputs.slice(0, 8);
+    brokenPayload.planets = brokenPayload.planets.filter((p) => p.nameEn !== "Sun");
+    const fail = validateAstroPdfPayload(brokenPayload);
+    expect(fail.ok).toBe(false);
+    expect(fail.missingFields).toEqual(expect.arrayContaining([
+      "planets.Sun",
+      "chapterInputs.length=12",
+    ]));
   });
 });

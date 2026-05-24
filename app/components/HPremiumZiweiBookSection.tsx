@@ -42,7 +42,7 @@ export default function HPremiumZiweiBookSection({
   useEffect(() => {
     if (typeof window !== "undefined" && !(window as any).generateZiweiBook) {
       const script = document.createElement("script");
-      script.src = "/js/ziwei-book.js?v=build-1779292364187";
+      script.src = "/js/ziwei-book.js?v=build-1779459999758";
       script.async = true;
       document.body.appendChild(script);
     }
@@ -108,7 +108,7 @@ export default function HPremiumZiweiBookSection({
               opacity: generationLoading ? 0.72 : 1,
             }}
           >
-            {generationLoading ? "코인 확인 중…" : "프리미엄 PDF 리포트 생성하기"}
+            {generationLoading ? "데이터 검증 중…" : "프리미엄 PDF 리포트 생성하기"}
           </button>
         </div>
       </section>

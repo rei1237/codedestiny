@@ -85,19 +85,35 @@ export async function POST(req: NextRequest) {
     if (auth.ok === false) return auth.response;
 
     const body = await req.json();
+    const missingFields: string[] = [];
     const year = Number(body.year);
     const month = Number(body.month);
     const day = Number(body.day);
-    if (!year || !month || !day) return NextResponse.json({ ok: false, error: "Missing birth date" }, { status: 400 });
+    const hour = Number(body.hour);
+    const minute = Number(body.minute);
+    const lat = Number(body.lat);
+    const lon = Number(body.lon);
+    if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) missingFields.push("birthDate");
+    if (!Number.isFinite(hour) || !Number.isFinite(minute)) missingFields.push("birthTime");
+    if (!Number.isFinite(lat)) missingFields.push("latitude");
+    if (!Number.isFinite(lon)) missingFields.push("longitude");
+    if (missingFields.length) {
+      return NextResponse.json({
+        ok: false,
+        code: "ASTRO_CHART_SEED_FAILED",
+        message: "점성술 차트 계산에 필요한 데이터 생성에 실패했습니다.",
+        missingFields,
+      }, { status: 422 });
+    }
     const payload = {
       year,
       month,
       day,
-      hour: Number(body.hour ?? 12),
-      minute: Number(body.minute ?? 0),
+      hour,
+      minute,
       timezone: Number(body.timezone ?? 9),
-      lat: Number(body.lat ?? 37.5665),
-      lon: Number(body.lon ?? 126.978),
+      lat,
+      lon,
     };
 
     const swiss = await fetchSwissWesternChart(req, payload);
@@ -114,6 +130,6 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("[api/premium/astro-western]", message);
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+    return NextResponse.json({ ok: false, code: "ASTRO_CHART_SEED_FAILED", message }, { status: 500 });
   }
 }

@@ -936,10 +936,18 @@
     var _preText=_qs('skProgressText');
     var _preChapter=_qs('skLoadingChapter');
     if(_preBar)_preBar.style.width='4%';
-    if(_preText)_preText.textContent='결제 확인 중...';
-    if(_preChapter)_preChapter.textContent='결제 확인 중...';
+    if(_preText)_preText.textContent='입력 검증 중...';
+    if(_preChapter)_preChapter.textContent='입력 검증 중...';
 
-    _ensureBaseSukuyoCoinGate(profile, partner).then(function (gateResult) {
+    _ensurePremiumReportValidation().then(function (validationResult) {
+      if (!validationResult || !validationResult.ok) {
+        _generating=false;
+        _showScreen('skStartScreen');
+        if (!validationResult || !validationResult.cancelled) alert((validationResult && validationResult.message) || '숙요점 차트 데이터 생성에 필요한 입력값이 부족합니다.');
+        return;
+      }
+
+      _ensureBaseSukuyoCoinGate(profile, partner).then(function (gateResult) {
       var _premiumAccessToken = '';
       if (!gateResult || !gateResult.ok) {
         _generating=false;
@@ -973,13 +981,14 @@
     var chapterMsg=_qs('skLoadingChapter'),chapterNumEl=_qs('skLoadingChapterNum');
     var mysticEl=_qs('skMysticQuote');
     var PDF_STAGE_LABELS = [
-      '로그인 확인 중',
-      '결제 정보 확인 중',
-      '숙요점 기본 데이터 계산 중',
+      '프로필 데이터 확인 중',
+      '음력/양력 정보 확인 중',
+      '숙요점 27수 계산 중',
       'PDF 데이터 정규화 중',
+      '결제 정보 확인 중',
       'Gemini 해석 생성 중',
       'PDF 렌더링 중',
-      '다운로드 준비 완료'
+      '다운로드 준비 중'
     ];
 
     function _setStage(step, detail) {
@@ -1014,7 +1023,7 @@
       var _subtitle = done < _totalChapters
         ? ((_chapterMeta && _chapterMeta.subtitle) || ('Chapter ' + (done + 1)))
         : '전체 챕터 정리를 완료했습니다.';
-      _setStage(done < _totalChapters ? 5 : 6, _subtitle);
+      _setStage(done < _totalChapters ? 6 : 7, _subtitle);
       if(chapterMsg&&done<_totalChapters)chapterMsg.textContent=activeLoading[done]||'분석 중...';
       if(chapterMsg&&done>=_totalChapters)chapterMsg.textContent=_getReportDisplayTitle()+'이 완성되었습니다 ✦';
       if(chapterNumEl)chapterNumEl.textContent=done<_totalChapters?'Chapter '+(done+1):'✦ 완성 ✦';
@@ -1137,6 +1146,19 @@
           timeUnknown: timeUnknown,
           timezone: String(location.tz || 'Asia/Seoul')
         },
+        selectedProfile: {
+          profileId: profileId || undefined,
+          name: profile.name || '사용자',
+          gender: profile.gender || undefined,
+          birthDate: birthDate,
+          birthTime: birthTime,
+          calendarType: calendarType,
+          isLunar: isLunar,
+          timeUnknown: timeUnknown,
+          timezone: String(location.tz || 'Asia/Seoul')
+        },
+        selectedProfileId: profileId || undefined,
+        selectedProfileName: profile.name || '사용자',
         _premiumStrictPayload: true,
         _premiumStrictValidation: true,
         _premiumFailOpen: false
@@ -1182,6 +1204,23 @@
           return prepared;
         }
         return prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' };
+      });
+    }
+
+    function _ensurePremiumReportValidation() {
+      return _premiumAuthJson('/api/premium-report/prepare', {
+        featureType: _premiumFeatureType,
+        reportType: _premiumReportType,
+        preflightOnly: true,
+        requestBody: _getSukuyoPreparePayload()
+      }).then(function(prepared) {
+        if (prepared && prepared.ok) {
+          _setStage(2, '입력 검증을 완료했습니다.');
+          _setStage(3, '숙요점 27수 계산이 가능한 상태입니다.');
+          _setStage(4, 'PDF 데이터 구조를 정규화했습니다.');
+          return prepared;
+        }
+        return prepared || { ok: false, message: '입력 검증에 실패했습니다.' };
       });
     }
 

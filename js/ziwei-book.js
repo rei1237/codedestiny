@@ -447,8 +447,8 @@
 
     var chapters = [];
 
-    for (var chapterId = 1; chapterId <= totalChapters; chapterId += 1) {
-      setLoadingProgress(Math.max(0, chapterId - 1), '챕터별 정밀 리포트를 생성하는 중...');
+      for (var chapterId = 1; chapterId <= totalChapters; chapterId += 1) {
+        setLoadingProgress(Math.max(0, chapterId - 1), '챕터 ' + chapterId + '/' + totalChapters + ' 생성 준비 중...');
 
       var chapterResult = null;
       for (var retry = 1; retry <= 4; retry += 1) {
@@ -503,7 +503,7 @@
       }
 
       chapters.push(normalizeZiweiPremiumChapter(chapterResult, chapterId, chapterPlan));
-      setLoadingProgress(chapterId, chapterId >= totalChapters ? '리포트를 정리하고 있습니다...' : '챕터 품질을 검증하는 중...');
+      setLoadingProgress(chapterId, chapterId >= totalChapters ? '리포트를 정리하고 있습니다...' : '챕터 ' + Math.min(chapterId + 1, totalChapters) + '/' + totalChapters + ' 생성 중...');
     }
 
     return {
@@ -1653,19 +1653,19 @@
         throw new Error(String(payloadInfo.error));
       }
 
-      setLoadingProgress(0, '결제 확인 중...');
-      var gateOk = await ensureZiweiCoinGate(payloadInfo.body);
-      if (!gateOk) {
-        showOnly('zbStartScreen');
-        return;
-      }
-
       setLoadingProgress(0, '생성 전 데이터 점검 중...');
       var preflight = await ensureZiweiPremiumPreflight(payloadInfo.body);
       if (!preflight.ok) {
         await attemptZiweiAutoRefund('자미두수 프리미엄 preflight 실패 자동 환불');
         state.paidGateKey = '';
         throw new Error(String(preflight.message || '생성 전 데이터 점검에 실패했습니다.'));
+      }
+
+      setLoadingProgress(0, '결제 확인 중...');
+      var gateOk = await ensureZiweiCoinGate(payloadInfo.body);
+      if (!gateOk) {
+        showOnly('zbStartScreen');
+        return;
       }
 
       setLoadingProgress(0, '리포트 생성을 시작합니다...');
