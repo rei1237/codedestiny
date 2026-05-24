@@ -23,19 +23,19 @@ function makeContext() {
 }
 
 describe("ziwei pdf chapter length guard", () => {
-  test("짧은 텍스트는 4000자 이상으로 보강된다", () => {
+  test("짧은 텍스트는 8500자 이상으로 보강된다", () => {
     const source = "## Ch.1\n\n짧은 본문";
-    const output = ensureZiweiChapterMarkdownLength(source, makeContext(), 4000, 5000);
-    expect(output.length).toBeGreaterThanOrEqual(4000);
-    expect(output.length).toBeLessThanOrEqual(5000);
+    const output = ensureZiweiChapterMarkdownLength(source, makeContext(), 8500, 12500);
+    expect(output.length).toBeGreaterThanOrEqual(8500);
+    expect(output.length).toBeLessThanOrEqual(12500);
   });
 
-  test("긴 텍스트는 5000자 이하로 잘린다", () => {
+  test("긴 텍스트는 12500자 이하로 잘린다", () => {
     const longBody = "긴문장 ".repeat(1200);
     const source = `## Ch.2\n\n${longBody}`;
-    const output = ensureZiweiChapterMarkdownLength(source, makeContext(), 4000, 5000);
-    expect(output.length).toBeGreaterThanOrEqual(4000);
-    expect(output.length).toBeLessThanOrEqual(5000);
+    const output = ensureZiweiChapterMarkdownLength(source, makeContext(), 8500, 12500);
+    expect(output.length).toBeGreaterThanOrEqual(8500);
+    expect(output.length).toBeLessThanOrEqual(12500);
   });
 
   test("기본/심화 통합 보조 데이터가 있으면 프롬프트에 포함된다", () => {

@@ -144,6 +144,21 @@ describe("Ziwei Premium Strict Tests (A~G)", () => {
     expect(q.supplementedFields.some((f) => f.includes("mainStars[0].symbol"))).toBe(true);
   });
 
+  test("B4. 왕 강약에서 기호가 비어 있으면 기본 엔진 규칙과 동일하게 O로 보강되어야 한다", () => {
+    const payload = makeStructuredPayload();
+    payload.palaceStarData[0].stars = [{ name: "자미", strength: "왕" }];
+
+    const q = makeQuality();
+    const chart = buildCanonicalZiweiChart(makeBody(), makeInput(), payload, "personal", "", q);
+    const result = validateCanonicalZiweiChartStrict(chart, q);
+    const star = chart.palaces[0].mainStars[0];
+    const strength = String(star?.brightnessKo || star?.brightness || star?.strength || "");
+
+    expect(result.isValid).toBe(true);
+    expect(strength).toBe("왕");
+    expect(star?.symbol).toBe("O");
+  });
+
   test("B2. basic 결과 기반 어댑터는 reportPayload 핵심 필드를 복구해야 한다", () => {
     const q = makeQuality();
     const chart = buildCanonicalZiweiChart(makeBody(), makeInput(), makeStructuredPayload(), "personal", "", q);
