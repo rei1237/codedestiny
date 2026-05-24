@@ -37,7 +37,7 @@ async function handleDailyFortunePost(request, env) {
       { $set: updateFields },
       {
         upsert: true,
-        new: true,
+        returnDocument: "after",
         setDefaultsOnInsert: true,
       }
     ).lean();

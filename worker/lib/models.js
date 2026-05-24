@@ -182,7 +182,7 @@ const refreshTokenSessionSchema = new mongoose.Schema({
   tokenHash: { type: String, required: true, unique: true, index: true },
   userAgent: { type: String, default: "", trim: true, maxlength: 300 },
   ip: { type: String, default: "", trim: true, maxlength: 120 },
-  expiresAt: { type: Date, required: true, index: true },
+  expiresAt: { type: Date, required: true },
   revokedAt: { type: Date, default: null, index: true },
   replacedByTokenHash: { type: String, default: "", trim: true },
 }, { timestamps: true, collection: "refresh_tokens" });
@@ -233,7 +233,6 @@ const dailyFortuneSubscriptionSchema = new mongoose.Schema({
   unsubscribedAt: { type: Date, default: null },
 }, { timestamps: true });
 
-dailyFortuneSubscriptionSchema.index({ email: 1 }, { unique: true });
 dailyFortuneSubscriptionSchema.index({ isActive: 1, subDaily: 1 });
 
 export const DailyFortuneSubscription = mongoose.models.DailyFortuneSubscription

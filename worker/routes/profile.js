@@ -260,7 +260,7 @@ async function handlePatchProfile(request, auth, profileIdRaw) {
         location: normalized.location,
       },
     },
-    { new: true },
+    { returnDocument: "after" },
   ).lean();
 
   if (!updated) return json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });

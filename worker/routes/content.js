@@ -202,7 +202,7 @@ async function handleContentDetail(path, request, env) {
   const item = await Insight.findOneAndUpdate(
     query,
     { $inc: { viewCount: 1 } },
-    { new: true },
+    { returnDocument: "after" },
   ).lean();
 
   if (!item) return notFound();

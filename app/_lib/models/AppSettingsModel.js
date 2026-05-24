@@ -97,7 +97,7 @@ export async function updateSettings(patch) {
   const doc = await model.findOneAndUpdate(
     { singletonKey: "global" },
     { $set: patch },
-    { upsert: true, new: true, setDefaultsOnInsert: true },
+    { upsert: true, returnDocument: "after", setDefaultsOnInsert: true },
   ).lean();
   return doc;
 }

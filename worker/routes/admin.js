@@ -1030,7 +1030,7 @@ async function handleInsightsUpdate(path, request, env) {
   const updated = await Insight.findByIdAndUpdate(
     id,
     { $set: payload },
-    { new: true },
+    { returnDocument: "after" },
   ).lean();
 
   return json({ ok: true, item: updated });
@@ -1051,7 +1051,7 @@ async function handleInsightsDelete(path, request, env) {
         isPublished: false,
       },
     },
-    { new: true },
+    { returnDocument: "after" },
   ).lean();
 
   if (!updated) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });

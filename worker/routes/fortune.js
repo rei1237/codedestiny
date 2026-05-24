@@ -691,7 +691,7 @@ async function ensureActiveSubscriptionByAutoRenew(userId, user, projection) {
         "profileSubscription.startedAt": now,
       },
     },
-    { new: true, projection: nextProjection },
+    { returnDocument: "after", projection: nextProjection },
   ).lean();
 
   if (!renewedUser) {
@@ -828,7 +828,7 @@ async function handleChargeSimulate(request, env, auth) {
   const updatedUser = await User.findByIdAndUpdate(
     auth.userId,
     { $inc: { points: delta } },
-    { new: true, projection: { points: 1 } },
+    { returnDocument: "after", projection: { points: 1 } },
   ).lean();
 
   if (!updatedUser) return json({ message: "User not found." }, { status: 404 });
@@ -1068,7 +1068,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     points: { $gte: cost },
     ...(requestId ? { recentConsumeRequestIds: { $ne: requestId } } : {}),
   };
-  const consumeOptions = { new: true, projection: { points: 1, unlockedFeatures: 1 } };
+  const consumeOptions = { returnDocument: "after", projection: { points: 1, unlockedFeatures: 1 } };
 
   let updatedUser = null;
   try {
@@ -1427,7 +1427,7 @@ async function handlePigCoinRefund(request, auth) {
   const updatedUser = await User.findByIdAndUpdate(
     auth.userId,
     { $inc: { points: cost } },
-    { new: true, projection: { points: 1 } },
+    { returnDocument: "after", projection: { points: 1 } },
   ).lean();
 
   if (!updatedUser) {
@@ -2271,7 +2271,7 @@ async function handleSubscriptionStatus(request, env, auth) {
             "profileSubscription.startedAt": now,
           },
         },
-        { new: true, projection: { points: 1 } },
+        { returnDocument: "after", projection: { points: 1 } },
       ).lean();
 
       if (updatedUser) {
@@ -2487,7 +2487,7 @@ async function handleStartService(request, auth) {
           first_service_access_date: now,
         },
       },
-      { new: true, projection: { points: 1, first_service_access_date: 1 } },
+      { returnDocument: "after", projection: { points: 1, first_service_access_date: 1 } },
     ).lean();
 
     if (updated?.first_service_access_date) {
@@ -2565,7 +2565,7 @@ async function handleShareReward(request, auth) {
   const updatedUser = await User.findByIdAndUpdate(
     auth.userId,
     { $inc: { points: SHARE_REWARD_AMOUNT } },
-    { new: true, projection: { points: 1 } },
+    { returnDocument: "after", projection: { points: 1 } },
   ).lean();
 
   if (!updatedUser) return json({ message: "User not found." }, { status: 404 });
@@ -2642,7 +2642,7 @@ async function handleSubscribe(request, auth) {
         ...(isFirstSub && { "profileSubscription.firstSubAt": now }),
       },
     },
-    { new: true, projection: { points: 1, profileSubscription: 1 } },
+    { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
   ).lean();
 
   if (!updatedUser) {

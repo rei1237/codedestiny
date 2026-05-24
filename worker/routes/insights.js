@@ -381,7 +381,7 @@ async function handleInsightDetail(path, request, env) {
       $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }],
     },
     { $inc: { viewCount: 1 } },
-    { new: true },
+    { returnDocument: "after" },
   ).lean();
 
   if (!item) return notFound();
