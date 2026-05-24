@@ -556,6 +556,8 @@ function buildVedicRequiredHeadings(chapterMeta, modeHint = "personal") {
   return safe.map((label, idx) => `### ${idx + 1}. ${label}`);
 }
 const VEDIC_MIN_CHARS = 3900;
+const VEDIC_SERVICE_KEY = "vedic-book";
+const VEDIC_PDF_FEATURE_KEY = "vedic-premium-pdf";
 const VEDIC_REPORT_TITLE_PERSONAL = "Professional Edition: 베다 점성술 프리미엄 리포트";
 const VEDIC_REPORT_SUBTITLE_PERSONAL = "라그나·나크샤트라·다샤로 읽는 삶의 카르믹 전략 지도";
 const VEDIC_REPORT_TITLE_COMPAT = "Professional Edition: 베다 점성술 궁합 리포트";
@@ -11551,6 +11553,14 @@ function hasForbiddenVedicPadding(text) {
   return VEDIC_FORBIDDEN_COMMON_SECTIONS.some((token) => source.includes(token));
 }
 
+function logVedicBookStage(stage, payload = {}) {
+  try {
+    console.info(`[VedicBook] ${String(stage || "UNKNOWN")}`, payload || {});
+  } catch {
+    // no-op
+  }
+}
+
 function countVedicStepSections(text) {
   const source = String(text || "");
   const matches = source.match(/^###\s*\d+\./gim);
@@ -11778,9 +11788,35 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
     maxAttemptsPerPair: Number(env.PREMIUM_VEDIC_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 3),
   };
 
-  let text = await callGemini(env, prompt, ["PREMIUM_VEDIC_GEMINI_MODEL"], options);
+  const safeCallGemini = async (nextPrompt) => {
+    try {
+      return await callGemini(env, nextPrompt, ["PREMIUM_VEDIC_GEMINI_MODEL"], options);
+    } catch (error) {
+      logVedicBookStage("GEMINI_ENHANCEMENT_FAILED_USE_LOCAL", {
+        chapter,
+        reportType,
+        code: String(error?.code || error?.name || "GEMINI_FAILED"),
+        message: String(error?.message || error || "GEMINI_FAILED"),
+      });
+      return "";
+    }
+  };
+
+  logVedicBookStage("GEMINI_ENHANCEMENT_START", {
+    chapter,
+    reportType,
+    featureKey: VEDIC_PDF_FEATURE_KEY,
+    serviceKey: VEDIC_SERVICE_KEY,
+  });
+  let text = await safeCallGemini(prompt);
   if (!text || text.trim().length < 1200) {
     const localText = buildVedicLocalFallbackChapter(chapter, meta, canonicalVedicChart, reportType);
+    logVedicBookStage("LOCAL_REPORT_GENERATION_SUCCESS", {
+      chapter,
+      reportType,
+      source: "local-engine",
+      reason: "EMPTY_OR_FAILED_GEMINI_RESPONSE",
+    });
     return {
       ok: true,
       text: localText,
@@ -11814,7 +11850,7 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
       text,
     ].join("\n");
 
-    const refined = await callGemini(env, refinePrompt, ["PREMIUM_VEDIC_GEMINI_MODEL"], options);
+    const refined = await safeCallGemini(refinePrompt);
     if (!refined || !refined.trim()) break;
     const candidate = refined.trim();
     if (candidate.length >= Math.floor(text.length * 0.8)) {
@@ -11839,6 +11875,12 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
 
   if (failedChecks.length > 0) {
     const localText = buildVedicLocalFallbackChapter(chapter, meta, canonicalVedicChart, reportType);
+    logVedicBookStage("LOCAL_REPORT_GENERATION_SUCCESS", {
+      chapter,
+      reportType,
+      source: "local-engine",
+      reason: "GEMINI_QUALITY_FAILED",
+    });
     return {
       ok: true,
       text: localText,
@@ -16203,6 +16245,11 @@ async function handleAstroLife(request, env, authInfo = null) {
 
 async function handleVedicLife(request, env, authInfo = null) {
   const body = await readJson(request);
+  logVedicBookStage("REQUEST_START", {
+    serviceKey: VEDIC_SERVICE_KEY,
+    featureKey: VEDIC_PDF_FEATURE_KEY,
+    hasAuth: Boolean(authInfo?.userId),
+  });
   Object.assign(body, normalizePremiumRequestBodyForPipeline("vedicPremium", body));
   const strictPayloadMode = true;
   const strictBody = {
@@ -16217,6 +16264,12 @@ async function handleVedicLife(request, env, authInfo = null) {
   const partnerIntent = strictBody.partnerName || strictBody.partnerYear || strictBody.partnerMonth || strictBody.partnerDay;
   const requestedReportType = normalizeVedicModeAlias(strictBody.mode || strictBody.reportType || (partnerIntent ? "compatibility" : "personal"));
   let reportType = requestedReportType;
+  logVedicBookStage("MODE_DETECTED", {
+    reportType,
+    mode: reportType,
+  });
+
+  logVedicBookStage("INPUT_NORMALIZE_START", { reportType });
 
   const userBirthPlaceRaw = String(strictBody.birthPlace || strictBody.place || strictBody.location || "").trim();
   const hasUserBirthPlace = hasMeaningfulValue(userBirthPlaceRaw);
@@ -16234,10 +16287,12 @@ async function handleVedicLife(request, env, authInfo = null) {
     hasStrictPayload: strictPayloadMode,
   });
 
-  if (!hasUserBirthTime || (!hasUserBirthPlace && !hasUserBirthGeo)) {
+  const hasUserBirthDate = Number.isFinite(Number(input?.year))
+    && Number.isFinite(Number(input?.month))
+    && Number.isFinite(Number(input?.day));
+  if (!hasUserBirthDate) {
     const requiredFields = [
-      ...(!hasUserBirthTime ? ["birthTime"] : []),
-      ...(!hasUserBirthPlace && !hasUserBirthGeo ? ["birthPlace|lat+lon"] : []),
+      "birthDate|year+month+day",
     ];
     logPremiumPipelineStage("VedicInputRejected", {
       reportType,
@@ -16250,10 +16305,17 @@ async function handleVedicLife(request, env, authInfo = null) {
       ok: false,
       code: "VEDIC_INPUT_REQUIRED",
       status: "input_required",
-      message: "라그나 계산을 위해 출생시간과 출생지 또는 좌표(lat/lon)가 필요합니다.",
+      message: "베다 리포트 생성에 필요한 기본 출생일 정보가 부족합니다.",
       requiredFields,
     });
   }
+
+  logVedicBookStage("INPUT_NORMALIZE_SUCCESS", {
+    reportType,
+    hasUserBirthTime,
+    hasUserBirthPlace,
+    hasUserBirthGeo,
+  });
 
   input.birthPlace = userBirthPlaceRaw
     || (hasUserBirthGeo
@@ -16265,7 +16327,17 @@ async function handleVedicLife(request, env, authInfo = null) {
 
   let chart;
   try {
+    logVedicBookStage("LOCAL_CALCULATION_START", {
+      reportType,
+      engine: "swiss-or-local",
+    });
     chart = await getSwissVedicChart(request, env, input);
+    logVedicBookStage("LOCAL_CALCULATION_SUCCESS", {
+      reportType,
+      source: String(chart?.source || "unknown"),
+      hasLagna: Boolean(chart?.lagna?.signName),
+      hasMoonNakshatra: Boolean(chart?.moonNakshatra?.name),
+    });
   } catch (chartError) {
     logPremiumPipelineStage("VedicChartEngineFailed", {
       reportType,
@@ -16277,7 +16349,7 @@ async function handleVedicLife(request, env, authInfo = null) {
       code: "VEDIC_CHART_ENGINE_FAILED",
       status: "chart_engine_error",
       recoverable: true,
-      message: "차트 계산 엔진에 일시적인 오류가 발생했습니다. 잠시 후 다시 시도하거나, 기본 데이터로 계속 진행됩니다.",
+      message: "차트 계산에 실패했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
       requiredFields: [],
     }, { status: 422 });
   }
@@ -16320,21 +16392,6 @@ async function handleVedicLife(request, env, authInfo = null) {
       partnerInput.isLeapMonth = strictBody.partnerIsLeapMonth ?? false;
       partnerInput.ayanamsa = String(strictBody.ayanamsa || "lahiri");
 
-      if (!hasPartnerBirthAnchor) {
-        logPremiumPipelineStage("VedicPartnerInputRejected", {
-          reportType,
-          hasPartnerBirthGeo,
-          hasPartnerBirthPlace: hasMeaningfulValue(partnerBirthPlaceRaw),
-        });
-        return json({
-          ok: false,
-          code: "VEDIC_PARTNER_INPUT_REQUIRED",
-          status: "partner_input_required",
-          message: "궁합 모드에는 상대방 출생지 또는 좌표(lat/lon)가 필요합니다.",
-          requiredFields: ["partnerBirthPlace|partnerLat+partnerLon"],
-        });
-      }
-
       partnerChart = await getSwissVedicChart(request, env, partnerInput).catch((partnerChartError) => {
         logPremiumPipelineStage("VedicPartnerChartEngineFailed", {
           reportType,
@@ -16343,6 +16400,13 @@ async function handleVedicLife(request, env, authInfo = null) {
         });
         return null;
       });
+      if (!partnerChart) {
+        try {
+          partnerChart = getLocalBasicVedicChart(partnerInput);
+        } catch {
+          partnerChart = null;
+        }
+      }
       if (partnerChart) {
         ashtaKoota = computeAshtaKoota(chart, partnerChart);
         if (ashtaKoota) {
@@ -16362,14 +16426,6 @@ async function handleVedicLife(request, env, authInfo = null) {
       hasPartnerChart: Boolean(partnerChart),
       hasAshtaKoota: Boolean(ashtaKoota),
     });
-    return json({
-      ok: false,
-      code: "VEDIC_PDF_SEED_MISSING",
-      status: "input_required",
-      stage: "PdfSeed",
-      message: "베다 PDF seed를 만들기에 필요한 입력이 부족합니다.",
-      missingFields: seedMissingFields,
-    }, { status: 422 });
   }
 
   const totalChapters = getVedicTotalChapters(reportType);
@@ -16482,11 +16538,23 @@ async function handleVedicLife(request, env, authInfo = null) {
       message: String(error?.message || error || "VEDIC_CHAPTER_GENERATE_THROWN"),
       stack: String(error?.stack || ""),
     });
-    return json({
-      ok: false,
-      code: "VEDIC_CHAPTER_GENERATION_THROWN",
+    const localText = buildVedicLocalFallbackChapter(chapter, meta, canonicalVedicChart, reportType);
+    generated = {
+      ok: true,
+      text: localText,
+      sections: parseSections(localText),
+      actualChars: localText.length,
+      usedFallback: true,
+      quality: { missingMarkers: [], repeatedSentenceCount: 0 },
+      warnings: ["VEDIC_CHAPTER_GENERATION_THROWN", "LOCAL_FALLBACK_USED"],
+      source: "local-engine",
+    };
+    logVedicBookStage("GEMINI_ENHANCEMENT_FAILED_USE_LOCAL", {
+      reportType,
+      chapter,
+      code: String(error?.code || error?.name || "VEDIC_CHAPTER_GENERATION_THROWN"),
       message: String(error?.message || "베다 챕터 생성 중 예외가 발생했습니다."),
-    }, { status: 422 });
+    });
   }
 
   if (!generated?.ok) {
