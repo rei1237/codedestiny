@@ -31,17 +31,17 @@ export default function FptiHero({ onStart }: Props) {
       >
         <div>
           <p className={`${styles.autoBadge} inline-flex rounded-full px-3 py-1 text-[11px] tracking-[0.22em] text-[#efe5ff]`}>
-            COSMIC SAJU MATRIX
+            COSMIC PERSONALITY OBSERVATORY
           </p>
           <h1
             className={`${styles.heroTitle} mt-4 text-4xl leading-[1.02] text-[#f8fbff] md:text-6xl`}
           >
-            사주로 보는 FPTI 테스트
+            별자리 성향 연구소 FPTI
           </h1>
-          <p className="mt-4 text-base text-[#d8d5ff] md:text-lg">생년월일시로 열어보는 당신의 별자리 성향 코드</p>
+          <p className="mt-4 text-base text-[#d8d5ff] md:text-lg">은하 관측소에서 해석하는 당신의 운명 성향 코드</p>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#CBD5E1] md:text-[15px]">
-            생년월일, 시간, 음양력 정보가 입력되면 사주 원국을 자동 계산하고 오행과 십성 데이터를 즉시 FPTI 알고리즘에 주입합니다.
-            계산이 끝나면 자동으로 다음 단계로 넘어가 결과를 확인할 수 있습니다.
+            입력된 출생 정보를 바탕으로 성향 코드의 흐름을 정교하게 읽어, 단순 성격 테스트가 아닌 프리미엄 운명 성향 리포트 톤으로 결과를 제공합니다.
+            분석이 완료되면 결과 화면에서 챕터별 해석과 실전 조언을 바로 확인할 수 있습니다.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <button
@@ -49,7 +49,7 @@ export default function FptiHero({ onStart }: Props) {
               onClick={onStart}
               className={`${styles.ctaButton} rounded-full px-5 py-3 text-sm font-semibold`}
             >
-              내 FPTI 확인하기
+              성향 코드 관측 시작
             </button>
           </div>
 
@@ -74,14 +74,14 @@ export default function FptiHero({ onStart }: Props) {
           className={`${styles.glassPanel} rounded-[28px] p-5`}
         >
           <p className="text-[11px] tracking-[0.2em] text-[#bfdbfe]">AUTO FLOW</p>
-          <p className="mt-2 text-2xl font-semibold text-[#f5ebff]">입력 즉시 사주 계산</p>
-          <p className="mt-1 text-sm text-[#d4dcff]">생년월일/시간/양음력 변경 시 원국 재계산 후 FPTI 결과 단계로 자동 전환</p>
+          <p className="mt-2 text-2xl font-semibold text-[#f5ebff]">별자리 성향 자동 관측</p>
+          <p className="mt-1 text-sm text-[#d4dcff]">입력값이 바뀌면 흐름을 다시 해석해 결과 단계까지 자동 연결됩니다.</p>
 
           <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-[#f8fafc]">
-            <div className="rounded-xl border border-white/15 bg-[#0B1026]/65 p-2">1. 입력 변경 감지</div>
-            <div className="rounded-xl border border-white/15 bg-[#0B1026]/65 p-2">2. 사주 데이터 계산</div>
-            <div className="rounded-xl border border-white/15 bg-[#0B1026]/65 p-2">3. 오행/십성 주입</div>
-            <div className="rounded-xl border border-white/15 bg-[#0B1026]/65 p-2">4. 결과 자동 표시</div>
+            <div className="rounded-xl border border-white/15 bg-[#0B1026]/65 p-2">1. 출생 정보 스캔</div>
+            <div className="rounded-xl border border-white/15 bg-[#0B1026]/65 p-2">2. 성향 코드 해석</div>
+            <div className="rounded-xl border border-white/15 bg-[#0B1026]/65 p-2">3. 챕터 리포트 구성</div>
+            <div className="rounded-xl border border-white/15 bg-[#0B1026]/65 p-2">4. 결과 화면 전환</div>
           </div>
 
           <div className="mt-4 grid grid-cols-4 gap-2 text-center text-[11px] text-[#CBD5E1]">

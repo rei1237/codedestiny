@@ -116,9 +116,9 @@ function dedupeParagraphs(paragraphs) {
 }
 
 function axisLine(label, score, high, mid, low) {
-  if (score >= 70) return `${label} ${score}점: ${high}`;
-  if (score >= 45) return `${label} ${score}점: ${mid}`;
-  return `${label} ${score}점: ${low}`;
+  if (score >= 70) return `${label}: ${high}`;
+  if (score >= 45) return `${label}: ${mid}`;
+  return `${label}: ${low}`;
 }
 
 function baseParagraphs(input) {
@@ -130,14 +130,14 @@ function baseParagraphs(input) {
   };
 
   return [
-    `${input.typeName}(${input.code}) 분석은 사주 기반 성향 축과 행동 패턴을 결합해 구성됩니다. ${axisLine("에너지", s.energy, "외부 상호작용에서 동력이 빠르게 올라갑니다.", "상황에 따라 외부 확장과 내부 정리를 균형 있게 운용합니다.", "내면 정리 시간에서 안정성과 집중력이 강화됩니다.")} ${axisLine("판단", s.judgment, "공감과 정서 맥락을 빠르게 읽어 관계 반응이 민감합니다.", "공감과 구조 판단을 함께 점검해 균형 결정을 선호합니다.", "원칙과 기준 중심의 판단으로 리스크를 줄입니다.")} ${axisLine("실행", s.execution, "초기 탐색과 빠른 시도가 강점입니다.", "탐색과 구조화를 혼합해 완성도를 관리합니다.", "절차 설계와 반복 최적화로 성과를 축적합니다.")} ${axisLine("전망", s.vision, "현실 지표와 일정 관리에서 안정성을 확보합니다.", "현실성과 의미를 동시에 고려합니다.", "장기 의미와 방향성을 먼저 확정하고 구체화합니다.")}`,
-    `이 보고서는 입력값의 수치와 규칙 템플릿만으로 생성됩니다. 강점은 성과 전환 전략으로, 약점은 위험 관리 전략으로 해석하며 모든 문단은 반복 가능한 행동 기준을 제공하도록 설계됩니다. 읽는 기준은 단순 성격 규정이 아니라 조건별 대응 프레임입니다. 즉 어떤 상황에서 속도를 높이고, 어떤 상황에서 점검을 늘려야 하는지를 명확히 파악하는 것이 핵심입니다.`,
-    `근거 데이터는 일간 ${input.evidence.dayMaster}, 월지 ${input.evidence.monthBranch}, 강한 오행 ${input.evidence.strongElements.join(", ") || "-"}, 약한 오행 ${input.evidence.weakElements.join(", ") || "-"}, 강한 십성 ${input.evidence.strongTenGods.join(", ") || "-"}를 포함합니다. 이 근거는 관계, 커리어, 재정, 스트레스 대응 문단 전반에 동일하게 반영됩니다.`,
+    `${input.typeName}(${input.code})은 삶의 여러 장면에서 같은 선택 리듬을 반복하는 성향입니다. ${axisLine("에너지 흐름", s.energy, "외부 상호작용에서 동력이 살아나는 편입니다.", "외부 확장과 내부 정리를 균형 있게 운용합니다.", "내면 정리 시간에서 안정성과 집중력이 강화됩니다.")} ${axisLine("판단 성향", s.judgment, "정서와 분위기를 빠르게 읽어 반응합니다.", "공감과 구조를 함께 점검해 결정을 정리합니다.", "원칙과 기준 중심으로 흔들림을 줄입니다.")} ${axisLine("실행 스타일", s.execution, "빠른 착수 후 정교화에 강점이 있습니다.", "탐색과 구조화를 번갈아 운영합니다.", "절차 설계와 반복 최적화로 완성도를 높입니다.")} ${axisLine("전망 방식", s.vision, "현실 지표와 생활 구조를 중시합니다.", "현실성과 의미를 동시에 고려합니다.", "장기 방향을 먼저 확정하고 구체화합니다.")}`,
+    `이 리포트는 성향을 설명하는 데서 멈추지 않고, 관계와 일상에서 바로 적용할 수 있는 실전 기준을 함께 제시합니다. 읽을 때는 자신을 평가하기보다 나에게 맞는 리듬을 찾는 관점으로 접근하는 것이 중요합니다.`,
+    `핵심은 더 강한 의지를 만드는 것이 아니라 흔들릴 때도 유지되는 작은 기준을 확보하는 일입니다. 같은 성향도 운영 방식에 따라 결과가 완전히 달라질 수 있으므로, 챕터별 실천 포인트를 생활에 맞게 선택해 적용하세요.`,
   ];
 }
 
 function chapterIntro(chapterId, input) {
-  if (chapterId === "overview") return `${input.summary} 총론에서는 타입 코드와 축 점수 흐름이 실제 선택 구조로 어떻게 연결되는지 상세하게 해석합니다.`;
+  if (chapterId === "overview") return `${input.summary} 총론에서는 당신이 반복해서 강해지는 조건과 흔들리는 조건을 함께 해석합니다.`;
   if (chapterId === "inner") return `${input.behaviorSummary} 내면 장면에서 감정 반응, 회복 방식, 안정 리듬의 차이를 단계적으로 설명합니다.`;
   if (chapterId === "relationship") return `${input.relationshipSummary} 관계와 연애에서 끌림 기준, 갈등 반복, 거리 조절 전략을 운영 관점으로 제시합니다.`;
   if (chapterId === "career") return `${input.careerMoneySummary} 일과 재능에서 성과가 나는 환경, 협업 방식, 실행 단위 설계를 다룹니다.`;
@@ -179,7 +179,7 @@ function expandChapter(chapter, input) {
 
 function buildLocalReport(input) {
   const title = `${input.typeName} 프리미엄 심층 리포트`;
-  const summary = `${input.code} 유형의 축 점수 구조를 기반으로 관계, 일, 돈, 스트레스, 성장 전략을 로컬 규칙으로 심층 분석했습니다.`;
+  const summary = `${input.code} 유형의 관계, 일, 돈, 스트레스, 성장 전략을 실전 중심의 심층 상담문으로 정리했습니다.`;
   const shared = baseParagraphs(input);
 
   const sections = CHAPTERS.map((chapter) => {

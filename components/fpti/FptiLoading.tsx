@@ -34,7 +34,7 @@ export default function FptiLoading({ step, stepIndex = 0 }: Props) {
         />
       </div>
 
-      <h3 className="relative mt-5 text-xl font-semibold text-slate-100">사주 원국 분석 중</h3>
+      <h3 className="relative mt-5 text-xl font-semibold text-slate-100">별자리 성향을 해석 중입니다</h3>
       <p className="relative mt-2 text-sm text-slate-300">{step}</p>
 
       <div className="relative mx-auto mt-4 flex max-w-sm items-center justify-center gap-2 text-sm text-[#E9C46A]">

@@ -53,6 +53,31 @@ function AxisChip({ label, value }: { label: string; value: string }) {
   );
 }
 
+function CosmicRadar() {
+  return (
+    <svg viewBox="0 0 280 160" className="h-auto w-full" role="img" aria-label="cosmic radar">
+      <defs>
+        <linearGradient id="cosmicLine" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#7dd3fc" />
+          <stop offset="55%" stopColor="#c084fc" />
+          <stop offset="100%" stopColor="#f6d365" />
+        </linearGradient>
+        <radialGradient id="cosmicGlow" cx="50%" cy="50%" r="60%">
+          <stop offset="0%" stopColor="rgba(125,211,252,0.25)" />
+          <stop offset="100%" stopColor="rgba(8,16,40,0)" />
+        </radialGradient>
+      </defs>
+      <rect x="0" y="0" width="280" height="160" fill="url(#cosmicGlow)" />
+      <circle cx="140" cy="80" r="52" fill="none" stroke="url(#cosmicLine)" strokeWidth="2.4" opacity="0.95" />
+      <circle cx="140" cy="80" r="34" fill="none" stroke="url(#cosmicLine)" strokeWidth="1.8" opacity="0.72" />
+      <circle cx="140" cy="80" r="16" fill="none" stroke="url(#cosmicLine)" strokeWidth="1.2" opacity="0.62" />
+      <path d="M40 110 C95 40, 185 40, 240 110" fill="none" stroke="url(#cosmicLine)" strokeWidth="2" opacity="0.88" />
+      <path d="M68 54 L140 30 L212 54 L140 74 Z" fill="none" stroke="url(#cosmicLine)" strokeWidth="1.6" opacity="0.8" />
+      <circle cx="140" cy="80" r="5" fill="#fef3c7" />
+    </svg>
+  );
+}
+
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -155,7 +180,7 @@ export default function FptiResultCard({ result }: Props) {
   const handleDownloadPdf = () => {
     if (!deepReport) return;
     const text = buildFptiPremiumPdfText(deepReport);
-    const html = `<!doctype html><html><head><meta charset=\"utf-8\"><title>${deepReport.typeName}</title><style>body{font-family: 'Noto Serif KR', Georgia, serif; padding:24px; line-height:1.7; color:#0b172a;}h1{font-size:24px;margin:0 0 8px;}h2{font-size:18px;margin:28px 0 10px;}pre{white-space:pre-wrap;word-break:break-word;font-family:'Noto Serif KR', Georgia, serif;}</style></head><body><h1>${deepReport.typeName} (${deepReport.typeCode})</h1><p>${deepReport.subtitle}</p><p>${deepReport.summary}</p><pre>${text.replace(/</g, "&lt;")}</pre><script>window.onload=()=>window.print();</script></body></html>`;
+    const html = `<!doctype html><html><head><meta charset=\"utf-8\"><title>${deepReport.typeName}</title><style>body{font-family:'Noto Serif KR',serif;padding:28px;line-height:1.84;color:#0b172a;}h1{font-size:24px;margin:0 0 8px;}p{margin:0 0 12px;}pre{white-space:pre-wrap;word-break:break-word;font-family:'Noto Serif KR',serif;line-height:1.88;}@media print{@page{size:A4;margin:18mm;}pre{page-break-inside:avoid;}}</style></head><body><h1>${deepReport.typeName} (${deepReport.typeCode})</h1><p>${deepReport.subtitle}</p><pre>${text.replace(/</g, "&lt;")}</pre><script>window.onload=()=>window.print();</script></body></html>`;
     const blob = new Blob([html], { type: "text/html;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const popup = window.open(url, "_blank", "noopener,noreferrer");
@@ -229,23 +254,17 @@ export default function FptiResultCard({ result }: Props) {
           cautionMatch={result.cautionMatch}
         />
         <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
-          <h4 className="text-sm font-semibold text-slate-100">이 결과는 이렇게 계산되었어요</h4>
-          <ul className="mt-2 space-y-1 text-sm text-slate-200">
-            <li>일간: {result.evidence.dayMaster}</li>
-            <li>월지: {result.evidence.monthBranch}</li>
-            <li>강한 오행: {result.evidence.strongElements.join(", ")}</li>
-            <li>약한 오행: {result.evidence.weakElements.join(", ")}</li>
-            <li>강한 십성: {result.evidence.strongTenGods.join(", ")}</li>
-            <li>성격 축: {result.axisMeanings.energy} / {result.axisMeanings.judgment} / {result.axisMeanings.execution} / {result.axisMeanings.vision}</li>
-          </ul>
-          <div className="mt-3 rounded-2xl border border-white/10 bg-black/20 p-3">
-            <p className="text-xs font-semibold tracking-[0.14em] text-slate-300">계산 노트</p>
-            <ul className="mt-2 space-y-1 text-sm text-slate-200">
-              {result.evidence.calculationNotes.map((note) => (
-                <li key={note}>- {note}</li>
-              ))}
-            </ul>
+          <h4 className="text-sm font-semibold text-slate-100">운명 성향 핵심 해석</h4>
+          <div className="mt-3 rounded-2xl border border-cyan-200/20 bg-[#07142c]/70 p-3">
+            <p className="text-xs tracking-[0.16em] text-cyan-200">COSMIC RADAR</p>
+            <div className="mt-2"><CosmicRadar /></div>
           </div>
+          <ul className="mt-3 space-y-2 text-sm text-slate-200">
+            <li>- {result.oneLiner}</li>
+            <li>- {result.relationshipSummary}</li>
+            <li>- {result.careerMoneySummary}</li>
+            <li>- {result.strategySummary}</li>
+          </ul>
         </section>
       </div>
 
@@ -353,15 +372,21 @@ export default function FptiResultCard({ result }: Props) {
 
       {deepReport && (
         <section className="rounded-3xl border border-cyan-300/30 bg-[linear-gradient(140deg,rgba(8,47,73,0.7),rgba(30,41,59,0.8))] p-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] backdrop-blur-xl">
-          <p className="text-xs tracking-[0.16em] text-cyan-200">FPTI DEEP REPORT</p>
+          <p className="text-xs tracking-[0.16em] text-cyan-200">COSMIC DESTINY REPORT</p>
           <h4 className="mt-1 text-lg font-semibold text-sky-100">{deepReport.typeName} ({deepReport.typeCode})</h4>
-          <p className="mt-2 text-sm text-slate-200">{deepReport.summary}</p>
+          <p className="mt-2 text-sm text-slate-200">{deepReport.summary.split("\n").slice(-1)[0]}</p>
 
-          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-xl border border-white/15 bg-black/20 p-3 text-sm text-slate-100">에너지 {deepReport.dimensionScores.energy}</div>
-            <div className="rounded-xl border border-white/15 bg-black/20 p-3 text-sm text-slate-100">판단 {deepReport.dimensionScores.judgment}</div>
-            <div className="rounded-xl border border-white/15 bg-black/20 p-3 text-sm text-slate-100">실행 {deepReport.dimensionScores.execution}</div>
-            <div className="rounded-xl border border-white/15 bg-black/20 p-3 text-sm text-slate-100">전망 {deepReport.dimensionScores.vision}</div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {result.keywords.slice(0, 5).map((keyword) => (
+              <span key={`deep-${keyword}`} className="rounded-full border border-cyan-200/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-100">
+                #{keyword}
+              </span>
+            ))}
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-cyan-200/20 bg-[#07142c]/70 p-3">
+            <p className="text-xs tracking-[0.14em] text-cyan-200">TYPE CARD</p>
+            <div className="mt-2"><CosmicRadar /></div>
           </div>
 
           <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
@@ -392,7 +417,27 @@ export default function FptiResultCard({ result }: Props) {
                   </button>
                   {open && (
                     <div className="border-t border-white/10 px-4 pb-4 pt-3">
-                      <p className="whitespace-pre-wrap text-sm leading-8 text-slate-100">{chapter.content}</p>
+                      <p className="text-sm leading-8 text-slate-100">{chapter.intro}</p>
+                      <p className="mt-3 text-sm leading-8 text-slate-200">{chapter.analysis}</p>
+                      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                        {chapter.categories.map((category) => (
+                          <article key={`${chapter.id}-${category.id}`} className="rounded-2xl border border-cyan-300/20 bg-cyan-500/5 p-3 transition hover:shadow-[0_0_20px_rgba(56,189,248,0.22)]">
+                            <h6 className="text-sm font-semibold text-cyan-100">{category.title}</h6>
+                            <p className="mt-2 whitespace-pre-wrap text-sm leading-8 text-slate-100">{category.body}</p>
+                            {Array.isArray(category.actionTips) && category.actionTips.length > 0 && (
+                              <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-2">
+                                <p className="text-xs font-semibold tracking-[0.14em] text-slate-300">실천 포인트</p>
+                                <ul className="mt-2 space-y-1 text-xs text-slate-200">
+                                  {category.actionTips.map((tip) => (
+                                    <li key={`${category.id}-${tip}`}>- {tip}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </article>
+                        ))}
+                      </div>
+                      <p className="mt-4 rounded-xl border border-amber-200/30 bg-amber-300/10 p-3 text-sm leading-7 text-amber-100">{chapter.actionGuide}</p>
                     </div>
                   )}
                 </article>

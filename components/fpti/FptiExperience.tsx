@@ -15,11 +15,11 @@ import { FPTI_CURATED_TYPES } from "@/lib/fpti/fpti-copy";
 import type { FptiAnalysisResult, FptiFormInput, FptiSourceData } from "@/lib/fpti/fpti-types";
 
 const LOADING_STEPS = [
-  "사주 원국을 계산하는 중...",
-  "일간의 본질을 읽는 중...",
-  "오행의 균형을 분석하는 중...",
-  "십성의 성격 패턴을 해석하는 중...",
-  "당신만의 FPTI 코드를 생성하는 중...",
+  "별자리 성향 좌표를 정렬하는 중...",
+  "당신의 기질 리듬을 읽는 중...",
+  "관계와 선택 패턴을 해석하는 중...",
+  "운명 성향 리포트를 구성하는 중...",
+  "당신만의 성향 코드를 완성하는 중...",
 ];
 
 const PREVIEW_TYPES = FPTI_CURATED_TYPES.slice(0, 6);
@@ -479,10 +479,10 @@ export default function FptiExperience() {
         <section id="fpti-intro" className={`${styles.glassPanel} rounded-3xl p-5 text-sm text-slate-200`}>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h2 className="text-base font-semibold text-slate-50">분석 기준</h2>
+              <h2 className="text-base font-semibold text-slate-50">성향 리포트 안내</h2>
               <p className="mt-1 max-w-3xl">
-                4축(기질/행동/관계/전략)은 사주 오행, 십성 분포, 월지 계절, 용신/희신 정보를 기반으로 계산됩니다.
-                입력값 변경은 자동 감지되며, 계산된 만세력 데이터는 FPTI 상태에 즉시 주입됩니다.
+                결과는 당신의 선택 리듬, 감정 흐름, 관계 운영 방식, 성장 전략을 중심으로 구성되며,
+                심층 리포트에서는 챕터별로 독립된 해석과 실전 조언을 제공합니다.
               </p>
             </div>
             {linkedProfileName && (
