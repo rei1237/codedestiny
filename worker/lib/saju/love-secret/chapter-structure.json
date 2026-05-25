@@ -1,0 +1,189 @@
+{
+  "schemaVersion": "2026-05-25",
+  "reportKey": "loveSecret",
+  "sourceOfTruth": {
+    "chapters": "worker/lib/saju-premium-chapters.js",
+    "subCategories": "worker/routes/premium.js"
+  },
+  "modes": {
+    "solo": {
+      "mode": "solo",
+      "reportType": "saju_love_solo",
+      "totalChapters": 7,
+      "chapters": [
+        {
+          "chapterNumber": 1,
+          "chapterId": "love_solo_ch_1",
+          "chapterTitle": "Chapter I. 본연의 연애 자아 — 나는 어떤 사랑을 하는 사람인가",
+          "chapterSubtitle": "일간·월지·오행·십성으로 보는 사랑의 기본 구조",
+          "subCategories": [
+            { "subId": "love_solo_ch_1_sub_1", "subTitle": "1. 사랑 앞에서 드러나는 기본 성향" },
+            { "subId": "love_solo_ch_1_sub_2", "subTitle": "2. 감정이 움직이는 방식" },
+            { "subId": "love_solo_ch_1_sub_3", "subTitle": "3. 사랑에서 가장 중요하게 여기는 것" }
+          ]
+        },
+        {
+          "chapterNumber": 2,
+          "chapterId": "love_solo_ch_2",
+          "chapterTitle": "Chapter II. 치명적 매력과 페로몬 — 나의 연애 매력 코드",
+          "chapterSubtitle": "첫인상, 도화·홍염·화개, 표현 매력의 실제 힘",
+          "subCategories": [
+            { "subId": "love_solo_ch_2_sub_1", "subTitle": "1. 사주가 보여주는 매력의 결" },
+            { "subId": "love_solo_ch_2_sub_2", "subTitle": "2. 3대 매력 신살 스탯(도화·홍염·화개)" },
+            { "subId": "love_solo_ch_2_sub_3", "subTitle": "3. 사람들이 나에게 끌리는 이유" }
+          ]
+        },
+        {
+          "chapterNumber": 3,
+          "chapterId": "love_solo_ch_3",
+          "chapterTitle": "Chapter III. 운명의 상대방 리포트 — 나에게 맞는 사람과 피해야 할 사람",
+          "chapterSubtitle": "배우자궁·이성운·인연 유형·회피 기준",
+          "subCategories": [
+            { "subId": "love_solo_ch_3_sub_1", "subTitle": "1. 배우자성으로 보는 이상형" },
+            { "subId": "love_solo_ch_3_sub_2", "subTitle": "2. 끌리지만 위험한 상대" },
+            { "subId": "love_solo_ch_3_sub_3", "subTitle": "3. 오래 갈 수 있는 상대" }
+          ]
+        },
+        {
+          "chapterNumber": 4,
+          "chapterId": "love_solo_ch_4",
+          "chapterTitle": "Chapter IV. 연애 패턴 분석 — 왜 비슷한 사랑을 반복하는가",
+          "chapterSubtitle": "썸·집착·회피·질투·이별 패턴의 반복 구조",
+          "subCategories": [
+            { "subId": "love_solo_ch_4_sub_1", "subTitle": "1. 좋아하는 순간의 패턴" },
+            { "subId": "love_solo_ch_4_sub_2", "subTitle": "2. 불안해지는 순간의 패턴" },
+            { "subId": "love_solo_ch_4_sub_3", "subTitle": "3. 반복되는 실수" }
+          ]
+        },
+        {
+          "chapterNumber": 5,
+          "chapterId": "love_solo_ch_5",
+          "chapterTitle": "Chapter V. 결혼운과 장기 인연 — 사랑이 현실이 되는 조건",
+          "chapterSubtitle": "결혼운, 배우자궁 안정성, 장기 관계의 지속력",
+          "subCategories": [
+            { "subId": "love_solo_ch_5_sub_1", "subTitle": "1. 결혼에 대한 기본 태도" },
+            { "subId": "love_solo_ch_5_sub_2", "subTitle": "2. 장기 관계에서 강해지는 부분" },
+            { "subId": "love_solo_ch_5_sub_3", "subTitle": "3. 장기 관계에서 약해지는 부분" }
+          ]
+        },
+        {
+          "chapterNumber": 6,
+          "chapterId": "love_solo_ch_6",
+          "chapterTitle": "Chapter VI. 사랑의 운 흐름 — 대운·세운으로 보는 연애 타이밍",
+          "chapterSubtitle": "연애·재회·결혼·정비 시기의 흐름과 전략",
+          "subCategories": [
+            { "subId": "love_solo_ch_6_sub_1", "subTitle": "1. 대운·세운으로 보는 연애 흐름" },
+            { "subId": "love_solo_ch_6_sub_2", "subTitle": "2. 인연이 들어오기 쉬운 시기" },
+            { "subId": "love_solo_ch_6_sub_3", "subTitle": "3. 조심해야 할 시기" }
+          ]
+        },
+        {
+          "chapterNumber": 7,
+          "chapterId": "love_solo_ch_7",
+          "chapterTitle": "Chapter VII. 실전 연애 전략 — 사랑을 얻고 지키는 비책",
+          "chapterSubtitle": "고백, 대화, 거리감, 연애운 활용의 실행 매뉴얼",
+          "subCategories": [
+            { "subId": "love_solo_ch_7_sub_1", "subTitle": "1. 고백/대화/거리감 실전 전략" },
+            { "subId": "love_solo_ch_7_sub_2", "subTitle": "2. 관계 초기 운영 체크리스트" },
+            { "subId": "love_solo_ch_7_sub_3", "subTitle": "3. 갈등 시 복구 루틴" }
+          ]
+        }
+      ]
+    },
+    "couple": {
+      "mode": "couple",
+      "reportType": "saju_love_couple",
+      "totalChapters": 8,
+      "chapters": [
+        {
+          "chapterNumber": 1,
+          "chapterId": "love_couple_ch_1",
+          "chapterTitle": "Chapter I. 두 사람의 궁합 총론 — 이 관계의 기본 구조",
+          "chapterSubtitle": "A/B 기본 정보, 일간 관계, 오행 균형, 총체적 안정성",
+          "subCategories": [
+            { "subId": "love_couple_ch_1_sub_1", "subTitle": "1. 두 사람의 기본 연애 자아" },
+            { "subId": "love_couple_ch_1_sub_2", "subTitle": "2. 감정이 움직이는 방식의 차이" },
+            { "subId": "love_couple_ch_1_sub_3", "subTitle": "3. 관계에서 각자가 중요하게 여기는 것" }
+          ]
+        },
+        {
+          "chapterNumber": 2,
+          "chapterId": "love_couple_ch_2",
+          "chapterTitle": "Chapter II. 서로의 연애 자아 — 사랑 방식의 차이와 공통점",
+          "chapterSubtitle": "애정 표현, 상처 지점, 속도 차이, 사랑의 언어",
+          "subCategories": [
+            { "subId": "love_couple_ch_2_sub_1", "subTitle": "1. 서로의 애정 표현 방식" },
+            { "subId": "love_couple_ch_2_sub_2", "subTitle": "2. 상처 지점과 방어 반응" },
+            { "subId": "love_couple_ch_2_sub_3", "subTitle": "3. 관계 속도 차이" }
+          ]
+        },
+        {
+          "chapterNumber": 3,
+          "chapterId": "love_couple_ch_3",
+          "chapterTitle": "Chapter III. 끌림과 매력 궁합 — 왜 서로에게 끌리는가",
+          "chapterSubtitle": "첫인상, 도화·홍염·화개, 합·충·친밀감의 구조",
+          "subCategories": [
+            { "subId": "love_couple_ch_3_sub_1", "subTitle": "1. 두 사람의 상호 매력 구조" },
+            { "subId": "love_couple_ch_3_sub_2", "subTitle": "2. 3대 매력 신살 스탯(도화·홍염·화개)" },
+            { "subId": "love_couple_ch_3_sub_3", "subTitle": "3. 서로가 끌리는 이유" }
+          ]
+        },
+        {
+          "chapterNumber": 4,
+          "chapterId": "love_couple_ch_4",
+          "chapterTitle": "Chapter IV. 관계 패턴 분석 — 두 사람은 왜 싸우고 왜 다시 끌리는가",
+          "chapterSubtitle": "오해, 자존심, 질투, 회복, 반복 갈등의 원인",
+          "subCategories": [
+            { "subId": "love_couple_ch_4_sub_1", "subTitle": "1. 반복되는 갈등 트리거" },
+            { "subId": "love_couple_ch_4_sub_2", "subTitle": "2. 자존심/질투/회피 패턴" },
+            { "subId": "love_couple_ch_4_sub_3", "subTitle": "3. 왜 다시 끌리는가" }
+          ]
+        },
+        {
+          "chapterNumber": 5,
+          "chapterId": "love_couple_ch_5",
+          "chapterTitle": "Chapter V. 결혼 궁합과 장기 인연 — 함께 살아갈 수 있는 관계인가",
+          "chapterSubtitle": "결혼운, 배우자상, 생활/가족/책임의 적합도",
+          "subCategories": [
+            { "subId": "love_couple_ch_5_sub_1", "subTitle": "1. 결혼/동거에 대한 각자의 태도" },
+            { "subId": "love_couple_ch_5_sub_2", "subTitle": "2. 장기 관계 강점" },
+            { "subId": "love_couple_ch_5_sub_3", "subTitle": "3. 장기 관계 약점" }
+          ]
+        },
+        {
+          "chapterNumber": 6,
+          "chapterId": "love_couple_ch_6",
+          "chapterTitle": "Chapter VI. 속궁합과 친밀감 — 몸과 마음의 밀착도",
+          "chapterSubtitle": "스킨십, 애정 온도, 친밀감 속도와 주의점",
+          "subCategories": [
+            { "subId": "love_couple_ch_6_sub_1", "subTitle": "1. 두 사람의 친밀감 형성 과정" },
+            { "subId": "love_couple_ch_6_sub_2", "subTitle": "2. 정서적 거리 조절 방식" },
+            { "subId": "love_couple_ch_6_sub_3", "subTitle": "3. 애정 확인 욕구의 차이" }
+          ]
+        },
+        {
+          "chapterNumber": 7,
+          "chapterId": "love_couple_ch_7",
+          "chapterTitle": "Chapter VII. 두 사람의 운 흐름 — 연애·결혼·이별·재회 타이밍",
+          "chapterSubtitle": "대운·세운·월별 흐름과 관계 운영 시기",
+          "subCategories": [
+            { "subId": "love_couple_ch_7_sub_1", "subTitle": "1. 관계 타이밍 흐름" },
+            { "subId": "love_couple_ch_7_sub_2", "subTitle": "2. 인연이 열리는 시기" },
+            { "subId": "love_couple_ch_7_sub_3", "subTitle": "3. 조심해야 할 시기" }
+          ]
+        },
+        {
+          "chapterNumber": 8,
+          "chapterId": "love_couple_ch_8",
+          "chapterTitle": "Chapter VIII. 최종 궁합 비책 — 이 관계를 어떻게 다뤄야 하는가",
+          "chapterSubtitle": "장점·약점·운영 전략·관계 지속 여부의 최종 판단",
+          "subCategories": [
+            { "subId": "love_couple_ch_8_sub_1", "subTitle": "1. 관계 운영의 핵심 원칙" },
+            { "subId": "love_couple_ch_8_sub_2", "subTitle": "2. 장점 극대화/약점 보완 전략" },
+            { "subId": "love_couple_ch_8_sub_3", "subTitle": "3. 지속/정리 판단 기준" }
+          ]
+        }
+      ]
+    }
+  }
+}
