@@ -11114,6 +11114,300 @@ function escapeLifebookHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
+function resolvePremiumPrintTheme(kind = "default") {
+  const normalized = String(kind || "").trim().toLowerCase();
+  const themes = {
+    lifebook: {
+      ink: "#1f172a",
+      muted: "#52463b",
+      paper: "#fffaf2",
+      line: "#d8c6a9",
+      accent: "#9f6940",
+      accentSoft: "#efe3d2",
+      coverStart: "#2d1f17",
+      coverEnd: "#5a3c28",
+      calloutBg: "#f7efe4",
+    },
+    "love-secret": {
+      ink: "#2f1130",
+      muted: "#5f3b5c",
+      paper: "#fff8fc",
+      line: "#efc9dc",
+      accent: "#b83280",
+      accentSoft: "#fde8f4",
+      coverStart: "#471536",
+      coverEnd: "#8f2c63",
+      calloutBg: "#fdeef7",
+    },
+    ziwei: {
+      ink: "#0f172a",
+      muted: "#334155",
+      paper: "#f8fbff",
+      line: "#c9dbf4",
+      accent: "#2563eb",
+      accentSoft: "#e8f0ff",
+      coverStart: "#10213e",
+      coverEnd: "#1f5ebb",
+      calloutBg: "#ecf3ff",
+    },
+    astrology: {
+      ink: "#f8fbff",
+      muted: "#d6e4ff",
+      paper: "#0f1b33",
+      line: "#2f477a",
+      accent: "#5eead4",
+      accentSoft: "#12324d",
+      coverStart: "#111b38",
+      coverEnd: "#1d305e",
+      calloutBg: "#17314d",
+    },
+    vedic: {
+      ink: "#2b1c10",
+      muted: "#5e4a3a",
+      paper: "#fffaf3",
+      line: "#e3d4be",
+      accent: "#b7791f",
+      accentSoft: "#f8edd9",
+      coverStart: "#4a2f14",
+      coverEnd: "#9f6c22",
+      calloutBg: "#f8ecd6",
+    },
+    default: {
+      ink: "#111827",
+      muted: "#475569",
+      paper: "#ffffff",
+      line: "#dbe3f0",
+      accent: "#1d4ed8",
+      accentSoft: "#e9f0ff",
+      coverStart: "#111827",
+      coverEnd: "#27437a",
+      calloutBg: "#eef4ff",
+    },
+  };
+  return themes[normalized] || themes.default;
+}
+
+function formatInlinePrintMarkdown(text = "") {
+  const escaped = escapeLifebookHtml(String(text || ""));
+  return escaped
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/`([^`]+)`/g, '<span class="report-inline-code">$1</span>');
+}
+
+function renderPremiumPrintMarkdown(markdown = "") {
+  const lines = String(markdown || "").replace(/\r/g, "").split("\n");
+  const out = [];
+  let listMode = "";
+  let listItems = [];
+  let tableRows = [];
+
+  const flushList = () => {
+    if (!listItems.length) return;
+    const tag = listMode === "ol" ? "ol" : "ul";
+    out.push(`<${tag} class="report-list">${listItems.map((item) => `<li>${item}</li>`).join("")}</${tag}>`);
+    listMode = "";
+    listItems = [];
+  };
+
+  const flushTable = () => {
+    if (!tableRows.length) return;
+    const normalizedRows = tableRows
+      .map((row) => row.trim().replace(/^\|/, "").replace(/\|$/, ""))
+      .map((row) => row.split("|").map((cell) => formatInlinePrintMarkdown(cell.trim())));
+    tableRows = [];
+    if (!normalizedRows.length) return;
+
+    const isSeparatorRow = (cells = []) => cells.every((cell) => /^:?-{3,}:?$/.test(String(cell || "").replace(/<[^>]+>/g, "").trim()));
+    const head = normalizedRows[0] || [];
+    const body = normalizedRows.slice(1).filter((cells) => !isSeparatorRow(cells));
+    if (!head.length) return;
+
+    out.push([
+      '<div class="report-table-wrap">',
+      '<table class="report-table">',
+      `<thead><tr>${head.map((cell) => `<th>${cell}</th>`).join("")}</tr></thead>`,
+      `<tbody>${(body.length ? body : [head]).map((cells) => `<tr>${cells.map((cell) => `<td>${cell}</td>`).join("")}</tr>`).join("")}</tbody>`,
+      "</table>",
+      "</div>",
+    ].join("\n"));
+  };
+
+  for (const rawLine of lines) {
+    const line = String(rawLine || "").trim();
+    if (!line) {
+      flushList();
+      flushTable();
+      continue;
+    }
+
+    if (/^\|.*\|$/.test(line)) {
+      flushList();
+      tableRows.push(line);
+      continue;
+    }
+
+    flushTable();
+
+    if (/^[-*]\s+/.test(line) || /^\d+\.\s+/.test(line)) {
+      const nextMode = /^\d+\.\s+/.test(line) ? "ol" : "ul";
+      if (listMode && listMode !== nextMode) flushList();
+      listMode = nextMode;
+      listItems.push(formatInlinePrintMarkdown(line.replace(/^([-*]|\d+\.)\s+/, "")));
+      continue;
+    }
+
+    flushList();
+
+    if (/^---+$/.test(line)) {
+      out.push('<div class="report-divider" aria-hidden="true"></div>');
+      continue;
+    }
+
+    if (/^###\s+/.test(line)) {
+      out.push(`<h3 class="report-h3">${formatInlinePrintMarkdown(line.replace(/^###\s+/, ""))}</h3>`);
+      continue;
+    }
+
+    if (/^##\s+/.test(line)) {
+      out.push(`<h2 class="report-h2">${formatInlinePrintMarkdown(line.replace(/^##\s+/, ""))}</h2>`);
+      continue;
+    }
+
+    if (/^실행\s*가이드\s*:/.test(line)) {
+      out.push(`<p class="report-callout"><strong>실행 가이드</strong> ${formatInlinePrintMarkdown(line.replace(/^실행\s*가이드\s*:/, "").trim())}</p>`);
+      continue;
+    }
+
+    out.push(`<p class="report-p">${formatInlinePrintMarkdown(line)}</p>`);
+  }
+
+  flushList();
+  flushTable();
+  return out.join("\n");
+}
+
+function renderPremiumCoverGlyph(kind = "default") {
+  const token = String(kind || "").trim().toLowerCase();
+  if (token === "lifebook") {
+    return [
+      '<svg viewBox="0 0 220 90" role="img" aria-label="saju cover icon">',
+      '<path d="M16 70h188" stroke="rgba(255,244,226,0.55)" stroke-width="1.6"/>',
+      '<path d="M40 70V22h42v48" fill="none" stroke="rgba(255,244,226,0.82)" stroke-width="2.6"/>',
+      '<path d="M86 70V22h42v48" fill="none" stroke="rgba(255,244,226,0.82)" stroke-width="2.6"/>',
+      '<circle cx="61" cy="43" r="8" fill="rgba(255,244,226,0.82)"/>',
+      '<circle cx="107" cy="43" r="8" fill="rgba(255,244,226,0.82)"/>',
+      '<path d="M148 24h38M148 36h38M148 48h38M148 60h30" stroke="rgba(255,244,226,0.76)" stroke-width="2.2" stroke-linecap="round"/>',
+      '</svg>',
+    ].join("");
+  }
+  if (token === "love-secret") {
+    return [
+      '<svg viewBox="0 0 220 90" role="img" aria-label="love cover icon">',
+      '<path d="M20 70h180" stroke="rgba(255,234,247,0.5)" stroke-width="1.6"/>',
+      '<path d="M66 40c0-11 8-19 19-19 9 0 14 5 18 11 4-6 9-11 18-11 11 0 19 8 19 19 0 18-18 31-37 44C84 71 66 58 66 40z" fill="rgba(255,234,247,0.88)"/>',
+      '<circle cx="42" cy="30" r="3" fill="rgba(255,234,247,0.72)"/>',
+      '<circle cx="174" cy="24" r="2.6" fill="rgba(255,234,247,0.72)"/>',
+      '<circle cx="188" cy="44" r="2.2" fill="rgba(255,234,247,0.62)"/>',
+      '<path d="M31 52c10-8 22-8 32 0" stroke="rgba(255,234,247,0.62)" stroke-width="1.8" fill="none"/>',
+      '<path d="M157 58c9-6 18-6 27 0" stroke="rgba(255,234,247,0.62)" stroke-width="1.8" fill="none"/>',
+      '</svg>',
+    ].join("");
+  }
+  if (token === "astrology") {
+    return [
+      '<svg viewBox="0 0 220 90" role="img" aria-label="astrology cover icon">',
+      '<path d="M20 70h180" stroke="rgba(214,228,255,0.45)" stroke-width="1.6"/>',
+      '<circle cx="96" cy="45" r="22" fill="none" stroke="rgba(214,228,255,0.8)" stroke-width="2.6"/>',
+      '<circle cx="96" cy="45" r="8" fill="rgba(94,234,212,0.9)"/>',
+      '<path d="M96 19V71M70 45h52M77 26l38 38M115 26 77 64" stroke="rgba(214,228,255,0.72)" stroke-width="1.3"/>',
+      '<circle cx="154" cy="27" r="3.1" fill="rgba(94,234,212,0.85)"/>',
+      '<circle cx="166" cy="44" r="2.4" fill="rgba(214,228,255,0.78)"/>',
+      '<circle cx="178" cy="35" r="2.1" fill="rgba(214,228,255,0.62)"/>',
+      '<path d="M154 27 166 44 178 35" stroke="rgba(214,228,255,0.6)" stroke-width="1.4" fill="none"/>',
+      '</svg>',
+    ].join("");
+  }
+  if (token === "vedic") {
+    return [
+      '<svg viewBox="0 0 220 90" role="img" aria-label="vedic cover icon">',
+      '<path d="M20 70h180" stroke="rgba(255,240,212,0.45)" stroke-width="1.6"/>',
+      '<circle cx="92" cy="44" r="26" fill="none" stroke="rgba(255,240,212,0.78)" stroke-width="2.2"/>',
+      '<path d="M92 20 112 58 72 58Z" fill="none" stroke="rgba(255,240,212,0.8)" stroke-width="2.1"/>',
+      '<circle cx="92" cy="44" r="5" fill="rgba(255,240,212,0.86)"/>',
+      '<path d="M146 28h34M146 42h40M146 56h28" stroke="rgba(255,240,212,0.72)" stroke-width="2" stroke-linecap="round"/>',
+      '</svg>',
+    ].join("");
+  }
+  if (token === "ziwei") {
+    return [
+      '<svg viewBox="0 0 220 90" role="img" aria-label="ziwei cover icon">',
+      '<path d="M20 70h180" stroke="rgba(217,230,255,0.46)" stroke-width="1.6"/>',
+      '<path d="M96 18 103 37 124 37 107 49 114 68 96 56 78 68 85 49 68 37 89 37Z" fill="rgba(217,230,255,0.86)"/>',
+      '<circle cx="154" cy="30" r="3" fill="rgba(94,234,212,0.86)"/>',
+      '<circle cx="166" cy="45" r="2.3" fill="rgba(217,230,255,0.74)"/>',
+      '<circle cx="180" cy="38" r="2" fill="rgba(217,230,255,0.62)"/>',
+      '<path d="M154 30 166 45 180 38" stroke="rgba(217,230,255,0.58)" stroke-width="1.5" fill="none"/>',
+      '</svg>',
+    ].join("");
+  }
+  return [
+    '<svg viewBox="0 0 220 90" role="img" aria-label="premium cover icon">',
+    '<path d="M20 70h180" stroke="rgba(219,227,240,0.45)" stroke-width="1.6"/>',
+    '<circle cx="96" cy="45" r="24" fill="none" stroke="rgba(219,227,240,0.82)" stroke-width="2.4"/>',
+    '<circle cx="96" cy="45" r="8" fill="rgba(219,227,240,0.9)"/>',
+    '<path d="M146 28h34M146 42h40M146 56h28" stroke="rgba(219,227,240,0.72)" stroke-width="2" stroke-linecap="round"/>',
+    '</svg>',
+  ].join("");
+}
+
+function buildPremiumChapterKpi(rawText = "", chapter = {}) {
+  const text = String(rawText || "");
+  const chars = text.length;
+  const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
+  const monthSignals = (text.match(/(^|\s)([1-9]|1[0-2])\s*월/g) || []).length;
+  const scoreSignals = (text.match(/(\d{1,3})\s*점/g) || []).length;
+  const adviceCount = Array.isArray(chapter?.practicalAdvice) ? chapter.practicalAdvice.length : 0;
+  const cautionCount = Array.isArray(chapter?.cautions) ? chapter.cautions.length : 0;
+  const densityScore = Math.max(10, Math.min(100, Math.round((chars / 4200) * 100)));
+  const actionScore = Math.max(8, Math.min(100, Math.round(((adviceCount * 14) + (scoreSignals * 7) + 10))));
+  const timingScore = Math.max(6, Math.min(100, Math.round(((monthSignals * 8) + (cautionCount * 6) + 8))));
+
+  return {
+    cards: [
+      { label: "본문 길이", value: `${chars.toLocaleString()}자` },
+      { label: "실행 포인트", value: `${adviceCount + scoreSignals}개` },
+      { label: "타이밍 신호", value: `${monthSignals + scoreSignals}개` },
+      { label: "주의 신호", value: `${cautionCount}개` },
+    ],
+    bars: [
+      { label: "Depth", value: densityScore },
+      { label: "Action", value: actionScore },
+      { label: "Timing", value: timingScore },
+    ],
+    words,
+  };
+}
+
+function renderPremiumChapterKpiBlock(rawText = "", chapter = {}) {
+  const kpi = buildPremiumChapterKpi(rawText, chapter);
+  return [
+    '<section class="report-kpi-wrap">',
+    '<div class="report-kpi-grid">',
+    ...kpi.cards.map((row) => `<div class="report-kpi-card"><span class="report-kpi-label">${escapeLifebookHtml(row.label)}</span><strong class="report-kpi-value">${escapeLifebookHtml(row.value)}</strong></div>`),
+    "</div>",
+    '<div class="report-mini-chart">',
+    ...kpi.bars.map((row) => [
+      '<div class="report-mini-row">',
+      `<span class="report-mini-label">${escapeLifebookHtml(row.label)}</span>`,
+      `<div class="report-mini-track"><span class="report-mini-fill" style="width:${Math.max(0, Math.min(100, Number(row.value || 0)))}%"></span></div>`,
+      `<span class="report-mini-num">${Math.max(0, Math.min(100, Number(row.value || 0)))}</span>`,
+      "</div>",
+    ].join("")),
+    "</div>",
+    "</section>",
+  ].join("\n");
+}
+
 function buildLifebookStatusPayload(reportId, includeText = false) {
   const normalizedReportId = String(reportId || "").trim();
   const entry = getStoredReportSession("lifebook", normalizedReportId);
@@ -11169,6 +11463,7 @@ function buildLifebookDownloadHtmlFromSession(reportId) {
   const entry = getStoredReportSession("lifebook", reportId);
   const chapters = Array.isArray(status.chapters) ? status.chapters : [];
   if (!chapters.length) return "";
+  const theme = resolvePremiumPrintTheme("lifebook");
 
   const chapterResultsFromStore = toPlainObject(entry?.extra?.chapterResultsByNumber);
   const chapterResults = chapters
@@ -11205,11 +11500,16 @@ function buildLifebookDownloadHtmlFromSession(reportId) {
       const title = String(row?.chapterMeta?.title || `Chapter ${row.chapter}`);
       const subtitle = String(row?.chapterMeta?.subtitle || "");
       const text = String(row?.text || "");
+      const contentHtml = renderPremiumPrintMarkdown(text);
+      const kpiBlock = renderPremiumChapterKpiBlock(text, row);
       return [
         '<section class="lb-print-chapter">',
         `<h2>Chapter ${row.chapter}. ${escapeLifebookHtml(title)}</h2>`,
         subtitle ? `<p class="lb-subtitle">${escapeLifebookHtml(subtitle)}</p>` : "",
-        `<pre>${escapeLifebookHtml(text)}</pre>`,
+        kpiBlock,
+        '<div class="report-prose">',
+        contentHtml || '<p class="report-p">해당 장의 분석 데이터가 준비되는 대로 전문 리딩이 반영됩니다.</p>',
+        "</div>",
         "</section>",
       ].join("\n");
     })
@@ -11222,25 +11522,70 @@ function buildLifebookDownloadHtmlFromSession(reportId) {
     '<meta charset="utf-8" />',
     "<title>사주 인생의 책</title>",
     "<style>",
-    'body{margin:0;padding:24px;font-family:Georgia,"Times New Roman",serif;background:#f7f4ee;color:#1f2937;line-height:1.72}',
-    '.lb-print-cover{padding:24px;border:1px solid #d5c9b3;border-radius:16px;background:#fffaf0;margin-bottom:24px}',
-    '.lb-print-cover h1{margin:0 0 6px;font-size:33px;color:#4b3621}',
-    '.lb-print-cover p{margin:2px 0;font-size:14px;color:#5b4630}',
-    '.lb-print-chapter{margin-bottom:22px;padding:18px;border:1px solid #e8ddcc;border-radius:12px;background:#fff}',
-    '.lb-print-chapter h2{margin:0 0 8px;font-size:24px;color:#5b4630}',
-    '.lb-subtitle{margin:0 0 12px;color:#7b5d3f}',
-    '.lb-print-chapter pre{white-space:pre-wrap;word-break:break-word;margin:0;font-size:14px;line-height:1.72}',
-    '@media print{body{padding:0;background:#fff}.lb-print-cover,.lb-print-chapter{border:none}}',
+    '@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@500;600;700&display=swap");',
+    `:root{--ink:${theme.ink};--muted:${theme.muted};--paper:${theme.paper};--line:${theme.line};--accent:${theme.accent};--accentSoft:${theme.accentSoft};--calloutBg:${theme.calloutBg};}`,
+    '*{box-sizing:border-box}',
+    'body{margin:0;padding:28px;font-family:"Noto Serif KR","Noto Sans KR",serif;background:radial-gradient(circle at 15% 0%,#fffaf4 0%,#f6efe4 34%,#f3eadf 100%);color:var(--ink);line-height:1.84;word-break:keep-all}',
+    '.lb-print-cover{padding:28px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(142deg,#2d1f17 0%,#5a3c28 60%,#7b5338 100%);color:#fff7ed;margin-bottom:26px;position:relative;overflow:hidden}',
+    '.lb-print-cover::after{content:"";position:absolute;right:-44px;top:-44px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,0.12)}',
+    '.lb-print-cover h1{margin:0 0 8px;font-size:34px;line-height:1.32;letter-spacing:-0.01em}',
+    '.lb-print-cover p{margin:2px 0;color:#f8e8d5;font-size:13px;letter-spacing:0.01em}',
+    '.report-cover-art{margin:12px 0 2px;width:228px;max-width:100%;opacity:0.95}',
+    '.report-cover-art svg{display:block;width:100%;height:auto}',
+    '.report-meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}',
+    '.report-meta-card{padding:10px;border-radius:12px;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.2)}',
+    '.report-meta-label{display:block;font-size:11px;color:#f6dec4;letter-spacing:0.06em;text-transform:uppercase}',
+    '.report-meta-value{display:block;margin-top:4px;font-size:15px;font-weight:700;color:#fffdfa}',
+    '.lb-print-chapter{margin-bottom:22px;padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--paper);box-shadow:0 14px 28px rgba(83,60,35,0.08);break-inside:avoid-page;page-break-inside:avoid}',
+    '.lb-print-chapter h2{margin:0 0 10px;font-size:24px;line-height:1.4;letter-spacing:-0.01em;color:var(--ink)}',
+    '.lb-subtitle{margin:0 0 14px;color:var(--muted);font-size:14px}',
+    '.report-prose{font-family:"Noto Sans KR","Noto Serif KR",sans-serif}',
+    '.report-h2{margin:18px 0 10px;padding:8px 12px;border-left:4px solid var(--accent);background:var(--accentSoft);border-radius:8px;font-size:18px;color:var(--ink)}',
+    '.report-h3{margin:16px 0 8px;font-size:16px;color:var(--ink)}',
+    '.report-p{margin:0 0 11px;font-size:14px;line-height:1.86;color:var(--ink)}',
+    '.report-list{margin:0 0 12px 18px;padding:0}',
+    '.report-list li{margin:0 0 6px;font-size:14px;line-height:1.8}',
+    '.report-callout{margin:12px 0;padding:10px 12px;border-radius:10px;background:var(--calloutBg);border:1px solid var(--line);font-size:14px;line-height:1.78}',
+    '.report-inline-code{padding:1px 5px;border-radius:6px;background:#efe5d7;border:1px solid #decdb7;font-size:12px}',
+    '.report-table-wrap{margin:12px 0;overflow:auto;border:1px solid var(--line);border-radius:10px}',
+    '.report-table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}',
+    '.report-table th,.report-table td{padding:8px 10px;border-bottom:1px solid #e7dcc9;text-align:left;vertical-align:top}',
+    '.report-table thead th{background:#f6ecdf;color:#5f4127;font-weight:700}',
+    '.report-divider{height:1px;margin:14px 0;background:linear-gradient(90deg,transparent 0%,#b5865c 30%,#b5865c 70%,transparent 100%)}',
+    '.report-kpi-wrap{margin:10px 0 14px;padding:10px;border:1px solid var(--line);border-radius:12px;background:#fffaf4}',
+    '.report-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}',
+    '.report-kpi-card{padding:8px;border-radius:9px;background:#f8f1e6;border:1px solid #eadbc4}',
+    '.report-kpi-label{display:block;font-size:11px;color:#7c654d}',
+    '.report-kpi-value{display:block;margin-top:3px;font-size:14px;color:#3f2b1a}',
+    '.report-mini-chart{margin-top:10px;display:grid;gap:7px}',
+    '.report-mini-row{display:grid;grid-template-columns:56px 1fr 34px;align-items:center;gap:8px}',
+    '.report-mini-label{font-size:11px;color:#6f573f}',
+    '.report-mini-track{height:8px;border-radius:999px;background:#eadbc4;overflow:hidden}',
+    '.report-mini-fill{display:block;height:100%;background:linear-gradient(90deg,#9f6940,#d49a6b)}',
+    '.report-mini-num{font-size:11px;color:#6f573f;text-align:right}',
+    '.report-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line);font-family:"Noto Sans KR",sans-serif;font-size:11px;color:var(--muted)}',
+    '.report-footer-page::after{content:"Page " counter(page) " / " counter(pages)}',
+    '@page{size:A4;margin:14mm}',
+    '@media(max-width:860px){body{padding:18px}.report-meta-grid,.report-kpi-grid{grid-template-columns:1fr 1fr}.lb-print-cover h1{font-size:30px}}',
+    '@media print{body{padding:0;background:#fff}.lb-print-cover,.lb-print-chapter{box-shadow:none}}',
     "</style>",
     "</head>",
     "<body>",
     '<section class="lb-print-cover">',
     "<h1>사주 인생의 책</h1>",
     `<p>리포트 ID: ${escapeLifebookHtml(status.reportId)}</p>`,
-    `<p>생성 챕터: ${status.completed}/${status.totalChapters}</p>`,
-    `<p>총 글자수: ${status.totalChars} (최소 ${status.minTotalChars})</p>`,
+    `<div class="report-cover-art">${renderPremiumCoverGlyph("lifebook")}</div>`,
+    '<div class="report-meta-grid">',
+    '<div class="report-meta-card"><span class="report-meta-label">완료 챕터</span>',
+    `<span class="report-meta-value">${status.completed}/${status.totalChapters}</span></div>`,
+    '<div class="report-meta-card"><span class="report-meta-label">총 글자수</span>',
+    `<span class="report-meta-value">${status.totalChars}</span></div>`,
+    '<div class="report-meta-card"><span class="report-meta-label">품질 기준</span>',
+    `<span class="report-meta-value">최소 ${status.minTotalChars}</span></div>`,
+    "</div>",
     "</section>",
     chapterBlocks,
+    '<footer class="report-footer"><span>Code Destiny Premium Report</span><span class="report-footer-page"></span></footer>',
     "</body>",
     "</html>",
   ].join("\n");
@@ -11315,6 +11660,7 @@ function buildLoveSecretDownloadHtmlFromSession(reportId) {
   const status = buildLoveSecretStatusPayload(reportId, true);
   const chapters = Array.isArray(status.chapters) ? status.chapters : [];
   if (!chapters.length) return "";
+  const theme = resolvePremiumPrintTheme("love-secret");
 
   const reportTitle = status.mode === "compatibility" ? "사주 궁합 연애 비책" : "사주 연애 비책";
   const chapterBlocks = chapters
@@ -11323,11 +11669,16 @@ function buildLoveSecretDownloadHtmlFromSession(reportId) {
       const title = String(row?.chapterMeta?.title || `Chapter ${row.chapter}`);
       const subtitle = String(row?.chapterMeta?.subtitle || "");
       const text = String(row?.text || "");
+      const contentHtml = renderPremiumPrintMarkdown(text);
+      const kpiBlock = renderPremiumChapterKpiBlock(text, row);
       return [
         '<section class="ls-print-chapter">',
         `<h2>Chapter ${row.chapter}. ${escapeLifebookHtml(title)}</h2>`,
         subtitle ? `<p class="ls-subtitle">${escapeLifebookHtml(subtitle)}</p>` : "",
-        `<pre>${escapeLifebookHtml(text)}</pre>`,
+        kpiBlock,
+        '<div class="report-prose">',
+        contentHtml || '<p class="report-p">해당 장의 상담 데이터가 준비되는 대로 정교한 해석이 반영됩니다.</p>',
+        "</div>",
         "</section>",
       ].join("\n");
     })
@@ -11340,25 +11691,70 @@ function buildLoveSecretDownloadHtmlFromSession(reportId) {
     '<meta charset="utf-8" />',
     `<title>${escapeLifebookHtml(reportTitle)}</title>`,
     "<style>",
-    'body{margin:0;padding:24px;font-family:Georgia,"Times New Roman",serif;background:#fff7fb;color:#1f2937;line-height:1.72}',
-    '.ls-print-cover{padding:24px;border:1px solid #f2d3e4;border-radius:16px;background:#fff;margin-bottom:24px}',
-    '.ls-print-cover h1{margin:0 0 6px;font-size:33px;color:#8b3a62}',
-    '.ls-print-cover p{margin:2px 0;font-size:14px;color:#5b3751}',
-    '.ls-print-chapter{margin-bottom:22px;padding:18px;border:1px solid #f4e4ed;border-radius:12px;background:#fff}',
-    '.ls-print-chapter h2{margin:0 0 8px;font-size:24px;color:#8b3a62}',
-    '.ls-subtitle{margin:0 0 12px;color:#7d4a66}',
-    '.ls-print-chapter pre{white-space:pre-wrap;word-break:break-word;margin:0;font-size:14px;line-height:1.72}',
-    '@media print{body{padding:0;background:#fff}.ls-print-cover,.ls-print-chapter{border:none}}',
+    '@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@500;600;700&display=swap");',
+    `:root{--ink:${theme.ink};--muted:${theme.muted};--paper:${theme.paper};--line:${theme.line};--accent:${theme.accent};--accentSoft:${theme.accentSoft};--calloutBg:${theme.calloutBg};}`,
+    '*{box-sizing:border-box}',
+    'body{margin:0;padding:28px;font-family:"Noto Serif KR","Noto Sans KR",serif;background:radial-gradient(circle at 20% -8%,#fff8fd 0%,#fdeef6 40%,#fae8f2 100%);color:var(--ink);line-height:1.84;word-break:keep-all}',
+    '.ls-print-cover{padding:28px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(140deg,#471536 0%,#8f2c63 58%,#b53a7f 100%);color:#ffeaf7;margin-bottom:26px;position:relative;overflow:hidden}',
+    '.ls-print-cover::after{content:"";position:absolute;right:-32px;bottom:-42px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,0.13)}',
+    '.ls-print-cover h1{margin:0 0 8px;font-size:34px;line-height:1.32;letter-spacing:-0.01em}',
+    '.ls-print-cover p{margin:2px 0;color:#ffe1f1;font-size:13px;letter-spacing:0.01em}',
+    '.report-cover-art{margin:12px 0 2px;width:228px;max-width:100%;opacity:0.95}',
+    '.report-cover-art svg{display:block;width:100%;height:auto}',
+    '.report-meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}',
+    '.report-meta-card{padding:10px;border-radius:12px;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.22)}',
+    '.report-meta-label{display:block;font-size:11px;color:#ffd1e8;letter-spacing:0.06em;text-transform:uppercase}',
+    '.report-meta-value{display:block;margin-top:4px;font-size:15px;font-weight:700;color:#fff8fd}',
+    '.ls-print-chapter{margin-bottom:22px;padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--paper);box-shadow:0 14px 30px rgba(139,58,98,0.11);break-inside:avoid-page;page-break-inside:avoid}',
+    '.ls-print-chapter h2{margin:0 0 10px;font-size:24px;line-height:1.4;letter-spacing:-0.01em;color:var(--ink)}',
+    '.ls-subtitle{margin:0 0 14px;color:var(--muted);font-size:14px}',
+    '.report-prose{font-family:"Noto Sans KR","Noto Serif KR",sans-serif}',
+    '.report-h2{margin:18px 0 10px;padding:8px 12px;border-left:4px solid var(--accent);background:var(--accentSoft);border-radius:8px;font-size:18px;color:var(--ink)}',
+    '.report-h3{margin:16px 0 8px;font-size:16px;color:var(--ink)}',
+    '.report-p{margin:0 0 11px;font-size:14px;line-height:1.86;color:var(--ink)}',
+    '.report-list{margin:0 0 12px 18px;padding:0}',
+    '.report-list li{margin:0 0 6px;font-size:14px;line-height:1.8}',
+    '.report-callout{margin:12px 0;padding:10px 12px;border-radius:10px;background:var(--calloutBg);border:1px solid var(--line);font-size:14px;line-height:1.78}',
+    '.report-inline-code{padding:1px 5px;border-radius:6px;background:#fae7f1;border:1px solid #efcbde;font-size:12px}',
+    '.report-table-wrap{margin:12px 0;overflow:auto;border:1px solid var(--line);border-radius:10px}',
+    '.report-table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}',
+    '.report-table th,.report-table td{padding:8px 10px;border-bottom:1px solid #f0d9e6;text-align:left;vertical-align:top}',
+    '.report-table thead th{background:#fde8f4;color:#7d2a57;font-weight:700}',
+    '.report-divider{height:1px;margin:14px 0;background:linear-gradient(90deg,transparent 0%,#d1649a 30%,#d1649a 70%,transparent 100%)}',
+    '.report-kpi-wrap{margin:10px 0 14px;padding:10px;border:1px solid var(--line);border-radius:12px;background:#fff6fb}',
+    '.report-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}',
+    '.report-kpi-card{padding:8px;border-radius:9px;background:#fdeef6;border:1px solid #efcbde}',
+    '.report-kpi-label{display:block;font-size:11px;color:#8c4b6d}',
+    '.report-kpi-value{display:block;margin-top:3px;font-size:14px;color:#4d1433}',
+    '.report-mini-chart{margin-top:10px;display:grid;gap:7px}',
+    '.report-mini-row{display:grid;grid-template-columns:56px 1fr 34px;align-items:center;gap:8px}',
+    '.report-mini-label{font-size:11px;color:#8c4b6d}',
+    '.report-mini-track{height:8px;border-radius:999px;background:#efcbde;overflow:hidden}',
+    '.report-mini-fill{display:block;height:100%;background:linear-gradient(90deg,#b83280,#e570b2)}',
+    '.report-mini-num{font-size:11px;color:#8c4b6d;text-align:right}',
+    '.report-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line);font-family:"Noto Sans KR",sans-serif;font-size:11px;color:var(--muted)}',
+    '.report-footer-page::after{content:"Page " counter(page) " / " counter(pages)}',
+    '@page{size:A4;margin:14mm}',
+    '@media(max-width:860px){body{padding:18px}.report-meta-grid,.report-kpi-grid{grid-template-columns:1fr 1fr}.ls-print-cover h1{font-size:30px}}',
+    '@media print{body{padding:0;background:#fff}.ls-print-cover,.ls-print-chapter{box-shadow:none}}',
     "</style>",
     "</head>",
     "<body>",
     '<section class="ls-print-cover">',
     `<h1>${escapeLifebookHtml(reportTitle)}</h1>`,
     `<p>리포트 ID: ${escapeLifebookHtml(status.reportId)}</p>`,
-    `<p>생성 챕터: ${status.completed}/${status.totalChapters}</p>`,
-    `<p>총 글자수: ${status.totalChars}${status.minTotalChars ? ` (최소 ${status.minTotalChars})` : ""}</p>`,
+    `<div class="report-cover-art">${renderPremiumCoverGlyph("love-secret")}</div>`,
+    '<div class="report-meta-grid">',
+    '<div class="report-meta-card"><span class="report-meta-label">완료 챕터</span>',
+    `<span class="report-meta-value">${status.completed}/${status.totalChapters}</span></div>`,
+    '<div class="report-meta-card"><span class="report-meta-label">총 글자수</span>',
+    `<span class="report-meta-value">${status.totalChars}</span></div>`,
+    '<div class="report-meta-card"><span class="report-meta-label">리포트 모드</span>',
+    `<span class="report-meta-value">${escapeLifebookHtml(status.mode === "compatibility" ? "Compatibility" : "Solo")}</span></div>`,
+    "</div>",
     "</section>",
     chapterBlocks,
+    '<footer class="report-footer"><span>Code Destiny Premium Report</span><span class="report-footer-page"></span></footer>',
     "</body>",
     "</html>",
   ].join("\n");
@@ -23958,6 +24354,7 @@ function buildLegacyDownloadHtml(config, reportId) {
   if (!status?.ok) return "";
   const chapters = Array.isArray(status?.chapters) ? status.chapters : [];
   if (!chapters.length) return "";
+  const theme = resolvePremiumPrintTheme(config?.alias || "default");
 
   const palaceKo = {
     ming: "명궁(命宮)",
@@ -23980,11 +24377,11 @@ function buildLegacyDownloadHtml(config, reportId) {
     const sectionBlocks = (Array.isArray(chapter.sections) ? chapter.sections : [])
       .map((section) => {
         const heading = escapeLifebookHtml(section?.heading || "");
-        const body = escapeLifebookHtml(section?.body || "");
+        const bodyHtml = renderPremiumPrintMarkdown(section?.body || "");
         return [
           '<section class="legacy-print-section">',
           heading ? `<h4>${heading}</h4>` : "",
-          body ? `<pre>${body}</pre>` : "",
+          bodyHtml ? `<div class="report-prose">${bodyHtml}</div>` : "",
           "</section>",
         ].join("\n");
       })
@@ -23995,6 +24392,7 @@ function buildLegacyDownloadHtml(config, reportId) {
     const practicalAdvice = Array.isArray(chapter.practicalAdvice) ? chapter.practicalAdvice : [];
     const cautions = Array.isArray(chapter.cautions) ? chapter.cautions : [];
     const conclusion = String(chapter.masterConclusion || "").trim();
+    const kpiBlock = renderPremiumChapterKpiBlock(String(chapter?.text || ""), chapter);
 
     const badgeBlocks = (stars.length || palaces.length)
       ? [
@@ -24016,7 +24414,7 @@ function buildLegacyDownloadHtml(config, reportId) {
       ? `<section class="legacy-print-section legacy-print-section--caution"><h4>경계 지침</h4><ul>${cautions.map((item) => `<li>${escapeLifebookHtml(item)}</li>`).join("")}</ul></section>`
       : "";
     const conclusionBlock = conclusion
-      ? `<section class="legacy-print-section legacy-print-section--conclusion"><h4>거장의 최종 제언</h4><pre>${escapeLifebookHtml(conclusion)}</pre></section>`
+      ? `<section class="legacy-print-section legacy-print-section--conclusion"><h4>거장의 최종 제언</h4><div class="report-prose">${renderPremiumPrintMarkdown(conclusion)}</div></section>`
       : "";
 
     return [
@@ -24024,6 +24422,7 @@ function buildLegacyDownloadHtml(config, reportId) {
       `<h2>Chapter ${Number(chapter.chapterIndex || 0)}. ${escapeLifebookHtml(chapter.title || "")}</h2>`,
       chapter.subtitle ? `<p class="legacy-subtitle">${escapeLifebookHtml(chapter.subtitle)}</p>` : "",
       badgeBlocks,
+      kpiBlock,
       chapter.summary ? `<p class="legacy-summary">${escapeLifebookHtml(chapter.summary)}</p>` : "",
       sectionBlocks,
       adviceBlock,
@@ -24041,25 +24440,55 @@ function buildLegacyDownloadHtml(config, reportId) {
     `<title>${escapeLifebookHtml(config.title)}</title>`,
     "<style>",
     '@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@500;600;700&display=swap");',
-    ':root{--legacy-bg:#f6f7fb;--legacy-paper:#ffffff;--legacy-ink:#111827;--legacy-muted:#475569;--legacy-line:#dbe3f0;--legacy-accent:#1d4ed8;}',
+    `:root{--legacy-paper:${theme.paper};--legacy-ink:${theme.ink};--legacy-muted:${theme.muted};--legacy-line:${theme.line};--legacy-accent:${theme.accent};--legacy-accent-soft:${theme.accentSoft};--legacy-callout:${theme.calloutBg};}`,
     '*{box-sizing:border-box}',
-    'body{margin:0;padding:28px;font-family:"Noto Serif KR","Noto Sans KR",serif;background:var(--legacy-bg);color:var(--legacy-ink);line-height:1.84;word-break:keep-all;}',
-    '.legacy-print-cover{padding:28px;border:1px solid var(--legacy-line);border-radius:20px;background:linear-gradient(180deg,#fff 0%,#f8fbff 100%);margin-bottom:26px}',
-    '.legacy-print-cover h1{margin:0 0 10px;font-size:32px;line-height:1.35;letter-spacing:-0.01em;color:#0b1324}',
-    '.legacy-print-cover p{margin:4px 0;font-size:13px;letter-spacing:0.01em;color:var(--legacy-muted)}',
-    '.legacy-print-chapter{margin-bottom:24px;padding:22px 22px 18px;border:1px solid var(--legacy-line);border-radius:16px;background:var(--legacy-paper)}',
+    `body{margin:0;padding:28px;font-family:"Noto Serif KR","Noto Sans KR",serif;background:radial-gradient(circle at 10% 0%,${theme.accentSoft} 0%,#f7f8fb 48%,#edf0f5 100%);color:var(--legacy-ink);line-height:1.84;word-break:keep-all;}`,
+    `.legacy-print-cover{padding:30px;border:1px solid var(--legacy-line);border-radius:22px;background:linear-gradient(140deg,${theme.coverStart} 0%,${theme.coverEnd} 72%);margin-bottom:26px;position:relative;overflow:hidden}`,
+    '.legacy-print-cover::after{content:"";position:absolute;right:-42px;top:-48px;width:190px;height:190px;border-radius:50%;background:rgba(255,255,255,0.16)}',
+    '.legacy-print-cover h1{margin:0 0 10px;font-size:32px;line-height:1.35;letter-spacing:-0.01em;color:#f8fbff}',
+    '.legacy-print-cover p{margin:4px 0;font-size:13px;letter-spacing:0.01em;color:#d9e6ff}',
+    '.report-cover-art{margin:12px 0 2px;width:228px;max-width:100%;opacity:0.95}',
+    '.report-cover-art svg{display:block;width:100%;height:auto}',
+    '.legacy-meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}',
+    '.legacy-meta-card{padding:10px;border-radius:12px;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.22)}',
+    '.legacy-meta-card strong{display:block;font-size:11px;color:#d9e6ff;letter-spacing:0.06em;text-transform:uppercase}',
+    '.legacy-meta-card span{display:block;margin-top:4px;font-size:15px;font-weight:700;color:#ffffff}',
+    '.legacy-print-chapter{margin-bottom:24px;padding:22px 22px 18px;border:1px solid var(--legacy-line);border-radius:16px;background:var(--legacy-paper);box-shadow:0 16px 30px rgba(24,39,75,0.09)}',
     '.legacy-print-chapter h2{margin:0 0 10px;font-size:24px;line-height:1.4;letter-spacing:-0.01em;color:#0f172a}',
     '.legacy-subtitle{margin:0 0 12px;color:#334155;font-size:14px}',
-    '.legacy-summary{margin:0 0 14px;padding:10px 12px;border-radius:10px;background:#eef4ff;color:#0f172a;font-weight:600;font-size:14px;line-height:1.7}',
+    '.legacy-summary{margin:0 0 14px;padding:10px 12px;border-radius:10px;background:var(--legacy-accent-soft);color:#0f172a;font-weight:600;font-size:14px;line-height:1.7}',
     '.legacy-badges{margin:0 0 12px;padding:10px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc}',
     '.legacy-badge-row{display:flex;align-items:flex-start;gap:8px;margin:4px 0;font-size:12px;color:#334155}',
     '.legacy-badge-row strong{display:inline-block;min-width:64px;color:#0f172a}',
     '.legacy-badge{display:inline-block;padding:2px 7px;border-radius:999px;margin:0 4px 4px 0;font-style:normal;font-weight:600;font-size:11px}',
-    '.legacy-badge--star{background:#f5f3ff;color:#6d28d9;border:1px solid #ddd6fe}',
-    '.legacy-badge--palace{background:#fdf2f8;color:#be185d;border:1px solid #fbcfe8}',
+    '.legacy-badge--star{background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe}',
+    '.legacy-badge--palace{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}',
     '.legacy-print-section{margin:0 0 14px}',
     '.legacy-print-section h4{margin:0 0 8px;font-size:17px;line-height:1.45;color:#0f172a;border-left:3px solid var(--legacy-accent);padding-left:9px}',
-    '.legacy-print-section pre{white-space:pre-wrap;word-break:break-word;margin:0;font-family:"Noto Serif KR","Noto Sans KR",serif;font-size:15px;line-height:1.9;color:#111827}',
+    '.report-prose{font-family:"Noto Sans KR","Noto Serif KR",sans-serif}',
+    '.report-h2{margin:18px 0 10px;padding:8px 12px;border-left:4px solid var(--legacy-accent);background:var(--legacy-accent-soft);border-radius:8px;font-size:18px;color:#0f172a}',
+    '.report-h3{margin:16px 0 8px;font-size:16px;color:#0f172a}',
+    '.report-p{margin:0 0 11px;font-size:14px;line-height:1.86;color:#111827}',
+    '.report-list{margin:0 0 12px 18px;padding:0}',
+    '.report-list li{margin:0 0 6px;font-size:14px;line-height:1.8}',
+    '.report-callout{margin:12px 0;padding:10px 12px;border-radius:10px;background:var(--legacy-callout);border:1px solid var(--legacy-line);font-size:14px;line-height:1.78}',
+    '.report-inline-code{padding:1px 5px;border-radius:6px;background:#f1f5f9;border:1px solid #d5dfef;font-size:12px}',
+    '.report-table-wrap{margin:12px 0;overflow:auto;border:1px solid var(--legacy-line);border-radius:10px}',
+    '.report-table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}',
+    '.report-table th,.report-table td{padding:8px 10px;border-bottom:1px solid #dbe3f0;text-align:left;vertical-align:top}',
+    '.report-table thead th{background:var(--legacy-accent-soft);color:#1e3a8a;font-weight:700}',
+    '.report-divider{height:1px;margin:14px 0;background:linear-gradient(90deg,transparent 0%,var(--legacy-accent) 30%,var(--legacy-accent) 70%,transparent 100%)}',
+    '.report-kpi-wrap{margin:10px 0 14px;padding:10px;border:1px solid var(--legacy-line);border-radius:12px;background:#f8fbff}',
+    '.report-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}',
+    '.report-kpi-card{padding:8px;border-radius:9px;background:#eef4ff;border:1px solid #dbe3f0}',
+    '.report-kpi-label{display:block;font-size:11px;color:#52637c}',
+    '.report-kpi-value{display:block;margin-top:3px;font-size:14px;color:#162033}',
+    '.report-mini-chart{margin-top:10px;display:grid;gap:7px}',
+    '.report-mini-row{display:grid;grid-template-columns:56px 1fr 34px;align-items:center;gap:8px}',
+    '.report-mini-label{font-size:11px;color:#52637c}',
+    '.report-mini-track{height:8px;border-radius:999px;background:#dbe3f0;overflow:hidden}',
+    '.report-mini-fill{display:block;height:100%;background:linear-gradient(90deg,var(--legacy-accent),#60a5fa)}',
+    '.report-mini-num{font-size:11px;color:#52637c;text-align:right}',
     '.legacy-print-section ul{margin:0 0 0 18px;padding:0}',
     '.legacy-print-section li{margin:0 0 6px;font-size:14px;line-height:1.7;color:#1f2937}',
     '.legacy-print-section--advice{background:#f0fdf4;border-radius:10px;padding:10px 12px}',
@@ -24068,7 +24497,10 @@ function buildLegacyDownloadHtml(config, reportId) {
     '.legacy-print-section--caution h4{border-left-color:#f59e0b;color:#92400e}',
     '.legacy-print-section--conclusion{background:#faf5ff;border-radius:10px;padding:10px 12px}',
     '.legacy-print-section--conclusion h4{border-left-color:#8b5cf6;color:#5b21b6}',
+    '.report-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid var(--legacy-line);font-family:"Noto Sans KR",sans-serif;font-size:11px;color:var(--legacy-muted)}',
+    '.report-footer-page::after{content:"Page " counter(page) " / " counter(pages)}',
     '@page{size:A4;margin:14mm}',
+    '@media(max-width:860px){body{padding:18px}.legacy-meta-grid,.report-kpi-grid{grid-template-columns:1fr 1fr}.legacy-print-cover h1{font-size:29px}}',
     '@media print{body{padding:0;background:#fff}.legacy-print-cover,.legacy-print-chapter{border:none;border-radius:0;box-shadow:none}.legacy-print-chapter{break-inside:avoid-page;page-break-inside:avoid}}',
     "</style>",
     "</head>",
@@ -24076,9 +24508,18 @@ function buildLegacyDownloadHtml(config, reportId) {
     '<section class="legacy-print-cover">',
     `<h1>${escapeLifebookHtml(config.title)}</h1>`,
     `<p>리포트 ID: ${escapeLifebookHtml(status.reportId)}</p>`,
-    `<p>생성 챕터: ${Number(status.completed || 0)}/${Number(status.totalChapters || 0)}</p>`,
+    `<div class="report-cover-art">${renderPremiumCoverGlyph(config?.alias || "default")}</div>`,
+    '<div class="legacy-meta-grid">',
+    '<div class="legacy-meta-card"><strong>완료 챕터</strong>',
+    `<span>${Number(status.completed || 0)}/${Number(status.totalChapters || 0)}</span></div>`,
+    '<div class="legacy-meta-card"><strong>리포트 타입</strong>',
+    `<span>${escapeLifebookHtml(String(config.reportType || "premium"))}</span></div>`,
+    '<div class="legacy-meta-card"><strong>상태</strong>',
+    `<span>${escapeLifebookHtml(String(status.status || "completed"))}</span></div>`,
+    "</div>",
     "</section>",
     chapterBlocks,
+    '<footer class="report-footer"><span>Code Destiny Premium Report</span><span class="report-footer-page"></span></footer>',
     "</body>",
     "</html>",
   ].join("\n");
