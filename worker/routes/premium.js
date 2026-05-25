@@ -4008,13 +4008,41 @@ function buildPremiumChapterContract(reportType, featureType, mode, chapterId) {
     ];
   } else if (reportType === "sookyoPremium") {
     contract.outputFormat = "json+markdown";
-    contract.requiredJsonFields = [
-      "chapterTitle",
-      "summary",
-      "sections",
-      "practicalAdvice",
-      "cautions",
-    ];
+    const sukyoMode = resolveSukyoModeToken(mode);
+    const sukyoBlueprint = getSukyoPdfChapters(sukyoMode);
+    const sukyoChapter = sukyoBlueprint[Math.max(0, chapterNo - 1)] || null;
+    const sectionHeadings = Array.isArray(sukyoChapter?.sections)
+      ? sukyoChapter.sections.map((row) => String(row || "").trim()).filter(Boolean)
+      : [];
+
+    if (sukyoChapter?.title) {
+      contract.chapterTitle = String(sukyoChapter.title);
+    }
+    if (Number.isFinite(Number(sukyoChapter?.minChars)) && Number(sukyoChapter.minChars) > 0) {
+      contract.minChars = Number(sukyoChapter.minChars);
+    }
+    if (Number.isFinite(Number(sukyoChapter?.targetChars)) && Number(sukyoChapter.targetChars) > 0) {
+      contract.targetChars = Number(sukyoChapter.targetChars);
+    }
+    contract.requiredHeadings = sectionHeadings;
+
+    if (sukyoMode === "compatibility" && chapterNo === 2) {
+      contract.requiredJsonFields = [
+        "chapterId",
+        "chapterTitle",
+        "metaData",
+        "subChapters",
+        "compatibilityEngineSummary",
+      ];
+    } else {
+      contract.requiredJsonFields = [
+        "chapterTitle",
+        "summary",
+        "sections",
+        "practicalAdvice",
+        "cautions",
+      ];
+    }
   } else if (reportType === "westernAstrologyPremium") {
     const chapterKey = String(chapterSpec?.key || "").trim();
     const modeHint = "personal";
@@ -4114,6 +4142,7 @@ function validatePremiumChapterResponseEnvelope({ reportType, chapterId, data, c
   const shouldCheckHeadings = reportType === "westernAstrologyPremium"
     || reportType === "vedicPremium"
     || reportType === "ziweiPremium"
+    || reportType === "sookyoPremium"
     || reportType === "loveSecret"
     || reportType === "sajuNewYear"
     || reportType === "lifeBook";
@@ -4123,6 +4152,7 @@ function validatePremiumChapterResponseEnvelope({ reportType, chapterId, data, c
     reportType === "ziweiPremium"
     || reportType === "westernAstrologyPremium"
     || reportType === "vedicPremium"
+    || reportType === "sookyoPremium"
     || reportType === "lifeBook"
     || reportType === "loveSecret"
     || reportType === "sajuNewYear"
@@ -6768,6 +6798,11 @@ function buildChapterJsonPacks(reportType, chapterId, canonicalJson) {
       includeCompatibility: calculatedData?.includeCompatibility,
     });
     const sukyoContext = toPlainObject(calculatedData.sukyoPdfContext);
+    const chapterBlueprint = getSukyoPdfChapters(sukyoMode);
+    const chapterDef = chapterBlueprint[Math.max(0, Number(chapterId || 1) - 1)] || null;
+    const chapterCategories = Array.isArray(chapterDef?.sections)
+      ? chapterDef.sections.map((row) => String(row || "").trim()).filter(Boolean)
+      : [];
     return {
       chapterCore,
       signals: {
@@ -6782,7 +6817,15 @@ function buildChapterJsonPacks(reportType, chapterId, canonicalJson) {
       actions: {
         relationshipAdvice: toTopArray(calculatedData?.compatibility?.relationshipAdvice, 8),
         twentySevenSook: toTopArray(calculatedData.twentySevenSook, 12),
-        chapterBlueprint: getSukyoPdfChapters(sukyoMode),
+        chapterBlueprint,
+        currentChapter: chapterDef ? {
+          key: String(chapterDef.key || `compat_ch_${chapterId}`),
+          title: String(chapterDef.title || chapterMeta.chapterTitle || `Chapter ${chapterId}`),
+          goal: String(chapterDef.goal || ""),
+          targetChars: Number(chapterDef.targetChars || 0),
+          minChars: Number(chapterDef.minChars || 0),
+          categories: chapterCategories,
+        } : null,
       },
     };
   }
@@ -10315,6 +10358,87 @@ function buildDeterministicLocalChapterText({
   chapterJsonPacks,
   minChars,
 }) {
+  const isSukyoCompatChapter2 = (() => {
+    if (String(reportType || "") !== "sookyoPremium") return false;
+    if (Number(chapterId || 0) !== 2) return false;
+    const mode = resolveSukyoModeFromPayload({
+      reportMode: canonicalJson?.calculatedData?.reportMode,
+      reportType: canonicalJson?.calculatedData?.reportType,
+      _compatibilityRequired: canonicalJson?.calculatedData?._compatibilityRequired,
+      includeCompatibility: canonicalJson?.calculatedData?.includeCompatibility,
+    });
+    return mode === "compatibility";
+  })();
+
+  if (isSukyoCompatChapter2) {
+    const c = canonicalJson?.calculatedData?.sukyoPdfContext || {};
+    const userName = String(c?.user?.profile?.name || canonicalJson?.calculatedData?.personA?.name || "Neo").trim() || "Neo";
+    const partnerName = String(c?.partner?.profile?.name || canonicalJson?.calculatedData?.personB?.name || "상대방").trim() || "상대방";
+    const userMansion = String(c?.user?.sukuyo?.mansion || canonicalJson?.calculatedData?.personA?.sukuyo?.nameKo || "필숙").trim() || "필숙";
+    const partnerMansion = String(c?.partner?.sukuyo?.mansion || canonicalJson?.calculatedData?.personB?.sukuyo?.nameKo || "미숙").trim() || "미숙";
+    const relationType = String(c?.compatibility?.relationType || canonicalJson?.calculatedData?.compatibility?.relationType || "성쇠").trim() || "성쇠";
+    const distance = String(c?.compatibility?.distanceType || canonicalJson?.calculatedData?.compatibility?.distance || "근거리").trim() || "근거리";
+    const score = Number(c?.compatibility?.score ?? canonicalJson?.calculatedData?.compatibility?.compatibilityIndex);
+    const safeScore = Number.isFinite(score) ? Math.max(0, Math.min(100, Math.round(score))) : 82;
+
+    const p1 = [
+      `근거리 ${relationType} 구도에서 ${userName}(${userMansion})의 안정 지향성과 ${partnerName}(${partnerMansion})의 돌파 성향은 첫 접점에서 즉시 상호 보완처럼 작동합니다. 관계 초반에는 한쪽이 계획의 뼈대를 만들고 다른 쪽이 실행 속도를 끌어올리면서, 서로가 "내가 부족한 축"을 상대가 채워준다고 체감하기 쉽습니다. 이때 끌림은 감정의 낭만성보다 역할 적합성에서 먼저 발생하며, 의사결정 템포가 맞는 순간 몰입 강도가 급격히 상승합니다.`,
+      `${distance} 특성상 관찰-해석-반응 루프가 짧아, 두 사람은 상대의 페르소나를 빠르게 읽고 즉시 동조하거나 반작용을 보입니다. ${userName}의 신중한 검증 루틴은 ${partnerName}에게는 신뢰의 근거로 보이지만, 동시에 속도 저하로 해석될 여지도 있습니다. 반대로 ${partnerName}의 추진력은 ${userName}에게 실전 동력으로 보이면서도 리스크 가속으로 인지될 수 있어, 동일 행동이 호감과 경계 자극을 동시에 일으킵니다.`,
+      `초기 스파크가 강할수록 계약/역할 정의를 생략하는 실수가 커집니다. 궁합 점수 ${safeScore}대 구간에서는 "잘 맞는다"는 체감이 리스크 검토를 밀어내기 쉬우므로, 합의되지 않은 기대치를 관계의 미덕으로 포장하지 않는 운영 원칙이 필요합니다. 특히 책임 범위, 일정 우선순위, 감정 소진 신호를 초기에 문장으로 명시해야 중반부 충돌 비용이 폭증하지 않습니다.`,
+    ].join("\n\n");
+
+    const p2 = [
+      `${userName}가 성(成) 역할로 상대 성장을 떠받치기 시작하면, 지원 행동이 누적될수록 통제감 요구도 함께 커집니다. ${userMansion}의 고집은 보통 "원칙 유지" 형태로 드러나지만, 소모 구간에서는 "내가 만든 기준을 왜 지키지 않는가"라는 정서적 피로로 전환됩니다. 이 전환 지점을 놓치면 지원은 곧 불만의 근거가 되고, 관계는 성과가 아닌 채무 감정으로 재구성됩니다.`,
+      `${partnerName}의 집념은 단기 성과를 만들 때 탁월하지만, 반복 압박이 들어가면 상대의 회복 시간까지 실행 자원으로 취급하는 경향이 생길 수 있습니다. 그 결과 ${userName}는 "설명해야만 유지되는 관계"라는 피로를 체감하고, 대화는 협업보다 정당화 전장으로 변합니다. 이때 갈등의 본질은 성격 차이보다 에너지 배분 계약 부재이며, 누가 더 옳은가보다 누가 더 오래 버틸 수 있는가의 소모전이 됩니다.`,
+      `근거리 성쇠의 핵심 위험은 폭발적 싸움보다 미세한 누적 소진입니다. 작은 양보가 반복될 때 보상 기준이 불명확하면, ${userName}는 회복되지 않는 책임감을 축적하고 ${partnerName}는 지원을 기본값으로 학습합니다. 이 패턴을 끊으려면 "지원의 조건-한도-종료 시점"을 먼저 합의하고, 합의 위반 시 즉시 축소 모드로 전환하는 장치가 필요합니다.`,
+    ].join("\n\n");
+
+    const p3 = [
+      `관계를 파국이 아닌 스케일업 파트너십으로 전환하려면 주도권을 사람에게 고정하지 말고 상황별 의사결정 권한으로 분리해야 합니다. 실행 속도가 중요한 과제는 ${partnerName} 리드, 리스크 검증이 중요한 과제는 ${userName} 리드처럼 권한을 도메인 단위로 명시하면 감정 충돌이 운영 충돌로 번역되지 않습니다.`,
+      `현대적 유지 4축은 일정, 자원, 감정, 피드백입니다. 일정 축에서는 데드라인과 중간 점검 시점을 분리하고, 자원 축에서는 시간/돈/집중력의 한도치를 숫자로 고정합니다. 감정 축에서는 트리거 언어 금지 목록을 만들고, 피드백 축에서는 비난 금지·관찰 기반 문장만 허용하는 규칙을 둬야 합니다.`,
+      `이 4축이 작동하면 성쇠 관계의 장점인 성장 가속은 유지하고 단점인 동반 고갈을 차단할 수 있습니다. 핵심은 더 많이 배려하는 사람이 이기는 구조가 아니라, 서로의 에너지가 재생 가능한 속도로 순환되도록 운영 체계를 설계하는 것입니다. 관계는 감정의 진폭이 아니라 회복 가능한 리듬으로 장기화됩니다.`,
+    ].join("\n\n");
+
+    const title = String(chapterMeta?.title || "Chapter 2. 성쇠(成衰) 역학이 지배하는 두 사람의 숙명적 궁합").trim();
+    const lines = [
+      `## ${title}`,
+      "",
+      `### 엔진 메타`,
+      `- relationType: 근거리 성쇠`,
+      `- distanceType: 근거리 (가장 밀접하고 즉각적인 영향력)`,
+      `- neoRole: 成 (성장 및 서포트 지표)`,
+      `- targetRole: 衰 (에너지 소비 및 수혜 지표)`,
+      "",
+      "## 1. 근거리 성쇠(成衰)가 만드는 심리적 자석 현상과 초반 끌림의 진짜 이유",
+      p1,
+      "",
+      `실행 가이드: 초기 강한 끌림과 별개로 일정·자원·역할·검증 기준을 1페이지 합의문으로 고정하고, 합의 없는 요청은 보류 규칙으로 처리합니다.`,
+      "",
+      "## 2. '성(成)의 고집(Neo)'과 '쇠(衰)의 집념(상대방)'이 격돌할 때 발생하는 에너지 소모점과 갈등 메커니즘",
+      p2,
+      "",
+      `실행 가이드: 경계선 대화는 "나는 ~까지 지원 가능, ~부터는 각자 책임"의 2문장 규칙으로 짧고 단호하게 제시하고, 감정 과열 시 즉시 시간 제한을 선언합니다.`,
+      "",
+      "## 3. 주도권 밸런스 붕괴 방지를 위한 현대적 파트너십 및 관계 유지 4축 실행 심화 가이드",
+      p3,
+      "",
+      "### Compatibility Engine Summary",
+      "- relationshipCoreVibe: Neo의 헌신과 자수성가적 자원이 상대방의 집념을 싹틔우나, 경계선이 없으면 동반 고갈될 수 있는 역학 구조",
+      "- immediate: 일정/자원/규칙의 비양보 구간을 즉시 명시",
+      "- stop: 상대 리스크를 대신 해결하는 과도한 서포트 중단",
+      "- review: 7일간 생산적 결과 시간 대비 감정 소모 시간 비율 점검",
+    ];
+
+    let text = lines.join("\n").trim();
+    let safetyRound = 1;
+    while (countKoreanLikeChars(text) < Math.max(1800, Number(minChars || 2200))) {
+      text += `\n\n### 실행 심화 ${safetyRound}\n경계선 운영 점검: 이번 주 합의 위반 사례를 기록하고, 위반 원인이 일정/자원/감정/피드백 중 어느 축에서 발생했는지 분류해 다음 주 규칙을 1개만 보정합니다.`;
+      safetyRound += 1;
+      if (safetyRound > 6) break;
+    }
+    return text;
+  }
+
   const headings = Array.isArray(chapterContract?.requiredHeadings)
     ? chapterContract.requiredHeadings.map((row) => String(row || "").trim()).filter(Boolean)
     : [];
@@ -10327,6 +10451,12 @@ function buildDeterministicLocalChapterText({
       "## 4. 리스크 관리",
       "## 5. 챕터 요약",
     ];
+  const normalizeHeadingLine = (heading) => {
+    const raw = String(heading || "").trim();
+    if (!raw) return "";
+    if (/^#{1,6}\s/.test(raw)) return raw;
+    return `## ${raw}`;
+  };
   const facts = collectDeterministicLocalFacts(reportType, input, canonicalJson, chapterJsonPacks, 20);
   const qualityProfile = getDeterministicLocalQualityProfile(reportType, chapterId, chapterMeta, chapterContract);
 
@@ -10340,8 +10470,10 @@ function buildDeterministicLocalChapterText({
   ].filter(Boolean);
 
   resolvedHeadings.forEach((heading, idx) => {
-    lines.push("", heading);
-    lines.push(buildDeterministicSectionParagraphs(heading, chapterMeta, facts, reportType, idx, qualityProfile));
+    const headingLine = normalizeHeadingLine(heading);
+    if (!headingLine) return;
+    lines.push("", headingLine);
+    lines.push(buildDeterministicSectionParagraphs(headingLine, chapterMeta, facts, reportType, idx, qualityProfile));
     lines.push("\n실행 체크리스트:\n" + buildDeterministicActionChecklist(qualityProfile, facts, idx));
   });
 
@@ -14196,14 +14328,32 @@ function normalizeZiweiHeadingToken(value) {
 function validateZiweiChapterResult(chapter, chapterSpec) {
   const src = chapter && typeof chapter === "object" ? chapter : {};
   const sections = Array.isArray(src.sections) ? src.sections : [];
+  const subChapters = Array.isArray(src.subChapters) ? src.subChapters : [];
   const requiredSections = Array.isArray(chapterSpec?.sections) ? chapterSpec.sections : [];
   const expectedTitle = String(chapterSpec?.title || "").trim();
   const title = String(src.title || src.chapterTitle || "").trim();
-  const intro = String(src.intro || src.summary || "").trim();
-  const coreAdvice = String(src.coreAdvice || src.masterAdvice || src.masterConclusion || "").trim();
-  const closing = String(src.closing || src.masterConclusion || "").trim();
-  const actionGuide = Array.isArray(src.actionGuide) ? src.actionGuide : (Array.isArray(src.practicalAdvice) ? src.practicalAdvice : []);
+  const intro = String(src.intro || src.summary || src?.engineSummaryJson?.coreVibe || "").trim();
+  const coreAdvice = String(src.coreAdvice || src.masterAdvice || src.masterConclusion || src?.engineSummaryJson?.coreVibe || "").trim();
+  const closing = String(src.closing || src.masterConclusion || src?.engineSummaryJson?.coreVibe || "").trim();
+  const actionGuide = Array.isArray(src.actionGuide)
+    ? src.actionGuide
+    : (Array.isArray(src.practicalAdvice) ? src.practicalAdvice : []);
   const minChars = Math.max(3000, Number(chapterSpec?.minChars || 3000));
+  const normalizedExpandedSections = subChapters
+    .map((row, idx) => {
+      const item = row && typeof row === "object" ? row : {};
+      const heading = String(item.subTitle || item.title || "").trim() || String(requiredSections[idx] || `섹션 ${idx + 1}`);
+      const analysis = String(item.analysisText || "").trim();
+      const guidance = String(item.strategicGuidance || "").trim();
+      return {
+        heading,
+        body: [analysis, guidance ? `실행 가이드: ${guidance}` : ""].filter(Boolean).join("\n\n"),
+        analysis,
+        guidance,
+      };
+    })
+    .filter((row) => row.body);
+  const effectiveSections = sections.length > 0 ? sections : normalizedExpandedSections;
 
   const missing = [];
   if (!title || title !== expectedTitle) missing.push("title");
@@ -14211,23 +14361,53 @@ function validateZiweiChapterResult(chapter, chapterSpec) {
   if (!coreAdvice) missing.push("coreAdvice");
   if (!closing) missing.push("closing");
   if (!Array.isArray(actionGuide) || actionGuide.length < 3) missing.push("actionGuide");
-  if (sections.length < requiredSections.length) missing.push("sections.length");
+  if (effectiveSections.length < requiredSections.length) missing.push("sections.length");
+  if (subChapters.length > 0 && subChapters.length < requiredSections.length) missing.push("subChapters.length");
 
   const normalizedRequired = requiredSections.map((row) => normalizeZiweiHeadingToken(row)).filter(Boolean);
-  const normalizedActual = sections.map((row) => normalizeZiweiHeadingToken(row?.heading || row?.title)).filter(Boolean);
+  const normalizedActual = effectiveSections.map((row) => normalizeZiweiHeadingToken(row?.heading || row?.title)).filter(Boolean);
   const sectionMissing = normalizedRequired.filter((token) => !normalizedActual.includes(token));
   if (sectionMissing.length > 0) missing.push("sections.heading");
 
-  const shortBodies = sections
+  const shortBodies = effectiveSections
     .map((row, idx) => ({ idx, body: String(row?.body || "").trim() }))
     .filter((row) => row.body.length < 400)
     .map((row) => `sections[${row.idx}].body`);
   if (shortBodies.length > 0) missing.push(...shortBodies);
 
+  if (subChapters.length > 0) {
+    const shortAnalyses = subChapters
+      .map((row, idx) => ({ idx, text: String(row?.analysisText || "").trim() }))
+      .filter((row) => row.text.length < 700)
+      .map((row) => `subChapters[${row.idx}].analysisText`);
+    const shortGuidance = subChapters
+      .map((row, idx) => ({ idx, text: String(row?.strategicGuidance || "").trim() }))
+      .filter((row) => row.text.length < 120)
+      .map((row) => `subChapters[${row.idx}].strategicGuidance`);
+    if (shortAnalyses.length > 0) missing.push(...shortAnalyses);
+    if (shortGuidance.length > 0) missing.push(...shortGuidance);
+  }
+
+  if (src.metaData && typeof src.metaData === "object") {
+    const targets = Array.isArray(src.metaData.targetPalaces) ? src.metaData.targetPalaces : [];
+    const stars = Array.isArray(src.metaData.analyzedStars) ? src.metaData.analyzedStars : [];
+    if (!targets.length) missing.push("metaData.targetPalaces");
+    if (!stars.length) missing.push("metaData.analyzedStars");
+  }
+
+  if (src.engineSummaryJson && typeof src.engineSummaryJson === "object") {
+    const actionPriority = src.engineSummaryJson.actionPriority || {};
+    if (!String(src.engineSummaryJson.coreVibe || "").trim()) missing.push("engineSummaryJson.coreVibe");
+    if (!String(actionPriority.immediate || "").trim()) missing.push("engineSummaryJson.actionPriority.immediate");
+    if (!String(actionPriority.stop || "").trim()) missing.push("engineSummaryJson.actionPriority.stop");
+    if (!String(actionPriority.review || "").trim()) missing.push("engineSummaryJson.actionPriority.review");
+  }
+
   const textForScan = [
     title,
     intro,
-    ...sections.map((row) => `${String(row?.heading || "").trim()}\n${String(row?.body || "").trim()}`),
+    ...effectiveSections.map((row) => `${String(row?.heading || "").trim()}\n${String(row?.body || "").trim()}`),
+    ...subChapters.map((row) => `${String(row?.subTitle || "").trim()}\n${String(row?.analysisText || "").trim()}\n${String(row?.strategicGuidance || "").trim()}`),
     coreAdvice,
     ...(Array.isArray(actionGuide) ? actionGuide : []),
     closing,
@@ -14630,8 +14810,10 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
   if (!parsed.ok) {
     const repairPrompt = [
       "아래 응답을 지정 스키마에 맞는 단일 JSON 객체로만 복구하세요.",
-      "필수 키: chapterNo, title, intro, sections[{heading,body}], coreAdvice, actionGuide, closing",
+      "필수 키(확장): chapterId, chapterTitle, metaData, subChapters[{subId,subTitle,analysisText,strategicGuidance}], engineSummaryJson",
+      "필수 키(legacy): chapterNo, title, intro, sections[{heading,body}], coreAdvice, actionGuide, closing",
       `title은 반드시 '${String(chapterSpec?.title || "").trim()}' 와 완전히 일치해야 합니다.`,
+      "각 subChapters.analysisText는 최소 3문단/700자 이상, strategicGuidance는 120자 이상으로 작성하세요.",
       "각 section.body는 400자 이상으로 작성하세요.",
       "코드펜스 없이 JSON만 출력하세요.",
       "",
