@@ -7423,12 +7423,10 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
       chapterId: Number(chapterId || 1),
       chapterMeta,
       chapterContract,
-      chapterJson: chapterJsonPacks,
-      coreData: reportData,
+      input: context?.input || {},
+      reportData,
+      chapterJsonPacks,
       minChars,
-      previousChapterTexts,
-      fallbackReason: "SUKYO_LOCAL_FORCE_FALLBACK",
-      forbiddenPhrases: sukuyoForbiddenPhrases,
     });
     return {
       ok: true,
@@ -10201,7 +10199,7 @@ function normalizeLocalFactLabel(path) {
   return map[tail] || key;
 }
 
-function collectDeterministicLocalFacts(reportType, input, canonicalJson, chapterJsonPacks, limit = 18) {
+function collectDeterministicLocalFacts(reportType, input, reportData, chapterJsonPacks, limit = 18) {
   const preferredTokens = [
     "name", "gender", "year", "month", "day", "hour", "minute",
     "dayMaster", "relation", "compat", "index", "yong", "hui", "gi",
@@ -10210,9 +10208,9 @@ function collectDeterministicLocalFacts(reportType, input, canonicalJson, chapte
 
   const roots = [
     { prefix: "input", value: input },
-    { prefix: "calculated", value: canonicalJson?.calculatedData },
+    { prefix: "calculated", value: reportData?.calculatedData },
     { prefix: "chapter", value: chapterJsonPacks },
-    { prefix: "seed", value: canonicalJson?.interpretationSeed },
+    { prefix: "seed", value: reportData?.interpretationSeed },
   ];
 
   const rows = [];
@@ -10393,7 +10391,7 @@ function buildDeterministicLocalChapterText({
   chapterMeta,
   chapterContract,
   input,
-  canonicalJson,
+  reportData,
   chapterJsonPacks,
   minChars,
 }) {
@@ -10401,23 +10399,23 @@ function buildDeterministicLocalChapterText({
     if (String(reportType || "") !== "sookyoPremium") return false;
     if (Number(chapterId || 0) !== 2) return false;
     const mode = resolveSukyoModeFromPayload({
-      reportMode: canonicalJson?.calculatedData?.reportMode,
-      reportType: canonicalJson?.calculatedData?.reportType,
-      _compatibilityRequired: canonicalJson?.calculatedData?._compatibilityRequired,
-      includeCompatibility: canonicalJson?.calculatedData?.includeCompatibility,
+      reportMode: reportData?.calculatedData?.reportMode,
+      reportType: reportData?.calculatedData?.reportType,
+      _compatibilityRequired: reportData?.calculatedData?._compatibilityRequired,
+      includeCompatibility: reportData?.calculatedData?.includeCompatibility,
     });
     return mode === "compatibility";
   })();
 
   if (isSukyoCompatChapter2) {
-    const c = canonicalJson?.calculatedData?.sukyoPdfContext || {};
-    const userName = String(c?.user?.profile?.name || canonicalJson?.calculatedData?.personA?.name || "Neo").trim() || "Neo";
-    const partnerName = String(c?.partner?.profile?.name || canonicalJson?.calculatedData?.personB?.name || "상대방").trim() || "상대방";
-    const userMansion = String(c?.user?.sukuyo?.mansion || canonicalJson?.calculatedData?.personA?.sukuyo?.nameKo || "필숙").trim() || "필숙";
-    const partnerMansion = String(c?.partner?.sukuyo?.mansion || canonicalJson?.calculatedData?.personB?.sukuyo?.nameKo || "미숙").trim() || "미숙";
-    const relationType = String(c?.compatibility?.relationType || canonicalJson?.calculatedData?.compatibility?.relationType || "성쇠").trim() || "성쇠";
-    const distance = String(c?.compatibility?.distanceType || canonicalJson?.calculatedData?.compatibility?.distance || "근거리").trim() || "근거리";
-    const score = Number(c?.compatibility?.score ?? canonicalJson?.calculatedData?.compatibility?.compatibilityIndex);
+    const c = reportData?.calculatedData?.sukyoPdfContext || {};
+    const userName = String(c?.user?.profile?.name || reportData?.calculatedData?.personA?.name || "Neo").trim() || "Neo";
+    const partnerName = String(c?.partner?.profile?.name || reportData?.calculatedData?.personB?.name || "상대방").trim() || "상대방";
+    const userMansion = String(c?.user?.sukuyo?.mansion || reportData?.calculatedData?.personA?.sukuyo?.nameKo || "필숙").trim() || "필숙";
+    const partnerMansion = String(c?.partner?.sukuyo?.mansion || reportData?.calculatedData?.personB?.sukuyo?.nameKo || "미숙").trim() || "미숙";
+    const relationType = String(c?.compatibility?.relationType || reportData?.calculatedData?.compatibility?.relationType || "성쇠").trim() || "성쇠";
+    const distance = String(c?.compatibility?.distanceType || reportData?.calculatedData?.compatibility?.distance || "근거리").trim() || "근거리";
+    const score = Number(c?.compatibility?.score ?? reportData?.calculatedData?.compatibility?.compatibilityIndex);
     const safeScore = Number.isFinite(score) ? Math.max(0, Math.min(100, Math.round(score))) : 82;
 
     const p1 = [
@@ -10496,7 +10494,7 @@ function buildDeterministicLocalChapterText({
     if (/^#{1,6}\s/.test(raw)) return raw;
     return `## ${raw}`;
   };
-  const facts = collectDeterministicLocalFacts(reportType, input, canonicalJson, chapterJsonPacks, 20);
+  const facts = collectDeterministicLocalFacts(reportType, input, reportData, chapterJsonPacks, 20);
   const qualityProfile = getDeterministicLocalQualityProfile(reportType, chapterId, chapterMeta, chapterContract);
 
   const lines = [
@@ -10545,7 +10543,7 @@ function buildLocalFallbackChapterFromContext({
     chapterMeta,
     chapterContract,
     input: context?.input || {},
-    canonicalJson: context?.coreData?.canonicalJson || {},
+    reportData: getPremiumReportData(context),
     chapterJsonPacks,
     minChars,
   });
@@ -18775,7 +18773,7 @@ function buildLoveSecretLocalFallbackText(modeConfig, chapterMeta, chapter, cano
       mode: String(canonical?.mode || "single"),
       chapter,
     },
-    canonicalJson: canonical || {},
+    reportData: canonical || {},
     chapterJsonPacks: payload?.premiumChapterJsonPacks || {},
     minChars,
   });

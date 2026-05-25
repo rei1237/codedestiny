@@ -386,4 +386,53 @@ export type SajuLoveSecretPdfData = {
   };
 };
 
+export type PremiumPdfReportType =
+  | "ziweiPremium"
+  | "sookyoPremium"
+  | "westernAstrologyPremium"
+  | "vedicPremium"
+  | "lifeBook"
+  | "loveSecret"
+  | "sajuNewYear";
+
+export interface SubChapterData {
+  chapterId: number;
+  chapterKey: string;
+  chapterTitle: string;
+  requiredPaths: string[];
+  requiredData: Record<string, unknown>;
+  chapterContract: {
+    purpose: string;
+    requiredEvidence: string[];
+    recommendedEvidence: string[];
+    fallbackAngle: string;
+    forbiddenTopics: string[];
+    outputStyle: string;
+  };
+  signals: Record<string, unknown>;
+  timing: Record<string, unknown>;
+  actions: Record<string, unknown>;
+}
+
+export interface ReportPDFData<TCalculated = Record<string, unknown>> {
+  reportId: string;
+  reportType: PremiumPdfReportType | string;
+  userId: string;
+  inputHash: string;
+  calculationVersion: string;
+  createdAt: string;
+  input: Record<string, unknown>;
+  calculatedData: TCalculated;
+  reportPayload: TCalculated;
+  interpretationSeed: Record<string, unknown>;
+  chapterData: Record<string, unknown>;
+  chapterJsonById?: Record<string, SubChapterData>;
+  diagnostics?: Record<string, unknown>;
+  missingData?: string[];
+  warnings?: string[];
+  isCompleteForPdf?: boolean;
+  completenessScore?: number;
+  blockingReasons?: string[];
+}
+
 export type { AstroPremiumReportData } from "./astro-premium-report";
