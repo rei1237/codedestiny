@@ -459,6 +459,49 @@
       ].join(',')
     },
     {
+      action: 'openSajuNewYearModal',
+      cardSelector: '.lifebook-tile.saju-newyear-tile',
+      targetSelector: [
+        '[data-action="openSajuNewYearModal"]',
+        '.lifebook-tile.saju-newyear-tile',
+        '.lifebook-tile.saju-newyear-tile .lifebook-tile__inner',
+        '.lifebook-tile.saju-newyear-tile .lifebook-tile__img-wrap',
+        '.lifebook-tile.saju-newyear-tile .lifebook-tile__img',
+        '.lifebook-tile.saju-newyear-tile .lifebook-tile__body',
+        '.lifebook-tile.saju-newyear-tile .lifebook-tile__title',
+        '.lifebook-tile.saju-newyear-tile .lifebook-tile__desc',
+        '.lifebook-tile.saju-newyear-tile .lifebook-tile__cta'
+      ].join(',')
+    },
+    {
+      action: 'openLifeBookModal',
+      cardSelector: '.lifebook-tile[data-action="openLifeBookModal"]',
+      targetSelector: [
+        '[data-action="openLifeBookModal"]',
+        '.lifebook-tile[data-action="openLifeBookModal"]',
+        '.lifebook-tile[data-action="openLifeBookModal"] .lifebook-tile__inner',
+        '.lifebook-tile[data-action="openLifeBookModal"] .lifebook-tile__img-wrap',
+        '.lifebook-tile[data-action="openLifeBookModal"] .lifebook-tile__img',
+        '.lifebook-tile[data-action="openLifeBookModal"] .lifebook-tile__body',
+        '.lifebook-tile[data-action="openLifeBookModal"] .lifebook-tile__title',
+        '.lifebook-tile[data-action="openLifeBookModal"] .lifebook-tile__desc',
+        '.lifebook-tile[data-action="openLifeBookModal"] .lifebook-tile__cta'
+      ].join(',')
+    },
+    {
+      action: 'openLoveSecretModal',
+      cardSelector: '.lovebible-tile[data-action="openLoveSecretModal"]',
+      targetSelector: [
+        '[data-action="openLoveSecretModal"]',
+        '.lovebible-tile[data-action="openLoveSecretModal"]',
+        '.lovebible-tile[data-action="openLoveSecretModal"] .lovebible-tile__inner',
+        '.lovebible-tile[data-action="openLoveSecretModal"] .lovebible-tile__body',
+        '.lovebible-tile[data-action="openLoveSecretModal"] .lovebible-tile__title',
+        '.lovebible-tile[data-action="openLoveSecretModal"] .lovebible-tile__desc',
+        '.lovebible-tile[data-action="openLoveSecretModal"] .lovebible-tile__cta'
+      ].join(',')
+    },
+    {
       action: 'openSibylModal',
       cardSelector: '#sibylSystemSection .sibyl-entry-tile',
       targetSelector: [
@@ -1000,7 +1043,7 @@
       '.lovebible-tile__inner, .lovebible-tile__body, .lovebible-tile__title, .lovebible-tile__desc, .lovebible-tile__features, .lovebible-tile__cta,',
       '.lovesim-tile__inner, .lovesim-tile__body, .lovesim-tile__title, .lovesim-tile__desc, .lovesim-tile__features, .lovesim-tile__cta,',
       '.sibyl-entry-inner, .sibyl-entry-img-col, .sibyl-entry-img, .sibyl-entry-content,',
-      '[data-action="openLifeBookModal"], [data-action="openLoveSecretModal"], [data-action="openLoveSimulation"], [data-action="openSibylModal"] {',
+      '[data-action="openSajuNewYearModal"], [data-action="openLifeBookModal"], [data-action="openLoveSecretModal"], [data-action="openLoveSimulation"], [data-action="openSibylModal"] {',
       '  touch-action: manipulation;',
       '  -webkit-tap-highlight-color: transparent;',
       '  cursor: pointer;',
