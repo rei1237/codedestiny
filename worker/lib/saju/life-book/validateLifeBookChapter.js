@@ -34,6 +34,80 @@ function normalizeSections(value) {
     .filter((item) => item.title || item.body);
 }
 
+function normalizeSubChapters(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index) => {
+      const row = item && typeof item === "object" ? item : {};
+      return {
+        subId: toStringSafe(row.subId) || `sub-${index + 1}`,
+        subTitle: sanitizeReadableText(row.subTitle || row.title),
+        analysisText: sanitizeReadableText(row.analysisText || row.body),
+        strategicGuidance: sanitizeReadableText(row.strategicGuidance || row.guidance),
+      };
+    })
+    .filter((row) => row.subTitle || row.analysisText || row.strategicGuidance);
+}
+
+function normalizeExpandedChapterJson(source = {}) {
+  const src = source && typeof source === "object" ? source : {};
+  const subChapters = normalizeSubChapters(src.subChapters);
+  const summary = sanitizeReadableText(src.summary || src?.engineSummaryJson?.coreVibe);
+  const practicalAdvice = normalizeAdvice(
+    src.practicalAdvice
+    || [
+      src?.engineSummaryJson?.actionPriority?.immediate,
+      src?.engineSummaryJson?.actionPriority?.stop,
+      src?.engineSummaryJson?.actionPriority?.review,
+    ]
+  );
+  const cautions = normalizeAdvice(src.cautions || [src?.engineSummaryJson?.actionPriority?.stop]);
+  const sections = normalizeSections(src.sections || subChapters.map((row) => ({
+    title: row.subTitle,
+    body: [
+      row.analysisText,
+      row.strategicGuidance ? `실행 가이드: ${row.strategicGuidance}` : "",
+    ].filter(Boolean).join("\n\n"),
+  })));
+  const keyInsights = normalizeAdvice(src.keyInsights || [summary]);
+
+  return {
+    chapterId: toStringSafe(src.chapterId || src.id),
+    chapterTitle: sanitizeReadableText(src.chapterTitle || src.title),
+    metaData: src.metaData && typeof src.metaData === "object" ? src.metaData : {},
+    subChapters,
+    engineSummaryJson: src.engineSummaryJson && typeof src.engineSummaryJson === "object" ? src.engineSummaryJson : {
+      coreVibe: summary,
+      actionPriority: {
+        immediate: practicalAdvice[0] || "",
+        stop: practicalAdvice[1] || cautions[0] || "",
+        review: practicalAdvice[2] || "",
+      },
+    },
+    summary,
+    sections,
+    keyInsights,
+    practicalAdvice,
+    cautions,
+  };
+}
+
+function renderExpandedMarkdown(title, subtitle, summary, subChapters = []) {
+  const lines = [
+    title ? `## ${title}` : "",
+    subtitle ? `> ${subtitle}` : "",
+    summary,
+  ].filter(Boolean);
+
+  subChapters.forEach((row) => {
+    if (row.subTitle) lines.push("", `### ${row.subTitle}`);
+    if (row.analysisText) lines.push(row.analysisText);
+    if (row.strategicGuidance) lines.push("", `실행 가이드: ${row.strategicGuidance}`);
+  });
+
+  return lines.join("\n").trim();
+}
+
 function countHeadings(markdown) {
   const source = toStringSafe(markdown);
   if (!source) return 0;
@@ -206,31 +280,51 @@ export function parseLifeBookChapterResponse(rawText, chapterConfig) {
         && typeof parsed.chapterJson === "object"
         && !Array.isArray(parsed.chapterJson)
       ) ? parsed.chapterJson : {};
-      const summary = sanitizeReadableText(parsed.summary || parsedChapterJson.summary);
+      const expandedSource = Array.isArray(parsed?.subChapters)
+        ? parsed
+        : ((parsedChapterJson?.subChapters && typeof parsedChapterJson === "object") ? parsedChapterJson : {});
+      const expandedChapterJson = normalizeExpandedChapterJson(expandedSource);
+      const summary = sanitizeReadableText(parsed.summary || parsedChapterJson.summary || expandedChapterJson.summary);
       const practicalAdvice = normalizeAdvice(parsed.practicalAdvice || parsedChapterJson.practicalAdvice);
       const warnings = normalizeAdvice(parsed.warnings || parsedChapterJson.cautions);
-      const sections = normalizeSections(parsed.sections || parsedChapterJson.sections || parseSectionsFromMarkdown(parsed.contentMarkdown));
-      const keyInsights = normalizeAdvice(parsed.keyInsights || parsedChapterJson.keyInsights || []);
+      const sections = normalizeSections(
+        parsed.sections
+        || parsedChapterJson.sections
+        || expandedChapterJson.sections
+        || parseSectionsFromMarkdown(parsed.contentMarkdown)
+      );
+      const keyInsights = normalizeAdvice(parsed.keyInsights || parsedChapterJson.keyInsights || expandedChapterJson.keyInsights || []);
+      const contentMarkdown = toStringSafe(parsed.contentMarkdown)
+        .replace(/\*\*([^*]+)\*\*/g, "$1")
+        .replace(/__([^_]+)__/g, "$1")
+        || renderExpandedMarkdown(
+          sanitizeReadableText(parsed.title) || sanitizeReadableText(parsed.chapterTitle) || chapterConfig.title,
+          sanitizeReadableText(parsed.subtitle) || chapterConfig.subtitle,
+          summary,
+          expandedChapterJson.subChapters,
+        );
+      const mergedPracticalAdvice = practicalAdvice.length ? practicalAdvice : expandedChapterJson.practicalAdvice;
+      const mergedWarnings = warnings.length ? warnings : expandedChapterJson.cautions;
+      const mergedChapterJson = {
+        ...expandedChapterJson,
+        summary,
+        sections: sections.length ? sections : expandedChapterJson.sections,
+        keyInsights: keyInsights.length ? keyInsights : expandedChapterJson.keyInsights,
+        practicalAdvice: mergedPracticalAdvice,
+        cautions: mergedWarnings,
+      };
       return {
         id: toStringSafe(parsed.id) || chapterConfig.id,
         roman: toStringSafe(parsed.roman) || chapterConfig.roman,
-        title: sanitizeReadableText(parsed.title) || chapterConfig.title,
+        title: sanitizeReadableText(parsed.title || parsed.chapterTitle) || chapterConfig.title,
         subtitle: sanitizeReadableText(parsed.subtitle) || chapterConfig.subtitle,
-        contentMarkdown: toStringSafe(parsed.contentMarkdown)
-          .replace(/\*\*([^*]+)\*\*/g, "$1")
-          .replace(/__([^_]+)__/g, "$1"),
+        contentMarkdown,
         summary,
         sections,
-        keyInsights,
-        practicalAdvice,
-        warnings,
-        chapterJson: {
-          summary,
-          sections,
-          keyInsights,
-          practicalAdvice,
-          cautions: warnings,
-        },
+        keyInsights: mergedChapterJson.keyInsights,
+        practicalAdvice: mergedPracticalAdvice,
+        warnings: mergedWarnings,
+        chapterJson: mergedChapterJson,
         parseFallbackUsed: false,
       };
     } catch {

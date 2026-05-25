@@ -75,6 +75,7 @@ import {
   VEDIC_SOLO_TARGET_CHARS,
 } from "../lib/vedic-premium-chapters.js";
 import { buildLifeBookInputData } from "../lib/saju/life-book/buildLifeBookInputData.js";
+import { buildLifeBookChapterJsonBlueprint } from "../lib/saju/life-book/generateLifeBookChapter.js";
 import { generateLifeBookPdf } from "../lib/saju/life-book/generateLifeBookPdf.js";
 import { renderLifeBookPdf } from "../lib/saju/life-book/renderLifeBookPdf.js";
 
@@ -2531,18 +2532,18 @@ function buildPremiumContextSummary(context) {
   };
 }
 
-function buildPromptSourceDataByChapter(reportType, canonicalJson, totalChapters, chapterJsonById = {}) {
+function buildPromptSourceDataByChapter(reportType, reportData, totalChapters, chapterJsonById = {}) {
   const chapterCount = Math.max(1, Math.min(24, Number(totalChapters || 13)));
   const result = {};
   for (let chapterId = 1; chapterId <= chapterCount; chapterId += 1) {
     const prebuilt = chapterJsonById?.[String(chapterId)] || null;
-    result[String(chapterId)] = buildPromptSourceData(reportType, chapterId, canonicalJson, prebuilt);
+    result[String(chapterId)] = buildPromptSourceData(reportType, chapterId, reportData, prebuilt);
   }
   return result;
 }
 
 function ensurePremiumPromptAndPdfSourceData(context) {
-  const canonicalJson = context?.coreData?.canonicalJson || {};
+  const reportData = getPremiumReportData(context);
   context.derivedData = context.derivedData || {};
   context.derivedData.chapterJsonById = context.derivedData.chapterJsonById || {};
   const totalChapters = Number(context?.requiredChapters || context?.totalChapters || 13);
@@ -2552,14 +2553,14 @@ function ensurePremiumPromptAndPdfSourceData(context) {
       context.derivedData.chapterJsonById[String(chapterId)] = buildChapterJsonPacks(
         context.reportType,
         chapterId,
-        canonicalJson,
+        reportData,
       );
     }
   }
 
   context.derivedData.promptSourceDataByChapter = buildPromptSourceDataByChapter(
     context.reportType,
-    canonicalJson,
+    reportData,
     totalChapters,
     context.derivedData.chapterJsonById,
   );
@@ -2567,26 +2568,26 @@ function ensurePremiumPromptAndPdfSourceData(context) {
   context.derivedData.pdfSourceData = {
     reportType: context.reportType,
     reportId: context.reportId,
-    reportPayload: canonicalJson?.reportPayload || canonicalJson?.calculatedData || {},
-    calculatedData: canonicalJson?.calculatedData || {},
-    interpretationSeed: canonicalJson?.interpretationSeed || {},
-    chapterData: canonicalJson?.chapterData || {},
+    reportPayload: reportData.reportPayload || {},
+    calculatedData: reportData.calculatedData || {},
+    interpretationSeed: reportData.interpretationSeed || {},
+    chapterData: reportData.chapterData || {},
     chapterJsonById: context.derivedData.chapterJsonById,
   };
 }
 
 function buildPremiumChapterPreflightChecks(context) {
-  const canonicalJson = context?.coreData?.canonicalJson || {};
+  const reportData = getPremiumReportData(context);
   const chapterPlan = Array.isArray(context?.derivedData?.chapterPlan) ? context.derivedData.chapterPlan : [];
   const chapterCount = Math.max(1, Number(context?.requiredChapters || context?.totalChapters || 13));
   const checks = [];
 
   for (let chapterId = 1; chapterId <= chapterCount; chapterId += 1) {
     const chapterKey = `ch${chapterId}`;
-    const chapterMeta = canonicalJson?.chapterData?.[chapterKey] || {};
+    const chapterMeta = reportData?.chapterData?.[chapterKey] || {};
     const planMeta = chapterPlan[chapterId - 1] || {};
     const requiredDataKeys = Array.isArray(chapterMeta?.requiredPaths) ? chapterMeta.requiredPaths : [];
-    const missingFields = requiredDataKeys.filter((path) => pathMissing(canonicalJson, path));
+    const missingFields = requiredDataKeys.filter((path) => pathMissing(reportData, path));
     const requiredCount = requiredDataKeys.length;
     const satisfiedCount = Math.max(0, requiredCount - missingFields.length);
     const chapterQualityScore = requiredCount > 0
@@ -2611,7 +2612,7 @@ function buildPremiumChapterPreflightChecks(context) {
 
 function buildPremiumPreflightResult(context) {
   ensurePremiumPromptAndPdfSourceData(context);
-  const canonicalJson = context?.coreData?.canonicalJson || {};
+  const reportData = getPremiumReportData(context);
   const rawEngineResult = context?.derivedData?.rawEngineResult || null;
   const promptSourceData = context?.derivedData?.promptSourceDataByChapter || {};
   const pdfSourceData = context?.derivedData?.pdfSourceData || {};
@@ -2621,11 +2622,11 @@ function buildPremiumPreflightResult(context) {
   const chapterAvailabilityRatio = chapterChecks.length > 0
     ? creatableChapterCount / chapterChecks.length
     : 0;
-  const canonicalScore = Number(canonicalJson?.completenessScore || 0);
+  const canonicalScore = Number(reportData?.completenessScore || 0);
   const hasRawEngineResult = hasMeaningfulValue(rawEngineResult);
   const hasPromptSourceData = hasMeaningfulValue(promptSourceData);
   const hasPdfSourceData = hasMeaningfulValue(pdfSourceData?.calculatedData || pdfSourceData?.reportPayload);
-  const hasCanonicalData = hasMeaningfulValue(canonicalJson?.calculatedData || canonicalJson?.reportPayload);
+  const hasCanonicalData = hasMeaningfulValue(reportData?.calculatedData || reportData?.reportPayload);
   const hasUserInput = hasMeaningfulValue(context?.input);
   const hasAnyGenerationSource = hasRawEngineResult || hasPromptSourceData || hasPdfSourceData || hasCanonicalData || hasUserInput;
   const fatalMissing = [];
@@ -2688,7 +2689,7 @@ function upsertPremiumAnalysisSnapshot(context, rawEngineResult = null) {
   if (rawEngineResult && typeof rawEngineResult === "object") {
     context.derivedData.rawEngineResult = rawEngineResult;
   } else if (!context.derivedData.rawEngineResult) {
-    context.derivedData.rawEngineResult = context?.coreData?.canonicalJson?.reportPayload || null;
+    context.derivedData.rawEngineResult = getPremiumReportData(context).reportPayload || null;
   }
 
   const preflight = buildPremiumPreflightResult(context);
@@ -2700,7 +2701,7 @@ function upsertPremiumAnalysisSnapshot(context, rawEngineResult = null) {
     reportType: context.reportType,
     featureType: context.featureType || REPORT_TYPE_TO_FEATURE_TYPE[context.reportType] || "",
     rawEngineResult: context?.derivedData?.rawEngineResult || null,
-    normalizedResult: context?.coreData?.canonicalJson?.calculatedData || {},
+    normalizedResult: getPremiumReportData(context).calculatedData || {},
     promptSourceData: context?.derivedData?.promptSourceDataByChapter || {},
     pdfSourceData: context?.derivedData?.pdfSourceData || {},
     preflight,
@@ -3278,10 +3279,11 @@ async function generateGuaranteedPremiumChapter(env, {
   failureMessage,
 }) {
   const meta = resolvePremiumChapterMeta(context, chapterId);
+  const reportData = getPremiumReportData(context);
   const llmInput = buildLlmPromptInput(
     context?.reportType,
     chapterId,
-    context?.coreData?.canonicalJson || {},
+    reportData,
     chapterJsonPacks,
     {
       previousChapterSummaries: summarizePreviousPremiumChapters(context, chapterId),
@@ -3295,7 +3297,7 @@ async function generateGuaranteedPremiumChapter(env, {
     : [];
   const spec = resolveChapterSpec(context?.reportType, context?.featureType, context?.modeKey, chapterId);
   const minChars = Math.max(1800, Number(spec?.chapterSpec?.minChars || 2400));
-  const rawData = stringifyCompact(context?.coreData?.canonicalJson?.calculatedData || context?.coreData?.canonicalJson || {}, 18000);
+  const rawData = stringifyCompact(reportData?.reportPayload || reportData?.calculatedData || chapterJsonPacks || {}, 18000);
 
   const prompt = [
     "너는 Code Destiny 프리미엄 PDF 전문 상담가다.",
@@ -6604,23 +6606,24 @@ function buildCanonicalBlockingReasons(reportType, validation) {
   return reasons;
 }
 
-function buildCanonicalJsonForReport(reportType, prepareData, requestBody, authInfo, meta) {
-  const input = requestBody && typeof requestBody === "object" ? requestBody : {};
-  const supplemental = meta?.supplementalCanonicalByType || {};
-  let calculatedData = {};
-
+function mapCanonicalToReportData(reportType, prepareData, requestBody, supplemental = {}) {
   if (reportType === "ziweiPremium") {
-    calculatedData = mapZiweiCalculatedData(prepareData?.canonicalZiweiChart || {});
-  } else if (reportType === "sookyoPremium") {
-    calculatedData = mapSookyoCalculatedData(prepareData?.canonicalSukuyoCompatibility || {}, requestBody);
-  } else if (reportType === "westernAstrologyPremium") {
-    calculatedData = mapWesternAstrologyCalculatedData(prepareData?.canonicalAstroChart || {});
-  } else if (reportType === "vedicPremium") {
-    calculatedData = mapVedicCalculatedData(prepareData?.canonicalVedicChart || {});
-  } else if (reportType === "loveSecret") {
-    calculatedData = mapLoveSecretCalculatedData(prepareData?.canonicalSajuLoveReport || {}, supplemental);
-  } else if (reportType === "lifeBook") {
-    calculatedData = mapLifeBookCalculatedData(
+    return mapZiweiCalculatedData(prepareData?.canonicalZiweiChart || {});
+  }
+  if (reportType === "sookyoPremium") {
+    return mapSookyoCalculatedData(prepareData?.canonicalSukuyoCompatibility || {}, requestBody);
+  }
+  if (reportType === "westernAstrologyPremium") {
+    return mapWesternAstrologyCalculatedData(prepareData?.canonicalAstroChart || {});
+  }
+  if (reportType === "vedicPremium") {
+    return mapVedicCalculatedData(prepareData?.canonicalVedicChart || {});
+  }
+  if (reportType === "loveSecret") {
+    return mapLoveSecretCalculatedData(prepareData?.canonicalSajuLoveReport || {}, supplemental);
+  }
+  if (reportType === "lifeBook") {
+    return mapLifeBookCalculatedData(
       {
         calculatedData: prepareData?.canonicalSajuChart || requestBody?.canonicalSajuChart || {},
         interpretationSeed: {
@@ -6635,9 +6638,48 @@ function buildCanonicalJsonForReport(reportType, prepareData, requestBody, authI
       },
       supplemental,
     );
-  } else if (reportType === "sajuNewYear") {
-    calculatedData = mapSajuNewYearCalculatedData(prepareData?.canonicalSajuNewYearReport || {});
   }
+  if (reportType === "sajuNewYear") {
+    return mapSajuNewYearCalculatedData(prepareData?.canonicalSajuNewYearReport || {});
+  }
+  return {};
+}
+
+function toPremiumReportData(source = {}) {
+  const reportPayload = source?.reportPayload || source?.calculatedData || {};
+  return {
+    reportId: String(source?.reportId || ""),
+    reportType: String(source?.reportType || ""),
+    userId: String(source?.userId || ""),
+    inputHash: String(source?.inputHash || ""),
+    calculationVersion: String(source?.calculationVersion || ""),
+    createdAt: String(source?.createdAt || ""),
+    input: source?.input && typeof source.input === "object" ? source.input : {},
+    calculatedData: source?.calculatedData && typeof source.calculatedData === "object" ? source.calculatedData : {},
+    reportPayload: reportPayload && typeof reportPayload === "object" ? reportPayload : {},
+    interpretationSeed: source?.interpretationSeed && typeof source.interpretationSeed === "object" ? source.interpretationSeed : {},
+    chapterData: source?.chapterData && typeof source.chapterData === "object" ? source.chapterData : {},
+    diagnostics: source?.diagnostics && typeof source.diagnostics === "object" ? source.diagnostics : {},
+    missingData: Array.isArray(source?.missingData) ? source.missingData : [],
+    warnings: Array.isArray(source?.warnings) ? source.warnings : [],
+    isCompleteForPdf: Boolean(source?.isCompleteForPdf),
+    completenessScore: Number(source?.completenessScore || 0),
+    blockingReasons: Array.isArray(source?.blockingReasons) ? source.blockingReasons : [],
+    dataMarkers: source?.dataMarkers && typeof source.dataMarkers === "object" ? source.dataMarkers : {},
+  };
+}
+
+function getPremiumReportData(source) {
+  if (source?.coreData) {
+    return source.coreData.reportData || toPremiumReportData(source.coreData.canonicalJson || {});
+  }
+  return toPremiumReportData(source || {});
+}
+
+function buildCanonicalJsonForReport(reportType, prepareData, requestBody, authInfo, meta) {
+  const input = requestBody && typeof requestBody === "object" ? requestBody : {};
+  const supplemental = meta?.supplementalCanonicalByType || {};
+  let calculatedData = mapCanonicalToReportData(reportType, prepareData, requestBody, supplemental);
 
   // PDF 파이프라인 진입 전 공통 무결성 보강: 운세별 필수 키를 표준 shape로 강제 정규화한다.
   const canonicalSource = getPremiumCanonicalFromPrepare(reportType, prepareData) || {};
@@ -6738,17 +6780,17 @@ function compactZiweiPalaceForPrompt(palace) {
   };
 }
 
-function buildChapterJsonPacks(reportType, chapterId, canonicalJson) {
+function buildChapterJsonPacks(reportType, chapterId, reportData) {
   const chapterKey = `ch${Number(chapterId || 0)}`;
-  const chapterMeta = toPlainObject(canonicalJson?.chapterData?.[chapterKey]);
+  const chapterMeta = toPlainObject(reportData?.chapterData?.[chapterKey]);
   const requiredPaths = Array.isArray(chapterMeta.requiredPaths) ? chapterMeta.requiredPaths : [];
   const requiredData = {};
   requiredPaths.forEach((path) => {
-    requiredData[path] = getPathValue(canonicalJson, path);
+    requiredData[path] = getPathValue(reportData, path);
   });
 
-  const calculatedData = toPlainObject(canonicalJson?.calculatedData);
-  const interpretationSeed = toPlainObject(canonicalJson?.interpretationSeed);
+  const calculatedData = toPlainObject(reportData?.calculatedData);
+  const interpretationSeed = toPlainObject(reportData?.interpretationSeed);
   const chapterCore = {
     chapterId: Number(chapterId || 0),
     chapterKey,
@@ -7086,18 +7128,18 @@ function buildPremiumPdfRenderGuide(reportType) {
   return base;
 }
 
-function buildPromptSourceData(reportType, chapterId, canonicalJson, prebuiltChapterJsonPacks = null) {
+function buildPromptSourceData(reportType, chapterId, reportData, prebuiltChapterJsonPacks = null) {
   const chapterKey = `ch${Number(chapterId || 0)}`;
-  const chapterMeta = canonicalJson?.chapterData?.[chapterKey] || {};
+  const chapterMeta = reportData?.chapterData?.[chapterKey] || {};
   const requiredPaths = Array.isArray(chapterMeta.requiredPaths) ? chapterMeta.requiredPaths : [];
   const inferredFeatureType = REPORT_TYPE_TO_FEATURE_TYPE[reportType] || reportType;
-  const inferredMode = String(canonicalJson?.input?.reportMode || canonicalJson?.input?.mode || canonicalJson?.input?.reportType || "");
+  const inferredMode = String(reportData?.input?.reportMode || reportData?.input?.mode || reportData?.input?.reportType || "");
   const chapterContract = buildPremiumChapterContract(reportType, inferredFeatureType, inferredMode, chapterId);
   const chapterDataSubset = {};
   requiredPaths.forEach((path) => {
-    chapterDataSubset[path] = getPathValue(canonicalJson, path);
+    chapterDataSubset[path] = getPathValue(reportData, path);
   });
-  const chapterJsonPacks = prebuiltChapterJsonPacks || buildChapterJsonPacks(reportType, chapterId, canonicalJson);
+  const chapterJsonPacks = prebuiltChapterJsonPacks || buildChapterJsonPacks(reportType, chapterId, reportData);
   const evidenceChecklist = buildPromptEvidenceChecklist(reportType, chapterJsonPacks);
   const renderGuide = buildPremiumPdfRenderGuide(reportType);
   const promptMetaByType = {
@@ -7148,12 +7190,12 @@ function buildPromptSourceData(reportType, chapterId, canonicalJson, prebuiltCha
       fortuneType: reportType,
       fortuneLabel: promptMeta.fortuneLabel,
       expertDirective: promptMeta.expertDirective,
-      mode: canonicalJson?.input?.reportType || canonicalJson?.input?.mode || "personal",
+      mode: reportData?.input?.reportType || reportData?.input?.mode || "personal",
       chapterId: String(chapterId || ""),
       chapterTitle: String(chapterMeta.chapterTitle || `Chapter ${chapterId}`),
       chapterContract,
-      profile: canonicalJson?.input || canonicalJson?.calculatedData?.birthInfo || {},
-      compatibilityTarget: canonicalJson?.input?.partnerData || canonicalJson?.input?.partnerBirthData || undefined,
+      profile: reportData?.input || reportData?.calculatedData?.birthInfo || {},
+      compatibilityTarget: reportData?.input?.partnerData || reportData?.input?.partnerBirthData || undefined,
       analysisResult: {
         chapterId: String(chapterId || ""),
         chapterDataSubset,
@@ -7173,8 +7215,8 @@ function buildPromptSourceData(reportType, chapterId, canonicalJson, prebuiltCha
   };
 }
 
-function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapterJsonPacks = null, dedupContext = {}) {
-  const promptSourceData = buildPromptSourceData(reportType, chapterId, canonicalJson, prebuiltChapterJsonPacks);
+function buildLlmPromptInput(reportType, chapterId, reportData, prebuiltChapterJsonPacks = null, dedupContext = {}) {
+  const promptSourceData = buildPromptSourceData(reportType, chapterId, reportData, prebuiltChapterJsonPacks);
   const isSajuClassicReport = reportType === "lifeBook" || reportType === "loveSecret";
   const isSajuNewYearReport = reportType === "sajuNewYear";
   const previousChapterSummaries = Array.isArray(dedupContext.previousChapterSummaries)
@@ -7215,7 +7257,7 @@ function buildLlmPromptInput(reportType, chapterId, canonicalJson, prebuiltChapt
   return {
     ...promptSourceData,
     tone: "Code:Destiny premium mystical but practical Korean tone",
-    globalSummary: canonicalJson?.interpretationSeed || {},
+    globalSummary: reportData?.interpretationSeed || {},
     previousChapterSummaries,
     forbiddenRepeats,
     doNotCalculate: true,
@@ -7283,7 +7325,7 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
   const sukyoMode = resolveSukyoModeFromPayload({
     ...(context?.input || {}),
     reportMode: context?.modeKey || context?.input?.reportMode || context?.input?.reportType,
-    _compatibilityRequired: context?.coreData?.canonicalJson?.calculatedData?._compatibilityRequired,
+    _compatibilityRequired: getPremiumReportData(context)?.calculatedData?._compatibilityRequired,
   });
   const chapter = getSukyoChapterBlueprint(chapterId, sukyoMode);
   const reportType = String(context?.reportType || "sookyoPremium");
@@ -7291,7 +7333,8 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
     && typeof context.input._premiumLlmInput.chapterContract === "object"
     ? context.input._premiumLlmInput.chapterContract
     : buildPremiumChapterContract(reportType, REPORT_TYPE_TO_FEATURE_TYPE[reportType] || reportType, sukyoMode, chapterId);
-  const calculated = context?.coreData?.canonicalJson?.calculatedData || {};
+  const reportData = getPremiumReportData(context);
+  const calculated = reportData?.calculatedData || {};
   const strictPayloadMode = asBool(context?.input?._premiumStrictPayload);
   const previousFromContext = Object.entries(context?.chapterTextById || {})
     .filter(([key, value]) => Number(key) < Number(chapterId || 1) && String(value || "").trim())
@@ -7301,13 +7344,9 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
     context?.input?.previousChapterTexts,
     (previousFromContext.length ? previousFromContext : getStoredChapterTexts("sukuyo", context?.reportId, Number(chapterId || 1))),
   );
-  const sukyoContext = calculated?.sukyoPdfContext || buildSukyoPdfContext({
-    canonical: context?.coreData?.canonicalJson || {},
-    requestBody: context?.input || {},
-    rawBasicResult: {
-      summary: calculated?.nativeSook?.name || calculated?.nativeSook?.coreNature || "",
-    },
-  });
+  const sukyoContext = calculated?.sukyoPdfContext && typeof calculated.sukyoPdfContext === "object"
+    ? { ...calculated.sukyoPdfContext }
+    : {};
   sukyoContext.reportMode = sukyoMode;
   sukyoContext.chapterContract = chapterContract;
 
@@ -7334,7 +7373,7 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
   };
 
   const chapterJsonPacks = context?.derivedData?.chapterJsonById?.[String(chapterId)]
-    || buildChapterJsonPacks(reportType, chapterId, context?.coreData?.canonicalJson || {});
+    || buildChapterJsonPacks(reportType, chapterId, reportData);
   const preferLocal = true;
 
   if (preferLocal) {
@@ -7385,7 +7424,7 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
       chapterMeta,
       chapterContract,
       chapterJson: chapterJsonPacks,
-      coreData: context?.coreData?.canonicalJson || {},
+      coreData: reportData,
       minChars,
       previousChapterTexts,
       fallbackReason: "SUKYO_LOCAL_FORCE_FALLBACK",
@@ -19562,6 +19601,106 @@ function buildSajuNewYearMonthlyTable(monthlyLuck = []) {
   return rows.join("\n");
 }
 
+function stripSajuNewYearHeadingTitle(raw) {
+  return String(raw || "")
+    .replace(/^#{1,6}\s*/, "")
+    .replace(/^\d+\)\s*/, "")
+    .trim();
+}
+
+function escapeRegex(source) {
+  return String(source || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function extractSajuNewYearSectionBodyByMarker(text, marker, nextMarkers = []) {
+  const source = String(text || "");
+  const current = String(marker || "").trim();
+  if (!source || !current) return "";
+
+  const following = (Array.isArray(nextMarkers) ? nextMarkers : [])
+    .map((row) => String(row || "").trim())
+    .filter(Boolean)
+    .map((row) => escapeRegex(row));
+  const boundary = following.length
+    ? `(?=\\n(?:${following.join("|")})|\\n##\\s+|$)`
+    : "(?=\\n##\\s+|$)";
+  const pattern = new RegExp(`${escapeRegex(current)}\\n([\\s\\S]*?)${boundary}`, "i");
+  const match = source.match(pattern);
+  return match ? String(match[1] || "").trim() : "";
+}
+
+function buildSajuNewYearDefaultCategoryAnalysis(markerTitle, canonical, idx) {
+  const targetYear = Number(canonical?.targetYear || new Date().getFullYear());
+  const focusLabel = SAJU_NEW_YEAR_FOCUS_LABELS[canonical?.focusArea] || "전체운";
+  const yearlySummary = String(canonical?.yearlySummary?.summary || "올해는 기준을 먼저 세우고 실행 밀도를 높일수록 성과 편차를 줄일 수 있는 흐름입니다.").trim();
+  const lines = [
+    `${markerTitle} 관점에서 ${targetYear}년 ${focusLabel} 운영은 결과보다 기준의 일관성을 먼저 확보할 때 안정적으로 전개됩니다. ${yearlySummary}`,
+    "첫째, 단기 성과를 위해 우선순위를 과도하게 늘리지 말고 핵심 과제 1~2개를 고정해 실행 강도를 높이세요. 둘째, 관계와 자원 배분 규칙을 문장으로 남겨 재현 가능한 운영 습관으로 전환하세요.",
+    `실행 점검 ${idx + 1}: 이번 구간에서 유지할 기준 하나, 줄일 리스크 하나, 다음 점검일까지의 실천 항목 하나를 숫자로 명시해 관리하면 변동 구간에서도 판단 오차를 줄일 수 있습니다.`,
+  ];
+  return lines.join("\n\n");
+}
+
+function buildSajuNewYearChapterJsonPayload(chapterMeta, chapter, canonical, text = "") {
+  const chapterNo = Number(chapter || 1);
+  const chapterSpec = getSajuNewYearChapterPromptSpec(chapterNo);
+  const markers = Array.isArray(chapterSpec?.markers) ? chapterSpec.markers : [];
+  const checklist = Array.isArray(chapterSpec?.checklist) ? chapterSpec.checklist : [];
+  const monthlyLuck = Array.isArray(canonical?.monthlyLuck) ? canonical.monthlyLuck : [];
+  const targetYear = Number(canonical?.targetYear || new Date().getFullYear());
+  const focusArea = String(canonical?.focusArea || "overall");
+  const focusLabel = SAJU_NEW_YEAR_FOCUS_LABELS[focusArea] || "전체운";
+  const ranked = monthlyLuck.slice().sort((a, b) => Number(b?.score || 0) - Number(a?.score || 0));
+  const strongMonths = ranked.slice(0, 3).map((row) => Number(row?.month || 0)).filter((n) => n > 0);
+  const cautionMonths = ranked.slice(-3).map((row) => Number(row?.month || 0)).filter((n) => n > 0);
+
+  const categories = markers.map((marker, idx) => {
+    const nextMarkers = markers.slice(idx + 1);
+    const markerTitle = stripSajuNewYearHeadingTitle(marker);
+    const extracted = extractSajuNewYearSectionBodyByMarker(text, marker, nextMarkers);
+    const analysisText = extracted || buildSajuNewYearDefaultCategoryAnalysis(markerTitle, canonical, idx);
+    const strategicGuidance = String(
+      checklist[idx]
+      || checklist[checklist.length - 1]
+      || `${markerTitle} 구간은 실행 기준과 리스크 컷오프를 함께 설정해 운영하세요.`
+    ).trim();
+
+    return {
+      categoryId: `sub_${chapterNo}_${idx + 1}`,
+      categoryTitle: markerTitle,
+      analysisText,
+      strategicGuidance,
+    };
+  });
+
+  return {
+    chapterId: `saju_newyear_ch_${chapterNo}`,
+    chapterNo,
+    chapterTitle: String(chapterMeta?.title || `Chapter ${chapterNo}`).trim(),
+    chapterSubtitle: String(chapterMeta?.subtitle || "").trim(),
+    metaData: {
+      targetYear,
+      focusArea,
+      focusLabel,
+      strongMonths,
+      cautionMonths,
+    },
+    categories,
+    engineSummaryJson: {
+      coreVibe: String(canonical?.yearlySummary?.summary || "기준 중심 운영으로 성과의 편차를 줄이고 회수율을 높이는 해").trim(),
+      actionPriority: {
+        immediate: "핵심 목표 1~2개를 고정하고 나머지 요청은 우선순위 기준으로 보류",
+        stop: "기준 없는 확장과 감정 반응 기반 즉흥 의사결정",
+        review: "주간 단위로 성과 기여 행동과 소모 행동 비율 점검",
+      },
+    },
+  };
+}
+
+function buildSajuNewYearChapterJsonBlueprint(chapterMeta, chapter, canonical) {
+  return buildSajuNewYearChapterJsonPayload(chapterMeta, chapter, canonical, "");
+}
+
 function buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars = 2600) {
   const monthlyLuck = Array.isArray(canonical?.monthlyLuck) ? canonical.monthlyLuck : [];
   const chapterSpec = getSajuNewYearChapterPromptSpec(chapter);
@@ -19987,6 +20126,11 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
       ...meta,
       chapterSpecificSections: toChapterSpecificSections(getSajuNewYearChapterPromptSpec(idx + 1)?.markers || []),
     }));
+    const chapterJsonBlueprintByNumber = {};
+    SAJU_NEW_YEAR_CHAPTERS.forEach((meta, idx) => {
+      const chapterNo = idx + 1;
+      chapterJsonBlueprintByNumber[String(chapterNo)] = buildSajuNewYearChapterJsonBlueprint(meta, chapterNo, canonical);
+    });
     return json({
       ok: true,
       prepared: true,
@@ -19994,6 +20138,7 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
       featureType: "saju_new_year_pdf",
       totalChapters: SAJU_NEW_YEAR_TOTAL_CHAPTERS,
       chapterPlan,
+      chapterJsonBlueprintByNumber,
       chapterMinChars: {
         default: Math.max(3200, Math.floor(Number(SAJU_NEW_YEAR_CHAPTER_TARGETS[0] || 5000) * 0.85)),
         byChapter: chapterTargets,
@@ -20054,6 +20199,7 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
   }
 
   const text = String(generatedChapter?.text || "").trim();
+  const chapterJson = buildSajuNewYearChapterJsonPayload(chapterMeta, chapter, canonical, text);
 
   const storage = writeReportSessionChapter(
     "saju-new-year",
@@ -20070,6 +20216,7 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
     {
       reportType: "sajuNewYear",
       featureType: "saju_new_year_pdf",
+      chapterJson,
       ownerUserId,
       chapterSpecificSections,
       usedFallbackData: dataState.usedFallbackData,
@@ -20089,7 +20236,7 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
     reportId,
     reportType: "sajuNewYear",
     featureType: "saju_new_year_pdf",
-    source: generatedChapter?.usedFallback ? "local" : "api",
+    source: generatedChapter?.usedFallback ? "local-engine" : "api",
     totalChapters: SAJU_NEW_YEAR_TOTAL_CHAPTERS,
     minTotalChars: PREMIUM_GLOBAL_MIN_TOTAL_CHARS,
     sessionId: chapter,
@@ -20101,6 +20248,7 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
       icon: "new-year",
     },
     chapterSpecificSections,
+    chapterJson,
     text,
     chapterSummaryForContext: buildChapterSummaryForContext(text),
     sections: parseSections(text),
@@ -20164,6 +20312,11 @@ async function handleLifebookSession(request, env, authInfo = null) {
       ...plan,
       chapterSpecificSections: toChapterSpecificSections(plan?.sections || getLifeBookChapterByNumber(idx + 1)?.sections || []),
     }));
+    const chapterJsonBlueprintByNumber = {};
+    chapterPlan.forEach((plan, idx) => {
+      const chapterNo = idx + 1;
+      chapterJsonBlueprintByNumber[String(chapterNo)] = buildLifeBookChapterJsonBlueprint(plan, preparedInputData);
+    });
 
     return json({
       ok: true,
@@ -20175,6 +20328,7 @@ async function handleLifebookSession(request, env, authInfo = null) {
       },
       minTotalChars: LIFE_BOOK_MIN_TOTAL_CHARS_CONFIG,
       chapterPlan,
+      chapterJsonBlueprintByNumber,
       dataQuality: {
         missingCore: Array.isArray(quality?.missingCore) ? quality.missingCore : [],
         source: quality?.source || {},
@@ -21919,6 +22073,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     context.sourceMap = buildPremiumSourceMap(context.reportType, context.input, hydrated.prepareData);
     context.coreData = context.coreData || {};
     context.coreData.canonicalJson = nextCanonicalJson;
+    context.coreData.reportData = toPremiumReportData(nextCanonicalJson);
     context.coreData.canonicalFingerprint = nextCanonicalFingerprint;
 
     context.derivedData = context.derivedData || {};
@@ -21948,7 +22103,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     context.derivedData.chapterJsonById = Object.fromEntries(
       Array.from({ length: Number(context.totalChapters || 13) }, (_, idx) => idx + 1).map((cid) => [
         String(cid),
-        buildChapterJsonPacks(context.reportType, cid, canonicalBuild.canonicalJson),
+        buildChapterJsonPacks(context.reportType, cid, context.coreData.reportData),
       ]),
     );
 
@@ -22020,6 +22175,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       ...(context.coreData.canonicalJson.diagnostics || {}),
       dataIntegrity: chapterIntegrity.integrity,
     };
+    context.coreData.reportData = toPremiumReportData(context.coreData.canonicalJson);
   }
 
   console.info("[엔진 시작]", {
@@ -22067,10 +22223,11 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   }
 
   const chapterKey = `ch${chapterId}`;
-  const chapterRequiredPaths = Array.isArray(context?.coreData?.canonicalJson?.chapterData?.[chapterKey]?.requiredPaths)
-    ? context.coreData.canonicalJson.chapterData[chapterKey].requiredPaths
+  const reportData = getPremiumReportData(context);
+  const chapterRequiredPaths = Array.isArray(reportData?.chapterData?.[chapterKey]?.requiredPaths)
+    ? reportData.chapterData[chapterKey].requiredPaths
     : [];
-  let chapterMissing = chapterRequiredPaths.filter((path) => pathMissing(context?.coreData?.canonicalJson || {}, path));
+  let chapterMissing = chapterRequiredPaths.filter((path) => pathMissing(reportData, path));
 
   if (chapterMissing.length > 0) {
     const hydrated = await hydratePremiumCanonicalData({
@@ -22092,7 +22249,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     context.updatedAt = new Date().toISOString();
     context.expiresAt = Date.now() + PREMIUM_REPORT_CONTEXT_TTL_MS;
     PREMIUM_REPORT_CONTEXT_STORE.set(reportSessionId, context);
-    chapterMissing = chapterRequiredPaths.filter((path) => pathMissing(context?.coreData?.canonicalJson || {}, path));
+    chapterMissing = chapterRequiredPaths.filter((path) => pathMissing(getPremiumReportData(context), path));
   }
 
   if (chapterMissing.length > 0) {
@@ -22104,7 +22261,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   }
 
   const chapterJsonPacks = context?.derivedData?.chapterJsonById?.[String(chapterId)]
-    || buildChapterJsonPacks(context.reportType, chapterId, context?.coreData?.canonicalJson || {});
+    || buildChapterJsonPacks(context.reportType, chapterId, reportData);
   context.derivedData.chapterJsonById = context.derivedData.chapterJsonById || {};
   context.derivedData.chapterJsonById[String(chapterId)] = chapterJsonPacks;
 
@@ -22357,7 +22514,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       _premiumLlmInput: buildLlmPromptInput(
         context.reportType,
         chapterId,
-        context?.coreData?.canonicalJson || {},
+        getPremiumReportData(context),
         chapterJsonPacks,
         { previousChapterSummaries },
       ),
@@ -23196,7 +23353,7 @@ async function handlePremiumReportPdf(request, env, authInfo) {
       const chapterId = Number(entry.chapterId || 0);
       const rawText = String(context?.chapterTextById?.[String(chapterId)] || "");
       const chapterJsonPacks = context?.derivedData?.chapterJsonById?.[String(chapterId)]
-        || buildChapterJsonPacks(context.reportType, chapterId, context?.coreData?.canonicalJson || {});
+        || buildChapterJsonPacks(context.reportType, chapterId, getPremiumReportData(context));
       const ensuredText = ensurePremiumChapterLength(rawText, {
         reportType: context.reportType,
         chapter: chapterId,

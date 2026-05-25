@@ -137,6 +137,10 @@ describe("Saju premium prepareOnly routes", () => {
     expect(data.totalChapters).toBe(13);
     expect(data.chapterPlan).toHaveLength(13);
     expect(data.chapterPlan[0].title).toContain("사주 원국 완전 해설");
+    expect(data.chapterJsonBlueprintByNumber).toBeTruthy();
+    expect(data.chapterJsonBlueprintByNumber["1"].chapterId).toBe("chapter-01");
+    expect(data.chapterJsonBlueprintByNumber["1"].subChapters).toHaveLength(4);
+    expect(data.chapterJsonBlueprintByNumber["1"].subChapters[0].subTitle).toBe("출생 정보와 사주팔자 기본 구성");
   });
 
   test("loveSecret compatibility prepareOnly returns canonical 13-chapter couple plan", async () => {

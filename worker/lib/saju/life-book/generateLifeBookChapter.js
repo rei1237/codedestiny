@@ -76,14 +76,87 @@ function splitMarkdownSections(markdown) {
     .filter((section) => section.title || section.body);
 }
 
-function buildChapterJsonPayload(chapterConfig, parsedChapter, lifeBookInputData) {
+function normalizeSubChapterRows(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index) => {
+      const row = item && typeof item === "object" ? item : {};
+      return {
+        subId: toStringSafe(row.subId) || `sub-${index + 1}`,
+        subTitle: toStringSafe(row.subTitle || row.title),
+        analysisText: toStringSafe(row.analysisText || row.body),
+        strategicGuidance: toStringSafe(row.strategicGuidance || row.guidance),
+      };
+    })
+    .filter((row) => row.subTitle || row.analysisText || row.strategicGuidance);
+}
+
+function buildLifeBookSubChapters(chapterConfig, parsedChapter, sections, practicalAdvice = [], warnings = []) {
+  const requiredCoverage = Array.isArray(chapterConfig?.requiredCoverage)
+    ? chapterConfig.requiredCoverage.map((item) => toStringSafe(item)).filter(Boolean)
+    : (Array.isArray(chapterConfig?.sections)
+      ? chapterConfig.sections.map((item) => toStringSafe(item)).filter(Boolean)
+      : []);
+  const sectionRows = Array.isArray(sections) ? sections : [];
+  const guidancePool = practicalAdvice.length
+    ? practicalAdvice
+    : [
+      ...toStringArray(parsedChapter?.warnings, []),
+      ...toStringArray(warnings, []),
+    ];
+  const titles = requiredCoverage.length
+    ? requiredCoverage
+    : sectionRows.map((section) => toStringSafe(section?.title)).filter(Boolean);
+
+  return titles.map((title, index) => {
+    const matchingSection = sectionRows[index] || sectionRows.find((section) => toStringSafe(section?.title) === title) || {};
+    const fallbackGuidance = guidancePool[index] || guidancePool[guidancePool.length - 1] || "핵심 기준을 먼저 고정하고 실행 강도를 주간 단위로 점검하세요.";
+    return {
+      subId: `${toStringSafe(chapterConfig?.id) || "chapter"}-sub-${String(index + 1).padStart(2, "0")}`,
+      subTitle: title || `세부 카테고리 ${index + 1}`,
+      analysisText: toStringSafe(matchingSection?.body),
+      strategicGuidance: fallbackGuidance,
+    };
+  });
+}
+
+function renderExpandedChapterMarkdown(chapterTitle, chapterSubtitle, subChapters = [], summary = "") {
+  const lines = [
+    `## ${chapterTitle}`,
+    chapterSubtitle ? `> ${chapterSubtitle}` : "",
+    summary,
+  ].filter(Boolean);
+
+  subChapters.forEach((row) => {
+    const subTitle = toStringSafe(row?.subTitle);
+    const analysis = toStringSafe(row?.analysisText);
+    const guidance = toStringSafe(row?.strategicGuidance);
+    if (subTitle) lines.push("", `### ${subTitle}`);
+    if (analysis) lines.push(analysis);
+    if (guidance) lines.push("", `실행 가이드: ${guidance}`);
+  });
+
+  return lines.join("\n").trim();
+}
+
+function buildExpandedChapterJson(chapterConfig, parsedChapter, lifeBookInputData, overrideSubChapters = null) {
   const chapterCore = lifeBookInputData?.lifeBookContext?.chapterCore || {};
   const sections = splitMarkdownSections(parsedChapter?.contentMarkdown || "");
   const keyInsights = toStringArray(parsedChapter?.keyInsights, [])
     .concat(toStringArray(parsedChapter?.warnings, []))
     .slice(0, 5);
   const practicalAdvice = toStringArray(parsedChapter?.practicalAdvice, []);
+  const warnings = toStringArray(parsedChapter?.warnings, []);
   const summary = toStringSafe(parsedChapter?.summary);
+  const subChapters = Array.isArray(overrideSubChapters)
+    ? normalizeSubChapterRows(overrideSubChapters)
+    : buildLifeBookSubChapters(chapterConfig, parsedChapter, sections, practicalAdvice, warnings);
+  const normalizedSections = sections.length > 0
+    ? sections
+    : subChapters.map((row) => ({
+      title: row.subTitle,
+      body: [row.analysisText, row.strategicGuidance ? `실행 가이드: ${row.strategicGuidance}` : ""].filter(Boolean).join("\n\n"),
+    }));
 
   return {
     id: toStringSafe(parsedChapter?.id) || toStringSafe(chapterConfig?.id),
@@ -91,10 +164,27 @@ function buildChapterJsonPayload(chapterConfig, parsedChapter, lifeBookInputData
     title: toStringSafe(parsedChapter?.title) || toStringSafe(chapterConfig?.title),
     subtitle: toStringSafe(parsedChapter?.subtitle) || toStringSafe(chapterConfig?.subtitle),
     summary,
-    sections,
+    sections: normalizedSections,
     keyInsights,
     practicalAdvice,
-    cautions: toStringArray(parsedChapter?.warnings, []),
+    cautions: warnings,
+    chapterId: toStringSafe(parsedChapter?.chapterId) || toStringSafe(chapterConfig?.id),
+    chapterTitle: toStringSafe(parsedChapter?.chapterTitle) || toStringSafe(parsedChapter?.title) || toStringSafe(chapterConfig?.title),
+    metaData: {
+      keyTheme: keyInsights.slice(0, 2).join(" / ") || toStringSafe(chapterConfig?.subtitle) || toStringSafe(chapterConfig?.title),
+      dayMaster: toStringSafe(chapterCore?.dayMaster),
+      monthPillar: toStringSafe(chapterCore?.monthPillar),
+      season: toStringSafe(chapterCore?.season),
+    },
+    subChapters,
+    engineSummaryJson: {
+      coreVibe: summary || toStringSafe(chapterConfig?.subtitle) || toStringSafe(chapterConfig?.title),
+      actionPriority: {
+        immediate: practicalAdvice[0] || "핵심 과제 1개와 보조 과제 2개만 남기고 실행 우선순위를 다시 고정하세요.",
+        stop: warnings[0] || practicalAdvice[1] || "기준 없이 일정을 늘리거나 감정 반응으로 결정을 바꾸는 패턴을 멈추세요.",
+        review: practicalAdvice[2] || "7일 뒤 실행률과 피로도를 같이 점검해 과부하 구간을 조정하세요.",
+      },
+    },
     evidence: {
       dayMaster: toStringSafe(chapterCore?.dayMaster),
       monthPillar: toStringSafe(chapterCore?.monthPillar),
@@ -107,6 +197,32 @@ function buildChapterJsonPayload(chapterConfig, parsedChapter, lifeBookInputData
       healthHints: toStringArray(chapterCore?.healthHints, []),
     },
   };
+}
+
+export function buildLifeBookChapterJsonBlueprint(chapterConfig, lifeBookInputData = {}) {
+  const requiredCoverage = Array.isArray(chapterConfig?.requiredCoverage)
+    ? chapterConfig.requiredCoverage.map((item) => toStringSafe(item)).filter(Boolean)
+    : (Array.isArray(chapterConfig?.sections)
+      ? chapterConfig.sections.map((item) => toStringSafe(item)).filter(Boolean)
+      : []);
+  const subChapters = requiredCoverage.map((title, index) => ({
+    subId: `${toStringSafe(chapterConfig?.id) || "chapter"}-sub-${String(index + 1).padStart(2, "0")}`,
+    subTitle: title,
+    analysisText: "",
+    strategicGuidance: `이 섹션에서는 ${title} 관점의 실행 기준과 리스크 컷오프를 정리합니다.`,
+  }));
+  return buildExpandedChapterJson(chapterConfig, {
+    id: chapterConfig?.id,
+    roman: chapterConfig?.roman,
+    title: chapterConfig?.title,
+    subtitle: chapterConfig?.subtitle,
+    summary: `${toStringSafe(chapterConfig?.title)} 챕터의 핵심 기준과 실행 포인트를 정리하는 설계도입니다.`,
+    practicalAdvice: subChapters.map((row) => row.strategicGuidance),
+  }, lifeBookInputData, subChapters);
+}
+
+function buildChapterJsonPayload(chapterConfig, parsedChapter, lifeBookInputData) {
+  return buildExpandedChapterJson(chapterConfig, parsedChapter, lifeBookInputData);
 }
 
 function buildChapterHardRequirements(chapterConfig, lifeBookInputData) {
@@ -195,6 +311,7 @@ function buildChapterPrompt(chapterConfig, lifeBookInputData, previousTexts = []
     "",
     "[작성 규칙]",
     "- JSON 형식으로만 출력한다.",
+    "- chapterJson에는 확장 스키마를 함께 포함한다: chapterId, chapterTitle, metaData, subChapters, engineSummaryJson.",
     "- chapterJson.sections 각 항목은 title/body를 포함한다.",
     "- chapterJson.keyInsights는 데이터 기반 핵심 통찰 3개 이상으로 작성한다.",
     "- chapterJson.practicalAdvice는 즉시 실행 가능한 행동 문장 3개 이상으로 작성한다.",
@@ -222,6 +339,11 @@ function buildChapterPrompt(chapterConfig, lifeBookInputData, previousTexts = []
     "  \"practicalAdvice\": [\"실전 조언 1\", \"실전 조언 2\", \"실전 조언 3\"],",
     "  \"warnings\": [\"주의점 1\", \"주의점 2\"],",
     "  \"chapterJson\": {",
+    `    \"chapterId\": \"${chapterConfig.id}\",`,
+    `    \"chapterTitle\": \"${chapterConfig.title}\",`,
+    "    \"metaData\": { \"keyTheme\": \"챕터 핵심 테마\" },",
+    "    \"subChapters\": [{ \"subId\": \"sub-01\", \"subTitle\": \"세부 카테고리\", \"analysisText\": \"심층 분석\", \"strategicGuidance\": \"실행 지침\" }],",
+    "    \"engineSummaryJson\": { \"coreVibe\": \"챕터 한 줄 요약\", \"actionPriority\": { \"immediate\": \"즉시 행동\", \"stop\": \"중단할 패턴\", \"review\": \"점검 지표\" } },",
     "    \"summary\": \"챕터 핵심 요약\",",
     "    \"sections\": [{ \"title\": \"소제목\", \"body\": \"핵심 본문\" }],",
     "    \"keyInsights\": [\"핵심 통찰 1\", \"핵심 통찰 2\", \"핵심 통찰 3\"],",
