@@ -41,11 +41,11 @@ describe("Premium Report Feature Spec", () => {
     expect(resolvePremiumTypePair("sukuyo-premium", "").reportType).toBe("sookyoPremium");
   });
 
-  test("loveSecret는 현재 premium spec 기준으로 13챕터를 사용한다", () => {
+  test("loveSecret는 현재 premium spec 기준으로 솔로 7챕터 / 궁합 8챕터를 사용한다", () => {
     const { getPremiumRequiredChapters } = __premiumReportTestUtils;
 
-    expect(getPremiumRequiredChapters("loveSecret", "solo")).toBe(13);
-    expect(getPremiumRequiredChapters("loveSecret", "compatibility")).toBe(13);
+    expect(getPremiumRequiredChapters("loveSecret", "solo")).toBe(7);
+    expect(getPremiumRequiredChapters("loveSecret", "compatibility")).toBe(8);
   });
 
   test("sajuNewYear는 premium spec 기준으로 10챕터를 사용한다", () => {

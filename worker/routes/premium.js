@@ -2005,6 +2005,11 @@ function getPremiumRequiredChapters(reportType, mode = "") {
   }
   if (reportType === "loveSecret") {
     const normalizedMode = String(mode || "").trim().toLowerCase();
+    const chapterRows = normalizedMode.includes("compat") || normalizedMode.includes("couple")
+      ? LOVE_SECRET_MODE_CONFIG.couple?.chapters
+      : LOVE_SECRET_MODE_CONFIG.solo?.chapters;
+    const chapterCount = Array.isArray(chapterRows) ? chapterRows.length : 0;
+    if (chapterCount > 0) return chapterCount;
     return normalizedMode.includes("compat") || normalizedMode.includes("couple") ? 8 : 7;
   }
   return Number(PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || (reportType === "ziweiPremium" ? 15 : 13));

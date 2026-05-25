@@ -143,7 +143,7 @@ describe("Saju premium prepareOnly routes", () => {
     expect(data.chapterJsonBlueprintByNumber["1"].subChapters[0].subTitle).toBe("출생 정보와 사주팔자 기본 구성");
   });
 
-  test("loveSecret compatibility prepareOnly returns canonical 13-chapter couple plan", async () => {
+  test("loveSecret compatibility prepareOnly returns configured 8-chapter couple plan", async () => {
     const authToken = await makeAuthToken();
     const req = new Request("https://example.com/api/love-secret/session", {
       method: "POST",
@@ -180,10 +180,10 @@ describe("Saju premium prepareOnly routes", () => {
     expect(data.ok).toBe(true);
     expect(data.prepared).toBe(true);
     expect(data.mode).toBe("couple");
-    expect(data.totalChapters).toBe(13);
-    expect(data.chapterPlan).toHaveLength(13);
-    expect(data.chapterPlan[0].title).toContain("Chapter I. 두 사람의 관계 자아 진단");
-    expect(data.chapterPlan[12].title).toContain("Chapter XIII. 커플 사랑 마스터플랜");
+    expect(data.totalChapters).toBe(8);
+    expect(data.chapterPlan).toHaveLength(8);
+    expect(data.chapterPlan[0].title).toContain("Chapter I. 두 사람의 궁합 총론");
+    expect(data.chapterPlan[7].title).toContain("Chapter VIII. 최종 궁합 비책");
   });
 
   test("sajuNewYear prepareOnly returns canonical 10-chapter plan", async () => {
