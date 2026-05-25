@@ -11761,6 +11761,156 @@ function buildVedicPremiumPrompt(meta, chapter, reportType, context, previousCha
   ].filter(Boolean).join("\n");
 }
 
+function summarizeVedicText(value, max = 260) {
+  const text = String(value || "").replace(/\s+/g, " ").trim();
+  if (!text) return "";
+  if (text.length <= max) return text;
+  return `${text.slice(0, max).trim()}...`;
+}
+
+function splitVedicSentences(value, limit = 3) {
+  const text = String(value || "").replace(/\s+/g, " ").trim();
+  if (!text) return [];
+  const rows = text
+    .split(/(?<=[.!?。！？])\s+/)
+    .map((row) => String(row || "").trim())
+    .filter(Boolean);
+  return rows.slice(0, Math.max(1, Number(limit) || 3));
+}
+
+function pickVedicGuidance(body, fallbackText = "") {
+  const source = String(body || "");
+  const lines = source
+    .split(/\n+/)
+    .map((line) => String(line || "").replace(/^[\-*\d.\s]+/, "").trim())
+    .filter(Boolean);
+  const preferred = lines.find((line) => /(실행|전략|적용|주의|루틴|중단|점검|우선)/.test(line));
+  if (preferred && preferred.length >= 28) return preferred;
+  const sentences = splitVedicSentences(source, 2);
+  const merged = sentences.join(" ").trim();
+  if (merged.length >= 28) return merged;
+  return String(fallbackText || "").trim() || "현재 시기에는 무리한 확장보다 검증 가능한 실행 루틴을 우선 고정하세요.";
+}
+
+function buildVedicSubChaptersFromMarkdown(chapter, text) {
+  const parsed = parseSections(text)
+    .map((section, idx) => ({
+      idx,
+      title: String(section?.title || `핵심 분석 ${idx + 1}`).trim(),
+      body: String(section?.body || "").trim(),
+    }))
+    .filter((row) => row.body);
+
+  let rows = parsed;
+  if (rows.length < 3) {
+    const source = String(text || "").replace(/\r/g, "");
+    const paragraphs = source
+      .split(/\n\s*\n+/)
+      .map((row) => row.replace(/\s+/g, " ").trim())
+      .filter((row) => row.length >= 120)
+      .slice(0, 4);
+    rows = paragraphs.map((body, idx) => ({
+      idx,
+      title: `핵심 분석 ${idx + 1}`,
+      body,
+    }));
+  }
+
+  if (rows.length === 0) {
+    rows = [
+      { idx: 0, title: "핵심 분석 1", body: summarizeVedicText(text, 900) || "분석 데이터가 제한되어 핵심 흐름을 중심으로 정리합니다." },
+      { idx: 1, title: "핵심 분석 2", body: "현재 다샤와 차트 구조를 함께 고려해 단기 실행 우선순위를 설정하는 것이 중요합니다." },
+      { idx: 2, title: "핵심 분석 3", body: "확장과 안정의 균형을 맞추는 운영 전략을 통해 중장기 성과를 구축해야 합니다." },
+    ];
+  }
+
+  const limited = rows.slice(0, Math.max(3, Math.min(4, rows.length)));
+  return limited.map((row, idx) => {
+    const body = String(row.body || "").trim();
+    const analysis = body.length >= 180
+      ? body
+      : `${body}\n\n현재 시점에서는 운의 신호를 사건 예측이 아니라 실행 전략으로 번역해야 합니다. 같은 패턴이 반복되는 영역을 식별해 비용이 큰 선택을 줄이고, 검증 가능한 루틴을 통해 안정적 성과를 확보하세요.`;
+    const guidanceFallback = idx === 0
+      ? "핵심 과제를 1개로 압축하고 7일 단위로 성과 지표를 점검하세요."
+      : idx === 1
+        ? "신규 확장보다 기존 시스템의 결함률과 재작업률을 먼저 낮추세요."
+        : "다음 의사결정 전 최소 한 번 데이터 기반 리뷰를 거쳐 실행 우선순위를 재정렬하세요.";
+    return {
+      subId: `sub_${chapter}_${idx + 1}`,
+      subTitle: String(row.title || `핵심 분석 ${idx + 1}`).trim(),
+      analysisText: analysis,
+      strategicGuidance: pickVedicGuidance(body, guidanceFallback),
+    };
+  });
+}
+
+function buildVedicPremiumChapterJson(chapter, meta, canonicalVedicChart, text) {
+  const chapterTitleText = String(meta?.title || `Chapter ${chapter}`).trim();
+  const chapterSubtitleText = String(meta?.subtitle || "").trim();
+  const chapterTitle = chapterSubtitleText
+    ? `Chapter ${chapter}. ${chapterTitleText} - ${chapterSubtitleText}`
+    : `Chapter ${chapter}. ${chapterTitleText}`;
+
+  const currentMahadasha = String(canonicalVedicChart?.dasha?.current?.planet || "정보 없음").trim() || "정보 없음";
+  const currentAntardasha = String(canonicalVedicChart?.dasha?.antar?.planet || "정보 없음").trim() || "정보 없음";
+  const activeYogas = Array.isArray(canonicalVedicChart?.yogas)
+    ? canonicalVedicChart.yogas
+      .map((row) => String(row?.nameKo || row?.name || "").trim())
+      .filter(Boolean)
+      .slice(0, 6)
+    : [];
+  const safeYogas = activeYogas.length > 0 ? activeYogas : ["기본 요가 흐름"];
+
+  const subChapters = buildVedicSubChaptersFromMarkdown(chapter, text);
+  const combinedBody = subChapters
+    .map((row) => `${row.subTitle}\n${row.analysisText}\n${row.strategicGuidance}`)
+    .join("\n\n");
+  const coreVibe = summarizeVedicText(combinedBody, 240)
+    || "확장 기회와 안정화 과제가 동시에 작동하는 구간으로, 구조적 실행력이 핵심입니다.";
+
+  const immediate = subChapters[0]?.strategicGuidance
+    || "핵심 과제를 하나로 고정하고 실행 루틴을 수치 지표로 관리하세요.";
+  const stop = subChapters[1]?.strategicGuidance
+    || "검증되지 않은 확장과 중복 프로젝트 동시 진행을 중단하세요.";
+  const review = subChapters[2]?.strategicGuidance
+    || "7일 주기로 안정성 지표와 리스크 항목을 재점검하세요.";
+
+  const sections = subChapters.map((row) => ({
+    heading: row.subTitle,
+    body: `${row.analysisText}\n\n실행 가이드: ${row.strategicGuidance}`,
+  }));
+
+  return {
+    chapterId: `vedic_ch_${chapter}`,
+    chapterTitle,
+    metaData: {
+      currentMahadasha,
+      currentAntardasha,
+      activeYogas: safeYogas,
+    },
+    subChapters,
+    engineSummaryJson: {
+      coreVibe,
+      actionPriority: {
+        immediate,
+        stop,
+        review,
+      },
+    },
+    summary: summarizeVedicText(combinedBody, 420) || coreVibe,
+    sections,
+    practicalAdvice: subChapters.map((row) => row.strategicGuidance).filter(Boolean).slice(0, 4),
+    cautions: [
+      "확정 예언 대신 데이터 기반 의사결정 원칙을 유지하세요.",
+      "신규 확장 전에 현재 운영 구조의 안정성을 먼저 검증하세요.",
+      "반복되는 손실 패턴을 주간 단위로 기록하고 재발 방지 장치를 적용하세요.",
+    ],
+    masterConclusion: coreVibe,
+    title: chapterTitle,
+    chapterNo: Number(chapter || 0),
+  };
+}
+
 function buildVedicLocalFallbackChapter(chapter, meta, canonicalVedicChart, reportType) {
   const mode = normalizeVedicReportType(reportType);
   const chapterKey = meta?.key || `V${chapter}`;
@@ -11892,9 +12042,11 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
   let text = await callGemini(env, prompt, ["PREMIUM_VEDIC_GEMINI_MODEL"], options);
   if (!text || text.trim().length < 1200) {
     const localText = buildVedicLocalFallbackChapter(chapter, meta, canonicalVedicChart, reportType);
+    const chapterJson = buildVedicPremiumChapterJson(chapter, meta, canonicalVedicChart, localText);
     return {
       ok: true,
       text: localText,
+      chapterJson,
       sections: parseSections(localText),
       actualChars: localText.length,
       usedFallback: true,
@@ -11950,9 +12102,11 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
 
   if (failedChecks.length > 0) {
     const localText = buildVedicLocalFallbackChapter(chapter, meta, canonicalVedicChart, reportType);
+    const chapterJson = buildVedicPremiumChapterJson(chapter, meta, canonicalVedicChart, localText);
     return {
       ok: true,
       text: localText,
+      chapterJson,
       sections: parseSections(localText),
       actualChars: localText.length,
       usedFallback: true,
@@ -11961,9 +12115,11 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
     };
   }
 
+  const chapterJson = buildVedicPremiumChapterJson(chapter, meta, canonicalVedicChart, text);
   return {
     ok: true,
     text,
+    chapterJson,
     sections: parseSections(text),
     actualChars: text.length,
     usedFallback: false,
@@ -16632,6 +16788,7 @@ async function handleVedicLife(request, env, authInfo = null) {
     safeGeneratedText,
     {
       reportType,
+      chapterJson: generated.chapterJson || null,
       chapterSpecificSections: toChapterSpecificSections(buildVedicRequiredHeadings(meta, reportType)),
     }
   );
@@ -16674,6 +16831,7 @@ async function handleVedicLife(request, env, authInfo = null) {
     },
     missingFields: strictValidation.missingFields || [],
     storage,
+    chapterJson: generated.chapterJson || null,
     ...generated,
     text: safeGeneratedText,
     chapterSummaryForContext: buildChapterSummaryForContext(safeGeneratedText),
@@ -24127,6 +24285,7 @@ export const __vedicTestUtils = {
   buildCanonicalVedicChart,
   validateCanonicalVedicChartStrict,
   buildVedicChapterPlan,
+  buildVedicPremiumChapterJson,
   vedicMissingMarkers,
   hasBannedDeterministicExpression,
   hasForbiddenVedicPadding,

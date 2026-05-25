@@ -110,11 +110,15 @@ const SUKYO_PDF_COMPAT_CHAPTERS = [
   },
   {
     key: "compat_ch_02",
-    title: "II. 27숙 개별 성향 분석 — 서로의 본질 이해",
-    goal: "A/B 각각의 본질과 연애/감정/상처 포인트를 비교해 기질 차이를 명확히 한다.",
+    title: "Chapter 2. 성쇠(成衰) 역학이 지배하는 두 사람의 숙명적 궁합",
+    goal: "근거리 성쇠 관계의 심리적 자석 현상, 갈등 소모 메커니즘, 관계 유지 4축 실행 가이드를 정밀 해석한다.",
     targetChars: 4800,
     minChars: 4080,
-    sections: ["A 본명숙 성향", "A 연애 성향", "A 감정 표현", "A가 원하는 것", "A가 상처받는 지점", "B 본명숙 성향", "B 연애 성향", "B 감정 표현", "B가 원하는 것", "B가 상처받는 지점", "기질 차이", "낯설게 느껴지는 부분", "매력적으로 느껴지는 부분"],
+    sections: [
+      "1. 근거리 성쇠(成衰)가 만드는 심리적 자석 현상과 초반 끌림의 진짜 이유",
+      "2. '성(成)의 고집(Neo)'과 '쇠(衰)의 집념(상대방)'이 격돌할 때 발생하는 에너지 소모점과 갈등 메커니즘",
+      "3. 주도권 밸런스 붕괴 방지를 위한 현대적 파트너십 및 관계 유지 4축 실행 심화 가이드",
+    ],
   },
   {
     key: "compat_ch_03",
@@ -292,6 +296,7 @@ function collectMissingFields(bookContext) {
 
 function buildSukuyoPdfSeed(input = {}) {
   const reportMode = normalizeSukyoReportMode(input?.reportMode || input?.mode || input?.reportType);
+  const chapterPlan = getSukyoPdfChapters(reportMode);
   const selectedProfile = input?.selectedProfile && typeof input.selectedProfile === "object"
     ? input.selectedProfile
     : (input?.profile && typeof input.profile === "object" ? input.profile : (input?.userProfile && typeof input.userProfile === "object" ? input.userProfile : {}));
@@ -372,8 +377,19 @@ function buildSukuyoPdfSeed(input = {}) {
     } : null,
     selectedProfile: selectedProfile && typeof selectedProfile === "object" ? selectedProfile : {},
     partnerProfile: reportMode === "compatibility" && partnerProfile && typeof partnerProfile === "object" ? partnerProfile : null,
-    chapterCount: getSukyoPdfChapters(reportMode).length,
-    chapterKeys: getSukyoPdfChapters(reportMode).map((chapter) => String(chapter?.key || "")).filter(Boolean),
+    chapterCount: chapterPlan.length,
+    chapterKeys: chapterPlan.map((chapter) => String(chapter?.key || "")).filter(Boolean),
+    chapterCatalog: chapterPlan.map((chapter, idx) => ({
+      index: idx + 1,
+      key: String(chapter?.key || `chapter_${idx + 1}`),
+      title: String(chapter?.title || `Chapter ${idx + 1}`),
+      goal: String(chapter?.goal || ""),
+      targetChars: Number(chapter?.targetChars || 0),
+      minChars: Number(chapter?.minChars || 0),
+      categories: Array.isArray(chapter?.sections)
+        ? chapter.sections.map((row) => String(row || "").trim()).filter(Boolean)
+        : [],
+    })),
     generatedAt: new Date().toISOString(),
   };
 
@@ -383,7 +399,7 @@ function buildSukuyoPdfSeed(input = {}) {
     partnerProfile,
     birthInput: reportPayload.birthInput,
     partnerInput: reportPayload.partnerInput,
-    chapterPlan: getSukyoPdfChapters(reportMode),
+    chapterPlan,
     reportPayload,
   };
 }
@@ -1014,6 +1030,7 @@ function buildSukyoGeminiPrompt({ context, chapter, previousChapterTexts = [] })
   const requiredJsonFields = Array.isArray(chapterContract?.requiredJsonFields)
     ? chapterContract.requiredJsonFields.map((row) => String(row || "").trim()).filter(Boolean)
     : [];
+  const isCompatChapter2 = reportMode === "compatibility" && String(chapter?.key || "") === "compat_ch_02";
 
   const modeSpecificRules = reportMode === "compatibility"
     ? [
@@ -1036,6 +1053,9 @@ function buildSukyoGeminiPrompt({ context, chapter, previousChapterTexts = [] })
     requiredHeadings.length ? `chapterContract.requiredHeadings를 모두 sections.heading에 반영: ${requiredHeadings.join(", ")}` : "",
     requiredJsonFields.length ? `chapterContract.requiredJsonFields 키를 응답 JSON에 모두 포함: ${requiredJsonFields.join(", ")}` : "",
     chapterSections.length ? `다음 세부 카테고리를 모두 포함하고 sections.heading에 반영: ${chapterSections.join(" | ")}` : "",
+    isCompatChapter2 ? "compat_ch_02는 반드시 성쇠(成衰) 역학 전용 JSON 스키마를 사용한다. subChapters는 정확히 3개이며 각 sub 항목에 analysisText와 strategicGuidance를 채운다." : "",
+    isCompatChapter2 ? "analysisText는 각 sub마다 최소 3~4문단의 고밀도 분석으로 작성하고, 두 사람의 상호 역학(A->B, B->A)을 모두 포함한다." : "",
+    isCompatChapter2 ? "템플릿 반복 문장, 루프 문장, 앞선 챕터 문장 재사용을 금지한다." : "",
     ...modeSpecificRules,
     "반드시 JSON 하나로만 응답한다.",
   ].join("\n");
@@ -1074,24 +1094,16 @@ function buildSukyoGeminiPrompt({ context, chapter, previousChapterTexts = [] })
     requiredHeadings.length ? JSON.stringify(requiredHeadings, null, 2) : null,
     requiredJsonFields.length ? "[chapterContract.requiredJsonFields]" : null,
     requiredJsonFields.length ? JSON.stringify(requiredJsonFields, null, 2) : null,
+    isCompatChapter2 ? "[compat_ch_02 전용 출력 스키마]" : null,
+    isCompatChapter2 ? "{ chapterId, chapterTitle, metaData, subChapters(3), compatibilityEngineSummary } 형식을 정확히 따른다." : null,
     "[작성 제한]",
     "- 본문은 완성형 상담문으로 작성한다.",
     "- 본문에 계산 근거/내부 데이터/JSON 키를 직접 출력하지 않는다.",
     "- 궁합 모드에서는 개인 인생 총론을 길게 반복하지 않는다.",
     "[출력 형식]",
-    "{",
-    '  "chapterKey": "string",',
-    '  "chapterTitle": "string",',
-    '  "chapterSubtitle": "string",',
-    '  "summary": "string",',
-    '  "coreReading": "string",',
-    '  "sections": [{ "heading": "string", "body": "string" }],',
-    '  "practicalAdvice": ["string"],',
-    '  "cautions": ["string"],',
-    '  "ritualOrRoutine": ["string"],',
-    '  "masterKeyword": "string",',
-    '  "missingDataNotice": "string | null"',
-    "}",
+    isCompatChapter2
+      ? "{\n  \"chapterId\": \"sukyo_comp_ch_2\",\n  \"chapterTitle\": \"Chapter 2. 성쇠(成衰) 역학이 지배하는 두 사람의 숙명적 궁합\",\n  \"metaData\": {\n    \"relationType\": \"근거리 성쇠\",\n    \"distanceType\": \"근거리 (가장 밀접하고 즉각적인 영향력)\",\n    \"neoRole\": \"成 (성장 및 서포트 지표)\",\n    \"targetRole\": \"衰 (에너지 소비 및 수혜 지표)\"\n  },\n  \"subChapters\": [\n    {\n      \"subId\": \"sub_2_1\",\n      \"subTitle\": \"1. 근거리 성쇠(成衰)가 만드는 심리적 자석 현상과 초반 끌림의 진짜 이유\",\n      \"analysisText\": \"string\",\n      \"strategicGuidance\": \"string\"\n    },\n    {\n      \"subId\": \"sub_2_2\",\n      \"subTitle\": \"2. '성(成)의 고집(Neo)'과 '쇠(衰)의 집념(상대방)'이 격돌할 때 발생하는 에너지 소모점과 갈등 메커니즘\",\n      \"analysisText\": \"string\",\n      \"strategicGuidance\": \"string\"\n    },\n    {\n      \"subId\": \"sub_2_3\",\n      \"subTitle\": \"3. 주도권 밸런스 붕괴 방지를 위한 현대적 파트너십 및 관계 유지 4축 실행 심화 가이드\",\n      \"analysisText\": \"string\",\n      \"strategicGuidance\": \"string\"\n    }\n  ],\n  \"compatibilityEngineSummary\": {\n    \"relationshipCoreVibe\": \"string\",\n    \"actionPriority\": {\n      \"immediate\": \"string\",\n      \"stop\": \"string\",\n      \"review\": \"string\"\n    }\n  }\n}"
+      : "{\n  \"chapterKey\": \"string\",\n  \"chapterTitle\": \"string\",\n  \"chapterSubtitle\": \"string\",\n  \"summary\": \"string\",\n  \"coreReading\": \"string\",\n  \"sections\": [{ \"heading\": \"string\", \"body\": \"string\" }],\n  \"practicalAdvice\": [\"string\"],\n  \"cautions\": [\"string\"],\n  \"ritualOrRoutine\": [\"string\"],\n  \"masterKeyword\": \"string\",\n  \"missingDataNotice\": \"string | null\"\n}",
   ].join("\n");
 
   return [systemPrompt, "", userPrompt].join("\n\n");
@@ -1224,6 +1236,71 @@ function createFallbackSukyoChapter(chapter, context, reason = "") {
 
 function sanitizeSukyoChapterJson(chapter, rawJson, context) {
   const source = rawJson && typeof rawJson === "object" ? rawJson : {};
+  const isCompatChapter2 = String(chapter?.key || "") === "compat_ch_02";
+
+  if (isCompatChapter2 && Array.isArray(source?.subChapters)) {
+    const rawSubRows = source.subChapters.slice(0, 3);
+    const subRows = rawSubRows.map((row, idx) => {
+      const defaultTitle = idx === 0
+        ? "1. 근거리 성쇠(成衰)가 만드는 심리적 자석 현상과 초반 끌림의 진짜 이유"
+        : idx === 1
+          ? "2. '성(成)의 고집(Neo)'과 '쇠(衰)의 집념(상대방)'이 격돌할 때 발생하는 에너지 소모점과 갈등 메커니즘"
+          : "3. 주도권 밸런스 붕괴 방지를 위한 현대적 파트너십 및 관계 유지 4축 실행 심화 가이드";
+      const analysisText = sanitizeNarrativeText(String(row?.analysisText || "").trim());
+      const strategicGuidance = sanitizeNarrativeText(String(row?.strategicGuidance || "").trim());
+      return {
+        subId: toStringOrNull(row?.subId) || `sub_2_${idx + 1}`,
+        subTitle: toStringOrNull(row?.subTitle) || defaultTitle,
+        analysisText,
+        strategicGuidance,
+      };
+    });
+
+    const relationshipCoreVibe = sanitizeNarrativeText(
+      String(source?.compatibilityEngineSummary?.relationshipCoreVibe || "").trim(),
+    );
+    const actionPriority = source?.compatibilityEngineSummary?.actionPriority && typeof source.compatibilityEngineSummary.actionPriority === "object"
+      ? source.compatibilityEngineSummary.actionPriority
+      : {};
+
+    const sections = subRows.map((row) => ({
+      heading: row.subTitle,
+      body: [row.analysisText, row.strategicGuidance ? `실행 가이드: ${row.strategicGuidance}` : ""]
+        .filter(Boolean)
+        .join("\n\n"),
+    }));
+
+    return {
+      chapterId: toStringOrNull(source.chapterId) || "sukyo_comp_ch_2",
+      chapterKey: String(chapter?.key || "compat_ch_02"),
+      chapterTitle: toStringOrNull(source.chapterTitle) || String(chapter?.title || "Chapter 2. 성쇠(成衰) 역학이 지배하는 두 사람의 숙명적 궁합"),
+      chapterSubtitle: "근거리 성쇠 역학 심층 분석",
+      summary: relationshipCoreVibe || sanitizeNarrativeText(String(subRows[0]?.analysisText || "").slice(0, 320)),
+      coreReading: relationshipCoreVibe || "",
+      sections,
+      practicalAdvice: [
+        sanitizeNarrativeText(String(actionPriority?.immediate || "")),
+        sanitizeNarrativeText(String(actionPriority?.stop || "")),
+        sanitizeNarrativeText(String(actionPriority?.review || "")),
+      ].filter(Boolean),
+      cautions: [],
+      ritualOrRoutine: [],
+      masterKeyword: "근거리 성쇠 밸런스",
+      missingDataNotice: null,
+      fallbackUsed: false,
+      fallbackReason: "",
+      metaData: source?.metaData && typeof source.metaData === "object" ? source.metaData : {},
+      subChapters: subRows,
+      compatibilityEngineSummary: {
+        relationshipCoreVibe: relationshipCoreVibe || "",
+        actionPriority: {
+          immediate: sanitizeNarrativeText(String(actionPriority?.immediate || "")),
+          stop: sanitizeNarrativeText(String(actionPriority?.stop || "")),
+          review: sanitizeNarrativeText(String(actionPriority?.review || "")),
+        },
+      },
+    };
+  }
 
   const summary = sanitizeNarrativeText(toStringOrNull(source.summary) || "");
   const coreReading = sanitizeNarrativeText(toStringOrNull(source.coreReading) || summary || "");
