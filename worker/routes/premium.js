@@ -78,6 +78,10 @@ import { buildLifeBookInputData } from "../lib/saju/life-book/buildLifeBookInput
 import { buildLifeBookChapterJsonBlueprint } from "../lib/saju/life-book/generateLifeBookChapter.js";
 import { generateLifeBookPdf } from "../lib/saju/life-book/generateLifeBookPdf.js";
 import { renderLifeBookPdf } from "../lib/saju/life-book/renderLifeBookPdf.js";
+import {
+  normalizePremiumChapterJsonContract,
+  validateNormalizedPremiumChapterJson,
+} from "../lib/premium-chapter-json-contract.js";
 
 const SIGN_KO = ["양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리", "처녀자리", "천칭자리", "전갈자리", "사수자리", "염소자리", "물병자리", "물고기자리"];
 const PLANETS = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
@@ -3306,7 +3310,7 @@ async function generateGuaranteedPremiumChapter(env, {
 
   const prompt = [
     "너는 Code Destiny 프리미엄 PDF 전문 상담가다.",
-    "반드시 한국어 마크다운 본문만 출력하고, 요청된 챕터 제목/카테고리(소제목)를 모두 포함한다.",
+    "반드시 한국어 단일 JSON 객체만 출력하고, 요청된 챕터 제목/카테고리(소제목)를 모두 포함한다.",
     "입력 엔진 데이터를 최대한 많이 반영하고, 데이터가 부분 누락되어도 자연스럽게 연결해 완성형 상담문을 작성한다.",
     "코드/에러 문구를 출력하지 말고, 단정적 예언을 피하고 실행 가능한 조언으로 작성한다.",
     `챕터 제목: ${meta.title}`,
@@ -4126,6 +4130,22 @@ function validatePremiumChapterResponseEnvelope({ reportType, chapterId, data, c
     })
     : (requiredJsonFields.length > 0 ? requiredJsonFields.slice() : []);
 
+  const normalizedChapterJson = normalizePremiumChapterJsonContract({
+    reportType,
+    chapterId: String(chapterId || ""),
+    chapterTitle: String(contract.chapterTitle || `Chapter ${chapterId}`),
+    requiredHeadings,
+    text,
+    chapterJson,
+  });
+  const normalizedChapterJsonValidation = validateNormalizedPremiumChapterJson(normalizedChapterJson);
+  if (!normalizedChapterJsonValidation.ok) {
+    missingJsonFields.push("chapterJsonSchema");
+  }
+  if (requiredHeadings.length > 0 && normalizedChapterJson.subChapters.length !== requiredHeadings.length) {
+    missingJsonFields.push("subChaptersCountMismatch");
+  }
+
   if (reportType === "ziweiPremium") {
     const sections = Array.isArray(chapterJson?.sections) ? chapterJson.sections : [];
     if (sections.length < 2) {
@@ -4175,13 +4195,19 @@ function validatePremiumChapterResponseEnvelope({ reportType, chapterId, data, c
         missingHeadings,
         missingJsonFields: Array.from(new Set(missingJsonFields)),
         repeatedAcross: repeatedAcross.slice(0, 6),
+        chapterJsonSchemaErrors: normalizedChapterJsonValidation.ok ? [] : normalizedChapterJsonValidation.errors.slice(0, 8),
       },
     };
+  }
+
+  if (data && typeof data === "object") {
+    data.normalizedChapterJson = normalizedChapterJson;
   }
 
   return {
     ok: true,
     chapterContract: contract,
+    normalizedChapterJson,
   };
 }
 
@@ -4516,7 +4542,85 @@ async function invokePremiumLegacyHandler(handler, request, env, requestBody) {
   });
   const response = await handler(proxyRequest, env);
   const data = await response.json().catch(() => ({}));
+
+  // Bridge: accept strict JSON-only chapter text and convert to markdown body expected by current pipeline.
+  if (data && typeof data === "object" && typeof data.text === "string") {
+    const parsedJsonOnly = tryParsePremiumJsonOnlyChapterText(data.text);
+    if (parsedJsonOnly.ok) {
+      const contract = requestBody?._premiumLlmInput?.chapterContract;
+      const normalized = normalizePremiumChapterJsonContract({
+        reportType: String(requestBody?._premiumLlmInput?.reportType || requestBody?.reportType || "").trim(),
+        chapterId: String(requestBody?.chapter || requestBody?.chapterId || "").trim(),
+        chapterTitle: String(contract?.chapterTitle || "").trim(),
+        requiredHeadings: Array.isArray(contract?.requiredHeadings) ? contract.requiredHeadings : [],
+        text: "",
+        chapterJson: parsedJsonOnly.value,
+      });
+      const validated = validateNormalizedPremiumChapterJson(normalized);
+      if (validated.ok) {
+        data.chapterJson = parsedJsonOnly.value;
+        data.normalizedChapterJson = normalized;
+        data.text = renderNormalizedPremiumChapterJsonToMarkdown(normalized);
+        data.responseFormat = "json-only";
+      }
+    }
+  }
+
   return { response, data };
+}
+
+function tryParsePremiumJsonOnlyChapterText(raw) {
+  const source = String(raw || "").trim();
+  if (!source) return { ok: false, value: null };
+
+  const plainCandidates = [source];
+  const fenceMatch = source.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  if (fenceMatch && fenceMatch[1]) {
+    plainCandidates.push(String(fenceMatch[1]).trim());
+  }
+
+  for (const candidate of plainCandidates) {
+    if (!candidate.startsWith("{") || !candidate.endsWith("}")) continue;
+    try {
+      const parsed = JSON.parse(candidate);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        return { ok: true, value: parsed };
+      }
+    } catch {
+      // keep trying next candidate
+    }
+  }
+
+  return { ok: false, value: null };
+}
+
+function renderNormalizedPremiumChapterJsonToMarkdown(normalized = {}) {
+  const chapterTitle = String(normalized?.chapterTitle || "Premium Chapter").trim() || "Premium Chapter";
+  const subChapters = Array.isArray(normalized?.subChapters) ? normalized.subChapters : [];
+  const lines = [`## ${chapterTitle}`];
+
+  subChapters.forEach((row) => {
+    const subTitle = String(row?.subTitle || "핵심 분석").trim() || "핵심 분석";
+    const analysisText = String(row?.analysisText || "").trim();
+    const strategicGuidance = String(row?.strategicGuidance || "").trim();
+    lines.push(`### ${subTitle}`);
+    if (analysisText) lines.push(analysisText);
+    if (strategicGuidance) lines.push(`실행 가이드: ${strategicGuidance}`);
+  });
+
+  const coreVibe = String(normalized?.engineSummaryJson?.coreVibe || "").trim();
+  const immediate = String(normalized?.engineSummaryJson?.actionPriority?.immediate || "").trim();
+  const stop = String(normalized?.engineSummaryJson?.actionPriority?.stop || "").trim();
+  const review = String(normalized?.engineSummaryJson?.actionPriority?.review || "").trim();
+  if (coreVibe || immediate || stop || review) {
+    lines.push("### 핵심 요약");
+    if (coreVibe) lines.push(coreVibe);
+    if (immediate) lines.push(`즉시 실행: ${immediate}`);
+    if (stop) lines.push(`중단 항목: ${stop}`);
+    if (review) lines.push(`점검 지표: ${review}`);
+  }
+
+  return lines.filter(Boolean).join("\n\n").trim();
 }
 
 function getPremiumHandlerByType(reportType) {
@@ -7267,6 +7371,8 @@ function buildLlmPromptInput(reportType, chapterId, reportData, prebuiltChapterJ
     forbiddenRepeats,
     doNotCalculate: true,
     rules: [
+      "챕터 응답은 단일 JSON 객체만 출력할 것 (JSON 외 텍스트, 설명, 코드블록, 주석 금지)",
+      "JSON 키는 chapterId, chapterTitle, metaData, subChapters, engineSummaryJson 구조를 따를 것",
       "계산되지 않은 내용을 임의로 만들지 말 것",
       expertRoleRule,
       "JSON에 없는 별, 행성, 궁, 십성, 숙요 관계를 지어내지 말 것",
@@ -9473,7 +9579,7 @@ async function generateAstroPremiumChapter(env, body, input, chapter, meta, char
       const refinePrompt = [
         "아래 서양 점성술 챕터 초안을 고품질로 보강하세요.",
         `목표 길이: 최소 ${chapterMinChars}자, 권장 ${Math.max(chapterMinChars, Number(chapterLengthPolicy.targetChars || chapterMinChars))}자`,
-        "오직 마크다운 본문만 출력하고 기존 구조를 유지하면서 누락 요소를 채우세요. 표는 유지하세요.",
+        "오직 단일 JSON 객체만 출력하고 기존 구조를 유지하면서 누락 요소를 채우세요. 표는 sections 배열로 유지하세요.",
         "같은 문장/문단 반복, 실행 보강 메모, 금지 문구를 모두 제거하세요.",
         `누락 요소: ${missing.length ? missing.join(" | ") : "없음"}`,
         `현재 문제: ${tooShort ? "분량 부족" : ""} ${truncated ? "문장 끊김" : ""} ${banned ? "금지 표현 포함" : ""} ${duplicated ? "중복 문단 포함" : ""} ${forbiddenPadding ? "패딩 문구 포함" : ""} ${duplicatedSentence ? "장문 반복 포함" : ""} ${duplicatedAcross ? "이전 챕터 문장 재사용" : ""} ${forbiddenPhraseUsed ? "금지 고정문구 포함" : ""} ${dataEvidenceMissing ? "차트 근거 부족" : ""} ${rawExposure ? "원시 데이터 노출" : ""}`.trim(),
@@ -11774,7 +11880,7 @@ function buildVedicPremiumPrompt(meta, chapter, reportType, context, previousCha
     "확인 가능한 데이터와 해석 가능한 범위 안에서만 작성한다.",
     "같은 문장을 반복하지 말고, 이전 챕터 요약과 중복되는 관점은 피한다.",
     "운명론적으로 단정하지 말고 현실적인 선택과 관계 전략으로 연결한다.",
-    "오직 마크다운 본문만 출력한다.",
+    "오직 단일 JSON 객체만 출력한다. JSON 외 문장/코드블록/설명은 출력하지 않는다.",
     "",
     `[리포트 제목] ${reportTitle}`,
     `[리포트 부제] ${reportSubtitle}`,
@@ -12111,7 +12217,7 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
     const refinePrompt = [
       "아래 베다 점성술 챕터 초안을 고품질로 보강하세요.",
       `목표 길이: 최소 ${minChars}자 (권장 ${targetChars}자)`,
-      "오직 마크다운 본문만 출력하고, 기존 흐름을 유지하면서 누락 요소를 채우세요.",
+      "오직 단일 JSON 객체만 출력하고, 기존 흐름을 유지하면서 누락 요소를 채우세요.",
       `누락 요소: ${missing.length ? missing.join(" | ") : "없음"}`,
       `현재 문제: ${tooShort ? "분량 부족" : ""} ${truncated ? "문장 끊김" : ""} ${banned ? "금지 표현 포함" : ""} ${forbiddenPadding ? "금지 공통 문구 포함" : ""} ${insufficientSections ? "Step 섹션 부족" : ""} ${repeatedAcross.length ? "이전 챕터 문장 중복됨" : ""}`.trim(),
       "",
@@ -14715,7 +14821,7 @@ function buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice, 
     "자미두수 명반 계산은 내부 엔진에서 이미 완료되었으며, 제공된 데이터만 사용해 해석하라.",
     "JSON에 없는 별, 사화, 궁위, 대한, 유년 정보를 추측해 추가하지 마라.",
     "사용자의 자미두수 명반 데이터를 기반으로 단순 점괘가 아니라 타고난 구조→현재 심리/현실→선택 전략→구체적 개운 실천법을 연결해 작성하라.",
-    "오직 마크다운 본문만 출력하라. 코드, 컴포넌트, UI 설명, 개발 설명은 절대 출력하지 마라.",
+    "오직 단일 JSON 객체만 출력하라. 코드, 컴포넌트, UI 설명, 개발 설명은 절대 출력하지 마라.",
     "건강·투자·법률·의료는 진단/보장 표현을 금지하고 생활 관리 수준의 조언으로 작성하라.",
     "단정적 공포 문구(예: 반드시 망한다, 절대 안 된다)를 금지하고 상담형 문장으로 작성하라.",
     "한자 용어에는 쉬운 한국어 해설을 반드시 붙여라.",
@@ -15472,7 +15578,7 @@ function buildSukuyoChapterPrompt(payload) {
   return [
     systemInstruction,
     "",
-    "아래 JSON을 기준으로 마크다운 본문만 출력하세요.",
+    "아래 JSON을 기준으로 단일 JSON 객체만 출력하세요.",
     "표현 규칙: 동일 문장 반복 금지, 추측 금지, 금지 구문 사용 금지.",
     JSON.stringify(payload, null, 2),
   ].join("\n");
@@ -15578,7 +15684,7 @@ async function generateSukuyoPremiumChapterStrict(env, canonical, chapterMeta, c
       `금지 문구 사용: ${check.details.forbiddenUsed.join(" | ") || "없음"}`,
       `챕터 내 반복: ${check.details.repeatedInChapter.join(" | ") || "없음"}`,
       `이전 챕터 반복: ${check.details.repeatedAcross.join(" | ") || "없음"}`,
-      "출력은 마크다운 본문만 작성하세요.",
+      "출력은 단일 JSON 객체만 작성하세요.",
       "",
       "[prompt payload]",
       JSON.stringify(payload, null, 2),
@@ -15677,7 +15783,7 @@ function buildSukuyoNatalPrompt(payload) {
     systemPrompt,
     "",
     "출력 규칙:",
-    "- 마크다운 본문만 출력",
+    "- 단일 JSON 객체만 출력",
     "- 챕터 소제목은 반드시 chapterSpecificSections를 그대로 사용",
     "- 금지 섹션 문구를 재사용하지 말 것",
     "- 데이터를 추측하지 말 것",
@@ -15799,7 +15905,7 @@ async function generateSukuyoNatalChapterStrict(env, canonicalSukuyoNatal, chapt
       `반복 금지 위반: ${check.details.forbiddenUsed.join(" | ") || "없음"}`,
       `챕터간 반복: ${check.details.repeatedAcross.join(" | ") || "없음"}`,
       `잘못된 숙명 토큰: ${check.details.unexpectedSukuyoNames.join(" | ") || "없음"}`,
-      "마크다운 본문만 출력하세요.",
+      "단일 JSON 객체만 출력하세요.",
       "",
       "[payload]",
       JSON.stringify(payload, null, 2),
@@ -19932,7 +20038,7 @@ function buildSajuNewYearGeminiPrompt(chapterMeta, chapter, canonical, minChars,
 
   return [
     "당신은 Code Destiny의 프리미엄 사주 신년운세 PDF를 작성하는 해당 분야 최고 전문가이자 연간 전략 상담가입니다.",
-    "응답은 한국어 마크다운 본문만 작성하세요.",
+    "응답은 한국어 단일 JSON 객체만 작성하세요.",
     "완성형 상담문만 출력하고, 내부 계산 근거 목록이나 개발자 문장은 출력하지 마세요.",
     "과장된 운세 문구/공포 유도 문구/확정적 예언을 금지합니다.",
     "출력 금지: 년주/월주/일주/시주 목록, 일간/월지/지장간/오행/십성 분포 목록, 대운/세운/월운 계산 과정, 합충형파해 산출 과정, 용신/희신/기신 판단 근거, JSON/payload/engine result/내부 계산표.",
@@ -24505,6 +24611,8 @@ export const __premiumReportTestUtils = {
   getSajuNewYearChapterPromptSpec,
   buildSajuNewYearChapterText,
   evaluateSajuNewYearChapterQuality,
+  tryParsePremiumJsonOnlyChapterText,
+  renderNormalizedPremiumChapterJsonToMarkdown,
   generateGuaranteedPremiumChapter,
   attachPremiumApiMeta,
   buildPremiumAccessDeniedPayload,
