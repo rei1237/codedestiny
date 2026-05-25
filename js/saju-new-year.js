@@ -313,10 +313,17 @@
     };
   }
 
-  function buildAuthHeaders(base) {
+  function buildAuthHeaders(base, authContext) {
     var headers = Object.assign({}, base || {});
     var token = getAuthToken();
     if (token) headers.Authorization = 'Bearer ' + token;
+    var premiumAccessToken = '';
+    try {
+      premiumAccessToken = String((authContext && authContext.premiumAccessToken) || readPremiumAccessToken() || '').trim();
+    } catch (_) {
+      premiumAccessToken = '';
+    }
+    if (premiumAccessToken) headers['x-premium-access-token'] = premiumAccessToken;
     return headers;
   }
 
@@ -1045,6 +1052,9 @@
       var premiumAccessToken = readPremiumAccessToken();
       if (premiumAccessToken) payload.premiumAccessToken = premiumAccessToken;
     }
+    if (payload.premiumAccessToken) {
+      persistPremiumAccessToken({ premiumAccessToken: payload.premiumAccessToken });
+    }
     var targetPath = resolveApiUrl(pathname) || pathname;
 
     if (typeof window.__cdPremiumAuthJson === 'function') {
@@ -1064,7 +1074,7 @@
       try {
         var data = await requestJson(candidates[i], {
           method: 'POST',
-          headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+          headers: buildAuthHeaders({ 'Content-Type': 'application/json' }, payload),
           body: JSON.stringify(payload)
         });
         if (data && typeof data === 'object') return data;
@@ -1431,6 +1441,10 @@
             cost: Number(COST_COINS || 0),
             requestId: String(('newyear:' + (state.reportId || Date.now())).slice(0, 120))
           }));
+          persistPremiumAccessToken(payloadObject);
+          if (paymentContext && paymentContext.premiumAccessToken) {
+            persistPremiumAccessToken({ premiumAccessToken: paymentContext.premiumAccessToken });
+          }
           logSajuNewYear('PAYMENT_CHECK_SUCCESS', {
             transactionId: String(paymentContext.transactionId || ''),
             receiptId: String(paymentContext.receiptId || ''),
