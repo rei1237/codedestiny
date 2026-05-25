@@ -19,6 +19,52 @@ function isChartPayload(value: unknown): value is {
   return !!(v.planets && v.ascendant && v.midheaven);
 }
 
+type AstroChapterResult = {
+  chapter: number;
+  chapterMeta: (typeof ASTRO_CHAPTER_META)[number];
+  text: string;
+  sections: ReturnType<typeof parseSections>;
+  usedFallback: boolean;
+  calculationSource: string;
+  warnings: string[];
+};
+
+async function buildAstroChapterResult(chapter: number, chart: ReturnType<typeof buildWesternChart>, previousChapterTexts: string[] = []): Promise<AstroChapterResult> {
+  const chapterMeta = ASTRO_CHAPTER_META[chapter - 1] ?? ASTRO_CHAPTER_META[0];
+  const prompt = buildAstroPrompt(chapter, chart);
+  let text = await generateAstroText(prompt);
+  let usedFallback = false;
+  if (!text) {
+    usedFallback = true;
+    text = fallbackAstroText(chapter, chart);
+  }
+
+  return {
+    chapter,
+    chapterMeta,
+    text,
+    sections: parseSections(text),
+    usedFallback,
+    calculationSource: "server-build",
+    warnings: usedFallback ? ["AI text unavailable, fallback chapter text used"] : [],
+  };
+}
+
+async function buildAstroBatchResults(chart: ReturnType<typeof buildWesternChart>) {
+  const chapterResultsById: Record<string, AstroChapterResult> = {};
+  const chapterJsonById: Record<string, AstroChapterResult> = {};
+  const previousChapterTexts: string[] = [];
+
+  for (let chapter = 1; chapter <= ASTRO_TOTAL_CHAPTERS; chapter += 1) {
+    const result = await buildAstroChapterResult(chapter, chart, previousChapterTexts);
+    chapterResultsById[String(chapter)] = result;
+    chapterJsonById[String(chapter)] = result;
+    if (result.text.trim()) previousChapterTexts.push(result.text);
+  }
+
+  return { chapterResultsById, chapterJsonById };
+}
+
 export async function POST(req: NextRequest) {
   try {
     const auth = requireRouteAuth(req);
@@ -58,23 +104,23 @@ export async function POST(req: NextRequest) {
       ? "client-chart-reuse"
       : "server-build";
 
-    let text = await generateAstroText(buildAstroPrompt(chapter, chart));
-    let usedFallback = false;
-    if (!text) {
-      usedFallback = true;
-      text = fallbackAstroText(chapter, chart);
-    }
+    const precomputeAll = body.precomputeAll === true;
+    const chapterResult = await buildAstroChapterResult(chapter, chart);
+    const batchResults = precomputeAll ? await buildAstroBatchResults(chart) : null;
     return NextResponse.json({
       ok: true,
       chart,
       chapter,
       totalChapters: ASTRO_TOTAL_CHAPTERS,
-      chapterMeta: ASTRO_CHAPTER_META[chapter - 1],
-      text,
-      sections: parseSections(text),
-      usedFallback,
+      chapterMeta: chapterResult.chapterMeta,
+      text: chapterResult.text,
+      sections: chapterResult.sections,
+      usedFallback: chapterResult.usedFallback,
       calculationSource,
-      warnings: usedFallback ? ["AI text unavailable, fallback chapter text used"] : [],
+      chapterResultsById: batchResults?.chapterResultsById || undefined,
+      chapterJsonById: batchResults?.chapterJsonById || undefined,
+      precomputedAll,
+      warnings: chapterResult.warnings,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";

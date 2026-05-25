@@ -367,7 +367,7 @@ export default function HPremiumAstrologySection({
       } catch {
         // ignore storage cleanup errors
       }
-    }
+        const data = await postAstroJson("/api/premium/astro-life", {
   }, []);
 
   useEffect(() => {
@@ -375,6 +375,7 @@ export default function HPremiumAstrologySection({
     try {
       const raw = localStorage.getItem(ASTROLOGY_STORAGE_KEY);
       if (!raw) {
+          precomputeAll: true,
         storageReadyRef.current = true;
         return;
       }
@@ -386,6 +387,26 @@ export default function HPremiumAstrologySection({
         birthMinute?: string;
         timezone?: string;
         chart?: ChartData | null;
+        const batchResults = data?.chapterResultsById || data?.chapterJsonById || null;
+        if (batchResults && typeof batchResults === "object") {
+          setChapters((prev) => {
+            const next = { ...prev };
+            for (const meta of CHAPTER_META) {
+              const result = (batchResults as Record<string, any>)[String(meta.num)];
+              if (!result) continue;
+              next[meta.num] = {
+                step: "done",
+                result: {
+                  chapter: Number(result.chapter ?? meta.num),
+                  chapterMeta: result.chapterMeta ?? meta,
+                  text: String(result.text ?? ""),
+                  sections: Array.isArray(result.sections) ? result.sections : [],
+                },
+              };
+            }
+            return next;
+          });
+        }
         chapters?: Record<number, ChapterState>;
       };
 
@@ -581,6 +602,7 @@ ${chaptersHtml}
 
   // 챕터 생성
   const handleGenerateChapter = useCallback(async (chNum: number) => {
+  if (chapters[chNum]?.step === "done") return;
 
     setRequestError("");
     setChapters(prev => ({ ...prev, [chNum]: { step:"loading", result:null } }));

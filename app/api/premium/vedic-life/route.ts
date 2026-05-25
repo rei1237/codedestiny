@@ -70,6 +70,12 @@ const DIGNITY_MAP: Record<string, { exalt:number; debit:number; own:number[] }> 
   Ketu:    { exalt:8, debit:2,  own:[] },
 };
 
+type VedicChapterResult = VedicPdfChapterOutput & {
+  chapterMeta: ReturnType<typeof getVedicChapterByNumber>;
+  calculationSource: string;
+  warnings: string[];
+};
+
 // ─────────────────────────────────────────────────────────────────
 // 천문 계산 유틸
 // ─────────────────────────────────────────────────────────────────
@@ -129,6 +135,94 @@ function checkRetrogradeVedic(body: Body, date: Date): boolean {
   if (delta > 180) delta -= 360;
   if (delta < -180) delta += 360;
   return delta < 0;
+}
+
+async function buildVedicChapterResult(args: {
+  chapter: number;
+  chart: VedicChart;
+  normalizedContext: ReturnType<typeof normalizeVedicChartForPdf>;
+  previousChapterTexts?: string[];
+}) : Promise<VedicChapterResult> {
+  const chapterDef = getVedicChapterByNumber(args.chapter, "personal");
+  const prompt = buildVedicGeminiPrompt({
+    chapter: chapterDef,
+    context: args.normalizedContext,
+    previousChapterTexts: Array.isArray(args.previousChapterTexts) ? args.previousChapterTexts : [],
+  });
+
+  let rawAiText = await callGemini(prompt);
+  let usedFallback = false;
+  let chapterPayload: VedicPdfChapterOutput;
+  const warnings: string[] = [];
+
+  if (!rawAiText || !rawAiText.trim()) {
+    usedFallback = true;
+    warnings.push("AI text unavailable, fallback chapter payload used");
+    chapterPayload = buildFallbackChapterPayload({
+      chapterNumber: args.chapter,
+      chapterId: chapterDef.id,
+      chapterTitle: chapterDef.titleKo,
+      chart: args.chart,
+      contextMissingSummary: args.normalizedContext.missingSummary,
+      reason: "AI empty output",
+    });
+  } else {
+    const parsed = parseGeminiChapterJson(rawAiText);
+    if (!parsed) {
+      usedFallback = true;
+      warnings.push("AI JSON parse failed, fallback chapter payload used");
+      chapterPayload = buildFallbackChapterPayload({
+        chapterNumber: args.chapter,
+        chapterId: chapterDef.id,
+        chapterTitle: chapterDef.titleKo,
+        chart: args.chart,
+        contextMissingSummary: args.normalizedContext.missingSummary,
+        reason: "JSON parse failed",
+      });
+    } else {
+      chapterPayload = normalizeChapterOutput({
+        parsed,
+        chapterNumber: args.chapter,
+        chapterId: chapterDef.id,
+        chapterTitle: chapterDef.titleKo,
+        contextMissingSummary: args.normalizedContext.missingSummary,
+      });
+      usedFallback = chapterPayload.fallbackUsed;
+    }
+  }
+
+  return {
+    ...chapterPayload,
+    chapterMeta: chapterDef,
+    calculationSource: "server-build",
+    warnings: usedFallback ? warnings : [],
+  };
+}
+
+async function buildVedicBatchResults(args: {
+  chart: VedicChart;
+  normalizedContext: ReturnType<typeof normalizeVedicChartForPdf>;
+}) {
+  const chapterResultsById: Record<string, VedicChapterResult> = {};
+  const chapterJsonById: Record<string, VedicChapterResult> = {};
+  const previousChapterTexts: string[] = [];
+  const chapterDefs = getVedicPdfChapters("personal");
+
+  for (const chapterDef of chapterDefs) {
+    const result = await buildVedicChapterResult({
+      chapter: chapterDef.number,
+      chart: args.chart,
+      normalizedContext: args.normalizedContext,
+      previousChapterTexts,
+    });
+    chapterResultsById[String(chapterDef.number)] = result;
+    chapterJsonById[String(chapterDef.number)] = result;
+    if (result.text && result.text.trim()) {
+      previousChapterTexts.push(result.text);
+    }
+  }
+
+  return { chapterResultsById, chapterJsonById };
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -1330,7 +1424,6 @@ export async function POST(req: NextRequest) {
         })
       : baseChart;
 
-    const chapterDef = getVedicChapterByNumber(chapter, "personal");
     const normalizedContext = normalizeVedicChartForPdf({
       chart,
       reportMode: "single",
@@ -1355,67 +1448,14 @@ export async function POST(req: NextRequest) {
       warnings.push(`Missing canonical fields: ${normalizedContext.missingSummary.join(", ")}`);
     }
 
-    // 2) AI 텍스트 생성 (JSON 스키마 출력)
-    const prompt = buildVedicGeminiPrompt({
-      chapter: chapterDef,
-      context: normalizedContext,
+    const precomputeAll = body.precomputeAll === true;
+    const chapterPayload = await buildVedicChapterResult({
+      chapter,
+      chart,
+      normalizedContext,
       previousChapterTexts: Array.isArray(body?.previousChapterTexts) ? body.previousChapterTexts : [],
     });
-
-    let chapterPayload: VedicPdfChapterOutput;
-    let usedFallback = false;
-    let rawAiText = "";
-
-    try {
-      rawAiText = await callGemini(prompt);
-      if (!rawAiText || !rawAiText.trim()) {
-        usedFallback = true;
-        warnings.push("AI text unavailable, fallback chapter payload used");
-        chapterPayload = buildFallbackChapterPayload({
-          chapterNumber: chapter,
-          chapterId: chapterDef.id,
-          chapterTitle: chapterDef.titleKo,
-          chart,
-          contextMissingSummary: normalizedContext.missingSummary,
-          reason: "AI empty output",
-        });
-      } else {
-        const parsed = parseGeminiChapterJson(rawAiText);
-        if (!parsed) {
-          usedFallback = true;
-          warnings.push("AI JSON parse failed, fallback chapter payload used");
-          chapterPayload = buildFallbackChapterPayload({
-            chapterNumber: chapter,
-            chapterId: chapterDef.id,
-            chapterTitle: chapterDef.titleKo,
-            chart,
-            contextMissingSummary: normalizedContext.missingSummary,
-            reason: "JSON parse failed",
-          });
-        } else {
-          chapterPayload = normalizeChapterOutput({
-            parsed,
-            chapterNumber: chapter,
-            chapterId: chapterDef.id,
-            chapterTitle: chapterDef.titleKo,
-            contextMissingSummary: normalizedContext.missingSummary,
-          });
-          usedFallback = chapterPayload.fallbackUsed;
-        }
-      }
-    } catch (aiErr: unknown) {
-      const reason = aiErr instanceof Error ? aiErr.message : "Gemini 호출 실패";
-      usedFallback = true;
-      warnings.push(`AI generation failed, fallback chapter payload used: ${reason}`);
-      chapterPayload = buildFallbackChapterPayload({
-        chapterNumber: chapter,
-        chapterId: chapterDef.id,
-        chapterTitle: chapterDef.titleKo,
-        chart,
-        contextMissingSummary: normalizedContext.missingSummary,
-        reason,
-      });
-    }
+    const batchResults = precomputeAll ? await buildVedicBatchResults({ chart, normalizedContext }) : null;
 
     const text = composeChapterText(chapterPayload);
     const sections = chapterPayload.sections;
@@ -1425,15 +1465,18 @@ export async function POST(req: NextRequest) {
       reportType,
       chart,
       chapter,
-      chapterMeta: modeChapterMeta[chapter - 1],
+      chapterMeta: chapterPayload.chapterMeta,
       text,
       sections,
-      usedFallback,
+      usedFallback: chapterPayload.fallbackUsed,
       missingFields: chapterPayload.missingFields,
       confidence: chapterPayload.confidence,
       actionItems: chapterPayload.actionItems,
       cautions: chapterPayload.cautions,
-      warnings,
+      warnings: [...warnings, ...(chapterPayload.warnings || [])],
+      chapterResultsById: batchResults?.chapterResultsById || undefined,
+      chapterJsonById: batchResults?.chapterJsonById || undefined,
+      precomputedAll,
     });
 
   } catch (err: unknown) {

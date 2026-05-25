@@ -9,6 +9,7 @@ let __vedicTestUtils;
 let buildCanonicalVedicChart;
 let validateCanonicalVedicChartStrict;
 let buildVedicChapterPlan;
+let buildVedicPremiumChapterJson;
 let vedicMissingMarkers;
 let hasBannedDeterministicExpression;
 let hasForbiddenVedicPadding;
@@ -142,6 +143,7 @@ beforeAll(async () => {
     buildCanonicalVedicChart,
     validateCanonicalVedicChartStrict,
     buildVedicChapterPlan,
+    buildVedicPremiumChapterJson,
     vedicMissingMarkers,
     hasBannedDeterministicExpression,
     hasForbiddenVedicPadding,
@@ -204,5 +206,36 @@ describe("Vedic Premium Strict Tests", () => {
     const missingPersonal = vedicMissingMarkers(personalChapter11Text, 11, "personal");
 
     expect(missingPersonal.some((m) => m.includes("다샤를 현실 전략으로 쓰는 법"))).toBe(true);
+  });
+
+  test("G. 베다 챕터 JSON 생성기는 필수 스키마를 채워야 한다", () => {
+    const canonical = buildCanonicalVedicChart(makeBody(), makeInput(), makeChart(), "personal", null, null);
+    const chapterJson = buildVedicPremiumChapterJson(
+      3,
+      { title: "내면 운명", subtitle: "달과 감정의 구조" },
+      canonical,
+      [
+        "## 챕터 3. 내면 운명",
+        "### 1. 감정 패턴 분석",
+        "달 낙샤트라와 라그나의 결합은 감정 반응의 리듬을 만듭니다. 감정은 사건보다 해석의 방식에서 크게 흔들립니다.",
+        "실행 전략은 감정이 요동칠 때 의사결정 지연 규칙을 두는 것입니다.",
+        "### 2. 다샤 시기 대응",
+        "현재 다샤는 확장과 압축이 교차합니다. 성급한 결론보다 시스템 검증을 우선해야 합니다.",
+        "### 3. 현실 적용",
+        "업무 루틴에서 반복 실패 구간을 기록하면 동일 패턴을 줄일 수 있습니다.",
+      ].join("\n\n"),
+    );
+
+    expect(chapterJson).toBeTruthy();
+    expect(chapterJson.chapterId).toBe("vedic_ch_3");
+    expect(chapterJson.chapterTitle.length).toBeGreaterThan(0);
+    expect(Array.isArray(chapterJson.subChapters)).toBe(true);
+    expect(chapterJson.subChapters.length).toBeGreaterThanOrEqual(3);
+    expect(chapterJson.subChapters.every((row) => String(row.analysisText || "").trim().length > 0)).toBe(true);
+    expect(chapterJson.subChapters.every((row) => String(row.strategicGuidance || "").trim().length > 0)).toBe(true);
+    expect(String(chapterJson.engineSummaryJson?.coreVibe || "").trim().length).toBeGreaterThan(0);
+    expect(String(chapterJson.engineSummaryJson?.actionPriority?.immediate || "").trim().length).toBeGreaterThan(0);
+    expect(String(chapterJson.engineSummaryJson?.actionPriority?.stop || "").trim().length).toBeGreaterThan(0);
+    expect(String(chapterJson.engineSummaryJson?.actionPriority?.review || "").trim().length).toBeGreaterThan(0);
   });
 });

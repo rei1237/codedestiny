@@ -732,7 +732,10 @@ export default function HPremiumVedicSection({
       setFlowMessage("2/7 권한 및 추가 과금 확인 중");
       await ensureCompatibilityAddonCharged();
       setFlowMessage("3/7 베다 차트 데이터 준비 중");
-      const data = await postVedicJson(buildRequestPayload(1));
+      const data = await postVedicJson({
+        ...buildRequestPayload(1),
+        precomputeAll: true,
+      });
       if (typeof data?.reportId === "string" && data.reportId) {
         reportIdRef.current = data.reportId;
       }
@@ -746,6 +749,29 @@ export default function HPremiumVedicSection({
         missingFields: Array.isArray(data?.missingFields) ? data.missingFields : [],
         warnings: Array.isArray(data?.warnings) ? data.warnings : [],
       } } }));
+      const batchResults = data?.chapterResultsById || data?.chapterJsonById || null;
+      if (batchResults && typeof batchResults === "object") {
+        setChapters((prev) => {
+          const next = { ...prev };
+          for (const meta of chapterMeta) {
+            const result = (batchResults as Record<string, any>)[String(meta.num)];
+            if (!result) continue;
+            next[meta.num] = {
+              step: "done",
+              result: {
+                chapter: Number(result.chapter ?? meta.num),
+                chapterMeta: result.chapterMeta ?? meta,
+                text: sanitizePremiumText(result.text ?? "", "챕터 해석 데이터를 준비 중입니다."),
+                sections: sanitizePremiumSections(Array.isArray(result.sections) ? result.sections : [], "챕터 섹션 데이터를 준비 중입니다."),
+                fallbackUsed: Boolean(result?.usedFallback),
+                missingFields: Array.isArray(result?.missingFields) ? result.missingFields : [],
+                warnings: Array.isArray(result?.warnings) ? result.warnings : [],
+              },
+            };
+          }
+          return next;
+        });
+      }
       setFlowMessage(data?.usedFallback ? "7/7 챕터 완성 (fallback 적용)" : "7/7 챕터 완성");
       onPdfFlowStateChange?.("success");
     } catch (e: unknown) {
@@ -776,6 +802,7 @@ export default function HPremiumVedicSection({
 
 
   const handleGenerateChapter = useCallback(async (chNum:number) => {
+    if (chapters[chNum]?.step === "done") return;
     setRequestError("");
     setChapters(prev=>({...prev,[chNum]:{step:"loading",result:null}}));
     setFlowMessage(`1/7 CHAPTER ${chNum} 입력 검증`);
