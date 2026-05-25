@@ -470,80 +470,18 @@ const VEDIC_FORBIDDEN_COMMON_SECTIONS = [
   "일반 주티쉬 원리",
 ];
 
-const ZIWEI_CHAPTER_META = [
-  {
-    num: 1,
-    title: "I. 자미두수 명반 총론 — 내 운명의 기본 설계도",
-    subtitle: "명반 기본 정보, 핵심 축, 전체 배치, 인생 기조 통합",
-    icon: "ziwei"
-  },
-  {
-    num: 2,
-    title: "II. 명궁 완전 해석 — 타고난 성격과 인생의 중심축",
-    subtitle: "명궁 주성·보조성·강약·삼방사정 정밀 분석",
-    icon: "ziwei"
-  },
-  {
-    num: 3,
-    title: "III. 신궁 심층 분석 — 후천적 삶의 방향과 진짜 욕망",
-    subtitle: "신궁 위치/별자리/명궁 관계 기반 실전 전략",
-    icon: "ziwei"
-  },
-  {
-    num: 4,
-    title: "IV. 12궁 완전 해석 — 인생 영역별 운명 지도",
-    subtitle: "형제궁부터 부모궁까지 영역별 운세 전체 정리",
-    icon: "ziwei"
-  },
-  {
-    num: 5,
-    title: "V. 사화 분석 — 운명을 움직이는 변화의 버튼",
-    subtitle: "화록·화권·화과·화기의 작동 구조 분석",
-    icon: "ziwei"
-  },
-  {
-    num: 6,
-    title: "VI. 재물·직업·성공운 — 현실 성취와 돈의 흐름",
-    subtitle: "재백궁·관록궁·명궁 연결 기반 성취/재물 전략",
-    icon: "ziwei"
-  },
-  {
-    num: 7,
-    title: "VII. 연애·결혼·인연운 — 사랑과 관계의 구조",
-    subtitle: "부부궁 중심 연애 반복 패턴과 장기 관계 전략",
-    icon: "ziwei"
-  },
-  {
-    num: 8,
-    title: "VIII. 인간관계·귀인·사회운 — 사람을 통해 열리는 운",
-    subtitle: "노복궁·형제궁·천이궁 기반 사회운 전략",
-    icon: "ziwei"
-  },
-  {
-    num: 9,
-    title: "IX. 건강·심리·복덕운 — 마음과 몸의 균형",
-    subtitle: "질액궁·복덕궁 중심 심리/에너지 회복 설계",
-    icon: "ziwei"
-  },
-  {
-    num: 10,
-    title: "X. 대운 분석 — 10년 단위 인생 흐름",
-    subtitle: "초년·청년·중년·장년 구간별 핵심 전략",
-    icon: "ziwei"
-  },
-  {
-    num: 11,
-    title: "XI. 세운·유년운 분석 — 올해와 가까운 미래의 흐름",
-    subtitle: "올해 운세와 1~12월 월별 흐름 전술",
-    icon: "ziwei"
-  },
-  {
-    num: 12,
-    title: "XII. 최종 종합 리포트 — 나의 운명 사용법",
-    subtitle: "무기·약점·성공 공식·실전 전략 최종 통합",
-    icon: "ziwei"
-  },
-];
+const ZIWEI_CHAPTER_META = (Array.isArray(ZIWEI_PDF_CHAPTERS_V2) && ZIWEI_PDF_CHAPTERS_V2.length
+  ? ZIWEI_PDF_CHAPTERS_V2
+  : Array.from({ length: 15 }, (_, idx) => ({
+    title: `Chapter ${idx + 1}`,
+    goal: "자미두수 프리미엄 인생 총람",
+  }))
+).map((row, idx) => ({
+  num: idx + 1,
+  title: String(row?.title || `Chapter ${idx + 1}`).trim() || `Chapter ${idx + 1}`,
+  subtitle: String(row?.goal || "자미두수 프리미엄 인생 총람").trim() || "자미두수 프리미엄 인생 총람",
+  icon: "ziwei",
+}));
 
 const ZIWEI_REPORT_TITLE = "나의 운명을 깨우는 심화 자미두수 리포트";
 const ZIWEI_PROLOGUE_TITLE = "프롤로그: 이 명반이 말해주는 삶의 큰 방향";
@@ -583,6 +521,9 @@ const ZIWEI_CHAPTER_GUIDES = [
   "질액궁은 의료 진단 금지 원칙 하에 생활 습관형 건강 설계를 제시하세요.",
   "대한 배열을 근거로 10년 단위 상승/정체/조정 흐름을 분리해 제시하세요.",
   "2026 유년/유월 데이터를 근거로 분기/월별 행동 가이드와 Go/Hold/Retreat를 제시하세요.",
+  "연간 핵심 기조를 먼저 고정하고, 월별 기회/주의 구간을 분리한 실행 캘린더로 연결하세요.",
+  "생애 전환점과 누적 패턴을 시간축으로 묶어 장기 리스크 관리 원칙을 제시하세요.",
+  "즉시 실행 항목과 금지 항목을 명확히 분리해 최종 전략 매뉴얼 형태로 마무리하세요.",
 ];
 
 const ZIWEI_CHAPTER_FOCUS_KEYWORDS = [
@@ -598,6 +539,9 @@ const ZIWEI_CHAPTER_FOCUS_KEYWORDS = [
   ["질액궁", "체력 리듬", "수면", "과로", "회복 루틴"],
   ["대한", "10년 흐름", "상승장", "전환장", "전생애 파노라마"],
   ["2026", "유년", "유월", "Go/Hold/Retreat", "월별 전략"],
+  ["연간 기조", "월별 기회", "월별 주의", "행동 캘린더", "연간 결론"],
+  ["장기 목표", "전환점", "누적 패턴", "반복 리스크", "생애 운영"],
+  ["최종 결론", "우선순위", "즉시 실행", "금지 항목", "마스터 가이드"],
 ];
 
 const ZIWEI_REQUIRED_CHAPTER_STRUCTURE = {
@@ -7155,6 +7099,7 @@ function buildPromptSourceData(reportType, chapterId, canonicalJson, prebuiltCha
     chapterContract,
     calculatedDataForThisChapter: chapterDataSubset,
     chapterJsonPacks,
+    chapterJson: chapterJsonPacks,
     questionPromptPackage: {
       schema: "cd-question-prompt-data-v1",
       fortuneType: reportType,
@@ -7170,6 +7115,7 @@ function buildPromptSourceData(reportType, chapterId, canonicalJson, prebuiltCha
         chapterId: String(chapterId || ""),
         chapterDataSubset,
         chapterJsonPacks,
+        chapterJson: chapterJsonPacks,
       },
       evidenceChecklist,
       renderGuide,
@@ -8721,6 +8667,31 @@ function buildAstroPdfSeed(body, input, chart, reportType, partnerChart, synastr
   };
 }
 
+function buildAstroEngineSummary(canonical = {}, chapterMeta = null) {
+  const ascendant = String(canonical?.angles?.ascendant?.sign || canonical?.angles?.ascendant?.signKo || "").trim();
+  const midheaven = String(canonical?.angles?.mc?.sign || canonical?.angles?.mc?.signKo || "").trim();
+  const findPlanet = (nameEn) => Array.isArray(canonical?.planets)
+    ? canonical.planets.find((planet) => String(planet?.nameEn || "").toLowerCase() === String(nameEn || "").toLowerCase()) || null
+    : null;
+  const sun = String(findPlanet("Sun")?.sign || findPlanet("Sun")?.signKo || "").trim();
+  const moon = String(findPlanet("Moon")?.sign || findPlanet("Moon")?.signKo || "").trim();
+  const dominantPlanet = String(canonical?.chartBalance?.dominantPlanets?.[0] || canonical?.chartPattern?.dominantPlanet || "").trim();
+  const houseCount = Array.isArray(canonical?.houses) ? canonical.houses.length : 0;
+  const aspectCount = Array.isArray(canonical?.aspects) ? canonical.aspects.length : 0;
+  const chapterTitle = String(chapterMeta?.title || chapterMeta?.subtitle || "서양 점성술 챕터").trim();
+
+  return [
+    chapterTitle,
+    ascendant ? `ASC ${ascendant}` : "ASC 미상",
+    sun ? `태양 ${sun}` : "태양 미상",
+    moon ? `달 ${moon}` : "달 미상",
+    midheaven ? `MC ${midheaven}` : "MC 미상",
+    dominantPlanet ? `주도 행성 ${dominantPlanet}` : "주도 행성 미상",
+    houseCount ? `${houseCount}개 하우스` : "하우스 정보 제한",
+    aspectCount ? `${aspectCount}개 애스펙트` : "애스펙트 정보 제한",
+  ].join(" · ");
+}
+
 function validateAstroPdfPayload(payload = {}) {
   const fatalMissingFields = [];
   const recoverableMissingFields = [];
@@ -8912,7 +8883,7 @@ function buildAstrologyBookContext(canonical = {}, premiumInput = null, chapterM
     },
     promptContext: {
       generatedQuestionPrompt: premiumInput?.questionPromptPackage || premiumInput?.promptContext || "",
-      engineSummary: chapterMeta?.subtitle || "",
+      engineSummary: buildAstroEngineSummary(canonical, chapterMeta),
       userQuestion: premiumInput?.userQuestion || premiumInput?.question || "",
     },
     meta: {
@@ -10501,8 +10472,8 @@ function writeReportSessionChapter(kind, reportId, chapter, totalChapters, chapt
     chapterMeta,
     minTotalChars,
     engineData: {
-      chapterJson: extra?.chapterJson || null,
-      chapterJsonPacks: extra?.chapterJsonPacks || null,
+      chapterJson: extra?.chapterJson || extra?.chapterJsonPacks || {},
+      chapterJsonPacks: extra?.chapterJsonPacks || extra?.chapterJson || {},
       canonicalSajuLoveReport: extra?.canonicalSajuLoveReport || null,
       canonicalSajuNewYearReport: extra?.canonicalSajuNewYearReport || null,
       canonicalZiweiChart: extra?.canonicalZiweiChart || null,
@@ -10516,7 +10487,7 @@ function writeReportSessionChapter(kind, reportId, chapter, totalChapters, chapt
     chapter,
     chapterMeta: chapterMeta || null,
     text: sanitizedText,
-    chapterJson: extra.chapterJson || null,
+    chapterJson: extra.chapterJson || extra.chapterJsonPacks || {},
     updatedAt: new Date(now).toISOString(),
   };
 
@@ -10535,7 +10506,7 @@ function writeReportSessionChapter(kind, reportId, chapter, totalChapters, chapt
     markdown: String(incomingChapterResult.markdown || existingChapterResult.markdown || sanitizedText || "").trim(),
     text: String(incomingChapterResult.text || existingChapterResult.text || sanitizedText || "").trim(),
     report: String(incomingChapterResult.report || existingChapterResult.report || sanitizedText || "").trim(),
-    chapterJson: incomingChapterResult.chapterJson || existingChapterResult.chapterJson || extra.chapterJson || null,
+    chapterJson: incomingChapterResult.chapterJson || existingChapterResult.chapterJson || extra.chapterJson || extra.chapterJsonPacks || {},
     updatedAt: new Date(now).toISOString(),
   };
 
@@ -13796,10 +13767,15 @@ function buildZiweiPdfReportPayload({
     { periods: ["annual", "monthly"], signals: ["monthlyPlan", "goStop"] },
     { palaces: ["ming", "body", "fortune"], signals: ["remediation", "habitDesign"] },
     { palaces: ["ming", "body", "career", "wealth"], signals: ["90DayPlan", "executionRoadmap"] },
+    { periods: ["annual", "monthly"], signals: ["yearlyRoadmap", "windowManagement"] },
+    { palaces: ["ming", "body", "career", "wealth", "fortune"], signals: ["lifecyclePlan", "strategicSynthesis"] },
   ];
 
   merged.ziweiSeed = ziweiSeed;
-  merged.chapterInputs = Array.from({ length: 12 }, (_, idx) => {
+  const ziweiChapterCount = Array.isArray(ZIWEI_PDF_CHAPTERS_V2) && ZIWEI_PDF_CHAPTERS_V2.length
+    ? ZIWEI_PDF_CHAPTERS_V2.length
+    : 15;
+  merged.chapterInputs = Array.from({ length: ziweiChapterCount }, (_, idx) => {
     const spec = Array.isArray(ZIWEI_PDF_CHAPTERS_V2) ? ZIWEI_PDF_CHAPTERS_V2[idx] : null;
     return {
       chapterNo: idx + 1,
@@ -14184,7 +14160,7 @@ async function generateChapterContents(env, prompt, genOptions) {
 function validateGeneratedChapters(chapter, text, chapterSpec = null) {
   const targetChars = Math.max(2500, Number(chapterSpec?.targetChars || ZIWEI_MIN_CHARS));
   const minChars = Math.max(2000, Math.floor(targetChars * 0.85));
-  const missing = ziweiMissingMarkers(text, chapter);
+  const missing = ziweiMissingMarkers(text, chapter, chapterSpec);
   const tooShort = text.length < minChars;
   const truncated = looksTruncatedMarkdown(text);
   const banned = hasZiweiBannedSummaryExpression(text);
@@ -14273,9 +14249,12 @@ function validateZiweiChapterResult(chapter, chapterSpec) {
   };
 }
 
-function ziweiMissingMarkers(text, chapter) {
+function ziweiMissingMarkers(text, chapter, chapterSpec = null) {
   const source = String(text || "");
   const chapterRule = ZIWEI_REQUIRED_CHAPTER_STRUCTURE[chapter] || null;
+  const chapterSections = Array.isArray(chapterSpec?.sections)
+    ? chapterSpec.sections.map((row) => String(row || "").trim()).filter(Boolean)
+    : [];
   const required = [
     "### 사용 데이터 요약표",
     "## 1. 이 챕터에서 보는 핵심",
@@ -14297,17 +14276,19 @@ function ziweiMissingMarkers(text, chapter) {
     if (chapterRule?.prefaceHeading) required.push(chapterRule.prefaceHeading);
     required.push("### 12궁 전체 요약표");
   }
-  if (chapterRule?.exactHeading) required.push(chapterRule.exactHeading);
+  if (!chapterSpec && chapterRule?.exactHeading) required.push(chapterRule.exactHeading);
   if (Array.isArray(chapterRule?.prefaceIncludes)) {
     required.push(...chapterRule.prefaceIncludes);
   }
   if (Array.isArray(chapterRule?.includes)) {
     required.push(...chapterRule.includes);
   }
-  if (Array.isArray(chapterRule?.mustCover)) {
+  if (chapterSections.length) {
+    required.push(...chapterSections);
+  } else if (Array.isArray(chapterRule?.mustCover)) {
     required.push(...chapterRule.mustCover);
   }
-  if (chapter === 13) {
+  if (!chapterSpec && chapter === 13) {
     required.push("| 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 |");
     required.push("| 1~7일 |  |  |  |  |");
     required.push("| 8~30일 |  |  |  |  |");
