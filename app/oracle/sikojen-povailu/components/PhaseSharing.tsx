@@ -1,8 +1,36 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 import { useSikojenpovailuContext } from '../SikojenpovailuContext';
 import { YeonSpriteAvatar } from './YeonSpriteAvatar';
+
+const BLESSING_MESSAGES = [
+  {
+    ko: '행운이 항상 너와 함께하길 바라. 그리고 누군가가 슬플 때 이 따뜻한 마법을 나눠줄래?',
+    fi: 'Onnea uuteen vuoteen! (새해를 축하해!)',
+  },
+  {
+    ko: '당신의 모든 꿈이 현실이 되고, 매일이 기쁨으로 가득하길 바래.',
+    fi: 'Pysy onnellisena! (행복하게 지내!)',
+  },
+  {
+    ko: '이 순간의 따뜻함을 잊지 말고, 누군가 추운 날에 함께해줄래?',
+    fi: 'Rakkautta ja lämpöä! (사랑과 따뜻함을!)',
+  },
+  {
+    ko: '당신이 받은 축복을 다른 누군가에게도 나눠줄 수 있길 바라.',
+    fi: 'Jakaa iloa kaikille! (모두와 기쁨을 나눠!)',
+  },
+  {
+    ko: '매일의 작은 순간들이 모여 당신의 가장 아름다운 이야기가 되길.',
+    fi: 'Jokainen päivä on ihme! (매일이 기적이길!)',
+  },
+  {
+    ko: '혼자가 아니야. 항상 누군가가 너를 응원하고 있어.',
+    fi: 'Et ole koskaan yksin! (너는 절대 혼자가 아니야!)',
+  },
+];
 
 export function PhaseSharing() {
   const { resetGame, selectedShape } = useSikojenpovailuContext();
@@ -10,38 +38,10 @@ export function PhaseSharing() {
   const [isShared, setIsShared] = useState(false);
   const [blessingMessage, setBlessingMessage] = useState<{ ko: string; fi: string } | null>(null);
 
-  // 연이의 다양한 축복 메시지
-  const blessingMessages = [
-    {
-      ko: '행운이 항상 너와 함께하길 바라. 그리고 누군가가 슬플 때 이 따뜻한 마법을 나눠줄래?',
-      fi: 'Onnea uuteen vuoteen! (새해를 축하해!)',
-    },
-    {
-      ko: '당신의 모든 꿈이 현실이 되고, 매일이 기쁨으로 가득하길 바래.',
-      fi: 'Pysy onnellisena! (행복하게 지내!)',
-    },
-    {
-      ko: '이 순간의 따뜻함을 잊지 말고, 누군가 추운 날에 함께해줄래?',
-      fi: 'Rakkautta ja lämpöä! (사랑과 따뜻함을!)',
-    },
-    {
-      ko: '당신이 받은 축복을 다른 누군가에게도 나눠줄 수 있길 바라.',
-      fi: 'Jakaa iloa kaikille! (모두와 기쁨을 나눠!)',
-    },
-    {
-      ko: '매일의 작은 순간들이 모여 당신의 가장 아름다운 이야기가 되길.',
-      fi: 'Jokainen päivä on ihme! (매일이 기적이길!)',
-    },
-    {
-      ko: '혼자가 아니야. 항상 누군가가 너를 응원하고 있어.',
-      fi: 'Et ole koskaan yksin! (너는 절대 혼자가 아니야!)',
-    },
-  ];
-
   // 컴포넌트 마운트 시 랜덤 축복 메시지 선택
   useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * blessingMessages.length);
-    setBlessingMessage(blessingMessages[randomIndex]);
+    const randomIndex = Math.floor(Math.random() * BLESSING_MESSAGES.length);
+    setBlessingMessage(BLESSING_MESSAGES[randomIndex]);
   }, []);
 
   const generateShareText = () => {
@@ -218,7 +218,7 @@ export function PhaseSharing() {
           </button>
 
           {/* 메인 화면 바로가기 버튼 */}
-          <a
+          <Link
             href="/"
             className="py-3 px-4 bg-white border-2 border-rose-300
               text-rose-500 font-bold rounded-xl hover:bg-rose-50 hover:border-rose-400 hover:text-rose-600
@@ -226,7 +226,7 @@ export function PhaseSharing() {
               flex items-center justify-center gap-2"
           >
             🏠 메인 화면으로
-          </a>
+          </Link>
         </div>
 
         {/* 연이의 축복 메시지 */}
