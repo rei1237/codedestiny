@@ -197,31 +197,14 @@
 
   function _buildChapterSkeleton(idx, reason) {
     var meta = _getChapterMeta(idx);
-    var sections = meta.sections.length ? meta.sections : [
-      '핵심 구조 요약',
-      '강점과 기회',
-      '주의 신호',
-      '실행 체크리스트',
-      '다음 챕터 연결 포인트',
-    ];
     var lines = [];
     lines.push('## ' + meta.title);
     if (meta.subtitle) lines.push('> ' + meta.subtitle);
     lines.push('');
-    lines.push('### 생성 상태 안내');
-    lines.push('서버 응답이 불안정하여 이 챕터는 구조화된 스켈레톤으로 우선 복구되었습니다.');
-    lines.push('');
-    for (var i = 0; i < sections.length; i++) {
-      lines.push('### ' + sections[i]);
-      lines.push('- 이 섹션은 챕터 구조 보존을 위한 기본 골격입니다.');
-      lines.push('- 다음 생성 시 서버 기준 JSON 카테고리로 자동 재작성됩니다.');
-      lines.push('');
-    }
-    if (reason) {
-      lines.push('### 참고');
-      lines.push('- 원인: ' + String(reason));
-      lines.push('');
-    }
+    lines.push('### 생성 실패');
+    lines.push('이 챕터는 LLM 품질/구조 계약을 충족하지 못해 중단되었습니다.');
+    if (reason) lines.push('- 원인: ' + String(reason));
+    lines.push('- 스켈레톤 대체 없이 재생성만 허용됩니다.');
     return lines.join('\n');
   }
 
@@ -1058,12 +1041,16 @@
 
         _failCount++;
         var msg = (data && data.message) ? data.message : '알 수 없는 오류';
-        _trace('CHAPTER_DATA_FALLBACK', { chapter: idx + 1, message: msg });
-        console.warn('[자미두수 인생 총람] Chapter ' + (idx + 1) + ' 실패:', msg);
-        _chapters[idx] = _buildChapterSkeleton(idx, msg);
-        _chapterStructured[idx] = null;
-        _setProgress(idx + 1);
-        generateNext(idx + 1);
+        _trace('CHAPTER_DATA_FAILED', { chapter: idx + 1, message: msg });
+        console.error('[자미두수 인생 총람] Chapter ' + (idx + 1) + ' 생성 실패(스켈레톤 대체 비활성화):', msg);
+        clearInterval(_mysticTimer); _mysticTimer = null; _generating = false;
+        var failErrEl = _qs('zbErrorMsg');
+        if (failErrEl) {
+          failErrEl.textContent = 'Ch.' + (idx + 1) + ' 생성 실패: ' + msg + '\n스켈레톤 자동 복구는 비활성화되었습니다. 잠시 후 다시 시도해 주세요.';
+        }
+        _zbClearSaved(window.__cdActiveBirthProfile || {});
+        _showScreen('zbErrorScreen');
+        return;
       });
     })(0);
   };

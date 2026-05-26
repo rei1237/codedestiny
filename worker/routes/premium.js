@@ -9765,6 +9765,112 @@ function buildAstroChapterLocalFallback(canonical, meta, chart, reportType) {
   return blocks.join("\n\n").trim();
 }
 
+function normalizeAstroSectionHeadingToken(value) {
+  return String(value || "")
+    .replace(/^#+\s*/, "")
+    .replace(/^\d+\s*[\.)\-:]\s*/, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function parseAstroSectionBlocks(text) {
+  const source = String(text || "").replace(/\r\n/g, "\n");
+  const lines = source.split("\n");
+  const blocks = [];
+  let current = null;
+
+  const pushCurrent = () => {
+    if (!current) return;
+    const body = current.bodyLines.join("\n").trim();
+    if (current.title && body) {
+      blocks.push({
+        title: current.title,
+        body,
+      });
+    }
+    current = null;
+  };
+
+  for (const rawLine of lines) {
+    const line = String(rawLine || "");
+    const headingMatch = line.match(/^###\s*(?:\d+\s*[\.)\-:]\s*)?(.+?)\s*$/);
+    if (headingMatch) {
+      pushCurrent();
+      current = {
+        title: String(headingMatch[1] || "").trim(),
+        bodyLines: [],
+      };
+      continue;
+    }
+    if (current) current.bodyLines.push(line);
+  }
+
+  pushCurrent();
+  return blocks;
+}
+
+function buildAstroSectionMarkdown(blocks = []) {
+  return blocks
+    .map((row, idx) => {
+      const title = String(row?.title || `섹션 ${idx + 1}`).trim();
+      const body = String(row?.body || "").trim();
+      return `### ${idx + 1}. ${title}\n\n${body}`;
+    })
+    .join("\n\n")
+    .trim();
+}
+
+function materializeAstroSectionBlocks(text, canonical, chapterMeta = null) {
+  const chapterConfig = findAstroWesternChapterConfig(chapterMeta?.key || "");
+  const configuredSections = Array.isArray(chapterConfig?.sections)
+    ? chapterConfig.sections
+    : [];
+  const parsedBlocks = parseAstroSectionBlocks(text);
+
+  if (!configuredSections.length) {
+    if (parsedBlocks.length) {
+      return {
+        sections: parsedBlocks,
+        markdown: buildAstroSectionMarkdown(parsedBlocks),
+      };
+    }
+    return {
+      sections: parseSections(text),
+      markdown: String(text || "").trim(),
+    };
+  }
+
+  const parsedByHeading = new Map();
+  for (const row of parsedBlocks) {
+    const token = normalizeAstroSectionHeadingToken(row?.title);
+    if (!token || parsedByHeading.has(token)) continue;
+    parsedByHeading.set(token, row);
+  }
+
+  const sections = configuredSections.map((section, idx) => {
+    const title = String(section?.title || `섹션 ${idx + 1}`).trim();
+    const token = normalizeAstroSectionHeadingToken(title);
+    const matched = parsedByHeading.get(token) || null;
+    let body = String(matched?.body || "").trim();
+    const minBodyChars = Math.max(220, Math.floor(Number(section?.minChars || 700) * 0.35));
+
+    if (!validateAstroSectionText(body, minBodyChars)) {
+      body = buildLocalAstroWesternSectionDraft(section, canonical, chapterMeta);
+    }
+
+    return {
+      title,
+      body,
+    };
+  });
+
+  return {
+    sections,
+    markdown: buildAstroSectionMarkdown(sections),
+  };
+}
+
 async function generateAstroPremiumChapter(env, body, input, chapter, meta, chart, reportType, partnerChart, synastry, composite, timingData) {
   const canonical = buildCanonicalAstroChart(body, input, chart, reportType, partnerChart, synastry, composite, timingData);
   logAstroPdfStage("AstroPdf.SkeletonBuilt", {
@@ -9776,7 +9882,23 @@ async function generateAstroPremiumChapter(env, body, input, chapter, meta, char
   const chapterMinChars = Math.max(3000, Number(chapterLengthPolicy.minChars || ASTRO_MIN_CHARS));
   const premiumInput = body?._premiumLlmInput && typeof body._premiumLlmInput === "object" ? body._premiumLlmInput : null;
   const previousChapterTexts = normalizePreviousChapterTexts(body?.previousChapterTexts);
-  const prompt = buildAstroChapterPrompt(meta, canonical, previousChapterTexts, premiumInput);
+  const chapterConfig = findAstroWesternChapterConfig(meta?.key || "");
+  const chapterSections = Array.isArray(chapterConfig?.sections) ? chapterConfig.sections : [];
+  const localSectionBaseline = chapterSections.map((section, idx) => ({
+    title: String(section?.title || `섹션 ${idx + 1}`).trim(),
+    body: buildLocalAstroWesternSectionDraft(section, canonical, meta),
+  }));
+  const baselineForPrompt = localSectionBaseline.map((row) => ({
+    title: row.title,
+    body: String(row.body || "").slice(0, 700),
+  }));
+  const prompt = [
+    buildAstroChapterPrompt(meta, canonical, previousChapterTexts, premiumInput),
+    "",
+    "[localCategoryBaseline]",
+    "아래 카테고리 초안은 canonicalAstroChart에서 계산된 로컬 결과다. 구조/근거 축은 유지하고, 문장 품질과 통찰은 LLM이 보강한다.",
+    JSON.stringify(baselineForPrompt),
+  ].join("\n");
   logAstroPdfStage("AstroPdf.LocalDraftBuilt", {
     reportId: String(body?.reportId || ""),
     profileId: String(body?.profileId || body?.selectedProfileId || ""),
@@ -9887,9 +10009,14 @@ async function generateAstroPremiumChapter(env, body, input, chapter, meta, char
     usedLocalFallback = true;
   }
 
+  const normalizedBlocks = materializeAstroSectionBlocks(text, canonical, meta);
+  if (Array.isArray(normalizedBlocks?.sections) && normalizedBlocks.sections.length > 0) {
+    text = String(normalizedBlocks.markdown || text || "").trim();
+  }
+
   return {
     text,
-    sections: parseSections(text),
+    sections: Array.isArray(normalizedBlocks?.sections) ? normalizedBlocks.sections : parseSections(text),
     usedFallback: usedLocalFallback,
     warnings: canonical.validation?.missingFields || [],
     lengthPolicy: chapterLengthPolicy,
@@ -16491,43 +16618,26 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
       : 0,
   });
 
-  const buildLocalOnlyChapter = (notice, warningCode) => {
-    const fallback = buildZiweiLocalFallbackChapter({
-      chapter,
-      chapterSpec,
-      meta,
-      context: promptContext,
+  const buildLocalOnlyChapter = (notice, warningCode, details = []) => {
+    const normalizedCode = String(warningCode || "ZIWEI_LLM_CONTRACT_REJECTED").trim() || "ZIWEI_LLM_CONTRACT_REJECTED";
+    const normalizedDetails = Array.from(new Set([
+      String(notice || "llm-output-rejected").trim(),
+      ...((Array.isArray(details) ? details : []).map((row) => String(row || "").trim()).filter(Boolean)),
+    ].filter(Boolean)));
+
+    console.warn("[ZiweiPdf.StrictModeAbort]", {
+      ...chapterMetaInfo,
+      code: normalizedCode,
+      notice: String(notice || "llm-output-rejected"),
+      details: normalizedDetails,
     });
-    const text = String(fallback?.text || "");
-    try {
-      assertNoZiweiPdfFallbackText(text, {
-        chapterId: chapterMetaInfo.chapterId,
-        categoryId: chapterMetaInfo.sectionId,
-        requestId: String(body?.requestId || body?.generationId || "").trim(),
-        userId: String(body?.userId || "").trim(),
-        hasSourceData: true,
-      });
-    } catch (forbiddenError) {
-      console.warn("[ZiweiPdf.ForbiddenPhraseDetected]", {
-        ...chapterMetaInfo,
-        requestId: String(body?.requestId || body?.generationId || "").trim(),
-        phrase: String(forbiddenError?.foundPhrase || ""),
-        code: String(forbiddenError?.code || "ZIWEI_FORBIDDEN_PHRASE_DETECTED"),
-        retryCount: 0,
-      });
-      return {
-        ok: false,
-        code: "ZIWEI_FORBIDDEN_PHRASE_DETECTED",
-        message: "자미두수 챕터 생성 중 금지 문구가 감지되어 중단되었습니다.",
-        details: [String(forbiddenError?.foundPhrase || "FORBIDDEN_PHRASE")],
-      };
-    }
+
     return {
-      ...fallback,
-      generationNotice: String(notice || "local-only"),
-      warnings: Array.from(new Set([...(Array.isArray(fallback?.warnings) ? fallback.warnings : []), String(warningCode || "ZIWEI_LOCAL_ONLY")])),
-      text,
-      sections: parseSections(text),
+      ok: false,
+      code: normalizedCode,
+      message: "자미두수 챕터 생성이 품질/구조 계약을 만족하지 못해 중단되었습니다. 스켈레톤 대체 없이 다시 생성해 주세요.",
+      details: normalizedDetails,
+      missingFields: [],
     };
   };
   (Array.isArray(context?.missingSummary) ? context.missingSummary : []).forEach((field) => pushUnique(dataQuality?.missingFields, field));
@@ -16565,6 +16675,49 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
     maxOutputTokens: 16384,
     timeoutMs: Number(env.PREMIUM_ZIWEI_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 70000),
     maxAttemptsPerPair: Number(env.PREMIUM_ZIWEI_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 3),
+  };
+  const requiredCategorySections = toChapterSpecificSections(chapterSpec?.sections || []).slice(0, 5);
+  const buildZiweiCategoryRepairPrompt = (draftJson, validation) => {
+    const missingFields = Array.isArray(validation?.missing) ? validation.missing : [];
+    const contextSummary = {
+      chapter: Number(chapter || 0),
+      chapterTitle: String(chapterSpec?.title || "").trim(),
+      chapterSubtitle: String(chapterSpec?.goal || meta?.subtitle || "").trim(),
+      targetSections: requiredCategorySections,
+      missingFields,
+      chartMeta: {
+        mingGong: String(premiumContext?.chartMeta?.mingGong || context?.chartMeta?.命宮 || "").trim(),
+        shenGong: String(premiumContext?.chartMeta?.shenGong || context?.chartMeta?.身宮 || "").trim(),
+        fiveElementBureau: String(premiumContext?.chartMeta?.fiveElementBureau || "").trim(),
+      },
+      chapterSignals: Array.isArray(premiumContext?.chapterSignals)
+        ? premiumContext.chapterSignals.slice(0, 6)
+        : [],
+    };
+
+    return [
+      "직전 자미두수 챕터 JSON이 카테고리 본문 규칙을 충족하지 못했습니다.",
+      "아래 규칙으로 단일 JSON 객체만 다시 출력하세요.",
+      "필수 최상위 키: chapterMeta, chapterSpecificSections, sections, chapter",
+      `chapterMeta.title은 '${String(chapterSpec?.title || "").trim()}'와 정확히 일치해야 합니다.`,
+      `chapterMeta.subtitle은 '${String(chapterSpec?.goal || meta?.subtitle || "").trim()}'와 정확히 일치해야 합니다.`,
+      `chapterSpecificSections는 정확히 5개이며 [${requiredCategorySections.join(" | ")}] 순서를 그대로 사용합니다.`,
+      "sections는 정확히 5개 객체만 포함하고, 각 객체는 title/body만 사용합니다.",
+      "sections[i].title은 chapterSpecificSections[i]와 완전히 같아야 합니다.",
+      "각 sections[i].body는 최소 1000자이며, 해당 카테고리의 실제 해석 본문이어야 합니다.",
+      "누락된 카테고리/짧은 본문은 반드시 보강하세요.",
+      "금지: 생성 상태 안내, 스켈레톤, 기본 골격, 자동 재작성, fallback, placeholder.",
+      "코드펜스, 설명문, 주석 없이 JSON만 출력하세요.",
+      "",
+      "[카테고리 보강 실패 정보]",
+      JSON.stringify({ missingFields }, null, 2),
+      "",
+      "[명반 컨텍스트 요약]",
+      stringifyCompact(contextSummary, 3200),
+      "",
+      "[직전 JSON 초안]",
+      stringifyCompact(draftJson, 9000),
+    ].join("\n");
   };
   const chapterTargetChars = Math.max(2500, Number(chapterSpec?.targetChars || ZIWEI_MIN_CHARS));
   const chapterMinChars = Math.max(2000, Math.floor(chapterTargetChars * 0.85));
@@ -16626,17 +16779,71 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
       stage: "gemini-parse",
       detail: String(parsed.error || "JSON_PARSE_FAILED"),
     });
-    return buildLocalOnlyChapter("llm-parse-rejected", "ZIWEI_LLM_PARSE_REJECTED");
+    return buildLocalOnlyChapter("llm-parse-rejected", "ZIWEI_LLM_PARSE_REJECTED", [String(parsed.error || "ZIWEI_JSON_PARSE_FAILED")]);
   }
 
-  const chapterValidation = validateZiweiChapterResult(parsed.data, chapterSpec);
+  let chapterValidation = validateZiweiChapterResult(parsed.data, chapterSpec);
+  if (!chapterValidation.ok) {
+    const hasCategoryBodyIssue = chapterValidation.missing.some((key) =>
+      key === "sections.length"
+      || key === "sections.heading"
+      || key === "chapterSpecificSections.length"
+      || key.startsWith("sections[")
+      || key === "minChars",
+    );
+    if (hasCategoryBodyIssue && requiredCategorySections.length === 5) {
+      const sectionRepairPrompt = buildZiweiCategoryRepairPrompt(parsed.data, chapterValidation);
+      let repairedRawText = "";
+      let repairedParsed = null;
+      try {
+        repairedRawText = await callGemini(env, sectionRepairPrompt, ["PREMIUM_ZIWEI_GEMINI_MODEL"], {
+          ...genOptions,
+          temperature: 0.35,
+          maxOutputTokens: 12288,
+          maxAttemptsPerPair: 1,
+          rawOutput: true,
+          expectJson: true,
+        });
+        repairedParsed = parseZiweiGeminiResponse(repairedRawText);
+      } catch (repairError) {
+        repairedParsed = {
+          ok: false,
+          error: String(repairError?.message || "ZIWEI_CATEGORY_REPAIR_CALL_FAILED"),
+        };
+      }
+
+      if (repairedParsed?.ok && repairedParsed.data) {
+        const repairedValidation = validateZiweiChapterResult(repairedParsed.data, chapterSpec);
+        if (repairedValidation.ok) {
+          parsed = repairedParsed;
+          chapterValidation = repairedValidation;
+          console.info("[ZiweiPdf.CategoryRepairSuccess]", {
+            ...chapterMetaInfo,
+            repaired: true,
+          });
+        } else {
+          chapterValidation = repairedValidation;
+          console.warn("[ZiweiPdf.CategoryRepairRejected]", {
+            ...chapterMetaInfo,
+            missing: repairedValidation.missing,
+          });
+        }
+      } else {
+        console.warn("[ZiweiPdf.CategoryRepairFailed]", {
+          ...chapterMetaInfo,
+          detail: String(repairedParsed?.error || "ZIWEI_CATEGORY_REPAIR_PARSE_FAILED"),
+        });
+      }
+    }
+  }
+
   if (!chapterValidation.ok) {
     console.warn("[ZiweiPdf.LlmEnhanceRejected]", {
       ...chapterMetaInfo,
       code: "ZIWEI_CHAPTER_SCHEMA_FAILED",
       missing: chapterValidation.missing,
     });
-    return buildLocalOnlyChapter("llm-schema-rejected", "ZIWEI_LLM_SCHEMA_REJECTED");
+    return buildLocalOnlyChapter("llm-schema-rejected", "ZIWEI_LLM_SCHEMA_REJECTED", chapterValidation.missing || []);
   }
 
   console.info("[ZiweiPdf.LlmEnhanceValidated]", {
@@ -16692,7 +16899,7 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
       code: "ZIWEI_CHAPTER_QUALITY_FAILED",
       details: qualityDetails,
     });
-    return buildLocalOnlyChapter("llm-quality-rejected", "ZIWEI_LLM_QUALITY_REJECTED");
+    return buildLocalOnlyChapter("llm-quality-rejected", "ZIWEI_LLM_QUALITY_REJECTED", qualityDetails);
   }
 
   try {
@@ -16736,7 +16943,7 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
       code: "ZIWEI_CHAPTER_CONTRACT_VIOLATION",
       missingFields: chapterEnvelopeValidation.missingFields,
     });
-    return buildLocalOnlyChapter("llm-contract-rejected", "ZIWEI_LLM_CONTRACT_REJECTED");
+    return buildLocalOnlyChapter("llm-contract-rejected", "ZIWEI_LLM_CONTRACT_REJECTED", chapterEnvelopeValidation.missingFields || []);
   }
 
   console.info("[ZiweiPdf.RenderSuccess]", {
@@ -18253,7 +18460,9 @@ async function handleAstroLife(request, env, authInfo = null) {
     ...generated,
     text: safeGeneratedText,
     chapterSummaryForContext: buildChapterSummaryForContext(safeGeneratedText),
-    sections: parseSections(safeGeneratedText),
+    sections: Array.isArray(generated?.sections) && generated.sections.length > 0
+      ? generated.sections
+      : parseSections(safeGeneratedText),
   };
 
   responsePayload.storage = writeReportSessionChapter(
@@ -26709,6 +26918,9 @@ export const __astroTestUtils = {
   detectRepeatedLongSentences,
   hasAstroDataEvidence,
   validateAstroSectionText,
+  normalizeAstroSectionHeadingToken,
+  parseAstroSectionBlocks,
+  materializeAstroSectionBlocks,
   hasForbiddenAstroRawDataExposure,
   sanitizeAstroUserFacingText,
   hasBrokenPageCounter,
