@@ -4329,10 +4329,10 @@ body.neo-mode .lang-btn:hover:not(.active) {
   transition: opacity 0.25s ease, visibility 0.25s ease;
 }
 
-/* ── 구글 번역기 기본 위젯 및 상단 배너 숨김 ── */
+/* ── 구글 번역기 배너/기본 아이콘 숨김 (코스믹 위젯은 표시 유지) ── */
 .VIpgJd-ZVi9od-ORHb-OEVmcd { display: none !important; }
 .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon, .goog-te-gadget-simple { display: none !important; }
-#google_translate_element { display: none !important; }
+#google_translate_element { display: block !important; }
 body { top: 0px !important; }
 
 /* ── 글리치 전환 오버레이 ── */
