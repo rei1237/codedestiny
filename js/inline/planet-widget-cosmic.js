@@ -58,6 +58,7 @@
 
   injectBaseCss();
   injectBrandOverrides();
+  injectHardResetStyles();
   preparePlaceholder();
   markNonTranslatableAreas();
   scheduleTranslateLoad();
@@ -222,7 +223,188 @@
 
   function getLangChipLabel(code) {
     var shortCode = langShort[code] || (code ? String(code).toUpperCase() : 'KR');
-    return 'LANG · ' + shortCode;
+    return '언어 변경 · ' + shortCode;
+  }
+
+  function injectHardResetStyles() {
+    if (document.getElementById('cd-gt-hard-reset-v2')) return;
+    var style = document.createElement('style');
+    style.id = 'cd-gt-hard-reset-v2';
+    style.textContent = `
+      /* Hard reset: premium, explicit language switcher */
+      #langWrap { display: none !important; }
+
+      #google_translate_element {
+        position: fixed !important;
+        top: max(18px, env(safe-area-inset-top)) !important;
+        right: max(18px, env(safe-area-inset-right)) !important;
+        z-index: 10020 !important;
+        min-width: 194px !important;
+        min-height: 46px !important;
+        display: block !important;
+      }
+
+      #google_translate_element .cosmic-wrapper {
+        position: relative !important;
+        width: 194px !important;
+        min-width: 194px !important;
+        height: 46px !important;
+        border-radius: 999px !important;
+        border: 1px solid rgba(230, 203, 255, .42) !important;
+        background: linear-gradient(135deg, rgba(21,10,48,.98) 0%, rgba(55,21,110,.95) 56%, rgba(34,51,120,.93) 100%) !important;
+        box-shadow: 0 16px 34px rgba(8, 6, 23, .58), 0 0 26px rgba(171, 104, 255, .38), inset 0 1px 0 rgba(255, 241, 255, .18) !important;
+        overflow: hidden !important;
+        transition: transform .24s ease, box-shadow .24s ease, border-color .24s ease !important;
+      }
+
+      #google_translate_element .cosmic-wrapper:hover {
+        transform: translateY(-1px) scale(1.03) !important;
+        border-color: rgba(246, 232, 255, .68) !important;
+        box-shadow: 0 20px 42px rgba(8, 6, 25, .62), 0 0 36px rgba(199, 136, 255, .56), inset 0 1px 0 rgba(255, 246, 255, .24) !important;
+      }
+
+      #google_translate_element .cosmic-wrapper::before {
+        content: '🌐' !important;
+        position: absolute !important;
+        left: 14px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        font-size: 17px !important;
+        z-index: 7 !important;
+        filter: drop-shadow(0 0 8px rgba(225, 194, 255, .88)) !important;
+      }
+
+      #google_translate_element .cosmic-wrapper::after {
+        content: '▾' !important;
+        position: absolute !important;
+        right: 14px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        font-size: 12px !important;
+        color: #ffe4ff !important;
+        text-shadow: 0 0 10px rgba(255, 223, 255, .85) !important;
+        z-index: 7 !important;
+        transition: transform .22s ease !important;
+      }
+
+      #google_translate_element .cosmic-wrapper.cd-gt-open::after {
+        transform: translateY(-50%) rotate(180deg) !important;
+      }
+
+      #google_translate_element .cosmic-lang-label {
+        position: absolute !important;
+        left: 57% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        color: #fff4ff !important;
+        font-size: 12px !important;
+        letter-spacing: .02em !important;
+        font-weight: 800 !important;
+        text-transform: none !important;
+        white-space: nowrap !important;
+        text-shadow: 0 0 9px rgba(255, 231, 255, .56) !important;
+        z-index: 8 !important;
+      }
+
+      #google_translate_element .cosmic-toggle {
+        position: absolute !important;
+        inset: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        border: 0 !important;
+        background: transparent !important;
+        opacity: 0 !important;
+        cursor: pointer !important;
+        z-index: 10 !important;
+      }
+
+      #google_translate_element select.goog-te-combo {
+        position: absolute !important;
+        inset: 0 !important;
+        width: 100% !important;
+        min-width: 100% !important;
+        height: 100% !important;
+        min-height: 100% !important;
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        border: 0 !important;
+        outline: 0 !important;
+        background: transparent !important;
+        color: transparent !important;
+        text-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+      }
+
+      #google_translate_element .cd-gt-custom-menu {
+        top: calc(100% + 10px) !important;
+        right: 0 !important;
+        min-width: 236px !important;
+        max-width: 278px !important;
+        padding: 8px !important;
+        border-radius: 14px !important;
+        border: 1px solid rgba(222, 196, 255, .30) !important;
+        background: linear-gradient(160deg, rgba(13, 10, 37, .98) 0%, rgba(28, 15, 70, .98) 56%, rgba(20, 35, 87, .98) 100%) !important;
+        box-shadow: 0 22px 52px rgba(6, 4, 18, .62), 0 0 24px rgba(168, 107, 255, .26) !important;
+        z-index: 10025 !important;
+      }
+
+      #google_translate_element .cd-gt-menu-item {
+        border: 1px solid transparent !important;
+        color: #f8f2ff !important;
+        font-size: 13px !important;
+        font-weight: 800 !important;
+        border-radius: 10px !important;
+        padding: 10px 12px !important;
+      }
+
+      #google_translate_element .cd-gt-menu-item:hover {
+        background: linear-gradient(135deg, rgba(148, 84, 247, .28), rgba(76, 126, 255, .20)) !important;
+        border-color: rgba(220, 191, 255, .32) !important;
+      }
+
+      #google_translate_element .cd-gt-menu-item.is-active {
+        background: linear-gradient(135deg, rgba(180, 114, 255, .30), rgba(105, 153, 255, .24)) !important;
+        border-color: rgba(236, 212, 255, .48) !important;
+      }
+
+      .goog-logo-link,
+      .goog-te-gadget-icon,
+      .goog-te-gadget span,
+      .goog-te-gadget img,
+      .goog-te-banner-frame.skiptranslate,
+      .VIpgJd-ZVi9od-ORHb-OEVmcd,
+      iframe.goog-te-banner-frame,
+      .goog-te-balloon-frame,
+      #goog-gt-tt,
+      .goog-tooltip,
+      .goog-text-highlight,
+      .skiptranslate iframe {
+        display: none !important;
+        visibility: hidden !important;
+      }
+
+      body { top: 0 !important; position: static !important; }
+      html { margin-top: 0 !important; }
+
+      @media (max-width: 768px) {
+        #google_translate_element {
+          top: max(12px, env(safe-area-inset-top)) !important;
+          right: max(12px, env(safe-area-inset-right)) !important;
+          min-width: 172px !important;
+        }
+        #google_translate_element .cosmic-wrapper {
+          width: 172px !important;
+          min-width: 172px !important;
+        }
+        #google_translate_element .cosmic-lang-label {
+          font-size: 11px !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
   }
 
   function injectBaseCss() {
