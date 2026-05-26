@@ -15,9 +15,19 @@ export default function DestinyBiasPhotocard({
 }) {
   const reduceMotion = useReducedMotion();
   const [glare, setGlare] = useState({ x: 50, y: 16, tiltX: 0, tiltY: 0 });
+  const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
+  const hasImage = Boolean(biasImageUrl);
   const relationHeadline = `${vm.userName} x ${vm.biasName}`;
   const relationSignal = `${vm.userEnergyType} ↔ ${vm.biasEnergyType}`;
   const oneLine = String(vm.chemistrySummary || vm.oneLineDestinyMessage || "").replace(/\s+/g, " ").trim();
+  const imageRatio = imageAspectRatio && Number.isFinite(imageAspectRatio) ? imageAspectRatio : 1;
+  const imageWrapClass = hasImage
+    ? imageRatio >= 1.2
+      ? "h-36 md:h-40"
+      : imageRatio <= 0.78
+        ? "h-48 md:h-56"
+        : "h-40 md:h-48"
+    : "h-36";
 
   const handleMove = useCallback((event: MouseEvent<HTMLDivElement>) => {
     if (reduceMotion) return;
@@ -62,7 +72,7 @@ export default function DestinyBiasPhotocard({
       {/* rainbow holo border */}
       <div className={styles.biasCardOuter}>
       <div className={styles.biasCardInner}>
-        <div className="relative aspect-[9/16] p-4 md:p-5">
+        <div className={`relative p-4 md:p-5 ${hasImage ? "min-h-[620px] md:min-h-[700px]" : "aspect-[9/16]"}`}>
           <div className={styles.glassSpotLayer} aria-hidden />
           <div className={styles.glassNoiseLayer} aria-hidden />
           {/* holographic shimmer + glitter */}
@@ -100,8 +110,8 @@ export default function DestinyBiasPhotocard({
             <div className="mt-5 flex items-center justify-between gap-3">
               <div>
                 <p className="text-[11px] font-semibold tracking-[0.16em] text-cyan-100/80">ENERGY RELATION</p>
-                <h3 className="mt-1 text-2xl font-black leading-tight text-white">{vm.biasName}</h3>
-                <p className="mt-1 text-xs text-white/75">{vm.relationMood} 공명 모드</p>
+                <h3 className={`${styles.cardClamp1} mt-1 text-2xl font-black leading-tight text-white`}>{vm.biasName}</h3>
+                <p className={`${styles.cardClamp1} mt-1 text-xs text-white/75`}>{vm.relationMood} 공명 모드</p>
               </div>
               <div className="relative grid h-16 w-16 place-items-center">
                 <div className="pointer-events-none absolute -inset-3 rounded-full bg-[radial-gradient(circle,rgba(56,189,248,0.22),transparent_68%)] blur-md" aria-hidden />
@@ -117,15 +127,21 @@ export default function DestinyBiasPhotocard({
               <div className="pointer-events-none absolute left-1/2 top-[48%] h-44 w-44 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-100/35" aria-hidden />
               <div className="pointer-events-none absolute left-1/2 top-[48%] h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full border border-pink-100/30" aria-hidden />
 
-              <div className="relative z-10 mb-3 overflow-hidden rounded-2xl border border-white/25 bg-black/35">
+              <div className={`relative z-10 mb-3 overflow-hidden rounded-2xl border border-white/25 bg-black/35 ${imageWrapClass}`}>
                 {biasImageUrl ? (
                   <img
                     src={biasImageUrl}
                     alt={`${vm.biasName} 업로드 이미지`}
-                    className="h-36 w-full object-cover"
+                    className="h-full w-full object-cover"
+                    onLoad={(event) => {
+                      const target = event.currentTarget;
+                      const width = target.naturalWidth || 0;
+                      const height = target.naturalHeight || 0;
+                      if (width > 0 && height > 0) setImageAspectRatio(width / height);
+                    }}
                   />
                 ) : (
-                  <div className="grid h-36 place-items-center bg-[linear-gradient(140deg,rgba(30,41,89,0.75),rgba(56,189,248,0.22),rgba(219,39,119,0.24))]">
+                  <div className="grid h-full place-items-center bg-[linear-gradient(140deg,rgba(30,41,89,0.75),rgba(56,189,248,0.22),rgba(219,39,119,0.24))]">
                     <p className="text-xs font-semibold tracking-[0.12em] text-white/88">NO IMAGE UPLOAD</p>
                   </div>
                 )}
@@ -134,11 +150,11 @@ export default function DestinyBiasPhotocard({
               </div>
 
               <div className="relative z-10 space-y-3">
-                <p className="text-xs font-semibold tracking-[0.04em] text-white/90">{relationHeadline}</p>
-                <p className="rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-sm font-semibold text-cyan-50">{relationSignal}</p>
+                <p className={`${styles.cardClamp1} text-xs font-semibold tracking-[0.04em] text-white/90`}>{relationHeadline}</p>
+                <p className={`${styles.cardClamp1} rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-sm font-semibold text-cyan-50`}>{relationSignal}</p>
                 <div className="rounded-xl border border-pink-100/20 bg-pink-300/10 px-3 py-2">
                   <p className="text-[10px] font-semibold tracking-[0.15em] text-pink-100/85">ONE LINE LINK</p>
-                  <p className="mt-1 text-sm leading-6 text-white/92">{oneLine}</p>
+                  <p className={`${styles.cardClamp2} mt-1 text-sm leading-6 text-white/92`}>{oneLine}</p>
                 </div>
               </div>
             </div>

@@ -21,9 +21,9 @@ function nonEmpty(value: string, fallback: string) {
   return text || fallback;
 }
 
-function ensureLong(text: string, add: string) {
-  if (text.length >= 250) return text;
-  return `${text} ${add}`;
+function compact(text: string, fallback: string) {
+  const normalized = nonEmpty(text, fallback);
+  return normalized.length > 210 ? `${normalized.slice(0, 210).trimEnd()}...` : normalized;
 }
 
 export default function BiasDestinyResultTabs({ vm }: Props) {
@@ -36,39 +36,39 @@ export default function BiasDestinyResultTabs({ vm }: Props) {
       ...vm.stageChemistryKeywords,
     ].filter(Boolean);
 
-    const summary = ensureLong(
-      `${nonEmpty(vm.compatibilityReport, vm.chemistrySummary)} 이 리포트에서 가장 핵심은 ${vm.biasName}에게서 느끼는 ${vm.biasEnergyType} 결이 ${vm.userName}의 ${vm.userEnergyType} 흐름을 자극한다는 점입니다. 처음에는 설렘 중심으로 시작되지만 시간이 지날수록 관계의 템포를 조율해야 더 깊고 안정적인 연결로 이어집니다. ${nonEmpty(vm.stageAuraComment, "무대의 빛이 감정을 확장시키는 만큼 리듬을 조절하는 태도가 필요합니다.")}`,
-      "이 문장은 예언이 아니라 현재의 감정 패턴을 읽어 앞으로의 선택을 더 부드럽게 만드는 안내입니다."
+    const summary = compact(
+      `${nonEmpty(vm.compatibilityReport, vm.chemistrySummary)} 핵심은 ${vm.biasName}의 ${vm.biasEnergyType} 결이 ${vm.userName}의 ${vm.userEnergyType} 흐름과 정확히 붙는다는 점. 설렘은 빠르게 오고, 만족은 루틴에서 길어집니다.`,
+      "지금 조합은 한방보다 지속이 강한 타입이에요."
     );
 
-    const attraction = ensureLong(
-      `${nonEmpty(vm.biasPersonalityReport, "당신은 분명한 분위기와 감정의 밀도를 가진 대상에 강하게 끌립니다.")} 특히 ${vm.biasMood} 결의 무드가 눈에 들어올 때 감정 몰입이 빠르게 올라갑니다. ${vm.biasName}의 존재에서 읽히는 핵심은 선명한 에너지와 여백의 균형이며, 이 균형이 ${vm.userName}의 내면에서 오래된 기대와 새로운 열망을 동시에 깨웁니다.`,
-      "끌림이 깊어질수록 상대를 이상화하기보다 실제 내 감정 변화를 관찰하면 덕질의 만족감이 더 길게 이어집니다."
+    const attraction = compact(
+      `${nonEmpty(vm.biasPersonalityReport, "당신은 분위기 선명한 타입에 강하게 끌려요.")} 특히 ${vm.biasMood} 톤에서 몰입 속도가 급상승. ${vm.biasName}의 매력은 자극과 안정이 동시에 오는 밸런스에 있습니다.`,
+      "끌림 포인트는 비주얼 한방보다 결의 합이에요."
     );
 
-    const expectation = ensureLong(
-      `${nonEmpty(vm.energyConnectionReport, vm.energyConnectionDetail)} 이 흐름은 관계에서 무엇을 바라는지 명확하게 보여줍니다. 당신은 단순한 설렘보다 마음의 안전과 성장감을 동시에 주는 상호작용을 기대하며, 응원할수록 감정의 품질이 높아지길 원합니다. ${nonEmpty(vm.fansignMessage, "기대가 커지는 시기에는 감정 표현의 온도를 낮추고 리듬을 맞추는 태도가 중요합니다.")}`,
-      "기대가 충족되지 않는 순간에도 나를 지키는 기준을 세우면 감정 소모를 크게 줄일 수 있습니다."
+    const expectation = compact(
+      `${nonEmpty(vm.energyConnectionReport, vm.energyConnectionDetail)} 당신이 기대하는 건 단순 설렘이 아니라 안정 + 성장 동시 체감. 응원할수록 감정 퀄리티가 올라가는 구조입니다. ${nonEmpty(vm.fansignMessage, "기대가 클수록 톤은 차분하게, 리듬은 일정하게.")}`,
+      "안정감이 붙을 때 덕심 만족도도 같이 오릅니다."
     );
 
-    const pattern = ensureLong(
-      `${nonEmpty(vm.destinySignal, "관계의 파동이 강해질수록 감정 반응도 커지는 패턴")}. ${vm.relationMood} 모드에서 특히 반응성이 올라가며, 좋은 신호가 보이면 몰입이 급격히 높아지고 작은 불일치에는 쉽게 흔들릴 수 있습니다. 이 패턴을 부정하기보다 인식하고 조절하면 덕질과 현실의 균형이 훨씬 안정적으로 유지됩니다.`,
-      "패턴을 알면 감정의 파도를 피하는 것이 아니라 타이밍을 조절해 더 오래 즐길 수 있는 루틴을 만들 수 있습니다."
+    const pattern = compact(
+      `${nonEmpty(vm.destinySignal, "파동이 강해질수록 반응도 커지는 타입")}. ${vm.relationMood} 모드에서 몰입이 빨리 오르고, 작은 이슈엔 흔들릴 수 있어요. 패턴만 알아도 과몰입 대신 리듬 조절이 가능해집니다.`,
+      "핵심은 감정 억제가 아니라 타이밍 운영입니다."
     );
 
-    const fitEnergy = ensureLong(
-      `${nonEmpty(vm.biasEnergySummary, "당신과 잘 맞는 에너지는 따뜻한 공감과 선명한 방향성을 동시에 갖는 타입입니다.")} ${vm.pairingAlias} 시그널은 서로의 차이를 지우기보다 연결 포인트를 명확히 할 때 가장 강하게 작동합니다. ${vm.todayMission}처럼 작고 현실적인 행동을 쌓으면 감정의 밀도가 올라가도 안정감이 함께 유지됩니다.`,
-      "잘 맞는 에너지는 즉각적인 자극보다 반복 가능한 안정감을 주며, 그 안정감이 장기적인 만족을 만들어 줍니다."
+    const fitEnergy = compact(
+      `${nonEmpty(vm.biasEnergySummary, "잘 맞는 에너지는 공감 + 방향성이 같이 있는 타입.")} ${vm.pairingAlias}는 차이를 지우기보다 연결 포인트를 선명하게 잡을수록 강해져요. ${vm.todayMission}처럼 작은 루틴이 진짜 효율입니다.`,
+      "잘 맞는 조합은 자극보다 지속에서 빛나요."
     );
 
-    const avoidEnergy = ensureLong(
-      `${nonEmpty(vm.compatibilityDetail, "과열된 기대는 관계의 해석을 좁히고 감정 회복 시간을 줄일 수 있습니다.")} 특히 결과를 빠르게 확정하려는 마음이 커질 때 현실의 작은 변수도 과하게 받아들이기 쉽습니다. 피해야 할 패턴은 나를 소모시키는 비교, 과도한 추측, 일방적 의미부여이며, 이 신호가 보이면 속도를 늦추는 것이 좋습니다.`,
-      "감정을 지키는 핵심은 절제보다 복구 루틴입니다. 흔들린 뒤 다시 중심을 찾는 개인 리듬을 먼저 준비하세요."
+    const avoidEnergy = compact(
+      `${nonEmpty(vm.compatibilityDetail, "기대 과열은 감정 회복력을 갉아먹어요.")} 결과를 빨리 확정하려 할수록 작은 변수도 크게 느껴집니다. 비교, 과추측, 의미 과적재 신호가 보이면 속도를 한 템포 낮추세요.`,
+      "감정 보호의 핵심은 멈춤이 아니라 복구 루틴입니다."
     );
 
-    const advice = ensureLong(
-      `${nonEmpty(vm.oneLineDestinyMessage, "오늘의 팬라이트 조언은 감정의 강도보다 방향을 먼저 선택하라는 신호입니다.")} ${nonEmpty(vm.cheerPoint, "응원은 내 에너지를 채우는 방식으로 설계할수록 오래갑니다.")} 오늘은 무대의 빛처럼 분명하지만 부드러운 태도로 반응하고, 나를 지키는 경계를 유지한 채 설렘을 즐겨보세요.`,
-      "작은 실행 하나를 남기면 운명 해석은 단순 문장이 아니라 실제 하루를 바꾸는 행동 가이드가 됩니다."
+    const advice = compact(
+      `${nonEmpty(vm.oneLineDestinyMessage, "오늘 조언: 감정 강도보다 방향 먼저.")} ${nonEmpty(vm.cheerPoint, "응원은 오래 가게 설계할수록 승률이 높아요.")} 오늘은 짧고 선명하게 반응하고, 내 경계는 지키면서 설렘만 챙겨가세요.`,
+      "작은 실행 하나가 오늘 무드 전체를 바꿉니다."
     );
 
     return [

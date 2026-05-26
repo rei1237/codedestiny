@@ -44,11 +44,11 @@ const TAG_POOL = ["몽환형", "안정형", "폭발형", "치유형", "응원형
 const EDITION_POOL = ["LIMITED AURA CARD", "FANSIGN EDITION", "DESTINY VERIFIED", "BACKSTAGE PASS"] as const;
 
 const FANSIGN_POOL = [
-  "오늘 템포 미쳤다, 네 리듬이 무드 완성함.",
-  "과몰입 허용 구간 진입, 근데 균형감도 챙기는 중.",
-  "다음 무대에서 또 연결돼, 오늘 여운은 저장 완료.",
-  "네 응원 파동 덕분에 스테이지 조도가 한 톤 올라감.",
-  "오늘 심장 BPM이 코러스랑 싱크 맞았어.",
+  "오늘 템포 폼 미쳤다, 네 리듬이 무드 찢음.",
+  "과몰입 ON인데 중심도 안 놓친 밸런스 장인 모드.",
+  "오늘 여운 저장 완료, 다음 무대 복습각 확정.",
+  "네 응원 버프로 스테이지 밝기 한 단계 업.",
+  "심장 BPM이 코러스랑 딱 맞물린 날.",
 ] as const;
 
 function hashText(seed: string) {
@@ -152,9 +152,9 @@ export function getStageAuraComment(score: number, auraType: string) {
 }
 
 export function getCheerPoint(score: number, relationMood: string) {
-  if (score >= 90) return `피크 공명 구간 오픈. ${relationMood} 모드로 짧고 강한 응원 1세트만 넣어도 존재감이 크게 증폭됩니다.`;
-  if (score >= 75) return `집중 파동이 잘 맞는 날입니다. ${relationMood} 메시지를 하루 1회만 남겨도 에너지 잔광이 오래 유지됩니다.`;
-  if (score >= 60) return `안정 누적형 흐름입니다. ${relationMood} 템포에 맞춰 플리 3곡 루프를 만들면 감정선이 깔끔하게 정렬됩니다.`;
-  if (score >= 40) return `성장 잠금해제 단계입니다. ${relationMood} 루틴을 주 2회 고정하면 다음 사이클에서 공명 강도가 눈에 띄게 올라갑니다.`;
-  return `초기 동기화 단계입니다. ${relationMood} 감정보다 컨디션 회복을 먼저 챙기면 이후 응원 파동이 훨씬 안정적으로 붙습니다.`;
+  if (score >= 90) return `피크 공명 구간 오픈. ${relationMood} 모드로 짧고 강하게 한 번만 찍어도 존재감이 폭발해요.`;
+  if (score >= 75) return `집중 파동 잘 맞는 날. ${relationMood} 톤 메시지 하루 1회면 잔광이 길게 남습니다.`;
+  if (score >= 60) return `안정 누적형 흐름. ${relationMood} 템포에 맞춰 플리 3곡 루프 돌리면 감정선이 깔끔하게 정렬돼요.`;
+  if (score >= 40) return `성장 잠금해제 단계. ${relationMood} 루틴 주 2회 고정하면 다음 사이클에서 공명 강도가 확 올라갑니다.`;
+  return `초기 동기화 단계. ${relationMood} 감정 과속보다 컨디션 회복 먼저 챙기면 후반 파동이 훨씬 안정적으로 붙어요.`;
 }

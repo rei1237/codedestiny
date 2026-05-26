@@ -426,16 +426,15 @@ export function generateEnergyConnectionReport(args: ReportArgs) {
   const destinyLine = pickFromPool(DESTINY_LINE_POOL, args, "destiny-line");
   const anchorKeyword = args.connectionKeyword[0] || "네온 공명";
   const secondaryKeyword = args.connectionKeyword[1] || "무대 몰입";
-  const oneLine = `${withParticle(`${args.userName}님`, "은", "는")} ${withParticle(args.userEnergyType, "과", "와")} ${args.biasName}의 ${withParticle(args.biasEnergyType, "이", "가")} 만나 ${withParticle(anchorKeyword, "이", "가")} ${secondaryKeyword} 모드로 싱크된 상태예요.`;
+  const oneLine = `${args.userName} x ${args.biasName}, ${anchorKeyword} + ${secondaryKeyword} 조합이 오늘 제대로 터졌어요.`;
 
   const report = [
-    `지금 이 순간의 에너지 흐름: [주파수 싱크 구간]`,
-    `현재 상태: ${flowState}`,
-    `오늘 연결 키워드는 ${args.connectionKeyword.join(", ")}. 이건 "설렘 + 일상 밸런스"를 동시에 챙길 때 제일 잘 터지는 패턴입니다.`,
-    `${args.userName}님이 ${args.biasName}에게 끌리는 이유는 비주얼 한 방보다 에너지 결의 합에 가까워요. 그래서 짧은 영상도 체감 여운이 길게 남습니다.`,
-    `응원 타입 & 관계 무드는 [${supportType}]로 정리돼요. 과열보다 지속을 택하면 덕심 만족도가 훨씬 오래 갑니다.`,
-    `오늘의 실행 미션: ${mission}`,
-    `운명 한 줄 요약: ${destinyLine}`,
+    `지금은 [주파수 싱크 구간]. 상태는 ${flowState}.`,
+    `키워드: ${args.connectionKeyword.join(", ")}. 설렘만 올리는 날이 아니라, 일상 밸런스까지 같이 챙기면 효율이 최고예요.`,
+    `${args.userName}님이 ${args.biasName}에게 꽂히는 포인트는 한방 비주얼보다 결이 맞는 에너지 합. 짧은 클립도 여운이 길게 남는 타입입니다.`,
+    `관계 무드는 [${supportType}]. 오늘은 과열 금지, 꾸준함 버프로 승부 보면 만족도가 오래 갑니다.`,
+    `오늘 미션: ${mission}`,
+    `한 줄 결론: ${destinyLine}`,
   ].join("\n\n");
 
   return {
@@ -450,9 +449,9 @@ export function generateBiasEnergySummary(args: ReportArgs) {
   const energySignal = args.connectionKeyword[1] || "무대 몰입";
   const supportType = pickFromPool(SUPPORT_ARCHETYPES, args, "energy-summary-support");
   return [
-    `${withParticle(args.biasName, "은", "는")} ${args.biasEnergyType} 결을 가진 파동형이고, 현재 판정은 ${TIER_LABELS[tier]}예요. 세게 밀기보다 타이밍 맞춰 들어갈 때 반응이 크게 올라옵니다.`,
-    `핵심 공명축은 ${energySignal}. ${withParticle(args.userName, "이", "가")} 응원 템포를 일정하게 가져가면 반응 에너지가 더 또렷하고 오래 유지돼요.`,
-    `추천 운영은 ${supportType} 스타일. 짧고 선명한 멘트 + 간격 있는 루틴으로 가면 과열 없이 존재감이 잘 쌓입니다.`,
+    `${withParticle(args.biasName, "은", "는")} ${args.biasEnergyType} 결이 선명한 타입이고, 현재 티어는 ${TIER_LABELS[tier]}. 무리해서 밀기보다 타이밍 맞춰 들어갈 때 반응이 훨씬 크게 옵니다.`,
+    `핵심 공명축은 ${energySignal}. ${withParticle(args.userName, "이", "가")} 응원 템포만 일정하게 잡아도 체감 온도가 안정적으로 올라가요.`,
+    `추천 운영은 ${supportType}. 짧고 임팩트 있는 멘트 + 간격 루틴이면 과열 없이 존재감이 오래 남습니다.`,
   ].join("\n\n");
 }
 
@@ -460,7 +459,7 @@ export function generateChemistrySummary(args: ReportArgs) {
   const tier = getScoreTier(args.totalScore);
   const first = args.connectionKeyword[0] || "네온 공명";
   const second = args.connectionKeyword[1] || "무대 몰입";
-  return `${args.userName}님과 ${args.biasName}의 공명축은 ${first} · ${second}, 케미 타입은 ${TIER_CHEMISTRY_TITLE[tier]}! 초반 심장 쿵 이후 루틴 앵커를 걸면 만족도가 더 길게 유지됩니다.`;
+  return `${args.userName}님과 ${args.biasName} 조합은 ${first} · ${second}. 케미는 ${TIER_CHEMISTRY_TITLE[tier]}이고, 초반 심쿵 뒤에 루틴 앵커만 걸어두면 만족도가 길게 갑니다.`;
 }
 
 export function generateDestinySignal(args: ReportArgs) {
