@@ -66,7 +66,6 @@ import {
 } from "../lib/ziwei-pdf-pipeline.js";
 import {
   ZIWEI_PREMIUM_12_CHAPTERS,
-  normalizeZiweiStrengthSymbol,
   validateZiweiPremium12ChapterStructure,
   getZiweiPremium12ChapterCount,
   getZiweiPremiumChapterBySectionId,
@@ -23619,7 +23618,6 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
   }
 
   // 성공: 모든 12챕터 저장 및 응답
-  }
   // 모든 12챕터 저장
   const allChaptersStorage = [];
   for (const generatedChapter of generationResult.chapters) {
