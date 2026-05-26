@@ -73,6 +73,7 @@
 
   /* ─────────────── 상태 ─────────────── */
   var _chapters = Array(13).fill(null);
+  var _chapterMeta = Array(13).fill(null);
   var _generating = false;
   var _currentChapter = 1;
   var _mysticTimer = null;
@@ -578,6 +579,7 @@
     var hasValidCache = _savedValidCount >= 10;
     if (hasValidCache) {
       _chapters = saved.chapters;
+      _chapterMeta = Array(13).fill(null);
       _currentChapter = 1;
       _showScreen('lbResultScreen');
       _updateTocState();
@@ -607,6 +609,7 @@
     }
 
     _chapters = Array(13).fill(null);
+    _chapterMeta = Array(13).fill(null);
     _currentChapter = 1;
     _showScreen('lbStartScreen');
     modal.style.display = 'flex';
@@ -668,8 +671,8 @@
       '<div class="lb-chapter-wrap">' +
       '<div class="lb-chapter-header">' +
       '<span class="lb-chapter-num">Chapter ' + ch + '</span>' +
-      '<h2 class="lb-chapter-title">' + _escHtml(CHAPTER_TITLES[idx]) + '</h2>' +
-      '<p class="lb-chapter-sub">' + _escHtml(CHAPTER_SUBTITLES[idx]) + '</p>' +
+      '<h2 class="lb-chapter-title">' + _escHtml(_getChapterMeta(idx).title) + '</h2>' +
+      '<p class="lb-chapter-sub">' + _escHtml(_getChapterMeta(idx).subtitle) + '</p>' +
       '</div>' +
       '<div class="lb-chapter-body">' + _md2html(data) + '</div>' +
       '</div>';
@@ -679,6 +682,47 @@
 
   function _escHtml(s) {
     return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function _getChapterMeta(idx) {
+    var base = _chapterMeta[idx] || {};
+    return {
+      title: String(base.title || CHAPTER_TITLES[idx] || ('Chapter ' + (idx + 1))),
+      subtitle: String(base.subtitle || CHAPTER_SUBTITLES[idx] || ''),
+    };
+  }
+
+  function _syncChapterMetaFromResponse(idx, data) {
+    if (!data || typeof data !== 'object') return;
+    var chapterMeta = data.chapterMeta && typeof data.chapterMeta === 'object' ? data.chapterMeta : null;
+    _chapterMeta[idx] = {
+      title: String((chapterMeta && chapterMeta.title) || CHAPTER_TITLES[idx] || ('Chapter ' + (idx + 1))),
+      subtitle: String((chapterMeta && chapterMeta.subtitle) || CHAPTER_SUBTITLES[idx] || ''),
+      isSkeleton: false,
+    };
+  }
+
+  function _buildChapterSkeleton(idx, reason) {
+    var meta = _getChapterMeta(idx);
+    return [
+      '## ' + meta.title,
+      meta.subtitle ? ('> ' + meta.subtitle) : '',
+      '',
+      '### 챕터 구조 복구',
+      '- 서버 응답 불안정으로 챕터 골격을 먼저 구성했습니다.',
+      '- 다음 재생성 시 동일 reportId 기준으로 본문이 자동 보강됩니다.',
+      '',
+      '### 핵심 요약',
+      '- 이 챕터의 핵심 키워드를 우선 배치했습니다.',
+      '',
+      '### 실행 포인트',
+      '- 현재 상태 점검',
+      '- 우선순위 1개 선택',
+      '- 다음 챕터 연계 액션 정의',
+      '',
+      reason ? ('### 참고\n- 원인: ' + String(reason)) : '',
+      ''
+    ].filter(Boolean).join('\n');
   }
 
   /* ─────────────── 생성 로직 ─────────────── */
@@ -948,6 +992,7 @@
         if (_cancelGeneration) return;
         var _text = data && typeof data.text === 'string' ? data.text.trim() : '';
         if (data && data.ok && _text.length >= 500) {
+          _syncChapterMetaFromResponse(idx, data);
           _chapters[idx] = data.text;
         } else {
           _failCount++;
@@ -958,7 +1003,8 @@
             msg = (data && data.message) ? data.message : '알 수 없는 오류';
           }
           console.warn('[인생의 책] Chapter ' + (idx + 1) + ' 실패:', msg);
-          _chapters[idx] = '⚠️ **이 챕터의 분석을 불러오는 데 실패했습니다.**\n\n오류: ' + msg + '\n\n잠시 후 해당 챕터를 개별적으로 재시도하거나, 처음부터 다시 생성해 주세요.';
+          _chapterMeta[idx] = { title: CHAPTER_TITLES[idx], subtitle: CHAPTER_SUBTITLES[idx], isSkeleton: true };
+          _chapters[idx] = _buildChapterSkeleton(idx, msg);
         }
         _setProgress(idx + 1);
         generateNext(idx + 1);
@@ -995,12 +1041,13 @@
     var bodyHtml = '';
     for (var i = 0; i < 13; i++) {
       if (!_chapters[i]) continue;
+      var _meta = _getChapterMeta(i);
       bodyHtml +=
         '<div class="chapter" style="page-break-before:' + (i > 0 ? 'always' : 'auto') + '">' +
         '<div class="chapter-header">' +
         '<span class="chapter-num">Chapter ' + (i + 1) + '</span>' +
-        '<h2 class="chapter-title">' + _escHtml(CHAPTER_TITLES[i]) + '</h2>' +
-        '<p class="chapter-sub">' + _escHtml(CHAPTER_SUBTITLES[i]) + '</p>' +
+        '<h2 class="chapter-title">' + _escHtml(_meta.title) + '</h2>' +
+        '<p class="chapter-sub">' + _escHtml(_meta.subtitle) + '</p>' +
         '</div>' +
         '<div class="chapter-body">' + _md2html(_chapters[i]) + '</div>' +
         '</div>';
@@ -1057,7 +1104,7 @@
       '<h2 class="toc-title">목 차 (Table of Contents)</h2>' +
       _chapters.map(function (c, i) {
         if (!c) return '';
-        return '<div class="toc-item"><span class="toc-num">Chapter ' + (i + 1) + '</span><span class="toc-text">' + _escHtml(CHAPTER_TITLES[i]) + '</span></div>';
+        return '<div class="toc-item"><span class="toc-num">Chapter ' + (i + 1) + '</span><span class="toc-text">' + _escHtml(_getChapterMeta(i).title) + '</span></div>';
       }).join('') +
       '</div>' +
       bodyHtml +

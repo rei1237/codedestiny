@@ -75,6 +75,7 @@
 
   /* ─────────────── 상태 ─────────────── */
   var _chapters = Array(13).fill(null);
+  var _chapterMeta = Array(13).fill(null);
   var _generating = false;
   var _currentChapter = 1;
   var _mysticTimer = null;
@@ -92,6 +93,71 @@
 
   function _escHtml(s) {
     return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function _normalizeSections(sections) {
+    if (!Array.isArray(sections)) return [];
+    return sections.map(function (row) { return String(row || '').trim(); }).filter(Boolean).slice(0, 8);
+  }
+
+  function _getChapterMeta(idx) {
+    var fallback = {
+      title: CHAPTER_TITLES[idx] || ('Chapter ' + (idx + 1)),
+      subtitle: CHAPTER_SUBTITLES[idx] || '',
+      sections: [],
+      isSkeleton: false,
+    };
+    var meta = _chapterMeta[idx];
+    if (!meta) return fallback;
+    return {
+      title: String(meta.title || fallback.title),
+      subtitle: String(meta.subtitle || fallback.subtitle),
+      sections: _normalizeSections(meta.sections),
+      isSkeleton: !!meta.isSkeleton,
+    };
+  }
+
+  function _syncChapterMetaFromResponse(idx, data) {
+    if (!data || typeof data !== 'object') return;
+    var chapterMeta = data.chapterMeta && typeof data.chapterMeta === 'object' ? data.chapterMeta : null;
+    var title = chapterMeta && chapterMeta.title ? chapterMeta.title : CHAPTER_TITLES[idx];
+    var subtitle = chapterMeta && chapterMeta.subtitle ? chapterMeta.subtitle : CHAPTER_SUBTITLES[idx];
+    _chapterMeta[idx] = {
+      title: String(title || CHAPTER_TITLES[idx] || ('Chapter ' + (idx + 1))),
+      subtitle: String(subtitle || CHAPTER_SUBTITLES[idx] || ''),
+      sections: _normalizeSections(data.chapterSpecificSections),
+      isSkeleton: false,
+    };
+  }
+
+  function _buildChapterSkeleton(idx, reason) {
+    var meta = _getChapterMeta(idx);
+    var sections = meta.sections.length ? meta.sections : [
+      '핵심 구조 요약',
+      '강점과 기회',
+      '주의 신호',
+      '실행 체크리스트',
+      '다음 챕터 연결 포인트',
+    ];
+    var lines = [];
+    lines.push('## ' + meta.title);
+    if (meta.subtitle) lines.push('> ' + meta.subtitle);
+    lines.push('');
+    lines.push('### 생성 상태 안내');
+    lines.push('서버 응답이 불안정하여 이 챕터는 구조화된 스켈레톤으로 우선 복구되었습니다.');
+    lines.push('');
+    for (var i = 0; i < sections.length; i++) {
+      lines.push('### ' + sections[i]);
+      lines.push('- 이 섹션은 챕터 구조 보존을 위한 기본 골격입니다.');
+      lines.push('- 다음 생성 시 서버 기준 JSON 카테고리로 자동 재작성됩니다.');
+      lines.push('');
+    }
+    if (reason) {
+      lines.push('### 참고');
+      lines.push('- 원인: ' + String(reason));
+      lines.push('');
+    }
+    return lines.join('\n');
   }
 
   function _md2html(text) {
@@ -359,6 +425,8 @@
     if (!content) return;
     var idx = ch - 1;
     var data = _chapters[idx];
+    var meta = _getChapterMeta(idx);
+    var sections = meta.sections;
     if (!data) {
       content.innerHTML = '<p class="zb-ch-empty">이 챕터가 아직 생성되지 않았습니다.</p>';
       return;
@@ -367,8 +435,13 @@
       '<div class="zb-chapter-wrap">' +
       '<div class="zb-chapter-header">' +
       '<span class="zb-chapter-num">Chapter ' + ch + '</span>' +
-      '<h2 class="zb-chapter-title">' + _escHtml(CHAPTER_TITLES[idx]) + '</h2>' +
-      '<p class="zb-chapter-sub">' + _escHtml(CHAPTER_SUBTITLES[idx]) + '</p>' +
+      '<h2 class="zb-chapter-title">' + _escHtml(meta.title) + '</h2>' +
+      '<p class="zb-chapter-sub">' + _escHtml(meta.subtitle) + '</p>' +
+      (sections.length
+        ? ('<div class="zb-chapter-sections" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">'
+          + sections.map(function (s) { return '<span style="font-size:12px;padding:4px 8px;border-radius:999px;background:#f5f0ff;color:#4c0d9f;border:1px solid #e9ddff;">' + _escHtml(s) + '</span>'; }).join('')
+          + '</div>')
+        : '') +
       '</div>' +
       '<div class="zb-chapter-body">' + _md2html(data) + '</div>' +
       '</div>';
@@ -497,6 +570,7 @@
     }
 
     _chapters = Array(13).fill(null);
+    _chapterMeta = Array(13).fill(null);
     _currentChapter = 1;
     _showScreen('zbStartScreen');
     modal.style.display = 'flex';
@@ -831,7 +905,7 @@
       if (idx >= 13) {
         clearInterval(_mysticTimer); _mysticTimer = null; _generating = false;
         var _validCount = _chapters.filter(function(c) {
-          return typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(c.trim());
+          return typeof c === 'string' && c.trim().length > 0;
         }).length;
         _trace('PDF_GENERATION_COMPLETE', { validChapters: _validCount, totalChapters: 13 });
         if (_validCount < 10) {
@@ -864,6 +938,7 @@
       _fetchChapter(idx).then(function (data) {
         var _zbText = data && typeof data.text === 'string' ? data.text.trim() : '';
       if (data && data.ok && _zbText.length >= MIN_CHAPTER_CHARS) {
+          _syncChapterMetaFromResponse(idx, data);
           _chapters[idx] = data.text;
           _trace('CHAPTER_DATA_RECEIVED', { chapter: idx + 1, length: _zbText.length });
         } else {
@@ -871,7 +946,13 @@
           var msg = (data && data.message) ? data.message : '알 수 없는 오류';
           _trace('CHAPTER_DATA_FAILED', { chapter: idx + 1, message: msg });
           console.warn('[자미두수 인생 총람] Chapter ' + (idx + 1) + ' 실패:', msg);
-          _chapters[idx] = '⚠️ **이 챕터의 분석을 불러오는 데 실패했습니다.**\n\n오류: ' + msg + '\n\n잠시 후 다시 시도해 주세요.';
+          _chapterMeta[idx] = {
+            title: CHAPTER_TITLES[idx] || ('Chapter ' + (idx + 1)),
+            subtitle: CHAPTER_SUBTITLES[idx] || '',
+            sections: _normalizeSections(data && data.chapterSpecificSections),
+            isSkeleton: true,
+          };
+          _chapters[idx] = _buildChapterSkeleton(idx, msg);
         }
         _setProgress(idx + 1);
         generateNext(idx + 1);
@@ -921,12 +1002,13 @@
     var bodyHtml = '';
       for (var i = 0; i < 13; i++) {
       if (!_chapters[i]) continue;
+      var _meta = _getChapterMeta(i);
       bodyHtml +=
         '<div class="chapter" style="page-break-before:' + (i > 0 ? 'always' : 'auto') + '">' +
         '<div class="chapter-header">' +
         '<span class="chapter-num">Chapter ' + (i + 1) + '</span>' +
-        '<h2 class="chapter-title">' + _escHtml(CHAPTER_TITLES[i]) + '</h2>' +
-        '<p class="chapter-sub">' + _escHtml(CHAPTER_SUBTITLES[i]) + '</p>' +
+        '<h2 class="chapter-title">' + _escHtml(_meta.title) + '</h2>' +
+        '<p class="chapter-sub">' + _escHtml(_meta.subtitle) + '</p>' +
         '</div>' +
         '<div class="chapter-body">' + _md2html(_chapters[i]) + '</div>' +
         '</div>';
@@ -984,10 +1066,11 @@
       '<h2 class="toc-title">목 차 (Table of Contents)</h2>' +
       _chapters.map(function (c, i) {
         if (!c) return '';
+        var _meta = _getChapterMeta(i);
         return '<div class="toc-item">' +
           '<div><div style="display:flex;gap:8px;align-items:baseline"><span class="toc-num">Chapter ' + (i + 1) + '</span>' +
-          '<span class="toc-main">' + _escHtml(CHAPTER_TITLES[i]) + '</span></div>' +
-          '<div style="padding-left:88px"><span class="toc-sub">' + _escHtml(CHAPTER_SUBTITLES[i]) + '</span></div></div>' +
+          '<span class="toc-main">' + _escHtml(_meta.title) + '</span></div>' +
+          '<div style="padding-left:88px"><span class="toc-sub">' + _escHtml(_meta.subtitle) + '</span></div></div>' +
           '</div>';
       }).join('') +
       '</div>' +
@@ -1019,6 +1102,7 @@
       alert('Ch.' + ch + ' 이 챕터가 아직 생성되지 않았습니다.');
       return;
     }
+    var _chapterMetaOne = _getChapterMeta(idx);
     var profile = window.__cdActiveBirthProfile || {};
     var birth = profile.birth || {};
     var issued = new Date().toLocaleDateString('ko-KR');
@@ -1026,15 +1110,15 @@
       '<div class="chapter">' +
       '<div class="chapter-header">' +
       '<span class="chapter-num">Chapter ' + ch + ' / 13</span>' +
-      '<h2 class="chapter-title">' + _escHtml(CHAPTER_TITLES[idx]) + '</h2>' +
-      '<p class="chapter-sub">' + _escHtml(CHAPTER_SUBTITLES[idx]) + '</p>' +
+      '<h2 class="chapter-title">' + _escHtml(_chapterMetaOne.title) + '</h2>' +
+      '<p class="chapter-sub">' + _escHtml(_chapterMetaOne.subtitle) + '</p>' +
       '</div>' +
       '<div class="chapter-body">' + _md2html(_chapters[idx]) + '</div>' +
       '</div>';
     var fullHtml = '<!DOCTYPE html><html lang="ko"><head>' +
       '<meta charset="UTF-8">' +
       '<meta name="color-scheme" content="light">' +
-      '<title>' + _escHtml(CHAPTER_TITLES[idx]) + '</title>' +
+      '<title>' + _escHtml(_chapterMetaOne.title) + '</title>' +
       '<style>' +
       '@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Dodum&display=swap");' +
       ':root{color-scheme:light;}' +
@@ -1117,6 +1201,7 @@
         try { localStorage.removeItem(_zbMakeKey(prof)); } catch(_){}
       }
       _chapters = Array(13).fill(null);
+      _chapterMeta = Array(13).fill(null);
       _showScreen('zbStartScreen');
       var epBanner = _qs('zbEpilogueBanner');
       if (epBanner) epBanner.style.display = 'none';

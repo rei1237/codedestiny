@@ -68,6 +68,7 @@
   ];
 
   var _chapters = Array(12).fill(null);
+  var _chapterMeta = Array(12).fill(null);
   var _generating = false;
   var _currentChapter = 1;
   var _mysticTimer = null;
@@ -92,6 +93,40 @@
 
   function _escHtml(s) {
     return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function _getChapterMeta(idx){
+    var base=_chapterMeta[idx]||{};
+    return { title:String(base.title||CHAPTER_TITLES[idx]||('Chapter '+(idx+1))), subtitle:String(base.subtitle||CHAPTER_SUBTITLES[idx]||'') };
+  }
+
+  function _syncChapterMetaFromResponse(idx,data){
+    if(!data||typeof data!=='object') return;
+    var chapterMeta=data.chapterMeta&&typeof data.chapterMeta==='object'?data.chapterMeta:null;
+    _chapterMeta[idx]={
+      title:String((chapterMeta&&chapterMeta.title)||CHAPTER_TITLES[idx]||('Chapter '+(idx+1))),
+      subtitle:String((chapterMeta&&chapterMeta.subtitle)||CHAPTER_SUBTITLES[idx]||''),
+      isSkeleton:false,
+    };
+  }
+
+  function _buildChapterSkeleton(idx,reason){
+    var meta=_getChapterMeta(idx);
+    return [
+      '## '+meta.title,
+      meta.subtitle?('> '+meta.subtitle):'',
+      '',
+      '### 챕터 구조 복구',
+      '- 점성술 생성 응답 지연으로 기본 골격을 우선 구성했습니다.',
+      '- 재생성 시 같은 챕터에 본문이 자동 보강됩니다.',
+      '',
+      '### 실행 포인트',
+      '- 행성 포인트 1개 점검',
+      '- 관계/일/건강 중 우선축 선택',
+      '',
+      reason?('### 참고\n- 원인: '+String(reason)):'',
+      ''
+    ].filter(Boolean).join('\n');
   }
 
   function _md2html(text) {
@@ -220,8 +255,8 @@
       '<div class="zb-chapter-wrap">' +
       '<div class="zb-chapter-header">' +
       '<span class="zb-chapter-num">Chapter '+ch+'</span>' +
-      '<h2 class="zb-chapter-title">'+_escHtml(CHAPTER_TITLES[idx])+'</h2>' +
-      '<p class="zb-chapter-sub">'+_escHtml(CHAPTER_SUBTITLES[idx])+'</p>' +
+      '<h2 class="zb-chapter-title">'+_escHtml(_getChapterMeta(idx).title)+'</h2>' +
+      '<p class="zb-chapter-sub">'+_escHtml(_getChapterMeta(idx).subtitle)+'</p>' +
       '</div>' +
       '<div class="zb-chapter-body">'+_md2html(data)+'</div>' +
       '</div>';
@@ -270,6 +305,7 @@
       return;
     }
     _chapters = Array(12).fill(null);
+    _chapterMeta = Array(12).fill(null);
     _currentChapter = 1;
     _showScreen('abStartScreen');
     modal.style.display = 'flex'; modal.style.zIndex='100120';
@@ -312,6 +348,7 @@
 
     _generating = true;
     _chapters = Array(12).fill(null);
+    _chapterMeta = Array(12).fill(null);
 
     _showScreen('abLoadingScreen');
 
@@ -428,8 +465,8 @@
       }
       if (chapterMsg) chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';
       _fetchChapter(idx).then(function(data) {
-        if (data&&data.ok&&data.text) { _chapters[idx]=data.text; }
-        else { _failCount++; var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류'; console.warn('[점성술] Chapter '+(idx+1)+' 실패:',msg); _chapters[idx]='⚠️ **이 챕터의 분석을 불러오는 데 실패했습니다.**\n\n오류: '+msg+'\n\n잠시 후 다시 시도해 주세요.'; }
+        if (data&&data.ok&&data.text) { _syncChapterMetaFromResponse(idx,data); _chapters[idx]=data.text; }
+        else { _failCount++; var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류'; console.warn('[점성술] Chapter '+(idx+1)+' 실패:',msg); _chapterMeta[idx]={title:CHAPTER_TITLES[idx],subtitle:CHAPTER_SUBTITLES[idx],isSkeleton:true}; _chapters[idx]=_buildChapterSkeleton(idx,msg); }
         _setProgress(idx+1);
         generateNext(idx+1);
       });
@@ -445,7 +482,7 @@
     var bodyHtml='';
     for (var i=0;i<12;i++) {
       if (!_chapters[i]) continue;
-      bodyHtml+='<div class="chapter" style="page-break-before:'+(i>0?'always':'auto')+'"><div class="chapter-header"><span class="chapter-num">Chapter '+(i+1)+'</span><h2 class="chapter-title">'+_escHtml(CHAPTER_TITLES[i])+'</h2><p class="chapter-sub">'+_escHtml(CHAPTER_SUBTITLES[i])+'</p></div><div class="chapter-body">'+_md2html(_chapters[i])+'</div></div>';
+      bodyHtml+='<div class="chapter" style="page-break-before:'+(i>0?'always':'auto')+'"><div class="chapter-header"><span class="chapter-num">Chapter '+(i+1)+'</span><h2 class="chapter-title">'+_escHtml(_getChapterMeta(i).title)+'</h2><p class="chapter-sub">'+_escHtml(_getChapterMeta(i).subtitle)+'</p></div><div class="chapter-body">'+_md2html(_chapters[i])+'</div></div>';
     }
     var fullHtml='<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>'+_escHtml(name)+'</title>' +
       '<style>@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap");' +
