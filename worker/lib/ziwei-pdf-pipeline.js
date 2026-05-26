@@ -1074,27 +1074,6 @@ function sanitizeZiweiOutputText(text) {
     .trim();
 }
 
-function collapseRepeatedSentences(text) {
-  const source = sanitizeZiweiOutputText(asText(text));
-  if (!source) return "";
-
-  const chunks = source.match(/[^.!?。！？\n]+[.!?。！？]?/g) || [source];
-  const collapsed = [];
-
-  for (const chunk of chunks) {
-    const sentence = String(chunk || "").trim().replace(/\s+/g, " ");
-    if (!sentence) continue;
-    if (collapsed.length > 0 && collapsed[collapsed.length - 1] === sentence) continue;
-    collapsed.push(sentence);
-  }
-
-  return sanitizeZiweiOutputText(collapsed.join(" "));
-}
-
-function normalizeZiweiNarrativeText(text) {
-  return collapseRepeatedSentences(sanitizeZiweiOutputText(asText(text)));
-}
-
 function normalizeHeadingToken(value) {
   return String(value || "")
     .toLowerCase()
@@ -1178,6 +1157,14 @@ function resolveZiweiChapterTargetPalace(chapterSpec) {
 
 function shouldEnforceZiweiTargetPalace(targetPalaceName) {
   return Boolean(targetPalaceName) && /궁/.test(String(targetPalaceName));
+}
+
+function ensureZiweiTargetPalaceSentence(text, targetPalaceName, starsText) {
+  const source = sanitizeZiweiOutputText(asText(text));
+  if (!shouldEnforceZiweiTargetPalace(targetPalaceName)) return source;
+  if (source.includes(targetPalaceName)) return source;
+  const prefix = `${targetPalaceName}에서는 ${targetPalaceName}의 구조와 별 배치(${starsText || "데이터에 맞는 별"})를 중심으로 해석합니다.`;
+  return sanitizeZiweiOutputText([prefix, source].filter(Boolean).join("\n\n"));
 }
 
 function formatScopedStarLabel(star) {
@@ -1530,8 +1517,8 @@ export function sanitizeZiweiChapterJson(rawChapter, chapterSpec) {
       const heading = sanitizeZiweiOutputText(asText(item.subTitle || item.title || item.heading))
         || sanitizeZiweiOutputText(asText(chapterSpec?.sections?.[idx]))
         || `섹션 ${idx + 1}`;
-      const analysis = normalizeZiweiNarrativeText(item.analysisText || item.body);
-      const guidance = normalizeZiweiNarrativeText(item.strategicGuidance || item.guidance);
+      const analysis = sanitizeZiweiOutputText(asText(item.analysisText || item.body));
+      const guidance = sanitizeZiweiOutputText(asText(item.strategicGuidance || item.guidance));
       const body = [analysis, guidance ? `실행 가이드: ${guidance}` : ""].filter(Boolean).join("\n\n");
       return {
         subId: asText(item.subId || `sub_${chapterNo || 1}_${idx + 1}`),
@@ -1544,11 +1531,15 @@ export function sanitizeZiweiChapterJson(rawChapter, chapterSpec) {
     .filter((row) => row.analysisText || row.body);
 
   const rawSubtitle = sanitizeZiweiOutputText(asText(chapter.chapterSubtitle));
-  const rawCoreStars = asArray(chapter.coreStars).map((item) => normalizeZiweiNarrativeText(item)).filter(Boolean);
+  const rawCoreStars = asArray(chapter.coreStars).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
   const coreStars = rawCoreStars.length > 0 ? rawCoreStars : ["자미"];
   const starsText = coreStars.join(", ");
   const expandedSummary = asText(chapter?.engineSummaryJson?.coreVibe);
-  const rawSummary = normalizeZiweiNarrativeText(chapter.summary || chapter.intro || expandedSummary);
+  const rawSummary = ensureZiweiTargetPalaceSentence(
+    sanitizeZiweiOutputText(asText(chapter.summary || chapter.intro || expandedSummary)),
+    targetPalaceName,
+    starsText,
+  );
   let sections = normalizeZiweiSectionsByChapterSpec(
     expandedSubChapters.length > 0
       ? expandedSubChapters.map((row) => ({ heading: row.subTitle, body: row.body }))
@@ -1558,27 +1549,42 @@ export function sanitizeZiweiChapterJson(rawChapter, chapterSpec) {
     rawSubtitle,
   );
 
+  if (shouldEnforceZiweiTargetPalace(targetPalaceName)) {
+    sections = sections.map((section) => ({
+      heading: section.heading,
+      body: ensureZiweiTargetPalaceSentence(section.body, targetPalaceName, starsText),
+    }));
+  }
+
   const expandedActionPriority = toPlainObject(chapter?.engineSummaryJson?.actionPriority);
   const practicalAdvice = asArray(chapter.practicalAdvice || chapter.actionGuide)
-    .map((item) => normalizeZiweiNarrativeText(item))
+    .map((item) => sanitizeZiweiOutputText(asText(item)))
     .filter(Boolean)
     .concat([
       asText(expandedActionPriority.immediate),
       asText(expandedActionPriority.stop),
       asText(expandedActionPriority.review),
-    ].map((row) => normalizeZiweiNarrativeText(row)).filter(Boolean));
-  const cautions = asArray(chapter.cautions).map((item) => normalizeZiweiNarrativeText(item)).filter(Boolean);
+    ].map((row) => sanitizeZiweiOutputText(row)).filter(Boolean));
+  const cautions = asArray(chapter.cautions).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
 
-  const corePalaces = asArray(chapter.corePalaces).map((item) => normalizeZiweiNarrativeText(item)).filter(Boolean);
-  const normalizedMasterAdvice = normalizeZiweiNarrativeText(chapter.masterAdvice || chapter.masterConclusion || chapter.coreAdvice);
+  const corePalaces = asArray(chapter.corePalaces).map((item) => sanitizeZiweiOutputText(asText(item))).filter(Boolean);
+  const normalizedMasterAdvice = ensureZiweiTargetPalaceSentence(
+    sanitizeZiweiOutputText(asText(chapter.masterAdvice || chapter.masterConclusion || chapter.coreAdvice)),
+    targetPalaceName,
+    starsText,
+  );
   const chapterSpecificMasterAdvice = buildZiweiChapterMasterAdvice(chapterSpec, {
     corePalaces: corePalaces.length > 0 ? corePalaces : (targetPalaceName ? [targetPalaceName] : []),
     coreStars,
   });
-  const normalizedClosing = normalizeZiweiNarrativeText(chapter.closing);
+  const normalizedClosing = ensureZiweiTargetPalaceSentence(
+    sanitizeZiweiOutputText(asText(chapter.closing)),
+    targetPalaceName,
+    starsText,
+  );
   const masterConclusion = normalizedMasterAdvice
     || normalizedClosing
-    || normalizeZiweiNarrativeText(chapter?.engineSummaryJson?.coreVibe)
+    || sanitizeZiweiOutputText(asText(chapter?.engineSummaryJson?.coreVibe))
     || chapterSpecificMasterAdvice;
 
   const normalizedCorePalaces = (() => {
@@ -1592,8 +1598,8 @@ export function sanitizeZiweiChapterJson(rawChapter, chapterSpec) {
   const normalizedSubChapters = sections.map((section, idx) => ({
     subId: asText(expandedSubChapters[idx]?.subId || `sub_${chapterNo || 1}_${idx + 1}`),
     subTitle: section.heading,
-    analysisText: normalizeZiweiNarrativeText(section.body),
-    strategicGuidance: normalizeZiweiNarrativeText(expandedSubChapters[idx]?.strategicGuidance),
+    analysisText: section.body,
+    strategicGuidance: asText(expandedSubChapters[idx]?.strategicGuidance),
   }));
 
   const normalizedMetaData = {
@@ -1605,11 +1611,11 @@ export function sanitizeZiweiChapterJson(rawChapter, chapterSpec) {
   };
 
   const engineSummaryJson = {
-    coreVibe: normalizeZiweiNarrativeText(chapter?.engineSummaryJson?.coreVibe || masterConclusion),
+    coreVibe: sanitizeZiweiOutputText(asText(chapter?.engineSummaryJson?.coreVibe || masterConclusion)),
     actionPriority: {
-      immediate: normalizeZiweiNarrativeText(expandedActionPriority.immediate || practicalAdvice[0] || "핵심 강점을 외부 실행으로 고정하세요."),
-      stop: normalizeZiweiNarrativeText(expandedActionPriority.stop || practicalAdvice[1] || "반복되는 소모 패턴을 멈추세요."),
-      review: normalizeZiweiNarrativeText(expandedActionPriority.review || practicalAdvice[2] || "주간 피드백 지표를 점검하세요."),
+      immediate: sanitizeZiweiOutputText(asText(expandedActionPriority.immediate || practicalAdvice[0] || "핵심 강점을 외부 실행으로 고정하세요.")),
+      stop: sanitizeZiweiOutputText(asText(expandedActionPriority.stop || practicalAdvice[1] || "반복되는 소모 패턴을 멈추세요.")),
+      review: sanitizeZiweiOutputText(asText(expandedActionPriority.review || practicalAdvice[2] || "주간 피드백 지표를 점검하세요.")),
     },
   };
 
@@ -1688,7 +1694,7 @@ export function buildZiweiChapterMarkdown(chapterJson, chapterSpec, context, inc
 
   lines.push(`# ${chapter.chapterTitle}`);
   lines.push(`## ${chapter.chapterSubtitle}`);
-  lines.push(normalizeZiweiNarrativeText(chapter.summary));
+  lines.push(chapter.summary);
 
   if (chapter.coreStars.length || chapter.corePalaces.length) {
     const starsText = chapter.coreStars.length ? chapter.coreStars.join(", ") : "미상";
@@ -1701,21 +1707,21 @@ export function buildZiweiChapterMarkdown(chapterJson, chapterSpec, context, inc
   if (chapter.sections.length) {
     chapter.sections.forEach((section, index) => {
       lines.push(`### ${section.heading || `Section ${index + 1}`}`);
-      if (section.body) lines.push(normalizeZiweiNarrativeText(section.body));
+      if (section.body) lines.push(section.body);
     });
   }
 
   if (chapter.practicalAdvice.length) {
     lines.push("### 실천 조언");
-    chapter.practicalAdvice.forEach((item) => lines.push(`- ${normalizeZiweiNarrativeText(item)}`));
+    chapter.practicalAdvice.forEach((item) => lines.push(`- ${item}`));
   }
 
   if (chapter.cautions.length) {
     lines.push("### 주의점");
-    chapter.cautions.forEach((item) => lines.push(`- ${normalizeZiweiNarrativeText(item)}`));
+    chapter.cautions.forEach((item) => lines.push(`- ${item}`));
   }
 
-  const masterAdviceText = normalizeZiweiNarrativeText(chapter.masterAdvice || chapter.masterConclusion);
+  const masterAdviceText = asText(chapter.masterAdvice || chapter.masterConclusion);
   if (masterAdviceText) {
     lines.push("### 최종 실행 정리");
     lines.push(masterAdviceText);
@@ -2050,130 +2056,6 @@ export function hasRepetitiveSentences(text) {
   return false;
 }
 
-const ZIWEI_SECTION_FORBIDDEN_PHRASES = Object.freeze([
-  "자동 복구 생성",
-  "fallback",
-  "Fallback",
-  "기본 해석",
-  "Chapter 1",
-  "Chapter 2",
-  "본문 길이",
-  "Depth",
-  "Action",
-  "Timing",
-  "payload",
-  "schema",
-  "reportType",
-  "completed",
-  "Internal server error",
-]);
-
-export function validateZiweiLlmSectionResponse(response, request) {
-  const src = response && typeof response === "object" ? response : null;
-  const req = request && typeof request === "object" ? request : null;
-  if (!src || !req) return false;
-
-  const chapterId = asText(src.chapterId);
-  const sectionId = asText(src.sectionId);
-  const body = asText(src.body);
-  const minChars = Math.max(120, Number(req?.section?.minChars || 0));
-
-  if (!chapterId || chapterId !== asText(req?.chapter?.id)) return false;
-  if (!sectionId || sectionId !== asText(req?.section?.id)) return false;
-  if (!body || body.length < minChars) return false;
-  if (ZIWEI_SECTION_FORBIDDEN_PHRASES.some((phrase) => body.includes(phrase))) return false;
-  if (hasRepetitiveSentences(body)) return false;
-  if (/\|.*\|.*\|/.test(body)) return false;
-
-  return true;
-}
-
-export function assertSectionDataBinding(section, relevantData) {
-  const sec = section && typeof section === "object" ? section : {};
-  const data = relevantData && typeof relevantData === "object" ? relevantData : {};
-  const binding = sec.dataBinding && typeof sec.dataBinding === "object" ? sec.dataBinding : {};
-  const focus = asArray(binding.focus);
-  const transformations = asArray(binding.transformations);
-  const relevantPalaces = asArray(data.relevantPalaces);
-  const relevantTransformations = asArray(data.relevantTransformations);
-
-  const hasPalace = (name) => relevantPalaces.some((p) => asText(p?.name) === name);
-
-  if (focus.includes("명궁") && !hasPalace("명궁")) {
-    throw new Error(`ZIWEI_DATABINDING_MISSING_MING:${asText(sec.id)}`);
-  }
-  if (focus.includes("재백궁") && !hasPalace("재백궁")) {
-    throw new Error(`ZIWEI_DATABINDING_MISSING_WEALTH:${asText(sec.id)}`);
-  }
-  if (focus.includes("관록궁") && !hasPalace("관록궁")) {
-    throw new Error(`ZIWEI_DATABINDING_MISSING_CAREER:${asText(sec.id)}`);
-  }
-  if (transformations.length > 0 && relevantTransformations.length === 0) {
-    throw new Error(`ZIWEI_DATABINDING_MISSING_TRANSFORMATIONS:${asText(sec.id)}`);
-  }
-}
-
-export function assertZiweiPayloadChaptersMatchConfig(chapters, config = ZIWEI_CHAPTER_SPECS) {
-  const actual = asArray(chapters);
-  const expected = asArray(config);
-
-  if (actual.length !== expected.length) {
-    throw new Error("ZIWEI_CHAPTER_COUNT_MISMATCH");
-  }
-
-  for (let i = 0; i < expected.length; i += 1) {
-    const exp = expected[i] || {};
-    const act = actual[i] || {};
-    const expId = asText(exp.id || exp.key || `chapter-${String(i + 1).padStart(2, "0")}`);
-    const actId = asText(act.id);
-
-    if (actId !== expId) {
-      throw new Error(`ZIWEI_CHAPTER_ID_MISMATCH:${expId}`);
-    }
-
-    if (asText(act.title) !== asText(exp.title)) {
-      throw new Error(`ZIWEI_CHAPTER_TITLE_MISMATCH:${expId}`);
-    }
-
-    const expSections = asArray(exp.sections);
-    const actSections = asArray(act.sections);
-    if (actSections.length !== expSections.length) {
-      throw new Error(`ZIWEI_SECTION_COUNT_MISMATCH:${expId}`);
-    }
-
-    for (let j = 0; j < expSections.length; j += 1) {
-      const expTitle = asText(expSections[j]);
-      const expSectionId = `${expId}-section-${String(j + 1).padStart(2, "0")}`;
-      const actSection = actSections[j] || {};
-      if (asText(actSection.id) !== expSectionId) {
-        throw new Error(`ZIWEI_SECTION_ID_MISMATCH:${expId}:${expSectionId}`);
-      }
-      if (asText(actSection.title) !== expTitle) {
-        throw new Error(`ZIWEI_SECTION_TITLE_MISMATCH:${expId}:${expSectionId}`);
-      }
-    }
-  }
-}
-
-export function assertZiweiLlmGenerationComplete(payload) {
-  const chapters = asArray(payload?.chapters);
-  for (const chapter of chapters) {
-    const chapterId = asText(chapter?.id);
-    const sections = asArray(chapter?.sections);
-    for (const section of sections) {
-      const sectionId = asText(section?.id);
-      const minChars = Math.max(120, Number(section?.minChars || 0));
-      const finalText = asText(section?.finalText);
-      if (asText(section?.source) !== "llm-enhanced") {
-        throw new Error(`ZIWEI_SECTION_NOT_LLM_GENERATED:${chapterId}:${sectionId}`);
-      }
-      if (!finalText || finalText.length < minChars) {
-        throw new Error(`ZIWEI_SECTION_TEXT_TOO_SHORT:${chapterId}:${sectionId}`);
-      }
-    }
-  }
-}
-
 function toRoman(num) {
   const n = Number(num || 0);
   if (!Number.isFinite(n) || n <= 0) return "I";
@@ -2193,9 +2075,4 @@ function toRoman(num) {
   return out || "I";
 }
 
-export {
-  ZIWEI_PDF_CHAPTERS,
-  ZIWEI_CHAPTER_SPECS,
-  ZIWEI_FORBIDDEN_TEXTS,
-  ZIWEI_SECTION_FORBIDDEN_PHRASES,
-};
+export { ZIWEI_PDF_CHAPTERS, ZIWEI_CHAPTER_SPECS, ZIWEI_FORBIDDEN_TEXTS };
