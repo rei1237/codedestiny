@@ -23144,23 +23144,31 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
   }
 
   const input = normalizeBody(strictBody);
-  // 12챕터 구조로 고정 (모든 12챕터를 하나의 PDF에 생성)
+  // 12챕터 구조로 고정 (요청 chapter를 기준으로 챕터별 API 생성)
   const ziweiTotalChapters = 12;
-  const chapters = Array.from({ length: 12 }, (_, i) => i + 1);
+  const chapter = clampInt(strictBody.sessionId ?? strictBody.chapter, 1, 1, ziweiTotalChapters);
+  const chapterSpec = getZiweiPremiumChapterByNo(chapter);
   const reportType = "personal";
   const reportId = String(strictBody.reportId || "").trim() || ziweiReportIdFromInput(strictBody, input, reportType);
   const partnerOverview = "";
+  const meta = {
+    num: chapter,
+    title: String(chapterSpec?.title || `자미두수 Chapter ${chapter}`),
+    subtitle: String(chapterSpec?.subtitle || "자미두수 프리미엄 인생 총람"),
+    icon: "ziwei",
+  };
   
-  console.info("[ZiweiBook] REQUEST_START", { requestId, totalChapters: 12, reportType, prepareOnly });
+  console.info("[ZiweiBook] REQUEST_START", { requestId, chapter, totalChapters: 12, reportType, prepareOnly });
   console.info("[ZiweiPdf.RequestStart]", {
     reportId,
-    chapterId: "all-12-chapters",
+    chapterId: String(chapterSpec?.chapterId || `ch_${chapter}`),
     sectionId: null,
   });
   console.info("[ZiweiPremium][Flow] CLICK", {
     stage: "click",
     requestId,
     generationId,
+    chapter,
     totalChapters: 12,
     prepareOnly,
     reportType,
@@ -23387,7 +23395,7 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
   const reportPayload = payloadBuildResult.payload;
   console.info("[ZiweiPdf.PayloadNormalized]", {
     reportId,
-    chapterId: "all-12-chapters",
+    chapterId: String(chapterSpec?.chapterId || `ch_${chapter}`),
     sectionId: null,
     palaceCount: Array.isArray(reportPayload?.palaces) ? reportPayload.palaces.length : 0,
   });
@@ -23563,10 +23571,32 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
     },
   };
 
-  // 모든 12챕터를 순차 생성
-  let generationResult;
+  const chapterSections = Array.isArray(chapterSpec?.sections) ? chapterSpec.sections : [];
+  const chapterSpecificSections = chapterSections.map((s) => String(s?.title || "").trim()).filter(Boolean).slice(0, 5);
+
+  const palaceByName = Array.isArray(reportPayload?.palaces)
+    ? reportPayload.palaces.find((p) => String(p?.name || "").trim() === String(chapterSpec?.targetPalace || "").trim())
+    : null;
+
+  const targetPalaceData = {
+    name: String(chapterSpec?.targetPalace || "").trim(),
+    branch: String(palaceByName?.branch || "").trim(),
+    mainStars: Array.isArray(palaceByName?.mainStars) ? palaceByName.mainStars : [],
+    subStars: Array.isArray(palaceByName?.subStars) ? palaceByName.subStars : [],
+    transformations: Array.isArray(palaceByName?.transformations) ? palaceByName.transformations : [],
+  };
+
+  let chapterResult;
   try {
-    generationResult = await generateZiweiPremium12ChaptersSequential(env, {
+    chapterResult = await generateZiweiChapterFromSections(env, {
+      chapter: chapterSpec || {
+        chapterId: `ch${String(chapter).padStart(2, "0")}`,
+        chapterNo: chapter,
+        title: meta.title,
+        subtitle: meta.subtitle,
+        targetPalace: "",
+      },
+      sections: chapterSections,
       userProfile: {
         name: profileFromRequest.name || "사용자",
         gender: profileFromRequest.gender || "",
@@ -23577,10 +23607,7 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
         isLunar: Boolean(profileFromRequest.isLunar),
         birthPlace: profileFromRequest.birthPlace || "",
       },
-      targetPalaceData: {
-        name: "all",
-        palaces: Array.isArray(reportPayload?.palaces) ? reportPayload.palaces : [],
-      },
+      targetPalaceData,
       starNames: extractZiweiStarNamesFromPayload(reportPayload),
       canonicalZiweiChart: chapterInputChart,
       reportPayload,
@@ -23589,112 +23616,99 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
       reportId,
     });
   } catch (error) {
-    console.error("[ZiweiPremium][Gemini] 12장 생성 중 런타임 에러", {
-      totalChapters: 12,
+    console.error("[ZiweiPremium][Gemini] chapter runtime failure", {
+      chapter,
       requestId,
       reportType,
       message: String(error?.message || "unknown"),
     });
-    console.warn("[ZiweiPdf.RenderFailed]", {
-      reportId,
-      chapterId: "all-12-chapters",
-      sectionId: null,
-      errorCode: "ZIWEI_12CHAPTERS_GENERATION_FAILED",
-    });
     return json({
       ok: false,
-      code: "ZIWEI_12CHAPTERS_GENERATION_FAILED",
+      code: "ZIWEI_CHAPTER_GENERATION_FAILED",
       message: "자미두수 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있습니다.",
-      stage: "ziwei-12-chapters-generation",
-      totalChapters: 12,
+      stage: "ziwei-chapter-generation",
+      chapter,
       reportId,
       requestId,
       details: [String(error?.message || "UNKNOWN_ERROR")],
     }, { status: 502 });
   }
 
-  if (!generationResult?.ok) {
+  if (!chapterResult?.ok) {
     console.warn("[ZiweiBook] API_GENERATION_FAILED_NO_FALLBACK", {
       requestId,
-      totalChapters: 12,
-      code: generationResult?.code || "ZIWEI_12CHAPTERS_GENERATION_FAILED",
-      message: generationResult?.message || "12장 생성 실패",
-      failedChapters: generationResult?.failedChapters || [],
-    });
-    console.warn("[ZiweiPdf.RenderFailed]", {
-      reportId,
-      chapterId: "all-12-chapters",
-      sectionId: null,
-      errorCode: String(generationResult?.code || "ZIWEI_12CHAPTERS_GENERATION_FAILED"),
+      chapter,
+      code: chapterResult?.code || "ZIWEI_CHAPTER_GENERATION_FAILED",
+      message: chapterResult?.message || "챕터 생성 실패",
+      failedSections: chapterResult?.failedSections || [],
     });
     return json({
       ok: false,
-      code: generationResult?.code || "ZIWEI_12CHAPTERS_GENERATION_FAILED",
+      code: chapterResult?.code || "ZIWEI_CHAPTER_GENERATION_FAILED",
       message: "자미두수 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있습니다.",
-      totalChapters: 12,
+      chapter,
       reportId,
       requestId,
-      successCount: generationResult?.successCount || 0,
-      failedCount: generationResult?.failedCount || 12,
-      failedChapters: generationResult?.failedChapters || [],
-      details: [generationResult?.message || "12장 생성 중 오류"],
+      details: Array.isArray(chapterResult?.failedSections)
+        ? chapterResult.failedSections.map((row) => `${row.sectionId}:${row.reason}`)
+        : [],
+      failedSections: Array.isArray(chapterResult?.failedSections) ? chapterResult.failedSections : [],
     }, { status: 422 });
   }
 
-  // 성공: 모든 12챕터 저장 및 응답
-  // 모든 12챕터 저장
-  const allChaptersStorage = [];
-  for (const generatedChapter of generationResult.chapters) {
-    const chapterStorage = writeReportSessionChapter(
-      "ziwei",
-      reportId,
-      generatedChapter.chapterNo,
-      12,
-      {
-        num: generatedChapter.chapterNo,
-        title: generatedChapter.chapterTitle,
-        subtitle: "자미두수 프리미엄 인생 총람",
-        icon: "ziwei"
+  const chapterJson = {
+    sections: (chapterResult.generatedSections || []).map((row) => ({
+      title: String(row?.sectionTitle || "").trim(),
+      body: String(row?.content || "").trim(),
+      content: String(row?.content || "").trim(),
+    })),
+  };
+  const safeGeneratedText = chapterJson.sections
+    .map((row) => (row.title ? `## ${row.title}\n${row.body}` : row.body))
+    .filter(Boolean)
+    .join("\n\n");
+
+  const storage = writeReportSessionChapter(
+    "ziwei",
+    reportId,
+    chapter,
+    ziweiTotalChapters,
+    meta,
+    safeGeneratedText,
+    {
+      ownerUserId,
+      chapterJson,
+      chapterSpecificSections,
+      reportType,
+      requestId,
+      generationId,
+      canonicalSummary,
+      dataQuality: {
+        missingFields: dataQuality.missingFields,
+        supplementedFields: dataQuality.supplementedFields,
+        warnings: dataQuality.warnings,
+        reportValidation,
       },
-      "", // 각 섹션의 텍스트는 별도 처리
-      {
-        ownerUserId,
-        chapterJson: generatedChapter, // 섹션 데이터 포함
-        chapterSpecificSections: generatedChapter.sections || [],
-        reportType,
-        requestId,
-        generationId,
-        canonicalSummary: null,
-        dataQuality: {
-          missingFields: dataQuality.missingFields,
-          supplementedFields: dataQuality.supplementedFields,
-          warnings: dataQuality.warnings,
-          reportValidation,
-        },
-      }
-    );
-    allChaptersStorage.push(chapterStorage);
-  }
+    }
+  );
 
   await persistPremiumPdfHistoryFromSession(env, "ziwei", reportId, {
     ownerUserId,
-  });
-
-  console.info("[ZiweiBook.All12ChaptersStored]", {
-    requestId,
-    reportId,
-    totalChapters: 12,
-    storedCount: allChaptersStorage.length,
   });
 
   return json({
     ok: true,
     reportId,
     reportType,
-    totalChapters: 12,
-    chapters: generationResult.chapters,
-    chapterCount: 12,
-    storage: allChaptersStorage,
+    chapter,
+    totalChapters: ziweiTotalChapters,
+    chapterMeta: meta,
+    chapterSpecificSections,
+    chapterJson,
+    sections: chapterJson.sections,
+    storage,
+    text: safeGeneratedText,
+    totalLength: Number(chapterResult.totalLength || safeGeneratedText.length),
     dataQuality: {
       missingFields: dataQuality.missingFields,
       supplementedFields: dataQuality.supplementedFields,
@@ -23706,20 +23720,6 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
       canonicalSummary,
     },
     reportPayload,
-    pipeline: [
-      "buildCanonicalZiweiChart",
-      "buildZiweiStandardResultFromCanonical",
-      "buildZiweiPdfReportPayload",
-      "validateZiweiPdfPayload",
-      "validateCanonicalZiweiChartStrict",
-      "buildZiweiPdfContext",
-      "generateZiweiSectionPrompts",
-      "parseZiweiGeminiResponse",
-      "buildZiweiAllChaptersMarkdown",
-      "renderPdf",
-      "savePdf",
-      "returnDownloadUrl",
-    ],
     ...(String(strictBody?.debugCanonicalZiwei || "").toLowerCase() === "true" || strictBody?.debugCanonicalZiwei === true
       ? {
         debugCanonicalZiweiChart: chapterInputChart,
@@ -23727,8 +23727,6 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
         debugValidationResult: debugArtifacts?.validationResult,
       }
       : {}),
-    totalLength: generationResult.totalLength,
-    successCount: 12,
   });
 }
 

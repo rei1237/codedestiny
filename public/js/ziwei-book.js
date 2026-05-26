@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var MIN_CHAPTER_CHARS = 5000;
+  var MIN_CHAPTER_CHARS = 1200;
 
   /* ─────────────── 챕터 상수 ─────────────── */
   var CHAPTER_TITLES = [
@@ -888,7 +888,7 @@
       return token;
     }
 
-    function _fetchAllChapters() {
+    function _fetchChapter(idx) {
       var _zbAuthToken = '';
       try { _zbAuthToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
       return new Promise(function (resolve) {
@@ -917,12 +917,17 @@
             headers: _zbHeaders,
             body: JSON.stringify({
               reportId: _zbReportId,
-              requestId: 'ziwei-' + _zbReportId + '-all-a' + (_attempt + 1),
-              chapterIndex: 1,
-              ch: 1,
-              sessionId: 1,
-              chapter: 1,
+              requestId: 'ziwei-' + _zbReportId + '-ch' + (idx + 1) + '-a' + (_attempt + 1),
+              chapterIndex: idx + 1,
+              ch: idx + 1,
+              sessionId: idx + 1,
+              chapter: idx + 1,
               strictNoFallback: true,
+              chapterTitle: CHAPTER_TITLES[idx] || ('Chapter ' + (idx + 1)),
+              chapterSubtitle: CHAPTER_SUBTITLES[idx] || '',
+              chapterSpecificSections: Array.isArray(CHAPTER_STRUCTURED_LABELS[idx + 1])
+                ? CHAPTER_STRUCTURED_LABELS[idx + 1]
+                : [],
               premiumAccessToken: _zbPremiumToken || undefined,
               ziweiData: ziweiData,
               ziweiStructured: _collectZiweiStructuredData(),
@@ -970,64 +975,23 @@
       });
     }
 
-    if (chapterMsg) chapterMsg.textContent = '12개 챕터를 순차 생성하는 중...';
-    _fetchAllChapters().then(function (data) {
-      if (data && data.ok && Array.isArray(data.chapters) && data.chapters.length > 0) {
-        var _mappedCount = 0;
-        data.chapters.forEach(function (chapterData) {
-          var chapterNo = Number(chapterData && chapterData.chapterNo || 0);
-          var idx = chapterNo - 1;
-          if (idx < 0 || idx >= TOTAL_CHAPTERS) return;
-
-          var sections = Array.isArray(chapterData.sections) ? chapterData.sections : [];
-          var chapterText = sections
-            .map(function (row) {
-              var title = String(row && (row.sectionTitle || row.title) || '').trim();
-              var body = String(row && (row.content || row.body) || '').trim();
-              if (!body) return '';
-              return title ? ('## ' + title + '\n' + body) : body;
-            })
-            .filter(Boolean)
-            .join('\n\n');
-
-          _chapterMeta[idx] = {
-            title: String(chapterData.chapterTitle || CHAPTER_TITLES[idx] || ('Chapter ' + chapterNo)),
-            subtitle: String(CHAPTER_SUBTITLES[idx] || ''),
-            sections: Array.isArray(CHAPTER_STRUCTURED_LABELS[chapterNo])
-              ? CHAPTER_STRUCTURED_LABELS[chapterNo]
-              : sections.map(function (row) { return String(row && (row.sectionTitle || row.title) || '').trim(); }).filter(Boolean),
-            isSkeleton: false,
-          };
-
-          _chapterStructured[idx] = {
-            sections: sections.map(function (row) {
-              return {
-                title: String(row && (row.sectionTitle || row.title) || '').trim(),
-                body: String(row && (row.content || row.body) || '').trim(),
-              };
-            }).filter(function (row) { return row.body; })
-          };
-
-          _chapters[idx] = chapterText;
-          _mappedCount += 1;
-          _setProgress(_mappedCount);
-          _trace('CHAPTER_DATA_RECEIVED', { chapter: chapterNo, length: chapterText.length });
-        });
-
+    var _failCount = 0;
+    (function generateNext(idx) {
+      if (idx >= TOTAL_CHAPTERS) {
         clearInterval(_mysticTimer); _mysticTimer = null; _generating = false;
         var _validCount = _chapters.filter(function(c) {
           return typeof c === 'string' && c.trim().length > 0;
         }).length;
         _trace('PDF_GENERATION_COMPLETE', { validChapters: _validCount, totalChapters: TOTAL_CHAPTERS });
-
         if (_validCount < TOTAL_CHAPTERS) {
           var errEl = _qs('zbErrorMsg');
-          if (errEl) errEl.textContent = '자미두수 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있습니다.';
+          if (errEl) errEl.textContent = _validCount === 0
+            ? '모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.\n잠시 후 다시 시도해 주세요.'
+            : '챕터 생성이 중단되었습니다 (성공 ' + _validCount + '/' + TOTAL_CHAPTERS + '). 실패 챕터를 확인한 뒤 다시 시도해 주세요.';
           _zbClearSaved(window.__cdActiveBirthProfile || {});
           _showScreen('zbErrorScreen');
           return;
         }
-
         _showScreen('zbResultScreen');
         _updateTocState();
         _renderChapter(1);
@@ -1045,19 +1009,47 @@
         if (epBanner) epBanner.style.display = '';
         return;
       }
+      if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
+      _fetchChapter(idx).then(function (data) {
+        var _zbText = data && typeof data.text === 'string' ? data.text.trim() : '';
+        if (!_zbText && data && data.chapterJson && Array.isArray(data.chapterJson.sections)) {
+          _zbText = data.chapterJson.sections
+            .map(function (row) {
+              var title = String(row && (row.title || row.label) || '').trim();
+              var body = String(row && (row.body || row.content) || '').trim();
+              if (!body) return '';
+              return title ? ('## ' + title + '\n' + body) : body;
+            })
+            .filter(Boolean)
+            .join('\n\n');
+        }
+        if (data && data.ok && _zbText.length >= MIN_CHAPTER_CHARS) {
+          _syncChapterMetaFromResponse(idx, data);
+          _chapters[idx] = _zbText;
+          _chapterStructured[idx] = (Array.isArray(data.sections) && data.sections.length)
+            ? { sections: data.sections }
+            : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
+          _trace('CHAPTER_DATA_RECEIVED', { chapter: idx + 1, length: _zbText.length });
+          _setProgress(idx + 1);
+          generateNext(idx + 1);
+          return;
+        }
 
-      var msg = (data && data.message) ? data.message : '알 수 없는 오류';
-      var errorCode = (data && data.code) ? String(data.code) : 'UNKNOWN_ERROR';
-      _trace('CHAPTER_DATA_FAILED', { chapter: 1, message: msg, code: errorCode });
-      console.error('[자미두수 PDF 생성] 12챕터 생성 실패:', { code: errorCode, message: msg, failedChapters: data && data.failedChapters });
-      clearInterval(_mysticTimer); _mysticTimer = null; _generating = false;
-      var failErrEl = _qs('zbErrorMsg');
-      if (failErrEl) {
-        failErrEl.textContent = '자미두수 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있습니다.';
-      }
-      _zbClearSaved(window.__cdActiveBirthProfile || {});
-      _showScreen('zbErrorScreen');
-    });
+        _failCount++;
+        var msg = (data && data.message) ? data.message : '알 수 없는 오류';
+        var errorCode = (data && data.code) ? String(data.code) : 'UNKNOWN_ERROR';
+        _trace('CHAPTER_DATA_FAILED', { chapter: idx + 1, message: msg, code: errorCode });
+        console.error('[자미두수 PDF 생성] 섹션 생성 실패:', { chapter: idx + 1, code: errorCode, message: msg });
+        clearInterval(_mysticTimer); _mysticTimer = null; _generating = false;
+        var failErrEl = _qs('zbErrorMsg');
+        if (failErrEl) {
+          failErrEl.textContent = '자미두수 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있습니다.';
+        }
+        _zbClearSaved(window.__cdActiveBirthProfile || {});
+        _showScreen('zbErrorScreen');
+        return;
+      });
+    })(0);
   };
 
   /* ─────────────── PDF 다운로드 ─────────────── */
