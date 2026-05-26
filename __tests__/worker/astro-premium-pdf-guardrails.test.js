@@ -75,4 +75,70 @@ describe("Western astrology premium PDF guardrails", () => {
     expect(sanitized.includes("| 항목 | 값 |")).toBe(false);
     expect(sanitized.includes("이 문장은 유지됩니다.")).toBe(true);
   });
+
+  test("챕터 섹션은 설정된 카테고리 순서로 정규화되어야 한다", () => {
+    const canonical = {
+      user: { name: "테스터" },
+      planets: [],
+      houses: [],
+      aspects: [],
+      angles: {},
+      validation: { missingFields: [] },
+    };
+    const chapterMeta = { key: "C1", title: "CH.1 코어 성향 프로파일" };
+    const llmText = [
+      "### 4. 차트에서 가장 강한 에너지",
+      "강한 에너지 본문입니다.",
+      "",
+      "### 1. ASC/MC/태양/달 핵심 구조",
+      "ASC/MC 핵심 본문입니다.",
+      "",
+      "### 5. 삶의 방향성과 반복 패턴",
+      "반복 패턴 본문입니다.",
+    ].join("\n");
+
+    const normalized = __astroTestUtils.materializeAstroSectionBlocks(llmText, canonical, chapterMeta);
+    expect(Array.isArray(normalized.sections)).toBe(true);
+    expect(normalized.sections).toHaveLength(5);
+    expect(normalized.sections[0].title).toBe("ASC/MC/태양/달 핵심 구조");
+    expect(normalized.sections[3].title).toBe("차트에서 가장 강한 에너지");
+    expect(String(normalized.sections[0].body).length).toBeGreaterThan(180);
+    expect(String(normalized.markdown)).toContain("### 1. ASC/MC/태양/달 핵심 구조");
+    expect(String(normalized.markdown)).toContain("### 4. 차트에서 가장 강한 에너지");
+  });
+
+  test("섹션 본문이 너무 짧으면 로컬 카테고리 초안으로 보강되어야 한다", () => {
+    const canonical = {
+      user: { name: "테스터" },
+      planets: [],
+      houses: [],
+      aspects: [],
+      angles: {},
+      validation: { missingFields: [] },
+    };
+    const chapterMeta = { key: "C1", title: "CH.1 코어 성향 프로파일" };
+    const llmText = [
+      "### 1. ASC/MC/태양/달 핵심 구조",
+      "짧은 본문",
+      "",
+      "### 2. 차트 전체 기질",
+      "짧은 본문",
+      "",
+      "### 3. 인생의 중심 테마",
+      "짧은 본문",
+      "",
+      "### 4. 차트에서 가장 강한 에너지",
+      "짧은 본문",
+      "",
+      "### 5. 삶의 방향성과 반복 패턴",
+      "짧은 본문",
+    ].join("\n");
+
+    const normalized = __astroTestUtils.materializeAstroSectionBlocks(llmText, canonical, chapterMeta);
+    expect(normalized.sections).toHaveLength(5);
+    normalized.sections.forEach((section) => {
+      expect(typeof section.body).toBe("string");
+      expect(section.body.length).toBeGreaterThan(180);
+    });
+  });
 });

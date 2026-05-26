@@ -25,7 +25,7 @@ describe("Sibyl premium report strict validation", () => {
       finalMessage: longText,
     };
 
-    expect(sibylUtils.validateSibylPremiumReport(report)).toBe(true);
+    expect(sibylUtils.validateSibylReport(report)).toBe(true);
   });
 
   test("필수 chapter 누락 또는 길이 부족이면 실패", () => {
@@ -43,7 +43,7 @@ describe("Sibyl premium report strict validation", () => {
       finalMessage: longText,
     };
 
-    expect(() => sibylUtils.validateSibylPremiumReport(report)).toThrow(/systemWarning/i);
+    expect(() => sibylUtils.validateSibylReport(report)).toThrow(/systemWarning/i);
   });
 
   test("AI 챕터가 비어 있어도 canonical fallback으로 10챕터를 채움", () => {
@@ -73,10 +73,10 @@ describe("Sibyl premium report strict validation", () => {
       ],
     };
 
-    const mapped = sibylUtils.mapToPremiumChapters([], canonical);
+    const mapped = sibylUtils.mapToSibylChapters([], canonical);
     expect(Object.keys(mapped.chapterMap).length).toBe(10);
     expect(mapped.chapterList.length).toBe(10);
 
-    sibylUtils.validateSibylPremiumReport(mapped.chapterMap);
+    sibylUtils.validateSibylReport(mapped.chapterMap);
   });
 });

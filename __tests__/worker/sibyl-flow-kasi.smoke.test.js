@@ -47,12 +47,12 @@ describe("Sibyl flow and KASI smoke", () => {
       },
     });
 
-    const mapped = sibylUtils.mapToPremiumChapters([], canonical);
+    const mapped = sibylUtils.mapToSibylChapters([], canonical);
     expect(mapped.chapterList).toHaveLength(10);
     expect(Object.keys(mapped.chapterMap)).toHaveLength(10);
     expect(mapped.chapterList[8].title).toBe("CH.09 시스템 리스크 가이드");
     expect(mapped.chapterList[9].title).toBe("CH.10 최종 실행 가이드");
-    expect(() => sibylUtils.validateSibylPremiumReport(mapped.chapterMap)).not.toThrow();
+    expect(() => sibylUtils.validateSibylReport(mapped.chapterMap)).not.toThrow();
   });
 
   test("핵심 사주값이 누락되어도 기둥 기반 계산으로 canonical 필드를 보강한다", () => {

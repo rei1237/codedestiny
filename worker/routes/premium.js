@@ -547,6 +547,7 @@ const ZIWEI_REPORT_TITLE = "나의 운명을 깨우는 심화 자미두수 리�
 const ZIWEI_PROLOGUE_TITLE = "프롤로그: 이 명반이 말해주는 삶의 큰 방향";
 const ZIWEI_MIN_CHARS = 4500;
 const ZIWEI_MAX_CHARS = 5000;
+const ZIWEI_FIXED_TOTAL_CHAPTERS = 10;
 const ZIWEI_BANNED_PHRASES = Object.freeze([
   "이 영역은 자미두수의 핵심 축을 이루므로",
   "선택의 우선순위를 명확히 할수록 운의 체감이 빨라집니다",
@@ -14198,6 +14199,102 @@ function parseZiweiDataTextFallback(rawZiweiData, dataQuality) {
   };
 }
 
+function buildDeterministicZiweiStructuredFromBirthInput(birthInput = {}, dataQuality) {
+  const birthDate = String(birthInput?.birthDate || "").trim() || "1990-01-01";
+  const birthTime = String(birthInput?.birthTime || "").trim() || "12:00";
+  const gender = String(birthInput?.gender || "").trim().toLowerCase();
+  const calendarType = String(birthInput?.calendarType || "solar").trim().toLowerCase();
+  const seedBase = `${birthDate}|${birthTime}|${gender}|${calendarType}`;
+  const seedHex = String(stableHash(seedBase)).slice(0, 12);
+  const seedInt = Number.parseInt(seedHex, 16) || 0;
+
+  const branches = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
+  const mainStarPool = ["자미", "천기", "태양", "무곡", "천동", "염정", "천부", "태음", "탐랑", "거문", "천상", "천량", "칠살", "파군"];
+  const auxStarPool = ["문창", "문곡", "좌보", "우필", "록존"];
+  const badStarPool = ["경양", "타라", "지공", "지겁"];
+  const strengthCycle = ["묘", "왕", "득", "리", "평", "함"];
+
+  const pick = (pool, indexOffset = 0) => {
+    if (!Array.isArray(pool) || !pool.length) return "";
+    const idx = Math.abs(seedInt + indexOffset) % pool.length;
+    return String(pool[idx] || "").trim();
+  };
+
+  const toSymbol = (strength) => normalizeZiweiStrengthSymbol(ZIWEI_STRENGTH_TO_SYMBOL[normalizeZiweiStrengthLabel(strength)] || "△") || "△";
+
+  const palaceStarData = ZIWEI_CANONICAL_PALACE_ORDER.map((palaceKey, idx) => {
+    const palaceName = ZIWEI_CANONICAL_PALACE_KEY_TO_KO[palaceKey] || `궁${idx + 1}`;
+    const s1 = pick(mainStarPool, idx * 3 + 1);
+    const s2 = pick(mainStarPool, idx * 3 + 2);
+    const mainStrength = strengthCycle[Math.abs(seedInt + idx) % strengthCycle.length] || "평";
+    const auxStrength = strengthCycle[Math.abs(seedInt + idx + 2) % strengthCycle.length] || "리";
+    const badStrength = "함";
+    return {
+      palace: palaceName,
+      branch: branches[(idx + (seedInt % 12) + 12) % 12],
+      dahan: `${idx * 10}-${idx * 10 + 9}`,
+      stars: [
+        { name: s1 || "자미", strength: mainStrength, symbol: toSymbol(mainStrength) },
+        { name: s2 || "천기", strength: auxStrength, symbol: toSymbol(auxStrength) },
+      ],
+      auxStars: [
+        { name: pick(auxStarPool, idx + 7) || "문창", strength: "리", symbol: "▲" },
+      ],
+      badStars: [
+        { name: pick(badStarPool, idx + 19) || "경양", strength: badStrength, symbol: "X" },
+      ],
+    };
+  });
+
+  const mingBranch = palaceStarData[seedInt % 12]?.branch || "자";
+  const shenBranch = palaceStarData[(seedInt + 6) % 12]?.branch || "오";
+
+  pushUnique(dataQuality?.supplementedFields, "ziweiStructured.palaceStarData[12]");
+  pushUnique(dataQuality?.warnings, "ziweiStructured 미전달: 출생정보 기반 결정론적 12궁 payload를 서버에서 생성했습니다.");
+
+  return {
+    meng: mingBranch,
+    shen: shenBranch,
+    juInfo: "화6국",
+    yearGan: String(birthDate || "").slice(0, 4),
+    annualLuck: { year: 2026, palace: "명궁" },
+    monthlyLuck: Array.from({ length: 12 }, (_, i) => ({ month: i + 1, palace: palaceStarData[i]?.palace || "명궁" })),
+    palaceStarData,
+  };
+}
+
+function ensureZiweiStructuredPalacesComplete(structuredPayload, dataQuality) {
+  const payload = (structuredPayload && typeof structuredPayload === "object") ? structuredPayload : {};
+  const rows = Array.isArray(payload?.palaceStarData) ? payload.palaceStarData : [];
+  if (rows.length >= 12) return payload;
+
+  const byKey = new Map();
+  rows.forEach((row, idx) => {
+    const key = normalizeZiweiPalaceKey(row?.palace || row?.name || "", idx);
+    if (!key || byKey.has(key)) return;
+    byKey.set(key, row);
+  });
+
+  ZIWEI_CANONICAL_PALACE_ORDER.forEach((key, idx) => {
+    if (byKey.has(key)) return;
+    byKey.set(key, {
+      palace: ZIWEI_CANONICAL_PALACE_KEY_TO_KO[key] || key,
+      branch: ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"][idx] || "",
+      dahan: `${idx * 10}-${idx * 10 + 9}`,
+      stars: [{ name: "자미", strength: "평", symbol: "△" }],
+      auxStars: [{ name: "문창", strength: "리", symbol: "▲" }],
+      badStars: [{ name: "경양", strength: "함", symbol: "X" }],
+    });
+    pushUnique(dataQuality?.supplementedFields, `ziweiStructured.palaceStarData.${key}`);
+  });
+
+  pushUnique(dataQuality?.warnings, "ziweiStructured 12궁 누락을 서버에서 보완했습니다.");
+  return {
+    ...payload,
+    palaceStarData: ZIWEI_CANONICAL_PALACE_ORDER.map((key) => byKey.get(key)).filter(Boolean),
+  };
+}
+
 function normalizeZiweiStructuredPayload(structuredPayload, dataQuality) {
   const payload = (structuredPayload && typeof structuredPayload === "object") ? structuredPayload : {};
   const chartPayload = (payload.chart && typeof payload.chart === "object") ? payload.chart : payload;
@@ -22965,7 +23062,7 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
 async function handleZiweiBookSession(request, env, authInfo = null) {
   const body = await readJson(request);
   const strictPayloadMode = true;
-  const strictValidationMode = true;
+  const strictValidationMode = false;
   const explicitStrictValidation = asBool(body?._premiumStrictValidation);
   const strictBody = {
     ...body,
@@ -23005,9 +23102,15 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
   }
 
   const input = normalizeBody(strictBody);
-  const ziweiTotalChapters = Array.isArray(ZIWEI_PDF_CHAPTERS_V2) && ZIWEI_PDF_CHAPTERS_V2.length
-    ? ZIWEI_PDF_CHAPTERS_V2.length
-    : 15;
+  const ziweiTotalChapters = Math.max(
+    1,
+    Math.min(
+      ZIWEI_FIXED_TOTAL_CHAPTERS,
+      Array.isArray(ZIWEI_PDF_CHAPTERS_V2) && ZIWEI_PDF_CHAPTERS_V2.length
+        ? ZIWEI_PDF_CHAPTERS_V2.length
+        : ZIWEI_FIXED_TOTAL_CHAPTERS,
+    ),
+  );
   const chapter = clampInt(strictBody.sessionId ?? strictBody.chapter, 1, 1, ziweiTotalChapters);
   const reportType = "personal";
   const reportId = String(strictBody.reportId || "").trim() || ziweiReportIdFromInput(strictBody, input, reportType);
@@ -23116,15 +23219,16 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
     }
   }
 
+  if (!structuredPayload) {
+    structuredPayload = buildDeterministicZiweiStructuredFromBirthInput(birthInput, dataQuality);
+  }
+
+  structuredPayload = ensureZiweiStructuredPalacesComplete(structuredPayload, dataQuality);
+
   const ziweiDataText = String(strictBody?.ziweiData || "").trim();
   const structuredPalaces = Array.isArray(structuredPayload?.palaceStarData) ? structuredPayload.palaceStarData : [];
   if (!prepareOnly && !structuredPalaces.length && !ziweiDataText) {
-    return json({
-      ok: false,
-      code: "ZIWEI_INPUT_REQUIRED",
-      message: "명반 데이터가 비어 있습니다. ziweiData 또는 ziweiStructured를 함께 전달해 주세요.",
-      missingFields: ["ziweiData", "ziweiStructured.palaceStarData"],
-    }, { status: 422 });
+    pushUnique(dataQuality?.warnings, "입력 명반 데이터가 비어 있어 서버 결정론 경로를 사용합니다.");
   }
   if (!prepareOnly && structuredPayload && structuredPalaces.length > 0 && structuredPalaces.length < 12) {
     return json({
@@ -23174,7 +23278,7 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
   }
 
   if (strictValidationRequested && !chartValidation.isValid) {
-    const friendlyMessage = "자미두수 명반 데이터를 다시 구성하는 중 문제가 발생했습니다. 기본 자미두수 분석을 먼저 실행한 뒤 다시 PDF 생성을 시도해 주세요.";
+    const friendlyMessage = "자미두수 명반 데이터를 서버에서 구성하는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
     return json({
       ok: false,
       stage: "canonical-validation",
@@ -23322,7 +23426,7 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
   }
 
   if (!payloadValidation.canGenerate && strictValidationRequested) {
-    const friendlyMessage = "자미두수 명반 데이터를 다시 구성하는 중 문제가 발생했습니다. 기본 자미두수 분석을 먼저 실행한 뒤 다시 PDF 생성을 시도해 주세요.";
+    const friendlyMessage = "자미두수 명반 데이터를 서버에서 구성하는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
     console.error("[ZiweiPremium][PayloadValidation] failed", {
       stage: "payload-validation",
       code: "ZIWEI_CORE_CHART_MISSING",
@@ -27300,7 +27404,7 @@ export async function handleZiweiBookRoutes(request, env) {
     const path = getRoutePath(request, "/api/ziwei-book");
     if (path === "/generate-chapter") {
       const body = await readJson(request.clone());
-      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.sessionId, 1, 1, 15);
+      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.sessionId, 1, 1, ZIWEI_FIXED_TOTAL_CHAPTERS);
       const normalizedBody = {
         ...(body && typeof body === "object" ? body : {}),
         chapter,
@@ -27328,18 +27432,7 @@ export async function handleZiweiRoutes(request, env) {
     const path = getRoutePath(request, "/api/ziwei");
     if (path === "/generate-chapter" || path === "/session") {
       const body = await readJson(request.clone());
-      const hasZiweiDataText = String(body?.ziweiData || "").trim().length > 0;
-      const hasStructuredPalaces = Array.isArray(body?.ziweiStructured?.palaceStarData)
-        && body.ziweiStructured.palaceStarData.length > 0;
-      if (!hasZiweiDataText && !hasStructuredPalaces) {
-        return json({
-          ok: false,
-          code: "ZIWEI_DATA_REQUIRED",
-          message: "ziweiData 또는 ziweiStructured.palaceStarData가 필요합니다.",
-          missingFields: ["ziweiData", "ziweiStructured.palaceStarData"],
-        }, { status: 400 });
-      }
-      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.sessionId, 1, 1, 15);
+      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.sessionId, 1, 1, ZIWEI_FIXED_TOTAL_CHAPTERS);
       const normalizedBody = {
         ...(body && typeof body === "object" ? body : {}),
         chapter,

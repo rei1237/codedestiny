@@ -55,7 +55,7 @@ jobs:
       - name: Wrangler token preflight
         run: npx --no-install wrangler whoami
 
-      - name: Sync Worker Gemini secrets
+      - name: Sync Worker runtime secrets
         env:
           GEMINIF_API_KEY1: ${{ secrets.GEMINIF_API_KEY1 }}
           GEMINIF_API_KEY2: ${{ secrets.GEMINIF_API_KEY2 }}
@@ -74,6 +74,12 @@ jobs:
           ASTRO_GEMINI_MODEL: ${{ vars.ASTRO_GEMINI_MODEL }}
           VEDIC_GEMINI_MODEL: ${{ vars.VEDIC_GEMINI_MODEL }}
           ZIWEI_GEMINI_MODEL: ${{ vars.ZIWEI_GEMINI_MODEL }}
+          MONGO_URI: ${{ secrets.MONGO_URI || secrets.MONGODB_URI || secrets.MONGO_URL || secrets.DATABASE_URL }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI || secrets.MONGO_URI || secrets.MONGO_URL || secrets.DATABASE_URL }}
+          MONGO_URL: ${{ secrets.MONGO_URL || secrets.MONGO_URI || secrets.MONGODB_URI || secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL || secrets.MONGO_URI || secrets.MONGODB_URI || secrets.MONGO_URL }}
+          MONGO_DB_NAME: ${{ vars.MONGO_DB_NAME || vars.MONGODB_DB_NAME }}
+          MONGODB_DB_NAME: ${{ vars.MONGODB_DB_NAME || vars.MONGO_DB_NAME }}
         run: npm run secrets:cf:worker -- --skip-empty
 
       - name: Worker preflight build (dry-run)

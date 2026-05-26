@@ -24,7 +24,12 @@ export function resolveMongoDbName(env = {}) {
   );
   if (explicit) return explicit;
 
-  const uri = getEnv(env, "MONGO_URI") || getEnv(env, "MONGODB_URI");
+  const uri = (
+    getEnv(env, "MONGO_URI")
+    || getEnv(env, "MONGODB_URI")
+    || getEnv(env, "MONGO_URL")
+    || getEnv(env, "DATABASE_URL")
+  );
   return extractDbNameFromUri(uri) || "code_destiny";
 }
 
@@ -95,9 +100,14 @@ export async function connectDb(env = {}) {
     }
   }
 
-  const uri = getEnv(env, "MONGO_URI") || getEnv(env, "MONGODB_URI");
+  const uri = (
+    getEnv(env, "MONGO_URI")
+    || getEnv(env, "MONGODB_URI")
+    || getEnv(env, "MONGO_URL")
+    || getEnv(env, "DATABASE_URL")
+  );
   if (!uri) {
-    throw new Error("MONGO_URI or MONGODB_URI is required for Worker-native API routes.");
+    throw new Error("Mongo URI is required (MONGO_URI, MONGODB_URI, MONGO_URL, or DATABASE_URL) for Worker-native API routes.");
   }
 
   const ipFamilyRaw = String(getEnv(env, "MONGO_IP_FAMILY") || "").trim();

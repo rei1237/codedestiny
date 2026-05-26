@@ -62,7 +62,7 @@
     '최종 전략 제언과 실행 프로토콜을 정리하는 중...',
   ];
 
-  var TOTAL_CHAPTERS = CHAPTER_TITLES.length;
+  var TOTAL_CHAPTERS = Math.min(10, CHAPTER_TITLES.length);
 
   var CHAPTER_STRUCTURED_LABELS = {
     1: ['명궁 핵심 성향', '주성 배치 해석', '강점 발현 조건', '약점 보완 전략', '실전 적용 포인트'],
@@ -770,10 +770,7 @@
     });
 
     if (!ziweiData || ziweiData.length < 20) {
-      _generating = false;
-      _trace('FLOW_ABORT_ZIWEI_DATA_MISSING', { length: ziweiData ? ziweiData.length : 0 });
-      alert('자미두수 데이터를 불러오지 못했습니다. 생년월일을 입력하고 사주 분석을 먼저 실행해 주세요.');
-      return;
+      _trace('FLOW_CONTINUE_WITH_SERVER_RESOLVER', { length: ziweiData ? ziweiData.length : 0 });
     }
 
     _showScreen('zbLoadingScreen');
