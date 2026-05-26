@@ -34,9 +34,9 @@ describe("Ziwei Premium 12 Chapters Structure", () => {
     expect(ZIWEI_PREMIUM_12_CHAPTERS.length).toBe(12);
   });
 
-  test("each chapter should have exactly 5 sections", () => {
+  test("each chapter should match declared sectionCount", () => {
     ZIWEI_PREMIUM_12_CHAPTERS.forEach((chapter, idx) => {
-      expect(chapter.sections.length).toBe(5);
+      expect(chapter.sections.length).toBe(chapter.sectionCount);
       expect(chapter.chapterNo).toBe(idx + 1);
     });
   });
@@ -53,7 +53,7 @@ describe("Ziwei Premium 12 Chapters Structure", () => {
         allSectionIds.push(section.sectionId);
       });
     });
-    expect(new Set(allSectionIds).size).toBe(60);
+    expect(new Set(allSectionIds).size).toBe(63);
   });
 
   test("chapter titles should be formatted correctly", () => {
@@ -97,11 +97,11 @@ describe("Ziwei Premium 12 Chapters Structure", () => {
     expect(getZiweiPremiumChapterByNo(-1)).toBeNull();
   });
 
-  test("getZiweiPremiumSectionsByChapterNo should return 5 sections", () => {
-    for (let i = 1; i <= 12; i++) {
-      const sections = getZiweiPremiumSectionsByChapterNo(i);
-      expect(sections.length).toBe(5);
-    }
+  test("getZiweiPremiumSectionsByChapterNo should return schema-defined count", () => {
+    const chapter1Sections = getZiweiPremiumSectionsByChapterNo(1);
+    const chapter12Sections = getZiweiPremiumSectionsByChapterNo(12);
+    expect(chapter1Sections.length).toBe(6);
+    expect(chapter12Sections.length).toBe(7);
   });
 });
 

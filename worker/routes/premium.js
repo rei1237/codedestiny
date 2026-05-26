@@ -122,6 +122,7 @@ import { generateAstroPdf } from "../lib/generate-astro-pdf.js";
 import { generateZiweiPdf } from "../lib/generate-ziwei-pdf.js";
 import { validateAstroPdfPayload as validateAstroPdfPayloadStrict } from "../lib/astro/validateAstroPdfPayload.js";
 import { normalizeAstroPayloadForStrictValidation } from "../lib/astro/normalizeAstroPayloadForStrictValidation.js";
+import { Solar } from "lunar-javascript";
 
 const SIGN_KO = ["양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리", "처녀자리", "천칭자리", "전갈자리", "사수자리", "염소자리", "물병자리", "물고기자리"];
 const PLANETS = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
@@ -10486,7 +10487,7 @@ function stableHash(value) {
 }
 
 function chapterRequestProvided(body = {}) {
-  return body.chapter != null || body.sessionId != null;
+  return body.chapter != null || body.sessionId != null || body.chapterIndex != null || body.ch != null;
 }
 
 function sanitizePremiumChapterText(text) {
@@ -14220,65 +14221,187 @@ function parseZiweiDataTextFallback(rawZiweiData, dataQuality) {
 function buildDeterministicZiweiStructuredFromBirthInput(birthInput = {}, dataQuality) {
   const birthDate = String(birthInput?.birthDate || "").trim() || "1990-01-01";
   const birthTime = String(birthInput?.birthTime || "").trim() || "12:00";
-  const gender = String(birthInput?.gender || "").trim().toLowerCase();
-  const calendarType = String(birthInput?.calendarType || "solar").trim().toLowerCase();
-  const seedBase = `${birthDate}|${birthTime}|${gender}|${calendarType}`;
-  const seedHex = String(stableHash(seedBase)).slice(0, 12);
-  const seedInt = Number.parseInt(seedHex, 16) || 0;
+  const [yearRaw, monthRaw, dayRaw] = birthDate.split("-").map((v) => Number(v));
+  const [hourRaw, minuteRaw] = birthTime.split(":").map((v) => Number(v));
+  const year = Number.isFinite(yearRaw) ? yearRaw : 1990;
+  const month = Number.isFinite(monthRaw) ? monthRaw : 1;
+  const day = Number.isFinite(dayRaw) ? dayRaw : 1;
+  const hour = Number.isFinite(hourRaw) ? hourRaw : 12;
+  const minute = Number.isFinite(minuteRaw) ? minuteRaw : 0;
 
-  const branches = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
-  const mainStarPool = ["자미", "천기", "태양", "무곡", "천동", "염정", "천부", "태음", "탐랑", "거문", "천상", "천량", "칠살", "파군"];
-  const auxStarPool = ["문창", "문곡", "좌보", "우필", "록존"];
-  const badStarPool = ["경양", "타라", "지공", "지겁"];
-  const strengthCycle = ["묘", "왕", "득", "리", "평", "함"];
+  const ZHI_LIST_LOCAL = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
+  const ZHI_LIST_HAN = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
+  const GAN_LIST_HAN = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
+  const STAR_STRENGTH = {
+    main: "평",
+    aux: "리",
+    bad: "함",
+  };
+  const PALACE_NAMES_LOCAL = ["명궁", "형제궁", "부부궁", "자녀궁", "재백궁", "질액궁", "천이궁", "노복궁", "관록궁", "전택궁", "복덕궁", "부모궁"];
 
-  const pick = (pool, indexOffset = 0) => {
-    if (!Array.isArray(pool) || !pool.length) return "";
-    const idx = Math.abs(seedInt + indexOffset) % pool.length;
-    return String(pool[idx] || "").trim();
+  const makeStars = (names = [], type = "main") => {
+    const strength = STAR_STRENGTH[type] || "평";
+    const symbol = normalizeZiweiStrengthSymbol(strength) || "△";
+    return names.map((name) => ({ name: String(name || "").trim(), strength, symbol })).filter((row) => row.name);
   };
 
-  const toSymbol = (strength) => normalizeZiweiStrengthSymbol(ZIWEI_STRENGTH_TO_SYMBOL[normalizeZiweiStrengthLabel(strength)] || "△") || "△";
+  try {
+    const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+    const lunar = solar.getLunar();
+    const lmonth = Math.abs(Number(lunar.getMonth()));
+    const lday = Number(lunar.getDay());
+    const yearGan = String(lunar.getYearGan() || "甲");
+    const yearZhi = String(lunar.getYearZhi() || "子");
+    const hourIdx = hour === 23 || hour === 0 ? 0 : Math.floor((hour + 1) / 2);
+    const mengBaseIdx = (2 + lmonth - 1) % 12;
+    const mengIdx = (mengBaseIdx - hourIdx + 12) % 12;
+    const shenIdx = (mengBaseIdx + hourIdx) % 12;
 
-  const palaceStarData = ZIWEI_CANONICAL_PALACE_ORDER.map((palaceKey, idx) => {
-    const palaceName = ZIWEI_CANONICAL_PALACE_KEY_TO_KO[palaceKey] || `궁${idx + 1}`;
-    const s1 = pick(mainStarPool, idx * 3 + 1);
-    const s2 = pick(mainStarPool, idx * 3 + 2);
-    const mainStrength = strengthCycle[Math.abs(seedInt + idx) % strengthCycle.length] || "평";
-    const auxStrength = strengthCycle[Math.abs(seedInt + idx + 2) % strengthCycle.length] || "리";
-    const badStrength = "함";
-    return {
-      palace: palaceName,
-      branch: branches[(idx + (seedInt % 12) + 12) % 12],
-      dahan: `${idx * 10}-${idx * 10 + 9}`,
-      stars: [
-        { name: s1 || "자미", strength: mainStrength, symbol: toSymbol(mainStrength) },
-        { name: s2 || "천기", strength: auxStrength, symbol: toSymbol(auxStrength) },
-      ],
-      auxStars: [
-        { name: pick(auxStarPool, idx + 7) || "문창", strength: "리", symbol: "▲" },
-      ],
-      badStars: [
-        { name: pick(badStarPool, idx + 19) || "경양", strength: badStrength, symbol: "X" },
-      ],
+    const yg = GAN_LIST_HAN.indexOf(yearGan);
+    const inStart = [2, 4, 6, 8, 0][((yg % 5) + 5) % 5];
+    const sMap = { "甲": 1, "乙": 1, "丙": 2, "丁": 2, "戊": 3, "己": 3, "庚": 4, "辛": 4, "壬": 5, "癸": 5 };
+    const bMap = { 0: 1, 1: 1, 2: 2, 3: 2, 4: 3, 5: 3, 6: 1, 7: 1, 8: 2, 9: 2, 10: 3, 11: 3 };
+    const gongGan = {};
+    for (let z = 0; z < 12; z += 1) {
+      gongGan[ZHI_LIST_HAN[z]] = GAN_LIST_HAN[(inStart + ((z - 2 + 12) % 12)) % 10];
+    }
+    const mgGan = String(gongGan[ZHI_LIST_HAN[mengIdx]] || "甲").trim();
+    let wVal = Number(sMap[mgGan] || 1) + Number(bMap[mengIdx] || 1);
+    if (wVal > 5) wVal -= 5;
+    const juMap = { 1: 3, 2: 4, 3: 2, 4: 6, 5: 5 };
+    const ju = Number(juMap[wVal] || 4);
+
+    let q = Math.floor(lday / ju);
+    const r = lday % ju;
+    let add = 0;
+    if (r !== 0) {
+      add = ju - r;
+      q = Math.floor((lday + add) / ju);
+    }
+    let pos = q;
+    if (add > 0) pos = add % 2 === 1 ? q - add : q + add;
+    while (pos <= 0) pos += 12;
+    while (pos > 12) pos -= 12;
+
+    const zPos = (pos + 1) % 12;
+    const fPos = (16 - zPos) % 12;
+    const mainStars = Array.from({ length: 12 }, () => []);
+    const auxStars = Array.from({ length: 12 }, () => []);
+    const badStars = Array.from({ length: 12 }, () => []);
+    const MAIN_STAR_FALLBACK = ["자미", "천기", "태양", "무곡", "천동", "염정", "천부", "태음", "탐랑", "거문", "천상", "천량"];
+
+    mainStars[zPos].push("자미");
+    mainStars[(zPos + 11) % 12].push("천기");
+    mainStars[(zPos + 9) % 12].push("태양");
+    mainStars[(zPos + 8) % 12].push("무곡");
+    mainStars[(zPos + 7) % 12].push("천동");
+    mainStars[(zPos + 4) % 12].push("염정");
+    mainStars[fPos].push("천부");
+    mainStars[(fPos + 1) % 12].push("태음");
+    mainStars[(fPos + 2) % 12].push("탐랑");
+    mainStars[(fPos + 3) % 12].push("거문");
+    mainStars[(fPos + 4) % 12].push("천상");
+    mainStars[(fPos + 5) % 12].push("천량");
+    mainStars[(fPos + 6) % 12].push("칠살");
+    mainStars[(fPos + 10) % 12].push("파군");
+
+    auxStars[(10 - hourIdx + 12) % 12].push("문창");
+    auxStars[(4 + hourIdx) % 12].push("문곡");
+    auxStars[(4 + lmonth - 1) % 12].push("좌보");
+    auxStars[(10 - (lmonth - 1) + 12) % 12].push("우필");
+    const luCunMap = { "甲": 2, "乙": 3, "丙": 5, "丁": 6, "戊": 5, "己": 6, "庚": 8, "辛": 9, "壬": 11, "癸": 0 };
+    const kuiMap = { "甲": 1, "乙": 0, "丙": 11, "丁": 11, "戊": 1, "己": 0, "庚": 1, "辛": 2, "壬": 3, "癸": 3 };
+    const yueMap = { "甲": 7, "乙": 8, "丙": 9, "丁": 9, "戊": 7, "己": 8, "庚": 7, "辛": 6, "壬": 5, "癸": 5 };
+    const maMap = { "申": 2, "子": 2, "辰": 2, "亥": 5, "卯": 5, "未": 5, "寅": 8, "午": 8, "戌": 8, "巳": 11, "酉": 11, "丑": 11 };
+    if (yearGan in luCunMap) auxStars[luCunMap[yearGan]].push("록존");
+    if (yearGan in kuiMap) auxStars[kuiMap[yearGan]].push("천괴");
+    if (yearGan in yueMap) auxStars[yueMap[yearGan]].push("천월");
+    if (yearZhi in maMap) auxStars[maMap[yearZhi]].push("천마");
+
+    const yangMap = { "甲": 3, "乙": 4, "丙": 6, "丁": 7, "戊": 6, "己": 7, "庚": 9, "辛": 10, "壬": 0, "癸": 1 };
+    const tuoMap = { "甲": 1, "乙": 2, "丙": 4, "丁": 5, "戊": 4, "己": 5, "庚": 7, "辛": 8, "壬": 10, "癸": 11 };
+    if (yearGan in yangMap) {
+      badStars[yangMap[yearGan]].push("경양");
+      badStars[tuoMap[yearGan]].push("타라");
+    }
+    badStars[(11 - hourIdx + 12) % 12].push("지공");
+    badStars[(11 + hourIdx) % 12].push("지겁");
+
+    for (let i = 0; i < 12; i += 1) {
+      if (!Array.isArray(mainStars[i]) || mainStars[i].length === 0) {
+        mainStars[i] = [MAIN_STAR_FALLBACK[i % MAIN_STAR_FALLBACK.length]];
+      }
+    }
+
+    const SIHUA_BY_YEAR_GAN = {
+      "甲": { "염정": "화록", "파군": "화권", "무곡": "화과", "태양": "화기" },
+      "乙": { "천기": "화록", "천량": "화권", "자미": "화과", "태음": "화기" },
+      "丙": { "천동": "화록", "천기": "화권", "문창": "화과", "염정": "화기" },
+      "丁": { "태음": "화록", "천동": "화권", "천기": "화과", "거문": "화기" },
+      "戊": { "탐랑": "화록", "태음": "화권", "우필": "화과", "천기": "화기" },
+      "己": { "무곡": "화록", "탐랑": "화권", "천량": "화과", "문곡": "화기" },
+      "庚": { "태양": "화록", "무곡": "화권", "태음": "화과", "천동": "화기" },
+      "辛": { "거문": "화록", "태양": "화권", "문곡": "화과", "문창": "화기" },
+      "壬": { "천량": "화록", "자미": "화권", "좌보": "화과", "무곡": "화기" },
+      "癸": { "파군": "화록", "거문": "화권", "태음": "화과", "탐랑": "화기" },
     };
-  });
 
-  const mingBranch = palaceStarData[seedInt % 12]?.branch || "자";
-  const shenBranch = palaceStarData[(seedInt + 6) % 12]?.branch || "오";
+    const sihuaData = {};
+    const sihuaRule = SIHUA_BY_YEAR_GAN[yearGan] || {};
+    for (const [starName, type] of Object.entries(sihuaRule)) {
+      for (let i = 0; i < 12; i += 1) {
+        const existsInMain = Array.isArray(mainStars[i]) && mainStars[i].includes(starName);
+        const existsInAux = Array.isArray(auxStars[i]) && auxStars[i].includes(starName);
+        if (!existsInMain && !existsInAux) continue;
+        sihuaData[starName] = {
+          type,
+          palaceName: PALACE_NAMES_LOCAL[i] || "",
+        };
+        break;
+      }
+    }
 
-  pushUnique(dataQuality?.supplementedFields, "ziweiStructured.palaceStarData[12]");
-  pushUnique(dataQuality?.warnings, "ziweiStructured 미전달: 출생정보 기반 결정론적 12궁 payload를 서버에서 생성했습니다.");
+    const palaceStarData = Array.from({ length: 12 }, (_, idx) => ({
+      palace: PALACE_NAMES_LOCAL[idx],
+      branch: ZHI_LIST_LOCAL[idx],
+      dahan: `${idx * 10}-${idx * 10 + 9}`,
+      stars: makeStars(mainStars[idx], "main"),
+      auxStars: makeStars(auxStars[idx], "aux"),
+      badStars: makeStars(badStars[idx], "bad"),
+    }));
 
-  return {
-    meng: mingBranch,
-    shen: shenBranch,
-    juInfo: "화6국",
-    yearGan: String(birthDate || "").slice(0, 4),
-    annualLuck: { year: 2026, palace: "명궁" },
-    monthlyLuck: Array.from({ length: 12 }, (_, i) => ({ month: i + 1, palace: palaceStarData[i]?.palace || "명궁" })),
-    palaceStarData,
-  };
+    pushUnique(dataQuality?.supplementedFields, "ziweiStructured.palaceStarData[12]");
+    pushUnique(dataQuality?.warnings, "ziweiStructured 미전달: 출생정보 기반 로컬 자미두수 엔진 계산을 서버에서 실행했습니다.");
+
+    return {
+      meng: ZHI_LIST_LOCAL[mengIdx],
+      shen: ZHI_LIST_LOCAL[shenIdx],
+      juInfo: `${ju}국`,
+      yearGan,
+      sihuaData,
+      annualLuck: { year: new Date().getFullYear(), palace: "명궁" },
+      monthlyLuck: Array.from({ length: 12 }, (_, i) => ({ month: i + 1, palace: palaceStarData[i]?.palace || "명궁" })),
+      palaceStarData,
+    };
+  } catch (error) {
+    pushUnique(dataQuality?.warnings, `로컬 자미두수 엔진 계산 실패: ${String(error?.message || "unknown")}`);
+    return {
+      meng: "자",
+      shen: "오",
+      juInfo: "4국",
+      yearGan: String(year || ""),
+      annualLuck: { year: new Date().getFullYear(), palace: "명궁" },
+      monthlyLuck: Array.from({ length: 12 }, (_, i) => ({ month: i + 1, palace: PALACE_NAMES_LOCAL[i] || "명궁" })),
+      palaceStarData: Array.from({ length: 12 }, (_, i) => ({
+        palace: PALACE_NAMES_LOCAL[i] || `궁${i + 1}`,
+        branch: ZHI_LIST_LOCAL[i] || "",
+        dahan: `${i * 10}-${i * 10 + 9}`,
+        stars: makeStars(["자미"], "main"),
+        auxStars: makeStars(["문창"], "aux"),
+        badStars: makeStars(["경양"], "bad"),
+      })),
+    };
+  }
 }
 
 function ensureZiweiStructuredPalacesComplete(structuredPayload, dataQuality) {
@@ -23146,7 +23269,7 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
   const input = normalizeBody(strictBody);
   // 12챕터 구조로 고정 (요청 chapter를 기준으로 챕터별 API 생성)
   const ziweiTotalChapters = 12;
-  const chapter = clampInt(strictBody.sessionId ?? strictBody.chapter, 1, 1, ziweiTotalChapters);
+  const chapter = clampInt(strictBody.chapterIndex ?? strictBody.ch ?? strictBody.sessionId ?? strictBody.chapter, 1, 1, ziweiTotalChapters);
   const chapterSpec = getZiweiPremiumChapterByNo(chapter);
   const reportType = "personal";
   const reportId = String(strictBody.reportId || "").trim() || ziweiReportIdFromInput(strictBody, input, reportType);
@@ -23237,7 +23360,7 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
     || strictBody.requestedSections
     || strictBody.sectionLabels
     || [],
-  ).slice(0, 5);
+  );
 
   if (!structuredPayload && basicZiweiResult && typeof basicZiweiResult === "object") {
     const structuredFromBasic = basicZiweiResult.ziweiStructured
@@ -23353,16 +23476,14 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
   });
 
   if (!basicZiweiResult || !basicResultHasMeta || basicResultPalaceCount < 12) {
-    return json({
-      ok: false,
-      code: "ZIWEI_BASIC_RESULT_MISSING",
-      message: "기본 자미두수 결과가 부족해 PDF 생성을 진행할 수 없습니다. 메인 자미두수 결과를 먼저 생성한 뒤 다시 시도해 주세요.",
-      missingFields: [
-        !basicZiweiResult ? "basicZiweiResult" : null,
-        !basicResultHasMeta ? "basicZiweiResult.chart.chartMeta" : null,
-        basicResultPalaceCount < 12 ? "basicZiweiResult.chart.palaces" : null,
-      ].filter(Boolean),
-    }, { status: 422 });
+    pushUnique(dataQuality?.warnings, "ZIWEI_BASIC_RESULT_INCOMPLETE");
+    pushUnique(dataQuality?.warnings, "기본 분석 선행 없이 서버 로컬 계산 결과를 기준으로 PDF 생성을 진행합니다.");
+    console.warn("[ZiweiPDF][BasicResultDegraded]", {
+      requestId,
+      hasBasicResult: Boolean(basicZiweiResult),
+      hasChartMeta: basicResultHasMeta,
+      palaceCount: basicResultPalaceCount,
+    });
   }
 
   const canonicalDerivedReportPayload = canonicalZiweiChart
@@ -23407,7 +23528,10 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
   }
 
   const chapterCount = ziweiTotalChapters;
-  const totalCategoryCount = chapterCount * 4;
+  const totalCategoryCount = ZIWEI_PREMIUM_12_CHAPTERS.reduce((sum, row) => {
+    const count = Array.isArray(row?.sections) ? row.sections.length : 0;
+    return sum + count;
+  }, 0);
   const ziweiPremiumPayload = buildZiweiPremiumPayloadFromProfileAndBasicResult({
     profile: profileFromRequest,
     basicZiweiResult,
@@ -23572,7 +23696,7 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
   };
 
   const chapterSections = Array.isArray(chapterSpec?.sections) ? chapterSpec.sections : [];
-  const chapterSpecificSections = chapterSections.map((s) => String(s?.title || "").trim()).filter(Boolean).slice(0, 5);
+  const chapterSpecificSections = chapterSections.map((s) => String(s?.title || "").trim()).filter(Boolean);
 
   const palaceByName = Array.isArray(reportPayload?.palaces)
     ? reportPayload.palaces.find((p) => String(p?.name || "").trim() === String(chapterSpec?.targetPalace || "").trim())
@@ -27006,9 +27130,11 @@ export async function handlePremiumRoutes(request, env) {
 }
 
 export const __ziweiTestUtils = {
+  buildDeterministicZiweiStructuredFromBirthInput,
   normalizeZiweiStructuredPayload,
   buildCanonicalZiweiChart,
   validateCanonicalZiweiChartStrict,
+  buildZiweiReportPayloadFromCanonical,
   buildZiweiStandardResultFromCanonical,
   buildZiweiReportPayloadFromBasicResult,
   buildZiweiPdfReportPayload,

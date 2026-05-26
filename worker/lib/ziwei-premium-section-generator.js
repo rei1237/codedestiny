@@ -7,7 +7,7 @@
  * 3. generateZiweiChapterFromSections: 모든 섹션이 성공해야 챕터 완성
  */
 
-import { callGeminiText } from "./gemini.js";
+import { callGeminiText, pickGeminiKeys, pickGeminiModels } from "./gemini.js";
 import { normalizeZiweiStrengthSymbol } from "./ziwei-premium-book-structure.js";
 
 const ZIWEI_SECTION_FORBIDDEN_WORDS = [
@@ -27,6 +27,12 @@ const ZIWEI_SECTION_FORBIDDEN_WORDS = [
   "placeholder",
   "기본 골격",
   "자동 재작성",
+  "\"chapterMeta\"",
+  "\"chapterSpecificSections\"",
+  "\"sections\"",
+  "\"payload\"",
+  "internal key",
+  "raw json",
 ];
 
 /**
@@ -92,6 +98,7 @@ function hasOnlyGenericFortunePhrases(text) {
   }, 0);
 
   // 일반 문구 비율이 30% 이상이면 위험
+  if (contentLength <= 0) return false;
   return genericMatchLength / contentLength > 0.3;
 }
 
@@ -175,7 +182,7 @@ export function validateLLMSectionContent(content, input) {
   );
 
   if (targetPalaces.length > 0 && palacesFound.length === 0) {
-    warnings.push("NO_TARGET_PALACE_FOUND");
+    errors.push("NO_TARGET_PALACE_FOUND");
   }
 
   // 8. 별 이름 또는 강도 기호 확인
@@ -186,8 +193,14 @@ export function validateLLMSectionContent(content, input) {
     starNames.some((star) => textLower.includes(star.toLowerCase())) ||
     strengthSymbols.some((symbol) => text.includes(symbol));
 
-  if (starNames.length > 0 && !hasStarOrSymbol) {
-    warnings.push("NO_STAR_OR_SYMBOL");
+  const hasStrengthSymbol = strengthSymbols.some((symbol) => text.includes(symbol));
+  const hasStarName = starNames.some((star) => textLower.includes(star.toLowerCase()));
+
+  if (starNames.length > 0 && !hasStarName) {
+    errors.push("NO_STAR_NAME");
+  }
+  if (!hasStrengthSymbol) {
+    errors.push("NO_STRENGTH_SYMBOL");
   }
 
   return {
@@ -206,6 +219,29 @@ export function validateLLMSectionContent(content, input) {
 export async function generateZiweiSectionWithLLM(env, input) {
   const maxAttempts = 3;
   let lastError = null;
+  const modelEnvKeys = [
+    "PREMIUM_ZIWEI_GEMINI_MODEL",
+    "ZIWEI_GEMINI_MODEL",
+    "PREMIUM_GEMINI_MODEL",
+    "GEMINI_MODEL",
+  ];
+  const keyEnvKeys = [
+    "GEMINIF_API_KEY1",
+    "GEMINIF_API_KEY2",
+    "GEMINIF_API_KEY3",
+    "GEMINIF_API_KEY4",
+    "PREMIUM_GEMINI_API_KEY1",
+    "PREMIUM_GEMINI_API_KEY2",
+    "PREMIUM_GEMINI_API_KEY3",
+    "PREMIUM_GEMINI_API_KEY4",
+    "GEMINI_API_KEY",
+    "GOOGLE_GEMINI_API_KEY",
+    "GOOGLE_GENERATIVE_AI_API_KEY",
+    "GOOGLE_AI_API_KEY",
+    "GOOGLE_API_KEY",
+  ];
+  const resolvedKeyCount = pickGeminiKeys(env, keyEnvKeys).length;
+  const resolvedModels = pickGeminiModels(env, modelEnvKeys);
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
@@ -214,11 +250,14 @@ export async function generateZiweiSectionWithLLM(env, input) {
 
       // LLM 호출
       const llmResult = await callGeminiText(env, prompt, {
-        modelEnvKeys: ["PREMIUM_ZIWEI_GEMINI_MODEL"],
+        modelEnvKeys,
+        keyEnvKeys,
         temperature: 0.72,
         topP: 0.92,
         maxOutputTokens: 4096,
         timeoutMs: Number(env.PREMIUM_ZIWEI_GEMINI_TIMEOUT_MS || 30000),
+        totalTimeoutMs: Number(env.PREMIUM_ZIWEI_GEMINI_TOTAL_TIMEOUT_MS || 50000),
+        maxAttemptsPerPair: Math.max(1, Math.min(3, Number(env.PREMIUM_ZIWEI_GEMINI_RETRY_PER_PAIR || 2))),
       });
 
       if (!llmResult?.ok || !String(llmResult?.text || "").trim()) {
@@ -228,6 +267,9 @@ export async function generateZiweiSectionWithLLM(env, input) {
           sectionId: input.section?.sectionId,
           attempt,
           error: String(lastError.message || "EMPTY_LLM_RESPONSE"),
+          keyConfigured: resolvedKeyCount > 0,
+          keyCount: resolvedKeyCount,
+          modelCandidates: resolvedModels,
         });
         continue;
       }
@@ -261,6 +303,8 @@ export async function generateZiweiSectionWithLLM(env, input) {
         sectionId: input.section?.sectionId,
         errors: validation.errors,
         attempt,
+        keyConfigured: resolvedKeyCount > 0,
+        modelCandidates: resolvedModels,
       });
 
       // 마지막 시도가 아니면 재시도
@@ -301,9 +345,15 @@ function buildZiweiSectionLLMPrompt(input) {
   const section = input.section || {};
   const profile = input.userProfile || {};
   const palaceData = input.targetPalaceData || {};
+  const canonicalZiweiChart = input.canonicalZiweiChart || {};
+  const reportPayload = input.reportPayload || {};
+  const chartMeta = canonicalZiweiChart.chartMeta || reportPayload.chartMeta || {};
+  const profileEvidence = canonicalZiweiChart.profile || reportPayload.profile || {};
+  const luckData = reportPayload.luck || canonicalZiweiChart.luck || {};
 
   const systemInstruction = [
     "너는 자미두수 프리미엄 PDF 상담문 작성자다.",
+    "최고 수준의 자미두수 실전 고수처럼, 근거 중심으로 정밀하게 해석하라.",
     "계산은 하지 마라.",
     "제공된 자미두수 명반 JSON과 section context만 해석하라.",
     "제공되지 않은 별, 궁, 사화를 지어내지 마라.",
@@ -320,6 +370,8 @@ function buildZiweiSectionLLMPrompt(input) {
     "같은 문장 반복 금지.",
     "지나치게 일반적인 운세 문구 금지.",
     "실제 명반의 궁/별/강도 기호를 자연스럽게 반영하라.",
+    "반드시 제공된 엔진 계산값(명궁/신궁/궁별 별 구성/사화/운세 흐름)만 근거로 해석하라.",
+    "근거 없이 단정하거나 임의의 별/궁/시점을 추가하지 마라.",
     "단정적 예언보다 선택 기준, 성향 분석, 실전 조언 중심으로 작성하라.",
     "출력은 순수 본문 텍스트만 반환하라.",
     "Markdown 표, JSON, 코드블록은 사용하지 마라.",
@@ -340,6 +392,9 @@ function buildZiweiSectionLLMPrompt(input) {
     "",
     `[명반 정보]`,
     `대상 궁: ${chapter.targetPalace || chapter.targetPalaces?.join(", ") || "미지정"}`,
+    `명궁: ${String(chartMeta.mingGong || "").trim() || "미지정"}`,
+    `신궁: ${String(chartMeta.shenGong || "").trim() || "미지정"}`,
+    `명반 기준시: ${String(profileEvidence?.birth?.solarDate || profile.birthDate || "").trim() || "미지정"}`,
   ];
 
   // 궁 데이터 추가
@@ -369,6 +424,15 @@ function buildZiweiSectionLLMPrompt(input) {
         .map((t) => `${t.name}(${t.target})`)
         .join(", ")}`
     );
+  }
+
+  const decadeSummary = String(luckData?.decadeSummary || luckData?.tenYearSummary || "").trim();
+  const yearlySummary = String(luckData?.yearlySummary || luckData?.annualSummary || "").trim();
+  if (decadeSummary) {
+    contextInfo.push(`대운 요약: ${decadeSummary}`);
+  }
+  if (yearlySummary) {
+    contextInfo.push(`세운 요약: ${yearlySummary}`);
   }
 
   contextInfo.push("");
@@ -416,6 +480,8 @@ export async function generateZiweiChapterFromSections(env, input) {
       section,
       userProfile: input.userProfile,
       targetPalaceData: input.targetPalaceData,
+      canonicalZiweiChart: input.canonicalZiweiChart,
+      reportPayload: input.reportPayload,
       starNames: input.starNames || [],
       targetPalaces: chapter.targetPalaces || [chapter.targetPalace],
     };

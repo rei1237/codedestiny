@@ -3,7 +3,7 @@
  *
  * 구조:
  * - 12개 메인 챕터
- * - 각 챕터 = 정확히 5개의 세부 카테고리
+ * - 각 챕터 = 정의된 세부 카테고리 개수(챕터별 상이)
  * - 각 세부 카테고리 = 별도 LLM 호출 + 검증
  *
  * 역할 분리:
@@ -19,7 +19,7 @@ export const ZIWEI_PREMIUM_12_CHAPTERS = Object.freeze([
     title: "Ch.1 명궁 완전 해독 — 타고난 인생 설계도",
     subtitle: "명궁의 핵심 기질, 강점과 약점, 인생 초반부 과제",
     targetPalace: "명궁",
-    sectionCount: 5,
+    sectionCount: 6,
     sections: [
       {
         sectionId: "ch01-sec01",
@@ -54,6 +54,13 @@ export const ZIWEI_PREMIUM_12_CHAPTERS = Object.freeze([
         sectionNo: 5,
         title: "1-5. 인생 초반부부터 반복되는 핵심 과제",
         purpose: "명궁의 과제성을 인생 전개 관점에서 실전 조언으로 정리",
+        minChars: 1200,
+      },
+      {
+        sectionId: "ch01-sec06",
+        sectionNo: 6,
+        title: "1-6. 명궁 기준 실전 조언",
+        purpose: "명궁 중심의 강점/약점을 실제 선택과 실행 루틴으로 연결",
         minChars: 1200,
       },
     ],
@@ -514,7 +521,7 @@ export const ZIWEI_PREMIUM_12_CHAPTERS = Object.freeze([
     title: "Ch.12 사화와 종합 인생 전략 — 기회, 압박, 최종 로드맵",
     subtitle: "사화(화록·화권·화과·화기)의 작동, 최강 궁과 최약 궁, 최종 실행 로드맵",
     targetPalaces: ["사화"],
-    sectionCount: 5,
+    sectionCount: 7,
     sections: [
       {
         sectionId: "ch12-sec01",
@@ -547,8 +554,22 @@ export const ZIWEI_PREMIUM_12_CHAPTERS = Object.freeze([
       {
         sectionId: "ch12-sec05",
         sectionNo: 5,
-        title: "12-5. 앞으로 강화해야 할 선택과 최종 실행 로드맵",
-        purpose: "12궁 통합 + 대운 흐름 + 사화 작동으로 인생 최종 전략 정리",
+        title: "12-5. 가장 강한 궁과 가장 약한 궁",
+        purpose: "12궁 비교를 통해 성장축/취약축을 선명하게 도출",
+        minChars: 1200,
+      },
+      {
+        sectionId: "ch12-sec06",
+        sectionNo: 6,
+        title: "12-6. 앞으로 강화해야 할 선택",
+        purpose: "최강점/취약점/사화 작동을 연결한 선택 우선순위 설계",
+        minChars: 1200,
+      },
+      {
+        sectionId: "ch12-sec07",
+        sectionNo: 7,
+        title: "12-7. 최종 실행 로드맵",
+        purpose: "향후 1년~3년 실천 계획으로 전환 가능한 단계형 로드맵 정리",
         minChars: 1200,
       },
     ],
@@ -591,9 +612,13 @@ export function validateZiweiPremium12ChapterStructure() {
       );
     }
 
-    if (chapter.sections.length !== 5) {
+    const expectedSectionCount = Number.isInteger(chapter.sectionCount) && chapter.sectionCount > 0
+      ? chapter.sectionCount
+      : chapter.sections.length;
+
+    if (chapter.sections.length !== expectedSectionCount) {
       throw new Error(
-        `Chapter ${idx + 1} (${chapter.chapterId}) should have exactly 5 sections, got ${chapter.sections.length}`
+        `Chapter ${idx + 1} (${chapter.chapterId}) should have ${expectedSectionCount} sections, got ${chapter.sections.length}`
       );
     }
 
