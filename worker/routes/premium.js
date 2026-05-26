@@ -21900,21 +21900,9 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
     ? ZIWEI_PDF_CHAPTERS_V2.length
     : 15;
   const chapter = clampInt(strictBody.sessionId ?? strictBody.chapter, 1, 1, ziweiTotalChapters);
-  const partnerIntent = strictBody.partnerName || strictBody.partnerYear || strictBody.partnerMonth || strictBody.partnerDay;
-  const requestedReportType = String(strictBody.reportType || (partnerIntent ? "compatibility" : "personal")).toLowerCase();
-  const hasPartnerBirth = Number.isFinite(Number(strictBody.partnerYear))
-    && Number.isFinite(Number(strictBody.partnerMonth))
-    && Number.isFinite(Number(strictBody.partnerDay));
-  const reportType = requestedReportType === "compatibility" && hasPartnerBirth ? "compatibility" : "personal";
+  const reportType = "personal";
   const reportId = String(strictBody.reportId || "").trim() || ziweiReportIdFromInput(strictBody, input, reportType);
-  const partnerOverview = reportType === "compatibility"
-    ? [
-      `이름:${String(strictBody.partnerName || "상대")}`,
-      `생년월일:${strictBody.partnerYear}-${strictBody.partnerMonth}-${strictBody.partnerDay}`,
-      `출생시간:${strictBody.partnerHour ?? "미상"}:${String(strictBody.partnerMinute ?? "00").padStart(2, "0")}`,
-      `출생지:${String(strictBody.partnerBirthPlace || "정보 없음")}`,
-    ].join(", ")
-    : "";
+  const partnerOverview = "";
   const meta = ZIWEI_CHAPTER_META[chapter - 1] || {
     num: chapter,
     title: `자미두수 Chapter ${chapter}`,

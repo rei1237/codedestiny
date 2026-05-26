@@ -26,83 +26,6 @@ function __cdPushPerfMetric(name, value, detail) {
   } catch (_) {}
 }
 
-// 자동 관리자 모드 방지: localStorage에 남아있는 admin token을 정리 (세션 전용만 허용)
-function __cdCleanLegacyAdminLocalStorage() {
-  try { localStorage.removeItem('flower_admin_token'); } catch (_) {}
-  try { localStorage.removeItem('flower_admin_password_ok'); } catch (_) {}
-}
-
-__cdCleanLegacyAdminLocalStorage();
-
-var __cdPerfBootTs = (typeof performance !== 'undefined' && typeof performance.now === 'function')
-  ? performance.now()
-  : Date.now();
-
-function __cdIsDevPerfEnabled() {
-  try {
-    if (window.__cdPerfDebug === 1) return true;
-    var host = String((window.location && window.location.hostname) || '').toLowerCase();
-    if (host === 'localhost' || host === '127.0.0.1' || host === '::1') return true;
-    var q = new URLSearchParams((window.location && window.location.search) || '');
-    return q.get('cdPerfDebug') === '1';
-  } catch (_) {
-    return false;
-  }
-}
-
-var __cdPerfDebug = __cdIsDevPerfEnabled();
-
-function __cdPerfNow() {
-  if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
-    return performance.now();
-  }
-  return Date.now();
-}
-
-function __cdPerfInfo() {
-  if (!__cdPerfDebug) return;
-  try {
-    console.info.apply(console, arguments);
-  } catch (_) {}
-}
-
-function __cdIsCoarsePointerDevice() {
-  try {
-    var mm = typeof window.matchMedia === 'function';
-    var coarse = mm && (
-      window.matchMedia('(pointer:coarse)').matches ||
-      window.matchMedia('(any-pointer:coarse)').matches
-    );
-    var points = (navigator && typeof navigator.maxTouchPoints === 'number')
-      ? navigator.maxTouchPoints
-      : 0;
-    return !!(coarse || points > 0);
-  } catch (_) {
-    return false;
-  }
-}
-
-function __cdLogMainScreenFirstRender() {
-  if (!__cdPerfDebug) return;
-  var emit = function() {
-    var elapsed = Math.round(__cdPerfNow() - __cdPerfBootTs);
-    __cdPerfInfo('[Perf] main screen first render', elapsed);
-  };
-  if (typeof window.requestAnimationFrame === 'function') {
-    window.requestAnimationFrame(function() {
-      window.requestAnimationFrame(emit);
-    });
-    return;
-  }
-  setTimeout(emit, 0);
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', __cdLogMainScreenFirstRender, { once: true });
-} else {
-  __cdLogMainScreenFirstRender();
-}
-
 function __cdInitCollectionPerfMetrics() {
   if (window.__cdCollectionPerfInited) return;
   window.__cdCollectionPerfInited = true;
@@ -208,10 +131,6 @@ function __cdInitCollectionPerfMetrics() {
     __cdPushPerfMetric('collectionTapLatencyLast', ms, {
       key: key
     });
-
-    if (__cdPerfDebug && __cdIsCoarsePointerDevice()) {
-      __cdPerfInfo('[Perf] mobile tap latency', key, ms);
-    }
   }
 
   document.addEventListener('pointerdown', onPressStart, { passive: true });
@@ -249,119 +168,18 @@ function __cdShouldTrackPaymentRequest(pathname, method) {
   if (!pathname) return false;
   if (method === 'GET' || method === 'HEAD') return false;
 
-  if (pathname.indexOf('/api/billing/') === 0) return true;
-  if (pathname.indexOf('/api/payments/') === 0) return true;
-  if (pathname.indexOf('/api/subscription/') === 0) return true;
-  if (pathname.indexOf('/api/payment/') === 0) return true;
-  if (pathname.indexOf('/api/checkout/') === 0) return true;
-  if (pathname.indexOf('/api/fortune/pig-coin/') === 0) return true;
-
   if (pathname.indexOf('/api/premium/') === 0) return true;
   if (pathname.indexOf('/api/tarot/reading') === 0) return true;
   if (pathname.indexOf('/api/sibyl/report') === 0) return true;
+  if (pathname.indexOf('/api/fortune/pig-coin/profile-subscription/subscribe') === 0) return true;
   return false;
 }
 
 function __cdResolvePaymentMessage(pathname) {
-  if (!pathname) return '운명을 읽어오는 중입니다...';
-  if (pathname.indexOf('/api/payments/subscription/confirm') === 0 || pathname.indexOf('/api/billing/confirm') === 0) {
-    return '은하 결제망에서 구독 활성화를 확인하고 있습니다...';
+  if (pathname && pathname.indexOf('/api/fortune/pig-coin/profile-subscription/subscribe') === 0) {
+    return '결제가 진행 중입니다.';
   }
-  if (pathname.indexOf('/api/payments/confirm') === 0 || pathname.indexOf('/api/billing/purchase') === 0) {
-    return '별빛 결제를 검증하고 포인트를 정산하고 있습니다...';
-  }
-  if (pathname.indexOf('/api/payments/prepare') === 0 || pathname.indexOf('/api/billing/checkout') === 0) {
-    return '우주 결제 채널을 준비하고 있습니다...';
-  }
-  if (pathname.indexOf('/api/fortune/pig-coin/') === 0) {
-    return '꽃돼지 코인 게이트를 통과하는 중입니다...';
-  }
-  return '성간 결제 라인을 연결하고 있습니다...';
-}
-
-var __cdFeaturePerfState = Object.create(null);
-
-function __cdResolvePerfFeatureKey(action, actionEl) {
-  var explicit = '';
-  if (actionEl && actionEl.getAttribute) {
-    explicit = String(actionEl.getAttribute('data-feature-key') || actionEl.getAttribute('data-feature-name') || '').trim();
-  }
-  return explicit || String(action || '').trim() || 'unknown-feature';
-}
-
-function __cdPerfFeatureClick(featureKey) {
-  if (!featureKey) return;
-  __cdFeaturePerfState[featureKey] = {
-    clickAt: __cdPerfNow(),
-    moduleLoadedAt: 0,
-    readyLogged: false
-  };
-  __cdPerfInfo('[Perf] feature click', featureKey);
-}
-
-function __cdPerfFeatureModuleLoaded(featureKey) {
-  if (!featureKey) return;
-  var state = __cdFeaturePerfState[featureKey];
-  if (!state || !state.clickAt) return;
-  if (state.moduleLoadedAt) return;
-  state.moduleLoadedAt = __cdPerfNow();
-  var elapsed = Math.max(0, Math.round(state.moduleLoadedAt - state.clickAt));
-  __cdPerfInfo('[Perf] feature module loaded', featureKey, elapsed);
-}
-
-function __cdPerfFeatureScreenReady(featureKey) {
-  if (!featureKey) return;
-  var state = __cdFeaturePerfState[featureKey];
-  if (!state || !state.clickAt || state.readyLogged) return;
-  state.readyLogged = true;
-  var elapsed = Math.max(0, Math.round(__cdPerfNow() - state.clickAt));
-  __cdPerfInfo('[Perf] feature screen ready', featureKey, elapsed);
-}
-
-function __cdEnsureFeatureLaunchOverlayStyle() {
-  if (document.getElementById('cdFeatureLaunchOverlayStyle')) return;
-  var style = document.createElement('style');
-  style.id = 'cdFeatureLaunchOverlayStyle';
-  style.textContent = [
-    '#cdFeatureLaunchOverlay{position:fixed;inset:0;z-index:2147482100;display:none;align-items:center;justify-content:center;background:rgba(6,10,24,.68);padding:16px;}',
-    '#cdFeatureLaunchOverlay .cd-feature-launch-card{width:min(420px,100%);border-radius:16px;border:1px solid rgba(167,243,208,.22);background:linear-gradient(160deg,rgba(7,18,38,.96),rgba(12,30,58,.96));color:#e2e8f0;padding:16px 14px;box-shadow:0 18px 40px rgba(2,6,23,.45);text-align:center;}',
-    '#cdFeatureLaunchOverlay .cd-feature-launch-title{margin:0;font-size:15px;font-weight:800;line-height:1.45;}',
-    '#cdFeatureLaunchOverlay .cd-feature-launch-desc{margin:8px 0 0;font-size:12px;color:rgba(186,230,253,.92);line-height:1.55;}',
-    '#cdFeatureLaunchOverlay .cd-feature-launch-bar{position:relative;height:4px;border-radius:999px;background:rgba(148,163,184,.22);margin:12px auto 0;overflow:hidden;}',
-    '#cdFeatureLaunchOverlay .cd-feature-launch-bar::after{content:"";position:absolute;inset:0;width:44%;background:linear-gradient(90deg,rgba(103,232,249,.96),rgba(147,197,253,.95));animation:cdFeatureLaunchSlide .9s ease-in-out infinite;}',
-    '@keyframes cdFeatureLaunchSlide{0%{transform:translateX(-120%)}100%{transform:translateX(260%)}}',
-    '@media (max-width: 640px){#cdFeatureLaunchOverlay .cd-feature-launch-card{padding:14px 12px;}}'
-  ].join('');
-  document.head.appendChild(style);
-}
-
-function __cdEnsureFeatureLaunchOverlay() {
-  var existing = document.getElementById('cdFeatureLaunchOverlay');
-  if (existing) return existing;
-  __cdEnsureFeatureLaunchOverlayStyle();
-  var overlay = document.createElement('div');
-  overlay.id = 'cdFeatureLaunchOverlay';
-  overlay.innerHTML = [
-    '<div class="cd-feature-launch-card" role="status" aria-live="polite" aria-atomic="true">',
-    '  <p class="cd-feature-launch-title" id="cdFeatureLaunchTitle">별빛 기능을 여는 중이에요</p>',
-    '  <p class="cd-feature-launch-desc">필요한 해석 엔진만 가볍게 불러오고 있어요.</p>',
-    '  <div class="cd-feature-launch-bar" aria-hidden="true"></div>',
-    '</div>'
-  ].join('');
-  document.body.appendChild(overlay);
-  return overlay;
-}
-
-function __cdSetFeatureLaunchOverlay(open, featureName) {
-  if (typeof document === 'undefined') return;
-  var overlay = __cdEnsureFeatureLaunchOverlay();
-  if (!overlay) return;
-  var title = document.getElementById('cdFeatureLaunchTitle');
-  if (title && open) {
-    var label = String(featureName || '').trim();
-    title.textContent = label ? (label + ' 여는 중...') : '별빛 기능을 여는 중이에요';
-  }
-  overlay.style.display = open ? 'flex' : 'none';
+  return '운명을 읽어오는 중입니다...';
 }
 
 function __cdEnsurePaymentLoadingStyle() {
@@ -373,74 +191,33 @@ function __cdEnsurePaymentLoadingStyle() {
     '  from { transform: rotate(0deg); }',
     '  to { transform: rotate(360deg); }',
     '}',
-    '@keyframes cdNebulaDrift {',
-    '  0% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.74; }',
-    '  50% { transform: translate3d(0, -12px, 0) scale(1.04); opacity: 0.98; }',
-    '  100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.74; }',
-    '}',
-    '@keyframes cdStarPulse {',
-    '  0%, 100% { opacity: 0.3; transform: scale(0.98); }',
-    '  50% { opacity: 0.8; transform: scale(1.02); }',
-    '}',
     '#cdPaymentLoadingOverlay {',
     '  position: fixed;',
     '  inset: 0;',
-    '  z-index: 2147483000;',
+    '  z-index: 1400;',
     '  display: none;',
     '  align-items: center;',
     '  justify-content: center;',
-    '  background:',
-    '    radial-gradient(circle at 22% 18%, rgba(56, 189, 248, 0.18), transparent 46%),',
-    '    radial-gradient(circle at 78% 72%, rgba(217, 70, 239, 0.14), transparent 50%),',
-    '    radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.86), rgba(2, 6, 23, 0.97));',
-    '  backdrop-filter: blur(10px) saturate(1.08);',
+    '  background: rgba(2, 6, 23, 0.58);',
+    '  backdrop-filter: blur(6px);',
     '  padding: 16px;',
-    '  isolation: isolate;',
-    '}',
-    '#cdPaymentLoadingOverlay::before {',
-    '  content: "";',
-    '  position: absolute;',
-    '  inset: 0;',
-    '  pointer-events: none;',
-    '  background-image:',
-    '    radial-gradient(1.5px 1.5px at 18% 22%, rgba(255, 255, 255, 0.92), transparent),',
-    '    radial-gradient(1px 1px at 62% 28%, rgba(186, 230, 253, 0.88), transparent),',
-    '    radial-gradient(1.2px 1.2px at 82% 64%, rgba(244, 208, 255, 0.9), transparent),',
-    '    radial-gradient(1px 1px at 38% 74%, rgba(255, 255, 255, 0.82), transparent),',
-    '    radial-gradient(1px 1px at 12% 58%, rgba(255, 255, 255, 0.75), transparent);',
-    '  background-size: 100% 100%;',
-    '  animation: cdStarPulse 2.6s ease-in-out infinite;',
-    '}',
-    '#cdPaymentLoadingOverlay::after {',
-    '  content: "";',
-    '  position: absolute;',
-    '  width: min(58vw, 620px);',
-    '  height: min(58vw, 620px);',
-    '  border-radius: 999px;',
-    '  pointer-events: none;',
-    '  background: radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.18), rgba(14, 116, 144, 0) 62%);',
-    '  filter: blur(1px);',
-    '  animation: cdNebulaDrift 3.8s ease-in-out infinite;',
     '}',
     '#cdPaymentLoadingOverlay .cd-payment-card {',
-    '  position: relative;',
-    '  z-index: 1;',
     '  width: min(420px, 100%);',
-    '  border-radius: 24px;',
-    '  border: 1px solid rgba(186, 230, 253, 0.32);',
-    '  background: linear-gradient(180deg, rgba(2, 6, 23, 0.9) 0%, rgba(17, 24, 39, 0.93) 100%);',
-    '  box-shadow: 0 30px 92px rgba(2, 6, 23, 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.12);',
+    '  border-radius: 20px;',
+    '  border: 1px solid rgba(253, 230, 138, 0.28);',
+    '  background: rgba(2, 6, 23, 0.88);',
+    '  box-shadow: 0 28px 72px rgba(0, 0, 0, 0.42);',
     '  text-align: center;',
     '  color: #ffffff;',
-    '  padding: 26px 22px 22px;',
+    '  padding: 24px 20px;',
     '}',
     '#cdPaymentLoadingOverlay .cd-payment-spinner-wrap {',
-    '  width: 78px;',
-    '  height: 78px;',
+    '  width: 74px;',
+    '  height: 74px;',
     '  margin: 0 auto 14px;',
     '  border-radius: 999px;',
-    '  border: 1px solid rgba(186, 230, 253, 0.34);',
-    '  box-shadow: 0 0 24px rgba(56, 189, 248, 0.22), inset 0 0 24px rgba(37, 99, 235, 0.2);',
+    '  border: 1px solid rgba(253, 230, 138, 0.25);',
     '  display: grid;',
     '  place-items: center;',
     '}',
@@ -448,34 +225,33 @@ function __cdEnsurePaymentLoadingStyle() {
     '  width: 44px;',
     '  height: 44px;',
     '  border-radius: 999px;',
-    '  border: 3px solid rgba(125, 211, 252, 0.3);',
-    '  border-top-color: rgba(125, 211, 252, 1);',
+    '  border: 3px solid rgba(251, 191, 36, 0.25);',
+    '  border-top-color: rgba(251, 191, 36, 1);',
     '  animation: cdPaymentSpin 0.9s linear infinite;',
     '}',
     '#cdPaymentLoadingOverlay .cd-payment-title {',
     '  margin: 0;',
-    '  font-size: 21px;',
+    '  font-size: 20px;',
     '  font-weight: 800;',
     '  letter-spacing: -0.02em;',
-    '  color: rgba(224, 242, 254, 0.98);',
     '}',
     '#cdPaymentLoadingOverlay .cd-payment-desc {',
-    '  margin: 9px 0 0;',
+    '  margin: 8px 0 0;',
     '  font-size: 14px;',
-    '  color: rgba(186, 230, 253, 0.95);',
+    '  color: rgba(226, 232, 240, 0.9);',
     '}',
     '#cdPaymentLoadingOverlay .cd-payment-status {',
-    '  margin: 13px 0 0;',
-    '  border-radius: 12px;',
-    '  border: 1px solid rgba(167, 243, 208, 0.28);',
-    '  background: linear-gradient(135deg, rgba(15, 23, 42, 0.44), rgba(6, 78, 59, 0.28));',
+    '  margin: 12px 0 0;',
+    '  border-radius: 10px;',
+    '  border: 1px solid rgba(255, 255, 255, 0.14);',
+    '  background: rgba(255, 255, 255, 0.07);',
     '  padding: 8px 10px;',
-    '  color: rgba(220, 252, 231, 0.98);',
+    '  color: rgba(254, 243, 199, 0.95);',
     '  font-size: 13px;',
     '  font-weight: 600;',
     '}',
     '@media (max-width: 480px) {',
-    '  #cdPaymentLoadingOverlay .cd-payment-card { padding: 20px 16px; border-radius: 20px; }',
+    '  #cdPaymentLoadingOverlay .cd-payment-card { padding: 20px 16px; border-radius: 18px; }',
     '  #cdPaymentLoadingOverlay .cd-payment-title { font-size: 18px; }',
     '}'
   ].join('\n');
@@ -493,8 +269,8 @@ function __cdEnsurePaymentLoadingOverlay() {
   overlay.innerHTML = [
     '<div class="cd-payment-card" role="alertdialog" aria-modal="true" aria-live="assertive">',
     '  <div class="cd-payment-spinner-wrap"><div class="cd-payment-spinner"></div></div>',
-    '  <p class="cd-payment-title">은하 결제망 동기화 중...</p>',
-    '  <p class="cd-payment-desc">별빛 회로로 결제 정보를 안전하게 확인하고 있습니다.</p>',
+    '  <p class="cd-payment-title">운명을 읽어오는 중입니다...</p>',
+    '  <p class="cd-payment-desc">결제가 진행 중입니다.</p>',
     '  <p class="cd-payment-status" id="cdPaymentLoadingStatus">결제가 진행 중입니다.</p>',
     '</div>'
   ].join('');
@@ -504,214 +280,12 @@ function __cdEnsurePaymentLoadingOverlay() {
 
 function __cdSetPaymentLoadingOverlay(open, message) {
   if (typeof document === 'undefined') return;
-
-  try {
-    window.dispatchEvent(new CustomEvent('cd:payment-pending', {
-      detail: {
-        pending: !!open,
-        message: (typeof message === 'string' && message.trim()) ? message.trim() : '결제가 진행 중입니다.',
-        source: 'static-runtime'
-      }
-    }));
-  } catch (_) {}
-
-  // Next 앱이 제공하는 전역 오버레이가 있으면 우선 사용한다.
-  try {
-    if (typeof window._cdSetCoinGateOverlay === 'function') {
-      window._cdSetCoinGateOverlay(!!open, message);
-      var bridgedOverlay = document.getElementById('cdPaymentLoadingOverlay');
-      if (bridgedOverlay) bridgedOverlay.style.display = 'none';
-      return;
-    }
-  } catch (_) {}
-
   var overlay = __cdEnsurePaymentLoadingOverlay();
   var statusNode = document.getElementById('cdPaymentLoadingStatus');
   if (statusNode && typeof message === 'string' && message.trim()) {
     statusNode.textContent = message.trim();
   }
   overlay.style.display = open ? 'flex' : 'none';
-}
-
-function __cdEnsurePaymentStatusNoticeStyle() {
-  if (typeof document === 'undefined') return;
-  if (document.getElementById('cdPaymentStatusNoticeStyle')) return;
-  var style = document.createElement('style');
-  style.id = 'cdPaymentStatusNoticeStyle';
-  style.textContent = [
-    '#cdPaymentStatusNotice {',
-    '  position: fixed;',
-    '  top: max(12px, env(safe-area-inset-top, 0px) + 8px);',
-    '  left: 50%;',
-    '  transform: translate(-50%, -14px);',
-    '  width: min(560px, calc(100% - 24px));',
-    '  border-radius: 14px;',
-    '  border: 1px solid transparent;',
-    '  padding: 11px 14px;',
-    '  box-shadow: 0 16px 44px rgba(2, 6, 23, 0.35);',
-    '  color: #ffffff;',
-    '  font-size: 14px;',
-    '  font-weight: 700;',
-    '  line-height: 1.4;',
-    '  opacity: 0;',
-    '  pointer-events: none;',
-    '  transition: opacity 0.18s ease, transform 0.18s ease;',
-    '  z-index: 1500;',
-    '}',
-    '#cdPaymentStatusNotice.is-show {',
-    '  opacity: 1;',
-    '  transform: translate(-50%, 0);',
-    '}',
-    '#cdPaymentStatusNotice[data-kind="success"] {',
-    '  background: rgba(5, 150, 105, 0.95);',
-    '  border-color: rgba(209, 250, 229, 0.65);',
-    '}',
-    '#cdPaymentStatusNotice[data-kind="cancel"] {',
-    '  background: rgba(180, 83, 9, 0.94);',
-    '  border-color: rgba(254, 215, 170, 0.7);',
-    '}',
-    '#cdPaymentStatusNotice[data-kind="login"] {',
-    '  background: rgba(30, 64, 175, 0.94);',
-    '  border-color: rgba(191, 219, 254, 0.68);',
-    '}',
-    '#cdPaymentStatusNotice[data-kind="fail"] {',
-    '  background: rgba(185, 28, 28, 0.94);',
-    '  border-color: rgba(254, 202, 202, 0.68);',
-    '}'
-  ].join('\n');
-  document.head.appendChild(style);
-}
-
-function __cdShowPaymentStatusNotice(kind, message) {
-  if (typeof document === 'undefined') return;
-  __cdEnsurePaymentStatusNoticeStyle();
-
-  var notice = document.getElementById('cdPaymentStatusNotice');
-  if (!notice) {
-    notice = document.createElement('div');
-    notice.id = 'cdPaymentStatusNotice';
-    notice.setAttribute('role', 'status');
-    notice.setAttribute('aria-live', 'polite');
-    document.body.appendChild(notice);
-  }
-
-  notice.dataset.kind = kind || 'success';
-  notice.textContent = message || '';
-  notice.classList.add('is-show');
-
-  if (notice.__hideTimer) {
-    clearTimeout(notice.__hideTimer);
-  }
-  notice.__hideTimer = setTimeout(function() {
-    notice.classList.remove('is-show');
-  }, 4200);
-}
-
-function __cdNormalizePaymentStatus(rawStatus) {
-  var normalized = String(rawStatus || '').trim().toLowerCase();
-  if (!normalized) return '';
-
-  if (normalized === 'success' || normalized === 'succeeded' || normalized === 'paid' || normalized === 'ok' || normalized === 'done' || normalized === 'complete' || normalized === 'completed') {
-    return 'success';
-  }
-  if (normalized === 'cancel' || normalized === 'canceled' || normalized === 'cancelled' || normalized === 'aborted' || normalized === 'user_cancel') {
-    return 'cancel';
-  }
-  if (normalized === 'login' || normalized === 'auth' || normalized === 'unauthorized' || normalized === 'auth_required' || normalized === 'login_required') {
-    return 'login';
-  }
-  if (normalized === 'fail' || normalized === 'failed' || normalized === 'error' || normalized === 'denied') {
-    return 'fail';
-  }
-  return '';
-}
-
-function __cdConsumePaymentStatusFromQuery() {
-  if (typeof window === 'undefined') return null;
-
-  var url;
-  try {
-    url = new URL(window.location.href);
-  } catch (_) {
-    return null;
-  }
-
-  var q = url.searchParams;
-  var statusKeys = ['paymentStatus', 'payment_status', 'paymentResult', 'payment_result', 'status', 'result'];
-  var paymentKeys = ['payment', 'checkout', 'checkoutStatus', 'checkout_status', 'coinPayment', 'coin_payment'];
-  var messageKeys = ['paymentMessage', 'payment_message', 'error_description', 'errorMessage', 'error_message'];
-  var errorKeys = ['error', 'errorCode', 'error_code'];
-
-  var rawStatus = '';
-  var paymentIntentPresent = false;
-
-  for (var i = 0; i < statusKeys.length; i += 1) {
-    var statusValue = q.get(statusKeys[i]);
-    if (!statusValue) continue;
-    rawStatus = statusValue;
-    paymentIntentPresent = true;
-    break;
-  }
-
-  for (var j = 0; j < paymentKeys.length; j += 1) {
-    var paymentValue = q.get(paymentKeys[j]);
-    if (!paymentValue) continue;
-    paymentIntentPresent = true;
-    if (!rawStatus) rawStatus = paymentValue;
-    break;
-  }
-
-  var kind = __cdNormalizePaymentStatus(rawStatus);
-  var hasErrorFlag = false;
-  for (var e = 0; e < errorKeys.length; e += 1) {
-    if (q.get(errorKeys[e])) {
-      hasErrorFlag = true;
-      break;
-    }
-  }
-  if (!kind && paymentIntentPresent && hasErrorFlag) {
-    kind = 'fail';
-  }
-  if (!kind) return null;
-
-  var rawMessage = '';
-  for (var m = 0; m < messageKeys.length; m += 1) {
-    var messageValue = q.get(messageKeys[m]);
-    if (!messageValue) continue;
-    rawMessage = messageValue;
-    break;
-  }
-
-  var defaultMessage = {
-    success: '결제가 완료되었습니다. 잠금 상태를 동기화하고 있습니다.',
-    cancel: '결제가 취소되었습니다. 원할 때 다시 시도할 수 있습니다.',
-    fail: '결제가 실패했습니다. 잠시 후 다시 시도해 주세요.',
-    login: '로그인이 필요합니다. 로그인 후 다시 결제를 진행해 주세요.'
-  }[kind] || '결제 상태를 확인해 주세요.';
-
-  var message = (typeof rawMessage === 'string' && rawMessage.trim()) ? rawMessage.trim() : defaultMessage;
-
-  for (var d = 0; d < statusKeys.length; d += 1) q.delete(statusKeys[d]);
-  for (var p = 0; p < paymentKeys.length; p += 1) q.delete(paymentKeys[p]);
-  for (var k = 0; k < messageKeys.length; k += 1) q.delete(messageKeys[k]);
-  for (var x = 0; x < errorKeys.length; x += 1) q.delete(errorKeys[x]);
-
-  var nextSearch = q.toString();
-  var nextUrl = url.pathname + (nextSearch ? ('?' + nextSearch) : '') + (url.hash || '');
-  if (nextUrl !== (window.location.pathname + window.location.search + window.location.hash)) {
-    window.history.replaceState({}, '', nextUrl);
-  }
-
-  return { kind: kind, message: message };
-}
-
-function __cdInitPaymentStatusNoticeFromQuery() {
-  var status = __cdConsumePaymentStatusFromQuery();
-  if (!status) return;
-  __cdShowPaymentStatusNotice(status.kind, status.message);
-  try {
-    document.dispatchEvent(new CustomEvent('cd:payment-status', { detail: status }));
-  } catch (_) {}
 }
 
 function __cdInitGlobalPaymentLoading() {
@@ -773,116 +347,61 @@ function __cdInitGlobalPaymentLoading() {
   window.__cdPaymentFetchPatched = true;
 
   var originalFetch = window.fetch.bind(window);
-  var apiDedupeInFlight = Object.create(null);
-
-  function shouldDedupeApiRequest(pathname, method) {
-    if (!pathname) return false;
-    if (method !== 'GET' && method !== 'HEAD') return false;
-    if (pathname === '/api/auth/me') return true;
-    if (pathname === '/api/billing/balance') return true;
-    if (pathname === '/api/fortune/pig-coin/balance') return true;
-    if (pathname === '/api/subscription/status') return true;
-    return false;
-  }
-
   window.fetch = function(input, init) {
     var reqUrl = __cdResolveRequestUrl(input);
     var reqMethod = __cdResolveRequestMethod(input, init);
     var pathname = reqUrl ? reqUrl.pathname : '';
-    var endpoint = reqUrl ? (reqUrl.pathname + (reqUrl.search || '')) : '';
-    var isApiRequest = !!(pathname && pathname.indexOf('/api/') === 0);
-    var requestStartAt = isApiRequest ? __cdPerfNow() : 0;
-    if (isApiRequest) {
-      __cdPerfInfo('[Perf] api start', reqMethod, endpoint);
+    var patchedInit = init;
+
+    // Keep legacy PDF frontends working by forwarding auth/premium tokens to same-origin API calls.
+    if (reqUrl && reqUrl.origin === window.location.origin && pathname.indexOf('/api/') === 0) {
+      patchedInit = (init && typeof init === 'object') ? Object.assign({}, init) : {};
+      var headers = new Headers((patchedInit && patchedInit.headers) || undefined);
+
+      if (!headers.has('Authorization')) {
+        var authToken = '';
+        try { authToken = String(localStorage.getItem('fortune_auth_token') || '').trim(); } catch (_) { authToken = ''; }
+        if (authToken) headers.set('Authorization', 'Bearer ' + authToken);
+      }
+
+      if (!headers.has('x-premium-access-token')) {
+        var premiumToken = '';
+        try { premiumToken = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { premiumToken = ''; }
+        if (!premiumToken) {
+          try { premiumToken = String(sessionStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { premiumToken = ''; }
+        }
+        if (!premiumToken) {
+          try { premiumToken = String(localStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { premiumToken = ''; }
+        }
+        if (premiumToken) headers.set('x-premium-access-token', premiumToken);
+      }
+
+      patchedInit.headers = headers;
     }
 
     var shouldTrack = __cdShouldTrackPaymentRequest(pathname, reqMethod);
-    var dedupeKey = '';
-    if (reqUrl && shouldDedupeApiRequest(pathname, reqMethod)) {
-      dedupeKey = reqMethod + ' ' + reqUrl.pathname + (reqUrl.search || '');
+
+    if (!shouldTrack) {
+      return originalFetch(input, patchedInit);
     }
 
-    function reportApiEnd(statusLabel) {
-      if (!isApiRequest) return;
-      var elapsed = Math.max(0, Math.round(__cdPerfNow() - requestStartAt));
-      __cdPerfInfo('[Perf] api end', reqMethod, endpoint, elapsed, statusLabel);
-    }
+    startPayment(__cdResolvePaymentMessage(pathname));
 
-    function runFetch() {
-      if (!shouldTrack) {
-        return originalFetch(input, init).then(
-          function(response) {
-            reportApiEnd(response && response.status);
-            return response;
-          },
-          function(error) {
-            reportApiEnd('error');
-            throw error;
-          }
-        );
-      }
-
-      startPayment(__cdResolvePaymentMessage(pathname));
-
-      try {
-        return originalFetch(input, init).then(
-          function(response) {
-            endPayment();
-            reportApiEnd(response && response.status);
-            return response;
-          },
-          function(error) {
-            endPayment();
-            reportApiEnd('error');
-            throw error;
-          }
-        );
-      } catch (error) {
-        endPayment();
-        reportApiEnd('error');
-        throw error;
-      }
-    }
-
-    if (!dedupeKey) {
-      return runFetch();
-    }
-
-    if (apiDedupeInFlight[dedupeKey]) {
-      __cdPerfInfo('[Perf] duplicate API prevented', endpoint || dedupeKey);
-      return apiDedupeInFlight[dedupeKey].then(function(bundle) {
-        reportApiEnd('deduped');
-        if (bundle && bundle.sharedClone) {
-          try {
-            return bundle.sharedClone.clone();
-          } catch (_) {}
+    try {
+      return originalFetch(input, patchedInit).then(
+        function(response) {
+          endPayment();
+          return response;
+        },
+        function(error) {
+          endPayment();
+          throw error;
         }
-        return runFetch();
-      }, function() {
-        reportApiEnd('retry');
-        return runFetch();
-      });
+      );
+    } catch (error) {
+      endPayment();
+      throw error;
     }
-
-    var inFlightPromise = runFetch().then(function(response) {
-      var sharedClone = null;
-      try {
-        sharedClone = response.clone();
-      } catch (_) {
-        sharedClone = null;
-      }
-      return {
-        firstResponse: response,
-        sharedClone: sharedClone
-      };
-    });
-
-    apiDedupeInFlight[dedupeKey] = inFlightPromise;
-    return inFlightPromise.then(function(bundle) {
-      return bundle.firstResponse;
-    }).finally(function() {
-      delete apiDedupeInFlight[dedupeKey];
-    });
   };
 }
 
@@ -890,12 +409,6 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', __cdInitGlobalPaymentLoading, { once: true });
 } else {
   __cdInitGlobalPaymentLoading();
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', __cdInitPaymentStatusNoticeFromQuery, { once: true });
-} else {
-  __cdInitPaymentStatusNoticeFromQuery();
 }
 
 function cdNormalizeLang(langCode) {
@@ -970,9 +483,15 @@ function cdApplyCollectionToggleHintTexts(langCode) {
 window.cdApplyCollectionToggleHintTexts = cdApplyCollectionToggleHintTexts;
 
 var __cdLocalePrefixMap = {
-  en: '/en',
-  ja: '/ja',
-  'zh-CN': '/zh'
+  en: '/en-us',
+  ja: '/ja-jp',
+  'zh-CN': '/zh-cn',
+  hi: '/hi-in',
+  es: '/es-es',
+  fr: '/fr-fr',
+  de: '/de-de',
+  nl: '/nl-nl',
+  ms: '/ms-my'
 };
 
 function cdStripLocalePrefix(pathname) {
@@ -1562,6 +1081,7 @@ function bindFeatureCardImageFallbacks() {
     var img = document.querySelector('.feature-card.' + def.cardClass + ' .feature-card__img');
     if (!img) return;
 
+    var relativePath = 'fuctionassets/' + def.fileName;
     var absolutePath = '/fuctionassets/' + def.fileName;
 
     if (!img.dataset.fallbackBound) {
@@ -1569,7 +1089,7 @@ function bindFeatureCardImageFallbacks() {
       img.addEventListener('error', function() {
         if (img.dataset.fallbackTried === '1') return;
         img.dataset.fallbackTried = '1';
-        img.src = absolutePath;
+        img.src = relativePath;
       });
     }
 
@@ -1719,517 +1239,24 @@ function __cdCallGlobal(fnName) {
   return fn.apply(window, args);
 }
 
-function __cdHasFlowerAdminPasswordSession() {
-  try {
-    return String(sessionStorage.getItem('flower_admin_password_ok') || '') === '1';
-  } catch (_) {}
-  return false;
-}
-
-function __cdIsAdminLikeUser() {
-  var FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
-  if (!__cdHasFlowerAdminPasswordSession()) return false;
-  try {
-    var sessionAdminToken = String(sessionStorage.getItem('flower_admin_token') || '').trim();
-    if (sessionAdminToken && FLOWER_ADMIN_TOKEN_RE.test(sessionAdminToken)) return true;
-  } catch (_) {}
-  return false;
-}
-
-try {
-  window.__cdIsAdminLikeUser = __cdIsAdminLikeUser;
-} catch (_) {}
-
-try {
-  window.__cdAdminBypass = !!__cdIsAdminLikeUser();
-} catch (_) {}
-
 function __cdHasAuthToken() {
-  if (__cdIsAdminLikeUser()) return true;
   try {
     if (typeof window.hasAuthToken === 'function') return !!window.hasAuthToken();
   } catch (_) {}
   try {
-    if (localStorage.getItem('fortune_auth_token') || '') return true;
-  } catch (_) {}
-  try {
-    var state = __cdAuthSessionState;
-    var now = Date.now();
-    if (state && state.ok === true && state.checkedAt && (now - state.checkedAt < 300000)) {
-      return true;
-    }
-  } catch (_) {}
-  try {
-    var authRaw = localStorage.getItem('fortune_auth_user') || '';
-    var auth = authRaw ? JSON.parse(authRaw) : null;
-    var userId = String((auth && (auth.id || auth.userId || auth._id || auth.uid)) || '').trim();
-    if (userId) return true;
+    return !!(localStorage.getItem('fortune_auth_token') || '');
   } catch (_) {}
   return false;
 }
-
-var __cdAuthSessionState = {
-  checkedAt: 0,
-  ok: false,
-  userId: '',
-  pending: null
-};
-
-function __cdBuildRedirectAfterLogin(explicitPath) {
-  if (explicitPath && typeof explicitPath === 'string') return explicitPath;
-  try {
-    return window.location.pathname + window.location.search + window.location.hash;
-  } catch (_) {}
-  return '/';
-}
-
-function __cdOpenLoginRequiredModal(options) {
-  var opts = options || {};
-  var reason = String(opts.reason || '로그인 후 이용할 수 있는 기능입니다.').trim();
-  var redirectTo = __cdBuildRedirectAfterLogin(opts.redirectTo);
-
-  if (typeof document === 'undefined') {
-    window.location.href = '/login?redirect=' + encodeURIComponent(redirectTo);
-    return;
-  }
-
-  if (!document.getElementById('cdLoginRequiredModalStyle')) {
-    var style = document.createElement('style');
-    style.id = 'cdLoginRequiredModalStyle';
-    style.textContent = [
-      '#cdLoginRequiredModal{position:fixed;inset:0;z-index:2200;display:none;align-items:center;justify-content:center;background:rgba(2,6,23,.62);padding:16px;}',
-      '#cdLoginRequiredModal .cd-login-card{width:min(480px,100%);border-radius:18px;border:1px solid rgba(255,255,255,.16);background:#0f172a;color:#f8fafc;box-shadow:0 24px 60px rgba(2,6,23,.45);padding:20px;}',
-      '#cdLoginRequiredModal .cd-login-title{margin:0 0 10px;font-size:20px;font-weight:800;line-height:1.35;}',
-      '#cdLoginRequiredModal .cd-login-desc{margin:0;color:rgba(226,232,240,.95);font-size:14px;line-height:1.6;}',
-      '#cdLoginRequiredModal .cd-login-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}',
-      '#cdLoginRequiredModal .cd-login-btn{appearance:none;border:0;border-radius:10px;padding:10px 14px;font-size:14px;font-weight:700;cursor:pointer;}',
-      '#cdLoginRequiredModal .cd-login-btn--primary{background:#f59e0b;color:#111827;}',
-      '#cdLoginRequiredModal .cd-login-btn--secondary{background:#2563eb;color:#ffffff;}',
-      '#cdLoginRequiredModal .cd-login-btn--ghost{background:rgba(255,255,255,.08);color:#e2e8f0;}',
-      '@media (max-width:480px){#cdLoginRequiredModal .cd-login-card{padding:16px;}#cdLoginRequiredModal .cd-login-title{font-size:18px;}}'
-    ].join('');
-    document.head.appendChild(style);
-  }
-
-  var modal = document.getElementById('cdLoginRequiredModal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'cdLoginRequiredModal';
-    modal.innerHTML = [
-      '<div class="cd-login-card" role="dialog" aria-modal="true" aria-labelledby="cdLoginRequiredTitle">',
-      '<h3 id="cdLoginRequiredTitle" class="cd-login-title"></h3>',
-      '<p id="cdLoginRequiredDesc" class="cd-login-desc"></p>',
-      '<div class="cd-login-actions">',
-      '<button type="button" class="cd-login-btn cd-login-btn--primary" data-cd-login-action="login">로그인하기</button>',
-      '<button type="button" class="cd-login-btn cd-login-btn--secondary" data-cd-login-action="signup">회원가입하기</button>',
-      '<button type="button" class="cd-login-btn cd-login-btn--ghost" data-cd-login-action="close">닫기</button>',
-      '</div>',
-      '</div>'
-    ].join('');
-    document.body.appendChild(modal);
-  }
-
-  var titleEl = document.getElementById('cdLoginRequiredTitle');
-  var descEl = document.getElementById('cdLoginRequiredDesc');
-  if (titleEl) titleEl.textContent = reason;
-  if (descEl) {
-    descEl.textContent = '회원가입 또는 로그인하면 Code:Destiny의 모든 운세 기능을 안전하게 저장하고 이어서 볼 수 있습니다.';
-  }
-
-  modal.style.display = 'flex';
-
-  function closeModal() {
-    modal.style.display = 'none';
-  }
-
-  modal.onclick = function(event) {
-    var target = event.target;
-    if (!target) return;
-    if (target === modal) {
-      closeModal();
-      return;
-    }
-    var action = target.getAttribute && target.getAttribute('data-cd-login-action');
-    if (!action) return;
-    if (action === 'close') {
-      closeModal();
-      return;
-    }
-    if (action === 'login') {
-      window.location.href = '/login?redirect=' + encodeURIComponent(redirectTo);
-      return;
-    }
-    if (action === 'signup') {
-      window.location.href = '/signup?redirect=' + encodeURIComponent(redirectTo);
-    }
-  };
-}
-
-function __cdClearStoredAuth() {
-  try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
-  try { localStorage.removeItem('fortune_auth_user'); } catch (_) {}
-}
-
-function __cdBuildLegacyAuthHeaders() {
-  var headers = new Headers();
-  try {
-    var token = String(localStorage.getItem('fortune_auth_token') || '').trim();
-    if (token) headers.set('Authorization', 'Bearer ' + token);
-  } catch (_) {}
-  return headers;
-}
-
-function __cdPersistAuthUserSnapshot(user) {
-  if (!user || typeof user !== 'object') return;
-  try {
-    var safe = {
-      id: String(user.id || user.userId || user._id || user.uid || '').trim(),
-      name: String(user.name || '').trim(),
-      email: String(user.email || '').trim(),
-      image: String(user.image || user.profileImage || user.avatar || '').trim(),
-      role: String(user.role || 'user').trim().toLowerCase() === 'admin' ? 'admin' : 'user',
-      points: Number(user.points || 0),
-    };
-    if (!safe.id) return;
-    if (!Number.isFinite(safe.points) || safe.points < 0) safe.points = 0;
-    localStorage.setItem('fortune_auth_user', JSON.stringify(safe));
-  } catch (_) {}
-}
-
-async function __cdFetchAuthMeWithRetry(forceRefresh) {
-  var response = await fetch('/api/auth/me', {
-    method: 'GET',
-    headers: __cdBuildLegacyAuthHeaders(),
-    credentials: 'include',
-    cache: 'no-store'
-  });
-
-  if (response.status === 401 && !forceRefresh) {
-    var refreshed = await __cdRefreshAuthSessionSilently({ skipVerify: true });
-    if (refreshed) {
-      response = await fetch('/api/auth/me', {
-        method: 'GET',
-        headers: __cdBuildLegacyAuthHeaders(),
-        credentials: 'include',
-        cache: 'no-store'
-      });
-    }
-  }
-
-  return response;
-}
-
-async function __cdVerifyAuthSession(forceRefresh) {
-  if (__cdIsAdminLikeUser()) {
-    __cdAuthSessionState.ok = true;
-    __cdAuthSessionState.userId = 'admin-like';
-    __cdAuthSessionState.checkedAt = Date.now();
-    return true;
-  }
-
-  var now = Date.now();
-  if (!forceRefresh && __cdAuthSessionState.checkedAt && (now - __cdAuthSessionState.checkedAt < 30000)) {
-    return !!__cdAuthSessionState.ok;
-  }
-
-  if (__cdAuthSessionState.pending) {
-    return __cdAuthSessionState.pending;
-  }
-
-  __cdAuthSessionState.pending = __cdFetchAuthMeWithRetry(forceRefresh).then(function(response) {
-    if (!response.ok) return null;
-    return response.json().catch(function() { return null; });
-  }).then(function(response) {
-    var payload = response;
-    var user = payload && payload.user ? payload.user : null;
-    var userId = String((user && (user.id || user.userId || user._id || user.uid)) || '').trim();
-    var ok = !!userId;
-    __cdAuthSessionState.checkedAt = Date.now();
-    __cdAuthSessionState.ok = ok;
-    __cdAuthSessionState.userId = ok ? userId : '';
-    if (ok) {
-      __cdPersistAuthUserSnapshot(user);
-    } else {
-      __cdClearStoredAuth();
-    }
-    return ok;
-  }).catch(function() {
-    __cdAuthSessionState.checkedAt = Date.now();
-    __cdAuthSessionState.ok = false;
-    __cdAuthSessionState.userId = '';
-    return false;
-  }).finally(function() {
-    __cdAuthSessionState.pending = null;
-  });
-
-  return __cdAuthSessionState.pending;
-}
-
-async function requireLoginBeforeAction(action, options) {
-  var opts = options || {};
-  var ok = await __cdVerifyAuthSession(false);
-  if (!ok) {
-    __cdOpenLoginRequiredModal({
-      reason: String(opts.reason || ((opts.featureName || '이 기능') + '은 로그인 후 이용할 수 있습니다.')),
-      redirectTo: __cdBuildRedirectAfterLogin(opts.redirectTo)
-    });
-    return false;
-  }
-  if (typeof action === 'function') {
-    await action();
-  }
-  return true;
-}
-
-async function __cdRefreshAuthSessionSilently() {
-  var options = arguments.length > 0 ? arguments[0] : {};
-  try {
-    var refreshRes = await fetch('/api/auth/refresh', {
-      method: 'POST',
-      credentials: 'include',
-      cache: 'no-store'
-    });
-    if (!refreshRes.ok) return false;
-    var refreshData = await refreshRes.json().catch(function() { return null; });
-    if (!refreshData || refreshData.ok !== true) return false;
-    var refreshedAccessToken = String((refreshData && refreshData.accessToken) || '').trim();
-    if (refreshedAccessToken) {
-      try { localStorage.setItem('fortune_auth_token', refreshedAccessToken); } catch (_) {}
-    }
-    if (refreshData && refreshData.user) {
-      __cdPersistAuthUserSnapshot(refreshData.user);
-    }
-    if (!options.skipVerify) {
-      await __cdVerifyAuthSession(true).catch(function() { return false; });
-    }
-    return true;
-  } catch (_) {
-    return false;
-  }
-}
-
-var __cdPremiumAccessTokenStorageKey = 'cd_premium_access_token';
-
-function __cdReadPremiumAccessToken() {
-  var token = '';
-  try { token = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { token = ''; }
-  if (token) return token;
-
-  try { token = String(sessionStorage.getItem(__cdPremiumAccessTokenStorageKey) || '').trim(); } catch (_) { token = ''; }
-  if (token) return token;
-
-  try { token = String(localStorage.getItem(__cdPremiumAccessTokenStorageKey) || '').trim(); } catch (_) { token = ''; }
-  return token;
-}
-
-function __cdPersistPremiumAccessToken(token) {
-  var value = String(token || '').trim();
-  if (!value) return;
-  try { window.__cdPremiumAccessToken = value; } catch (_) {}
-  try { sessionStorage.setItem(__cdPremiumAccessTokenStorageKey, value); } catch (_) {}
-  try { localStorage.setItem(__cdPremiumAccessTokenStorageKey, value); } catch (_) {}
-}
-
-function __cdExtractPremiumAccessToken(payload) {
-  if (!payload || typeof payload !== 'object') return '';
-  var candidates = [
-    payload.premiumAccessToken,
-    payload.data && payload.data.premiumAccessToken,
-    payload.consume && payload.consume.premiumAccessToken,
-    payload.data && payload.data.consume && payload.data.consume.premiumAccessToken,
-    payload.raw && payload.raw.premiumAccessToken,
-    payload.raw && payload.raw.data && payload.raw.data.premiumAccessToken,
-    payload.raw && payload.raw.data && payload.raw.data.consume && payload.raw.data.consume.premiumAccessToken,
-  ];
-  for (var i = 0; i < candidates.length; i += 1) {
-    var token = String(candidates[i] || '').trim();
-    if (token) return token;
-  }
-  return '';
-}
-
-async function __cdPremiumAuthFetch(url, init, options) {
-  var reqInit = Object.assign({}, init || {});
-  var opts = options || {};
-  var headers = new Headers(reqInit.headers || {});
-
-  reqInit.credentials = 'include';
-  if (!reqInit.cache) reqInit.cache = 'no-store';
-
-  if (opts.includeBearer) {
-    var token = '';
-    try { token = String(localStorage.getItem('fortune_auth_token') || '').trim(); } catch (_) {}
-    if (token && !headers.has('Authorization')) {
-      headers.set('Authorization', 'Bearer ' + token);
-    }
-  }
-
-  if (opts.includePremiumAccessToken !== false) {
-    var premiumAccessToken = __cdReadPremiumAccessToken();
-    if (premiumAccessToken && !headers.has('x-premium-access-token')) {
-      headers.set('x-premium-access-token', premiumAccessToken);
-    }
-  }
-
-  if (reqInit.body && !(reqInit.body instanceof FormData) && !headers.has('Content-Type')) {
-    headers.set('Content-Type', 'application/json');
-  }
-  reqInit.headers = headers;
-
-  var response = await fetch(url, reqInit);
-  if (response.status === 401 && !opts.skipRefreshRetry) {
-    var refreshed = await __cdRefreshAuthSessionSilently();
-    if (refreshed) {
-      var retryInit = Object.assign({}, reqInit);
-      var retryHeaders = new Headers(retryInit.headers || {});
-      retryHeaders.delete('Authorization');
-      retryInit.headers = retryHeaders;
-      response = await fetch(url, retryInit);
-    }
-  }
-  return response;
-}
-
-function __cdIsPremiumRetriableStatus(status) {
-  var code = Number(status || 0);
-  return code === 408 || code === 429 || code === 503 || code === 524;
-}
-
-function __cdWaitMs(delayMs) {
-  var ms = Number(delayMs || 0);
-  if (!Number.isFinite(ms) || ms <= 0) return Promise.resolve();
-  return new Promise(function(resolve) {
-    setTimeout(resolve, ms);
-  });
-}
-
-async function __cdPremiumAuthJson(url, payload, options) {
-  var opts = options || {};
-  var targetUrl = String(url || '');
-  var defaultAttempts = 1;
-  var maxAttempts = Number(opts.maxAttempts || defaultAttempts);
-  if (!Number.isFinite(maxAttempts) || maxAttempts < 1) maxAttempts = defaultAttempts;
-
-  var requestPayload = payload;
-  if (payload && typeof payload === 'object' && !(payload instanceof FormData)) {
-    requestPayload = Object.assign({}, payload);
-    var explicitPremiumToken = String(opts.premiumAccessToken || '').trim();
-    var cachedPremiumToken = __cdReadPremiumAccessToken();
-    var premiumTokenToSend = explicitPremiumToken || cachedPremiumToken;
-    if (premiumTokenToSend && !requestPayload.premiumAccessToken && !requestPayload._premiumAccessToken) {
-      requestPayload.premiumAccessToken = premiumTokenToSend;
-    }
-  }
-
-  var reqInit = {
-    method: String(opts.method || 'POST').toUpperCase(),
-    headers: opts.headers || {},
-    body: requestPayload == null ? undefined : JSON.stringify(requestPayload)
-  };
-
-  var response = null;
-  var data = {};
-  for (var attempt = 0; attempt < maxAttempts; attempt += 1) {
-    response = await __cdPremiumAuthFetch(url, reqInit, opts);
-    data = await response.json().catch(function() { return {}; });
-
-    var issuedToken = __cdExtractPremiumAccessToken(data);
-    if (issuedToken) __cdPersistPremiumAccessToken(issuedToken);
-
-    if (response.ok && (!data || data.ok !== false)) {
-      return data && typeof data === 'object' ? data : { ok: true };
-    }
-
-    var statusCode = Number((data && data.status) || response.status || 0);
-    var canRetry = __cdIsPremiumRetriableStatus(statusCode) && attempt < (maxAttempts - 1);
-    if (!canRetry) break;
-
-    var retryAfterRaw = '';
-    try {
-      retryAfterRaw = String(response.headers.get('retry-after') || '').trim();
-    } catch (_) {
-      retryAfterRaw = '';
-    }
-    var retryAfterSeconds = Number(retryAfterRaw);
-    var retryAfterMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
-      ? Math.min(10000, Math.floor(retryAfterSeconds * 1000))
-      : 0;
-    var backoffMs = Math.min(4500, 450 * Math.pow(2, attempt)) + Math.floor(Math.random() * 120);
-    await __cdWaitMs(retryAfterMs > 0 ? retryAfterMs : backoffMs);
-  }
-
-  var raw = data && typeof data === 'object' ? data : {};
-  var status = Number((raw && raw.status) || (response && response.status) || 0);
-  var code = String((raw && raw.code) || (status === 401 ? 'UNAUTHORIZED' : '') || '');
-  var missingFields = Array.isArray(raw.missingFields) ? raw.missingFields : [];
-  var invalidFields = Array.isArray(raw.invalidFields) ? raw.invalidFields : [];
-  var expectedSchema = raw.expectedSchema && typeof raw.expectedSchema === 'object' ? raw.expectedSchema : null;
-  var receivedKeys = Array.isArray(raw.receivedKeys) ? raw.receivedKeys : [];
-  var warnings = Array.isArray(raw.warnings) ? raw.warnings : [];
-  var issuedTokenOnError = __cdExtractPremiumAccessToken(raw);
-  if (issuedTokenOnError) __cdPersistPremiumAccessToken(issuedTokenOnError);
-
-  var fallbackMessage = 'HTTP ' + String(status || 0);
-  var message = String((raw && (raw.message || raw.error)) || fallbackMessage);
-  if (status === 422 && missingFields.length > 0) {
-    message = 'PDF 생성에 필요한 명반 데이터가 누락되었습니다. 누락 항목: ' + missingFields.slice(0, 4).join(', ');
-  } else if (status === 503 || status === 524) {
-    message = '서버 응답이 지연되었습니다. 잠시 후 다시 시도해 주세요.';
-  }
-
-  if (status === 422) {
-    try {
-      console.warn('[premium-auth-json:422]', {
-        url: targetUrl,
-        code: code || 'UNPROCESSABLE_ENTITY',
-        reportType: String((requestPayload && (requestPayload.reportType || requestPayload.type || requestPayload.featureType)) || ''),
-        missingFields: missingFields,
-        invalidFields: invalidFields,
-        expectedSchema: expectedSchema,
-        receivedKeys: receivedKeys,
-        warnings: warnings,
-      });
-    } catch (_) {}
-  }
-
-  return {
-    ok: false,
-    status: status,
-    code: code,
-    message: message,
-    missingFields: missingFields,
-    invalidFields: invalidFields,
-    expectedSchema: expectedSchema,
-    receivedKeys: receivedKeys,
-    recoverable: raw && raw.recoverable === true,
-    recommendedAction: String((raw && raw.recommendedAction) || ''),
-    warnings: warnings,
-    raw: raw,
-  };
-}
-
-window.__cdOpenLoginRequiredModal = __cdOpenLoginRequiredModal;
-window.requireLoginBeforeAction = requireLoginBeforeAction;
-window.__cdPremiumAuthFetch = __cdPremiumAuthFetch;
-window.__cdPremiumAuthJson = __cdPremiumAuthJson;
 
 function __cdResolveTileLockAliasKeys(lockKey) {
   var base = String(lockKey || '').trim();
   if (!base) return [];
   var map = Object.create(null);
   map[base] = true;
-  if (base === 'premium-ziwei') map['ziwei-deep'] = true;
-  if (base === 'ziwei-deep') map['premium-ziwei'] = true;
   if (base === 'olympus-profile-fc') map['olympus-fc'] = true;
   if (base === 'olympus-fc') map['olympus-profile-fc'] = true;
-  if (base === 'flower' || base === 'flower-fc' || base.indexOf('flower-') === 0) {
-    map['flower'] = true;
-    map['flower-fc'] = true;
-    map['flower-destiny'] = true;
-    map['flower-astro'] = true;
-    map['flower-ziwei'] = true;
-    map['flower-sukuyo'] = true;
-  }
+  // 각 운명의 꽃 기능은 개별 50코인 해금 (flower-fc 교차 alias 제거)
   return Object.keys(map);
 }
 
@@ -2254,25 +1281,16 @@ function __cdIsTileLockUnlocked(actionEl, lockKey) {
   try {
     var authRaw = localStorage.getItem('fortune_auth_user') || '';
     var auth = authRaw ? JSON.parse(authRaw) : null;
-    var scopeRaw = auth && (auth.id || auth.userId || auth._id || auth.uid);
+    var scopeRaw = auth && (auth.id || auth.userId || auth.email || auth.username || auth.loginId);
     var scope = String(scopeRaw || '').trim().toLowerCase();
-    var hasScopedData = false;
     if (scope) {
       var scopedKey = 'cd_tile_locks_v2::' + scope;
       var scopedRaw = localStorage.getItem(scopedKey);
       if (scopedRaw) {
-        hasScopedData = true;
         var scopedMap = JSON.parse(scopedRaw);
-        if (__cdMapHasTileLockUnlocked(scopedMap, lockKey)) return true;
+        return __cdMapHasTileLockUnlocked(scopedMap, lockKey);
       }
-      if (hasScopedData) return false;
-    }
-  } catch (_) {}
-  try {
-    var legacyRaw = localStorage.getItem('cd_tile_locks');
-    if (legacyRaw) {
-      var legacy = JSON.parse(legacyRaw);
-      if (__cdMapHasTileLockUnlocked(legacy, lockKey)) return true;
+      return false;
     }
   } catch (_) {}
   return false;
@@ -2285,7 +1303,12 @@ function __cdRequireTileLockGate(actionEl) {
   var lockCost = Number(actionEl.getAttribute('data-tile-lock-cost') || 0);
   if (!lockKey || lockCost <= 0) return true;
 
-  if (__cdIsAdminLikeUser()) return true;
+  if (!__cdHasAuthToken()) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+      window.location.href = '/login?next=%2F';
+    }
+    return false;
+  }
 
   if (__cdIsTileLockUnlocked(actionEl, lockKey)) return true;
 
@@ -2304,51 +1327,29 @@ var __cdTileLockServerSyncDone = false;
 
 function __cdGetAuthTokenForLockSync() {
   try {
-    var token = String(localStorage.getItem('fortune_auth_token') || '').trim();
-    return token;
+    return String(localStorage.getItem('fortune_auth_token') || '');
   } catch (_) {}
   return '';
 }
 
 function __cdResolveApiBaseForLockSync() {
-  function __cdIsWorkersDevHost(rawValue) {
-    var host = String(rawValue || '').trim().toLowerCase();
-    if (!host) return false;
-    try {
-      if (host.indexOf('://') >= 0) host = new URL(host).hostname.toLowerCase();
-    } catch (_) {}
-    return host === 'workers.dev' || host.slice(-12) === '.workers.dev';
-  }
-
-  function __cdNormalizeSafeApiBase(rawBase) {
-    var normalized = String(rawBase || '').trim().replace(/\/+$/, '');
-    if (!normalized) return '';
-    var currentIsWorkers = false;
-    try { currentIsWorkers = __cdIsWorkersDevHost(window.location.hostname || ''); } catch (_) {}
-    if (__cdIsWorkersDevHost(normalized) && !currentIsWorkers) return '';
-    return normalized;
-  }
-
   try {
     if (window.CODE_DESTINY_API_BASE_URL) {
-      var runtimeBase = __cdNormalizeSafeApiBase(window.CODE_DESTINY_API_BASE_URL);
-      if (runtimeBase) return runtimeBase;
+      return String(window.CODE_DESTINY_API_BASE_URL).replace(/\/+$/, '');
     }
   } catch (_) {}
   try {
     var custom = localStorage.getItem('fortune_api_base_url');
-    var safeCustom = __cdNormalizeSafeApiBase(custom);
-    if (safeCustom) return safeCustom;
-    if (custom) localStorage.removeItem('fortune_api_base_url');
+    if (custom) return String(custom).replace(/\/+$/, '');
   } catch (_) {}
-  return __cdNormalizeSafeApiBase(window.location.origin) || window.location.origin;
+  return window.location.origin;
 }
 
 function __cdGetTileLockScopeStorageKey() {
   try {
     var raw = localStorage.getItem('fortune_auth_user') || '';
     var user = raw ? JSON.parse(raw) : null;
-    var scopeRaw = user && (user.id || user.userId || user._id || user.uid);
+    var scopeRaw = user && (user.id || user.userId || user.email || user.username || user.loginId);
     var scope = String(scopeRaw || '').trim().toLowerCase();
     if (!scope) return '';
     return 'cd_tile_locks_v2::' + scope;
@@ -2453,60 +1454,40 @@ function __cdMergeServerUnlockKeys(unlockKeys) {
   return true;
 }
 
-async function __cdSyncTileLocksFromServer() {
-  if (__cdTileLockServerSyncInFlight) return;
+function __cdSyncTileLocksFromServer() {
+  var token = __cdGetAuthTokenForLockSync();
+  if (!token || __cdTileLockServerSyncInFlight) return;
+
   __cdTileLockServerSyncInFlight = true;
+  var url = __cdResolveApiBaseForLockSync() + '/api/flower/unlock/status?all=1';
 
-  try {
-    var authOk = false;
-    try {
-      authOk = await __cdVerifyAuthSession(false);
-    } catch (_) {
-      authOk = false;
-    }
-    if (!authOk) return;
-
-    var token = __cdGetAuthTokenForLockSync();
-    var url = __cdResolveApiBaseForLockSync() + '/api/billing/balance';
-    var headers = {
+  fetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: 'Bearer ' + token,
       Accept: 'application/json'
-    };
-    if (token) headers.Authorization = 'Bearer ' + token;
-
-    var response = await fetch(url, {
-      method: 'GET',
-      credentials: 'include',
-      cache: 'no-store',
-      headers: headers
-    });
-    var payload = await response.json().catch(function() { return {}; });
-    var payloadData = (payload && payload.data && typeof payload.data === 'object') ? payload.data : payload;
-
-    if (!response.ok || (payload && payload.ok === false)) {
-      if (response.status === 401 || response.status === 403) {
-        __cdInvalidateAuthSessionCache();
-      }
-      return;
     }
-
+  }).then(function(response) {
+    return response.json().catch(function() { return {}; });
+  }).then(function(payload) {
     var keys = [];
-    if (payloadData && Array.isArray(payloadData.unlockedFeatures)) keys = payloadData.unlockedFeatures;
-    if (payloadData && payloadData.unlockMap && typeof payloadData.unlockMap === 'object') {
-      var mapKeys = Object.keys(payloadData.unlockMap);
+    if (payload && Array.isArray(payload.unlockedFeatures)) keys = payload.unlockedFeatures;
+    if (payload && payload.unlockMap && typeof payload.unlockMap === 'object') {
+      var mapKeys = Object.keys(payload.unlockMap);
       for (var i = 0; i < mapKeys.length; i += 1) {
-        if (payloadData.unlockMap[mapKeys[i]] === true) keys.push(mapKeys[i]);
+        if (payload.unlockMap[mapKeys[i]] === true) keys.push(mapKeys[i]);
       }
     }
 
     if (__cdMergeServerUnlockKeys(keys)) {
       __cdDispatchTileLockSyncEvent();
     }
-  } catch (_) {
+  }).catch(function() {
     // ignore sync failures
-  } finally {
+  }).finally(function() {
     __cdTileLockServerSyncInFlight = false;
     __cdTileLockServerSyncDone = true;
-  }
+  });
 }
 
 function __cdScheduleTileLockServerSync() {
@@ -2520,63 +1501,31 @@ function __cdScheduleTileLockServerSync() {
 
 __cdScheduleTileLockServerSync();
 
-function __cdInvalidateAuthSessionCache() {
-  __cdAuthSessionState.checkedAt = 0;
-  __cdAuthSessionState.ok = false;
-  __cdAuthSessionState.userId = '';
-  __cdAuthSessionState.pending = null;
-}
-
-function __cdHandleAuthChangedSignal() {
-  __cdInvalidateAuthSessionCache();
+window.addEventListener('cd:auth-changed', function() {
   __cdTileLockServerSyncDone = false;
   __cdSyncTileLocksFromServer();
-}
-
-window.addEventListener('cd:auth-changed', __cdHandleAuthChangedSignal);
-
-window.addEventListener('storage', function(event) {
-  var key = String((event && event.key) || '').trim();
-  if (key && key !== 'fortune_auth_token' && key !== 'fortune_auth_user') return;
-  __cdHandleAuthChangedSignal();
 });
 
-try {
-  if (typeof BroadcastChannel !== 'undefined') {
-    var __cdAuthSyncChannel = new BroadcastChannel('code-destiny-auth-sync');
-    __cdAuthSyncChannel.onmessage = function() {
-      __cdHandleAuthChangedSignal();
-    };
-  }
-} catch (_) {}
-
 var __cdLazyActionLoaders = {
-  openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js'); },
-  openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-modal.js'); },
   openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js'); },
   openDreamModal: function() { return __cdLoadScriptOnce('/lib/ai-engine.js').then(function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); }); },
   openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'); },
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
-  openLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-1779774393049'); },
-  closeLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-1779774393049'); },
-  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-1779774393049').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-1779774393049'); }); },
+  openLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
+  closeLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
+  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-1779776465792').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-1779776465792'); }); },
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
-  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-1779774393049'); },
-  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-1779774393049'); },
-  openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
-  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-1779774393049'); },
-  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-1779774393049'); },
-  openRuneOracle: function() { return Promise.resolve(window.location.assign('/oracle/rune')); },
-  gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=build-1779774393049'); },
-  gotoAstrologyPremium: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-1779774393049'); },
-  gotoSukuyoPremium: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-1779774393049'); },
-  gotoVedicPremium: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-1779774393049'); },
-  gotoNamingPremium: function() { return Promise.resolve(window.location.assign('/myungwun_final.html')); },
-  openSajuNewYearModal: function() { return __cdLoadScriptOnce('/js/saju-new-year.js?v=build-1779774393049'); },
-  openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-1779774393049'); },
-  openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=build-1779774393049'); },
+  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-1779776465792'); },
+  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-1779776465792'); },
+  openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=build-1779776465792'); },
+  openTarotHealingPage: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=build-1779776465792'); },
+  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-1779776465792'); },
+  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-1779776465792'); },
+  gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=build-1779776465792'); },
+  openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
+  openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=build-1779776465792'); },
   openSibylModal: function() {
-    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-1779774393049').then(function() {
+    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-1779776465792').then(function() {
       if (typeof window.openSibylModal === 'function') window.openSibylModal();
     });
   },
@@ -2589,7 +1538,6 @@ var __cdLazyActionLoaders = {
   checkPrivacyAndCalculate: function() { return __cdEnsureSajuCoreLoaded(); },
   agreeAndCalculate: function() { return __cdEnsureSajuCoreLoaded(); },
   calculate: function() { return __cdEnsureSajuCoreLoaded(); },
-  setGender: function() { return __cdEnsureSajuCoreLoaded(); },
   runCompat: function() { return __cdEnsureSajuCoreLoaded(); }
 };
 var __cdLazyActionState = {};
@@ -2815,13 +1763,13 @@ function __cdEnsureSajuCoreLoaded() {
   if (__cdSajuCoreLoadPromise) return __cdSajuCoreLoadPromise;
 
   var chain = [
-    '/js/core/kasi-calendar-service.js?v=build-1779774393049',
-    '/js/compat-llm-prompts.js?v=build-1779774393049',
-    '/js/saju-engine.js?v=build-1779774393049',
-    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-1779774393049',
-    '/js/core/saju/modalProfileState.js?v=build-1779774393049',
-    '/js/core/saju/reportDashboard.js?v=build-1779774393049',
-    '/js/saju-engine-continuation.js?v=build-1779774393049',
+    '/js/core/kasi-calendar-service.js?v=build-1779776465792',
+    '/js/compat-llm-prompts.js?v=build-1779776465792',
+    '/js/saju-engine.js?v=build-1779776465792',
+    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-1779776465792',
+    '/js/core/saju/modalProfileState.js?v=build-1779776465792',
+    '/js/core/saju/reportDashboard.js?v=build-1779776465792',
+    '/js/saju-engine-continuation.js?v=build-1779776465792',
     '/js/entertain-engine.js'
   ];
 
@@ -2852,46 +1800,6 @@ function __cdEnsureDestinyProfileLoaded() {
   return __cdDestinyProfileLoadPromise;
 }
 
-function __cdScheduleDestinyProfileLoad() {
-  var fired = false;
-  function runLoad() {
-    if (fired) return;
-    fired = true;
-    __cdEnsureDestinyProfileLoaded().catch(function(err) {
-      console.error('[index-inline-runtime] destiny profile auto-load failed:', err);
-    });
-  }
-
-  var idle = window.requestIdleCallback;
-  var desktopNoTouch = __cdIsDesktopNoTouchEnvironment();
-
-  if (!desktopNoTouch) {
-    if (typeof idle === 'function') {
-      idle(runLoad, { timeout: 1200 });
-    } else {
-      setTimeout(runLoad, 0);
-    }
-    return;
-  }
-
-  function onIntent() {
-    window.removeEventListener('pointerdown', onIntent, true);
-    window.removeEventListener('keydown', onIntent, true);
-    window.removeEventListener('touchstart', onIntent, true);
-    runLoad();
-  }
-
-  window.addEventListener('pointerdown', onIntent, true);
-  window.addEventListener('keydown', onIntent, true);
-  window.addEventListener('touchstart', onIntent, true);
-
-  if (typeof idle === 'function') {
-    idle(runLoad, { timeout: 3600 });
-  } else {
-    setTimeout(runLoad, 3600);
-  }
-}
-
 function __cdEnsureSwissEphLoaded() {
   if (window.__cdSwissEphReady === 1 || window.swisseph || window.Swe || window.swe) {
     window.__cdSwissEphReady = 1;
@@ -2900,7 +1808,7 @@ function __cdEnsureSwissEphLoaded() {
   if (__cdSwissEphLoadPromise) return __cdSwissEphLoadPromise;
 
   __cdSwissEphLoadPromise = new Promise(function(resolve, reject) {
-    var src = '/js/swisseph-loader.js?v=build-1779774393049';
+    var src = '/js/swisseph-loader.js?v=build-1779776465792';
     var norm = __cdNormalizeScriptSrc(src);
     if (!norm) {
       reject(new Error('missing swisseph src'));
@@ -2917,35 +1825,21 @@ function __cdEnsureSwissEphLoaded() {
         markReady();
         return;
       }
-      if (window.__swissephBridge && window.__swissephBridge.error) {
-        reject(new Error(String(window.__swissephBridge.error)));
-        return;
-      }
 
       var settled = false;
       var done = function(ok) {
         if (settled) return;
         settled = true;
         window.removeEventListener('swisseph:ready', onReady);
-        window.removeEventListener('swisseph:error', onError);
         if (ok) {
           markReady();
         } else {
-          reject(new Error('swisseph bridge ready timeout'));
+          resolve(false);
         }
       };
 
       var onReady = function() { done(true); };
-      var onError = function(ev) {
-        var msg = ev && ev.detail && ev.detail.error ? String(ev.detail.error) : 'swisseph bridge init failed';
-        if (settled) return;
-        settled = true;
-        window.removeEventListener('swisseph:ready', onReady);
-        window.removeEventListener('swisseph:error', onError);
-        reject(new Error(msg));
-      };
       window.addEventListener('swisseph:ready', onReady, { once: true });
-      window.addEventListener('swisseph:error', onError, { once: true });
       setTimeout(function() { done(false); }, 12000);
     }
 
@@ -3011,36 +1905,8 @@ function __cdInstallSajuActionStub(actionName) {
   window[actionName] = stub;
 }
 
-function __cdIsDesktopNoTouchEnvironment() {
-  try {
-    var hasMatchMedia = typeof window.matchMedia === 'function';
-    var finePointer = hasMatchMedia && (
-      window.matchMedia('(pointer:fine)').matches ||
-      window.matchMedia('(any-pointer:fine)').matches ||
-      window.matchMedia('(hover:hover)').matches
-    );
-    var coarsePointer = hasMatchMedia && (
-      window.matchMedia('(pointer:coarse)').matches ||
-      window.matchMedia('(any-pointer:coarse)').matches
-    );
-    var maxTouchPoints = (navigator && typeof navigator.maxTouchPoints === 'number')
-      ? navigator.maxTouchPoints
-      : 0;
-    var viewportWidth = Math.max(
-      window.innerWidth || 0,
-      (document.documentElement && document.documentElement.clientWidth) || 0
-    );
-    var wideViewport = viewportWidth >= 1024;
-    var hasTouchCapability = coarsePointer || maxTouchPoints > 0;
-    return !!((finePointer || wideViewport) && !hasTouchCapability);
-  } catch (_) {
-    return false;
-  }
-}
-
 function __cdBindSajuIntentPrefetch() {
   if (window.__cdSajuIntentPrefetchBound) return;
-  if (__cdIsDesktopNoTouchEnvironment()) return;
   window.__cdSajuIntentPrefetchBound = 1;
 
   var selectors = [
@@ -3062,10 +1928,12 @@ function __cdBindSajuIntentPrefetch() {
     __cdEnsureSajuCoreLoaded().catch(function(err) {
       console.error('[index-inline-runtime] saju prefetch failed:', err);
     });
+    document.removeEventListener('focusin', trigger, true);
     document.removeEventListener('pointerdown', trigger, true);
     document.removeEventListener('touchstart', trigger, true);
   };
 
+  document.addEventListener('focusin', trigger, true);
   document.addEventListener('pointerdown', trigger, true);
   document.addEventListener('touchstart', trigger, true);
 }
@@ -3163,22 +2031,24 @@ function __cdBootstrapSajuInputsOnLoad() {
   if (!__cdNeedsSajuInputBootstrap()) return;
 
   window.__cdSajuBootstrapAttempted = 1;
-  __cdWarmupSajuInputsIfNeeded();
-  try {
+  __cdEnsureSajuCoreLoaded().then(function() {
+    __cdWarmupSajuInputsIfNeeded();
+    if (__cdNeedsSajuInputBootstrap()) {
+      __cdRepairSajuInputsFallback();
+    }
+  }).catch(function(err) {
+    console.error('[index-inline-runtime] saju bootstrap load failed:', err);
     __cdRepairSajuInputsFallback();
-  } catch (err) {
-    console.error('[index-inline-runtime] saju bootstrap fallback failed:', err);
-  }
+  });
 }
 
 window.__cdEnsureSajuCoreLoaded = __cdEnsureSajuCoreLoaded;
 __cdInstallSajuActionStub('checkPrivacyAndCalculate');
 __cdInstallSajuActionStub('agreeAndCalculate');
 __cdInstallSajuActionStub('calculate');
-__cdInstallSajuActionStub('setGender');
 __cdInstallSajuActionStub('runCompat');
 window.openLuckSyncDiary = function() {
-  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-1779774393049').then(function() {
+  return __cdLoadScriptOnce('/js/luck-sync-diary.js').then(function() {
     if (window.LuckSyncDiary && typeof window.LuckSyncDiary.open === 'function') {
       return window.LuckSyncDiary.open();
     }
@@ -3186,7 +2056,7 @@ window.openLuckSyncDiary = function() {
   });
 };
 window.closeLuckSyncDiary = function() {
-  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-1779774393049').then(function() {
+  return __cdLoadScriptOnce('/js/luck-sync-diary.js').then(function() {
     if (window.LuckSyncDiary && typeof window.LuckSyncDiary.close === 'function') {
       return window.LuckSyncDiary.close();
     }
@@ -3214,16 +2084,6 @@ window.openYogaGuru = function() {
     console.error('[index-inline-runtime] openYogaGuru failed:', err);
   }
 };
-window.openAdminFlowerGate = function() {
-  try {
-    window.location.assign('/admin/login');
-    return undefined;
-  } catch (err) {
-    console.error('[index-inline-runtime] openAdminFlowerGate failed:', err);
-    try { window.location.assign('/admin/login'); } catch (_) {}
-    return undefined;
-  }
-};
 window.openDestinyEggPage = function() {
   try {
     window.location.href = '/tadagochi.html';
@@ -3234,13 +2094,17 @@ window.openDestinyEggPage = function() {
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() {
-    __cdScheduleDestinyProfileLoad();
+    __cdEnsureDestinyProfileLoaded().catch(function(err) {
+      console.error('[index-inline-runtime] destiny profile auto-load failed:', err);
+    });
     __cdBindSajuIntentPrefetch();
     __cdWarmupSajuInputsIfNeeded();
     __cdBootstrapSajuInputsOnLoad();
   }, { once: true });
 } else {
-  __cdScheduleDestinyProfileLoad();
+  __cdEnsureDestinyProfileLoaded().catch(function(err) {
+    console.error('[index-inline-runtime] destiny profile auto-load failed:', err);
+  });
   __cdBindSajuIntentPrefetch();
   __cdWarmupSajuInputsIfNeeded();
   __cdBootstrapSajuInputsOnLoad();
@@ -3256,175 +2120,54 @@ function __cdInvokeActionWithConfig(action, actionEl, event, args) {
   return __cdCallGlobal(action);
 }
 
-var __cdProtectedActions = {
-  openPhysiognomyApp: true,
-  openMbtiModal: true,
-  openTarotLoveModal: true,
-  openTarotHealingModal: true,
-  openTarotSelfEsteemModal: true,
-  openTarotReunionModal: true,
-  openTarotYearFortuneModal: true,
-  openTarotModal: true,
-  openAnimalTotemModal: true,
-  openHwatuModal: true,
-  openKemetModal: true,
-  openJuyukModal: true,
-  openSukuyoModal: true,
-  openAstroModal: true,
-  openDestinyFlower: true,
-  openAstrologyFlower: true,
-  openJamidusuFlower: true,
-  openSukuyoFlower: true,
-  openDreamModal: true,
-  openOlympusOracleModal: true,
-  openRuneOracle: true,
-  openIfaOracle: true,
-  openRoyalTeaOracle: true,
-  openSajuNewYearModal: true,
-  openLifeBookModal: true,
-  openLoveSecretModal: true,
-  openSibylModal: true,
-  gotoZiweiPremium: true,
-  gotoAstrologyPremium: true,
-  gotoSukuyoPremium: true,
-  gotoVedicPremium: true,
-  gotoNamingPremium: true,
-  startIjikTarot: true,
-  startMindScanTarot: true,
-  startCrystalSoulTarot: true
-};
-
-function __cdActionNeedsAuth(actionEl, action) {
-  if (!action) return false;
-  if (actionEl && actionEl.getAttribute('data-action-auth') === '0') return false;
-  if (__cdProtectedActions[action]) return true;
-  if (actionEl && actionEl.getAttribute('data-action-auth') === '1') return true;
-  return false;
-}
-
-function __cdResolveFeatureName(actionEl, action) {
-  if (actionEl) {
-    var explicit = String(actionEl.getAttribute('data-feature-name') || '').trim();
-    if (explicit) return explicit;
-  }
-  return action || '이 기능';
-}
-
-function __cdIsFeatureLaunchAction(action, actionEl) {
-  if (!action) return false;
-  if (__cdLazyActionLoaders[action]) return true;
-  if (__cdProtectedActions[action]) return true;
-  if (/^(open|goto|start)[A-Z]/.test(action)) return true;
-  if (actionEl && actionEl.getAttribute('data-feature-key')) return true;
-  return false;
-}
-
-function __cdMarkFeatureReadySoon(featureKey) {
-  if (!featureKey) return;
-  var done = false;
-  function emit() {
-    if (done) return;
-    done = true;
-    __cdPerfFeatureScreenReady(featureKey);
-  }
-  if (typeof window.requestAnimationFrame === 'function') {
-    window.requestAnimationFrame(function() {
-      window.requestAnimationFrame(emit);
-    });
-  }
-  setTimeout(emit, 340);
-}
-
 function __cdInvokeAction(action, actionEl, event) {
   if (!action || !actionEl) return;
+  if (!__cdRequireTileLockGate(actionEl)) return;
 
   var args = __cdParseActionArgs(actionEl.getAttribute('data-action-args'));
-  var trackFeaturePerf = __cdIsFeatureLaunchAction(action, actionEl);
-  var featureKey = __cdResolvePerfFeatureKey(action, actionEl);
-  var featureName = __cdResolveFeatureName(actionEl, action);
-
-  if (trackFeaturePerf) {
-    __cdPerfFeatureClick(featureKey);
-  }
 
   function runInvoke() {
     var out = __cdInvokeActionWithConfig(action, actionEl, event, args);
-
-    if (trackFeaturePerf && out !== undefined) {
-      __cdPerfFeatureModuleLoaded(featureKey);
-      __cdMarkFeatureReadySoon(featureKey);
-    }
 
     var loader = __cdLazyActionLoaders[action];
     var hasFn = typeof window[action] === 'function';
     if (!loader || hasFn || out !== undefined) return;
 
-      // prem-gate 5종: 코인 차감 후 _cdInvokeActionDirect가 처리하므로
+    // prem-gate 4종: 코인 차감 후 _cdInvokeActionDirect가 처리하므로
     // 타일 최초 클릭 시 여기서 lazy-load/재호출 중복 방지
     if (!hasFn && actionEl && Number(actionEl.getAttribute('data-coin-cost') || 0) > 0) {
       if (action === 'gotoZiweiPremium' || action === 'gotoAstrologyPremium' ||
-          action === 'gotoSukuyoPremium' || action === 'gotoVedicPremium' ||
-          action === 'gotoNamingPremium') return;
+          action === 'gotoSukuyoPremium' || action === 'gotoVedicPremium') return;
     }
 
-    __cdSetFeatureLaunchOverlay(true, featureName);
-
     if (!__cdLazyActionState[action]) {
-      __cdLazyActionState[action] = loader().then(function() {
-        if (trackFeaturePerf) {
-          __cdPerfFeatureModuleLoaded(featureKey);
-        }
-      }).catch(function(err) {
+      __cdLazyActionState[action] = loader().catch(function(err) {
         console.error('[index-inline-runtime] lazy action load failed:', action, err);
       });
     }
 
     __cdLazyActionState[action].then(function() {
       if (typeof window[action] !== 'function') {
-        if (action === 'openOlympusOracleModal') {
-          if (typeof window.openFortuneFromProfile === 'function') {
-            window.openFortuneFromProfile('olympus');
-          } else if (typeof window._dpOpenFortuneType === 'function') {
-            window._dpOpenFortuneType('olympus');
-          }
+        if (action === 'openOlympusOracleModal' && typeof window._dpOpenFortuneType === 'function') {
+          window._dpOpenFortuneType('olympus');
         } else if (action === 'openLuckSyncDiary' && window.LuckSyncDiary && typeof window.LuckSyncDiary.open === 'function') {
           window.LuckSyncDiary.open();
         } else if (action === 'closeLuckSyncDiary' && window.LuckSyncDiary && typeof window.LuckSyncDiary.close === 'function') {
           window.LuckSyncDiary.close();
         } else if (action === 'gotoZiweiPremium' && typeof window.openZiweiBookModal === 'function') {
           window.openZiweiBookModal();
-        } else if (action === 'gotoAstrologyPremium' && typeof window.openAstroBookModal === 'function') {
-          window.openAstroBookModal();
-        } else if (action === 'gotoSukuyoPremium' && typeof window.openSukuyoBookModal === 'function') {
-          window.openSukuyoBookModal();
-        } else if (action === 'gotoVedicPremium' && typeof window.openVedicBookModal === 'function') {
-          window.openVedicBookModal();
-        } else if (action === 'gotoNamingPremium') {
-          window.location.assign('/myungwun_final.html');
-        }
-        if (trackFeaturePerf) {
-          __cdMarkFeatureReadySoon(featureKey);
         }
         return;
       }
       try {
         __cdInvokeActionWithConfig(action, actionEl, event, args);
-        if (trackFeaturePerf) {
-          __cdMarkFeatureReadySoon(featureKey);
-        }
       } catch (err) {
-        if (action === 'openOlympusOracleModal') {
-          if (typeof window.openFortuneFromProfile === 'function') {
-            window.openFortuneFromProfile('olympus');
-          } else if (typeof window._dpOpenFortuneType === 'function') {
-            window._dpOpenFortuneType('olympus');
-          }
+        if (action === 'openOlympusOracleModal' && typeof window._dpOpenFortuneType === 'function') {
+          window._dpOpenFortuneType('olympus');
           return;
         }
         throw err;
       }
-    }).finally(function() {
-      __cdSetFeatureLaunchOverlay(false, featureName);
     });
   }
 
@@ -3432,40 +2175,6 @@ function __cdInvokeAction(action, actionEl, event) {
     setTimeout(runInvoke, 0);
     return;
   }
-
-  if (__cdActionNeedsAuth(actionEl, action) && !__cdIsAdminLikeUser()) {
-    Promise.resolve(window.requireLoginBeforeAction(function() {
-      if (!__cdRequireTileLockGate(actionEl)) {
-        if (event) {
-          if (typeof event.preventDefault === 'function') event.preventDefault();
-          if (typeof event.stopPropagation === 'function') event.stopPropagation();
-          if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
-        }
-        return;
-      }
-      if (__CD_DEFER_INP_ACTIONS[action]) {
-        setTimeout(runInvoke, 0);
-        return;
-      }
-      runInvoke();
-    }, {
-      featureName: featureName,
-      redirectTo: __cdBuildRedirectAfterLogin()
-    })).catch(function(err) {
-      console.error('[index-inline-runtime] auth gate failed:', err);
-    });
-    return;
-  }
-
-  if (!__cdRequireTileLockGate(actionEl)) {
-    if (event) {
-      if (typeof event.preventDefault === 'function') event.preventDefault();
-      if (typeof event.stopPropagation === 'function') event.stopPropagation();
-      if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
-    }
-    return;
-  }
-
   runInvoke();
 }
 
@@ -3519,6 +2228,7 @@ function __cdHydrateCollectionImagesChunked(collection) {
     return;
   }
 
+  var grid = collection.querySelector('.feat-collection__grid, .tarot-collection__grid');
   var observer = collection.__cdCollectionImageObserver;
   if (!observer) {
     observer = new IntersectionObserver(function(entries, obs) {
@@ -3532,9 +2242,8 @@ function __cdHydrateCollectionImagesChunked(collection) {
         hydrateWrap(wrap);
       }
     }, {
-      // Use viewport root for stable behavior on mobile where container-root IO can miss callbacks.
-      root: null,
-      rootMargin: '120px 0px',
+      root: grid || null,
+      rootMargin: '96px 0px',
       threshold: 0.01
     });
     collection.__cdCollectionImageObserver = observer;
@@ -3546,19 +2255,6 @@ function __cdHydrateCollectionImagesChunked(collection) {
     if (wrap.dataset) wrap.dataset.cdImgObserved = '1';
     observer.observe(wrap);
   }, { minBatch: 2, maxBatch: 10, budgetMs: 7 });
-
-  if (collection.__cdCollectionImageFallbackTimer) {
-    clearTimeout(collection.__cdCollectionImageFallbackTimer);
-  }
-  collection.__cdCollectionImageFallbackTimer = setTimeout(function() {
-    collection.__cdCollectionImageFallbackTimer = null;
-    if (collection.getAttribute('data-collection-open') !== 'true') return;
-    __cdRunChunked(wraps, function(wrap) {
-      if (!wrap || wrap.querySelector('img.tarot-tile__img')) return;
-      if (wrap.dataset) delete wrap.dataset.cdImgObserved;
-      hydrateWrap(wrap);
-    }, { minBatch: 2, maxBatch: 8, budgetMs: 7 });
-  }, 420);
 }
 
 function __cdScheduleCollectionHydration(collection) {
@@ -3576,10 +2272,6 @@ function __cdScheduleCollectionHydration(collection) {
 
 function __cdReleaseCollectionImagesChunked(collection) {
   if (!collection) return;
-  if (collection.__cdCollectionImageFallbackTimer) {
-    clearTimeout(collection.__cdCollectionImageFallbackTimer);
-    collection.__cdCollectionImageFallbackTimer = null;
-  }
   var observer = collection.__cdCollectionImageObserver;
   if (observer && typeof observer.disconnect === 'function') {
     observer.disconnect();
@@ -3740,7 +2432,29 @@ function __cdBindAnimalTotemTileDirect() {
     try {
       var overlay = document.getElementById('animalTotemOverlay');
       if (overlay && (overlay.classList.contains('is-open') || overlay.style.display === 'block')) return;
-      // 토템은 모달 진입 시점이 아닌 drawAnimalTotemSpread 단계에서 결제한다.
+      // ── 코인 게이트 체크 ──
+      var _tile = document.querySelector('.tarot-tile--animal-totem[data-coin-cost], [data-action="openAnimalTotemModal"][data-coin-cost]');
+      var _coinCost = _tile ? Number(_tile.getAttribute('data-coin-cost') || 0) : 0;
+      if (_coinCost > 0 && _tile && !_tile.getAttribute('data-pvw-bypass')) {
+        if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(_tile)) return;
+        if (typeof window._cdCoinGatePerUse === 'function') {
+          window._cdCoinGatePerUse(_coinCost, '애니멀 토템 리딩', function() { _doOpenTotem(); });
+          return;
+        }
+        // ⚠️ 미로그인 상태: _cdCoinGatePerUse 미정의
+        var token = '';
+        try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+        if (!token) {
+          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+            window.location.href = '/login?next=%2F';
+          }
+          return;
+        }
+        // 로그인 상태인데 _cdCoinGatePerUse가 없으면 오류로 간주
+        window.alert('서비스 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+        return;
+      }
+      // ── 코인 게이트 통과 ──
       _doOpenTotem();
     } catch (err) { console.error('[totem] openTotemModal error:', err); }
     function _doOpenTotem() {
@@ -3752,8 +2466,8 @@ function __cdBindAnimalTotemTileDirect() {
         return;
       }
       raf(function() {
-        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-1779774393049')
-          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-1779774393049'); })
+        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-1779776465792')
+          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-1779776465792'); })
           .then(function() {
             try {
               if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
@@ -3998,6 +2712,7 @@ function _cdEnsureMainScreenOnLoad() {
     var el = document.getElementById(ids[i]);
     if (el) el.style.display = 'none';
   }
+  window.scrollTo(0, 0);
 }
 
 function _cdInitAfterSplash() {
@@ -4383,32 +3098,14 @@ function _dfResolveBirthContext(payload) {
 }
 
 function _dfExtractAstroLiveData(birthCtx) {
-  if (!_dfHasBirthCore(birthCtx)) {
-    console.log('[AstrologyFlower] birthCtx 정보 부족:', birthCtx);
-    return null;
-  }
+  if (!_dfHasBirthCore(birthCtx)) return null;
 
   var chart = null;
   var localHour = Number(birthCtx.hour) + Number(birthCtx.minute) / 60;
-  var legacySwissFn = (typeof calcAstroSwissChartOrThrow === 'function') ? calcAstroSwissChartOrThrow : null;
-  var calcAstroFn =
-    (typeof window.calcAstroApiChartOrThrow === 'function' && window.calcAstroApiChartOrThrow)
-    || (typeof window.calcAstroSwissChartOrThrow === 'function' && window.calcAstroSwissChartOrThrow)
-    || legacySwissFn
-    || null;
 
-  console.log('[AstrologyFlower] calcAstroApiChartOrThrow 확인:', {
-    hasApiFn: typeof window.calcAstroApiChartOrThrow === 'function',
-    hasSwissFn: typeof window.calcAstroSwissChartOrThrow === 'function' || !!legacySwissFn,
-    selectedFn: calcAstroFn
-      ? (calcAstroFn === window.calcAstroApiChartOrThrow ? 'calcAstroApiChartOrThrow' : 'calcAstroSwissChartOrThrow')
-      : 'none',
-    birthData: { year: birthCtx.year, month: birthCtx.month, day: birthCtx.day, hour: birthCtx.hour, lat: birthCtx.lat, lon: birthCtx.lon, tz: birthCtx.tz }
-  });
-
-  if (typeof calcAstroFn === 'function') {
+  if (typeof window.calcAstroApiChartOrThrow === 'function') {
     try {
-      chart = calcAstroFn(
+      chart = window.calcAstroApiChartOrThrow(
         Number(birthCtx.year),
         Number(birthCtx.month),
         Number(birthCtx.day),
@@ -4418,17 +3115,33 @@ function _dfExtractAstroLiveData(birthCtx) {
         Number(birthCtx.tz),
         window.ASTRO_HOUSE_SYSTEM || 'P'
       );
-      console.log('[AstrologyFlower] 천궁도 계산 완료:', chart);
     } catch (e) {
-      console.warn('[DestinyFlower] 점성술 브리지 계산 실패:', e);
+      // Strict SwissEph 모드 미준비 시에는 조용히 레거시 차트로 폴백 시도.
+      if (!(window.AstroEngine && typeof window.AstroEngine.calcAll === 'function')) {
+        console.warn('[DestinyFlower] 점성술 브리지 계산 실패:', e);
+      }
+    }
+  }
+
+  if (!chart && window.AstroEngine && typeof window.AstroEngine.calcAll === 'function') {
+    try {
+      chart = window.AstroEngine.calcAll(
+        Number(birthCtx.year),
+        Number(birthCtx.month),
+        Number(birthCtx.day),
+        localHour,
+        Number(birthCtx.lat),
+        Number(birthCtx.lon),
+        Number(birthCtx.tz),
+        { houseSystem: window.ASTRO_HOUSE_SYSTEM || 'P' }
+      );
+    } catch (e2) {
+      console.warn('[DestinyFlower] 점성술 브리지 계산 실패:', e2);
       return null;
     }
   }
 
-  if (!chart) {
-    console.warn('[AstrologyFlower] chart가 없음 - astrology chart 함수 미로드/연결 실패');
-    return null;
-  }
+  if (!chart) return null;
   return {
     sunSign: _dfAstroSignFromNode(chart && chart.sun),
     moonSign: _dfAstroSignFromNode(chart && chart.moon),
@@ -4540,11 +3253,6 @@ function _dfApplyLiveDomainBridge(payload, birthCtx, options) {
   var applySukuyo = !sourceHint || sourceHint === 'sukuyo';
 
   var astro = applyAstro ? _dfExtractAstroLiveData(birthCtx) : null;
-  console.log('[AstrologyFlower] astro 데이터:', { 
-    haAstro: !!astro,
-    astroData: astro,
-    applyAstro
-  });
   if (astro && (astro.sunSign || astro.moonSign || astro.risingSign)) {
     payload.astrology = Object.assign({}, payload.astrology || {}, {
       sunSign: astro.sunSign,
@@ -4554,17 +3262,14 @@ function _dfApplyLiveDomainBridge(payload, birthCtx, options) {
       risingSign: astro.risingSign,
       rising_sign: astro.risingSign
     });
-    if (!payload.domains) payload.domains = {};
-    if (!payload.domains.astrology) payload.domains.astrology = {};
-    payload.domains.astrology = Object.assign({}, payload.domains.astrology, {
-      enabled: true,
-      sun_sign: astro.sunSign || payload.domains.astrology.sun_sign || '',
-      moon_sign: astro.moonSign || payload.domains.astrology.moon_sign || '',
-      rising_sign: astro.risingSign || payload.domains.astrology.rising_sign || ''
-    });
-    console.log('[AstrologyFlower] payload.astrology 설정됨:', payload.astrology);
-  } else {
-    console.log('[AstrologyFlower] astro 계산 실패 또는 미적용');
+    if (payload.domains && payload.domains.astrology) {
+      payload.domains.astrology = Object.assign({}, payload.domains.astrology, {
+        enabled: true,
+        sun_sign: astro.sunSign || payload.domains.astrology.sun_sign || '',
+        moon_sign: astro.moonSign || payload.domains.astrology.moon_sign || '',
+        rising_sign: astro.risingSign || payload.domains.astrology.rising_sign || ''
+      });
+    }
   }
 
   var ziweiRaw = applyZiwei ? _dfExtractZiweiLiveRaw(birthCtx) : null;
@@ -4577,15 +3282,15 @@ function _dfApplyLiveDomainBridge(payload, birthCtx, options) {
       brightness: ziwei.brightness,
       stars: ziwei.stars
     });
-    if (!payload.domains) payload.domains = {};
-    if (!payload.domains.ziwei) payload.domains.ziwei = {};
-    payload.domains.ziwei = Object.assign({}, payload.domains.ziwei, {
-      enabled: true,
-      main_star: ziwei.mainStar || payload.domains.ziwei.main_star || '',
-      palace: ziwei.palace || payload.domains.ziwei.palace || '',
-      brightness: ziwei.brightness || payload.domains.ziwei.brightness || '',
-      stars: Array.isArray(ziwei.stars) ? ziwei.stars : (payload.domains.ziwei.stars || [])
-    });
+    if (payload.domains && payload.domains.ziwei) {
+      payload.domains.ziwei = Object.assign({}, payload.domains.ziwei, {
+        enabled: true,
+        main_star: ziwei.mainStar || payload.domains.ziwei.main_star || '',
+        palace: ziwei.palace || payload.domains.ziwei.palace || '',
+        brightness: ziwei.brightness || payload.domains.ziwei.brightness || '',
+        stars: Array.isArray(ziwei.stars) ? ziwei.stars : (payload.domains.ziwei.stars || [])
+      });
+    }
   }
 
   var sukuyo = applySukuyo ? _dfExtractSukuyoLiveData(birthCtx) : null;
@@ -4597,16 +3302,16 @@ function _dfApplyLiveDomainBridge(payload, birthCtx, options) {
       index: sukuyo.mansionIndex,
       phase: sukuyo.phase
     });
-    if (!payload.domains) payload.domains = {};
-    if (!payload.domains.sukuyo) payload.domains.sukuyo = {};
-    payload.domains.sukuyo = Object.assign({}, payload.domains.sukuyo, {
-      enabled: true,
-      mansion: sukuyo.mansion || payload.domains.sukuyo.mansion || '',
-      mansion_index: Number.isFinite(Number(sukuyo.mansionIndex))
-        ? Number(sukuyo.mansionIndex)
-        : Number(payload.domains.sukuyo.mansion_index || 0),
-      phase: sukuyo.phase || payload.domains.sukuyo.phase || ''
-    });
+    if (payload.domains && payload.domains.sukuyo) {
+      payload.domains.sukuyo = Object.assign({}, payload.domains.sukuyo, {
+        enabled: true,
+        mansion: sukuyo.mansion || payload.domains.sukuyo.mansion || '',
+        mansion_index: Number.isFinite(Number(sukuyo.mansionIndex))
+          ? Number(sukuyo.mansionIndex)
+          : Number(payload.domains.sukuyo.mansion_index || 0),
+        phase: sukuyo.phase || payload.domains.sukuyo.phase || ''
+      });
+    }
   }
 
   return payload;
@@ -4842,16 +3547,7 @@ function _dfResolveSelection() {
 
 function _afResolveSelection() {
   var payload = _dfGetProfilePayload({ sourceHint: 'astrology' });
-  console.log('[AstrologyFlower] payload astrology data:', {
-    hasAstrology: !!(payload && payload.astrology),
-    astrologyData: payload && payload.astrology,
-    hasDomainAstrology: !!(payload && payload.domains && payload.domains.astrology),
-    domainAstrologyData: payload && payload.domains && payload.domains.astrology
-  });
-  if (!_dfHasReadySourceData('astrology', payload)) {
-    console.warn('[AstrologyFlower] 데이터 준비 안됨 - 생년월일 또는 천궁도 정보 필요');
-    return null;
-  }
+  if (!_dfHasReadySourceData('astrology', payload)) return null;
   var matched = null;
 
   try {
@@ -4943,57 +3639,6 @@ function _afEnsureCardOpen(card) {
   syncFeatureCardHeight(card);
 }
 
-function _dfReplayClassAnimation(el, className) {
-  if (!el || !className) return;
-  el.classList.remove(className);
-  requestAnimationFrame(function() {
-    requestAnimationFrame(function() {
-      el.classList.add(className);
-    });
-  });
-}
-
-function _dfBindPointerCardEffect(card, onMove, onLeave) {
-  if (!card || typeof onMove !== 'function') return;
-  var rafId = 0;
-  var lastEvent = null;
-  var rect = null;
-  var rectTs = 0;
-
-  function resolveRect(force) {
-    var now = Date.now();
-    if (force || !rect || (now - rectTs) > 240) {
-      rect = card.getBoundingClientRect();
-      rectTs = now;
-    }
-    return rect;
-  }
-
-  function queueMove(event) {
-    lastEvent = event;
-    if (rafId) return;
-    rafId = requestAnimationFrame(function() {
-      rafId = 0;
-      if (!lastEvent) return;
-      var r = resolveRect(false);
-      if (!r || !r.width || !r.height) return;
-      onMove(lastEvent, r);
-    });
-  }
-
-  card.addEventListener('mouseenter', function() {
-    resolveRect(true);
-  }, { passive: true });
-  card.addEventListener('mousemove', queueMove, { passive: true });
-  window.addEventListener('resize', function() {
-    rect = null;
-  }, { passive: true });
-
-  if (typeof onLeave === 'function') {
-    card.addEventListener('mouseleave', onLeave);
-  }
-}
-
 function _afApplyCardVisual(card, selection) {
   if (!card || !selection) return;
   var matched = selection.matched || {};
@@ -5043,18 +3688,22 @@ function _afApplyCardVisual(card, selection) {
 
   if (!card.__afPointerBound) {
     card.__afPointerBound = true;
-    _dfBindPointerCardEffect(card, function(e, rect) {
+    card.addEventListener('mousemove', function(e) {
+      var rect = card.getBoundingClientRect();
       var x = ((e.clientX - rect.left) / rect.width) * 100;
       var y = ((e.clientY - rect.top) / rect.height) * 100;
       card.style.setProperty('--af-pointer-x', x.toFixed(2) + '%');
       card.style.setProperty('--af-pointer-y', y.toFixed(2) + '%');
-    }, function() {
+    });
+    card.addEventListener('mouseleave', function() {
       card.style.setProperty('--af-pointer-x', '50%');
       card.style.setProperty('--af-pointer-y', '42%');
     });
   }
 
-  _dfReplayClassAnimation(stage, 'is-bloomed');
+  stage.classList.remove('is-bloomed');
+  void stage.offsetWidth;
+  stage.classList.add('is-bloomed');
 }
 
 function _jfResolveSelection() {
@@ -5287,7 +3936,9 @@ function _jfApplyCardVisual(card, selection) {
     });
   }
 
-  _dfReplayClassAnimation(stage, 'is-bloomed');
+  stage.classList.remove('is-bloomed');
+  void stage.offsetWidth;
+  stage.classList.add('is-bloomed');
 }
 
 function _sfResolveSelection() {
@@ -5462,12 +4113,14 @@ function _sfApplyCardVisual(card, selection) {
   if (!card.__sfTiltBound) {
     card.__sfTiltBound = true;
     var image = card.querySelector('.sukuyo-flower-stage__image');
-    _dfBindPointerCardEffect(card, function(e, rect) {
+    card.addEventListener('mousemove', function(e) {
       if (!image) return;
+      var rect = card.getBoundingClientRect();
       var rx = ((e.clientY - rect.top) / rect.height - 0.5) * -6;
       var ry = ((e.clientX - rect.left) / rect.width - 0.5) * 7;
       image.style.transform = 'rotateX(' + rx.toFixed(2) + 'deg) rotateY(' + ry.toFixed(2) + 'deg) scale(1.02)';
-    }, function() {
+    });
+    card.addEventListener('mouseleave', function() {
       if (image) image.style.transform = '';
     });
     card.addEventListener('touchmove', function() {
@@ -5478,7 +4131,8 @@ function _sfApplyCardVisual(card, selection) {
     }, { passive: true });
   }
 
-  _dfReplayClassAnimation(stage, 'is-bloomed');
+  void stage.offsetWidth;
+  stage.classList.add('is-bloomed');
 }
 
 function _dfApplyCardVisual(card, selection) {
@@ -5553,7 +4207,9 @@ function _dfApplyCardVisual(card, selection) {
   } else {
     stage.classList.add('is-motion-wood');
   }
-  _dfReplayClassAnimation(stage, 'is-bloomed');
+  stage.classList.remove('is-bloomed');
+  void stage.offsetWidth;
+  stage.classList.add('is-bloomed');
 }
 
 function _dfSetBodyLock(locked) {
@@ -5899,7 +4555,9 @@ function _dfSyncSourceTabsLockState(options) {
     }
 
     if (highlightMap[src]) {
-      _dfReplayClassAnimation(tab, 'is-unlock-reveal');
+      tab.classList.remove('is-unlock-reveal');
+      void tab.offsetWidth;
+      tab.classList.add('is-unlock-reveal');
       if (tab.__dfUnlockRevealTimer) clearTimeout(tab.__dfUnlockRevealTimer);
       tab.__dfUnlockRevealTimer = setTimeout(function() {
         tab.classList.remove('is-unlock-reveal');
@@ -6338,7 +4996,8 @@ function _dfBindBloomingInteractions() {
   if (!card || card.__dfHoverBound) return;
   card.__dfHoverBound = true;
 
-  _dfBindPointerCardEffect(card, function(e, rect) {
+  card.addEventListener('mousemove', function(e) {
+    var rect = card.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
     var nx = (e.clientX - rect.left) / rect.width;
     var ny = (e.clientY - rect.top) / rect.height;
@@ -6346,7 +5005,8 @@ function _dfBindBloomingInteractions() {
     var tiltX = ((0.5 - ny) * 4.6).toFixed(2) + 'deg';
     card.style.setProperty('--df-tilt-x', tiltX);
     card.style.setProperty('--df-tilt-y', tiltY);
-  }, function() {
+  });
+  card.addEventListener('mouseleave', function() {
     card.style.setProperty('--df-tilt-x', '0deg');
     card.style.setProperty('--df-tilt-y', '0deg');
   });
@@ -7480,7 +6140,7 @@ function _dfIsLockKeyUnlocked(lockKey) {
   try {
     var authRaw = localStorage.getItem('fortune_auth_user') || '';
     var auth = authRaw ? JSON.parse(authRaw) : null;
-    var scopeRaw = auth && (auth.id || auth.userId || auth._id || auth.uid);
+    var scopeRaw = auth && (auth.id || auth.userId || auth.email || auth.username || auth.loginId);
     var scope = String(scopeRaw || '').trim().toLowerCase();
     if (scope) {
       var scopedKey = 'cd_tile_locks_v2::' + scope;
@@ -7516,9 +6176,6 @@ function _dfRequirePaidSourceUnlock(source) {
   var lockKey = lockTile.getAttribute('data-tile-lock-key') || '';
   var lockCost = Number(lockTile.getAttribute('data-tile-lock-cost') || 0);
   if (!lockKey || lockCost <= 0) return true;
-
-  if (__cdIsAdminLikeUser()) return true;
-
   if (_dfIsLockKeyUnlocked(lockKey)) return true;
   if (lockTile.classList && lockTile.classList.contains('tarot-tile--tileUnlocked')) return true;
 
@@ -7526,6 +6183,13 @@ function _dfRequirePaidSourceUnlock(source) {
     try {
       if (window._cdOpenTilePreview(lockTile)) return false;
     } catch (_) {}
+  }
+
+  if (!__cdHasAuthToken()) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+      window.location.href = '/login?next=%2F';
+    }
+    return false;
   }
 
   window.alert(_dfGetSourceLabel(normalized) + ' 꽃은 해금 후 이용할 수 있습니다.');
@@ -8140,46 +6804,6 @@ function __cdForceUnlockBodyScroll() {
   } catch (e) {}
 }
 
-function __cdHardResetScrollTop(el) {
-  if (!el) return;
-  try { el.scrollTop = 0; } catch (e) {}
-  try {
-    if (typeof el.scrollTo === 'function') {
-      el.scrollTo(0, 0);
-    }
-  } catch (e2) {}
-}
-
-function __cdScrollModalTop(overlayId, sheetId, anchorId) {
-  var overlay = overlayId ? document.getElementById(overlayId) : null;
-  var sheet = sheetId ? document.getElementById(sheetId) : null;
-  var anchor = anchorId ? document.getElementById(anchorId) : null;
-
-  var alignTop = function() {
-    __cdHardResetScrollTop(overlay);
-    __cdHardResetScrollTop(sheet);
-    __cdHardResetScrollTop(anchor);
-    if (anchor && typeof anchor.scrollIntoView === 'function') {
-      try {
-        anchor.scrollIntoView({ behavior: 'auto', block: 'start', inline: 'nearest' });
-      } catch (e) {}
-    }
-  };
-
-  alignTop();
-  if (typeof requestAnimationFrame === 'function') {
-    requestAnimationFrame(alignTop);
-    requestAnimationFrame(function() {
-      requestAnimationFrame(alignTop);
-    });
-  }
-  setTimeout(alignTop, 60);
-  setTimeout(alignTop, 180);
-  try { window.scrollTo(0, 0); } catch (e) {}
-}
-
-window.__cdScrollModalTop = __cdScrollModalTop;
-
 function __cdBirthModalDepsMissing() {
   return (
     typeof _ModalProfileState === 'undefined' ||
@@ -8210,11 +6834,9 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
   if (!needsCore) return Promise.resolve(true);
 
   var chain = [
-    '/js/compat-llm-prompts.js?v=build-1779774393049',
-    '/js/saju-engine.js?v=build-1779774393049',
-    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-1779774393049',
-    '/js/core/saju/reportDashboard.js?v=build-1779774393049',
-    '/js/saju-engine-continuation.js?v=build-1779774393049'
+    '/js/compat-llm-prompts.js?v=build-1779776465792',
+    '/js/saju-engine.js?v=build-1779776465792',
+    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-1779776465792'
   ];
 
   return __cdEnsureLunarLibReady().then(function() {
@@ -8234,7 +6856,7 @@ function __cdEnsureBirthModalDepsLoaded() {
     typeof _renderZiweiSection !== 'function' ||
     typeof _renderAstroSection !== 'function'
   ) {
-    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-1779774393049'));
+    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-1779776465792'));
   }
   tasks.push(__cdEnsureSukuyoZiweiCoreLoaded());
   if (!tasks.length) return Promise.resolve(true);
@@ -8258,7 +6880,6 @@ function openSukuyoModal(_retried) {
   overlay.style.overflow = 'hidden';
   var sh = document.getElementById('sukuyoModalSheet');
   if (sh) { sh.scrollTop = 0; sh.style.overflowY = 'auto'; }
-  __cdScrollModalTop('sukuyoModalOverlay', 'sukuyoModalSheet', 'sukuyoSection');
   var noProfile = document.getElementById('sukuyoNoProfile');
   var card = document.getElementById('sukuyoCard');
   var theme = { icon: '💫', ac: '#c4b5fd', br: '167,139,250', bb: 'linear-gradient(135deg,#1a0e3b,#2d1b6b)', title: '💫 宿曜占 · 숙요점', desc: '숙요점을 보려면 메인 화면에서<br>나의 운명 카드를 먼저 설정해주세요' };
@@ -8272,13 +6893,9 @@ function openSukuyoModal(_retried) {
   if (!profile || !profile.birth) {
     if (card) card.style.display = 'none';
     if (noProfile) { noProfile.style.display = 'block'; noProfile.innerHTML = profiles.length > 0 ? _dpPickerHTML(profiles, 'sukuyo', theme) : _dpEmptyHTML(theme); }
-    __cdScrollModalTop('sukuyoModalOverlay', 'sukuyoModalSheet', 'sukuyoNoProfile');
     return;
   }
   _ModalProfileState.dispatch(profile, 'sukuyo');
-  setTimeout(function() {
-    __cdScrollModalTop('sukuyoModalOverlay', 'sukuyoModalSheet', 'sukuyoSection');
-  }, 24);
 }
 function closeSukuyoModal() {
   var o = document.getElementById('sukuyoModalOverlay'); if (o) o.style.display = 'none';
@@ -8552,7 +7169,6 @@ function openZiweiModal(_retried) {
   overlay.style.overflow = 'hidden';
   var sh = document.getElementById('ziweiModalSheet');
   if (sh) { sh.scrollTop = 0; sh.style.overflowY = 'auto'; }
-  __cdScrollModalTop('ziweiModalOverlay', 'ziweiModalSheet', 'ziweiModalSection');
   var noProfile = document.getElementById('ziweiNoProfile');
   var card = document.getElementById('ziweiModalCard');
   var theme = { icon: '🌌', ac: '#e879f9', br: '232,121,249', bb: 'linear-gradient(135deg,#2b0545,#4a0a7a)', title: '🌌 紫微斗數 · 자미두수', desc: '자미두수 명반을 보려면<br>메인 화면에서 나의 운명 카드를 먼저 설정해주세요' };
@@ -8566,22 +7182,15 @@ function openZiweiModal(_retried) {
   if (!profile || !profile.birth) {
     if (card) card.style.display = 'none';
     if (noProfile) { noProfile.style.display = 'block'; noProfile.innerHTML = profiles.length > 0 ? _dpPickerHTML(profiles, 'ziwei', theme) : _dpEmptyHTML(theme); }
-    __cdScrollModalTop('ziweiModalOverlay', 'ziweiModalSheet', 'ziweiNoProfile');
     return;
   }
   _ModalProfileState.dispatch(profile, 'ziwei');
-  setTimeout(function() {
-    __cdScrollModalTop('ziweiModalOverlay', 'ziweiModalSheet', 'ziweiModalSection');
-  }, 24);
 }
 function closeZiweiModal() {
   var o = document.getElementById('ziweiModalOverlay'); if (o) o.style.display = 'none';
   _ModalProfileState.unsubscribe('ziwei');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-window.navigateToZiweiChart = navigateToZiweiChart;
-window.openZiweiModal = openZiweiModal;
-window.closeZiweiModal = closeZiweiModal;
 
 function openAstroModal(_retried) {
   if (!_retried) {
@@ -8590,13 +7199,13 @@ function openAstroModal(_retried) {
         return __cdBirthModalDepsMissing() ? __cdEnsureBirthModalDepsLoaded() : true;
       })
       .then(function() {
-        return __cdEnsureSwissEphLoaded();
+        return __cdEnsureSwissEphLoaded().catch(function(err) {
+          console.warn('[openAstroModal] swisseph lazy load failed; using legacy fallback.', err);
+          return false;
+        });
       })
       .then(function() { openAstroModal(true); })
-      .catch(function(err) {
-        console.error('[openAstroModal] dependency load failed:', err);
-        openAstroModal(true);
-      });
+      .catch(function(err) { console.error('[openAstroModal] dependency load failed:', err); });
     return;
   }
   var overlay = document.getElementById('astroModalOverlay');
@@ -8609,7 +7218,6 @@ function openAstroModal(_retried) {
   overlay.style.overflow = 'hidden';
   var sh = document.getElementById('astroModalSheet');
   if (sh) { sh.scrollTop = 0; sh.style.overflowY = 'auto'; }
-  __cdScrollModalTop('astroModalOverlay', 'astroModalSheet', 'astroResult');
   var noProfile = document.getElementById('astroNoProfile');
   var cardWrap = document.getElementById('astroCardWrap');
   var theme = { icon: '✨', ac: '#d1c4e9', br: '125,42,232', bb: 'linear-gradient(135deg,#1e003b,#300063)', title: '✨ Cosmic Chart · 점성술', desc: '점성술 분석을 보려면 메인 화면에서<br>나의 운명 카드를 먼저 설정해주세요' };
@@ -8623,13 +7231,9 @@ function openAstroModal(_retried) {
   if (!profile || !profile.birth) {
     if (cardWrap) cardWrap.style.display = 'none';
     if (noProfile) { noProfile.style.display = 'block'; noProfile.innerHTML = profiles.length > 0 ? _dpPickerHTML(profiles, 'astro', theme) : _dpEmptyHTML(theme); }
-    __cdScrollModalTop('astroModalOverlay', 'astroModalSheet', 'astroNoProfile');
     return;
   }
   _ModalProfileState.dispatch(profile, 'astro');
-  setTimeout(function() {
-    __cdScrollModalTop('astroModalOverlay', 'astroModalSheet', 'astroResult');
-  }, 24);
 }
 function closeAstroModal() {
   var o = document.getElementById('astroModalOverlay'); if (o) o.style.display = 'none';
@@ -8901,8 +7505,8 @@ function openAnimalTotemModal() {
     typeof window.drawAnimalTotemSpread === 'function';
 
   if (!hasFullTotemFlow && typeof __cdLoadScriptOnce === 'function') {
-    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-1779774393049')
-      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-1779774393049'); })
+    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-1779776465792')
+      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-1779776465792'); })
       .then(function() {
         var upgradedOpen = window.openAnimalTotemModal;
         if (typeof upgradedOpen === 'function' && upgradedOpen !== currentOpenFn) {
@@ -9011,116 +7615,47 @@ function closeTarotModal() {
 // Ensure uiBindings `data-action` routing can always find these handlers on `window`.
 window.openTarotModal = openTarotModal;
 window.closeTarotModal = closeTarotModal;
-function openRuneOracle() {
-  try {
-    window.location.assign('/oracle/rune');
-  } catch (err) {
-    console.error('[index-inline-runtime] openRuneOracle failed:', err);
-  }
-}
-window.openRuneOracle = openRuneOracle;
 
 /* ═══════════════════════════════════════════════════════════════
    세 타로 메인 화면 클릭 시 코인 차감 핸들러
    이직 운명의 카드 · 속마음 알아보기 · 원석 소울 타로
 ═══════════════════════════════════════════════════════════════ */
 function startIjikTarot() {
-  if (__cdIsAdminLikeUser()) {
-    window.location.href = '/tarot-ijik.html';
+  var token = '';
+  try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+  if (!token) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+      window.location.href = '/login?next=%2Ftarot-ijik.html';
+    }
     return;
   }
-  window.requireLoginBeforeAction(function() {
-    window.location.href = '/tarot-ijik.html';
-  }, {
-    featureName: '이직 운명의 카드',
-    redirectTo: '/tarot-ijik.html'
-  });
+  window.location.href = '/tarot-ijik.html';
 }
 function startMindScanTarot() {
-  if (__cdIsAdminLikeUser()) {
-    window.location.href = '/tarot/mindscan/';
+  var token = '';
+  try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+  if (!token) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+      window.location.href = '/login?next=%2Ftarot%2Fmindscan%2F';
+    }
     return;
   }
-  window.requireLoginBeforeAction(function() {
-    window.location.href = '/tarot/mindscan/';
-  }, {
-    featureName: '마인드스캔 타로',
-    redirectTo: '/tarot/mindscan/'
-  });
+  window.location.href = '/tarot/mindscan/';
 }
 function startCrystalSoulTarot() {
-  if (__cdIsAdminLikeUser()) {
-    window.location.href = '/tarot/crystal-soul/';
+  var token = '';
+  try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+  if (!token) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+      window.location.href = '/login?next=%2Ftarot%2Fcrystal-soul%2F';
+    }
     return;
   }
-  window.requireLoginBeforeAction(function() {
-    window.location.href = '/tarot/crystal-soul/';
-  }, {
-    featureName: '크리스탈 소울 타로',
-    redirectTo: '/tarot/crystal-soul/'
-  });
+  window.location.href = '/tarot/crystal-soul/';
 }
 window.startIjikTarot = startIjikTarot;
 window.startMindScanTarot = startMindScanTarot;
 window.startCrystalSoulTarot = startCrystalSoulTarot;
-
-function __cdInstallProtectedActionWrappers() {
-  var defs = [
-    ['openTarotModal', '타로 리딩'],
-    ['openTarotLoveModal', '연애 타로'],
-    ['openTarotHealingModal', '힐링 타로'],
-    ['openTarotSelfEsteemModal', '자존감 타로'],
-    ['openTarotReunionModal', '재회 타로'],
-    ['openTarotYearFortuneModal', '연운 타로'],
-    ['openAstroModal', '점성술'],
-    ['openSukuyoModal', '숙요점'],
-    ['openHwatuModal', '화투 점괘'],
-    ['openPhysiognomyApp', '관상 분석'],
-    ['openSajuNewYearModal', '신년운세'],
-    ['openLifeBookModal', '라이프북'],
-    ['openLoveSecretModal', '러브 시크릿'],
-    ['openSibylModal', '시빌라 사주'],
-    ['openDreamModal', '꿈 분석'],
-    ['openOlympusOracleModal', '올림푸스 신탁'],
-    ['openRuneOracle', '룬 오라클'],
-    ['openIfaOracle', '이파 오라클'],
-    ['openRoyalTeaOracle', '왕실 티 오라클'],
-    ['openDestinyFlower', '운명의 꽃'],
-    ['openAstrologyFlower', '점성술 꽃'],
-    ['openJamidusuFlower', '자미두수 꽃'],
-    ['openSukuyoFlower', '숙요점 꽃'],
-    ['gotoZiweiPremium', '프리미엄 자미두수'],
-    ['gotoAstrologyPremium', '프리미엄 점성술'],
-    ['gotoSukuyoPremium', '프리미엄 숙요점'],
-    ['gotoVedicPremium', '프리미엄 베다'],
-    ['gotoNamingPremium', '프리미엄 작명']
-  ];
-
-  for (var i = 0; i < defs.length; i += 1) {
-    var name = defs[i][0];
-    var featureName = defs[i][1];
-    var fn = window[name];
-    if (typeof fn !== 'function') continue;
-    if (fn.__cdAuthWrapped) continue;
-
-    (function(actionName, original, featureLabel) {
-      var wrapped = function() {
-        var args = arguments;
-        return window.requireLoginBeforeAction(function() {
-          return original.apply(window, args);
-        }, {
-          featureName: featureLabel,
-          redirectTo: __cdBuildRedirectAfterLogin()
-        });
-      };
-      wrapped.__cdAuthWrapped = true;
-      window[actionName] = wrapped;
-    })(name, fn, featureName);
-  }
-}
-
-setTimeout(__cdInstallProtectedActionWrappers, 0);
-setTimeout(__cdInstallProtectedActionWrappers, 1200);
 
 (function() {
   function onFsChange() {
@@ -9178,7 +7713,7 @@ window.googleTranslateElementInit = window.googleTranslateElementInit || functio
   window.__cdGoogleTranslateInited = true;
   new google.translate.TranslateElement({
     pageLanguage: 'ko',
-    includedLanguages: 'ko,en,ja,zh-CN',
+    includedLanguages: 'ko,en,ja,zh-CN,zh-TW,fr,es,hi,de,nl,ms',
     autoDisplay: false
   }, 'google_translate_element');
 };
@@ -9194,7 +7729,7 @@ var _langWrapFeatureOverlayIds = [
   'astralModal'
 ];
 
-var _langLabelMap = { 'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN' };
+var _langLabelMap = { 'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN', 'hi': 'HI', 'es': 'ES', 'fr': 'FR', 'de': 'DE', 'nl': 'NL', 'ms': 'MS' };
 
 // 언어 선택(구글 번역 서비스 사용) 후 일정 시간 뒤 위젯 자동 숨김
 var __cdLangWrapHideTimer = null;
@@ -9344,13 +7879,6 @@ window.addEventListener('load', function() {
 // Auto-select language by IP/region on first visit (no saved preference)
 window.addEventListener('load', function() {
   setTimeout(function() {
-    // Perf/stability: auto translation can cause large CLS and long main-thread tasks, so keep this opt-in.
-    try {
-      if (localStorage.getItem('cd_auto_lang_opt_in') !== '1') return;
-    } catch (_) {
-      return;
-    }
-
     try {
       var saved = localStorage.getItem('cd_lang');
       if (saved) return;
@@ -9366,7 +7894,7 @@ window.addEventListener('load', function() {
         changeLanguage(nextLang);
       })
       .catch(function() {});
-  }, 2200);
+  }, 1200);
 });
 
 (function() {
@@ -9382,3 +7910,4 @@ window.addEventListener('load', function() {
     }
   }
 })();
+
