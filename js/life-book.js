@@ -777,20 +777,6 @@
     try { sessionStorage.removeItem('__cd_lifebook_state_v1__'); } catch (_) {}
   }
 
-  function getLifeBookChapterMeta(chapter) {
-    var idx = Math.max(1, Number(chapter || 1));
-    var runtime = (state.chapterMeta && state.chapterMeta[idx]) ? state.chapterMeta[idx] : null;
-    var fallback = CHAPTER_DEFINITIONS[idx - 1] || {};
-    return {
-      title: String((runtime && runtime.title) || fallback.title || ('Chapter ' + idx)).trim(),
-      subtitle: String((runtime && runtime.subtitle) || fallback.subtitle || '').trim()
-    };
-  }
-
-  function getLifeBookChapterTitle(chapter) {
-    return getLifeBookChapterMeta(chapter).title;
-  }
-
   function syncStartPreviewChapters() {
     var modal = qs('lifeBookModal');
     if (!modal) return;
@@ -800,7 +786,7 @@
     if (!items || !items.length) return;
     for (var i = 0; i < items.length && i < CHAPTER_DEFINITIONS.length; i += 1) {
       var titleEl = items[i].querySelector('.lb-ch-title');
-      if (titleEl) titleEl.textContent = getLifeBookChapterTitle(i + 1);
+      if (titleEl) titleEl.textContent = CHAPTER_DEFINITIONS[i].title;
     }
   }
 
@@ -820,7 +806,7 @@
     var progressText = qs('lbProgressText');
 
     if (chapterNum) chapterNum.textContent = 'Chapter ' + chapter;
-    if (chapterText) chapterText.textContent = subtitle || getLifeBookChapterTitle(chapter);
+    if (chapterText) chapterText.textContent = subtitle || CHAPTER_TITLES[chapter - 1] || ('Chapter ' + chapter);
     if (quote) quote.textContent = MYSTIC_QUOTES[(chapter - 1) % MYSTIC_QUOTES.length];
 
     var completed = chapterCount();
@@ -858,7 +844,7 @@
       '<article class="lb-result-article">',
       '<header class="lb-result-article__head">',
       '<p class="lb-result-article__chapter">CHAPTER ' + chapter + '</p>',
-      '<h3 class="lb-result-article__title">' + escapeHtml(String(meta.title || getLifeBookChapterTitle(chapter) || '')) + '</h3>',
+      '<h3 class="lb-result-article__title">' + escapeHtml(String(meta.title || CHAPTER_TITLES[chapter - 1] || '')) + '</h3>',
       '</header>',
       '<div class="lb-result-article__body">' + markdownToHtml(text) + '</div>',
       '</article>'
@@ -936,7 +922,7 @@
       var chapter = Number(row.chapter || 0);
       if (chapter >= 1 && chapter <= TOTAL_CHAPTERS && typeof row.text === 'string' && row.text.trim()) {
         state.chapterTexts[chapter] = row.text;
-        state.chapterMeta[chapter] = row.chapterMeta || { title: getLifeBookChapterTitle(chapter) };
+        state.chapterMeta[chapter] = row.chapterMeta || { title: CHAPTER_TITLES[chapter - 1] };
       }
     }
     if (chapterCount() > 0) {
@@ -956,7 +942,7 @@
     logLifeBookStage('INPUT_NORMALIZE_START', { reportId: state.reportId });
     setLoadingStatusText('사주 명식 계산 중');
     logLifeBookStage('INPUT_NORMALIZE_SUCCESS', { reportId: state.reportId });
-    setLoadingProgress(1, getLifeBookChapterTitle(1));
+    setLoadingProgress(1, CHAPTER_TITLES[0]);
 
     var statusInfo = await loadExistingStatus(state.reportId);
     var startFrom = Number(statusInfo.completed || 0);
@@ -966,7 +952,7 @@
     for (var chapter = startFrom + 1; chapter <= TOTAL_CHAPTERS; chapter += 1) {
       var chapterRoman = ROMAN_NUMERALS[chapter - 1] || String(chapter);
       setLoadingStatusText(chapterRoman + ' 챕터 생성 중');
-      setLoadingProgress(chapter, getLifeBookChapterTitle(chapter));
+      setLoadingProgress(chapter, CHAPTER_TITLES[chapter - 1]);
 
       logLifeBookStage('API_GENERATION_START', { reportId: state.reportId, chapterId: 'chapter-' + String(chapter).padStart(2, '0') });
       var reqBody = Object.assign({}, state.payload, {
@@ -1005,9 +991,9 @@
       });
 
       state.chapterTexts[chapter] = String(res.data.text || '').trim();
-      state.chapterMeta[chapter] = res.data.chapterMeta || { title: getLifeBookChapterTitle(chapter) };
+      state.chapterMeta[chapter] = res.data.chapterMeta || { title: CHAPTER_TITLES[chapter - 1] };
       persistState();
-      setLoadingProgress(chapter + 1 > TOTAL_CHAPTERS ? TOTAL_CHAPTERS : chapter + 1, getLifeBookChapterTitle(Math.min(TOTAL_CHAPTERS, chapter + 1)));
+      setLoadingProgress(chapter + 1 > TOTAL_CHAPTERS ? TOTAL_CHAPTERS : chapter + 1, CHAPTER_TITLES[Math.min(TOTAL_CHAPTERS - 1, chapter)]);
     }
     setLoadingStatusText('PDF 편집 중');
     logLifeBookStage('PDF_RENDER_START', { reportId: state.reportId });
@@ -1195,7 +1181,7 @@
       var meta = state.chapterMeta[i] || {};
       chapterBlocks.push(
         '<section class="lb-print-chapter">'
-        + '<h1>' + escapeHtml(String(meta.title || getLifeBookChapterTitle(i) || ('Chapter ' + i))) + '</h1>'
+        + '<h1>' + escapeHtml(String(meta.title || CHAPTER_TITLES[i - 1] || ('Chapter ' + i))) + '</h1>'
         + markdownToHtml(text)
         + '</section>'
       );
@@ -1357,7 +1343,7 @@
     setGenerateButtonBusy(true);
     showOnly('lbLoadingScreen');
     setLoadingStatusText('결제 확인 중');
-    setLoadingProgress(1, getLifeBookChapterTitle(1));
+    setLoadingProgress(1, CHAPTER_TITLES[0]);
 
     ensureCoinGateAndGenerate().catch(function (err) {
       state.paymentChecking = false;

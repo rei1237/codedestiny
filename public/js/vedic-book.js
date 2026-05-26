@@ -45,8 +45,6 @@
     reportId: '',
     downloadUrl: '',
     chapters: [],
-    chapterPlan: [],
-    totalChapters: TOTAL_CHAPTERS,
     quoteTick: 0,
     paidGateKey: '',
     paymentContext: null,
@@ -94,16 +92,6 @@
 
   function safeParseJson(raw, fallback) {
     try { return JSON.parse(raw); } catch (_) { return fallback; }
-  }
-
-  function getVedicChapterMetaAt(chapterIndex) {
-    var idx = Math.max(1, Number(chapterIndex || 1)) - 1;
-    var runtime = (Array.isArray(state.chapterPlan) && state.chapterPlan[idx]) ? state.chapterPlan[idx] : null;
-    var fallback = PERSONAL_CHAPTER_PREVIEW[idx] || {};
-    return {
-      title: String((runtime && (runtime.title || runtime.name)) || fallback.title || ('Chapter ' + (idx + 1))).trim(),
-      subtitle: String((runtime && (runtime.subtitle || runtime.goal)) || fallback.subtitle || '').trim()
-    };
   }
 
   function delay(ms) {
@@ -881,19 +869,15 @@
   }
 
   function setLoadingProgress(payload) {
-    var total = Number(payload && payload.totalChapters || state.totalChapters || TOTAL_CHAPTERS);
-    if (!Number.isFinite(total) || total <= 0) total = TOTAL_CHAPTERS;
-    state.totalChapters = total;
     var currentChapter = Number(payload && payload.currentChapter || 0);
     var status = String(payload && payload.status || 'generating');
-    var completed = status === 'completed' ? total : Math.max(0, Math.min(total, currentChapter));
-    var nextChapter = Math.max(1, Math.min(total, currentChapter || 1));
-    var progress = Math.round((completed / total) * 100);
+    var completed = status === 'completed' ? TOTAL_CHAPTERS : Math.max(0, Math.min(TOTAL_CHAPTERS, currentChapter));
+    var nextChapter = Math.max(1, Math.min(TOTAL_CHAPTERS, currentChapter || 1));
+    var progress = Math.round((completed / TOTAL_CHAPTERS) * 100);
     var flow = VEDIC_LOADING_FLOW_PERSONAL;
-    var chapterMeta = getVedicChapterMetaAt(nextChapter);
     var message = status === 'completed'
       ? '베다 리포트 최종 편집을 마무리하고 있습니다...'
-      : String(chapterMeta.subtitle || flow[Math.max(0, Math.min(flow.length - 1, nextChapter - 1))] || '베다 챕터를 생성하는 중입니다...');
+      : String(flow[Math.max(0, Math.min(flow.length - 1, nextChapter - 1))] || '베다 챕터를 생성하는 중입니다...');
 
     var bar = qs('vdProgressBar');
     var text = qs('vdProgressText');
@@ -902,7 +886,7 @@
     var quote = qs('vdMysticQuote');
 
     if (bar) bar.style.width = progress + '%';
-    if (text) text.textContent = completed + ' / ' + total + ' 챕터';
+    if (text) text.textContent = completed + ' / ' + TOTAL_CHAPTERS + ' 챕터';
     if (num) num.textContent = 'Chapter ' + nextChapter;
     if (label) label.textContent = message;
     if (quote) {
@@ -1161,8 +1145,6 @@
     var chapterPlan = Array.isArray(preparedInfo && preparedInfo.chapterPlan) ? preparedInfo.chapterPlan.slice() : [];
     var totalChapters = Number((preparedInfo && preparedInfo.totalChapters) || chapterPlan.length || TOTAL_CHAPTERS);
     if (!Number.isFinite(totalChapters) || totalChapters <= 0) totalChapters = TOTAL_CHAPTERS;
-    state.chapterPlan = chapterPlan.slice();
-    state.totalChapters = totalChapters;
 
     if (!reportSessionId) {
       var prepared = await premiumAuthJson('/api/premium-report/prepare', {
@@ -1185,8 +1167,6 @@
       snapshotId = String(prepared.snapshotId || snapshotId || '');
       if (Array.isArray(prepared.chapterPlan) && prepared.chapterPlan.length) chapterPlan = prepared.chapterPlan.slice();
       if (Number(prepared.totalChapters) > 0) totalChapters = Number(prepared.totalChapters);
-      state.chapterPlan = chapterPlan.slice();
-      state.totalChapters = totalChapters;
     }
 
     var chapters = [];
@@ -1235,8 +1215,6 @@
             snapshotId = String(recovered.snapshotId || snapshotId || '');
             if (Array.isArray(recovered.chapterPlan) && recovered.chapterPlan.length) chapterPlan = recovered.chapterPlan.slice();
             if (Number(recovered.totalChapters) > 0) totalChapters = Number(recovered.totalChapters);
-            state.chapterPlan = chapterPlan.slice();
-            state.totalChapters = totalChapters;
             await delay(220);
             continue;
           }
@@ -1287,8 +1265,7 @@
       reportSessionId: reportSessionId,
       snapshotId: snapshotId,
       chapters: chapters,
-      chapterPlan: chapterPlan,
-      totalChapters: totalChapters
+      chapterPlan: chapterPlan
     };
   }
 
@@ -1523,8 +1500,6 @@
           state.reportId = String(fallbackOnPreflight.reportId || '');
           state.downloadUrl = '';
           state.chapters = Array.isArray(fallbackOnPreflight.chapters) ? fallbackOnPreflight.chapters : [];
-          state.chapterPlan = Array.isArray(fallbackOnPreflight.chapterPlan) ? fallbackOnPreflight.chapterPlan.slice() : state.chapterPlan;
-          state.totalChapters = Number(fallbackOnPreflight.totalChapters || state.totalChapters || TOTAL_CHAPTERS);
           state.paymentContext = null;
           if (executionStarted && !executionSettled) {
             await completeExecutionLifecycle();
@@ -1561,8 +1536,6 @@
           state.reportId = String(fallbackRun.reportId || '');
           state.downloadUrl = '';
           state.chapters = Array.isArray(fallbackRun.chapters) ? fallbackRun.chapters : [];
-          state.chapterPlan = Array.isArray(fallbackRun.chapterPlan) ? fallbackRun.chapterPlan.slice() : state.chapterPlan;
-          state.totalChapters = Number(fallbackRun.totalChapters || state.totalChapters || TOTAL_CHAPTERS);
           state.paymentContext = null;
           if (executionStarted && !executionSettled) {
             await completeExecutionLifecycle();
@@ -1593,8 +1566,6 @@
           state.reportId = String(reportIdFallback.reportId || '');
           state.downloadUrl = '';
           state.chapters = Array.isArray(reportIdFallback.chapters) ? reportIdFallback.chapters : [];
-          state.chapterPlan = Array.isArray(reportIdFallback.chapterPlan) ? reportIdFallback.chapterPlan.slice() : state.chapterPlan;
-          state.totalChapters = Number(reportIdFallback.totalChapters || state.totalChapters || TOTAL_CHAPTERS);
           state.paymentContext = null;
           if (executionStarted && !executionSettled) {
             await completeExecutionLifecycle();
