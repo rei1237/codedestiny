@@ -50,7 +50,7 @@ describe("Premium report pricing registry", () => {
     expect(registry.FEATURE_KEY_PRICE_TABLE["premium-ziwei-report-compat"]?.cost).toBe(690);
     expect(registry.FEATURE_KEY_PRICE_TABLE["premium-astrology-report-compat"]?.cost).toBe(490);
     expect(registry.FEATURE_KEY_PRICE_TABLE["premium-sukuyo-report-compat"]?.cost).toBe(490);
-    expect(registry.FEATURE_KEY_PRICE_TABLE["premium-vedic-report-compat"]?.cost).toBe(390);
+    expect(registry.FEATURE_KEY_PRICE_TABLE["premium-vedic-report-compat"]?.cost).toBe(490);
 
     const sukuyoRequired = accessUtils.buildRequiredPaymentRules("sookyoPremium", { reportMode: "compatibility" });
     const vedicRequired = accessUtils.buildRequiredPaymentRules("vedicPremium", { reportMode: "compatibility" });
