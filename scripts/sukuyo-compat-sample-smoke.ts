@@ -1,5 +1,5 @@
-import { mapWorkerPayloadToSukuyoReport } from "../components/sukuyo-compat-report/mapWorkerPayloadToSukuyoReport.ts";
-import { normalizeSukuyoCompatibilityReport } from "../components/sukuyo-compat-report/normalizeSukuyoCompatibilityReport.ts";
+import { mapWorkerPayloadToSukuyoReport } from "../components/sukuyo-compat-report/mapWorkerPayloadToSukuyoReport";
+import { normalizeSukuyoCompatibilityReport } from "../components/sukuyo-compat-report/normalizeSukuyoCompatibilityReport";
 import type { WorkerSukuyoCompatibilityAssembledPayload } from "../types/sukuyo-compat-report/sukuyoCompatibilityWorkerContract.types";
 
 const samplePayload: WorkerSukuyoCompatibilityAssembledPayload = {

@@ -292,6 +292,15 @@
       || payment.orderId
       || ''
     ).trim();
+    var requestId = String(
+      source.requestId
+      || source.sourceRequestId
+      || consume.requestId
+      || nested.requestId
+      || payment.requestId
+      || payment.sourceRequestId
+      || ''
+    ).trim();
 
     var premiumAccessToken = persistPremiumAccessToken(source) || '';
     if (!premiumAccessToken) premiumAccessToken = persistPremiumAccessToken(nested) || '';
@@ -307,7 +316,7 @@
       transactionId: transactionId,
       receiptId: receiptId || undefined,
       orderId: orderId || undefined,
-      requestId: String(source.requestId || '').trim(),
+      requestId: requestId || undefined,
       premiumAccessToken: premiumAccessToken || undefined,
       paidAt: String(source.paidAt || new Date().toISOString())
     };
@@ -1439,7 +1448,11 @@
             reportType: SAJU_NEW_YEAR_REPORT_TYPE,
             featureType: SAJU_NEW_YEAR_FEATURE_TYPE,
             cost: Number(COST_COINS || 0),
-            requestId: String(('newyear:' + (state.reportId || Date.now())).slice(0, 120))
+            requestId: String(
+              payloadObject.requestId
+              || (payloadObject.consume && payloadObject.consume.requestId)
+              || ('newyear:' + (state.reportId || Date.now()))
+            ).slice(0, 120)
           }));
           persistPremiumAccessToken(payloadObject);
           if (paymentContext && paymentContext.premiumAccessToken) {

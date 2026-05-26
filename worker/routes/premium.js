@@ -18219,22 +18219,6 @@ const SAJU_LOVE_BOOK_FORBIDDEN_PHRASES = Object.freeze([
   "debug",
 ]);
 
-function hasRepetitiveSentences(text) {
-  const sentences = String(text || "")
-    .split(/[.!?。！？\n]/)
-    .map((s) => s.trim().replace(/\s+/g, " "))
-    .filter(Boolean);
-
-  const counts = new Map();
-  for (const sentence of sentences) {
-    const nextCount = Number(counts.get(sentence) || 0) + 1;
-    counts.set(sentence, nextCount);
-    if (nextCount >= 3) return true;
-  }
-
-  return false;
-}
-
 function sanitizeSajuLoveBookUserFacingText(text, mode = "solo") {
   const normalizedMode = normalizeSajuLoveBookMode(mode);
   const cleaned = String(text || "")

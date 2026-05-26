@@ -1350,7 +1350,10 @@
       if (typeof onCancel === 'function') onCancel();
       return;
     }
-    var requestId = 'coin-gate-per-use-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+    var requestId = String(optionBag.requestId || '').trim().slice(0, 120);
+    if (!requestId) {
+      requestId = 'coin-gate-per-use-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+    }
     var consumeHeaders = { 'Content-Type': 'application/json' };
     if (token) consumeHeaders.Authorization = 'Bearer ' + token;
     window._cdCoinGatePerUseInFlight = true;

@@ -415,9 +415,18 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
   const unlockPolicy = uniqueStrings(PREMIUM_UNLOCK_POLICY[normalizedReportType] || []);
   const alternativeRules = buildAlternativePaymentRules(normalizedReportType, requestBody);
   const requiredRules = buildRequiredPaymentRules(normalizedReportType, requestBody);
+  const payment = requestBody && typeof requestBody.payment === "object" ? requestBody.payment : {};
+  const paymentContext = requestBody && typeof requestBody._paymentContext === "object" ? requestBody._paymentContext : {};
+  const consume = requestBody && typeof requestBody.consume === "object" ? requestBody.consume : {};
   const premiumAccessToken = String(
     requestBody?.premiumAccessToken
     || requestBody?._premiumAccessToken
+    || payment?.premiumAccessToken
+    || payment?._premiumAccessToken
+    || paymentContext?.premiumAccessToken
+    || paymentContext?._premiumAccessToken
+    || consume?.premiumAccessToken
+    || consume?._premiumAccessToken
     || "",
   ).trim();
 

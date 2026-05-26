@@ -52,7 +52,7 @@ const STRENGTH_BY_SYMBOL = Object.freeze({
 
 const SYMBOL_BY_STRENGTH = Object.freeze({
   묘: "◎",
-  왕: "O",
+  왕: "◎",
   득: "O",
   리: "▲",
   평: "△",
@@ -322,12 +322,23 @@ function normalizeStrengthName(raw) {
   const token = asText(raw);
   if (!token) return null;
   if (["묘", "廟", "묘왕", "묘왕지"].includes(token)) return "묘";
-  if (["득", "得", "득지", "왕", "旺"].includes(token)) return "득";
+  if (["왕", "旺"].includes(token)) return "왕";
+  if (["득", "得", "득지"].includes(token)) return "득";
   if (["리", "利", "리지", "약"].includes(token)) return "리";
   if (["평", "平", "평지"].includes(token)) return "평";
   if (["함", "陷", "함지", "극함", "심한함", "불", "불리"].includes(token)) return "함";
   if (["실"].includes(token)) return "실";
   return null;
+}
+
+export function getZiweiStrengthSymbol(brightness) {
+  const token = normalizeStrengthName(brightness);
+  if (token === "묘" || token === "왕") return "◎";
+  if (token === "득") return "O";
+  if (token === "리") return "▲";
+  if (token === "평") return "△";
+  if (token === "함" || token === "실") return "X";
+  return "△";
 }
 
 function pickStrength(rawSymbol, rawStrength) {
@@ -377,7 +388,7 @@ function strengthMeaning(name) {
   if (name === "미상") {
     return "별의 강약 데이터가 확인되지 않아, 별 자체의 기본 상징과 궁의 의미를 중심으로 해석합니다.";
   }
-  const symbol = SYMBOL_BY_STRENGTH[name] || null;
+  const symbol = getZiweiStrengthSymbol(name) || SYMBOL_BY_STRENGTH[name] || null;
   if (!symbol) return "강약 데이터가 제한적이어서 보수적으로 해석합니다.";
   return ZIWEI_STAR_STRENGTHS[symbol]?.meaning || "강약 데이터가 제한적이어서 보수적으로 해석합니다.";
 }
@@ -441,7 +452,7 @@ function normalizeRawStarForPdf(star, fallbackName = "") {
 
   const picked = pickStrength(source.symbol || source.strengthSymbol, source.strength || source.brightness || source.brightnessKo);
   const strengthName = normalizeStrengthName(source.strength || source.brightness || source.brightnessKo) || (picked.name !== "미상" ? picked.name : "평");
-  const strengthSymbol = normalizeStrengthSymbol(source.symbol || source.strengthSymbol) || picked.symbol || SYMBOL_BY_STRENGTH[strengthName] || "△";
+  const strengthSymbol = normalizeStrengthSymbol(source.symbol || source.strengthSymbol) || picked.symbol || getZiweiStrengthSymbol(strengthName) || "△";
 
   return {
     ...source,
@@ -1882,7 +1893,7 @@ export function validateZiweiEngineToPdfMapping(chart = {}, pdf = {}) {
     stars.forEach((star) => {
       const starName = asText(star?.displayName || star?.name);
       const normalizedStrength = normalizeStrengthName(star?.brightness) || "평";
-      const expected = SYMBOL_BY_STRENGTH[normalizedStrength] || "△";
+      const expected = getZiweiStrengthSymbol(normalizedStrength) || "△";
       const actual = normalizeStrengthSymbol(star?.strengthSymbol || "") || expected;
       if (!pdfStarNames.has(starName)) failures.push(`${palaceName}:${starName} 누락`);
       if (actual !== expected) failures.push(`${palaceName}:${starName} 기호 불일치(${actual}!=${expected})`);
@@ -1893,6 +1904,175 @@ export function validateZiweiEngineToPdfMapping(chart = {}, pdf = {}) {
     ok: failures.length === 0,
     failures,
   };
+}
+
+const ZIWEI_SKELETON_BINDINGS = Object.freeze({
+  1: ["chartMeta", "palaces"],
+  2: ["chartMeta.mingGong", "chartMeta.shenGong", "palaces[].mainStars", "relationships"],
+  3: ["chartMeta.yearStemBranch", "sihua", "palaces[].transformations"],
+  4: ["palaces[].mainStars", "palaces[].assistantStars", "palaces[].minorStars"],
+  5: ["palaces[].assistantStars", "palaces[].minorStars", "palaces[].maleficStars"],
+  6: ["palaces[].name=wealth", "palaces[].name=career", "relationships"],
+  7: ["palaces[].name=spouse", "palaces[].name=children"],
+  8: ["palaces[].name=travel", "palaces[].name=property"],
+  9: ["palaces[].name=friends", "palaces[].name=siblings"],
+  10: ["palaces[].name=fortune", "palaces[].name=parents"],
+  11: ["palaces[].name=health", "cycles"],
+  12: ["cycles.daXian", "cycles.annual", "cycles.monthly"],
+  13: ["cycles.annual", "cycles.monthly", "relationships"],
+  14: ["cycles.daXian", "chartMeta", "relationships"],
+  15: ["chartMeta", "palaces", "cycles", "relationships"],
+});
+
+function getSectionDataBinding(chapterNo, sectionTitle = "") {
+  const title = asText(sectionTitle);
+  const chapterBindings = asArray(ZIWEI_SKELETON_BINDINGS[Number(chapterNo || 0)]);
+  if (!chapterBindings.length) return ["chartMeta", "palaces"];
+
+  if (/명궁|신궁/.test(title)) return Array.from(new Set(chapterBindings.concat(["chartMeta.mingGong", "chartMeta.shenGong"])));
+  if (/사화|화록|화권|화과|화기/.test(title)) return Array.from(new Set(chapterBindings.concat(["sihua", "palaces[].transformations"])));
+  if (/재백궁|관록궁/.test(title)) return Array.from(new Set(chapterBindings.concat(["palaces[].name=wealth", "palaces[].name=career"])));
+  if (/부부궁|배우자|자녀/.test(title)) return Array.from(new Set(chapterBindings.concat(["palaces[].name=spouse", "palaces[].name=children"])));
+  if (/천이궁|전택궁/.test(title)) return Array.from(new Set(chapterBindings.concat(["palaces[].name=travel", "palaces[].name=property"])));
+  if (/노복궁|형제궁/.test(title)) return Array.from(new Set(chapterBindings.concat(["palaces[].name=friends", "palaces[].name=siblings"])));
+  if (/부모궁|질액궁/.test(title)) return Array.from(new Set(chapterBindings.concat(["palaces[].name=parents", "palaces[].name=health"])));
+  return chapterBindings;
+}
+
+function resolveBoundPalaces(chart = {}, section = {}) {
+  const palaces = asArray(chart?.palaces);
+  const nameMap = new Map([
+    ["명궁", "명궁"],
+    ["신궁", "신궁"],
+    ["재백궁", "재백궁"],
+    ["관록궁", "관록궁"],
+    ["부부궁", "부부궁"],
+    ["자녀궁", "자녀궁"],
+    ["천이궁", "천이궁"],
+    ["전택궁", "전택궁"],
+    ["노복궁", "노복궁"],
+    ["형제궁", "형제궁"],
+    ["복덕궁", "복덕궁"],
+    ["부모궁", "부모궁"],
+    ["질액궁", "질액궁"],
+  ]);
+  const title = asText(section?.title || section?.heading);
+  const keys = [];
+  nameMap.forEach((value, key) => {
+    if (title.includes(key)) keys.push(value);
+  });
+  if (!keys.length) {
+    const chapterNo = Number(section?.chapterNo || 0);
+    if (chapterNo === 2) keys.push("명궁");
+    else if (chapterNo === 3) keys.push("명궁", "신궁");
+    else if (chapterNo === 6) keys.push("재백궁", "관록궁");
+  }
+  const selected = palaces.filter((p) => keys.includes(asText(p?.name)) || keys.includes(asText(p?.displayName)));
+  return selected.length ? selected : palaces.slice(0, 2);
+}
+
+export function buildLocalZiweiSectionDraft(section, chart = {}) {
+  const targetSection = toPlainObject(section);
+  const boundPalaces = resolveBoundPalaces(chart, targetSection);
+  const palaceSummary = boundPalaces.map((palace) => {
+    const palaceName = asText(palace?.name || palace?.displayName || "핵심궁");
+    const stars = asArray(palace?.mainStars)
+      .slice(0, 3)
+      .map((star) => {
+        const starName = asText(star?.name || star?.nameKo || "");
+        const brightness = normalizeStrengthName(star?.strengthName || star?.brightness || star?.strength || "") || "평";
+        const symbol = getZiweiStrengthSymbol(brightness);
+        return starName ? `${starName}(${symbol}/${brightness})` : "";
+      })
+      .filter(Boolean)
+      .join(", ");
+    return `${palaceName} ${stars ? `주요 별: ${stars}` : "주요 별 데이터 기반"}`;
+  }).filter(Boolean);
+
+  const contextLine = palaceSummary.length
+    ? palaceSummary.join(" | ")
+    : "핵심 궁위 중심 해석";
+  const sectionTitle = asText(targetSection?.title || targetSection?.heading || "핵심 해석");
+  const chapterTitle = asText(targetSection?.chapterTitle || "자미두수 리포트");
+
+  return [
+    `${chapterTitle}의 ${sectionTitle}에서는 현재 명반에서 확인 가능한 궁위와 주성의 작동을 우선 기준으로 해석합니다.`,
+    `${contextLine} 흐름을 바탕으로 강점은 확장 조건으로, 취약 구간은 방어 규칙으로 분리해 적용해야 합니다.`,
+    "해석의 핵심은 단정적 예언이 아니라 선택 기준을 명확히 하는 데 있으며, 실행 항목은 우선순위를 나눠 단계적으로 운영해야 안정적인 결과를 만듭니다.",
+  ].join(" ");
+}
+
+export function buildZiweiPdfSkeleton(chart, chaptersConfig = ZIWEI_CHAPTER_SPECS) {
+  const chapterDefs = asArray(chaptersConfig);
+  return chapterDefs.map((chapter, index) => {
+    const chapterNo = Number(chapter?.chapterNo || chapter?.num || index + 1);
+    const chapterId = asText(chapter?.id || chapter?.key || `chapter-${String(chapterNo).padStart(2, "0")}`);
+    const title = asText(chapter?.title || `Chapter ${chapterNo}`);
+    const sections = asArray(chapter?.sections).map((sectionTitle, sectionIndex) => {
+      const sectionId = `${chapterId}-section-${String(sectionIndex + 1).padStart(2, "0")}`;
+      const binding = getSectionDataBinding(chapterNo, sectionTitle);
+      const skeletonSection = {
+        id: sectionId,
+        chapterNo,
+        chapterTitle: title,
+        title: asText(sectionTitle) || `섹션 ${sectionIndex + 1}`,
+        categoryPurpose: `${title}의 ${asText(sectionTitle) || `섹션 ${sectionIndex + 1}`} 해석`,
+        dataBinding: binding,
+      };
+      const localDraft = buildLocalZiweiSectionDraft(skeletonSection, chart || {});
+      return {
+        ...skeletonSection,
+        localDraft,
+        finalText: localDraft,
+        source: "local",
+      };
+    });
+
+    return {
+      id: chapterId,
+      order: chapterNo,
+      roman: toRoman(chapterNo),
+      title,
+      purpose: asText(chapter?.purpose || chapter?.goal || title),
+      requiredDataKeys: asArray(chapter?.requiredDataKeys),
+      sections,
+    };
+  });
+}
+
+export function hasRepetitiveSentences(text) {
+  const sentences = String(text || "")
+    .split(/[.!?。！？\n]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const counts = new Map();
+  for (const sentence of sentences) {
+    const normalized = sentence.replace(/\s+/g, " ");
+    const next = (counts.get(normalized) || 0) + 1;
+    counts.set(normalized, next);
+    if (next >= 3) return true;
+  }
+  return false;
+}
+
+function toRoman(num) {
+  const n = Number(num || 0);
+  if (!Number.isFinite(n) || n <= 0) return "I";
+  const map = [
+    [1000, "M"], [900, "CM"], [500, "D"], [400, "CD"],
+    [100, "C"], [90, "XC"], [50, "L"], [40, "XL"],
+    [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"],
+  ];
+  let rest = n;
+  let out = "";
+  for (const [v, token] of map) {
+    while (rest >= v) {
+      out += token;
+      rest -= v;
+    }
+  }
+  return out || "I";
 }
 
 export { ZIWEI_PDF_CHAPTERS, ZIWEI_CHAPTER_SPECS, ZIWEI_FORBIDDEN_TEXTS };

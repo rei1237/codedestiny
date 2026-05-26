@@ -339,4 +339,44 @@ describe("Love Secret Strict Tests", () => {
     expect(typeof risk).toBe("string");
     expect(canonicalSummerWinter.compatibility.intimacyCompatibility.score).toBeGreaterThanOrEqual(0);
   });
+
+  test("M. 궁합 모드 입력에서 partner 누락 시 SAJU_LOVE_PARTNER_INPUT_REQUIRED를 반환해야 한다", () => {
+    const invalid = __loveSecretTestUtils.validateSajuLoveBookGenerateRequest({
+      mode: "compatibility",
+      year: 1992,
+      month: 6,
+      day: 15,
+      sajuData: makeSajuData(),
+    }, "compatibility");
+
+    expect(invalid.ok).toBe(false);
+    expect(invalid.status).toBe(400);
+    expect(invalid.code).toBe("SAJU_LOVE_PARTNER_INPUT_REQUIRED");
+  });
+
+  test("N. 본문 정화 함수는 금지 문구/테이블/내부 토큰을 제거해야 한다", () => {
+    const raw = [
+      "리포트 품질 보정 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+      "| key | value |",
+      "| --- | --- |",
+      "payload: { status: completed }",
+      "연애 상담 본문은 유지되어야 합니다.",
+    ].join("\n");
+
+    const cleaned = __loveSecretTestUtils.sanitizeSajuLoveBookUserFacingText(raw, "solo");
+    expect(cleaned).toContain("연애 상담 본문은 유지되어야 합니다.");
+    expect(cleaned).not.toMatch(/품질 보정|payload|status|\| key \|/i);
+  });
+
+  test("O. 반복 문장 3회 이상은 차단되어야 한다", () => {
+    const repetitive = [
+      "같은 문장을 길게 반복하여 품질 검증에서 차단되어야 하는 테스트 문장입니다.",
+      "같은 문장을 길게 반복하여 품질 검증에서 차단되어야 하는 테스트 문장입니다.",
+      "같은 문장을 길게 반복하여 품질 검증에서 차단되어야 하는 테스트 문장입니다.",
+      "이 문장은 비교를 위한 보조 문장으로 길게 유지됩니다.",
+    ].join("\n");
+
+    expect(__loveSecretTestUtils.hasRepetitiveSentences(repetitive)).toBe(true);
+    expect(__loveSecretTestUtils.validateSajuLoveBookSectionText(repetitive, "solo")).toBe(false);
+  });
 });

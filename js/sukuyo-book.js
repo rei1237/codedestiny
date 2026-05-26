@@ -106,6 +106,92 @@
   var _canonicalSukuyoCompatibility = null;
   var _chapterMetaRuntime = Array(_totalChapters).fill(null);
   var _sukuyoPaymentContext = null;
+  var _executionHeartbeatTimer = null;
+  var _executionPayload = null;
+
+  function _clearExecutionHeartbeat() {
+    if (!_executionHeartbeatTimer) return;
+    clearInterval(_executionHeartbeatTimer);
+    _executionHeartbeatTimer = null;
+  }
+
+  function _buildExecutionPayload() {
+    var ctx = _sukuyoPaymentContext && typeof _sukuyoPaymentContext === 'object' ? _sukuyoPaymentContext : null;
+    var sourceTransactionId = String(ctx && (ctx.transactionId || ctx.sourceTransactionId) || '').trim();
+    if (!sourceTransactionId) return null;
+    var reportId = String(_reportId || '').trim();
+    if (!reportId) reportId = Date.now().toString(36);
+    return {
+      serviceKey: 'sukuyo-book-pdf',
+      featureKey: SUKUYO_PDF_FEATURE_KEY,
+      executionKey: 'sukuyo-book-pdf:' + reportId + ':' + sourceTransactionId,
+      sourceTransactionId: sourceTransactionId,
+      metadata: {
+        mode: String(_reportMode || 'personal'),
+        reportId: reportId
+      }
+    };
+  }
+
+  function _requestExecutionAction(action, body, useKeepalive) {
+    if (!body || !body.executionKey || !body.sourceTransactionId) return Promise.resolve(false);
+    return fetch('/api/billing/executions/' + String(action || '').trim(), {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      keepalive: !!useKeepalive
+    }).then(function (res) {
+      return !!(res && res.ok);
+    }).catch(function () {
+      return false;
+    });
+  }
+
+  function _startExecutionLifecycle() {
+    var payload = _buildExecutionPayload();
+    if (!payload) {
+      _executionPayload = null;
+      _clearExecutionHeartbeat();
+      return Promise.resolve(false);
+    }
+    return _requestExecutionAction('start', payload, false).then(function (ok) {
+      if (!ok) return false;
+      _executionPayload = payload;
+      _clearExecutionHeartbeat();
+      _executionHeartbeatTimer = setInterval(function () {
+        if (!_executionPayload) return;
+        _requestExecutionAction('heartbeat', _executionPayload, false).catch(function () {});
+      }, 20000);
+      return true;
+    });
+  }
+
+  function _completeExecutionLifecycle() {
+    if (!_executionPayload) return Promise.resolve(false);
+    var payload = _executionPayload;
+    _clearExecutionHeartbeat();
+    _executionPayload = null;
+    return _requestExecutionAction('complete', payload, false);
+  }
+
+  function _failExecutionLifecycle(reason, useKeepalive) {
+    if (!_executionPayload) return Promise.resolve(false);
+    var payload = Object.assign({}, _executionPayload, {
+      reason: String(reason || 'generation_failed').trim() || 'generation_failed'
+    });
+    _clearExecutionHeartbeat();
+    _executionPayload = null;
+    return _requestExecutionAction('fail', payload, useKeepalive === true);
+  }
+
+  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+    window.addEventListener('beforeunload', function () {
+      if (!_executionPayload) return;
+      _failExecutionLifecycle('client_unload', true).catch(function () {});
+    });
+  }
 
   function _qs(id) { return document.getElementById(id); }
 
@@ -1150,6 +1236,8 @@
           return;
         }
 
+      return _startExecutionLifecycle().then(function () {
+
       _generating=true;
       _resetChapterState();
       _sukuyoChart=null;
@@ -1516,6 +1604,7 @@
           var errEl=_qs('skErrorMsg');
           if(errEl)errEl.textContent='챕터 생성이 불완전합니다 ('+validCount+'/'+_totalChapters+'). 자동 환급을 시도합니다. 잠시 후 다시 시도해 주세요.';
           _showScreen('skErrorScreen');
+          _failExecutionLifecycle('incomplete_chapters', false).catch(function () {});
           _autoRefundPremium(PREMIUM_SUKUYO_COST, PREMIUM_SUKUYO_FEATURE_KEY, 'LOCAL_REPORT_FAILED: 숙요 프리미엄 PDF', PREMIUM_SUKUYO_TX_KEY)
             .then(function(){
               if (_reportMode === 'compatibility') {
@@ -1529,6 +1618,7 @@
         try { sessionStorage.removeItem(PREMIUM_SUKUYO_TX_KEY); } catch (_) {}
         try { sessionStorage.removeItem(PREMIUM_SUKUYO_COMPAT_TX_KEY); } catch (_) {}
         _setStage(7, '리포트 다운로드 준비가 완료되었습니다.');
+        _completeExecutionLifecycle().catch(function () {});
         _showScreen('skResultScreen');
         _updateTocState();_renderChapter(1);_bindToc();
         var prof=window.__cdActiveBirthProfile||{};
@@ -1561,6 +1651,7 @@
           if (typeof window.__cdOpenLoginRequiredModal === 'function') {
             window.__cdOpenLoginRequiredModal({ reason: '프리미엄 리포트 생성 중 세션이 만료되었습니다.' });
           }
+          _failExecutionLifecycle('auth_required', false).catch(function () {});
           return;
         }
         if (data && data.fatal && data.errorCode === 'DATA_INCOMPLETE') {
@@ -1579,6 +1670,7 @@
           var dataErrEl = _qs('skErrorMsg');
           if (dataErrEl) dataErrEl.textContent = _formatPremiumFailureMessage(data, 'PDF 생성에 필요한 계산 데이터가 부족합니다. 데이터를 다시 확인해 주세요.');
           _showScreen('skErrorScreen');
+          _failExecutionLifecycle('data_incomplete', false).catch(function () {});
           _autoRefundPremium(PREMIUM_SUKUYO_COST, PREMIUM_SUKUYO_REPORT_FEATURE_KEY, 'LOCAL_REPORT_FAILED: 숙요 프리미엄 PDF', PREMIUM_SUKUYO_TX_KEY)
             .then(function(){
               if (_reportMode === 'compatibility') {
@@ -1610,6 +1702,7 @@
                 : '외부 API 응답 지연으로 리포트를 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.');
           }
           _showScreen('skErrorScreen');
+          _failExecutionLifecycle('generation_blocked', false).catch(function () {});
           _autoRefundPremium(PREMIUM_SUKUYO_COST, PREMIUM_SUKUYO_REPORT_FEATURE_KEY, 'LOCAL_REPORT_FAILED: 숙요 프리미엄 PDF', PREMIUM_SUKUYO_TX_KEY)
             .then(function(){
               if (_reportMode === 'compatibility') {
@@ -1658,9 +1751,11 @@
       });
     })(0);
       });
+      });
     }).catch(function (err) {
       _generating=false;
       _showScreen('skStartScreen');
+      _failExecutionLifecycle(String((err && err.message) || 'generation_failed'), false).catch(function () {});
       alert(String((err && err.message) || '숙요 PDF 생성 준비 중 오류가 발생했습니다.'));
     });
     });

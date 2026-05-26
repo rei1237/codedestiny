@@ -367,7 +367,7 @@ export default function HPremiumAstrologySection({
       } catch {
         // ignore storage cleanup errors
       }
-        const data = await postAstroJson("/api/premium/astro-life", {
+    }
   }, []);
 
   useEffect(() => {
@@ -375,7 +375,6 @@ export default function HPremiumAstrologySection({
     try {
       const raw = localStorage.getItem(ASTROLOGY_STORAGE_KEY);
       if (!raw) {
-          precomputeAll: true,
         storageReadyRef.current = true;
         return;
       }
@@ -387,27 +386,8 @@ export default function HPremiumAstrologySection({
         birthMinute?: string;
         timezone?: string;
         chart?: ChartData | null;
-        const batchResults = data?.chapterResultsById || data?.chapterJsonById || null;
-        if (batchResults && typeof batchResults === "object") {
-          setChapters((prev) => {
-            const next = { ...prev };
-            for (const meta of CHAPTER_META) {
-              const result = (batchResults as Record<string, any>)[String(meta.num)];
-              if (!result) continue;
-              next[meta.num] = {
-                step: "done",
-                result: {
-                  chapter: Number(result.chapter ?? meta.num),
-                  chapterMeta: result.chapterMeta ?? meta,
-                  text: String(result.text ?? ""),
-                  sections: Array.isArray(result.sections) ? result.sections : [],
-                },
-              };
-            }
-            return next;
-          });
-        }
         chapters?: Record<number, ChapterState>;
+        reportId?: string;
       };
 
       if (saved.birthYear) setBirthYear(saved.birthYear);
@@ -417,6 +397,7 @@ export default function HPremiumAstrologySection({
       if (saved.birthMinute) setBirthMinute(saved.birthMinute);
       if (saved.timezone) setTimezone(saved.timezone);
       if (saved.chart) setChart(saved.chart);
+      if (saved.reportId) reportIdRef.current = saved.reportId;
       if (saved.chapters) {
         const normalized = Object.fromEntries(
           CHAPTER_META.map((meta) => {

@@ -217,8 +217,9 @@ async function buildVedicBatchResults(args: {
     });
     chapterResultsById[String(chapterDef.number)] = result;
     chapterJsonById[String(chapterDef.number)] = result;
-    if (result.text && result.text.trim()) {
-      previousChapterTexts.push(result.text);
+    const resultText = composeChapterText(result);
+    if (resultText && resultText.trim()) {
+      previousChapterTexts.push(resultText);
     }
   }
 
@@ -727,7 +728,7 @@ const STYLE_GUIDE = `[작성 지침]
 // ─────────────────────────────────────────────────────────────────
 // 12챕터 프롬프트 빌더
 // ─────────────────────────────────────────────────────────────────
-function buildPrompt(ch: number, c: VedicChart, reportType: "personal" = "personal", body?: Record<string, unknown>): string {
+function buildPrompt(ch: number, c: VedicChart, reportType: "personal" | "compatibility" = "personal", body?: Record<string, unknown>): string {
   const bd = baseData(c);
   const p = c.planets;
   const lagna = c.lagna;
@@ -1356,11 +1357,18 @@ export async function POST(req: NextRequest) {
       partnerLat?: number;
       partnerLon?: number;
       partnerBirthPlace?: string;
+      precomputeAll?: boolean;
     };
     const access = await requirePremiumRouteAccess(auth.userId, "vedicPremium", body as unknown as Record<string, unknown>);
     if (!access.ok) {
       return NextResponse.json(
-        { ok: false, code: access.code, message: access.message, reportType: access.reportType, required: access.required },
+        {
+          ok: false,
+          code: access.code,
+          message: access.message,
+          reportType: access.reportType,
+          ...("required" in access ? { required: access.required } : {}),
+        },
         { status: access.status },
       );
     }
@@ -1476,7 +1484,7 @@ export async function POST(req: NextRequest) {
       warnings: [...warnings, ...(chapterPayload.warnings || [])],
       chapterResultsById: batchResults?.chapterResultsById || undefined,
       chapterJsonById: batchResults?.chapterJsonById || undefined,
-      precomputedAll,
+      precomputeAll,
     });
 
   } catch (err: unknown) {

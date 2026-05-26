@@ -292,6 +292,15 @@
       || payment.orderId
       || ''
     ).trim();
+    var requestId = String(
+      source.requestId
+      || source.sourceRequestId
+      || consume.requestId
+      || nested.requestId
+      || payment.requestId
+      || payment.sourceRequestId
+      || ''
+    ).trim();
 
     var premiumAccessToken = persistPremiumAccessToken(source) || '';
     if (!premiumAccessToken) premiumAccessToken = persistPremiumAccessToken(nested) || '';
@@ -307,7 +316,7 @@
       transactionId: transactionId,
       receiptId: receiptId || undefined,
       orderId: orderId || undefined,
-      requestId: String(source.requestId || '').trim(),
+      requestId: requestId || undefined,
       premiumAccessToken: premiumAccessToken || undefined,
       paidAt: String(source.paidAt || new Date().toISOString())
     };
@@ -1040,6 +1049,87 @@
     }
   }
 
+  var executionHeartbeatTimer = null;
+  var executionPayload = null;
+
+  function clearExecutionHeartbeat() {
+    if (!executionHeartbeatTimer) return;
+    clearInterval(executionHeartbeatTimer);
+    executionHeartbeatTimer = null;
+  }
+
+  function buildExecutionPayload(paymentContext) {
+    var ctx = normalizePaymentContext(paymentContext || state.paymentContext || {});
+    var sourceTransactionId = String(ctx.sourceTransactionId || ctx.transactionId || '').trim();
+    if (!sourceTransactionId) return null;
+    var reportId = String(state.reportId || state.paidReportId || '').trim();
+    if (!reportId) reportId = Date.now().toString(36);
+    return {
+      serviceKey: 'saju-new-year-pdf',
+      featureKey: String(ctx.featureKey || COIN_FEATURE_KEY || 'premium-saju-newyear-report'),
+      executionKey: 'saju-new-year-pdf:' + reportId + ':' + sourceTransactionId,
+      sourceTransactionId: sourceTransactionId,
+      metadata: {
+        reportId: reportId,
+        targetYear: Number((state.payload && state.payload.targetYear) || 0),
+        requestId: String(ctx.requestId || '')
+      }
+    };
+  }
+
+  async function requestExecutionAction(action, body, useKeepalive) {
+    if (!body || !body.executionKey || !body.sourceTransactionId) return false;
+    try {
+      var res = await fetch('/api/billing/executions/' + String(action || '').trim(), {
+        method: 'POST',
+        credentials: 'include',
+        cache: 'no-store',
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify(body),
+        keepalive: !!useKeepalive
+      });
+      return !!(res && res.ok);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  async function startExecutionLifecycle(paymentContext) {
+    var payload = buildExecutionPayload(paymentContext);
+    if (!payload) {
+      executionPayload = null;
+      clearExecutionHeartbeat();
+      return false;
+    }
+    var started = await requestExecutionAction('start', payload, false);
+    if (!started) return false;
+    executionPayload = payload;
+    clearExecutionHeartbeat();
+    executionHeartbeatTimer = setInterval(function () {
+      if (!executionPayload) return;
+      requestExecutionAction('heartbeat', executionPayload, false).catch(function () {});
+    }, 20000);
+    return true;
+  }
+
+  async function completeExecutionLifecycle() {
+    if (!executionPayload) return false;
+    var payload = executionPayload;
+    clearExecutionHeartbeat();
+    executionPayload = null;
+    return requestExecutionAction('complete', payload, false);
+  }
+
+  async function failExecutionLifecycle(reason, useKeepalive) {
+    if (!executionPayload) return false;
+    var payload = Object.assign({}, executionPayload, {
+      reason: String(reason || 'generation_failed').trim() || 'generation_failed'
+    });
+    clearExecutionHeartbeat();
+    executionPayload = null;
+    return requestExecutionAction('fail', payload, useKeepalive === true);
+  }
+
   function waitMs(ms) {
     var delay = Number(ms || 0);
     if (!Number.isFinite(delay) || delay <= 0) return Promise.resolve();
@@ -1393,9 +1483,16 @@
     state.paymentVerified = false;
     setGenerateButtonBusy(true);
     persistState();
+    var executionStarted = false;
+    var executionSettled = false;
 
     try {
+      executionStarted = await startExecutionLifecycle(paymentContext || state.paymentContext || null);
       await generateAllChapters(paymentContext || state.paymentContext || null);
+      if (executionStarted) {
+        await completeExecutionLifecycle();
+        executionSettled = true;
+      }
       state.paymentContext = null;
       state.paymentVerified = false;
       renderResultScreen();
@@ -1409,8 +1506,15 @@
         var refunded = await attemptSajuNewYearAutoRefund(errMsg || 'LOCAL_REPORT_FAILED');
         if (refunded) logSajuNewYear('REFUND_SUCCESS');
       }
+      if (executionStarted && !executionSettled) {
+        await failExecutionLifecycle(errMsg || 'generation_failed', false);
+        executionSettled = true;
+      }
       setErrorScreen(toSafeUserError(err));
     } finally {
+      if (executionStarted && !executionSettled) {
+        await failExecutionLifecycle('generation_incomplete', false);
+      }
       state.generating = false;
       state.paymentVerified = false;
       setGenerateButtonBusy(false);
@@ -1439,7 +1543,11 @@
             reportType: SAJU_NEW_YEAR_REPORT_TYPE,
             featureType: SAJU_NEW_YEAR_FEATURE_TYPE,
             cost: Number(COST_COINS || 0),
-            requestId: String(('newyear:' + (state.reportId || Date.now())).slice(0, 120))
+            requestId: String(
+              payloadObject.requestId
+              || (payloadObject.consume && payloadObject.consume.requestId)
+              || ('newyear:' + (state.reportId || Date.now()))
+            ).slice(0, 120)
           }));
           persistPremiumAccessToken(payloadObject);
           if (paymentContext && paymentContext.premiumAccessToken) {
@@ -1598,6 +1706,13 @@
     document.body.style.overflow = '';
     document.body.classList.remove('lb-modal-open');
   };
+
+  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+    window.addEventListener('beforeunload', function () {
+      if (!executionPayload) return;
+      failExecutionLifecycle('client_unload', true).catch(function () {});
+    });
+  }
 
   window.generateSajuNewYear = function () {
     if (state.generating) {

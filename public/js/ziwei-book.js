@@ -1103,7 +1103,7 @@
       if (!chapters.length) return;
       var payload = {
         profileKey: makeZiweiProfileKey(profile || getActiveProfile()),
-        mode: 'personal',
+        mode: String(state.mode || 'personal'),
         reportId: String(state.reportId || ''),
         downloadUrl: String(state.downloadUrl || ''),
         chapters: chapters,
@@ -1208,23 +1208,69 @@
     card.id = 'zbModeCard';
     card.style.cssText = 'margin-top:12px;padding:12px;border-radius:12px;border:1px solid rgba(167,139,250,0.35);background:rgba(30,27,75,0.36);';
     card.innerHTML = ''
-      + '<div style="font-size:12px;color:#c4b5fd;margin-bottom:6px">리포트 모드</div>'
-      + '<div style="display:inline-flex;align-items:center;gap:6px;color:#e9d5ff;font-size:13px">'
-      + '  <strong style="color:#f5f3ff">개인 모드 전용</strong>'
+      + '<div style="font-size:12px;color:#c4b5fd;margin-bottom:8px">리포트 모드</div>'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+      + '  <label style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid rgba(196,181,253,0.35);border-radius:999px;color:#f5f3ff;font-size:12px;cursor:pointer"><input id="zbModePersonal" type="radio" name="zbReportMode" value="personal" checked>개인</label>'
+      + '  <label style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid rgba(196,181,253,0.35);border-radius:999px;color:#f5f3ff;font-size:12px;cursor:pointer"><input id="zbModeCompat" type="radio" name="zbReportMode" value="compatibility">궁합(2인)</label>'
       + '</div>'
-      + '<div style="margin-top:6px;font-size:12px;color:#cbd5e1">자미두수 PDF는 개인 명반 기준으로만 생성됩니다.</div>';
+      + '<div id="zbPartnerFields" style="display:none;margin-top:10px;padding:10px;border:1px solid rgba(125,211,252,0.28);border-radius:10px;background:rgba(2,132,199,0.08)">'
+      + '  <div style="font-size:12px;color:#bae6fd;margin-bottom:8px">상대 정보</div>'
+      + '  <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">'
+      + '    <input id="zbPartnerName" type="text" placeholder="상대 이름" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(186,230,253,0.3);background:rgba(15,23,42,0.55);color:#e2e8f0">'
+      + '    <select id="zbPartnerGender" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(186,230,253,0.3);background:rgba(15,23,42,0.55);color:#e2e8f0"><option value="female">여성</option><option value="male">남성</option></select>'
+      + '    <input id="zbPartnerBirthDate" type="date" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(186,230,253,0.3);background:rgba(15,23,42,0.55);color:#e2e8f0">'
+      + '    <div style="display:flex;gap:8px"><select id="zbPartnerHour" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(186,230,253,0.3);background:rgba(15,23,42,0.55);color:#e2e8f0"></select><select id="zbPartnerMinute" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(186,230,253,0.3);background:rgba(15,23,42,0.55);color:#e2e8f0"></select></div>'
+      + '  </div>'
+      + '  <div style="margin-top:8px;font-size:11px;color:#bae6fd">상대 생년월일은 궁합형 리포트에서만 사용됩니다.</div>'
+      + '</div>'
+      + '<div id="zbModeHint" style="margin-top:8px;font-size:12px;color:#cbd5e1"></div>';
 
     profileBox.parentNode.insertBefore(card, profileBox.nextSibling);
-    state.mode = 'personal';
+    ensurePartnerSelectOptions();
+    state.mode = state.mode === 'compatibility' ? 'compatibility' : 'personal';
+    setModeUiState(state.mode);
+
+    if (!card.getAttribute('data-mode-bound')) {
+      card.setAttribute('data-mode-bound', '1');
+      var modeInputs = qsa(card, 'input[name="zbReportMode"]');
+      modeInputs.forEach(function (el) {
+        el.addEventListener('change', function () {
+          state.mode = getSelectedMode();
+          setModeUiState(state.mode);
+        });
+      });
+    }
+    renderChapterList();
+  }
+
+  function setModeUiState(mode) {
+    var selected = String(mode || 'personal') === 'compatibility' ? 'compatibility' : 'personal';
+    var personalRadio = qs('zbModePersonal');
+    var compatRadio = qs('zbModeCompat');
+    var partnerFields = qs('zbPartnerFields');
+    var modeHint = qs('zbModeHint');
+    if (personalRadio) personalRadio.checked = selected === 'personal';
+    if (compatRadio) compatRadio.checked = selected === 'compatibility';
+    if (partnerFields) partnerFields.style.display = selected === 'compatibility' ? 'block' : 'none';
+
     var subtitle = qs('ziweiBookModal') ? qs('ziweiBookModal').querySelector('.lb-modal__subtitle') : null;
     var cta = qs('zbStartBtn');
     var heroDesc = qs('ziweiBookModal') ? qs('ziweiBookModal').querySelector('.lb-start__desc') : null;
     var chLabel = qs('ziweiBookModal') ? qs('ziweiBookModal').querySelector('.lb-start__ch-label') : null;
-    if (subtitle) subtitle.textContent = '나의 명반 기반 15챕터 자미두수 인생 PDF';
-    if (cta) cta.textContent = '🌌 자미두수 인생 총람 생성하기';
-    if (heroDesc) heroDesc.innerHTML = '복잡한 부가 화면 없이<br>자미두수 핵심 명반을 정리해<br>최종 PDF 인생 전서를 생성합니다';
-    if (chLabel) chLabel.textContent = '📖 15챕터 구성';
-    renderChapterList();
+
+    if (selected === 'compatibility') {
+      if (modeHint) modeHint.textContent = '궁합 모드에서는 본인+상대 명반을 함께 사용해 관계 흐름을 분석합니다.';
+      if (subtitle) subtitle.textContent = '두 사람 명반 기반 자미두수 궁합 PDF';
+      if (cta) cta.textContent = '💞 자미두수 궁합 리포트 생성하기';
+      if (heroDesc) heroDesc.innerHTML = '두 사람의 명궁·관계 흐름을<br>자미두수 기준으로 교차 분석해<br>궁합 PDF를 생성합니다';
+      if (chLabel) chLabel.textContent = '📖 궁합 리포트';
+    } else {
+      if (modeHint) modeHint.textContent = '개인 모드는 본인 명반만 사용해 인생 총람을 생성합니다.';
+      if (subtitle) subtitle.textContent = '나의 명반 기반 15챕터 자미두수 인생 PDF';
+      if (cta) cta.textContent = '🌌 자미두수 인생 총람 생성하기';
+      if (heroDesc) heroDesc.innerHTML = '복잡한 부가 화면 없이<br>자미두수 핵심 명반을 정리해<br>최종 PDF 인생 전서를 생성합니다';
+      if (chLabel) chLabel.textContent = '📖 15챕터 구성';
+    }
   }
 
   function ensureLoadingDots() {
@@ -1275,7 +1321,9 @@
   }
 
   function getSelectedMode() {
-    return 'personal';
+    var checked = document.querySelector('input[name="zbReportMode"]:checked');
+    var value = checked ? String(checked.value || '') : '';
+    return value === 'compatibility' ? 'compatibility' : 'personal';
   }
 
   function readPartnerInput() {
@@ -1598,7 +1646,21 @@
     if (!hasValidZiweiStructured(primaryStructured)) {
       return { error: '기본 자미두수 계산 데이터(명궁/신궁/12궁)가 부족합니다. 메인 자미두수 결과를 다시 생성한 뒤 재시도해 주세요.' };
     }
-    state.mode = 'personal';
+    var selectedMode = getSelectedMode();
+    state.mode = selectedMode;
+
+    var partnerInput = null;
+    var partnerStructured = null;
+    if (selectedMode === 'compatibility') {
+      partnerInput = readPartnerInput();
+      if (!partnerInput) {
+        return { error: '궁합 모드는 상대 생년월일을 입력해야 생성할 수 있습니다.' };
+      }
+      partnerStructured = normalizePrimaryZiweiStructured(getPartnerZiweiStructured(partnerInput));
+      if (!partnerStructured || !hasValidZiweiStructured(partnerStructured)) {
+        return { error: '상대 자미두수 명반 계산에 실패했습니다. 상대 정보를 다시 확인해 주세요.' };
+      }
+    }
 
     var name = String(profile.name || '사용자');
     var gender = normalizeGender(profile.gender);
@@ -1619,7 +1681,10 @@
     var birthPlace = String(profile.birthPlace || (profile.location && profile.location.birthPlace) || '').trim();
 
     var body = {
-      mode: 'personal',
+      mode: selectedMode,
+      reportType: selectedMode,
+      reportMode: selectedMode,
+      includeCompatibility: selectedMode === 'compatibility',
       forceRegenerate: !!forceRegenerate,
       _premiumStrictPayload: true,
       _premiumStrictValidation: true,
@@ -1677,6 +1742,37 @@
         ziweiStructured: primaryStructured
       }
     };
+
+    if (selectedMode === 'compatibility' && partnerInput) {
+      body.partnerName = partnerInput.name;
+      body.partnerGender = partnerInput.gender;
+      body.partnerYear = Number(partnerInput.year || 0);
+      body.partnerMonth = Number(partnerInput.month || 0);
+      body.partnerDay = Number(partnerInput.day || 0);
+      body.partnerHour = Number(partnerInput.hour || 12);
+      body.partnerMinute = Number(partnerInput.minute || 0);
+      body.partnerCalType = 'solar';
+      body.partnerBirthDate = [body.partnerYear, String(body.partnerMonth).padStart(2, '0'), String(body.partnerDay).padStart(2, '0')].join('-');
+      body.partnerBirthTime = String(body.partnerHour).padStart(2, '0') + ':' + String(body.partnerMinute).padStart(2, '0');
+      body.partnerBirthData = {
+        name: partnerInput.name,
+        gender: partnerInput.gender,
+        year: body.partnerYear,
+        month: body.partnerMonth,
+        day: body.partnerDay,
+        hour: body.partnerHour,
+        minute: body.partnerMinute,
+        calType: 'solar',
+        calendarType: 'solar',
+        birthDate: body.partnerBirthDate,
+        birthTime: body.partnerBirthTime,
+        timezone: timezone,
+        timezoneName: timezone
+      };
+      if (partnerStructured) {
+        body.partnerZiweiStructured = partnerStructured;
+      }
+    }
 
     var basicZiweiResult = buildBasicZiweiResultPayload(profile, primaryStructured);
     if (basicZiweiResult) {
@@ -2507,6 +2603,7 @@
     var summary = qs('zbProfileSummary');
     if (summary) summary.textContent = formatProfileSummary(profile);
 
+    setModeUiState(state.mode || getSelectedMode());
     state.mode = getSelectedMode();
     resetDots(1, 0);
   }
@@ -2537,7 +2634,8 @@
     resetZiweiResultState();
     var restored = restoreFromCache ? loadZiweiResult(getActiveProfile()) : null;
     if (restored) {
-      state.mode = 'personal';
+      state.mode = String(restored.mode || 'personal') === 'compatibility' ? 'compatibility' : 'personal';
+      setModeUiState(state.mode);
       state.reportId = String(restored.reportId || '');
       state.downloadUrl = String(restored.downloadUrl || '');
       state.chapters = Array.isArray(restored.chapters) ? restored.chapters.slice() : [];

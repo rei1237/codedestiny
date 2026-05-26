@@ -109,8 +109,8 @@
     if (/\b500\b|internal\s*server\s*error|http\s*500/i.test(raw)) {
       return '리포트 생성 중 일시적인 서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
     }
-    if (/quality|품질|chapter-\d+/i.test(raw)) {
-      return '리포트 품질 보정 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    if (/quality|품질|chapter-\d+|fallback|자동\s*복구|payload|debug|status/i.test(raw)) {
+      return 'PDF 생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
     }
     if (/timeout|quota|invalid\s*json|api\s*실패/i.test(raw)) {
       return '리포트 생성 중 일시적인 응답 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';

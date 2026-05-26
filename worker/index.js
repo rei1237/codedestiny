@@ -696,9 +696,11 @@ export default {
   async scheduled(event, env, ctx) {
     const { runDailyFortuneTask } = await import("./lib/daily-fortune-task.js");
     const { runCardSubscriptionBillingTask } = await import("./lib/subscription-billing-task.js");
+    const { runServiceExecutionTimeoutTask } = await import("./lib/service-execution-task.js");
     ctx.waitUntil(Promise.all([
       runDailyFortuneTask(env),
       runCardSubscriptionBillingTask(env),
+      runServiceExecutionTimeoutTask(env),
     ]));
   },
 };

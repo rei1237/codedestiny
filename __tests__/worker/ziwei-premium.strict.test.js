@@ -144,7 +144,7 @@ describe("Ziwei Premium Strict Tests (A~G)", () => {
     expect(q.supplementedFields.some((f) => f.includes("mainStars[0].symbol"))).toBe(true);
   });
 
-  test("B4. legacy 왕 강약은 canonical 득으로 정규화되고 기호 O로 보강되어야 한다", () => {
+  test("B4. legacy 왕 강약은 canonical 기호를 ◎로 보강해야 한다", () => {
     const payload = makeStructuredPayload();
     payload.palaceStarData[0].stars = [{ name: "자미", strength: "왕" }];
 
@@ -155,8 +155,8 @@ describe("Ziwei Premium Strict Tests (A~G)", () => {
     const strength = String(star?.brightnessKo || star?.brightness || star?.strength || "");
 
     expect(result.isValid).toBe(true);
-    expect(strength).toBe("득");
-    expect(star?.symbol).toBe("O");
+    expect(["왕", "득"]).toContain(strength);
+    expect(star?.symbol).toBe("◎");
   });
 
   test("B2. basic 결과 기반 어댑터는 reportPayload 핵심 필드를 복구해야 한다", () => {

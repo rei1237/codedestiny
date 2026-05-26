@@ -38,7 +38,9 @@
 
   var state = {
     generating: false,
+    paymentChecking: false,
     reportId: '',
+    idempotencyKey: '',
     paidReportId: '',
     paymentContext: null,
     generationSource: 'api',
@@ -94,9 +96,6 @@
     if (!raw) return '인생의 책 생성 중 오류가 발생했습니다.';
     if (/\b500\b|internal\s*server\s*error|http\s*500/i.test(raw)) {
       return '리포트 생성 중 일시적인 서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
-    }
-    if (/챕터\s*품질\s*검증\s*실패|chapter-\d+|quality/i.test(raw)) {
-      return '리포트 품질 보정 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
     }
     if (/api\s*실패|timeout|quota|invalid\s*json/i.test(raw)) {
       return '리포트 생성 중 일시적인 응답 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
@@ -519,14 +518,30 @@
       payload.day,
       payload.hour,
       payload.minute,
-      Date.now(),
-      Math.random().toString(36).slice(2, 10)
+      payload.calendar,
+      payload.timeUnknown ? 1 : 0
     ].join('|');
     var hash = 0;
     for (var i = 0; i < seed.length; i += 1) {
       hash = ((hash << 5) - hash + seed.charCodeAt(i)) | 0;
     }
-    return 'lifebook_' + Math.abs(hash).toString(36) + '_' + Date.now().toString(36);
+    return 'lifebook_' + Math.abs(hash).toString(36);
+  }
+
+  function buildIdempotencyKey(reportId, payload) {
+    var seed = [
+      'saju_life_book',
+      String(reportId || ''),
+      String(payload && payload.name || ''),
+      String(payload && payload.birthDate || ''),
+      String(payload && payload.gender || ''),
+      String(payload && payload.calendarType || '')
+    ].join('|');
+    var hash = 0;
+    for (var i = 0; i < seed.length; i += 1) {
+      hash = ((hash << 5) - hash + seed.charCodeAt(i)) | 0;
+    }
+    return 'lifebook-charge-' + Math.abs(hash).toString(36);
   }
 
   function buildAuthHeaders(base) {
@@ -632,6 +647,7 @@
     try {
       var payload = {
         reportId: String(state.reportId || ''),
+        idempotencyKey: String(state.idempotencyKey || ''),
         paidReportId: String(state.paidReportId || ''),
         payload: state.payload || null,
         chapterTexts: state.chapterTexts || {},
@@ -650,6 +666,7 @@
       var saved = safeParse(raw, null);
       if (!saved || typeof saved !== 'object') return;
       state.reportId = String(saved.reportId || '');
+      state.idempotencyKey = String(saved.idempotencyKey || '');
       state.paidReportId = String(saved.paidReportId || '');
       state.payload = saved.payload || null;
       state.chapterTexts = saved.chapterTexts && typeof saved.chapterTexts === 'object' ? saved.chapterTexts : {};
@@ -793,6 +810,22 @@
     if (!statusRes.ok || !statusRes.data || statusRes.data.ok !== true) {
       return { completed: 0, currentChapter: 1, message: '' };
     }
+    var billing = statusRes.data.billing && typeof statusRes.data.billing === 'object' ? statusRes.data.billing : null;
+    if (billing) {
+      var billingStatus = String(billing.billingStatus || billing.status || '').toLowerCase();
+      var sid = String(billing.idempotencyKey || '').trim();
+      var txId = String(billing.transactionId || '').trim();
+      if (sid && !state.idempotencyKey) state.idempotencyKey = sid;
+      if (billingStatus === 'paid' || txId) {
+        state.paidReportId = reportId;
+        state.paymentContext = {
+          featureKey: String(billing.featureKey || COIN_FEATURE_KEY),
+          cost: Number(COST_COINS || 0),
+          sourceTransactionId: txId,
+          requestId: String((sid || ('lifebook:' + reportId)).slice(0, 120))
+        };
+      }
+    }
     var rows = Array.isArray(statusRes.data.chapters) ? statusRes.data.chapters : [];
     for (var i = 0; i < rows.length; i += 1) {
       var row = rows[i] || {};
@@ -834,6 +867,7 @@
       logLifeBookStage('API_GENERATION_START', { reportId: state.reportId, chapterId: 'chapter-' + String(chapter).padStart(2, '0') });
       var reqBody = Object.assign({}, state.payload, {
         reportId: state.reportId,
+        idempotencyKey: state.idempotencyKey || '',
         sessionId: chapter,
         chapter: chapter,
         payment: paymentContext || null,
@@ -968,42 +1002,55 @@
   }
 
   async function ensureCoinGateAndGenerate() {
+    if (state.paymentChecking) return;
     if (!state.reportId) {
       state.payload = buildPayload();
       state.reportId = createReportId(state.payload);
+      state.idempotencyKey = buildIdempotencyKey(state.reportId, state.payload);
+      persistState();
+    }
+
+    if (!state.idempotencyKey) {
+      state.idempotencyKey = buildIdempotencyKey(state.reportId, state.payload || {});
       persistState();
     }
 
     try {
       var statusInfo = await loadExistingStatus(state.reportId);
       if (Number(statusInfo.completed || 0) > 0) {
+        state.paymentChecking = false;
         startLifeBookGeneration();
         return;
       }
     } catch (_) {}
 
     if (chapterCount() > 0) {
+      state.paymentChecking = false;
       startLifeBookGeneration();
       return;
     }
 
     if (state.paidReportId === state.reportId) {
       logLifeBookStage('PAYMENT_CHECK_SUCCESS', { reportId: state.reportId, reused: true });
+      state.paymentChecking = false;
       startLifeBookGeneration();
       return;
     }
 
     if (typeof window._cdCoinGatePerUse === 'function') {
+      if (state.paymentChecking) return;
+      state.paymentChecking = true;
       logLifeBookStage('PAYMENT_CHECK_START', { reportId: state.reportId });
       window._cdCoinGatePerUse(
         COST_COINS,
         COIN_REASON,
         function (transactionId) {
+          state.paymentChecking = false;
           state.paymentContext = {
             featureKey: COIN_FEATURE_KEY,
             cost: Number(COST_COINS || 0),
             sourceTransactionId: String(transactionId || ''),
-            requestId: String(('lifebook:' + (state.reportId || Date.now())).slice(0, 120))
+            requestId: String((state.idempotencyKey || ('lifebook:' + state.reportId)).slice(0, 120))
           };
           state.paidReportId = state.reportId;
           persistState();
@@ -1011,15 +1058,20 @@
           startLifeBookGeneration();
         },
         function () {
+          state.paymentChecking = false;
           logLifeBookStage('PAYMENT_CHECK_FAILED', { reportId: state.reportId, reason: 'user-cancel-or-denied' });
           setGenerateButtonBusy(false);
           if (!state.generating) showOnly('lbStartScreen');
         },
-        { featureKey: COIN_FEATURE_KEY }
+        {
+          featureKey: COIN_FEATURE_KEY,
+          requestId: String((state.idempotencyKey || ('lifebook:' + state.reportId)).slice(0, 120))
+        }
       );
       return;
     }
 
+    state.paymentChecking = false;
     setGenerateButtonBusy(false);
     if (!state.generating) showOnly('lbStartScreen');
     logLifeBookStage('PAYMENT_CHECK_FAILED', { reportId: state.reportId, reason: 'coin-gate-unavailable' });
@@ -1128,7 +1180,9 @@
 
   function resetState() {
     state.generating = false;
+    state.paymentChecking = false;
     state.reportId = '';
+    state.idempotencyKey = '';
     state.paidReportId = '';
     state.paymentContext = null;
     state.generationSource = 'api';
@@ -1183,11 +1237,6 @@
     document.body.style.overflow = '';
     document.body.classList.remove('lb-modal-open');
     modal.setAttribute('aria-hidden', 'true');
-
-    // 생성 결과/진행 잔존 데이터가 있으면 모달 종료 시 항상 초기화해 다음 진입을 새 세션으로 강제한다.
-    if (!state.generating && (state.reportId || state.paidReportId || chapterCount() > 0)) {
-      resetState();
-    }
   };
 
   window.generateLifeBook = function () {
@@ -1201,6 +1250,7 @@
     setLoadingProgress(1, CHAPTER_TITLES[0]);
 
     ensureCoinGateAndGenerate().catch(function (err) {
+      state.paymentChecking = false;
       console.error('[LifeBook] gate check failed:', err);
       setGenerateButtonBusy(false);
       setErrorScreen('인생의 책 생성 준비 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');

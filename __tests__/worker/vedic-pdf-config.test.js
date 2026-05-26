@@ -1,0 +1,39 @@
+/**
+ * @jest-environment node
+ */
+
+describe("Vedic PDF chapter config", () => {
+  let VEDIC_PDF_CHAPTERS;
+
+  beforeAll(async () => {
+    ({ VEDIC_PDF_CHAPTERS } = await import("../../worker/lib/vedic-premium-chapters.js"));
+  });
+
+  test("12챕터가 고정 순서로 존재해야 한다", () => {
+    expect(Array.isArray(VEDIC_PDF_CHAPTERS)).toBe(true);
+    expect(VEDIC_PDF_CHAPTERS).toHaveLength(12);
+    const orders = VEDIC_PDF_CHAPTERS.map((ch) => Number(ch.order));
+    expect(orders).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+  });
+
+  test("각 챕터는 최소 4개 이상의 섹션을 가져야 한다", () => {
+    for (const chapter of VEDIC_PDF_CHAPTERS) {
+      expect(Array.isArray(chapter.sections)).toBe(true);
+      expect(chapter.sections.length).toBeGreaterThanOrEqual(4);
+    }
+  });
+
+  test("다샤/아트마카라카 챕터의 바인딩이 분리되어야 한다", () => {
+    const dasha = VEDIC_PDF_CHAPTERS.find((ch) => ch.id === "V10");
+    const atmakaraka = VEDIC_PDF_CHAPTERS.find((ch) => ch.id === "V11");
+
+    expect(dasha).toBeTruthy();
+    expect(atmakaraka).toBeTruthy();
+
+    const hasDashaBinding = dasha.sections.some((section) => section?.dataBinding?.dasha === true);
+    const hasAtmakarakaBinding = atmakaraka.sections.some((section) => section?.dataBinding?.atmakaraka === true);
+
+    expect(hasDashaBinding).toBe(true);
+    expect(hasAtmakarakaBinding).toBe(true);
+  });
+});

@@ -256,6 +256,87 @@
     }
   }
 
+  var executionHeartbeatTimer = null;
+  var executionPayload = null;
+
+  function clearExecutionHeartbeat() {
+    if (!executionHeartbeatTimer) return;
+    clearInterval(executionHeartbeatTimer);
+    executionHeartbeatTimer = null;
+  }
+
+  function buildExecutionPayload() {
+    var ctx = state.paymentContext && typeof state.paymentContext === 'object' ? state.paymentContext : null;
+    var sourceTransactionId = String(ctx && (ctx.sourceTransactionId || ctx.transactionId) || '').trim();
+    if (!sourceTransactionId) return null;
+    var reportId = String(state.reportId || '').trim();
+    if (!reportId) reportId = Date.now().toString(36);
+    return {
+      serviceKey: 'vedic-book-pdf',
+      featureKey: VEDIC_COIN_FEATURE_KEY,
+      executionKey: 'vedic-book-pdf:' + reportId + ':' + sourceTransactionId,
+      sourceTransactionId: sourceTransactionId,
+      metadata: {
+        mode: String(state.mode || 'personal'),
+        reportId: reportId,
+        requestId: String(ctx && ctx.requestId || '')
+      }
+    };
+  }
+
+  async function requestExecutionAction(action, body, useKeepalive) {
+    if (!body || !body.executionKey || !body.sourceTransactionId) return false;
+    try {
+      var res = await fetch('/api/billing/executions/' + String(action || '').trim(), {
+        method: 'POST',
+        credentials: 'include',
+        cache: 'no-store',
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify(body),
+        keepalive: !!useKeepalive
+      });
+      return !!(res && res.ok);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  async function startExecutionLifecycle() {
+    var payload = buildExecutionPayload();
+    if (!payload) {
+      executionPayload = null;
+      clearExecutionHeartbeat();
+      return false;
+    }
+    var started = await requestExecutionAction('start', payload, false);
+    if (!started) return false;
+    executionPayload = payload;
+    clearExecutionHeartbeat();
+    executionHeartbeatTimer = setInterval(function () {
+      if (!executionPayload) return;
+      requestExecutionAction('heartbeat', executionPayload, false).catch(function () {});
+    }, 20000);
+    return true;
+  }
+
+  async function completeExecutionLifecycle() {
+    if (!executionPayload) return false;
+    var payload = executionPayload;
+    clearExecutionHeartbeat();
+    executionPayload = null;
+    return requestExecutionAction('complete', payload, false);
+  }
+
+  async function failExecutionLifecycle(reason, useKeepalive) {
+    if (!executionPayload) return false;
+    var payload = Object.assign({}, executionPayload, {
+      reason: String(reason || 'generation_failed').trim() || 'generation_failed'
+    });
+    clearExecutionHeartbeat();
+    executionPayload = null;
+    return requestExecutionAction('fail', payload, useKeepalive === true);
+  }
+
   async function premiumAuthFallback(pathname, body) {
     var payload = body && typeof body === 'object' ? Object.assign({}, body) : {};
     if (!payload.premiumAccessToken) {
@@ -1371,6 +1452,8 @@
     state.chapters = [];
     state.quoteTick = 0;
     state.lastRequestBody = requestInput.body;
+    var executionStarted = false;
+    var executionSettled = false;
     logVedicStage('REQUEST_START', {
       mode: String(requestInput.body.mode || 'personal'),
       serviceKey: VEDIC_SERVICE_KEY,
@@ -1394,6 +1477,7 @@
         mode: String(requestInput.body.mode || 'personal'),
         transactionId: String(state.paymentContext && (state.paymentContext.transactionId || state.paymentContext.sourceTransactionId) || '')
       });
+      executionStarted = await startExecutionLifecycle();
 
       requestInput.body = attachPaymentContext(requestInput.body);
       setLoadingProgress({ currentChapter: 1, status: 'generating', message: '생성 전 데이터 점검 중...' });
@@ -1414,6 +1498,10 @@
           state.downloadUrl = '';
           state.chapters = Array.isArray(fallbackOnPreflight.chapters) ? fallbackOnPreflight.chapters : [];
           state.paymentContext = null;
+          if (executionStarted && !executionSettled) {
+            await completeExecutionLifecycle();
+            executionSettled = true;
+          }
           renderResultScreen();
           notify('프리미엄 리포트가 완성되었습니다.');
           return;
@@ -1446,6 +1534,10 @@
           state.downloadUrl = '';
           state.chapters = Array.isArray(fallbackRun.chapters) ? fallbackRun.chapters : [];
           state.paymentContext = null;
+          if (executionStarted && !executionSettled) {
+            await completeExecutionLifecycle();
+            executionSettled = true;
+          }
           renderResultScreen();
           notify('프리미엄 리포트가 완성되었습니다.');
           return;
@@ -1472,6 +1564,10 @@
           state.downloadUrl = '';
           state.chapters = Array.isArray(reportIdFallback.chapters) ? reportIdFallback.chapters : [];
           state.paymentContext = null;
+          if (executionStarted && !executionSettled) {
+            await completeExecutionLifecycle();
+            executionSettled = true;
+          }
           renderResultScreen();
           notify('프리미엄 리포트가 완성되었습니다.');
           return;
@@ -1490,17 +1586,37 @@
       if (!done && qs('vdLoadingScreen') && qs('vdLoadingScreen').style.display !== 'none') {
         setError('리포트 생성 중 문제가 발생했습니다.');
       }
+      if (done && executionStarted && !executionSettled) {
+        await completeExecutionLifecycle();
+        executionSettled = true;
+      }
     } catch (error) {
       try {
         console.error('[VedicBook] generation failed:', error);
       } catch (_) {}
       await attemptVedicAutoRefund('LOCAL_REPORT_FAILED: unhandled exception during vedic generation');
       state.paidGateKey = '';
+      if (executionStarted && !executionSettled) {
+        await failExecutionLifecycle(String(error && error.message || 'generation_failed'), false);
+        executionSettled = true;
+      }
       setError(String(error && error.message || '베다 리포트 생성 중 오류가 발생했습니다.'));
     } finally {
+      if (executionStarted && !executionSettled) {
+        await failExecutionLifecycle('generation_incomplete', false);
+      }
+      executionPayload = null;
+      clearExecutionHeartbeat();
       state.generating = false;
     }
   };
+
+  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+    window.addEventListener('beforeunload', function () {
+      if (!executionPayload) return;
+      failExecutionLifecycle('client_unload', true).catch(function () {});
+    });
+  }
 
   function buildLocalVedicPrintableHtml() {
     var profile = getActiveProfile() || {};

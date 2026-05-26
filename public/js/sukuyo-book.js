@@ -100,7 +100,7 @@
   var PREMIUM_SUKUYO_REPORT_FEATURE_KEY = 'premium-sukuyo-report';
   var SUKUYO_PDF_FEATURE_KEY = 'premium-sukuyo-report';
   var PREMIUM_SUKUYO_REPORT_REASON = '숙요점 프리미엄 PDF 리포트 생성';
-  var _reportMode = 'compatibility';
+  var _reportMode = 'personal';
   var _totalChapters = COMPAT_CHAPTER_META.length;
   var _reportId = '';
   var _canonicalSukuyoCompatibility = null;
@@ -118,7 +118,7 @@
   }
 
   function _getReportDisplayTitle() {
-    return '숙요점 프리미엄 2인 궁합 리포트';
+    return _reportMode === 'compatibility' ? '숙요점 프리미엄 2인 궁합 리포트' : '숙요점 프리미엄 인생 리포트';
   }
 
   function _getChapterMetaAt(idx) {
@@ -491,19 +491,23 @@
   }
 
   function _getReportMode() {
-    return 'compatibility';
+    var on = document.getElementById('skCompatOn');
+    if (on && on.checked) return 'compatibility';
+    return 'personal';
   }
 
   function _applyReportModeUi() {
     var partnerBox = document.getElementById('skPartnerFormSection');
     var startBtn = document.getElementById('skStartBtn');
-    var mode = 'compatibility';
+    var mode = _getReportMode();
     var previousMode = _reportMode;
     _reportMode = mode;
     _totalChapters = _getActiveChapterMeta().length;
-    if (partnerBox) partnerBox.style.display = '';
+    if (partnerBox) partnerBox.style.display = mode === 'compatibility' ? '' : 'none';
     if (startBtn) {
-      startBtn.textContent = '💞 숙요 궁합 인생 총람 생성하기 (690코인)';
+      startBtn.textContent = mode === 'compatibility'
+        ? '💞 숙요 궁합 인생 총람 생성하기 (690코인)'
+        : '🌙 숙요 인생 총람 생성하기 (390코인)';
     }
     if (previousMode !== _reportMode) {
       _renderDetailedChapterPreview();
@@ -525,10 +529,21 @@
     modeBox.innerHTML = ''+
       '<div class="lb-start__profile-label">🧭 리포트 모드</div>'+
       '<div style="display:flex;gap:14px;flex-wrap:wrap;padding-top:4px;color:#e0f2fe;">'+
-        '<strong>2인 궁합 전용 (A/B 입력 필수)</strong>'+
+        '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="radio" id="skCompatOff" name="skReportMode" checked> <span>개인 리포트</span></label>'+
+        '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="radio" id="skCompatOn" name="skReportMode"> <span>2인 궁합 리포트</span></label>'+
       '</div>';
     if (profileBox && profileBox.parentNode) profileBox.parentNode.insertBefore(modeBox, profileBox.nextSibling);
     else host.insertBefore(modeBox, host.firstChild);
+    var off = document.getElementById('skCompatOff');
+    var on = document.getElementById('skCompatOn');
+    if (off && !off._skBound) {
+      off._skBound = true;
+      off.addEventListener('change', _applyReportModeUi);
+    }
+    if (on && !on._skBound) {
+      on._skBound = true;
+      on.addEventListener('change', _applyReportModeUi);
+    }
     _applyReportModeUi();
   }
 
@@ -956,7 +971,7 @@
     if(!window.__cdActiveBirthProfile||!window.__cdActiveBirthProfile.birth) window.__cdActiveBirthProfile=profile;
     var saved=_skLoadSaved(profile);
     if(saved&&saved.chapters&&saved.chapters.some(Boolean)){
-      _reportMode = 'compatibility';
+      _reportMode = (saved.reportMode === 'compatibility') ? 'compatibility' : 'personal';
       _syncReportModeSelector(_reportMode);
       _applyReportModeUi();
       _totalChapters = Number(saved.totalChapters) || _getActiveChapterMeta().length;
@@ -1794,6 +1809,7 @@
     _reportId='';
     _canonicalSukuyoCompatibility=null;
     _chapterMetaRuntime=[];
+    _reportMode='personal';
     window.openSukuyoBookModal(profileArg);
   };
   _ensureReportModeSelector();

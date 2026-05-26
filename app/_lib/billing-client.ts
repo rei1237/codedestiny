@@ -26,6 +26,47 @@ type BillingFeaturePricing = {
   cashPrice?: number | null;
 };
 
+export type ServiceExecutionStatus = "pending" | "success" | "failed" | "refunded" | "cancelled";
+
+export type ServiceExecutionPayload = {
+  executionKey: string;
+  featureKey?: string;
+  cost?: number;
+  sourceTransactionId?: string;
+  timeoutSeconds?: number;
+  maxRetries?: number;
+  reasonCode?: string;
+  reasonMessage?: string;
+  metadata?: Record<string, unknown>;
+  payment?: {
+    impUid?: string;
+    merchantUid?: string;
+    paymentId?: string;
+    cancelEligible?: boolean;
+  };
+};
+
+export type ServiceExecutionData = {
+  id: string;
+  executionKey: string;
+  featureKey: string;
+  cost: number;
+  sourceTransactionId: string;
+  status: ServiceExecutionStatus;
+  timeoutAt: string | null;
+  nextRetryAt: string | null;
+  retryCount: number;
+  completedAt: string | null;
+  compensatedAt: string | null;
+  reasonCode: string;
+  reasonMessage: string;
+  compensation: {
+    coinRefunded: boolean;
+    coinRefundTxId: string;
+    paymentCancelled: boolean;
+  };
+};
+
 function toText(value: unknown): string {
   return String(value || "").trim();
 }
@@ -214,4 +255,35 @@ export async function fetchBillingBalance(): Promise<BillingResult<{
   }
 
   return parsed;
+}
+
+async function runServiceExecutionApi(
+  action: "start" | "heartbeat" | "complete" | "fail",
+  payload: ServiceExecutionPayload,
+): Promise<BillingResult<{ idempotent: boolean; execution: ServiceExecutionData | null; settlement?: Record<string, unknown> | null }>> {
+  const response = await authFetchBilling(`/api/billing/executions/${action}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload || {}),
+  });
+
+  return parseBillingResponse<{ idempotent: boolean; execution: ServiceExecutionData | null; settlement?: Record<string, unknown> | null }>(response);
+}
+
+export function startServiceExecution(payload: ServiceExecutionPayload) {
+  return runServiceExecutionApi("start", payload);
+}
+
+export function heartbeatServiceExecution(payload: ServiceExecutionPayload) {
+  return runServiceExecutionApi("heartbeat", payload);
+}
+
+export function completeServiceExecution(payload: ServiceExecutionPayload) {
+  return runServiceExecutionApi("complete", payload);
+}
+
+export function failServiceExecution(payload: ServiceExecutionPayload) {
+  return runServiceExecutionApi("fail", payload);
 }

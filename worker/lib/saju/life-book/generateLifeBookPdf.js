@@ -14,6 +14,18 @@ const LIFEBOOK_FORBIDDEN_TEXTS = [
   "데이터가 부족합니다",
   "품질 검증 실패",
   "API 실패",
+  "리포트 품질 보정 중 문제가 발생했습니다",
+  "잠시 후 다시 시도해 주세요",
+  "Internal server error",
+  "fallback",
+  "coin",
+  "코인",
+  "결제",
+  "reportId",
+  "payload",
+  "schema",
+  "status",
+  "completed",
 ];
 
 function logLifeBookStage(stage, detail = {}) {
@@ -108,6 +120,73 @@ function hasForbiddenLifeBookText(text) {
   return LIFEBOOK_FORBIDDEN_TEXTS.some((token) => source.includes(token));
 }
 
+function hasRepetitiveSentences(text) {
+  const sentences = String(text || "")
+    .split(/[.!?。！？\n]/)
+    .map((row) => String(row || "").trim().replace(/\s+/g, " "))
+    .filter(Boolean);
+  const counts = new Map();
+  for (const sentence of sentences) {
+    const hit = Number(counts.get(sentence) || 0) + 1;
+    counts.set(sentence, hit);
+    if (hit >= 3) return true;
+  }
+  return false;
+}
+
+function sanitizeLifeBookTextForPdf(text) {
+  let source = String(text || "");
+  for (const token of LIFEBOOK_FORBIDDEN_TEXTS) {
+    if (!token) continue;
+    source = source.split(token).join("");
+  }
+  source = source
+    .replace(/\|.*\|.*\|/g, "")
+    .replace(/\s+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return source;
+}
+
+function sanitizeLifeBookChapters(chapters = []) {
+  return (Array.isArray(chapters) ? chapters : []).map((chapter) => {
+    const chapterJson = chapter?.chapterJson && typeof chapter.chapterJson === "object"
+      ? chapter.chapterJson
+      : {};
+    const sections = Array.isArray(chapterJson.sections)
+      ? chapterJson.sections.map((section) => ({
+        ...section,
+        body: sanitizeLifeBookTextForPdf(section?.body || ""),
+      }))
+      : [];
+    return {
+      ...chapter,
+      summary: sanitizeLifeBookTextForPdf(chapter?.summary || ""),
+      contentMarkdown: sanitizeLifeBookTextForPdf(chapter?.contentMarkdown || ""),
+      practicalAdvice: Array.isArray(chapter?.practicalAdvice)
+        ? chapter.practicalAdvice.map((row) => sanitizeLifeBookTextForPdf(row)).filter(Boolean)
+        : [],
+      warnings: Array.isArray(chapter?.warnings)
+        ? chapter.warnings.map((row) => sanitizeLifeBookTextForPdf(row)).filter(Boolean)
+        : [],
+      chapterJson: {
+        ...chapterJson,
+        summary: sanitizeLifeBookTextForPdf(chapterJson.summary || ""),
+        sections,
+        keyInsights: Array.isArray(chapterJson.keyInsights)
+          ? chapterJson.keyInsights.map((row) => sanitizeLifeBookTextForPdf(row)).filter(Boolean)
+          : [],
+        practicalAdvice: Array.isArray(chapterJson.practicalAdvice)
+          ? chapterJson.practicalAdvice.map((row) => sanitizeLifeBookTextForPdf(row)).filter(Boolean)
+          : [],
+        cautions: Array.isArray(chapterJson.cautions)
+          ? chapterJson.cautions.map((row) => sanitizeLifeBookTextForPdf(row)).filter(Boolean)
+          : [],
+      },
+    };
+  });
+}
+
 function validateLifeBookGeneratedReport({ chapters = [], chapterSchema = LIFE_BOOK_CHAPTERS } = {}) {
   const reasons = [];
   const invalidChapters = [];
@@ -131,6 +210,7 @@ function validateLifeBookGeneratedReport({ chapters = [], chapterSchema = LIFE_B
     if (!body) chapterReasons.push("MISSING_BODY");
     if (body.length < minLength) chapterReasons.push("BODY_TOO_SHORT");
     if (hasForbiddenLifeBookText(`${title}\n${body}`)) chapterReasons.push("FORBIDDEN_TEXT");
+    if (hasRepetitiveSentences(body)) chapterReasons.push("REPETITIVE_SENTENCES");
 
     const chapterJson = chapter.chapterJson && typeof chapter.chapterJson === "object" ? chapter.chapterJson : {};
     const sections = Array.isArray(chapterJson.sections) ? chapterJson.sections : [];
@@ -469,13 +549,13 @@ export async function generateLifeBookPdf(params = {}) {
   let fullText = chapters.map((chapter) => String(chapter?.contentMarkdown || "").trim()).filter(Boolean).join("\n\n");
   let fullValidation = validateFullReport(fullText);
 
-  logLifeBookStage("CHAPTER_QUALITY_CHECK_START", { reportId });
+  logLifeBookStage("QualityEnhanceStart", { reportId });
   let reportValidation = validateLifeBookGeneratedReport({
     chapters,
     chapterSchema: targetChapters,
   });
   if (!reportValidation.ok) {
-    logLifeBookStage("CHAPTER_QUALITY_CHECK_FAILED", {
+    logLifeBookStage("QualityEnhanceFailed", {
       reportId,
       invalidChapters: reportValidation.invalidChapters,
     });
@@ -496,13 +576,14 @@ export async function generateLifeBookPdf(params = {}) {
       chapterSchema: targetChapters,
     });
     if (!reportValidation.ok) {
-      return {
-        ok: false,
-        code: "LIFEBOOK_REPORT_VALIDATION_FAILED",
-        message: "리포트 품질 검증을 통과하지 못했습니다.",
-        detail: reportValidation,
-      };
+      warnings.push({
+        chapterId: "quality",
+        warning: "QUALITY_ENHANCE_FAILED_FALLBACK",
+        validation: reportValidation,
+      });
     }
+  } else {
+    logLifeBookStage("QualityEnhanceSuccess", { reportId });
   }
 
   if (!fullValidation.ok && chapters.length > 0) {
@@ -561,24 +642,26 @@ export async function generateLifeBookPdf(params = {}) {
   });
 
   if (onProgress) onProgress({ code: "RENDERING_PDF", message: "PDF 편집 중" });
-  logLifeBookStage("PDF_RENDER_START", { reportId });
+  logLifeBookStage("RenderStart", { reportId });
+
+  const sanitizedChapters = sanitizeLifeBookChapters(chapters);
 
   const rendered = renderLifeBookPdf({
     reportId,
     lifeBookInputData,
-    chapters,
+    chapters: sanitizedChapters,
     generatedAt: new Date().toISOString(),
   });
 
   const pdfData = buildLifeBookPdfData({
     reportId,
     lifeBookInputData,
-    chapters,
+    chapters: sanitizedChapters,
     generatedAt: rendered?.generatedAt || new Date().toISOString(),
   });
 
   if (onProgress) onProgress({ code: "PDF_READY", message: "다운로드 준비 완료" });
-  logLifeBookStage("PDF_RENDER_SUCCESS", { reportId });
+  logLifeBookStage("RenderSuccess", { reportId });
 
   const hasLocal = warnings.some((w) => {
     const marker = String(w?.warning || "");

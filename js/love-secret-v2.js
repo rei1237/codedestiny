@@ -109,8 +109,8 @@
     if (/\b500\b|internal\s*server\s*error|http\s*500/i.test(raw)) {
       return '리포트 생성 중 일시적인 서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
     }
-    if (/quality|품질|chapter-\d+/i.test(raw)) {
-      return '리포트 품질 보정 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    if (/quality|품질|chapter-\d+|fallback|자동\s*복구|payload|debug|status/i.test(raw)) {
+      return 'PDF 생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
     }
     if (/timeout|quota|invalid\s*json|api\s*실패/i.test(raw)) {
       return '리포트 생성 중 일시적인 응답 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
@@ -871,6 +871,103 @@
     }
   }
 
+  var executionHeartbeatTimer = null;
+  var executionPayload = null;
+
+  function clearExecutionHeartbeat() {
+    if (!executionHeartbeatTimer) return;
+    clearInterval(executionHeartbeatTimer);
+    executionHeartbeatTimer = null;
+  }
+
+  function getExecutionFeatureKey(mode) {
+    var normalizedMode = asText(mode || state.mode || MODE_SOLO).toLowerCase();
+    if (normalizedMode === MODE_COMPAT) return 'premium-love-compatibility-report';
+    return 'premium-love-secret-report';
+  }
+
+  function buildExecutionPayload(mode) {
+    var ctx = state.paymentContext && typeof state.paymentContext === 'object' ? state.paymentContext : null;
+    var sourceTransactionId = asText(ctx && (ctx.sourceTransactionId || ctx.transactionId));
+    if (!sourceTransactionId) return null;
+    var reportId = asText(state.reportId || state.paidReportId || '');
+    if (!reportId) reportId = Date.now().toString(36);
+    return {
+      serviceKey: 'love-secret-pdf',
+      featureKey: getExecutionFeatureKey(mode),
+      executionKey: 'love-secret-pdf:' + reportId + ':' + sourceTransactionId,
+      sourceTransactionId: sourceTransactionId,
+      metadata: {
+        mode: asText(mode || state.mode || MODE_SOLO) || MODE_SOLO,
+        reportId: reportId,
+        requestId: asText(ctx && ctx.requestId)
+      }
+    };
+  }
+
+  async function requestExecutionAction(action, body, useKeepalive) {
+    if (!body || !body.executionKey || !body.sourceTransactionId) return false;
+    var headers = buildAuthHeaders({ 'Content-Type': 'application/json' });
+    var target = '/api/billing/executions/' + String(action || '').trim();
+    var payload = JSON.stringify(body);
+    try {
+      var res = await fetch(target, {
+        method: 'POST',
+        credentials: 'include',
+        cache: 'no-store',
+        headers: headers,
+        body: payload,
+        keepalive: !!useKeepalive
+      });
+      return !!(res && res.ok);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  async function startExecutionLifecycle(mode) {
+    var payload = buildExecutionPayload(mode);
+    if (!payload) {
+      executionPayload = null;
+      clearExecutionHeartbeat();
+      return false;
+    }
+    var started = await requestExecutionAction('start', payload, false);
+    if (!started) return false;
+    executionPayload = payload;
+    clearExecutionHeartbeat();
+    executionHeartbeatTimer = setInterval(function () {
+      if (!executionPayload) return;
+      requestExecutionAction('heartbeat', executionPayload, false).catch(function () {});
+    }, 20000);
+    return true;
+  }
+
+  async function completeExecutionLifecycle() {
+    if (!executionPayload) return false;
+    var payload = executionPayload;
+    clearExecutionHeartbeat();
+    executionPayload = null;
+    return requestExecutionAction('complete', payload, false);
+  }
+
+  async function failExecutionLifecycle(reason, useKeepalive) {
+    if (!executionPayload) return false;
+    var payload = Object.assign({}, executionPayload, {
+      reason: asText(reason || 'generation_failed') || 'generation_failed'
+    });
+    clearExecutionHeartbeat();
+    executionPayload = null;
+    return requestExecutionAction('fail', payload, useKeepalive === true);
+  }
+
+  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+    window.addEventListener('beforeunload', function () {
+      if (!executionPayload) return;
+      failExecutionLifecycle('client_unload', true).catch(function () {});
+    });
+  }
+
   async function fetchDownloadHtml(reportId) {
     var res = await fetch(LOVE_API_BASE + '/download?reportId=' + encodeURIComponent(reportId), {
       method: 'GET',
@@ -980,6 +1077,8 @@
     state.chapterTexts = {};
     state.chapterMeta = {};
     state.activeChapter = 1;
+    executionPayload = null;
+    clearExecutionHeartbeat();
     setGenerateButtonBusy(false);
     refreshSavedReportButton();
     syncModeSwitch(state.mode);
@@ -1340,9 +1439,16 @@
     state.generating = true;
     setGenerateButtonBusy(true);
     setPartnerButtonsBusy(true);
+    var executionStarted = false;
+    var executionSettled = false;
 
     try {
+      executionStarted = await startExecutionLifecycle(mode);
       await generateAllChapters();
+      if (executionStarted) {
+        await completeExecutionLifecycle();
+        executionSettled = true;
+      }
       state.paymentContext = null;
       renderResultScreen();
       persistState();
@@ -1353,8 +1459,15 @@
       if (/LOCAL_REPORT_FAILED|로컬\s*리포트\s*실패/i.test(errMsg)) {
         await attemptLoveSecretAutoRefund(errMsg);
       }
+      if (executionStarted && !executionSettled) {
+        await failExecutionLifecycle(errMsg || 'generation_failed', false);
+        executionSettled = true;
+      }
       setErrorScreen(toSafeUserError(err));
     } finally {
+      if (executionStarted && !executionSettled) {
+        await failExecutionLifecycle('generation_incomplete', false);
+      }
       state.generating = false;
       setGenerateButtonBusy(false);
       setPartnerButtonsBusy(false);

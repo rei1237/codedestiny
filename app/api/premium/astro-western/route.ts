@@ -88,7 +88,13 @@ export async function POST(req: NextRequest) {
     const access = await requirePremiumRouteAccess(auth.userId, "westernAstrologyPremium", body as Record<string, unknown>);
     if (!access.ok) {
       return NextResponse.json(
-        { ok: false, code: access.code, message: access.message, reportType: access.reportType, required: access.required },
+        {
+          ok: false,
+          code: access.code,
+          message: access.message,
+          reportType: access.reportType,
+          ...("required" in access ? { required: access.required } : {}),
+        },
         { status: access.status },
       );
     }

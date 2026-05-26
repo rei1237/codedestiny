@@ -11,6 +11,8 @@ let validateCanonicalVedicChartStrict;
 let buildVedicChapterPlan;
 let buildVedicPremiumChapterJson;
 let vedicMissingMarkers;
+let validateVedicSectionText;
+let hasRepetitiveVedicSentences;
 let hasBannedDeterministicExpression;
 let hasForbiddenVedicPadding;
 
@@ -145,6 +147,8 @@ beforeAll(async () => {
     buildVedicChapterPlan,
     buildVedicPremiumChapterJson,
     vedicMissingMarkers,
+    validateVedicSectionText,
+    hasRepetitiveVedicSentences,
     hasBannedDeterministicExpression,
     hasForbiddenVedicPadding,
   } = __vedicTestUtils);
@@ -201,11 +205,11 @@ describe("Vedic Premium Strict Tests", () => {
   });
 
   test("F. 개인 모드 필수 마커 누락을 탐지해야 한다", () => {
-    const personalChapter11Text = "## 챕터 11\n### 1. 현재 다샤의 기본 의미\n### 2. 가까운 시기의 변화 흐름\n### 3. 기회가 열리는 조건";
+    const personalChapter11Text = "## 챕터 11\n### 1. 아트마카라카 행성\n### 2. 아트마카라카의 라시/하우스";
 
     const missingPersonal = vedicMissingMarkers(personalChapter11Text, 11, "personal");
 
-    expect(missingPersonal.some((m) => m.includes("다샤를 현실 전략으로 쓰는 법"))).toBe(true);
+    expect(missingPersonal.some((m) => m.includes("삶의 사명을 현실화하는 방식"))).toBe(true);
   });
 
   test("G. 베다 챕터 JSON 생성기는 필수 스키마를 채워야 한다", () => {
@@ -237,5 +241,35 @@ describe("Vedic Premium Strict Tests", () => {
     expect(String(chapterJson.engineSummaryJson?.actionPriority?.immediate || "").trim().length).toBeGreaterThan(0);
     expect(String(chapterJson.engineSummaryJson?.actionPriority?.stop || "").trim().length).toBeGreaterThan(0);
     expect(String(chapterJson.engineSummaryJson?.actionPriority?.review || "").trim().length).toBeGreaterThan(0);
+  });
+
+  test("H. 챕터 제목은 Chapter 접두어가 중복되지 않아야 한다", () => {
+    const canonical = buildCanonicalVedicChart(makeBody(), makeInput(), makeChart(), "personal", null, null);
+    const chapterJson = buildVedicPremiumChapterJson(
+      1,
+      { title: "Chapter 1. 영혼의 출발점", subtitle: "라그나 기반 인생 기본 구조" },
+      canonical,
+      "## 챕터 1\n\n### 1. 라그나 별자리와 삶의 기본 성향\n\n라그나 축 분석 본문입니다.",
+    );
+    expect(chapterJson.chapterTitle.includes("Chapter 1. Chapter 1")).toBe(false);
+  });
+
+  test("I. 베다 본문 검증기는 내부 메타/금지 표현을 차단해야 한다", () => {
+    const invalid = [
+      "## 챕터 2",
+      "### 1. 샘플",
+      "리포트 ID: vedic_xxx",
+      "본문 길이: 4123",
+      "Depth: 88",
+      "태양(Surya): Pisces하우스",
+      "| 항목 | 값 |",
+    ].join("\n\n");
+
+    expect(validateVedicSectionText(invalid, 200)).toBe(false);
+  });
+
+  test("J. 베다 반복 문장 탐지가 동작해야 한다", () => {
+    const repetitive = "같은 문장입니다. 같은 문장입니다. 같은 문장입니다.";
+    expect(hasRepetitiveVedicSentences(repetitive)).toBe(true);
   });
 });

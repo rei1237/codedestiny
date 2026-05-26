@@ -247,6 +247,51 @@ premiumPdfReportSchema.index({ userId: 1, updatedAt: -1 });
 premiumPdfReportSchema.index({ userId: 1, reportType: 1, updatedAt: -1 });
 premiumPdfReportSchema.index({ userId: 1, reportId: 1 }, { unique: true });
 
+const serviceExecutionTransactionSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
+  executionKey: { type: String, required: true, trim: true, maxlength: 120 },
+  featureKey: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  cost: { type: Number, default: 0, min: 0 },
+  sourceTransactionId: { type: String, default: "", trim: true, maxlength: 120, index: true },
+  paymentRef: {
+    impUid: { type: String, default: "", trim: true, maxlength: 120 },
+    merchantUid: { type: String, default: "", trim: true, maxlength: 120 },
+    paymentId: { type: String, default: "", trim: true, maxlength: 120 },
+    cancelEligible: { type: Boolean, default: false },
+  },
+  status: {
+    type: String,
+    enum: ["pending", "success", "failed", "refunded", "cancelled"],
+    default: "pending",
+    index: true,
+  },
+  reasonCode: { type: String, default: "", trim: true, maxlength: 80 },
+  reasonMessage: { type: String, default: "", trim: true, maxlength: 500 },
+  timeoutAt: { type: Date, required: true, index: true },
+  nextRetryAt: { type: Date, default: Date.now, index: true },
+  retryCount: { type: Number, default: 0, min: 0 },
+  maxRetries: { type: Number, default: 5, min: 1, max: 20 },
+  lock: {
+    token: { type: String, default: "", trim: true, maxlength: 120 },
+    until: { type: Date, default: null, index: true },
+    acquiredAt: { type: Date, default: null },
+  },
+  heartbeatAt: { type: Date, default: null },
+  completedAt: { type: Date, default: null },
+  compensatedAt: { type: Date, default: null },
+  compensation: {
+    coinRefunded: { type: Boolean, default: false },
+    coinRefundTxId: { type: String, default: "", trim: true, maxlength: 120 },
+    paymentCancelled: { type: Boolean, default: false },
+  },
+  metadata: { type: mongoose.Schema.Types.Mixed, default: null },
+  retentionUntil: { type: Date, default: null },
+}, { timestamps: true });
+
+serviceExecutionTransactionSchema.index({ userId: 1, executionKey: 1 }, { unique: true });
+serviceExecutionTransactionSchema.index({ status: 1, timeoutAt: 1, nextRetryAt: 1 });
+serviceExecutionTransactionSchema.index({ retentionUntil: 1 }, { expireAfterSeconds: 0 });
+
 export const User = mongoose.models.User || mongoose.model("User", userSchema);
 export const ProfileCard = mongoose.models.ProfileCard || mongoose.model("ProfileCard", profileCardSchema);
 export const Payment = mongoose.models.Payment || mongoose.model("Payment", paymentSchema);
@@ -254,6 +299,8 @@ export const PointHistory = mongoose.models.PointHistory || mongoose.model("Poin
 export const PaymentFailureLog = mongoose.models.PaymentFailureLog || mongoose.model("PaymentFailureLog", paymentFailureLogSchema);
 export const RefreshTokenSession = mongoose.models.RefreshTokenSession || mongoose.model("RefreshTokenSession", refreshTokenSessionSchema);
 export const PremiumPdfReport = mongoose.models.PremiumPdfReport || mongoose.model("PremiumPdfReport", premiumPdfReportSchema);
+export const ServiceExecutionTransaction = mongoose.models.ServiceExecutionTransaction
+  || mongoose.model("ServiceExecutionTransaction", serviceExecutionTransactionSchema);
 
 const dailyFortuneSubscriptionSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true, match: emailRegex },

@@ -8,6 +8,12 @@ import {
   getBillingFeaturePricing,
   listBillingFeatures,
 } from "../lib/billing-feature-registry.js";
+import {
+  completeServiceExecution,
+  failServiceExecution,
+  heartbeatServiceExecution,
+  startServiceExecution,
+} from "../lib/service-execution-task.js";
 
 const ACCESS_DECISION_REASONS = Object.freeze({
   FREE: "free",
@@ -698,6 +704,39 @@ async function handleConfirm(request, env) {
   return delegateToPayments(request, env, targetPath, body);
 }
 
+async function runServiceExecutionAction(request, env, action) {
+  const authCheck = await requireBillingAuth(request, env, { cost: 1 });
+  if (!authCheck.ok) return authCheck.response;
+
+  const body = await readJson(request);
+  let result;
+  if (action === "start") {
+    result = await startServiceExecution(env, authCheck.auth.userId, body);
+  } else if (action === "heartbeat") {
+    result = await heartbeatServiceExecution(env, authCheck.auth.userId, body);
+  } else if (action === "complete") {
+    result = await completeServiceExecution(env, authCheck.auth.userId, body);
+  } else if (action === "fail") {
+    result = await failServiceExecution(env, authCheck.auth.userId, body);
+  } else {
+    return failure(400, "INVALID_EXECUTION_ACTION", "지원하지 않는 실행 액션입니다.");
+  }
+
+  if (!result?.ok) {
+    return failure(
+      Number(result?.status || 400),
+      "SERVICE_EXECUTION_ERROR",
+      String(result?.message || "서비스 실행 상태를 처리하지 못했습니다."),
+    );
+  }
+
+  return success({
+    idempotent: Boolean(result.idempotent),
+    execution: result.execution || null,
+    settlement: result.settlement || null,
+  }, "서비스 실행 상태가 반영되었습니다.", { status: Number(result.status || 200) });
+}
+
 export async function handleBillingRoutes(request, env) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/billing");
@@ -717,6 +756,10 @@ export async function handleBillingRoutes(request, env) {
     if (method === "POST" && path === "/refund") return await handleLegacyRefund(request, env);
     if (method === "POST" && path === "/checkout") return await handleCheckout(request, env);
     if (method === "POST" && path === "/confirm") return await handleConfirm(request, env);
+    if (method === "POST" && path === "/executions/start") return await runServiceExecutionAction(request, env, "start");
+    if (method === "POST" && path === "/executions/heartbeat") return await runServiceExecutionAction(request, env, "heartbeat");
+    if (method === "POST" && path === "/executions/complete") return await runServiceExecutionAction(request, env, "complete");
+    if (method === "POST" && path === "/executions/fail") return await runServiceExecutionAction(request, env, "fail");
 
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
