@@ -118,9 +118,14 @@ export function validateLLMSectionContent(content, input) {
   }
 
   // 2. 최소 글자 수 기준
-  const minChars = input.section?.minChars || 1000;
-  if (text.length < minChars * 0.9) {
-    errors.push(`BELOW_MIN_CHARS(${text.length}/${minChars})`);
+  // section.minChars는 "권장 목표 길이"로 취급하고, 너무 짧은 경우만 하드 실패 처리한다.
+  const minChars = Number(input.section?.minChars || 1000);
+  const hardMinChars = Math.max(220, Math.floor(minChars * 0.35));
+  const softMinChars = Math.max(hardMinChars, Math.floor(minChars * 0.75));
+  if (text.length < hardMinChars) {
+    errors.push(`BELOW_HARD_MIN_CHARS(${text.length}/${hardMinChars})`);
+  } else if (text.length < softMinChars) {
+    warnings.push(`BELOW_TARGET_CHARS(${text.length}/${minChars})`);
   }
 
   // 3. 금지어 검사
@@ -190,7 +195,8 @@ export function validateLLMSectionContent(content, input) {
     errors,
     warnings,
     textLength: text.length,
-    minRequired: minChars,
+    minRequired: hardMinChars,
+    targetMinChars: minChars,
   };
 }
 

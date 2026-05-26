@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var MIN_CHAPTER_CHARS = 1200;
+  var MIN_CHAPTER_CHARS = 350;
 
   /* ─────────────── 챕터 상수 ─────────────── */
   var CHAPTER_TITLES = [
@@ -1011,8 +1011,8 @@
       }
       if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
       _fetchChapter(idx).then(function (data) {
-        var _zbText = data && typeof data.text === 'string' ? data.text.trim() : '';
-        if (!_zbText && data && data.chapterJson && Array.isArray(data.chapterJson.sections)) {
+        var _zbText = '';
+        if (data && data.chapterJson && Array.isArray(data.chapterJson.sections)) {
           _zbText = data.chapterJson.sections
             .map(function (row) {
               var title = String(row && (row.title || row.label) || '').trim();
@@ -1023,7 +1023,14 @@
             .filter(Boolean)
             .join('\n\n');
         }
-        if (data && data.ok && _zbText.length >= MIN_CHAPTER_CHARS) {
+        if (!_zbText && data && typeof data.text === 'string') {
+          _zbText = data.text.trim();
+        }
+
+        var _hasStructuredSections = !!(data && data.chapterJson && Array.isArray(data.chapterJson.sections) && data.chapterJson.sections.length >= 5);
+        var _hasUsableText = _zbText.length >= MIN_CHAPTER_CHARS;
+
+        if (data && data.ok && (_hasStructuredSections || _hasUsableText)) {
           _syncChapterMetaFromResponse(idx, data);
           _chapters[idx] = _zbText;
           _chapterStructured[idx] = (Array.isArray(data.sections) && data.sections.length)
@@ -1039,7 +1046,15 @@
         var msg = (data && data.message) ? data.message : '알 수 없는 오류';
         var errorCode = (data && data.code) ? String(data.code) : 'UNKNOWN_ERROR';
         _trace('CHAPTER_DATA_FAILED', { chapter: idx + 1, message: msg, code: errorCode });
-        console.error('[자미두수 PDF 생성] 섹션 생성 실패:', { chapter: idx + 1, code: errorCode, message: msg });
+        console.error('[자미두수 PDF 생성] 섹션 생성 실패:', {
+          chapter: idx + 1,
+          code: errorCode,
+          message: msg,
+          hasChapterJson: !!(data && data.chapterJson),
+          sectionCount: (data && data.chapterJson && Array.isArray(data.chapterJson.sections)) ? data.chapterJson.sections.length : 0,
+          textLength: _zbText.length,
+          raw: data || null,
+        });
         clearInterval(_mysticTimer); _mysticTimer = null; _generating = false;
         var failErrEl = _qs('zbErrorMsg');
         if (failErrEl) {
