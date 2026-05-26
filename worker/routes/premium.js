@@ -25611,7 +25611,8 @@ export async function handlePremiumRoutes(request, env) {
         const rawBody = await readJson(cloned);
         const tokenFromBody = String(rawBody?.premiumAccessToken || rawBody?._premiumAccessToken || "").trim();
         const tokenFromCookie = String(cookieValue(request, "cd_premium_access") || "").trim();
-        const premiumAccessToken = tokenFromBody || tokenFromCookie;
+        const tokenFromHeader = String(request.headers.get("x-premium-access-token") || "").trim();
+        const premiumAccessToken = tokenFromBody || tokenFromCookie || tokenFromHeader;
         const accessRequestBody = premiumAccessToken
           ? { ...(rawBody && typeof rawBody === "object" ? rawBody : {}), premiumAccessToken }
           : (rawBody && typeof rawBody === "object" ? rawBody : {});
@@ -25672,7 +25673,8 @@ export async function handlePremiumRoutes(request, env) {
       const rawBody = body && typeof body === "object" ? body : {};
       const tokenFromBody = String(rawBody?.premiumAccessToken || rawBody?._premiumAccessToken || "").trim();
       const tokenFromCookie = String(cookieValue(request, "cd_premium_access") || "").trim();
-      const premiumAccessToken = tokenFromBody || tokenFromCookie;
+      const tokenFromHeader = String(request.headers.get("x-premium-access-token") || "").trim();
+      const premiumAccessToken = tokenFromBody || tokenFromCookie || tokenFromHeader;
       const accessRequestBody = premiumAccessToken
         ? { ...(rawBody && typeof rawBody === "object" ? rawBody : {}), premiumAccessToken }
         : (rawBody && typeof rawBody === "object" ? rawBody : {});
