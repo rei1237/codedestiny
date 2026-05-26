@@ -4181,61 +4181,82 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
 
 /* ═══════════ NEO MODE — 백사자 네오 다크 모드 ═══════════ */
 
-/* ── 언어 선택 드롭다운 (컴팩트) ── */
+/* ── 우주형 언어 토글 (메인 서비스 상시 표시) ── */
 .lang-toggle-wrap {
   position: fixed;
-  top: 56px;
-  right: 14px;
-  z-index: 9998;
+  top: max(18px, env(safe-area-inset-top));
+  right: max(18px, env(safe-area-inset-right));
+  z-index: 10030;
+  display: block !important;
 }
 .lang-trigger {
   display: flex;
   align-items: center;
-  gap: 5px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 139, 167, 0.5);
-  border-radius: 22px;
-  padding: 7px 14px 7px 10px;
+  gap: 8px;
+  min-width: 196px;
+  height: 46px;
+  padding: 0 16px 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(227, 198, 255, 0.38);
+  background: linear-gradient(135deg, rgba(19, 9, 44, 0.98) 0%, rgba(51, 20, 102, 0.95) 52%, rgba(31, 47, 121, 0.92) 100%);
+  box-shadow: 0 18px 38px rgba(9, 7, 26, 0.56), 0 0 28px rgba(168, 104, 255, 0.34), inset 0 1px 0 rgba(255,255,255,0.12);
+  backdrop-filter: blur(12px) saturate(1.06);
+  -webkit-backdrop-filter: blur(12px) saturate(1.06);
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(255, 139, 167, 0.25);
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #FF8BA7;
+  transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease, filter 0.24s ease;
+  color: #f7f1ff;
   user-select: none;
 }
 .lang-trigger:hover {
-  box-shadow: 0 6px 20px rgba(255, 139, 167, 0.4);
-  transform: translateY(-1px);
+  transform: translateY(-1px) scale(1.03);
+  border-color: rgba(247, 231, 255, 0.66);
+  box-shadow: 0 22px 44px rgba(8, 6, 24, 0.64), 0 0 36px rgba(205, 143, 255, 0.46), inset 0 1px 0 rgba(255,255,255,0.16);
 }
-.lang-trigger .lang-icon { font-size: 1rem; }
+.lang-trigger .lang-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.98rem;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.55), rgba(255,255,255,0.12) 34%, rgba(255,255,255,0.02) 68%, rgba(255,255,255,0) 100%);
+  box-shadow: 0 0 14px rgba(220, 184, 255, 0.26);
+  flex: 0 0 auto;
+}
+.lang-trigger .lang-label {
+  flex: 1 1 auto;
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 10px rgba(255, 232, 255, 0.42);
+}
 .lang-trigger .lang-arrow {
-  font-size: 0.6rem;
-  transition: transform 0.3s ease;
-  margin-left: 2px;
+  font-size: 0.75rem;
+  transition: transform 0.24s ease;
+  color: rgba(248, 230, 255, 0.92);
 }
 .lang-toggle-wrap.open .lang-trigger .lang-arrow {
   transform: rotate(180deg);
 }
 .lang-dropdown {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 10px);
   right: 0;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(255, 139, 167, 0.35);
-  border-radius: 16px;
-  padding: 8px;
-  box-shadow: 0 8px 32px rgba(255, 139, 167, 0.25);
-  backdrop-filter: blur(12px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding: 10px;
+  min-width: 240px;
+  max-width: 280px;
+  border-radius: 18px;
+  border: 1px solid rgba(224, 197, 255, 0.28);
+  background: linear-gradient(160deg, rgba(11, 9, 28, 0.98) 0%, rgba(24, 14, 58, 0.98) 56%, rgba(16, 31, 77, 0.98) 100%);
+  box-shadow: 0 24px 56px rgba(6, 4, 18, 0.66), 0 0 28px rgba(166, 102, 255, 0.22);
+  backdrop-filter: blur(14px);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-8px) scale(0.95);
-  transition: all 0.25s cubic-bezier(0.34, 0.1, 0.68, 0.55);
-  min-width: 140px;
+  transform: translateY(-8px) scale(0.96);
+  transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s ease;
 }
 .lang-toggle-wrap.open .lang-dropdown {
   opacity: 1;
@@ -4243,90 +4264,53 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
   transform: translateY(0) scale(1);
 }
 .lang-btn {
-  background: transparent;
-  border: none;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #888;
+  appearance: none;
+  border: 1px solid transparent;
+  background: rgba(255,255,255,0.02);
+  color: #f7efff;
   cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 10px;
-  transition: all 0.25s ease;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 0.76rem;
+  font-weight: 800;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   white-space: nowrap;
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
 .lang-btn .lang-flag { font-size: 1rem; }
 .lang-btn.active {
-  background: #FF8BA7;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(255, 139, 167, 0.4);
+  background: linear-gradient(135deg, rgba(166,102,255,0.26), rgba(85,142,255,0.22));
+  border-color: rgba(228, 204, 255, 0.42);
+  box-shadow: 0 0 18px rgba(169, 107, 255, 0.22);
 }
 .lang-btn:hover:not(.active) {
-  background: rgba(255, 139, 167, 0.1);
-  color: #FF8BA7;
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(228, 204, 255, 0.18);
+  transform: translateY(-1px);
 }
 .lang-btn:active {
-  transform: scale(0.93);
-  opacity: 0.8;
+  transform: scale(0.98);
 }
 
-/* ── 네오 모드 ── */
 body.neo-mode .lang-trigger {
-  background: rgba(26, 24, 48, 0.85);
-  border-color: rgba(197, 160, 89, 0.4);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-  color: #C5A059;
-}
-body.neo-mode .lang-trigger:hover {
-  box-shadow: 0 6px 24px rgba(197, 160, 89, 0.35);
+  border-color: rgba(219, 188, 255, 0.32);
 }
 body.neo-mode .lang-dropdown {
-  background: rgba(26, 24, 48, 0.95);
-  border-color: rgba(197, 160, 89, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-}
-body.neo-mode .lang-btn {
-  color: #999;
+  border-color: rgba(219, 188, 255, 0.24);
 }
 body.neo-mode .lang-btn.active {
-  background: #C5A059;
-  color: #1a1830;
-  box-shadow: 0 2px 10px rgba(197, 160, 89, 0.4);
-}
-body.neo-mode .lang-btn:hover:not(.active) {
-  background: rgba(197, 160, 89, 0.15);
-  color: #C5A059;
+  background: linear-gradient(135deg, rgba(197, 160, 89, 0.24), rgba(85, 142, 255, 0.2));
 }
 
-/* ── 자동 숨김 (3초 후 축소) ── */
-.lang-toggle-wrap.collapsed .lang-trigger {
-  padding: 7px 10px;
-  border-radius: 50%;
-  width: 38px;
-  height: 38px;
-  justify-content: center;
-}
-.lang-toggle-wrap.collapsed .lang-trigger .lang-label,
-.lang-toggle-wrap.collapsed .lang-trigger .lang-arrow {
-  display: none;
-}
-.lang-toggle-wrap.collapsed .lang-trigger .lang-icon {
-  margin: 0;
-}
-
-/* Main landing keeps language widget hidden; locale is auto-detected in runtime. */
-.lang-toggle-wrap {
-  display: none !important;
-}
-
-/* ── 기능 동작 중 언어 버튼 자동 숨김 ── */
+/* 기존 자동 축소/숨김 정책 제거: 메인 화면에서는 항상 보이게 유지 */
+.lang-toggle-wrap.collapsed .lang-trigger,
 .lang-toggle-wrap.lang-wrap--hidden {
-  visibility: hidden;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.25s ease, visibility 0.25s ease;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  opacity: 1 !important;
 }
 
 /* ── 구글 번역기 배너/기본 아이콘 숨김 (코스믹 위젯은 표시 유지) ── */
