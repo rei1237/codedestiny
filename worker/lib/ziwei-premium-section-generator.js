@@ -110,6 +110,7 @@ function hasOnlyGenericFortunePhrases(text) {
 export function validateLLMSectionContent(content, input) {
   const text = String(content || "").trim();
   const errors = [];
+  const warnings = [];
 
   // 1. 비어 있는지 확인
   if (!text || text.length < 50) {
@@ -138,7 +139,7 @@ export function validateLLMSectionContent(content, input) {
 
   // 5. 일반적인 운세 문구만 반복되는지 확인
   if (hasOnlyGenericFortunePhrases(text)) {
-    errors.push("GENERIC_FORTUNE_ONLY");
+    warnings.push("GENERIC_FORTUNE_ONLY");
   }
 
   // 6. 섹션 제목 관련 키워드 확인
@@ -153,8 +154,8 @@ export function validateLLMSectionContent(content, input) {
   const matchedKeywords = sectionKeywords.filter((kw) => textLower.includes(kw));
 
   if (matchedKeywords.length === 0 && sectionKeywords.length > 1) {
-    // 섹션 제목의 어떤 키워드도 본문에 없으면 경고
-    errors.push("NO_SECTION_KEYWORD_MATCH");
+    // 섹션 제목 키워드 누락은 경고로만 취급
+    warnings.push("NO_SECTION_KEYWORD_MATCH");
   }
 
   // 7. targetPalace 또는 관련 궁 이름 확인
@@ -169,7 +170,7 @@ export function validateLLMSectionContent(content, input) {
   );
 
   if (targetPalaces.length > 0 && palacesFound.length === 0) {
-    errors.push("NO_TARGET_PALACE_FOUND");
+    warnings.push("NO_TARGET_PALACE_FOUND");
   }
 
   // 8. 별 이름 또는 강도 기호 확인
@@ -181,12 +182,13 @@ export function validateLLMSectionContent(content, input) {
     strengthSymbols.some((symbol) => text.includes(symbol));
 
   if (starNames.length > 0 && !hasStarOrSymbol) {
-    errors.push("NO_STAR_OR_SYMBOL");
+    warnings.push("NO_STAR_OR_SYMBOL");
   }
 
   return {
     ok: errors.length === 0,
     errors,
+    warnings,
     textLength: text.length,
     minRequired: minChars,
   };
@@ -205,26 +207,26 @@ export async function generateZiweiSectionWithLLM(env, input) {
       const prompt = buildZiweiSectionLLMPrompt(input);
 
       // LLM 호출
-      const result = await callGemini(env, prompt, ["PREMIUM_ZIWEI_GEMINI_MODEL"], {
+      const llmResult = await callGeminiText(env, prompt, {
+        modelEnvKeys: ["PREMIUM_ZIWEI_GEMINI_MODEL"],
         temperature: 0.72,
         topP: 0.92,
         maxOutputTokens: 4096,
         timeoutMs: Number(env.PREMIUM_ZIWEI_GEMINI_TIMEOUT_MS || 30000),
-        rawOutput: true,
-        expectJson: false,
       });
 
-      const content = String(result || "").trim();
-
-      if (!content) {
-        lastError = new Error("EMPTY_LLM_RESPONSE");
+      if (!llmResult?.ok || !String(llmResult?.text || "").trim()) {
+        lastError = new Error(String(llmResult?.message || llmResult?.error || "EMPTY_LLM_RESPONSE"));
         console.warn("[ZiweiBook.LLMEmptyResponse]", {
           chapterId: input.chapter?.chapterId,
           sectionId: input.section?.sectionId,
           attempt,
+          error: String(lastError.message || "EMPTY_LLM_RESPONSE"),
         });
         continue;
       }
+
+      const content = String(llmResult.text || "").trim();
 
       // 결과 검증
       const validation = validateLLMSectionContent(content, input);
@@ -234,6 +236,7 @@ export async function generateZiweiSectionWithLLM(env, input) {
           chapterId: input.chapter?.chapterId,
           sectionId: input.section?.sectionId,
           textLength: validation.textLength,
+          warnings: validation.warnings || [],
           attempt,
         });
 

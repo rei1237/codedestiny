@@ -15423,6 +15423,30 @@ function buildZiweiPdfPipelineRawChart(reportPayload, canonicalZiweiChart, dataQ
     const fallbackRows = [{ star: fallbackStar, type: "화록", meaning: "화록 작동" }];
     palace.transformations = fallbackRows;
     sihuaByPalace.set(palace.key, fallbackRows);
+
+    function extractZiweiStarNamesFromPayload(reportPayload) {
+      const names = new Set();
+      const palaces = Array.isArray(reportPayload?.palaces) ? reportPayload.palaces : [];
+
+      for (const palace of palaces) {
+        const starGroups = [
+          Array.isArray(palace?.stars) ? palace.stars : [],
+          Array.isArray(palace?.mainStars) ? palace.mainStars : [],
+          Array.isArray(palace?.auxStars) ? palace.auxStars : [],
+          Array.isArray(palace?.subStars) ? palace.subStars : [],
+          Array.isArray(palace?.badStars) ? palace.badStars : [],
+        ];
+
+        for (const group of starGroups) {
+          for (const star of group) {
+            const name = String(star?.name || star || "").trim();
+            if (name) names.add(name);
+          }
+        }
+      }
+
+      return Array.from(names);
+    }
     addSihua({ palaceKey: palace.key, palaceName: palace.nameKo, star: fallbackStar, type: "화록", meaning: "화록 작동" }, palace.key);
     pushUnique(dataQuality?.supplementedFields, `reportPayload.palaces[${idx}].sihua`);
   });

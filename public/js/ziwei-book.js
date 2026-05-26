@@ -9,77 +9,65 @@
 
   /* ─────────────── 챕터 상수 ─────────────── */
   var CHAPTER_TITLES = [
-    '🌌 내 인생의 주인공 캐릭터 — 명궁(命宮) 완전 해독',
-    '🌟 내면의 본체 — 신궁(身宮) 심층 분석과 잠재 무기',
-    '🌙 무의식의 도화지 — 복덕궁(福德宮)으로 읽는 행복의 설계도',
-    '🌍 세상이라는 무대 — 천이궁(遷移宮)과 이미지 관리',
-    '👑 커리어와 성취 — 관록궁(官祿宮)의 천직 방정식',
-    '💰 재화와 자산의 흐름 — 재백궁(財帛宮)의 부의 법칙',
-    '💑 파트너십과 로맨스 — 부처궁(夫妻宮)의 인연 구조',
-    '🤝 팀워크와 네트워크 — 교우궁(交友宮)의 인적 자원 법칙',
-    '🏠 공간과 환경 — 전택궁(田宅宮)의 환경심리학',
-    '💪 신체 에너지와 바이오리듬 — 질액궁(疾厄宮)의 건강 설계',
-    '🌊 10년의 메가 트렌드 — 대한(大限) 분석과 전 생애 파노라마',
-    '📅 올해의 마이크로 전술 — 2026 유년(流年)·유월(流月) 로드맵',
-    '🌅 인생 설계도 총결산 — 자미두수 거장의 마스터플랜 봉서',
-    '🧭 생애 로드맵 확장 — 장기 전략·전환기 대응 매뉴얼',
-    '🔱 최종 전략 제언 — 명반을 실전에 쓰는 실행 프로토콜',
+    'Ch.1 명궁 완전 해독 — 타고난 인생 설계도',
+    'Ch.2 신궁 심층 분석 — 후천적으로 완성되는 나',
+    'Ch.3 형제궁과 인간관계의 거리감 — 가까운 사람과의 심리 구조',
+    'Ch.4 부부궁 연애와 결혼 — 끌리는 사람과 관계의 숙제',
+    'Ch.5 자녀궁과 창조성 — 표현력, 결과물, 후대운',
+    'Ch.6 재백궁 재물 흐름 — 돈을 버는 방식과 지키는 방식',
+    'Ch.7 질액궁 건강과 에너지 — 몸과 마음의 취약점',
+    'Ch.8 천이궁 외부 세계 — 이동, 확장, 귀인, 환경운',
+    'Ch.9 노복궁 협력자와 사회적 네트워크 — 사람을 얻는 방식',
+    'Ch.10 관록궁 커리어 해석 — 일, 명예, 사회적 성취',
+    'Ch.11 전택궁과 복덕궁 — 기반, 안정, 마음의 만족',
+    'Ch.12 사화와 종합 인생 전략 — 기회, 압박, 최종 로드맵'
   ];
 
   var CHAPTER_SUBTITLES = [
-    '명궁 주성·사화 완전 해독 — 타고난 핵심 성향·삼방사정·상황별 강점 활용 전략',
-    '신궁 심층 분석 — 내면의 본체·잠재 무기·명궁과의 통합으로 완성되는 진짜 자아',
-    '복덕궁 주성 분석 — 행복 DNA·스트레스 패턴·심상화 마인드 트레이닝',
-    '천이궁 주성 분석 — 사회적 이미지·이미지 관리·외부 활동 황금 타이밍',
-    '관록궁 주성 분석 — 업무 성향 DNA·천직 영역·오피스 심리학·커리어 도약 타이밍',
-    '재백궁 주성 분석 — 재물 그릇·수입 파이프라인·파재성 역이용·황금 타이밍',
-    '부처궁 주성 분석 — 이상형 성향·감정 비춤 패턴·관계 경계 설정·인연 타이밍',
-    '교우궁 주성 분석 — 귀인 구별법·에너지 뱀파이어 차단·위임과 아웃소싱 전략',
-    '전택궁 주성 분석 — 공간 심리학·인테리어 무드·깔끔한 정리법·자산 전략',
-    '질액궁 주성 분석 — 오행 체질·스트레스 신체화 패턴·라이프스타일 의학 가이드',
-    '현재 대한 완전 해독 — 상승장/하락장 전략 + 전 생애 파노라마 + 황금 대한 지목',
-    '2026 소한 완전 해독 — Go/Hold/Retreat 판정 · 분기별·월별 마이크로 전술 로드맵',
-    '13챕터 총결산 — 3가지 핵심 비책 · Master Habit · 거장의 천명 봉서(封書)',
-    '생애 타임라인 통합 — 대운·세운·실행 루틴을 한 장에 통합',
-    '최종 전략 제언 — 명반 기반 의사결정 체크리스트와 실행 원칙',
+    '명궁의 핵심 기질, 강점과 약점, 인생 초반부 과제',
+    '신궁의 방향성, 명궁과의 관계, 자기완성 전략',
+    '가까운 사람과의 거리감, 경쟁심, 관계 패턴과 조언',
+    '연애 패턴, 끌리는 상대, 관계 안정 조건, 사랑 지속 전략',
+    '표현 욕구, 창작물/결과물, 돌봄, 후대운 구조',
+    '재물운 기본 구조, 수입 패턴, 누수점, 투자 적성, 재물 관리 전략',
+    '에너지 패턴, 과로 신호, 감정-신체 연결, 생활 습관, 회복 루틴',
+    '외부 환경에서의 운, 이동/이사/확장 기회, 귀인 구조, 환경 적응',
+    '협력자 유형, 도움받는 방식, 팀워크 강점, 관계 위험, 인연 선별 기준',
+    '직업 성향, 성과 창출 방식, 조직형/독립형 적성, 인정 조건, 커리어 전략',
+    '삶의 기반, 주거·자산 운, 내면의 평온, 행복 조건, 지속 만족 습관',
+    '사화(화록·화권·화과·화기)의 작동, 최강 궁과 최약 궁, 최종 실행 로드맵'
   ];
 
   var LOADING_MSGS = [
-    '명궁(命宮) 주성의 핵심 성향을 해독하는 중...',
-    '신궁(身宮) 내면의 본체와 잠재 무기를 분석하는 중...',
-    '복덕궁(福德宮)의 행복 DNA와 심상화 코드를 분석하는 중...',
-    '천이궁(遷移宮)의 사회적 이미지 기운을 탐색하는 중...',
-    '관록궁(官祿宮)의 천직 방정식을 계산하는 중...',
-    '재백궁(財帛宮)의 재물 그릇과 부의 흐름을 읽는 중...',
-    '부처궁(夫妻宮)의 인연 구조와 사랑의 거울을 해독하는 중...',
-    '교우궁(交友宮)의 귀인 지도와 네트워크 전략을 탐색하는 중...',
-    '전택궁(田宅宮)의 공간 에너지와 자산 라인을 분석하는 중...',
-    '질액궁(疾厄宮)의 신체 에너지 바이오리듬을 해독하는 중...',
-    '대한(大限) 10년 흐름과 전 생애 파노라마를 펼치는 중...',
-    '2026 소한(小限) 월별 마이크로 전술을 로드맵으로 구성하는 중...',
-    '인생 설계도 총결산 — 거장의 마스터플랜 봉서를 집필하는 중...',
-    '생애 타임라인 통합 전략을 정교화하는 중...',
-    '최종 전략 제언과 실행 프로토콜을 정리하는 중...',
+    'Ch.1 명궁 핵심 기질을 해석하는 중...',
+    'Ch.2 신궁 방향성을 분석하는 중...',
+    'Ch.3 형제궁 관계 구조를 분석하는 중...',
+    'Ch.4 부부궁 관계 패턴을 해석하는 중...',
+    'Ch.5 자녀궁 창조성을 분석하는 중...',
+    'Ch.6 재백궁 재물 흐름을 분석하는 중...',
+    'Ch.7 질액궁 건강 패턴을 해석하는 중...',
+    'Ch.8 천이궁 외부운을 분석하는 중...',
+    'Ch.9 노복궁 네트워크를 분석하는 중...',
+    'Ch.10 관록궁 커리어를 해석하는 중...',
+    'Ch.11 전택궁·복덕궁 기반을 분석하는 중...',
+    'Ch.12 사화 종합 전략을 정리하는 중...'
   ];
 
-  var TOTAL_CHAPTERS = Math.min(10, CHAPTER_TITLES.length);
+  var TOTAL_CHAPTERS = Math.min(12, CHAPTER_TITLES.length);
 
   var CHAPTER_STRUCTURED_LABELS = {
-    1: ['명궁 핵심 성향', '주성 배치 해석', '강점 발현 조건', '약점 보완 전략', '실전 적용 포인트'],
-    2: ['신궁 핵심 동력', '내면 욕구 구조', '잠재 무기 발굴', '관계에서의 표현', '성장 루틴'],
-    3: ['복덕궁 정서 구조', '행복 트리거', '스트레스 회복법', '정신 에너지 관리', '감정 안정 습관'],
-    4: ['천이궁 외부운', '사회적 이미지', '환경 변화 대응', '기회 포착 포인트', '리스크 회피법'],
-    5: ['관록궁 커리어 축', '적성 직무군', '성과 확대 전략', '조직 내 포지셔닝', '도약 타이밍'],
-    6: ['재백궁 재물 흐름', '수입 구조 진단', '지출 누수 포인트', '축재 전략', '재정 안정 장치'],
-    7: ['부처궁 관계 패턴', '연애 성향 진단', '갈등 유발 요소', '관계 유지 전략', '인연 타이밍'],
-    8: ['교우궁 네트워크', '귀인 구별법', '협업 최적화', '경계 설정 원칙', '인맥 운영 전략'],
-    9: ['전택궁 공간 운', '주거 에너지', '환경 정비 우선순위', '자산 관점 체크', '생활 루틴 최적화'],
-    10: ['질액궁 건강 신호', '취약 패턴', '회복 루틴', '생활 습관 처방', '장기 관리 포인트'],
-    11: ['대한 흐름 요약', '상승 구간', '주의 구간', '전략 전환 시점', '10년 실행 원칙'],
-    12: ['유년/유월 포인트', '분기별 전략', '월별 체크리스트', '실행 우선순위', '리스크 관리'],
-    13: ['전체 총결산', '핵심 인사이트', '실행 프레임워크', '습관 설계', '장기 로드맵'],
-    14: ['장기 전략 확장', '전환기 대응', '성장 가속 장치', '기반 재정비', '실행 캘린더'],
-    15: ['최종 전략 제언', '의사결정 기준', '실행 프로토콜', '점검 루프', '지속 개선 포인트'],
+    1: ['1-1. 명궁의 핵심 기질', '1-2. 명궁 주성과 보조성이 만드는 성격의 골격', '1-3. 강점이 드러나는 방식', '1-4. 약점과 반복되는 인생 패턴', '1-5. 인생 초반부부터 반복되는 핵심 과제'],
+    2: ['2-1. 신궁이 의미하는 후천적 방향성', '2-2. 시간이 지날수록 강해지는 성향', '2-3. 명궁과 신궁의 충돌 또는 조화', '2-4. 인생 후반부의 변화 포인트', '2-5. 자기완성 전략'],
+    3: ['3-1. 형제궁으로 보는 관계의 기본 거리', '3-2. 가까운 사람에게 기대하는 것', '3-3. 경쟁심과 비교심이 생기는 지점', '3-4. 형제·동료·친구 관계의 반복 패턴', '3-5. 관계 피로를 줄이는 실전 조언'],
+    4: ['4-1. 연애에서 반복되는 패턴', '4-2. 끌리는 상대의 특징', '4-3. 관계에서 상처받는 지점', '4-4. 결혼 또는 장기 관계의 안정 조건', '4-5. 사랑을 오래 지키는 전략'],
+    5: ['5-1. 자녀궁이 보여주는 표현 욕구', '5-2. 창작물과 결과물이 나오는 방식', '5-3. 돌봄과 책임을 대하는 태도', '5-4. 후배·제자·자녀와의 인연 구조', '5-5. 나의 결과물을 키우는 전략'],
+    6: ['6-1. 재물운의 기본 구조', '6-2. 돈이 들어오는 패턴', '6-3. 돈이 새어나가는 약점', '6-4. 투자/사업/직장 수입의 적합성', '6-5. 재물 관리 실전 조언'],
+    7: ['7-1. 타고난 에너지 패턴', '7-2. 과로와 번아웃 신호', '7-3. 감정과 몸이 연결되는 방식', '7-4. 주의해야 할 생활 습관', '7-5. 회복 루틴 제안'],
+    8: ['8-1. 밖으로 나갔을 때 열리는 운', '8-2. 이직/이사/해외/확장성', '8-3. 귀인과 도움을 받는 방식', '8-4. 외부 환경에서 조심할 점', '8-5. 인생 무대를 넓히는 전략'],
+    9: ['9-1. 협력자와 조력자의 유형', '9-2. 사람에게 도움받는 방식', '9-3. 팀워크에서 강해지는 지점', '9-4. 배신감이나 실망이 생기는 구조', '9-5. 좋은 인연을 선별하는 기준'],
+    10: ['10-1. 타고난 직업 성향', '10-2. 성과가 나는 업무 방식', '10-3. 조직형/독립형/창작형 적성', '10-4. 사회적 인정이 열리는 조건', '10-5. 커리어 리스크와 돌파 전략'],
+    11: ['11-1. 전택궁으로 보는 삶의 기반', '11-2. 주거·자산·정착운의 방향', '11-3. 복덕궁으로 보는 내면의 평온', '11-4. 행복을 갉아먹는 선택', '11-5. 오래 지속되는 만족을 만드는 습관'],
+    12: ['12-1. 사화(화록·화권·화과·화기)의 작동 원리', '12-2. 화록·화권·화과·화기가 각 궁에서 작동하는 방식', '12-3. 명반에서 가장 강한 궁과 약한 궁', '12-4. 인생의 기회 구간과 압박 구간', '12-5. 최종 실행 로드맵']
   };
 
   var MYSTIC_QUOTES = [
@@ -900,7 +888,7 @@
       return token;
     }
 
-    function _fetchChapter(idx) {
+    function _fetchAllChapters() {
       var _zbAuthToken = '';
       try { _zbAuthToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
       return new Promise(function (resolve) {
@@ -929,17 +917,12 @@
             headers: _zbHeaders,
             body: JSON.stringify({
               reportId: _zbReportId,
-              requestId: 'ziwei-' + _zbReportId + '-ch' + (idx + 1) + '-a' + (_attempt + 1),
-              chapterIndex: idx + 1,
-              ch: idx + 1,
-              sessionId: idx + 1,
-              chapter: idx + 1,
-              strictNoFallback: false,
-              chapterTitle: CHAPTER_TITLES[idx] || ('Chapter ' + (idx + 1)),
-              chapterSubtitle: CHAPTER_SUBTITLES[idx] || '',
-              chapterSpecificSections: Array.isArray(CHAPTER_STRUCTURED_LABELS[idx + 1])
-                ? CHAPTER_STRUCTURED_LABELS[idx + 1]
-                : [],
+              requestId: 'ziwei-' + _zbReportId + '-all-a' + (_attempt + 1),
+              chapterIndex: 1,
+              ch: 1,
+              sessionId: 1,
+              chapter: 1,
+              strictNoFallback: true,
               premiumAccessToken: _zbPremiumToken || undefined,
               ziweiData: ziweiData,
               ziweiStructured: _collectZiweiStructuredData(),
@@ -987,23 +970,64 @@
       });
     }
 
-    var _failCount = 0;
-    (function generateNext(idx) {
-      if (idx >= TOTAL_CHAPTERS) {
+    if (chapterMsg) chapterMsg.textContent = '12개 챕터를 순차 생성하는 중...';
+    _fetchAllChapters().then(function (data) {
+      if (data && data.ok && Array.isArray(data.chapters) && data.chapters.length > 0) {
+        var _mappedCount = 0;
+        data.chapters.forEach(function (chapterData) {
+          var chapterNo = Number(chapterData && chapterData.chapterNo || 0);
+          var idx = chapterNo - 1;
+          if (idx < 0 || idx >= TOTAL_CHAPTERS) return;
+
+          var sections = Array.isArray(chapterData.sections) ? chapterData.sections : [];
+          var chapterText = sections
+            .map(function (row) {
+              var title = String(row && (row.sectionTitle || row.title) || '').trim();
+              var body = String(row && (row.content || row.body) || '').trim();
+              if (!body) return '';
+              return title ? ('## ' + title + '\n' + body) : body;
+            })
+            .filter(Boolean)
+            .join('\n\n');
+
+          _chapterMeta[idx] = {
+            title: String(chapterData.chapterTitle || CHAPTER_TITLES[idx] || ('Chapter ' + chapterNo)),
+            subtitle: String(CHAPTER_SUBTITLES[idx] || ''),
+            sections: Array.isArray(CHAPTER_STRUCTURED_LABELS[chapterNo])
+              ? CHAPTER_STRUCTURED_LABELS[chapterNo]
+              : sections.map(function (row) { return String(row && (row.sectionTitle || row.title) || '').trim(); }).filter(Boolean),
+            isSkeleton: false,
+          };
+
+          _chapterStructured[idx] = {
+            sections: sections.map(function (row) {
+              return {
+                title: String(row && (row.sectionTitle || row.title) || '').trim(),
+                body: String(row && (row.content || row.body) || '').trim(),
+              };
+            }).filter(function (row) { return row.body; })
+          };
+
+          _chapters[idx] = chapterText;
+          _mappedCount += 1;
+          _setProgress(_mappedCount);
+          _trace('CHAPTER_DATA_RECEIVED', { chapter: chapterNo, length: chapterText.length });
+        });
+
         clearInterval(_mysticTimer); _mysticTimer = null; _generating = false;
         var _validCount = _chapters.filter(function(c) {
           return typeof c === 'string' && c.trim().length > 0;
         }).length;
         _trace('PDF_GENERATION_COMPLETE', { validChapters: _validCount, totalChapters: TOTAL_CHAPTERS });
+
         if (_validCount < TOTAL_CHAPTERS) {
           var errEl = _qs('zbErrorMsg');
-          if (errEl) errEl.textContent = _validCount === 0
-            ? '모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.\n잠시 후 다시 시도해 주세요.'
-            : '챕터 생성이 중단되었습니다 (성공 ' + _validCount + '/' + TOTAL_CHAPTERS + '). 실패 챕터를 확인한 뒤 다시 시도해 주세요.';
+          if (errEl) errEl.textContent = '자미두수 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있습니다.';
           _zbClearSaved(window.__cdActiveBirthProfile || {});
           _showScreen('zbErrorScreen');
           return;
         }
+
         _showScreen('zbResultScreen');
         _updateTocState();
         _renderChapter(1);
@@ -1021,36 +1045,19 @@
         if (epBanner) epBanner.style.display = '';
         return;
       }
-      if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
-      _fetchChapter(idx).then(function (data) {
-        var _zbText = data && typeof data.text === 'string' ? data.text.trim() : '';
-        if (data && data.ok && _zbText.length >= MIN_CHAPTER_CHARS) {
-          _syncChapterMetaFromResponse(idx, data);
-          _chapters[idx] = data.text;
-          _chapterStructured[idx] = (Array.isArray(data.sections) && data.sections.length)
-            ? { sections: data.sections }
-            : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
-          _trace('CHAPTER_DATA_RECEIVED', { chapter: idx + 1, length: _zbText.length });
-          _setProgress(idx + 1);
-          generateNext(idx + 1);
-          return;
-        }
 
-        _failCount++;
-        var msg = (data && data.message) ? data.message : '알 수 없는 오류';
-        var errorCode = (data && data.code) ? String(data.code) : 'UNKNOWN_ERROR';
-        _trace('CHAPTER_DATA_FAILED', { chapter: idx + 1, message: msg, code: errorCode });
-        console.error('[자미두수 PDF 생성] 섹션 생성 실패:', { chapter: idx + 1, code: errorCode, message: msg });
-        clearInterval(_mysticTimer); _mysticTimer = null; _generating = false;
-        var failErrEl = _qs('zbErrorMsg');
-        if (failErrEl) {
-          failErrEl.textContent = '자미두수 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있습니다.';
-        }
-        _zbClearSaved(window.__cdActiveBirthProfile || {});
-        _showScreen('zbErrorScreen');
-        return;
-      });
-    })(0);
+      var msg = (data && data.message) ? data.message : '알 수 없는 오류';
+      var errorCode = (data && data.code) ? String(data.code) : 'UNKNOWN_ERROR';
+      _trace('CHAPTER_DATA_FAILED', { chapter: 1, message: msg, code: errorCode });
+      console.error('[자미두수 PDF 생성] 12챕터 생성 실패:', { code: errorCode, message: msg, failedChapters: data && data.failedChapters });
+      clearInterval(_mysticTimer); _mysticTimer = null; _generating = false;
+      var failErrEl = _qs('zbErrorMsg');
+      if (failErrEl) {
+        failErrEl.textContent = '자미두수 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있습니다.';
+      }
+      _zbClearSaved(window.__cdActiveBirthProfile || {});
+      _showScreen('zbErrorScreen');
+    });
   };
 
   /* ─────────────── PDF 다운로드 ─────────────── */
