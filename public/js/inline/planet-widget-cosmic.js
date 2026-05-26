@@ -127,15 +127,16 @@
 
       #google_translate_element .cosmic-lang-label {
         color: var(--cdgt-text) !important;
-        font-size: 11px !important;
-        letter-spacing: .08em !important;
+        font-size: 12px !important;
+        letter-spacing: .06em !important;
         text-shadow: 0 0 10px rgba(255, 231, 255, .58) !important;
         text-transform: uppercase !important;
         font-weight: 800 !important;
-        left: 54% !important;
+        left: 56% !important;
       }
 
-      #google_translate_element .goog-te-combo {
+      /* Use element-qualified selector to beat base style specificity */
+      #google_translate_element select.goog-te-combo {
         appearance: none !important;
         -webkit-appearance: none !important;
         -moz-appearance: none !important;
@@ -154,7 +155,7 @@
         cursor: pointer !important;
       }
 
-      #google_translate_element .goog-te-combo::-ms-expand { display: none !important; }
+      #google_translate_element select.goog-te-combo::-ms-expand { display: none !important; }
 
       #google_translate_element .cd-gt-custom-menu {
         background: linear-gradient(160deg, rgba(17,13,44,.97) 0%, rgba(31,17,76,.97) 52%, rgba(19,33,88,.97) 100%) !important;
@@ -212,7 +213,7 @@
 
       @media (max-width: 768px) {
         #google_translate_element { top: max(12px, env(safe-area-inset-top)) !important; right: max(12px, env(safe-area-inset-right)) !important; }
-        #google_translate_element .goog-te-combo { width: 148px !important; min-width: 148px !important; }
+        #google_translate_element select.goog-te-combo { width: 148px !important; min-width: 148px !important; }
         #google_translate_element .cosmic-wrapper { min-width: 148px !important; }
       }
     `;
