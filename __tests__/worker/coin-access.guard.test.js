@@ -67,7 +67,7 @@ describe("Fortune coin access guard", () => {
       productSpec: null,
       requestedCost: 1,
       featureKey: "coin-gate-per-use",
-      reason: "인생의 책 생성 (13챕터)",
+      reason: "인생의 책 생성 (12챕터)",
     });
 
     expect(priced.ok).toBe(true);

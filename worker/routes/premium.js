@@ -10,6 +10,7 @@ import {
   REPORT_TYPE_TO_FEATURE_TYPE,
   getPremiumSpecByFeatureType,
   getPremiumSpecByReportType,
+  getPremiumReportDefinitionByReportType,
 } from "../lib/premium-pdf-specs.js";
 import {
   getSwissWesternChart as getLocalSwissWesternChart,
@@ -122,6 +123,7 @@ import { generateAstroPdf } from "../lib/generate-astro-pdf.js";
 import { generateZiweiPdf } from "../lib/generate-ziwei-pdf.js";
 import { validateAstroPdfPayload as validateAstroPdfPayloadStrict } from "../lib/astro/validateAstroPdfPayload.js";
 import { normalizeAstroPayloadForStrictValidation } from "../lib/astro/normalizeAstroPayloadForStrictValidation.js";
+import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { Solar } from "lunar-javascript";
 
 const SIGN_KO = ["양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리", "처녀자리", "천칭자리", "전갈자리", "사수자리", "염소자리", "물병자리", "물고기자리"];
@@ -1665,7 +1667,7 @@ const PREMIUM_REPORT_REQUIRED_CHAPTERS = {
   westernAstrologyPremium: 12,
   vedicPremium: 16,
   lifeBook: 13,
-  loveSecret: 7,
+  loveSecret: 10,
   sajuNewYear: 10,
 };
 
@@ -2096,9 +2098,26 @@ function getPremiumRequiredChapters(reportType, mode = "") {
       : LOVE_SECRET_MODE_CONFIG.solo?.chapters;
     const chapterCount = Array.isArray(chapterRows) ? chapterRows.length : 0;
     if (chapterCount > 0) return chapterCount;
-    return normalizedMode.includes("compat") || normalizedMode.includes("couple") ? 8 : 7;
+    return normalizedMode.includes("compat") || normalizedMode.includes("couple") ? 12 : 10;
   }
-  return Number(PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || (reportType === "ziweiPremium" ? 15 : 13));
+  return Number(PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || 10);
+}
+
+function logPremiumReportDefinitionMismatch(reason, payload = {}) {
+  try {
+    console.error("PdfReportDefinitionMismatch", {
+      reason: String(reason || "unknown"),
+      reportType: String(payload.reportType || ""),
+      mode: String(payload.mode || ""),
+      frontendChapterCount: Number(payload.frontendChapterCount || 0),
+      backendChapterCount: Number(payload.backendChapterCount || 0),
+      generatedChapterCount: Number(payload.generatedChapterCount || 0),
+      requestId: String(payload.requestId || ""),
+      reportSessionId: String(payload.reportSessionId || ""),
+    });
+  } catch (_) {
+    // no-op
+  }
 }
 
 function normalizePremiumReportType(value) {
@@ -2982,7 +3001,7 @@ function getPremiumNormalizedDataSummary(reportType, canonicalJson) {
 
   if (reportType === "sajuNewYear") {
     return {
-      ch1: { chapterTitle: "연간 파동 총론 - 올해의 기본 기조", requiredPaths: ["calculatedData.profile.birth", "calculatedData.saju"] },
+      ch1: { chapterTitle: "Ch.1 연간 파동 총론 — 올해의 기본 기조", requiredPaths: ["calculatedData.profile.birth", "calculatedData.saju"] },
       ch2: { chapterTitle: "커리어 전략 - 성과가 나는 월/주의 월", requiredPaths: ["calculatedData.yearlySummary.career", "calculatedData.monthlyLuck"] },
       ch3: { chapterTitle: "재물 흐름 - 수익/지출 관리 타이밍", requiredPaths: ["calculatedData.yearlySummary.wealth", "calculatedData.monthlyLuck"] },
       ch4: { chapterTitle: "관계·인맥 - 협업과 거리두기 전략", requiredPaths: ["calculatedData.yearlySummary.relationship", "calculatedData.monthlyLuck"] },
@@ -2991,7 +3010,7 @@ function getPremiumNormalizedDataSummary(reportType, canonicalJson) {
       ch7: { chapterTitle: "분기별 핵심 의사결정 포인트", requiredPaths: ["calculatedData.actionPlan", "calculatedData.monthlyLuck"] },
       ch8: { chapterTitle: "리스크 시나리오와 대응 플랜", requiredPaths: ["calculatedData.actionPlan", "calculatedData.monthlyLuck"] },
       ch9: { chapterTitle: "12개월 Go/Stop 월별 테이블", requiredPaths: ["calculatedData.monthlyLuck"] },
-      ch10: { chapterTitle: "최종 실행 로드맵 - 연말 회수 전략", requiredPaths: ["calculatedData.yearlySummary", "calculatedData.actionPlan"] },
+      ch10: { chapterTitle: "Ch.10 최종 실행 로드맵 — 연말 회수 전략", requiredPaths: ["calculatedData.yearlySummary", "calculatedData.actionPlan"] },
     };
   }
 
@@ -3156,7 +3175,7 @@ function resolveChapterSpec(reportType, featureType, mode, chapterId) {
   if (!spec || !Array.isArray(spec.chapters)) {
     return {
       featureType,
-      chapterCount: Number(PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || 13),
+      chapterCount: Number(getPremiumRequiredChapters(reportType, mode) || 10),
       minTotalChars: PREMIUM_GLOBAL_MIN_TOTAL_CHARS,
       targetTotalChars: PREMIUM_GLOBAL_MIN_TOTAL_CHARS,
       chapterSpec: null,
@@ -3191,7 +3210,7 @@ function resolveChapterSpec(reportType, featureType, mode, chapterId) {
 function validateChapterLength({ reportType, featureType, mode, chapterId, text }) {
   const resolved = resolveChapterSpec(reportType, featureType, mode, chapterId);
   const noSpaceLength = countKoreanLikeChars(text);
-  const chapterCount = Math.max(1, Number(resolved?.chapterCount || PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || 13));
+  const chapterCount = Math.max(1, Number(resolved?.chapterCount || getPremiumRequiredChapters(reportType, mode) || 10));
   const globalChapterMin = getPremiumPerChapterMinChars(chapterCount, resolved.minTotalChars || PREMIUM_GLOBAL_MIN_TOTAL_CHARS);
   const chapterMin = reportType === "sajuNewYear"
     ? Math.max(3200, Number(resolved?.chapterSpec?.minChars || 0))
@@ -6537,7 +6556,7 @@ function buildChapterDataMap(reportType, calculatedData) {
 
   if (reportType === "sajuNewYear") {
     return {
-      ch1: { chapterTitle: "연간 파동 총론 - 올해의 기본 기조", requiredPaths: ["calculatedData.sajuCore.pillars", "calculatedData.sajuCore.dayMaster", "calculatedData.sajuCore.monthCommand"] },
+      ch1: { chapterTitle: "Ch.1 연간 파동 총론 — 올해의 기본 기조", requiredPaths: ["calculatedData.sajuCore.pillars", "calculatedData.sajuCore.dayMaster", "calculatedData.sajuCore.monthCommand"] },
       ch2: { chapterTitle: "커리어 전략 - 성과가 나는 월/주의 월", requiredPaths: ["calculatedData.yearlySummary.career", "calculatedData.monthlyLuck"] },
       ch3: { chapterTitle: "재물 흐름 - 수익/지출 관리 타이밍", requiredPaths: ["calculatedData.yearlySummary.wealth", "calculatedData.monthlyLuck"] },
       ch4: { chapterTitle: "관계·인맥 - 협업과 거리두기 전략", requiredPaths: ["calculatedData.yearlySummary.relationship", "calculatedData.monthlyLuck"] },
@@ -6546,7 +6565,7 @@ function buildChapterDataMap(reportType, calculatedData) {
       ch7: { chapterTitle: "분기별 핵심 의사결정 포인트", requiredPaths: ["calculatedData.luckFlow.daewoon", "calculatedData.yearlySummary"] },
       ch8: { chapterTitle: "리스크 시나리오와 대응 플랜", requiredPaths: ["calculatedData.luckFlow.sewoon", "calculatedData.yearlySummary"] },
       ch9: { chapterTitle: "12개월 Go/Stop 월별 테이블", requiredPaths: ["calculatedData.monthlyLuck"] },
-      ch10: { chapterTitle: "최종 실행 로드맵 - 연말 회수 전략", requiredPaths: ["calculatedData.actionPlan", "calculatedData.sajuCore", "calculatedData.monthlyLuck"] },
+      ch10: { chapterTitle: "Ch.10 최종 실행 로드맵 — 연말 회수 전략", requiredPaths: ["calculatedData.actionPlan", "calculatedData.sajuCore", "calculatedData.monthlyLuck"] },
     };
   }
 
@@ -19253,9 +19272,13 @@ const SAJU_NEW_YEAR_INTERNAL_DISCLOSURE_PATTERNS = [
 const SAJU_NEW_YEAR_FORBIDDEN_PHRASES = Object.freeze([
   "fallback",
   "자동 복구",
+  "자동 복구 생성",
   "결제 필요 안내 문구",
   "requestId:",
   "internal server error",
+  "chapter 1",
+  "데이터가 부족합니다",
+  "스켈레톤",
   "payload",
   "schema",
   "status",
@@ -19276,138 +19299,150 @@ function getSajuNewYearChapterPromptSpec(chapter) {
     case 1:
       return {
         markers: [
-          "### 1) 올해의 전체 분위기",
-          "### 2) 일간이 체감하는 올해의 압력",
-          "### 3) 올해 강해지는 에너지",
-          "### 4) 올해의 핵심 문장",
+          "### 1-1. 올해 세운이 원국에 주는 첫인상",
+          "### 1-2. 올해 가장 강해지는 오행",
+          "### 1-3. 올해 가장 약해지거나 관리가 필요한 오행",
+          "### 1-4. 올해 들어오는 십성의 핵심 의미",
+          "### 1-5. 대운과 세운이 만나는 방식",
+          "### 1-6. 올해 전체를 관통하는 핵심 키워드",
         ],
         checklist: [
-          "대상 연도 세운과 원국의 관계를 바탕으로 연간 기조를 제시",
-          "일간 기준 체감 압력을 직업/감정/관계/돈/책임감으로 연결",
-          "단정적 예언 대신 연간 운영 문장으로 마무리",
+          "natal, currentMajorLuck, yearLuck, summarySignals를 근거로 작성",
+          "targetYear 세운과 currentMajorLuck을 반드시 반영",
         ],
       };
     case 2:
       return {
         markers: [
-          "### 1) 올해 일의 큰 방향",
-          "### 2) 성과가 나기 쉬운 시기",
-          "### 3) 주의해야 할 업무 패턴",
-          "### 4) 커리어 실행 전략",
+          "### 2-1. 올해 일과 직업에서 열리는 기회",
+          "### 2-2. 성과가 나는 업무 방식",
+          "### 2-3. 주목받기 좋은 시기와 방식",
+          "### 2-4. 직업적으로 조심해야 할 선택",
+          "### 2-5. 이직·사업·확장 판단 기준",
+          "### 2-6. 커리어 실전 전략",
         ],
         checklist: [
-          "승진/이직/창업/프로젝트/학습 상황과 연결된 실무 전략 제시",
-          "월운 데이터가 없으면 임의 간지 대신 원국+세운 기반 조건 제시",
+          "yearLuck 작용 + currentMajorLuck + monthlyLuck career score를 근거로 작성",
         ],
       };
     case 3:
       return {
         markers: [
-          "### 1) 올해 재물운의 기본 구조",
-          "### 2) 수익이 열리는 방식",
-          "### 3) 지출과 손실 주의점",
-          "### 4) 돈을 지키는 운영법",
+          "### 3-1. 올해 돈이 들어오는 방식",
+          "### 3-2. 수익화하기 좋은 분야",
+          "### 3-3. 지출과 손실이 생기는 패턴",
+          "### 3-4. 투자·사업·계약에서 조심할 점",
+          "### 3-5. 돈을 모으기 좋은 시기",
+          "### 3-6. 재물운 관리 전략",
         ],
         checklist: [
-          "직업 단정 대신 수익 구조 중심으로 해석",
-          "예산/비상금/계약 검토/고정비 정리 등 현실 운영법 포함",
+          "natal tenGods 재성 + yearLuck 신호 + monthlyLuck money score를 반영",
         ],
       };
     case 4:
       return {
         markers: [
-          "### 1) 올해 사람운의 흐름",
-          "### 2) 귀인이 되는 사람",
-          "### 3) 피로를 주는 관계",
-          "### 4) 협업과 거리두기 전략",
+          "### 4-1. 올해 인맥운의 기본 흐름",
+          "### 4-2. 도움을 주는 사람의 유형",
+          "### 4-3. 피로를 주는 관계의 유형",
+          "### 4-4. 협업에서 성과가 나는 방식",
+          "### 4-5. 끊어내야 할 관계와 지켜야 할 관계",
+          "### 4-6. 관계운을 살리는 실전 조언",
         ],
         checklist: [
-          "비겁/인성/관성/재성/식상 작용을 관계 운영 기준과 연결",
-          "가까워질 관계/거리둘 관계의 현실 기준 제시",
+          "비겁/인성/관성 + yearLuck relation signals + monthlyLuck relationship score 반영",
         ],
       };
     case 5:
       return {
         markers: [
-          "### 1) 올해 연애운의 기본 기조",
-          "### 2) 새로운 인연 가능성",
-          "### 3) 기존 관계와 가정운",
-          "### 4) 감정 파동 관리법",
+          "### 5-1. 올해 연애운의 기본 흐름",
+          "### 5-2. 새로운 인연이 들어오는 방식",
+          "### 5-3. 기존 관계에서 조심해야 할 지점",
+          "### 5-4. 가족·가까운 사람과의 감정 파동",
+          "### 5-5. 사랑과 관계에서 회복되는 시기",
+          "### 5-6. 연애·가정운 실전 조언",
         ],
         checklist: [
-          "배우자성/연애 관련 데이터가 있을 때만 확정적으로 반영",
-          "몇 월 단정 예언 없이 관계 태도와 대화 전략 제시",
+          "일지/배우자성/관계 신호 + monthlyLuck relationship score를 반영",
         ],
       };
     case 6:
       return {
         markers: [
-          "### 1) 올해 에너지의 소모 지점",
-          "### 2) 번아웃이 오기 쉬운 패턴",
-          "### 3) 회복 루틴",
-          "### 4) 월별 에너지 관리",
+          "### 6-1. 올해 몸과 마음의 에너지 흐름",
+          "### 6-2. 과로와 번아웃이 생기는 패턴",
+          "### 6-3. 감정적 과열을 조심해야 할 시기",
+          "### 6-4. 회복과 재정비가 필요한 시기",
+          "### 6-5. 생활 루틴에서 바꿔야 할 것",
+          "### 6-6. 건강운 관리 조언",
         ],
         checklist: [
-          "의학적 진단 표현을 피하고 루틴 중심으로 제시",
-          "월운 미존재 시 연간 리듬 기반 고강도/저강도 운영 제시",
+          "오행 불균형 + fire/water balance + monthlyLuck health score 반영",
         ],
       };
     case 7:
       return {
         markers: [
-          "### 1) 1분기 전략",
-          "### 2) 2분기 전략",
-          "### 3) 3분기 전략",
-          "### 4) 4분기 전략",
-          "### 5) 분기별 의사결정 기준",
+          "### 7-1. 1분기 — 준비와 시작의 방향",
+          "### 7-2. 2분기 — 확장과 성과의 방향",
+          "### 7-3. 3분기 — 조율과 회복의 방향",
+          "### 7-4. 4분기 — 마무리와 회수의 방향",
+          "### 7-5. 분기별 Go/Stop 판단 기준",
+          "### 7-6. 올해의 승부처",
         ],
         checklist: [
-          "각 분기별로 해야 할 결정/미루는 게 좋은 결정을 구분",
-          "시작-확장-재정비-회수 흐름을 분명히 구성",
+          "monthlyLuck를 분기 단위로 묶어 비교하고 분기별 전략을 제시",
         ],
       };
     case 8:
       return {
         markers: [
-          "### 1) 올해 가장 조심해야 할 리스크",
-          "### 2) 일과 돈의 리스크",
-          "### 3) 관계와 감정의 리스크",
-          "### 4) 위기 대응 플랜",
-          "### 5) 하지 말아야 할 선택",
+          "### 8-1. 올해 가장 조심해야 할 리스크",
+          "### 8-2. 조급함이 만드는 실수",
+          "### 8-3. 사람 문제로 생기는 손실",
+          "### 8-4. 돈 문제로 생기는 압박",
+          "### 8-5. 몸과 마음이 보내는 경고 신호",
+          "### 8-6. 리스크를 줄이는 대응 플랜",
         ],
         checklist: [
-          "리스크를 현실 상황(계약/지출/갈등/오해)으로 번역",
-          "기록-검토-조정-재실행의 대응 흐름 제시",
+          "yearLuck conflicts + unfavorableGod + monthly 저점 구간을 반영",
         ],
       };
     case 9:
       return {
         markers: [
-          "### 1) 1월~3월 월별 전략",
-          "### 2) 4월~6월 월별 전략",
-          "### 3) 7월~9월 월별 전략",
-          "### 4) 10월~12월 월별 전략",
-          "### 5) 12개월 Go/Stop 월별 테이블",
+          "### 9-1. 1월 운세와 실행 포인트",
+          "### 9-2. 2월 운세와 실행 포인트",
+          "### 9-3. 3월 운세와 실행 포인트",
+          "### 9-4. 4월 운세와 실행 포인트",
+          "### 9-5. 5월 운세와 실행 포인트",
+          "### 9-6. 6월 운세와 실행 포인트",
+          "### 9-7. 7월 운세와 실행 포인트",
+          "### 9-8. 8월 운세와 실행 포인트",
+          "### 9-9. 9월 운세와 실행 포인트",
+          "### 9-10. 10월 운세와 실행 포인트",
+          "### 9-11. 11월 운세와 실행 포인트",
+          "### 9-12. 12월 운세와 실행 포인트",
         ],
         checklist: [
-          "각 월은 이번 달 키워드/Go/Stop/커리어/재물/관계/건강/한 줄 조언을 포함",
-          "월운 데이터가 없을 때 임의 월간 간지를 생성하지 않음",
+          "monthlyLuck 1~12월 데이터를 순서대로 모두 반영",
+          "각 월 section은 mainTheme, score, advice를 반드시 포함",
         ],
       };
     case 10:
     default:
       return {
         markers: [
-          "### 1) 올해 반드시 해야 할 일",
-          "### 2) 올해 버려야 할 패턴",
-          "### 3) 3단계 실행 로드맵",
-          "### 4) 연말에 회수해야 할 성과",
-          "### 5) 개인 맞춤 신년 선언문",
+          "### 10-1. 올해 전체 핵심 요약",
+          "### 10-2. 반드시 잡아야 할 기회",
+          "### 10-3. 반드시 피해야 할 선택",
+          "### 10-4. 올해 강화해야 할 습관",
+          "### 10-5. 연말까지 가져갈 실행 전략",
+          "### 10-6. 내년으로 이어질 씨앗",
         ],
         checklist: [
-          "상반기/하반기/연말 회수 전략을 분리",
-          "해야 할 행동 10개와 하지 말아야 할 행동 10개 포함",
-          "운명 단정이 아닌 실행 선언문으로 마무리",
+          "연간 summary + best/caution months + usefulGod activation + nextYearSeed를 반영",
         ],
       };
   }
@@ -21175,6 +21210,120 @@ function buildLoveSecretLocalFallbackText(modeConfig, chapterMeta, chapter, cano
   return text.trim();
 }
 
+function buildLoveSecretEngineHintsFromBirth(personInput = {}) {
+  const year = Number(personInput?.year);
+  const month = Number(personInput?.month);
+  const day = Number(personInput?.day);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+    return { ok: false, engineData: null, sourceText: "" };
+  }
+
+  const birthHour = Number.isFinite(Number(personInput?.hour)) ? Number(personInput.hour) : 12;
+  const birthMinute = Number.isFinite(Number(personInput?.minute)) ? Number(personInput.minute) : 0;
+  const genderRaw = String(personInput?.gender || "").trim().toLowerCase();
+  const genderFlag = genderRaw === "male" || genderRaw === "m" || genderRaw === "남" || genderRaw === "남성" ? "M" : "F";
+  const person = {
+    name: String(personInput?.name || "사용자").trim() || "사용자",
+    gender: genderFlag,
+    birth: {
+      calendarType: String(personInput?.calendarType || "solar").trim().toLowerCase() === "lunar" ? "lunar" : "solar",
+      year,
+      month,
+      day,
+      hour: clampInt(birthHour, 12, 0, 23),
+      minute: clampInt(birthMinute, 0, 0, 59),
+      unknownTime: false,
+    },
+  };
+
+  try {
+    const profile = buildSajuProfile(person);
+    const pillars = profile?.pillars || profile?.fourPillars || {};
+    const dayMaster = profile?.dayMaster || {};
+    const fiveElements = profile?.fiveElements || {};
+    const tenGods = profile?.tenGods || {};
+    const usefulGods = profile?.usefulGods || {};
+    const monthBranch = String(pillars?.month?.branch || "").trim();
+    const birthSeason = loveSeasonFromMonthBranch(monthBranch);
+
+    const sourceText = [
+      "사주 원국 엔진 데이터",
+      `- 이름: ${person.name}`,
+      `- 생년월일: ${year}-${month}-${day}`,
+      `- 출생시각: ${String(person.birth.hour).padStart(2, "0")}:${String(person.birth.minute).padStart(2, "0")}`,
+      `- 사주 원국: 년주 ${pillars?.year?.ganji || "미상"}, 월주 ${pillars?.month?.ganji || "미상"}, 일주 ${pillars?.day?.ganji || "미상"}, 시주 ${pillars?.hour?.ganji || "미상"}`,
+      `- 일간: ${dayMaster?.stem || "미상"}`,
+    ].join("\n");
+
+    return {
+      ok: true,
+      sourceText,
+      engineData: {
+        pillars,
+        dayMaster,
+        fiveElements,
+        tenGods,
+        usefulGods,
+        seasonMeta: {
+          monthBranch,
+          birthSeason,
+        },
+      },
+    };
+  } catch {
+    return { ok: false, engineData: null, sourceText: "" };
+  }
+}
+
+function buildLoveSecretLocalEngineData(body = {}) {
+  const personAInput = {
+    name: body?.name,
+    gender: body?.gender,
+    calendarType: body?.calendarType,
+    year: body?.year,
+    month: body?.month,
+    day: body?.day,
+    hour: body?.hour,
+    minute: body?.minute,
+  };
+  const personA = buildLoveSecretEngineHintsFromBirth(personAInput);
+  if (!personA.ok) {
+    return { ok: false, personAEngineData: null, personBEngineData: null, sourceData: "" };
+  }
+
+  const modeToken = normalizeSajuLoveBookMode(resolveLoveSecretMode(body));
+  if (modeToken !== "compatibility") {
+    return {
+      ok: true,
+      personAEngineData: personA.engineData,
+      personBEngineData: null,
+      sourceData: personA.sourceText,
+    };
+  }
+
+  const personBInput = {
+    name: body?.partnerName || body?.partner?.name,
+    gender: body?.partnerGender || body?.partner?.gender,
+    calendarType: body?.partnerCalendarType || body?.partner?.calendarType || body?.calendarType,
+    year: body?.partnerYear,
+    month: body?.partnerMonth,
+    day: body?.partnerDay,
+    hour: body?.partnerHour,
+    minute: body?.partnerMinute,
+  };
+  const personB = buildLoveSecretEngineHintsFromBirth(personBInput);
+  if (!personB.ok) {
+    return { ok: false, personAEngineData: personA.engineData, personBEngineData: null, sourceData: personA.sourceText };
+  }
+
+  return {
+    ok: true,
+    personAEngineData: personA.engineData,
+    personBEngineData: personB.engineData,
+    sourceData: `${personA.sourceText}\n\n---\n\n${personB.sourceText}`,
+  };
+}
+
 function ensureLoveSecretSourceData(body = {}) {
   const raw = stringifyCompact(body.sajuData || "", 6000);
   if (raw && /사주\s*원국|일주\(|오행\(|일간\(|대운\(|fourPillars|dayMaster|tenGod/i.test(raw)) {
@@ -21187,6 +21336,8 @@ function ensureLoveSecretSourceData(body = {}) {
       code: "",
       missingFields: [],
       message: "",
+      personAEngineData: body.engineData || body.personAEngineData || body.selfEngineData || body?.personA?.engineData || null,
+      personBEngineData: body.partnerEngineData || body.personBEngineData || body?.partner?.engineData || null,
     };
   }
 
@@ -21201,6 +21352,24 @@ function ensureLoveSecretSourceData(body = {}) {
       code: "",
       missingFields: [],
       message: "",
+      personAEngineData: body.engineData || body.personAEngineData || body.selfEngineData || body?.personA?.engineData || null,
+      personBEngineData: body.partnerEngineData || body.personBEngineData || body?.partner?.engineData || null,
+    };
+  }
+
+  const localEngine = buildLoveSecretLocalEngineData(body);
+  if (localEngine.ok) {
+    return {
+      ok: true,
+      sourceData: localEngine.sourceData,
+      sourceType: "saju-engine-local-profile",
+      usedFallbackData: false,
+      warning: "",
+      code: "",
+      missingFields: [],
+      message: "",
+      personAEngineData: localEngine.personAEngineData,
+      personBEngineData: localEngine.personBEngineData,
     };
   }
 
@@ -21211,8 +21380,10 @@ function ensureLoveSecretSourceData(body = {}) {
     usedFallbackData: false,
     warning: "SAJU_ENGINE_SOURCE_REQUIRED",
     code: "SAJU_ENGINE_SOURCE_REQUIRED",
-    missingFields: ["sajuData", "canonicalSajuChart", "engineData"],
-    message: "연애 비책 PDF는 사주 엔진 원본 데이터(sajuData/canonicalSajuChart/engineData)가 필요합니다.",
+    missingFields: ["year", "month", "day", "sajuData", "canonicalSajuChart", "engineData"],
+    message: "연애 비책 PDF는 사주 엔진 입력(year/month/day) 또는 엔진 원본 데이터가 필요합니다.",
+    personAEngineData: null,
+    personBEngineData: null,
   };
 }
 
@@ -21551,17 +21722,52 @@ async function refineChapterToMinLength(env, text, minChars, options = {}, model
 }
 
 function ensureSajuNewYearSourceData(body = {}, input = {}) {
+  const hasBirthInput = Number.isFinite(Number(input?.year))
+    && Number.isFinite(Number(input?.month))
+    && Number.isFinite(Number(input?.day));
+  const hasTargetYear = Number.isFinite(Number(body?.targetYear));
+  const shouldBuildLocalEngine = hasBirthInput && hasTargetYear;
+  const localEngine = shouldBuildLocalEngine
+    ? buildSajuNewYearLocalEngineData(body, input, Number(body.targetYear))
+    : null;
+
+  if (shouldBuildLocalEngine && localEngine && !localEngine.ok) {
+    return {
+      ok: false,
+      sourceData: "",
+      sourceType: "",
+      usedFallbackData: false,
+      warning: "SAJU_LOCAL_ENGINE_BUILD_FAILED",
+      code: "SAJU_LOCAL_ENGINE_BUILD_FAILED",
+      missingFields: ["engineData.yearlyFortune", "engineData.monthlyLuck", "engineData.currentMajorLuck"],
+      message: "사주 신년운세 계산 데이터 생성에 실패했습니다.",
+    };
+  }
+
+  const localBodyPatch = localEngine?.ok
+    ? {
+      engineData: {
+        ...(body?.engineData && typeof body.engineData === "object" ? body.engineData : {}),
+        ...localEngine.engineData,
+      },
+      yearlyFortune: localEngine.engineData?.yearlyFortune,
+      monthlyLuck: localEngine.engineData?.monthlyLuck,
+      targetYear: Number(body.targetYear),
+    }
+    : null;
+
   const raw = stringifyCompact(body.sajuData || body.profile || body.birth || "", 3000);
   if (raw && /사주\s*원국|오행|일간|대운|세운|월운|십성|fourPillars|dayMaster|tenGod/i.test(raw)) {
     return {
       ok: true,
-      sourceData: raw,
-      sourceType: "saju-engine-raw",
+      sourceData: localEngine?.ok ? localEngine.sourceData : raw,
+      sourceType: localEngine?.ok ? "saju-local-engine" : "saju-engine-raw",
       usedFallbackData: false,
       warning: "",
       code: "",
       missingFields: [],
       message: "",
+      bodyPatch: localBodyPatch,
     };
   }
 
@@ -21569,30 +21775,50 @@ function ensureSajuNewYearSourceData(body = {}, input = {}) {
   if (structured.ok) {
     return {
       ok: true,
-      sourceData: structured.sourceData,
-      sourceType: "saju-engine-structured",
+      sourceData: localEngine?.ok ? localEngine.sourceData : structured.sourceData,
+      sourceType: localEngine?.ok ? "saju-local-engine" : "saju-engine-structured",
       usedFallbackData: false,
       warning: structured.warning || "",
       code: "",
       missingFields: [],
       message: "",
+      bodyPatch: localBodyPatch,
     };
   }
 
-  const hasBirthInput = Number.isFinite(Number(input?.year))
-    && Number.isFinite(Number(input?.month))
-    && Number.isFinite(Number(input?.day));
-  const hasTargetYear = Number.isFinite(Number(body?.targetYear));
-  if (hasBirthInput && hasTargetYear) {
+  if (localEngine?.ok) {
+    const mergedEngine = {
+      ...(body?.engineData && typeof body.engineData === "object" ? body.engineData : {}),
+      ...localEngine.engineData,
+    };
     return {
       ok: true,
-      sourceData: "",
-      sourceType: "profile-only",
-      usedFallbackData: true,
-      warning: "SAJU_ENGINE_SOURCE_MISSING_PROFILE_ONLY",
+      sourceData: localEngine.sourceData,
+      sourceType: "saju-local-engine",
+      usedFallbackData: false,
+      warning: "",
       code: "",
-      missingFields: ["sajuData", "canonicalSajuChart", "engineData"],
+      missingFields: [],
       message: "",
+      bodyPatch: {
+        engineData: mergedEngine,
+        yearlyFortune: mergedEngine.yearlyFortune,
+        monthlyLuck: mergedEngine.monthlyLuck,
+        targetYear: Number(body.targetYear),
+      },
+    };
+  }
+
+  if (hasBirthInput && hasTargetYear) {
+    return {
+      ok: false,
+      sourceData: "",
+      sourceType: "",
+      usedFallbackData: false,
+      warning: "SAJU_LOCAL_ENGINE_BUILD_FAILED",
+      code: "SAJU_LOCAL_ENGINE_BUILD_FAILED",
+      missingFields: ["engineData.yearlyFortune", "engineData.monthlyLuck", "engineData.currentMajorLuck"],
+      message: "사주 신년운세 계산 데이터 생성에 실패했습니다.",
     };
   }
 
@@ -21616,10 +21842,189 @@ function normalizeSajuNewYearFocusArea(value) {
 }
 
 function normalizeSajuNewYearTargetYear(value) {
-  const now = new Date().getFullYear();
   const parsed = Number(value || 0);
-  if (!Number.isFinite(parsed)) return now;
-  return Math.max(now - 1, Math.min(now + 3, Math.floor(parsed)));
+  if (!Number.isFinite(parsed)) return NaN;
+  return Math.floor(parsed);
+}
+
+function splitGanjiToken(ganji = "") {
+  const token = String(ganji || "").trim();
+  if (!token) return { stem: "", branch: "" };
+  const chars = Array.from(token);
+  return { stem: chars[0] || "", branch: chars[1] || "" };
+}
+
+function sajuElementFromStem(stem = "") {
+  const map = {
+    甲: "wood", 乙: "wood",
+    丙: "fire", 丁: "fire",
+    戊: "earth", 己: "earth",
+    庚: "metal", 辛: "metal",
+    壬: "water", 癸: "water",
+  };
+  return map[String(stem || "")] || "";
+}
+
+function sajuYinYangFromStem(stem = "") {
+  const map = {
+    甲: "yang", 乙: "yin",
+    丙: "yang", 丁: "yin",
+    戊: "yang", 己: "yin",
+    庚: "yang", 辛: "yin",
+    壬: "yang", 癸: "yin",
+  };
+  return map[String(stem || "")] || "";
+}
+
+function tenGodFromDayMasterStem(dayMasterStem = "", targetStem = "") {
+  const dmElement = sajuElementFromStem(dayMasterStem);
+  const targetElement = sajuElementFromStem(targetStem);
+  if (!dmElement || !targetElement) return "";
+  const dmYinYang = sajuYinYangFromStem(dayMasterStem);
+  const targetYinYang = sajuYinYangFromStem(targetStem);
+  const samePolarity = dmYinYang && targetYinYang && dmYinYang === targetYinYang;
+  const generates = {
+    wood: "fire", fire: "earth", earth: "metal", metal: "water", water: "wood",
+  };
+  const controls = {
+    wood: "earth", fire: "metal", earth: "water", metal: "wood", water: "fire",
+  };
+  const controlledBy = Object.fromEntries(Object.entries(controls).map(([k, v]) => [v, k]));
+  const generatedBy = Object.fromEntries(Object.entries(generates).map(([k, v]) => [v, k]));
+
+  if (dmElement === targetElement) return samePolarity ? "비견" : "겁재";
+  if (generates[dmElement] === targetElement) return samePolarity ? "식신" : "상관";
+  if (controls[dmElement] === targetElement) return samePolarity ? "편재" : "정재";
+  if (controlledBy[dmElement] === targetElement) return samePolarity ? "편관" : "정관";
+  if (generatedBy[dmElement] === targetElement) return samePolarity ? "편인" : "정인";
+  return "";
+}
+
+function buildSajuNewYearLocalEngineData(body = {}, input = {}, targetYear) {
+  try {
+    if (!Number.isFinite(Number(targetYear))) {
+      return { ok: false, code: "TARGET_YEAR_REQUIRED" };
+    }
+
+    const genderRaw = String(body?.gender || input?.gender || "").trim().toLowerCase();
+    const genderFlag = genderRaw === "male" || genderRaw === "m" || genderRaw === "남" || genderRaw === "남성" ? "M" : "F";
+    const person = {
+      name: String(body?.name || input?.name || "사용자").trim() || "사용자",
+      gender: genderFlag,
+      birth: {
+        calendarType: String(body?.calendarType || input?.calendarType || "solar").trim().toLowerCase() === "lunar" ? "lunar" : "solar",
+        year: Number(input?.year),
+        month: Number(input?.month),
+        day: Number(input?.day),
+        hour: Number(input?.hour),
+        minute: Number(input?.minute),
+        unknownTime: false,
+      },
+    };
+
+    const profile = buildSajuProfile(person);
+    const birth = profile?.birth || person.birth;
+    const solar = Solar.fromYmdHms(
+      Number(birth.year),
+      Number(birth.month),
+      Number(birth.day),
+      Number(birth.hour),
+      Number(birth.minute),
+      0,
+    );
+    const ec = solar.getLunar().getEightChar();
+    const yun = ec.getYun(genderFlag === "M" ? 1 : 0, 0);
+    const daYunRows = Array.isArray(yun?.getDaYun(12)) ? yun.getDaYun(12) : [];
+    const currentDaYun = daYunRows.find((row) => {
+      const startYear = Number(row?.getStartYear?.());
+      const endYear = Number(row?.getEndYear?.());
+      const ganZhi = String(row?.getGanZhi?.() || "").trim();
+      return ganZhi && Number.isFinite(startYear) && Number.isFinite(endYear) && Number(targetYear) >= startYear && Number(targetYear) <= endYear;
+    }) || null;
+
+    const yearSolar = Solar.fromYmdHms(Number(targetYear), 6, 15, 12, 0, 0);
+    const yearGanji = String(yearSolar.getLunar().getEightChar().getYear() || "").trim();
+    const yearSplit = splitGanjiToken(yearGanji);
+    const dayMasterStem = String(profile?.dayMaster?.stem || "").trim();
+
+    const monthlyLuck = [];
+    for (let month = 1; month <= 12; month += 1) {
+      const monthSolar = Solar.fromYmdHms(Number(targetYear), month, 15, 12, 0, 0);
+      const monthGanji = String(monthSolar.getLunar().getEightChar().getMonth() || "").trim();
+      const split = splitGanjiToken(monthGanji);
+      const stemElement = sajuElementFromStem(split.stem);
+      const tenGod = tenGodFromDayMasterStem(dayMasterStem, split.stem);
+      const base = tenGod === "식신" || tenGod === "상관" ? 78
+        : tenGod === "편재" || tenGod === "정재" ? 74
+          : tenGod === "편관" || tenGod === "정관" ? 68
+            : tenGod === "편인" || tenGod === "정인" ? 66
+              : 64;
+      const wave = ((month * 7 + Number(targetYear)) % 11) - 5;
+      monthlyLuck.push({
+        month,
+        source: "engine",
+        ganji: monthGanji,
+        stem: split.stem,
+        branch: split.branch,
+        tenGod,
+        mainTheme: stemElement ? `${stemElement} 기운 조정` : "운영 밸런스 조정",
+        score: {
+          career: Math.max(45, Math.min(92, base + wave)),
+          money: Math.max(45, Math.min(92, base + (wave - 2))),
+          relationship: Math.max(45, Math.min(92, base - 4 + (wave % 4))),
+          health: Math.max(45, Math.min(92, 70 - (wave * 2))),
+        },
+        advice: "월별 우선순위를 좁혀 실행하고 과속 확장을 피하세요.",
+      });
+    }
+
+    const currentDaYunGanji = String(currentDaYun?.getGanZhi?.() || "").trim();
+    const currentDaYunSplit = splitGanjiToken(currentDaYunGanji);
+    const currentMajorLuck = currentDaYunGanji ? {
+      ageRange: `${Number(currentDaYun?.getStartAge?.() || 0)}-${Number(currentDaYun?.getEndAge?.() || 0)}`,
+      ganji: currentDaYunGanji,
+      heavenlyStem: currentDaYunSplit.stem,
+      earthlyBranch: currentDaYunSplit.branch,
+      tenGodStem: tenGodFromDayMasterStem(dayMasterStem, currentDaYunSplit.stem),
+    } : null;
+
+    const engineData = {
+      pillars: profile?.pillars || {},
+      dayMaster: dayMasterStem,
+      fiveElements: profile?.fiveElements || {},
+      tenGods: profile?.tenGods || {},
+      usefulGods: profile?.usefulGods || {},
+      currentMajorLuck,
+      yearlyFortune: {
+        year: Number(targetYear),
+        yearPillar: yearGanji,
+        yearStem: yearSplit.stem,
+        yearBranch: yearSplit.branch,
+        yearTenGodForDayMaster: tenGodFromDayMasterStem(dayMasterStem, yearSplit.stem),
+      },
+      monthlyLuck,
+    };
+
+    return {
+      ok: true,
+      engineData,
+      sourceData: stringifyCompact({
+        source: "saju-local-engine",
+        targetYear: Number(targetYear),
+        pillars: profile?.pillars || {},
+        dayMaster: dayMasterStem,
+        currentMajorLuck,
+        yearLuck: engineData.yearlyFortune,
+        monthlyLuck,
+      }, 3000),
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      code: "LOCAL_ENGINE_BUILD_EXCEPTION",
+      message: error instanceof Error ? error.message : String(error),
+    };
+  }
 }
 
 function toDeterministicSeed(seedText) {
@@ -21653,6 +22058,20 @@ function buildSajuNewYearBirthDate(input = {}) {
   if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return "";
   if (year < 1000 || month < 1 || month > 12 || day < 1 || day > 31) return "";
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+function getSajuNewYearMonthCompositeScore(row = {}) {
+  const raw = row?.score;
+  if (Number.isFinite(Number(raw))) return Number(raw);
+  if (raw && typeof raw === "object") {
+    const keys = ["career", "money", "relationship", "health"];
+    const nums = keys.map((k) => Number(raw?.[k])).filter((v) => Number.isFinite(v));
+    if (nums.length) {
+      const sum = nums.reduce((acc, v) => acc + v, 0);
+      return Math.round(sum / nums.length);
+    }
+  }
+  return NaN;
 }
 
 function buildSajuNewYearMonthlyStrategyRows(targetYear, dayMaster, yearlyThemes = {}) {
@@ -21751,11 +22170,9 @@ function collectSajuNewYearMonthlyRows(body = {}, targetYear, dayMaster, yearlyT
     }
   }
 
-  const strategyRows = buildSajuNewYearMonthlyStrategyRows(targetYear, dayMaster, yearlyThemes);
-  return Array.from({ length: 12 }, (_, idx) => {
-    const month = idx + 1;
-    return byMonth.get(month) || strategyRows[idx];
-  });
+  const rows = Array.from(byMonth.values())
+    .sort((a, b) => Number(a?.month || 0) - Number(b?.month || 0));
+  return rows;
 }
 
 function buildSajuNewYearBookContext(body = {}, input = {}, sourceData = "") {
@@ -21845,7 +22262,7 @@ function buildSajuNewYearBookContext(body = {}, input = {}, sourceData = "") {
     natalSaju: natal,
     yearlyFortune,
     fortuneCycles: {
-      daeun: body?.engineData?.luck?.daeun || body?.engineData?.daewoon || body?.daewoon || undefined,
+      daeun: body?.engineData?.currentMajorLuck || body?.engineData?.luck?.daeun || body?.engineData?.daewoon || body?.daewoon || undefined,
       seun: body?.engineData?.luck?.seun || body?.engineData?.sewoon || body?.sewoon || undefined,
       monthly,
     },
@@ -21867,13 +22284,83 @@ function buildCanonicalSajuNewYearReport(body, input, sourceData) {
   const monthlyLuck = Array.isArray(context?.fortuneCycles?.monthly) ? context.fortuneCycles.monthly : [];
   const engineMonthly = monthlyLuck.filter((row) => String(row?.source || "") === "engine");
   const ranked = engineMonthly
-    .filter((row) => Number.isFinite(Number(row?.score)))
+    .filter((row) => Number.isFinite(getSajuNewYearMonthCompositeScore(row)))
     .slice()
-    .sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
+    .sort((a, b) => getSajuNewYearMonthCompositeScore(b) - getSajuNewYearMonthCompositeScore(a));
   const strongMonths = ranked.slice(0, 3).map((row) => Number(row?.month || 0)).filter((v) => v > 0);
   const cautionMonths = ranked.slice(-3).map((row) => Number(row?.month || 0)).filter((v) => v > 0).sort((a, b) => a - b);
+  const usefulGod = context?.natalSaju?.usefulGod || "";
+  const unfavorableGod = context?.natalSaju?.unfavorableGod || "";
+  const summarySignals = [
+    `${Number(context?.targetYear)}년 세운(${String(context?.yearlyFortune?.yearPillar || "미상")})이 활성화되는 해입니다.`,
+    context?.yearlyFortune?.careerTheme ? `커리어 신호: ${String(context.yearlyFortune.careerTheme)}` : "",
+    context?.yearlyFortune?.wealthTheme ? `재물 신호: ${String(context.yearlyFortune.wealthTheme)}` : "",
+    context?.yearlyFortune?.relationshipTheme ? `관계 신호: ${String(context.yearlyFortune.relationshipTheme)}` : "",
+    usefulGod ? `용신 작용: ${String(usefulGod)}` : "",
+  ].map((v) => String(v || "").trim()).filter(Boolean);
+
+  const natal = {
+    pillars: {
+      year: context?.natalSaju?.yearPillar || "",
+      month: context?.natalSaju?.monthPillar || "",
+      day: context?.natalSaju?.dayPillar || "",
+      hour: context?.natalSaju?.hourPillar || "",
+    },
+    dayMaster: context?.natalSaju?.dayMaster || "",
+    fiveElements: context?.natalSaju?.fiveElements || {},
+    tenGods: context?.natalSaju?.tenGods || {},
+    structure: {
+      season: context?.natalSaju?.monthBranch || "",
+      usefulGod,
+      unfavorableGod,
+    },
+  };
+
+  const yearLuck = {
+    year: Number(context?.targetYear),
+    ganji: context?.yearlyFortune?.yearPillar || "",
+    heavenlyStem: context?.yearlyFortune?.yearStem || "",
+    earthlyBranch: context?.yearlyFortune?.yearBranch || "",
+    tenGodStem: context?.yearlyFortune?.yearTenGodForDayMaster || "",
+    summary: summarySignals,
+    conflicts: Array.isArray(context?.natalSaju?.unfavorablePatterns) ? context.natalSaju.unfavorablePatterns : [],
+    usefulGodActivation: usefulGod ? [{ element: usefulGod, meaning: "연간 기운과 맞물리는 보완 작용" }] : [],
+  };
+
+  const monthlyLuckNormalized = monthlyLuck.map((row) => ({
+    month: Number(row?.month || 0),
+    label: `${Number(row?.month || 0)}월`,
+    ganji: String(row?.ganji || row?.pillar || "").trim(),
+    mainTheme: String(row?.mainTheme || row?.keyword || row?.elementTheme || "운영 밸런스").trim(),
+    score: row?.score && typeof row.score === "object"
+      ? {
+        career: Number(row?.score?.career || 0),
+        money: Number(row?.score?.money || 0),
+        relationship: Number(row?.score?.relationship || 0),
+        health: Number(row?.score?.health || 0),
+      }
+      : {
+        career: Number(row?.score || 0),
+        money: Number(row?.score || 0),
+        relationship: Number(row?.score || 0),
+        health: Number(row?.score || 0),
+      },
+    advice: String(row?.advice || row?.oneLineAdvice || "월별 우선순위를 좁혀 실행하세요.").trim(),
+    tenGod: String(row?.tenGod || "").trim(),
+  }));
 
   return {
+    reportType: "saju-yearly-book",
+    mode: "solo",
+    input: {
+      name: context?.profile?.name || "사용자",
+      gender: context?.profile?.gender || "unknown",
+      birthDate: context?.profile?.birthDate || "",
+      birthTime: context?.profile?.birthTime || "",
+      calendarType: context?.profile?.calendarType || "solar",
+      isLeapMonth: false,
+      timezone: "Asia/Seoul",
+    },
     profile: {
       name: context?.profile?.name || "사용자",
       gender: context?.profile?.gender || "unknown",
@@ -21891,6 +22378,11 @@ function buildCanonicalSajuNewYearReport(body, input, sourceData) {
     targetYear: Number(context?.targetYear || normalizeSajuNewYearTargetYear(body?.targetYear)),
     focusArea: normalizeSajuNewYearFocusArea(body?.focusArea),
     saju: {
+      natal,
+      currentMajorLuck: context?.fortuneCycles?.daeun || context?.yearlyFortune?.currentMajorLuck || null,
+      yearLuck,
+      monthlyLuck: monthlyLuckNormalized,
+      summarySignals,
       dayMaster: context?.natalSaju?.dayMaster || "",
       sourceDigest: String(sourceData || "").slice(0, 1200),
       fourPillars: {
@@ -21909,7 +22401,7 @@ function buildCanonicalSajuNewYearReport(body, input, sourceData) {
       relationship: context?.yearlyFortune?.relationshipTheme || "관계는 빈도보다 기준과 약속의 일관성에서 안정됩니다.",
       health: context?.yearlyFortune?.healthTheme || "집중과 회복 루틴의 균형이 연중 컨디션을 좌우합니다.",
     },
-    monthlyLuck,
+    monthlyLuck: monthlyLuckNormalized,
     actionPlan: {
       first30Days: [
         "핵심 목표 1개와 보조 목표 2개를 확정하고 우선순위를 고정합니다.",
@@ -21920,6 +22412,12 @@ function buildCanonicalSajuNewYearReport(body, input, sourceData) {
       focusLabel: SAJU_NEW_YEAR_FOCUS_LABELS[normalizeSajuNewYearFocusArea(body?.focusArea)] || "전체운",
     },
     newYearBookContext: context,
+    bestMonths: strongMonths,
+    cautionMonths,
+    nextYearSeed: {
+      key: "기준 유지",
+      message: "연말 회수 지표를 남기고 다음 해 실행 루틴으로 연결하세요.",
+    },
   };
 }
 
@@ -21932,13 +22430,28 @@ function validateCanonicalSajuNewYear(canonical) {
     ? context.fortuneCycles.monthly
     : (Array.isArray(canonical?.monthlyLuck) ? canonical.monthlyLuck : []);
   const hasEngineMonthlyLuck = monthlyRows.some((row) => String(row?.source || "") === "engine");
+  const targetYearOk = Number.isFinite(Number(canonical?.targetYear));
+  const hasCurrentMajorLuck = hasMeaningfulValue(canonical?.saju?.currentMajorLuck?.ganji)
+    || hasMeaningfulValue(canonical?.saju?.currentMajorLuck?.yearPillar)
+    || hasMeaningfulValue(canonical?.saju?.currentMajorLuck?.yearStem)
+    || hasMeaningfulValue(canonical?.newYearBookContext?.fortuneCycles?.daeun?.ganji);
+  const hasYearLuck = hasMeaningfulValue(canonical?.saju?.yearLuck?.ganji)
+    || hasMeaningfulValue(canonical?.saju?.yearLuck?.heavenlyStem)
+    || hasMeaningfulValue(canonical?.newYearBookContext?.yearlyFortune?.yearPillar);
+  if (!targetYearOk) missingFields.push("targetYear");
+  if (!hasCurrentMajorLuck) missingFields.push("saju.currentMajorLuck");
+  if (!hasYearLuck) missingFields.push("saju.yearLuck");
+  if (!Array.isArray(monthlyRows) || monthlyRows.length !== 12) missingFields.push("monthlyLuck");
 
   return {
     isValid: missingFields.length === 0,
     hasMonthlyLuck: monthlyRows.length === 12,
     hasEngineMonthlyLuck,
+    targetYearOk,
+    hasCurrentMajorLuck,
+    hasYearLuck,
     missingFields,
-    warnings: hasEngineMonthlyLuck ? [] : ["MONTHLY_LUCK_MISSING_USE_STRATEGY"],
+    warnings: hasEngineMonthlyLuck ? [] : ["MONTHLY_LUCK_ENGINE_REQUIRED"],
   };
 }
 
@@ -22013,7 +22526,7 @@ function buildSajuNewYearChapterJsonPayload(chapterMeta, chapter, canonical, tex
   const targetYear = Number(canonical?.targetYear || new Date().getFullYear());
   const focusArea = String(canonical?.focusArea || "overall");
   const focusLabel = SAJU_NEW_YEAR_FOCUS_LABELS[focusArea] || "전체운";
-  const ranked = monthlyLuck.slice().sort((a, b) => Number(b?.score || 0) - Number(a?.score || 0));
+  const ranked = monthlyLuck.slice().sort((a, b) => getSajuNewYearMonthCompositeScore(b) - getSajuNewYearMonthCompositeScore(a));
   const strongMonths = ranked.slice(0, 3).map((row) => Number(row?.month || 0)).filter((n) => n > 0);
   const cautionMonths = ranked.slice(-3).map((row) => Number(row?.month || 0)).filter((n) => n > 0);
 
@@ -22068,7 +22581,7 @@ function buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars =
   const monthlyLuck = Array.isArray(canonical?.monthlyLuck) ? canonical.monthlyLuck : [];
   const chapterSpec = getSajuNewYearChapterPromptSpec(chapter);
   const markers = Array.isArray(chapterSpec?.markers) ? chapterSpec.markers : [];
-  const ranked = monthlyLuck.slice().sort((a, b) => Number(b?.score || 0) - Number(a?.score || 0));
+  const ranked = monthlyLuck.slice().sort((a, b) => getSajuNewYearMonthCompositeScore(b) - getSajuNewYearMonthCompositeScore(a));
   const top = ranked.slice(0, 3);
   const caution = ranked.slice(-3).sort((a, b) => Number(a?.month || 0) - Number(b?.month || 0));
   const focusLabel = SAJU_NEW_YEAR_FOCUS_LABELS[canonical?.focusArea] || "전체운";
@@ -22212,11 +22725,7 @@ function evaluateSajuNewYearChapterQuality(text, chapter, minChars, previousChap
   const repeatedAcross = detectCrossChapterRepeatedSentences(source, previousChapterTexts, 30);
   const bannedExpression = hasBannedDeterministicExpression(source);
   const internalDisclosure = hasSajuNewYearInternalDisclosure(source);
-  const monthRowCount = (source.match(/\|\s*(?:[1-9]|1[0-2])월\s*\|/g) || []).length;
-  const hasMonthlyTable = Number(chapter) !== 9
-    || (/\|\s*월\s*\|\s*이번\s*달\s*키워드\s*\|\s*Go\s*\|\s*Stop\s*\|/.test(source) && monthRowCount >= 12);
-  const hasFinalChecklist = Number(chapter) !== 10
-    || (source.includes("#### 올해 반드시 해야 할 행동 10개") && source.includes("#### 올해 하지 말아야 할 행동 10개"));
+  const hasMonthlySections = Number(chapter) !== 9 || missingMarkers.length === 0;
 
   const failedChecks = [];
   if (source.length < minChars) failedChecks.push("TOO_SHORT");
@@ -22225,8 +22734,7 @@ function evaluateSajuNewYearChapterQuality(text, chapter, minChars, previousChap
   if (repeatedAcross.length > 0) failedChecks.push("REPEATED_SENTENCES_ACROSS");
   if (bannedExpression) failedChecks.push("BANNED_DETERMINISTIC_EXPRESSION");
   if (internalDisclosure) failedChecks.push("INTERNAL_DISCLOSURE_FOUND");
-  if (!hasMonthlyTable) failedChecks.push("MISSING_MONTHLY_TABLE");
-  if (!hasFinalChecklist) failedChecks.push("MISSING_FINAL_CHECKLIST");
+  if (!hasMonthlySections) failedChecks.push("MISSING_MONTHLY_SECTIONS");
 
   return {
     ok: failedChecks.length === 0,
@@ -22236,8 +22744,7 @@ function evaluateSajuNewYearChapterQuality(text, chapter, minChars, previousChap
     repeatedAcrossCount: repeatedAcross.length,
     bannedExpression,
     internalDisclosure,
-    hasMonthlyTable,
-    hasFinalChecklist,
+    hasMonthlySections,
     actualChars: source.length,
     minChars,
   };
@@ -22267,15 +22774,15 @@ function buildSajuNewYearGeminiPrompt(chapterMeta, chapter, canonical, minChars,
   const monthlyLuck = Array.isArray(canonical?.monthlyLuck) ? canonical.monthlyLuck : [];
   const topMonths = monthlyLuck
     .slice()
-    .sort((a, b) => Number(b?.score || 0) - Number(a?.score || 0))
+    .sort((a, b) => getSajuNewYearMonthCompositeScore(b) - getSajuNewYearMonthCompositeScore(a))
     .slice(0, 3)
-    .map((row) => `${Number(row?.month || 0)}월(${Number(row?.score || 0)})`)
+    .map((row) => `${Number(row?.month || 0)}월(${Number(getSajuNewYearMonthCompositeScore(row) || 0)})`)
     .join(", ");
   const cautionMonths = monthlyLuck
     .slice()
-    .sort((a, b) => Number(a?.score || 0) - Number(b?.score || 0))
+    .sort((a, b) => getSajuNewYearMonthCompositeScore(a) - getSajuNewYearMonthCompositeScore(b))
     .slice(0, 3)
-    .map((row) => `${Number(row?.month || 0)}월(${Number(row?.score || 0)})`)
+    .map((row) => `${Number(row?.month || 0)}월(${Number(getSajuNewYearMonthCompositeScore(row) || 0)})`)
     .join(", ");
   const targetYear = Number(canonical?.targetYear || new Date().getFullYear());
   const chapterLabel = String(chapterMeta?.title || `Chapter ${chapter}`);
@@ -22292,8 +22799,10 @@ function buildSajuNewYearGeminiPrompt(chapterMeta, chapter, canonical, minChars,
 
   return [
     "당신은 Code Destiny의 프리미엄 사주 신년운세 PDF를 작성하는 해당 분야 최고 전문가이자 연간 전략 상담가입니다.",
-    "응답은 한국어 단일 JSON 객체만 작성하세요.",
-    "완성형 상담문만 출력하고, 내부 계산 근거 목록이나 개발자 문장은 출력하지 마세요.",
+    "너는 사주명리 기반 신년운세 전문 상담가다.",
+    "사주 계산을 하지 말고 제공된 계산 JSON만 해석 근거로 사용하라.",
+    "출력은 한국어 완성형 상담문만 작성하고 JSON, 코드블록, 표를 사용하지 마라.",
+    "완성형 상담문만 출력하고 내부 계산 근거 목록이나 개발자 문장을 출력하지 마세요.",
     "과장된 운세 문구/공포 유도 문구/확정적 예언을 금지합니다.",
     "출력 금지: 년주/월주/일주/시주 목록, 일간/월지/지장간/오행/십성 분포 목록, 대운/세운/월운 계산 과정, 합충형파해 산출 과정, 용신/희신/기신 판단 근거, JSON/payload/engine result/내부 계산표.",
     `목표 길이: ${Number(targetChars || minChars)}자`,
@@ -22305,7 +22814,7 @@ function buildSajuNewYearGeminiPrompt(chapterMeta, chapter, canonical, minChars,
     checklist.length ? `[챕터 필수 커버리지]\n- ${checklist.join("\n- ")}` : "",
     chapterContractText ? `[chapterContract]\n${chapterContractText}` : "",
     Number(chapter) === 9
-      ? "이 챕터는 반드시 12개월 월별 테이블을 마크다운 표 형식으로 포함하세요. 각 월은 이번 달 키워드, Go, Stop, 커리어, 재물, 관계, 건강, 한 줄 조언을 서로 다르게 제공해야 합니다."
+      ? "이 챕터는 반드시 9-1부터 9-12까지 각 월 섹션을 모두 작성하고, 해당 월 mainTheme/score/advice를 자연스럽게 반영하세요."
       : "",
     previousBan.length
       ? `[이전 챕터와 중복되어 사용할 수 없는 금지 문장 목록]\n${JSON.stringify(previousBan, null, 2)}`
@@ -22329,7 +22838,7 @@ function buildSajuNewYearGeminiPrompt(chapterMeta, chapter, canonical, minChars,
     "필수 구조:",
     `## ${chapterLabel}`,
     ...markers,
-    Number(chapter) === 9 ? "월별 표 헤더를 다음 순서로 고정하세요: | 월 | 이번 달 키워드 | Go | Stop | 커리어 | 재물 | 관계 | 건강 | 한 줄 조언 |" : "",
+    "각 마커마다 800자 이상, 실행 가능한 조언을 포함해 작성하세요.",
   ].filter(Boolean).join("\n");
 }
 
@@ -22448,6 +22957,27 @@ async function generateSajuNewYearChapterWithGemini(env, {
 
 async function handleSajuNewYearSession(request, env, authInfo = null) {
   const body = await readJson(request);
+  const rawTargetYear = body?.targetYear;
+  const person = body?.person && typeof body.person === "object" ? body.person : null;
+  if (person) {
+    if (!hasMeaningfulValue(body?.name) && hasMeaningfulValue(person?.name)) body.name = person.name;
+    if (!hasMeaningfulValue(body?.gender) && hasMeaningfulValue(person?.gender)) body.gender = person.gender;
+    if (!hasMeaningfulValue(body?.calendarType) && hasMeaningfulValue(person?.calendarType)) body.calendarType = person.calendarType;
+    if (!hasMeaningfulValue(body?.timezone) && hasMeaningfulValue(person?.timezone)) body.timezone = person.timezone;
+    if (!hasMeaningfulValue(body?.birthDate) && hasMeaningfulValue(person?.birthDate)) body.birthDate = person.birthDate;
+    if (!hasMeaningfulValue(body?.birthTime) && hasMeaningfulValue(person?.birthTime)) body.birthTime = person.birthTime;
+    const dateMatch = String(person?.birthDate || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (dateMatch) {
+      if (!Number.isFinite(Number(body?.year))) body.year = Number(dateMatch[1]);
+      if (!Number.isFinite(Number(body?.month))) body.month = Number(dateMatch[2]);
+      if (!Number.isFinite(Number(body?.day))) body.day = Number(dateMatch[3]);
+    }
+    const timeMatch = String(person?.birthTime || "").match(/^(\d{1,2}):(\d{2})$/);
+    if (timeMatch) {
+      if (!Number.isFinite(Number(body?.hour))) body.hour = Number(timeMatch[1]);
+      if (!Number.isFinite(Number(body?.minute))) body.minute = Number(timeMatch[2]);
+    }
+  }
   Object.assign(body, normalizePremiumRequestBodyForPipeline("sajuNewYear", body));
   const strictPayloadMode = true;
   const strictBody = {
@@ -22455,6 +22985,16 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
     _premiumStrictPayload: strictPayloadMode,
   };
   const prepareOnly = asBool(strictBody.prepareOnly);
+  const normalizedTargetYear = normalizeSajuNewYearTargetYear(rawTargetYear);
+  if (!hasMeaningfulValue(rawTargetYear) || !Number.isFinite(Number(normalizedTargetYear))) {
+    return json({
+      ok: false,
+      code: "SAJU_YEARLY_BOOK_TARGET_YEAR_REQUIRED",
+      message: "사주 신년운세 생성에는 targetYear 입력이 필요합니다.",
+      retryable: true,
+    }, { status: 400 });
+  }
+  strictBody.targetYear = Number(normalizedTargetYear);
   if (!prepareOnly && !chapterRequestProvided(strictBody)) {
     return json({ ok: false, message: "sessionId 또는 chapter 값을 포함해 챕터별로만 생성할 수 있습니다." }, { status: 400 });
   }
@@ -22470,14 +23010,29 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
       code: dataState.code || "SAJU_ENGINE_SOURCE_REQUIRED",
       message: dataState.message || "사주 엔진 원본 데이터가 필요합니다.",
       missingFields: Array.isArray(dataState.missingFields) ? dataState.missingFields : ["sajuData", "canonicalSajuChart", "engineData"],
+      retryable: true,
     }, { status: 422 });
   }
 
-  const canonical = buildCanonicalSajuNewYearReport(strictBody, input, dataState.sourceData);
+  const effectiveBody = dataState?.bodyPatch && typeof dataState.bodyPatch === "object"
+    ? { ...strictBody, ...dataState.bodyPatch }
+    : strictBody;
+
+  const canonical = buildCanonicalSajuNewYearReport(effectiveBody, input, dataState.sourceData);
   const validation = validateCanonicalSajuNewYear(canonical);
   const validationWarnings = !validation.isValid
     ? ["SAJU_NEW_YEAR_VALIDATION_FAILED"]
     : [];
+
+  if (!prepareOnly && !validation.isValid) {
+    return json({
+      ok: false,
+      code: "SAJU_YEARLY_BOOK_CALCULATION_INCOMPLETE",
+      message: "사주 신년운세 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있습니다.",
+      missingFields: Array.isArray(validation.missingFields) ? validation.missingFields : [],
+      retryable: true,
+    }, { status: 422 });
+  }
 
   if (prepareOnly) {
     const chapterTargets = SAJU_NEW_YEAR_CHAPTER_TARGETS.map((target, idx) => ({
@@ -22537,16 +23092,18 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
     targetChars,
     previousChapterTexts,
     strictPayloadMode,
-    premiumLlmInput: strictBody?._premiumLlmInput || buildLlmPromptInput("sajuNewYear", chapter, canonical),
+    premiumLlmInput: effectiveBody?._premiumLlmInput || buildLlmPromptInput("sajuNewYear", chapter, canonical),
   });
 
   let generatedChapter = generated;
   if (!generatedChapter?.ok) {
     return json({
       ok: false,
-      code: generatedChapter?.code || "SAJU_NEW_YEAR_CHAPTER_GENERATION_FAILED",
-      message: generatedChapter?.message || "신년운세 챕터 생성에 실패했습니다.",
+      code: "SAJU_YEARLY_BOOK_LLM_GENERATION_FAILED",
+      message: "사주 신년운세 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있습니다.",
       details: Array.isArray(generatedChapter?.details) ? generatedChapter.details : [],
+      failedSections: [{ chapterId: `ch${String(chapter).padStart(2, "0")}`, sectionId: `ch${String(chapter).padStart(2, "0")}-llm`, reason: "LLM_VALIDATION_FAILED" }],
+      retryable: true,
     }, { status: Number(generatedChapter?.status || 422) });
   }
 
@@ -23003,6 +23560,10 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
   const effectiveBody = {
     ...strictBody,
     sajuData: dataState.sourceData,
+    personAEngineData: dataState.personAEngineData || strictBody.personAEngineData || strictBody.engineData || null,
+    personBEngineData: dataState.personBEngineData || strictBody.personBEngineData || strictBody.partnerEngineData || null,
+    engineData: dataState.personAEngineData || strictBody.engineData || strictBody.personAEngineData || null,
+    partnerEngineData: dataState.personBEngineData || strictBody.partnerEngineData || strictBody.personBEngineData || null,
   };
   const canonical = buildCanonicalSajuLoveReport(effectiveBody, input, modeConfig);
   logSajuLoveBookStage("PayloadNormalized", { reportId, mode: modeToken, chapterId: chapter });
@@ -23106,45 +23667,40 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
 
   let internalFallbackUsed = false;
   if (!quality || !quality.ok || !text) {
-    const localFallbackText = buildLoveSecretLocalFallbackText(
-      modeConfig,
-      chapterMeta,
-      chapter,
-      canonical,
-      minChars,
-      previousTexts,
-      premiumLlmInput,
-    );
-    const localQuality = evaluateLoveSecretQuality(localFallbackText, chapter, canonical, previousTexts, minChars);
-    text = sanitizeSajuLoveBookUserFacingText(localFallbackText, modeToken) || localFallbackText;
-    quality = {
-      ...localQuality,
-      ok: true,
-      internalFallbackUsed: true,
-    };
-    llmMode = "local-only";
-    qualityMode = "failed_fallback";
-    logSajuLoveBookStage("LocalOnlyMode", {
+    logSajuLoveBookStage("LlmEnhanceFailed", {
       reportId,
       mode: modeToken,
       chapterId: chapter,
-      failedChecks: Array.isArray(localQuality?.failedChecks) ? localQuality.failedChecks.slice(0, 8) : [],
+      failedChecks: Array.isArray(quality?.failedChecks) ? quality.failedChecks.slice(0, 8) : [],
     }, "warn");
-    internalFallbackUsed = true;
+    return json({
+      ok: false,
+      code: "SAJU_LOVE_BOOK_LLM_GENERATION_FAILED",
+      message: "연애 비책 생성 품질을 충족하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      retryable: true,
+      reportId,
+      mode: modeToken,
+      chapter,
+    }, { status: 503 });
   }
 
   text = sanitizeSajuLoveBookUserFacingText(text, modeToken);
   if (!validateSajuLoveBookSectionText(text, modeToken)) {
-    const safeFallback = sanitizeSajuLoveBookUserFacingText(
-      buildLoveSecretLocalFallbackText(modeConfig, chapterMeta, chapter, canonical, minChars, previousTexts, premiumLlmInput),
-      modeToken,
-    );
-    if (safeFallback) {
-      text = safeFallback;
-      internalFallbackUsed = true;
-      llmMode = "local-only";
-      qualityMode = "failed_fallback";
-    }
+    logSajuLoveBookStage("LlmEnhanceFailed", {
+      reportId,
+      mode: modeToken,
+      chapterId: chapter,
+      reason: "section_validation_failed",
+    }, "warn");
+    return json({
+      ok: false,
+      code: "SAJU_LOVE_BOOK_LLM_GENERATION_FAILED",
+      message: "연애 비책 생성 품질을 충족하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      retryable: true,
+      reportId,
+      mode: modeToken,
+      chapter,
+    }, { status: 503 });
   }
 
   logSajuLoveBookStage("QualityEnhanceStart", { reportId, mode: modeToken, chapterId: chapter });
@@ -23910,8 +24466,8 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
   const specChapters = getPremiumRequiredChapters(reportType, modeKey);
   const preparedTotalChapters = Number((initialPrepareData?.totalChapters || data?.totalChapters) || 0);
   const totalChapters = reportType === "sookyoPremium"
-    ? Number(specChapters || PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || 10)
-    : Number(specChapters || preparedTotalChapters || PREMIUM_REPORT_REQUIRED_CHAPTERS[reportType] || 13);
+    ? Number(specChapters || getPremiumRequiredChapters(reportType, modeKey) || 10)
+    : Number(specChapters || preparedTotalChapters || getPremiumRequiredChapters(reportType, modeKey) || 10);
 
   const hydrated = await hydratePremiumCanonicalData({
     request,
@@ -24263,6 +24819,66 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
   const chapterPlan = Array.isArray(context?.derivedData?.chapterPlan) && context.derivedData.chapterPlan.length
     ? context.derivedData.chapterPlan
     : (getPremiumSpecByReportType(context.reportType, context.modeKey)?.chapters || []);
+  let reportDefinition = null;
+  try {
+    reportDefinition = getPremiumReportDefinitionByReportType(context.reportType, context.modeKey);
+  } catch (error) {
+    logPremiumReportDefinitionMismatch("definition_build_failed", {
+      reportType: context.reportType,
+      mode: context.modeKey,
+      backendChapterCount: Array.isArray(chapterPlan) ? chapterPlan.length : 0,
+      requestId,
+      reportSessionId: summary.reportSessionId,
+    });
+    return json(attachPremiumApiMeta({
+      ok: false,
+      code: "PREMIUM_REPORT_DEFINITION_INVALID",
+      normalizedCode: "PDF_REPORT_DEFINITION_INVALID",
+      message: "리포트 구성 정보를 확인하는 중 문제가 발생했습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 시도할 수 있습니다.",
+      requestId,
+      reportType: context.reportType,
+      featureType: context.featureType,
+      generationId: summary.reportSessionId,
+      reportSessionId: summary.reportSessionId,
+      snapshotId: String(context?.analysisSnapshot?.snapshotId || "").trim(),
+    }, {
+      stage: "prepare",
+      reportType: context.reportType,
+      featureType: context.featureType,
+      requestId,
+      normalizedCode: "PDF_REPORT_DEFINITION_INVALID",
+    }), { status: 422 });
+  }
+  const backendChapterCount = Array.isArray(chapterPlan) ? chapterPlan.length : 0;
+  const definitionChapterCount = Number(reportDefinition?.totalChapters || 0);
+  if (definitionChapterCount > 0 && backendChapterCount > 0 && definitionChapterCount !== backendChapterCount) {
+    logPremiumReportDefinitionMismatch("prepare_chapter_count_mismatch", {
+      reportType: context.reportType,
+      mode: context.modeKey,
+      backendChapterCount,
+      frontendChapterCount: definitionChapterCount,
+      requestId,
+      reportSessionId: summary.reportSessionId,
+    });
+    return json(attachPremiumApiMeta({
+      ok: false,
+      code: "PREMIUM_REPORT_DEFINITION_MISMATCH",
+      normalizedCode: "PDF_REPORT_DEFINITION_MISMATCH",
+      message: "리포트 구성 정보를 확인하는 중 문제가 발생했습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 시도할 수 있습니다.",
+      requestId,
+      reportType: context.reportType,
+      featureType: context.featureType,
+      generationId: summary.reportSessionId,
+      reportSessionId: summary.reportSessionId,
+      snapshotId: String(context?.analysisSnapshot?.snapshotId || "").trim(),
+    }, {
+      stage: "prepare",
+      reportType: context.reportType,
+      featureType: context.featureType,
+      requestId,
+      normalizedCode: "PDF_REPORT_DEFINITION_MISMATCH",
+    }), { status: 422 });
+  }
   const receivedKeys = collectReceivedKeys(requestBody);
   const expectedSchema = getPremiumExpectedSchema(context.reportType);
   const normalizedDataSummary = getPremiumNormalizedDataSummary(context.reportType, context?.coreData?.canonicalJson || {});
@@ -24334,6 +24950,7 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
     preflight: context.preflight || null,
     ...summary,
     chapterPlan,
+    reportDefinition,
     normalizedDataSummary,
   };
 
@@ -27453,7 +28070,7 @@ export async function handleLoveSecretRoutes(request, env) {
     if (path === "/generate-chapter") {
       if (method !== "POST") return methodNotAllowed();
       const body = await readJson(request.clone());
-      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.sessionId, 1, 1, 13);
+      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.sessionId, 1, 1, 12);
       const normalizedBody = {
         ...(body && typeof body === "object" ? body : {}),
         chapter,
@@ -27521,7 +28138,7 @@ export async function handleSajuNewYearRoutes(request, env) {
     if (path === "/session") return await ensurePdfNo422(await handleSajuNewYearSession(request, env, authInfo));
     if (path === "/generate-chapter" || path === "/chapter") {
       const body = await readJson(request.clone());
-      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.chapterId ?? body?.sessionId, 1, 1, 15);
+      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.chapterId ?? body?.sessionId, 1, 1, SAJU_NEW_YEAR_TOTAL_CHAPTERS);
       const normalizedBody = {
         ...(body && typeof body === "object" ? body : {}),
         chapter,

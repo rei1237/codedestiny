@@ -9,13 +9,13 @@ describe("Premium PDF v2 chapter plans", () => {
     const life = getPremiumPdfV2ChapterPlan("lifeBook");
     const love = getPremiumPdfV2ChapterPlan("loveSecret", "solo");
 
-    expect(life).toHaveLength(13);
-    expect(life[0].title).toContain("사주 원국 완전 해설");
+    expect(life).toHaveLength(12);
+    expect(life[0].title).toContain("Ch.1 사주 원국 총론");
     expect(life[0].minChars).toBe(6000);
     expect(life[0].maxChars).toBe(6600);
 
-    expect(love).toHaveLength(13);
-    expect(love[0].title).toContain("Chapter I. 본연의 연애 자아");
+    expect(love).toHaveLength(10);
+    expect(love[0].title).toContain("본연의 연애 자아");
     expect(love[0].minChars).toBe(5000);
   });
 

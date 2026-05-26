@@ -21,8 +21,8 @@ describe("Premium PDF v2 helpers", () => {
     const plan = getPremiumPdfV2ChapterPlan("lifeBook", "solo");
 
     expect(Array.isArray(plan)).toBe(true);
-    expect(plan.length).toBe(13);
-    expect(plan[0].title).toContain("사주 원국 완전 해설");
+    expect(plan.length).toBe(12);
+    expect(plan[0].title).toContain("Ch.1 사주 원국 총론");
     expect(plan[0].order).toBe(1);
     expect(plan[0].minChars).toBe(6000);
     expect(plan[0].maxChars).toBe(6600);

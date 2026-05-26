@@ -26,21 +26,18 @@ const LOVE_SOLO_TITLES = LOVE_SECRET_MODE_CONFIG.solo.chapters.map((chapter) => 
 const LOVE_COMPATIBILITY_TITLES = LOVE_SECRET_MODE_CONFIG.couple.chapters.map((chapter) => String(chapter?.title || "").trim()).filter(Boolean);
 
 const ZIWEI_TITLES = [
-  "I. 자미두수 명반 총론 — 내 운명의 기본 설계도",
-  "II. 명궁 완전 해석 — 타고난 성격과 인생의 중심축",
-  "III. 신궁 심층 분석 — 후천적 삶의 방향과 진짜 욕망",
-  "IV. 12궁 완전 해석 — 인생 영역별 운명 지도",
-  "V. 사화 분석 — 운명을 움직이는 변화의 버튼",
-  "VI. 재물·직업·성공운 — 현실 성취와 돈의 흐름",
-  "VII. 연애·결혼·인연운 — 사랑과 관계의 구조",
-  "VIII. 인간관계·귀인·사회운 — 사람을 통해 열리는 운",
-  "IX. 건강·심리·복덕운 — 마음과 몸의 균형",
-  "X. 대운 분석 — 10년 단위 인생 흐름",
-  "XI. 세운·유년운 분석 — 올해와 가까운 미래의 흐름",
-  "XII. 최종 종합 리포트 — 나의 운명 사용법",
-  "XIII. 연간 운세 로드맵 — 올해와 가까운 미래의 흐름",
-  "XIV. 생애 마스터플랜 — 시간의 축으로 보는 운명 지도",
-  "XV. 자미 거장의 최종 전략 제언 — 나의 명반 사용 설명서",
+  "Ch.1 명궁 완전 해독 — 타고난 인생 설계도",
+  "Ch.2 신궁 심층 분석 — 후천적으로 완성되는 나",
+  "Ch.3 형제궁과 인간관계의 거리감",
+  "Ch.4 부부궁 연애와 결혼",
+  "Ch.5 자녀궁과 창조성",
+  "Ch.6 재백궁 재물 흐름",
+  "Ch.7 질액궁 건강과 에너지",
+  "Ch.8 천이궁 이동·변화·확장 운",
+  "Ch.9 노복궁 네트워크와 귀인운",
+  "Ch.10 관록궁 커리어·직업·사회적 성취",
+  "Ch.11 전택궁 자산·주거·안정 기반",
+  "Ch.12 복덕궁 마음의 복과 인생 운영 전략",
 ];
 
 const buildSukyoSpecChapters = (mode) => getSukyoPdfChapters(mode).map((chapter, idx) => {
@@ -78,21 +75,177 @@ const VEDIC_SOLO_TITLES = [
 const VEDIC_SOLO_TARGETS = [4500, 4300, 4300, 4000, 4600, 4800, 4400, 4500, 3900, 3900, 4200, 4100, 4200, 4100, 4000, 4600];
 
 const ASTRO_PERSONAL_TITLES = [
-  "출생차트 총론 — 하늘이 남긴 첫 설계도",
-  "태양·달·상승궁 — 자아, 감정, 페르소나의 삼각형",
-  "행성 배치 완전 해석 — 내 안의 열 가지 목소리",
-  "12하우스 분석 — 삶이 펼쳐지는 무대",
-  "주요 각도 분석 — 재능과 긴장의 숨은 회로",
-  "원소·모드·극성 — 기질의 밸런스 지도",
-  "사랑과 관계 — 금성, 화성, 7하우스가 말하는 애정 방식",
-  "직업·재물·사회적 성공 — MC와 2·6·10하우스의 전략",
-  "가족·상처·무의식 — 달, IC, 4·8·12하우스의 깊은 이야기",
-  "성장·철학·영성 — 목성, 토성이 이끄는 길",
-  "시기운과 변화의 흐름 — 지금부터 열리는 하늘의 리듬",
-  "최종 인생 전략 — 내 별자리를 현실로 살아내는 법",
+  "Ch.1 점성술 차트 핵심 총론 — 나라는 우주의 기본 설계",
+  "Ch.2 태양과 삶의 방향 — 내가 되어야 할 중심",
+  "Ch.3 달과 감정 구조 — 마음이 반응하는 방식",
+  "Ch.4 상승궁과 1하우스 — 세상에 드러나는 나",
+  "Ch.5 수성·금성·화성 — 생각, 사랑, 행동의 방식",
+  "Ch.6 커리어와 사회적 역할 — MC와 10하우스",
+  "Ch.7 사랑과 관계 — 5하우스, 7하우스, 금성의 신호",
+  "Ch.8 돈과 재능 — 2하우스, 6하우스, 11하우스",
+  "Ch.9 위기와 변형 — 8하우스, 12하우스, 명왕성",
+  "Ch.10 최종 인생 전략 — 차트 종합 로드맵",
 ];
 
-const ASTRO_PERSONAL_TARGETS = [4500, 4500, 4300, 4800, 4500, 4000, 4200, 4500, 3800, 3600, 4100, 4300];
+const ASTRO_PERSONAL_TARGETS = [4500, 4500, 4300, 4300, 4200, 4200, 4300, 4300, 4200, 4600];
+
+const REPORT_SUBTITLE_BY_FEATURE_TYPE = {
+  saju_life_book: "사주의 뼈대부터 대운 전략까지, 실행 가능한 장기 로드맵",
+  saju_love_secret: "연애 패턴과 관계 전략을 실전 중심으로 정리한 프리미엄 리포트",
+  saju_new_year_pdf: "올해 12개월 Go/Stop 타이밍을 포함한 연간 전략 리포트",
+  jamidusu_premium: "12궁과 주요 별 흐름을 중심으로 구성한 자미두수 전략서",
+  sookyo_premium: "두 사람의 관계 구조와 운영 전략을 정리한 숙요 궁합 리포트",
+  vedic_premium: "라그나/달/다샤를 연결해 인생 방향을 설계하는 베다 리포트",
+  astrology_premium: "태양·달·상승궁과 하우스 흐름으로 읽는 코즈믹 인생 설계도",
+};
+
+const REPORT_MARKETING_BULLETS_BY_FEATURE_TYPE = {
+  saju_life_book: [
+    "원국·오행·십성·격국을 하나의 전략으로 통합",
+    "대운 흐름 기반의 시기별 선택 기준 제공",
+    "관계/재물/건강까지 실행 루틴 중심 제안",
+  ],
+  saju_love_secret: [
+    "끌림과 갈등의 반복 구조를 사주 신호로 해석",
+    "솔로/궁합 모드별 관계 운영 전략 제공",
+    "장기 관계를 위한 대화·경계·회복 루틴 제안",
+  ],
+  saju_new_year_pdf: [
+    "연간 기조부터 월별 흐름까지 단계별 안내",
+    "Ch.9에서 1월~12월 월운 테이블 제공",
+    "올해의 Go/Stop 실행 기준을 명확히 제시",
+  ],
+  jamidusu_premium: [
+    "명궁/신궁/12궁 핵심 구조를 일관된 체계로 정리",
+    "관계·커리어·재물·건강의 장단점을 균형 있게 분석",
+    "챕터별 실전 적용 전략으로 마무리",
+  ],
+  sookyo_premium: [
+    "본명숙 기반 관계 패턴과 거리감 구조 분석",
+    "궁합 모드 중심의 갈등/회복 시나리오 제안",
+    "현실적인 관계 운영 규칙과 90일 실행안 제공",
+  ],
+  vedic_premium: [
+    "라그나·나크샤트라·다샤를 연결한 입체 분석",
+    "커리어/재물/관계/건강 우선순위 정리",
+    "현재 시기 과제를 실행 가능한 전략으로 제시",
+  ],
+  astrology_premium: [
+    "태양·달·상승궁의 핵심 구조를 직관적으로 해석",
+    "하우스/각도 신호를 실전 의사결정 기준으로 변환",
+    "관계와 커리어 전략을 하나의 로드맵으로 통합",
+  ],
+};
+
+const REPORT_GENERATION_MESSAGES = {
+  saju_life_book: [
+    "원국의 뼈대를 정리하고 있습니다.",
+    "오행의 균형과 삶의 방향을 연결하고 있습니다.",
+    "십성과 대운의 흐름을 인생 로드맵으로 엮고 있습니다.",
+    "당신의 강점과 반복 패턴을 챕터별로 정리하고 있습니다.",
+  ],
+  saju_love_secret_solo: [
+    "사랑에서 반복되는 패턴을 읽고 있습니다.",
+    "배우자성과 일지를 통해 끌림의 구조를 분석하고 있습니다.",
+    "도화·홍염·화개의 매력 신호를 정리하고 있습니다.",
+    "오래 가는 사랑을 위한 실전 조언을 구성하고 있습니다.",
+  ],
+  saju_love_secret_compatibility: [
+    "두 사람의 원국을 각각 분석하고 있습니다.",
+    "일간과 일지의 상호작용을 비교하고 있습니다.",
+    "끌림과 갈등의 반복 구조를 정리하고 있습니다.",
+    "관계를 오래 유지하기 위한 전략을 구성하고 있습니다.",
+  ],
+  saju_new_year_pdf: [
+    "원국과 현재 대운을 연결하고 있습니다.",
+    "올해 세운이 만드는 변화를 분석하고 있습니다.",
+    "12개월 월운 흐름을 정리하고 있습니다.",
+    "올해의 Go/Stop 타이밍을 구성하고 있습니다.",
+  ],
+  jamidusu_premium: [
+    "12궁의 별과 강도를 정리하고 있습니다.",
+    "명궁과 신궁의 흐름을 연결하고 있습니다.",
+    "사화가 만드는 기회와 과제를 분석하고 있습니다.",
+    "인생 전략을 챕터별로 구성하고 있습니다.",
+  ],
+  sookyo_premium: [
+    "두 사람의 본명숙을 확인하고 있습니다.",
+    "관계 유형과 거리감을 분석하고 있습니다.",
+    "끌림과 갈등의 숙요 구조를 정리하고 있습니다.",
+    "현실적인 관계 운영 전략을 구성하고 있습니다.",
+  ],
+  vedic_premium: [
+    "라그나와 달의 구조를 분석하고 있습니다.",
+    "나크샤트라와 아트마카라카를 연결하고 있습니다.",
+    "현재 다샤의 과제를 정리하고 있습니다.",
+    "베다 차트의 인생 전략을 구성하고 있습니다.",
+  ],
+  astrology_premium: [
+    "태양·달·상승궁의 핵심 구조를 분석하고 있습니다.",
+    "하우스와 각도의 흐름을 연결하고 있습니다.",
+    "커리어와 관계의 차트 신호를 정리하고 있습니다.",
+    "당신의 우주 설계도를 프리미엄 리포트로 구성하고 있습니다.",
+  ],
+};
+
+const MONTHLY_SECTION_TITLES = [
+  "1월 월운", "2월 월운", "3월 월운", "4월 월운", "5월 월운", "6월 월운",
+  "7월 월운", "8월 월운", "9월 월운", "10월 월운", "11월 월운", "12월 월운",
+];
+
+function pickGenerationMessages(featureType, mode = "") {
+  const normalizedFeatureType = String(featureType || "").trim();
+  const normalizedMode = String(mode || "").trim().toLowerCase();
+  if (normalizedFeatureType === "saju_love_secret") {
+    const key = (normalizedMode === "compatibility" || normalizedMode === "couple" || normalizedMode === "compat")
+      ? "saju_love_secret_compatibility"
+      : "saju_love_secret_solo";
+    return Array.isArray(REPORT_GENERATION_MESSAGES[key]) ? REPORT_GENERATION_MESSAGES[key].slice() : [];
+  }
+  return Array.isArray(REPORT_GENERATION_MESSAGES[normalizedFeatureType])
+    ? REPORT_GENERATION_MESSAGES[normalizedFeatureType].slice()
+    : [];
+}
+
+function toShortTitle(title = "") {
+  const cleaned = String(title || "").replace(/^Ch\.\d+\s*/i, "").trim();
+  const splitters = [" — ", " - ", " : ", "|", "·"];
+  for (const splitter of splitters) {
+    if (cleaned.includes(splitter)) {
+      return String(cleaned.split(splitter)[0] || cleaned).trim();
+    }
+  }
+  return cleaned;
+}
+
+function buildChapterSections(featureType, chapterIndex, chapterTitle = "") {
+  const feature = String(featureType || "").trim();
+  if (feature === "saju_new_year_pdf" && chapterIndex === 9) {
+    return MONTHLY_SECTION_TITLES.map((title, idx) => ({
+      id: `ch09-sec${String(idx + 1).padStart(2, "0")}`,
+      title,
+      teaser: `${title}의 핵심 기회와 리스크를 정리합니다.`,
+    }));
+  }
+  const base = toShortTitle(chapterTitle) || `Ch.${chapterIndex}`;
+  return [
+    { id: `ch${String(chapterIndex).padStart(2, "0")}-sec01`, title: "핵심 진단", teaser: `${base}의 핵심 신호를 요약합니다.` },
+    { id: `ch${String(chapterIndex).padStart(2, "0")}-sec02`, title: "실전 전략", teaser: `${base}를 현실 선택으로 연결합니다.` },
+  ];
+}
+
+function buildUiChapterDefinition(featureType, chapter, chapterIndex) {
+  const title = String(chapter?.title || `Ch.${chapterIndex}`).trim();
+  const shortTitle = toShortTitle(title);
+  return {
+    id: String(chapter?.id || `ch${String(chapterIndex).padStart(2, "0")}`),
+    title,
+    shortTitle,
+    marketingLabel: `${shortTitle} 프리미엄 분석`,
+    teaser: `${shortTitle}을 중심으로 핵심 신호와 실전 전략을 정리합니다.`,
+    sections: buildChapterSections(featureType, chapterIndex, title),
+  };
+}
 
 export const PREMIUM_PDF_SPECS = {
   saju_new_year_pdf: {
@@ -211,10 +364,18 @@ export function getPremiumSpecByFeatureType(featureType, mode = "") {
   if (!spec) return null;
 
   if (!spec.chaptersByMode) {
+    const chapters = Array.isArray(spec.chapters) ? spec.chapters : [];
+    const chapterDefinitions = chapters.map((chapter, idx) => buildUiChapterDefinition(normalized, chapter, idx + 1));
+    const generationMessages = pickGenerationMessages(normalized, mode);
     return {
       ...spec,
-      chapters: Array.isArray(spec.chapters) ? spec.chapters : [],
-      chapterCount: Array.isArray(spec.chapters) ? spec.chapters.length : 0,
+      subtitle: REPORT_SUBTITLE_BY_FEATURE_TYPE[normalized] || "프리미엄 분석 리포트를 생성합니다.",
+      estimatedDepthLabel: "심층 분석",
+      marketingBullets: REPORT_MARKETING_BULLETS_BY_FEATURE_TYPE[normalized] || [],
+      generationMessages,
+      chapters,
+      chapterDefinitions,
+      chapterCount: chapters.length,
     };
   }
 
@@ -236,6 +397,8 @@ export function getPremiumSpecByFeatureType(featureType, mode = "") {
 
   const fallbackMode = Object.keys(spec.chaptersByMode || {})[0] || "";
   const chapters = spec.chaptersByMode?.[normalizedMode] || spec.chaptersByMode?.[fallbackMode] || [];
+  const chapterDefinitions = chapters.map((chapter, idx) => buildUiChapterDefinition(normalized, chapter, idx + 1));
+  const generationMessages = pickGenerationMessages(normalized, normalizedMode);
   let minTotalChars = Number(spec.minTotalChars || 0);
   let targetTotalChars = Number(spec.targetTotalChars || 0);
 
@@ -261,10 +424,15 @@ export function getPremiumSpecByFeatureType(featureType, mode = "") {
 
   return {
     ...spec,
+    subtitle: REPORT_SUBTITLE_BY_FEATURE_TYPE[normalized] || "프리미엄 분석 리포트를 생성합니다.",
+    estimatedDepthLabel: "심층 분석",
+    marketingBullets: REPORT_MARKETING_BULLETS_BY_FEATURE_TYPE[normalized] || [],
+    generationMessages,
     mode: normalizedMode,
     minTotalChars,
     targetTotalChars,
     chapters,
+    chapterDefinitions,
     chapterCount: chapters.length,
   };
 }
@@ -273,4 +441,37 @@ export function getPremiumSpecByReportType(reportType, mode = "") {
   const featureType = REPORT_TYPE_TO_FEATURE_TYPE[String(reportType || "").trim()] || "";
   if (!featureType) return null;
   return getPremiumSpecByFeatureType(featureType, mode);
+}
+
+export function getPremiumReportDefinitionByFeatureType(featureType, mode = "") {
+  const spec = getPremiumSpecByFeatureType(featureType, mode);
+  if (!spec) return null;
+  const chapters = Array.isArray(spec.chapterDefinitions) ? spec.chapterDefinitions : [];
+  const totalChapters = Number(spec.chapterCount || chapters.length || 0);
+  if (chapters.length !== totalChapters) {
+    throw new Error(`PREMIUM_REPORT_DEFINITION_CHAPTER_MISMATCH:${String(featureType)}:${String(mode)}:${chapters.length}:${totalChapters}`);
+  }
+  const sectionCount = chapters.reduce((sum, chapter) => {
+    const items = Array.isArray(chapter?.sections) ? chapter.sections.length : 0;
+    return sum + items;
+  }, 0);
+  return {
+    reportType: FEATURE_TYPE_TO_REPORT_TYPE[String(featureType || "").trim()] || "",
+    featureType: String(featureType || "").trim(),
+    title: String(spec.title || "프리미엄 리포트"),
+    subtitle: String(spec.subtitle || "프리미엄 분석 리포트를 생성합니다."),
+    mode: String(spec.mode || mode || "").trim() || undefined,
+    totalChapters,
+    totalSections: sectionCount,
+    estimatedDepthLabel: String(spec.estimatedDepthLabel || "심층 분석"),
+    marketingBullets: Array.isArray(spec.marketingBullets) ? spec.marketingBullets : [],
+    generationMessages: Array.isArray(spec.generationMessages) ? spec.generationMessages : [],
+    chapters,
+  };
+}
+
+export function getPremiumReportDefinitionByReportType(reportType, mode = "") {
+  const featureType = REPORT_TYPE_TO_FEATURE_TYPE[String(reportType || "").trim()] || "";
+  if (!featureType) return null;
+  return getPremiumReportDefinitionByFeatureType(featureType, mode);
 }

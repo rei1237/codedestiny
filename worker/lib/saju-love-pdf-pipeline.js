@@ -1,219 +1,40 @@
 const SAJU_LOVE_FORBIDDEN_PHRASES = Object.freeze([
-  "생성 상태 안내",
-  "서버 응답이 불안정",
-  "구조화된 스켈레톤",
-  "스켈레톤",
-  "기본 골격",
-  "다음 생성 시",
-  "자동 재작성",
-  "자동 복구",
-  "복구 생성",
   "fallback",
   "placeholder",
   "Chapter 1",
   "Chapter 2",
-  "원인:",
-  "기본 사주 분석을 먼저 실행",
-  "기본 궁합 분석을 먼저 실행",
-  "이 섹션은 챕터 구조 보존을 위한 기본 골격입니다",
+  "Internal server error",
   "JSON payload",
   "raw payload",
   "engine raw",
-  "계산 실패",
-  "데이터 없음",
 ]);
 
 const SOLO_CHAPTER_DEFS = Object.freeze([
-  {
-    id: "love-solo-01",
-    title: "💘 본연의 연애 자아",
-    categories: [
-      ["love-solo-01-01", "일간으로 보는 사랑의 기본 태도"],
-      ["love-solo-01-02", "일지로 보는 친밀감의 방식"],
-      ["love-solo-01-03", "월지와 환경이 만든 연애 습관"],
-      ["love-solo-01-04", "오행 균형으로 보는 감정 표현"],
-      ["love-solo-01-05", "연애에서 반복되는 핵심 패턴"],
-    ],
-  },
-  {
-    id: "love-solo-02",
-    title: "🌹 치명적 매력과 페로몬",
-    categories: [
-      ["love-solo-02-01", "도화·홍염·화개 데이터 해석"],
-      ["love-solo-02-02", "식상으로 드러나는 표현력"],
-      ["love-solo-02-03", "재성/관성으로 드러나는 이성 매력"],
-      ["love-solo-02-04", "상대를 끌어당기는 포인트"],
-      ["love-solo-02-05", "매력이 독이 되는 순간"],
-    ],
-  },
-  {
-    id: "love-solo-03",
-    title: "🧲 내가 끌리는 상대와 인연 코드",
-    categories: [
-      ["love-solo-03-01", "배우자성 또는 관계성 데이터"],
-      ["love-solo-03-02", "본능적으로 끌리는 유형"],
-      ["love-solo-03-03", "안정감을 주는 상대 유형"],
-      ["love-solo-03-04", "위험하지만 끌리는 상대 유형"],
-      ["love-solo-03-05", "피해야 할 관계 패턴"],
-    ],
-  },
-  {
-    id: "love-solo-04",
-    title: "💬 썸·고백·초기 연애 전략",
-    categories: [
-      ["love-solo-04-01", "썸에서 드러나는 태도"],
-      ["love-solo-04-02", "고백과 접근 방식"],
-      ["love-solo-04-03", "초반에 호감이 커지는 조건"],
-      ["love-solo-04-04", "초반에 식기 쉬운 조건"],
-      ["love-solo-04-05", "관계 시작 체크리스트"],
-    ],
-  },
-  {
-    id: "love-solo-05",
-    title: "💞 깊은 관계에서의 애착 패턴",
-    categories: [
-      ["love-solo-05-01", "가까워질수록 드러나는 모습"],
-      ["love-solo-05-02", "안정감을 느끼는 방식"],
-      ["love-solo-05-03", "불안이 올라오는 지점"],
-      ["love-solo-05-04", "집착 또는 회피 패턴"],
-      ["love-solo-05-05", "감정을 건강하게 전달하는 법"],
-    ],
-  },
-  {
-    id: "love-solo-06",
-    title: "⚠️ 연애에서 반복되는 상처와 방어기제",
-    categories: [
-      ["love-solo-06-01", "자존심이 상하는 상황"],
-      ["love-solo-06-02", "관계를 망치는 말과 행동"],
-      ["love-solo-06-03", "이별/거리감 앞 반응"],
-      ["love-solo-06-04", "반복 실수의 원인"],
-      ["love-solo-06-05", "회복을 위한 대화법"],
-    ],
-  },
-  {
-    id: "love-solo-07",
-    title: "🏡 결혼·장기 관계 성향",
-    categories: [
-      ["love-solo-07-01", "장기 관계에서 원하는 안정감"],
-      ["love-solo-07-02", "결혼관/책임감 구조"],
-      ["love-solo-07-03", "생활 리듬과 현실 조건"],
-      ["love-solo-07-04", "오래 갈수록 강해지는 장점"],
-      ["love-solo-07-05", "장기 관계 주의점"],
-    ],
-  },
-  {
-    id: "love-solo-08",
-    title: "💼 일·돈·자존감이 연애에 미치는 영향",
-    categories: [
-      ["love-solo-08-01", "일과 연애의 균형"],
-      ["love-solo-08-02", "돈과 현실 문제 대응"],
-      ["love-solo-08-03", "자존감 영향"],
-      ["love-solo-08-04", "성취욕과 관계 충돌"],
-      ["love-solo-08-05", "현실 이슈 완충 전략"],
-    ],
-  },
-  {
-    id: "love-solo-09",
-    title: "🕰️ 연애운과 시기 흐름",
-    categories: [
-      ["love-solo-09-01", "대운 기반 현재 흐름"],
-      ["love-solo-09-02", "세운 기반 올해 흐름"],
-      ["love-solo-09-03", "인연 유입 시기"],
-      ["love-solo-09-04", "주의 시기"],
-      ["love-solo-09-05", "선택 타이밍"],
-    ],
-  },
-  {
-    id: "love-solo-10",
-    title: "🗝️ 최종 연애 처방전",
-    categories: [
-      ["love-solo-10-01", "연애 성향 종합 요약"],
-      ["love-solo-10-02", "가장 강한 매력"],
-      ["love-solo-10-03", "가장 조심할 패턴"],
-      ["love-solo-10-04", "좋은 인연 판별 기준"],
-      ["love-solo-10-05", "실전 실행 체크리스트"],
-    ],
-  },
+  { id: "love-solo-01", title: "Ch.1 Solo Core Profile", categories: [["love-solo-01-01", "1-1 Core first impression"],["love-solo-01-02", "1-2 Day master love stance"],["love-solo-01-03", "1-3 Day branch intimacy instinct"],["love-solo-01-04", "1-4 Strongest love signal"],["love-solo-01-05", "1-5 Weakest love signal"],["love-solo-01-06", "1-6 Core love keywords"]] },
+  { id: "love-solo-02", title: "Ch.2 Attraction Signals", categories: [["love-solo-02-01", "2-1 Dohwa attraction"],["love-solo-02-02", "2-2 Hongyeom afterglow"],["love-solo-02-03", "2-3 Hwagae distance"],["love-solo-02-04", "2-4 Unconscious charm"],["love-solo-02-05", "2-5 Charm drop moments"],["love-solo-02-06", "2-6 Healthy charm usage"]] },
+  { id: "love-solo-03", title: "Ch.3 Preferred Partner Type", categories: [["love-solo-03-01", "3-1 Partner star ideal"],["love-solo-03-02", "3-2 Deep pull from day branch"],["love-solo-03-03", "3-3 Repeating attraction type"],["love-solo-03-04", "3-4 Risky attraction type"],["love-solo-03-05", "3-5 Long-term fit"],["love-solo-03-06", "3-6 Avoid type"]] },
+  { id: "love-solo-04", title: "Ch.4 Relationship Pattern", categories: [["love-solo-04-01", "4-1 Start pattern"],["love-solo-04-02", "4-2 Opening speed"],["love-solo-04-03", "4-3 Deepening trigger"],["love-solo-04-04", "4-4 Shake pattern"],["love-solo-04-05", "4-5 Distance breakup reason"],["love-solo-04-06", "4-6 Pattern break"]] },
+  { id: "love-solo-05", title: "Ch.5 Weakness Structure", categories: [["love-solo-05-01", "5-1 Ego barrier"],["love-solo-05-02", "5-2 Expression gap"],["love-solo-05-03", "5-3 Anxiety cling point"],["love-solo-05-04", "5-4 Push pull"],["love-solo-05-05", "5-5 Hidden hurt mode"],["love-solo-05-06", "5-6 Self protection"]] },
+  { id: "love-solo-06", title: "Ch.6 Long-term Strategy", categories: [["love-solo-06-01", "6-1 Fit speed"],["love-solo-06-02", "6-2 Contact expression line"],["love-solo-06-03", "6-3 Conflict resolve mode"],["love-solo-06-04", "6-4 Trust building"],["love-solo-06-05", "6-5 Explain my traits"],["love-solo-06-06", "6-6 Long-term routine"]] },
+  { id: "love-solo-07", title: "Ch.7 Marriage and Long-term", categories: [["love-solo-07-01", "7-1 Marriage stance"],["love-solo-07-02", "7-2 Life base linkage"],["love-solo-07-03", "7-3 Responsibility rise"],["love-solo-07-04", "7-4 Post-marriage caution"],["love-solo-07-05", "7-5 Long-term strengths"],["love-solo-07-06", "7-6 Marriage luck advice"]] },
+  { id: "love-solo-08", title: "Ch.8 Timing and Luck", categories: [["love-solo-08-01", "8-1 Current big-luck task"],["love-solo-08-02", "8-2 Current big-luck opening"],["love-solo-08-03", "8-3 Good timing conditions"],["love-solo-08-04", "8-4 Caution periods"],["love-solo-08-05", "8-5 Next big-luck shift"],["love-solo-08-06", "8-6 Timing strategy"]] },
+  { id: "love-solo-09", title: "Ch.9 Recovery Pattern", categories: [["love-solo-09-01", "9-1 Biggest post-break shake"],["love-solo-09-02", "9-2 Why attachment remains"],["love-solo-09-03", "9-3 Why re-love is hard"],["love-solo-09-04", "9-4 Self-worth recovery"],["love-solo-09-05", "9-5 Prep for next love"],["love-solo-09-06", "9-6 Emotional recovery routine"]] },
+  { id: "love-solo-10", title: "Ch.10 Final Solo Roadmap", categories: [["love-solo-10-01", "10-1 Core summary"],["love-solo-10-02", "10-2 Biggest charm"],["love-solo-10-03", "10-3 Repeat weakness"],["love-solo-10-04", "10-4 Reinforce stance"],["love-solo-10-05", "10-5 Avoid choices"],["love-solo-10-06", "10-6 Final advice"]] },
 ]);
 
 const COMPAT_CHAPTER_DEFS = Object.freeze([
-  {
-    id: "love-compat-11",
-    title: "💞 두 사람의 기본 궁합 구조",
-    categories: [
-      ["love-compat-11-01", "나의 사주 핵심 연애 코드"],
-      ["love-compat-11-02", "상대의 사주 핵심 연애 코드"],
-      ["love-compat-11-03", "두 사람의 일간 관계"],
-      ["love-compat-11-04", "두 사람의 일지 관계"],
-      ["love-compat-11-05", "관계의 기본 온도"],
-    ],
-  },
-  {
-    id: "love-compat-12",
-    title: "🧲 끌림과 인연의 이유",
-    categories: [
-      ["love-compat-12-01", "오행 상생상극으로 보는 끌림"],
-      ["love-compat-12-02", "십성 관계로 보는 역할 구도"],
-      ["love-compat-12-03", "매력성 상호작용"],
-      ["love-compat-12-04", "강하게 반응하는 지점"],
-      ["love-compat-12-05", "초기 호감의 이유"],
-    ],
-  },
-  {
-    id: "love-compat-13",
-    title: "🔥 감정 흐름과 애착 구조",
-    categories: [
-      ["love-compat-13-01", "감정 표현 방식의 차이"],
-      ["love-compat-13-02", "가까워질수록 드러나는 모습"],
-      ["love-compat-13-03", "안정감을 주는 방식"],
-      ["love-compat-13-04", "불안을 자극하는 방식"],
-      ["love-compat-13-05", "애착 안정 전략"],
-    ],
-  },
-  {
-    id: "love-compat-14",
-    title: "⚔️ 갈등 구조와 위험 신호",
-    categories: [
-      ["love-compat-14-01", "합충형파해 관계"],
-      ["love-compat-14-02", "원진귀문 또는 긴장 신호"],
-      ["love-compat-14-03", "반복 오해 포인트"],
-      ["love-compat-14-04", "말투/태도 상처 지점"],
-      ["love-compat-14-05", "위기 대응법"],
-    ],
-  },
-  {
-    id: "love-compat-15",
-    title: "🏡 장기 관계와 현실 궁합",
-    categories: [
-      ["love-compat-15-01", "결혼/장기 관계 가능성"],
-      ["love-compat-15-02", "생활 리듬 궁합"],
-      ["love-compat-15-03", "돈·일·가족 충돌 가능성"],
-      ["love-compat-15-04", "필요한 역할 분담"],
-      ["love-compat-15-05", "관계 안정 조건"],
-    ],
-  },
-  {
-    id: "love-compat-16",
-    title: "🕰️ 두 사람의 시기 흐름",
-    categories: [
-      ["love-compat-16-01", "양쪽 대운 흐름 비교"],
-      ["love-compat-16-02", "양쪽 세운 흐름 비교"],
-      ["love-compat-16-03", "가까워지기 쉬운 시기"],
-      ["love-compat-16-04", "갈등 확대 시기"],
-      ["love-compat-16-05", "거리 조절 타이밍"],
-    ],
-  },
-  {
-    id: "love-compat-17",
-    title: "🗝️ 두 사람을 위한 최종 관계 처방전",
-    categories: [
-      ["love-compat-17-01", "관계 종합 진단"],
-      ["love-compat-17-02", "반드시 지킬 원칙"],
-      ["love-compat-17-03", "하지 말아야 할 행동"],
-      ["love-compat-17-04", "회복 대화법"],
-      ["love-compat-17-05", "최종 실행 체크리스트"],
-    ],
-  },
+  { id: "love-compat-01", title: "Ch.1 Two Profiles", categories: [["love-compat-01-01", "1-1 A profile"],["love-compat-01-02", "1-2 B profile"],["love-compat-01-03", "1-3 A values"],["love-compat-01-04", "1-4 B values"],["love-compat-01-05", "1-5 Difference"],["love-compat-01-06", "1-6 First attraction"]] },
+  { id: "love-compat-02", title: "Ch.2 Day Master Compatibility", categories: [["love-compat-02-01", "2-1 DM relation"],["love-compat-02-02", "2-2 Helpful qi"],["love-compat-02-03", "2-3 Exhausting qi"],["love-compat-02-04", "2-4 Nature gap"],["love-compat-02-05", "2-5 Needed perspective"],["love-compat-02-06", "2-6 Practical advice"]] },
+  { id: "love-compat-03", title: "Ch.3 Day Branch and Spouse Palace", categories: [["love-compat-03-01", "3-1 A spouse palace"],["love-compat-03-02", "3-2 B spouse palace"],["love-compat-03-03", "3-3 Pull and tension"],["love-compat-03-04", "3-4 Common misunderstanding"],["love-compat-03-05", "3-5 Rhythm distance"],["love-compat-03-06", "3-6 Advice"]] },
+  { id: "love-compat-04", title: "Ch.4 Five Elements Balance", categories: [["love-compat-04-01", "4-1 A weak element and B role"],["love-compat-04-02", "4-2 B weak element and A role"],["love-compat-04-03", "4-3 Complement points"],["love-compat-04-04", "4-4 Excess points"],["love-compat-04-05", "4-5 Balance break moments"],["love-compat-04-06", "4-6 Regulation"]] },
+  { id: "love-compat-05", title: "Ch.5 Ten Gods Compatibility", categories: [["love-compat-05-01", "5-1 A partner star and B response"],["love-compat-05-02", "5-2 B partner star and A response"],["love-compat-05-03", "5-3 Wealth authority realism"],["love-compat-05-04", "5-4 Expression exchange"],["love-compat-05-05", "5-5 Ego competition"],["love-compat-05-06", "5-6 Advice"]] },
+  { id: "love-compat-06", title: "Ch.6 Attraction Chemistry", categories: [["love-compat-06-01", "6-1 Dohwa signals"],["love-compat-06-02", "6-2 Hongyeom afterglow"],["love-compat-06-03", "6-3 Hwagae distance"],["love-compat-06-04", "6-4 Why strong pull"],["love-compat-06-05", "6-5 Anxiety switch"],["love-compat-06-06", "6-6 Healthy attraction"]] },
+  { id: "love-compat-07", title: "Ch.7 Conflict Pattern", categories: [["love-compat-07-01", "7-1 Expression speed gap"],["love-compat-07-02", "7-2 Silence reassurance cycle"],["love-compat-07-03", "7-3 Ego collision"],["love-compat-07-04", "7-4 Misread moments"],["love-compat-07-05", "7-5 Escalation language"],["love-compat-07-06", "7-6 Dialogue rule"]] },
+  { id: "love-compat-08", title: "Ch.8 Long-term and Marriage", categories: [["love-compat-08-01", "8-1 Condition to become long-term"],["love-compat-08-02", "8-2 Marriage and life base gaps"],["love-compat-08-03", "8-3 Responsibility pattern"],["love-compat-08-04", "8-4 Real-world adjustment"],["love-compat-08-05", "8-5 Strength over time"],["love-compat-08-06", "8-6 Practical advice"]] },
+  { id: "love-compat-09", title: "Ch.9 Breakup Risk and Recovery", categories: [["love-compat-09-01", "9-1 Core distancing cause"],["love-compat-09-02", "9-2 Why attachment remains"],["love-compat-09-03", "9-3 Hard-to-restart pattern"],["love-compat-09-04", "9-4 Recovery opening"],["love-compat-09-05", "9-5 Required change"],["love-compat-09-06", "9-6 Re-approach rule"]] },
+  { id: "love-compat-10", title: "Ch.10 Timing Compatibility", categories: [["love-compat-10-01", "10-1 A big-luck task"],["love-compat-10-02", "10-2 B big-luck task"],["love-compat-10-03", "10-3 Timing match"],["love-compat-10-04", "10-4 Timing mismatch"],["love-compat-10-05", "10-5 Good progress flow"],["love-compat-10-06", "10-6 Timing strategy"]] },
+  { id: "love-compat-11", title: "Ch.11 Relationship Operation", categories: [["love-compat-11-01", "11-1 Contact and expression line"],["love-compat-11-02", "11-2 Recovery order"],["love-compat-11-03", "11-3 Protect each ego"],["love-compat-11-04", "11-4 Trust action"],["love-compat-11-05", "11-5 Keep routine"],["love-compat-11-06", "11-6 Safe zone"]] },
+  { id: "love-compat-12", title: "Ch.12 Final Compatibility Roadmap", categories: [["love-compat-12-01", "12-1 Core summary"],["love-compat-12-02", "12-2 Biggest strength"],["love-compat-12-03", "12-3 Biggest risk"],["love-compat-12-04", "12-4 Save choices"],["love-compat-12-05", "12-5 Ruin choices"],["love-compat-12-06", "12-6 Final advice"]] },
 ]);
 
 function compactObject(value) {
@@ -235,12 +56,12 @@ function isNonEmptyObject(value) {
 
 function buildCategoryWritingInstruction(categoryTitle, part) {
   return [
-    `${categoryTitle} 주제를 중심으로 상담문을 작성한다.`,
+    `${categoryTitle} section guidance.`,
     part === "compatibility"
-      ? "user.saju, partner.saju, compatibility sourceData만 해석하고 계산을 추가하지 않는다."
-      : "user.saju sourceData만 해석하고 partner/compatibility를 섞지 않는다.",
-    "JSON 원문이나 계산 근거를 본문에 그대로 노출하지 않는다.",
-    "실행 가능한 조언 3개 이상을 포함한다.",
+      ? "Use only user.saju, partner.saju, compatibility sourceData."
+      : "Use only user.saju sourceData.",
+    "Do not expose raw JSON keys.",
+    "Include practical advice.",
   ].join(" ");
 }
 
@@ -277,79 +98,38 @@ function buildCoreSajuSnapshot(person = {}) {
 
 function buildCompatibilitySnapshot(compatibility = {}) {
   return compactObject({
-    compatibilitySignature: `${compatibility?.dayMasterRelation?.personAElement || ""}-${compatibility?.dayMasterRelation?.personBElement || ""}-${compatibility?.spousePalaceInteraction?.relationType || ""}`,
     dayMasterRelation: compatibility?.dayMasterRelation || null,
-    dayBranchRelation: compatibility?.spousePalaceInteraction || null,
-    elementRelation: compatibility?.elementBalance || null,
-    tenGodRelation: compatibility?.tenGodCompatibility || null,
-    spouseStarRelation: compatibility?.spousePalaceInteraction || null,
-    branchRelations: compatibility?.stemBranchInteractions || null,
-    harmonyConflicts: compactObject({
-      combinations: compatibility?.stemBranchInteractions?.combinations || [],
-      clashes: compatibility?.stemBranchInteractions?.clashes || [],
-      harms: compatibility?.stemBranchInteractions?.harms || [],
-      punishments: compatibility?.stemBranchInteractions?.punishments || [],
-      breaks: compatibility?.stemBranchInteractions?.breaks || [],
+    dayBranchRelation: compatibility?.spousePalaceInteraction || compatibility?.dayBranchRelation || null,
+    elementRelation: compatibility?.elementBalance || compatibility?.elementRelation || null,
+    tenGodRelation: compatibility?.tenGodCompatibility || compatibility?.tenGodRelation || null,
+    branchRelations: compatibility?.stemBranchInteractions || compatibility?.branchRelations || null,
+    loveChemistry: compactObject({
+      score: compatibility?.attractionScore,
+      strengths: compatibility?.strengths || [],
+      risks: compatibility?.risks || [],
+      advice: compatibility?.advice || [],
+      summary: compatibility?.summary || null,
     }),
-    wonjinGwimun: compatibility?.stemBranchInteractions || null,
-    loveStarsInteraction: compactObject({
-      attractionScore: compatibility?.attractionScore,
-      intimacy: compatibility?.intimacyCompatibility || null,
-    }),
-    attractionSignals: compatibility?.attractionScore || null,
-    conflictSignals: compatibility?.conflictScore || null,
-    stabilitySignals: compatibility?.stabilityScore || null,
-    adviceKeywords: compatibility?.johuCompatibility?.balancingStrategies || [],
-    relationshipSummary: compatibility?.summary || null,
   });
 }
 
 function buildSajuLoveCategorySourceData(mode, part, categoryId, userSaju, partnerSaju, compatibility) {
-  const base = compactObject({
-    mode,
-    categoryId,
-    userSaju,
-  });
-
-  if (part === "solo") {
-    return base;
-  }
-
-  return compactObject({
-    ...base,
-    partnerSaju,
-    compatibility,
-  });
+  const base = compactObject({ mode, categoryId, userSaju });
+  if (part === "solo") return base;
+  return compactObject({ ...base, partnerSaju, compatibility });
 }
 
 function buildChapterFromDef(def, order, part, mode, userSaju, partnerSaju, compatibility) {
   const categories = def.categories
-    .map(([categoryId, title]) => {
-      const sourceData = buildSajuLoveCategorySourceData(
-        mode,
-        part,
-        categoryId,
-        userSaju,
-        partnerSaju,
-        compatibility,
-      );
-
-      return {
-        id: categoryId,
-        title,
-        sourceData,
-        writingInstruction: buildCategoryWritingInstruction(title, part),
-      };
-    })
+    .map(([categoryId, title]) => ({
+      id: categoryId,
+      title,
+      sourceData: buildSajuLoveCategorySourceData(mode, part, categoryId, userSaju, partnerSaju, compatibility),
+      writingInstruction: buildCategoryWritingInstruction(title, part),
+    }))
     .filter((row) => isNonEmptyObject(row.sourceData));
 
-  return {
-    id: def.id,
-    order,
-    title: def.title,
-    part,
-    categories,
-  };
+  return { id: def.id, order, title: def.title, part, categories };
 }
 
 export function buildSajuLoveSoloChapterManifest(mode, userSaju) {
@@ -357,13 +137,12 @@ export function buildSajuLoveSoloChapterManifest(mode, userSaju) {
 }
 
 export function buildSajuLoveCompatibilityChapterManifest(mode, userSaju, partnerSaju, compatibility) {
-  return COMPAT_CHAPTER_DEFS.map((def, idx) => buildChapterFromDef(def, 11 + idx, "compatibility", mode, userSaju, partnerSaju, compatibility));
+  return COMPAT_CHAPTER_DEFS.map((def, idx) => buildChapterFromDef(def, idx + 1, "compatibility", mode, userSaju, partnerSaju, compatibility));
 }
 
 export function buildSajuLoveChapterManifest(mode, userSaju, partnerSaju, compatibility) {
-  const solo = buildSajuLoveSoloChapterManifest(mode, userSaju);
-  if (mode !== "compatibility") return solo;
-  return solo.concat(buildSajuLoveCompatibilityChapterManifest(mode, userSaju, partnerSaju, compatibility));
+  if (mode === "compatibility") return buildSajuLoveCompatibilityChapterManifest(mode, userSaju, partnerSaju, compatibility);
+  return buildSajuLoveSoloChapterManifest(mode, userSaju);
 }
 
 export function buildSajuLovePdfPayload(params = {}) {
@@ -376,9 +155,9 @@ export function buildSajuLovePdfPayload(params = {}) {
 
   const payload = {
     mode,
-    reportTitle: mode === "compatibility" ? "사주 연애 비책 궁합 리포트" : "사주 연애 비책",
+    reportTitle: mode === "compatibility" ? "Saju Love Book Compatibility" : "Saju Love Book",
     user: compactObject({
-      name: user?.name || "사용자",
+      name: user?.name || "user",
       gender: user?.gender || "unknown",
       birthInfo: user?.birthInfo || null,
       calendarType: user?.calendarType || "solar",
@@ -394,7 +173,7 @@ export function buildSajuLovePdfPayload(params = {}) {
   }
 
   payload.partner = compactObject({
-    name: partner?.name || "상대",
+    name: partner?.name || "partner",
     gender: partner?.gender || "unknown",
     birthInfo: partner?.birthInfo || null,
     saju: partnerSaju,
@@ -469,8 +248,8 @@ export function validateSajuLovePdfPayload(payload = {}) {
   }
 
   if (mode === "compatibility") {
-    if (soloChapters.length !== 10) errors.push("compat_mode_solo_chapters:must_be_10");
-    if (compatChapters.length < 1) errors.push("compat_mode_compatibility_chapters:required");
+    if (soloChapters.length !== 0) errors.push("compat_mode_solo_chapters:must_be_0");
+    if (compatChapters.length !== 12) errors.push("compat_mode_compatibility_chapters:must_be_12");
 
     if (!isNonEmptyObject(payload?.user?.birthInfo)) errors.push("user.birthInfo:required");
     if (!isNonEmptyObject(payload?.partner?.birthInfo)) errors.push("partner.birthInfo:required");
@@ -492,14 +271,6 @@ export function validateSajuLovePdfPayload(payload = {}) {
       if (!hasAnyRelation) errors.push("compatibility.relation:required");
     }
 
-    for (const chapter of soloChapters) {
-      for (const category of chapter.categories || []) {
-        if (category?.sourceData?.partnerSaju || category?.sourceData?.compatibility) {
-          errors.push(`solo_chapter_contains_partner_data:${chapter.id}:${category.id}`);
-        }
-      }
-    }
-
     for (const chapter of compatChapters) {
       for (const category of chapter.categories || []) {
         if (!category?.sourceData?.userSaju || !category?.sourceData?.partnerSaju || !category?.sourceData?.compatibility) {
@@ -515,10 +286,7 @@ export function validateSajuLovePdfPayload(payload = {}) {
     errors.push(error instanceof Error ? error.message : "payload:forbidden_text");
   }
 
-  return {
-    ok: errors.length === 0,
-    errors,
-  };
+  return { ok: errors.length === 0, errors };
 }
 
 export function getSajuLoveForbiddenPhrases() {

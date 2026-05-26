@@ -329,8 +329,8 @@ function normalizeLifeBookPdfChapterJson(chapterResult = {}, chapterConfig = {})
   };
 }
 
-function buildLifeBookPdfData({ reportId, lifeBookInputData, chapters, generatedAt }) {
-  const chapterRows = (Array.isArray(chapters) ? chapters : []).map((chapterResult, index) => {
+function buildLifeBookPdfData({ reportId, lifeBookInputData, chapters: chapterList, generatedAt }) {
+  const chapterRows = (Array.isArray(chapterList) ? chapterList : []).map((chapterResult, index) => {
     const chapterConfig = LIFE_BOOK_CHAPTERS[index] || {};
     const chapterJson = normalizeLifeBookPdfChapterJson(chapterResult, chapterConfig);
     return {
@@ -341,14 +341,56 @@ function buildLifeBookPdfData({ reportId, lifeBookInputData, chapters, generated
     };
   });
 
+  const profile = lifeBookInputData?.userProfile || {};
+  const saju = lifeBookInputData?.sajuChart || {};
+  const five = lifeBookInputData?.fiveElements || {};
+  const tenGodDist = lifeBookInputData?.tenGods?.distribution || {};
+  const sortedElements = Object.entries(five)
+    .filter(([, value]) => Number.isFinite(Number(value)))
+    .sort((a, b) => Number(b[1]) - Number(a[1]));
+  const sortedTenGods = Object.entries(tenGodDist)
+    .filter(([, value]) => Number.isFinite(Number(value)))
+    .sort((a, b) => Number(b[1]) - Number(a[1]));
+  const majorLuck = Array.isArray(lifeBookInputData?.daeun) ? lifeBookInputData.daeun : [];
+
+  const normalizedChapters = chapterRows.map((row, index) => ({
+    id: row.chapterJson.id || `ch${String(index + 1).padStart(2, "0")}`,
+    title: row.chapterJson.title || `Ch.${index + 1}`,
+    sections: (Array.isArray(row.chapterJson.sections) ? row.chapterJson.sections : []).map((section, sectionIndex) => ({
+      id: `${row.chapterJson.id || `ch${String(index + 1).padStart(2, "0")}`}-sec-${String(sectionIndex + 1).padStart(2, "0")}`,
+      title: String(section?.title || "").trim(),
+      content: String(section?.body || "").trim(),
+    })),
+  }));
+
   return {
+    title: "사주 인생의 책",
+    subtitle: "원국, 오행, 십성, 용신, 12운성, 대운으로 읽는 나의 인생 설계도",
+    mode: "solo",
+    profile: {
+      name: String(profile?.name || "").trim(),
+      birthDateLabel: String(profile?.birthDate || "").trim(),
+      birthTimeLabel: String(profile?.birthTime || "").trim(),
+      genderLabel: String(profile?.gender || "").trim(),
+      calendarTypeLabel: String(profile?.calendarType || "").trim(),
+    },
+    summary: {
+      dayMaster: String(saju?.dayMaster || "").trim(),
+      dayPillar: String(saju?.dayPillar || "").trim(),
+      strongElements: sortedElements.slice(0, 2).map(([key]) => key),
+      weakElements: sortedElements.slice(-2).map(([key]) => key),
+      dominantTenGods: sortedTenGods.slice(0, 3).map(([key]) => key),
+      usefulGod: Array.isArray(lifeBookInputData?.yongshin?.yongshin) ? lifeBookInputData.yongshin.yongshin : [],
+      currentMajorLuck: String(majorLuck[0]?.pillar || "").trim(),
+    },
     reportId,
     generatedAt,
     totalChapters: chapterRows.length,
     minTotalChars: LIFE_BOOK_MIN_TOTAL_CHARS,
     userProfile: lifeBookInputData?.userProfile || {},
     dataQuality: lifeBookInputData?.dataQuality || {},
-    chapters: chapterRows,
+    chapters: normalizedChapters,
+    chapterRows,
   };
 }
 
@@ -364,6 +406,16 @@ export async function generateLifeBookPdf(params = {}) {
   const previousTexts = Array.isArray(params.previousTexts) ? params.previousTexts : [];
   const warnings = [];
 
+  if (localOnly) {
+    return {
+      ok: false,
+      code: "SAJU_LIFE_BOOK_LOCAL_FALLBACK_DISABLED",
+      message: "사주 인생의 책 PDF는 로컬 fallback 본문 생성이 비활성화되어 있습니다.",
+      retryable: true,
+      failedSections: [],
+    };
+  }
+
   logLifeBookStage("REQUEST_START", { reportId });
 
   if (onProgress) onProgress({ code: "CALCULATING_SAJU", message: "사주 명식 계산 중" });
@@ -371,6 +423,18 @@ export async function generateLifeBookPdf(params = {}) {
   logLifeBookStage("INPUT_NORMALIZE_START", { reportId });
   const lifeBookInputData = buildLifeBookInputData(body, normalizedInput);
   logLifeBookStage("INPUT_NORMALIZE_SUCCESS", { reportId });
+
+  const strictCheck = isStrictMissingCore(lifeBookInputData);
+  if (!strictCheck.ok) {
+    return {
+      ok: false,
+      code: "SAJU_LIFE_BOOK_CORE_SIGNAL_MISSING",
+      message: "사주 인생의 책 PDF 본문 생성 중 일부 핵심 계산 데이터가 누락되어 생성을 중단했습니다.",
+      failedSections: [{ chapterId: "input", sectionId: "input-core", reason: "CORE_SIGNAL_MISSING" }],
+      retryable: true,
+      detail: { missingCore: strictCheck.missingCore },
+    };
+  }
 
   logLifeBookStage("PAYLOAD_NORMALIZE_START", { reportId });
   const pdfPayload = buildLifeBookPdfPayloadFromInput(lifeBookInputData);
@@ -391,15 +455,6 @@ export async function generateLifeBookPdf(params = {}) {
     });
   }
   logLifeBookStage("PAYLOAD_NORMALIZE_SUCCESS", { reportId });
-  const strictCheck = isStrictMissingCore(lifeBookInputData);
-  if (strictMode && !strictCheck.ok) {
-    warnings.push({
-      chapterId: "input",
-      warning: "STRICT_MISSING_CORE",
-      validation: { missingCore: strictCheck.missingCore },
-    });
-  }
-
   if (onProgress) onProgress({ code: "NORMALIZING_INPUT", message: "인생의 책 데이터 정리 중" });
 
   const chapterManifest = Array.isArray(pdfPayload?.chapters) && pdfPayload.chapters.length
@@ -446,34 +501,18 @@ export async function generateLifeBookPdf(params = {}) {
     });
 
     if (!generated?.ok) {
-      logLifeBookStage("API_GENERATION_FAILED_USE_LOCAL_FALLBACK", {
+      logLifeBookStage("API_GENERATION_FAILED", {
         chapterId: chapterConfig.id,
         code: generated?.code,
       });
-      const localOnly = await generateLifeBookChapter({
-        env,
-        chapterConfig,
-        lifeBookInputData,
-        strictMode: false,
-        forceLocal: true,
-        previousTexts: [
-          ...previousTexts,
-          ...chapters.map((c) => c.contentMarkdown || ""),
-        ],
-        chapterMemories,
-      });
-      if (!localOnly?.ok) {
-        return {
-          ok: false,
-          code: localOnly?.code || generated?.code || "LIFEBOOK_CHAPTER_GENERATION_FAILED",
-          message: localOnly?.message || generated?.message || `챕터 생성 실패: ${chapterConfig.id}`,
-          detail: localOnly?.validation || generated?.validation || null,
-        };
-      }
-      chapters.push(localOnly.chapterResult);
-      chapterMemories.push(buildChapterMemory(chapterConfig, localOnly.chapterResult));
-      warnings.push({ chapterId: chapterConfig.id, warning: "CHAPTER_LOCAL_FALLBACK_USED" });
-      continue;
+      return {
+        ok: false,
+        code: "SAJU_LIFE_BOOK_LLM_GENERATION_FAILED",
+        message: "사주 인생의 책 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있도록 상태를 복구했습니다.",
+        failedSections: [{ chapterId: chapterConfig.id, sectionId: `${chapterConfig.id}-all`, reason: generated?.code || "LLM_VALIDATION_FAILED" }],
+        retryable: true,
+        detail: generated?.validation || null,
+      };
     }
 
     logLifeBookStage("API_GENERATION_SUCCESS", { chapterId: chapterConfig.id });
@@ -497,10 +536,9 @@ export async function generateLifeBookPdf(params = {}) {
   }
 
   if (requestedChapter >= 1) {
-    const singleSource = localOnly || warnings.some((w) => String(w?.warning || "").includes("LOCAL")) ? "local" : "api";
     return {
       ok: true,
-      source: singleSource,
+      source: "api",
       mode: "life-book",
       reportId,
       totalChapters: LIFE_BOOK_TOTAL_CHAPTERS,
@@ -524,29 +562,18 @@ export async function generateLifeBookPdf(params = {}) {
       reportId,
       invalidChapters: reportValidation.invalidChapters,
     });
-    const repaired = await repairInvalidLifeBookChaptersWithApiOrLocal({
-      env,
-      lifeBookInputData,
-      chapters,
-      chapterMemories,
-      previousTexts,
-      chapterSchema: targetChapters,
-      invalidChapterIds: reportValidation.invalidChapters,
-      warnings,
-    });
-    chapters.length = 0;
-    chapters.push(...repaired);
-    reportValidation = validateLifeBookGeneratedReport({
-      chapters,
-      chapterSchema: targetChapters,
-    });
-    if (!reportValidation.ok) {
-      warnings.push({
-        chapterId: "quality",
-        warning: "QUALITY_ENHANCE_FAILED_FALLBACK",
-        validation: reportValidation,
-      });
-    }
+    return {
+      ok: false,
+      code: "SAJU_LIFE_BOOK_LLM_GENERATION_FAILED",
+      message: "사주 인생의 책 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있도록 상태를 복구했습니다.",
+      failedSections: (reportValidation.invalidChapters || []).map((chapterId) => ({
+        chapterId,
+        sectionId: `${chapterId}-all`,
+        reason: "LLM_VALIDATION_FAILED",
+      })),
+      retryable: true,
+      detail: reportValidation,
+    };
   } else {
     logLifeBookStage("QualityEnhanceSuccess", { reportId });
   }
@@ -575,7 +602,6 @@ export async function generateLifeBookPdf(params = {}) {
         chapterConfig,
         lifeBookInputData,
         strictMode: false,
-        forceLocal: localOnly,
         maxRetries: 1,
         previousTexts: [
           ...previousTexts,
@@ -656,10 +682,7 @@ export async function generateLifeBookPdf(params = {}) {
     const marker = String(w?.warning || "");
     return marker.includes("LOCAL") || marker.includes("FALLBACK");
   });
-  const hasApi = chapters.length > 0;
-  const source = localOnly
-    ? "local"
-    : (hasLocal && hasApi ? "mixed" : (hasLocal ? "local" : "api"));
+  const source = hasLocal ? "mixed" : "api";
 
   return {
     ok: true,

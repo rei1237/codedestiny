@@ -108,8 +108,9 @@ describe("Premium report engine adapters", () => {
     expect(built.canonicalJson.calculatedData.dashas.vimshottari.currentMahaDasha.lord).toBe("Sun");
   });
 
-  test("sookyoPremium uses the 12-chapter premium spec", () => {
+  test("sookyoPremium uses the 8/10 chapter premium spec", () => {
     const { getPremiumRequiredChapters } = __premiumReportTestUtils;
-    expect(getPremiumRequiredChapters("sookyoPremium")).toBe(12);
+    expect(getPremiumRequiredChapters("sookyoPremium", "personal")).toBe(8);
+    expect(getPremiumRequiredChapters("sookyoPremium", "compatibility")).toBe(10);
   });
 });

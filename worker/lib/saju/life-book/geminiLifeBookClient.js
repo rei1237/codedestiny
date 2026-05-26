@@ -17,7 +17,7 @@ function asBool(value) {
 
 function isLifeBookApiPaused(env) {
   const raw = String(env?.PREMIUM_PDF_API_PAUSE || "").trim();
-  if (!raw) return true;
+  if (!raw) return false;
   return asBool(raw);
 }
 

@@ -127,6 +127,78 @@ function makeNewYearPayload(overrides = {}) {
 }
 
 describe("Saju new year chapter json payloads", () => {
+  test("targetYear 누락 시 명확한 입력 오류를 반환한다", async () => {
+    const authToken = await makeAuthToken();
+    const req = new Request("https://example.com/api/saju-new-year/session", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({
+        prepareOnly: true,
+        name: "테스트A",
+        gender: "F",
+        year: 1992,
+        month: 6,
+        day: 15,
+        hour: 12,
+        minute: 30,
+      }),
+    });
+
+    const res = await handleSajuNewYearRoutes(req, {});
+    const data = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(data.ok).toBe(false);
+    expect(data.code).toBe("SAJU_YEARLY_BOOK_TARGET_YEAR_REQUIRED");
+    expect(data.retryable).toBe(true);
+  });
+
+  test("person + targetYear 입력만으로 prepareOnly가 로컬 엔진 기반 canonical을 생성한다", async () => {
+    const authToken = await makeAuthToken();
+    const req = new Request("https://example.com/api/saju-new-year/session", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({
+        prepareOnly: true,
+        reportType: "saju-yearly-book",
+        mode: "solo",
+        targetYear: 2026,
+        person: {
+          name: "테스트 남성",
+          gender: "male",
+          birthDate: "1991-02-20",
+          birthTime: "08:30",
+          calendarType: "solar",
+          isLeapMonth: false,
+          timezone: "Asia/Seoul",
+        },
+      }),
+    });
+
+    const res = await handleSajuNewYearRoutes(req, {});
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.ok).toBe(true);
+    expect(data.prepared).toBe(true);
+    expect(data.dataQuality.engineSource).toBe("saju-local-engine");
+    expect(data.canonicalSajuNewYearReport.reportType).toBe("saju-yearly-book");
+    expect(data.canonicalSajuNewYearReport.targetYear).toBe(2026);
+    expect(data.canonicalSajuNewYearReport.saju).toBeTruthy();
+    expect(data.canonicalSajuNewYearReport.saju.currentMajorLuck).toBeTruthy();
+    expect(data.canonicalSajuNewYearReport.saju.yearLuck).toBeTruthy();
+    expect(Array.isArray(data.canonicalSajuNewYearReport.monthlyLuck)).toBe(true);
+    expect(data.canonicalSajuNewYearReport.monthlyLuck).toHaveLength(12);
+    expect(Array.isArray(data.canonicalSajuNewYearReport.saju.monthlyLuck)).toBe(true);
+    expect(data.canonicalSajuNewYearReport.saju.monthlyLuck).toHaveLength(12);
+  });
+
   test("prepareOnly builds chapterJson blueprints for all 10 chapters with matching category counts", async () => {
     const authToken = await makeAuthToken();
     const req = new Request("https://example.com/api/saju-new-year/session", {
@@ -162,6 +234,11 @@ describe("Saju new year chapter json payloads", () => {
       expect(Array.isArray(blueprint.categories)).toBe(true);
       expect(blueprint.categories.length).toBe(sections.length);
       expect(blueprint.categories.length).toBeGreaterThan(0);
+      if (chapter === 9) {
+        expect(blueprint.categories.length).toBe(12);
+      } else {
+        expect(blueprint.categories.length).toBe(6);
+      }
       expect(Array.isArray(blueprint.metaData.strongMonths)).toBe(true);
       expect(Array.isArray(blueprint.metaData.cautionMonths)).toBe(true);
       expect(typeof blueprint.engineSummaryJson.coreVibe).toBe("string");
@@ -178,6 +255,11 @@ describe("Saju new year chapter json payloads", () => {
         expect(category.strategicGuidance.length).toBeGreaterThan(0);
       });
     }
+
+    const ch9Sections = data.chapterPlan[8].chapterSpecificSections || [];
+    expect(ch9Sections).toHaveLength(12);
+    expect(ch9Sections[0]).toContain("9-1.");
+    expect(ch9Sections[11]).toContain("9-12.");
   });
 
   test("generated chapter response fails closed when Gemini output is unavailable", async () => {
@@ -201,7 +283,8 @@ describe("Saju new year chapter json payloads", () => {
 
     expect(res.status).toBe(422);
     expect(data.ok).toBe(false);
-    expect(data.code).toBe("SAJU_NEW_YEAR_GEMINI_UNAVAILABLE");
+    expect(data.code).toBe("SAJU_YEARLY_BOOK_LLM_GENERATION_FAILED");
     expect(typeof data.message).toBe("string");
+    expect(data.retryable).toBe(true);
   });
 });

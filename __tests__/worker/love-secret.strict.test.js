@@ -94,7 +94,7 @@ describe("Saju Love PDF Payload Pipeline", () => {
     expect(payload.saju?.tenGods).toBeTruthy();
   });
 
-  test("2) 궁합 모드 payload는 solo 10 + compatibility 챕터를 포함해야 한다", () => {
+  test("2) 궁합 모드 payload는 compatibility 12챕터만 포함해야 한다", () => {
     const payload = payloadPipeline.buildSajuLovePdfPayload({
       mode: "compatibility",
       user: {
@@ -120,16 +120,8 @@ describe("Saju Love PDF Payload Pipeline", () => {
 
     expect(valid.ok).toBe(true);
     expect(payload.mode).toBe("compatibility");
-    expect(soloChapters).toHaveLength(10);
-    expect(compatChapters.length).toBeGreaterThan(0);
-
-    for (const chapter of soloChapters) {
-      for (const category of chapter.categories) {
-        expect(category.sourceData.userSaju).toBeTruthy();
-        expect(category.sourceData.partnerSaju).toBeUndefined();
-        expect(category.sourceData.compatibility).toBeUndefined();
-      }
-    }
+    expect(soloChapters).toHaveLength(0);
+    expect(compatChapters).toHaveLength(12);
 
     for (const chapter of compatChapters) {
       for (const category of chapter.categories) {
@@ -168,12 +160,11 @@ describe("Saju Love PDF Payload Pipeline", () => {
   });
 
   test("4) assertNoSajuLoveFallbackText는 금지 문구를 차단해야 한다", () => {
-    expect(() => payloadPipeline.assertNoSajuLoveFallbackText("정상 상담문입니다.")).not.toThrow();
-    expect(() => payloadPipeline.assertNoSajuLoveFallbackText("이 섹션은 기본 골격입니다")).toThrow();
-    expect(() => payloadPipeline.assertNoSajuLoveFallbackText("자동 복구 생성 완료")).toThrow();
-    expect(() => payloadPipeline.assertNoSajuLoveFallbackText("서버 응답이 불안정하여")).toThrow();
-    expect(() => payloadPipeline.assertNoSajuLoveFallbackText("Chapter 1 내용")).toThrow();
-    expect(() => payloadPipeline.assertNoSajuLoveFallbackText("JSON payload 출력")).toThrow();
+    expect(() => payloadPipeline.assertNoSajuLoveFallbackText("normal safe text")).not.toThrow();
+    expect(() => payloadPipeline.assertNoSajuLoveFallbackText("fallback text")).toThrow();
+    expect(() => payloadPipeline.assertNoSajuLoveFallbackText("placeholder text")).toThrow();
+    expect(() => payloadPipeline.assertNoSajuLoveFallbackText("Chapter 1 content")).toThrow();
+    expect(() => payloadPipeline.assertNoSajuLoveFallbackText("JSON payload dump")).toThrow();
   });
 
   test("5) dry-run payload 생성은 chapter/category sourceData를 보장해야 한다", () => {
@@ -196,8 +187,8 @@ describe("Saju Love PDF Payload Pipeline", () => {
     expect(payloadPipeline.validateSajuLovePdfPayload(compatPayload).ok).toBe(true);
 
     expect(soloPayload.chapters.filter((c) => c.part === "solo")).toHaveLength(10);
-    expect(compatPayload.chapters.filter((c) => c.part === "solo")).toHaveLength(10);
-    expect(compatPayload.chapters.filter((c) => c.part === "compatibility").length).toBeGreaterThan(0);
+    expect(compatPayload.chapters.filter((c) => c.part === "solo")).toHaveLength(0);
+    expect(compatPayload.chapters.filter((c) => c.part === "compatibility")).toHaveLength(12);
 
     for (const chapter of [...soloPayload.chapters, ...compatPayload.chapters]) {
       expect(Array.isArray(chapter.categories)).toBe(true);

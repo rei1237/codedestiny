@@ -153,21 +153,11 @@ describe("Astro Premium Strict Tests (A~J)", () => {
     expect(plan.some((p) => String(p.key).startsWith("K"))).toBe(false);
   });
 
-  test("E. forecast 데이터가 없어도 미래 로드맵 챕터(C11)는 유지되고 degraded 표시가 있어야 한다", () => {
+  test("E. 개인 모드 점성술 chapter plan은 10챕터(C1~C10)여야 한다", () => {
     const canonical = makeCanonical();
-    canonical.forecast.transits = null;
-    canonical.forecast.secondaryProgressions = null;
-    canonical.forecast.solarReturn = null;
-
-    const revalidated = validateCanonicalAstroChartStrict(canonical);
-    canonical.validation.hasForecast = revalidated.hasForecast;
-
     const plan = buildAstroChapterPlan(canonical);
-    const c11 = plan.find((p) => p.key === "C11");
-    expect(Boolean(c11)).toBe(true);
-    expect(c11.degraded).toBe(true);
-    expect(Array.isArray(c11.reasons)).toBe(true);
-    expect(c11.reasons.includes("forecast")).toBe(true);
+    expect(plan).toHaveLength(10);
+    expect(plan.map((p) => p.key)).toEqual(["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "C10"]);
   });
 
   test("F. 실행 보강 메모 패딩 문구는 탐지되어야 한다", () => {
@@ -313,7 +303,7 @@ describe("Astro Premium Strict Tests (A~J)", () => {
     expect(result.missingFields).toEqual(expect.arrayContaining(["birthDate"]));
   });
 
-  test("P. astro pdf payload 검증은 12챕터 입력과 핵심 천체를 요구해야 한다", () => {
+  test("P. astro pdf payload 검증은 10챕터 입력과 핵심 천체를 요구해야 한다", () => {
     const input = makeInput();
     const body = makeBody({ timezone: "Asia/Seoul", birthTime: "12:30" });
     const chart = makeChart(input);
@@ -328,7 +318,7 @@ describe("Astro Premium Strict Tests (A~J)", () => {
     expect(fail.ok).toBe(false);
     expect(fail.missingFields).toEqual(expect.arrayContaining([
       "planets.Sun",
-      "chapterInputs.length=12",
+      "chapterInputs.length=10",
     ]));
   });
 });

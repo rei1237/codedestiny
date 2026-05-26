@@ -3,6 +3,7 @@
  */
 
 let __vedicTestUtils;
+let VEDIC_PDF_CHAPTERS;
 
 function makeInput(overrides = {}) {
   return {
@@ -99,6 +100,7 @@ function makeChart() {
 beforeAll(async () => {
   const mod = await import("../../worker/routes/premium.js");
   __vedicTestUtils = mod.__vedicTestUtils;
+  ({ VEDIC_PDF_CHAPTERS } = await import("../../worker/lib/vedic-premium-chapters.js"));
 });
 
 describe("Vedic PDF payload/category guards", () => {
@@ -166,7 +168,7 @@ describe("Vedic PDF payload/category guards", () => {
     const manifest = __vedicTestUtils.buildVedicPdfChapterManifest("personal");
 
     expect(Array.isArray(manifest)).toBe(true);
-    expect(manifest.length).toBe(12);
+    expect(manifest.length).toBe(10);
 
     const first = manifest[0];
     expect(Array.isArray(first.categories)).toBe(true);
@@ -176,5 +178,48 @@ describe("Vedic PDF payload/category guards", () => {
     const sourceText = JSON.stringify(sourceData).toLowerCase();
     expect(sourceText.includes("compatibility")).toBe(false);
     expect(sourceText.includes("partner")).toBe(false);
+  });
+
+  test("manifest의 chapters/sections 개수는 챕터 정의와 정확히 일치해야 한다", () => {
+    const canonical = __vedicTestUtils.buildCanonicalVedicChart(makeBody(), makeInput(), makeChart(), "personal", null, null);
+    const chapterPlan = __vedicTestUtils.buildVedicChapterPlan(canonical, "personal");
+    const payload = __vedicTestUtils.buildVedicPdfPayload({
+      input: makeInput(),
+      canonicalVedicChart: canonical,
+      reportType: "personal",
+      chapterPlan,
+    });
+
+    expect(payload.chapters).toHaveLength(10);
+    payload.chapters.forEach((chapter, index) => {
+      const cfg = VEDIC_PDF_CHAPTERS[index];
+      expect(cfg).toBeTruthy();
+      expect(chapter.id).toBe(cfg.id);
+      expect(Array.isArray(chapter.categories)).toBe(true);
+      expect(chapter.categories.length).toBe(cfg.sections.length);
+    });
+  });
+
+  test("라그나/나크샤트라/아트마카라카/다샤 소스 신호가 payload에 포함되어야 한다", () => {
+    const canonical = __vedicTestUtils.buildCanonicalVedicChart(makeBody(), makeInput(), makeChart(), "personal", null, null);
+    const chapterPlan = __vedicTestUtils.buildVedicChapterPlan(canonical, "personal");
+    const payload = __vedicTestUtils.buildVedicPdfPayload({
+      input: makeInput(),
+      canonicalVedicChart: canonical,
+      reportType: "personal",
+      chapterPlan,
+    });
+
+    const lagnaSection = payload.chapters[1].categories.find((c) => c.id === "V2_S1");
+    const nakshatraSection = payload.chapters[2].categories.find((c) => c.id === "V3_S2");
+    const atmakarakaSection = payload.chapters[3].categories.find((c) => c.id === "V4_S1");
+    const dashaSection = payload.chapters[8].categories.find((c) => c.id === "V9_S1");
+
+    expect(lagnaSection?.sourceData?.lagna?.signName || lagnaSection?.sourceData?.lagna?.signKo).toBeTruthy();
+    expect(lagnaSection?.sourceData?.lagna?.lord).toBeTruthy();
+    expect(nakshatraSection?.sourceData?.nakshatras?.Moon?.name || nakshatraSection?.sourceData?.nakshatras?.Moon?.ko).toBeTruthy();
+    expect(atmakarakaSection?.sourceData?.karakas?.atmakaraka?.name).toBeTruthy();
+    expect(dashaSection?.sourceData?.dasha?.current?.planet).toBeTruthy();
+    expect(dashaSection?.sourceData?.dasha?.antar?.planet).toBeTruthy();
   });
 });

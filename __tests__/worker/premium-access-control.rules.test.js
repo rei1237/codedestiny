@@ -42,13 +42,13 @@ describe("Premium access-control rules", () => {
         }),
         expect.objectContaining({
           featureKey: "premium-lifebook-report",
-          reason: "인생의 책 생성 (13챕터)",
+          reason: "인생의 책 생성 (12챕터)",
           minCost: 500,
           windowMinutes: 120,
         }),
         expect.objectContaining({
           featureKey: "coin-gate-per-use",
-          reason: "인생의 책 생성 (13챕터)",
+          reason: "인생의 책 생성 (12챕터)",
           minCost: 500,
           windowMinutes: 120,
         }),

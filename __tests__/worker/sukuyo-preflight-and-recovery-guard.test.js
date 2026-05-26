@@ -10,16 +10,18 @@ import {
 import { __astroTestUtils } from "../../worker/routes/premium.js";
 
 describe("Sukuyo preflight and recovery guard", () => {
-  test("getSukyoPdfChapters returns merged chapter set for all modes", () => {
+  test("getSukyoPdfChapters returns personal 8 chapters and compatibility 10 chapters", () => {
     const personal = getSukyoPdfChapters("personal");
     const solo = getSukyoPdfChapters("solo");
     const compatibility = getSukyoPdfChapters("compatibility");
 
-    expect(personal).toHaveLength(13);
-    expect(solo).toHaveLength(13);
-    expect(compatibility).toHaveLength(13);
-    expect(personal[0].key).toContain("merged_");
-    expect(compatibility[12].key).toContain("merged_");
+    expect(personal).toHaveLength(8);
+    expect(solo).toHaveLength(8);
+    expect(compatibility).toHaveLength(10);
+    expect(personal[0].key).toBe("solo_ch_01");
+    expect(compatibility[9].key).toBe("compat_ch_10");
+    expect(personal[0].sections).toHaveLength(4);
+    expect(compatibility[0].sections).toHaveLength(5);
   });
 
   test("validateSukyoPdfInput marks missing birth date as hard requirement", () => {

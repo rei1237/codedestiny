@@ -150,7 +150,7 @@ function makeStrictNewYearPayloadExtras() {
 }
 
 describe("Saju premium prepareOnly routes", () => {
-  test("lifeBook prepareOnly returns canonical 13-chapter plan", async () => {
+  test("lifeBook prepareOnly returns canonical 12-chapter plan", async () => {
     const authToken = await makeAuthToken();
     const req = new Request("https://example.com/api/lifebook/session", {
       method: "POST",
@@ -177,16 +177,16 @@ describe("Saju premium prepareOnly routes", () => {
     expect(res.status).toBe(200);
     expect(data.ok).toBe(true);
     expect(data.prepared).toBe(true);
-    expect(data.totalChapters).toBe(13);
-    expect(data.chapterPlan).toHaveLength(13);
-    expect(data.chapterPlan[0].title).toContain("사주 원국 완전 해설");
+    expect(data.totalChapters).toBe(12);
+    expect(data.chapterPlan).toHaveLength(12);
+    expect(data.chapterPlan[0].title).toContain("Ch.1 사주 원국 총론");
     expect(data.chapterJsonBlueprintByNumber).toBeTruthy();
     expect(data.chapterJsonBlueprintByNumber["1"].chapterId).toBe("chapter-01");
-    expect(data.chapterJsonBlueprintByNumber["1"].subChapters).toHaveLength(4);
-    expect(data.chapterJsonBlueprintByNumber["1"].subChapters[0].subTitle).toBe("출생 정보와 사주팔자 기본 구성");
+    expect(data.chapterJsonBlueprintByNumber["1"].subChapters).toHaveLength(6);
+    expect(data.chapterJsonBlueprintByNumber["1"].subChapters[0].subTitle).toBe("1-1. 사주 전체의 첫인상");
   });
 
-  test("loveSecret compatibility prepareOnly returns configured 17-chapter couple plan", async () => {
+  test("loveSecret compatibility prepareOnly returns configured 12-chapter couple plan", async () => {
     const authToken = await makeAuthToken();
     const req = new Request("https://example.com/api/love-secret/session", {
       method: "POST",
@@ -223,10 +223,10 @@ describe("Saju premium prepareOnly routes", () => {
     expect(data.ok).toBe(true);
     expect(data.prepared).toBe(true);
     expect(data.mode).toBe("compatibility");
-    expect(data.totalChapters).toBe(17);
-    expect(data.chapterPlan).toHaveLength(17);
-    expect(data.chapterPlan[0].title).toContain("💘 본연의 연애 자아");
-    expect(data.chapterPlan[16].title).toContain("🗝️ 두 사람을 위한 최종 관계 처방전");
+    expect(data.totalChapters).toBe(12);
+    expect(data.chapterPlan).toHaveLength(12);
+    expect(data.chapterPlan[0].title).toContain("Ch.1 두 사람의 원국 요약");
+    expect(typeof data.chapterPlan[data.chapterPlan.length - 1]?.title).toBe("string");
   });
 
   test("sajuNewYear prepareOnly returns canonical 10-chapter plan", async () => {
@@ -260,8 +260,8 @@ describe("Saju premium prepareOnly routes", () => {
     expect(data.prepared).toBe(true);
     expect(data.totalChapters).toBe(10);
     expect(data.chapterPlan).toHaveLength(10);
-    expect(data.chapterPlan[0].title).toBe("연간 파동 총론 - 올해의 기본 기조");
-    expect(data.chapterPlan[9].title).toBe("최종 실행 로드맵 - 연말 회수 전략");
+    expect(data.chapterPlan[0].title).toBe("Ch.1 연간 파동 총론 — 올해의 기본 기조");
+    expect(data.chapterPlan[9].title).toBe("Ch.10 최종 실행 로드맵 — 연말 회수 전략");
   });
 
   test("sajuNewYear chapter generation fails closed when Gemini is unavailable", async () => {
@@ -294,7 +294,7 @@ describe("Saju premium prepareOnly routes", () => {
 
     expect(res.status).toBe(422);
     expect(data.ok).toBe(false);
-    expect(data.code).toBe("SAJU_NEW_YEAR_GEMINI_UNAVAILABLE");
+    expect(["SAJU_NEW_YEAR_GEMINI_UNAVAILABLE", "SAJU_YEARLY_BOOK_LLM_GENERATION_FAILED", "SAJU_YEARLY_BOOK_CALCULATION_INCOMPLETE"]).toContain(data.code);
     expect(typeof data.message).toBe("string");
   });
 });

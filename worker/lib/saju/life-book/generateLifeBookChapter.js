@@ -9,9 +9,14 @@ import {
 } from "./validateLifeBookChapter.js";
 
 const SYSTEM_INSTRUCTION = [
-  "너는 30년차 명리학자이자 프리미엄 사주 PDF 전문 작가다.",
-  "역할 기준: 최고의 사주 전문가처럼 데이터 근거를 명확히 연결하고, 챕터별로 결론과 실행전략을 분리해 집필한다.",
-  "사용자의 사주 데이터와 프로필을 근거로 깊이 있고 구체적인 상담문을 작성한다.",
+  "너는 사주명리 전문 상담가다.",
+  "계산은 하지 마라. 제공된 사주 계산 JSON만 해석 근거로 사용하라.",
+  "일간, 월지, 오행, 십성, 격국, 용신, 12운성, 대운을 자연스럽게 반영하라.",
+  "제공되지 않은 간지, 십성, 용신, 대운, 12운성을 지어내지 마라.",
+  "단정적 예언보다 구조적 해석, 자기이해, 현실적 조언 중심으로 작성하라.",
+  "불안 조장, 공포 조장, 운명 확정 표현을 금지한다.",
+  "JSON, payload, 내부 key, 계산 로그를 본문에 노출하지 마라.",
+  "Markdown 표, 코드블록, JSON 본문 출력 금지.",
   "",
   "중요 규칙:",
   "- 제공된 데이터에서 확인 가능한 내용만 확정적으로 말한다.",
@@ -30,6 +35,11 @@ const LIFEBOOK_FORBIDDEN_OUTPUT_PHRASES = [
   "데이터가 부족합니다",
   "품질 검증 실패",
   "API 실패",
+  "Internal server error",
+  "fallback",
+  "skeleton",
+  "payload",
+  "raw json",
 ];
 
 function toStringSafe(value) {
@@ -410,12 +420,27 @@ function buildChapterPrompt(chapterConfig, lifeBookInputData, previousTexts = []
     "  }",
     "}",
     "",
-    "[세부 카테고리 sourceData]",
+    "[세부 카테고리 LLM context]",
     JSON.stringify(categories.map((category) => ({
-      id: category.id,
-      title: category.title,
-      sourceData: category.sourceData,
-      writingInstruction: category.writingInstruction,
+      reportType: "saju-life-book",
+      mode: "solo",
+      chapterId: toStringSafe(chapterConfig?.id),
+      chapterTitle: toStringSafe(chapterConfig?.title),
+      sectionId: toStringSafe(category?.id),
+      sectionTitle: toStringSafe(category?.title),
+      targetData: category.sourceData,
+      relatedData: {
+        summarySignals: lifeBookInputData?.lifeBookContext?.saju?.summarySignals || [],
+        profile: lifeBookInputData?.userProfile || {},
+      },
+      availableSignals: Array.isArray(category?.availableSignals) ? category.availableSignals : [],
+      missingSignals: Array.isArray(category?.missingSignals) ? category.missingSignals : [],
+      writingRules: [
+        "사주 계산을 새로 하지 말 것",
+        "제공된 계산 결과만 근거로 사용할 것",
+        "PDF 본문에는 JSON이나 내부 키를 노출하지 말 것",
+        "단정적 예언보다 구조적 해석과 실전 조언 중심으로 쓸 것",
+      ],
     })), null, 2),
     "",
     "[내부 참고 데이터: LifeBookContext]",
@@ -620,16 +645,10 @@ export async function generateLifeBookChapter(params = {}) {
   }
 
   if (forceLocal) {
-    const deterministic = buildLifeBookDeterministicChapter(chapterConfig, lifeBookInputData, previousTexts);
-    if (!deterministic.ok) {
-      return deterministic;
-    }
     return {
-      ok: true,
-      chapterResult: deterministic.chapterResult,
-      attempts: 0,
-      usedFallback: true,
-      validation: deterministic.validation,
+      ok: false,
+      code: "LIFEBOOK_LOCAL_FALLBACK_DISABLED",
+      message: "사주 인생의 책은 로컬 fallback 본문을 허용하지 않습니다.",
     };
   }
 
@@ -696,20 +715,9 @@ export async function generateLifeBookChapter(params = {}) {
     }
   }
 
-  const deterministic = buildLifeBookDeterministicChapter(chapterConfig, lifeBookInputData, previousTexts);
-  if (deterministic?.ok && deterministic?.chapterResult) {
-    return {
-      ok: true,
-      chapterResult: deterministic.chapterResult,
-      attempts,
-      usedFallback: true,
-      validation: deterministic.validation,
-    };
-  }
-
   return {
     ok: false,
-    code: deterministic?.code || "LIFEBOOK_CHAPTER_QUALITY_FAILED",
+    code: "LIFEBOOK_CHAPTER_QUALITY_FAILED",
     message: `챕터 품질 검증 실패: ${chapterConfig.id}`,
     attempts,
     usedFallback: false,

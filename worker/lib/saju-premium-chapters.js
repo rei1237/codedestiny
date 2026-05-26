@@ -12,17 +12,21 @@ export const LOVE_SECRET_SOLO_CHAPTERS = Object.freeze([
 ]);
 
 export const LOVE_SECRET_COMPAT_CHAPTERS = Object.freeze([
-  { title: "💞 두 사람의 기본 궁합 구조", subtitle: "일간·일지·오행 관계 기반 구조 진단" },
-  { title: "🧲 끌림과 인연의 이유", subtitle: "오행/십성/매력성 상호작용 해석" },
-  { title: "🔥 감정 흐름과 애착 구조", subtitle: "감정 리듬 차이와 안정화 전략" },
-  { title: "⚔️ 갈등 구조와 위험 신호", subtitle: "합충형파해/오해 패턴 기반 위기 대응" },
-  { title: "🏡 장기 관계와 현실 궁합", subtitle: "결혼·생활·돈·역할 분담의 현실 합의" },
-  { title: "🕰️ 두 사람의 시기 흐름", subtitle: "양측 대운·세운 기반 타이밍 조율" },
-  { title: "🗝️ 두 사람을 위한 최종 관계 처방전", subtitle: "관계 종합 진단과 실행 체크리스트" },
+  { title: "Ch.1 두 사람의 원국 요약", subtitle: "각자의 관계 기본 성향을 먼저 정리" },
+  { title: "Ch.2 끌림의 구조", subtitle: "처음 끌림이 생기는 핵심 신호 분석" },
+  { title: "Ch.3 관계 온도차", subtitle: "감정 표현 속도와 애착 리듬 비교" },
+  { title: "Ch.4 소통 패턴", subtitle: "대화 방식과 오해 포인트 진단" },
+  { title: "Ch.5 생활 궁합", subtitle: "현실 루틴과 책임 분배 적합도" },
+  { title: "Ch.6 장기 안정 조건", subtitle: "관계를 오래 유지하는 운영 원칙" },
+  { title: "Ch.7 갈등 패턴", subtitle: "반복되는 상처와 방어 구조 분석" },
+  { title: "Ch.8 재회/이별 시그널", subtitle: "반복 인연 가능성과 경계선 정리" },
+  { title: "Ch.9 관계 성장 포인트", subtitle: "서로를 성장시키는 협력 지점" },
+  { title: "Ch.10 타이밍 전략", subtitle: "시기 운을 반영한 관계 의사결정" },
+  { title: "Ch.11 90일 실행 플랜", subtitle: "갈등 완화와 신뢰 회복 실행안" },
+  { title: "Ch.12 최종 궁합 로드맵", subtitle: "관계 유지 전략의 최종 정리" },
 ]);
 
 export const LOVE_SECRET_COUPLE_ALL_CHAPTERS = Object.freeze([
-  ...LOVE_SECRET_SOLO_CHAPTERS,
   ...LOVE_SECRET_COMPAT_CHAPTERS,
 ]);
 
@@ -41,16 +45,16 @@ export const LOVE_SECRET_MODE_CONFIG = Object.freeze({
   couple: Object.freeze({
     mode: "couple",
     reportType: "saju_love_couple",
-    totalChapters: 17,
-    minTotalChars: 60000,
+    totalChapters: 12,
+    minTotalChars: 44000,
     chapterMinDefault: 3200,
     chapterTargetByIndex: Object.freeze({
-      1: 4200, 2: 3900, 3: 3900, 4: 3800, 5: 3800, 6: 3800, 7: 3800, 8: 3600, 9: 3600, 10: 3800,
-      11: 3900, 12: 3800, 13: 3800, 14: 3800, 15: 3800, 16: 3800, 17: 3900,
+      1: 4100, 2: 3900, 3: 3900, 4: 3800, 5: 3800, 6: 3800,
+      7: 3700, 8: 3700, 9: 3700, 10: 3700, 11: 3800, 12: 4000,
     }),
     chapterMinByIndex: Object.freeze({
-      1: 3600, 2: 3300, 3: 3300, 4: 3200, 5: 3200, 6: 3200, 7: 3200, 8: 3000, 9: 3000, 10: 3200,
-      11: 3300, 12: 3200, 13: 3200, 14: 3200, 15: 3200, 16: 3200, 17: 3300,
+      1: 3500, 2: 3300, 3: 3300, 4: 3200, 5: 3200, 6: 3200,
+      7: 3100, 8: 3100, 9: 3100, 10: 3100, 11: 3200, 12: 3400,
     }),
     title: "프리미엄 사주 궁합 비책 리포트",
     chapters: LOVE_SECRET_COUPLE_ALL_CHAPTERS,
@@ -58,16 +62,16 @@ export const LOVE_SECRET_MODE_CONFIG = Object.freeze({
 });
 
 export const SAJU_NEW_YEAR_CHAPTERS = Object.freeze([
-  { num: 1, title: "연간 파동 총론 - 올해의 기본 기조", subtitle: "올해 운영의 중심축과 기본 태도" },
-  { num: 2, title: "커리어 전략 - 성과가 나는 월/주의 월", subtitle: "일의 성과 창과 주의 구간 운영" },
-  { num: 3, title: "재물 흐름 - 수익/지출 관리 타이밍", subtitle: "현금흐름 중심의 수익/지출 전략" },
-  { num: 4, title: "관계·인맥 - 협업과 거리두기 전략", subtitle: "사람을 통한 확장과 경계 설계" },
-  { num: 5, title: "연애·가정 - 감정 파동 관리법", subtitle: "가까운 관계의 감정 리듬 관리" },
-  { num: 6, title: "건강·에너지 - 번아웃 방지 설계", subtitle: "회복 루틴과 에너지 운영 시스템" },
-  { num: 7, title: "분기별 핵심 의사결정 포인트", subtitle: "1~4분기 선택 기준과 실행 체크" },
-  { num: 8, title: "리스크 시나리오와 대응 플랜", subtitle: "문제 발생 전후 대응 단계 설계" },
-  { num: 9, title: "12개월 Go/Stop 월별 테이블", subtitle: "월별 행동 판정과 즉시 실행 지침" },
-  { num: 10, title: "최종 실행 로드맵 - 연말 회수 전략", subtitle: "상하반기 운영과 연말 결과 회수" },
+  { num: 1, title: "Ch.1 연간 파동 총론 — 올해의 기본 기조", subtitle: "원국/대운/세운 기반 연간 구조 해석" },
+  { num: 2, title: "Ch.2 커리어 전략 — 성과가 나는 일의 방향", subtitle: "성과 전환과 커리어 판단 기준" },
+  { num: 3, title: "Ch.3 재물 흐름 — 수익과 지출 관리 타이밍", subtitle: "수익화/손실 방어의 실전 기준" },
+  { num: 4, title: "Ch.4 관계·인맥 — 협업과 거리두기 전략", subtitle: "관계 에너지 최적화" },
+  { num: 5, title: "Ch.5 연애·가정 — 감정 파동과 가까운 관계", subtitle: "가까운 관계의 정서 운영" },
+  { num: 6, title: "Ch.6 건강·에너지 — 번아웃 방지 설계", subtitle: "과열/회복 밸런스 설계" },
+  { num: 7, title: "Ch.7 분기별 핵심 의사결정 포인트", subtitle: "분기별 Go/Stop 기준" },
+  { num: 8, title: "Ch.8 리스크 시나리오와 대응 플랜", subtitle: "손실 최소화 대응 매뉴얼" },
+  { num: 9, title: "Ch.9 12개월 월별 운세 테이블 — Go/Stop 월별 전략", subtitle: "1월~12월 월별 실행 포인트" },
+  { num: 10, title: "Ch.10 최종 실행 로드맵 — 연말 회수 전략", subtitle: "연말 회수와 다음 해 연결" },
 ]);
 
 export const SAJU_NEW_YEAR_CHAPTER_TARGETS = Object.freeze([4800, 5200, 4800, 4400, 4800, 4200, 5200, 5200, 6200, 5200]);

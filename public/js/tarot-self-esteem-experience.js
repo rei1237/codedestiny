@@ -1005,6 +1005,13 @@
 
     container.innerHTML = "";
 
+    var insightMap = Object.create(null);
+    if (Array.isArray(r.positionInsights)) {
+      r.positionInsights.forEach(function (item) {
+        if (item && item.position) insightMap[item.position] = item;
+      });
+    }
+
     var ICONS = {
       past_debuff: "🌑",
       inner_monster: "👁",
@@ -1042,6 +1049,9 @@
       var card = null;
       (state.cards || []).forEach(function (c) { if (c.position === item.pos) card = c; });
       var cardName = card ? ((card.nameKr || card.name) + (card.orientation === "reversed" ? " (역)" : "")) : "";
+      var extra = insightMap[item.pos] || {};
+      var keywords = Array.isArray(extra.keywords) ? extra.keywords.slice(0, 3) : [];
+      var actionStep = String(extra.actionStep || "").trim();
 
       var insightCard = document.createElement("div");
       insightCard.className = "tse-insight-card";
@@ -1084,6 +1094,26 @@
 
       insightCard.appendChild(header);
       insightCard.appendChild(body);
+
+      if (keywords.length) {
+        var keywordWrap = document.createElement("div");
+        keywordWrap.className = "tse-card-keywords";
+        keywords.forEach(function (kw) {
+          var chip = document.createElement("span");
+          chip.className = "tse-keyword";
+          chip.textContent = "#" + kw;
+          keywordWrap.appendChild(chip);
+        });
+        insightCard.appendChild(keywordWrap);
+      }
+
+      if (actionStep) {
+        var action = document.createElement("p");
+        action.className = "tse-card-action";
+        action.textContent = "오늘의 회복 액션: " + actionStep;
+        insightCard.appendChild(action);
+      }
+
       container.appendChild(insightCard);
     });
 
@@ -1099,6 +1129,29 @@
       lvBody.textContent = r.levelupGuidance;
       lvCard.appendChild(lvTitle);
       lvCard.appendChild(lvBody);
+
+      var guide = r.levelupGuide || {};
+      var guideLines = [];
+      if (guide.recoveryPoint) guideLines.push("핵심 회복 포인트: " + guide.recoveryPoint);
+      if (guide.caution) guideLines.push("조심해야 할 패턴: " + guide.caution);
+      if (guide.practice) guideLines.push("오늘의 연습 문장: " + guide.practice);
+      if (Array.isArray(guide.mission) && guide.mission.length) {
+        guide.mission.forEach(function (line) {
+          guideLines.push(line);
+        });
+      }
+      if (guideLines.length) {
+        var guideList = document.createElement("ul");
+        guideList.className = "tse-levelup-list";
+        guideLines.forEach(function (line) {
+          var li = document.createElement("li");
+          li.className = "tse-levelup-item";
+          li.textContent = line;
+          guideList.appendChild(li);
+        });
+        lvCard.appendChild(guideList);
+      }
+
       container.appendChild(lvCard);
     }
 

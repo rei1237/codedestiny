@@ -354,6 +354,10 @@ const BANNED_PHRASES = [
   /##\s*마무리\s*정리/i,
   /자동\s*복구\s*생성/i,
   /chapter\s*1/i,
+  /internal\s*server\s*error/i,
+  /fallback/i,
+  /skeleton/i,
+  /payload/i,
   /데이터가\s*부족합니다/i,
   /품질\s*검증\s*실패/i,
   /api\s*실패/i,
@@ -436,6 +440,7 @@ export function validateLifeBookChapter(chapterResult, chapterConfig, previousTe
   const summary = toStringSafe(chapterResult?.summary);
   const practicalAdvice = normalizeAdvice(chapterResult?.practicalAdvice);
   const parseFallbackUsed = chapterResult?.parseFallbackUsed === true;
+  const chapterJsonSections = normalizeSections(chapterResult?.chapterJson?.sections || chapterResult?.sections || []);
 
   const minLength = Number(chapterConfig?.minLength || 2500);
   const headingCount = countHeadings(contentMarkdown);
@@ -448,6 +453,20 @@ export function validateLifeBookChapter(chapterResult, chapterConfig, previousTe
   if (!summary) errors.push("MISSING_SUMMARY");
   if (practicalAdvice.length < 3) errors.push("MISSING_PRACTICAL_ADVICE");
   if (parseFallbackUsed) errors.push("PARSE_FALLBACK_USED");
+  if (!chapterJsonSections.length) errors.push("MISSING_CHAPTER_JSON_SECTIONS");
+  chapterJsonSections.forEach((section) => {
+    const bodyLen = toStringSafe(section?.body).length;
+    if (!toStringSafe(section?.title) || bodyLen < 800) {
+      errors.push("SECTION_TOO_SHORT");
+    }
+  });
+
+  const expectedSections = Array.isArray(chapterConfig?.requiredCoverage)
+    ? chapterConfig.requiredCoverage.map((item) => toStringSafe(item)).filter(Boolean)
+    : [];
+  if (expectedSections.length > 0 && chapterJsonSections.length !== expectedSections.length) {
+    errors.push("CHAPTER_SECTION_COUNT_MISMATCH");
+  }
   if (focusAreas.length > 0 && focusHits.length < 2) warnings.push("LOW_FOCUS_AREA_COVERAGE");
 
   const missingRequiredCoverage = findMissingRequiredCoverage(contentMarkdown, chapterConfig);

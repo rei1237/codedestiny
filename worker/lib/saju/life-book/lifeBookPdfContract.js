@@ -51,6 +51,42 @@ function hasMeaningfulValue(value) {
   return false;
 }
 
+function listMissingSignals(target, prefix = "") {
+  const missing = [];
+  const source = toObject(target);
+  for (const [key, value] of Object.entries(source)) {
+    const path = prefix ? `${prefix}.${key}` : key;
+    if (!hasMeaningfulValue(value)) {
+      missing.push(path);
+      continue;
+    }
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      missing.push(...listMissingSignals(value, path));
+    }
+  }
+  return missing;
+}
+
+function listAvailableSignals(target, prefix = "") {
+  const rows = [];
+  const source = toObject(target);
+  for (const [key, value] of Object.entries(source)) {
+    const path = prefix ? `${prefix}.${key}` : key;
+    if (!hasMeaningfulValue(value)) continue;
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      const nested = listAvailableSignals(value, path);
+      if (nested.length) {
+        rows.push(...nested);
+      } else {
+        rows.push(path);
+      }
+      continue;
+    }
+    rows.push(path);
+  }
+  return rows;
+}
+
 function includesForbiddenPhrase(text) {
   const source = toText(text).toLowerCase();
   for (const phrase of LIFEBOOK_FORBIDDEN_PHRASES) {
@@ -82,6 +118,20 @@ export function assertNoSajuLifeBookFallbackText(text, meta = {}) {
 }
 
 function normalizePillarRow(value) {
+  if (typeof value === "string") {
+    const text = toText(value);
+    const stem = text.charAt(0);
+    const branch = text.charAt(1);
+    return {
+      stem,
+      branch,
+      ganji: text,
+      stemElement: "",
+      branchElement: "",
+      tenGod: "",
+      hiddenStems: [],
+    };
+  }
   const row = toObject(value);
   return {
     stem: toText(row.stem),
@@ -192,19 +242,17 @@ function buildCategorySourceDataByChapter(chapterNumber, categoryTitle, normaliz
     return {
       ...base,
       sourceData: {
-        user: profile,
         pillars: saju.pillars,
-        yearPillar: saju.pillars.year,
-        monthPillar: saju.pillars.month,
-        dayPillar: saju.pillars.day,
-        hourPillar: saju.pillars.hour,
         dayMaster: saju.dayMaster,
-        hiddenStems: saju.hiddenStems,
         elements: saju.elements,
+        structure: {
+          geokguk: context.geokguk,
+          chartSummary: saju.chartSummary,
+        },
         tenGods: saju.tenGods,
-        chartSignature: saju.chartSignature,
+        summarySignals: toArray(context?.source?.saju?.summarySignals || context?.source?.summarySignals),
       },
-      writingInstruction: "사주 네 기둥과 일간 데이터를 바탕으로 원국 전체의 기본 구조와 핵심 기운을 상담문으로 작성한다.",
+      writingInstruction: "pillars, dayMaster, fiveElements, structure, summarySignals 범위에서 원국 총론을 해석한다.",
     };
   }
 
@@ -214,11 +262,11 @@ function buildCategorySourceDataByChapter(chapterNumber, categoryTitle, normaliz
       sourceData: {
         dayMaster: saju.dayMaster,
         dayPillar: saju.pillars.day,
-        monthBranch: saju.pillars.month.branch,
-        elements: saju.elements,
-        tenGods: saju.tenGods,
+        dayMasterStrength: saju.chartSummary?.strength,
+        monthBranch: saju.pillars.month.branch || saju.pillars.month.ganji,
+        twelveStages: saju.twelveStages,
       },
-      writingInstruction: "일간, 일주, 월지, 오행 분포를 바탕으로 타고난 성향과 반복 패턴을 상담문으로 작성한다.",
+      writingInstruction: "dayMaster, day pillar, day master strength, twelveStages 범위에서 일간 심층 분석을 작성한다.",
     };
   }
 
@@ -226,12 +274,9 @@ function buildCategorySourceDataByChapter(chapterNumber, categoryTitle, normaliz
     return {
       ...base,
       sourceData: {
-        usefulGods: saju.usefulGods,
-        dayMaster: saju.dayMaster,
         elements: saju.elements,
-        chartSummary: saju.chartSummary,
       },
-      writingInstruction: "용신·희신·기신이 있는 경우에만 그 작동 조건을 바탕으로 현실 실행 전략을 작성한다.",
+      writingInstruction: "fiveElements 전체 신호를 기준으로 오행 균형과 생활 전략을 작성한다.",
     };
   }
 
@@ -239,11 +284,9 @@ function buildCategorySourceDataByChapter(chapterNumber, categoryTitle, normaliz
     return {
       ...base,
       sourceData: {
-        luckCycles: saju.luckCycles,
-        yearlyFlow: saju.yearlyFlow,
-        dayMaster: saju.dayMaster,
+        tenGods: saju.tenGods,
       },
-      writingInstruction: "대운과 세운 데이터가 있는 경우 현재 흐름과 전환기를 중심으로 현실적인 선택 기준을 작성한다.",
+      writingInstruction: "tenGods 전체 분포를 근거로 재능/관계/욕망 구조를 작성한다.",
     };
   }
 
@@ -251,13 +294,16 @@ function buildCategorySourceDataByChapter(chapterNumber, categoryTitle, normaliz
     return {
       ...base,
       sourceData: {
-        monthPillar: saju.pillars.month,
-        dayMaster: saju.dayMaster,
-        elements: saju.elements,
-        tenGods: saju.tenGods,
-        geokguk: context.geokguk,
+        structure: {
+          geokguk: context.geokguk,
+          chartSummary: saju.chartSummary,
+        },
+        chartPattern: toText(context?.source?.saju?.structure?.chartPattern || context?.source?.saju?.chartPattern),
+        usefulGod: saju.usefulGods?.yongsin || [],
+        favorableGod: saju.usefulGods?.heeshin || [],
+        unfavorableGod: saju.usefulGods?.gishin || [],
       },
-      writingInstruction: "월지와 십성, 격국 데이터가 있으면 사회적 역할과 인정받는 방식을 정리한다.",
+      writingInstruction: "structure/chartPattern/usefulGod/favorableGod/unfavorableGod 기준으로 용신 챕터를 작성한다.",
     };
   }
 
@@ -266,11 +312,11 @@ function buildCategorySourceDataByChapter(chapterNumber, categoryTitle, normaliz
       ...base,
       sourceData: {
         tenGods: saju.tenGods,
-        relationship: context.relationship,
+        fiveElements: saju.elements,
+        majorLuck: saju.luckCycles?.daeun || [],
         careerWealth: context.careerWealth,
-        elements: saju.elements,
       },
-      writingInstruction: "십성과 관계·커리어 관련 데이터만 사용해 재능과 관계 패턴을 작성한다.",
+      writingInstruction: "재성/식상/관성 + fiveElements + majorLuck를 근거로 직업/재물 전략을 작성한다.",
     };
   }
 
@@ -278,12 +324,16 @@ function buildCategorySourceDataByChapter(chapterNumber, categoryTitle, normaliz
     return {
       ...base,
       sourceData: {
+        relationshipSignals: context.relationship,
         relationship: context.relationship,
         dayPillar: saju.pillars.day,
         tenGods: saju.tenGods,
-        usefulGods: saju.usefulGods,
+        spouseSignals: {
+          spouseStar: context.relationship?.spouseStar,
+          relationshipPattern: context.relationship?.relationshipPattern,
+        },
       },
-      writingInstruction: "일지와 관계성 데이터만 사용해 연애·결혼 성향과 장기 관계 전략을 작성한다.",
+      writingInstruction: "spouse/relationship 관련 십성과 일지 신호를 바탕으로 인간관계·사랑 패턴을 작성한다.",
     };
   }
 
@@ -291,11 +341,16 @@ function buildCategorySourceDataByChapter(chapterNumber, categoryTitle, normaliz
     return {
       ...base,
       sourceData: {
-        careerWealth: context.careerWealth,
+        yearPillar: saju.pillars.year,
+        monthPillar: saju.pillars.month,
+        familyRootSignals: {
+          relationship: context.relationship,
+          summary: saju.chartSummary,
+        },
         tenGods: saju.tenGods,
         elements: saju.elements,
       },
-      writingInstruction: "재성·식상·관성·인성 구조를 바탕으로 돈과 성과를 만드는 방식을 작성한다.",
+      writingInstruction: "year/month pillar와 가족·뿌리 신호를 중심으로 내면 안정 챕터를 작성한다.",
     };
   }
 
@@ -305,10 +360,16 @@ function buildCategorySourceDataByChapter(chapterNumber, categoryTitle, normaliz
       sourceData: {
         healthMind: context.healthMind,
         elements: saju.elements,
-        dayMaster: saju.dayMaster,
-        usefulGods: saju.usefulGods,
+        structure: {
+          chartSummary: saju.chartSummary,
+          geokguk: context.geokguk,
+        },
+        stressSignals: {
+          stressPattern: context.healthMind?.stressPattern,
+          energyPattern: context.healthMind?.energyPattern,
+        },
       },
-      writingInstruction: "오행 균형과 생활 리듬 데이터를 바탕으로 회복과 멘탈 관리 전략을 작성한다.",
+      writingInstruction: "fiveElements 과다/부족과 수·화 균형, 스트레스 신호를 기준으로 건강/마음 습관을 작성한다.",
     };
   }
 
@@ -317,11 +378,10 @@ function buildCategorySourceDataByChapter(chapterNumber, categoryTitle, normaliz
       ...base,
       sourceData: {
         twelveStages: saju.twelveStages,
-        specialStars: saju.specialStars,
-        hiddenStems: saju.hiddenStems,
-        tenGods: saju.tenGods,
+        dayMaster: saju.dayMaster,
+        summarySignals: toArray(context?.source?.saju?.summarySignals || context?.source?.summarySignals),
       },
-      writingInstruction: "십이운성, 신살, 지장간이 있을 때만 그 기질과 사건성을 현실적으로 해석한다.",
+      writingInstruction: "twelveStages 전체를 바탕으로 강약 시기와 인생 리듬 운영 전략을 작성한다.",
     };
   }
 
@@ -329,11 +389,11 @@ function buildCategorySourceDataByChapter(chapterNumber, categoryTitle, normaliz
     return {
       ...base,
       sourceData: {
-        luckCycles: saju.luckCycles,
-        yearlyFlow: saju.yearlyFlow,
-        chartSummary: saju.chartSummary,
+        majorLuck: saju.luckCycles?.daeun || [],
+        currentLuck: toObject(saju.luckCycles?.currentDaewoon),
+        nextLuck: toObject((saju.luckCycles?.daeun || [])[1]),
       },
-      writingInstruction: "대운과 세운이 있을 때만 올해와 다음 흐름을 기준으로 실행 우선순위를 작성한다.",
+      writingInstruction: "majorLuck/currentLuck/nextLuck을 기준으로 대운 흐름 챕터를 작성한다.",
     };
   }
 
@@ -341,11 +401,19 @@ function buildCategorySourceDataByChapter(chapterNumber, categoryTitle, normaliz
     return {
       ...base,
       sourceData: {
-        profile,
-        saju,
-        context,
+        summary: saju.chartSummary,
+        strongestSignals: {
+          fiveElements: saju.elements,
+          tenGods: saju.tenGods,
+        },
+        weakestSignals: {
+          healthMind: context.healthMind,
+          relationship: context.relationship,
+        },
+        usefulGod: saju.usefulGods,
+        majorLuck: saju.luckCycles?.daeun || [],
       },
-      writingInstruction: "원국 종합 요약과 실행 전략을 현실 중심의 체크리스트로 작성한다.",
+      writingInstruction: "full summary + strongest/weakest signals + usefulGod + majorLuck를 묶어 최종 로드맵을 작성한다.",
     };
   }
 
@@ -374,6 +442,8 @@ export function buildSajuLifeBookChapterManifest(lifeBookInputData = {}, chapter
           id: `${chapterId}-cat-${String(sectionIndex + 1).padStart(2, "0")}`,
           title: toText(sectionTitle),
           sourceData,
+          availableSignals: listAvailableSignals(sourceData),
+          missingSignals: listMissingSignals(sourceData),
           writingInstruction: toText(source?.writingInstruction) || `사주 데이터만 사용해 ${toText(sectionTitle)} 관점의 상담문을 작성한다.`,
         };
       })
@@ -398,6 +468,7 @@ export function buildSajuLifeBookPdfPayload(lifeBookInputData = {}, chapterConfi
   const normalized = normalizeLifeBookContext(lifeBookInputData);
   return {
     mode: "lifeBook",
+    reportType: "saju-life-book",
     reportTitle: "사주 인생의 책",
     user: {
       name: normalized.user.name,
@@ -455,6 +526,7 @@ export function validateSajuLifeBookPdfPayload(payload = {}) {
   if (!hasMeaningfulValue(saju.elements) && !hasMeaningfulValue(saju.elementScores)) missing.push("saju.elements|saju.elementScores");
   if (!hasMeaningfulValue(saju.tenGods)) missing.push("saju.tenGods");
   if (!chapters.length) missing.push("chapters");
+  if (chapters.length !== 12) missing.push("chapters.length(12)");
   if (containsForbiddenStructure(p)) missing.push("compatibility-or-partner-structure");
 
   chapters.forEach((chapter, chapterIndex) => {

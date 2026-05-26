@@ -179,22 +179,22 @@ describe("Vedic Premium Strict Tests", () => {
     expect(result.missingFields.some((f) => f.includes("moonNakshatra"))).toBe(true);
   });
 
-  test("C. personal 리포트는 12챕터 플랜으로 생성되어야 한다", () => {
+  test("C. personal 리포트는 10챕터 플랜으로 생성되어야 한다", () => {
     const canonical = buildCanonicalVedicChart(makeBody(), makeInput(), makeChart(), "personal", null, null);
     const plan = buildVedicChapterPlan(canonical, "personal");
 
-      expect(plan).toHaveLength(12);
+      expect(plan).toHaveLength(10);
     const chapter8 = plan.find((p) => p.num === 8);
     expect(chapter8.available).toBe(true);
     expect(chapter8.reasons.length).toBe(0);
   });
 
-  test("D. personal 모드는 mode 값과 무관하게 12챕터 플랜을 유지해야 한다", () => {
+  test("D. personal 모드는 mode 값과 무관하게 10챕터 플랜을 유지해야 한다", () => {
     const canonical = buildCanonicalVedicChart(makeBody({ mode: "compatibility" }), makeInput(), makeChart(), "personal", null, null);
     const plan = buildVedicChapterPlan(canonical, "compatibility");
     const chapter10 = plan.find((p) => p.num === 10);
 
-    expect(plan).toHaveLength(12);
+    expect(plan).toHaveLength(10);
     expect(chapter10.available).toBe(true);
     expect(chapter10.reasons.length).toBe(0);
   });
@@ -205,11 +205,11 @@ describe("Vedic Premium Strict Tests", () => {
   });
 
   test("F. 개인 모드 필수 마커 누락을 탐지해야 한다", () => {
-    const personalChapter11Text = "## 챕터 11\n### 1. 아트마카라카 행성\n### 2. 아트마카라카의 라시/하우스";
+    const personalChapter4Text = "## 챕터 4\n### 1. 4-1. 아트마카라카 행성의 의미\n### 2. 4-2. 영혼이 반복해서 마주하는 과제";
 
-    const missingPersonal = vedicMissingMarkers(personalChapter11Text, 11, "personal");
+    const missingPersonal = vedicMissingMarkers(personalChapter4Text, 4, "personal");
 
-    expect(missingPersonal.some((m) => m.includes("삶의 사명을 현실화하는 방식"))).toBe(true);
+    expect(missingPersonal.some((m) => m.includes("4-5. 이번 생에서 반드시 키워야 할 힘"))).toBe(true);
   });
 
   test("G. 베다 챕터 JSON 생성기는 필수 스키마를 채워야 한다", () => {

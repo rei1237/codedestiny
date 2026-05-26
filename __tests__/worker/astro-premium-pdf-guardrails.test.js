@@ -10,12 +10,12 @@ beforeAll(async () => {
 });
 
 describe("Western astrology premium PDF guardrails", () => {
-  test("12챕터 고정 순서와 최소 섹션 계약을 유지한다", () => {
+  test("10챕터 고정 순서와 섹션 계약을 유지한다", () => {
     const chapters = __astroTestUtils.ASTRO_WESTERN_PDF_CHAPTERS;
     expect(Array.isArray(chapters)).toBe(true);
-    expect(chapters).toHaveLength(12);
+    expect(chapters).toHaveLength(10);
     expect(chapters.map((row) => row.id)).toEqual([
-      "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "C10", "C11", "C12",
+      "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "C10",
     ]);
     chapters.forEach((chapter) => {
       expect(Array.isArray(chapter.sections)).toBe(true);
@@ -87,27 +87,26 @@ describe("Western astrology premium PDF guardrails", () => {
     };
     const chapterMeta = { key: "C1", title: "CH.1 코어 성향 프로파일" };
     const llmText = [
-      "### 4. 차트에서 가장 강한 에너지",
+      "### 4. 1-4. 가장 강하게 작동하는 행성 신호",
       "강한 에너지 본문입니다.",
       "",
-      "### 1. ASC/MC/태양/달 핵심 구조",
+      "### 1. 1-1. 태양·달·상승궁으로 보는 핵심 자아",
       "ASC/MC 핵심 본문입니다.",
       "",
-      "### 5. 삶의 방향성과 반복 패턴",
+      "### 5. 1-5. 이번 차트의 핵심 키워드",
       "반복 패턴 본문입니다.",
     ].join("\n");
 
     const normalized = __astroTestUtils.materializeAstroSectionBlocks(llmText, canonical, chapterMeta);
     expect(Array.isArray(normalized.sections)).toBe(true);
     expect(normalized.sections).toHaveLength(5);
-    expect(normalized.sections[0].title).toBe("ASC/MC/태양/달 핵심 구조");
-    expect(normalized.sections[3].title).toBe("차트에서 가장 강한 에너지");
-    expect(String(normalized.sections[0].body).length).toBeGreaterThan(180);
-    expect(String(normalized.markdown)).toContain("### 1. ASC/MC/태양/달 핵심 구조");
-    expect(String(normalized.markdown)).toContain("### 4. 차트에서 가장 강한 에너지");
+    expect(normalized.sections[0].title).toBe("1-1. 태양·달·상승궁으로 보는 핵심 자아");
+    expect(normalized.sections[3].title).toBe("1-4. 가장 강하게 작동하는 행성 신호");
+    expect(String(normalized.markdown)).toContain("### 1. 1-1. 태양·달·상승궁으로 보는 핵심 자아");
+    expect(String(normalized.markdown)).toContain("### 4. 1-4. 가장 강하게 작동하는 행성 신호");
   });
 
-  test("섹션 본문이 너무 짧으면 로컬 카테고리 초안으로 보강되어야 한다", () => {
+  test("섹션 본문이 너무 짧으면 자동 보강 없이 원문이 유지된다", () => {
     const canonical = {
       user: { name: "테스터" },
       planets: [],
@@ -118,27 +117,26 @@ describe("Western astrology premium PDF guardrails", () => {
     };
     const chapterMeta = { key: "C1", title: "CH.1 코어 성향 프로파일" };
     const llmText = [
-      "### 1. ASC/MC/태양/달 핵심 구조",
+      "### 1. 1-1. 태양·달·상승궁으로 보는 핵심 자아",
       "짧은 본문",
       "",
-      "### 2. 차트 전체 기질",
+      "### 2. 1-2. 차트 전체에서 가장 강한 원소와 양식",
       "짧은 본문",
       "",
-      "### 3. 인생의 중심 테마",
+      "### 3. 1-3. 인생에서 반복되는 핵심 패턴",
       "짧은 본문",
       "",
-      "### 4. 차트에서 가장 강한 에너지",
+      "### 4. 1-4. 가장 강하게 작동하는 행성 신호",
       "짧은 본문",
       "",
-      "### 5. 삶의 방향성과 반복 패턴",
+      "### 5. 1-5. 이번 차트의 핵심 키워드",
       "짧은 본문",
     ].join("\n");
 
     const normalized = __astroTestUtils.materializeAstroSectionBlocks(llmText, canonical, chapterMeta);
     expect(normalized.sections).toHaveLength(5);
-    normalized.sections.forEach((section) => {
-      expect(typeof section.body).toBe("string");
-      expect(section.body.length).toBeGreaterThan(180);
-    });
+    expect(typeof normalized.sections[0].body).toBe("string");
+    expect(normalized.sections[0].body.length).toBeGreaterThan(0);
+    expect(normalized.sections.every((section) => section.body.length > 0)).toBe(true);
   });
 });

@@ -41,11 +41,14 @@ describe("Premium Report Feature Spec", () => {
     expect(resolvePremiumTypePair("sukuyo-premium", "").reportType).toBe("sookyoPremium");
   });
 
-  test("loveSecret는 현재 premium spec 기준으로 솔로 7챕터 / 궁합 8챕터를 사용한다", () => {
+  test("loveSecret는 premium spec 기준으로 솔로 10챕터 / 궁합 12챕터를 사용한다", () => {
     const { getPremiumRequiredChapters } = __premiumReportTestUtils;
 
-    expect(getPremiumRequiredChapters("loveSecret", "solo")).toBe(7);
-    expect(getPremiumRequiredChapters("loveSecret", "compatibility")).toBe(8);
+    const solo = getPremiumRequiredChapters("loveSecret", "solo");
+    const compat = getPremiumRequiredChapters("loveSecret", "compatibility");
+    expect(solo).toBe(10);
+    expect(compat).toBe(12);
+    expect(compat).toBeGreaterThan(solo);
   });
 
   test("sajuNewYear는 premium spec 기준으로 10챕터를 사용한다", () => {
@@ -54,19 +57,19 @@ describe("Premium Report Feature Spec", () => {
     expect(getPremiumRequiredChapters("sajuNewYear", "default")).toBe(10);
   });
 
-  test("westernAstrologyPremium은 개인/궁합 모두 12챕터를 사용한다", () => {
+  test("westernAstrologyPremium은 개인 모드 10챕터를 사용한다", () => {
     const { getPremiumRequiredChapters } = __premiumReportTestUtils;
 
-    expect(getPremiumRequiredChapters("westernAstrologyPremium", "personal")).toBe(12);
-    expect(getPremiumRequiredChapters("westernAstrologyPremium", "compatibility")).toBe(12);
+    expect(getPremiumRequiredChapters("westernAstrologyPremium", "personal")).toBe(10);
+    expect(getPremiumRequiredChapters("westernAstrologyPremium", "compatibility")).toBe(10);
   });
 
-  test("sookyoPremium은 개인 12챕터 / 궁합 16챕터를 사용한다", () => {
+  test("sookyoPremium은 개인 8챕터 / 궁합 10챕터를 사용한다", () => {
     const { getPremiumRequiredChapters } = __premiumReportTestUtils;
 
-    expect(getPremiumRequiredChapters("sookyoPremium", "personal")).toBe(12);
-    expect(getPremiumRequiredChapters("sookyoPremium", "solo")).toBe(12);
-    expect(getPremiumRequiredChapters("sookyoPremium", "compatibility")).toBe(16);
+    expect(getPremiumRequiredChapters("sookyoPremium", "personal")).toBe(8);
+    expect(getPremiumRequiredChapters("sookyoPremium", "solo")).toBe(8);
+    expect(getPremiumRequiredChapters("sookyoPremium", "compatibility")).toBe(10);
   });
 
   test("prepare 진단 스키마 헬퍼가 reportType별 필수 키를 제공", () => {
@@ -106,8 +109,8 @@ describe("Premium Report Feature Spec", () => {
       calculatedData: {},
     });
 
-    expect(summary.ch1.chapterTitle).toBe("연간 파동 총론 - 올해의 기본 기조");
-    expect(summary.ch10.chapterTitle).toBe("최종 실행 로드맵 - 연말 회수 전략");
+    expect(summary.ch1.chapterTitle).toBe("Ch.1 연간 파동 총론 — 올해의 기본 기조");
+    expect(summary.ch10.chapterTitle).toBe("Ch.10 최종 실행 로드맵 — 연말 회수 전략");
     expect(summary.ch9.requiredPaths).toContain("calculatedData.monthlyLuck");
   });
 
@@ -259,7 +262,7 @@ describe("Premium Report Feature Spec", () => {
       reportType: "lifeBook",
       featureType: "saju_life_book",
       mode: "default",
-      chapterTextList: Array.from({ length: 13 }, () => chapterText),
+      chapterTextList: Array.from({ length: 12 }, () => chapterText),
     });
 
     expect(result.ok).toBe(true);
