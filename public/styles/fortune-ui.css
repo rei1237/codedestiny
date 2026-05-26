@@ -4263,6 +4263,19 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
   visibility: visible;
   transform: translateY(0) scale(1);
 }
+.lang-toggle-wrap.is-loading .lang-trigger {
+  cursor: progress;
+  opacity: 0.84;
+  filter: saturate(0.78);
+}
+.lang-toggle-wrap.is-loading .lang-arrow {
+  opacity: 0;
+}
+.lang-toggle-wrap.is-loading .lang-dropdown {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transform: translateY(-8px) scale(0.96) !important;
+}
 .lang-btn {
   appearance: none;
   border: 1px solid transparent;
@@ -4313,11 +4326,34 @@ body.neo-mode .lang-btn.active {
   opacity: 1 !important;
 }
 
-/* ── 구글 번역기 배너/기본 아이콘 숨김 (코스믹 위젯은 표시 유지) ── */
+/* ── 구글 번역 기본 위젯/툴바 완전 은닉 + 레이아웃 점프 방지 ── */
 .VIpgJd-ZVi9od-ORHb-OEVmcd { display: none !important; }
-.goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon, .goog-te-gadget-simple { display: none !important; }
-#google_translate_element { display: block !important; }
-body { top: 0px !important; }
+.goog-te-banner-frame.skiptranslate,
+iframe.goog-te-banner-frame,
+.goog-te-gadget-icon,
+.goog-te-gadget-simple,
+.skiptranslate,
+.goog-te-balloon-frame,
+#goog-gt-tt {
+  display: none !important;
+  visibility: hidden !important;
+}
+#google_translate_element {
+  position: fixed !important;
+  left: -9999px !important;
+  top: auto !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: -1 !important;
+}
+body {
+  top: 0px !important;
+  position: static !important;
+}
+html { margin-top: 0 !important; }
 
 /* ── 글리치 전환 오버레이 ── */
 .neo-glitch-wrap{

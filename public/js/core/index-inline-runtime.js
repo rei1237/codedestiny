@@ -741,6 +741,7 @@ function cdDispatchNativeChangeEvent(el) {
 function cdEnsureGoogleTranslateBootstrap() {
   var hasGoogleTranslateRuntime = !!(window.google && window.google.translate && window.google.translate.TranslateElement);
   if (hasGoogleTranslateRuntime) {
+    cdSetLangUiLoading(false);
     if (typeof window.googleTranslateElementInit === 'function') {
       try { window.googleTranslateElementInit(); } catch (_) {}
     }
@@ -749,6 +750,7 @@ function cdEnsureGoogleTranslateBootstrap() {
 
   if (window.__cdGoogleTranslateScriptRequested) return;
   window.__cdGoogleTranslateScriptRequested = true;
+  cdSetLangUiLoading(true, '언어 엔진 로딩 중...');
 
   var script = document.createElement('script');
   script.type = 'text/javascript';
@@ -756,6 +758,7 @@ function cdEnsureGoogleTranslateBootstrap() {
   script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
   script.onerror = function() {
     window.__cdGoogleTranslateScriptRequested = false;
+    cdSetLangUiLoading(false);
   };
   document.head.appendChild(script);
 }
@@ -1576,19 +1579,19 @@ var __cdLazyActionLoaders = {
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
   openLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
   closeLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
-  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-1779818193114').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-1779818193114'); }); },
+  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-1779818839512').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-1779818839512'); }); },
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
-  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-1779818193114'); },
-  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-1779818193114'); },
-  openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=build-1779818193114'); },
-  openTarotHealingPage: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=build-1779818193114'); },
-  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-1779818193114'); },
-  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-1779818193114'); },
-  gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=build-1779818193114'); },
+  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-1779818839512'); },
+  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-1779818839512'); },
+  openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=build-1779818839512'); },
+  openTarotHealingPage: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=build-1779818839512'); },
+  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-1779818839512'); },
+  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-1779818839512'); },
+  gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=build-1779818839512'); },
   openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
-  openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=build-1779818193114'); },
+  openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=build-1779818839512'); },
   openSibylModal: function() {
-    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-1779818193114').then(function() {
+    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-1779818839512').then(function() {
       if (typeof window.openSibylModal === 'function') window.openSibylModal();
     });
   },
@@ -1826,13 +1829,13 @@ function __cdEnsureSajuCoreLoaded() {
   if (__cdSajuCoreLoadPromise) return __cdSajuCoreLoadPromise;
 
   var chain = [
-    '/js/core/kasi-calendar-service.js?v=build-1779818193114',
-    '/js/compat-llm-prompts.js?v=build-1779818193114',
-    '/js/saju-engine.js?v=build-1779818193114',
-    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-1779818193114',
-    '/js/core/saju/modalProfileState.js?v=build-1779818193114',
-    '/js/core/saju/reportDashboard.js?v=build-1779818193114',
-    '/js/saju-engine-continuation.js?v=build-1779818193114',
+    '/js/core/kasi-calendar-service.js?v=build-1779818839512',
+    '/js/compat-llm-prompts.js?v=build-1779818839512',
+    '/js/saju-engine.js?v=build-1779818839512',
+    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-1779818839512',
+    '/js/core/saju/modalProfileState.js?v=build-1779818839512',
+    '/js/core/saju/reportDashboard.js?v=build-1779818839512',
+    '/js/saju-engine-continuation.js?v=build-1779818839512',
     '/js/entertain-engine.js'
   ];
 
@@ -1871,7 +1874,7 @@ function __cdEnsureSwissEphLoaded() {
   if (__cdSwissEphLoadPromise) return __cdSwissEphLoadPromise;
 
   __cdSwissEphLoadPromise = new Promise(function(resolve, reject) {
-    var src = '/js/swisseph-loader.js?v=build-1779818193114';
+    var src = '/js/swisseph-loader.js?v=build-1779818839512';
     var norm = __cdNormalizeScriptSrc(src);
     if (!norm) {
       reject(new Error('missing swisseph src'));
@@ -2529,8 +2532,8 @@ function __cdBindAnimalTotemTileDirect() {
         return;
       }
       raf(function() {
-        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-1779818193114')
-          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-1779818193114'); })
+        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-1779818839512')
+          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-1779818839512'); })
           .then(function() {
             try {
               if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
@@ -6897,9 +6900,9 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
   if (!needsCore) return Promise.resolve(true);
 
   var chain = [
-    '/js/compat-llm-prompts.js?v=build-1779818193114',
-    '/js/saju-engine.js?v=build-1779818193114',
-    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-1779818193114'
+    '/js/compat-llm-prompts.js?v=build-1779818839512',
+    '/js/saju-engine.js?v=build-1779818839512',
+    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-1779818839512'
   ];
 
   return __cdEnsureLunarLibReady().then(function() {
@@ -6919,7 +6922,7 @@ function __cdEnsureBirthModalDepsLoaded() {
     typeof _renderZiweiSection !== 'function' ||
     typeof _renderAstroSection !== 'function'
   ) {
-    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-1779818193114'));
+    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-1779818839512'));
   }
   tasks.push(__cdEnsureSukuyoZiweiCoreLoaded());
   if (!tasks.length) return Promise.resolve(true);
@@ -7568,8 +7571,8 @@ function openAnimalTotemModal() {
     typeof window.drawAnimalTotemSpread === 'function';
 
   if (!hasFullTotemFlow && typeof __cdLoadScriptOnce === 'function') {
-    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-1779818193114')
-      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-1779818193114'); })
+    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-1779818839512')
+      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-1779818839512'); })
       .then(function() {
         var upgradedOpen = window.openAnimalTotemModal;
         if (typeof upgradedOpen === 'function' && upgradedOpen !== currentOpenFn) {
@@ -7779,6 +7782,7 @@ window.googleTranslateElementInit = window.googleTranslateElementInit || functio
     includedLanguages: 'ko,en,ja,zh-CN,zh-TW,fr,es,hi,de,nl,ms',
     autoDisplay: false
   }, 'google_translate_element');
+  cdSetLangUiLoading(false);
 };
 
 /* 기능(로더/모달/오버레이) 동작 중에는 언어 버튼 자동 숨김, 종료 시 다시 표시 */
@@ -7793,6 +7797,50 @@ var _langWrapFeatureOverlayIds = [
 ];
 
 var _langLabelMap = { 'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN', 'hi': 'HI', 'es': 'ES', 'fr': 'FR', 'de': 'DE', 'nl': 'NL', 'ms': 'MS' };
+var __cdLangUiApplying = false;
+
+function cdGetLangLabel(code) {
+  return '언어 변경 · ' + (_langLabelMap[code] || String(code || 'KR').toUpperCase());
+}
+
+function cdGetCurrentLangFromCookie() {
+  var googCookie = document.cookie.match(/(^|;\\s*)googtrans=([^;]*)/);
+  if (googCookie && googCookie[2]) {
+    var parsed = googCookie[2].split('/').pop();
+    if (parsed) return parsed;
+  }
+  return 'ko';
+}
+
+function cdRefreshLangLabel() {
+  var label = document.getElementById('langLabel');
+  if (!label) return;
+  label.textContent = cdGetLangLabel(cdGetCurrentLangFromCookie());
+}
+
+function cdSetLangUiLoading(isLoading, message) {
+  var wrap = document.getElementById('langWrap');
+  var trigger = document.getElementById('langTrigger');
+  var label = document.getElementById('langLabel');
+  if (wrap) {
+    if (isLoading) wrap.classList.add('is-loading');
+    else wrap.classList.remove('is-loading');
+  }
+  if (trigger) trigger.setAttribute('aria-busy', isLoading ? 'true' : 'false');
+  if (label && isLoading) {
+    label.textContent = message || '언어 엔진 로딩 중...';
+    return;
+  }
+  if (!isLoading) {
+    cdRefreshLangLabel();
+  }
+}
+
+function cdIsGoogleTranslateReady() {
+  if (window.google && window.google.translate && window.google.translate.TranslateElement) return true;
+  var selectField = document.querySelector('#google_translate_element .goog-te-combo');
+  return !!selectField;
+}
 
 // 언어 선택(구글 번역 서비스 사용) 후 일정 시간 뒤 위젯 자동 숨김
 var __cdLangWrapHideTimer = null;
@@ -7833,6 +7881,11 @@ function changeLanguage(langCode, btn) {
   if (window.__cdNativeLangBound) {
     return;
   }
+  if (__cdLangUiApplying) return;
+  __cdLangUiApplying = true;
+  if (!cdIsGoogleTranslateReady()) {
+    cdSetLangUiLoading(true, '언어 엔진 로딩 중...');
+  }
   __cdCancelLangWrapHide();
 
   var btns = document.querySelectorAll('.lang-btn');
@@ -7840,7 +7893,10 @@ function changeLanguage(langCode, btn) {
   if (btn) btn.classList.add('active');
 
   var label = document.getElementById('langLabel');
-  if (label) label.textContent = '언어 변경 · ' + (_langLabelMap[langCode] || langCode.toUpperCase());
+  var wrapForLoading = document.getElementById('langWrap');
+  if (label && !(wrapForLoading && wrapForLoading.classList.contains('is-loading'))) {
+    label.textContent = cdGetLangLabel(langCode);
+  }
 
   try { localStorage.setItem('cd_lang', langCode); } catch (_) {}
 
@@ -7853,10 +7909,17 @@ function changeLanguage(langCode, btn) {
     applyPromise.then(function() {
       cdAllowGoogleTranslateForContent();
       cdApplyCollectionToggleHintTexts(langCode);
+      cdSetLangUiLoading(false);
+      __cdLangUiApplying = false;
+    }).catch(function() {
+      cdSetLangUiLoading(false);
+      __cdLangUiApplying = false;
     });
   } else {
     cdAllowGoogleTranslateForContent();
     cdApplyCollectionToggleHintTexts(langCode);
+    cdSetLangUiLoading(false);
+    __cdLangUiApplying = false;
   }
 
   if (langCode === 'ko') {
@@ -7880,6 +7943,13 @@ function changeLanguage(langCode, btn) {
 function toggleLangDropdown() {
   var wrap = document.getElementById('langWrap');
   if (!wrap) return;
+
+  if (!cdIsGoogleTranslateReady()) {
+    cdSetLangUiLoading(true, '언어 엔진 로딩 중...');
+    cdEnsureGoogleTranslateBootstrap();
+    return;
+  }
+  cdSetLangUiLoading(false);
 
   var isOpen = wrap.classList.contains('open');
   if (isOpen) {
@@ -7930,7 +8000,7 @@ window.addEventListener('load', function() {
       if (b.getAttribute('data-lang') === lang) b.classList.add('active');
     });
     var label = document.getElementById('langLabel');
-    if (label) label.textContent = '언어 변경 · ' + (_langLabelMap[lang] || 'KR');
+    if (label) label.textContent = cdGetLangLabel(lang || 'ko');
   }, 1000);
 });
 
