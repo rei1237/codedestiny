@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildWesternChart } from "../_astroCommon";
 import { requirePremiumRouteAccess } from "@/app/_lib/premium-route-access";
 import { requireRouteAuth } from "@/app/_lib/route-auth";
 
@@ -101,46 +100,74 @@ export async function POST(req: NextRequest) {
     const minute = Number(body.minute);
     const lat = Number(body.lat);
     const lon = Number(body.lon);
+    const timezone = Number(body.timezone);
+    const birthPlace = String(body.birthPlace || body.place || body.location || "").trim();
     if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) missingFields.push("birthDate");
     if (missingFields.length) {
       return NextResponse.json({
         ok: false,
-        code: "ASTRO_INPUT_INVALID",
+        code: "ASTRO_INPUT_REQUIRED",
         message: "점성술 차트 계산을 위해 생년월일이 필요합니다.",
         missingFields,
+      }, { status: 400 });
+    }
+
+    const hasGeo = Number.isFinite(lat) && Number.isFinite(lon);
+    const hasTimezone = Number.isFinite(timezone);
+    if ((!hasGeo && !birthPlace) || !hasTimezone) {
+      return NextResponse.json({
+        ok: false,
+        code: "ASTRO_LOCATION_TIMEZONE_REQUIRED",
+        message: "점성술 차트 계산을 위해 위치와 타임존 정보가 필요합니다.",
+        missingFields: [
+          ...((!hasGeo && !birthPlace) ? ["location"] : []),
+          ...(!hasTimezone ? ["timezone"] : []),
+        ],
       }, { status: 422 });
     }
 
-    const resolvedHour = Number.isFinite(hour) ? hour : 12;
-    const resolvedMinute = Number.isFinite(minute) ? minute : 0;
-    const resolvedLat = Number.isFinite(lat) ? lat : 37.5665;
-    const resolvedLon = Number.isFinite(lon) ? lon : 126.978;
-    const resolvedTimezone = Number(body.timezone ?? 9);
+    if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
+      return NextResponse.json({
+        ok: false,
+        code: "ASTRO_INPUT_REQUIRED",
+        message: "점성술 차트 계산을 위해 출생 시간이 필요합니다.",
+        missingFields: ["birthTime"],
+      }, { status: 400 });
+    }
+
     const payload = {
       year,
       month,
       day,
-      hour: resolvedHour,
-      minute: resolvedMinute,
-      timezone: Number.isFinite(resolvedTimezone) ? resolvedTimezone : 9,
-      lat: resolvedLat,
-      lon: resolvedLon,
+      hour,
+      minute,
+      timezone,
+      lat,
+      lon,
     };
 
     const swiss = await fetchSwissWesternChart(req, payload);
-    const fallbackChart = buildWesternChart(payload);
-    const chart = swiss.chart || fallbackChart;
-    const calculationSource = swiss.chart ? swiss.source : "astronomy-engine-fallback";
+    if (!swiss.chart) {
+      return NextResponse.json({
+        ok: false,
+        code: "ASTRO_CHART_CALCULATION_FAILED",
+        message: "점성술 차트 계산에 실패했습니다.",
+        warnings: swiss.warnings,
+      }, { status: 422 });
+    }
+
+    const chart = swiss.chart;
+    const calculationSource = swiss.source;
 
     return NextResponse.json({
       ok: true,
       ...chart,
       calculationSource,
-      warnings: swiss.chart ? swiss.warnings : [...swiss.warnings, "Swiss unavailable, fallback chart used"],
+      warnings: swiss.warnings,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("[api/premium/astro-western]", message);
-    return NextResponse.json({ ok: false, code: "ASTRO_CHART_SEED_FAILED", message }, { status: 500 });
+    return NextResponse.json({ ok: false, code: "ASTRO_CHART_CALCULATION_FAILED", message }, { status: 422 });
   }
 }
