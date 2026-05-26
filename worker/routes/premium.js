@@ -7299,6 +7299,155 @@ function buildPremiumPdfRenderGuide(reportType) {
   return base;
 }
 
+function buildPremiumMinimalProfileInput(reportData = {}) {
+  const input = toPlainObject(reportData?.input);
+  const birth = toPlainObject(input?.birth || input?.birthInfo || {});
+  const year = Number(input?.birthYear || birth?.year || 0) || undefined;
+  const month = Number(input?.birthMonth || birth?.month || 0) || undefined;
+  const day = Number(input?.birthDay || birth?.day || 0) || undefined;
+  const hour = Number.isFinite(Number(input?.birthHour ?? birth?.hour)) ? Number(input?.birthHour ?? birth?.hour) : undefined;
+  const minute = Number.isFinite(Number(input?.birthMinute ?? birth?.minute)) ? Number(input?.birthMinute ?? birth?.minute) : undefined;
+  const targetYear = Number(input?.targetYear || input?.year || 2026) || 2026;
+  return {
+    gender: String(input?.gender || "").trim() || undefined,
+    calendarType: String(input?.calendarType || "").trim() || undefined,
+    birth: {
+      year,
+      month,
+      day,
+      hour,
+      minute,
+    },
+    targetYear,
+  };
+}
+
+function buildPremiumCoreEngineInput(reportType, reportData = {}, chapterDataSubset = {}, chapterJsonPacks = null) {
+  const minimalProfile = buildPremiumMinimalProfileInput(reportData);
+  const calculatedData = toPlainObject(reportData?.calculatedData);
+  const signals = toPlainObject(chapterJsonPacks?.signals);
+  const timing = toPlainObject(chapterJsonPacks?.timing);
+
+  if (reportType === "ziweiPremium") {
+    const ziweiCore = toPlainObject(signals?.ziweiCore || getPathValue(calculatedData, "ziwei") || {});
+    const palaceRows = Array.isArray(ziweiCore?.palaceStarData)
+      ? ziweiCore.palaceStarData
+      : (Array.isArray(getPathValue(chapterDataSubset, "calculatedData.ziwei.palaceStarData"))
+        ? getPathValue(chapterDataSubset, "calculatedData.ziwei.palaceStarData")
+        : []);
+    return {
+      reportType,
+      profile: minimalProfile,
+      ziwei: {
+        mingGong: String(ziweiCore?.mingGong || ziweiCore?.mingPalace || "").trim() || undefined,
+        shenGong: String(ziweiCore?.shenGong || ziweiCore?.shenPalace || "").trim() || undefined,
+        palaces: palaceRows.slice(0, 12).map((row) => {
+          const stars = Array.isArray(row?.stars) ? row.stars : [];
+          return {
+            palace: String(row?.palace || row?.name || "").trim() || undefined,
+            branch: String(row?.branch || row?.zhi || "").trim() || undefined,
+            mainStars: stars.slice(0, 5).map((star) => ({
+              name: String(star?.name || star?.star || "").trim(),
+              strength: String(star?.strength || star?.state || "").trim() || undefined,
+            })).filter((star) => star.name),
+          };
+        }).filter((row) => row.palace || row.branch || (Array.isArray(row.mainStars) && row.mainStars.length > 0)),
+      },
+    };
+  }
+
+  if (reportType === "westernAstrologyPremium") {
+    const planets = Array.isArray(signals?.planetPositions)
+      ? signals.planetPositions
+      : (Array.isArray(getPathValue(calculatedData, "planets")) ? getPathValue(calculatedData, "planets") : []);
+    const aspects = Array.isArray(signals?.majorAspects)
+      ? signals.majorAspects
+      : (Array.isArray(getPathValue(calculatedData, "aspects")) ? getPathValue(calculatedData, "aspects") : []);
+    return {
+      reportType,
+      profile: minimalProfile,
+      astrology: {
+        ascendant: String(signals?.ascendant || getPathValue(calculatedData, "ascendant.sign") || "").trim() || undefined,
+        planets: planets.slice(0, 12).map((row) => ({
+          name: String(row?.name || row?.planet || "").trim(),
+          sign: String(row?.sign || row?.zodiac || "").trim() || undefined,
+          house: Number(row?.house || row?.houseNumber || 0) || undefined,
+          degree: Number(row?.degree || row?.deg || 0) || undefined,
+        })).filter((row) => row.name),
+        majorAspects: aspects.slice(0, 16).map((row) => ({
+          from: String(row?.from || row?.planetA || "").trim(),
+          to: String(row?.to || row?.planetB || "").trim(),
+          type: String(row?.type || row?.aspect || "").trim() || undefined,
+        })).filter((row) => row.from && row.to),
+      },
+    };
+  }
+
+  if (reportType === "vedicPremium") {
+    const vedicCore = toPlainObject(signals?.vedicCore || getPathValue(calculatedData, "vedic") || {});
+    const planets = Array.isArray(vedicCore?.planets) ? vedicCore.planets : [];
+    const dasha = Array.isArray(getPathValue(timing, "luckFlow.dasha")) ? getPathValue(timing, "luckFlow.dasha") : [];
+    return {
+      reportType,
+      profile: minimalProfile,
+      vedic: {
+        lagna: String(vedicCore?.lagna || vedicCore?.ascendant || "").trim() || undefined,
+        moonNakshatra: String(vedicCore?.moonNakshatra || "").trim() || undefined,
+        planets: planets.slice(0, 12).map((row) => ({
+          name: String(row?.name || row?.planet || "").trim(),
+          sign: String(row?.sign || "").trim() || undefined,
+          house: Number(row?.house || 0) || undefined,
+        })).filter((row) => row.name),
+        dasha: dasha.slice(0, 6).map((row) => ({
+          mahadasha: String(row?.mahadasha || row?.major || "").trim() || undefined,
+          antardasha: String(row?.antardasha || row?.minor || "").trim() || undefined,
+          period: String(row?.period || row?.range || "").trim() || undefined,
+        })),
+      },
+    };
+  }
+
+  if (reportType === "sookyoPremium") {
+    const sukyoCore = toPlainObject(signals?.sukyoCore || getPathValue(calculatedData, "sukyoPdfContext") || {});
+    const domainScores = Array.isArray(sukyoCore?.domainScores) ? sukyoCore.domainScores : [];
+    return {
+      reportType,
+      profile: minimalProfile,
+      sukyo: {
+        mainStar: String(sukyoCore?.mainStar?.nameKo || sukyoCore?.mainStar?.name || "").trim() || undefined,
+        relationType: String(sukyoCore?.relationship?.relationType || "").trim() || undefined,
+        distance: String(sukyoCore?.relationship?.distance || "").trim() || undefined,
+        domainScores: domainScores.slice(0, 6).map((row) => ({
+          domain: String(row?.domain || "").trim(),
+          summary: String(row?.summary || "").trim() || undefined,
+        })).filter((row) => row.domain),
+      },
+    };
+  }
+
+  const sajuCore = toPlainObject(signals?.sajuCore || getPathValue(calculatedData, "saju") || {});
+  const tenGodEvidence = Array.isArray(sajuCore?.tenGodEvidence) ? sajuCore.tenGodEvidence : [];
+  const daewoon = Array.isArray(getPathValue(timing, "luckFlow.daewoon")) ? getPathValue(timing, "luckFlow.daewoon") : [];
+  const sewoon = Array.isArray(getPathValue(timing, "luckFlow.sewoon")) ? getPathValue(timing, "luckFlow.sewoon") : [];
+
+  return {
+    reportType,
+    profile: minimalProfile,
+    saju: {
+      dayMaster: String(sajuCore?.dayMaster || getPathValue(chapterDataSubset, "calculatedData.saju.dayMaster") || "").trim() || undefined,
+      monthCommand: String(sajuCore?.monthCommand || getPathValue(chapterDataSubset, "calculatedData.saju.monthCommand") || "").trim() || undefined,
+      pillars: toPlainObject(sajuCore?.pillars || getPathValue(chapterDataSubset, "calculatedData.saju.pillars") || {}),
+      dominantElement: String(sajuCore?.dominantElement || getPathValue(chapterDataSubset, "calculatedData.saju.dominantElement") || "").trim() || undefined,
+      dominantTenGod: String(sajuCore?.dominantTenGod || getPathValue(chapterDataSubset, "calculatedData.saju.tenGodSummary.dominantTenGod") || "").trim() || undefined,
+      tenGodEvidence: tenGodEvidence.slice(0, 6),
+      luckFlow: {
+        daewoon: daewoon.slice(0, 4),
+        sewoon: sewoon.slice(0, 8),
+      },
+    },
+  };
+}
+
 function buildPromptSourceData(reportType, chapterId, reportData, prebuiltChapterJsonPacks = null) {
   const chapterKey = `ch${Number(chapterId || 0)}`;
   const chapterMeta = reportData?.chapterData?.[chapterKey] || {};
@@ -7311,6 +7460,12 @@ function buildPromptSourceData(reportType, chapterId, reportData, prebuiltChapte
     chapterDataSubset[path] = getPathValue(reportData, path);
   });
   const chapterJsonPacks = prebuiltChapterJsonPacks || buildChapterJsonPacks(reportType, chapterId, reportData);
+  const coreEngineInput = buildPremiumCoreEngineInput(
+    reportType,
+    reportData,
+    chapterDataSubset,
+    chapterJsonPacks,
+  );
   const evidenceChecklist = buildPromptEvidenceChecklist(reportType, chapterJsonPacks);
   const renderGuide = buildPremiumPdfRenderGuide(reportType);
   const promptMetaByType = {
@@ -7353,7 +7508,7 @@ function buildPromptSourceData(reportType, chapterId, reportData, prebuiltChapte
     chapterId: String(chapterId || ""),
     chapterTitle: String(chapterMeta.chapterTitle || `Chapter ${chapterId}`),
     chapterContract,
-    calculatedDataForThisChapter: chapterDataSubset,
+    calculatedDataForThisChapter: coreEngineInput,
     chapterJsonPacks,
     chapterJson: chapterJsonPacks,
     questionPromptPackage: {
@@ -7365,22 +7520,22 @@ function buildPromptSourceData(reportType, chapterId, reportData, prebuiltChapte
       chapterId: String(chapterId || ""),
       chapterTitle: String(chapterMeta.chapterTitle || `Chapter ${chapterId}`),
       chapterContract,
-      profile: reportData?.input || reportData?.calculatedData?.birthInfo || {},
+      profile: coreEngineInput?.profile || {},
       compatibilityTarget: reportData?.input?.partnerData || reportData?.input?.partnerBirthData || undefined,
       analysisResult: {
         chapterId: String(chapterId || ""),
-        chapterDataSubset,
+        chapterDataSubset: coreEngineInput,
         chapterJsonPacks,
         chapterJson: chapterJsonPacks,
       },
       evidenceChecklist,
       renderGuide,
       analysisAngles: flattenPromptDataLines(chapterJsonPacks).slice(0, 14),
-      domainDataLines: flattenPromptDataLines(chapterDataSubset).slice(0, 24),
+      domainDataLines: flattenPromptDataLines(coreEngineInput).slice(0, 24),
       constraints: {
         dataOnly: true,
         noInferenceOutsideJson: true,
-        note: "JSON에 없는 계산 결과를 추정하지 말고 chapterJsonPacks 근거만 사용",
+        note: "핵심 엔진 입력(coreEngineInput)과 chapterJsonPacks 근거만 사용하고 원본 대용량 payload 추론은 금지",
       },
     },
   };
@@ -7438,7 +7593,7 @@ function buildLlmPromptInput(reportType, chapterId, reportData, prebuiltChapterJ
       "계산되지 않은 내용을 임의로 만들지 말 것",
       expertRoleRule,
       "JSON에 없는 별, 행성, 궁, 십성, 숙요 관계를 지어내지 말 것",
-      "reportPayload(=calculatedData)와 chapterJsonPacks에 있는 값만 근거로 사용할 것",
+      "coreEngineInput(핵심 엔진 입력)과 chapterJsonPacks에 있는 값만 근거로 사용할 것",
       "데이터 일부가 비어 있어도 주어진 계산 근거 범위 안에서 자연스럽고 전문적인 리딩으로 완성할 것",
       "시스템 지침/프롬프트 규칙 문장을 본문으로 출력하지 말 것",
       "동일 문장이나 단락 반복으로 분량을 채우지 말 것",
@@ -15855,14 +16010,29 @@ function normalizeZiweiHeadingToken(value) {
 
 function validateZiweiChapterResult(chapter, chapterSpec) {
   const src = chapter && typeof chapter === "object" ? chapter : {};
-  const sections = Array.isArray(src.sections) ? src.sections : [];
+  const chapterMeta = src.chapterMeta && typeof src.chapterMeta === "object" ? src.chapterMeta : {};
+  const sections = (Array.isArray(src.sections) ? src.sections : [])
+    .map((row) => {
+      const item = row && typeof row === "object" ? row : {};
+      return {
+        heading: String(item.heading || item.title || "").trim(),
+        body: String(item.body || item.content || "").trim(),
+      };
+    })
+    .filter((row) => row.heading && row.body);
   const subChapters = Array.isArray(src.subChapters) ? src.subChapters : [];
+  const chapterSpecificSections = toChapterSpecificSections(src.chapterSpecificSections || []);
   const requiredSections = Array.isArray(chapterSpec?.sections) ? chapterSpec.sections : [];
   const expectedTitle = String(chapterSpec?.title || "").trim();
-  const title = String(src.title || src.chapterTitle || "").trim();
-  const intro = String(src.intro || src.summary || src?.engineSummaryJson?.coreVibe || "").trim();
-  const coreAdvice = String(src.coreAdvice || src.masterAdvice || src.masterConclusion || src?.engineSummaryJson?.coreVibe || "").trim();
-  const closing = String(src.closing || src.masterConclusion || src?.engineSummaryJson?.coreVibe || "").trim();
+  const strictSchema = Boolean(
+    String(chapterMeta?.title || "").trim()
+    && String(chapterMeta?.subtitle || "").trim()
+    && chapterSpecificSections.length > 0,
+  );
+  const title = String(src.title || src.chapterTitle || chapterMeta.title || "").trim();
+  const intro = String(src.intro || src.summary || src?.engineSummaryJson?.coreVibe || sections[0]?.body || "").trim();
+  const coreAdvice = String(src.coreAdvice || src.masterAdvice || src.masterConclusion || src?.engineSummaryJson?.coreVibe || sections[sections.length - 1]?.body || "").trim();
+  const closing = String(src.closing || src.masterConclusion || src?.engineSummaryJson?.coreVibe || sections[sections.length - 1]?.body || "").trim();
   const actionGuide = Array.isArray(src.actionGuide)
     ? src.actionGuide
     : (Array.isArray(src.practicalAdvice) ? src.practicalAdvice : []);
@@ -15885,12 +16055,13 @@ function validateZiweiChapterResult(chapter, chapterSpec) {
 
   const missing = [];
   if (!title || title !== expectedTitle) missing.push("title");
-  if (!intro) missing.push("intro");
-  if (!coreAdvice) missing.push("coreAdvice");
-  if (!closing) missing.push("closing");
-  if (!Array.isArray(actionGuide) || actionGuide.length < 3) missing.push("actionGuide");
+  if (!intro && !strictSchema) missing.push("intro");
+  if (!coreAdvice && !strictSchema) missing.push("coreAdvice");
+  if (!closing && !strictSchema) missing.push("closing");
+  if ((!Array.isArray(actionGuide) || actionGuide.length < 3) && !strictSchema) missing.push("actionGuide");
   if (effectiveSections.length < requiredSections.length) missing.push("sections.length");
   if (subChapters.length > 0 && subChapters.length < requiredSections.length) missing.push("subChapters.length");
+  if (strictSchema && chapterSpecificSections.length !== requiredSections.length) missing.push("chapterSpecificSections.length");
 
   const normalizedRequired = requiredSections.map((row) => normalizeZiweiHeadingToken(row)).filter(Boolean);
   const normalizedActual = effectiveSections.map((row) => normalizeZiweiHeadingToken(row?.heading || row?.title)).filter(Boolean);
@@ -15899,7 +16070,7 @@ function validateZiweiChapterResult(chapter, chapterSpec) {
 
   const shortBodies = effectiveSections
     .map((row, idx) => ({ idx, body: String(row?.body || "").trim() }))
-    .filter((row) => row.body.length < 400)
+    .filter((row) => row.body.length < (strictSchema ? 1000 : 400))
     .map((row) => `sections[${row.idx}].body`);
   if (shortBodies.length > 0) missing.push(...shortBodies);
 
@@ -16046,6 +16217,13 @@ function buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice, 
     "JSON에 없는 별, 사화, 궁위, 대한, 유년 정보를 추측해 추가하지 마라.",
     "사용자의 자미두수 명반 데이터를 기반으로 단순 점괘가 아니라 타고난 구조→현재 심리/현실→선택 전략→구체적 개운 실천법을 연결해 작성하라.",
     "오직 단일 JSON 객체만 출력하라. 코드, 컴포넌트, UI 설명, 개발 설명은 절대 출력하지 마라.",
+    "출력 스키마는 반드시 아래 4개 최상위 키만 사용한다: chapterMeta, chapterSpecificSections, sections, chapter.",
+    "chapterMeta는 title/subtitle만 포함한다.",
+    "chapterSpecificSections는 정확히 5개 문자열 배열이며 순서/문구를 변경하지 않는다.",
+    "sections는 정확히 5개 객체 배열이며, 각 객체는 title/body만 포함한다.",
+    "sections[i].title은 chapterSpecificSections[i]와 완전히 동일해야 한다.",
+    "sections[i].body는 최소 1000자 이상이며, Markdown 문법 사용은 허용한다.",
+    "JSON 앞뒤 설명문, 코드펜스, 주석, 추가 키를 절대 출력하지 마라.",
     "건강·투자·법률·의료는 진단/보장 표현을 금지하고 생활 관리 수준의 조언으로 작성하라.",
     "단정적 공포 문구(예: 반드시 망한다, 절대 안 된다)를 금지하고 상담형 문장으로 작성하라.",
     "한자 용어에는 쉬운 한국어 해설을 반드시 붙여라.",
@@ -16078,24 +16256,19 @@ function buildZiweiPremiumPrompt(meta, chapter, input, dataText, missingNotice, 
     previousSentenceBanList.length
       ? `[반복 금지 문장(이전 챕터)]\n- ${previousSentenceBanList.join("\n- ")}`
       : "",
-    "[챕터 본문 필수 순서]",
-    chapter === 1 ? `# ${ZIWEI_REPORT_TITLE}` : "",
-    chapter === 1 ? `# ${ZIWEI_PROLOGUE_TITLE}` : "",
-    prefaceHeading,
-    chapter === 1 ? "### 12궁 전체 요약표" : "",
-    exactHeading,
-    "### 사용 데이터 요약표",
-    "## 1. 이 챕터에서 보는 핵심",
-    "## 2. 별의 구조와 세기 분석",
-    "## 3. 별의 밝기로 본 강점과 약점",
-    "## 4. 심리적 의미",
-    "## 5. 현실에서 드러나는 모습",
-    "## 6. 강점 활용 전략",
-    "## 7. 주의해야 할 패턴",
-    "## 8. 세기별 보완 전략",
-    "## 9. 실천 가이드",
-    "## 10. 챕터 핵심 요약",
-    "---",
+    "[출력 JSON 스키마]",
+    "{",
+    "  \"chapterMeta\": { \"title\": \"전달받은 챕터 타이틀\", \"subtitle\": \"전달받은 챕터 서브타이틀\" },",
+    "  \"chapterSpecificSections\": [\"세부카테고리1\", \"세부카테고리2\", \"세부카테고리3\", \"세부카테고리4\", \"세부카테고리5\"],",
+    "  \"sections\": [",
+    "    { \"title\": \"세부카테고리1\", \"body\": \"최소 1000자 이상\" },",
+    "    { \"title\": \"세부카테고리2\", \"body\": \"최소 1000자 이상\" },",
+    "    { \"title\": \"세부카테고리3\", \"body\": \"최소 1000자 이상\" },",
+    "    { \"title\": \"세부카테고리4\", \"body\": \"최소 1000자 이상\" },",
+    "    { \"title\": \"세부카테고리5\", \"body\": \"최소 1000자 이상\" }",
+    "  ],",
+    "  \"chapter\": " + String(chapter),
+    "}",
     "",
     "[챕터 전용 추가 지시]",
     chapterGuide,
@@ -16186,10 +16359,24 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
       reportType,
       chapter,
     );
-  const chapterSpec = ZIWEI_PDF_CHAPTERS_V2[chapter - 1] || {
+  const chapterSpecBase = ZIWEI_PDF_CHAPTERS_V2[chapter - 1] || {
     key: `ch_${chapter}`,
     title: meta?.title || `Chapter ${chapter}`,
     goal: meta?.subtitle || "자미두수 핵심 해석",
+  };
+  const requestedSections = toChapterSpecificSections(
+    body?.chapterSpecificSections
+    || body?.requestedSections
+    || body?.sectionLabels
+    || [],
+  ).slice(0, 5);
+  const requestedTitle = String(body?.chapterTitle || body?.title || "").trim();
+  const requestedSubtitle = String(body?.chapterSubtitle || body?.subtitle || "").trim();
+  const chapterSpec = {
+    ...chapterSpecBase,
+    title: requestedTitle || chapterSpecBase.title,
+    goal: requestedSubtitle || chapterSpecBase.goal,
+    sections: requestedSections.length ? requestedSections : toChapterSpecificSections(chapterSpecBase.sections || []),
   };
   const reportId = String(body?.reportId || "").trim() || null;
   const chapterMetaInfo = {
@@ -16407,11 +16594,14 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
   if (!parsed.ok) {
     const repairPrompt = [
       "아래 응답을 지정 스키마에 맞는 단일 JSON 객체로만 복구하세요.",
-      "필수 키(확장): chapterId, chapterTitle, metaData, subChapters[{subId,subTitle,analysisText,strategicGuidance}], engineSummaryJson",
-      "필수 키(legacy): chapterNo, title, intro, sections[{heading,body}], coreAdvice, actionGuide, closing",
-      `title은 반드시 '${String(chapterSpec?.title || "").trim()}' 와 완전히 일치해야 합니다.`,
-      "각 subChapters.analysisText는 최소 3문단/700자 이상, strategicGuidance는 120자 이상으로 작성하세요.",
-      "각 section.body는 400자 이상으로 작성하세요.",
+      "필수 키: chapterMeta, chapterSpecificSections, sections, chapter",
+      "chapterMeta는 title/subtitle만 포함합니다.",
+      `chapterMeta.title은 반드시 '${String(chapterSpec?.title || "").trim()}' 와 완전히 일치해야 합니다.`,
+      `chapterMeta.subtitle은 반드시 '${String(chapterSpec?.goal || meta?.subtitle || "").trim()}' 와 일치해야 합니다.`,
+      `chapterSpecificSections는 정확히 5개이며, 반드시 [${toChapterSpecificSections(chapterSpec?.sections || []).slice(0, 5).join(" | ")}] 순서를 유지하세요.`,
+      "sections는 정확히 5개 객체만 포함하고, title/body만 허용합니다.",
+      "각 sections[i].title은 chapterSpecificSections[i]와 완전히 동일해야 합니다.",
+      "각 sections[i].body는 최소 1000자 이상으로 작성하세요.",
       "코드펜스 없이 JSON만 출력하세요.",
       "",
       "[원래 응답]",
@@ -22590,9 +22780,10 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
   const tokenFromCookie = String(cookieValue(request, "cd_premium_access") || "").trim();
   const tokenFromHeader = String(request.headers.get("x-premium-access-token") || "").trim();
   const premiumAccessToken = tokenFromBody || tokenFromCookie || tokenFromHeader;
+  const accessRoute = String(strictBody._accessRoute || "/api/ziwei-book/session").trim() || "/api/ziwei-book/session";
   const accessRequestBody = premiumAccessToken
-    ? { ...strictBody, requestId, generationId, _accessRoute: "/api/ziwei-book/session", premiumAccessToken }
-    : { ...strictBody, requestId, generationId, _accessRoute: "/api/ziwei-book/session" };
+    ? { ...strictBody, requestId, generationId, _accessRoute: accessRoute, premiumAccessToken }
+    : { ...strictBody, requestId, generationId, _accessRoute: accessRoute };
   const access = await requirePremiumReportAccess(env, ownerUserId, "ziweiPremium", accessRequestBody);
   if (!access.ok) {
     const denied = buildPremiumAccessDeniedPayload(access, {
@@ -22691,6 +22882,12 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
   let structuredPayload = (strictBody.ziweiStructured && typeof strictBody.ziweiStructured === "object")
     ? strictBody.ziweiStructured
     : null;
+  const requestedChapterSections = toChapterSpecificSections(
+    strictBody.chapterSpecificSections
+    || strictBody.requestedSections
+    || strictBody.sectionLabels
+    || [],
+  ).slice(0, 5);
 
   if (!structuredPayload && basicZiweiResult && typeof basicZiweiResult === "object") {
     const structuredFromBasic = basicZiweiResult.ziweiStructured
@@ -22708,6 +22905,25 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
       structuredPayload = parsedFallback;
       pushUnique(dataQuality.warnings, "ziweiData 원문 기반 canonical 복구 경로를 사용했습니다.");
     }
+  }
+
+  const ziweiDataText = String(strictBody?.ziweiData || "").trim();
+  const structuredPalaces = Array.isArray(structuredPayload?.palaceStarData) ? structuredPayload.palaceStarData : [];
+  if (!prepareOnly && !structuredPalaces.length && !ziweiDataText) {
+    return json({
+      ok: false,
+      code: "ZIWEI_INPUT_REQUIRED",
+      message: "명반 데이터가 비어 있습니다. ziweiData 또는 ziweiStructured를 함께 전달해 주세요.",
+      missingFields: ["ziweiData", "ziweiStructured.palaceStarData"],
+    }, { status: 422 });
+  }
+  if (!prepareOnly && structuredPayload && structuredPalaces.length > 0 && structuredPalaces.length < 12) {
+    return json({
+      ok: false,
+      code: "ZIWEI_INPUT_INCOMPLETE",
+      message: "ziweiStructured가 12궁 전체를 포함하지 않습니다. 명반 데이터를 다시 계산해 주세요.",
+      missingFields: ["ziweiStructured.palaceStarData[12]"],
+    }, { status: 422 });
   }
 
   let canonicalZiweiChart = null;
@@ -23111,7 +23327,9 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
     {
       ownerUserId,
       chapterJson: generated.chapterJson,
-      chapterSpecificSections: toChapterSpecificSections((ZIWEI_PDF_CHAPTERS_V2[chapter - 1] || {}).sections || []),
+      chapterSpecificSections: toChapterSpecificSections(requestedChapterSections.length
+        ? requestedChapterSections
+        : ((ZIWEI_PDF_CHAPTERS_V2[chapter - 1] || {}).sections || [])),
       reportType,
       requestId,
       generationId,
@@ -23136,7 +23354,9 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
     chapter,
     totalChapters: chapterCount,
     chapterMeta: meta,
-    chapterSpecificSections: toChapterSpecificSections((ZIWEI_PDF_CHAPTERS_V2[chapter - 1] || {}).sections || []),
+    chapterSpecificSections: toChapterSpecificSections(requestedChapterSections.length
+      ? requestedChapterSections
+      : ((ZIWEI_PDF_CHAPTERS_V2[chapter - 1] || {}).sections || [])),
     chapterJson: generated.chapterJson || null,
     storage,
     dataQuality: {
@@ -23859,7 +24079,12 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   }
 
   const chapterId = clampInt(body.chapterId ?? body.chapter, 1, 1, Number(context.totalChapters || 13));
-  const ziweiStrictNoFallback = String(context?.reportType || "") === "ziweiPremium";
+  const strictNoFallback = asBool(
+    body?.strictNoFallback
+    ?? context?.strictNoFallback
+    ?? env?.PREMIUM_STRICT_NO_FALLBACK
+    ?? "false",
+  );
   const maxChapterAttempts = Math.max(2, getPremiumChapterMaxAttempts(env, 2));
   const chapterRequestKey = String(chapterId);
   const chapterInflightKey = `${reportSessionId}:${chapterId}`;
@@ -24405,7 +24630,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       const errorCode = String(data?.code || "PREMIUM_REPORT_CHAPTER_FAILED");
       const errorMessage = String(data?.message || "챕터 생성 실패");
       const recoverable = isRecoverablePremiumChapterFailure(errorCode, errorMessage, response.status);
-      if (recoverable && !ziweiStrictNoFallback) {
+      if (recoverable && !strictNoFallback) {
         console.warn("[PremiumPDF] LlmChapterGenerationFailed", {
           debugId: requestId,
           serviceType: context.reportType,
@@ -24494,7 +24719,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       similarityThreshold: 0.78,
     });
     if (!chapterQuality.ok) {
-      if (!usedFallback && !ziweiStrictNoFallback) {
+      if (!usedFallback && !strictNoFallback) {
         const localGenerated = buildLocalFallbackChapterFromContext({
           context,
           chapterId,
@@ -24548,14 +24773,14 @@ async function handlePremiumReportChapter(request, env, authInfo) {
     }
 
     if (usedFallback) {
-      if (ziweiStrictNoFallback) {
+      if (strictNoFallback) {
         lastFailure = {
           status: 422,
-          code: "ZIWEI_FALLBACK_FORBIDDEN",
-          message: "자미두수 리포트는 fallback/mocked 텍스트를 허용하지 않습니다.",
+          code: "PREMIUM_FALLBACK_FORBIDDEN",
+          message: "프리미엄 PDF 리포트는 fallback/mocked 텍스트를 허용하지 않습니다.",
           lengthValidation: {
             ok: false,
-            warnings: ["ZIWEI_STRICT_NO_FALLBACK"],
+            warnings: ["PREMIUM_STRICT_NO_FALLBACK"],
           },
         };
         continue;
@@ -24617,7 +24842,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
       if (Array.isArray(envelopeDetails.repeatedAcross) && envelopeDetails.repeatedAcross.length) {
         envelopeMissing.push("repeat:across-chapters");
       }
-      if (!usedFallback && !ziweiStrictNoFallback) {
+      if (!usedFallback && !strictNoFallback) {
         const localGenerated = buildLocalFallbackChapterFromContext({
           context,
           chapterId,
@@ -24693,7 +24918,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   }
 
   if (!successResponse || !successData) {
-    if (ziweiStrictNoFallback) {
+    if (strictNoFallback) {
       return json({
         ok: false,
         requestId,
@@ -24703,8 +24928,8 @@ async function handlePremiumReportChapter(request, env, authInfo) {
         featureType: context.featureType,
         attemptsUsed: maxChapterAttempts,
         maxChapterAttempts,
-        code: String(lastFailure.code || "ZIWEI_CHAPTER_GENERATION_FAILED"),
-        message: String(lastFailure.message || "자미두수 챕터 생성이 실패했습니다. fallback 없이 중단합니다."),
+        code: String(lastFailure.code || "PREMIUM_CHAPTER_GENERATION_FAILED"),
+        message: String(lastFailure.message || "챕터 생성이 실패했습니다. fallback 없이 중단합니다."),
         lengthValidation: lastFailure.lengthValidation || null,
       }, { status: Number(lastFailure.status || 422) });
     }
@@ -26589,11 +26814,126 @@ export const __premiumReportTestUtils = {
   buildPremiumAccessDeniedPayload,
 };
 
+export async function handleAstroPremiumRoutes(request, env) {
+  try {
+    const method = request.method.toUpperCase();
+    const authInfo = await requireAuth(request, env);
+    const path = getRoutePath(request, "/api/astro");
+
+    if (path === "/generate-chapter" || path === "/session" || path === "/generate") {
+      if (method !== "POST") return methodNotAllowed();
+      const body = await readJson(request.clone());
+      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.sessionId, 1, 1, 12);
+      const normalizedBody = {
+        ...(body && typeof body === "object" ? body : {}),
+        chapter,
+        sessionId: chapter,
+        _accessRoute: "/api/astro/generate-chapter",
+      };
+      const passthrough = new Request(request.url, {
+        method: "POST",
+        headers: request.headers,
+        body: JSON.stringify(normalizedBody),
+      });
+      return await ensurePdfNo422(await handleAstroLife(passthrough, env, authInfo));
+    }
+
+    return notFound();
+  } catch (error) {
+    return await ensurePdfNo422(handleRouteError(error));
+  }
+}
+
+export async function handleVedicPremiumRoutes(request, env) {
+  try {
+    const method = request.method.toUpperCase();
+    const authInfo = await requireAuth(request, env);
+    const path = getRoutePath(request, "/api/vedic");
+
+    if (path === "/generate-chapter" || path === "/session" || path === "/generate") {
+      if (method !== "POST") return methodNotAllowed();
+      const body = await readJson(request.clone());
+      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.sessionId, 1, 1, 12);
+      const normalizedBody = {
+        ...(body && typeof body === "object" ? body : {}),
+        chapter,
+        sessionId: chapter,
+        _accessRoute: "/api/vedic/generate-chapter",
+      };
+      const passthrough = new Request(request.url, {
+        method: "POST",
+        headers: request.headers,
+        body: JSON.stringify(normalizedBody),
+      });
+      return await ensurePdfNo422(await handleVedicLife(passthrough, env, authInfo));
+    }
+
+    return notFound();
+  } catch (error) {
+    return await ensurePdfNo422(handleRouteError(error));
+  }
+}
+
+export async function handleSukuyoPremiumRoutes(request, env) {
+  try {
+    const method = request.method.toUpperCase();
+    const authInfo = await requireAuth(request, env);
+    const path = getRoutePath(request, "/api/sukuyo");
+
+    if (path === "/generate-chapter" || path === "/session" || path === "/generate") {
+      if (method !== "POST") return methodNotAllowed();
+      const body = await readJson(request.clone());
+      const modeToken = String(body?.reportType || body?.reportMode || body?.mode || "").trim().toLowerCase();
+      const reportType = modeToken === "compatibility" || modeToken === "couple" || modeToken === "compat"
+        ? "compatibility"
+        : "personal";
+      const totalChapters = Math.max(1, Number(getSukyoPdfChapters(reportType).length || 13));
+      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.sessionId, 1, 1, totalChapters);
+      const normalizedBody = {
+        ...(body && typeof body === "object" ? body : {}),
+        chapter,
+        sessionId: chapter,
+        reportType,
+        reportMode: reportType,
+        mode: reportType,
+        _accessRoute: "/api/sukuyo/generate-chapter",
+      };
+      const passthrough = new Request(request.url, {
+        method: "POST",
+        headers: request.headers,
+        body: JSON.stringify(normalizedBody),
+      });
+      return await ensurePdfNo422(await handleSukuyoLife(passthrough, env, authInfo));
+    }
+
+    return notFound();
+  } catch (error) {
+    return await ensurePdfNo422(handleRouteError(error));
+  }
+}
+
 export async function handleLifebookRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
     const authInfo = await requireAuth(request, env);
     const path = getRoutePath(request, "/api/lifebook");
+    if (path === "/generate-chapter") {
+      if (method !== "POST") return methodNotAllowed();
+      const body = await readJson(request.clone());
+      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.sessionId, 1, 1, 12);
+      const normalizedBody = {
+        ...(body && typeof body === "object" ? body : {}),
+        chapter,
+        sessionId: chapter,
+        _accessRoute: "/api/lifebook/generate-chapter",
+      };
+      const passthrough = new Request(request.url, {
+        method: "POST",
+        headers: request.headers,
+        body: JSON.stringify(normalizedBody),
+      });
+      return await ensurePdfNo422(await handleLifebookSession(passthrough, env, authInfo));
+    }
     if (path === "/session") {
       if (method !== "POST") return methodNotAllowed();
       return await ensurePdfNo422(await handleLifebookSession(request, env, authInfo));
@@ -26649,6 +26989,23 @@ export async function handleLoveSecretRoutes(request, env) {
     const method = request.method.toUpperCase();
     const authInfo = await requireAuth(request, env);
     const path = getRoutePath(request, "/api/love-secret");
+    if (path === "/generate-chapter") {
+      if (method !== "POST") return methodNotAllowed();
+      const body = await readJson(request.clone());
+      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.sessionId, 1, 1, 13);
+      const normalizedBody = {
+        ...(body && typeof body === "object" ? body : {}),
+        chapter,
+        sessionId: chapter,
+        _accessRoute: "/api/love-secret/generate-chapter",
+      };
+      const passthrough = new Request(request.url, {
+        method: "POST",
+        headers: request.headers,
+        body: JSON.stringify(normalizedBody),
+      });
+      return await ensurePdfNo422(await handleLoveSecretSession(passthrough, env, authInfo));
+    }
     if (path === "/session" || path === "/generate") {
       if (method !== "POST") return methodNotAllowed();
       return await ensurePdfNo422(await handleLoveSecretSession(request, env, authInfo));
@@ -26701,6 +27058,23 @@ export async function handleSajuNewYearRoutes(request, env) {
     const authInfo = await requireAuth(request, env);
     const path = getRoutePath(request, "/api/saju-new-year");
     if (path === "/session") return await ensurePdfNo422(await handleSajuNewYearSession(request, env, authInfo));
+    if (path === "/generate-chapter" || path === "/chapter") {
+      const body = await readJson(request.clone());
+      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.chapterId ?? body?.sessionId, 1, 1, 15);
+      const normalizedBody = {
+        ...(body && typeof body === "object" ? body : {}),
+        chapter,
+        chapterId: chapter,
+        sessionId: chapter,
+        _accessRoute: "/api/saju-new-year/generate-chapter",
+      };
+      const passthrough = new Request(request.url, {
+        method: "POST",
+        headers: request.headers,
+        body: JSON.stringify(normalizedBody),
+      });
+      return await ensurePdfNo422(await handleSajuNewYearSession(passthrough, env, authInfo));
+    }
     return notFound();
   } catch (error) {
     return await ensurePdfNo422(handleRouteError(error));
@@ -26712,7 +27086,61 @@ export async function handleZiweiBookRoutes(request, env) {
     if (request.method.toUpperCase() !== "POST") return methodNotAllowed();
     const authInfo = await requireAuth(request, env);
     const path = getRoutePath(request, "/api/ziwei-book");
+    if (path === "/generate-chapter") {
+      const body = await readJson(request.clone());
+      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.sessionId, 1, 1, 15);
+      const normalizedBody = {
+        ...(body && typeof body === "object" ? body : {}),
+        chapter,
+        sessionId: chapter,
+        _accessRoute: "/api/ziwei-book/generate-chapter",
+      };
+      const passthrough = new Request(request.url, {
+        method: "POST",
+        headers: request.headers,
+        body: JSON.stringify(normalizedBody),
+      });
+      return await ensurePdfNo422(await handleZiweiBookSession(passthrough, env, authInfo));
+    }
     if (path === "/session") return await ensurePdfNo422(await handleZiweiBookSession(request, env, authInfo));
+    return notFound();
+  } catch (error) {
+    return await ensurePdfNo422(handleRouteError(error));
+  }
+}
+
+export async function handleZiweiRoutes(request, env) {
+  try {
+    if (request.method.toUpperCase() !== "POST") return methodNotAllowed();
+    const authInfo = await requireAuth(request, env);
+    const path = getRoutePath(request, "/api/ziwei");
+    if (path === "/generate-chapter" || path === "/session") {
+      const body = await readJson(request.clone());
+      const hasZiweiDataText = String(body?.ziweiData || "").trim().length > 0;
+      const hasStructuredPalaces = Array.isArray(body?.ziweiStructured?.palaceStarData)
+        && body.ziweiStructured.palaceStarData.length > 0;
+      if (!hasZiweiDataText && !hasStructuredPalaces) {
+        return json({
+          ok: false,
+          code: "ZIWEI_DATA_REQUIRED",
+          message: "ziweiData 또는 ziweiStructured.palaceStarData가 필요합니다.",
+          missingFields: ["ziweiData", "ziweiStructured.palaceStarData"],
+        }, { status: 400 });
+      }
+      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.sessionId, 1, 1, 15);
+      const normalizedBody = {
+        ...(body && typeof body === "object" ? body : {}),
+        chapter,
+        sessionId: chapter,
+        _accessRoute: "/api/ziwei/generate-chapter",
+      };
+      const passthrough = new Request(request.url, {
+        method: "POST",
+        headers: request.headers,
+        body: JSON.stringify(normalizedBody),
+      });
+      return await ensurePdfNo422(await handleZiweiBookSession(passthrough, env, authInfo));
+    }
     return notFound();
   } catch (error) {
     return await ensurePdfNo422(handleRouteError(error));

@@ -508,7 +508,7 @@
         var _abPremiumToken=_abReadPremiumAccessToken();
         var _abHeaders={'Content-Type':'application/json'};
         if(_abPremiumToken) _abHeaders['x-premium-access-token']=_abPremiumToken;
-        fetch('/api/premium/astro-life', {
+        fetch('/api/astro/generate-chapter', {
           method:'POST', headers:_abHeaders,
           body: JSON.stringify({
             reportId:_abReportId,
@@ -520,7 +520,13 @@
             timezone: loc.tzOffset !== undefined ? loc.tzOffset : 9,
             lat: loc.lat !== undefined ? loc.lat : 37.5665,
             lon: loc.lng !== undefined ? loc.lng : 126.978,
-            chapter: idx+1
+            chapter: idx+1,
+            chapterIndex: idx+1,
+            sessionId: idx+1,
+            strictNoFallback: false,
+            chapterTitle: CHAPTER_TITLES[idx] || ('Chapter ' + (idx + 1)),
+            chapterSubtitle: CHAPTER_SUBTITLES[idx] || '',
+            chapterSpecificSections: (CHAPTER_STRUCTURED_LABELS[idx + 1] || []).slice(0, 7)
           })
         })
         .then(function(res){ return res.ok?res.json():res.json().catch(function(){return{};}).then(function(e){return{ok:false,message:(e&&e.message)||'HTTP '+res.status};}); })
@@ -530,11 +536,12 @@
     }
 
     var _failCount=0;
+    var _chapterRetries=Array(12).fill(0);
     (function generateNext(idx) {
       if (idx>=12) {
         clearInterval(_mysticTimer); _mysticTimer=null; _generating=false;
         var validCount=_chapters.filter(function(c){return typeof c==='string'&&c.trim().length>0&&!/^⚠️/.test(c);}).length;
-        if (validCount<12) { var errEl=_qs('abErrorMsg'); if(errEl) errEl.textContent=validCount===0?'모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.':'챕터 생성이 중단되었습니다 (성공 '+validCount+'/12). 실패 챕터를 확인한 뒤 다시 시도해 주세요.'; _showScreen('abErrorScreen'); return; }
+        if (validCount===0) { var errEl=_qs('abErrorMsg'); if(errEl) errEl.textContent='모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.'; _showScreen('abErrorScreen'); return; }
         _showScreen('abResultScreen');
         _updateTocState(); _renderChapter(1); _bindToc();
         var prof=window.__cdActiveBirthProfile||{};
@@ -547,8 +554,19 @@
       if (chapterMsg) chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';
       _fetchChapter(idx).then(function(data) {
         if (data&&data.ok&&data.text) { _syncChapterMetaFromResponse(idx,data); _chapters[idx]=data.text; _chapterStructured[idx]=(Array.isArray(data.sections)&&data.sections.length)?{sections:data.sections}:(data.chapterJson&&typeof data.chapterJson==='object'?data.chapterJson:null); _setProgress(idx+1); generateNext(idx+1); return; }
-          _chapterStructured=Array(12).fill(null);
-        _failCount++; var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류'; console.warn('[점성술] Chapter '+(idx+1)+' 실패:',msg); clearInterval(_mysticTimer); _mysticTimer=null; _generating=false; var errEl=_qs('abErrorMsg'); if(errEl) errEl.textContent='Chapter '+(idx+1)+' 생성 실패: '+msg+'\n결제/세션 정보와 네트워크 상태를 확인한 뒤 다시 시도해 주세요.'; _showScreen('abErrorScreen');
+        _failCount++;
+        var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류';
+        console.warn('[점성술] Chapter '+(idx+1)+' 실패:',msg);
+        _chapterRetries[idx] = Number(_chapterRetries[idx] || 0) + 1;
+        if (_chapterRetries[idx] < 5) {
+          if (chapterMsg) chapterMsg.textContent = 'Chapter ' + (idx + 1) + ' 재시도 중... (' + _chapterRetries[idx] + '/4)';
+          setTimeout(function(){ generateNext(idx); }, 900);
+          return;
+        }
+        _chapters[idx] = _buildChapterSkeleton(idx, msg);
+        _chapterStructured[idx] = null;
+        _setProgress(idx + 1);
+        generateNext(idx + 1);
       });
     })(0);
   };

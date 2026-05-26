@@ -1490,12 +1490,23 @@ function repairJsonString(text) {
 
 function hasValidZiweiChapterStructure(data) {
   const chapter = toPlainObject(data);
+  const chapterMeta = toPlainObject(chapter.chapterMeta);
   const sections = asArray(chapter.sections)
     .map((row) => toPlainObject(row))
-    .filter((row) => asText(row.heading || row.title) && asText(row.body));
+    .filter((row) => asText(row.heading || row.title) && asText(row.body || row.content));
   const subChapters = asArray(chapter.subChapters)
     .map((row) => toPlainObject(row))
     .filter((row) => asText(row.subTitle || row.title || row.heading) && asText(row.analysisText || row.body));
+  const strictLabels = asArray(chapter.chapterSpecificSections)
+    .map((row) => asText(row))
+    .filter(Boolean);
+  const hasStrictSchema = Boolean(
+    asText(chapterMeta.title)
+    && asText(chapterMeta.subtitle)
+    && strictLabels.length >= 5
+    && sections.length >= 5,
+  );
+  if (hasStrictSchema) return true;
   if (sections.length < 2 && subChapters.length < 2) return false;
   const summary = asText(chapter.summary || chapter.intro);
   const title = asText(chapter.chapterTitle || chapter.title);

@@ -946,7 +946,7 @@
       return new Promise(function (resolve) {
         var _settled = false;
         var _abortMsg = '응답 시간 초과 (45초). 네트워크 상태를 확인해 주세요.';
-        var _endpoints = _buildApiCandidates('/api/lifebook/session');
+        var _endpoints = _buildApiCandidates('/api/lifebook/generate-chapter');
         var _attemptPlan = [];
         var _lastMsg = '';
 
@@ -995,6 +995,12 @@
               requestId: 'lifebook-' + _lbReportId + '-ch' + (idx + 1) + '-a' + _plan.retry,
               sessionId: idx + 1,
               chapter: idx + 1,
+              strictNoFallback: false,
+              chapterTitle: CHAPTER_TITLES[idx] || ('Chapter ' + (idx + 1)),
+              chapterSubtitle: CHAPTER_SUBTITLES[idx] || '',
+              chapterSpecificSections: Array.isArray(CHAPTER_STRUCTURED_LABELS[idx + 1])
+                ? CHAPTER_STRUCTURED_LABELS[idx + 1].slice(0, 8)
+                : [],
               premiumAccessToken: _lbPremiumToken || undefined,
               sajuData: sajuData,
             }),
@@ -1095,9 +1101,8 @@
             msg = (data && data.message) ? data.message : '알 수 없는 오류';
           }
           console.warn('[인생의 책] Chapter ' + (idx + 1) + ' 실패:', msg);
-          _chapterMeta[idx] = { title: CHAPTER_TITLES[idx], subtitle: CHAPTER_SUBTITLES[idx], isSkeleton: true };
-          _chapterStructured[idx] = null;
           _chapters[idx] = _buildChapterSkeleton(idx, msg);
+          _chapterStructured[idx] = null;
         }
         _setProgress(idx + 1);
         generateNext(idx + 1);

@@ -6,10 +6,14 @@ import { handleCelestialHarmonyRoutes } from "./routes/celestial-harmony.js";
 import { handleYoutubeRoutes } from "./routes/youtube.js";
 import { handlePaymentRoutes } from "./routes/payments.js";
 import {
+  handleAstroPremiumRoutes,
   handleLifebookRoutes,
   handleLoveSecretRoutes,
   handlePremiumReportRoutes,
   handlePremiumRoutes,
+  handleSukuyoPremiumRoutes,
+  handleVedicPremiumRoutes,
+  handleZiweiRoutes,
   handleZiweiBookRoutes,
 } from "./routes/premium.js";
 import { handleDreamRoutes } from "./routes/dream.js";
@@ -607,6 +611,10 @@ export default {
         return withCorsHeaders(request, env, await handleZiweiBookRoutes(request, env));
       }
 
+      if (url.pathname === "/api/ziwei" || url.pathname.startsWith("/api/ziwei/")) {
+        return withCorsHeaders(request, env, await handleZiweiRoutes(request, env));
+      }
+
       if (
         url.pathname === "/api/lifebook"
         || url.pathname.startsWith("/api/lifebook/")
@@ -643,6 +651,29 @@ export default {
 
       if (url.pathname === "/api/kasi" || url.pathname.startsWith("/api/kasi/")) {
         return withCorsHeaders(request, env, await handleKasiRoutes(request, env));
+      }
+
+      if (
+        url.pathname === "/api/astro/generate-chapter"
+        || url.pathname === "/api/astro/session"
+        || url.pathname === "/api/astro/generate"
+      ) {
+        return withCorsHeaders(request, env, await handleAstroPremiumRoutes(request, env));
+      }
+
+      if (
+        url.pathname === "/api/vedic/generate-chapter"
+        || url.pathname === "/api/vedic/session"
+        || url.pathname === "/api/vedic/generate"
+      ) {
+        return withCorsHeaders(request, env, await handleVedicPremiumRoutes(request, env));
+      }
+
+      if (
+        url.pathname === "/api/sukuyo"
+        || url.pathname.startsWith("/api/sukuyo/")
+      ) {
+        return withCorsHeaders(request, env, await handleSukuyoPremiumRoutes(request, env));
       }
 
       if (url.pathname === "/api/astro" || url.pathname.startsWith("/api/astro/")) {

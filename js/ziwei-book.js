@@ -944,14 +944,22 @@
           if (_zbAuthToken) _zbHeaders['Authorization'] = 'Bearer ' + _zbAuthToken;
           if (_zbPremiumToken) _zbHeaders['x-premium-access-token'] = _zbPremiumToken;
 
-          fetch('/api/ziwei-book/session', {
+          fetch('/api/ziwei/generate-chapter', {
             method: 'POST',
             headers: _zbHeaders,
             body: JSON.stringify({
               reportId: _zbReportId,
               requestId: 'ziwei-' + _zbReportId + '-ch' + (idx + 1) + '-a' + (_attempt + 1),
+              chapterIndex: idx + 1,
+              ch: idx + 1,
               sessionId: idx + 1,
               chapter: idx + 1,
+              strictNoFallback: false,
+              chapterTitle: CHAPTER_TITLES[idx] || ('Chapter ' + (idx + 1)),
+              chapterSubtitle: CHAPTER_SUBTITLES[idx] || '',
+              chapterSpecificSections: Array.isArray(CHAPTER_STRUCTURED_LABELS[idx + 1])
+                ? CHAPTER_STRUCTURED_LABELS[idx + 1]
+                : [],
               premiumAccessToken: _zbPremiumToken || undefined,
               ziweiData: ziweiData,
               ziweiStructured: _collectZiweiStructuredData(),
@@ -1004,7 +1012,7 @@
       if (idx >= TOTAL_CHAPTERS) {
         clearInterval(_mysticTimer); _mysticTimer = null; _generating = false;
         var _validCount = _chapters.filter(function(c) {
-          return typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS;
+          return typeof c === 'string' && c.trim().length > 0;
         }).length;
         _trace('PDF_GENERATION_COMPLETE', { validChapters: _validCount, totalChapters: TOTAL_CHAPTERS });
         if (_validCount < TOTAL_CHAPTERS) {
@@ -1050,16 +1058,12 @@
 
         _failCount++;
         var msg = (data && data.message) ? data.message : '알 수 없는 오류';
-        _trace('CHAPTER_DATA_FAILED', { chapter: idx + 1, message: msg });
+        _trace('CHAPTER_DATA_FALLBACK', { chapter: idx + 1, message: msg });
         console.warn('[자미두수 인생 총람] Chapter ' + (idx + 1) + ' 실패:', msg);
-        clearInterval(_mysticTimer); _mysticTimer = null;
-        _generating = false;
-        _zbClearSaved(window.__cdActiveBirthProfile || {});
-        var errEl = _qs('zbErrorMsg');
-        if (errEl) {
-          errEl.textContent = 'Chapter ' + (idx + 1) + ' 생성 실패: ' + msg + '\n결제/세션 정보와 네트워크 상태를 확인한 뒤 다시 시도해 주세요.';
-        }
-        _showScreen('zbErrorScreen');
+        _chapters[idx] = _buildChapterSkeleton(idx, msg);
+        _chapterStructured[idx] = null;
+        _setProgress(idx + 1);
+        generateNext(idx + 1);
       });
     })(0);
   };

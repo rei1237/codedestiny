@@ -4,7 +4,7 @@ import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJ
 
 const SIBYL_MIN_TOTAL_CHARS = 20000;
 const SIBYL_MIN_CHAPTER_CHARS = 1900;
-const SIBYL_PREMIUM_MIN_CHAPTER_CHARS = 300;
+const SIBYL_REPORT_MIN_CHAPTER_CHARS = 300;
 const SIBYL_CATEGORY_PLAN = [
   { title: "운명 코드 코어 진단", focus: "일간·월지·지배 오행·주도 십성 기반의 성향 엔진" },
   { title: "강점/약점 매트릭스", focus: "실제 환경에서 강점이 약점으로 뒤집히는 트리거 분석" },
@@ -18,7 +18,7 @@ const SIBYL_CATEGORY_PLAN = [
   { title: "Dominator 90일 실전 플랜", focus: "1~7일, 8~30일, 31~60일, 61~90일 단계별 처방" },
 ];
 
-const SIBYL_PREMIUM_CHAPTERS = [
+const SIBYL_REPORT_CHAPTERS = [
   { key: "coreMatrix", title: "CH.01 시빌라 코어 매트릭스", focus: "입력 사주, 일간, 지배 오행, 부족 오행, 주도 십성, 위험·적성 계수, 전체 진단" },
   { key: "riskAnalysis", title: "CH.02 위험 계수 정밀 분석", focus: "위험 계수 산정 이유, 오행 불균형·충형파해·세운 위험 분해" },
   { key: "aptitudeAnalysis", title: "CH.03 적성 계수 정밀 분석", focus: "타고난 적성, 수익화 가능한 능력, 직업 전략, 성장 루틴" },
@@ -305,7 +305,7 @@ function buildCanonicalChapterText(canonical = {}, chapter = {}, index = 0) {
   ].join("\n\n");
 
   let guard = 0;
-  while (text.length < SIBYL_PREMIUM_MIN_CHAPTER_CHARS && guard < 4) {
+  while (text.length < SIBYL_REPORT_MIN_CHAPTER_CHARS && guard < 4) {
     text += `\n\n${deterministicExpansionBlock({
       dominantEl: sibyl.dominantElement,
       dominantTenStar: sibyl.dominantTenGod,
@@ -319,21 +319,21 @@ function buildCanonicalChapterText(canonical = {}, chapter = {}, index = 0) {
   return normalizeLineBreaks(text);
 }
 
-function mapToPremiumChapters(chapters = [], canonical = {}) {
+function mapToSibylChapters(chapters = [], canonical = {}) {
   const chapterMap = {};
   const chapterList = [];
 
-  for (let i = 0; i < SIBYL_PREMIUM_CHAPTERS.length; i += 1) {
-    const target = SIBYL_PREMIUM_CHAPTERS[i];
+  for (let i = 0; i < SIBYL_REPORT_CHAPTERS.length; i += 1) {
+    const target = SIBYL_REPORT_CHAPTERS[i];
     const aiContent = clean(chapters?.[i]?.content || chapters?.[i]?.text || "");
     const fallback = buildCanonicalChapterText(canonical, target, i);
     let merged = aiContent;
 
-    if (merged.length < SIBYL_PREMIUM_MIN_CHAPTER_CHARS) {
+    if (merged.length < SIBYL_REPORT_MIN_CHAPTER_CHARS) {
       merged = normalizeLineBreaks([merged, fallback].filter(Boolean).join("\n\n"));
     }
 
-    if (merged.length < SIBYL_PREMIUM_MIN_CHAPTER_CHARS) {
+    if (merged.length < SIBYL_REPORT_MIN_CHAPTER_CHARS) {
       merged = buildCanonicalChapterText(canonical, target, i + 10);
     }
 
@@ -348,7 +348,7 @@ function mapToPremiumChapters(chapters = [], canonical = {}) {
   return { chapterMap, chapterList };
 }
 
-export function validateSibylPremiumReport(report = {}) {
+export function validateSibylReport(report = {}) {
   const requiredChapters = [
     "coreMatrix",
     "riskAnalysis",
@@ -363,8 +363,8 @@ export function validateSibylPremiumReport(report = {}) {
   ];
 
   for (const key of requiredChapters) {
-    if (!report[key] || clean(report[key]).length < SIBYL_PREMIUM_MIN_CHAPTER_CHARS) {
-      throw new Error(`Sibyl premium report chapter missing or too short: ${key}`);
+    if (!report[key] || clean(report[key]).length < SIBYL_REPORT_MIN_CHAPTER_CHARS) {
+      throw new Error(`Sibyl report chapter missing or too short: ${key}`);
     }
   }
 
@@ -607,7 +607,7 @@ export async function handleSibylRoutes(request, env = {}) {
     const body = await readJson(request);
     const canonical = normalizeCanonicalSibylData(body);
     const requestId = clean(body?.requestId || body?.paymentContext?.requestId || "").slice(0, 120) || `sibyl_${stableHash(JSON.stringify(body?.pillars || {})).slice(0, 8)}`;
-    const featureKey = clean(body?.featureKey || body?.paymentContext?.featureKey || "premium-sibyl-dominator");
+    const featureKey = clean(body?.featureKey || body?.paymentContext?.featureKey || "sibyl-dominator-report");
     const profileValidation = {
       ok: Array.isArray(canonical?.debug?.missingFields) ? canonical.debug.missingFields.length === 0 : true,
       missingFields: Array.isArray(canonical?.debug?.missingFields) ? canonical.debug.missingFields : [],
@@ -629,17 +629,17 @@ export async function handleSibylRoutes(request, env = {}) {
       rich.source = "fallback";
     }
 
-    const mapped = mapToPremiumChapters(rich.chapters, canonical);
+    const mapped = mapToSibylChapters(rich.chapters, canonical);
 
     try {
-      validateSibylPremiumReport(mapped.chapterMap);
+      validateSibylReport(mapped.chapterMap);
     } catch {
-      const hardFallback = mapToPremiumChapters([], canonical);
-      validateSibylPremiumReport(hardFallback.chapterMap);
+      const hardFallback = mapToSibylChapters([], canonical);
+      validateSibylReport(hardFallback.chapterMap);
       mapped.chapterMap = hardFallback.chapterMap;
       mapped.chapterList = hardFallback.chapterList;
       rich.source = "fallback";
-      rich.warnings = (rich.warnings || []).concat(["premium chapter validation fallback"]);
+      rich.warnings = (rich.warnings || []).concat(["chapter validation fallback"]);
       reportStatus = "fallback-validated";
     }
 
@@ -660,8 +660,8 @@ export async function handleSibylRoutes(request, env = {}) {
       chapterMap: mapped.chapterMap,
       chapters: mapped.chapterList,
       canonical,
-      categoryCount: SIBYL_PREMIUM_CHAPTERS.length,
-      categories: SIBYL_PREMIUM_CHAPTERS.map((item) => item.title),
+      categoryCount: SIBYL_REPORT_CHAPTERS.length,
+      categories: SIBYL_REPORT_CHAPTERS.map((item) => item.title),
       totalChars,
       minTotalChars: Math.min(SIBYL_MIN_TOTAL_CHARS, Math.max(totalChars, 6000)),
     });
@@ -677,6 +677,6 @@ export async function handleSibylRoutes(request, env = {}) {
 
 export const __sibylReportTestUtils = {
   normalizeCanonicalSibylData,
-  mapToPremiumChapters,
-  validateSibylPremiumReport,
+  mapToSibylChapters,
+  validateSibylReport,
 };

@@ -1385,12 +1385,20 @@
       }
 
       setLoadingProgress(chapter, CHAPTER_DEFINITIONS[chapter - 1].title);
+      var chapterMeta = CHAPTER_DEFINITIONS[chapter - 1] || {};
 
-      var response = await premiumAuthJson('/api/premium-report/chapter', {
+      var response = await premiumAuthJson('/api/saju-new-year/generate-chapter', {
         reportSessionId: state.reportSessionId,
         chapterId: chapter,
+        chapter: chapter,
         reportType: SAJU_NEW_YEAR_REPORT_TYPE,
         featureType: SAJU_NEW_YEAR_FEATURE_TYPE,
+        strictNoFallback: false,
+        chapterTitle: String(chapterMeta.title || ('CHAPTER ' + chapter)),
+        chapterSubtitle: String(chapterMeta.subtitle || ''),
+        chapterSpecificSections: Array.isArray(CHAPTER_STRUCTURED_LABELS[chapter])
+          ? CHAPTER_STRUCTURED_LABELS[chapter]
+          : [],
         requestBody: Object.assign({}, state.payload || {}, {
           _premiumStrictPayload: true,
           _premiumStrictValidation: true
