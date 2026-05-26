@@ -11,6 +11,20 @@
 
   var pendingOpenMenu = false;
 
+  var langShort = {
+    'ko': 'KR',
+    'en': 'EN',
+    'ja': 'JP',
+    'zh-CN': 'CN',
+    'zh-TW': 'TW',
+    'fr': 'FR',
+    'es': 'ES',
+    'hi': 'HI',
+    'de': 'DE',
+    'nl': 'NL',
+    'ms': 'MS'
+  };
+
   var langMap = {
     'ko': '🇰🇷 한국어',
     'en': '🇺🇸 English',
@@ -53,14 +67,14 @@
     var style = document.createElement('style');
     style.id = 'cd-gt-brand-override';
     style.textContent = `
-      /* Brand override: Deep Space Violet minimal translate widget */
+      /* Premium Deep-Space language toggle */
       #google_translate_element {
-        --cdgt-bg: linear-gradient(140deg, rgba(24,11,54,.96) 0%, rgba(56,25,112,.92) 54%, rgba(34,53,126,.92) 100%);
-        --cdgt-border: rgba(219, 187, 255, .34);
-        --cdgt-text: #f7f0ff;
-        --cdgt-glow: rgba(151, 92, 255, .45);
-        --cdgt-glow-strong: rgba(190, 120, 255, .64);
-        --cdgt-shadow: 0 12px 30px rgba(9, 6, 26, .52), 0 0 0 1px rgba(228, 204, 255, .08) inset;
+        --cdgt-bg: linear-gradient(138deg, rgba(19, 9, 44, .98) 0%, rgba(46, 20, 98, .95) 52%, rgba(30, 47, 120, .92) 100%);
+        --cdgt-border: rgba(227, 199, 255, .36);
+        --cdgt-text: #f9f2ff;
+        --cdgt-glow: rgba(166, 102, 255, .44);
+        --cdgt-glow-strong: rgba(201, 141, 255, .66);
+        --cdgt-shadow: 0 14px 34px rgba(8, 5, 24, .55), 0 0 0 1px rgba(242, 225, 255, .08) inset;
         isolation: isolate;
       }
 
@@ -68,43 +82,44 @@
         border-radius: 999px !important;
         border: 1px solid var(--cdgt-border) !important;
         background: var(--cdgt-bg) !important;
-        box-shadow: var(--cdgt-shadow), 0 0 24px var(--cdgt-glow) !important;
+        box-shadow: var(--cdgt-shadow), 0 0 26px var(--cdgt-glow) !important;
         backdrop-filter: blur(8px) saturate(1.08) !important;
         -webkit-backdrop-filter: blur(8px) saturate(1.08) !important;
         transition: transform .24s ease, box-shadow .24s ease, border-color .24s ease !important;
+        min-width: 164px !important;
+        overflow: hidden !important;
       }
 
       #google_translate_element .cosmic-wrapper:hover {
-        transform: translateY(-1px) scale(1.045) !important;
-        border-color: rgba(244, 226, 255, .58) !important;
-        box-shadow: 0 16px 36px rgba(10, 8, 30, .56), 0 0 34px var(--cdgt-glow-strong) !important;
+        transform: translateY(-1px) scale(1.04) !important;
+        border-color: rgba(247, 232, 255, .62) !important;
+        box-shadow: 0 18px 40px rgba(9, 7, 28, .58), 0 0 36px var(--cdgt-glow-strong) !important;
       }
 
       #google_translate_element .cosmic-wrapper::before {
         content: '🌐' !important;
-        left: 12px !important;
-        font-size: 15px !important;
-        opacity: .95 !important;
-        filter: drop-shadow(0 0 8px rgba(215, 171, 255, .92)) !important;
+        left: 14px !important;
+        font-size: 16px !important;
+        opacity: .96 !important;
+        filter: drop-shadow(0 0 9px rgba(221, 186, 255, .9)) !important;
       }
 
       #google_translate_element .cosmic-wrapper::after {
-        content: '✦' !important;
-        right: 12px !important;
-        font-size: 11px !important;
-        color: #ffd8ff !important;
-        opacity: .96 !important;
-        text-shadow: 0 0 10px rgba(255, 210, 255, .9) !important;
-        animation: cdGtSparkle 1.9s ease-in-out infinite !important;
+        content: '▾' !important;
+        right: 14px !important;
+        font-size: 12px !important;
+        color: #ffd9ff !important;
+        opacity: .94 !important;
+        text-shadow: 0 0 10px rgba(255, 216, 255, .86) !important;
+        transition: transform .22s ease !important;
       }
 
-      @keyframes cdGtSparkle {
-        0%, 100% { transform: translateY(-50%) scale(1); opacity: .86; }
-        50% { transform: translateY(-50%) scale(1.18); opacity: 1; }
+      #google_translate_element .cosmic-wrapper.cd-gt-open::after {
+        transform: translateY(-50%) rotate(180deg) !important;
       }
 
       #google_translate_element .cosmic-toggle {
-        width: 42px !important;
+        width: 44px !important;
         height: 42px !important;
         left: 0 !important;
         opacity: 0 !important;
@@ -112,9 +127,12 @@
 
       #google_translate_element .cosmic-lang-label {
         color: var(--cdgt-text) !important;
-        font-size: 12px !important;
-        letter-spacing: .12em !important;
-        text-shadow: 0 0 9px rgba(255, 228, 255, .56) !important;
+        font-size: 11px !important;
+        letter-spacing: .08em !important;
+        text-shadow: 0 0 10px rgba(255, 231, 255, .58) !important;
+        text-transform: uppercase !important;
+        font-weight: 800 !important;
+        left: 54% !important;
       }
 
       #google_translate_element .goog-te-combo {
@@ -126,24 +144,24 @@
         border: none !important;
         outline: none !important;
         box-shadow: none !important;
-        width: 116px !important;
-        min-width: 116px !important;
+        width: 164px !important;
+        min-width: 164px !important;
         min-height: 42px !important;
         height: 42px !important;
-        padding: 10px 38px 10px 44px !important;
+        padding: 10px 34px 10px 42px !important;
         color: transparent !important;
         text-shadow: none !important;
         cursor: pointer !important;
       }
 
-      #google_translate_element .goog-te-combo::-ms-expand {
-        display: none !important;
-      }
+      #google_translate_element .goog-te-combo::-ms-expand { display: none !important; }
 
       #google_translate_element .cd-gt-custom-menu {
         background: linear-gradient(160deg, rgba(17,13,44,.97) 0%, rgba(31,17,76,.97) 52%, rgba(19,33,88,.97) 100%) !important;
-        border: 1px solid rgba(216, 188, 255, .28) !important;
-        box-shadow: 0 20px 48px rgba(7, 4, 20, .58), 0 0 26px rgba(160, 102, 255, .22) !important;
+        border: 1px solid rgba(216, 188, 255, .30) !important;
+        box-shadow: 0 20px 48px rgba(7, 4, 20, .58), 0 0 26px rgba(160, 102, 255, .24) !important;
+        min-width: 220px !important;
+        max-width: 260px !important;
       }
 
       #google_translate_element .cd-gt-menu-item {
@@ -161,7 +179,11 @@
         box-shadow: 0 0 15px rgba(151, 92, 255, .24) !important;
       }
 
-      /* Remove all default Google translate chrome and banners */
+      #google_translate_element .cd-gt-menu-item.is-active {
+        background: linear-gradient(135deg, rgba(161, 91, 255, .30), rgba(106, 150, 255, .25)) !important;
+        border-color: rgba(232, 208, 255, .44) !important;
+      }
+
       .goog-logo-link,
       .goog-te-gadget-icon,
       .goog-te-gadget span,
@@ -190,10 +212,16 @@
 
       @media (max-width: 768px) {
         #google_translate_element { top: max(12px, env(safe-area-inset-top)) !important; right: max(12px, env(safe-area-inset-right)) !important; }
-        #google_translate_element .goog-te-combo { width: 110px !important; min-width: 110px !important; }
+        #google_translate_element .goog-te-combo { width: 148px !important; min-width: 148px !important; }
+        #google_translate_element .cosmic-wrapper { min-width: 148px !important; }
       }
     `;
     document.head.appendChild(style);
+  }
+
+  function getLangChipLabel(code) {
+    var shortCode = langShort[code] || (code ? String(code).toUpperCase() : 'KR');
+    return 'LANG · ' + shortCode;
   }
 
   function injectBaseCss() {
@@ -498,7 +526,7 @@
     if (widget.querySelector('.cosmic-lang-label')) return;
     var label = document.createElement('span');
     label.className = 'cosmic-lang-label';
-    label.textContent = 'LANG';
+    label.textContent = 'LANG · KR';
     widget.appendChild(label);
 
     // 초기 로딩 전에도 즉시 클릭 가능한 🌐 버튼을 먼저 구성
@@ -715,7 +743,7 @@
       if (overlay && overlay.parentNode !== wrapper) overlay.parentNode.removeChild(overlay);
       if (!overlay) overlay = document.createElement('div');
       overlay.className = 'cosmic-lang-label';
-      overlay.textContent = 'LANG';
+      overlay.textContent = 'LANG · KR';
       wrapper.appendChild(overlay);
     }
 
@@ -750,6 +778,7 @@
 
     function closeMenu() {
       menu.classList.remove('cd-gt-open');
+      wrapper.classList.remove('cd-gt-open');
       toggle.setAttribute('aria-expanded', 'false');
     }
 
@@ -766,6 +795,7 @@
         btn.setAttribute('translate', 'no');
         btn.dataset.value = code;
         btn.textContent = (opt.textContent || '').trim() || code;
+        if (code === combo.value) btn.classList.add('is-active');
         btn.addEventListener('click', function(ev) {
           var next = ev && ev.currentTarget ? ev.currentTarget.dataset.value : '';
           if (!next) return;
@@ -813,6 +843,7 @@
       menuOpen = true;
       buildMenuItems();
       menu.classList.add('cd-gt-open');
+      wrapper.classList.add('cd-gt-open');
       toggle.setAttribute('aria-expanded', 'true');
       var openedAt = Date.now();
       // 외부 클릭 시 닫기
@@ -870,10 +901,14 @@
     combo.addEventListener('change', function() {
       updateOptions();
       try {
-        if (overlay) overlay.textContent = langMap[combo.value] || (combo.value ? combo.value.toUpperCase() : 'LANG');
+        if (overlay) overlay.textContent = getLangChipLabel(combo.value || 'ko');
       } catch (_) {}
       hideTooltip();
     }, { passive: true });
+
+    try {
+      if (overlay) overlay.textContent = getLangChipLabel(combo.value || 'ko');
+    } catch (_) {}
 
     // 초기 클릭에서 pendingOpenMenu가 켜져있었다면, 콤보 준비 즉시 메뉴 오픈
     if (pendingOpenMenu) {
