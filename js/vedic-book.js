@@ -655,6 +655,19 @@
     }
   }
 
+  function clearVedicResultCache() {
+    try { localStorage.removeItem(VEDIC_RESULT_STORAGE_KEY); } catch (_) {}
+  }
+
+  function resetVedicRuntimeState() {
+    state.reportId = '';
+    state.downloadUrl = '';
+    state.chapters = [];
+    state.generating = false;
+    state.paymentContext = null;
+    state.paidGateKey = '';
+  }
+
   function setVedicMode(mode) {
     state.mode = 'personal';
   }
@@ -1388,19 +1401,9 @@
 
     ensureModeUi();
     updateStartUi();
-    var selectedMode = getSelectedMode();
-    var restored = loadVedicResult(getActiveProfile(), selectedMode);
-    if (restored) {
-      setVedicMode(restored.mode || selectedMode);
-      updateStartUi();
-      state.mode = String(restored.mode || selectedMode || 'personal');
-      state.reportId = String(restored.reportId || '');
-      state.downloadUrl = String(restored.downloadUrl || '');
-      state.chapters = Array.isArray(restored.chapters) ? restored.chapters.slice() : [];
-      renderResultScreen();
-    } else {
-      showOnly(hasProfile() ? 'vdStartScreen' : 'vdNoProfileScreen');
-    }
+    // 기본 동작은 항상 새 세션 시작으로 고정해 이전 결과 잔존을 방지한다.
+    resetVedicRuntimeState();
+    showOnly(hasProfile() ? 'vdStartScreen' : 'vdNoProfileScreen');
     modal.style.display = 'flex';
     modal.style.zIndex = '100120';
     document.body.style.overflow = 'hidden';
@@ -1788,11 +1791,15 @@
   };
 
   window.gotoVedicPremium = function () {
-    try { localStorage.removeItem(VEDIC_RESULT_STORAGE_KEY); } catch (_) {}
-    state.reportId = '';
-    state.downloadUrl = '';
-    state.chapters = [];
+    clearVedicResultCache();
+    resetVedicRuntimeState();
     window.openVedicBookModal();
+  };
+
+  window.resetVedicBookState = function () {
+    clearVedicResultCache();
+    resetVedicRuntimeState();
+    showOnly(hasProfile() ? 'vdStartScreen' : 'vdNoProfileScreen');
   };
 
   document.addEventListener('click', function (e) {

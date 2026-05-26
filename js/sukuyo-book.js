@@ -450,6 +450,27 @@
     return normalized.trim();
   }
 
+  function _invokeLegacySukuyoChapter(idx, profile, partner) {
+    var payload = _buildSukuyoChapterPayload(idx);
+    payload.reportMode = _reportMode;
+    payload.reportType = _reportMode;
+    payload.includeCompatibility = _reportMode === 'compatibility';
+    return _premiumAuthJson('/api/premium/sukuyo-life', payload, {
+      maxAttempts: 2,
+    }).then(function (data) {
+      if (!data || !data.ok) return data || { ok: false, message: '숙요 레거시 생성에 실패했습니다.' };
+      return {
+        ok: true,
+        text: String(data.text || ''),
+        chart: data.chart || null,
+        chapterMeta: data.chapterMeta || null,
+        reportId: String(data.reportId || ''),
+        canonicalSukuyoCompatibility: data.canonicalSukuyoCompatibility || null,
+        canonicalSukuyoNatal: data.canonicalSukuyoNatal || null,
+      };
+    });
+  }
+
   function _syncUserPoints(payload) {
     try {
       var points = Number(payload && (payload.remainingPoints != null ? payload.remainingPoints : (payload.user && payload.user.points)));
@@ -1506,8 +1527,18 @@
           var tid=setTimeout(function(){resolve({ok:false,message:'응답 시간 초과 (120초).'});},120000);
           _ensurePremiumReportSession().then(function(prepared) {
             if (!prepared || !prepared.ok || !_premiumReportSessionId) {
-              clearTimeout(tid);
-              resolve(prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' });
+              _invokeLegacySukuyoChapter(idx, profile, partner).then(function (legacyData) {
+                clearTimeout(tid);
+                if (legacyData && legacyData.ok) {
+                  _logSukuyoBookStage('LEGACY_FALLBACK_CHAPTER_OK', { chapter: idx + 1, mode: _reportMode });
+                  resolve(legacyData);
+                  return;
+                }
+                resolve(prepared || legacyData || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' });
+              }).catch(function () {
+                clearTimeout(tid);
+                resolve(prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' });
+              });
               return;
             }
             _premiumAuthJson('/api/premium-report/chapter', {
@@ -1520,6 +1551,29 @@
             }, {
               maxAttempts: 2,
             }).then(function(data) {
+              var statusCode = Number((data && data.status) || 0);
+              var errorCode = String((data && data.code) || '').toUpperCase();
+              if (!data || !data.ok) {
+                var isServerFailure = statusCode >= 500
+                  || errorCode === 'SERVER_ERROR'
+                  || errorCode === 'PREMIUM_REPORT_ROUTE_FAILED'
+                  || errorCode === 'WORKER_UNHANDLED_EXCEPTION';
+                if (isServerFailure) {
+                  _invokeLegacySukuyoChapter(idx, profile, partner).then(function (legacyData) {
+                    clearTimeout(tid);
+                    if (legacyData && legacyData.ok) {
+                      _logSukuyoBookStage('LEGACY_FALLBACK_CHAPTER_OK', { chapter: idx + 1, mode: _reportMode, code: errorCode || 'SERVER_ERROR' });
+                      resolve(legacyData);
+                      return;
+                    }
+                    resolve(data);
+                  }).catch(function () {
+                    clearTimeout(tid);
+                    resolve(data);
+                  });
+                  return;
+                }
+              }
               clearTimeout(tid);
               resolve(data);
             }).catch(function(err) {
