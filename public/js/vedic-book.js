@@ -65,12 +65,66 @@
     '행성은 강요하지 않습니다. 다만 당신이 놓친 가능성을 비추어줄 뿐.',
   ];
 
+  var CHAPTER_STRUCTURED_LABELS = {
+    1: ['라그나 상승궁 분석', '아트마카라카 해석', '영혼의 목적 파악', '차트 룰러 위치', '삶의 무대 설계', '핵심 성향 도출', '이번 생의 최우선 과제'],
+    2: ['달 나크샤트라 분석', '무의식의 27가지 빛', '정서 반응 패턴', '달빛 기억 코드', '유년기 그림자', '감정 치유 방향'],
+    3: ['현재 마하다샤 분석', '안타르다샤 흐름', '인생 황금기 파악', '시련기 대응 전략', '다음 다샤 예측', '시기별 최적 행동'],
+    4: ['2하우스 재물 구조', '11하우스 소득 흐름', '다나 요가 해석', '부 축적 전략', '번영 방향 설계'],
+    5: ['10하우스 커리어 축', 'D10 직업 운명', '천직 방정식 풀기', '커리어 발전 로드맵', '조직 vs 독립 판단'],
+    6: ['D9 나밤샤 핵심', '영혼의 성숙도', '중년 전환점 분석', '숨겨진 잠재력 발굴', '후반 인생 설계'],
+    7: ['7하우스 관계 패턴', '금성 욕망 코드', '달 감정 안정 조건', '파트너십 구조', '관계 갈등 원인'],
+    8: ['관계 갈등 패턴', '친밀감 유지법', '장기 관계 전략', '정서적 경계 설계', '관계 회복 기술'],
+    9: ['6하우스 건강 취약점', '8하우스 변혁 에너지', '12하우스 정화 영역', '체질 타입 분석', '건강 루틴 설계'],
+    10: ['주요 요가 목록', '라자 요가 해석', '다나 요가 해석', '천부적 재능 발굴', '요가 활성화 전략'],
+    11: ['행성별 우파야', '만트라 처방', '요일 의례 설계', '삶의 과제 해소법', '에너지 정화 루틴'],
+    12: ['차트 전체 총결산', '단 하나의 마스터 해빗', '북극성 인생 선언', '개운 루틴', '최종 행동 지침'],
+  };
+
   var _chapters = Array(12).fill(null);
+  var _chapterStructured = Array(12).fill(null);
   var _chapterMeta = Array(12).fill(null);
   var _chapterErrors = Array(12).fill(null);
   var _generating = false;
   var _currentChapter = 1;
   var _mysticTimer = null;
+  var _premiumPaidUntil = 0;
+
+  function _readPremiumTokenForReport(){
+    var token='';
+    try{ token=String(window.__cdPremiumAccessToken||'').trim(); }catch(_){ token=''; }
+    if(!token){ try{ token=String(sessionStorage.getItem('cd_premium_access_token')||'').trim(); }catch(_){ token=''; } }
+    if(!token){ try{ token=String(localStorage.getItem('cd_premium_access_token')||'').trim(); }catch(_){ token=''; } }
+    return token;
+  }
+
+  function _premiumTokenMatches(reportType){
+    var token=_readPremiumTokenForReport();
+    if(!token||typeof atob!=='function')return false;
+    try{
+      var payload=JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+      var exp=Number(payload&&payload.exp);
+      return String(payload&&payload.reportType||'')===reportType
+        && (!Number.isFinite(exp)||exp*1000>Date.now()+5000);
+    }catch(_){
+      return false;
+    }
+  }
+
+  function _ensurePremiumPaymentThenStart(){
+    if(_premiumTokenMatches('vedicPremium')||Date.now()<_premiumPaidUntil)return true;
+    if(typeof window._cdCoinGatePerUse!=='function'){
+      alert('결제 확인 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+      return false;
+    }
+    window._cdCoinGatePerUse(390,'베다 점성술 프리미엄 PDF 리포트 생성',function(){
+      _premiumPaidUntil=Date.now()+25*60*1000;
+      window.generateVedicBook();
+    },null,{
+      featureKey:'premium_pdf_vedic',
+      requestId:'premium_pdf_vedic-'+Date.now()+'-'+Math.random().toString(36).slice(2,8)
+    });
+    return false;
+  }
 
   function _qs(id){return document.getElementById(id);}
 
@@ -91,6 +145,29 @@
   }
 
   function _escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function _deriveTextFromChapterJson(chapterJson) {
+    if (!chapterJson || !Array.isArray(chapterJson.sections)) return '';
+    return chapterJson.sections.filter(function(r){return r&&String(r.body||r.content||'').trim();}).map(function(r){
+      var b=String(r.body||r.content||'').trim(); var t=String(r.title||r.label||'').trim(); return t?('## '+t+'\n'+b):b;
+    }).join('\n\n');
+  }
+
+  function _renderStructuredChapterBody(chapter, chapterJson) {
+    if (!chapterJson || !Array.isArray(chapterJson.sections) || !chapterJson.sections.length) return '';
+    var sections = chapterJson.sections;
+    var labels = CHAPTER_STRUCTURED_LABELS[Number(chapter)] || [];
+    var out = [];
+    for (var i = 0; i < sections.length; i++) {
+      var row = sections[i] || {};
+      var content = String(row.body || row.content || '').trim();
+      if (!content) continue;
+      var title = String(row.title || row.label || labels[i] || ('핵심 항목 ' + (i + 1)));
+      out.push('<section class="lb-result-article__section"><h4 class="lb-result-article__section-title">' + _escHtml(title) + '</h4><div class="lb-result-article__section-body">' + _md2html(content) + '</div></section>');
+    }
+    if (!out.length) return '';
+    return '<div class="lb-result-article__structured">' + out.join('') + '</div>';
+  }
+
 
   function _getChapterMeta(idx){
     var base=_chapterMeta[idx]||{};
@@ -230,9 +307,12 @@
   function _renderChapter(ch){
     var content=_qs('vdChapterContent');
     if(!content)return;
-    var idx=ch-1,data=_chapters[idx];
-    if(!data){content.innerHTML='<p class="zb-ch-empty">이 챕터가 아직 생성되지 않았습니다.</p>';return;}
-    content.innerHTML='<div class="zb-chapter-wrap"><div class="zb-chapter-header"><span class="zb-chapter-num">Chapter '+ch+'</span><h2 class="zb-chapter-title">'+_escHtml(_getChapterMeta(idx).title)+'</h2><p class="zb-chapter-sub">'+_escHtml(_getChapterMeta(idx).subtitle)+'</p></div><div class="zb-chapter-body">'+_md2html(data)+'</div></div>';
+    var idx=ch-1,data=_chapters[idx],structured=_chapterStructured[idx];
+    if(!data&&!structured){content.innerHTML='<p class="zb-ch-empty">이 챕터가 아직 생성되지 않았습니다.</p>';return;}
+    var meta=_getChapterMeta(idx);
+    var bodyHtml=_renderStructuredChapterBody(ch,structured);
+    if(!bodyHtml&&data)bodyHtml=_md2html(data);
+    content.innerHTML='<div class="zb-chapter-wrap"><div class="zb-chapter-header"><span class="zb-chapter-num">Chapter '+ch+'</span><h2 class="zb-chapter-title">'+_escHtml(meta.title)+'</h2><p class="zb-chapter-sub">'+_escHtml(meta.subtitle)+'</p></div><div class="zb-chapter-body">'+bodyHtml+'</div></div>';
     content.scrollTop=0;
   }
 
@@ -275,6 +355,7 @@
       return;
     }
     _chapters=Array(12).fill(null);
+    _chapterStructured=Array(12).fill(null);
     _chapterMeta=Array(12).fill(null);
     _chapterErrors=Array(12).fill(null);
     _currentChapter=1;
@@ -311,6 +392,7 @@
 
   window.generateVedicBook = function(){
     if(_generating)return;
+    if(!_ensurePremiumPaymentThenStart())return;
     var profile=_getActiveBirthProfile();
     if(!profile){alert('사주/베다 계산을 먼저 완료해 주세요.');return;}
     if(!window.__cdActiveBirthProfile||!window.__cdActiveBirthProfile.birth) window.__cdActiveBirthProfile=profile;
@@ -320,6 +402,7 @@
 
     _generating=true;
     _chapters=Array(12).fill(null);
+    _chapterStructured=Array(12).fill(null);
     _chapterMeta=Array(12).fill(null);
     _chapterErrors=Array(12).fill(null);
     _showScreen('vdLoadingScreen');
@@ -448,6 +531,7 @@
         if(data&&data.ok&&data.text){
           _syncChapterMetaFromResponse(idx,data);
           _chapters[idx]=data.text;
+          _chapterStructured[idx]=(Array.isArray(data.sections)&&data.sections.length)?{sections:data.sections}:(data.chapterJson&&typeof data.chapterJson==='object'?data.chapterJson:null);
           _chapterErrors[idx]=null;
         }
         else{
@@ -456,6 +540,7 @@
           console.warn('[베다] Chapter '+(idx+1)+' 실패:',msg);
           _chapterMeta[idx]={title:CHAPTER_TITLES[idx],subtitle:CHAPTER_SUBTITLES[idx],isSkeleton:false};
           _chapters[idx]=null;
+          _chapterStructured[idx]=null;
           _chapterErrors[idx]=msg;
         }
         _setProgress(idx+1);

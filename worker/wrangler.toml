@@ -21,8 +21,14 @@ MONGO_PING_TIMEOUT_MS = "2500"
 MONGO_IP_FAMILY = "4"
 MONGODB_DB_NAME = "code_destiny"
 GEMINI_MODEL = "gemini-2.5-flash"
+PREMIUM_PDF_API_PAUSE = "false"
+PREMIUM_GEMINI_MODEL = "gemini-2.5-flash"
+PREMIUM_SAJU_NEW_YEAR_GEMINI_MODEL = "gemini-2.5-flash"
 PREMIUM_GEMINI_TIMEOUT_MS = "45000"
 PSYCHO_ANALYSIS_PROVIDER_TIMEOUT_MS = "45000"
+# Vertex AI fallback (when Gemini exhausted): Set via wrangler secret put
+# VERTEX_PROJECT_ID, VERTEX_LOCATION, VERTEX_SA_CLIENT_EMAIL, VERTEX_SA_PRIVATE_KEY
+VERTEX_LOCATION = "us-central1"
 
 # Worker-native route groups:
 # - /api/auth/*

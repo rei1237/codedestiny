@@ -66,11 +66,66 @@
     '만트라는 영혼이 스스로에게 보내는 진동 코드입니다.',
   ];
 
+  var CHAPTER_STRUCTURED_LABELS = {
+    1: ['탄생 숙요 개요', '숙요의 숨겨진 이면', '반복되는 운명 패턴', '재능 지수 분석', '본능적 반응 코드', '핵심 강점', '약점과 그림자', '만트라와 실천법'],
+    2: ['달의 삭망 사이클', '감정 상승기 전략', '감정 하강기 대응', '감정 트리거 포인트', '감정 회복 기술', '정서 스타일 코드', '달 주기 감정 루틴'],
+    3: ['숙요 이미지 코드', '숨겨진 성향 분석', '외부 인식 vs 내면', '이미지 관리법', '브랜딩 전략', '30일 이미지 실행 플랜'],
+    4: ['숙요 재물 코드', '달 상승기 투자 원칙', '지출 패턴 분석', '재물 파괴 패턴 차단', '부 축적 전략', '금전 최적 타이밍'],
+    5: ['조직 내 역할 분석', '협력 시너지 유형', '마찰 포인트 진단', '달빛 해결 전략', '협업 최적화 실천'],
+    6: ['성(成) 관계 분석', '친(親) 관계 분석', '화(和) 관계 분석', '쇠(衰) 관계 분석', '괴(壞) 관계 분석', '살(殺) 관계 분석', '관계 운영 전략'],
+    7: ['쇠괴 에너지 분석', '위기 유형 진단', '파괴적 회전 전략', '혁신 시기 포착', '달빛 행동 원칙', '역경을 성장 자원으로'],
+    8: ['공간 에너지 설계', '환경 심리학 적용', '건강 루틴 구성', '달 주기 생활 설계', '회복 전략'],
+    9: ['감정 연결 스타일', '공감 지능 분석', '유대 강화법', '정서적 경계 설계', '친밀감 전략'],
+    10: ['성사 인연 유형', '해로운 관계 패턴', '귀인 구별법', '에너지 보호 기술', '관계 정리법'],
+    11: ['월령 27주기 맵', '에너지 상승 시기', '에너지 하강 시기', '시기별 행동 전략', '최적 행동 타이밍'],
+    12: ['힘든 인연 패턴 분석', '정화 의식 설계', '관계 회복 전략', '새로운 인연 초대법', '관계 리셋 루틴'],
+    13: ['생애 핵심 미션', '3년 실행 계획', '5년 성장 로드맵', '10년 마스터플랜', '최종 실행 전략'],
+  };
+
   var _chapters = Array(13).fill(null);
+  var _chapterStructured = Array(13).fill(null);
   var _chapterMeta = Array(13).fill(null);
   var _generating = false;
   var _currentChapter = 1;
   var _mysticTimer = null;
+  var _premiumPaidUntil = 0;
+
+  function _readPremiumTokenForReport() {
+    var token = '';
+    try { token = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { token = ''; }
+    if (!token) { try { token = String(sessionStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; } }
+    if (!token) { try { token = String(localStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; } }
+    return token;
+  }
+
+  function _premiumTokenMatches(reportType) {
+    var token = _readPremiumTokenForReport();
+    if (!token || typeof atob !== 'function') return false;
+    try {
+      var payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      var exp = Number(payload && payload.exp);
+      return String(payload && payload.reportType || '') === reportType
+        && (!Number.isFinite(exp) || exp * 1000 > Date.now() + 5000);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function _ensurePremiumPaymentThenStart() {
+    if (_premiumTokenMatches('sookyoPremium') || Date.now() < _premiumPaidUntil) return true;
+    if (typeof window._cdCoinGatePerUse !== 'function') {
+      alert('결제 확인 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+      return false;
+    }
+    window._cdCoinGatePerUse(490, '숙요점 프리미엄 PDF 궁합 리포트 생성', function () {
+      _premiumPaidUntil = Date.now() + 25 * 60 * 1000;
+      window.generateSukuyoBook();
+    }, null, {
+      featureKey: 'premium_pdf_sukyo_compat',
+      requestId: 'premium_pdf_sukyo_compat-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8)
+    });
+    return false;
+  }
 
   function _qs(id) { return document.getElementById(id); }
 
@@ -91,6 +146,29 @@
   }
 
   function _escHtml(s) {
+      function _deriveTextFromChapterJson(chapterJson) {
+        if (!chapterJson || !Array.isArray(chapterJson.sections)) return '';
+        return chapterJson.sections.filter(function(r){return r&&String(r.body||r.content||'').trim();}).map(function(r){
+          var b=String(r.body||r.content||'').trim(); var t=String(r.title||r.label||'').trim(); return t?('## '+t+'\n'+b):b;
+        }).join('\n\n');
+      }
+
+      function _renderStructuredChapterBody(chapter, chapterJson) {
+        if (!chapterJson || !Array.isArray(chapterJson.sections) || !chapterJson.sections.length) return '';
+        var sections = chapterJson.sections;
+        var labels = CHAPTER_STRUCTURED_LABELS[Number(chapter)] || [];
+        var out = [];
+        for (var i = 0; i < sections.length; i++) {
+          var row = sections[i] || {};
+          var content = String(row.body || row.content || '').trim();
+          if (!content) continue;
+          var title = String(row.title || row.label || labels[i] || ('핵심 항목 ' + (i + 1)));
+          out.push('<section class="lb-result-article__section"><h4 class="lb-result-article__section-title">' + _escHtml(title) + '</h4><div class="lb-result-article__section-body">' + _md2html(content) + '</div></section>');
+        }
+        if (!out.length) return '';
+        return '<div class="lb-result-article__structured">' + out.join('') + '</div>';
+      }
+
     return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
@@ -229,9 +307,12 @@
   function _renderChapter(ch){
     var content=_qs('skChapterContent');
     if(!content)return;
-    var idx=ch-1, data=_chapters[idx];
-    if(!data){content.innerHTML='<p class="zb-ch-empty">이 챕터가 아직 생성되지 않았습니다.</p>';return;}
-    content.innerHTML='<div class="zb-chapter-wrap"><div class="zb-chapter-header"><span class="zb-chapter-num">Chapter '+ch+'</span><h2 class="zb-chapter-title">'+_escHtml(_getChapterMeta(idx).title)+'</h2><p class="zb-chapter-sub">'+_escHtml(_getChapterMeta(idx).subtitle)+'</p></div><div class="zb-chapter-body">'+_md2html(data)+'</div></div>';
+    var idx=ch-1, data=_chapters[idx], structured=_chapterStructured[idx];
+    if(!data && !structured){content.innerHTML='<p class="zb-ch-empty">이 챕터가 아직 생성되지 않았습니다.</p>';return;}
+    var meta=_getChapterMeta(idx);
+    var bodyHtml=_renderStructuredChapterBody(ch,structured);
+    if(!bodyHtml&&data)bodyHtml=_md2html(data);
+    content.innerHTML='<div class="zb-chapter-wrap"><div class="zb-chapter-header"><span class="zb-chapter-num">Chapter '+ch+'</span><h2 class="zb-chapter-title">'+_escHtml(meta.title)+'</h2><p class="zb-chapter-sub">'+_escHtml(meta.subtitle)+'</p></div><div class="zb-chapter-body">'+bodyHtml+'</div></div>';
     content.scrollTop=0;
   }
 
@@ -365,6 +446,7 @@
 
   window.generateSukuyoBook = function(){
     if(_generating)return;
+    if(!_ensurePremiumPaymentThenStart())return;
     var profile=_getActiveBirthProfile();
     if(!profile){alert('사주/숙요 계산을 먼저 완료해 주세요.');return;}
     if(!window.__cdActiveBirthProfile||!window.__cdActiveBirthProfile.birth) window.__cdActiveBirthProfile=profile;
@@ -480,8 +562,8 @@
     (function generateNext(idx){
       if(idx>=13){
         clearInterval(_mysticTimer);_mysticTimer=null;_generating=false;
-        var allFailed=_chapters.every(function(c){return !c||/^⚠️/.test(c);});
-        if(allFailed){var errEl=_qs('skErrorMsg');if(errEl)errEl.textContent='모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.';_showScreen('skErrorScreen');return;}
+        var validCount=_chapters.filter(function(c){return typeof c==='string'&&c.trim().length>0&&!/^⚠️/.test(c);}).length;
+        if(validCount<13){var errEl=_qs('skErrorMsg');if(errEl)errEl.textContent=validCount===0?'모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.':'챕터 생성이 중단되었습니다 (성공 '+validCount+'/13). 실패 챕터를 확인한 뒤 다시 시도해 주세요.';_showScreen('skErrorScreen');return;}
         _showScreen('skResultScreen');
         _updateTocState();_renderChapter(1);_bindToc();
         var prof=window.__cdActiveBirthProfile||{};
@@ -493,10 +575,9 @@
       }
       if(chapterMsg)chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';
       _fetchChapter(idx).then(function(data){
-        if(data&&data.ok&&data.text){_syncChapterMetaFromResponse(idx,data);_chapters[idx]=data.text;}
-        else{_failCount++;var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류';console.warn('[숙요] Chapter '+(idx+1)+' 실패:',msg);_chapterMeta[idx]={title:CHAPTER_TITLES[idx],subtitle:CHAPTER_SUBTITLES[idx],isSkeleton:true};_chapters[idx]=_buildChapterSkeleton(idx,msg);}
-        _setProgress(idx+1);
-        generateNext(idx+1);
+        if(data&&data.ok&&data.text){_syncChapterMetaFromResponse(idx,data);_chapters[idx]=data.text;_chapterStructured[idx]=(Array.isArray(data.sections)&&data.sections.length)?{sections:data.sections}:(data.chapterJson&&typeof data.chapterJson==='object'?data.chapterJson:null);_setProgress(idx+1);generateNext(idx+1);return;}
+          _chapterStructured=Array(13).fill(null);
+        _failCount++;var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류';console.warn('[숙요] Chapter '+(idx+1)+' 실패:',msg);clearInterval(_mysticTimer);_mysticTimer=null;_generating=false;var errEl=_qs('skErrorMsg');if(errEl)errEl.textContent='Chapter '+(idx+1)+' 생성 실패: '+msg+'\n결제/세션 정보와 네트워크 상태를 확인한 뒤 다시 시도해 주세요.';_showScreen('skErrorScreen');
       });
     })(0);
   };

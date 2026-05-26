@@ -2,16 +2,19 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from "react";
-import { Gem, Heart, Orbit, Sparkles, Star } from "lucide-react";
 import { fetchBillingBalance, runBillingCoinGate } from "@/app/_lib/billing-client";
 import { readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
 import { useBackNavigation } from "@/app/hooks/useBackNavigation";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
-import CosmicConcertBackground from "./components/CosmicConcertBackground";
+import BiasDestinyHero from "./components/BiasDestinyHero";
+import BiasDestinyInputPanel from "./components/BiasDestinyInputPanel";
+import BiasDestinyMainCard from "./components/BiasDestinyMainCard";
+import BiasDestinyResultTabs from "./components/BiasDestinyResultTabs";
+import BiasDestinyShareCard from "./components/BiasDestinyShareCard";
+import BiasDestinySpotlightBackground from "./components/BiasDestinySpotlightBackground";
+import BiasDestinyStageLoading from "./components/BiasDestinyStageLoading";
+import BiasDestinyStageSummary from "./components/BiasDestinyStageSummary";
 import DestinyBiasCoinModal from "./components/DestinyBiasCoinModal";
-import DestinyBiasDetailSections from "./components/DestinyBiasDetailSections";
-import DestinyBiasLoadingScreen from "./components/DestinyBiasLoadingScreen";
-import DestinyBiasPhotocard from "./components/DestinyBiasPhotocard";
 import DestinyBiasProgress from "./components/DestinyBiasProgress";
 import DestinyBiasActionBar from "./components/DestinyBiasActionBar";
 import FansignEditionBadge from "./components/FansignEditionBadge";
@@ -757,7 +760,7 @@ export default function DestinyBiasClient() {
 
   return (
     <section className={`relative min-h-[100svh] w-screen overflow-x-hidden text-white ${styles.destinyBiasBg}`}>
-      <CosmicConcertBackground isLowSpec={isLowSpec} reduceMotion={Boolean(reduceMotion)} />
+      <BiasDestinySpotlightBackground isLowSpec={isLowSpec} reduceMotion={Boolean(reduceMotion)} />
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
         {Array.from({ length: particleCount }).map((_, index) => (
@@ -801,94 +804,7 @@ export default function DestinyBiasClient() {
         </AnimatePresence>
 
         <div className="space-y-4 md:space-y-5">
-          {uiStep === 0 ? (
-            <motion.section
-              initial={reduceMotion ? false : { opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, ease: "easeOut" }}
-              className="relative overflow-hidden rounded-[30px] border border-purple-300/45 bg-[linear-gradient(145deg,rgba(9,10,28,0.78),rgba(38,14,68,0.58))] p-5 shadow-[0_0_30px_rgba(192,132,252,0.34)] md:p-7"
-            >
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_14%,rgba(236,72,153,.24),transparent_35%),radial-gradient(circle_at_82%_18%,rgba(56,189,248,.2),transparent_36%),radial-gradient(circle_at_50%_90%,rgba(167,139,250,.18),transparent_45%)]" aria-hidden />
-              <div className="relative z-10 grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr_420px]">
-                <article className="rounded-3xl border border-purple-300/45 bg-black/35 p-4 backdrop-blur-md shadow-[0_0_15px_rgba(192,132,252,0.5)]">
-                  <p className="text-[11px] tracking-[0.2em] text-purple-100/80">당신의 운명 속</p>
-                  <p className="mt-1 text-sm font-semibold text-pink-200">✨ 최애를 만나는 순간 ✨</p>
-                  <div className="mt-5 flex items-center justify-center gap-4">
-                    <Heart className="h-6 w-6 fill-pink-400 text-pink-200 drop-shadow-[0_0_12px_rgba(244,114,182,.95)]" />
-                    <Star className="h-7 w-7 fill-violet-300 text-violet-200 drop-shadow-[0_0_14px_rgba(167,139,250,.95)]" />
-                    <Heart className="h-6 w-6 fill-pink-400 text-pink-200 drop-shadow-[0_0_12px_rgba(244,114,182,.95)]" />
-                  </div>
-                  <p className="mt-5 text-[11px] tracking-[0.22em] text-fuchsia-100/90">DESTINY LOADING...</p>
-                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10 ring-1 ring-purple-300/35">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-300 shadow-[0_0_18px_rgba(236,72,153,.8)]"
-                      style={{ width: `${stageLoading}%` }}
-                    />
-                  </div>
-                  <p className="mt-2 text-right text-xs font-semibold text-cyan-200/90">{stageLoading}%</p>
-                </article>
-
-                <article className="relative flex min-h-[260px] items-end justify-center">
-                  <motion.div
-                    className="absolute bottom-20 left-[32%] flex h-36 w-24 items-center justify-center rounded-[1.5rem] border border-pink-300/45 bg-black/35 shadow-[0_0_20px_rgba(236,72,153,.42)]"
-                    animate={reduceMotion ? undefined : { y: [0, -10, 0] }}
-                    transition={reduceMotion ? undefined : { duration: 3.1, repeat: Infinity, ease: "easeInOut" }}
-                  >
-                    <Sparkles className="h-6 w-6 text-pink-100" />
-                  </motion.div>
-                  <motion.div
-                    className="absolute bottom-16 right-[32%] flex h-32 w-20 items-center justify-center rounded-[1.3rem] border border-cyan-300/45 bg-black/35 shadow-[0_0_20px_rgba(34,211,238,.4)]"
-                    animate={reduceMotion ? undefined : { y: [0, -9, 0] }}
-                    transition={reduceMotion ? undefined : { duration: 2.9, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
-                  >
-                    <Sparkles className="h-5 w-5 text-cyan-100" />
-                  </motion.div>
-                  <div className="pointer-events-none absolute bottom-5 left-1/2 h-32 w-[90%] -translate-x-1/2 [perspective:900px]">
-                    <div className="absolute inset-0 rounded-[100%] border border-fuchsia-300/35 bg-gradient-to-r from-fuchsia-500/25 via-purple-500/20 to-cyan-400/25 [transform:rotateX(70deg)] shadow-[0_0_32px_rgba(236,72,153,.45)]" />
-                  </div>
-                </article>
-
-                <article>
-                  <div className="inline-flex items-center gap-2 rounded-full border border-purple-300/45 bg-black/30 px-4 py-2 text-xs tracking-wide text-purple-100">
-                    <Star className="h-4 w-4 fill-yellow-300 text-yellow-200" />
-                    ⭐ 내 안의 운명 ✨ 최애와 연결되는 시간 ⭐
-                  </div>
-                  <h2 className="mt-4 text-5xl font-black leading-none tracking-tight bg-gradient-to-b from-pink-300 via-purple-400 to-indigo-500 bg-clip-text text-transparent drop-shadow-[0_0_26px_rgba(236,72,153,.7)] md:text-6xl">
-                    최애운명
-                  </h2>
-                  <p className="mt-2 text-sm tracking-[0.28em] text-purple-100/90">✦ My Destiny Bias ✦</p>
-                  <div className="mt-5 rounded-3xl border border-purple-400/50 bg-purple-950/45 p-4 backdrop-blur-md">
-                    <p className="text-sm font-semibold text-fuchsia-100">내 사주 에너지가 최애에게 닿는 방식</p>
-                    <div className="mt-4 grid grid-cols-3 divide-x divide-purple-300/20 rounded-2xl border border-white/10 bg-black/25">
-                      {[
-                        { title: "최애 성향 분석", subtitle: "Heart Gem", icon: Gem, gradient: "from-pink-400 via-fuchsia-400 to-violet-400" },
-                        { title: "운명 궁합 매칭", subtitle: "Star Match", icon: Star, gradient: "from-violet-400 via-purple-400 to-indigo-400" },
-                        { title: "에너지 연결 리포트", subtitle: "Orbit Report", icon: Orbit, gradient: "from-cyan-400 via-sky-400 to-indigo-400" },
-                      ].map((feature) => {
-                        const Icon = feature.icon;
-                        return (
-                          <div key={feature.title} className="px-2 py-4 text-center">
-                            <div className={`mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${feature.gradient} shadow-[0_0_20px_rgba(192,132,252,.42)]`}>
-                              <Icon className="h-5 w-5 text-white" />
-                            </div>
-                            <p className="mt-2 text-xs font-semibold text-purple-50">{feature.title}</p>
-                            <p className="mt-1 text-[10px] text-purple-200/70">{feature.subtitle}</p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setUiStep(1)}
-                    className="mt-5 inline-flex items-center rounded-full bg-[linear-gradient(90deg,#ec4899,#8b5cf6,#22d3ee)] px-6 py-3 text-sm font-black text-white shadow-[0_14px_34px_rgba(139,92,246,.4)] transition hover:-translate-y-0.5"
-                  >
-                    Cosmic Stage 입장하기
-                  </button>
-                </article>
-              </div>
-            </motion.section>
-          ) : null}
+          {uiStep === 0 ? <BiasDestinyHero onEnter={() => setUiStep(1)} stageLoading={stageLoading} /> : null}
 
           {uiStep > 0 ? (
             <>
@@ -898,12 +814,12 @@ export default function DestinyBiasClient() {
           ) : null}
 
             {uiStep === 1 ? (
-              <section className={styles.inputPanel}>
-                <p className="text-xs font-semibold tracking-[0.16em] text-[#FFD98A]/90">STEP 01 · MY ENERGY</p>
-                <h2 className="mt-2 text-2xl font-black">내 정보 먼저 넣을게요</h2>
-                <p className="mt-2 text-sm leading-7 text-white/80">이름이랑 생년월일만 있으면 돼요! 내 사주 에너지가 분석의 기반이 돼요 ✨</p>
-
-                <div className="mt-5 grid gap-3 md:grid-cols-2">
+              <BiasDestinyInputPanel
+                stepLabel="STEP 01 · FAN PROFILE CHECK"
+                title="당신의 팬라이트 에너지를 확인할게요"
+                description="이름과 생년월일을 입력하면 무대 입장 전 당신의 사주 에너지 베이스를 먼저 정렬합니다."
+              >
+                <div className="grid gap-3 md:grid-cols-2">
                   <InputField
                     subLabel="NAME / 이름"
                     label="나의 이름/닉네임"
@@ -956,16 +872,16 @@ export default function DestinyBiasClient() {
                 </div>
 
                 <p className="mt-4 text-xs text-white/70">입력 정보는 최애운명 분석 목적의 계산에만 사용됩니다.</p>
-              </section>
+              </BiasDestinyInputPanel>
             ) : null}
 
             {uiStep === 2 ? (
-              <section className={styles.inputPanel}>
-                <p className="text-xs font-semibold tracking-[0.16em] text-cyan-100/85">STEP 02 · BIAS LINK</p>
-                <h2 className="mt-2 text-2xl font-black">최애 에너지 연결하기</h2>
-                <p className="mt-2 text-sm leading-7 text-white/80">최애 이름이랑 생년월일을 넣으면 두 사람의 에너지 궁합을 계산해드려요 ✨</p>
-
-                <div className="mt-5 grid gap-3 md:grid-cols-2">
+              <BiasDestinyInputPanel
+                stepLabel="STEP 02 · BIAS LINK"
+                title="최애 프로필로 스테이지 케미를 연결할게요"
+                description="최애 정보와 무드를 입력하면 나의 사주 에너지와 겹치는 공명 포인트를 스테이지 기준으로 계산합니다."
+              >
+                <div className="grid gap-3 md:grid-cols-2">
                   <InputField
                     subLabel="BIAS NAME / 최애 이름"
                     label="최애 이름"
@@ -1083,18 +999,16 @@ export default function DestinyBiasClient() {
 
                   {biasImageError ? <p className="mt-2 text-xs text-[#FF9AD8]">{biasImageError}</p> : null}
                 </div>
-              </section>
+              </BiasDestinyInputPanel>
             ) : null}
 
             {uiStep === 3 ? (
-              <section className="relative overflow-hidden rounded-[28px] border border-white/15 bg-[linear-gradient(150deg,rgba(8,18,42,0.8),rgba(26,20,68,0.55))] p-5 shadow-[0_20px_54px_rgba(2,6,23,0.42)]">
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_14%,rgba(244,114,182,0.2),transparent_30%),radial-gradient(circle_at_85%_82%,rgba(34,211,238,0.18),transparent_35%)]" aria-hidden />
-                <div className="relative z-10">
-                <p className="text-xs font-semibold tracking-[0.16em] text-cyan-100/85">STEP 03 · MOOD THEME</p>
-                <h2 className="mt-2 text-2xl font-black">나만의 포토카드 무드 고르기</h2>
-                <p className="mt-2 text-sm leading-7 text-white/80">오늘 기분에 맞는 테마를 고르면 포토카드 색감이랑 분위기도 같이 맞춰져요 💜 말 그대로 나만의 진짜 한정판이에요!</p>
-
-                <div className="mt-5 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              <BiasDestinyInputPanel
+                stepLabel="STEP 03 · STAGE THEME"
+                title="콘서트 무대 톤을 선택해 주세요"
+                description="무대의 조명 온도와 오라 색감을 선택합니다. 계산 결과는 동일하고, 표현되는 카드 스타일만 달라집니다."
+              >
+                <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                   {destinyBiasThemeChoices.map((theme) => {
                     const locked = theme.premium && !canUsePremiumTheme;
                     const active = activeThemeKey === theme.key;
@@ -1134,12 +1048,11 @@ export default function DestinyBiasClient() {
                     );
                   })}
                 </div>
-                </div>
-              </section>
+              </BiasDestinyInputPanel>
             ) : null}
 
             {uiStep === 4 ? (
-              <DestinyBiasLoadingScreen
+              <BiasDestinyStageLoading
                 message={destinyBiasLoadingMessages[loadingMessageIndex]}
                 progress={loadingProgress}
               />
@@ -1162,48 +1075,13 @@ export default function DestinyBiasClient() {
                 </div>
               </article>
 
-              <section className="space-y-3">
-                <div className="text-center">
-                  <p className="text-[11px] font-semibold tracking-[0.16em] text-pink-100/85">REPRESENTATIVE PHOTOCARD ✨</p>
-                  <h3 className="mt-1 text-xl font-black text-white">나만의 한정판 포토카드</h3>
-                </div>
-                <DestinyBiasPhotocard vm={resultVm} biasImageUrl={biasImageDataUrl} />
-              </section>
+              <BiasDestinyMainCard vm={resultVm} biasImageUrl={biasImageDataUrl} />
 
-              <section className="space-y-3">
-                <p className="text-[11px] font-semibold tracking-[0.16em] text-cyan-100/85">ENERGY HIGHLIGHTS ✦</p>
-                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                  <article className="rounded-2xl border border-white/15 bg-[linear-gradient(145deg,rgba(7,16,40,0.75),rgba(13,23,56,0.55))] p-3 text-center">
-                    <p className="text-[11px] text-white/70">공명 점수</p>
-                    <p className="mt-1 text-2xl font-black text-white">{resultVm.totalScore}</p>
-                  </article>
-                  <article className="rounded-2xl border border-white/15 bg-[linear-gradient(145deg,rgba(7,16,40,0.75),rgba(13,23,56,0.55))] p-3 text-center">
-                    <p className="text-[11px] text-white/70">에너지 타입</p>
-                    <p className="mt-1 text-base font-black text-white">{resultVm.auraType}</p>
-                    <p className="text-xs text-white/65">{resultVm.auraMaterial}</p>
-                  </article>
-                  <article className="rounded-2xl border border-white/15 bg-[linear-gradient(145deg,rgba(7,16,40,0.75),rgba(13,23,56,0.55))] p-3 text-center">
-                    <p className="text-[11px] text-white/70">관계 무드</p>
-                    <p className="mt-1 text-base font-black text-white">{resultVm.relationMood}</p>
-                    <p className="text-xs text-white/65">{resultVm.pairingAlias}</p>
-                  </article>
-                  <article className="rounded-2xl border border-white/15 bg-[linear-gradient(145deg,rgba(7,16,40,0.75),rgba(13,23,56,0.55))] p-3 text-center">
-                    <p className="text-[11px] text-white/70">시너지 키워드</p>
-                    <div className="mt-2 flex flex-wrap justify-center gap-1">
-                      {resultVm.stageChemistryKeywords.slice(0, 3).map((keyword) => (
-                        <span key={keyword} className="rounded-full border border-cyan-200/25 bg-cyan-300/10 px-2 py-0.5 text-[11px] font-semibold text-cyan-100/90">
-                          #{keyword}
-                        </span>
-                      ))}
-                    </div>
-                  </article>
-                </div>
-              </section>
+              <BiasDestinyResultTabs vm={resultVm} />
 
-              <section className="space-y-3">
-                <p className="text-[11px] font-semibold tracking-[0.16em] text-cyan-100/85">DETAIL REPORT ✦</p>
-                <DestinyBiasDetailSections vm={resultVm} />
-              </section>
+              <BiasDestinyStageSummary vm={resultVm} />
+
+              <BiasDestinyShareCard vm={resultVm} />
 
               <section className="space-y-3">
                 <p className="text-[11px] font-semibold tracking-[0.16em] text-pink-100/85">저장 · 공유 SAVE &amp; SHARE</p>

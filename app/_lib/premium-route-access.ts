@@ -27,6 +27,24 @@ function uniqueStrings(values: unknown[]): string[] {
   ));
 }
 
+function logPremiumAccessDecision(payload: Record<string, unknown>) {
+  const safe = {
+    route: String(payload.route || "").trim() || "unknown",
+    userId: String(payload.userId || "").trim() || "unknown",
+    featureKey: String(payload.featureKey || "").trim() || "unknown",
+    reportType: String(payload.reportType || "").trim() || "unknown",
+    accessSource: String(payload.accessSource || "").trim() || "denied",
+    matchedTransactionId: String(payload.matchedTransactionId || "").trim() || "",
+    entitlementId: String(payload.entitlementId || "").trim() || "",
+    deniedReason: String(payload.deniedReason || "").trim() || "",
+  };
+  if (safe.deniedReason) {
+    console.warn("[PremiumAccessDecision][Next]", safe);
+    return;
+  }
+  console.info("[PremiumAccessDecision][Next]", safe);
+}
+
 function hasCompatibilityPartnerInputs(requestBody: Record<string, unknown> = {}) {
   const partnerYear = Number(requestBody.partnerYear);
   const partnerMonth = Number(requestBody.partnerMonth);
@@ -241,6 +259,67 @@ function extractPaymentLookupTokens(requestBody: Record<string, unknown> = {}) {
   };
 }
 
+function extractAccessBindingHints(requestBody: Record<string, unknown> = {}) {
+  const payment = requestBody.payment && typeof requestBody.payment === "object"
+    ? requestBody.payment as Record<string, unknown>
+    : {};
+  const consume = requestBody.consume && typeof requestBody.consume === "object"
+    ? requestBody.consume as Record<string, unknown>
+    : {};
+  const ctx = requestBody._paymentContext && typeof requestBody._paymentContext === "object"
+    ? requestBody._paymentContext as Record<string, unknown>
+    : {};
+  const profile = requestBody.profile && typeof requestBody.profile === "object"
+    ? requestBody.profile as Record<string, unknown>
+    : {};
+
+  return {
+    route: String(requestBody._accessRoute || "").trim(),
+    profileId: String(
+      requestBody.profileId
+      || requestBody.selectedProfileId
+      || requestBody.profileKey
+      || profile.profileId
+      || profile.id
+      || "",
+    ).trim(),
+    reportId: String(requestBody.reportId || requestBody.reportSessionId || requestBody.generationId || "").trim(),
+    sessionId: String(requestBody.sessionId || requestBody.chapterSessionId || requestBody.generationSessionId || "").trim(),
+    requestId: String(requestBody.requestId || requestBody.sourceRequestId || payment.requestId || consume.requestId || ctx.requestId || "").trim(),
+    transactionId: String(
+      requestBody.transactionId
+      || requestBody.sourceTransactionId
+      || requestBody.paymentId
+      || payment.transactionId
+      || payment.sourceTransactionId
+      || consume.transactionId
+      || ctx.transactionId
+      || "",
+    ).trim(),
+  };
+}
+
+function buildBindingClause(binding: Record<string, string>) {
+  const clauses: Record<string, unknown>[] = [];
+  if (binding.requestId) clauses.push({ "metadata.requestId": binding.requestId });
+  if (binding.transactionId) {
+    clauses.push({ "metadata.sourceTransactionId": binding.transactionId });
+    clauses.push({ "metadata.transactionId": binding.transactionId });
+    clauses.push({ "metadata.paymentId": binding.transactionId });
+    clauses.push({ "metadata.impUid": binding.transactionId });
+    clauses.push({ "metadata.merchantUid": binding.transactionId });
+    clauses.push({ "metadata.orderId": binding.transactionId });
+    clauses.push({ _id: binding.transactionId });
+  }
+  if (binding.profileId) {
+    clauses.push({ "metadata.profileId": binding.profileId });
+    clauses.push({ "metadata.selectedProfileId": binding.profileId });
+  }
+  if (binding.reportId) clauses.push({ "metadata.reportId": binding.reportId });
+  if (binding.sessionId) clauses.push({ "metadata.sessionId": binding.sessionId });
+  return clauses;
+}
+
 async function findRecentDeductionEvidence(userId: string, rule: Rule) {
   const PointHistory = await getPointHistoryModel();
   const createdAtMin = new Date(Date.now() - Number(rule.windowMinutes || 30) * 60 * 1000);
@@ -256,16 +335,10 @@ async function findRecentDeductionEvidence(userId: string, rule: Rule) {
     query.delta = { $lte: -Math.floor(Number(rule.minCost)) };
   }
 
-  if (rule.reason) {
-    const strictEvidence = await PointHistory.findOne({ ...query, reason: rule.reason })
-      .select("_id createdAt delta featureKey reason")
-      .sort({ createdAt: -1 })
-      .lean();
-    if (strictEvidence) return strictEvidence;
-  }
+  if (!rule.reason) return null;
 
-  return PointHistory.findOne(query)
-    .select("_id createdAt delta featureKey reason")
+  return PointHistory.findOne({ ...query, reason: rule.reason })
+    .select("_id createdAt delta featureKey reason metadata")
     .sort({ createdAt: -1 })
     .lean();
 }
@@ -273,7 +346,9 @@ async function findRecentDeductionEvidence(userId: string, rule: Rule) {
 async function findEvidenceByPaymentTokens(userId: string, requestBody: Record<string, unknown>, rules: Rule[]) {
   const PointHistory = await getPointHistoryModel();
   const tokens = extractPaymentLookupTokens(requestBody);
-  if (!tokens.transactionId && !tokens.requestId) return null;
+  const binding = extractAccessBindingHints(requestBody);
+  const bindingClauses = buildBindingClause(binding);
+  if (!tokens.transactionId && !tokens.requestId && !bindingClauses.length) return null;
 
   const featureKeys = uniqueStrings(rules.flatMap((rule) => [rule.featureKey, normalizePaidFeatureKey(rule.featureKey)]));
   const featureQuery = featureKeys.length
@@ -286,9 +361,17 @@ async function findEvidenceByPaymentTokens(userId: string, requestBody: Record<s
         userId,
         kind: "deduct",
         ...featureQuery,
-        $or: [
-          { _id: tokens.transactionId },
-          { "metadata.requestId": tokens.transactionId },
+        $and: [
+          {
+            $or: [
+              { _id: tokens.transactionId },
+              { "metadata.requestId": tokens.transactionId },
+              { "metadata.sourceTransactionId": tokens.transactionId },
+              { "metadata.transactionId": tokens.transactionId },
+              { "metadata.paymentId": tokens.transactionId },
+            ],
+          },
+          ...(bindingClauses.length ? [{ $or: bindingClauses }] : []),
         ],
       })
         .select("_id createdAt delta featureKey reason metadata")
@@ -305,7 +388,10 @@ async function findEvidenceByPaymentTokens(userId: string, requestBody: Record<s
       userId,
       kind: "deduct",
       ...featureQuery,
-      "metadata.requestId": tokens.requestId,
+      $and: [
+        { "metadata.requestId": tokens.requestId },
+        ...(bindingClauses.length ? [{ $or: bindingClauses }] : []),
+      ],
     })
       .select("_id createdAt delta featureKey reason metadata")
       .sort({ createdAt: -1 })
@@ -333,6 +419,13 @@ export async function requirePremiumRouteAccess(userId: string, reportType: stri
   const alternativeRules = buildAlternativePaymentRules(normalizedReportType, requestBody);
 
   if (!normalizedReportType || (!unlockPolicy.length && !alternativeRules.length)) {
+    logPremiumAccessDecision({
+      route: requestBody?._accessRoute,
+      userId,
+      reportType: normalizedReportType,
+      accessSource: "denied",
+      deniedReason: "ACCESS_POLICY_MISSING",
+    });
     return {
       ok: false,
       status: 403,
@@ -345,6 +438,13 @@ export async function requirePremiumRouteAccess(userId: string, reportType: stri
   const User = await getUserModel();
   const user = await User.findById(userId).select("_id unlockedFeatures").lean();
   if (!user?._id) {
+    logPremiumAccessDecision({
+      route: requestBody?._accessRoute,
+      userId,
+      reportType: normalizedReportType,
+      accessSource: "denied",
+      deniedReason: "UNAUTHORIZED",
+    });
     return {
       ok: false,
       status: 401,
@@ -356,20 +456,43 @@ export async function requirePremiumRouteAccess(userId: string, reportType: stri
 
   const unlockSet = new Set(uniqueStrings(Array.isArray(user.unlockedFeatures) ? user.unlockedFeatures : []));
   if (unlockPolicy.some((key) => unlockSet.has(key))) {
-    return { ok: true, accessType: "unlock", reportType: normalizedReportType };
+    logPremiumAccessDecision({
+      route: requestBody?._accessRoute,
+      userId,
+      reportType: normalizedReportType,
+      featureKey: unlockPolicy[0] || "",
+      accessSource: "unlock",
+      entitlementId: unlockPolicy[0] || "",
+    });
+    return { ok: true, accessType: "unlock", reportType: normalizedReportType, entitlementId: unlockPolicy[0] || "" };
   }
 
   const tokenEvidence = await findEvidenceByPaymentTokens(String(user._id), requestBody, alternativeRules);
   if (tokenEvidence) {
-    return { ok: true, accessType: "recent-payment-token-lookup", reportType: normalizedReportType };
+    logPremiumAccessDecision({
+      route: requestBody?._accessRoute,
+      userId,
+      reportType: normalizedReportType,
+      featureKey: String(tokenEvidence?.featureKey || ""),
+      accessSource: "strict-payment-binding",
+      matchedTransactionId: String(tokenEvidence?._id || ""),
+    });
+    return {
+      ok: true,
+      accessType: "strict-payment-binding",
+      reportType: normalizedReportType,
+      matchedTransactionId: String(tokenEvidence?._id || ""),
+      featureKey: String(tokenEvidence?.featureKey || ""),
+    };
   }
 
-  for (const rule of alternativeRules) {
-    const evidence = await findRecentDeductionEvidence(String(user._id), rule);
-    if (evidence) {
-      return { ok: true, accessType: "recent-payment", reportType: normalizedReportType };
-    }
-  }
-
+  logPremiumAccessDecision({
+    route: requestBody?._accessRoute,
+    userId,
+    reportType: normalizedReportType,
+    featureKey: String(alternativeRules?.[0]?.featureKey || ""),
+    accessSource: "denied",
+    deniedReason: "STRICT_PAYMENT_BINDING_NOT_MATCHED",
+  });
   return buildPaymentRequiredResult(normalizedReportType, alternativeRules);
 }

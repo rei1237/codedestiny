@@ -2,17 +2,17 @@
 
 import { useMemo } from "react";
 import type { RefObject } from "react";
-import { getStageScore } from "../lib/stageScore";
 import { getFourPillarStageItems } from "../lib/twelveStages";
 import type { FourPillarStageItem } from "../lib/twelveStages";
-import AnimalShareCard from "./AnimalShareCard";
-import AnimalSummaryCard from "./AnimalSummaryCard";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
-import AnimalCard from "@/components/fortune/animal-twelve/AnimalCard";
-import AnimalResultSections from "@/components/fortune/animal-twelve/AnimalResultSections";
 import AnimalCompatibilityPanel from "@/components/fortune/animal-twelve/AnimalCompatibilityPanel";
-import { ANIMAL_DESTINY_LIST, animalCollection } from "@/components/fortune/animal-twelve/animalTwelveData";
 import type { AnimalDestinyData, AnimalDestinyInput, PartnerResult, SajuEngineResult, TwelveStagePillars } from "../lib/types";
+import { resolveTwelveGrowthAnimalResult } from "../lib/twelveGrowthAnimalResults";
+import TwelveAnimalAdviceCard from "./TwelveAnimalAdviceCard";
+import TwelveAnimalDexGrid from "./TwelveAnimalDexGrid";
+import TwelveAnimalResultCard from "./TwelveAnimalResultCard";
+import TwelveAnimalShareCard from "./TwelveAnimalShareCard";
+import TwelveAnimalTabs from "./TwelveAnimalTabs";
 
 type Props = {
   animal: AnimalDestinyData;
@@ -28,7 +28,6 @@ type Props = {
 };
 
 const PILLAR_ORDER: Array<"year" | "month" | "day" | "hour"> = ["year", "month", "day", "hour"];
-const ANIMAL_EMOJI_BY_STAGE = Object.fromEntries(animalCollection.map((item) => [item.energy, item.emoji]));
 
 // Legacy static-test markers: buildAnimalNarrativeInsights, buildDetailedInterpretation, TAB_LABELS
 // 네 기둥 십이운성 카드 / 오늘의 대표 동물 프로필 / 사주 근거 요약
@@ -52,6 +51,8 @@ export default function AnimalResultScreen({
   onShareCard,
   isExporting,
 }: Props) {
+  const refined = useMemo(() => resolveTwelveGrowthAnimalResult(animal), [animal]);
+
   const pillarItems = useMemo<Record<"year" | "month" | "day" | "hour", FourPillarStageItem>>(() => {
     if (sajuResult) return getFourPillarStageItems(sajuResult);
     return {
@@ -62,16 +63,14 @@ export default function AnimalResultScreen({
     };
   }, [sajuResult, twelveStages]);
 
-  const score = getStageScore(twelveStages.day || twelveStages.primary);
-  const oneLine = animal.short_copy;
   const representativeStage = twelveStages.day || twelveStages.primary || animal.saju_stage;
 
   return (
     <section className="mx-auto w-full max-w-5xl space-y-6 pb-20">
-      <AnimalCard
+      <TwelveAnimalResultCard
         animal={animal}
-        representativeStageLabel={representativeStage}
-        oneLine={oneLine}
+        result={refined}
+        representativeStage={representativeStage}
       />
 
       <div className="rounded-[30px] border border-[#d9ccab] bg-[linear-gradient(165deg,rgba(255,253,246,0.94),rgba(245,250,255,0.88))] p-5 shadow-[0_12px_34px_rgba(25,46,76,0.14)] backdrop-blur-sm sm:p-6">
@@ -92,39 +91,11 @@ export default function AnimalResultScreen({
         </div>
       </div>
 
-      <AnimalSummaryCard
-        animal={animal}
-        primaryStage={representativeStage}
-        pillarLabel="일주 중심"
-        score={score}
-        oneLine={oneLine}
-      />
+      <TwelveAnimalTabs result={refined} />
 
-      <AnimalResultSections animal={animal} />
+      <TwelveAnimalDexGrid currentAnimal={animal} />
 
-      <section className="rounded-[30px] border border-[#d9ccab] bg-white/86 p-5 shadow-[0_16px_36px_rgba(79,53,24,0.13)] sm:p-6">
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <h3 className="text-lg font-black text-[#6b3f1d]">십이운성 12동물 컬렉션</h3>
-          <p className="text-xs font-bold text-[#8a5a2b]">현재 당신의 동물에 강조 표시가 적용됩니다</p>
-        </div>
-        <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-          {ANIMAL_DESTINY_LIST.map((entry) => {
-            const isSelected = entry.id === animal.id;
-            return (
-              <article
-                key={entry.id}
-                className={`rounded-2xl border p-2 text-center transition ${isSelected ? "scale-[1.03] border-[#d88a35] bg-[#fff4de] shadow-[0_10px_22px_rgba(216,138,53,0.24)]" : "border-[#e7d3b3] bg-white/92"}`}
-              >
-                <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full text-2xl ${isSelected ? "bg-[#fde7c5] ring-2 ring-[#d88a35]" : "bg-[#f8f1e2]"}`}>
-                  {ANIMAL_EMOJI_BY_STAGE[entry.saju_stage] || "🐾"}
-                </div>
-                <p className="mt-2 text-xs font-black text-[#6b3f1d]">{entry.animal_ko}</p>
-                <p className="text-[11px] font-semibold text-[#8a5a2b]">{entry.saju_stage}</p>
-              </article>
-            );
-          })}
-        </div>
-      </section>
+      <TwelveAnimalAdviceCard result={refined} />
 
       <AnimalCompatibilityPanel
         animal={animal}
@@ -133,9 +104,9 @@ export default function AnimalResultScreen({
       />
 
       <div className="space-y-4 rounded-[2.5rem] border border-[#d9ccab] bg-white/90 p-6 shadow-[0_20px_46px_rgba(20,42,72,0.14)]">
-        <h3 className="text-xl font-black text-[#203c5d]">십이운성 동물 카드</h3>
-        <div className="overflow-hidden rounded-3xl border-4 border-[#EAD8B1] shadow-inner">
-          <AnimalShareCard ref={shareCardRef} animal={animal} pillars={pillarItems} score={score} oneLine={oneLine} />
+        <h3 className="text-xl font-black text-[#203c5d]">결과 요약 카드</h3>
+        <div className="overflow-hidden rounded-3xl border-2 border-[#c8def0] shadow-inner">
+          <TwelveAnimalShareCard ref={shareCardRef} result={refined} />
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <button

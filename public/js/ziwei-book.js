@@ -22,6 +22,8 @@
     '🌊 10년의 메가 트렌드 — 대한(大限) 분석과 전 생애 파노라마',
     '📅 올해의 마이크로 전술 — 2026 유년(流年)·유월(流月) 로드맵',
     '🌅 인생 설계도 총결산 — 자미두수 거장의 마스터플랜 봉서',
+    '🧭 생애 로드맵 확장 — 장기 전략·전환기 대응 매뉴얼',
+    '🔱 최종 전략 제언 — 명반을 실전에 쓰는 실행 프로토콜',
   ];
 
   var CHAPTER_SUBTITLES = [
@@ -38,6 +40,8 @@
     '현재 대한 완전 해독 — 상승장/하락장 전략 + 전 생애 파노라마 + 황금 대한 지목',
     '2026 소한 완전 해독 — Go/Hold/Retreat 판정 · 분기별·월별 마이크로 전술 로드맵',
     '13챕터 총결산 — 3가지 핵심 비책 · Master Habit · 거장의 천명 봉서(封書)',
+    '생애 타임라인 통합 — 대운·세운·실행 루틴을 한 장에 통합',
+    '최종 전략 제언 — 명반 기반 의사결정 체크리스트와 실행 원칙',
   ];
 
   var LOADING_MSGS = [
@@ -54,7 +58,29 @@
     '대한(大限) 10년 흐름과 전 생애 파노라마를 펼치는 중...',
     '2026 소한(小限) 월별 마이크로 전술을 로드맵으로 구성하는 중...',
     '인생 설계도 총결산 — 거장의 마스터플랜 봉서를 집필하는 중...',
+    '생애 타임라인 통합 전략을 정교화하는 중...',
+    '최종 전략 제언과 실행 프로토콜을 정리하는 중...',
   ];
+
+  var TOTAL_CHAPTERS = CHAPTER_TITLES.length;
+
+  var CHAPTER_STRUCTURED_LABELS = {
+    1: ['명궁 핵심 성향', '주성 배치 해석', '강점 발현 조건', '약점 보완 전략', '실전 적용 포인트'],
+    2: ['신궁 핵심 동력', '내면 욕구 구조', '잠재 무기 발굴', '관계에서의 표현', '성장 루틴'],
+    3: ['복덕궁 정서 구조', '행복 트리거', '스트레스 회복법', '정신 에너지 관리', '감정 안정 습관'],
+    4: ['천이궁 외부운', '사회적 이미지', '환경 변화 대응', '기회 포착 포인트', '리스크 회피법'],
+    5: ['관록궁 커리어 축', '적성 직무군', '성과 확대 전략', '조직 내 포지셔닝', '도약 타이밍'],
+    6: ['재백궁 재물 흐름', '수입 구조 진단', '지출 누수 포인트', '축재 전략', '재정 안정 장치'],
+    7: ['부처궁 관계 패턴', '연애 성향 진단', '갈등 유발 요소', '관계 유지 전략', '인연 타이밍'],
+    8: ['교우궁 네트워크', '귀인 구별법', '협업 최적화', '경계 설정 원칙', '인맥 운영 전략'],
+    9: ['전택궁 공간 운', '주거 에너지', '환경 정비 우선순위', '자산 관점 체크', '생활 루틴 최적화'],
+    10: ['질액궁 건강 신호', '취약 패턴', '회복 루틴', '생활 습관 처방', '장기 관리 포인트'],
+    11: ['대한 흐름 요약', '상승 구간', '주의 구간', '전략 전환 시점', '10년 실행 원칙'],
+    12: ['유년/유월 포인트', '분기별 전략', '월별 체크리스트', '실행 우선순위', '리스크 관리'],
+    13: ['전체 총결산', '핵심 인사이트', '실행 프레임워크', '습관 설계', '장기 로드맵'],
+    14: ['장기 전략 확장', '전환기 대응', '성장 가속 장치', '기반 재정비', '실행 캘린더'],
+    15: ['최종 전략 제언', '의사결정 기준', '실행 프로토콜', '점검 루프', '지속 개선 포인트'],
+  };
 
   var MYSTIC_QUOTES = [
     '자미(紫微)의 빛이 당신의 명반(命盤)에서 깨어나고 있습니다.',
@@ -74,11 +100,50 @@
   ];
 
   /* ─────────────── 상태 ─────────────── */
-  var _chapters = Array(13).fill(null);
-  var _chapterMeta = Array(13).fill(null);
+  var _chapters = Array(TOTAL_CHAPTERS).fill(null);
+  var _chapterStructured = Array(TOTAL_CHAPTERS).fill(null);
+  var _chapterMeta = Array(TOTAL_CHAPTERS).fill(null);
   var _generating = false;
   var _currentChapter = 1;
   var _mysticTimer = null;
+  var _premiumPaidUntil = 0;
+
+  function _readPremiumTokenForReport() {
+    var token = '';
+    try { token = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { token = ''; }
+    if (!token) { try { token = String(sessionStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; } }
+    if (!token) { try { token = String(localStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; } }
+    return token;
+  }
+
+  function _premiumTokenMatches(reportType) {
+    var token = _readPremiumTokenForReport();
+    if (!token || typeof atob !== 'function') return false;
+    try {
+      var payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      var exp = Number(payload && payload.exp);
+      return String(payload && payload.reportType || '') === reportType
+        && (!Number.isFinite(exp) || exp * 1000 > Date.now() + 5000);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function _ensurePremiumPaymentThenStart() {
+    if (_premiumTokenMatches('ziweiPremium') || Date.now() < _premiumPaidUntil) return true;
+    if (typeof window._cdCoinGatePerUse !== 'function') {
+      alert('결제 확인 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+      return false;
+    }
+    window._cdCoinGatePerUse(590, '자미두수 프리미엄 PDF 리포트 생성', function () {
+      _premiumPaidUntil = Date.now() + 25 * 60 * 1000;
+      window.generateZiweiBook();
+    }, null, {
+      featureKey: 'premium_pdf_ziwei',
+      requestId: 'premium_pdf_ziwei-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8)
+    });
+    return false;
+  }
 
   /* ─────────────── 유틸 ─────────────── */
   function _qs(id) { return document.getElementById(id); }
@@ -194,6 +259,33 @@
       }
     }
     return result.join('\n');
+  }
+
+  function _deriveTextFromChapterJson(chapterJson) {
+    if (!chapterJson || !Array.isArray(chapterJson.sections)) return '';
+    return chapterJson.sections
+      .filter(function (row) { return row && String(row.body || row.content || '').trim(); })
+      .map(function (row) {
+        var body = String(row.body || row.content || '').trim();
+        var title = String(row.title || row.label || '').trim();
+        return title ? ('## ' + title + '\n' + body) : body;
+      })
+      .join('\n\n');
+  }
+
+  function _renderStructuredChapterBody(chapter, chapterJson) {
+    if (!chapterJson || !Array.isArray(chapterJson.sections) || !chapterJson.sections.length) return '';
+    var labels = CHAPTER_STRUCTURED_LABELS[Number(chapter)] || [];
+    var out = [];
+    for (var i = 0; i < chapterJson.sections.length; i++) {
+      var row = chapterJson.sections[i] || {};
+      var body = String(row.body || row.content || '').trim();
+      if (!body) continue;
+      var title = String(row.title || row.label || labels[i] || ('핵심 항목 ' + (i + 1)));
+      out.push('<section class="lb-result-article__section"><h4 class="lb-result-article__section-title">' + _escHtml(title) + '</h4><div class="lb-result-article__section-body">' + _md2html(body) + '</div></section>');
+    }
+    if (!out.length) return '';
+    return '<div class="lb-result-article__structured">' + out.join('') + '</div>';
   }
 
   /* ─────────────── 프로필/자미두수 데이터 수집 ─────────────── */
@@ -390,14 +482,14 @@
   }
 
   /* ─────────────── TOC ─────────────── */
-  var ZB_ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII'];
+  var ZB_ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV'];
 
   function _renderToc() {
     var nav = document.getElementById('zbToc');
     if (!nav) return;
     if (nav.querySelector('[data-zb-chapter]')) return; // 이미 렌더됨
     var html = '';
-    for (var i = 1; i <= 13; i++) {
+    for (var i = 1; i <= TOTAL_CHAPTERS; i++) {
       html += '<button type="button" class="lb-toc-item zb-toc-item' + (i === 1 ? ' active' : '') + '" data-zb-chapter="' + i + '">' + ZB_ROMAN[i - 1] + '</button>';
     }
     nav.innerHTML = html;
@@ -425,12 +517,16 @@
     if (!content) return;
     var idx = ch - 1;
     var data = _chapters[idx];
+    var structured = _chapterStructured[idx];
     var meta = _getChapterMeta(idx);
     var sections = meta.sections;
-    if (!data) {
+    if (!data && !structured) {
       content.innerHTML = '<p class="zb-ch-empty">이 챕터가 아직 생성되지 않았습니다.</p>';
       return;
     }
+    var bodyHtml = _renderStructuredChapterBody(ch, structured);
+    if (!bodyHtml && data) bodyHtml = _md2html(data);
+    if (!bodyHtml && structured) bodyHtml = _md2html(_deriveTextFromChapterJson(structured));
     content.innerHTML =
       '<div class="zb-chapter-wrap">' +
       '<div class="zb-chapter-header">' +
@@ -443,7 +539,7 @@
           + '</div>')
         : '') +
       '</div>' +
-      '<div class="zb-chapter-body">' + _md2html(data) + '</div>' +
+      '<div class="zb-chapter-body">' + bodyHtml + '</div>' +
       '</div>';
     content.scrollTop = 0;
   }
@@ -533,14 +629,14 @@
       }
     } catch (_) {}
 
-    // 저장된 결과 복원 시도 — 유효 챕터 10개 이상(각 5000자+, ⚠️ 없음)이어야 복원
+    // 저장된 결과 복원 시도 — 유효 챕터가 전체 챕터 수와 동일할 때만 복원
     var saved = _zbLoadSaved(profile);
     var _savedValidCount = saved && saved.chapters
       ? saved.chapters.filter(function(c) {
           return typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(c.trim());
         }).length
       : 0;
-    if (_savedValidCount >= 10) {
+    if (_savedValidCount >= TOTAL_CHAPTERS) {
       _chapters = saved.chapters;
       _currentChapter = 1;
       _showScreen('zbResultScreen');
@@ -569,8 +665,9 @@
       return;
     }
 
-    _chapters = Array(13).fill(null);
-    _chapterMeta = Array(13).fill(null);
+    _chapters = Array(TOTAL_CHAPTERS).fill(null);
+    _chapterStructured = Array(TOTAL_CHAPTERS).fill(null);
+    _chapterMeta = Array(TOTAL_CHAPTERS).fill(null);
     _currentChapter = 1;
     _showScreen('zbStartScreen');
     modal.style.display = 'flex';
@@ -629,6 +726,7 @@
   /* ─────────────── 생성 로직 ─────────────── */
   window.generateZiweiBook = function () {
     if (_generating) return;
+    if (!_ensurePremiumPaymentThenStart()) return;
     _trace('PDF_GENERATION_START', { phase: 'chapter-generation-requested' });
 
     var profile = _getActiveBirthProfile();
@@ -660,7 +758,8 @@
     }
 
     _generating = true;
-    _chapters = Array(13).fill(null);
+    _chapters = Array(TOTAL_CHAPTERS).fill(null);
+    _chapterStructured = Array(TOTAL_CHAPTERS).fill(null);
     // 사주 분석 화면과 100% 일치하도록 G_PILLARS 등 전역 변수 재계산
     if (typeof window.computeProfileForModal === 'function' && profile && profile.birth) {
       try { window.computeProfileForModal(profile); } catch (_cpE) {}
@@ -734,12 +833,12 @@
       : null;
 
     function _setProgress(done) {
-      var pct = (done / 13) * 100;
+      var pct = (done / TOTAL_CHAPTERS) * 100;
       if (progressBar) progressBar.style.width = pct + '%';
-      if (progressText) progressText.textContent = done + ' / 13 챕터 완성';
-      if (chapterMsg && done < 13) chapterMsg.textContent = LOADING_MSGS[done] || '분석 중...';
-      if (chapterMsg && done >= 13) chapterMsg.textContent = '자미두수 인생 총람이 완성되었습니다 ✦';
-      if (chapterNumEl) chapterNumEl.textContent = done < 13 ? 'Chapter ' + (done + 1) : '✦ 완성 ✦';
+      if (progressText) progressText.textContent = done + ' / ' + TOTAL_CHAPTERS + ' 챕터 완성';
+      if (chapterMsg && done < TOTAL_CHAPTERS) chapterMsg.textContent = LOADING_MSGS[done] || '분석 중...';
+      if (chapterMsg && done >= TOTAL_CHAPTERS) chapterMsg.textContent = '자미두수 인생 총람이 완성되었습니다 ✦';
+      if (chapterNumEl) chapterNumEl.textContent = done < TOTAL_CHAPTERS ? 'Chapter ' + (done + 1) : '✦ 완성 ✦';
       if (chapterMsg) {
         chapterMsg.classList.remove('lb-loading__status--pulse');
         void chapterMsg.offsetWidth;
@@ -753,7 +852,7 @@
       Array.prototype.forEach.call(chDots, function (d) {
         var ch = Number(d.getAttribute('data-zbch'));
         var isDone = ch <= done;
-        var isActive = ch === done + 1 && done < 13;
+        var isActive = ch === done + 1 && done < TOTAL_CHAPTERS;
         var wasDone = d.classList.contains('zb-ch-dot--done') || d.classList.contains('lb-ch-dot--done');
         d.classList.toggle('zb-ch-dot--done', isDone);
         d.classList.toggle('zb-ch-dot--active', isActive);
@@ -902,17 +1001,17 @@
 
     var _failCount = 0;
     (function generateNext(idx) {
-      if (idx >= 13) {
+      if (idx >= TOTAL_CHAPTERS) {
         clearInterval(_mysticTimer); _mysticTimer = null; _generating = false;
         var _validCount = _chapters.filter(function(c) {
-          return typeof c === 'string' && c.trim().length > 0;
+          return typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS;
         }).length;
-        _trace('PDF_GENERATION_COMPLETE', { validChapters: _validCount, totalChapters: 13 });
-        if (_validCount < 10) {
+        _trace('PDF_GENERATION_COMPLETE', { validChapters: _validCount, totalChapters: TOTAL_CHAPTERS });
+        if (_validCount < TOTAL_CHAPTERS) {
           var errEl = _qs('zbErrorMsg');
           if (errEl) errEl.textContent = _validCount === 0
             ? '모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.\n잠시 후 다시 시도해 주세요.'
-            : '챕터 생성이 불완전합니다 (성공 ' + _validCount + '/13). 다시 시도해 주세요.';
+            : '챕터 생성이 중단되었습니다 (성공 ' + _validCount + '/' + TOTAL_CHAPTERS + '). 실패 챕터를 확인한 뒤 다시 시도해 주세요.';
           _zbClearSaved(window.__cdActiveBirthProfile || {});
           _showScreen('zbErrorScreen');
           return;
@@ -937,25 +1036,30 @@
       if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
       _fetchChapter(idx).then(function (data) {
         var _zbText = data && typeof data.text === 'string' ? data.text.trim() : '';
-      if (data && data.ok && _zbText.length >= MIN_CHAPTER_CHARS) {
+        if (data && data.ok && _zbText.length >= MIN_CHAPTER_CHARS) {
           _syncChapterMetaFromResponse(idx, data);
           _chapters[idx] = data.text;
+          _chapterStructured[idx] = (Array.isArray(data.sections) && data.sections.length)
+            ? { sections: data.sections }
+            : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
           _trace('CHAPTER_DATA_RECEIVED', { chapter: idx + 1, length: _zbText.length });
-        } else {
-          _failCount++;
-          var msg = (data && data.message) ? data.message : '알 수 없는 오류';
-          _trace('CHAPTER_DATA_FAILED', { chapter: idx + 1, message: msg });
-          console.warn('[자미두수 인생 총람] Chapter ' + (idx + 1) + ' 실패:', msg);
-          _chapterMeta[idx] = {
-            title: CHAPTER_TITLES[idx] || ('Chapter ' + (idx + 1)),
-            subtitle: CHAPTER_SUBTITLES[idx] || '',
-            sections: _normalizeSections(data && data.chapterSpecificSections),
-            isSkeleton: true,
-          };
-          _chapters[idx] = _buildChapterSkeleton(idx, msg);
+          _setProgress(idx + 1);
+          generateNext(idx + 1);
+          return;
         }
-        _setProgress(idx + 1);
-        generateNext(idx + 1);
+
+        _failCount++;
+        var msg = (data && data.message) ? data.message : '알 수 없는 오류';
+        _trace('CHAPTER_DATA_FAILED', { chapter: idx + 1, message: msg });
+        console.warn('[자미두수 인생 총람] Chapter ' + (idx + 1) + ' 실패:', msg);
+        clearInterval(_mysticTimer); _mysticTimer = null;
+        _generating = false;
+        _zbClearSaved(window.__cdActiveBirthProfile || {});
+        var errEl = _qs('zbErrorMsg');
+        if (errEl) {
+          errEl.textContent = 'Chapter ' + (idx + 1) + ' 생성 실패: ' + msg + '\n결제/세션 정보와 네트워크 상태를 확인한 뒤 다시 시도해 주세요.';
+        }
+        _showScreen('zbErrorScreen');
       });
     })(0);
   };
@@ -1000,7 +1104,7 @@
     var issued = new Date().toLocaleDateString('ko-KR');
 
     var bodyHtml = '';
-      for (var i = 0; i < 13; i++) {
+      for (var i = 0; i < TOTAL_CHAPTERS; i++) {
       if (!_chapters[i]) continue;
       var _meta = _getChapterMeta(i);
       bodyHtml +=
@@ -1109,7 +1213,7 @@
     var chapterHtml =
       '<div class="chapter">' +
       '<div class="chapter-header">' +
-      '<span class="chapter-num">Chapter ' + ch + ' / 13</span>' +
+      '<span class="chapter-num">Chapter ' + ch + ' / ' + TOTAL_CHAPTERS + '</span>' +
       '<h2 class="chapter-title">' + _escHtml(_chapterMetaOne.title) + '</h2>' +
       '<p class="chapter-sub">' + _escHtml(_chapterMetaOne.subtitle) + '</p>' +
       '</div>' +
@@ -1200,8 +1304,9 @@
       if (prof) {
         try { localStorage.removeItem(_zbMakeKey(prof)); } catch(_){}
       }
-      _chapters = Array(13).fill(null);
-      _chapterMeta = Array(13).fill(null);
+      _chapters = Array(TOTAL_CHAPTERS).fill(null);
+      _chapterStructured = Array(TOTAL_CHAPTERS).fill(null);
+      _chapterMeta = Array(TOTAL_CHAPTERS).fill(null);
       _showScreen('zbStartScreen');
       var epBanner = _qs('zbEpilogueBanner');
       if (epBanner) epBanner.style.display = 'none';

@@ -71,14 +71,69 @@
     '하늘이 숨긴 천기(天機)를 펼쳐 당신의 이름으로 기록합니다.',
   ];
 
+  var CHAPTER_STRUCTURED_LABELS = {
+    1: ['원국 핵심 진단', '기둥별 해석', '강점 구조', '주의 신호', '실행 포인트'],
+    2: ['설계도 요약', '기질 분석', '의사결정 성향', '환경 적합도', '개선 전략'],
+    3: ['숨은 재능', '리스크 요인', '돌파 레버', '성장 루틴', '실전 액션'],
+    4: ['대운 흐름', '상승 구간', '주의 구간', '전환 시점', '전략 제안'],
+    5: ['소명 진단', '커리어 방향', '성과 확대', '협업 방식', '도약 타이밍'],
+    6: ['관계 패턴', '갈등 트리거', '경계 설정', '소통 전략', '회복 가이드'],
+    7: ['연애 성향', '결혼 운 포인트', '관계 유지', '위험 신호', '행동 처방'],
+    8: ['재물 구조', '직업 적합성', '수입 전략', '지출 관리', '축적 플랜'],
+    9: ['건강 취약점', '에너지 루틴', '생활 습관', '회복 전략', '예방 포인트'],
+    10: ['신살/운성 해석', '잠재 변수', '심화 인사이트', '주의 요소', '활용 전략'],
+    11: ['연간 핵심 운세', '분기 전략', '월별 체크', '실행 우선순위', '리스크 관리'],
+    12: ['생애 파노라마', '시기별 과제', '장기 플랜', '전환기 대응', '핵심 습관'],
+    13: ['총결산', '핵심 비책', '실행 선언', '점검 루프', '최종 제언'],
+  };
+
   /* ─────────────── 상태 ─────────────── */
   var _chapters = Array(13).fill(null);
+  var _chapterStructured = Array(13).fill(null);
   var _chapterMeta = Array(13).fill(null);
   var _generating = false;
   var _currentChapter = 1;
   var _mysticTimer = null;
   var _activeRequestController = null;
   var _cancelGeneration = false;
+  var _premiumPaidUntil = 0;
+
+  function _readPremiumTokenForReport() {
+    var token = '';
+    try { token = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { token = ''; }
+    if (!token) { try { token = String(sessionStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; } }
+    if (!token) { try { token = String(localStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; } }
+    return token;
+  }
+
+  function _premiumTokenMatches(reportType) {
+    var token = _readPremiumTokenForReport();
+    if (!token || typeof atob !== 'function') return false;
+    try {
+      var payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      var exp = Number(payload && payload.exp);
+      return String(payload && payload.reportType || '') === reportType
+        && (!Number.isFinite(exp) || exp * 1000 > Date.now() + 5000);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function _ensurePremiumPaymentThenStart() {
+    if (_premiumTokenMatches('lifeBook') || Date.now() < _premiumPaidUntil) return true;
+    if (typeof window._cdCoinGatePerUse !== 'function') {
+      alert('결제 확인 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+      return false;
+    }
+    window._cdCoinGatePerUse(500, '인생의 책 생성 (13챕터)', function () {
+      _premiumPaidUntil = Date.now() + 25 * 60 * 1000;
+      window.generateLifeBook();
+    }, null, {
+      featureKey: 'premium_pdf_saju_life_book',
+      requestId: 'premium_pdf_saju_life_book-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8)
+    });
+    return false;
+  }
 
   function _abortActiveRequest() {
     if (_activeRequestController) {
@@ -168,6 +223,33 @@
       }
     }
     return result.join('\n');
+  }
+
+  function _deriveTextFromChapterJson(chapterJson) {
+    if (!chapterJson || !Array.isArray(chapterJson.sections)) return '';
+    return chapterJson.sections
+      .filter(function (row) { return row && String(row.body || row.content || '').trim(); })
+      .map(function (row) {
+        var body = String(row.body || row.content || '').trim();
+        var title = String(row.title || row.label || '').trim();
+        return title ? ('## ' + title + '\n' + body) : body;
+      })
+      .join('\n\n');
+  }
+
+  function _renderStructuredChapterBody(chapter, chapterJson) {
+    if (!chapterJson || !Array.isArray(chapterJson.sections) || !chapterJson.sections.length) return '';
+    var labels = CHAPTER_STRUCTURED_LABELS[Number(chapter)] || [];
+    var out = [];
+    for (var i = 0; i < chapterJson.sections.length; i++) {
+      var row = chapterJson.sections[i] || {};
+      var body = String(row.body || row.content || '').trim();
+      if (!body) continue;
+      var title = String(row.title || row.label || labels[i] || ('핵심 항목 ' + (i + 1)));
+      out.push('<section class="lb-result-article__section"><h4 class="lb-result-article__section-title">' + _escHtml(title) + '</h4><div class="lb-result-article__section-body">' + _md2html(body) + '</div></section>');
+    }
+    if (!out.length) return '';
+    return '<div class="lb-result-article__structured">' + out.join('') + '</div>';
   }
 
   /**
@@ -543,6 +625,7 @@
     }
 
     var profile = _getActiveBirthProfile();
+    if (profile && !_ensurePremiumPaymentThenStart()) return;
     // ★ 프로필 없으면 localStorage 운명 카드(Destiny Profile)에서 복구 시도
     if (!profile) {
       try {
@@ -609,6 +692,7 @@
     }
 
     _chapters = Array(13).fill(null);
+    _chapterStructured = Array(13).fill(null);
     _chapterMeta = Array(13).fill(null);
     _currentChapter = 1;
     _showScreen('lbStartScreen');
@@ -663,10 +747,14 @@
     if (!content) return;
     var idx = ch - 1;
     var data = _chapters[idx];
-    if (!data) {
+    var structured = _chapterStructured[idx];
+    if (!data && !structured) {
       content.innerHTML = '<p class="lb-ch-empty">이 챕터가 아직 생성되지 않았습니다.</p>';
       return;
     }
+    var bodyHtml = _renderStructuredChapterBody(ch, structured);
+    if (!bodyHtml && data) bodyHtml = _md2html(data);
+    if (!bodyHtml && structured) bodyHtml = _md2html(_deriveTextFromChapterJson(structured));
     var html =
       '<div class="lb-chapter-wrap">' +
       '<div class="lb-chapter-header">' +
@@ -674,7 +762,7 @@
       '<h2 class="lb-chapter-title">' + _escHtml(_getChapterMeta(idx).title) + '</h2>' +
       '<p class="lb-chapter-sub">' + _escHtml(_getChapterMeta(idx).subtitle) + '</p>' +
       '</div>' +
-      '<div class="lb-chapter-body">' + _md2html(data) + '</div>' +
+      '<div class="lb-chapter-body">' + bodyHtml + '</div>' +
       '</div>';
     content.innerHTML = html;
     content.scrollTop = 0;
@@ -764,6 +852,7 @@
     _generating = true;
     _cancelGeneration = false;
     _chapters = Array(13).fill(null);
+    _chapterStructured = Array(13).fill(null);
     // 사주 분석 화면과 100% 일치하도록 G_PILLARS 등 전역 변수 재계산
     if (typeof window.computeProfileForModal === 'function' && profile && profile.birth) {
       try { window.computeProfileForModal(profile); } catch (_cpE) {}
@@ -994,6 +1083,9 @@
         if (data && data.ok && _text.length >= 500) {
           _syncChapterMetaFromResponse(idx, data);
           _chapters[idx] = data.text;
+          _chapterStructured[idx] = (Array.isArray(data.sections) && data.sections.length)
+            ? { sections: data.sections }
+            : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
         } else {
           _failCount++;
           var msg;
@@ -1004,6 +1096,7 @@
           }
           console.warn('[인생의 책] Chapter ' + (idx + 1) + ' 실패:', msg);
           _chapterMeta[idx] = { title: CHAPTER_TITLES[idx], subtitle: CHAPTER_SUBTITLES[idx], isSkeleton: true };
+          _chapterStructured[idx] = null;
           _chapters[idx] = _buildChapterSkeleton(idx, msg);
         }
         _setProgress(idx + 1);
@@ -1155,12 +1248,13 @@
         // 코인 게이트: 버튼 비활성화로 중복 클릭 방지 후 진행
         btn.disabled = true;
         window._cdCoinGatePerUse(_lbCoinCost, '인생의 책 생성 (13챕터)', function () {
+          _premiumPaidUntil = Date.now() + 25 * 60 * 1000;
           btn.disabled = false;
           window.generateLifeBook();
         }, function () {
           // 취소 또는 오류 시 버튼 복원
           btn.disabled = false;
-        });
+        }, { featureKey: 'premium_pdf_saju_life_book' });
       } else {
         // 결제 확인 모듈 미로드 — 결제 없이 생성 불가
         window.alert('결제 확인 모듈이 아직 준비되지 않았습니다.\n잠시 후 새로고침한 뒤 다시 시도해 주세요.');

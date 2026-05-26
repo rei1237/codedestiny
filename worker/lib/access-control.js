@@ -21,6 +21,24 @@ function uniqueStrings(values) {
   ));
 }
 
+function logPremiumAccessDecision(payload = {}) {
+  const safe = {
+    route: String(payload.route || "").trim() || "unknown",
+    userId: String(payload.userId || "").trim() || "unknown",
+    featureKey: String(payload.featureKey || "").trim() || "unknown",
+    reportType: String(payload.reportType || "").trim() || "unknown",
+    accessSource: String(payload.accessSource || "").trim() || "denied",
+    matchedTransactionId: String(payload.matchedTransactionId || "").trim() || "",
+    entitlementId: String(payload.entitlementId || "").trim() || "",
+    deniedReason: String(payload.deniedReason || "").trim() || "",
+  };
+  if (safe.deniedReason) {
+    console.warn("[PremiumAccessDecision]", safe);
+    return;
+  }
+  console.info("[PremiumAccessDecision]", safe);
+}
+
 function hasCompatibilityPartnerInputs(requestBody = {}) {
   const partnerYear = Number(requestBody?.partnerYear);
   const partnerMonth = Number(requestBody?.partnerMonth);
@@ -306,19 +324,13 @@ async function findRecentDeductionEvidence(userId, rule) {
   }
 
   const strictReason = String(rule?.reason || "").trim();
-  if (strictReason) {
-    const strictEvidence = await PointHistory.findOne({
-      ...baseQuery,
-      reason: strictReason,
-    })
-      .select("_id createdAt delta featureKey reason")
-      .sort({ createdAt: -1 })
-      .lean();
-    if (strictEvidence) return strictEvidence;
-  }
+  if (!strictReason) return null;
 
-  return PointHistory.findOne(baseQuery)
-    .select("_id createdAt delta featureKey reason")
+  return PointHistory.findOne({
+    ...baseQuery,
+    reason: strictReason,
+  })
+    .select("_id createdAt delta featureKey reason metadata")
     .sort({ createdAt: -1 })
     .lean();
 }
@@ -390,9 +402,149 @@ function extractPaymentLookupTokens(requestBody = {}) {
   };
 }
 
+function extractAccessBindingHints(requestBody = {}) {
+  const source = requestBody && typeof requestBody === "object" ? requestBody : {};
+  const payment = source.payment && typeof source.payment === "object" ? source.payment : {};
+  const consume = source.consume && typeof source.consume === "object" ? source.consume : {};
+  const ctx = source._paymentContext && typeof source._paymentContext === "object" ? source._paymentContext : {};
+  const profile = source.profile && typeof source.profile === "object" ? source.profile : {};
+
+  return {
+    route: String(source._accessRoute || "").trim(),
+    profileId: String(
+      source.profileId
+      || source.selectedProfileId
+      || source.profileKey
+      || profile.profileId
+      || profile.id
+      || "",
+    ).trim(),
+    reportId: String(source.reportId || source.reportSessionId || source.generationId || "").trim(),
+    sessionId: String(source.sessionId || source.chapterSessionId || source.generationSessionId || "").trim(),
+    requestId: String(source.requestId || source.sourceRequestId || payment.requestId || consume.requestId || ctx.requestId || "").trim(),
+    transactionId: String(
+      source.transactionId
+      || source.sourceTransactionId
+      || source.paymentId
+      || payment.transactionId
+      || payment.sourceTransactionId
+      || consume.transactionId
+      || ctx.transactionId
+      || "",
+    ).trim(),
+  };
+}
+
+function buildBindingClause(binding = {}) {
+  const clauses = [];
+  if (binding.requestId) clauses.push({ "metadata.requestId": binding.requestId });
+  if (binding.transactionId) {
+    clauses.push({ "metadata.sourceTransactionId": binding.transactionId });
+    clauses.push({ "metadata.transactionId": binding.transactionId });
+    clauses.push({ "metadata.paymentId": binding.transactionId });
+    clauses.push({ "metadata.impUid": binding.transactionId });
+    clauses.push({ "metadata.merchantUid": binding.transactionId });
+    clauses.push({ "metadata.orderId": binding.transactionId });
+    try {
+      clauses.push({ _id: binding.transactionId });
+    } catch (_) {
+      // ignore malformed ids
+    }
+  }
+  if (binding.profileId) {
+    clauses.push({ "metadata.profileId": binding.profileId });
+    clauses.push({ "metadata.selectedProfileId": binding.profileId });
+  }
+  if (binding.reportId) clauses.push({ "metadata.reportId": binding.reportId });
+  if (binding.sessionId) clauses.push({ "metadata.sessionId": binding.sessionId });
+  return clauses;
+}
+
+function paymentEvidenceMatchesRule(evidence = {}, rule = {}) {
+  const rawFeatureKey = String(evidence?.featureKey || "").trim();
+  const rawRuleKey = String(rule?.featureKey || "").trim();
+  const featureKeys = uniqueStrings([rawRuleKey, normalizePaidFeatureKey(rawRuleKey)]);
+  const evidenceKeys = uniqueStrings([rawFeatureKey, normalizePaidFeatureKey(rawFeatureKey)]);
+  const featureMatches = featureKeys.length === 0 || evidenceKeys.some((key) => featureKeys.includes(key));
+  if (!featureMatches) return false;
+
+  const minCost = Number(rule?.minCost || 0);
+  const chargedCoins = Number(evidence?.chargedCoins || evidence?.cost || Math.abs(Number(evidence?.delta || 0)));
+  if (minCost > 0 && (!Number.isFinite(chargedCoins) || chargedCoins < minCost)) return false;
+
+  const strictReason = String(rule?.reason || "").trim();
+  const evidenceReason = String(evidence?.reason || "").trim();
+  if (strictReason && evidenceReason && strictReason !== evidenceReason) return false;
+
+  return true;
+}
+
+function premiumTokenMatchesCurrentAccessRules(tokenPayload = {}, alternativeRules = [], requiredRules = []) {
+  const rules = uniqueStrings([]).length
+    ? []
+    : [...(Array.isArray(requiredRules) ? requiredRules : []), ...(Array.isArray(alternativeRules) ? alternativeRules : [])];
+  if (!rules.length) return true;
+
+  const evidence = {
+    featureKey: tokenPayload?.featureKey,
+    reason: tokenPayload?.reason,
+    chargedCoins: Number(tokenPayload?.chargedCoins || 0),
+    delta: -Math.abs(Number(tokenPayload?.chargedCoins || 0)),
+  };
+
+  return rules.some((rule) => paymentEvidenceMatchesRule(evidence, rule));
+}
+
+async function findLoveSecretBasePlusCompatibilityEvidence(userId, requestBody = {}) {
+  const modeToken = normalizeModeToken(requestBody);
+  const isCouple = modeToken.includes("couple") || modeToken.includes("compat");
+  if (!isCouple) return null;
+
+  const baseRules = [
+    {
+      featureKey: "premium_pdf_saju_love_secret",
+      reason: "사주 프리미엄 연애운 리포트 생성",
+      minCost: 300,
+      windowMinutes: 120,
+    },
+    {
+      featureKey: "premium-love-secret-solo",
+      reason: "사주 프리미엄 연애운 리포트 생성",
+      minCost: 300,
+      windowMinutes: 120,
+    },
+  ];
+  const addonRules = [
+    {
+      featureKey: "coin-gate-per-use",
+      reason: "연애 비책 궁합 분석",
+      minCost: 100,
+      windowMinutes: 120,
+    },
+  ];
+
+  let baseEvidence = null;
+  for (let i = 0; i < baseRules.length; i += 1) {
+    baseEvidence = await findRecentDeductionEvidence(userId, baseRules[i]);
+    if (baseEvidence) break;
+  }
+  if (!baseEvidence) return null;
+
+  let addonEvidence = null;
+  for (let i = 0; i < addonRules.length; i += 1) {
+    addonEvidence = await findRecentDeductionEvidence(userId, addonRules[i]);
+    if (addonEvidence) break;
+  }
+  if (!addonEvidence) return null;
+
+  return { baseEvidence, addonEvidence };
+}
+
 async function findEvidenceByPaymentTokens(userId, requestBody = {}, rules = []) {
   const tokens = extractPaymentLookupTokens(requestBody);
-  if (!tokens.transactionId && !tokens.requestId && !tokens.receiptId && !tokens.orderId) return null;
+  const binding = extractAccessBindingHints(requestBody);
+  const bindingClauses = buildBindingClause(binding);
+  if (!tokens.transactionId && !tokens.requestId && !tokens.receiptId && !tokens.orderId && !bindingClauses.length) return null;
 
   const featureKeys = uniqueStrings(
     (Array.isArray(rules) ? rules : []).flatMap((rule) => {
@@ -412,7 +564,9 @@ async function findEvidenceByPaymentTokens(userId, requestBody = {}, rules = [])
         userId,
         kind: "deduct",
         ...featureQuery,
-        $or: [
+        $and: [
+          {
+            $or: [
           { _id: tokens.transactionId },
           { "metadata.requestId": tokens.transactionId },
           { "metadata.sourceTransactionId": tokens.transactionId },
@@ -420,6 +574,9 @@ async function findEvidenceByPaymentTokens(userId, requestBody = {}, rules = [])
           { "metadata.paymentId": tokens.transactionId },
           { "metadata.impUid": tokens.transactionId },
           { "metadata.merchantUid": tokens.transactionId },
+            ],
+          },
+          ...(bindingClauses.length ? [{ $or: bindingClauses }] : []),
         ],
       })
         .select("_id createdAt delta featureKey reason metadata")
@@ -436,7 +593,10 @@ async function findEvidenceByPaymentTokens(userId, requestBody = {}, rules = [])
       userId,
       kind: "deduct",
       ...featureQuery,
-      "metadata.requestId": tokens.requestId,
+      $and: [
+        { "metadata.requestId": tokens.requestId },
+        ...(bindingClauses.length ? [{ $or: bindingClauses }] : []),
+      ],
     })
       .select("_id createdAt delta featureKey reason metadata")
       .sort({ createdAt: -1 })
@@ -449,9 +609,14 @@ async function findEvidenceByPaymentTokens(userId, requestBody = {}, rules = [])
       userId,
       kind: "deduct",
       ...featureQuery,
-      $or: [
-        { "metadata.receiptId": tokens.receiptId },
-        { "metadata.receipt": tokens.receiptId },
+      $and: [
+        {
+          $or: [
+            { "metadata.receiptId": tokens.receiptId },
+            { "metadata.receipt": tokens.receiptId },
+          ],
+        },
+        ...(bindingClauses.length ? [{ $or: bindingClauses }] : []),
       ],
     })
       .select("_id createdAt delta featureKey reason metadata")
@@ -465,9 +630,14 @@ async function findEvidenceByPaymentTokens(userId, requestBody = {}, rules = [])
       userId,
       kind: "deduct",
       ...featureQuery,
-      $or: [
-        { "metadata.orderId": tokens.orderId },
-        { "metadata.merchantUid": tokens.orderId },
+      $and: [
+        {
+          $or: [
+            { "metadata.orderId": tokens.orderId },
+            { "metadata.merchantUid": tokens.orderId },
+          ],
+        },
+        ...(bindingClauses.length ? [{ $or: bindingClauses }] : []),
       ],
     })
       .select("_id createdAt delta featureKey reason metadata")
@@ -519,7 +689,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       userId: String(userId || ""),
       reportType: normalizedReportType,
     });
-    if (tokenCheck.ok) {
+    if (tokenCheck.ok && premiumTokenMatchesCurrentAccessRules(tokenCheck.payload, alternativeRules, requiredRules)) {
       return {
         ok: true,
         accessType: "signed-payment-token",
@@ -529,6 +699,13 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
   }
 
   if (!normalizedReportType || (!unlockPolicy.length && !alternativeRules.length && !requiredRules.length)) {
+    logPremiumAccessDecision({
+      route: requestBody?._accessRoute,
+      userId,
+      reportType: normalizedReportType,
+      accessSource: "denied",
+      deniedReason: "ACCESS_POLICY_MISSING",
+    });
     return {
       ok: false,
       status: 403,
@@ -545,6 +722,13 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     .lean();
 
   if (!user?._id) {
+    logPremiumAccessDecision({
+      route: requestBody?._accessRoute,
+      userId,
+      reportType: normalizedReportType,
+      accessSource: "denied",
+      deniedReason: "UNAUTHORIZED",
+    });
     return {
       ok: false,
       status: 401,
@@ -559,64 +743,65 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
 
   if (requiredRules.length) {
     for (let i = 0; i < requiredRules.length; i += 1) {
-      const evidence = await findRecentDeductionEvidence(user._id, requiredRules[i]);
+      const evidence = await findEvidenceByPaymentTokens(user._id, requestBody, [requiredRules[i]]);
       if (!evidence) {
+        logPremiumAccessDecision({
+          route: requestBody?._accessRoute,
+          userId,
+          reportType: normalizedReportType,
+          featureKey: String(requiredRules[i]?.featureKey || ""),
+          accessSource: "denied",
+          deniedReason: "REQUIRED_PAYMENT_BINDING_NOT_MATCHED",
+        });
         return buildPaymentRequiredResult(normalizedReportType, requiredRules);
       }
     }
   }
 
   if (hasUnlock) {
+    logPremiumAccessDecision({
+      route: requestBody?._accessRoute,
+      userId,
+      reportType: normalizedReportType,
+      featureKey: unlockPolicy[0] || "",
+      accessSource: "unlock",
+      entitlementId: unlockPolicy[0] || "",
+    });
     return {
       ok: true,
       accessType: "unlock",
       reportType: normalizedReportType,
+      entitlementId: unlockPolicy[0] || "",
     };
   }
 
   const tokenEvidence = await findEvidenceByPaymentTokens(user._id, requestBody, alternativeRules);
   if (tokenEvidence) {
+    logPremiumAccessDecision({
+      route: requestBody?._accessRoute,
+      userId,
+      reportType: normalizedReportType,
+      featureKey: String(tokenEvidence?.featureKey || ""),
+      accessSource: "strict-payment-binding",
+      matchedTransactionId: String(tokenEvidence?._id || ""),
+    });
     return {
       ok: true,
-      accessType: "recent-payment-token-lookup",
+      accessType: "strict-payment-binding",
       reportType: normalizedReportType,
+      matchedTransactionId: String(tokenEvidence?._id || ""),
+      featureKey: String(tokenEvidence?.featureKey || ""),
     };
   }
 
-  for (let i = 0; i < alternativeRules.length; i += 1) {
-    const evidence = await findRecentDeductionEvidence(user._id, alternativeRules[i]);
-    if (evidence) {
-      return {
-        ok: true,
-        accessType: "recent-payment",
-        reportType: normalizedReportType,
-      };
-    }
-  }
-
-  if (alternativeRules.length > 0) {
-    await new Promise((resolve) => setTimeout(resolve, 700));
-    const delayedTokenEvidence = await findEvidenceByPaymentTokens(user._id, requestBody, alternativeRules);
-    if (delayedTokenEvidence) {
-      return {
-        ok: true,
-        accessType: "recent-payment-delayed-token-lookup",
-        reportType: normalizedReportType,
-      };
-    }
-
-    for (let i = 0; i < alternativeRules.length; i += 1) {
-      const delayedEvidence = await findRecentDeductionEvidence(user._id, alternativeRules[i]);
-      if (delayedEvidence) {
-        return {
-          ok: true,
-          accessType: "recent-payment-delayed-lookup",
-          reportType: normalizedReportType,
-        };
-      }
-    }
-  }
-
+  logPremiumAccessDecision({
+    route: requestBody?._accessRoute,
+    userId,
+    reportType: normalizedReportType,
+    featureKey: String(alternativeRules?.[0]?.featureKey || ""),
+    accessSource: "denied",
+    deniedReason: "STRICT_PAYMENT_BINDING_NOT_MATCHED",
+  });
   return buildPaymentRequiredResult(normalizedReportType, alternativeRules.length ? alternativeRules : unlockPolicy);
 }
 

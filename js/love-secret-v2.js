@@ -66,7 +66,22 @@
     '일주(日柱)가 합(合)을 이루는 순간<br>운명은 조용히 미소 짓습니다',
   ];
 
+  var CHAPTER_STRUCTURED_LABELS = {
+    1: ['연애 자아 진단', '핵심 성향', '강점 포인트', '주의 신호', '실행 제안'],
+    2: ['매력 코드', '끌림 포인트', '관계 유도 전략', '금기 요소', '활용 팁'],
+    3: ['궁합 핵심', '장점 시너지', '갈등 포인트', '조율 전략', '장기 전망'],
+    4: ['밀당 패턴', '상대 심리', '대화 전술', '타이밍 운영', '주의사항'],
+    5: ['시기 운세', '기회 구간', '보류 구간', '실행 우선순위', '월별 체크'],
+    6: ['리스크 탐지', '충돌 요인', '회피 전략', '복구 루틴', '관계 방어선'],
+    7: ['감각 궁합', '에너지 합', '친밀도 관리', '균형 포인트', '개선 처방'],
+    8: ['현대 연애 전략', '채널별 접근', '메시지 설계', '경계 설정', '실전 시나리오'],
+    9: ['결혼 타이밍', '배우자 조건', '정착 전략', '현실 체크', '의사결정 기준'],
+    10: ['개운 처방', '행동 루틴', '환경 조정', '관계 증폭법', '지속 전략'],
+    11: ['속궁합 총평', '조후/십성 해석', '심화 리스크', '보완 가이드', '최종 제언'],
+  };
+
   var _chapters = Array(11).fill(null);
+  var _chapterStructured = Array(11).fill(null);
   var _chapterMeta = Array(11).fill(null);
   var _generating = false;
   var _quoteTimer = null;
@@ -74,6 +89,47 @@
   var _quoteIdx = 0;
   var _activeRequestController = null;
   var _cancelGeneration = false;
+  var _premiumPaidUntil = 0;
+  var _compatAddonPaidUntil = 0;
+
+  function _readPremiumTokenForReport() {
+    var token = '';
+    try { token = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { token = ''; }
+    if (!token) { try { token = String(sessionStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; } }
+    if (!token) { try { token = String(localStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; } }
+    return token;
+  }
+
+  function _premiumTokenMatches(reportType, minCoins) {
+    var token = _readPremiumTokenForReport();
+    if (!token || typeof atob !== 'function') return false;
+    try {
+      var payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      var exp = Number(payload && payload.exp);
+      var paid = Number(payload && payload.chargedCoins || 0);
+      return String(payload && payload.reportType || '') === reportType
+        && (!Number.isFinite(exp) || exp * 1000 > Date.now() + 5000)
+        && (!Number.isFinite(Number(minCoins)) || paid >= Number(minCoins));
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function _ensureBasePaymentThenStart() {
+    if (_premiumTokenMatches('loveSecret', 300) || Date.now() < _premiumPaidUntil) return true;
+    if (typeof window._cdCoinGatePerUse !== 'function') {
+      alert('결제 확인 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+      return false;
+    }
+    window._cdCoinGatePerUse(300, '사주 프리미엄 연애운 리포트 생성', function () {
+      _premiumPaidUntil = Date.now() + 25 * 60 * 1000;
+      window.generateLoveSecret();
+    }, null, {
+      featureKey: 'premium_pdf_saju_love_secret',
+      requestId: 'premium_pdf_saju_love_secret-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8)
+    });
+    return false;
+  }
 
   function _abortActiveRequest() {
     if (_activeRequestController) {
@@ -230,6 +286,33 @@
       }
     }
     return result.join('\n');
+  }
+
+  function _deriveTextFromChapterJson(chapterJson) {
+    if (!chapterJson || !Array.isArray(chapterJson.sections)) return '';
+    return chapterJson.sections
+      .filter(function (row) { return row && String(row.body || row.content || '').trim(); })
+      .map(function (row) {
+        var body = String(row.body || row.content || '').trim();
+        var title = String(row.title || row.label || '').trim();
+        return title ? ('## ' + title + '\n' + body) : body;
+      })
+      .join('\n\n');
+  }
+
+  function _renderStructuredChapterBody(chapter, chapterJson) {
+    if (!chapterJson || !Array.isArray(chapterJson.sections) || !chapterJson.sections.length) return '';
+    var labels = CHAPTER_STRUCTURED_LABELS[Number(chapter)] || [];
+    var out = [];
+    for (var i = 0; i < chapterJson.sections.length; i++) {
+      var row = chapterJson.sections[i] || {};
+      var body = String(row.body || row.content || '').trim();
+      if (!body) continue;
+      var title = String(row.title || row.label || labels[i] || ('핵심 항목 ' + (i + 1)));
+      out.push('<section class="lb-result-article__section"><h4 class="lb-result-article__section-title">' + _escHtml(title) + '</h4><div class="lb-result-article__section-body">' + _md2html(body) + '</div></section>');
+    }
+    if (!out.length) return '';
+    return '<div class="lb-result-article__structured">' + out.join('') + '</div>';
   }
 
   function _collectSajuData() {
@@ -678,6 +761,7 @@
       return;
     }
     _chapters = Array(11).fill(null);
+    _chapterStructured = Array(11).fill(null);
     _chapterMeta = Array(11).fill(null);
     _showScreen('lsStartScreen');
     modal.style.display = 'flex';
@@ -722,10 +806,14 @@
     if (!content) return;
     var idx = ch - 1;
     var data = _chapters[idx];
-    if (!data) {
+    var structured = _chapterStructured[idx];
+    if (!data && !structured) {
       content.innerHTML = '<p class="ls-ch-empty">이 챕터가 아직 생성되지 않았습니다.</p>';
       return;
     }
+    var bodyHtml = _renderStructuredChapterBody(ch, structured);
+    if (!bodyHtml && data) bodyHtml = _md2html(data);
+    if (!bodyHtml && structured) bodyHtml = _md2html(_deriveTextFromChapterJson(structured));
     content.innerHTML =
       '<div class="ls-chapter-wrap">' +
       '<div class="ls-chapter-header">' +
@@ -733,7 +821,7 @@
       '<h2 class="ls-chapter-title">' + _escHtml(_getChapterMeta(idx).title) + '</h2>' +
       '<p class="ls-chapter-sub">' + _escHtml(_getChapterMeta(idx).subtitle) + '</p>' +
       '</div>' +
-      '<div class="ls-chapter-body">' + _md2html(data) + '</div>' +
+      '<div class="ls-chapter-body">' + bodyHtml + '</div>' +
       '</div>';
     content.scrollTop = 0;
   }
@@ -763,6 +851,7 @@
       } catch (_glsDpE) {}
     }
     var hasData = !!(window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth && window.__cdActiveBirthProfile.birth.year);
+    if (hasData && !_ensureBasePaymentThenStart()) return;
     if (!hasData) { alert('사주 계산을 먼저 완료해 주세요.'); return; }
     // 사주 분석 화면과 100% 일치하도록 G_PILLARS 등 전역 변수 재계산
     if (typeof window.computeProfileForModal === 'function' && window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth) {
@@ -770,6 +859,7 @@
     }
     _cachedSajuData = _collectSajuData();
     _chapters = Array(11).fill(null);
+    _chapterStructured = Array(11).fill(null);
     _chapterMeta = Array(11).fill(null);
     _showScreen('lsPartnerScreen');
     _bindPartnerScreen();
@@ -807,7 +897,10 @@
     }
 
     if (typeof window._cdCoinGatePerUse === 'function') {
-      window._cdCoinGatePerUse(100, '연애 비책 궁합 분석', _startWithPartnerData, _restorePartnerStartBtn);
+      window._cdCoinGatePerUse(100, '연애 비책 궁합 분석', function () {
+        _compatAddonPaidUntil = Date.now() + 25 * 60 * 1000;
+        _startWithPartnerData();
+      }, _restorePartnerStartBtn);
       return;
     }
 
@@ -972,9 +1065,13 @@
           if (data && data.ok && data.text) {
             _syncChapterMetaFromResponse(idx, data);
             _chapters[idx] = data.text;
+            _chapterStructured[idx] = (Array.isArray(data.sections) && data.sections.length)
+              ? { sections: data.sections }
+              : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
           } else {
             var msg = (data && data.message) ? data.message : '알 수 없는 오류';
             _chapterMeta[idx] = { title: CHAPTER_TITLES[idx], subtitle: CHAPTER_SUBTITLES[idx], isSkeleton: true };
+            _chapterStructured[idx] = null;
             _chapters[idx] = _buildChapterSkeleton(idx, msg);
           }
           _setProgress(idx + 1);
@@ -982,6 +1079,7 @@
         })
         .catch(function (err) {
           _chapterMeta[idx] = { title: CHAPTER_TITLES[idx], subtitle: CHAPTER_SUBTITLES[idx], isSkeleton: true };
+          _chapterStructured[idx] = null;
           _chapters[idx] = _buildChapterSkeleton(idx, String(err && err.message ? err.message : err));
           _setProgress(idx + 1);
           generateNext(idx + 1);

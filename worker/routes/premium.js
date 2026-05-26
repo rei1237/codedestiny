@@ -22575,10 +22575,35 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
   };
   const strictValidationRequested = strictPayloadMode || strictValidationMode || explicitStrictValidation;
   const ownerUserId = String(authInfo?.userId || "").trim();
+  const requestId = String(
+    strictBody.requestId
+    || strictBody.generationId
+    || `ziwei:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+  ).trim().slice(0, 120);
+  const generationId = String(strictBody.generationId || requestId).trim().slice(0, 120);
   const prepareOnly = asBool(strictBody.prepareOnly);
   if (!prepareOnly && !chapterRequestProvided(strictBody)) {
     return json({ ok: false, message: "sessionId 또는 chapter 값을 포함해 챕터별로만 생성할 수 있습니다." }, { status: 400 });
   }
+
+  const tokenFromBody = String(strictBody.premiumAccessToken || "").trim();
+  const tokenFromCookie = String(cookieValue(request, "cd_premium_access") || "").trim();
+  const tokenFromHeader = String(request.headers.get("x-premium-access-token") || "").trim();
+  const premiumAccessToken = tokenFromBody || tokenFromCookie || tokenFromHeader;
+  const accessRequestBody = premiumAccessToken
+    ? { ...strictBody, requestId, generationId, _accessRoute: "/api/ziwei-book/session", premiumAccessToken }
+    : { ...strictBody, requestId, generationId, _accessRoute: "/api/ziwei-book/session" };
+  const access = await requirePremiumReportAccess(env, ownerUserId, "ziweiPremium", accessRequestBody);
+  if (!access.ok) {
+    const denied = buildPremiumAccessDeniedPayload(access, {
+      stage: "ziwei-session-access-check",
+      reportType: "ziweiPremium",
+      featureType: "ziwei",
+      requestId,
+    });
+    return json(denied.payload, { status: denied.status });
+  }
+
   const input = normalizeBody(strictBody);
   const ziweiTotalChapters = Array.isArray(ZIWEI_PDF_CHAPTERS_V2) && ZIWEI_PDF_CHAPTERS_V2.length
     ? ZIWEI_PDF_CHAPTERS_V2.length
@@ -22593,13 +22618,6 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
     subtitle: "자미두수 프리미엄 인생 총람",
     icon: "ziwei"
   };
-
-  const requestId = String(
-    strictBody.requestId
-    || strictBody.generationId
-    || `ziwei:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
-  ).trim().slice(0, 120);
-  const generationId = String(strictBody.generationId || requestId).trim().slice(0, 120);
   console.info("[ZiweiBook] REQUEST_START", { requestId, chapter, reportType, prepareOnly });
   console.info("[ZiweiPdf.RequestStart]", {
     reportId,
@@ -26366,6 +26384,10 @@ export async function handlePremiumRoutes(request, env) {
       if (path === "/ziwei-life") return "ziweiPremium";
       if (path === "/astro-pdf-generate") return "westernAstrologyPremium";
       if (path === "/ziwei-pdf-generate") return "ziweiPremium";
+      if (path === "/vedic-pdf-generate") return "vedicPremium";
+      if (path === "/sukuyo-pdf-generate") return "sookyoPremium";
+      if (path === "/new-year-pdf-generate") return "sajuNewYear";
+      if (path === "/love-secret-pdf-generate") return "loveSecret";
       return "";
     })();
 
@@ -26397,10 +26419,10 @@ export async function handlePremiumRoutes(request, env) {
     if (path === "/ziwei-life") return await ensurePdfNo422(await handleZiweiBookSession(request, env, authInfo));
     
       // NEW: Unified PDF generation routes (all chapters at once)
-      if (path === "/vedic-pdf-generate") return json(await generateVedicPdf({ chart: body?.chart, reportId: body?.reportId }));
-      if (path === "/sukuyo-pdf-generate") return json(await generateSukuyoPdf({ chart: body?.chart, reportId: body?.reportId, mode: body?.mode }));
-      if (path === "/new-year-pdf-generate") return json(await generateNewYearPdf({ chart: body?.chart, reportId: body?.reportId }));
-      if (path === "/love-secret-pdf-generate") return json(await generateLoveSecretPdf({ chart: body?.chart, reportId: body?.reportId, mode: body?.mode }));
+      if (path === "/vedic-pdf-generate") return json(await generateVedicPdf({ body, chart: body?.chart, reportId: body?.reportId }));
+      if (path === "/sukuyo-pdf-generate") return json(await generateSukuyoPdf({ body, chart: body?.chart, reportId: body?.reportId, mode: body?.mode }));
+      if (path === "/new-year-pdf-generate") return json(await generateNewYearPdf({ body, chart: body?.chart, reportId: body?.reportId }));
+      if (path === "/love-secret-pdf-generate") return json(await generateLoveSecretPdf({ body, chart: body?.chart, reportId: body?.reportId, mode: body?.mode }));
       if (path === "/astro-pdf-generate") return json(await generateAstroPdf({
         env,
         body,
@@ -26560,7 +26582,6 @@ export const __premiumReportTestUtils = {
   getSajuNewYearChapterPromptSpec,
   buildSajuNewYearChapterText,
   evaluateSajuNewYearChapterQuality,
-  assertNoSajuNewYearForbiddenText,
   tryParsePremiumJsonOnlyChapterText,
   renderNormalizedPremiumChapterJsonToMarkdown,
   generateGuaranteedPremiumChapter,

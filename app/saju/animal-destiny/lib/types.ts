@@ -305,6 +305,28 @@ export interface AnimalDestinyData {
   };
 }
 
+export type TwelveGrowthAnimalResult = {
+  stageKey: TwelveStageKey;
+  stageName: TwelveStage;
+  animalName: string;
+  animalTitle: string;
+  summary: string;
+  keywords: string[];
+  elementTags?: string[];
+  personality: string;
+  strengths: string;
+  shadows: string;
+  love: string;
+  workMoney: string;
+  relationships: string;
+  stressPattern: string;
+  recoveryGuide: string;
+  todayAction: string;
+  growthMission: string;
+  compatibleEnergy: string;
+  cautionEnergy: string;
+};
+
 export interface AnimalDestinyInput {
   name?: string;
   birthDate: string;

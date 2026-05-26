@@ -922,7 +922,7 @@ export default function HPremiumSukuyoSection({
     if (!sukuyo || allGenerating) return;
     setAllGenerating(true);
     setRequestError("");
-    for (let ch = 2; ch <= 12; ch++) {
+    for (let ch = 2; ch <= CHAPTER_META.length; ch++) {
       const idx = ch - 1;
       if (chapters[idx].step === "done") continue;
       setChapters((prev) => {

@@ -1,5 +1,6 @@
 import { getEnv } from "./env.js";
 import { signJwt, verifyJwt } from "./jwt.js";
+import { normalizePaidFeatureKey } from "./paid-feature-registry.js";
 
 const PREMIUM_ACCESS_TOKEN_TTL_SEC = 30 * 60;
 
@@ -23,7 +24,26 @@ function getAudience(env) {
 
 export function resolvePremiumAccessReportType(featureKey = "", reason = "") {
   const key = String(featureKey || "").trim().toLowerCase();
+  const canonicalKey = normalizePaidFeatureKey(featureKey);
   const why = String(reason || "").trim().toLowerCase();
+
+  const reportTypeByFeatureKey = {
+    "premium-lifebook-report": "lifeBook",
+    "premium-love-secret-solo": "loveSecret",
+    "premium-love-secret-couple": "loveSecret",
+    "saju_new_year_pdf": "sajuNewYear",
+    "premium-ziwei-report": "ziweiPremium",
+    "premium-ziwei-report-compat": "ziweiPremium",
+    "premium-astrology-report": "westernAstrologyPremium",
+    "premium-astrology-report-compat": "westernAstrologyPremium",
+    "premium-sukuyo-report": "sookyoPremium",
+    "premium-sukuyo-report-compat": "sookyoPremium",
+    "premium-vedic-report": "vedicPremium",
+  };
+
+  if (reportTypeByFeatureKey[canonicalKey]) {
+    return reportTypeByFeatureKey[canonicalKey];
+  }
 
   if (key === "premium-saju-newyear-report" || why.includes("신년운세")) {
     return "sajuNewYear";

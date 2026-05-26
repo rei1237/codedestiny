@@ -5,14 +5,15 @@ import { useCallback, useMemo, useRef } from "react";
 import { useAnimalCardExport } from "../hooks/useAnimalCardExport";
 import type { AnimalDestinyInput } from "../lib/types";
 import { useAnimalDestinyStore } from "../store/useAnimalDestinyStore";
-import AnimalDestinyInputForm from "./AnimalDestinyInputForm";
-import AnimalDestinyHero from "./AnimalDestinyHero";
 import AnimalResultScreen from "./AnimalResultScreen";
-import AnimalRevealAnimation from "./AnimalRevealAnimation";
+import TwelveAnimalHero from "./TwelveAnimalHero";
+import TwelveAnimalInputCard from "./TwelveAnimalInputCard";
+import TwelveAnimalLoading from "./TwelveAnimalLoading";
 
 export default function AnimalDestinyPage() {
   const shareCardRef = useRef<HTMLDivElement>(null);
   const formSectionRef = useRef<HTMLDivElement>(null);
+  const resultSectionRef = useRef<HTMLDivElement>(null);
 
   const {
     status,
@@ -52,6 +53,11 @@ export default function AnimalDestinyPage() {
     formSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
+  const handleReviewJourney = useCallback(() => {
+    const target = status === "result" ? resultSectionRef.current : formSectionRef.current;
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [status]);
+
   return (
     <main className="relative min-h-[100dvh] w-full overflow-x-hidden bg-[radial-gradient(circle_at_10%_12%,rgba(250,224,177,0.45),transparent_34%),radial-gradient(circle_at_84%_8%,rgba(234,193,133,0.24),transparent_31%),radial-gradient(circle_at_48%_90%,rgba(215,165,102,0.2),transparent_33%),linear-gradient(180deg,#fff8ea_0%,#fdf1dc_52%,#fae7c5_100%)] text-[#4d311a]">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(128deg,transparent_0%,rgba(255,255,255,0.42)_38%,transparent_66%)]" />
@@ -83,7 +89,7 @@ export default function AnimalDestinyPage() {
       </header>
 
       <div className="relative z-10 mx-auto max-w-5xl pb-16">
-        {status !== "result" ? <AnimalDestinyHero onStart={handleStartJourney} /> : null}
+        <TwelveAnimalHero onStart={handleStartJourney} onReview={handleReviewJourney} />
 
         <div ref={formSectionRef} className="space-y-8 px-5 sm:px-6">
           {(status === "idle" || status === "input" || status === "error") ? (
@@ -91,33 +97,36 @@ export default function AnimalDestinyPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <AnimalDestinyInputForm
+              <TwelveAnimalInputCard
                 input={input}
                 onChange={setInput}
                 onSubmit={handleSubmit}
                 isBusy={false}
                 canSubmit={canSubmit}
+                error={error}
               />
             </motion.div>
           ) : null}
 
-          {status === "calculating" ? <AnimalRevealAnimation mode="calculating" /> : null}
-          {status === "revealing" ? <AnimalRevealAnimation mode="revealing" /> : null}
+          {status === "calculating" ? <TwelveAnimalLoading mode="calculating" /> : null}
+          {status === "revealing" ? <TwelveAnimalLoading mode="revealing" /> : null}
 
-          {status === "result" && animalData ? (
-            <AnimalResultScreen
-              animal={animalData}
-              twelveStages={twelveStages}
-              sajuResult={sajuResult}
-              timeUnknown={Boolean((sajuResult as Record<string, unknown> | null)?.timeUnknown)}
-              partner={partner}
-              shareCardRef={shareCardRef}
-              onSubmitPartner={handlePartnerSubmit}
-              onSaveCard={handleSaveCard}
-              onShareCard={handleShareCard}
-              isExporting={isExporting}
-            />
-          ) : null}
+          <div ref={resultSectionRef}>
+            {status === "result" && animalData ? (
+              <AnimalResultScreen
+                animal={animalData}
+                twelveStages={twelveStages}
+                sajuResult={sajuResult}
+                timeUnknown={Boolean((sajuResult as Record<string, unknown> | null)?.timeUnknown)}
+                partner={partner}
+                shareCardRef={shareCardRef}
+                onSubmitPartner={handlePartnerSubmit}
+                onSaveCard={handleSaveCard}
+                onShareCard={handleShareCard}
+                isExporting={isExporting}
+              />
+            ) : null}
+          </div>
 
           {error ? (
             <div className="rounded-2xl border border-rose-400/40 bg-rose-50 p-5 text-center text-sm text-rose-700 backdrop-blur-sm">
