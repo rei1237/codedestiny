@@ -1,10 +1,21 @@
-// ============================================================
-// Astro Western Premium - Local Fallback Text
-// ============================================================
-
-import { getAstroChapterByNumber } from "./astroChapterConfig.js";
+/**
+ * Astro Western Premium - Fallback Prevention (STUB)
+ * 
+ * DEPRECATED: This module is intentionally stubbed out.
+ * Fallback text generation is NOT ALLOWED.
+ * PDF generation must FAIL explicitly if data is missing or LLM fails.
+ */
 
 export function generateAstroFallbackText(chapterNum, chart = {}) {
+  // STUB: Intentionally throws error
+  throw new Error(
+    `[AstroBook] FATAL: Fallback text generation attempted for chapter ${chapterNum}. ` +
+    `Fallback is disabled. PDF must fail explicitly.`
+  );
+}
+
+// Legacy function for reference (DO NOT USE)
+function _oldGenerateAstroFallbackText(chapterNum, chart = {}) {
   const meta = getAstroChapterByNumber(chapterNum);
   const sun = chart.planets?.Sun || {};
   const moon = chart.planets?.Moon || {};

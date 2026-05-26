@@ -1,22 +1,14 @@
 // ============================================================
-// Astro Western Premium - PDF Generation Pipeline
+// Astro Western Premium - PDF Generation Pipeline (STRICT)
+// ============================================================
+// NO padding, NO fallback, NO skeleton output
+// Fail explicitly if quality thresholds not met
 // ============================================================
 
-import { ASTRO_CHAPTER_META, ASTRO_TOTAL_CHAPTERS, ASTRO_MIN_TOTAL_CHARS, validateAstroChapter } from "./astroChapterConfig.js";
+import { ASTRO_CHAPTER_META, ASTRO_TOTAL_CHAPTERS, ASTRO_MIN_TOTAL_CHARS } from "./astroChapterConfig.js";
 import { generateAstroChaptersSequentially } from "./generateAstroChapter.js";
-import { generateAstroFallbackText } from "./astroFallback.js";
-
-const ASTRO_FORBIDDEN_TEXTS = [
-  "자동 복구",
-  "Chapter",
-  "챕터",
-  "데이터가 부족",
-  "품질 검증",
-  "API 실패",
-  "Internal server error",
-  "fallback",
-  "reportId",
-];
+import { assertNoAstroPdfFallbackText } from "./assertNoAstroPdfFallbackText.js";
+import { validateAstroPdfPayload, assertAstroPdfPayloadValid } from "./validateAstroPdfPayload.js";
 
 function logAstroStage(stage, detail = {}) {
   try {
@@ -30,45 +22,10 @@ function countChars(text) {
   return [...String(text || "")].length;
 }
 
-function padAstroChapterToMin(text, chapterNum) {
-  const config = ASTRO_CHAPTER_META[chapterNum - 1] || {};
-  const minChars = Math.max(2000, Number(config.minChars || 3000));
-  let output = String(text || "").trim();
-  let cycle = 0;
-  const guidancePool = [
-    "핵심 포인트를 일상 행동으로 전환하기 위해 이번 주 목표를 3개 이내로 고정하고, 감정 반응 직후 결정보다 기록 후 결정을 우선하세요.",
-    "관계·일·재정에서 반복되는 장면을 주간 1회 복기하면 선택의 일관성이 올라가며, 불필요한 에너지 소모를 줄일 수 있습니다.",
-    "월간 리뷰에서는 유지할 습관 2개와 중단할 습관 2개를 분리해 실행하고, 다음 달에는 유지율을 먼저 점검해야 성과가 안정됩니다.",
-  ];
-  while (countChars(output) < minChars) {
-    output += `\n\n### 실행 보강 ${cycle + 1}\n`;
-    output += `${guidancePool[cycle % guidancePool.length]} 실행 회차 ${cycle + 1}에서는 우선순위 1개만 고정하세요.`;
-    cycle += 1;
-    if (cycle > 20) break;
-  }
-  return output;
-}
-
-function padAstroReportToMin(chapters) {
-  let total = countChars((chapters || []).join("\n\n"));
-  let guard = 0;
-  while (total < ASTRO_MIN_TOTAL_CHARS && guard < 60) {
-    const lastIndex = Math.max(0, (chapters || []).length - 1);
-    chapters[lastIndex] = String(chapters[lastIndex] || "")
-      + "\n\n### 장기 실행 보강\n"
-      + "월간 리뷰에서 유지할 습관 2개와 중단할 습관 2개를 명확히 하여 리듬을 안정화하세요. 작은 반복이 누적될수록 운의 변동 속에서도 결과가 안정됩니다.";
-    total = countChars((chapters || []).join("\n\n"));
-    guard += 1;
-  }
-}
-
-function hasForbiddenAstroText(text) {
-  const source = String(text || "");
-  for (const token of ASTRO_FORBIDDEN_TEXTS) {
-    if (source.includes(token)) return true;
-  }
-  return false;
-}
+// REMOVED: padAstroChapterToMin - NO MORE PADDING
+// REMOVED: padAstroReportToMin - NO MORE PADDING
+// REMOVED: hasForbiddenAstroText - Use assertNoAstroPdfFallbackText instead
+// REMOVED: generateAstroFallbackText calls - Fallback disabled
 
 function validateAstroChapterQuality(chapterNum, text) {
   const errors = [];
@@ -78,9 +35,16 @@ function validateAstroChapterQuality(chapterNum, text) {
 
   if (!text || text.trim().length === 0) {
     errors.push("empty text");
-  } else if (hasForbiddenAstroText(text)) {
-    errors.push("forbidden text detected");
-  } else if (length < (config.minChars || 2000)) {
+  } else {
+    try {
+      // Use new forbidden text assertion
+      assertNoAstroPdfFallbackText(text);
+    } catch (err) {
+      errors.push("forbidden text detected: " + (err?.message || "forbidden phrase"));
+    }
+  }
+
+  if (length < (config.minChars || 2000)) {
     errors.push(`too short: ${length} < ${config.minChars}`);
   }
 
@@ -98,6 +62,9 @@ function validateAstroChapterQuality(chapterNum, text) {
       break;
     }
   }
+
+  return { ok: errors.length === 0, length, errors, warnings };
+}
 
   return { ok: errors.length === 0, length, errors, warnings };
 }
@@ -146,10 +113,10 @@ export async function generateAstroPdf(params = {}) {
   const sources = {};
 
   logAstroStage("PDF_GENERATION_START", { reportId });
-  if (onProgress) onProgress({ code: "INITIALIZING", message: "점성술 프리미엘 PDF 생성 초기화 중" });
+  if (onProgress) onProgress({ code: "INITIALIZING", message: "점성술 프리미엄 PDF 생성 초기화 중" });
 
   // ============================================================
-  // CHART VALIDATION
+  // CHART VALIDATION - STRICT MODE
   // ============================================================
   if (!chart || typeof chart !== "object") {
     return {
@@ -163,36 +130,59 @@ export async function generateAstroPdf(params = {}) {
   logAstroStage("CHART_VALIDATION_OK", { reportId });
 
   // ============================================================
-  // GENERATE ALL CHAPTERS SEQUENTIALLY
+  // PAYLOAD VALIDATION - PRE-GENERATION CHECK
+  // ============================================================
+  logAstroStage("PAYLOAD_VALIDATION_START", { reportId });
+  try {
+    assertAstroPdfPayloadValid(body?.payload || {});
+  } catch (err) {
+    return {
+      ok: false,
+      code: "ASTRO_PAYLOAD_VALIDATION_FAILED",
+      message: err instanceof Error ? err.message : "차트 데이터 검증 실패",
+      reportId,
+    };
+  }
+  logAstroStage("PAYLOAD_VALIDATION_OK", { reportId });
+
+  // ============================================================
+  // GENERATE ALL CHAPTERS SEQUENTIALLY - NO FALLBACK
   // ============================================================
   if (onProgress) onProgress({ code: "GENERATING_CHAPTERS", message: "13개 챕터 생성 중" });
 
   const chapters = [];
   const chapterIndices = Array.from({ length: ASTRO_TOTAL_CHAPTERS }, (_, i) => i + 1);
 
-  const generatedChapters = await generateAstroChaptersSequentially(chapterIndices, chart, {
-    forceLocal: body.forceLocalOnly === true,
-    onProgress: (progress) => {
-      const chapterNum = Number(progress?.chapter || 0);
-      const status = String(progress?.status || "");
-      if (onProgress) {
-        const msg = status === "fallback" 
-          ? `챕터 ${chapterNum} 생성 완료 (로컬 폴백)`
-          : `챕터 ${chapterNum} 생성 완료`;
-        onProgress({ code: `CHAPTER_${chapterNum}_${status.toUpperCase()}`, message: msg });
-      }
-      logAstroStage(`CHAPTER_${chapterNum}_${status.toUpperCase()}`, { reportId });
-    },
-  });
+  let generatedChapters;
+  try {
+    generatedChapters = await generateAstroChaptersSequentially(chapterIndices, chart, {
+      onProgress: (progress) => {
+        const chapterNum = Number(progress?.chapter || 0);
+        if (onProgress) {
+          onProgress({ code: `CHAPTER_${chapterNum}_GENERATED`, message: `챕터 ${chapterNum} 생성 완료` });
+        }
+        logAstroStage(`CHAPTER_${chapterNum}_GENERATED`, { reportId });
+      },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "차터 생성 실패";
+    logAstroStage("CHAPTER_GENERATION_FAILED", { reportId, error: message });
+    return {
+      ok: false,
+      code: "ASTRO_CHAPTER_GENERATION_FAILED",
+      message: `점성술 챕터 생성에 실패했습니다: ${message}`,
+      reportId,
+    };
+  }
 
   for (let i = 1; i <= ASTRO_TOTAL_CHAPTERS; i++) {
     const text = generatedChapters[i] || "";
-    chapters.push(padAstroChapterToMin(text, i));
-    sources[i] = text.includes("이 챕터는") ? "fallback" : "gemini";
+    chapters.push(text);
+    sources[i] = "gemini-api";
   }
 
   // ============================================================
-  // QUALITY VALIDATION & REPAIR
+  // QUALITY VALIDATION - STRICT MODE (NO REPAIR, NO FALLBACK)
   // ============================================================
   logAstroStage("QUALITY_VALIDATION_START", { reportId });
   if (onProgress) onProgress({ code: "VALIDATING_QUALITY", message: "생성된 컨텐츠 품질 검증 중" });
@@ -201,66 +191,52 @@ export async function generateAstroPdf(params = {}) {
   for (let i = 1; i <= chapters.length; i++) {
     const validation = validateAstroChapterQuality(i, chapters[i - 1]);
     if (!validation.ok) {
-      logAstroStage(`CHAPTER_${i}_QUALITY_FAILED`, { errors: validation.errors });
-      invalidChapters.push(i);
-      warnings.push({
-        chapter: i,
-        warning: "QUALITY_FAILED",
-        errors: validation.errors,
-      });
+      logAstroStage(`CHAPTER_${i}_QUALITY_FAILED`, { errors: validation.errors, reportId });
+      invalidChapters.push({ chapter: i, errors: validation.errors });
     }
   }
 
+  // STRICT MODE: Fail immediately if any chapter fails validation
   if (invalidChapters.length > 0) {
-    logAstroStage("QUALITY_FAILED_ATTEMPTING_REPAIR", { invalidChapters });
-    if (onProgress) onProgress({ code: "REPAIRING_CHAPTERS", message: "불완전한 챕터 재생성 중" });
-
-    for (const chapterNum of invalidChapters) {
-      try {
-        const fallback = generateAstroFallbackText(chapterNum, chart);
-        if (fallback && countChars(fallback) > 1500) {
-          chapters[chapterNum - 1] = padAstroChapterToMin(fallback, chapterNum);
-          sources[chapterNum] = "fallback-repair";
-          warnings.push({
-            chapter: chapterNum,
-            warning: "REPAIRED_WITH_FALLBACK",
-          });
-          logAstroStage(`CHAPTER_${chapterNum}_REPAIRED_WITH_FALLBACK`, { reportId });
-        }
-      } catch (err) {
-        warnings.push({
-          chapter: chapterNum,
-          warning: "REPAIR_FAILED",
-          error: err instanceof Error ? err.message : "Unknown error",
-        });
-      }
-    }
-  } else {
-    logAstroStage("QUALITY_VALIDATION_SUCCESS", { reportId });
+    logAstroStage("QUALITY_VALIDATION_FAILED_ABORTING", { 
+      reportId, 
+      invalidChapters: invalidChapters.map(c => ({ chapter: c.chapter, errors: c.errors })) 
+    });
+    return {
+      ok: false,
+      code: "ASTRO_CHAPTER_QUALITY_FAILED",
+      message: `점성술 챕터 품질 검증 실패 (${invalidChapters.length}개 챕터): ${
+        invalidChapters.map(c => `챕터${c.chapter}(${c.errors.join(", ")})`).join("; ")
+      }`,
+      reportId,
+      invalidChapters,
+    };
   }
 
+  logAstroStage("QUALITY_VALIDATION_SUCCESS", { reportId });
+
   // ============================================================
-  // TOTAL LENGTH VALIDATION
+  // TOTAL LENGTH VALIDATION - STRICT MODE
   // ============================================================
-  padAstroReportToMin(chapters);
   const fullText = chapters.join("\n\n");
   const totalLength = countChars(fullText);
 
-  logAstroStage("TOTAL_LENGTH_CHECK", { totalLength, minRequired: ASTRO_MIN_TOTAL_CHARS });
+  logAstroStage("TOTAL_LENGTH_CHECK", { reportId, totalLength, minRequired: ASTRO_MIN_TOTAL_CHARS });
 
   if (totalLength < ASTRO_MIN_TOTAL_CHARS) {
-    warnings.push({
-      chapterId: "full-report",
-      warning: "TOTAL_LENGTH_BELOW_MIN",
-      length: totalLength,
+    logAstroStage("TOTAL_LENGTH_FAILED", { 
+      reportId, 
+      totalLength, 
+      minRequired: ASTRO_MIN_TOTAL_CHARS 
+    });
+    return {
+      ok: false,
+      code: "ASTRO_TOTAL_LENGTH_TOO_SHORT",
+      message: `점성술 리포트 전체 길이가 부족합니다 (${totalLength}/${ASTRO_MIN_TOTAL_CHARS} 자)`,
+      reportId,
+      totalLength,
       minRequired: ASTRO_MIN_TOTAL_CHARS,
-    });
-  } else {
-    warnings.push({
-      chapterId: "full-report",
-      warning: "TOTAL_LENGTH_OK",
-      length: totalLength,
-    });
+    };
   }
 
   // ============================================================
