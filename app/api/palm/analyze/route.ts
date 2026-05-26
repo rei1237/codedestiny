@@ -12,7 +12,9 @@ import { requireRouteAuth } from "@/app/_lib/route-auth";
 import palmMapEngine from "@/lib/palm/palm-map-engine.js";
 import fs from "fs";
 
-const { analyzePalmHandInput } = (palmMapEngine as { analyzePalmHandInput?: (input: Record<string, unknown>) => any }) || {};
+const { analyzePalmHandInput } = (palmMapEngine as {
+  analyzePalmHandInput?: (input: Record<string, unknown>) => unknown;
+}) || {};
 
 const GEMINI_VISION_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
 const MAX_IMAGE_BYTES = 25 * 1024 * 1024;
@@ -420,7 +422,7 @@ async function extractPalmAstroCandidatesFromImage(
   }
 
   try {
-    const sharp = require("sharp");
+    const { default: sharp } = await import("sharp");
     const inputBuffer = Buffer.from(parsed.data, "base64");
     const resized = await sharp(inputBuffer)
       .rotate()
@@ -755,7 +757,7 @@ function getTrainingImages() {
         inline_data: { mime_type: "image/jpeg", data: fs.readFileSync(p2).toString("base64") }
       });
     }
-  } catch (e) {
+  } catch {
     // Ignore errors in production
   }
   return results;
@@ -1230,15 +1232,35 @@ type SideAnalysisResult = {
   qualityScore: number;
 };
 
-function detectPalmFromMapEngine(result: any): boolean {
-  const lines = result?.recognitionData?.lines || {};
+function detectPalmFromMapEngine(result: unknown): boolean {
+  const normalizedResult = (result && typeof result === "object")
+    ? (result as Record<string, unknown>)
+    : {};
+  const recognitionData = (normalizedResult.recognitionData && typeof normalizedResult.recognitionData === "object")
+    ? (normalizedResult.recognitionData as Record<string, unknown>)
+    : {};
+  const lines = (recognitionData.lines && typeof recognitionData.lines === "object")
+    ? (recognitionData.lines as Record<string, unknown>)
+    : {};
+  const lifeLine = (lines.lifeLine && typeof lines.lifeLine === "object")
+    ? (lines.lifeLine as Record<string, unknown>)
+    : {};
+  const headLine = (lines.headLine && typeof lines.headLine === "object")
+    ? (lines.headLine as Record<string, unknown>)
+    : {};
+  const heartLine = (lines.heartLine && typeof lines.heartLine === "object")
+    ? (lines.heartLine as Record<string, unknown>)
+    : {};
+  const fateLine = (lines.fateLine && typeof lines.fateLine === "object")
+    ? (lines.fateLine as Record<string, unknown>)
+    : {};
   const majorDetected =
-    Boolean(lines?.lifeLine?.detected) ||
-    Boolean(lines?.headLine?.detected) ||
-    Boolean(lines?.heartLine?.detected) ||
-    Boolean(lines?.fateLine?.detected);
-  const featureCount = Number(lines?.featureCount || 0);
-  const palmDetected = Boolean(result?.recognitionData?.palmDetected);
+    Boolean(lifeLine.detected) ||
+    Boolean(headLine.detected) ||
+    Boolean(heartLine.detected) ||
+    Boolean(fateLine.detected);
+  const featureCount = Number(lines.featureCount || 0);
+  const palmDetected = Boolean(recognitionData.palmDetected);
   return palmDetected || majorDetected || featureCount > 0;
 }
 
@@ -1264,7 +1286,7 @@ async function analyzeHandWithLocalEngine(input: {
       palmCoverage: Math.max(Number(normalizedQuality.palmCoverage || 0), Number(extracted.palmCoverage || 0)),
     };
 
-    const localResult = analyzePalmHandInput({
+    const localResultRaw = analyzePalmHandInput({
       uploadedHandSide: input.side,
       dominantHand: input.dominantHand,
       analysisPurpose: input.analysisPurpose,
@@ -1274,13 +1296,21 @@ async function analyzeHandWithLocalEngine(input: {
       lineCandidates: extracted.lineCandidates,
     });
 
-    if (!localResult?.handReading || typeof localResult.handReading !== "object") return null;
+    if (!localResultRaw || typeof localResultRaw !== "object") return null;
+    const localResult = localResultRaw as Record<string, unknown>;
+    const handReadingValue = localResult.handReading;
 
-    const handReading = localResult.handReading as PalmHandReading;
+    if (!handReadingValue || typeof handReadingValue !== "object") return null;
+
+    const handReading = handReadingValue as PalmHandReading;
     const detectedLineKeys = extractDetectedLineKeys(handReading);
+    const recognitionData =
+      (localResult.recognitionData && typeof localResult.recognitionData === "object")
+        ? (localResult.recognitionData as Record<string, unknown>)
+        : null;
     const imageQuality =
-      (localResult.recognitionData?.imageQuality as Record<string, unknown> | undefined) ||
-      mergedQuality;
+      ((recognitionData?.imageQuality as Record<string, unknown> | undefined) ||
+      mergedQuality);
     const palmDetected = detectPalmFromMapEngine(localResult);
 
     return {
@@ -1293,7 +1323,7 @@ async function analyzeHandWithLocalEngine(input: {
       purposeAnalysis: null,
       raw: localResult,
       recognitionData:
-        (localResult.recognitionData as Record<string, unknown> | undefined) || {
+        recognitionData || {
           palmDetected,
           imageQuality,
         },
@@ -1536,7 +1566,11 @@ export async function POST(req: NextRequest) {
   try {
     const auth = requireRouteAuth(req);
     if (!auth.ok) {
-      return "response" in auth ? (auth as any).response : NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      if ("response" in auth) {
+        const authWithResponse = auth as { response?: NextResponse };
+        if (authWithResponse.response) return authWithResponse.response;
+      }
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const payload = await parsePayload(req);
@@ -1839,7 +1873,7 @@ export async function POST(req: NextRequest) {
         ...debugData,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Palm Analyze Route] Error:", error);
     return NextResponse.json({ ok: false, error: "서버 내부 오류가 발생했습니다." }, { status: 500 });
   }

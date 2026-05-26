@@ -12,7 +12,11 @@
 const FALLBACK_LOCAL_API_BASE_URL = "http://localhost:4000";
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
-function normalizeBaseUrl(rawValue?: string | null): string {
+type RuntimeApiWindow = Window & {
+  CODE_DESTINY_API_BASE_URL?: string;
+};
+
+export function normalizeBaseUrl(rawValue?: string | null): string {
   const value = String(rawValue || "").trim();
   if (!value) return "";
 
@@ -66,7 +70,7 @@ export function getApiBaseUrl(): string {
   const configuredAuthBase = normalizeBaseUrl(process.env.NEXT_PUBLIC_AUTH_API_BASE_URL);
 
   if (typeof window !== "undefined") {
-    const runtimeBase = normalizeBaseUrl((window as any).CODE_DESTINY_API_BASE_URL);
+    const runtimeBase = normalizeBaseUrl((window as RuntimeApiWindow).CODE_DESTINY_API_BASE_URL);
     const isLocalDev = isLocalHostname(window.location.hostname);
     const sameOriginBase = normalizeBaseUrl(window.location.origin);
     const currentHostIsWorkersDev = isWorkersDevBaseUrl(sameOriginBase);

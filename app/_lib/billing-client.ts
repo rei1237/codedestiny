@@ -1,4 +1,5 @@
 import { authFetch } from "@/app/_lib/auth-client";
+import { normalizeBaseUrl } from "@/app/_lib/api-config";
 
 type BillingError = {
   code: string;
@@ -24,6 +25,10 @@ type BillingFeaturePricing = {
   reason: string;
   currency?: string;
   cashPrice?: number | null;
+};
+
+type RuntimeApiWindow = Window & {
+  CODE_DESTINY_API_BASE_URL?: string;
 };
 
 export type ServiceExecutionStatus = "pending" | "success" | "failed" | "refunded" | "cancelled";
@@ -76,21 +81,6 @@ function toNumber(value: unknown, fallback = 0): number {
   return Number.isFinite(numberValue) ? numberValue : fallback;
 }
 
-function normalizeBaseUrl(rawValue: unknown): string {
-  const value = String(rawValue || "").trim();
-  if (!value) return "";
-
-  try {
-    const parsed = new URL(value);
-    parsed.pathname = parsed.pathname.replace(/\/api\/?$/, "");
-    parsed.search = "";
-    parsed.hash = "";
-    return parsed.toString().replace(/\/$/, "");
-  } catch {
-    return value.replace(/\/api\/?$/, "").replace(/\/$/, "");
-  }
-}
-
 function collectBillingFallbackBases(): string[] {
   const fromEnv = [
     process.env.NEXT_PUBLIC_AUTH_API_BASE_URL,
@@ -100,7 +90,7 @@ function collectBillingFallbackBases(): string[] {
     .filter(Boolean);
 
   const fromRuntime = typeof window !== "undefined"
-    ? [normalizeBaseUrl((window as any).CODE_DESTINY_API_BASE_URL)]
+    ? [normalizeBaseUrl((window as RuntimeApiWindow).CODE_DESTINY_API_BASE_URL)]
     : [];
 
   const sameOrigin = typeof window !== "undefined"
