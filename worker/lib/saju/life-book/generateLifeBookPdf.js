@@ -56,6 +56,9 @@ function applyLenientLifeBookCoreDefaults(lifeBookInputData = {}) {
   const userProfile = data.userProfile && typeof data.userProfile === "object" ? data.userProfile : {};
   const sajuChart = data.sajuChart && typeof data.sajuChart === "object" ? data.sajuChart : {};
   const dataQuality = data.dataQuality && typeof data.dataQuality === "object" ? data.dataQuality : {};
+  const tenGods = data.tenGods && typeof data.tenGods === "object" ? data.tenGods : {};
+  const yongshin = data.yongshin && typeof data.yongshin === "object" ? data.yongshin : {};
+  const daeun = Array.isArray(data.daeun) ? data.daeun : [];
 
   data.userProfile = {
     ...userProfile,
@@ -73,6 +76,31 @@ function applyLenientLifeBookCoreDefaults(lifeBookInputData = {}) {
     hourPillar: String(sajuChart.hourPillar || "").trim() || "분석 중",
     dayMaster: String(sajuChart.dayMaster || "").trim() || "분석 중",
   };
+
+  data.tenGods = {
+    ...tenGods,
+    비견: Number.isFinite(Number(tenGods?.비견)) ? Number(tenGods?.비견) : 0,
+    겁재: Number.isFinite(Number(tenGods?.겁재)) ? Number(tenGods?.겁재) : 0,
+    식신: Number.isFinite(Number(tenGods?.식신)) ? Number(tenGods?.식신) : 0,
+    상관: Number.isFinite(Number(tenGods?.상관)) ? Number(tenGods?.상관) : 0,
+    편재: Number.isFinite(Number(tenGods?.편재)) ? Number(tenGods?.편재) : 0,
+    정재: Number.isFinite(Number(tenGods?.정재)) ? Number(tenGods?.정재) : 0,
+    편관: Number.isFinite(Number(tenGods?.편관)) ? Number(tenGods?.편관) : 0,
+    정관: Number.isFinite(Number(tenGods?.정관)) ? Number(tenGods?.정관) : 0,
+    편인: Number.isFinite(Number(tenGods?.편인)) ? Number(tenGods?.편인) : 0,
+    정인: Number.isFinite(Number(tenGods?.정인)) ? Number(tenGods?.정인) : 0,
+  };
+
+  data.yongshin = {
+    ...yongshin,
+    yongshin: Array.isArray(yongshin?.yongshin) && yongshin.yongshin.length ? yongshin.yongshin : ["화"],
+    heeshin: Array.isArray(yongshin?.heeshin) && yongshin.heeshin.length ? yongshin.heeshin : ["목"],
+    gishin: Array.isArray(yongshin?.gishin) && yongshin.gishin.length ? yongshin.gishin : ["금"],
+  };
+
+  data.daeun = daeun.length > 0
+    ? daeun
+    : [{ ageStart: 30, ageEnd: 39, pillar: "분석 중", summary: "기본 대운 흐름 점검" }];
 
   data.dataQuality = {
     ...dataQuality,
@@ -468,11 +496,12 @@ export async function generateLifeBookPdf(params = {}) {
   const pdfPayload = buildLifeBookPdfPayloadFromInput(lifeBookInputData);
   const payloadValidation = validateSajuLifeBookPdfPayload(pdfPayload);
   if (!payloadValidation.ok) {
-    warnings.push({
-      chapterId: "input",
-      warning: "LIFEBOOK_REQUIRED_PROFILE_MISSING_LENIENT_FALLBACK",
-      validation: { missingFields: payloadValidation.missing || [] },
-    });
+    return {
+      ok: false,
+      code: "LIFEBOOK_REQUIRED_PROFILE_MISSING",
+      message: "인생의 책 생성을 위해 필수 입력 정보가 필요합니다.",
+      detail: { missingFields: payloadValidation.missing || [] },
+    };
   }
   if (Array.isArray(payloadValidation.missing) && payloadValidation.missing.length) {
     warnings.push({
@@ -613,31 +642,18 @@ export async function generateLifeBookPdf(params = {}) {
       reportId,
       invalidChapters: reportValidation.invalidChapters,
     });
-    const repairedChapters = await repairInvalidLifeBookChaptersWithApiOrLocal({
-      env,
-      lifeBookInputData,
-      chapters,
-      chapterMemories,
-      previousTexts,
-      chapterSchema: targetChapters,
-      invalidChapterIds: reportValidation.invalidChapters || [],
-      warnings,
-    });
-    if (Array.isArray(repairedChapters) && repairedChapters.length) {
-      chapters.length = 0;
-      repairedChapters.forEach((row) => chapters.push(row));
-      reportValidation = validateLifeBookGeneratedReport({
-        chapters,
-        chapterSchema: targetChapters,
-      });
-    }
-    if (!reportValidation.ok) {
-      warnings.push({
-        chapterId: "full-report",
-        warning: "LIFEBOOK_VALIDATION_DEGRADED_CONTINUE",
-        validation: reportValidation,
-      });
-    }
+    return {
+      ok: false,
+      code: "SAJU_LIFE_BOOK_LLM_GENERATION_FAILED",
+      message: "사주 인생의 책 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있도록 상태를 복구했습니다.",
+      failedSections: (reportValidation.invalidChapters || []).map((chapterId) => ({
+        chapterId,
+        sectionId: `${chapterId}-all`,
+        reason: "LLM_VALIDATION_FAILED",
+      })),
+      retryable: true,
+      detail: reportValidation,
+    };
   } else {
     logLifeBookStage("QualityEnhanceSuccess", { reportId });
   }

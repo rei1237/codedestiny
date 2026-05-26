@@ -123,6 +123,14 @@ import { generateAstroPdf } from "../lib/generate-astro-pdf.js";
 import { generateZiweiPdf } from "../lib/generate-ziwei-pdf.js";
 import { validateAstroPdfPayload as validateAstroPdfPayloadStrict } from "../lib/astro/validateAstroPdfPayload.js";
 import { normalizeAstroPayloadForStrictValidation } from "../lib/astro/normalizeAstroPayloadForStrictValidation.js";
+import {
+  buildPdfSeed,
+  validateHardRequiredPremiumInput,
+  maskBirthProfileForLog,
+} from "../lib/pdf/buildPdfSeed.js";
+import { buildPremiumPdfPrompt } from "../lib/pdf/buildPremiumPdfPrompt.js";
+import { getPremiumExampleResultByReportType } from "../lib/pdf/examples/index.js";
+import { getPremiumBlueprintByReportType } from "../lib/pdf/blueprints/index.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { Solar } from "lunar-javascript";
 
@@ -2213,29 +2221,174 @@ function getPremiumDataIncompleteCode(reportType = "") {
   return "PREMIUM_REPORT_DATA_INCOMPLETE";
 }
 
-function buildSeverityPayloadValidation(code, missingFields, canonicalJson) {
-  const deduped = Array.from(new Set((missingFields || []).map((field) => String(field || "").trim()).filter(Boolean)));
-  const fatalMissing = [];
-  const payload = canonicalJson?.calculatedData || canonicalJson?.reportPayload || null;
-  const input = canonicalJson?.input || null;
+function getMinimumRequirementSpec(reportType = "", mode = "personal") {
+  const normalizedMode = normalizePremiumMode(mode);
+  const common = [
+    "name",
+    "birthDate (또는 year/month/day)",
+    "birthTime (또는 hour[:minute])",
+    "gender",
+    "calendarType (없으면 solar)",
+    "timezone (없으면 Asia/Seoul)",
+  ];
 
-  if (!hasMeaningfulValue(payload) && !hasMeaningfulValue(input)) {
-    fatalMissing.push("sourceData");
+  if (reportType === "sajuNewYear") {
+    return {
+      reportType,
+      mode: "personal",
+      minimumRequired: [...common, "targetYear"],
+      description: "사주 신년운세는 출생 프로필 + targetYear 최소 입력으로 생성됩니다.",
+    };
   }
+
+  if (reportType === "loveSecret" && normalizedMode === "compatibility") {
+    return {
+      reportType,
+      mode: "compatibility",
+      minimumRequired: [
+        ...common.map((v) => `personA.${v}`),
+        ...common.map((v) => `personB.${v}`),
+      ],
+      description: "연애 비책 궁합 모드는 personA/personB 양측 출생 프로필이 필요합니다.",
+    };
+  }
+
+  if (reportType === "sookyoPremium" && normalizedMode === "compatibility") {
+    return {
+      reportType,
+      mode: "compatibility",
+      minimumRequired: [
+        ...common.map((v) => `personA.${v}`),
+        ...common.map((v) => `personB.${v}`),
+      ],
+      description: "숙요 궁합 모드는 personA/personB 양측 출생 프로필이 필요합니다.",
+    };
+  }
+
+  return {
+    reportType,
+    mode: normalizedMode,
+    minimumRequired: common,
+    description: "해당 리포트는 출생 프로필 최소 입력으로 생성됩니다.",
+  };
+}
+
+function toBirthProfileFromSource(source = {}) {
+  const src = source && typeof source === "object" ? source : {};
+  const year = Number(src?.year ?? src?.birthYear);
+  const month = Number(src?.month ?? src?.birthMonth);
+  const day = Number(src?.day ?? src?.birthDay);
+  const hour = Number(src?.hour ?? src?.birthHour);
+  const minute = Number(src?.minute ?? src?.birthMinute ?? 0);
+
+  const dateFromParts = Number.isFinite(year) && Number.isFinite(month) && Number.isFinite(day)
+    ? `${String(Math.trunc(year)).padStart(4, "0")}-${String(Math.trunc(month)).padStart(2, "0")}-${String(Math.trunc(day)).padStart(2, "0")}`
+    : "";
+  const timeFromParts = Number.isFinite(hour)
+    ? `${String(Math.trunc(hour)).padStart(2, "0")}:${String(Math.trunc(minute)).padStart(2, "0")}`
+    : "";
+
+  return {
+    name: String(src?.name || src?.userName || src?.fullName || "").trim(),
+    birthDate: String(src?.birthDate || src?.solarBirthDate || src?.date || "").trim() || dateFromParts,
+    birthTime: String(src?.birthTime || src?.time || "").trim() || timeFromParts,
+    gender: String(src?.gender || src?.sex || "").trim(),
+    calendarType: String(src?.calendarType || src?.calendar || "solar").trim() || "solar",
+    timezone: String(src?.timezone || src?.timezoneName || "Asia/Seoul").trim() || "Asia/Seoul",
+  };
+}
+
+function normalizePremiumMode(value = "") {
+  const raw = String(value || "").trim().toLowerCase();
+  if (raw === "solo") return "personal";
+  if (raw === "couple" || raw === "compat") return "compatibility";
+  return raw || "personal";
+}
+
+function extractPrimaryBirthProfile(canonicalJson = {}) {
+  const input = canonicalJson?.input || {};
+  const calculated = canonicalJson?.calculatedData || {};
+  const profileCandidates = [
+    input,
+    input?.profile,
+    input?.user,
+    calculated?.profile,
+    calculated?.profile?.birth,
+    calculated?.birthInfo,
+    calculated?.sukyoPdfContext?.userProfile,
+  ];
+  for (const candidate of profileCandidates) {
+    const profile = toBirthProfileFromSource(candidate);
+    if (profile.birthDate || profile.birthTime || profile.gender || profile.name) {
+      return profile;
+    }
+  }
+  return toBirthProfileFromSource({});
+}
+
+function extractPartnerBirthProfile(canonicalJson = {}) {
+  const input = canonicalJson?.input || {};
+  const calculated = canonicalJson?.calculatedData || {};
+  const profileCandidates = [
+    input?.partner,
+    input?.partnerData,
+    input?.partnerBirthData,
+    calculated?.partner,
+    calculated?.partnerProfile,
+    calculated?.relationshipData?.partner,
+    calculated?.sukyoPdfContext?.partner?.profile,
+  ];
+  for (const candidate of profileCandidates) {
+    const profile = toBirthProfileFromSource(candidate);
+    if (profile.birthDate || profile.birthTime || profile.gender || profile.name) {
+      return profile;
+    }
+  }
+  return toBirthProfileFromSource({});
+}
+
+function validatePremiumPdfHardRequirements(reportType = "", canonicalJson = {}) {
+  const mode = normalizePremiumMode(canonicalJson?.input?.mode || canonicalJson?.input?.reportType || canonicalJson?.input?.reportMode || "");
+  const requirePartner = mode === "compatibility"
+    && (reportType === "loveSecret" || reportType === "sookyoPremium");
+
+  return validateHardRequiredPremiumInput({
+    userId: canonicalJson?.userId || canonicalJson?.input?.userId,
+    sessionId: canonicalJson?.input?.reportSessionId || canonicalJson?.input?.sessionId || canonicalJson?.reportId,
+    featureKey: REPORT_TYPE_TO_FEATURE_TYPE[reportType] || "",
+    reportType,
+    mode,
+    birthProfile: extractPrimaryBirthProfile(canonicalJson),
+    partnerBirthProfile: extractPartnerBirthProfile(canonicalJson),
+    requirePartner,
+  });
+}
+
+function logPremiumPdfStage(stage, payload = {}) {
+  console.info(`[PremiumPdf] ${String(stage || "Unknown")}`, payload);
+}
+
+function buildSeverityPayloadValidation(code, missingFields, canonicalJson, hardValidation = null) {
+  const deduped = Array.from(new Set((missingFields || []).map((field) => String(field || "").trim()).filter(Boolean)));
+  const hardMissing = Array.isArray(hardValidation?.missingFields) ? hardValidation.missingFields : [];
+  const fatalMissing = Array.from(new Set(hardMissing.map((field) => String(field || "").trim()).filter(Boolean)));
 
   const recoverableMissing = fatalMissing.length > 0 ? [] : deduped;
   return {
     ok: fatalMissing.length === 0,
-    code: fatalMissing.length > 0 ? code : "",
+    code: fatalMissing.length > 0
+      ? String(hardValidation?.code || code || "PDF_REQUIRED_INPUT_MISSING")
+      : "",
     missingFields: deduped,
     fatalMissing,
     recoverableMissing,
     optionalMissing: [],
-    generationMode: fatalMissing.length > 0 ? "blocked" : (recoverableMissing.length > 0 ? "fallback" : "full"),
+    generationMode: fatalMissing.length > 0 ? "blocked" : (recoverableMissing.length > 0 ? "partial" : "full"),
   };
 }
 
 function validateSajuReportPayload(reportType, canonicalJson) {
+  const hardValidation = validatePremiumPdfHardRequirements(reportType, canonicalJson);
   const missingFields = [];
   const payload = canonicalJson?.calculatedData || {};
 
@@ -2307,10 +2460,11 @@ function validateSajuReportPayload(reportType, canonicalJson) {
   }
 
   const deduped = Array.from(new Set(missingFields));
-  return buildSeverityPayloadValidation("SAJU_REPORT_PAYLOAD_MISSING", deduped, canonicalJson);
+  return buildSeverityPayloadValidation("SAJU_REPORT_PAYLOAD_MISSING", deduped, canonicalJson, hardValidation);
 }
 
 function validateSukyoReportPayload(canonicalJson) {
+  const hardValidation = validatePremiumPdfHardRequirements("sookyoPremium", canonicalJson);
   const payload = canonicalJson?.calculatedData || {};
   const missingFields = [];
 
@@ -2338,10 +2492,11 @@ function validateSukyoReportPayload(canonicalJson) {
   }
 
   const deduped = Array.from(new Set(missingFields));
-  return buildSeverityPayloadValidation("SUKYO_REPORT_PAYLOAD_MISSING", deduped, canonicalJson);
+  return buildSeverityPayloadValidation("SUKYO_REPORT_PAYLOAD_MISSING", deduped, canonicalJson, hardValidation);
 }
 
 function validateVedicReportPayload(canonicalJson) {
+  const hardValidation = validatePremiumPdfHardRequirements("vedicPremium", canonicalJson);
   const payload = canonicalJson?.calculatedData || {};
   const input = canonicalJson?.input || {};
   const missingFields = [];
@@ -2491,12 +2646,13 @@ function validateVedicReportPayload(canonicalJson) {
   }
 
   const deduped = Array.from(new Set(missingFields));
-  const validation = buildSeverityPayloadValidation("VEDIC_REPORT_PAYLOAD_MISSING", deduped, canonicalJson);
+  const validation = buildSeverityPayloadValidation("VEDIC_REPORT_PAYLOAD_MISSING", deduped, canonicalJson, hardValidation);
   validation.invalidFields = Array.from(new Set(invalidFields));
   return validation;
 }
 
 function validateAstrologyReportPayload(canonicalJson) {
+  const hardValidation = validatePremiumPdfHardRequirements("westernAstrologyPremium", canonicalJson);
   const payload = canonicalJson?.calculatedData || {};
   const missingFields = [];
 
@@ -2528,10 +2684,11 @@ function validateAstrologyReportPayload(canonicalJson) {
   }
 
   const deduped = Array.from(new Set(missingFields));
-  return buildSeverityPayloadValidation("ASTRO_REPORT_PAYLOAD_MISSING", deduped, canonicalJson);
+  return buildSeverityPayloadValidation("ASTRO_REPORT_PAYLOAD_MISSING", deduped, canonicalJson, hardValidation);
 }
 
 function validateZiweiReportPayload(canonicalJson) {
+  const hardValidation = validatePremiumPdfHardRequirements("ziweiPremium", canonicalJson);
   const payload = canonicalJson?.calculatedData || {};
   const missingFields = [];
   const sourcePalaces = Array.isArray(payload?.palaces)
@@ -2568,7 +2725,7 @@ function validateZiweiReportPayload(canonicalJson) {
   }
 
   const deduped = Array.from(new Set(missingFields));
-  return buildSeverityPayloadValidation("ZIWEI_REPORT_PAYLOAD_MISSING", deduped, canonicalJson);
+  return buildSeverityPayloadValidation("ZIWEI_REPORT_PAYLOAD_MISSING", deduped, canonicalJson, hardValidation);
 }
 
 function getPremiumWarnings(prepareData) {
@@ -2776,7 +2933,7 @@ function buildPremiumPreflightResult(context) {
     qualityScore,
     minQualityScore,
     fatalMissing,
-    generationMode: fatalMissing.length > 0 ? "blocked" : (missingSummary.length > 0 || blockedChapters.length > 0 ? "fallback" : "full"),
+    generationMode: fatalMissing.length > 0 ? "blocked" : (missingSummary.length > 0 || blockedChapters.length > 0 ? "partial" : "full"),
     hasRawEngineResult,
     hasPromptSourceData,
     hasPdfSourceData,
@@ -6645,14 +6802,19 @@ function buildInterpretationSeed(reportType, calculatedData) {
 function validateCanonicalJson(reportType, canonicalJson) {
   const requiredPaths = PREMIUM_CANONICAL_REQUIRED_PATHS_BY_TYPE[reportType] || [];
   const optionalPaths = PREMIUM_CANONICAL_OPTIONAL_PATHS_BY_TYPE[reportType] || [];
-  const requiredMissing = requiredPaths.filter((path) => pathMissing(canonicalJson, path));
-  const optionalMissing = optionalPaths.filter((path) => pathMissing(canonicalJson, path));
+  const hardValidation = validatePremiumPdfHardRequirements(reportType, canonicalJson);
+  const requiredMissing = Array.isArray(hardValidation?.missingFields)
+    ? hardValidation.missingFields.map((field) => String(field || "").trim()).filter(Boolean)
+    : [];
+  const optionalMissing = requiredPaths
+    .concat(optionalPaths)
+    .filter((path) => pathMissing(canonicalJson, path));
   const fatalMissing = [];
-  const recoverableMissing = [...requiredMissing];
+  const recoverableMissing = [];
 
   if (!reportType) fatalMissing.push("reportType");
-  if (!hasMeaningfulValue(canonicalJson?.calculatedData) && !hasMeaningfulValue(canonicalJson?.input)) {
-    fatalMissing.push("sourceData");
+  if (!hardValidation?.ok) {
+    requiredMissing.forEach((field) => fatalMissing.push(field));
   }
 
   let reportPayloadValidation = { ok: true, code: "", missingFields: [] };
@@ -6670,7 +6832,7 @@ function validateCanonicalJson(reportType, canonicalJson) {
 
   (reportPayloadValidation.fatalMissing || []).forEach((field) => fatalMissing.push(field));
   (reportPayloadValidation.recoverableMissing || reportPayloadValidation.missingFields || []).forEach((field) => {
-    recoverableMissing.push(field);
+    optionalMissing.push(field);
   });
 
   if (reportType === "ziweiPremium") {
@@ -6690,7 +6852,7 @@ function validateCanonicalJson(reportType, canonicalJson) {
       || hasMeaningfulValue(sukyoContext?.mainStar?.coreKeyword)
       || hasMeaningfulValue(sukyoContext?.rawBasicResult?.summary);
     if (!hasMinimalInput) {
-      recoverableMissing.push("calculatedData.sukyoPdfContext.minimalSource");
+      optionalMissing.push("calculatedData.sukyoPdfContext.minimalSource");
     }
 
     const compatRequired = Boolean(getPathValue(canonicalJson, "calculatedData._compatibilityRequired"));
@@ -6710,7 +6872,7 @@ function validateCanonicalJson(reportType, canonicalJson) {
     const hasSaju = hasMeaningfulValue(getPathValue(canonicalJson, "calculatedData.saju"));
     if (!hasZiwei && !hasWestern) {
       if (!hasSaju) {
-        recoverableMissing.push("calculatedData.ziwei|calculatedData.westernAstrology");
+        optionalMissing.push("calculatedData.ziwei|calculatedData.westernAstrology");
       } else {
         optionalMissing.push("calculatedData.ziwei|calculatedData.westernAstrology");
       }
@@ -6732,7 +6894,7 @@ function validateCanonicalJson(reportType, canonicalJson) {
     canGeneratePdf: uniqueFatalMissing.length === 0,
     code,
     reportPayloadValidation,
-    generationMode: uniqueFatalMissing.length > 0 ? "blocked" : (uniqueRequiredMissing.length > 0 ? "fallback" : (uniqueOptionalMissing.length > 0 ? "partial" : "full")),
+    generationMode: uniqueFatalMissing.length > 0 ? "blocked" : ((uniqueRequiredMissing.length > 0 || uniqueOptionalMissing.length > 0) ? "partial" : "full"),
     reason: uniqueFatalMissing.length === 0 ? "" : "PDF 생성 최소 데이터 점검이 필요합니다.",
   };
 }
@@ -7583,6 +7745,40 @@ function buildPromptSourceData(reportType, chapterId, reportData, prebuiltChapte
 
 function buildLlmPromptInput(reportType, chapterId, reportData, prebuiltChapterJsonPacks = null, dedupContext = {}) {
   const promptSourceData = buildPromptSourceData(reportType, chapterId, reportData, prebuiltChapterJsonPacks);
+  const mode = normalizePremiumMode(reportData?.input?.mode || reportData?.input?.reportType || reportData?.input?.reportMode || "personal");
+  const chapterBlueprint = getPremiumBlueprintByReportType(reportType, mode);
+  const exampleResult = getPremiumExampleResultByReportType(reportType);
+  const featureKey = REPORT_TYPE_TO_FEATURE_TYPE[reportType] || "";
+  const seed = buildPdfSeed({
+    featureKey,
+    reportType,
+    mode,
+    birthProfile: extractPrimaryBirthProfile(reportData),
+    partnerBirthProfile: extractPartnerBirthProfile(reportData),
+    engineResult: promptSourceData?.calculatedDataForThisChapter || {},
+    exampleResult,
+    chapterBlueprint,
+  });
+  const unifiedPrompt = buildPremiumPdfPrompt({
+    featureKey,
+    reportType,
+    mode,
+    birthProfile: seed.birthProfile,
+    partnerBirthProfile: seed.partnerBirthProfile,
+    normalizedSeed: seed.normalizedSeed,
+    availableEngineData: seed.availableEngineData,
+    exampleResult: seed.exampleResult,
+    chapterBlueprint: seed.chapterBlueprint,
+    dataQuality: seed.dataQuality,
+  });
+  logPremiumPdfStage("PromptBuilt", {
+    featureKey,
+    reportType,
+    mode,
+    chapterId: Number(chapterId || 0),
+    dataQuality: seed.dataQuality,
+    missingFieldCount: Array.isArray(seed.missingFields) ? seed.missingFields.length : 0,
+  });
   const isSajuClassicReport = reportType === "lifeBook" || reportType === "loveSecret";
   const isSajuNewYearReport = reportType === "sajuNewYear";
   const previousChapterSummaries = Array.isArray(dedupContext.previousChapterSummaries)
@@ -7622,6 +7818,10 @@ function buildLlmPromptInput(reportType, chapterId, reportData, prebuiltChapterJ
     ];
   return {
     ...promptSourceData,
+    chapterBlueprint,
+    exampleResult,
+    dataQuality: seed.dataQuality,
+    premiumPrompt: unifiedPrompt,
     tone: "Code:Destiny premium mystical but practical Korean tone",
     globalSummary: reportData?.interpretationSeed || {},
     previousChapterSummaries,
@@ -7644,6 +7844,9 @@ function buildLlmPromptInput(reportType, chapterId, reportData, prebuiltChapterJ
       "미신적 단정 대신 전략과 자기이해 중심으로 작성할 것",
       "chapterJsonPacks(core/signals/timing/actions)에서 최소 3개 이상 근거를 본문에 반영할 것",
       "chapterContract.requiredHeadings/requiredJsonFields를 출력에 반영할 것",
+      "exampleResult는 복사하지 말고 품질 기준으로만 사용할 것",
+      "chapterBlueprint의 챕터 순서/수량을 반드시 유지할 것",
+      "자동 복구 생성, Chapter 1, 데이터 부족 문구를 본문에 쓰지 말 것",
       ...typeSpecificRules,
     ],
   };
@@ -18390,14 +18593,18 @@ async function handleAstroWestern(request, env) {
     });
     const chart = ensuredSeed.chart;
     const astroSeed = ensuredSeed.seed;
+    const chartSource = String(chart?.source || ensuredSeed?.source || "unknown");
+    const failOpenApplied = Boolean(ensuredSeed?.failOpenApplied);
     const seedValidation = ensuredSeed.seedValidation || { ok: true, missingFields: [] };
     if (!seedValidation.ok) {
       logAstroPdfStage("AstroPdf.LocalOnlyMode", {
         debugId,
+        chartSource,
+        failOpenApplied,
         missingFields: seedValidation.missingFields || [],
       }, "warn");
     } else {
-      logAstroPdfStage("AstroPdf.ChartCalculated", { debugId, profileId: String(body?.profileId || body?.selectedProfileId || "") });
+      logAstroPdfStage("AstroPdf.ChartCalculated", { debugId, profileId: String(body?.profileId || body?.selectedProfileId || ""), chartSource, failOpenApplied });
     }
 
     logAstroPdfStage("AstroPdf.PayloadNormalized", { debugId, profileId: String(body?.profileId || body?.selectedProfileId || "") });
@@ -18567,13 +18774,16 @@ async function handleAstroLife(request, env, authInfo = null) {
     }, { status: 422 });
   }
   let chart = ensuredSeed.chart;
+  const chartSource = String(chart?.source || ensuredSeed?.source || "unknown");
   if (!ensuredSeed?.seedValidation?.ok) {
     logAstroPdfStage("AstroPdf.LocalOnlyMode", {
       debugId,
+      chartSource,
+      failOpenApplied: Boolean(ensuredSeed?.failOpenApplied),
       missingFields: ensuredSeed?.seedValidation?.missingFields || [],
     }, "warn");
   } else {
-    logAstroPdfStage("AstroPdf.ChartCalculated", { debugId, profileId: String(body?.profileId || body?.selectedProfileId || "") });
+    logAstroPdfStage("AstroPdf.ChartCalculated", { debugId, profileId: String(body?.profileId || body?.selectedProfileId || ""), chartSource, failOpenApplied: Boolean(ensuredSeed?.failOpenApplied) });
   }
 
   const partnerChart = null;
@@ -18638,6 +18848,13 @@ async function handleAstroLife(request, env, authInfo = null) {
       composite,
       timingData,
       validation: strictValidation,
+      calculationSource: chartSource,
+      failOpenApplied,
+      calculationMeta: {
+        source: chartSource,
+        failOpenApplied,
+        fallbackReason: String(ensuredSeed?.fallbackReason || ""),
+      },
       missingFields: Array.from(new Set([...(strictValidation?.missingFields || []), ...(payloadValidation.recoverableMissingFields || [])])),
       strictValidationMode,
     });
@@ -18733,6 +18950,13 @@ async function handleAstroLife(request, env, authInfo = null) {
     timingData,
     canonicalAstroChart,
     generatedAt: new Date().toISOString(),
+    calculationSource: chartSource,
+    failOpenApplied: Boolean(ensuredSeed?.failOpenApplied),
+    calculationMeta: {
+      source: chartSource,
+      failOpenApplied: Boolean(ensuredSeed?.failOpenApplied),
+      fallbackReason: String(ensuredSeed?.fallbackReason || ""),
+    },
     quality: {
       minChars: Number(chapterLengthPolicy.minChars || ASTRO_MIN_CHARS),
       targetChars: Number(chapterLengthPolicy.targetChars || ASTRO_MIN_CHARS),
@@ -18843,12 +19067,15 @@ async function handleVedicLife(request, env, authInfo = null) {
   input.ayanamsa = String(strictBody.ayanamsa || "lahiri");
 
   let chart;
+  let chartSource = "unknown";
+  let chartFailOpenApplied = false;
   logPremiumPipelineStage("VedicPdf.ChartCalculationStart", {
     reportType,
     ayanamsa: String(input.ayanamsa || "lahiri"),
   });
   try {
     chart = await getSwissVedicChart(request, env, input);
+    chartSource = String(chart?.source || "unknown");
   } catch (chartError) {
     logPremiumPipelineStage("VedicChartEngineFailed", {
       reportType,
@@ -18856,16 +19083,22 @@ async function handleVedicLife(request, env, authInfo = null) {
       message: String(chartError?.message || "chart engine failed"),
     });
     chart = getLocalBasicVedicChart(input);
+    chartSource = String(chart?.source || "vedic-basic-local-fallback");
     lenientWarnings.push(`LENIENT_CHART_FALLBACK:${String(chartError?.code || "VEDIC_CHART_ENGINE_FAILED")}`);
     failOpenApplied = true;
+    chartFailOpenApplied = true;
   }
   logPremiumPipelineStage("VedicPdf.ChartCalculated", {
     reportType,
-    engine: String(chart?.source || "unknown"),
+    engine: chartSource,
+    chartSource,
+    failOpenApplied: chartFailOpenApplied,
   });
   logPremiumPipelineStage("VedicPdfFlow.BaseVedicResultGenerated", {
     reportType,
-    engine: String(chart?.source || "unknown"),
+    engine: chartSource,
+    chartSource,
+    failOpenApplied: chartFailOpenApplied,
   });
   let partnerChart = null;
   let ashtaKoota = chart.ashtaKoota || null;
@@ -19169,7 +19402,7 @@ async function handleVedicLife(request, env, authInfo = null) {
       ],
     },
     dataQuality: {
-      chartSource: String(chart?.source || "unknown"),
+      chartSource,
       validation: strictValidation,
       failOpenApplied,
       strictPayloadMode,
@@ -21610,6 +21843,29 @@ function ensureLifebookSourceData(body = {}, input = {}) {
     };
   }
 
+  const localProfile = buildLoveSecretEngineHintsFromBirth({
+    name: body?.name || input?.name,
+    gender: body?.gender || input?.gender,
+    calendarType: body?.calendarType || input?.calendarType,
+    year: body?.year || input?.year,
+    month: body?.month || input?.month,
+    day: body?.day || input?.day,
+    hour: body?.hour || input?.hour,
+    minute: body?.minute || input?.minute,
+  });
+  if (localProfile.ok) {
+    return {
+      ok: true,
+      sourceData: localProfile.sourceText,
+      sourceType: "saju-local-profile",
+      usedFallbackData: false,
+      warning: "",
+      code: "",
+      missingFields: [],
+      message: "",
+    };
+  }
+
   return {
     ok: false,
     sourceData: "",
@@ -21617,8 +21873,8 @@ function ensureLifebookSourceData(body = {}, input = {}) {
     usedFallbackData: false,
     warning: "SAJU_ENGINE_SOURCE_REQUIRED",
     code: "SAJU_ENGINE_SOURCE_REQUIRED",
-    missingFields: ["sajuData", "canonicalSajuChart", "engineData"],
-    message: "인생의 책 PDF는 사주 엔진 원본 데이터(sajuData/canonicalSajuChart/engineData)가 필요합니다.",
+    missingFields: ["name", "gender", "year", "month", "day", "hour"],
+    message: "인생의 책 PDF는 최소 출생 프로필(name/gender/year/month/day/hour) 또는 사주 엔진 데이터가 필요합니다.",
   };
 }
 
@@ -23006,17 +23262,24 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
   const input = buildSessionInput(strictBody, SAJU_NEW_YEAR_TOTAL_CHAPTERS);
   const chapter = input.chapter;
   const reportId = String(strictBody.reportId || "").trim() || sajuNewYearReportIdFromInput(strictBody, input);
-  const dataState = ensureSajuNewYearSourceData(strictBody, input);
-  const ownerUserId = String(authInfo?.userId || "").trim();
-  if (!dataState.ok) {
+  const rawDataState = ensureSajuNewYearSourceData(strictBody, input);
+  if (!rawDataState?.ok) {
+    const requirementSpec = getMinimumRequirementSpec("sajuNewYear", "personal");
     return json({
       ok: false,
-      code: dataState.code || "SAJU_ENGINE_SOURCE_REQUIRED",
-      message: dataState.message || "사주 엔진 원본 데이터가 필요합니다.",
-      missingFields: Array.isArray(dataState.missingFields) ? dataState.missingFields : ["sajuData", "canonicalSajuChart", "engineData"],
-      retryable: true,
+      code: "PDF_REQUIRED_INPUT_MISSING",
+      message: rawDataState?.message || "사주 신년운세 PDF 생성 최소 입력이 부족합니다.",
+      reportType: "sajuNewYear",
+      missingFields: Array.isArray(rawDataState?.missingFields) ? rawDataState.missingFields : [],
+      requiredMinimum: requirementSpec.minimumRequired,
+      requiredMinimumDescription: requirementSpec.description,
+      howToFix: "targetYear와 출생 프로필(year/month/day/hour)을 보완하거나 engineData를 포함해 다시 요청하세요.",
+      status: "blocked",
+      dataQuality: "blocked",
     }, { status: 422 });
   }
+  const dataState = rawDataState;
+  const ownerUserId = String(authInfo?.userId || "").trim();
 
   const effectiveBody = dataState?.bodyPatch && typeof dataState.bodyPatch === "object"
     ? { ...strictBody, ...dataState.bodyPatch }
@@ -23210,17 +23473,25 @@ async function handleLifebookSession(request, env, authInfo = null) {
     billing: billingSnapshot,
     reportJobStatus: "created",
   });
-  const lifebookSourceState = ensureLifebookSourceData(strictBody, input);
-  if (!lifebookSourceState.ok) {
+  const rawLifebookSourceState = ensureLifebookSourceData(strictBody, input);
+  if (!rawLifebookSourceState?.ok) {
+    const requirementSpec = getMinimumRequirementSpec("lifeBook", "personal");
     return json({
       ok: false,
-      code: lifebookSourceState.code || "SAJU_ENGINE_SOURCE_REQUIRED",
-      message: lifebookSourceState.message || "사주 엔진 원본 데이터가 필요합니다.",
-      missingFields: Array.isArray(lifebookSourceState.missingFields)
-        ? lifebookSourceState.missingFields
-        : ["sajuData", "canonicalSajuChart", "engineData"],
+      code: "PDF_REQUIRED_INPUT_MISSING",
+      message: rawLifebookSourceState?.message || "인생의 책 PDF 생성 최소 입력이 부족합니다.",
+      reportType: "lifeBook",
+      missingFields: Array.isArray(rawLifebookSourceState?.missingFields)
+        ? rawLifebookSourceState.missingFields
+        : [],
+      requiredMinimum: requirementSpec.minimumRequired,
+      requiredMinimumDescription: requirementSpec.description,
+      howToFix: "최소 출생 프로필(name/gender/year/month/day/hour) 또는 canonicalSajuChart/engineData를 포함해 다시 요청하세요.",
+      status: "blocked",
+      dataQuality: "blocked",
     }, { status: 422 });
   }
+  const lifebookSourceState = rawLifebookSourceState;
 
   const effectiveBody = {
     ...strictBody,
@@ -23279,16 +23550,20 @@ async function handleLifebookSession(request, env, authInfo = null) {
     if (!allGenerated?.ok) {
       return json({
         ok: false,
-        code: allGenerated?.code || "LIFEBOOK_GENERATION_FAILED",
-        message: allGenerated?.message || "인생의 책 생성에 실패했습니다.",
+        failOpenMode: false,
+        code: allGenerated?.code || "LIFEBOOK_GENERATION_DEGRADED",
+        message: allGenerated?.message || "인생의 책 생성에 실패했습니다. 입력 데이터를 확인 후 다시 시도해주세요.",
         detail: allGenerated?.detail || undefined,
+        reportId,
+        source: "api",
+        status: "blocked",
         billing: billingSnapshot,
         reportJob: {
           status: "failed",
           billingStatus: billingSnapshot.billingStatus || "not_charged",
           idempotencyKey: billingSnapshot.idempotencyKey || "",
         },
-      }, { status: 422 });
+      }, { status: 502 });
     }
 
     const generatedChapters = Array.isArray(allGenerated.chapters) ? allGenerated.chapters : [];
@@ -23408,25 +23683,33 @@ async function handleLifebookSession(request, env, authInfo = null) {
     });
     return json({
       ok: false,
-      code: generated?.code || "LIFEBOOK_CHAPTER_GENERATION_FAILED",
-      message: generated?.message || "인생의 책 챕터 생성에 실패했습니다.",
+      failOpenMode: false,
+      code: generated?.code || "LIFEBOOK_CHAPTER_GENERATION_DEGRADED",
+      message: generated?.message || "인생의 책 챕터 생성에 실패했습니다. 입력 데이터를 확인 후 다시 시도해주세요.",
       detail: generated?.detail || undefined,
+      reportId,
+      chapter,
+      status: "blocked",
       billing: billingSnapshot,
       reportJob: {
         status: "failed",
         billingStatus: billingSnapshot.billingStatus || "not_charged",
         idempotencyKey: billingSnapshot.idempotencyKey || "",
       },
-    }, { status: 422 });
+    }, { status: 502 });
   }
 
   const chapterResult = Array.isArray(generated?.chapters) ? generated.chapters[0] : null;
   if (!chapterResult) {
     return json({
       ok: false,
+      failOpenMode: false,
       code: "LIFEBOOK_CHAPTER_EMPTY",
-      message: "생성된 챕터 데이터가 비어 있습니다.",
-    }, { status: 422 });
+      message: "생성된 챕터 데이터가 비어 있습니다. 입력 데이터를 확인 후 다시 시도해주세요.",
+      reportId,
+      chapter,
+      status: "blocked",
+    }, { status: 502 });
   }
 
   const chapterMeta = {
@@ -23553,15 +23836,26 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
   const minChars = getLoveSecretChapterMinChars(modeConfig, chapter);
   const totalChapters = clampInt(strictBody.totalChapters, modeConfig.totalChapters, modeConfig.totalChapters, modeConfig.totalChapters);
   logSajuLoveBookStage("ChartCalculationStart", { reportId, mode: modeToken, chapterId: chapter });
-  const dataState = ensureLoveSecretSourceData(strictBody);
-  if (!dataState.ok) {
+  const rawDataState = ensureLoveSecretSourceData(strictBody);
+  if (!rawDataState?.ok) {
+    const requirementSpec = getMinimumRequirementSpec("loveSecret", modeToken);
     return json({
       ok: false,
-      code: dataState.code || "SAJU_ENGINE_SOURCE_REQUIRED",
-      message: dataState.message || "사주 엔진 원본 데이터가 필요합니다.",
-      missingFields: Array.isArray(dataState.missingFields) ? dataState.missingFields : ["sajuData", "canonicalSajuChart", "engineData"],
+      code: "PDF_REQUIRED_INPUT_MISSING",
+      message: rawDataState?.message || "연애 비책 PDF 생성 최소 입력이 부족합니다.",
+      reportType: "loveSecret",
+      mode: modeToken,
+      missingFields: Array.isArray(rawDataState?.missingFields) ? rawDataState.missingFields : [],
+      requiredMinimum: requirementSpec.minimumRequired,
+      requiredMinimumDescription: requirementSpec.description,
+      howToFix: modeToken === "compatibility"
+        ? "personA/personB 양측의 출생 프로필(year/month/day/hour/gender/name)을 보완하거나 엔진 데이터(personAEngineData/personBEngineData)를 포함해 다시 요청하세요."
+        : "최소 출생 프로필(name/gender/year/month/day/hour) 또는 engineData를 포함해 다시 요청하세요.",
+      status: "blocked",
+      dataQuality: "blocked",
     }, { status: 422 });
   }
+  const dataState = rawDataState;
   logSajuLoveBookStage("ChartCalculated", { reportId, mode: modeToken, chapterId: chapter, source: dataState.sourceType || "unknown" });
 
   const effectiveBody = {
@@ -24741,6 +25035,13 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
 
   const rawRequestBody = (body.requestBody && typeof body.requestBody === "object") ? body.requestBody : {};
   const requestBody = normalizePremiumRequestBodyForPipeline(reportType, rawRequestBody);
+  logPremiumPdfStage("RequestStart", {
+    featureKey: featureType,
+    reportType,
+    mode: normalizePremiumMode(requestBody?.mode || requestBody?.reportType || requestBody?.reportMode || "personal"),
+    requestId,
+    birthProfile: maskBirthProfileForLog(toBirthProfileFromSource(requestBody?.profile || requestBody)),
+  });
   logPremiumPipelineStage("Start", {
     fortuneType: reportType,
     featureKey: featureType,
@@ -24826,6 +25127,12 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
     });
     return json(denied.payload, { status: denied.status });
   }
+  logPremiumPdfStage("AccessChecked", {
+    featureKey: featureType,
+    reportType,
+    mode: normalizePremiumMode(requestBody?.mode || requestBody?.reportType || requestBody?.reportMode || "personal"),
+    requestId,
+  });
 
   const prepared = await createOrReusePremiumReportContext(request, env, authInfo, reportType, featureType, requestBody, requestId);
   if (!prepared.ok) {
@@ -24836,6 +25143,12 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
   }
 
   const context = prepared.context;
+  logPremiumPdfStage("EngineResultLoaded", {
+    featureKey: featureType,
+    reportType,
+    mode: context?.modeKey || normalizePremiumMode(requestBody?.mode || requestBody?.reportType || requestBody?.reportMode || "personal"),
+    requestId,
+  });
   context.requestId = requestId;
   context.featureType = context.featureType || featureType || REPORT_TYPE_TO_FEATURE_TYPE[context.reportType] || "";
   const snapshot = upsertPremiumAnalysisSnapshot(context);
@@ -24928,13 +25241,28 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
   if (!context.isCompleteForPdf) {
     const missingFields = Array.isArray(summary.missingData) ? summary.missingData : [];
     const preflight = context.preflight || buildPremiumPreflightResult(context);
+    const requirementSpec = getMinimumRequirementSpec(context.reportType, context.modeKey);
+    logPremiumPdfStage("RecoverableValidationError", {
+      featureKey: context.featureType,
+      reportType: context.reportType,
+      mode: context.modeKey,
+      dataQuality: "blocked",
+      missingFieldCount: missingFields.length,
+      requestId,
+    });
+    logPremiumPdfStage("BlockedByMissingRequiredInput", {
+      featureKey: context.featureType,
+      reportType: context.reportType,
+      mode: context.modeKey,
+      requestId,
+    });
     return json(attachPremiumApiMeta({
-      ok: true,
-      failOpenMode: true,
-      recoverable: true,
-      code: "PREMIUM_REPORT_PREPARE_RECOVERABLE",
-      normalizedCode: "PDF_REPORT_PREPARE_FAIL_OPEN",
-      message: "일부 PDF 전용 데이터가 부족하지만 기본 엔진 데이터로 생성을 계속 진행합니다.",
+      ok: false,
+      failOpenMode: false,
+      recoverable: false,
+      code: "PDF_REQUIRED_INPUT_MISSING",
+      normalizedCode: "PDF_REQUIRED_INPUT_MISSING",
+      message: "PDF 생성 최소 입력이 부족합니다. 누락 필드를 보완한 뒤 다시 시도해주세요.",
       requestId,
       reportType: context.reportType,
       featureType: context.featureType,
@@ -24950,20 +25278,25 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
       invalidFields: [],
       expectedSchema,
       receivedKeys,
-      recommendedAction: getPremiumRecommendedAction(context.reportType),
+      requiredMinimum: requirementSpec.minimumRequired,
+      requiredMinimumDescription: requirementSpec.description,
+      recommendedAction: "missingFields를 모두 채운 뒤 동일 reportType으로 prepare를 다시 호출하세요.",
       warnings: Array.isArray(summary.warnings) ? summary.warnings : [],
       contextSummary: summary,
+      status: "blocked",
+      dataQuality: "blocked",
     }, {
       stage: "prepare",
       reportType: context.reportType,
       featureType: context.featureType,
       requestId,
-      normalizedCode: "PDF_REPORT_PREPARE_FAIL_OPEN",
-    }));
+      normalizedCode: "PDF_REQUIRED_INPUT_MISSING",
+    }), { status: 422 });
   }
 
   const responsePayload = {
     ok: true,
+    status: "generating",
     cacheHit: Boolean(prepared.cacheHit),
     requestId,
     generationId: summary.reportSessionId,
@@ -24976,7 +25309,23 @@ async function handlePremiumReportPrepare(request, env, authInfo) {
     chapterPlan,
     reportDefinition,
     normalizedDataSummary,
+    dataQuality: Array.isArray(summary?.missingData) && summary.missingData.length > 0 ? "partial" : "full",
   };
+
+  logPremiumPdfStage("PdfSeedBuilt", {
+    featureKey: context.featureType,
+    reportType: context.reportType,
+    mode: context.modeKey,
+    requestId,
+    missingFieldCount: Array.isArray(summary?.missingData) ? summary.missingData.length : 0,
+  });
+  logPremiumPdfStage("DataQualityDetected", {
+    featureKey: context.featureType,
+    reportType: context.reportType,
+    mode: context.modeKey,
+    dataQuality: responsePayload.dataQuality,
+    requestId,
+  });
 
   if (includeContext) {
     responsePayload.input = context.input;
@@ -25176,12 +25525,7 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   }
 
   const chapterId = clampInt(body.chapterId ?? body.chapter, 1, 1, Number(context.totalChapters || 13));
-  const strictNoFallback = asBool(
-    body?.strictNoFallback
-    ?? context?.strictNoFallback
-    ?? env?.PREMIUM_STRICT_NO_FALLBACK
-    ?? "false",
-  );
+  const strictNoFallback = true;
   const maxChapterAttempts = Math.max(2, getPremiumChapterMaxAttempts(env, 2));
   const chapterRequestKey = String(chapterId);
   const chapterInflightKey = `${reportSessionId}:${chapterId}`;
@@ -25237,11 +25581,30 @@ async function handlePremiumReportChapter(request, env, authInfo) {
   upsertPremiumAnalysisSnapshot(context);
   const preflight = context.preflight || buildPremiumPreflightResult(context);
   if (!preflight.ok) {
-    context.warnings = Array.from(new Set([
-      ...(context.warnings || []),
-      "PREMIUM_REPORT_PREFLIGHT_FAILED_RECOVERED",
-      ...((Array.isArray(preflight.missingSummary) ? preflight.missingSummary : []).map((f) => `MISSING:${f}`)),
-    ]));
+    const requirementSpec = getMinimumRequirementSpec(context.reportType, context.modeKey);
+    return json(attachPremiumApiMeta({
+      ok: false,
+      code: "PDF_REQUIRED_INPUT_MISSING",
+      message: "챕터 생성 최소 입력이 부족합니다. 누락 필드를 보완한 뒤 다시 시도해주세요.",
+      requestId,
+      reportSessionId,
+      snapshotId: String(context?.analysisSnapshot?.snapshotId || "").trim(),
+      reportType: context.reportType,
+      featureType: context.featureType,
+      chapterId,
+      preflight,
+      missingFields: Array.isArray(preflight?.missingSummary) ? preflight.missingSummary : [],
+      requiredMinimum: requirementSpec.minimumRequired,
+      requiredMinimumDescription: requirementSpec.description,
+      status: "blocked",
+      dataQuality: "blocked",
+    }, {
+      stage: "chapter",
+      reportType: context.reportType,
+      featureType: context.featureType,
+      requestId,
+      normalizedCode: "PDF_REQUIRED_INPUT_MISSING",
+    }), { status: 422 });
   }
 
   const applyHydrationToContext = (hydrated) => {
