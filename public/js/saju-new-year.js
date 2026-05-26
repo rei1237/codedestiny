@@ -117,6 +117,16 @@
     return Array.prototype.slice.call(root.querySelectorAll(selector));
   }
 
+  function getNewYearChapterMeta(chapter) {
+    var idx = Math.max(1, Number(chapter || 1));
+    var runtime = (state.chapterMeta && state.chapterMeta[idx]) ? state.chapterMeta[idx] : null;
+    var fallback = CHAPTER_DEFINITIONS[idx - 1] || {};
+    return {
+      title: String((runtime && runtime.title) || fallback.title || ('Chapter ' + idx)).trim(),
+      subtitle: String((runtime && runtime.subtitle) || fallback.subtitle || '').trim()
+    };
+  }
+
   function safeParse(raw, fallback) {
     try { return JSON.parse(raw); } catch (_) { return fallback; }
   }
@@ -978,7 +988,7 @@
       '<article class="lb-result-article">',
       '<header class="lb-result-article__head">',
       '<p class="lb-result-article__chapter">CHAPTER ' + chapter + '</p>',
-      '<h3 class="lb-result-article__title">' + escapeHtml(String(meta.title || CHAPTER_DEFINITIONS[chapter - 1].title || '')) + '</h3>',
+      '<h3 class="lb-result-article__title">' + escapeHtml(String(meta.title || getNewYearChapterMeta(chapter).title || '')) + '</h3>',
       '</header>',
       '<div class="lb-result-article__body">' + bodyHtml + '</div>',
       '</article>'
@@ -1014,7 +1024,7 @@
     var progressText = qs('nyProgressText');
 
     if (chapterNum) chapterNum.textContent = 'Chapter ' + chapter;
-    if (chapterText) chapterText.textContent = subtitle || CHAPTER_DEFINITIONS[Math.max(0, chapter - 1)].title || ('Chapter ' + chapter);
+    if (chapterText) chapterText.textContent = subtitle || getNewYearChapterMeta(chapter).title;
     if (quote) quote.textContent = MYSTIC_QUOTES[(chapter - 1) % MYSTIC_QUOTES.length];
 
     var completed = chapterCount();
@@ -1047,6 +1057,87 @@
     } finally {
       if (timeoutHandle) clearTimeout(timeoutHandle);
     }
+  }
+
+  var executionHeartbeatTimer = null;
+  var executionPayload = null;
+
+  function clearExecutionHeartbeat() {
+    if (!executionHeartbeatTimer) return;
+    clearInterval(executionHeartbeatTimer);
+    executionHeartbeatTimer = null;
+  }
+
+  function buildExecutionPayload(paymentContext) {
+    var ctx = normalizePaymentContext(paymentContext || state.paymentContext || {});
+    var sourceTransactionId = String(ctx.sourceTransactionId || ctx.transactionId || '').trim();
+    if (!sourceTransactionId) return null;
+    var reportId = String(state.reportId || state.paidReportId || '').trim();
+    if (!reportId) reportId = Date.now().toString(36);
+    return {
+      serviceKey: 'saju-new-year-pdf',
+      featureKey: String(ctx.featureKey || COIN_FEATURE_KEY || 'premium-saju-newyear-report'),
+      executionKey: 'saju-new-year-pdf:' + reportId + ':' + sourceTransactionId,
+      sourceTransactionId: sourceTransactionId,
+      metadata: {
+        reportId: reportId,
+        targetYear: Number((state.payload && state.payload.targetYear) || 0),
+        requestId: String(ctx.requestId || '')
+      }
+    };
+  }
+
+  async function requestExecutionAction(action, body, useKeepalive) {
+    if (!body || !body.executionKey || !body.sourceTransactionId) return false;
+    try {
+      var res = await fetch('/api/billing/executions/' + String(action || '').trim(), {
+        method: 'POST',
+        credentials: 'include',
+        cache: 'no-store',
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify(body),
+        keepalive: !!useKeepalive
+      });
+      return !!(res && res.ok);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  async function startExecutionLifecycle(paymentContext) {
+    var payload = buildExecutionPayload(paymentContext);
+    if (!payload) {
+      executionPayload = null;
+      clearExecutionHeartbeat();
+      return false;
+    }
+    var started = await requestExecutionAction('start', payload, false);
+    if (!started) return false;
+    executionPayload = payload;
+    clearExecutionHeartbeat();
+    executionHeartbeatTimer = setInterval(function () {
+      if (!executionPayload) return;
+      requestExecutionAction('heartbeat', executionPayload, false).catch(function () {});
+    }, 20000);
+    return true;
+  }
+
+  async function completeExecutionLifecycle() {
+    if (!executionPayload) return false;
+    var payload = executionPayload;
+    clearExecutionHeartbeat();
+    executionPayload = null;
+    return requestExecutionAction('complete', payload, false);
+  }
+
+  async function failExecutionLifecycle(reason, useKeepalive) {
+    if (!executionPayload) return false;
+    var payload = Object.assign({}, executionPayload, {
+      reason: String(reason || 'generation_failed').trim() || 'generation_failed'
+    });
+    clearExecutionHeartbeat();
+    executionPayload = null;
+    return requestExecutionAction('fail', payload, useKeepalive === true);
   }
 
   function waitMs(ms) {
@@ -1282,7 +1373,7 @@
     });
     showOnly('nyLoadingScreen');
     activateNewYearCinematicLoading();
-    setLoadingProgress(1, CHAPTER_DEFINITIONS[0].title);
+    setLoadingProgress(1, getNewYearChapterMeta(1).title);
 
     var prepared = await ensurePremiumSession(paymentContext);
     if (!prepared || !prepared.ok || !state.reportSessionId) {
@@ -1299,11 +1390,11 @@
 
     for (var chapter = 1; chapter <= TOTAL_CHAPTERS; chapter += 1) {
       if (state.chapterTexts[chapter]) {
-        setLoadingProgress(chapter + 1 > TOTAL_CHAPTERS ? TOTAL_CHAPTERS : chapter + 1, CHAPTER_DEFINITIONS[Math.min(TOTAL_CHAPTERS - 1, chapter)].title);
+        setLoadingProgress(chapter + 1 > TOTAL_CHAPTERS ? TOTAL_CHAPTERS : chapter + 1, getNewYearChapterMeta(Math.min(TOTAL_CHAPTERS, chapter + 1)).title);
         continue;
       }
 
-      setLoadingProgress(chapter, CHAPTER_DEFINITIONS[chapter - 1].title);
+      setLoadingProgress(chapter, getNewYearChapterMeta(chapter).title);
 
       var response = await premiumAuthJson('/api/premium-report/chapter', {
         reportSessionId: state.reportSessionId,
@@ -1345,15 +1436,15 @@
         state.chapterTexts[chapter] = deriveTextFromChapterJson(state.chapterStructured[chapter]);
       }
       state.chapterMeta[chapter] = response.chapterMeta || {
-        title: CHAPTER_DEFINITIONS[chapter - 1].title,
-        subtitle: CHAPTER_DEFINITIONS[chapter - 1].subtitle
+        title: getNewYearChapterMeta(chapter).title,
+        subtitle: getNewYearChapterMeta(chapter).subtitle
       };
 
       if (response.reportSessionId) state.reportSessionId = String(response.reportSessionId);
       if (response.reportId) state.reportId = String(response.reportId);
 
       persistState();
-      setLoadingProgress(chapter + 1 > TOTAL_CHAPTERS ? TOTAL_CHAPTERS : chapter + 1, CHAPTER_DEFINITIONS[Math.min(TOTAL_CHAPTERS - 1, chapter)].title);
+      setLoadingProgress(chapter + 1 > TOTAL_CHAPTERS ? TOTAL_CHAPTERS : chapter + 1, getNewYearChapterMeta(Math.min(TOTAL_CHAPTERS, chapter + 1)).title);
     }
 
     var pdfReady = await premiumAuthJson('/api/premium-report/pdf', {
@@ -1402,9 +1493,16 @@
     state.paymentVerified = false;
     setGenerateButtonBusy(true);
     persistState();
+    var executionStarted = false;
+    var executionSettled = false;
 
     try {
+      executionStarted = await startExecutionLifecycle(paymentContext || state.paymentContext || null);
       await generateAllChapters(paymentContext || state.paymentContext || null);
+      if (executionStarted) {
+        await completeExecutionLifecycle();
+        executionSettled = true;
+      }
       state.paymentContext = null;
       state.paymentVerified = false;
       renderResultScreen();
@@ -1418,8 +1516,15 @@
         var refunded = await attemptSajuNewYearAutoRefund(errMsg || 'LOCAL_REPORT_FAILED');
         if (refunded) logSajuNewYear('REFUND_SUCCESS');
       }
+      if (executionStarted && !executionSettled) {
+        await failExecutionLifecycle(errMsg || 'generation_failed', false);
+        executionSettled = true;
+      }
       setErrorScreen(toSafeUserError(err));
     } finally {
+      if (executionStarted && !executionSettled) {
+        await failExecutionLifecycle('generation_incomplete', false);
+      }
       state.generating = false;
       state.paymentVerified = false;
       setGenerateButtonBusy(false);
@@ -1612,6 +1717,13 @@
     document.body.classList.remove('lb-modal-open');
   };
 
+  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+    window.addEventListener('beforeunload', function () {
+      if (!executionPayload) return;
+      failExecutionLifecycle('client_unload', true).catch(function () {});
+    });
+  }
+
   window.generateSajuNewYear = function () {
     if (state.generating) {
       notify('이미 리포트를 생성 중입니다.');
@@ -1620,7 +1732,7 @@
     setGenerateButtonBusy(true);
     showOnly('nyLoadingScreen');
     activateNewYearCinematicLoading();
-    setLoadingProgress(1, CHAPTER_DEFINITIONS[0].title);
+    setLoadingProgress(1, getNewYearChapterMeta(1).title);
 
     ensureCoinGateAndGenerate().catch(function (err) {
       console.error('[SajuNewYear] gate check failed:', err);

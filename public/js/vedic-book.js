@@ -45,6 +45,8 @@
     reportId: '',
     downloadUrl: '',
     chapters: [],
+    chapterPlan: [],
+    totalChapters: TOTAL_CHAPTERS,
     quoteTick: 0,
     paidGateKey: '',
     paymentContext: null,
@@ -92,6 +94,16 @@
 
   function safeParseJson(raw, fallback) {
     try { return JSON.parse(raw); } catch (_) { return fallback; }
+  }
+
+  function getVedicChapterMetaAt(chapterIndex) {
+    var idx = Math.max(1, Number(chapterIndex || 1)) - 1;
+    var runtime = (Array.isArray(state.chapterPlan) && state.chapterPlan[idx]) ? state.chapterPlan[idx] : null;
+    var fallback = PERSONAL_CHAPTER_PREVIEW[idx] || {};
+    return {
+      title: String((runtime && (runtime.title || runtime.name)) || fallback.title || ('Chapter ' + (idx + 1))).trim(),
+      subtitle: String((runtime && (runtime.subtitle || runtime.goal)) || fallback.subtitle || '').trim()
+    };
   }
 
   function delay(ms) {
@@ -254,6 +266,87 @@
     } finally {
       if (timer) clearTimeout(timer);
     }
+  }
+
+  var executionHeartbeatTimer = null;
+  var executionPayload = null;
+
+  function clearExecutionHeartbeat() {
+    if (!executionHeartbeatTimer) return;
+    clearInterval(executionHeartbeatTimer);
+    executionHeartbeatTimer = null;
+  }
+
+  function buildExecutionPayload() {
+    var ctx = state.paymentContext && typeof state.paymentContext === 'object' ? state.paymentContext : null;
+    var sourceTransactionId = String(ctx && (ctx.sourceTransactionId || ctx.transactionId) || '').trim();
+    if (!sourceTransactionId) return null;
+    var reportId = String(state.reportId || '').trim();
+    if (!reportId) reportId = Date.now().toString(36);
+    return {
+      serviceKey: 'vedic-book-pdf',
+      featureKey: VEDIC_COIN_FEATURE_KEY,
+      executionKey: 'vedic-book-pdf:' + reportId + ':' + sourceTransactionId,
+      sourceTransactionId: sourceTransactionId,
+      metadata: {
+        mode: String(state.mode || 'personal'),
+        reportId: reportId,
+        requestId: String(ctx && ctx.requestId || '')
+      }
+    };
+  }
+
+  async function requestExecutionAction(action, body, useKeepalive) {
+    if (!body || !body.executionKey || !body.sourceTransactionId) return false;
+    try {
+      var res = await fetch('/api/billing/executions/' + String(action || '').trim(), {
+        method: 'POST',
+        credentials: 'include',
+        cache: 'no-store',
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify(body),
+        keepalive: !!useKeepalive
+      });
+      return !!(res && res.ok);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  async function startExecutionLifecycle() {
+    var payload = buildExecutionPayload();
+    if (!payload) {
+      executionPayload = null;
+      clearExecutionHeartbeat();
+      return false;
+    }
+    var started = await requestExecutionAction('start', payload, false);
+    if (!started) return false;
+    executionPayload = payload;
+    clearExecutionHeartbeat();
+    executionHeartbeatTimer = setInterval(function () {
+      if (!executionPayload) return;
+      requestExecutionAction('heartbeat', executionPayload, false).catch(function () {});
+    }, 20000);
+    return true;
+  }
+
+  async function completeExecutionLifecycle() {
+    if (!executionPayload) return false;
+    var payload = executionPayload;
+    clearExecutionHeartbeat();
+    executionPayload = null;
+    return requestExecutionAction('complete', payload, false);
+  }
+
+  async function failExecutionLifecycle(reason, useKeepalive) {
+    if (!executionPayload) return false;
+    var payload = Object.assign({}, executionPayload, {
+      reason: String(reason || 'generation_failed').trim() || 'generation_failed'
+    });
+    clearExecutionHeartbeat();
+    executionPayload = null;
+    return requestExecutionAction('fail', payload, useKeepalive === true);
   }
 
   async function premiumAuthFallback(pathname, body) {
@@ -574,6 +667,19 @@
     }
   }
 
+  function clearVedicResultCache() {
+    try { localStorage.removeItem(VEDIC_RESULT_STORAGE_KEY); } catch (_) {}
+  }
+
+  function resetVedicRuntimeState() {
+    state.reportId = '';
+    state.downloadUrl = '';
+    state.chapters = [];
+    state.generating = false;
+    state.paymentContext = null;
+    state.paidGateKey = '';
+  }
+
   function setVedicMode(mode) {
     state.mode = 'personal';
   }
@@ -775,15 +881,19 @@
   }
 
   function setLoadingProgress(payload) {
+    var total = Number(payload && payload.totalChapters || state.totalChapters || TOTAL_CHAPTERS);
+    if (!Number.isFinite(total) || total <= 0) total = TOTAL_CHAPTERS;
+    state.totalChapters = total;
     var currentChapter = Number(payload && payload.currentChapter || 0);
     var status = String(payload && payload.status || 'generating');
-    var completed = status === 'completed' ? TOTAL_CHAPTERS : Math.max(0, Math.min(TOTAL_CHAPTERS, currentChapter));
-    var nextChapter = Math.max(1, Math.min(TOTAL_CHAPTERS, currentChapter || 1));
-    var progress = Math.round((completed / TOTAL_CHAPTERS) * 100);
+    var completed = status === 'completed' ? total : Math.max(0, Math.min(total, currentChapter));
+    var nextChapter = Math.max(1, Math.min(total, currentChapter || 1));
+    var progress = Math.round((completed / total) * 100);
     var flow = VEDIC_LOADING_FLOW_PERSONAL;
+    var chapterMeta = getVedicChapterMetaAt(nextChapter);
     var message = status === 'completed'
       ? '베다 리포트 최종 편집을 마무리하고 있습니다...'
-      : String(flow[Math.max(0, Math.min(flow.length - 1, nextChapter - 1))] || '베다 챕터를 생성하는 중입니다...');
+      : String(chapterMeta.subtitle || flow[Math.max(0, Math.min(flow.length - 1, nextChapter - 1))] || '베다 챕터를 생성하는 중입니다...');
 
     var bar = qs('vdProgressBar');
     var text = qs('vdProgressText');
@@ -792,7 +902,7 @@
     var quote = qs('vdMysticQuote');
 
     if (bar) bar.style.width = progress + '%';
-    if (text) text.textContent = completed + ' / ' + TOTAL_CHAPTERS + ' 챕터';
+    if (text) text.textContent = completed + ' / ' + total + ' 챕터';
     if (num) num.textContent = 'Chapter ' + nextChapter;
     if (label) label.textContent = message;
     if (quote) {
@@ -1051,6 +1161,8 @@
     var chapterPlan = Array.isArray(preparedInfo && preparedInfo.chapterPlan) ? preparedInfo.chapterPlan.slice() : [];
     var totalChapters = Number((preparedInfo && preparedInfo.totalChapters) || chapterPlan.length || TOTAL_CHAPTERS);
     if (!Number.isFinite(totalChapters) || totalChapters <= 0) totalChapters = TOTAL_CHAPTERS;
+    state.chapterPlan = chapterPlan.slice();
+    state.totalChapters = totalChapters;
 
     if (!reportSessionId) {
       var prepared = await premiumAuthJson('/api/premium-report/prepare', {
@@ -1073,6 +1185,8 @@
       snapshotId = String(prepared.snapshotId || snapshotId || '');
       if (Array.isArray(prepared.chapterPlan) && prepared.chapterPlan.length) chapterPlan = prepared.chapterPlan.slice();
       if (Number(prepared.totalChapters) > 0) totalChapters = Number(prepared.totalChapters);
+      state.chapterPlan = chapterPlan.slice();
+      state.totalChapters = totalChapters;
     }
 
     var chapters = [];
@@ -1121,6 +1235,8 @@
             snapshotId = String(recovered.snapshotId || snapshotId || '');
             if (Array.isArray(recovered.chapterPlan) && recovered.chapterPlan.length) chapterPlan = recovered.chapterPlan.slice();
             if (Number(recovered.totalChapters) > 0) totalChapters = Number(recovered.totalChapters);
+            state.chapterPlan = chapterPlan.slice();
+            state.totalChapters = totalChapters;
             await delay(220);
             continue;
           }
@@ -1171,7 +1287,8 @@
       reportSessionId: reportSessionId,
       snapshotId: snapshotId,
       chapters: chapters,
-      chapterPlan: chapterPlan
+      chapterPlan: chapterPlan,
+      totalChapters: totalChapters
     };
   }
 
@@ -1307,19 +1424,9 @@
 
     ensureModeUi();
     updateStartUi();
-    var selectedMode = getSelectedMode();
-    var restored = loadVedicResult(getActiveProfile(), selectedMode);
-    if (restored) {
-      setVedicMode(restored.mode || selectedMode);
-      updateStartUi();
-      state.mode = String(restored.mode || selectedMode || 'personal');
-      state.reportId = String(restored.reportId || '');
-      state.downloadUrl = String(restored.downloadUrl || '');
-      state.chapters = Array.isArray(restored.chapters) ? restored.chapters.slice() : [];
-      renderResultScreen();
-    } else {
-      showOnly(hasProfile() ? 'vdStartScreen' : 'vdNoProfileScreen');
-    }
+    // 기본 동작은 항상 새 세션 시작으로 고정해 이전 결과 잔존을 방지한다.
+    resetVedicRuntimeState();
+    showOnly(hasProfile() ? 'vdStartScreen' : 'vdNoProfileScreen');
     modal.style.display = 'flex';
     modal.style.zIndex = '100120';
     document.body.style.overflow = 'hidden';
@@ -1371,6 +1478,8 @@
     state.chapters = [];
     state.quoteTick = 0;
     state.lastRequestBody = requestInput.body;
+    var executionStarted = false;
+    var executionSettled = false;
     logVedicStage('REQUEST_START', {
       mode: String(requestInput.body.mode || 'personal'),
       serviceKey: VEDIC_SERVICE_KEY,
@@ -1394,6 +1503,7 @@
         mode: String(requestInput.body.mode || 'personal'),
         transactionId: String(state.paymentContext && (state.paymentContext.transactionId || state.paymentContext.sourceTransactionId) || '')
       });
+      executionStarted = await startExecutionLifecycle();
 
       requestInput.body = attachPaymentContext(requestInput.body);
       setLoadingProgress({ currentChapter: 1, status: 'generating', message: '생성 전 데이터 점검 중...' });
@@ -1413,7 +1523,13 @@
           state.reportId = String(fallbackOnPreflight.reportId || '');
           state.downloadUrl = '';
           state.chapters = Array.isArray(fallbackOnPreflight.chapters) ? fallbackOnPreflight.chapters : [];
+          state.chapterPlan = Array.isArray(fallbackOnPreflight.chapterPlan) ? fallbackOnPreflight.chapterPlan.slice() : state.chapterPlan;
+          state.totalChapters = Number(fallbackOnPreflight.totalChapters || state.totalChapters || TOTAL_CHAPTERS);
           state.paymentContext = null;
+          if (executionStarted && !executionSettled) {
+            await completeExecutionLifecycle();
+            executionSettled = true;
+          }
           renderResultScreen();
           notify('프리미엄 리포트가 완성되었습니다.');
           return;
@@ -1445,7 +1561,13 @@
           state.reportId = String(fallbackRun.reportId || '');
           state.downloadUrl = '';
           state.chapters = Array.isArray(fallbackRun.chapters) ? fallbackRun.chapters : [];
+          state.chapterPlan = Array.isArray(fallbackRun.chapterPlan) ? fallbackRun.chapterPlan.slice() : state.chapterPlan;
+          state.totalChapters = Number(fallbackRun.totalChapters || state.totalChapters || TOTAL_CHAPTERS);
           state.paymentContext = null;
+          if (executionStarted && !executionSettled) {
+            await completeExecutionLifecycle();
+            executionSettled = true;
+          }
           renderResultScreen();
           notify('프리미엄 리포트가 완성되었습니다.');
           return;
@@ -1471,7 +1593,13 @@
           state.reportId = String(reportIdFallback.reportId || '');
           state.downloadUrl = '';
           state.chapters = Array.isArray(reportIdFallback.chapters) ? reportIdFallback.chapters : [];
+          state.chapterPlan = Array.isArray(reportIdFallback.chapterPlan) ? reportIdFallback.chapterPlan.slice() : state.chapterPlan;
+          state.totalChapters = Number(reportIdFallback.totalChapters || state.totalChapters || TOTAL_CHAPTERS);
           state.paymentContext = null;
+          if (executionStarted && !executionSettled) {
+            await completeExecutionLifecycle();
+            executionSettled = true;
+          }
           renderResultScreen();
           notify('프리미엄 리포트가 완성되었습니다.');
           return;
@@ -1490,17 +1618,37 @@
       if (!done && qs('vdLoadingScreen') && qs('vdLoadingScreen').style.display !== 'none') {
         setError('리포트 생성 중 문제가 발생했습니다.');
       }
+      if (done && executionStarted && !executionSettled) {
+        await completeExecutionLifecycle();
+        executionSettled = true;
+      }
     } catch (error) {
       try {
         console.error('[VedicBook] generation failed:', error);
       } catch (_) {}
       await attemptVedicAutoRefund('LOCAL_REPORT_FAILED: unhandled exception during vedic generation');
       state.paidGateKey = '';
+      if (executionStarted && !executionSettled) {
+        await failExecutionLifecycle(String(error && error.message || 'generation_failed'), false);
+        executionSettled = true;
+      }
       setError(String(error && error.message || '베다 리포트 생성 중 오류가 발생했습니다.'));
     } finally {
+      if (executionStarted && !executionSettled) {
+        await failExecutionLifecycle('generation_incomplete', false);
+      }
+      executionPayload = null;
+      clearExecutionHeartbeat();
       state.generating = false;
     }
   };
+
+  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+    window.addEventListener('beforeunload', function () {
+      if (!executionPayload) return;
+      failExecutionLifecycle('client_unload', true).catch(function () {});
+    });
+  }
 
   function buildLocalVedicPrintableHtml() {
     var profile = getActiveProfile() || {};
@@ -1672,11 +1820,15 @@
   };
 
   window.gotoVedicPremium = function () {
-    try { localStorage.removeItem(VEDIC_RESULT_STORAGE_KEY); } catch (_) {}
-    state.reportId = '';
-    state.downloadUrl = '';
-    state.chapters = [];
+    clearVedicResultCache();
+    resetVedicRuntimeState();
     window.openVedicBookModal();
+  };
+
+  window.resetVedicBookState = function () {
+    clearVedicResultCache();
+    resetVedicRuntimeState();
+    showOnly(hasProfile() ? 'vdStartScreen' : 'vdNoProfileScreen');
   };
 
   document.addEventListener('click', function (e) {

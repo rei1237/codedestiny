@@ -51,6 +51,9 @@
     activeChapter: 1
   };
 
+  var executionHeartbeatTimer = null;
+  var executionRuntimePayload = null;
+
   function qs(id) { return document.getElementById(id); }
 
   function qsa(root, selector) {
@@ -574,6 +577,93 @@
     }
   }
 
+  async function requestExecutionAction(action, payload, keepalive) {
+    var endpoint = '/api/billing/executions/' + String(action || '').trim();
+    if (!action) return { ok: false, status: 0, data: {} };
+    var res = await fetch(endpoint, {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+      keepalive: !!keepalive,
+      headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(payload || {})
+    });
+    var data = await res.json().catch(function () { return {}; });
+    return { ok: res.ok, status: res.status, data: data || {} };
+  }
+
+  function buildExecutionPayload(reasonCode, reasonMessage) {
+    if (!state.reportId) return null;
+    var txId = String(state.paymentContext && state.paymentContext.sourceTransactionId || '').trim();
+    var baseKey = String(state.idempotencyKey || ('lifebook:' + state.reportId)).trim();
+    var executionKey = ('lifebook:' + state.reportId + ':' + (txId || baseKey)).slice(0, 120);
+    return {
+      executionKey: executionKey,
+      featureKey: String(COIN_FEATURE_KEY || '').trim(),
+      cost: Number(COST_COINS || 0),
+      sourceTransactionId: txId,
+      timeoutSeconds: 900,
+      metadata: {
+        reportId: String(state.reportId || ''),
+        reportType: 'saju_life_book',
+        service: 'life-book'
+      },
+      reasonCode: reasonCode ? String(reasonCode || '').trim().slice(0, 80) : undefined,
+      reasonMessage: reasonMessage ? String(reasonMessage || '').trim().slice(0, 500) : undefined
+    };
+  }
+
+  function stopExecutionHeartbeat() {
+    if (executionHeartbeatTimer) {
+      clearInterval(executionHeartbeatTimer);
+      executionHeartbeatTimer = null;
+    }
+  }
+
+  function startExecutionHeartbeat() {
+    if (!executionRuntimePayload) return;
+    stopExecutionHeartbeat();
+    executionHeartbeatTimer = setInterval(function () {
+      if (!state.generating || !executionRuntimePayload) return;
+      requestExecutionAction('heartbeat', executionRuntimePayload).catch(function () {});
+    }, 20000);
+  }
+
+  async function startExecutionLifecycle() {
+    if (!state.paymentContext || !state.paymentContext.sourceTransactionId) return;
+    var payload = buildExecutionPayload();
+    if (!payload || !payload.executionKey || !payload.featureKey) return;
+    executionRuntimePayload = payload;
+    await requestExecutionAction('start', payload);
+    startExecutionHeartbeat();
+  }
+
+  async function completeExecutionLifecycle() {
+    if (!executionRuntimePayload) return;
+    try {
+      await requestExecutionAction('complete', executionRuntimePayload);
+    } catch (_) {
+    } finally {
+      stopExecutionHeartbeat();
+      executionRuntimePayload = null;
+    }
+  }
+
+  async function failExecutionLifecycle(reasonCode, reasonMessage, keepalive) {
+    if (!executionRuntimePayload) return;
+    var payload = Object.assign({}, executionRuntimePayload, {
+      reasonCode: String(reasonCode || 'execution_failed').trim().slice(0, 80),
+      reasonMessage: String(reasonMessage || 'LifeBook generation failed.').trim().slice(0, 500)
+    });
+    try {
+      await requestExecutionAction('fail', payload, !!keepalive);
+    } catch (_) {
+    } finally {
+      stopExecutionHeartbeat();
+      executionRuntimePayload = null;
+    }
+  }
+
   function buildLifeBookApiCandidates(pathnameWithQuery) {
     var tail = String(pathnameWithQuery || '').trim();
     if (!tail) tail = '/';
@@ -687,6 +777,20 @@
     try { sessionStorage.removeItem('__cd_lifebook_state_v1__'); } catch (_) {}
   }
 
+  function getLifeBookChapterMeta(chapter) {
+    var idx = Math.max(1, Number(chapter || 1));
+    var runtime = (state.chapterMeta && state.chapterMeta[idx]) ? state.chapterMeta[idx] : null;
+    var fallback = CHAPTER_DEFINITIONS[idx - 1] || {};
+    return {
+      title: String((runtime && runtime.title) || fallback.title || ('Chapter ' + idx)).trim(),
+      subtitle: String((runtime && runtime.subtitle) || fallback.subtitle || '').trim()
+    };
+  }
+
+  function getLifeBookChapterTitle(chapter) {
+    return getLifeBookChapterMeta(chapter).title;
+  }
+
   function syncStartPreviewChapters() {
     var modal = qs('lifeBookModal');
     if (!modal) return;
@@ -696,7 +800,7 @@
     if (!items || !items.length) return;
     for (var i = 0; i < items.length && i < CHAPTER_DEFINITIONS.length; i += 1) {
       var titleEl = items[i].querySelector('.lb-ch-title');
-      if (titleEl) titleEl.textContent = CHAPTER_DEFINITIONS[i].title;
+      if (titleEl) titleEl.textContent = getLifeBookChapterTitle(i + 1);
     }
   }
 
@@ -716,7 +820,7 @@
     var progressText = qs('lbProgressText');
 
     if (chapterNum) chapterNum.textContent = 'Chapter ' + chapter;
-    if (chapterText) chapterText.textContent = subtitle || CHAPTER_TITLES[chapter - 1] || ('Chapter ' + chapter);
+    if (chapterText) chapterText.textContent = subtitle || getLifeBookChapterTitle(chapter);
     if (quote) quote.textContent = MYSTIC_QUOTES[(chapter - 1) % MYSTIC_QUOTES.length];
 
     var completed = chapterCount();
@@ -754,7 +858,7 @@
       '<article class="lb-result-article">',
       '<header class="lb-result-article__head">',
       '<p class="lb-result-article__chapter">CHAPTER ' + chapter + '</p>',
-      '<h3 class="lb-result-article__title">' + escapeHtml(String(meta.title || CHAPTER_TITLES[chapter - 1] || '')) + '</h3>',
+      '<h3 class="lb-result-article__title">' + escapeHtml(String(meta.title || getLifeBookChapterTitle(chapter) || '')) + '</h3>',
       '</header>',
       '<div class="lb-result-article__body">' + markdownToHtml(text) + '</div>',
       '</article>'
@@ -832,7 +936,7 @@
       var chapter = Number(row.chapter || 0);
       if (chapter >= 1 && chapter <= TOTAL_CHAPTERS && typeof row.text === 'string' && row.text.trim()) {
         state.chapterTexts[chapter] = row.text;
-        state.chapterMeta[chapter] = row.chapterMeta || { title: CHAPTER_TITLES[chapter - 1] };
+        state.chapterMeta[chapter] = row.chapterMeta || { title: getLifeBookChapterTitle(chapter) };
       }
     }
     if (chapterCount() > 0) {
@@ -852,7 +956,7 @@
     logLifeBookStage('INPUT_NORMALIZE_START', { reportId: state.reportId });
     setLoadingStatusText('사주 명식 계산 중');
     logLifeBookStage('INPUT_NORMALIZE_SUCCESS', { reportId: state.reportId });
-    setLoadingProgress(1, CHAPTER_TITLES[0]);
+    setLoadingProgress(1, getLifeBookChapterTitle(1));
 
     var statusInfo = await loadExistingStatus(state.reportId);
     var startFrom = Number(statusInfo.completed || 0);
@@ -862,7 +966,7 @@
     for (var chapter = startFrom + 1; chapter <= TOTAL_CHAPTERS; chapter += 1) {
       var chapterRoman = ROMAN_NUMERALS[chapter - 1] || String(chapter);
       setLoadingStatusText(chapterRoman + ' 챕터 생성 중');
-      setLoadingProgress(chapter, CHAPTER_TITLES[chapter - 1]);
+      setLoadingProgress(chapter, getLifeBookChapterTitle(chapter));
 
       logLifeBookStage('API_GENERATION_START', { reportId: state.reportId, chapterId: 'chapter-' + String(chapter).padStart(2, '0') });
       var reqBody = Object.assign({}, state.payload, {
@@ -901,9 +1005,9 @@
       });
 
       state.chapterTexts[chapter] = String(res.data.text || '').trim();
-      state.chapterMeta[chapter] = res.data.chapterMeta || { title: CHAPTER_TITLES[chapter - 1] };
+      state.chapterMeta[chapter] = res.data.chapterMeta || { title: getLifeBookChapterTitle(chapter) };
       persistState();
-      setLoadingProgress(chapter + 1 > TOTAL_CHAPTERS ? TOTAL_CHAPTERS : chapter + 1, CHAPTER_TITLES[Math.min(TOTAL_CHAPTERS - 1, chapter)]);
+      setLoadingProgress(chapter + 1 > TOTAL_CHAPTERS ? TOTAL_CHAPTERS : chapter + 1, getLifeBookChapterTitle(Math.min(TOTAL_CHAPTERS, chapter + 1)));
     }
     setLoadingStatusText('PDF 편집 중');
     logLifeBookStage('PDF_RENDER_START', { reportId: state.reportId });
@@ -927,6 +1031,7 @@
     setGenerateButtonBusy(true);
 
     try {
+      await startExecutionLifecycle();
       await generateAllChapters(state.paymentContext);
       var totalChars = getTotalGeneratedChars();
       if (totalChars < LIFEBOOK_MIN_TOTAL_CHARS) {
@@ -934,6 +1039,7 @@
       }
       setLoadingStatusText('다운로드 준비 완료');
       logLifeBookStage('PDF_RENDER_SUCCESS', { reportId: state.reportId, source: state.generationSource || 'api' });
+      await completeExecutionLifecycle();
       state.paymentContext = null;
       renderResultScreen();
       persistState();
@@ -942,6 +1048,7 @@
       console.error('[LifeBook] generation failed:', err);
       logLifeBookStage('PDF_RENDER_FAILED', { reportId: state.reportId, message: String(err && err.message || '') });
       var errMsg = String(err && err.message || '');
+      await failExecutionLifecycle('generation_failed', errMsg);
       var shouldRefund = !!(state.paymentContext && /LOCAL_REPORT_FAILED|로컬\s*리포트\s*실패/i.test(errMsg));
       if (shouldRefund) {
         logLifeBookStage('REFUND_START', { reportId: state.reportId });
@@ -954,6 +1061,7 @@
         setErrorScreen(toSafeUserError(err));
       }
     } finally {
+      stopExecutionHeartbeat();
       state.generating = false;
       setGenerateButtonBusy(false);
     }
@@ -1087,7 +1195,7 @@
       var meta = state.chapterMeta[i] || {};
       chapterBlocks.push(
         '<section class="lb-print-chapter">'
-        + '<h1>' + escapeHtml(String(meta.title || CHAPTER_TITLES[i - 1] || ('Chapter ' + i))) + '</h1>'
+        + '<h1>' + escapeHtml(String(meta.title || getLifeBookChapterTitle(i) || ('Chapter ' + i))) + '</h1>'
         + markdownToHtml(text)
         + '</section>'
       );
@@ -1179,6 +1287,8 @@
   }
 
   function resetState() {
+    stopExecutionHeartbeat();
+    executionRuntimePayload = null;
     state.generating = false;
     state.paymentChecking = false;
     state.reportId = '';
@@ -1247,7 +1357,7 @@
     setGenerateButtonBusy(true);
     showOnly('lbLoadingScreen');
     setLoadingStatusText('결제 확인 중');
-    setLoadingProgress(1, CHAPTER_TITLES[0]);
+    setLoadingProgress(1, getLifeBookChapterTitle(1));
 
     ensureCoinGateAndGenerate().catch(function (err) {
       state.paymentChecking = false;
@@ -1309,6 +1419,11 @@
     if (modal && modal.style.display !== 'none') {
       window.closeLifeBookModal();
     }
+  });
+
+  window.addEventListener('beforeunload', function () {
+    if (!state.generating || !executionRuntimePayload) return;
+    void failExecutionLifecycle('client_disconnect', 'Browser closed before life-book completion.', true);
   });
 
   if (document.readyState === 'loading') {

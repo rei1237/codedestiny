@@ -66,6 +66,8 @@
     reportId: '',
     downloadUrl: '',
     chapters: [],
+    chapterPlan: [],
+    totalChapters: TOTAL_CHAPTERS,
     quoteTick: 0,
     paidGateKey: '',
     paymentContext: null,
@@ -107,6 +109,19 @@
 
   function safeParseJson(raw, fallback) {
     try { return JSON.parse(raw); } catch (_) { return fallback; }
+  }
+
+  function getAstroActiveChapterPlan() {
+    var total = Number(state.totalChapters || TOTAL_CHAPTERS);
+    if (!Number.isFinite(total) || total <= 0) total = TOTAL_CHAPTERS;
+    return Array.from({ length: total }).map(function (_, idx) {
+      var runtime = (Array.isArray(state.chapterPlan) && state.chapterPlan[idx]) ? state.chapterPlan[idx] : null;
+      var fallback = PERSONAL_CHAPTER_PREVIEW[idx] || {};
+      return {
+        title: String((runtime && (runtime.title || runtime.name)) || fallback.title || ('Chapter ' + (idx + 1))).trim(),
+        subtitle: String((runtime && (runtime.subtitle || runtime.goal)) || fallback.subtitle || '').trim()
+      };
+    });
   }
 
   function delay(ms) {
@@ -260,6 +275,87 @@
     } finally {
       if (timer) clearTimeout(timer);
     }
+  }
+
+  var executionHeartbeatTimer = null;
+  var executionPayload = null;
+
+  function clearExecutionHeartbeat() {
+    if (!executionHeartbeatTimer) return;
+    clearInterval(executionHeartbeatTimer);
+    executionHeartbeatTimer = null;
+  }
+
+  function buildExecutionPayload() {
+    var ctx = state.paymentContext && typeof state.paymentContext === 'object' ? state.paymentContext : null;
+    var sourceTransactionId = String(ctx && (ctx.sourceTransactionId || ctx.transactionId) || '').trim();
+    if (!sourceTransactionId) return null;
+    var reportId = String(state.reportId || '').trim();
+    if (!reportId) reportId = Date.now().toString(36);
+    return {
+      serviceKey: 'astro-book-pdf',
+      featureKey: ASTRO_COIN_FEATURE_KEY,
+      executionKey: 'astro-book-pdf:' + reportId + ':' + sourceTransactionId,
+      sourceTransactionId: sourceTransactionId,
+      metadata: {
+        mode: String(state.mode || 'personal'),
+        reportId: reportId,
+        requestId: String(ctx && ctx.requestId || '')
+      }
+    };
+  }
+
+  async function requestExecutionAction(action, body, useKeepalive) {
+    if (!body || !body.executionKey || !body.sourceTransactionId) return false;
+    try {
+      var res = await fetch('/api/billing/executions/' + String(action || '').trim(), {
+        method: 'POST',
+        credentials: 'include',
+        cache: 'no-store',
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify(body),
+        keepalive: !!useKeepalive
+      });
+      return !!(res && res.ok);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  async function startExecutionLifecycle() {
+    var payload = buildExecutionPayload();
+    if (!payload) {
+      executionPayload = null;
+      clearExecutionHeartbeat();
+      return false;
+    }
+    var started = await requestExecutionAction('start', payload, false);
+    if (!started) return false;
+    executionPayload = payload;
+    clearExecutionHeartbeat();
+    executionHeartbeatTimer = setInterval(function () {
+      if (!executionPayload) return;
+      requestExecutionAction('heartbeat', executionPayload, false).catch(function () {});
+    }, 20000);
+    return true;
+  }
+
+  async function completeExecutionLifecycle() {
+    if (!executionPayload) return false;
+    var payload = executionPayload;
+    clearExecutionHeartbeat();
+    executionPayload = null;
+    return requestExecutionAction('complete', payload, false);
+  }
+
+  async function failExecutionLifecycle(reason, useKeepalive) {
+    if (!executionPayload) return false;
+    var payload = Object.assign({}, executionPayload, {
+      reason: String(reason || 'generation_failed').trim() || 'generation_failed'
+    });
+    clearExecutionHeartbeat();
+    executionPayload = null;
+    return requestExecutionAction('fail', payload, useKeepalive === true);
   }
 
   async function premiumAuthJson(pathname, body, options) {
@@ -699,6 +795,8 @@
     state.reportId = '';
     state.downloadUrl = '';
     state.chapters = [];
+    state.chapterPlan = [];
+    state.totalChapters = TOTAL_CHAPTERS;
     state.quoteTick = 0;
   }
 
@@ -868,7 +966,7 @@
   }
 
   function updateDotTitles(mode) {
-    var labels = PERSONAL_CHAPTER_PREVIEW;
+    var labels = getAstroActiveChapterPlan();
     var modal = qs('astroBookModal');
     var dots = qsa(modal, '.ab-ch-dot');
     for (var i = 0; i < dots.length; i += 1) {
@@ -880,8 +978,9 @@
   }
 
   function setLoadingProgress(payload) {
-    var total = Number(payload && payload.totalChapters || TOTAL_CHAPTERS);
+    var total = Number(payload && payload.totalChapters || state.totalChapters || TOTAL_CHAPTERS);
     if (!Number.isFinite(total) || total <= 0) total = TOTAL_CHAPTERS;
+    state.totalChapters = total;
     var currentChapter = Number(payload && payload.currentChapter || 0);
     var status = String(payload && payload.status || 'generating');
     var completed = status === 'completed' ? total : Math.max(0, Math.min(total, currentChapter));
@@ -1205,6 +1304,8 @@
     var chapterPlan = Array.isArray(preparedInfo && preparedInfo.chapterPlan) ? preparedInfo.chapterPlan.slice() : [];
     var totalChapters = Number((preparedInfo && preparedInfo.totalChapters) || chapterPlan.length || TOTAL_CHAPTERS);
     if (!Number.isFinite(totalChapters) || totalChapters <= 0) totalChapters = TOTAL_CHAPTERS;
+    state.chapterPlan = chapterPlan.slice();
+    state.totalChapters = totalChapters;
 
     if (!reportSessionId) {
       var prepared = await premiumAuthJson('/api/premium-report/prepare', {
@@ -1227,6 +1328,8 @@
       snapshotId = String(prepared.snapshotId || snapshotId || '');
       if (Array.isArray(prepared.chapterPlan) && prepared.chapterPlan.length) chapterPlan = prepared.chapterPlan.slice();
       if (Number(prepared.totalChapters) > 0) totalChapters = Number(prepared.totalChapters);
+      state.chapterPlan = chapterPlan.slice();
+      state.totalChapters = totalChapters;
     }
 
     var chapters = [];
@@ -1283,6 +1386,8 @@
             snapshotId = String(recovered.snapshotId || snapshotId || '');
             if (Array.isArray(recovered.chapterPlan) && recovered.chapterPlan.length) chapterPlan = recovered.chapterPlan.slice();
             if (Number(recovered.totalChapters) > 0) totalChapters = Number(recovered.totalChapters);
+            state.chapterPlan = chapterPlan.slice();
+            state.totalChapters = totalChapters;
             await delay(220);
             continue;
           }
@@ -1339,7 +1444,8 @@
       reportSessionId: reportSessionId,
       snapshotId: snapshotId,
       chapters: chapters,
-      chapterPlan: chapterPlan
+      chapterPlan: chapterPlan,
+      totalChapters: totalChapters
     };
   }
 
@@ -1378,8 +1484,8 @@
   function renderChapterPreviewList(mode) {
     var list = document.querySelector('#abStartScreen .lb-start__ch-list');
     if (!list) return;
-    var labels = PERSONAL_CHAPTER_PREVIEW;
-    var total = Math.max(TOTAL_CHAPTERS, labels.length);
+    var labels = getAstroActiveChapterPlan();
+    var total = labels.length;
     list.innerHTML = Array.from({ length: total }).map(function (_, idx) {
       var chapter = idx + 1;
       var entry = labels[idx] || { title: 'Chapter ' + chapter, subtitle: '챕터 세부 전략' };
@@ -1559,6 +1665,8 @@
     state.quoteTick = 0;
     var generationBody = requestInput.body;
     state.lastRequestBody = generationBody;
+    var executionStarted = false;
+    var executionSettled = false;
 
     showOnly('abLoadingScreen');
     activateAstroCinematicLoading();
@@ -1570,6 +1678,7 @@
         showOnly('abStartScreen');
         return;
       }
+      executionStarted = await startExecutionLifecycle();
 
       generationBody = await enrichRequestBodyWithAstroSeed(generationBody);
       state.lastRequestBody = generationBody;
@@ -1589,6 +1698,9 @@
         setError(String(preflight.message || '생성 전 데이터 점검에 실패했습니다.'));
         return;
       }
+      state.chapterPlan = Array.isArray(preflight.chapterPlan) ? preflight.chapterPlan.slice() : [];
+      state.totalChapters = Number(preflight.totalChapters || state.totalChapters || TOTAL_CHAPTERS);
+      renderChapterPreviewList(state.mode);
 
       setLoadingProgress({ currentChapter: 0, status: 'generating', message: '리포트 생성을 시작합니다...' });
 
@@ -1608,7 +1720,13 @@
           state.reportId = String(fallbackRun.reportId || '');
           state.downloadUrl = '';
           state.chapters = Array.isArray(fallbackRun.chapters) ? fallbackRun.chapters : [];
+          state.chapterPlan = Array.isArray(fallbackRun.chapterPlan) ? fallbackRun.chapterPlan.slice() : state.chapterPlan;
+          state.totalChapters = Number(fallbackRun.totalChapters || state.totalChapters || TOTAL_CHAPTERS);
           state.paymentContext = null;
+          if (executionStarted && !executionSettled) {
+            await completeExecutionLifecycle();
+            executionSettled = true;
+          }
           renderResultScreen();
           return;
         }
@@ -1627,7 +1745,13 @@
           state.reportId = String(reportIdFallback.reportId || '');
           state.downloadUrl = '';
           state.chapters = Array.isArray(reportIdFallback.chapters) ? reportIdFallback.chapters : [];
+          state.chapterPlan = Array.isArray(reportIdFallback.chapterPlan) ? reportIdFallback.chapterPlan.slice() : state.chapterPlan;
+          state.totalChapters = Number(reportIdFallback.totalChapters || state.totalChapters || TOTAL_CHAPTERS);
           state.paymentContext = null;
+          if (executionStarted && !executionSettled) {
+            await completeExecutionLifecycle();
+            executionSettled = true;
+          }
           renderResultScreen();
           return;
         }
@@ -1640,6 +1764,10 @@
       if (!done && qs('abLoadingScreen') && qs('abLoadingScreen').style.display !== 'none') {
         setError('리포트 생성 중 문제가 발생했습니다.');
       }
+      if (done && executionStarted && !executionSettled) {
+        await completeExecutionLifecycle();
+        executionSettled = true;
+      }
     } catch (error) {
       logAstroDebug('GenerateUnhandledException', {
         message: String(error && error.message || error || 'unknown'),
@@ -1647,11 +1775,27 @@
       }, 'error');
       await attemptAstroAutoRefund('점성술 프리미엄 예외 자동 환불');
       state.paidGateKey = '';
+      if (executionStarted && !executionSettled) {
+        await failExecutionLifecycle(String(error && error.message || 'generation_failed'), false);
+        executionSettled = true;
+      }
       setError(String(error && error.message || '점성술 리포트 생성 중 오류가 발생했습니다.'));
     } finally {
+      if (executionStarted && !executionSettled) {
+        await failExecutionLifecycle('generation_incomplete', false);
+      }
+      executionPayload = null;
+      clearExecutionHeartbeat();
       state.generating = false;
     }
   };
+
+  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+    window.addEventListener('beforeunload', function () {
+      if (!executionPayload) return;
+      failExecutionLifecycle('client_unload', true).catch(function () {});
+    });
+  }
 
   function buildLocalAstroPrintableHtml() {
     var profile = getActiveProfile() || {};
