@@ -29,9 +29,8 @@ const __lazyActionLoaders = {
   agreeAndCalculate: () => __ensureSajuCoreScripts(),
   calculate: () => __ensureSajuCoreScripts(),
   runCompat: () => __ensureSajuCoreScripts(),
-  openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js?v=20260511-physio-stallfix1').then(() => __loadScriptOnce('PhysiognomyUI.js?v=20260511-physio-stallfix1')),
+  openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js').then(() => __loadScriptOnce('PhysiognomyUI.js')),
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js'),
-  openJuyukModal: () => __loadScriptOnce('/js/iching-modal.js'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
   openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js'),
   openDreamModal: () => __loadScriptOnce('/lib/ai-engine.js').then(() => __loadScriptOnce('/js/dream-ledger.js')),
@@ -45,23 +44,20 @@ const __lazyActionLoaders = {
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
   openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=20260414-tarot-qualityfix2'),
   openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=20260414-tarot-qualityfix2'),
-  openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing')),
+  openTarotHealingPage: () => __loadScriptOnce('/js/tarot-healing-experience.js?v=20260414-tarot-qualityfix2'),
+  openTarotHealingModal: () => __loadScriptOnce('/js/tarot-healing-experience.js?v=20260414-tarot-qualityfix2'),
   openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260414-tarot-qualityfix2'),
   openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260414-tarot-qualityfix2'),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
-  gotoZiweiPremium: () => __loadScriptOnce('/js/ziwei-book.js?v=build-1779774393049'),
-  gotoAstrologyPremium: () => __loadScriptOnce('/js/astro-book.js?v=build-1779774393049'),
-  gotoSukuyoPremium: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-1779774393049'),
-  gotoVedicPremium: () => __loadScriptOnce('/js/vedic-book.js?v=build-1779774393049'),
-  gotoNamingPremium: () => Promise.resolve().then(() => {
-    window.location.href = '/myungwun_final.html';
-  }),
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=20260512-quantum-v4').then(() => {
+  gotoZiweiPremium: () => __loadScriptOnce('/js/ziwei-book.js?v=build-1779776465792'),
+  gotoAstrologyPremium: () => __loadScriptOnce('/js/astro-book.js?v=build-1779776465792'),
+  gotoSukuyoPremium: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-1779776465792'),
+  gotoVedicPremium: () => __loadScriptOnce('/js/vedic-book.js?v=build-1779776465792'),
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=20260413-sibylfix1').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
-  openSajuNewYearModal: () => __loadScriptOnce('/js/saju-new-year.js?v=build-1779774393049'),
-  openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=build-1779774393049'),
-  openLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-1779774393049')
+  openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=build-1779776465792'),
+  openLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-1779776465792')
 };
 
 function __ensureSajuCoreScripts() {
@@ -72,18 +68,6 @@ function __ensureSajuCoreScripts() {
 }
 
 const __lazyActionState = {};
-const __INDEX_INLINE_RUNTIME_SRC = '/js/core/index-inline-runtime.js?v=build-1779774393049';
-const __MOBILE_BACKSTACK_SRC = '/js/mobile-backstack-navigation.js?v=build-1779774393049';
-
-function __ensureMobileBackstackLoaded() {
-  return __loadScriptOnce(__MOBILE_BACKSTACK_SRC).catch((err) => {
-    console.error('[uiBindings] mobile-backstack lazy load failed:', err);
-  });
-}
-
-if (typeof window !== 'undefined') {
-  __ensureMobileBackstackLoaded();
-}
 
 /** INP: 무거운 data-action 핸들러를 다음 태스크로 미룸 (index-inline-runtime 의 __CD_DEFER_INP_ACTIONS 와 동일) */
 const __CD_DEFER_INP_ACTIONS = new Set([
@@ -157,173 +141,11 @@ function __loadScriptOnce(src) {
   });
 }
 
-function __ensureIndexInlineRuntimeLoaded() {
-  return __loadScriptOnce(__INDEX_INLINE_RUNTIME_SRC);
-}
-
 function __resolveEventElement(event) {
   if (!event || !event.target) return null;
   if (event.target instanceof Element) return event.target;
   if (event.target.parentElement instanceof Element) return event.target.parentElement;
   return null;
-}
-
-const __CD_COLLECTION_TAP_GUARD = Object.freeze({
-  moveThresholdPx: 8,
-  moveDetectPx: 2,
-  verticalBlockPx: 6,
-  recentScrollBlockMs: 200,
-  maxTapDurationMs: 500,
-  dragSuppressMs: 200,
-  ghostClickLockMs: 200
-});
-
-const __cdCollectionTapGuardState = {
-  starts: new Map(),
-  suppressUntil: 0,
-  lastScrollAt: 0
-};
-
-function __cdIsCollectionTapGuardTarget(target) {
-  if (!target || !target.closest) return false;
-  if (target.closest('.fc-toggle-btn, .feat-collection__header, .tarot-collection__header')) return false;
-  if (target.closest('[data-action="toggleCollection"]')) return false;
-  return !!target.closest(
-    '.feature-card-grid .tarot-tile, .feature-card-grid .prem-card, .feature-card-grid .lifebook-tile, .feature-card-grid .lovebible-tile, .feature-card-grid .feature-card__launch, .feature-card-grid .feature-card__cta, .feat-collection__grid .tarot-tile, .tarot-collection__grid .tarot-tile, .feat-collection__grid .prem-card, .tarot-collection__grid .prem-card, .feat-collection__grid .lifebook-tile, .feat-collection__grid .lovebible-tile, .tarot-collection__grid .lifebook-tile, .tarot-collection__grid .lovebible-tile'
-  );
-}
-
-function __cdSetCollectionTapSuppressed(durationMs) {
-  const until = Date.now() + Math.max(0, Number(durationMs) || 0);
-  if (until > __cdCollectionTapGuardState.suppressUntil) {
-    __cdCollectionTapGuardState.suppressUntil = until;
-  }
-}
-
-function __cdShouldSuppressCollectionTapEvent(event, target) {
-  const resolvedTarget = target || __resolveEventElement(event);
-  if (!__cdIsCollectionTapGuardTarget(resolvedTarget)) return false;
-  if (event && event.type === 'click' && typeof event.detail === 'number' && event.detail === 0) return false;
-  if (Date.now() - __cdCollectionTapGuardState.lastScrollAt < __CD_COLLECTION_TAP_GUARD.recentScrollBlockMs) {
-    return true;
-  }
-  return Date.now() < __cdCollectionTapGuardState.suppressUntil;
-}
-
-function __cdBindCollectionTapGuard(root) {
-  if (!root || root.__cdCollectionTapGuardBound) return;
-  root.__cdCollectionTapGuardBound = true;
-
-  const handleTouchStart = (event) => {
-    const target = __resolveEventElement(event);
-    if (!__cdIsCollectionTapGuardTarget(target)) return;
-    if (!event.touches || !event.touches.length) return;
-
-    for (let i = 0; i < event.touches.length; i += 1) {
-      const t = event.touches[i];
-      __cdCollectionTapGuardState.starts.set(t.identifier, {
-        x: t.clientX,
-        y: t.clientY,
-        startedAt: Date.now(),
-        moved: false,
-        hadMoveEvent: false,
-        maxDx: 0,
-        maxDy: 0
-      });
-    }
-  };
-
-  const handleTouchMove = (event) => {
-    if (!event.changedTouches || !event.changedTouches.length) return;
-    let movedAny = false;
-    for (let i = 0; i < event.changedTouches.length; i += 1) {
-      const t = event.changedTouches[i];
-      const start = __cdCollectionTapGuardState.starts.get(t.identifier);
-      if (!start) continue;
-      const dx = Math.abs(t.clientX - start.x);
-      const dy = Math.abs(t.clientY - start.y);
-      if (dx > start.maxDx) start.maxDx = dx;
-      if (dy > start.maxDy) start.maxDy = dy;
-      if (dx > __CD_COLLECTION_TAP_GUARD.moveDetectPx || dy > __CD_COLLECTION_TAP_GUARD.moveDetectPx) {
-        start.hadMoveEvent = true;
-      }
-      if (start.moved) continue;
-      if (dx > __CD_COLLECTION_TAP_GUARD.moveThresholdPx || dy > __CD_COLLECTION_TAP_GUARD.moveThresholdPx) {
-        start.moved = true;
-        movedAny = true;
-        continue;
-      }
-      if (dy >= __CD_COLLECTION_TAP_GUARD.verticalBlockPx && dy >= dx) {
-        start.moved = true;
-        movedAny = true;
-      }
-    }
-    if (movedAny) {
-      __cdSetCollectionTapSuppressed(__CD_COLLECTION_TAP_GUARD.dragSuppressMs);
-    }
-  };
-
-  const handleTouchEndLike = (event) => {
-    if (!event.changedTouches || !event.changedTouches.length) return;
-    let movedAny = false;
-    const now = Date.now();
-    for (let i = 0; i < event.changedTouches.length; i += 1) {
-      const t = event.changedTouches[i];
-      const start = __cdCollectionTapGuardState.starts.get(t.identifier);
-      if (start) {
-        const duration = start.startedAt ? (now - start.startedAt) : 0;
-        const verticalDominant = start.maxDy >= __CD_COLLECTION_TAP_GUARD.verticalBlockPx && start.maxDy >= start.maxDx;
-        if (
-          start.moved
-          || start.hadMoveEvent
-          || verticalDominant
-          || duration > __CD_COLLECTION_TAP_GUARD.maxTapDurationMs
-          || (now - __cdCollectionTapGuardState.lastScrollAt) < __CD_COLLECTION_TAP_GUARD.recentScrollBlockMs
-        ) {
-          movedAny = true;
-        }
-      }
-      __cdCollectionTapGuardState.starts.delete(t.identifier);
-    }
-    if (movedAny) {
-      __cdSetCollectionTapSuppressed(__CD_COLLECTION_TAP_GUARD.ghostClickLockMs);
-    }
-  };
-
-  const markScroll = () => {
-    __cdCollectionTapGuardState.lastScrollAt = Date.now();
-    __cdSetCollectionTapSuppressed(__CD_COLLECTION_TAP_GUARD.recentScrollBlockMs);
-  };
-
-  root.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
-  root.addEventListener('touchmove', handleTouchMove, { capture: true, passive: true });
-  root.addEventListener('touchend', handleTouchEndLike, { capture: true, passive: true });
-  root.addEventListener('touchcancel', handleTouchEndLike, { capture: true, passive: true });
-  root.addEventListener('scroll', markScroll, { capture: true, passive: true });
-
-  if (typeof window !== 'undefined' && !window.__cdCollectionTapScrollGuardBound) {
-    window.__cdCollectionTapScrollGuardBound = true;
-    window.addEventListener('scroll', markScroll, { capture: true, passive: true });
-  }
-
-  if (typeof window !== 'undefined' && !window.__cdCollectionTapClickGuardBound) {
-    window.__cdCollectionTapClickGuardBound = true;
-    window.addEventListener('click', (event) => {
-      const target = __resolveEventElement(event);
-      if (!target || !__cdShouldSuppressCollectionTapEvent(event, target)) return;
-      if (event.cancelable) event.preventDefault();
-      event.stopPropagation();
-      if (typeof event.stopImmediatePropagation === 'function') {
-        event.stopImmediatePropagation();
-      }
-    }, { capture: true, passive: false });
-  }
-
-  if (typeof window !== 'undefined') {
-    window.__cdShouldSuppressCollectionClick = function __cdShouldSuppressCollectionClick(event, target) {
-      return __cdShouldSuppressCollectionTapEvent(event, target || __resolveEventElement(event));
-    };
-  }
 }
 
 function parseArgs(raw) {
@@ -348,41 +170,13 @@ function __callActionWithConfig(action, actionEl, event, args) {
 function __invokeAction(action, actionEl, event) {
   const args = parseArgs(actionEl.getAttribute('data-action-args'));
 
-  if ((typeof window !== 'undefined') && !window.__cdMobileNav) {
-    __ensureMobileBackstackLoaded();
-  }
-
-  try {
-    if (typeof window !== 'undefined' && window.__cdMobileNav && typeof window.__cdMobileNav.onActionInvoke === 'function') {
-      window.__cdMobileNav.onActionInvoke(action, actionEl || null);
-    }
-  } catch (_) {}
-
   const run = () => {
     const out = __callActionWithConfig(action, actionEl, event, args);
 
-    const hadFunction = typeof window !== 'undefined' && typeof window[action] === 'function';
-
     const loader = __lazyActionLoaders[action];
-
-    // Legacy runtime is now delayed; if an action is missing, load once and retry.
-    if (!loader && !hadFunction && out === undefined) {
-      const fallbackKey = '__index_inline_runtime__';
-      if (!__lazyActionState[fallbackKey]) {
-        __lazyActionState[fallbackKey] = __ensureIndexInlineRuntimeLoaded().catch((err) => {
-          console.error('[uiBindings] index-inline-runtime lazy load failed:', err);
-        });
-      }
-
-      __lazyActionState[fallbackKey].then(() => {
-        if (typeof window[action] === 'function') {
-          __callActionWithConfig(action, actionEl, event, args);
-        }
-      });
-      return;
-    }
-
     if (!loader) return;
+
+    const hadFunction = typeof window !== 'undefined' && typeof window[action] === 'function';
 
     // If the function already exists, avoid redundant lazy-loading + retry loops.
     // Note: some actions (e.g. `openAnimalTotemModal`) might exist as stubs before
@@ -404,12 +198,8 @@ function __invokeAction(action, actionEl, event) {
       const tryInvokeOnceWhenReady = () => {
         if (typeof window[action] !== 'function') {
           if (attempt >= maxAttempts) {
-            if (action === 'openOlympusOracleModal') {
-              if (typeof window.openFortuneFromProfile === 'function') {
-                window.openFortuneFromProfile('olympus');
-              } else if (typeof window._dpOpenFortuneType === 'function') {
-                window._dpOpenFortuneType('olympus');
-              }
+            if (action === 'openOlympusOracleModal' && typeof window._dpOpenFortuneType === 'function') {
+              window._dpOpenFortuneType('olympus');
             }
             return;
           }
@@ -423,12 +213,8 @@ function __invokeAction(action, actionEl, event) {
         try {
           __callActionWithConfig(action, actionEl, event, args);
         } catch (err) {
-          if (action === 'openOlympusOracleModal') {
-            if (typeof window.openFortuneFromProfile === 'function') {
-              window.openFortuneFromProfile('olympus');
-            } else if (typeof window._dpOpenFortuneType === 'function') {
-              window._dpOpenFortuneType('olympus');
-            }
+          if (action === 'openOlympusOracleModal' && typeof window._dpOpenFortuneType === 'function') {
+            window._dpOpenFortuneType('olympus');
           } else {
             throw err;
           }
@@ -452,11 +238,6 @@ function bindEventAction(root, eventName, attrName) {
     if (!target) return;
     const actionEl = target.closest(`[${attrName}]`);
     if (!actionEl) return;
-
-    if ((eventName === 'touchend' || eventName === 'mouseup') && __cdShouldSuppressCollectionTapEvent(event, actionEl)) {
-      if (event.cancelable) event.preventDefault();
-      return;
-    }
 
     const action = actionEl.getAttribute(attrName);
     if (!action) return;
@@ -550,6 +331,7 @@ function __hydrateCollectionImagesChunked(collection) {
     return;
   }
 
+  const grid = collection.querySelector('.feat-collection__grid, .tarot-collection__grid');
   let observer = collection.__cdCollectionImageObserver;
   if (!observer) {
     observer = new IntersectionObserver((entries, obs) => {
@@ -563,9 +345,8 @@ function __hydrateCollectionImagesChunked(collection) {
         hydrateWrap(wrap);
       }
     }, {
-      // Use viewport root for stable behavior on mobile where container-root IO can miss callbacks.
-      root: null,
-      rootMargin: '120px 0px',
+      root: grid || null,
+      rootMargin: '96px 0px',
       threshold: 0.01
     });
     collection.__cdCollectionImageObserver = observer;
@@ -577,27 +358,10 @@ function __hydrateCollectionImagesChunked(collection) {
     if (wrap.dataset) wrap.dataset.cdImgObserved = '1';
     observer.observe(wrap);
   }, { minBatch: 2, maxBatch: 10, budgetMs: 7 });
-
-  if (collection.__cdCollectionImageFallbackTimer) {
-    clearTimeout(collection.__cdCollectionImageFallbackTimer);
-  }
-  collection.__cdCollectionImageFallbackTimer = setTimeout(() => {
-    collection.__cdCollectionImageFallbackTimer = null;
-    if (collection.getAttribute('data-collection-open') !== 'true') return;
-    __runChunked(wraps, (wrap) => {
-      if (!wrap || wrap.querySelector('img.tarot-tile__img')) return;
-      if (wrap.dataset) delete wrap.dataset.cdImgObserved;
-      hydrateWrap(wrap);
-    }, { minBatch: 2, maxBatch: 8, budgetMs: 7 });
-  }, 420);
 }
 
 function __releaseCollectionImagesChunked(collection) {
   if (!collection) return;
-  if (collection.__cdCollectionImageFallbackTimer) {
-    clearTimeout(collection.__cdCollectionImageFallbackTimer);
-    collection.__cdCollectionImageFallbackTimer = null;
-  }
   const observer = collection.__cdCollectionImageObserver;
   if (observer && typeof observer.disconnect === 'function') {
     observer.disconnect();
@@ -629,8 +393,6 @@ function __releaseCollectionImagesChunked(collection) {
 
 export function bindGlobalActions(root) {
   if (!root || typeof root.addEventListener !== 'function') return;
-  __cdBindCollectionTapGuard(root);
-
   if (typeof window !== 'undefined') {
     // Do not bind twice; a non-module fallback may already be active.
     if (window.__codeDestinyGlobalActionsBound === 'uiBindings') return;
@@ -643,11 +405,6 @@ export function bindGlobalActions(root) {
     if (!target) return;
     const actionEl = target.closest('[data-action]');
     if (!actionEl) return;
-
-    if (__cdShouldSuppressCollectionTapEvent(event, actionEl)) {
-      if (event.cancelable) event.preventDefault();
-      return;
-    }
 
     const action = actionEl.getAttribute('data-action');
     if (!action) return;

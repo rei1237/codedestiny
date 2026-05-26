@@ -1,1893 +1,1032 @@
+/**
+ * 연애 비책 v2 — 운명의 설계도
+ * 사주 기반 AI 연애 전략 10챕터 리포트 + PDF 다운로드
+ * CODE-DESTINY Premium
+ */
 (function () {
   'use strict';
 
-  var TOTAL_CHAPTERS_BY_MODE = {
-    solo: 7,
-    compatibility: 8,
-  };
-  var API_TIMEOUT_MS = 140000;
-  var LOVE_STATE_STORAGE_KEY = '__cd_love_secret_state_v4__';
-  var LOVE_API_BASE = '/api/love-secret';
-  var MODE_SOLO = 'solo';
-  var MODE_COMPAT = 'compatibility';
-
-  var MODE_COST = {
-    solo: 300,
-    compatibility: 400,
-  };
-
-  var MODE_REASON = {
-    solo: '연애 비책 생성 (7챕터 · 솔로)',
-    compatibility: '연애 비책 생성 (8챕터 · 궁합)',
-  };
-
-  var MODE_FEATURE_KEY = {
-    solo: 'premium_pdf_saju_love_secret',
-    compatibility: 'premium_pdf_saju_love_secret_compat',
-  };
-
-  var QUOTES = [
-    '사주의 여덟 글자에서 사랑의 반복 패턴을 해독하는 중입니다...',
-    '일간·배우자궁·오행 불균형을 정밀 교차분석하는 중입니다...',
-    '대운·세운·월운 타이밍을 연애 실행 전략으로 번역하고 있습니다...',
-    '관계 위기 시그널과 회복 루틴을 챕터 단위로 집필하고 있습니다...',
-    '당신에게 맞는 사랑의 마스터플랜을 완성하는 중입니다...'
+  var CHAPTER_TITLES = [
+    '🔑 본연의 연애 자아: 나도 몰랐던 사랑의 본능',
+    '💘 치명적 매력과 페로몬: 이성을 끌어당기는 나의 무기',
+    '💑 두 사람의 사주 궁합: 우리는 운명인가',
+    '⚔️ 밀당 전략서: 상대방 심리를 꿰뚫는 작전 지도',
+    '📅 시기별 연애 운의 흐름: 운명이 허락하는 그날',
+    '🌑 연애 리스크: 충돌 지점과 금기 지도',
+    '🔥 육체적 궁합: 두 사람의 감각 에너지 호환성',
+    '📲 현대적 상황별 비책: 디지털 시대의 연애 전략',
+    '💍 결혼 시기: 언제, 누구와 정착할 것인가',
+    '🌿 개운 처방전: 두 사람의 사랑을 부르는 비책',
+    '🌊 속궁합 완전 해석: 조후와 십성으로 본 깊은 궁합의 비밀',
   ];
 
-  var SOLO_CHAPTER_TITLES = [
-    '본연의 연애 자아 — 나는 어떤 사랑을 하는 사람인가',
-    '치명적 매력과 페로몬 — 나의 연애 매력 코드',
-    '운명의 상대방 리포트 — 나에게 맞는 사람과 피해야 할 사람',
-    '연애 패턴 분석 — 왜 비슷한 사랑을 반복하는가',
-    '결혼운과 장기 인연 — 사랑이 현실이 되는 조건',
-    '사랑의 운 흐름 — 대운·세운으로 보는 연애 타이밍',
-    '실전 연애 전략 — 사랑을 얻고 지키는 비책'
+  var CHAPTER_SUBTITLES = [
+    '나도 몰랐던 사랑의 본능을 해독하다',
+    '이성이 나를 떠날 수 없게 만드는 비밀',
+    '두 사람의 오행·일주·충합 궁합 완전 분석',
+    '상대방 심리를 꿰뚫는 밀당 작전 지도',
+    '사랑을 잡는 황금 타이밍',
+    '충돌 지점과 금기를 미리 아는 연애 지도',
+    '두 사람의 감각 에너지 호환성 진단',
+    '현대 연애 플랫폼 완전 공략',
+    '언제, 누구와 정착할 것인가',
+    '두 사람의 사랑을 부르는 개운 비책',
+    '조후·수화 균형·십성으로 판정하는 깊은 궁합',
   ];
 
-  var COMPAT_CHAPTER_TITLES = [
-    '두 사람의 궁합 총론 — 이 관계의 기본 구조',
-    '서로의 연애 자아 — 사랑 방식의 차이와 공통점',
-    '끌림과 매력 궁합 — 왜 서로에게 끌리는가',
-    '관계 패턴 분석 — 두 사람은 왜 싸우고 왜 다시 끌리는가',
-    '결혼 궁합과 장기 인연 — 함께 살아갈 수 있는 관계인가',
-    '속궁합과 친밀감 — 몸과 마음의 밀착도',
-    '두 사람의 운 흐름 — 연애·결혼·이별·재회 타이밍',
-    '최종 궁합 비책 — 이 관계를 어떻게 다뤄야 하는가'
+  var LOADING_MSGS = [
+    '일간(日干)의 연애 본능을 분석하는 중...',
+    '도화살과 홍염살을 탐지하는 중...',
+    '배우자궁(일지) 이상형을 프로파일링하는 중...',
+    '밀당 전략과 공략 키워드를 구성하는 중...',
+    '대운·세운 연애 타이밍을 계산하는 중...',
+    '연애 리스크와 카르마를 분석하는 중...',
+    '섹슈얼 에너지와 궁합을 해석하는 중...',
+    '현대 연애 시나리오별 비책을 작성하는 중...',
+    '결혼 최적 시기와 배우자 분석 중...',
+    '개운 처방전을 완성하는 중...',
+    '조후·십성·속궁합을 최종 해석하는 중...',
   ];
 
-  var state = {
-    generating: false,
-    coinGatePending: false,
-    reportId: '',
-    paidReportId: '',
-    paymentContext: null,
-    refundInFlight: false,
-    payload: null,
-    chapterTexts: {},
-    chapterMeta: {},
-    activeChapter: 1,
-    mode: MODE_SOLO,
-  };
+  var LS_LOVE_QUOTES = [
+    '사주의 여덟 글자 속에는<br>당신이 사랑할 사람의 그림자가 담겨 있습니다',
+    '사랑은 우연처럼 만나지만,<br>사주는 처음부터 알고 있었습니다',
+    '일지(日支) 배우자궁에는<br>이미 운명의 상대가 새겨져 있습니다',
+    '紅塵十丈<br>붉은 먼지 열 길의 세상에서도 인연은 반드시 만납니다',
+    '용신(用神)이 강해지는 계절,<br>반드시 인연의 문이 열립니다',
+    '합(合)이 있는 곳에 인연이 있고<br>충(沖)이 있는 곳에 열정이 있습니다',
+    '木은 火를 기르듯,<br>진정한 사랑은 서로를 자라게 합니다',
+    '도화살(桃花煞)은 꽃의 살이 아니라<br>사람을 끌어당기는 향기입니다',
+    '두 사주가 만나면<br>그것은 우연이 아니라 오행의 끌림입니다',
+    '천간(天干)은 마음을 보여주고<br>지지(地支)는 본성을 드러냅니다',
+    '이별은 기신운(忌神運)이 만든 파도이고<br>재회는 용신운(用神運)이 여는 문입니다',
+    '내 사주팔자가 당신을 기다리고 있었습니다<br>우리의 만남은 오행이 연출한 운명입니다',
+    '사랑의 타이밍도 사주에 새겨져 있습니다<br>지금 당신의 연애 비책을 해독하는 중입니다',
+    '조후(調候)가 맞으면,<br>두 사람 사이에 자연스러운 온기가 흐릅니다',
+    '일주(日柱)가 합(合)을 이루는 순간<br>운명은 조용히 미소 짓습니다',
+  ];
 
-  function qs(id) { return document.getElementById(id); }
+  var _chapters = Array(11).fill(null);
+  var _generating = false;
+  var _quoteTimer = null;
+  var _heartTimer = null;
+  var _quoteIdx = 0;
+  var _activeRequestController = null;
+  var _cancelGeneration = false;
 
-  function qsa(root, selector) {
-    if (!root) return [];
-    return Array.prototype.slice.call(root.querySelectorAll(selector));
+  function _abortActiveRequest() {
+    if (_activeRequestController) {
+      try { _activeRequestController.abort(); } catch (_) {}
+      _activeRequestController = null;
+    }
   }
 
-  function getTotalChaptersByMode(mode) {
-    return Number(TOTAL_CHAPTERS_BY_MODE[mode === MODE_COMPAT ? MODE_COMPAT : MODE_SOLO] || TOTAL_CHAPTERS_BY_MODE[MODE_SOLO]);
+  /* ── localStorage 저장/복원 ──────────────────────────────── */
+  var _STORE_VER = 'ls_v1_';
+
+  function _makeKey(profile) {
+    var b = (profile && profile.birth) || {};
+    return _STORE_VER + (b.year || '0') + '_' + (b.month || '0') + '_' + (b.day || '0') + '_' + ((profile && profile.gender) || 'u');
   }
 
-  function getActiveTotalChapters() {
-    return getTotalChaptersByMode(state.mode);
-  }
-
-  function notify(message) {
+  function _saveResult(profile) {
     try {
-      if (typeof window.showToast === 'function') window.showToast(String(message || ''));
-      else window.alert(String(message || ''));
-    } catch (_) {}
+      localStorage.setItem(_makeKey(profile), JSON.stringify({
+        chapters: _chapters,
+        name: (profile && profile.name) || '사용자',
+        birth: (profile && profile.birth) || {},
+        gender: (profile && profile.gender) || '',
+        savedAt: new Date().toISOString()
+      }));
+    } catch (e) { /* 용량 수 한 또는 일반 브라우저 제한 */ }
   }
 
-  function safeParse(raw, fallback) {
+  function _loadSaved(profile) {
     try {
-      return JSON.parse(raw);
-    } catch (_) {
-      return fallback;
+      var raw = localStorage.getItem(_makeKey(profile));
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+
+  function _clearSaved(profile) {
+    try { localStorage.removeItem(_makeKey(profile)); } catch (e) {}
+  }
+
+  /* ── 결과 헤더 렌더 ───────────────────────────────────────── */
+  function _renderResultHeader(name, birth, gender, savedDate, isNew) {
+    var nameEl = document.getElementById('lsResultName');
+    var dateEl = document.getElementById('lsResultDate');
+    if (nameEl) nameEl.textContent = '💕 ' + (name || '사용자') + '님의 연애 비책';
+    if (dateEl) {
+      var b = birth || {};
+      var dateStr = savedDate ? savedDate.toLocaleDateString('ko-KR') : new Date().toLocaleDateString('ko-KR');
+      var icon = isNew ? '🗓️ ' : '💾 ';
+      var label = isNew ? '발행' : '저장';
+      dateEl.textContent =
+        [b.year, b.month, b.day].filter(Boolean).join('. ') +
+        ' 생 · ' +
+        (gender === 'F' ? '여성' : gender === 'M' ? '남성' : '') +
+        ' · ' + icon + dateStr + ' ' + label;
     }
   }
 
-  function asText(value) {
-    return String(value == null ? '' : value).trim();
-  }
+  function _qs(id) { return document.getElementById(id); }
 
-  function toSafeUserError(error) {
-    var raw = asText(error && error.message);
-    if (!raw) return '연애 비책 생성 중 오류가 발생했습니다.';
-    if (/\b500\b|internal\s*server\s*error|http\s*500/i.test(raw)) {
-      return '리포트 생성 중 일시적인 서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
-    }
-    if (/quality|품질|chapter-\d+|fallback|자동\s*복구|payload|debug|status/i.test(raw)) {
-      return 'PDF 생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
-    }
-    if (/timeout|quota|invalid\s*json|api\s*실패/i.test(raw)) {
-      return '리포트 생성 중 일시적인 응답 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
-    }
-    return raw;
-  }
-
-  function clampInt(value, fallback, min, max) {
-    var num = Number(value);
-    if (!Number.isFinite(num)) num = Number(fallback);
-    if (!Number.isFinite(num)) num = min;
-    num = Math.floor(num);
-    if (num < min) num = min;
-    if (num > max) num = max;
-    return num;
-  }
-
-  function showOnly(screenId) {
-    var screens = ['lsStartScreen', 'lsPartnerScreen', 'lsLoadingScreen', 'lsResultScreen', 'lsErrorScreen'];
-    for (var i = 0; i < screens.length; i += 1) {
-      var el = qs(screens[i]);
-      if (el) el.style.display = screens[i] === screenId ? '' : 'none';
-    }
-  }
-
-  function chapterCount() {
-    var count = 0;
-    var totalChapters = getActiveTotalChapters();
-    for (var i = 1; i <= totalChapters; i += 1) {
-      if (asText(state.chapterTexts[i])) count += 1;
-    }
-    return count;
-  }
-
-  function getAuthToken() {
-    try {
-      return asText(localStorage.getItem('fortune_auth_token'));
-    } catch (_) {
-      return '';
-    }
-  }
-
-  function getAuthUser() {
-    try {
-      return safeParse(localStorage.getItem('fortune_auth_user') || 'null', null) || null;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  function buildAuthHeaders(base) {
-    var headers = Object.assign({}, base || {});
-    var token = getAuthToken();
-    if (token) headers.Authorization = 'Bearer ' + token;
-    return headers;
-  }
-
-  function getCurrentProfileFromStorage() {
-    try {
-      var list = safeParse(localStorage.getItem('FORTUNE_APP_USER_PROFILES.list') || '[]', []);
-      var currentId = asText(localStorage.getItem('FORTUNE_APP_USER_PROFILES.current'));
-      if (Array.isArray(list) && currentId) {
-        for (var i = 0; i < list.length; i += 1) {
-          var row = list[i] || {};
-          if (String(row.id || '') === currentId) return row;
-        }
-      }
-      return Array.isArray(list) && list.length ? (list[0] || null) : null;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  function normalizeCalType(value) {
-    var v = asText(value).toLowerCase();
-    if (v === 'lunar' || v === 'l' || v === '음력') return 'lunar';
-    if (v === 'lunar_leap' || v === 'leap' || v === '윤달' || v === '윤') return 'lunar_leap';
-    return 'solar';
-  }
-
-  function parseDateParts(raw) {
-    var src = asText(raw);
-    var m = src.match(/^(\d{4})[-./](\d{1,2})[-./](\d{1,2})$/);
-    if (!m) return null;
-    return { year: Number(m[1]), month: Number(m[2]), day: Number(m[3]) };
-  }
-
-  function parseTimeParts(raw) {
-    var src = asText(raw);
-    var m = src.match(/^(\d{1,2}):(\d{1,2})$/);
-    if (!m) return null;
-    return { hour: Number(m[1]), minute: Number(m[2]) };
-  }
-
-  function normalizeBirthParts() {
-    var profile = null;
-    var snapshot = null;
-    var authUser = getAuthUser() || {};
-
-    try { profile = window.__cdActiveBirthProfile || getCurrentProfileFromStorage() || null; } catch (_) { profile = null; }
-    try { snapshot = window.__destinyFlowerSajuSnapshot || null; } catch (_) { snapshot = null; }
-
-    var parsedAuthDate = parseDateParts(authUser.birthDate || authUser.dateOfBirth || '');
-    var parsedAuthTime = parseTimeParts(authUser.birthTime || '');
-
-    var fromProfile = profile && profile.birth ? profile.birth : null;
-    var fromSnapshot = snapshot && snapshot.birth ? snapshot.birth : null;
-
-    var parsedProfileDate = parseDateParts((fromProfile && fromProfile.birthDate) || (profile && profile.birthDate));
-    var parsedProfileTime = parseTimeParts((fromProfile && fromProfile.birthTime) || (profile && profile.birthTime));
-    var parsedSnapshotDate = parseDateParts((fromSnapshot && fromSnapshot.birthDate) || (snapshot && snapshot.birthDate));
-    var parsedSnapshotTime = parseTimeParts((fromSnapshot && fromSnapshot.birthTime) || (snapshot && snapshot.birthTime));
-
-    var year = Number((fromProfile && fromProfile.year) || (parsedProfileDate && parsedProfileDate.year) || (fromSnapshot && fromSnapshot.year) || (parsedSnapshotDate && parsedSnapshotDate.year) || (parsedAuthDate && parsedAuthDate.year) || 0);
-    var month = Number((fromProfile && fromProfile.month) || (parsedProfileDate && parsedProfileDate.month) || (fromSnapshot && fromSnapshot.month) || (parsedSnapshotDate && parsedSnapshotDate.month) || (parsedAuthDate && parsedAuthDate.month) || 0);
-    var day = Number((fromProfile && fromProfile.day) || (parsedProfileDate && parsedProfileDate.day) || (fromSnapshot && fromSnapshot.day) || (parsedSnapshotDate && parsedSnapshotDate.day) || (parsedAuthDate && parsedAuthDate.day) || 0);
-    var hour = Number((fromProfile && fromProfile.hour) || (parsedProfileTime && parsedProfileTime.hour) || (fromSnapshot && fromSnapshot.hour) || (parsedSnapshotTime && parsedSnapshotTime.hour) || (parsedAuthTime && parsedAuthTime.hour) || 12);
-    var minute = Number((fromProfile && fromProfile.minute) || (parsedProfileTime && parsedProfileTime.minute) || (fromSnapshot && fromSnapshot.minute) || (parsedSnapshotTime && parsedSnapshotTime.minute) || (parsedAuthTime && parsedAuthTime.minute) || 0);
-
-    if (!Number.isFinite(year) || year < 1900 || year > 2100) year = 0;
-    if (!Number.isFinite(month) || month < 1 || month > 12) month = 0;
-    if (!Number.isFinite(day) || day < 1 || day > 31) day = 0;
-    if (!Number.isFinite(hour) || hour < 0 || hour > 23) hour = 12;
-    if (!Number.isFinite(minute) || minute < 0 || minute > 59) minute = 0;
-
-    var calType = normalizeCalType(
-      (fromProfile && (fromProfile.calType || fromProfile.calendarType))
-      || (profile && (profile.calType || profile.calendarType))
-      || (fromSnapshot && (fromSnapshot.calType || fromSnapshot.calendarType))
-      || (snapshot && (snapshot.calType || snapshot.calendarType))
-      || authUser.calendarType
-      || authUser.calType
-      || 'solar'
-    );
-    var timeUnknownRaw = String(
-      (fromProfile && (fromProfile.timeUnknown || fromProfile.birthTimeUnknown || fromProfile.unknownTime))
-      || (profile && (profile.timeUnknown || profile.birthTimeUnknown || profile.unknownTime))
-      || (fromSnapshot && (fromSnapshot.timeUnknown || fromSnapshot.birthTimeUnknown || fromSnapshot.unknownTime))
-      || (snapshot && (snapshot.timeUnknown || snapshot.birthTimeUnknown || snapshot.unknownTime))
-      || authUser.timeUnknown
-      || authUser.birthTimeUnknown
-      || ''
-    ).trim().toLowerCase();
-    var timeUnknown = timeUnknownRaw === '1' || timeUnknownRaw === 'true' || timeUnknownRaw === 'y';
-
-    var location = (profile && profile.location && typeof profile.location === 'object') ? profile.location : {};
-    var timezone = asText(location.tz || authUser.timezone || authUser.tz || 'Asia/Seoul') || 'Asia/Seoul';
-    var lat = Number(location.lat);
-    var lon = Number(location.lng);
-    if (!Number.isFinite(lat)) lat = 37.5665;
-    if (!Number.isFinite(lon)) lon = 126.9780;
-
-    var profileId = asText((profile && (profile.profileId || profile.id)) || authUser.profileId || authUser.id);
-    var name = asText((profile && profile.name) || authUser.name || authUser.nickname) || '사용자';
-    var gender = asText((profile && profile.gender) || authUser.gender) || 'OTHER';
-    var birthPlace = asText((profile && (profile.birthPlace || (profile.location && profile.location.birthPlace) || profile.place)) || authUser.birthPlace || authUser.place);
-    var birthDate = [year, String(month).padStart(2, '0'), String(day).padStart(2, '0')].join('-');
-    var birthTime = String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
-
-    return {
-      profileId: profileId,
-      name: name,
-      gender: gender,
-      year: year,
-      month: month,
-      day: day,
-      hour: hour,
-      minute: minute,
-      birthDate: birthDate,
-      birthTime: birthTime,
-      calType: calType,
-      calendarType: calType,
-      isLunar: calType === 'lunar' || calType === 'lunar_leap',
-      timeUnknown: timeUnknown,
-      birthPlace: birthPlace || undefined,
-      timezoneName: timezone,
-      timezone: timezone,
-      lat: lat,
-      lon: lon,
-      valid: year > 0 && month > 0 && day > 0,
-    };
-  }
-
-  function toKoElementToken(value) {
-    var v = asText(value).toLowerCase();
-    if (v === 'wood') return '목';
-    if (v === 'fire') return '화';
-    if (v === 'earth') return '토';
-    if (v === 'metal') return '금';
-    if (v === 'water') return '수';
-    return asText(value);
-  }
-
-  function extractDaewunRows(raw) {
-    if (!Array.isArray(raw)) return [];
-    var out = [];
-    for (var i = 0; i < raw.length && out.length < 4; i += 1) {
-      var row = raw[i] || {};
-      var ganji = asText(row.ganji || row.gz || row.label || row.name);
-      if (!ganji && row.stem && row.branch) ganji = String(row.stem) + String(row.branch);
-      var fromAge = Number.isFinite(Number(row.fromAge)) ? Number(row.fromAge) : '';
-      var toAge = Number.isFinite(Number(row.toAge)) ? Number(row.toAge) : '';
-      if (!ganji) continue;
-      out.push({ ganji: ganji, fromAge: fromAge, toAge: toAge });
-    }
-    return out;
-  }
-
-  function ensureSelfEngineData() {
-    var hasPillars = false;
-    try {
-      hasPillars = !!(window.G_PILLARS && (window.G_PILLARS.d || window.G_PILLARS.day));
-    } catch (_) { hasPillars = false; }
-
-    if (hasPillars) return true;
-
-    var profile = null;
-    try {
-      profile = window.__cdActiveBirthProfile || getCurrentProfileFromStorage() || null;
-    } catch (_) {
-      profile = getCurrentProfileFromStorage();
-    }
-
-    if (!profile || !profile.birth || typeof window.computeProfileForModal !== 'function') return false;
-    try {
-      return !!window.computeProfileForModal(profile);
-    } catch (_) {
-      return false;
-    }
-  }
-
-  function buildEngineDataFromGlobals() {
-    var pillars = null;
-    var elementWeights = null;
-    var power = null;
-    var johu = null;
-    var daewun = null;
-
-    try { pillars = window.G_PILLARS || null; } catch (_) {}
-    try { elementWeights = window.G_NATAL || null; } catch (_) {}
-    try { power = window.G_POWER || null; } catch (_) {}
-    try { johu = window.G_JOHU || null; } catch (_) {}
-    try { daewun = Array.isArray(window.G_DAEWUN) ? window.G_DAEWUN : null; } catch (_) { daewun = null; }
-
-    var yongsin = '';
-    var huisin = '';
-    var gisin = '';
-
-    if (power && Array.isArray(power.yongshin) && power.yongshin.length) {
-      yongsin = toKoElementToken(power.yongshin[0]);
-      huisin = toKoElementToken(power.yongshin[1] || '');
-    }
-    if (power && Array.isArray(power.kijishin) && power.kijishin.length) {
-      gisin = toKoElementToken(power.kijishin[0]);
-    }
-
-    return {
-      pillars: pillars || undefined,
-      elementWeights: elementWeights || undefined,
-      dayMaster: {
-        strength: power && typeof power.isStrong === 'boolean' ? (power.isStrong ? '신강' : '신약') : '',
-        strengthScore: power && Number.isFinite(Number(power.score)) ? Number(power.score) : 0,
-      },
-      usefulGods: {
-        yongsin: { element: yongsin },
-        huisin: { element: huisin },
-        gisin: { element: gisin },
-      },
-      tenGods: {
-        distribution: power && typeof power.tenGods === 'object' ? power.tenGods : {},
-      },
-      seasonMeta: johu || undefined,
-      daewunRows: extractDaewunRows(daewun),
-    };
-  }
-
-  function buildPillarSummary(pillars) {
-    var p = pillars || {};
-    var y = p.y || p.year || {};
-    var m = p.m || p.month || {};
-    var d = p.d || p.day || {};
-    var h = p.h || p.hour || {};
-    var yearGanji = asText((y.g || '') + (y.j || '') || y.ganji || '');
-    var monthGanji = asText((m.g || '') + (m.j || '') || m.ganji || '');
-    var dayGanji = asText((d.g || '') + (d.j || '') || d.ganji || '');
-    var hourGanji = asText((h.g || '') + (h.j || '') || h.ganji || '');
-
-    return {
-      yearGanji: yearGanji,
-      monthGanji: monthGanji,
-      dayGanji: dayGanji,
-      hourGanji: hourGanji,
-      dayStem: asText(d.g || d.stem),
-      monthBranch: asText(m.j || m.branch),
-    };
-  }
-
-  function buildSajuDataText(ownerLabel, birth, engineData) {
-    var lines = [];
-    var pillars = engineData && engineData.pillars ? engineData.pillars : null;
-    var summary = buildPillarSummary(pillars);
-    var elementWeights = engineData && engineData.elementWeights ? engineData.elementWeights : null;
-    var useful = engineData && engineData.usefulGods ? engineData.usefulGods : null;
-    var tenGods = engineData && engineData.tenGods ? engineData.tenGods : null;
-    var daewunRows = engineData && Array.isArray(engineData.daewunRows) ? engineData.daewunRows : [];
-
-    lines.push('사주 원국 (' + ownerLabel + ')');
-    if (summary.yearGanji) lines.push('년주(年柱): ' + summary.yearGanji);
-    if (summary.monthGanji) lines.push('월주(月柱): ' + summary.monthGanji);
-    if (summary.dayGanji) lines.push('일주(日柱): ' + summary.dayGanji);
-    if (summary.hourGanji) lines.push('시주(時柱): ' + summary.hourGanji);
-    if (summary.dayStem) lines.push('일간(日干): ' + summary.dayStem);
-    if (summary.monthBranch) lines.push('월지(月支): ' + summary.monthBranch);
-
-    if (elementWeights) {
-      lines.push(
-        '오행(분포): '
-        + '목(' + Number(elementWeights.wood || 0) + ') '
-        + '화(' + Number(elementWeights.fire || 0) + ') '
-        + '토(' + Number(elementWeights.earth || 0) + ') '
-        + '금(' + Number(elementWeights.metal || 0) + ') '
-        + '수(' + Number(elementWeights.water || 0) + ')'
-      );
-    }
-
-    if (tenGods && tenGods.distribution && typeof tenGods.distribution === 'object') {
-      var entries = Object.keys(tenGods.distribution)
-        .map(function (key) {
-          return key + ':' + Number(tenGods.distribution[key] || 0);
-        })
-        .filter(Boolean);
-      if (entries.length) lines.push('십성(분포): ' + entries.join(', '));
-    }
-
-    if (useful) {
-      lines.push('용신(用神): ' + asText(useful.yongsin && useful.yongsin.element));
-      lines.push('희신(喜神): ' + asText(useful.huisin && useful.huisin.element));
-      lines.push('기신(忌神): ' + asText(useful.gisin && useful.gisin.element));
-    }
-
-    if (engineData && engineData.dayMaster) {
-      lines.push('신강/신약: ' + asText(engineData.dayMaster.strength));
-    }
-
-    if (daewunRows.length) {
-      var daewunText = daewunRows.map(function (row) {
-        var ageText = row.fromAge !== '' && row.toAge !== '' ? ('(' + row.fromAge + '~' + row.toAge + ')') : '';
-        return asText(row.ganji + ageText);
-      }).filter(Boolean).join(', ');
-      if (daewunText) lines.push('대운(요약): ' + daewunText);
-    }
-
-    lines.push('생년월일: ' + [birth.year, birth.month, birth.day].join('-'));
-    lines.push('출생시각: ' + String(birth.hour).padStart(2, '0') + ':' + String(birth.minute).padStart(2, '0'));
-    return lines.filter(function (line) { return asText(line).length > 0; }).join('\n');
-  }
-
-  function buildSelfPayload() {
-    var birth = normalizeBirthParts();
-    ensureSelfEngineData();
-    var engineData = buildEngineDataFromGlobals();
-    var sajuData = buildSajuDataText('본인', birth, engineData);
-
-    return {
-      profileId: birth.profileId || undefined,
-      name: birth.name,
-      gender: birth.gender,
-      year: birth.year,
-      month: birth.month,
-      day: birth.day,
-      hour: birth.hour,
-      minute: birth.minute,
-      birthDate: birth.birthDate,
-      birthTime: birth.birthTime,
-      calType: birth.calType,
-      calendarType: birth.calendarType,
-      isLunar: birth.isLunar,
-      timeUnknown: birth.timeUnknown,
-      birthPlace: birth.birthPlace || undefined,
-      timezoneName: birth.timezoneName,
-      timezone: birth.timezone,
-      lat: birth.lat,
-      lon: birth.lon,
-      sajuData: sajuData,
-      engineData: engineData,
-      validBirth: !!birth.valid,
-    };
-  }
-
-  function snapshotGlobalSajuState() {
-    return {
-      G_PILLARS: typeof window.G_PILLARS === 'undefined' ? undefined : window.G_PILLARS,
-      G_NATAL: typeof window.G_NATAL === 'undefined' ? undefined : window.G_NATAL,
-      G_POWER: typeof window.G_POWER === 'undefined' ? undefined : window.G_POWER,
-      G_JOHU: typeof window.G_JOHU === 'undefined' ? undefined : window.G_JOHU,
-      G_JONG: typeof window.G_JONG === 'undefined' ? undefined : window.G_JONG,
-      G_DAEWUN: typeof window.G_DAEWUN === 'undefined' ? undefined : window.G_DAEWUN,
-      _astroBirth: typeof window._astroBirth === 'undefined' ? undefined : window._astroBirth,
-      _ziweiBirth: typeof window._ziweiBirth === 'undefined' ? undefined : window._ziweiBirth,
-      __destinyFlowerSajuSnapshot: typeof window.__destinyFlowerSajuSnapshot === 'undefined' ? undefined : window.__destinyFlowerSajuSnapshot,
-    };
-  }
-
-  function restoreGlobalSajuState(saved) {
-    if (!saved || typeof saved !== 'object') return;
-    window.G_PILLARS = saved.G_PILLARS;
-    window.G_NATAL = saved.G_NATAL;
-    window.G_POWER = saved.G_POWER;
-    window.G_JOHU = saved.G_JOHU;
-    window.G_JONG = saved.G_JONG;
-    window.G_DAEWUN = saved.G_DAEWUN;
-    window._astroBirth = saved._astroBirth;
-    window._ziweiBirth = saved._ziweiBirth;
-    window.__destinyFlowerSajuSnapshot = saved.__destinyFlowerSajuSnapshot;
-  }
-
-  function getPartnerGender() {
-    var maleBtn = qs('lsPsGenderM');
-    if (maleBtn && maleBtn.classList.contains('active')) return 'M';
-    return 'F';
-  }
-
-  function setPartnerGender(gender) {
-    var normalized = asText(gender).toUpperCase() === 'M' ? 'M' : 'F';
-    var maleBtn = qs('lsPsGenderM');
-    var femaleBtn = qs('lsPsGenderF');
-    if (maleBtn) maleBtn.classList.toggle('active', normalized === 'M');
-    if (femaleBtn) femaleBtn.classList.toggle('active', normalized !== 'M');
-  }
-
-  function getPartnerInputProfile() {
-    var year = clampInt(asText(qs('lsPsYear') && qs('lsPsYear').value), 0, 0, 2200);
-    var month = clampInt(asText(qs('lsPsMonth') && qs('lsPsMonth').value), 0, 0, 12);
-    var day = clampInt(asText(qs('lsPsDay') && qs('lsPsDay').value), 0, 0, 31);
-    var hourRaw = asText(qs('lsPsHour') && qs('lsPsHour').value);
-    var hour = hourRaw === '' ? 12 : clampInt(hourRaw, 12, 0, 23);
-    var minute = 0;
-    var name = asText(qs('lsPsName') && qs('lsPsName').value) || '상대';
-    var gender = getPartnerGender();
-    var valid = year >= 1900 && year <= 2200 && month >= 1 && month <= 12 && day >= 1 && day <= 31;
-
-    return {
-      valid: valid,
-      name: name,
-      gender: gender,
-      birth: {
-        year: year,
-        month: month,
-        day: day,
-        hour: hour,
-        minute: minute,
-        calType: 'solar',
-      },
-      location: {
-        lat: 37.5665,
-        lng: 126.9780,
-        tz: 'Asia/Seoul',
-        baseTzOffset: 9,
-      },
-    };
-  }
-
-  function computePartnerEngineData(profile) {
-    if (!profile || !profile.birth || typeof window.computeProfileForModal !== 'function') {
-      return { ok: false, message: '파트너 사주 계산 엔진을 찾지 못했습니다.' };
-    }
-
-    var snapshot = snapshotGlobalSajuState();
-    try {
-      var computed = window.computeProfileForModal(profile);
-      if (!computed || !window.G_PILLARS) {
-        return { ok: false, message: '파트너 사주 계산에 실패했습니다.' };
-      }
-
-      var engineData = buildEngineDataFromGlobals();
-      var summary = buildPillarSummary(engineData.pillars);
-      if (!summary.dayGanji || !summary.monthGanji || !summary.yearGanji) {
-        return { ok: false, message: '파트너 사주 원국이 불완전합니다.' };
-      }
-
-      return { ok: true, engineData: engineData, summary: summary };
-    } catch (_) {
-      return { ok: false, message: '파트너 사주 계산 중 오류가 발생했습니다.' };
-    } finally {
-      restoreGlobalSajuState(snapshot);
-    }
-  }
-
-  function renderPartnerPreview() {
-    var pillarsHost = qs('lsPsPillars');
-    var infoHost = qs('lsPsInfo');
-    if (!pillarsHost || !infoHost) return;
-
-    var profile = getPartnerInputProfile();
-    if (!profile.valid) {
-      pillarsHost.innerHTML = '<span class="ls-pscreen__pill">생년월일을 입력하면 사주 원국이 표시됩니다.</span>';
-      infoHost.textContent = '년도·월·일을 입력해 주세요.';
-      return;
-    }
-
-    var computed = computePartnerEngineData(profile);
-    if (!computed.ok) {
-      pillarsHost.innerHTML = '<span class="ls-pscreen__pill">원국 계산 실패</span>';
-      infoHost.textContent = computed.message;
-      return;
-    }
-
-    var s = computed.summary;
-    var items = [
-      '년주 ' + s.yearGanji,
-      '월주 ' + s.monthGanji,
-      '일주 ' + s.dayGanji,
-      '시주 ' + (s.hourGanji || '미상'),
-      '일간 ' + (s.dayStem || '미상'),
-      '월지 ' + (s.monthBranch || '미상')
+  function _buildApiCandidates(pathname) {
+    var _path = String(pathname || '');
+    if (_path.charAt(0) !== '/') _path = '/' + _path;
+    var _bases = [
+      '',
+      (typeof window !== 'undefined' && window.__CD_API_BASE_URL) || '',
+      (typeof window !== 'undefined' && window.__API_BASE_URL) || '',
+      (typeof window !== 'undefined' && window.__AUTH_API_BASE_URL) || '',
+      (typeof window !== 'undefined' && window.location && window.location.origin) || ''
     ];
-
-    pillarsHost.innerHTML = items.map(function (text) {
-      return '<span class="ls-pscreen__pill">' + escapeHtml(text) + '</span>';
-    }).join('');
-
-    infoHost.textContent = '상대방 원국이 계산되었습니다. 궁합 모드(400코인)로 생성할 수 있습니다.';
-  }
-
-  function buildPartnerPayload() {
-    var profile = getPartnerInputProfile();
-    if (!profile.valid) {
-      return { ok: false, message: '상대방 생년월일을 정확히 입력해 주세요.' };
+    var _seen = {};
+    var _urls = [];
+    for (var i = 0; i < _bases.length; i++) {
+      var _base = String(_bases[i] || '').trim();
+      var _url = _base ? (_base.replace(/\/+$/, '') + _path) : _path;
+      if (_seen[_url]) continue;
+      _seen[_url] = true;
+      _urls.push(_url);
     }
-
-    var computed = computePartnerEngineData(profile);
-    if (!computed.ok) {
-      return { ok: false, message: computed.message || '상대방 사주 계산에 실패했습니다.' };
-    }
-
-    var engineData = computed.engineData;
-    var partnerData = buildSajuDataText('상대', profile.birth, engineData);
-
-    return {
-      ok: true,
-      profile: profile,
-      engineData: engineData,
-      partnerData: partnerData,
-      summary: computed.summary,
-    };
+    return _urls.length ? _urls : [_path];
   }
 
-  function getChapterTitlesByMode(mode) {
-    return mode === MODE_COMPAT ? COMPAT_CHAPTER_TITLES : SOLO_CHAPTER_TITLES;
-  }
-
-  function syncStartPreviewChapters(mode) {
-    var modal = qs('loveSecretModal');
-    if (!modal) return;
-    var list = modal.querySelector('.ls-preview-chapters');
-    if (!list) return;
-    var titles = getChapterTitlesByMode(mode);
-    var items = qsa(list, '.ls-chapter-item');
-    var visibleIndex = 0;
-    for (var i = 0; i < items.length; i += 1) {
-      var item = items[i];
-      var itemMode = String(item.getAttribute('data-ls-mode') || '').trim();
-      var isVisible = !itemMode || itemMode === mode;
-      item.style.display = isVisible ? '' : 'none';
-      if (!isVisible) continue;
-      var titleEl = item.querySelector('.ls-ch-title');
-      if (titleEl && titles[visibleIndex]) titleEl.textContent = titles[visibleIndex];
-      visibleIndex += 1;
-    }
-  }
-
-  function syncModeSwitch(mode) {
-    var modal = qs('loveSecretModal');
-    if (!modal) return;
-    var buttons = qsa(modal, '.ls-mode-switch__btn[data-ls-mode]');
-    for (var i = 0; i < buttons.length; i += 1) {
-      var btn = buttons[i];
-      var isActive = String(btn.getAttribute('data-ls-mode') || '') === mode;
-      btn.classList.toggle('active', isActive);
-      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-      btn.style.border = isActive ? '1px solid #d9467a' : '1px solid rgba(236,72,153,0.28)';
-      btn.style.background = isActive ? 'linear-gradient(135deg, #be185d 0%, #f43f5e 100%)' : 'rgba(255,255,255,0.82)';
-      btn.style.color = isActive ? '#ffffff' : '#9d174d';
-      btn.style.boxShadow = isActive ? '0 12px 24px rgba(219,39,119,0.22)' : 'none';
-    }
-  }
-
-  function syncResultNavigation(mode) {
-    var modal = qs('loveSecretModal');
-    if (!modal) return;
-    var totalChapters = getTotalChaptersByMode(mode);
-    var tocButtons = qsa(modal, '.ls-toc-item[data-ls-chapter]');
-    var pills = qsa(modal, '.ls-load-pill[data-ch]');
-    for (var i = 0; i < tocButtons.length; i += 1) {
-      var tocBtn = tocButtons[i];
-      var tocChapter = Number(tocBtn.getAttribute('data-ls-chapter') || 0);
-      tocBtn.style.display = tocChapter <= totalChapters ? '' : 'none';
-    }
-    for (var j = 0; j < pills.length; j += 1) {
-      var pill = pills[j];
-      var pillChapter = Number(pill.getAttribute('data-ch') || 0);
-      pill.style.display = pillChapter <= totalChapters ? '' : 'none';
-    }
-  }
-
-  function setLoveSecretMode(nextMode) {
-    var normalized = nextMode === MODE_COMPAT ? MODE_COMPAT : MODE_SOLO;
-    state.mode = normalized;
-    state.activeChapter = 1;
-    state.chapterTexts = {};
-    state.chapterMeta = {};
-    state.payload = null;
-    state.reportId = '';
-    state.paidReportId = '';
-    state.paymentContext = null;
-    refreshSavedReportButton();
-    syncModeSwitch(state.mode);
-    syncStartPreviewChapters(state.mode);
-    syncResultNavigation(state.mode);
-    showOnly('lsStartScreen');
-    setGenerateButtonBusy(false);
-    setPartnerButtonsBusy(false);
-    var progressText = qs('lsProgressText');
-    if (progressText) progressText.textContent = '0 / ' + getActiveTotalChapters() + ' 챕터 완성';
-  }
-
-  function escapeHtml(value) {
-    return String(value || '')
+  function _escHtml(s) {
+    return String(s || '')
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+      .replace(/>/g, '&gt;');
   }
 
-  function markdownToHtml(markdown) {
-    var lines = String(markdown || '').replace(/\r/g, '').split('\n');
-    var out = [];
-    var inList = false;
-    var inTable = false;
-
-    function closeList() {
-      if (inList) {
-        out.push('</ul>');
-        inList = false;
-      }
-    }
-
-    function closeTable() {
-      if (inTable) {
-        out.push('</tbody></table>');
-        inTable = false;
-      }
-    }
-
-    for (var i = 0; i < lines.length; i += 1) {
-      var line = asText(lines[i]);
-      if (!line) {
-        closeList();
-        closeTable();
-        continue;
-      }
-
-      if (/^\|.+\|$/.test(line)) {
-        if (!inTable) {
-          closeList();
-          out.push('<table class="lb-table"><tbody>');
-          inTable = true;
-        }
-        var cells = line.slice(1, -1).split('|').map(function (cell) { return asText(cell); }).filter(Boolean);
-        if (cells.length > 0 && !/^[-:]+$/.test(cells.join(''))) {
-          out.push('<tr>' + cells.map(function (cell) { return '<td>' + escapeHtml(cell) + '</td>'; }).join('') + '</tr>');
-        }
-        continue;
-      }
-
-      closeTable();
-
-      if (/^###\s+/.test(line)) {
-        closeList();
-        out.push('<h3>' + escapeHtml(line.replace(/^###\s+/, '')) + '</h3>');
-        continue;
-      }
-      if (/^##\s+/.test(line)) {
-        closeList();
-        out.push('<h2>' + escapeHtml(line.replace(/^##\s+/, '')) + '</h2>');
-        continue;
-      }
-      if (/^-\s+/.test(line)) {
-        if (!inList) {
-          out.push('<ul>');
-          inList = true;
-        }
-        out.push('<li>' + escapeHtml(line.replace(/^-\s+/, '')) + '</li>');
-        continue;
-      }
-      if (/^>\s*/.test(line)) {
-        closeList();
-        out.push('<blockquote>' + escapeHtml(line.replace(/^>\s*/, '')) + '</blockquote>');
-        continue;
-      }
-
-      closeList();
-      out.push('<p>' + escapeHtml(line) + '</p>');
-    }
-
-    closeList();
-    closeTable();
-    return out.join('\n');
-  }
-
-  function createReportId(payload, mode, partnerPayload, runNonce) {
-    var seed = [
-      asText(payload && payload.name),
-      asText(payload && payload.gender),
-      Number(payload && payload.year || 0),
-      Number(payload && payload.month || 0),
-      Number(payload && payload.day || 0),
-      Number(payload && payload.hour || 0),
-      asText(mode || MODE_SOLO),
-      asText(partnerPayload && partnerPayload.profile && partnerPayload.profile.name),
-      Number(partnerPayload && partnerPayload.profile && partnerPayload.profile.birth && partnerPayload.profile.birth.year || 0),
-      Number(partnerPayload && partnerPayload.profile && partnerPayload.profile.birth && partnerPayload.profile.birth.month || 0),
-      Number(partnerPayload && partnerPayload.profile && partnerPayload.profile.birth && partnerPayload.profile.birth.day || 0)
-    ].join('|');
-
-    var hash = 2166136261;
-    for (var i = 0; i < seed.length; i += 1) {
-      hash ^= seed.charCodeAt(i);
-      hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
-    }
-    var shortHash = (hash >>> 0).toString(36);
-    var nonce = asText(runNonce || '');
-    if (!nonce) nonce = Date.now().toString(36);
-    return 'love_secret_' + shortHash + '_' + asText(mode || MODE_SOLO) + '_' + nonce;
-  }
-
-  async function requestJson(pathname, options) {
-    var controller = null;
-    var timeoutHandle = null;
-    try {
-      if (typeof AbortController === 'function') {
-        controller = new AbortController();
-        timeoutHandle = setTimeout(function () {
-          try { controller.abort(); } catch (_) {}
-        }, API_TIMEOUT_MS);
-      }
-
-      var res = await fetch(LOVE_API_BASE + pathname, Object.assign({}, options || {}, {
-        credentials: 'include',
-        cache: 'no-store',
-        signal: controller ? controller.signal : undefined,
-      }));
-      var data = await res.json().catch(function () { return {}; });
-      return { ok: res.ok, status: res.status, data: data || {} };
-    } finally {
-      if (timeoutHandle) clearTimeout(timeoutHandle);
-    }
-  }
-
-  var executionHeartbeatTimer = null;
-  var executionPayload = null;
-
-  function clearExecutionHeartbeat() {
-    if (!executionHeartbeatTimer) return;
-    clearInterval(executionHeartbeatTimer);
-    executionHeartbeatTimer = null;
-  }
-
-  function getExecutionFeatureKey(mode) {
-    var normalizedMode = asText(mode || state.mode || MODE_SOLO).toLowerCase();
-    if (normalizedMode === MODE_COMPAT) return 'premium-love-compatibility-report';
-    return 'premium-love-secret-report';
-  }
-
-  function buildExecutionPayload(mode) {
-    var ctx = state.paymentContext && typeof state.paymentContext === 'object' ? state.paymentContext : null;
-    var sourceTransactionId = asText(ctx && (ctx.sourceTransactionId || ctx.transactionId));
-    if (!sourceTransactionId) return null;
-    var reportId = asText(state.reportId || state.paidReportId || '');
-    if (!reportId) reportId = Date.now().toString(36);
-    return {
-      serviceKey: 'love-secret-pdf',
-      featureKey: getExecutionFeatureKey(mode),
-      executionKey: 'love-secret-pdf:' + reportId + ':' + sourceTransactionId,
-      sourceTransactionId: sourceTransactionId,
-      metadata: {
-        mode: asText(mode || state.mode || MODE_SOLO) || MODE_SOLO,
-        reportId: reportId,
-        requestId: asText(ctx && ctx.requestId)
-      }
-    };
-  }
-
-  async function requestExecutionAction(action, body, useKeepalive) {
-    if (!body || !body.executionKey || !body.sourceTransactionId) return false;
-    var headers = buildAuthHeaders({ 'Content-Type': 'application/json' });
-    var target = '/api/billing/executions/' + String(action || '').trim();
-    var payload = JSON.stringify(body);
-    try {
-      var res = await fetch(target, {
-        method: 'POST',
-        credentials: 'include',
-        cache: 'no-store',
-        headers: headers,
-        body: payload,
-        keepalive: !!useKeepalive
-      });
-      return !!(res && res.ok);
-    } catch (_) {
-      return false;
-    }
-  }
-
-  async function startExecutionLifecycle(mode) {
-    var payload = buildExecutionPayload(mode);
-    if (!payload) {
-      executionPayload = null;
-      clearExecutionHeartbeat();
-      return false;
-    }
-    var started = await requestExecutionAction('start', payload, false);
-    if (!started) return false;
-    executionPayload = payload;
-    clearExecutionHeartbeat();
-    executionHeartbeatTimer = setInterval(function () {
-      if (!executionPayload) return;
-      requestExecutionAction('heartbeat', executionPayload, false).catch(function () {});
-    }, 20000);
-    return true;
-  }
-
-  async function completeExecutionLifecycle() {
-    if (!executionPayload) return false;
-    var payload = executionPayload;
-    clearExecutionHeartbeat();
-    executionPayload = null;
-    return requestExecutionAction('complete', payload, false);
-  }
-
-  async function failExecutionLifecycle(reason, useKeepalive) {
-    if (!executionPayload) return false;
-    var payload = Object.assign({}, executionPayload, {
-      reason: asText(reason || 'generation_failed') || 'generation_failed'
+  function _md2html(text) {
+    if (!text) return '';
+    var h = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    h = h.replace(/^#### (.+)$/gm, '<h4 class="ls-md-h4">$1</h4>');
+    h = h.replace(/^### (.+)$/gm, '<h3 class="ls-md-h3">$1</h3>');
+    h = h.replace(/^## (.+)$/gm, '<h2 class="ls-md-h2">$1</h2>');
+    h = h.replace(/^# (.+)$/gm, '<h1 class="ls-md-h1">$1</h1>');
+    h = h.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+    h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    h = h.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    h = h.replace(/^---+$/gm, '<hr class="ls-md-hr">');
+    h = h.replace(/^[*-] (.+)$/gm, '<li class="ls-md-li">$1</li>');
+    h = h.replace(/(<li class="ls-md-li">[\s\S]*?<\/li>\n?)+/g, function (m) {
+      return '<ul class="ls-md-ul">' + m + '</ul>';
     });
-    clearExecutionHeartbeat();
-    executionPayload = null;
-    return requestExecutionAction('fail', payload, useKeepalive === true);
-  }
-
-  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
-    window.addEventListener('beforeunload', function () {
-      if (!executionPayload) return;
-      failExecutionLifecycle('client_unload', true).catch(function () {});
-    });
-  }
-
-  async function fetchDownloadHtml(reportId) {
-    var res = await fetch(LOVE_API_BASE + '/download?reportId=' + encodeURIComponent(reportId), {
-      method: 'GET',
-      headers: buildAuthHeaders({}),
-      credentials: 'include',
-      cache: 'no-store',
-    });
-
-    if (!res.ok) {
-      return { ok: false, status: res.status, text: '' };
+    var lines = h.split('\n');
+    var result = [];
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line) { result.push(''); continue; }
+      if (/^<(h[1-4]|ul|li|hr)/.test(line) || /<\/(h[1-4]|ul|li|hr)>$/.test(line)) {
+        result.push(line);
+      } else {
+        result.push('<p class="ls-md-p">' + line + '</p>');
+      }
     }
-    return { ok: true, status: res.status, text: await res.text() };
+    return result.join('\n');
   }
 
-  function persistState() {
-    try {
-      var totalChapters = getActiveTotalChapters();
-      if (chapterCount() < totalChapters) return false;
-      var payload = {
-        reportId: asText(state.reportId),
-        paidReportId: asText(state.paidReportId),
-        payload: state.payload || null,
-        chapterTexts: state.chapterTexts || {},
-        chapterMeta: state.chapterMeta || {},
-        activeChapter: Number(state.activeChapter || 1),
-        mode: asText(state.mode || MODE_SOLO) || MODE_SOLO,
-        completed: true,
-        updatedAt: new Date().toISOString(),
+  function _collectSajuData() {
+    var profile = window.__cdActiveBirthProfile || {};
+    var snap = window.__destinyFlowerSajuSnapshot || {};
+    var name = profile.name || snap.name || '사용자';
+    var gender = profile.gender || snap.gender || '';
+    var birth = profile.birth || snap.birth || {};
+    var lines = [];
+    lines.push('【분석 대상 정보】');
+    lines.push('이름: ' + name);
+    lines.push('성별: ' + (gender === 'F' ? '여성' : gender === 'M' ? '남성' : gender || '미상'));
+    if (birth.year) {
+      lines.push('생년월일: ' + birth.year + '년 ' + (birth.month || '') + '월 ' + (birth.day || '') + '일');
+      lines.push('출생 시각: ' + (birth.hour !== undefined ? birth.hour + '시 ' : '') + (birth.minute !== undefined ? birth.minute + '분' : ''));
+    }
+    if (profile.location && profile.location.label) {
+      lines.push('출생지: ' + profile.location.label);
+    }
+    var G = window.G_PILLARS;
+    if (G) {
+      lines.push('\n【사주 원국(四柱)】');
+      if (G.y) lines.push('년주(年柱): ' + (G.y.g || '') + (G.y.j || '') + (G.y.gE ? ' [' + G.y.gE + '/' + G.y.jE + ']' : ''));
+      if (G.m) lines.push('월주(月柱): ' + (G.m.g || '') + (G.m.j || '') + (G.m.gE ? ' [' + G.m.gE + '/' + G.m.jE + ']' : ''));
+      if (G.d) lines.push('일주(日柱): ' + (G.d.g || '') + (G.d.j || '') + (G.d.gE ? ' [' + G.d.gE + '/' + G.d.jE + ']' : ''));
+      if (G.h) lines.push('시주(時柱): ' + (G.h.g || '') + (G.h.j || '') + (G.h.gE ? ' [' + G.h.gE + '/' + G.h.jE + ']' : ''));
+    }
+    var analysis = snap.analysis || snap.saju || {};
+    if (analysis.elementWeights) {
+      var w = analysis.elementWeights;
+      lines.push('\n【오행(五行) 분포】');
+      lines.push('목(木):' + (w.wood || 0) + ' 화(火):' + (w.fire || 0) + ' 토(土):' + (w.earth || 0) + ' 금(金):' + (w.metal || 0) + ' 수(水):' + (w.water || 0));
+    }
+    if (analysis.yongshin_elements && analysis.yongshin_elements.length) {
+      lines.push('용신(用神): ' + analysis.yongshin_elements.join(', '));
+    }
+    if (analysis.dayStem) lines.push('일간(日干): ' + analysis.dayStem);
+    if (analysis.power_label) lines.push('신강/신약: ' + analysis.power_label);
+    if (analysis.johuType) lines.push('조후(調候): ' + analysis.johuType);
+    if (analysis.isJong) lines.push('종격(從格): ' + (analysis.jongName || '종격'));
+    var GP = window.G_POWER;
+    if (GP) {
+      if (GP.groups) {
+        lines.push('\n【십성(十星) 분포】');
+        var gk = Object.keys(GP.groups);
+        for (var gi = 0; gi < gk.length; gi++) lines.push(gk[gi] + ': ' + GP.groups[gk[gi]]);
+      }
+      if (GP.yongshin) {
+        lines.push('용신: ' + (Array.isArray(GP.yongshin) ? GP.yongshin.join(', ') : GP.yongshin));
+      }
+    }
+    // ─── 신살(神殺) 계산 — AI가 직접 계산하면 오류가 생기므로 정확한 결과를 명시 ───
+    if (G && G.d) {
+      var _ssDay = (G.d.g || '') + (G.d.j || '');
+      var _ssJArr = [G.y && G.y.j, G.m && G.m.j, G.d.j, G.h && G.h.j];
+      var _sinsalNames = [];
+      // 홍염살 — 일주 기준 (甲午 丙寅 丁未 戊辰 庚戌 辛酉 壬子)
+      var _ssHong = ['甲午','丙寅','丁未','戊辰','庚戌','辛酉','壬子'];
+      if (_ssHong.indexOf(_ssDay) >= 0) _sinsalNames.push('홍염살(紅艶殺)[일주 '+_ssDay+']');
+      // 괴강살 — 일주 기준 (庚辰 庚戌 壬辰 壬戌 戊戌)
+      var _ssGoe = ['庚辰','庚戌','壬辰','壬戌','戊戌'];
+      if (_ssGoe.indexOf(_ssDay) >= 0) _sinsalNames.push('괴강살(魁罡殺)[일주 '+_ssDay+']');
+      // 양인살 — 양간(甲丙戊庚壬)에만 존재. 음간(乙丁己辛癸)은 해당 없음
+      var _ssYangMap = {'甲':'卯','丙':'午','戊':'午','庚':'酉','壬':'子'};
+      if (G.d.g && _ssYangMap[G.d.g] && G.d.j === _ssYangMap[G.d.g]) _sinsalNames.push('양인살(羊刃殺)[일주 '+_ssDay+']');
+      // 도화살 — 지지 子午卯酉
+      var _ssTao = ['子','午','卯','酉'];
+      var _taoPos = _ssJArr.filter(function(b){return b&&_ssTao.indexOf(b)>=0;});
+      if (_taoPos.length > 0) _sinsalNames.push('도화살(桃花殺)');
+      // 역마살 — 지지 寅申巳亥
+      var _ssYem = ['寅','申','巳','亥'];
+      var _yemPos = _ssJArr.filter(function(b){return b&&_ssYem.indexOf(b)>=0;});
+      if (_yemPos.length > 0) _sinsalNames.push('역마살(驛馬殺)');
+      // 화개살 — 지지 辰戌丑未
+      var _ssHwa = ['辰','戌','丑','未'];
+      var _hwaPos = _ssJArr.filter(function(b){return b&&_ssHwa.indexOf(b)>=0;});
+      if (_hwaPos.length > 0) _sinsalNames.push('화개살(華蓋殺)');
+      // 간여지동
+      var _ssGyn = ['甲寅','乙卯','丙午','丁巳','戊辰','戊戌','己丑','己未','庚申','辛酉','壬子','癸亥'];
+      if (_ssGyn.indexOf(_ssDay) >= 0) _sinsalNames.push('간여지동(干與支同)[일주 '+_ssDay+']');
+      lines.push('\n【신살(神殺) 계산 결과 — 정확한 로직으로 도출】');
+      if (_sinsalNames.length > 0) {
+        lines.push('보유 신살: ' + _sinsalNames.join(', '));
+      } else {
+        lines.push('보유 신살: 없음 (주요 신살에 해당하지 않는 순수 오행 에너지의 사주)');
+      }
+      lines.push('※ 주의: 위 목록에 없는 신살(예: 辛酉 양인살, 辛酉 괴강살 등)은 존재하지 않으므로 언급하지 말 것');
+    }
+    var GD = window.G_DAEWUN || window.G_DAEUN;
+    // G_DAEWUN 없으면 Solar 라이브러리로 직접 계산 (성별 방향 포함)
+    if ((!GD || !GD.length) && birth.year && typeof Solar !== 'undefined') {
+      try {
+        var _dwSolar = Solar.fromYmdHms(birth.year, birth.month || 1, birth.day || 1, birth.hour || 12, birth.minute || 0, 0);
+        var _dwBazi = _dwSolar.getLunar().getEightChar();
+        var _dwGenderNum = (gender === 'M') ? 1 : 0;
+        var _dwYun = _dwBazi.getYun(_dwGenderNum);
+        var _dwList = _dwYun.getDaYun();
+        GD = [];
+        for (var _dwi = 1; _dwi < _dwList.length; _dwi++) {
+          var _dw2 = _dwList[_dwi];
+          var _gz2 = _dw2.getGanZhi ? _dw2.getGanZhi() : [];
+          var _ag2 = _dw2.getStartAge ? _dw2.getStartAge() : 0;
+          if (_gz2 && _gz2.length >= 2 && _ag2 > 0) {
+            GD.push({age:_ag2, g:_gz2[0], j:_gz2[1]});
+          }
+        }
+        if (GD.length > 0) window.G_DAEWUN = GD;
+      } catch(_dwErr) { GD = null; }
+    }
+    if (GD && Array.isArray(GD) && GD.length) {
+      lines.push('\n【대운(大運) 흐름 — 성별 방향 반영 (양남음녀 순행, 음남양녀 역행)】');
+      lines.push('성별: ' + (gender === 'M' ? '남성' : '여성'));
+      for (var di = 0; di < Math.min(GD.length, 10); di++) {
+        var dw = GD[di];
+        if (dw) lines.push((dw.age || '') + '세: ' + (dw.g || '') + (dw.j || '') + (dw.gE ? ' [' + dw.gE + ']' : ''));
+      }
+    }
+    if (birth.year) {
+      var currentAge = new Date().getFullYear() - birth.year + 1;
+      lines.push('\n현재 나이: ' + currentAge + '세 (만 ' + (currentAge - 1) + '세)');
+    }
+    return lines.join('\n');
+  }
+
+  function _collectPartnerData() {
+    var section = _qs('lsPartnerSection');
+    if (!section || !section.classList.contains('open')) return '';
+    return '';
+  }
+
+  /* ── 전용 파트너 화면에서 데이터 수집 ─────────────────────── */
+  function _collectPartnerScreenData() {
+    var name = (_qs('lsPsName') || {}).value || '';
+    var year = parseInt((_qs('lsPsYear') || {}).value || '0', 10);
+    var month = parseInt((_qs('lsPsMonth') || {}).value || '0', 10);
+    var day = parseInt((_qs('lsPsDay') || {}).value || '0', 10);
+    var hourEl = _qs('lsPsHour');
+    var hourVal = hourEl ? hourEl.value : '';
+    var gm = _qs('lsPsGenderM');
+    var gf = _qs('lsPsGenderF');
+    var genderCode = (gm && gm.classList.contains('active')) ? 'M' : (gf && gf.classList.contains('active')) ? 'F' : 'F';
+    var genderLabel = genderCode === 'M' ? '남성' : '여성';
+
+    if (!year || !month || !day) return '';
+
+    var jiHourMap = [23, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21];
+    var jiHourNames = ['자시(23-01시)', '축시(01-03시)', '인시(03-05시)', '묘시(05-07시)', '진시(07-09시)',
+      '사시(09-11시)', '오시(11-13시)', '미시(13-15시)', '신시(15-17시)', '유시(17-19시)', '술시(19-21시)', '해시(21-23시)'];
+    var hourIdx = (hourVal !== '') ? parseInt(hourVal, 10) : -1;
+    var birthHour = (hourIdx >= 0 && hourIdx < 12) ? jiHourMap[hourIdx] : 12;
+    var hourDisplay = (hourIdx >= 0) ? jiHourNames[hourIdx] : '미상';
+
+    var lines = ['【상대방 정보】'];
+    if (name) lines.push('이름: ' + name);
+    lines.push('성별: ' + genderLabel);
+    lines.push('생년월일: ' + year + '년 ' + month + '월 ' + day + '일');
+    lines.push('출생 시각: ' + hourDisplay);
+
+    if (typeof window.computeProfileForModal === 'function') {
+      var partnerProfile = {
+        name: name || '상대방',
+        gender: genderCode,
+        birth: { year: year, month: month, day: day, hour: birthHour, minute: 0, calType: 'solar' },
+        location: { lat: 37.6, lng: 127.0, tz: 'Asia/Seoul', baseTzOffset: 9 }
       };
-      localStorage.setItem(LOVE_STATE_STORAGE_KEY, JSON.stringify(payload));
-      return true;
-    } catch (_) {}
-    return false;
-  }
+      try {
+        window.computeProfileForModal(partnerProfile);
+        var GP = window.G_PILLARS;
+        var GW = window.G_POWER;
+        var snap = window.__destinyFlowerSajuSnapshot || {};
+        var analysis = snap.analysis || snap.saju || {};
 
-  function getPersistedCompletedSnapshot() {
-    try {
-      var raw = localStorage.getItem(LOVE_STATE_STORAGE_KEY);
-      if (!raw) return null;
-      var saved = safeParse(raw, null);
-      if (!saved || typeof saved !== 'object') return null;
-      var texts = saved.chapterTexts && typeof saved.chapterTexts === 'object' ? saved.chapterTexts : {};
-      var completedCount = 0;
-      var savedMode = asText(saved.mode).toLowerCase();
-      var totalChapters = getTotalChaptersByMode(savedMode === MODE_COMPAT || savedMode === 'couple' ? MODE_COMPAT : MODE_SOLO);
-      for (var i = 1; i <= totalChapters; i += 1) {
-        if (asText(texts[i])) completedCount += 1;
-      }
-      if (completedCount < totalChapters) {
-        try { localStorage.removeItem(LOVE_STATE_STORAGE_KEY); } catch (_) {}
-        return null;
-      }
-      return saved;
-    } catch (_) {}
-    return null;
-  }
-
-  function refreshSavedReportButton() {
-    var btn = qs('lsRestoreLatestBtn');
-    if (!btn) return;
-    var hasSavedReport = Boolean(getPersistedCompletedSnapshot());
-    btn.disabled = !hasSavedReport;
-    btn.setAttribute('aria-disabled', hasSavedReport ? 'false' : 'true');
-  }
-
-  function loadPersistedState(restore) {
-    var saved = getPersistedCompletedSnapshot();
-    if (!saved) return false;
-    if (restore !== true) {
-      refreshSavedReportButton();
-      return true;
-    }
-
-    state.reportId = asText(saved.reportId);
-    state.paidReportId = asText(saved.paidReportId);
-    state.payload = saved.payload || null;
-    state.chapterTexts = saved.chapterTexts && typeof saved.chapterTexts === 'object' ? saved.chapterTexts : {};
-    state.chapterMeta = saved.chapterMeta && typeof saved.chapterMeta === 'object' ? saved.chapterMeta : {};
-    var restoredMode = asText(saved.mode).toLowerCase();
-    state.mode = restoredMode === MODE_COMPAT || restoredMode === 'couple' ? MODE_COMPAT : MODE_SOLO;
-    state.activeChapter = clampInt(saved.activeChapter, 1, 1, getActiveTotalChapters());
-    syncModeSwitch(state.mode);
-    syncStartPreviewChapters(state.mode);
-    syncResultNavigation(state.mode);
-    refreshSavedReportButton();
-    return true;
-  }
-
-  function restorePersistedCompletedReport() {
-    if (!loadPersistedState(true)) {
-      notify('이전 완성본이 없습니다. 먼저 연애 비책을 생성해 주세요.');
-      return false;
-    }
-    showOnly('lsResultScreen');
-    renderResultScreen();
-    return true;
-  }
-
-  function resetState() {
-    state.generating = false;
-    state.coinGatePending = false;
-    state.reportId = '';
-    state.paidReportId = '';
-    state.paymentContext = null;
-    state.refundInFlight = false;
-    state.payload = null;
-    state.chapterTexts = {};
-    state.chapterMeta = {};
-    state.activeChapter = 1;
-    executionPayload = null;
-    clearExecutionHeartbeat();
-    setGenerateButtonBusy(false);
-    refreshSavedReportButton();
-    syncModeSwitch(state.mode);
-    syncStartPreviewChapters(state.mode);
-    syncResultNavigation(state.mode);
-    var bar = qs('lsProgressBar');
-    var txt = qs('lsProgressText');
-    if (bar) bar.style.width = '0%';
-    if (txt) txt.textContent = '0 / ' + getActiveTotalChapters() + ' 챕터 완성';
-  }
-
-  function setGenerateButtonBusy(busy) {
-    var btn = qs('lsGenerateBtn');
-    if (!btn) return;
-    btn.disabled = !!busy;
-    btn.setAttribute('aria-disabled', busy ? 'true' : 'false');
-  }
-
-  function setPartnerButtonsBusy(busy) {
-    var selectors = ['[data-action="lsStartWithPartner"]', '[data-action="lsSkipPartner"]'];
-    for (var i = 0; i < selectors.length; i += 1) {
-      var nodes = qsa(qs('loveSecretModal'), selectors[i]);
-      for (var j = 0; j < nodes.length; j += 1) {
-        nodes[j].disabled = !!busy;
-        nodes[j].setAttribute('aria-disabled', busy ? 'true' : 'false');
+        if (GP) {
+          lines.push('\n【상대방 사주 원국(四柱)】');
+          if (GP.y) lines.push('년주(年柱): ' + (GP.y.g || '') + (GP.y.j || '') + (GP.y.gE ? ' [' + GP.y.gE + '/' + GP.y.jE + ']' : ''));
+          if (GP.m) lines.push('월주(月柱): ' + (GP.m.g || '') + (GP.m.j || '') + (GP.m.gE ? ' [' + GP.m.gE + '/' + GP.m.jE + ']' : ''));
+          if (GP.d) lines.push('일주(日柱): ' + (GP.d.g || '') + (GP.d.j || '') + (GP.d.gE ? ' [' + GP.d.gE + '/' + GP.d.jE + ']' : ''));
+          if (GP.h && hourIdx >= 0) lines.push('시주(時柱): ' + (GP.h.g || '') + (GP.h.j || '') + (GP.h.gE ? ' [' + GP.h.gE + '/' + GP.h.jE + ']' : ''));
+        }
+        if (analysis.elementWeights) {
+          var w = analysis.elementWeights;
+          lines.push('\n【상대방 오행(五行) 분포】');
+          lines.push('목(木):' + (w.wood || 0) + ' 화(火):' + (w.fire || 0) + ' 토(土):' + (w.earth || 0) + ' 금(金):' + (w.metal || 0) + ' 수(水):' + (w.water || 0));
+        }
+        if (analysis.dayStem) lines.push('일간(日干): ' + analysis.dayStem);
+        if (analysis.power_label) lines.push('신강/신약: ' + analysis.power_label);
+        if (analysis.johuType) lines.push('조후(調候): ' + analysis.johuType);
+        if (analysis.isJong) lines.push('종격(從格): ' + (analysis.jongName || '종격'));
+        if (analysis.yongshin_elements && analysis.yongshin_elements.length) {
+          lines.push('용신(用神): ' + analysis.yongshin_elements.join(', '));
+        }
+        if (GW && GW.groups) {
+          lines.push('\n【상대방 십성(十星) 분포】');
+          var gk = Object.keys(GW.groups);
+          for (var gi = 0; gi < gk.length; gi++) lines.push(gk[gi] + ': ' + GW.groups[gk[gi]]);
+        }
+      } catch (e) { /* 엔진 오류 시 기본 텍스트만 사용 */ } finally {
+        var origProfile = window.__cdActiveBirthProfile;
+        if (origProfile && origProfile.birth) {
+          try { window.computeProfileForModal(origProfile); } catch (_) {}
+        }
       }
     }
+    return lines.join('\n');
   }
 
-  function setErrorScreen(message) {
-    var msg = qs('lsErrorMsg');
-    if (msg) msg.textContent = asText(message) || '오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
-    showOnly('lsErrorScreen');
+  /* ── 파트너 화면 실시간 사주 미리보기 ─────────────────────── */
+  var _psPreviewTimer = null;
+  function _schedulePartnerPreview() {
+    clearTimeout(_psPreviewTimer);
+    _psPreviewTimer = setTimeout(_renderPartnerPreview, 420);
   }
 
-  function formatDateLabel() {
-    var d = new Date();
-    var yyyy = d.getFullYear();
-    var mm = String(d.getMonth() + 1).padStart(2, '0');
-    var dd = String(d.getDate()).padStart(2, '0');
-    return yyyy + '.' + mm + '.' + dd;
-  }
+  function _renderPartnerPreview() {
+    var year = parseInt((_qs('lsPsYear') || {}).value || '0', 10);
+    var month = parseInt((_qs('lsPsMonth') || {}).value || '0', 10);
+    var day = parseInt((_qs('lsPsDay') || {}).value || '0', 10);
+    var card = _qs('lsPsCard');
+    var pillarsEl = _qs('lsPsPillars');
+    var infoEl = _qs('lsPsInfo');
 
-  function updateTocActive(chapter) {
-    var tocButtons = qsa(qs('loveSecretModal'), '.ls-toc-item[data-ls-chapter]');
-    for (var i = 0; i < tocButtons.length; i += 1) {
-      var btn = tocButtons[i];
-      var num = Number(btn.getAttribute('data-ls-chapter') || 0);
-      btn.classList.toggle('active', num === chapter);
-    }
-  }
-
-  function renderResultChapter(chapter) {
-    var contentEl = qs('lsChapterContent');
-    if (!contentEl) return;
-
-    var text = asText(state.chapterTexts[chapter]);
-    var modeTitles = getChapterTitlesByMode(state.mode);
-    var fallbackTitle = modeTitles[chapter - 1] || ('Chapter ' + chapter);
-    var meta = state.chapterMeta[chapter] || { title: fallbackTitle };
-    var title = asText(meta.title) || fallbackTitle;
-
-    if (!text) {
-      contentEl.innerHTML = '<p>아직 생성되지 않은 챕터입니다.</p>';
+    if (!year || !month || !day || year < 1920 || year > 2020 || month < 1 || month > 12 || day < 1 || day > 31) {
+      if (card) card.classList.remove('visible');
+      var origP = window.__cdActiveBirthProfile;
+      if (origP && origP.birth && typeof window.computeProfileForModal === 'function') {
+        try { window.computeProfileForModal(origP); } catch (_) {}
+      }
       return;
     }
+    if (typeof window.computeProfileForModal !== 'function') return;
 
-    contentEl.innerHTML = [
-      '<article class="lb-result-article">',
-      '<header class="lb-result-article__head">',
-      '<p class="lb-result-article__chapter">CHAPTER ' + chapter + '</p>',
-      '<h3 class="lb-result-article__title">' + escapeHtml(title) + '</h3>',
-      '</header>',
-      '<div class="lb-result-article__body">' + markdownToHtml(text) + '</div>',
-      '</article>'
-    ].join('');
-  }
+    var hourEl = _qs('lsPsHour');
+    var hourIdx = (hourEl && hourEl.value !== '') ? parseInt(hourEl.value, 10) : -1;
+    var jiHourMap = [23, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21];
+    var birthHour = hourIdx >= 0 ? jiHourMap[hourIdx] : 12;
+    var gm = _qs('lsPsGenderM');
+    var genderCode = (gm && gm.classList.contains('active')) ? 'M' : 'F';
 
-  function openResultChapter(chapter) {
-    var num = clampInt(chapter, 1, 1, getActiveTotalChapters());
-    state.activeChapter = num;
-    updateTocActive(num);
-    renderResultChapter(num);
-  }
+    try {
+      window.computeProfileForModal({
+        name: (_qs('lsPsName') || {}).value || '상대방',
+        gender: genderCode,
+        birth: { year: year, month: month, day: day, hour: birthHour, minute: 0, calType: 'solar' },
+        location: { lat: 37.6, lng: 127.0, tz: 'Asia/Seoul', baseTzOffset: 9 }
+      });
 
-  function renderResultScreen() {
-    var resultName = qs('lsResultName');
-    var resultDate = qs('lsResultDate');
-    var epilogue = qs('lsEpilogueBanner');
-    var owner = asText(state.payload && state.payload.name) || '사용자';
-    var titleTail = state.mode === MODE_COMPAT ? '님의 커플 연애 비책' : '님의 연애 비책';
-    var totalChapters = getActiveTotalChapters();
+      var GP = window.G_PILLARS;
+      if (GP && card && pillarsEl) {
+        var LABELS = ['년주', '월주', '일주', '시주'];
+        var KEYS = ['y', 'm', 'd', 'h'];
+        var html = '';
+        for (var i = 0; i < 4; i++) {
+          var p = GP[KEYS[i]];
+          if (i === 3 && hourIdx < 0) {
+            html += '<div class="ls-pscreen__pillar-card ls-pscreen__pillar-card--dim">' +
+              '<span class="ls-pscreen__pillar-lbl">' + LABELS[i] + '</span>' +
+              '<span class="ls-pscreen__pillar-stem">?</span>' +
+              '<span class="ls-pscreen__pillar-branch">?</span>' +
+              '<span class="ls-pscreen__pillar-ten">시불명</span></div>';
+            continue;
+          }
+          if (!p) continue;
+          html += '<div class="ls-pscreen__pillar-card">' +
+            '<span class="ls-pscreen__pillar-lbl">' + LABELS[i] + '</span>' +
+            '<span class="ls-pscreen__pillar-stem">' + _escHtml(p.g || '') + '</span>' +
+            '<span class="ls-pscreen__pillar-branch">' + _escHtml(p.j || '') + '</span>' +
+            '<span class="ls-pscreen__pillar-ten">' + _escHtml(p.gE || '') + '</span>' +
+            '</div>';
+        }
+        pillarsEl.innerHTML = html;
 
-    if (resultName) resultName.textContent = owner + titleTail;
-    if (resultDate) resultDate.textContent = formatDateLabel() + ' 생성 완료';
-    if (epilogue) epilogue.style.display = chapterCount() >= totalChapters ? '' : 'none';
-
-    syncResultNavigation(state.mode);
-    showOnly('lsResultScreen');
-    openResultChapter(1);
-  }
-
-  function setLoadingProgress(chapter, subtitle) {
-    var chapterText = qs('lsLoadingChapter');
-    var quote = qs('lsLoadQuoteText');
-    var bar = qs('lsProgressBar');
-    var progressText = qs('lsProgressText');
-    var completed = chapterCount();
-    var totalChapters = getActiveTotalChapters();
-    var current = clampInt(chapter, 1, 1, totalChapters);
-    var percent = Math.max(0, Math.min(100, Math.round((completed / totalChapters) * 100)));
-
-    if (chapterText) chapterText.textContent = asText(subtitle) || ('Chapter ' + current + ' 집필 중...');
-    if (quote) quote.textContent = QUOTES[(current - 1) % QUOTES.length];
-    if (bar) bar.style.width = percent + '%';
-    if (progressText) progressText.textContent = completed + ' / ' + totalChapters + ' 챕터 완성';
-
-    var pills = qsa(qs('lsLoadPills'), '.ls-load-pill[data-ch]');
-    for (var i = 0; i < pills.length; i += 1) {
-      var pill = pills[i];
-      var n = Number(pill.getAttribute('data-ch') || 0);
-      pill.classList.remove('done', 'active');
-      pill.style.display = n <= totalChapters ? '' : 'none';
-      if (n < current || (n <= completed && completed >= current)) pill.classList.add('done');
-      if (n === current && completed < totalChapters) pill.classList.add('active');
+        var snap = window.__destinyFlowerSajuSnapshot || {};
+        var an = snap.analysis || snap.saju || {};
+        if (infoEl) {
+          var parts = [];
+          if (an.dayStem) parts.push('일간 ' + an.dayStem);
+          if (an.power_label) parts.push(an.power_label);
+          if (an.yongshin_elements && an.yongshin_elements.length) parts.push('용신 ' + an.yongshin_elements.join('·'));
+          infoEl.textContent = parts.join(' · ');
+        }
+        card.classList.add('visible');
+      }
+    } catch (e) {
+      if (card) card.classList.remove('visible');
+    } finally {
+      var orig = window.__cdActiveBirthProfile;
+      if (orig && orig.birth) {
+        try { window.computeProfileForModal(orig); } catch (_) {}
+      }
     }
   }
 
-  async function loadExistingStatus(reportId) {
-    var statusRes = await requestJson('/status?reportId=' + encodeURIComponent(reportId) + '&includeText=1', {
-      method: 'GET',
-      headers: buildAuthHeaders({}),
+  /* ── 파트너 화면 이벤트 바인딩 ───────────────────────────── */
+  function _bindPartnerScreen() {
+    // 성별 버튼
+    var gm = _qs('lsPsGenderM');
+    var gf = _qs('lsPsGenderF');
+    if (gm) gm.addEventListener('click', function () {
+      gm.classList.add('active'); gf && gf.classList.remove('active');
+      _schedulePartnerPreview();
     });
+    if (gf) gf.addEventListener('click', function () {
+      gf.classList.add('active'); gm && gm.classList.remove('active');
+      _schedulePartnerPreview();
+    });
+    // 생년월일·시각 실시간 미리보기
+    ['lsPsYear', 'lsPsMonth', 'lsPsDay', 'lsPsHour'].forEach(function (id) {
+      var el = _qs(id);
+      if (el) el.addEventListener('input', _schedulePartnerPreview);
+      if (el) el.addEventListener('change', _schedulePartnerPreview);
+    });
+    // 초기 상태 리셋
+    var card = _qs('lsPsCard');
+    if (card) card.classList.remove('visible');
+    ['lsPsYear', 'lsPsMonth', 'lsPsDay', 'lsPsName'].forEach(function (id) {
+      var el = _qs(id);
+      if (el) el.value = '';
+    });
+    var hourEl = _qs('lsPsHour');
+    if (hourEl) hourEl.selectedIndex = 0;
+    if (gf) { gf.classList.add('active'); }
+    if (gm) { gm.classList.remove('active'); }
+  }
 
-    if (!statusRes.ok || !statusRes.data || statusRes.data.ok !== true) return 0;
+  function _bindPartnerSection() {
+    // 레거시 호환 — 신규 화면에서는 사용 안 함
+  }
 
-    var rows = Array.isArray(statusRes.data.chapters) ? statusRes.data.chapters : [];
-    var statusMode = asText(statusRes.data.mode).toLowerCase();
-    if (statusMode === MODE_COMPAT || statusMode === 'couple') state.mode = MODE_COMPAT;
-    syncModeSwitch(state.mode);
-    syncStartPreviewChapters(state.mode);
-    syncResultNavigation(state.mode);
-    var totalChapters = getActiveTotalChapters();
-    for (var i = 0; i < rows.length; i += 1) {
-      var row = rows[i] || {};
-      var chapter = Number(row.chapter || 0);
-      if (chapter >= 1 && chapter <= totalChapters && typeof row.text === 'string' && asText(row.text)) {
-        state.chapterTexts[chapter] = row.text;
-        state.chapterMeta[chapter] = row.chapterMeta || { title: getChapterTitlesByMode(state.mode)[chapter - 1] || ('Chapter ' + chapter) };
+  /* ── 로딩 애니메이션 ──────────────────────────────────────── */
+  function _startLoadingAnimation() {
+    _stopLoadingAnimation();
+    _quoteIdx = Math.floor(Math.random() * LS_LOVE_QUOTES.length);
+    var el = _qs('lsLoadQuoteText');
+    if (el) el.innerHTML = LS_LOVE_QUOTES[_quoteIdx];
+    _quoteTimer = setTimeout(_rotateQuote, 6000);
+    _spawnHearts();
+    _updateLoadPills(0);
+  }
+
+  function _stopLoadingAnimation() {
+    clearTimeout(_quoteTimer);
+    clearInterval(_heartTimer);
+    _quoteTimer = null;
+    _heartTimer = null;
+    var bg = _qs('lsLoadBg');
+    if (bg) bg.innerHTML = '';
+  }
+
+  function _rotateQuote() {
+    var el = _qs('lsLoadQuoteText');
+    if (!el) return;
+    el.classList.add('ls-fade');
+    _quoteTimer = setTimeout(function () {
+      _quoteIdx = (_quoteIdx + 1) % LS_LOVE_QUOTES.length;
+      el.innerHTML = LS_LOVE_QUOTES[_quoteIdx];
+      el.classList.remove('ls-fade');
+      _quoteTimer = setTimeout(_rotateQuote, 6000);
+    }, 450);
+  }
+
+  function _spawnHearts() {
+    var bg = _qs('lsLoadBg');
+    if (!bg) return;
+    var symbols = ['♡', '♥', '✦', '✿', '❋', '◈', '✸'];
+    function _spawn() {
+      var sp = document.createElement('span');
+      sp.className = 'ls-load-heart';
+      sp.setAttribute('aria-hidden', 'true');
+      sp.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+      sp.style.left = (5 + Math.random() * 90) + '%';
+      var dur = 8 + Math.random() * 9;
+      sp.style.fontSize = (0.55 + Math.random() * 0.65).toFixed(2) + 'rem';
+      sp.style.animationDuration = dur + 's';
+      sp.style.color = 'rgba(236,72,153,' + (0.12 + Math.random() * 0.25).toFixed(2) + ')';
+      bg.appendChild(sp);
+      setTimeout(function () { if (sp.parentNode) sp.parentNode.removeChild(sp); }, (dur + 0.3) * 1000);
+    }
+    _spawn();
+    _heartTimer = setInterval(_spawn, 2000);
+  }
+
+  function _updateLoadPills(done) {
+    var pills = document.querySelectorAll('.ls-load-pill');
+    Array.prototype.forEach.call(pills, function (p, i) {
+      p.classList.remove('done', 'active');
+      if (i < done) {
+        p.classList.add('done');
+      } else if (i === done && done < 11) {
+        p.classList.add('active');
       }
-    }
-    persistState();
-    return chapterCount();
+    });
   }
 
-  async function generateAllChapters() {
-    showOnly('lsLoadingScreen');
-    setLoadingProgress(1, getChapterTitlesByMode(state.mode)[0]);
-
-    var startFrom = await loadExistingStatus(state.reportId);
-    var totalChapters = getActiveTotalChapters();
-    for (var chapter = startFrom + 1; chapter <= totalChapters; chapter += 1) {
-      var title = getChapterTitlesByMode(state.mode)[chapter - 1] || ('Chapter ' + chapter);
-      setLoadingProgress(chapter, title);
-
-      var reqBody = Object.assign({}, state.payload, {
-        reportId: state.reportId,
-        mode: state.mode,
-        reportMode: state.mode,
-        totalChapters: totalChapters,
-        sessionId: chapter,
-        chapter: chapter,
-        _premiumStrictPayload: true,
-        _premiumStrictValidation: true,
-        requestId: 'love-secret-' + state.reportId + '-ch' + chapter + '-' + Date.now(),
-      });
-
-      var res = await requestJson('/generate', {
-        method: 'POST',
-        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify(reqBody),
-      });
-
-      if (!res.ok || !res.data || res.data.ok !== true) {
-        if (res.status === 401 || res.status === 403) {
-          throw new Error('로그인이 만료되었습니다. 다시 로그인 후 시도해 주세요.');
-        }
-        if (res.status === 402) {
-          throw new Error(asText(res.data && res.data.message) || '결제 확인이 필요합니다. 코인 차감 상태를 확인해 주세요.');
-        }
-        throw new Error(asText(res.data && res.data.message) || ('챕터 ' + chapter + ' 생성에 실패했습니다.'));
-      }
-
-      state.chapterTexts[chapter] = asText(res.data.text);
-      state.chapterMeta[chapter] = res.data.chapterMeta || { title: title };
-      persistState();
-      setLoadingProgress(Math.min(totalChapters, chapter + 1), getChapterTitlesByMode(state.mode)[Math.min(totalChapters - 1, chapter)] || '집필 중...');
+  function _showScreen(id) {
+    var screens = ['lsStartScreen', 'lsPartnerScreen', 'lsLoadingScreen', 'lsResultScreen', 'lsErrorScreen'];
+    for (var i = 0; i < screens.length; i++) {
+      var el = _qs(screens[i]);
+      if (el) el.style.display = (screens[i] === id) ? '' : 'none';
     }
   }
 
-  function buildGenerationPayload(mode, partnerPayload) {
-    var self = buildSelfPayload();
-    if (!self.validBirth) {
-      return { ok: false, message: '사주 정보가 충분하지 않습니다. 먼저 사주 분석을 실행해 주세요.' };
-    }
-
-    var payload = {
-      profileId: self.profileId || undefined,
-      name: self.name,
-      gender: self.gender,
-      year: self.year,
-      month: self.month,
-      day: self.day,
-      hour: self.hour,
-      minute: self.minute,
-      birthDate: self.birthDate,
-      birthTime: self.birthTime,
-      calType: self.calType,
-      calendarType: self.calendarType,
-      isLunar: self.isLunar,
-      timeUnknown: self.timeUnknown,
-      birthPlace: self.birthPlace || undefined,
-      timezoneName: self.timezoneName,
-      timezone: self.timezone,
-      lat: self.lat,
-      lon: self.lon,
-      mode: mode === MODE_COMPAT ? 'COUPLE' : 'SOLO',
-      reportMode: mode,
-      totalChapters: getTotalChaptersByMode(mode),
-      _premiumStrictPayload: true,
-      _premiumStrictValidation: true,
-      sajuData: self.sajuData,
-      engineData: self.engineData,
-      birthData: {
-        profileId: self.profileId || undefined,
-        name: self.name,
-        gender: self.gender,
-        year: self.year,
-        month: self.month,
-        day: self.day,
-        hour: self.hour,
-        minute: self.minute,
-        birthDate: self.birthDate,
-        birthTime: self.birthTime,
-        calType: self.calType,
-        calendarType: self.calendarType,
-        isLunar: self.isLunar,
-        timeUnknown: self.timeUnknown,
-        birthPlace: self.birthPlace || undefined,
-        timezoneName: self.timezoneName,
-        timezone: self.timezone,
-        lat: self.lat,
-        lon: self.lon
-      },
-      profile: {
-        profileId: self.profileId || undefined,
-        name: self.name,
-        gender: self.gender,
-        birthDate: self.birthDate,
-        birthTime: self.birthTime,
-        calendarType: self.calendarType,
-        isLunar: self.isLunar,
-        timeUnknown: self.timeUnknown,
-        birthPlace: self.birthPlace || undefined,
-        timezone: self.timezone
-      }
-    };
-
-    if (mode === MODE_COMPAT) {
-      if (!partnerPayload || !partnerPayload.ok) {
-        return { ok: false, message: '궁합 모드에는 상대방 사주 정보가 필요합니다.' };
-      }
-      payload.partnerName = partnerPayload.profile.name;
-      payload.partnerGender = partnerPayload.profile.gender;
-      payload.partnerYear = partnerPayload.profile.birth.year;
-      payload.partnerMonth = partnerPayload.profile.birth.month;
-      payload.partnerDay = partnerPayload.profile.birth.day;
-      payload.partnerHour = partnerPayload.profile.birth.hour;
-      payload.partnerMinute = partnerPayload.profile.birth.minute;
-      payload.partnerBirthDate = [
-        partnerPayload.profile.birth.year,
-        String(partnerPayload.profile.birth.month).padStart(2, '0'),
-        String(partnerPayload.profile.birth.day).padStart(2, '0')
-      ].join('-');
-      payload.partnerBirthTime = String(partnerPayload.profile.birth.hour).padStart(2, '0') + ':' + String(partnerPayload.profile.birth.minute).padStart(2, '0');
-      payload.partnerData = partnerPayload.partnerData;
-      payload.partnerCalType = asText(partnerPayload.profile.birth.calType || 'solar') || 'solar';
-      payload.partner = {
-        engineData: partnerPayload.engineData,
-        birthData: {
-          name: partnerPayload.profile.name,
-          gender: partnerPayload.profile.gender,
-          year: partnerPayload.profile.birth.year,
-          month: partnerPayload.profile.birth.month,
-          day: partnerPayload.profile.birth.day,
-          hour: partnerPayload.profile.birth.hour,
-          minute: partnerPayload.profile.birth.minute,
-          birthDate: payload.partnerBirthDate,
-          birthTime: payload.partnerBirthTime,
-          calType: payload.partnerCalType,
-          calendarType: payload.partnerCalType,
-          isLunar: payload.partnerCalType === 'lunar' || payload.partnerCalType === 'lunar_leap',
-          timeUnknown: false,
-          timezoneName: 'Asia/Seoul',
-          timezone: 'Asia/Seoul',
-          lat: 37.5665,
-          lon: 126.9780
-        }
-      };
-    } else {
-      payload.partnerName = undefined;
-      payload.partnerGender = undefined;
-      payload.partnerYear = undefined;
-      payload.partnerMonth = undefined;
-      payload.partnerDay = undefined;
-      payload.partnerHour = undefined;
-      payload.partnerMinute = undefined;
-      payload.partnerBirthDate = undefined;
-      payload.partnerBirthTime = undefined;
-      payload.partnerData = undefined;
-      payload.partnerCalType = undefined;
-      payload.partner = undefined;
-    }
-
-    return { ok: true, payload: payload };
-  }
-
-  async function startGeneration(mode, partnerPayload, forcedRunNonce) {
-    if (state.generating) return;
-
-    var built = buildGenerationPayload(mode, partnerPayload);
-    if (!built.ok) {
-      notify(built.message || '연애 비책 생성 준비에 실패했습니다.');
-      return;
-    }
-
-    var nextPayload = built.payload;
-    var totalChapters = getTotalChaptersByMode(mode);
-    var hasCompletedReport = chapterCount() >= totalChapters;
-    var runNonce = asText(forcedRunNonce);
-    if (!runNonce && hasCompletedReport) runNonce = Date.now().toString(36);
-    var nextReportId = createReportId(nextPayload, mode, partnerPayload, runNonce);
-
-    var switchedReport = asText(state.reportId) !== asText(nextReportId);
-    if (switchedReport) {
-      state.chapterTexts = {};
-      state.chapterMeta = {};
-      state.activeChapter = 1;
-      state.paidReportId = '';
-      state.paymentContext = null;
-    }
-
-    state.mode = mode;
-    state.payload = nextPayload;
-    state.reportId = nextReportId;
-    persistState();
-
-    state.generating = true;
-    setGenerateButtonBusy(true);
-    setPartnerButtonsBusy(true);
-    var executionStarted = false;
-    var executionSettled = false;
-
-    try {
-      executionStarted = await startExecutionLifecycle(mode);
-      await generateAllChapters();
-      if (executionStarted) {
-        await completeExecutionLifecycle();
-        executionSettled = true;
-      }
-      state.paymentContext = null;
-      renderResultScreen();
-      persistState();
-      notify('프리미엄 리포트가 완성되었습니다.');
-    } catch (err) {
-      console.error('[LoveSecret] generation failed:', err);
-      var errMsg = asText(err && err.message);
-      if (/LOCAL_REPORT_FAILED|로컬\s*리포트\s*실패/i.test(errMsg)) {
-        await attemptLoveSecretAutoRefund(errMsg);
-      }
-      if (executionStarted && !executionSettled) {
-        await failExecutionLifecycle(errMsg || 'generation_failed', false);
-        executionSettled = true;
-      }
-      setErrorScreen(toSafeUserError(err));
-    } finally {
-      if (executionStarted && !executionSettled) {
-        await failExecutionLifecycle('generation_incomplete', false);
-      }
-      state.generating = false;
-      setGenerateButtonBusy(false);
-      setPartnerButtonsBusy(false);
-    }
-  }
-
-  async function attemptLoveSecretAutoRefund(reason) {
-    var reasonText = String(reason || '');
-    if (!/LOCAL_REPORT_FAILED|로컬\s*리포트\s*실패/i.test(reasonText)) return false;
-    if (state.refundInFlight) return false;
-    var ctx = state.paymentContext;
-    if (!ctx || !Number(ctx.cost)) return false;
-
-    state.refundInFlight = true;
-    try {
-      var response = await fetch('/api/fortune/pig-coin/refund', {
-        method: 'POST',
-        credentials: 'include',
-        cache: 'no-store',
-        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({
-          cost: Number(ctx.cost),
-          featureKey: String(ctx.featureKey || MODE_FEATURE_KEY[state.mode] || MODE_FEATURE_KEY[MODE_SOLO]),
-          sourceTransactionId: String(ctx.sourceTransactionId || ''),
-          requestId: String(('refund:' + (ctx.requestId || state.reportId || Date.now())).slice(0, 120)),
-          reason: String(reason || '연애 비책 PDF 생성 실패 자동 환불')
-        })
-      });
-
-      var payload = await response.json().catch(function () { return {}; });
-      var code = String(payload && payload.code || '').toUpperCase();
-      if (response.ok || code === 'REFUND_ALREADY_PROCESSED') {
-        state.paymentContext = null;
-        state.paidReportId = '';
-        persistState();
-        return true;
-      }
-
-      console.warn('[LoveSecret] auto refund failed:', payload);
-      return false;
-    } catch (error) {
-      console.warn('[LoveSecret] auto refund exception:', error);
-      return false;
-    } finally {
-      state.refundInFlight = false;
-    }
-  }
-
-  function ensureCoinGateAndStart(mode, partnerPayload) {
-    if (state.coinGatePending) {
-      notify('결제 확인이 진행 중입니다. 잠시만 기다려 주세요.');
-      return;
-    }
-
-    var built = buildGenerationPayload(mode, partnerPayload);
-    if (!built.ok) {
-      notify(built.message || '생성 준비에 실패했습니다.');
-      return;
-    }
-
-    var totalChapters = getTotalChaptersByMode(mode);
-    var hasCompletedReport = chapterCount() >= totalChapters;
-    var runNonce = hasCompletedReport ? Date.now().toString(36) : '';
-    var reportId = createReportId(built.payload, mode, partnerPayload, runNonce);
-    var alreadyHasProgress = state.reportId === reportId && chapterCount() > 0;
-    if ((alreadyHasProgress && chapterCount() < totalChapters) || (state.paidReportId === reportId && chapterCount() < totalChapters)) {
-      startGeneration(mode, partnerPayload, runNonce);
-      return;
-    }
-
-    var cost = mode === MODE_COMPAT ? MODE_COST.compatibility : MODE_COST.solo;
-    var reason = mode === MODE_COMPAT ? MODE_REASON.compatibility : MODE_REASON.solo;
-    var featureKey = mode === MODE_COMPAT ? MODE_FEATURE_KEY.compatibility : MODE_FEATURE_KEY.solo;
-
-    function finalizeCoinGatePending() {
-      state.coinGatePending = false;
-      setPartnerButtonsBusy(false);
-    }
-
-    state.coinGatePending = true;
-    setPartnerButtonsBusy(true);
-    showOnly('lsLoadingScreen');
-    setLoadingProgress(1, getChapterTitlesByMode(mode)[0] || '생성 준비 중...');
-
-    if (typeof window._cdCoinGatePerUse === 'function') {
-      window._cdCoinGatePerUse(
-        cost,
-        reason,
-        function (transactionId) {
-          finalizeCoinGatePending();
-          state.paymentContext = {
-            featureKey: featureKey,
-            cost: Number(cost || 0),
-            sourceTransactionId: String(transactionId || ''),
-            requestId: String(('lovesecret:' + reportId + ':' + Date.now()).slice(0, 120))
-          };
-          state.paidReportId = reportId;
-          persistState();
-          startGeneration(mode, partnerPayload, runNonce);
-        },
-        function () {
-          finalizeCoinGatePending();
-          showOnly('lsPartnerScreen');
-        },
-        { featureKey: featureKey }
-      );
-      return;
-    }
-
-    finalizeCoinGatePending();
-    startGeneration(mode, partnerPayload, runNonce);
-  }
-
-  function buildLocalPrintableHtml() {
-    var ownerName = asText(state.payload && state.payload.name) || '사용자';
-    var coverTitle = state.mode === MODE_COMPAT ? ownerName + '님의 커플 연애 비책' : ownerName + '님의 연애 비책';
-    var chapterBlocks = [];
-    var totalChapters = getActiveTotalChapters();
-
-    for (var i = 1; i <= totalChapters; i += 1) {
-      var text = asText(state.chapterTexts[i]);
-      if (!text) continue;
-      var title = asText(state.chapterMeta[i] && state.chapterMeta[i].title) || getChapterTitlesByMode(state.mode)[i - 1] || ('Chapter ' + i);
-      chapterBlocks.push(
-        '<section class="lb-print-chapter">'
-        + '<h1>' + escapeHtml(title) + '</h1>'
-        + markdownToHtml(text)
-        + '</section>'
-      );
-    }
-
-    return [
-      '<!doctype html>',
-      '<html lang="ko">',
-      '<head>',
-      '<meta charset="utf-8" />',
-      '<title>' + escapeHtml(coverTitle) + '</title>',
-      '<style>',
-      '@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@500;600;700&display=swap");',
-      'body{margin:0;padding:26px;font-family:"Noto Serif KR","Noto Sans KR",serif;background:#fff7fb;color:#1f2937;line-height:1.86;word-break:keep-all}',
-      '.lb-print-cover{padding:28px;border:1px solid #f2bfd7;border-radius:18px;background:#fff;margin-bottom:26px}',
-      '.lb-print-cover h1{margin:0 0 8px;font-size:34px;line-height:1.35;color:#9d174d}',
-      '.lb-print-chapter{margin-bottom:24px;padding:22px;border:1px solid #f6d7e7;border-radius:14px;background:#fff}',
-      '.lb-print-chapter h1{margin:0 0 12px;font-size:25px;line-height:1.4;color:#be185d}',
-      '.lb-print-chapter h2{margin:18px 0 10px;font-size:20px;line-height:1.45;color:#be185d}',
-      '.lb-print-chapter h3{margin:14px 0 8px;font-size:17px;line-height:1.5;color:#db2777}',
-      '.lb-print-chapter p{margin:0 0 12px;font-size:15px;line-height:1.9}',
-      '.lb-print-chapter ul{margin:0 0 10px 18px;padding:0}',
-      '.lb-print-chapter blockquote{margin:8px 0;padding:8px 12px;border-left:4px solid #ec4899;background:#fdf2f8;color:#831843}',
-      '.lb-table{width:100%;border-collapse:collapse;margin:10px 0}',
-      '.lb-table td{border:1px solid #f2bfd7;padding:6px 8px;font-size:13px}',
-      '.love-secret-print__disclaimer{margin-top:18px;color:#6b7280;font-size:12px}',
-      '@page{size:A4;margin:14mm}',
-      '@media print{body{padding:0;background:#fff}.lb-print-cover,.lb-print-chapter{border:none;border-radius:0;box-shadow:none}}',
-      '</style>',
-      '</head>',
-      '<body>',
-      '<section class="lb-print-cover">',
-      '<h1>' + escapeHtml(coverTitle) + '</h1>',
-      '<p>생성일: ' + escapeHtml(formatDateLabel()) + '</p>',
-      '</section>',
-      chapterBlocks.join('\n'),
-      '<section class="love-secret-print__disclaimer">본 리포트는 사주 기반의 해석 정보이며, 개인의 판단을 대신하지 않습니다.</section>',
-      '</body>',
-      '</html>'
-    ].join('\n');
-  }
-
-  function openPrintWindow(html) {
-    var printWindow = null;
-    try {
-      printWindow = window.open('', '_blank');
-      if (!printWindow) return false;
-      printWindow.document.open();
-      printWindow.document.write(String(html || ''));
-      printWindow.document.close();
-      printWindow.focus();
-      setTimeout(function () {
-        try { printWindow.print(); } catch (_) {}
-      }, 350);
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  async function downloadLoveSecret() {
-    var html = '';
-    if (state.reportId) {
-      var downloaded = await fetchDownloadHtml(state.reportId).catch(function () {
-        return { ok: false, status: 0, text: '' };
-      });
-
-      if (!downloaded.ok && (downloaded.status === 401 || downloaded.status === 403)) {
-        throw new Error('로그인이 필요합니다. 다시 로그인 후 시도해 주세요.');
-      }
-      if (downloaded.ok && downloaded.text) html = downloaded.text;
-    }
-
-    if (!html) html = buildLocalPrintableHtml();
-    if (!openPrintWindow(html)) {
-      var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = 'love-secret-' + (state.reportId || Date.now()) + '.html';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(function () { URL.revokeObjectURL(url); }, 1200);
-      notify('HTML 파일로 다운로드되었습니다. 브라우저에서 열어 인쇄 > PDF 저장을 선택해 주세요.');
-    }
-  }
-
-  function preparePartnerScreen() {
-    setPartnerGender(getPartnerGender());
-    renderPartnerPreview();
-    showOnly('lsPartnerScreen');
-  }
-
-  function renderResultRecoveryIfNeeded() {
-    return restorePersistedCompletedReport();
-  }
-
-  window.resetLoveSecretState = function () {
-    resetState();
-    refreshSavedReportButton();
-    showOnly('lsStartScreen');
-  };
-
-  function applyActiveProfileArg(profileArg) {
-    if (!profileArg || !profileArg.birth) return;
-    var birth = profileArg.birth;
-    if (!(Number(birth.year) > 0 && Number(birth.month) > 0 && Number(birth.day) > 0)) return;
-    try { window.__cdActiveBirthProfile = profileArg; } catch (_) {}
-  }
-
-  window.openLoveSecretModal = function (profileArg) {
-    var modal = qs('loveSecretModal');
+  window.openLoveSecretModal = function () {
+    var modal = _qs('loveSecretModal');
     if (!modal) return;
-    applyActiveProfileArg(profileArg);
+    var hasData = !!(window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth && window.__cdActiveBirthProfile.birth.year);
+    // ★ 프로필 없으면 DOM 및 localStorage 운명 카드에서 복구 시도
+    if (!hasData) {
+      try {
+        var _oLsDateEl = document.getElementById('birthDate');
+        if (_oLsDateEl && _oLsDateEl.value) {
+          var _oLsParts = _oLsDateEl.value.split('-');
+          var _oLsY = Number(_oLsParts[0]), _oLsM = Number(_oLsParts[1]), _oLsD = Number(_oLsParts[2]);
+          if (_oLsY && _oLsM && _oLsD) {
+            var _oLsNameEl = document.getElementById('nameInput');
+            var _oLsIsFemale = document.querySelector('#btnF.on') !== null;
+            var _oLsHourEl = document.getElementById('birthHour');
+            var _oLsMinEl = document.getElementById('birthMinute');
+            var _oLsCountrySel = document.getElementById('birthCountry');
+            var _oLsLocData = { label: '대한민국 (서울)', lng: 127.0, lat: 37.6, tz: 'Asia/Seoul', tzOffset: 9, baseTzOffset: 9 };
+            if (_oLsCountrySel && _oLsCountrySel.selectedIndex >= 0) {
+              var _oLsOpt = _oLsCountrySel.options[_oLsCountrySel.selectedIndex];
+              if (_oLsOpt) { _oLsLocData = { label: (_oLsOpt.textContent || _oLsOpt.text || '').trim(), lng: parseFloat(_oLsOpt.getAttribute('data-long') || '127.0'), lat: parseFloat(_oLsOpt.getAttribute('data-lat') || '37.6'), tz: _oLsOpt.value || 'Asia/Seoul', tzOffset: parseFloat(_oLsOpt.getAttribute('data-tz') || '9'), baseTzOffset: parseFloat(_oLsOpt.getAttribute('data-base-tz') || '9') }; }
+            }
+            window.__cdActiveBirthProfile = { name: (_oLsNameEl && _oLsNameEl.value.trim()) || '사용자', gender: _oLsIsFemale ? 'F' : 'M', birth: { year: _oLsY, month: _oLsM, day: _oLsD, hour: _oLsHourEl ? Number(_oLsHourEl.value) : 12, minute: _oLsMinEl ? Number(_oLsMinEl.value) : 0 }, location: _oLsLocData };
+            hasData = true;
+          }
+        }
+      } catch (_oLsDomE) {}
+    }
+    if (!hasData) {
+      try {
+        var _oLsDpNs = 'FORTUNE_APP_USER_PROFILES';
+        var _oLsDpList = JSON.parse(localStorage.getItem(_oLsDpNs + '.list') || '[]');
+        var _oLsDpCurrId = localStorage.getItem(_oLsDpNs + '.current');
+        var _oLsDpMatch = (_oLsDpCurrId && _oLsDpList.find(function(p){return p.id===_oLsDpCurrId;})) || (_oLsDpList.length && _oLsDpList[0]) || null;
+        if (_oLsDpMatch && _oLsDpMatch.birth && _oLsDpMatch.birth.year) {
+          window.__cdActiveBirthProfile = _oLsDpMatch;
+          hasData = true;
+        }
+      } catch (_oLsDpE) {}
+    }
+    if (!hasData) {
+      var _oLsFormEl = document.getElementById('birthDate') || document.getElementById('run-btn');
+      if (_oLsFormEl) { try { _oLsFormEl.scrollIntoView({behavior:'smooth',block:'center'}); } catch(_){} }
+      alert('💕 연애 비책을 생성하려면 생년월일 · 출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
+      return;
+    }
+    _chapters = Array(11).fill(null);
+    _showScreen('lsStartScreen');
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
-    document.body.classList.add('lb-modal-open');
-    modal.setAttribute('aria-hidden', 'false');
-
-    if (state.generating) {
-      showOnly('lsLoadingScreen');
-      return;
-    }
-    resetState();
-    syncModeSwitch(state.mode);
-    syncStartPreviewChapters(state.mode);
-    syncResultNavigation(state.mode);
-    refreshSavedReportButton();
-    showOnly('lsStartScreen');
+    try {
+      modal.setAttribute('aria-hidden', 'false');
+      var closeBtn = modal.querySelector('.ls-modal__close');
+      if (closeBtn) setTimeout(function () { closeBtn.focus(); }, 60);
+    } catch (_) {}
   };
 
   window.closeLoveSecretModal = function () {
-    var modal = qs('loveSecretModal');
+    var modal = _qs('loveSecretModal');
     if (!modal) return;
+    _cancelGeneration = true;
+    _generating = false;
+    _abortActiveRequest();
+    _stopLoadingAnimation();
     modal.style.display = 'none';
     document.body.style.overflow = '';
-    document.body.classList.remove('lb-modal-open');
-    modal.setAttribute('aria-hidden', 'true');
+    try { modal.setAttribute('aria-hidden', 'true'); } catch (_) {}
   };
 
-  window.generateLoveSecret = function () {
-    if (state.generating) return;
-    resetState();
-    syncStartPreviewChapters(state.mode);
-    syncModeSwitch(state.mode);
-    syncResultNavigation(state.mode);
-    if (state.mode === MODE_COMPAT) {
-      preparePartnerScreen();
+  function _bindToc() {
+    var nav = document.querySelector('.ls-toc');
+    if (!nav) return;
+    nav.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-ls-chapter]');
+      if (!btn) return;
+      var ch = Number(btn.getAttribute('data-ls-chapter'));
+      if (!ch || !_chapters[ch - 1]) return;
+      _renderChapter(ch);
+      Array.prototype.forEach.call(nav.querySelectorAll('.ls-toc-item'), function (b) {
+        b.classList.toggle('active', b === btn);
+        b.classList.toggle('loaded', !!_chapters[Number(b.getAttribute('data-ls-chapter')) - 1]);
+      });
+    });
+  }
+
+  function _renderChapter(ch) {
+    var content = _qs('lsChapterContent');
+    if (!content) return;
+    var idx = ch - 1;
+    var data = _chapters[idx];
+    if (!data) {
+      content.innerHTML = '<p class="ls-ch-empty">이 챕터가 아직 생성되지 않았습니다.</p>';
       return;
     }
-    ensureCoinGateAndStart(MODE_SOLO, null);
-  };
+    content.innerHTML =
+      '<div class="ls-chapter-wrap">' +
+      '<div class="ls-chapter-header">' +
+      '<span class="ls-chapter-num">Chapter ' + ch + '</span>' +
+      '<h2 class="ls-chapter-title">' + _escHtml(CHAPTER_TITLES[idx]) + '</h2>' +
+      '<p class="ls-chapter-sub">' + _escHtml(CHAPTER_SUBTITLES[idx]) + '</p>' +
+      '</div>' +
+      '<div class="ls-chapter-body">' + _md2html(data) + '</div>' +
+      '</div>';
+    content.scrollTop = 0;
+  }
 
-  window.openLoveSecretLatestReport = function () {
-    restorePersistedCompletedReport();
-  };
+  function _updateTocState() {
+    var items = document.querySelectorAll('.ls-toc-item');
+    Array.prototype.forEach.call(items, function (btn) {
+      var ch = Number(btn.getAttribute('data-ls-chapter'));
+      btn.classList.toggle('loaded', !!_chapters[ch - 1]);
+      btn.classList.toggle('active', ch === 1);
+    });
+  }
 
-  window.lsSkipPartner = function () {
-    ensureCoinGateAndStart(MODE_SOLO, null);
+  /* ── 모듈 레벨 사주 데이터 저장 ───────────────────────────── */
+  var _cachedSajuData = '';
+
+    window.generateLoveSecret = function () {
+    if (_generating) return;
+    // 프로필 복구: __cdActiveBirthProfile 없으면 localStorage DP에서 시도
+    if (!(window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth && window.__cdActiveBirthProfile.birth.year)) {
+      try {
+        var _glsDpNs = 'FORTUNE_APP_USER_PROFILES';
+        var _glsDpList = JSON.parse(localStorage.getItem(_glsDpNs + '.list') || '[]');
+        var _glsDpCurrId = localStorage.getItem(_glsDpNs + '.current');
+        var _glsDpMatch = (_glsDpCurrId && _glsDpList.find(function(p){return p.id===_glsDpCurrId;})) || (_glsDpList.length && _glsDpList[0]) || null;
+        if (_glsDpMatch && _glsDpMatch.birth && _glsDpMatch.birth.year) { window.__cdActiveBirthProfile = _glsDpMatch; }
+      } catch (_glsDpE) {}
+    }
+    var hasData = !!(window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth && window.__cdActiveBirthProfile.birth.year);
+    if (!hasData) { alert('사주 계산을 먼저 완료해 주세요.'); return; }
+    // 사주 분석 화면과 100% 일치하도록 G_PILLARS 등 전역 변수 재계산
+    if (typeof window.computeProfileForModal === 'function' && window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth) {
+      try { window.computeProfileForModal(window.__cdActiveBirthProfile); } catch (_cpE) {}
+    }
+    _cachedSajuData = _collectSajuData();
+    _chapters = Array(11).fill(null);
+    _showScreen('lsPartnerScreen');
+    _bindPartnerScreen();
   };
 
   window.lsStartWithPartner = function () {
-    var partner = buildPartnerPayload();
-    if (!partner.ok) {
-      notify(partner.message || '상대방 정보를 확인해 주세요.');
+    if (_generating) return;
+    var year = parseInt((_qs('lsPsYear') || {}).value || '0', 10);
+    var month = parseInt((_qs('lsPsMonth') || {}).value || '0', 10);
+    var day = parseInt((_qs('lsPsDay') || {}).value || '0', 10);
+    if (!year || !month || !day) {
+      var yearEl = _qs('lsPsYear');
+      if (yearEl) {
+        yearEl.focus();
+        yearEl.style.borderColor = 'rgba(239,68,68,0.8)';
+        setTimeout(function () { yearEl.style.borderColor = ''; }, 2000);
+      }
       return;
     }
-    ensureCoinGateAndStart(MODE_COMPAT, partner);
+
+    var startBtn = _qs('lsPsStartBtn');
+    if (startBtn) { startBtn.disabled = true; startBtn.textContent = '처리 중...'; }
+
+    function _restorePartnerStartBtn() {
+      if (startBtn) {
+        startBtn.disabled = false;
+        startBtn.textContent = '💑 두 사람의 궁합 포함 분석 시작하기';
+      }
+    }
+
+    function _startWithPartnerData() {
+      _restorePartnerStartBtn();
+      var partnerData = _collectPartnerScreenData();
+      _startGeneration(partnerData);
+    }
+
+    if (typeof window._cdCoinGatePerUse === 'function') {
+      window._cdCoinGatePerUse(100, '연애 비책 궁합 분석', _startWithPartnerData, _restorePartnerStartBtn);
+      return;
+    }
+
+    _restorePartnerStartBtn();
+    window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
   };
+
+  window.lsSkipPartner = function () {
+    if (_generating) return;
+    _startGeneration('');
+  };
+
+  function _startGeneration(partnerData) {
+    _generating = true;
+    _cancelGeneration = false;
+    _showScreen('lsLoadingScreen');
+    _startLoadingAnimation();
+    var sajuData = _cachedSajuData || _collectSajuData();
+    var progressBar = _qs('lsProgressBar');
+    var progressText = _qs('lsProgressText');
+    var chapterMsg = _qs('lsLoadingChapter');
+
+    function _setProgress(done) {
+      var pct = (done / 11) * 100;
+      if (progressBar) progressBar.style.width = pct + '%';
+      if (progressText) progressText.textContent = done + ' / 11 챕터 완성';
+      if (chapterMsg && done < 11) chapterMsg.textContent = LOADING_MSGS[done] || '분석 중...';
+      if (chapterMsg && done >= 11) chapterMsg.textContent = '모든 챕터가 완성되었습니다 💕';
+      _updateLoadPills(done);
+    }
+    _setProgress(0);
+    var lsTitle = _qs('lsLoadingTitle');
+    if (lsTitle) {
+      lsTitle.textContent = partnerData
+        ? '두 사람의 궁합과 연애 비책을 집필하는 중입니다'
+        : '연애 비책을 집필하는 중입니다';
+    }
+
+    function _fetchChapter(idx) {
+      return new Promise(function (resolve) {
+        var _settled = false;
+        var _abortMsg = '응답 시간 초과 (45초). 네트워크 상태를 확인해 주세요.';
+        var _endpoints = _buildApiCandidates('/api/love-secret/session');
+        var _attemptPlan = [];
+        var _lastMsg = '';
+
+        for (var _ei = 0; _ei < _endpoints.length; _ei++) {
+          for (var _ri = 0; _ri < 2; _ri++) {
+            _attemptPlan.push({ url: _endpoints[_ei], retry: _ri + 1 });
+          }
+        }
+
+        function _done(payload) {
+          if (_settled) return;
+          _settled = true;
+          _abortActiveRequest();
+          resolve(payload);
+        }
+
+        function _runAttempt(at) {
+          if (_cancelGeneration) {
+            _done({ ok: false, message: '사용자가 생성을 중단했습니다.' });
+            return;
+          }
+          if (at >= _attemptPlan.length) {
+            _done({ ok: false, message: _lastMsg || '모든 API 엔드포인트 시도에 실패했습니다.' });
+            return;
+          }
+
+          var _plan = _attemptPlan[at];
+          var _controller = (typeof AbortController === 'function') ? new AbortController() : null;
+          if (_controller) _activeRequestController = _controller;
+
+          var timeoutId = setTimeout(function () {
+            if (_controller) {
+              try { _controller.abort(); } catch (_) {}
+            }
+          }, 45000);
+
+          fetch(_plan.url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId: idx + 1, sajuData: sajuData, partnerData: partnerData || '' }),
+            signal: _controller ? _controller.signal : undefined,
+          })
+            .then(function (res) {
+              if (!res.ok) {
+                return res.json().catch(function () { return {}; }).then(function (e) {
+                  return { ok: false, message: (e && e.message) || ('HTTP ' + res.status) };
+                });
+              }
+              return res.json().catch(function () { return { ok: false, message: 'JSON 파싱 오류' }; });
+            })
+            .then(function (data) {
+              clearTimeout(timeoutId);
+              if (_activeRequestController === _controller) _activeRequestController = null;
+              if (data && data.ok) {
+                _done(data);
+                return;
+              }
+              _lastMsg = (data && data.message) ? data.message : 'API 응답 실패';
+              _runAttempt(at + 1);
+            })
+            .catch(function (err) {
+              clearTimeout(timeoutId);
+              if (_activeRequestController === _controller) _activeRequestController = null;
+              if (err && err.name === 'AbortError') {
+                _lastMsg = _cancelGeneration ? '사용자가 생성을 중단했습니다.' : _abortMsg;
+              } else {
+                _lastMsg = String(err && err.message ? err.message : err);
+              }
+              _runAttempt(at + 1);
+            });
+        }
+
+        _runAttempt(0);
+      });
+    }
+
+    (function generateNext(idx) {
+      if (_cancelGeneration) return;
+      if (idx >= 11) {
+        _generating = false;
+        _stopLoadingAnimation();
+        _showScreen('lsResultScreen');
+        _updateTocState();
+        _renderChapter(1);
+        _bindToc();
+        var profile = window.__cdActiveBirthProfile || {};
+        _saveResult(profile);
+        _renderResultHeader(profile.name, profile.birth, profile.gender, new Date(), true);
+        return;
+      }
+      if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
+      _fetchChapter(idx).then(function (data) {
+          if (_cancelGeneration) return;
+          _chapters[idx] = (data && data.ok && data.text)
+            ? data.text
+            : '⚠️ 이 챕터의 분석을 불러오는 데 실패했습니다.\n\n' + (data && data.message ? data.message : '알 수 없는 오류');
+          _setProgress(idx + 1);
+          generateNext(idx + 1);
+        })
+        .catch(function (err) {
+          _chapters[idx] = '⚠️ 네트워크 오류로 이 챕터를 불러오지 못했습니다.\n' + String(err && err.message ? err.message : err);
+          _setProgress(idx + 1);
+          generateNext(idx + 1);
+        });
+    })(0);
+  }
 
   window.downloadLoveSecretPdf = function () {
-    downloadLoveSecret().catch(function (err) {
-      console.error('[LoveSecret] download failed:', err);
-      notify(asText(err && err.message) || '다운로드 처리 중 오류가 발생했습니다.');
-    });
-  };
-
-  window.shareLoveSecretKakao = function () {
-    var shareText = '내 연애 비책이 완성되었어요.\n' + window.location.origin + '/?love-secret=' + encodeURIComponent(state.reportId || 'ready');
-    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-      navigator.clipboard.writeText(shareText).then(function () {
-        notify('공유 문구를 클립보드에 복사했습니다.');
-      }).catch(function () {
-        notify('공유 링크: ' + shareText);
-      });
-      return;
+    if (!_chapters.some(Boolean)) { alert('먼저 연애 비책을 생성해 주세요.'); return; }
+    var profile = window.__cdActiveBirthProfile || {};
+    var birth = profile.birth || {};
+    var birthStr = birth.year
+      ? birth.year + '년 ' + (birth.month || '') + '월 ' + (birth.day || '') + '일'
+      : '';
+    var genderStr = profile.gender === 'F' ? '여성' : profile.gender === 'M' ? '남성' : '';
+    var issued = new Date().toLocaleDateString('ko-KR');
+    var bodyHtml = '';
+    for (var i = 0; i < 11; i++) {
+      if (!_chapters[i]) continue;
+      bodyHtml +=
+        '<div class="chapter" style="page-break-before:' + (i > 0 ? 'always' : 'auto') + '">' +
+        '<div class="chapter-header">' +
+        '<span class="chapter-num">Chapter ' + (i + 1) + '</span>' +
+        '<h2 class="chapter-title">' + _escHtml(CHAPTER_TITLES[i]) + '</h2>' +
+        '<p class="chapter-sub">' + _escHtml(CHAPTER_SUBTITLES[i]) + '</p>' +
+        '</div>' +
+        '<div class="chapter-body">' + _md2html(_chapters[i]) + '</div>' +
+        '</div>';
     }
-    notify('공유 링크: ' + shareText);
+
+    var tocHtml = _chapters.map(function (c, i) {
+      if (!c) return '';
+      return '<div class="toc-item"><span class="toc-num">Chapter ' + (i + 1) + '</span><span class="toc-text">' + _escHtml(CHAPTER_TITLES[i]) + '</span></div>';
+    }).join('');
+
+    var fullHtml = '<!DOCTYPE html><html lang="ko"><head>' +
+      '<meta charset="UTF-8">' +
+      '<title>' + _escHtml((profile.name || '사용자') + '님의 연애 비책') + '</title>' +
+      '<style>' +
+      '@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Dodum&display=swap");' +
+      'body{font-family:"Noto Serif KR","Gowun Dodum",serif;color:#1a0a1e;background:#fff;margin:0;padding:0;}' +
+      '.cover{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:40px;background:linear-gradient(135deg,#1a0010 0%,#3d0030 50%,#1a0010 100%);color:#fff;page-break-after:always;}' +
+      '.cover-badge{font-size:.75rem;letter-spacing:.2em;color:#f9a8d4;margin-bottom:16px;text-transform:uppercase;}' +
+      '.cover-title{font-size:3rem;font-weight:700;margin:0 0 12px;color:#fce7f3;letter-spacing:.05em;}' +
+      '.cover-subtitle{font-size:1.1rem;color:#f472b6;margin:0 0 32px;}' +
+      '.cover-name{font-size:1.7rem;color:#fde68a;margin:0 0 8px;}' +
+      '.cover-info{font-size:.9rem;color:#fbb6ce;margin:0 0 10px;}' +
+      '.cover-deco{font-size:1.5rem;color:#ec4899;letter-spacing:.3em;margin-top:32px;}' +
+      '.toc{padding:48px 56px;page-break-after:always;}' +
+      '.toc-title{font-size:1.4rem;color:#9d174d;margin-bottom:32px;border-bottom:2px solid #ec4899;padding-bottom:12px;}' +
+      '.toc-item{display:flex;align-items:baseline;gap:8px;margin-bottom:16px;font-size:1rem;}' +
+      '.toc-num{color:#ec4899;font-weight:700;min-width:80px;}' +
+      '.toc-text{color:#4a0030;}' +
+      '.chapter{padding:48px 56px;}' +
+      '.chapter-header{border-bottom:1px solid #fce7f3;margin-bottom:32px;padding-bottom:24px;}' +
+      '.chapter-num{font-size:.75rem;letter-spacing:.2em;color:#ec4899;text-transform:uppercase;display:block;margin-bottom:8px;}' +
+      '.chapter-title{font-size:1.8rem;font-weight:700;color:#4a0030;margin:0 0 8px;}' +
+      '.chapter-sub{font-size:.95rem;color:#be185d;margin:0;}' +
+      '.chapter-body{line-height:1.9;font-size:.98rem;color:#2d1a2e;}' +
+      '.ls-md-h1,.ls-md-h2{font-size:1.3rem;font-weight:700;color:#4a0030;margin:28px 0 12px;border-left:4px solid #ec4899;padding-left:12px;}' +
+      '.ls-md-h3{font-size:1.1rem;font-weight:700;color:#831843;margin:20px 0 8px;}' +
+      '.ls-md-h4{font-size:1rem;font-weight:700;color:#9d174d;margin:16px 0 6px;}' +
+      '.ls-md-p{margin:0 0 14px;line-height:1.9;}' +
+      '.ls-md-ul{margin:0 0 14px;padding-left:24px;}' +
+      '.ls-md-li{margin-bottom:6px;line-height:1.7;}' +
+      '.ls-md-hr{border:none;border-top:1px solid #fce7f3;margin:24px 0;}' +
+      '@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.cover{min-height:auto;padding:60px 40px;}}' +
+      '</style></head><body>' +
+      '<div class="cover">' +
+      '<p class="cover-badge">✦ CODE DESTINY · 연애 비책 — 운명의 설계도 ✦</p>' +
+      '<h1 class="cover-title">💕 연애 비책</h1>' +
+      '<p class="cover-subtitle">運命이 설계한 사랑의 지도</p>' +
+      '<h2 class="cover-name">' + _escHtml(profile.name || '사용자') + ' 님</h2>' +
+      '<p class="cover-info">' + _escHtml(birthStr) + (genderStr ? ' · ' + _escHtml(genderStr) : '') + '</p>' +
+      '<p class="cover-info">발행일: ' + _escHtml(issued) + '</p>' +
+      '<div class="cover-deco">♡ ◈ ♡</div>' +
+      '</div>' +
+      '<div class="toc"><h2 class="toc-title">목 차 (Table of Contents)</h2>' + tocHtml + '</div>' +
+      bodyHtml +
+      '</body></html>';
+
+    var blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var win = window.open(url, '_blank');
+    if (win) {
+      win.onload = function () {
+        setTimeout(function () { win.print(); }, 600);
+      };
+    }
+    setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
   };
 
-  document.addEventListener('click', function (event) {
-    var target = event.target;
+  /* ── 클릭 핸들러 (data-action 디스패치) ──────────────────── */
+  document.addEventListener('click', function (e) {
+    var target = e.target;
     if (!(target instanceof Element)) return;
-
-    var actionEl = target.closest('[data-action]');
-    if (actionEl) {
-      var action = actionEl.getAttribute('data-action');
-      if (action === 'openLoveSecretModal') {
-        event.preventDefault();
-        window.openLoveSecretModal();
-        return;
-      }
-      if (action === 'closeLoveSecretModal') {
-        event.preventDefault();
-        window.closeLoveSecretModal();
-        return;
-      }
-      if (action === 'generateLoveSecret') {
-        event.preventDefault();
-        window.generateLoveSecret();
-        return;
-      }
-      if (action === 'lsSetMode') {
-        event.preventDefault();
-        setLoveSecretMode(actionEl.getAttribute('data-ls-mode') || MODE_SOLO);
-        return;
-      }
-      if (action === 'openLoveSecretLatestReport') {
-        event.preventDefault();
-        window.openLoveSecretLatestReport();
-        return;
-      }
-      if (action === 'lsSkipPartner') {
-        event.preventDefault();
-        window.lsSkipPartner();
-        return;
-      }
-      if (action === 'lsStartWithPartner') {
-        event.preventDefault();
-        window.lsStartWithPartner();
-        return;
-      }
-      if (action === 'downloadLoveSecretPdf') {
-        event.preventDefault();
-        window.downloadLoveSecretPdf();
-        return;
-      }
-      if (action === 'shareLoveSecretKakao') {
-        event.preventDefault();
-        window.shareLoveSecretKakao();
-        return;
-      }
-    }
-
-    var tocItem = target.closest('.ls-toc-item[data-ls-chapter]');
-    if (tocItem) {
-      var chapter = Number(tocItem.getAttribute('data-ls-chapter') || 1);
-      openResultChapter(chapter);
-      return;
-    }
-
-    var maleBtn = target.closest('#lsPsGenderM');
-    if (maleBtn) {
-      setPartnerGender('M');
-      renderPartnerPreview();
-      return;
-    }
-
-    var femaleBtn = target.closest('#lsPsGenderF');
-    if (femaleBtn) {
-      setPartnerGender('F');
-      renderPartnerPreview();
+    var btn = target.closest('[data-action]');
+    if (!btn) return;
+    var action = btn.getAttribute('data-action');
+    if (action === 'openLoveSecretModal')  { window.openLoveSecretModal();  return; }
+    if (action === 'closeLoveSecretModal') { window.closeLoveSecretModal(); return; }
+    if (action === 'generateLoveSecret')  { window.generateLoveSecret();  return; }
+    if (action === 'lsStartWithPartner')  { window.lsStartWithPartner();  return; }
+    if (action === 'lsSkipPartner')       { window.lsSkipPartner();       return; }
+    if (action === 'downloadLoveSecretPdf') { window.downloadLoveSecretPdf(); return; }
+    if (action === 'shareLoveSecretKakao') {
+      if (typeof window.shareLoveSecretKakao === 'function') window.shareLoveSecretKakao();
       return;
     }
   }, false);
 
-  document.addEventListener('input', function (event) {
-    var target = event.target;
-    if (!(target instanceof Element)) return;
-    if (target.matches('#lsPsName, #lsPsYear, #lsPsMonth, #lsPsDay, #lsPsHour')) {
-      renderPartnerPreview();
+  /* ESC 키로 모달 닫기 */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      var modal = _qs('loveSecretModal');
+      if (modal && modal.style.display !== 'none') window.closeLoveSecretModal();
     }
-  }, false);
-
-  document.addEventListener('keydown', function (event) {
-    if (event.key !== 'Escape') return;
-    var modal = qs('loveSecretModal');
-    if (modal && modal.style.display !== 'none') window.closeLoveSecretModal();
   });
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () {
-      loadPersistedState(false);
-      syncStartPreviewChapters(state.mode);
-      renderPartnerPreview();
-      refreshSavedReportButton();
-      resetState();
-    }, { once: true });
-  } else {
-    loadPersistedState(false);
-    syncStartPreviewChapters(state.mode);
-    renderPartnerPreview();
-    refreshSavedReportButton();
-    resetState();
-  }
 })();
