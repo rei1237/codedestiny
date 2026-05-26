@@ -15696,20 +15696,28 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
       : 0,
   });
 
-  const buildLocalOnlyChapter = (notice, warningCode) => {
-    const fallback = buildZiweiLocalFallbackChapter({
-      chapter,
-      chapterSpec,
-      meta,
-      context: promptContext,
+  const sectionCallRecords = [];
+  const buildRetryableFailure = (code, message, details = [], status = 422) => {
+    const sectionRows = Array.isArray(localSkeletonChapter?.sections) ? localSkeletonChapter.sections : [];
+    sectionRows.forEach((row) => {
+      sectionCallRecords.push({
+        chapterId: String(chapterSpec?.key || `ch_${chapter}`),
+        sectionId: String(row?.id || ""),
+        requestId: String(body?.requestId || body?.generationId || "").trim() || null,
+        status: "failed",
+        attempt: 1,
+        errorCode: String(code || "ZIWEI_LLM_SECTION_FAILED"),
+        responseChars: 0,
+      });
     });
-    const text = String(fallback?.text || "");
     return {
-      ...fallback,
-      generationNotice: String(notice || "local-only"),
-      warnings: Array.from(new Set([...(Array.isArray(fallback?.warnings) ? fallback.warnings : []), String(warningCode || "ZIWEI_LOCAL_ONLY")])),
-      text,
-      sections: parseSections(text),
+      ok: false,
+      code: String(code || "ZIWEI_LLM_SECTION_FAILED"),
+      message: String(message || "자미두수 LLM 생성이 실패했습니다."),
+      details: Array.isArray(details) ? details : [String(details || "")],
+      retryable: true,
+      status: Number(status || 422),
+      llmCallRecords: sectionCallRecords,
     };
   };
   (Array.isArray(context?.missingSummary) ? context.missingSummary : []).forEach((field) => pushUnique(dataQuality?.missingFields, field));
@@ -15751,6 +15759,7 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
   const chapterTargetChars = Math.max(2500, Number(chapterSpec?.targetChars || ZIWEI_MIN_CHARS));
   const chapterMinChars = Math.max(2000, Math.floor(chapterTargetChars * 0.85));
   const chapterMaxChars = Math.max(chapterTargetChars + 700, ZIWEI_MAX_CHARS);
+  try {
   console.info("[ZiweiPdf.LlmEnhanceStart]", {
     ...chapterMetaInfo,
     mode: "enhance-only",
@@ -15805,7 +15814,12 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
       stage: "gemini-parse",
       detail: String(parsed.error || "JSON_PARSE_FAILED"),
     });
-    return buildLocalOnlyChapter("llm-parse-rejected", "ZIWEI_LLM_PARSE_REJECTED");
+    return buildRetryableFailure(
+      "ZIWEI_LLM_RESPONSE_INVALID",
+      "자미두수 LLM 응답 스키마를 검증하지 못했습니다.",
+      [String(parsed.error || "JSON_PARSE_FAILED")],
+      422,
+    );
   }
 
   const chapterValidation = validateZiweiChapterResult(parsed.data, chapterSpec);
@@ -15815,7 +15829,12 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
       code: "ZIWEI_CHAPTER_SCHEMA_FAILED",
       missing: chapterValidation.missing,
     });
-    return buildLocalOnlyChapter("llm-schema-rejected", "ZIWEI_LLM_SCHEMA_REJECTED");
+    return buildRetryableFailure(
+      "ZIWEI_LLM_RESPONSE_INVALID",
+      "자미두수 LLM 응답이 chapter schema를 충족하지 못했습니다.",
+      chapterValidation.missing,
+      422,
+    );
   }
 
   console.info("[ZiweiPdf.LlmEnhanceValidated]", {
@@ -15871,7 +15890,12 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
       code: "ZIWEI_CHAPTER_QUALITY_FAILED",
       details: qualityDetails,
     });
-    return buildLocalOnlyChapter("llm-quality-rejected", "ZIWEI_LLM_QUALITY_REJECTED");
+    return buildRetryableFailure(
+      "ZIWEI_LLM_RESPONSE_INVALID",
+      "자미두수 LLM 응답 품질 검증에 실패했습니다.",
+      qualityDetails,
+      422,
+    );
   }
 
   const chapterEnvelopeValidation = validatePremiumChapterResponseEnvelope({
@@ -15891,7 +15915,12 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
       code: "ZIWEI_CHAPTER_CONTRACT_VIOLATION",
       missingFields: chapterEnvelopeValidation.missingFields,
     });
-    return buildLocalOnlyChapter("llm-contract-rejected", "ZIWEI_LLM_CONTRACT_REJECTED");
+    return buildRetryableFailure(
+      "ZIWEI_LLM_RESPONSE_INVALID",
+      "자미두수 chapterContract 검증에 실패했습니다.",
+      Array.isArray(chapterEnvelopeValidation?.missingFields) ? chapterEnvelopeValidation.missingFields : [],
+      422,
+    );
   }
 
   console.info("[ZiweiPdf.RenderSuccess]", {
@@ -15911,10 +15940,28 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
     text: finalText,
     sections: parseSections(finalText),
     usedFallback: false,
+    source: "llm-enhanced",
     generationNotice: null,
     warnings: [],
     chapterJson,
+    llmCallRecords: (Array.isArray(localSkeletonChapter?.sections) ? localSkeletonChapter.sections : []).map((row) => ({
+      chapterId: String(chapterSpec?.key || `ch_${chapter}`),
+      sectionId: String(row?.id || ""),
+      requestId: String(body?.requestId || body?.generationId || "").trim() || null,
+      status: "success",
+      attempt: 1,
+      errorCode: "",
+      responseChars: String(finalText || "").length,
+    })),
   };
+  } catch (error) {
+    return buildRetryableFailure(
+      "ZIWEI_LLM_API_FAILED",
+      "자미두수 LLM API 호출이 실패했습니다.",
+      [String(error?.message || "GEMINI_ERROR")],
+      503,
+    );
+  }
 }
 
 function parseSukuyoLunarHint(body, prefix = "") {
@@ -22151,6 +22198,27 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
 
   const chapterCount = ziweiTotalChapters;
   const totalCategoryCount = chapterCount * 4;
+  upsertReportSessionMeta("ziwei", reportId, chapterCount, {
+    ownerUserId,
+    reportType,
+    requestId,
+    generationId,
+    reportJobStatus: "llm_generating",
+    legacyFlow: {
+      ownerUserId,
+      mode: reportType,
+      reportType,
+      requestId,
+      generationId,
+      requestBody: strictBody,
+      active: true,
+      failed: false,
+      errorMessage: "",
+      startedAt: new Date().toISOString(),
+      lastChapter: Math.max(0, Number(chapter || 0) - 1),
+    },
+  });
+
   const ziweiPremiumPayload = buildZiweiPremiumPayloadFromProfileAndBasicResult({
     profile: profileFromRequest,
     basicZiweiResult,
@@ -22358,6 +22426,33 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
   }
 
   if (!generated?.ok) {
+    upsertReportSessionMeta("ziwei", reportId, chapterCount, {
+      ownerUserId,
+      reportType,
+      requestId,
+      generationId,
+      reportJobStatus: "llm_failed_retryable",
+      llm: {
+        required: true,
+        provider: "gemini",
+        status: "llm_failed_retryable",
+        sectionCalls: Array.isArray(generated?.llmCallRecords) ? generated.llmCallRecords : [],
+      },
+      legacyFlow: {
+        ownerUserId,
+        mode: reportType,
+        reportType,
+        requestId,
+        generationId,
+        requestBody: strictBody,
+        active: false,
+        failed: true,
+        errorMessage: String(generated?.message || "자미두수 LLM 섹션 생성 실패"),
+        failedAt: new Date().toISOString(),
+        lastChapter: Math.max(0, Number(chapter || 0) - 1),
+      },
+    });
+
     console.warn("[ZiweiBook] API_GENERATION_FAILED_NO_FALLBACK", {
       requestId,
       chapter,
@@ -22379,7 +22474,9 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
       requestId,
       details: Array.isArray(generated?.details) ? generated.details : [],
       missingFields: Array.isArray(generated?.missingFields) ? generated.missingFields : [],
-    }, { status: 422 });
+      retryable: Boolean(generated?.retryable),
+      reportJobStatus: "llm_failed_retryable",
+    }, { status: Number(generated?.status || (generated?.retryable ? 503 : 422)) });
   }
 
   const safeGeneratedText = sanitizePremiumChapterText(generated.text);
@@ -22403,6 +22500,13 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
         supplementedFields: dataQuality.supplementedFields,
         warnings: dataQuality.warnings,
         reportValidation,
+      },
+      reportJobStatus: chapter >= chapterCount ? "completed" : "llm_generating",
+      llm: {
+        required: true,
+        provider: "gemini",
+        status: chapter >= chapterCount ? "completed" : "llm_generating",
+        sectionCalls: Array.isArray(generated?.llmCallRecords) ? generated.llmCallRecords : [],
       },
     }
   );
@@ -24852,12 +24956,14 @@ function upsertLegacyFlowMeta(sessionKind, reportId, patch = {}) {
   const entry = REPORT_SESSION_STORE.get(key);
   if (!entry) return null;
   const nowIso = new Date().toISOString();
+  const incomingReportJobStatus = String(patch?.reportJobStatus || "").trim();
   const nextLegacyFlow = {
     ...(entry.extra?.legacyFlow || {}),
     ...(patch || {}),
   };
   entry.extra = {
     ...(entry.extra || {}),
+    ...(incomingReportJobStatus ? { reportJobStatus: incomingReportJobStatus } : {}),
     legacyFlow: nextLegacyFlow,
   };
   entry.updatedAt = nowIso;
@@ -24957,11 +25063,14 @@ function buildLegacyStatusPayload(config, reportId, includeText = false) {
   const completed = rows.length;
   const currentChapter = Math.max(0, Math.min(totalChapters, completed));
   const mode = normalizeLegacyMode(entry?.extra?.legacyFlow?.mode, entry?.extra?.reportType);
+  const reportJobStatus = String(entry?.extra?.reportJobStatus || "").trim();
   const failed = Boolean(entry?.extra?.legacyFlow?.failed);
   const errorMessage = failed ? String(entry?.extra?.legacyFlow?.errorMessage || "리포트 생성 중 오류가 발생했습니다.") : "";
-  const status = failed
-    ? "failed"
-    : (completed >= totalChapters ? "completed" : "generating");
+  const status = reportJobStatus === "llm_failed_retryable"
+    ? "llm_failed_retryable"
+    : (failed
+      ? "failed"
+      : (completed >= totalChapters ? "completed" : "generating"));
 
   const chapters = (status === "completed" || includeText)
     ? rows.map((row) => buildLegacyChapterPayload(row, includeText))
@@ -24989,10 +25098,13 @@ function buildLegacyStatusPayload(config, reportId, includeText = false) {
     downloadUrl: `${config.downloadPath}?reportId=${encodeURIComponent(normalizedReportId)}`,
     pdfUrl: `${config.downloadPath}?reportId=${encodeURIComponent(normalizedReportId)}`,
     message: failed
-      ? errorMessage
+      ? (status === "llm_failed_retryable"
+        ? "결제는 유지되어 있으며, 다시 생성하기를 누르면 이어서 시도합니다."
+        : errorMessage)
       : (status === "completed"
         ? "리포트 생성이 완료되었습니다."
         : `리포트 생성 진행 중: ${completed}/${totalChapters} 챕터 완료`),
+    retryable: status === "llm_failed_retryable",
     ...(failed ? { errorMessage } : {}),
     chapters: chapters.length ? chapters : chapterStatuses,
   };
@@ -25380,7 +25492,15 @@ async function advanceLegacyPremiumSession(config, request, env, reportId, authI
       failed: true,
       errorMessage: String(generated.data?.message || generated.data?.error || `Chapter ${chapter} 생성에 실패했습니다.`),
       failedAt: new Date().toISOString(),
+      reportJobStatus: config.alias === "ziwei"
+        ? "llm_failed_retryable"
+        : "failed",
     });
+    if (config.alias === "ziwei") {
+      upsertReportSessionMeta(config.sessionKind, reportId, totalChapters, {
+        reportJobStatus: "llm_failed_retryable",
+      });
+    }
     return getStoredReportSession(config.sessionKind, reportId);
   }
 
@@ -25395,6 +25515,7 @@ async function advanceLegacyPremiumSession(config, request, env, reportId, authI
     lastChapter: chapter,
     failed: false,
     errorMessage: "",
+    reportJobStatus: chapter >= totalChapters ? "completed" : "llm_generating",
     updatedAt: new Date().toISOString(),
   });
 }
@@ -25453,6 +25574,23 @@ async function startLegacyPremiumSession(config, request, env, authInfo = null) 
 
   const generated = await invokeLegacyGenerateChapter(config, request, env, chapterPayload, authInfo);
   if (!generated.response.ok || !generated.data?.ok) {
+    if (config.alias === "ziwei") {
+      const retryable = Boolean(generated?.data?.retryable)
+        || String(generated?.data?.reportJobStatus || "").trim() === "llm_failed_retryable";
+      const failedReportId = String(generated?.data?.reportId || "").trim();
+      if (retryable && failedReportId) {
+        const retryableStatus = buildLegacyStatusPayload(config, failedReportId, false);
+        if (retryableStatus?.ok) {
+          return json({
+            ...retryableStatus,
+            ok: false,
+            code: String(generated?.data?.code || "ZIWEI_LLM_SECTION_FAILED"),
+            message: String(generated?.data?.message || retryableStatus.message || "자미두수 LLM 생성에 실패했습니다. 다시 생성하기를 눌러 이어서 시도하세요."),
+            retryable: true,
+          }, { status: Number(generated?.response?.status || 503) });
+        }
+      }
+    }
     return json({
       ok: false,
       code: generated.data?.code || "PREMIUM_GENERATE_FAILED",

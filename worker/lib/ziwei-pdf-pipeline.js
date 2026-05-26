@@ -2056,6 +2056,130 @@ export function hasRepetitiveSentences(text) {
   return false;
 }
 
+const ZIWEI_SECTION_FORBIDDEN_PHRASES = Object.freeze([
+  "자동 복구 생성",
+  "fallback",
+  "Fallback",
+  "기본 해석",
+  "Chapter 1",
+  "Chapter 2",
+  "본문 길이",
+  "Depth",
+  "Action",
+  "Timing",
+  "payload",
+  "schema",
+  "reportType",
+  "completed",
+  "Internal server error",
+]);
+
+export function validateZiweiLlmSectionResponse(response, request) {
+  const src = response && typeof response === "object" ? response : null;
+  const req = request && typeof request === "object" ? request : null;
+  if (!src || !req) return false;
+
+  const chapterId = asText(src.chapterId);
+  const sectionId = asText(src.sectionId);
+  const body = asText(src.body);
+  const minChars = Math.max(120, Number(req?.section?.minChars || 0));
+
+  if (!chapterId || chapterId !== asText(req?.chapter?.id)) return false;
+  if (!sectionId || sectionId !== asText(req?.section?.id)) return false;
+  if (!body || body.length < minChars) return false;
+  if (ZIWEI_SECTION_FORBIDDEN_PHRASES.some((phrase) => body.includes(phrase))) return false;
+  if (hasRepetitiveSentences(body)) return false;
+  if (/\|.*\|.*\|/.test(body)) return false;
+
+  return true;
+}
+
+export function assertSectionDataBinding(section, relevantData) {
+  const sec = section && typeof section === "object" ? section : {};
+  const data = relevantData && typeof relevantData === "object" ? relevantData : {};
+  const binding = sec.dataBinding && typeof sec.dataBinding === "object" ? sec.dataBinding : {};
+  const focus = asArray(binding.focus);
+  const transformations = asArray(binding.transformations);
+  const relevantPalaces = asArray(data.relevantPalaces);
+  const relevantTransformations = asArray(data.relevantTransformations);
+
+  const hasPalace = (name) => relevantPalaces.some((p) => asText(p?.name) === name);
+
+  if (focus.includes("명궁") && !hasPalace("명궁")) {
+    throw new Error(`ZIWEI_DATABINDING_MISSING_MING:${asText(sec.id)}`);
+  }
+  if (focus.includes("재백궁") && !hasPalace("재백궁")) {
+    throw new Error(`ZIWEI_DATABINDING_MISSING_WEALTH:${asText(sec.id)}`);
+  }
+  if (focus.includes("관록궁") && !hasPalace("관록궁")) {
+    throw new Error(`ZIWEI_DATABINDING_MISSING_CAREER:${asText(sec.id)}`);
+  }
+  if (transformations.length > 0 && relevantTransformations.length === 0) {
+    throw new Error(`ZIWEI_DATABINDING_MISSING_TRANSFORMATIONS:${asText(sec.id)}`);
+  }
+}
+
+export function assertZiweiPayloadChaptersMatchConfig(chapters, config = ZIWEI_CHAPTER_SPECS) {
+  const actual = asArray(chapters);
+  const expected = asArray(config);
+
+  if (actual.length !== expected.length) {
+    throw new Error("ZIWEI_CHAPTER_COUNT_MISMATCH");
+  }
+
+  for (let i = 0; i < expected.length; i += 1) {
+    const exp = expected[i] || {};
+    const act = actual[i] || {};
+    const expId = asText(exp.id || exp.key || `chapter-${String(i + 1).padStart(2, "0")}`);
+    const actId = asText(act.id);
+
+    if (actId !== expId) {
+      throw new Error(`ZIWEI_CHAPTER_ID_MISMATCH:${expId}`);
+    }
+
+    if (asText(act.title) !== asText(exp.title)) {
+      throw new Error(`ZIWEI_CHAPTER_TITLE_MISMATCH:${expId}`);
+    }
+
+    const expSections = asArray(exp.sections);
+    const actSections = asArray(act.sections);
+    if (actSections.length !== expSections.length) {
+      throw new Error(`ZIWEI_SECTION_COUNT_MISMATCH:${expId}`);
+    }
+
+    for (let j = 0; j < expSections.length; j += 1) {
+      const expTitle = asText(expSections[j]);
+      const expSectionId = `${expId}-section-${String(j + 1).padStart(2, "0")}`;
+      const actSection = actSections[j] || {};
+      if (asText(actSection.id) !== expSectionId) {
+        throw new Error(`ZIWEI_SECTION_ID_MISMATCH:${expId}:${expSectionId}`);
+      }
+      if (asText(actSection.title) !== expTitle) {
+        throw new Error(`ZIWEI_SECTION_TITLE_MISMATCH:${expId}:${expSectionId}`);
+      }
+    }
+  }
+}
+
+export function assertZiweiLlmGenerationComplete(payload) {
+  const chapters = asArray(payload?.chapters);
+  for (const chapter of chapters) {
+    const chapterId = asText(chapter?.id);
+    const sections = asArray(chapter?.sections);
+    for (const section of sections) {
+      const sectionId = asText(section?.id);
+      const minChars = Math.max(120, Number(section?.minChars || 0));
+      const finalText = asText(section?.finalText);
+      if (asText(section?.source) !== "llm-enhanced") {
+        throw new Error(`ZIWEI_SECTION_NOT_LLM_GENERATED:${chapterId}:${sectionId}`);
+      }
+      if (!finalText || finalText.length < minChars) {
+        throw new Error(`ZIWEI_SECTION_TEXT_TOO_SHORT:${chapterId}:${sectionId}`);
+      }
+    }
+  }
+}
+
 function toRoman(num) {
   const n = Number(num || 0);
   if (!Number.isFinite(n) || n <= 0) return "I";
@@ -2075,4 +2199,9 @@ function toRoman(num) {
   return out || "I";
 }
 
-export { ZIWEI_PDF_CHAPTERS, ZIWEI_CHAPTER_SPECS, ZIWEI_FORBIDDEN_TEXTS };
+export {
+  ZIWEI_PDF_CHAPTERS,
+  ZIWEI_CHAPTER_SPECS,
+  ZIWEI_FORBIDDEN_TEXTS,
+  ZIWEI_SECTION_FORBIDDEN_PHRASES,
+};
