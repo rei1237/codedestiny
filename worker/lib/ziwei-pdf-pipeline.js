@@ -155,6 +155,25 @@ const ZIWEI_CHAPTER_SPECS = Object.freeze(
 const ZIWEI_CHAPTER_MIN_LENGTH = 8500;
 const ZIWEI_CHAPTER_MAX_LENGTH = 12500;
 
+const ZIWEI_PDF_FORBIDDEN_PHRASES = Object.freeze([
+  "생성 상태 안내",
+  "서버 응답이 불안정",
+  "구조화된 스켈레톤",
+  "스켈레톤",
+  "기본 골격",
+  "다음 생성 시",
+  "자동 재작성",
+  "자동 복구",
+  "복구 생성",
+  "fallback",
+  "placeholder",
+  "Chapter 1",
+  "Chapter 2",
+  "원인:",
+  "기본 자미두수 분석을 먼저 실행",
+  "이 섹션은 챕터 구조 보존을 위한 기본 골격입니다",
+]);
+
 const ZIWEI_CHAPTER_MASTER_ADVICE = Object.freeze({
   1: "총론 챕터는 개별 해석보다 전체 구조의 일관성을 잡는 단계다. 명반의 핵심 축을 먼저 정의하고 이후 장의 해석 기준선을 고정하라.",
   2: "명궁은 선천적 성향의 중심축이다. 주성·보조성·강약·삼방사정을 하나의 캐릭터 모델로 통합해 실행 규칙으로 전환하라.",
@@ -331,7 +350,7 @@ function normalizeStrengthName(raw) {
   return null;
 }
 
-export function getZiweiStrengthSymbol(brightness) {
+export function mapZiweiStrengthSymbol(brightness) {
   const token = normalizeStrengthName(brightness);
   if (token === "묘" || token === "왕") return "◎";
   if (token === "득") return "O";
@@ -339,6 +358,10 @@ export function getZiweiStrengthSymbol(brightness) {
   if (token === "평") return "△";
   if (token === "함" || token === "실") return "X";
   return "△";
+}
+
+export function getZiweiStrengthSymbol(brightness) {
+  return mapZiweiStrengthSymbol(brightness);
 }
 
 function pickStrength(rawSymbol, rawStrength) {
@@ -2040,6 +2063,288 @@ export function buildZiweiPdfSkeleton(chart, chaptersConfig = ZIWEI_CHAPTER_SPEC
   });
 }
 
+export function assertNoZiweiPdfFallbackText(text, meta = {}) {
+  const source = String(text || "");
+  const hit = ZIWEI_PDF_FORBIDDEN_PHRASES.find((phrase) => source.includes(phrase));
+  if (hit) {
+    const err = new Error(`ZIWEI_FORBIDDEN_PHRASE_DETECTED:${hit}`);
+    err.code = "ZIWEI_FORBIDDEN_PHRASE_DETECTED";
+    err.foundPhrase = hit;
+    err.meta = {
+      chapterId: asText(meta?.chapterId),
+      categoryId: asText(meta?.categoryId),
+      requestId: asText(meta?.requestId),
+      userId: asText(meta?.userId),
+      retryCount: Number(meta?.retryCount || 0),
+      hasSourceData: Boolean(meta?.hasSourceData),
+    };
+    throw err;
+  }
+  return true;
+}
+
+export function buildZiweiPdfChapterManifest(chapterSpecs = ZIWEI_CHAPTER_SPECS) {
+  return asArray(chapterSpecs).map((spec, index) => ({
+    id: asText(spec?.id) || `ch_${index + 1}`,
+    chapterNo: Number(spec?.chapterNo || index + 1),
+    title: asText(spec?.title) || `자미두수 챕터 ${index + 1}`,
+    categories: asArray(spec?.sections).map((sectionTitle, sectionIndex) => ({
+      id: `${asText(spec?.id) || `ch_${index + 1}`}-cat-${String(sectionIndex + 1).padStart(2, "0")}`,
+      title: asText(sectionTitle) || `카테고리 ${sectionIndex + 1}`,
+    })),
+  }));
+}
+
+function toChartStarRow(star) {
+  const name = asText(star?.name || star?.nameKo);
+  const brightness = normalizeStrengthName(star?.strengthName || star?.strength || star?.brightness || star?.brightnessKo) || "평";
+  const strengthSymbol = mapZiweiStrengthSymbol(brightness);
+  return {
+    name,
+    brightness,
+    strengthSymbol,
+  };
+}
+
+export function buildZiweiPdfCategorySourceData({ context, chapterId, categoryId, categoryTitle }) {
+  const palaces = asArray(context?.palaces);
+  const mingPalace = palaces.find((palace) => asText(palace?.key) === "ming") || null;
+  const shenPalaceKey = asText(context?.chartMeta?.bodyPalaceKey);
+  const shenPalace = palaces.find((palace) => asText(palace?.key) === shenPalaceKey) || null;
+  const majorStars = palaces
+    .flatMap((palace) => asArray(palace?.mainStars))
+    .map(toChartStarRow)
+    .filter((row) => row.name);
+
+  const sourceData = {
+    chartMeta: toPlainObject(context?.chartMeta),
+    mingPalace: mingPalace ? {
+      key: asText(mingPalace.key),
+      name: asText(mingPalace.name),
+      branch: asText(mingPalace.branch),
+      mainStars: asArray(mingPalace.mainStars).map(toChartStarRow).filter((row) => row.name),
+      sihua: asArray(mingPalace.sihua),
+      sanfangSizheng: asArray(context?.relationships?.sanfangsazheng || context?.relationships?.triangle),
+    } : null,
+    shenPalace: shenPalace ? {
+      key: asText(shenPalace.key),
+      name: asText(shenPalace.name),
+      branch: asText(shenPalace.branch),
+      mainStars: asArray(shenPalace.mainStars).map(toChartStarRow).filter((row) => row.name),
+      sihua: asArray(shenPalace.sihua),
+    } : null,
+    palaces: palaces.map((palace) => ({
+      key: asText(palace?.key),
+      name: asText(palace?.name),
+      branch: asText(palace?.branch),
+      mainStars: asArray(palace?.mainStars).map(toChartStarRow).filter((row) => row.name),
+      assistantStars: asArray(palace?.assistantStars).map(toChartStarRow).filter((row) => row.name),
+      minorStars: asArray(palace?.minorStars).map(toChartStarRow).filter((row) => row.name),
+      maleficStars: asArray(palace?.maleficStars).map(toChartStarRow).filter((row) => row.name),
+      sihua: asArray(palace?.sihua),
+    })),
+    stars: majorStars,
+    luckCycles: toPlainObject(context?.cycles),
+    chapterId: asText(chapterId),
+    categoryId: asText(categoryId),
+    categoryTitle: asText(categoryTitle),
+  };
+
+  if (!sourceData.palaces.length) {
+    throw new Error(`ZIWEI_CATEGORY_SOURCE_EMPTY:${asText(categoryId) || "unknown"}`);
+  }
+  if (!sourceData.stars.length) {
+    throw new Error(`ZIWEI_CATEGORY_STARS_EMPTY:${asText(categoryId) || "unknown"}`);
+  }
+
+  return sourceData;
+}
+
+export function buildZiweiPdfPayload({ context, user = {}, reportTitle = "자미두수 인생 총람" }) {
+  const chapterManifest = buildZiweiPdfChapterManifest();
+  const chapters = chapterManifest.map((chapter) => ({
+    id: chapter.id,
+    title: chapter.title,
+    categories: chapter.categories.map((category) => ({
+      id: category.id,
+      title: category.title,
+      sourceData: buildZiweiPdfCategorySourceData({
+        context,
+        chapterId: chapter.id,
+        categoryId: category.id,
+        categoryTitle: category.title,
+      }),
+      writingInstruction: `${category.title} 카테고리의 실제 명반 근거만 사용해 상담형 본문을 작성합니다.`,
+    })),
+  }));
+
+  return {
+    reportTitle,
+    user: {
+      name: asText(user?.name || context?.userProfile?.name) || "사용자",
+      gender: asText(user?.gender || context?.userProfile?.gender),
+      birthInfo: {
+        birthDate: asText(user?.birthDate || context?.userProfile?.birthDate),
+        birthTime: asText(user?.birthTime || context?.userProfile?.birthTime),
+        lunarDate: asText(user?.lunarDate || context?.userProfile?.lunarDate),
+      },
+    },
+    chart: {
+      chartSignature: `${asText(context?.chartMeta?.mingPalaceKey)}:${asText(context?.chartMeta?.bodyPalaceKey)}`,
+      palaces: asArray(context?.palaces),
+      mingPalace: asText(context?.chartMeta?.mingPalaceKey),
+      shenPalace: asText(context?.chartMeta?.bodyPalaceKey),
+      stars: toPlainObject(context?.stars),
+      sihua: asArray(context?.palaces).flatMap((palace) => asArray(palace?.sihua)),
+      sanfangSizheng: toPlainObject(context?.relationships),
+      luckCycles: toPlainObject(context?.cycles),
+    },
+    chapters,
+  };
+}
+
+export function validateZiweiPdfPayload(payload) {
+  const missing = [];
+  const p = toPlainObject(payload);
+  const chart = toPlainObject(p.chart);
+  const chapters = asArray(p.chapters);
+  const palaces = asArray(chart.palaces);
+
+  if (!palaces.length || palaces.length < 12) missing.push("chart.palaces");
+  if (!asText(chart.mingPalace)) missing.push("chart.mingPalace");
+  if (!asText(chart.shenPalace)) missing.push("chart.shenPalace");
+  if (!chapters.length) missing.push("chapters");
+
+  chapters.forEach((chapter, cIdx) => {
+    const categories = asArray(chapter?.categories);
+    if (!categories.length) missing.push(`chapters[${cIdx}].categories`);
+    categories.forEach((category, catIdx) => {
+      const sourceData = toPlainObject(category?.sourceData);
+      if (!Object.keys(sourceData).length) {
+        missing.push(`chapters[${cIdx}].categories[${catIdx}].sourceData`);
+      }
+      const stars = asArray(sourceData?.stars);
+      if (!stars.length) missing.push(`chapters[${cIdx}].categories[${catIdx}].sourceData.stars`);
+      stars.forEach((star, sIdx) => {
+        if (!asText(star?.name)) missing.push(`chapters[${cIdx}].categories[${catIdx}].sourceData.stars[${sIdx}].name`);
+        if (!asText(star?.brightness)) missing.push(`chapters[${cIdx}].categories[${catIdx}].sourceData.stars[${sIdx}].brightness`);
+        if (!asText(star?.strengthSymbol)) missing.push(`chapters[${cIdx}].categories[${catIdx}].sourceData.stars[${sIdx}].strengthSymbol`);
+      });
+    });
+  });
+
+  return {
+    ok: missing.length === 0,
+    missing,
+  };
+}
+
+export function generateZiweiPdfCategoryText({ category, context, previousSummary = "" }) {
+  const categoryId = asText(category?.id);
+  const categoryTitle = asText(category?.title) || "핵심 해석";
+  const sourceData = toPlainObject(category?.sourceData);
+  if (!Object.keys(sourceData).length) {
+    throw new Error(`ZIWEI_CATEGORY_SOURCE_EMPTY:${categoryId || "unknown"}`);
+  }
+
+  const draft = buildLocalZiweiSectionDraft(
+    {
+      chapterNo: Number(category?.chapterNo || 1),
+      chapterTitle: asText(category?.chapterTitle) || "자미두수 심층 해석",
+      title: categoryTitle,
+    },
+    context || {},
+  );
+
+  const body = [
+    previousSummary ? `이전 요약: ${previousSummary}` : "",
+    String(draft || "").trim(),
+  ].filter(Boolean).join("\n\n");
+
+  assertNoZiweiPdfFallbackText(body, {
+    chapterId: asText(category?.chapterId),
+    categoryId,
+    hasSourceData: true,
+  });
+
+  return {
+    chapterId: asText(category?.chapterId),
+    categoryId,
+    title: categoryTitle,
+    body,
+    summary: String(body).slice(0, 220),
+    actionItems: [
+      "핵심 패턴 1개를 오늘 기록합니다.",
+      "강점 확장 조건과 위험 방어 조건을 분리합니다.",
+      "일주일 뒤 실행 결과를 재평가합니다.",
+    ],
+  };
+}
+
+export function validateZiweiLlmSectionResponse(response, req = {}) {
+  const chapterId = asText(req?.chapter?.id);
+  const sectionId = asText(req?.section?.id);
+  const minChars = Math.max(30, Number(req?.section?.minChars || 30));
+  const r = toPlainObject(response);
+  const body = asText(r?.body);
+  if (!chapterId || !sectionId) return false;
+  if (asText(r?.chapterId) !== chapterId) return false;
+  if (asText(r?.sectionId) !== sectionId) return false;
+  if (body.length < minChars) return false;
+  try {
+    assertNoZiweiPdfFallbackText(body, { chapterId, categoryId: sectionId, hasSourceData: true });
+  } catch (_) {
+    return false;
+  }
+  return true;
+}
+
+export function assertZiweiPayloadChaptersMatchConfig(chapters, specs = ZIWEI_CHAPTER_SPECS) {
+  const chapterRows = asArray(chapters);
+  const specRows = asArray(specs);
+  if (chapterRows.length !== specRows.length) {
+    throw new Error("ZIWEI_PAYLOAD_CHAPTER_COUNT_MISMATCH");
+  }
+  chapterRows.forEach((chapter, index) => {
+    const spec = specRows[index] || {};
+    if (Number(chapter?.order) !== Number(spec?.chapterNo)) {
+      throw new Error(`ZIWEI_PAYLOAD_CHAPTER_ORDER_MISMATCH:${index + 1}`);
+    }
+    if (asText(chapter?.title) !== asText(spec?.title)) {
+      throw new Error(`ZIWEI_PAYLOAD_CHAPTER_TITLE_MISMATCH:${index + 1}`);
+    }
+  });
+  return true;
+}
+
+export function assertZiweiLlmGenerationComplete(payload) {
+  const chapters = asArray(payload?.chapters);
+  if (!chapters.length) {
+    throw new Error("ZIWEI_LLM_GENERATION_EMPTY");
+  }
+  chapters.forEach((chapter, cIdx) => {
+    const sections = asArray(chapter?.sections);
+    if (!sections.length) {
+      throw new Error(`ZIWEI_LLM_SECTION_EMPTY:${cIdx + 1}`);
+    }
+    sections.forEach((section, sIdx) => {
+      if (asText(section?.source) !== "llm-enhanced") {
+        throw new Error(`ZIWEI_LLM_SECTION_SOURCE_INVALID:${cIdx + 1}:${sIdx + 1}`);
+      }
+      const text = asText(section?.finalText);
+      if (!text) {
+        throw new Error(`ZIWEI_LLM_SECTION_TEXT_EMPTY:${cIdx + 1}:${sIdx + 1}`);
+      }
+      assertNoZiweiPdfFallbackText(text, {
+        chapterId: asText(chapter?.id),
+        categoryId: asText(section?.id),
+        hasSourceData: true,
+      });
+    });
+  });
+  return true;
+}
+
 export function hasRepetitiveSentences(text) {
   const sentences = String(text || "")
     .split(/[.!?。！？\n]/)
@@ -2075,4 +2380,4 @@ function toRoman(num) {
   return out || "I";
 }
 
-export { ZIWEI_PDF_CHAPTERS, ZIWEI_CHAPTER_SPECS, ZIWEI_FORBIDDEN_TEXTS };
+export { ZIWEI_PDF_CHAPTERS, ZIWEI_CHAPTER_SPECS, ZIWEI_FORBIDDEN_TEXTS, ZIWEI_PDF_FORBIDDEN_PHRASES };

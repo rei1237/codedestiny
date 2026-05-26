@@ -548,6 +548,15 @@ export function buildLifeBookInputData(body = {}, normalizedInput = {}) {
   const resolvedName = resolveProfileName(normalizedInput, profile, safeBody);
   const gender = toStringSafe(safeBody.gender || profile?.gender || normalizedInput?.gender || "") || "unknown";
   const calendarType = toStringSafe(safeBody.calendarType || profile?.birth?.calendarType || "solar") === "lunar" ? "lunar" : "solar";
+  const chartSignature = [
+    birthDate,
+    buildBirthTime(normalizedInput, profile, safeBody),
+    sajuChart.yearPillar,
+    sajuChart.monthPillar,
+    sajuChart.dayPillar,
+    sajuChart.hourPillar,
+    sajuChart.dayMaster,
+  ].filter(Boolean).join("|");
 
   const requiredMissing = [];
   if (!birthDate) requiredMissing.push("profile.birthDate");
@@ -566,9 +575,11 @@ export function buildLifeBookInputData(body = {}, normalizedInput = {}) {
       birthDate: birthDate || "",
       birthTime: buildBirthTime(normalizedInput, profile, safeBody),
       calendarType,
+      timezone: toStringSafe(safeBody.timezone || profile?.birth?.timezone || safeBody.birthTimezone || "") || undefined,
       birthPlace: toStringSafe(safeBody.location || profile?.birth?.locationName || safeBody.birthPlace || "") || undefined,
     },
     saju: {
+      chartSignature: chartSignature || undefined,
       yearPillar: sajuChart.yearPillar || undefined,
       monthPillar: sajuChart.monthPillar || undefined,
       dayPillar: sajuChart.dayPillar || undefined,
@@ -625,6 +636,7 @@ export function buildLifeBookInputData(body = {}, normalizedInput = {}) {
       birthDate,
       birthTime: buildBirthTime(normalizedInput, profile, safeBody),
       calendarType,
+      timezone: toStringSafe(safeBody.timezone || profile?.birth?.timezone || safeBody.birthTimezone || "") || undefined,
       location: toStringSafe(safeBody.location || profile?.birth?.locationName || safeBody.birthPlace || "") || undefined,
     },
     sajuChart,
@@ -658,6 +670,7 @@ export function buildLifeBookInputData(body = {}, normalizedInput = {}) {
       recoveryTips: toStringArray(canonical?.healthMind?.recoveryTips || engineData?.healthMind?.recoveryTips || []),
     },
     rawEngineResult: safeBody.rawEngineResult || safeBody.engineData || safeBody.canonicalSajuChart || safeBody.sajuData || null,
+    chartSignature: chartSignature || undefined,
     lifeBookContext,
     dataQuality: {
       missingCore,

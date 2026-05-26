@@ -234,6 +234,113 @@ const SUKYO_PDF_COMPAT_CHAPTERS = [
   },
 ];
 
+const SUKYO_PDF_MERGED_13_CHAPTERS = Object.freeze([
+  {
+    key: "merged_ch_01",
+    title: "I. 숙요 핵심 코드 — 본명숙과 기본 기질",
+    goal: "본명숙, 핵심 기질, 첫인상 코드를 통합 정리한다.",
+    targetChars: 4000,
+    minChars: 3400,
+    sections: ["본명숙 핵심 기질", "첫인상과 외부 이미지", "강점 자원", "반복 약점", "핵심 정리"],
+  },
+  {
+    key: "merged_ch_02",
+    title: "II. 성격·감정 리듬 — 내면 작동 원리",
+    goal: "성격 구조와 감정 반응, 회복 리듬을 연결해 해석한다.",
+    targetChars: 3900,
+    minChars: 3315,
+    sections: ["겉성격과 내면", "스트레스 반응", "감정 기복 패턴", "회복 루틴", "실전 조율법"],
+  },
+  {
+    key: "merged_ch_03",
+    title: "III. 인간관계·애착 패턴 — 가까워지는 방식",
+    goal: "인연 형성 구조와 관계 유지/이탈 패턴을 정리한다.",
+    targetChars: 3900,
+    minChars: 3315,
+    sections: ["관계 진입 방식", "편안한 인연 조건", "불편한 인연 신호", "애착/거리 조절", "관계 안정 전략"],
+  },
+  {
+    key: "merged_ch_04",
+    title: "IV. 연애·친밀감 — 끌림과 애정 운영",
+    goal: "연애 진입, 애정 표현, 친밀감 형성 규칙을 제시한다.",
+    targetChars: 4100,
+    minChars: 3485,
+    sections: ["끌림 포인트", "애정 표현 방식", "친밀감 속도", "권태/오해 지점", "지속 전략"],
+  },
+  {
+    key: "merged_ch_05",
+    title: "V. 운명 상대상·궁합 진입 — 맞는 사람의 조건",
+    goal: "상대 선택 기준과 관계 시작 시 체크포인트를 제공한다.",
+    targetChars: 3900,
+    minChars: 3315,
+    sections: ["안정형 상대", "자극형/위험형 상대", "장기관계형 조건", "초기 경계 신호", "선택 기준"],
+  },
+  {
+    key: "merged_ch_06",
+    title: "VI. 궁합 구조 — 관계유형·거리·방향성",
+    goal: "궁합 모드의 relationType, 거리, 방향성 데이터를 핵심 해석으로 연결한다.",
+    targetChars: 4200,
+    minChars: 3570,
+    sections: ["관계 유형 해석", "거리/방향성 의미", "끌림-안정-갈등 밸런스", "장기 가능성", "핵심 조언"],
+  },
+  {
+    key: "merged_ch_07",
+    title: "VII. 갈등 구조·위험 신호 — 무너짐 방지",
+    goal: "반복 충돌 원인과 위험 패턴을 구조적으로 진단한다.",
+    targetChars: 4000,
+    minChars: 3400,
+    sections: ["갈등 촉발 요인", "반복 말다툼 패턴", "집착/회피 신호", "관계 손상 행동", "완충 대화법"],
+  },
+  {
+    key: "merged_ch_08",
+    title: "VIII. 결혼·장기 관계·현실 궁합",
+    goal: "생활, 역할, 책임, 현실 조건 중심으로 장기 가능성을 평가한다.",
+    targetChars: 4100,
+    minChars: 3485,
+    sections: ["생활 리듬 궁합", "돈/일/가족 조율", "역할 분담", "동거/결혼 리스크", "장기 유지 규칙"],
+  },
+  {
+    key: "merged_ch_09",
+    title: "IX. 일·재능·사회적 역할",
+    goal: "일의 강점과 소진 지점을 분석해 성과 전략으로 연결한다.",
+    targetChars: 3900,
+    minChars: 3315,
+    sections: ["재능 코어", "업무 적합 환경", "인정받는 포인트", "소진 트리거", "성과 전략"],
+  },
+  {
+    key: "merged_ch_10",
+    title: "X. 재물·생활 운영 — 현실 안정화",
+    goal: "재정/소비 습관과 생활 운영 방식을 실전 지침으로 정리한다.",
+    targetChars: 3800,
+    minChars: 3230,
+    sections: ["돈 감각", "수익 패턴", "손실 패턴", "생활 운영 습관", "안정화 원칙"],
+  },
+  {
+    key: "merged_ch_11",
+    title: "XI. 가족·뿌리·회복력",
+    goal: "가족 정서 패턴과 회복 기반을 통합 해석한다.",
+    targetChars: 3800,
+    minChars: 3230,
+    sections: ["가족 내 역할", "결핍/보상 패턴", "거리두기 과제", "정서 회복 자원", "내면 안정 문장"],
+  },
+  {
+    key: "merged_ch_12",
+    title: "XII. 시기 흐름·전환·재회 가능성",
+    goal: "관계/삶의 전환 시점과 재접속 가능성을 현실적으로 제시한다.",
+    targetChars: 4000,
+    minChars: 3400,
+    sections: ["흐름 강화 구간", "주의 구간", "전환 신호", "재회/재정렬 조건", "타이밍 운영법"],
+  },
+  {
+    key: "merged_ch_13",
+    title: "XIII. 최종 통합 전략 — 실행 체크리스트",
+    goal: "전체 해석을 통합해 즉시 실행 가능한 전략으로 마무리한다.",
+    targetChars: 4300,
+    minChars: 3655,
+    sections: ["전체 요약", "반드시 살릴 강점", "피해야 할 반복", "실행 우선순위", "최종 체크리스트"],
+  },
+]);
+
 function normalizeSukyoReportMode(value) {
   const mode = String(value || "").trim().toLowerCase();
   if (mode === "compatibility" || mode === "couple" || mode === "compat") return "compatibility";
@@ -242,9 +349,8 @@ function normalizeSukyoReportMode(value) {
 }
 
 function getSukyoPdfChapters(reportMode = "personal") {
-  return normalizeSukyoReportMode(reportMode) === "compatibility"
-    ? SUKYO_PDF_COMPAT_CHAPTERS
-    : SUKYO_PDF_CHAPTERS;
+  void reportMode;
+  return SUKYO_PDF_MERGED_13_CHAPTERS;
 }
 
 function toCalendarType(value) {

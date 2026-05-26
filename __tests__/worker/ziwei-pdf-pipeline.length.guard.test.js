@@ -23,18 +23,17 @@ function makeContext() {
 }
 
 describe("ziwei pdf chapter length guard", () => {
-  test("짧은 텍스트는 8500자 이상으로 보강된다", () => {
+  test("짧은 텍스트는 강제 패딩 없이 원문을 유지한다", () => {
     const source = "## Ch.1\n\n짧은 본문";
     const output = ensureZiweiChapterMarkdownLength(source, makeContext(), 8500, 12500);
-    expect(output.length).toBeGreaterThanOrEqual(8500);
-    expect(output.length).toBeLessThanOrEqual(12500);
+    expect(output).toContain("짧은 본문");
+    expect(output.length).toBeLessThan(8500);
   });
 
   test("긴 텍스트는 12500자 이하로 잘린다", () => {
     const longBody = "긴문장 ".repeat(1200);
     const source = `## Ch.2\n\n${longBody}`;
     const output = ensureZiweiChapterMarkdownLength(source, makeContext(), 8500, 12500);
-    expect(output.length).toBeGreaterThanOrEqual(8500);
     expect(output.length).toBeLessThanOrEqual(12500);
   });
 

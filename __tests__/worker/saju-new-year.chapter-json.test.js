@@ -67,6 +67,49 @@ async function makeAuthToken() {
   });
 }
 
+function makeStrictNewYearPayloadExtras() {
+  const monthlyLuck = Array.from({ length: 12 }, (_, idx) => ({
+    month: idx + 1,
+    source: "engine",
+    trend: idx % 2 === 0 ? "추진" : "점검",
+    keyword: `키워드-${idx + 1}`,
+    go: `실행-${idx + 1}`,
+    stop: `주의-${idx + 1}`,
+    career: `커리어-${idx + 1}`,
+    wealth: `재물-${idx + 1}`,
+    relationship: `관계-${idx + 1}`,
+    health: `건강-${idx + 1}`,
+    oneLineAdvice: `조언-${idx + 1}`,
+  }));
+
+  return {
+    yearlySummary: {
+      summary: "올해는 기준 중심 운영을 통해 성과를 안정적으로 누적하는 해입니다.",
+      career: "핵심 과제를 고정하고 실행 밀도를 높입니다.",
+      wealth: "수익 구조와 지출 통제 기준을 함께 관리합니다.",
+      relationship: "협업 기준과 거리두기 원칙을 명확히 합니다.",
+      health: "집중과 회복 루틴을 병행합니다.",
+    },
+    actionPlan: {
+      first30Days: [
+        "핵심 목표를 1~2개로 고정합니다.",
+        "주간 점검 루틴을 시작합니다.",
+        "리스크 컷오프 기준을 설정합니다.",
+      ],
+      quarterPlan: "분기마다 목표-성과-리스크를 재평가하고 전략을 조정합니다.",
+    },
+    engineData: {
+      monthlyLuck,
+      yearlyFortune: {
+        careerTheme: "직무 우선순위 재정렬",
+        wealthTheme: "지출 통제 강화",
+        relationshipTheme: "협업 기준 명확화",
+        healthTheme: "회복 리듬 확보",
+      },
+    },
+  };
+}
+
 function makeNewYearPayload(overrides = {}) {
   return {
     targetYear: 2026,
@@ -78,6 +121,7 @@ function makeNewYearPayload(overrides = {}) {
     hour: 12,
     minute: 30,
     sajuData: makeSajuData(),
+    ...makeStrictNewYearPayloadExtras(),
     ...overrides,
   };
 }
@@ -136,7 +180,7 @@ describe("Saju new year chapter json payloads", () => {
     }
   });
 
-  test("generated chapter response includes chapterJson categories aligned to the requested chapter", async () => {
+  test("generated chapter response fails closed when Gemini output is unavailable", async () => {
     const authToken = await makeAuthToken();
     const req = new Request("https://example.com/api/saju-new-year/session", {
       method: "POST",
@@ -155,21 +199,9 @@ describe("Saju new year chapter json payloads", () => {
     const res = await handleSajuNewYearRoutes(req, {});
     const data = await res.json();
 
-    expect(res.status).toBe(200);
-    expect(data.ok).toBe(true);
-    expect(data.chapter).toBe(9);
-    expect(data.reportType).toBe("sajuNewYear");
-    expect(data.source).toBe("local-engine");
-    expect(data.usedFallback).toBe(true);
-    expect(data.chapterJson).toBeTruthy();
-    expect(data.chapterJson.chapterNo).toBe(9);
-    expect(data.chapterJson.chapterTitle).toBe("12개월 Go/Stop 월별 테이블");
-    expect(Array.isArray(data.chapterJson.categories)).toBe(true);
-    expect(data.chapterJson.categories.length).toBeGreaterThan(0);
-    expect(data.chapterJson.categories.every((row) => typeof row.categoryTitle === "string" && row.categoryTitle.length > 0)).toBe(true);
-    expect(data.chapterJson.categories.every((row) => typeof row.analysisText === "string" && row.analysisText.length > 0)).toBe(true);
-    expect(data.chapterJson.categories.every((row) => typeof row.strategicGuidance === "string" && row.strategicGuidance.length > 0)).toBe(true);
-    expect(typeof data.text).toBe("string");
-    expect(data.text).toContain("| 월 | 이번 달 키워드 | Go | Stop | 커리어 | 재물 | 관계 | 건강 | 한 줄 조언 |");
+    expect(res.status).toBe(422);
+    expect(data.ok).toBe(false);
+    expect(data.code).toBe("SAJU_NEW_YEAR_GEMINI_UNAVAILABLE");
+    expect(typeof data.message).toBe("string");
   });
 });

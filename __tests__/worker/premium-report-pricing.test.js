@@ -24,6 +24,7 @@ describe("Premium report pricing registry", () => {
     const serverKeys = new Set(registry.listServerPricedFeatureKeys());
 
     const checks = [
+      { reportType: "sajuNewYear", requestBody: {}, key: "saju_new_year_pdf", cost: 300 },
       { reportType: "lifeBook", requestBody: {}, key: "premium-lifebook-report", cost: 500 },
       { reportType: "loveSecret", requestBody: { mode: "solo" }, key: "premium-love-secret-solo", cost: 300 },
       { reportType: "loveSecret", requestBody: { mode: "compatibility" }, key: "premium-love-secret-couple", cost: 400 },
@@ -49,7 +50,7 @@ describe("Premium report pricing registry", () => {
     expect(registry.FEATURE_KEY_PRICE_TABLE["premium-ziwei-report-compat"]?.cost).toBe(690);
     expect(registry.FEATURE_KEY_PRICE_TABLE["premium-astrology-report-compat"]?.cost).toBe(490);
     expect(registry.FEATURE_KEY_PRICE_TABLE["premium-sukuyo-report-compat"]?.cost).toBe(490);
-    expect(registry.FEATURE_KEY_PRICE_TABLE["premium-vedic-report"]?.cost).toBe(390);
+    expect(registry.FEATURE_KEY_PRICE_TABLE["premium-vedic-report-compat"]?.cost).toBe(390);
 
     const sukuyoRequired = accessUtils.buildRequiredPaymentRules("sookyoPremium", { reportMode: "compatibility" });
     const vedicRequired = accessUtils.buildRequiredPaymentRules("vedicPremium", { reportMode: "compatibility" });

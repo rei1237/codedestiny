@@ -79,7 +79,7 @@ describe("Ziwei chapter strict validation", () => {
   });
 
   test("자미 금지 표현 탐지가 동작한다", () => {
-    expect(hasZiweiBannedSummaryExpression("오늘 실행할 행동 1가지를 정하고 결과를 기록"))
+    expect(hasZiweiBannedSummaryExpression("서버 응답이 불안정하여 자동 복구 생성 완료"))
       .toBe(true);
   });
 });

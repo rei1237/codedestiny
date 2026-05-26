@@ -507,7 +507,13 @@ export async function POST(req: NextRequest) {
     if (auth.ok === false) return auth.response;
 
     const body = await req.json();
-    const access = await requirePremiumRouteAccess(auth.userId, "sookyoPremium", body as Record<string, unknown>);
+    const accessBody = {
+      ...(body as Record<string, unknown>),
+      mode: "compatibility",
+      reportMode: "compatibility",
+      reportType: "compatibility",
+    };
+    const access = await requirePremiumRouteAccess(auth.userId, "sookyoPremium", accessBody);
     if (!access.ok) {
       return NextResponse.json(
         {

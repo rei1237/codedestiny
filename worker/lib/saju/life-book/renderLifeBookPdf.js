@@ -1,4 +1,5 @@
 import { renderSajuChapter } from "./renderers/index.js";
+import { assertNoSajuLifeBookFallbackText } from "./lifeBookPdfContract.js";
 
 function esc(value) {
   return String(value == null ? "" : value)
@@ -100,7 +101,7 @@ export function renderLifeBookPdf(params = {}) {
   const generatedAt = params.generatedAt || new Date().toISOString();
 
   const tocRows = chapters
-    .map((chapter, index) => `<li>${esc(chapter.roman || String(index + 1))}. ${esc(chapter.title || `Chapter ${index + 1}`)}</li>`)
+    .map((chapter, index) => `<li>${esc(chapter.roman || String(index + 1))}${chapter?.title ? `. ${esc(chapter.title)}` : ""}</li>`)
     .join("\n");
 
   const totalChars = chapters.reduce((sum, chapter) => sum + String(chapter?.contentMarkdown || "").length, 0);
@@ -172,7 +173,7 @@ export function renderLifeBookPdf(params = {}) {
     '<section class="lb-cover">',
     "<h1>인생의 책</h1>",
     "<p>사주가 들려주는 나의 운명 사용 설명서</p>",
-    `<p>${esc(lifeBookInputData?.userProfile?.name || "사용자")}</p>`,
+    `<p>${esc(lifeBookInputData?.userProfile?.name || "")}</p>`,
     `<p>생성일 ${esc(formatDate(generatedAt))}</p>`,
     `<div class="lb-cover-art">${renderLifeBookCoverGlyph()}</div>`,
     "</section>",
@@ -205,6 +206,12 @@ export function renderLifeBookPdf(params = {}) {
     "</body>",
     "</html>",
   ].join("\n");
+
+  assertNoSajuLifeBookFallbackText(html, {
+    mode: "lifeBook",
+    chapterId: "render",
+    hasSourceData: true,
+  });
 
   return {
     ok: true,

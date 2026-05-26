@@ -7,6 +7,11 @@ import {
 import { buildLifeBookInputData } from "./buildLifeBookInputData.js";
 import { generateLifeBookChapter } from "./generateLifeBookChapter.js";
 import { renderLifeBookPdf } from "./renderLifeBookPdf.js";
+import {
+  assertNoSajuLifeBookFallbackText,
+  buildSajuLifeBookPdfPayload,
+  validateSajuLifeBookPdfPayload,
+} from "./lifeBookPdfContract.js";
 
 const LIFEBOOK_FORBIDDEN_TEXTS = [
   "자동 복구 생성",
@@ -72,47 +77,6 @@ function getLifeBookTargetTotalChars(chapters) {
     (sum, chapter) => sum + Number(chapter?.targetChars || 0),
     0,
   );
-}
-
-function validateLifeBookPdfPayload(payload = {}) {
-  const missing = [];
-  const fatalMissing = [];
-  const recoverableMissing = [];
-  if (!payload || typeof payload !== "object") missing.push("payload");
-  const userProfile = payload?.userProfile || {};
-  const sajuChart = payload?.sajuChart || {};
-  const fiveElements = payload?.fiveElements || {};
-  const tenGods = payload?.tenGods || {};
-  if (!String(userProfile?.name || "").trim()) missing.push("userProfile.name");
-  if (!String(userProfile?.birthDate || "").trim()) missing.push("userProfile.birthDate");
-  if (!String(userProfile?.gender || "").trim()) missing.push("userProfile.gender");
-  if (!String(userProfile?.calendarType || "").trim()) missing.push("userProfile.calendarType");
-  if (!String(sajuChart?.yearPillar || "").trim()) missing.push("sajuChart.yearPillar");
-  if (!String(sajuChart?.monthPillar || "").trim()) missing.push("sajuChart.monthPillar");
-  if (!String(sajuChart?.dayPillar || "").trim()) missing.push("sajuChart.dayPillar");
-  if (!String(sajuChart?.dayMaster || "").trim()) missing.push("sajuChart.dayMaster");
-  if (!String(sajuChart?.monthBranch || "").trim()) missing.push("sajuChart.monthBranch");
-  const hasFiveElements = Object.values(fiveElements || {}).some((v) => Number(v) > 0);
-  const hasTenGods = Object.keys(tenGods?.distribution || {}).length > 0;
-  if (!hasFiveElements && !hasTenGods) missing.push("fiveElements|tenGods");
-  if (!Array.isArray(LIFE_BOOK_CHAPTERS) || LIFE_BOOK_CHAPTERS.length === 0) missing.push("chapterSchema");
-
-  // 출생일 정보가 없으면 계산 불가이므로 입력 오류로 처리한다.
-  if (!String(userProfile?.birthDate || "").trim()) {
-    fatalMissing.push("userProfile.birthDate");
-  }
-
-  missing.forEach((field) => {
-    if (fatalMissing.includes(field)) return;
-    recoverableMissing.push(field);
-  });
-
-  return {
-    ok: fatalMissing.length === 0,
-    missing,
-    fatalMissing,
-    recoverableMissing,
-  };
 }
 
 function hasForbiddenLifeBookText(text) {
@@ -185,6 +149,10 @@ function sanitizeLifeBookChapters(chapters = []) {
       },
     };
   });
+}
+
+function buildLifeBookPdfPayloadFromInput(lifeBookInputData = {}) {
+  return buildSajuLifeBookPdfPayload(lifeBookInputData, LIFE_BOOK_CHAPTERS);
 }
 
 function validateLifeBookGeneratedReport({ chapters = [], chapterSchema = LIFE_BOOK_CHAPTERS } = {}) {
@@ -405,39 +373,25 @@ export async function generateLifeBookPdf(params = {}) {
   logLifeBookStage("INPUT_NORMALIZE_SUCCESS", { reportId });
 
   logLifeBookStage("PAYLOAD_NORMALIZE_START", { reportId });
-  const payloadValidation = validateLifeBookPdfPayload(lifeBookInputData);
+  const pdfPayload = buildLifeBookPdfPayloadFromInput(lifeBookInputData);
+  const payloadValidation = validateSajuLifeBookPdfPayload(pdfPayload);
   if (!payloadValidation.ok) {
     return {
       ok: false,
       code: "LIFEBOOK_REQUIRED_PROFILE_MISSING",
       message: "인생의 책 생성을 위해 필수 입력 정보가 필요합니다.",
-      detail: { missingFields: payloadValidation.fatalMissing || payloadValidation.missing },
+      detail: { missingFields: payloadValidation.missing || [] },
     };
   }
-  if (Array.isArray(payloadValidation.recoverableMissing) && payloadValidation.recoverableMissing.length) {
+  if (Array.isArray(payloadValidation.missing) && payloadValidation.missing.length) {
     warnings.push({
       chapterId: "input",
       warning: "PAYLOAD_RECOVERABLE_MISSING",
-      validation: { missingFields: payloadValidation.recoverableMissing },
+      validation: { missingFields: payloadValidation.missing },
     });
   }
   logLifeBookStage("PAYLOAD_NORMALIZE_SUCCESS", { reportId });
   const strictCheck = isStrictMissingCore(lifeBookInputData);
-  const missingRequired = Array.isArray(lifeBookInputData?.dataQuality?.missingRequired)
-    ? lifeBookInputData.dataQuality.missingRequired
-    : [];
-
-  if (missingRequired.length > 0) {
-    return {
-      ok: false,
-      code: "LIFEBOOK_REQUIRED_PROFILE_MISSING",
-      message: "인생의 책 생성을 위해 필수 프로필 정보가 필요합니다.",
-      detail: {
-        missingFields: missingRequired,
-      },
-    };
-  }
-
   if (strictMode && !strictCheck.ok) {
     warnings.push({
       chapterId: "input",
@@ -448,15 +402,26 @@ export async function generateLifeBookPdf(params = {}) {
 
   if (onProgress) onProgress({ code: "NORMALIZING_INPUT", message: "인생의 책 데이터 정리 중" });
 
-  const targetChapters = requestedChapter >= 1
-    ? [getLifeBookChapterByNumber(requestedChapter)]
+  const chapterManifest = Array.isArray(pdfPayload?.chapters) && pdfPayload.chapters.length
+    ? pdfPayload.chapters
     : [...LIFE_BOOK_CHAPTERS];
+  const targetChapters = requestedChapter >= 1
+    ? [chapterManifest[Math.max(0, Math.min(chapterManifest.length - 1, requestedChapter - 1))] || getLifeBookChapterByNumber(requestedChapter)]
+    : [...chapterManifest];
 
   const chapters = [];
   const chapterMemories = [];
 
   for (let index = 0; index < targetChapters.length; index += 1) {
     const chapterConfig = targetChapters[index];
+    if (!chapterConfig || !Array.isArray(chapterConfig.categories) || !chapterConfig.categories.length) {
+      return {
+        ok: false,
+        code: "LIFEBOOK_CATEGORY_SOURCE_EMPTY",
+        message: `카테고리 sourceData가 비어 있습니다: ${chapterConfig?.id || index + 1}`,
+        detail: { chapterId: chapterConfig?.id || `chapter-${index + 1}` },
+      };
+    }
     if (onProgress) {
       onProgress({
         code: "GENERATING_CHAPTER",
@@ -645,6 +610,16 @@ export async function generateLifeBookPdf(params = {}) {
   logLifeBookStage("RenderStart", { reportId });
 
   const sanitizedChapters = sanitizeLifeBookChapters(chapters);
+  sanitizedChapters.forEach((chapter, index) => {
+    const chapterMeta = targetChapters[index] || {};
+    assertNoSajuLifeBookFallbackText(`${chapter?.title || ""}\n${chapter?.summary || ""}\n${chapter?.contentMarkdown || ""}`, {
+      mode: "lifeBook",
+      chapterId: chapterMeta?.id || chapter?.id,
+      hasSourceData: true,
+      llmRetryCount: 0,
+      payloadValidation,
+    });
+  });
 
   const rendered = renderLifeBookPdf({
     reportId,
@@ -653,11 +628,25 @@ export async function generateLifeBookPdf(params = {}) {
     generatedAt: new Date().toISOString(),
   });
 
+  assertNoSajuLifeBookFallbackText(rendered?.html || "", {
+    mode: "lifeBook",
+    chapterId: "render",
+    hasSourceData: true,
+    payloadValidation,
+  });
+
   const pdfData = buildLifeBookPdfData({
     reportId,
     lifeBookInputData,
     chapters: sanitizedChapters,
     generatedAt: rendered?.generatedAt || new Date().toISOString(),
+  });
+
+  assertNoSajuLifeBookFallbackText(JSON.stringify(pdfData || {}), {
+    mode: "lifeBook",
+    chapterId: "pdf-data",
+    hasSourceData: true,
+    payloadValidation,
   });
 
   if (onProgress) onProgress({ code: "PDF_READY", message: "다운로드 준비 완료" });

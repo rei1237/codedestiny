@@ -4,7 +4,7 @@
   var TOTAL_CHAPTERS = 10;
   var COST_COINS = 300;
   var COIN_REASON = '사주 신년운세 PDF 리포트 생성';
-  var COIN_FEATURE_KEY = 'premium-saju-newyear-report';
+  var COIN_FEATURE_KEY = 'saju_new_year_pdf';
   var SAJU_NEW_YEAR_REPORT_TYPE = 'sajuNewYear';
   var SAJU_NEW_YEAR_FEATURE_TYPE = 'saju_new_year_pdf';
   var API_TIMEOUT_MS = 140000;
@@ -1066,7 +1066,7 @@
     if (!reportId) reportId = Date.now().toString(36);
     return {
       serviceKey: 'saju-new-year-pdf',
-      featureKey: String(ctx.featureKey || COIN_FEATURE_KEY || 'premium-saju-newyear-report'),
+      featureKey: String(ctx.featureKey || COIN_FEATURE_KEY || 'saju_new_year_pdf'),
       executionKey: 'saju-new-year-pdf:' + reportId + ':' + sourceTransactionId,
       sourceTransactionId: sourceTransactionId,
       metadata: {
@@ -1410,14 +1410,6 @@
           throw new Error('결제 확인이 필요합니다. 코인 차감 상태를 확인해 주세요.');
         }
         throw new Error(String((response && response.message) || ('챕터 ' + chapter + ' 생성에 실패했습니다.')));
-      }
-
-      var responseSource = String(response.source || '').toLowerCase();
-      if (responseSource === 'local' || responseSource === 'local-engine' || response.usedFallback === true) {
-        logSajuNewYear('API_PARTIAL_RESULT_COMPLETED_BY_LOCAL', {
-          chapter: chapter,
-          source: String(response.source || 'local-engine')
-        });
       }
 
       state.chapterTexts[chapter] = String(response.text || '').trim();

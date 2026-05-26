@@ -1,46 +1,59 @@
 export const LOVE_SECRET_SOLO_CHAPTERS = Object.freeze([
-  { title: "Chapter I. 본연의 연애 자아 — 나는 어떤 사랑을 하는 사람인가", subtitle: "일간·월지·오행·십성으로 보는 사랑의 기본 구조" },
-  { title: "Chapter II. 치명적 매력과 페로몬 — 나의 연애 매력 코드", subtitle: "첫인상, 도화·홍염·화개, 표현 매력의 실제 힘" },
-  { title: "Chapter III. 운명의 상대방 리포트 — 나에게 맞는 사람과 피해야 할 사람", subtitle: "배우자궁·이성운·인연 유형·회피 기준" },
-  { title: "Chapter IV. 연애 패턴 분석 — 왜 비슷한 사랑을 반복하는가", subtitle: "썸·집착·회피·질투·이별 패턴의 반복 구조" },
-  { title: "Chapter V. 결혼운과 장기 인연 — 사랑이 현실이 되는 조건", subtitle: "결혼운, 배우자궁 안정성, 장기 관계의 지속력" },
-  { title: "Chapter VI. 사랑의 운 흐름 — 대운·세운으로 보는 연애 타이밍", subtitle: "연애·재회·결혼·정비 시기의 흐름과 전략" },
-  { title: "Chapter VII. 실전 연애 전략 — 사랑을 얻고 지키는 비책", subtitle: "고백, 대화, 거리감, 연애운 활용의 실행 매뉴얼" },
+  { title: "💘 본연의 연애 자아", subtitle: "일간·일지·월지·오행·십성으로 보는 기본 연애 코드" },
+  { title: "🌹 치명적 매력과 페로몬", subtitle: "도화·홍염·화개와 표현성 기반 매력 해석" },
+  { title: "🧲 내가 끌리는 상대와 인연 코드", subtitle: "배우자성·관계성 기반 이상형/주의형 분석" },
+  { title: "💬 썸·고백·초기 연애 전략", subtitle: "초기 호감 형성 조건과 실전 대화 접근" },
+  { title: "💞 깊은 관계에서의 애착 패턴", subtitle: "가까워질수록 드러나는 애착/불안 구조" },
+  { title: "⚠️ 연애에서 반복되는 상처와 방어기제", subtitle: "반복 상처 패턴과 회복 대화 전략" },
+  { title: "🏡 결혼·장기 관계 성향", subtitle: "장기 안정 구조, 책임감, 생활 궁합 조건" },
+  { title: "💼 일·돈·자존감이 연애에 미치는 영향", subtitle: "현실 변수와 관계 운영 균형" },
+  { title: "🕰️ 연애운과 시기 흐름", subtitle: "대운·세운 기반 시기 해석과 선택 타이밍" },
+  { title: "🗝️ 최종 연애 처방전", subtitle: "핵심 매력·주의 패턴·실행 체크리스트" },
 ]);
 
 export const LOVE_SECRET_COMPAT_CHAPTERS = Object.freeze([
-  { title: "Chapter I. 두 사람의 궁합 총론 — 이 관계의 기본 구조", subtitle: "A/B 기본 정보, 일간 관계, 오행 균형, 총체적 안정성" },
-  { title: "Chapter II. 서로의 연애 자아 — 사랑 방식의 차이와 공통점", subtitle: "애정 표현, 상처 지점, 속도 차이, 사랑의 언어" },
-  { title: "Chapter III. 끌림과 매력 궁합 — 왜 서로에게 끌리는가", subtitle: "첫인상, 도화·홍염·화개, 합·충·친밀감의 구조" },
-  { title: "Chapter IV. 관계 패턴 분석 — 두 사람은 왜 싸우고 왜 다시 끌리는가", subtitle: "오해, 자존심, 질투, 회복, 반복 갈등의 원인" },
-  { title: "Chapter V. 결혼 궁합과 장기 인연 — 함께 살아갈 수 있는 관계인가", subtitle: "결혼운, 배우자상, 생활/가족/책임의 적합도" },
-  { title: "Chapter VI. 속궁합과 친밀감 — 몸과 마음의 밀착도", subtitle: "스킨십, 애정 온도, 친밀감 속도와 주의점" },
-  { title: "Chapter VII. 두 사람의 운 흐름 — 연애·결혼·이별·재회 타이밍", subtitle: "대운·세운·월별 흐름과 관계 운영 시기" },
-  { title: "Chapter VIII. 최종 궁합 비책 — 이 관계를 어떻게 다뤄야 하는가", subtitle: "장점·약점·운영 전략·관계 지속 여부의 최종 판단" },
+  { title: "💞 두 사람의 기본 궁합 구조", subtitle: "일간·일지·오행 관계 기반 구조 진단" },
+  { title: "🧲 끌림과 인연의 이유", subtitle: "오행/십성/매력성 상호작용 해석" },
+  { title: "🔥 감정 흐름과 애착 구조", subtitle: "감정 리듬 차이와 안정화 전략" },
+  { title: "⚔️ 갈등 구조와 위험 신호", subtitle: "합충형파해/오해 패턴 기반 위기 대응" },
+  { title: "🏡 장기 관계와 현실 궁합", subtitle: "결혼·생활·돈·역할 분담의 현실 합의" },
+  { title: "🕰️ 두 사람의 시기 흐름", subtitle: "양측 대운·세운 기반 타이밍 조율" },
+  { title: "🗝️ 두 사람을 위한 최종 관계 처방전", subtitle: "관계 종합 진단과 실행 체크리스트" },
+]);
+
+export const LOVE_SECRET_COUPLE_ALL_CHAPTERS = Object.freeze([
+  ...LOVE_SECRET_SOLO_CHAPTERS,
+  ...LOVE_SECRET_COMPAT_CHAPTERS,
 ]);
 
 export const LOVE_SECRET_MODE_CONFIG = Object.freeze({
   solo: Object.freeze({
     mode: "solo",
     reportType: "saju_love_solo",
-    totalChapters: 7,
-    minTotalChars: 28000,
+    totalChapters: 10,
+    minTotalChars: 36000,
     chapterMinDefault: 3200,
-    chapterTargetByIndex: Object.freeze({ 1: 4400, 2: 3800, 3: 4000, 4: 3900, 5: 3900, 6: 3800, 7: 3900 }),
-    chapterMinByIndex: Object.freeze({ 1: 3740, 2: 3230, 3: 3400, 4: 3315, 5: 3315, 6: 3230, 7: 3315 }),
+    chapterTargetByIndex: Object.freeze({ 1: 4200, 2: 3900, 3: 3900, 4: 3800, 5: 3800, 6: 3800, 7: 3800, 8: 3600, 9: 3600, 10: 3800 }),
+    chapterMinByIndex: Object.freeze({ 1: 3600, 2: 3300, 3: 3300, 4: 3200, 5: 3200, 6: 3200, 7: 3200, 8: 3000, 9: 3000, 10: 3200 }),
     title: "프리미엄 사주 연애 비책 리포트",
     chapters: LOVE_SECRET_SOLO_CHAPTERS,
   }),
   couple: Object.freeze({
     mode: "couple",
     reportType: "saju_love_couple",
-    totalChapters: 8,
-    minTotalChars: 32000,
+    totalChapters: 17,
+    minTotalChars: 60000,
     chapterMinDefault: 3200,
-    chapterTargetByIndex: Object.freeze({ 1: 4400, 2: 3900, 3: 4000, 4: 3900, 5: 3900, 6: 3800, 7: 4000, 8: 3900 }),
-    chapterMinByIndex: Object.freeze({ 1: 3740, 2: 3315, 3: 3400, 4: 3315, 5: 3315, 6: 3230, 7: 3400, 8: 3315 }),
+    chapterTargetByIndex: Object.freeze({
+      1: 4200, 2: 3900, 3: 3900, 4: 3800, 5: 3800, 6: 3800, 7: 3800, 8: 3600, 9: 3600, 10: 3800,
+      11: 3900, 12: 3800, 13: 3800, 14: 3800, 15: 3800, 16: 3800, 17: 3900,
+    }),
+    chapterMinByIndex: Object.freeze({
+      1: 3600, 2: 3300, 3: 3300, 4: 3200, 5: 3200, 6: 3200, 7: 3200, 8: 3000, 9: 3000, 10: 3200,
+      11: 3300, 12: 3200, 13: 3200, 14: 3200, 15: 3200, 16: 3200, 17: 3300,
+    }),
     title: "프리미엄 사주 궁합 비책 리포트",
-    chapters: LOVE_SECRET_COMPAT_CHAPTERS,
+    chapters: LOVE_SECRET_COUPLE_ALL_CHAPTERS,
   }),
 });
 

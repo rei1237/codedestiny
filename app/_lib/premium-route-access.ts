@@ -27,10 +27,37 @@ function uniqueStrings(values: unknown[]): string[] {
   ));
 }
 
+function hasCompatibilityPartnerInputs(requestBody: Record<string, unknown> = {}) {
+  const partnerYear = Number(requestBody.partnerYear);
+  const partnerMonth = Number(requestBody.partnerMonth);
+  const partnerDay = Number(requestBody.partnerDay);
+  const partnerBirthDate = String(requestBody.partnerBirthDate || requestBody.partnerDob || "").trim();
+  const partner = requestBody.partner && typeof requestBody.partner === "object"
+    ? requestBody.partner as Record<string, unknown>
+    : {};
+
+  const nestedPartnerYear = Number(partner.year);
+  const nestedPartnerMonth = Number(partner.month);
+  const nestedPartnerDay = Number(partner.day);
+  const nestedPartnerBirthDate = String(partner.birthDate || "").trim();
+
+  const hasFlatPartnerDate = Number.isFinite(partnerYear) && Number.isFinite(partnerMonth) && Number.isFinite(partnerDay);
+  const hasNestedPartnerDate = Number.isFinite(nestedPartnerYear) && Number.isFinite(nestedPartnerMonth) && Number.isFinite(nestedPartnerDay);
+
+  return hasFlatPartnerDate
+    || hasNestedPartnerDate
+    || Boolean(partnerBirthDate)
+    || Boolean(nestedPartnerBirthDate)
+    || requestBody.compatibility === true;
+}
+
 function normalizeModeToken(requestBody: Record<string, unknown> = {}) {
   const mode = String(requestBody.mode || requestBody.reportMode || "").trim().toLowerCase();
   const reportMode = String(requestBody.reportType || "").trim().toLowerCase();
-  return `${mode} ${reportMode}`.trim();
+  const token = `${mode} ${reportMode}`.trim();
+  if (token.includes("compat") || token.includes("couple")) return token;
+  if (hasCompatibilityPartnerInputs(requestBody)) return `${token} compatibility`.trim();
+  return token;
 }
 
 function buildAlternativePaymentRules(reportType: string, requestBody: Record<string, unknown> = {}): Rule[] {
@@ -59,6 +86,30 @@ function buildAlternativePaymentRules(reportType: string, requestBody: Record<st
   }
 
   if (reportType === "vedicPremium") {
+    const isCompat = normalizeModeToken(requestBody).includes("compat");
+    if (isCompat) {
+      return [
+        {
+          featureKey: "premium_pdf_vedic_compat",
+          reason: "베다 점성술 프리미엄 PDF 궁합 리포트 생성",
+          minCost: 490,
+          windowMinutes: 120,
+        },
+        {
+          featureKey: "premium-vedic-report-compat",
+          reason: "베다 점성술 프리미엄 PDF 궁합 리포트 생성",
+          minCost: 490,
+          windowMinutes: 120,
+        },
+        {
+          featureKey: "coin-gate-per-use",
+          reason: "베다 점성술 프리미엄 PDF 궁합 리포트 생성",
+          minCost: 490,
+          windowMinutes: 120,
+        },
+      ];
+    }
+
     return [
       {
         featureKey: "premium_pdf_vedic",

@@ -8,7 +8,8 @@
 import { ASTRO_CHAPTER_META, ASTRO_TOTAL_CHAPTERS, ASTRO_MIN_TOTAL_CHARS } from "./astroChapterConfig.js";
 import { generateAstroChaptersSequentially } from "./generateAstroChapter.js";
 import { assertNoAstroPdfFallbackText } from "./assertNoAstroPdfFallbackText.js";
-import { validateAstroPdfPayload, assertAstroPdfPayloadValid } from "./validateAstroPdfPayload.js";
+import { assertAstroPdfPayloadValid } from "./validateAstroPdfPayload.js";
+import { normalizeAstroPayloadForStrictValidation } from "./normalizeAstroPayloadForStrictValidation.js";
 
 function logAstroStage(stage, detail = {}) {
   try {
@@ -66,9 +67,6 @@ function validateAstroChapterQuality(chapterNum, text) {
   return { ok: errors.length === 0, length, errors, warnings };
 }
 
-  return { ok: errors.length === 0, length, errors, warnings };
-}
-
 function buildAstroPdfData({ reportId, chart, chapters, generatedAt, warnings, sources }) {
   const chapterRows = [];
 
@@ -102,10 +100,34 @@ function buildAstroPdfData({ reportId, chart, chapters, generatedAt, warnings, s
   };
 }
 
+function buildChartFromLegacyPayload(payload = {}) {
+  const planetsArray = Array.isArray(payload?.planets) ? payload.planets : [];
+  const planets = {};
+  for (const row of planetsArray) {
+    const key = String(row?.nameEn || row?.name || "").trim();
+    if (!key) continue;
+    planets[key] = {
+      signKo: row?.signKo || row?.sign || "",
+      degree: Number(row?.degree || 0),
+      house: row?.house,
+    };
+  }
+
+  return {
+    planets,
+    ascendant: payload?.angles?.ascendant || {},
+    midheaven: payload?.angles?.mc || {},
+    northNode: planetsArray.find((p) => String(p?.nameEn || "") === "NorthNode") || {},
+    aspects: Array.isArray(payload?.aspects) ? payload.aspects : [],
+  };
+}
+
 export async function generateAstroPdf(params = {}) {
   const env = params.env || {};
   const body = params.body || {};
-  const chart = params.chart || {};
+  const payloadCandidate = params.payload || body?.payload || body?.strictReportPayload || body?.reportPayload || body?.calculatedData || {};
+  const normalizedPayload = normalizeAstroPayloadForStrictValidation(payloadCandidate);
+  const chart = params.chart || body?.chart || buildChartFromLegacyPayload(payloadCandidate) || {};
   const reportId = String(params.reportId || "").trim() || `astro-${Date.now()}`;
   const onProgress = typeof params.onProgress === "function" ? params.onProgress : null;
 
@@ -134,7 +156,7 @@ export async function generateAstroPdf(params = {}) {
   // ============================================================
   logAstroStage("PAYLOAD_VALIDATION_START", { reportId });
   try {
-    assertAstroPdfPayloadValid(body?.payload || {});
+    assertAstroPdfPayloadValid(normalizedPayload);
   } catch (err) {
     return {
       ok: false,
@@ -288,7 +310,7 @@ export async function generateAstroChapterOnly(params = {}) {
   logAstroStage("SINGLE_CHAPTER_GENERATION_START", { reportId, chapterNum });
 
   const generated = await generateAstroChaptersSequentially([chapterNum], chart, {
-    forceLocal: params.forceLocal === true,
+    onProgress: params.onProgress,
   });
 
   const text = generated[chapterNum] || "";
@@ -296,13 +318,13 @@ export async function generateAstroChapterOnly(params = {}) {
 
   if (!validation.ok) {
     logAstroStage(`CHAPTER_${chapterNum}_GENERATION_FAILED`, { errors: validation.errors });
-    const fallback = generateAstroFallbackText(chapterNum, chart);
     return {
-      ok: true,
+      ok: false,
+      code: "ASTRO_CHAPTER_QUALITY_FAILED",
       chapter: chapterNum,
-      text: fallback,
-      source: "fallback",
-      quality: { ok: true }, // fallback is always accepted
+      text,
+      source: "gemini-api",
+      quality: validation,
     };
   }
 
@@ -311,7 +333,7 @@ export async function generateAstroChapterOnly(params = {}) {
     ok: true,
     chapter: chapterNum,
     text,
-    source: "gemini",
+    source: "gemini-api",
     quality: validation,
   };
 }

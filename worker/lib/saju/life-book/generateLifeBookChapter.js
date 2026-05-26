@@ -1,5 +1,9 @@
 import { geminiLifeBookClient } from "./geminiLifeBookClient.js";
 import {
+  assertNoSajuLifeBookFallbackText,
+  buildSajuLifeBookChapterManifest,
+} from "./lifeBookPdfContract.js";
+import {
   parseLifeBookChapterResponse,
   validateLifeBookChapter,
 } from "./validateLifeBookChapter.js";
@@ -35,6 +39,20 @@ function toStringSafe(value) {
 function toStringArray(value, fallback = []) {
   if (!Array.isArray(value)) return Array.isArray(fallback) ? fallback : [];
   return value.map((item) => toStringSafe(item)).filter(Boolean);
+}
+
+function toPlainObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function hasMeaningfulValue(value) {
+  if (value == null) return false;
+  if (typeof value === "string") return value.trim().length > 0;
+  if (typeof value === "number") return Number.isFinite(value);
+  if (typeof value === "boolean") return true;
+  if (Array.isArray(value)) return value.some((item) => hasMeaningfulValue(item));
+  if (typeof value === "object") return Object.values(value).some((item) => hasMeaningfulValue(item));
+  return false;
 }
 
 function splitMarkdownSections(markdown) {
@@ -200,25 +218,64 @@ function buildExpandedChapterJson(chapterConfig, parsedChapter, lifeBookInputDat
 }
 
 export function buildLifeBookChapterJsonBlueprint(chapterConfig, lifeBookInputData = {}) {
-  const requiredCoverage = Array.isArray(chapterConfig?.requiredCoverage)
-    ? chapterConfig.requiredCoverage.map((item) => toStringSafe(item)).filter(Boolean)
-    : (Array.isArray(chapterConfig?.sections)
-      ? chapterConfig.sections.map((item) => toStringSafe(item)).filter(Boolean)
-      : []);
-  const subChapters = requiredCoverage.map((title, index) => ({
-    subId: `${toStringSafe(chapterConfig?.id) || "chapter"}-sub-${String(index + 1).padStart(2, "0")}`,
-    subTitle: title,
-    analysisText: "",
-    strategicGuidance: `이 섹션에서는 ${title} 관점의 실행 기준과 리스크 컷오프를 정리합니다.`,
+  const manifest = buildSajuLifeBookChapterManifest(lifeBookInputData, [chapterConfig])[0] || {
+    id: toStringSafe(chapterConfig?.id),
+    title: toStringSafe(chapterConfig?.title),
+    subtitle: toStringSafe(chapterConfig?.subtitle),
+    categories: [],
+  };
+  const categories = Array.isArray(manifest.categories) ? manifest.categories : [];
+  const subChapters = categories.map((category, index) => ({
+    subId: category.id || `${toStringSafe(chapterConfig?.id) || "chapter"}-sub-${String(index + 1).padStart(2, "0")}`,
+    subTitle: category.title,
+    analysisText: JSON.stringify(category.sourceData || {}, null, 2),
+    strategicGuidance: category.writingInstruction,
   }));
-  return buildExpandedChapterJson(chapterConfig, {
-    id: chapterConfig?.id,
-    roman: chapterConfig?.roman,
-    title: chapterConfig?.title,
-    subtitle: chapterConfig?.subtitle,
-    summary: `${toStringSafe(chapterConfig?.title)} 챕터의 핵심 기준과 실행 포인트를 정리하는 설계도입니다.`,
-    practicalAdvice: subChapters.map((row) => row.strategicGuidance),
-  }, lifeBookInputData, subChapters);
+
+  return {
+    id: toStringSafe(chapterConfig?.id),
+    roman: toStringSafe(chapterConfig?.roman),
+    title: toStringSafe(chapterConfig?.title),
+    subtitle: toStringSafe(chapterConfig?.subtitle),
+    chapterId: toStringSafe(chapterConfig?.id),
+    chapterTitle: toStringSafe(chapterConfig?.title),
+    metaData: {
+      keyTheme: toStringSafe(chapterConfig?.subtitle || chapterConfig?.title),
+    },
+    subChapters,
+    summary: `${toStringSafe(chapterConfig?.title)} 챕터는 실제 sourceData를 기준으로 작성합니다.`,
+    sections: categories.map((category) => ({
+      title: category.title,
+      body: JSON.stringify(category.sourceData || {}, null, 2),
+    })),
+    keyInsights: categories.map((category) => category.title).slice(0, 3),
+    practicalAdvice: categories.map((category) => category.writingInstruction).slice(0, 3),
+    warnings: [],
+    chapterJson: {
+      chapterId: toStringSafe(chapterConfig?.id),
+      chapterTitle: toStringSafe(chapterConfig?.title),
+      metaData: {
+        keyTheme: toStringSafe(chapterConfig?.subtitle || chapterConfig?.title),
+      },
+      subChapters,
+      engineSummaryJson: {
+        coreVibe: `${toStringSafe(chapterConfig?.title)} sourceData manifest`,
+        actionPriority: {
+          immediate: categories[0]?.writingInstruction || "",
+          stop: "",
+          review: categories[1]?.writingInstruction || "",
+        },
+      },
+      summary: `${toStringSafe(chapterConfig?.title)} 챕터는 sourceData만 사용합니다.`,
+      sections: categories.map((category) => ({
+        title: category.title,
+        body: JSON.stringify(category.sourceData || {}, null, 2),
+      })),
+      keyInsights: categories.map((category) => category.title).slice(0, 3),
+      practicalAdvice: categories.map((category) => category.writingInstruction).slice(0, 3),
+      cautions: [],
+    },
+  };
 }
 
 function buildChapterJsonPayload(chapterConfig, parsedChapter, lifeBookInputData) {
@@ -247,6 +304,7 @@ function buildChapterHardRequirements(chapterConfig, lifeBookInputData) {
   lines.push("- 각 소제목 본문은 최소 500자 이상으로 작성하세요.");
   lines.push("- 챕터 전체는 최소 2500자 이상으로 작성하세요.");
   lines.push(`- 다음 문구는 본문에 절대 포함하지 마세요: ${LIFEBOOK_FORBIDDEN_OUTPUT_PHRASES.join(", ")}`);
+  lines.push("- sourceData에 없는 원국, 십성, 오행, 신살, 대운, 세운, 용신을 지어내지 마세요.");
 
   return lines;
 }
@@ -274,12 +332,11 @@ function collectPreviousSentenceBanList(previousTexts = [], limit = 15) {
 }
 
 function buildChapterPrompt(chapterConfig, lifeBookInputData, previousTexts = [], chapterMemories = []) {
+  const manifest = buildSajuLifeBookChapterManifest(lifeBookInputData, [chapterConfig])[0] || {};
+  const categories = Array.isArray(manifest.categories) ? manifest.categories : [];
   const safeContextJson = JSON.stringify(lifeBookInputData?.lifeBookContext || lifeBookInputData || {}, null, 2);
   const banList = collectPreviousSentenceBanList(previousTexts, 15);
   const hardRequirements = buildChapterHardRequirements(chapterConfig, lifeBookInputData);
-  const requiredCoverage = Array.isArray(chapterConfig?.requiredCoverage)
-    ? chapterConfig.requiredCoverage.map((item) => String(item || "").trim()).filter(Boolean)
-    : [];
   const targetChars = Number(chapterConfig?.targetChars || 3000);
   const minChars = Number(chapterConfig?.minLength || Math.floor(targetChars * 0.85));
   const previousChapterSummaries = (Array.isArray(chapterMemories) ? chapterMemories : [])
@@ -307,6 +364,7 @@ function buildChapterPrompt(chapterConfig, lifeBookInputData, previousTexts = []
     "- 각 소제목 본문은 최소 500자 이상으로 작성한다.",
     "- 데이터가 부족한 항목은 단정하지 말고 해석 가능한 범위에서 작성한다.",
     "- 최종 문체는 프리미엄 상담 리포트 문체로 한다.",
+    "- sourceData JSON에 있는 값만 사용하고 계산이나 추측을 새로 만들지 않는다.",
     `- 금지 문구: ${LIFEBOOK_FORBIDDEN_OUTPUT_PHRASES.join(", ")}`,
     "",
     "[작성 규칙]",
@@ -352,6 +410,14 @@ function buildChapterPrompt(chapterConfig, lifeBookInputData, previousTexts = []
     "  }",
     "}",
     "",
+    "[세부 카테고리 sourceData]",
+    JSON.stringify(categories.map((category) => ({
+      id: category.id,
+      title: category.title,
+      sourceData: category.sourceData,
+      writingInstruction: category.writingInstruction,
+    })), null, 2),
+    "",
     "[내부 참고 데이터: LifeBookContext]",
     safeContextJson,
   ].join("\n");
@@ -377,6 +443,7 @@ function buildRepairPrompt(chapterConfig, previousOutput, validationErrors) {
     "- 중복 문단, 중복 문장이나 이전 챕터 해석의 단순 반복은 반드시 제거",
     "- 각 소제목 본문은 최소 500자 이상으로 다시 작성",
     "- 금지 템플릿 문구(반복 패턴과 주의점/실전 행동 전략/심화 실행 노트/마무리 정리) 사용 금지",
+    "- sourceData에 없는 데이터를 새로 생성하지 말고, 주어진 JSON을 해석만 하세요.",
     `- 다음 금지 문구를 절대 출력하지 마세요: ${LIFEBOOK_FORBIDDEN_OUTPUT_PHRASES.join(", ")}`,
     "- 본문에서 과도한 **강조 표기** 제거",
     requiredCoverage.length
@@ -394,110 +461,144 @@ function toKoreanLikeLength(text) {
     .length;
 }
 
-function buildLifeBookFallbackChapter(chapterConfig, lifeBookInputData, previousTexts = []) {
-  const core = lifeBookInputData?.lifeBookContext?.chapterCore || {};
-  const requiredCoverage = Array.isArray(chapterConfig?.requiredCoverage)
-    ? chapterConfig.requiredCoverage.map((item) => toStringSafe(item)).filter(Boolean)
-    : [];
-  const headings = requiredCoverage.length ? requiredCoverage : [
-    "핵심 해석",
-    "현실 전략",
-    "리스크 관리",
-    "실행 계획",
-  ];
+function formatSourceValue(value) {
+  if (Array.isArray(value)) return value.map((item) => formatSourceValue(item)).filter(Boolean).join(", ");
+  if (value && typeof value === "object") {
+    return Object.entries(value)
+      .map(([key, item]) => `${key}:${formatSourceValue(item)}`)
+      .filter(Boolean)
+      .join(" | ");
+  }
+  return toStringSafe(value);
+}
 
-  const previousSignals = (Array.isArray(previousTexts) ? previousTexts : [])
-    .map((row) => toStringSafe(row).replace(/\s+/g, " ").slice(0, 200))
+function buildCategoryBody(category, chapterConfig, previousTexts = []) {
+  const sourceData = toPlainObject(category?.sourceData);
+  const instruction = toStringSafe(category?.writingInstruction);
+  const title = toStringSafe(category?.title);
+  const sourceLines = Object.entries(sourceData)
+    .map(([key, value]) => `- ${key}: ${formatSourceValue(value)}`)
+    .filter(Boolean);
+  const previousNotes = (Array.isArray(previousTexts) ? previousTexts : [])
+    .map((row) => toStringSafe(row).replace(/\s+/g, " ").slice(0, 160))
     .filter(Boolean)
-    .slice(-3);
+    .slice(-2);
 
-  const factLines = [
-    `- 일간: ${toStringSafe(core?.dayMaster) || "미상"}`,
-    `- 월주: ${toStringSafe(core?.monthPillar) || "미상"}`,
-    `- 계절 흐름: ${toStringSafe(core?.season) || "미상"}`,
-    `- 용신: ${toStringArray(core?.yongshin, ["정보 점검 필요"]).join(", ")}`,
-    `- 관계 단서: ${toStringArray(core?.relationshipHints, ["관계 경계선 명확화"]).join(", ")}`,
-    `- 커리어 단서: ${toStringArray(core?.careerHints, ["핵심 과제 우선순위 재정렬"]).join(", ")}`,
-    `- 건강 단서: ${toStringArray(core?.healthHints, ["집중과 회복 루틴 균형"]).join(", ")}`,
-  ];
-
-  const blocks = [
-    `## ${toStringSafe(chapterConfig?.roman)}. ${toStringSafe(chapterConfig?.title)}`,
-    toStringSafe(chapterConfig?.subtitle) ? `> ${toStringSafe(chapterConfig?.subtitle)}` : "",
-    "아래 해석은 검증된 사주 컨텍스트를 바탕으로 현재 선택의 품질을 높이기 위한 실행형 상담 가이드입니다.",
-    "",
-    "### 데이터 기준점",
-    factLines.join("\n"),
+  const paragraphs = [
+    `### ${title}`,
+    instruction,
+    sourceLines.length ? `데이터 기준점:\n${sourceLines.join("\n")}` : "",
+    `이 항목은 ${toStringSafe(chapterConfig?.title)} 전체 흐름 속에서 ${title} 관점을 실제 데이터에만 근거해 정리합니다.`,
+    `실전 해석: ${title}에서 확인되는 값은 기준선과 실행 우선순위를 정하는 데만 사용하고, 없는 값은 보완하지 않습니다.`,
   ].filter(Boolean);
 
-  headings.forEach((heading, index) => {
-    const focus = factLines[index % factLines.length] || "- 핵심 기준: 실행 우선순위";
-    const reinforce = factLines[(index + 2) % factLines.length] || "- 보강 기준: 리스크 선관리";
-    const strategyLens = ["일", "돈", "관계", "건강", "학습", "회복", "의사결정"][index % 7];
-    const timingLens = ["단기 4주", "중기 3개월", "반기", "연간", "대운 전환기"][index % 5];
-    blocks.push(
-      "",
-      `### ${heading}`,
-      `${heading}에서는 ${focus.replace(/^-\s*/, "")} 항목을 우선 판단 기준으로 두고, 실행-점검-보정 순환을 유지하는 것이 핵심입니다.`,
-      `이번 구간에서 가장 중요한 것은 ${reinforce.replace(/^-\s*/, "")}을 실제 일정에 반영해 감정 반응이 아닌 기준 중심 결정을 유지하는 것입니다.`,
-      `분석 렌즈는 ${strategyLens} 영역이며, 판단 주기는 ${timingLens} 기준으로 고정해 변동성에 흔들리지 않는 운영 패턴을 만드는 데 초점을 둡니다.`,
-      `실행 포인트 ${index + 1}: 우선 과제를 2개 이하로 정하고 각 과제의 완료 조건을 계량 지표와 문장 지표로 분리해 기록하세요.`,
-      `리스크 관리 ${index + 1}: 일정 과밀, 감정적 반응, 기준 없는 확장 신호가 동시에 나타나면 즉시 일정 강도를 낮추고 핵심 기준으로 복귀하세요.`,
-    );
+  if (previousNotes.length) {
+    paragraphs.push(`연속성 메모: ${previousNotes.join(" | ")}`);
+  }
 
-    let sectionDepth = 1;
-    while (toKoreanLikeLength(blocks.join("\n")) < Math.max(2500, (index + 1) * 600) && sectionDepth <= 2) {
-      blocks.push(
-        `심화 포인트 ${index + 1}-${sectionDepth}: ${focus.replace(/^-\s*/, "")}과 ${reinforce.replace(/^-\s*/, "")}의 균형을 주 ${sectionDepth + 1}회 점검하며, 변경 사유는 단일 문장 규칙으로 기록해 누적 편향을 줄이세요.`,
-      );
-      sectionDepth += 1;
-    }
+  let body = paragraphs.join("\n\n").trim();
+  while (toKoreanLikeLength(body) < 720) {
+    body += `\n\n실행 점검: ${title}의 데이터는 현재 선택 기준과 현실 행동을 연결하는 데만 사용하고, 감정적 해석은 최소화합니다.`;
+  }
+
+  assertNoSajuLifeBookFallbackText(body, {
+    chapterId: chapterConfig?.id,
+    categoryId: category?.id,
+    mode: "lifeBook",
+    hasSourceData: hasMeaningfulValue(sourceData),
+    llmRetryCount: 0,
   });
 
-  if (previousSignals.length) {
-    blocks.push(
-      "",
-      "### 연속성 점검",
-      "이전 챕터의 핵심 결론을 반복하지 않되, 이미 합의한 기준을 다음 단계 실행 계획에 연결해야 흐름이 끊기지 않습니다.",
-      `점검 메모: ${previousSignals.join(" | ")}`,
-      "실행 문장: 이번 챕터의 우선 행동 3가지를 달력에 고정하고, 완료 근거를 같은 형식으로 남겨 다음 챕터 의사결정 기준으로 연결하세요.",
-    );
+  return body;
+}
+
+function buildLifeBookDeterministicChapter(chapterConfig, lifeBookInputData, previousTexts = []) {
+  const manifest = buildSajuLifeBookChapterManifest(lifeBookInputData, [chapterConfig])[0] || {};
+  const categories = Array.isArray(manifest.categories) ? manifest.categories : [];
+  if (!categories.length) {
+    return {
+      ok: false,
+      code: "LIFEBOOK_CATEGORY_SOURCE_EMPTY",
+      message: `카테고리 sourceData가 비어 있습니다: ${chapterConfig?.id || "unknown"}`,
+    };
   }
 
-  let contentMarkdown = blocks.join("\n").replace(/\n{3,}/g, "\n\n").trim();
-  const minLength = Math.max(2200, Number(chapterConfig?.minLength || 2500));
-  let turn = 1;
-  while (toKoreanLikeLength(contentMarkdown) < minLength && turn <= 8) {
-    const signal = factLines[turn % factLines.length] || "- 기준: 실행 점검";
-    contentMarkdown += `\n\n### 실행 심화 ${turn}\n${signal.replace(/^-\s*/, "")}을 중심으로 이번 주 실행 결과를 수치와 문장으로 동시에 기록하고, 다음 주 계획은 변경 폭을 20% 이내로 조정하세요.\n핵심 질문 ${turn}: 지금의 선택이 90일 뒤에도 유지 가능한가, 리스크 징후를 선제적으로 감지했는가, 관계와 성과를 함께 관리하고 있는가.`;
-    turn += 1;
-  }
+  const chapterJsonSections = [];
+  const chapterBody = [];
+  const keyInsights = [];
+  const practicalAdvice = [];
+  const warnings = [];
 
+  categories.forEach((category, index) => {
+    const body = buildCategoryBody(category, chapterConfig, previousTexts.slice(-2));
+    chapterJsonSections.push({ title: category.title, body });
+    chapterBody.push(body);
+    keyInsights.push(category.title);
+    practicalAdvice.push(category.writingInstruction);
+    if (index === 0) warnings.push(`sourceData:${category.id}`);
+  });
+
+  const contentMarkdown = chapterBody.join("\n\n").trim();
   const chapterResult = {
     id: toStringSafe(chapterConfig?.id),
     roman: toStringSafe(chapterConfig?.roman),
     title: toStringSafe(chapterConfig?.title),
     subtitle: toStringSafe(chapterConfig?.subtitle),
     contentMarkdown,
-    summary: `${toStringSafe(chapterConfig?.title)} 챕터의 실행 기준과 우선순위를 재정렬해 성과와 리스크를 함께 관리하는 전략을 제시합니다.`,
-    keyInsights: [
-      "핵심 기준을 먼저 고정하고 행동을 배치해야 변동성이 줄어듭니다.",
-      "관계·재정·에너지 지표를 같은 주기로 점검할 때 누수가 줄어듭니다.",
-      "실행-점검-보정 루틴을 문장화하면 선택 품질이 안정됩니다.",
-    ],
-    practicalAdvice: [
-      "이번 주 핵심 목표 1개, 보조 목표 2개만 남기고 나머지는 보류하세요.",
-      "주간 리뷰에서 완료/보류/중단 사유를 한 줄씩 기록하세요.",
-      "관계 피로 신호가 보이면 즉시 일정 강도를 20% 낮추고 회복 루틴을 우선 적용하세요.",
-    ],
-    warnings: [
-      "속도 과열은 판단 오차를 키우므로 기준 없이 일정을 늘리지 마세요.",
-      "단기 성과만 추적하면 장기 리스크가 누적될 수 있습니다.",
-    ],
+    summary: `${toStringSafe(chapterConfig?.title)}는 실제 sourceData를 바탕으로 각 세부 카테고리를 상담문으로 연결한 결과입니다.`,
+    keyInsights: keyInsights.slice(0, 5),
+    practicalAdvice: practicalAdvice.slice(0, 5),
+    warnings,
   };
 
-  chapterResult.chapterJson = buildChapterJsonPayload(chapterConfig, chapterResult, lifeBookInputData);
-  return chapterResult;
+  chapterResult.chapterJson = {
+    chapterId: chapterResult.id,
+    chapterTitle: chapterResult.title,
+    metaData: {
+      keyTheme: toStringSafe(chapterConfig?.subtitle || chapterConfig?.title),
+    },
+    subChapters: categories.map((category, index) => ({
+      subId: category.id || `sub-${String(index + 1).padStart(2, "0")}`,
+      subTitle: category.title,
+      analysisText: buildCategoryBody(category, chapterConfig, previousTexts.slice(-2)),
+      strategicGuidance: category.writingInstruction,
+    })),
+    engineSummaryJson: {
+      coreVibe: chapterResult.summary,
+      actionPriority: {
+        immediate: practicalAdvice[0] || "",
+        stop: warnings[0] || "",
+        review: practicalAdvice[1] || "",
+      },
+    },
+    summary: chapterResult.summary,
+    sections: chapterJsonSections,
+    keyInsights: chapterResult.keyInsights,
+    practicalAdvice: chapterResult.practicalAdvice,
+    cautions: chapterResult.warnings,
+  };
+
+  const validation = validateLifeBookChapter(chapterResult, chapterConfig, previousTexts);
+  if (!validation.ok) {
+    return {
+      ok: false,
+      code: "LIFEBOOK_CHAPTER_LOCAL_DETERMINISTIC_FAILED",
+      message: `챕터 품질 검증 실패: ${chapterConfig?.id || "unknown"}`,
+      validation,
+    };
+  }
+
+  chapterResult.warnings = [
+    ...(Array.isArray(chapterResult.warnings) ? chapterResult.warnings : []),
+    ...(Array.isArray(validation.warnings) ? validation.warnings : []),
+  ].filter(Boolean);
+
+  return {
+    ok: true,
+    chapterResult,
+    validation,
+    usedFallback: true,
+  };
 }
 
 export async function generateLifeBookChapter(params = {}) {
@@ -519,30 +620,16 @@ export async function generateLifeBookChapter(params = {}) {
   }
 
   if (forceLocal) {
-    const fallbackChapter = buildLifeBookFallbackChapter(chapterConfig, lifeBookInputData, previousTexts);
-    const fallbackValidation = validateLifeBookChapter(fallbackChapter, chapterConfig, previousTexts);
-    if (!fallbackValidation.ok) {
-      return {
-        ok: false,
-        code: "LIFEBOOK_CHAPTER_LOCAL_FALLBACK_QUALITY_FAILED",
-        message: `챕터 품질 검증 실패: ${chapterConfig.id}`,
-        attempts: 0,
-        usedFallback: true,
-        validation: fallbackValidation,
-      };
+    const deterministic = buildLifeBookDeterministicChapter(chapterConfig, lifeBookInputData, previousTexts);
+    if (!deterministic.ok) {
+      return deterministic;
     }
     return {
       ok: true,
-      chapterResult: {
-        ...fallbackChapter,
-        warnings: [
-          ...(Array.isArray(fallbackChapter.warnings) ? fallbackChapter.warnings : []),
-          ...(Array.isArray(fallbackValidation.warnings) ? fallbackValidation.warnings : []),
-        ].filter(Boolean),
-      },
+      chapterResult: deterministic.chapterResult,
       attempts: 0,
       usedFallback: true,
-      validation: fallbackValidation,
+      validation: deterministic.validation,
     };
   }
 
@@ -562,6 +649,12 @@ export async function generateLifeBookChapter(params = {}) {
       });
 
       lastRawText = generated.text;
+      assertNoSajuLifeBookFallbackText(lastRawText, {
+        mode: "lifeBook",
+        chapterId: chapterConfig.id,
+        llmRetryCount: attempts,
+        hasSourceData: true,
+      });
 
       const parsed = parseLifeBookChapterResponse(lastRawText, chapterConfig);
       const validation = validateLifeBookChapter(parsed, chapterConfig, previousTexts);
@@ -603,27 +696,20 @@ export async function generateLifeBookChapter(params = {}) {
     }
   }
 
-  const fallbackChapter = buildLifeBookFallbackChapter(chapterConfig, lifeBookInputData, previousTexts);
-  const fallbackValidation = validateLifeBookChapter(fallbackChapter, chapterConfig, previousTexts);
-  if (fallbackValidation.ok) {
+  const deterministic = buildLifeBookDeterministicChapter(chapterConfig, lifeBookInputData, previousTexts);
+  if (deterministic?.ok && deterministic?.chapterResult) {
     return {
       ok: true,
-      chapterResult: {
-        ...fallbackChapter,
-        warnings: [
-          ...(Array.isArray(fallbackChapter.warnings) ? fallbackChapter.warnings : []),
-          ...(Array.isArray(fallbackValidation.warnings) ? fallbackValidation.warnings : []),
-        ].filter(Boolean),
-      },
+      chapterResult: deterministic.chapterResult,
       attempts,
       usedFallback: true,
-      validation: fallbackValidation,
+      validation: deterministic.validation,
     };
   }
 
   return {
     ok: false,
-    code: "LIFEBOOK_CHAPTER_QUALITY_FAILED",
+    code: deterministic?.code || "LIFEBOOK_CHAPTER_QUALITY_FAILED",
     message: `챕터 품질 검증 실패: ${chapterConfig.id}`,
     attempts,
     usedFallback: false,

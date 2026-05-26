@@ -106,6 +106,49 @@ async function makeAuthToken() {
   });
 }
 
+function makeStrictNewYearPayloadExtras() {
+  const monthlyLuck = Array.from({ length: 12 }, (_, idx) => ({
+    month: idx + 1,
+    source: "engine",
+    trend: idx % 2 === 0 ? "추진" : "점검",
+    keyword: `키워드-${idx + 1}`,
+    go: `실행-${idx + 1}`,
+    stop: `주의-${idx + 1}`,
+    career: `커리어-${idx + 1}`,
+    wealth: `재물-${idx + 1}`,
+    relationship: `관계-${idx + 1}`,
+    health: `건강-${idx + 1}`,
+    oneLineAdvice: `조언-${idx + 1}`,
+  }));
+
+  return {
+    yearlySummary: {
+      summary: "올해는 기준 중심 운영을 통해 성과를 안정적으로 누적하는 해입니다.",
+      career: "핵심 과제를 고정하고 실행 밀도를 높입니다.",
+      wealth: "수익 구조와 지출 통제 기준을 함께 관리합니다.",
+      relationship: "관계 경계선과 협업 기준을 문서화합니다.",
+      health: "집중과 회복 루틴을 병행합니다.",
+    },
+    actionPlan: {
+      first30Days: [
+        "핵심 목표를 1~2개로 고정합니다.",
+        "주간 점검 루틴을 시작합니다.",
+        "리스크 컷오프 기준을 설정합니다.",
+      ],
+      quarterPlan: "분기마다 목표-성과-리스크를 재평가하고 전략을 조정합니다.",
+    },
+    engineData: {
+      monthlyLuck,
+      yearlyFortune: {
+        careerTheme: "직무 우선순위 재정렬",
+        wealthTheme: "지출 통제 강화",
+        relationshipTheme: "협업 기준 명확화",
+        healthTheme: "회복 리듬 확보",
+      },
+    },
+  };
+}
+
 describe("Saju premium prepareOnly routes", () => {
   test("lifeBook prepareOnly returns canonical 13-chapter plan", async () => {
     const authToken = await makeAuthToken();
@@ -143,7 +186,7 @@ describe("Saju premium prepareOnly routes", () => {
     expect(data.chapterJsonBlueprintByNumber["1"].subChapters[0].subTitle).toBe("출생 정보와 사주팔자 기본 구성");
   });
 
-  test("loveSecret compatibility prepareOnly returns configured 8-chapter couple plan", async () => {
+  test("loveSecret compatibility prepareOnly returns configured 17-chapter couple plan", async () => {
     const authToken = await makeAuthToken();
     const req = new Request("https://example.com/api/love-secret/session", {
       method: "POST",
@@ -179,11 +222,11 @@ describe("Saju premium prepareOnly routes", () => {
     expect(res.status).toBe(200);
     expect(data.ok).toBe(true);
     expect(data.prepared).toBe(true);
-    expect(data.mode).toBe("couple");
-    expect(data.totalChapters).toBe(8);
-    expect(data.chapterPlan).toHaveLength(8);
-    expect(data.chapterPlan[0].title).toContain("Chapter I. 두 사람의 궁합 총론");
-    expect(data.chapterPlan[7].title).toContain("Chapter VIII. 최종 궁합 비책");
+    expect(data.mode).toBe("compatibility");
+    expect(data.totalChapters).toBe(17);
+    expect(data.chapterPlan).toHaveLength(17);
+    expect(data.chapterPlan[0].title).toContain("💘 본연의 연애 자아");
+    expect(data.chapterPlan[16].title).toContain("🗝️ 두 사람을 위한 최종 관계 처방전");
   });
 
   test("sajuNewYear prepareOnly returns canonical 10-chapter plan", async () => {
@@ -205,6 +248,7 @@ describe("Saju premium prepareOnly routes", () => {
         hour: 12,
         minute: 30,
         sajuData: makeSajuData(),
+        ...makeStrictNewYearPayloadExtras(),
       }),
     });
 
@@ -220,7 +264,7 @@ describe("Saju premium prepareOnly routes", () => {
     expect(data.chapterPlan[9].title).toBe("최종 실행 로드맵 - 연말 회수 전략");
   });
 
-  test("sajuNewYear chapter generation falls back locally with source marker when Gemini is unavailable", async () => {
+  test("sajuNewYear chapter generation fails closed when Gemini is unavailable", async () => {
     const authToken = await makeAuthToken();
     const req = new Request("https://example.com/api/saju-new-year/session", {
       method: "POST",
@@ -241,30 +285,16 @@ describe("Saju premium prepareOnly routes", () => {
         hour: 12,
         minute: 30,
         sajuData: makeSajuData(),
+        ...makeStrictNewYearPayloadExtras(),
       }),
     });
 
     const res = await handleSajuNewYearRoutes(req, {});
     const data = await res.json();
 
-    expect(res.status).toBe(200);
-    expect(data.ok).toBe(true);
-    expect(data.reportType).toBe("sajuNewYear");
-    expect(data.featureType).toBe("saju_new_year_pdf");
-    expect(data.chapter).toBe(1);
-    expect(data.source).toBe("local-engine");
-    expect(data.usedFallback).toBe(true);
-    expect(data.engineSource).toBeTruthy();
-    expect(typeof data.text).toBe("string");
-    expect(data.text.length).toBeGreaterThanOrEqual(3200);
-    expect(Array.isArray(data.sections)).toBe(true);
-    expect(data.sections.length).toBeGreaterThan(0);
-    expect(data.storage).toMatchObject({
-      sessionKey: expect.stringContaining("saju-new-year-test-report"),
-      storedChapterCount: expect.any(Number),
-    });
-    expect(data.dataQuality).toMatchObject({
-      engineSource: expect.any(String),
-    });
+    expect(res.status).toBe(422);
+    expect(data.ok).toBe(false);
+    expect(data.code).toBe("SAJU_NEW_YEAR_GEMINI_UNAVAILABLE");
+    expect(typeof data.message).toBe("string");
   });
 });

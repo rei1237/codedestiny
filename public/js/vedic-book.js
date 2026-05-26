@@ -12,8 +12,8 @@
     '💰 부와 번영의 정렬 — Artha & 2·11하우스 다나 요가',
     '👑 삶의 과제와 천직 — Dharma & 10하우스 · D9 · D10',
     '💎 나밤샤 — 영혼의 성숙도, D9 숨겨진 잠재력',
-    '🔮 관계의 거울 — 아슈타 쿠타(Ashta Koota) 궁합 분석',
-    '💞 인연의 깊이와 카르믹 계약 — 7하우스 · 금성/화성',
+    '🔮 관계 패턴의 이해 — 7하우스와 정서적 안정 구조',
+    '💞 인연의 깊이와 관계 운영 전략 — 금성/화성/달',
     '🌿 생명력과 정화 — Health 6·8·12하우스 · 체질 관리',
     '✨ 요가 — 특별한 축복의 조합, 차트의 천부적 재능',
     '🙏 우파야 — 운명을 바꾸는 실천, 행성 에너지 정화 비책',
@@ -27,8 +27,8 @@
     '2하우스·11하우스·다나 요가로 보는 재물 구조와 번영 전략',
     '10하우스 커리어 축·D10 차트·직업 운명 분석',
     'D9(나밤샤) 영혼의 진짜 저력·중년 이후 운명적 전환점 분석',
-    '달별자리 기반 아슈타 쿠타 8항목 궁합·관계 갈등 패턴',
-    '7하우스·금성·화성으로 읽는 인연의 색깔·카르믹 관계 패턴',
+    '7하우스·금성·달 중심 관계 패턴·감정 안정 전략',
+    '관계 갈등 패턴·친밀감 유지·장기 관계 운영 전략',
     '6·8·12하우스 건강·장수·정화·체질 타입 분석',
     '차트에서 검출된 요가(Yoga) 완전 해석·천부적 재능 발굴',
     '우파야(Upaya) 행성별 정화·만트라·요일 의례·삶의 과제 해소법',
@@ -42,8 +42,8 @@
     '다나 요가·2·11하우스 부와 번영의 정렬을 분석하는 중...',
     '커리어 축·D10 천직 방정식을 탐색하는 중...',
     '나밤샤(Navamsa) D9 영혼의 성숙도와 잠재력을 분석하는 중...',
-    '아슈타 쿠타(Ashta Koota) 8항목 궁합을 계산하는 중...',
-    '7하우스·금성·화성 인연의 카르믹 패턴을 분석하는 중...',
+    '7하우스·금성·달의 관계 패턴을 분석하는 중...',
+    '관계 운영 전략과 감정 안정 조건을 분석하는 중...',
     '6·8·12하우스 건강 & 체질 타입을 분석하는 중...',
     '요가(Yoga) 조합·천부적 재능을 검출하는 중...',
     '우파야(Upaya) 행성 에너지 정화 비책을 설계하는 중...',
@@ -67,6 +67,7 @@
 
   var _chapters = Array(12).fill(null);
   var _chapterMeta = Array(12).fill(null);
+  var _chapterErrors = Array(12).fill(null);
   var _generating = false;
   var _currentChapter = 1;
   var _mysticTimer = null;
@@ -275,6 +276,7 @@
     }
     _chapters=Array(12).fill(null);
     _chapterMeta=Array(12).fill(null);
+    _chapterErrors=Array(12).fill(null);
     _currentChapter=1;
     _showScreen('vdStartScreen');
     modal.style.display='flex'; modal.style.zIndex='100120';
@@ -319,6 +321,7 @@
     _generating=true;
     _chapters=Array(12).fill(null);
     _chapterMeta=Array(12).fill(null);
+    _chapterErrors=Array(12).fill(null);
     _showScreen('vdLoadingScreen');
 
     var progressBar=_qs('vdProgressBar'),progressText=_qs('vdProgressText');
@@ -391,6 +394,7 @@
       return new Promise(function(resolve){
         var tid=setTimeout(function(){resolve({ok:false,message:'응답 시간 초과 (60초).'});},60000);
         var _vdPremiumToken=_vdReadPremiumAccessToken();
+        var _vdMode='personal';
         var _vdHeaders={'Content-Type':'application/json'};
         if(_vdPremiumToken) _vdHeaders['x-premium-access-token']=_vdPremiumToken;
         fetch('/api/premium/vedic-life',{
@@ -399,6 +403,9 @@
             reportId:_vdReportId,
             requestId:'vedic-'+_vdReportId+'-ch'+(idx+1),
             premiumAccessToken:_vdPremiumToken||undefined,
+            mode:_vdMode,
+            reportMode:_vdMode,
+            reportType:_vdMode,
             year:b.year,month:b.month,day:b.day,
             hour:b.hour!==undefined?b.hour:12,
             minute:b.minute!==undefined?b.minute:0,
@@ -418,8 +425,15 @@
     (function generateNext(idx){
       if(idx>=12){
         clearInterval(_mysticTimer);_mysticTimer=null;_generating=false;
-        var allFailed=_chapters.every(function(c){return !c||/^⚠️/.test(c);});
-        if(allFailed){var errEl=_qs('vdErrorMsg');if(errEl)errEl.textContent='모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.';_showScreen('vdErrorScreen');return;}
+        var hasFailed=_chapterErrors.some(function(e){return !!e;});
+        var allFailed=_chapters.every(function(c){return !c;});
+        if(allFailed||hasFailed){
+          var firstErr=_chapterErrors.find(function(e){return !!e;})||'베다 리포트 생성 중 오류가 발생했습니다.';
+          var errEl=_qs('vdErrorMsg');
+          if(errEl)errEl.textContent='베다 리포트 생성에 실패했습니다. 잠시 후 다시 시도해 주세요. ('+String(firstErr)+')';
+          _showScreen('vdErrorScreen');
+          return;
+        }
         _showScreen('vdResultScreen');
         _updateTocState();_renderChapter(1);_bindToc();
         var prof=window.__cdActiveBirthProfile||{};
@@ -431,8 +445,19 @@
       }
       if(chapterMsg)chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';
       _fetchChapter(idx).then(function(data){
-        if(data&&data.ok&&data.text){_syncChapterMetaFromResponse(idx,data);_chapters[idx]=data.text;}
-        else{_failCount++;var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류';console.warn('[베다] Chapter '+(idx+1)+' 실패:',msg);_chapterMeta[idx]={title:CHAPTER_TITLES[idx],subtitle:CHAPTER_SUBTITLES[idx],isSkeleton:true};_chapters[idx]=_buildChapterSkeleton(idx,msg);}
+        if(data&&data.ok&&data.text){
+          _syncChapterMetaFromResponse(idx,data);
+          _chapters[idx]=data.text;
+          _chapterErrors[idx]=null;
+        }
+        else{
+          _failCount++;
+          var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류';
+          console.warn('[베다] Chapter '+(idx+1)+' 실패:',msg);
+          _chapterMeta[idx]={title:CHAPTER_TITLES[idx],subtitle:CHAPTER_SUBTITLES[idx],isSkeleton:false};
+          _chapters[idx]=null;
+          _chapterErrors[idx]=msg;
+        }
         _setProgress(idx+1);
         generateNext(idx+1);
       });

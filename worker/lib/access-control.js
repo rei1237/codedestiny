@@ -21,10 +21,35 @@ function uniqueStrings(values) {
   ));
 }
 
+function hasCompatibilityPartnerInputs(requestBody = {}) {
+  const partnerYear = Number(requestBody?.partnerYear);
+  const partnerMonth = Number(requestBody?.partnerMonth);
+  const partnerDay = Number(requestBody?.partnerDay);
+  const partnerBirthDate = String(requestBody?.partnerBirthDate || requestBody?.partnerDob || "").trim();
+  const partner = requestBody && typeof requestBody.partner === "object" ? requestBody.partner : {};
+
+  const nestedPartnerYear = Number(partner?.year);
+  const nestedPartnerMonth = Number(partner?.month);
+  const nestedPartnerDay = Number(partner?.day);
+  const nestedPartnerBirthDate = String(partner?.birthDate || "").trim();
+
+  const hasFlatPartnerDate = Number.isFinite(partnerYear) && Number.isFinite(partnerMonth) && Number.isFinite(partnerDay);
+  const hasNestedPartnerDate = Number.isFinite(nestedPartnerYear) && Number.isFinite(nestedPartnerMonth) && Number.isFinite(nestedPartnerDay);
+
+  return hasFlatPartnerDate
+    || hasNestedPartnerDate
+    || Boolean(partnerBirthDate)
+    || Boolean(nestedPartnerBirthDate)
+    || requestBody?.compatibility === true;
+}
+
 function normalizeModeToken(requestBody = {}) {
   const mode = String(requestBody?.mode || requestBody?.reportMode || "").trim().toLowerCase();
   const reportMode = String(requestBody?.reportType || "").trim().toLowerCase();
-  return `${mode} ${reportMode}`.trim();
+  const token = `${mode} ${reportMode}`.trim();
+  if (token.includes("compat") || token.includes("couple")) return token;
+  if (hasCompatibilityPartnerInputs(requestBody)) return `${token} compatibility`.trim();
+  return token;
 }
 
 export function buildAlternativePaymentRules(reportType, requestBody = {}) {
@@ -32,24 +57,6 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     return [
       {
         featureKey: "saju_new_year_pdf",
-        reason: "사주 신년운세 PDF 리포트 생성",
-        minCost: 300,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: "premium_pdf_saju_new_year",
-        reason: "사주 신년운세 PDF 리포트 생성",
-        minCost: 300,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: "premium_pdf_saju_yearly",
-        reason: "사주 신년운세 PDF 리포트 생성",
-        minCost: 300,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: "premium-saju-newyear-report",
         reason: "사주 신년운세 PDF 리포트 생성",
         minCost: 300,
         windowMinutes: 120,
@@ -320,32 +327,72 @@ function extractPaymentLookupTokens(requestBody = {}) {
   const source = requestBody && typeof requestBody === "object" ? requestBody : {};
   const payment = source.payment && typeof source.payment === "object" ? source.payment : {};
   const alt = source._paymentContext && typeof source._paymentContext === "object" ? source._paymentContext : {};
+  const consume = source.consume && typeof source.consume === "object" ? source.consume : {};
 
   const transactionId = String(
     source.transactionId
     || source.sourceTransactionId
+    || source.paymentId
+    || source.id
     || payment.transactionId
     || payment.sourceTransactionId
+    || payment.paymentId
+    || payment.id
     || alt.transactionId
     || alt.sourceTransactionId
+    || alt.paymentId
+    || alt.id
+    || consume.transactionId
+    || consume.sourceTransactionId
+    || consume.paymentId
+    || consume.id
     || "",
   ).trim();
   const requestId = String(
     source.requestId
+    || source.sourceRequestId
     || payment.requestId
+    || payment.sourceRequestId
     || alt.requestId
+    || alt.sourceRequestId
+    || consume.requestId
+    || consume.sourceRequestId
+    || "",
+  ).trim();
+  const receiptId = String(
+    source.receiptId
+    || source.receipt
+    || payment.receiptId
+    || payment.receipt
+    || alt.receiptId
+    || alt.receipt
+    || consume.receiptId
+    || consume.receipt
+    || "",
+  ).trim();
+  const orderId = String(
+    source.orderId
+    || source.merchantUid
+    || payment.orderId
+    || payment.merchantUid
+    || alt.orderId
+    || alt.merchantUid
+    || consume.orderId
+    || consume.merchantUid
     || "",
   ).trim();
 
   return {
     transactionId,
     requestId,
+    receiptId,
+    orderId,
   };
 }
 
 async function findEvidenceByPaymentTokens(userId, requestBody = {}, rules = []) {
   const tokens = extractPaymentLookupTokens(requestBody);
-  if (!tokens.transactionId && !tokens.requestId) return null;
+  if (!tokens.transactionId && !tokens.requestId && !tokens.receiptId && !tokens.orderId) return null;
 
   const featureKeys = uniqueStrings(
     (Array.isArray(rules) ? rules : []).flatMap((rule) => {
@@ -368,6 +415,11 @@ async function findEvidenceByPaymentTokens(userId, requestBody = {}, rules = [])
         $or: [
           { _id: tokens.transactionId },
           { "metadata.requestId": tokens.transactionId },
+          { "metadata.sourceTransactionId": tokens.transactionId },
+          { "metadata.transactionId": tokens.transactionId },
+          { "metadata.paymentId": tokens.transactionId },
+          { "metadata.impUid": tokens.transactionId },
+          { "metadata.merchantUid": tokens.transactionId },
         ],
       })
         .select("_id createdAt delta featureKey reason metadata")
@@ -390,6 +442,38 @@ async function findEvidenceByPaymentTokens(userId, requestBody = {}, rules = [])
       .sort({ createdAt: -1 })
       .lean();
     if (byRequestId) return byRequestId;
+  }
+
+  if (tokens.receiptId) {
+    const byReceiptId = await PointHistory.findOne({
+      userId,
+      kind: "deduct",
+      ...featureQuery,
+      $or: [
+        { "metadata.receiptId": tokens.receiptId },
+        { "metadata.receipt": tokens.receiptId },
+      ],
+    })
+      .select("_id createdAt delta featureKey reason metadata")
+      .sort({ createdAt: -1 })
+      .lean();
+    if (byReceiptId) return byReceiptId;
+  }
+
+  if (tokens.orderId) {
+    const byOrderId = await PointHistory.findOne({
+      userId,
+      kind: "deduct",
+      ...featureQuery,
+      $or: [
+        { "metadata.orderId": tokens.orderId },
+        { "metadata.merchantUid": tokens.orderId },
+      ],
+    })
+      .select("_id createdAt delta featureKey reason metadata")
+      .sort({ createdAt: -1 })
+      .lean();
+    if (byOrderId) return byOrderId;
   }
 
   return null;
@@ -539,4 +623,5 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
 export const __accessControlTestUtils = {
   buildAlternativePaymentRules,
   buildRequiredPaymentRules,
+  extractPaymentLookupTokens,
 };

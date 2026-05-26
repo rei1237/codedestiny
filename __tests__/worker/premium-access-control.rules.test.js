@@ -10,9 +10,21 @@ beforeAll(async () => {
 });
 
 describe("Premium access-control rules", () => {
-  test("sajuNewYear는 결제 검증 유효시간이 120분이어야 한다", () => {
+  test("sajuNewYear는 단일 canonical key와 120분 결제 검증 규칙을 사용해야 한다", () => {
     const rules = utils.buildAlternativePaymentRules("sajuNewYear", {});
-    expect(rules.length).toBeGreaterThanOrEqual(3);
+    expect(rules.length).toBeGreaterThanOrEqual(2);
+    expect(rules).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        featureKey: "saju_new_year_pdf",
+        minCost: 300,
+        windowMinutes: 120,
+      }),
+      expect.objectContaining({
+        featureKey: "coin-gate-per-use",
+        minCost: 300,
+        windowMinutes: 120,
+      }),
+    ]));
     for (const rule of rules) {
       expect(rule.windowMinutes).toBe(120);
     }
@@ -120,7 +132,7 @@ describe("Premium access-control rules", () => {
     ]));
   });
 
-  test("vedicPremium은 mode와 무관하게 390 코인 개인 리포트 규칙이어야 한다", () => {
+  test("vedicPremium은 compatibility 요청이어도 개인 리포트 390 코인 규칙이어야 한다", () => {
     const rules = utils.buildAlternativePaymentRules("vedicPremium", { mode: "compatibility" });
     expect(rules).toEqual(expect.arrayContaining([
       expect.objectContaining({
@@ -138,6 +150,32 @@ describe("Premium access-control rules", () => {
       featureKey: "premium-sibyl-dominator",
       reason: "시빌라 도미네이터 리포트",
       minCost: 100,
+    });
+  });
+
+  test("결제 토큰 추출은 transaction/request/receipt/order 식별자를 모두 보존해야 한다", () => {
+    const tokens = utils.extractPaymentLookupTokens({
+      sourceTransactionId: "tx_root",
+      sourceRequestId: "req_root",
+      receipt: "rcpt_root",
+      merchantUid: "ord_root",
+      payment: {
+        transactionId: "tx_payment",
+        requestId: "req_payment",
+      },
+      _paymentContext: {
+        transactionId: "tx_ctx",
+      },
+      consume: {
+        receiptId: "rcpt_consume",
+      },
+    });
+
+    expect(tokens).toEqual({
+      transactionId: "tx_root",
+      requestId: "req_root",
+      receiptId: "rcpt_root",
+      orderId: "ord_root",
     });
   });
 });
