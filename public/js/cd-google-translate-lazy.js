@@ -52,9 +52,13 @@
   }, { once: true, passive: true });
 
   window.addEventListener('load', function () {
-    if (hasTranslateIntent()) {
-      loadTranslate();
-      return;
-    }
+    // Hidden widget is preloaded so the first user selection can translate immediately.
+    loadTranslate();
   }, { once: true });
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadTranslate, { once: true });
+  } else {
+    loadTranslate();
+  }
 })();
