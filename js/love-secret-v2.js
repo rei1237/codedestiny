@@ -662,12 +662,20 @@
     return mode === MODE_COMPAT ? COMPAT_CHAPTER_TITLES : SOLO_CHAPTER_TITLES;
   }
 
+  function getLoveChapterTitle(chapter, mode) {
+    var total = getTotalChaptersByMode(mode || state.mode);
+    var idx = clampInt(chapter, 1, 1, total);
+    var runtime = state.chapterMeta && state.chapterMeta[idx] ? state.chapterMeta[idx] : null;
+    var runtimeTitle = asText(runtime && runtime.title);
+    if (runtimeTitle) return runtimeTitle;
+    return asText(getChapterTitlesByMode(mode || state.mode)[idx - 1]) || ('Chapter ' + idx);
+  }
+
   function syncStartPreviewChapters(mode) {
     var modal = qs('loveSecretModal');
     if (!modal) return;
     var list = modal.querySelector('.ls-preview-chapters');
     if (!list) return;
-    var titles = getChapterTitlesByMode(mode);
     var items = qsa(list, '.ls-chapter-item');
     var visibleIndex = 0;
     for (var i = 0; i < items.length; i += 1) {
@@ -677,7 +685,7 @@
       item.style.display = isVisible ? '' : 'none';
       if (!isVisible) continue;
       var titleEl = item.querySelector('.ls-ch-title');
-      if (titleEl && titles[visibleIndex]) titleEl.textContent = titles[visibleIndex];
+      if (titleEl) titleEl.textContent = getLoveChapterTitle(visibleIndex + 1, mode);
       visibleIndex += 1;
     }
   }
@@ -871,103 +879,6 @@
     }
   }
 
-  var executionHeartbeatTimer = null;
-  var executionPayload = null;
-
-  function clearExecutionHeartbeat() {
-    if (!executionHeartbeatTimer) return;
-    clearInterval(executionHeartbeatTimer);
-    executionHeartbeatTimer = null;
-  }
-
-  function getExecutionFeatureKey(mode) {
-    var normalizedMode = asText(mode || state.mode || MODE_SOLO).toLowerCase();
-    if (normalizedMode === MODE_COMPAT) return 'premium-love-compatibility-report';
-    return 'premium-love-secret-report';
-  }
-
-  function buildExecutionPayload(mode) {
-    var ctx = state.paymentContext && typeof state.paymentContext === 'object' ? state.paymentContext : null;
-    var sourceTransactionId = asText(ctx && (ctx.sourceTransactionId || ctx.transactionId));
-    if (!sourceTransactionId) return null;
-    var reportId = asText(state.reportId || state.paidReportId || '');
-    if (!reportId) reportId = Date.now().toString(36);
-    return {
-      serviceKey: 'love-secret-pdf',
-      featureKey: getExecutionFeatureKey(mode),
-      executionKey: 'love-secret-pdf:' + reportId + ':' + sourceTransactionId,
-      sourceTransactionId: sourceTransactionId,
-      metadata: {
-        mode: asText(mode || state.mode || MODE_SOLO) || MODE_SOLO,
-        reportId: reportId,
-        requestId: asText(ctx && ctx.requestId)
-      }
-    };
-  }
-
-  async function requestExecutionAction(action, body, useKeepalive) {
-    if (!body || !body.executionKey || !body.sourceTransactionId) return false;
-    var headers = buildAuthHeaders({ 'Content-Type': 'application/json' });
-    var target = '/api/billing/executions/' + String(action || '').trim();
-    var payload = JSON.stringify(body);
-    try {
-      var res = await fetch(target, {
-        method: 'POST',
-        credentials: 'include',
-        cache: 'no-store',
-        headers: headers,
-        body: payload,
-        keepalive: !!useKeepalive
-      });
-      return !!(res && res.ok);
-    } catch (_) {
-      return false;
-    }
-  }
-
-  async function startExecutionLifecycle(mode) {
-    var payload = buildExecutionPayload(mode);
-    if (!payload) {
-      executionPayload = null;
-      clearExecutionHeartbeat();
-      return false;
-    }
-    var started = await requestExecutionAction('start', payload, false);
-    if (!started) return false;
-    executionPayload = payload;
-    clearExecutionHeartbeat();
-    executionHeartbeatTimer = setInterval(function () {
-      if (!executionPayload) return;
-      requestExecutionAction('heartbeat', executionPayload, false).catch(function () {});
-    }, 20000);
-    return true;
-  }
-
-  async function completeExecutionLifecycle() {
-    if (!executionPayload) return false;
-    var payload = executionPayload;
-    clearExecutionHeartbeat();
-    executionPayload = null;
-    return requestExecutionAction('complete', payload, false);
-  }
-
-  async function failExecutionLifecycle(reason, useKeepalive) {
-    if (!executionPayload) return false;
-    var payload = Object.assign({}, executionPayload, {
-      reason: asText(reason || 'generation_failed') || 'generation_failed'
-    });
-    clearExecutionHeartbeat();
-    executionPayload = null;
-    return requestExecutionAction('fail', payload, useKeepalive === true);
-  }
-
-  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
-    window.addEventListener('beforeunload', function () {
-      if (!executionPayload) return;
-      failExecutionLifecycle('client_unload', true).catch(function () {});
-    });
-  }
-
   async function fetchDownloadHtml(reportId) {
     var res = await fetch(LOVE_API_BASE + '/download?reportId=' + encodeURIComponent(reportId), {
       method: 'GET',
@@ -1077,8 +988,6 @@
     state.chapterTexts = {};
     state.chapterMeta = {};
     state.activeChapter = 1;
-    executionPayload = null;
-    clearExecutionHeartbeat();
     setGenerateButtonBusy(false);
     refreshSavedReportButton();
     syncModeSwitch(state.mode);
@@ -1136,8 +1045,7 @@
     if (!contentEl) return;
 
     var text = asText(state.chapterTexts[chapter]);
-    var modeTitles = getChapterTitlesByMode(state.mode);
-    var fallbackTitle = modeTitles[chapter - 1] || ('Chapter ' + chapter);
+    var fallbackTitle = getLoveChapterTitle(chapter, state.mode);
     var meta = state.chapterMeta[chapter] || { title: fallbackTitle };
     var title = asText(meta.title) || fallbackTitle;
 
@@ -1191,7 +1099,7 @@
     var current = clampInt(chapter, 1, 1, totalChapters);
     var percent = Math.max(0, Math.min(100, Math.round((completed / totalChapters) * 100)));
 
-    if (chapterText) chapterText.textContent = asText(subtitle) || ('Chapter ' + current + ' 집필 중...');
+    if (chapterText) chapterText.textContent = asText(subtitle) || getLoveChapterTitle(current, state.mode) || ('Chapter ' + current + ' 집필 중...');
     if (quote) quote.textContent = QUOTES[(current - 1) % QUOTES.length];
     if (bar) bar.style.width = percent + '%';
     if (progressText) progressText.textContent = completed + ' / ' + totalChapters + ' 챕터 완성';
@@ -1227,7 +1135,7 @@
       var chapter = Number(row.chapter || 0);
       if (chapter >= 1 && chapter <= totalChapters && typeof row.text === 'string' && asText(row.text)) {
         state.chapterTexts[chapter] = row.text;
-        state.chapterMeta[chapter] = row.chapterMeta || { title: getChapterTitlesByMode(state.mode)[chapter - 1] || ('Chapter ' + chapter) };
+        state.chapterMeta[chapter] = row.chapterMeta || { title: getLoveChapterTitle(chapter, state.mode) };
       }
     }
     persistState();
@@ -1236,12 +1144,12 @@
 
   async function generateAllChapters() {
     showOnly('lsLoadingScreen');
-    setLoadingProgress(1, getChapterTitlesByMode(state.mode)[0]);
+    setLoadingProgress(1, getLoveChapterTitle(1, state.mode));
 
     var startFrom = await loadExistingStatus(state.reportId);
     var totalChapters = getActiveTotalChapters();
     for (var chapter = startFrom + 1; chapter <= totalChapters; chapter += 1) {
-      var title = getChapterTitlesByMode(state.mode)[chapter - 1] || ('Chapter ' + chapter);
+      var title = getLoveChapterTitle(chapter, state.mode);
       setLoadingProgress(chapter, title);
 
       var reqBody = Object.assign({}, state.payload, {
@@ -1275,7 +1183,7 @@
       state.chapterTexts[chapter] = asText(res.data.text);
       state.chapterMeta[chapter] = res.data.chapterMeta || { title: title };
       persistState();
-      setLoadingProgress(Math.min(totalChapters, chapter + 1), getChapterTitlesByMode(state.mode)[Math.min(totalChapters - 1, chapter)] || '집필 중...');
+      setLoadingProgress(Math.min(totalChapters, chapter + 1), getLoveChapterTitle(Math.min(totalChapters, chapter + 1), state.mode) || '집필 중...');
     }
   }
 
@@ -1439,16 +1347,9 @@
     state.generating = true;
     setGenerateButtonBusy(true);
     setPartnerButtonsBusy(true);
-    var executionStarted = false;
-    var executionSettled = false;
 
     try {
-      executionStarted = await startExecutionLifecycle(mode);
       await generateAllChapters();
-      if (executionStarted) {
-        await completeExecutionLifecycle();
-        executionSettled = true;
-      }
       state.paymentContext = null;
       renderResultScreen();
       persistState();
@@ -1459,15 +1360,8 @@
       if (/LOCAL_REPORT_FAILED|로컬\s*리포트\s*실패/i.test(errMsg)) {
         await attemptLoveSecretAutoRefund(errMsg);
       }
-      if (executionStarted && !executionSettled) {
-        await failExecutionLifecycle(errMsg || 'generation_failed', false);
-        executionSettled = true;
-      }
       setErrorScreen(toSafeUserError(err));
     } finally {
-      if (executionStarted && !executionSettled) {
-        await failExecutionLifecycle('generation_incomplete', false);
-      }
       state.generating = false;
       setGenerateButtonBusy(false);
       setPartnerButtonsBusy(false);
@@ -1550,7 +1444,7 @@
     state.coinGatePending = true;
     setPartnerButtonsBusy(true);
     showOnly('lsLoadingScreen');
-    setLoadingProgress(1, getChapterTitlesByMode(mode)[0] || '생성 준비 중...');
+    setLoadingProgress(1, getLoveChapterTitle(1, mode) || '생성 준비 중...');
 
     if (typeof window._cdCoinGatePerUse === 'function') {
       window._cdCoinGatePerUse(
@@ -1590,7 +1484,7 @@
     for (var i = 1; i <= totalChapters; i += 1) {
       var text = asText(state.chapterTexts[i]);
       if (!text) continue;
-      var title = asText(state.chapterMeta[i] && state.chapterMeta[i].title) || getChapterTitlesByMode(state.mode)[i - 1] || ('Chapter ' + i);
+      var title = asText(state.chapterMeta[i] && state.chapterMeta[i].title) || getLoveChapterTitle(i, state.mode);
       chapterBlocks.push(
         '<section class="lb-print-chapter">'
         + '<h1>' + escapeHtml(title) + '</h1>'

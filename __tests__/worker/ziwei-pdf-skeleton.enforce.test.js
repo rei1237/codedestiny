@@ -7,6 +7,9 @@ let buildZiweiPdfSkeleton;
 let buildLocalZiweiSectionDraft;
 let getZiweiStrengthSymbol;
 let hasRepetitiveSentences;
+let assertZiweiPayloadChaptersMatchConfig;
+let assertZiweiLlmGenerationComplete;
+let validateZiweiLlmSectionResponse;
 
 beforeAll(async () => {
   const pipeline = await import("../../worker/lib/ziwei-pdf-pipeline.js");
@@ -15,6 +18,9 @@ beforeAll(async () => {
   buildLocalZiweiSectionDraft = pipeline.buildLocalZiweiSectionDraft;
   getZiweiStrengthSymbol = pipeline.getZiweiStrengthSymbol;
   hasRepetitiveSentences = pipeline.hasRepetitiveSentences;
+  assertZiweiPayloadChaptersMatchConfig = pipeline.assertZiweiPayloadChaptersMatchConfig;
+  assertZiweiLlmGenerationComplete = pipeline.assertZiweiLlmGenerationComplete;
+  validateZiweiLlmSectionResponse = pipeline.validateZiweiLlmSectionResponse;
 });
 
 describe("Ziwei PDF skeleton enforcement", () => {
@@ -98,5 +104,41 @@ describe("Ziwei PDF skeleton enforcement", () => {
     expect(draft).not.toContain("fallback");
     expect(draft).not.toContain("이 구조를 기준으로");
     expect(draft).not.toContain("실행 단위를 주간 루틴으로 고정");
+  });
+
+  test("payload chapters는 config와 id/title/순서가 일치해야 한다", () => {
+    const skeleton = buildZiweiPdfSkeleton({ palaces: [] }, ZIWEI_CHAPTER_SPECS);
+    expect(() => assertZiweiPayloadChaptersMatchConfig(skeleton, ZIWEI_CHAPTER_SPECS)).not.toThrow();
+  });
+
+  test("LLM 섹션 응답 검증은 chapterId/sectionId/body 규칙을 강제한다", () => {
+    const req = {
+      chapter: { id: "chapter-02" },
+      section: { id: "chapter-02-section-01", minChars: 30 },
+    };
+    const good = {
+      chapterId: "chapter-02",
+      sectionId: "chapter-02-section-01",
+      body: "명궁과 신궁의 상호작용을 현실 실행 기준으로 연결해 해석하고, 실제 선택지와 위험 신호를 구체적으로 정리한 실행 문장입니다. 이번 달 의사결정의 우선순위를 정리하고, 과한 확장보다 안정적 루틴과 검증 가능한 행동 단위를 먼저 고정하라는 실천 지침까지 담았습니다.",
+    };
+    const bad = {
+      chapterId: "chapter-02",
+      sectionId: "chapter-02-section-01",
+      body: "자동 복구 생성",
+    };
+    expect(validateZiweiLlmSectionResponse(good, req)).toBe(true);
+    expect(validateZiweiLlmSectionResponse(bad, req)).toBe(false);
+  });
+
+  test("최종 completed payload는 모든 section source가 llm-enhanced여야 한다", () => {
+    const skeleton = buildZiweiPdfSkeleton({ palaces: [] }, [ZIWEI_CHAPTER_SPECS[0]]);
+    const chapter = skeleton[0];
+    chapter.sections = chapter.sections.map((section, index) => ({
+      ...section,
+      source: "llm-enhanced",
+      minChars: 10,
+      finalText: `자미두수 구조와 데이터 바인딩을 기반으로 한 섹션 ${index + 1} 본문으로, 실제 행동 계획과 주의 신호를 포함합니다. 이번 구간에서는 감정 과열을 줄이고 기록 기반 의사결정을 유지하며, 일주일 단위 점검으로 리스크를 조기에 식별하도록 안내합니다. 또한 관계, 재정, 일정의 충돌 가능성을 분리하여 우선순위를 재조정하라는 명확한 실행 체크리스트를 제공합니다.`,
+    }));
+    expect(() => assertZiweiLlmGenerationComplete({ chapters: [chapter] })).not.toThrow();
   });
 });

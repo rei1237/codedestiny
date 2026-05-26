@@ -9,10 +9,6 @@ export function PhaseReveal() {
   const [showShadowReading, setShowShadowReading] = useState(false);
   const [showResultCard, setShowResultCard] = useState(false);
 
-  if (!selectedShape) {
-    return <div className="min-h-screen flex items-center justify-center">형태 로드 중...</div>;
-  }
-
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setShowResultCard(true);
@@ -22,6 +18,10 @@ export function PhaseReveal() {
       window.clearTimeout(timer);
     };
   }, []);
+
+  if (!selectedShape) {
+    return <div className="min-h-screen flex items-center justify-center">형태 로드 중...</div>;
+  }
 
   // 그림자 읽기 트리거
   const handleShadowRead = () => {

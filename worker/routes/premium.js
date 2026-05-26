@@ -87,6 +87,12 @@ import {
   normalizePremiumChapterJsonContract,
   validateNormalizedPremiumChapterJson,
 } from "../lib/premium-chapter-json-contract.js";
+import { generateVedicPdf } from "../lib/generate-vedic-pdf.js";
+import { generateSukuyoPdf } from "../lib/generate-sukuyo-pdf.js";
+import { generateNewYearPdf } from "../lib/generate-new-year-pdf.js";
+import { generateLoveSecretPdf } from "../lib/generate-love-secret-pdf.js";
+import { generateAstroPdf } from "../lib/generate-astro-pdf.js";
+import { generateZiweiPdf } from "../lib/generate-ziwei-pdf.js";
 
 const SIGN_KO = ["양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리", "처녀자리", "천칭자리", "전갈자리", "사수자리", "염소자리", "물병자리", "물고기자리"];
 const PLANETS = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
@@ -25650,17 +25656,20 @@ export async function handlePremiumRoutes(request, env) {
     }
 
     if (method !== "POST") return methodNotAllowed();
+    const body = await readJson(request.clone());
 
     const legacyReportType = (() => {
       if (path === "/sukuyo-life") return "sookyoPremium";
       if (path === "/astro-western" || path === "/astro-life") return "westernAstrologyPremium";
       if (path === "/vedic-life") return "vedicPremium";
       if (path === "/ziwei-life") return "ziweiPremium";
+      if (path === "/astro-pdf-generate") return "westernAstrologyPremium";
+      if (path === "/ziwei-pdf-generate") return "ziweiPremium";
       return "";
     })();
 
     if (legacyReportType) {
-      const rawBody = await readJson(request.clone());
+      const rawBody = body && typeof body === "object" ? body : {};
       const tokenFromBody = String(rawBody?.premiumAccessToken || rawBody?._premiumAccessToken || "").trim();
       const tokenFromCookie = String(cookieValue(request, "cd_premium_access") || "").trim();
       const premiumAccessToken = tokenFromBody || tokenFromCookie;
@@ -25684,6 +25693,14 @@ export async function handlePremiumRoutes(request, env) {
     if (path === "/astro-life") return await ensurePdfNo422(await handleAstroLife(request, env, authInfo));
     if (path === "/vedic-life") return await ensurePdfNo422(await handleVedicLife(request, env, authInfo));
     if (path === "/ziwei-life") return await ensurePdfNo422(await handleZiweiBookSession(request, env, authInfo));
+    
+      // NEW: Unified PDF generation routes (all chapters at once)
+      if (path === "/vedic-pdf-generate") return json(await generateVedicPdf({ chart: body?.chart, reportId: body?.reportId }));
+      if (path === "/sukuyo-pdf-generate") return json(await generateSukuyoPdf({ chart: body?.chart, reportId: body?.reportId, mode: body?.mode }));
+      if (path === "/new-year-pdf-generate") return json(await generateNewYearPdf({ chart: body?.chart, reportId: body?.reportId }));
+      if (path === "/love-secret-pdf-generate") return json(await generateLoveSecretPdf({ chart: body?.chart, reportId: body?.reportId, mode: body?.mode }));
+      if (path === "/astro-pdf-generate") return json(await generateAstroPdf({ env, body, chart: body?.chart, reportId: body?.reportId }));
+      if (path === "/ziwei-pdf-generate") return json(await generateZiweiPdf({ env, body, chart: body?.chart, reportId: body?.reportId }));
     return notFound();
   } catch (error) {
     logPremiumPipelineStage("Failed", {

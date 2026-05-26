@@ -470,6 +470,9 @@ describe("Ziwei Premium Strict Tests (A~G)", () => {
     expect(data.ok).toBe(true);
     expect(data.prepared).toBe(true);
     expect(data.validation?.isValid).toBe(true);
+    expect(Number(data.totalChapters || 0)).toBeGreaterThan(0);
+    expect(Array.isArray(data.chapterPlan)).toBe(true);
+    expect(data.chapterPlan.length).toBe(Number(data.totalChapters || 0));
     expect(String(data?.reportPayload?.profile?.birth?.solarDate || "")).toBe("1992-06-15");
     expect(String(data?.reportPayload?.profile?.birth?.time || "")).toBe("12:30");
     expect(String(data?.basicZiweiResult?.input?.profileId || "")).toBe("card-profile-001");

@@ -117,6 +117,16 @@
     return Array.prototype.slice.call(root.querySelectorAll(selector));
   }
 
+  function getNewYearChapterMeta(chapter) {
+    var idx = Math.max(1, Number(chapter || 1));
+    var runtime = (state.chapterMeta && state.chapterMeta[idx]) ? state.chapterMeta[idx] : null;
+    var fallback = CHAPTER_DEFINITIONS[idx - 1] || {};
+    return {
+      title: String((runtime && runtime.title) || fallback.title || ('Chapter ' + idx)).trim(),
+      subtitle: String((runtime && runtime.subtitle) || fallback.subtitle || '').trim()
+    };
+  }
+
   function safeParse(raw, fallback) {
     try { return JSON.parse(raw); } catch (_) { return fallback; }
   }
@@ -978,7 +988,7 @@
       '<article class="lb-result-article">',
       '<header class="lb-result-article__head">',
       '<p class="lb-result-article__chapter">CHAPTER ' + chapter + '</p>',
-      '<h3 class="lb-result-article__title">' + escapeHtml(String(meta.title || CHAPTER_DEFINITIONS[chapter - 1].title || '')) + '</h3>',
+      '<h3 class="lb-result-article__title">' + escapeHtml(String(meta.title || getNewYearChapterMeta(chapter).title || '')) + '</h3>',
       '</header>',
       '<div class="lb-result-article__body">' + bodyHtml + '</div>',
       '</article>'
@@ -1014,7 +1024,7 @@
     var progressText = qs('nyProgressText');
 
     if (chapterNum) chapterNum.textContent = 'Chapter ' + chapter;
-    if (chapterText) chapterText.textContent = subtitle || CHAPTER_DEFINITIONS[Math.max(0, chapter - 1)].title || ('Chapter ' + chapter);
+    if (chapterText) chapterText.textContent = subtitle || getNewYearChapterMeta(chapter).title;
     if (quote) quote.textContent = MYSTIC_QUOTES[(chapter - 1) % MYSTIC_QUOTES.length];
 
     var completed = chapterCount();
@@ -1363,7 +1373,7 @@
     });
     showOnly('nyLoadingScreen');
     activateNewYearCinematicLoading();
-    setLoadingProgress(1, CHAPTER_DEFINITIONS[0].title);
+    setLoadingProgress(1, getNewYearChapterMeta(1).title);
 
     var prepared = await ensurePremiumSession(paymentContext);
     if (!prepared || !prepared.ok || !state.reportSessionId) {
@@ -1380,11 +1390,11 @@
 
     for (var chapter = 1; chapter <= TOTAL_CHAPTERS; chapter += 1) {
       if (state.chapterTexts[chapter]) {
-        setLoadingProgress(chapter + 1 > TOTAL_CHAPTERS ? TOTAL_CHAPTERS : chapter + 1, CHAPTER_DEFINITIONS[Math.min(TOTAL_CHAPTERS - 1, chapter)].title);
+        setLoadingProgress(chapter + 1 > TOTAL_CHAPTERS ? TOTAL_CHAPTERS : chapter + 1, getNewYearChapterMeta(Math.min(TOTAL_CHAPTERS, chapter + 1)).title);
         continue;
       }
 
-      setLoadingProgress(chapter, CHAPTER_DEFINITIONS[chapter - 1].title);
+      setLoadingProgress(chapter, getNewYearChapterMeta(chapter).title);
 
       var response = await premiumAuthJson('/api/premium-report/chapter', {
         reportSessionId: state.reportSessionId,
@@ -1426,15 +1436,15 @@
         state.chapterTexts[chapter] = deriveTextFromChapterJson(state.chapterStructured[chapter]);
       }
       state.chapterMeta[chapter] = response.chapterMeta || {
-        title: CHAPTER_DEFINITIONS[chapter - 1].title,
-        subtitle: CHAPTER_DEFINITIONS[chapter - 1].subtitle
+        title: getNewYearChapterMeta(chapter).title,
+        subtitle: getNewYearChapterMeta(chapter).subtitle
       };
 
       if (response.reportSessionId) state.reportSessionId = String(response.reportSessionId);
       if (response.reportId) state.reportId = String(response.reportId);
 
       persistState();
-      setLoadingProgress(chapter + 1 > TOTAL_CHAPTERS ? TOTAL_CHAPTERS : chapter + 1, CHAPTER_DEFINITIONS[Math.min(TOTAL_CHAPTERS - 1, chapter)].title);
+      setLoadingProgress(chapter + 1 > TOTAL_CHAPTERS ? TOTAL_CHAPTERS : chapter + 1, getNewYearChapterMeta(Math.min(TOTAL_CHAPTERS, chapter + 1)).title);
     }
 
     var pdfReady = await premiumAuthJson('/api/premium-report/pdf', {
@@ -1722,7 +1732,7 @@
     setGenerateButtonBusy(true);
     showOnly('nyLoadingScreen');
     activateNewYearCinematicLoading();
-    setLoadingProgress(1, CHAPTER_DEFINITIONS[0].title);
+    setLoadingProgress(1, getNewYearChapterMeta(1).title);
 
     ensureCoinGateAndGenerate().catch(function (err) {
       console.error('[SajuNewYear] gate check failed:', err);

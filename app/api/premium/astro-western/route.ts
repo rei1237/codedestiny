@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requirePremiumRouteAccess } from "@/app/_lib/premium-route-access";
 import { requireRouteAuth } from "@/app/_lib/route-auth";
+import {
+  buildWesternChart,
+  validateAstroInput,
+  normalizeAstroInput,
+  validateAstroChart,
+} from "@/app/api/premium/_astroCommon";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -80,6 +86,7 @@ async function fetchSwissWesternChart(req: NextRequest, payload: Record<string, 
 }
 
 export async function POST(req: NextRequest) {
+  const warnings: string[] = [];
   try {
     const auth = requireRouteAuth(req);
     if (auth.ok === false) return auth.response;
@@ -98,82 +105,101 @@ export async function POST(req: NextRequest) {
         { status: access.status },
       );
     }
-    const missingFields: string[] = [];
-    const year = Number(body.year);
-    const month = Number(body.month);
-    const day = Number(body.day);
-    const hour = Number(body.hour);
-    const minute = Number(body.minute);
-    const lat = Number(body.lat);
-    const lon = Number(body.lon);
-    const timezone = Number(body.timezone);
-    const birthPlace = String(body.birthPlace || body.place || body.location || "").trim();
-    if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) missingFields.push("birthDate");
-    if (missingFields.length) {
+
+    console.info("[AstroBook] API_START", { userId: auth.userId });
+
+    // ============================================================
+    // INPUT VALIDATION
+    // ============================================================
+    const inputValidation = validateAstroInput(body);
+    if (!inputValidation.ok) {
+      console.warn("[AstroBook] INPUT_VALIDATION_FAILED", { errors: inputValidation.errors });
       return NextResponse.json({
         ok: false,
-        code: "ASTRO_INPUT_REQUIRED",
-        message: "점성술 차트 계산을 위해 생년월일이 필요합니다.",
-        missingFields,
+        code: "ASTRO_INPUT_VALIDATION_FAILED",
+        message: "점성술 차트 계산을 위해 유효한 입력 값이 필요합니다.",
+        errors: inputValidation.errors,
+        missingFields: inputValidation.errors,
       }, { status: 400 });
     }
 
-    const hasGeo = Number.isFinite(lat) && Number.isFinite(lon);
-    const hasTimezone = Number.isFinite(timezone);
-    if ((!hasGeo && !birthPlace) || !hasTimezone) {
-      return NextResponse.json({
-        ok: false,
-        code: "ASTRO_LOCATION_TIMEZONE_REQUIRED",
-        message: "점성술 차트 계산을 위해 위치와 타임존 정보가 필요합니다.",
-        missingFields: [
-          ...((!hasGeo && !birthPlace) ? ["location"] : []),
-          ...(!hasTimezone ? ["timezone"] : []),
-        ],
-      }, { status: 422 });
-    }
+    warnings.push(...inputValidation.warnings);
 
-    if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
-      return NextResponse.json({
-        ok: false,
-        code: "ASTRO_INPUT_REQUIRED",
-        message: "점성술 차트 계산을 위해 출생 시간이 필요합니다.",
-        missingFields: ["birthTime"],
-      }, { status: 400 });
-    }
+    // Normalize input values to valid ranges
+    const normalized = normalizeAstroInput(body);
 
+    console.info("[AstroBook] INPUT_NORMALIZED", { normalized });
+
+    // ============================================================
+    // ATTEMPT REMOTE CHART CALCULATION
+    // ============================================================
     const payload = {
-      year,
-      month,
-      day,
-      hour,
-      minute,
-      timezone,
-      lat,
-      lon,
+      year: normalized.year,
+      month: normalized.month,
+      day: normalized.day,
+      hour: normalized.hour,
+      minute: normalized.minute,
+      timezone: normalized.timezone,
+      lat: normalized.lat,
+      lon: normalized.lon,
     };
 
+    console.info("[AstroBook] FETCHING_SWISS_CHART", { endpoint: "swiss-endpoint" });
     const swiss = await fetchSwissWesternChart(req, payload);
-    if (!swiss.chart) {
-      return NextResponse.json({
-        ok: false,
-        code: "ASTRO_CHART_CALCULATION_FAILED",
-        message: "점성술 차트 계산에 실패했습니다.",
-        warnings: swiss.warnings,
-      }, { status: 422 });
+    warnings.push(...swiss.warnings);
+
+    let chart = swiss.chart;
+    let calculationSource = swiss.source || "local-calculation";
+
+    // ============================================================
+    // FALLBACK: LOCAL CHART CALCULATION
+    // ============================================================
+    if (!chart) {
+      console.warn("[AstroBook] SWISS_CHART_FAILED_USE_LOCAL", { warnings: swiss.warnings });
+      try {
+        chart = buildWesternChart(normalized);
+        calculationSource = "local-calculation";
+        warnings.push("Swiss endpoint failed, using local calculation");
+        console.info("[AstroBook] LOCAL_CHART_CALCULATION_SUCCESS", {});
+      } catch (err) {
+        console.error("[AstroBook] LOCAL_CHART_CALCULATION_FAILED", {
+          message: err instanceof Error ? err.message : "Unknown error",
+        });
+        return NextResponse.json({
+          ok: false,
+          code: "ASTRO_CHART_CALCULATION_FAILED",
+          message: "점성술 차트 계산에 실패했습니다. 입력값을 확인해주세요.",
+          warnings,
+        }, { status: 422 });
+      }
     }
 
-    const chart = swiss.chart;
-    const calculationSource = swiss.source;
+    // ============================================================
+    // CHART QUALITY VALIDATION
+    // ============================================================
+    const chartValidation = validateAstroChart(chart);
+    if (!chartValidation.ok) {
+      console.warn("[AstroBook] CHART_VALIDATION_FAILED", { errors: chartValidation.errors });
+      warnings.push(...chartValidation.errors);
+    }
+    warnings.push(...chartValidation.warnings);
+
+    console.info("[AstroBook] CHART_READY", { source: calculationSource, warnings });
 
     return NextResponse.json({
       ok: true,
       ...chart,
       calculationSource,
-      warnings: swiss.warnings,
+      warnings,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    console.error("[api/premium/astro-western]", message);
-    return NextResponse.json({ ok: false, code: "ASTRO_CHART_CALCULATION_FAILED", message }, { status: 422 });
+    console.error("[AstroBook] API_ERROR", { message, warnings });
+    return NextResponse.json({
+      ok: false,
+      code: "ASTRO_CHART_CALCULATION_FAILED",
+      message: "점성술 차트 계산 중 오류가 발생했습니다.",
+      warnings,
+    }, { status: 422 });
   }
 }
