@@ -5,6 +5,11 @@
 (function () {
   'use strict';
 
+  if (window.__cdZiweiBookInitialized) {
+    return;
+  }
+  window.__cdZiweiBookInitialized = true;
+
   var MIN_CHAPTER_CHARS = 350;
 
   /* ─────────────── 챕터 상수 ─────────────── */
@@ -94,6 +99,9 @@
   var _generating = false;
   var _currentChapter = 1;
   var _mysticTimer = null;
+  var _activeRequestController = null;
+  var _cancelGeneration = false;
+  var _generationRunId = 0;
   var _premiumPaidUntil = 0;
 
   function _readPremiumTokenForReport() {
@@ -136,10 +144,49 @@
   /* ─────────────── 유틸 ─────────────── */
   function _qs(id) { return document.getElementById(id); }
 
+  function _abortActiveRequest() {
+    if (_activeRequestController) {
+      try { _activeRequestController.abort(); } catch (_) {}
+      _activeRequestController = null;
+    }
+  }
+
+  function _isGenerationRunActive(runId) {
+    return !_cancelGeneration && _generating && _generationRunId === runId;
+  }
+
+  function _sanitizeDebugValue(value, depth, seen) {
+    if (value == null || typeof value === 'undefined') return value;
+    if (typeof value === 'string') return value.length > 400 ? value.slice(0, 400) + '…' : value;
+    if (typeof value === 'number' || typeof value === 'boolean') return value;
+    if (typeof value === 'function') return '[function]';
+    if (depth >= 2) return Array.isArray(value) ? '[array]' : '[object]';
+    if (seen.indexOf(value) !== -1) return '[circular]';
+    seen.push(value);
+    try {
+      if (Array.isArray(value)) {
+        return value.slice(0, 8).map(function (item) {
+          return _sanitizeDebugValue(item, depth + 1, seen);
+        });
+      }
+      var out = {};
+      var keys = Object.keys(value).slice(0, 12);
+      for (var i = 0; i < keys.length; i += 1) {
+        var key = keys[i];
+        out[key] = _sanitizeDebugValue(value[key], depth + 1, seen);
+      }
+      return out;
+    } catch (_) {
+      return '[unserializable]';
+    } finally {
+      seen.pop();
+    }
+  }
+
   function _trace(stage, payload) {
     try {
       if (typeof window.__cdZiweiTrace === 'function') {
-        window.__cdZiweiTrace(stage, payload || {});
+        window.__cdZiweiTrace(stage, _sanitizeDebugValue(payload || {}, 0, []));
       }
     } catch (_) {}
   }
@@ -470,6 +517,8 @@
     var nav = document.getElementById('zbToc');
     if (!nav) return;
     _renderToc();
+    if (nav.__cdZiweiTocBound === '1') return;
+    nav.__cdZiweiTocBound = '1';
     nav.addEventListener('click', function (e) {
       var btn = e.target.closest('[data-zb-chapter]');
       if (!btn) return;
@@ -687,6 +736,10 @@
   window.closeZiweiBookModal = function () {
     var modal = _qs('ziweiBookModal');
     if (!modal) return;
+    _cancelGeneration = true;
+    _generationRunId += 1;
+    _generating = false;
+    _abortActiveRequest();
     if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
     modal.style.display = 'none';
     document.body.style.overflow = '';
@@ -729,8 +782,12 @@
     }
 
     _generating = true;
+    _cancelGeneration = false;
+    _generationRunId += 1;
+    var _runId = _generationRunId;
     _chapters = Array(TOTAL_CHAPTERS).fill(null);
     _chapterStructured = Array(TOTAL_CHAPTERS).fill(null);
+    _chapterMeta = Array(TOTAL_CHAPTERS).fill(null);
     // 사주 분석 화면과 100% 일치하도록 G_PILLARS 등 전역 변수 재계산
     if (typeof window.computeProfileForModal === 'function' && profile && profile.birth) {
       try { window.computeProfileForModal(profile); } catch (_cpE) {}
@@ -876,6 +933,55 @@
 
     var _zbReportId = 'ziwei_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
 
+    function _finishGenerationFailure(userMessage, tracePayload) {
+      if (!_isGenerationRunActive(_runId)) return;
+      _abortActiveRequest();
+      if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
+      _generating = false;
+      _trace('PDF_GENERATION_FAILED', tracePayload || {});
+      var failErrEl = _qs('zbErrorMsg');
+      if (failErrEl) {
+        failErrEl.textContent = userMessage || '자미두수 PDF 본문 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+      }
+      _zbClearSaved(window.__cdActiveBirthProfile || {});
+      _showScreen('zbErrorScreen');
+    }
+
+    function _finishGenerationSuccess() {
+      if (!_isGenerationRunActive(_runId)) return;
+      _abortActiveRequest();
+      if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
+      _generating = false;
+      var _validCount = _chapters.filter(function(c) {
+        return typeof c === 'string' && c.trim().length > 0;
+      }).length;
+      _trace('PDF_GENERATION_COMPLETE', { validChapters: _validCount, totalChapters: TOTAL_CHAPTERS });
+      if (_validCount < TOTAL_CHAPTERS) {
+        _finishGenerationFailure(
+          _validCount === 0
+            ? '모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.\n잠시 후 다시 시도해 주세요.'
+            : '챕터 생성이 중단되었습니다 (성공 ' + _validCount + '/' + TOTAL_CHAPTERS + '). 실패 챕터를 확인한 뒤 다시 시도해 주세요.',
+          { validChapters: _validCount, totalChapters: TOTAL_CHAPTERS, code: 'INCOMPLETE_CHAPTERS' }
+        );
+        return;
+      }
+      _showScreen('zbResultScreen');
+      _updateTocState();
+      _renderChapter(1);
+      _bindToc();
+      var prof = window.__cdActiveBirthProfile || {};
+      var nameEl = _qs('zbResultName');
+      var dateEl = _qs('zbResultDate');
+      if (nameEl) nameEl.textContent = '🌌 ' + (prof.name || '사용자') + '님의 자미두수 인생 총람';
+      if (dateEl) {
+        var b = prof.birth || {};
+        dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · ' + (prof.gender === 'F' ? '여성' : prof.gender === 'M' ? '남성' : '') + ' · 🗓️ ' + new Date().toLocaleDateString('ko-KR') + ' 발행';
+      }
+      _zbSaveResult(prof);
+      var epBanner = _qs('zbEpilogueBanner');
+      if (epBanner) epBanner.style.display = '';
+    }
+
     function _readPremiumAccessToken() {
       var token = '';
       try { token = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { token = ''; }
@@ -888,24 +994,39 @@
       return token;
     }
 
-    function _fetchChapter(idx) {
+    function _fetchChapter(idx, runId) {
       var _zbAuthToken = '';
       try { _zbAuthToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
       return new Promise(function (resolve) {
-        var _attempt = 0;
-        var _maxAttempts = 3;
+        var _settled = false;
         var _lastError = '알 수 없는 오류';
+        var _attemptPlan = [0, 1, 2];
 
-        function _runAttempt() {
+        function _done(payload) {
+          if (_settled) return;
+          _settled = true;
+          _abortActiveRequest();
+          resolve(payload);
+        }
+
+        function _runAttempt(at) {
+          if (!_isGenerationRunActive(runId)) {
+            _done({ ok: false, message: '생성이 취소되었습니다.', code: 'GENERATION_ABORTED' });
+            return;
+          }
+          if (at >= _attemptPlan.length) {
+            _done({ ok: false, message: _lastError, code: 'FETCH_FAILED' });
+            return;
+          }
+
           var _zbPremiumToken = _readPremiumAccessToken();
+          var _controller = (typeof AbortController === 'function') ? new AbortController() : null;
+          if (_controller) _activeRequestController = _controller;
           var timeoutId = setTimeout(function () {
             _lastError = '응답 시간 초과 (60초).';
-            if (_attempt >= _maxAttempts) {
-              resolve({ ok: false, message: _lastError });
-              return;
+            if (_controller) {
+              try { _controller.abort(); } catch (_) {}
             }
-            _attempt += 1;
-            _runAttempt();
           }, 60000);
 
           var _zbHeaders = { 'Content-Type': 'application/json' };
@@ -917,7 +1038,7 @@
             headers: _zbHeaders,
             body: JSON.stringify({
               reportId: _zbReportId,
-              requestId: 'ziwei-' + _zbReportId + '-ch' + (idx + 1) + '-a' + (_attempt + 1),
+              requestId: 'ziwei-' + _zbReportId + '-ch' + (idx + 1) + '-a' + (at + 1),
               chapterIndex: idx + 1,
               ch: idx + 1,
               sessionId: idx + 1,
@@ -938,6 +1059,7 @@
               gender: _zbProfile.gender,
               name: _zbProfile.name,
             }),
+            signal: _controller ? _controller.signal : undefined,
           })
             .then(function (res) {
               if (!res.ok) return res.json().catch(function () { return {}; }).then(function (e) {
@@ -947,127 +1069,115 @@
             })
             .then(function (data) {
               clearTimeout(timeoutId);
+              if (_activeRequestController === _controller) _activeRequestController = null;
               if (data && data.ok) {
-                resolve(data);
+                _done(data);
                 return;
               }
               _lastError = (data && data.message) ? data.message : 'API 응답 실패';
-              if (_attempt >= _maxAttempts) {
-                resolve({ ok: false, message: _lastError });
-                return;
-              }
-              _attempt += 1;
-              _runAttempt();
+              _runAttempt(at + 1);
             })
             .catch(function (err) {
               clearTimeout(timeoutId);
-              _lastError = String(err && err.message ? err.message : err);
-              if (_attempt >= _maxAttempts) {
-                resolve({ ok: false, message: _lastError });
-                return;
+              if (_activeRequestController === _controller) _activeRequestController = null;
+              if (err && err.name === 'AbortError') {
+                _lastError = _isGenerationRunActive(runId) ? '응답 시간 초과 (60초).' : '생성이 취소되었습니다.';
+              } else {
+                _lastError = String(err && err.message ? err.message : err);
               }
-              _attempt += 1;
-              _runAttempt();
+              _runAttempt(at + 1);
             });
         }
 
-        _runAttempt();
+        _runAttempt(0);
       });
     }
 
     var _failCount = 0;
-    (function generateNext(idx) {
-      if (idx >= TOTAL_CHAPTERS) {
-        clearInterval(_mysticTimer); _mysticTimer = null; _generating = false;
-        var _validCount = _chapters.filter(function(c) {
-          return typeof c === 'string' && c.trim().length > 0;
-        }).length;
-        _trace('PDF_GENERATION_COMPLETE', { validChapters: _validCount, totalChapters: TOTAL_CHAPTERS });
-        if (_validCount < TOTAL_CHAPTERS) {
-          var errEl = _qs('zbErrorMsg');
-          if (errEl) errEl.textContent = _validCount === 0
-            ? '모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.\n잠시 후 다시 시도해 주세요.'
-            : '챕터 생성이 중단되었습니다 (성공 ' + _validCount + '/' + TOTAL_CHAPTERS + '). 실패 챕터를 확인한 뒤 다시 시도해 주세요.';
-          _zbClearSaved(window.__cdActiveBirthProfile || {});
-          _showScreen('zbErrorScreen');
-          return;
-        }
-        _showScreen('zbResultScreen');
-        _updateTocState();
-        _renderChapter(1);
-        _bindToc();
-        var prof = window.__cdActiveBirthProfile || {};
-        var nameEl = _qs('zbResultName');
-        var dateEl = _qs('zbResultDate');
-        if (nameEl) nameEl.textContent = '🌌 ' + (prof.name || '사용자') + '님의 자미두수 인생 총람';
-        if (dateEl) {
-          var b = prof.birth || {};
-          dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · ' + (prof.gender === 'F' ? '여성' : prof.gender === 'M' ? '남성' : '') + ' · 🗓️ ' + new Date().toLocaleDateString('ko-KR') + ' 발행';
-        }
-        _zbSaveResult(prof);
-        var epBanner = _qs('zbEpilogueBanner');
-        if (epBanner) epBanner.style.display = '';
-        return;
-      }
-      if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
-      _fetchChapter(idx).then(function (data) {
-        var _zbText = '';
-        if (data && data.chapterJson && Array.isArray(data.chapterJson.sections)) {
-          _zbText = data.chapterJson.sections
-            .map(function (row) {
-              var title = String(row && (row.title || row.label) || '').trim();
-              var body = String(row && (row.body || row.content) || '').trim();
-              if (!body) return '';
-              return title ? ('## ' + title + '\n' + body) : body;
-            })
-            .filter(Boolean)
-            .join('\n\n');
-        }
-        if (!_zbText && data && typeof data.text === 'string') {
-          _zbText = data.text.trim();
-        }
+    var _generationQueue = Promise.resolve();
+    for (var _chapterIdx = 0; _chapterIdx < TOTAL_CHAPTERS; _chapterIdx += 1) {
+      (function (idx) {
+        _generationQueue = _generationQueue.then(function (state) {
+          if (state && state.aborted) return state;
+          if (!_isGenerationRunActive(_runId)) return { aborted: true };
+          if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
+          return _fetchChapter(idx, _runId).then(function (data) {
+            if (!_isGenerationRunActive(_runId)) return { aborted: true };
 
-        var _expectedSectionCount = Array.isArray(CHAPTER_STRUCTURED_LABELS[idx + 1])
-          ? CHAPTER_STRUCTURED_LABELS[idx + 1].length
-          : 5;
-        var _hasStructuredSections = !!(data && data.chapterJson && Array.isArray(data.chapterJson.sections) && data.chapterJson.sections.length >= _expectedSectionCount);
-        var _hasUsableText = _zbText.length >= MIN_CHAPTER_CHARS;
+            var _zbText = '';
+            if (data && data.chapterJson && Array.isArray(data.chapterJson.sections)) {
+              _zbText = data.chapterJson.sections
+                .map(function (row) {
+                  var title = String(row && (row.title || row.label) || '').trim();
+                  var body = String(row && (row.body || row.content) || '').trim();
+                  if (!body) return '';
+                  return title ? ('## ' + title + '\n' + body) : body;
+                })
+                .filter(Boolean)
+                .join('\n\n');
+            }
+            if (!_zbText && data && typeof data.text === 'string') {
+              _zbText = data.text.trim();
+            }
 
-        if (data && data.ok && (_hasStructuredSections || _hasUsableText)) {
-          _syncChapterMetaFromResponse(idx, data);
-          _chapters[idx] = _zbText;
-          _chapterStructured[idx] = (Array.isArray(data.sections) && data.sections.length)
-            ? { sections: data.sections }
-            : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
-          _trace('CHAPTER_DATA_RECEIVED', { chapter: idx + 1, length: _zbText.length });
-          _setProgress(idx + 1);
-          generateNext(idx + 1);
-          return;
-        }
+            var _expectedSectionCount = Array.isArray(CHAPTER_STRUCTURED_LABELS[idx + 1])
+              ? CHAPTER_STRUCTURED_LABELS[idx + 1].length
+              : 5;
+            var _hasStructuredSections = !!(data && data.chapterJson && Array.isArray(data.chapterJson.sections) && data.chapterJson.sections.length >= _expectedSectionCount);
+            var _hasUsableText = _zbText.length >= MIN_CHAPTER_CHARS;
 
-        _failCount++;
-        var msg = (data && data.message) ? data.message : '알 수 없는 오류';
-        var errorCode = (data && data.code) ? String(data.code) : 'UNKNOWN_ERROR';
-        _trace('CHAPTER_DATA_FAILED', { chapter: idx + 1, message: msg, code: errorCode });
-        console.error('[자미두수 PDF 생성] 섹션 생성 실패:', {
-          chapter: idx + 1,
-          code: errorCode,
-          message: msg,
-          hasChapterJson: !!(data && data.chapterJson),
-          sectionCount: (data && data.chapterJson && Array.isArray(data.chapterJson.sections)) ? data.chapterJson.sections.length : 0,
-          textLength: _zbText.length,
-          raw: data || null,
+            if (data && data.ok && (_hasStructuredSections || _hasUsableText)) {
+              _syncChapterMetaFromResponse(idx, data);
+              _chapters[idx] = _zbText;
+              _chapterStructured[idx] = (Array.isArray(data.sections) && data.sections.length)
+                ? { sections: data.sections }
+                : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
+              _trace('CHAPTER_DATA_RECEIVED', { chapter: idx + 1, length: _zbText.length });
+              _setProgress(idx + 1);
+              return { aborted: false };
+            }
+
+            _failCount += 1;
+            var msg = (data && data.message) ? data.message : '알 수 없는 오류';
+            var errorCode = (data && data.code) ? String(data.code) : 'UNKNOWN_ERROR';
+            _trace('CHAPTER_DATA_FAILED', { chapter: idx + 1, message: msg, code: errorCode });
+            console.error('[자미두수 PDF 생성] 섹션 생성 실패:', {
+              chapter: idx + 1,
+              code: errorCode,
+              message: msg,
+              hasChapterJson: !!(data && data.chapterJson),
+              sectionCount: (data && data.chapterJson && Array.isArray(data.chapterJson.sections)) ? data.chapterJson.sections.length : 0,
+              textLength: _zbText.length,
+              responsePreview: _sanitizeDebugValue(data || null, 0, []),
+            });
+            throw {
+              chapter: idx + 1,
+              code: errorCode,
+              message: msg,
+              sectionCount: (data && data.chapterJson && Array.isArray(data.chapterJson.sections)) ? data.chapterJson.sections.length : 0,
+              textLength: _zbText.length,
+            };
+          });
         });
-        clearInterval(_mysticTimer); _mysticTimer = null; _generating = false;
-        var failErrEl = _qs('zbErrorMsg');
-        if (failErrEl) {
-          failErrEl.textContent = '자미두수 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있습니다.';
-        }
-        _zbClearSaved(window.__cdActiveBirthProfile || {});
-        _showScreen('zbErrorScreen');
-        return;
+      })(_chapterIdx);
+    }
+
+    _generationQueue
+      .then(function (state) {
+        if (state && state.aborted) return;
+        _finishGenerationSuccess();
+      })
+      .catch(function (failure) {
+        _finishGenerationFailure(
+          '자미두수 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있습니다.',
+          {
+            chapter: failure && failure.chapter ? failure.chapter : null,
+            code: failure && failure.code ? failure.code : 'CHAPTER_DATA_FAILED',
+            message: failure && failure.message ? failure.message : '알 수 없는 오류',
+            failCount: _failCount,
+          }
+        );
       });
-    })(0);
   };
 
   /* ─────────────── PDF 다운로드 ─────────────── */
@@ -1289,15 +1399,6 @@
       return;
     }
     if (action === 'generateZiweiBook') {
-      var coinCost = Number(btn.getAttribute('data-coin-cost') || 590);
-      if (coinCost > 0 && !btn.getAttribute('data-pvw-bypass')) {
-        if (typeof window._cdDeductCoin === 'function') {
-          window._cdDeductCoin(coinCost, function (ok) {
-            if (ok) window.generateZiweiBook();
-          });
-          return;
-        }
-      }
       window.generateZiweiBook();
       return;
     }
@@ -1310,6 +1411,10 @@
       if (prof) {
         try { localStorage.removeItem(_zbMakeKey(prof)); } catch(_){}
       }
+      _cancelGeneration = true;
+      _generationRunId += 1;
+      _generating = false;
+      _abortActiveRequest();
       _chapters = Array(TOTAL_CHAPTERS).fill(null);
       _chapterStructured = Array(TOTAL_CHAPTERS).fill(null);
       _chapterMeta = Array(TOTAL_CHAPTERS).fill(null);
