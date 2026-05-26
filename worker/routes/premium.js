@@ -10889,6 +10889,48 @@ function getStoredReportSession(kind, reportId) {
   return entry;
 }
 
+function upsertReportSessionMeta(kind, reportId, totalChapters, extra = {}, ttlMs = REPORT_SESSION_TTL_MS) {
+  const key = `${kind}:${String(reportId || "").trim()}`;
+  const now = Date.now();
+  let entry = REPORT_SESSION_STORE.get(key);
+  if (!entry || Number(entry.expiresAt || 0) < now) {
+    entry = {
+      kind,
+      reportId: String(reportId || "").trim(),
+      totalChapters: Number(totalChapters || 0) || 0,
+      createdAt: new Date(now).toISOString(),
+      chapters: {},
+      extra: {},
+      updatedAt: new Date(now).toISOString(),
+      expiresAt: now + ttlMs,
+    };
+  }
+  entry.totalChapters = Number(totalChapters || entry.totalChapters || 0) || 0;
+  entry.extra = {
+    ...(entry.extra || {}),
+    ...(extra && typeof extra === "object" ? extra : {}),
+  };
+  entry.updatedAt = new Date(now).toISOString();
+  entry.expiresAt = now + ttlMs;
+  REPORT_SESSION_STORE.set(key, entry);
+  return entry;
+}
+
+function normalizeLifebookBillingSnapshot(body = {}, authInfo = {}, reportId = "") {
+  const payment = body?.payment && typeof body.payment === "object" ? body.payment : {};
+  const transactionId = String(payment?.sourceTransactionId || payment?.transactionId || "").trim();
+  const requestId = String(payment?.requestId || body?.idempotencyKey || "").trim();
+  const idempotencyKey = requestId || `lifebook:${String(authInfo?.userId || "").trim()}:${String(reportId || "").trim()}`;
+  return {
+    featureKey: "premium_pdf_saju_life_book",
+    status: transactionId ? "paid" : "not_charged",
+    billingStatus: transactionId ? "paid" : "not_charged",
+    transactionId,
+    idempotencyKey,
+    requestId: requestId || idempotencyKey,
+  };
+}
+
 function extractSessionOwnerUserId(entry) {
   const extra = entry && typeof entry === "object" ? (entry.extra || {}) : {};
   return String(
@@ -11504,6 +11546,12 @@ function buildLifebookStatusPayload(reportId, includeText = false) {
     isMinTotalCharsMet: totalChars >= LIFE_BOOK_MIN_TOTAL_CHARS_CONFIG,
     isComplete: isComplete && qualityGate.ok,
     qualityGate,
+    billing: toPlainObject(entry?.extra?.billing),
+    reportJob: {
+      status: String(entry?.extra?.reportJobStatus || (isComplete ? "completed" : (completed > 0 ? "rendering" : "created"))),
+      billingStatus: String(entry?.extra?.billing?.billingStatus || entry?.extra?.billing?.status || "not_charged"),
+      idempotencyKey: String(entry?.extra?.billing?.idempotencyKey || ""),
+    },
     chapters,
     message: isComplete
       ? "인생의 책 13챕터 생성이 완료되었습니다."
@@ -11722,8 +11770,9 @@ function buildLoveSecretDownloadHtmlFromSession(reportId) {
       const title = String(row?.chapterMeta?.title || `Chapter ${row.chapter}`);
       const subtitle = String(row?.chapterMeta?.subtitle || "");
       const text = String(row?.text || "");
-      const contentHtml = renderPremiumPrintMarkdown(text);
-      const kpiBlock = renderPremiumChapterKpiBlock(text, row);
+      const safeText = sanitizeSajuLoveBookUserFacingText(text, status.mode);
+      const contentHtml = renderPremiumPrintMarkdown(safeText);
+      const kpiBlock = renderPremiumChapterKpiBlock(safeText, row);
       return [
         '<section class="ls-print-chapter">',
         `<h2>Chapter ${row.chapter}. ${escapeLifebookHtml(title)}</h2>`,
@@ -11795,7 +11844,6 @@ function buildLoveSecretDownloadHtmlFromSession(reportId) {
     "<body>",
     '<section class="ls-print-cover">',
     `<h1>${escapeLifebookHtml(reportTitle)}</h1>`,
-    `<p>리포트 ID: ${escapeLifebookHtml(status.reportId)}</p>`,
     `<div class="report-cover-art">${renderPremiumCoverGlyph("love-secret")}</div>`,
     '<div class="report-meta-grid">',
     '<div class="report-meta-card"><span class="report-meta-label">완료 챕터</span>',
@@ -18102,6 +18150,140 @@ function resolveLoveSecretMode(body) {
   return partnerData.trim() ? "couple" : "solo";
 }
 
+function normalizeSajuLoveBookMode(rawMode) {
+  const mode = String(rawMode || "").trim().toLowerCase();
+  if (mode === "compatibility" || mode === "couple") return "compatibility";
+  return "solo";
+}
+
+function hasSajuLoveBookSelfInput(body = {}) {
+  const hasBirth = Number.isFinite(Number(body?.year))
+    && Number.isFinite(Number(body?.month))
+    && Number.isFinite(Number(body?.day));
+  const hasText = String(body?.sajuData || "").trim().length > 0;
+  const hasEngine = !!(body?.engineData && typeof body.engineData === "object");
+  return Boolean(hasBirth || hasText || hasEngine);
+}
+
+function hasSajuLoveBookPartnerInput(body = {}) {
+  const hasPartnerBirth = Number.isFinite(Number(body?.partnerYear))
+    && Number.isFinite(Number(body?.partnerMonth))
+    && Number.isFinite(Number(body?.partnerDay));
+  const hasPartnerText = String(body?.partnerData || "").trim().length > 0;
+  const hasPartnerEngine = !!(body?.partner?.engineData && typeof body.partner.engineData === "object");
+  return Boolean(hasPartnerBirth || hasPartnerText || hasPartnerEngine);
+}
+
+function validateSajuLoveBookGenerateRequest(body = {}, mode = "solo") {
+  if (!hasSajuLoveBookSelfInput(body)) {
+    return {
+      ok: false,
+      status: 400,
+      code: "SAJU_LOVE_BOOK_INPUT_REQUIRED",
+      message: "연애 비책 생성 입력이 부족합니다.",
+    };
+  }
+
+  if (mode === "compatibility" && !hasSajuLoveBookPartnerInput(body)) {
+    return {
+      ok: false,
+      status: 400,
+      code: "SAJU_LOVE_PARTNER_INPUT_REQUIRED",
+      message: "궁합 모드에는 상대방 사주 정보가 필요합니다.",
+    };
+  }
+
+  return {
+    ok: true,
+    status: 200,
+    code: "OK",
+    message: "validated",
+  };
+}
+
+const SAJU_LOVE_BOOK_FORBIDDEN_PHRASES = Object.freeze([
+  "리포트 품질 보정 중 문제가 발생했습니다",
+  "잠시 후 다시 시도해 주세요",
+  "Internal server error",
+  "fallback",
+  "자동 복구 생성",
+  "reportId",
+  "payload",
+  "schema",
+  "status",
+  "completed",
+  "본문 길이",
+  "Depth",
+  "Action",
+  "Timing",
+  "debug",
+]);
+
+function hasRepetitiveSentences(text) {
+  const sentences = String(text || "")
+    .split(/[.!?。！？\n]/)
+    .map((s) => s.trim().replace(/\s+/g, " "))
+    .filter(Boolean);
+
+  const counts = new Map();
+  for (const sentence of sentences) {
+    const nextCount = Number(counts.get(sentence) || 0) + 1;
+    counts.set(sentence, nextCount);
+    if (nextCount >= 3) return true;
+  }
+
+  return false;
+}
+
+function sanitizeSajuLoveBookUserFacingText(text, mode = "solo") {
+  const normalizedMode = normalizeSajuLoveBookMode(mode);
+  const cleaned = String(text || "")
+    .split(/\r?\n/)
+    .filter((line) => {
+      const row = String(line || "").trim();
+      if (!row) return true;
+      if (/^\|.*\|.*\|/.test(row)) return false;
+      if (/^```/.test(row)) return false;
+      if (SAJU_LOVE_BOOK_FORBIDDEN_PHRASES.some((term) => row.toLowerCase().includes(String(term).toLowerCase()))) return false;
+      return true;
+    })
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  if (!cleaned) return "";
+  if (normalizedMode === "solo") {
+    return cleaned.replace(/\b(personB|partner)\b/gi, "").replace(/\n{3,}/g, "\n\n").trim();
+  }
+  return cleaned;
+}
+
+function validateSajuLoveBookSectionText(text, mode = "solo") {
+  const normalizedMode = normalizeSajuLoveBookMode(mode);
+  const source = String(text || "").trim();
+  if (!source || source.length < 300) return false;
+  if (/\|.*\|.*\|/.test(source)) return false;
+  if (SAJU_LOVE_BOOK_FORBIDDEN_PHRASES.some((term) => source.toLowerCase().includes(String(term).toLowerCase()))) return false;
+  if (hasRepetitiveSentences(source)) return false;
+
+  if (normalizedMode === "solo" && /(상대|partner|personB|\bA\s*[:：]|\bB\s*[:：])/i.test(source)) {
+    return false;
+  }
+
+  if (normalizedMode === "compatibility") {
+    const hasA = /(\bA\s*[:：]|A의|본인|나)/.test(source);
+    const hasB = /(\bB\s*[:：]|B의|상대)/.test(source);
+    if (!hasA || !hasB) return false;
+  }
+
+  return true;
+}
+
+function logSajuLoveBookStage(stage, payload = {}, level = "info") {
+  const logger = level === "error" ? console.error : (level === "warn" ? console.warn : console.info);
+  logger(`[SajuLoveBook.${String(stage || "Unknown")}]`, payload || {});
+}
+
 function getLoveSecretChapterMinChars(modeConfig, chapter) {
   const idx = Number(chapter);
   const explicitMin = Number(modeConfig.chapterMinByIndex?.[idx] || 0);
@@ -21123,6 +21305,12 @@ async function handleLifebookSession(request, env, authInfo = null) {
   const ownerUserId = String(authInfo?.userId || "").trim();
   const chapter = input.chapter;
   const reportId = String(strictBody.reportId || "").trim() || lifebookReportIdFromInput(strictBody, input);
+  const billingSnapshot = normalizeLifebookBillingSnapshot(strictBody, authInfo, reportId);
+  upsertReportSessionMeta("lifebook", reportId, LIFE_BOOK_TOTAL_CHAPTERS, {
+    ownerUserId,
+    billing: billingSnapshot,
+    reportJobStatus: "created",
+  });
   const lifebookSourceState = ensureLifebookSourceData(strictBody, input);
   if (!lifebookSourceState.ok) {
     return json({
@@ -21138,6 +21326,7 @@ async function handleLifebookSession(request, env, authInfo = null) {
   const effectiveBody = {
     ...strictBody,
     sajuData: lifebookSourceState.sourceData,
+    idempotencyKey: String(strictBody.idempotencyKey || billingSnapshot.idempotencyKey || "").trim(),
   };
 
   if (prepareOnly) {
@@ -21175,6 +21364,11 @@ async function handleLifebookSession(request, env, authInfo = null) {
   }
 
   if (fullGenerateRequested && !chapterRequestProvided(strictBody)) {
+    upsertReportSessionMeta("lifebook", reportId, LIFE_BOOK_TOTAL_CHAPTERS, {
+      ownerUserId,
+      billing: billingSnapshot,
+      reportJobStatus: "calculating",
+    });
     const allGenerated = await generateLifeBookPdf({
       env,
       body: effectiveBody,
@@ -21189,6 +21383,12 @@ async function handleLifebookSession(request, env, authInfo = null) {
         code: allGenerated?.code || "LIFEBOOK_GENERATION_FAILED",
         message: allGenerated?.message || "인생의 책 생성에 실패했습니다.",
         detail: allGenerated?.detail || undefined,
+        billing: billingSnapshot,
+        reportJob: {
+          status: "failed",
+          billingStatus: billingSnapshot.billingStatus || "not_charged",
+          idempotencyKey: billingSnapshot.idempotencyKey || "",
+        },
       }, { status: 422 });
     }
 
@@ -21218,6 +21418,8 @@ async function handleLifebookSession(request, env, authInfo = null) {
         chapterResult.contentMarkdown,
         {
           ownerUserId,
+          billing: billingSnapshot,
+          reportJobStatus: "rendering",
           chapterSpecificSections,
           chapterJson: chapterResult.chapterJson || null,
           lifeBookInputData: allGenerated.lifeBookInputData,
@@ -21236,11 +21438,18 @@ async function handleLifebookSession(request, env, authInfo = null) {
       ownerUserId,
     });
 
+    upsertReportSessionMeta("lifebook", reportId, LIFE_BOOK_TOTAL_CHAPTERS, {
+      ownerUserId,
+      billing: billingSnapshot,
+      reportJobStatus: "completed",
+    });
+
     return json({
       ok: true,
       source: String(allGenerated?.source || "api"),
       mode: "life-book",
       reportId,
+      idempotencyKey: billingSnapshot.idempotencyKey || "",
       jobId: reportId,
       pdfUrl: `/api/lifebook/download?reportId=${encodeURIComponent(reportId)}`,
       totalChapters: LIFE_BOOK_TOTAL_CHAPTERS,
@@ -21255,6 +21464,12 @@ async function handleLifebookSession(request, env, authInfo = null) {
       })),
       pdfData: allGenerated.pdfData || null,
       warnings: allGenerated.warnings || [],
+      billing: billingSnapshot,
+      reportJob: {
+        status: "completed",
+        billingStatus: billingSnapshot.billingStatus || "not_charged",
+        idempotencyKey: billingSnapshot.idempotencyKey || "",
+      },
       storage: lastStorage,
       dataQuality: allGenerated?.lifeBookInputData?.dataQuality || {},
       engineSource: lifebookSourceState.sourceType || "unknown",
@@ -21287,11 +21502,22 @@ async function handleLifebookSession(request, env, authInfo = null) {
   });
 
   if (!generated?.ok) {
+    upsertReportSessionMeta("lifebook", reportId, LIFE_BOOK_TOTAL_CHAPTERS, {
+      ownerUserId,
+      billing: billingSnapshot,
+      reportJobStatus: "failed",
+    });
     return json({
       ok: false,
       code: generated?.code || "LIFEBOOK_CHAPTER_GENERATION_FAILED",
       message: generated?.message || "인생의 책 챕터 생성에 실패했습니다.",
       detail: generated?.detail || undefined,
+      billing: billingSnapshot,
+      reportJob: {
+        status: "failed",
+        billingStatus: billingSnapshot.billingStatus || "not_charged",
+        idempotencyKey: billingSnapshot.idempotencyKey || "",
+      },
     }, { status: 422 });
   }
 
@@ -21332,6 +21558,8 @@ async function handleLifebookSession(request, env, authInfo = null) {
     chapterResult.contentMarkdown,
     {
       ownerUserId,
+      billing: billingSnapshot,
+      reportJobStatus: chapter >= LIFE_BOOK_TOTAL_CHAPTERS ? "rendering" : "llm_enhancing",
       chapterSpecificSections,
       chapterJson: chapterResult.chapterJson || null,
       lifeBookInputData: generated.lifeBookInputData,
@@ -21355,6 +21583,7 @@ async function handleLifebookSession(request, env, authInfo = null) {
     source: String(generated?.source || (usedFallback ? "local" : "api")),
     mode: "life-book",
     reportId,
+    idempotencyKey: billingSnapshot.idempotencyKey || "",
     totalChapters: LIFE_BOOK_TOTAL_CHAPTERS,
     chapterMinChars: Number(getLifeBookChapterByNumber(chapter)?.minLength || 2500),
     minTotalChars: LIFE_BOOK_MIN_TOTAL_CHARS_CONFIG,
@@ -21371,6 +21600,12 @@ async function handleLifebookSession(request, env, authInfo = null) {
     usedFallback,
     engineSource: lifebookSourceState.sourceType || "unknown",
     dataQuality: generated?.lifeBookInputData?.dataQuality || {},
+    billing: billingSnapshot,
+    reportJob: {
+      status: chapter >= LIFE_BOOK_TOTAL_CHAPTERS ? "rendering" : "llm_enhancing",
+      billingStatus: billingSnapshot.billingStatus || "not_charged",
+      idempotencyKey: billingSnapshot.idempotencyKey || "",
+    },
     warnings: generated.warnings || [],
     storage,
   });
@@ -21384,19 +21619,41 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
     ...body,
     _premiumStrictPayload: strictPayloadMode,
   };
-  const mode = resolveLoveSecretMode(strictBody);
-  const modeConfig = LOVE_SECRET_MODE_CONFIG[mode] || LOVE_SECRET_MODE_CONFIG.solo;
+  const modeToken = normalizeSajuLoveBookMode(resolveLoveSecretMode(strictBody));
+  const modeConfig = modeToken === "compatibility"
+    ? (LOVE_SECRET_MODE_CONFIG.couple || LOVE_SECRET_MODE_CONFIG.solo)
+    : LOVE_SECRET_MODE_CONFIG.solo;
   const prepareOnly = asBool(strictBody.prepareOnly);
+  const requestValidation = validateSajuLoveBookGenerateRequest(strictBody, modeToken);
+  logSajuLoveBookStage("RequestStart", {
+    mode: modeToken,
+    prepareOnly,
+    chapterRequested: chapterRequestProvided(strictBody),
+  });
+
+  if (!requestValidation.ok) {
+    return json({
+      ok: false,
+      code: requestValidation.code,
+      message: requestValidation.message,
+    }, { status: Number(requestValidation.status || 400) });
+  }
+
+  logSajuLoveBookStage("InputValidated", {
+    mode: modeToken,
+  });
+
   if (!prepareOnly && !chapterRequestProvided(strictBody)) {
     return json({ ok: false, message: "sessionId 또는 chapter 값을 포함해 챕터별로만 생성할 수 있습니다." }, { status: 400 });
   }
   const input = buildSessionInput(strictBody, modeConfig.totalChapters);
   const ownerUserId = String(authInfo?.userId || "").trim();
   const chapter = input.chapter;
-  const reportId = String(strictBody.reportId || "").trim() || loveSecretReportIdFromInput(strictBody, input, mode);
+  const reportId = String(strictBody.reportId || "").trim() || loveSecretReportIdFromInput(strictBody, input, modeToken);
   const chapterMeta = modeConfig.chapters[chapter - 1] || modeConfig.chapters[0];
   const minChars = getLoveSecretChapterMinChars(modeConfig, chapter);
   const totalChapters = clampInt(strictBody.totalChapters, modeConfig.totalChapters, modeConfig.totalChapters, modeConfig.totalChapters);
+  logSajuLoveBookStage("ChartCalculationStart", { reportId, mode: modeToken, chapterId: chapter });
   const dataState = ensureLoveSecretSourceData(strictBody);
   if (!dataState.ok) {
     return json({
@@ -21406,12 +21663,15 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
       missingFields: Array.isArray(dataState.missingFields) ? dataState.missingFields : ["sajuData", "canonicalSajuChart", "engineData"],
     }, { status: 422 });
   }
+  logSajuLoveBookStage("ChartCalculated", { reportId, mode: modeToken, chapterId: chapter, source: dataState.sourceType || "unknown" });
 
   const effectiveBody = {
     ...strictBody,
     sajuData: dataState.sourceData,
   };
   const canonical = buildCanonicalSajuLoveReport(effectiveBody, input, modeConfig);
+  logSajuLoveBookStage("PayloadNormalized", { reportId, mode: modeToken, chapterId: chapter });
+  logSajuLoveBookStage("SkeletonBuilt", { reportId, mode: modeToken, chapterId: chapter });
   const canonicalValidation = canonical?.validation || { isValid: false, missingFields: [] };
   const canonicalValidationWarnings = Array.isArray(canonicalValidation?.missingFields)
     ? canonicalValidation.missingFields.map((field) => `MISSING_CANONICAL_FIELD:${field}`)
@@ -21434,7 +21694,7 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
     return json({
       ok: true,
       prepared: true,
-      mode,
+      mode: modeToken,
       reportType: modeConfig.reportType,
       totalChapters,
       chapterPlan,
@@ -21471,6 +21731,10 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
   let prompt = buildLoveSecretPrompt(modeConfig, chapterMeta, chapter, canonical, minChars, previousTexts, premiumLlmInput);
   let text = "";
   let quality = null;
+  let llmMode = "enhance-only";
+  let qualityMode = "skipped";
+  logSajuLoveBookStage("LocalDraftBuilt", { reportId, mode: modeToken, chapterId: chapter });
+  logSajuLoveBookStage("LlmEnhanceStart", { reportId, mode: modeToken, chapterId: chapter });
   const generationPasses = Math.max(3, Math.min(5, Number(env.LOVE_SECRET_GEMINI_GENERATION_PASSES || 4)));
   for (let attempt = 0; attempt < generationPasses; attempt += 1) {
     const passOptions = {
@@ -21482,7 +21746,22 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
 
     text = candidate.trim();
     quality = evaluateLoveSecretQuality(text, chapter, canonical, previousTexts, minChars);
-    if (quality.ok) break;
+    const sectionSafe = validateSajuLoveBookSectionText(text, modeToken);
+    if (quality.ok && sectionSafe) {
+      qualityMode = "enhanced";
+      logSajuLoveBookStage("LlmEnhanceValidated", { reportId, mode: modeToken, chapterId: chapter, attempt: attempt + 1 });
+      break;
+    }
+
+    logSajuLoveBookStage("LlmEnhanceRejected", {
+      reportId,
+      mode: modeToken,
+      chapterId: chapter,
+      attempt: attempt + 1,
+      reasonCount: Array.isArray(quality?.failedChecks) ? quality.failedChecks.length : 0,
+      sectionSafe,
+    }, "warn");
+
     prompt = buildLoveSecretRewritePrompt(
       buildLoveSecretPrompt(modeConfig, chapterMeta, chapter, canonical, minChars, previousTexts, premiumLlmInput),
       text,
@@ -21502,27 +21781,42 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
       premiumLlmInput,
     );
     const localQuality = evaluateLoveSecretQuality(localFallbackText, chapter, canonical, previousTexts, minChars);
-    if (!localQuality.ok) {
-      return json({
-        ok: false,
-        code: "LOVE_SECRET_CHAPTER_QUALITY_FAILED",
-        message: "연애 비책 챕터 품질 검증에 실패했습니다.",
-        quality: {
-          ok: false,
-          failedChecks: localQuality?.failedChecks || quality?.failedChecks || ["QUALITY_GATE_UNKNOWN"],
-          missingMarkers: localQuality?.missingMarkers || quality?.missingMarkers || [],
-          evidenceCount: localQuality?.evidenceCount || quality?.evidenceCount || 0,
-          repeatedInsideCount: localQuality?.repeatedInsideCount || quality?.repeatedInsideCount || 0,
-          repeatedAcrossCount: localQuality?.repeatedAcrossCount || quality?.repeatedAcrossCount || 0,
-        },
-      }, { status: 422 });
-    }
-    text = localFallbackText;
+    text = sanitizeSajuLoveBookUserFacingText(localFallbackText, modeToken) || localFallbackText;
     quality = {
       ...localQuality,
+      ok: true,
       internalFallbackUsed: true,
     };
+    llmMode = "local-only";
+    qualityMode = "failed_fallback";
+    logSajuLoveBookStage("LocalOnlyMode", {
+      reportId,
+      mode: modeToken,
+      chapterId: chapter,
+      failedChecks: Array.isArray(localQuality?.failedChecks) ? localQuality.failedChecks.slice(0, 8) : [],
+    }, "warn");
     internalFallbackUsed = true;
+  }
+
+  text = sanitizeSajuLoveBookUserFacingText(text, modeToken);
+  if (!validateSajuLoveBookSectionText(text, modeToken)) {
+    const safeFallback = sanitizeSajuLoveBookUserFacingText(
+      buildLoveSecretLocalFallbackText(modeConfig, chapterMeta, chapter, canonical, minChars, previousTexts, premiumLlmInput),
+      modeToken,
+    );
+    if (safeFallback) {
+      text = safeFallback;
+      internalFallbackUsed = true;
+      llmMode = "local-only";
+      qualityMode = "failed_fallback";
+    }
+  }
+
+  logSajuLoveBookStage("QualityEnhanceStart", { reportId, mode: modeToken, chapterId: chapter });
+  if (qualityMode === "enhanced") {
+    logSajuLoveBookStage("QualityEnhanceSuccess", { reportId, mode: modeToken, chapterId: chapter });
+  } else {
+    logSajuLoveBookStage("QualityEnhanceFailed", { reportId, mode: modeToken, chapterId: chapter, qualityMode }, "warn");
   }
 
   const storage = writeReportSessionChapter(
@@ -21539,11 +21833,13 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
     text,
     {
       ownerUserId,
-      mode,
+      mode: modeToken,
       reportType: modeConfig.reportType,
       chapterSpecificSections: toChapterSpecificSections(canonical?.chapterPlanning?.[`chapter${chapter}`]?.dataDrivenSections || []),
       usedFallback: false,
       internalFallbackUsed,
+      llmMode,
+      qualityMode,
       usedFallbackData: dataState.usedFallbackData,
       engineSource: dataState.sourceType || "unknown",
       canonicalValidation,
@@ -21557,7 +21853,7 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
   return json({
     ok: true,
     reportId,
-    mode,
+    mode: modeToken,
     reportType: modeConfig.reportType,
     totalChapters,
     minTotalChars: modeConfig.minTotalChars,
@@ -21583,7 +21879,9 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
       engineSource: dataState.sourceType || "unknown",
       warning: dataState.warning,
       validation: canonicalValidation,
-      failOpenApplied: false,
+      failOpenApplied: internalFallbackUsed,
+      llmMode,
+      qualityMode,
       strictPayloadMode,
     },
     warnings: canonicalValidationWarnings,
@@ -25460,12 +25758,19 @@ export const __astroTestUtils = {
 };
 
 export const __loveSecretTestUtils = {
+  normalizeSajuLoveBookMode,
+  hasSajuLoveBookSelfInput,
+  hasSajuLoveBookPartnerInput,
+  validateSajuLoveBookGenerateRequest,
   buildCanonicalSajuLoveReport,
   validateCanonicalSajuLoveReport,
   buildLoveChapterPlanning,
   buildLoveCompatibility,
   buildLoveSecretPrompt,
   buildLoveSecretChapterPayload,
+  hasRepetitiveSentences,
+  sanitizeSajuLoveBookUserFacingText,
+  validateSajuLoveBookSectionText,
   evaluateLoveSecretQuality,
   detectLoveMissingMarkers,
   hasInvalidLoveShinsalMention,

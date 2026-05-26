@@ -54,11 +54,19 @@ describe("Premium Report Feature Spec", () => {
     expect(getPremiumRequiredChapters("sajuNewYear", "default")).toBe(10);
   });
 
-  test("westernAstrologyPremium은 개인 13챕터 / 궁합 10챕터를 사용한다", () => {
+  test("westernAstrologyPremium은 개인/궁합 모두 12챕터를 사용한다", () => {
     const { getPremiumRequiredChapters } = __premiumReportTestUtils;
 
-    expect(getPremiumRequiredChapters("westernAstrologyPremium", "personal")).toBe(13);
-    expect(getPremiumRequiredChapters("westernAstrologyPremium", "compatibility")).toBe(10);
+    expect(getPremiumRequiredChapters("westernAstrologyPremium", "personal")).toBe(12);
+    expect(getPremiumRequiredChapters("westernAstrologyPremium", "compatibility")).toBe(12);
+  });
+
+  test("sookyoPremium은 개인 12챕터 / 궁합 16챕터를 사용한다", () => {
+    const { getPremiumRequiredChapters } = __premiumReportTestUtils;
+
+    expect(getPremiumRequiredChapters("sookyoPremium", "personal")).toBe(12);
+    expect(getPremiumRequiredChapters("sookyoPremium", "solo")).toBe(12);
+    expect(getPremiumRequiredChapters("sookyoPremium", "compatibility")).toBe(16);
   });
 
   test("prepare 진단 스키마 헬퍼가 reportType별 필수 키를 제공", () => {

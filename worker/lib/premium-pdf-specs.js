@@ -4,6 +4,7 @@ import {
   SAJU_NEW_YEAR_CHAPTERS,
   SAJU_NEW_YEAR_CHAPTER_TARGETS,
 } from "./saju-premium-chapters.js";
+import { getSukyoPdfChapters } from "./sukyo-pdf.js";
 
 const makeChapter = (id, title, minChars, targetChars, requiredDataKeys = []) => ({
   id,
@@ -42,26 +43,18 @@ const ZIWEI_TITLES = [
   "XV. 자미 거장의 최종 전략 제언 — 나의 명반 사용 설명서",
 ];
 
-const SUKYO_COMPAT_TITLES = [
-  "I. 두 사람의 숙요 궁합 총론 — 인연의 기본 구조",
-  "II. 27숙 개별 성향 분석 — 서로의 본질 이해",
-  "III. 숙요 관계 유형 분석 — 명·업태·영친·우쇠·안괴·위성",
-  "IV. 거리 관계 분석 — 가까운 인연인가, 먼 인연인가",
-  "V. 첫 끌림과 운명적 인연감 — 왜 서로에게 끌리는가",
-  "VI. 감정 궁합 — 마음이 통하는 방식과 어긋나는 방식",
-  "VII. 연애 궁합 — 사랑의 속도와 관계 운영 방식",
-  "VIII. 결혼 궁합 — 함께 살아갈 수 있는 관계인가",
-  "IX. 갈등 구조 분석 — 왜 싸우고 어디서 무너지는가",
-  "X. 안괴·위험 관계 집중 분석 — 강한 끌림과 파괴성",
-  "XI. 영친·업태·우쇠 관계 집중 분석 — 오래 가는 인연의 조건",
-  "XII. 속궁합과 친밀감 — 몸과 마음의 밀착도",
-  "XIII. 재회·이별·미련 분석 — 끊어지는 인연인가, 돌아오는 인연인가",
-  "XIV. 관계의 시기와 흐름 — 가까워질 때와 조심할 때",
-  "XV. 현실 궁합 — 돈, 일, 생활, 가족 문제",
-  "XVI. 최종 궁합 리포트 — 이 관계를 어떻게 다뤄야 하는가",
-];
-
-const SUKYO_COMPAT_TARGETS = [4600, 4800, 3800, 4300, 4300, 4200, 4300, 4000, 3800, 4000, 4100, 4100, 4500, 4200, 4200, 4600];
+const buildSukyoSpecChapters = (mode) => getSukyoPdfChapters(mode).map((chapter, idx) => {
+  const chapterNo = idx + 1;
+  const targetChars = Number(chapter?.targetChars || 4200);
+  const minChars = Number(chapter?.minChars || Math.max(3200, Math.floor(targetChars * 0.85)));
+  const prefix = mode === "compatibility" ? "sukyo_c" : "sukyo_p";
+  return makeChapter(
+    `${prefix}_${String(chapterNo).padStart(2, "0")}`,
+    String(chapter?.title || `Chapter ${chapterNo}`),
+    minChars,
+    targetChars,
+  );
+});
 
 const VEDIC_SOLO_TITLES = [
   "I. 베다 차트 총론 — 나의 카르마 설계도",
@@ -156,16 +149,12 @@ export const PREMIUM_PDF_SPECS = {
   sookyo_premium: {
     title: "프리미엄 숙요점",
     featureType: "sookyo_premium",
-    supportedModes: ["compatibility"],
+    supportedModes: ["personal", "compatibility"],
     minTotalChars: 48000,
     targetTotalChars: 52000,
     chaptersByMode: {
-      compatibility: SUKYO_COMPAT_TITLES.map((title, idx) => {
-        const chapter = idx + 1;
-        const targetChars = Number(SUKYO_COMPAT_TARGETS[idx] || 4200);
-        const minChars = Math.max(3200, Math.floor(targetChars * 0.85));
-        return makeChapter(`sukyo_c_${String(chapter).padStart(2, "0")}`, title, minChars, targetChars);
-      }),
+      personal: buildSukyoSpecChapters("personal"),
+      compatibility: buildSukyoSpecChapters("compatibility"),
     },
     legacyReportType: "sookyoPremium",
   },
@@ -236,7 +225,9 @@ export function getPremiumSpecByFeatureType(featureType, mode = "") {
       ? "compatibility"
       : "solo";
   } else if (normalized === "sookyo_premium") {
-    normalizedMode = "compatibility";
+    normalizedMode = (rawMode === "compatibility" || rawMode === "couple" || rawMode === "compat")
+      ? "compatibility"
+      : "personal";
   } else if (normalized === "astrology_premium") {
     normalizedMode = "personal";
   } else if (normalized === "vedic_premium") {
@@ -254,8 +245,8 @@ export function getPremiumSpecByFeatureType(featureType, mode = "") {
   }
 
   if (normalized === "sookyo_premium") {
-    minTotalChars = 48000;
-    targetTotalChars = 52000;
+    minTotalChars = normalizedMode === "compatibility" ? 48000 : 42000;
+    targetTotalChars = normalizedMode === "compatibility" ? 52000 : 48000;
   }
 
   if (normalized === "astrology_premium") {

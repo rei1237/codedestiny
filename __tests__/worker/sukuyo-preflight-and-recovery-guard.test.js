@@ -4,11 +4,24 @@
 
 import {
   validateSukyoPdfInput,
+  getSukyoPdfChapters,
   sanitizeSukyoChapterJson,
 } from "../../worker/lib/sukyo-pdf.js";
 import { __astroTestUtils } from "../../worker/routes/premium.js";
 
 describe("Sukuyo preflight and recovery guard", () => {
+  test("getSukyoPdfChapters supports personal and compatibility modes", () => {
+    const personal = getSukyoPdfChapters("personal");
+    const solo = getSukyoPdfChapters("solo");
+    const compatibility = getSukyoPdfChapters("compatibility");
+
+    expect(personal).toHaveLength(12);
+    expect(solo).toHaveLength(12);
+    expect(compatibility).toHaveLength(16);
+    expect(personal[0].key).toContain("solo_");
+    expect(compatibility[0].key).toContain("compat_");
+  });
+
   test("validateSukyoPdfInput marks missing birth date as hard requirement", () => {
     const result = validateSukyoPdfInput({
       reportMode: "personal",
