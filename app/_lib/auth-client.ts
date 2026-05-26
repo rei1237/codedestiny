@@ -1,4 +1,5 @@
 import { getApiBaseUrl } from "./api-config";
+import { toAbsoluteApiUrl } from "./http-client";
 import { persistSanitizedAuthUser } from "./auth-storage";
 
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
@@ -59,13 +60,6 @@ function buildAuthRequest(targetUrl: string, init: RequestInit = {}) {
     credentials: "include",
     cache: init.cache || "no-store",
   });
-}
-
-function toAbsoluteApiUrl(pathOrUrl: string, apiBase: string) {
-  if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
-  const normalizedBase = String(apiBase || "").replace(/\/+$/, "");
-  const normalizedPath = pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`;
-  return `${normalizedBase}${normalizedPath}`;
 }
 
 function shouldTryRefresh(url: string) {

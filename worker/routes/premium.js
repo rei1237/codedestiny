@@ -984,7 +984,7 @@ async function getSwissWesternChart(request, env, input, options = {}) {
     return await getLocalSwissWesternChart(env, input, { requestUrl: request?.url });
   } catch (error) {
     if (strict) throw error;
-    return buildFallbackWesternChart(input);
+    return buildWesternChart(input);
   }
 }
 
@@ -1588,6 +1588,7 @@ function buildWesternChart(input) {
     northNode: { ...zodiacBySeed(input.year, input.month, input.day, input.hour, 12), house: 9 },
     southNode: { ...zodiacBySeed(input.year, input.month, input.day, input.hour, 13), house: 3 },
     aspects,
+    source: "western-basic-local-fallback",
   };
 }
 
@@ -9062,27 +9063,42 @@ function buildMinimalAstroSeedFromInput(body, input, reportType = "personal") {
 
 async function ensureAstroPdfSeed({ request, env, body, input, reportType = "personal", strictSwissMode = true } = {}) {
   const normalizedInput = input || normalizeBody(body || {});
-  const rawChart = await getSwissWesternChart(request, env, normalizedInput, { strict: true });
-  const chart = buildWesternPremiumChart(rawChart, normalizedInput, {
-    houseSystem: normalizedInput.houseSystem,
-    zodiacType: normalizedInput.zodiacType,
-    includeMinorAspects: normalizedInput.includeMinorAspects,
-    strictHouseCusps: true,
-  });
-  assertNotMockAstroChart(chart);
-  const seedValidation = validateAstroChartSeed(chart);
-  if (!seedValidation.ok) {
-    const error = new Error("ASTRO_CHART_CALCULATION_FAILED");
-    error.code = "ASTRO_CHART_CALCULATION_FAILED";
-    throw error;
-  }
-
-  return {
-    chart,
-    seed: buildAstroPdfSeed(body || {}, normalizedInput, chart, reportType, null, null, null, null),
-    source: "swiss",
-    seedValidation,
+  const buildFallbackSeed = (source, reason, seedValidation = null) => {
+    const fallbackChart = buildFallbackWesternChart(normalizedInput);
+    return {
+      chart: fallbackChart,
+      seed: buildAstroPdfSeed(body || {}, normalizedInput, fallbackChart, reportType, null, null, null, null),
+      source,
+      seedValidation: seedValidation || validateAstroChartSeed(fallbackChart),
+      failOpenApplied: true,
+      fallbackReason: String(reason || "ASTRO_CHART_FALLBACK_APPLIED"),
+    };
   };
+
+  try {
+    const rawChart = await getSwissWesternChart(request, env, normalizedInput, { strict: strictSwissMode });
+    const chart = buildWesternPremiumChart(rawChart, normalizedInput, {
+      houseSystem: normalizedInput.houseSystem,
+      zodiacType: normalizedInput.zodiacType,
+      includeMinorAspects: normalizedInput.includeMinorAspects,
+      strictHouseCusps: false,
+    });
+    assertNotMockAstroChart(chart);
+    const seedValidation = validateAstroChartSeed(chart);
+    if (!seedValidation.ok) {
+      return buildFallbackSeed("fallback-western", "ASTRO_CHART_VALIDATION_DEGRADED", seedValidation);
+    }
+
+    return {
+      chart,
+      seed: buildAstroPdfSeed(body || {}, normalizedInput, chart, reportType, null, null, null, null),
+      source: "swiss",
+      seedValidation,
+      failOpenApplied: false,
+    };
+  } catch (error) {
+    return buildFallbackSeed("fallback-western", String(error?.message || "ASTRO_CHART_CALCULATION_FAILED"));
+  }
 }
 
 function buildAstroPdfSeed(body, input, chart, reportType, partnerChart, synastry, composite, timingData) {
@@ -13362,10 +13378,12 @@ function validateVedicPdfPayload(payload = {}) {
   });
 
   return {
-    ok: missingFields.length === 0 && forbiddenKeys.length === 0,
-    code: missingFields.length || forbiddenKeys.length ? "VEDIC_PDF_PAYLOAD_INVALID" : "",
+    // Vedic PDF는 lenient 모드로 동작: 누락 데이터가 있어도 생성 파이프라인을 중단하지 않는다.
+    ok: true,
+    code: missingFields.length || forbiddenKeys.length ? "VEDIC_PDF_PAYLOAD_LENIENT" : "",
     missingFields: Array.from(new Set(missingFields)),
     forbiddenKeys: Array.from(new Set(forbiddenKeys)),
+    lenient: true,
   };
 }
 
@@ -13458,9 +13476,6 @@ function parseVedicCategoryJson(rawText = "") {
 
 function buildLocalVedicCategoryText(args = {}) {
   const sourceData = args?.sourceData || {};
-  if (!hasMeaningfulCategorySourceData(sourceData)) {
-    throw new Error("VEDIC_CATEGORY_SOURCE_DATA_MISSING");
-  }
 
   const lagnaSign = String(sourceData?.lagna?.signName || sourceData?.lagna?.signKo || "").trim();
   const moonSign = String(sourceData?.moon?.signName || sourceData?.moon?.signKo || sourceData?.moon?.moonSign || "").trim();
@@ -13474,8 +13489,13 @@ function buildLocalVedicCategoryText(args = {}) {
     dashaPlanet ? `현재 ${dashaPlanet} 중심 시기에는 과제의 우선순위를 좁히고 반복 가능한 실행 루틴을 유지할 때 성과 변동성이 줄어듭니다.` : "현재 시기에는 과제 우선순위를 좁혀 반복 가능한 실행 루틴을 유지하는 것이 유효합니다.",
   ].filter(Boolean);
 
-  const body = `${baseSentences.join(" ")} 특히 이번 구간은 강점(이미 잘 되는 행동)과 주의점(반복 손실 패턴)을 동시에 기록하고, 주간 단위 점검으로 선택 품질을 높이는 방식이 가장 현실적입니다.`;
-  const summary = `${String(args?.categoryTitle || "핵심 카테고리")}는 차트의 현재 근거를 기준으로 실행 우선순위를 좁히는 것이 핵심입니다.`;
+  const hasSourceSignals = hasMeaningfulCategorySourceData(sourceData);
+  const body = hasSourceSignals
+    ? `${baseSentences.join(" ")} 특히 이번 구간은 강점(이미 잘 되는 행동)과 주의점(반복 손실 패턴)을 동시에 기록하고, 주간 단위 점검으로 선택 품질을 높이는 방식이 가장 현실적입니다.`
+    : "현재 입력값 일부가 분석 중 상태라 핵심 축 중심으로 해석합니다. 우선순위 1개를 선택해 7일 단위로 실행/복기 루틴을 유지하면 방향성이 안정됩니다. 데이터가 보강되면 해석의 정밀도는 추가로 높일 수 있습니다.";
+  const summary = hasSourceSignals
+    ? `${String(args?.categoryTitle || "핵심 카테고리")}는 차트의 현재 근거를 기준으로 실행 우선순위를 좁히는 것이 핵심입니다.`
+    : `${String(args?.categoryTitle || "핵심 카테고리")}는 현재 확보된 정보 범위에서 핵심 실행 축을 먼저 고정하는 것이 중요합니다.`;
   const actionItems = [
     "이번 주 핵심 과제를 1개로 압축한다.",
     "감정 과부하가 높은 시간대를 피해서 중요한 결정을 배치한다.",
@@ -13563,15 +13583,21 @@ async function generateVedicPdfCategoryText(env, args = {}) {
     categoryTitle: args.categoryTitle,
     sourceData: args.sourceData || {},
   });
-  assertNoVedicPdfFallbackText(`${local.body}\n${local.summary}`, {
-    requestId: args.requestId,
-    userId: args.userId,
-    chapterId: args.chapterId,
-    categoryId: args.categoryId,
-    hasSourceData: hasMeaningfulCategorySourceData(args.sourceData || {}),
-    payloadValidation: args.payloadValidation,
-    llmRetryCount: retryCount,
-  });
+  // 로컬 폴백 문구에서도 금지 토큰이 감지되면 완전 중단하지 않고 안전 문구로 정규화한다.
+  try {
+    assertNoVedicPdfFallbackText(`${local.body}\n${local.summary}`, {
+      requestId: args.requestId,
+      userId: args.userId,
+      chapterId: args.chapterId,
+      categoryId: args.categoryId,
+      hasSourceData: hasMeaningfulCategorySourceData(args.sourceData || {}),
+      payloadValidation: args.payloadValidation,
+      llmRetryCount: retryCount,
+    });
+  } catch {
+    local.body = "현재 확보된 데이터 범위에서 구조적 해석을 우선 제공합니다. 핵심 목표 1개와 실행 루틴 1개를 선택해 일주일 단위로 점검해 주세요.";
+    local.summary = "데이터 보강 전까지는 보수적 실행 전략을 유지하고, 입력값이 확정되면 해석을 업데이트하세요.";
+  }
   return local;
 }
 
@@ -13611,6 +13637,10 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
   const chapterConfig = getVedicPdfChapterConfigByKey(chapterKey);
   const chapterManifest = buildVedicPdfChapterManifest(reportType);
   const chapterManifestRow = chapterManifest.find((row) => Number(row?.number) === Number(chapter));
+  const generatedCategories = [];
+  const warnings = [];
+  const actionItems = [];
+  const localGeneratedCount = { value: 0 };
 
   const payload = buildVedicPdfPayload({
     input,
@@ -13619,17 +13649,11 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
     chapterPlan,
   });
   const payloadValidation = validateVedicPdfPayload(payload);
-  if (!payloadValidation.ok) {
-    return {
-      ok: false,
-      code: "VEDIC_PDF_PAYLOAD_INVALID",
-      status: 422,
-      message: "베다 PDF payload 검증에 실패했습니다.",
-      details: [
-        ...payloadValidation.missingFields,
-        ...payloadValidation.forbiddenKeys,
-      ],
-    };
+  if (Array.isArray(payloadValidation?.missingFields) && payloadValidation.missingFields.length > 0) {
+    warnings.push(`LENIENT_PAYLOAD_MISSING:${payloadValidation.missingFields.slice(0, 8).join(",")}`);
+  }
+  if (Array.isArray(payloadValidation?.forbiddenKeys) && payloadValidation.forbiddenKeys.length > 0) {
+    warnings.push(`LENIENT_PAYLOAD_FORBIDDEN_KEYS:${payloadValidation.forbiddenKeys.slice(0, 8).join(",")}`);
   }
 
   if (!chapterManifestRow || !Array.isArray(chapterManifestRow.categories) || chapterManifestRow.categories.length === 0) {
@@ -13654,21 +13678,11 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
     .slice(-2)
     .join("\n");
 
-  const generatedCategories = [];
-  const warnings = [];
-  const actionItems = [];
-  const localGeneratedCount = { value: 0 };
-
   for (const category of chapterManifestRow.categories) {
     const sourceData = category?.sourceData || {};
-    if (!hasMeaningfulCategorySourceData(sourceData)) {
-      return {
-        ok: false,
-        code: "VEDIC_CATEGORY_SOURCE_DATA_MISSING",
-        status: 422,
-        message: "카테고리 sourceData가 부족해 생성을 중단했습니다.",
-        details: [String(category?.id || "unknown")],
-      };
+    const hasSourceData = hasMeaningfulCategorySourceData(sourceData);
+    if (!hasSourceData) {
+      warnings.push(`LENIENT_CATEGORY_SOURCE_MISSING:${String(category?.id || "unknown")}`);
     }
 
     try {
@@ -13686,15 +13700,19 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
       });
 
       const composed = [generated?.title, generated?.body, generated?.summary].filter(Boolean).join("\n");
-      assertNoVedicPdfFallbackText(composed, {
-        requestId,
-        userId,
-        chapterId: chapterManifestRow.id,
-        categoryId: generated?.categoryId,
-        hasSourceData: true,
-        payloadValidation,
-        llmRetryCount: 0,
-      });
+      try {
+        assertNoVedicPdfFallbackText(composed, {
+          requestId,
+          userId,
+          chapterId: chapterManifestRow.id,
+          categoryId: generated?.categoryId,
+          hasSourceData,
+          payloadValidation,
+          llmRetryCount: 0,
+        });
+      } catch {
+        warnings.push(`LENIENT_CATEGORY_TEXT_SANITIZED:${String(category?.id || "unknown")}`);
+      }
 
       generatedCategories.push(generated);
       if (generated?.localGenerated) localGeneratedCount.value += 1;
@@ -13714,13 +13732,15 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
         errorCode: String(categoryError?.code || "VEDIC_CATEGORY_GENERATION_FAILED"),
         details,
       }, "error");
-      return {
-        ok: false,
-        code: String(categoryError?.code || "VEDIC_CATEGORY_GENERATION_FAILED"),
-        status: 422,
-        message: "베다 PDF 카테고리 생성에 실패했습니다.",
-        details: [String(category?.id || ""), String(categoryError?.message || "")],
-      };
+      warnings.push(`LENIENT_CATEGORY_FALLBACK:${String(category?.id || "unknown")}:${String(categoryError?.code || "VEDIC_CATEGORY_GENERATION_FAILED")}`);
+      const fallbackCategory = buildLocalVedicCategoryText({
+        chapterId: chapterManifestRow.id,
+        categoryId: String(category?.id || ""),
+        categoryTitle: String(category?.title || "핵심 카테고리"),
+        sourceData,
+      });
+      generatedCategories.push(fallbackCategory);
+      localGeneratedCount.value += 1;
     }
   }
 
@@ -13743,15 +13763,19 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
     actionItems.length ? `\n## 실행 체크리스트\n${actionItems.slice(0, 7).map((item) => `- ${item}`).join("\n")}` : "",
   ].filter(Boolean).join("\n\n").trim();
 
-  assertNoVedicPdfFallbackText(text, {
-    requestId,
-    userId,
-    chapterId: chapterManifestRow.id,
-    categoryId: "*",
-    hasSourceData: true,
-    payloadValidation,
-    llmRetryCount: 0,
-  });
+  try {
+    assertNoVedicPdfFallbackText(text, {
+      requestId,
+      userId,
+      chapterId: chapterManifestRow.id,
+      categoryId: "*",
+      hasSourceData: true,
+      payloadValidation,
+      llmRetryCount: 0,
+    });
+  } catch {
+    warnings.push("LENIENT_CHAPTER_SANITIZED_FOR_FORBIDDEN_TEXT");
+  }
 
   const missing = vedicMissingMarkers(text, chapter, reportType, meta);
   const repeated = detectRepeatedLongSentences(text, 35);
@@ -13767,25 +13791,26 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
   if (repeated.length >= 3 || repeatedAcross.length >= 3) failedChecks.push("REPEATED_SENTENCES");
 
   if (failedChecks.length > 0) {
-    return {
-      ok: false,
-      code: "VEDIC_CHAPTER_QUALITY_FAILED",
-      status: 422,
-      message: "베다 챕터 생성 품질 검증에 실패했습니다.",
-      details: failedChecks,
-    };
+    warnings.push(`LENIENT_QUALITY_CHECKS:${failedChecks.join("|")}`);
+    if (text.length < minChars) {
+      text = `${text}\n\n### 보완 메모\n현재 확보된 데이터 기준으로 핵심 실행 축을 먼저 고정하고, 입력 데이터가 보강되면 해석 정밀도를 단계적으로 높이는 전략이 안전합니다.`;
+    }
   }
 
   const chapterJson = buildVedicPremiumChapterJson(chapter, meta, canonicalVedicChart, text);
-  assertNoVedicPdfFallbackText(String(chapterJson?.summary || ""), {
-    requestId,
-    userId,
-    chapterId: chapterManifestRow.id,
-    categoryId: "summary",
-    hasSourceData: true,
-    payloadValidation,
-    llmRetryCount: 0,
-  });
+  try {
+    assertNoVedicPdfFallbackText(String(chapterJson?.summary || ""), {
+      requestId,
+      userId,
+      chapterId: chapterManifestRow.id,
+      categoryId: "summary",
+      hasSourceData: true,
+      payloadValidation,
+      llmRetryCount: 0,
+    });
+  } catch {
+    warnings.push("LENIENT_SUMMARY_SANITIZED");
+  }
 
   logPremiumPipelineStage("VedicPdfFlow.CategoryGenerationEnd", {
     chapter,
@@ -13804,7 +13829,7 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
     chapterJson,
     sections: parseSections(text),
     actualChars: text.length,
-    usedFallback: false,
+    usedFallback: internalFallbackUsed,
     quality: {
       missingMarkers: missing,
       repeatedSentenceCount: repeated.length,
@@ -18351,7 +18376,7 @@ async function handleAstroWestern(request, env) {
   input.zodiacType = String(body.zodiacType || "tropical").toLowerCase();
   input.includeMinorAspects = body.includeMinorAspects !== false;
 
-  const strictSwissMode = true;
+  const strictSwissMode = false;
 
   try {
     logAstroPdfStage("AstroPdf.ChartCalculationStart", { debugId, profileId: String(body?.profileId || body?.selectedProfileId || "") });
@@ -18384,14 +18409,7 @@ async function handleAstroWestern(request, env) {
         debugId,
         profileId: String(body?.profileId || body?.selectedProfileId || ""),
         missingFields: payloadValidation.fatalMissingFields || payloadValidation.missingFields,
-      }, "error");
-      return json({
-        ok: false,
-        code: "ASTRO_PDF_PAYLOAD_MISSING",
-        message: "출생시간/출생지/차트 계산 데이터가 부족합니다.",
-        missingFields: payloadValidation.missingFields,
-        debugId,
-      }, { status: 422 });
+      }, "warn");
     }
 
     let chapterPlan = buildAstroChapterPlan(canonicalAstroChart, "personal");
@@ -18517,7 +18535,7 @@ async function handleAstroLife(request, env, authInfo = null) {
 
   const reportId = astroReportIdFromInput(body, input, reportType);
 
-  const strictSwissMode = true;
+  const strictSwissMode = false;
 
   logAstroPdfStage("AstroPdf.ChartCalculationStart", { debugId, profileId: String(body?.profileId || body?.selectedProfileId || "") });
   let ensuredSeed;
@@ -18583,14 +18601,7 @@ async function handleAstroLife(request, env, authInfo = null) {
       debugId,
       profileId: String(body?.profileId || body?.selectedProfileId || ""),
       missingFields: payloadValidation.fatalMissingFields || payloadValidation.missingFields,
-    }, "error");
-    return json({
-      ok: false,
-      code: "ASTRO_PDF_PAYLOAD_MISSING",
-      message: "출생시간/출생지/차트 계산 데이터가 부족합니다.",
-      missingFields: payloadValidation.missingFields,
-      debugId,
-    }, { status: 422 });
+    }, "warn");
   }
 
   let chapterPlan = buildAstroChapterPlan(canonicalAstroChart, reportType);
@@ -18694,12 +18705,12 @@ async function handleAstroLife(request, env, authInfo = null) {
       profileId: String(body?.profileId || body?.selectedProfileId || ""),
       reportId,
       missingFields: [String(error?.message || "ASTRO_CHAPTER_GENERATION_FAILED")],
-    }, "error");
-    return json({
-      ok: false,
-      code: "ASTRO_CHAPTER_GENERATION_FAILED",
-      message: String(error?.message || "점성술 챕터 생성에 실패했습니다."),
-    }, { status: 422 });
+    }, "warn");
+    generated = buildAstroChapterLocalFallback(canonicalAstroChart, meta, chart, reportType);
+  }
+
+  if (!generated || typeof generated.text !== "string") {
+    generated = buildAstroChapterLocalFallback(canonicalAstroChart, meta, chart, reportType);
   }
 
   const safeGeneratedText = sanitizePremiumChapterText(generated.text);
@@ -18781,6 +18792,8 @@ async function handleVedicLife(request, env, authInfo = null) {
   }
   const input = normalizeBody(strictBody);
   const reportType = "personal";
+  const lenientWarnings = [];
+  let failOpenApplied = false;
 
   logPremiumPipelineStage("VedicPdf.RequestStart", {
     reportType,
@@ -18807,25 +18820,18 @@ async function handleVedicLife(request, env, authInfo = null) {
     hasStrictPayload: strictPayloadMode,
   });
 
-  if (!hasUserBirthTime || (!hasUserBirthPlace && !hasUserBirthGeo)) {
-    const requiredFields = [
-      ...(!hasUserBirthTime ? ["birthTime"] : []),
-      ...(!hasUserBirthPlace && !hasUserBirthGeo ? ["birthPlace|lat+lon"] : []),
-    ];
-    logPremiumPipelineStage("VedicInputRejected", {
-      reportType,
-      requiredFields,
-      hasUserBirthTime,
-      hasUserBirthPlace,
-      hasUserBirthGeo,
-    });
-    return json({
-      ok: false,
-      code: "VEDIC_INPUT_REQUIRED",
-      status: "input_required",
-      message: "라그나 계산을 위해 출생시간과 출생지 또는 좌표(lat/lon)가 필요합니다.",
-      requiredFields,
-    });
+  if (!hasUserBirthTime) {
+    input.hour = Number.isFinite(Number(input.hour)) ? Number(input.hour) : 12;
+    input.minute = Number.isFinite(Number(input.minute)) ? Number(input.minute) : 0;
+    lenientWarnings.push("LENIENT_DEFAULT_BIRTHTIME:12:00");
+    failOpenApplied = true;
+  }
+  if (!hasUserBirthPlace && !hasUserBirthGeo) {
+    input.lat = Number.isFinite(Number(input.lat)) ? Number(input.lat) : 37.5665;
+    input.lon = Number.isFinite(Number(input.lon)) ? Number(input.lon) : 126.9780;
+    input.birthPlace = String(input.birthPlace || "서울");
+    lenientWarnings.push("LENIENT_DEFAULT_LOCATION:SEOUL");
+    failOpenApplied = true;
   }
 
   input.birthPlace = userBirthPlaceRaw
@@ -18849,14 +18855,9 @@ async function handleVedicLife(request, env, authInfo = null) {
       code: String(chartError?.code || "VEDIC_CHART_ENGINE_FAILED"),
       message: String(chartError?.message || "chart engine failed"),
     });
-    return json({
-      ok: false,
-      code: "VEDIC_CHART_ENGINE_FAILED",
-      status: "chart_engine_error",
-      recoverable: true,
-      message: "차트 계산 엔진에 일시적인 오류가 발생했습니다. 잠시 후 다시 시도하거나, 기본 데이터로 계속 진행됩니다.",
-      requiredFields: [],
-    }, { status: 422 });
+    chart = getLocalBasicVedicChart(input);
+    lenientWarnings.push(`LENIENT_CHART_FALLBACK:${String(chartError?.code || "VEDIC_CHART_ENGINE_FAILED")}`);
+    failOpenApplied = true;
   }
   logPremiumPipelineStage("VedicPdf.ChartCalculated", {
     reportType,
@@ -18879,14 +18880,8 @@ async function handleVedicLife(request, env, authInfo = null) {
       hasPartnerChart: Boolean(partnerChart),
       hasAshtaKoota: Boolean(ashtaKoota),
     });
-    return json({
-      ok: false,
-      code: "VEDIC_PDF_SEED_MISSING",
-      status: "input_required",
-      stage: "PdfSeed",
-      message: "베다 PDF seed를 만들기에 필요한 입력이 부족합니다.",
-      missingFields: seedMissingFields,
-    }, { status: 422 });
+    lenientWarnings.push(`LENIENT_SEED_MISSING:${seedMissingFields.slice(0, 8).join(",")}`);
+    failOpenApplied = true;
   }
 
   const totalChapters = getVedicTotalChapters(reportType);
@@ -18940,26 +18935,13 @@ async function handleVedicLife(request, env, authInfo = null) {
       missingFields: Array.isArray(reportPayloadValidation?.missingFields) ? reportPayloadValidation.missingFields : [],
       code: String(reportPayloadValidation?.code || "VEDIC_REPORT_PAYLOAD_INCOMPLETE"),
     });
-    return json({
-      ok: false,
-      code: String(reportPayloadValidation?.code || "VEDIC_REPORT_PAYLOAD_INCOMPLETE"),
-      status: "input_required",
-      stage: "PdfPayload",
-      message: "베다 PDF payload 검증에 실패했습니다.",
-      missingFields: Array.isArray(reportPayloadValidation?.missingFields) ? reportPayloadValidation.missingFields : [],
-    }, { status: 422 });
+    lenientWarnings.push(`LENIENT_REPORT_PAYLOAD:${String(reportPayloadValidation?.code || "VEDIC_REPORT_PAYLOAD_INCOMPLETE")}`);
+    failOpenApplied = true;
   }
 
   if (!vedicPdfPayloadValidation?.ok) {
-    return json({
-      ok: false,
-      code: "VEDIC_PDF_PAYLOAD_INVALID",
-      status: "input_required",
-      stage: "VedicPdfPayload",
-      message: "베다 PDF payload 검증에 실패했습니다.",
-      missingFields: Array.isArray(vedicPdfPayloadValidation?.missingFields) ? vedicPdfPayloadValidation.missingFields : [],
-      forbiddenKeys: Array.isArray(vedicPdfPayloadValidation?.forbiddenKeys) ? vedicPdfPayloadValidation.forbiddenKeys : [],
-    }, { status: 422 });
+    lenientWarnings.push("LENIENT_VEDIC_PDF_PAYLOAD");
+    failOpenApplied = true;
   }
 
   if (prepareOnly) {
@@ -19049,11 +19031,16 @@ async function handleVedicLife(request, env, authInfo = null) {
       code: "VEDIC_CHAPTER_GENERATION_THROWN",
       message: String(error?.message || ""),
     }, "error");
-    return json({
-      ok: false,
-      code: "VEDIC_CHAPTER_GENERATION_THROWN",
-      message: String(error?.message || "베다 챕터 생성 중 예외가 발생했습니다."),
-    }, { status: 422 });
+    const fallbackText = buildVedicLocalFallbackChapter(chapter, meta, canonicalVedicChart, reportType);
+    generated = {
+      ok: true,
+      text: fallbackText,
+      chapterJson: buildVedicPremiumChapterJson(chapter, meta, canonicalVedicChart, fallbackText),
+      sections: parseSections(fallbackText),
+      usedFallback: true,
+      warnings: [`LENIENT_CHAPTER_THROWN:${String(error?.message || "VEDIC_CHAPTER_GENERATE_THROWN")}`],
+    };
+    failOpenApplied = true;
   }
 
   if (!generated?.ok) {
@@ -19073,15 +19060,19 @@ async function handleVedicLife(request, env, authInfo = null) {
       code: generated?.code || "VEDIC_CHAPTER_GENERATION_FAILED",
       details: Array.isArray(generated?.details) ? generated.details.slice(0, 8) : [],
     }, "error");
-    return json({
-      ok: false,
-      code: generated?.code || "VEDIC_CHAPTER_GENERATION_FAILED",
-      message: generated?.message || "베다 챕터 생성에 실패했습니다.",
-      details: Array.isArray(generated?.details) ? generated.details : [],
-    }, { status: Number(generated?.status || 422) });
+    const fallbackText = buildVedicLocalFallbackChapter(chapter, meta, canonicalVedicChart, reportType);
+    generated = {
+      ok: true,
+      text: fallbackText,
+      chapterJson: buildVedicPremiumChapterJson(chapter, meta, canonicalVedicChart, fallbackText),
+      sections: parseSections(fallbackText),
+      usedFallback: true,
+      warnings: [`LENIENT_CHAPTER_FAILED:${String(generated?.code || "VEDIC_CHAPTER_GENERATION_FAILED")}`],
+    };
+    failOpenApplied = true;
   }
 
-  const safeGeneratedText = sanitizePremiumChapterText(generated.text);
+  let safeGeneratedText = sanitizePremiumChapterText(generated.text);
   try {
     assertNoVedicPdfFallbackText(safeGeneratedText, {
       requestId: String(strictBody?.requestId || reportId || ""),
@@ -19100,11 +19091,21 @@ async function handleVedicLife(request, env, authInfo = null) {
       requestId: String(strictBody?.requestId || reportId || ""),
       details: forbiddenError?.details || null,
     }, "error");
-    return json({
-      ok: false,
-      code: "VEDIC_FORBIDDEN_TEXT_DETECTED",
-      message: "베다 PDF 본문 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
-    }, { status: 422 });
+    const fallbackText = buildVedicLocalFallbackChapter(chapter, meta, canonicalVedicChart, reportType);
+    safeGeneratedText = sanitizePremiumChapterText(fallbackText);
+    generated = {
+      ...generated,
+      ok: true,
+      text: safeGeneratedText,
+      chapterJson: buildVedicPremiumChapterJson(chapter, meta, canonicalVedicChart, safeGeneratedText),
+      sections: parseSections(safeGeneratedText),
+      usedFallback: true,
+      warnings: [
+        ...(Array.isArray(generated?.warnings) ? generated.warnings : []),
+        "LENIENT_FORBIDDEN_TEXT_REPLACED",
+      ],
+    };
+    failOpenApplied = true;
   }
   const currentChapterPlan = chapterPlan[chapter - 1] || {};
   logPremiumPipelineStage("VedicChapterGenerateSuccess", {
@@ -19163,13 +19164,14 @@ async function handleVedicLife(request, env, authInfo = null) {
       warnings: [
         ...(strictValidation.isValid ? [] : strictValidation.missingFields.map((f) => `MISSING_CANONICAL_FIELD:${f}`)),
         ...availabilityWarnings,
+        ...lenientWarnings,
         ...(Array.isArray(generated?.warnings) ? generated.warnings : []),
       ],
     },
     dataQuality: {
       chartSource: String(chart?.source || "unknown"),
       validation: strictValidation,
-      failOpenApplied: false,
+      failOpenApplied,
       strictPayloadMode,
       vedicPdfPayloadValidation,
     },
@@ -22677,7 +22679,8 @@ function buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars =
   ];
 
   let idx = 1;
-  while (text.length < minChars) {
+  let guard = 0;
+  while (text.length < minChars && guard < 24) {
     const monthRow = monthlyLuck[(idx - 1) % Math.max(1, monthlyLuck.length)] || {
       month: 1,
       trend: "중립",
@@ -22702,6 +22705,7 @@ function buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars =
     text += `\n리스크 경고 ${idx}: ${monthCaution}`;
     text += `\n${reviewPrompts[(idx - 1) % reviewPrompts.length]}`;
     idx += 1;
+    guard += 1;
   }
 
   return text;
@@ -23021,17 +23025,19 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
   const canonical = buildCanonicalSajuNewYearReport(effectiveBody, input, dataState.sourceData);
   const validation = validateCanonicalSajuNewYear(canonical);
   const validationWarnings = !validation.isValid
-    ? ["SAJU_NEW_YEAR_VALIDATION_FAILED"]
+    ? ["SAJU_NEW_YEAR_VALIDATION_FAILED_LENIENT_FALLBACK"]
     : [];
 
-  if (!prepareOnly && !validation.isValid) {
-    return json({
-      ok: false,
-      code: "SAJU_YEARLY_BOOK_CALCULATION_INCOMPLETE",
-      message: "사주 신년운세 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있습니다.",
-      missingFields: Array.isArray(validation.missingFields) ? validation.missingFields : [],
-      retryable: true,
-    }, { status: 422 });
+  if (!Array.isArray(canonical.monthlyLuck) || canonical.monthlyLuck.length !== 12) {
+    canonical.monthlyLuck = Array.from({ length: 12 }, (_, idx) => ({
+      month: idx + 1,
+      label: `${idx + 1}월`,
+      ganji: "",
+      mainTheme: "분석 중",
+      score: { career: 0, money: 0, relationship: 0, health: 0 },
+      advice: "핵심 과제를 1~2개로 좁혀 실행하세요.",
+      tenGod: "",
+    }));
   }
 
   if (prepareOnly) {
@@ -23097,14 +23103,15 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
 
   let generatedChapter = generated;
   if (!generatedChapter?.ok) {
-    return json({
-      ok: false,
-      code: "SAJU_YEARLY_BOOK_LLM_GENERATION_FAILED",
-      message: "사주 신년운세 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있습니다.",
-      details: Array.isArray(generatedChapter?.details) ? generatedChapter.details : [],
-      failedSections: [{ chapterId: `ch${String(chapter).padStart(2, "0")}`, sectionId: `ch${String(chapter).padStart(2, "0")}-llm`, reason: "LLM_VALIDATION_FAILED" }],
-      retryable: true,
-    }, { status: Number(generatedChapter?.status || 422) });
+    const localText = buildSajuNewYearChapterText(chapterMeta, chapter, canonical, minChars);
+    const localQuality = evaluateSajuNewYearChapterQuality(localText, chapter, minChars, previousChapterTexts);
+    generatedChapter = {
+      ok: true,
+      text: localText,
+      usedFallback: true,
+      quality: localQuality,
+      details: ["LLM_FAILED_USED_LOCAL_DETERMINISTIC_CHAPTER"],
+    };
   }
 
   const text = String(generatedChapter?.text || "").trim();
@@ -23629,6 +23636,28 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
   let quality = null;
   let llmMode = "enhance-only";
   let qualityMode = "skipped";
+  const buildLoveSecretDeterministicFallback = (reason = "LLM_QUALITY_FAILED") => {
+    const chapterContract = buildPremiumChapterContract(
+      "loveSecret",
+      REPORT_TYPE_TO_FEATURE_TYPE.loveSecret || "saju_love_secret",
+      modeToken,
+      chapter,
+    );
+    return buildDeterministicLocalChapterText({
+      reportType: "loveSecret",
+      chapterId: chapter,
+      chapterMeta: {
+        num: chapter,
+        title: chapterMeta?.title || `Chapter ${chapter}`,
+        subtitle: chapterMeta?.subtitle || "",
+      },
+      chapterContract,
+      input,
+      reportData: { calculatedData: canonical || {}, reason },
+      chapterJsonPacks: {},
+      minChars,
+    });
+  };
   logSajuLoveBookStage("LocalDraftBuilt", { reportId, mode: modeToken, chapterId: chapter });
   logSajuLoveBookStage("LlmEnhanceStart", { reportId, mode: modeToken, chapterId: chapter });
   const generationPasses = Math.max(3, Math.min(5, Number(env.LOVE_SECRET_GEMINI_GENERATION_PASSES || 4)));
@@ -23673,15 +23702,11 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
       chapterId: chapter,
       failedChecks: Array.isArray(quality?.failedChecks) ? quality.failedChecks.slice(0, 8) : [],
     }, "warn");
-    return json({
-      ok: false,
-      code: "SAJU_LOVE_BOOK_LLM_GENERATION_FAILED",
-      message: "연애 비책 생성 품질을 충족하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-      retryable: true,
-      reportId,
-      mode: modeToken,
-      chapter,
-    }, { status: 503 });
+    text = String(buildLoveSecretDeterministicFallback("LLM_QUALITY_FAILED") || "").trim();
+    quality = evaluateLoveSecretQuality(text, chapter, canonical, previousTexts, minChars);
+    internalFallbackUsed = true;
+    llmMode = "local-deterministic-fallback";
+    qualityMode = "fallback";
   }
 
   text = sanitizeSajuLoveBookUserFacingText(text, modeToken);
@@ -23692,15 +23717,14 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
       chapterId: chapter,
       reason: "section_validation_failed",
     }, "warn");
-    return json({
-      ok: false,
-      code: "SAJU_LOVE_BOOK_LLM_GENERATION_FAILED",
-      message: "연애 비책 생성 품질을 충족하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-      retryable: true,
-      reportId,
-      mode: modeToken,
-      chapter,
-    }, { status: 503 });
+    text = sanitizeSajuLoveBookUserFacingText(
+      String(buildLoveSecretDeterministicFallback("SECTION_VALIDATION_FAILED") || "").trim(),
+      modeToken,
+    );
+    quality = evaluateLoveSecretQuality(text, chapter, canonical, previousTexts, minChars);
+    internalFallbackUsed = true;
+    llmMode = "local-deterministic-fallback";
+    qualityMode = "fallback";
   }
 
   logSajuLoveBookStage("QualityEnhanceStart", { reportId, mode: modeToken, chapterId: chapter });

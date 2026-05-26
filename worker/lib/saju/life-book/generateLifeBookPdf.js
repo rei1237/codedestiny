@@ -51,6 +51,37 @@ function isStrictMissingCore(lifeBookInputData) {
   };
 }
 
+function applyLenientLifeBookCoreDefaults(lifeBookInputData = {}) {
+  const data = lifeBookInputData && typeof lifeBookInputData === "object" ? lifeBookInputData : {};
+  const userProfile = data.userProfile && typeof data.userProfile === "object" ? data.userProfile : {};
+  const sajuChart = data.sajuChart && typeof data.sajuChart === "object" ? data.sajuChart : {};
+  const dataQuality = data.dataQuality && typeof data.dataQuality === "object" ? data.dataQuality : {};
+
+  data.userProfile = {
+    ...userProfile,
+    name: String(userProfile.name || "사용자").trim() || "사용자",
+    birthDate: String(userProfile.birthDate || "").trim() || "분석 중",
+    birthTime: String(userProfile.birthTime || "").trim() || "분석 중",
+    calendarType: String(userProfile.calendarType || "solar").trim() || "solar",
+  };
+
+  data.sajuChart = {
+    ...sajuChart,
+    yearPillar: String(sajuChart.yearPillar || "").trim() || "분석 중",
+    monthPillar: String(sajuChart.monthPillar || "").trim() || "분석 중",
+    dayPillar: String(sajuChart.dayPillar || "").trim() || "분석 중",
+    hourPillar: String(sajuChart.hourPillar || "").trim() || "분석 중",
+    dayMaster: String(sajuChart.dayMaster || "").trim() || "분석 중",
+  };
+
+  data.dataQuality = {
+    ...dataQuality,
+    missingCore: Array.isArray(dataQuality.missingCore) ? dataQuality.missingCore : [],
+  };
+
+  return data;
+}
+
 function countChars(text) {
   return [...String(text || "")].length;
 }
@@ -421,31 +452,27 @@ export async function generateLifeBookPdf(params = {}) {
   if (onProgress) onProgress({ code: "CALCULATING_SAJU", message: "사주 명식 계산 중" });
 
   logLifeBookStage("INPUT_NORMALIZE_START", { reportId });
-  const lifeBookInputData = buildLifeBookInputData(body, normalizedInput);
+  const lifeBookInputData = applyLenientLifeBookCoreDefaults(buildLifeBookInputData(body, normalizedInput));
   logLifeBookStage("INPUT_NORMALIZE_SUCCESS", { reportId });
 
   const strictCheck = isStrictMissingCore(lifeBookInputData);
   if (!strictCheck.ok) {
-    return {
-      ok: false,
-      code: "SAJU_LIFE_BOOK_CORE_SIGNAL_MISSING",
-      message: "사주 인생의 책 PDF 본문 생성 중 일부 핵심 계산 데이터가 누락되어 생성을 중단했습니다.",
-      failedSections: [{ chapterId: "input", sectionId: "input-core", reason: "CORE_SIGNAL_MISSING" }],
-      retryable: true,
-      detail: { missingCore: strictCheck.missingCore },
-    };
+    warnings.push({
+      chapterId: "input",
+      warning: "CORE_SIGNAL_MISSING_LENIENT_FALLBACK",
+      validation: { missingCore: strictCheck.missingCore },
+    });
   }
 
   logLifeBookStage("PAYLOAD_NORMALIZE_START", { reportId });
   const pdfPayload = buildLifeBookPdfPayloadFromInput(lifeBookInputData);
   const payloadValidation = validateSajuLifeBookPdfPayload(pdfPayload);
   if (!payloadValidation.ok) {
-    return {
-      ok: false,
-      code: "LIFEBOOK_REQUIRED_PROFILE_MISSING",
-      message: "인생의 책 생성을 위해 필수 입력 정보가 필요합니다.",
-      detail: { missingFields: payloadValidation.missing || [] },
-    };
+    warnings.push({
+      chapterId: "input",
+      warning: "LIFEBOOK_REQUIRED_PROFILE_MISSING_LENIENT_FALLBACK",
+      validation: { missingFields: payloadValidation.missing || [] },
+    });
   }
   if (Array.isArray(payloadValidation.missing) && payloadValidation.missing.length) {
     warnings.push({
@@ -505,14 +532,38 @@ export async function generateLifeBookPdf(params = {}) {
         chapterId: chapterConfig.id,
         code: generated?.code,
       });
-      return {
-        ok: false,
-        code: "SAJU_LIFE_BOOK_LLM_GENERATION_FAILED",
-        message: "사주 인생의 책 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있도록 상태를 복구했습니다.",
-        failedSections: [{ chapterId: chapterConfig.id, sectionId: `${chapterConfig.id}-all`, reason: generated?.code || "LLM_VALIDATION_FAILED" }],
-        retryable: true,
-        detail: generated?.validation || null,
-      };
+      const localGenerated = await generateLifeBookChapter({
+        env,
+        chapterConfig,
+        lifeBookInputData,
+        strictMode: false,
+        forceLocal: true,
+        previousTexts: [
+          ...previousTexts,
+          ...chapters.map((c) => c.contentMarkdown || ""),
+        ],
+        chapterMemories,
+      });
+
+      if (!localGenerated?.ok || !localGenerated?.chapterResult) {
+        return {
+          ok: false,
+          code: "SAJU_LIFE_BOOK_LLM_GENERATION_FAILED",
+          message: "사주 인생의 책 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있도록 상태를 복구했습니다.",
+          failedSections: [{ chapterId: chapterConfig.id, sectionId: `${chapterConfig.id}-all`, reason: generated?.code || "LLM_VALIDATION_FAILED" }],
+          retryable: true,
+          detail: generated?.validation || null,
+        };
+      }
+
+      chapters.push(localGenerated.chapterResult);
+      chapterMemories.push(buildChapterMemory(chapterConfig, localGenerated.chapterResult));
+      warnings.push({
+        chapterId: chapterConfig.id,
+        warning: "CHAPTER_REPAIRED_BY_LOCAL_DETERMINISTIC_FALLBACK",
+        validation: generated?.validation || null,
+      });
+      continue;
     }
 
     logLifeBookStage("API_GENERATION_SUCCESS", { chapterId: chapterConfig.id });
@@ -562,18 +613,31 @@ export async function generateLifeBookPdf(params = {}) {
       reportId,
       invalidChapters: reportValidation.invalidChapters,
     });
-    return {
-      ok: false,
-      code: "SAJU_LIFE_BOOK_LLM_GENERATION_FAILED",
-      message: "사주 인생의 책 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있도록 상태를 복구했습니다.",
-      failedSections: (reportValidation.invalidChapters || []).map((chapterId) => ({
-        chapterId,
-        sectionId: `${chapterId}-all`,
-        reason: "LLM_VALIDATION_FAILED",
-      })),
-      retryable: true,
-      detail: reportValidation,
-    };
+    const repairedChapters = await repairInvalidLifeBookChaptersWithApiOrLocal({
+      env,
+      lifeBookInputData,
+      chapters,
+      chapterMemories,
+      previousTexts,
+      chapterSchema: targetChapters,
+      invalidChapterIds: reportValidation.invalidChapters || [],
+      warnings,
+    });
+    if (Array.isArray(repairedChapters) && repairedChapters.length) {
+      chapters.length = 0;
+      repairedChapters.forEach((row) => chapters.push(row));
+      reportValidation = validateLifeBookGeneratedReport({
+        chapters,
+        chapterSchema: targetChapters,
+      });
+    }
+    if (!reportValidation.ok) {
+      warnings.push({
+        chapterId: "full-report",
+        warning: "LIFEBOOK_VALIDATION_DEGRADED_CONTINUE",
+        validation: reportValidation,
+      });
+    }
   } else {
     logLifeBookStage("QualityEnhanceSuccess", { reportId });
   }

@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { getApiBaseUrl } from "./api-config";
 import { authFetch, clearClientAuthState, logoutWithServer } from "./auth-client";
+import { fetchWithTimeout, toAbsoluteApiUrl } from "./http-client";
 import { persistSanitizedAuthUser, readSanitizedAuthUser, type ClientAuthUser } from "./auth-storage";
 
 export type AuthUser = ClientAuthUser & {
@@ -43,6 +44,7 @@ type LoginApiPayload = {
 const LOGIN_MAX_ATTEMPTS = 2;
 const LOGIN_RETRY_BASE_DELAY_MS = 180;
 const LOGIN_ATTEMPT_TIMEOUT_MS = 7000;
+const AUTH_REFRESH_COOLDOWN_MS = 1500;
 
 const IS_DEV = process.env.NODE_ENV !== "production";
 
@@ -59,6 +61,7 @@ const subscribers = new Set<() => void>();
 let refreshInFlight: Promise<AuthUser | null> | null = null;
 let meRequestSeq = 0;
 let latestAppliedMeSeq = 0;
+let lastRefreshCompletedAt = 0;
 
 function debugAuth(...args: unknown[]) {
   if (!IS_DEV) return;
@@ -191,23 +194,6 @@ function isAbortError(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   const maybe = error as { name?: unknown };
   return String(maybe.name || "") === "AbortError";
-}
-
-async function fetchWithTimeout(input: string, init: RequestInit, timeoutMs: number): Promise<Response> {
-  if (typeof AbortController === "undefined") {
-    return fetch(input, init);
-  }
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(input, {
-      ...init,
-      signal: controller.signal,
-    });
-  } finally {
-    clearTimeout(timer);
-  }
 }
 
 async function parseJsonResponse<T>(response: Response): Promise<T> {
@@ -363,7 +349,13 @@ async function loadMeFromServer() {
 
 export async function refreshAuth(options: { force?: boolean; silent?: boolean } = {}) {
   const { force = false, silent = false } = options;
-  if (!force && refreshInFlight) return refreshInFlight;
+
+  if (!force) {
+    if (refreshInFlight) return refreshInFlight;
+    if (state.authReady && (Date.now() - lastRefreshCompletedAt) < AUTH_REFRESH_COOLDOWN_MS) {
+      return state.user;
+    }
+  }
 
   if (!silent) {
     setState({ isLoading: true });
@@ -372,6 +364,7 @@ export async function refreshAuth(options: { force?: boolean; silent?: boolean }
   refreshInFlight = (async () => {
     try {
       const user = await loadMeFromServer();
+      lastRefreshCompletedAt = Date.now();
       setState({
         authReady: true,
         isLoading: false,
@@ -423,7 +416,7 @@ export async function login(credentials: LoginCredentials) {
 
     for (let attempt = 0; attempt < LOGIN_MAX_ATTEMPTS; attempt += 1) {
       try {
-        const nextResponse = await fetchWithTimeout(`${apiBase}/api/auth/login`, {
+        const nextResponse = await fetchWithTimeout(toAbsoluteApiUrl("/api/auth/login", apiBase), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -478,7 +471,7 @@ export async function login(credentials: LoginCredentials) {
       resolvedUser = await refreshAuth({ force: true });
     } else {
       applyResolvedUser(payloadUser);
-      void refreshAuth({ force: true, silent: true }).catch((error) => {
+      void refreshAuth({ force: false, silent: true }).catch((error) => {
         debugAuth("[auth] silent me refresh skipped", error);
       });
     }

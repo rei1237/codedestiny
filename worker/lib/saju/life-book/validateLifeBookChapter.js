@@ -571,16 +571,18 @@ export function createLifeBookFallbackChapter(chapterConfig, lifeBookInputData, 
   const sections = buildChapterSpecificSections(chapterConfig, profileName, lifeBookInputData);
   let contentMarkdown = sections.join("\n\n");
   let depth = 1;
-  const desiredChars = Math.max(
+  const desiredChars = Math.min(12000, Math.max(
     2500,
     Number(chapterConfig?.targetChars || 0),
     Number(chapterConfig?.minLength || 2500),
-  );
-  while (contentMarkdown.length < desiredChars) {
+  ));
+  let guard = 0;
+  while (contentMarkdown.length < desiredChars && guard < 24) {
     contentMarkdown += `\n\n### 데이터 확장 기록 ${depth}\n`;
     contentMarkdown += "해당 구간은 누락될 수 있는 근거를 보완하기 위한 기록입니다. 실제 적용에서는 일정, 관계, 지출, 회복 순서로 우선순위를 재정렬하세요.\n\n";
     contentMarkdown += "실행 문장: 이번 주 핵심 결정 1건을 선택하고, 결과를 7일 후 같은 기준으로 재평가해 수정안을 반영하세요.";
     depth += 1;
+    guard += 1;
   }
 
   return {

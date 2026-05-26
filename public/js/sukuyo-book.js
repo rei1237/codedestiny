@@ -1,56 +1,47 @@
 /**
  * 숙요점 프리미엄 (Sukuyo 宿曜占 — Premium Life Report)
- * CODE-DESTINY v1.0  •  27수 숙요 기반 13챕터 인생 총람
+ * CODE-DESTINY v1.0  •  27수 숙요 기반 10챕터 궁합 리포트
  */
 (function () {
   'use strict';
 
   var CHAPTER_TITLES = [
-    '🌑 영혼의 원형 — 당신의 숙요별이 새긴 운명 코드',
-    '🌊 감정의 조수간만 — 달의 주기가 만들어내는 정서 파동',
-    '🎭 페르소나와 브랜딩 — 세상이 당신을 기억하는 방식',
-    '💰 자산의 중력 — 부를 끌어당기는 달빛 전략',
-    '⚙️ 보이지 않는 톱니바퀴 — 성공 뒤에 숨겨진 협력 역학',
-    '📡 관계의 정밀 레이더 — 6대 숙요 관계 역학 완전 분석',
-    '💥 파괴적 혁신 — 위기를 기회로 전환하는 달빛 전략',
-    '🌿 조화로운 성장 — 나를 살리는 공간과 환경의 법칙',
-    '❤️ 정서적 유대 — 깊은 연결을 만드는 감정 지능',
-    '🧭 운명적 거리 — 가까이해야 할 것과 멀리해야 할 것',
-    '🌙 달의 주기 — 월령 에너지 사이클 완전 공략',
-    '⚗️ 관계를 정리하는 회복 기술 — 힘든 인연을 좋은 흐름으로 바꾸는 법',
-    '🗺️ 영혼의 마스터플랜 — 달빛 전략가의 10년 로드맵',
+    '1장. 두 사람의 본명숙과 첫 끌림의 구조',
+    '2장. 관계 유형과 거리감이 만드는 운명의 구조',
+    '3장. 감정선과 애착 온도차',
+    '4장. 갈등과 그림자의 충돌 패턴',
+    '5장. 사랑의 몰입도와 현실 적합성',
+    '6장. 소통, 신뢰, 경계선의 협상',
+    '7장. 재회, 이별, 반복 인연의 가능성',
+    '8장. 결혼, 동거, 장기 파트너십 적합성',
+    '9장. 서로를 성장시키는 힘과 위험 신호',
+    '10장. 두 사람을 위한 실행형 궁합 로드맵',
   ];
 
   var CHAPTER_SUBTITLES = [
-    '27수 탄생 숙요의 본질·숨겨진 이면·반복되는 패턴·재능 지수 완전 해독',
-    '달의 삭망 사이클과 숙요 에너지 공명·에너지 상승기·하강기 전략',
-    '숙요 이미지 코드·숨은 성향 극복·30일 이미지 관리 실행 플랜',
-    '숙요 재물 코드·달의 상승기 투자 원칙·재물 파괴 패턴 차단',
-    '조직 내 역할·협력 시너지·마찰 포인트 달빛 해결법',
-    '성·친·화·쇠·괴·살 6대 관계 역학 완전 분석',
-    '쇠괴 에너지 위기 전략·달빛 혁신법·역경을 성장 자원으로',
-    '공간 에너지·환경 심리학·건강 루틴·달월령 생활 설계',
-    '깊은 감정 연결·공감 지능·정서적 유대 강화법',
-    '성사·해로운 관계 경계·귀인 구별법·에너지 뱀파이어 차단',
-    '월령 27주기 에너지 사이클·시기별 최적 행동 전략',
-    '힘든 관계 정리·인연 회복 전략·새로운 인연 초대 의식',
-    '10년 운세 지도·생애 핵심 미션·3·5·10년 마스터플랜',
+    'A/B 본명숙, 기본 기질, 첫 인상과 초반 흡인력을 해석합니다.',
+    'relationType과 거리감을 중심으로 두 사람의 핵심 궁합 구조를 읽습니다.',
+    '감정 리듬, 애착 속도, 서운함이 쌓이는 경로를 정리합니다.',
+    '갈등 촉발점과 그림자 반응, 회복 프로토콜을 구체화합니다.',
+    '연애 몰입, 생활 궁합, 장기 유지 가능성을 현실적으로 점검합니다.',
+    '대화 습관과 신뢰 형성, 경계선 조율 방식을 해석합니다.',
+    '반복 인연과 재회 가능성, 놓아야 할 시그널을 읽습니다.',
+    '장기 생활과 책임 분배, 안정화 조건을 분석합니다.',
+    '성장 자극과 에너지 소모, 관계 보호 장치를 정리합니다.',
+    '전체 궁합을 행동 규칙과 실행 계획으로 종합합니다.',
   ];
 
   var LOADING_MSGS = [
-    '탄생 숙요(宿曜)의 원형 코드를 해독하는 중...',
-    '달의 삭망 주기와 정서 파동을 분석하는 중...',
-    '숙요 페르소나와 브랜딩 코드를 구성하는 중...',
-    '숙요 재물 코드와 달빛 자산 전략을 설계하는 중...',
-    '협력 역학과 보이지 않는 톱니바퀴를 분석하는 중...',
-    '6대 숙요 관계 역학 레이더를 구축하는 중...',
-    '파괴적 혁신과 달빛 위기 전략을 설계하는 중...',
-    '조화로운 성장을 위한 공간·환경 법칙을 분석하는 중...',
-    '정서적 유대와 감정 지능 지도를 그리는 중...',
-    '운명적 거리와 귀인 레이더를 설정하는 중...',
-    '달의 27주기 에너지 사이클을 로드맵화하는 중...',
-    '인연 정화 의식과 관계 회복 전략을 설계하는 중...',
-    '영혼의 마스터플랜과 10년 로드맵을 총결산하는 중...',
+    '두 사람의 본명숙 좌표와 첫 끌림의 구조를 정렬하는 중...',
+    '관계 유형과 거리감을 바탕으로 궁합 축을 계산하는 중...',
+    '감정선과 애착 온도차를 정밀 해석하는 중...',
+    '갈등과 그림자 충돌 패턴을 정리하는 중...',
+    '사랑의 몰입도와 현실 적합성을 점검하는 중...',
+    '소통 습관과 신뢰의 균형점을 해석하는 중...',
+    '재회와 이별, 반복 인연의 가능성을 읽는 중...',
+    '장기 파트너십과 생활 궁합을 구조화하는 중...',
+    '성장 자극과 위험 신호를 정리하는 중...',
+    '실행형 궁합 로드맵을 완성하는 중...',
   ];
 
   var MYSTIC_QUOTES = [
@@ -67,24 +58,22 @@
   ];
 
   var CHAPTER_STRUCTURED_LABELS = {
-    1: ['탄생 숙요 개요', '숙요의 숨겨진 이면', '반복되는 운명 패턴', '재능 지수 분석', '본능적 반응 코드', '핵심 강점', '약점과 그림자', '만트라와 실천법'],
-    2: ['달의 삭망 사이클', '감정 상승기 전략', '감정 하강기 대응', '감정 트리거 포인트', '감정 회복 기술', '정서 스타일 코드', '달 주기 감정 루틴'],
-    3: ['숙요 이미지 코드', '숨겨진 성향 분석', '외부 인식 vs 내면', '이미지 관리법', '브랜딩 전략', '30일 이미지 실행 플랜'],
-    4: ['숙요 재물 코드', '달 상승기 투자 원칙', '지출 패턴 분석', '재물 파괴 패턴 차단', '부 축적 전략', '금전 최적 타이밍'],
-    5: ['조직 내 역할 분석', '협력 시너지 유형', '마찰 포인트 진단', '달빛 해결 전략', '협업 최적화 실천'],
-    6: ['성(成) 관계 분석', '친(親) 관계 분석', '화(和) 관계 분석', '쇠(衰) 관계 분석', '괴(壞) 관계 분석', '살(殺) 관계 분석', '관계 운영 전략'],
-    7: ['쇠괴 에너지 분석', '위기 유형 진단', '파괴적 회전 전략', '혁신 시기 포착', '달빛 행동 원칙', '역경을 성장 자원으로'],
-    8: ['공간 에너지 설계', '환경 심리학 적용', '건강 루틴 구성', '달 주기 생활 설계', '회복 전략'],
-    9: ['감정 연결 스타일', '공감 지능 분석', '유대 강화법', '정서적 경계 설계', '친밀감 전략'],
-    10: ['성사 인연 유형', '해로운 관계 패턴', '귀인 구별법', '에너지 보호 기술', '관계 정리법'],
-    11: ['월령 27주기 맵', '에너지 상승 시기', '에너지 하강 시기', '시기별 행동 전략', '최적 행동 타이밍'],
-    12: ['힘든 인연 패턴 분석', '정화 의식 설계', '관계 회복 전략', '새로운 인연 초대법', '관계 리셋 루틴'],
-    13: ['생애 핵심 미션', '3년 실행 계획', '5년 성장 로드맵', '10년 마스터플랜', '최종 실행 전략'],
+    1: ['A의 본명숙과 관계 반응', 'B의 본명숙과 관계 반응', '처음 끌림이 생기는 이유', '서로를 오해하기 쉬운 첫 포인트', '관계의 출발선 정리'],
+    2: ['관계 유형의 본질', '거리감이 만드는 심리 메커니즘', 'A가 B에게 주는 영향', 'B가 A에게 주는 영향', '이 관계를 지배하는 기본 규칙'],
+    3: ['감정 표현 속도의 차이', '서운함이 쌓이는 메커니즘', '안정감을 느끼는 조건', '정서 회복 방식의 차이', '감정 조율법'],
+    4: ['갈등의 점화 포인트', '서로의 그림자가 충돌하는 순간', '싸움이 길어지는 이유', '관계를 망치지 않는 대화 규칙', '갈등 후 회복 프로토콜'],
+    5: ['연애 초반 몰입도', '현실 생활 궁합', '함께 있을 때 강해지는 영역', '생활 패턴 충돌 포인트', '장기 유지 가능성'],
+    6: ['말이 잘 통하는 순간', '오해가 커지는 언어 습관', '신뢰를 만드는 행동', '서로의 경계선 이해', '건강한 합의 방식'],
+    7: ['헤어짐이 반복되는 이유', '재회의 조건', '놓아야 할 시그널', '다시 만난다면 필요한 변화', '인연의 학습 과제'],
+    8: ['장기 파트너십의 장점', '생활 운영에서 부딪히는 지점', '책임과 역할 분배', '같이 살 때 필요한 규칙', '장기 안정화 조건'],
+    9: ['서로를 성장시키는 자극', '에너지 소모 패턴', '피해야 할 행동 고리', '보완이 잘 되는 순간', '관계를 지키는 핵심 장치'],
+    10: ['핵심 궁합 결론', '지금 당장 바꿔야 할 행동', '감정 소모를 줄이는 습관', '장기 관계 운영 규칙', '향후 90일 실행 로드맵'],
   };
 
-  var _chapters = Array(13).fill(null);
-  var _chapterStructured = Array(13).fill(null);
-  var _chapterMeta = Array(13).fill(null);
+  var CHAPTER_COUNT = CHAPTER_TITLES.length;
+  var _chapters = Array(CHAPTER_COUNT).fill(null);
+  var _chapterStructured = Array(CHAPTER_COUNT).fill(null);
+  var _chapterMeta = Array(CHAPTER_COUNT).fill(null);
   var _generating = false;
   var _currentChapter = 1;
   var _mysticTimer = null;
@@ -128,6 +117,111 @@
   }
 
   function _qs(id) { return document.getElementById(id); }
+
+  function _normalizeChapterArray(source) {
+    var out = Array(CHAPTER_COUNT).fill(null);
+    if (!Array.isArray(source)) return out;
+    for (var i = 0; i < Math.min(CHAPTER_COUNT, source.length); i++) out[i] = source[i] || null;
+    return out;
+  }
+
+  function _hourLabelFor(hour) {
+    var h = Number(hour);
+    if (!Number.isFinite(h)) return '';
+    if (h === 23 || h === 0) return '자시(23-01시)';
+    if (h === 1 || h === 2) return '축시(01-03시)';
+    if (h === 3 || h === 4) return '인시(03-05시)';
+    if (h === 5 || h === 6) return '묘시(05-07시)';
+    if (h === 7 || h === 8) return '진시(07-09시)';
+    if (h === 9 || h === 10) return '사시(09-11시)';
+    if (h === 11 || h === 12) return '오시(11-13시)';
+    if (h === 13 || h === 14) return '미시(13-15시)';
+    if (h === 15 || h === 16) return '신시(15-17시)';
+    if (h === 17 || h === 18) return '유시(17-19시)';
+    if (h === 19 || h === 20) return '술시(19-21시)';
+    return '해시(21-23시)';
+  }
+
+  function _parseLunarHint(raw) {
+    var source = String(raw || '').trim();
+    if (!source) return null;
+    var nums = source.match(/\d+/g);
+    if (!nums || nums.length < 3) return null;
+    return {
+      lunarMonth: Number(nums[1]),
+      lunarDay: Number(nums[2]),
+      isLeapMonth: /윤/.test(source),
+    };
+  }
+
+  function _solarToLunarHint(input) {
+    if (!input || !input.year || !input.month || !input.day) return null;
+    try {
+      if (!window.KasiEngine || typeof window.KasiEngine.solarToLunar !== 'function') return null;
+      var lunar = window.KasiEngine.solarToLunar(new Date(Number(input.year), Number(input.month) - 1, Number(input.day), Number(input.hour) || 12, Number(input.minute) || 0), true);
+      if (!lunar || !lunar.month || !lunar.day) return null;
+      return {
+        lunarMonth: Number(lunar.month),
+        lunarDay: Number(lunar.day),
+        isLeapMonth: !!lunar.isLeap,
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function _resolveSelfLunarHint(profile) {
+    var birth = profile && profile.birth ? profile.birth : {};
+    var direct = _parseLunarHint(birth.lunarDate);
+    return direct || _solarToLunarHint(birth);
+  }
+
+  function _resolvePartnerLunarHint(partner) {
+    if (!partner) return null;
+    var calType = String(partner.calType || 'solar').toLowerCase();
+    if (calType === 'lunar' || calType === 'lunar_leap') {
+      if (!partner.month || !partner.day) return null;
+      return {
+        lunarMonth: Number(partner.month),
+        lunarDay: Number(partner.day),
+        isLeapMonth: calType === 'lunar_leap',
+      };
+    }
+    return _solarToLunarHint(partner);
+  }
+
+  function _readCurrentSukuyoHints() {
+    var basic = null;
+    var compat = null;
+    try { basic = window._syLastSukuyoBasicResult || null; } catch (_) { basic = null; }
+    try { compat = window._syLastCompat || null; } catch (_) { compat = null; }
+    return {
+      currentSukuyoName: basic && basic.mansion ? String(basic.mansion) : '',
+      currentSukuyoIndex: basic && Number.isFinite(Number(basic.mansionIdx)) ? Number(basic.mansionIdx) : null,
+      partnerSukuyoName: compat && compat.partnerMansion ? String(compat.partnerMansion) : '',
+      partnerSukuyoIndex: compat && Number.isFinite(Number(compat.partnerIdx)) ? Number(compat.partnerIdx) : null,
+    };
+  }
+
+  function _getFatalChapterError(data) {
+    var code = String(data && (data.code || data.errorCode) || '').trim().toUpperCase();
+    var msg = String(data && (data.error || data.message) || '').trim();
+    if (code === 'SUKUYO_CALCULATION_INCOMPLETE') return msg || '숙요 계산 데이터가 부족합니다.';
+    if (code === 'SUKUYO_PARTNER_INPUT_REQUIRED') return msg || '상대방 생년월일 정보가 필요합니다.';
+    if (code === 'SUKUYO_MODE_UNSUPPORTED') return msg || '지원하지 않는 숙요 리포트 모드입니다.';
+    if (code === 'SUKYO_REPORT_PAYLOAD_INCOMPLETE' || code === 'SUKUYO_CANONICAL_INCOMPLETE') return msg || '숙요 리포트에 필요한 핵심 데이터가 부족합니다.';
+    if (/숙요 계산 데이터가 불완전합니다|궁합 리포트는 상대방 생년월일이 필요합니다/.test(msg)) return msg;
+    return '';
+  }
+
+  function _shouldRetryChapter(data, message) {
+    var code = String(data && (data.code || data.errorCode) || '').trim().toUpperCase();
+    var status = Number(data && data.status);
+    var msg = String(message || '').trim();
+    if (code && /INCOMPLETE|REQUIRED|UNSUPPORTED|INVALID/.test(code)) return false;
+    if (Number.isFinite(status) && status >= 500) return true;
+    return /응답 시간 초과|timeout|network|failed to fetch|load failed/i.test(msg);
+  }
 
   function _applySukuyoTheme(modal) {
     if (!modal || !modal.style) return;
@@ -277,13 +371,13 @@
     for(var i=0;i<screens.length;i++){var el=_qs(screens[i]);if(el)el.style.display=(screens[i]===id)?'':'none';}
   }
 
-  var SK_ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII'];
+  var SK_ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X'];
 
   function _renderToc(){
     var nav=document.getElementById('skToc');
     if(!nav||nav.querySelector('[data-sk-chapter]'))return;
     var html='';
-    for(var i=1;i<=13;i++) html+='<button type="button" class="lb-toc-item sk-toc-item'+(i===1?' active':'')+'" data-sk-chapter="'+i+'">'+SK_ROMAN[i-1]+'</button>';
+    for(var i=1;i<=CHAPTER_COUNT;i++) html+='<button type="button" class="lb-toc-item sk-toc-item'+(i===1?' active':'')+'" data-sk-chapter="'+i+'">'+SK_ROMAN[i-1]+'</button>';
     nav.innerHTML=html;
   }
 
@@ -342,20 +436,23 @@
     if(!window.__cdActiveBirthProfile||!window.__cdActiveBirthProfile.birth) window.__cdActiveBirthProfile=profile;
     var saved=_skLoadSaved(profile);
     if(saved&&saved.chapters&&saved.chapters.some(Boolean)){
-      _chapters=saved.chapters;
+      _chapters=_normalizeChapterArray(saved.chapters);
+      _chapterStructured=Array(CHAPTER_COUNT).fill(null);
+      _chapterMeta=Array(CHAPTER_COUNT).fill(null);
       _currentChapter=1;
       _showScreen('skResultScreen');
       _updateTocState(); _renderChapter(1); _bindToc();
       var nameEl=_qs('skResultName'),dateEl=_qs('skResultDate');
-      if(nameEl) nameEl.textContent='💫 '+(saved.name||'사용자')+'님의 숙요점 인생 총람';
+      if(nameEl) nameEl.textContent='💫 '+(saved.name||'사용자')+'님의 숙요점 궁합 리포트';
       if(dateEl){var b=saved.birth||{};var sd=saved.savedAt?new Date(saved.savedAt).toLocaleDateString('ko-KR'):'';dateEl.textContent=[b.year,b.month,b.day].filter(Boolean).join('.')+(sd?' · 💾 '+sd+' 저장':'');}
       modal.style.display='flex'; modal.style.zIndex='100120'; document.body.style.overflow='hidden';
       document.body.classList.add('lb-modal-open');
       try{modal.setAttribute('aria-hidden','false');}catch(_){}
       return;
     }
-    _chapters=Array(13).fill(null);
-    _chapterMeta=Array(13).fill(null);
+    _chapters=Array(CHAPTER_COUNT).fill(null);
+    _chapterStructured=Array(CHAPTER_COUNT).fill(null);
+    _chapterMeta=Array(CHAPTER_COUNT).fill(null);
     _currentChapter=1;
     _showScreen('skStartScreen');
     modal.style.display='flex'; modal.style.zIndex='100120';
@@ -384,11 +481,10 @@
     var hourSel=document.getElementById('skPartnerHour');
     var minSel=document.getElementById('skPartnerMinute');
     if(hourSel&&hourSel.options.length<=1){
-      var hourLabels=['자시(0시)','축시(1시)','인시(2시)','묘시(3시)','진시(4시)','사시(5시)','오시(6시)','미시(7시)','신시(8시)','유시(9시)','술시(10시)','해시(11시)'];
       for(var h=0;h<24;h++){
         var opt=document.createElement('option');
         opt.value=String(h);
-        opt.textContent=h+'시'+(h<12?'  ('+hourLabels[h]+')':'');
+        opt.textContent=h+'시 ('+_hourLabelFor(h)+')';
         hourSel.appendChild(opt);
       }
     }
@@ -454,11 +550,15 @@
     if(!b.year||!b.month||!b.day){alert('생년월일을 확인할 수 없습니다. 사주 계산 후 다시 시도해 주세요.');return;}
 
     _generating=true;
-    _chapters=Array(13).fill(null);
-    _chapterMeta=Array(13).fill(null);
+    _chapters=Array(CHAPTER_COUNT).fill(null);
+    _chapterStructured=Array(CHAPTER_COUNT).fill(null);
+    _chapterMeta=Array(CHAPTER_COUNT).fill(null);
     _showScreen('skLoadingScreen');
 
     var partner=_readPartnerData();
+    var selfLunarHint=_resolveSelfLunarHint(profile);
+    var partnerLunarHint=_resolvePartnerLunarHint(partner);
+    var engineHints=_readCurrentSukuyoHints();
 
     var progressBar=_qs('skProgressBar'),progressText=_qs('skProgressText');
     var chapterMsg=_qs('skLoadingChapter'),chapterNumEl=_qs('skLoadingChapterNum');
@@ -481,12 +581,12 @@
       : null;
 
     function _setProgress(done){
-      var pct=(done/13)*100;
+      var pct=(done/CHAPTER_COUNT)*100;
       if(progressBar)progressBar.style.width=pct+'%';
-      if(progressText)progressText.textContent=done+' / 13 챕터 완성';
-      if(chapterMsg&&done<13)chapterMsg.textContent=LOADING_MSGS[done]||'분석 중...';
-      if(chapterMsg&&done>=13)chapterMsg.textContent='숙요점 인생 총람이 완성되었습니다 ✦';
-      if(chapterNumEl)chapterNumEl.textContent=done<13?'Chapter '+(done+1):'✦ 완성 ✦';
+      if(progressText)progressText.textContent=done+' / '+CHAPTER_COUNT+' 챕터 완성';
+      if(chapterMsg&&done<CHAPTER_COUNT)chapterMsg.textContent=LOADING_MSGS[done]||'분석 중...';
+      if(chapterMsg&&done>=CHAPTER_COUNT)chapterMsg.textContent='숙요점 궁합 리포트가 완성되었습니다.';
+      if(chapterNumEl)chapterNumEl.textContent=done<CHAPTER_COUNT?'Chapter '+(done+1):'완성';
       if (chapterMsg) {
         chapterMsg.classList.remove('lb-loading__status--pulse');
         void chapterMsg.offsetWidth;
@@ -500,7 +600,7 @@
       Array.prototype.forEach.call(chDots,function(d){
         var ch=Number(d.getAttribute('data-skch'));
         var isDone=ch<=done;
-        var isActive=ch===done+1&&done<13;
+        var isActive=ch===done+1&&done<CHAPTER_COUNT;
         var wasDone=d.classList.contains('zb-ch-dot--done')||d.classList.contains('lb-ch-dot--done');
         d.classList.toggle('zb-ch-dot--done',isDone);
         d.classList.toggle('zb-ch-dot--active',isActive);
@@ -541,41 +641,55 @@
             mode:'compatibility',
             reportMode:'compatibility',
             reportType:'compatibility',
+            name:profile.name||'사용자',
+            gender:profile.gender||undefined,
             year:b.year,month:b.month,day:b.day,hour:b.hour!==undefined?b.hour:12,chapter:idx+1,
             chapterIndex:idx+1,
             sessionId:idx+1,
+            timezone:9,
             strictNoFallback:false,
             chapterTitle: CHAPTER_TITLES[idx] || ('Chapter ' + (idx + 1)),
             chapterSubtitle: CHAPTER_SUBTITLES[idx] || '',
             chapterSpecificSections: (CHAPTER_STRUCTURED_LABELS[idx + 1] || []).slice(0, 8),
+            lunarMonth:selfLunarHint?selfLunarHint.lunarMonth:undefined,
+            lunarDay:selfLunarHint?selfLunarHint.lunarDay:undefined,
+            isLeap:selfLunarHint?selfLunarHint.isLeapMonth:undefined,
+            currentSukuyoName:engineHints.currentSukuyoName||undefined,
+            currentSukuyoIndex:engineHints.currentSukuyoIndex,
             partnerName:partner.name||undefined,
             partnerYear:partner.year||undefined,
             partnerMonth:partner.month||undefined,
             partnerDay:partner.day||undefined,
             partnerHour:partner.hour!==null?partner.hour:undefined,
             partnerMinute:partner.minute!==null?partner.minute:undefined,
+            partnerTimezone:9,
             partnerGender:partner.gender||undefined,
-            partnerCalType:partner.calType||undefined
+            partnerCalType:partner.calType||undefined,
+            partnerLunarMonth:partnerLunarHint?partnerLunarHint.lunarMonth:undefined,
+            partnerLunarDay:partnerLunarHint?partnerLunarHint.lunarDay:undefined,
+            partnerIsLeap:partnerLunarHint?partnerLunarHint.isLeapMonth:undefined,
+            partnerSukuyoName:engineHints.partnerSukuyoName||undefined,
+            partnerSukuyoIndex:engineHints.partnerSukuyoIndex
           })
         })
-        .then(function(res){return res.ok?res.json():res.json().catch(function(){return{};}).then(function(e){return{ok:false,message:(e&&e.message)||'HTTP '+res.status};});})
+        .then(function(res){return res.ok?res.json():res.json().catch(function(){return{};}).then(function(e){return{ok:false,message:(e&&e.message)||'HTTP '+res.status,status:res.status,code:e&&e.code};});})
         .then(function(data){clearTimeout(tid);resolve(data);})
         .catch(function(err){clearTimeout(tid);resolve({ok:false,message:String(err&&err.message?err.message:err)});});
       });
     }
 
     var _failCount=0;
-    var _chapterRetries=Array(13).fill(0);
+    var _chapterRetries=Array(CHAPTER_COUNT).fill(0);
     (function generateNext(idx){
-      if(idx>=13){
+      if(idx>=CHAPTER_COUNT){
         clearInterval(_mysticTimer);_mysticTimer=null;_generating=false;
         var validCount=_chapters.filter(function(c){return typeof c==='string'&&c.trim().length>0&&!/^⚠️/.test(c);}).length;
-        if(validCount===0){var errEl=_qs('skErrorMsg');if(errEl)errEl.textContent='모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.';_showScreen('skErrorScreen');return;}
+        if(validCount===0){var errEl=_qs('skErrorMsg');if(errEl)errEl.textContent='모든 챕터 생성에 실패했습니다. 숙요 기본 해석 데이터와 네트워크 상태를 확인해 주세요.';_showScreen('skErrorScreen');return;}
         _showScreen('skResultScreen');
         _updateTocState();_renderChapter(1);_bindToc();
         var prof=window.__cdActiveBirthProfile||{};
         var _nameEl=_qs('skResultName'),_dateEl=_qs('skResultDate');
-        if(_nameEl)_nameEl.textContent='💫 '+(prof.name||'사용자')+'님의 숙요점 인생 총람';
+        if(_nameEl)_nameEl.textContent='💫 '+(prof.name||'사용자')+'님의 숙요점 궁합 리포트';
         if(_dateEl){var _b=prof.birth||{};_dateEl.textContent=[_b.year,_b.month,_b.day].filter(Boolean).join('.')+'생 · 🗓️ '+new Date().toLocaleDateString('ko-KR')+' 발행';}
         _skSaveResult(prof);
         return;
@@ -592,9 +706,17 @@
           return;
         }
         _failCount++;var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류';console.warn('[숙요] Chapter '+(idx+1)+' 실패:',msg);
+        var fatalMsg=_getFatalChapterError(data);
+        if(fatalMsg){
+          clearInterval(_mysticTimer);_mysticTimer=null;_generating=false;
+          var fatalEl=_qs('skErrorMsg');
+          if(fatalEl)fatalEl.textContent=fatalMsg+' 기본 숙요 화면에서 본인과 상대의 생년월일, 시간, 달력 종류를 다시 확인한 뒤 재시도해 주세요.';
+          _showScreen('skErrorScreen');
+          return;
+        }
         _chapterRetries[idx]=Number(_chapterRetries[idx]||0)+1;
-        if(_chapterRetries[idx] < 5){
-          if(chapterMsg)chapterMsg.textContent='Chapter '+(idx+1)+' 재시도 중... ('+_chapterRetries[idx]+'/4)';
+        if(_chapterRetries[idx] < 2 && _shouldRetryChapter(data,msg)){
+          if(chapterMsg)chapterMsg.textContent='Chapter '+(idx+1)+' 재시도 중... ('+_chapterRetries[idx]+'/1)';
           setTimeout(function(){ generateNext(idx); }, 900);
           return;
         }
@@ -607,36 +729,37 @@
   };
 
   window.downloadSukuyoBookPdf = function(){
-    if(!_chapters.some(Boolean)){alert('먼저 숙요점 인생 총람을 생성해 주세요.');return;}
+    if(!_chapters.some(Boolean)){alert('먼저 숙요점 궁합 리포트를 생성해 주세요.');return;}
     var profile=window.__cdActiveBirthProfile||{};
-    var name=(profile.name||'사용자')+'님의 숙요점 인생 총람';
+    var name=(profile.name||'사용자')+'님의 숙요점 궁합 리포트';
     var birth=profile.birth||{};
     var issued=new Date().toLocaleDateString('ko-KR');
     var bodyHtml='';
-    for(var i=0;i<13;i++){
+    for(var i=0;i<CHAPTER_COUNT;i++){
       if(!_chapters[i])continue;
       bodyHtml+='<div class="chapter" style="page-break-before:'+(i>0?'always':'auto')+'"><div class="chapter-header"><span class="chapter-num">Chapter '+(i+1)+'</span><h2 class="chapter-title">'+_escHtml(_getChapterMeta(i).title)+'</h2><p class="chapter-sub">'+_escHtml(_getChapterMeta(i).subtitle)+'</p></div><div class="chapter-body">'+_md2html(_chapters[i])+'</div></div>';
     }
     var fullHtml='<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>'+_escHtml(name)+'</title>' +
       '<style>@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap");' +
-      'body{font-family:"Noto Serif KR",serif;color:#0a0820;background:#fff;margin:0;padding:0;}' +
+      'body{font-family:"Noto Serif KR",serif;color:#0a0820;background:#fff;margin:0;padding:0;word-break:keep-all;}' +
       '.cover{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:40px;background:linear-gradient(135deg,#020817 0%,#0c1a2e 50%,#020817 100%);color:#fff;page-break-after:always;}' +
       '.cover-badge{font-size:0.75rem;letter-spacing:0.2em;color:#7dd3fc;margin-bottom:16px;text-transform:uppercase;}' +
       '.cover-title{font-size:2.6rem;font-weight:700;margin:0 0 12px;color:#fff;}' +
       '.cover-name{font-size:1.6rem;color:#7dd3fc;margin:8px 0;}' +
-      '.cover-info{font-size:0.9rem;color:#94a3b8;}' +
-      '.chapter{padding:52px 60px;}' +
+      '.cover-info{font-size:0.9rem;color:#94a3b8;max-width:520px;line-height:1.7;}' +
+      '.chapter{padding:52px 60px;max-width:780px;margin:0 auto;}' +
       '.chapter-header{border-bottom:2px solid#7dd3fc;margin-bottom:28px;padding-bottom:20px;}' +
       '.chapter-num{font-size:0.75rem;letter-spacing:0.2em;color:#0284c7;text-transform:uppercase;}' +
       '.chapter-title{font-size:1.5rem;font-weight:700;color:#0c1a2e;margin:8px 0 6px;}' +
       '.chapter-sub{font-size:0.9rem;color:#0369a1;margin:0;}' +
-      'h1,h2,h3,h4{color:#0c1a2e;}p{line-height:1.9;color:#0c1a2e;}' +
+      '.chapter-body{font-size:1rem;line-height:1.95;}' +
+      'h1,h2,h3,h4{color:#0c1a2e;}p{line-height:1.9;color:#0c1a2e;margin:0 0 14px;}' +
       'blockquote{border-left:3px solid#38bdf8;padding:8px 16px;background:#f0f9ff;margin:16px 0;}' +
       'strong{color:#075985;} ul,ol{padding-left:1.5em;} li{margin-bottom:6px;}' +
       '</style></head><body>' +
       '<div class="cover"><p class="cover-badge">💫 SUKUYO 宿曜占 PREMIUM</p>' +
-      '<h1 class="cover-title">숙요점 인생 총람</h1>' +
-      '<p style="font-size:1rem;color:#7dd3fc;margin-bottom:20px;">불교 밀교 비전 27수 기반 13챕터 달빛 운명 리포트</p>' +
+      '<h1 class="cover-title">숙요점 궁합 리포트</h1>' +
+      '<p style="font-size:1rem;color:#7dd3fc;margin-bottom:20px;">불교 밀교 비전 27수 기반 10챕터 관계 분석 리포트</p>' +
       '<div style="width:60px;height:1px;background:rgba(125,211,252,0.4);margin:0 auto 20px;"></div>' +
       '<p class="cover-name">'+_escHtml((profile.name||'사용자'))+'님의 숙요 리포트</p>' +
       '<p class="cover-info">'+([birth.year,birth.month,birth.day].filter(Boolean).join('년 ')+(birth.day?'일':'')||'생년월일 미상')+'</p>' +

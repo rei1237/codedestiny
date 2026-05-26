@@ -635,6 +635,7 @@ export async function generateLifeBookChapter(params = {}) {
   const previousTexts = Array.isArray(params.previousTexts) ? params.previousTexts : [];
   const chapterMemories = Array.isArray(params.chapterMemories) ? params.chapterMemories : [];
   const forceLocal = params.forceLocal === true;
+  const allowDeterministicFallback = params.allowDeterministicFallback !== false;
 
   if (!chapterConfig || typeof chapterConfig !== "object") {
     return {
@@ -645,11 +646,7 @@ export async function generateLifeBookChapter(params = {}) {
   }
 
   if (forceLocal) {
-    return {
-      ok: false,
-      code: "LIFEBOOK_LOCAL_FALLBACK_DISABLED",
-      message: "사주 인생의 책은 로컬 fallback 본문을 허용하지 않습니다.",
-    };
+    return buildLifeBookDeterministicChapter(chapterConfig, lifeBookInputData, previousTexts);
   }
 
   let attempts = 0;
@@ -712,6 +709,17 @@ export async function generateLifeBookChapter(params = {}) {
         warnings: [],
       };
       lastRawText = String(error?.message || "");
+    }
+  }
+
+  if (allowDeterministicFallback) {
+    const deterministic = buildLifeBookDeterministicChapter(chapterConfig, lifeBookInputData, previousTexts);
+    if (deterministic?.ok) {
+      return {
+        ...deterministic,
+        attempts,
+        usedFallback: true,
+      };
     }
   }
 

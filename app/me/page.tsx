@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
-import { logout } from "../_lib/auth-store";
+import { getAuthState, logout, refreshAuth } from "../_lib/auth-store";
 import { persistSanitizedAuthUser, readSanitizedAuthUser } from "../_lib/auth-storage";
 import WithdrawModal from "../components/WithdrawModal";
 
@@ -170,33 +170,18 @@ export default function MePage() {
       }
 
       try {
-        const response = await authFetch("/api/auth/me", {
-          method: "GET",
-          cache: "no-store",
-        }, {
-          retryOn401: true,
-          apiBase,
-        });
+        await refreshAuth({ force: false, silent: true });
+        const authState = getAuthState();
+        const nextUser = (authState.user || null) as AuthUser | null;
 
-        const payload = await response.json().catch(() => null);
-        if (!response.ok) {
-          const code = String(payload?.code || payload?.error || "").toUpperCase();
-          if (code === "AUTH_REFRESH_TEMPORARY_FAILURE") {
-            if (mounted) {
-              setAuthNotice("로그인 세션 확인이 일시적으로 지연되고 있습니다. 잠시 후 자동으로 복구됩니다.");
-            }
-            return;
-          }
-          if (response.status === 401 || response.status === 403) {
-            throw new Error("auth_invalid");
-          }
-          throw new Error("auth_check_failed");
+        if (!authState.isAuthenticated || !nextUser) {
+          throw new Error("auth_invalid");
         }
 
-        if (payload?.user && mounted) {
-          persistSanitizedAuthUser(payload.user);
-          setUser(payload.user);
-          setHasLocalAuth(payload.user?.hasLocalAuth !== false);
+        if (mounted) {
+          persistSanitizedAuthUser(nextUser);
+          setUser(nextUser);
+          setHasLocalAuth(nextUser?.hasLocalAuth !== false);
           setAuthNotice("");
         }
 
