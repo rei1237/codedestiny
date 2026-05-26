@@ -47,6 +47,8 @@ ziwei_autotune_report.utf8.json
 # temp/generated scripts
 _fix*.cjs
 _temp*.js
+!worker/lib/pdf/blueprints/_template.js
+!worker/lib/pdf/examples/_template.js
 
 # build artifacts & temp logs
 build_output.txt
