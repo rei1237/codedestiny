@@ -347,6 +347,61 @@ function __cdInitGlobalPaymentLoading() {
   window.__cdPaymentFetchPatched = true;
 
   var originalFetch = window.fetch.bind(window);
+
+  function __cdReadPremiumAccessTokenForBridge() {
+    var token = '';
+    try { token = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { token = ''; }
+    if (!token) {
+      try { token = String(sessionStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
+    }
+    if (!token) {
+      try { token = String(localStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
+    }
+    return token;
+  }
+
+  function __cdPersistPremiumAccessTokenForBridge(token) {
+    var safeToken = String(token || '').trim();
+    if (!safeToken) return;
+    try { window.__cdPremiumAccessToken = safeToken; } catch (_) {}
+    try { sessionStorage.setItem('cd_premium_access_token', safeToken); } catch (_) {}
+    try { localStorage.setItem('cd_premium_access_token', safeToken); } catch (_) {}
+  }
+
+  function __cdExtractPremiumAccessTokenFromAny(payload) {
+    if (!payload || typeof payload !== 'object') return '';
+    var keys = ['premiumAccessToken', '_premiumAccessToken', 'accessToken', 'token'];
+    for (var i = 0; i < keys.length; i += 1) {
+      var v = payload[keys[i]];
+      if (typeof v === 'string' && v.trim()) return v.trim();
+    }
+    if (payload.data && typeof payload.data === 'object') {
+      var nested = __cdExtractPremiumAccessTokenFromAny(payload.data);
+      if (nested) return nested;
+    }
+    if (payload.payload && typeof payload.payload === 'object') {
+      var nestedPayload = __cdExtractPremiumAccessTokenFromAny(payload.payload);
+      if (nestedPayload) return nestedPayload;
+    }
+    return '';
+  }
+
+  function __cdTapPremiumTokenFromResponse(response, reqUrl) {
+    if (!response || !reqUrl || reqUrl.origin !== window.location.origin) return;
+    var pathname = String(reqUrl.pathname || '');
+    if (pathname.indexOf('/api/') !== 0) return;
+    var contentType = '';
+    try { contentType = String(response.headers.get('content-type') || '').toLowerCase(); } catch (_) { contentType = ''; }
+    if (contentType.indexOf('application/json') === -1) return;
+
+    try {
+      response.clone().json().then(function (payload) {
+        var token = __cdExtractPremiumAccessTokenFromAny(payload);
+        if (token) __cdPersistPremiumAccessTokenForBridge(token);
+      }).catch(function () {});
+    } catch (_) {}
+  }
+
   window.fetch = function(input, init) {
     var reqUrl = __cdResolveRequestUrl(input);
     var reqMethod = __cdResolveRequestMethod(input, init);
@@ -365,15 +420,19 @@ function __cdInitGlobalPaymentLoading() {
       }
 
       if (!headers.has('x-premium-access-token')) {
-        var premiumToken = '';
-        try { premiumToken = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { premiumToken = ''; }
-        if (!premiumToken) {
-          try { premiumToken = String(sessionStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { premiumToken = ''; }
-        }
-        if (!premiumToken) {
-          try { premiumToken = String(localStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { premiumToken = ''; }
-        }
+        var premiumToken = __cdReadPremiumAccessTokenForBridge();
         if (premiumToken) headers.set('x-premium-access-token', premiumToken);
+      }
+
+      var bodyToken = __cdReadPremiumAccessTokenForBridge();
+      if (bodyToken && patchedInit && typeof patchedInit.body === 'string') {
+        try {
+          var parsedBody = JSON.parse(patchedInit.body);
+          if (parsedBody && typeof parsedBody === 'object' && !Array.isArray(parsedBody) && !parsedBody.premiumAccessToken) {
+            parsedBody.premiumAccessToken = bodyToken;
+            patchedInit.body = JSON.stringify(parsedBody);
+          }
+        } catch (_) {}
       }
 
       patchedInit.headers = headers;
@@ -382,7 +441,10 @@ function __cdInitGlobalPaymentLoading() {
     var shouldTrack = __cdShouldTrackPaymentRequest(pathname, reqMethod);
 
     if (!shouldTrack) {
-      return originalFetch(input, patchedInit);
+      return originalFetch(input, patchedInit).then(function(response) {
+        __cdTapPremiumTokenFromResponse(response, reqUrl);
+        return response;
+      });
     }
 
     startPayment(__cdResolvePaymentMessage(pathname));
@@ -390,6 +452,7 @@ function __cdInitGlobalPaymentLoading() {
     try {
       return originalFetch(input, patchedInit).then(
         function(response) {
+          __cdTapPremiumTokenFromResponse(response, reqUrl);
           endPayment();
           return response;
         },
@@ -1513,19 +1576,19 @@ var __cdLazyActionLoaders = {
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
   openLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
   closeLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
-  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-1779776718021').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-1779776718021'); }); },
+  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-1779778124354').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-1779778124354'); }); },
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
-  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-1779776718021'); },
-  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-1779776718021'); },
-  openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=build-1779776718021'); },
-  openTarotHealingPage: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=build-1779776718021'); },
-  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-1779776718021'); },
-  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-1779776718021'); },
-  gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=build-1779776718021'); },
+  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-1779778124354'); },
+  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-1779778124354'); },
+  openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=build-1779778124354'); },
+  openTarotHealingPage: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=build-1779778124354'); },
+  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-1779778124354'); },
+  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-1779778124354'); },
+  gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=build-1779778124354'); },
   openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
-  openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=build-1779776718021'); },
+  openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=build-1779778124354'); },
   openSibylModal: function() {
-    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-1779776718021').then(function() {
+    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-1779778124354').then(function() {
       if (typeof window.openSibylModal === 'function') window.openSibylModal();
     });
   },
@@ -1763,13 +1826,13 @@ function __cdEnsureSajuCoreLoaded() {
   if (__cdSajuCoreLoadPromise) return __cdSajuCoreLoadPromise;
 
   var chain = [
-    '/js/core/kasi-calendar-service.js?v=build-1779776718021',
-    '/js/compat-llm-prompts.js?v=build-1779776718021',
-    '/js/saju-engine.js?v=build-1779776718021',
-    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-1779776718021',
-    '/js/core/saju/modalProfileState.js?v=build-1779776718021',
-    '/js/core/saju/reportDashboard.js?v=build-1779776718021',
-    '/js/saju-engine-continuation.js?v=build-1779776718021',
+    '/js/core/kasi-calendar-service.js?v=build-1779778124354',
+    '/js/compat-llm-prompts.js?v=build-1779778124354',
+    '/js/saju-engine.js?v=build-1779778124354',
+    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-1779778124354',
+    '/js/core/saju/modalProfileState.js?v=build-1779778124354',
+    '/js/core/saju/reportDashboard.js?v=build-1779778124354',
+    '/js/saju-engine-continuation.js?v=build-1779778124354',
     '/js/entertain-engine.js'
   ];
 
@@ -1808,7 +1871,7 @@ function __cdEnsureSwissEphLoaded() {
   if (__cdSwissEphLoadPromise) return __cdSwissEphLoadPromise;
 
   __cdSwissEphLoadPromise = new Promise(function(resolve, reject) {
-    var src = '/js/swisseph-loader.js?v=build-1779776718021';
+    var src = '/js/swisseph-loader.js?v=build-1779778124354';
     var norm = __cdNormalizeScriptSrc(src);
     if (!norm) {
       reject(new Error('missing swisseph src'));
@@ -2466,8 +2529,8 @@ function __cdBindAnimalTotemTileDirect() {
         return;
       }
       raf(function() {
-        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-1779776718021')
-          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-1779776718021'); })
+        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-1779778124354')
+          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-1779778124354'); })
           .then(function() {
             try {
               if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
@@ -6834,9 +6897,9 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
   if (!needsCore) return Promise.resolve(true);
 
   var chain = [
-    '/js/compat-llm-prompts.js?v=build-1779776718021',
-    '/js/saju-engine.js?v=build-1779776718021',
-    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-1779776718021'
+    '/js/compat-llm-prompts.js?v=build-1779778124354',
+    '/js/saju-engine.js?v=build-1779778124354',
+    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-1779778124354'
   ];
 
   return __cdEnsureLunarLibReady().then(function() {
@@ -6856,7 +6919,7 @@ function __cdEnsureBirthModalDepsLoaded() {
     typeof _renderZiweiSection !== 'function' ||
     typeof _renderAstroSection !== 'function'
   ) {
-    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-1779776718021'));
+    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-1779778124354'));
   }
   tasks.push(__cdEnsureSukuyoZiweiCoreLoaded());
   if (!tasks.length) return Promise.resolve(true);
@@ -7505,8 +7568,8 @@ function openAnimalTotemModal() {
     typeof window.drawAnimalTotemSpread === 'function';
 
   if (!hasFullTotemFlow && typeof __cdLoadScriptOnce === 'function') {
-    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-1779776718021')
-      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-1779776718021'); })
+    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-1779778124354')
+      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-1779778124354'); })
       .then(function() {
         var upgradedOpen = window.openAnimalTotemModal;
         if (typeof upgradedOpen === 'function' && upgradedOpen !== currentOpenFn) {

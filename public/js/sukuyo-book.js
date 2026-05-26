@@ -393,12 +393,29 @@
 
     _setProgress(0);
 
+    var _skReportId = 'sukuyo_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+
+    function _skReadPremiumAccessToken(){
+      var token='';
+      try{ token=String(window.__cdPremiumAccessToken||'').trim(); }catch(_){ token=''; }
+      if(!token){ try{ token=String(sessionStorage.getItem('cd_premium_access_token')||'').trim(); }catch(_){ token=''; } }
+      if(!token){ try{ token=String(localStorage.getItem('cd_premium_access_token')||'').trim(); }catch(_){ token=''; } }
+      return token;
+    }
+
     function _fetchChapter(idx){
       return new Promise(function(resolve){
         var tid=setTimeout(function(){resolve({ok:false,message:'응답 시간 초과 (60초).'});},60000);
+        var _skPremiumToken=_skReadPremiumAccessToken();
+        var _skHeaders={'Content-Type':'application/json'};
+        if(_skPremiumToken) _skHeaders['x-premium-access-token']=_skPremiumToken;
         fetch('/api/premium/sukuyo-life',{
-          method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({year:b.year,month:b.month,day:b.day,hour:b.hour!==undefined?b.hour:12,chapter:idx+1,
+          method:'POST',headers:_skHeaders,
+          body:JSON.stringify({
+            reportId:_skReportId,
+            requestId:'sukuyo-'+_skReportId+'-ch'+(idx+1),
+            premiumAccessToken:_skPremiumToken||undefined,
+            year:b.year,month:b.month,day:b.day,hour:b.hour!==undefined?b.hour:12,chapter:idx+1,
             partnerName:partner.name||undefined,
             partnerYear:partner.year||undefined,
             partnerMonth:partner.month||undefined,

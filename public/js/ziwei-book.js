@@ -733,38 +733,96 @@
       }
     }
 
+    var _zbReportId = 'ziwei_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+
+    function _readPremiumAccessToken() {
+      var token = '';
+      try { token = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { token = ''; }
+      if (!token) {
+        try { token = String(sessionStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
+      }
+      if (!token) {
+        try { token = String(localStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
+      }
+      return token;
+    }
+
     function _fetchChapter(idx) {
       var _zbAuthToken = '';
       try { _zbAuthToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
       return new Promise(function (resolve) {
-        var timeoutId = setTimeout(function () {
-          resolve({ ok: false, message: '응답 시간 초과 (60초).' });
-        }, 60000);
-        var _zbHeaders = { 'Content-Type': 'application/json' };
-        if (_zbAuthToken) _zbHeaders['Authorization'] = 'Bearer ' + _zbAuthToken;
-        fetch('/api/ziwei-book/session', {
-          method: 'POST',
-          headers: _zbHeaders,
-          body: JSON.stringify({
-            sessionId:   idx + 1,
-            ziweiData:   ziweiData,
-            ziweiStructured: _collectZiweiStructuredData(),
-            birthYear:   _zbProfile.birthYear,
-            birthMonth:  _zbProfile.birthMonth,
-            birthDay:    _zbProfile.birthDay,
-            birthHour:   _zbProfile.birthHour,
-            gender:      _zbProfile.gender,
-            name:        _zbProfile.name,
-          }),
-        })
-          .then(function (res) {
-            if (!res.ok) return res.json().catch(function () { return {}; }).then(function (e) {
-              return { ok: false, message: (e && e.message) || 'HTTP ' + res.status };
-            });
-            return res.json().catch(function () { return { ok: false, message: 'JSON 파싱 오류' }; });
+        var _attempt = 0;
+        var _maxAttempts = 3;
+        var _lastError = '알 수 없는 오류';
+
+        function _runAttempt() {
+          var _zbPremiumToken = _readPremiumAccessToken();
+          var timeoutId = setTimeout(function () {
+            _lastError = '응답 시간 초과 (60초).';
+            if (_attempt >= _maxAttempts) {
+              resolve({ ok: false, message: _lastError });
+              return;
+            }
+            _attempt += 1;
+            _runAttempt();
+          }, 60000);
+
+          var _zbHeaders = { 'Content-Type': 'application/json' };
+          if (_zbAuthToken) _zbHeaders['Authorization'] = 'Bearer ' + _zbAuthToken;
+          if (_zbPremiumToken) _zbHeaders['x-premium-access-token'] = _zbPremiumToken;
+
+          fetch('/api/ziwei-book/session', {
+            method: 'POST',
+            headers: _zbHeaders,
+            body: JSON.stringify({
+              reportId: _zbReportId,
+              requestId: 'ziwei-' + _zbReportId + '-ch' + (idx + 1) + '-a' + (_attempt + 1),
+              sessionId: idx + 1,
+              chapter: idx + 1,
+              premiumAccessToken: _zbPremiumToken || undefined,
+              ziweiData: ziweiData,
+              ziweiStructured: _collectZiweiStructuredData(),
+              birthYear: _zbProfile.birthYear,
+              birthMonth: _zbProfile.birthMonth,
+              birthDay: _zbProfile.birthDay,
+              birthHour: _zbProfile.birthHour,
+              gender: _zbProfile.gender,
+              name: _zbProfile.name,
+            }),
           })
-          .then(function (data) { clearTimeout(timeoutId); resolve(data); })
-          .catch(function (err) { clearTimeout(timeoutId); resolve({ ok: false, message: String(err && err.message ? err.message : err) }); });
+            .then(function (res) {
+              if (!res.ok) return res.json().catch(function () { return {}; }).then(function (e) {
+                return { ok: false, message: (e && e.message) || 'HTTP ' + res.status };
+              });
+              return res.json().catch(function () { return { ok: false, message: 'JSON 파싱 오류' }; });
+            })
+            .then(function (data) {
+              clearTimeout(timeoutId);
+              if (data && data.ok) {
+                resolve(data);
+                return;
+              }
+              _lastError = (data && data.message) ? data.message : 'API 응답 실패';
+              if (_attempt >= _maxAttempts) {
+                resolve({ ok: false, message: _lastError });
+                return;
+              }
+              _attempt += 1;
+              _runAttempt();
+            })
+            .catch(function (err) {
+              clearTimeout(timeoutId);
+              _lastError = String(err && err.message ? err.message : err);
+              if (_attempt >= _maxAttempts) {
+                resolve({ ok: false, message: _lastError });
+                return;
+              }
+              _attempt += 1;
+              _runAttempt();
+            });
+        }
+
+        _runAttempt();
       });
     }
 

@@ -374,12 +374,28 @@
 
     _setProgress(0);
 
+    var _abReportId = 'astro_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+
+    function _abReadPremiumAccessToken(){
+      var token='';
+      try{ token=String(window.__cdPremiumAccessToken||'').trim(); }catch(_){ token=''; }
+      if(!token){ try{ token=String(sessionStorage.getItem('cd_premium_access_token')||'').trim(); }catch(_){ token=''; } }
+      if(!token){ try{ token=String(localStorage.getItem('cd_premium_access_token')||'').trim(); }catch(_){ token=''; } }
+      return token;
+    }
+
     function _fetchChapter(idx) {
       return new Promise(function(resolve) {
         var tid = setTimeout(function(){ resolve({ok:false,message:'응답 시간 초과 (60초).'}); },60000);
+        var _abPremiumToken=_abReadPremiumAccessToken();
+        var _abHeaders={'Content-Type':'application/json'};
+        if(_abPremiumToken) _abHeaders['x-premium-access-token']=_abPremiumToken;
         fetch('/api/premium/astro-life', {
-          method:'POST', headers:{'Content-Type':'application/json'},
+          method:'POST', headers:_abHeaders,
           body: JSON.stringify({
+            reportId:_abReportId,
+            requestId:'astro-'+_abReportId+'-ch'+(idx+1),
+            premiumAccessToken:_abPremiumToken||undefined,
             year: b.year, month: b.month, day: b.day,
             hour: b.hour !== undefined ? b.hour : 12,
             minute: b.minute !== undefined ? b.minute : 0,

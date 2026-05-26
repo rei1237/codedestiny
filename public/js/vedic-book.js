@@ -340,12 +340,28 @@
 
     _setProgress(0);
 
+    var _vdReportId = 'vedic_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+
+    function _vdReadPremiumAccessToken(){
+      var token='';
+      try{ token=String(window.__cdPremiumAccessToken||'').trim(); }catch(_){ token=''; }
+      if(!token){ try{ token=String(sessionStorage.getItem('cd_premium_access_token')||'').trim(); }catch(_){ token=''; } }
+      if(!token){ try{ token=String(localStorage.getItem('cd_premium_access_token')||'').trim(); }catch(_){ token=''; } }
+      return token;
+    }
+
     function _fetchChapter(idx){
       return new Promise(function(resolve){
         var tid=setTimeout(function(){resolve({ok:false,message:'응답 시간 초과 (60초).'});},60000);
+        var _vdPremiumToken=_vdReadPremiumAccessToken();
+        var _vdHeaders={'Content-Type':'application/json'};
+        if(_vdPremiumToken) _vdHeaders['x-premium-access-token']=_vdPremiumToken;
         fetch('/api/premium/vedic-life',{
-          method:'POST',headers:{'Content-Type':'application/json'},
+          method:'POST',headers:_vdHeaders,
           body:JSON.stringify({
+            reportId:_vdReportId,
+            requestId:'vedic-'+_vdReportId+'-ch'+(idx+1),
+            premiumAccessToken:_vdPremiumToken||undefined,
             year:b.year,month:b.month,day:b.day,
             hour:b.hour!==undefined?b.hour:12,
             minute:b.minute!==undefined?b.minute:0,

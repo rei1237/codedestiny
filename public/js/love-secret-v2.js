@@ -798,6 +798,20 @@
       _updateLoadPills(done);
     }
     _setProgress(0);
+
+    var _lsReportId = 'love_secret_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+
+    function _lsReadPremiumAccessToken() {
+      var token = '';
+      try { token = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { token = ''; }
+      if (!token) {
+        try { token = String(sessionStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
+      }
+      if (!token) {
+        try { token = String(localStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
+      }
+      return token;
+    }
     var lsTitle = _qs('lsLoadingTitle');
     if (lsTitle) {
       lsTitle.textContent = partnerData
@@ -839,6 +853,9 @@
           var _plan = _attemptPlan[at];
           var _controller = (typeof AbortController === 'function') ? new AbortController() : null;
           if (_controller) _activeRequestController = _controller;
+          var _lsPremiumToken = _lsReadPremiumAccessToken();
+          var _lsHeaders = { 'Content-Type': 'application/json' };
+          if (_lsPremiumToken) _lsHeaders['x-premium-access-token'] = _lsPremiumToken;
 
           var timeoutId = setTimeout(function () {
             if (_controller) {
@@ -848,8 +865,16 @@
 
           fetch(_plan.url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sessionId: idx + 1, sajuData: sajuData, partnerData: partnerData || '' }),
+            headers: _lsHeaders,
+            body: JSON.stringify({
+              reportId: _lsReportId,
+              requestId: 'love-secret-' + _lsReportId + '-ch' + (idx + 1) + '-a' + _plan.retry,
+              sessionId: idx + 1,
+              chapter: idx + 1,
+              premiumAccessToken: _lsPremiumToken || undefined,
+              sajuData: sajuData,
+              partnerData: partnerData || '',
+            }),
             signal: _controller ? _controller.signal : undefined,
           })
             .then(function (res) {

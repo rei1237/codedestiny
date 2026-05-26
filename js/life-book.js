@@ -792,6 +792,20 @@
 
     _setProgress(0);
 
+    var _lbReportId = 'lifebook_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+
+    function _lbReadPremiumAccessToken() {
+      var token = '';
+      try { token = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { token = ''; }
+      if (!token) {
+        try { token = String(sessionStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
+      }
+      if (!token) {
+        try { token = String(localStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
+      }
+      return token;
+    }
+
     /** 챕터 fetch (다중 엔드포인트 + 재시도 + 타임아웃) */
     function _fetchChapter(idx) {
       var _lbAuthToken = '';
@@ -830,7 +844,9 @@
           var _controller = (typeof AbortController === 'function') ? new AbortController() : null;
           if (_controller) _activeRequestController = _controller;
           var _lbHeaders = { 'Content-Type': 'application/json' };
+          var _lbPremiumToken = _lbReadPremiumAccessToken();
           if (_lbAuthToken) _lbHeaders['Authorization'] = 'Bearer ' + _lbAuthToken;
+          if (_lbPremiumToken) _lbHeaders['x-premium-access-token'] = _lbPremiumToken;
 
           var timeoutId = setTimeout(function () {
             if (_controller) {
@@ -841,7 +857,14 @@
           fetch(_plan.url, {
             method: 'POST',
             headers: _lbHeaders,
-            body: JSON.stringify({ sessionId: idx + 1, sajuData: sajuData }),
+            body: JSON.stringify({
+              reportId: _lbReportId,
+              requestId: 'lifebook-' + _lbReportId + '-ch' + (idx + 1) + '-a' + _plan.retry,
+              sessionId: idx + 1,
+              chapter: idx + 1,
+              premiumAccessToken: _lbPremiumToken || undefined,
+              sajuData: sajuData,
+            }),
             signal: _controller ? _controller.signal : undefined,
           })
             .then(function (res) {
