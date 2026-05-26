@@ -196,7 +196,17 @@
   function _qs(id) { return document.getElementById(id); }
 
   function _getActiveChapterMeta() {
-    return _reportMode === 'compatibility' ? COMPAT_CHAPTER_META : PERSONAL_CHAPTER_META;
+    var fallback = _reportMode === 'compatibility' ? COMPAT_CHAPTER_META : PERSONAL_CHAPTER_META;
+    if (!Array.isArray(_chapterMetaRuntime) || !_chapterMetaRuntime.length) return fallback;
+    var total = Math.max(Number(_totalChapters || 0), fallback.length, _chapterMetaRuntime.length);
+    return Array.from({ length: total }).map(function (_, idx) {
+      var runtime = _chapterMetaRuntime[idx] || {};
+      var base = fallback[idx] || {};
+      return {
+        title: String(runtime.title || base.title || ('Chapter ' + (idx + 1))),
+        subtitle: String(runtime.subtitle || base.subtitle || '')
+      };
+    });
   }
 
   function _getActiveLoadingMessages() {
