@@ -1038,12 +1038,13 @@
 
         _failCount++;
         var msg = (data && data.message) ? data.message : '알 수 없는 오류';
-        _trace('CHAPTER_DATA_FAILED', { chapter: idx + 1, message: msg });
-        console.error('[자미두수 인생 총람] Chapter ' + (idx + 1) + ' 생성 실패(스켈레톤 대체 비활성화):', msg);
+        var errorCode = (data && data.code) ? String(data.code) : 'UNKNOWN_ERROR';
+        _trace('CHAPTER_DATA_FAILED', { chapter: idx + 1, message: msg, code: errorCode });
+        console.error('[자미두수 PDF 생성] 섹션 생성 실패:', { chapter: idx + 1, code: errorCode, message: msg });
         clearInterval(_mysticTimer); _mysticTimer = null; _generating = false;
         var failErrEl = _qs('zbErrorMsg');
         if (failErrEl) {
-          failErrEl.textContent = 'Ch.' + (idx + 1) + ' 생성 실패: ' + msg + '\n스켈레톤 자동 복구는 비활성화되었습니다. 잠시 후 다시 시도해 주세요.';
+          failErrEl.textContent = '자미두수 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있습니다.';
         }
         _zbClearSaved(window.__cdActiveBirthProfile || {});
         _showScreen('zbErrorScreen');
