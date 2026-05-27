@@ -103,6 +103,7 @@
   var _cancelGeneration = false;
   var _generationRunId = 0;
   var _premiumPaidUntil = 0;
+  var _zbLastReportId = '';
 
   function _readPremiumTokenForReport() {
     var token = '';
@@ -228,6 +229,15 @@
   function _normalizeSections(sections) {
     if (!Array.isArray(sections)) return [];
     return sections.map(function (row) { return String(row || '').trim(); }).filter(Boolean).slice(0, 8);
+  }
+
+  function _hasUsableStructuredChapter(chapterJson) {
+    if (!chapterJson || !Array.isArray(chapterJson.sections)) return false;
+    for (var i = 0; i < chapterJson.sections.length; i += 1) {
+      var row = chapterJson.sections[i] || {};
+      if (String(row.body || row.content || '').trim()) return true;
+    }
+    return false;
   }
 
   function _getChapterMeta(idx) {
@@ -538,10 +548,13 @@
     return _ZB_STORE_VER + (b.year || '0') + '_' + (b.month || '0') + '_' + (b.day || '0') + '_' + ((profile && profile.gender) || 'u');
   }
 
-  function _zbSaveResult(profile) {
+  function _zbSaveResult(profile, reportId) {
     try {
       sessionStorage.setItem(_zbMakeKey(profile), JSON.stringify({
         chapters: _chapters,
+        chapterStructured: _chapterStructured,
+        chapterMeta: _chapterMeta,
+        reportId: String(reportId || _zbLastReportId || '').trim(),
         name: (profile && profile.name) || '사용자',
         birth: (profile && profile.birth) || {},
         gender: (profile && profile.gender) || '',
@@ -594,11 +607,12 @@
       var btn = e.target.closest('[data-zb-chapter]');
       if (!btn) return;
       var ch = Number(btn.getAttribute('data-zb-chapter'));
-      if (!ch || !_chapters[ch - 1]) return;
+      if (!ch || (!_chapters[ch - 1] && !_hasUsableStructuredChapter(_chapterStructured[ch - 1]))) return;
       _renderChapter(ch);
       Array.prototype.forEach.call(nav.querySelectorAll('.zb-toc-item'), function (b) {
         b.classList.toggle('active', b === btn);
-        b.classList.toggle('loaded', !!_chapters[Number(b.getAttribute('data-zb-chapter')) - 1]);
+        var bi = Number(b.getAttribute('data-zb-chapter')) - 1;
+        b.classList.toggle('loaded', !!_chapters[bi] || _hasUsableStructuredChapter(_chapterStructured[bi]));
       });
     });
   }
@@ -640,7 +654,7 @@
     var items = document.querySelectorAll('#zbToc .zb-toc-item');
     Array.prototype.forEach.call(items, function (btn) {
       var ch = Number(btn.getAttribute('data-zb-chapter'));
-      btn.classList.toggle('loaded', !!_chapters[ch - 1]);
+      btn.classList.toggle('loaded', !!_chapters[ch - 1] || _hasUsableStructuredChapter(_chapterStructured[ch - 1]));
       btn.classList.toggle('active', ch === 1);
     });
   }
@@ -722,13 +736,29 @@
 
     // 저장된 결과 복원 시도 — 유효 챕터가 전체 챕터 수와 동일할 때만 복원
     var saved = _zbLoadSaved(profile);
-    var _savedValidCount = saved && saved.chapters
-      ? saved.chapters.filter(function(c) {
-          return typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(c.trim());
-        }).length
-      : 0;
+    var _savedValidCount = 0;
+    if (saved && Array.isArray(saved.chapters)) {
+      _savedValidCount = saved.chapters.filter(function(c, idx) {
+        var hasText = typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(c.trim());
+        var structured = Array.isArray(saved.chapterStructured) ? saved.chapterStructured[idx] : null;
+        return hasText || _hasUsableStructuredChapter(structured);
+      }).length;
+    }
     if (_savedValidCount >= TOTAL_CHAPTERS) {
       _chapters = saved.chapters;
+      _chapterStructured = Array.isArray(saved.chapterStructured)
+        ? saved.chapterStructured.slice(0, TOTAL_CHAPTERS)
+        : Array(TOTAL_CHAPTERS).fill(null);
+      _chapterMeta = Array.isArray(saved.chapterMeta)
+        ? saved.chapterMeta.slice(0, TOTAL_CHAPTERS)
+        : Array(TOTAL_CHAPTERS).fill(null);
+      _zbLastReportId = String(saved.reportId || '').trim();
+      _trace('SAVED_RESULT_LOADED', {
+        reportId: _zbLastReportId || null,
+        validChapters: _savedValidCount,
+        totalChapters: TOTAL_CHAPTERS,
+        message: '구조화 섹션도 로드됨'
+      });
       _currentChapter = 1;
       _showScreen('zbResultScreen');
       _updateTocState();
@@ -759,6 +789,7 @@
     _chapters = Array(TOTAL_CHAPTERS).fill(null);
     _chapterStructured = Array(TOTAL_CHAPTERS).fill(null);
     _chapterMeta = Array(TOTAL_CHAPTERS).fill(null);
+    _zbLastReportId = '';
     _currentChapter = 1;
     _showScreen('zbStartScreen');
     modal.style.display = 'flex';
@@ -1032,6 +1063,7 @@
     }
 
     var _zbReportId = 'ziwei_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+    _zbLastReportId = _zbReportId;
 
     function _finishGenerationFailure(userMessage, tracePayload) {
       if (!_isGenerationRunActive(_runId)) return;
@@ -1052,8 +1084,9 @@
       _abortActiveRequest();
       if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
       _generating = false;
-      var _validCount = _chapters.filter(function(c) {
-        return typeof c === 'string' && c.trim().length > 0;
+      var _validCount = _chapters.filter(function(c, idx) {
+        return (typeof c === 'string' && c.trim().length > 0)
+          || _hasUsableStructuredChapter(_chapterStructured[idx]);
       }).length;
       _trace('PDF_GENERATION_COMPLETE', { validChapters: _validCount, totalChapters: TOTAL_CHAPTERS });
       if (_validCount < TOTAL_CHAPTERS) {
@@ -1081,7 +1114,7 @@
         var b = prof.birth || {};
         dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · ' + (prof.gender === 'F' ? '여성' : prof.gender === 'M' ? '남성' : '') + ' · 🗓️ ' + new Date().toLocaleDateString('ko-KR') + ' 발행';
       }
-      _zbSaveResult(prof);
+      _zbSaveResult(prof, _zbReportId);
       _trace('PDF_RENDER_SUCCESS', {
         mode: 'personal',
         chapterCount: TOTAL_CHAPTERS,
@@ -1159,7 +1192,7 @@
               ch: idx + 1,
               sessionId: idx + 1,
               chapter: idx + 1,
-              strictNoFallback: true,
+              strictNoFallback: false,
               chapterTitle: CHAPTER_TITLES[idx] || ('Chapter ' + (idx + 1)),
               chapterSubtitle: CHAPTER_SUBTITLES[idx] || '',
               chapterSpecificSections: Array.isArray(CHAPTER_STRUCTURED_LABELS[idx + 1])
