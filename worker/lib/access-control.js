@@ -393,13 +393,36 @@ function extractPaymentLookupTokens(requestBody = {}) {
     || consume.merchantUid
     || "",
   ).trim();
+  const purchaseId = String(
+    source.purchaseId
+    || source.reportPurchaseId
+    || payment.purchaseId
+    || alt.purchaseId
+    || consume.purchaseId
+    || "",
+  ).trim();
+  const sessionId = String(
+    source.sessionId
+    || source.reportSessionId
+    || source._premiumReportSessionId
+    || payment.sessionId
+    || payment.reportSessionId
+    || alt.sessionId
+    || alt.reportSessionId
+    || consume.sessionId
+    || consume.reportSessionId
+    || "",
+  ).trim();
 
-  return {
+  const result = {
     transactionId,
     requestId,
     receiptId,
     orderId,
   };
+  if (purchaseId) result.purchaseId = purchaseId;
+  if (sessionId) result.sessionId = sessionId;
+  return result;
 }
 
 function extractAccessBindingHints(requestBody = {}) {
@@ -421,6 +444,7 @@ function extractAccessBindingHints(requestBody = {}) {
     ).trim(),
     reportId: String(source.reportId || source.reportSessionId || source.generationId || "").trim(),
     sessionId: String(source.sessionId || source.chapterSessionId || source.generationSessionId || "").trim(),
+    purchaseId: String(source.purchaseId || source.reportPurchaseId || payment.purchaseId || consume.purchaseId || ctx.purchaseId || "").trim(),
     requestId: String(source.requestId || source.sourceRequestId || payment.requestId || consume.requestId || ctx.requestId || "").trim(),
     transactionId: String(
       source.transactionId
@@ -457,6 +481,10 @@ function buildBindingClause(binding = {}) {
   }
   if (binding.reportId) clauses.push({ "metadata.reportId": binding.reportId });
   if (binding.sessionId) clauses.push({ "metadata.sessionId": binding.sessionId });
+  if (binding.purchaseId) {
+    clauses.push({ "metadata.purchaseId": binding.purchaseId });
+    clauses.push({ "metadata.reportSessionId": binding.purchaseId });
+  }
   return clauses;
 }
 
@@ -683,6 +711,22 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     || consume?._premiumAccessToken
     || "",
   ).trim();
+
+  if (normalizedReportType === "sajuNewYear") {
+    const expectedFeatureKey = String((requiredRules[0] && requiredRules[0].featureKey) || (alternativeRules[0] && alternativeRules[0].featureKey) || "saju_new_year_pdf");
+    const receivedFeatureKey = String(requestBody?.featureKey || payment?.featureKey || consume?.featureKey || requestBody?.subFeatureKey || "");
+    console.info("[SajuNewYear][Payment] CHECK_START", {
+      expectedFeatureKey,
+      receivedFeatureKey,
+      expectedReportType: normalizedReportType,
+      receivedReportType: String(requestBody?.reportType || requestBody?.type || normalizedReportType),
+      hasPurchaseId: Boolean(String(requestBody?.purchaseId || requestBody?.reportPurchaseId || payment?.purchaseId || consume?.purchaseId || "").trim()),
+      hasSessionId: Boolean(String(requestBody?.sessionId || requestBody?.reportSessionId || payment?.sessionId || payment?.reportSessionId || consume?.sessionId || consume?.reportSessionId || "").trim()),
+      profileId: String(requestBody?.profileId || requestBody?.selectedProfileId || payment?.profileId || consume?.profileId || ""),
+      status: "checking",
+      reason: String(requestBody?.reason || payment?.reason || consume?.reason || "")
+    });
+  }
 
   if (premiumAccessToken) {
     const tokenCheck = await verifyPremiumAccessToken(premiumAccessToken, env, {

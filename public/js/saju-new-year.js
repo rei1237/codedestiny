@@ -142,6 +142,26 @@
     } catch (_) {}
   }
 
+  function logSajuNewYearFlow(stage, payload) {
+    try {
+      if (payload && typeof payload === 'object') {
+        console.info('[SajuNewYear][Flow] ' + String(stage || 'UNKNOWN_STAGE'), payload);
+      } else {
+        console.info('[SajuNewYear][Flow] ' + String(stage || 'UNKNOWN_STAGE'));
+      }
+    } catch (_) {}
+  }
+
+  function logSajuNewYearPayment(stage, payload) {
+    try {
+      if (payload && typeof payload === 'object') {
+        console.info('[SajuNewYear][Payment] ' + String(stage || 'UNKNOWN_STAGE'), payload);
+      } else {
+        console.info('[SajuNewYear][Payment] ' + String(stage || 'UNKNOWN_STAGE'));
+      }
+    } catch (_) {}
+  }
+
   function toSafeUserError(error) {
     var raw = String((error && error.message) || '').trim();
     if (!raw) return '신년운세 생성 중 오류가 발생했습니다.';
@@ -301,6 +321,33 @@
       || payment.sourceRequestId
       || ''
     ).trim();
+    var purchaseId = String(
+      source.purchaseId
+      || source.transactionId
+      || source.sourceTransactionId
+      || source.paymentId
+      || source.id
+      || consume.purchaseId
+      || consume.transactionId
+      || nested.purchaseId
+      || nested.transactionId
+      || payment.purchaseId
+      || payment.transactionId
+      || ''
+    ).trim();
+    var sessionId = String(
+      source.sessionId
+      || source.reportSessionId
+      || source._premiumReportSessionId
+      || source.reportId
+      || consume.sessionId
+      || consume.reportSessionId
+      || nested.sessionId
+      || nested.reportSessionId
+      || payment.sessionId
+      || payment.reportSessionId
+      || ''
+    ).trim();
 
     var premiumAccessToken = persistPremiumAccessToken(source) || '';
     if (!premiumAccessToken) premiumAccessToken = persistPremiumAccessToken(nested) || '';
@@ -312,6 +359,8 @@
       featureType: SAJU_NEW_YEAR_FEATURE_TYPE,
       reportType: SAJU_NEW_YEAR_REPORT_TYPE,
       cost: Number(source.cost || COST_COINS || 0),
+      purchaseId: purchaseId || undefined,
+      sessionId: sessionId || undefined,
       sourceTransactionId: transactionId,
       transactionId: transactionId,
       receiptId: receiptId || undefined,
@@ -991,6 +1040,12 @@
     state.activeChapter = num;
     updateTocActive(num);
     renderResultChapter(num);
+    persistState();
+    logSajuNewYearFlow('FRONT_PREVIEW_READY', {
+      chapterId: num,
+      hasText: Boolean(state.chapterTexts[num]),
+      hasStructured: Boolean(state.chapterStructured[num])
+    });
   }
 
   function renderResultScreen() {
@@ -1067,12 +1122,18 @@
     return {
       serviceKey: 'saju-new-year-pdf',
       featureKey: String(ctx.featureKey || COIN_FEATURE_KEY || 'saju_new_year_pdf'),
+      reportType: SAJU_NEW_YEAR_REPORT_TYPE,
+      purchaseId: String(ctx.purchaseId || sourceTransactionId || ''),
+      sessionId: String(ctx.sessionId || state.reportSessionId || state.reportId || ''),
+      reportSessionId: String(state.reportSessionId || ctx.sessionId || ''),
       executionKey: 'saju-new-year-pdf:' + reportId + ':' + sourceTransactionId,
       sourceTransactionId: sourceTransactionId,
       metadata: {
         reportId: reportId,
         targetYear: Number((state.payload && state.payload.targetYear) || 0),
-        requestId: String(ctx.requestId || '')
+        requestId: String(ctx.requestId || ''),
+        purchaseId: String(ctx.purchaseId || sourceTransactionId || ''),
+        sessionId: String(ctx.sessionId || state.reportSessionId || state.reportId || '')
       }
     };
   }
@@ -1209,7 +1270,21 @@
     logSajuNewYear('PAYMENT_CHECK_START', {
       reportId: String(state.reportId || ''),
       hasPaymentContext: Boolean(paymentContext),
-      hasPremiumAccessToken: Boolean(readPremiumAccessToken())
+      hasPremiumAccessToken: Boolean(readPremiumAccessToken()),
+      featureKey: COIN_FEATURE_KEY,
+      reportType: SAJU_NEW_YEAR_REPORT_TYPE
+    });
+
+    logSajuNewYearPayment('CHECK_START', {
+      expectedFeatureKey: COIN_FEATURE_KEY,
+      receivedFeatureKey: String((paymentContext && paymentContext.featureKey) || (state.paymentContext && state.paymentContext.featureKey) || COIN_FEATURE_KEY),
+      expectedReportType: SAJU_NEW_YEAR_REPORT_TYPE,
+      receivedReportType: String((paymentContext && paymentContext.reportType) || (state.paymentContext && state.paymentContext.reportType) || SAJU_NEW_YEAR_REPORT_TYPE),
+      hasPurchaseId: Boolean((paymentContext && paymentContext.purchaseId) || (state.paymentContext && state.paymentContext.purchaseId)),
+      hasSessionId: Boolean((paymentContext && paymentContext.sessionId) || state.reportSessionId),
+      profileId: String((state.payload && state.payload.profileId) || (state.payload && state.payload.selectedProfileId) || ''),
+      status: 'checking',
+      reason: 'prepare-premium-session'
     });
 
     var prepared = await premiumAuthJson('/api/premium-report/prepare', makePrepareBody(Date.now().toString(36)), {
@@ -1217,6 +1292,17 @@
     });
 
     if (!prepared || !prepared.ok || !prepared.reportSessionId) {
+      logSajuNewYearPayment('CHECK_FAILED', {
+        expectedFeatureKey: COIN_FEATURE_KEY,
+        receivedFeatureKey: String((prepared && prepared.featureKey) || (paymentContext && paymentContext.featureKey) || ''),
+        expectedReportType: SAJU_NEW_YEAR_REPORT_TYPE,
+        receivedReportType: String((prepared && prepared.reportType) || (paymentContext && paymentContext.reportType) || ''),
+        hasPurchaseId: Boolean((paymentContext && paymentContext.purchaseId) || (state.paymentContext && state.paymentContext.purchaseId)),
+        hasSessionId: Boolean((paymentContext && paymentContext.sessionId) || state.reportSessionId),
+        profileId: String((state.payload && state.payload.profileId) || (state.payload && state.payload.selectedProfileId) || ''),
+        status: String((prepared && prepared.status) || 'failed'),
+        reason: String((prepared && prepared.code) || 'PAYMENT_REQUIRED')
+      });
       var initialCode = String((prepared && prepared.code) || '').toUpperCase();
       var hasRecentPayment = !!(paymentContext && Number(paymentContext.cost) > 0);
       if (initialCode === 'PAYMENT_REQUIRED' && hasRecentPayment) {
@@ -1258,6 +1344,18 @@
       });
       return prepared || { ok: false, message: '프리미엄 세션 준비에 실패했습니다.' };
     }
+
+    logSajuNewYearPayment('CHECK_SUCCESS', {
+      expectedFeatureKey: COIN_FEATURE_KEY,
+      receivedFeatureKey: String(prepared.featureKey || COIN_FEATURE_KEY),
+      expectedReportType: SAJU_NEW_YEAR_REPORT_TYPE,
+      receivedReportType: String(prepared.reportType || SAJU_NEW_YEAR_REPORT_TYPE),
+      hasPurchaseId: Boolean((paymentContext && paymentContext.purchaseId) || (state.paymentContext && state.paymentContext.purchaseId)),
+      hasSessionId: Boolean(prepared.reportSessionId || state.reportSessionId),
+      profileId: String((state.payload && state.payload.profileId) || (state.payload && state.payload.selectedProfileId) || ''),
+      status: 'ok',
+      reason: 'prepare-premium-session'
+    });
 
     logSajuNewYear('PAYMENT_CHECK_SUCCESS', {
       reportSessionId: String(prepared.reportSessionId || ''),
@@ -1361,6 +1459,11 @@
       reportId: String(state.reportId || ''),
       hasPaymentContext: Boolean(paymentContext || state.paymentContext)
     });
+    logSajuNewYearFlow('SECTION_GENERATION_START', {
+      chapterCount: TOTAL_CHAPTERS,
+      reportId: String(state.reportId || ''),
+      reportSessionId: String(state.reportSessionId || '')
+    });
     showOnly('nyLoadingScreen');
     activateNewYearCinematicLoading();
     setLoadingProgress(1, CHAPTER_DEFINITIONS[0].title);
@@ -1383,6 +1486,12 @@
         setLoadingProgress(chapter + 1 > TOTAL_CHAPTERS ? TOTAL_CHAPTERS : chapter + 1, CHAPTER_DEFINITIONS[Math.min(TOTAL_CHAPTERS - 1, chapter)].title);
         continue;
       }
+
+      logSajuNewYearFlow('SECTION_GENERATION_START', {
+        chapterId: chapter,
+        chapterTitle: String(CHAPTER_DEFINITIONS[chapter - 1] && CHAPTER_DEFINITIONS[chapter - 1].title || ''),
+        reportSessionId: String(state.reportSessionId || '')
+      });
 
       setLoadingProgress(chapter, CHAPTER_DEFINITIONS[chapter - 1].title);
       var chapterMeta = CHAPTER_DEFINITIONS[chapter - 1] || {};
@@ -1433,6 +1542,13 @@
       if (response.reportSessionId) state.reportSessionId = String(response.reportSessionId);
       if (response.reportId) state.reportId = String(response.reportId);
 
+      logSajuNewYearFlow('SECTION_GENERATION_SUCCESS', {
+        chapterId: chapter,
+        chapterTitle: String(CHAPTER_DEFINITIONS[chapter - 1] && CHAPTER_DEFINITIONS[chapter - 1].title || ''),
+        reportSessionId: String(state.reportSessionId || ''),
+        source: String(response.source || 'llm')
+      });
+
       persistState();
       setLoadingProgress(chapter + 1 > TOTAL_CHAPTERS ? TOTAL_CHAPTERS : chapter + 1, CHAPTER_DEFINITIONS[Math.min(TOTAL_CHAPTERS - 1, chapter)].title);
     }
@@ -1454,7 +1570,15 @@
       reportId: String(state.reportId || ''),
       reportSessionId: String(state.reportSessionId || '')
     });
+    logSajuNewYearFlow('PDF_RENDER_START', {
+      reportId: String(state.reportId || ''),
+      reportSessionId: String(state.reportSessionId || '')
+    });
     logSajuNewYear('PDF_RENDER_SUCCESS', {
+      reportId: String(state.reportId || ''),
+      reportSessionId: String(state.reportSessionId || '')
+    });
+    logSajuNewYearFlow('PDF_RENDER_SUCCESS', {
       reportId: String(state.reportId || ''),
       reportSessionId: String(state.reportSessionId || '')
     });
@@ -1464,14 +1588,39 @@
     if (state.generating) return;
 
     logSajuNewYear('REQUEST_START');
+    logSajuNewYearFlow('GENERATE_CLICK', {
+      reportId: String(state.reportId || ''),
+      hasSavedSession: Boolean(state.reportSessionId),
+      hasPaidReport: Boolean(state.paidReportId)
+    });
     logSajuNewYear('INPUT_NORMALIZE_START');
 
+    logSajuNewYearFlow('ENGINE_CALC_START', {
+      targetYear: Number((state.payload && state.payload.targetYear) || 0),
+      hasSavedPayload: Boolean(state.payload)
+    });
     state.payload = buildPayload();
+    logSajuNewYearFlow('ENGINE_CALC_SUCCESS', {
+      targetYear: Number((state.payload && state.payload.targetYear) || 0),
+      hasBirthDate: Boolean(state.payload && state.payload.birthDate),
+      hasDayMaster: Boolean(state.payload && state.payload.dayMaster)
+    });
     logSajuNewYear('INPUT_NORMALIZE_SUCCESS');
     logSajuNewYear('LOCAL_CALCULATION_START');
     logSajuNewYear('LOCAL_CALCULATION_SUCCESS');
     logSajuNewYear('PAYLOAD_NORMALIZE_START');
     logSajuNewYear('PAYLOAD_NORMALIZE_SUCCESS');
+    logSajuNewYearFlow('NORMALIZE_SUCCESS', {
+      targetYear: Number((state.payload && state.payload.targetYear) || 0),
+      hasYearPillar: Boolean(state.payload && state.payload.yearPillar),
+      hasMonthlyFlow: Boolean(state.payload && state.payload.monthlyFlow)
+    });
+    logSajuNewYearFlow('MINIMAL_PAYLOAD_READY', {
+      targetYear: Number((state.payload && state.payload.targetYear) || 0),
+      hasBirthDate: Boolean(state.payload && state.payload.birthDate),
+      hasDayMaster: Boolean(state.payload && state.payload.dayMaster),
+      hasYearPillar: Boolean(state.payload && state.payload.yearPillar)
+    });
     if (!state.payload.year || !state.payload.month || !state.payload.day) {
       notify('사주 정보가 충분하지 않습니다. 먼저 사주 분석을 실행한 뒤 다시 시도해 주세요.');
       return;
@@ -1531,51 +1680,72 @@
       return;
     }
 
-    if (typeof window._cdCoinGatePerUse === 'function') {
-      window._cdCoinGatePerUse(
-        COST_COINS,
-        COIN_REASON,
-        function (transactionId, transactionPayload) {
-          var payloadObject = (transactionPayload && typeof transactionPayload === 'object') ? transactionPayload : {};
-          var paymentContext = normalizePaymentContext(Object.assign({}, payloadObject, {
-            transactionId: String(transactionId || payloadObject.transactionId || payloadObject.id || ''),
-            featureKey: COIN_FEATURE_KEY,
-            reportType: SAJU_NEW_YEAR_REPORT_TYPE,
-            featureType: SAJU_NEW_YEAR_FEATURE_TYPE,
-            cost: Number(COST_COINS || 0),
-            requestId: String(
-              payloadObject.requestId
-              || (payloadObject.consume && payloadObject.consume.requestId)
-              || ('newyear:' + (state.reportId || Date.now()))
-            ).slice(0, 120)
-          }));
-          persistPremiumAccessToken(payloadObject);
-          if (paymentContext && paymentContext.premiumAccessToken) {
-            persistPremiumAccessToken({ premiumAccessToken: paymentContext.premiumAccessToken });
-          }
-          logSajuNewYear('PAYMENT_CHECK_SUCCESS', {
-            transactionId: String(paymentContext.transactionId || ''),
-            receiptId: String(paymentContext.receiptId || ''),
-            orderId: String(paymentContext.orderId || ''),
-            hasPremiumAccessToken: Boolean(paymentContext.premiumAccessToken)
-          });
-          state.paymentContext = paymentContext;
-          state.paidReportId = state.reportId;
-          persistState();
-          startNewYearGeneration(paymentContext);
-        },
-        function () {
-          setGenerateButtonBusy(false);
-          if (!state.generating) showOnly('nyStartScreen');
-        },
-        { featureKey: COIN_FEATURE_KEY }
-      );
-      return;
-    }
+    logSajuNewYearFlow('COIN_GATE_START', {
+      featureKey: COIN_FEATURE_KEY,
+      reportType: SAJU_NEW_YEAR_REPORT_TYPE,
+      cost: COST_COINS
+    });
 
-    setGenerateButtonBusy(false);
-    if (!state.generating) showOnly('nyStartScreen');
-    notify('결제 모듈 로딩이 지연되어 생성 시작을 차단했습니다. 잠시 후 다시 시도해 주세요.');
+    try {
+      var response = await premiumAuthJson('/api/billing/coin-gate', {
+        categoryKey: 'premium-report',
+        subFeatureKey: COIN_FEATURE_KEY,
+        featureKey: COIN_FEATURE_KEY,
+        reportType: SAJU_NEW_YEAR_REPORT_TYPE,
+        mode: 'personal',
+        reason: COIN_REASON,
+        forceDeduct: true,
+        requestId: String('newyear:coin-gate:' + (state.reportId || Date.now())).slice(0, 120),
+        reportId: String(state.reportId || ''),
+        sessionId: String(state.reportSessionId || ''),
+        profileId: String((state.payload && state.payload.profileId) || (state.payload && state.payload.selectedProfileId) || '')
+      }, { maxAttempts: 2 });
+
+      var coinGateData = response && response.data && typeof response.data === 'object' ? response.data : response;
+      if (!response || response.ok === false || !(coinGateData && coinGateData.consume)) {
+        throw new Error(String((response && response.message) || '코인 결제를 처리하지 못했습니다.'));
+      }
+
+      var purchaseId = String((coinGateData.consume && coinGateData.consume.transactionId) || coinGateData.purchaseId || '').trim();
+      var sessionId = String((coinGateData.consume && coinGateData.consume.reportSessionId) || coinGateData.sessionId || state.reportSessionId || state.reportId || '').trim();
+      var paymentContext = normalizePaymentContext(Object.assign({}, coinGateData, {
+        purchaseId: purchaseId,
+        sessionId: sessionId,
+        transactionId: purchaseId,
+        sourceTransactionId: purchaseId,
+        featureKey: COIN_FEATURE_KEY,
+        reportType: SAJU_NEW_YEAR_REPORT_TYPE,
+        featureType: SAJU_NEW_YEAR_FEATURE_TYPE,
+        cost: Number(COST_COINS || 0),
+        requestId: String((coinGateData.consume && coinGateData.consume.requestId) || response.requestId || ('newyear:' + (state.reportId || Date.now()))).slice(0, 120),
+        premiumAccessToken: String((coinGateData.premiumAccessToken || (coinGateData.consume && coinGateData.consume.premiumAccessToken) || '')).trim(),
+        reportSessionId: sessionId,
+        reportId: String(state.reportId || ''),
+        purchase: coinGateData.consume || null,
+        consume: coinGateData.consume || null
+      }));
+
+      logSajuNewYearFlow('COIN_GATE_SUCCESS', {
+        purchaseId: purchaseId,
+        sessionId: sessionId,
+        hasPremiumAccessToken: Boolean(paymentContext.premiumAccessToken)
+      });
+
+      state.paymentContext = paymentContext;
+      state.reportSessionId = sessionId || state.reportSessionId;
+      state.paidReportId = state.reportId;
+      persistPremiumAccessToken(coinGateData);
+      if (paymentContext && paymentContext.premiumAccessToken) {
+        persistPremiumAccessToken({ premiumAccessToken: paymentContext.premiumAccessToken });
+      }
+      persistState();
+      startNewYearGeneration(paymentContext);
+    } catch (error) {
+      logSajuNewYearFlow('PDF_GENERATION_FAILED', { message: String((error && error.message) || '') });
+      setGenerateButtonBusy(false);
+      if (!state.generating) showOnly('nyStartScreen');
+      notify(String((error && error.message) || '결제 또는 생성 준비에 실패했습니다.'));
+    }
   }
 
   function buildLocalPrintableHtml() {
@@ -1678,6 +1848,11 @@
   window.openSajuNewYearModal = function () {
     var modal = qs('sajuNewYearModal');
     if (!modal) return;
+    logSajuNewYearFlow('DETAIL_POPUP_OPEN', {
+      reportId: String(state.reportId || ''),
+      reportSessionId: String(state.reportSessionId || ''),
+      activeChapterId: Number(state.activeChapter || 1)
+    });
     syncStartInputs();
     modal.style.display = 'flex';
     modal.setAttribute('aria-hidden', 'false');

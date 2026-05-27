@@ -262,7 +262,7 @@ describe("Saju new year chapter json payloads", () => {
     expect(ch9Sections[11]).toContain("9-12.");
   });
 
-  test("generated chapter response fails closed when Gemini output is unavailable", async () => {
+  test("generated chapter response falls back to local text when Gemini output is unavailable", async () => {
     const authToken = await makeAuthToken();
     const req = new Request("https://example.com/api/saju-new-year/session", {
       method: "POST",
@@ -281,10 +281,13 @@ describe("Saju new year chapter json payloads", () => {
     const res = await handleSajuNewYearRoutes(req, {});
     const data = await res.json();
 
-    expect(res.status).toBe(422);
-    expect(data.ok).toBe(false);
-    expect(data.code).toBe("SAJU_YEARLY_BOOK_LLM_GENERATION_FAILED");
-    expect(typeof data.message).toBe("string");
-    expect(data.retryable).toBe(true);
+    expect(res.status).toBe(200);
+    expect(data.ok).toBe(true);
+    expect(data.source).toBe("local-engine");
+    expect(data.chapterJson).toBeTruthy();
+    expect(Array.isArray(data.chapterJson.categories)).toBe(true);
+    expect(data.chapterJson.categories.length).toBeGreaterThan(0);
+    expect(typeof data.chapterJson.categories[0].analysisText).toBe("string");
+    expect(data.chapterJson.categories[0].analysisText.length).toBeGreaterThan(0);
   });
 });

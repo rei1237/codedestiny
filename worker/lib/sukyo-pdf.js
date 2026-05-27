@@ -227,47 +227,75 @@ function resolveShukuyoRequiredData(categoryTitle, mode = "personal") {
 
 function normalizeShukuyoPdfPayload(raw = {}) {
   const source = raw && typeof raw === "object" ? raw : {};
+  const userInput = source?.user && typeof source.user === "object" ? source.user : {};
+  const partnerInput = source?.partner && typeof source.partner === "object" ? source.partner : {};
+  const resultInput = source?.result && typeof source.result === "object" ? source.result : {};
+  const userNatalInput = resultInput?.userNatal && typeof resultInput.userNatal === "object"
+    ? resultInput.userNatal
+    : (source?.userNatal && typeof source.userNatal === "object" ? source.userNatal : {});
+  const partnerNatalInput = resultInput?.partnerNatal && typeof resultInput.partnerNatal === "object"
+    ? resultInput.partnerNatal
+    : (source?.partnerNatal && typeof source.partnerNatal === "object" ? source.partnerNatal : {});
+  const compatibilityInput = resultInput?.compatibility && typeof resultInput.compatibility === "object"
+    ? resultInput.compatibility
+    : (source?.compatibility && typeof source.compatibility === "object" ? source.compatibility : {});
+  const rawUserProfile = source?.userProfile && typeof source.userProfile === "object" ? source.userProfile : {};
+  const rawPartnerProfile = source?.partnerProfile && typeof source.partnerProfile === "object" ? source.partnerProfile : {};
   const mode = normalizeSukyoReportMode(
     source?.reportMode
     || source?.mode
     || source?.sukuyoBookContext?.mode
-    || (source?.sukuyoBookContext?.partner?.profile?.birthDate ? "compatibility" : "personal"),
+    || (partnerInput?.birthDate || rawPartnerProfile?.birthDate || source?.sukuyoBookContext?.partner?.profile?.birthDate ? "compatibility" : "personal"),
   );
   const userBook = source?.sukuyoBookContext?.user || {};
   const partnerBook = source?.sukuyoBookContext?.partner || {};
   const compatBook = source?.sukuyoBookContext?.compatibility || {};
   const userNatalName = toStringOrNull(
-    source?.mainStar?.nameKo
-    || userBook?.sukuyo?.mansion
-    || source?.canonical?.natalSukuyo?.nameKo
-    || source?.canonical?.personA?.sukuyo?.nameKo,
+    pickFirst(
+      userNatalInput?.宿NameKo,
+      userNatalInput?.宿Name,
+      userNatalInput?.nameKo,
+      source?.mainStar?.nameKo,
+      userBook?.sukuyo?.mansion,
+      source?.canonical?.natalSukuyo?.nameKo,
+      source?.canonical?.personA?.sukuyo?.nameKo,
+    ),
   );
   const partnerNatalName = toStringOrNull(
-    partnerBook?.sukuyo?.mansion
-    || source?.canonical?.personB?.sukuyo?.nameKo,
+    pickFirst(
+      partnerNatalInput?.宿NameKo,
+      partnerNatalInput?.宿Name,
+      partnerNatalInput?.nameKo,
+      partnerBook?.sukuyo?.mansion,
+      source?.canonical?.personB?.sukuyo?.nameKo,
+    ),
   );
   const relationType = toStringOrNull(
-    source?.relationship?.relationType
-    || compatBook?.relationType
-    || source?.canonical?.compatibility?.relationType,
+    pickFirst(
+      compatibilityInput?.relationType,
+      compatibilityInput?.relationshipType,
+      source?.relationship?.relationType,
+      compatBook?.relationType,
+      source?.canonical?.compatibility?.relationType,
+    ),
   );
 
   return {
     service: "shukuyo-premium",
     mode,
     user: {
-      name: toStringOrNull(userBook?.profile?.name || source?.userProfile?.name),
-      gender: toStringOrNull(userBook?.profile?.gender || source?.userProfile?.gender),
-      birthDate: toStringOrNull(userBook?.profile?.birthDate || source?.userProfile?.solarBirthDate) || "",
-      birthTime: toStringOrNull(userBook?.profile?.birthTime || source?.userProfile?.birthTime),
-      calendarType: toCalendarType(userBook?.profile?.calendarType || source?.reportPayload?.birthInput?.calendarType || "solar"),
+      name: toStringOrNull(userInput?.name || userBook?.profile?.name || rawUserProfile?.name),
+      gender: toStringOrNull(userInput?.gender || userBook?.profile?.gender || rawUserProfile?.gender),
+      birthDate: toStringOrNull(userInput?.birthDate || userInput?.solarBirthDate || userBook?.profile?.birthDate || rawUserProfile?.solarBirthDate) || "",
+      birthTime: toStringOrNull(userInput?.birthTime || userBook?.profile?.birthTime || rawUserProfile?.birthTime),
+      calendarType: toCalendarType(userInput?.calendarType || userBook?.profile?.calendarType || source?.reportPayload?.birthInput?.calendarType || "solar"),
     },
     partner: mode === "compatibility" ? {
-      name: toStringOrNull(partnerBook?.profile?.name),
-      gender: toStringOrNull(partnerBook?.profile?.gender),
-      birthDate: toStringOrNull(partnerBook?.profile?.birthDate) || "",
-      birthTime: toStringOrNull(partnerBook?.profile?.birthTime),
-      calendarType: toCalendarType(partnerBook?.profile?.calendarType || source?.reportPayload?.partnerInput?.calendarType || "solar"),
+      name: toStringOrNull(partnerInput?.name || partnerBook?.profile?.name || rawPartnerProfile?.name),
+      gender: toStringOrNull(partnerInput?.gender || partnerBook?.profile?.gender || rawPartnerProfile?.gender),
+      birthDate: toStringOrNull(partnerInput?.birthDate || partnerInput?.solarBirthDate || partnerBook?.profile?.birthDate || rawPartnerProfile?.birthDate) || "",
+      birthTime: toStringOrNull(partnerInput?.birthTime || partnerBook?.profile?.birthTime || rawPartnerProfile?.birthTime),
+      calendarType: toCalendarType(partnerInput?.calendarType || partnerBook?.profile?.calendarType || source?.reportPayload?.partnerInput?.calendarType || "solar"),
     } : undefined,
     result: {
       userNatal: {
@@ -275,6 +303,9 @@ function normalizeShukuyoPdfPayload(raw = {}) {
         宿名: userNatalName || "",
         宿名Ko: userNatalName || "",
         宿名Ja: toStringOrNull(source?.mainStar?.nameHanja),
+        宿Name: userNatalName || "",
+        宿NameKo: userNatalName || "",
+        宿NameJa: toStringOrNull(source?.mainStar?.nameHanja),
         group: toStringOrNull(source?.mainStar?.group),
         animalSymbol: toStringOrNull(source?.mainStar?.animalSymbol),
         elementTone: toStringOrNull(source?.mainStar?.coreKeyword),
@@ -289,26 +320,29 @@ function normalizeShukuyoPdfPayload(raw = {}) {
       partnerNatal: mode === "compatibility" && partnerNatalName ? {
         宿名: partnerNatalName,
         宿名Ko: partnerNatalName,
+        宿Name: partnerNatalName,
+        宿NameKo: partnerNatalName,
         group: toStringOrNull(partnerBook?.sukuyo?.mansionGroup),
         temperamentKeywords: unique(partnerBook?.sukuyo?.mansionKeywords || []),
-        shortInterpretationSeed: toStringOrNull(partnerBook?.sukuyo?.personalitySummary),
+        shortInterpretationSeed: toStringOrNull(partnerBook?.sukuyo?.personalitySummary || partnerNatalInput?.shortInterpretationSeed),
       } : undefined,
       compatibility: mode === "compatibility" ? {
         relationType: relationType || "",
-        relationLabelKo: toStringOrNull(compatBook?.relationLabel),
-        distance: toStringOrNull(source?.relationship?.distanceLabel || compatBook?.distanceType),
-        direction: toStringOrNull(source?.relationship?.direction || source?.canonical?.compatibility?.directionFromAToB),
+        relationLabelKo: toStringOrNull(compatibilityInput?.relationLabelKo || compatibilityInput?.relationLabel || compatBook?.relationLabel),
+        distance: toStringOrNull(compatibilityInput?.distance || source?.relationship?.distanceLabel || compatBook?.distanceType),
+        direction: toStringOrNull(compatibilityInput?.direction || source?.relationship?.direction || source?.canonical?.compatibility?.directionFromAToB),
         summaryKeywords: unique([
+          ...(Array.isArray(compatibilityInput?.summaryKeywords) ? compatibilityInput.summaryKeywords : []),
           compatBook?.adviceSummary,
           compatBook?.riskPattern,
           compatBook?.emotionalDynamic,
           compatBook?.conflictPattern,
         ]),
-        attractionScore: toNumberOrNull(source?.relationship?.attractionScore),
-        stabilityScore: toNumberOrNull(source?.relationship?.stabilityScore),
-        conflictScore: toNumberOrNull(source?.relationship?.conflictScore),
-        growthScore: toNumberOrNull(source?.relationship?.growthScore),
-        shortInterpretationSeed: toStringOrNull(compatBook?.adviceSummary || compatBook?.emotionalDynamic),
+        attractionScore: toNumberOrNull(compatibilityInput?.attractionScore || source?.relationship?.attractionScore),
+        stabilityScore: toNumberOrNull(compatibilityInput?.stabilityScore || source?.relationship?.stabilityScore),
+        conflictScore: toNumberOrNull(compatibilityInput?.conflictScore || source?.relationship?.conflictScore),
+        growthScore: toNumberOrNull(compatibilityInput?.growthScore || source?.relationship?.growthScore),
+        shortInterpretationSeed: toStringOrNull(compatibilityInput?.shortInterpretationSeed || compatBook?.adviceSummary || compatBook?.emotionalDynamic),
       } : undefined,
     },
     meta: {
@@ -794,6 +828,10 @@ function toStringOrNull(value) {
 
 function toArray(value) {
   return Array.isArray(value) ? value : [];
+}
+
+function unique(values) {
+  return Array.from(new Set(toArray(values).map((value) => String(value || "").trim()).filter(Boolean)));
 }
 
 function normalizeWaxing(value) {

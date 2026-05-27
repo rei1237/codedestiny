@@ -750,11 +750,170 @@ export const CANONICAL_ZIWEI_PDF_CHAPTERS = Object.freeze([
   },
 ]);
 
-function normalizeRequiredPalaceToken(name) {
-  const token = String(name || "").trim();
-  if (!token) return "";
-  if (token === "신궁") return "명궁";
-  return token;
+export const ZIWEI_PDF_CATEGORY_DATA_MAP = Object.freeze({
+  "c01-01": { palaceKeys: ["life"], data: ["mainStars", "assistantStars", "brightness", "palaceStrength"] },
+  "c01-02": { palaceKeys: ["life"], data: ["mainStars", "assistantStars", "minorStars"] },
+  "c01-03": { palaceKeys: ["life"], data: ["mainStars", "palaceStrength"] },
+  "c01-04": { palaceKeys: ["life"], data: ["maleficStars", "weakSignals"] },
+  "c01-05": { palaceKeys: ["life"], data: ["lifePattern"] },
+  "c01-06": { palaceKeys: ["life"], data: ["practicalAdvice"] },
+  "c02-01": { palaceKeys: ["body"], data: ["mainStars", "bodyDirection"] },
+  "c02-02": { palaceKeys: ["body"], data: ["laterLifePattern"] },
+  "c02-03": { palaceKeys: ["life", "body"], data: ["lifeBodyComparison"] },
+  "c02-04": { palaceKeys: ["body"], data: ["laterLifeChange"] },
+  "c02-05": { palaceKeys: ["body"], data: ["selfCompletion"] },
+  "c03-01": { palaceKeys: ["siblings"], data: ["mainStars", "relationshipDistance"] },
+  "c03-02": { palaceKeys: ["siblings"], data: ["expectationPattern"] },
+  "c03-03": { palaceKeys: ["siblings"], data: ["competitionPattern"] },
+  "c03-04": { palaceKeys: ["siblings"], data: ["friendCoworkerPattern"] },
+  "c03-05": { palaceKeys: ["siblings"], data: ["relationshipAdvice"] },
+  "c04-01": { palaceKeys: ["spouse"], data: ["mainStars", "lovePattern"] },
+  "c04-02": { palaceKeys: ["spouse"], data: ["idealPartner"] },
+  "c04-03": { palaceKeys: ["spouse"], data: ["hurtPoint", "maleficStars"] },
+  "c04-04": { palaceKeys: ["spouse"], data: ["marriageStability"] },
+  "c04-05": { palaceKeys: ["spouse"], data: ["loveAdvice"] },
+  "c05-01": { palaceKeys: ["children"], data: ["expressionDesire"] },
+  "c05-02": { palaceKeys: ["children"], data: ["creationOutput"] },
+  "c05-03": { palaceKeys: ["children"], data: ["careResponsibility"] },
+  "c05-04": { palaceKeys: ["children"], data: ["juniorStudentChildRelation"] },
+  "c05-05": { palaceKeys: ["children"], data: ["outputGrowthAdvice"] },
+  "c06-01": { palaceKeys: ["wealth"], data: ["mainStars", "wealthStructure"] },
+  "c06-02": { palaceKeys: ["wealth"], data: ["incomePattern"] },
+  "c06-03": { palaceKeys: ["wealth"], data: ["moneyLeakRisk"] },
+  "c06-04": { palaceKeys: ["wealth"], data: ["investmentBusinessSalaryFit"] },
+  "c06-05": { palaceKeys: ["wealth"], data: ["moneyAdvice"] },
+  "c07-01": { palaceKeys: ["health"], data: ["energyPattern"] },
+  "c07-02": { palaceKeys: ["health"], data: ["burnoutSignal"] },
+  "c07-03": { palaceKeys: ["health"], data: ["emotionBodyLink"] },
+  "c07-04": { palaceKeys: ["health"], data: ["lifeHabitRisk"] },
+  "c07-05": { palaceKeys: ["health"], data: ["recoveryRoutine"] },
+  "c08-01": { palaceKeys: ["migration"], data: ["outsideLuck"] },
+  "c08-02": { palaceKeys: ["migration"], data: ["moveExpansionForeign"] },
+  "c08-03": { palaceKeys: ["migration"], data: ["nobleHelp"] },
+  "c08-04": { palaceKeys: ["migration"], data: ["externalRisk"] },
+  "c08-05": { palaceKeys: ["migration"], data: ["stageExpansionAdvice"] },
+  "c09-01": { palaceKeys: ["friends"], data: ["supporterType"] },
+  "c09-02": { palaceKeys: ["friends"], data: ["helpPattern"] },
+  "c09-03": { palaceKeys: ["friends"], data: ["teamworkStrength"] },
+  "c09-04": { palaceKeys: ["friends"], data: ["betrayalDisappointmentRisk"] },
+  "c09-05": { palaceKeys: ["friends"], data: ["relationshipSelection"] },
+  "c10-01": { palaceKeys: ["career"], data: ["careerNature"] },
+  "c10-02": { palaceKeys: ["career"], data: ["workStyle"] },
+  "c10-03": { palaceKeys: ["career"], data: ["organizationIndependentCreative"] },
+  "c10-04": { palaceKeys: ["career"], data: ["recognitionCondition"] },
+  "c10-05": { palaceKeys: ["career"], data: ["careerRiskStrategy"] },
+  "c11-01": { palaceKeys: ["property"], data: ["lifeBase"] },
+  "c11-02": { palaceKeys: ["property"], data: ["homeAssetSettlement"] },
+  "c11-03": { palaceKeys: ["fortune"], data: ["innerPeace"] },
+  "c11-04": { palaceKeys: ["fortune"], data: ["happinessRisk"] },
+  "c11-05": { palaceKeys: ["fortune"], data: ["lastingSatisfaction"] },
+  "c12-01": { palaceKeys: ["all"], data: ["hualu"] },
+  "c12-02": { palaceKeys: ["all"], data: ["huaquan"] },
+  "c12-03": { palaceKeys: ["all"], data: ["huake"] },
+  "c12-04": { palaceKeys: ["all"], data: ["huaji"] },
+  "c12-05": { palaceKeys: ["all"], data: ["strongestPalaces", "weakestPalaces"] },
+  "c12-06": { palaceKeys: ["all"], data: ["growthChoices"] },
+  "c12-07": { palaceKeys: ["all"], data: ["finalRoadmap"] },
+});
+
+const ZIWEI_PDF_PALACE_KEY_ALIASES = Object.freeze({
+  life: ["life", "ming", "명궁"],
+  body: ["body", "shen", "신궁"],
+  siblings: ["siblings", "brothers", "형제궁", "siblingsPalace"],
+  spouse: ["spouse", "partner", "부부궁", "marriage"],
+  children: ["children", "자녀궁", "offspring"],
+  wealth: ["wealth", "money", "재백궁", "finance"],
+  health: ["health", "질액궁", "illness"],
+  migration: ["migration", "천이궁", "travel", "move"],
+  friends: ["friends", "교우궁", "network", "support"],
+  career: ["career", "관록궁", "job", "work"],
+  property: ["property", "전택궁", "home", "house"],
+  fortune: ["fortune", "복덕궁", "blessing", "mind"],
+  parents: ["parents", "부모궁"],
+  all: ["all"],
+});
+
+function normalizeZiweiCategoryId(category = {}) {
+  return String(category?.id || category?.categoryId || "").trim();
+}
+
+function normalizeZiweiPalaceKeyToken(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function normalizeZiweiStarList(stars = []) {
+  return (Array.isArray(stars) ? stars : []).map((star) => {
+    const name = String(star?.name || star?.nameKo || star?.star || star || "").trim();
+    if (!name) return null;
+    const brightness = normalizeZiweiBrightnessToken(star?.brightness || star?.strength || star?.level || "") || "평";
+    const strengthSymbol = normalizeZiweiStrengthSymbol(star?.strengthSymbol || star?.symbol || brightness);
+    return {
+      name,
+      brightness,
+      strengthSymbol,
+      transformation: String(star?.transformation || star?.type || "").trim() || undefined,
+      role: String(star?.role || "").trim() || undefined,
+      borrowed: Boolean(star?.borrowed),
+    };
+  }).filter(Boolean);
+}
+
+function normalizeZiweiPalaceStrength(value, palace = null) {
+  const raw = String(value || palace?.palaceStrength || "").trim().toLowerCase();
+  if (["strong", "high", "강", "강함"].includes(raw)) return "strong";
+  if (["medium", "mid", "중", "보통"].includes(raw)) return "medium";
+  if (["weak", "low", "약", "약함"].includes(raw)) return "weak";
+  const score = (Array.isArray(palace?.mainStars) ? palace.mainStars.length : 0)
+    + (Array.isArray(palace?.assistantStars) ? palace.assistantStars.length : 0)
+    + (Array.isArray(palace?.minorStars) ? palace.minorStars.length * 0.5 : 0)
+    - (Array.isArray(palace?.maleficStars) ? palace.maleficStars.length * 0.75 : 0);
+  if (score >= 4) return "strong";
+  if (score >= 2) return "medium";
+  return "weak";
+}
+
+function formatZiweiStarList(stars, fallback = "없음") {
+  const rows = normalizeZiweiStarList(stars).map((star) => `${star.name}(${star.brightness}/${star.strengthSymbol})`);
+  return rows.length ? rows.join(", ") : fallback;
+}
+
+function formatZiweiOtherStarList(palace) {
+  const rows = [];
+  const push = (label, stars) => {
+    const text = formatZiweiStarList(stars, "");
+    if (text) rows.push(`${label}: ${text}`);
+  };
+  push("보조성", palace?.assistantStars || palace?.subStars || []);
+  push("잡성", palace?.minorStars || []);
+  push("살성", palace?.maleficStars || palace?.badStars || []);
+  return rows.length ? rows.join(" | ") : "보조성/잡성/살성 확인값이 제한적입니다.";
+}
+
+function formatZiweiBrightnessSummary(palace) {
+  const stars = [].concat(palace?.mainStars || [], palace?.assistantStars || palace?.subStars || [], palace?.minorStars || [], palace?.maleficStars || []);
+  return stars.length
+    ? stars.map((star) => `${star.name}(${normalizeZiweiBrightnessToken(star.brightness || star.strength || "") || "평"}/${star.strengthSymbol || normalizeZiweiStrengthSymbol(star.brightness || star.strength || "")})`).join(", ")
+    : `밝기 해석은 ${palace?.brightnessSummary || "평"} 기준으로 보정합니다.`;
+}
+
+function formatZiweiTransformationList(transformations) {
+  if (!Array.isArray(transformations) || transformations.length === 0) return "";
+  return transformations
+    .map((row) => {
+      const starName = String(row?.starName || row?.name || row?.star || "").trim();
+      const meaningSeed = String(row?.meaningSeed || row?.meaning || row?.seed || "").trim();
+      const palaceName = String(row?.palaceName || row?.palace || "").trim();
+      if (!starName && !meaningSeed && !palaceName) return "";
+      return [starName, palaceName ? `→ ${palaceName}` : "", meaningSeed ? `: ${meaningSeed}` : ""].join("").trim();
+    })
+    .filter(Boolean)
+    .join(" | ");
+}
+
+function formatZiweiPalaceStrength(palace) {
+  const strength = normalizeZiweiPalaceStrength(palace?.palaceStrength, palace);
+  const symbol = strength === "strong" ? "◎" : strength === "medium" ? "△" : "X";
+  return `궁 강도: ${strength}(${symbol})`;
 }
 
 function collectPayloadPalaces(payload) {
@@ -763,17 +922,148 @@ function collectPayloadPalaces(payload) {
     const item = row && typeof row === "object" ? row : {};
     const key = String(item.key || `palace-${index + 1}`).trim() || `palace-${index + 1}`;
     const name = String(item.name || item.nameKo || item.palace || key).trim() || key;
-    const mainStars = Array.isArray(item.mainStars) ? item.mainStars : [];
-    const subStars = Array.isArray(item.subStars) ? item.subStars : [];
     return {
       key,
       name,
-      mainStars,
-      subStars,
+      branch: String(item.branch || item.earthlyBranch || "").trim(),
+      stem: String(item.stem || item.heavenlyStem || "").trim(),
+      mainStars: normalizeZiweiStarList(item.mainStars || item.stars || []),
+      assistantStars: normalizeZiweiStarList(item.assistantStars || item.subStars || item.auxStars || []),
+      minorStars: normalizeZiweiStarList(item.minorStars || []),
+      maleficStars: normalizeZiweiStarList(item.maleficStars || item.badStars || []),
       brightnessSummary: String(item.brightnessSummary || "").trim(),
-      shortInterpretationSeed: String(item.shortInterpretationSeed || "").trim(),
+      palaceStrength: String(item.palaceStrength || "").trim() || undefined,
+      interpretationSeed: String(item.interpretationSeed || item.shortInterpretationSeed || "").trim(),
+      transformations: Array.isArray(item.transformations)
+        ? item.transformations.map((row) => ({
+          starName: String(row?.starName || row?.name || row?.star || "").trim(),
+          palaceKey: String(row?.palaceKey || row?.targetPalaceKey || "").trim(),
+          palaceName: String(row?.palaceName || row?.targetPalace || row?.palace || "").trim(),
+          meaningSeed: String(row?.meaningSeed || row?.meaning || "").trim(),
+        })).filter((row) => row.starName || row.palaceKey || row.palaceName)
+        : [],
+      raw: item,
     };
   });
+}
+
+function getZiweiPalaceAliases(key) {
+  const token = normalizeZiweiPalaceKeyToken(key);
+  if (!token) return [];
+  return Array.isArray(ZIWEI_PDF_PALACE_KEY_ALIASES[token])
+    ? ZIWEI_PDF_PALACE_KEY_ALIASES[token]
+    : [token];
+}
+
+function palaceMatchesToken(palace, token) {
+  const candidate = normalizeZiweiPalaceKeyToken(token);
+  if (!candidate) return false;
+  const names = [palace?.key, palace?.name, palace?.nameKo, palace?.palace, palace?.palaceName].map(normalizeZiweiPalaceKeyToken);
+  if (candidate === "life") {
+    return names.includes("ming") || names.includes("명궁") || names.includes(normalizeZiweiPalaceKeyToken(palace?.key));
+  }
+  if (candidate === "body") {
+    return names.includes("shen") || names.includes("신궁");
+  }
+  return names.includes(candidate) || names.includes(candidate.replace(/palace$/, ""));
+}
+
+function resolveZiweiCategoryPalaces(category = {}, payload = {}) {
+  const payloadPalaces = collectPayloadPalaces(payload);
+  const categoryId = normalizeZiweiCategoryId(category);
+  const mapEntry = ZIWEI_PDF_CATEGORY_DATA_MAP[categoryId] || null;
+  const requestedKeys = Array.isArray(mapEntry?.palaceKeys) && mapEntry.palaceKeys.length
+    ? mapEntry.palaceKeys
+    : Array.isArray(category.requiredPalaces)
+      ? category.requiredPalaces
+      : [];
+  const aliases = requestedKeys.flatMap((key) => getZiweiPalaceAliases(key));
+  const picked = payloadPalaces.filter((palace) => aliases.some((alias) => palaceMatchesToken(palace, alias)));
+  if (picked.length) return picked;
+  if (requestedKeys.includes("all")) return payloadPalaces;
+  return payloadPalaces.slice(0, 1);
+}
+
+export function resolveZiweiCategoryData(category = {}, payload = {}) {
+  const palaces = resolveZiweiCategoryPalaces(category, payload);
+  const payloadPalaces = collectPayloadPalaces(payload);
+  const categoryId = normalizeZiweiCategoryId(category);
+  const mapEntry = ZIWEI_PDF_CATEGORY_DATA_MAP[categoryId] || { palaceKeys: ["all"], data: [] };
+  const transformations = palaces.flatMap((palace) => Array.isArray(palace.transformations) ? palace.transformations : []);
+  const chartTransformations = payload?.chart?.fourTransformations && typeof payload.chart.fourTransformations === "object"
+    ? Object.entries(payload.chart.fourTransformations)
+      .map(([type, row]) => {
+        const item = row && typeof row === "object" ? row : {};
+        const starName = String(item.starName || item.name || item.star || "").trim();
+        if (!starName) return null;
+        return {
+          starName,
+          palaceKey: String(item.palaceKey || "").trim() || undefined,
+          palaceName: String(item.palaceName || item.palace || "").trim() || undefined,
+          type: String(item.type || type || "").trim(),
+          meaningSeed: String(item.meaningSeed || item.meaning || "").trim() || undefined,
+        };
+      })
+      .filter(Boolean)
+    : [];
+  const primaryPalace = palaces[0] || payloadPalaces[0] || null;
+  const secondPalace = palaces[1] || null;
+
+  return {
+    categoryId,
+    dataMap: mapEntry,
+    palaces,
+    primaryPalace,
+    secondPalace,
+    transformations: transformations.concat(chartTransformations),
+    allPalaces: payloadPalaces,
+  };
+}
+
+function buildZiweiResolvedCategorySummary(category = {}, payload = {}) {
+  const resolved = resolveZiweiCategoryData(category, payload);
+  const palaceNames = resolved.palaces.map((row) => String(row?.name || "").trim()).filter(Boolean);
+  const palaceSummary = palaceNames.length ? palaceNames.join(", ") : "핵심 궁 데이터";
+  const mainStars = resolved.palaces.map((palace) => formatZiweiStarList(palace.mainStars)).filter(Boolean).join(" | ");
+  const otherStars = resolved.palaces.map((palace) => formatZiweiOtherStarList(palace)).filter(Boolean).join(" || ");
+  const brightness = resolved.palaces.map((palace) => formatZiweiBrightnessSummary(palace)).filter(Boolean).join(" || ");
+  const transformations = formatZiweiTransformationList(resolved.transformations);
+  const strengths = resolved.palaces.map((palace) => formatZiweiPalaceStrength(palace)).filter(Boolean).join(" | ");
+  return {
+    resolved,
+    palaceSummary,
+    mainStars,
+    otherStars,
+    brightness,
+    transformations,
+    strengths,
+  };
+}
+
+function normalizeRequiredPalaceToken(name) {
+  const token = String(name || "").trim();
+  if (!token) return "";
+  if (token === "신궁") return "명궁";
+  return token;
+}
+
+function formatZiweiCategoryTitle(category = {}) {
+  return String(category?.title || "핵심 해석").trim() || "핵심 해석";
+}
+
+function buildZiweiCategorySeedText(category = {}, payload = {}) {
+  const summary = buildZiweiResolvedCategorySummary(category, payload);
+  const title = formatZiweiCategoryTitle(category);
+  const lines = [
+    `${title}은 자미두수 명반의 ${summary.palaceSummary}을 중심으로 해석한다.`,
+    `해당 궁의 주성: ${summary.mainStars || "없음"}.`,
+    `보조성/잡성/살성: ${summary.otherStars || "없음"}.`,
+    `별의 밝기와 강도: ${summary.brightness || "평"}.`,
+    summary.transformations ? `사화 및 변화 정보: ${summary.transformations}.` : "",
+    summary.strengths ? `궁 강도: ${summary.strengths}.` : "",
+    "이 항목에서는 위 명반 근거를 바탕으로 성향, 반복 패턴, 장점, 위험 요소, 현실 조언을 구체적으로 작성해야 한다.",
+  ].filter(Boolean);
+  return lines.join("\n");
 }
 
 function summarizeZiweiStars(palaces = []) {
@@ -816,19 +1106,7 @@ function resolveRequiredPalaces(requiredPalaces = [], payloadPalaces = []) {
 }
 
 export function buildZiweiCategorySeed(category = {}, payload = {}) {
-  const payloadPalaces = collectPayloadPalaces(payload);
-  const resolvedPalaces = resolveRequiredPalaces(category.requiredPalaces, payloadPalaces);
-  const palaceNames = resolvedPalaces.map((row) => String(row?.name || "").trim()).filter(Boolean);
-  const targetLabel = palaceNames.length ? palaceNames.join(", ") : "핵심 궁 데이터";
-  const starsSummary = summarizeZiweiStars(resolvedPalaces);
-  const brightnessSummary = summarizeZiweiBrightness(resolvedPalaces);
-
-  return [
-    `${String(category.title || "핵심 해석").trim()}은 사용자의 자미두수 명반 중 ${targetLabel}을 중심으로 해석합니다.`,
-    `주요 별 구조: ${starsSummary}`,
-    `강도 흐름: ${brightnessSummary}`,
-    "이 카테고리는 단정 예언이 아니라 성향, 반복 패턴, 현실적 선택 전략을 중심으로 작성합니다.",
-  ].join("\n");
+  return buildZiweiCategorySeedText(category, payload);
 }
 
 export function buildCanonicalZiweiPdfChapters(payload = {}) {
