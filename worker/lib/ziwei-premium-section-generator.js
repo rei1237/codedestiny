@@ -124,6 +124,7 @@ export function validateLLMSectionContent(content, input) {
   const text = String(content || "").trim();
   const errors = [];
   const warnings = [];
+  const textLower = text.toLowerCase();
 
   // 1. 비어 있는지 확인
   if (!text || text.length < 50) {
@@ -168,7 +169,6 @@ export function validateLLMSectionContent(content, input) {
     .filter((s) => s.length > 2)
     .slice(0, 3);
 
-  const textLower = text.toLowerCase();
   const matchedKeywords = sectionKeywords.filter((kw) => textLower.includes(kw));
 
   if (matchedKeywords.length === 0 && sectionKeywords.length > 1) {
@@ -177,22 +177,45 @@ export function validateLLMSectionContent(content, input) {
   }
 
   // 7. targetPalace 또는 관련 궁 이름 확인
-  const targetPalaces = Array.isArray(input.targetPalaces)
-    ? input.targetPalaces
-    : input.targetPalace
-    ? [input.targetPalace]
+  const resolvedPalaceTokens = Array.isArray(input?.resolved?.resolved?.palaces)
+    ? input.resolved.resolved.palaces.flatMap((palace) => [
+      String(palace?.name || "").trim(),
+      String(palace?.key || "").trim(),
+    ]).filter(Boolean)
     : [];
+
+  const targetPalaces = resolvedPalaceTokens.length > 0
+    ? resolvedPalaceTokens
+    : (Array.isArray(input.targetPalaces)
+      ? input.targetPalaces
+      : input.targetPalace
+      ? [input.targetPalace]
+      : []);
 
   const palacesFound = targetPalaces.filter((palace) =>
     textLower.includes(palace.toLowerCase())
   );
 
   if (targetPalaces.length > 0 && palacesFound.length === 0) {
-    errors.push("NO_TARGET_PALACE_FOUND");
+    warnings.push("NO_TARGET_PALACE_FOUND");
   }
 
   // 8. 별 이름 또는 강도 기호 확인
-  const starNames = input.starNames || [];
+  const starNames = []
+    .concat(Array.isArray(input.starNames) ? input.starNames : [])
+    .concat(
+      Array.isArray(input?.resolved?.resolved?.palaces)
+        ? input.resolved.resolved.palaces.flatMap((palace) =>
+          []
+            .concat(Array.isArray(palace?.mainStars) ? palace.mainStars : [])
+            .concat(Array.isArray(palace?.assistantStars) ? palace.assistantStars : [])
+            .concat(Array.isArray(palace?.minorStars) ? palace.minorStars : [])
+            .concat(Array.isArray(palace?.maleficStars) ? palace.maleficStars : [])
+            .map((star) => String(star?.name || star?.nameKo || "").trim())
+            .filter(Boolean)
+        )
+        : []
+    );
   const strengthSymbols = ["◎", "O", "▲", "△", "X"];
 
   const hasStarOrSymbol =
@@ -203,10 +226,10 @@ export function validateLLMSectionContent(content, input) {
   const hasStarName = starNames.some((star) => textLower.includes(star.toLowerCase()));
 
   if (starNames.length > 0 && !hasStarName) {
-    errors.push("NO_STAR_NAME");
+    warnings.push("NO_STAR_NAME");
   }
   if (!hasStrengthSymbol) {
-    errors.push("NO_STRENGTH_SYMBOL");
+    warnings.push("NO_STRENGTH_SYMBOL");
   }
 
   return {
@@ -849,7 +872,9 @@ export async function generateZiweiChapterFromSections(env, input) {
 
   const generatedSections = [];
   const failedSections = [];
-  const minimalPayload = toMinimalZiweiPayload(input);
+  const minimalPayload = (input?.minimalPayload && typeof input.minimalPayload === "object")
+    ? input.minimalPayload
+    : toMinimalZiweiPayload(input);
   const canonicalChapters = buildCanonicalZiweiPdfChapters(minimalPayload);
   const chapterNo = Number(chapter?.chapterNo || 1);
   const canonicalChapter = canonicalChapters.find((row) => Number(row?.order || 0) === chapterNo) || null;

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @jest-environment node
  */
 
@@ -9,6 +9,7 @@ let resolveZiweiCategoryData;
 let buildZiweiCategorySeed;
 let isLowQualityZiweiSection;
 let normalizeZiweiSectionResult;
+let validateLLMSectionContent;
 
 beforeAll(async () => {
   const book = await import("../../worker/lib/ziwei-premium-book-structure.js");
@@ -20,6 +21,7 @@ beforeAll(async () => {
   generateZiweiChapterFromSections = section.generateZiweiChapterFromSections;
   isLowQualityZiweiSection = section.isLowQualityZiweiSection;
   normalizeZiweiSectionResult = section.normalizeZiweiSectionResult;
+  validateLLMSectionContent = section.validateLLMSectionContent;
 });
 
 describe("ziwei premium section generator fallback", () => {
@@ -191,5 +193,74 @@ describe("ziwei premium section generator fallback", () => {
     expect(result.generatedSections[0].source).toBe("expert-local-fallback");
     expect(String(result.generatedSections[0].content || "").length).toBeGreaterThanOrEqual(900);
     expect(String(result.generatedSections[0].content || "")).not.toContain("자동 복구 생성");
+  });
+
+  test("validator should accept high-quality palace/star grounded text without forcing strength symbol", () => {
+    const content = [
+      "명궁에서는 자미와 좌보의 결이 강하게 맞물려 자기 기준을 먼저 세우는 경향이 반복됩니다.",
+      "관록궁의 자미 흐름은 직업 선택에서 속도보다 방향 정합성을 우선하게 만들고, 재백궁의 무곡 구조는 수입원을 분리해 관리할 때 안정이 커집니다.",
+      "질액궁의 천량 배치는 과로 누적 시 회복이 늦어질 수 있음을 시사하므로, 주간 리듬을 끊지 않는 루틴이 핵심입니다.",
+      "천이궁의 천마 신호가 있어 외부 확장 운은 분명하지만, 교우궁 네트워크를 선별하지 않으면 성과가 분산될 수 있습니다.",
+      "결론적으로 명궁-관록궁-재백궁의 연결을 우선 축으로 잡고, 관계와 건강 리스크를 주간 점검 항목으로 고정하는 전략이 실전적으로 유효합니다.",
+    ].join(" ");
+
+    const validation = validateLLMSectionContent(content, {
+      section: { title: "명궁 주성 구조", minChars: 300 },
+      targetPalaces: ["명궁", "관록궁", "재백궁"],
+      starNames: ["자미", "좌보", "무곡", "천량", "천마"],
+      resolved: {
+        resolved: {
+          palaces: [
+            { key: "life", name: "명궁", mainStars: [{ name: "자미" }], assistantStars: [{ name: "좌보" }] },
+            { key: "career", name: "관록궁", mainStars: [{ name: "자미" }] },
+            { key: "wealth", name: "재백궁", mainStars: [{ name: "무곡" }] },
+          ],
+        },
+      },
+    });
+
+    expect(validation.ok).toBe(true);
+    expect(validation.errors).toHaveLength(0);
+  });
+
+  test("chapter generator should prefer provided minimal payload over rebuilt payload", async () => {
+    const result = await generateZiweiChapterFromSections({}, {
+      requestId: "test-req-2",
+      reportId: "test-report-2",
+      chapter: {
+        chapterId: "ch12",
+        chapterNo: 12,
+        title: "종합 운명 로드맵",
+        targetPalace: "명궁",
+      },
+      sections: [
+        { sectionId: "c12-01", title: "12궁 전체 핵심 요약", minChars: 1200 },
+      ],
+      minimalPayload: {
+        service: "ziwei-premium",
+        mode: "personal",
+        user: { name: "테스터", birthDate: "1992-06-15", birthTime: "12:30", calendarType: "solar" },
+        chart: {
+          lifePalaceKey: "life",
+          bodyPalaceKey: "body",
+          palaces: [
+            { key: "life", name: "명궁", mainStars: [{ name: "자미", brightness: "묘", strengthSymbol: "◎" }], assistantStars: [{ name: "좌보", brightness: "득", strengthSymbol: "O" }], minorStars: [], maleficStars: [] },
+            { key: "wealth", name: "재백궁", mainStars: [{ name: "무곡", brightness: "왕", strengthSymbol: "◎" }], assistantStars: [], minorStars: [], maleficStars: [] },
+          ],
+          fourTransformations: {
+            hualu: { starName: "자미", palaceKey: "life", palaceName: "명궁", meaningSeed: "명예와 자기기반 강화" },
+          },
+        },
+        meta: { generatedAt: new Date().toISOString(), source: "local-ziwei-engine" },
+      },
+      userProfile: { name: "테스터", gender: "F", birthDate: "1992-06-15", birthTime: "12:30" },
+      reportPayload: { chartMeta: { mingGong: "명궁" }, palaces: [] },
+      starNames: ["자미", "좌보", "무곡"],
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.generatedSections).toHaveLength(1);
+    expect(String(result.generatedSections[0].content || "")).toContain("명궁");
+    expect(String(result.generatedSections[0].content || "")).toContain("자미");
   });
 });
