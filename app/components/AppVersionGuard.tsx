@@ -3,6 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePaymentProcessing } from "./PaymentProcessingContext";
 import { installPdfExportFetchGuard } from "../_lib/pdf-export-guard";
+import {
+  getActivePaidAttemptSession,
+  isPaidAttemptInProgress,
+  logPaidAttemptEvent,
+  restorePaidAttemptFromUrlOrStorage,
+} from "../_lib/paid-attempt-session";
 
 const APP_VERSION = process.env.NEXT_PUBLIC_GIT_SHA
   || process.env.NEXT_PUBLIC_BUILD_TIME
@@ -154,6 +160,10 @@ function getBlockingReason(isPaymentProcessing: boolean): string {
     return "결제 처리 중";
   }
 
+  if (isPaidAttemptInProgress()) {
+    return "유료 결과 생성 흐름 복구/진행 중";
+  }
+
   if (getWindowBooleanFlag("__CD_PDF_EXPORT_IN_PROGRESS__")) {
     return "PDF 생성/다운로드 중";
   }
@@ -198,6 +208,16 @@ export default function AppVersionGuard() {
   useEffect(() => {
     installPdfExportFetchGuard();
     void retireLegacyServiceWorkersOnce();
+    const restored = restorePaidAttemptFromUrlOrStorage();
+    if (restored) {
+      logPaidAttemptEvent("PaidAttempt.ProcessingMounted", {
+        attemptId: restored.attemptId,
+        featureKey: restored.featureKey,
+        paymentStatus: restored.paymentStatus,
+        generationStatus: restored.generationStatus,
+        reason: "app_version_guard_boot",
+      });
+    }
   }, []);
 
   useEffect(() => {
@@ -275,6 +295,16 @@ export default function AppVersionGuard() {
       if (deferredVersion === serverVersion) {
         setPendingUpdate(null);
       } else {
+        const activeAttempt = getActivePaidAttemptSession();
+        if (activeAttempt && isPaidAttemptInProgress()) {
+          logPaidAttemptEvent("PaidAttempt.ReloadPrevented", {
+            attemptId: activeAttempt.attemptId,
+            featureKey: activeAttempt.featureKey,
+            paymentStatus: activeAttempt.paymentStatus,
+            generationStatus: activeAttempt.generationStatus,
+            reason: blockingReason,
+          });
+        }
         setPendingUpdate({
           version: serverVersion,
           reason: blockingReason,

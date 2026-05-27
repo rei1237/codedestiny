@@ -1,5 +1,12 @@
 import { authFetch } from "@/app/_lib/auth-client";
 import { normalizeBaseUrl } from "@/app/_lib/api-config";
+import {
+  beginPaidAttempt,
+  markPaidAttemptCallbackReturned,
+  markPaidAttemptFailed,
+  markPaidAttemptPaymentRequested,
+  markPaidAttemptPaymentSucceeded,
+} from "@/app/_lib/paid-attempt-session";
 
 type BillingError = {
   code: string;
@@ -183,12 +190,21 @@ export async function runBillingCoinGate(input: {
   balance: number | null;
   user: Record<string, unknown> | null;
 }>> {
+  const activeAttempt = beginPaidAttempt({
+    featureKey: toText(input.featureKey || input.subFeatureKey || input.categoryKey || "coin-gate"),
+    mode: toText(input.reason || ""),
+  });
+  markPaidAttemptPaymentRequested();
+
   const response = await authFetchBilling("/api/billing/coin-gate", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(input || {}),
+    body: JSON.stringify({
+      ...(input || {}),
+      attemptId: activeAttempt.attemptId,
+    }),
   });
 
   const parsed = await parseBillingResponse<{
@@ -201,6 +217,10 @@ export async function runBillingCoinGate(input: {
   if (parsed.ok && parsed.data) {
     const normalizedBalance = toNumber(parsed.data.balance, NaN);
     parsed.data.balance = Number.isFinite(normalizedBalance) ? normalizedBalance : null;
+    markPaidAttemptPaymentSucceeded();
+    markPaidAttemptCallbackReturned();
+  } else {
+    markPaidAttemptFailed(parsed.error?.code || "coin_gate_failed");
   }
 
   return parsed;

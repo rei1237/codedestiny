@@ -6,6 +6,12 @@ import {
   fetchBillingFeaturePricing,
   runBillingCoinGate,
 } from "../_lib/billing-client";
+import {
+  logPaidAttemptEvent,
+  markPaidAttemptFailed,
+  markPaidAttemptGenerationCompleted,
+  markPaidAttemptGenerationStarted,
+} from "../_lib/paid-attempt-session";
 import { usePayment } from "./usePayment";
 
 type CoinGateContext = {
@@ -88,6 +94,9 @@ export function useCoinGate() {
       if (!input.skipAuthCheck) {
         const authState = getAuthState();
         if (!authState.isAuthenticated) {
+          logPaidAttemptEvent("PaidAttempt.AuthHydrating", {
+            reason: "ensure_paid_access_refresh_auth",
+          });
           try {
             await refreshAuth({ force: true, silent: true });
           } catch {
@@ -196,6 +205,7 @@ export function useCoinGate() {
 
       if (typeof input.onPaid === "function") {
         setPaymentMessage("결제가 완료되었습니다. 결과를 생성하고 있습니다...");
+        markPaidAttemptGenerationStarted("onPaid_callback_start");
         try {
           await input.onPaid({
             transactionId,
@@ -204,7 +214,9 @@ export function useCoinGate() {
             balanceAfter,
             featureKey: resolvedFeatureKey,
           });
+          markPaidAttemptGenerationCompleted();
         } catch (error) {
+          markPaidAttemptFailed("feature_execution_failed");
           return {
             ok: false,
             code: "FEATURE_EXECUTION_FAILED",

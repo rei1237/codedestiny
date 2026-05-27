@@ -4,6 +4,11 @@ import { createContext, useCallback, useEffect, useMemo, useRef, useState } from
 import { usePathname, useRouter } from "next/navigation";
 import ExitToast from "@/app/components/common/ExitToast";
 import {
+  getActivePaidAttemptSession,
+  isPaidAttemptInProgress,
+  logPaidAttemptEvent,
+} from "@/app/_lib/paid-attempt-session";
+import {
   attemptAppExit,
   createPopstateDebouncer,
   ensureGuardState,
@@ -137,8 +142,20 @@ export default function NavigationProvider({ children }: { children: React.React
     };
 
     const handleAnalysisBack = (pathKey: string, policy: BackPolicy) => {
+      const activeAttempt = getActivePaidAttemptSession();
       const activeHandler = pickActiveAnalysisHandler(handlersRef.current);
       if (!activeHandler) {
+        if (activeAttempt && isPaidAttemptInProgress()) {
+          logPaidAttemptEvent("PaidAttempt.RedirectBlocked", {
+            attemptId: activeAttempt.attemptId,
+            featureKey: activeAttempt.featureKey,
+            paymentStatus: activeAttempt.paymentStatus,
+            generationStatus: activeAttempt.generationStatus,
+            reason: "analysis_back_without_handler",
+          });
+          rearmGuardState(pathKey, "analysis");
+          return;
+        }
         router.replace("/");
         return;
       }
@@ -164,6 +181,17 @@ export default function NavigationProvider({ children }: { children: React.React
       }
 
       analysisDepthByPathRef.current[pathKey] = 0;
+      if (activeAttempt && isPaidAttemptInProgress()) {
+        logPaidAttemptEvent("PaidAttempt.RedirectBlocked", {
+          attemptId: activeAttempt.attemptId,
+          featureKey: activeAttempt.featureKey,
+          paymentStatus: activeAttempt.paymentStatus,
+          generationStatus: activeAttempt.generationStatus,
+          reason: "analysis_back_depth_exhausted",
+        });
+        rearmGuardState(pathKey, "analysis");
+        return;
+      }
       router.replace("/");
     };
 
