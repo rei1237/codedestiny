@@ -572,15 +572,28 @@
       return token;
     }
 
+    var VEDIC_CLIENT_TIMEOUT_MS = 180000;
+    var VEDIC_INTER_CHAPTER_DELAY_MS = 3000;
+    var VEDIC_RETRY_BASE_DELAY_MS = 5000;
+    var VEDIC_MAX_RETRY_COUNT = 3;
+
+    function _sleep(ms){
+      return new Promise(function(resolve){ setTimeout(resolve, Math.max(0, Number(ms)||0)); });
+    }
+
     function _fetchChapter(idx){
       return new Promise(function(resolve){
-        var tid=setTimeout(function(){resolve({ok:false,message:'응답 시간 초과 (60초).'});},60000);
+        var controller = new AbortController();
+        var timeoutId = setTimeout(function(){
+          try { controller.abort('timeout'); } catch(_) {}
+        }, VEDIC_CLIENT_TIMEOUT_MS);
         var _vdPremiumToken=_vdReadPremiumAccessToken();
         var _vdMode='personal';
         var _vdHeaders={'Content-Type':'application/json'};
         if(_vdPremiumToken) _vdHeaders['x-premium-access-token']=_vdPremiumToken;
         fetch('/api/vedic/generate-chapter',{
           method:'POST',headers:_vdHeaders,
+          signal: controller.signal,
           body:JSON.stringify({
             reportId:_vdReportId,
             requestId:'vedic-'+_vdReportId+'-ch'+(idx+1),
@@ -604,62 +617,86 @@
           })
         })
         .then(function(res){return res.ok?res.json():res.json().catch(function(){return{};}).then(function(e){return{ok:false,message:(e&&e.message)||'HTTP '+res.status};});})
-        .then(function(data){clearTimeout(tid);resolve(data);})
-        .catch(function(err){clearTimeout(tid);resolve({ok:false,message:String(err&&err.message?err.message:err)});});
+        .then(function(data){clearTimeout(timeoutId);resolve(data);})
+        .catch(function(err){
+          clearTimeout(timeoutId);
+          if(err && (err.name === 'AbortError' || String(err.message||err).toLowerCase().indexOf('aborted') !== -1)){
+            resolve({ok:false,message:'응답 시간 초과 (180초).'});
+            return;
+          }
+          resolve({ok:false,message:String(err&&err.message?err.message:err)});
+        });
       });
     }
 
-    var _failCount=0;
-    var _chapterRetries=Array(12).fill(0);
-    (function generateNext(idx){
-      if(idx>=12){
-        clearInterval(_mysticTimer);_mysticTimer=null;_generating=false;
-        var validCount=_chapters.filter(function(c){ return typeof c==='string' && c.trim().length>0; }).length;
-        if(validCount===0){
-          var firstErr=_chapterErrors.find(function(e){return !!e;})||'베다 리포트 생성 중 오류가 발생했습니다.';
-          var errEl=_qs('vdErrorMsg');
-          if(errEl)errEl.textContent='베다 리포트 생성에 실패했습니다. 잠시 후 다시 시도해 주세요. ('+String(firstErr)+')';
-          _showScreen('vdErrorScreen');
-          return;
+    async function _fetchChapterWithRetry(idx){
+      var lastData = null;
+      for(var attempt=0; attempt<=VEDIC_MAX_RETRY_COUNT; attempt++){
+        if(chapterMsg){
+          if(attempt===0) chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';
+          else chapterMsg.textContent='Chapter '+(idx+1)+' 재시도 중... ('+attempt+'/'+VEDIC_MAX_RETRY_COUNT+')';
         }
-        _showScreen('vdResultScreen');
-        _currentChapter=1;
-        _updateTocState(_currentChapter);_renderChapter(_currentChapter);_bindToc();
-        var prof=window.__cdActiveBirthProfile||{};
-        var _nameEl=_qs('vdResultName'),_dateEl=_qs('vdResultDate');
-        if(_nameEl)_nameEl.textContent='🪷 '+(prof.name||'사용자')+'님의 베다 인생 총람';
-        if(_dateEl){var _b=prof.birth||{};_dateEl.textContent=[_b.year,_b.month,_b.day].filter(Boolean).join('.')+'생 · 🗓️ '+new Date().toLocaleDateString('ko-KR')+' 발행';}
-        _vdSaveResult(prof);
-        _vdRunPremiumJob(12);
-        return;
+        var data = await _fetchChapter(idx);
+        if(data&&data.ok&&data.text){
+          return data;
+        }
+        lastData = data;
+        var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류';
+        console.warn('[베다] Chapter '+(idx+1)+' 실패:',msg);
+        if(attempt < VEDIC_MAX_RETRY_COUNT){
+          var backoffMs = VEDIC_RETRY_BASE_DELAY_MS * Math.pow(2, attempt);
+          await _sleep(backoffMs);
+        }
       }
-      if(chapterMsg)chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';
-      _fetchChapter(idx).then(function(data){
+      return lastData||{ok:false,message:'알 수 없는 오류'};
+    }
+
+    (async function generateSequentialChapters(){
+      var _failCount=0;
+      var chapterIndexes=[];
+      for(var i=0;i<12;i++) chapterIndexes.push(i);
+
+      for(var _i=0; _i<chapterIndexes.length; _i++){
+        var idx = chapterIndexes[_i];
+        var data = await _fetchChapterWithRetry(idx);
         if(data&&data.ok&&data.text){
           _syncChapterMetaFromResponse(idx,data);
           _chapters[idx]=data.text;
           _chapterStructured[idx]=(Array.isArray(data.sections)&&data.sections.length)?{sections:data.sections}:(data.chapterJson&&typeof data.chapterJson==='object'?data.chapterJson:null);
           _chapterErrors[idx]=null;
-          _chapterRetries[idx]=0;
-        }
-        else{
+        } else {
           _failCount++;
           var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류';
-          console.warn('[베다] Chapter '+(idx+1)+' 실패:',msg);
-          _chapterRetries[idx]=Number(_chapterRetries[idx]||0)+1;
-          if(_chapterRetries[idx] < 5){
-            if(chapterMsg)chapterMsg.textContent='Chapter '+(idx+1)+' 재시도 중... ('+_chapterRetries[idx]+'/4)';
-            setTimeout(function(){ generateNext(idx); }, 900);
-            return;
-          }
           _chapterErrors[idx]=msg;
           _chapters[idx]=_buildChapterSkeleton(idx,msg);
           _chapterStructured[idx]=null;
         }
+
         _setProgress(idx+1);
-        generateNext(idx+1);
-      });
-    })(0);
+        if(_i < chapterIndexes.length - 1){
+          await _sleep(VEDIC_INTER_CHAPTER_DELAY_MS);
+        }
+      }
+
+      clearInterval(_mysticTimer);_mysticTimer=null;_generating=false;
+      var validCount=_chapters.filter(function(c){ return typeof c==='string' && c.trim().length>0; }).length;
+      if(validCount===0){
+        var firstErr=_chapterErrors.find(function(e){return !!e;})||'베다 리포트 생성 중 오류가 발생했습니다.';
+        var errEl=_qs('vdErrorMsg');
+        if(errEl)errEl.textContent='베다 리포트 생성에 실패했습니다. 잠시 후 다시 시도해 주세요. ('+String(firstErr)+')';
+        _showScreen('vdErrorScreen');
+        return;
+      }
+      _showScreen('vdResultScreen');
+      _currentChapter=1;
+      _updateTocState(_currentChapter);_renderChapter(_currentChapter);_bindToc();
+      var prof=window.__cdActiveBirthProfile||{};
+      var _nameEl=_qs('vdResultName'),_dateEl=_qs('vdResultDate');
+      if(_nameEl)_nameEl.textContent='🪷 '+(prof.name||'사용자')+'님의 베다 인생 총람';
+      if(_dateEl){var _b=prof.birth||{};_dateEl.textContent=[_b.year,_b.month,_b.day].filter(Boolean).join('.')+'생 · 🗓️ '+new Date().toLocaleDateString('ko-KR')+' 발행';}
+      _vdSaveResult(prof);
+      _vdRunPremiumJob(12);
+    })();
   };
 
   window.downloadVedicBookPdf = function(){

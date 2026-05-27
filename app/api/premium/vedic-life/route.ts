@@ -693,7 +693,7 @@ async function callGemini(prompt: string): Promise<string> {
       if (attempts >= maxAttempts) break;
       attempts += 1;
     try {
-      const res = await fetch(GEMINI_URL.replace("{model}",model)+`?key=${key}`,{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ contents:[{parts:[{text:prompt}]}], generationConfig:{temperature:0.92,maxOutputTokens:16384,topK:40,topP:0.95} }), signal:AbortSignal.timeout(45_000) });
+      const res = await fetch(GEMINI_URL.replace("{model}",model)+`?key=${key}`,{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ contents:[{parts:[{text:prompt}]}], generationConfig:{temperature:0.92,maxOutputTokens:16384,topK:40,topP:0.95} }), signal:AbortSignal.timeout(180_000) });
       if (!res.ok) {
         const retriableStatus = [408, 429, 500, 502, 503, 504];
         if (retriableStatus.includes(Number(res.status))) {

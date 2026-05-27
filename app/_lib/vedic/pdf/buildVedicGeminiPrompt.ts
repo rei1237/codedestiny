@@ -92,10 +92,37 @@ const CANONICAL_VEDIC_SECTION_HINTS: Record<string, string[]> = {
 
 function safeJson(value: unknown): string {
   try {
-    return JSON.stringify(value, null, 2);
+    return JSON.stringify(value);
   } catch {
     return "{}";
   }
+}
+
+function pruneEmptyValues(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    const next = value
+      .map((item) => pruneEmptyValues(item))
+      .filter((item) => {
+        if (item == null) return false;
+        if (Array.isArray(item) && item.length === 0) return false;
+        if (typeof item === "object" && Object.keys(item as Record<string, unknown>).length === 0) return false;
+        return true;
+      });
+    return next;
+  }
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+      const next = pruneEmptyValues(raw);
+      if (next == null) continue;
+      if (Array.isArray(next) && next.length === 0) continue;
+      if (typeof next === "object" && Object.keys(next as Record<string, unknown>).length === 0) continue;
+      if (typeof next === "string" && !next.trim()) continue;
+      out[key] = next;
+    }
+    return out;
+  }
+  return value;
 }
 
 function buildVedicCoreJsonData(context: VedicPdfContext) {
@@ -124,13 +151,23 @@ export function buildVedicGeminiPrompt(input: {
     ? input.previousChapterTexts.filter((text) => String(text || "").trim().length > 0).slice(-3)
     : [];
   const canonicalSectionHints = CANONICAL_VEDIC_SECTION_HINTS[input.chapter.id] || [];
-  const vedicJsonData = JSON.stringify(buildVedicCoreJsonData(input.context));
+  const slimVedicJsonData = pruneEmptyValues(buildVedicCoreJsonData(input.context));
+  const slimKnowledgeBase = pruneEmptyValues(VEDIC_KNOWLEDGE_BASE);
+  const slimContext = pruneEmptyValues({
+    reportMode: input.context?.reportMode,
+    core: input.context?.core,
+    charts: input.context?.charts,
+    missingSummary: input.context?.missingSummary,
+    sourceMeta: input.context?.sourceMeta,
+  });
+  const chapterFocusedInstruction = `너는 베다 점성술 전문가야. 전달받은 JSON 데이터를 바탕으로 ${input.chapter.titleKo} 카테고리에 대한 분석만 도출해. JSON 원본을 읊지 말고 바로 실전 조언을 작성해.`;
 
   return [
     "[SYSTEM ROLE]",
     "너는 베다점 PDF용 해석 생성기다. 계산기가 아니다.",
-    "너는 인도 조티쉬(베다 점성술) 최고 권위자야. 내가 제공하는 이 [명반 핵심값 JSON 데이터: {{vedic_json_data}}]를 절대적으로 기반하여 리포트를 작성해. 절대로 '명반을 기준으로 분석합니다' 같은 안내 멘트나 더미 텍스트를 생성하지 말고, 각 챕터별로 실제 기질, 운세, 실전 조언을 바로 도출해.",
-    `[명반 핵심값 JSON 데이터: ${vedicJsonData}]`,
+    chapterFocusedInstruction,
+    "너는 인도 조티쉬(베다 점성술) 최고 권위자야. 내가 제공하는 [명반 핵심값 JSON 데이터]를 절대적으로 기반하여 리포트를 작성해. 절대로 '명반을 기준으로 분석합니다' 같은 안내 멘트나 더미 텍스트를 생성하지 말고, 각 챕터별로 실제 기질, 운세, 실전 조언을 바로 도출해.",
+    `[명반 핵심값 JSON 데이터: ${safeJson(slimVedicJsonData)}]`,
     "라그나, 나크샤트라, 다샤, 요가, D9, D10을 임의 생성하거나 추정하지 마라.",
     "없는 데이터는 null, [], fallbackUsed=true로 처리하고 본문에 추정으로 쓰지 마라.",
     "건강/수명/사망을 단정하지 말고, 경향/루틴/권장 행동 중심으로 작성하라.",
@@ -143,10 +180,10 @@ export function buildVedicGeminiPrompt(input: {
     `canonicalSectionHints: ${safeJson(canonicalSectionHints)}`,
     "",
     "[VEDIC KNOWLEDGE BASE]",
-    safeJson(VEDIC_KNOWLEDGE_BASE),
+    safeJson(slimKnowledgeBase),
     "",
     "[NORMALIZED CONTEXT]",
-    safeJson(input.context),
+    safeJson(slimContext),
     "",
     "[PREVIOUS CHAPTER TEXTS - OPTIONAL]",
     safeJson(previousChapterTexts),
