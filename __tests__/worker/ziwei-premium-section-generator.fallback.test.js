@@ -146,7 +146,7 @@ describe("ziwei premium section generator fallback", () => {
   });
 
   test("LLM failure should not break chapter generation and must use local fallback", async () => {
-    const result = await generateZiweiChapterFromSections({}, {
+    const result = await generateZiweiChapterFromSections({ PREMIUM_ZIWEI_REQUIRE_LLM: "false" }, {
       requestId: "test-req-1",
       reportId: "test-report-1",
       chapter: {
@@ -224,7 +224,7 @@ describe("ziwei premium section generator fallback", () => {
   });
 
   test("chapter generator should prefer provided minimal payload over rebuilt payload", async () => {
-    const result = await generateZiweiChapterFromSections({}, {
+    const result = await generateZiweiChapterFromSections({ PREMIUM_ZIWEI_REQUIRE_LLM: "false" }, {
       requestId: "test-req-2",
       reportId: "test-report-2",
       chapter: {

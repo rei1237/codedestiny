@@ -199,6 +199,11 @@ function getZiweiSectionBatchConfig(env = {}) {
   return { batchSize, parallel };
 }
 
+function isZiweiLlmRequired(env = {}) {
+  const raw = String(env?.PREMIUM_ZIWEI_REQUIRE_LLM || "true").trim().toLowerCase();
+  return !(raw === "0" || raw === "false" || raw === "no");
+}
+
 /**
  * LLM 섹션 결과 검증
  *
@@ -795,6 +800,24 @@ export async function generateZiweiSectionWithLLM(env, input) {
   const resolvedKeyCount = pickGeminiKeys(env, keyEnvKeys).length;
   const resolvedModels = pickGeminiModels(env, modelEnvKeys);
 
+  if (resolvedKeyCount <= 0) {
+    console.error("[ZiweiPremium][Flow] LLM_KEY_MISSING", {
+      chapterId: input.chapter?.chapterId,
+      sectionId: input.section?.sectionId,
+      keyCount: 0,
+      modelCandidates: resolvedModels,
+    });
+    return {
+      ok: false,
+      errorCode: "ZIWEI_LLM_KEY_MISSING",
+      chapterId: input.chapter?.chapterId,
+      sectionId: input.section?.sectionId,
+      maxAttempts: 0,
+      lastError: "Gemini API key is not configured",
+      source: "llm",
+    };
+  }
+
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       // 프롬프트 구성
@@ -906,6 +929,7 @@ function buildZiweiSectionLLMPrompt(input) {
   const evidence = toZiweiPromptEvidence(input);
   const systemInstruction = [
     "너는 최고의 자미두수 명리학자야.",
+    "너는 12궁과 사화를 실전적으로 해석하는 최고 수준의 자미두수 고수다.",
     "제공된 [사용자 명반 데이터]를 바탕으로 [현재 챕터명]에 대한 구체적이고 실질적인 해석을 작성해.",
     "절대로 '명반을 기준으로 분석합니다' 같은 안내 멘트나 더미 텍스트를 출력하지 말고, 곧바로 사용자의 기질, 운세, 구체적인 조언(실행 포인트)을 결과물로 도출해.",
     "당신은 30년 경력의 자미두수 고수다.",
@@ -917,6 +941,8 @@ function buildZiweiSectionLLMPrompt(input) {
     "각 카테고리 본문은 핵심 기질, 주성/보조성 상호작용, 밝기/강도, 반복 패턴, 위험 요소, 현실 조언의 순서로 쓴다.",
     "문체는 단정적인 예언이 아니라 명반 근거 기반의 깊은 상담문이어야 한다.",
     "막연한 위로나 일반론을 쓰지 말고, 반드시 제공된 궁/별/사화 데이터를 구체적으로 언급한다.",
+    "각 카테고리 본문은 해당 궁의 핵심 별 조합을 먼저 짚고, 실제 삶의 선택/관계/일/재정/건강에 바로 적용 가능한 실행 조언으로 마무리한다.",
+    "근거 없는 점괘식 표현, 추상적 수사, 형식적 도입부를 금지한다.",
     `절대 쓰면 안 되는 문구: ${avoid.join(" | ")}`,
     `반드시 포함할 항목: ${mustInclude.join(" | ")}`,
     "출력은 순수 본문 텍스트만 반환하라.",
@@ -972,6 +998,7 @@ export async function generateZiweiChapterFromSections(env, input) {
 
   const generatedSections = [];
   const failedSections = [];
+  const llmRequired = isZiweiLlmRequired(env);
   const minimalPayload = (input?.minimalPayload && typeof input.minimalPayload === "object")
     ? input.minimalPayload
     : toMinimalZiweiPayload(input);
@@ -1194,6 +1221,23 @@ export async function generateZiweiChapterFromSections(env, input) {
         source: normalized.source,
       });
     }
+  }
+
+  const nonLlmSections = generatedSections.filter((row) => String(row?.source || "") !== "llm");
+  if (llmRequired && nonLlmSections.length > 0) {
+    return {
+      ok: false,
+      code: "ZIWEI_LLM_REQUIRED_NOT_SATISFIED",
+      message: "자미두수 PDF는 각 세부 카테고리를 LLM API 기반으로 생성해야 합니다.",
+      failedSections: nonLlmSections.map((row) => ({
+        sectionId: row?.sectionId || "",
+        sectionTitle: row?.sectionTitle || "",
+        reason: "NON_LLM_SOURCE",
+      })),
+      generatedSections,
+      totalLength: generatedSections.reduce((sum, row) => sum + Number(row?.textLength || 0), 0),
+      llmRequired: true,
+    };
   }
 
   const bannedPdfText = [
