@@ -2658,6 +2658,132 @@ function buildPremiumContextSummary(context) {
   };
 }
 
+function buildUnifiedPremiumIdempotencyKey(userId, featureType, reportType, modeKey, inputHash) {
+  const userToken = String(userId || "anonymous").trim() || "anonymous";
+  const featureToken = String(featureType || reportType || "premium").trim() || "premium";
+  const modeToken = String(modeKey || "solo").trim() || "solo";
+  const hashToken = String(inputHash || "").trim() || stableHash(`${userToken}|${featureToken}|${modeToken}`);
+  return `${userToken}:${featureToken}:${modeToken}:${hashToken}`;
+}
+
+function buildPremiumPdfJobId(context) {
+  const sessionToken = String(context?.reportSessionId || "").trim();
+  const idempotencyToken = String(context?.idempotencyKey || "").trim();
+  const reportTypeToken = String(context?.reportType || "premium").trim() || "premium";
+  return `ppj_${stableHash(`${sessionToken}|${idempotencyToken}|${reportTypeToken}`)}`;
+}
+
+function derivePremiumPdfJobStatus(context, summary, inFlightCount) {
+  const chapterRequired = Number(summary?.requiredChapters || summary?.totalChapters || 0);
+  const chapterValid = Number(summary?.validChapters || 0);
+  const contextStatus = String(context?.status || summary?.status || "").trim();
+
+  if (contextStatus === "pdf-ready") return "completed";
+  if (!summary?.isCompleteForPdf || contextStatus === "needs-data") return "blocked";
+  if (inFlightCount > 0) return "running";
+  if (chapterRequired > 0 && chapterValid >= chapterRequired) return "chapter-ready";
+  if (chapterValid > 0) return "running";
+  return "prepared";
+}
+
+function countPremiumChapterInFlight(reportSessionId) {
+  const prefix = `${String(reportSessionId || "").trim()}:`;
+  if (!prefix || prefix === ":") return 0;
+  let count = 0;
+  for (const key of PREMIUM_REPORT_CHAPTER_INFLIGHT.keys()) {
+    if (String(key || "").startsWith(prefix)) count += 1;
+  }
+  return count;
+}
+
+const PREMIUM_PDF_JOB_INDEX = new Map();
+
+function attachPremiumPdfJobIndex(context) {
+  if (!context || !context.reportSessionId) return "";
+  const jobId = buildPremiumPdfJobId(context);
+  if (jobId) PREMIUM_PDF_JOB_INDEX.set(jobId, context.reportSessionId);
+  return jobId;
+}
+
+function resolvePremiumContextFromJobOrSession(jobIdInput, reportSessionIdInput) {
+  const reportSessionId = String(reportSessionIdInput || "").trim();
+  if (reportSessionId) {
+    const context = PREMIUM_REPORT_CONTEXT_STORE.get(reportSessionId) || null;
+    if (context) {
+      const jobId = attachPremiumPdfJobIndex(context);
+      return { ok: true, reportSessionId, context, jobId };
+    }
+    return { ok: false, code: "PREMIUM_REPORT_SESSION_NOT_FOUND", reportSessionId };
+  }
+
+  const jobId = String(jobIdInput || "").trim();
+  if (!jobId) return { ok: false, code: "PREMIUM_PDF_JOB_REQUIRED" };
+
+  let mappedSessionId = String(PREMIUM_PDF_JOB_INDEX.get(jobId) || "").trim();
+  let context = mappedSessionId ? PREMIUM_REPORT_CONTEXT_STORE.get(mappedSessionId) : null;
+  if (!context) {
+    for (const candidate of PREMIUM_REPORT_CONTEXT_STORE.values()) {
+      if (!candidate) continue;
+      const candidateJobId = buildPremiumPdfJobId(candidate);
+      if (candidateJobId === jobId) {
+        mappedSessionId = String(candidate.reportSessionId || "").trim();
+        context = candidate;
+        if (mappedSessionId) PREMIUM_PDF_JOB_INDEX.set(jobId, mappedSessionId);
+        break;
+      }
+    }
+  }
+
+  if (!context || !mappedSessionId) {
+    return { ok: false, code: "PREMIUM_PDF_JOB_NOT_FOUND", jobId };
+  }
+
+  return { ok: true, reportSessionId: mappedSessionId, context, jobId };
+}
+
+function buildPremiumPdfJobPayload(context, requestId, stage = "status") {
+  const summary = buildPremiumContextSummary(context);
+  const inFlightCount = countPremiumChapterInFlight(summary.reportSessionId);
+  const jobId = attachPremiumPdfJobIndex(context);
+  const jobStatus = derivePremiumPdfJobStatus(context, summary, inFlightCount);
+  const statusPath = `/api/premium-report/job/status?jobId=${encodeURIComponent(jobId)}`;
+
+  return {
+    ok: true,
+    requestId,
+    stage,
+    premiumPdfJob: {
+      jobId,
+      status: jobStatus,
+      reportType: summary.reportType,
+      featureType: summary.featureType,
+      idempotencyKey: String(summary.idempotencyKey || ""),
+      progress: {
+        validChapters: Number(summary.validChapters || 0),
+        requiredChapters: Number(summary.requiredChapters || 0),
+        totalChapters: Number(summary.totalChapters || 0),
+        inFlightChapters: inFlightCount,
+      },
+      chapterReady: Number(summary.requiredChapters || 0) > 0 && Number(summary.validChapters || 0) >= Number(summary.requiredChapters || 0),
+      canonicalReady: Boolean(summary.isCompleteForPdf),
+      createdAt: summary.createdAt,
+      updatedAt: summary.updatedAt,
+    },
+    premiumPdfSession: {
+      reportSessionId: summary.reportSessionId,
+      snapshotId: String(summary.snapshotId || ""),
+      reportId: summary.reportId,
+      sessionBindingId: summary.sessionBindingId,
+      status: String(summary.status || ""),
+    },
+    polling: {
+      statusEndpoint: statusPath,
+      pollIntervalMs: 1500,
+    },
+    contextSummary: summary,
+  };
+}
+
 function buildPromptSourceDataByChapter(reportType, reportData, totalChapters, chapterJsonById = {}) {
   const chapterCount = Math.max(1, Math.min(24, Number(totalChapters || 13)));
   const result = {};
@@ -25488,7 +25614,7 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
   const modeKey = modeKeyFromInput(requestBody || {});
   const requestBinding = buildPremiumSessionBinding(reportType, modeKey, requestBody || {});
   const cacheKey = getPremiumCacheKey(reportType, authInfo.userId, inputHash, calculationVersion, modeKey);
-  const idempotencyKey = `${String(authInfo.userId || "anonymous")}:${String(featureType || reportType || "")}:${modeKey}:${inputHash}`;
+  const idempotencyKey = buildUnifiedPremiumIdempotencyKey(authInfo.userId, featureType, reportType, modeKey, inputHash);
   const existingSessionId = PREMIUM_REPORT_CONTEXT_INDEX.get(cacheKey);
   const now = Date.now();
 
@@ -25684,6 +25810,137 @@ async function createOrReusePremiumReportContext(request, env, authInfo, reportT
   });
 
   return { ok: true, context, cacheHit: false };
+}
+
+async function handlePremiumPdfJobStart(request, env, authInfo) {
+  const body = await readJson(request);
+  const requestId = String(body.requestId || "").trim() || createPremiumRequestId(`${authInfo.userId}|job-start`);
+  const requestedIdempotencyKey = String(body.idempotencyKey || "").trim();
+  const tokenFromBody = String(body.premiumAccessToken || body?.requestBody?.premiumAccessToken || "").trim();
+  const tokenFromCookie = String(cookieValue(request, "cd_premium_access") || "").trim();
+  const tokenFromHeader = String(request.headers.get("x-premium-access-token") || "").trim();
+  const premiumAccessToken = tokenFromBody || tokenFromCookie || tokenFromHeader;
+  const prepareRequest = buildInternalPremiumJsonRequest(request, {
+    ...body,
+    requestId,
+    premiumAccessToken: premiumAccessToken || undefined,
+  });
+  const prepareResponse = await handlePremiumReportPrepare(prepareRequest, env, authInfo);
+  const preparePayload = await prepareResponse.clone().json().catch(() => ({}));
+  if (!prepareResponse.ok || !preparePayload?.ok || !preparePayload?.reportSessionId) {
+    return prepareResponse;
+  }
+
+  const reportSessionId = String(preparePayload.reportSessionId || "").trim();
+  const context = PREMIUM_REPORT_CONTEXT_STORE.get(reportSessionId);
+  if (!context) {
+    return json({
+      ok: false,
+      code: "PREMIUM_REPORT_SESSION_NOT_FOUND",
+      message: "job 생성 직후 reportSessionId를 찾을 수 없습니다.",
+      requestId,
+      reportSessionId,
+    }, { status: 404 });
+  }
+
+  if (requestedIdempotencyKey) {
+    context.idempotencyKey = buildUnifiedPremiumIdempotencyKey(
+      authInfo.userId,
+      context.featureType,
+      context.reportType,
+      context.modeKey,
+      stableHash(requestedIdempotencyKey),
+    );
+    context.updatedAt = new Date().toISOString();
+    PREMIUM_REPORT_CONTEXT_STORE.set(reportSessionId, context);
+  }
+
+  const payload = buildPremiumPdfJobPayload(context, requestId, "start");
+  return json(attachPremiumApiMeta(payload, {
+    stage: "job-start",
+    reportType: context.reportType,
+    featureType: context.featureType,
+    requestId,
+  }));
+}
+
+async function handlePremiumPdfJobRun(request, env, authInfo) {
+  const body = await readJson(request);
+  const requestId = String(body.requestId || "").trim() || createPremiumRequestId(`${authInfo.userId}|job-run`);
+  const resolved = resolvePremiumContextFromJobOrSession(body.jobId, body.reportSessionId);
+  if (!resolved.ok) {
+    const status = resolved.code === "PREMIUM_PDF_JOB_REQUIRED" ? 400 : 404;
+    return json({
+      ok: false,
+      code: resolved.code,
+      message: resolved.code === "PREMIUM_PDF_JOB_REQUIRED"
+        ? "jobId 또는 reportSessionId가 필요합니다."
+        : "요청한 PremiumPdfJob/PremiumPdfSession을 찾을 수 없습니다.",
+      requestId,
+      jobId: String(body.jobId || ""),
+      reportSessionId: String(body.reportSessionId || ""),
+    }, { status });
+  }
+
+  if (String(resolved.context.userId || "") !== String(authInfo.userId || "")) {
+    return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 PremiumPdfJob 입니다.", requestId }, { status: 401 });
+  }
+
+  const runRequest = buildInternalPremiumJsonRequest(request, {
+    ...body,
+    reportSessionId: resolved.reportSessionId,
+    requestId,
+  });
+  const runResponse = await handlePremiumReportRun(runRequest, env, authInfo);
+  const settledContext = PREMIUM_REPORT_CONTEXT_STORE.get(resolved.reportSessionId) || resolved.context;
+  const runPayload = await runResponse.clone().json().catch(() => ({}));
+  const envelope = buildPremiumPdfJobPayload(settledContext, requestId, "run");
+  return json(attachPremiumApiMeta({
+    ...envelope,
+    run: runPayload,
+  }, {
+    stage: "job-run",
+    reportType: settledContext.reportType,
+    featureType: settledContext.featureType,
+    requestId,
+    normalizedCode: Number(runResponse.status || 200) >= 400 ? "PREMIUM_PDF_JOB_RUN_FAILED" : "OK",
+  }), { status: Number(runResponse.status || 200) });
+}
+
+async function handlePremiumPdfJobStatus(request, env, authInfo) {
+  prunePremiumReportContexts();
+  const url = new URL(request.url);
+  const requestId = String(url.searchParams.get("requestId") || "").trim() || createPremiumRequestId(`${authInfo.userId}|job-status`);
+  const jobId = String(url.searchParams.get("jobId") || "").trim();
+  const reportSessionId = String(url.searchParams.get("reportSessionId") || "").trim();
+
+  const resolved = resolvePremiumContextFromJobOrSession(jobId, reportSessionId);
+  if (!resolved.ok) {
+    const status = resolved.code === "PREMIUM_PDF_JOB_REQUIRED" ? 400 : 404;
+    return json({
+      ok: false,
+      code: resolved.code,
+      message: resolved.code === "PREMIUM_PDF_JOB_REQUIRED"
+        ? "jobId 또는 reportSessionId가 필요합니다."
+        : "요청한 PremiumPdfJob/PremiumPdfSession을 찾을 수 없습니다.",
+      requestId,
+      jobId,
+      reportSessionId,
+    }, { status });
+  }
+
+  if (String(resolved.context.userId || "") !== String(authInfo.userId || "")) {
+    return json({ ok: false, code: "UNAUTHORIZED", message: "다른 사용자의 PremiumPdfJob 입니다.", requestId }, { status: 401 });
+  }
+
+  const context = PREMIUM_REPORT_CONTEXT_STORE.get(resolved.reportSessionId) || resolved.context;
+  const payload = buildPremiumPdfJobPayload(context, requestId, "status");
+  return json(attachPremiumApiMeta(payload, {
+    stage: "job-status",
+    reportType: context.reportType,
+    featureType: context.featureType,
+    requestId,
+  }));
 }
 
 async function recoverPremiumContextOnSessionMiss(request, env, authInfo, body, requestId) {
@@ -27854,6 +28111,15 @@ export async function handlePremiumReportRoutes(request, env) {
     }
     if (method === "POST" && url.pathname === "/api/premium-report/preflight") {
       return await ensurePdfNo422(await handlePremiumReportPreflight(request, env, authInfo));
+    }
+    if (method === "POST" && url.pathname === "/api/premium-report/job/start") {
+      return await ensurePdfNo422(await handlePremiumPdfJobStart(request, env, authInfo));
+    }
+    if (method === "POST" && url.pathname === "/api/premium-report/job/run") {
+      return await ensurePdfNo422(await handlePremiumPdfJobRun(request, env, authInfo));
+    }
+    if (method === "GET" && url.pathname === "/api/premium-report/job/status") {
+      return await ensurePdfNo422(await handlePremiumPdfJobStatus(request, env, authInfo));
     }
     if (method === "GET" && sessionId) {
       return await ensurePdfNo422(await handlePremiumReportSessionRead(request, env, authInfo, sessionId));
