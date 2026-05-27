@@ -574,6 +574,71 @@
     try { sessionStorage.removeItem(_zbMakeKey(profile)); } catch (e) {}
   }
 
+  function _zbHasSavedContent(saved) {
+    if (!saved || !Array.isArray(saved.chapters)) return false;
+    var validCount = saved.chapters.filter(function (c, idx) {
+      var hasText = typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(c.trim());
+      var structured = Array.isArray(saved.chapterStructured) ? saved.chapterStructured[idx] : null;
+      return hasText || _hasUsableStructuredChapter(structured);
+    }).length;
+    return validCount >= TOTAL_CHAPTERS;
+  }
+
+  function _zbApplySavedResult(saved, modal) {
+    if (!saved || !modal) return;
+    _chapters = Array.isArray(saved.chapters) ? saved.chapters : Array(TOTAL_CHAPTERS).fill(null);
+    _chapterStructured = Array.isArray(saved.chapterStructured)
+      ? saved.chapterStructured.slice(0, TOTAL_CHAPTERS)
+      : Array(TOTAL_CHAPTERS).fill(null);
+    _chapterMeta = Array.isArray(saved.chapterMeta)
+      ? saved.chapterMeta.slice(0, TOTAL_CHAPTERS)
+      : Array(TOTAL_CHAPTERS).fill(null);
+    _zbLastReportId = String(saved.reportId || '').trim();
+    _trace('SAVED_RESULT_LOADED', {
+      reportId: _zbLastReportId || null,
+      totalChapters: TOTAL_CHAPTERS,
+      message: '수동 복원으로 저장 결과 로드'
+    });
+    _currentChapter = 1;
+    _showScreen('zbResultScreen');
+    _updateTocState();
+    _renderChapter(1);
+    _bindToc();
+    var nameEl = _qs('zbResultName');
+    var dateEl = _qs('zbResultDate');
+    if (nameEl) nameEl.textContent = '🌌 ' + (saved.name || '사용자') + '님의 자미두수 인생 총람';
+    if (dateEl) {
+      var b = saved.birth || {};
+      var savedDate = saved.savedAt ? new Date(saved.savedAt).toLocaleDateString('ko-KR') : '';
+      dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · '
+        + (saved.gender === 'F' ? '여성' : saved.gender === 'M' ? '남성' : '')
+        + (savedDate ? ' · 💾 ' + savedDate + ' 저장' : '');
+    }
+    var epBanner = _qs('zbEpilogueBanner');
+    if (epBanner) epBanner.style.display = '';
+  }
+
+  function _zbEnsureHistoryButton(saved, modal) {
+    var startScreen = _qs('zbStartScreen');
+    if (!startScreen || !modal) return;
+    var btn = _qs('zbViewSavedBtn');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.id = 'zbViewSavedBtn';
+      btn.className = 'lb-btn-generate lb-btn-history';
+      btn.textContent = '📂 지난 자미두수 총람 열기';
+      startScreen.appendChild(btn);
+      btn.addEventListener('click', function () {
+        var payload = btn.__savedPayload || null;
+        if (!_zbHasSavedContent(payload)) return;
+        _zbApplySavedResult(payload, modal);
+      });
+    }
+    btn.__savedPayload = saved;
+    btn.style.display = _zbHasSavedContent(saved) ? '' : 'none';
+  }
+
   /* ─────────────── 화면 전환 ─────────────── */
   function _showScreen(id) {
     var screens = ['zbNoProfileScreen', 'zbStartScreen', 'zbLoadingScreen', 'zbResultScreen', 'zbErrorScreen'];
@@ -687,6 +752,12 @@
       console.error('[자미두수 인생 총람] ziweiBookModal 요소를 찾을 수 없습니다.');
       return;
     }
+    if (modal && modal.style) {
+      modal.style.setProperty('--lb-history-a', 'rgba(147, 51, 234, 0.24)');
+      modal.style.setProperty('--lb-history-b', 'rgba(76, 29, 149, 0.5)');
+      modal.style.setProperty('--lb-history-border', 'rgba(196, 181, 253, 0.52)');
+      modal.style.setProperty('--lb-history-text', '#f3e8ff');
+    }
 
     var profile = _getActiveBirthProfile();
     // 프로필 없으면 localStorage 운명 카드에서 복구
@@ -734,57 +805,8 @@
       }
     } catch (_) {}
 
-    // 저장된 결과 복원 시도 — 유효 챕터가 전체 챕터 수와 동일할 때만 복원
+    // 항상 시작 화면부터 열고, 저장된 결과는 별도 버튼으로만 복원
     var saved = _zbLoadSaved(profile);
-    var _savedValidCount = 0;
-    if (saved && Array.isArray(saved.chapters)) {
-      _savedValidCount = saved.chapters.filter(function(c, idx) {
-        var hasText = typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(c.trim());
-        var structured = Array.isArray(saved.chapterStructured) ? saved.chapterStructured[idx] : null;
-        return hasText || _hasUsableStructuredChapter(structured);
-      }).length;
-    }
-    if (_savedValidCount >= TOTAL_CHAPTERS) {
-      _chapters = saved.chapters;
-      _chapterStructured = Array.isArray(saved.chapterStructured)
-        ? saved.chapterStructured.slice(0, TOTAL_CHAPTERS)
-        : Array(TOTAL_CHAPTERS).fill(null);
-      _chapterMeta = Array.isArray(saved.chapterMeta)
-        ? saved.chapterMeta.slice(0, TOTAL_CHAPTERS)
-        : Array(TOTAL_CHAPTERS).fill(null);
-      _zbLastReportId = String(saved.reportId || '').trim();
-      _trace('SAVED_RESULT_LOADED', {
-        reportId: _zbLastReportId || null,
-        validChapters: _savedValidCount,
-        totalChapters: TOTAL_CHAPTERS,
-        message: '구조화 섹션도 로드됨'
-      });
-      _currentChapter = 1;
-      _showScreen('zbResultScreen');
-      _updateTocState();
-      _renderChapter(1);
-      _bindToc();
-      var nameEl = _qs('zbResultName');
-      var dateEl = _qs('zbResultDate');
-      if (nameEl) nameEl.textContent = '🌌 ' + (saved.name || '사용자') + '님의 자미두수 인생 총람';
-      if (dateEl) {
-        var b = saved.birth || {};
-        var savedDate = saved.savedAt ? new Date(saved.savedAt).toLocaleDateString('ko-KR') : '';
-        dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · ' +
-          (saved.gender === 'F' ? '여성' : saved.gender === 'M' ? '남성' : '') +
-          (savedDate ? ' · 💾 ' + savedDate + ' 저장' : '');
-      }
-      var epBanner = _qs('zbEpilogueBanner');
-      if (epBanner) epBanner.style.display = '';
-      modal.style.display = 'flex';
-      modal.style.visibility = 'visible';
-      modal.style.pointerEvents = 'auto';
-      modal.style.zIndex = '100120';
-      document.body.style.overflow = 'hidden';
-      document.body.classList.add('lb-modal-open');
-      try { modal.setAttribute('aria-hidden', 'false'); } catch(_) {}
-      return;
-    }
 
     _chapters = Array(TOTAL_CHAPTERS).fill(null);
     _chapterStructured = Array(TOTAL_CHAPTERS).fill(null);
@@ -798,9 +820,11 @@
     modal.style.zIndex = '100120';
     document.body.style.overflow = 'hidden';
     document.body.classList.add('lb-modal-open');
+    _zbEnsureHistoryButton(saved, modal);
     _trace('OPEN_MODAL_READY', {
       profileName: profile && profile.name ? profile.name : '사용자',
-      birthYear: profile && profile.birth ? profile.birth.year : null
+      birthYear: profile && profile.birth ? profile.birth.year : null,
+      hasSavedResult: _zbHasSavedContent(saved)
     });
 
     // 출생지 선택기 초기화
