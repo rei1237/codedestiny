@@ -5,7 +5,7 @@ import { requirePremiumRouteAccess } from "@/app/_lib/premium-route-access";
 import { requireRouteAuth } from "@/app/_lib/route-auth";
 import { normalizeVedicChartForPdf } from "@/app/_lib/vedic/pdf/normalizeVedicChartForPdf";
 import { buildVedicGeminiPrompt } from "@/app/_lib/vedic/pdf/buildVedicGeminiPrompt";
-import { VEDIC_PDF_CHAPTERS, getVedicChapterByNumber, getVedicPdfChapters } from "@/app/_lib/vedic/pdf/vedicPdfChapters";
+import { getVedicChapterByNumber, getVedicPdfChapters } from "@/app/_lib/vedic/pdf/vedicPdfChapters";
 import type { VedicPdfChapterOutput } from "@/app/_lib/vedic/pdf/types";
 
 export const runtime = "nodejs";
@@ -73,6 +73,11 @@ const DIGNITY_MAP: Record<string, { exalt:number; debit:number; own:number[] }> 
 type VedicChapterResult = VedicPdfChapterOutput & {
   chapterMeta: ReturnType<typeof getVedicChapterByNumber>;
   calculationSource: string;
+  warnings: string[];
+};
+
+type CanonicalVedicChapterPayload = {
+  chapterPayload: VedicPdfChapterOutput;
   warnings: string[];
 };
 
@@ -144,8 +149,29 @@ async function buildVedicChapterResult(args: {
   previousChapterTexts?: string[];
 }) : Promise<VedicChapterResult> {
   const chapterDef = getVedicChapterByNumber(args.chapter, "personal");
+  const { chapterPayload, warnings } = await generateCanonicalVedicChapterPayload({
+    chapterDef,
+    chart: args.chart,
+    normalizedContext: args.normalizedContext,
+    previousChapterTexts: args.previousChapterTexts,
+  });
+
+  return {
+    ...chapterPayload,
+    chapterMeta: chapterDef,
+    calculationSource: "server-build",
+    warnings,
+  };
+}
+
+async function generateCanonicalVedicChapterPayload(args: {
+  chapterDef: ReturnType<typeof getVedicChapterByNumber>;
+  chart: VedicChart;
+  normalizedContext: ReturnType<typeof normalizeVedicChartForPdf>;
+  previousChapterTexts?: string[];
+}): Promise<CanonicalVedicChapterPayload> {
   const prompt = buildVedicGeminiPrompt({
-    chapter: chapterDef,
+    chapter: args.chapterDef,
     context: args.normalizedContext,
     previousChapterTexts: Array.isArray(args.previousChapterTexts) ? args.previousChapterTexts : [],
   });
@@ -159,9 +185,9 @@ async function buildVedicChapterResult(args: {
     usedFallback = true;
     warnings.push("AI text unavailable, fallback chapter payload used");
     chapterPayload = buildFallbackChapterPayload({
-      chapterNumber: args.chapter,
-      chapterId: chapterDef.id,
-      chapterTitle: chapterDef.titleKo,
+      chapterNumber: args.chapterDef.number,
+      chapterId: args.chapterDef.id,
+      chapterTitle: args.chapterDef.titleKo,
       chart: args.chart,
       contextMissingSummary: args.normalizedContext.missingSummary,
       reason: "AI empty output",
@@ -172,9 +198,9 @@ async function buildVedicChapterResult(args: {
       usedFallback = true;
       warnings.push("AI JSON parse failed, fallback chapter payload used");
       chapterPayload = buildFallbackChapterPayload({
-        chapterNumber: args.chapter,
-        chapterId: chapterDef.id,
-        chapterTitle: chapterDef.titleKo,
+        chapterNumber: args.chapterDef.number,
+        chapterId: args.chapterDef.id,
+        chapterTitle: args.chapterDef.titleKo,
         chart: args.chart,
         contextMissingSummary: args.normalizedContext.missingSummary,
         reason: "JSON parse failed",
@@ -182,9 +208,9 @@ async function buildVedicChapterResult(args: {
     } else {
       chapterPayload = normalizeChapterOutput({
         parsed,
-        chapterNumber: args.chapter,
-        chapterId: chapterDef.id,
-        chapterTitle: chapterDef.titleKo,
+        chapterNumber: args.chapterDef.number,
+        chapterId: args.chapterDef.id,
+        chapterTitle: args.chapterDef.titleKo,
         contextMissingSummary: args.normalizedContext.missingSummary,
       });
       usedFallback = chapterPayload.fallbackUsed;
@@ -192,9 +218,7 @@ async function buildVedicChapterResult(args: {
   }
 
   return {
-    ...chapterPayload,
-    chapterMeta: chapterDef,
-    calculationSource: "server-build",
+    chapterPayload,
     warnings: usedFallback ? warnings : [],
   };
 }
@@ -613,7 +637,7 @@ function normalizeSwissCorePayload(value: unknown): SwissCorePayload | null {
 // ─────────────────────────────────────────────────────────────────
 // 챕터 메타
 // ─────────────────────────────────────────────────────────────────
-export const VEDIC_CHAPTER_META = VEDIC_PDF_CHAPTERS.map((chapter) => ({
+export const VEDIC_CHAPTER_META = getVedicPdfChapters("personal").map((chapter) => ({
   num: chapter.number,
   title: chapter.titleKo,
   subtitle: chapter.subtitleKo,
@@ -1344,6 +1368,7 @@ export async function POST(req: NextRequest) {
       hour?:number; minute?:number; timezone?:number;
       lat?:number; lon?:number; chapter:number;
       reportType?: "personal";
+      reportId?: string;
       name?: string;
       partnerName?: string;
       birthPlace?: string;
@@ -1377,6 +1402,9 @@ export async function POST(req: NextRequest) {
     const month = Number.isFinite(Number(body.month)) ? Math.max(1, Math.min(12, Number(body.month))) : 1;
     const day = Number.isFinite(Number(body.day)) ? Math.max(1, Math.min(31, Number(body.day))) : 1;
     const reportType = "personal" as const;
+    const reportId = typeof body.reportId === "string" && body.reportId.trim()
+      ? body.reportId.trim()
+      : crypto.randomUUID();
     const modeChapterDefs = getVedicPdfChapters("personal");
     const modeChapterMeta = modeChapterDefs.map((chapterMeta) => ({
       num: chapterMeta.number,
@@ -1470,15 +1498,19 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       ok: true,
+      reportId,
       reportType,
       chart,
       chapter,
+      totalChapters: modeChapterMeta.length,
+      chapterMetaList: modeChapterMeta,
       chapterMeta: chapterPayload.chapterMeta,
       text,
       sections,
       usedFallback: chapterPayload.fallbackUsed,
       missingFields: chapterPayload.missingFields,
       confidence: chapterPayload.confidence,
+      calculationSource: chapterPayload.calculationSource,
       actionItems: chapterPayload.actionItems,
       cautions: chapterPayload.cautions,
       warnings: [...warnings, ...(chapterPayload.warnings || [])],
