@@ -451,6 +451,17 @@
       return;
     }
     if (!window.__cdActiveBirthProfile || !window.__cdActiveBirthProfile.birth) window.__cdActiveBirthProfile = profile;
+
+    if (_generating) {
+      _showScreen('abLoadingScreen');
+      modal.style.display = 'flex';
+      modal.style.zIndex = '100120';
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('lb-modal-open');
+      try { modal.setAttribute('aria-hidden','false'); } catch(_) {}
+      return;
+    }
+
     var saved = _abLoadSaved(profile);
     _chapters = Array(12).fill(null);
     _chapterStructured = Array(12).fill(null);
@@ -638,11 +649,12 @@
         _failCount++;
         var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류';
         console.warn('[점성술] Chapter '+(idx+1)+' 실패:',msg);
-        _generating = false;
-        clearInterval(_mysticTimer); _mysticTimer=null;
-        var errEl=_qs('abErrorMsg');
-        if (errEl) errEl.textContent = '점성술 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있습니다.';
-        _showScreen('abErrorScreen');
+        _chapters[idx] = _buildChapterSkeleton(idx, msg);
+        _chapterStructured[idx] = null;
+        _currentChapter = Math.max(1, Math.min(12, idx+1));
+        _abSaveResult(window.__cdActiveBirthProfile||{});
+        _setProgress(idx+1);
+        generateNext(idx+1);
       });
     })(0);
   };

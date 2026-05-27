@@ -889,6 +889,15 @@
       alert('💕 연애 비책을 생성하려면 생년월일 · 출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
       return;
     }
+
+    if (_generating) {
+      _showScreen('lsLoadingScreen');
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      try { modal.setAttribute('aria-hidden', 'false'); } catch (_) {}
+      return;
+    }
+
     _currentChapterMode = 'solo';
     _chapters = _buildChapterBuffer(_getLoveSecretModeTotalChapters(_currentChapterMode));
     _chapterStructured = _buildChapterBuffer(_getLoveSecretModeTotalChapters(_currentChapterMode));
@@ -907,10 +916,7 @@
   window.closeLoveSecretModal = function () {
     var modal = _qs('loveSecretModal');
     if (!modal) return;
-    _cancelGeneration = true;
-    _generating = false;
-    _abortActiveRequest();
-    _stopLoadingAnimation();
+    if (!_generating) _stopLoadingAnimation();
     modal.style.display = 'none';
     document.body.style.overflow = '';
     try { modal.setAttribute('aria-hidden', 'true'); } catch (_) {}
