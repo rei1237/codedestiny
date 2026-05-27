@@ -10643,12 +10643,11 @@ function sanitizePremiumGeneratedText(text) {
   return dedupePremiumParagraphs(dedupedSentences);
 }
 
-const PREMIUM_PDF_API_PAUSE_DEFAULT = true;
+const PREMIUM_PDF_API_PAUSE_DEFAULT = false;
 const PREMIUM_PDF_API_PAUSED_REPORT_TYPES = new Set([
   "sajuNewYear",
   "lifeBook",
   "loveSecret",
-  "ziweiPremium",
   "sookyoPremium",
   "westernAstrologyPremium",
   "vedicPremium",
