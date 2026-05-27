@@ -7,6 +7,7 @@ import {
   getSukyoPdfChapters,
   sanitizeSukyoChapterJson,
   isLowQualityShukuyoSection,
+  normalizeShukuyoPdfPayload,
 } from "../../worker/lib/sukyo-pdf.js";
 import { __astroTestUtils } from "../../worker/routes/premium.js";
 
@@ -102,6 +103,52 @@ describe("Sukuyo preflight and recovery guard", () => {
     });
 
     expect(result.canGenerate).toBe(true);
+  });
+
+  test("normalizeShukuyoPdfPayload accepts minimal user/partner/result shape", () => {
+    const normalized = normalizeShukuyoPdfPayload({
+      service: "shukuyo-premium",
+      mode: "compatibility",
+      user: {
+        name: "나",
+        birthDate: "1992-01-10",
+        birthTime: "",
+        calendarType: "lunar",
+      },
+      partner: {
+        name: "상대",
+        birthDate: "1990-03-12",
+        calendarType: "solar",
+      },
+      result: {
+        userNatal: {
+          宿Name: "각",
+          宿NameKo: "각",
+        },
+        partnerNatal: {
+          宿Name: "항",
+          宿NameKo: "항",
+        },
+        compatibility: {
+          relationType: "영친",
+          attractionScore: 88,
+          summaryKeywords: ["끌림"],
+        },
+      },
+      meta: {
+        generatedAt: "2026-05-28T00:00:00.000Z",
+        source: "local-shukuyo-engine",
+      },
+    });
+
+    expect(normalized.mode).toBe("compatibility");
+    expect(normalized.user.birthDate).toBe("1992-01-10");
+    expect(normalized.result.userNatal.宿NameKo).toBe("각");
+    expect(normalized.result.userNatal.宿名Ko).toBe("각");
+    expect(normalized.result.partnerNatal.宿NameKo).toBe("항");
+    expect(normalized.result.partnerNatal.宿名Ko).toBe("항");
+    expect(normalized.result.compatibility.relationType).toBe("영친");
+    expect(normalized.result.compatibility.attractionScore).toBe(88);
   });
 
   test("sanitizeSukyoChapterJson does not inject narrative fallback text", () => {

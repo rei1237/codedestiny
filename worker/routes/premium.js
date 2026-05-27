@@ -17680,6 +17680,18 @@ async function calcSukuyoStrict(request, env, input, options = {}) {
     kasi = null;
   }
   if (!kasi) {
+    const localFallback = buildSukuyoFromLunarV2(input.month, input.day, {
+      isLeapMonth: calendarType === "lunar_leap",
+      source: "local-fallback",
+    });
+    if (localFallback && Number.isFinite(Number(localFallback?.index))) {
+      return {
+        ...localFallback,
+        lunarYear: input.year,
+        source: "local-fallback",
+      };
+    }
+
     const error = new Error("KASI_LUNAR_CONVERSION_FAILED");
     error.code = "KASI_LUNAR_CONVERSION_FAILED";
     error.missingFields = ["birth.lunarDate", "sukuyo.index"];
