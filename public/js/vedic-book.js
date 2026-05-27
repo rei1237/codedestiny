@@ -6,48 +6,48 @@
   'use strict';
 
   var CHAPTER_TITLES = [
-    '🕉️ 라그나와 영혼의 목적 — Lagna & Atmakaraka',
-    '🌙 나크샤트라 — 무의식의 27가지 빛, 달별자리 심층 분석',
-    '⏳ 다샤 — 인생의 시기 흐름, Vimshottari Dasha 전략',
-    '💰 부와 번영의 정렬 — Artha & 2·11하우스 다나 요가',
-    '👑 삶의 과제와 천직 — Dharma & 10하우스 · D9 · D10',
-    '💎 나밤샤 — 영혼의 성숙도, D9 숨겨진 잠재력',
-    '🔮 관계 패턴의 이해 — 7하우스와 정서적 안정 구조',
-    '💞 인연의 깊이와 관계 운영 전략 — 금성/화성/달',
-    '🌿 생명력과 정화 — Health 6·8·12하우스 · 체질 관리',
-    '✨ 요가 — 특별한 축복의 조합, 차트의 천부적 재능',
-    '🙏 우파야 — 운명을 바꾸는 실천, 행성 에너지 정화 비책',
-    '🌟 마스터플랜 — 삶의 과제를 넘어서는 성장, 총결산 & 북극성 선언',
+    '🕉️ Ch.1 베다 차트 핵심 총론 — 이번 생의 기본 설계',
+    '♈ Ch.2 라그나와 1하우스 — 타고난 기질과 삶의 태도',
+    '🌙 Ch.3 달과 나크샤트라 — 감정, 욕구, 내면 안정',
+    '☀️ Ch.4 아트마카라카와 영혼의 과제 — 이번 생의 깊은 숙제',
+    '🪐 Ch.5 행성별 카르마 해석 — 9그라하의 작동 방식',
+    '🗺️ Ch.6 12하우스 인생 영역 분석 — 삶의 무대별 사건 구조',
+    '✨ Ch.7 커리어와 사회적 성취 — 10하우스와 라후의 방향',
+    '🧭 Ch.8 재물과 수익 구조 — 2·11하우스와 다나 요가',
+    '⚠️ Ch.9 사랑과 관계 — 금성, 5하우스, 7하우스',
+    '💼 Ch.10 건강과 에너지 — 6·8·12하우스의 신호',
+    '💞 Ch.11 다샤 흐름 — 현재 시기의 운의 과제',
+    '🧘 Ch.12 최종 인생 전략 — 베다 차트 종합 로드맵',
   ];
 
   var CHAPTER_SUBTITLES = [
-    '상승궁(Lagna)이 결정하는 삶의 무대·아트마카라카·영혼의 목적 완전 해독',
-    '달 나크샤트라의 기본 에너지·무의식 패턴·27수 달빛 운명 지도',
-    '빔쇼타리 다샤(시기 흐름) 현재 대운·세운 전략·인생의 황금기와 시련기 파악',
-    '2하우스·11하우스·다나 요가로 보는 재물 구조와 번영 전략',
-    '10하우스 커리어 축·D10 차트·직업 운명 분석',
-    'D9(나밤샤) 영혼의 진짜 저력·중년 이후 운명적 전환점 분석',
-    '7하우스·금성·달 중심 관계 패턴·감정 안정 전략',
-    '관계 갈등 패턴·친밀감 유지·장기 관계 운영 전략',
-    '6·8·12하우스 건강·장수·정화·체질 타입 분석',
-    '차트에서 검출된 요가(Yoga) 완전 해석·천부적 재능 발굴',
-    '우파야(Upaya) 행성별 정화·만트라·요일 의례·삶의 과제 해소법',
-    '차트 전체 총결산·단 하나의 마스터 해빗·북극성 인생 선언문',
+    '라그나·달·태양 핵심 총론',
+    '라그나 중심 자아 구조',
+    '달과 나크샤트라 정서 구조',
+    '아트마카라카 기반 영혼 과제',
+    '태양·달·화성·수성·목성·금성·토성·라후·케투',
+    '하우스별 삶의 영역과 반복 패턴',
+    '직업, 사회적 역할, 성취 방식',
+    '수익 구조와 재물 운용',
+    '연애, 결혼, 관계 패턴',
+    '건강, 소진, 회복 루틴',
+    '마하다샤·안타르다샤 기반 현재 운의 리듬',
+    '라그나·나크샤트라·다샤·하우스 통합 실행 전략',
   ];
 
   var LOADING_MSGS = [
-    '라그나(Lagna)와 아트마카라카의 영혼 목적을 해독하는 중...',
-    '달 나크샤트라(Nakshatra) 27수 운명 지도를 펼치는 중...',
-    '빔쇼타리 다샤(Vimshottari Dasha) 시기 흐름 전략을 설계하는 중...',
-    '다나 요가·2·11하우스 부와 번영의 정렬을 분석하는 중...',
-    '커리어 축·D10 천직 방정식을 탐색하는 중...',
-    '나밤샤(Navamsa) D9 영혼의 성숙도와 잠재력을 분석하는 중...',
-    '7하우스·금성·달의 관계 패턴을 분석하는 중...',
-    '관계 운영 전략과 감정 안정 조건을 분석하는 중...',
-    '6·8·12하우스 건강 & 체질 타입을 분석하는 중...',
-    '요가(Yoga) 조합·천부적 재능을 검출하는 중...',
-    '우파야(Upaya) 행성 에너지 정화 비책을 설계하는 중...',
-    '베다 마스터플랜과 북극성 선언문을 총결산하는 중...',
+    '라그나·달·태양을 묶어 이번 생의 핵심 설계를 정리하는 중...',
+    '라그나와 1하우스 중심 자아 패턴을 해석하는 중...',
+    '달과 나크샤트라의 감정 구조를 분석하는 중...',
+    '아트마카라카 기반 영혼 과제를 정리하는 중...',
+    '9그라하 행성별 카르마 작동 방식을 읽는 중...',
+    '12하우스 삶의 무대별 반복 패턴을 정리하는 중...',
+    '커리어와 사회적 성취 축을 분석하는 중...',
+    '재물과 수익 구조를 해석하는 중...',
+    '사랑과 관계 패턴을 분석하는 중...',
+    '건강·소진·회복 신호를 정리하는 중...',
+    '현재 다샤 흐름의 기회와 리스크를 해석하는 중...',
+    '최종 인생 전략과 실행 로드맵을 종합하는 중...',
   ];
 
   var MYSTIC_QUOTES = [
@@ -66,18 +66,18 @@
   ];
 
   var CHAPTER_STRUCTURED_LABELS = {
-    1: ['라그나 상승궁 분석', '아트마카라카 해석', '영혼의 목적 파악', '차트 룰러 위치', '삶의 무대 설계', '핵심 성향 도출', '이번 생의 최우선 과제'],
-    2: ['달 나크샤트라 분석', '무의식의 27가지 빛', '정서 반응 패턴', '달빛 기억 코드', '유년기 그림자', '감정 치유 방향'],
-    3: ['현재 마하다샤 분석', '안타르다샤 흐름', '인생 황금기 파악', '시련기 대응 전략', '다음 다샤 예측', '시기별 최적 행동'],
-    4: ['2하우스 재물 구조', '11하우스 소득 흐름', '다나 요가 해석', '부 축적 전략', '번영 방향 설계'],
-    5: ['10하우스 커리어 축', 'D10 직업 운명', '천직 방정식 풀기', '커리어 발전 로드맵', '조직 vs 독립 판단'],
-    6: ['D9 나밤샤 핵심', '영혼의 성숙도', '중년 전환점 분석', '숨겨진 잠재력 발굴', '후반 인생 설계'],
-    7: ['7하우스 관계 패턴', '금성 욕망 코드', '달 감정 안정 조건', '파트너십 구조', '관계 갈등 원인'],
-    8: ['관계 갈등 패턴', '친밀감 유지법', '장기 관계 전략', '정서적 경계 설계', '관계 회복 기술'],
-    9: ['6하우스 건강 취약점', '8하우스 변혁 에너지', '12하우스 정화 영역', '체질 타입 분석', '건강 루틴 설계'],
-    10: ['주요 요가 목록', '라자 요가 해석', '다나 요가 해석', '천부적 재능 발굴', '요가 활성화 전략'],
-    11: ['행성별 우파야', '만트라 처방', '요일 의례 설계', '삶의 과제 해소법', '에너지 정화 루틴'],
-    12: ['차트 전체 총결산', '단 하나의 마스터 해빗', '북극성 인생 선언', '개운 루틴', '최종 행동 지침'],
+    1: ['라그나가 보여주는 인생의 출발점', '달 별자리와 나크샤트라가 보여주는 마음의 구조', '태양이 보여주는 자아와 삶의 방향', '차트 전체에서 가장 강한 신호', '이번 생의 핵심 키워드'],
+    2: ['라그나 별자리의 핵심 성향', '1하우스 행성이 만드는 첫인상과 존재감', '라그나 로드의 위치와 인생 방향', '강점이 드러나는 방식', '약점이 반복되는 패턴', '라그나 기준 실전 조언'],
+    3: ['달 별자리의 감정 패턴', '나크샤트라가 보여주는 본능적 욕구', '마음이 흔들리는 순간', '애착과 안정감의 구조', '감정 회복 루틴'],
+    4: ['아트마카라카 행성의 의미', '영혼이 반복해서 마주하는 과제', '고통이 성숙으로 바뀌는 지점', '피하면 반복되는 문제', '이번 생에서 반드시 키워야 할 힘'],
+    5: ['개인 행성이 만드는 성격과 선택', '목성과 금성이 주는 확장과 관계성', '토성이 만드는 책임과 지연', '라후와 케투가 만드는 욕망과 해탈', '행성 전체의 균형과 불균형'],
+    6: ['1·4·7·10하우스 핵심 축', '2·6·10하우스 현실 성취 축', '5·7·11하우스 관계와 욕망 축', '8·12하우스 무의식과 변화 축', '하우스 전체에서 반복되는 삶의 패턴'],
+    7: ['직업적 방향성과 사회적 역할', '10하우스 행성과 커리어 욕망', '라후가 만드는 비정형적 성공 욕구', '조직형·독립형·창작형 적성', '커리어 리스크와 돌파 전략'],
+    8: ['돈을 버는 방식', '수익이 커지는 구조', '돈이 막히는 습관', '네트워크와 보상의 연결', '재물 관리 실전 조언'],
+    9: ['사랑에서 드러나는 매력', '끌리는 상대의 특징', '관계에서 이상화가 생기는 지점', '장기 관계에서의 과제', '사랑을 오래 지키는 방법'],
+    10: ['몸과 마음의 취약 패턴', '스트레스가 쌓이는 방식', '무의식적 소진과 회피', '회복이 필요한 생활 습관', '건강 관리 조언'],
+    11: ['현재 마하다샤의 큰 흐름', '현재 안타르다샤의 세부 과제', '지금 열리는 기회', '지금 조심해야 할 선택', '현재 운을 활용하는 전략'],
+    12: ['차트 전체 핵심 요약', '가장 강한 자원', '가장 반복되는 약점', '앞으로 강화해야 할 선택', '피해야 할 선택', '최종 실행 로드맵'],
   };
 
   var _chapters = Array(12).fill(null);
@@ -86,6 +86,7 @@
   var _chapterErrors = Array(12).fill(null);
   var _generating = false;
   var _currentChapter = 1;
+  var _vdCurrentReportId = '';
   var _mysticTimer = null;
   var _premiumPaidUntil = 0;
 
@@ -273,26 +274,32 @@
 
   var _VD_STORE_VER='vd_v1_';
   function _vdMakeKey(p){var b=(p&&p.birth)||{};return _VD_STORE_VER+(b.year||'0')+'_'+(b.month||'0')+'_'+(b.day||'0')+'_'+((p&&p.gender)||'u');}
-  function _vdSaveResult(p){try{sessionStorage.setItem(_vdMakeKey(p),JSON.stringify({chapters:_chapters,name:(p&&p.name)||'사용자',birth:(p&&p.birth)||{},gender:(p&&p.gender)||'',savedAt:new Date().toISOString()}));}catch(_){}}
+  function _vdSaveResult(p){try{sessionStorage.setItem(_vdMakeKey(p),JSON.stringify({chapters:_chapters,chapterStructured:_chapterStructured,chapterMeta:_chapterMeta,currentChapter:_currentChapter,reportId:String(_vdCurrentReportId||'').trim(),name:(p&&p.name)||'사용자',birth:(p&&p.birth)||{},gender:(p&&p.gender)||'',savedAt:new Date().toISOString()}));}catch(_){} }
   function _vdLoadSaved(p){try{var raw=sessionStorage.getItem(_vdMakeKey(p));return raw?JSON.parse(raw):null;}catch(_){return null;}}
 
   function _vdHasSavedContent(saved){
-    return !!(saved&&Array.isArray(saved.chapters)&&saved.chapters.some(function(ch){return String(ch||'').trim().length>0;}));
+    if(!saved||typeof saved!=='object')return false;
+    var chapters=Array.isArray(saved.chapters)?saved.chapters:[];
+    if(chapters.some(function(ch){var text=String(ch||'').trim();return text.length>0&&!/^⚠️/.test(text);})){return true;}
+    var structured=Array.isArray(saved.chapterStructured)?saved.chapterStructured:[];
+    return structured.some(function(block){return block&&Array.isArray(block.sections)&&block.sections.some(function(row){return String((row&&(row.body||row.content))||'').trim().length>0;});});
   }
 
   function _vdApplySavedResult(saved, modal){
     if(!saved||!modal)return;
-    _chapters=Array.isArray(saved.chapters)?saved.chapters:Array(12).fill(null);
-    _chapterStructured=Array.isArray(saved.chapterStructured)?saved.chapterStructured:Array(12).fill(null);
-    _chapterMeta=Array.isArray(saved.chapterMeta)?saved.chapterMeta:Array(12).fill(null);
-    _currentChapter=1;
+    _chapters=Array.isArray(saved.chapters)?saved.chapters.slice(0,12):Array(12).fill(null);
+    _chapterStructured=Array.isArray(saved.chapterStructured)?saved.chapterStructured.slice(0,12):Array(12).fill(null);
+    _chapterMeta=Array.isArray(saved.chapterMeta)?saved.chapterMeta.slice(0,12):Array(12).fill(null);
+    _currentChapter=Math.max(1,Math.min(12,Number(saved.currentChapter||1)));
+    _vdCurrentReportId=String(saved.reportId||'').trim();
     _showScreen('vdResultScreen');
-    _updateTocState();
-    _renderChapter(1);
+    _updateTocState(_currentChapter);
+    _renderChapter(_currentChapter);
     _bindToc();
     var nameEl=_qs('vdResultName'),dateEl=_qs('vdResultDate');
     if(nameEl)nameEl.textContent='🪷 '+(saved.name||'사용자')+'님의 베다 인생 총람';
     if(dateEl){var b=saved.birth||{};var sd=saved.savedAt?new Date(saved.savedAt).toLocaleDateString('ko-KR'):'';dateEl.textContent=[b.year,b.month,b.day].filter(Boolean).join('.')+(sd?' · 💾 '+sd+' 저장':'');}
+    console.info('[VedicPremium][Flow] SESSION_RESTORED',{reportId:_vdCurrentReportId||null,validChapters:_chapters.filter(function(row,idx){var txt=String(row||'').trim();var structured=_chapterStructured[idx];return (txt.length>0&&!/^⚠️/.test(txt))||(structured&&Array.isArray(structured.sections)&&structured.sections.some(function(sec){return String((sec&&(sec.body||sec.content))||'').trim().length>0;}));}).length,totalChapters:12,message:'구조화 섹션도 로드됨'});
   }
 
   function _vdEnsureHistoryButton(saved, modal){
@@ -340,17 +347,20 @@
       if(!btn)return;
       var ch=Number(btn.getAttribute('data-vd-chapter'));
       if(!ch||!_chapters[ch-1])return;
+      _currentChapter=ch;
       _renderChapter(ch);
       Array.prototype.forEach.call(nav.querySelectorAll('.vd-toc-item'),function(b){
         b.classList.toggle('active',b===btn);
         b.classList.toggle('loaded',!!_chapters[Number(b.getAttribute('data-vd-chapter'))-1]);
       });
+      try{if(window.__cdActiveBirthProfile&&_vdHasSavedContent({chapters:_chapters,chapterStructured:_chapterStructured}))_vdSaveResult(window.__cdActiveBirthProfile);}catch(_){}
     });
   }
 
   function _renderChapter(ch){
     var content=_qs('vdChapterContent');
     if(!content)return;
+    _currentChapter=Math.max(1,Math.min(12,Number(ch||1)));
     var idx=ch-1,data=_chapters[idx],structured=_chapterStructured[idx];
     if(!data&&!structured){content.innerHTML='<p class="zb-ch-empty">이 챕터가 아직 생성되지 않았습니다.</p>';return;}
     var meta=_getChapterMeta(idx);
@@ -360,12 +370,13 @@
     content.scrollTop=0;
   }
 
-  function _updateTocState(){
+  function _updateTocState(activeChapter){
     _renderToc();
+    var current=Math.max(1,Math.min(12,Number(activeChapter||_currentChapter||1)));
     Array.prototype.forEach.call(document.querySelectorAll('#vdToc .vd-toc-item'),function(btn){
       var ch=Number(btn.getAttribute('data-vd-chapter'));
       btn.classList.toggle('loaded',!!_chapters[ch-1]);
-      btn.classList.toggle('active',ch===1);
+      btn.classList.toggle('active',ch===current);
     });
   }
 
@@ -384,12 +395,22 @@
       return;
     }
     if(!window.__cdActiveBirthProfile||!window.__cdActiveBirthProfile.birth) window.__cdActiveBirthProfile=profile;
+      if (_generating) {
+        _showScreen('vdLoadingScreen');
+        modal.style.display='flex';
+        modal.style.zIndex='100120';
+        document.body.style.overflow='hidden';
+        document.body.classList.add('lb-modal-open');
+        try{modal.setAttribute('aria-hidden','false');}catch(_){ }
+        return;
+      }
     var saved=_vdLoadSaved(profile);
     _chapters=Array(12).fill(null);
     _chapterStructured=Array(12).fill(null);
     _chapterMeta=Array(12).fill(null);
     _chapterErrors=Array(12).fill(null);
     _currentChapter=1;
+    _vdCurrentReportId='';
     _showScreen('vdStartScreen');
     modal.style.display='flex'; modal.style.zIndex='100120';
     document.body.style.overflow='hidden';
@@ -496,6 +517,7 @@
     _setProgress(0);
 
     var _vdReportId = 'vedic_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+    _vdCurrentReportId=_vdReportId;
 
     function _vdReadPremiumAccessToken(){
       var token='';
@@ -556,7 +578,8 @@
           return;
         }
         _showScreen('vdResultScreen');
-        _updateTocState();_renderChapter(1);_bindToc();
+        _currentChapter=1;
+        _updateTocState(_currentChapter);_renderChapter(_currentChapter);_bindToc();
         var prof=window.__cdActiveBirthProfile||{};
         var _nameEl=_qs('vdResultName'),_dateEl=_qs('vdResultDate');
         if(_nameEl)_nameEl.textContent='🪷 '+(prof.name||'사용자')+'님의 베다 인생 총람';
