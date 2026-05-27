@@ -31,7 +31,7 @@ type AstroChapterResult = {
 
 async function buildAstroChapterResult(chapter: number, chart: ReturnType<typeof buildWesternChart>, previousChapterTexts: string[] = []): Promise<AstroChapterResult> {
   const chapterMeta = ASTRO_CHAPTER_META[chapter - 1] ?? ASTRO_CHAPTER_META[0];
-  const prompt = buildAstroPrompt(chapter, chart);
+  const prompt = buildAstroPrompt(chapter, chart, previousChapterTexts);
   let text = await generateAstroText(prompt);
   let usedFallback = false;
   if (!text) {
@@ -48,21 +48,6 @@ async function buildAstroChapterResult(chapter: number, chart: ReturnType<typeof
     calculationSource: "server-build",
     warnings: usedFallback ? ["AI text unavailable, fallback chapter text used"] : [],
   };
-}
-
-async function buildAstroBatchResults(chart: ReturnType<typeof buildWesternChart>) {
-  const chapterResultsById: Record<string, AstroChapterResult> = {};
-  const chapterJsonById: Record<string, AstroChapterResult> = {};
-  const previousChapterTexts: string[] = [];
-
-  for (let chapter = 1; chapter <= ASTRO_TOTAL_CHAPTERS; chapter += 1) {
-    const result = await buildAstroChapterResult(chapter, chart, previousChapterTexts);
-    chapterResultsById[String(chapter)] = result;
-    chapterJsonById[String(chapter)] = result;
-    if (result.text.trim()) previousChapterTexts.push(result.text);
-  }
-
-  return { chapterResultsById, chapterJsonById };
 }
 
 export async function POST(req: NextRequest) {
@@ -110,9 +95,13 @@ export async function POST(req: NextRequest) {
       ? "client-chart-reuse"
       : "server-build";
 
-    const precomputeAll = body.precomputeAll === true;
-    const chapterResult = await buildAstroChapterResult(chapter, chart);
-    const batchResults = precomputeAll ? await buildAstroBatchResults(chart) : null;
+    const previousChapterTexts = Array.isArray(body.previousChapterTexts)
+      ? body.previousChapterTexts
+          .map((row) => String(row || "").trim())
+          .filter((row) => row.length > 0)
+          .slice(0, ASTRO_TOTAL_CHAPTERS - 1)
+      : [];
+    const chapterResult = await buildAstroChapterResult(chapter, chart, previousChapterTexts);
     return NextResponse.json({
       ok: true,
       chart,
@@ -123,9 +112,6 @@ export async function POST(req: NextRequest) {
       sections: chapterResult.sections,
       usedFallback: chapterResult.usedFallback,
       calculationSource,
-      chapterResultsById: batchResults?.chapterResultsById || undefined,
-      chapterJsonById: batchResults?.chapterJsonById || undefined,
-      precomputeAll,
       warnings: chapterResult.warnings,
     });
   } catch (err) {

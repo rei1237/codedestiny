@@ -63,7 +63,6 @@ export const ASTRO_CHAPTER_META = [
   { num: 10, title: "노드와 영혼의 목적", subtitle: "North Node/South Node", icon: "☊" },
   { num: 11, title: "트랜짓 운세 전략", subtitle: "현재 행성 흐름 적용", icon: "📡" },
   { num: 12, title: "마스터 플랜", subtitle: "12개월 실행 로드맵", icon: "📜" },
-  { num: 13, title: "90일 현실 전환 플랜", subtitle: "관계·커리어·재정 실천 설계", icon: "🧭" },
 ];
 
 export const ASTRO_TOTAL_CHAPTERS = ASTRO_CHAPTER_META.length;
@@ -194,30 +193,29 @@ export function fallbackAstroText(chapter: number, chart: ReturnType<typeof buil
     lines.push(...monthBlocks);
   }
 
-  if (chapter === 13) {
-    lines.push(
-      "## 90일 실행표",
-      "| 기간 | 핵심 목표 | 실천 행동 | 주의할 점 | 기대 변화 |",
-      "|---|---|---|---|---|",
-      "| 1~7일 | 핵심 의사결정 기준 정리 | 매일 10분 점검 기록 | 과도한 정보 탐색 | 판단 피로 감소 |",
-      "| 8~30일 | 루틴 안정화 | 주 3회 핵심 과제 선완료 | 일정 과포화 | 실행 일관성 상승 |",
-      "| 31~60일 | 관계/일 조율 | 경계 설정 + 피드백 루프 | 감정 과잉 반응 | 갈등 비용 감소 |",
-      "| 61~90일 | 성과 고도화 | 월간 리뷰와 전략 수정 | 단기 성과 집착 | 장기 성과 체감 |",
-    );
-  }
-
   return lines.join("\n\n");
 }
 
-export function buildAstroPrompt(chapter: number, chart: ReturnType<typeof buildWesternChart>) {
+export const ASTROLOGY_MASTER_SYSTEM_PROMPT =
+  "너는 30년 경력의 전 세계 최고 서양 점성술(Western Astrology) 마스터야. 입력된 사용자의 출생 차트 데이터(ASC, Sun, Moon, 하우스, 행성 애스펙트 JSON)를 철저히 분석해서, 현재 요청받은 챕터명에 대한 날카롭고 깊이 있는 해석을 작성해. 절대 '차트를 분석하겠습니다' 같은 서론을 쓰지 마. 바로 본론으로 들어가서 사용자의 심리, 잠재력, 구체적인 카르마와 현실적인 개운법(실행 조언)을 마크다운 본문 텍스트로만 출력해. 전문적인 점성학 용어를 사용하되 일반인도 이해할 수 있게 비유를 들어 설명해.";
+
+export function buildAstroPrompt(
+  chapter: number,
+  chart: ReturnType<typeof buildWesternChart>,
+  previousChapterTexts: string[] = []
+) {
   const meta = ASTRO_CHAPTER_META[chapter - 1] ?? ASTRO_CHAPTER_META[0];
   const monthlyRule = chapter === 12
     ? "챕터 12는 반드시 1월부터 12월까지 월별 블록을 포함하세요."
     : "";
-  const roadmapRule = chapter === 13
-    ? "챕터 13은 반드시 1~7일/8~30일/31~60일/61~90일 표를 포함하세요."
-    : "";
-  return `당신은 전문 서양 점성술 리포트 작가입니다.
+  const previousContext = previousChapterTexts
+    .map((text, index) => `- 이전 챕터 ${index + 1} 요약: ${String(text || "").slice(0, 400)}`)
+    .join("\n");
+
+  return `현재 요청 챕터명: ${meta.title}
+
+당신은 반드시 아래 출생 차트 JSON 근거만 사용해 해석해야 합니다.
+근거가 없는 단정, 사주/타 체계 혼용, 일반론 반복을 금지합니다.
 
 차트 데이터:
 - ASC: ${chart.ascendant.signKo} ${chart.ascendant.degree}도
@@ -231,6 +229,13 @@ export function buildAstroPrompt(chapter: number, chart: ReturnType<typeof build
 
 챕터 ${chapter}: ${meta.title} - ${meta.subtitle}
 
+출력 규칙:
+- 시작 문장은 곧바로 본론이어야 하며, 메타 서론/사과/면책 문구를 쓰지 마세요.
+- 독자 심리와 행동을 동시에 다루고, 최소 3개의 실행 가능한 개운 행동을 제시하세요.
+- 추상어만 나열하지 말고, 행성/하우스/에스펙트 근거를 문장 안에 명시하세요.
+- 전문 용어 뒤에는 짧은 비유를 덧붙여 초보자도 이해할 수 있게 작성하세요.
+- 섹션 제목은 반드시 markdown ## 형식을 사용하세요.
+
 한국어로 고품질 PDF 본문을 작성하세요. 아래 형식을 지키세요.
 ## 핵심 별자리 구조
 ## 삶에서 드러나는 패턴
@@ -238,7 +243,7 @@ export function buildAstroPrompt(chapter: number, chart: ReturnType<typeof build
 ## 30일 실행 가이드
 
 ${monthlyRule}
-${roadmapRule}
+${previousContext ? `\n중복 회피를 위해 이전 챕터 문맥:\n${previousContext}` : ""}
 
 각 섹션은 2문단 이상으로, 앱 사용자가 바로 행동으로 옮길 수 있는 구체적 조언을 포함하세요.`;
 }
@@ -267,6 +272,9 @@ export async function generateAstroText(prompt: string) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            systemInstruction: {
+              parts: [{ text: ASTROLOGY_MASTER_SYSTEM_PROMPT }],
+            },
             contents: [{ role: "user", parts: [{ text: prompt }] }],
             generationConfig: { temperature: 0.86, maxOutputTokens: 8192, topP: 0.95 },
           }),

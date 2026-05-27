@@ -31,6 +31,13 @@ interface ChapterResult {
 }
 type ChapterStep = "idle" | "loading" | "done" | "error";
 interface ChapterState { step: ChapterStep; result: ChapterResult | null; }
+interface ReportDataItem {
+  chapter: number;
+  chapterMeta: ChapterMeta;
+  status: ChapterStep;
+  content: string;
+  sections: { title: string; body: string }[];
+}
 
 type PremiumSectionProps = {
   showIntro?: boolean;
@@ -54,9 +61,9 @@ const CHAPTER_META: ChapterMeta[] = [
   { num: 10, title: "성장·철학·영성 — 목성, 토성이 이끄는 길", subtitle: "성장축과 장기 과제", icon: "🔮" },
   { num: 11, title: "시기운과 변화의 흐름 — 지금부터 열리는 하늘의 리듬", subtitle: "타이밍 읽기와 준비 전략", icon: "⭕" },
   { num: 12, title: "최종 인생 전략 — 내 별자리를 현실로 살아내는 법", subtitle: "전체 통합 선언문", icon: "✨" },
-  { num: 13, title: "90일 현실 전환 플랜 — 관계·커리어·재정 실천 설계", subtitle: "관계·커리어·재정 실천 로드맵", icon: "🧭" },
 ];
 const TOTAL_CHAPTERS = CHAPTER_META.length;
+const CHAPTER_ROMANS = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
 
 const ASTROLOGY_STORAGE_KEY = "premium:astrology:session:v1";
 
@@ -323,6 +330,14 @@ export default function HPremiumAstrologySection({
 }: PremiumSectionProps) {
   const createEmptyChapters = () =>
     Object.fromEntries(CHAPTER_META.map((m) => [m.num, { step: "idle" as ChapterStep, result: null }]));
+  const createEmptyReportData = (): ReportDataItem[] =>
+    CHAPTER_META.map((meta) => ({
+      chapter: meta.num,
+      chapterMeta: meta,
+      status: "idle",
+      content: "",
+      sections: [],
+    }));
 
   // 입력 폼
   const [birthYear,   setBirthYear]   = useState("");
@@ -337,6 +352,8 @@ export default function HPremiumAstrologySection({
   const [chapters, setChapters] = useState<Record<number, ChapterState>>(
     () => createEmptyChapters()
   );
+  const [reportData, setReportData] = useState<ReportDataItem[]>(() => createEmptyReportData());
+  const [activeChapterIndex, setActiveChapterIndex] = useState(0);
   const [calcError, setCalcError] = useState("");
   const [calcLoading, setCalcLoading] = useState(false);
   const [requestError, setRequestError] = useState("");
@@ -349,6 +366,8 @@ export default function HPremiumAstrologySection({
   const resetAstrologyState = useCallback((resetInputs = false) => {
     setChart(null);
     setChapters(createEmptyChapters());
+    setReportData(createEmptyReportData());
+    setActiveChapterIndex(0);
     reportIdRef.current = "";
     setCalcError("");
     setCalcLoading(false);
@@ -387,6 +406,8 @@ export default function HPremiumAstrologySection({
         timezone?: string;
         chart?: ChartData | null;
         chapters?: Record<number, ChapterState>;
+        reportData?: ReportDataItem[];
+        activeChapterIndex?: number;
         reportId?: string;
       };
 
@@ -406,6 +427,37 @@ export default function HPremiumAstrologySection({
           })
         ) as Record<number, ChapterState>;
         setChapters(normalized);
+        if (!saved.reportData) {
+          setReportData(
+            CHAPTER_META.map((meta) => {
+              const state = normalized[meta.num] ?? { step: "idle" as ChapterStep, result: null };
+              return {
+                chapter: meta.num,
+                chapterMeta: meta,
+                status: state.step,
+                content: state.result?.text ?? "",
+                sections: state.result?.sections ?? [],
+              };
+            })
+          );
+        }
+      }
+      if (Array.isArray(saved.reportData)) {
+        const normalizedReport = CHAPTER_META.map((meta) => {
+          const row = saved.reportData?.find((item) => Number(item?.chapter) === meta.num);
+          return {
+            chapter: meta.num,
+            chapterMeta: meta,
+            status: row?.status ?? "idle",
+            content: row?.content ?? "",
+            sections: Array.isArray(row?.sections) ? row.sections : [],
+          } as ReportDataItem;
+        });
+        setReportData(normalizedReport);
+      }
+      if (Number.isFinite(Number(saved.activeChapterIndex))) {
+        const idx = Math.floor(Number(saved.activeChapterIndex));
+        setActiveChapterIndex(Math.max(0, Math.min(TOTAL_CHAPTERS - 1, idx)));
       }
     } catch {
       // ignore broken snapshots
@@ -429,12 +481,14 @@ export default function HPremiumAstrologySection({
           timezone,
           chart,
           chapters,
+          reportData,
+          activeChapterIndex,
         })
       );
     } catch {
       // ignore storage quota errors
     }
-  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, chart, chapters, showIntro]);
+  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, chart, chapters, reportData, activeChapterIndex, showIntro]);
 
   useEffect(() => {
     if (showIntro) {
@@ -571,6 +625,8 @@ ${chaptersHtml}
       });
       // 상태 초기화
       setChapters(createEmptyChapters());
+      setReportData(createEmptyReportData());
+      setActiveChapterIndex(0);
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "차트 계산 중 오류";
       setCalcError(message);
@@ -587,13 +643,14 @@ ${chaptersHtml}
 
     setRequestError("");
     setChapters(prev => ({ ...prev, [chNum]: { step:"loading", result:null } }));
+    setReportData((prev) => prev.map((row) => (
+      row.chapter === chNum ? { ...row, status: "loading", content: "", sections: [] } : row
+    )));
     try {
-      const previousChapterTexts = CHAPTER_META
-        .map((meta) => chapters[meta.num]?.result)
-        .filter((result): result is ChapterResult => !!result && result.chapter < chNum)
+      const previousChapterTexts = reportData
+        .filter((row) => row.chapter < chNum && row.status === "done" && row.content.trim().length > 0)
         .sort((a, b) => a.chapter - b.chapter)
-        .map((result) => result.text)
-        .filter((text) => typeof text === "string" && text.trim().length > 0);
+        .map((row) => row.content);
 
       const data = await postAstroJson("/api/premium/astro-life", {
         year:   parseInt(birthYear,  10),
@@ -614,23 +671,37 @@ ${chaptersHtml}
         ...prev,
         [chNum]: { step:"done", result: { chapter:chNum, chapterMeta:data.chapterMeta, text:data.text, sections:data.sections } },
       }));
+      setReportData((prev) => prev.map((row) => (
+        row.chapter === chNum
+          ? {
+              ...row,
+              status: "done",
+              chapterMeta: data.chapterMeta ?? row.chapterMeta,
+              content: String(data.text ?? ""),
+              sections: Array.isArray(data.sections) ? data.sections : [],
+            }
+          : row
+      )));
       // 차트 최신화 (astro-life에서도 계산 결과가 옴)
       if (data.chart && !chart) setChart(data.chart);
     } catch (e: unknown) {
       setRequestError(e instanceof Error ? e.message : "챕터 생성 중 오류가 발생했습니다.");
       setChapters(prev => ({ ...prev, [chNum]: { step:"error", result:null } }));
+      setReportData((prev) => prev.map((row) => (
+        row.chapter === chNum ? { ...row, status: "error", content: "", sections: [] } : row
+      )));
     }
-  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, chart, chapters, postAstroJson]);
+  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, chart, chapters, reportData, postAstroJson]);
 
 
   // 전체 챕터 순차 생성
   const handleGenerateAll = useCallback(async () => {
 
-    const pending = CHAPTER_META.filter((meta) => chapters[meta.num]?.step !== "done");
+    const pending = reportData.filter((item) => item.status !== "done");
     for (const meta of pending) {
-      await handleGenerateChapter(meta.num);
+      await handleGenerateChapter(meta.chapter);
     }
-  }, [chapters, handleGenerateChapter]);
+  }, [reportData, handleGenerateChapter]);
 
   const inputStyle: React.CSSProperties = {
     background:"rgba(7,9,26,0.8)", border:"1px solid rgba(251,191,36,0.25)",
@@ -642,7 +713,7 @@ ${chaptersHtml}
     textTransform:"uppercase", display:"block", marginBottom:4,
   };
 
-  const doneCount = Object.values(chapters).filter(c => c.step === "done").length;
+  const doneCount = reportData.filter((c) => c.status === "done").length;
 
   if (showIntro) {
     return (
@@ -873,17 +944,113 @@ ${chaptersHtml}
               </button>
             </div>
 
-            {/* ── 챕터 리스트 ── */}
-            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-              {CHAPTER_META.map(meta => (
-                <ChapterCard
-                  key={meta.num}
-                  meta={meta}
-                  state={chapters[meta.num]}
-                  onGenerate={() => handleGenerateChapter(meta.num)}
-                />
-              ))}
-            </div>            {/* ── PDF 다운로드 ── */}
+            {/* ── 챕터 탭 + 본문 렌더링 ── */}
+            <div style={{ borderRadius:16, border:"1px solid rgba(251,191,36,0.18)", background:"rgba(7,9,26,0.76)", padding:14 }}>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:12 }}>
+                {reportData.map((item, index) => {
+                  const active = index === activeChapterIndex;
+                  return (
+                    <button
+                      key={item.chapter}
+                      onClick={() => setActiveChapterIndex(index)}
+                      style={{
+                        borderRadius:10,
+                        padding:"7px 10px",
+                        fontSize:"0.74rem",
+                        fontWeight:800,
+                        border: active ? "1px solid rgba(251,191,36,0.5)" : "1px solid rgba(100,116,139,0.26)",
+                        color: active ? "rgba(253,230,138,0.95)" : "rgba(203,213,225,0.8)",
+                        background: active ? "rgba(251,191,36,0.14)" : "rgba(15,23,42,0.45)",
+                        cursor:"pointer",
+                      }}
+                    >
+                      {CHAPTER_ROMANS[index] || item.chapter} · {item.status === "done" ? "완료" : item.status === "loading" ? "생성중" : item.status === "error" ? "오류" : "대기"}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div style={{
+                borderRadius:12,
+                border:"1px solid rgba(100,116,139,0.22)",
+                background:"rgba(2,6,23,0.6)",
+                minHeight:280,
+                padding:"16px 16px 8px",
+              }}>
+                {(() => {
+                  const current = reportData[activeChapterIndex];
+                  if (!current) return null;
+                  return (
+                    <>
+                      <p style={{ color:"rgba(251,191,36,0.6)", fontSize:"0.64rem", letterSpacing:"0.18em", margin:"0 0 8px" }}>
+                        CHAPTER {CHAPTER_ROMANS[activeChapterIndex] || current.chapter}
+                      </p>
+                      <h4 style={{ color:"#fff", fontSize:"1rem", fontWeight:800, margin:"0 0 12px" }}>
+                        {current.chapterMeta.title}
+                      </h4>
+
+                      {current.status === "loading" && <StarLoader message={`챕터 ${current.chapter} 생성 중`} />}
+                      {current.status === "error" && (
+                        <div>
+                          <p style={{ color:"rgba(252,165,165,0.9)", fontSize:"0.84rem" }}>⚠ 챕터 생성에 실패했습니다. 다시 시도해 주세요.</p>
+                          <button
+                            onClick={() => handleGenerateChapter(current.chapter)}
+                            style={{
+                              borderRadius:10,
+                              padding:"8px 14px",
+                              fontSize:"0.78rem",
+                              fontWeight:800,
+                              background:"rgba(239,68,68,0.2)",
+                              border:"1px solid rgba(239,68,68,0.42)",
+                              color:"rgba(252,165,165,0.95)",
+                              cursor:"pointer",
+                            }}
+                          >
+                            재시도
+                          </button>
+                        </div>
+                      )}
+                      {current.status === "idle" && (
+                        <div>
+                          <p style={{ color:"rgba(148,163,184,0.8)", fontSize:"0.86rem", marginBottom:10 }}>
+                            아직 생성되지 않은 챕터입니다.
+                          </p>
+                          <button
+                            onClick={() => handleGenerateChapter(current.chapter)}
+                            style={{
+                              borderRadius:10,
+                              padding:"8px 14px",
+                              fontSize:"0.78rem",
+                              fontWeight:800,
+                              background:"linear-gradient(135deg, #f59e0b, #d97706)",
+                              border:"none",
+                              color:"#fff",
+                              cursor:"pointer",
+                            }}
+                          >
+                            이 챕터 생성
+                          </button>
+                        </div>
+                      )}
+                      {current.status === "done" && (
+                        <div>
+                          {current.sections.length > 0
+                            ? current.sections.map((sec, i) => (
+                                <div key={i} style={{ marginBottom:20 }}>
+                                  <h5 style={{ color:"rgba(253,230,138,0.92)", fontSize:"0.9rem", marginBottom:8 }}>{sec.title}</h5>
+                                  {renderTextBlock(sec.body)}
+                                </div>
+                              ))
+                            : renderTextBlock(current.content)}
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* ── PDF 다운로드 ── */}
             {doneCount > 0 && (
               <div style={{ marginTop:20, padding:"16px", borderRadius:14, background:"rgba(7,9,26,0.8)", border:"1px solid rgba(251,191,36,0.22)", textAlign:"center" }}>
                 <p style={{ color:"rgba(251,191,36,0.65)", fontSize:"0.68rem", letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 10px" }}>ASTROLOGY PREMIUM PDF</p>

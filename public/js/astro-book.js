@@ -192,30 +192,41 @@
     modal.style.setProperty('--lb-history-text', '#dbeafe');
   }
 
+  function _deriveTextFromChapterJson(chapterJson) {
+    if (!chapterJson || !Array.isArray(chapterJson.sections)) return '';
+    return chapterJson.sections
+      .filter(function (r) { return r && String(r.body || r.content || '').trim(); })
+      .map(function (r) {
+        var b = String(r.body || r.content || '').trim();
+        var t = String(r.title || r.label || '').trim();
+        return t ? ('## ' + t + '\n' + b) : b;
+      })
+      .join('\n\n');
+  }
+
+  function _renderStructuredChapterBody(chapter, chapterJson) {
+    if (!chapterJson || !Array.isArray(chapterJson.sections) || !chapterJson.sections.length) return '';
+    var sections = chapterJson.sections;
+    var labels = CHAPTER_STRUCTURED_LABELS[Number(chapter)] || [];
+    var out = [];
+    for (var i = 0; i < sections.length; i++) {
+      var row = sections[i] || {};
+      var content = String(row.body || row.content || '').trim();
+      if (!content) continue;
+      var title = String(row.title || row.label || labels[i] || ('핵심 항목 ' + (i + 1)));
+      out.push(
+        '<section class="lb-result-article__section"><h4 class="lb-result-article__section-title">'
+        + _escHtml(title)
+        + '</h4><div class="lb-result-article__section-body">'
+        + _md2html(content)
+        + '</div></section>'
+      );
+    }
+    if (!out.length) return '';
+    return '<div class="lb-result-article__structured">' + out.join('') + '</div>';
+  }
+
   function _escHtml(s) {
-      function _deriveTextFromChapterJson(chapterJson) {
-        if (!chapterJson || !Array.isArray(chapterJson.sections)) return '';
-        return chapterJson.sections.filter(function(r){return r&&String(r.body||r.content||'').trim();}).map(function(r){
-          var b=String(r.body||r.content||'').trim(); var t=String(r.title||r.label||'').trim(); return t?('## '+t+'\n'+b):b;
-        }).join('\n\n');
-      }
-
-      function _renderStructuredChapterBody(chapter, chapterJson) {
-        if (!chapterJson || !Array.isArray(chapterJson.sections) || !chapterJson.sections.length) return '';
-        var sections = chapterJson.sections;
-        var labels = CHAPTER_STRUCTURED_LABELS[Number(chapter)] || [];
-        var out = [];
-        for (var i = 0; i < sections.length; i++) {
-          var row = sections[i] || {};
-          var content = String(row.body || row.content || '').trim();
-          if (!content) continue;
-          var title = String(row.title || row.label || labels[i] || ('핵심 항목 ' + (i + 1)));
-          out.push('<section class="lb-result-article__section"><h4 class="lb-result-article__section-title">' + _escHtml(title) + '</h4><div class="lb-result-article__section-body">' + _md2html(content) + '</div></section>');
-        }
-        if (!out.length) return '';
-        return '<div class="lb-result-article__structured">' + out.join('') + '</div>';
-      }
-
     return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
