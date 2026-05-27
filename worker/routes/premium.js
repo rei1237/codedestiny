@@ -17012,7 +17012,7 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
     || body?.requestedSections
     || body?.sectionLabels
     || [],
-  ).slice(0, 5);
+  );
   const requestedTitle = String(body?.chapterTitle || body?.title || "").trim();
   const requestedSubtitle = String(body?.chapterSubtitle || body?.subtitle || "").trim();
   const chapterSpec = {
@@ -17192,7 +17192,8 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
     timeoutMs: Number(env.PREMIUM_ZIWEI_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 70000),
     maxAttemptsPerPair: Number(env.PREMIUM_ZIWEI_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 3),
   };
-  const requiredCategorySections = toChapterSpecificSections(chapterSpec?.sections || []).slice(0, 5);
+  const requiredCategorySections = toChapterSpecificSections(chapterSpec?.sections || []);
+  const requiredSectionCount = requiredCategorySections.length || 5;
   const buildZiweiCategoryRepairPrompt = (draftJson, validation) => {
     const missingFields = Array.isArray(validation?.missing) ? validation.missing : [];
     const contextSummary = {
@@ -17217,8 +17218,8 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
       "필수 최상위 키: chapterMeta, chapterSpecificSections, sections, chapter",
       `chapterMeta.title은 '${String(chapterSpec?.title || "").trim()}'와 정확히 일치해야 합니다.`,
       `chapterMeta.subtitle은 '${String(chapterSpec?.goal || meta?.subtitle || "").trim()}'와 정확히 일치해야 합니다.`,
-      `chapterSpecificSections는 정확히 5개이며 [${requiredCategorySections.join(" | ")}] 순서를 그대로 사용합니다.`,
-      "sections는 정확히 5개 객체만 포함하고, 각 객체는 title/body만 사용합니다.",
+      `chapterSpecificSections는 정확히 ${requiredSectionCount}개이며 [${requiredCategorySections.join(" | ")}] 순서를 그대로 사용합니다.`,
+      `sections는 정확히 ${requiredSectionCount}개 객체만 포함하고, 각 객체는 title/body만 사용합니다.`,
       "sections[i].title은 chapterSpecificSections[i]와 완전히 같아야 합니다.",
       "각 sections[i].body는 최소 1000자이며, 해당 카테고리의 실제 해석 본문이어야 합니다.",
       "누락된 카테고리/짧은 본문은 반드시 보강하세요.",
@@ -17267,8 +17268,8 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
       "chapterMeta는 title/subtitle만 포함합니다.",
       `chapterMeta.title은 반드시 '${String(chapterSpec?.title || "").trim()}' 와 완전히 일치해야 합니다.`,
       `chapterMeta.subtitle은 반드시 '${String(chapterSpec?.goal || meta?.subtitle || "").trim()}' 와 일치해야 합니다.`,
-      `chapterSpecificSections는 정확히 5개이며, 반드시 [${toChapterSpecificSections(chapterSpec?.sections || []).slice(0, 5).join(" | ")}] 순서를 유지하세요.`,
-      "sections는 정확히 5개 객체만 포함하고, title/body만 허용합니다.",
+      `chapterSpecificSections는 정확히 ${requiredSectionCount}개이며, 반드시 [${requiredCategorySections.join(" | ")}] 순서를 유지하세요.`,
+      `sections는 정확히 ${requiredSectionCount}개 객체만 포함하고, title/body만 허용합니다.`,
       "각 sections[i].title은 chapterSpecificSections[i]와 완전히 동일해야 합니다.",
       "각 sections[i].body는 최소 1000자 이상으로 작성하세요.",
       "코드펜스 없이 JSON만 출력하세요.",
@@ -17307,7 +17308,7 @@ async function generateZiweiPremiumChapter(env, body, input, chapter, meta, cano
       || key.startsWith("sections[")
       || key === "minChars",
     );
-    if (hasCategoryBodyIssue && requiredCategorySections.length === 5) {
+    if (hasCategoryBodyIssue && requiredCategorySections.length > 0) {
       const sectionRepairPrompt = buildZiweiCategoryRepairPrompt(parsed.data, chapterValidation);
       let repairedRawText = "";
       let repairedParsed = null;
