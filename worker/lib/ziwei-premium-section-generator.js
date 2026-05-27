@@ -108,6 +108,97 @@ function hasOnlyGenericFortunePhrases(text) {
   return genericMatchLength / contentLength > 0.3;
 }
 
+function asBoundedString(value, maxLen = 180) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  return text.length > maxLen ? `${text.slice(0, maxLen)}...` : text;
+}
+
+function toZiweiPromptEvidence(input = {}) {
+  const payload = (input?.minimalPayload && typeof input.minimalPayload === "object") ? input.minimalPayload : {};
+  const chart = (payload?.chart && typeof payload.chart === "object") ? payload.chart : {};
+  const resolvedRoot = (input?.resolved && typeof input.resolved === "object") ? input.resolved : {};
+  const resolvedData = (resolvedRoot?.resolved && typeof resolvedRoot.resolved === "object") ? resolvedRoot.resolved : {};
+  const resolvedPalaces = Array.isArray(resolvedData?.palaces) ? resolvedData.palaces : [];
+  const sourcePalaces = Array.isArray(chart?.palaces) ? chart.palaces : [];
+  const palaces = (resolvedPalaces.length ? resolvedPalaces : sourcePalaces).slice(0, 8).map((palace) => {
+    const stars = []
+      .concat(Array.isArray(palace?.mainStars) ? palace.mainStars : [])
+      .concat(Array.isArray(palace?.assistantStars) ? palace.assistantStars : [])
+      .concat(Array.isArray(palace?.minorStars) ? palace.minorStars : [])
+      .concat(Array.isArray(palace?.maleficStars) ? palace.maleficStars : []);
+    return {
+      key: asBoundedString(palace?.key, 30),
+      name: asBoundedString(palace?.name || palace?.nameKo, 30),
+      branch: asBoundedString(palace?.branch, 12),
+      stars: stars
+        .map((star) => ({
+          name: asBoundedString(star?.name || star?.nameKo, 20),
+          brightness: asBoundedString(star?.brightness || star?.strength, 8),
+          strengthSymbol: asBoundedString(star?.strengthSymbol || star?.symbol, 4),
+        }))
+        .filter((star) => star.name)
+        .slice(0, 10),
+    };
+  });
+
+  const transformations = [];
+  if (Array.isArray(resolvedData?.transformations)) {
+    resolvedData.transformations.forEach((row) => {
+      transformations.push({
+        starName: asBoundedString(row?.starName || row?.name, 20),
+        type: asBoundedString(row?.type || row?.transformation, 10),
+        palaceName: asBoundedString(row?.palaceName || row?.palace, 20),
+      });
+    });
+  }
+
+  return {
+    user: {
+      name: asBoundedString(payload?.user?.name || input?.userProfile?.name, 20),
+      gender: asBoundedString(payload?.user?.gender || input?.userProfile?.gender, 12),
+      birthDate: asBoundedString(payload?.user?.birthDate || input?.userProfile?.birthDate, 20),
+      birthTime: asBoundedString(payload?.user?.birthTime || input?.userProfile?.birthTime, 10),
+      calendarType: asBoundedString(payload?.user?.calendarType || input?.userProfile?.calendarType, 12),
+    },
+    chapter: {
+      chapterId: asBoundedString(input?.chapterId || input?.chapter?.chapterId, 20),
+      chapterTitle: asBoundedString(input?.chapterTitle || input?.chapter?.title, 60),
+      categoryId: asBoundedString(input?.categoryId || input?.section?.sectionId, 24),
+      categoryTitle: asBoundedString(input?.categoryTitle || input?.section?.title, 60),
+    },
+    chartMeta: {
+      lifePalace: asBoundedString(chart?.lifePalace || chart?.lifePalaceKey, 20),
+      bodyPalace: asBoundedString(chart?.bodyPalace || chart?.bodyPalaceKey, 20),
+      palaceCount: palaces.length,
+    },
+    targetPalaces: Array.isArray(input?.targetPalaces)
+      ? input.targetPalaces.map((row) => asBoundedString(row, 20)).filter(Boolean).slice(0, 6)
+      : (input?.targetPalace ? [asBoundedString(input.targetPalace, 20)] : []),
+    starNames: Array.isArray(input?.starNames)
+      ? input.starNames.map((row) => asBoundedString(row, 20)).filter(Boolean).slice(0, 18)
+      : [],
+    palaces,
+    transformations: transformations.slice(0, 12),
+    summaries: {
+      relatedPalaceSummary: asBoundedString(input?.relatedPalaceSummary, 300),
+      relatedStarSummary: asBoundedString(input?.relatedStarSummary, 500),
+      transformationSummary: asBoundedString(input?.transformationSummary, 400),
+      strengthSummary: asBoundedString(input?.strengthSummary, 260),
+    },
+  };
+}
+
+function getZiweiSectionBatchConfig(env = {}) {
+  const rawBatchSize = Number(env?.PREMIUM_ZIWEI_SECTION_BATCH_SIZE || 1);
+  const batchSize = Number.isFinite(rawBatchSize)
+    ? Math.max(1, Math.min(4, Math.floor(rawBatchSize)))
+    : 1;
+  const rawParallel = String(env?.PREMIUM_ZIWEI_SECTION_PARALLEL || "false").trim().toLowerCase();
+  const parallel = rawParallel === "1" || rawParallel === "true" || rawParallel === "yes";
+  return { batchSize, parallel };
+}
+
 /**
  * LLM 섹션 결과 검증
  *
@@ -676,8 +767,10 @@ function buildLocalFallbackSection(input = {}, section = {}, reason = "") {
  * 세부 카테고리별 LLM 호출 (최대 재시도 3회)
  */
 export async function generateZiweiSectionWithLLM(env, input) {
-  const maxAttempts = 3;
+  const maxAttempts = Math.max(1, Math.min(3, Number(env?.PREMIUM_ZIWEI_SECTION_MAX_ATTEMPTS || 3)));
   let lastError = null;
+  const baseTimeoutMs = Number(env.PREMIUM_ZIWEI_GEMINI_TIMEOUT_MS || 30000);
+  const baseTotalTimeoutMs = Number(env.PREMIUM_ZIWEI_GEMINI_TOTAL_TIMEOUT_MS || 50000);
   const modelEnvKeys = [
     "PREMIUM_ZIWEI_GEMINI_MODEL",
     "ZIWEI_GEMINI_MODEL",
@@ -714,8 +807,8 @@ export async function generateZiweiSectionWithLLM(env, input) {
         temperature: 0.72,
         topP: 0.92,
         maxOutputTokens: 4096,
-        timeoutMs: Number(env.PREMIUM_ZIWEI_GEMINI_TIMEOUT_MS || 30000),
-        totalTimeoutMs: Number(env.PREMIUM_ZIWEI_GEMINI_TOTAL_TIMEOUT_MS || 50000),
+        timeoutMs: Math.min(120000, Math.max(15000, baseTimeoutMs + ((attempt - 1) * 12000))),
+        totalTimeoutMs: Math.min(160000, Math.max(30000, baseTotalTimeoutMs + ((attempt - 1) * 18000))),
         maxAttemptsPerPair: Math.max(1, Math.min(3, Number(env.PREMIUM_ZIWEI_GEMINI_RETRY_PER_PAIR || 2))),
       });
 
@@ -810,7 +903,11 @@ function buildZiweiSectionLLMPrompt(input) {
   const writingRules = input.writingRules || {};
   const avoid = Array.isArray(writingRules.avoid) ? writingRules.avoid : [];
   const mustInclude = Array.isArray(writingRules.mustInclude) ? writingRules.mustInclude : [];
+  const evidence = toZiweiPromptEvidence(input);
   const systemInstruction = [
+    "너는 최고의 자미두수 명리학자야.",
+    "제공된 [사용자 명반 데이터]를 바탕으로 [현재 챕터명]에 대한 구체적이고 실질적인 해석을 작성해.",
+    "절대로 '명반을 기준으로 분석합니다' 같은 안내 멘트나 더미 텍스트를 출력하지 말고, 곧바로 사용자의 기질, 운세, 구체적인 조언(실행 포인트)을 결과물로 도출해.",
     "당신은 30년 경력의 자미두수 고수다.",
     "사용자가 읽는 프리미엄 PDF 상담문을 작성한다.",
     "반드시 제공된 자미두수 계산 데이터만 근거로 해석한다.",
@@ -842,6 +939,9 @@ function buildZiweiSectionLLMPrompt(input) {
     "",
     `[로컬 시드]`,
     String(input.localSeedText || "").trim(),
+    "",
+    `[사용자 명반 데이터]`,
+    JSON.stringify(evidence, null, 2),
     "",
     `[작성 규칙]`,
     `- 해당 궁 이름을 반드시 언급한다.`,
@@ -889,9 +989,7 @@ export async function generateZiweiChapterFromSections(env, input) {
     message: "canonical-ready",
   }));
 
-  // 각 섹션을 순차 생성
-  for (let idx = 0; idx < sections.length; idx += 1) {
-    const section = sections[idx];
+  const createSectionTask = (section, idx) => {
     const canonicalCategory = Array.isArray(canonicalChapter?.categories)
       ? canonicalChapter.categories[idx] || null
       : null;
@@ -972,6 +1070,19 @@ export async function generateZiweiChapterFromSections(env, input) {
       resolved,
     };
 
+    return {
+      idx,
+      section,
+      resolved,
+      sectionInput,
+    };
+  };
+
+  const runSectionTask = async (task) => {
+    const sectionInput = task.sectionInput;
+    const section = task.section;
+    const resolved = task.resolved;
+
     console.info("[ZiweiPremium][Flow] SECTION_GENERATION_START", makeSectionFlowPayload("SECTION_GENERATION_START", sectionInput, {
       chapterCount: canonicalChapters.length,
       categoryCount: sections.length,
@@ -980,6 +1091,40 @@ export async function generateZiweiChapterFromSections(env, input) {
 
     const result = await generateZiweiSectionWithLLM(env, sectionInput);
     const normalized = normalizeZiweiSectionResult(sectionInput, result.ok ? result.content : result, minimalPayload);
+
+    return {
+      task,
+      result,
+      normalized,
+      sectionInput,
+      section,
+      resolved,
+    };
+  };
+
+  const sectionTasks = sections.map((section, idx) => createSectionTask(section, idx));
+  const orderedTaskResults = new Array(sectionTasks.length);
+  const batchConfig = getZiweiSectionBatchConfig(env);
+
+  for (let start = 0; start < sectionTasks.length; start += batchConfig.batchSize) {
+    const taskBatch = sectionTasks.slice(start, start + batchConfig.batchSize);
+    if (batchConfig.parallel && taskBatch.length > 1) {
+      const batchResults = await Promise.all(taskBatch.map((task) => runSectionTask(task)));
+      batchResults.forEach((row) => {
+        orderedTaskResults[row.task.idx] = row;
+      });
+    } else {
+      for (const task of taskBatch) {
+        const row = await runSectionTask(task);
+        orderedTaskResults[row.task.idx] = row;
+      }
+    }
+  }
+
+  for (let idx = 0; idx < orderedTaskResults.length; idx += 1) {
+    const row = orderedTaskResults[idx];
+    if (!row) continue;
+    const { result, normalized, sectionInput, section, resolved } = row;
 
     if (result.ok && normalized.source === "llm") {
       console.info("[ZiweiPremium][Flow] LLM_SECTION_SUCCESS", {
