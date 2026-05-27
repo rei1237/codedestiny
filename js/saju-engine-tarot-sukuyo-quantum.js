@@ -5890,6 +5890,222 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     };
   }
 
+  function syCompatClamp(v, min, max) {
+    var n = Number(v);
+    if (!Number.isFinite(n)) n = min;
+    if (n < min) return min;
+    if (n > max) return max;
+    return Math.round(n);
+  }
+
+  function syCompatHash(input) {
+    var str = String(input || '');
+    var h = 2166136261;
+    for (var i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
+    }
+    return (h >>> 0);
+  }
+
+  function syCompatPick(list, seed, offset) {
+    if (!Array.isArray(list) || !list.length) return '';
+    var idx = Math.abs((Number(seed) + Number(offset || 0)) % list.length);
+    return list[idx];
+  }
+
+  function syCompatRelationKo(rel) {
+    var t = String((rel && (rel.typeLabel || rel.type)) || '');
+    if (t.indexOf('안·괴') !== -1 || t.indexOf('안괴') !== -1) return '安壞';
+    if (t.indexOf('우쇠') !== -1 || t.indexOf('우·쇠') !== -1) return '友衰';
+    if (t.indexOf('성위') !== -1 || t.indexOf('성·위') !== -1 || t.indexOf('위성') !== -1 || t.indexOf('위·성') !== -1) return '危成';
+    if (t.indexOf('영친') !== -1 || t.indexOf('영·친') !== -1) return '榮親';
+    if (t.indexOf('명') !== -1 || t.indexOf('영혼의 거울') !== -1) return '命';
+    if (t.indexOf('업') !== -1 || t.indexOf('태') !== -1) return '業胎';
+    return '中和';
+  }
+
+  function syCompatDistanceKo(distInfo) {
+    var tier = String((distInfo && distInfo.tier) || 'middle');
+    if (tier === 'same' || tier === 'near') return '근거리';
+    if (tier === 'middle') return '중거리';
+    if (tier === 'far') return '원거리';
+    return '중거리';
+  }
+
+  function syBuildPastLifeArchive(payload) {
+    var archiveTypes = [
+      'unfinished_lovers', 'rivals_in_palace', 'warrior_and_healer', 'monk_and_princess',
+      'astronomer_and_oracle', 'merchant_and_nomad', 'king_and_strategist', 'betrayer_and_betrayed',
+      'guardian_and_lost_child', 'runaway_bride_and_pursuer', 'twin_flames_separated', 'teacher_and_disciple',
+      'sea_captain_and_lighthouse_keeper', 'fallen_general_and_songstress', 'temple_priest_and_forbidden_guest', 'desert_promise',
+      'moon_palace_memory', 'village_childhood_bond', 'execution_day_regret', 'bookstore_in_old_capital',
+      'shaman_and_wounded_soul', 'enemy_spies', 'royal_guard_and_hidden_heir', 'star_crossed_travelers'
+    ];
+
+    var archiveMeta = {
+      unfinished_lovers: { title: '끝내지 못한 연서', subtitle: '마지막 장면에서 멈춘 두 사람' },
+      rivals_in_palace: { title: '궁정의 라이벌', subtitle: '권력과 감정이 엉킨 밤' },
+      warrior_and_healer: { title: '전장의 전사와 치유자', subtitle: '피와 약초의 기억' },
+      monk_and_princess: { title: '승려와 공주의 약속', subtitle: '금기와 자비 사이' },
+      astronomer_and_oracle: { title: '별을 읽는 점성가와 오라클', subtitle: '하늘의 신호를 해독하던 동료' },
+      merchant_and_nomad: { title: '상인과 유목민', subtitle: '길 위에서 쌓인 신뢰' },
+      king_and_strategist: { title: '왕과 책사', subtitle: '제국을 설계한 관계' },
+      betrayer_and_betrayed: { title: '배신한 자와 남겨진 자', subtitle: '침묵으로 봉인된 사건' },
+      guardian_and_lost_child: { title: '수호자와 길 잃은 아이', subtitle: '지켜야 했던 생명' },
+      runaway_bride_and_pursuer: { title: '도망친 신부와 추적자', subtitle: '멈출 수 없던 추적' },
+      twin_flames_separated: { title: '갈라진 쌍둥이 불꽃', subtitle: '서로를 찾던 궤도' },
+      teacher_and_disciple: { title: '스승과 제자', subtitle: '배움으로 맺어진 업' },
+      sea_captain_and_lighthouse_keeper: { title: '선장과 등대지기', subtitle: '폭풍 속 신호' },
+      fallen_general_and_songstress: { title: '패장과 노래꾼', subtitle: '몰락 후 남은 위로' },
+      temple_priest_and_forbidden_guest: { title: '신전의 사제와 금지된 손님', subtitle: '경계 밖의 만남' },
+      desert_promise: { title: '사막의 맹세', subtitle: '물 한 모금의 신뢰' },
+      moon_palace_memory: { title: '달궁의 기억', subtitle: '달빛 아래의 재회' },
+      village_childhood_bond: { title: '마을의 어린 시절', subtitle: '익숙함의 뿌리' },
+      execution_day_regret: { title: '처형 날의 후회', subtitle: '한마디를 놓친 관계' },
+      bookstore_in_old_capital: { title: '옛 수도의 서점', subtitle: '책장 사이의 약속' },
+      shaman_and_wounded_soul: { title: '무당과 상처 입은 영혼', subtitle: '치유 의식의 기억' },
+      enemy_spies: { title: '적국의 첩자', subtitle: '거짓과 진심의 경계' },
+      royal_guard_and_hidden_heir: { title: '왕실 근위대와 숨겨진 후계자', subtitle: '정체를 지킨 맹세' },
+      star_crossed_travelers: { title: '엇갈린 여행자', subtitle: '한 번씩 스쳐간 별자리' }
+    };
+
+    var relationToneMap = {
+      ankai: '강렬한 끌림과 충돌의 압력이 동시에 작동해 감정의 밀도가 매우 높았습니다.',
+      usei: '오랜 친구 같은 정서적 빚과 응원이 반복되며, 한쪽의 희생이 관계를 지탱했습니다.',
+      seongwi: '위험과 성취가 교차해 서로의 인생 방향을 크게 바꾸는 동맹이 되었습니다.',
+      yeongchin: '가족 같은 친밀감과 보호 본능이 관계의 중심이었고, 편안함이 큰 장점이었습니다.',
+      life: '거울처럼 닮은 기질이 강하게 공명해, 서로를 통해 자기 자신을 보던 관계였습니다.',
+      taegeuk: '설명하기 어려운 익숙함이 강했고, 도와야 한다는 감각이 자연스럽게 따라왔습니다.',
+      default: '강점과 약점을 교차로 비추며 서로의 리듬을 조율하는 관계였습니다.'
+    };
+
+    var relationKey = String(payload.relationKey || 'default');
+    var distanceKo = String(payload.distanceKo || '중거리');
+    var relationKo = String(payload.relationKo || '中和');
+    var seed = Number(payload.seed || 0);
+    var chosenType = syCompatPick(archiveTypes, seed, 41) || archiveTypes[0];
+    var meta = archiveMeta[chosenType] || archiveMeta.unfinished_lovers;
+    var tone = relationToneMap[relationKey] || relationToneMap.default;
+
+    var stories = [
+      '이 전생 아카이브는 실제 전생을 단정하는 예언이 아니라, 두 사람의 감정 패턴을 상징적으로 풀어낸 이야기입니다.',
+      '옛 기록에서 두 사람은 ' + meta.subtitle + '의 형태로 반복해서 등장합니다. 같은 이름은 아니었지만, 같은 선택을 두 번 이상 했다는 점이 특징입니다.',
+      tone,
+      '특히 ' + distanceKo + ' 흐름에서는 가까워지는 속도와 감정 회복 속도가 어긋나면서, 사랑과 불안이 같은 순간에 나타나곤 했습니다.',
+      '현생에서 이 패턴은 "좋을 때는 매우 빠르게 깊어지고, 오해가 생기면 해소 타이밍이 엇갈리는" 형태로 재현되기 쉽습니다.',
+      '이 관계의 과제는 상대를 고치려는 시도보다, 표현 방식과 경계선의 합의를 먼저 세우는 데 있습니다.',
+      relationKo + ' 조합의 장점은 위기를 피하는 데 있지 않고, 위기 후 회복 루틴을 만들 때 강하게 발휘됩니다.'
+    ];
+
+    return {
+      type: chosenType,
+      title: meta.title,
+      subtitle: meta.subtitle,
+      story: stories.join(' '),
+      karmicMemory: tone,
+      presentLifePattern: '감정 온도는 빠르게 올라가지만, 조율 규칙이 없으면 반복 오해가 누적될 수 있습니다.',
+      currentTask: '연락 빈도, 싸움 직후 쿨다운 시간, 화해 시작 문장을 미리 합의해 관계의 리듬을 고정하세요.',
+      shadow: '좋은 순간의 강도만 믿고 구조를 생략하면 소모가 커집니다. 강한 끌림과 오래 가는 관계는 다른 기술이 필요합니다.',
+      healingKey: '파괴 대신 창조를 선택하는 작은 합의(말투, 타이밍, 경계)부터 시작하면 이 인연은 성장형으로 전환됩니다.'
+    };
+  }
+
+  function syBuildEnhancedSukuyoResult(ctx) {
+    var relationKey = syRelationKeyFromType(ctx.rel && (ctx.rel.typeLabel || ctx.rel.type));
+    var relationKo = syCompatRelationKo(ctx.rel);
+    var distanceKo = syCompatDistanceKo(ctx.distInfo);
+    var relationTypeRaw = String((ctx.rel && (ctx.rel.typeLabel || ctx.rel.type)) || '숙요 인연');
+    var roleA = (ctx.rel && ctx.rel.ankaiRole && ctx.rel.ankaiRole.me) ? String(ctx.rel.ankaiRole.me) : '공진자';
+    var roleB = (ctx.rel && ctx.rel.ankaiRole && ctx.rel.ankaiRole.other) ? String(ctx.rel.ankaiRole.other) : '공진자';
+
+    var baseCompat = Number(ctx.compatibilityIndex || (ctx.rel && ctx.rel.score) || 60);
+    var karma = syCompatClamp(ctx.rel && ctx.rel.score, 25, 99);
+    var temp = syCompatClamp(ctx.rel && ctx.rel.temperature, 20, 100);
+    var magnetism = syCompatClamp(ctx.rel && ctx.rel.magnetism, 20, 100);
+
+    var emotionalChemistry = syCompatClamp((temp * 0.55 + magnetism * 0.45), 25, 99);
+    var communicationChemistry = syCompatClamp((baseCompat * 0.62 + 22), 20, 98);
+    var dailyLifeChemistry = syCompatClamp((baseCompat * 0.58 + (distanceKo === '근거리' ? 8 : (distanceKo === '원거리' ? -6 : 2))), 20, 97);
+    var physicalMagnetism = syCompatClamp((magnetism * 0.76 + temp * 0.24), 20, 99);
+    var conflictRisk = syCompatClamp((relationKey === 'ankai' ? 84 : relationKey === 'seongwi' ? 72 : relationKey === 'life' ? 68 : 56) + (distanceKo === '근거리' ? 6 : (distanceKo === '원거리' ? -4 : 1)), 20, 98);
+    var recoveryPotential = syCompatClamp((100 - conflictRisk) + (relationKey === 'yeongchin' ? 22 : relationKey === 'taegeuk' ? 12 : relationKey === 'ankai' ? 6 : 10), 20, 99);
+    var longTermPotential = syCompatClamp((dailyLifeChemistry * 0.4 + communicationChemistry * 0.35 + recoveryPotential * 0.25), 20, 99);
+
+    var tempBand = temp <= 30 ? '차가운 인연' : (temp <= 50 ? '천천히 데워지는 인연' : (temp <= 70 ? '따뜻한 현실형 인연' : (temp <= 85 ? '뜨거운 인연' : '폭발적인 인연')));
+    var difficulty = conflictRisk >= 86 ? 'Extreme' : (conflictRisk >= 71 ? 'Hard' : (conflictRisk >= 51 ? 'Normal' : 'Easy'));
+
+    var seedRaw = [
+      String(ctx.userMansion || ''), String(ctx.partnerMansion || ''), relationTypeRaw,
+      distanceKo, roleA, roleB, String(ctx.userGender || ''), String(ctx.partnerGender || ''),
+      String(baseCompat), String(karma), String(temp), String(magnetism)
+    ].join('|');
+    var seed = syCompatHash(seedRaw);
+    var pastLife = syBuildPastLifeArchive({ relationKey: relationKey, relationKo: relationKo, distanceKo: distanceKo, seed: seed });
+    var signature = (ctx.relationVariant ? String(ctx.relationVariant) + ' · ' : '') + 'SIG-' + String(seed.toString(36)).toUpperCase();
+
+    var nicknames = {
+      ankai: ['폭풍 속의 불꽃', '서로의 궤도를 바꾸는 별', '뜨겁지만 조심해야 할 인연'],
+      usei: ['달빛 아래의 약속', '정으로 엮인 항해', '천천히 깊어지는 마음'],
+      seongwi: ['목표를 공유한 동맹', '현실을 움직이는 듀오', '서로를 밀어올리는 팀'],
+      yeongchin: ['따뜻한 성장의 정원', '편안하지만 강한 인연', '서로를 살리는 동반자'],
+      life: ['거울 속의 연인', '닮아 닮은 별자리', '나를 비추는 인연'],
+      taegeuk: ['전생에서 놓친 편지', '정산과 회복의 만남', '업을 빛으로 바꾸는 관계'],
+      default: ['조율로 완성되는 인연', '리듬이 맞을수록 강해지는 관계', '선택이 품질을 바꾸는 관계']
+    };
+    var oneLiners = {
+      ankai: '서로를 흔들지만, 제대로 쓰면 인생을 바꾸는 관계',
+      usei: '편안함 속에서 깊어지지만, 솔직함을 빼면 멀어지는 관계',
+      seongwi: '함께 목표를 잡으면 강해지고, 감정을 미루면 건조해지는 관계',
+      yeongchin: '따뜻하게 서로를 살리는 조합, 익숙함 관리가 핵심인 관계',
+      life: '닮아서 빠르게 가까워지지만, 경계를 지킬수록 오래 가는 관계',
+      taegeuk: '익숙한 끌림과 책임감이 공존하는, 균형을 배우는 관계',
+      default: '리듬을 맞출수록 좋아지고, 방치할수록 멀어지는 관계'
+    };
+
+    var keywordsBank = {
+      ankai: ['강한 끌림', '감정 소모', '변화 압력', '중독성', '회복 규칙'],
+      usei: ['정서 안정', '공감력', '느린 진입', '누적 신뢰', '표현 필요'],
+      seongwi: ['목표 지향', '역할 분담', '현실 조율', '성과 시너지', '감정 점검'],
+      yeongchin: ['보호 본능', '성장 시너지', '생활 합', '안정감', '신선함 유지'],
+      life: ['거울 효과', '닮은 기질', '빠른 공명', '경계 필요', '자기 인식'],
+      taegeuk: ['업의 정산', '익숙한 책임감', '헌신과 회복', '균형 학습', '감사 표현'],
+      default: ['조율', '합의', '리듬', '회복', '실행']
+    };
+
+    var nicks = nicknames[relationKey] || nicknames.default;
+    var relationshipName = syCompatPick(nicks, seed, 5) || nicks[0];
+    var oneLine = oneLiners[relationKey] || oneLiners.default;
+    var kw = keywordsBank[relationKey] || keywordsBank.default;
+    var key3 = [syCompatPick(kw, seed, 1), syCompatPick(kw, seed, 2), syCompatPick(kw, seed, 3)];
+
+    return {
+      relationTypeKo: relationKo,
+      distanceKo: distanceKo,
+      roleA: roleA,
+      roleB: roleB,
+      compatibility: baseCompat,
+      karma: karma,
+      temperature: temp,
+      magnetism: magnetism,
+      emotionalChemistry: emotionalChemistry,
+      communicationChemistry: communicationChemistry,
+      dailyLifeChemistry: dailyLifeChemistry,
+      physicalMagnetism: physicalMagnetism,
+      conflictRisk: conflictRisk,
+      recoveryPotential: recoveryPotential,
+      longTermPotential: longTermPotential,
+      tempBand: tempBand,
+      difficulty: difficulty,
+      relationshipName: relationshipName,
+      oneLine: oneLine,
+      keywords3: key3,
+      seed: seed,
+      signature: signature,
+      pastLife: pastLife
+    };
+  }
+
   function syPromptDistanceLabel(distInfo) {
     var tier = (distInfo && distInfo.tier) || '';
     if (tier === 'near' || tier === 'same') return '근거리';
@@ -6578,6 +6794,112 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               + '<p class="text-[0.88rem] leading-7 text-slate-200" style="margin:0;color:#dfe6e9;line-height:1.85;">' + stage.text + '</p>'
               + '</article>';
           }).join('');
+          const userGenderLabel = (window.GENDER === 'M') ? '남성' : ((window.GENDER === 'F') ? '여성' : '기타');
+          const enhanced = syBuildEnhancedSukuyoResult({
+            rel: rel,
+            distInfo: distInfo,
+            compatibilityIndex: compatibilityIndex,
+            relationVariant: relationVariant,
+            userMansion: myMansionName || '',
+            partnerMansion: tData && tData.mansion ? tData.mansion : '',
+            userGender: userGenderLabel,
+            partnerGender: partnerGenderLabel
+          });
+          if (window._syLastCompat) {
+            window._syLastCompat.enhanced = {
+              signature: enhanced.signature,
+              relationTypeKo: enhanced.relationTypeKo,
+              distanceKo: enhanced.distanceKo,
+              difficulty: enhanced.difficulty,
+              tempBand: enhanced.tempBand,
+              relationshipName: enhanced.relationshipName,
+              chemistry: {
+                emotional: enhanced.emotionalChemistry,
+                communication: enhanced.communicationChemistry,
+                dailyLife: enhanced.dailyLifeChemistry,
+                physical: enhanced.physicalMagnetism,
+                conflictRisk: enhanced.conflictRisk,
+                recoveryPotential: enhanced.recoveryPotential,
+                longTermPotential: enhanced.longTermPotential
+              },
+              pastLife: enhanced.pastLife
+            };
+          }
+          const syBar = function(v) {
+            var n = Math.max(0, Math.min(10, Math.round(Number(v || 0) / 10)));
+            return '█'.repeat(n) + '░'.repeat(10 - n);
+          };
+
+          const enhancedSummarySection = `
+            <section style="background:rgba(2,6,23,0.5);border:1px solid rgba(196,181,253,0.35);border-radius:14px;padding:14px 14px 10px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#c4b5fd;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">Section 0 · 한눈에 보는 인연 요약</div>
+              <div style="font-size:1.02rem;font-weight:900;color:#f8fafc;line-height:1.5;margin-bottom:8px;">${enhanced.oneLine}</div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px;">
+                <div style="background:rgba(15,23,42,0.58);border:1px solid rgba(148,163,184,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#e2e8f0;">관계 타입 <strong style="color:#fef08a;">${enhanced.relationTypeKo}</strong></div>
+                <div style="background:rgba(15,23,42,0.58);border:1px solid rgba(148,163,184,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#e2e8f0;">관계 별명 <strong style="color:#fde68a;">${enhanced.relationshipName}</strong></div>
+                <div style="background:rgba(15,23,42,0.58);border:1px solid rgba(148,163,184,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#e2e8f0;">나의 숙 <strong>${myMansionName || '미상'}</strong></div>
+                <div style="background:rgba(15,23,42,0.58);border:1px solid rgba(148,163,184,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#e2e8f0;">상대 숙 <strong>${tData.mansion}</strong></div>
+                <div style="background:rgba(15,23,42,0.58);border:1px solid rgba(148,163,184,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#e2e8f0;">나의 역할 <strong>${enhanced.roleA}</strong></div>
+                <div style="background:rgba(15,23,42,0.58);border:1px solid rgba(148,163,184,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#e2e8f0;">상대 역할 <strong>${enhanced.roleB}</strong></div>
+                <div style="background:rgba(15,23,42,0.58);border:1px solid rgba(148,163,184,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#e2e8f0;">거리 <strong>${enhanced.distanceKo}</strong></div>
+                <div style="background:rgba(15,23,42,0.58);border:1px solid rgba(148,163,184,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#e2e8f0;">난이도 <strong>${enhanced.difficulty}</strong></div>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+                ${enhanced.keywords3.map(function(k){ return '<span style="background:rgba(59,130,246,0.18);border:1px solid rgba(59,130,246,0.4);padding:3px 8px;border-radius:999px;font-size:0.74rem;color:#bfdbfe;">#'+k+'</span>'; }).join('')}
+              </div>
+              <div style="font-size:0.79rem;color:#e5e7eb;line-height:1.75;">한 줄 요약: <strong>"강하게 끌리고, 빠르게 뜨거워지고, 결국 조율이 승부를 가르는 관계"</strong>입니다. 잘 쓰면 서로를 크게 성장시키고, 방치하면 피로가 빨리 쌓입니다. 계산 시그니처: ${enhanced.signature}</div>
+            </section>`;
+
+          const enhancedFlowSection = `
+            <section style="background:rgba(15,23,42,0.48);border:1px solid rgba(125,211,252,0.28);border-radius:14px;padding:14px 14px 10px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#7dd3fc;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">Section 4 · 첫 만남 → 썸 → 연애 → 장기 관계</div>
+              <article style="border:1px solid rgba(125,211,252,0.35);border-radius:10px;padding:9px 10px;margin-bottom:8px;background:rgba(2,6,23,0.42);"><strong style="color:#bae6fd;">1단계 · 첫 만남</strong><p style="margin:6px 0 0;color:#dbeafe;line-height:1.8;font-size:0.82rem;">처음에는 ${enhanced.distanceKo} 특성 때문에 반응 속도 체감이 분명하게 나타납니다. 상대가 나를 보는 방식은 호기심과 경계가 동시에 작동하는 패턴으로 들어오기 쉽습니다. 빠르게 가까워지더라도 의도 확인 문장을 먼저 쓰면 오해를 줄일 수 있습니다.</p></article>
+              <article style="border:1px solid rgba(196,181,253,0.35);border-radius:10px;padding:9px 10px;margin-bottom:8px;background:rgba(2,6,23,0.42);"><strong style="color:#ddd6fe;">2단계 · 썸 단계</strong><p style="margin:6px 0 0;color:#e9d5ff;line-height:1.8;font-size:0.82rem;">연락 패턴은 리듬 합의가 핵심입니다. 좋아질 때는 급격히 가까워지지만, 답장 속도·말투 강도 차이가 오해의 트리거가 되기 쉽습니다. 호감이 깊어지는 순간은 감정 확인과 사실 확인을 같이 해줄 때입니다.</p></article>
+              <article style="border:1px solid rgba(251,191,36,0.35);border-radius:10px;padding:9px 10px;margin-bottom:8px;background:rgba(2,6,23,0.42);"><strong style="color:#fde68a;">3단계 · 연애 단계</strong><p style="margin:6px 0 0;color:#fde68a;line-height:1.8;font-size:0.82rem;">애정 표현은 강도보다 빈도가 중요합니다. 다툼은 감정 과열보다 해석 차이에서 커지는 경우가 많고, 화해는 "요약-사과-합의" 순서가 가장 안정적입니다. 질투와 불안은 숨길수록 증폭되므로 짧고 정확한 언어가 유리합니다.</p></article>
+              <article style="border:1px solid rgba(74,222,128,0.35);border-radius:10px;padding:9px 10px;background:rgba(2,6,23,0.42);"><strong style="color:#bbf7d0;">4단계 · 장기 관계</strong><p style="margin:6px 0 0;color:#dcfce7;line-height:1.8;font-size:0.82rem;">오래 가려면 돈·생활·가족·일상 루틴의 규칙을 문장으로 고정해야 합니다. 결혼/동거 관점에서는 역할 고정이 아니라 주기적 재협상이 핵심입니다. 관계 유지 규칙을 분기마다 업데이트하면 장기성이 크게 올라갑니다.</p></article>
+            </section>`;
+
+          const chemistrySection = `
+            <section style="background:rgba(2,6,23,0.5);border:1px solid rgba(52,211,153,0.3);border-radius:14px;padding:14px 14px 10px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#6ee7b7;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">Section 5 · 감정/대화/생활/끌림 세부 지표</div>
+              <div style="font-size:0.82rem;color:#d1fae5;line-height:1.8;margin-bottom:8px;">감정 궁합 ${enhanced.emotionalChemistry}점 · 대화 궁합 ${enhanced.communicationChemistry}점 · 생활 궁합 ${enhanced.dailyLifeChemistry}점 · 육체적 끌림 ${enhanced.physicalMagnetism}점 · 갈등 위험 ${enhanced.conflictRisk}점 · 회복 잠재력 ${enhanced.recoveryPotential}점 · 장기성 ${enhanced.longTermPotential}점</div>
+              <div style="font-size:0.8rem;color:#dbeafe;line-height:1.85;background:rgba(15,23,42,0.52);border:1px solid rgba(148,163,184,0.25);border-radius:10px;padding:9px 10px;">
+                감정은 빨리 붙고 빨리 데워집니다. 그래서 좋을 때는 아주 강하지만, 오해가 생기면 감정도 급격히 흔들릴 수 있습니다. 이 조합은 "정확한 대화"와 "생활 루틴 합의"를 붙이는 순간 점수가 눈에 띄게 올라갑니다.
+              </div>
+              <div style="font-family:monospace;font-size:0.78rem;color:#e2e8f0;line-height:1.9;margin-top:8px;">
+                끌림&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${syBar(enhanced.physicalMagnetism)} ${enhanced.physicalMagnetism}<br>
+                안정감&nbsp;&nbsp;&nbsp;&nbsp;${syBar(enhanced.dailyLifeChemistry)} ${enhanced.dailyLifeChemistry}<br>
+                대화&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${syBar(enhanced.communicationChemistry)} ${enhanced.communicationChemistry}<br>
+                갈등위험&nbsp;&nbsp;${syBar(enhanced.conflictRisk)} ${enhanced.conflictRisk}<br>
+                장기성&nbsp;&nbsp;&nbsp;&nbsp;${syBar(enhanced.longTermPotential)} ${enhanced.longTermPotential}
+              </div>
+            </section>`;
+
+          const roleSection = `
+            <section style="background:rgba(30,41,59,0.52);border:1px solid rgba(147,197,253,0.3);border-radius:14px;padding:14px 14px 10px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#93c5fd;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">Section 6 · 역할 분석 강화</div>
+              <div style="font-size:0.82rem;color:#dbeafe;line-height:1.85;">나의 역할은 <strong>${enhanced.roleA}</strong>, 상대의 역할은 <strong>${enhanced.roleB}</strong>로 읽힙니다. 내 역할은 상대에게 안정/자극 중 어느 축을 먼저 제공하는지에 따라 달라지고, 상대 역할 역시 관계 깊이에 따라 역전될 수 있습니다. 역할을 운명처럼 고정하기보다, 상황별 포지션으로 조율할 때 관계 피로가 줄어듭니다.</div>
+              <div style="font-size:0.8rem;color:#e2e8f0;line-height:1.8;background:rgba(2,6,23,0.45);border:1px solid rgba(148,163,184,0.24);border-radius:10px;padding:9px 10px;margin-top:8px;">내가 지치기 쉬운 지점은 역할 과잉 수행, 상대가 숨기는 불안은 경계선 요청을 거절당할 때 나타납니다. 상대를 다룰 때 필요한 방식은 감정 확정 문장보다 행동 합의 문장을 먼저 쓰는 것입니다.</div>
+            </section>`;
+
+          const guideSection = `
+            <section style="background:rgba(2,6,23,0.5);border:1px solid rgba(251,191,36,0.3);border-radius:14px;padding:14px 14px 10px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#fde68a;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">관계 사용 설명서</div>
+              <div style="font-size:0.8rem;color:#fde68a;line-height:1.8;">금지어: "넌 원래 그래" 같은 단정형 문장 · 잘 먹히는 표현: "내가 원하는 건 OO야" 같은 요청형 문장 · 절대 금지 행동: 감정 과열 직후 결론 강요 · 추천 데이트: ${enhanced.distanceKo === '근거리' ? '짧고 자주 만나는 산책형 데이트' : (enhanced.distanceKo === '중거리' ? '주간 루틴형 데이트' : '긴 호흡의 목적형 데이트')} · 위기 패턴: 답장 해석 과열 · 회복법: 24시간 쿨다운 후 요약 대화</div>
+            </section>`;
+
+          const detailCardsSection = `
+            <section style="background:rgba(15,23,42,0.52);border:1px solid rgba(196,181,253,0.3);border-radius:14px;padding:14px 14px 10px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#ddd6fe;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">숙요 궁합 확장 해석 카드</div>
+              <div style="font-size:0.8rem;color:#e2e8f0;line-height:1.85;">
+                첫눈에 끌리는 이유는 ${enhanced.relationTypeKo}의 공명 속도와 ${enhanced.distanceKo} 거리에서 오는 체감 반응이 맞물리기 때문입니다. 상대는 당신에게 익숙함과 긴장감을 동시에 느낄 가능성이 큽니다.<br>
+                말투와 연락 궁합은 정확성 중심으로 맞추는 것이 유리합니다. 감정 표현은 짧게, 요청은 구체적으로 말할수록 오해가 줄어듭니다.<br>
+                관계가 빨리 가까워지는 포인트는 공통 루틴을 만드는 순간이며, 틀어지는 트리거는 해석을 사실처럼 단정하는 태도입니다. 질투와 불안은 숨기지 말고 문장화해 공유해야 합니다.<br>
+                재회 가능성은 회복 규칙이 있느냐에 크게 좌우됩니다. 장기적으로는 돈·생활·가족 이슈를 회피하지 않고 합의 문서처럼 정리할 때 관계 체력이 올라갑니다.<br>
+                이 관계의 금지 행동은 침묵으로 상대를 시험하는 방식입니다. 회복 주문은 "지금 감정, 사실, 원하는 행동" 세 문장으로 대화를 재개하는 것입니다.<br>
+                상대에게 가장 잘 통하는 말은 비난이 아닌 요청형 문장이고, 나를 지키는 경계선은 관계 속도보다 회복 속도를 우선하는 기준입니다. 이 인연을 좋게 쓰는 법은 강한 끌림을 구조화된 조율로 전환하는 데 있습니다.
+              </div>
+            </section>`;
 
           // <style> 태그 upsert — removeChild+appendChild 대신 textContent만 교체
           // (remove+add 방식은 매 호출마다 head 리플로우를 강제 트리거)
@@ -6639,6 +6961,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
             <div style="padding:20px 16px;">
 
+              ${enhancedSummarySection}
+
               <section class="mb-4 rounded-2xl border border-violet-300/30 bg-slate-900/45 p-4" style="background:rgba(15,23,42,0.45);border:1px solid rgba(196,181,253,0.3);border-radius:14px;padding:14px 14px 12px;margin-bottom:16px;">
                 <div class="text-xs font-extrabold tracking-[0.15em] uppercase mb-2" style="color:#c4b5fd;letter-spacing:1.2px;font-size:0.75rem;font-weight:800;margin-bottom:8px;">관계 해석 로드맵</div>
                 <p class="text-sm leading-7 text-slate-200" style="margin:0 0 12px;color:#dfe6e9;font-size:0.9rem;line-height:1.86;">${relationStory.lead}</p>
@@ -6646,6 +6970,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                   ${relationStageCards}
                 </div>
               </section>
+
+              ${enhancedFlowSection}
 
               <!-- ── 3종 수치 대시보드 ── -->
               <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px;">
@@ -6691,13 +7017,21 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               <!-- 온도 바 -->
               <div style="margin-bottom:16px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                  <span style="font-size:0.75rem; color:#888;">인연의 온도 · ${tempInfo.text}</span>
+                  <span style="font-size:0.75rem; color:#888;">인연의 온도 · ${tempInfo.text} · ${enhanced.tempBand}</span>
                   <span style="font-size:0.75rem; color:${tempInfo.color}; font-weight:700;">${rel.temperature}°</span>
                 </div>
                 <div style="height:6px; background:rgba(255,255,255,0.07); border-radius:6px; overflow:hidden;">
                   <div style="height:100%; width:0%; background:${gradColor}; border-radius:6px; transition:width 1.8s cubic-bezier(0.4,0,0.2,1);"></div>
                 </div>
               </div>
+
+              ${chemistrySection}
+
+              ${roleSection}
+
+              ${guideSection}
+
+              ${detailCardsSection}
 
               <!-- 안·괴 배지 -->
               ${ankaiBadge}
@@ -6720,12 +7054,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               <div class="sy-sec" style="background:rgba(108,92,231,0.1); border:1px solid rgba(108,92,231,0.28);">
                 <div class="sy-sec-title" style="color:#a29bfe;">📜 Section 3 · 전생의 아카이브</div>
                 <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
-                  <span style="background:rgba(162,155,254,0.2); color:#a29bfe; padding:3px 9px; border-radius:20px; font-size:0.75rem; font-weight:700;">${rel.pastLife.role}</span>
-                  <span style="background:rgba(162,155,254,0.1); color:#b2bec3; padding:3px 9px; border-radius:20px; font-size:0.75rem;">${rel.pastLife.karma}</span>
+                  <span style="background:rgba(162,155,254,0.2); color:#a29bfe; padding:3px 9px; border-radius:20px; font-size:0.75rem; font-weight:700;">${enhanced.pastLife.title}</span>
+                  <span style="background:rgba(162,155,254,0.1); color:#b2bec3; padding:3px 9px; border-radius:20px; font-size:0.75rem;">${enhanced.pastLife.subtitle}</span>
                 </div>
-                <div style="font-size:0.88rem; color:#cdd3e0; line-height:1.75; margin-bottom:12px; font-style:italic; border-left:2px solid rgba(162,155,254,0.5); padding-left:12px;">&ldquo;${rel.archiveStory || ''}&rdquo;</div>
+                <div style="font-size:0.88rem; color:#cdd3e0; line-height:1.82; margin-bottom:12px; font-style:italic; border-left:2px solid rgba(162,155,254,0.5); padding-left:12px;">&ldquo;${enhanced.pastLife.story}&rdquo;</div>
                 <div style="background:rgba(0,0,0,0.2); border-radius:8px; padding:11px 13px; font-size:0.85rem; color:#b2bec3; line-height:1.65;">
-                  <span style="color:#a29bfe; font-weight:700;">🌠 현생의 과제: </span>${rel.mission || ''}
+                  <span style="color:#a29bfe; font-weight:700;">🌠 현생의 과제: </span>${enhanced.pastLife.currentTask}
                 </div>
               </div>
 
