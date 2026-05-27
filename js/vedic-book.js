@@ -142,6 +142,10 @@
     modal.style.setProperty('--lb-lilac','#ffedd5');
     modal.style.setProperty('--lb-glow-violet','rgba(234, 88, 12, 0.46)');
     modal.style.setProperty('--lb-glow-gold','rgba(251, 146, 60, 0.4)');
+    modal.style.setProperty('--lb-history-a','rgba(234, 88, 12, 0.2)');
+    modal.style.setProperty('--lb-history-b','rgba(194, 65, 12, 0.48)');
+    modal.style.setProperty('--lb-history-border','rgba(251, 146, 60, 0.5)');
+    modal.style.setProperty('--lb-history-text','#ffedd5');
   }
 
   function _escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -272,6 +276,46 @@
   function _vdSaveResult(p){try{sessionStorage.setItem(_vdMakeKey(p),JSON.stringify({chapters:_chapters,name:(p&&p.name)||'사용자',birth:(p&&p.birth)||{},gender:(p&&p.gender)||'',savedAt:new Date().toISOString()}));}catch(_){}}
   function _vdLoadSaved(p){try{var raw=sessionStorage.getItem(_vdMakeKey(p));return raw?JSON.parse(raw):null;}catch(_){return null;}}
 
+  function _vdHasSavedContent(saved){
+    return !!(saved&&Array.isArray(saved.chapters)&&saved.chapters.some(function(ch){return String(ch||'').trim().length>0;}));
+  }
+
+  function _vdApplySavedResult(saved, modal){
+    if(!saved||!modal)return;
+    _chapters=Array.isArray(saved.chapters)?saved.chapters:Array(12).fill(null);
+    _chapterStructured=Array.isArray(saved.chapterStructured)?saved.chapterStructured:Array(12).fill(null);
+    _chapterMeta=Array.isArray(saved.chapterMeta)?saved.chapterMeta:Array(12).fill(null);
+    _currentChapter=1;
+    _showScreen('vdResultScreen');
+    _updateTocState();
+    _renderChapter(1);
+    _bindToc();
+    var nameEl=_qs('vdResultName'),dateEl=_qs('vdResultDate');
+    if(nameEl)nameEl.textContent='🪷 '+(saved.name||'사용자')+'님의 베다 인생 총람';
+    if(dateEl){var b=saved.birth||{};var sd=saved.savedAt?new Date(saved.savedAt).toLocaleDateString('ko-KR'):'';dateEl.textContent=[b.year,b.month,b.day].filter(Boolean).join('.')+(sd?' · 💾 '+sd+' 저장':'');}
+  }
+
+  function _vdEnsureHistoryButton(saved, modal){
+    var startScreen=_qs('vdStartScreen');
+    if(!startScreen||!modal)return;
+    var btn=_qs('vdViewSavedBtn');
+    if(!btn){
+      btn=document.createElement('button');
+      btn.type='button';
+      btn.id='vdViewSavedBtn';
+      btn.className='lb-btn-generate lb-btn-history';
+      btn.textContent='📂 지난 베다 총람 열기';
+      startScreen.appendChild(btn);
+      btn.addEventListener('click',function(){
+        var payload=btn.__savedPayload||null;
+        if(!_vdHasSavedContent(payload))return;
+        _vdApplySavedResult(payload, modal);
+      });
+    }
+    btn.__savedPayload=saved;
+    btn.style.display=_vdHasSavedContent(saved)?'':'none';
+  }
+
   function _showScreen(id){
     var screens=['vdNoProfileScreen','vdStartScreen','vdLoadingScreen','vdResultScreen','vdErrorScreen'];
     for(var i=0;i<screens.length;i++){var el=_qs(screens[i]);if(el)el.style.display=(screens[i]===id)?'':'none';}
@@ -341,19 +385,6 @@
     }
     if(!window.__cdActiveBirthProfile||!window.__cdActiveBirthProfile.birth) window.__cdActiveBirthProfile=profile;
     var saved=_vdLoadSaved(profile);
-    if(saved&&saved.chapters&&saved.chapters.some(Boolean)){
-      _chapters=saved.chapters;
-      _currentChapter=1;
-      _showScreen('vdResultScreen');
-      _updateTocState();_renderChapter(1);_bindToc();
-      var nameEl=_qs('vdResultName'),dateEl=_qs('vdResultDate');
-      if(nameEl)nameEl.textContent='🪷 '+(saved.name||'사용자')+'님의 베다 인생 총람';
-      if(dateEl){var b=saved.birth||{};var sd=saved.savedAt?new Date(saved.savedAt).toLocaleDateString('ko-KR'):'';dateEl.textContent=[b.year,b.month,b.day].filter(Boolean).join('.')+(sd?' · 💾 '+sd+' 저장':'');}
-      modal.style.display='flex'; modal.style.zIndex='100120';document.body.style.overflow='hidden';
-      document.body.classList.add('lb-modal-open');
-      try{modal.setAttribute('aria-hidden','false');}catch(_){}
-      return;
-    }
     _chapters=Array(12).fill(null);
     _chapterStructured=Array(12).fill(null);
     _chapterMeta=Array(12).fill(null);
@@ -363,6 +394,7 @@
     modal.style.display='flex'; modal.style.zIndex='100120';
     document.body.style.overflow='hidden';
     document.body.classList.add('lb-modal-open');
+    _vdEnsureHistoryButton(saved, modal);
     try{modal.setAttribute('aria-hidden','false');var cb=modal.querySelector('.lb-modal__close');if(cb)setTimeout(function(){cb.focus();},60);}catch(_){}
     _prefillVedicProfile(profile);
   };

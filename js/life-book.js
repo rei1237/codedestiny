@@ -97,6 +97,7 @@
   var _activeRequestController = null;
   var _cancelGeneration = false;
   var _premiumPaidUntil = 0;
+  var _lbPendingSavedResult = null;
 
   function _readPremiumTokenForReport() {
     var token = '';
@@ -617,6 +618,56 @@
     try { localStorage.removeItem(_lbMakeKey(profile)); } catch (e) {}
   }
 
+  function _lbHasSavedContent(saved) {
+    if (!saved || !Array.isArray(saved.chapters)) return false;
+    var validCount = saved.chapters.filter(function (c) {
+      return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
+    }).length;
+    return validCount >= 10;
+  }
+
+  function _lbApplySavedResult(saved, modal) {
+    if (!saved || !modal) return;
+    _chapters = Array.isArray(saved.chapters) ? saved.chapters : Array(13).fill(null);
+    _chapterMeta = Array(13).fill(null);
+    _currentChapter = 1;
+    _showScreen('lbResultScreen');
+    _updateTocState();
+    _renderChapter(1);
+    _bindToc();
+    var nameEl = _qs('lbResultName');
+    var dateEl = _qs('lbResultDate');
+    if (nameEl) nameEl.textContent = '📜 ' + (saved.name || '사용자') + '님의 인생의 책';
+    if (dateEl) {
+      var b = saved.birth || {};
+      var savedDate = saved.savedAt ? new Date(saved.savedAt).toLocaleDateString('ko-KR') : '';
+      dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · '
+        + (saved.gender === 'F' ? '여성' : saved.gender === 'M' ? '남성' : '')
+        + (savedDate ? ' · 💾 ' + savedDate + ' 저장' : '');
+    }
+    var lbEpBannerSaved = _qs('lbEpilogueBanner');
+    if (lbEpBannerSaved) lbEpBannerSaved.style.display = '';
+  }
+
+  function _lbEnsureHistoryButton(modal) {
+    var startScreen = _qs('lbStartScreen');
+    if (!startScreen || !modal) return;
+    var btn = _qs('lbViewSavedBtn');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.id = 'lbViewSavedBtn';
+      btn.className = 'lb-btn-generate lb-btn-history';
+      btn.textContent = '📂 지난 사주 전략서 열기';
+      startScreen.appendChild(btn);
+      btn.addEventListener('click', function () {
+        if (!_lbPendingSavedResult) return;
+        _lbApplySavedResult(_lbPendingSavedResult, modal);
+      });
+    }
+    btn.style.display = _lbPendingSavedResult ? '' : 'none';
+  }
+
   window.openLifeBookModal = function () {
     var modal = _qs('lifeBookModal');
     if (!modal) {
@@ -652,44 +703,8 @@
       window.__cdActiveBirthProfile = profile;
     }
 
-    // 저장된 데이터 복원 시도 — 유효 챕터가 10개 이상이고 각 500자 이상이어야 복원
     var saved = _lbLoadSaved(profile);
-    var _savedValidCount = saved && saved.chapters
-      ? saved.chapters.filter(function(c) {
-          return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
-        }).length
-      : 0;
-    var hasValidCache = _savedValidCount >= 10;
-    if (hasValidCache) {
-      _chapters = saved.chapters;
-      _chapterMeta = Array(13).fill(null);
-      _currentChapter = 1;
-      _showScreen('lbResultScreen');
-      _updateTocState();
-      _renderChapter(1);
-      _bindToc();
-      var nameEl = _qs('lbResultName');
-      var dateEl = _qs('lbResultDate');
-      if (nameEl) nameEl.textContent = '📜 ' + (saved.name || '사용자') + '님의 인생의 책';
-      if (dateEl) {
-        var b = saved.birth || {};
-        var savedDate = saved.savedAt ? new Date(saved.savedAt).toLocaleDateString('ko-KR') : '';
-        dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · ' +
-          (saved.gender === 'F' ? '여성' : saved.gender === 'M' ? '남성' : '') +
-          (savedDate ? ' · 💾 ' + savedDate + ' 저장' : '');
-      }
-      // 저장된 결과 복원 시 마무리 배너 표시
-      var lbEpBannerSaved = _qs('lbEpilogueBanner');
-      if (lbEpBannerSaved) lbEpBannerSaved.style.display = '';
-      modal.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
-      try {
-        modal.setAttribute('aria-hidden', 'false');
-        var closeBtn2 = modal.querySelector('.lb-modal__close');
-        if (closeBtn2) setTimeout(function () { closeBtn2.focus(); }, 60);
-      } catch (_) {}
-      return;
-    }
+    _lbPendingSavedResult = _lbHasSavedContent(saved) ? saved : null;
 
     _chapters = Array(13).fill(null);
     _chapterStructured = Array(13).fill(null);
@@ -698,6 +713,7 @@
     _showScreen('lbStartScreen');
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+    _lbEnsureHistoryButton(modal);
 
     /* 출생지 선택기 초기화 */
     if (typeof window.populateCountrySelectById === 'function') {

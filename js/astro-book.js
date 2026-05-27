@@ -144,6 +144,10 @@
     modal.style.setProperty('--lb-lilac', '#fef3c7');
     modal.style.setProperty('--lb-glow-violet', 'rgba(29, 78, 216, 0.42)');
     modal.style.setProperty('--lb-glow-gold', 'rgba(250, 204, 21, 0.42)');
+    modal.style.setProperty('--lb-history-a', 'rgba(59, 130, 246, 0.22)');
+    modal.style.setProperty('--lb-history-b', 'rgba(30, 64, 175, 0.5)');
+    modal.style.setProperty('--lb-history-border', 'rgba(147, 197, 253, 0.48)');
+    modal.style.setProperty('--lb-history-text', '#dbeafe');
   }
 
   function _escHtml(s) {
@@ -311,6 +315,48 @@
     return structured.some(function(block){ return block && Array.isArray(block.sections) && block.sections.some(function(row){ return String((row && (row.body || row.content)) || '').trim().length > 0; }); });
   }
 
+  function _abApplySavedResult(saved, modal) {
+    if (!saved || !modal) return;
+    _chapters = Array.isArray(saved.chapters) ? saved.chapters : Array(12).fill(null);
+    _chapterStructured = Array.isArray(saved.chapterStructured) ? saved.chapterStructured : Array(12).fill(null);
+    _chapterMeta = Array.isArray(saved.chapterMeta) ? saved.chapterMeta : Array(12).fill(null);
+    _currentChapter = Math.max(1, Math.min(12, Number(saved.currentChapter || 1)));
+    _abCurrentReportId = String(saved.reportId || '');
+    _showScreen('abResultScreen');
+    _updateTocState(_currentChapter);
+    _renderChapter(_currentChapter);
+    _bindToc();
+    var nameEl = _qs('abResultName');
+    var dateEl = _qs('abResultDate');
+    if (nameEl) nameEl.textContent = '✨ ' + (saved.name || '사용자') + '님의 점성술 코즈믹 차트';
+    if (dateEl) {
+      var b = saved.birth || {};
+      var sd = saved.savedAt ? new Date(saved.savedAt).toLocaleDateString('ko-KR') : '';
+      dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('.') + (sd ? ' · 💾 ' + sd + ' 저장' : '');
+    }
+  }
+
+  function _abEnsureHistoryButton(saved, modal) {
+    var startScreen = _qs('abStartScreen');
+    if (!startScreen || !modal) return;
+    var btn = _qs('abViewSavedBtn');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.id = 'abViewSavedBtn';
+      btn.className = 'lb-btn-generate lb-btn-history';
+      btn.textContent = '📂 지난 코즈믹 차트 열기';
+      startScreen.appendChild(btn);
+      btn.addEventListener('click', function () {
+        var payload = btn.__savedPayload || null;
+        if (!_abHasSavedContent(payload)) return;
+        _abApplySavedResult(payload, modal);
+      });
+    }
+    btn.__savedPayload = saved;
+    btn.style.display = _abHasSavedContent(saved) ? '' : 'none';
+  }
+
   function _abHasChapterContent(idx) {
     var text = String(_chapters[idx] || '').trim();
     if (text && !/^⚠️/.test(text)) return true;
@@ -406,24 +452,6 @@
     }
     if (!window.__cdActiveBirthProfile || !window.__cdActiveBirthProfile.birth) window.__cdActiveBirthProfile = profile;
     var saved = _abLoadSaved(profile);
-    if (_abHasSavedContent(saved)) {
-      _chapters = Array.isArray(saved.chapters) ? saved.chapters : Array(12).fill(null);
-      _chapterStructured = Array.isArray(saved.chapterStructured) ? saved.chapterStructured : Array(12).fill(null);
-      _chapterMeta = Array.isArray(saved.chapterMeta) ? saved.chapterMeta : Array(12).fill(null);
-      _currentChapter = Math.max(1, Math.min(12, Number(saved.currentChapter || 1)));
-      _abCurrentReportId = String(saved.reportId || '');
-      _showScreen('abResultScreen');
-      _updateTocState(_currentChapter);
-      _renderChapter(_currentChapter);
-      _bindToc();
-      var nameEl=_qs('abResultName'), dateEl=_qs('abResultDate');
-      if (nameEl) nameEl.textContent = '✨ '+(saved.name||'사용자')+'님의 점성술 코즈믹 차트';
-      if (dateEl) { var b=saved.birth||{}; var sd=saved.savedAt?new Date(saved.savedAt).toLocaleDateString('ko-KR'):''; dateEl.textContent=[b.year,b.month,b.day].filter(Boolean).join('.')+(sd?' · 💾 '+sd+' 저장':''); }
-      modal.style.display='flex'; modal.style.zIndex='100120'; document.body.style.overflow='hidden';
-      document.body.classList.add('lb-modal-open');
-      try { modal.setAttribute('aria-hidden','false'); } catch(_){}
-      return;
-    }
     _chapters = Array(12).fill(null);
     _chapterStructured = Array(12).fill(null);
     _chapterMeta = Array(12).fill(null);
@@ -433,6 +461,7 @@
     modal.style.display = 'flex'; modal.style.zIndex='100120';
     document.body.style.overflow = 'hidden';
     document.body.classList.add('lb-modal-open');
+    _abEnsureHistoryButton(saved, modal);
     try { modal.setAttribute('aria-hidden','false'); var closeBtn=modal.querySelector('.lb-modal__close'); if(closeBtn) setTimeout(function(){closeBtn.focus();},60); } catch(_){}
     _prefillAstroProfile(profile);
   };
