@@ -623,11 +623,15 @@ function buildSukuyoDataSummaryTable(canonical) {
   const reportType = canonical?.reportType;
 
   const rows = [
+    ["A 양력", String(personA?.birth?.solarDate || "?")],
+    ["A 시각", String(personA?.birth?.time || "?")],
     ["A 숙", `${personA?.sukuyo?.nameKo || "?"}宿(${personA?.sukuyo?.nameHan || "?"})`],
     ["A index", String(personA?.sukuyo?.index ?? "?")],
   ];
 
   if (reportType === "compatibility") {
+    rows.push(["B 양력", String(personB?.birth?.solarDate || "?")]);
+    rows.push(["B 시각", String(personB?.birth?.time || "?")]);
     rows.push(["B 숙", `${personB?.sukuyo?.nameKo || "?"}宿(${personB?.sukuyo?.nameHan || "?"})`]);
     rows.push(["B index", String(personB?.sukuyo?.index ?? "?")]);
     rows.push(["A→B 거리", String(comp?.forwardDistance ?? "?")]);

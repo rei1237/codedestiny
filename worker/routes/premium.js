@@ -11408,9 +11408,12 @@ function writeReportSessionChapter(kind, reportId, chapter, totalChapters, chapt
   });
   entry.chapters[chapterKey] = {
     chapter,
+    reportId: String(extra?.reportId || entry?.reportId || reportId || "").trim(),
     chapterMeta: chapterMeta || null,
     text: sanitizedText,
     chapterJson: extra.chapterJson || extra.chapterJsonPacks || {},
+    structuredBody: extra?.structuredBody || null,
+    reportMeta: extra?.reportMeta || null,
     updatedAt: new Date(now).toISOString(),
   };
 
@@ -11430,6 +11433,9 @@ function writeReportSessionChapter(kind, reportId, chapter, totalChapters, chapt
     text: String(incomingChapterResult.text || existingChapterResult.text || sanitizedText || "").trim(),
     report: String(incomingChapterResult.report || existingChapterResult.report || sanitizedText || "").trim(),
     chapterJson: incomingChapterResult.chapterJson || existingChapterResult.chapterJson || extra.chapterJson || extra.chapterJsonPacks || {},
+    reportId: String(incomingChapterResult.reportId || existingChapterResult.reportId || extra?.reportId || reportId || "").trim(),
+    structuredBody: incomingChapterResult.structuredBody || existingChapterResult.structuredBody || extra?.structuredBody || null,
+    reportMeta: incomingChapterResult.reportMeta || existingChapterResult.reportMeta || extra?.reportMeta || null,
     updatedAt: new Date(now).toISOString(),
   };
 
@@ -17496,6 +17502,38 @@ function parseSukuyoLunarHint(body, prefix = "") {
   };
 }
 
+function parseSukuyoIndexHint(body, prefix = "") {
+  const indexKey = prefix ? `${prefix}SukuyoIndex` : "currentSukuyoIndex";
+  const nameKey = prefix ? `${prefix}SukuyoName` : "currentSukuyoName";
+  const nested = prefix ? body?.[`${prefix}Sukuyo`] : body?.sukuyo;
+  const rawIndex = Number(
+    body?.[indexKey]
+    ?? nested?.index
+    ?? nested?.mansionIdx,
+  );
+  if (!Number.isFinite(rawIndex)) return null;
+  return {
+    index: rawIndex,
+    nameKo: String(body?.[nameKey] ?? nested?.nameKo ?? nested?.mansion ?? "").trim() || null,
+  };
+}
+
+function buildSukuyoFromClientIndexHint(hint) {
+  const rawIndex = Number(hint?.index);
+  if (!Number.isFinite(rawIndex)) return null;
+  const normalizedIndex = rawIndex >= 1 && rawIndex <= 27 ? rawIndex - 1 : rawIndex;
+  const item = getSukuyoByIndex(normalizedIndex);
+  if (!item) return null;
+  return {
+    index: normalizedIndex,
+    ...item,
+    lunarMonth: null,
+    lunarDay: null,
+    isLeapMonth: false,
+    source: "client-existing-engine",
+  };
+}
+
 async function fetchKasiLunarFull(request, env, input) {
   const data = await postBackendJson(
     request,
@@ -17728,8 +17766,12 @@ function buildSukuyoChapterPromptPayload(canonical, chapterMeta, chapter, report
 
   const requiredDataPoints = reportType === "compatibility"
     ? [
+      "personA.birth.solarDate",
+      "personA.birth.time",
       "personA.sukuyo.nameKo",
       "personB.sukuyo.nameKo",
+      "personB.birth.solarDate",
+      "personB.birth.time",
       "compatibility.relationType",
       "compatibility.forwardDistance",
       "compatibility.reverseDistance",
@@ -17741,7 +17783,31 @@ function buildSukuyoChapterPromptPayload(canonical, chapterMeta, chapter, report
       "compatibility.elementHarmony.relation",
       "compatibility.strengthShadowMap.complementSummary",
     ]
-    : ["personA.sukuyo.nameKo", "personA.sukuyo.index", "personA.birth.lunarDate"];
+    : ["personA.birth.solarDate", "personA.birth.time", "personA.sukuyo.nameKo", "personA.sukuyo.index", "personA.birth.lunarDate"];
+
+  const birthCoreJson = reportType === "compatibility"
+    ? {
+      user: {
+        solarDate: String(canonical?.personA?.birth?.solarDate || "").trim(),
+        time: String(canonical?.personA?.birth?.time || "").trim(),
+        lunarDate: String(canonical?.personA?.birth?.lunarDate || "").trim(),
+        isLeapMonth: canonical?.personA?.birth?.isLeapMonth === true,
+      },
+      partner: {
+        solarDate: String(canonical?.personB?.birth?.solarDate || "").trim(),
+        time: String(canonical?.personB?.birth?.time || "").trim(),
+        lunarDate: String(canonical?.personB?.birth?.lunarDate || "").trim(),
+        isLeapMonth: canonical?.personB?.birth?.isLeapMonth === true,
+      },
+    }
+    : {
+      user: {
+        solarDate: String(canonical?.personA?.birth?.solarDate || "").trim(),
+        time: String(canonical?.personA?.birth?.time || "").trim(),
+        lunarDate: String(canonical?.personA?.birth?.lunarDate || "").trim(),
+        isLeapMonth: canonical?.personA?.birth?.isLeapMonth === true,
+      },
+    };
 
   return {
     chapterTitle: `${chapterMeta?.title || `Chapter ${chapter}`}`,
@@ -17750,6 +17816,7 @@ function buildSukuyoChapterPromptPayload(canonical, chapterMeta, chapter, report
     personBHost: canonical?.personB || {},
     compatibility: canonical?.compatibility || {},
     relationshipMatrix: canonical?.relationshipMatrix || {},
+    birthCoreJson,
     requiredDataPoints,
     premiumChapterJsonPacks: premiumInput && typeof premiumInput === "object"
       ? compactChapterJsonPacksForPrompt(premiumInput.chapterJsonPacks || premiumInput)
@@ -17762,12 +17829,13 @@ function buildSukuyoChapterPromptPayload(canonical, chapterMeta, chapter, report
 }
 
 function buildSukuyoChapterPrompt(payload) {
-  const systemInstruction = "너는 숙요점(27숙) 궁합 분야 최고 전문가이자 프리미엄 PDF 상담가다. 너는 계산자가 아니다. 모든 해석은 canonicalSukuyoCompatibility JSON에 있는 값만 사용해야 한다. JSON에 없는 숙, 관계 유형, 거리, 역할을 절대 만들어내지 않는다. compatibilityIndex, distanceMetrics, roleActionGuide, elementHarmony, strengthShadowMap을 반드시 반영하고 추측으로 대체하지 않는다. 입력 편차가 있더라도 제공된 계산 근거 범위 안에서 구체적이고 전문적인 해석으로 챕터를 완성한다. 각 챕터는 반드시 두 사람의 숙 이름, 관계 유형, 거리, 역할 중 최소 4개 이상의 구체 데이터를 포함해야 한다.";
+  const systemInstruction = "너는 숙요점(27숙) 궁합 분야 최고 전문가이자 프리미엄 PDF 상담가다. 너는 계산자가 아니다. 모든 해석은 canonicalSukuyoCompatibility JSON에 있는 값만 사용해야 한다. JSON에 없는 숙, 관계 유형, 거리, 역할을 절대 만들어내지 않는다. compatibilityIndex, distanceMetrics, roleActionGuide, elementHarmony, strengthShadowMap을 반드시 반영하고 추측으로 대체하지 않는다. 입력 편차가 있더라도 제공된 계산 근거 범위 안에서 구체적이고 전문적인 해석으로 챕터를 완성한다. 각 챕터는 반드시 두 사람의 숙 이름, 관계 유형, 거리, 역할 중 최소 4개 이상의 구체 데이터를 포함해야 한다. 또한 birthCoreJson의 사용자/상대 생년월일시 핵심값을 본문 근거로 반드시 반영해야 한다.";
   return [
     systemInstruction,
     "",
     "아래 JSON을 기준으로 단일 JSON 객체만 출력하세요.",
     "표현 규칙: 동일 문장 반복 금지, 추측 금지, 금지 구문 사용 금지.",
+    "필수: birthCoreJson의 solarDate/time/lunarDate를 최소 1회 이상 명시해 근거를 드러낼 것.",
     JSON.stringify(payload, null, 2),
   ].join("\n");
 }
@@ -17800,6 +17868,10 @@ function validateSukuyoChapterText(text, canonical, reportType, minLength, previ
   const roleOtherAction = String(canonical?.compatibility?.roleActionGuide?.otherAction || "");
   const complementSummary = String(canonical?.compatibility?.strengthShadowMap?.complementSummary || "");
   const compatibilityIndex = Number(canonical?.compatibility?.compatibilityIndex);
+  const personASolarDate = String(canonical?.personA?.birth?.solarDate || "").trim();
+  const personATime = String(canonical?.personA?.birth?.time || "").trim();
+  const personBSolarDate = String(canonical?.personB?.birth?.solarDate || "").trim();
+  const personBTime = String(canonical?.personB?.birth?.time || "").trim();
 
   let dataHitCount = 0;
   if (personAName && source.includes(personAName)) dataHitCount += 1;
@@ -17816,6 +17888,12 @@ function validateSukuyoChapterText(text, canonical, reportType, minLength, previ
   if (reportType === "compatibility" && complementSummary && source.includes(complementSummary)) dataHitCount += 1;
   if (reportType === "compatibility" && Number.isFinite(compatibilityIndex) && source.includes(String(Math.round(compatibilityIndex)))) dataHitCount += 1;
 
+  let birthHitCount = 0;
+  if (personASolarDate && source.includes(personASolarDate)) birthHitCount += 1;
+  if (personATime && source.includes(personATime)) birthHitCount += 1;
+  if (reportType === "compatibility" && personBSolarDate && source.includes(personBSolarDate)) birthHitCount += 1;
+  if (reportType === "compatibility" && personBTime && source.includes(personBTime)) birthHitCount += 1;
+
   const forbiddenUsed = SUKUYO_FORBIDDEN_REPEATED_PHRASES_V2.filter((p) => source.includes(p));
   const repeatedInChapter = detectSukuyoRepeatedSentences(source, 30);
   const repeatedAcross = detectSukuyoCrossRepeats(source, previousTexts, 30);
@@ -17826,7 +17904,8 @@ function validateSukuyoChapterText(text, canonical, reportType, minLength, previ
       && forbiddenUsed.length === 0
       && repeatedInChapter.length === 0
       && repeatedAcross.length === 0
-      && dataHitCount >= (reportType === "compatibility" ? 4 : 2),
+      && dataHitCount >= (reportType === "compatibility" ? 4 : 2)
+      && birthHitCount >= (reportType === "compatibility" ? 2 : 1),
     details: {
       tooShort: source.length < minLength,
       missingMarkers,
@@ -17834,6 +17913,7 @@ function validateSukuyoChapterText(text, canonical, reportType, minLength, previ
       repeatedInChapter,
       repeatedAcross,
       dataHitCount,
+      birthHitCount,
     },
   };
 }
@@ -17938,11 +18018,20 @@ function countForbiddenSectionChapterHits(texts) {
 }
 
 function buildSukuyoNatalPromptPayload(canonicalSukuyoNatal, chapterSpec, chapter, previousTexts = [], premiumInput = null) {
+  const birthCoreJson = {
+    user: {
+      solarDate: String(canonicalSukuyoNatal?.profile?.birth?.solarDate || "").trim(),
+      time: String(canonicalSukuyoNatal?.profile?.birth?.time || "").trim(),
+      lunarDate: String(canonicalSukuyoNatal?.profile?.birth?.lunarDate || "").trim(),
+      isLeapMonth: canonicalSukuyoNatal?.profile?.birth?.isLeapMonth === true,
+    },
+  };
   return {
     chapterTitle: chapterSpec?.title || `Chapter ${chapter}`,
     chapterPurpose: chapterSpec?.purpose || "숙요점 개인 리포트 해석",
     chapterSpecificSections: Array.isArray(chapterSpec?.sections) ? chapterSpec.sections : [],
     canonicalSukuyoNatal,
+    birthCoreJson,
     requiredDataPoints: [
       "natalSukuyo.index",
       "natalSukuyo.nameKo",
@@ -17966,7 +18055,7 @@ function buildSukuyoNatalPromptPayload(canonicalSukuyoNatal, chapterSpec, chapte
 }
 
 function buildSukuyoNatalPrompt(payload) {
-  const systemPrompt = "너는 숙요점(27숙) 개인 리포트 분야 최고 전문가이자 프리미엄 PDF 상담가다. 너는 숙요를 계산하지 않는다. 모든 해석은 canonicalSukuyoNatal JSON에 있는 값만 사용한다. JSON에 없는 본명숙, 월상, 삭망각, 조도, 방향, 원소, 숙요 속성을 절대 만들어내지 않는다. 각 챕터는 자기 주제에 맞는 고유한 세부 카테고리를 가져야 하며, 모든 챕터에 같은 소제목을 반복해서는 안 된다. 입력 편차가 있더라도 제공된 계산 근거 범위 안에서 챕터를 완성한다.";
+  const systemPrompt = "너는 숙요점(27숙) 개인 리포트 분야 최고 전문가이자 프리미엄 PDF 상담가다. 너는 숙요를 계산하지 않는다. 모든 해석은 canonicalSukuyoNatal JSON에 있는 값만 사용한다. JSON에 없는 본명숙, 월상, 삭망각, 조도, 방향, 원소, 숙요 속성을 절대 만들어내지 않는다. 각 챕터는 자기 주제에 맞는 고유한 세부 카테고리를 가져야 하며, 모든 챕터에 같은 소제목을 반복해서는 안 된다. 입력 편차가 있더라도 제공된 계산 근거 범위 안에서 챕터를 완성한다. 또한 birthCoreJson의 사용자 생년월일시 핵심값을 본문 근거로 반드시 반영해야 한다.";
   return [
     systemPrompt,
     "",
@@ -17975,6 +18064,7 @@ function buildSukuyoNatalPrompt(payload) {
     "- 챕터 소제목은 반드시 chapterSpecificSections를 그대로 사용",
     "- 금지 섹션 문구를 재사용하지 말 것",
     "- 데이터를 추측하지 말 것",
+    "- birthCoreJson의 solarDate/time/lunarDate를 최소 1회 이상 명시할 것",
     JSON.stringify(payload, null, 2),
   ].join("\n");
 }
@@ -17992,6 +18082,8 @@ function validateSukuyoNatalChapterText(text, canonicalSukuyoNatal, chapterSpec,
 
   const natal = canonicalSukuyoNatal?.natalSukuyo || {};
   const dp = [
+    String(canonicalSukuyoNatal?.profile?.birth?.solarDate || ""),
+    String(canonicalSukuyoNatal?.profile?.birth?.time || ""),
     String(natal.index ?? ""),
     String(natal.nameKo || ""),
     String(natal.nameHan || ""),
@@ -18019,6 +18111,11 @@ function validateSukuyoNatalChapterText(text, canonicalSukuyoNatal, chapterSpec,
 
   const reducedPhaseAllowed = Number(chapter) === 2 && !hasLunarPhase;
   const tooShort = !reducedPhaseAllowed && source.length < minLength;
+  const birthHitCount = [
+    String(canonicalSukuyoNatal?.profile?.birth?.solarDate || "").trim(),
+    String(canonicalSukuyoNatal?.profile?.birth?.time || "").trim(),
+    String(canonicalSukuyoNatal?.profile?.birth?.lunarDate || "").trim(),
+  ].filter(Boolean).reduce((acc, token) => acc + (source.includes(token) ? 1 : 0), 0);
 
   return {
     isValid: !tooShort
@@ -18031,7 +18128,8 @@ function validateSukuyoNatalChapterText(text, canonicalSukuyoNatal, chapterSpec,
       && !lunarInventedWithoutData
       && unexpectedSukuyoNames.length === 0
       && repeatedCommonSections.length === 0
-      && (reducedPhaseAllowed ? true : dataHitCount >= 5),
+      && (reducedPhaseAllowed ? true : dataHitCount >= 5)
+      && birthHitCount >= 1,
     details: {
       tooShort,
       missingSections,
@@ -18044,6 +18142,7 @@ function validateSukuyoNatalChapterText(text, canonicalSukuyoNatal, chapterSpec,
       unexpectedSukuyoNames,
       repeatedCommonSections,
       dataHitCount,
+      birthHitCount,
     },
   };
 }
@@ -18153,6 +18252,7 @@ async function handleSukuyoLife(request, env, authInfo = null) {
     }, { status: 400 });
   }
   const hasPartner = hasCompletePartnerData(strictBody);
+  const personAClientHint = buildSukuyoFromClientIndexHint(parseSukuyoIndexHint(strictBody));
 
   let personASukuyo;
   let personAMissingFields = [];
@@ -18162,10 +18262,12 @@ async function handleSukuyoLife(request, env, authInfo = null) {
       calendarType: strictBody.calType || strictBody.calendarType || "solar",
     });
   } catch (error) {
-    personASukuyo = null;
-    personAMissingFields = Array.isArray(error?.missingFields)
-      ? error.missingFields.map((f) => `personA.${f}`)
-      : ["personA.birth.lunarDate", "personA.sukuyo.index"];
+    personASukuyo = personAClientHint;
+    personAMissingFields = personASukuyo
+      ? []
+      : (Array.isArray(error?.missingFields)
+        ? error.missingFields.map((f) => `personA.${f}`)
+        : ["personA.birth.lunarDate", "personA.sukuyo.index"]);
   }
 
   if (!personASukuyo || !Number.isFinite(Number(personASukuyo?.index))) {
@@ -18297,8 +18399,33 @@ async function handleSukuyoLife(request, env, authInfo = null) {
     }
 
     const safeChapterText = sanitizePremiumChapterText(generated.text);
+    const chapterSummaryForContext = buildChapterSummaryForContext(safeChapterText);
+    const chapterSpecificSections = toChapterSpecificSections(chapterSpec.sections || chapterMeta.chapterSpecificSections || []);
+    const structuredBody = {
+      sections: Array.isArray(generated?.sections) ? generated.sections : parseSections(safeChapterText),
+      chapterSummaryForContext,
+      chapterSpecificSections,
+    };
     const storage = writeReportSessionChapter("sukuyo", reportId, chapter, totalChapters, chapterMeta, safeChapterText, {
       reportType,
+      reportId,
+      reportMeta: { reportType, chapter, totalChapters },
+      structuredBody,
+      chapterResultsByNumber: {
+        [String(chapter)]: {
+          chapter: Number(chapter),
+          chapterNumber: Number(chapter),
+          title: String(chapterMeta?.title || "").trim(),
+          subtitle: String(chapterMeta?.subtitle || "").trim(),
+          markdown: safeChapterText,
+          text: safeChapterText,
+          report: safeChapterText,
+          chapterJson: generated?.chapterJson || {},
+          structuredBody,
+          reportId,
+          reportMeta: { reportType, chapter, totalChapters },
+        },
+      },
       ownerUserId: String(authInfo?.userId || "").trim(),
       canonicalSukuyoNatal,
       chapterSpecificSections: chapterSpec.sections,
@@ -18315,7 +18442,7 @@ async function handleSukuyoLife(request, env, authInfo = null) {
       totalChapters,
       chapter,
       chapterMeta,
-      chapterSpecificSections: toChapterSpecificSections(chapterSpec.sections || chapterMeta.chapterSpecificSections || []),
+      chapterSpecificSections,
       canonicalSukuyoNatal,
       validation: natalValidation,
       storage,
@@ -18327,7 +18454,7 @@ async function handleSukuyoLife(request, env, authInfo = null) {
       },
       ...generated,
       text: safeChapterText,
-      chapterSummaryForContext: buildChapterSummaryForContext(safeChapterText),
+      chapterSummaryForContext,
       sections: parseSections(safeChapterText),
     });
   }
@@ -18365,16 +18492,19 @@ async function handleSukuyoLife(request, env, authInfo = null) {
 
   let personBSukuyo;
   let personBMissingFields = [];
+  const personBClientHint = buildSukuyoFromClientIndexHint(parseSukuyoIndexHint(strictBody, "partner"));
   try {
     personBSukuyo = await calcSukuyoStrict(request, env, partnerInput, {
       explicitLunar: parseSukuyoLunarHint(strictBody, "partner"),
       calendarType: strictBody.partnerCalType || "solar",
     });
   } catch (error) {
-    personBSukuyo = null;
-    personBMissingFields = Array.isArray(error?.missingFields)
-      ? error.missingFields.map((f) => `personB.${f}`)
-      : ["personB.birth.lunarDate", "personB.sukuyo.index"];
+    personBSukuyo = personBClientHint;
+    personBMissingFields = personBSukuyo
+      ? []
+      : (Array.isArray(error?.missingFields)
+        ? error.missingFields.map((f) => `personB.${f}`)
+        : ["personB.birth.lunarDate", "personB.sukuyo.index"]);
   }
 
   if (!personBSukuyo || !Number.isFinite(Number(personBSukuyo?.index))) {
@@ -18481,11 +18611,36 @@ async function handleSukuyoLife(request, env, authInfo = null) {
   }
 
   const safeChapterText = sanitizePremiumChapterText(generated.text);
+  const chapterSummaryForContext = buildChapterSummaryForContext(safeChapterText);
+  const chapterSpecificSections = toChapterSpecificSections(chapterMeta.chapterSpecificSections || []);
+  const structuredBody = {
+    sections: Array.isArray(generated?.sections) ? generated.sections : parseSections(safeChapterText),
+    chapterSummaryForContext,
+    chapterSpecificSections,
+  };
   const storage = writeReportSessionChapter("sukuyo", reportId, chapter, totalChapters, chapterMeta, safeChapterText, {
     reportType: "compatibility",
+    reportId,
+    reportMeta: { reportType: "compatibility", chapter, totalChapters },
+    structuredBody,
+    chapterResultsByNumber: {
+      [String(chapter)]: {
+        chapter: Number(chapter),
+        chapterNumber: Number(chapter),
+        title: String(chapterMeta?.title || "").trim(),
+        subtitle: String(chapterMeta?.subtitle || "").trim(),
+        markdown: safeChapterText,
+        text: safeChapterText,
+        report: safeChapterText,
+        chapterJson: generated?.chapterJson || {},
+        structuredBody,
+        reportId,
+        reportMeta: { reportType: "compatibility", chapter, totalChapters },
+      },
+    },
     ownerUserId: String(authInfo?.userId || "").trim(),
     canonicalSukuyoCompatibility,
-    chapterSpecificSections: toChapterSpecificSections(chapterMeta.chapterSpecificSections || []),
+    chapterSpecificSections,
   });
 
   await persistPremiumPdfHistoryFromSession(env, "sukuyo", reportId, {
@@ -18499,13 +18654,13 @@ async function handleSukuyoLife(request, env, authInfo = null) {
     totalChapters,
     chapter,
     chapterMeta,
-    chapterSpecificSections: toChapterSpecificSections(chapterMeta.chapterSpecificSections || []),
+    chapterSpecificSections,
     canonicalSukuyoCompatibility,
     validation: chartValidation,
     storage,
     ...generated,
     text: safeChapterText,
-    chapterSummaryForContext: buildChapterSummaryForContext(safeChapterText),
+    chapterSummaryForContext,
     sections: parseSections(safeChapterText),
   });
 }
