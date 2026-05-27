@@ -70,6 +70,39 @@ function getChapterMetaByMode(): ChapterMeta[] {
 
 const VEDIC_STORAGE_KEY = "premium:vedic:session:v1";
 
+type VedicStructuredBodyItem = {
+  chapter: number;
+  text: string;
+  sections: { title: string; body: string }[];
+  fallbackUsed?: boolean;
+  missingFields?: string[];
+  warnings?: string[];
+};
+
+type VedicSessionSnapshot = {
+  birthYear?: string;
+  birthMonth?: string;
+  birthDay?: string;
+  birthHour?: string;
+  birthMinute?: string;
+  birthPlace?: string;
+  timezone?: string;
+  lat?: string;
+  lon?: string;
+  reportMode?: "personal";
+  chart?: VedicChart | null;
+  chapters?: Record<number, ChapterState>;
+  structured_body: Record<string, VedicStructuredBodyItem>;
+  metadata: {
+    savedAt: string;
+    chapterCount: number;
+    doneCount: number;
+    hasChart: boolean;
+    reportMode: "personal";
+  };
+  report_id: string;
+};
+
 /** 사용자 프로필 스토리지에서 베다 점성술 입력값 읽기 */
 function readVedicProfile(): { year: string; month: string; day: string; hour: string; minute: string; lat: string; lon: string; timezone: string } | null {
   try {
@@ -453,6 +486,98 @@ export default function HPremiumVedicSection({
 
   const autoComputeRef = useRef(false);
 
+  const buildStructuredBody = useCallback((chapterState: Record<number, ChapterState>) => {
+    const entries = chapterMeta
+      .map((meta) => {
+        const result = chapterState[meta.num]?.result;
+        if (!result) return null;
+        return [
+          String(meta.num),
+          {
+            chapter: result.chapter,
+            text: sanitizePremiumText(result.text, "챕터 해석 데이터를 준비 중입니다."),
+            sections: sanitizePremiumSections(result.sections, "챕터 섹션 데이터를 준비 중입니다."),
+            fallbackUsed: Boolean(result.fallbackUsed),
+            missingFields: Array.isArray(result.missingFields) ? result.missingFields : [],
+            warnings: Array.isArray(result.warnings) ? result.warnings : [],
+          } as VedicStructuredBodyItem,
+        ] as const;
+      })
+      .filter((row): row is readonly [string, VedicStructuredBodyItem] => Boolean(row));
+
+    return Object.fromEntries(entries);
+  }, [chapterMeta]);
+
+  const applySnapshotToState = useCallback((saved: Partial<VedicSessionSnapshot>) => {
+    if (saved.birthYear) setBirthYear(saved.birthYear);
+    if (saved.birthMonth) setBirthMonth(saved.birthMonth);
+    if (saved.birthDay) setBirthDay(saved.birthDay);
+    if (saved.birthHour) setBirthHour(saved.birthHour);
+    if (saved.birthMinute) setBirthMinute(saved.birthMinute);
+    if (saved.birthPlace) setBirthPlace(saved.birthPlace);
+    if (saved.timezone) setTimezone(saved.timezone);
+    if (saved.lat) setLat(saved.lat);
+    if (saved.lon) setLon(saved.lon);
+    if (saved.chart) setChart(saved.chart);
+    if (typeof saved.report_id === "string" && saved.report_id.trim()) {
+      reportIdRef.current = saved.report_id.trim();
+    }
+
+    const recoveredFromChapters = saved.chapters && typeof saved.chapters === "object"
+      ? Object.fromEntries(
+          getChapterMetaByMode().map((meta) => {
+            const state = saved.chapters?.[meta.num] ?? { step: "idle" as ChapterStep, result: null };
+            return [meta.num, state.step === "loading" ? { step: "idle" as ChapterStep, result: state.result ?? null } : state];
+          })
+        ) as Record<number, ChapterState>
+      : null;
+
+    if (recoveredFromChapters) {
+      setChapters(recoveredFromChapters);
+      return;
+    }
+
+    const body = saved.structured_body;
+    if (!body || typeof body !== "object") return;
+
+    const recoveredFromBody = Object.fromEntries(
+      getChapterMetaByMode().map((meta) => {
+        const row = body[String(meta.num)];
+        if (!row) return [meta.num, { step: "idle" as ChapterStep, result: null }];
+        return [
+          meta.num,
+          {
+            step: "done" as ChapterStep,
+            result: {
+              chapter: Number(row.chapter || meta.num),
+              chapterMeta: meta,
+              text: sanitizePremiumText(row.text, "챕터 해석 데이터를 준비 중입니다."),
+              sections: sanitizePremiumSections(row.sections, "챕터 섹션 데이터를 준비 중입니다."),
+              fallbackUsed: Boolean(row.fallbackUsed),
+              missingFields: Array.isArray(row.missingFields) ? row.missingFields : [],
+              warnings: Array.isArray(row.warnings) ? row.warnings : [],
+            },
+          },
+        ];
+      })
+    ) as Record<number, ChapterState>;
+
+    setChapters(recoveredFromBody);
+  }, []);
+
+  const recoverFromSessionSnapshot = useCallback(() => {
+    try {
+      const raw = sessionStorage.getItem(VEDIC_STORAGE_KEY) || localStorage.getItem(VEDIC_STORAGE_KEY);
+      if (!raw) return false;
+      const saved = JSON.parse(raw) as Partial<VedicSessionSnapshot>;
+      applySnapshotToState(saved);
+      setFlowMessage("구조화 섹션도 로드됨");
+      return true;
+    } catch {
+      return false;
+    }
+  }, [applySnapshotToState]);
+
   const resetVedicState = useCallback((resetInputs = false) => {
     reportIdRef.current = "";
     setChart(null);
@@ -472,6 +597,7 @@ export default function HPremiumVedicSection({
       setLat("37.5665");
       setLon("126.9780");
       try {
+        sessionStorage.removeItem(VEDIC_STORAGE_KEY);
         localStorage.removeItem(VEDIC_STORAGE_KEY);
       } catch {
         // ignore storage cleanup errors
@@ -482,7 +608,7 @@ export default function HPremiumVedicSection({
   useEffect(() => {
     if (showIntro) return;
     try {
-      const raw = localStorage.getItem(VEDIC_STORAGE_KEY);
+      const raw = sessionStorage.getItem(VEDIC_STORAGE_KEY) || localStorage.getItem(VEDIC_STORAGE_KEY);
       if (!raw) {
         // 저장된 세션 없으면 사용자 프로필 스토리지에서 폴백 로드
         const profile = readVedicProfile();
@@ -500,71 +626,51 @@ export default function HPremiumVedicSection({
         storageReadyRef.current = true;
         return;
       }
-      const saved = JSON.parse(raw) as {
-        birthYear?: string;
-        birthMonth?: string;
-        birthDay?: string;
-        birthHour?: string;
-        birthMinute?: string;
-        birthPlace?: string;
-        timezone?: string;
-        lat?: string;
-        lon?: string;
-        chart?: VedicChart | null;
-        chapters?: Record<number, ChapterState>;
-      };
-
-      if (saved.birthYear) setBirthYear(saved.birthYear);
-      if (saved.birthMonth) setBirthMonth(saved.birthMonth);
-      if (saved.birthDay) setBirthDay(saved.birthDay);
-      if (saved.birthHour) setBirthHour(saved.birthHour);
-      if (saved.birthMinute) setBirthMinute(saved.birthMinute);
-      if (saved.birthPlace) setBirthPlace(saved.birthPlace);
-      if (saved.timezone) setTimezone(saved.timezone);
-      if (saved.lat) setLat(saved.lat);
-      if (saved.lon) setLon(saved.lon);
-      if (saved.chart) setChart(saved.chart);
-      if (saved.chapters) {
-        const normalized = Object.fromEntries(
-          getChapterMetaByMode().map((meta) => {
-            const state = saved.chapters?.[meta.num] ?? { step: "idle" as ChapterStep, result: null };
-            return [meta.num, state.step === "loading" ? { step: "idle" as ChapterStep, result: state.result ?? null } : state];
-          })
-        ) as Record<number, ChapterState>;
-        setChapters(normalized);
-      }
+      const saved = JSON.parse(raw) as Partial<VedicSessionSnapshot>;
+      applySnapshotToState(saved);
+      setFlowMessage("구조화 섹션도 로드됨");
     } catch {
       // ignore broken snapshots
     } finally {
       storageReadyRef.current = true;
     }
-  }, [showIntro]);
+  }, [showIntro, applySnapshotToState]);
 
   useEffect(() => {
     if (showIntro) return;
     if (!storageReadyRef.current) return;
     try {
-      localStorage.setItem(
-        VEDIC_STORAGE_KEY,
-        JSON.stringify({
-          birthYear,
-          birthMonth,
-          birthDay,
-          birthHour,
-          birthMinute,
-          birthPlace,
-          timezone,
-          lat,
-          lon,
+      const doneCount = chapterMeta.filter((meta) => chapters[meta.num]?.step === "done").length;
+      const snapshot: VedicSessionSnapshot = {
+        birthYear,
+        birthMonth,
+        birthDay,
+        birthHour,
+        birthMinute,
+        birthPlace,
+        timezone,
+        lat,
+        lon,
+        reportMode,
+        chart,
+        chapters,
+        structured_body: buildStructuredBody(chapters),
+        metadata: {
+          savedAt: new Date().toISOString(),
+          chapterCount: chapterMeta.length,
+          doneCount,
+          hasChart: Boolean(chart),
           reportMode,
-          chart,
-          chapters,
-        })
-      );
+        },
+        report_id: reportIdRef.current || "",
+      };
+      const serialized = JSON.stringify(snapshot);
+      sessionStorage.setItem(VEDIC_STORAGE_KEY, serialized);
+      localStorage.setItem(VEDIC_STORAGE_KEY, serialized);
     } catch {
       // ignore storage quota errors
     }
-  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, birthPlace, timezone, lat, lon, reportMode, chart, chapters, showIntro]);
+  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, birthPlace, timezone, lat, lon, reportMode, chart, chapters, chapterMeta, buildStructuredBody, showIntro]);
 
   useEffect(() => {
     if (showIntro) {
@@ -737,7 +843,7 @@ export default function HPremiumVedicSection({
           return next;
         });
       }
-      setFlowMessage(data?.usedFallback ? "7/7 챕터 완성 (fallback 적용)" : "7/7 챕터 완성");
+      setFlowMessage("구조화 섹션도 로드됨");
       onPdfFlowStateChange?.("success");
     } catch (e: unknown) {
       setFlowMessage("실패 복구 처리 중");
@@ -748,12 +854,13 @@ export default function HPremiumVedicSection({
       const message = toVedicUiError(enriched);
       setCalcError(message);
       setRequestError(message);
+      const recovered = recoverFromSessionSnapshot();
       onPdfFlowStateChange?.("error", message);
-      setFlowMessage("");
+      if (!recovered) setFlowMessage("");
     } finally {
       setCalcLoading(false);
     }
-  }, [birthYear,birthMonth,birthDay,postVedicJson,ensureCompatibilityAddonCharged,buildRequestPayload,onPdfFlowStateChange,toVedicUiError,tryRefundCompatibilityAddon]);
+  }, [birthYear,birthMonth,birthDay,postVedicJson,ensureCompatibilityAddonCharged,buildRequestPayload,onPdfFlowStateChange,toVedicUiError,tryRefundCompatibilityAddon,recoverFromSessionSnapshot]);
 
   // 프로필에서 자동 로드된 경우 즉시 계산
   useEffect(() => {
@@ -790,7 +897,7 @@ export default function HPremiumVedicSection({
         warnings: Array.isArray(data?.warnings) ? data.warnings : [],
       }}}));
 
-      setFlowMessage(data?.usedFallback ? `7/7 CHAPTER ${chNum} 완성 (fallback 적용)` : `7/7 CHAPTER ${chNum} 완성`);
+      setFlowMessage("구조화 섹션도 로드됨");
       onPdfFlowStateChange?.("success");
     } catch (e: unknown) {
       setFlowMessage(`CHAPTER ${chNum} 실패 복구 처리 중`);
@@ -807,10 +914,11 @@ export default function HPremiumVedicSection({
           result: prev[chNum]?.result ?? null,
         },
       }));
+      const recovered = recoverFromSessionSnapshot();
       onPdfFlowStateChange?.("error", message);
-      setFlowMessage("");
+      if (!recovered) setFlowMessage("");
     }
-  }, [postVedicJson, ensureCompatibilityAddonCharged, buildRequestPayload, onPdfFlowStateChange, toVedicUiError, tryRefundCompatibilityAddon]);
+  }, [postVedicJson, ensureCompatibilityAddonCharged, buildRequestPayload, onPdfFlowStateChange, toVedicUiError, tryRefundCompatibilityAddon, recoverFromSessionSnapshot]);
 
 
   const handleGenerateAll = useCallback(async () => {

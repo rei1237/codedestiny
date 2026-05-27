@@ -104,48 +104,6 @@
   var _generationRunId = 0;
   var _premiumPaidUntil = 0;
   var _zbLastReportId = '';
-  var _zbJobStateKey = 'cd:premium-job:ziwei';
-
-  function _zbGetJobClient() {
-    return (typeof window !== 'undefined' && window.CDPremiumPdfJobClient) ? window.CDPremiumPdfJobClient : null;
-  }
-
-  function _zbStartPremiumJob(profile) {
-    var client = _zbGetJobClient();
-    if (!client) return;
-    var birth = (profile && profile.birth) ? profile.birth : {};
-    client.start({
-      stateKey: _zbJobStateKey,
-      reportType: 'ziweiPremium',
-      featureType: 'premium_pdf_ziwei',
-      requestBody: {
-        name: String((profile && profile.name) || '사용자'),
-        gender: String((profile && profile.gender) || ''),
-        year: Number(birth.year || 0),
-        month: Number(birth.month || 0),
-        day: Number(birth.day || 0),
-        hour: Number(birth.hour || 12),
-        minute: Number(birth.minute || 0),
-      },
-    }).catch(function () {});
-  }
-
-  function _zbResumePremiumJob() {
-    var client = _zbGetJobClient();
-    if (!client) return;
-    client.resume({ stateKey: _zbJobStateKey }).catch(function () {});
-  }
-
-  function _zbRunPremiumJob(totalChapters) {
-    var client = _zbGetJobClient();
-    if (!client) return;
-    client.run({
-      stateKey: _zbJobStateKey,
-      startChapter: 1,
-      endChapter: Number(totalChapters || TOTAL_CHAPTERS),
-      stopOnFailure: false,
-    }).catch(function () {});
-  }
 
   function _readPremiumTokenForReport() {
     var token = '';
@@ -616,66 +574,6 @@
     try { sessionStorage.removeItem(_zbMakeKey(profile)); } catch (e) {}
   }
 
-  function _zbHasSavedContent(saved) {
-    if (!saved || !Array.isArray(saved.chapters)) return false;
-    var validCount = saved.chapters.filter(function (c, idx) {
-      var hasText = typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(c.trim());
-      var structured = Array.isArray(saved.chapterStructured) ? saved.chapterStructured[idx] : null;
-      return hasText || _hasUsableStructuredChapter(structured);
-    }).length;
-    return validCount >= TOTAL_CHAPTERS;
-  }
-
-  function _zbApplySavedResult(saved, modal) {
-    if (!saved || !modal) return;
-    _chapters = Array.isArray(saved.chapters) ? saved.chapters : Array(TOTAL_CHAPTERS).fill(null);
-    _chapterStructured = Array.isArray(saved.chapterStructured)
-      ? saved.chapterStructured.slice(0, TOTAL_CHAPTERS)
-      : Array(TOTAL_CHAPTERS).fill(null);
-    _chapterMeta = Array.isArray(saved.chapterMeta)
-      ? saved.chapterMeta.slice(0, TOTAL_CHAPTERS)
-      : Array(TOTAL_CHAPTERS).fill(null);
-    _zbLastReportId = String(saved.reportId || '').trim();
-    _currentChapter = 1;
-    _showScreen('zbResultScreen');
-    _updateTocState();
-    _renderChapter(1);
-    _bindToc();
-    var nameEl = _qs('zbResultName');
-    var dateEl = _qs('zbResultDate');
-    if (nameEl) nameEl.textContent = '🌌 ' + (saved.name || '사용자') + '님의 자미두수 인생 총람';
-    if (dateEl) {
-      var b = saved.birth || {};
-      var savedDate = saved.savedAt ? new Date(saved.savedAt).toLocaleDateString('ko-KR') : '';
-      dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · '
-        + (saved.gender === 'F' ? '여성' : saved.gender === 'M' ? '남성' : '')
-        + (savedDate ? ' · 💾 ' + savedDate + ' 저장' : '');
-    }
-    var epBanner = _qs('zbEpilogueBanner');
-    if (epBanner) epBanner.style.display = '';
-  }
-
-  function _zbEnsureHistoryButton(saved, modal) {
-    var startScreen = _qs('zbStartScreen');
-    if (!startScreen || !modal) return;
-    var btn = _qs('zbViewSavedBtn');
-    if (!btn) {
-      btn = document.createElement('button');
-      btn.type = 'button';
-      btn.id = 'zbViewSavedBtn';
-      btn.className = 'lb-btn-generate lb-btn-history';
-      btn.textContent = '📂 지난 자미두수 총람 열기';
-      startScreen.appendChild(btn);
-      btn.addEventListener('click', function () {
-        var payload = btn.__savedPayload || null;
-        if (!_zbHasSavedContent(payload)) return;
-        _zbApplySavedResult(payload, modal);
-      });
-    }
-    btn.__savedPayload = saved;
-    btn.style.display = _zbHasSavedContent(saved) ? '' : 'none';
-  }
-
   /* ─────────────── 화면 전환 ─────────────── */
   function _showScreen(id) {
     var screens = ['zbNoProfileScreen', 'zbStartScreen', 'zbLoadingScreen', 'zbResultScreen', 'zbErrorScreen'];
@@ -789,12 +687,6 @@
       console.error('[자미두수 인생 총람] ziweiBookModal 요소를 찾을 수 없습니다.');
       return;
     }
-    if (modal && modal.style) {
-      modal.style.setProperty('--lb-history-a', 'rgba(147, 51, 234, 0.24)');
-      modal.style.setProperty('--lb-history-b', 'rgba(76, 29, 149, 0.5)');
-      modal.style.setProperty('--lb-history-border', 'rgba(196, 181, 253, 0.52)');
-      modal.style.setProperty('--lb-history-text', '#f3e8ff');
-    }
 
     var profile = _getActiveBirthProfile();
     // 프로필 없으면 localStorage 운명 카드에서 복구
@@ -825,20 +717,6 @@
       window.__cdActiveBirthProfile = profile;
     }
 
-    _zbResumePremiumJob();
-
-    if (_generating) {
-      _showScreen('zbLoadingScreen');
-      modal.style.display = 'flex';
-      modal.style.visibility = 'visible';
-      modal.style.pointerEvents = 'auto';
-      modal.style.zIndex = '100120';
-      document.body.style.overflow = 'hidden';
-      document.body.classList.add('lb-modal-open');
-      try { modal.setAttribute('aria-hidden', 'false'); } catch (_) {}
-      return;
-    }
-
     // 프로필 카드에서 진입했을 때 자미두수 계산 상태를 즉시 동기화
     try {
       if (typeof window.computeProfileForModal === 'function') {
@@ -856,8 +734,57 @@
       }
     } catch (_) {}
 
-    // 항상 시작 화면부터 열고, 저장된 결과는 별도 버튼으로만 복원
+    // 저장된 결과 복원 시도 — 유효 챕터가 전체 챕터 수와 동일할 때만 복원
     var saved = _zbLoadSaved(profile);
+    var _savedValidCount = 0;
+    if (saved && Array.isArray(saved.chapters)) {
+      _savedValidCount = saved.chapters.filter(function(c, idx) {
+        var hasText = typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(c.trim());
+        var structured = Array.isArray(saved.chapterStructured) ? saved.chapterStructured[idx] : null;
+        return hasText || _hasUsableStructuredChapter(structured);
+      }).length;
+    }
+    if (_savedValidCount >= TOTAL_CHAPTERS) {
+      _chapters = saved.chapters;
+      _chapterStructured = Array.isArray(saved.chapterStructured)
+        ? saved.chapterStructured.slice(0, TOTAL_CHAPTERS)
+        : Array(TOTAL_CHAPTERS).fill(null);
+      _chapterMeta = Array.isArray(saved.chapterMeta)
+        ? saved.chapterMeta.slice(0, TOTAL_CHAPTERS)
+        : Array(TOTAL_CHAPTERS).fill(null);
+      _zbLastReportId = String(saved.reportId || '').trim();
+      _trace('SAVED_RESULT_LOADED', {
+        reportId: _zbLastReportId || null,
+        validChapters: _savedValidCount,
+        totalChapters: TOTAL_CHAPTERS,
+        message: '구조화 섹션도 로드됨'
+      });
+      _currentChapter = 1;
+      _showScreen('zbResultScreen');
+      _updateTocState();
+      _renderChapter(1);
+      _bindToc();
+      var nameEl = _qs('zbResultName');
+      var dateEl = _qs('zbResultDate');
+      if (nameEl) nameEl.textContent = '🌌 ' + (saved.name || '사용자') + '님의 자미두수 인생 총람';
+      if (dateEl) {
+        var b = saved.birth || {};
+        var savedDate = saved.savedAt ? new Date(saved.savedAt).toLocaleDateString('ko-KR') : '';
+        dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · ' +
+          (saved.gender === 'F' ? '여성' : saved.gender === 'M' ? '남성' : '') +
+          (savedDate ? ' · 💾 ' + savedDate + ' 저장' : '');
+      }
+      var epBanner = _qs('zbEpilogueBanner');
+      if (epBanner) epBanner.style.display = '';
+      modal.style.display = 'flex';
+      modal.style.visibility = 'visible';
+      modal.style.pointerEvents = 'auto';
+      modal.style.zIndex = '100120';
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('lb-modal-open');
+      try { modal.setAttribute('aria-hidden', 'false'); } catch(_) {}
+      return;
+    }
 
     _chapters = Array(TOTAL_CHAPTERS).fill(null);
     _chapterStructured = Array(TOTAL_CHAPTERS).fill(null);
@@ -871,7 +798,6 @@
     modal.style.zIndex = '100120';
     document.body.style.overflow = 'hidden';
     document.body.classList.add('lb-modal-open');
-    _zbEnsureHistoryButton(saved, modal);
     _trace('OPEN_MODAL_READY', {
       profileName: profile && profile.name ? profile.name : '사용자',
       birthYear: profile && profile.birth ? profile.birth.year : null
@@ -912,13 +838,11 @@
   window.closeZiweiBookModal = function () {
     var modal = _qs('ziweiBookModal');
     if (!modal) return;
-    if (!_generating) {
-      _cancelGeneration = true;
-      _generationRunId += 1;
-      _generating = false;
-      _abortActiveRequest();
-      if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
-    }
+    _cancelGeneration = true;
+    _generationRunId += 1;
+    _generating = false;
+    _abortActiveRequest();
+    if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
     modal.style.display = 'none';
     document.body.style.overflow = '';
     document.body.classList.remove('lb-modal-open');
@@ -967,7 +891,6 @@
     _generating = true;
     _cancelGeneration = false;
     _generationRunId += 1;
-    _zbStartPremiumJob(profile);
     var _runId = _generationRunId;
     _chapters = Array(TOTAL_CHAPTERS).fill(null);
     _chapterStructured = Array(TOTAL_CHAPTERS).fill(null);
@@ -1152,6 +1075,7 @@
       if (failErrEl) {
         failErrEl.textContent = userMessage || '자미두수 PDF 본문 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
       }
+      _zbClearSaved(window.__cdActiveBirthProfile || {});
       _showScreen('zbErrorScreen');
     }
 
@@ -1191,7 +1115,6 @@
         dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · ' + (prof.gender === 'F' ? '여성' : prof.gender === 'M' ? '남성' : '') + ' · 🗓️ ' + new Date().toLocaleDateString('ko-KR') + ' 발행';
       }
       _zbSaveResult(prof, _zbReportId);
-      _zbRunPremiumJob(TOTAL_CHAPTERS);
       _trace('PDF_RENDER_SUCCESS', {
         mode: 'personal',
         chapterCount: TOTAL_CHAPTERS,

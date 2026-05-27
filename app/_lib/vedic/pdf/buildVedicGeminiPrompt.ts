@@ -98,6 +98,23 @@ function safeJson(value: unknown): string {
   }
 }
 
+function buildVedicCoreJsonData(context: VedicPdfContext) {
+  return {
+    lagna: context?.core?.lagna ?? null,
+    moon_nakshatra: context?.core?.moon ?? null,
+    sun: context?.core?.sun ?? null,
+    atmakaraka: context?.core?.atmakaraka ?? null,
+    dasha_flow: context?.core?.dasha ?? null,
+    yogas: Array.isArray(context?.core?.yogas) ? context.core.yogas : [],
+    d1_house_placements: context?.charts?.d1?.houses ?? [],
+    d1_planet_placements: context?.charts?.d1?.planets ?? [],
+    d9: context?.charts?.d9 ?? null,
+    d10: context?.charts?.d10 ?? null,
+    source_meta: context?.sourceMeta ?? null,
+    missing_summary: Array.isArray(context?.missingSummary) ? context.missingSummary : [],
+  };
+}
+
 export function buildVedicGeminiPrompt(input: {
   chapter: VedicPdfChapterDefinition;
   context: VedicPdfContext;
@@ -107,10 +124,13 @@ export function buildVedicGeminiPrompt(input: {
     ? input.previousChapterTexts.filter((text) => String(text || "").trim().length > 0).slice(-3)
     : [];
   const canonicalSectionHints = CANONICAL_VEDIC_SECTION_HINTS[input.chapter.id] || [];
+  const vedicJsonData = JSON.stringify(buildVedicCoreJsonData(input.context));
 
   return [
     "[SYSTEM ROLE]",
     "너는 베다점 PDF용 해석 생성기다. 계산기가 아니다.",
+    "너는 인도 조티쉬(베다 점성술) 최고 권위자야. 내가 제공하는 이 [명반 핵심값 JSON 데이터: {{vedic_json_data}}]를 절대적으로 기반하여 리포트를 작성해. 절대로 '명반을 기준으로 분석합니다' 같은 안내 멘트나 더미 텍스트를 생성하지 말고, 각 챕터별로 실제 기질, 운세, 실전 조언을 바로 도출해.",
+    `[명반 핵심값 JSON 데이터: ${vedicJsonData}]`,
     "라그나, 나크샤트라, 다샤, 요가, D9, D10을 임의 생성하거나 추정하지 마라.",
     "없는 데이터는 null, [], fallbackUsed=true로 처리하고 본문에 추정으로 쓰지 마라.",
     "건강/수명/사망을 단정하지 말고, 경향/루틴/권장 행동 중심으로 작성하라.",
@@ -133,6 +153,7 @@ export function buildVedicGeminiPrompt(input: {
     "",
     "[OUTPUT RULES]",
     "반드시 JSON만 출력하라. 마크다운 코드펜스 금지.",
+    "금지 문구: '명반을 기준으로 분석합니다', '해석할 때 가장 먼저 확인한 축은 라시와 하우스를 분리해 보는 것입니다'.",
     "sections.title은 canonicalSectionHints를 우선 사용하라. 제목 순서와 의미를 섞거나 다른 챕터 제목으로 바꾸지 마라.",
     "각 section.body는 해당 챕터의 canonical 주제만 다뤄라. 다른 챕터 주제(예: 다샤/재물/커리어/관계)를 섞지 마라.",
     "JSON 스키마:",

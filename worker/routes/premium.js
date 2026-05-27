@@ -13192,7 +13192,7 @@ function buildVedicLocalFallbackChapter(chapter, meta, canonicalVedicChart, repo
   const draftBySectionTitle = (title, index) => {
     const orderNo = index + 1;
     const lines = [];
-    lines.push(`${title}을 해석할 때 가장 먼저 확인한 축은 라시와 하우스를 분리해 보는 것입니다.`);
+    lines.push(`${title}에서는 현재 명반에서 확인된 행성 배치와 하우스 신호를 바로 해석해 실전 전략으로 연결합니다.`);
 
     if (/라그나|1하우스|출발점|기본 성향/.test(title) && lagnaSign) {
       const lagnaHouse = safeHouseValue(canonicalVedicChart?.lagna?.house) || 1;
