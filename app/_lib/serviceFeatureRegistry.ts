@@ -100,7 +100,7 @@ const FEATURES: ServiceFeature[] = ([
     premiumOptions: [
       {
         title: "인생의 책 PDF",
-        description: "13챕터 심층 사주 리포트",
+        description: "12챕터 심층 사주 리포트",
         featureKey: "premium_pdf_saju_life_book",
         launchRoute: "/index.html?action=openLifeBookModal",
       },

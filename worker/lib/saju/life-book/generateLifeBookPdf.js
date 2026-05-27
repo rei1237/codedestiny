@@ -484,6 +484,16 @@ export async function generateLifeBookPdf(params = {}) {
   logLifeBookStage("INPUT_NORMALIZE_SUCCESS", { reportId });
 
   const strictCheck = isStrictMissingCore(lifeBookInputData);
+  if (strictMode && !strictCheck.ok) {
+    return {
+      ok: false,
+      code: "SAJU_LIFE_BOOK_CORE_SIGNAL_MISSING",
+      message: "사주 핵심 계산 데이터가 부족해 인생의 책을 생성할 수 없습니다.",
+      retryable: true,
+      missingCore: strictCheck.missingCore,
+      failedSections: [],
+    };
+  }
   if (!strictCheck.ok) {
     warnings.push({
       chapterId: "input",

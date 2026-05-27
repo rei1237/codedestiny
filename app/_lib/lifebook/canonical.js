@@ -66,7 +66,6 @@ export const LIFEBOOK_CHAPTERS = [
   { id: 10, title: "가족·뿌리·내면 아이 - 내가 짊어진 오래된 이야기", purpose: "가족 영향과 독립 과제의 현실 해석" },
   { id: 11, title: "인생의 위기와 전환점 - 무너질 때 다시 서는 법", purpose: "위기 신호 분석과 현실 대응 전략" },
   { id: 12, title: "나만의 성공 루틴 - 운을 현실로 바꾸는 실행법", purpose: "하루 루틴부터 1년 계획까지 실행 설계" },
-  { id: 13, title: "최종 운명 선언문 - 내 삶을 다시 쓰는 문장", purpose: "핵심 구조 압축과 개인 맞춤 선언" },
 ];
 
 function deepClone(value) {
@@ -361,7 +360,6 @@ function chapterRequiredDataPoints(chapterId) {
     10: ["specialStars", "twelveStages", "relations", "fourPillars", "tenGods.distribution"],
     11: ["annualLuck.year", "annualLuck.ganji", "annualLuck.monthlyLuck", "luckCycles.currentDaewoon", "relations"],
     12: ["fourPillars", "usefulGods", "luckCycles", "annualLuck", "lifeThemes"],
-    13: ["fiveElements", "usefulGods", "tenGods.distribution", "luckCycles.currentDaewoon", "annualLuck.ganji"],
   };
   return map[chapterId] || [];
 }

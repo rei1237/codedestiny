@@ -5,6 +5,7 @@ import {
   LIFEBOOK_SYSTEM_PROMPT,
   LIFEBOOK_MIN_CHAPTER_CHARS,
   LIFEBOOK_MIN_TOTAL_CHARS,
+  LIFEBOOK_CHAPTERS,
   buildCanonicalSajuChart,
   validateCanonicalSajuChart,
   buildLifebookChapterPlan,
@@ -14,7 +15,7 @@ import {
   withSummaryTable,
 } from "@/app/_lib/lifebook/canonical";
 
-// Next.js 루트 최대 실행 시간 (초) — 13챕터 장문 생성 대응
+// Next.js 루트 최대 실행 시간 (초) — 12챕터 장문 생성 대응
 export const maxDuration = 300;
 
 // Gemini API (Google AI Studio) — API 키 인증, v1beta
@@ -1368,9 +1369,10 @@ export async function POST(req) {
 
     const sessionId = Number(body?.sessionId || 0);
 
-    if (sessionId < 1 || sessionId > 13) {
+    const maxSessionId = Array.isArray(LIFEBOOK_CHAPTERS) ? LIFEBOOK_CHAPTERS.length : 12;
+    if (sessionId < 1 || sessionId > maxSessionId) {
       return NextResponse.json(
-        { ok: false, message: "sessionId는 1~13 사이여야 합니다." },
+        { ok: false, message: `sessionId는 1~${maxSessionId} 사이여야 합니다.` },
         { status: 400 }
       );
     }
