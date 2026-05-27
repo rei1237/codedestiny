@@ -1061,6 +1061,32 @@
     openResultChapter(state.activeChapter || 1);
   }
 
+  function hasCompleteSavedResult() {
+    return chapterCount() >= TOTAL_CHAPTERS;
+  }
+
+  function ensureNewYearHistoryButton() {
+    var startScreen = qs('nyStartScreen');
+    var modal = qs('sajuNewYearModal');
+    if (!startScreen || !modal) return;
+    var btn = qs('nyViewSavedBtn');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.id = 'nyViewSavedBtn';
+      btn.className = 'lb-btn-generate lb-btn-history';
+      btn.textContent = '📂 지난 신년 전략서 열기';
+      var genBtn = qs('nyGenerateBtn');
+      if (genBtn && genBtn.parentNode) genBtn.parentNode.insertBefore(btn, genBtn.nextSibling);
+      else startScreen.appendChild(btn);
+      btn.addEventListener('click', function () {
+        if (!hasCompleteSavedResult()) return;
+        renderResultScreen();
+      });
+    }
+    btn.style.display = hasCompleteSavedResult() ? '' : 'none';
+  }
+
   function setLoadingProgress(chapter, subtitle) {
     var chapterNum = qs('nyLoadingChapterNum');
     var chapterText = qs('nyLoadingChapter');
@@ -1626,7 +1652,13 @@
       return;
     }
 
-    if (!state.reportId) state.reportId = createReportId(state.payload);
+    state.reportId = createReportId(state.payload);
+    state.reportSessionId = '';
+    state.paidReportId = '';
+    state.chapterTexts = {};
+    state.chapterStructured = {};
+    state.chapterMeta = {};
+    state.activeChapter = 1;
 
     state.generating = true;
     state.paymentVerified = false;
@@ -1848,6 +1880,12 @@
   window.openSajuNewYearModal = function () {
     var modal = qs('sajuNewYearModal');
     if (!modal) return;
+    if (modal.style) {
+      modal.style.setProperty('--lb-history-a', 'rgba(245, 158, 11, 0.2)');
+      modal.style.setProperty('--lb-history-b', 'rgba(180, 83, 9, 0.5)');
+      modal.style.setProperty('--lb-history-border', 'rgba(251, 191, 36, 0.5)');
+      modal.style.setProperty('--lb-history-text', '#fef3c7');
+    }
     logSajuNewYearFlow('DETAIL_POPUP_OPEN', {
       reportId: String(state.reportId || ''),
       reportSessionId: String(state.reportSessionId || ''),
@@ -1864,12 +1902,7 @@
       activateNewYearCinematicLoading();
       return;
     }
-
-    if (chapterCount() >= TOTAL_CHAPTERS) {
-      renderResultScreen();
-      return;
-    }
-
+    ensureNewYearHistoryButton();
     showOnly('nyStartScreen');
   };
 

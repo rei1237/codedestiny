@@ -238,6 +238,10 @@
     modal.style.setProperty('--lb-lilac', '#bae6fd');
     modal.style.setProperty('--lb-glow-violet', 'rgba(14, 165, 233, 0.45)');
     modal.style.setProperty('--lb-glow-gold', 'rgba(103, 232, 249, 0.36)');
+    modal.style.setProperty('--lb-history-a', 'rgba(8, 145, 178, 0.2)');
+    modal.style.setProperty('--lb-history-b', 'rgba(3, 105, 161, 0.48)');
+    modal.style.setProperty('--lb-history-border', 'rgba(125, 211, 252, 0.52)');
+    modal.style.setProperty('--lb-history-text', '#cffafe');
   }
 
   function _escHtml(s) {
@@ -384,6 +388,53 @@
   }
   function _skLoadSaved(p){try{var raw=sessionStorage.getItem(_skMakeKey(p));return raw?JSON.parse(raw):null;}catch(_){return null;}}
 
+  function _skHasSavedContent(saved){
+    if(!saved||!Array.isArray(saved.chapters))return false;
+    var validSavedCount=saved.chapters.filter(function(c,idx){
+      var hasText=typeof c==='string'&&c.trim().length>0&&!/^⚠️/.test(c.trim());
+      var structured=Array.isArray(saved.chapterStructured)?saved.chapterStructured[idx]:null;
+      return hasText||_hasUsableStructuredChapter(structured);
+    }).length;
+    return validSavedCount>0;
+  }
+
+  function _skApplySavedResult(saved, modal){
+    if(!saved||!modal)return;
+    _chapters=_normalizeChapterArray(saved.chapters);
+    _chapterStructured=Array.isArray(saved.chapterStructured)?saved.chapterStructured.slice(0,CHAPTER_COUNT):Array(CHAPTER_COUNT).fill(null);
+    _chapterMeta=Array.isArray(saved.chapterMeta)?saved.chapterMeta.slice(0,CHAPTER_COUNT):Array(CHAPTER_COUNT).fill(null);
+    _skLastReportId=String(saved.reportId||'').trim();
+    _currentChapter=1;
+    _showScreen('skResultScreen');
+    _updateTocState();
+    _renderChapter(1);
+    _bindToc();
+    var nameEl=_qs('skResultName'),dateEl=_qs('skResultDate');
+    if(nameEl) nameEl.textContent='💫 '+(saved.name||'사용자')+'님의 숙요점 궁합 리포트';
+    if(dateEl){var b=saved.birth||{};var sd=saved.savedAt?new Date(saved.savedAt).toLocaleDateString('ko-KR'):'';dateEl.textContent=[b.year,b.month,b.day].filter(Boolean).join('.')+(sd?' · 💾 '+sd+' 저장':'');}
+  }
+
+  function _skEnsureHistoryButton(saved, modal){
+    var startScreen=_qs('skStartScreen');
+    if(!startScreen||!modal)return;
+    var btn=_qs('skViewSavedBtn');
+    if(!btn){
+      btn=document.createElement('button');
+      btn.type='button';
+      btn.id='skViewSavedBtn';
+      btn.className='lb-btn-generate lb-btn-history';
+      btn.textContent='📂 지난 숙요 궁합 리포트 열기';
+      startScreen.appendChild(btn);
+      btn.addEventListener('click',function(){
+        var payload=btn.__savedPayload||null;
+        if(!_skHasSavedContent(payload))return;
+        _skApplySavedResult(payload, modal);
+      });
+    }
+    btn.__savedPayload=saved;
+    btn.style.display=_skHasSavedContent(saved)?'':'none';
+  }
+
   function _showScreen(id){
     var screens=['skNoProfileScreen','skStartScreen','skLoadingScreen','skResultScreen','skErrorScreen'];
     for(var i=0;i<screens.length;i++){var el=_qs(screens[i]);if(el)el.style.display=(screens[i]===id)?'':'none';}
@@ -456,31 +507,6 @@
     }
     if(!window.__cdActiveBirthProfile||!window.__cdActiveBirthProfile.birth) window.__cdActiveBirthProfile=profile;
     var saved=_skLoadSaved(profile);
-    var validSavedCount=0;
-    if(saved&&Array.isArray(saved.chapters)){
-      validSavedCount=saved.chapters.filter(function(c,idx){
-        var hasText=typeof c==='string'&&c.trim().length>0&&!/^⚠️/.test(c.trim());
-        var structured=Array.isArray(saved.chapterStructured)?saved.chapterStructured[idx]:null;
-        return hasText||_hasUsableStructuredChapter(structured);
-      }).length;
-    }
-    if(validSavedCount>0){
-      _chapters=_normalizeChapterArray(saved.chapters);
-      _chapterStructured=Array.isArray(saved.chapterStructured)?saved.chapterStructured.slice(0,CHAPTER_COUNT):Array(CHAPTER_COUNT).fill(null);
-      _chapterMeta=Array.isArray(saved.chapterMeta)?saved.chapterMeta.slice(0,CHAPTER_COUNT):Array(CHAPTER_COUNT).fill(null);
-      _skLastReportId=String(saved.reportId||'').trim();
-      console.info('[SukuyoPremium][Flow] SESSION_RESTORED',{reportId:_skLastReportId||null,validChapters:validSavedCount,totalChapters:CHAPTER_COUNT,message:'구조화 섹션도 로드됨'});
-      _currentChapter=1;
-      _showScreen('skResultScreen');
-      _updateTocState(); _renderChapter(1); _bindToc();
-      var nameEl=_qs('skResultName'),dateEl=_qs('skResultDate');
-      if(nameEl) nameEl.textContent='💫 '+(saved.name||'사용자')+'님의 숙요점 궁합 리포트';
-      if(dateEl){var b=saved.birth||{};var sd=saved.savedAt?new Date(saved.savedAt).toLocaleDateString('ko-KR'):'';dateEl.textContent=[b.year,b.month,b.day].filter(Boolean).join('.')+(sd?' · 💾 '+sd+' 저장':'');}
-      modal.style.display='flex'; modal.style.zIndex='100120'; document.body.style.overflow='hidden';
-      document.body.classList.add('lb-modal-open');
-      try{modal.setAttribute('aria-hidden','false');}catch(_){}
-      return;
-    }
     _chapters=Array(CHAPTER_COUNT).fill(null);
     _chapterStructured=Array(CHAPTER_COUNT).fill(null);
     _chapterMeta=Array(CHAPTER_COUNT).fill(null);
@@ -490,6 +516,7 @@
     modal.style.display='flex'; modal.style.zIndex='100120';
     document.body.style.overflow='hidden';
     document.body.classList.add('lb-modal-open');
+    _skEnsureHistoryButton(saved, modal);
     try{modal.setAttribute('aria-hidden','false');var cb=modal.querySelector('.lb-modal__close');if(cb)setTimeout(function(){cb.focus();},60);}catch(_){}
     _prefillSukuyoProfile(profile);
     _populatePartnerSelects();
