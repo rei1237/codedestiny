@@ -90,6 +90,7 @@
   var _abCurrentReportId = '';
   var _mysticTimer = null;
   var _premiumPaidUntil = 0;
+  var _abFetchChapterForPartialRegenerate = null;
   var _abJobStateKey = 'cd:premium-job:astro';
 
   function _abGetJobClient() {
@@ -379,6 +380,7 @@
     _updateTocState(_currentChapter);
     _renderChapter(_currentChapter);
     _bindToc();
+    _ensureAstroPartialRegenerateControl();
     var nameEl = _qs('abResultName');
     var dateEl = _qs('abResultDate');
     if (nameEl) nameEl.textContent = '✨ ' + (saved.name || '사용자') + '님의 점성술 코즈믹 차트';
@@ -476,6 +478,7 @@
       '<div class="zb-chapter-body">'+bodyHtml+'</div>' +
       '</div>';
     content.scrollTop = 0;
+    _currentChapter = ch;
   }
 
   function _updateTocState(activeChapter) {
@@ -486,6 +489,66 @@
       var ch = Number(btn.getAttribute('data-ab-chapter'));
       btn.classList.toggle('loaded', _abHasChapterContent(ch-1));
       btn.classList.toggle('active', ch===active);
+    });
+  }
+
+  function _regenerateAstroCurrentChapter() {
+    var chapter = Math.max(1, Math.min(12, Number(_currentChapter || 1)));
+    var idx = chapter - 1;
+    var fetchChapter = _abFetchChapterForPartialRegenerate;
+    var runPipeline = (typeof window.__cdRunPremiumChapterPipeline === 'function')
+      ? window.__cdRunPremiumChapterPipeline
+      : null;
+    if (!runPipeline) {
+      alert('공통 챕터 파이프라인을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      return;
+    }
+    if (!_abCurrentReportId || typeof fetchChapter !== 'function') {
+      alert('현재 세션 정보가 부족해 부분 재생성을 시작할 수 없습니다. 리포트를 다시 생성한 뒤 시도해 주세요.');
+      return;
+    }
+
+    runPipeline({
+      totalChapters: 1,
+      maxAttempts: 3,
+      retryDelayMs: 3000,
+      fetchChapter: function () { return fetchChapter(idx); },
+      isSuccess: function (data) {
+        return !!(data && data.ok && (data.text || (Array.isArray(data.sections) && data.sections.length) || (data.chapterJson && typeof data.chapterJson === 'object')));
+      },
+      onSuccess: function (_, data) {
+        _syncChapterMetaFromResponse(idx, data);
+        _chapterStructured[idx] = (Array.isArray(data.sections) && data.sections.length)
+          ? { sections: data.sections }
+          : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
+        _chapters[idx] = String(data.text || _deriveTextFromChapterJson(_chapterStructured[idx]) || '').trim();
+        _abSaveResult(window.__cdActiveBirthProfile || {});
+        _updateTocState(chapter);
+        _renderChapter(chapter);
+      },
+      onFallback: function (_, fallbackPayload) {
+        var fallbackText = String(window.__cdPremiumChapterFallbackText || '일시적인 응답 지연으로 해석을 불러오지 못했습니다. 부분 재생성 버튼을 이용해주세요.');
+        var msg = (fallbackPayload && fallbackPayload.message) ? String(fallbackPayload.message) : '알 수 없는 오류';
+        _chapters[idx] = fallbackText;
+        _chapterStructured[idx] = null;
+        console.warn('[점성술] Chapter ' + chapter + ' 부분 재생성 실패:', msg);
+        _abSaveResult(window.__cdActiveBirthProfile || {});
+        _updateTocState(chapter);
+        _renderChapter(chapter);
+      }
+    }).catch(function (error) {
+      var msg = String(error && error.message ? error.message : error || '부분 재생성 중 오류가 발생했습니다.');
+      alert('점성술 부분 재생성 중 오류가 발생했습니다: ' + msg);
+    });
+  }
+
+  function _ensureAstroPartialRegenerateControl() {
+    if (typeof window.__cdAttachPartialRegenerateControl !== 'function') return;
+    window.__cdAttachPartialRegenerateControl({
+      scopeSelector: '#abToc',
+      buttonId: 'abPartialRegenerateBtn',
+      buttonText: '현재 챕터 재생성',
+      onClick: _regenerateAstroCurrentChapter,
     });
   }
 
@@ -674,46 +737,68 @@
         .catch(function(err){ clearTimeout(tid); resolve({ok:false,message:String(err&&err.message?err.message:err)}); });
       });
     }
+    _abFetchChapterForPartialRegenerate = _fetchChapter;
 
     var _failCount=0;
-    (function generateNext(idx) {
-      if (idx>=12) {
-        clearInterval(_mysticTimer); _mysticTimer=null; _generating=false;
-        var validCount=_chapters.filter(function(c){return typeof c==='string'&&c.trim().length>0&&!/^⚠️/.test(c);}).length;
-        if (validCount===0) { var errEl=_qs('abErrorMsg'); if(errEl) errEl.textContent='모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.'; _showScreen('abErrorScreen'); return; }
-        _showScreen('abResultScreen');
-        _updateTocState(1); _renderChapter(1); _bindToc();
-        var prof=window.__cdActiveBirthProfile||{};
-        var _nameEl=_qs('abResultName'), _dateEl=_qs('abResultDate');
-        if (_nameEl) _nameEl.textContent='✨ '+(prof.name||'사용자')+'님의 점성술 코즈믹 차트';
-        if (_dateEl) { var _b=prof.birth||{}; _dateEl.textContent=[_b.year,_b.month,_b.day].filter(Boolean).join('.')+'생 · 🗓️ '+new Date().toLocaleDateString('ko-KR')+' 발행'; }
-        _abSaveResult(prof);
-        _abRunPremiumJob(12);
-        return;
-      }
-      if (chapterMsg) chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';
-      _fetchChapter(idx).then(function(data) {
-        if (data&&data.ok&&(data.text||(Array.isArray(data.sections)&&data.sections.length)||(data.chapterJson&&typeof data.chapterJson==='object'))) {
-          _syncChapterMetaFromResponse(idx,data);
-          _chapterStructured[idx]=(Array.isArray(data.sections)&&data.sections.length)?{sections:data.sections}:(data.chapterJson&&typeof data.chapterJson==='object'?data.chapterJson:null);
-          _chapters[idx]=String(data.text||_deriveTextFromChapterJson(_chapterStructured[idx])||'').trim();
-          _currentChapter = Math.max(1, Math.min(12, idx+1));
-          _abSaveResult(window.__cdActiveBirthProfile||{});
-          _setProgress(idx+1);
-          generateNext(idx+1);
-          return;
-        }
-        _failCount++;
-        var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류';
-        console.warn('[점성술] Chapter '+(idx+1)+' 실패:',msg);
-        _chapters[idx] = _buildChapterSkeleton(idx, msg);
-        _chapterStructured[idx] = null;
+    var runPipeline=(typeof window.__cdRunPremiumChapterPipeline==='function')?window.__cdRunPremiumChapterPipeline:null;
+    if(!runPipeline){
+      clearInterval(_mysticTimer); _mysticTimer=null; _generating=false;
+      var missingEl=_qs('abErrorMsg');
+      if(missingEl) missingEl.textContent='공통 챕터 파이프라인을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.';
+      _showScreen('abErrorScreen');
+      return;
+    }
+    var fallbackText=String(window.__cdPremiumChapterFallbackText||'일시적인 응답 지연으로 해석을 불러오지 못했습니다. 부분 재생성 버튼을 이용해주세요.');
+    runPipeline({
+      totalChapters:12,
+      maxAttempts:3,
+      interChapterDelayMs:3000,
+      retryDelayMs:3000,
+      fetchChapter:function(idx){
+        if (chapterMsg) chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';
+        return _fetchChapter(idx);
+      },
+      isSuccess:function(data){
+        return !!(data&&data.ok&&(data.text||(Array.isArray(data.sections)&&data.sections.length)||(data.chapterJson&&typeof data.chapterJson==='object')));
+      },
+      onSuccess:function(idx,data){
+        _syncChapterMetaFromResponse(idx,data);
+        _chapterStructured[idx]=(Array.isArray(data.sections)&&data.sections.length)?{sections:data.sections}:(data.chapterJson&&typeof data.chapterJson==='object'?data.chapterJson:null);
+        _chapters[idx]=String(data.text||_deriveTextFromChapterJson(_chapterStructured[idx])||'').trim();
         _currentChapter = Math.max(1, Math.min(12, idx+1));
         _abSaveResult(window.__cdActiveBirthProfile||{});
+      },
+      onFallback:function(idx,fallbackPayload,data){
+        _failCount+=1;
+        var msg=(fallbackPayload&&fallbackPayload.message)?String(fallbackPayload.message):((data&&(data.error||data.message))?String(data.error||data.message):'알 수 없는 오류');
+        console.warn('[점성술] Chapter '+(idx+1)+' 실패:',msg);
+        _chapters[idx]=fallbackText;
+        _chapterStructured[idx]=null;
+        _currentChapter = Math.max(1, Math.min(12, idx+1));
+        _abSaveResult(window.__cdActiveBirthProfile||{});
+      },
+      onProgress:function(idx){
         _setProgress(idx+1);
-        generateNext(idx+1);
-      });
-    })(0);
+      }
+    }).then(function(){
+      clearInterval(_mysticTimer); _mysticTimer=null; _generating=false;
+      var validCount=_chapters.filter(function(c){return typeof c==='string'&&c.trim().length>0&&!/^⚠️/.test(c);}).length;
+      if (validCount===0) { var errEl=_qs('abErrorMsg'); if(errEl) errEl.textContent='모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.'; _showScreen('abErrorScreen'); return; }
+      _showScreen('abResultScreen');
+      _updateTocState(1); _renderChapter(1); _bindToc();
+      _ensureAstroPartialRegenerateControl();
+      var prof=window.__cdActiveBirthProfile||{};
+      var _nameEl=_qs('abResultName'), _dateEl=_qs('abResultDate');
+      if (_nameEl) _nameEl.textContent='✨ '+(prof.name||'사용자')+'님의 점성술 코즈믹 차트';
+      if (_dateEl) { var _b=prof.birth||{}; _dateEl.textContent=[_b.year,_b.month,_b.day].filter(Boolean).join('.')+'생 · 🗓️ '+new Date().toLocaleDateString('ko-KR')+' 발행'; }
+      _abSaveResult(prof);
+      _abRunPremiumJob(12);
+    }).catch(function(err){
+      clearInterval(_mysticTimer); _mysticTimer=null; _generating=false;
+      var errEl=_qs('abErrorMsg');
+      if(errEl) errEl.textContent='점성술 코즈믹 차트 생성 중 오류가 발생했습니다: '+String(err&&err.message?err.message:err||'unknown');
+      _showScreen('abErrorScreen');
+    });
   };
 
   window.downloadAstroBookPdf = function() {

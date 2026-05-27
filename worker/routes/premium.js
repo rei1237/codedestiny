@@ -3238,6 +3238,11 @@ function logPremiumPipelineStage(stage, payload = {}) {
   }
 }
 
+function logPremiumChapterTelemetry(event, payload = {}) {
+  const normalizedEvent = String(event || "unknown").trim() || "unknown";
+  logPremiumPipelineStage(`ChapterTelemetry.${normalizedEvent}`, payload);
+}
+
 function countKoreanLikeChars(text = "") {
   const normalized = String(text || "").trim();
   if (!normalized) return 0;
@@ -27277,7 +27282,7 @@ async function handlePremiumReportRun(request, env, authInfo) {
   const requiredChapters = Number(context.requiredChapters || context.totalChapters || 13);
   const startChapter = clampInt(body.startChapter ?? body.fromChapter, 1, 1, requiredChapters);
   const endChapter = clampInt(body.endChapter ?? body.toChapter, requiredChapters, startChapter, requiredChapters);
-  const maxAttemptsPerChapter = Math.max(2, getPremiumChapterMaxAttempts(env, 2));
+  const maxAttemptsPerChapter = clampInt(getPremiumChapterMaxAttempts(env, 1), 1, 1, 3);
   const stopOnFailure = body.stopOnFailure !== false;
 
   logPremiumPipelineStage("GeminiStart", {
@@ -27301,6 +27306,7 @@ async function handlePremiumReportRun(request, env, authInfo) {
     }
 
     let chapterDone = false;
+    const chapterStartedAt = Date.now();
     let lastError = {
       chapterId,
       attempt: 0,
@@ -27310,6 +27316,16 @@ async function handlePremiumReportRun(request, env, authInfo) {
     };
 
     for (let attempt = 1; attempt <= maxAttemptsPerChapter; attempt += 1) {
+      const attemptStartedAt = Date.now();
+      logPremiumChapterTelemetry("attempt_start", {
+        requestId,
+        reportSessionId,
+        reportType: context.reportType,
+        featureType: context.featureType,
+        chapterId,
+        attempt,
+        maxAttemptsPerChapter,
+      });
       const chapterRequestId = `${requestId}_ch${chapterId}_r${attempt}`;
       const chapterRequest = buildInternalPremiumJsonRequest(request, {
         reportSessionId,
@@ -27320,6 +27336,18 @@ async function handlePremiumReportRun(request, env, authInfo) {
       const chapterResponse = await handlePremiumReportChapter(chapterRequest, env, authInfo);
       const chapterPayload = await chapterResponse.json().catch(() => ({}));
       if (chapterResponse.ok && chapterPayload?.ok) {
+        const durationMs = Date.now() - attemptStartedAt;
+        logPremiumChapterTelemetry("attempt_success", {
+          requestId,
+          chapterRequestId,
+          reportSessionId,
+          reportType: context.reportType,
+          featureType: context.featureType,
+          chapterId,
+          attempt,
+          durationMs,
+          fallbackUsed: false,
+        });
         generated.push({
           chapterId,
           attempt,
@@ -27337,13 +27365,47 @@ async function handlePremiumReportRun(request, env, authInfo) {
         code: String(chapterPayload?.code || "PREMIUM_REPORT_CHAPTER_FAILED"),
         message: String(chapterPayload?.message || "챕터 생성 실패"),
       };
+      logPremiumChapterTelemetry("attempt_failed", {
+        requestId,
+        chapterRequestId,
+        reportSessionId,
+        reportType: context.reportType,
+        featureType: context.featureType,
+        chapterId,
+        attempt,
+        durationMs: Date.now() - attemptStartedAt,
+        status: Number(chapterResponse.status || 422),
+        code: lastError.code,
+        message: lastError.message,
+      });
     }
 
     context = PREMIUM_REPORT_CONTEXT_STORE.get(reportSessionId) || context;
 
     if (!chapterDone) {
       failed.push(lastError);
+      logPremiumChapterTelemetry("chapter_fallback", {
+        requestId,
+        reportSessionId,
+        reportType: context.reportType,
+        featureType: context.featureType,
+        chapterId,
+        durationMs: Date.now() - chapterStartedAt,
+        fallbackUsed: true,
+        failureCode: String(lastError.code || "PREMIUM_REPORT_CHAPTER_FAILED"),
+        message: String(lastError.message || "챕터 생성 실패"),
+      });
       if (stopOnFailure) break;
+    } else {
+      logPremiumChapterTelemetry("chapter_completed", {
+        requestId,
+        reportSessionId,
+        reportType: context.reportType,
+        featureType: context.featureType,
+        chapterId,
+        durationMs: Date.now() - chapterStartedAt,
+        fallbackUsed: false,
+      });
     }
   }
 

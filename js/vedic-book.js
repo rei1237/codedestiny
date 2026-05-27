@@ -89,6 +89,7 @@
   var _vdCurrentReportId = '';
   var _mysticTimer = null;
   var _premiumPaidUntil = 0;
+  var _vdFetchChapterForPartialRegenerate = null;
   var _vdJobStateKey = 'cd:premium-job:vedic';
 
   function _vdGetJobClient() {
@@ -237,6 +238,8 @@
       '## '+meta.title,
       meta.subtitle?('> '+meta.subtitle):'',
       '',
+      '일시적인 응답 지연으로 해석을 불러오지 못했습니다. 부분 재생성 버튼을 이용해주세요.',
+      '',
       '### 챕터 구조 복구',
       '- 베다 생성 응답 지연으로 기본 골격을 먼저 구성했습니다.',
       '- 재생성 시 동일 챕터 본문이 자동 보강됩니다.',
@@ -338,6 +341,7 @@
     _updateTocState(_currentChapter);
     _renderChapter(_currentChapter);
     _bindToc();
+    _ensureVedicPartialRegenerateControl();
     var nameEl=_qs('vdResultName'),dateEl=_qs('vdResultDate');
     if(nameEl)nameEl.textContent='🪷 '+(saved.name||'사용자')+'님의 베다 인생 총람';
     if(dateEl){var b=saved.birth||{};var sd=saved.savedAt?new Date(saved.savedAt).toLocaleDateString('ko-KR'):'';dateEl.textContent=[b.year,b.month,b.day].filter(Boolean).join('.')+(sd?' · 💾 '+sd+' 저장':'');}
@@ -419,6 +423,61 @@
       var ch=Number(btn.getAttribute('data-vd-chapter'));
       btn.classList.toggle('loaded',!!_chapters[ch-1]);
       btn.classList.toggle('active',ch===current);
+    });
+  }
+
+  function _regenerateVedicCurrentChapter(){
+    var chapter=Math.max(1,Math.min(12,Number(_currentChapter||1)));
+    var idx=chapter-1;
+    var fetchChapter=_vdFetchChapterForPartialRegenerate;
+    var runPipeline=(typeof window.__cdRunPremiumChapterPipeline==='function')?window.__cdRunPremiumChapterPipeline:null;
+    if(!runPipeline){
+      alert('공통 챕터 파이프라인을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      return;
+    }
+    if(!_vdCurrentReportId||typeof fetchChapter!=='function'){
+      alert('현재 세션 정보가 부족해 부분 재생성을 시작할 수 없습니다. 리포트를 다시 생성한 뒤 시도해 주세요.');
+      return;
+    }
+
+    runPipeline({
+      totalChapters:1,
+      maxAttempts:3,
+      retryDelayMs:3000,
+      fetchChapter:function(){ return fetchChapter(idx); },
+      isSuccess:function(data){ return !!(data&&data.ok&&data.text); },
+      onSuccess:function(_,data){
+        _syncChapterMetaFromResponse(idx,data);
+        _chapters[idx]=String(data.text||'').trim();
+        _chapterStructured[idx]=(Array.isArray(data.sections)&&data.sections.length)?{sections:data.sections}:(data.chapterJson&&typeof data.chapterJson==='object'?data.chapterJson:null);
+        _chapterErrors[idx]=null;
+        _vdSaveResult(window.__cdActiveBirthProfile||{});
+        _updateTocState(chapter);
+        _renderChapter(chapter);
+      },
+      onFallback:function(_,fallbackPayload){
+        var fallbackText=String(window.__cdPremiumChapterFallbackText||'일시적인 응답 지연으로 해석을 불러오지 못했습니다. 부분 재생성 버튼을 이용해주세요.');
+        var msg=(fallbackPayload&&fallbackPayload.message)?String(fallbackPayload.message):'알 수 없는 오류';
+        _chapterErrors[idx]=msg;
+        _chapters[idx]=fallbackText;
+        _chapterStructured[idx]=null;
+        _vdSaveResult(window.__cdActiveBirthProfile||{});
+        _updateTocState(chapter);
+        _renderChapter(chapter);
+      }
+    }).catch(function(error){
+      var msg=String(error&&error.message?error.message:error||'부분 재생성 중 오류가 발생했습니다.');
+      alert('베다 부분 재생성 중 오류가 발생했습니다: '+msg);
+    });
+  }
+
+  function _ensureVedicPartialRegenerateControl(){
+    if(typeof window.__cdAttachPartialRegenerateControl!=='function') return;
+    window.__cdAttachPartialRegenerateControl({
+      scopeSelector:'#vdToc',
+      buttonId:'vdPartialRegenerateBtn',
+      buttonText:'현재 챕터 재생성',
+      onClick:_regenerateVedicCurrentChapter
     });
   }
 
@@ -575,7 +634,7 @@
     var VEDIC_CLIENT_TIMEOUT_MS = 180000;
     var VEDIC_INTER_CHAPTER_DELAY_MS = 3000;
     var VEDIC_RETRY_BASE_DELAY_MS = 5000;
-    var VEDIC_MAX_RETRY_COUNT = 3;
+    var VEDIC_MAX_RETRY_COUNT = 2;
 
     function _sleep(ms){
       return new Promise(function(resolve){ setTimeout(resolve, Math.max(0, Number(ms)||0)); });
@@ -650,6 +709,7 @@
       }
       return lastData||{ok:false,message:'알 수 없는 오류'};
     }
+    _vdFetchChapterForPartialRegenerate = _fetchChapterWithRetry;
 
     (async function generateSequentialChapters(){
       var _failCount=0;
@@ -690,6 +750,7 @@
       _showScreen('vdResultScreen');
       _currentChapter=1;
       _updateTocState(_currentChapter);_renderChapter(_currentChapter);_bindToc();
+      _ensureVedicPartialRegenerateControl();
       var prof=window.__cdActiveBirthProfile||{};
       var _nameEl=_qs('vdResultName'),_dateEl=_qs('vdResultDate');
       if(_nameEl)_nameEl.textContent='🪷 '+(prof.name||'사용자')+'님의 베다 인생 총람';

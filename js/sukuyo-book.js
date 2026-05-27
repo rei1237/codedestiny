@@ -79,6 +79,7 @@
   var _currentChapter = 1;
   var _mysticTimer = null;
   var _premiumPaidUntil = 0;
+  var _skFetchChapterForPartialRegenerate = null;
   var _skJobStateKey = 'cd:premium-job:sukuyo';
 
   function _skGetJobClient() {
@@ -456,6 +457,7 @@
     _updateTocState();
     _renderChapter(1);
     _bindToc();
+    _ensureSukuyoPartialRegenerateControl();
     var nameEl=_qs('skResultName'),dateEl=_qs('skResultDate');
     if(nameEl) nameEl.textContent='💫 '+(saved.name||'사용자')+'님의 숙요점 궁합 리포트';
     if(dateEl){var b=saved.birth||{};var sd=saved.savedAt?new Date(saved.savedAt).toLocaleDateString('ko-KR'):'';dateEl.textContent=[b.year,b.month,b.day].filter(Boolean).join('.')+(sd?' · 💾 '+sd+' 저장':'');}
@@ -526,6 +528,7 @@
     if(!bodyHtml&&data)bodyHtml=_md2html(data);
     content.innerHTML='<div class="zb-chapter-wrap"><div class="zb-chapter-header"><span class="zb-chapter-num">Chapter '+ch+'</span><h2 class="zb-chapter-title">'+_escHtml(meta.title)+'</h2><p class="zb-chapter-sub">'+_escHtml(meta.subtitle)+'</p></div><div class="zb-chapter-body">'+bodyHtml+'</div></div>';
     content.scrollTop=0;
+    _currentChapter=ch;
   }
 
   function _updateTocState(){
@@ -534,7 +537,63 @@
       var ch=Number(btn.getAttribute('data-sk-chapter'));
       var idx=ch-1;
       btn.classList.toggle('loaded',!!_chapters[idx]||_hasUsableStructuredChapter(_chapterStructured[idx]));
-      btn.classList.toggle('active',ch===1);
+      btn.classList.toggle('active',ch===_currentChapter);
+    });
+  }
+
+  function _regenerateSukuyoCurrentChapter(){
+    var chapter=Number(_currentChapter||1);
+    if(!Number.isFinite(chapter)||chapter<1||chapter>CHAPTER_COUNT) chapter=1;
+    var idx=chapter-1;
+    var fetchChapter=_skFetchChapterForPartialRegenerate;
+    var runPipeline=(typeof window.__cdRunPremiumChapterPipeline==='function')?window.__cdRunPremiumChapterPipeline:null;
+    if(!runPipeline){
+      alert('공통 챕터 파이프라인을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      return;
+    }
+    if(!_skLastReportId||typeof fetchChapter!=='function'){
+      alert('현재 세션 정보가 부족해 부분 재생성을 시작할 수 없습니다. 리포트를 다시 생성한 뒤 시도해 주세요.');
+      return;
+    }
+
+    runPipeline({
+      totalChapters:1,
+      maxAttempts:3,
+      retryDelayMs:3000,
+      fetchChapter:function(){ return fetchChapter(idx); },
+      isSuccess:function(data){ return !!(data&&data.ok&&data.text); },
+      shouldFailFast:function(data){ return !!_getFatalChapterError(data); },
+      onSuccess:function(_,data){
+        _syncChapterMetaFromResponse(idx,data);
+        _chapters[idx]=String(data.text||'').trim();
+        _chapterStructured[idx]=(Array.isArray(data.sections)&&data.sections.length)?{sections:data.sections}:(data.chapterJson&&typeof data.chapterJson==='object'?data.chapterJson:null);
+        _skSaveResult(window.__cdActiveBirthProfile||{},_skLastReportId);
+        _updateTocState();
+        _renderChapter(chapter);
+      },
+      onFallback:function(_,fallbackPayload,data){
+        var fallbackText=String(window.__cdPremiumChapterFallbackText||'일시적인 응답 지연으로 해석을 불러오지 못했습니다. 부분 재생성 버튼을 이용해주세요.');
+        var msg=(fallbackPayload&&fallbackPayload.message)?String(fallbackPayload.message):((data&&(data.error||data.message))?String(data.error||data.message):'알 수 없는 오류');
+        _chapters[idx]=fallbackText;
+        _chapterStructured[idx]=null;
+        console.warn('[숙요] Chapter '+chapter+' 부분 재생성 실패:',msg);
+        _skSaveResult(window.__cdActiveBirthProfile||{},_skLastReportId);
+        _updateTocState();
+        _renderChapter(chapter);
+      }
+    }).catch(function(error){
+      var msg=String(error&&error.message?error.message:error||'부분 재생성 중 오류가 발생했습니다.');
+      alert('숙요 부분 재생성 중 오류가 발생했습니다: '+msg);
+    });
+  }
+
+  function _ensureSukuyoPartialRegenerateControl(){
+    if(typeof window.__cdAttachPartialRegenerateControl!=='function') return;
+    window.__cdAttachPartialRegenerateControl({
+      scopeSelector:'#skToc',
+      buttonId:'skPartialRegenerateBtn',
+      buttonText:'현재 챕터 재생성',
+      onClick:_regenerateSukuyoCurrentChapter
     });
   }
 
@@ -787,58 +846,70 @@
         .catch(function(err){clearTimeout(tid);resolve({ok:false,message:String(err&&err.message?err.message:err)});});
       });
     }
+    _skFetchChapterForPartialRegenerate=_fetchChapter;
 
     var _failCount=0;
-    var _chapterRetries=Array(CHAPTER_COUNT).fill(0);
-    (function generateNext(idx){
-      if(idx>=CHAPTER_COUNT){
-        clearInterval(_mysticTimer);_mysticTimer=null;_generating=false;
-        var validCount=_chapters.filter(function(c){return typeof c==='string'&&c.trim().length>0&&!/^⚠️/.test(c);}).length;
-        if(validCount===0){var errEl=_qs('skErrorMsg');if(errEl)errEl.textContent='모든 챕터 생성에 실패했습니다. 숙요 기본 해석 데이터와 네트워크 상태를 확인해 주세요.';_showScreen('skErrorScreen');return;}
-        _showScreen('skResultScreen');
-        _updateTocState();_renderChapter(1);_bindToc();
-        var prof=window.__cdActiveBirthProfile||{};
-        var _nameEl=_qs('skResultName'),_dateEl=_qs('skResultDate');
-        if(_nameEl)_nameEl.textContent='💫 '+(prof.name||'사용자')+'님의 숙요점 궁합 리포트';
-        if(_dateEl){var _b=prof.birth||{};_dateEl.textContent=[_b.year,_b.month,_b.day].filter(Boolean).join('.')+'생 · 🗓️ '+new Date().toLocaleDateString('ko-KR')+' 발행';}
-        _skSaveResult(prof,_skReportId);
-        _skRunPremiumJob(CHAPTER_COUNT);
-        return;
-      }
-      if(chapterMsg)chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';
-      _fetchChapter(idx).then(function(data){
-        if(data&&data.ok&&data.text){
-          _syncChapterMetaFromResponse(idx,data);
-          _chapters[idx]=data.text;
-          _chapterStructured[idx]=(Array.isArray(data.sections)&&data.sections.length)?{sections:data.sections}:(data.chapterJson&&typeof data.chapterJson==='object'?data.chapterJson:null);
-          _chapterRetries[idx]=0;
-          _skSaveResult(window.__cdActiveBirthProfile||{},_skReportId);
-          _setProgress(idx+1);
-          generateNext(idx+1);
-          return;
-        }
-        _failCount++;var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류';console.warn('[숙요] Chapter '+(idx+1)+' 실패:',msg);
-        var fatalMsg=_getFatalChapterError(data);
-        if(fatalMsg){
-          clearInterval(_mysticTimer);_mysticTimer=null;_generating=false;
-          var fatalEl=_qs('skErrorMsg');
-          if(fatalEl)fatalEl.textContent=fatalMsg+' 기본 숙요 화면에서 본인과 상대의 생년월일, 시간, 달력 종류를 다시 확인한 뒤 재시도해 주세요.';
-          _showScreen('skErrorScreen');
-          return;
-        }
-        _chapterRetries[idx]=Number(_chapterRetries[idx]||0)+1;
-        if(_chapterRetries[idx] < 2 && _shouldRetryChapter(data,msg)){
-          if(chapterMsg)chapterMsg.textContent='Chapter '+(idx+1)+' 재시도 중... ('+_chapterRetries[idx]+'/1)';
-          setTimeout(function(){ generateNext(idx); }, 900);
-          return;
-        }
-        _chapters[idx]=_buildChapterSkeleton(idx,msg);
+    var runPipeline=(typeof window.__cdRunPremiumChapterPipeline==='function')?window.__cdRunPremiumChapterPipeline:null;
+    if(!runPipeline){
+      clearInterval(_mysticTimer);_mysticTimer=null;_generating=false;
+      var missingEl=_qs('skErrorMsg');
+      if(missingEl)missingEl.textContent='공통 챕터 파이프라인을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.';
+      _showScreen('skErrorScreen');
+      return;
+    }
+    var fallbackText=String(window.__cdPremiumChapterFallbackText||'일시적인 응답 지연으로 해석을 불러오지 못했습니다. 부분 재생성 버튼을 이용해주세요.');
+    runPipeline({
+      totalChapters:CHAPTER_COUNT,
+      maxAttempts:3,
+      interChapterDelayMs:3000,
+      retryDelayMs:3000,
+      fetchChapter:function(idx){
+        if(chapterMsg)chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';
+        return _fetchChapter(idx);
+      },
+      isSuccess:function(data){
+        return !!(data&&data.ok&&data.text);
+      },
+      shouldFailFast:function(data){
+        return !!_getFatalChapterError(data);
+      },
+      onSuccess:function(idx,data){
+        _syncChapterMetaFromResponse(idx,data);
+        _chapters[idx]=data.text;
+        _chapterStructured[idx]=(Array.isArray(data.sections)&&data.sections.length)?{sections:data.sections}:(data.chapterJson&&typeof data.chapterJson==='object'?data.chapterJson:null);
+        _skSaveResult(window.__cdActiveBirthProfile||{},_skReportId);
+      },
+      onFallback:function(idx,fallbackPayload,data){
+        _failCount+=1;
+        var msg=(fallbackPayload&&fallbackPayload.message)?String(fallbackPayload.message):((data&&(data.error||data.message))?String(data.error||data.message):'알 수 없는 오류');
+        console.warn('[숙요] Chapter '+(idx+1)+' 실패:',msg);
+        _chapters[idx]=fallbackText;
         _chapterStructured[idx]=null;
         _skSaveResult(window.__cdActiveBirthProfile||{},_skReportId);
+      },
+      onProgress:function(idx){
         _setProgress(idx+1);
-        generateNext(idx+1);
-      });
-    })(0);
+      }
+    }).then(function(){
+      clearInterval(_mysticTimer);_mysticTimer=null;_generating=false;
+      var validCount=_chapters.filter(function(c){return typeof c==='string'&&c.trim().length>0&&!/^⚠️/.test(c);}).length;
+      if(validCount===0){var errEl=_qs('skErrorMsg');if(errEl)errEl.textContent='모든 챕터 생성에 실패했습니다. 숙요 기본 해석 데이터와 네트워크 상태를 확인해 주세요.';_showScreen('skErrorScreen');return;}
+      _showScreen('skResultScreen');
+      _updateTocState();_renderChapter(1);_bindToc();
+      _ensureSukuyoPartialRegenerateControl();
+      var prof=window.__cdActiveBirthProfile||{};
+      var _nameEl=_qs('skResultName'),_dateEl=_qs('skResultDate');
+      if(_nameEl)_nameEl.textContent='💫 '+(prof.name||'사용자')+'님의 숙요점 궁합 리포트';
+      if(_dateEl){var _b=prof.birth||{};_dateEl.textContent=[_b.year,_b.month,_b.day].filter(Boolean).join('.')+'생 · 🗓️ '+new Date().toLocaleDateString('ko-KR')+' 발행';}
+      _skSaveResult(prof,_skReportId);
+      _skRunPremiumJob(CHAPTER_COUNT);
+    }).catch(function(err){
+      clearInterval(_mysticTimer);_mysticTimer=null;_generating=false;
+      var fatalEl=_qs('skErrorMsg');
+      var msg=String(err&&err.message?err.message:err||'챕터 생성 중 오류가 발생했습니다.');
+      if(fatalEl)fatalEl.textContent=msg+' 기본 숙요 화면에서 본인과 상대의 생년월일, 시간, 달력 종류를 다시 확인한 뒤 재시도해 주세요.';
+      _showScreen('skErrorScreen');
+    });
   };
 
   window.downloadSukuyoBookPdf = function(){

@@ -104,6 +104,7 @@
   var _generationRunId = 0;
   var _premiumPaidUntil = 0;
   var _zbLastReportId = '';
+  var _zbFetchChapterForPartialRegenerate = null;
 
   function _readPremiumTokenForReport() {
     var token = '';
@@ -290,6 +291,8 @@
     var lines = [];
     lines.push('## ' + title);
     if (subtitle) lines.push('> ' + subtitle);
+    lines.push('');
+    lines.push('일시적인 응답 지연으로 해석을 불러오지 못했습니다. 부분 재생성 버튼을 이용해주세요.');
     lines.push('');
     if (!labels.length) {
       labels = ['핵심 구조 해석', '성향과 반복 패턴', '실전 조언'];
@@ -604,6 +607,7 @@
     _updateTocState();
     _renderChapter(1);
     _bindToc();
+    _ensureZiweiPartialRegenerateControl();
     var nameEl = _qs('zbResultName');
     var dateEl = _qs('zbResultDate');
     if (nameEl) nameEl.textContent = '🌌 ' + (saved.name || '사용자') + '님의 자미두수 인생 총람';
@@ -712,6 +716,7 @@
       '<div class="zb-chapter-body">' + bodyHtml + '</div>' +
       '</div>';
     content.scrollTop = 0;
+    _currentChapter = ch;
   }
 
   function _updateTocState() {
@@ -720,7 +725,96 @@
     Array.prototype.forEach.call(items, function (btn) {
       var ch = Number(btn.getAttribute('data-zb-chapter'));
       btn.classList.toggle('loaded', !!_chapters[ch - 1] || _hasUsableStructuredChapter(_chapterStructured[ch - 1]));
-      btn.classList.toggle('active', ch === 1);
+      btn.classList.toggle('active', ch === _currentChapter);
+    });
+  }
+
+  function _regenerateZiweiCurrentChapter() {
+    var chapter = Number(_currentChapter || 1);
+    if (!Number.isFinite(chapter) || chapter < 1 || chapter > TOTAL_CHAPTERS) chapter = 1;
+    var idx = chapter - 1;
+    var fetchChapter = _zbFetchChapterForPartialRegenerate;
+    var runPipeline = (typeof window.__cdRunPremiumChapterPipeline === 'function')
+      ? window.__cdRunPremiumChapterPipeline
+      : null;
+    if (!runPipeline) {
+      alert('공통 챕터 파이프라인을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      return;
+    }
+    if (!_zbLastReportId || typeof fetchChapter !== 'function') {
+      alert('현재 세션 정보가 부족해 부분 재생성을 시작할 수 없습니다. 리포트를 다시 생성한 뒤 시도해 주세요.');
+      return;
+    }
+
+    runPipeline({
+      totalChapters: 1,
+      maxAttempts: 3,
+      retryDelayMs: 3000,
+      fetchChapter: function () {
+        return fetchChapter(idx);
+      },
+      isSuccess: function (data) {
+        var text = '';
+        if (data && data.chapterJson && Array.isArray(data.chapterJson.sections)) {
+          text = data.chapterJson.sections
+            .map(function (row) {
+              var title = String(row && (row.title || row.label) || '').trim();
+              var body = String(row && (row.body || row.content) || '').trim();
+              if (!body) return '';
+              return title ? ('## ' + title + '\n' + body) : body;
+            })
+            .filter(Boolean)
+            .join('\n\n');
+        }
+        if (!text && data && typeof data.text === 'string') text = data.text.trim();
+        return !!(data && data.ok && text);
+      },
+      onSuccess: function (_, data) {
+        var text = '';
+        if (data && data.chapterJson && Array.isArray(data.chapterJson.sections)) {
+          text = data.chapterJson.sections
+            .map(function (row) {
+              var title = String(row && (row.title || row.label) || '').trim();
+              var body = String(row && (row.body || row.content) || '').trim();
+              if (!body) return '';
+              return title ? ('## ' + title + '\n' + body) : body;
+            })
+            .filter(Boolean)
+            .join('\n\n');
+        }
+        if (!text && data && typeof data.text === 'string') text = data.text.trim();
+        _syncChapterMetaFromResponse(idx, data);
+        _chapters[idx] = text;
+        _chapterStructured[idx] = (Array.isArray(data.sections) && data.sections.length)
+          ? { sections: data.sections }
+          : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
+        _zbSaveResult(window.__cdActiveBirthProfile || {}, _zbLastReportId);
+        _updateTocState();
+        _renderChapter(chapter);
+      },
+      onFallback: function (_, fallbackPayload) {
+        var fallbackText = String(window.__cdPremiumChapterFallbackText || '일시적인 응답 지연으로 해석을 불러오지 못했습니다. 부분 재생성 버튼을 이용해주세요.');
+        var msg = (fallbackPayload && fallbackPayload.message) ? String(fallbackPayload.message) : '알 수 없는 오류';
+        _chapters[idx] = fallbackText;
+        _chapterStructured[idx] = null;
+        _applyChapterFallback(idx, msg);
+        _zbSaveResult(window.__cdActiveBirthProfile || {}, _zbLastReportId);
+        _updateTocState();
+        _renderChapter(chapter);
+      },
+    }).catch(function (error) {
+      var msg = String(error && error.message ? error.message : error || '부분 재생성 중 오류가 발생했습니다.');
+      alert('자미두수 부분 재생성 중 오류가 발생했습니다: ' + msg);
+    });
+  }
+
+  function _ensureZiweiPartialRegenerateControl() {
+    if (typeof window.__cdAttachPartialRegenerateControl !== 'function') return;
+    window.__cdAttachPartialRegenerateControl({
+      scopeSelector: '#zbToc',
+      buttonId: 'zbPartialRegenerateBtn',
+      buttonText: '현재 챕터 재생성',
+      onClick: _regenerateZiweiCurrentChapter,
     });
   }
 
@@ -1130,6 +1224,7 @@
       _updateTocState();
       _renderChapter(1);
       _bindToc();
+      _ensureZiweiPartialRegenerateControl();
       var prof = window.__cdActiveBirthProfile || {};
       var nameEl = _qs('zbResultName');
       var dateEl = _qs('zbResultDate');
@@ -1265,107 +1360,105 @@
         _runAttempt(0);
       });
     }
+    _zbFetchChapterForPartialRegenerate = function (idx) {
+      return _fetchChapter(idx, _runId);
+    };
 
     var _failCount = 0;
-    var _generationQueue = Promise.resolve();
-    for (var _chapterIdx = 0; _chapterIdx < TOTAL_CHAPTERS; _chapterIdx += 1) {
-      (function (idx) {
-        _generationQueue = _generationQueue.then(function (state) {
-          if (state && state.aborted) return state;
-          if (!_isGenerationRunActive(_runId)) return { aborted: true };
-          if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
-          return _fetchChapter(idx, _runId).then(function (data) {
-            if (!_isGenerationRunActive(_runId)) return { aborted: true };
-            try {
+    var runPipeline = (typeof window.__cdRunPremiumChapterPipeline === 'function')
+      ? window.__cdRunPremiumChapterPipeline
+      : null;
 
-            var _zbText = '';
-            if (data && data.chapterJson && Array.isArray(data.chapterJson.sections)) {
-              _zbText = data.chapterJson.sections
-                .map(function (row) {
-                  var title = String(row && (row.title || row.label) || '').trim();
-                  var body = String(row && (row.body || row.content) || '').trim();
-                  if (!body) return '';
-                  return title ? ('## ' + title + '\n' + body) : body;
-                })
-                .filter(Boolean)
-                .join('\n\n');
-            }
-            if (!_zbText && data && typeof data.text === 'string') {
-              _zbText = data.text.trim();
-            }
-
-            var _expectedSectionCount = Array.isArray(CHAPTER_STRUCTURED_LABELS[idx + 1])
-              ? CHAPTER_STRUCTURED_LABELS[idx + 1].length
-              : 5;
-            var _hasStructuredSections = !!(data && data.chapterJson && Array.isArray(data.chapterJson.sections) && data.chapterJson.sections.length >= _expectedSectionCount);
-            var _hasUsableText = _zbText.length >= MIN_CHAPTER_CHARS;
-
-            if (data && data.ok && (_hasStructuredSections || _hasUsableText)) {
-              _syncChapterMetaFromResponse(idx, data);
-              _chapters[idx] = _zbText;
-              _chapterStructured[idx] = (Array.isArray(data.sections) && data.sections.length)
-                ? { sections: data.sections }
-                : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
-              _trace('CHAPTER_DATA_RECEIVED', { chapter: idx + 1, length: _zbText.length });
-              _trace('SECTION_GENERATION_SUCCESS', {
-                chapterId: 'ch_' + (idx + 1),
-                categoryId: null,
-                mode: 'personal',
-                hasPayload: true,
-                chapterCount: TOTAL_CHAPTERS,
-                categoryCount: Array.isArray(CHAPTER_STRUCTURED_LABELS[idx + 1]) ? CHAPTER_STRUCTURED_LABELS[idx + 1].length : 0,
-              });
-              _setProgress(idx + 1);
-              return { aborted: false };
-            }
-
-            _failCount += 1;
-            var msg = (data && data.message) ? data.message : '알 수 없는 오류';
-            var errorCode = (data && data.code) ? String(data.code) : 'UNKNOWN_ERROR';
-            _trace('CHAPTER_DATA_FAILED', { chapter: idx + 1, message: msg, code: errorCode });
-            _trace('SECTION_GENERATION_FALLBACK', {
-              chapterId: 'ch_' + (idx + 1),
-              categoryId: null,
-              mode: 'personal',
-              hasPayload: true,
-              chapterCount: TOTAL_CHAPTERS,
-              categoryCount: Array.isArray(CHAPTER_STRUCTURED_LABELS[idx + 1]) ? CHAPTER_STRUCTURED_LABELS[idx + 1].length : 0,
-              errorCode: errorCode,
-              message: msg,
-            });
-            console.error('[자미두수 PDF 생성] 섹션 생성 실패:', {
-              chapter: idx + 1,
-              code: errorCode,
-              message: msg,
-              hasChapterJson: !!(data && data.chapterJson),
-              sectionCount: (data && data.chapterJson && Array.isArray(data.chapterJson.sections)) ? data.chapterJson.sections.length : 0,
-              textLength: _zbText.length,
-              responsePreview: _sanitizeDebugValue(data || null, 0, []),
-            });
-            _applyChapterFallback(idx, msg);
-            _setProgress(idx + 1);
-            return { aborted: false };
-            } catch (chapterErr) {
-              var fallbackReason = '챕터 처리 중 예외가 발생해 로컬 복구를 적용했습니다.';
-              try {
-                var chapterErrMsg = String(chapterErr && chapterErr.message ? chapterErr.message : chapterErr);
-                if (chapterErrMsg) fallbackReason = chapterErrMsg;
-              } catch (_) {}
-              _trace('CHAPTER_RUNTIME_RECOVERED', {
-                chapter: idx + 1,
-                message: fallbackReason,
-                code: 'CHAPTER_RUNTIME_EXCEPTION',
-              });
-              _applyChapterFallback(idx, fallbackReason);
-              _setProgress(idx + 1);
-              return { aborted: false };
-            }
-          });
-        });
-      })(_chapterIdx);
+    if (!runPipeline) {
+      _finishGenerationFailure('공통 챕터 파이프라인을 불러오지 못했습니다.', { code: 'MISSING_CHAPTER_PIPELINE' });
+      return;
     }
 
-    _generationQueue
+    var fallbackText = String(window.__cdPremiumChapterFallbackText || '일시적인 응답 지연으로 해석을 불러오지 못했습니다. 부분 재생성 버튼을 이용해주세요.');
+    runPipeline({
+      totalChapters: TOTAL_CHAPTERS,
+      maxAttempts: 3,
+      interChapterDelayMs: 3000,
+      retryDelayMs: 3000,
+      shouldStop: function () { return !_isGenerationRunActive(_runId); },
+      fetchChapter: function (idx) {
+        if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
+        return _fetchChapter(idx, _runId);
+      },
+      isSuccess: function (data, idx) {
+        var text = '';
+        if (data && data.chapterJson && Array.isArray(data.chapterJson.sections)) {
+          text = data.chapterJson.sections
+            .map(function (row) {
+              var title = String(row && (row.title || row.label) || '').trim();
+              var body = String(row && (row.body || row.content) || '').trim();
+              if (!body) return '';
+              return title ? ('## ' + title + '\n' + body) : body;
+            })
+            .filter(Boolean)
+            .join('\n\n');
+        }
+        if (!text && data && typeof data.text === 'string') text = data.text.trim();
+        var expected = Array.isArray(CHAPTER_STRUCTURED_LABELS[idx + 1]) ? CHAPTER_STRUCTURED_LABELS[idx + 1].length : 5;
+        var hasSections = !!(data && data.chapterJson && Array.isArray(data.chapterJson.sections) && data.chapterJson.sections.length >= expected);
+        var hasText = text.length >= MIN_CHAPTER_CHARS;
+        return !!(data && data.ok && (hasSections || hasText));
+      },
+      onSuccess: function (idx, data) {
+        var zbText = '';
+        if (data && data.chapterJson && Array.isArray(data.chapterJson.sections)) {
+          zbText = data.chapterJson.sections
+            .map(function (row) {
+              var title = String(row && (row.title || row.label) || '').trim();
+              var body = String(row && (row.body || row.content) || '').trim();
+              if (!body) return '';
+              return title ? ('## ' + title + '\n' + body) : body;
+            })
+            .filter(Boolean)
+            .join('\n\n');
+        }
+        if (!zbText && data && typeof data.text === 'string') zbText = data.text.trim();
+
+        _syncChapterMetaFromResponse(idx, data);
+        _chapters[idx] = zbText;
+        _chapterStructured[idx] = (Array.isArray(data.sections) && data.sections.length)
+          ? { sections: data.sections }
+          : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
+        _trace('CHAPTER_DATA_RECEIVED', { chapter: idx + 1, length: zbText.length });
+        _trace('SECTION_GENERATION_SUCCESS', {
+          chapterId: 'ch_' + (idx + 1),
+          categoryId: null,
+          mode: 'personal',
+          hasPayload: true,
+          chapterCount: TOTAL_CHAPTERS,
+          categoryCount: Array.isArray(CHAPTER_STRUCTURED_LABELS[idx + 1]) ? CHAPTER_STRUCTURED_LABELS[idx + 1].length : 0,
+        });
+        _zbSaveResult(window.__cdActiveBirthProfile || {}, _zbLastReportId);
+      },
+      onFallback: function (idx, fallbackPayload, data) {
+        _failCount += 1;
+        var msg = (fallbackPayload && fallbackPayload.message) ? String(fallbackPayload.message) : ((data && data.message) ? String(data.message) : '알 수 없는 오류');
+        var errorCode = (data && data.code) ? String(data.code) : 'UNKNOWN_ERROR';
+        _trace('CHAPTER_DATA_FAILED', { chapter: idx + 1, message: msg, code: errorCode });
+        _trace('SECTION_GENERATION_FALLBACK', {
+          chapterId: 'ch_' + (idx + 1),
+          categoryId: null,
+          mode: 'personal',
+          hasPayload: true,
+          chapterCount: TOTAL_CHAPTERS,
+          categoryCount: Array.isArray(CHAPTER_STRUCTURED_LABELS[idx + 1]) ? CHAPTER_STRUCTURED_LABELS[idx + 1].length : 0,
+          errorCode: errorCode,
+          message: msg,
+        });
+        _chapters[idx] = fallbackText;
+        _chapterStructured[idx] = null;
+        _applyChapterFallback(idx, msg);
+        _zbSaveResult(window.__cdActiveBirthProfile || {}, _zbLastReportId);
+      },
+      onProgress: function (idx) {
+        _setProgress(idx + 1);
+      },
+    })
       .then(function (state) {
         if (state && state.aborted) return;
         _finishGenerationSuccess();
@@ -1374,6 +1467,7 @@
         try {
           for (var i = 0; i < TOTAL_CHAPTERS; i += 1) {
             if (typeof _chapters[i] === 'string' && _chapters[i].trim().length > 0) continue;
+            _chapters[i] = fallbackText;
             _applyChapterFallback(i, '일시적 예외 복구로 기본 챕터를 생성했습니다.');
           }
           _setProgress(TOTAL_CHAPTERS);

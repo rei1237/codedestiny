@@ -108,6 +108,8 @@
   var _premiumPaidUntil = 0;
   var _lbPendingSavedResult = null;
   var _lbJobStateKey = 'cd:premium-job:life-book';
+  var _lbCurrentReportId = '';
+  var _lbPartialFetchChapter = null;
 
   function _lbGetJobClient() {
     return (typeof window !== 'undefined' && window.CDPremiumPdfJobClient) ? window.CDPremiumPdfJobClient : null;
@@ -700,6 +702,70 @@
     }
     var lbEpBannerSaved = _qs('lbEpilogueBanner');
     if (lbEpBannerSaved) lbEpBannerSaved.style.display = '';
+    _lbEnsurePartialRegenerateControl();
+  }
+
+  function _lbResolveActiveChapter() {
+    var activeBtn = document.querySelector('.lb-toc .lb-toc-item.active[data-lb-chapter]');
+    var byUi = activeBtn ? Number(activeBtn.getAttribute('data-lb-chapter')) : 0;
+    if (Number.isFinite(byUi) && byUi >= 1) return byUi;
+    return Math.max(1, Number(_currentChapter || 1));
+  }
+
+  function _lbRegenerateChapter(chapter) {
+    var idx = Number(chapter) - 1;
+    if (!Number.isFinite(idx) || idx < 0 || idx >= LIFEBOOK_TOTAL_CHAPTERS) {
+      return Promise.reject(new Error('유효하지 않은 챕터입니다.'));
+    }
+    if (!_lbCurrentReportId || typeof _lbPartialFetchChapter !== 'function') {
+      return Promise.reject(new Error('재생성 컨텍스트가 준비되지 않았습니다.'));
+    }
+    var runPipeline = (typeof window.__cdRunPremiumChapterPipeline === 'function')
+      ? window.__cdRunPremiumChapterPipeline
+      : null;
+    if (!runPipeline) {
+      return Promise.reject(new Error('공통 챕터 파이프라인을 찾을 수 없습니다.'));
+    }
+    var fallbackText = String(window.__cdPremiumChapterFallbackText || '일시적인 응답 지연으로 해석을 불러오지 못했습니다. 부분 재생성 버튼을 이용해주세요.');
+    return runPipeline({
+      totalChapters: 1,
+      maxAttempts: 3,
+      interChapterDelayMs: 0,
+      retryDelayMs: 3000,
+      fetchChapter: function () { return _lbPartialFetchChapter(idx); },
+      isSuccess: function (data) {
+        var text = data && typeof data.text === 'string' ? data.text.trim() : '';
+        return !!(data && data.ok && text.length >= 500);
+      },
+      onSuccess: function (_chapterIdx, data) {
+        _syncChapterMetaFromResponse(idx, data);
+        _chapters[idx] = String(data.text || '').trim();
+        _chapterStructured[idx] = (Array.isArray(data.sections) && data.sections.length)
+          ? { sections: data.sections }
+          : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
+        _lbSaveResult(window.__cdActiveBirthProfile || {});
+      },
+      onFallback: function () {
+        _chapters[idx] = fallbackText;
+        _chapterStructured[idx] = null;
+        _lbSaveResult(window.__cdActiveBirthProfile || {});
+      },
+    }).then(function () {
+      _currentChapter = idx + 1;
+      _updateTocState();
+      _renderChapter(idx + 1);
+    });
+  }
+
+  function _lbEnsurePartialRegenerateControl() {
+    if (typeof window.__cdAttachPartialRegenerateControl !== 'function') return;
+    window.__cdAttachPartialRegenerateControl({
+      key: 'life-book',
+      mountSelector: '.lb-toc',
+      buttonLabel: '현재 챕터 부분 재생성',
+      getActiveChapter: _lbResolveActiveChapter,
+      onRegenerate: _lbRegenerateChapter,
+    });
   }
 
   function _lbEnsureHistoryButton(modal) {
@@ -842,6 +908,8 @@
       '</div>';
     content.innerHTML = html;
     content.scrollTop = 0;
+    _currentChapter = Math.max(1, Math.min(LIFEBOOK_TOTAL_CHAPTERS, Number(ch || 1)));
+    _updateTocState();
   }
 
   function _escHtml(s) {
@@ -1004,6 +1072,7 @@
     _setProgress(0);
 
     var _lbReportId = 'lifebook_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+    _lbCurrentReportId = _lbReportId;
 
     function _lbReadPremiumAccessToken() {
       var token = '';
@@ -1117,85 +1186,111 @@
         _runAttempt(0);
       });
     }
+    _lbPartialFetchChapter = _fetchChapter;
 
     var _failCount = 0;
 
-    // 챕터 순차 생성
-    (function generateNext(idx) {
-      if (_cancelGeneration) {
-        if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
-        return;
-      }
-      if (idx >= LIFEBOOK_TOTAL_CHAPTERS) {
-        clearInterval(_mysticTimer);
-        _mysticTimer = null;
-        _generating = false;
-
-        // 유효 챕터 수 체크 — 500자 이상, ⚠️ 없는 챕터가 10개 미만이면 실패 처리
-        var _validCount = _chapters.filter(function(c) {
-          return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
-        }).length;
-        if (_validCount < 10) {
-          console.warn('[인생의 책] 일부 챕터가 불완전합니다. PDF는 생성 가능합니다. 성공:', _validCount, '/' + LIFEBOOK_TOTAL_CHAPTERS);
-        }
-        _flowLog('FRONT_PREVIEW_READY', { message: 'all-chapters-ready', categoryCount: _validCount });
-
-        _showScreen('lbResultScreen');
-        _updateTocState();
-        _renderChapter(1);
-        _bindToc();
-
-        var prof = window.__cdActiveBirthProfile || {};
-        var nameEl = _qs('lbResultName');
-        var dateEl = _qs('lbResultDate');
-        if (nameEl) nameEl.textContent = '📜 ' + (prof.name || '사용자') + '님의 인생의 책';
-        if (dateEl) {
-          var b = prof.birth || {};
-          dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · ' + (prof.gender === 'F' ? '여성' : prof.gender === 'M' ? '남성' : '') + ' · 🗓️ ' + new Date().toLocaleDateString('ko-KR') + ' 발행';
-        }
-        _lbSaveResult(prof);
-        _lbRunPremiumJob(LIFEBOOK_TOTAL_CHAPTERS);
-        // 마무리 배너 표시
-        var lbEpBanner = _qs('lbEpilogueBanner');
-        if (lbEpBanner) lbEpBanner.style.display = '';
-        return;
+    (async function runLifeBookChapterPipeline() {
+      var runPipeline = (typeof window.__cdRunPremiumChapterPipeline === 'function')
+        ? window.__cdRunPremiumChapterPipeline
+        : null;
+      if (!runPipeline) {
+        throw new Error('공통 챕터 파이프라인을 불러오지 못했습니다.');
       }
 
-      if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
-
-      _fetchChapter(idx).then(function (data) {
-        if (_cancelGeneration) return;
-        var _text = data && typeof data.text === 'string' ? data.text.trim() : '';
-        if (data && data.ok && _text.length >= 500) {
+      var fallbackText = String(window.__cdPremiumChapterFallbackText || '일시적인 응답 지연으로 해석을 불러오지 못했습니다. 부분 재생성 버튼을 이용해주세요.');
+      await runPipeline({
+        totalChapters: LIFEBOOK_TOTAL_CHAPTERS,
+        maxAttempts: 3,
+        interChapterDelayMs: 3000,
+        retryDelayMs: 3000,
+        shouldStop: function () { return _cancelGeneration; },
+        fetchChapter: function (idx) {
+          if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
+          return _fetchChapter(idx);
+        },
+        isSuccess: function (data) {
+          var text = data && typeof data.text === 'string' ? data.text.trim() : '';
+          return !!(data && data.ok && text.length >= 500);
+        },
+        onSuccess: function (idx, data) {
           _syncChapterMetaFromResponse(idx, data);
           _chapters[idx] = data.text;
           _chapterStructured[idx] = (Array.isArray(data.sections) && data.sections.length)
             ? { sections: data.sections }
             : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
-        } else {
-          _failCount++;
-          var msg;
-          if (data && data.ok && _text.length > 0 && _text.length < 500) {
-            msg = '챕터 내용이 너무 짧습니다 (' + _text.length + '자). API가 불완전한 응답을 반환했습니다.';
-          } else {
-            msg = (data && data.message) ? data.message : '알 수 없는 오류';
-          }
+          _lbSaveResult(window.__cdActiveBirthProfile || {});
+        },
+        onFallback: function (idx, fallbackPayload, data) {
+          _failCount += 1;
+          var text = data && typeof data.text === 'string' ? data.text.trim() : '';
+          var msg = fallbackPayload && fallbackPayload.message
+            ? String(fallbackPayload.message)
+            : (text && text.length > 0 && text.length < 500
+              ? '챕터 내용이 너무 짧습니다 (' + text.length + '자). API가 불완전한 응답을 반환했습니다.'
+              : '알 수 없는 오류');
           console.warn('[인생의 책] Chapter ' + (idx + 1) + ' 실패:', msg);
-          _chapters[idx] = _buildChapterSkeleton(idx, msg);
+          _chapters[idx] = fallbackText;
           _chapterStructured[idx] = null;
-        }
-        _setProgress(idx + 1);
-        generateNext(idx + 1);
+          _lbSaveResult(window.__cdActiveBirthProfile || {});
+        },
+        onProgress: function (idx) {
+          _setProgress(idx + 1);
+        },
       });
-    })(0);
+
+      if (_cancelGeneration) {
+        if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
+        return;
+      }
+
+      clearInterval(_mysticTimer);
+      _mysticTimer = null;
+      _generating = false;
+
+      var _validCount = _chapters.filter(function(c) {
+        return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
+      }).length;
+      if (_validCount < 10) {
+        console.warn('[인생의 책] 일부 챕터가 불완전합니다. PDF는 생성 가능합니다. 성공:', _validCount, '/' + LIFEBOOK_TOTAL_CHAPTERS);
+      }
+      _flowLog('FRONT_PREVIEW_READY', { message: 'all-chapters-ready', categoryCount: _validCount });
+
+      _showScreen('lbResultScreen');
+      _updateTocState();
+      _renderChapter(1);
+      _bindToc();
+      _lbEnsurePartialRegenerateControl();
+
+      var prof = window.__cdActiveBirthProfile || {};
+      var nameEl = _qs('lbResultName');
+      var dateEl = _qs('lbResultDate');
+      if (nameEl) nameEl.textContent = '📜 ' + (prof.name || '사용자') + '님의 인생의 책';
+      if (dateEl) {
+        var b = prof.birth || {};
+        dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · ' + (prof.gender === 'F' ? '여성' : prof.gender === 'M' ? '남성' : '') + ' · 🗓️ ' + new Date().toLocaleDateString('ko-KR') + ' 발행';
+      }
+      _lbSaveResult(prof);
+      _lbRunPremiumJob(LIFEBOOK_TOTAL_CHAPTERS);
+      var lbEpBanner = _qs('lbEpilogueBanner');
+      if (lbEpBanner) lbEpBanner.style.display = '';
+    })().catch(function (error) {
+      clearInterval(_mysticTimer);
+      _mysticTimer = null;
+      _generating = false;
+      var errMsg = String(error && error.message ? error.message : error || '챕터 생성 중 오류가 발생했습니다.');
+      _flowLog('FRONT_PIPELINE_FAILED', { message: errMsg });
+      alert('인생의 책 생성 중 오류가 발생했습니다: ' + errMsg);
+    });
   };
 
   function _updateTocState() {
     var items = document.querySelectorAll('.lb-toc-item');
+    var active = Math.max(1, Math.min(LIFEBOOK_TOTAL_CHAPTERS, Number(_currentChapter || 1)));
     Array.prototype.forEach.call(items, function (btn) {
       var ch = Number(btn.getAttribute('data-lb-chapter'));
       btn.classList.toggle('loaded', !!_chapters[ch - 1]);
-      btn.classList.toggle('active', ch === 1);
+      btn.classList.toggle('active', ch === active);
     });
   }
 

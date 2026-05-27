@@ -179,6 +179,8 @@
   var _quoteIdx = 0;
   var _activeRequestController = null;
   var _cancelGeneration = false;
+  var _lsCurrentReportId = '';
+  var _lsFetchChapterForPartialRegenerate = null;
   var _lsJobStateKey = 'cd:premium-job:love-secret';
   var LOVE_SECRET_FEATURE_KEYS = {
     solo: 'premium-love-secret-solo',
@@ -985,6 +987,73 @@
     });
   }
 
+  function _resolveLoveSecretActiveChapter() {
+    var activeBtn = document.querySelector('.ls-toc-item.active[data-ls-chapter]');
+    var ch = Number(activeBtn ? activeBtn.getAttribute('data-ls-chapter') : 1);
+    if (!Number.isFinite(ch) || ch < 1 || ch > _chapters.length) ch = 1;
+    return ch;
+  }
+
+  function _regenerateLoveSecretCurrentChapter() {
+    var chapter = _resolveLoveSecretActiveChapter();
+    var idx = chapter - 1;
+    var fetchChapter = _lsFetchChapterForPartialRegenerate;
+    var runPipeline = (typeof window.__cdRunPremiumChapterPipeline === 'function')
+      ? window.__cdRunPremiumChapterPipeline
+      : null;
+    if (!runPipeline) {
+      alert('공통 챕터 파이프라인을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      return;
+    }
+    if (!_lsCurrentReportId || typeof fetchChapter !== 'function') {
+      alert('현재 세션 정보가 부족해 부분 재생성을 시작할 수 없습니다. 리포트를 다시 생성한 뒤 시도해 주세요.');
+      return;
+    }
+
+    runPipeline({
+      totalChapters: 1,
+      maxAttempts: 3,
+      retryDelayMs: 3000,
+      fetchChapter: function () {
+        return fetchChapter(idx);
+      },
+      isSuccess: function (data) {
+        return !!(data && data.ok && data.text);
+      },
+      onSuccess: function (_, data) {
+        _syncChapterMetaFromResponse(idx, data);
+        _chapters[idx] = String(data.text || '').trim();
+        _chapterStructured[idx] = (Array.isArray(data.sections) && data.sections.length)
+          ? { sections: data.sections }
+          : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
+        _saveResult(window.__cdActiveBirthProfile || {});
+        _renderChapter(chapter);
+      },
+      onFallback: function (_, fallbackPayload) {
+        var fallbackText = String(window.__cdPremiumChapterFallbackText || '일시적인 응답 지연으로 해석을 불러오지 못했습니다. 부분 재생성 버튼을 이용해주세요.');
+        var msg = (fallbackPayload && fallbackPayload.message) ? String(fallbackPayload.message) : '알 수 없는 오류';
+        _chapters[idx] = fallbackText;
+        _chapterStructured[idx] = null;
+        console.warn('[연애 비책] Chapter ' + chapter + ' 부분 재생성 실패:', msg);
+        _saveResult(window.__cdActiveBirthProfile || {});
+        _renderChapter(chapter);
+      },
+    }).catch(function (error) {
+      var msg = String(error && error.message ? error.message : error || '부분 재생성 중 오류가 발생했습니다.');
+      alert('연애 비책 부분 재생성 중 오류가 발생했습니다: ' + msg);
+    });
+  }
+
+  function _ensureLoveSecretPartialRegenerateControl() {
+    if (typeof window.__cdAttachPartialRegenerateControl !== 'function') return;
+    window.__cdAttachPartialRegenerateControl({
+      scopeSelector: '.ls-toc',
+      buttonId: 'lsPartialRegenerateBtn',
+      buttonText: '현재 챕터 재생성',
+      onClick: _regenerateLoveSecretCurrentChapter,
+    });
+  }
+
   function _renderChapter(ch) {
     var content = _qs('lsChapterContent');
     if (!content) return;
@@ -1152,6 +1221,7 @@
     _setProgress(0);
 
     var _lsReportId = 'love_secret_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+    _lsCurrentReportId = _lsReportId;
 
     function _lsReadPremiumAccessToken() {
       var token = '';
@@ -1268,48 +1338,69 @@
         _runAttempt(0);
       });
     }
+    _lsFetchChapterForPartialRegenerate = _fetchChapter;
 
-    (function generateNext(idx) {
-      if (_cancelGeneration) return;
-      if (idx >= totalChapters) {
-        _generating = false;
-        _stopLoadingAnimation();
-        _showScreen('lsResultScreen');
-        _renderTocButtons(totalChapters);
-        _updateTocState(1);
-        _renderChapter(1);
-        _bindToc();
-        var profile = window.__cdActiveBirthProfile || {};
-        _saveResult(profile);
-        _renderResultHeader(profile.name, profile.birth, profile.gender, new Date(), true);
-        _lsRunPremiumJob(totalChapters);
-        return;
+    (async function runLoveSecretChapterPipeline() {
+      var runPipeline = (typeof window.__cdRunPremiumChapterPipeline === 'function')
+        ? window.__cdRunPremiumChapterPipeline
+        : null;
+      if (!runPipeline) {
+        throw new Error('공통 챕터 파이프라인을 불러오지 못했습니다.');
       }
-      if (chapterMsg) chapterMsg.textContent = _getLoveSecretLoadingMessage(idx, _currentChapterMode);
-      _fetchChapter(idx).then(function (data) {
-          if (_cancelGeneration) return;
-          if (data && data.ok && data.text) {
-            _syncChapterMetaFromResponse(idx, data);
-            _chapters[idx] = data.text;
-            _chapterStructured[idx] = (Array.isArray(data.sections) && data.sections.length)
-              ? { sections: data.sections }
-              : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
-          } else {
-            var msg = (data && data.message) ? data.message : '알 수 없는 오류';
-            _chapters[idx] = _buildChapterSkeleton(idx, msg);
-            _chapterStructured[idx] = null;
-          }
-          _setProgress(idx + 1);
-          generateNext(idx + 1);
-        })
-        .catch(function (err) {
-          if (_cancelGeneration) return;
-          _chapters[idx] = _buildChapterSkeleton(idx, String(err && err.message ? err.message : err));
+
+      var fallbackText = String(window.__cdPremiumChapterFallbackText || '일시적인 응답 지연으로 해석을 불러오지 못했습니다. 부분 재생성 버튼을 이용해주세요.');
+      await runPipeline({
+        totalChapters: totalChapters,
+        maxAttempts: 3,
+        interChapterDelayMs: 3000,
+        retryDelayMs: 3000,
+        shouldStop: function () { return _cancelGeneration; },
+        fetchChapter: function (idx) {
+          if (chapterMsg) chapterMsg.textContent = _getLoveSecretLoadingMessage(idx, _currentChapterMode);
+          return _fetchChapter(idx);
+        },
+        isSuccess: function (data) {
+          return !!(data && data.ok && data.text);
+        },
+        onSuccess: function (idx, data) {
+          _syncChapterMetaFromResponse(idx, data);
+          _chapters[idx] = data.text;
+          _chapterStructured[idx] = (Array.isArray(data.sections) && data.sections.length)
+            ? { sections: data.sections }
+            : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
+          _saveResult(window.__cdActiveBirthProfile || {});
+        },
+        onFallback: function (idx, fallbackPayload) {
+          var msg = (fallbackPayload && fallbackPayload.message) ? String(fallbackPayload.message) : '알 수 없는 오류';
+          _chapters[idx] = fallbackText;
           _chapterStructured[idx] = null;
+          console.warn('[연애 비책] Chapter ' + (idx + 1) + ' 실패:', msg);
+          _saveResult(window.__cdActiveBirthProfile || {});
+        },
+        onProgress: function (idx) {
           _setProgress(idx + 1);
-          generateNext(idx + 1);
-        });
-    })(0);
+        },
+      });
+
+      if (_cancelGeneration) return;
+      _generating = false;
+      _stopLoadingAnimation();
+      _showScreen('lsResultScreen');
+      _renderTocButtons(totalChapters);
+      _updateTocState(1);
+      _renderChapter(1);
+      _bindToc();
+      _ensureLoveSecretPartialRegenerateControl();
+      var profile = window.__cdActiveBirthProfile || {};
+      _saveResult(profile);
+      _renderResultHeader(profile.name, profile.birth, profile.gender, new Date(), true);
+      _lsRunPremiumJob(totalChapters);
+    })().catch(function (error) {
+      _generating = false;
+      _stopLoadingAnimation();
+      var msg = String(error && error.message ? error.message : error || '챕터 생성 중 오류가 발생했습니다.');
+      alert('연애 비책 생성 중 오류가 발생했습니다: ' + msg);
+    });
   }
 
   window.downloadLoveSecretPdf = function () {

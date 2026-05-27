@@ -1059,6 +1059,112 @@
     if (resultDate) resultDate.textContent = formatDateLabel() + ' 생성 완료';
     showOnly('nyResultScreen');
     openResultChapter(state.activeChapter || 1);
+    ensureNewYearPartialRegenerateControl();
+  }
+
+  function requestSajuNewYearChapter(chapter) {
+    var chapterMeta = CHAPTER_DEFINITIONS[chapter - 1] || {};
+    return premiumAuthJson('/api/saju-new-year/generate-chapter', {
+      reportSessionId: state.reportSessionId,
+      chapterId: chapter,
+      chapter: chapter,
+      reportType: SAJU_NEW_YEAR_REPORT_TYPE,
+      featureType: SAJU_NEW_YEAR_FEATURE_TYPE,
+      strictNoFallback: false,
+      chapterTitle: String(chapterMeta.title || ('CHAPTER ' + chapter)),
+      chapterSubtitle: String(chapterMeta.subtitle || ''),
+      chapterSpecificSections: Array.isArray(CHAPTER_STRUCTURED_LABELS[chapter])
+        ? CHAPTER_STRUCTURED_LABELS[chapter]
+        : [],
+      requestBody: Object.assign({}, state.payload || {}, {
+        _premiumStrictPayload: true,
+        _premiumStrictValidation: true
+      }),
+      requestId: 'newyear:chapter:' + chapter + ':' + Date.now().toString(36)
+    }, {
+      maxAttempts: 1
+    });
+  }
+
+  function regenerateSajuNewYearCurrentChapter() {
+    var chapter = Number(state.activeChapter || 1);
+    if (!Number.isFinite(chapter) || chapter < 1 || chapter > TOTAL_CHAPTERS) chapter = 1;
+    if (!state.reportSessionId) {
+      alert('리포트 세션 정보가 없어 부분 재생성을 시작할 수 없습니다. 리포트를 다시 생성해 주세요.');
+      return;
+    }
+    var runPipeline = (typeof window.__cdRunPremiumChapterPipeline === 'function')
+      ? window.__cdRunPremiumChapterPipeline
+      : null;
+    if (!runPipeline) {
+      alert('공통 챕터 파이프라인을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      return;
+    }
+
+    runPipeline({
+      totalChapters: 1,
+      maxAttempts: 3,
+      retryDelayMs: 3000,
+      fetchChapter: function () {
+        return requestSajuNewYearChapter(chapter);
+      },
+      shouldFailFast: function (response) {
+        var status = Number((response && response.status) || 0);
+        var code = String((response && response.code) || '').toUpperCase();
+        return status === 401 || status === 402 || status === 422
+          || code === 'AUTH_REQUIRED' || code === 'UNAUTHORIZED' || code === 'PAYMENT_REQUIRED';
+      },
+      isSuccess: function (response) {
+        return !!(response && response.ok);
+      },
+      onSuccess: function (_, response) {
+        state.chapterTexts[chapter] = String(response.text || '').trim();
+        state.chapterStructured[chapter] = response.chapterJson && typeof response.chapterJson === 'object' ? response.chapterJson : null;
+        if (!state.chapterTexts[chapter]) {
+          state.chapterTexts[chapter] = deriveTextFromChapterJson(state.chapterStructured[chapter]);
+        }
+        state.chapterMeta[chapter] = response.chapterMeta || {
+          title: CHAPTER_DEFINITIONS[chapter - 1].title,
+          subtitle: CHAPTER_DEFINITIONS[chapter - 1].subtitle
+        };
+        if (response.reportSessionId) state.reportSessionId = String(response.reportSessionId);
+        if (response.reportId) state.reportId = String(response.reportId);
+        persistState();
+        openResultChapter(chapter);
+      },
+      onFallback: function (_, fallbackPayload) {
+        var fallbackText = String(window.__cdPremiumChapterFallbackText || '일시적인 응답 지연으로 해석을 불러오지 못했습니다. 부분 재생성 버튼을 이용해주세요.');
+        var message = String((fallbackPayload && fallbackPayload.message) || ('챕터 ' + chapter + ' 생성 지연'));
+        state.chapterTexts[chapter] = fallbackText;
+        state.chapterStructured[chapter] = null;
+        state.chapterMeta[chapter] = state.chapterMeta[chapter] || {
+          title: CHAPTER_DEFINITIONS[chapter - 1].title,
+          subtitle: CHAPTER_DEFINITIONS[chapter - 1].subtitle
+        };
+        logSajuNewYearFlow('SECTION_GENERATION_FALLBACK', {
+          chapterId: chapter,
+          chapterTitle: String(CHAPTER_DEFINITIONS[chapter - 1] && CHAPTER_DEFINITIONS[chapter - 1].title || ''),
+          reportSessionId: String(state.reportSessionId || ''),
+          source: 'fallback',
+          message: message
+        });
+        persistState();
+        openResultChapter(chapter);
+      }
+    }).catch(function (error) {
+      var msg = String(error && error.message ? error.message : error || '부분 재생성 중 오류가 발생했습니다.');
+      alert('신년운세 부분 재생성 중 오류가 발생했습니다: ' + msg);
+    });
+  }
+
+  function ensureNewYearPartialRegenerateControl() {
+    if (typeof window.__cdAttachPartialRegenerateControl !== 'function') return;
+    window.__cdAttachPartialRegenerateControl({
+      scopeSelector: '.ny-toc',
+      buttonId: 'nyPartialRegenerateBtn',
+      buttonText: '현재 챕터 재생성',
+      onClick: regenerateSajuNewYearCurrentChapter
+    });
   }
 
   function hasCompleteSavedResult() {
@@ -1507,77 +1613,90 @@
     }
     state.paymentVerified = true;
 
-    for (var chapter = 1; chapter <= TOTAL_CHAPTERS; chapter += 1) {
-      if (state.chapterTexts[chapter]) {
-        setLoadingProgress(chapter + 1 > TOTAL_CHAPTERS ? TOTAL_CHAPTERS : chapter + 1, CHAPTER_DEFINITIONS[Math.min(TOTAL_CHAPTERS - 1, chapter)].title);
-        continue;
-      }
+    var runPipeline = (typeof window.__cdRunPremiumChapterPipeline === 'function')
+      ? window.__cdRunPremiumChapterPipeline
+      : null;
+    if (!runPipeline) {
+      throw new Error('공통 챕터 파이프라인을 불러오지 못했습니다.');
+    }
 
-      logSajuNewYearFlow('SECTION_GENERATION_START', {
-        chapterId: chapter,
-        chapterTitle: String(CHAPTER_DEFINITIONS[chapter - 1] && CHAPTER_DEFINITIONS[chapter - 1].title || ''),
-        reportSessionId: String(state.reportSessionId || '')
-      });
+    var fallbackText = String(window.__cdPremiumChapterFallbackText || '일시적인 응답 지연으로 해석을 불러오지 못했습니다. 부분 재생성 버튼을 이용해주세요.');
+    await runPipeline({
+      totalChapters: TOTAL_CHAPTERS,
+      maxAttempts: 3,
+      interChapterDelayMs: 3000,
+      retryDelayMs: 3000,
+      shouldStop: function () { return !state.generating; },
+      fetchChapter: async function (idx) {
+        var chapter = idx + 1;
+        if (state.chapterTexts[chapter]) {
+          return { ok: true, text: state.chapterTexts[chapter], chapterJson: state.chapterStructured[chapter], chapterMeta: state.chapterMeta[chapter], source: 'cached' };
+        }
 
-      setLoadingProgress(chapter, CHAPTER_DEFINITIONS[chapter - 1].title);
-      var chapterMeta = CHAPTER_DEFINITIONS[chapter - 1] || {};
+        logSajuNewYearFlow('SECTION_GENERATION_START', {
+          chapterId: chapter,
+          chapterTitle: String(CHAPTER_DEFINITIONS[chapter - 1] && CHAPTER_DEFINITIONS[chapter - 1].title || ''),
+          reportSessionId: String(state.reportSessionId || '')
+        });
 
-      var response = await premiumAuthJson('/api/saju-new-year/generate-chapter', {
-        reportSessionId: state.reportSessionId,
-        chapterId: chapter,
-        chapter: chapter,
-        reportType: SAJU_NEW_YEAR_REPORT_TYPE,
-        featureType: SAJU_NEW_YEAR_FEATURE_TYPE,
-        strictNoFallback: false,
-        chapterTitle: String(chapterMeta.title || ('CHAPTER ' + chapter)),
-        chapterSubtitle: String(chapterMeta.subtitle || ''),
-        chapterSpecificSections: Array.isArray(CHAPTER_STRUCTURED_LABELS[chapter])
-          ? CHAPTER_STRUCTURED_LABELS[chapter]
-          : [],
-        requestBody: Object.assign({}, state.payload || {}, {
-          _premiumStrictPayload: true,
-          _premiumStrictValidation: true
-        }),
-        requestId: 'newyear:chapter:' + chapter + ':' + Date.now().toString(36)
-      }, {
-        maxAttempts: 2
-      });
-
-      if (!response || !response.ok) {
+        setLoadingProgress(chapter, CHAPTER_DEFINITIONS[chapter - 1].title);
+        return requestSajuNewYearChapter(chapter);
+      },
+      shouldFailFast: function (response) {
         var status = Number((response && response.status) || 0);
         var code = String((response && response.code) || '').toUpperCase();
-        if (status === 401 || code === 'AUTH_REQUIRED' || code === 'UNAUTHORIZED') {
-          throw new Error('로그인이 만료되었습니다. 다시 로그인 후 시도해 주세요.');
+        return status === 401 || status === 402 || status === 422
+          || code === 'AUTH_REQUIRED' || code === 'UNAUTHORIZED' || code === 'PAYMENT_REQUIRED';
+      },
+      isSuccess: function (response) {
+        return !!(response && response.ok);
+      },
+      onSuccess: function (idx, response) {
+        var chapter = idx + 1;
+        state.chapterTexts[chapter] = String(response.text || '').trim();
+        state.chapterStructured[chapter] = response.chapterJson && typeof response.chapterJson === 'object' ? response.chapterJson : null;
+        if (!state.chapterTexts[chapter]) {
+          state.chapterTexts[chapter] = deriveTextFromChapterJson(state.chapterStructured[chapter]);
         }
-        if (status === 402 || code === 'PAYMENT_REQUIRED') {
-          throw new Error('결제 확인이 필요합니다. 코인 차감 상태를 확인해 주세요.');
-        }
-        throw new Error(String((response && response.message) || ('챕터 ' + chapter + ' 생성에 실패했습니다.')));
+        state.chapterMeta[chapter] = response.chapterMeta || {
+          title: CHAPTER_DEFINITIONS[chapter - 1].title,
+          subtitle: CHAPTER_DEFINITIONS[chapter - 1].subtitle
+        };
+        if (response.reportSessionId) state.reportSessionId = String(response.reportSessionId);
+        if (response.reportId) state.reportId = String(response.reportId);
+
+        logSajuNewYearFlow('SECTION_GENERATION_SUCCESS', {
+          chapterId: chapter,
+          chapterTitle: String(CHAPTER_DEFINITIONS[chapter - 1] && CHAPTER_DEFINITIONS[chapter - 1].title || ''),
+          reportSessionId: String(state.reportSessionId || ''),
+          source: String(response.source || 'llm')
+        });
+
+        persistState();
+      },
+      onFallback: function (idx, fallbackPayload) {
+        var chapter = idx + 1;
+        var message = String((fallbackPayload && fallbackPayload.message) || ('챕터 ' + chapter + ' 생성 지연'));
+        state.chapterTexts[chapter] = fallbackText;
+        state.chapterStructured[chapter] = null;
+        state.chapterMeta[chapter] = state.chapterMeta[chapter] || {
+          title: CHAPTER_DEFINITIONS[chapter - 1].title,
+          subtitle: CHAPTER_DEFINITIONS[chapter - 1].subtitle
+        };
+        logSajuNewYearFlow('SECTION_GENERATION_FALLBACK', {
+          chapterId: chapter,
+          chapterTitle: String(CHAPTER_DEFINITIONS[chapter - 1] && CHAPTER_DEFINITIONS[chapter - 1].title || ''),
+          reportSessionId: String(state.reportSessionId || ''),
+          source: 'fallback',
+          message: message
+        });
+        persistState();
+      },
+      onProgress: function (idx) {
+        var chapter = idx + 1;
+        setLoadingProgress(chapter + 1 > TOTAL_CHAPTERS ? TOTAL_CHAPTERS : chapter + 1, CHAPTER_DEFINITIONS[Math.min(TOTAL_CHAPTERS - 1, chapter)].title);
       }
-
-      state.chapterTexts[chapter] = String(response.text || '').trim();
-      state.chapterStructured[chapter] = response.chapterJson && typeof response.chapterJson === 'object' ? response.chapterJson : null;
-      if (!state.chapterTexts[chapter]) {
-        state.chapterTexts[chapter] = deriveTextFromChapterJson(state.chapterStructured[chapter]);
-      }
-      state.chapterMeta[chapter] = response.chapterMeta || {
-        title: CHAPTER_DEFINITIONS[chapter - 1].title,
-        subtitle: CHAPTER_DEFINITIONS[chapter - 1].subtitle
-      };
-
-      if (response.reportSessionId) state.reportSessionId = String(response.reportSessionId);
-      if (response.reportId) state.reportId = String(response.reportId);
-
-      logSajuNewYearFlow('SECTION_GENERATION_SUCCESS', {
-        chapterId: chapter,
-        chapterTitle: String(CHAPTER_DEFINITIONS[chapter - 1] && CHAPTER_DEFINITIONS[chapter - 1].title || ''),
-        reportSessionId: String(state.reportSessionId || ''),
-        source: String(response.source || 'llm')
-      });
-
-      persistState();
-      setLoadingProgress(chapter + 1 > TOTAL_CHAPTERS ? TOTAL_CHAPTERS : chapter + 1, CHAPTER_DEFINITIONS[Math.min(TOTAL_CHAPTERS - 1, chapter)].title);
-    }
+    });
 
     var pdfReady = await premiumAuthJson('/api/premium-report/pdf', {
       reportSessionId: state.reportSessionId,
