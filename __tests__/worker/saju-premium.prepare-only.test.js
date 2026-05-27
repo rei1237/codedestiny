@@ -6,14 +6,26 @@ let handleLifebookRoutes;
 let handleLoveSecretRoutes;
 let handleSajuNewYearRoutes;
 let signJwt;
+let createPremiumAccessToken;
+
+const env = {
+  JWT_ACCESS_SECRET: "dev-secret",
+  PREMIUM_ACCESS_TOKEN_SECRET: "dev-secret",
+  JWT_ISSUER: "code-destiny-api",
+  JWT_AUDIENCE: "code-destiny-web",
+};
+
+const userId = "507f1f77bcf86cd799439011";
 
 beforeAll(async () => {
   const mod = await import("../../worker/routes/premium.js");
   const jwtMod = await import("../../worker/lib/jwt.js");
+  const accessTokenMod = await import("../../worker/lib/premium-access-token.js");
   handleLifebookRoutes = mod.handleLifebookRoutes;
   handleLoveSecretRoutes = mod.handleLoveSecretRoutes;
   handleSajuNewYearRoutes = mod.handleSajuNewYearRoutes;
   signJwt = jwtMod.signJwt;
+  createPremiumAccessToken = accessTokenMod.createPremiumAccessToken;
 });
 
 function makeSajuData() {
@@ -96,14 +108,29 @@ function makePartnerData() {
 
 async function makeAuthToken() {
   return signJwt({
-    userId: "507f1f77bcf86cd799439011",
+    userId,
     email: "premium-prepare@example.com",
     role: "user",
-  }, "dev-secret", {
-    issuer: "code-destiny-api",
-    audience: "code-destiny-web",
+  }, env.JWT_ACCESS_SECRET, {
+    issuer: env.JWT_ISSUER,
+    audience: env.JWT_AUDIENCE,
     expiresIn: "30m",
   });
+}
+
+async function makePremiumHeaders(reportType, chargedCoins, featureKey) {
+  const authToken = await makeAuthToken();
+  const premiumAccessToken = await createPremiumAccessToken(env, {
+    userId,
+    reportType,
+    featureKey: featureKey || "test-premium-access",
+    chargedCoins: Number(chargedCoins || 0),
+  });
+  return {
+    "content-type": "application/json",
+    authorization: `Bearer ${authToken}`,
+    "x-premium-access-token": premiumAccessToken,
+  };
 }
 
 function makeStrictNewYearPayloadExtras() {
@@ -187,13 +214,10 @@ describe("Saju premium prepareOnly routes", () => {
   });
 
   test("loveSecret compatibility prepareOnly returns configured 12-chapter couple plan", async () => {
-    const authToken = await makeAuthToken();
+    const headers = await makePremiumHeaders("loveSecret", 400, "premium-love-secret-couple");
     const req = new Request("https://example.com/api/love-secret/session", {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${authToken}`,
-      },
+      headers,
       body: JSON.stringify({
         prepareOnly: true,
         mode: "compatibility",
@@ -227,6 +251,38 @@ describe("Saju premium prepareOnly routes", () => {
     expect(data.chapterPlan).toHaveLength(12);
     expect(data.chapterPlan[0].title).toContain("Ch.1 두 사람의 원국 요약");
     expect(typeof data.chapterPlan[data.chapterPlan.length - 1]?.title).toBe("string");
+  });
+
+  test("loveSecret generate-chapter direct call without premium access is blocked", async () => {
+    const authToken = await makeAuthToken();
+    const req = new Request("https://example.com/api/love-secret/generate-chapter", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({
+        mode: "solo",
+        reportId: "love-secret-direct-no-access",
+        chapter: 1,
+        sessionId: 1,
+        name: "테스트A",
+        gender: "F",
+        year: 1992,
+        month: 6,
+        day: 15,
+        hour: 12,
+        minute: 30,
+        sajuData: makeSajuData(),
+      }),
+    });
+
+    const res = await handleLoveSecretRoutes(req, env);
+    const data = await res.json();
+
+    expect(res.status).not.toBe(200);
+    expect(data.ok).toBe(false);
+    expect(typeof data.message).toBe("string");
   });
 
   test("sajuNewYear prepareOnly returns canonical 10-chapter plan", async () => {

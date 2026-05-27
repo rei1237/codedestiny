@@ -1,14 +1,12 @@
 export const LOVE_SECRET_SOLO_CHAPTERS = Object.freeze([
   { title: "💘 본연의 연애 자아", subtitle: "일간·일지·월지·오행·십성으로 보는 기본 연애 코드" },
   { title: "🌹 치명적 매력과 페로몬", subtitle: "도화·홍염·화개와 표현성 기반 매력 해석" },
-  { title: "🧲 내가 끌리는 상대와 인연 코드", subtitle: "배우자성·관계성 기반 이상형/주의형 분석" },
-  { title: "💬 썸·고백·초기 연애 전략", subtitle: "초기 호감 형성 조건과 실전 대화 접근" },
-  { title: "💞 깊은 관계에서의 애착 패턴", subtitle: "가까워질수록 드러나는 애착/불안 구조" },
-  { title: "⚠️ 연애에서 반복되는 상처와 방어기제", subtitle: "반복 상처 패턴과 회복 대화 전략" },
-  { title: "🏡 결혼·장기 관계 성향", subtitle: "장기 안정 구조, 책임감, 생활 궁합 조건" },
-  { title: "💼 일·돈·자존감이 연애에 미치는 영향", subtitle: "현실 변수와 관계 운영 균형" },
-  { title: "🕰️ 연애운과 시기 흐름", subtitle: "대운·세운 기반 시기 해석과 선택 타이밍" },
-  { title: "🗝️ 최종 연애 처방전", subtitle: "핵심 매력·주의 패턴·실행 체크리스트" },
+  { title: "🧲 운명의 상대방 리포트", subtitle: "배우자성·이성운·인연 유형으로 보는 이상형과 경계 대상" },
+  { title: "💬 연애 패턴 분석", subtitle: "썸·집착·회피·질투·이별 패턴의 반복 구조" },
+  { title: "🏡 결혼운과 장기 인연", subtitle: "결혼운, 배우자궁 안정성, 장기 관계의 지속력" },
+  { title: "🕰️ 사랑의 운 흐름", subtitle: "대운·세운으로 보는 연애·재회·결혼 타이밍" },
+  { title: "🔥 실전 연애 전략", subtitle: "고백·대화·거리감 운영을 위한 실행 매뉴얼" },
+  { title: "🗝️ 최종 연애 처방전", subtitle: "핵심 장점·반복 약점·실행 체크리스트 종합 정리" },
 ]);
 
 export const LOVE_SECRET_COMPAT_CHAPTERS = Object.freeze([
@@ -34,11 +32,11 @@ export const LOVE_SECRET_MODE_CONFIG = Object.freeze({
   solo: Object.freeze({
     mode: "solo",
     reportType: "saju_love_solo",
-    totalChapters: 10,
-    minTotalChars: 36000,
+    totalChapters: 8,
+    minTotalChars: 30000,
     chapterMinDefault: 3200,
-    chapterTargetByIndex: Object.freeze({ 1: 4200, 2: 3900, 3: 3900, 4: 3800, 5: 3800, 6: 3800, 7: 3800, 8: 3600, 9: 3600, 10: 3800 }),
-    chapterMinByIndex: Object.freeze({ 1: 3600, 2: 3300, 3: 3300, 4: 3200, 5: 3200, 6: 3200, 7: 3200, 8: 3000, 9: 3000, 10: 3200 }),
+    chapterTargetByIndex: Object.freeze({ 1: 4200, 2: 3900, 3: 3900, 4: 3800, 5: 3800, 6: 3600, 7: 3600, 8: 3800 }),
+    chapterMinByIndex: Object.freeze({ 1: 3600, 2: 3300, 3: 3300, 4: 3200, 5: 3200, 6: 3000, 7: 3000, 8: 3200 }),
     title: "프리미엄 사주 연애 비책 리포트",
     chapters: LOVE_SECRET_SOLO_CHAPTERS,
   }),

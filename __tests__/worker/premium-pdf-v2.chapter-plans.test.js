@@ -14,7 +14,7 @@ describe("Premium PDF v2 chapter plans", () => {
     expect(life[0].minChars).toBe(6000);
     expect(life[0].maxChars).toBe(6600);
 
-    expect(love).toHaveLength(10);
+    expect(love).toHaveLength(8);
     expect(love[0].title).toContain("본연의 연애 자아");
     expect(love[0].minChars).toBe(5000);
   });

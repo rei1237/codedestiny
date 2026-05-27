@@ -67,7 +67,7 @@ function makeCompatibility() {
 }
 
 describe("Saju Love PDF Payload Pipeline", () => {
-  test("1) 개인 모드 payload는 10개 solo 챕터만 포함해야 한다", () => {
+  test("1) 개인 모드 payload는 8개 solo 챕터만 포함해야 한다", () => {
     const payload = payloadPipeline.buildSajuLovePdfPayload({
       mode: "solo",
       user: {
@@ -85,7 +85,7 @@ describe("Saju Love PDF Payload Pipeline", () => {
 
     expect(valid.ok).toBe(true);
     expect(payload.mode).toBe("solo");
-    expect(soloChapters).toHaveLength(10);
+    expect(soloChapters).toHaveLength(8);
     expect(payload.partner).toBeUndefined();
     expect(payload.compatibility).toBeUndefined();
     expect(payload.saju?.pillars?.year).toBeTruthy();
@@ -143,7 +143,7 @@ describe("Saju Love PDF Payload Pipeline", () => {
     const noPillars = { ...base, saju: { ...base.saju, pillars: null } };
     const noDayMaster = { ...base, saju: { ...base.saju, dayMaster: null } };
     const withPartner = { ...base, partner: { name: "X" } };
-    const lessSolo = { ...base, chapters: base.chapters.slice(0, 9) };
+    const lessSolo = { ...base, chapters: base.chapters.slice(0, 7) };
     const noSourceData = {
       ...base,
       chapters: base.chapters.map((ch, idx) => idx === 0
@@ -186,7 +186,7 @@ describe("Saju Love PDF Payload Pipeline", () => {
     expect(payloadPipeline.validateSajuLovePdfPayload(soloPayload).ok).toBe(true);
     expect(payloadPipeline.validateSajuLovePdfPayload(compatPayload).ok).toBe(true);
 
-    expect(soloPayload.chapters.filter((c) => c.part === "solo")).toHaveLength(10);
+    expect(soloPayload.chapters.filter((c) => c.part === "solo")).toHaveLength(8);
     expect(compatPayload.chapters.filter((c) => c.part === "solo")).toHaveLength(0);
     expect(compatPayload.chapters.filter((c) => c.part === "compatibility")).toHaveLength(12);
 
