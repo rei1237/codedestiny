@@ -8,7 +8,12 @@
  */
 
 import { callGeminiText, pickGeminiKeys, pickGeminiModels } from "./gemini.js";
-import { normalizeZiweiStrengthSymbol } from "./ziwei-premium-book-structure.js";
+import {
+  buildCanonicalZiweiPdfChapters,
+  buildZiweiCategorySeed,
+  mapZiweiBrightnessToStrengthSymbol,
+  normalizeZiweiStrengthSymbol,
+} from "./ziwei-premium-book-structure.js";
 
 const ZIWEI_SECTION_FORBIDDEN_WORDS = [
   "자동 복구 생성",
@@ -213,6 +218,126 @@ export function validateLLMSectionContent(content, input) {
   };
 }
 
+function makeSectionFlowPayload(stage, input = {}, extra = {}) {
+  const chapter = input.chapter || {};
+  const section = input.section || {};
+  const payload = input.minimalPayload || {};
+  const palaceCount = Array.isArray(payload?.chart?.palaces) ? payload.chart.palaces.length : 0;
+  return {
+    stage,
+    sessionId: String(input.requestId || input.reportId || input.sessionId || "").trim() || null,
+    chapterId: String(chapter.chapterId || chapter.key || "").trim() || null,
+    categoryId: String(section.sectionId || section.id || "").trim() || null,
+    mode: String(payload?.mode || "personal").trim() || "personal",
+    hasPayload: Boolean(payload && typeof payload === "object"),
+    palaceCount,
+    chapterCount: Number(extra.chapterCount || 0),
+    categoryCount: Number(extra.categoryCount || 0),
+    errorCode: extra.errorCode || null,
+    message: extra.message || null,
+  };
+}
+
+function toMinimalZiweiPayload(input = {}) {
+  const profile = input.userProfile || {};
+  const reportPayload = input.reportPayload || {};
+  const canonicalZiweiChart = input.canonicalZiweiChart || {};
+  const sourcePalaces = Array.isArray(reportPayload?.palaces)
+    ? reportPayload.palaces
+    : (Array.isArray(canonicalZiweiChart?.palaces) ? canonicalZiweiChart.palaces : []);
+
+  const palaces = sourcePalaces.map((palace, index) => {
+    const src = palace && typeof palace === "object" ? palace : {};
+    const mainStars = Array.isArray(src.mainStars) ? src.mainStars : (Array.isArray(src.stars) ? src.stars : []);
+    const subStars = Array.isArray(src.subStars) ? src.subStars : (Array.isArray(src.auxStars) ? src.auxStars : []);
+
+    const normalizeStar = (star) => {
+      const name = String(star?.name || star?.nameKo || "").trim();
+      if (!name) return null;
+      const brightness = String(star?.brightness || star?.strength || "").trim() || "평";
+      const strengthSymbol = normalizeZiweiStrengthSymbol(star?.strengthSymbol || star?.symbol || brightness)
+        || mapZiweiBrightnessToStrengthSymbol(brightness);
+      return {
+        name,
+        brightness,
+        strengthSymbol,
+      };
+    };
+
+    return {
+      key: String(src.key || `palace-${index + 1}`).trim() || `palace-${index + 1}`,
+      name: String(src.nameKo || src.name || src.palace || `궁${index + 1}`).trim() || `궁${index + 1}`,
+      mainStars: mainStars.map(normalizeStar).filter(Boolean),
+      subStars: subStars.map(normalizeStar).filter(Boolean),
+      brightnessSummary: String(src.brightnessSummary || "").trim() || "",
+      shortInterpretationSeed: String(src.interpretationSeed || src.shortInterpretationSeed || "").trim() || "",
+    };
+  });
+
+  return {
+    service: "ziwei-premium",
+    mode: "personal",
+    user: {
+      name: String(profile.name || "사용자").trim() || "사용자",
+      gender: String(profile.gender || "").trim() || "",
+      birthDate: String(profile.birthDate || reportPayload?.profile?.birth?.solarDate || "1970-01-01").trim() || "1970-01-01",
+      birthTime: String(profile.birthTime || reportPayload?.profile?.birth?.time || "").trim() || "",
+      calendarType: String(profile.calendarType || "solar").trim() === "lunar" ? "lunar" : "solar",
+    },
+    chart: {
+      lifePalace: String(reportPayload?.chartMeta?.mingGong || canonicalZiweiChart?.chartMeta?.mingGong || "명궁").trim() || "명궁",
+      bodyPalace: String(reportPayload?.chartMeta?.shenGong || canonicalZiweiChart?.chartMeta?.shenGong || "").trim() || undefined,
+      palaces,
+    },
+    meta: {
+      generatedAt: new Date().toISOString(),
+      engineVersion: String(reportPayload?.diagnostics?.source || canonicalZiweiChart?.version || "ziwei-engine").trim(),
+      source: "local-ziwei-engine",
+    },
+  };
+}
+
+function buildLocalFallbackSection(input = {}, section = {}, reason = "") {
+  const chapter = input.chapter || {};
+  const payload = input.minimalPayload || toMinimalZiweiPayload(input);
+  const canonicalChapter = input.canonicalChapter || null;
+  const canonicalCategory = input.canonicalCategory || null;
+
+  const localSeedText = String(
+    canonicalCategory?.localSeedText
+    || buildZiweiCategorySeed(
+      {
+        title: section?.title || "핵심 해석",
+        requiredPalaces: Array.isArray(chapter?.targetPalaces)
+          ? chapter.targetPalaces
+          : (chapter?.targetPalace ? [chapter.targetPalace] : ["명궁"]),
+      },
+      payload,
+    )
+    || "핵심 궁 구조를 바탕으로 현실 선택 전략을 제시합니다."
+  ).trim();
+
+  const chapterTitle = String(chapter?.title || canonicalChapter?.title || "자미두수 해석").trim() || "자미두수 해석";
+  const categoryTitle = String(section?.title || canonicalCategory?.title || "핵심 해석").trim() || "핵심 해석";
+  const palaceSummary = Array.isArray(payload?.chart?.palaces)
+    ? payload.chart.palaces.slice(0, 3).map((row) => String(row?.name || "").trim()).filter(Boolean).join(", ")
+    : "명궁";
+
+  const fallbackBody = [
+    `${chapterTitle}의 ${categoryTitle}에서는 ${palaceSummary || "핵심 궁"}을 중심으로 현재의 성향과 의사결정 패턴을 해석합니다.`,
+    localSeedText,
+    "실전 적용 포인트: 현재 강점이 높은 영역은 작은 실행을 빠르게 누적하고, 변동성이 높은 영역은 기준 루틴을 먼저 고정한 뒤 확장하는 전략이 유효합니다.",
+    "관계·일·재정 모두에서 단정 예언보다 관찰 가능한 지표를 먼저 세우고 2주 단위로 점검하면 운의 편차를 줄일 수 있습니다.",
+    reason ? `주의 포인트: ${String(reason).trim()}` : "주의 포인트: 감정 반응이 강한 구간에서는 즉시 결정보다 1회 재검토 루틴을 적용하세요.",
+  ].join("\n\n");
+
+  return {
+    title: categoryTitle,
+    body: fallbackBody,
+    source: "local-fallback",
+  };
+}
+
 /**
  * 세부 카테고리별 LLM 호출 (최대 재시도 3회)
  */
@@ -280,6 +405,11 @@ export async function generateZiweiSectionWithLLM(env, input) {
       const validation = validateLLMSectionContent(content, input);
 
       if (validation.ok) {
+        console.info("[ZiweiPremium][Flow] SECTION_GENERATION_SUCCESS", makeSectionFlowPayload("SECTION_GENERATION_SUCCESS", input, {
+          chapterCount: Number(input.chapterCount || 0),
+          categoryCount: Number(input.categoryCount || 0),
+          message: "llm",
+        }));
         console.info("[ZiweiBook.LLMSectionSuccess]", {
           chapterId: input.chapter?.chapterId,
           sectionId: input.section?.sectionId,
@@ -293,6 +423,7 @@ export async function generateZiweiSectionWithLLM(env, input) {
           content,
           textLength: validation.textLength,
           attempt,
+          source: "llm",
         };
       }
 
@@ -334,6 +465,7 @@ export async function generateZiweiSectionWithLLM(env, input) {
     sectionId: input.section?.sectionId,
     maxAttempts,
     lastError: String(lastError?.message || "UNKNOWN_ERROR"),
+    source: "llm",
   };
 }
 
@@ -437,6 +569,12 @@ function buildZiweiSectionLLMPrompt(input) {
 
   contextInfo.push("");
 
+  if (String(input?.localSeedText || "").trim()) {
+    contextInfo.push("[로컬 해석 시드]");
+    contextInfo.push(String(input.localSeedText).trim());
+    contextInfo.push("");
+  }
+
   const userPrompt = [
     ...contextInfo,
     `[작성 지시문]`,
@@ -472,9 +610,38 @@ export async function generateZiweiChapterFromSections(env, input) {
 
   const generatedSections = [];
   const failedSections = [];
+  const minimalPayload = toMinimalZiweiPayload(input);
+  const canonicalChapters = buildCanonicalZiweiPdfChapters(minimalPayload);
+  const chapterNo = Number(chapter?.chapterNo || 1);
+  const canonicalChapter = canonicalChapters.find((row) => Number(row?.order || 0) === chapterNo) || null;
+
+  console.info("[ZiweiPremium][Flow] CANONICAL_CHAPTERS_READY", makeSectionFlowPayload("CANONICAL_CHAPTERS_READY", {
+    ...input,
+    chapter,
+    minimalPayload,
+  }, {
+    chapterCount: canonicalChapters.length,
+    categoryCount: Array.isArray(canonicalChapter?.categories) ? canonicalChapter.categories.length : sections.length,
+    message: "canonical-ready",
+  }));
 
   // 각 섹션을 순차 생성
-  for (const section of sections) {
+  for (let idx = 0; idx < sections.length; idx += 1) {
+    const section = sections[idx];
+    const canonicalCategory = Array.isArray(canonicalChapter?.categories)
+      ? canonicalChapter.categories[idx] || null
+      : null;
+    const localSeedText = String(canonicalCategory?.localSeedText || "").trim()
+      || buildZiweiCategorySeed(
+        {
+          title: section?.title || "핵심 해석",
+          requiredPalaces: Array.isArray(chapter?.targetPalaces)
+            ? chapter.targetPalaces
+            : (chapter?.targetPalace ? [chapter.targetPalace] : ["명궁"]),
+        },
+        minimalPayload,
+      );
+
     const sectionInput = {
       chapter,
       section,
@@ -484,7 +651,21 @@ export async function generateZiweiChapterFromSections(env, input) {
       reportPayload: input.reportPayload,
       starNames: input.starNames || [],
       targetPalaces: chapter.targetPalaces || [chapter.targetPalace],
+      minimalPayload,
+      canonicalChapter,
+      canonicalCategory,
+      localSeedText,
+      requestId: input.requestId,
+      reportId: input.reportId,
+      chapterCount: canonicalChapters.length,
+      categoryCount: sections.length,
     };
+
+    console.info("[ZiweiPremium][Flow] SECTION_GENERATION_START", makeSectionFlowPayload("SECTION_GENERATION_START", sectionInput, {
+      chapterCount: canonicalChapters.length,
+      categoryCount: sections.length,
+      message: "llm-request",
+    }));
 
     const result = await generateZiweiSectionWithLLM(env, sectionInput);
 
@@ -494,37 +675,40 @@ export async function generateZiweiChapterFromSections(env, input) {
         sectionTitle: section.title,
         content: result.content,
         textLength: result.textLength,
+        source: result.source || "llm",
       });
     } else {
+      const fallback = buildLocalFallbackSection(sectionInput, section, result.lastError);
+      console.info("[ZiweiPremium][Flow] SECTION_GENERATION_FALLBACK", makeSectionFlowPayload("SECTION_GENERATION_FALLBACK", sectionInput, {
+        chapterCount: canonicalChapters.length,
+        categoryCount: sections.length,
+        errorCode: result.errorCode || "LLM_SECTION_GENERATION_FAILED",
+        message: String(result.lastError || "LLM_SECTION_GENERATION_FAILED"),
+      }));
       failedSections.push({
         sectionId: section.sectionId,
         sectionTitle: section.title,
         errorCode: result.errorCode || "UNKNOWN_ERROR",
         reason: result.lastError || "Unknown reason",
       });
+      generatedSections.push({
+        sectionId: section.sectionId,
+        sectionTitle: fallback.title,
+        content: fallback.body,
+        textLength: String(fallback.body || "").length,
+        source: "local-fallback",
+      });
     }
   }
 
-  // 하나라도 실패하면 전체 실패 (재시도 필요)
-  if (failedSections.length > 0) {
-    return {
-      ok: false,
-      code: "ZIWEI_CHAPTER_PARTIAL_GENERATION_FAILED",
-      message: "자미두수 PDF 본문 생성 중 일부 섹션이 완성되지 않았습니다.",
-      totalSections: sections.length,
-      successCount: generatedSections.length,
-      failedCount: failedSections.length,
-      failedSections,
-      retryable: true,
-    };
-  }
-
-  // 모든 섹션 성공
   return {
     ok: true,
     chapterId: chapter.chapterId,
     chapterNo: chapter.chapterNo,
     generatedSections,
     totalLength: generatedSections.reduce((sum, s) => sum + s.textLength, 0),
+    failedSections,
+    failedCount: failedSections.length,
+    successCount: generatedSections.length - failedSections.length,
   };
 }

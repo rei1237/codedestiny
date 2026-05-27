@@ -576,19 +576,295 @@ export const ZIWEI_PREMIUM_12_CHAPTERS = Object.freeze([
   },
 ]);
 
+export const ZIWEI_STRENGTH_SYMBOL_MAP = Object.freeze({
+  묘: "◎",
+  왕: "◎",
+  득: "O",
+  리: "▲",
+  평: "△",
+  함: "X",
+  실: "X",
+});
+
+function normalizeZiweiBrightnessToken(value) {
+  const token = String(value || "").trim();
+  if (!token) return "";
+  if (token === "廟") return "묘";
+  if (token === "旺") return "왕";
+  if (token === "得") return "득";
+  if (token === "利") return "리";
+  if (token === "平") return "평";
+  if (token === "陷") return "함";
+  return token;
+}
+
+export function mapZiweiBrightnessToStrengthSymbol(value) {
+  const token = normalizeZiweiBrightnessToken(value);
+  return ZIWEI_STRENGTH_SYMBOL_MAP[token] || "△";
+}
+
+export const CANONICAL_ZIWEI_PDF_CHAPTERS = Object.freeze([
+  {
+    id: "chapter-01-life-palace",
+    order: 1,
+    title: "명궁 완전 해독 - 타고난 자아와 인생의 기본 설계",
+    categories: [
+      { id: "c01-01", title: "명궁 주성 구조", requiredPalaces: ["명궁"] },
+      { id: "c01-02", title: "명궁 보조성의 영향", requiredPalaces: ["명궁"] },
+      { id: "c01-03", title: "성격·기질·삶의 기본 방향", requiredPalaces: ["명궁", "복덕궁"] },
+      { id: "c01-04", title: "인생에서 반복되는 핵심 패턴", requiredPalaces: ["명궁", "질액궁"] },
+      { id: "c01-05", title: "현실 조언과 자기관리 전략", requiredPalaces: ["명궁", "관록궁"] },
+    ],
+  },
+  {
+    id: "chapter-02-body-palace",
+    order: 2,
+    title: "신궁 심층 분석 - 후천적 선택과 인생 후반의 방향",
+    categories: [
+      { id: "c02-01", title: "신궁이 위치한 궁의 의미", requiredPalaces: ["신궁", "명궁"] },
+      { id: "c02-02", title: "명궁과 신궁의 차이", requiredPalaces: ["명궁", "신궁"] },
+      { id: "c02-03", title: "후천적으로 강화되는 삶의 태도", requiredPalaces: ["신궁", "복덕궁"] },
+      { id: "c02-04", title: "나이가 들수록 드러나는 선택 패턴", requiredPalaces: ["신궁", "관록궁"] },
+      { id: "c02-05", title: "실전적인 인생 조율법", requiredPalaces: ["신궁", "명궁"] },
+    ],
+  },
+  {
+    id: "chapter-03-career",
+    order: 3,
+    title: "관록궁 분석 - 직업, 성취, 사회적 위치",
+    categories: [
+      { id: "c03-01", title: "관록궁 주성 구조", requiredPalaces: ["관록궁"] },
+      { id: "c03-02", title: "직업 적성", requiredPalaces: ["관록궁", "명궁"] },
+      { id: "c03-03", title: "성과가 나는 업무 방식", requiredPalaces: ["관록궁", "재백궁"] },
+      { id: "c03-04", title: "조직·사업·프리랜서 적합도", requiredPalaces: ["관록궁", "천이궁"] },
+      { id: "c03-05", title: "커리어 리스크와 돌파 전략", requiredPalaces: ["관록궁", "질액궁"] },
+    ],
+  },
+  {
+    id: "chapter-04-wealth",
+    order: 4,
+    title: "재백궁 분석 - 돈의 흐름과 재물 운용 방식",
+    categories: [
+      { id: "c04-01", title: "재백궁 주성 구조", requiredPalaces: ["재백궁"] },
+      { id: "c04-02", title: "돈을 버는 방식", requiredPalaces: ["재백궁", "관록궁"] },
+      { id: "c04-03", title: "소비·저축·투자 성향", requiredPalaces: ["재백궁", "복덕궁"] },
+      { id: "c04-04", title: "재물 손실 위험", requiredPalaces: ["재백궁", "질액궁"] },
+      { id: "c04-05", title: "재정 안정화 전략", requiredPalaces: ["재백궁", "전택궁"] },
+    ],
+  },
+  {
+    id: "chapter-05-relationship",
+    order: 5,
+    title: "부부궁 분석 - 연애, 결혼, 친밀한 관계의 구조",
+    categories: [
+      { id: "c05-01", title: "부부궁 주성 구조", requiredPalaces: ["부부궁"] },
+      { id: "c05-02", title: "끌리는 상대의 유형", requiredPalaces: ["부부궁", "명궁"] },
+      { id: "c05-03", title: "연애에서 반복되는 패턴", requiredPalaces: ["부부궁", "복덕궁"] },
+      { id: "c05-04", title: "관계 갈등의 원인", requiredPalaces: ["부부궁", "교우궁"] },
+      { id: "c05-05", title: "장기 관계를 위한 조율 전략", requiredPalaces: ["부부궁", "천이궁"] },
+    ],
+  },
+  {
+    id: "chapter-06-fortune",
+    order: 6,
+    title: "복덕궁 분석 - 행복감, 내면 안정, 정신적 만족",
+    categories: [
+      { id: "c06-01", title: "복덕궁 주성 구조", requiredPalaces: ["복덕궁"] },
+      { id: "c06-02", title: "내면의 불안과 회복 방식", requiredPalaces: ["복덕궁", "질액궁"] },
+      { id: "c06-03", title: "행복을 느끼는 조건", requiredPalaces: ["복덕궁", "명궁"] },
+      { id: "c06-04", title: "혼자 있을 때의 에너지", requiredPalaces: ["복덕궁"] },
+      { id: "c06-05", title: "정서 회복 루틴", requiredPalaces: ["복덕궁", "질액궁"] },
+    ],
+  },
+  {
+    id: "chapter-07-migration",
+    order: 7,
+    title: "천이궁 분석 - 외부 세계, 이동, 기회와 확장",
+    categories: [
+      { id: "c07-01", title: "천이궁 주성 구조", requiredPalaces: ["천이궁"] },
+      { id: "c07-02", title: "외부 환경에서의 평가", requiredPalaces: ["천이궁", "관록궁"] },
+      { id: "c07-03", title: "이동·이직·이사·해외운", requiredPalaces: ["천이궁", "전택궁"] },
+      { id: "c07-04", title: "밖에서 만나는 기회", requiredPalaces: ["천이궁", "교우궁"] },
+      { id: "c07-05", title: "외부 활동 전략", requiredPalaces: ["천이궁", "명궁"] },
+    ],
+  },
+  {
+    id: "chapter-08-network",
+    order: 8,
+    title: "교우궁 분석 - 인맥, 협업, 귀인과 거리두기",
+    categories: [
+      { id: "c08-01", title: "교우궁 주성 구조", requiredPalaces: ["교우궁"] },
+      { id: "c08-02", title: "도움이 되는 사람", requiredPalaces: ["교우궁", "천이궁"] },
+      { id: "c08-03", title: "피해야 할 관계 패턴", requiredPalaces: ["교우궁", "질액궁"] },
+      { id: "c08-04", title: "협업과 동업 적합도", requiredPalaces: ["교우궁", "관록궁"] },
+      { id: "c08-05", title: "인맥 관리 전략", requiredPalaces: ["교우궁", "명궁"] },
+    ],
+  },
+  {
+    id: "chapter-09-family",
+    order: 9,
+    title: "부모궁·형제궁 분석 - 가족, 뿌리, 초기 환경",
+    categories: [
+      { id: "c09-01", title: "부모궁 구조", requiredPalaces: ["부모궁"] },
+      { id: "c09-02", title: "형제궁 구조", requiredPalaces: ["형제궁"] },
+      { id: "c09-03", title: "가족과의 심리적 거리", requiredPalaces: ["부모궁", "형제궁"] },
+      { id: "c09-04", title: "초기 환경이 만든 성향", requiredPalaces: ["부모궁", "명궁"] },
+      { id: "c09-05", title: "가족 문제를 다루는 현실적 태도", requiredPalaces: ["부모궁", "복덕궁"] },
+    ],
+  },
+  {
+    id: "chapter-10-health-home",
+    order: 10,
+    title: "질액궁·전택궁 분석 - 건강, 생활 기반, 거주 안정성",
+    categories: [
+      { id: "c10-01", title: "질액궁 구조", requiredPalaces: ["질액궁"] },
+      { id: "c10-02", title: "취약한 컨디션 패턴", requiredPalaces: ["질액궁", "복덕궁"] },
+      { id: "c10-03", title: "전택궁 구조", requiredPalaces: ["전택궁"] },
+      { id: "c10-04", title: "집·부동산·생활 안정성", requiredPalaces: ["전택궁", "재백궁"] },
+      { id: "c10-05", title: "건강과 생활 기반 관리법", requiredPalaces: ["질액궁", "전택궁"] },
+    ],
+  },
+  {
+    id: "chapter-11-children-output",
+    order: 11,
+    title: "자녀궁 분석 - 창작물, 결과물, 후대성과 표현력",
+    categories: [
+      { id: "c11-01", title: "자녀궁 주성 구조", requiredPalaces: ["자녀궁"] },
+      { id: "c11-02", title: "표현력과 창작 능력", requiredPalaces: ["자녀궁", "명궁"] },
+      { id: "c11-03", title: "결과물이 나오는 방식", requiredPalaces: ["자녀궁", "관록궁"] },
+      { id: "c11-04", title: "가르침·후배·팬덤과의 관계", requiredPalaces: ["자녀궁", "교우궁"] },
+      { id: "c11-05", title: "성과를 축적하는 방법", requiredPalaces: ["자녀궁", "재백궁"] },
+    ],
+  },
+  {
+    id: "chapter-12-final-roadmap",
+    order: 12,
+    title: "종합 운명 로드맵 - 강점, 약점, 실행 전략",
+    categories: [
+      { id: "c12-01", title: "12궁 전체 핵심 요약", requiredPalaces: ["명궁", "관록궁", "재백궁", "부부궁", "복덕궁", "천이궁"] },
+      { id: "c12-02", title: "가장 강한 궁과 가장 약한 궁", requiredPalaces: ["명궁", "질액궁"] },
+      { id: "c12-03", title: "인생에서 살려야 할 재능", requiredPalaces: ["관록궁", "자녀궁"] },
+      { id: "c12-04", title: "반드시 관리해야 할 리스크", requiredPalaces: ["질액궁", "교우궁"] },
+      { id: "c12-05", title: "실행 가능한 90일 운명 전략", requiredPalaces: ["명궁", "관록궁", "재백궁"] },
+    ],
+  },
+]);
+
+function normalizeRequiredPalaceToken(name) {
+  const token = String(name || "").trim();
+  if (!token) return "";
+  if (token === "신궁") return "명궁";
+  return token;
+}
+
+function collectPayloadPalaces(payload) {
+  const chartPalaces = Array.isArray(payload?.chart?.palaces) ? payload.chart.palaces : [];
+  return chartPalaces.map((row, index) => {
+    const item = row && typeof row === "object" ? row : {};
+    const key = String(item.key || `palace-${index + 1}`).trim() || `palace-${index + 1}`;
+    const name = String(item.name || item.nameKo || item.palace || key).trim() || key;
+    const mainStars = Array.isArray(item.mainStars) ? item.mainStars : [];
+    const subStars = Array.isArray(item.subStars) ? item.subStars : [];
+    return {
+      key,
+      name,
+      mainStars,
+      subStars,
+      brightnessSummary: String(item.brightnessSummary || "").trim(),
+      shortInterpretationSeed: String(item.shortInterpretationSeed || "").trim(),
+    };
+  });
+}
+
+function summarizeZiweiStars(palaces = []) {
+  const rows = [];
+  palaces.forEach((palace) => {
+    const stars = []
+      .concat(Array.isArray(palace?.mainStars) ? palace.mainStars : [])
+      .concat(Array.isArray(palace?.subStars) ? palace.subStars : []);
+    stars.slice(0, 4).forEach((star) => {
+      const starName = String(star?.name || star?.nameKo || "").trim();
+      if (!starName) return;
+      const brightness = normalizeZiweiBrightnessToken(star?.brightness || star?.strength || "") || "평";
+      const symbol = mapZiweiBrightnessToStrengthSymbol(star?.strengthSymbol || star?.symbol || brightness);
+      rows.push(`${starName}(${brightness}/${symbol})`);
+    });
+  });
+  return rows.length ? rows.join(", ") : "핵심 별 정보가 제한적이므로 명궁 중심의 보수 해석을 적용합니다.";
+}
+
+function summarizeZiweiBrightness(palaces = []) {
+  const counts = { "◎": 0, O: 0, "▲": 0, "△": 0, X: 0 };
+  palaces.forEach((palace) => {
+    const stars = []
+      .concat(Array.isArray(palace?.mainStars) ? palace.mainStars : [])
+      .concat(Array.isArray(palace?.subStars) ? palace.subStars : []);
+    stars.forEach((star) => {
+      const brightness = normalizeZiweiBrightnessToken(star?.brightness || star?.strength || "") || "평";
+      const symbol = mapZiweiBrightnessToStrengthSymbol(star?.strengthSymbol || star?.symbol || brightness);
+      if (counts[symbol] != null) counts[symbol] += 1;
+    });
+  });
+  return `강점(◎):${counts["◎"]}, 안정(O):${counts.O}, 추진(▲):${counts["▲"]}, 보정(△):${counts["△"]}, 주의(X):${counts.X}`;
+}
+
+function resolveRequiredPalaces(requiredPalaces = [], payloadPalaces = []) {
+  const requested = (Array.isArray(requiredPalaces) ? requiredPalaces : []).map(normalizeRequiredPalaceToken).filter(Boolean);
+  const picked = payloadPalaces.filter((palace) => requested.includes(String(palace?.name || "").trim()));
+  if (picked.length) return picked;
+  return payloadPalaces.slice(0, 1);
+}
+
+export function buildZiweiCategorySeed(category = {}, payload = {}) {
+  const payloadPalaces = collectPayloadPalaces(payload);
+  const resolvedPalaces = resolveRequiredPalaces(category.requiredPalaces, payloadPalaces);
+  const palaceNames = resolvedPalaces.map((row) => String(row?.name || "").trim()).filter(Boolean);
+  const targetLabel = palaceNames.length ? palaceNames.join(", ") : "핵심 궁 데이터";
+  const starsSummary = summarizeZiweiStars(resolvedPalaces);
+  const brightnessSummary = summarizeZiweiBrightness(resolvedPalaces);
+
+  return [
+    `${String(category.title || "핵심 해석").trim()}은 사용자의 자미두수 명반 중 ${targetLabel}을 중심으로 해석합니다.`,
+    `주요 별 구조: ${starsSummary}`,
+    `강도 흐름: ${brightnessSummary}`,
+    "이 카테고리는 단정 예언이 아니라 성향, 반복 패턴, 현실적 선택 전략을 중심으로 작성합니다.",
+  ].join("\n");
+}
+
+export function buildCanonicalZiweiPdfChapters(payload = {}) {
+  return CANONICAL_ZIWEI_PDF_CHAPTERS.map((chapter) => {
+    const categories = (Array.isArray(chapter.categories) ? chapter.categories : []).map((category) => {
+      const localSeedText = buildZiweiCategorySeed(category, payload);
+      return {
+        id: String(category.id || "").trim(),
+        title: String(category.title || "").trim(),
+        requiredPalaces: Array.isArray(category.requiredPalaces) ? category.requiredPalaces.slice() : [],
+        requiredStars: Array.isArray(category.requiredStars) ? category.requiredStars.slice() : [],
+        localSeedText: localSeedText || `${String(category.title || "핵심 해석").trim()} 카테고리의 기본 해석을 작성합니다.`,
+        llmPromptHint: `${String(chapter.title || "").trim()} - ${String(category.title || "").trim()}`,
+      };
+    });
+    return {
+      id: String(chapter.id || "").trim(),
+      order: Number(chapter.order || 0),
+      title: String(chapter.title || "").trim(),
+      categories,
+    };
+  });
+}
+
 /**
  * 강도 기호 정규화 유틸
  */
 export function normalizeZiweiStrengthSymbol(brightness) {
-  const str = String(brightness || "").trim().toLowerCase();
-
-  if (str === "묘" || str === "왕") return "◎";
-  if (str === "득") return "O";
-  if (str === "리") return "▲";
-  if (str === "평") return "△";
-  if (str === "함" || str === "실") return "X";
-
-  return str;
+  const raw = String(brightness || "").trim();
+  if (!raw) return "△";
+  if (raw === "◎") return "◎";
+  if (raw === "○" || raw === "O") return "O";
+  if (raw === "▲") return "▲";
+  if (raw === "△") return "△";
+  if (raw === "×" || raw === "X") return "X";
+  return mapZiweiBrightnessToStrengthSymbol(raw);
 }
 
 /**

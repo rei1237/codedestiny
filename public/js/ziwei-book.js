@@ -191,6 +191,36 @@
     } catch (_) {}
   }
 
+  function _isWalletExtensionNoise(reason) {
+    var text = String(reason || '').trim();
+    if (!text) return false;
+    return /metamask|ethereum provider|eth_requestaccounts|chrome-extension:\/\//i.test(text);
+  }
+
+  function _installWalletNoiseGuard() {
+    if (window.__cdZiweiWalletNoiseGuardInstalled) return;
+    window.__cdZiweiWalletNoiseGuardInstalled = true;
+
+    window.addEventListener('unhandledrejection', function (event) {
+      var reason = event && event.reason;
+      var message = '';
+      try {
+        message = String((reason && (reason.message || reason.code)) || reason || '').trim();
+      } catch (_) {
+        message = '';
+      }
+      if (!_isWalletExtensionNoise(message)) return;
+      try { event.preventDefault(); } catch (_) {}
+      _trace('WALLET_EXTENSION_NOISE_IGNORED', {
+        message: message.slice(0, 240),
+        mode: 'personal',
+      });
+      console.warn('[ZiweiBook] wallet extension noise ignored', { message: message.slice(0, 240) });
+    });
+  }
+
+  _installWalletNoiseGuard();
+
   function _escHtml(s) {
     return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
@@ -240,6 +270,29 @@
     lines.push('이 챕터는 LLM 품질/구조 계약을 충족하지 못해 중단되었습니다.');
     if (reason) lines.push('- 원인: ' + String(reason));
     lines.push('- 스켈레톤 대체 없이 재생성만 허용됩니다.');
+    return lines.join('\n');
+  }
+
+  function _buildChapterLocalFallback(idx, reason) {
+    var labels = Array.isArray(CHAPTER_STRUCTURED_LABELS[idx + 1]) ? CHAPTER_STRUCTURED_LABELS[idx + 1] : [];
+    var title = CHAPTER_TITLES[idx] || ('Chapter ' + (idx + 1));
+    var subtitle = CHAPTER_SUBTITLES[idx] || '';
+    var lines = [];
+    lines.push('## ' + title);
+    if (subtitle) lines.push('> ' + subtitle);
+    lines.push('');
+    if (!labels.length) {
+      labels = ['핵심 구조 해석', '성향과 반복 패턴', '실전 조언'];
+    }
+    for (var i = 0; i < labels.length; i += 1) {
+      lines.push('## ' + labels[i]);
+      lines.push('이 항목은 현재 확보된 명반 핵심값을 기준으로 성향, 반복 패턴, 선택 전략 중심으로 정리합니다.');
+      lines.push('실행 포인트: 강점 구간은 작은 실행을 빠르게 누적하고, 변동 구간은 기준 루틴을 먼저 고정하세요.');
+      if (reason && i === labels.length - 1) {
+        lines.push('주의 포인트: ' + String(reason));
+      }
+      lines.push('');
+    }
     return lines.join('\n');
   }
 
@@ -762,6 +815,11 @@
     if (!window.__cdActiveBirthProfile || !window.__cdActiveBirthProfile.birth) {
       window.__cdActiveBirthProfile = profile;
     }
+    _trace('ENGINE_CALC_START', {
+      mode: 'personal',
+      chapterCount: TOTAL_CHAPTERS,
+      categoryCount: Array.isArray(CHAPTER_STRUCTURED_LABELS[1]) ? CHAPTER_STRUCTURED_LABELS[1].length : 0,
+    });
 
     // 출생지 선택기가 있으면 반영
     var zbCountrySel = document.getElementById('zbBirthCountry');
@@ -812,6 +870,30 @@
       hasProfile: !!(_zbProfile.birthYear && _zbProfile.birthMonth && _zbProfile.birthDay),
       birthYear: _zbProfile.birthYear,
       gender: _zbProfile.gender || ''
+    });
+    _trace('ENGINE_CALC_SUCCESS', {
+      mode: 'personal',
+      hasPayload: !!ziweiData,
+      palaceCount: (window._currentZiweiData && Array.isArray(window._currentZiweiData.palaceStarData))
+        ? window._currentZiweiData.palaceStarData.length
+        : 0,
+      chapterCount: TOTAL_CHAPTERS,
+      categoryCount: Array.isArray(CHAPTER_STRUCTURED_LABELS[1]) ? CHAPTER_STRUCTURED_LABELS[1].length : 0,
+    });
+    _trace('MINIMAL_PAYLOAD_READY', {
+      mode: 'personal',
+      hasPayload: true,
+      palaceCount: (window._currentZiweiData && Array.isArray(window._currentZiweiData.palaceStarData))
+        ? window._currentZiweiData.palaceStarData.length
+        : 0,
+      chapterCount: TOTAL_CHAPTERS,
+      categoryCount: Array.isArray(CHAPTER_STRUCTURED_LABELS[1]) ? CHAPTER_STRUCTURED_LABELS[1].length : 0,
+    });
+    _trace('CANONICAL_CHAPTERS_READY', {
+      mode: 'personal',
+      hasPayload: true,
+      chapterCount: TOTAL_CHAPTERS,
+      categoryCount: Array.isArray(CHAPTER_STRUCTURED_LABELS[1]) ? CHAPTER_STRUCTURED_LABELS[1].length : 0,
     });
 
     if (!ziweiData || ziweiData.length < 20) {
@@ -966,6 +1048,10 @@
         return;
       }
       _showScreen('zbResultScreen');
+      _trace('PDF_RENDER_START', {
+        mode: 'personal',
+        chapterCount: TOTAL_CHAPTERS,
+      });
       _updateTocState();
       _renderChapter(1);
       _bindToc();
@@ -978,6 +1064,10 @@
         dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · ' + (prof.gender === 'F' ? '여성' : prof.gender === 'M' ? '남성' : '') + ' · 🗓️ ' + new Date().toLocaleDateString('ko-KR') + ' 발행';
       }
       _zbSaveResult(prof);
+      _trace('PDF_RENDER_SUCCESS', {
+        mode: 'personal',
+        chapterCount: TOTAL_CHAPTERS,
+      });
       var epBanner = _qs('zbEpilogueBanner');
       if (epBanner) epBanner.style.display = '';
     }
@@ -1020,6 +1110,14 @@
           }
 
           var _zbPremiumToken = _readPremiumAccessToken();
+          _trace('SECTION_GENERATION_START', {
+            chapterId: 'ch_' + (idx + 1),
+            categoryId: null,
+            mode: 'personal',
+            hasPayload: true,
+            chapterCount: TOTAL_CHAPTERS,
+            categoryCount: Array.isArray(CHAPTER_STRUCTURED_LABELS[idx + 1]) ? CHAPTER_STRUCTURED_LABELS[idx + 1].length : 0,
+          });
           var _controller = (typeof AbortController === 'function') ? new AbortController() : null;
           if (_controller) _activeRequestController = _controller;
           var timeoutId = setTimeout(function () {
@@ -1133,6 +1231,14 @@
                 ? { sections: data.sections }
                 : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
               _trace('CHAPTER_DATA_RECEIVED', { chapter: idx + 1, length: _zbText.length });
+              _trace('SECTION_GENERATION_SUCCESS', {
+                chapterId: 'ch_' + (idx + 1),
+                categoryId: null,
+                mode: 'personal',
+                hasPayload: true,
+                chapterCount: TOTAL_CHAPTERS,
+                categoryCount: Array.isArray(CHAPTER_STRUCTURED_LABELS[idx + 1]) ? CHAPTER_STRUCTURED_LABELS[idx + 1].length : 0,
+              });
               _setProgress(idx + 1);
               return { aborted: false };
             }
@@ -1141,6 +1247,16 @@
             var msg = (data && data.message) ? data.message : '알 수 없는 오류';
             var errorCode = (data && data.code) ? String(data.code) : 'UNKNOWN_ERROR';
             _trace('CHAPTER_DATA_FAILED', { chapter: idx + 1, message: msg, code: errorCode });
+            _trace('SECTION_GENERATION_FALLBACK', {
+              chapterId: 'ch_' + (idx + 1),
+              categoryId: null,
+              mode: 'personal',
+              hasPayload: true,
+              chapterCount: TOTAL_CHAPTERS,
+              categoryCount: Array.isArray(CHAPTER_STRUCTURED_LABELS[idx + 1]) ? CHAPTER_STRUCTURED_LABELS[idx + 1].length : 0,
+              errorCode: errorCode,
+              message: msg,
+            });
             console.error('[자미두수 PDF 생성] 섹션 생성 실패:', {
               chapter: idx + 1,
               code: errorCode,
@@ -1150,13 +1266,23 @@
               textLength: _zbText.length,
               responsePreview: _sanitizeDebugValue(data || null, 0, []),
             });
-            throw {
-              chapter: idx + 1,
-              code: errorCode,
-              message: msg,
-              sectionCount: (data && data.chapterJson && Array.isArray(data.chapterJson.sections)) ? data.chapterJson.sections.length : 0,
-              textLength: _zbText.length,
+            _chapterMeta[idx] = {
+              title: CHAPTER_TITLES[idx] || ('Chapter ' + (idx + 1)),
+              subtitle: CHAPTER_SUBTITLES[idx] || '',
+              sections: _normalizeSections(CHAPTER_STRUCTURED_LABELS[idx + 1] || []),
+              isSkeleton: false,
             };
+            _chapters[idx] = _buildChapterLocalFallback(idx, msg);
+            _chapterStructured[idx] = {
+              sections: (CHAPTER_STRUCTURED_LABELS[idx + 1] || []).map(function (label) {
+                return {
+                  title: String(label || '').trim(),
+                  body: '현재 확보된 자미두수 핵심 데이터를 기준으로 성향/패턴/실행 전략을 정리했습니다.',
+                };
+              }),
+            };
+            _setProgress(idx + 1);
+            return { aborted: false };
           });
         });
       })(_chapterIdx);
