@@ -783,6 +783,18 @@
       window.__cdActiveBirthProfile = profile;
     }
 
+    if (_generating) {
+      _showScreen('zbLoadingScreen');
+      modal.style.display = 'flex';
+      modal.style.visibility = 'visible';
+      modal.style.pointerEvents = 'auto';
+      modal.style.zIndex = '100120';
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('lb-modal-open');
+      try { modal.setAttribute('aria-hidden', 'false'); } catch (_) {}
+      return;
+    }
+
     // 프로필 카드에서 진입했을 때 자미두수 계산 상태를 즉시 동기화
     try {
       if (typeof window.computeProfileForModal === 'function') {
@@ -856,11 +868,13 @@
   window.closeZiweiBookModal = function () {
     var modal = _qs('ziweiBookModal');
     if (!modal) return;
-    _cancelGeneration = true;
-    _generationRunId += 1;
-    _generating = false;
-    _abortActiveRequest();
-    if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
+    if (!_generating) {
+      _cancelGeneration = true;
+      _generationRunId += 1;
+      _generating = false;
+      _abortActiveRequest();
+      if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
+    }
     modal.style.display = 'none';
     document.body.style.overflow = '';
     document.body.classList.remove('lb-modal-open');
@@ -1093,7 +1107,6 @@
       if (failErrEl) {
         failErrEl.textContent = userMessage || '자미두수 PDF 본문 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
       }
-      _zbClearSaved(window.__cdActiveBirthProfile || {});
       _showScreen('zbErrorScreen');
     }
 

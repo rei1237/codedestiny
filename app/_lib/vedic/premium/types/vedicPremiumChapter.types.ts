@@ -1,12 +1,11 @@
 export type VedicChapterNo =
   | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
-  | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16;
+  | 9 | 10 | 11 | 12;
 
 export type VedicChapterKey =
-  | "ch01_total" | "ch02_lagna" | "ch03_moon" | "ch04_sun"
-  | "ch05_planets" | "ch06_houses" | "ch07_nakshatra" | "ch08_yoga"
-  | "ch09_dosha" | "ch10_career" | "ch11_love" | "ch12_health"
-  | "ch13_dasha" | "ch14_divisional" | "ch15_transit" | "ch16_final";
+  | "V1" | "V2" | "V3" | "V4"
+  | "V5" | "V6" | "V7" | "V8"
+  | "V9" | "V10" | "V11" | "V12";
 
 export interface VedicInterpretationItem {
   key: string;

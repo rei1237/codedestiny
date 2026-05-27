@@ -9,11 +9,11 @@ describe("Vedic PDF chapter config", () => {
     ({ VEDIC_PDF_CHAPTERS } = await import("../../worker/lib/vedic-premium-chapters.js"));
   });
 
-  test("10챕터가 고정 순서로 존재해야 한다", () => {
+  test("12챕터가 고정 순서로 존재해야 한다", () => {
     expect(Array.isArray(VEDIC_PDF_CHAPTERS)).toBe(true);
-    expect(VEDIC_PDF_CHAPTERS).toHaveLength(10);
+    expect(VEDIC_PDF_CHAPTERS).toHaveLength(12);
     const orders = VEDIC_PDF_CHAPTERS.map((ch) => Number(ch.order));
-    expect(orders).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(orders).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
   });
 
   test("각 챕터는 지정된 최소 5개 이상의 섹션을 가져야 한다", () => {
@@ -24,7 +24,7 @@ describe("Vedic PDF chapter config", () => {
   });
 
   test("다샤/아트마카라카 챕터의 바인딩이 분리되어야 한다", () => {
-    const dasha = VEDIC_PDF_CHAPTERS.find((ch) => ch.id === "V9");
+    const dasha = VEDIC_PDF_CHAPTERS.find((ch) => ch.id === "V11");
     const atmakaraka = VEDIC_PDF_CHAPTERS.find((ch) => ch.id === "V4");
 
     expect(dasha).toBeTruthy();
@@ -48,7 +48,9 @@ describe("Vedic PDF chapter config", () => {
       V7: 5,
       V8: 5,
       V9: 5,
-      V10: 6,
+      V10: 5,
+      V11: 5,
+      V12: 6,
     };
 
     for (const chapter of VEDIC_PDF_CHAPTERS) {

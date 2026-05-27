@@ -2,24 +2,6 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { getVedicPdfChapters } from "@/app/_lib/vedic/pdf/vedicPdfChapters";
 import { sanitizePremiumSections, sanitizePremiumText } from "@/app/_lib/vedic/premium/guards/premiumTextGuard";
-import {
-  VedicCh1_Total,
-  VedicCh2_Lagna,
-  VedicCh3_Moon,
-  VedicCh4_Sun,
-  VedicCh5_Planets,
-  VedicCh6_Houses,
-  VedicCh7_Nakshatra,
-  VedicCh8_Yoga,
-  VedicCh9_Dosha,
-  VedicCh10_Career,
-  VedicCh11_Love,
-  VedicCh12_Health,
-  VedicCh13_Dasha,
-  VedicCh14_Divisional,
-  VedicCh15_Transit,
-  VedicCh16_Final,
-} from "@/app/components/vedic-premium/chapters";
 import PremiumPdfHistoryPanel from "./PremiumPdfHistoryPanel";
 
 
@@ -230,23 +212,6 @@ function ChapterCard({ meta, state, onGenerate }: { meta:ChapterMeta; state:Chap
 
     const safeText = sanitizePremiumText(state.result.text, "해석 데이터를 준비 중입니다.");
     const safeSections = sanitizePremiumSections(state.result.sections, "섹션 데이터가 아직 준비되지 않았습니다.");
-
-    if (meta.num === 1) return <VedicCh1_Total text={safeText} sections={safeSections} />;
-    if (meta.num === 2) return <VedicCh2_Lagna text={safeText} sections={safeSections} />;
-    if (meta.num === 3) return <VedicCh3_Moon text={safeText} sections={safeSections} />;
-    if (meta.num === 4) return <VedicCh4_Sun text={safeText} sections={safeSections} />;
-    if (meta.num === 5) return <VedicCh5_Planets text={safeText} sections={safeSections} />;
-    if (meta.num === 6) return <VedicCh6_Houses text={safeText} sections={safeSections} />;
-    if (meta.num === 7) return <VedicCh7_Nakshatra text={safeText} sections={safeSections} />;
-    if (meta.num === 8) return <VedicCh8_Yoga text={safeText} sections={safeSections} />;
-    if (meta.num === 9) return <VedicCh9_Dosha text={safeText} sections={safeSections} />;
-    if (meta.num === 10) return <VedicCh10_Career text={safeText} sections={safeSections} />;
-    if (meta.num === 11) return <VedicCh11_Love text={safeText} sections={safeSections} />;
-    if (meta.num === 12) return <VedicCh12_Health text={safeText} sections={safeSections} />;
-    if (meta.num === 13) return <VedicCh13_Dasha text={safeText} sections={safeSections} />;
-    if (meta.num === 14) return <VedicCh14_Divisional text={safeText} sections={safeSections} />;
-    if (meta.num === 15) return <VedicCh15_Transit text={safeText} sections={safeSections} />;
-    if (meta.num === 16) return <VedicCh16_Final text={safeText} sections={safeSections} />;
 
     return safeSections.length > 0
       ? safeSections.map((sec, i) => (

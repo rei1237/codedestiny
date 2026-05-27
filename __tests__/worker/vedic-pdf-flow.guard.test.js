@@ -125,7 +125,7 @@ describe("Vedic PDF payload/category guards", () => {
     expect(text.includes("\"synastry\"")).toBe(false);
   });
 
-  test("validateVedicPdfPayload: lagna/planets/sourceData 누락 또는 forbidden key가 있으면 실패한다", () => {
+  test("validateVedicPdfPayload: 누락/forbidden key를 lenient 모드로 보고해야 한다", () => {
     const canonical = __vedicTestUtils.buildCanonicalVedicChart(makeBody(), makeInput(), makeChart(), "personal", null, null);
     const chapterPlan = __vedicTestUtils.buildVedicChapterPlan(canonical, "personal");
     const validPayload = __vedicTestUtils.buildVedicPdfPayload({
@@ -137,20 +137,27 @@ describe("Vedic PDF payload/category guards", () => {
 
     const noLagna = JSON.parse(JSON.stringify(validPayload));
     noLagna.vedic.lagna = null;
-    expect(__vedicTestUtils.validateVedicPdfPayload(noLagna).ok).toBe(false);
+    const noLagnaResult = __vedicTestUtils.validateVedicPdfPayload(noLagna);
+    expect(noLagnaResult.ok).toBe(true);
+    expect(noLagnaResult.lenient).toBe(true);
+    expect(noLagnaResult.missingFields.some((f) => String(f).includes("vedic.lagna"))).toBe(true);
 
     const noPlanets = JSON.parse(JSON.stringify(validPayload));
     noPlanets.vedic.planets = [];
-    expect(__vedicTestUtils.validateVedicPdfPayload(noPlanets).ok).toBe(false);
+    const noPlanetsResult = __vedicTestUtils.validateVedicPdfPayload(noPlanets);
+    expect(noPlanetsResult.ok).toBe(true);
+    expect(noPlanetsResult.missingFields.some((f) => String(f).includes("vedic.planets"))).toBe(true);
 
     const noSourceData = JSON.parse(JSON.stringify(validPayload));
     noSourceData.chapters[0].categories[0].sourceData = {};
-    expect(__vedicTestUtils.validateVedicPdfPayload(noSourceData).ok).toBe(false);
+    const noSourceResult = __vedicTestUtils.validateVedicPdfPayload(noSourceData);
+    expect(noSourceResult.ok).toBe(true);
+    expect(noSourceResult.missingFields.some((f) => String(f).includes("sourceData"))).toBe(true);
 
     const withPartner = JSON.parse(JSON.stringify(validPayload));
     withPartner.partner = { name: "x" };
     const forbidden = __vedicTestUtils.validateVedicPdfPayload(withPartner);
-    expect(forbidden.ok).toBe(false);
+    expect(forbidden.ok).toBe(true);
     expect(forbidden.forbiddenKeys.length).toBeGreaterThan(0);
   });
 
@@ -168,7 +175,7 @@ describe("Vedic PDF payload/category guards", () => {
     const manifest = __vedicTestUtils.buildVedicPdfChapterManifest("personal");
 
     expect(Array.isArray(manifest)).toBe(true);
-    expect(manifest.length).toBe(10);
+    expect(manifest.length).toBe(12);
 
     const first = manifest[0];
     expect(Array.isArray(first.categories)).toBe(true);
@@ -190,7 +197,7 @@ describe("Vedic PDF payload/category guards", () => {
       chapterPlan,
     });
 
-    expect(payload.chapters).toHaveLength(10);
+    expect(payload.chapters).toHaveLength(12);
     payload.chapters.forEach((chapter, index) => {
       const cfg = VEDIC_PDF_CHAPTERS[index];
       expect(cfg).toBeTruthy();
@@ -213,7 +220,7 @@ describe("Vedic PDF payload/category guards", () => {
     const lagnaSection = payload.chapters[1].categories.find((c) => c.id === "V2_S1");
     const nakshatraSection = payload.chapters[2].categories.find((c) => c.id === "V3_S2");
     const atmakarakaSection = payload.chapters[3].categories.find((c) => c.id === "V4_S1");
-    const dashaSection = payload.chapters[8].categories.find((c) => c.id === "V9_S1");
+    const dashaSection = payload.chapters[10].categories.find((c) => c.id === "V11_S1");
 
     expect(lagnaSection?.sourceData?.lagna?.signName || lagnaSection?.sourceData?.lagna?.signKo).toBeTruthy();
     expect(lagnaSection?.sourceData?.lagna?.lord).toBeTruthy();
@@ -221,5 +228,61 @@ describe("Vedic PDF payload/category guards", () => {
     expect(atmakarakaSection?.sourceData?.karakas?.atmakaraka?.name).toBeTruthy();
     expect(dashaSection?.sourceData?.dasha?.current?.planet).toBeTruthy();
     expect(dashaSection?.sourceData?.dasha?.antar?.planet).toBeTruthy();
+  });
+
+  test("Chapter 11/12는 Ch.10과 중복되지 않고 고유 id/title을 유지해야 한다", () => {
+    const manifest = __vedicTestUtils.buildVedicPdfChapterManifest("personal");
+    expect(() => __vedicTestUtils.validateCanonicalVedicChapters(manifest)).not.toThrow();
+
+    const ch10 = manifest.find((ch) => ch.id === "V10");
+    const ch11 = manifest.find((ch) => ch.id === "V11");
+    const ch12 = manifest.find((ch) => ch.id === "V12");
+
+    expect(ch10?.title).toContain("Ch.10");
+    expect(ch11?.title).toContain("Ch.11");
+    expect(ch12?.title).toContain("Ch.12");
+    expect(ch11?.title).not.toBe(ch10?.title);
+    expect(ch12?.title).not.toBe(ch10?.title);
+  });
+
+  test("카테고리 localSeedText는 챕터별 컨텍스트를 유지해야 한다", () => {
+    const canonical = __vedicTestUtils.buildCanonicalVedicChart(makeBody(), makeInput(), makeChart(), "personal", null, null);
+    const chapterPlan = __vedicTestUtils.buildVedicChapterPlan(canonical, "personal");
+    const payload = __vedicTestUtils.buildVedicPdfPayload({
+      input: makeInput(),
+      canonicalVedicChart: canonical,
+      reportType: "personal",
+      chapterPlan,
+    });
+
+    const careerSeed = payload.chapters.find((ch) => ch.id === "V7")?.categories?.[0]?.localSeedText || "";
+    const moneySeed = payload.chapters.find((ch) => ch.id === "V8")?.categories?.[0]?.localSeedText || "";
+    const loveSeed = payload.chapters.find((ch) => ch.id === "V9")?.categories?.[0]?.localSeedText || "";
+    const dashaSeed = payload.chapters.find((ch) => ch.id === "V11")?.categories?.[0]?.localSeedText || "";
+
+    expect(careerSeed).toContain("커리어/사회적 역할");
+    expect(moneySeed).toContain("재물/수익 구조");
+    expect(loveSeed).toContain("사랑/관계");
+    expect(dashaSeed).toContain("다샤");
+  });
+
+  test("저품질 문장 검출기는 반복 금지 문구를 차단해야 한다", () => {
+    expect(__vedicTestUtils.isLowQualityVedicSection("라시와 하우스를 분리해 보는 것입니다. 실행 단계에서는 10하우스 중심으로.", { chapterId: "V7" })).toBe(true);
+    expect(__vedicTestUtils.isLowQualityVedicSection("재정 측면에서는 2하우스 구조를 기준으로 운의 상승 구간을 실제 성과로 연결합니다.", { chapterId: "V8" })).toBe(true);
+    const goodText = [
+      "현재 마하다샤와 안타르다샤의 결합은 선택 속도보다 선택 품질을 우선하라는 신호로 읽힙니다.",
+      "이번 분기에는 이미 강점이 검증된 영역을 중심으로 책임 범위를 좁히는 전략이 유효합니다.",
+      "관계와 업무에서 동시에 소진이 올라오는 구간이므로 일정의 밀도를 낮추고 회복 시간을 고정해야 합니다.",
+      "재정 판단은 단기 수익보다 변동성 관리 기준을 먼저 세워 손실 구간을 줄이는 것이 중요합니다.",
+      "다음 다샤 전환 전에는 핵심 루틴을 표준화해 운의 진폭이 커져도 실행 안정성을 유지해야 합니다.",
+      "핵심 과제를 한 줄 문장으로 고정하고 주간 리뷰에서 중단/유지/확장 결정을 분리해 운용하세요.",
+      "라그나 축에서 반복적으로 강조되는 판단 기준은 자신의 에너지가 가장 오래 유지되는 시간대에 주요 결정을 배치하는 것입니다.",
+      "달의 정서 리듬을 고려하면 피로 누적 직후에 관계 문제를 해결하려 하기보다 회복 이후 대화 순서를 재설계하는 편이 손실을 줄입니다.",
+      "목표를 세울 때는 성취 지표와 회복 지표를 동시에 기록해 성과만 높고 지속 가능성이 낮은 패턴을 초기에 차단해야 합니다.",
+      "현 시기에는 확장보다 정합성이 중요한 구간이므로 이미 시작한 프로젝트의 마감 품질을 높이는 선택이 장기 운을 안정화합니다.",
+      "리스크 관리에서는 사람, 시간, 자원 세 축의 병목을 분리해 점검하면 불필요한 감정 비용을 크게 줄일 수 있습니다.",
+      "종합하면 이번 다샤의 핵심은 강한 추진력을 억제하는 것이 아니라 재현 가능한 루틴으로 번역해 손실 없는 성장 경로를 확보하는 데 있습니다.",
+    ].join(" ");
+    expect(__vedicTestUtils.isLowQualityVedicSection(goodText, { chapterId: "V11" })).toBe(false);
   });
 });
