@@ -95,16 +95,16 @@ describe("Astro solo PDF contract", () => {
     expect(Array.isArray(seed.reportPayload.chapterInputs)).toBe(true);
   });
 
-  test("3) chapters.length는 10이어야 한다", () => {
+  test("3) chapters.length는 12이어야 한다", () => {
     const canonical = makeCanonical();
     const plan = astro.buildAstroChapterPlan(canonical, "personal");
-    expect(plan).toHaveLength(10);
+    expect(plan).toHaveLength(12);
   });
 
   test("4) 각 chapter의 section 수는 계약과 일치해야 한다", () => {
     const chapterSpec = astro.ASTRO_WESTERN_PDF_CHAPTERS;
-    const expected = [5, 5, 5, 5, 5, 5, 5, 5, 5, 6];
-    expect(chapterSpec).toHaveLength(10);
+    const expected = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5];
+    expect(chapterSpec).toHaveLength(12);
     expect(chapterSpec.map((c) => c.sections.length)).toEqual(expected);
   });
 
@@ -198,7 +198,7 @@ describe("Astro solo PDF contract", () => {
     expect(astro.validateAstroSectionText(bad, 800)).toBe(false);
   });
 
-  test("14) 점성술 payload는 chapterInputs.length=10 계약을 만족해야 한다", () => {
+  test("14) 점성술 payload는 chapterInputs.length=12 계약을 만족해야 한다", () => {
     const input = buildInput();
     const body = buildBody();
     const raw = astro.buildWesternChart(input);
@@ -213,13 +213,13 @@ describe("Astro solo PDF contract", () => {
     expect(validated.ok).toBe(true);
 
     const broken = JSON.parse(JSON.stringify(seed.reportPayload));
-    broken.chapterInputs = broken.chapterInputs.slice(0, 8);
+    broken.chapterInputs = broken.chapterInputs.slice(0, 10);
     const invalid = astro.validateAstroPdfPayload(broken);
-    expect(invalid.missingFields).toContain("chapterInputs.length=10");
+    expect(invalid.missingFields).toContain("chapterInputs.length=12");
   });
 
-  test("15) reportType 스펙 chapterCount도 10과 일치해야 한다", () => {
-    expect(premium.getPremiumRequiredChapters("westernAstrologyPremium", "personal")).toBe(10);
+  test("15) reportType 스펙 chapterCount도 12와 일치해야 한다", () => {
+    expect(premium.getPremiumRequiredChapters("westernAstrologyPremium", "personal")).toBe(12);
   });
 
   test("16) 금지된 raw/payload 노출은 탐지되어야 한다", () => {

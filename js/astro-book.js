@@ -87,6 +87,7 @@
   var _chapterMeta = Array(12).fill(null);
   var _generating = false;
   var _currentChapter = 1;
+  var _abCurrentReportId = '';
   var _mysticTimer = null;
   var _premiumPaidUntil = 0;
 
@@ -283,11 +284,46 @@
   }
 
   function _abSaveResult(profile) {
-    try { sessionStorage.setItem(_abMakeKey(profile), JSON.stringify({ chapters:_chapters, name:(profile&&profile.name)||'사용자', birth:(profile&&profile.birth)||{}, gender:(profile&&profile.gender)||'', savedAt:new Date().toISOString() })); } catch(_) {}
+    try {
+      sessionStorage.setItem(_abMakeKey(profile), JSON.stringify({
+        chapters:_chapters,
+        chapterStructured:_chapterStructured,
+        chapterMeta:_chapterMeta,
+        currentChapter:_currentChapter,
+        reportId:_abCurrentReportId,
+        name:(profile&&profile.name)||'사용자',
+        birth:(profile&&profile.birth)||{},
+        gender:(profile&&profile.gender)||'',
+        savedAt:new Date().toISOString(),
+      }));
+    } catch(_) {}
   }
 
   function _abLoadSaved(profile) {
     try { var raw = sessionStorage.getItem(_abMakeKey(profile)); return raw ? JSON.parse(raw) : null; } catch(_) { return null; }
+  }
+
+  function _abHasSavedContent(saved) {
+    if (!saved || typeof saved !== 'object') return false;
+    var chapters = Array.isArray(saved.chapters) ? saved.chapters : [];
+    if (chapters.some(function(row){ return String(row || '').trim().length > 0; })) return true;
+    var structured = Array.isArray(saved.chapterStructured) ? saved.chapterStructured : [];
+    return structured.some(function(block){ return block && Array.isArray(block.sections) && block.sections.some(function(row){ return String((row && (row.body || row.content)) || '').trim().length > 0; }); });
+  }
+
+  function _abHasChapterContent(idx) {
+    var text = String(_chapters[idx] || '').trim();
+    if (text && !/^⚠️/.test(text)) return true;
+    var structured = _chapterStructured[idx];
+    if (!structured || !Array.isArray(structured.sections)) return false;
+    return structured.sections.some(function(row){ return String((row&& (row.body||row.content)) || '').trim().length > 0; });
+  }
+
+  function _abChapterMarkdown(idx) {
+    var text = String(_chapters[idx] || '').trim();
+    if (text) return text;
+    var structured = _chapterStructured[idx];
+    return String(_deriveTextFromChapterJson(structured) || '').trim();
   }
 
   function _showScreen(id) {
@@ -313,11 +349,11 @@
       var btn = e.target.closest('[data-ab-chapter]');
       if (!btn) return;
       var ch = Number(btn.getAttribute('data-ab-chapter'));
-      if (!ch || !_chapters[ch-1]) return;
+      if (!ch || !_abHasChapterContent(ch-1)) return;
       _renderChapter(ch);
       Array.prototype.forEach.call(nav.querySelectorAll('.ab-toc-item'), function(b) {
         b.classList.toggle('active', b===btn);
-        b.classList.toggle('loaded', !!_chapters[Number(b.getAttribute('data-ab-chapter'))-1]);
+        b.classList.toggle('loaded', _abHasChapterContent(Number(b.getAttribute('data-ab-chapter'))-1));
       });
     });
   }
@@ -326,7 +362,7 @@
     var content = _qs('abChapterContent');
     if (!content) return;
     var idx = ch-1;
-    var data = _chapters[idx], structured = _chapterStructured[idx];
+    var data = _abChapterMarkdown(idx), structured = _chapterStructured[idx];
     if (!data && !structured) { content.innerHTML = '<p class="zb-ch-empty">이 챕터가 아직 생성되지 않았습니다.</p>'; return; }
     var meta = _getChapterMeta(idx);
     var bodyHtml = _renderStructuredChapterBody(ch, structured);
@@ -343,13 +379,14 @@
     content.scrollTop = 0;
   }
 
-  function _updateTocState() {
+  function _updateTocState(activeChapter) {
+    var active = Math.max(1, Math.min(12, Number(activeChapter || _currentChapter || 1)));
     _renderToc();
     var items = document.querySelectorAll('#abToc .ab-toc-item');
     Array.prototype.forEach.call(items, function(btn) {
       var ch = Number(btn.getAttribute('data-ab-chapter'));
-      btn.classList.toggle('loaded', !!_chapters[ch-1]);
-      btn.classList.toggle('active', ch===1);
+      btn.classList.toggle('loaded', _abHasChapterContent(ch-1));
+      btn.classList.toggle('active', ch===active);
     });
   }
 
@@ -369,12 +406,15 @@
     }
     if (!window.__cdActiveBirthProfile || !window.__cdActiveBirthProfile.birth) window.__cdActiveBirthProfile = profile;
     var saved = _abLoadSaved(profile);
-    if (saved && saved.chapters && saved.chapters.some(Boolean)) {
-      _chapters = saved.chapters;
-      _currentChapter = 1;
+    if (_abHasSavedContent(saved)) {
+      _chapters = Array.isArray(saved.chapters) ? saved.chapters : Array(12).fill(null);
+      _chapterStructured = Array.isArray(saved.chapterStructured) ? saved.chapterStructured : Array(12).fill(null);
+      _chapterMeta = Array.isArray(saved.chapterMeta) ? saved.chapterMeta : Array(12).fill(null);
+      _currentChapter = Math.max(1, Math.min(12, Number(saved.currentChapter || 1)));
+      _abCurrentReportId = String(saved.reportId || '');
       _showScreen('abResultScreen');
-      _updateTocState();
-      _renderChapter(1);
+      _updateTocState(_currentChapter);
+      _renderChapter(_currentChapter);
       _bindToc();
       var nameEl=_qs('abResultName'), dateEl=_qs('abResultDate');
       if (nameEl) nameEl.textContent = '✨ '+(saved.name||'사용자')+'님의 점성술 코즈믹 차트';
@@ -385,8 +425,10 @@
       return;
     }
     _chapters = Array(12).fill(null);
+    _chapterStructured = Array(12).fill(null);
     _chapterMeta = Array(12).fill(null);
     _currentChapter = 1;
+    _abCurrentReportId = '';
     _showScreen('abStartScreen');
     modal.style.display = 'flex'; modal.style.zIndex='100120';
     document.body.style.overflow = 'hidden';
@@ -429,6 +471,7 @@
 
     _generating = true;
     _chapters = Array(12).fill(null);
+    _chapterStructured = Array(12).fill(null);
     _chapterMeta = Array(12).fill(null);
 
     _showScreen('abLoadingScreen');
@@ -493,6 +536,7 @@
     _setProgress(0);
 
     var _abReportId = 'astro_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+    _abCurrentReportId = _abReportId;
 
     function _abReadPremiumAccessToken(){
       var token='';
@@ -542,7 +586,7 @@
         var validCount=_chapters.filter(function(c){return typeof c==='string'&&c.trim().length>0&&!/^⚠️/.test(c);}).length;
         if (validCount===0) { var errEl=_qs('abErrorMsg'); if(errEl) errEl.textContent='모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.'; _showScreen('abErrorScreen'); return; }
         _showScreen('abResultScreen');
-        _updateTocState(); _renderChapter(1); _bindToc();
+        _updateTocState(1); _renderChapter(1); _bindToc();
         var prof=window.__cdActiveBirthProfile||{};
         var _nameEl=_qs('abResultName'), _dateEl=_qs('abResultDate');
         if (_nameEl) _nameEl.textContent='✨ '+(prof.name||'사용자')+'님의 점성술 코즈믹 차트';
@@ -552,7 +596,16 @@
       }
       if (chapterMsg) chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';
       _fetchChapter(idx).then(function(data) {
-        if (data&&data.ok&&data.text) { _syncChapterMetaFromResponse(idx,data); _chapters[idx]=data.text; _chapterStructured[idx]=(Array.isArray(data.sections)&&data.sections.length)?{sections:data.sections}:(data.chapterJson&&typeof data.chapterJson==='object'?data.chapterJson:null); _setProgress(idx+1); generateNext(idx+1); return; }
+        if (data&&data.ok&&(data.text||(Array.isArray(data.sections)&&data.sections.length)||(data.chapterJson&&typeof data.chapterJson==='object'))) {
+          _syncChapterMetaFromResponse(idx,data);
+          _chapterStructured[idx]=(Array.isArray(data.sections)&&data.sections.length)?{sections:data.sections}:(data.chapterJson&&typeof data.chapterJson==='object'?data.chapterJson:null);
+          _chapters[idx]=String(data.text||_deriveTextFromChapterJson(_chapterStructured[idx])||'').trim();
+          _currentChapter = Math.max(1, Math.min(12, idx+1));
+          _abSaveResult(window.__cdActiveBirthProfile||{});
+          _setProgress(idx+1);
+          generateNext(idx+1);
+          return;
+        }
         _failCount++;
         var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류';
         console.warn('[점성술] Chapter '+(idx+1)+' 실패:',msg);
@@ -566,15 +619,18 @@
   };
 
   window.downloadAstroBookPdf = function() {
-    if (!_chapters.some(Boolean)) { alert('먼저 점성술 코즈믹 차트를 생성해 주세요.'); return; }
+    var hasAny=false;
+    for (var hx=0; hx<12; hx++) { if (_abHasChapterContent(hx)) { hasAny=true; break; } }
+    if (!hasAny) { alert('먼저 점성술 코즈믹 차트를 생성해 주세요.'); return; }
     var profile=window.__cdActiveBirthProfile||{};
     var name=(profile.name||'사용자')+'님의 점성술 코즈믹 차트';
     var birth=profile.birth||{};
     var issued=new Date().toLocaleDateString('ko-KR');
     var bodyHtml='';
     for (var i=0;i<12;i++) {
-      if (!_chapters[i]) continue;
-      bodyHtml+='<div class="chapter" style="page-break-before:'+(i>0?'always':'auto')+'"><div class="chapter-header"><span class="chapter-num">Chapter '+(i+1)+'</span><h2 class="chapter-title">'+_escHtml(_getChapterMeta(i).title)+'</h2><p class="chapter-sub">'+_escHtml(_getChapterMeta(i).subtitle)+'</p></div><div class="chapter-body">'+_md2html(_chapters[i])+'</div></div>';
+      var chapterMd = _abChapterMarkdown(i);
+      if (!chapterMd) continue;
+      bodyHtml+='<div class="chapter" style="page-break-before:'+(i>0?'always':'auto')+'"><div class="chapter-header"><span class="chapter-num">Chapter '+(i+1)+'</span><h2 class="chapter-title">'+_escHtml(_getChapterMeta(i).title)+'</h2><p class="chapter-sub">'+_escHtml(_getChapterMeta(i).subtitle)+'</p></div><div class="chapter-body">'+_md2html(chapterMd)+'</div></div>';
     }
     var fullHtml='<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>'+_escHtml(name)+'</title>' +
       '<style>@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap");' +

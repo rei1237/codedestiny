@@ -6,21 +6,22 @@ import {
   validateSukyoPdfInput,
   getSukyoPdfChapters,
   sanitizeSukyoChapterJson,
+  isLowQualityShukuyoSection,
 } from "../../worker/lib/sukyo-pdf.js";
 import { __astroTestUtils } from "../../worker/routes/premium.js";
 
 describe("Sukuyo preflight and recovery guard", () => {
-  test("getSukyoPdfChapters returns personal 8 chapters and compatibility 10 chapters", () => {
+  test("getSukyoPdfChapters returns personal 10 chapters and compatibility 12 chapters", () => {
     const personal = getSukyoPdfChapters("personal");
     const solo = getSukyoPdfChapters("solo");
     const compatibility = getSukyoPdfChapters("compatibility");
 
-    expect(personal).toHaveLength(8);
-    expect(solo).toHaveLength(8);
-    expect(compatibility).toHaveLength(10);
-    expect(personal[0].key).toBe("solo_ch_01");
-    expect(compatibility[9].key).toBe("compat_ch_10");
-    expect(personal[0].sections).toHaveLength(4);
+    expect(personal).toHaveLength(10);
+    expect(solo).toHaveLength(10);
+    expect(compatibility).toHaveLength(12);
+    expect(personal[0].key).toBe("chapter-01-natal-overview");
+    expect(compatibility[11].key).toBe("chapter-12-final-roadmap");
+    expect(personal[0].sections).toHaveLength(5);
     expect(compatibility[0].sections).toHaveLength(5);
   });
 
@@ -66,9 +67,46 @@ describe("Sukuyo preflight and recovery guard", () => {
     expect(result.hardMissingFields).toContain("compatibility.relationType");
   });
 
+  test("validateSukyoPdfInput personal mode allows missing birthTime", () => {
+    const result = validateSukyoPdfInput({
+      reportMode: "personal",
+      sukuyoBookContext: {
+        user: {
+          profile: { birthDate: "1992-01-10", birthTime: "" },
+          sukuyo: { mansion: "류" },
+        },
+      },
+    });
+
+    expect(result.canGenerate).toBe(true);
+    expect(result.softMissingFields).toContain("user.profile.birthTime");
+  });
+
+  test("validateSukyoPdfInput compatibility mode allows missing score fields", () => {
+    const result = validateSukyoPdfInput({
+      reportMode: "compatibility",
+      sukuyoBookContext: {
+        user: {
+          profile: { birthDate: "1992-01-10" },
+          sukuyo: { mansion: "류" },
+        },
+        partner: {
+          profile: { birthDate: "1990-03-12" },
+          sukuyo: { mansion: "성" },
+        },
+        compatibility: {
+          relationType: "영친",
+          score: null,
+        },
+      },
+    });
+
+    expect(result.canGenerate).toBe(true);
+  });
+
   test("sanitizeSukyoChapterJson does not inject narrative fallback text", () => {
     const chapter = {
-      key: "solo_ch_01",
+      key: "chapter-01-natal-overview",
       title: "Chapter I",
       sections: ["Section A", "Section B"],
     };
@@ -82,6 +120,11 @@ describe("Sukuyo preflight and recovery guard", () => {
     expect(sanitized.sections[0].heading).toBe("Section A");
     expect(sanitized.sections[0].body).toBe("");
     expect(sanitized.fallbackUsed).toBe(false);
+  });
+
+  test("isLowQualityShukuyoSection blocks fallback/internal phrases", () => {
+    const bad = "자동 복구 생성\n사용자 숙요 계산 데이터가 불완전합니다.\nChapter 1 실패";
+    expect(isLowQualityShukuyoSection(bad)).toBe(true);
   });
 
   test("ensurePdfNo422 keeps 422 response untouched", async () => {

@@ -53,19 +53,16 @@ type PremiumSectionProps = {
 // 챕터 메타데이터
 // ─────────────────────────────────────────────────────────────────
 const CHAPTER_META: ChapterMeta[] = [
-  { num: 1,  title: "본명숙 원형 해독 — 나의 27숙 정체성", subtitle: "사용자의 본명숙 자체를 정확하게 설명",     icon: "🌑" },
-  { num: 2,  title: "달의 주기와 정서 리듬 — 월상·삭망각·조도 분석", subtitle: "lunarPhase 데이터 기반 정서 리듬 해석",   icon: "🌊" },
-  { num: 3,  title: "페르소나와 첫인상 — 세상이 나를 기억하는 방식", subtitle: "외부 이미지와 사회적 인상 분석",        icon: "🎭" },
-  { num: 4,  title: "자산 감각과 생활 기반 — 돈을 대하는 숙요적 태도", subtitle: "돈·안정감·재정 운영 성향 분석",         icon: "💰" },
-  { num: 5,  title: "협업과 조직 적응 — 보이지 않는 톱니바퀴", subtitle: "조직·협업·역할 최적화",        icon: "⚙️" },
-  { num: 6,  title: "관계 감지력 — 인간관계 레이더와 거리 조절", subtitle: "개인 숙요 기준 인간관계 감각 분석",      icon: "📡" },
-  { num: 7,  title: "위기와 전환 — 무너질 때 다시 살아나는 방식", subtitle: "위기 대응과 회복력",  icon: "💥" },
-  { num: 8,  title: "가족과 뿌리 — 정서적 기반과 소속감", subtitle: "가족·공간·정서적 기반",    icon: "🌿" },
-  { num: 9,  title: "욕망과 추진력 — 내가 움직이는 진짜 이유", subtitle: "욕망·동기·추진력",      icon: "❤️" },
-  { num: 10, title: "내면 회복과 영성 — 혼자 있을 때 살아나는 힘", subtitle: "회복 루틴과 영적 성장", icon: "🧭" },
-  { num: 11, title: "달의 주기 — 월령 에너지 사이클", subtitle: "한 달 주기 행동 우선순위",       icon: "🌙" },
-  { num: 12, title: "영혼의 마스터플랜 — 1년·3년·10년 로드맵", subtitle: "전체 종합 결론과 실행 계획", icon: "⚗️" },
-  { num: 13, title: "최종 처방과 30일 실천", subtitle: "핵심 선언문과 한 달 실행 루틴", icon: "📜" },
+  { num: 1,  title: "I. 본명숙 총론 - 타고난 숙의 기본 기질", subtitle: "나의 숙이 보여주는 성향과 삶의 기본 방향", icon: "🌑" },
+  { num: 2,  title: "II. 내면 구조 - 감정, 불안, 회복 방식", subtitle: "마음의 움직임과 자기 보호 방식", icon: "🌊" },
+  { num: 3,  title: "III. 연애 성향 - 끌림과 애착의 방식", subtitle: "사랑을 시작하고 유지하는 패턴", icon: "❤️" },
+  { num: 4,  title: "IV. 인간관계 - 거리감과 신뢰의 구조", subtitle: "사람을 받아들이고 밀어내는 방식", icon: "📡" },
+  { num: 5,  title: "V. 일과 재능 - 숙이 드러나는 직업성", subtitle: "성과가 나는 방식과 재능의 방향", icon: "⚙️" },
+  { num: 6,  title: "VI. 재물 감각 - 돈을 대하는 태도", subtitle: "수익, 소비, 축적의 리듬", icon: "💰" },
+  { num: 7,  title: "VII. 갈등 패턴 - 무너지는 순간과 회복법", subtitle: "관계와 삶에서 충돌이 생기는 방식", icon: "💥" },
+  { num: 8,  title: "VIII. 성장 과제 - 숙이 요구하는 성숙 방향", subtitle: "반복되는 운의 숙제를 넘어서는 법", icon: "🌿" },
+  { num: 9,  title: "IX. 흐름과 타이밍 - 관계와 선택의 운용법", subtitle: "중요한 결정을 다루는 기준", icon: "🌙" },
+  { num: 10, title: "X. 숙요 인생 로드맵 - 나를 살리는 사용법", subtitle: "성향, 관계, 일, 회복의 종합 전략", icon: "📜" },
 ];
 
 const SUKUYO_STORAGE_KEY = "premium:sukuyo:session:v1";
@@ -572,9 +569,12 @@ function SukuyoHero({ sukuyo }: { sukuyo: SukuyoInfo }) {
           pointerEvents: "none",
         }}
       >
-        <span style={{ fontSize: "0.7rem" }}>✦</span>
-        <span style={{ fontSize: "0.85rem" }}>✦</span>
-        <span style={{ fontSize: "0.7rem" }}>✦</span>
+          <span style={{ fontSize: "0.7rem" }}>✦</span>
+          <span style={{ fontSize: "0.85rem" }}>✦</span>
+          <span style={{ fontSize: "0.7rem" }}>✦</span>
+          <span style={{ fontSize: "0.7rem" }}>✦</span>
+          <span style={{ fontSize: "0.85rem" }}>✦</span>
+          <span style={{ fontSize: "0.7rem" }}>✦</span>
       </div>
 
       <div style={{ marginBottom: 16 }}>
@@ -663,6 +663,7 @@ export default function HPremiumSukuyoSection({
   const [initError, setInitError] = useState("");
   const [allGenerating, setAllGenerating] = useState(false);
   const [requestError, setRequestError] = useState("");
+  const [activeChapterId, setActiveChapterId] = useState(1);
   const { startProcessing, stopProcessing } = usePaymentProcessing();
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -742,6 +743,7 @@ export default function HPremiumSukuyoSection({
         partnerGender?: "F" | "M";
         sukuyo?: SukuyoInfo | null;
         chapters?: ChapterState[];
+        activeChapterId?: number;
       };
 
       if (saved.birthDate) setBirthDate({ ...DEFAULT_BIRTH_FORM, ...saved.birthDate });
@@ -754,6 +756,10 @@ export default function HPremiumSukuyoSection({
           c.step === "loading" ? { step: "idle" as ChapterStep, result: c.result ?? null } : c
         );
         setChapters(normalized);
+      }
+      if (Number.isFinite(Number(saved.activeChapterId))) {
+        const nextActive = Math.max(1, Math.min(CHAPTER_META.length, Number(saved.activeChapterId)));
+        setActiveChapterId(nextActive);
       }
     } catch {
       // ignore broken snapshots
@@ -775,12 +781,13 @@ export default function HPremiumSukuyoSection({
           partnerGender,
           sukuyo,
           chapters,
+          activeChapterId,
         })
       );
     } catch {
       // ignore storage quota errors
     }
-  }, [birthDate, partnerBirthDate, partnerName, partnerGender, sukuyo, chapters, showIntro]);
+  }, [birthDate, partnerBirthDate, partnerName, partnerGender, sukuyo, chapters, activeChapterId, showIntro]);
 
   useEffect(() => {
     if (showIntro) {
@@ -791,6 +798,7 @@ export default function HPremiumSukuyoSection({
       setRequestError("");
       setAllGenerating(false);
       setInitLoading(false);
+      setActiveChapterId(1);
     }
   }, [showIntro]);
 
@@ -844,6 +852,7 @@ export default function HPremiumSukuyoSection({
       }
       if (data.sukuyo) {
         setSukuyo(data.sukuyo);
+        setActiveChapterId(1);
         setChapters((prev) => {
           const next = [...prev];
           next[0] = {
@@ -905,6 +914,7 @@ export default function HPremiumSukuyoSection({
             return next;
           });
         }
+        setActiveChapterId(chapter);
       } catch (e: unknown) {
         setRequestError(e instanceof Error ? e.message : "챕터 생성 중 오류가 발생했습니다.");
         setChapters((prev) => {
@@ -950,6 +960,7 @@ export default function HPremiumSukuyoSection({
             return next;
           });
         }
+        setActiveChapterId(ch);
       } catch (e: unknown) {
         setRequestError(e instanceof Error ? e.message : "전체 생성 중 오류가 발생했습니다.");
         setChapters((prev) => {
@@ -971,6 +982,10 @@ export default function HPremiumSukuyoSection({
       return;
     }
     try {
+      console.info("[ShukuyoPremium][Flow] PDF_RENDER_START", {
+        chapterCount: CHAPTER_META.length,
+        generatedCount: doneChapters.length,
+      });
       const escH = (s: unknown) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       const nl2p = (s: unknown) => String(s ?? "").split(/\n{2,}/).map(p => `<p>${escH(p).replace(/\n/g, "<br/>")}</p>`).join("");
       const chaptersHtml = doneChapters.map((cs, i) => {
@@ -1017,12 +1032,29 @@ ${chaptersHtml}
       win.document.open(); win.document.write(fullHtml); win.document.close();
       win.focus();
       setTimeout(() => { try { win.print(); } catch (_) {} }, 1200);
+      console.info("[ShukuyoPremium][Flow] PDF_RENDER_SUCCESS", {
+        chapterCount: CHAPTER_META.length,
+        generatedCount: doneChapters.length,
+      });
     } catch (e) {
       console.error("PDF 생성 오류", e);
     }
   }, [sukuyo, chapters, birthDate]);
 
   const doneCount = chapters.filter((c) => c.step === "done").length;
+  const totalChapters = CHAPTER_META.length;
+  const previewChapterState = chapters[Math.max(0, Math.min(CHAPTER_META.length - 1, activeChapterId - 1))];
+  const previewChapterMeta = CHAPTER_META[Math.max(0, Math.min(CHAPTER_META.length - 1, activeChapterId - 1))];
+
+  useEffect(() => {
+    if (doneCount <= 0) return;
+    console.info("[ShukuyoPremium][Flow] FRONT_PREVIEW_READY", {
+      mode: partnerDateFilled && isValidPartnerDate ? "compatibility" : "personal",
+      chapterId: activeChapterId,
+      chapterCount: totalChapters,
+      hasPreview: Boolean(previewChapterState?.result),
+    });
+  }, [doneCount, activeChapterId, totalChapters, previewChapterState, partnerDateFilled, isValidPartnerDate]);
 
   if (showIntro) {
     return (
@@ -1041,7 +1073,7 @@ ${chaptersHtml}
             <p style={{ color: "rgba(125,211,252,0.7)", fontSize: "0.66rem", letterSpacing: "0.28em", margin: 0 }}>MOONLIGHT STRATEGY · DETAIL INTRO</p>
             <h3 style={{ color: "#fff", fontWeight: 900, fontSize: "1.5rem", margin: "8px 0 6px" }}>숙요점 달빛 전략 리포트</h3>
             <p style={{ color: "rgba(186,230,253,0.72)", fontSize: "0.88rem", lineHeight: 1.8, margin: 0 }}>
-              27수 별자리 흐름을 12개 챕터로 먼저 확인하고, 버튼 클릭 시 PDF 생성 단계로 진입합니다.
+              27수 별자리 흐름을 개인 10개 챕터로 먼저 확인하고, 버튼 클릭 시 PDF 생성 단계로 진입합니다.
             </p>
 
             <div style={{ display: "grid", gap: 8, marginTop: 12 }}>
@@ -1174,7 +1206,7 @@ ${chaptersHtml}
           marginBottom: 28,
         }}
       >
-        {["12챕터 심층 분석", "27수 완전 해석", "6대 관계 역학", "달의 주기 전략", "PDF 다운로드"].map((tag) => (
+        {["10챕터 심층 분석", "27수 완전 해석", "관계/일/재물 전략", "달의 흐름 운용", "PDF 다운로드"].map((tag) => (
           <span
             key={tag}
             style={{
@@ -1589,7 +1621,7 @@ ${chaptersHtml}
                 borderTop: "1px solid rgba(125,211,252,0.1)",
               }}
             >
-              {doneCount < 13 && (
+              {doneCount < totalChapters && (
                 <button
                   type="button"
                   onClick={handleGenerateAll}
@@ -1606,7 +1638,7 @@ ${chaptersHtml}
                     letterSpacing: "0.06em",
                   }}
                 >
-                  {allGenerating ? "🌙 전체 생성 중..." : `✦ 전체 ${13 - doneCount}챕터 자동 생성`}
+                    {allGenerating ? "🌙 전체 생성 중..." : `✦ 전체 ${totalChapters - doneCount}챕터 자동 생성`}
                 </button>
               )}
               {doneCount > 0 && (
@@ -1629,13 +1661,13 @@ ${chaptersHtml}
                     letterSpacing: "0.06em",
                   }}
                 >
-                  ⬇ PDF 다운로드 ({doneCount}/13)
+                  ⬇ PDF 다운로드 ({doneCount}/{totalChapters})
                 </button>
               )}
             </div>
 
             {/* 진행 바 */}
-            {doneCount > 0 && doneCount < 13 && (
+            {doneCount > 0 && doneCount < totalChapters && (
               <div style={{ padding: "0 20px 16px" }}>
                 <div
                   style={{
@@ -1650,7 +1682,7 @@ ${chaptersHtml}
                       height: "100%",
                       borderRadius: 9999,
                       background: "linear-gradient(90deg, rgba(125,211,252,0.7), rgba(167,139,250,0.7))",
-                      width: `${(doneCount / 13) * 100}%`,
+                      width: `${(doneCount / totalChapters) * 100}%`,
                       transition: "width 0.5s ease",
                     }}
                   />
@@ -1663,13 +1695,73 @@ ${chaptersHtml}
                     color: "rgba(148,163,184,0.5)",
                   }}
                 >
-                  {doneCount} / 13 챕터 완료
+                  {doneCount} / {totalChapters} 챕터 완료
                 </p>
               </div>
             )}
           </div>
 
           {/* 챕터 카드 목록 */}
+          {doneCount > 0 && previewChapterState?.step === "done" && previewChapterState.result ? (
+            <div
+              style={{
+                borderRadius: 18,
+                border: "1px solid rgba(125,211,252,0.22)",
+                background: "linear-gradient(145deg, rgba(2,12,30,0.8) 0%, rgba(15,23,42,0.55) 100%)",
+                padding: "14px 14px 10px",
+                marginBottom: 14,
+              }}
+            >
+              <p style={{ margin: 0, fontSize: "0.72rem", letterSpacing: "0.16em", color: "rgba(125,211,252,0.72)" }}>
+                CHAPTER PREVIEW
+              </p>
+              <div style={{ display: "flex", gap: 8, overflowX: "auto", padding: "10px 0" }}>
+                {CHAPTER_META.map((meta) => {
+                  const state = chapters[meta.num - 1];
+                  const ready = state?.step === "done";
+                  return (
+                    <button
+                      key={meta.num}
+                      type="button"
+                      onClick={() => ready && setActiveChapterId(meta.num)}
+                      disabled={!ready}
+                      style={{
+                        borderRadius: 9999,
+                        border: activeChapterId === meta.num ? "1px solid rgba(125,211,252,0.45)" : "1px solid rgba(148,163,184,0.25)",
+                        background: activeChapterId === meta.num ? "rgba(2,44,84,0.55)" : "rgba(15,23,42,0.55)",
+                        color: ready ? "rgba(226,232,240,0.92)" : "rgba(148,163,184,0.5)",
+                        padding: "6px 12px",
+                        fontSize: "0.78rem",
+                        whiteSpace: "nowrap",
+                        cursor: ready ? "pointer" : "not-allowed",
+                      }}
+                    >
+                      {meta.num}
+                    </button>
+                  );
+                })}
+              </div>
+              <p style={{ margin: "4px 0 0", fontSize: "0.95rem", color: "rgba(226,232,240,0.95)", fontWeight: 700 }}>
+                {previewChapterMeta.icon} {previewChapterMeta.title}
+              </p>
+              <p style={{ margin: "6px 0 0", fontSize: "0.82rem", color: "rgba(186,230,253,0.7)" }}>
+                {previewChapterMeta.subtitle}
+              </p>
+              <div style={{ marginTop: 10 }}>
+                {previewChapterState.result.sections.length > 0
+                  ? previewChapterState.result.sections.slice(0, 2).map((sec, idx) => (
+                    <div key={idx} style={{ marginBottom: 8 }}>
+                      <p style={{ margin: 0, fontSize: "0.82rem", color: "rgba(125,211,252,0.9)", fontWeight: 700 }}>{sec.title}</p>
+                      <p style={{ margin: "4px 0 0", fontSize: "0.82rem", color: "rgba(203,213,225,0.8)", lineHeight: 1.7 }}>
+                        {String(sec.body || "").slice(0, 220)}{String(sec.body || "").length > 220 ? "..." : ""}
+                      </p>
+                    </div>
+                  ))
+                  : <p style={{ margin: 0, fontSize: "0.82rem", color: "rgba(203,213,225,0.8)", lineHeight: 1.7 }}>{String(previewChapterState.result.text || "").slice(0, 300)}...</p>}
+              </div>
+            </div>
+          ) : null}
+
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {CHAPTER_META.map((meta, i) => (
               <ChapterCard

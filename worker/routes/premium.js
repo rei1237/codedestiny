@@ -2095,6 +2095,13 @@ function createPremiumRequestId(seed = "") {
 }
 
 function getPremiumRequiredChapters(reportType, mode = "") {
+  if (String(reportType || "") === "westernAstrologyPremium") {
+    const normalizedMode = String(mode || "").trim().toLowerCase();
+    if (normalizedMode.includes("compat") || normalizedMode.includes("couple")) {
+      return Array.isArray(ASTRO_COMPAT_CHAPTER_META) ? ASTRO_COMPAT_CHAPTER_META.length : 10;
+    }
+    return Array.isArray(ASTRO_PERSONAL_CHAPTER_META) ? ASTRO_PERSONAL_CHAPTER_META.length : 12;
+  }
   const spec = getPremiumSpecByReportType(reportType, mode);
   if (spec && Number(spec.chapterCount || 0) > 0) {
     return Number(spec.chapterCount);
@@ -9600,15 +9607,42 @@ function hasForbiddenAstroRawDataExposure(text, reportMode = "personal") {
   const source = String(text || "");
   if (!source) return false;
   const mode = String(reportMode || "personal").toLowerCase();
-  const personalIgnore = new Set(["payload", "schema", "reportType", "status", "completed"]);
-  const forbiddenByMode = mode === "compatibility"
-    ? FORBIDDEN_ASTRO_PDF_PHRASES
-    : FORBIDDEN_ASTRO_PDF_PHRASES.filter((phrase) => !personalIgnore.has(String(phrase)));
+  const forbiddenByMode = FORBIDDEN_ASTRO_PDF_PHRASES;
   if (forbiddenByMode.some((phrase) => source.includes(phrase))) return true;
   if (/\|\s*항목\s*\|\s*값\s*\|/i.test(source)) return true;
   if (/^\s*```/m.test(source)) return true;
   if (mode === "compatibility" && /\b(json|payload|schema|debug|report\s*status)\b/i.test(source)) return true;
+  if (/\b(json|payload|schema|debug|report\s*status)\b/i.test(source)) return true;
   return false;
+}
+
+function validateAstroGeneratedSectionsForChapter(sections = [], chapterMeta = {}, canonical = {}) {
+  const key = String(chapterMeta?.key || "").trim().toUpperCase();
+  const mergedText = Array.isArray(sections)
+    ? sections.map((row) => `${String(row?.title || "")}\n${String(row?.body || "")}`).join("\n\n")
+    : "";
+  const mergedBody = Array.isArray(sections)
+    ? sections.map((row) => String(row?.body || "")).join("\n\n")
+    : "";
+  const failures = [];
+  const byKey = {
+    C2: { code: "SUN", test: /(태양|sun)/i },
+    C3: { code: "MOON", test: /(달|moon)/i },
+    C4: { code: "ASC", test: /(asc|상승궁|1하우스)/i },
+    C6: { code: "MC", test: /(mc|중천|10하우스)/i },
+    C7: { code: "RELATION", test: /(금성|화성|venus|mars|7하우스|관계|연애)/i },
+  };
+  const rule = byKey[key] || null;
+  if (rule && !rule.test.test(mergedBody)) {
+    failures.push({ reason: `MISSING_${rule.code}` });
+  }
+  if (!hasAstroDataEvidence(mergedBody)) {
+    failures.push({ reason: "MISSING_DATA_EVIDENCE" });
+  }
+  return {
+    ok: failures.length === 0,
+    failures,
+  };
 }
 
 function buildBasicAstroSummaryFromChart(chart) {
@@ -28365,6 +28399,7 @@ export const __astroTestUtils = {
   normalizeAstroSectionHeadingToken,
   parseAstroSectionBlocks,
   materializeAstroSectionBlocks,
+  validateAstroGeneratedSectionsForChapter,
   hasForbiddenAstroRawDataExposure,
   sanitizeAstroUserFacingText,
   hasBrokenPageCounter,

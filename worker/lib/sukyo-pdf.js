@@ -2,151 +2,183 @@ const UNKNOWN = "unknown";
 
 const SUKYO_PDF_CHAPTERS = [
   {
-    key: "solo_ch_01",
-    title: "1장. 본명숙과 인생 원형",
-    goal: "본명숙, 27숙 그룹, 핵심 기질을 통해 삶의 기본 원형을 해석한다.",
-    targetChars: 6400,
-    minChars: 4800,
-    sections: ["본명숙의 핵심 정체성", "타고난 강점과 그림자", "관계에서 먼저 드러나는 반응", "삶 전체를 관통하는 운의 주제"],
+    key: "chapter-01-natal-overview",
+    title: "I. 본명숙 총론 - 타고난 숙의 기본 기질",
+    goal: "나의 숙이 보여주는 성향과 삶의 기본 방향",
+    targetChars: 5600,
+    minChars: 3600,
+    sections: ["본명숙 핵심 성향", "타고난 매력과 인상", "감정 반응 패턴", "인생에서 반복되는 선택 방식", "숙이 강하게 작동하는 순간"],
   },
   {
-    key: "solo_ch_02",
-    title: "2장. 감정 리듬과 마음의 회복법",
-    goal: "달의 흐름과 정서 패턴을 통해 감정 리듬과 회복 루틴을 읽는다.",
-    targetChars: 6200,
-    minChars: 4700,
-    sections: ["감정이 차오르고 식는 방식", "불안과 예민함을 자극하는 포인트", "혼자 회복할 때 필요한 조건", "정서 에너지를 안정시키는 루틴"],
+    key: "chapter-02-inner-pattern",
+    title: "II. 내면 구조 - 감정, 불안, 회복 방식",
+    goal: "마음의 움직임과 자기 보호 방식",
+    targetChars: 5600,
+    minChars: 3600,
+    sections: ["감정이 움직이는 방식", "불안과 예민함의 원인", "상처를 받는 패턴", "회복이 빠르게 일어나는 조건", "혼자 있을 때의 에너지 관리"],
   },
   {
-    key: "solo_ch_03",
-    title: "3장. 사회적 페르소나와 인간관계",
-    goal: "타인이 기억하는 인상과 사회적 상호작용 패턴을 정리한다.",
-    targetChars: 6200,
-    minChars: 4700,
-    sections: ["첫인상과 존재감의 구조", "신뢰를 쌓는 방식", "오해받기 쉬운 지점", "관계에서 지켜야 할 경계선"],
+    key: "chapter-03-love-style",
+    title: "III. 연애 성향 - 끌림과 애착의 방식",
+    goal: "사랑을 시작하고 유지하는 패턴",
+    targetChars: 5600,
+    minChars: 3600,
+    sections: ["끌리는 상대 유형", "연애 초반의 행동 방식", "애착과 집착의 경계", "연애에서 반복되는 실수", "좋은 관계를 만드는 태도"],
   },
   {
-    key: "solo_ch_04",
-    title: "4장. 사랑, 애착, 친밀감의 작동 방식",
-    goal: "연애와 친밀감에서 반복되는 패턴을 해석한다.",
-    targetChars: 6400,
-    minChars: 4800,
-    sections: ["사랑을 시작하는 방식", "가까워질수록 드러나는 그림자", "애착과 거리 조절 습관", "오래 가는 관계를 만드는 조건"],
+    key: "chapter-04-relationship",
+    title: "IV. 인간관계 - 거리감과 신뢰의 구조",
+    goal: "사람을 받아들이고 밀어내는 방식",
+    targetChars: 5600,
+    minChars: 3600,
+    sections: ["친해지는 속도", "신뢰를 주는 사람과 잃게 되는 사람", "피해야 할 관계 패턴", "귀인과 악연을 구분하는 기준", "건강한 거리두기 전략"],
   },
   {
-    key: "solo_ch_05",
-    title: "5장. 일, 돈, 현실 감각",
-    goal: "일과 재정에서 숙요가 만드는 현실 운영 감각을 해석한다.",
-    targetChars: 6200,
-    minChars: 4700,
-    sections: ["일할 때 강해지는 재능", "스트레스가 커지는 업무 환경", "돈을 다루는 기본 태도", "성과를 안정화하는 실행 전략"],
+    key: "chapter-05-career",
+    title: "V. 일과 재능 - 숙이 드러나는 직업성",
+    goal: "성과가 나는 방식과 재능의 방향",
+    targetChars: 5600,
+    minChars: 3600,
+    sections: ["잘 맞는 일의 방식", "강하게 발휘되는 재능", "조직과 프리랜서 적합도", "성과가 막히는 원인", "직업적 성장 전략"],
   },
   {
-    key: "solo_ch_06",
-    title: "6장. 위기 대응과 전환기 전략",
-    goal: "위기 상황의 반응, 회복력, 전환기 의사결정 원칙을 정리한다.",
-    targetChars: 6200,
-    minChars: 4700,
-    sections: ["무너질 때 드러나는 본능", "반복되는 위기 패턴", "회복 속도를 높이는 조건", "전환기 결정을 잘하는 방법"],
+    key: "chapter-06-money",
+    title: "VI. 재물 감각 - 돈을 대하는 태도",
+    goal: "수익, 소비, 축적의 리듬",
+    targetChars: 5600,
+    minChars: 3600,
+    sections: ["돈을 버는 감각", "소비와 충동 패턴", "재물 관리의 약점", "수익화에 유리한 방식", "안정적인 재정 루틴"],
   },
   {
-    key: "solo_ch_07",
-    title: "7장. 가족, 뿌리, 내적 기반",
-    goal: "가족 정서와 내적 안전기반이 삶에 미치는 영향을 읽는다.",
-    targetChars: 6200,
-    minChars: 4700,
-    sections: ["가족 안에서 맡게 되는 역할", "정서적 기반의 강점과 취약점", "반복되는 보호 본능", "안정감을 지키는 생활 구조"],
+    key: "chapter-07-conflict",
+    title: "VII. 갈등 패턴 - 무너지는 순간과 회복법",
+    goal: "관계와 삶에서 충돌이 생기는 방식",
+    targetChars: 5600,
+    minChars: 3600,
+    sections: ["갈등이 시작되는 지점", "화를 참거나 터뜨리는 방식", "오해가 반복되는 이유", "관계를 회복하는 말과 행동", "반드시 피해야 할 선택"],
   },
   {
-    key: "solo_ch_08",
-    title: "8장. 향후 90일 실행 로드맵",
-    goal: "핵심 해석을 삶의 운영 전략으로 종합한다.",
-    targetChars: 6600,
-    minChars: 5000,
-    sections: ["지금 가장 먼저 손봐야 할 습관", "관계에서 기억해야 할 규칙", "일과 성취를 위한 우선순위", "향후 90일 실행 계획"],
+    key: "chapter-08-growth",
+    title: "VIII. 성장 과제 - 숙이 요구하는 성숙 방향",
+    goal: "반복되는 운의 숙제를 넘어서는 법",
+    targetChars: 5600,
+    minChars: 3600,
+    sections: ["인생의 핵심 성장 과제", "반복되는 인간관계 숙제", "강점을 과용할 때 생기는 문제", "약점을 보완하는 현실 전략", "성숙해질수록 좋아지는 영역"],
+  },
+  {
+    key: "chapter-09-timing",
+    title: "IX. 흐름과 타이밍 - 관계와 선택의 운용법",
+    goal: "중요한 결정을 다루는 기준",
+    targetChars: 5600,
+    minChars: 3600,
+    sections: ["기회가 들어오는 방식", "관계를 시작하기 좋은 흐름", "멈춰야 할 때의 신호", "중요한 선택 전 점검 기준", "3개월 실행 전략"],
+  },
+  {
+    key: "chapter-10-final-roadmap",
+    title: "X. 숙요 인생 로드맵 - 나를 살리는 사용법",
+    goal: "성향, 관계, 일, 회복의 종합 전략",
+    targetChars: 5800,
+    minChars: 3800,
+    sections: ["나의 숙 핵심 요약", "가장 살려야 할 강점", "반드시 관리해야 할 약점", "관계·일·돈의 통합 전략", "90일 실천 로드맵"],
   },
 ];
 
 const SUKYO_PDF_COMPAT_CHAPTERS = [
   {
-    key: "compat_ch_01",
-    title: "1장. 두 사람의 본명숙과 첫 끌림의 구조",
-    goal: "A/B 본명숙, 기본 기질, 첫 인상과 초반 흡인력을 해석한다.",
-    targetChars: 7600,
-    minChars: 6000,
-    sections: ["A의 본명숙과 관계 반응", "B의 본명숙과 관계 반응", "처음 끌림이 생기는 이유", "서로를 오해하기 쉬운 첫 포인트", "관계의 출발선 정리"],
+    key: "chapter-01-two-natal-overview",
+    title: "I. 두 사람의 본명숙 총론",
+    goal: "각자의 숙이 관계에 가져오는 기본 기질",
+    targetChars: 6200,
+    minChars: 4000,
+    sections: ["나의 본명숙 핵심 성향", "상대의 본명숙 핵심 성향", "두 숙의 첫인상과 끌림", "관계에서 먼저 드러나는 차이", "두 사람의 기본 궁합 요약"],
   },
   {
-    key: "compat_ch_02",
-    title: "2장. 관계 유형과 거리감이 만드는 운명의 구조",
-    goal: "relationType과 distance를 중심으로 두 사람의 핵심 궁합 구조를 해석한다.",
-    targetChars: 7600,
-    minChars: 6000,
-    sections: ["관계 유형의 본질", "거리감이 만드는 심리 메커니즘", "A가 B에게 주는 영향", "B가 A에게 주는 영향", "이 관계를 지배하는 기본 규칙"],
+    key: "chapter-02-relation-type",
+    title: "II. 숙요 관계 유형 분석",
+    goal: "영친·안괴·성위·위성·업태·명 관계의 실제 작동 방식",
+    targetChars: 6200,
+    minChars: 4000,
+    sections: ["관계 유형의 핵심 의미", "이 관계가 강하게 끌리는 이유", "관계가 흔들리는 근본 원인", "가까워질수록 드러나는 장점", "관계 유형별 주의점"],
   },
   {
-    key: "compat_ch_03",
-    title: "3장. 감정선과 애착 온도차",
-    goal: "감정 리듬, 애착 속도, 서운함이 쌓이는 경로를 읽는다.",
-    targetChars: 7600,
-    minChars: 6000,
-    sections: ["감정 표현 속도의 차이", "서운함이 쌓이는 메커니즘", "안정감을 느끼는 조건", "정서 회복 방식의 차이", "감정 조율법"],
+    key: "chapter-03-distance-direction",
+    title: "III. 거리와 방향성 분석",
+    goal: "근거리·중거리·원거리와 관계 방향의 세밀한 차이",
+    targetChars: 6200,
+    minChars: 4000,
+    sections: ["관계 거리의 의미", "나에게 작동하는 상대의 영향", "상대에게 작동하는 나의 영향", "속도 차이와 온도 차이", "관계를 안정시키는 거리 조절"],
   },
   {
-    key: "compat_ch_04",
-    title: "4장. 갈등과 그림자의 충돌 패턴",
-    goal: "갈등 촉발점과 그림자 반응, 회복 프로토콜을 구체화한다.",
-    targetChars: 7600,
-    minChars: 6000,
-    sections: ["갈등의 점화 포인트", "서로의 그림자가 충돌하는 순간", "싸움이 길어지는 이유", "관계를 망치지 않는 대화 규칙", "갈등 후 회복 프로토콜"],
+    key: "chapter-04-attraction",
+    title: "IV. 끌림과 애착 구조",
+    goal: "왜 서로에게 강하게 반응하는가",
+    targetChars: 6200,
+    minChars: 4000,
+    sections: ["처음 끌리는 지점", "감정이 깊어지는 방식", "애착과 의존의 패턴", "서로에게 중독되기 쉬운 부분", "건강한 끌림으로 바꾸는 법"],
   },
   {
-    key: "compat_ch_05",
-    title: "5장. 사랑의 몰입도와 현실 적합성",
-    goal: "연애 몰입, 생활 궁합, 장기 유지 가능성을 현실적으로 점검한다.",
-    targetChars: 7600,
-    minChars: 6000,
-    sections: ["연애 초반 몰입도", "현실 생활 궁합", "함께 있을 때 강해지는 영역", "생활 패턴 충돌 포인트", "장기 유지 가능성"],
+    key: "chapter-05-communication",
+    title: "V. 대화와 오해의 패턴",
+    goal: "말, 침묵, 감정 표현의 궁합",
+    targetChars: 6200,
+    minChars: 4000,
+    sections: ["대화가 잘 통하는 지점", "오해가 생기는 표현 방식", "상대가 상처받는 말", "내가 방어적으로 변하는 순간", "갈등을 줄이는 대화법"],
   },
   {
-    key: "compat_ch_06",
-    title: "6장. 소통, 신뢰, 경계선의 협상",
-    goal: "대화 습관과 신뢰 형성, 경계선 조율 방식을 해석한다.",
-    targetChars: 7600,
-    minChars: 6000,
-    sections: ["말이 잘 통하는 순간", "오해가 커지는 언어 습관", "신뢰를 만드는 행동", "서로의 경계선 이해", "건강한 합의 방식"],
+    key: "chapter-06-conflict",
+    title: "VI. 갈등과 위기 분석",
+    goal: "관계가 무너지는 패턴과 회복 가능성",
+    targetChars: 6200,
+    minChars: 4000,
+    sections: ["가장 큰 갈등 원인", "반복되는 싸움의 구조", "헤어짐을 부르는 행동", "관계 회복이 가능한 조건", "위기 때 절대 하지 말아야 할 것"],
   },
   {
-    key: "compat_ch_07",
-    title: "7장. 재회, 이별, 반복 인연의 가능성",
-    goal: "반복 인연과 재회 가능성, 놓아야 할 시그널을 읽는다.",
-    targetChars: 7600,
-    minChars: 6000,
-    sections: ["헤어짐이 반복되는 이유", "재회의 조건", "놓아야 할 시그널", "다시 만난다면 필요한 변화", "인연의 학습 과제"],
+    key: "chapter-07-love-marriage",
+    title: "VII. 연애와 결혼 가능성",
+    goal: "단기 연애와 장기 관계의 차이",
+    targetChars: 6200,
+    minChars: 4000,
+    sections: ["연애 궁합", "장기 관계 적합도", "결혼 생활에서의 장점", "결혼 생활에서의 위험 요소", "현실적으로 맞춰야 할 부분"],
   },
   {
-    key: "compat_ch_08",
-    title: "8장. 결혼, 동거, 장기 파트너십 적합성",
-    goal: "장기 생활과 책임 분배, 안정화 조건을 분석한다.",
-    targetChars: 7600,
-    minChars: 6000,
-    sections: ["장기 파트너십의 장점", "생활 운영에서 부딪히는 지점", "책임과 역할 분배", "같이 살 때 필요한 규칙", "장기 안정화 조건"],
+    key: "chapter-08-desire-trust",
+    title: "VIII. 욕망, 신뢰, 소유욕",
+    goal: "깊은 관계에서 드러나는 감정의 그림자",
+    targetChars: 6200,
+    minChars: 4000,
+    sections: ["소유욕과 질투의 구조", "신뢰가 쌓이는 방식", "불안이 커지는 순간", "관계의 주도권 문제", "서로를 안심시키는 방법"],
   },
   {
-    key: "compat_ch_09",
-    title: "9장. 서로를 성장시키는 힘과 위험 신호",
-    goal: "성장 자극과 에너지 소모, 관계 보호 장치를 정리한다.",
-    targetChars: 7600,
-    minChars: 6000,
-    sections: ["서로를 성장시키는 자극", "에너지 소모 패턴", "피해야 할 행동 고리", "보완이 잘 되는 순간", "관계를 지키는 핵심 장치"],
+    key: "chapter-09-growth-karma",
+    title: "IX. 인연의 성장 과제",
+    goal: "이 관계가 서로에게 가르치는 것",
+    targetChars: 6200,
+    minChars: 4000,
+    sections: ["이 인연의 핵심 숙제", "나를 성장시키는 상대의 역할", "상대를 성장시키는 나의 역할", "반복되는 운명적 패턴", "성숙한 관계로 가는 조건"],
   },
   {
-    key: "compat_ch_10",
-    title: "10장. 두 사람을 위한 실행형 궁합 로드맵",
-    goal: "전체 궁합을 행동 규칙과 실행 계획으로 종합한다.",
-    targetChars: 7600,
-    minChars: 6000,
-    sections: ["핵심 궁합 결론", "지금 당장 바꿔야 할 행동", "감정 소모를 줄이는 습관", "장기 관계 운영 규칙", "향후 90일 실행 로드맵"],
+    key: "chapter-10-reality",
+    title: "X. 현실 궁합 분석",
+    goal: "일상, 돈, 생활 리듬의 실제 적합도",
+    targetChars: 6200,
+    minChars: 4000,
+    sections: ["생활 리듬의 차이", "돈과 책임을 대하는 방식", "일과 관계의 균형", "현실 문제가 생기는 지점", "함께 살 때 필요한 규칙"],
+  },
+  {
+    key: "chapter-11-recovery",
+    title: "XI. 관계 회복 전략",
+    goal: "멀어진 관계를 다시 연결하는 방법",
+    targetChars: 6200,
+    minChars: 4000,
+    sections: ["상대에게 다시 다가가는 방식", "사과와 화해의 포인트", "연락 타이밍과 거리 조절", "관계 회복을 방해하는 행동", "재회를 원할 때의 현실 전략"],
+  },
+  {
+    key: "chapter-12-final-roadmap",
+    title: "XII. 두 사람의 숙요 관계 로드맵",
+    goal: "끌림, 위기, 성장, 선택의 최종 정리",
+    targetChars: 6400,
+    minChars: 4200,
+    sections: ["두 사람의 관계 핵심 요약", "가장 강한 끌림 포인트", "가장 위험한 갈등 포인트", "관계를 살리는 실천 전략", "30일·90일 관계 로드맵"],
   },
 ];
 
@@ -164,6 +196,198 @@ function getSukyoPdfChapters(reportMode = "personal") {
     ...chapter,
     sections: Array.isArray(chapter.sections) ? chapter.sections.slice() : [],
   }));
+}
+
+const SHUKUYO_CATEGORY_DATA_MAP = Object.freeze({
+  "나의 본명숙 핵심 성향": { requiredData: ["userNatal"] },
+  "상대의 본명숙 핵심 성향": { requiredData: ["partnerNatal"] },
+  "두 사람의 기본 궁합 요약": { requiredData: ["userNatal", "partnerNatal", "compatibility"] },
+  "관계 유형의 핵심 의미": { requiredData: ["relationType", "compatibility"] },
+  "관계 거리의 의미": { requiredData: ["distance", "direction"] },
+  "처음 끌리는 지점": { requiredData: ["userNatal", "partnerNatal", "relationType"] },
+  "가장 큰 갈등 원인": { requiredData: ["compatibility", "relationType", "distance"] },
+  "연애 궁합": { requiredData: ["userNatal", "partnerNatal", "compatibility"] },
+  "장기 관계 적합도": { requiredData: ["compatibility", "scores"] },
+  "관계 회복 전략": { requiredData: ["relationType", "distance", "keywords"] },
+});
+
+function resolveShukuyoRequiredData(categoryTitle, mode = "personal") {
+  const byTitle = SHUKUYO_CATEGORY_DATA_MAP[String(categoryTitle || "").trim()];
+  if (byTitle && Array.isArray(byTitle.requiredData) && byTitle.requiredData.length) {
+    return byTitle.requiredData.slice();
+  }
+  const title = String(categoryTitle || "").trim();
+  if (!title) return mode === "compatibility" ? ["compatibility"] : ["userNatal"];
+  if (/상대|두 사람|관계|궁합/.test(title)) return ["userNatal", "partnerNatal", "compatibility"];
+  if (/거리|방향/.test(title)) return ["distance", "direction", "compatibility"];
+  if (/점수|적합도|안정|위험/.test(title)) return ["compatibility", "scores"];
+  if (/키워드|요약|핵심/.test(title)) return ["keywords", "userNatal", "compatibility"];
+  return mode === "compatibility" ? ["userNatal", "partnerNatal", "compatibility"] : ["userNatal"];
+}
+
+function normalizeShukuyoPdfPayload(raw = {}) {
+  const source = raw && typeof raw === "object" ? raw : {};
+  const mode = normalizeSukyoReportMode(
+    source?.reportMode
+    || source?.mode
+    || source?.sukuyoBookContext?.mode
+    || (source?.sukuyoBookContext?.partner?.profile?.birthDate ? "compatibility" : "personal"),
+  );
+  const userBook = source?.sukuyoBookContext?.user || {};
+  const partnerBook = source?.sukuyoBookContext?.partner || {};
+  const compatBook = source?.sukuyoBookContext?.compatibility || {};
+  const userNatalName = toStringOrNull(
+    source?.mainStar?.nameKo
+    || userBook?.sukuyo?.mansion
+    || source?.canonical?.natalSukuyo?.nameKo
+    || source?.canonical?.personA?.sukuyo?.nameKo,
+  );
+  const partnerNatalName = toStringOrNull(
+    partnerBook?.sukuyo?.mansion
+    || source?.canonical?.personB?.sukuyo?.nameKo,
+  );
+  const relationType = toStringOrNull(
+    source?.relationship?.relationType
+    || compatBook?.relationType
+    || source?.canonical?.compatibility?.relationType,
+  );
+
+  return {
+    service: "shukuyo-premium",
+    mode,
+    user: {
+      name: toStringOrNull(userBook?.profile?.name || source?.userProfile?.name),
+      gender: toStringOrNull(userBook?.profile?.gender || source?.userProfile?.gender),
+      birthDate: toStringOrNull(userBook?.profile?.birthDate || source?.userProfile?.solarBirthDate) || "",
+      birthTime: toStringOrNull(userBook?.profile?.birthTime || source?.userProfile?.birthTime),
+      calendarType: toCalendarType(userBook?.profile?.calendarType || source?.reportPayload?.birthInput?.calendarType || "solar"),
+    },
+    partner: mode === "compatibility" ? {
+      name: toStringOrNull(partnerBook?.profile?.name),
+      gender: toStringOrNull(partnerBook?.profile?.gender),
+      birthDate: toStringOrNull(partnerBook?.profile?.birthDate) || "",
+      birthTime: toStringOrNull(partnerBook?.profile?.birthTime),
+      calendarType: toCalendarType(partnerBook?.profile?.calendarType || source?.reportPayload?.partnerInput?.calendarType || "solar"),
+    } : undefined,
+    result: {
+      userNatal: {
+        宿Index: toNumberOrNull(source?.mainStar?.mansionNumber || source?.mainStar?.index),
+        宿名: userNatalName || "",
+        宿名Ko: userNatalName || "",
+        宿名Ja: toStringOrNull(source?.mainStar?.nameHanja),
+        group: toStringOrNull(source?.mainStar?.group),
+        animalSymbol: toStringOrNull(source?.mainStar?.animalSymbol),
+        elementTone: toStringOrNull(source?.mainStar?.coreKeyword),
+        temperamentKeywords: unique([
+          source?.mainStar?.coreKeyword,
+          source?.mainStar?.temperament,
+          source?.mainStar?.strength,
+          source?.mainStar?.shadow,
+        ]),
+        shortInterpretationSeed: toStringOrNull(source?.mainStar?.temperament || source?.mainStar?.coreKeyword),
+      },
+      partnerNatal: mode === "compatibility" && partnerNatalName ? {
+        宿名: partnerNatalName,
+        宿名Ko: partnerNatalName,
+        group: toStringOrNull(partnerBook?.sukuyo?.mansionGroup),
+        temperamentKeywords: unique(partnerBook?.sukuyo?.mansionKeywords || []),
+        shortInterpretationSeed: toStringOrNull(partnerBook?.sukuyo?.personalitySummary),
+      } : undefined,
+      compatibility: mode === "compatibility" ? {
+        relationType: relationType || "",
+        relationLabelKo: toStringOrNull(compatBook?.relationLabel),
+        distance: toStringOrNull(source?.relationship?.distanceLabel || compatBook?.distanceType),
+        direction: toStringOrNull(source?.relationship?.direction || source?.canonical?.compatibility?.directionFromAToB),
+        summaryKeywords: unique([
+          compatBook?.adviceSummary,
+          compatBook?.riskPattern,
+          compatBook?.emotionalDynamic,
+          compatBook?.conflictPattern,
+        ]),
+        attractionScore: toNumberOrNull(source?.relationship?.attractionScore),
+        stabilityScore: toNumberOrNull(source?.relationship?.stabilityScore),
+        conflictScore: toNumberOrNull(source?.relationship?.conflictScore),
+        growthScore: toNumberOrNull(source?.relationship?.growthScore),
+        shortInterpretationSeed: toStringOrNull(compatBook?.adviceSummary || compatBook?.emotionalDynamic),
+      } : undefined,
+    },
+    meta: {
+      generatedAt: new Date().toISOString(),
+      engineVersion: toStringOrNull(source?.chartMeta?.calculationSource),
+      source: "local-shukuyo-engine",
+    },
+  };
+}
+
+function summarizeRequiredShukuyoData(requiredData, payload) {
+  const req = Array.isArray(requiredData) ? requiredData : [];
+  const labels = [];
+  const relationType = payload?.result?.compatibility?.relationType;
+  for (const key of req) {
+    if (key === "userNatal" && payload?.result?.userNatal?.宿名Ko) labels.push("본명숙");
+    if (key === "partnerNatal" && payload?.result?.partnerNatal?.宿名Ko) labels.push("상대 숙");
+    if (key === "compatibility" && relationType) labels.push("관계 유형");
+    if (key === "relationType" && relationType) labels.push("relationType");
+    if (key === "distance" && payload?.result?.compatibility?.distance) labels.push("거리");
+    if (key === "direction" && payload?.result?.compatibility?.direction) labels.push("방향");
+    if (key === "scores") labels.push("궁합 점수");
+    if (key === "keywords") labels.push("핵심 키워드");
+  }
+  return labels.length ? labels.join(", ") : "확인 가능한 숙요 핵심값";
+}
+
+function formatNatalMansion(natal = {}) {
+  const name = toStringOrNull(natal?.宿名Ko || natal?.宿名 || natal?.nameKo) || "미확정";
+  const idx = toNumberOrNull(natal?.宿Index);
+  return idx == null ? `${name}숙` : `${name}숙(${idx})`;
+}
+
+function formatCompatibilitySummary(compat = {}) {
+  const type = toStringOrNull(compat?.relationType) || "관계";
+  const distance = toStringOrNull(compat?.distance);
+  return distance ? `${type} · ${distance}` : type;
+}
+
+function buildShukuyoCategorySeed(category, payload) {
+  const requiredData = Array.isArray(category?.requiredData) ? category.requiredData : [];
+  const userNatal = payload?.result?.userNatal || {};
+  const partnerNatal = payload?.result?.partnerNatal || null;
+  const compatibility = payload?.result?.compatibility || null;
+  const lines = [
+    `${String(category?.title || "이 카테고리")}은 숙요점 계산 결과 중 ${summarizeRequiredShukuyoData(requiredData, payload)}을 중심으로 해석합니다.`,
+    `나의 본명숙은 ${formatNatalMansion(userNatal)}입니다.`,
+    partnerNatal ? `상대의 본명숙은 ${formatNatalMansion(partnerNatal)}입니다.` : "",
+    compatibility ? `두 사람의 관계 유형은 ${formatCompatibilitySummary(compatibility)}입니다.` : "",
+    "이 카테고리는 단정 예언이 아니라 관계에서 반복되는 끌림, 갈등, 거리감, 회복 가능성, 현실 조율 전략을 중심으로 작성합니다.",
+  ].filter(Boolean);
+  return lines.join("\n");
+}
+
+function hasHighRepetitionRatio(body = "") {
+  const sentences = extractLongSentences(body, 24);
+  if (sentences.length < 4) return false;
+  const counts = new Map();
+  for (const sentence of sentences) {
+    const normalized = String(sentence).replace(/\s+/g, " ").trim();
+    counts.set(normalized, (counts.get(normalized) || 0) + 1);
+  }
+  const repeated = Array.from(counts.values()).filter((count) => count > 1).reduce((acc, count) => acc + count, 0);
+  return (repeated / sentences.length) >= 0.38;
+}
+
+function isLowQualityShukuyoSection(body = "") {
+  const text = String(body || "").trim();
+  if (!text || text.length < 500) return true;
+  const banned = [
+    "자동 복구 생성",
+    "fallback",
+    "사용자 숙요 계산 데이터가 불완전합니다",
+    "기본 숙요 화면에서",
+    "Chapter 1 실패",
+    "데이터 미확보",
+  ];
+  if (banned.some((phrase) => text.includes(phrase))) return true;
+  return hasHighRepetitionRatio(text);
 }
 
 function toCalendarType(value) {
@@ -837,7 +1061,6 @@ function validateSukyoPdfInput(context = {}) {
 
   if (!hasBirthInfo) hardMissingFields.push("user.profile.birthDate");
   if (!hasMainMansion) hardMissingFields.push("user.sukuyo.mansion");
-  if (!hasMansionNumber) hardMissingFields.push("user.sukuyo.mansionNumber");
   if (!hasChapterPlan) hardMissingFields.push("chapterPlan");
   if (!hasChapterSeed) hardMissingFields.push("chapterSeed");
   if (!payloadValidation.ok) hardMissingFields.push(...payloadValidation.missingFields.filter((field) => !hardMissingFields.includes(field)));
@@ -857,7 +1080,7 @@ function validateSukyoPdfInput(context = {}) {
     if (!hasPartnerBirth) hardMissingFields.push("partner.profile.birthDate");
     if (!hasPartnerMansion) hardMissingFields.push("partner.sukuyo.mansion");
     if (!hasRelationType) hardMissingFields.push("compatibility.relationType");
-    hasCompatibilityCore = hasPartnerBirth && hasPartnerMansion;
+    hasCompatibilityCore = hasPartnerBirth && hasPartnerMansion && hasRelationType;
     if (!book?.partner?.profile?.birthTime && !context?.partner?.profile?.birthTime) {
       softMissingFields.push("partner.profile.birthTime");
     }
@@ -1116,6 +1339,7 @@ function sanitizeSections(sections, fallbackSummary, requiredHeadings = []) {
 
 function createFallbackSukyoChapter(chapter, context, reason = "") {
   const reportMode = normalizeSukyoReportMode(context?.reportMode);
+  const minimalPayload = normalizeShukuyoPdfPayload(context || {});
   const sectionHeadings = Array.isArray(chapter?.sections)
     ? chapter.sections.map((row) => String(row || "").trim()).filter(Boolean)
     : [];
@@ -1126,25 +1350,25 @@ function createFallbackSukyoChapter(chapter, context, reason = "") {
     chapterKey: String(chapter?.key || "unknown"),
     chapterTitle: String(chapter?.title || "숙요점 챕터"),
     chapterSubtitle: subtitle,
-    summary:
-      "이 챕터의 일부 세부 데이터가 확인되지 않아, 제공된 기본 숙요점 결과와 27숙 해석 체계를 바탕으로 보완 해석을 제공합니다.",
-    coreReading:
-      "현재 확인 가능한 본명숙, 달의 리듬, 기본 성향 키워드를 중심으로 이 영역의 핵심 흐름을 해석합니다.",
+    summary: "확인 가능한 숙요 핵심값을 바탕으로 현재 챕터 주제에 맞는 상담형 해석을 구성합니다.",
+    coreReading: "계산 완료된 본명숙·관계 유형·거리 정보가 있는 범위에서 실전 조율 전략까지 연결해 제시합니다.",
     sections: (sectionHeadings.length ? sectionHeadings : ["확인 가능한 숙요점 정보 중심 해석"]).map((heading) => ({
       heading,
-      body:
-        "일부 확장 데이터가 없더라도 기본 숙요점 결과는 개인의 정서, 관계 감각, 삶의 리듬을 읽는 데 충분한 단서를 제공합니다. 이 카테고리는 확인 가능한 숙요점 구조를 중심으로 해석되었습니다.",
+      body: buildShukuyoCategorySeed({
+        title: heading,
+        requiredData: resolveShukuyoRequiredData(heading, reportMode),
+      }, minimalPayload),
     })),
     practicalAdvice: [
-      "현재 확인 가능한 숙요점 키워드에서 반복적으로 강조되는 정서 패턴과 관계 습관을 우선 점검하세요.",
+      "현재 확인 가능한 숙요 신호를 기준으로 감정 대응 규칙 1개와 관계 조율 규칙 1개를 먼저 고정하세요.",
     ],
     cautions: [
-      "확장 데이터가 없는 경우 특정 관계 유형, 월상 수치, 사건 시기를 단정하지 않는 것이 좋습니다.",
+      "점수나 세부 지표가 비어 있어도 이미 계산된 본명숙·관계 유형 해석을 추측 없이 일관되게 유지하세요.",
     ],
     ritualOrRoutine: [
-      "하루 중 혼자 감정을 정리하는 시간을 두고, 관계에서 느낀 신호를 짧게 기록하세요.",
+      "하루 마감 전에 관계 신호 3줄 기록과 다음 행동 1개를 정해 실행 일관성을 유지하세요.",
     ],
-    masterKeyword: "기본 숙요점 기반 보완",
+    masterKeyword: reportMode === "compatibility" ? "관계 조율 일관성" : "본명숙 실행 일관성",
     missingDataNotice: null,
     fallbackUsed: true,
     fallbackReason: reason || "CHAPTER_FALLBACK",
@@ -1303,6 +1527,12 @@ export {
   SUKYO_CHAPTER_FOCUS,
   SUKYO_PDF_KNOWLEDGE_BASE,
   getSukyoPdfChapters,
+  SHUKUYO_CATEGORY_DATA_MAP,
+  resolveShukuyoRequiredData,
+  normalizeShukuyoPdfPayload,
+  summarizeRequiredShukuyoData,
+  buildShukuyoCategorySeed,
+  isLowQualityShukuyoSection,
   buildSukuyoPdfSeed,
   validateSukuyoPdfPayload,
   buildSukuyoBookContextFromNormalized,
