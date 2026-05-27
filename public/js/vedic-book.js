@@ -89,6 +89,48 @@
   var _vdCurrentReportId = '';
   var _mysticTimer = null;
   var _premiumPaidUntil = 0;
+  var _vdJobStateKey = 'cd:premium-job:vedic';
+
+  function _vdGetJobClient() {
+    return (typeof window !== 'undefined' && window.CDPremiumPdfJobClient) ? window.CDPremiumPdfJobClient : null;
+  }
+
+  function _vdStartPremiumJob(profile) {
+    var client = _vdGetJobClient();
+    if (!client) return;
+    var birth = (profile && profile.birth) ? profile.birth : {};
+    client.start({
+      stateKey: _vdJobStateKey,
+      reportType: 'vedicPremium',
+      featureType: 'premium_pdf_vedic',
+      requestBody: {
+        name: String((profile && profile.name) || '사용자'),
+        gender: String((profile && profile.gender) || ''),
+        year: Number(birth.year || 0),
+        month: Number(birth.month || 0),
+        day: Number(birth.day || 0),
+        hour: Number(birth.hour || 12),
+        minute: Number(birth.minute || 0),
+      },
+    }).catch(function () {});
+  }
+
+  function _vdResumePremiumJob() {
+    var client = _vdGetJobClient();
+    if (!client) return;
+    client.resume({ stateKey: _vdJobStateKey }).catch(function () {});
+  }
+
+  function _vdRunPremiumJob(totalChapters) {
+    var client = _vdGetJobClient();
+    if (!client) return;
+    client.run({
+      stateKey: _vdJobStateKey,
+      startChapter: 1,
+      endChapter: Number(totalChapters || 12),
+      stopOnFailure: false,
+    }).catch(function () {});
+  }
 
   function _readPremiumTokenForReport(){
     var token='';
@@ -394,6 +436,8 @@
       _showScreen('vdNoProfileScreen');
       return;
     }
+    _vdResumePremiumJob();
+
     if(!window.__cdActiveBirthProfile||!window.__cdActiveBirthProfile.birth) window.__cdActiveBirthProfile=profile;
       if (_generating) {
         _showScreen('vdLoadingScreen');
@@ -454,6 +498,7 @@
     var loc=profile.location||{lat:37.5665,lng:126.978,tzOffset:9};
 
     _generating=true;
+    _vdStartPremiumJob(profile);
     _chapters=Array(12).fill(null);
     _chapterStructured=Array(12).fill(null);
     _chapterMeta=Array(12).fill(null);
@@ -585,6 +630,7 @@
         if(_nameEl)_nameEl.textContent='🪷 '+(prof.name||'사용자')+'님의 베다 인생 총람';
         if(_dateEl){var _b=prof.birth||{};_dateEl.textContent=[_b.year,_b.month,_b.day].filter(Boolean).join('.')+'생 · 🗓️ '+new Date().toLocaleDateString('ko-KR')+' 발행';}
         _vdSaveResult(prof);
+        _vdRunPremiumJob(12);
         return;
       }
       if(chapterMsg)chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';

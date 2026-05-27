@@ -107,6 +107,48 @@
   var _cancelGeneration = false;
   var _premiumPaidUntil = 0;
   var _lbPendingSavedResult = null;
+  var _lbJobStateKey = 'cd:premium-job:life-book';
+
+  function _lbGetJobClient() {
+    return (typeof window !== 'undefined' && window.CDPremiumPdfJobClient) ? window.CDPremiumPdfJobClient : null;
+  }
+
+  function _lbStartPremiumJob(profile) {
+    var client = _lbGetJobClient();
+    if (!client) return;
+    var birth = (profile && profile.birth) ? profile.birth : {};
+    client.start({
+      stateKey: _lbJobStateKey,
+      reportType: 'lifeBook',
+      featureType: LIFE_BOOK_FEATURE_KEY,
+      requestBody: {
+        name: String((profile && profile.name) || '사용자'),
+        gender: String((profile && profile.gender) || ''),
+        year: Number(birth.year || 0),
+        month: Number(birth.month || 0),
+        day: Number(birth.day || 0),
+        hour: Number(birth.hour || 12),
+        minute: Number(birth.minute || 0),
+      },
+    }).catch(function () {});
+  }
+
+  function _lbResumePremiumJob() {
+    var client = _lbGetJobClient();
+    if (!client) return;
+    client.resume({ stateKey: _lbJobStateKey }).catch(function () {});
+  }
+
+  function _lbRunPremiumJob(totalChapters) {
+    var client = _lbGetJobClient();
+    if (!client) return;
+    client.run({
+      stateKey: _lbJobStateKey,
+      startChapter: 1,
+      endChapter: Number(totalChapters || LIFEBOOK_TOTAL_CHAPTERS),
+      stopOnFailure: false,
+    }).catch(function () {});
+  }
 
   function _readPremiumTokenForReport() {
     var token = '';
@@ -714,6 +756,8 @@
       window.__cdActiveBirthProfile = profile;
     }
 
+    _lbResumePremiumJob();
+
     if (_generating) {
       _showScreen('lbLoadingScreen');
       modal.style.display = 'flex';
@@ -883,6 +927,7 @@
 
     _generating = true;
     _cancelGeneration = false;
+    _lbStartPremiumJob(profile);
     _flowLog('GENERATE_CLICK', { message: 'generation-started' });
     _chapters = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
     _chapterStructured = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
@@ -1109,6 +1154,7 @@
           dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · ' + (prof.gender === 'F' ? '여성' : prof.gender === 'M' ? '남성' : '') + ' · 🗓️ ' + new Date().toLocaleDateString('ko-KR') + ' 발행';
         }
         _lbSaveResult(prof);
+        _lbRunPremiumJob(LIFEBOOK_TOTAL_CHAPTERS);
         // 마무리 배너 표시
         var lbEpBanner = _qs('lbEpilogueBanner');
         if (lbEpBanner) lbEpBanner.style.display = '';

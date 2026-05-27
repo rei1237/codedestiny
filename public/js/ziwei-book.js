@@ -104,6 +104,48 @@
   var _generationRunId = 0;
   var _premiumPaidUntil = 0;
   var _zbLastReportId = '';
+  var _zbJobStateKey = 'cd:premium-job:ziwei';
+
+  function _zbGetJobClient() {
+    return (typeof window !== 'undefined' && window.CDPremiumPdfJobClient) ? window.CDPremiumPdfJobClient : null;
+  }
+
+  function _zbStartPremiumJob(profile) {
+    var client = _zbGetJobClient();
+    if (!client) return;
+    var birth = (profile && profile.birth) ? profile.birth : {};
+    client.start({
+      stateKey: _zbJobStateKey,
+      reportType: 'ziweiPremium',
+      featureType: 'premium_pdf_ziwei',
+      requestBody: {
+        name: String((profile && profile.name) || '사용자'),
+        gender: String((profile && profile.gender) || ''),
+        year: Number(birth.year || 0),
+        month: Number(birth.month || 0),
+        day: Number(birth.day || 0),
+        hour: Number(birth.hour || 12),
+        minute: Number(birth.minute || 0),
+      },
+    }).catch(function () {});
+  }
+
+  function _zbResumePremiumJob() {
+    var client = _zbGetJobClient();
+    if (!client) return;
+    client.resume({ stateKey: _zbJobStateKey }).catch(function () {});
+  }
+
+  function _zbRunPremiumJob(totalChapters) {
+    var client = _zbGetJobClient();
+    if (!client) return;
+    client.run({
+      stateKey: _zbJobStateKey,
+      startChapter: 1,
+      endChapter: Number(totalChapters || TOTAL_CHAPTERS),
+      stopOnFailure: false,
+    }).catch(function () {});
+  }
 
   function _readPremiumTokenForReport() {
     var token = '';
@@ -783,6 +825,8 @@
       window.__cdActiveBirthProfile = profile;
     }
 
+    _zbResumePremiumJob();
+
     if (_generating) {
       _showScreen('zbLoadingScreen');
       modal.style.display = 'flex';
@@ -923,6 +967,7 @@
     _generating = true;
     _cancelGeneration = false;
     _generationRunId += 1;
+    _zbStartPremiumJob(profile);
     var _runId = _generationRunId;
     _chapters = Array(TOTAL_CHAPTERS).fill(null);
     _chapterStructured = Array(TOTAL_CHAPTERS).fill(null);
@@ -1146,6 +1191,7 @@
         dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · ' + (prof.gender === 'F' ? '여성' : prof.gender === 'M' ? '남성' : '') + ' · 🗓️ ' + new Date().toLocaleDateString('ko-KR') + ' 발행';
       }
       _zbSaveResult(prof, _zbReportId);
+      _zbRunPremiumJob(TOTAL_CHAPTERS);
       _trace('PDF_RENDER_SUCCESS', {
         mode: 'personal',
         chapterCount: TOTAL_CHAPTERS,

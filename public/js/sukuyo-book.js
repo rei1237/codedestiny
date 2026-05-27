@@ -79,6 +79,53 @@
   var _currentChapter = 1;
   var _mysticTimer = null;
   var _premiumPaidUntil = 0;
+  var _skJobStateKey = 'cd:premium-job:sukuyo';
+
+  function _skGetJobClient() {
+    return (typeof window !== 'undefined' && window.CDPremiumPdfJobClient) ? window.CDPremiumPdfJobClient : null;
+  }
+
+  function _skStartPremiumJob(profile, partner) {
+    var client = _skGetJobClient();
+    if (!client) return;
+    var birth = (profile && profile.birth) ? profile.birth : {};
+    client.start({
+      stateKey: _skJobStateKey,
+      reportType: 'sookyoPremium',
+      featureType: 'premium_pdf_sukyo_compat',
+      requestBody: {
+        mode: 'compatibility',
+        name: String((profile && profile.name) || '사용자'),
+        gender: String((profile && profile.gender) || ''),
+        year: Number(birth.year || 0),
+        month: Number(birth.month || 0),
+        day: Number(birth.day || 0),
+        hour: Number(birth.hour || 12),
+        minute: Number(birth.minute || 0),
+        partnerName: String((partner && partner.name) || ''),
+        partnerYear: Number((partner && partner.year) || 0),
+        partnerMonth: Number((partner && partner.month) || 0),
+        partnerDay: Number((partner && partner.day) || 0),
+      },
+    }).catch(function () {});
+  }
+
+  function _skResumePremiumJob() {
+    var client = _skGetJobClient();
+    if (!client) return;
+    client.resume({ stateKey: _skJobStateKey }).catch(function () {});
+  }
+
+  function _skRunPremiumJob(totalChapters) {
+    var client = _skGetJobClient();
+    if (!client) return;
+    client.run({
+      stateKey: _skJobStateKey,
+      startChapter: 1,
+      endChapter: Number(totalChapters || CHAPTER_COUNT),
+      stopOnFailure: false,
+    }).catch(function () {});
+  }
 
   function _readPremiumTokenForReport() {
     var token = '';
@@ -505,6 +552,8 @@
       _showScreen('skNoProfileScreen');
       return;
     }
+    _skResumePremiumJob();
+
     if(!window.__cdActiveBirthProfile||!window.__cdActiveBirthProfile.birth) window.__cdActiveBirthProfile=profile;
     var saved=_skLoadSaved(profile);
     _chapters=Array(CHAPTER_COUNT).fill(null);
@@ -615,6 +664,7 @@
     _showScreen('skLoadingScreen');
 
     var partner=_readPartnerData();
+    _skStartPremiumJob(profile, partner);
     var selfLunarHint=_resolveSelfLunarHint(profile);
     var partnerLunarHint=_resolvePartnerLunarHint(partner);
     var engineHints=_readCurrentSukuyoHints();
@@ -752,6 +802,7 @@
         if(_nameEl)_nameEl.textContent='💫 '+(prof.name||'사용자')+'님의 숙요점 궁합 리포트';
         if(_dateEl){var _b=prof.birth||{};_dateEl.textContent=[_b.year,_b.month,_b.day].filter(Boolean).join('.')+'생 · 🗓️ '+new Date().toLocaleDateString('ko-KR')+' 발행';}
         _skSaveResult(prof,_skReportId);
+        _skRunPremiumJob(CHAPTER_COUNT);
         return;
       }
       if(chapterMsg)chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';

@@ -179,10 +179,55 @@
   var _quoteIdx = 0;
   var _activeRequestController = null;
   var _cancelGeneration = false;
+  var _lsJobStateKey = 'cd:premium-job:love-secret';
   var LOVE_SECRET_FEATURE_KEYS = {
     solo: 'premium-love-secret-solo',
     compatibility: 'premium-love-secret-couple'
   };
+
+  function _lsGetJobClient() {
+    return (typeof window !== 'undefined' && window.CDPremiumPdfJobClient) ? window.CDPremiumPdfJobClient : null;
+  }
+
+  function _lsStartPremiumJob(profile, mode) {
+    var client = _lsGetJobClient();
+    if (!client) return;
+    var birth = (profile && profile.birth) ? profile.birth : {};
+    var normalizedMode = _normalizeLoveSecretMode(mode);
+    var featureType = normalizedMode === 'compatibility' ? LOVE_SECRET_FEATURE_KEYS.compatibility : LOVE_SECRET_FEATURE_KEYS.solo;
+    client.start({
+      stateKey: _lsJobStateKey,
+      reportType: 'loveSecret',
+      featureType: featureType,
+      requestBody: {
+        mode: normalizedMode,
+        name: String((profile && profile.name) || '사용자'),
+        gender: String((profile && profile.gender) || ''),
+        year: Number(birth.year || 0),
+        month: Number(birth.month || 0),
+        day: Number(birth.day || 0),
+        hour: Number(birth.hour || 12),
+        minute: Number(birth.minute || 0),
+      },
+    }).catch(function () {});
+  }
+
+  function _lsResumePremiumJob() {
+    var client = _lsGetJobClient();
+    if (!client) return;
+    client.resume({ stateKey: _lsJobStateKey }).catch(function () {});
+  }
+
+  function _lsRunPremiumJob(totalChapters) {
+    var client = _lsGetJobClient();
+    if (!client) return;
+    client.run({
+      stateKey: _lsJobStateKey,
+      startChapter: 1,
+      endChapter: Number(totalChapters || 1),
+      stopOnFailure: false,
+    }).catch(function () {});
+  }
 
   function _readPremiumTokenForReport() {
     var token = '';
@@ -890,6 +935,8 @@
       return;
     }
 
+    _lsResumePremiumJob();
+
     if (_generating) {
       _showScreen('lsLoadingScreen');
       modal.style.display = 'flex';
@@ -1082,6 +1129,7 @@
     _generating = true;
     _cancelGeneration = false;
     _currentChapterMode = partnerData ? 'compatibility' : 'solo';
+    _lsStartPremiumJob(window.__cdActiveBirthProfile || {}, _currentChapterMode);
     _showScreen('lsLoadingScreen');
     _startLoadingAnimation();
     var sajuData = _cachedSajuData || _collectSajuData();
@@ -1234,6 +1282,7 @@
         var profile = window.__cdActiveBirthProfile || {};
         _saveResult(profile);
         _renderResultHeader(profile.name, profile.birth, profile.gender, new Date(), true);
+        _lsRunPremiumJob(totalChapters);
         return;
       }
       if (chapterMsg) chapterMsg.textContent = _getLoveSecretLoadingMessage(idx, _currentChapterMode);
