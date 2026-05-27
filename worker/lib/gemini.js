@@ -58,6 +58,8 @@ export function pickGeminiModels(env, preferredEnvKeys = []) {
   const defaults = [
     clean(getEnv(env, "GEMINI_MODEL")),
     clean(getEnv(env, "VERTEX_GEMINI_MODEL")),
+    "gemini-1.5-flash",
+    "gemini-1.5-pro",
     "gemini-2.5-flash",
     "gemini-2.0-flash",
     "gemini-2.0-flash-lite",
@@ -349,6 +351,82 @@ function computeRetryDelayMs(attempt, response, message = "") {
   return base + bonus + jitter;
 }
 
+function canUseNodeSdk() {
+  return typeof process !== "undefined" && Boolean(process?.versions?.node);
+}
+
+function shouldUseGeminiSdk(env, options = {}) {
+  if (!canUseNodeSdk()) return false;
+  const explicit = String(options?.useSdk ?? getEnv(env, "GEMINI_USE_SDK") ?? getEnv(env, "PREMIUM_GEMINI_USE_SDK") ?? "true").trim().toLowerCase();
+  return !(explicit === "0" || explicit === "false" || explicit === "no");
+}
+
+async function callGeminiTextViaSdk(env, prompt, options = {}) {
+  const textPrompt = clean(prompt);
+  if (!textPrompt) return { ok: false, error: "empty_prompt", message: "Gemini prompt is empty." };
+
+  const keys = pickGeminiKeys(env, options.keyEnvKeys || []);
+  if (!keys.length) {
+    return {
+      ok: false,
+      error: "gemini_keys_missing",
+      message: "Gemini API key is not configured for SDK path.",
+    };
+  }
+
+  const models = pickGeminiModels(env, options.modelEnvKeys || []);
+  const maxAttemptsPerPair = Math.max(1, Math.min(5, Number(options.maxAttemptsPerPair) || 2));
+  let lastError = "";
+  let lastStatus = null;
+
+  for (const model of models) {
+    for (const key of keys) {
+      for (let attempt = 1; attempt <= maxAttemptsPerPair; attempt += 1) {
+        try {
+          const sdk = await import("@google/generative-ai");
+          const GoogleGenerativeAI = sdk?.GoogleGenerativeAI;
+          if (typeof GoogleGenerativeAI !== "function") {
+            return {
+              ok: false,
+              error: "gemini_sdk_invalid",
+              message: "@google/generative-ai loaded but GoogleGenerativeAI is unavailable.",
+            };
+          }
+
+          const client = new GoogleGenerativeAI(key);
+          const modelClient = client.getGenerativeModel({ model });
+          const result = await modelClient.generateContent({
+            contents: [{ role: "user", parts: [{ text: textPrompt }] }],
+            generationConfig: {
+              temperature: Number.isFinite(Number(options.temperature)) ? Number(options.temperature) : 0.86,
+              topP: Number.isFinite(Number(options.topP)) ? Number(options.topP) : 0.95,
+              maxOutputTokens: Number.isFinite(Number(options.maxOutputTokens)) ? Number(options.maxOutputTokens) : 8192,
+            },
+          });
+
+          const text = clean(result?.response?.text?.() || "");
+          if (text) return { ok: true, text, model };
+          lastError = "Gemini SDK returned an empty response.";
+        } catch (error) {
+          lastError = clean(error?.message || String(error)) || "Gemini SDK call failed.";
+          lastStatus = Number(error?.status || error?.code || 0) || null;
+        }
+
+        if (attempt < maxAttemptsPerPair) {
+          await sleep(computeRetryDelayMs(attempt, null, lastError));
+        }
+      }
+    }
+  }
+
+  return {
+    ok: false,
+    error: "gemini_sdk_exhausted",
+    status: lastStatus,
+    message: lastError || "Gemini SDK request failed for all configured models and keys.",
+  };
+}
+
 export async function callGeminiText(env, prompt, options = {}) {
   const textPrompt = clean(prompt);
   if (!textPrompt) {
@@ -381,12 +459,37 @@ export async function callGeminiText(env, prompt, options = {}) {
   }
 
   const keys = pickGeminiKeys(env, options.keyEnvKeys || []);
+  const processGeminiKeyConfigured = Boolean(
+    canUseNodeSdk()
+      ? clean(process?.env?.GEMINI_API_KEY || process?.env?.GOOGLE_GEMINI_API_KEY || "")
+      : "",
+  );
   if (!keys.length) {
+    console.error("[Gemini] Key missing", {
+      keyConfigured: false,
+      processEnvKeyConfigured: processGeminiKeyConfigured,
+      preferredKeyEnvKeys: Array.isArray(options.keyEnvKeys) ? options.keyEnvKeys : [],
+    });
     return {
       ok: false,
       error: "gemini_keys_missing",
+      status: 401,
       message: "Gemini API 키가 설정되어 있지 않습니다. PREMIUM_GEMINI_API_KEY1~4, GEMINIF_API_KEY1~4 또는 GEMINI_API_KEY를 설정하세요.",
     };
+  }
+
+  if (shouldUseGeminiSdk(env, options)) {
+    const sdkResult = await callGeminiTextViaSdk(env, textPrompt, options);
+    if (sdkResult?.ok) {
+      return sdkResult;
+    }
+    console.warn("[Gemini] SDK path failed, falling back to REST", {
+      error: clean(sdkResult?.error || "gemini_sdk_failed"),
+      status: Number(sdkResult?.status || 0) || null,
+      message: clean(sdkResult?.message || ""),
+      keyConfigured: keys.length > 0,
+      processEnvKeyConfigured: processGeminiKeyConfigured,
+    });
   }
 
   const models = pickGeminiModels(env, options.modelEnvKeys || []);
@@ -401,6 +504,7 @@ export async function callGeminiText(env, prompt, options = {}) {
 
   const maxAttemptsPerPair = Math.max(1, Math.min(5, Number(options.maxAttemptsPerPair) || 2));
   let lastError = "";
+  let lastStatus = null;
 
   outer:
   for (const model of models) {
@@ -427,6 +531,7 @@ export async function callGeminiText(env, prompt, options = {}) {
           const payload = await response.json().catch(() => ({}));
           if (!response.ok) {
             lastError = payload?.error?.message || `Gemini request failed (${response.status})`;
+            lastStatus = Number(response.status || 0) || null;
             if (attempt < maxAttemptsPerPair && (isRetriableStatus(response.status) || isRetriableErrorMessage(lastError))) {
               const delayMs = computeRetryDelayMs(attempt, response, lastError);
               if (deadlineAt && (remainingBudgetMs() - delayMs) <= 150) {
@@ -457,6 +562,7 @@ export async function callGeminiText(env, prompt, options = {}) {
           break;
         } catch (error) {
           lastError = error?.message || String(error);
+          lastStatus = Number(error?.status || error?.code || 0) || null;
           if (attempt < maxAttemptsPerPair && isRetriableErrorMessage(lastError)) {
             const delayMs = computeRetryDelayMs(attempt, null, lastError);
             if (deadlineAt && (remainingBudgetMs() - delayMs) <= 150) {
@@ -484,9 +590,18 @@ export async function callGeminiText(env, prompt, options = {}) {
     lastError = `${lastError ? `${lastError} | ` : ""}Vertex fallback failed: ${clean(vertexResult.message)}`;
   }
 
+  console.error("[Gemini] Exhausted all attempts", {
+    status: lastStatus,
+    keyConfigured: keys.length > 0,
+    processEnvKeyConfigured: processGeminiKeyConfigured,
+    modelCandidates: models,
+    message: clean(lastError),
+  });
+
   return {
     ok: false,
     error: "gemini_exhausted",
+    status: lastStatus,
     message: lastError || "Gemini request failed for all configured keys and models.",
   };
 }

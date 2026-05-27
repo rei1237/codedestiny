@@ -799,12 +799,28 @@ export async function generateZiweiSectionWithLLM(env, input) {
   ];
   const resolvedKeyCount = pickGeminiKeys(env, keyEnvKeys).length;
   const resolvedModels = pickGeminiModels(env, modelEnvKeys);
+  const processGeminiKeyConfigured = Boolean(
+    typeof process !== "undefined"
+      ? String(process?.env?.GEMINI_API_KEY || process?.env?.GOOGLE_GEMINI_API_KEY || "").trim()
+      : "",
+  );
+
+  // Debug checklist: verify this log appears for each category generation attempt.
+  console.info("[ZiweiPremium][LLM] section-call-start", {
+    chapterId: input.chapter?.chapterId,
+    sectionId: input.section?.sectionId,
+    keyConfigured: resolvedKeyCount > 0,
+    processEnvKeyConfigured: processGeminiKeyConfigured,
+    modelCandidates: resolvedModels,
+    maxAttempts,
+  });
 
   if (resolvedKeyCount <= 0) {
     console.error("[ZiweiPremium][Flow] LLM_KEY_MISSING", {
       chapterId: input.chapter?.chapterId,
       sectionId: input.section?.sectionId,
       keyCount: 0,
+      processEnvKeyConfigured: processGeminiKeyConfigured,
       modelCandidates: resolvedModels,
     });
     return {
@@ -842,7 +858,9 @@ export async function generateZiweiSectionWithLLM(env, input) {
           sectionId: input.section?.sectionId,
           attempt,
           error: String(lastError.message || "EMPTY_LLM_RESPONSE"),
+          status: Number(llmResult?.status || 0) || null,
           keyConfigured: resolvedKeyCount > 0,
+          processEnvKeyConfigured: processGeminiKeyConfigured,
           keyCount: resolvedKeyCount,
           modelCandidates: resolvedModels,
         });
@@ -885,6 +903,7 @@ export async function generateZiweiSectionWithLLM(env, input) {
         errors: validation.errors,
         attempt,
         keyConfigured: resolvedKeyCount > 0,
+        processEnvKeyConfigured: processGeminiKeyConfigured,
         modelCandidates: resolvedModels,
       });
 
@@ -899,6 +918,10 @@ export async function generateZiweiSectionWithLLM(env, input) {
         sectionId: input.section?.sectionId,
         attempt,
         message: String(error?.message || "UNKNOWN_ERROR"),
+        status: Number(error?.status || error?.code || 0) || null,
+        keyConfigured: resolvedKeyCount > 0,
+        processEnvKeyConfigured: processGeminiKeyConfigured,
+        modelCandidates: resolvedModels,
       });
 
       if (attempt >= maxAttempts) {
@@ -930,6 +953,7 @@ function buildZiweiSectionLLMPrompt(input) {
   const systemInstruction = [
     "너는 최고의 자미두수 명리학자야.",
     "너는 12궁과 사화를 실전적으로 해석하는 최고 수준의 자미두수 고수다.",
+    "너는 자미두수 전문가야. 사용자 명반 데이터([JSON 데이터 주입])를 바탕으로 현재 카테고리인 [현재 챕터명 및 세부 주제]에 대한 해석만 텍스트로 바로 출력해. 마크다운 기호나 불필요한 서론은 절대 빼고 순수 본문만 작성해.",
     "제공된 [사용자 명반 데이터]를 바탕으로 [현재 챕터명]에 대한 구체적이고 실질적인 해석을 작성해.",
     "절대로 '명반을 기준으로 분석합니다' 같은 안내 멘트나 더미 텍스트를 출력하지 말고, 곧바로 사용자의 기질, 운세, 구체적인 조언(실행 포인트)을 결과물로 도출해.",
     "당신은 30년 경력의 자미두수 고수다.",
@@ -1216,8 +1240,8 @@ export async function generateZiweiChapterFromSections(env, input) {
       generatedSections.push({
         sectionId: sectionInput.categoryId || section.sectionId,
         sectionTitle: normalized.title,
-        content: normalized.body,
-        textLength: String(normalized.body || "").length,
+        content: `해석을 불러오는 데 실패했습니다.\n\n${String(normalized.body || "").trim()}`,
+        textLength: String(`해석을 불러오는 데 실패했습니다.\n\n${String(normalized.body || "").trim()}`).length,
         source: normalized.source,
       });
     }
