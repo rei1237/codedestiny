@@ -74,6 +74,7 @@
   var _chapters = Array(CHAPTER_COUNT).fill(null);
   var _chapterStructured = Array(CHAPTER_COUNT).fill(null);
   var _chapterMeta = Array(CHAPTER_COUNT).fill(null);
+  var _skLastReportId = '';
   var _generating = false;
   var _currentChapter = 1;
   var _mysticTimer = null;
@@ -361,9 +362,26 @@
     return null;
   }
 
-  var _SK_STORE_VER='sk_v1_';
+  var _SK_STORE_VER='sk_v2_';
   function _skMakeKey(p){var b=(p&&p.birth)||{};return _SK_STORE_VER+(b.year||'0')+'_'+(b.month||'0')+'_'+(b.day||'0')+'_'+((p&&p.gender)||'u');}
-  function _skSaveResult(p){try{sessionStorage.setItem(_skMakeKey(p),JSON.stringify({chapters:_chapters,name:(p&&p.name)||'사용자',birth:(p&&p.birth)||{},gender:(p&&p.gender)||'',savedAt:new Date().toISOString()}));}catch(_){}}
+  function _hasUsableStructuredChapter(ch){
+    if(!ch||typeof ch!=='object'||!Array.isArray(ch.sections))return false;
+    return ch.sections.some(function(r){return r&&String(r.body||r.content||'').trim();});
+  }
+  function _skSaveResult(p,reportId){
+    try{
+      sessionStorage.setItem(_skMakeKey(p),JSON.stringify({
+        chapters:_chapters,
+        chapterStructured:_chapterStructured,
+        chapterMeta:_chapterMeta,
+        reportId:String(reportId||_skLastReportId||'').trim(),
+        name:(p&&p.name)||'사용자',
+        birth:(p&&p.birth)||{},
+        gender:(p&&p.gender)||'',
+        savedAt:new Date().toISOString()
+      }));
+    }catch(_){}
+  }
   function _skLoadSaved(p){try{var raw=sessionStorage.getItem(_skMakeKey(p));return raw?JSON.parse(raw):null;}catch(_){return null;}}
 
   function _showScreen(id){
@@ -389,11 +407,13 @@
       var btn=e.target.closest('[data-sk-chapter]');
       if(!btn)return;
       var ch=Number(btn.getAttribute('data-sk-chapter'));
-      if(!ch||!_chapters[ch-1])return;
+      var bi=ch-1;
+      if(!ch||(!_chapters[bi]&&!_hasUsableStructuredChapter(_chapterStructured[bi])))return;
       _renderChapter(ch);
       Array.prototype.forEach.call(nav.querySelectorAll('.sk-toc-item'),function(b){
+        var idx2=Number(b.getAttribute('data-sk-chapter'))-1;
         b.classList.toggle('active',b===btn);
-        b.classList.toggle('loaded',!!_chapters[Number(b.getAttribute('data-sk-chapter'))-1]);
+        b.classList.toggle('loaded',!!_chapters[idx2]||_hasUsableStructuredChapter(_chapterStructured[idx2]));
       });
     });
   }
@@ -414,7 +434,8 @@
     _renderToc();
     Array.prototype.forEach.call(document.querySelectorAll('#skToc .sk-toc-item'),function(btn){
       var ch=Number(btn.getAttribute('data-sk-chapter'));
-      btn.classList.toggle('loaded',!!_chapters[ch-1]);
+      var idx=ch-1;
+      btn.classList.toggle('loaded',!!_chapters[idx]||_hasUsableStructuredChapter(_chapterStructured[idx]));
       btn.classList.toggle('active',ch===1);
     });
   }
@@ -435,10 +456,20 @@
     }
     if(!window.__cdActiveBirthProfile||!window.__cdActiveBirthProfile.birth) window.__cdActiveBirthProfile=profile;
     var saved=_skLoadSaved(profile);
-    if(saved&&saved.chapters&&saved.chapters.some(Boolean)){
+    var validSavedCount=0;
+    if(saved&&Array.isArray(saved.chapters)){
+      validSavedCount=saved.chapters.filter(function(c,idx){
+        var hasText=typeof c==='string'&&c.trim().length>0&&!/^⚠️/.test(c.trim());
+        var structured=Array.isArray(saved.chapterStructured)?saved.chapterStructured[idx]:null;
+        return hasText||_hasUsableStructuredChapter(structured);
+      }).length;
+    }
+    if(validSavedCount>0){
       _chapters=_normalizeChapterArray(saved.chapters);
-      _chapterStructured=Array(CHAPTER_COUNT).fill(null);
-      _chapterMeta=Array(CHAPTER_COUNT).fill(null);
+      _chapterStructured=Array.isArray(saved.chapterStructured)?saved.chapterStructured.slice(0,CHAPTER_COUNT):Array(CHAPTER_COUNT).fill(null);
+      _chapterMeta=Array.isArray(saved.chapterMeta)?saved.chapterMeta.slice(0,CHAPTER_COUNT):Array(CHAPTER_COUNT).fill(null);
+      _skLastReportId=String(saved.reportId||'').trim();
+      console.info('[SukuyoPremium][Flow] SESSION_RESTORED',{reportId:_skLastReportId||null,validChapters:validSavedCount,totalChapters:CHAPTER_COUNT,message:'구조화 섹션도 로드됨'});
       _currentChapter=1;
       _showScreen('skResultScreen');
       _updateTocState(); _renderChapter(1); _bindToc();
@@ -453,6 +484,7 @@
     _chapters=Array(CHAPTER_COUNT).fill(null);
     _chapterStructured=Array(CHAPTER_COUNT).fill(null);
     _chapterMeta=Array(CHAPTER_COUNT).fill(null);
+    _skLastReportId='';
     _currentChapter=1;
     _showScreen('skStartScreen');
     modal.style.display='flex'; modal.style.zIndex='100120';
@@ -617,6 +649,7 @@
     _setProgress(0);
 
     var _skReportId = 'sukuyo_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+    _skLastReportId = _skReportId;
 
     function _skReadPremiumAccessToken(){
       var token='';
@@ -691,7 +724,7 @@
         var _nameEl=_qs('skResultName'),_dateEl=_qs('skResultDate');
         if(_nameEl)_nameEl.textContent='💫 '+(prof.name||'사용자')+'님의 숙요점 궁합 리포트';
         if(_dateEl){var _b=prof.birth||{};_dateEl.textContent=[_b.year,_b.month,_b.day].filter(Boolean).join('.')+'생 · 🗓️ '+new Date().toLocaleDateString('ko-KR')+' 발행';}
-        _skSaveResult(prof);
+        _skSaveResult(prof,_skReportId);
         return;
       }
       if(chapterMsg)chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';
@@ -701,6 +734,7 @@
           _chapters[idx]=data.text;
           _chapterStructured[idx]=(Array.isArray(data.sections)&&data.sections.length)?{sections:data.sections}:(data.chapterJson&&typeof data.chapterJson==='object'?data.chapterJson:null);
           _chapterRetries[idx]=0;
+          _skSaveResult(window.__cdActiveBirthProfile||{},_skReportId);
           _setProgress(idx+1);
           generateNext(idx+1);
           return;
@@ -722,6 +756,7 @@
         }
         _chapters[idx]=_buildChapterSkeleton(idx,msg);
         _chapterStructured[idx]=null;
+        _skSaveResult(window.__cdActiveBirthProfile||{},_skReportId);
         _setProgress(idx+1);
         generateNext(idx+1);
       });
