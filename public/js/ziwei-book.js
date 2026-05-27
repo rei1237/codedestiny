@@ -296,6 +296,24 @@
     return lines.join('\n');
   }
 
+  function _applyChapterFallback(idx, reason) {
+    _chapterMeta[idx] = {
+      title: CHAPTER_TITLES[idx] || ('Chapter ' + (idx + 1)),
+      subtitle: CHAPTER_SUBTITLES[idx] || '',
+      sections: _normalizeSections(CHAPTER_STRUCTURED_LABELS[idx + 1] || []),
+      isSkeleton: false,
+    };
+    _chapters[idx] = _buildChapterLocalFallback(idx, reason);
+    _chapterStructured[idx] = {
+      sections: (CHAPTER_STRUCTURED_LABELS[idx + 1] || []).map(function (label) {
+        return {
+          title: String(label || '').trim(),
+          body: '현재 확보된 자미두수 핵심 데이터를 기준으로 성향/패턴/실행 전략을 정리했습니다.',
+        };
+      }),
+    };
+  }
+
   function _md2html(text) {
     if (!text) return '';
     var h = text
@@ -1201,6 +1219,7 @@
           if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
           return _fetchChapter(idx, _runId).then(function (data) {
             if (!_isGenerationRunActive(_runId)) return { aborted: true };
+            try {
 
             var _zbText = '';
             if (data && data.chapterJson && Array.isArray(data.chapterJson.sections)) {
@@ -1266,23 +1285,24 @@
               textLength: _zbText.length,
               responsePreview: _sanitizeDebugValue(data || null, 0, []),
             });
-            _chapterMeta[idx] = {
-              title: CHAPTER_TITLES[idx] || ('Chapter ' + (idx + 1)),
-              subtitle: CHAPTER_SUBTITLES[idx] || '',
-              sections: _normalizeSections(CHAPTER_STRUCTURED_LABELS[idx + 1] || []),
-              isSkeleton: false,
-            };
-            _chapters[idx] = _buildChapterLocalFallback(idx, msg);
-            _chapterStructured[idx] = {
-              sections: (CHAPTER_STRUCTURED_LABELS[idx + 1] || []).map(function (label) {
-                return {
-                  title: String(label || '').trim(),
-                  body: '현재 확보된 자미두수 핵심 데이터를 기준으로 성향/패턴/실행 전략을 정리했습니다.',
-                };
-              }),
-            };
+            _applyChapterFallback(idx, msg);
             _setProgress(idx + 1);
             return { aborted: false };
+            } catch (chapterErr) {
+              var fallbackReason = '챕터 처리 중 예외가 발생해 로컬 복구를 적용했습니다.';
+              try {
+                var chapterErrMsg = String(chapterErr && chapterErr.message ? chapterErr.message : chapterErr);
+                if (chapterErrMsg) fallbackReason = chapterErrMsg;
+              } catch (_) {}
+              _trace('CHAPTER_RUNTIME_RECOVERED', {
+                chapter: idx + 1,
+                message: fallbackReason,
+                code: 'CHAPTER_RUNTIME_EXCEPTION',
+              });
+              _applyChapterFallback(idx, fallbackReason);
+              _setProgress(idx + 1);
+              return { aborted: false };
+            }
           });
         });
       })(_chapterIdx);
@@ -1294,15 +1314,30 @@
         _finishGenerationSuccess();
       })
       .catch(function (failure) {
-        _finishGenerationFailure(
-          '자미두수 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있습니다.',
-          {
+        try {
+          for (var i = 0; i < TOTAL_CHAPTERS; i += 1) {
+            if (typeof _chapters[i] === 'string' && _chapters[i].trim().length > 0) continue;
+            _applyChapterFallback(i, '일시적 예외 복구로 기본 챕터를 생성했습니다.');
+          }
+          _setProgress(TOTAL_CHAPTERS);
+          _trace('PDF_GENERATION_RECOVERED', {
             chapter: failure && failure.chapter ? failure.chapter : null,
             code: failure && failure.code ? failure.code : 'CHAPTER_DATA_FAILED',
             message: failure && failure.message ? failure.message : '알 수 없는 오류',
             failCount: _failCount,
-          }
-        );
+          });
+          _finishGenerationSuccess();
+        } catch (_) {
+          _finishGenerationFailure(
+            '자미두수 PDF 본문 생성 중 일부 챕터가 완성되지 않았습니다. 결제는 중복 차감되지 않도록 보호되며, 다시 생성할 수 있습니다.',
+            {
+              chapter: failure && failure.chapter ? failure.chapter : null,
+              code: failure && failure.code ? failure.code : 'CHAPTER_DATA_FAILED',
+              message: failure && failure.message ? failure.message : '알 수 없는 오류',
+              failCount: _failCount,
+            }
+          );
+        }
       });
   };
 
