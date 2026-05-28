@@ -559,23 +559,54 @@ function validateLifeBookChapters(chapters = []) {
 
   (chapters || []).forEach((chapter, index) => {
     const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
-    if (categories.length < 4) {
+    const expectedCategoryCount = Array.isArray(CHAPTER_BLUEPRINTS[index]?.categories)
+      ? CHAPTER_BLUEPRINTS[index].categories.length
+      : 5;
+    if (categories.length !== expectedCategoryCount) {
       errors.push(`chapter_${index + 1}_category_count`);
     }
-    if (!stripForbiddenTokens(chapter?.title) || !stripForbiddenTokens(chapter?.finalText || chapter?.text)) {
+    const chapterBody = stripForbiddenTokens(chapter?.finalText || chapter?.text);
+    if (!stripForbiddenTokens(chapter?.title) || chapterBody.length < 120) {
       errors.push(`chapter_${index + 1}_body`);
     }
     categories.forEach((category, categoryIndex) => {
       if (!stripForbiddenTokens(category?.title)) {
         errors.push(`chapter_${index + 1}_category_${categoryIndex + 1}_title`);
       }
-      if (!stripForbiddenTokens(category?.finalText)) {
+      if (stripForbiddenTokens(category?.finalText).length < 40) {
         errors.push(`chapter_${index + 1}_category_${categoryIndex + 1}_text`);
       }
     });
   });
 
   return { ok: errors.length === 0, errors };
+}
+
+function parseFailedLifeBookChapterIndexes(errors = []) {
+  const indexes = new Set();
+  (Array.isArray(errors) ? errors : []).forEach((errorCode) => {
+    const text = String(errorCode || "");
+    const match = text.match(/^chapter_(\d+)_/);
+    if (!match) return;
+    const chapterNumber = Number(match[1]);
+    if (!Number.isFinite(chapterNumber)) return;
+    const idx = chapterNumber - 1;
+    if (idx >= 0 && idx < CHAPTER_BLUEPRINTS.length) indexes.add(idx);
+  });
+  return indexes;
+}
+
+function reinforceFailedLifeBookChapters(profile, signals, chapters = [], errors = []) {
+  const failedIndexes = parseFailedLifeBookChapterIndexes(errors);
+  if (!failedIndexes.size) return Array.isArray(chapters) ? chapters : [];
+
+  const source = Array.isArray(chapters) ? chapters : [];
+  const fallbackAll = buildLifeBookFallbackChapters(profile, signals, source);
+
+  return source.map((chapter, index) => {
+    if (!failedIndexes.has(index)) return chapter;
+    return fallbackAll[index] || chapter;
+  });
 }
 
 function renderLifeBookPdf({ profile, signals, chapters, generatedAt }) {
@@ -899,7 +930,12 @@ async function handlePrepare(request, env) {
   const enhanced = await enhanceLifeBookChaptersWithLLM(env, profile, signals, localChapters);
   let completedChapters = ensureCompleteLifeBookChapters(profile, signals, enhanced.chapters);
   let fallbackUsed = Boolean(enhanced.fallbackUsed);
-  const chapterValidation = validateLifeBookChapters(completedChapters);
+  let chapterValidation = validateLifeBookChapters(completedChapters);
+  if (!chapterValidation.ok) {
+    fallbackUsed = true;
+    completedChapters = reinforceFailedLifeBookChapters(profile, signals, completedChapters, chapterValidation.errors);
+    chapterValidation = validateLifeBookChapters(completedChapters);
+  }
   if (!chapterValidation.ok) {
     fallbackUsed = true;
     completedChapters = buildLifeBookFallbackChapters(profile, signals, completedChapters);

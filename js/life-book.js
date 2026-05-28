@@ -340,16 +340,19 @@
   }
 
   function _buildLifeBookPrepareCandidates() {
-    var all = _buildApiCandidates(LIFEBOOK_API_PREPARE_PATH);
-    var legacy = _buildApiCandidates(LIFEBOOK_API_PREPARE_LEGACY_PATH);
-    var seen = {};
-    var merged = [];
-    all.concat(legacy).forEach(function (u) {
-      if (!u || seen[u]) return;
-      seen[u] = true;
-      merged.push(u);
-    });
-    return merged;
+    // Use worker-native lifebook route only; do not retry legacy mirror routes.
+    return _buildApiCandidates(LIFEBOOK_API_PREPARE_PATH);
+  }
+
+  function _isAuthOrPaymentFailure(status, payload) {
+    var code = String((payload && (payload.code || (payload.error && payload.error.code))) || '').toUpperCase();
+    if (status === 401 || status === 402 || status === 403) return true;
+    if (!code) return false;
+    return code.indexOf('AUTH') >= 0
+      || code.indexOf('UNAUTHORIZED') >= 0
+      || code.indexOf('FORBIDDEN') >= 0
+      || code.indexOf('PAYMENT') >= 0
+      || code.indexOf('PREMIUM') >= 0;
   }
 
   function _postLifeBookPrepare(payload, headers) {
@@ -403,6 +406,16 @@
               doneOk(pack);
               return;
             }
+
+            if (pack && pack.res && _isAuthOrPaymentFailure(Number(pack.res.status || 0), pack.json || {})) {
+              var hardMessage = String(
+                (pack.json && (pack.json.message || pack.json.reason || pack.json.code))
+                || (pack.res.status === 401 ? '로그인이 필요합니다.' : '프리미엄 결제 확인이 필요합니다.')
+              );
+              doneFail(hardMessage);
+              return;
+            }
+
             var msg = pack && pack.json
               ? (pack.json.message || pack.json.reason || pack.json.code || '')
               : '';
@@ -1555,12 +1568,14 @@
     })().catch(function (error) {
       var errMsg = String(error && error.message ? error.message : error || '챕터 생성 중 오류가 발생했습니다.');
       _flowLog('FRONT_PIPELINE_FAILED', { message: errMsg });
+      _generating = false;
+      _showScreen('lbStartScreen');
       alert('인생의 책 생성 중 오류가 발생했습니다: ' + errMsg);
     }).finally(function () {
       if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
       if (_activeRequestController) _activeRequestController = null;
+      _generating = false;
       if (_cancelGeneration) {
-        _generating = false;
         _flowLog('LIFE_BOOK_FLOW_CANCELLED', { reportId: _lbCurrentReportId || '' });
       }
     });
