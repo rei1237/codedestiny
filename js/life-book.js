@@ -6,8 +6,8 @@
   'use strict';
 
   var LIFEBOOK_TOTAL_CHAPTERS = 13;
-  var LIFE_BOOK_FEATURE_KEY = 'premium_pdf_saju_life_book';
-  var LIFE_BOOK_BILLING_FEATURE_KEY = 'saju_life_book_pdf';
+  var LIFE_BOOK_FEATURE_KEY = 'saju_life_book_pdf';
+  var LIFE_BOOK_REASON = '인생의 책 생성 (13챕터)';
   var LIFEBOOK_API_PREPARE_PATH = '/api/lifebook/prepare';
   var LIFEBOOK_API_PREPARE_LEGACY_PATH = '/api/premium/saju-lifebook/prepare';
 
@@ -116,6 +116,8 @@
   var _lbPendingSavedResult = null;
   var _lbJobStateKey = 'cd:premium-job:life-book';
   var _lbCurrentReportId = '';
+  var _lbCurrentAccessGrant = null;
+  var _lbCurrentPremiumToken = '';
   var _lbPartialFetchChapter = null;
 
   function _markPremiumAccessVerified(ttlMs) {
@@ -218,6 +220,75 @@
     }
   }
 
+  function _persistPremiumAccessToken(token) {
+    var value = String(token || '').trim();
+    if (!value) return;
+    try { window.__cdPremiumAccessToken = value; } catch (_) {}
+    try { sessionStorage.setItem('cd_premium_access_token', value); } catch (_) {}
+    try { localStorage.setItem('cd_premium_access_token', value); } catch (_) {}
+  }
+
+  function _normalizeLifeBookAccessGrant(raw, reportId, fallbackRequestId) {
+    var data = raw && typeof raw === 'object' ? raw : {};
+    var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
+    var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
+    var normalizedReportId = String(accessGrant.reportId || data.reportId || reportId || '').trim();
+    var purchaseId = String(accessGrant.purchaseId || data.purchaseId || data.transactionId || consume.transactionId || '').trim();
+    var sessionId = String(accessGrant.sessionId || data.sessionId || data.reportSessionId || (normalizedReportId ? ('life-book:' + normalizedReportId) : '')).trim();
+    var requestId = String(accessGrant.requestId || data.requestId || consume.requestId || fallbackRequestId || '').trim();
+
+    if (!normalizedReportId || !purchaseId) return null;
+    return {
+      ok: true,
+      featureKey: LIFE_BOOK_FEATURE_KEY,
+      sessionId: sessionId || undefined,
+      purchaseId: purchaseId || undefined,
+      requestId: requestId || undefined,
+      reportId: normalizedReportId,
+      paidAt: String(accessGrant.paidAt || data.paidAt || new Date().toISOString()),
+    };
+  }
+
+  async function _runLifeBookCoinGate(reportId) {
+    var requestId = 'life-book:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
+    var premiumToken = _readPremiumTokenForReport();
+    var headers = { 'Content-Type': 'application/json' };
+    if (premiumToken) headers['x-premium-access-token'] = premiumToken;
+
+    var response = await fetch('/api/billing/coin-gate', {
+      method: 'POST',
+      credentials: 'include',
+      headers: headers,
+      body: JSON.stringify({
+        categoryKey: 'premium-report',
+        featureKey: LIFE_BOOK_FEATURE_KEY,
+        reason: LIFE_BOOK_REASON,
+        mode: 'life-book',
+        reportId: String(reportId || '').trim() || undefined,
+        sessionId: String(reportId || '').trim() ? ('life-book:' + String(reportId).trim()) : undefined,
+        reportSessionId: String(reportId || '').trim() ? ('life-book:' + String(reportId).trim()) : undefined,
+        requestId: requestId,
+        forceDeduct: true,
+      }),
+    });
+
+    var payload = {};
+    try { payload = await response.json(); } catch (_) { payload = {}; }
+    var data = (payload && payload.data && typeof payload.data === 'object') ? payload.data : payload;
+    var issuedToken = String(data.premiumAccessToken || payload.premiumAccessToken || '').trim();
+    if (issuedToken) _persistPremiumAccessToken(issuedToken);
+
+    var accessGrant = _normalizeLifeBookAccessGrant(data, reportId, requestId);
+    return {
+      ok: !!response.ok && !!(payload && payload.ok !== false) && !!accessGrant,
+      status: Number(response.status || 0),
+      message: String((payload && payload.message) || ''),
+      accessGrant: accessGrant,
+      premiumAccessToken: issuedToken,
+      requestId: requestId,
+    };
+  }
+
   function _ensurePremiumPaymentThenStart() {
     if (_hasPremiumAccessForGeneration()) return true;
     if (typeof window._cdCoinGatePerUse !== 'function') {
@@ -230,8 +301,8 @@
       _flowLog('COIN_GATE_SUCCESS', { message: 'coin-gate-approved' });
       window.generateLifeBook();
     }, null, {
-      featureKey: LIFE_BOOK_BILLING_FEATURE_KEY,
-      requestId: LIFE_BOOK_BILLING_FEATURE_KEY + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8)
+      featureKey: LIFE_BOOK_FEATURE_KEY,
+      requestId: LIFE_BOOK_FEATURE_KEY + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8)
     });
     return false;
   }
@@ -317,6 +388,7 @@
         fetch(endpoint, {
           method: 'POST',
           headers: headers,
+          credentials: 'include',
           body: JSON.stringify(payload),
           signal: controller ? controller.signal : undefined,
         })
@@ -1089,7 +1161,7 @@
   function _getChapterMeta(idx) {
     var base = _chapterMeta[idx] || {};
     return {
-      title: String(base.title || CHAPTER_TITLES[idx] || ('Chapter ' + (idx + 1))),
+      title: String(base.title || CHAPTER_TITLES[idx] || ('제 ' + (idx + 1) + '장')),
       subtitle: String(base.subtitle || CHAPTER_SUBTITLES[idx] || ''),
     };
   }
@@ -1098,7 +1170,7 @@
     if (!data || typeof data !== 'object') return;
     var chapterMeta = data.chapterMeta && typeof data.chapterMeta === 'object' ? data.chapterMeta : null;
     _chapterMeta[idx] = {
-      title: String((chapterMeta && chapterMeta.title) || CHAPTER_TITLES[idx] || ('Chapter ' + (idx + 1))),
+      title: String((chapterMeta && chapterMeta.title) || CHAPTER_TITLES[idx] || ('제 ' + (idx + 1) + '장')),
       subtitle: String((chapterMeta && chapterMeta.subtitle) || CHAPTER_SUBTITLES[idx] || ''),
       isSkeleton: false,
     };
@@ -1128,11 +1200,45 @@
   }
 
   /* ─────────────── 생성 로직 ─────────────── */
-  window.generateLifeBook = function () {
+  window.generateLifeBook = function (options) {
     if (_generating) return;
 
-    if (!_hasPremiumAccessForGeneration()) {
-      if (!_ensurePremiumPaymentThenStart()) return;
+    var opts = options && typeof options === 'object' ? options : {};
+    var inputReportId = String(opts.reportId || '').trim();
+    var inputAccessGrant = (opts.accessGrant && typeof opts.accessGrant === 'object') ? opts.accessGrant : null;
+    var inputPremiumToken = String(opts.premiumAccessToken || '').trim();
+
+    if (!_hasPremiumAccessForGeneration() && !inputAccessGrant) {
+      var gateReportId = inputReportId || ('lifebook_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8));
+      _flowLog('COIN_GATE_START', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: gateReportId, message: 'lifebook-gate-start' });
+      (async function runLifeBookGateThenGenerate() {
+        try {
+          var gate = await _runLifeBookCoinGate(gateReportId);
+          if (!gate.ok || !gate.accessGrant) {
+            var failMsg = String(gate && gate.message ? gate.message : '결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+            _flowLog('PAYMENT_ACCESS_CHECK', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: gateReportId, ok: false, status: Number(gate && gate.status || 500), message: failMsg });
+            alert(failMsg);
+            return;
+          }
+          _markPremiumAccessVerified(25 * 60 * 1000);
+          _flowLog('PAYMENT_CONFIRMED', {
+            featureKey: LIFE_BOOK_FEATURE_KEY,
+            reportId: gateReportId,
+            purchaseId: String(gate.accessGrant.purchaseId || ''),
+            sessionId: String(gate.accessGrant.sessionId || ''),
+            requestId: String(gate.accessGrant.requestId || gate.requestId || ''),
+          });
+          window.generateLifeBook({
+            reportId: String(gate.accessGrant.reportId || gateReportId),
+            accessGrant: gate.accessGrant,
+            premiumAccessToken: String(gate.premiumAccessToken || '').trim(),
+          });
+        } catch (error) {
+          var message = String(error && error.message ? error.message : '결제 확인 중 오류가 발생했습니다.');
+          _flowLog('PAYMENT_ACCESS_CHECK', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: gateReportId, ok: false, status: 500, message: message });
+          alert(message);
+        }
+      })();
       return;
     }
 
@@ -1170,7 +1276,8 @@
 
     _generating = true;
     _cancelGeneration = false;
-    _lbStartPremiumJob(profile);
+  _lbCurrentAccessGrant = inputAccessGrant;
+  _lbCurrentPremiumToken = inputPremiumToken;
     _flowLog('GENERATE_CLICK', { message: 'generation-started' });
     _chapters = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
     _chapterStructured = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
@@ -1179,6 +1286,11 @@
       try { window.computeProfileForModal(profile); } catch (_cpE) {}
     }
     var sajuData = _collectSajuData();
+    _flowLog('SAJU_DATA_READY', {
+      featureKey: LIFE_BOOK_FEATURE_KEY,
+      hasSajuData: Boolean(sajuData && sajuData.length >= 30),
+      hasAccessGrant: Boolean(_lbCurrentAccessGrant),
+    });
 
     // 사주 데이터가 최소한으로 채워졌는지 확인
     if (!sajuData || sajuData.length < 30) {
@@ -1264,13 +1376,15 @@
     }
 
     (async function runLifeBookSinglePass() {
-      var _lbReportId = 'lifebook_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+      var _lbReportId = inputReportId || 'lifebook_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
       _lbCurrentReportId = _lbReportId;
 
       var _lbAuthToken = '';
       try { _lbAuthToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
-      var _lbPremiumToken = '';
-      try { _lbPremiumToken = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { _lbPremiumToken = ''; }
+      var _lbPremiumToken = String(_lbCurrentPremiumToken || '').trim();
+      if (!_lbPremiumToken) {
+        try { _lbPremiumToken = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { _lbPremiumToken = ''; }
+      }
       if (!_lbPremiumToken) {
         try { _lbPremiumToken = String(sessionStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { _lbPremiumToken = ''; }
       }
@@ -1278,15 +1392,15 @@
         try { _lbPremiumToken = String(localStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { _lbPremiumToken = ''; }
       }
 
-      var _sessionId = 'lb-session-' + Date.now().toString(36);
-      var _purchaseId = 'lb-purchase-' + Math.random().toString(36).slice(2, 10);
-      var _accessGrant = {
-        featureKey: LIFE_BOOK_FEATURE_KEY,
-        sessionId: _sessionId,
-        purchaseId: _purchaseId,
-        reportId: _lbReportId,
-        paidAt: new Date().toISOString(),
-      };
+      var _fallbackRequestId = 'lifebook:' + _lbReportId + ':' + Date.now().toString(36);
+      var _accessGrant = _lbCurrentAccessGrant && typeof _lbCurrentAccessGrant === 'object'
+        ? Object.assign({}, _lbCurrentAccessGrant)
+        : null;
+      var _sessionId = String((_accessGrant && _accessGrant.sessionId) || ('life-book:' + _lbReportId)).trim();
+      var _purchaseId = String((_accessGrant && _accessGrant.purchaseId) || '').trim();
+      var _requestId = String((_accessGrant && _accessGrant.requestId) || _fallbackRequestId).trim();
+      if (_accessGrant && !_accessGrant.reportId) _accessGrant.reportId = _lbReportId;
+      if (_accessGrant && !_accessGrant.featureKey) _accessGrant.featureKey = LIFE_BOOK_FEATURE_KEY;
 
       console.info('[SajuLifeBook] access check', {
         featureKey: LIFE_BOOK_FEATURE_KEY,
@@ -1297,8 +1411,22 @@
       });
 
       _setGenerationState('payment_confirmed');
+      _flowLog('PAYMENT_ACCESS_CHECK', {
+        featureKey: LIFE_BOOK_FEATURE_KEY,
+        reportId: _lbReportId,
+        hasAccessGrant: Boolean(_accessGrant),
+        hasSessionId: Boolean(_sessionId),
+        hasPurchaseId: Boolean(_purchaseId),
+      });
       _setGenerationState('calculating_saju');
       _setGenerationState('building_chapters');
+      _flowLog('LIFE_BOOK_GENERATION_SESSION_CREATED', {
+        featureKey: LIFE_BOOK_FEATURE_KEY,
+        reportId: _lbReportId,
+        sessionId: _sessionId,
+        purchaseId: _purchaseId,
+        requestId: _requestId,
+      });
 
       var _headers = { 'Content-Type': 'application/json' };
       if (_lbAuthToken) _headers.Authorization = 'Bearer ' + _lbAuthToken;
@@ -1308,6 +1436,27 @@
         serviceKey: 'saju-lifebook',
         productKey: LIFE_BOOK_FEATURE_KEY,
         featureKey: LIFE_BOOK_FEATURE_KEY,
+        reportId: _lbReportId,
+        sessionId: _sessionId,
+        reportSessionId: _sessionId,
+        purchaseId: _purchaseId || undefined,
+        accessGrant: _accessGrant || undefined,
+        premiumAccessToken: _lbPremiumToken || undefined,
+        payment: {
+          requestId: _requestId,
+          purchaseId: _purchaseId || undefined,
+          sessionId: _sessionId,
+          reportSessionId: _sessionId,
+          reportId: _lbReportId,
+        },
+        _paymentContext: {
+          requestId: _requestId,
+          purchaseId: _purchaseId || undefined,
+          sessionId: _sessionId,
+          reportSessionId: _sessionId,
+          reportId: _lbReportId,
+        },
+        reason: LIFE_BOOK_REASON,
         name: String((profile && profile.name) || '사용자'),
         gender: profile && profile.gender === 'F' ? 'female' : (profile && profile.gender === 'M' ? 'male' : 'unknown'),
         calendarType: 'solar',
@@ -1319,6 +1468,7 @@
       };
 
       _setGenerationState('writing_with_llm');
+  _flowLog('LIFE_BOOK_LLM_ENHANCE_START', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: _lbReportId });
       var _prepare = await _postLifeBookPrepare(_payload, _headers);
       var _res = _prepare.res;
       var _json = _prepare.json;
@@ -1330,6 +1480,7 @@
       if (_serverChapters.length !== LIFEBOOK_TOTAL_CHAPTERS) {
         throw new Error('LIFE_BOOK_CHAPTER_COUNT_INVALID:' + _serverChapters.length);
       }
+      _flowLog('LIFE_BOOK_CHAPTERS_BUILT', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: _lbReportId, chapterCount: _serverChapters.length });
 
       _chapters = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
       _chapterStructured = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
@@ -1359,7 +1510,7 @@
             };
           }) } : null);
         _chapterMeta[_i] = {
-          title: String(_ch.title || CHAPTER_TITLES[_i] || ('Chapter ' + (_i + 1))),
+          title: String(_ch.title || CHAPTER_TITLES[_i] || ('제 ' + (_i + 1) + '장')),
           subtitle: String(_ch.subtitle || CHAPTER_SUBTITLES[_i] || ''),
           isSkeleton: false,
         };
@@ -1369,6 +1520,7 @@
       }
 
       _setGenerationState('rendering_pdf');
+      _flowLog('LIFE_BOOK_PDF_RENDER_START', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: _lbReportId, chapterCount: LIFEBOOK_TOTAL_CHAPTERS });
       _setGenerationState('saving_result');
 
       if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
@@ -1390,9 +1542,9 @@
       }
 
       _lbSaveResult(prof);
-      _lbRunPremiumJob(LIFEBOOK_TOTAL_CHAPTERS);
       var lbEpBanner = _qs('lbEpilogueBanner');
       if (lbEpBanner) lbEpBanner.style.display = '';
+  _flowLog('LIFE_BOOK_PDF_DONE', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: _lbReportId, chapterCount: LIFEBOOK_TOTAL_CHAPTERS });
       _flowLog('FRONT_PREVIEW_READY', { message: 'single-pass-complete', categoryCount: LIFEBOOK_TOTAL_CHAPTERS * 6 });
     })().catch(function (error) {
       if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
@@ -1651,7 +1803,7 @@
       bodyHtml +=
         '<div class="chapter" style="page-break-before:' + (i > 0 ? 'always' : 'auto') + '">' +
         '<div class="chapter-header">' +
-        '<span class="chapter-num">Chapter ' + (i + 1) + '</span>' +
+        '<span class="chapter-num">제 ' + (i + 1) + '장</span>' +
         '<h2 class="chapter-title">' + _escHtml(_meta.title) + '</h2>' +
         '<p class="chapter-sub">' + _escHtml(_meta.subtitle) + '</p>' +
         '</div>' +
@@ -1710,7 +1862,7 @@
       '<h2 class="toc-title">목 차 (Table of Contents)</h2>' +
       _chapters.map(function (c, i) {
         if (!c) return '';
-        return '<div class="toc-item"><span class="toc-num">Chapter ' + (i + 1) + '</span><span class="toc-text">' + _escHtml(_getChapterMeta(i).title) + '</span></div>';
+        return '<div class="toc-item"><span class="toc-num">제 ' + (i + 1) + '장</span><span class="toc-text">' + _escHtml(_getChapterMeta(i).title) + '</span></div>';
       }).join('') +
       '</div>' +
       bodyHtml +
@@ -1758,29 +1910,7 @@
         return;
       }
       _flowLog('GENERATE_CLICK', { message: 'button-click' });
-      if (_hasPremiumAccessForGeneration()) {
-        _flowLog('COIN_GATE_SUCCESS', { message: 'existing-premium-access' });
-        window.generateLifeBook();
-        return;
-      }
-      var _lbCoinCost = Number(btn.getAttribute('data-coin-cost') || 500);
-      if (typeof window._cdCoinGatePerUse === 'function') {
-        // 코인 게이트: 버튼 비활성화로 중복 클릭 방지 후 진행
-        btn.disabled = true;
-        _flowLog('COIN_GATE_START', { message: 'button-coin-gate-start' });
-        window._cdCoinGatePerUse(_lbCoinCost, '인생의 책 생성 (13챕터)', function () {
-          _markPremiumAccessVerified(25 * 60 * 1000);
-          btn.disabled = false;
-          _flowLog('COIN_GATE_SUCCESS', { message: 'button-coin-gate-approved' });
-          window.generateLifeBook();
-        }, function () {
-          // 취소 또는 오류 시 버튼 복원
-          btn.disabled = false;
-        }, { featureKey: LIFE_BOOK_BILLING_FEATURE_KEY });
-      } else {
-        // 결제 확인 모듈 미로드 — 결제 없이 생성 불가
-        window.alert('결제 확인 모듈이 아직 준비되지 않았습니다.\n잠시 후 새로고침한 뒤 다시 시도해 주세요.');
-      }
+      window.generateLifeBook();
       return;
     }
     if (action === 'downloadLifeBookPdf') {

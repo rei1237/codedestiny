@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 
 const SERVICE_KEY = "saju-lifebook";
-const FEATURE_KEY = "saju_lifebook_pdf";
+const FEATURE_KEY = "saju_life_book_pdf";
 
 const STEP_LABELS = [
   "기본 정보를 정리하는 중입니다",

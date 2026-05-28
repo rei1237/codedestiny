@@ -122,9 +122,12 @@ const FORBIDDEN_TEXT = [
 ];
 
 const LIFEBOOK_SERVICE_KEY = "saju-lifebook";
-const LIFEBOOK_FEATURE_KEY_PUBLIC = "premium_pdf_saju_life_book";
-const LIFEBOOK_FEATURE_KEY_BILLING = "saju_life_book_pdf";
-const LIFEBOOK_FEATURE_KEY_COMPAT = "saju_lifebook_pdf";
+const LIFEBOOK_FEATURE_KEY = "saju_life_book_pdf";
+const LIFEBOOK_FEATURE_KEY_ALIASES = new Set([
+  "saju_lifebook_pdf",
+  "premium_pdf_saju_life_book",
+  "premium-lifebook-report",
+]);
 
 function clean(value) {
   return String(value || "").trim();
@@ -132,18 +135,13 @@ function clean(value) {
 
 function resolveLifeBookFeatureKey(raw) {
   const key = clean(raw);
-  if (!key) return LIFEBOOK_FEATURE_KEY_PUBLIC;
-  if (key === LIFEBOOK_FEATURE_KEY_BILLING) return LIFEBOOK_FEATURE_KEY_PUBLIC;
-  if (key === LIFEBOOK_FEATURE_KEY_COMPAT) return LIFEBOOK_FEATURE_KEY_PUBLIC;
+  if (!key) return LIFEBOOK_FEATURE_KEY;
+  if (key === LIFEBOOK_FEATURE_KEY || LIFEBOOK_FEATURE_KEY_ALIASES.has(key)) return LIFEBOOK_FEATURE_KEY;
   return key;
 }
 
 function toBillingFeatureKey(featureKey) {
-  const key = clean(featureKey);
-  if (!key) return LIFEBOOK_FEATURE_KEY_BILLING;
-  if (key === LIFEBOOK_FEATURE_KEY_PUBLIC) return LIFEBOOK_FEATURE_KEY_BILLING;
-  if (key === LIFEBOOK_FEATURE_KEY_COMPAT) return LIFEBOOK_FEATURE_KEY_BILLING;
-  return key;
+  return resolveLifeBookFeatureKey(featureKey);
 }
 
 function stripForbiddenTokens(value) {
@@ -591,7 +589,7 @@ function renderLifeBookPdf({ profile, signals, chapters, generatedAt }) {
     `).join("\n");
     return `
       <article class="lb-chapter">
-        <div class="lb-chapter__eyebrow">CHAPTER ${String(index + 1).padStart(2, "0")}</div>
+        <div class="lb-chapter__eyebrow">제 ${String(index + 1).padStart(2, "0")}장</div>
         <h2>${stripForbiddenTokens(chapter.title)}</h2>
         <p class="lb-chapter__intro">${stripForbiddenTokens(chapter.subtitle || "핵심 흐름과 실행 전략을 정리합니다.")}</p>
         <div class="lb-keywords">${keywordTags}</div>
@@ -865,9 +863,16 @@ async function handlePrepare(request, env) {
 
   if (!access?.ok) {
     const status = Number(access?.status || 402);
+    const hasSessionId = Boolean(clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId));
+    const hasPurchaseId = Boolean(clean(body?.purchaseId || body?.accessGrant?.purchaseId || body?.payment?.purchaseId));
+    const hasRequestId = Boolean(clean(body?.requestId || body?.accessGrant?.requestId || body?.payment?.requestId || body?._paymentContext?.requestId));
+    const hasPaymentToken = Boolean(premiumAccessToken);
+    const paymentConfirmedButMissing = status === 402 && (hasSessionId || hasPurchaseId || hasRequestId || hasPaymentToken);
     const message = status === 401
       ? "로그인 후 인생의 책 PDF를 생성할 수 있습니다."
-      : status === 402
+      : paymentConfirmedButMissing
+        ? "결제는 확인되었지만 생성 권한 연결이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요."
+        : status === 402
         ? "프리미엄 PDF 생성 권한이 필요합니다."
         : "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
 
@@ -875,7 +880,14 @@ async function handlePrepare(request, env) {
       ok: false,
       serviceKey: LIFEBOOK_SERVICE_KEY,
       message,
-      code: access?.code || "PAYMENT_REQUIRED",
+      code: paymentConfirmedButMissing ? "PAYMENT_CONFIRMED_BUT_ACCESS_MISSING" : (access?.code || "PAYMENT_REQUIRED"),
+      debugSafe: {
+        featureKey,
+        hasSessionId,
+        hasPurchaseId,
+        hasRequestId,
+        hasPaymentToken,
+      },
     }, { status });
   }
 
@@ -904,10 +916,13 @@ async function handlePrepare(request, env) {
 
   return json({
     ok: true,
+    featureKey,
+    chapterCount: CHAPTER_BLUEPRINTS.length,
     serviceKey: LIFEBOOK_SERVICE_KEY,
     data: {
       reportId: `saju-lifebook-${Date.now()}`,
       featureKey,
+      sessionId: clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId) || undefined,
       reportType: "lifeBook",
       profile,
       chapters: completedChapters,
