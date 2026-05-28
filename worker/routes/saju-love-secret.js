@@ -389,7 +389,7 @@ async function maybeEnhanceWithLlm(env, base, chapter, mode, chapterNo) {
 
   const raw = clean(llm.text).replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
   let parsed = null;
-  try { parsed = JSON.parse(raw); } catch { parsed = null; }
+  try { parsed = JSON.parse(raw); } catch (e) { parsed = null; }
   if (!parsed || !Array.isArray(parsed.sections)) {
     return { ...chapter, fallbackUsed: true };
   }
