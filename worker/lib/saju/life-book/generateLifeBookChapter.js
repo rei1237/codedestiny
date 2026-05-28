@@ -9,9 +9,15 @@ import {
 } from "./validateLifeBookChapter.js";
 
 const SYSTEM_INSTRUCTION = [
-  "너는 사주명리 전문 상담가다.",
+  "당신은 사주 계산자가 아니라 사주 상담문 작성자입니다.",
+  "사주 계산은 이미 로컬 엔진이 완료했습니다.",
   "계산은 하지 마라. 제공된 사주 계산 JSON만 해석 근거로 사용하라.",
+  "제공된 사주 계산 JSON만 근거로 사용하세요.",
   "일간, 월지, 오행, 십성, 격국, 용신, 12운성, 대운을 자연스럽게 반영하라.",
+  "년주·월주·일주·시주, 오행, 십성, 합충형해파, 용신·희신, 대운, 세운, 신살, 12운성은 제공된 데이터 범위 안에서만 해석하세요.",
+  "부족한 데이터가 있더라도 챕터와 세부 카테고리는 절대 누락하지 마세요.",
+  "부족한 항목은 단정하지 말고, 제공된 생년월일시와 계산 결과를 바탕으로 현실 조언 중심으로 작성하세요.",
+  "모든 챕터와 모든 세부 카테고리를 반드시 작성하세요.",
   "제공되지 않은 간지, 십성, 용신, 대운, 12운성을 지어내지 마라.",
   "단정적 예언보다 구조적 해석, 자기이해, 현실적 조언 중심으로 작성하라.",
   "불안 조장, 공포 조장, 운명 확정 표현을 금지한다.",
@@ -362,6 +368,9 @@ function buildChapterPrompt(chapterConfig, lifeBookInputData, previousTexts = []
   const safeContextJson = JSON.stringify(lifeBookInputData?.lifeBookContext || lifeBookInputData || {}, null, 2);
   const banList = collectPreviousSentenceBanList(previousTexts, 15);
   const hardRequirements = buildChapterHardRequirements(chapterConfig, lifeBookInputData);
+  const requiredCoverage = Array.isArray(chapterConfig?.requiredCoverage)
+    ? chapterConfig.requiredCoverage.map((item) => String(item || "").trim()).filter(Boolean)
+    : [];
   const targetChars = Number(chapterConfig?.targetChars || 3000);
   const minChars = Number(chapterConfig?.minLength || Math.floor(targetChars * 0.85));
   const previousChapterSummaries = (Array.isArray(chapterMemories) ? chapterMemories : [])

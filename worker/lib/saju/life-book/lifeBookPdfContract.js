@@ -1,3 +1,5 @@
+import { LIFE_BOOK_TOTAL_CHAPTERS } from "./chapterConfig.js";
+
 const LIFEBOOK_FORBIDDEN_PHRASES = [
   "생성 상태 안내",
   "서버 응답이 불안정",
@@ -391,11 +393,13 @@ function buildCategorySourceDataByChapter(chapterNumber, categoryTitle, normaliz
     return {
       ...base,
       sourceData: {
+        yearlyFlow: saju.yearlyFlow,
+        annualLuck: context.source?.saju?.annualLuck || {},
         majorLuck: saju.luckCycles?.daeun || [],
         currentLuck: toObject(saju.luckCycles?.currentDaewoon),
         nextLuck: toObject((saju.luckCycles?.daeun || [])[1]),
       },
-      writingInstruction: "majorLuck/currentLuck/nextLuck을 기준으로 대운 흐름 챕터를 작성한다.",
+      writingInstruction: "2026년 병오년 yearlyFlow와 majorLuck/currentLuck를 근거로 월별 행동 지침 중심으로 작성한다.",
     };
   }
 
@@ -416,6 +420,20 @@ function buildCategorySourceDataByChapter(chapterNumber, categoryTitle, normaliz
         majorLuck: saju.luckCycles?.daeun || [],
       },
       writingInstruction: "full summary + strongest/weakest signals + usefulGod + majorLuck를 묶어 최종 로드맵을 작성한다.",
+    };
+  }
+
+  if (chapterId === 13) {
+    return {
+      ...base,
+      sourceData: {
+        summary: saju.chartSummary,
+        integratedThemes: context.integratedThemes,
+        usefulGod: saju.usefulGods,
+        majorLuck: saju.luckCycles?.daeun || [],
+        yearlyFlow: saju.yearlyFlow,
+      },
+      writingInstruction: "전체 차트 요약, integratedThemes, usefulGod, 대운/세운 신호를 바탕으로 최종 전략 제언을 작성한다.",
     };
   }
 
@@ -602,7 +620,9 @@ export function validateSajuLifeBookPdfPayload(payload = {}) {
   if (!hasMeaningfulValue(saju.elements) && !hasMeaningfulValue(saju.elementScores)) missing.push("saju.elements|saju.elementScores");
   if (!hasMeaningfulValue(saju.tenGods)) missing.push("saju.tenGods");
   if (!chapters.length) missing.push("chapters");
-  if (chapters.length !== 12) missing.push("chapters.length(12)");
+  if (chapters.length !== LIFE_BOOK_TOTAL_CHAPTERS) {
+    missing.push(`chapters.length(${LIFE_BOOK_TOTAL_CHAPTERS})`);
+  }
   if (containsForbiddenStructure(p)) missing.push("compatibility-or-partner-structure");
 
   chapters.forEach((chapter, chapterIndex) => {

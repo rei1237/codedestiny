@@ -179,7 +179,7 @@ function makeStrictNewYearPayloadExtras() {
 }
 
 describe("Saju premium prepareOnly routes", () => {
-  test("lifeBook prepareOnly returns canonical 12-chapter plan", async () => {
+  test("lifeBook prepareOnly returns canonical 13-chapter plan", async () => {
     const authToken = await makeAuthToken();
     const req = new Request("https://example.com/api/lifebook/session", {
       method: "POST",
@@ -206,13 +206,13 @@ describe("Saju premium prepareOnly routes", () => {
     expect(res.status).toBe(200);
     expect(data.ok).toBe(true);
     expect(data.prepared).toBe(true);
-    expect(data.totalChapters).toBe(12);
-    expect(data.chapterPlan).toHaveLength(12);
-    expect(data.chapterPlan[0].title).toContain("Ch.1 사주 원국 총론");
+    expect(data.totalChapters).toBe(13);
+    expect(data.chapterPlan).toHaveLength(13);
+    expect(data.chapterPlan[0].title).toContain("사주 원국 완전 해설");
     expect(data.chapterJsonBlueprintByNumber).toBeTruthy();
     expect(data.chapterJsonBlueprintByNumber["1"].chapterId).toBe("chapter-01");
     expect(data.chapterJsonBlueprintByNumber["1"].subChapters).toHaveLength(6);
-    expect(data.chapterJsonBlueprintByNumber["1"].subChapters[0].subTitle).toBe("1-1. 사주 전체의 첫인상");
+    expect(data.chapterJsonBlueprintByNumber["1"].subChapters[0].subTitle).toBe("팔자 8글자 전체 구조 해설");
   });
 
   test("loveSecret compatibility prepareOnly returns configured 12-chapter couple plan", async () => {

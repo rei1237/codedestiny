@@ -14264,6 +14264,34 @@ function buildVedicPdfCategorySourceData(canonicalVedicChart = {}, category = {}
   return sourceData;
 }
 
+function buildVedicCategoryLocalSeedText(chapterRow = {}, category = {}) {
+  const chapterId = String(chapterRow?.id || "").trim();
+  const chapterTitle = String(chapterRow?.title || "").trim();
+  const categoryTitle = String(category?.title || "핵심 카테고리").trim() || "핵심 카테고리";
+
+  const chapterFocusMap = {
+    V1: "핵심 자아/기질",
+    V2: "라그나/정체성",
+    V3: "나크샤트라/정서 리듬",
+    V4: "카리카/관계 역할",
+    V5: "강점/취약점 균형",
+    V6: "생활 리듬/회복력",
+    V7: "커리어/사회적 역할",
+    V8: "재물/수익 구조",
+    V9: "사랑/관계",
+    V10: "중장기 과제",
+    V11: "다샤 전환 타이밍",
+    V12: "통합 실행 전략",
+  };
+  const focus = chapterFocusMap[chapterId] || "실전 적용";
+
+  return [
+    `${chapterTitle || chapterId}의 ${categoryTitle}은 ${focus} 관점으로 해석합니다.`,
+    "라그나/행성/하우스/다샤 원자료에서 확인되는 근거만 사용하고 추정은 금지합니다.",
+    "해석은 성향 진단 1문단 + 반복 패턴 1문단 + 현실 실행 조언 1문단 구조를 유지합니다.",
+  ].join(" ");
+}
+
 function hasMeaningfulCategorySourceData(sourceData = {}) {
   const entries = Object.entries(sourceData || {})
     .filter(([key]) => key !== "mode" && key !== "chartSignature")
@@ -14319,10 +14347,35 @@ function buildVedicPdfPayload(args = {}) {
         id: category.id,
         title: category.title,
         sourceData: buildVedicPdfCategorySourceData(canonicalVedicChart, category),
+        localSeedText: buildVedicCategoryLocalSeedText(chapterRow, category),
         writingInstruction: `${category.title} 섹션은 실제 차트 sourceData만 사용해 상담문으로 작성한다. 임의 계산/추정/궁합 표현은 금지한다.`,
       })),
     })),
   };
+}
+
+function validateCanonicalVedicChapters(chapters = []) {
+  const rows = Array.isArray(chapters) ? chapters : [];
+  if (!rows.length) throw new Error("VEDIC_CHAPTERS_EMPTY");
+
+  const idSet = new Set();
+  rows.forEach((row, idx) => {
+    const id = String(row?.id || "").trim();
+    const title = String(row?.title || "").trim();
+    if (!id) throw new Error(`VEDIC_CHAPTER_ID_MISSING:${idx + 1}`);
+    if (idSet.has(id)) throw new Error(`VEDIC_CHAPTER_ID_DUPLICATED:${id}`);
+    idSet.add(id);
+
+    const expectedOrder = idx + 1;
+    if (!title.includes(`Ch.${expectedOrder}`)) {
+      throw new Error(`VEDIC_CHAPTER_TITLE_ORDER_INVALID:${id}`);
+    }
+
+    const categories = Array.isArray(row?.categories) ? row.categories : [];
+    if (!categories.length) throw new Error(`VEDIC_CHAPTER_CATEGORIES_MISSING:${id}`);
+  });
+
+  return true;
 }
 
 function collectForbiddenVedicPayloadKeys(value, path = "payload", acc = []) {
@@ -14621,6 +14674,17 @@ function validateVedicSectionText(text, minChars = 300) {
   if (hasRepetitiveVedicSentences(source)) return false;
   if (/챕터\s*\d+\.\s*챕터\s*\d+/i.test(source)) return false;
   return true;
+}
+
+function isLowQualityVedicSection(text, ctx = {}) {
+  const source = String(text || "").trim();
+  const chapterId = String(ctx?.chapterId || "").trim();
+  const chapterNo = Number(String(chapterId).replace(/[^0-9]/g, ""));
+  const minChars = Number.isFinite(chapterNo) && chapterNo >= 10 ? 500 : 450;
+  if (!validateVedicSectionText(source, minChars)) return true;
+  if (detectRepeatedLongSentences(source, 35).length > 0) return true;
+  if (hasBannedDeterministicExpression(source)) return true;
+  return false;
 }
 
 async function generateVedicPremiumChapter(env, body, input, chapter, meta, canonicalVedicChart, reportType, chapterPlan, previousChapterTexts = []) {
@@ -24583,6 +24647,13 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
 }
 
 async function handleLifebookSession(request, env, authInfo = null) {
+  const logSajuLifeBookStage = (stage, payload = {}) => {
+    try {
+      console.info(`[SajuLifeBook][${String(stage || "Unknown")}]`, payload);
+    } catch (_) {
+      // no-op
+    }
+  };
   const body = await readJson(request);
   Object.assign(body, normalizePremiumRequestBodyForPipeline("lifeBook", body));
   const strictPayloadMode = true;
@@ -24595,6 +24666,13 @@ async function handleLifebookSession(request, env, authInfo = null) {
   const fullGenerateRequested = asBool(strictBody.generateAll)
     || explicitMode === "lifebook"
     || explicitMode === "life-book";
+
+  logSajuLifeBookStage("RequestStart", {
+    prepareOnly,
+    fullGenerateRequested,
+    hasReportId: Boolean(String(strictBody.reportId || "").trim()),
+    hasPremiumToken: Boolean(String(strictBody.premiumAccessToken || strictBody._premiumAccessToken || "").trim()),
+  });
 
   if (!prepareOnly && !chapterRequestProvided(strictBody) && !fullGenerateRequested) {
     return json({ ok: false, message: "sessionId 또는 chapter 값을 포함해 챕터별로만 생성할 수 있습니다." }, { status: 400 });
@@ -24650,6 +24728,12 @@ async function handleLifebookSession(request, env, authInfo = null) {
     hasSessionId: Boolean(accessGrant?.sessionId),
     hasPurchaseId: Boolean(accessGrant?.purchaseId),
     hasReportId: Boolean(accessGrant?.reportId),
+  });
+  logSajuLifeBookStage("AccessChecked", {
+    hasSessionId: Boolean(accessGrant?.sessionId),
+    hasPurchaseId: Boolean(accessGrant?.purchaseId),
+    hasReportId: Boolean(accessGrant?.reportId),
+    fullGenerateRequested,
   });
 
   upsertReportSessionMeta("lifebook", reportId, LIFE_BOOK_TOTAL_CHAPTERS, {
@@ -30095,11 +30179,13 @@ export const __vedicTestUtils = {
   buildVedicChapterPlan,
   buildVedicPremiumChapterJson,
   buildVedicPdfChapterManifest,
+  validateCanonicalVedicChapters,
   buildVedicPdfCategorySourceData,
   buildVedicPdfPayload,
   validateVedicPdfPayload,
   assertNoVedicPdfFallbackText,
   vedicMissingMarkers,
+  isLowQualityVedicSection,
   hasRepetitiveVedicSentences,
   validateVedicSectionText,
   hasBannedDeterministicExpression,

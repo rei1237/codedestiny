@@ -36,8 +36,8 @@ describe("lifebook ui flow guard", () => {
     expect(body.includes("COIN_GATE_START")).toBe(true);
   });
 
-  test("라이프북 총 챕터 수는 12로 고정된다", () => {
+  test("라이프북 총 챕터 수는 13으로 고정된다", () => {
     const src = readLifeBookSource();
-    expect(src.includes("var LIFEBOOK_TOTAL_CHAPTERS = 12;")).toBe(true);
+    expect(src.includes("var LIFEBOOK_TOTAL_CHAPTERS = 13;")).toBe(true);
   });
 });

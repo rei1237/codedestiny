@@ -87,17 +87,17 @@ describe("Saju LifeBook pipeline", () => {
     expect(normalized.dataQuality.missingCore).toHaveLength(0);
   });
 
-  test("챕터 매니페스트는 반드시 12챕터이며 각 챕터는 6개 섹션을 가진다", () => {
+  test("챕터 매니페스트는 반드시 13챕터이며 각 챕터는 카테고리를 가진다", () => {
     const normalized = buildLifeBookInputData(makeBody(), { year: 1991, month: 2, day: 20, hour: 8, minute: 30 });
     const payload = buildSajuLifeBookPdfPayload(normalized, LIFE_BOOK_CHAPTERS);
 
     expect(payload.featureKey).toBe("saju_life_book_pdf");
     expect(payload.mode).toBe("life-book");
     expect(payload.accessGrant && payload.accessGrant.featureKey).toBe("saju_life_book_pdf");
-    expect(payload.chapters).toHaveLength(12);
+    expect(payload.chapters).toHaveLength(13);
     payload.chapters.forEach((chapter) => {
       expect(Array.isArray(chapter.categories)).toBe(true);
-      expect(chapter.categories.length).toBe(6);
+      expect(chapter.categories.length).toBeGreaterThanOrEqual(6);
       chapter.categories.forEach((category) => {
         expect(Array.isArray(category.availableSignals)).toBe(true);
         expect(Array.isArray(category.missingSignals)).toBe(true);
@@ -105,13 +105,13 @@ describe("Saju LifeBook pipeline", () => {
     });
   });
 
-  test("payload 검증은 12챕터가 아니면 실패한다", () => {
+  test("payload 검증은 13챕터가 아니면 실패한다", () => {
     const normalized = buildLifeBookInputData(makeBody(), { year: 1991, month: 2, day: 20, hour: 8, minute: 30 });
     const payload = buildSajuLifeBookPdfPayload(normalized, []);
     const result = validateSajuLifeBookPdfPayload({ ...payload, chapters: [{ id: "x" }] });
 
     expect(result.ok).toBe(false);
-    expect(result.missing).toContain("chapters.length(12)");
+    expect(result.missing).toContain("chapters.length(13)");
   });
 
   test("챕터 품질 검증은 금지 문구와 임시 제목을 차단한다", () => {

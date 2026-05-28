@@ -5,54 +5,56 @@
 (function () {
   'use strict';
 
-  var LIFEBOOK_TOTAL_CHAPTERS = 12;
+  var LIFEBOOK_TOTAL_CHAPTERS = 13;
   var LIFE_BOOK_FEATURE_KEY = 'saju_life_book_pdf';
 
   /* ─────────────── 상수 ─────────────── */
   var CHAPTER_TITLES = [
-    '📜 사주 원국 완전 해설',
-    '🏛️ 나의 설계도',
-    '⚔️ 숨겨진 무기',
-    '🌀 대운 정밀 분석',
-    '👑 사회적 소명',
-    '🤝 관계의 전략',
-    '💑 연애·결혼 완전 분석',
-    '💰 재물·직업 완전 전략',
-    '🏥 건강·심신 에너지',
-    '🔮 신살·12운성·퀀텀 명리',
-    '📅 2026 丙午年 로드맵',
-    '🌅 생애 마스터플랜',
+    '🌌 사주 원국 완전 해설 — 팔자 8글자의 비밀',
+    '🏛️ 나의 설계도 — 월지·일간·조후와 기질의 뿌리',
+    '⚔️ 숨겨진 무기 — 용신·희신과 나만의 필살기',
+    '🌀 대운 정밀 분석 — 인생의 큰 파도',
+    '👑 격국과 사회적 소명 — 나의 성공 방정식',
+    '🤝 관계의 전략 — 인연의 법칙과 파트너십',
+    '💑 연애·결혼 완전 분석 — 사주가 말하는 나의 사랑',
+    '💰 재물·직업 완전 전략 — 부의 그릇을 키우는 천기',
+    '🏥 건강·심신 에너지 완전 분석 — 오행이 말하는 신체 지도',
+    '🔮 신살·12운성·퀀텀 명리 — 사주의 숨겨진 비밀 코드',
+    '📅 2026 丙午年 실전 로드맵 — 12개월 행동 지침',
+    '🌅 생애 마스터플랜 — 인생 전체의 운명 지도',
+    '💌 거장의 최종 전략 제언 — 나에게 주는 운명 사용 설명서',
   ];
 
   var CHAPTER_SUBTITLES = [
-    '팔자 8글자 — 년주·월주·일주·시주 완전 해독',
-    '타고난 기질과 월지·일간·조후 판정',
-    '용신·희신·기신과 나만의 천직 필살기',
-    '전생애 대운 표와 현재 대운 심층 분석',
-    '격국·상신·구신과 성공 방정식',
-    '충·합·육신의 인연 법칙과 파트너십',
-    '일지·관성·재성으로 본 사랑 설계도',
-    '재성·식상·격국으로 설계하는 부의 지도',
-    '오행별 신체 지도와 에너지 관리 전략',
-    '신살·12운성·공망·퀀텀 잠재력 해독',
-    '丙午年 12개월 Monthly Go/Stop 전략',
-    '유년부터 노년까지 대운별 인생 파노라마',
-    '12챕터 총결산 · 귀인운 · 3가지 핵심 비책',
+    '원국의 구조, 인생 구간, 핵심 자아를 통합 진단',
+    '월지·일간·조후 관점으로 기질의 뿌리를 분석',
+    '용신·희신·기신 기반의 선택 기준과 회복 전략',
+    '과거·현재·미래 대운 흐름과 전환기 대응',
+    '격국과 역할 적합성으로 보는 사회적 성공 전략',
+    '인연 패턴을 읽고 관계 손실을 줄이는 실전 가이드',
+    '연애·결혼 구조와 장기 파트너십 운영법',
+    '재물 흐름·커리어·수익 구조를 묶은 부의 전략',
+    '오행 기반 에너지 관리와 생활 루틴 설계',
+    '신살·12운성의 상징 해석과 현실 적용',
+    '2026 병오년 월별 행동 지침과 연간 우선순위',
+    '생애 주기별 성장 과제와 장기 운영법',
+    '최종 결론과 운명 사용 설명서',
   ];
 
   var LOADING_MSGS = [
-    '사주 원국 팔자 8글자와 기둥별 의미를 해독하는 중...',
-    '월지·일간·조후·신강신약을 분석하는 중...',
-    '용신·희신·기신과 천직 강점을 탐색하는 중...',
-    '대운 전체 흐름과 현재 대운을 정밀 분석하는 중...',
-    '격국·상신·사회적 소명을 해독하는 중...',
-    '충·합·육신 관계 역학을 매핑하는 중...',
-    '연애·결혼 구조와 이상형 프로파일을 분석하는 중...',
-    '재성·식상·부의 그릇과 직업 전략을 계산하는 중...',
-    '오행별 건강 지도와 심신 에너지를 분석하는 중...',
-    '신살·12운성·공망·퀀텀 잠재력을 탐색하는 중...',
-    '2026 丙午年 월별 로드맵을 작성하는 중...',
-    '대운별 생애 파노라마를 조망하는 중...',
+    '사주 원국 8글자의 구조와 반복 신호를 해독하는 중...',
+    '월지·일간·조후로 기질의 뿌리를 정리하는 중...',
+    '용신·희신·기신 기반 선택 전략을 설계하는 중...',
+    '대운의 큰 파도와 전환기 리스크를 분석하는 중...',
+    '격국과 사회적 소명을 해석하는 중...',
+    '관계 패턴과 파트너십 전략을 매핑하는 중...',
+    '연애·결혼 구조를 심층 분석하는 중...',
+    '재물·직업의 장기 수익 구조를 정리하는 중...',
+    '오행 기반 건강·에너지 루틴을 설계하는 중...',
+    '신살·12운성의 숨은 코드를 해석하는 중...',
+    '2026 병오년 12개월 행동 지침을 작성하는 중...',
+    '생애 마스터플랜을 구축하는 중...',
+    '최종 전략 제언과 운명 사용 설명서를 정리하는 중...',
   ];
 
   var MYSTIC_QUOTES = [
@@ -85,6 +87,7 @@
     10: ['신살/운성 해석', '잠재 변수', '심화 인사이트', '주의 요소', '활용 전략'],
     11: ['연간 핵심 운세', '분기 전략', '월별 체크', '실행 우선순위', '리스크 관리'],
     12: ['생애 파노라마', '시기별 과제', '장기 플랜', '전환기 대응', '핵심 습관'],
+    13: ['핵심 한 문장', '버릴 습관', '붙잡을 재능', '3대 전략', '최종 운명 매뉴얼'],
   };
 
   /* ─────────────── 상태 ─────────────── */
@@ -180,7 +183,7 @@
       return false;
     }
     _flowLog('COIN_GATE_START', { message: 'premium-check-before-generate' });
-    window._cdCoinGatePerUse(500, '인생의 책 생성 (12챕터)', function () {
+    window._cdCoinGatePerUse(500, '인생의 책 생성 (13챕터)', function () {
       _premiumPaidUntil = Date.now() + 25 * 60 * 1000;
       _flowLog('COIN_GATE_SUCCESS', { message: 'coin-gate-approved' });
       window.generateLifeBook();
@@ -1219,7 +1222,7 @@
       _lbRunPremiumJob(LIFEBOOK_TOTAL_CHAPTERS);
       var lbEpBanner = _qs('lbEpilogueBanner');
       if (lbEpBanner) lbEpBanner.style.display = '';
-      _flowLog('FRONT_PREVIEW_READY', { message: 'single-pass-complete', categoryCount: LIFEBOOK_TOTAL_CHAPTERS * 6 });
+      _flowLog('FRONT_PREVIEW_READY', { message: 'single-pass-complete', categoryCount: Object.keys(CHAPTER_STRUCTURED_LABELS).reduce(function (sum, key) { var rows = CHAPTER_STRUCTURED_LABELS[key]; return sum + (Array.isArray(rows) ? rows.length : 0); }, 0) });
     })().catch(function (error) {
       if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
       _generating = false;
@@ -1594,7 +1597,7 @@
         // 코인 게이트: 버튼 비활성화로 중복 클릭 방지 후 진행
         btn.disabled = true;
         _flowLog('COIN_GATE_START', { message: 'button-coin-gate-start' });
-        window._cdCoinGatePerUse(_lbCoinCost, '인생의 책 생성 (12챕터)', function () {
+        window._cdCoinGatePerUse(_lbCoinCost, '인생의 책 생성 (13챕터)', function () {
           _premiumPaidUntil = Date.now() + 25 * 60 * 1000;
           btn.disabled = false;
           _flowLog('COIN_GATE_SUCCESS', { message: 'button-coin-gate-approved' });

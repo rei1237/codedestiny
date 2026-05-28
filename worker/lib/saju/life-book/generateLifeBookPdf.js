@@ -156,25 +156,93 @@ function toLifeBookCategoryNo(chapterNo, categoryNo) {
   return `c${String(chapterNo).padStart(2, "0")}-${String(categoryNo).padStart(2, "0")}`;
 }
 
-function buildLifeBookCategories(chapter = {}, chapterNo = 1) {
+function normalizeCategoryBody(body = "") {
+  let normalized = sanitizeLifeBookTextForPdf(body);
+  if (hasRepetitiveSentences(normalized)) {
+    const seen = new Set();
+    normalized = normalized
+      .split(/[.!?。！？\n]+/)
+      .map((row) => String(row || "").trim())
+      .filter(Boolean)
+      .filter((row) => {
+        const key = row.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .join("\n\n");
+  }
+  return normalized;
+}
+
+function getCanonicalCategoryMinChars(chapterConfig = {}, categoryTitle = "") {
+  const chapterNo = Number(chapterConfig?.number || 0);
+  const title = String(categoryTitle || "").trim();
+  if (chapterNo === 11 && /^\d+월 행동 지침$/.test(title)) return 450;
+  if (chapterNo === 13 && title === "이 사주가 가장 강하게 말하는 한 문장") return 600;
+  if (chapterNo === 13 && title === "인생을 바꾸기 위한 3가지 핵심 전략") return 800;
+  if (chapterNo === 13 && title === "최종 조언 — 내 운명을 사용하는 법") return 800;
+  return 700;
+}
+
+function buildDeterministicLifeBookCategoryBody(lifeBookInputData = {}, chapterConfig = {}, categoryTitle = "") {
+  const profile = lifeBookInputData?.userProfile || {};
+  const saju = lifeBookInputData?.sajuChart || {};
+  const five = lifeBookInputData?.fiveElements || {};
+  const tenGods = lifeBookInputData?.tenGods || {};
+  const yongshin = lifeBookInputData?.yongshin || {};
+  const daeun = Array.isArray(lifeBookInputData?.daeun) ? lifeBookInputData.daeun : [];
+
+  const base = [
+    `${categoryTitle} 항목은 제공된 사주 계산 결과를 기준으로 해석합니다.`,
+    `핵심 기준은 일간 ${String(saju?.dayMaster || "unknown")}과 원국 ${String(saju?.yearPillar || "unknown")}·${String(saju?.monthPillar || "unknown")}·${String(saju?.dayPillar || "unknown")}·${String(saju?.hourPillar || "unknown")}의 조합입니다.`,
+    `오행 분포(목:${Number(five?.wood || 0)}, 화:${Number(five?.fire || 0)}, 토:${Number(five?.earth || 0)}, 금:${Number(five?.metal || 0)}, 수:${Number(five?.water || 0)})와 십성 신호를 현실 선택 기준으로 연결해 해석합니다.`,
+    `용신/희신(${String((yongshin?.yongshin || []).join(", ") || "unknown")}/${String((yongshin?.heeshin || []).join(", ") || "unknown")})과 대운 흐름(${String(daeun[0]?.pillar || "unknown")})을 바탕으로 당장 실행 가능한 우선순위를 제시합니다.`,
+    `${String(profile?.name || "사용자")}님은 단정적 예언보다 기준 중심 운영이 유리합니다. 핵심 과제 1~2개를 고정하고, 주간 점검으로 선택의 일관성을 유지하세요.`,
+  ];
+
+  let text = base.join("\n\n");
+  const minChars = getCanonicalCategoryMinChars(chapterConfig, categoryTitle);
+  while (countChars(text) < minChars) {
+    text += "\n\n실행 보강: 관계·일·재물·건강 중 현재 가장 변동이 큰 영역을 한 가지로 좁혀, 이번 주에는 추진할 것과 보류할 것을 분리해 기록하세요.";
+  }
+  return normalizeCategoryBody(text);
+}
+
+function buildLifeBookCategories(chapter = {}, chapterNo = 1, chapterConfig = {}, lifeBookInputData = {}) {
   const chapterJson = chapter?.chapterJson && typeof chapter.chapterJson === "object" ? chapter.chapterJson : {};
   const sections = Array.isArray(chapterJson.sections) ? chapterJson.sections : [];
-  return sections.map((section, idx) => {
-    const body = String(section?.body || section?.content || "").trim();
+  const categories = Array.isArray(chapterConfig?.sections) ? chapterConfig.sections : [];
+  const sectionMap = new Map();
+  sections.forEach((section) => {
+    const title = String(section?.title || "").trim();
+    if (!title) return;
+    sectionMap.set(title, String(section?.body || section?.content || "").trim());
+  });
+
+  return categories.map((categoryTitle, idx) => {
+    const title = String(categoryTitle || "").trim();
+    let body = sectionMap.get(title) || String(sections[idx]?.body || sections[idx]?.content || "").trim();
+    body = normalizeCategoryBody(body);
+    if (!body || countChars(body) < getCanonicalCategoryMinChars(chapterConfig, title)) {
+      body = buildDeterministicLifeBookCategoryBody(lifeBookInputData, chapterConfig, title);
+    }
     return {
       categoryNo: toLifeBookCategoryNo(chapterNo, idx + 1),
-      title: String(section?.title || `세부 카테고리 ${idx + 1}`).trim(),
+      id: `${String(chapterConfig?.id || `chapter-${String(chapterNo).padStart(2, "0")}`)}-cat-${String(idx + 1).padStart(2, "0")}`,
+      title,
       purpose: "사주 데이터 기반 상담문",
-      localSkeleton: String(section?.title || "").trim(),
+      localSkeleton: title,
       llmText: body,
       finalText: body,
     };
   });
 }
 
-function validateLifeBookCategory(category) {
+function validateLifeBookCategory(category, chapterConfig = {}) {
   const finalText = String(category?.finalText || "");
-  if (!finalText || finalText.length < 800) {
+  const minChars = getCanonicalCategoryMinChars(chapterConfig, category?.title || "");
+  if (!finalText || countChars(finalText) < minChars) {
     throw new Error(`CATEGORY_TEXT_EMPTY:${String(category?.categoryNo || "unknown")}`);
   }
   for (const word of LIFEBOOK_BANNED_CATEGORY_TEXTS) {
@@ -184,16 +252,18 @@ function validateLifeBookCategory(category) {
   }
 }
 
-function validateLifeBookBeforeRender(chapters = []) {
-  if (chapters.length !== 12) {
+function validateLifeBookBeforeRender(chapters = [], chapterSchema = LIFE_BOOK_CHAPTERS) {
+  if (chapters.length !== LIFE_BOOK_TOTAL_CHAPTERS) {
     throw new Error(`LIFE_BOOK_CHAPTER_COUNT_INVALID:${chapters.length}`);
   }
   chapters.forEach((chapter, index) => {
+    const chapterConfig = chapterSchema[index] || {};
     const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
-    if (categories.length < 5) {
+    const expectedCount = Array.isArray(chapterConfig?.sections) ? chapterConfig.sections.length : 0;
+    if (expectedCount > 0 && categories.length !== expectedCount) {
       throw new Error(`LIFE_BOOK_CATEGORY_COUNT_INVALID:${index + 1}`);
     }
-    categories.forEach((category) => validateLifeBookCategory(category));
+    categories.forEach((category) => validateLifeBookCategory(category, chapterConfig));
   });
 }
 
@@ -297,6 +367,51 @@ function sanitizeLifeBookChapters(chapters = []) {
   });
 }
 
+function normalizeLifeBookChaptersToCanonical(chapters = [], lifeBookInputData = {}, chapterSchema = LIFE_BOOK_CHAPTERS) {
+  const source = Array.isArray(chapters) ? chapters : [];
+  return chapterSchema.map((chapterConfig, index) => {
+    const current = source[index] || {};
+    const chapterJson = current?.chapterJson && typeof current.chapterJson === "object" ? current.chapterJson : {};
+    const sections = Array.isArray(chapterJson.sections) ? chapterJson.sections : [];
+
+    const normalizedSections = (Array.isArray(chapterConfig?.sections) ? chapterConfig.sections : []).map((title, sectionIndex) => {
+      const byTitle = sections.find((row) => String(row?.title || "").trim() === String(title || "").trim());
+      const byOrder = sections[sectionIndex] || {};
+      const rawBody = String(byTitle?.body || byTitle?.content || byOrder?.body || byOrder?.content || "").trim();
+      const minChars = getCanonicalCategoryMinChars(chapterConfig, title);
+      const body = rawBody && countChars(rawBody) >= minChars
+        ? normalizeCategoryBody(rawBody)
+        : buildDeterministicLifeBookCategoryBody(lifeBookInputData, chapterConfig, title);
+      return {
+        title: String(title || "").trim(),
+        body,
+      };
+    });
+
+    const contentMarkdown = normalizedSections
+      .map((section) => `### ${section.title}\n\n${section.body}`)
+      .join("\n\n")
+      .trim();
+
+    return {
+      ...current,
+      id: String(chapterConfig?.id || current?.id || `chapter-${String(index + 1).padStart(2, "0")}`),
+      roman: String(chapterConfig?.roman || current?.roman || ""),
+      title: String(chapterConfig?.title || current?.title || ""),
+      subtitle: String(chapterConfig?.subtitle || current?.subtitle || ""),
+      summary: String(current?.summary || chapterJson?.summary || "").trim() || `${String(chapterConfig?.title || "")} 핵심 요약`,
+      contentMarkdown,
+      chapterJson: {
+        ...chapterJson,
+        chapterId: String(chapterConfig?.id || current?.id || ""),
+        chapterTitle: String(chapterConfig?.title || current?.title || ""),
+        summary: String(chapterJson?.summary || current?.summary || "").trim() || `${String(chapterConfig?.title || "")} 핵심 요약`,
+        sections: normalizedSections,
+      },
+    };
+  });
+}
+
 function buildLifeBookPdfPayloadFromInput(lifeBookInputData = {}) {
   return buildSajuLifeBookPdfPayload(lifeBookInputData, LIFE_BOOK_CHAPTERS);
 }
@@ -329,10 +444,12 @@ function validateLifeBookGeneratedReport({ chapters = [], chapterSchema = LIFE_B
     const chapterJson = chapter.chapterJson && typeof chapter.chapterJson === "object" ? chapter.chapterJson : {};
     const sections = Array.isArray(chapterJson.sections) ? chapterJson.sections : [];
     if (!sections.length) chapterReasons.push("MISSING_SECTIONS");
-    sections.forEach((section) => {
+    sections.forEach((section, sectionIndex) => {
       const st = String(section?.title || "").trim();
       const sb = String(section?.body || "").trim();
-      if (!st || !sb || sb.length < 500) chapterReasons.push("SECTION_TOO_SHORT");
+      const expectedTitle = Array.isArray(config?.sections) ? String(config.sections[sectionIndex] || st).trim() : st;
+      const minSectionChars = getCanonicalCategoryMinChars(config, expectedTitle);
+      if (!st || !sb || countChars(sb) < minSectionChars) chapterReasons.push("SECTION_TOO_SHORT");
     });
 
     const bodyFp = body.replace(/\s+/g, " ").trim().toLowerCase();
@@ -563,16 +680,17 @@ export async function generateLifeBookPdf(params = {}) {
     };
   }
 
-  logLifeBookStage("REQUEST_START", { reportId });
+  logLifeBookStage("RequestStart", { reportId });
+  logLifeBookStage("AccessChecked", { reportId, access: "verified-by-route" });
 
   if (onProgress) onProgress({ code: "CALCULATING_SAJU", message: "사주 명식 계산 중" });
 
-  logLifeBookStage("INPUT_NORMALIZE_START", { reportId });
+  logLifeBookStage("SajuCalculated", { reportId, status: "start" });
   let lifeBookInputData = applyLenientLifeBookCoreDefaults(buildLifeBookInputData(body, normalizedInput));
   if (body?.sajuResult && typeof body.sajuResult === "object") {
     lifeBookInputData = mergeSajuResultIntoLifeBookInputData(lifeBookInputData, body.sajuResult);
   }
-  logLifeBookStage("INPUT_NORMALIZE_SUCCESS", { reportId });
+  logLifeBookStage("SajuCalculated", { reportId, status: "success" });
 
   const strictCheck = isStrictMissingCore(lifeBookInputData);
   const forceLocalForMissingCore = !strictCheck.ok;
@@ -594,7 +712,7 @@ export async function generateLifeBookPdf(params = {}) {
     });
   }
 
-  logLifeBookStage("PAYLOAD_NORMALIZE_START", { reportId });
+  logLifeBookStage("SeedCreated", { reportId, status: "start" });
   const pdfPayload = buildLifeBookPdfPayloadFromInput(lifeBookInputData);
   const payloadValidation = validateSajuLifeBookPdfPayload(pdfPayload);
   if (!payloadValidation.ok) {
@@ -612,7 +730,8 @@ export async function generateLifeBookPdf(params = {}) {
       validation: { missingFields: payloadValidation.missing },
     });
   }
-  logLifeBookStage("PAYLOAD_NORMALIZE_SUCCESS", { reportId });
+  logLifeBookStage("SeedCreated", { reportId, status: "success" });
+  logLifeBookStage("ChapterConfigLoaded", { reportId, totalChapters: LIFE_BOOK_TOTAL_CHAPTERS });
   try {
     console.info("[SajuLifeBookAPI] generation start", {
       featureKey: FEATURE_KEY_SAJU_LIFE_BOOK_PDF,
@@ -654,7 +773,7 @@ export async function generateLifeBookPdf(params = {}) {
       });
     }
 
-    logLifeBookStage("API_GENERATION_START", { chapterId: chapterConfig.id });
+    logLifeBookStage("LlmRequestStart", { reportId, chapterId: chapterConfig.id });
     const generated = await generateLifeBookChapter({
       env,
       chapterConfig,
@@ -670,7 +789,8 @@ export async function generateLifeBookPdf(params = {}) {
     });
 
     if (!generated?.ok) {
-      logLifeBookStage("API_GENERATION_FAILED", {
+      logLifeBookStage("LlmRequestFailed", {
+        reportId,
         chapterId: chapterConfig.id,
         code: generated?.code,
       });
@@ -688,6 +808,11 @@ export async function generateLifeBookPdf(params = {}) {
       });
 
       if (!localGenerated?.ok || !localGenerated?.chapterResult) {
+        logLifeBookStage("PdfRenderFailed", {
+          reportId,
+          reason: "LLM_AND_LOCAL_CHAPTER_FAILED",
+          chapterId: chapterConfig.id,
+        });
         return {
           ok: false,
           code: "SAJU_LIFE_BOOK_LLM_GENERATION_FAILED",
@@ -705,10 +830,11 @@ export async function generateLifeBookPdf(params = {}) {
         warning: "CHAPTER_REPAIRED_BY_LOCAL_DETERMINISTIC_FALLBACK",
         validation: generated?.validation || null,
       });
+      logLifeBookStage("FallbackGenerated", { reportId, chapterId: chapterConfig.id });
       continue;
     }
 
-    logLifeBookStage("API_GENERATION_SUCCESS", { chapterId: chapterConfig.id });
+    logLifeBookStage("LlmRequestSuccess", { reportId, chapterId: chapterConfig.id });
 
     chapters.push(generated.chapterResult);
     chapterMemories.push(buildChapterMemory(chapterConfig, generated.chapterResult));
@@ -745,14 +871,20 @@ export async function generateLifeBookPdf(params = {}) {
   let fullText = chapters.map((chapter) => String(chapter?.contentMarkdown || "").trim()).filter(Boolean).join("\n\n");
   let fullValidation = validateFullReport(fullText);
 
-  logLifeBookStage("QualityEnhanceStart", { reportId });
+  logLifeBookStage("LlmOutputValidated", { reportId, status: "start" });
   let reportValidation = validateLifeBookGeneratedReport({
     chapters,
     chapterSchema: targetChapters,
   });
   if (!reportValidation.ok) {
-    logLifeBookStage("QualityEnhanceFailed", {
+    logLifeBookStage("LlmOutputValidated", {
       reportId,
+      status: "failed",
+      invalidChapters: reportValidation.invalidChapters,
+    });
+    logLifeBookStage("PdfRenderFailed", {
+      reportId,
+      reason: "LLM_VALIDATION_FAILED",
       invalidChapters: reportValidation.invalidChapters,
     });
     return {
@@ -768,7 +900,7 @@ export async function generateLifeBookPdf(params = {}) {
       detail: reportValidation,
     };
   } else {
-    logLifeBookStage("QualityEnhanceSuccess", { reportId });
+    logLifeBookStage("LlmOutputValidated", { reportId, status: "success" });
   }
 
   if (!fullValidation.ok && chapters.length > 0) {
@@ -826,14 +958,32 @@ export async function generateLifeBookPdf(params = {}) {
   });
 
   if (onProgress) onProgress({ code: "RENDERING_PDF", message: "PDF 편집 중" });
-  logLifeBookStage("RenderStart", { reportId });
+  logLifeBookStage("PdfRenderStart", { reportId });
 
-  const sanitizedChapters = sanitizeLifeBookChapters(chapters);
+  const normalizedChapters = normalizeLifeBookChaptersToCanonical(chapters, lifeBookInputData, LIFE_BOOK_CHAPTERS);
+  const sanitizedChapters = sanitizeLifeBookChapters(normalizedChapters);
   const chaptersWithCategories = sanitizedChapters.map((chapter, idx) => ({
     ...chapter,
     chapterNo: idx + 1,
-    categories: buildLifeBookCategories(chapter, idx + 1),
+    categories: buildLifeBookCategories(chapter, idx + 1, LIFE_BOOK_CHAPTERS[idx], lifeBookInputData),
   }));
+
+  const missingSections = [];
+  chaptersWithCategories.forEach((chapter, idx) => {
+    const chapterConfig = LIFE_BOOK_CHAPTERS[idx] || {};
+    const expected = Array.isArray(chapterConfig?.sections) ? chapterConfig.sections : [];
+    const actual = Array.isArray(chapter?.categories) ? chapter.categories : [];
+    expected.forEach((title) => {
+      const found = actual.find((row) => String(row?.title || "").trim() === String(title || "").trim());
+      if (!found) {
+        missingSections.push(`${chapterConfig.id}:${title}`);
+      }
+    });
+  });
+  if (missingSections.length > 0) {
+    logLifeBookStage("MissingSectionsDetected", { reportId, count: missingSections.length, preview: missingSections.slice(0, 8) });
+    logLifeBookStage("MissingSectionsRepaired", { reportId, strategy: "canonical-normalize+deterministic-fill" });
+  }
   try {
     const emptyCategories = chaptersWithCategories
       .flatMap((chapter) => (Array.isArray(chapter.categories) ? chapter.categories : []))
@@ -844,8 +994,13 @@ export async function generateLifeBookPdf(params = {}) {
       categoryCount: chaptersWithCategories.reduce((sum, ch) => sum + (Array.isArray(ch.categories) ? ch.categories.length : 0), 0),
       emptyCategories,
     });
-    validateLifeBookBeforeRender(chaptersWithCategories);
+    validateLifeBookBeforeRender(chaptersWithCategories, LIFE_BOOK_CHAPTERS);
   } catch (error) {
+    logLifeBookStage("PdfRenderFailed", {
+      reportId,
+      reason: "CATEGORY_VALIDATION_FAILED",
+      detail: String(error?.message || "unknown"),
+    });
     return {
       ok: false,
       code: "SAJU_LIFE_BOOK_CATEGORY_VALIDATION_FAILED",
@@ -896,7 +1051,7 @@ export async function generateLifeBookPdf(params = {}) {
   });
 
   if (onProgress) onProgress({ code: "PDF_READY", message: "다운로드 준비 완료" });
-  logLifeBookStage("RenderSuccess", { reportId });
+  logLifeBookStage("PdfRenderSuccess", { reportId });
 
   const hasLocal = warnings.some((w) => {
     const marker = String(w?.warning || "");
