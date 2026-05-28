@@ -80,14 +80,25 @@ const FORBIDDEN_TEXT = [
   "테스트 문구",
 ];
 
+const LIFEBOOK_SERVICE_KEY = "saju-lifebook";
+const LIFEBOOK_FEATURE_KEY_PUBLIC = "saju_lifebook_pdf";
+const LIFEBOOK_FEATURE_KEY_BILLING = "saju_life_book_pdf";
+
 function clean(value) {
   return String(value || "").trim();
 }
 
 function resolveLifeBookFeatureKey(raw) {
   const key = clean(raw);
-  if (!key) return "saju_life_book_pdf";
-  if (key === "saju_lifebook_pdf") return "saju_life_book_pdf";
+  if (!key) return LIFEBOOK_FEATURE_KEY_PUBLIC;
+  if (key === LIFEBOOK_FEATURE_KEY_BILLING) return LIFEBOOK_FEATURE_KEY_PUBLIC;
+  return key;
+}
+
+function toBillingFeatureKey(featureKey) {
+  const key = clean(featureKey);
+  if (!key) return LIFEBOOK_FEATURE_KEY_BILLING;
+  if (key === LIFEBOOK_FEATURE_KEY_PUBLIC) return LIFEBOOK_FEATURE_KEY_BILLING;
   return key;
 }
 
@@ -215,6 +226,19 @@ function buildChapterLocalText(profile, signals, chapterTitle, categories) {
   });
 }
 
+function buildLifeBookChapters(profile, signals) {
+  return CHAPTER_BLUEPRINTS.map((chapter) => {
+    const categories = buildChapterLocalText(profile, signals, chapter.title, chapter.categories);
+    return {
+      id: chapter.id,
+      title: chapter.title,
+      categories,
+      text: buildChapterBody(chapter.title, categories),
+      source: "local",
+    };
+  });
+}
+
 function buildChapterBody(chapterTitle, categories) {
   return categories.map((category) => {
     const text = stripForbiddenTokens(category.finalText || category.localSummary || "");
@@ -284,6 +308,69 @@ function mergeLifeBookLlmResult(chapter, llmResult) {
 
   next.text = buildChapterBody(next.title, next.categories);
   return next;
+}
+
+function buildLifeBookPayload(profile, signals, chapters, metadata = {}) {
+  return {
+    serviceKey: LIFEBOOK_SERVICE_KEY,
+    featureKey: resolveLifeBookFeatureKey(metadata.featureKey),
+    mode: "personal",
+    userInput: {
+      name: profile.name,
+      gender: profile.gender,
+      birthDate: `${profile.year}-${pad2(profile.month)}-${pad2(profile.day)}`,
+      birthTime: profile.timeKnown ? `${pad2(profile.hour)}:${pad2(profile.minute)}` : "",
+      calendarType: clean(metadata.calendarType) === "lunar" ? "lunar" : "solar",
+      birthPlace: profile.birthplace,
+    },
+    sajuResult: {
+      pillars: {
+        year: signals.yearBranch,
+        month: signals.monthBranch,
+        day: signals.dayMaster,
+        hour: signals.timeKnown ? signals.timeLabel : "시간 미상",
+      },
+      dayMaster: signals.dayMaster,
+      monthBranch: signals.monthBranch,
+      usefulGod: signals.useful,
+      favorableGod: signals.support,
+      unfavorableElement: signals.caution,
+      seasonBalance: signals.rhythm,
+      structure: "로컬 사주 기초 구조",
+    },
+    chapters,
+  };
+}
+
+function ensureCompleteLifeBookChapters(profile, signals, chapters = []) {
+  const chapterMap = new Map((Array.isArray(chapters) ? chapters : []).map((item) => [String(item?.id || ""), item]));
+
+  return CHAPTER_BLUEPRINTS.map((blueprint) => {
+    const chapter = chapterMap.get(String(blueprint.id));
+    const fallbackCategories = buildChapterLocalText(profile, signals, blueprint.title, blueprint.categories);
+    const categoryMap = new Map((Array.isArray(chapter?.categories) ? chapter.categories : []).map((item) => [String(item?.title || item?.id || ""), item]));
+
+    const categories = fallbackCategories.map((fallbackCategory, index) => {
+      const existing = categoryMap.get(String(fallbackCategory.title)) || categoryMap.get(String(fallbackCategory.id));
+      const nextText = stripForbiddenTokens(existing?.finalText || existing?.llmText || existing?.localSummary || fallbackCategory.localSummary);
+      return {
+        id: fallbackCategory.id,
+        title: fallbackCategory.title,
+        localSummary: fallbackCategory.localSummary,
+        llmText: stripForbiddenTokens(existing?.llmText || ""),
+        finalText: nextText || createLifeBookFallbackText(profile, signals, blueprint.title, fallbackCategory.title, fallbackCategory.localSummary),
+        order: index + 1,
+      };
+    });
+
+    return {
+      id: blueprint.id,
+      title: blueprint.title,
+      categories,
+      text: buildChapterBody(blueprint.title, categories),
+      source: chapter?.source || "local",
+    };
+  });
 }
 
 function validateLifeBookChapters(chapters = []) {
@@ -490,7 +577,20 @@ function buildPdfReadyPayload(profile, chapters, metadata = {}) {
 }
 
 async function handlePrepare(request, env) {
-  const auth = await requireAuth(request, env);
+  let auth;
+  try {
+    auth = await requireAuth(request, env);
+  } catch (error) {
+    if (Number(error?.status) === 401) {
+      return json({
+        ok: false,
+        serviceKey: LIFEBOOK_SERVICE_KEY,
+        message: "로그인 후 인생의 책 PDF를 생성할 수 있습니다.",
+        code: "UNAUTHORIZED",
+      }, { status: 401 });
+    }
+    throw error;
+  }
   const body = await readJson(request);
 
   const normalized = normalizeInput(body);
@@ -500,33 +600,32 @@ async function handlePrepare(request, env) {
 
   const profile = normalized.profile;
   const featureKey = resolveLifeBookFeatureKey(body?.featureKey);
+  const billingFeatureKey = toBillingFeatureKey(featureKey);
   const access = await requirePremiumReportAccess(env, auth.userId, "lifeBook", {
     ...body,
-    featureKey,
+    featureKey: billingFeatureKey,
     reportType: "lifeBook",
     _accessRoute: "/api/premium/saju-lifebook",
   });
 
   if (!access?.ok) {
+    const status = Number(access?.status || 402);
+    const message = status === 401
+      ? "로그인 후 인생의 책 PDF를 생성할 수 있습니다."
+      : status === 402
+        ? "프리미엄 PDF 생성 권한이 필요합니다."
+        : "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+
     return json({
       ok: false,
-      message: access?.message || "결제 또는 해금 확인이 필요합니다.",
+      serviceKey: LIFEBOOK_SERVICE_KEY,
+      message,
       code: access?.code || "PAYMENT_REQUIRED",
-    }, { status: Number(access?.status || 402) });
+    }, { status });
   }
 
   const signals = deriveLocalSignals(profile);
-  const localChapters = CHAPTER_BLUEPRINTS.map((chapter) => {
-    const categories = buildChapterLocalText(profile, signals, chapter.title, chapter.categories);
-    const baseText = buildChapterBody(chapter.title, categories);
-    return {
-      id: chapter.id,
-      title: chapter.title,
-      categories,
-      text: baseText,
-      source: "local",
-    };
-  });
+  const localChapters = buildLifeBookChapters(profile, signals);
 
   const finalChapters = [];
   for (let i = 0; i < localChapters.length; i += 1) {
@@ -539,46 +638,62 @@ async function handlePrepare(request, env) {
       chapterText = reinforceChapterText(profile, signals, localChapter.title, localChapter.categories[0]?.title || localChapter.title, localChapter.text);
     }
 
-    finalChapters.push({
-      id: localChapter.id,
-      title: localChapter.title,
-      categories: (llmResult.categories || localChapter.categories).map((category, categoryIndex) => ({
+    const mergedCategories = (llmResult.categories || localChapter.categories).map((category, categoryIndex) => {
+      const chapterTitle = localChapter.title;
+      const categoryTitle = stripForbiddenTokens(category.title || `세부 항목 ${categoryIndex + 1}`);
+      const finalText = stripForbiddenTokens(category.finalText || category.localSummary || "");
+      const safeText = finalText || createLifeBookFallbackText(profile, signals, chapterTitle, categoryTitle, category.localSummary || "");
+      return {
         ...category,
-        finalText: stripForbiddenTokens(category.finalText || category.localSummary || ""),
+        title: categoryTitle,
+        finalText: safeText,
         llmText: stripForbiddenTokens(category.llmText || ""),
         localSummary: stripForbiddenTokens(category.localSummary || ""),
         order: categoryIndex + 1,
-      })),
+      };
+    });
+
+    finalChapters.push({
+      id: localChapter.id,
+      title: localChapter.title,
+      categories: mergedCategories,
       text: chapterText,
       source: llmResult.source,
     });
   }
 
-  const chapterValidation = validateLifeBookChapters(finalChapters);
+  const completedChapters = ensureCompleteLifeBookChapters(profile, signals, finalChapters);
+  const chapterValidation = validateLifeBookChapters(completedChapters);
   if (!chapterValidation.ok) {
-    return json({
-      ok: false,
-      message: "PDF 생성 중 문제가 발생했습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요.",
-      code: "LIFEBOOK_CHAPTER_VALIDATION_FAILED",
-      detail: chapterValidation.errors,
-    }, { status: 500 });
+    const repaired = ensureCompleteLifeBookChapters(profile, signals, completedChapters);
+    repaired.forEach((chapter) => {
+      chapter.text = buildChapterBody(chapter.title, chapter.categories);
+    });
+    completedChapters.splice(0, completedChapters.length, ...repaired);
   }
 
-  const pdfReady = buildPdfReadyPayload(profile, finalChapters, {
+  const lifebookPayload = buildLifeBookPayload(profile, signals, completedChapters, {
+    featureKey,
+    calendarType: body?.calendarType,
+  });
+
+  const pdfReady = buildPdfReadyPayload(profile, completedChapters, {
     featureKey,
     reportType: "lifeBook",
     accessType: String(access.accessType || "unknown"),
-    pdfHtml: renderLifeBookPdf({ profile, signals, chapters: finalChapters, generatedAt: new Date().toISOString() }),
+    pdfHtml: renderLifeBookPdf({ profile, signals, chapters: completedChapters, generatedAt: new Date().toISOString() }),
   });
 
   return json({
     ok: true,
+    serviceKey: LIFEBOOK_SERVICE_KEY,
     data: {
       reportId: `saju-lifebook-${Date.now()}`,
       featureKey,
       reportType: "lifeBook",
       profile,
-      chapters: finalChapters,
+      chapters: completedChapters,
+      lifebookPayload,
       pdfReady,
     },
   });
