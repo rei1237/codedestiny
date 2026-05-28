@@ -2,6 +2,7 @@ import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, no
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 
 const CHAPTER_BLUEPRINTS = [
   {
@@ -721,8 +722,9 @@ async function maybeEnhanceChapterWithLlm(env, profile, signals, chapter) {
     modelEnvKeys: ["LIFEBOOK_GEMINI_MODEL", "GEMINI_MODEL"],
     temperature: 0.75,
     maxOutputTokens: 2200,
-    timeoutMs: 9000,
-    totalTimeoutMs: 12000,
+    timeoutMs: Number(env.LIFEBOOK_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
+    totalTimeoutMs: Number(env.LIFEBOOK_GEMINI_TOTAL_TIMEOUT_MS || 90000),
+    maxAttemptsPerPair: Number(env.LIFEBOOK_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 4),
   });
 
   if (!ai.ok) {
@@ -735,8 +737,9 @@ async function maybeEnhanceChapterWithLlm(env, profile, signals, chapter) {
       modelEnvKeys: ["LIFEBOOK_GEMINI_MODEL", "GEMINI_MODEL"],
       temperature: 0.65,
       maxOutputTokens: 2400,
-      timeoutMs: 9000,
-      totalTimeoutMs: 12000,
+      timeoutMs: Number(env.LIFEBOOK_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
+      totalTimeoutMs: Number(env.LIFEBOOK_GEMINI_TOTAL_TIMEOUT_MS || 90000),
+      maxAttemptsPerPair: Number(env.LIFEBOOK_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 4),
     });
 
     const repaired = repair.ok ? parseJsonMaybe(repair.text) : null;
@@ -853,7 +856,7 @@ async function handlePrepare(request, env) {
   const profile = normalized.profile;
   const featureKey = resolveLifeBookFeatureKey(body?.featureKey);
   const billingFeatureKey = toBillingFeatureKey(featureKey);
-  const access = await requirePremiumReportAccess(env, auth.userId, "lifeBook", {
+  const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "lifeBook", {
     ...body,
     featureKey: billingFeatureKey,
     reportType: "lifeBook",

@@ -6,6 +6,7 @@ import { ASTRO_PREMIUM_CHAPTERS, ASTRO_PREMIUM_FEATURE_KEY } from "../lib/astro-
 import { generateAstroPremiumReport, validateAstroPayloadForApi } from "../lib/astro-premium-generator.js";
 import { VEDIC_PREMIUM_CHAPTERS, VEDIC_PREMIUM_FEATURE_KEY } from "../lib/vedic-premium-chapters.js";
 import { generateVedicPremiumReport, validateVedicPayloadForApi } from "../lib/vedic-premium-generator.js";
+import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 
 function toNumber(value, fallback) {
   const n = Number(value);
@@ -58,7 +59,7 @@ async function handleAstroPremiumPrepare(request, env) {
     }, { status: 400 });
   }
 
-  const access = await requirePremiumReportAccess(env, auth.userId, "westernAstrologyPremium", {
+  const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "westernAstrologyPremium", {
     reportType: "westernAstrologyPremium",
     featureKey: String(body?.featureKey || ASTRO_PREMIUM_FEATURE_KEY),
     premiumAccessToken: premiumAccessToken || undefined,
@@ -104,7 +105,7 @@ async function handleVedicPremiumPrepare(request, env) {
     }, { status: 400 });
   }
 
-  const access = await requirePremiumReportAccess(env, auth.userId, "vedicPremium", {
+  const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "vedicPremium", {
     reportType: "vedicPremium",
     featureKey: String(body?.featureKey || VEDIC_PREMIUM_FEATURE_KEY),
     premiumAccessToken: premiumAccessToken || undefined,

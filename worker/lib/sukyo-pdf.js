@@ -398,8 +398,9 @@ export async function enhanceSukyoChaptersWithLLM(env, seed, skeleton) {
       modelEnvKeys: ["SUKYO_PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"],
       temperature: 0.72,
       maxOutputTokens: 16000,
-      timeoutMs: 24000,
-      totalTimeoutMs: 30000,
+      timeoutMs: Number(env.SUKYO_PREMIUM_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
+      totalTimeoutMs: Number(env.SUKYO_PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || 90000),
+      maxAttemptsPerPair: Number(env.SUKYO_PREMIUM_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 4),
     });
     if (!result?.ok) return { chapters: buildSukyoFallbackChapters(seed, skeleton), fallbackUsed: true };
     const parsed = parseSukyoGeminiChapterResponse(result.text);

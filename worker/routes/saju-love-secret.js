@@ -12,6 +12,15 @@ const LOVE_SECRET_FEATURE_KEY_BY_MODE = Object.freeze({
 });
 const LOVE_SECRET_JOB_COLLECTION = "premium_report_jobs";
 const LOVE_SECRET_JOB_POLL_AFTER_MS = 4000;
+const LOVE_SECRET_FAST_DB_ENV_OVERRIDES = Object.freeze({
+  // Keep async job bootstrapping well below Cloudflare's edge timeout window.
+  MONGO_WORKER_CONNECT_GUARD_MS: "9000",
+  MONGO_SERVER_SELECTION_TIMEOUT_MS: "6500",
+  MONGO_CONNECT_TIMEOUT_MS: "6500",
+  MONGO_SOCKET_TIMEOUT_MS: "12000",
+  MONGO_WORKER_CONNECT_RETRIES: "0",
+  MONGO_IP_FAMILY: "4",
+});
 
 const DEFAULT_CATEGORY_BY_MODE = {
   solo: {
@@ -44,6 +53,13 @@ const DEFAULT_CATEGORY_BY_MODE = {
 
 function clean(value) {
   return String(value || "").trim();
+}
+
+function getLoveSecretFastDbEnv(env = {}) {
+  return {
+    ...env,
+    ...LOVE_SECRET_FAST_DB_ENV_OVERRIDES,
+  };
 }
 
 function normalizeMode(rawMode) {
@@ -379,8 +395,9 @@ async function maybeEnhanceWithLlm(env, base, chapter, mode, chapterNo) {
     modelEnvKeys: ["LOVE_SECRET_GEMINI_MODEL", "GEMINI_MODEL"],
     temperature: 0.72,
     maxOutputTokens: 1800,
-    timeoutMs: 9000,
-    totalTimeoutMs: 12000,
+    timeoutMs: Number(env.LOVE_SECRET_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
+    totalTimeoutMs: Number(env.LOVE_SECRET_GEMINI_TOTAL_TIMEOUT_MS || 90000),
+    maxAttemptsPerPair: Number(env.LOVE_SECRET_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 4),
   });
 
   if (!llm?.ok || !clean(llm?.text)) {
@@ -418,7 +435,7 @@ function toObjectIdOrNull(value) {
 }
 
 async function getLoveSecretJobsCollection(env) {
-  await connectDb(env);
+  await connectDb(getLoveSecretFastDbEnv(env));
   return mongoose.connection.collection(LOVE_SECRET_JOB_COLLECTION);
 }
 
@@ -557,7 +574,7 @@ async function authorizeLoveSecret(request, env, body, mode) {
   const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.chapterSessionId);
   const purchaseId = clean(body?.purchaseId || body?.reportPurchaseId || body?.accessGrant?.purchaseId || body?.payment?.purchaseId || body?._paymentContext?.purchaseId);
 
-  const access = await requirePremiumReportAccess(env, auth.userId, "loveSecret", {
+  const access = await requirePremiumReportAccess(getLoveSecretFastDbEnv(env), auth.userId, "loveSecret", {
     ...body,
     mode,
     reportType: "loveSecret",

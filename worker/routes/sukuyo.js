@@ -11,6 +11,7 @@ import {
   generateSukyoPremiumReport,
 } from "../lib/sukyo-pdf.js";
 import { buildCanonicalSukuyoCompatibility, buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
+import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 
 function clean(value) {
   return String(value == null ? "" : value).trim();
@@ -152,7 +153,7 @@ async function handleSukuyoPremiumPrepare(request, env) {
     return json({ ok: false, code: "SUKUYO_MISSING_PARTNER", message: "숙요점 궁합 PDF는 상대방 생년월일 정보가 필요합니다." }, { status: 400 });
   }
 
-  const access = await requirePremiumReportAccess(env, auth.userId, "sookyoPremium", {
+  const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "sookyoPremium", {
     reportType: "sookyoPremium",
     mode: "compatibility",
     reportMode: "compatibility",

@@ -3,6 +3,7 @@ import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
+import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 
 const SERVICE_KEY = "saju-new-year";
 const FEATURE_KEY = "premium_pdf_saju_new_year";
@@ -389,8 +390,9 @@ async function enhanceWithLlm(env, seed, localChapters) {
         keyEnvKeys: ["PREMIUM_SAJU_NEW_YEAR_GEMINI_API_KEY", "PREMIUM_GEMINI_API_KEY1", "GEMINI_API_KEY"],
         temperature: 0.72,
         maxOutputTokens: 4096,
-        timeoutMs: 30000,
-        totalTimeoutMs: 38000,
+        timeoutMs: Number(env.PREMIUM_SAJU_NEW_YEAR_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
+        totalTimeoutMs: Number(env.PREMIUM_SAJU_NEW_YEAR_GEMINI_TOTAL_TIMEOUT_MS || 90000),
+        maxAttemptsPerPair: Number(env.PREMIUM_SAJU_NEW_YEAR_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 4),
       });
       if (!result?.ok) throw new Error(result?.message || result?.error || "llm_failed");
       const parsed = extractJsonObject(result.text || result.content || "");
@@ -481,7 +483,7 @@ async function handlePrepare(request, env) {
   const premiumAccessToken = clean(request.headers.get("x-premium-access-token") || body?.premiumAccessToken || body?._premiumAccessToken || cookieValue(request, "cd_premium_access"));
 
   console.info("[NewYearBook][Flow] BILLING_CHECK_START", { featureKey, userId: auth.userId });
-  const access = await requirePremiumReportAccess(env, auth.userId, "sajuNewYear", {
+  const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "sajuNewYear", {
     ...body,
     featureKey,
     reportType: "sajuNewYear",

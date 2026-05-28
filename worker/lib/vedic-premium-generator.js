@@ -188,7 +188,14 @@ export async function enhanceVedicPremiumChaptersWithLLM(env, payload, chapterSe
     "반드시 JSON만 출력하세요. 코드펜스 금지.",
   ].join("\n");
   const prompt = `${systemPrompt}\n\n${JSON.stringify({ user: payload.user, chart: payload.chart, chapters: chapterSeeds }, null, 2)}`;
-  const result = await callGeminiText(env, prompt, { modelEnvKeys: ["VEDIC_PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"], temperature: 0.7, maxOutputTokens: 14000, timeoutMs: 22000, totalTimeoutMs: 28000 });
+  const result = await callGeminiText(env, prompt, {
+    modelEnvKeys: ["VEDIC_PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"],
+    temperature: 0.7,
+    maxOutputTokens: 14000,
+    timeoutMs: Number(env.VEDIC_PREMIUM_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
+    totalTimeoutMs: Number(env.VEDIC_PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || 90000),
+    maxAttemptsPerPair: Number(env.VEDIC_PREMIUM_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 4),
+  });
   if (!result.ok) return { chapters: chapterSeeds, fallbackUsed: true };
   const parsed = parseJsonMaybe(result.text);
   const chapters = parsed?.chapters;

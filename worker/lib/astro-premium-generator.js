@@ -288,8 +288,9 @@ export async function enhanceAstroPremiumChaptersWithLLM(env, payload, chapterSe
     modelEnvKeys: ["ASTRO_PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"],
     temperature: 0.72,
     maxOutputTokens: 14000,
-    timeoutMs: 22000,
-    totalTimeoutMs: 28000,
+    timeoutMs: Number(env.ASTRO_PREMIUM_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
+    totalTimeoutMs: Number(env.ASTRO_PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || 90000),
+    maxAttemptsPerPair: Number(env.ASTRO_PREMIUM_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 4),
   });
 
   if (!ai.ok) {

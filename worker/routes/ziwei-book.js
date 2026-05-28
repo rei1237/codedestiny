@@ -2,6 +2,7 @@ import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, re
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 
 const ZIWEI_SERVICE_KEY = "ziwei-book";
 const ZIWEI_FEATURE_KEY = "premium_pdf_ziwei";
@@ -492,8 +493,9 @@ async function enhanceChaptersWithLlm(env, profile, seed, localChapters) {
         modelEnvKeys: ["ZIWEI_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"],
         temperature: 0.55,
         maxOutputTokens: 4096,
-        timeoutMs: 18000,
-        totalTimeoutMs: 22000,
+        timeoutMs: Number(env.ZIWEI_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
+        totalTimeoutMs: Number(env.ZIWEI_GEMINI_TOTAL_TIMEOUT_MS || 90000),
+        maxAttemptsPerPair: Number(env.ZIWEI_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 4),
       });
       const parsed = result?.ok ? parseJsonMaybe(result.text) : null;
       const merged = parsed ? mergeLlmChapter(chapter, parsed) : { ...chapter, source: "local" };
@@ -617,7 +619,7 @@ async function handlePrepare(request, env) {
   const featureKey = normalizeFeatureKey(body?.featureKey);
 
   console.info("[ZiweiBook][Flow] BILLING_CHECK_START", { featureKey, userId: auth.userId });
-  const access = await requirePremiumReportAccess(env, auth.userId, "ziweiPremium", {
+  const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "ziweiPremium", {
     ...body,
     featureKey,
     reportType: "ziweiPremium",
