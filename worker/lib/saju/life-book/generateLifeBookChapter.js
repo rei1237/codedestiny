@@ -646,7 +646,7 @@ export async function generateLifeBookChapter(params = {}) {
   const chapterConfig = params.chapterConfig;
   const lifeBookInputData = params.lifeBookInputData || {};
   const strictMode = params.strictMode === true;
-  const maxRetries = Math.max(0, Math.min(2, Number(params.maxRetries ?? 2)));
+  const maxRetries = Math.max(0, Math.min(2, Number(params.maxRetries ?? 1)));
   const previousTexts = Array.isArray(params.previousTexts) ? params.previousTexts : [];
   const chapterMemories = Array.isArray(params.chapterMemories) ? params.chapterMemories : [];
   const forceLocal = params.forceLocal === true;

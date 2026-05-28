@@ -551,6 +551,7 @@ export async function generateLifeBookPdf(params = {}) {
   const onProgress = typeof params.onProgress === "function" ? params.onProgress : null;
   const previousTexts = Array.isArray(params.previousTexts) ? params.previousTexts : [];
   const warnings = [];
+  const chapterRetryLimit = Math.max(0, Math.min(2, Number(env?.LIFEBOOK_CHAPTER_MAX_RETRIES ?? params?.maxChapterRetries ?? 1)));
 
   if (localOnly) {
     return {
@@ -660,7 +661,7 @@ export async function generateLifeBookPdf(params = {}) {
       lifeBookInputData,
       strictMode,
       forceLocal: localOnly || forceLocalForMissingCore,
-      maxRetries: 2,
+      maxRetries: chapterRetryLimit,
       previousTexts: [
         ...previousTexts,
         ...chapters.map((c) => c.contentMarkdown || ""),
@@ -794,7 +795,7 @@ export async function generateLifeBookPdf(params = {}) {
         chapterConfig,
         lifeBookInputData,
         strictMode: false,
-        maxRetries: 1,
+        maxRetries: Math.min(1, chapterRetryLimit),
         previousTexts: [
           ...previousTexts,
           ...chapters

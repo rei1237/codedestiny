@@ -35,9 +35,9 @@ export async function geminiLifeBookClient(env, prompt, options = {}) {
     frequencyPenalty: toNumber(options.frequencyPenalty, 0.55),
     presencePenalty: toNumber(options.presencePenalty, 0.55),
     maxOutputTokens: toNumber(options.maxOutputTokens, 12288),
-    timeoutMs: toNumber(options.timeoutMs, Number(env?.LIFEBOOK_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 25000)),
-    totalTimeoutMs: toNumber(options.totalTimeoutMs, Number(env?.LIFEBOOK_GEMINI_TOTAL_TIMEOUT_MS || env?.PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || 60000)),
-    maxAttemptsPerPair: toNumber(options.maxAttemptsPerPair, Number(env?.LIFEBOOK_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 2)),
+    timeoutMs: toNumber(options.timeoutMs, Number(env?.LIFEBOOK_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 18000)),
+    totalTimeoutMs: toNumber(options.totalTimeoutMs, Number(env?.LIFEBOOK_GEMINI_TOTAL_TIMEOUT_MS || env?.PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || 24000)),
+    maxAttemptsPerPair: toNumber(options.maxAttemptsPerPair, Number(env?.LIFEBOOK_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 1)),
     requestId: String(options.requestId || "").trim() || undefined,
   });
 

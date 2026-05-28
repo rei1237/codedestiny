@@ -68,3 +68,17 @@
 - Continue until the requested outcome is fully completed, or a real blocker is identified with concrete evidence.
 - If execution takes long, provide short progress updates and keep iterating instead of ending early.
 - Do not ask for "continue" to resume normal work unless a hard blocker requires user input/decision.
+
+## 10) Premium PDF Execution Order (All Services)
+- All premium PDF services must follow this exact execution order:
+	1. Payment/access verification
+	2. User input acquisition
+	3. Local calculation engine execution
+	4. PDF-ready JSON payload generation
+	5. Fixed chapter/category skeleton generation
+	6. LLM call
+	7. Per-chapter validation
+	8. Regenerate missing chapters only or apply local deterministic reinforcement
+	9. PDF rendering
+- Never skip a prior step to execute a later step.
+- If a chapter fails validation, do not block the entire report immediately: attempt targeted chapter regeneration first, then deterministic local reinforcement for only missing/failed chapters.
