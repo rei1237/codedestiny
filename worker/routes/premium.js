@@ -24661,6 +24661,10 @@ async function handleLifebookSession(request, env, authInfo = null) {
     ...body,
     _premiumStrictPayload: strictPayloadMode,
   };
+  const tokenFromBody = String(strictBody.premiumAccessToken || strictBody._premiumAccessToken || "").trim();
+  const tokenFromCookie = String(cookieValue(request, "cd_premium_access") || "").trim();
+  const tokenFromHeader = String(request.headers.get("x-premium-access-token") || "").trim();
+  const premiumAccessToken = tokenFromBody || tokenFromCookie || tokenFromHeader;
   const prepareOnly = asBool(strictBody.prepareOnly);
   const explicitMode = String(strictBody.mode || "").trim().toLowerCase();
   const fullGenerateRequested = asBool(strictBody.generateAll)
@@ -24671,7 +24675,7 @@ async function handleLifebookSession(request, env, authInfo = null) {
     prepareOnly,
     fullGenerateRequested,
     hasReportId: Boolean(String(strictBody.reportId || "").trim()),
-    hasPremiumToken: Boolean(String(strictBody.premiumAccessToken || strictBody._premiumAccessToken || "").trim()),
+    hasPremiumToken: Boolean(premiumAccessToken),
   });
 
   if (!prepareOnly && !chapterRequestProvided(strictBody) && !fullGenerateRequested) {
@@ -24700,14 +24704,34 @@ async function handleLifebookSession(request, env, authInfo = null) {
   };
 
   if (fullGenerateRequested) {
-    const access = await requirePremiumReportAccess(env, ownerUserId, "lifeBook", {
+    const accessRequestBody = {
       ...strictBody,
       featureKey: "saju_life_book_pdf",
       purchaseId: accessGrant.purchaseId,
       sessionId: accessGrant.sessionId,
+      reportSessionId: accessGrant.sessionId,
       reportId: accessGrant.reportId,
+      accessGrant,
+      payment: {
+        ...(strictBody?.payment && typeof strictBody.payment === "object" ? strictBody.payment : {}),
+        featureKey: "saju_life_book_pdf",
+        sessionId: accessGrant.sessionId,
+        purchaseId: accessGrant.purchaseId,
+        reportId: accessGrant.reportId,
+        accessGrant,
+      },
+      _paymentContext: {
+        ...(strictBody?._paymentContext && typeof strictBody._paymentContext === "object" ? strictBody._paymentContext : {}),
+        featureKey: "saju_life_book_pdf",
+        sessionId: accessGrant.sessionId,
+        purchaseId: accessGrant.purchaseId,
+        reportId: accessGrant.reportId,
+        accessGrant,
+      },
       _accessRoute: "/api/lifebook/generate",
-    });
+      ...(premiumAccessToken ? { premiumAccessToken } : {}),
+    };
+    const access = await requirePremiumReportAccess(env, ownerUserId, "lifeBook", accessRequestBody);
     if (!access?.ok) {
       return json({
         ok: false,
