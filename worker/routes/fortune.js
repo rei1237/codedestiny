@@ -1146,6 +1146,9 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     }, { status: 402 });
   }
 
+  const reportIdForAccess = String(body?.reportId || "").trim().slice(0, 120);
+  const reportSessionIdForAccess = String(body?.sessionId || body?.reportSessionId || "").trim().slice(0, 120);
+
   let history = null;
   try {
     history = await PointHistory.create({
@@ -1158,6 +1161,8 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       metadata: {
         source: "fortune.pig-coin.consume",
         ...(requestId ? { requestId } : {}),
+        ...(reportIdForAccess ? { reportId: reportIdForAccess } : {}),
+        ...(reportSessionIdForAccess ? { sessionId: reportSessionIdForAccess, reportSessionId: reportSessionIdForAccess } : {}),
         ...(categoryKey ? { categoryKey } : {}),
         ...(subFeatureKey ? { subFeatureKey } : {}),
         ...(payloadHash ? { payloadHash } : {}),

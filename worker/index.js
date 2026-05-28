@@ -408,7 +408,7 @@ async function proxyApiRequest(request, env) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     try {
       const url = new URL(request.url);
 
@@ -649,7 +649,7 @@ export default {
       }
 
       if (url.pathname === "/api/love-secret" || url.pathname.startsWith("/api/love-secret/")) {
-        return withCorsHeaders(request, env, await handleSajuLoveSecretRoutes(request, env));
+        return withCorsHeaders(request, env, await handleSajuLoveSecretRoutes(request, env, ctx));
       }
 
       if (url.pathname === "/api/dream" || url.pathname.startsWith("/api/dream/")) {

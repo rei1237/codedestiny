@@ -69,6 +69,13 @@ function normalizeAccessGrant(data, payload) {
     || (((data?.consume || {}).transactionId) || '')
   ).trim();
   var sessionId = String(accessGrant?.sessionId || normalizeReportSessionId(reportId, payload)).trim();
+  var requestId = String(
+    accessGrant?.requestId
+    || data?.requestId
+    || (((data?.consume || {}).requestId) || '')
+    || payload?.requestId
+    || ''
+  ).trim();
 
   if (!reportId || !purchaseId) return null;
 
@@ -77,6 +84,7 @@ function normalizeAccessGrant(data, payload) {
     featureKey: LOVE_BOOK_FEATURE_KEY,
     sessionId: sessionId || undefined,
     purchaseId: purchaseId || undefined,
+    requestId: requestId || undefined,
     reportId: reportId,
     paidAt: String(accessGrant?.paidAt || data?.paidAt || new Date().toISOString()),
   };

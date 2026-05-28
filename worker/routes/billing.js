@@ -396,6 +396,9 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     ? true
     : (forceDeductRaw === true || String(forceDeductRaw).toLowerCase() === "true");
 
+  const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
+  const reportSessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || (reportId ? `love-book:${reportId}` : requestId)).trim();
+
   const delegatedBody = {
     cost: Number(pricing.cost),
     reason: String(pricing.reason),
@@ -405,6 +408,9 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     categoryKey: pricing.categoryKey,
     subFeatureKey: pricing.subFeatureKey,
     payloadHash: String(body?.payloadHash || "").trim().slice(0, 120),
+    reportId: reportId || undefined,
+    sessionId: reportSessionId || undefined,
+    reportSessionId: reportSessionId || undefined,
   };
 
   if (body?.productId) {
@@ -472,15 +478,14 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   });
 
   const requestedFeatureKey = String(body?.featureKey || pricing?.featureKey || "").trim() || String(pricing?.featureKey || "").trim();
-  const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
-  const sessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || (reportId ? `love-book:${reportId}` : requestId)).trim();
   const purchaseId = String(payload?.transactionId || payload?.data?.transactionId || "").trim();
   const accessGrant = requestedFeatureKey && purchaseId
     ? {
       ok: true,
       featureKey: requestedFeatureKey,
-      sessionId: sessionId || undefined,
+      sessionId: reportSessionId || undefined,
       purchaseId: purchaseId || undefined,
+      requestId: requestId || undefined,
       reportId: reportId || undefined,
       paidAt: new Date().toISOString(),
     }

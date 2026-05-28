@@ -3,9 +3,12 @@ import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { LOVE_SECRET_MODE_CONFIG } from "../lib/saju-premium-chapters.js";
+import { connectDb, mongoose } from "../lib/db.js";
 
 const LOVE_SECRET_SERVICE_KEY = "saju-love-secret";
 const LOVE_SECRET_FEATURE_KEY = "saju_love_book_pdf";
+const LOVE_SECRET_JOB_COLLECTION = "premium_report_jobs";
+const LOVE_SECRET_JOB_POLL_AFTER_MS = 4000;
 
 const DEFAULT_CATEGORY_BY_MODE = {
   solo: {
@@ -350,6 +353,142 @@ async function maybeEnhanceWithLlm(env, base, chapter, mode, chapterNo) {
   };
 }
 
+function toObjectIdOrNull(value) {
+  const raw = clean(value);
+  if (!raw || !mongoose.Types.ObjectId.isValid(raw)) return null;
+  return new mongoose.Types.ObjectId(raw);
+}
+
+async function getLoveSecretJobsCollection(env) {
+  await connectDb(env);
+  return mongoose.connection.collection(LOVE_SECRET_JOB_COLLECTION);
+}
+
+function toPublicJobPayload(job = {}) {
+  const status = clean(job?.status) || "pending";
+  const chapterCount = Number(job?.chapterCount || 0);
+  const completedChapters = Number(job?.completedChapters || 0);
+  return {
+    jobId: String(job?._id || ""),
+    reportId: clean(job?.reportId),
+    mode: normalizeMode(job?.mode),
+    status,
+    chapterCount,
+    completedChapters,
+    progress: chapterCount > 0 ? Math.max(0, Math.min(100, Math.round((completedChapters / chapterCount) * 100))) : 0,
+    message: clean(job?.message),
+    errorMessage: clean(job?.errorMessage),
+    resultReady: status === "completed",
+    failed: status === "failed",
+    updatedAt: job?.updatedAt || null,
+    createdAt: job?.createdAt || null,
+  };
+}
+
+async function runLoveSecretJob(env, jobId) {
+  const coll = await getLoveSecretJobsCollection(env);
+  const _id = toObjectIdOrNull(jobId);
+  if (!_id) return;
+
+  const job = await coll.findOne({ _id });
+  if (!job) return;
+
+  await coll.updateOne(
+    { _id },
+    {
+      $set: {
+        status: "processing",
+        stage: "building_chapters",
+        message: "연애 비책 챕터를 생성하고 있습니다.",
+        startedAt: new Date(),
+        updatedAt: new Date(),
+      },
+    },
+  );
+
+  try {
+    const mode = normalizeMode(job?.mode || "solo");
+    const base = normalizeSajuBase(job?.requestBody || {});
+    const config = safeModeChapterConfig(mode);
+    const totalChapters = Number(config.totalChapters || 0);
+    const chapters = [];
+    let fallbackUsed = false;
+
+    for (let i = 0; i < totalChapters; i += 1) {
+      const chapterNo = i + 1;
+      const chapterMeta = (Array.isArray(config.chapters) ? config.chapters : [])[i] || {};
+      const title = stripUnsafeText(chapterMeta.title || `연애 비책 ${chapterNo}장`);
+      const subtitle = stripUnsafeText(chapterMeta.subtitle || "");
+      const sectionTitles = getChapterSpecificSections({}, chapterNo, mode);
+      const local = buildLocalChapter(base, title, subtitle, sectionTitles, mode, chapterNo);
+      const llm = await maybeEnhanceWithLlm(env, base, local, mode, chapterNo);
+      if (llm.fallbackUsed) fallbackUsed = true;
+
+      chapters.push({
+        chapter: chapterNo,
+        title,
+        subtitle,
+        text: stripUnsafeText(llm.finalText || local.finalText) || local.finalText,
+        sections: Array.isArray(llm.sections) ? llm.sections : local.sections,
+      });
+
+      await coll.updateOne(
+        { _id },
+        {
+          $set: {
+            status: "processing",
+            stage: chapterNo >= totalChapters ? "rendering_pdf" : "writing_with_llm",
+            message: chapterNo >= totalChapters
+              ? "PDF 파일 빌드를 준비하고 있습니다."
+              : `Chapter ${chapterNo} 생성 중...`,
+            completedChapters: chapterNo,
+            updatedAt: new Date(),
+          },
+        },
+      );
+    }
+
+    await coll.updateOne(
+      { _id },
+      {
+        $set: {
+          status: "completed",
+          stage: "completed",
+          message: "연애 비책 PDF가 준비되었습니다.",
+          completedChapters: totalChapters,
+          fallbackUsed,
+          result: {
+            ok: true,
+            featureKey: LOVE_SECRET_FEATURE_KEY,
+            mode,
+            sessionId: clean(job?.requestBody?.sessionId || job?.requestBody?.reportSessionId) || "",
+            chapterCount: totalChapters,
+            fallbackUsed,
+            pdfUrl: "",
+            chapters,
+          },
+          completedAt: new Date(),
+          updatedAt: new Date(),
+        },
+      },
+    );
+  } catch (error) {
+    await coll.updateOne(
+      { _id },
+      {
+        $set: {
+          status: "failed",
+          stage: "failed",
+          message: "연애 비책 생성이 중단되었습니다.",
+          errorMessage: clean(error?.message || "알 수 없는 오류"),
+          failedAt: new Date(),
+          updatedAt: new Date(),
+        },
+      },
+    );
+  }
+}
+
 function buildApiError(code, message, status = 400, debugSafe = null) {
   return json({
     ok: false,
@@ -502,7 +641,127 @@ async function handlePrepare(request, env) {
   });
 }
 
-export async function handleSajuLoveSecretRoutes(request, env = {}) {
+async function handlePrepareAsync(request, env, ctx) {
+  const body = await readJson(request);
+  const mode = normalizeMode(body?.mode || body?.reportMode);
+  const authz = await authorizeLoveSecret(request, env, body, mode);
+  if (!authz.ok) return authz.response;
+
+  const base = normalizeSajuBase(body);
+  const valid = validateMinimumSaju(base);
+  if (!valid.ok) {
+    return buildApiError("MISSING_SAJU_DATA", "사주 분석 결과가 충분하지 않습니다. 사주 분석 화면에서 다시 계산해 주세요.", 400);
+  }
+
+  const config = safeModeChapterConfig(mode);
+  const totalChapters = Number(config.totalChapters || 0);
+  const coll = await getLoveSecretJobsCollection(env);
+  const now = new Date();
+
+  const insertDoc = {
+    service: LOVE_SECRET_SERVICE_KEY,
+    featureKey: authz.featureKey,
+    userId: String(authz?.auth?.userId || ""),
+    reportId: clean(body?.reportId),
+    mode,
+    status: "pending",
+    stage: "pending",
+    message: "연애 비책 생성 요청을 접수했습니다.",
+    chapterCount: totalChapters,
+    completedChapters: 0,
+    requestBody: {
+      reportId: clean(body?.reportId),
+      sessionId: clean(body?.sessionId || body?.reportSessionId),
+      reportSessionId: clean(body?.reportSessionId || body?.sessionId),
+      mode,
+      reportMode: mode,
+      sajuData: clean(body?.sajuData),
+      sajuBase: base,
+      profile: body?.profile && typeof body.profile === "object" ? body.profile : {},
+      partnerData: body?.partnerData || "",
+    },
+    result: null,
+    errorMessage: "",
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const inserted = await coll.insertOne(insertDoc);
+  const jobId = String(inserted?.insertedId || "");
+
+  await coll.updateOne(
+    { _id: inserted.insertedId },
+    {
+      $set: {
+        status: "pending",
+        stage: "queued",
+        message: "백그라운드 생성 대기열에 등록되었습니다.",
+        updatedAt: new Date(),
+      },
+    },
+  );
+
+  const runTask = runLoveSecretJob(env, jobId).catch((error) => {
+    console.error("[love-secret][async-job-failed]", error?.message || error);
+  });
+
+  if (ctx && typeof ctx.waitUntil === "function") {
+    ctx.waitUntil(runTask);
+  } else {
+    Promise.resolve(runTask).catch(() => {});
+  }
+
+  return json({
+    ok: true,
+    accepted: true,
+    jobId,
+    status: "pending",
+    pollAfterMs: LOVE_SECRET_JOB_POLL_AFTER_MS,
+  }, { status: 202 });
+}
+
+async function handleJobStatus(request, env) {
+  const auth = await requireAuth(request, env);
+  const url = new URL(request.url);
+  const id = clean(url.searchParams.get("id") || url.searchParams.get("jobId"));
+  const _id = toObjectIdOrNull(id);
+  if (!_id) return buildApiError("INVALID_JOB_ID", "작업 ID가 유효하지 않습니다.", 400);
+
+  const coll = await getLoveSecretJobsCollection(env);
+  const job = await coll.findOne({ _id, service: LOVE_SECRET_SERVICE_KEY, userId: String(auth.userId || "") });
+  if (!job) return buildApiError("JOB_NOT_FOUND", "작업 정보를 찾을 수 없습니다.", 404);
+
+  const payload = toPublicJobPayload(job);
+  if (payload.status === "completed") {
+    payload.result = job?.result && typeof job.result === "object" ? job.result : null;
+  }
+
+  return json({ ok: true, ...payload });
+}
+
+async function handleJobResult(request, env) {
+  const auth = await requireAuth(request, env);
+  const url = new URL(request.url);
+  const id = clean(url.searchParams.get("id") || url.searchParams.get("jobId"));
+  const _id = toObjectIdOrNull(id);
+  if (!_id) return buildApiError("INVALID_JOB_ID", "작업 ID가 유효하지 않습니다.", 400);
+
+  const coll = await getLoveSecretJobsCollection(env);
+  const job = await coll.findOne({ _id, service: LOVE_SECRET_SERVICE_KEY, userId: String(auth.userId || "") });
+  if (!job) return buildApiError("JOB_NOT_FOUND", "작업 정보를 찾을 수 없습니다.", 404);
+  if (clean(job?.status) !== "completed") {
+    return buildApiError("JOB_NOT_READY", "아직 작업이 완료되지 않았습니다.", 409);
+  }
+
+  return json({
+    ok: true,
+    jobId: String(job?._id || ""),
+    status: "completed",
+    result: job?.result && typeof job.result === "object" ? job.result : null,
+  });
+}
+
+export async function handleSajuLoveSecretRoutes(request, env = {}, ctx = null) {
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/love-secret");
@@ -513,6 +772,18 @@ export async function handleSajuLoveSecretRoutes(request, env = {}) {
 
     if (method === "POST" && path === "/prepare") {
       return await handlePrepare(request, env);
+    }
+
+    if (method === "POST" && path === "/prepare-async") {
+      return await handlePrepareAsync(request, env, ctx);
+    }
+
+    if (method === "GET" && path === "/status") {
+      return await handleJobStatus(request, env);
+    }
+
+    if (method === "GET" && path === "/result") {
+      return await handleJobResult(request, env);
     }
 
     if (["GET", "POST"].includes(method)) return notFound();

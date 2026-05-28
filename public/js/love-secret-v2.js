@@ -6,6 +6,13 @@
 (function () {
   'use strict';
 
+  if (typeof window !== 'undefined' && window.__cdLoveSecretV2Initialized) {
+    return;
+  }
+  if (typeof window !== 'undefined') {
+    window.__cdLoveSecretV2Initialized = true;
+  }
+
   var LOVE_SECRET_CHAPTER_META = {
     solo: {
       titles: [
@@ -239,6 +246,7 @@
   var _lsAccessGrant = null;
   var _lsFetchChapterForPartialRegenerate = null;
   var _lsJobStateKey = 'cd:premium-job:love-secret';
+  var _lsLastStateKey = '';
   var LOVE_SECRET_FEATURE_KEY = 'saju_love_book_pdf';
   var LOVE_SECRET_INTERNAL_FEATURE_TYPE = 'saju_love_secret';
   var LOVE_SECRET_REASON_BY_MODE = {
@@ -263,7 +271,10 @@
     var key = String(stateKey || '').trim();
     var message = String(LOVE_BOOK_GENERATION_MESSAGES[key] || '').trim();
     if (!message) return;
-    _logLoveSecretFlow('STATE_' + key.toUpperCase(), { state: key, message: message, reportId: _lsCurrentReportId || '' });
+    if (_lsLastStateKey !== key) {
+      _logLoveSecretFlow('STATE_' + key.toUpperCase(), { state: key, message: message, reportId: _lsCurrentReportId || '' });
+      _lsLastStateKey = key;
+    }
     var titleEl = _qs('lsLoadingTitle');
     var chapterEl = _qs('lsLoadingChapter');
     if (titleEl) titleEl.textContent = message;
@@ -1603,11 +1614,11 @@
   function _startGeneration(partnerData, accessGrant, reportId) {
     _generating = true;
     _cancelGeneration = false;
+    _lsLastStateKey = '';
     _lsAccessGrant = accessGrant || null;
     _currentChapterMode = partnerData ? 'compatibility' : 'solo';
     _lsCurrentReportId = String(reportId || '').trim() || _lsBuildReportId(_currentChapterMode);
     _setLoveBookGenerationState('preparing_generation');
-    _lsStartPremiumJob(window.__cdActiveBirthProfile || {}, _currentChapterMode, _lsAccessGrant, _lsCurrentReportId);
     _showScreen('lsLoadingScreen');
     _prepareLoveSecretUi(_currentChapterMode);
     _startLoadingAnimation();
@@ -1702,20 +1713,25 @@
             }
           }, _chapterRequestTimeoutMs);
 
+          var _chapterRequestId = 'love-secret-' + _lsReportId + '-ch' + (idx + 1) + '-a' + _plan.retry;
+          var _gateRequestId = String((_lsAccessGrant && _lsAccessGrant.requestId) || '').trim();
+          var _purchaseId = String((_lsAccessGrant && _lsAccessGrant.purchaseId) || '').trim();
+
           fetch(_plan.url, {
             method: 'POST',
             credentials: 'include',
             headers: _lsHeaders,
             body: JSON.stringify({
               reportId: _lsReportId,
-              requestId: 'love-secret-' + _lsReportId + '-ch' + (idx + 1) + '-a' + _plan.retry,
+              requestId: _gateRequestId || _chapterRequestId,
+              chapterRequestId: _chapterRequestId,
               sessionId: _lsSessionId,
               reportSessionId: _lsSessionId,
               chapterSessionId: 'love-secret-chapter-' + (idx + 1),
               chapter: idx + 1,
               mode: _currentChapterMode,
               featureKey: LOVE_SECRET_FEATURE_KEY,
-              purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || '').trim() || undefined,
+              purchaseId: _purchaseId || undefined,
               strictNoFallback: false,
               chapterTitle: _getLoveSecretChapterTitle(idx, _currentChapterMode),
               chapterSubtitle: _getLoveSecretChapterSubtitle(idx, _currentChapterMode),
@@ -1724,6 +1740,18 @@
                 : [],
               accessGrant: _lsAccessGrant || undefined,
               premiumAccessToken: _lsPremiumToken || undefined,
+              payment: {
+                requestId: _gateRequestId || undefined,
+                purchaseId: _purchaseId || undefined,
+                sessionId: _lsSessionId,
+                reportSessionId: _lsSessionId,
+              },
+              _paymentContext: {
+                requestId: _gateRequestId || undefined,
+                purchaseId: _purchaseId || undefined,
+                sessionId: _lsSessionId,
+                reportSessionId: _lsSessionId,
+              },
               sajuData: sajuData,
               sajuBase: sajuBase,
               profile: window.__cdActiveBirthProfile || {},
@@ -1766,51 +1794,150 @@
     }
     _lsFetchChapterForPartialRegenerate = _fetchChapter;
 
-    (async function runLoveSecretChapterPipeline() {
-      var runPipeline = (typeof window.__cdRunPremiumChapterPipeline === 'function')
-        ? window.__cdRunPremiumChapterPipeline
-        : null;
-      if (!runPipeline) {
-        _setLoveBookGenerationState('failed');
-        throw new Error('공통 챕터 파이프라인을 불러오지 못했습니다.');
+    function _applyCompletedResult(resultPayload) {
+      var payload = resultPayload && typeof resultPayload === 'object' ? resultPayload : {};
+      var list = Array.isArray(payload.chapters) ? payload.chapters : [];
+      for (var i = 0; i < totalChapters; i++) {
+        var chapter = list[i] || null;
+        if (!chapter) continue;
+        _chapterMeta[i] = {
+          title: String(chapter.title || _getLoveSecretChapterTitle(i, _currentChapterMode)),
+          subtitle: String(chapter.subtitle || _getLoveSecretChapterSubtitle(i, _currentChapterMode)),
+          isSkeleton: false,
+        };
+        _chapters[i] = String(chapter.text || '').trim();
+        _chapterStructured[i] = (Array.isArray(chapter.sections) && chapter.sections.length)
+          ? { sections: chapter.sections }
+          : null;
       }
+      _setProgress(Math.max(0, Math.min(totalChapters, list.length || totalChapters)));
+    }
 
-      var fallbackText = String(window.__cdPremiumChapterFallbackText || '일시적인 응답 지연으로 해석을 불러오지 못했습니다. 부분 재생성 버튼을 이용해주세요.');
+    function _startStatusPolling(jobId, pollAfterMs) {
+      return new Promise(function (resolve, reject) {
+        var stopped = false;
+        var pollTimer = null;
+        var pollingMs = Number(pollAfterMs || 4000);
+        if (!Number.isFinite(pollingMs) || pollingMs < 3000) pollingMs = 4000;
+
+        function _stop() {
+          stopped = true;
+          if (pollTimer) {
+            clearTimeout(pollTimer);
+            pollTimer = null;
+          }
+        }
+
+        function _scheduleNext() {
+          if (stopped) return;
+          pollTimer = setTimeout(_pollOnce, pollingMs);
+        }
+
+        function _pollOnce() {
+          if (stopped || _cancelGeneration) {
+            _stop();
+            reject(new Error('사용자가 생성을 중단했습니다.'));
+            return;
+          }
+
+          var statusUrl = '/api/love-secret/status?id=' + encodeURIComponent(String(jobId || '').trim());
+          fetch(statusUrl, { method: 'GET', credentials: 'include' })
+            .then(function (res) {
+              return res.json().catch(function () { return {}; }).then(function (body) {
+                return { ok: res.ok, status: res.status, body: body };
+              });
+            })
+            .then(function (pack) {
+              if (!pack.ok || !pack.body || !pack.body.ok) {
+                throw new Error((pack.body && pack.body.message) || ('HTTP ' + pack.status));
+              }
+
+              var body = pack.body;
+              var completed = Number(body.completedChapters || 0);
+              var stageMsg = String(body.message || '').trim();
+              _setProgress(completed);
+              if (chapterMsg && stageMsg) chapterMsg.textContent = stageMsg;
+
+              var status = String(body.status || '').trim();
+              if (status === 'completed') {
+                _stop();
+                _setLoveBookGenerationState('completed');
+                var result = body.result && typeof body.result === 'object' ? body.result : null;
+                if (!result) {
+                  reject(new Error('완료 응답에 결과 데이터가 없습니다.'));
+                  return;
+                }
+                resolve(result);
+                return;
+              }
+
+              if (status === 'failed') {
+                _stop();
+                _setLoveBookGenerationState('failed');
+                reject(new Error(String(body.errorMessage || body.message || '연애 비책 생성에 실패했습니다.')));
+                return;
+              }
+
+              _scheduleNext();
+            })
+            .catch(function (error) {
+              _stop();
+              reject(error);
+            });
+        }
+
+        _pollOnce();
+      });
+    }
+
+    (async function runLoveSecretAsyncPollingFlow() {
+      var _lsPremiumToken = _lsReadPremiumAccessToken();
+      var submitHeaders = { 'Content-Type': 'application/json' };
+      if (_lsPremiumToken) submitHeaders['x-premium-access-token'] = _lsPremiumToken;
+
       _setLoveBookGenerationState('building_chapters');
-      await runPipeline({
-        totalChapters: totalChapters,
-        maxAttempts: 3,
-        interChapterDelayMs: 3000,
-        retryDelayMs: 3000,
-        shouldStop: function () { return _cancelGeneration; },
-        fetchChapter: function (idx) {
-          if (chapterMsg) chapterMsg.textContent = _getLoveSecretLoadingMessage(idx, _currentChapterMode);
-          return _fetchChapter(idx);
-        },
-        isSuccess: function (data) {
-          return !!(data && data.ok && data.text);
-        },
-        onSuccess: function (idx, data) {
-          _syncChapterMetaFromResponse(idx, data);
-          _chapters[idx] = data.text;
-          _chapterStructured[idx] = (Array.isArray(data.sections) && data.sections.length)
-            ? { sections: data.sections }
-            : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
-          _saveResult(window.__cdActiveBirthProfile || {});
-        },
-        onFallback: function (idx, fallbackPayload) {
-          var msg = (fallbackPayload && fallbackPayload.message) ? String(fallbackPayload.message) : '알 수 없는 오류';
-          _chapters[idx] = fallbackText;
-          _chapterStructured[idx] = null;
-          console.warn('[연애 비책] Chapter ' + (idx + 1) + ' 실패:', msg);
-          _saveResult(window.__cdActiveBirthProfile || {});
-        },
-        onProgress: function (idx) {
-          _setProgress(idx + 1);
-        },
+      var submitRes = await fetch('/api/love-secret/prepare-async', {
+        method: 'POST',
+        credentials: 'include',
+        headers: submitHeaders,
+        body: JSON.stringify({
+          reportId: _lsReportId,
+          sessionId: _lsSessionId,
+          reportSessionId: _lsSessionId,
+          mode: _currentChapterMode,
+          featureKey: LOVE_SECRET_FEATURE_KEY,
+          purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || '').trim() || undefined,
+          accessGrant: _lsAccessGrant || undefined,
+          premiumAccessToken: _lsPremiumToken || undefined,
+          payment: {
+            requestId: String((_lsAccessGrant && _lsAccessGrant.requestId) || '').trim() || undefined,
+            purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || '').trim() || undefined,
+            sessionId: _lsSessionId,
+            reportSessionId: _lsSessionId,
+          },
+          _paymentContext: {
+            requestId: String((_lsAccessGrant && _lsAccessGrant.requestId) || '').trim() || undefined,
+            purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || '').trim() || undefined,
+            sessionId: _lsSessionId,
+            reportSessionId: _lsSessionId,
+          },
+          sajuData: sajuData,
+          sajuBase: sajuBase,
+          profile: window.__cdActiveBirthProfile || {},
+          partnerData: partnerData || '',
+        }),
       });
 
+      var submitBody = await submitRes.json().catch(function () { return {}; });
+      if (!submitRes.ok || !submitBody || !submitBody.ok || !submitBody.jobId) {
+        throw new Error((submitBody && submitBody.message) || ('HTTP ' + submitRes.status));
+      }
+
+      _setLoveBookGenerationState('writing_with_llm');
+      var result = await _startStatusPolling(submitBody.jobId, submitBody.pollAfterMs);
       if (_cancelGeneration) return;
+
+      _applyCompletedResult(result);
       _generating = false;
       _stopLoadingAnimation();
       _showScreen('lsResultScreen');
@@ -1822,10 +1949,10 @@
       var profile = window.__cdActiveBirthProfile || {};
       _saveResult(profile);
       _renderResultHeader(profile.name, profile.birth, profile.gender, new Date(), true);
-      _lsRunPremiumJob(totalChapters);
     })().catch(function (error) {
       _generating = false;
       _stopLoadingAnimation();
+      _setLoveBookGenerationState('failed');
       var msg = String(error && error.message ? error.message : error || '챕터 생성 중 오류가 발생했습니다.');
       alert('연애 비책 생성 중 오류가 발생했습니다: ' + msg);
     });
