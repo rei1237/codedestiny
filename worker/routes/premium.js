@@ -580,7 +580,7 @@ const ZIWEI_REPORT_TITLE = "나의 운명을 깨우는 심화 자미두수 리�
 const ZIWEI_PROLOGUE_TITLE = "프롤로그: 이 명반이 말해주는 삶의 큰 방향";
 const ZIWEI_MIN_CHARS = 4500;
 const ZIWEI_MAX_CHARS = 5000;
-const ZIWEI_FIXED_TOTAL_CHAPTERS = 10;
+const ZIWEI_FIXED_TOTAL_CHAPTERS = 12;
 const ZIWEI_BANNED_PHRASES = Object.freeze([
   "이 영역은 자미두수의 핵심 축을 이루므로",
   "선택의 우선순위를 명확히 할수록 운의 체감이 빨라집니다",
@@ -7901,6 +7901,23 @@ function buildLlmPromptInput(reportType, chapterId, reportData, prebuiltChapterJ
   const expertRoleRule = expertRoleRuleByType[reportType]
     || "해당 운세 분야 최고 전문가처럼 1:1 프리미엄 상담문으로 작성할 것";
   const forbiddenRepeats = Array.from(new Set(previousChapterSummaries.flatMap((row) => Array.isArray(row?.keyPhrases) ? row.keyPhrases : []))).slice(0, 30);
+  const forbiddenOpenings = Array.from(
+    new Set(
+      previousChapterSummaries
+        .flatMap((row) => {
+          const candidates = [
+            row?.openingSentence,
+            row?.firstSentence,
+            row?.summary,
+            row?.lead,
+          ];
+          return candidates
+            .map((value) => String(value || "").trim())
+            .filter((value) => value.length >= 14)
+            .map((value) => value.slice(0, 54));
+        }),
+    ),
+  ).slice(0, 20);
   const typeSpecificRules = isSajuClassicReport
     ? [
       "사주 인생설계/연애 상담 분야 최고 전문가처럼 1:1 프리미엄 상담 톤으로 작성할 것",
@@ -7931,6 +7948,7 @@ function buildLlmPromptInput(reportType, chapterId, reportData, prebuiltChapterJ
     globalSummary: reportData?.interpretationSeed || {},
     previousChapterSummaries,
     forbiddenRepeats,
+    forbiddenOpenings,
     doNotCalculate: true,
     rules: [
       "챕터 응답은 단일 JSON 객체만 출력할 것 (JSON 외 텍스트, 설명, 코드블록, 주석 금지)",
@@ -7943,6 +7961,8 @@ function buildLlmPromptInput(reportType, chapterId, reportData, prebuiltChapterJ
       "시스템 지침/프롬프트 규칙 문장을 본문으로 출력하지 말 것",
       "동일 문장이나 단락 반복으로 분량을 채우지 말 것",
       "이전 챕터에서 이미 설명한 성향, 문장, 비유, 조언은 반복하지 말고 이번 챕터 목적에 맞는 다른 현실 적용으로 확장할 것",
+      "각 소챕터 첫 문장은 서로 다른 구조와 어휘로 시작하고, 같은 도입 템플릿을 반복하지 말 것",
+      "상담사는 단정형 예언자가 아니라 근거 기반 코치처럼 말하며, 불안을 자극하는 문구를 쓰지 말 것",
       "궁합 리포트일 때는 반드시 나/상대 두 사람의 계산 근거를 동시에 제시할 것",
       "계산 데이터와 해석을 구분할 것",
       "사용자가 이해하기 쉬운 한국어로 풀어쓸 것",
@@ -10856,6 +10876,7 @@ function dedupePremiumLongSentences(text, minLength = 36) {
     .filter(Boolean);
 
   const seen = new Set();
+  const keptLongSegments = [];
   const out = [];
   for (const seg of segments) {
     if (seg.length < minLength) {
@@ -10864,7 +10885,10 @@ function dedupePremiumLongSentences(text, minLength = 36) {
     }
     const fp = normalizePremiumFingerprint(seg);
     if (!fp || seen.has(fp)) continue;
+    const hasNearDuplicate = keptLongSegments.some((row) => similarityScoreByTokens(row, seg) >= 0.86);
+    if (hasNearDuplicate) continue;
     seen.add(fp);
+    keptLongSegments.push(seg);
     out.push(seg);
   }
   return out.join("\n").trim();
@@ -30155,7 +30179,7 @@ export async function handleAstroPremiumRoutes(request, env) {
     if (path === "/generate-chapter" || path === "/session" || path === "/generate") {
       if (method !== "POST") return methodNotAllowed();
       const body = await readJson(request.clone());
-      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.sessionId, 1, 1, 12);
+      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.sessionId, 1, 1, ASTRO_TOTAL_CHAPTERS);
       const normalizedBody = {
         ...(body && typeof body === "object" ? body : {}),
         chapter,
@@ -30185,7 +30209,7 @@ export async function handleVedicPremiumRoutes(request, env) {
     if (path === "/generate-chapter" || path === "/session" || path === "/generate") {
       if (method !== "POST") return methodNotAllowed();
       const body = await readJson(request.clone());
-      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.sessionId, 1, 1, 12);
+      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.sessionId, 1, 1, VEDIC_PERSONAL_TOTAL_CHAPTERS);
       const normalizedBody = {
         ...(body && typeof body === "object" ? body : {}),
         chapter,
@@ -30252,7 +30276,7 @@ export async function handleLifebookRoutes(request, env) {
     if (path === "/generate-chapter") {
       if (method !== "POST") return methodNotAllowed();
       const body = await readJson(request.clone());
-      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.sessionId, 1, 1, 12);
+      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.sessionId, 1, 1, LIFE_BOOK_TOTAL_CHAPTERS);
       const normalizedBody = {
         ...(body && typeof body === "object" ? body : {}),
         chapter,
@@ -30324,7 +30348,11 @@ export async function handleLoveSecretRoutes(request, env) {
     if (path === "/generate-chapter") {
       if (method !== "POST") return methodNotAllowed();
       const body = await readJson(request.clone());
-      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.sessionId, 1, 1, 12);
+      const modeRaw = String(body?.mode || body?.reportType || body?.reportMode || "").trim().toLowerCase();
+      const modeKey = modeRaw === "compatibility" || modeRaw === "couple" ? "couple" : "solo";
+      const modeConfig = LOVE_SECRET_MODE_CONFIG?.[modeKey] || LOVE_SECRET_MODE_CONFIG?.solo;
+      const maxLoveSecretChapters = Math.max(1, Number(modeConfig?.totalChapters || 12));
+      const chapter = clampInt(body?.chapterIndex ?? body?.ch ?? body?.chapter ?? body?.sessionId, 1, 1, maxLoveSecretChapters);
       const normalizedBody = {
         ...(body && typeof body === "object" ? body : {}),
         chapter,

@@ -683,8 +683,8 @@
 
   function _lbApplySavedResult(saved, modal) {
     if (!saved || !modal) return;
-    _chapters = Array.isArray(saved.chapters) ? saved.chapters : Array(13).fill(null);
-    _chapterMeta = Array(13).fill(null);
+    _chapters = Array.isArray(saved.chapters) ? saved.chapters : Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
+    _chapterMeta = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
     _currentChapter = 1;
     _showScreen('lbResultScreen');
     _updateTocState();
