@@ -5,19 +5,34 @@ import { callGeminiText } from "../lib/gemini.js";
 import { LOVE_SECRET_MODE_CONFIG } from "../lib/saju-premium-chapters.js";
 
 const LOVE_SECRET_SERVICE_KEY = "saju-love-secret";
-const LOVE_SECRET_FEATURE_KEY_SOLO = "premium_pdf_saju_love_secret";
-const LOVE_SECRET_FEATURE_KEY_COMPAT = "premium_pdf_saju_love_secret_compat";
+const LOVE_SECRET_FEATURE_KEY = "saju_love_book_pdf";
 
 const DEFAULT_CATEGORY_BY_MODE = {
   solo: {
-    1: ["사랑을 시작하는 방식", "감정 표현 방식", "주도권 패턴", "반복되는 첫 반응", "실전 조언"],
-    2: ["매력 작동 포인트", "도화/홍염/화개 보조 해석", "강점 활용", "피해야 할 과열", "실전 조언"],
-    3: ["이상형 구조", "배우자궁 관점", "경계 대상", "관계 안정 조건", "실전 조언"],
+    1: ["연애 자아 진단", "감정 작동 방식", "핵심 욕구", "강점 포인트", "주의 신호"],
+    2: ["매력 코드", "도화·홍염·화개", "끌림 포인트", "매력 활용법", "금기 요소"],
+    3: ["이상형 분석", "위험한 상대", "오래 갈 인연", "반복 인연 패턴", "회피 기준"],
+    4: ["붕괴 패턴", "반복 실수", "이별 트리거", "감정 후폭풍", "패턴 전환법"],
+    5: ["감정 집착", "중독 신호", "불안의 원인", "자기 소진", "회복 기준"],
+    6: ["회복 탄성", "갈등 복구", "재접속 방식", "신뢰 회복", "정서 복원력"],
+    7: ["결혼 태도", "장기 안정성", "현실 조건", "배우자궁 신호", "장기 전략"],
+    8: ["위험 인연", "금지 패턴", "경고 신호", "반복 중독", "차단 기준"],
+    9: ["현실 전략", "고백·대화", "거리 조절", "관계 운영", "실행 규칙"],
+    10: ["최종 요약", "핵심 매력", "반복 약점", "행동 우선순위", "연애 로드맵"],
   },
   compatibility: {
-    1: ["인연 결속 구조", "관계 기본축", "핵심 차이", "충돌 예방", "실전 조언"],
-    2: ["감정 리듬", "애착 속도", "정서 온도차", "오해 지점", "실전 조언"],
-    3: ["표현 방식 충돌", "대화 회복 패턴", "거리감 조절", "갈등 완화", "실전 조언"],
+    1: ["원국 요약", "각자의 연애 자아", "핵심 차이", "관계 기본축", "총론"],
+    2: ["끌림 포인트", "상호 매력 구조", "강한 유인", "불안 스위치", "안정 장치"],
+    3: ["감정 리듬", "애착 온도차", "속도 차이", "오해 포인트", "조율 전략"],
+    4: ["소통 습관", "오해 구조", "갈등 언어", "대화 회복", "실행 규칙"],
+    5: ["생활 루틴", "현실 역할", "책임 분배", "돈·생활 조건", "적합도"],
+    6: ["장기 유지 조건", "신뢰 구조", "안정 장치", "경계선", "장기 전략"],
+    7: ["갈등 트리거", "방어 반응", "반복 상처", "폭발 지점", "복구 루틴"],
+    8: ["거리감 신호", "이별 위험", "재회 가능성", "되돌림 조건", "판단 기준"],
+    9: ["성장 지점", "서로의 배움", "협력 구조", "보완 포인트", "관계 확장"],
+    10: ["대운 흐름", "세운 변화", "좋은 타이밍", "주의 타이밍", "시기 전략"],
+    11: ["첫 30일", "다음 30일", "마지막 30일", "갈등 완화", "신뢰 회복"],
+    12: ["핵심 장점", "핵심 위험", "유지 전략", "정리 기준", "최종 로드맵"],
   },
 };
 
@@ -35,8 +50,8 @@ function toConfigMode(mode) {
   return mode === "compatibility" ? "couple" : "solo";
 }
 
-function toFeatureKey(mode) {
-  return mode === "compatibility" ? LOVE_SECRET_FEATURE_KEY_COMPAT : LOVE_SECRET_FEATURE_KEY_SOLO;
+function toFeatureKey() {
+  return LOVE_SECRET_FEATURE_KEY;
 }
 
 function stripUnsafeText(value) {
@@ -335,8 +350,13 @@ async function maybeEnhanceWithLlm(env, base, chapter, mode, chapterNo) {
   };
 }
 
-function buildApiError(code, message, status = 400) {
-  return json({ ok: false, code, message }, { status });
+function buildApiError(code, message, status = 400, debugSafe = null) {
+  return json({
+    ok: false,
+    code,
+    message,
+    ...(debugSafe && typeof debugSafe === "object" ? { debugSafe } : {}),
+  }, { status });
 }
 
 async function authorizeLoveSecret(request, env, body, mode) {
@@ -350,7 +370,11 @@ async function authorizeLoveSecret(request, env, body, mode) {
     throw error;
   }
 
-  const featureKey = toFeatureKey(mode);
+  const featureKey = toFeatureKey();
+  const reportId = clean(body?.reportId);
+  const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.chapterSessionId);
+  const purchaseId = clean(body?.purchaseId || body?.reportPurchaseId || body?.accessGrant?.purchaseId || body?.payment?.purchaseId || body?._paymentContext?.purchaseId);
+
   const access = await requirePremiumReportAccess(env, auth.userId, "loveSecret", {
     ...body,
     mode,
@@ -361,12 +385,28 @@ async function authorizeLoveSecret(request, env, body, mode) {
 
   if (!access?.ok) {
     const status = Number(access?.status || 402);
-    const message = status === 402
-      ? "프리미엄 연애 비책 생성 권한이 필요합니다."
-      : status === 401
-        ? "로그인 후 연애 비책 PDF를 생성할 수 있습니다."
-        : "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
-    return { ok: false, response: buildApiError(access?.code || "UNAUTHORIZED", message, status) };
+    const hasBinding = Boolean(reportId || sessionId || purchaseId);
+    const isPaymentBindingMiss = status === 402 && hasBinding;
+    const code = isPaymentBindingMiss
+      ? "PAYMENT_CONFIRMED_BUT_ACCESS_MISSING"
+      : (access?.code || "UNAUTHORIZED");
+    const message = isPaymentBindingMiss
+      ? "결제는 확인되었지만 생성 권한 연결이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요."
+      : status === 402
+        ? "프리미엄 연애 비책 생성 권한이 필요합니다."
+        : status === 401
+          ? "로그인 후 연애 비책 PDF를 생성할 수 있습니다."
+          : "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+    return {
+      ok: false,
+      response: buildApiError(code, message, status, {
+        featureKey,
+        mode,
+        hasSessionId: Boolean(sessionId),
+        hasPurchaseId: Boolean(purchaseId),
+        hasReportId: Boolean(reportId),
+      }),
+    };
   }
 
   return { ok: true, auth, featureKey };
@@ -404,6 +444,7 @@ async function handleGenerateChapter(request, env) {
     ok: true,
     featureKey: authz.featureKey,
     mode,
+    sessionId: clean(body?.sessionId || body?.reportSessionId || body?.chapterSessionId) || "",
     chapter: chapterNo,
     chapterCount: totalChapters,
     chapterMeta: { title, subtitle },
@@ -453,6 +494,7 @@ async function handlePrepare(request, env) {
     ok: true,
     featureKey: authz.featureKey,
     mode,
+    sessionId: clean(body?.sessionId || body?.reportSessionId) || "",
     chapterCount: totalChapters,
     fallbackUsed,
     pdfUrl: "",
