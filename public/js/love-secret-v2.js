@@ -1069,51 +1069,229 @@
     }
   }
 
+  function _lsToInt(value, fallback) {
+    var n = parseInt(value, 10);
+    return Number.isFinite(n) ? n : fallback;
+  }
+
+  function _lsNormalizeProfile(raw) {
+    if (!raw || typeof raw !== 'object') return null;
+
+    var birth = raw.birth || {};
+    if (!birth || typeof birth !== 'object') {
+      birth = {
+        year: raw.birthYear,
+        month: raw.birthMonth,
+        day: raw.birthDay,
+        hour: raw.birthHour,
+        minute: raw.birthMinute,
+        calType: raw.calType
+      };
+      if ((!birth.year || !birth.month || !birth.day) && typeof raw.birthDate === 'string') {
+        var parts = raw.birthDate.trim().split(/[-/]/);
+        if (parts.length >= 3) {
+          birth.year = birth.year || _lsToInt(parts[0], null);
+          birth.month = birth.month || _lsToInt(parts[1], null);
+          birth.day = birth.day || _lsToInt(parts[2], null);
+        }
+      }
+      if ((birth.hour == null || birth.minute == null) && typeof raw.birthTime === 'string') {
+        var tparts = raw.birthTime.trim().split(':');
+        if (tparts.length >= 2) {
+          if (birth.hour == null) birth.hour = _lsToInt(tparts[0], 12);
+          if (birth.minute == null) birth.minute = _lsToInt(tparts[1], 0);
+        }
+      }
+    }
+
+    var year = _lsToInt(birth.year, 0);
+    var month = _lsToInt(birth.month, 0);
+    var day = _lsToInt(birth.day, 0);
+    if (!year || !month || !day) return null;
+
+    var hour = _lsToInt(birth.hour, 12);
+    var minute = _lsToInt(birth.minute, 0);
+    hour = Math.max(0, Math.min(23, hour));
+    minute = Math.max(0, Math.min(59, minute));
+
+    var location = raw.location || {};
+    var lng = Number(location.lng);
+    var lat = Number(location.lat);
+    var tzOffset = Number(location.baseTzOffset || location.tzOffset);
+
+    return {
+      name: String(raw.name || raw.username || raw.displayName || '사용자').trim() || '사용자',
+      gender: String(raw.gender || 'F').trim().toUpperCase() === 'M' ? 'M' : 'F',
+      birth: {
+        year: year,
+        month: month,
+        day: day,
+        hour: hour,
+        minute: minute,
+        calType: birth.calType || 'solar'
+      },
+      location: {
+        label: String(location.label || '대한민국 (서울)'),
+        tz: String(location.tz || 'Asia/Seoul'),
+        lng: Number.isFinite(lng) ? lng : 127.0,
+        lat: Number.isFinite(lat) ? lat : 37.6,
+        tzOffset: Number.isFinite(tzOffset) ? tzOffset : 9,
+        baseTzOffset: Number.isFinite(tzOffset) ? tzOffset : 9
+      }
+    };
+  }
+
+  function _lsPromptBaseProfile() {
+    try {
+      var dateInput = String(window.prompt('연애 비책 생성을 위해 생년월일을 입력해 주세요. (예: 1994-08-16)', '') || '').trim();
+      if (!dateInput) return null;
+      var dParts = dateInput.split(/[-/]/);
+      if (dParts.length < 3) return null;
+      var year = _lsToInt(dParts[0], 0);
+      var month = _lsToInt(dParts[1], 0);
+      var day = _lsToInt(dParts[2], 0);
+      if (!year || !month || !day) return null;
+
+      var timeInput = String(window.prompt('출생 시각을 입력해 주세요. (예: 14:30, 모르면 12:00)', '12:00') || '').trim() || '12:00';
+      var tParts = timeInput.split(':');
+      var hour = _lsToInt(tParts[0], 12);
+      var minute = _lsToInt(tParts[1], 0);
+
+      var genderInput = String(window.prompt('성별을 입력해 주세요. (M/F)', 'F') || 'F').trim().toUpperCase();
+      var gender = genderInput === 'M' ? 'M' : 'F';
+
+      return _lsNormalizeProfile({
+        name: '사용자',
+        gender: gender,
+        birth: { year: year, month: month, day: day, hour: hour, minute: minute, calType: 'solar' },
+        location: { label: '대한민국 (서울)', tz: 'Asia/Seoul', lng: 127.0, lat: 37.6, tzOffset: 9, baseTzOffset: 9 }
+      });
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function _lsAdoptBirthProfile(options) {
+    var opt = options || {};
+    var allowPrompt = !!opt.allowPrompt;
+
+    var active = _lsNormalizeProfile(window.__cdActiveBirthProfile || null);
+    if (active) {
+      window.__cdActiveBirthProfile = active;
+      return true;
+    }
+
+    var candidates = [];
+
+    try {
+      var dateEl = document.getElementById('birthDate');
+      if (dateEl && dateEl.value) {
+        var p = String(dateEl.value).split('-');
+        var y = _lsToInt(p[0], 0);
+        var m = _lsToInt(p[1], 0);
+        var d = _lsToInt(p[2], 0);
+        if (y && m && d) {
+          var isFemale = document.querySelector('#btnF.on') !== null;
+          var hEl = document.getElementById('birthHour');
+          var minEl = document.getElementById('birthMinute');
+          var cSel = document.getElementById('birthCountry');
+          var loc = { label: '대한민국 (서울)', lng: 127.0, lat: 37.6, tz: 'Asia/Seoul', tzOffset: 9, baseTzOffset: 9 };
+          if (cSel && cSel.selectedIndex >= 0) {
+            var op = cSel.options[cSel.selectedIndex];
+            if (op) {
+              loc = {
+                label: (op.textContent || op.text || '').trim(),
+                lng: parseFloat(op.getAttribute('data-long') || '127.0'),
+                lat: parseFloat(op.getAttribute('data-lat') || '37.6'),
+                tz: op.value || 'Asia/Seoul',
+                tzOffset: parseFloat(op.getAttribute('data-tz') || '9'),
+                baseTzOffset: parseFloat(op.getAttribute('data-base-tz') || '9')
+              };
+            }
+          }
+          candidates.push({
+            name: ((document.getElementById('nameInput') || {}).value || '사용자').trim() || '사용자',
+            gender: isFemale ? 'F' : 'M',
+            birth: { year: y, month: m, day: d, hour: hEl ? _lsToInt(hEl.value, 12) : 12, minute: minEl ? _lsToInt(minEl.value, 0) : 0, calType: 'solar' },
+            location: loc
+          });
+        }
+      }
+    } catch (_) {}
+
+    try {
+      var ns = 'FORTUNE_APP_USER_PROFILES';
+      var list = JSON.parse(localStorage.getItem(ns + '.list') || '[]');
+      var curId = localStorage.getItem(ns + '.current');
+      var pick = (curId && Array.isArray(list) && list.find(function (x) { return x && x.id === curId; })) || (Array.isArray(list) ? list[0] : null);
+      if (pick) candidates.push(pick);
+    } catch (_) {}
+
+    try { candidates.push(JSON.parse(localStorage.getItem('FORTUNE_APP_USER_PROFILE') || 'null')); } catch (_) {}
+    try { candidates.push(JSON.parse(sessionStorage.getItem('FORTUNE_APP_USER_PROFILE') || 'null')); } catch (_) {}
+    try { candidates.push(JSON.parse(localStorage.getItem('FORTUNE_APP_VEDIC_PAYLOAD') || 'null')); } catch (_) {}
+    try { candidates.push(JSON.parse(sessionStorage.getItem('FORTUNE_APP_VEDIC_PAYLOAD') || 'null')); } catch (_) {}
+    try { candidates.push(window.FORTUNE_APP_VEDIC_PAYLOAD || null); } catch (_) {}
+
+    try {
+      var ziwei = JSON.parse(localStorage.getItem('premium:ziwei:session:v1') || 'null');
+      if (ziwei) {
+        candidates.push({
+          name: '사용자',
+          gender: 'F',
+          birth: {
+            year: _lsToInt(ziwei.birthYear, 0),
+            month: _lsToInt(ziwei.birthMonth, 0),
+            day: _lsToInt(ziwei.birthDay, 0),
+            hour: _lsToInt(ziwei.birthHour, 12),
+            minute: 0,
+            calType: 'solar'
+          },
+          location: { label: '대한민국 (서울)', tz: 'Asia/Seoul', lng: 127.0, lat: 37.6, tzOffset: 9, baseTzOffset: 9 }
+        });
+      }
+    } catch (_) {}
+
+    try {
+      var sp = new URLSearchParams(window.location.search);
+      var vp = sp.get('vp');
+      if (vp) candidates.push(JSON.parse(decodeURIComponent(vp)));
+    } catch (_) {}
+
+    for (var i = 0; i < candidates.length; i++) {
+      var normalized = _lsNormalizeProfile(candidates[i]);
+      if (!normalized) continue;
+      window.__cdActiveBirthProfile = normalized;
+      try {
+        sessionStorage.setItem('FORTUNE_APP_USER_PROFILE', JSON.stringify(normalized));
+        localStorage.setItem('FORTUNE_APP_USER_PROFILE', JSON.stringify(normalized));
+      } catch (_) {}
+      return true;
+    }
+
+    if (allowPrompt) {
+      var prompted = _lsPromptBaseProfile();
+      if (prompted) {
+        window.__cdActiveBirthProfile = prompted;
+        try {
+          sessionStorage.setItem('FORTUNE_APP_USER_PROFILE', JSON.stringify(prompted));
+          localStorage.setItem('FORTUNE_APP_USER_PROFILE', JSON.stringify(prompted));
+        } catch (_) {}
+        return true;
+      }
+    }
+    return false;
+  }
+
   window.openLoveSecretModal = function () {
     _prepareLoveSecretUi('solo');
     var modal = _qs('loveSecretModal');
     if (!modal) return;
-    var hasData = !!(window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth && window.__cdActiveBirthProfile.birth.year);
-    // ★ 프로필 없으면 DOM 및 localStorage 운명 카드에서 복구 시도
+    var hasData = _lsAdoptBirthProfile({ allowPrompt: true });
     if (!hasData) {
-      try {
-        var _oLsDateEl = document.getElementById('birthDate');
-        if (_oLsDateEl && _oLsDateEl.value) {
-          var _oLsParts = _oLsDateEl.value.split('-');
-          var _oLsY = Number(_oLsParts[0]), _oLsM = Number(_oLsParts[1]), _oLsD = Number(_oLsParts[2]);
-          if (_oLsY && _oLsM && _oLsD) {
-            var _oLsNameEl = document.getElementById('nameInput');
-            var _oLsIsFemale = document.querySelector('#btnF.on') !== null;
-            var _oLsHourEl = document.getElementById('birthHour');
-            var _oLsMinEl = document.getElementById('birthMinute');
-            var _oLsCountrySel = document.getElementById('birthCountry');
-            var _oLsLocData = { label: '대한민국 (서울)', lng: 127.0, lat: 37.6, tz: 'Asia/Seoul', tzOffset: 9, baseTzOffset: 9 };
-            if (_oLsCountrySel && _oLsCountrySel.selectedIndex >= 0) {
-              var _oLsOpt = _oLsCountrySel.options[_oLsCountrySel.selectedIndex];
-              if (_oLsOpt) { _oLsLocData = { label: (_oLsOpt.textContent || _oLsOpt.text || '').trim(), lng: parseFloat(_oLsOpt.getAttribute('data-long') || '127.0'), lat: parseFloat(_oLsOpt.getAttribute('data-lat') || '37.6'), tz: _oLsOpt.value || 'Asia/Seoul', tzOffset: parseFloat(_oLsOpt.getAttribute('data-tz') || '9'), baseTzOffset: parseFloat(_oLsOpt.getAttribute('data-base-tz') || '9') }; }
-            }
-            window.__cdActiveBirthProfile = { name: (_oLsNameEl && _oLsNameEl.value.trim()) || '사용자', gender: _oLsIsFemale ? 'F' : 'M', birth: { year: _oLsY, month: _oLsM, day: _oLsD, hour: _oLsHourEl ? Number(_oLsHourEl.value) : 12, minute: _oLsMinEl ? Number(_oLsMinEl.value) : 0 }, location: _oLsLocData };
-            hasData = true;
-          }
-        }
-      } catch (_oLsDomE) {}
-    }
-    if (!hasData) {
-      try {
-        var _oLsDpNs = 'FORTUNE_APP_USER_PROFILES';
-        var _oLsDpList = JSON.parse(localStorage.getItem(_oLsDpNs + '.list') || '[]');
-        var _oLsDpCurrId = localStorage.getItem(_oLsDpNs + '.current');
-        var _oLsDpMatch = (_oLsDpCurrId && _oLsDpList.find(function(p){return p.id===_oLsDpCurrId;})) || (_oLsDpList.length && _oLsDpList[0]) || null;
-        if (_oLsDpMatch && _oLsDpMatch.birth && _oLsDpMatch.birth.year) {
-          window.__cdActiveBirthProfile = _oLsDpMatch;
-          hasData = true;
-        }
-      } catch (_oLsDpE) {}
-    }
-    if (!hasData) {
-      var _oLsFormEl = document.getElementById('birthDate') || document.getElementById('run-btn');
+      var _oLsFormEl = document.getElementById('birthDate') || document.getElementById('run-btn') || document.getElementById('loveSecretModal');
       if (_oLsFormEl) { try { _oLsFormEl.scrollIntoView({behavior:'smooth',block:'center'}); } catch(_){} }
-      alert('💕 연애 비책을 생성하려면 생년월일 · 출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
+      alert('💕 연애 비책 생성을 위해 생년월일 정보가 필요합니다. 정보 입력 후 다시 시도해 주세요.');
       return;
     }
 
@@ -1276,17 +1454,9 @@
     window.generateLoveSecret = function () {
     if (_generating) return;
     // 프로필 복구: __cdActiveBirthProfile 없으면 localStorage DP에서 시도
-    if (!(window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth && window.__cdActiveBirthProfile.birth.year)) {
-      try {
-        var _glsDpNs = 'FORTUNE_APP_USER_PROFILES';
-        var _glsDpList = JSON.parse(localStorage.getItem(_glsDpNs + '.list') || '[]');
-        var _glsDpCurrId = localStorage.getItem(_glsDpNs + '.current');
-        var _glsDpMatch = (_glsDpCurrId && _glsDpList.find(function(p){return p.id===_glsDpCurrId;})) || (_glsDpList.length && _glsDpList[0]) || null;
-        if (_glsDpMatch && _glsDpMatch.birth && _glsDpMatch.birth.year) { window.__cdActiveBirthProfile = _glsDpMatch; }
-      } catch (_glsDpE) {}
-    }
+    _lsAdoptBirthProfile({ allowPrompt: true });
     var hasData = !!(window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth && window.__cdActiveBirthProfile.birth.year);
-    if (!hasData) { alert('사주 계산을 먼저 완료해 주세요.'); return; }
+    if (!hasData) { alert('생년월일 정보를 확인할 수 없어 연애 비책 생성을 시작할 수 없습니다.'); return; }
     // 사주 분석 화면과 100% 일치하도록 G_PILLARS 등 전역 변수 재계산
     if (typeof window.computeProfileForModal === 'function' && window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth) {
       try { window.computeProfileForModal(window.__cdActiveBirthProfile); } catch (_cpE) {}
