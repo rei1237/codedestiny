@@ -5,17 +5,7 @@ import { handleTarotRoutes } from "./routes/tarot.js";
 import { handleCelestialHarmonyRoutes } from "./routes/celestial-harmony.js";
 import { handleYoutubeRoutes } from "./routes/youtube.js";
 import { handlePaymentRoutes } from "./routes/payments.js";
-import {
-  handleAstroPremiumRoutes,
-  handleLifebookRoutes,
-  handleLoveSecretRoutes,
-  handlePremiumReportRoutes,
-  handlePremiumRoutes,
-  handleSukuyoPremiumRoutes,
-  handleVedicPremiumRoutes,
-  handleZiweiRoutes,
-  handleZiweiBookRoutes,
-} from "./routes/premium.js";
+import { handleSajuLifebookRoutes } from "./routes/saju-lifebook.js";
 import { handleDreamRoutes } from "./routes/dream.js";
 import { handleDebugRoutes } from "./routes/debug.js";
 import { handleYogaGuruRoutes } from "./routes/yoga-guru.js";
@@ -600,19 +590,37 @@ export default {
         (url.pathname === "/api/premium" || url.pathname.startsWith("/api/premium/"))
         && !(url.pathname === "/api/premium/saju/life-book" || url.pathname.startsWith("/api/premium/saju/life-book/"))
       ) {
-        return withCorsHeaders(request, env, await handlePremiumRoutes(request, env));
+        return jsonResponse(request, env, {
+          ok: false,
+          error: "removed_feature",
+          message: "프리미엄 통합 PDF 엔드포인트는 제거되었습니다. 인생의 책은 /api/lifebook/* 경로를 사용하세요.",
+          supported: ["/api/lifebook", "/api/lifebook/prepare"],
+        }, { status: 410 });
       }
 
       if (url.pathname === "/api/premium-report" || url.pathname.startsWith("/api/premium-report/")) {
-        return withCorsHeaders(request, env, await handlePremiumReportRoutes(request, env));
+        return jsonResponse(request, env, {
+          ok: false,
+          error: "removed_feature",
+          message: "premium-report 엔드포인트는 제거되었습니다. 인생의 책은 /api/lifebook/* 경로를 사용하세요.",
+          supported: ["/api/lifebook", "/api/lifebook/prepare"],
+        }, { status: 410 });
       }
 
       if (url.pathname === "/api/ziwei-book" || url.pathname.startsWith("/api/ziwei-book/")) {
-        return withCorsHeaders(request, env, await handleZiweiBookRoutes(request, env));
+        return jsonResponse(request, env, {
+          ok: false,
+          error: "removed_feature",
+          message: "ziwei-book PDF 엔드포인트는 제거되었습니다.",
+        }, { status: 410 });
       }
 
       if (url.pathname === "/api/ziwei" || url.pathname.startsWith("/api/ziwei/")) {
-        return withCorsHeaders(request, env, await handleZiweiRoutes(request, env));
+        return jsonResponse(request, env, {
+          ok: false,
+          error: "removed_feature",
+          message: "ziwei PDF 엔드포인트는 제거되었습니다.",
+        }, { status: 410 });
       }
 
       if (
@@ -622,15 +630,22 @@ export default {
         || url.pathname.startsWith("/api/premium/saju/life-book/")
       ) {
         let routedRequest = request;
-        if (url.pathname === "/api/premium/saju/life-book" || url.pathname.startsWith("/api/premium/saju/life-book/")) {
+        if (url.pathname === "/api/lifebook" || url.pathname.startsWith("/api/lifebook/")) {
+          const suffix = url.pathname.slice("/api/lifebook".length);
+          routedRequest = rewriteRequestPath(request, "/api/premium/saju-lifebook" + (suffix || ""));
+        } else if (url.pathname === "/api/premium/saju/life-book" || url.pathname.startsWith("/api/premium/saju/life-book/")) {
           const suffix = url.pathname.slice("/api/premium/saju/life-book".length);
-          routedRequest = rewriteRequestPath(request, "/api/lifebook" + (suffix || ""));
+          routedRequest = rewriteRequestPath(request, "/api/premium/saju-lifebook" + (suffix || ""));
         }
-        return withCorsHeaders(request, env, await handleLifebookRoutes(routedRequest, env));
+        return withCorsHeaders(request, env, await handleSajuLifebookRoutes(routedRequest, env));
       }
 
       if (url.pathname === "/api/love-secret" || url.pathname.startsWith("/api/love-secret/")) {
-        return withCorsHeaders(request, env, await handleLoveSecretRoutes(request, env));
+        return jsonResponse(request, env, {
+          ok: false,
+          error: "removed_feature",
+          message: "연애 비책 PDF 엔드포인트는 제거되었습니다.",
+        }, { status: 410 });
       }
 
       if (url.pathname === "/api/dream" || url.pathname.startsWith("/api/dream/")) {
@@ -658,7 +673,11 @@ export default {
         || url.pathname === "/api/astro/session"
         || url.pathname === "/api/astro/generate"
       ) {
-        return withCorsHeaders(request, env, await handleAstroPremiumRoutes(request, env));
+        return jsonResponse(request, env, {
+          ok: false,
+          error: "removed_feature",
+          message: "astro premium PDF 엔드포인트는 제거되었습니다.",
+        }, { status: 410 });
       }
 
       if (
@@ -666,14 +685,22 @@ export default {
         || url.pathname === "/api/vedic/session"
         || url.pathname === "/api/vedic/generate"
       ) {
-        return withCorsHeaders(request, env, await handleVedicPremiumRoutes(request, env));
+        return jsonResponse(request, env, {
+          ok: false,
+          error: "removed_feature",
+          message: "vedic premium PDF 엔드포인트는 제거되었습니다.",
+        }, { status: 410 });
       }
 
       if (
         url.pathname === "/api/sukuyo"
         || url.pathname.startsWith("/api/sukuyo/")
       ) {
-        return withCorsHeaders(request, env, await handleSukuyoPremiumRoutes(request, env));
+        return jsonResponse(request, env, {
+          ok: false,
+          error: "removed_feature",
+          message: "sukuyo premium PDF 엔드포인트는 제거되었습니다.",
+        }, { status: 410 });
       }
 
       if (url.pathname === "/api/astro" || url.pathname.startsWith("/api/astro/")) {
