@@ -30,7 +30,14 @@
         var tile = document.querySelector('[data-action="' + action + '"]');
         var invoked = false;
 
-        if (typeof window.__cdRunPerUseCoinGateFromTile === 'function' && tile) {
+        var isPdfModalFirstAction = (
+          action === 'gotoZiweiPremium'
+          || action === 'gotoAstrologyPremium'
+          || action === 'gotoSukuyoPremium'
+          || action === 'gotoVedicPremium'
+        );
+
+        if (!isPdfModalFirstAction && typeof window.__cdRunPerUseCoinGateFromTile === 'function' && tile) {
           try {
             invoked = !!window.__cdRunPerUseCoinGateFromTile(tile);
           } catch (_) {}
