@@ -367,6 +367,141 @@
     }
   };
 
+  function _clamp(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+  }
+
+  function _round(v) {
+    return Math.round(Number(v || 0));
+  }
+
+  function _deriveElementBalance(counts) {
+    var safe = counts || { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
+    var total = Math.max(1, (safe.wood || 0) + (safe.fire || 0) + (safe.earth || 0) + (safe.metal || 0) + (safe.water || 0));
+    var keys = ['wood', 'fire', 'earth', 'metal', 'water'];
+    var ratio = {};
+    var spread = [];
+    var ideal = 20;
+
+    keys.forEach(function (k) {
+      var pct = ((safe[k] || 0) / total) * 100;
+      ratio[k] = _round(pct);
+      spread.push({ key: k, pct: pct });
+    });
+
+    spread.sort(function (a, b) { return b.pct - a.pct; });
+    var dominant = spread[0] || { key: 'earth', pct: 20 };
+    var deficient = spread[spread.length - 1] || { key: 'earth', pct: 20 };
+    var gap = Math.abs(dominant.pct - deficient.pct);
+    var avgDeviation = keys.reduce(function (acc, k) { return acc + Math.abs((ratio[k] || 0) - ideal); }, 0) / keys.length;
+    var balanceScore = _clamp(_round(100 - avgDeviation * 2.2), 35, 97);
+
+    return {
+      total: total,
+      ratio: ratio,
+      dominant: dominant.key,
+      deficient: deficient.key,
+      dominantPct: _round(dominant.pct),
+      deficientPct: _round(deficient.pct),
+      gap: _round(gap),
+      balanceScore: balanceScore
+    };
+  }
+
+  function _deriveTenGodStats(tsCnt) {
+    var dict = tsCnt || {};
+    var keys = Object.keys(dict);
+    var total = Math.max(1, keys.reduce(function (acc, k) { return acc + Number(dict[k] || 0); }, 0));
+    var sorted = keys.sort(function (a, b) { return Number(dict[b] || 0) - Number(dict[a] || 0); });
+    var top = sorted.slice(0, 3).map(function (k) {
+      var v = Number(dict[k] || 0);
+      return { key: k, count: v, pct: _round((v / total) * 100) };
+    });
+
+    var emotionShare = Number(dict['식신'] || 0) + Number(dict['상관'] || 0);
+    var realityShare = Number(dict['정재'] || 0) + Number(dict['편재'] || 0);
+    var authorityShare = Number(dict['정관'] || 0) + Number(dict['편관'] || 0);
+    var introspectShare = Number(dict['정인'] || 0) + Number(dict['편인'] || 0);
+
+    return {
+      total: total,
+      top: top,
+      emotionPct: _round((emotionShare / total) * 100),
+      realityPct: _round((realityShare / total) * 100),
+      authorityPct: _round((authorityShare / total) * 100),
+      introspectPct: _round((introspectShare / total) * 100)
+    };
+  }
+
+  function _deriveMonthlyWindows(scores) {
+    var rows = (scores || []).map(function (v, i) {
+      return { idx: i, month: MONTH_NAMES[i], score: Number(v || 0) };
+    });
+    var best = rows.slice().sort(function (a, b) { return b.score - a.score; }).slice(0, 3);
+    var caution = rows.slice().sort(function (a, b) { return a.score - b.score; }).slice(0, 3);
+    var avg = rows.length
+      ? _round(rows.reduce(function (acc, cur) { return acc + cur.score; }, 0) / rows.length)
+      : 0;
+    return { best: best, caution: caution, average: avg };
+  }
+
+  function _derivePrecisionMetrics(input) {
+    var taoPct = Number(input.taoPct || 0);
+    var yeokmaPct = Number(input.yeokmaPct || 0);
+    var hwaPct = Number(input.hwaPct || 0);
+    var hasGwimun = !!input.hasGwimun;
+    var tenGodStats = input.tenGodStats || _deriveTenGodStats({});
+    var elementBalance = input.elementBalance || _deriveElementBalance({});
+    var hasHour = !!input.hasHour;
+
+    var attraction = _clamp(_round(42 + taoPct * 0.36 + (tenGodStats.emotionPct || 0) * 0.12), 38, 98);
+    var stabilityPenalty = yeokmaPct * 0.28 + (hasGwimun ? 12 : 0) + Math.max(0, elementBalance.gap - 20) * 0.6;
+    var stability = _clamp(_round(92 - stabilityPenalty + (tenGodStats.authorityPct || 0) * 0.08), 28, 96);
+    var communication = _clamp(_round(48 + (tenGodStats.emotionPct || 0) * 0.22 + (tenGodStats.introspectPct || 0) * 0.12 - hwaPct * 0.08), 35, 97);
+    var conflict = _clamp(_round(18 + yeokmaPct * 0.24 + hwaPct * 0.18 + (hasGwimun ? 16 : 0)), 5, 92);
+    var confidence = _clamp(_round(
+      62
+      + (hasHour ? 12 : -8)
+      + (input.hasNatal ? 9 : -6)
+      + (input.hasPower ? 8 : -4)
+      + (input.hasJohu ? 4 : 0)
+      + Math.min(10, Object.keys(input.tsCnt || {}).length * 2)
+    ), 40, 97);
+
+    return {
+      attraction: attraction,
+      stability: stability,
+      communication: communication,
+      conflict: conflict,
+      confidence: confidence
+    };
+  }
+
+  function _deriveMarriageWindow(dominant, G_POWER, dominantTs, yeokmaPct, taoPct) {
+    var isStrong = !!(G_POWER && G_POWER.isStrong);
+    var baseStart = isStrong ? 28 : 26;
+    var baseEnd = isStrong ? 34 : 32;
+
+    if (dominant === 'fire') { baseStart -= 1; baseEnd -= 2; }
+    if (dominant === 'metal' || dominant === 'water') { baseStart += 2; baseEnd += 2; }
+    if (dominantTs === '정관' || dominantTs === '정재') { baseStart -= 1; baseEnd -= 1; }
+    if (dominantTs === '상관' || dominantTs === '편재') { baseStart += 1; baseEnd += 1; }
+
+    if (yeokmaPct >= 60) { baseStart += 2; baseEnd += 2; }
+    else if (yeokmaPct >= 40) { baseStart += 1; baseEnd += 1; }
+
+    if (taoPct >= 70) { baseStart -= 1; }
+
+    baseStart = _clamp(baseStart, 23, 40);
+    baseEnd = _clamp(Math.max(baseStart + 3, baseEnd), 27, 44);
+
+    return {
+      label: baseStart + '~' + baseEnd + '세',
+      start: baseStart,
+      end: baseEnd
+    };
+  }
+
   /* =====================================================================
      9. 메인 분석 엔진 — 사주 데이터 → 연애 비책 생성
      ===================================================================== */
@@ -424,6 +559,7 @@
 
     // 월별 연애 지수
     var monthScores = MONTHLY_LOVE_SCORE[dg] || MONTHLY_LOVE_SCORE['甲'];
+    var monthlyWindows = _deriveMonthlyWindows(monthScores);
 
     // 파트너 DB 조회
     var iljuKey = dg + dj;
@@ -442,6 +578,22 @@
     // 개운 처방
     var gaeun = GAEUN_LOVE[dayEl] || GAEUN_LOVE.earth;
 
+    var elementBalance = _deriveElementBalance(counts);
+    var tenGodStats = _deriveTenGodStats(tsCnt);
+    var precisionMetrics = _derivePrecisionMetrics({
+      taoPct: taoPct,
+      yeokmaPct: yeokmaPct,
+      hwaPct: hwaPct,
+      hasGwimun: hasGwimun,
+      tenGodStats: tenGodStats,
+      elementBalance: elementBalance,
+      hasHour: !!(p.h && p.h.g && p.h.j),
+      hasNatal: !!natal,
+      hasPower: !!G_POWER,
+      hasJohu: !!johu,
+      tsCnt: tsCnt
+    });
+
     // 신강/신약 연애 팁
     var strengthTip = '';
     if (G_POWER && G_POWER.isStrong) {
@@ -451,11 +603,8 @@
     }
 
     // 결혼 최적 나이 계산 (대운 흐름 기반 간략 추정)
-    var birthYear = (p.y && p.y.g) ? 0 : 0;
-    var marriageAge = '28~32세 (용신 대운 초입이 최적)';
-    if (dominant === 'metal' || dominant === 'water') marriageAge = '30~35세 (신중한 기준을 갖추고 결혼 결정)';
-    if (dominant === 'fire') marriageAge = '25~30세 (열정의 시기에 인연이 가장 잘 맺힘)';
-    if (dominant === 'wood') marriageAge = '27~33세 (성장과 변화의 시기 속에서 결혼 시기를 잡을 것)';
+    var marriageWindow = _deriveMarriageWindow(dominant, G_POWER, dominantTs, yeokmaPct, taoPct);
+    var marriageAge = marriageWindow.label + ' (용신 대운 초입이 최적)';
 
     // ─── HTML 빌더 ───
     var html = buildLoveBibleHTML({
@@ -465,7 +614,12 @@
       ilganLove: ilganLove, partnerData: partnerData, tsCnt: tsCnt, sortedTs: sortedTs,
       monthScores: monthScores, sexProfile: sexProfile, gaeun: gaeun,
       strengthTip: strengthTip, marriageAge: marriageAge, gender: gender,
-      counts: counts, total: total
+      counts: counts, total: total,
+      monthlyWindows: monthlyWindows,
+      elementBalance: elementBalance,
+      tenGodStats: tenGodStats,
+      precisionMetrics: precisionMetrics,
+      marriageWindow: marriageWindow
     });
 
     var container = document.getElementById('loveBibleResult');
@@ -529,6 +683,12 @@
     /* ─── 섹션 1: 본연의 연애 자아 ─── */
     var sec1 = '';
     sec1 += '<div class="lb-hero-badge" style="background:' + domColor + '">' + ilg + ' 일간 — ' + d.ilganLove.title + '</div>';
+    sec1 += '<div class="lb-stat-board">' +
+      statBar('정밀도 신뢰 지수', d.precisionMetrics.confidence, '#7c3aed') +
+      statBar('연애 끌림 지수', d.precisionMetrics.attraction, '#ec4899') +
+      statBar('관계 안정성 지수', d.precisionMetrics.stability, '#16a34a') +
+      statBar('의사소통 지수', d.precisionMetrics.communication, '#0ea5e9') +
+      '</div>';
     sec1 += card('💡 연애 본능', d.ilganLove.instinct, domColor);
     sec1 += card('🌙 무의식적 욕구', d.ilganLove.unconscious, '#7c3aed');
     sec1 += card('💔 연애 자존감의 근원', d.ilganLove.selfEsteem, '#db2777');
@@ -559,6 +719,15 @@
       '<b>보석:</b> ' + d.gaeun.gem + '<br>' +
       '<b>핵심 전략:</b> 당신의 ' + EL_KO[d.dayEl] + ' 에너지를 시각적으로 표현하는 아이템이 이성 유인에 가장 효과적입니다.',
     domColor);
+
+    sec2 += card('⚖️ 오행 밸런스 정밀 진단',
+      '<b>균형 점수:</b> ' + d.elementBalance.balanceScore + '점<br>' +
+      '<b>과다 기운:</b> ' + EL_KO[d.elementBalance.dominant] + ' (' + d.elementBalance.dominantPct + '%)<br>' +
+      '<b>결핍 기운:</b> ' + EL_KO[d.elementBalance.deficient] + ' (' + d.elementBalance.deficientPct + '%)<br>' +
+      '<b>편차:</b> ' + d.elementBalance.gap + '%p<br><br>' +
+      '<b>실전 처방:</b> 결핍 오행(' + EL_KO[d.elementBalance.deficient] + ')을 데이트 환경과 대화 주제에 의식적으로 보강하면 관계 피로가 줄고 장기 안정성이 올라갑니다.',
+      '#f43f5e'
+    );
 
     sec2 += '<div class="lb-flirt-list"><h4 class="lb-sub-title">🎯 나만 모르는 나의 플러팅 강점</h4><ul>';
     d.ilganLove.flirt.forEach(function (f) { sec2 += '<li>' + f + '</li>'; });
@@ -617,6 +786,17 @@
     sec4 += card(curTsStrat.title, curTsStrat.desc, domColor);
     if (d.strengthTip) sec4 += card('⚖️ 신강/신약으로 본 밀당 전략', d.strengthTip, '#7c3aed');
 
+    var tgRows = (d.tenGodStats.top || []).map(function (row) {
+      return '<li><b>' + row.key + '</b>: ' + row.count + '회 (' + row.pct + '%)</li>';
+    }).join('');
+    sec4 += card('📊 십성 분포 정밀 해석',
+      '<b>상위 십성 TOP 3</b><ul>' + tgRows + '</ul>' +
+      '<b>감정 표현력:</b> ' + d.tenGodStats.emotionPct + '% · <b>현실 운영력:</b> ' + d.tenGodStats.realityPct + '%<br>' +
+      '<b>관계 규범력:</b> ' + d.tenGodStats.authorityPct + '% · <b>내면 성찰력:</b> ' + d.tenGodStats.introspectPct + '%<br><br>' +
+      '상위 십성의 비율이 45%를 넘는 경우 그 성향이 연애 의사결정을 지배합니다. 대화/만남 전략도 해당 십성의 장점을 기준으로 설계하는 것이 효율적입니다.',
+      '#7c3aed'
+    );
+
     var keywords = ['진심', '일관성', '여유', '배려', '유머', '독립심', '설렘', '성장', '신뢰', '공감'];
     sec4 += '<div class="lb-keywords-board"><h4 class="lb-sub-title">🔑 상대방의 마음을 여는 공략 키워드 10</h4><div class="lb-keywords">' +
       keywords.map(function (k, i) { return '<div class="lb-kw-chip"><span class="lb-kw-num">' + (i + 1) + '</span>' + k + '</div>'; }).join('') + '</div></div>';
@@ -648,6 +828,19 @@
     '</div>';
     sec5 += '<canvas id="lbMonthChart" class="lb-month-chart" width="400" height="180"></canvas>';
     sec5 += '<p class="lb-chart-caption">※ 위 그래프는 일간 에너지와 월령 흐름의 조합으로 산출한 연애 성공 확률 추이입니다.</p>';
+    var bestRows = (d.monthlyWindows.best || []).map(function (row) {
+      return '<li>' + row.month + ' · ' + row.score + '점 — 관계 확장/고백/재접속에 유리</li>';
+    }).join('');
+    var cautionRows = (d.monthlyWindows.caution || []).map(function (row) {
+      return '<li>' + row.month + ' · ' + row.score + '점 — 감정 과열·오해 관리 필요</li>';
+    }).join('');
+    sec5 += card('🧭 월별 핵심 실행 구간 (정밀)',
+      '<b>연평균 연애지수:</b> ' + d.monthlyWindows.average + '점<br><br>' +
+      '<b>상위 3개월</b><ul>' + bestRows + '</ul>' +
+      '<b>주의 3개월</b><ul>' + cautionRows + '</ul>' +
+      '상위 구간에는 관계를 진전시키고, 주의 구간에는 결론을 미루고 대화 빈도·톤을 조정하는 것이 손실을 줄이는 핵심입니다.',
+      '#0ea5e9'
+    );
     sec5 += card('🔮 대운(大運) 연애 흐름',
       DAEWUN_LOVE_FLOW[d.dominant] || DAEWUN_LOVE_FLOW.earth, domColor);
     sec5 += card('💘 새로운 인연이 나타나는 시기',
@@ -720,7 +913,13 @@
 
     /* ─── 섹션 9: 결혼과 정착 ─── */
     var sec9 = '';
-    sec9 += card('💍 결혼 최적 시기', '당신의 결혼 최적 나이대: ' + highlight(d.marriageAge) + '<br>용신(' + EL_KO[d.yongshinEl] + ')의 천간이 연운(年運)으로 흐르는 해에 결혼을 결정하면 결혼 운이 최고로 발현됩니다.', '#7c3aed');
+    sec9 += card('💍 결혼 최적 시기',
+      '당신의 결혼 최적 나이대: ' + highlight(d.marriageAge) + '<br>' +
+      '<b>권장 핵심 구간:</b> ' + d.marriageWindow.start + '세~' + d.marriageWindow.end + '세<br>' +
+      '<b>판단 기준:</b> 연애 끌림 지수(' + d.precisionMetrics.attraction + ')보다 관계 안정성 지수(' + d.precisionMetrics.stability + ')가 높게 유지되는 해에 결정을 확정하세요.<br>' +
+      '용신(' + EL_KO[d.yongshinEl] + ')의 천간이 연운(年運)으로 흐르는 해에 결혼을 결정하면 결혼 운이 최고로 발현됩니다.',
+      '#7c3aed'
+    );
     sec9 += card('👨‍👩‍👧 고부/시댁 갈등 예방책',
       '일지 ' + iljuKey + '로 볼 때, 파트너의 가족 관계에서 ' +
       (d.dayEl === 'metal' ? '원칙과 관습을 중시하는 시댁과의 갈등이 예상됩니다. 초기에 명확한 경계와 예절로 선을 면저 그으세요.' :
@@ -746,6 +945,13 @@
     sec10 += '<div class="lb-gaeun-item lb-gaeun-item--wide"><span class="lb-gaeun-icon">🧘</span><b>명상법</b><p>' + d.gaeun.meditation + '</p></div>';
     sec10 += '</div>';
     sec10 += '<div class="lb-affirmation"><div class="lb-affirmation-title">✨ 오늘의 확언 (Affirmation)</div><blockquote class="lb-affirmation-text">"' + d.gaeun.affirmation + '"</blockquote><p class="lb-affirmation-guide">매일 아침, 거울을 보며 이 문장을 소리 내어 3회 반복하면 잠재의식에 새로운 사랑의 패턴이 심어집니다.</p></div>';
+    sec10 += card('📅 30일 실행 루틴 (정밀 운용)',
+      '<b>1~10일:</b> 결핍 오행(' + EL_KO[d.elementBalance.deficient] + ') 보강 행동 1개를 매일 실천<br>' +
+      '<b>11~20일:</b> 의사소통 지수(' + d.precisionMetrics.communication + ')를 높이는 질문형 대화 1회/일 실행<br>' +
+      '<b>21~30일:</b> 주의 달 대응 연습(감정 과열시 24시간 룰 적용)으로 갈등 지수(' + d.precisionMetrics.conflict + ')를 낮추기<br><br>' +
+      '이 루틴은 사주 해석을 행동으로 변환하는 최소 단위입니다. 측정 가능한 루틴으로 바꿔야 결과가 안정적으로 재현됩니다.',
+      '#16a34a'
+    );
 
     /* ─── 최종 조립 ─── */
     var output = '<div id="loveBibleReport" class="lb-report">' +
