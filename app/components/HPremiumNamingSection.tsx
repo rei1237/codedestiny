@@ -450,7 +450,7 @@ body{font-family:'Noto Serif KR','Noto Sans KR',serif;background:#07091a;color:#
               <p style={{ margin:0, color:"rgba(212,175,55,0.9)", fontSize:"0.8rem", fontWeight:800, letterSpacing:"0.15em", textTransform:"uppercase" }}>추천 이름 {names.length}개</p>
               <button type="button" onClick={handlePrintNames}
                 style={{ border:"1px solid rgba(212,175,55,0.4)", borderRadius:10, padding:"8px 16px", background:"rgba(45,30,5,0.7)", color:"rgba(212,175,55,0.9)", fontWeight:700, fontSize:"0.82rem", cursor:"pointer" }}>
-                📄 인쇄 / PDF 저장
+                📄 인쇄 / 결과 저장
               </button>
             </div>
             <div style={{ display:"grid", gap:10, gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))" }}>

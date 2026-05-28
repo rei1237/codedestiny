@@ -31,12 +31,6 @@ const shareScriptRe = /\/js\/share\.js\?v=([^"'\s>]+)/;
 const manifestTagRe = /\/manifest\.json\?v=([^"'\s>]+)/;
 const sajuEngineRe = /\/js\/saju-engine\.js\?v=([^"'\s,]+)/;
 const sibylScriptTagRe = /\/js\/sibyl-system\.js\?v=([^"'\s>]+)/;
-const premiumReportScripts = [
-  'ziwei-book',
-  'astro-book',
-  'sukuyo-book',
-  'vedic-book',
-];
 const sibylMarkers = [
   /id=["']sibylSystemSection["']/,
   /data-action=["']openSibylModal["']/,
@@ -68,7 +62,6 @@ const mobileLiteCssVersions = new Map();
 const mobileInteractionPatchVersions = new Map();
 const shareScriptVersions = new Map();
 const manifestVersions = new Map();
-const premiumReportVersions = new Map();
 const sibylScriptVersions = new Map();
 for (const rel of htmlTargets) {
   const txt = read(rel);
@@ -129,21 +122,6 @@ for (const rel of htmlTargets) {
     failed = true;
   } else {
     manifestVersions.set(rel, manifestMatch[1]);
-  }
-
-  for (const scriptName of premiumReportScripts) {
-    const matches = Array.from(txt.matchAll(new RegExp(`/js/${scriptName}\\.js\\?v=([^"'\\s>]+)`, 'g')));
-    if (matches.length === 0) {
-      console.error(`[runtime-cache-sync] premium report script version not found: ${scriptName} in ${rel}`);
-      failed = true;
-      continue;
-    }
-    const versions = new Set(matches.map((match) => match[1]));
-    if (versions.size !== 1) {
-      console.error(`[runtime-cache-sync] premium report duplicate version mismatch: ${scriptName} in ${rel} has ${Array.from(versions).join(', ')}`);
-      failed = true;
-    }
-    premiumReportVersions.set(`${rel}:${scriptName}`, matches[0][1]);
   }
 
   if (sibylHtmlTargets.has(rel)) {
@@ -212,19 +190,6 @@ if (manifestVersions.size > 0) {
   for (const [rel, v] of manifestVersions.entries()) {
     if (v !== expected) {
       console.error(`[runtime-cache-sync] manifest version mismatch: ${rel} has ${v}, expected ${expected}`);
-      failed = true;
-    }
-  }
-}
-
-for (const scriptName of premiumReportScripts) {
-  const rootVersion = premiumReportVersions.get(`index.html:${scriptName}`);
-  const expected = rootVersion || premiumReportVersions.values().next().value;
-  for (const rel of htmlTargets) {
-    const v = premiumReportVersions.get(`${rel}:${scriptName}`);
-    if (!v) continue;
-    if (v !== expected) {
-      console.error(`[runtime-cache-sync] premium report script version mismatch: ${scriptName} in ${rel} has ${v}, expected ${expected}`);
       failed = true;
     }
   }

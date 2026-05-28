@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePaymentProcessing } from "./PaymentProcessingContext";
-import { installPdfExportFetchGuard } from "../_lib/pdf-export-guard";
 import {
   getActivePaidAttemptSession,
   isPaidAttemptInProgress,
@@ -164,10 +163,6 @@ function getBlockingReason(isPaymentProcessing: boolean): string {
     return "유료 결과 생성 흐름 복구/진행 중";
   }
 
-  if (getWindowBooleanFlag("__CD_PDF_EXPORT_IN_PROGRESS__")) {
-    return "PDF 생성/다운로드 중";
-  }
-
   if (getWindowBooleanFlag("__CD_VERSION_GUARD_BLOCK__")) {
     return "중요 입력 작업 진행 중";
   }
@@ -206,7 +201,6 @@ export default function AppVersionGuard() {
   const [pendingUpdate, setPendingUpdate] = useState<PendingUpdateState | null>(null);
 
   useEffect(() => {
-    installPdfExportFetchGuard();
     void retireLegacyServiceWorkersOnce();
     const restored = restorePaidAttemptFromUrlOrStorage();
     if (restored) {

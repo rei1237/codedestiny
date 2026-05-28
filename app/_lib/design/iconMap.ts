@@ -71,10 +71,6 @@ export const ROUTE_ICON_MAP: Record<string, DestinyIconName> = {
 };
 
 const STATIC_ACTION_ICON_MAP: Record<string, DestinyIconName> = {
-  gotoZiweiPremium: "palace",
-  gotoAstrologyPremium: "zodiac",
-  gotoSukuyoPremium: "moon",
-  gotoVedicPremium: "compass",
   gotoNamingPremium: "scroll",
   openAnimalTotemModal: "animalPaw",
 };

@@ -215,38 +215,6 @@ const paymentFailureLogSchema = new mongoose.Schema({
 paymentFailureLogSchema.index({ createdAt: -1 });
 paymentFailureLogSchema.index({ source: 1, createdAt: -1 });
 
-const premiumPdfReportChapterSchema = new mongoose.Schema({
-  chapter: { type: Number, required: true, min: 1 },
-  title: { type: String, default: "", trim: true, maxlength: 240 },
-  subtitle: { type: String, default: "", trim: true, maxlength: 300 },
-  text: { type: String, default: "" },
-  charCount: { type: Number, default: 0, min: 0 },
-  updatedAt: { type: Date, default: Date.now },
-}, { _id: false });
-
-const premiumPdfReportSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
-  reportId: { type: String, required: true, trim: true, maxlength: 120 },
-  sessionKind: { type: String, required: true, trim: true, maxlength: 60, index: true },
-  reportType: { type: String, default: "", trim: true, maxlength: 80, index: true },
-  mode: { type: String, default: "", trim: true, maxlength: 40 },
-  title: { type: String, default: "", trim: true, maxlength: 220 },
-  subtitle: { type: String, default: "", trim: true, maxlength: 260 },
-  totalChapters: { type: Number, default: 0, min: 0 },
-  completedChapters: { type: Number, default: 0, min: 0 },
-  totalChars: { type: Number, default: 0, min: 0 },
-  isComplete: { type: Boolean, default: false, index: true },
-  chapterItems: { type: [premiumPdfReportChapterSchema], default: [] },
-  statusPath: { type: String, default: "", trim: true, maxlength: 200 },
-  downloadPath: { type: String, default: "", trim: true, maxlength: 200 },
-  qualityGate: { type: mongoose.Schema.Types.Mixed, default: null },
-  metadata: { type: mongoose.Schema.Types.Mixed, default: null },
-}, { timestamps: true });
-
-premiumPdfReportSchema.index({ userId: 1, updatedAt: -1 });
-premiumPdfReportSchema.index({ userId: 1, reportType: 1, updatedAt: -1 });
-premiumPdfReportSchema.index({ userId: 1, reportId: 1 }, { unique: true });
-
 const serviceExecutionTransactionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
   executionKey: { type: String, required: true, trim: true, maxlength: 120 },
@@ -298,7 +266,6 @@ export const Payment = mongoose.models.Payment || mongoose.model("Payment", paym
 export const PointHistory = mongoose.models.PointHistory || mongoose.model("PointHistory", pointHistorySchema);
 export const PaymentFailureLog = mongoose.models.PaymentFailureLog || mongoose.model("PaymentFailureLog", paymentFailureLogSchema);
 export const RefreshTokenSession = mongoose.models.RefreshTokenSession || mongoose.model("RefreshTokenSession", refreshTokenSessionSchema);
-export const PremiumPdfReport = mongoose.models.PremiumPdfReport || mongoose.model("PremiumPdfReport", premiumPdfReportSchema);
 export const ServiceExecutionTransaction = mongoose.models.ServiceExecutionTransaction
   || mongoose.model("ServiceExecutionTransaction", serviceExecutionTransactionSchema);
 

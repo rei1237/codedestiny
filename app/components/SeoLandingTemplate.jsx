@@ -1,24 +1,10 @@
 import Link from "next/link";
-import { INSIGHT_SEED_ARTICLES } from "../insights/seed-articles";
 import {
   buildBreadcrumbJsonLd,
   buildFaqPageJsonLd,
   buildServiceJsonLd,
   buildWebPageJsonLd,
 } from "../../lib/structured-data";
-
-function pickRelatedInsightCards(slugs = []) {
-  if (!Array.isArray(slugs) || slugs.length === 0) return [];
-
-  const bucket = [];
-  for (const slug of slugs) {
-    const matched = INSIGHT_SEED_ARTICLES.find((item) => item.slug === slug);
-    if (matched) bucket.push(matched);
-    if (bucket.length >= 8) break;
-  }
-
-  return bucket;
-}
 
 function buildFaqList(page) {
   const base = Array.isArray(page?.faqs) ? [...page.faqs] : [];
@@ -86,7 +72,14 @@ export default function SeoLandingTemplate({ page }) {
     { name: "운세 서비스", path: "/insights" },
     { name: page.h1, path: page.path },
   ];
-  const relatedInsights = pickRelatedInsightCards(page.relatedInsights).slice(0, 8);
+  const relatedInsights = Array.isArray(page.relatedInsights)
+    ? page.relatedInsights.slice(0, 8).map((slug) => ({
+        slug,
+        title: slug.replace(/-/g, " "),
+        excerpt: "관련 인사이트를 확인해 더 깊이 읽어보세요.",
+        category: "인사이트",
+      }))
+    : [];
   const faqs = buildFaqList(page);
   const learningPoints = buildLearningPoints(page);
 

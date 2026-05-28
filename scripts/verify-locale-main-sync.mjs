@@ -22,14 +22,6 @@ const requiredMarkers = [
   'cd-user-card__avatar-ring::before',
   'animation:cdPlanetRingDrift 5.4s ease-in-out infinite',
   'id="cdAuthLogoutBtn" class="auth-btn auth-btn--logout"',
-  'data-action="gotoZiweiPremium"',
-  'data-action="gotoAstrologyPremium"',
-  'data-action="gotoSukuyoPremium"',
-  'data-action="gotoVedicPremium"',
-  '/fuctionassets/jamipremiun.webp',
-  '/fuctionassets/premiumstar.webp',
-  '/fuctionassets/sukyo_premium.webp',
-  '/fuctionassets/premium veda.webp',
 ];
 
 let hasError = false;
@@ -52,8 +44,8 @@ for (const relPath of targetFiles) {
 }
 
 if (hasError) {
-  console.error('\n[locale-main-sync] FAILED: premium main linkage markers are not fully mirrored.');
+  console.error('\n[locale-main-sync] FAILED: required static shell markers are not fully mirrored.');
   process.exit(1);
 }
 
-console.log('[locale-main-sync] OK: premium linkage markers are mirrored across static + locales.');
+console.log('[locale-main-sync] OK: required static shell markers are mirrored across static + locales.');

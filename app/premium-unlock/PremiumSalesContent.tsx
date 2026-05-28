@@ -540,7 +540,7 @@ function PricingCTASection({ onCTA, isProcessing }: { onCTA: () => void; isProce
     "재물·직업·연애 핵심 인사이트",
     "건강 취약 시기 & 관리 가이드",
     "용신·기신 맞춤 컬러·방향·음식",
-    "PDF 다운로드 제공",
+    "결과 리포트 재확인 제공",
   ];
 
   return (

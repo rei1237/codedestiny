@@ -1,6 +1,6 @@
 import { FEATURE_KEY_PRICE_TABLE, normalizePaidFeatureKey } from "../../worker/lib/paid-feature-registry.js";
 
-export type FeatureAccessType = "free" | "login_required" | "paid" | "premium_pdf";
+export type FeatureAccessType = "free" | "login_required" | "paid" | "premium_report";
 
 export type ServiceFeatureCategory =
   | "saju"
@@ -85,7 +85,7 @@ const FEATURES: ServiceFeature[] = ([
     launchRoute: "/saju/basic/play",
     accessType: "free",
     tags: ["사주팔자", "오행", "십성", "대운", "세운"],
-    highlights: ["기본 분석 무료", "입력 후 즉시 분석", "프리미엄 PDF 확장 가능"],
+    highlights: ["기본 분석 무료", "입력 후 즉시 분석", "결과 저장 및 재확인 가능"],
     howItWorks: [
       { title: "출생 정보 입력", description: "생년월일, 출생 시간, 성별 정보를 입력합니다." },
       { title: "명식 계산", description: "내부 명리 엔진이 사주팔자와 핵심 지표를 계산합니다." },
@@ -97,20 +97,7 @@ const FEATURES: ServiceFeature[] = ([
       { title: "진로 키워드", description: "직무 적성, 성장 방식, 협업 스타일" },
       { title: "시기 흐름", description: "대운/세운 기준의 기회 구간과 리스크 구간" },
     ],
-    premiumOptions: [
-      {
-        title: "인생의 책 PDF",
-        description: "12챕터 심층 사주 리포트",
-        featureKey: "saju_life_book_pdf",
-        launchRoute: "/index.html?action=openLifeBookModal",
-      },
-      {
-        title: "연애 비책 PDF",
-        description: "연애/궁합 전략 리포트",
-        featureKey: "premium_pdf_saju_love_secret",
-        launchRoute: "/index.html?action=openLoveSecretModal",
-      },
-    ],
+    premiumOptions: [],
     seo: {
       title: "사주 정밀 분석 소개 | Code Destiny",
       description: "사주팔자, 오행, 십성, 대운/세운 흐름을 읽는 사주 정밀 분석 서비스 소개 페이지입니다.",
@@ -130,7 +117,7 @@ const FEATURES: ServiceFeature[] = ([
     launchRoute: "/index.html?action=openZiweiModal",
     accessType: "free",
     tags: ["자미두수", "12궁", "명궁", "신궁", "주성"],
-    highlights: ["기본 명반 무료", "궁합/프리미엄 확장 가능"],
+    highlights: ["기본 명반 무료", "궁합 확장 가능"],
     howItWorks: [
       { title: "출생 정보 입력", description: "생년월일시 입력으로 명반 계산 준비" },
       { title: "12궁 배치 계산", description: "명궁/신궁/주성 배치를 내부 엔진으로 계산" },
@@ -141,14 +128,7 @@ const FEATURES: ServiceFeature[] = ([
       { title: "관계 흐름", description: "인연 패턴과 커뮤니케이션 스타일" },
       { title: "직업 적성", description: "성군 조합 기반 역할/직무 힌트" },
     ],
-    premiumOptions: [
-      {
-        title: "자미두수 프리미엄 PDF",
-        description: "13챕터 심층 리포트",
-        featureKey: "premium_pdf_ziwei",
-        launchRoute: "/index.html?action=gotoZiweiPremium",
-      },
-    ],
+    premiumOptions: [],
     seo: {
       title: "자미두수 명반 분석 소개 | Code Destiny",
       description: "자미두수 12궁 기반으로 성향과 인생 흐름을 읽는 명반 분석 서비스 소개 페이지입니다.",
@@ -168,7 +148,7 @@ const FEATURES: ServiceFeature[] = ([
     launchRoute: "/index.html?action=openSukuyoModal",
     accessType: "free",
     tags: ["숙요점", "27수", "궁합", "관계 흐름"],
-    highlights: ["기본 분석 무료", "프리미엄 PDF 확장 가능"],
+    highlights: ["기본 분석 무료", "관계 해석 확장 가능"],
     howItWorks: [
       { title: "출생 정보 입력", description: "생년월일 기반 27수 산출" },
       { title: "숙성 계산", description: "기본 성향/관계 리듬 계산" },
@@ -179,14 +159,7 @@ const FEATURES: ServiceFeature[] = ([
       { title: "관계 궁합 포인트", description: "잘 맞는 상호작용과 주의 포인트" },
       { title: "운의 주기", description: "에너지 상승/정체 구간 가이드" },
     ],
-    premiumOptions: [
-      {
-        title: "숙요점 프리미엄 PDF",
-        description: "27수 심층 리포트",
-        featureKey: "premium_pdf_sukyo",
-        launchRoute: "/index.html?action=gotoSukuyoPremium",
-      },
-    ],
+    premiumOptions: [],
     seo: {
       title: "숙요점 27숙 분석 소개 | Code Destiny",
       description: "숙요점 27숙 체계로 성향, 궁합, 운의 흐름을 분석하는 서비스 소개 페이지입니다.",
@@ -206,7 +179,7 @@ const FEATURES: ServiceFeature[] = ([
     launchRoute: "/index.html?action=navigateToVedic",
     accessType: "free",
     tags: ["베다 점성술", "Jyotish", "라그나", "다샤"],
-    highlights: ["기본 명반 무료", "프리미엄 PDF 확장 가능"],
+    highlights: ["기본 명반 무료", "심화 해석 확장 가능"],
     howItWorks: [
       { title: "출생 정보 입력", description: "출생 정보를 기준으로 베다 차트 계산" },
       { title: "행성/주기 분석", description: "라그나, 다샤, 나크샤트라 구조 해석" },
@@ -217,14 +190,7 @@ const FEATURES: ServiceFeature[] = ([
       { title: "다샤 주기", description: "시기별 테마와 전환 포인트" },
       { title: "관계/직업 힌트", description: "행성 배치 기반 실전 가이드" },
     ],
-    premiumOptions: [
-      {
-        title: "베다 프리미엄 PDF",
-        description: "심층 인생 리포트",
-        featureKey: "premium_pdf_vedic",
-        launchRoute: "/index.html?action=gotoVedicPremium",
-      },
-    ],
+    premiumOptions: [],
     seo: {
       title: "베다 점성술 분석 소개 | Code Destiny",
       description: "라그나와 다샤 중심으로 인생 흐름을 해석하는 베다 점성술 서비스 소개 페이지입니다.",
@@ -244,7 +210,7 @@ const FEATURES: ServiceFeature[] = ([
     launchRoute: "/index.html?action=openAstroModal",
     accessType: "free",
     tags: ["점성술", "태양궁", "달궁", "상승궁", "하우스"],
-    highlights: ["기본 차트 무료", "궁합 50코인", "프리미엄 PDF 가능"],
+    highlights: ["기본 차트 무료", "궁합 50코인", "심화 해석 가능"],
     howItWorks: [
       { title: "출생 정보 입력", description: "출생 시간을 포함해 차트 계산" },
       { title: "코즈믹 차트 생성", description: "행성/하우스 기반 핵심 축 계산" },
@@ -255,14 +221,7 @@ const FEATURES: ServiceFeature[] = ([
       { title: "관계 패턴", description: "감정/표현/소통 방식" },
       { title: "관심 영역", description: "하우스 기반 삶의 우선순위" },
     ],
-    premiumOptions: [
-      {
-        title: "점성술 프리미엄 PDF",
-        description: "12챕터 심층 리포트",
-        featureKey: "premium_pdf_western_astrology",
-        launchRoute: "/index.html?action=gotoAstrologyPremium",
-      },
-    ],
+    premiumOptions: [],
     seo: {
       title: "서양 점성술 차트 분석 소개 | Code Destiny",
       description: "태양, 달, 상승궁 기반으로 성향과 흐름을 읽는 서양 점성술 서비스 소개 페이지입니다.",
@@ -512,6 +471,38 @@ const FEATURES: ServiceFeature[] = ([
       title: "사주로 보는 인연의 장소 소개 | Code Destiny",
       description: "사주 에너지로 인연 장소, 도시, 시기를 추천하는 독립 실행 리포트 서비스 소개 페이지입니다.",
       keywords: ["사주 인연 장소", "인연운", "사주 장소 추천", "만남 타이밍"],
+    },
+  },
+  {
+    slug: "saju-lifebook",
+    title: "사주 인생의 책 PDF",
+    subtitle: "사주 핵심 지표를 13챕터로 재구성한 프리미엄 인생 전략서",
+    description:
+      "출생 정보를 기반으로 로컬 사주 계산 결과를 먼저 정리한 뒤, 13개 챕터 구조로 확장해 PDF 저장에 적합한 리포트를 생성합니다.",
+    category: "premium",
+    image: "/fuctionassets/lifebook.webp",
+    heroImageAlt: "사주 인생의 책 PDF 대표 이미지",
+    detailRoute: "/services/saju-lifebook",
+    launchRoute: "/saju/lifebook",
+    accessType: "premium_report",
+    featureKey: "saju_lifebook_pdf",
+    priceLabel: "500코인",
+    tags: ["사주", "인생 전략", "13챕터", "PDF"],
+    highlights: ["13챕터 고정 구조", "로컬 계산 우선", "PDF 저장용 결과"],
+    howItWorks: [
+      { title: "출생 정보 입력", description: "생년월일시와 기본 프로필을 입력합니다." },
+      { title: "사주 계산", description: "로컬 계산 엔진으로 핵심 지표를 먼저 구성합니다." },
+      { title: "리포트 생성", description: "13챕터 구조로 정리된 프리미엄 리포트를 생성합니다." },
+    ],
+    resultExamples: [
+      { title: "핵심 사주 요약", description: "일간/오행/용희기신 중심 해석" },
+      { title: "13챕터 구조", description: "관계·커리어·재물·건강·전환점까지 고정 목차" },
+      { title: "실행 제안", description: "챕터별 실전 액션 플랜" },
+    ],
+    seo: {
+      title: "사주 인생의 책 PDF 소개 | Code Destiny",
+      description: "사주 핵심 지표를 13챕터로 정리해 PDF로 저장하는 프리미엄 인생 전략 리포트 소개 페이지입니다.",
+      keywords: ["사주 인생의 책", "사주 PDF", "13챕터 사주", "인생 전략 리포트"],
     },
   },
   {

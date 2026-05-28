@@ -414,91 +414,12 @@
       ].join(',')
     },
     {
-      action: 'gotoZiweiPremium',
-      cardSelector: '.prem-card--ziwei',
-      targetSelector: [
-        '[data-action="gotoZiweiPremium"]',
-        '.prem-card--ziwei',
-        '.prem-card--ziwei img'
-      ].join(',')
-    },
-    {
-      action: 'gotoAstrologyPremium',
-      cardSelector: '.prem-card--astro',
-      targetSelector: [
-        '[data-action="gotoAstrologyPremium"]',
-        '.prem-card--astro',
-        '.prem-card--astro img'
-      ].join(',')
-    },
-    {
-      action: 'gotoSukuyoPremium',
-      cardSelector: '.prem-card--sukuyo',
-      targetSelector: [
-        '[data-action="gotoSukuyoPremium"]',
-        '.prem-card--sukuyo',
-        '.prem-card--sukuyo img'
-      ].join(',')
-    },
-    {
-      action: 'gotoVedicPremium',
-      cardSelector: '.prem-card--veda',
-      targetSelector: [
-        '[data-action="gotoVedicPremium"]',
-        '.prem-card--veda',
-        '.prem-card--veda img'
-      ].join(',')
-    },
-    {
       action: 'gotoNamingPremium',
       cardSelector: '.prem-card--naming',
       targetSelector: [
         '[data-action="gotoNamingPremium"]',
         '.prem-card--naming',
         '.prem-card--naming img'
-      ].join(',')
-    },
-    {
-      action: 'openSajuNewYearModal',
-      cardSelector: '.lifebook-tile.saju-newyear-tile',
-      targetSelector: [
-        '[data-action="openSajuNewYearModal"]',
-        '.lifebook-tile.saju-newyear-tile',
-        '.lifebook-tile.saju-newyear-tile .lifebook-tile__inner',
-        '.lifebook-tile.saju-newyear-tile .lifebook-tile__img-wrap',
-        '.lifebook-tile.saju-newyear-tile .lifebook-tile__img',
-        '.lifebook-tile.saju-newyear-tile .lifebook-tile__body',
-        '.lifebook-tile.saju-newyear-tile .lifebook-tile__title',
-        '.lifebook-tile.saju-newyear-tile .lifebook-tile__desc',
-        '.lifebook-tile.saju-newyear-tile .lifebook-tile__cta'
-      ].join(',')
-    },
-    {
-      action: 'openLifeBookModal',
-      cardSelector: '.lifebook-tile[data-action="openLifeBookModal"]',
-      targetSelector: [
-        '[data-action="openLifeBookModal"]',
-        '.lifebook-tile[data-action="openLifeBookModal"]',
-        '.lifebook-tile[data-action="openLifeBookModal"] .lifebook-tile__inner',
-        '.lifebook-tile[data-action="openLifeBookModal"] .lifebook-tile__img-wrap',
-        '.lifebook-tile[data-action="openLifeBookModal"] .lifebook-tile__img',
-        '.lifebook-tile[data-action="openLifeBookModal"] .lifebook-tile__body',
-        '.lifebook-tile[data-action="openLifeBookModal"] .lifebook-tile__title',
-        '.lifebook-tile[data-action="openLifeBookModal"] .lifebook-tile__desc',
-        '.lifebook-tile[data-action="openLifeBookModal"] .lifebook-tile__cta'
-      ].join(',')
-    },
-    {
-      action: 'openLoveSecretModal',
-      cardSelector: '.lovebible-tile[data-action="openLoveSecretModal"]',
-      targetSelector: [
-        '[data-action="openLoveSecretModal"]',
-        '.lovebible-tile[data-action="openLoveSecretModal"]',
-        '.lovebible-tile[data-action="openLoveSecretModal"] .lovebible-tile__inner',
-        '.lovebible-tile[data-action="openLoveSecretModal"] .lovebible-tile__body',
-        '.lovebible-tile[data-action="openLoveSecretModal"] .lovebible-tile__title',
-        '.lovebible-tile[data-action="openLoveSecretModal"] .lovebible-tile__desc',
-        '.lovebible-tile[data-action="openLoveSecretModal"] .lovebible-tile__cta'
       ].join(',')
     },
     {
@@ -738,13 +659,6 @@
     openKemetModal: ['js/oracle-kcg.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
-    openLoveSecretModal: [withMobileBuild('js/love-secret-v2.js')],
-    openSajuNewYearModal: [withMobileBuild('js/saju-new-year.js')],
-    openLifeBookModal: [withMobileBuild('js/life-book.js')],
-    gotoZiweiPremium: [withMobileBuild('js/ziwei-book.js')],
-    gotoAstrologyPremium: [withMobileBuild('js/astro-book.js')],
-    gotoSukuyoPremium: [withMobileBuild('js/sukuyo-book.js')],
-    gotoVedicPremium: [withMobileBuild('js/vedic-book.js')],
     gotoNamingPremium: [],
     openSibylModal: ['js/sibyl-system.js?v=20260512-quantum-v4']
   };
@@ -980,14 +894,10 @@
       return true;
     }
 
-    // ?�리미엄 4�?코인 ?�?��? ?�기???�성 click?�로 ?�비?��? ?�고,
+    // 코인 게이트가 필요한 액션은 전역 핸들러로 전달한다.
     // ?�역 ?�릭 ?�들?�로 ?�겨 Preview/게이?��? ?�상 경유?�킨??
     var isPremGateAction = (
-      action === 'gotoZiweiPremium'
-      || action === 'gotoAstrologyPremium'
-      || action === 'gotoSukuyoPremium'
-      || action === 'gotoVedicPremium'
-      || action === 'gotoNamingPremium'
+      action === 'gotoNamingPremium'
     );
     if (isPremGateAction && Number(actionEl.getAttribute('data-coin-cost') || 0) > 0) {
       return false;
@@ -1043,7 +953,7 @@
       '.lovebible-tile__inner, .lovebible-tile__body, .lovebible-tile__title, .lovebible-tile__desc, .lovebible-tile__features, .lovebible-tile__cta,',
       '.lovesim-tile__inner, .lovesim-tile__body, .lovesim-tile__title, .lovesim-tile__desc, .lovesim-tile__features, .lovesim-tile__cta,',
       '.sibyl-entry-inner, .sibyl-entry-img-col, .sibyl-entry-img, .sibyl-entry-content,',
-      '[data-action="openSajuNewYearModal"], [data-action="openLifeBookModal"], [data-action="openLoveSecretModal"], [data-action="openLoveSimulation"], [data-action="openSibylModal"] {',
+      '[data-action="openLoveSimulation"], [data-action="openSibylModal"] {',
       '  touch-action: manipulation;',
       '  -webkit-tap-highlight-color: transparent;',
       '  cursor: pointer;',

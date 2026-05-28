@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { stripLocalePrefix } from "../_lib/localePath";
 import DestinyIcon, { type DestinyIconName } from "./icons/DestinyIcon";
-import PremiumPdfHistoryPanel from "./PremiumPdfHistoryPanel";
 
 type ServiceLike = {
   title?: string;
@@ -227,8 +226,6 @@ const ACTION_MAP: Record<string, string> = {
   "/tarot/mindscan":"startMindScanTarot",
   "/saju/basic":"checkPrivacyAndCalculate",
   "/saju/sibyl":"openSibylModal",
-  "/saju/lifebook":"openLifeBookModal",
-  "/saju/love-secret":"openLoveSecretModal",
   "/saju/love-simulation":"openLoveSimulation",
   "/ziwei/chart":"openZiweiModal",
   "/astrology/cosmic":"openAstroModal",
@@ -249,13 +246,6 @@ const PAID_SLUG_META: Record<string, { coins: string }> = {
   "/tarot/year": { coins: "30코인" },
   "/oracle/royal-tea": { coins: "30코인" },
   "/yoga-guru": { coins: "30코인" },
-  "/saju/lifebook": { coins: "500코인" },
-  "/saju/love-secret": { coins: "1인 300코인 · 궁합 +100코인 (총 400코인)" },
-};
-
-const PDF_HISTORY_SLUG_SESSION_KINDS: Record<string, string[]> = {
-  "/saju/lifebook": ["lifebook"],
-  "/saju/love-secret": ["love-secret"],
 };
 
 /* Particle positions for the 5 floating items */
@@ -327,7 +317,6 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
     : "/index.html";
   const paidMeta = PAID_SLUG_META[basePath];
   const isPaidFeature = !!paidMeta;
-  const historySessionKinds = PDF_HISTORY_SLUG_SESSION_KINDS[basePath] || [];
 
   const category = basePath.split("/")[1] ?? "tarot";
   const baseTheme = THEMES[category] ?? THEMES.tarot;
@@ -729,16 +718,6 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
           }}>
             유료 기능입니다. 바로가기를 누르면 메인 화면에서 코인 게이트가 먼저 표시됩니다.
           </p>
-        )}
-
-        {historySessionKinds.length > 0 && (
-          <div style={{ marginTop: 16 }}>
-            <PremiumPdfHistoryPanel
-              title="최근 생성한 PDF 히스토리"
-              sessionKinds={historySessionKinds}
-              limit={12}
-            />
-          </div>
         )}
 
         {/* SEO text */}

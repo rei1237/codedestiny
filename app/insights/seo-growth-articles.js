@@ -52,6 +52,8 @@ function buildInternalLinks(category) {
       { href: "/ziwei", label: "자미두수 무료 명반 보기" },
       { href: "/ziwei/chart", label: "자미두수 12궁 분석하기" },
       { href: "/premium", label: "자미두수 프리미엄 PDF 보기" },
+        { href: "/premium", label: "자미두수 프리미엄 리포트 보기" },
+        article({ slug: "ziwei-wealth-career", title: "자미두수 재물운과 직업운: 재백궁·관록궁 보는 법", description: "재백궁과 관록궁을 중심으로 재물·직업 흐름을 읽습니다.", category: "자미두수", keywords: ["자미두수 재물운", "자미두수 직업운", "재백궁", "관록궁"], topic: "재백궁·관록궁", angle: "커리어와 수입", ctaTitle: "자미두수 프리미엄 리포트 보기" }),
       { href: "/saju", label: "사주와 함께 비교 분석하기" },
       { href: "/insights/ziwei", label: "자미두수 인사이트 허브 더 보기" },
     ];
@@ -181,6 +183,7 @@ const ZIWEI = [
   article({ slug: "ziwei-love-compatibility", title: "자미두수 궁합 보는 법: 부처궁과 관계 패턴 해석", description: "부처궁 기반 자미두수 궁합 해석의 핵심을 설명합니다.", category: "자미두수", keywords: ["자미두수 궁합", "자미두수 연애운", "부처궁"], topic: "자미두수 궁합", angle: "관계 리듬", ctaTitle: "사주와 함께 비교 분석하기" }),
   article({ slug: "ziwei-sihua", title: "자미두수 사화 해석: 화록·화권·화과·화기의 의미", description: "사화의 의미와 적용법을 실제 해석 흐름으로 설명합니다.", category: "자미두수", keywords: ["자미두수 사화", "화록", "화권", "화과", "화기"], topic: "사화", angle: "에너지 이동", ctaTitle: "자미두수 무료 명반 보기" }),
   article({ slug: "ziwei-star-brightness", title: "자미두수 별의 세기: 묘·왕·리·평·함 해석법", description: "묘왕리평함의 실전 해석법과 주의사항을 다룹니다.", category: "자미두수", keywords: ["자미두수 묘왕리평함", "자미두수 별 세기"], topic: "별의 세기", angle: "강약 판단", ctaTitle: "자미두수 프리미엄 PDF 보기" }),
+    article({ slug: "ziwei-star-brightness", title: "자미두수 별의 세기: 묘·왕·리·평·함 해석법", description: "묘왕리평함의 실전 해석법과 주의사항을 다룹니다.", category: "자미두수", keywords: ["자미두수 묘왕리평함", "자미두수 별 세기"], topic: "별의 세기", angle: "강약 판단", ctaTitle: "자미두수 프리미엄 리포트 보기" }),
   article({ slug: "ziwei-career-palace-action", title: "자미두수 관록궁 실전: 직업 전환 타이밍 체크리스트", description: "관록궁 신호로 직업 전환 시점을 점검하는 실전 글입니다.", category: "자미두수", keywords: ["자미두수 관록궁", "자미두수 직업운", "직업 전환"], topic: "관록궁", angle: "커리어 전략", ctaTitle: "자미두수 12궁 분석하기" }),
   article({ slug: "ziwei-vs-saju", title: "자미두수와 사주의 차이: 무엇을 언제 함께 봐야 할까", description: "자미두수와 사주의 차이와 병행 사용 전략을 정리합니다.", category: "자미두수", keywords: ["자미두수와 사주의 차이", "자미두수", "사주"], topic: "자미두수 vs 사주", angle: "교차 해석", ctaTitle: "사주와 함께 비교 분석하기" }),
 ];

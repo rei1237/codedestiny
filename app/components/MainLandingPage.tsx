@@ -109,10 +109,6 @@ const miscDivinationItems: ServiceCardModel[] = [
 ];
 
 const premiumItems: ServiceCardModel[] = [
-  { title: "자미두수 프리미엄 PDF", description: "15챕터 심층 리포트", href: "/?action=gotoZiweiPremium", emoji: "♛", badges: [{ text: "590코인", tone: "coin" }] },
-  { title: "서양 점성술 PDF", description: "하우스·트랜짓 종합", href: "/?action=gotoAstrologyPremium", emoji: "🌟", badges: [{ text: "390코인", tone: "coin" }] },
-  { title: "숙요점 프리미엄 PDF", description: "27수 관계/카르마 분석", href: "/?action=gotoSukuyoPremium", emoji: "💫", badges: [{ text: "390코인", tone: "coin" }] },
-  { title: "베다 프리미엄 PDF", description: "다샤·카르마 로드맵", href: "/?action=gotoVedicPremium", emoji: "🪷", badges: [{ text: "390코인", tone: "coin" }] },
   { title: "명운 프리미엄 작명", description: "오행·수리 기반 작명", href: "/myungwun_final.html", emoji: "🖋️", badges: [{ text: "700코인", tone: "coin" }] },
   { title: "포인트/코인 센터", description: "충전 및 사용 내역 관리", href: "/points", emoji: "💳", badges: [{ text: "관리", tone: "soft" }] },
 ];
@@ -339,8 +335,8 @@ export default function MainLandingPage() {
 
         <DeferredServiceCollectionSection
           title="프리미엄/코인 서비스 안내"
-          subtitle="소개 보기부터 PDF 생성까지 이어지는 VVIP 리포트"
-          description="프리미엄 분석은 코인 기반으로 제공되며 결과 리포트는 PDF로 보관할 수 있습니다."
+          subtitle="소개 보기부터 심화 분석까지 이어지는 VVIP 리포트"
+          description="프리미엄 분석은 코인 기반으로 제공되며 결과 리포트는 계정에서 다시 확인할 수 있습니다."
           icon={<DestinyIcon name="coin" size={20} className="text-amber-100" variant="soft" />}
           items={premiumItems}
         />

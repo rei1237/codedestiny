@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { INSIGHT_SEED_ARTICLES } from "./seed-articles";
 
 function topicMatcher(topic) {
   const normalized = String(topic || "all").toLowerCase();
@@ -23,10 +22,15 @@ function topicMatcher(topic) {
 }
 
 export default function InsightTopicArchive({ topic, title, intro, serviceCtaPath }) {
-  const items = INSIGHT_SEED_ARTICLES.filter(topicMatcher(topic)).slice(0, 48);
-  const representativeTags = Array.from(new Set(items.flatMap((item) => item.tags || []).filter(Boolean))).slice(0, 12);
-  const beginnerGuides = items.slice(0, 6);
-  const practicalGuides = items.slice(6, 12);
+  const topicLabel = String(topic || "all").toLowerCase();
+  const items = [
+    { slug: `${topicLabel}-guide-1`, category: title, title: `${title} 핵심 가이드`, excerpt: intro },
+    { slug: `${topicLabel}-guide-2`, category: title, title: `${title} 실전 해석`, excerpt: "질문 설계와 활용 루틴을 함께 확인하세요." },
+    { slug: `${topicLabel}-guide-3`, category: title, title: `${title} 초보자 체크리스트`, excerpt: "처음 볼 때 놓치기 쉬운 포인트를 정리합니다." },
+  ];
+  const representativeTags = [title, topicLabel].filter(Boolean).slice(0, 12);
+  const beginnerGuides = items.slice(0, 2);
+  const practicalGuides = items.slice(1, 3);
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 text-slate-100 md:px-6 md:py-10">

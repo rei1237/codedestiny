@@ -1,13 +1,9 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import HPremiumSukuyoSection from "./HPremiumSukuyoSection";
-import HPremiumAstrologySection from "./HPremiumAstrologySection";
-import HPremiumVedicSection from "./HPremiumVedicSection";
 import HPremiumNamingSection from "./HPremiumNamingSection";
 import { showToast } from "./Toast";
 import { isSubscriptionIncludedResponse, showSubscriptionIncludedNotice } from "./subscriptionNotice";
-import HPremiumZiweiBookSection from "./HPremiumZiweiBookSection";
 import { usePayment } from "../hooks/usePayment";
 import { persistSanitizedAuthUser } from "../_lib/auth-storage";
 import { authFetch } from "../_lib/auth-client";
@@ -143,7 +139,7 @@ type UnlockKey =
 type PerUseKey = "turtleIChing" | "egyptOracle" | "geomancy" | "stonehengeRunes" | "premiumTarot" | "loveSimulation";
 type PremiumServiceKey = "ziwei" | "astrology" | "sukuyo" | "veda" | "naming";
 type PremiumFlowStage = "intro" | "generate";
-type VedaPaymentFlowState = "idle" | "checking_access" | "access_granted" | "payment_required" | "generating_pdf" | "success" | "error";
+type VedaPaymentFlowState = "idle" | "checking_access" | "access_granted" | "payment_required" | "generating_report" | "success" | "error";
 type PremiumGateResult = {
   ok: boolean;
   reason?: "login-required" | "payment-required" | "error";
@@ -167,10 +163,10 @@ const PREMIUM_SERVICE_LABEL: Record<PremiumServiceKey, string> = {
 };
 
 const PREMIUM_SERVICE_FEATURE_KEY: Record<PremiumServiceKey, string> = {
-  ziwei: "premium_pdf_ziwei",
-  astrology: "premium_pdf_western_astrology",
-  sukuyo: "premium_pdf_sukyo",
-  veda: "premium_pdf_vedic",
+  ziwei: "removed-premium-feature",
+  astrology: "removed-premium-feature",
+  sukuyo: "removed-premium-feature",
+  veda: "removed-premium-feature",
   naming: "premium-naming-report",
 };
 
@@ -627,17 +623,6 @@ export default function KkulkkulManseryukMain() {
     }
   };
 
-  const handleVedaPdfFlowStateChange = (state: "generating_pdf" | "success" | "error", message?: string) => {
-    if (openPremSection !== 'veda') return;
-    setVedaFlowState(state);
-    if (state === 'error' && message) {
-      setVedaFlowError(message);
-    }
-    if (state === 'success') {
-      setVedaFlowError('');
-    }
-  };
-
   const runPaidFeatureOnce = async (key: PerUseKey, cost: number) => {
     if (key === "stonehengeRunes") {
       redirectPerUseFeature(key);
@@ -878,7 +863,7 @@ export default function KkulkkulManseryukMain() {
       }
       await new Promise(r => setTimeout(r, 800));
       if (service === 'veda') {
-        setVedaFlowState('generating_pdf');
+        setVedaFlowState('generating_report');
       }
       setPremiumFlowStage('generate');
     } catch (e) {
@@ -1253,13 +1238,13 @@ export default function KkulkkulManseryukMain() {
               borderBottom: premiumCollectionOpen ? "1px solid rgba(212,175,55,0.22)" : "none",
             }}
             aria-expanded={premiumCollectionOpen}
-            aria-label="VVIP 프리미엄 PDF 컬렉션 열기/닫기"
+            aria-label="VVIP 프리미엄 컬렉션 열기/닫기"
           >
             <div style={{ fontSize: "0.66rem", fontWeight: 900, letterSpacing: "0.18em", color: "#d4af37" }}>
               VVIP · PREMIUM COLLECTION
             </div>
             <div style={{ marginTop: 5, fontSize: "1.08rem", fontWeight: 900, color: "#fff3c1" }}>
-              프리미엄 PDF 운명 분석 컬렉션
+              프리미엄 운명 분석 컬렉션
             </div>
             <div style={{ marginTop: 6, fontSize: "0.78rem", color: "rgba(240,220,150,0.78)" }}>
               자미두수 · 점성술 · 숙요점 · 베다 · 명운 작명
@@ -1277,255 +1262,6 @@ export default function KkulkkulManseryukMain() {
             ⚠ {premiumGateError}
           </p>
         ) : null}
-        <div style={{
-          background: "linear-gradient(145deg, rgb(10,6,30) 0%, rgb(18,12,48) 100%)",
-          border: "1.5px solid rgba(167,139,250,0.35)",
-          borderRadius: "20px",
-          overflow: "hidden",
-          boxShadow: "0 4px 24px rgba(99,102,241,0.15)",
-          position: "relative",
-          zIndex: 20,
-          pointerEvents: "auto",
-        }}>
-          <button
-            type="button"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onClick={wrapClick(() => handleOpenPremSection('ziwei'))}
-            style={{
-              width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
-              gap: "16px", padding: "0", background: "transparent", border: "none",
-              cursor: "pointer", textAlign: "left",
-            }}
-          >
-            <div style={{ position: "relative", width: "130px", minWidth: "130px", aspectRatio: "4/3", flexShrink: 0 }}>
-              <img src="/fuctionassets/jamipremiun.webp" alt="H 프리미엄 자미두수"
-                width={520}
-                height={390}
-                loading="lazy"
-                decoding="async"
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, transparent 60%, rgb(10,6,30))" }} />
-              <span style={{
-                position: "absolute", top: "8px", left: "8px",
-                background: "rgba(99,102,241,0.9)", color: "#fff",
-                fontSize: "0.5rem", fontWeight: 800, letterSpacing: "0.14em",
-                padding: "2px 7px", borderRadius: "20px", textTransform: "uppercase",
-              }}>PREMIUM</span>
-            </div>
-            <div style={{ flex: 1, padding: "16px 16px 16px 4px" }}>
-              <p style={{ color: "rgba(167,139,250,0.65)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 4px" }}>자미두수 · Ziwei Premium</p>
-              <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>자미두수 프리미엄 PDF</p>
-              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>590코인 · 15챕터 · 12궁/사화/대한 심층 분석</p>
-              <span style={{
-                display: "inline-block",
-                background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(167,139,250,0.12))",
-                border: "1px solid rgba(167,139,250,0.45)",
-                color: "rgba(196,181,253,1)", fontWeight: 700, fontSize: "0.7rem",
-                padding: "5px 13px", borderRadius: "10px",
-              }}>{openPremSection === 'ziwei' ? '▲ 접기' : '✦ 소개 보기'}</span>
-            </div>
-          </button>
-          {openPremSection === 'ziwei' && (
-            <div id="prem-active-section" style={{ borderTop: "1px solid rgba(167,139,250,0.2)" }}>
-              <HPremiumZiweiBookSection
-                showIntro={premiumFlowStage === 'intro'}
-                onStartGeneration={() => handleStartPremiumGeneration('ziwei')}
-                generationLoading={premiumGateLoading === 'ziwei'}
-                isUnlocked={premiumFlowStage === 'generate'}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* ─── 2. 점성술 프리미엄 ─── */}
-        <div style={{
-          background: "linear-gradient(145deg, rgb(7,4,25) 0%, rgb(20,14,5) 100%)",
-          border: "1.5px solid rgba(251,191,36,0.35)",
-          borderRadius: "20px",
-          overflow: "hidden",
-          boxShadow: "0 4px 24px rgba(251,191,36,0.12)",
-          position: "relative",
-          zIndex: 20,
-          pointerEvents: "auto",
-        }}>
-          <button
-            type="button"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onClick={wrapClick(() => handleOpenPremSection('astrology'))}
-            style={{
-              width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
-              gap: "16px", padding: "0", background: "transparent", border: "none",
-              cursor: "pointer", textAlign: "left",
-            }}
-          >
-            <div style={{ position: "relative", width: "130px", minWidth: "130px", aspectRatio: "4/3", flexShrink: 0 }}>
-              <img src="/fuctionassets/premiumstar.webp" alt="점성술 프리미엄 리포트"
-                width={520}
-                height={390}
-                loading="lazy"
-                decoding="async"
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, transparent 60%, rgb(7,4,25))" }} />
-              <span style={{
-                position: "absolute", top: "8px", left: "8px",
-                background: "rgba(251,191,36,0.9)", color: "#1a1200",
-                fontSize: "0.5rem", fontWeight: 800, letterSpacing: "0.14em",
-                padding: "2px 7px", borderRadius: "20px", textTransform: "uppercase",
-              }}>PREMIUM</span>
-            </div>
-            <div style={{ flex: 1, padding: "16px 16px 16px 4px" }}>
-              <p style={{ color: "rgba(253,230,138,0.65)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 4px" }}>점성술 · Astrology Premium</p>
-              <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>점성술 프리미엄 리포트</p>
-              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>12챕터 · ASC/Sun/Moon 입체 분석 · AI 심층 해석</p>
-              <span style={{
-                display: "inline-block",
-                background: "linear-gradient(135deg, rgba(251,191,36,0.2), rgba(253,230,138,0.12))",
-                border: "1px solid rgba(251,191,36,0.5)",
-                color: "rgba(253,230,138,1)", fontWeight: 700, fontSize: "0.7rem",
-                padding: "5px 13px", borderRadius: "10px",
-              }}>{openPremSection === 'astrology' ? '▲ 접기' : '✦ 소개 보기'}</span>
-            </div>
-          </button>
-          {openPremSection === 'astrology' && (
-            <div id="prem-active-section" style={{ borderTop: "1px solid rgba(251,191,36,0.18)" }}>
-              <HPremiumAstrologySection
-                showIntro={premiumFlowStage === 'intro'}
-                onStartGeneration={() => handleStartPremiumGeneration('astrology')}
-                generationLoading={premiumGateLoading === 'astrology'}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* ─── 3. 숙요점 프리미엄 ─── */}
-        <div style={{
-          background: "linear-gradient(145deg, rgb(2,8,23) 0%, rgb(4,16,38) 100%)",
-          border: "1.5px solid rgba(125,211,252,0.35)",
-          borderRadius: "20px",
-          overflow: "hidden",
-          boxShadow: "0 4px 24px rgba(14,165,233,0.12)",
-          position: "relative",
-          zIndex: 20,
-          pointerEvents: "auto",
-        }}>
-          <button
-            type="button"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onClick={wrapClick(() => handleOpenPremSection('sukuyo'))}
-            style={{
-              width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
-              gap: "16px", padding: "0", background: "transparent", border: "none",
-              cursor: "pointer", textAlign: "left",
-            }}
-          >
-            <div style={{ position: "relative", width: "130px", minWidth: "130px", aspectRatio: "4/3", flexShrink: 0 }}>
-              <img src="/fuctionassets/sukyo_premium.webp" alt="숙요점 프리미엄"
-                width={520}
-                height={390}
-                loading="lazy"
-                decoding="async"
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, transparent 60%, rgb(2,8,23))" }} />
-              <span style={{
-                position: "absolute", top: "8px", left: "8px",
-                background: "rgba(14,165,233,0.9)", color: "#fff",
-                fontSize: "0.5rem", fontWeight: 800, letterSpacing: "0.14em",
-                padding: "2px 7px", borderRadius: "20px", textTransform: "uppercase",
-              }}>PREMIUM</span>
-            </div>
-            <div style={{ flex: 1, padding: "16px 16px 16px 4px" }}>
-              <p style={{ color: "rgba(125,211,252,0.65)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 4px" }}>숙요점 · Moonlight Strategy</p>
-              <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>숙요점 프리미엄 PDF</p>
-              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>390코인 · 사주와 분리된 27수 숙요점/궁합/달빛 전략</p>
-              <span style={{
-                display: "inline-block",
-                background: "linear-gradient(135deg, rgba(14,165,233,0.18), rgba(30,27,75,0.2))",
-                border: "1px solid rgba(125,211,252,0.42)",
-                color: "rgba(125,211,252,1)", fontWeight: 700, fontSize: "0.7rem",
-                padding: "5px 13px", borderRadius: "10px",
-              }}>{openPremSection === 'sukuyo' ? '▲ 접기' : '✦ 소개 보기'}</span>
-            </div>
-          </button>
-          {openPremSection === 'sukuyo' && (
-            <div id="prem-active-section" style={{ borderTop: "1px solid rgba(14,165,233,0.18)" }}>
-              <HPremiumSukuyoSection
-                showIntro={premiumFlowStage === 'intro'}
-                onStartGeneration={() => handleStartPremiumGeneration('sukuyo')}
-                generationLoading={premiumGateLoading === 'sukuyo'}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* ─── 4. 베다 점성술 프리미엄 ─── */}
-        <div style={{
-          background: "linear-gradient(145deg, rgb(15,10,3) 0%, rgb(30,18,6) 100%)",
-          border: "1.5px solid rgba(251,146,60,0.35)",
-          borderRadius: "20px",
-          overflow: "hidden",
-          boxShadow: "0 4px 24px rgba(234,88,12,0.10)",
-          position: "relative",
-          zIndex: 20,
-          pointerEvents: "auto",
-        }}>
-          <button
-            type="button"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onClick={wrapClick(() => handleOpenPremSection('veda'))}
-            style={{
-              width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
-              gap: "16px", padding: "0", background: "transparent", border: "none",
-              cursor: "pointer", textAlign: "left",
-            }}
-          >
-            <div style={{ position: "relative", width: "130px", minWidth: "130px", aspectRatio: "4/3", flexShrink: 0 }}>
-              <img src="/fuctionassets/premium%20veda.webp" alt="베다 점성술 프리미엄"
-                width={520}
-                height={390}
-                loading="lazy"
-                decoding="async"
-                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }} />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, transparent 60%, rgb(15,10,3))" }} />
-              <span style={{
-                position: "absolute", top: "8px", left: "8px",
-                background: "rgba(234,88,12,0.9)", color: "#fff",
-                fontSize: "0.5rem", fontWeight: 800, letterSpacing: "0.14em",
-                padding: "2px 7px", borderRadius: "20px", textTransform: "uppercase",
-              }}>PREMIUM</span>
-            </div>
-            <div style={{ flex: 1, padding: "16px 16px 16px 4px" }}>
-              <p style={{ color: "rgba(253,186,116,0.65)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 4px" }}>베다 점성술 · Vedic Astrology Premium</p>
-              <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>베다 인생 총람 PDF</p>
-              <p style={{ color: "rgba(203,213,225,0.50)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>1인 390코인 · 2인 궁합 690코인(추가 300) · 라그나·나크샤트라·다샤 평생 운명 지도</p>
-              <span style={{
-                display: "inline-block",
-                background: "linear-gradient(135deg, rgba(234,88,12,0.22), rgba(253,186,116,0.12))",
-                border: "1px solid rgba(251,146,60,0.5)",
-                color: "rgba(253,186,116,1)", fontWeight: 700, fontSize: "0.7rem",
-                padding: "5px 13px", borderRadius: "10px",
-              }}>{openPremSection === 'veda' ? '▲ 접기' : '✦ 소개 보기'}</span>
-            </div>
-          </button>
-          {openPremSection === 'veda' && (
-            <div id="prem-active-section" style={{ borderTop: "1px solid rgba(234,88,12,0.18)" }}>
-              {vedaFlowError ? (
-                <p style={{ margin: "12px 16px 0", color: "rgba(252,165,165,0.9)", fontSize: "0.82rem", fontWeight: 700 }}>
-                  ⚠ {vedaFlowError}
-                </p>
-              ) : null}
-              <HPremiumVedicSection
-                showIntro={premiumFlowStage === 'intro'}
-                onStartGeneration={() => handleStartPremiumGeneration('veda')}
-                generationLoading={premiumGateLoading === 'veda'}
-                onPdfFlowStateChange={handleVedaPdfFlowStateChange}
-              />
-            </div>
-          )}
-        </div>
 
         {/* ─── 5. 명운 작명 프리미엄 ─── */}
         <div style={{
@@ -1567,7 +1303,7 @@ export default function KkulkkulManseryukMain() {
             <div style={{ flex: 1, padding: "16px 16px 16px 4px" }}>
               <p style={{ color: "rgba(245,226,122,0.75)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 4px" }}>명운 · Naming Premium</p>
               <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>사주 프리미엄 작명</p>
-              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>700코인 · 만세력 엔진 연동 · 용신/오행/수리 작명 PDF</p>
+              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>700코인 · 만세력 엔진 연동 · 용신/오행/수리 작명 리포트</p>
               <span style={{
                 display: "inline-block",
                 background: "linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.12))",

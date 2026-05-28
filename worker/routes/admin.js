@@ -4,7 +4,6 @@ import { connectDb } from "../lib/db.js";
 import { requireAuth } from "../lib/auth.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { Insight, PointHistory } from "../lib/models.js";
-import { PREMIUM_PDF_SPECS, REPORT_TYPE_TO_FEATURE_TYPE } from "../lib/premium-pdf-specs.js";
 import {
   FEATURE_KEY_PRICE_TABLE,
   FRONTEND_PAID_FEATURE_KEYS,
@@ -12,11 +11,6 @@ import {
   listLegacyUnlockBaselineMismatches,
   listServerPricedFeatureKeys,
 } from "../lib/paid-feature-registry.js";
-import {
-  PREMIUM_UNLOCK_POLICY,
-  buildAlternativePaymentRules,
-  buildRequiredPaymentRules,
-} from "../lib/access-control.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 
 const ADMIN_ENTRY_PASSWORD_SHA256_LIST = [
@@ -1681,76 +1675,6 @@ async function handleAdminGeminiHealth(request, env) {
   });
 }
 
-async function handleAdminPdfHealth(request, env) {
-  const adminContext = await authorizeAdminRequest(request, env);
-  const requestId = `aph_${Date.now().toString(36)}`;
-
-  const pdfPayload = [
-    "%PDF-1.4",
-    "1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj",
-    "2 0 obj<</Type/Pages/Count 1/Kids[3 0 R]>>endobj",
-    "3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>endobj",
-    "xref",
-    "0 4",
-    "0000000000 65535 f ",
-    "trailer<</Size 4/Root 1 0 R>>",
-    "startxref",
-    "0",
-    "%%EOF",
-  ].join("\n");
-  const byteLength = new TextEncoder().encode(pdfPayload).length;
-
-  return json({
-    ok: true,
-    requestId,
-    adminAuth: true,
-    userId: adminContext.userId,
-    pdf: {
-      renderer: "simulated",
-      healthy: byteLength > 120,
-      byteLength,
-    },
-  });
-}
-
-async function handleAdminPremiumPdfHealth(request, env) {
-  const adminContext = await authorizeAdminRequest(request, env);
-  const requestId = `apph_${Date.now().toString(36)}`;
-  const url = new URL(request.url);
-  const smoke = String(url.searchParams.get("smoke") || "") === "1";
-  const keyStatus = listGeminiKeyStatus(env);
-  const smokeResult = smoke ? await runGeminiSmoke(env, requestId) : null;
-
-  const features = Object.entries(PREMIUM_PDF_SPECS).map(([featureType, spec]) => {
-    const chapters = Array.isArray(spec?.chapters)
-      ? spec.chapters
-      : (Array.isArray(spec?.chaptersByMode?.solo) ? spec.chaptersByMode.solo : []);
-    return {
-      featureType,
-      legacyReportType: String(spec?.legacyReportType || ""),
-      chapterCount: chapters.length,
-      minTotalChars: Number(spec?.minTotalChars || 0),
-      targetTotalChars: Number(spec?.targetTotalChars || 0),
-    };
-  });
-
-  return json({
-    ok: true,
-    requestId,
-    adminAuth: true,
-    userId: adminContext.userId,
-    premiumPdf: {
-      featureCount: features.length,
-      features,
-      gemini: {
-        ...keyStatus,
-        smokeRequested: smoke,
-        smokeResult,
-      },
-    },
-  });
-}
-
 async function handleAdminPaymentDiagnostics(request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
   await connectDb(env);
@@ -1780,24 +1704,6 @@ async function handleAdminPaymentDiagnostics(request, env) {
 
   const legacyUnlockBaselineMismatches = listLegacyUnlockBaselineMismatches();
 
-  const reportTypeRules = Object.keys(REPORT_TYPE_TO_FEATURE_TYPE)
-    .sort()
-    .map((reportType) => {
-      const unlockKeys = Array.isArray(PREMIUM_UNLOCK_POLICY[reportType])
-        ? PREMIUM_UNLOCK_POLICY[reportType]
-        : [];
-      const alternativeRules = buildAlternativePaymentRules(reportType, {});
-      const requiredRules = buildRequiredPaymentRules(reportType, { mode: "compatibility", reportMode: "compatibility" });
-
-      return {
-        reportType,
-        featureType: REPORT_TYPE_TO_FEATURE_TYPE[reportType],
-        unlockKeys,
-        alternativeRules,
-        requiredRules,
-      };
-    });
-
   const dbOrphanRaw = await PointHistory.distinct("featureKey", {
     kind: "deduct",
     featureKey: { $nin: serverFeatureKeys },
@@ -1817,8 +1723,6 @@ async function handleAdminPaymentDiagnostics(request, env) {
     diagnostics: {
       serverFeatureKeyCount: serverFeatureKeys.length,
       frontendFeatureKeyCount: frontendFeatureKeys.length,
-      premiumFeatureTypeCount: Object.keys(PREMIUM_PDF_SPECS).length,
-      reportTypeRuleCount: reportTypeRules.length,
       missingInServer,
       duplicatedInFrontend,
       invalidPriceRows,
@@ -1827,7 +1731,6 @@ async function handleAdminPaymentDiagnostics(request, env) {
       dbOrphanFeatureKeys,
       serverFeatureKeys,
       frontendFeatureKeys,
-      reportTypeRules,
     },
   });
 }
@@ -1851,14 +1754,6 @@ export async function handleAdminRoutes(request, env) {
 
     if (method === "GET" && path === "/gemini-health") {
       return await handleAdminGeminiHealth(request, env);
-    }
-
-    if (method === "GET" && path === "/pdf-health") {
-      return await handleAdminPdfHealth(request, env);
-    }
-
-    if (method === "GET" && path === "/premium-pdf-health") {
-      return await handleAdminPremiumPdfHealth(request, env);
     }
 
     if (method === "GET" && path === "/payment-diagnostics") {

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { INSIGHT_SEED_ARTICLES } from "./insights/seed-articles";
 import { createI18nMetadata } from "../lib/seo/createI18nMetadata";
 import { getAlternatesByRouteKey } from "../lib/i18n/routes";
 import { buildOrganizationJsonLd, buildWebPageJsonLd, buildWebsiteJsonLd } from "../lib/structured-data";
@@ -42,7 +41,12 @@ const SERVICE_LINKS = [
 ];
 
 export default function HomePage() {
-  const latestInsights = INSIGHT_SEED_ARTICLES.slice(0, 12);
+  const latestInsights = [
+    { slug: "ziwei-basics", category: "자미두수", title: "자미두수 입문 가이드", excerpt: "명반을 읽는 기본 순서를 확인해 보세요." },
+    { slug: "sukuyo-basics", category: "숙요점", title: "숙요점 관계 해석", excerpt: "갈등 패턴과 회복 타이밍을 읽는 법을 정리합니다." },
+    { slug: "saju-free-guide", category: "사주", title: "무료 사주풀이 보는 법", excerpt: "초보자용 해석 순서를 짧게 정리했습니다." },
+    { slug: "tarot-spread-design-principles", category: "타로", title: "타로 스프레드 설계", excerpt: "질문을 잘 만드는 법과 카드 배열을 연결합니다." },
+  ];
   const orgJsonLd = buildOrganizationJsonLd();
   const websiteJsonLd = buildWebsiteJsonLd();
   const webPageJsonLd = buildWebPageJsonLd({
