@@ -157,12 +157,22 @@ function buildHelper() {
 const singleton = globalThis.__cdCoinGateHelperSingleton || buildHelper();
 globalThis.__cdCoinGateHelperSingleton = singleton;
 
-export const FEATURE_KEY_SAJU_LOVE_BOOK_PDF = LOVE_BOOK_FEATURE_KEY;
-export const coinGateHelper = singleton;
+const FEATURE_KEY_SAJU_LOVE_BOOK_PDF = LOVE_BOOK_FEATURE_KEY;
+const coinGateHelper = singleton;
 
-export async function getCoinGateHelper() {
+async function getCoinGateHelper() {
   if (!coinGateHelper) {
     throw new Error('COIN_GATE_HELPER_MISSING');
   }
   return coinGateHelper;
+}
+
+// ESM export for dynamic import compatibility
+if (typeof module !== 'undefined' && typeof module.exports === 'undefined') {
+  // Browser environment - expose as module for import()
+  globalThis.__cdCoinGateHelperModule = {
+    coinGateHelper: coinGateHelper,
+    FEATURE_KEY_SAJU_LOVE_BOOK_PDF: FEATURE_KEY_SAJU_LOVE_BOOK_PDF,
+    getCoinGateHelper: getCoinGateHelper,
+  };
 }
