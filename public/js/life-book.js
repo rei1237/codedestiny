@@ -5,39 +5,40 @@
 (function () {
   'use strict';
 
-  var LIFEBOOK_TOTAL_CHAPTERS = 12;
-  var LIFE_BOOK_FEATURE_KEY = 'saju_life_book_pdf';
+  var LIFEBOOK_TOTAL_CHAPTERS = 13;
+  var LIFE_BOOK_FEATURE_KEY = 'saju_lifebook_pdf';
 
   /* ─────────────── 상수 ─────────────── */
   var CHAPTER_TITLES = [
-    '📜 사주 원국 완전 해설',
-    '🏛️ 나의 설계도',
-    '⚔️ 숨겨진 무기',
-    '🌀 대운 정밀 분석',
-    '👑 사회적 소명',
-    '🤝 관계의 전략',
-    '💑 연애·결혼 완전 분석',
-    '💰 재물·직업 완전 전략',
-    '🏥 건강·심신 에너지',
-    '🔮 신살·12운성·퀀텀 명리',
-    '📅 2026 丙午年 로드맵',
-    '🌅 생애 마스터플랜',
+    '🌌 사주 원국 완전 해설 — 팔자 8글자의 비밀',
+    '🏛️ 나의 설계도 — 월지·일간·조후와 기질의 뿌리',
+    '⚔️ 숨겨진 무기 — 용신·희신과 나만의 필살기',
+    '🌀 대운 정밀 분석 — 인생의 큰 파도',
+    '👑 격국과 사회적 소명 — 나의 성공 방정식',
+    '🤝 관계의 전략 — 인연의 법칙과 파트너십',
+    '💑 연애·결혼 완전 분석 — 사랑의 구조와 배우자 인연',
+    '💰 재물과 현실 감각 — 돈이 모이는 구조',
+    '🧭 직업·사업·커리어 — 내가 빛나는 무대',
+    '🪷 건강·멘탈·생활 리듬 — 오래 가는 운의 관리법',
+    '🔥 위기와 전환점 — 인생의 시험을 넘는 법',
+    '🧿 숨은 복과 귀인 — 나를 살리는 보이지 않는 힘',
+    '🌠 최종 운명 로드맵 — 앞으로의 실행 전략',
   ];
 
   var CHAPTER_SUBTITLES = [
-    '팔자 8글자 — 년주·월주·일주·시주 완전 해독',
-    '타고난 기질과 월지·일간·조후 판정',
-    '용신·희신·기신과 나만의 천직 필살기',
-    '전생애 대운 표와 현재 대운 심층 분석',
-    '격국·상신·구신과 성공 방정식',
-    '충·합·육신의 인연 법칙과 파트너십',
-    '일지·관성·재성으로 본 사랑 설계도',
-    '재성·식상·격국으로 설계하는 부의 지도',
-    '오행별 신체 지도와 에너지 관리 전략',
-    '신살·12운성·공망·퀀텀 잠재력 해독',
-    '丙午年 12개월 Monthly Go/Stop 전략',
-    '유년부터 노년까지 대운별 인생 파노라마',
-    '12챕터 총결산 · 귀인운 · 3가지 핵심 비책',
+    '연주·월주·일주·시주와 천간·지지 상호작용의 핵심 구조',
+    '월지·일간·조후를 중심으로 본 기질과 현실 적응 패턴',
+    '용신·희신 운용법과 반복 리스크를 다루는 실행 무기',
+    '현재 대운과 다음 대운의 전환 포인트 및 장기 전략',
+    '격국/중심 구조와 사회적 역할·성취 방식의 연결',
+    '관계 패턴·갈등 지점·협업 강점에 대한 실전 가이드',
+    '연애 성향·배우자궁·결혼 흐름을 통한 관계 유지 전략',
+    '재물 구조·수입/지출 패턴·축적 전략의 현실적 제안',
+    '직업 적합성·업무 방식·전환 타이밍과 브랜드 전략',
+    '건강 리듬·멘탈 회복·번아웃 방지를 위한 생활 설계',
+    '위기 신호 해석과 실패 패턴 전환을 위한 회복 로드맵',
+    '귀인/복의 발현 조건과 막힌 흐름을 다시 여는 조건',
+    '1년·3년·10년 단위 최종 실행 전략과 우선순위 정리',
   ];
 
   var LOADING_MSGS = [
@@ -49,10 +50,11 @@
     '충·합·육신 관계 역학을 매핑하는 중...',
     '연애·결혼 구조와 이상형 프로파일을 분석하는 중...',
     '재성·식상·부의 그릇과 직업 전략을 계산하는 중...',
+    '직업/사업/커리어 전환 포인트를 정리하는 중...',
     '오행별 건강 지도와 심신 에너지를 분석하는 중...',
-    '신살·12운성·공망·퀀텀 잠재력을 탐색하는 중...',
-    '2026 丙午年 월별 로드맵을 작성하는 중...',
-    '대운별 생애 파노라마를 조망하는 중...',
+    '위기 패턴과 전환 전략을 정리하는 중...',
+    '귀인운과 숨은 복의 활성 조건을 탐색하는 중...',
+    '최종 운명 로드맵을 완성하는 중...',
   ];
 
   var MYSTIC_QUOTES = [
@@ -84,7 +86,8 @@
     9: ['건강 취약점', '에너지 루틴', '생활 습관', '회복 전략', '예방 포인트'],
     10: ['신살/운성 해석', '잠재 변수', '심화 인사이트', '주의 요소', '활용 전략'],
     11: ['연간 핵심 운세', '분기 전략', '월별 체크', '실행 우선순위', '리스크 관리'],
-    12: ['생애 파노라마', '시기별 과제', '장기 플랜', '전환기 대응', '핵심 습관'],
+    12: ['귀인 흐름', '기회 조건', '복을 여는 태도', '막힘 해소', '실전 적용'],
+    13: ['현재 핵심 과제', '1년 전략', '3년 성장', '10년 방향', '최종 메시지'],
   };
 
   /* ─────────────── 상태 ─────────────── */
@@ -180,7 +183,7 @@
       return false;
     }
     _flowLog('COIN_GATE_START', { message: 'premium-check-before-generate' });
-    window._cdCoinGatePerUse(500, '인생의 책 생성 (12챕터)', function () {
+    window._cdCoinGatePerUse(500, '인생의 책 생성 (13챕터)', function () {
       _premiumPaidUntil = Date.now() + 25 * 60 * 1000;
       _flowLog('COIN_GATE_SUCCESS', { message: 'coin-gate-approved' });
       window.generateLifeBook();
@@ -1074,7 +1077,7 @@
     var _lbStateMessages = {
       payment_confirmed: '결제가 확인되었습니다. 인생의 책을 펼칠 준비를 하고 있습니다.',
       calculating_saju: '사주 원국을 계산하고 있습니다.',
-      building_chapters: '12개의 챕터 구조를 구성하고 있습니다.',
+      building_chapters: '13개의 챕터 구조를 구성하고 있습니다.',
       writing_with_llm: '각 챕터의 상담문을 작성하고 있습니다.',
       validating_chapters: '챕터별 결과가 빠짐없이 작성되었는지 확인하고 있습니다.',
       rendering_pdf: 'PDF를 아름답게 편집하고 있습니다.',
@@ -1133,32 +1136,21 @@
       if (_lbPremiumToken) _headers['x-premium-access-token'] = _lbPremiumToken;
 
       var _payload = {
+        serviceKey: 'saju-lifebook',
+        productKey: LIFE_BOOK_FEATURE_KEY,
         featureKey: LIFE_BOOK_FEATURE_KEY,
-        mode: 'life-book',
-        generateAll: true,
-        reportId: _lbReportId,
-        accessGrant: _accessGrant,
-        profile: {
-          name: String((profile && profile.name) || '사용자'),
-          gender: profile && profile.gender === 'F' ? 'female' : (profile && profile.gender === 'M' ? 'male' : 'unknown'),
-        },
-        birthData: {
-          birthDate: [profile.birth.year, String(profile.birth.month).padStart(2, '0'), String(profile.birth.day).padStart(2, '0')].join('-'),
-          birthTime: String(String(profile.birth.hour || 12).padStart(2, '0') + ':' + String(profile.birth.minute || 0).padStart(2, '0')),
-          calendarType: 'solar',
-          lunarLeapMonth: false,
-        },
-        payment: {
-          featureKey: LIFE_BOOK_FEATURE_KEY,
-          purchaseId: _accessGrant.purchaseId,
-          sessionId: _accessGrant.sessionId,
-          reportId: _accessGrant.reportId,
-        },
-        sajuData: sajuData,
+        name: String((profile && profile.name) || '사용자'),
+        gender: profile && profile.gender === 'F' ? 'female' : (profile && profile.gender === 'M' ? 'male' : 'unknown'),
+        calendarType: 'solar',
+        birthDate: [profile.birth.year, String(profile.birth.month).padStart(2, '0'), String(profile.birth.day).padStart(2, '0')].join('-'),
+        birthTimeKnown: true,
+        hour: Number(profile.birth.hour || 12),
+        minute: Number(profile.birth.minute || 0),
+        birthplace: String((profile && profile.location && profile.location.label) || '대한민국'),
       };
 
       _setGenerationState('writing_with_llm');
-      var _res = await fetch('/api/lifebook/generate', {
+      var _res = await fetch('/api/premium/saju-lifebook/prepare', {
         method: 'POST',
         headers: _headers,
         body: JSON.stringify(_payload),
@@ -1172,7 +1164,8 @@
 
       _setGenerationState('validating_chapters');
 
-      var _serverChapters = Array.isArray(_json.chapters) ? _json.chapters : [];
+      var _data = (_json && _json.data && typeof _json.data === 'object') ? _json.data : _json;
+      var _serverChapters = Array.isArray(_data.chapters) ? _data.chapters : [];
       if (_serverChapters.length !== LIFEBOOK_TOTAL_CHAPTERS) {
         throw new Error('LIFE_BOOK_CHAPTER_COUNT_INVALID:' + _serverChapters.length);
       }
@@ -1183,9 +1176,24 @@
 
       for (var _i = 0; _i < LIFEBOOK_TOTAL_CHAPTERS; _i++) {
         var _ch = _serverChapters[_i] || {};
-        var _text = String(_ch.contentMarkdown || _ch.text || '').trim();
+        var _text = String(_ch.text || _ch.contentMarkdown || '').trim();
+        if (!_text && Array.isArray(_ch.categories)) {
+          _text = _ch.categories.map(function (_cat) {
+            var _title = String((_cat && _cat.title) || '').trim();
+            var _body = String((_cat && (_cat.finalText || _cat.localSummary)) || '').trim();
+            if (!_body) return '';
+            return _title ? ('## ' + _title + '\n' + _body) : _body;
+          }).filter(Boolean).join('\n\n');
+        }
         _chapters[_i] = _text;
-        _chapterStructured[_i] = (_ch.chapterJson && typeof _ch.chapterJson === 'object') ? _ch.chapterJson : null;
+        _chapterStructured[_i] = (_ch.chapterJson && typeof _ch.chapterJson === 'object')
+          ? _ch.chapterJson
+          : (Array.isArray(_ch.categories) ? { sections: _ch.categories.map(function (_cat) {
+            return {
+              title: String((_cat && _cat.title) || ''),
+              body: String((_cat && (_cat.finalText || _cat.localSummary)) || ''),
+            };
+          }) } : null);
         _chapterMeta[_i] = {
           title: String(_ch.title || CHAPTER_TITLES[_i] || ('Chapter ' + (_i + 1))),
           subtitle: String(_ch.subtitle || CHAPTER_SUBTITLES[_i] || ''),
@@ -1594,7 +1602,7 @@
         // 코인 게이트: 버튼 비활성화로 중복 클릭 방지 후 진행
         btn.disabled = true;
         _flowLog('COIN_GATE_START', { message: 'button-coin-gate-start' });
-        window._cdCoinGatePerUse(_lbCoinCost, '인생의 책 생성 (12챕터)', function () {
+        window._cdCoinGatePerUse(_lbCoinCost, '인생의 책 생성 (13챕터)', function () {
           _premiumPaidUntil = Date.now() + 25 * 60 * 1000;
           btn.disabled = false;
           _flowLog('COIN_GATE_SUCCESS', { message: 'button-coin-gate-approved' });
