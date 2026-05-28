@@ -7,6 +7,7 @@
 
   var LIFEBOOK_TOTAL_CHAPTERS = 13;
   var LIFE_BOOK_FEATURE_KEY = 'premium_pdf_saju_life_book';
+  var LIFE_BOOK_BILLING_FEATURE_KEY = 'saju_life_book_pdf';
   var LIFEBOOK_API_PREPARE_PATH = '/api/lifebook/prepare';
   var LIFEBOOK_API_PREPARE_LEGACY_PATH = '/api/premium/saju-lifebook/prepare';
 
@@ -111,10 +112,28 @@
   var _activeRequestController = null;
   var _cancelGeneration = false;
   var _premiumPaidUntil = 0;
+  var _premiumAccessVerifiedUntil = 0;
   var _lbPendingSavedResult = null;
   var _lbJobStateKey = 'cd:premium-job:life-book';
   var _lbCurrentReportId = '';
   var _lbPartialFetchChapter = null;
+
+  function _markPremiumAccessVerified(ttlMs) {
+    var ttl = Number(ttlMs || 0);
+    if (!Number.isFinite(ttl) || ttl <= 0) ttl = 25 * 60 * 1000;
+    var until = Date.now() + ttl;
+    if (until > _premiumAccessVerifiedUntil) _premiumAccessVerifiedUntil = until;
+    if (until > _premiumPaidUntil) _premiumPaidUntil = until;
+  }
+
+  function _hasPremiumAccessForGeneration() {
+    if (Date.now() < _premiumAccessVerifiedUntil) return true;
+    if (_premiumTokenMatches('lifeBook', 500) || Date.now() < _premiumPaidUntil) {
+      _markPremiumAccessVerified(25 * 60 * 1000);
+      return true;
+    }
+    return false;
+  }
 
   function _lbGetJobClient() {
     return (typeof window !== 'undefined' && window.CDPremiumPdfJobClient) ? window.CDPremiumPdfJobClient : null;
@@ -165,33 +184,54 @@
     return token;
   }
 
-  function _premiumTokenMatches(reportType) {
+  function _premiumTokenMatches(reportType, minCoins) {
     var token = _readPremiumTokenForReport();
     if (!token || typeof atob !== 'function') return false;
     try {
       var payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      var tokenReportType = String(payload && payload.reportType || '').trim();
+      var expected = String(reportType || '').trim();
+      var aliases = {
+        lifeBook: ['lifebook', 'saju_lifebook', 'sajulifebook'],
+        loveSecret: ['lovesecret', 'saju_love_secret', 'saju-love-secret'],
+      };
+      var normalizedExpected = expected.toLowerCase().replace(/[^a-z0-9]/g, '');
+      var normalizedActual = tokenReportType.toLowerCase().replace(/[^a-z0-9]/g, '');
+      var expectedAliases = aliases[expected] || [];
+      var reportTypeMatched = normalizedActual === normalizedExpected;
+      if (!reportTypeMatched) {
+        for (var ai = 0; ai < expectedAliases.length; ai++) {
+          if (normalizedActual === String(expectedAliases[ai]).toLowerCase().replace(/[^a-z0-9]/g, '')) {
+            reportTypeMatched = true;
+            break;
+          }
+        }
+      }
       var exp = Number(payload && payload.exp);
-      return String(payload && payload.reportType || '') === reportType
-        && (!Number.isFinite(exp) || exp * 1000 > Date.now() + 5000);
+      var charged = Number(payload && payload.chargedCoins || 0);
+      var coinMatched = !Number.isFinite(Number(minCoins)) || charged >= Number(minCoins);
+      return reportTypeMatched
+        && (!Number.isFinite(exp) || exp * 1000 > Date.now() + 5000)
+        && coinMatched;
     } catch (_) {
       return false;
     }
   }
 
   function _ensurePremiumPaymentThenStart() {
-    if (_premiumTokenMatches('lifeBook') || Date.now() < _premiumPaidUntil) return true;
+    if (_hasPremiumAccessForGeneration()) return true;
     if (typeof window._cdCoinGatePerUse !== 'function') {
       alert('결제 확인 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
       return false;
     }
     _flowLog('COIN_GATE_START', { message: 'premium-check-before-generate' });
     window._cdCoinGatePerUse(500, '인생의 책 생성 (13챕터)', function () {
-      _premiumPaidUntil = Date.now() + 25 * 60 * 1000;
+      _markPremiumAccessVerified(25 * 60 * 1000);
       _flowLog('COIN_GATE_SUCCESS', { message: 'coin-gate-approved' });
       window.generateLifeBook();
     }, null, {
-      featureKey: LIFE_BOOK_FEATURE_KEY,
-      requestId: LIFE_BOOK_FEATURE_KEY + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8)
+      featureKey: LIFE_BOOK_BILLING_FEATURE_KEY,
+      requestId: LIFE_BOOK_BILLING_FEATURE_KEY + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8)
     });
     return false;
   }
@@ -878,7 +918,7 @@
         _chapters[idx] = fallbackText;
         _chapterStructured[idx] = null;
         _lbSaveResult(window.__cdActiveBirthProfile || {});
-      },
+      }
     }).then(function () {
       _currentChapter = idx + 1;
       _updateTocState();
@@ -893,7 +933,7 @@
       mountSelector: '.lb-toc',
       buttonLabel: '현재 챕터 부분 재생성',
       getActiveChapter: _lbResolveActiveChapter,
-      onRegenerate: _lbRegenerateChapter,
+      onRegenerate: _lbRegenerateChapter
     });
   }
 
@@ -1091,6 +1131,11 @@
   window.generateLifeBook = function () {
     if (_generating) return;
 
+    if (!_hasPremiumAccessForGeneration()) {
+      if (!_ensurePremiumPaymentThenStart()) return;
+      return;
+    }
+
     var profile = _getActiveBirthProfile();
     if (!profile) {
       alert('사주 계산을 먼저 완료해 주세요.');
@@ -1252,11 +1297,8 @@
       });
 
       _setGenerationState('payment_confirmed');
-      _setProgress(1);
       _setGenerationState('calculating_saju');
-      _setProgress(2);
       _setGenerationState('building_chapters');
-      _setProgress(3);
 
       var _headers = { 'Content-Type': 'application/json' };
       if (_lbAuthToken) _headers.Authorization = 'Bearer ' + _lbAuthToken;
@@ -1526,7 +1568,7 @@
         },
         onProgress: function (idx) {
           _setProgress(idx + 1);
-        },
+        }
       });
 
       if (_cancelGeneration) {
@@ -1716,7 +1758,7 @@
         return;
       }
       _flowLog('GENERATE_CLICK', { message: 'button-click' });
-      if (_premiumTokenMatches('lifeBook') || Date.now() < _premiumPaidUntil) {
+      if (_hasPremiumAccessForGeneration()) {
         _flowLog('COIN_GATE_SUCCESS', { message: 'existing-premium-access' });
         window.generateLifeBook();
         return;
@@ -1727,14 +1769,14 @@
         btn.disabled = true;
         _flowLog('COIN_GATE_START', { message: 'button-coin-gate-start' });
         window._cdCoinGatePerUse(_lbCoinCost, '인생의 책 생성 (13챕터)', function () {
-          _premiumPaidUntil = Date.now() + 25 * 60 * 1000;
+          _markPremiumAccessVerified(25 * 60 * 1000);
           btn.disabled = false;
           _flowLog('COIN_GATE_SUCCESS', { message: 'button-coin-gate-approved' });
           window.generateLifeBook();
         }, function () {
           // 취소 또는 오류 시 버튼 복원
           btn.disabled = false;
-        }, { featureKey: LIFE_BOOK_FEATURE_KEY });
+        }, { featureKey: LIFE_BOOK_BILLING_FEATURE_KEY });
       } else {
         // 결제 확인 모듈 미로드 — 결제 없이 생성 불가
         window.alert('결제 확인 모듈이 아직 준비되지 않았습니다.\n잠시 후 새로고침한 뒤 다시 시도해 주세요.');
