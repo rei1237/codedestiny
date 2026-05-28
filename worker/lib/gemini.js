@@ -461,7 +461,19 @@ export async function callGeminiText(env, prompt, options = {}) {
   const keys = pickGeminiKeys(env, options.keyEnvKeys || []);
   const processGeminiKeyConfigured = Boolean(
     canUseNodeSdk()
-      ? clean(process?.env?.GEMINI_API_KEY || process?.env?.GOOGLE_GEMINI_API_KEY || "")
+      ? clean(
+        process?.env?.PREMIUM_GEMINI_API_KEY1
+          || process?.env?.PREMIUM_GEMINI_API_KEY2
+          || process?.env?.PREMIUM_GEMINI_API_KEY3
+          || process?.env?.PREMIUM_GEMINI_API_KEY4
+          || process?.env?.GEMINIF_API_KEY1
+          || process?.env?.GEMINIF_API_KEY2
+          || process?.env?.GEMINIF_API_KEY3
+          || process?.env?.GEMINIF_API_KEY4
+          || process?.env?.GEMINI_API_KEY
+          || process?.env?.GOOGLE_GEMINI_API_KEY
+          || "",
+      )
       : "",
   );
   if (!keys.length) {

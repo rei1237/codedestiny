@@ -506,6 +506,38 @@ const FEATURES: ServiceFeature[] = ([
     },
   },
   {
+    slug: "ziwei-premium-pdf",
+    title: "자미두수 프리미엄 PDF",
+    subtitle: "명궁과 12궁으로 읽는 운명의 별자리",
+    description:
+      "자미두수 명반을 바탕으로 성격, 사랑, 재물, 직업, 건강, 복덕, 대운과 유년 흐름을 13챕터로 깊이 있게 해석합니다.",
+    category: "premium",
+    image: "/fuctionassets/jamipremiun.webp",
+    heroImageAlt: "자미두수 프리미엄 PDF 대표 이미지",
+    detailRoute: "/services/ziwei",
+    launchRoute: "/index.html?action=gotoZiweiPremium",
+    accessType: "premium_report",
+    featureKey: "premium_pdf_ziwei",
+    priceLabel: "590코인",
+    tags: ["ZIWEI", "PREMIUM", "13 CHAPTERS", "PDF"],
+    highlights: ["13챕터 고정 구조", "명궁·신궁·12궁 기반", "대운·유년 종합 전략"],
+    howItWorks: [
+      { title: "출생 정보 입력", description: "생년월일시와 기본 프로필을 입력합니다." },
+      { title: "자미두수 명반 계산", description: "로컬 자미두수 엔진으로 명궁, 신궁, 12궁, 사화, 대운 데이터를 먼저 계산합니다." },
+      { title: "프리미엄 PDF 생성", description: "계산된 명반을 13챕터 구조로 정리해 PDF 저장용 리포트를 생성합니다." },
+    ],
+    resultExamples: [
+      { title: "명궁·신궁 해석", description: "선천 기질과 후천적으로 완성되는 나의 방향" },
+      { title: "12궁 심층 리포트", description: "사랑, 재물, 직업, 건강, 관계, 복덕의 궁별 해석" },
+      { title: "대운·유년 전략", description: "앞으로 열리는 운의 흐름과 선택 기준" },
+    ],
+    seo: {
+      title: "자미두수 프리미엄 PDF 소개 | Code Destiny",
+      description: "자미두수 명반을 바탕으로 명궁, 12궁, 대운과 유년 흐름을 13챕터로 해석하는 프리미엄 PDF 리포트 소개 페이지입니다.",
+      keywords: ["자미두수 프리미엄 PDF", "자미두수 PDF", "명궁 해석", "13챕터 자미두수"],
+    },
+  },
+  {
     slug: "stonehenge-rune",
     title: "스톤헨지 룬점",
     subtitle: "고대 룬 상징으로 읽는 선택/시기 신탁",

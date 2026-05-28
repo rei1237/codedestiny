@@ -1951,11 +1951,11 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
         if (hasHwaGi) {
           var normalized = zwNormalizeStrength(strength);
           if (starName === '거문') {
-            // 거문 화기는 현실 리스크를 동반하되, 본래 광휘(묘/왕)는 즉시 붕괴시키지 않는다.
-            var downGeomun = {'묘':'묘','왕':'왕','평':'리','리':'함','함':'함'};
+            // 거문 화기는 현실 리스크를 동반하되, 본래 광휘는 즉시 붕괴시키지 않는다.
+            var downGeomun = {'묘':'묘','득':'득','리':'평','평':'함','함':'함'};
             strength = downGeomun[normalized] || normalized;
           } else {
-            var down = {'묘':'평','왕':'리','평':'함','리':'함','함':'함'};
+            var down = {'묘':'리','득':'평','리':'함','평':'함','함':'함'};
             strength = down[normalized] || normalized;
           }
         }
@@ -9682,29 +9682,29 @@ var ZW_CLASSICAL_STATE = {
 };
 function zwNormalizeStrength(level){
   var lv = (level || '').trim();
-  if(lv === '평' || lv === '득' || lv === '이') return '평';
-  if(lv === '한' || lv === '불') return '평';
-  if(lv === '리') return '리';
+  if(lv === '묘' || lv === '왕') return '묘';
+  if(lv === '득') return '득';
+  if(lv === '리' || lv === '이') return '리';
   if(lv === '약') return '리';
-  if(lv === '함') return '함';
-  if(lv === '묘' || lv === '왕') return lv;
+  if(lv === '평' || lv === '한' || lv === '불') return '평';
+  if(lv === '함' || lv === '실') return '함';
   return '평';
 }
 function zwStrengthToSymbol(level){
   var lv = zwNormalizeStrength(level);
-  var map = {'묘':'◎','왕':'○','평':'▲','리':'△','함':'X'};
-  return map[lv] || '▲';
+  var map = {'묘':'◎','득':'O','리':'▲','평':'△','함':'X'};
+  return map[lv] || '△';
 }
 function zwStrengthToClass(level){
   var lv = zwNormalizeStrength(level);
   if(lv === '묘') return 'myo';
-  if(lv === '왕') return 'wang';
+  if(lv === '득') return 'wang';
   if(lv === '평') return 'han';
   if(lv === '함') return 'heum';
   return 'ri';
 }
 function zwStrengthStepUp(level, steps){
-  var order = ['함','리','평','왕','묘'];
+  var order = ['함','평','리','득','묘'];
   var lv = zwNormalizeStrength(level);
   var idx = order.indexOf(lv);
   if(idx < 0) idx = 2;
@@ -9713,7 +9713,7 @@ function zwStrengthStepUp(level, steps){
   return order[idx];
 }
 function zwStrengthStepDown(level, steps){
-  var order = ['함','리','평','왕','묘'];
+  var order = ['함','평','리','득','묘'];
   var lv = zwNormalizeStrength(level);
   var idx = order.indexOf(lv);
   if(idx < 0) idx = 2;
@@ -9724,16 +9724,16 @@ function zwStrengthStepDown(level, steps){
 function zwStrengthToNumeric(level){
   var lv = zwNormalizeStrength(level);
   if(lv === '함') return 0;
-  if(lv === '리') return 1;
-  if(lv === '평') return 2;
-  if(lv === '왕') return 3;
+  if(lv === '평') return 1;
+  if(lv === '리') return 2;
+  if(lv === '득') return 3;
   return 4; // 묘
 }
 function zwNumericToStrength(v){
   if(v >= 3.5) return '묘';
-  if(v >= 2.5) return '왕';
-  if(v >= 1.5) return '평';
-  if(v >= 0.5) return '리';
+  if(v >= 2.5) return '득';
+  if(v >= 1.5) return '리';
+  if(v >= 0.5) return '평';
   return '함';
 }
 function zwBuildHarmonicProfile(){
@@ -9936,7 +9936,7 @@ function zwComputeStarStrength(starName, zhi, isBorrowed, ctxOverride){
   var lv = zwNumericToStrength(score);
 
   if(!isBorrowed) return lv;
-  var down = {'묘':'왕','왕':'평','평':'리','리':'리','함':'함'};
+  var down = {'묘':'득','득':'리','리':'평','평':'함','함':'함'};
   return down[lv] || lv;
 }
 var ZW_GUNG_DEF={
@@ -9990,9 +9990,9 @@ function buildZwSummaryTableHtml(palace) {
   function parseBrSymbol(rawStr){
     var plain=(rawStr||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
     if(/◎/.test(plain)) return '묘';
-    if(/(^|\s)(O|○)(?=\s|$)/.test(plain)) return '왕';
-    if(/△/.test(plain)) return '리';
-    if(/▲/.test(plain)) return '평';
+    if(/(^|\s)(O|○)(?=\s|$)/.test(plain)) return '득';
+    if(/▲/.test(plain)) return '리';
+    if(/△/.test(plain)) return '평';
     if(/(^|\s)X(?=\s|$)/.test(plain)) return '함';
     return '';
   }
@@ -10025,15 +10025,15 @@ function buildZwSummaryTableHtml(palace) {
     return b;
   }
   function getBrTag(b,isBorrowed){
-    var c={'묘':'#4ade80','왕':'#60a5fa','평':'#f59e0b','리':'#94a3b8','함':'#f87171'};
-    var bg={'묘':'rgba(74,222,128,0.15)','왕':'rgba(96,165,250,0.15)','평':'rgba(245,158,11,0.15)','리':'rgba(148,163,184,0.1)','함':'rgba(248,113,113,0.15)'};
+    var c={'묘':'#4ade80','득':'#60a5fa','리':'#f59e0b','평':'#94a3b8','함':'#f87171'};
+    var bg={'묘':'rgba(74,222,128,0.15)','득':'rgba(96,165,250,0.15)','리':'rgba(245,158,11,0.15)','평':'rgba(148,163,184,0.1)','함':'rgba(248,113,113,0.15)'};
     var label=zwStrengthToSymbol(b)+(isBorrowed?'*':'');
     return '<span style="color:'+c[b]+';background:'+bg[b]+';padding:1px 5px;border-radius:3px;font-size:0.68rem;font-weight:700">'+label+'</span>';
   }
   function calcStrengthTier(mainMeta,zhi){
     if(!mainMeta || !mainMeta.length) return '리';
-    // 사용자 기준: ◎(묘) > ○(왕) > ▲(평) > △(리) > X(함)
-    var scoreMap={묘:5,왕:4,평:3,리:2,함:1};
+    // 사용자 기준: ◎(묘) > O(득) > ▲(리) > △(평) > X(함·실)
+    var scoreMap={묘:5,득:4,리:3,평:2,함:1};
     var weight=[1,0.72,0.56,0.44];
     var sum=0, wsum=0;
     for(var i=0;i<mainMeta.length && i<4;i++){
@@ -10045,9 +10045,9 @@ function buildZwSummaryTableHtml(palace) {
     }
     var avg = wsum ? (sum/wsum) : 3;
     if(avg>=4.4) return '묘';
-    if(avg>=3.6) return '왕';
-    if(avg>=2.8) return '평';
-    if(avg>=1.8) return '리';
+    if(avg>=3.6) return '득';
+    if(avg>=2.8) return '리';
+    if(avg>=1.8) return '평';
     return '함';
   }
   function genSummary(gungName,mainMeta,zhi,sh,auxStars){
@@ -10056,15 +10056,15 @@ function buildZwSummaryTableHtml(palace) {
     var kw=ZW_STAR_KW[star]||star;
     var tier=calcStrengthTier(mainMeta,zhi);
     var isDual=(mainMeta.length>1);
-    var brightPart={묘:'매우 강하게 작동',왕:'강하게 작동',평:'안정적으로 작동',리:'약하게 작동',함:'제약이 큰 상태'}[tier]||'작동';
+    var brightPart={묘:'매우 강하게 작동',득:'안정적으로 힘을 얻음',리:'이롭게 활용 가능',평:'균형 관리 필요',함:'제약이 큰 상태'}[tier]||'작동';
     var dualNote=isDual?' + '+(ZW_STAR_KW[mainMeta[1].name]||mainMeta[1].name):'';
     var advPart='';
     if(sh==='화기') advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' 영역에서 실수 비용이 커집니다. 계약·말·과속 결정을 특히 조심하세요.';
-    else if(sh==='화록') advPart=(tier==='묘'||tier==='왕')?' ☛ '+ZW_GUNG_DEF[gungName]+' 영역에서 성과와 인연 유입이 빠른 시기입니다.':' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 천천히 쌓으면 이익 회수 가능성이 큽니다.';
-    else if(sh==='화권') advPart=(tier==='묘'||tier==='왕')?' ☛ '+ZW_GUNG_DEF[gungName]+' 영역에서 주도권을 잡기 좋은 구간입니다.':' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 실력은 인정받지만 독단은 손해가 됩니다.';
+    else if(sh==='화록') advPart=(tier==='묘'||tier==='득')?' ☛ '+ZW_GUNG_DEF[gungName]+' 영역에서 성과와 인연 유입이 빠른 시기입니다.':' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 천천히 쌓으면 이익 회수 가능성이 큽니다.';
+    else if(sh==='화권') advPart=(tier==='묘'||tier==='득')?' ☛ '+ZW_GUNG_DEF[gungName]+' 영역에서 주도권을 잡기 좋은 구간입니다.':' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 실력은 인정받지만 독단은 손해가 됩니다.';
     else if(sh==='화과') advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 평판·시험·평가에 유리합니다.';
-    else if(tier==='묘'||tier==='왕') advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 추진력이 잘 붙는 구간입니다. 중요한 일은 직접 리드하세요.';
-    else if(tier==='리' || tier==='함') advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 에너지 소모가 크니 무리한 확장보다 복구·정리가 우선입니다.';
+    else if(tier==='묘'||tier==='득') advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 추진력이 잘 붙는 구간입니다. 중요한 일은 직접 리드하세요.';
+    else if(tier==='평' || tier==='함') advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 에너지 소모가 크니 무리한 확장보다 복구·정리가 우선입니다.';
     else advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 현재 흐름을 안정적으로 유지하는 것이 효율적입니다.';
     var goodAux=['천괴','천월','좌보','우필','문창','문곡','녹존','천마'];
     var auxNote='';
@@ -10128,7 +10128,7 @@ function buildZwSummaryTableHtml(palace) {
   }
 
   var legendHtml = '<div class="zw-summary-legend" style="padding:8px 12px 6px;font-size:0.71rem;color:#64748b;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;gap:14px;flex-wrap:wrap">'
-    +'<span>밝기: <b style="color:#4ade80">◎(묘)</b>=최상 · <b style="color:#60a5fa">○(왕)</b>=우수 · <b style="color:#f59e0b">▲(평)</b>=표준 · <b style="color:#94a3b8">△(리)</b>=약화 · <b style="color:#f87171">X(함)</b>=함몰</span>'
+    +'<span>밝기: <b style="color:#4ade80">◎(묘)</b>=최상 · <b style="color:#60a5fa">O(득)</b>=득지 · <b style="color:#f59e0b">▲(리)</b>=이로움 · <b style="color:#94a3b8">△(평)</b>=균형 · <b style="color:#f87171">X(함·실)</b>=함몰</span>'
     +'<span><b>*</b> 표시는 차성(借星) 보정 밝기이며 원성 대비 1단계 보수 해석</span>'
     +'<span>사화: <b style="color:#4ade80">화록▲</b>=재물·인연 · <b style="color:#60a5fa">화권▲</b>=권위 · <b style="color:#c084fc">화과▲</b>=명성 · <b style="color:#f87171">화기▼</b>=주의</span>'
     +'</div>';

@@ -94,10 +94,18 @@ export default function AdvancedZiweiSectionV2({
 
   const strengthBadgeClass = useCallback((symbol: string) => {
     if (symbol === "◎") return "border-emerald-300/60 bg-emerald-200/15 text-emerald-100";
-    if (symbol === "○") return "border-cyan-300/60 bg-cyan-200/15 text-cyan-100";
-    if (symbol === "△") return "border-amber-300/60 bg-amber-200/15 text-amber-100";
-    if (symbol === "×") return "border-rose-300/60 bg-rose-200/15 text-rose-100";
+    if (symbol === "O" || symbol === "○") return "border-cyan-300/60 bg-cyan-200/15 text-cyan-100";
+    if (symbol === "▲") return "border-amber-300/60 bg-amber-200/15 text-amber-100";
+    if (symbol === "△") return "border-slate-300/60 bg-slate-200/15 text-slate-100";
+    if (symbol === "X" || symbol === "×") return "border-rose-300/60 bg-rose-200/15 text-rose-100";
     return "border-white/30 bg-white/10 text-slate-200";
+  }, []);
+
+  const displayStrengthSymbol = useCallback((symbol: string) => {
+    const normalized = String(symbol || "").trim();
+    if (normalized === "○") return "O";
+    if (normalized === "×") return "X";
+    return normalized;
   }, []);
 
   const transformationBadgeClass = useCallback((label: string) => {
@@ -107,24 +115,26 @@ export default function AdvancedZiweiSectionV2({
     return "border-rose-300/50 bg-rose-200/15 text-rose-100";
   }, []);
 
-  const normalizeStrengthBand = useCallback((star: ZiweiStarMeta): "묘" | "왕" | "리" | "평" | "함" | "" => {
+  const normalizeStrengthBand = useCallback((star: ZiweiStarMeta): "묘" | "득" | "리" | "평" | "함" | "" => {
     const strength = String(star?.strength || "").trim();
-    if (["묘", "왕", "리", "평", "함"].includes(strength)) return strength as "묘" | "왕" | "리" | "평" | "함";
+    if (strength === "왕") return "묘";
+    if (["묘", "득", "리", "평", "함"].includes(strength)) return strength as "묘" | "득" | "리" | "평" | "함";
     const symbol = String(star?.strengthSymbol || star?.symbol || "").trim();
     if (symbol === "◎") return "묘";
-    if (symbol === "○") return "왕";
-    if (symbol === "×") return "함";
+    if (symbol === "O" || symbol === "○") return "득";
+    if (symbol === "▲") return "리";
     if (symbol === "△") return "평";
+    if (symbol === "X" || symbol === "×") return "함";
     return "";
   }, []);
 
   const activeStrengthBands = useMemo(() => {
-    const counts = { miao: 0, wang: 0, li: 0, ping: 0, ham: 0 };
+    const counts = { miao: 0, deuk: 0, li: 0, ping: 0, ham: 0 };
     if (!activePalace) return counts;
     activePalace.allStars.forEach((star) => {
       const band = normalizeStrengthBand(star);
       if (band === "묘") counts.miao += 1;
-      if (band === "왕") counts.wang += 1;
+      if (band === "득") counts.deuk += 1;
       if (band === "리") counts.li += 1;
       if (band === "평") counts.ping += 1;
       if (band === "함") counts.ham += 1;
@@ -632,9 +642,10 @@ export default function AdvancedZiweiSectionV2({
                     <h3 className="text-sm font-black text-amber-100">핵심 구조 카드</h3>
                     <div className="flex flex-wrap gap-2 text-[11px]">
                       <span className="rounded-full border border-emerald-300/60 bg-emerald-200/15 px-2 py-1 font-semibold text-emerald-100">◎ 매우 강함</span>
-                      <span className="rounded-full border border-cyan-300/60 bg-cyan-200/15 px-2 py-1 font-semibold text-cyan-100">○ 안정 작동</span>
-                      <span className="rounded-full border border-amber-300/60 bg-amber-200/15 px-2 py-1 font-semibold text-amber-100">△ 보완 필요</span>
-                      <span className="rounded-full border border-rose-300/60 bg-rose-200/15 px-2 py-1 font-semibold text-rose-100">× 충돌 강함</span>
+                      <span className="rounded-full border border-cyan-300/60 bg-cyan-200/15 px-2 py-1 font-semibold text-cyan-100">O 득지</span>
+                      <span className="rounded-full border border-amber-300/60 bg-amber-200/15 px-2 py-1 font-semibold text-amber-100">▲ 이로움</span>
+                      <span className="rounded-full border border-slate-300/60 bg-slate-200/15 px-2 py-1 font-semibold text-slate-100">△ 균형</span>
+                      <span className="rounded-full border border-rose-300/60 bg-rose-200/15 px-2 py-1 font-semibold text-rose-100">X 보완</span>
                     </div>
                   </div>
 
@@ -650,7 +661,7 @@ export default function AdvancedZiweiSectionV2({
                         <p className="mt-2 text-[11px] text-slate-400">주성</p>
                         <div className="mt-1 flex flex-wrap gap-1.5">
                           {activePalace.mainStars.length ? activePalace.mainStars.map((star) => {
-                            const symbol = star.strengthSymbol || star.symbol || "강약 미확인";
+                            const symbol = displayStrengthSymbol(star.strengthSymbol || star.symbol || "강약 미확인");
                             return (
                               <span key={`main-${star.name}`} className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${strengthBadgeClass(symbol)}`}>
                                 {star.name} {symbol}
@@ -662,7 +673,7 @@ export default function AdvancedZiweiSectionV2({
                         <p className="mt-3 text-[11px] text-slate-400">보조성</p>
                         <div className="mt-1 flex flex-wrap gap-1.5">
                           {activePalace.auxiliaryStars.length ? activePalace.auxiliaryStars.map((star) => {
-                            const symbol = star.strengthSymbol || star.symbol || "강약 미확인";
+                            const symbol = displayStrengthSymbol(star.strengthSymbol || star.symbol || "강약 미확인");
                             return (
                               <span key={`aux-${star.name}`} className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${strengthBadgeClass(symbol)}`}>
                                 {star.name} {symbol}
@@ -674,7 +685,7 @@ export default function AdvancedZiweiSectionV2({
                         <p className="mt-3 text-[11px] text-slate-400">살성</p>
                         <div className="mt-1 flex flex-wrap gap-1.5">
                           {activePalace.maleficStars.length ? activePalace.maleficStars.map((star) => {
-                            const symbol = star.strengthSymbol || star.symbol || "강약 미확인";
+                            const symbol = displayStrengthSymbol(star.strengthSymbol || star.symbol || "강약 미확인");
                             return (
                               <span key={`bad-${star.name}`} className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${strengthBadgeClass(symbol)}`}>
                                 {star.name} {symbol}
@@ -683,10 +694,10 @@ export default function AdvancedZiweiSectionV2({
                           }) : <span className="text-[11px] text-slate-400">없음</span>}
                         </div>
 
-                        <p className="mt-3 text-[11px] text-slate-400">묘왕리평함 분포</p>
+                        <p className="mt-3 text-[11px] text-slate-400">묘득리평함 분포</p>
                         <div className="mt-1 flex flex-wrap gap-1.5">
                           <span className="rounded-full border border-emerald-300/50 bg-emerald-200/10 px-2 py-0.5 text-[10px] text-emerald-100">묘 {activeStrengthBands.miao}</span>
-                          <span className="rounded-full border border-cyan-300/50 bg-cyan-200/10 px-2 py-0.5 text-[10px] text-cyan-100">왕 {activeStrengthBands.wang}</span>
+                          <span className="rounded-full border border-cyan-300/50 bg-cyan-200/10 px-2 py-0.5 text-[10px] text-cyan-100">득 {activeStrengthBands.deuk}</span>
                           <span className="rounded-full border border-amber-300/50 bg-amber-200/10 px-2 py-0.5 text-[10px] text-amber-100">리 {activeStrengthBands.li}</span>
                           <span className="rounded-full border border-slate-300/50 bg-slate-200/10 px-2 py-0.5 text-[10px] text-slate-100">평 {activeStrengthBands.ping}</span>
                           <span className="rounded-full border border-rose-300/50 bg-rose-200/10 px-2 py-0.5 text-[10px] text-rose-100">함 {activeStrengthBands.ham}</span>
