@@ -449,6 +449,12 @@
           premiumAccessToken: String((purchase && purchase.premiumAccessToken) || '').trim(),
         };
       }
+      var _issuedPremiumToken = String(purchase.premiumAccessToken || '').trim();
+      if (_issuedPremiumToken) {
+        try { window.__cdPremiumAccessToken = _issuedPremiumToken; } catch (_) {}
+        try { sessionStorage.setItem('cd_premium_access_token', _issuedPremiumToken); } catch (_) {}
+        try { localStorage.setItem('cd_premium_access_token', _issuedPremiumToken); } catch (_) {}
+      }
       _setLoveBookGenerationState('payment_confirmed');
       return {
         ok: true,
@@ -456,7 +462,7 @@
         message: String(purchase.message || ''),
         accessGrant: accessGrant,
         purchaseId: String(accessGrant.purchaseId || '').trim(),
-        premiumAccessToken: String(purchase.premiumAccessToken || '').trim(),
+        premiumAccessToken: _issuedPremiumToken,
       };
     } catch (error) {
       console.info('[LoveBook] helper load', { helperLoaded: false, message: String(error && error.message ? error.message : error) });
@@ -529,16 +535,29 @@
 
   function _qs(id) { return document.getElementById(id); }
 
-  function _buildApiCandidates(pathname) {
+  function _buildApiCandidates(pathname, options) {
     var _path = String(pathname || '');
     if (_path.charAt(0) !== '/') _path = '/' + _path;
+    var _opts = options && typeof options === 'object' ? options : {};
+    var _sameOriginOnly = !!_opts.sameOriginOnly;
+    var _preferSameOrigin = !!_opts.preferSameOrigin;
+    var _origin = (typeof window !== 'undefined' && window.location && window.location.origin) || '';
     var _bases = [
       '',
-      (typeof window !== 'undefined' && window.__CD_API_BASE_URL) || '',
-      (typeof window !== 'undefined' && window.__API_BASE_URL) || '',
-      (typeof window !== 'undefined' && window.__AUTH_API_BASE_URL) || '',
-      (typeof window !== 'undefined' && window.location && window.location.origin) || ''
+      _origin,
+      _sameOriginOnly ? '' : ((typeof window !== 'undefined' && window.__CD_API_BASE_URL) || ''),
+      _sameOriginOnly ? '' : ((typeof window !== 'undefined' && window.__API_BASE_URL) || ''),
+      _sameOriginOnly ? '' : ((typeof window !== 'undefined' && window.__AUTH_API_BASE_URL) || '')
     ];
+    if (_preferSameOrigin) {
+      _bases = [
+        '',
+        _origin,
+        _sameOriginOnly ? '' : ((typeof window !== 'undefined' && window.__CD_API_BASE_URL) || ''),
+        _sameOriginOnly ? '' : ((typeof window !== 'undefined' && window.__API_BASE_URL) || ''),
+        _sameOriginOnly ? '' : ((typeof window !== 'undefined' && window.__AUTH_API_BASE_URL) || '')
+      ];
+    }
     var _seen = {};
     var _urls = [];
     for (var i = 0; i < _bases.length; i++) {
@@ -1666,6 +1685,7 @@
     _setProgress(0);
 
     var _lsReportId = _lsCurrentReportId;
+    var _lsSessionId = String((_lsAccessGrant && _lsAccessGrant.sessionId) || ('love-book:' + _lsReportId)).trim();
 
     function _lsReadPremiumAccessToken() {
       var token = '';
@@ -1690,7 +1710,10 @@
       return new Promise(function (resolve) {
         var _settled = false;
         var _abortMsg = '응답 시간 초과 (45초). 네트워크 상태를 확인해 주세요.';
-        var _endpoints = _buildApiCandidates('/api/love-secret/generate-chapter');
+        var _endpoints = _buildApiCandidates('/api/love-secret/generate-chapter', {
+          sameOriginOnly: true,
+          preferSameOrigin: true,
+        });
         var _attemptPlan = [];
         var _lastMsg = '';
 
@@ -1733,12 +1756,14 @@
 
           fetch(_plan.url, {
             method: 'POST',
+            credentials: 'include',
             headers: _lsHeaders,
             body: JSON.stringify({
               reportId: _lsReportId,
               requestId: 'love-secret-' + _lsReportId + '-ch' + (idx + 1) + '-a' + _plan.retry,
-              sessionId: idx + 1,
-              reportSessionId: String((_lsAccessGrant && _lsAccessGrant.sessionId) || ('love-book:' + _lsReportId)),
+              sessionId: _lsSessionId,
+              reportSessionId: _lsSessionId,
+              chapterSessionId: 'love-secret-chapter-' + (idx + 1),
               chapter: idx + 1,
               mode: _currentChapterMode,
               featureKey: LOVE_SECRET_FEATURE_KEY,

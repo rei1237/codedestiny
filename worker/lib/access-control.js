@@ -501,7 +501,15 @@ function extractAccessBindingHints(requestBody = {}) {
       || "",
     ).trim(),
     reportId: String(source.reportId || grant.reportId || source.reportSessionId || source.generationId || "").trim(),
-    sessionId: String(source.sessionId || grant.sessionId || source.chapterSessionId || source.generationSessionId || "").trim(),
+    sessionId: String(
+      source.sessionId
+      || source.reportSessionId
+      || grant.sessionId
+      || grant.reportSessionId
+      || source.chapterSessionId
+      || source.generationSessionId
+      || ""
+    ).trim(),
     purchaseId: String(source.purchaseId || grant.purchaseId || source.reportPurchaseId || payment.purchaseId || consume.purchaseId || ctx.purchaseId || "").trim(),
     requestId: String(source.requestId || source.sourceRequestId || payment.requestId || consume.requestId || ctx.requestId || "").trim(),
     transactionId: String(
