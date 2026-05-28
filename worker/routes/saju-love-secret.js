@@ -6,7 +6,10 @@ import { LOVE_SECRET_MODE_CONFIG } from "../lib/saju-premium-chapters.js";
 import { connectDb, mongoose } from "../lib/db.js";
 
 const LOVE_SECRET_SERVICE_KEY = "saju-love-secret";
-const LOVE_SECRET_FEATURE_KEY = "saju_love_book_pdf";
+const LOVE_SECRET_FEATURE_KEY_BY_MODE = Object.freeze({
+  solo: "premium_pdf_saju_love_secret",
+  compatibility: "premium_pdf_saju_love_secret_compat",
+});
 const LOVE_SECRET_JOB_COLLECTION = "premium_report_jobs";
 const LOVE_SECRET_JOB_POLL_AFTER_MS = 4000;
 
@@ -53,8 +56,63 @@ function toConfigMode(mode) {
   return mode === "compatibility" ? "couple" : "solo";
 }
 
-function toFeatureKey() {
-  return LOVE_SECRET_FEATURE_KEY;
+function toFeatureKey(mode) {
+  const normalized = normalizeMode(mode);
+  return LOVE_SECRET_FEATURE_KEY_BY_MODE[normalized] || LOVE_SECRET_FEATURE_KEY_BY_MODE.solo;
+}
+
+function getLoveSecretChapterMeta(config, chapterNo) {
+  return (Array.isArray(config?.chapters) ? config.chapters : [])[chapterNo - 1] || {};
+}
+
+async function generateLoveSecretChapter(env, base, mode, config, chapterNo) {
+  const chapterMeta = getLoveSecretChapterMeta(config, chapterNo);
+  const title = stripUnsafeText(chapterMeta.title || `연애 비책 ${chapterNo}장`);
+  const subtitle = stripUnsafeText(chapterMeta.subtitle || "");
+  const sectionTitles = getChapterSpecificSections({}, chapterNo, mode);
+  const local = buildLocalChapter(base, title, subtitle, sectionTitles, mode, chapterNo);
+  const llm = await maybeEnhanceWithLlm(env, base, local, mode, chapterNo);
+  return {
+    fallbackUsed: Boolean(llm.fallbackUsed),
+    chapter: {
+      chapter: chapterNo,
+      title,
+      subtitle,
+      text: stripUnsafeText(llm.finalText || local.finalText) || local.finalText,
+      sections: Array.isArray(llm.sections) ? llm.sections : local.sections,
+    },
+  };
+}
+
+async function buildLoveSecretChapters(env, { base, mode, config, maxConcurrency = 2, onProgress = null } = {}) {
+  const totalChapters = Number(config?.totalChapters || 0);
+  if (!Number.isFinite(totalChapters) || totalChapters <= 0) {
+    return { chapters: [], fallbackUsed: false, totalChapters: 0 };
+  }
+
+  const chapters = new Array(totalChapters);
+  let fallbackUsed = false;
+  let nextIndex = 0;
+  let completed = 0;
+  const workerCount = Math.max(1, Math.min(Number(maxConcurrency || 2) || 2, totalChapters));
+
+  async function runWorker() {
+    while (nextIndex < totalChapters) {
+      const current = nextIndex;
+      nextIndex += 1;
+      const chapterNo = current + 1;
+      const generated = await generateLoveSecretChapter(env, base, mode, config, chapterNo);
+      if (generated.fallbackUsed) fallbackUsed = true;
+      chapters[current] = generated.chapter;
+      completed += 1;
+      if (typeof onProgress === "function") {
+        await onProgress({ completed, chapterNo, totalChapters });
+      }
+    }
+  }
+
+  await Promise.all(Array.from({ length: workerCount }, () => runWorker()));
+  return { chapters, fallbackUsed, totalChapters };
 }
 
 function stripUnsafeText(value) {
@@ -410,43 +468,28 @@ async function runLoveSecretJob(env, jobId) {
     const mode = normalizeMode(job?.mode || "solo");
     const base = normalizeSajuBase(job?.requestBody || {});
     const config = safeModeChapterConfig(mode);
-    const totalChapters = Number(config.totalChapters || 0);
-    const chapters = [];
-    let fallbackUsed = false;
-
-    for (let i = 0; i < totalChapters; i += 1) {
-      const chapterNo = i + 1;
-      const chapterMeta = (Array.isArray(config.chapters) ? config.chapters : [])[i] || {};
-      const title = stripUnsafeText(chapterMeta.title || `연애 비책 ${chapterNo}장`);
-      const subtitle = stripUnsafeText(chapterMeta.subtitle || "");
-      const sectionTitles = getChapterSpecificSections({}, chapterNo, mode);
-      const local = buildLocalChapter(base, title, subtitle, sectionTitles, mode, chapterNo);
-      const llm = await maybeEnhanceWithLlm(env, base, local, mode, chapterNo);
-      if (llm.fallbackUsed) fallbackUsed = true;
-
-      chapters.push({
-        chapter: chapterNo,
-        title,
-        subtitle,
-        text: stripUnsafeText(llm.finalText || local.finalText) || local.finalText,
-        sections: Array.isArray(llm.sections) ? llm.sections : local.sections,
-      });
-
-      await coll.updateOne(
-        { _id },
-        {
-          $set: {
-            status: "processing",
-            stage: chapterNo >= totalChapters ? "rendering_pdf" : "writing_with_llm",
-            message: chapterNo >= totalChapters
-              ? "PDF 파일 빌드를 준비하고 있습니다."
-              : `Chapter ${chapterNo} 생성 중...`,
-            completedChapters: chapterNo,
-            updatedAt: new Date(),
+    const { chapters, fallbackUsed, totalChapters } = await buildLoveSecretChapters(env, {
+      base,
+      mode,
+      config,
+      maxConcurrency: 2,
+      onProgress: async ({ completed }) => {
+        await coll.updateOne(
+          { _id },
+          {
+            $set: {
+              status: "processing",
+              stage: completed >= totalChapters ? "rendering_pdf" : "writing_with_llm",
+              message: completed >= totalChapters
+                ? "PDF 파일 빌드를 준비하고 있습니다."
+                : `Chapter ${completed} 생성 중...`,
+              completedChapters: completed,
+              updatedAt: new Date(),
+            },
           },
-        },
-      );
-    }
+        );
+      },
+    });
 
     await coll.updateOne(
       { _id },
@@ -459,7 +502,7 @@ async function runLoveSecretJob(env, jobId) {
           fallbackUsed,
           result: {
             ok: true,
-            featureKey: LOVE_SECRET_FEATURE_KEY,
+            featureKey: clean(job?.featureKey) || toFeatureKey(mode),
             mode,
             sessionId: clean(job?.requestBody?.sessionId || job?.requestBody?.reportSessionId) || "",
             chapterCount: totalChapters,
@@ -509,7 +552,7 @@ async function authorizeLoveSecret(request, env, body, mode) {
     throw error;
   }
 
-  const featureKey = toFeatureKey();
+  const featureKey = toFeatureKey(mode);
   const reportId = clean(body?.reportId);
   const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.chapterSessionId);
   const purchaseId = clean(body?.purchaseId || body?.reportPurchaseId || body?.accessGrant?.purchaseId || body?.payment?.purchaseId || body?._paymentContext?.purchaseId);
@@ -607,27 +650,12 @@ async function handlePrepare(request, env) {
   }
 
   const config = safeModeChapterConfig(mode);
-  const totalChapters = Number(config.totalChapters || 0);
-  const chapters = [];
-  let fallbackUsed = false;
-
-  for (let i = 0; i < totalChapters; i += 1) {
-    const chapterNo = i + 1;
-    const chapterMeta = (Array.isArray(config.chapters) ? config.chapters : [])[i] || {};
-    const title = stripUnsafeText(chapterMeta.title || `연애 비책 ${chapterNo}장`);
-    const subtitle = stripUnsafeText(chapterMeta.subtitle || "");
-    const sectionTitles = getChapterSpecificSections({}, chapterNo, mode);
-    const local = buildLocalChapter(base, title, subtitle, sectionTitles, mode, chapterNo);
-    const llm = await maybeEnhanceWithLlm(env, base, local, mode, chapterNo);
-    if (llm.fallbackUsed) fallbackUsed = true;
-    chapters.push({
-      chapter: chapterNo,
-      title,
-      subtitle,
-      text: stripUnsafeText(llm.finalText || local.finalText) || local.finalText,
-      sections: Array.isArray(llm.sections) ? llm.sections : local.sections,
-    });
-  }
+  const { chapters, fallbackUsed, totalChapters } = await buildLoveSecretChapters(env, {
+    base,
+    mode,
+    config,
+    maxConcurrency: 2,
+  });
 
   return json({
     ok: true,
