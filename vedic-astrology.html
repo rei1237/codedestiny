@@ -262,10 +262,20 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 .keyword{display:inline;background:rgba(212,175,55,0.15);color:var(--gold2);border:1px solid rgba(212,175,55,0.3);border-radius:4px;padding:1px 6px;font-size:0.92em;font-weight:500}
 
 /* 탭 시스템 */
-.tab-bar{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:6px 0 4px;margin-bottom:16px;-webkit-overflow-scrolling:touch;position:sticky;top:0;z-index:12;background:linear-gradient(180deg,rgba(5,6,10,0.9),rgba(5,6,10,0.72));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,0.06)}
+.tab-nav{display:grid;grid-template-columns:34px minmax(0,1fr) 34px;gap:6px;align-items:center;padding:6px 0 4px;margin-bottom:16px;position:sticky;top:0;z-index:12;background:linear-gradient(180deg,rgba(5,6,10,0.9),rgba(5,6,10,0.72));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,0.06);isolation:isolate}
+.tab-nav::before,.tab-nav::after{content:'';position:absolute;top:0;bottom:0;width:18px;pointer-events:none;opacity:0;transition:opacity .2s}
+.tab-nav::before{left:34px;background:linear-gradient(90deg,rgba(5,6,10,0.9),transparent)}
+.tab-nav::after{right:34px;background:linear-gradient(270deg,rgba(5,6,10,0.9),transparent)}
+.tab-nav.has-left-shadow::before{opacity:1}
+.tab-nav.has-right-shadow::after{opacity:1}
+.tab-scroll-btn{width:34px;height:34px;border-radius:999px;background:rgba(255,255,255,0.06);color:var(--text);border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;transition:all .2s}
+.tab-scroll-btn:hover{border-color:rgba(245,208,106,0.24);box-shadow:0 10px 22px rgba(0,0,0,0.26),0 0 16px rgba(245,208,106,0.12)}
+.tab-scroll-btn:active{transform:scale(0.95)}
+.tab-scroll-btn:disabled{opacity:0.36;cursor:default;box-shadow:none;border-color:rgba(255,255,255,0.08)}
+.tab-bar{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 2px;-webkit-overflow-scrolling:touch;scroll-behavior:smooth;scroll-snap-type:x proximity}
 .tab-bar::-webkit-scrollbar{display:none}
-.tab-btn{flex-shrink:0;padding:8px 14px;min-height:40px;border-radius:20px;font-size:12px;font-weight:500;background:rgba(255,255,255,0.06);color:var(--text2);border:1px solid rgba(255,255,255,0.08);cursor:pointer;transition:all 0.2s;white-space:nowrap}
-.tab-btn.active{background:rgba(139,92,246,0.25);color:#fff;border-color:rgba(139,92,246,0.5)}
+.tab-btn{flex-shrink:0;padding:8px 14px;min-height:40px;border-radius:20px;font-size:12px;font-weight:500;background:rgba(255,255,255,0.06);color:var(--text2);border:1px solid rgba(255,255,255,0.08);cursor:pointer;transition:all 0.2s;white-space:nowrap;scroll-snap-align:center}
+.tab-btn.active{background:rgba(139,92,246,0.25);color:#fff;border-color:rgba(139,92,246,0.5);box-shadow:0 0 0 1px rgba(139,92,246,0.28),0 10px 24px rgba(0,0,0,0.26)}
 .tab-btn:hover{transform:translateY(-1px);box-shadow:0 10px 28px rgba(0,0,0,0.28),0 0 18px rgba(245,208,106,0.10);border-color:rgba(245,208,106,0.20)}
 .tab-btn:active{transform:scale(0.95)}
 .tab-panel{display:none}
@@ -501,6 +511,10 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 @media (max-width:430px){
   .summary-grid{grid-template-columns:1fr}
   .tab-btn{font-size:11px;padding:8px 12px}
+  .tab-nav{grid-template-columns:30px minmax(0,1fr) 30px;gap:4px}
+  .tab-scroll-btn{width:30px;height:30px;font-size:14px}
+  .tab-nav::before{left:30px}
+  .tab-nav::after{right:30px}
   .acc-title{font-size:12px}
   .detail-topbar{padding:10px 8px;margin:0 -8px 14px}
 }
@@ -657,9 +671,7 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
       </div>
       <div style="height:14px"></div>
       <button class="btn-primary" id="v_run_btn" type="button" onclick="runVedicFromInput()">우주의 기운 확인하기 🔯</button>
-      <div style="margin-top:10px;color:var(--text3);font-size:12px;line-height:1.6">
-        프로필 카드 없이도 바로 계산합니다. (Swiss 라이브러리 기반으로 즉시 계산합니다.)
-      </div>
+      <div style="margin-top:10px;color:var(--text3);font-size:12px;line-height:1.6">프로필 카드 없이도 바로 계산합니다.</div>
     </div>
     <a href="/" class="btn-sm back-btn" style="text-decoration:none;color:inherit;display:inline-flex;justify-content:center;width:100%">← 메인으로</a>
   </div>
@@ -2300,6 +2312,7 @@ function switchTab(id){
   const btn=document.getElementById('tbtn-'+id);
   const panel=document.getElementById('tpanel-'+id);
   if(btn)btn.classList.add('active');
+  centerActiveTab(btn);
   if(panel){
     panel.classList.add('active');
     setTimeout(function(){
@@ -2308,6 +2321,39 @@ function switchTab(id){
     },60);
   }
   G.activeTab=id;
+  updateTabBarState();
+}
+
+function centerActiveTab(btn){
+  const bar=document.getElementById('vedicTabBar');
+  if(!bar||!btn)return;
+  const target=btn.offsetLeft-(bar.clientWidth/2)+(btn.clientWidth/2);
+  const max=Math.max(0,bar.scrollWidth-bar.clientWidth);
+  const next=Math.max(0,Math.min(max,target));
+  try{ bar.scrollTo({left:next,behavior:'smooth'}); }
+  catch(_){ bar.scrollLeft=next; }
+}
+
+function switchTabRelative(step){
+  const order=['overview','personality','relation','moneywork','dasha','energy','deep'];
+  const current=order.indexOf(G.activeTab||'overview');
+  const nextIndex=Math.max(0,Math.min(order.length-1,current+step));
+  if(nextIndex!==current) switchTab(order[nextIndex]);
+}
+
+function updateTabBarState(){
+  const nav=document.getElementById('vedicTabNav');
+  const bar=document.getElementById('vedicTabBar');
+  const prev=document.getElementById('vedicTabPrev');
+  const next=document.getElementById('vedicTabNext');
+  if(!nav||!bar)return;
+  const maxLeft=Math.max(0,bar.scrollWidth-bar.clientWidth-1);
+  const atStart=bar.scrollLeft<=2;
+  const atEnd=bar.scrollLeft>=maxLeft;
+  nav.classList.toggle('has-left-shadow',!atStart);
+  nav.classList.toggle('has-right-shadow',!atEnd);
+  if(prev) prev.disabled=atStart;
+  if(next) next.disabled=atEnd;
 }
 
 function hEsc(value){
@@ -3126,7 +3172,7 @@ function doCalculateFromProfile(profile){
   function showLocalSwissError(detail){
     if(detail){ console.warn('[vedic] Local Swiss Error:', detail); }
     var detailText=detail?('<br><br>상세: '+String(detail)):'';
-    document.getElementById('result-content').innerHTML='<div class="error-box">로컬 Swiss 라이브러리 계산에 실패했습니다. 잠시 후 다시 시도해 주세요.'+detailText+'<br><br><button onclick="showPage(\'input\')" style="background:rgba(139,92,246,0.3);border:1px solid var(--border);color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;margin-top:10px;">입력 화면으로 돌아가기</button></div>';
+    document.getElementById('result-content').innerHTML='<div class="error-box">계산에 실패했습니다. 잠시 후 다시 시도해 주세요.'+detailText+'<br><br><button onclick="showPage(\'input\')" style="background:rgba(139,92,246,0.3);border:1px solid var(--border);color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;margin-top:10px;">입력 화면으로 돌아가기</button></div>';
     showPage('result');
   }
 
@@ -4079,7 +4125,6 @@ function renderResult(){
     <div class="hero-sub" style="margin:6px 0">
       ${chart.f.year}.${String(chart.f.month).padStart(2,'0')}.${String(chart.f.day).padStart(2,'0')} ${String(chart.f.hour).padStart(2,'0')}:${String(chart.f.minute||0).padStart(2,'0')} · ${chart.f.gender==='M'?'남성 ♂':'여성 ♀'}
     </div>
-    ${G.usedLocalCalc?('<div style="font-size:10px;color:var(--text3);margin-top:6px">'+(G.usedSwissFallback?'로컬 근사 계산으로 표시됨 (네트워크 없이 동작)':'로컬 Swiss 계산으로 표시됨 (API 미사용)')+'</div>'):''}
     <div style="width:40px;height:1px;background:var(--bordergold);margin:10px auto"></div>
     <div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center">
       <span class="tag tag-gold">🌅 ${rasi.ascSignKr} 라그나</span>
@@ -4090,14 +4135,18 @@ function renderResult(){
   </div>
 
   <!-- TABS -->
-  <div class="tab-bar">
-    <button class="tab-btn active" id="tbtn-overview" onclick="switchTab('overview')">🌌 종합</button>
-    <button class="tab-btn" id="tbtn-personality" onclick="switchTab('personality')">🌟 성향</button>
-    <button class="tab-btn" id="tbtn-relation" onclick="switchTab('relation')">💞 관계</button>
-    <button class="tab-btn" id="tbtn-moneywork" onclick="switchTab('moneywork')">💼 재물·일</button>
-    <button class="tab-btn" id="tbtn-dasha" onclick="switchTab('dasha')">🕰️ 다샤</button>
-    <button class="tab-btn" id="tbtn-energy" onclick="switchTab('energy')">🧘 에너지</button>
-    <button class="tab-btn" id="tbtn-deep" onclick="switchTab('deep')">📚 심화</button>
+  <div class="tab-nav" id="vedicTabNav">
+    <button class="tab-scroll-btn" id="vedicTabPrev" type="button" onclick="switchTabRelative(-1)" aria-label="이전 카테고리">‹</button>
+    <div class="tab-bar" id="vedicTabBar" onscroll="updateTabBarState()">
+      <button class="tab-btn active" id="tbtn-overview" type="button" onclick="switchTab('overview')">🌌 종합</button>
+      <button class="tab-btn" id="tbtn-personality" type="button" onclick="switchTab('personality')">🌟 성향</button>
+      <button class="tab-btn" id="tbtn-relation" type="button" onclick="switchTab('relation')">💞 관계</button>
+      <button class="tab-btn" id="tbtn-moneywork" type="button" onclick="switchTab('moneywork')">💼 재물·일</button>
+      <button class="tab-btn" id="tbtn-dasha" type="button" onclick="switchTab('dasha')">🕰️ 다샤</button>
+      <button class="tab-btn" id="tbtn-energy" type="button" onclick="switchTab('energy')">🧘 에너지</button>
+      <button class="tab-btn" id="tbtn-deep" type="button" onclick="switchTab('deep')">📚 심화</button>
+    </div>
+    <button class="tab-scroll-btn" id="vedicTabNext" type="button" onclick="switchTabRelative(1)" aria-label="다음 카테고리">›</button>
   </div>
 
   <div id="tpanel-overview" class="tab-panel active">${tabOverview}</div>
@@ -4114,6 +4163,7 @@ function renderResult(){
     initReveal();
     syncOpenAccordions(document.getElementById('result-content'));
     vedicAiRefreshUi();
+    updateTabBarState();
   },100);
 }
 
