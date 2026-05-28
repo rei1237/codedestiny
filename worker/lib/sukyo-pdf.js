@@ -2,185 +2,81 @@ const UNKNOWN = "unknown";
 
 const SUKYO_PDF_CHAPTERS = [
   {
-    key: "chapter-01-natal-overview",
-    title: "I. 본명숙 총론 - 타고난 숙의 기본 기질",
-    goal: "나의 숙이 보여주는 성향과 삶의 기본 방향",
-    targetChars: 5600,
-    minChars: 3600,
-    sections: ["본명숙 핵심 성향", "타고난 매력과 인상", "감정 반응 패턴", "인생에서 반복되는 선택 방식", "숙이 강하게 작동하는 순간"],
+    key: "chapter-01-overview",
+    title: "Chapter 1. 두 사람의 숙요 인연 총론",
+    goal: "두 숙의 기질, 첫 인상, 관계 유형과 거리의 기본 구조를 정리한다.",
+    targetChars: 7200,
+    minChars: 5600,
+    sections: [
+      "1-1. 본인 숙과 상대 숙의 기본 성향",
+      "1-2. 두 숙이 만났을 때 생기는 첫 인상",
+      "1-3. 관계 유형의 핵심 의미",
+      "1-4. 거리값이 만드는 감정 밀도",
+      "1-5. 이 관계가 반복해서 만드는 사건 패턴",
+    ],
   },
   {
-    key: "chapter-02-inner-pattern",
-    title: "II. 내면 구조 - 감정, 불안, 회복 방식",
-    goal: "마음의 움직임과 자기 보호 방식",
-    targetChars: 5600,
-    minChars: 3600,
-    sections: ["감정이 움직이는 방식", "불안과 예민함의 원인", "상처를 받는 패턴", "회복이 빠르게 일어나는 조건", "혼자 있을 때의 에너지 관리"],
+    key: "chapter-02-karma",
+    title: "Chapter 2. 전생 인연과 카르마 구조",
+    goal: "전생 인연과 카르마 트리거를 현재 관계의 반복 패턴으로 해석한다.",
+    targetChars: 7200,
+    minChars: 5600,
+    sections: [
+      "2-1. 전생에서 이어진 감정의 흔적",
+      "2-2. 끌림과 불안이 동시에 생기는 이유",
+      "2-3. 관계에서 반복되는 karmic trigger",
+      "2-4. 반드시 풀어야 할 숙제",
+      "2-5. 관계가 성장할 때 나타나는 변화",
+    ],
   },
   {
-    key: "chapter-03-love-style",
-    title: "III. 연애 성향 - 끌림과 애착의 방식",
-    goal: "사랑을 시작하고 유지하는 패턴",
-    targetChars: 5600,
-    minChars: 3600,
-    sections: ["끌리는 상대 유형", "연애 초반의 행동 방식", "애착과 집착의 경계", "연애에서 반복되는 실수", "좋은 관계를 만드는 태도"],
+    key: "chapter-03-love",
+    title: "Chapter 3. 연애 궁합 심층 분석",
+    goal: "연애 단계에서 발생하는 애정 표현, 갈등, 회복 패턴을 정밀 분석한다.",
+    targetChars: 7200,
+    minChars: 5600,
+    sections: [
+      "3-1. 애정 표현 방식",
+      "3-2. 스킨십과 정서적 거리감",
+      "3-3. 갈등 발생 포인트",
+      "3-4. 이별 위기 패턴",
+      "3-5. 다시 가까워지는 방법",
+    ],
   },
   {
-    key: "chapter-04-relationship",
-    title: "IV. 인간관계 - 거리감과 신뢰의 구조",
-    goal: "사람을 받아들이고 밀어내는 방식",
-    targetChars: 5600,
-    minChars: 3600,
-    sections: ["친해지는 속도", "신뢰를 주는 사람과 잃게 되는 사람", "피해야 할 관계 패턴", "귀인과 악연을 구분하는 기준", "건강한 거리두기 전략"],
+    key: "chapter-04-reality",
+    title: "Chapter 4. 현실 궁합과 생활 리듬",
+    goal: "일상 운영, 금전, 관계 주변 변수까지 포함한 현실 궁합을 점검한다.",
+    targetChars: 7200,
+    minChars: 5600,
+    sections: [
+      "4-1. 연락 빈도와 대화 방식",
+      "4-2. 돈과 소비 습관",
+      "4-3. 일과 연애의 균형",
+      "4-4. 가족/주변 사람 개입 문제",
+      "4-5. 장기 관계 가능성",
+    ],
   },
   {
-    key: "chapter-05-career",
-    title: "V. 일과 재능 - 숙이 드러나는 직업성",
-    goal: "성과가 나는 방식과 재능의 방향",
-    targetChars: 5600,
-    minChars: 3600,
-    sections: ["잘 맞는 일의 방식", "강하게 발휘되는 재능", "조직과 프리랜서 적합도", "성과가 막히는 원인", "직업적 성장 전략"],
-  },
-  {
-    key: "chapter-06-money",
-    title: "VI. 재물 감각 - 돈을 대하는 태도",
-    goal: "수익, 소비, 축적의 리듬",
-    targetChars: 5600,
-    minChars: 3600,
-    sections: ["돈을 버는 감각", "소비와 충동 패턴", "재물 관리의 약점", "수익화에 유리한 방식", "안정적인 재정 루틴"],
-  },
-  {
-    key: "chapter-07-conflict",
-    title: "VII. 갈등 패턴 - 무너지는 순간과 회복법",
-    goal: "관계와 삶에서 충돌이 생기는 방식",
-    targetChars: 5600,
-    minChars: 3600,
-    sections: ["갈등이 시작되는 지점", "화를 참거나 터뜨리는 방식", "오해가 반복되는 이유", "관계를 회복하는 말과 행동", "반드시 피해야 할 선택"],
-  },
-  {
-    key: "chapter-08-growth",
-    title: "VIII. 성장 과제 - 숙이 요구하는 성숙 방향",
-    goal: "반복되는 운의 숙제를 넘어서는 법",
-    targetChars: 5600,
-    minChars: 3600,
-    sections: ["인생의 핵심 성장 과제", "반복되는 인간관계 숙제", "강점을 과용할 때 생기는 문제", "약점을 보완하는 현실 전략", "성숙해질수록 좋아지는 영역"],
-  },
-  {
-    key: "chapter-09-timing",
-    title: "IX. 흐름과 타이밍 - 관계와 선택의 운용법",
-    goal: "중요한 결정을 다루는 기준",
-    targetChars: 5600,
-    minChars: 3600,
-    sections: ["기회가 들어오는 방식", "관계를 시작하기 좋은 흐름", "멈춰야 할 때의 신호", "중요한 선택 전 점검 기준", "3개월 실행 전략"],
-  },
-  {
-    key: "chapter-10-final-roadmap",
-    title: "X. 숙요 인생 로드맵 - 나를 살리는 사용법",
-    goal: "성향, 관계, 일, 회복의 종합 전략",
-    targetChars: 5800,
-    minChars: 3800,
-    sections: ["나의 숙 핵심 요약", "가장 살려야 할 강점", "반드시 관리해야 할 약점", "관계·일·돈의 통합 전략", "90일 실천 로드맵"],
+    key: "chapter-05-recovery",
+    title: "Chapter 5. 관계 회복 전략",
+    goal: "관계 회복을 위한 타이밍, 금지 언어, 대화법을 실행 단위로 제시한다.",
+    targetChars: 7200,
+    minChars: 5600,
+    sections: [
+      "5-1. 먼저 다가가야 하는 타이밍",
+      "5-2. 절대 하면 안 되는 말",
+      "5-3. 상대가 마음을 닫는 순간",
+      "5-4. 관계를 살리는 대화법",
+      "5-5. 최종 조언",
+    ],
   },
 ];
 
-const SUKYO_PDF_COMPAT_CHAPTERS = [
-  {
-    key: "chapter-01-two-natal-overview",
-    title: "I. 두 사람의 본명숙 총론",
-    goal: "각자의 숙이 관계에 가져오는 기본 기질",
-    targetChars: 6200,
-    minChars: 4000,
-    sections: ["나의 본명숙 핵심 성향", "상대의 본명숙 핵심 성향", "두 숙의 첫인상과 끌림", "관계에서 먼저 드러나는 차이", "두 사람의 기본 궁합 요약"],
-  },
-  {
-    key: "chapter-02-relation-type",
-    title: "II. 숙요 관계 유형 분석",
-    goal: "영친·안괴·성위·위성·업태·명 관계의 실제 작동 방식",
-    targetChars: 6200,
-    minChars: 4000,
-    sections: ["관계 유형의 핵심 의미", "이 관계가 강하게 끌리는 이유", "관계가 흔들리는 근본 원인", "가까워질수록 드러나는 장점", "관계 유형별 주의점"],
-  },
-  {
-    key: "chapter-03-distance-direction",
-    title: "III. 거리와 방향성 분석",
-    goal: "근거리·중거리·원거리와 관계 방향의 세밀한 차이",
-    targetChars: 6200,
-    minChars: 4000,
-    sections: ["관계 거리의 의미", "나에게 작동하는 상대의 영향", "상대에게 작동하는 나의 영향", "속도 차이와 온도 차이", "관계를 안정시키는 거리 조절"],
-  },
-  {
-    key: "chapter-04-attraction",
-    title: "IV. 끌림과 애착 구조",
-    goal: "왜 서로에게 강하게 반응하는가",
-    targetChars: 6200,
-    minChars: 4000,
-    sections: ["처음 끌리는 지점", "감정이 깊어지는 방식", "애착과 의존의 패턴", "서로에게 중독되기 쉬운 부분", "건강한 끌림으로 바꾸는 법"],
-  },
-  {
-    key: "chapter-05-communication",
-    title: "V. 대화와 오해의 패턴",
-    goal: "말, 침묵, 감정 표현의 궁합",
-    targetChars: 6200,
-    minChars: 4000,
-    sections: ["대화가 잘 통하는 지점", "오해가 생기는 표현 방식", "상대가 상처받는 말", "내가 방어적으로 변하는 순간", "갈등을 줄이는 대화법"],
-  },
-  {
-    key: "chapter-06-conflict",
-    title: "VI. 갈등과 위기 분석",
-    goal: "관계가 무너지는 패턴과 회복 가능성",
-    targetChars: 6200,
-    minChars: 4000,
-    sections: ["가장 큰 갈등 원인", "반복되는 싸움의 구조", "헤어짐을 부르는 행동", "관계 회복이 가능한 조건", "위기 때 절대 하지 말아야 할 것"],
-  },
-  {
-    key: "chapter-07-love-marriage",
-    title: "VII. 연애와 결혼 가능성",
-    goal: "단기 연애와 장기 관계의 차이",
-    targetChars: 6200,
-    minChars: 4000,
-    sections: ["연애 궁합", "장기 관계 적합도", "결혼 생활에서의 장점", "결혼 생활에서의 위험 요소", "현실적으로 맞춰야 할 부분"],
-  },
-  {
-    key: "chapter-08-desire-trust",
-    title: "VIII. 욕망, 신뢰, 소유욕",
-    goal: "깊은 관계에서 드러나는 감정의 그림자",
-    targetChars: 6200,
-    minChars: 4000,
-    sections: ["소유욕과 질투의 구조", "신뢰가 쌓이는 방식", "불안이 커지는 순간", "관계의 주도권 문제", "서로를 안심시키는 방법"],
-  },
-  {
-    key: "chapter-09-growth-karma",
-    title: "IX. 인연의 성장 과제",
-    goal: "이 관계가 서로에게 가르치는 것",
-    targetChars: 6200,
-    minChars: 4000,
-    sections: ["이 인연의 핵심 숙제", "나를 성장시키는 상대의 역할", "상대를 성장시키는 나의 역할", "반복되는 운명적 패턴", "성숙한 관계로 가는 조건"],
-  },
-  {
-    key: "chapter-10-reality",
-    title: "X. 현실 궁합 분석",
-    goal: "일상, 돈, 생활 리듬의 실제 적합도",
-    targetChars: 6200,
-    minChars: 4000,
-    sections: ["생활 리듬의 차이", "돈과 책임을 대하는 방식", "일과 관계의 균형", "현실 문제가 생기는 지점", "함께 살 때 필요한 규칙"],
-  },
-  {
-    key: "chapter-11-recovery",
-    title: "XI. 관계 회복 전략",
-    goal: "멀어진 관계를 다시 연결하는 방법",
-    targetChars: 6200,
-    minChars: 4000,
-    sections: ["상대에게 다시 다가가는 방식", "사과와 화해의 포인트", "연락 타이밍과 거리 조절", "관계 회복을 방해하는 행동", "재회를 원할 때의 현실 전략"],
-  },
-  {
-    key: "chapter-12-final-roadmap",
-    title: "XII. 두 사람의 숙요 관계 로드맵",
-    goal: "끌림, 위기, 성장, 선택의 최종 정리",
-    targetChars: 6400,
-    minChars: 4200,
-    sections: ["두 사람의 관계 핵심 요약", "가장 강한 끌림 포인트", "가장 위험한 갈등 포인트", "관계를 살리는 실천 전략", "30일·90일 관계 로드맵"],
-  },
-];
+const SUKYO_PDF_COMPAT_CHAPTERS = SUKYO_PDF_CHAPTERS.map((chapter) => ({
+  ...chapter,
+  sections: Array.isArray(chapter.sections) ? chapter.sections.slice() : [],
+}));
 
 function normalizeSukyoReportMode(value) {
   const mode = String(value || "").trim().toLowerCase();
@@ -196,6 +92,158 @@ function getSukyoPdfChapters(reportMode = "personal") {
     ...chapter,
     sections: Array.isArray(chapter.sections) ? chapter.sections.slice() : [],
   }));
+}
+
+function toIsoBirthDate(value) {
+  const text = String(value || "").trim();
+  const m = text.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
+  if (!m) return "";
+  return `${m[1]}-${String(m[2]).padStart(2, "0")}-${String(m[3]).padStart(2, "0")}`;
+}
+
+function toIsoBirthTime(value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  const m = text.match(/^(\d{1,2})(?::(\d{1,2}))?$/);
+  if (!m) return "";
+  const hour = Number(m[1]);
+  const minute = Number(m[2] == null ? 0 : m[2]);
+  if (!Number.isFinite(hour) || hour < 0 || hour > 23) return "";
+  if (!Number.isFinite(minute) || minute < 0 || minute > 59) return "";
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
+
+function toGender(value) {
+  const token = String(value || "").trim().toLowerCase();
+  if (!token) return "unknown";
+  if (["m", "male", "man", "남", "남성"].some((k) => token.includes(k))) return "male";
+  if (["f", "female", "woman", "여", "여성"].some((k) => token.includes(k))) return "female";
+  return "unknown";
+}
+
+function toBoolean(value, fallback = false) {
+  if (value === true || value === false) return value;
+  const token = String(value || "").trim().toLowerCase();
+  if (!token) return fallback;
+  if (["1", "true", "y", "yes", "on", "윤", "leap"].includes(token)) return true;
+  if (["0", "false", "n", "no", "off"].includes(token)) return false;
+  return fallback;
+}
+
+function normalizeShukuyoPdfPayload(raw = {}) {
+  const input = raw && typeof raw === "object" ? raw : {};
+  const inputUser = (input?.user && typeof input.user === "object") ? input.user : {};
+  const inputPartner = (input?.partner && typeof input.partner === "object") ? input.partner : {};
+  const result = (input?.sukuyoResult && typeof input.sukuyoResult === "object") ? input.sukuyoResult : {};
+  const mode = normalizeSukyoReportMode(
+    input?.mode
+    || input?.reportMode
+    || input?.reportType
+    || (pickFirst(
+      inputPartner?.birthDate,
+      input?.partnerBirthDate,
+      input?.targetBirthDate,
+      input?.yourBirthDate,
+      input?.partnerYear,
+    ) ? "compatibility" : "personal"),
+  );
+
+  const userBirthDate = toIsoBirthDate(pickFirst(
+    inputUser?.birthDate,
+    inputUser?.solarBirthDate,
+    input?.birthDate,
+    input?.myBirthDate,
+    input?.myBirth,
+    input?.birth,
+    input?.profile?.birthDate,
+    Number.isFinite(Number(input?.year)) && Number.isFinite(Number(input?.month)) && Number.isFinite(Number(input?.day))
+      ? `${input.year}-${input.month}-${input.day}`
+      : "",
+  ));
+
+  const userBirthTime = toIsoBirthTime(pickFirst(
+    inputUser?.birthTime,
+    input?.birthTime,
+    input?.time,
+    input?.myBirthTime,
+    input?.profile?.birthTime,
+    Number.isFinite(Number(input?.hour))
+      ? `${input.hour}:${Number.isFinite(Number(input?.minute)) ? input.minute : 0}`
+      : "",
+  ));
+
+  const partnerBirthDate = toIsoBirthDate(pickFirst(
+    inputPartner?.birthDate,
+    inputPartner?.solarBirthDate,
+    input?.partnerBirthDate,
+    input?.targetBirthDate,
+    input?.yourBirthDate,
+    Number.isFinite(Number(input?.partnerYear)) && Number.isFinite(Number(input?.partnerMonth)) && Number.isFinite(Number(input?.partnerDay))
+      ? `${input.partnerYear}-${input.partnerMonth}-${input.partnerDay}`
+      : "",
+  ));
+
+  const partnerBirthTime = toIsoBirthTime(pickFirst(
+    inputPartner?.birthTime,
+    input?.partnerBirthTime,
+    input?.targetBirthTime,
+    input?.yourBirthTime,
+    Number.isFinite(Number(input?.partnerHour))
+      ? `${input.partnerHour}:${Number.isFinite(Number(input?.partnerMinute)) ? input.partnerMinute : 0}`
+      : "",
+  ));
+
+  const rawUserIndex = pickFirst(result?.user宿Index, result?.userMansionIndex, input?.currentSukuyoIndex, input?.sukuyo?.index);
+  const rawPartnerIndex = pickFirst(result?.partner宿Index, result?.partnerMansionIndex, input?.partnerSukuyoIndex, input?.partner?.sukuyo?.index);
+
+  const normalized = {
+    mode,
+    user: {
+      name: toStringOrNull(pickFirst(inputUser?.name, input?.name, input?.myName)) || undefined,
+      birthDate: userBirthDate,
+      birthTime: userBirthTime || undefined,
+      calendarType: toCalendarType(pickFirst(inputUser?.calendarType, input?.calendarType, input?.calendar, input?.calType, "solar")),
+      gender: toGender(pickFirst(inputUser?.gender, input?.gender)),
+      lunarLeapMonth: toBoolean(pickFirst(inputUser?.lunarLeapMonth, input?.isLeap), false),
+    },
+    partner: mode === "compatibility" ? {
+      name: toStringOrNull(pickFirst(inputPartner?.name, input?.partnerName, input?.targetName)) || undefined,
+      birthDate: partnerBirthDate,
+      birthTime: partnerBirthTime || undefined,
+      calendarType: toCalendarType(pickFirst(inputPartner?.calendarType, input?.partnerCalendarType, input?.partnerCalType, input?.partnerCalendar, "solar")),
+      gender: toGender(pickFirst(inputPartner?.gender, input?.partnerGender)),
+      lunarLeapMonth: toBoolean(pickFirst(inputPartner?.lunarLeapMonth, input?.partnerIsLeap), false),
+    } : undefined,
+    sukuyoResult: {
+      user宿: String(pickFirst(result?.user宿, result?.userMansion, input?.currentSukuyoName, input?.sukuyo?.nameKo, "") || "").trim(),
+      user宿Index: rawUserIndex != null && Number.isFinite(Number(rawUserIndex))
+        ? Number(rawUserIndex)
+        : -1,
+      user宿Group: toStringOrNull(pickFirst(result?.user宿Group, input?.user?.sukuyo?.mansionGroup, input?.mainStar?.group)) || undefined,
+      partner宿: toStringOrNull(pickFirst(result?.partner宿, result?.partnerMansion, input?.partnerSukuyoName, input?.partner?.sukuyo?.nameKo)) || undefined,
+      partner宿Index: rawPartnerIndex != null && Number.isFinite(Number(rawPartnerIndex))
+        ? Number(rawPartnerIndex)
+        : undefined,
+      partner宿Group: toStringOrNull(pickFirst(result?.partner宿Group, input?.partner?.sukuyo?.mansionGroup)) || undefined,
+      relationshipType: toStringOrNull(pickFirst(result?.relationshipType, result?.relationType, input?.relation, input?.relationType)) || undefined,
+      relationshipLabel: toStringOrNull(pickFirst(result?.relationshipLabel, result?.relationLabel, input?.relationTypeHan)) || undefined,
+      distance: toStringOrNull(pickFirst(result?.distance, input?.distanceType, input?.distanceLabel)) || undefined,
+      pastLifeBond: toStringOrNull(pickFirst(result?.pastLifeBond, input?.pastLifeBond)) || undefined,
+      karmicTheme: toStringOrNull(pickFirst(result?.karmicTheme, input?.karmicTheme)) || undefined,
+      summary: toStringOrNull(pickFirst(result?.summary, input?.summary, input?.compatibility?.summary)) || "",
+      strengths: Array.isArray(result?.strengths) ? result.strengths.map((v) => String(v || "").trim()).filter(Boolean) : [],
+      risks: Array.isArray(result?.risks) ? result.risks.map((v) => String(v || "").trim()).filter(Boolean) : [],
+      advice: Array.isArray(result?.advice) ? result.advice.map((v) => String(v || "").trim()).filter(Boolean) : [],
+    },
+  };
+
+  if (normalized.sukuyoResult.user宿Index < 0) {
+    delete normalized.sukuyoResult.user宿Index;
+  }
+  if (!normalized.sukuyoResult.summary) {
+    normalized.sukuyoResult.summary = "숙요 기본 계산 결과를 기반으로 관계 패턴을 해석합니다.";
+  }
+  return normalized;
 }
 
 const SHUKUYO_CATEGORY_DATA_MAP = Object.freeze({
@@ -225,144 +273,16 @@ function resolveShukuyoRequiredData(categoryTitle, mode = "personal") {
   return mode === "compatibility" ? ["userNatal", "partnerNatal", "compatibility"] : ["userNatal"];
 }
 
-function normalizeShukuyoPdfPayload(raw = {}) {
-  const source = raw && typeof raw === "object" ? raw : {};
-  const userInput = source?.user && typeof source.user === "object" ? source.user : {};
-  const partnerInput = source?.partner && typeof source.partner === "object" ? source.partner : {};
-  const resultInput = source?.result && typeof source.result === "object" ? source.result : {};
-  const userNatalInput = resultInput?.userNatal && typeof resultInput.userNatal === "object"
-    ? resultInput.userNatal
-    : (source?.userNatal && typeof source.userNatal === "object" ? source.userNatal : {});
-  const partnerNatalInput = resultInput?.partnerNatal && typeof resultInput.partnerNatal === "object"
-    ? resultInput.partnerNatal
-    : (source?.partnerNatal && typeof source.partnerNatal === "object" ? source.partnerNatal : {});
-  const compatibilityInput = resultInput?.compatibility && typeof resultInput.compatibility === "object"
-    ? resultInput.compatibility
-    : (source?.compatibility && typeof source.compatibility === "object" ? source.compatibility : {});
-  const rawUserProfile = source?.userProfile && typeof source.userProfile === "object" ? source.userProfile : {};
-  const rawPartnerProfile = source?.partnerProfile && typeof source.partnerProfile === "object" ? source.partnerProfile : {};
-  const mode = normalizeSukyoReportMode(
-    source?.reportMode
-    || source?.mode
-    || source?.sukuyoBookContext?.mode
-    || (partnerInput?.birthDate || rawPartnerProfile?.birthDate || source?.sukuyoBookContext?.partner?.profile?.birthDate ? "compatibility" : "personal"),
-  );
-  const userBook = source?.sukuyoBookContext?.user || {};
-  const partnerBook = source?.sukuyoBookContext?.partner || {};
-  const compatBook = source?.sukuyoBookContext?.compatibility || {};
-  const userNatalName = toStringOrNull(
-    pickFirst(
-      userNatalInput?.宿NameKo,
-      userNatalInput?.宿Name,
-      userNatalInput?.nameKo,
-      source?.mainStar?.nameKo,
-      userBook?.sukuyo?.mansion,
-      source?.canonical?.natalSukuyo?.nameKo,
-      source?.canonical?.personA?.sukuyo?.nameKo,
-    ),
-  );
-  const partnerNatalName = toStringOrNull(
-    pickFirst(
-      partnerNatalInput?.宿NameKo,
-      partnerNatalInput?.宿Name,
-      partnerNatalInput?.nameKo,
-      partnerBook?.sukuyo?.mansion,
-      source?.canonical?.personB?.sukuyo?.nameKo,
-    ),
-  );
-  const relationType = toStringOrNull(
-    pickFirst(
-      compatibilityInput?.relationType,
-      compatibilityInput?.relationshipType,
-      source?.relationship?.relationType,
-      compatBook?.relationType,
-      source?.canonical?.compatibility?.relationType,
-    ),
-  );
-
-  return {
-    service: "shukuyo-premium",
-    mode,
-    user: {
-      name: toStringOrNull(userInput?.name || userBook?.profile?.name || rawUserProfile?.name),
-      gender: toStringOrNull(userInput?.gender || userBook?.profile?.gender || rawUserProfile?.gender),
-      birthDate: toStringOrNull(userInput?.birthDate || userInput?.solarBirthDate || userBook?.profile?.birthDate || rawUserProfile?.solarBirthDate) || "",
-      birthTime: toStringOrNull(userInput?.birthTime || userBook?.profile?.birthTime || rawUserProfile?.birthTime),
-      calendarType: toCalendarType(userInput?.calendarType || userBook?.profile?.calendarType || source?.reportPayload?.birthInput?.calendarType || "solar"),
-    },
-    partner: mode === "compatibility" ? {
-      name: toStringOrNull(partnerInput?.name || partnerBook?.profile?.name || rawPartnerProfile?.name),
-      gender: toStringOrNull(partnerInput?.gender || partnerBook?.profile?.gender || rawPartnerProfile?.gender),
-      birthDate: toStringOrNull(partnerInput?.birthDate || partnerInput?.solarBirthDate || partnerBook?.profile?.birthDate || rawPartnerProfile?.birthDate) || "",
-      birthTime: toStringOrNull(partnerInput?.birthTime || partnerBook?.profile?.birthTime || rawPartnerProfile?.birthTime),
-      calendarType: toCalendarType(partnerInput?.calendarType || partnerBook?.profile?.calendarType || source?.reportPayload?.partnerInput?.calendarType || "solar"),
-    } : undefined,
-    result: {
-      userNatal: {
-        宿Index: toNumberOrNull(source?.mainStar?.mansionNumber || source?.mainStar?.index),
-        宿名: userNatalName || "",
-        宿名Ko: userNatalName || "",
-        宿名Ja: toStringOrNull(source?.mainStar?.nameHanja),
-        宿Name: userNatalName || "",
-        宿NameKo: userNatalName || "",
-        宿NameJa: toStringOrNull(source?.mainStar?.nameHanja),
-        group: toStringOrNull(source?.mainStar?.group),
-        animalSymbol: toStringOrNull(source?.mainStar?.animalSymbol),
-        elementTone: toStringOrNull(source?.mainStar?.coreKeyword),
-        temperamentKeywords: unique([
-          source?.mainStar?.coreKeyword,
-          source?.mainStar?.temperament,
-          source?.mainStar?.strength,
-          source?.mainStar?.shadow,
-        ]),
-        shortInterpretationSeed: toStringOrNull(source?.mainStar?.temperament || source?.mainStar?.coreKeyword),
-      },
-      partnerNatal: mode === "compatibility" && partnerNatalName ? {
-        宿名: partnerNatalName,
-        宿名Ko: partnerNatalName,
-        宿Name: partnerNatalName,
-        宿NameKo: partnerNatalName,
-        group: toStringOrNull(partnerBook?.sukuyo?.mansionGroup),
-        temperamentKeywords: unique(partnerBook?.sukuyo?.mansionKeywords || []),
-        shortInterpretationSeed: toStringOrNull(partnerBook?.sukuyo?.personalitySummary || partnerNatalInput?.shortInterpretationSeed),
-      } : undefined,
-      compatibility: mode === "compatibility" ? {
-        relationType: relationType || "",
-        relationLabelKo: toStringOrNull(compatibilityInput?.relationLabelKo || compatibilityInput?.relationLabel || compatBook?.relationLabel),
-        distance: toStringOrNull(compatibilityInput?.distance || source?.relationship?.distanceLabel || compatBook?.distanceType),
-        direction: toStringOrNull(compatibilityInput?.direction || source?.relationship?.direction || source?.canonical?.compatibility?.directionFromAToB),
-        summaryKeywords: unique([
-          ...(Array.isArray(compatibilityInput?.summaryKeywords) ? compatibilityInput.summaryKeywords : []),
-          compatBook?.adviceSummary,
-          compatBook?.riskPattern,
-          compatBook?.emotionalDynamic,
-          compatBook?.conflictPattern,
-        ]),
-        attractionScore: toNumberOrNull(compatibilityInput?.attractionScore || source?.relationship?.attractionScore),
-        stabilityScore: toNumberOrNull(compatibilityInput?.stabilityScore || source?.relationship?.stabilityScore),
-        conflictScore: toNumberOrNull(compatibilityInput?.conflictScore || source?.relationship?.conflictScore),
-        growthScore: toNumberOrNull(compatibilityInput?.growthScore || source?.relationship?.growthScore),
-        shortInterpretationSeed: toStringOrNull(compatibilityInput?.shortInterpretationSeed || compatBook?.adviceSummary || compatBook?.emotionalDynamic),
-      } : undefined,
-    },
-    meta: {
-      generatedAt: new Date().toISOString(),
-      engineVersion: toStringOrNull(source?.chartMeta?.calculationSource),
-      source: "local-shukuyo-engine",
-    },
-  };
-}
-
 function summarizeRequiredShukuyoData(requiredData, payload) {
   const req = Array.isArray(requiredData) ? requiredData : [];
   const labels = [];
-  const relationType = payload?.result?.compatibility?.relationType;
+  const relationType = payload?.sukuyoResult?.relationshipType || payload?.result?.compatibility?.relationType;
   for (const key of req) {
-    if (key === "userNatal" && payload?.result?.userNatal?.宿名Ko) labels.push("본명숙");
-    if (key === "partnerNatal" && payload?.result?.partnerNatal?.宿名Ko) labels.push("상대 숙");
+    if (key === "userNatal" && (payload?.sukuyoResult?.user宿 || payload?.result?.userNatal?.宿名Ko)) labels.push("본명숙");
+    if (key === "partnerNatal" && (payload?.sukuyoResult?.partner宿 || payload?.result?.partnerNatal?.宿名Ko)) labels.push("상대 숙");
     if (key === "compatibility" && relationType) labels.push("관계 유형");
     if (key === "relationType" && relationType) labels.push("relationType");
-    if (key === "distance" && payload?.result?.compatibility?.distance) labels.push("거리");
+    if (key === "distance" && (payload?.sukuyoResult?.distance || payload?.result?.compatibility?.distance)) labels.push("거리");
     if (key === "direction" && payload?.result?.compatibility?.direction) labels.push("방향");
     if (key === "scores") labels.push("궁합 점수");
     if (key === "keywords") labels.push("핵심 키워드");
@@ -384,9 +304,13 @@ function formatCompatibilitySummary(compat = {}) {
 
 function buildShukuyoCategorySeed(category, payload) {
   const requiredData = Array.isArray(category?.requiredData) ? category.requiredData : [];
-  const userNatal = payload?.result?.userNatal || {};
-  const partnerNatal = payload?.result?.partnerNatal || null;
-  const compatibility = payload?.result?.compatibility || null;
+  const userNatal = payload?.result?.userNatal || { 宿名Ko: payload?.sukuyoResult?.user宿, 宿Index: payload?.sukuyoResult?.user宿Index };
+  const partnerNatal = payload?.result?.partnerNatal
+    || (payload?.sukuyoResult?.partner宿 ? { 宿名Ko: payload?.sukuyoResult?.partner宿, 宿Index: payload?.sukuyoResult?.partner宿Index } : null);
+  const compatibility = payload?.result?.compatibility
+    || (payload?.sukuyoResult?.relationshipType
+      ? { relationType: payload.sukuyoResult.relationshipType, distance: payload.sukuyoResult.distance }
+      : null);
   const lines = [
     `${String(category?.title || "이 카테고리")}은 숙요점 계산 결과 중 ${summarizeRequiredShukuyoData(requiredData, payload)}을 중심으로 해석합니다.`,
     `나의 본명숙은 ${formatNatalMansion(userNatal)}입니다.`,
@@ -583,52 +507,36 @@ function buildSukuyoPdfSeed(input = {}) {
 }
 
 function validateSukuyoPdfPayload(reportPayload = {}) {
-  const payload = reportPayload && typeof reportPayload === "object" ? reportPayload : {};
-  const reportMode = normalizeSukyoReportMode(payload.reportMode || payload.mode);
-  const birthInput = payload.birthInput && typeof payload.birthInput === "object" ? payload.birthInput : {};
-  const partnerInput = payload.partnerInput && typeof payload.partnerInput === "object" ? payload.partnerInput : {};
+  const normalized = normalizeShukuyoPdfPayload(reportPayload);
   const missingFields = [];
-  const selectedProfileId = toStringOrNull(payload.selectedProfileId || payload.profileId || payload.selectedProfile?.profileId || payload.selectedProfile?.id);
-  const year = toNumberOrNull(birthInput.year ?? payload.year);
-  const month = toNumberOrNull(birthInput.month ?? payload.month);
-  const day = toNumberOrNull(birthInput.day ?? payload.day);
-  const hour = toNumberOrNull(birthInput.hour ?? payload.hour);
-  const minute = toNumberOrNull(birthInput.minute ?? payload.minute);
-  const calendarType = toCalendarType(pickFirst(birthInput.calendarType, birthInput.calType, payload.calendarType, payload.calType, "solar"));
-  const timezone = toStringOrNull(birthInput.timezone || payload.timezone) || "Asia/Seoul";
+  const mode = normalizeSukyoReportMode(normalized?.mode);
+  const hasUserResult = Boolean(normalized?.sukuyoResult?.user宿)
+    || Number.isFinite(Number(normalized?.sukuyoResult?.user宿Index));
+  const hasPartnerResult = Boolean(normalized?.sukuyoResult?.partner宿)
+    || Number.isFinite(Number(normalized?.sukuyoResult?.partner宿Index));
 
-  pushMissing(missingFields, "birthInput.year", Number.isFinite(year));
-  pushMissing(missingFields, "birthInput.month", Number.isFinite(month));
-  pushMissing(missingFields, "birthInput.day", Number.isFinite(day));
-  pushMissing(missingFields, "birthInput.calendarType", Boolean(calendarType));
-  pushMissing(missingFields, "birthInput.timezone", Boolean(timezone));
+  if (!hasUserResult && !toIsoBirthDate(normalized?.user?.birthDate)) {
+    missingFields.push("user.birthDate");
+  }
+  if (!hasUserResult && !toCalendarType(normalized?.user?.calendarType)) {
+    missingFields.push("user.calendarType");
+  }
 
-  if (reportMode === "compatibility") {
-    const partnerYear = toNumberOrNull(partnerInput.year ?? payload.partnerYear);
-    const partnerMonth = toNumberOrNull(partnerInput.month ?? payload.partnerMonth);
-    const partnerDay = toNumberOrNull(partnerInput.day ?? payload.partnerDay);
-    const partnerCalendarType = toCalendarType(pickFirst(partnerInput.calendarType, partnerInput.calType, payload.partnerCalendarType, payload.partnerCalType, "solar"));
-    pushMissing(missingFields, "partnerInput.year", Number.isFinite(partnerYear));
-    pushMissing(missingFields, "partnerInput.month", Number.isFinite(partnerMonth));
-    pushMissing(missingFields, "partnerInput.day", Number.isFinite(partnerDay));
-    pushMissing(missingFields, "partnerInput.calendarType", Boolean(partnerCalendarType));
+  if (mode === "compatibility") {
+    if (!hasPartnerResult && !toIsoBirthDate(normalized?.partner?.birthDate)) {
+      missingFields.push("partner.birthDate");
+    }
+    if (!hasPartnerResult && !toCalendarType(normalized?.partner?.calendarType)) {
+      missingFields.push("partner.calendarType");
+    }
   }
 
   return {
     ok: missingFields.length === 0,
-    reportMode,
-    chapterCount: getSukyoPdfChapters(reportMode).length,
-    selectedProfileId,
-    birthInput: {
-      year,
-      month,
-      day,
-      hour,
-      minute,
-      calendarType,
-      timezone,
-    },
+    reportMode: mode,
+    chapterCount: getSukyoPdfChapters(mode).length,
     missingFields,
+    normalizedPayload: normalized,
   };
 }
 
@@ -1079,16 +987,31 @@ function validateSukyoPdfInput(context = {}) {
   const hardMissingFields = [];
   const softMissingFields = [];
   const mode = normalizeSukyoReportMode(context?.reportMode || context?.sukuyoBookContext?.mode);
+  const normalizedPayload = normalizeShukuyoPdfPayload(
+    context?.sukuyoPayload
+    || context?.normalizedPayload
+    || context?.reportPayload
+    || context,
+  );
   const book = context?.sukuyoBookContext || {};
   const chapterPlan = getSukyoPdfChapters(mode);
   const seed = context?.sukuyoPdfSeed && typeof context.sukuyoPdfSeed === "object"
     ? context.sukuyoPdfSeed
     : buildSukuyoPdfSeed(context);
-  const payloadValidation = validateSukuyoPdfPayload(seed?.reportPayload || context?.reportPayload || context);
+  const payloadValidation = validateSukuyoPdfPayload(normalizedPayload);
 
-  const hasBirthInfo = Boolean(book?.user?.profile?.birthDate || context?.userProfile?.solarBirthDate);
-  const hasMainMansion = Boolean(book?.user?.sukuyo?.mansion || context?.mainStar?.nameKo);
+  const hasBirthInfo = Boolean(
+    toIsoBirthDate(normalizedPayload?.user?.birthDate)
+    || book?.user?.profile?.birthDate
+    || context?.userProfile?.solarBirthDate,
+  );
+  const hasMainMansion = Boolean(
+    normalizedPayload?.sukuyoResult?.user宿
+    || book?.user?.sukuyo?.mansion
+    || context?.mainStar?.nameKo,
+  );
   const hasMansionNumber = Number.isFinite(Number(book?.user?.sukuyo?.mansionNumber || context?.mainStar?.number || context?.mainStar?.index));
+  const hasUserComputedCore = hasMainMansion || hasMansionNumber || Number.isFinite(Number(normalizedPayload?.sukuyoResult?.user宿Index));
   const hasChapterPlan = Array.isArray(chapterPlan) && chapterPlan.length > 0;
   const hasChapterSeed = hasChapterPlan && chapterPlan.some((row) => Array.isArray(row?.sections) && row.sections.length > 0);
   const hasBasicText = Boolean(
@@ -1097,8 +1020,12 @@ function validateSukyoPdfInput(context = {}) {
     || toArray(context?.domainScores).some((row) => Boolean(row?.summary) || toArray(row?.keywords).length > 0),
   );
 
-  if (!hasBirthInfo) hardMissingFields.push("user.profile.birthDate");
-  if (!hasMainMansion) hardMissingFields.push("user.sukuyo.mansion");
+  if (!hasBirthInfo && !hasUserComputedCore) {
+    hardMissingFields.push("user.birthDate");
+  }
+  if (!hasUserComputedCore) {
+    hardMissingFields.push("sukuyoResult.user宿");
+  }
   if (!hasChapterPlan) hardMissingFields.push("chapterPlan");
   if (!hasChapterSeed) hardMissingFields.push("chapterSeed");
   if (!payloadValidation.ok) hardMissingFields.push(...payloadValidation.missingFields.filter((field) => !hardMissingFields.includes(field)));
@@ -1112,11 +1039,19 @@ function validateSukyoPdfInput(context = {}) {
 
   let hasCompatibilityCore = true;
   if (mode === "compatibility") {
-    const hasPartnerBirth = Boolean(book?.partner?.profile?.birthDate);
-    const hasPartnerMansion = Boolean(book?.partner?.sukuyo?.mansion);
-    const hasRelationType = Boolean(book?.compatibility?.relationType || context?.relationship?.relationType);
-    if (!hasPartnerBirth) hardMissingFields.push("partner.profile.birthDate");
-    if (!hasPartnerMansion) hardMissingFields.push("partner.sukuyo.mansion");
+    const hasPartnerBirth = Boolean(toIsoBirthDate(normalizedPayload?.partner?.birthDate) || book?.partner?.profile?.birthDate);
+    const hasPartnerMansion = Boolean(normalizedPayload?.sukuyoResult?.partner宿 || book?.partner?.sukuyo?.mansion);
+    const hasRelationType = Boolean(
+      normalizedPayload?.sukuyoResult?.relationshipType
+      || book?.compatibility?.relationType
+      || context?.relationship?.relationType,
+    );
+    if (!hasPartnerBirth && !Number.isFinite(Number(normalizedPayload?.sukuyoResult?.partner宿Index))) {
+      hardMissingFields.push("partner.birthDate");
+    }
+    if (!hasPartnerMansion && !Number.isFinite(Number(normalizedPayload?.sukuyoResult?.partner宿Index))) {
+      hardMissingFields.push("sukuyoResult.partner宿");
+    }
     if (!hasRelationType) hardMissingFields.push("compatibility.relationType");
     hasCompatibilityCore = hasPartnerBirth && hasPartnerMansion && hasRelationType;
     if (!book?.partner?.profile?.birthTime && !context?.partner?.profile?.birthTime) {
@@ -1124,8 +1059,10 @@ function validateSukyoPdfInput(context = {}) {
     }
   }
 
+  const dedupHardMissingFields = Array.from(new Set(hardMissingFields.filter(Boolean)));
+
   return {
-    canGenerate: hardMissingFields.length === 0 && hasBasicText && hasCompatibilityCore,
+    canGenerate: dedupHardMissingFields.length === 0 && hasBasicText && hasCompatibilityCore,
     mode,
     hasBirthInfo,
     hasMansionNumber,
@@ -1134,13 +1071,15 @@ function validateSukyoPdfInput(context = {}) {
     hasChapterPlan,
     chapterCount: Array.isArray(chapterPlan) ? chapterPlan.length : 0,
     payloadValidation,
-    hardMissingFields,
+    normalizedPayload,
+    hardMissingFields: dedupHardMissingFields,
     softMissingFields,
-    missingFields: hardMissingFields,
+    missingFields: dedupHardMissingFields,
   };
 }
 
 function buildSukyoPdfContext(input = {}) {
+  const normalizedPayload = normalizeShukuyoPdfPayload(input);
   const normalized = normalizeSukyoResultForPdf(input);
   const seed = buildSukuyoPdfSeed({
     ...input,
@@ -1149,11 +1088,63 @@ function buildSukyoPdfContext(input = {}) {
     partnerProfile: input?.partnerProfile || input?.partner || normalized?.sukuyoBookContext?.partner?.profile || {},
   });
 
+  const book = normalized?.sukuyoBookContext && typeof normalized.sukuyoBookContext === "object"
+    ? normalized.sukuyoBookContext
+    : {};
+  if (book?.user?.profile) {
+    if (!book.user.profile.birthDate && normalizedPayload?.user?.birthDate) {
+      book.user.profile.birthDate = normalizedPayload.user.birthDate;
+    }
+    if (!book.user.profile.birthTime && normalizedPayload?.user?.birthTime) {
+      book.user.profile.birthTime = normalizedPayload.user.birthTime;
+    }
+    if (!book.user.profile.calendarType && normalizedPayload?.user?.calendarType) {
+      book.user.profile.calendarType = normalizedPayload.user.calendarType;
+    }
+  }
+  if (book?.user?.sukuyo) {
+    if (!book.user.sukuyo.mansion && normalizedPayload?.sukuyoResult?.user宿) {
+      book.user.sukuyo.mansion = normalizedPayload.sukuyoResult.user宿;
+    }
+    if (!Number.isFinite(Number(book.user.sukuyo.mansionNumber)) && Number.isFinite(Number(normalizedPayload?.sukuyoResult?.user宿Index))) {
+      book.user.sukuyo.mansionNumber = Number(normalizedPayload.sukuyoResult.user宿Index);
+    }
+  }
+  if (normalizedPayload?.mode === "compatibility") {
+    if (!book.partner) book.partner = { profile: {}, sukuyo: {} };
+    if (!book.partner.profile) book.partner.profile = {};
+    if (!book.partner.sukuyo) book.partner.sukuyo = {};
+    if (!book.partner.profile.birthDate && normalizedPayload?.partner?.birthDate) {
+      book.partner.profile.birthDate = normalizedPayload.partner.birthDate;
+    }
+    if (!book.partner.profile.birthTime && normalizedPayload?.partner?.birthTime) {
+      book.partner.profile.birthTime = normalizedPayload.partner.birthTime;
+    }
+    if (!book.partner.profile.calendarType && normalizedPayload?.partner?.calendarType) {
+      book.partner.profile.calendarType = normalizedPayload.partner.calendarType;
+    }
+    if (!book.partner.sukuyo.mansion && normalizedPayload?.sukuyoResult?.partner宿) {
+      book.partner.sukuyo.mansion = normalizedPayload.sukuyoResult.partner宿;
+    }
+    if (!Number.isFinite(Number(book.partner.sukuyo.mansionNumber)) && Number.isFinite(Number(normalizedPayload?.sukuyoResult?.partner宿Index))) {
+      book.partner.sukuyo.mansionNumber = Number(normalizedPayload.sukuyoResult.partner宿Index);
+    }
+    if (!book.compatibility) book.compatibility = {};
+    if (!book.compatibility.relationType && normalizedPayload?.sukuyoResult?.relationshipType) {
+      book.compatibility.relationType = normalizedPayload.sukuyoResult.relationshipType;
+    }
+    if (!book.compatibility.distanceType && normalizedPayload?.sukuyoResult?.distance) {
+      book.compatibility.distanceType = normalizedPayload.sukuyoResult.distance;
+    }
+  }
+  normalized.sukuyoBookContext = book;
+
   return {
     ...normalized,
+    normalizedPayload,
     sukuyoPdfSeed: seed,
-    reportPayload: seed.reportPayload,
-    reportPayloadValidation: validateSukuyoPdfPayload(seed.reportPayload),
+    reportPayload: normalizedPayload,
+    reportPayloadValidation: validateSukuyoPdfPayload(normalizedPayload),
   };
 }
 

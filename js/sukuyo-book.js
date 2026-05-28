@@ -249,6 +249,50 @@
       currentSukuyoIndex: basic && Number.isFinite(Number(basic.mansionIdx)) ? Number(basic.mansionIdx) : null,
       partnerSukuyoName: compat && compat.partnerMansion ? String(compat.partnerMansion) : '',
       partnerSukuyoIndex: compat && Number.isFinite(Number(compat.partnerIdx)) ? Number(compat.partnerIdx) : null,
+      relationType: compat && compat.relationType ? String(compat.relationType) : '',
+      relationLabel: compat && compat.relationTypeHan ? String(compat.relationTypeHan) : '',
+      distanceLabel: compat && compat.distanceLabel ? String(compat.distanceLabel) : '',
+      pastLifeBond: compat && compat.stamp ? String(compat.stamp) : '',
+      karmicTheme: compat && compat.summary ? String(compat.summary) : '',
+    };
+  }
+
+  function _buildSukuyoPdfPayload(profile, partner, engineHints, selfLunarHint, partnerLunarHint) {
+    var birth = profile && profile.birth ? profile.birth : {};
+    var mode = partner && partner.year && partner.month && partner.day ? 'compatibility' : 'solo';
+    return {
+      mode: mode,
+      user: {
+        name: profile && profile.name ? profile.name : '사용자',
+        birthDate: [birth.year, String(birth.month || '').padStart(2, '0'), String(birth.day || '').padStart(2, '0')].join('-'),
+        birthTime: Number.isFinite(Number(birth.hour)) ? (String(Number(birth.hour)).padStart(2, '0') + ':' + String(Number(birth.minute || 0)).padStart(2, '0')) : undefined,
+        calendarType: (birth.calType === 'lunar' || birth.calType === 'lunar_leap') ? 'lunar' : 'solar',
+        gender: (profile && profile.gender === 'M') ? 'male' : ((profile && profile.gender === 'F') ? 'female' : 'unknown'),
+        lunarLeapMonth: !!(selfLunarHint && selfLunarHint.isLeapMonth),
+      },
+      partner: mode === 'compatibility' ? {
+        name: partner && partner.name ? partner.name : '상대',
+        birthDate: [partner.year, String(partner.month || '').padStart(2, '0'), String(partner.day || '').padStart(2, '0')].join('-'),
+        birthTime: Number.isFinite(Number(partner.hour)) ? (String(Number(partner.hour)).padStart(2, '0') + ':' + String(Number(partner.minute || 0)).padStart(2, '0')) : undefined,
+        calendarType: (partner && (partner.calType === 'lunar' || partner.calType === 'lunar_leap')) ? 'lunar' : 'solar',
+        gender: (partner && partner.gender === 'M') ? 'male' : ((partner && partner.gender === 'F') ? 'female' : 'unknown'),
+        lunarLeapMonth: !!(partnerLunarHint && partnerLunarHint.isLeapMonth),
+      } : undefined,
+      sukuyoResult: {
+        user宿: engineHints.currentSukuyoName || '',
+        user宿Index: Number.isFinite(Number(engineHints.currentSukuyoIndex)) ? Number(engineHints.currentSukuyoIndex) : undefined,
+        partner宿: engineHints.partnerSukuyoName || undefined,
+        partner宿Index: Number.isFinite(Number(engineHints.partnerSukuyoIndex)) ? Number(engineHints.partnerSukuyoIndex) : undefined,
+        relationshipType: engineHints.relationType || undefined,
+        relationshipLabel: engineHints.relationLabel || undefined,
+        distance: engineHints.distanceLabel || undefined,
+        pastLifeBond: engineHints.pastLifeBond || undefined,
+        karmicTheme: engineHints.karmicTheme || undefined,
+        summary: engineHints.karmicTheme || '숙요 기본 계산 결과 기반 관계 해석',
+        strengths: [],
+        risks: [],
+        advice: [],
+      }
     };
   }
 
@@ -801,6 +845,8 @@
         var _skPremiumToken=_skReadPremiumAccessToken();
         var _skHeaders={'Content-Type':'application/json'};
         if(_skPremiumToken) _skHeaders['x-premium-access-token']=_skPremiumToken;
+        var sukuyoPayload = _buildSukuyoPdfPayload(profile, partner, engineHints, selfLunarHint, partnerLunarHint);
+        console.info('[SukuyoPDF][debug] request payload', sukuyoPayload);
         fetch('/api/sukuyo/generate-chapter',{
           method:'POST',headers:_skHeaders,
           body:JSON.stringify({
@@ -838,7 +884,9 @@
             partnerLunarDay:partnerLunarHint?partnerLunarHint.lunarDay:undefined,
             partnerIsLeap:partnerLunarHint?partnerLunarHint.isLeapMonth:undefined,
             partnerSukuyoName:engineHints.partnerSukuyoName||undefined,
-            partnerSukuyoIndex:engineHints.partnerSukuyoIndex
+            partnerSukuyoIndex:engineHints.partnerSukuyoIndex,
+            sukuyoPayload:sukuyoPayload,
+            normalizedPayload:sukuyoPayload
           })
         })
         .then(function(res){return res.ok?res.json():res.json().catch(function(){return{};}).then(function(e){return{ok:false,message:(e&&e.message)||'HTTP '+res.status,status:res.status,code:e&&e.code};});})
@@ -907,7 +955,12 @@
       clearInterval(_mysticTimer);_mysticTimer=null;_generating=false;
       var fatalEl=_qs('skErrorMsg');
       var msg=String(err&&err.message?err.message:err||'챕터 생성 중 오류가 발생했습니다.');
-      if(fatalEl)fatalEl.textContent=msg+' 기본 숙요 화면에서 본인과 상대의 생년월일, 시간, 달력 종류를 다시 확인한 뒤 재시도해 주세요.';
+      var code=String(err&&err.code?err.code:'').trim();
+      var missing=Array.isArray(err&&err.missingFields)?err.missingFields:[];
+      if (missing.length) {
+        console.error('[SukuyoPDF][missingFields]', { code: code || 'SUKUYO_PDF_MISSING_FIELDS', missingFields: missing });
+      }
+      if(fatalEl)fatalEl.textContent=missing.length?('요청 데이터 누락: '+missing.join(', ')):msg;
       _showScreen('skErrorScreen');
     });
   };

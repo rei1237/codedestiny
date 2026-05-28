@@ -4,12 +4,22 @@
 
 let handleSajuNewYearRoutes;
 let signJwt;
+let createPremiumAccessToken;
+
+const TEST_ENV = {
+  PREMIUM_ACCESS_TOKEN_SECRET: "dev-secret",
+  JWT_ACCESS_SECRET: "dev-secret",
+  JWT_ISSUER: "code-destiny-api",
+  JWT_AUDIENCE: "code-destiny-web",
+};
 
 beforeAll(async () => {
   const mod = await import("../../worker/routes/premium.js");
   const jwtMod = await import("../../worker/lib/jwt.js");
+  const accessTokenMod = await import("../../worker/lib/premium-access-token.js");
   handleSajuNewYearRoutes = mod.handleSajuNewYearRoutes;
   signJwt = jwtMod.signJwt;
+  createPremiumAccessToken = accessTokenMod.createPremiumAccessToken;
 });
 
 function makeSajuData() {
@@ -65,6 +75,21 @@ async function makeAuthToken() {
     audience: "code-destiny-web",
     expiresIn: "30m",
   });
+}
+
+async function makePremiumHeaders(reportType = "sajuNewYear", chargedCoins = 300, featureKey = "saju_new_year_pdf") {
+  const authToken = await makeAuthToken();
+  const premiumAccessToken = await createPremiumAccessToken(TEST_ENV, {
+    userId: "507f1f77bcf86cd799439011",
+    reportType,
+    featureKey,
+    chargedCoins: Number(chargedCoins || 0),
+  });
+  return {
+    "content-type": "application/json",
+    authorization: `Bearer ${authToken}`,
+    "x-premium-access-token": premiumAccessToken,
+  };
 }
 
 function makeStrictNewYearPayloadExtras() {
@@ -128,13 +153,10 @@ function makeNewYearPayload(overrides = {}) {
 
 describe("Saju new year chapter json payloads", () => {
   test("targetYear 누락 시 명확한 입력 오류를 반환한다", async () => {
-    const authToken = await makeAuthToken();
+    const headers = await makePremiumHeaders();
     const req = new Request("https://example.com/api/saju-new-year/session", {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${authToken}`,
-      },
+      headers,
       body: JSON.stringify({
         prepareOnly: true,
         name: "테스트A",
@@ -147,7 +169,7 @@ describe("Saju new year chapter json payloads", () => {
       }),
     });
 
-    const res = await handleSajuNewYearRoutes(req, {});
+    const res = await handleSajuNewYearRoutes(req, TEST_ENV);
     const data = await res.json();
 
     expect(res.status).toBe(400);
@@ -157,13 +179,10 @@ describe("Saju new year chapter json payloads", () => {
   });
 
   test("person + targetYear 입력만으로 prepareOnly가 로컬 엔진 기반 canonical을 생성한다", async () => {
-    const authToken = await makeAuthToken();
+    const headers = await makePremiumHeaders();
     const req = new Request("https://example.com/api/saju-new-year/session", {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${authToken}`,
-      },
+      headers,
       body: JSON.stringify({
         prepareOnly: true,
         reportType: "saju-yearly-book",
@@ -181,7 +200,7 @@ describe("Saju new year chapter json payloads", () => {
       }),
     });
 
-    const res = await handleSajuNewYearRoutes(req, {});
+    const res = await handleSajuNewYearRoutes(req, TEST_ENV);
     const data = await res.json();
 
     expect(res.status).toBe(200);
@@ -200,20 +219,17 @@ describe("Saju new year chapter json payloads", () => {
   });
 
   test("prepareOnly builds chapterJson blueprints for all 10 chapters with matching category counts", async () => {
-    const authToken = await makeAuthToken();
+    const headers = await makePremiumHeaders();
     const req = new Request("https://example.com/api/saju-new-year/session", {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${authToken}`,
-      },
+      headers,
       body: JSON.stringify({
         prepareOnly: true,
         ...makeNewYearPayload(),
       }),
     });
 
-    const res = await handleSajuNewYearRoutes(req, {});
+    const res = await handleSajuNewYearRoutes(req, TEST_ENV);
     const data = await res.json();
 
     expect(res.status).toBe(200);
@@ -263,13 +279,10 @@ describe("Saju new year chapter json payloads", () => {
   });
 
   test("generated chapter response falls back to local text when Gemini output is unavailable", async () => {
-    const authToken = await makeAuthToken();
+    const headers = await makePremiumHeaders();
     const req = new Request("https://example.com/api/saju-new-year/session", {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${authToken}`,
-      },
+      headers,
       body: JSON.stringify({
         reportId: "saju-new-year-json-check",
         sessionId: 9,
@@ -278,7 +291,7 @@ describe("Saju new year chapter json payloads", () => {
       }),
     });
 
-    const res = await handleSajuNewYearRoutes(req, {});
+    const res = await handleSajuNewYearRoutes(req, TEST_ENV);
     const data = await res.json();
 
     expect(res.status).toBe(200);
@@ -289,5 +302,49 @@ describe("Saju new year chapter json payloads", () => {
     expect(data.chapterJson.categories.length).toBeGreaterThan(0);
     expect(typeof data.chapterJson.categories[0].analysisText).toBe("string");
     expect(data.chapterJson.categories[0].analysisText.length).toBeGreaterThan(0);
+  });
+
+  test("featureKey 불일치 시 SAJU_NEW_YEAR_ACCESS_DENIED를 반환한다", async () => {
+    const headers = await makePremiumHeaders();
+    const req = new Request("https://example.com/api/saju-new-year/session", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        prepareOnly: true,
+        featureKey: "saju-new-year",
+        ...makeNewYearPayload(),
+      }),
+    });
+
+    const res = await handleSajuNewYearRoutes(req, TEST_ENV);
+    const data = await res.json();
+
+    expect(res.status).toBe(402);
+    expect(data.code).toBe("SAJU_NEW_YEAR_ACCESS_DENIED");
+    expect(data.expectedFeatureKey).toBe("saju_new_year_pdf");
+    expect(data.receivedFeatureKey).toBe("saju-new-year");
+  });
+
+  test("accessGrant/sessionId/purchaseId 누락 시 누락 필드 목록을 반환한다", async () => {
+    const authToken = await makeAuthToken();
+    const req = new Request("https://example.com/api/saju-new-year/session", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({
+        prepareOnly: true,
+        ...makeNewYearPayload(),
+      }),
+    });
+
+    const res = await handleSajuNewYearRoutes(req, TEST_ENV);
+    const data = await res.json();
+
+    expect(res.status).toBe(402);
+    expect(data.code).toBe("SAJU_NEW_YEAR_ACCESS_DENIED");
+    expect(Array.isArray(data.missing)).toBe(true);
+    expect(data.missing).toEqual(expect.arrayContaining(["sessionId", "purchaseId", "reportId"]));
   });
 });

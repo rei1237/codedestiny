@@ -13,6 +13,11 @@ import {
 } from "./vedic-chapter-config.js";
 import { generateVedicChaptersSequentially } from "./generate-vedic-chapter.js";
 import { getVedicFallbackText } from "./vedic-fallback.js";
+import {
+  buildCategoryRecordsFromChapter,
+  repairCategoriesForRender,
+  validatePdfChaptersBeforeRender,
+} from "./pdf-category-policy.js";
 
 const VEDIC_FORBIDDEN_PHRASES = [
   "생성됨", "폴백", "reportId", "파일명", "다운로드",
@@ -50,6 +55,31 @@ function padReportToMin(chapters) {
   }
 }
 
+function buildVedicChapterCategories(chapterNum, chapterText, chart = {}) {
+  const chapterConfig = getVedicChapterConfig(chapterNum) || {};
+  const sectionTitles = Array.isArray(chapterConfig?.sections) && chapterConfig.sections.length
+    ? chapterConfig.sections
+    : ["핵심 진단", "실전 전략"];
+  return buildCategoryRecordsFromChapter({
+    serviceKey: "vedic_premium",
+    serviceLabel: "베다점 PDF",
+    chapterNo: chapterNum,
+    chapterKey: `vedic-${String(chapterNum).padStart(2, "0")}`,
+    chapterTitle: String(chapterConfig?.title || `Chapter ${chapterNum}`).trim(),
+    chapterPurpose: "베다 카테고리 목적 기반 상담문 작성",
+    chapterText,
+    categoryTitles: sectionTitles,
+    minChars: 700,
+    availableData: {
+      lagna: chart?.lagna || chart?.ascendant || null,
+      moon: chart?.moon || null,
+      planets: chart?.planets || null,
+    },
+    missingData: [],
+    birthSummary: "생년월일시 기반 핵심 입력 반영",
+  });
+}
+
 export async function generateVedicPdf(params = {}) {
   const {
     chart = {},
@@ -78,7 +108,7 @@ export async function generateVedicPdf(params = {}) {
       Array.from({ length: VEDIC_TOTAL_CHAPTERS }, (_, i) => i + 1),
       chart,
       {
-        forceLocal,
+        forceLocal: forceLocal === true,
         onProgress: (progress) => {
           if (onProgress) {
             onProgress(progress);
@@ -121,21 +151,40 @@ export async function generateVedicPdf(params = {}) {
     }
 
     // Build PDF data
+    let chapterRows = Array.from({ length: VEDIC_TOTAL_CHAPTERS }, (_, idx) => {
+      const chapterNo = idx + 1;
+      const chapterConfig = getVedicChapterConfig(chapterNo) || {};
+      const categories = buildVedicChapterCategories(chapterNo, chapters[chapterNo] || "", chart);
+      return {
+        chapter: chapterNo,
+        chapterNo,
+        chapterId: `vedic-${String(chapterNo).padStart(2, "0")}`,
+        title: String(chapterConfig?.title || `Chapter ${chapterNo}`).trim(),
+        text: categories.map((cat) => `## ${cat.title}\n\n${cat.finalText}`).join("\n\n"),
+        source: sources[chapterNo] || "unknown",
+        categories,
+      };
+    });
+    chapterRows = repairCategoriesForRender(chapterRows, {
+      serviceKey: "vedic_premium",
+      serviceLabel: "베다점 PDF",
+      minChars: 700,
+      birthSummary: "생년월일시 기반 핵심 입력 반영",
+    });
+    validatePdfChaptersBeforeRender(chapterRows, { minChars: 700 });
+
     const pdfData = {
       reportId,
       mode: "vedic-personal",
       title: "베다 점성술 프리미엄 인생 리포트",
       subtitle: "당신의 영혼 여정 완전 가이드",
-      chapters: Array.from({ length: VEDIC_TOTAL_CHAPTERS }, (_, idx) => ({
-        chapter: idx + 1,
-        text: chapters[idx + 1] || "",
-        source: sources[idx + 1] || "unknown",
-      })),
+      chapters: chapterRows,
+      generationState: "completed",
       warnings,
       sources,
       stats: {
         totalChapters: VEDIC_TOTAL_CHAPTERS,
-        totalChars: fullValidation.totalChars,
+        totalChars: countChars(chapterRows.map((row) => row.text).join("\n\n")),
         minRequired: VEDIC_MIN_TOTAL_CHARS,
         shortChapters: fullValidation.shortChapters,
       },

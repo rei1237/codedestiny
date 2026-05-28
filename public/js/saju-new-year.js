@@ -4,7 +4,8 @@
   var TOTAL_CHAPTERS = 10;
   var COST_COINS = 300;
   var COIN_REASON = '사주 신년운세 PDF 리포트 생성';
-  var COIN_FEATURE_KEY = 'saju_new_year_pdf';
+  var FEATURE_KEY_SAJU_NEW_YEAR_PDF = 'saju_new_year_pdf';
+  var COIN_FEATURE_KEY = FEATURE_KEY_SAJU_NEW_YEAR_PDF;
   var SAJU_NEW_YEAR_REPORT_TYPE = 'sajuNewYear';
   var SAJU_NEW_YEAR_FEATURE_TYPE = 'saju_new_year_pdf';
   var API_TIMEOUT_MS = 140000;
@@ -48,10 +49,12 @@
 
   var state = {
     generating: false,
+    generationState: 'idle',
     reportId: '',
     reportSessionId: '',
     paidReportId: '',
     paymentContext: null,
+    accessGrant: null,
     paymentVerified: false,
     refundInFlight: false,
     payload: null,
@@ -60,6 +63,25 @@
     chapterMeta: {},
     activeChapter: 1
   };
+
+  function setGenerationState(nextState, reason) {
+    var prevState = String(state.generationState || 'idle');
+    var next = String(nextState || '').trim() || prevState;
+    if (prevState === next) return;
+    if (prevState === 'payment_confirmed' && next === 'payment_required') {
+      console.warn('[SajuNewYear] invalid state transition detected', {
+        from: prevState,
+        to: next,
+        reason: String(reason || 'unknown')
+      });
+    }
+    state.generationState = next;
+    logSajuNewYearFlow('STATE_TRANSITION', {
+      from: prevState,
+      to: next,
+      reason: String(reason || '')
+    });
+  }
 
   function safeStructuredText(value) {
     var raw = String(value == null ? '' : value).trim();
@@ -349,25 +371,106 @@
       || ''
     ).trim();
 
+    var accessGrantSource = source.accessGrant && typeof source.accessGrant === 'object'
+      ? source.accessGrant
+      : (nested.accessGrant && typeof nested.accessGrant === 'object'
+        ? nested.accessGrant
+        : (consume.accessGrant && typeof consume.accessGrant === 'object'
+          ? consume.accessGrant
+          : {}));
+
     var premiumAccessToken = persistPremiumAccessToken(source) || '';
     if (!premiumAccessToken) premiumAccessToken = persistPremiumAccessToken(nested) || '';
     if (!premiumAccessToken) premiumAccessToken = persistPremiumAccessToken(consume) || '';
     if (!premiumAccessToken) premiumAccessToken = String(source.premiumAccessToken || nested.premiumAccessToken || consume.premiumAccessToken || '').trim();
 
     return {
-      featureKey: String(source.featureKey || COIN_FEATURE_KEY),
+      featureKey: FEATURE_KEY_SAJU_NEW_YEAR_PDF,
       featureType: SAJU_NEW_YEAR_FEATURE_TYPE,
       reportType: SAJU_NEW_YEAR_REPORT_TYPE,
       cost: Number(source.cost || COST_COINS || 0),
-      purchaseId: purchaseId || undefined,
-      sessionId: sessionId || undefined,
+      purchaseId: String(source.purchaseId || accessGrantSource.purchaseId || purchaseId || '').trim() || undefined,
+      sessionId: String(source.sessionId || source.reportSessionId || accessGrantSource.sessionId || accessGrantSource.reportSessionId || sessionId || '').trim() || undefined,
+      reportId: String(source.reportId || accessGrantSource.reportId || '').trim() || undefined,
       sourceTransactionId: transactionId,
       transactionId: transactionId,
       receiptId: receiptId || undefined,
       orderId: orderId || undefined,
       requestId: requestId || undefined,
       premiumAccessToken: premiumAccessToken || undefined,
-      paidAt: String(source.paidAt || new Date().toISOString())
+      paidAt: String(source.paidAt || accessGrantSource.paidAt || new Date().toISOString()),
+      accessGrant: accessGrantSource && typeof accessGrantSource === 'object' ? accessGrantSource : undefined
+    };
+  }
+
+  function buildSajuNewYearAccessGrant(input) {
+    var ctx = normalizePaymentContext(input || {});
+    var reportId = String(ctx.reportId || state.reportId || state.paidReportId || '').trim();
+    var purchaseId = String(ctx.purchaseId || ctx.sourceTransactionId || '').trim();
+    var sessionId = String(ctx.sessionId || state.reportSessionId || reportId || '').trim();
+    if (!purchaseId || !sessionId || !reportId) return null;
+    return {
+      ok: true,
+      featureKey: FEATURE_KEY_SAJU_NEW_YEAR_PDF,
+      sessionId: sessionId,
+      purchaseId: purchaseId,
+      reportId: reportId,
+      userId: String((input && input.userId) || '').trim() || undefined,
+      paidAt: String(ctx.paidAt || new Date().toISOString()),
+      expiresAt: String((input && input.expiresAt) || '').trim() || undefined
+    };
+  }
+
+  function resolveSajuNewYearAccess(paymentContext) {
+    var merged = normalizePaymentContext(paymentContext || state.paymentContext || {});
+    var grant = null;
+    if (state.accessGrant && typeof state.accessGrant === 'object') grant = state.accessGrant;
+    if (!grant && merged.accessGrant && typeof merged.accessGrant === 'object') grant = merged.accessGrant;
+    if (!grant) grant = buildSajuNewYearAccessGrant(merged);
+
+    var sessionId = String((grant && (grant.sessionId || grant.reportSessionId)) || merged.sessionId || state.reportSessionId || '').trim();
+    var purchaseId = String((grant && grant.purchaseId) || merged.purchaseId || '').trim();
+    var reportId = String((grant && grant.reportId) || merged.reportId || state.reportId || '').trim();
+    var missing = [];
+    if (!sessionId) missing.push('sessionId');
+    if (!purchaseId) missing.push('purchaseId');
+    if (!reportId) missing.push('reportId');
+
+    console.info('[SajuNewYear] payment access check', {
+      featureKey: FEATURE_KEY_SAJU_NEW_YEAR_PDF,
+      hasAccessGrant: Boolean(grant),
+      hasSessionId: Boolean(sessionId),
+      hasPurchaseId: Boolean(purchaseId),
+      hasReportId: Boolean(reportId)
+    });
+
+    if (missing.length) {
+      return {
+        ok: false,
+        reason: 'ACCESS_GRANT_MISSING_FIELDS',
+        missing: missing,
+        grant: grant || null
+      };
+    }
+
+    var normalizedGrant = Object.assign({}, grant || {}, {
+      ok: true,
+      featureKey: FEATURE_KEY_SAJU_NEW_YEAR_PDF,
+      sessionId: sessionId,
+      purchaseId: purchaseId,
+      reportId: reportId,
+      paidAt: String((grant && grant.paidAt) || merged.paidAt || new Date().toISOString())
+    });
+    state.accessGrant = normalizedGrant;
+    state.reportSessionId = sessionId;
+    return {
+      ok: true,
+      grant: normalizedGrant,
+      sessionId: sessionId,
+      purchaseId: purchaseId,
+      reportId: reportId,
+      featureKey: FEATURE_KEY_SAJU_NEW_YEAR_PDF,
+      missing: []
     };
   }
 
@@ -382,6 +485,16 @@
       premiumAccessToken = '';
     }
     if (premiumAccessToken) headers['x-premium-access-token'] = premiumAccessToken;
+    var ctx = authContext && typeof authContext === 'object' ? authContext : {};
+    var grant = ctx.accessGrant && typeof ctx.accessGrant === 'object' ? ctx.accessGrant : (state.accessGrant && typeof state.accessGrant === 'object' ? state.accessGrant : {});
+    var featureKey = String(ctx.featureKey || (grant && grant.featureKey) || FEATURE_KEY_SAJU_NEW_YEAR_PDF).trim();
+    var sessionId = String(ctx.sessionId || ctx.reportSessionId || (grant && (grant.sessionId || grant.reportSessionId)) || state.reportSessionId || '').trim();
+    var purchaseId = String(ctx.purchaseId || (grant && grant.purchaseId) || '').trim();
+    var reportId = String(ctx.reportId || (grant && grant.reportId) || state.reportId || '').trim();
+    if (featureKey) headers['X-Premium-Feature'] = featureKey;
+    if (sessionId) headers['X-Premium-Session'] = sessionId;
+    if (purchaseId) headers['X-Purchase-Id'] = purchaseId;
+    if (reportId) headers['X-Report-Id'] = reportId;
     return headers;
   }
 
@@ -919,10 +1032,12 @@
   function persistState() {
     try {
       var payload = {
+        generationState: String(state.generationState || 'idle'),
         reportId: String(state.reportId || ''),
         reportSessionId: String(state.reportSessionId || ''),
         paidReportId: String(state.paidReportId || ''),
         paymentContext: state.paymentContext || null,
+        accessGrant: state.accessGrant || null,
         payload: state.payload || null,
         chapterTexts: state.chapterTexts || {},
         chapterStructured: state.chapterStructured || {},
@@ -940,10 +1055,12 @@
       if (!raw) return;
       var saved = safeParse(raw, null);
       if (!saved || typeof saved !== 'object') return;
+      state.generationState = String(saved.generationState || 'idle');
       state.reportId = String(saved.reportId || '');
       state.reportSessionId = String(saved.reportSessionId || '');
       state.paidReportId = String(saved.paidReportId || '');
       state.paymentContext = saved.paymentContext && typeof saved.paymentContext === 'object' ? saved.paymentContext : null;
+      state.accessGrant = saved.accessGrant && typeof saved.accessGrant === 'object' ? saved.accessGrant : null;
       state.payload = saved.payload || null;
       state.chapterTexts = saved.chapterTexts && typeof saved.chapterTexts === 'object' ? saved.chapterTexts : {};
       state.chapterStructured = saved.chapterStructured && typeof saved.chapterStructured === 'object' ? saved.chapterStructured : {};
@@ -1064,8 +1181,15 @@
 
   function requestSajuNewYearChapter(chapter) {
     var chapterMeta = CHAPTER_DEFINITIONS[chapter - 1] || {};
-    return premiumAuthJson('/api/saju-new-year/generate-chapter', {
+    var resolvedAccess = resolveSajuNewYearAccess(state.paymentContext || {});
+    var grant = resolvedAccess && resolvedAccess.ok ? resolvedAccess.grant : (state.accessGrant || null);
+    return premiumAuthJson('/api/premium/saju-new-year', {
       reportSessionId: state.reportSessionId,
+      sessionId: String((grant && grant.sessionId) || state.reportSessionId || ''),
+      purchaseId: String((grant && grant.purchaseId) || ''),
+      reportId: String((grant && grant.reportId) || state.reportId || ''),
+      featureKey: FEATURE_KEY_SAJU_NEW_YEAR_PDF,
+      accessGrant: grant || undefined,
       chapterId: chapter,
       chapter: chapter,
       reportType: SAJU_NEW_YEAR_REPORT_TYPE,
@@ -1378,15 +1502,32 @@
 
     var makePrepareBody = function (attemptLabel) {
       var normalizedPayment = normalizePaymentContext(paymentContext || state.paymentContext || {});
+      var resolvedAccess = resolveSajuNewYearAccess(normalizedPayment);
       if (!normalizedPayment.requestId) {
         normalizedPayment.requestId = String(('newyear:' + (state.reportId || Date.now())).slice(0, 120));
       }
+      var grant = resolvedAccess && resolvedAccess.ok ? resolvedAccess.grant : (state.accessGrant || null);
+      var sessionId = String((grant && grant.sessionId) || normalizedPayment.sessionId || state.reportSessionId || '').trim();
+      var purchaseId = String((grant && grant.purchaseId) || normalizedPayment.purchaseId || '').trim();
+      var reportId = String((grant && grant.reportId) || state.reportId || '').trim();
       return {
+        featureKey: FEATURE_KEY_SAJU_NEW_YEAR_PDF,
         featureType: SAJU_NEW_YEAR_FEATURE_TYPE,
         reportType: SAJU_NEW_YEAR_REPORT_TYPE,
+        sessionId: sessionId || undefined,
+        reportSessionId: sessionId || undefined,
+        purchaseId: purchaseId || undefined,
+        reportId: reportId || undefined,
+        accessGrant: grant || undefined,
         requestBody: Object.assign({}, state.payload || {}, {
+          featureKey: FEATURE_KEY_SAJU_NEW_YEAR_PDF,
           reportType: SAJU_NEW_YEAR_REPORT_TYPE,
           featureType: SAJU_NEW_YEAR_FEATURE_TYPE,
+          sessionId: sessionId || undefined,
+          reportSessionId: sessionId || undefined,
+          purchaseId: purchaseId || undefined,
+          reportId: reportId || undefined,
+          accessGrant: grant || undefined,
           payment: normalizedPayment,
           _paymentContext: normalizedPayment,
           transactionId: normalizedPayment.transactionId || undefined,
@@ -1403,7 +1544,7 @@
       reportId: String(state.reportId || ''),
       hasPaymentContext: Boolean(paymentContext),
       hasPremiumAccessToken: Boolean(readPremiumAccessToken()),
-      featureKey: COIN_FEATURE_KEY,
+      featureKey: FEATURE_KEY_SAJU_NEW_YEAR_PDF,
       reportType: SAJU_NEW_YEAR_REPORT_TYPE
     });
 
@@ -1600,17 +1741,32 @@
     activateNewYearCinematicLoading();
     setLoadingProgress(1, CHAPTER_DEFINITIONS[0].title);
 
+    setGenerationState('checking_payment', 'prepare-session');
+    var access = resolveSajuNewYearAccess(paymentContext || state.paymentContext || null);
+    if (!access.ok) {
+      setGenerationState('payment_required', 'access-grant-missing');
+      throw new Error('[SAJU_NEW_YEAR_ACCESS_DENIED] ' + String(access.reason || 'ACCESS_DENIED') + ' / missing=' + String((access.missing || []).join(',')));
+    }
+    state.accessGrant = access.grant;
+    setGenerationState('payment_confirmed', 'access-grant-ready');
+
     var prepared = await ensurePremiumSession(paymentContext);
     if (!prepared || !prepared.ok || !state.reportSessionId) {
       var code = String((prepared && prepared.code) || '').toUpperCase();
       if (code === 'PAYMENT_REQUIRED') {
-        throw new Error('결제가 확인되지 않았습니다. 코인 결제 후 다시 시도해 주세요.');
+        setGenerationState('payment_required', 'prepare-payment-required');
+        var missing = [];
+        if (!access.sessionId) missing.push('sessionId');
+        if (!access.purchaseId) missing.push('purchaseId');
+        if (!access.reportId) missing.push('reportId');
+        throw new Error('[SAJU_NEW_YEAR_ACCESS_DENIED] PAYMENT_REQUIRED / missing=' + String(missing.join(',')));
       }
       if (code === 'UNAUTHORIZED' || code === 'AUTH_REQUIRED') {
         throw new Error('로그인이 필요합니다. 다시 로그인 후 시도해 주세요.');
       }
       throw new Error(String((prepared && prepared.message) || '프리미엄 세션 준비에 실패했습니다.'));
     }
+    setGenerationState('calculating_saju', 'session-prepared');
     state.paymentVerified = true;
 
     var runPipeline = (typeof window.__cdRunPremiumChapterPipeline === 'function')
@@ -1621,6 +1777,7 @@
     }
 
     var fallbackText = String(window.__cdPremiumChapterFallbackText || '일시적인 응답 지연으로 해석을 불러오지 못했습니다. 부분 재생성 버튼을 이용해주세요.');
+    setGenerationState('generating_chapters', 'chapter-pipeline-start');
     await runPipeline({
       totalChapters: TOTAL_CHAPTERS,
       maxAttempts: 3,
@@ -1700,6 +1857,8 @@
 
     var pdfReady = await premiumAuthJson('/api/premium-report/pdf', {
       reportSessionId: state.reportSessionId,
+      featureKey: FEATURE_KEY_SAJU_NEW_YEAR_PDF,
+      accessGrant: state.accessGrant || undefined,
       requestId: 'newyear:pdf:' + Date.now().toString(36)
     });
 
@@ -1710,6 +1869,8 @@
       });
       throw new Error(String((pdfReady && pdfReady.message) || 'PDF 마무리 검증에 실패했습니다.'));
     }
+
+    setGenerationState('rendering_pdf', 'pdf-ready-check');
 
     logSajuNewYear('API_GENERATION_SUCCESS', {
       reportId: String(state.reportId || ''),
@@ -1727,6 +1888,7 @@
       reportId: String(state.reportId || ''),
       reportSessionId: String(state.reportSessionId || '')
     });
+    setGenerationState('completed', 'generation-finished');
   }
 
   async function startNewYearGeneration(paymentContext) {
@@ -1780,6 +1942,7 @@
     state.activeChapter = 1;
 
     state.generating = true;
+    setGenerationState('checking_payment', 'start-generation');
     state.paymentVerified = false;
     setGenerateButtonBusy(true);
     persistState();
@@ -1795,10 +1958,12 @@
       }
       state.paymentContext = null;
       state.paymentVerified = false;
+      setGenerationState('completed', 'render-result');
       renderResultScreen();
       notify('프리미엄 리포트가 완성되었습니다.');
     } catch (err) {
       console.error('[SajuNewYear] generation failed:', err);
+      setGenerationState('failed', String((err && err.message) || 'generation-failed'));
       var errMsg = String((err && err.message) || '');
       var shouldRefund = Boolean(state.paymentVerified) && /LOCAL_REPORT_FAILED|로컬\s*리포트\s*실패/i.test(errMsg);
       if (shouldRefund) {
@@ -1882,9 +2047,17 @@
         hasPremiumAccessToken: Boolean(paymentContext.premiumAccessToken)
       });
 
+      state.accessGrant = buildSajuNewYearAccessGrant(Object.assign({}, paymentContext, {
+        purchaseId: purchaseId,
+        sessionId: sessionId,
+        reportId: String(state.reportId || ''),
+        paidAt: new Date().toISOString()
+      }));
+
       state.paymentContext = paymentContext;
       state.reportSessionId = sessionId || state.reportSessionId;
       state.paidReportId = state.reportId;
+      setGenerationState('payment_confirmed', 'coin-gate-success');
       persistPremiumAccessToken(coinGateData);
       if (paymentContext && paymentContext.premiumAccessToken) {
         persistPremiumAccessToken({ premiumAccessToken: paymentContext.premiumAccessToken });
@@ -1893,6 +2066,7 @@
       startNewYearGeneration(paymentContext);
     } catch (error) {
       logSajuNewYearFlow('PDF_GENERATION_FAILED', { message: String((error && error.message) || '') });
+      setGenerationState('payment_required', 'coin-gate-failed');
       setGenerateButtonBusy(false);
       if (!state.generating) showOnly('nyStartScreen');
       notify(String((error && error.message) || '결제 또는 생성 준비에 실패했습니다.'));

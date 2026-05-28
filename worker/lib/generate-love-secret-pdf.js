@@ -13,6 +13,11 @@ import {
   generateLoveSecretChaptersSequentially,
   getLoveSecretFallbackText,
 } from "./generate-love-secret-chapter.js";
+import {
+  buildCategoryRecordsFromChapter,
+  repairCategoriesForRender,
+  validatePdfChaptersBeforeRender,
+} from "./pdf-category-policy.js";
 
 const LOVE_SECRET_MODES = ["personal", "couple", "support"];
 
@@ -106,6 +111,32 @@ function validateLoveSecretChapterQuality(chapterNum, text, mode) {
   };
 }
 
+function buildLoveSecretChapterCategories(chapterNum, chapterText, mode, chart = {}) {
+  const chapterConfig = getLoveSecretChapterConfig(chapterNum) || {};
+  const chapterTitle = String(chapterConfig?.title || `Chapter ${chapterNum}`).trim();
+  const sectionTitles = Array.isArray(chapterConfig?.sections) && chapterConfig.sections.length
+    ? chapterConfig.sections
+    : ["핵심 진단", "실전 전략"];
+  return buildCategoryRecordsFromChapter({
+    serviceKey: "saju_love_secret",
+    serviceLabel: "사주 연애 비책 PDF",
+    chapterNo: chapterNum,
+    chapterKey: `love-${String(chapterNum).padStart(2, "0")}`,
+    chapterTitle,
+    chapterPurpose: "연애/관계 카테고리 목적 기반 상담문 작성",
+    chapterText,
+    categoryTitles: sectionTitles,
+    minChars: 700,
+    availableData: {
+      mode,
+      dayMaster: chart?.dayMaster || chart?.user?.dayMaster || null,
+      elements: chart?.elements || chart?.fiveElements || null,
+    },
+    missingData: [],
+    birthSummary: "생년월일시 및 관계 모드 입력 반영",
+  });
+}
+
 export async function generateLoveSecretPdf(params = {}) {
   const reportId = String(params.reportId || `love_secret_${Date.now()}`);
   const mode = normalizeMode(params.mode);
@@ -167,6 +198,29 @@ export async function generateLoveSecretPdf(params = {}) {
       });
     }
 
+    let chapterRows = Array.from({ length: LOVE_SECRET_TOTAL_CHAPTERS }, (_, idx) => {
+      const chapterNo = idx + 1;
+      const chapterConfig = getLoveSecretChapterConfig(chapterNo) || {};
+      const categories = buildLoveSecretChapterCategories(chapterNo, chapters[chapterNo] || "", mode, chart);
+      return {
+        chapter: chapterNo,
+        chapterNo,
+        chapterId: `love-${String(chapterNo).padStart(2, "0")}`,
+        title: String(chapterConfig?.title || `Chapter ${chapterNo}`).trim(),
+        text: categories.map((cat) => `## ${cat.title}\n\n${cat.finalText}`).join("\n\n"),
+        source: sources[chapterNo] || "unknown",
+        categories,
+      };
+    });
+
+    chapterRows = repairCategoriesForRender(chapterRows, {
+      serviceKey: "saju_love_secret",
+      serviceLabel: "사주 연애 비책 PDF",
+      minChars: 700,
+      birthSummary: "생년월일시 기반 핵심 입력 반영",
+    });
+    validatePdfChaptersBeforeRender(chapterRows, { minChars: 700 });
+
     const pdfData = {
       reportId,
       mode,
@@ -180,14 +234,11 @@ export async function generateLoveSecretPdf(params = {}) {
             : "연애 비책 개인 리포트",
       subtitle: "13개 챕터 관계 심층 분석",
       generatedAt: new Date().toISOString(),
-      chapters: Array.from({ length: LOVE_SECRET_TOTAL_CHAPTERS }, (_, idx) => ({
-        chapter: idx + 1,
-        text: chapters[idx + 1] || "",
-        source: sources[idx + 1] || "unknown",
-      })),
+      chapters: chapterRows,
+      generationState: "completed",
       stats: {
         totalChapters: LOVE_SECRET_TOTAL_CHAPTERS,
-        totalChars: countChars(Object.values(chapters).join("\n\n")),
+        totalChars: countChars(chapterRows.map((row) => row.text).join("\n\n")),
         minRequired: LOVE_SECRET_MIN_TOTAL_CHARS,
         shortChapters: fullValidation.shortChapters || [],
       },

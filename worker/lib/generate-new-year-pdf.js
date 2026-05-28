@@ -13,6 +13,11 @@ import {
   generateNewYearChaptersSequentially,
   getNewYearFallbackText,
 } from "./generate-new-year-chapter.js";
+import {
+  buildCategoryRecordsFromChapter,
+  repairCategoriesForRender,
+  validatePdfChaptersBeforeRender,
+} from "./pdf-category-policy.js";
 
 const NEW_YEAR_FORBIDDEN_PHRASES = [
   "reportId",
@@ -92,6 +97,31 @@ function validateNewYearChapterQuality(chapterNum, text) {
   };
 }
 
+function buildNewYearChapterCategories(chapterNum, chapterText, chart = {}) {
+  const chapterConfig = getSajuNewYearChapterConfig(chapterNum) || {};
+  const sectionTitles = Array.isArray(chapterConfig?.sections) && chapterConfig.sections.length
+    ? chapterConfig.sections
+    : ["핵심 진단", "실전 전략"];
+  return buildCategoryRecordsFromChapter({
+    serviceKey: "saju_new_year_pdf",
+    serviceLabel: "사주 신년운세 PDF",
+    chapterNo: chapterNum,
+    chapterKey: `newyear-${String(chapterNum).padStart(2, "0")}`,
+    chapterTitle: String(chapterConfig?.title || `${chapterNum}월`).trim(),
+    chapterPurpose: "연간/월간 운세 카테고리 목적 상담문 작성",
+    chapterText,
+    categoryTitles: sectionTitles,
+    minChars: 700,
+    availableData: {
+      month: chapterConfig?.month,
+      dayMaster: chart?.dayMaster || null,
+      yearlyFlow: chart?.yearlyFlow || chart?.annualLuck || null,
+    },
+    missingData: [],
+    birthSummary: "생년월일시 입력 및 연도 기반 계산값 반영",
+  });
+}
+
 export async function generateNewYearPdf(params = {}) {
   const reportId = String(params.reportId || `newyear_${Date.now()}`);
   const chart = params.chart || {};
@@ -149,6 +179,29 @@ export async function generateNewYearPdf(params = {}) {
       });
     }
 
+    let chapterRows = Array.from({ length: SAJU_NEWYEAR_TOTAL_CHAPTERS }, (_, idx) => {
+      const chapterNo = idx + 1;
+      const chapterConfig = getSajuNewYearChapterConfig(chapterNo) || {};
+      const categories = buildNewYearChapterCategories(chapterNo, chapters[chapterNo] || "", chart);
+      return {
+        chapter: chapterNo,
+        month: `${chapterNo}월`,
+        chapterNo,
+        chapterId: `newyear-${String(chapterNo).padStart(2, "0")}`,
+        title: String(chapterConfig?.title || `${chapterNo}월 운세`).trim(),
+        text: categories.map((cat) => `## ${cat.title}\n\n${cat.finalText}`).join("\n\n"),
+        source: sources[chapterNo] || "unknown",
+        categories,
+      };
+    });
+    chapterRows = repairCategoriesForRender(chapterRows, {
+      serviceKey: "saju_new_year_pdf",
+      serviceLabel: "사주 신년운세 PDF",
+      minChars: 700,
+      birthSummary: "생년월일시 기반 핵심 입력 반영",
+    });
+    validatePdfChaptersBeforeRender(chapterRows, { minChars: 700 });
+
     const pdfData = {
       reportId,
       mode: "saju-new-year",
@@ -156,15 +209,11 @@ export async function generateNewYearPdf(params = {}) {
       title: "신년운세 프리미엄 월별 리포트",
       subtitle: "12개월 실전 전략 가이드",
       generatedAt: new Date().toISOString(),
-      chapters: Array.from({ length: SAJU_NEWYEAR_TOTAL_CHAPTERS }, (_, idx) => ({
-        chapter: idx + 1,
-        month: `${idx + 1}월`,
-        text: chapters[idx + 1] || "",
-        source: sources[idx + 1] || "unknown",
-      })),
+      chapters: chapterRows,
+      generationState: "completed",
       stats: {
         totalChapters: SAJU_NEWYEAR_TOTAL_CHAPTERS,
-        totalChars: countChars(Object.values(chapters).join("\n\n")),
+        totalChars: countChars(chapterRows.map((row) => row.text).join("\n\n")),
         minRequired: SAJU_NEWYEAR_MIN_TOTAL_CHARS,
         shortChapters: fullValidation.shortChapters || [],
       },

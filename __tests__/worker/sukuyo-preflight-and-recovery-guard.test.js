@@ -12,22 +12,24 @@ import {
 import { __astroTestUtils } from "../../worker/routes/premium.js";
 
 describe("Sukuyo preflight and recovery guard", () => {
-  test("getSukyoPdfChapters returns personal 10 chapters and compatibility 12 chapters", () => {
+  const runValidation = validateSukyoPdfInput;
+
+  test("getSukyoPdfChapters returns unified 5 chapters for personal and compatibility", () => {
     const personal = getSukyoPdfChapters("personal");
     const solo = getSukyoPdfChapters("solo");
     const compatibility = getSukyoPdfChapters("compatibility");
 
-    expect(personal).toHaveLength(10);
-    expect(solo).toHaveLength(10);
-    expect(compatibility).toHaveLength(12);
-    expect(personal[0].key).toBe("chapter-01-natal-overview");
-    expect(compatibility[11].key).toBe("chapter-12-final-roadmap");
+    expect(personal).toHaveLength(5);
+    expect(solo).toHaveLength(5);
+    expect(compatibility).toHaveLength(5);
+    expect(personal[0].key).toBe("chapter-01-overview");
+    expect(compatibility[4].key).toBe("chapter-05-recovery");
     expect(personal[0].sections).toHaveLength(5);
     expect(compatibility[0].sections).toHaveLength(5);
   });
 
-  test("validateSukyoPdfInput marks missing birth date as hard requirement", () => {
-    const result = validateSukyoPdfInput({
+  test("validateSukyoPdfInput allows generation when sukuyo result exists even if birth date is missing", () => {
+    const result = runValidation({
       reportMode: "personal",
       sukuyoBookContext: {
         user: {
@@ -42,12 +44,35 @@ describe("Sukuyo preflight and recovery guard", () => {
       },
     });
 
+    expect(result.canGenerate).toBe(true);
+  });
+
+  test("validateSukyoPdfInput returns hard missing when both birth and sukuyo result are absent", () => {
+    const result = runValidation({
+      reportMode: "personal",
+      sukuyoBookContext: {
+        user: {
+          profile: {
+            birthDate: "",
+          },
+          sukuyo: {
+            mansion: "",
+            mansionNumber: null,
+          },
+        },
+      },
+    });
+
     expect(result.canGenerate).toBe(false);
-    expect(result.hardMissingFields).toContain("user.profile.birthDate");
+    const missing = [
+      ...(Array.isArray(result.hardMissingFields) ? result.hardMissingFields : []),
+      ...(Array.isArray(result?.payloadValidation?.missingFields) ? result.payloadValidation.missingFields : []),
+    ];
+    expect(missing).toContain("user.birthDate");
   });
 
   test("validateSukyoPdfInput requires compatibility relationType in compatibility mode", () => {
-    const result = validateSukyoPdfInput({
+    const result = runValidation({
       reportMode: "compatibility",
       sukuyoBookContext: {
         user: {
@@ -69,7 +94,7 @@ describe("Sukuyo preflight and recovery guard", () => {
   });
 
   test("validateSukyoPdfInput personal mode allows missing birthTime", () => {
-    const result = validateSukyoPdfInput({
+    const result = runValidation({
       reportMode: "personal",
       sukuyoBookContext: {
         user: {
@@ -84,7 +109,7 @@ describe("Sukuyo preflight and recovery guard", () => {
   });
 
   test("validateSukyoPdfInput compatibility mode allows missing score fields", () => {
-    const result = validateSukyoPdfInput({
+    const result = runValidation({
       reportMode: "compatibility",
       sukuyoBookContext: {
         user: {
@@ -105,9 +130,8 @@ describe("Sukuyo preflight and recovery guard", () => {
     expect(result.canGenerate).toBe(true);
   });
 
-  test("normalizeShukuyoPdfPayload accepts minimal user/partner/result shape", () => {
+  test("normalizeShukuyoPdfPayload accepts canonical sukuyoResult shape", () => {
     const normalized = normalizeShukuyoPdfPayload({
-      service: "shukuyo-premium",
       mode: "compatibility",
       user: {
         name: "나",
@@ -120,40 +144,31 @@ describe("Sukuyo preflight and recovery guard", () => {
         birthDate: "1990-03-12",
         calendarType: "solar",
       },
-      result: {
-        userNatal: {
-          宿Name: "각",
-          宿NameKo: "각",
-        },
-        partnerNatal: {
-          宿Name: "항",
-          宿NameKo: "항",
-        },
-        compatibility: {
-          relationType: "영친",
-          attractionScore: 88,
-          summaryKeywords: ["끌림"],
-        },
-      },
-      meta: {
-        generatedAt: "2026-05-28T00:00:00.000Z",
-        source: "local-shukuyo-engine",
+      sukuyoResult: {
+        user宿: "각",
+        user宿Index: 1,
+        partner宿: "항",
+        partner宿Index: 2,
+        relationshipType: "영친",
+        distance: "near",
+        summary: "요약",
+        strengths: ["강점"],
+        risks: ["리스크"],
+        advice: ["조언"],
       },
     });
 
     expect(normalized.mode).toBe("compatibility");
     expect(normalized.user.birthDate).toBe("1992-01-10");
-    expect(normalized.result.userNatal.宿NameKo).toBe("각");
-    expect(normalized.result.userNatal.宿名Ko).toBe("각");
-    expect(normalized.result.partnerNatal.宿NameKo).toBe("항");
-    expect(normalized.result.partnerNatal.宿名Ko).toBe("항");
-    expect(normalized.result.compatibility.relationType).toBe("영친");
-    expect(normalized.result.compatibility.attractionScore).toBe(88);
+    expect(normalized.sukuyoResult.user宿).toBe("각");
+    expect(normalized.sukuyoResult.partner宿).toBe("항");
+    expect(normalized.sukuyoResult.relationshipType).toBe("영친");
+    expect(normalized.sukuyoResult.distance).toBe("near");
   });
 
   test("sanitizeSukyoChapterJson does not inject narrative fallback text", () => {
     const chapter = {
-      key: "chapter-01-natal-overview",
+      key: "chapter-01-overview",
       title: "Chapter I",
       sections: ["Section A", "Section B"],
     };
@@ -177,7 +192,7 @@ describe("Sukuyo preflight and recovery guard", () => {
   test("ensurePdfNo422 keeps 422 response untouched", async () => {
     const { ensurePdfNo422 } = __astroTestUtils;
     const original = new Response(
-      JSON.stringify({ ok: false, code: "SUKYO_REPORT_PAYLOAD_INCOMPLETE", message: "incomplete" }),
+      JSON.stringify({ ok: false, code: "SUKUYO_PDF_MISSING_FIELDS", message: "incomplete" }),
       { status: 422, headers: { "content-type": "application/json" } },
     );
 

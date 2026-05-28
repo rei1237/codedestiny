@@ -176,6 +176,7 @@ describe("Premium access-control rules", () => {
       requestId: "req_root",
       receiptId: "rcpt_root",
       orderId: "ord_root",
+      purchaseId: "tx_root",
     });
   });
 });

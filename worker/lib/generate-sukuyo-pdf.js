@@ -11,6 +11,12 @@ import {
 } from "./sukuyo-chapter-config.js";
 import { generateSukuyoChaptersSequentially } from "./generate-sukuyo-chapter.js";
 import { getSukuyoFallbackText } from "./sukuyo-fallback.js";
+import { getSukuyoChapterConfig } from "./sukuyo-chapter-config.js";
+import {
+  buildCategoryRecordsFromChapter,
+  repairCategoriesForRender,
+  validatePdfChaptersBeforeRender,
+} from "./pdf-category-policy.js";
 
 const SUKUYO_FORBIDDEN_PHRASES = [
   "reportId",
@@ -74,6 +80,31 @@ function validateSukuyoChapterQuality(chapterNum, text, mode) {
   };
 }
 
+function buildSukuyoChapterCategories(chapterNum, chapterText, mode, chart = {}) {
+  const chapterConfig = getSukuyoChapterConfig(chapterNum) || {};
+  const sectionTitles = Array.isArray(chapterConfig?.sections) && chapterConfig.sections.length
+    ? chapterConfig.sections
+    : ["핵심 진단", "실전 전략"];
+  return buildCategoryRecordsFromChapter({
+    serviceKey: "sookyo_premium",
+    serviceLabel: "숙요점 PDF",
+    chapterNo: chapterNum,
+    chapterKey: `sukuyo-${String(chapterNum).padStart(2, "0")}`,
+    chapterTitle: String(chapterConfig?.title || `Chapter ${chapterNum}`).trim(),
+    chapterPurpose: mode === "compat" ? "관계 궁합 카테고리 상담문 작성" : "개인 숙요 카테고리 상담문 작성",
+    chapterText,
+    categoryTitles: sectionTitles,
+    minChars: 700,
+    availableData: {
+      mode,
+      natal: chart?.natal || chart?.sukuyo || null,
+      relationType: chart?.relationType || null,
+    },
+    missingData: [],
+    birthSummary: mode === "compat" ? "본인/상대 생년월일시 입력 반영" : "생년월일시 입력 반영",
+  });
+}
+
 export async function generateSukuyoPdf(params = {}) {
   const reportId = String(params.reportId || `sukuyo_${Date.now()}`);
   const mode = normalizeMode(params.mode);
@@ -134,6 +165,28 @@ export async function generateSukuyoPdf(params = {}) {
 
     const minRequired = mode === "compat" ? SUKUYO_MIN_TOTAL_CHARS_COMPAT : SUKUYO_MIN_TOTAL_CHARS_PERSONAL;
 
+    let chapterRows = Array.from({ length: SUKUYO_TOTAL_CHAPTERS }, (_, idx) => {
+      const chapterNo = idx + 1;
+      const chapterConfig = getSukuyoChapterConfig(chapterNo) || {};
+      const categories = buildSukuyoChapterCategories(chapterNo, chapters[chapterNo] || "", mode, chart);
+      return {
+        chapter: chapterNo,
+        chapterNo,
+        chapterId: `sukuyo-${String(chapterNo).padStart(2, "0")}`,
+        title: String(chapterConfig?.title || `Chapter ${chapterNo}`).trim(),
+        text: categories.map((cat) => `## ${cat.title}\n\n${cat.finalText}`).join("\n\n"),
+        source: sources[chapterNo] || "unknown",
+        categories,
+      };
+    });
+    chapterRows = repairCategoriesForRender(chapterRows, {
+      serviceKey: "sookyo_premium",
+      serviceLabel: "숙요점 PDF",
+      minChars: 700,
+      birthSummary: mode === "compat" ? "본인/상대 생년월일시 기반 입력 반영" : "생년월일시 기반 핵심 입력 반영",
+    });
+    validatePdfChaptersBeforeRender(chapterRows, { minChars: 700 });
+
     const pdfData = {
       reportId,
       mode,
@@ -141,14 +194,11 @@ export async function generateSukuyoPdf(params = {}) {
       title: mode === "compat" ? "숙요 궁합 프리미엄 리포트" : "숙요 프리미엄 리포트",
       subtitle: mode === "compat" ? "두 사람의 숙요 거리와 관계 전략" : "달의 리듬과 영혼 패턴 분석",
       generatedAt: new Date().toISOString(),
-      chapters: Array.from({ length: SUKUYO_TOTAL_CHAPTERS }, (_, idx) => ({
-        chapter: idx + 1,
-        text: chapters[idx + 1] || "",
-        source: sources[idx + 1] || "unknown",
-      })),
+      chapters: chapterRows,
+      generationState: "completed",
       stats: {
         totalChapters: SUKUYO_TOTAL_CHAPTERS,
-        totalChars: countChars(Object.values(chapters).join("\n\n")),
+        totalChars: countChars(chapterRows.map((row) => row.text).join("\n\n")),
         minRequired,
         shortChapters: fullValidation.shortChapters || [],
       },

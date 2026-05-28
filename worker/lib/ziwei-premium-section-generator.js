@@ -89,6 +89,11 @@ function _diagPayload(minimalPayload) {
 const ZIWEI_SECTION_FORBIDDEN_WORDS = [
   "자동 복구 생성",
   "fallback",
+  "현재 확보된 자미두수 핵심 데이터를 기준으로",
+  "성향/패턴/실행 전략을 정리했습니다.",
+  "핵심 데이터를 바탕으로 분석합니다.",
+  "일반적인 흐름으로 해석하면",
+  "기본 성향상",
   "skeleton",
   "Internal server error",
   "Ch.1 생성 실패",
@@ -110,6 +115,15 @@ const ZIWEI_SECTION_FORBIDDEN_WORDS = [
   "internal key",
   "raw json",
 ];
+
+const ZIWEI_SECTION_MIN_CHARS = 1200;
+
+function resolveZiweiSectionMinChars(input = {}) {
+  const sectionMin = Number(input?.section?.minChars || 0);
+  const writingMin = Number(input?.writingRules?.minLength || 0);
+  const numericCandidates = [sectionMin, writingMin].filter((n) => Number.isFinite(n) && n > 0);
+  return Math.max(ZIWEI_SECTION_MIN_CHARS, ...numericCandidates, ZIWEI_SECTION_MIN_CHARS);
+}
 
 /**
  * 동일 문장 반복 감지 (최소 5단어 이상)
@@ -299,9 +313,9 @@ export function validateLLMSectionContent(content, input) {
 
   // 2. 최소 글자 수 기준
   // section.minChars는 "권장 목표 길이"로 취급하고, 너무 짧은 경우만 하드 실패 처리한다.
-  const minChars = Number(input.section?.minChars || 1000);
-  const hardMinChars = Math.max(220, Math.floor(minChars * 0.35));
-  const softMinChars = Math.max(hardMinChars, Math.floor(minChars * 0.75));
+  const minChars = resolveZiweiSectionMinChars(input);
+  const hardMinChars = minChars;
+  const softMinChars = minChars;
   if (text.length < hardMinChars) {
     errors.push(`BELOW_HARD_MIN_CHARS(${text.length}/${hardMinChars})`);
   } else if (text.length < softMinChars) {
@@ -670,11 +684,16 @@ function hasHighRepetitionRatio(body) {
 
 export function isLowQualityZiweiSection(body, input = {}) {
   const text = String(body || "").trim();
-  const minLength = Number(input?.writingRules?.minLength || 900);
+  const minLength = resolveZiweiSectionMinChars(input);
   if (!text || text.length < minLength) return true;
 
   const banned = [
     "현재 확보된 명반 핵심값",
+    "현재 확보된 자미두수 핵심 데이터를 기준으로",
+    "성향/패턴/실행 전략을 정리했습니다.",
+    "핵심 데이터를 바탕으로 분석합니다.",
+    "일반적인 흐름으로 해석하면",
+    "기본 성향상",
     "이 항목은 현재 확보된 명반 핵심값을 기준으로",
     "이 항목은 현재 확보된",
     "실행 포인트: 강점 구간은 작은 실행을 빠르게 누적하고",
@@ -816,14 +835,93 @@ function buildZiweiPracticalAdviceParagraph(input, payload) {
   return `${advicePrefix} ${tone.advice} ${summary.palaceSummary ? `이번 카테고리에서는 ${summary.palaceSummary}의 정보가 직접적인 실행 기준이 된다.` : ""} ${firstAdvice ? `가장 먼저 점검할 것은 ${firstAdvice}가 일상에서 어떤 선택 습관으로 바뀌는지이다.` : ""} 따라서 해석 끝에는 반드시 오늘 바로 바꿀 수 있는 한 가지 행동과, 한 주 안에 검증할 한 가지 기준을 같이 제시해야 한다.`;
 }
 
+function buildZiweiPsychologyAndRelationshipParagraph(input, payload) {
+  const summary = summarizeZiweiResolvedData(input, payload);
+  const categoryId = String(input?.categoryId || input?.section?.sectionId || "").trim();
+  const firstPalace = summary.resolved.palaces[0] || {};
+  const secondPalace = summary.resolved.palaces[1] || {};
+  const firstPalaceName = String(firstPalace?.name || firstPalace?.key || summary.palaceSummary || "해당 궁").trim();
+  const firstMain = formatZiweiStarCollection(firstPalace?.mainStars || []);
+  const firstAssistant = formatZiweiStarCollection(firstPalace?.assistantStars || []);
+  const secondPalaceName = String(secondPalace?.name || secondPalace?.key || "").trim();
+  const secondMain = formatZiweiStarCollection(secondPalace?.mainStars || []);
+  const relationSentence = categoryId.startsWith("c05")
+    ? "부부궁 축에서는 감정의 밀도와 관계 운영 방식이 바로 삶의 성과로 연결되므로, 마음의 반응 속도를 관계 규칙으로 바꾸는 연습이 핵심이다."
+    : "인간관계는 단순 호감 문제가 아니라 궁의 별 조합이 만든 반응 습관의 결과이므로, 같은 자극에서 반복되는 감정 루프를 먼저 끊어야 한다.";
+  return `${firstPalaceName}${firstMain ? `의 주성 ${firstMain}` : "의 주성 배치"} ${firstAssistant ? `및 보조성 ${firstAssistant}` : "구조"}는 심리의 중심축을 만든다. 이 축이 강하게 작동하면 스스로 기준을 세우고 밀어붙이는 힘이 커지지만, 감정 충격을 받은 뒤에는 방어적으로 닫히는 양상도 같이 나타난다. ${secondPalaceName ? `${secondPalaceName}${secondMain ? `의 ${secondMain}` : "의 별 배치"}는` : "보조 궁의 별 배치는"} 이 심리 구조가 타인과의 거리 조절, 신뢰 형성, 갈등 해소에서 어떤 형태로 표출되는지를 보여준다. ${relationSentence} 따라서 관계 문제를 운의 탓으로 보지 말고, 명반에서 이미 반복되는 반응 패턴을 행동 규칙으로 전환해야 실제 변화가 난다.`;
+}
+
+function buildZiweiWorkMoneyLoveParagraph(input, payload) {
+  const summary = summarizeZiweiResolvedData(input, payload);
+  const palaceByName = (keyword) => summary.resolved.palaces.find((palace) => String(palace?.name || "").includes(keyword));
+  const careerPalace = palaceByName("관록") || summary.resolved.palaces[0] || {};
+  const wealthPalace = palaceByName("재백") || summary.resolved.palaces[1] || summary.resolved.palaces[0] || {};
+  const lovePalace = palaceByName("부부") || summary.resolved.palaces[2] || summary.resolved.palaces[0] || {};
+  const careerText = `${String(careerPalace?.name || careerPalace?.key || "직업 축").trim()}${formatZiweiStarCollection(careerPalace?.mainStars || []) ? `의 주성 ${formatZiweiStarCollection(careerPalace?.mainStars || [])}` : "의 별 조합"}`;
+  const wealthText = `${String(wealthPalace?.name || wealthPalace?.key || "재정 축").trim()}${formatZiweiStarCollection(wealthPalace?.mainStars || []) ? `의 주성 ${formatZiweiStarCollection(wealthPalace?.mainStars || [])}` : "의 별 조합"}`;
+  const loveText = `${String(lovePalace?.name || lovePalace?.key || "관계 축").trim()}${formatZiweiStarCollection(lovePalace?.mainStars || []) ? `의 주성 ${formatZiweiStarCollection(lovePalace?.mainStars || [])}` : "의 별 조합"}`;
+  return `직업에서는 ${careerText}이 일 처리 방식, 의사결정 구조, 책임을 감당하는 방식에 직접적으로 반영된다. 돈의 흐름은 ${wealthText}에서 보이는 확장/보수 성향에 따라 수입원 운영과 지출 통제가 갈리며, 단기 성과보다 구조적 누수 차단이 먼저다. 연애와 친밀 관계는 ${loveText}가 보여주는 기대치와 감정 표현 방식의 영향을 크게 받기 때문에, 상대를 바꾸기보다 먼저 자신의 반응 규칙을 명확히 해야 안정이 생긴다. 결국 직업-재정-연애는 분리된 문제가 아니라 같은 성향 축의 다른 표현이므로, 한 영역의 패턴을 교정하면 나머지 영역도 같이 개선된다.`;
+}
+
+function extractZiweiDaewoonSummary(payload = {}) {
+  const chart = payload?.chart && typeof payload.chart === "object" ? payload.chart : {};
+  const candidates = [chart?.majorLuck, chart?.daewoon, chart?.decadalLuck, chart?.tenYearLuck, chart?.fortunePeriods];
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate) && candidate.length > 0) {
+      const rows = candidate
+        .slice(0, 3)
+        .map((row) => {
+          if (typeof row === "string") return row.trim();
+          const age = String(row?.ageRange || row?.range || row?.age || "").trim();
+          const palace = String(row?.palaceName || row?.palace || "").trim();
+          const star = String(row?.starName || row?.star || "").trim();
+          return [age, palace, star].filter(Boolean).join("/");
+        })
+        .filter(Boolean);
+      if (rows.length) return rows.join(", ");
+    }
+  }
+  return "";
+}
+
+function buildZiweiTimingAndExecutionParagraph(input, payload) {
+  const summary = summarizeZiweiResolvedData(input, payload);
+  const lifePalace = String(payload?.chart?.lifePalace || "명궁").trim() || "명궁";
+  const bodyPalace = String(payload?.chart?.bodyPalace || "").trim();
+  const daewoonSummary = extractZiweiDaewoonSummary(payload);
+  const transformationText = String(summary.transformationSummary || "").trim();
+  return `${lifePalace}${bodyPalace ? `과 신궁(${bodyPalace})` : ""}의 결합은 생각과 실행 간격을 결정하는 핵심 축이다. ${transformationText ? `사화 흐름(${transformationText})은 사건이 어떤 순서로 현실화되는지를 보여주므로, 중요한 선택은 사화가 집중되는 궁의 리스크를 먼저 점검한 뒤 진행해야 한다.` : "사화가 관여한 별은 사건 전개 속도를 빠르게 만들 수 있으므로, 감정 반응보다 실행 순서를 먼저 설계해야 한다."} ${daewoonSummary ? `대운 흐름에서는 ${daewoonSummary} 구간이 전환점으로 읽히며, 이 시기에는 확장보다 기반 정비가 우선인지 점검이 필요하다.` : "대운 데이터가 명시된 경우에는 전환 구간을 기준으로 목표와 리스크 관리 강도를 다르게 배치해야 성과 변동을 줄일 수 있다."} 실전에서는 오늘 실행할 항목(작은 행동), 주간 점검 항목(반복 패턴), 월간 조정 항목(직업·돈·관계)을 분리해 관리하면 명반의 강점을 손실 없이 현실 성과로 연결할 수 있다.`;
+}
+
+function ensureZiweiFallbackLength(text, input = {}, payload = {}) {
+  let body = String(text || "").trim();
+  const target = resolveZiweiSectionMinChars(input);
+  if (body.length >= target) return body;
+  const supplements = [
+    buildZiweiPsychologyAndRelationshipParagraph(input, payload),
+    buildZiweiWorkMoneyLoveParagraph(input, payload),
+    buildZiweiTimingAndExecutionParagraph(input, payload),
+  ];
+  for (const paragraph of supplements) {
+    if (!paragraph) continue;
+    body = `${body}\n\n${paragraph}`.trim();
+    if (body.length >= target) break;
+  }
+  return body;
+}
+
 export function buildZiweiExpertLocalFallbackSection(input, payload) {
-  return [
+  const text = [
     buildZiweiOpeningParagraph(input, payload),
     buildZiweiStarEvidenceParagraph(input, payload),
     buildZiweiPatternParagraph(input, payload),
+    buildZiweiPsychologyAndRelationshipParagraph(input, payload),
+    buildZiweiWorkMoneyLoveParagraph(input, payload),
     buildZiweiRiskParagraph(input, payload),
     buildZiweiPracticalAdviceParagraph(input, payload),
+    buildZiweiTimingAndExecutionParagraph(input, payload),
   ].join("\n\n");
+  return ensureZiweiFallbackLength(text, input, payload);
 }
 
 export function normalizeZiweiSectionResult(input, raw, payload) {
@@ -1095,8 +1193,11 @@ function buildZiweiSectionLLMPrompt(input) {
   const avoid = Array.isArray(writingRules.avoid) ? writingRules.avoid : [];
   const mustInclude = Array.isArray(writingRules.mustInclude) ? writingRules.mustInclude : [];
   const evidence = toZiweiPromptEvidence(input);
+  const minLength = resolveZiweiSectionMinChars(input);
   const systemInstruction = [
     "당신은 30년 경력의 자미두수 고수입니다.",
+    "당신은 프리미엄 PDF 생성 엔진으로서 일반론/placeholder/fallback 반복 문장을 절대 출력하지 않습니다.",
+    "LLM은 계산을 하지 않습니다. 로컬 계산 엔진이 산출한 JSON만 해석합니다.",
     "사용자가 읽을 프리미엄 자미두수 PDF의 한 카테고리 본문을 작성합니다.",
     "반드시 제공된 coreAnalysisJson과 resolvedCategoryData만 근거로 해석합니다.",
     "명반에 없는 궁, 별, 사화, 밝기를 임의로 만들지 않습니다.",
@@ -1108,6 +1209,9 @@ function buildZiweiSectionLLMPrompt(input) {
     "막연한 위로나 일반론을 쓰지 말고, 반드시 제공된 궁/별/사화 데이터를 구체적으로 언급한다.",
     "각 카테고리 본문은 해당 궁의 핵심 별 조합을 먼저 짚고, 실제 삶의 선택/관계/일/재정/건강에 바로 적용 가능한 실행 조언으로 마무리한다.",
     "근거 없는 점괘식 표현, 추상적 수사, 형식적 도입부를 금지한다.",
+    "각 카테고리는 반드시 실제 주성, 실제 보조성, 실제 궁 의미 연결, 행동 패턴, 심리 구조, 현실 사건 패턴, 인간관계 반복 패턴, 돈/직업/연애 연결, 실전 조언을 포함한다.",
+    "카테고리별 문장 구조와 관점은 서로 달라야 하며 같은 문장 패턴을 반복하지 않는다.",
+    "출력 텍스트는 반드시 최소 1200자 이상이어야 한다.",
     `절대 쓰면 안 되는 문구: ${avoid.join(" | ")}`,
     `반드시 포함할 항목: ${mustInclude.join(" | ")}`,
     "출력은 순수 본문 텍스트만 반환하라.",
@@ -1121,7 +1225,7 @@ function buildZiweiSectionLLMPrompt(input) {
     `챕터 ID: ${input.chapterId || ""}`,
     `카테고리 ID: ${input.categoryId || ""}`,
     `데이터 키: ${input.dataKey || ""}`,
-    `최소 길이: ${Number(writingRules.minLength || 900)}자 이상`,
+    `최소 길이: ${minLength}자 이상`,
     "",
     `[핵심 분석 JSON]`,
     JSON.stringify(input.coreAnalysisJson || {}, null, 2),
@@ -1142,6 +1246,7 @@ function buildZiweiSectionLLMPrompt(input) {
     JSON.stringify(evidence, null, 2),
     "",
     `[작성 규칙]`,
+    `- 절대 금지 문구: "현재 확보된 자미두수 핵심 데이터를 기준으로...", "성향/패턴/실행 전략을 정리했습니다.", "핵심 데이터를 바탕으로 분석합니다.", "자동 복구 생성", "일반적인 흐름으로 해석하면", "기본 성향상"`,
     `- 1. 해당 궁이 자미두수에서 의미하는 핵심 영역`,
     `- 2. 해당 궁의 주성이 만드는 성향`,
     `- 3. 보조성/잡성/살성이 만드는 보완 또는 위험 신호`,
@@ -1396,9 +1501,14 @@ export async function generateZiweiChapterFromSections(env, input) {
       writingRules: {
         persona: "30년 경력의 자미두수 고수",
         tone: "고급 자미두수 프리미엄 상담문",
-        minLength: Number(section?.minChars || canonicalCategory?.minChars || 900),
+        minLength: resolveZiweiSectionMinChars({ section, writingRules: { minLength: Number(canonicalCategory?.minChars || 0) } }),
         avoid: [
           "현재 확보된 명반 핵심값",
+          "현재 확보된 자미두수 핵심 데이터를 기준으로",
+          "성향/패턴/실행 전략을 정리했습니다.",
+          "핵심 데이터를 바탕으로 분석합니다.",
+          "일반적인 흐름으로 해석하면",
+          "기본 성향상",
           "이 항목은 현재 확보된 명반 핵심값을 기준으로",
           "실행 포인트: 강점 구간은 작은 실행을 빠르게 누적하고",
           "변동 구간은 기준 루틴을 먼저 고정하세요",
@@ -1416,6 +1526,10 @@ export async function generateZiweiChapterFromSections(env, input) {
           "해당 궁 이름",
           "해당 궁의 주성",
           "보조성 또는 살성 중 확인 가능한 요소",
+          "심리 구조와 행동 패턴",
+          "현실 사건 패턴",
+          "인간관계 반복 패턴",
+          "돈/직업/연애 연결",
           "별의 밝기/강도 해석",
           "성향",
           "반복 패턴",

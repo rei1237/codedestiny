@@ -3,6 +3,11 @@ import {
   buildLocalZiweiSectionDraft,
   validateZiweiFullReport,
 } from "./ziwei-pdf-pipeline.js";
+import {
+  buildCategoryRecordsFromChapter,
+  repairCategoriesForRender,
+  validatePdfChaptersBeforeRender,
+} from "./pdf-category-policy.js";
 
 function countChars(text) {
   return [...String(text || "")].length;
@@ -66,17 +71,43 @@ export async function generateZiweiPdf(params = {}) {
   const chart = params.chart || {};
 
   const chapterSpecs = Array.isArray(ZIWEI_CHAPTER_SPECS) ? ZIWEI_CHAPTER_SPECS : [];
-  const chapters = chapterSpecs.map((spec) => {
+  let chapters = chapterSpecs.map((spec) => {
     const base = buildChapterText(spec, chart);
     const text = padChapterToMin(base, Number(spec?.minChars || 8500));
+    const categories = buildCategoryRecordsFromChapter({
+      serviceKey: "jamidusu_premium",
+      serviceLabel: "자미두수 PDF",
+      chapterNo: Number(spec?.chapterNo || 0) || 1,
+      chapterKey: String(spec?.id || ""),
+      chapterTitle: String(spec?.title || "자미두수 해석").trim(),
+      chapterPurpose: String(spec?.purpose || spec?.goal || "자미두수 카테고리 해석").trim(),
+      chapterText: text,
+      categoryTitles: Array.isArray(spec?.sections) ? spec.sections : ["핵심 진단", "실전 전략"],
+      minChars: 700,
+      availableData: {
+        mingGong: chart?.chartMeta?.mingGong || null,
+        shenGong: chart?.chartMeta?.shenGong || null,
+      },
+      missingData: [],
+      birthSummary: "생년월일시 기반 명반 입력 반영",
+    });
     return {
       chapter: Number(spec?.chapterNo || 0) || 1,
       chapterId: String(spec?.id || `chapter-${String(spec?.chapterNo || 1).padStart(2, "0")}`),
       title: String(spec?.title || ""),
-      text,
+      text: categories.map((cat) => `## ${cat.title}\n\n${cat.finalText}`).join("\n\n"),
+      categories,
       source: "local-fallback",
     };
   });
+
+  chapters = repairCategoriesForRender(chapters, {
+    serviceKey: "jamidusu_premium",
+    serviceLabel: "자미두수 PDF",
+    minChars: 700,
+    birthSummary: "생년월일시 기반 핵심 입력 반영",
+  });
+  validatePdfChaptersBeforeRender(chapters, { minChars: 700 });
 
   padReportToMin(chapters);
 
@@ -106,6 +137,7 @@ export async function generateZiweiPdf(params = {}) {
       generatedAt: new Date().toISOString(),
       totalChapters: chapters.length,
       chapters,
+      generationState: "completed",
       stats: {
         totalChars: countChars(fullText),
         minRequired: 110000,
