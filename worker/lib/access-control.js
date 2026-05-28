@@ -92,25 +92,25 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     return [
       {
         featureKey: "saju_life_book_pdf",
-        reason: "인생의 책 생성 (12챕터)",
+        reason: "인생의 책 생성 (13챕터)",
         minCost: 500,
         windowMinutes: 120,
       },
       {
         featureKey: "premium_pdf_saju_life_book",
-        reason: "인생의 책 생성 (12챕터)",
+        reason: "인생의 책 생성 (13챕터)",
         minCost: 500,
         windowMinutes: 120,
       },
       {
         featureKey: "premium-lifebook-report",
-        reason: "인생의 책 생성 (12챕터)",
+        reason: "인생의 책 생성 (13챕터)",
         minCost: 500,
         windowMinutes: 120,
       },
       {
         featureKey: "coin-gate-per-use",
-        reason: "인생의 책 생성 (12챕터)",
+        reason: "인생의 책 생성 (13챕터)",
         minCost: 500,
         windowMinutes: 120,
       },
@@ -336,15 +336,40 @@ async function findRecentDeductionEvidence(userId, rule) {
   }
 
   const strictReason = String(rule?.reason || "").trim();
-  if (!strictReason) return null;
+  if (strictReason) {
+    const exact = await PointHistory.findOne({
+      ...baseQuery,
+      reason: strictReason,
+    })
+      .select("_id createdAt delta featureKey reason metadata")
+      .sort({ createdAt: -1 })
+      .lean();
+    if (exact) return exact;
+  }
 
-  return PointHistory.findOne({
-    ...baseQuery,
-    reason: strictReason,
-  })
+  // Fallback: allow feature/cost/time evidence even when reason text changed (e.g. chapter count wording).
+  return PointHistory.findOne(baseQuery)
     .select("_id createdAt delta featureKey reason metadata")
     .sort({ createdAt: -1 })
     .lean();
+}
+
+function paymentReasonRoughlyMatches(strictReason = "", evidenceReason = "") {
+  const a = String(strictReason || "").trim();
+  const b = String(evidenceReason || "").trim();
+  if (!a || !b) return false;
+  if (a === b) return true;
+
+  const na = a.replace(/\s+/g, "").toLowerCase();
+  const nb = b.replace(/\s+/g, "").toLowerCase();
+  if (na === nb) return true;
+  if (na.includes(nb) || nb.includes(na)) return true;
+
+  const baseA = a.split("(")[0].trim().toLowerCase();
+  const baseB = b.split("(")[0].trim().toLowerCase();
+  if (baseA && baseA === baseB) return true;
+
+  return false;
 }
 
 function extractPaymentLookupTokens(requestBody = {}) {
@@ -542,7 +567,7 @@ function paymentEvidenceMatchesRule(evidence = {}, rule = {}) {
 
   const strictReason = String(rule?.reason || "").trim();
   const evidenceReason = String(evidence?.reason || "").trim();
-  if (strictReason && evidenceReason && strictReason !== evidenceReason) return false;
+  if (strictReason && evidenceReason && !paymentReasonRoughlyMatches(strictReason, evidenceReason)) return false;
 
   return true;
 }
@@ -935,6 +960,30 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     };
     logSajuAccessResolved(allowed);
     return allowed;
+  }
+
+  if (normalizedReportType === "lifeBook" && alternativeRules.length) {
+    for (let i = 0; i < alternativeRules.length; i += 1) {
+      const evidence = await findRecentDeductionEvidence(user._id, alternativeRules[i]);
+      if (!evidence) continue;
+      logPremiumAccessDecision({
+        route: requestBody?._accessRoute,
+        userId,
+        reportType: normalizedReportType,
+        featureKey: String(evidence?.featureKey || ""),
+        accessSource: "recent-payment-window",
+        matchedTransactionId: String(evidence?._id || ""),
+      });
+      const allowed = {
+        ok: true,
+        accessType: "recent-payment-window",
+        reportType: normalizedReportType,
+        matchedTransactionId: String(evidence?._id || ""),
+        featureKey: String(evidence?.featureKey || ""),
+      };
+      logSajuAccessResolved(allowed);
+      return allowed;
+    }
   }
 
   logPremiumAccessDecision({
