@@ -1709,7 +1709,8 @@
     function _fetchChapter(idx) {
       return new Promise(function (resolve) {
         var _settled = false;
-        var _abortMsg = '응답 시간 초과 (45초). 네트워크 상태를 확인해 주세요.';
+        var _chapterRequestTimeoutMs = 180000;
+        var _abortMsg = '응답 시간 초과 (180초). 네트워크 상태를 확인해 주세요.';
         var _endpoints = _buildApiCandidates('/api/love-secret/generate-chapter', {
           sameOriginOnly: true,
           preferSameOrigin: true,
@@ -1752,7 +1753,7 @@
             if (_controller) {
               try { _controller.abort(); } catch (_) {}
             }
-          }, 45000);
+          }, _chapterRequestTimeoutMs);
 
           fetch(_plan.url, {
             method: 'POST',

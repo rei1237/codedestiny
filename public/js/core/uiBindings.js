@@ -48,6 +48,12 @@ const __lazyActionLoaders = {
   openTarotHealingModal: () => __loadScriptOnce('/js/tarot-healing-experience.js?v=20260414-tarot-qualityfix2'),
   openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260414-tarot-qualityfix2'),
   openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260414-tarot-qualityfix2'),
+  openLifeBookModal: () => __loadScriptOnce('/js/life-book.js'),
+  closeLifeBookModal: () => __loadScriptOnce('/js/life-book.js'),
+  generateLifeBook: () => __loadScriptOnce('/js/life-book.js'),
+  openLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js'),
+  closeLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js'),
+  generateLoveSecret: () => __loadScriptOnce('/js/love-secret-v2.js'),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
   openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=20260413-sibylfix1').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
