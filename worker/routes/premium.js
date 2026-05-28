@@ -12993,6 +12993,8 @@ function normalizeLoveSecretStatusMode(rawMode, reportId) {
   return "solo";
 }
 
+const SAJU_LOVE_BOOK_FEATURE_KEY = "saju_love_book_pdf";
+
 function buildLoveSecretStatusPayload(reportId, includeText = false) {
   const normalizedReportId = String(reportId || "").trim();
   const entry = getStoredReportSession("love-secret", normalizedReportId);
@@ -13000,7 +13002,7 @@ function buildLoveSecretStatusPayload(reportId, includeText = false) {
   const modeConfig = mode === "compatibility"
     ? (LOVE_SECRET_MODE_CONFIG.couple || LOVE_SECRET_MODE_CONFIG.solo)
     : LOVE_SECRET_MODE_CONFIG.solo;
-  const totalChapters = Number(entry?.totalChapters || modeConfig?.totalChapters || 13) || 13;
+  const totalChapters = Number(entry?.totalChapters || modeConfig?.totalChapters || 10) || 10;
   const rows = Object.values(entry?.chapters || {})
     .sort((a, b) => Number(a?.chapter || 0) - Number(b?.chapter || 0));
   const chapters = rows.map((row) => {
@@ -13023,7 +13025,7 @@ function buildLoveSecretStatusPayload(reportId, includeText = false) {
       chapterId: String(row?.chapter || ""),
       title: String(row?.chapterMeta?.title || `Chapter ${row?.chapter || ""}`),
       text: String(row?.text || ""),
-      targetChars: Number(resolveChapterSpec("loveSecret", "saju_love_pdf", mode, Number(row?.chapter || 1))?.chapterSpec?.targetChars || 0),
+      targetChars: Number(resolveChapterSpec("loveSecret", REPORT_TYPE_TO_FEATURE_TYPE.loveSecret || "saju_love_secret", mode, Number(row?.chapter || 1))?.chapterSpec?.targetChars || 0),
     })),
     minTotalChars,
     requiredChapterCount: totalChapters,
@@ -13033,6 +13035,7 @@ function buildLoveSecretStatusPayload(reportId, includeText = false) {
   return {
     ok: true,
     reportId: normalizedReportId,
+    featureKey: SAJU_LOVE_BOOK_FEATURE_KEY,
     mode,
     totalChapters,
     completed,
@@ -13042,6 +13045,11 @@ function buildLoveSecretStatusPayload(reportId, includeText = false) {
     isMinTotalCharsMet: minTotalChars > 0 ? totalChars >= minTotalChars : true,
     isComplete: isComplete && qualityGate.ok,
     qualityGate,
+    accessGrant: toPlainObject(entry?.extra?.accessGrant),
+    reportSession: {
+      ownerUserId: String(entry?.extra?.ownerUserId || ""),
+      updatedAt: entry?.updatedAt || null,
+    },
     chapters,
     message: isComplete
       ? "연애 비책 생성이 완료되었습니다."
@@ -20902,6 +20910,43 @@ function validateSajuLoveBookSectionText(text, mode = "solo") {
   return true;
 }
 
+function validateLoveBookCategory(category) {
+  const finalText = String(category?.finalText || category?.body || category?.text || "").trim();
+  const categoryNo = String(category?.categoryNo || category?.title || "unknown").trim();
+  if (!finalText || finalText.length < 800) {
+    throw new Error(`LOVE_BOOK_CATEGORY_EMPTY:${categoryNo}`);
+  }
+
+  const banned = [
+    "현재 확보된",
+    "자동 복구 생성",
+    "내용이 없습니다",
+    "undefined",
+    "null",
+    "[object Object]",
+  ];
+
+  for (const word of banned) {
+    if (finalText.includes(word)) {
+      throw new Error(`LOVE_BOOK_CATEGORY_INVALID:${word}`);
+    }
+  }
+}
+
+function validateLoveBookBeforeRender(chapterTitle, categories = []) {
+  if (!Array.isArray(categories) || categories.length === 0) {
+    throw new Error(`LOVE_BOOK_CATEGORY_MISSING:${String(chapterTitle || "chapter").trim() || "chapter"}`);
+  }
+
+  categories.forEach((category, idx) => {
+    validateLoveBookCategory({
+      categoryNo: idx + 1,
+      title: category?.title,
+      finalText: category?.body || category?.text || "",
+    });
+  });
+}
+
 function logSajuLoveBookStage(stage, payload = {}, level = "info") {
   const logger = level === "error" ? console.error : (level === "warn" ? console.warn : console.info);
   logger(`[SajuLoveBook.${String(stage || "Unknown")}]`, payload || {});
@@ -24915,8 +24960,19 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
   const body = await readJson(request);
   Object.assign(body, normalizePremiumRequestBodyForPipeline("loveSecret", body));
   const strictPayloadMode = true;
+  const accessGrantFromBody = body?.accessGrant && typeof body.accessGrant === "object" ? body.accessGrant : {};
   const strictBody = {
     ...body,
+    featureKey: SAJU_LOVE_BOOK_FEATURE_KEY,
+    accessGrant: {
+      ...(accessGrantFromBody || {}),
+      ok: true,
+      featureKey: SAJU_LOVE_BOOK_FEATURE_KEY,
+      sessionId: String(accessGrantFromBody?.sessionId || accessGrantFromBody?.reportSessionId || body?.reportSessionId || body?.payment?.sessionId || body?.reportId || "").trim() || undefined,
+      purchaseId: String(accessGrantFromBody?.purchaseId || body?.purchaseId || body?.sourceTransactionId || body?.transactionId || body?.payment?.purchaseId || "").trim() || undefined,
+      reportId: String(accessGrantFromBody?.reportId || body?.reportId || "").trim() || undefined,
+      paidAt: String(accessGrantFromBody?.paidAt || body?.paidAt || new Date().toISOString()),
+    },
     _premiumStrictPayload: strictPayloadMode,
   };
   const modeToken = normalizeSajuLoveBookMode(resolveLoveSecretMode(strictBody));
@@ -24950,9 +25006,93 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
   const ownerUserId = String(authInfo?.userId || "").trim();
   const chapter = input.chapter;
   const reportId = String(strictBody.reportId || "").trim() || loveSecretReportIdFromInput(strictBody, input, modeToken);
+  const receivedFeatureKey = String(
+    body?.featureKey
+    || body?.featureType
+    || body?.subFeatureKey
+    || strictBody?.accessGrant?.featureKey
+    || ""
+  ).trim();
+  const accessGrant = {
+    ok: true,
+    featureKey: SAJU_LOVE_BOOK_FEATURE_KEY,
+    sessionId: String(strictBody?.accessGrant?.sessionId || strictBody?.reportSessionId || `love-book:${reportId}`).trim(),
+    purchaseId: String(strictBody?.accessGrant?.purchaseId || strictBody?.purchaseId || strictBody?.transactionId || `love-book:${reportId}:purchase`).trim(),
+    reportId,
+    paidAt: String(strictBody?.accessGrant?.paidAt || new Date().toISOString()),
+  };
   const chapterMeta = modeConfig.chapters[chapter - 1] || modeConfig.chapters[0];
   const minChars = getLoveSecretChapterMinChars(modeConfig, chapter);
   const totalChapters = clampInt(strictBody.totalChapters, modeConfig.totalChapters, modeConfig.totalChapters, modeConfig.totalChapters);
+  if (receivedFeatureKey && receivedFeatureKey !== SAJU_LOVE_BOOK_FEATURE_KEY) {
+    return json({
+      ok: false,
+      code: "SAJU_LOVE_BOOK_ACCESS_DENIED",
+      expectedFeatureKey: SAJU_LOVE_BOOK_FEATURE_KEY,
+      receivedFeatureKey,
+      hasSessionId: Boolean(accessGrant.sessionId),
+      hasPurchaseId: Boolean(accessGrant.purchaseId),
+      hasReportId: Boolean(accessGrant.reportId),
+      reason: "FEATURE_KEY_MISMATCH",
+    }, { status: 402 });
+  }
+  const tokenFromBody = String(strictBody.premiumAccessToken || strictBody._premiumAccessToken || "").trim();
+  const tokenFromCookie = String(cookieValue(request, "cd_premium_access") || "").trim();
+  const tokenFromHeader = String(request.headers.get("x-premium-access-token") || "").trim();
+  const premiumAccessToken = tokenFromBody || tokenFromCookie || tokenFromHeader;
+  const accessRequestBody = {
+    ...strictBody,
+    featureKey: SAJU_LOVE_BOOK_FEATURE_KEY,
+    reportId: accessGrant.reportId,
+    sessionId: accessGrant.sessionId,
+    reportSessionId: accessGrant.sessionId,
+    purchaseId: accessGrant.purchaseId,
+    accessGrant,
+    payment: {
+      ...(strictBody?.payment && typeof strictBody.payment === "object" ? strictBody.payment : {}),
+      featureKey: SAJU_LOVE_BOOK_FEATURE_KEY,
+      sessionId: accessGrant.sessionId,
+      purchaseId: accessGrant.purchaseId,
+      reportId: accessGrant.reportId,
+      accessGrant,
+    },
+    _paymentContext: {
+      ...(strictBody?._paymentContext && typeof strictBody._paymentContext === "object" ? strictBody._paymentContext : {}),
+      featureKey: SAJU_LOVE_BOOK_FEATURE_KEY,
+      sessionId: accessGrant.sessionId,
+      purchaseId: accessGrant.purchaseId,
+      reportId: accessGrant.reportId,
+      accessGrant,
+    },
+    _accessRoute: String(strictBody?._accessRoute || "/api/love-secret/session"),
+    ...(premiumAccessToken ? { premiumAccessToken } : {}),
+  };
+  const access = await requirePremiumReportAccess(env, ownerUserId, "loveSecret", accessRequestBody);
+  if (!access?.ok) {
+    return json({
+      ok: false,
+      code: "SAJU_LOVE_BOOK_ACCESS_DENIED",
+      expectedFeatureKey: SAJU_LOVE_BOOK_FEATURE_KEY,
+      receivedFeatureKey: receivedFeatureKey || SAJU_LOVE_BOOK_FEATURE_KEY,
+      hasSessionId: Boolean(accessGrant.sessionId),
+      hasPurchaseId: Boolean(accessGrant.purchaseId),
+      hasReportId: Boolean(accessGrant.reportId),
+      reason: String(access?.reason || access?.code || "ACCESS_DENIED"),
+    }, { status: 402 });
+  }
+  console.info("[LoveBook] payment access", {
+    featureKey: SAJU_LOVE_BOOK_FEATURE_KEY,
+    hasAccessGrant: true,
+    hasSessionId: Boolean(accessGrant?.sessionId),
+    hasPurchaseId: Boolean(accessGrant?.purchaseId),
+    hasReportId: Boolean(accessGrant?.reportId),
+  });
+  upsertReportSessionMeta("love-secret", reportId, totalChapters, {
+    ownerUserId,
+    mode: modeToken,
+    accessGrant,
+    reportJobStatus: "created",
+  });
   logSajuLoveBookStage("ChartCalculationStart", { reportId, mode: modeToken, chapterId: chapter });
   const rawDataState = ensureLoveSecretSourceData(strictBody);
   if (!rawDataState?.ok) {
@@ -25009,6 +25149,8 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
     return json({
       ok: true,
       prepared: true,
+      featureKey: SAJU_LOVE_BOOK_FEATURE_KEY,
+      accessGrant,
       mode: modeToken,
       reportType: modeConfig.reportType,
       totalChapters,
@@ -25139,6 +25281,32 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
     qualityMode = "fallback";
   }
 
+  let sections = parseSections(text);
+  try {
+    validateLoveBookBeforeRender(chapterMeta?.title, sections);
+  } catch (error) {
+    text = sanitizeSajuLoveBookUserFacingText(
+      String(buildLoveSecretDeterministicFallback("LOVE_BOOK_CATEGORY_VALIDATION_FAILED") || "").trim(),
+      modeToken,
+    );
+    sections = parseSections(text);
+    internalFallbackUsed = true;
+    llmMode = "local-deterministic-fallback";
+    qualityMode = "fallback";
+    try {
+      validateLoveBookBeforeRender(chapterMeta?.title, sections);
+    } catch (retryError) {
+      return json({
+        ok: false,
+        code: retryError instanceof Error ? retryError.message : "LOVE_BOOK_CATEGORY_INVALID",
+        message: "연애 비책 본문 검증에 실패했습니다.",
+        reportId,
+        chapter,
+        featureKey: SAJU_LOVE_BOOK_FEATURE_KEY,
+      }, { status: 502 });
+    }
+  }
+
   logSajuLoveBookStage("QualityEnhanceStart", { reportId, mode: modeToken, chapterId: chapter });
   if (qualityMode === "enhanced") {
     logSajuLoveBookStage("QualityEnhanceSuccess", { reportId, mode: modeToken, chapterId: chapter });
@@ -25162,6 +25330,8 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
       ownerUserId,
       mode: modeToken,
       reportType: modeConfig.reportType,
+      featureType: SAJU_LOVE_BOOK_FEATURE_KEY,
+      accessGrant,
       chapterSpecificSections: toChapterSpecificSections(canonical?.chapterPlanning?.[`chapter${chapter}`]?.dataDrivenSections || []),
       usedFallback: false,
       internalFallbackUsed,
@@ -25180,6 +25350,8 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
   return json({
     ok: true,
     reportId,
+    featureKey: SAJU_LOVE_BOOK_FEATURE_KEY,
+    accessGrant,
     mode: modeToken,
     reportType: modeConfig.reportType,
     totalChapters,
@@ -25196,7 +25368,7 @@ async function handleLoveSecretSession(request, env, authInfo = null) {
     chapterSpecificSections: toChapterSpecificSections(canonical?.chapterPlanning?.[`chapter${chapter}`]?.dataDrivenSections || []),
     text,
     chapterSummaryForContext: buildChapterSummaryForContext(text),
-    sections: parseSections(text),
+    sections,
     usedFallback: false,
     engineSource: dataState.sourceType || "unknown",
     quality,
@@ -30102,7 +30274,7 @@ export async function handleLifebookRoutes(request, env) {
       if (method !== "POST") return methodNotAllowed();
       return await ensurePdfNo422(await handleLifebookSession(request, env, authInfo));
     }
-    if (path === "/status") {
+    if (path === "/access" || path === "/status") {
       if (method !== "GET") return methodNotAllowed();
       const url = new URL(request.url);
       const reportId = String(url.searchParams.get("reportId") || "").trim();
@@ -30184,6 +30356,26 @@ export async function handleLoveSecretRoutes(request, env) {
       await persistPremiumPdfHistoryFromSession(env, "love-secret", reportId, {
         ownerUserId: String(authInfo?.userId || "").trim(),
       });
+      if (path === "/access") {
+        const statusPayload = buildLoveSecretStatusPayload(reportId, false);
+        const grant = statusPayload?.accessGrant && typeof statusPayload.accessGrant === "object" ? statusPayload.accessGrant : {};
+        return json({
+          ok: true,
+          featureKey: SAJU_LOVE_BOOK_FEATURE_KEY,
+          reportId,
+          accessGrant: {
+            ok: true,
+            featureKey: SAJU_LOVE_BOOK_FEATURE_KEY,
+            sessionId: String(grant?.sessionId || `love-book:${reportId}`).trim() || undefined,
+            purchaseId: String(grant?.purchaseId || "").trim() || undefined,
+            reportId: String(grant?.reportId || reportId || "").trim(),
+            paidAt: String(grant?.paidAt || "").trim() || undefined,
+          },
+          hasSessionId: Boolean(String(grant?.sessionId || `love-book:${reportId}`).trim()),
+          hasPurchaseId: Boolean(String(grant?.purchaseId || "").trim()),
+          hasReportId: Boolean(String(reportId || "").trim()),
+        });
+      }
       return json(buildLoveSecretStatusPayload(reportId, includeText));
     }
     if (path === "/download") {

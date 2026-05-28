@@ -12,71 +12,79 @@
         '💘 본연의 연애 자아',
         '🌹 치명적 매력과 페로몬',
         '🧲 운명의 상대방 리포트',
-        '💬 연애 패턴 분석',
-        '🏡 결혼운과 장기 인연',
-        '🕰️ 사랑의 운 흐름',
-        '🔥 실전 연애 전략',
-        '🗝️ 최종 연애 처방전'
+        '🧩 연애 실패 패턴',
+        '🫀 감정 중독 구조',
+        '🛟 관계 회복력',
+        '🏡 결혼 운과 장기 연애',
+        '⚠️ 위험한 사랑 패턴',
+        '🔥 현실 연애 전략',
+        '🗝️ 최종 연애 로드맵'
       ],
       subtitles: [
         '일간·월지·오행·십성으로 보는 사랑의 기본 구조',
         '도화·홍염·화개와 표현 매력의 실제 힘',
         '배우자성·이성운·인연 유형으로 보는 이상형과 경계 대상',
-        '썸·집착·회피·질투·이별 패턴의 반복 구조',
-        '결혼운, 배우자궁 안정성, 장기 관계의 지속력',
-        '대운·세운으로 보는 연애·재회·결혼 타이밍',
-        '고백·대화·거리감 운영을 위한 실행 매뉴얼',
-        '핵심 장점·반복 약점·실행 체크리스트 종합 정리'
+        '반복되는 연애 붕괴 패턴과 실패 원인 추적',
+        '감정 과몰입, 집착, 불안의 중독 구조 해석',
+        '관계가 흔들릴 때 회복하는 정서 탄성 분석',
+        '배우자궁과 장기 관계 적합도로 보는 결혼 지속력',
+        '위험 인연, 금지 패턴, 경계해야 할 사랑의 구조',
+        '현실적인 연애 운영법과 행동 전략 정리',
+        '지금부터 실행할 최종 연애 로드맵'
       ],
       loading: [
-        '일간(日干)의 연애 자아 구조를 분석하는 중...',
+        '사주 속 연애 자아의 기본 구조를 분석하는 중...',
         '도화·홍염·화개의 매력 코드를 해석하는 중...',
-        '배우자성과 인연 유형을 프로파일링하는 중...',
-        '반복되는 연애 패턴을 정리하는 중...',
-        '결혼운과 장기 인연 조건을 계산하는 중...',
-        '대운·세운 기반 연애 흐름을 계산하는 중...',
-        '실전 연애 전략을 구성하는 중...',
-        '최종 연애 처방전을 정리하는 중...'
+        '운명의 상대방 패턴을 프로파일링하는 중...',
+        '연애 실패 패턴을 추적하는 중...',
+        '감정 중독 구조를 분석하는 중...',
+        '관계 회복력을 계산하는 중...',
+        '결혼 운과 장기 연애 조건을 정리하는 중...',
+        '위험한 사랑 패턴을 경고하는 중...',
+        '현실 연애 전략을 구성하는 중...',
+        '최종 연애 로드맵을 완성하는 중...'
       ],
       structured: {
         1: ['연애 자아 진단', '감정 작동 방식', '핵심 욕구', '강점 포인트', '주의 신호'],
         2: ['매력 코드', '도화·홍염·화개', '끌림 포인트', '매력 활용법', '금기 요소'],
         3: ['이상형 분석', '위험한 상대', '오래 갈 인연', '반복 인연 패턴', '회피 기준'],
-        4: ['좋아하는 순간', '불안 패턴', '반복 실수', '갈등 트리거', '패턴 전환법'],
-        5: ['결혼 태도', '장기 강점', '장기 약점', '현실 조건', '안정 전략'],
-        6: ['대운·세운 흐름', '기회 시기', '주의 시기', '재회 가능성', '타이밍 전략'],
-        7: ['고백·대화 전략', '초기 운영법', '갈등 복구', '신뢰 형성', '관계 유지 규칙'],
-        8: ['핵심 매력 요약', '반복 약점 정리', '강화할 태도', '피할 선택', '최종 실행 조언']
+        4: ['붕괴 패턴', '반복 실수', '이별 트리거', '감정 후폭풍', '패턴 전환법'],
+        5: ['감정 집착', '중독 신호', '불안의 원인', '자기 소진', '회복 기준'],
+        6: ['회복 탄성', '갈등 복구', '재접속 방식', '신뢰 회복', '정서 복원력'],
+        7: ['결혼 태도', '장기 안정성', '현실 조건', '배우자궁 신호', '장기 전략'],
+        8: ['위험 인연', '금지 패턴', '경고 신호', '반복 중독', '차단 기준'],
+        9: ['현실 전략', '고백·대화', '거리 조절', '관계 운영', '실행 규칙'],
+        10: ['최종 요약', '핵심 매력', '반복 약점', '행동 우선순위', '연애 로드맵']
       }
     },
     compatibility: {
       titles: [
-        'Ch.1 두 사람의 원국 요약',
-        'Ch.2 끌림의 구조',
-        'Ch.3 관계 온도차',
-        'Ch.4 소통 패턴',
-        'Ch.5 생활 궁합',
-        'Ch.6 장기 안정 조건',
-        'Ch.7 갈등 패턴',
-        'Ch.8 재회/이별 시그널',
-        'Ch.9 관계 성장 포인트',
-        'Ch.10 타이밍 전략',
-        'Ch.11 90일 실행 플랜',
-        'Ch.12 최종 궁합 로드맵'
+        'Ch.1 두 사람의 인연 구조',
+        'Ch.2 감정 궁합',
+        'Ch.3 애정 표현 충돌',
+        'Ch.4 성적/스킨십 궁합',
+        'Ch.5 싸움 패턴',
+        'Ch.6 이별 위기 구조',
+        'Ch.7 재회 가능성',
+        'Ch.8 결혼 궁합',
+        'Ch.9 현실 생활 궁합',
+        'Ch.10 관계 유지 전략',
+        'Ch.11 karmic 관계 분석',
+        'Ch.12 최종 궁합 총론'
       ],
       subtitles: [
-        '각자의 관계 기본 성향과 원국 구조를 먼저 정리',
-        '왜 서로에게 강하게 끌리는지 핵심 신호 분석',
-        '감정 표현 속도와 애착 리듬의 차이 비교',
-        '대화 방식과 오해 포인트 진단',
-        '현실 루틴과 책임 분배 적합도',
-        '관계를 오래 유지하는 운영 원칙',
-        '반복되는 상처와 방어 구조 분석',
-        '거리감·재회 가능성·정리 신호 해석',
-        '서로를 성장시키는 협력 지점',
-        '시기 운을 반영한 관계 의사결정',
-        '갈등 완화와 신뢰 회복 실행안',
-        '관계 유지 전략의 최종 정리'
+        '두 사람을 엮는 인연의 기본 골격과 결속 구조',
+        '감정 리듬, 애착 속도, 정서 공명도 분석',
+        '애정 표현 방식 충돌과 오해 발생 지점',
+        '신체적 친밀감과 스킨십 온도차 해석',
+        '싸움이 커지는 구조와 방어 패턴',
+        '관계가 깨지기 쉬운 위기 구조와 경고 신호',
+        '재회 가능성과 다시 붙는 조건 분석',
+        '결혼과 장기 제도권 관계 적합도',
+        '현실 루틴, 생활 방식, 책임 분배 적합도',
+        '관계를 오래 지키는 운영 전략',
+        '업보적 연결과 karmic 반복 구조 분석',
+        '전체 궁합을 묶는 최종 총론'
       ],
       loading: [
         '두 사람의 원국 구조를 비교하는 중...',
@@ -180,29 +188,66 @@
   var _activeRequestController = null;
   var _cancelGeneration = false;
   var _lsCurrentReportId = '';
+  var _lsAccessGrant = null;
   var _lsFetchChapterForPartialRegenerate = null;
   var _lsJobStateKey = 'cd:premium-job:love-secret';
-  var LOVE_SECRET_FEATURE_KEYS = {
-    solo: 'premium-love-secret-solo',
-    compatibility: 'premium-love-secret-couple'
+  var LOVE_SECRET_FEATURE_KEY = 'saju_love_book_pdf';
+  var LOVE_SECRET_INTERNAL_FEATURE_TYPE = 'saju_love_secret';
+  var LOVE_SECRET_REASON_BY_MODE = {
+    solo: '사주 프리미엄 연애운 리포트 생성',
+    compatibility: '사주 프리미엄 궁합 리포트 생성'
   };
+  var LOVE_BOOK_GENERATION_MESSAGES = {
+    loading_helper: '연애 비책을 펼칠 준비를 하고 있습니다.',
+    checking_payment: '결제 정보를 확인하고 있습니다.',
+    payment_confirmed: '결제가 확인되었습니다. 생성 준비를 이어갑니다.',
+    preparing_generation: '연애 비책 생성 세션을 준비하고 있습니다.',
+    calculating_saju: '사주 속 연애 구조를 분석하고 있습니다.',
+    building_chapters: '연애 챕터를 구성하고 있습니다.',
+    writing_with_llm: '각 카테고리의 상담문을 작성하고 있습니다.',
+    validating_chapters: '결과가 빠짐없이 작성되었는지 검증하고 있습니다.',
+    rendering_pdf: '연애 비책 PDF를 완성하고 있습니다.',
+    completed: '연애 비책 PDF가 준비되었습니다.',
+    failed: '연애 비책 생성이 중단되었습니다.'
+  };
+
+  function _setLoveBookGenerationState(stateKey) {
+    var key = String(stateKey || '').trim();
+    var message = String(LOVE_BOOK_GENERATION_MESSAGES[key] || '').trim();
+    if (!message) return;
+    _logLoveSecretFlow('STATE_' + key.toUpperCase(), { state: key, message: message, reportId: _lsCurrentReportId || '' });
+    var titleEl = _qs('lsLoadingTitle');
+    var chapterEl = _qs('lsLoadingChapter');
+    if (titleEl) titleEl.textContent = message;
+    if (chapterEl && (key === 'loading_helper' || key === 'checking_payment' || key === 'payment_confirmed' || key === 'preparing_generation' || key === 'failed')) {
+      chapterEl.textContent = message;
+    }
+  }
+
+  function _lsBuildReportId(mode) {
+    var suffix = _normalizeLoveSecretMode(mode) === 'compatibility' ? 'compatibility' : 'solo';
+    return 'love_secret_' + suffix + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+  }
 
   function _lsGetJobClient() {
     return (typeof window !== 'undefined' && window.CDPremiumPdfJobClient) ? window.CDPremiumPdfJobClient : null;
   }
 
-  function _lsStartPremiumJob(profile, mode) {
+  function _lsStartPremiumJob(profile, mode, accessGrant, reportId) {
     var client = _lsGetJobClient();
     if (!client) return;
     var birth = (profile && profile.birth) ? profile.birth : {};
     var normalizedMode = _normalizeLoveSecretMode(mode);
-    var featureType = normalizedMode === 'compatibility' ? LOVE_SECRET_FEATURE_KEYS.compatibility : LOVE_SECRET_FEATURE_KEYS.solo;
     client.start({
       stateKey: _lsJobStateKey,
       reportType: 'loveSecret',
-      featureType: featureType,
+      featureType: LOVE_SECRET_INTERNAL_FEATURE_TYPE,
+      idempotencyKey: String(reportId || '').trim() || undefined,
       requestBody: {
         mode: normalizedMode,
+        featureKey: LOVE_SECRET_FEATURE_KEY,
+        reportId: String(reportId || '').trim() || undefined,
+        accessGrant: accessGrant || undefined,
         name: String((profile && profile.name) || '사용자'),
         gender: String((profile && profile.gender) || ''),
         year: Number(birth.year || 0),
@@ -260,36 +305,69 @@
     } catch (_) {}
   }
 
-  async function _runLoveSecretCoinGate(featureKey, reason, mode) {
-    var response = (typeof fetchJsonWithAuth === 'function')
-      ? await fetchJsonWithAuth('/api/billing/coin-gate', {
-        method: 'POST',
-        body: JSON.stringify({
-          categoryKey: 'premium-report',
-          subFeatureKey: featureKey,
-          featureKey: featureKey,
-          reportType: 'loveSecret',
-          mode: mode,
-          reason: reason,
-          forceDeduct: true,
-          requestId: 'love-secret:' + mode + ':' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8)
-        })
-      })
-      : { ok: false, status: 500, payload: { message: 'coin gate helper missing' } };
-    var data = (response.payload && response.payload.data) || {};
-    var premiumAccessToken = String(data.premiumAccessToken || response.payload.premiumAccessToken || '').trim();
-    if (premiumAccessToken) {
-      try { window.__cdPremiumAccessToken = premiumAccessToken; } catch (_) {}
-      try { sessionStorage.setItem('cd_premium_access_token', premiumAccessToken); } catch (_) {}
-      try { localStorage.setItem('cd_premium_access_token', premiumAccessToken); } catch (_) {}
+  async function _getLoveBookCoinGateHelper() {
+    _setLoveBookGenerationState('loading_helper');
+    var mod = await import('/js/coin-gate-helper.js?v=20260528-love-book');
+    if (!mod || !mod.coinGateHelper) {
+      throw new Error('COIN_GATE_HELPER_MISSING');
     }
-    return {
-      ok: !!response.ok,
-      status: Number(response.status || 0),
-      message: (response.payload && response.payload.message) || '',
-      purchaseId: String((((data.consume || {}).transactionId) || '')).trim(),
-      premiumAccessToken: premiumAccessToken
-    };
+    console.info('[LoveBook] helper load', { helperLoaded: true });
+    return mod.coinGateHelper;
+  }
+
+  async function _runLoveSecretCoinGate(mode, reportId) {
+    var normalizedMode = _normalizeLoveSecretMode(mode);
+    var reason = LOVE_SECRET_REASON_BY_MODE[normalizedMode] || LOVE_SECRET_REASON_BY_MODE.solo;
+    _setLoveBookGenerationState('checking_payment');
+    try {
+      var helper = await _getLoveBookCoinGateHelper();
+      var purchase = await helper.purchaseFeature({
+        featureKey: LOVE_SECRET_FEATURE_KEY,
+        payload: {
+          featureKey: LOVE_SECRET_FEATURE_KEY,
+          mode: normalizedMode,
+          reason: reason,
+          reportId: reportId,
+          sessionId: 'love-book:' + String(reportId || '').trim(),
+          requestId: 'love-secret:' + normalizedMode + ':' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8),
+          forceDeduct: true,
+        },
+      });
+      var accessGrant = purchase && purchase.accessGrant ? purchase.accessGrant : null;
+      console.info('[LoveBook] payment access', {
+        featureKey: LOVE_SECRET_FEATURE_KEY,
+        hasAccessGrant: Boolean(accessGrant),
+      });
+      if (!purchase || !purchase.ok || !accessGrant) {
+        return {
+          ok: false,
+          status: Number((purchase && purchase.status) || 500),
+          message: String((purchase && purchase.message) || '결제 확인에 실패했습니다.'),
+          accessGrant: null,
+          purchaseId: '',
+          premiumAccessToken: String((purchase && purchase.premiumAccessToken) || '').trim(),
+        };
+      }
+      _setLoveBookGenerationState('payment_confirmed');
+      return {
+        ok: true,
+        status: Number(purchase.status || 200),
+        message: String(purchase.message || ''),
+        accessGrant: accessGrant,
+        purchaseId: String(accessGrant.purchaseId || '').trim(),
+        premiumAccessToken: String(purchase.premiumAccessToken || '').trim(),
+      };
+    } catch (error) {
+      console.info('[LoveBook] helper load', { helperLoaded: false, message: String(error && error.message ? error.message : error) });
+      return {
+        ok: false,
+        status: 500,
+        message: String(error && error.message ? error.message : 'COIN_GATE_HELPER_MISSING'),
+        accessGrant: null,
+        purchaseId: '',
+        premiumAccessToken: '',
+      };
+    }
   }
 
   function _abortActiveRequest() {
@@ -1136,7 +1214,8 @@
       return;
     }
 
-    _logLoveSecretFlow('COMPATIBILITY_GENERATE_CLICK', { mode: 'compatibility', hasUserChart: true, hasPartnerChart: true, hasCompatibility: true, featureKey: LOVE_SECRET_FEATURE_KEYS.compatibility, message: 'compatibility_click' });
+    var reportId = _lsBuildReportId('compatibility');
+    _logLoveSecretFlow('COMPATIBILITY_GENERATE_CLICK', { mode: 'compatibility', hasUserChart: true, hasPartnerChart: true, hasCompatibility: true, featureKey: LOVE_SECRET_FEATURE_KEY, reportId: reportId, message: 'compatibility_click' });
 
     var startBtn = _qs('lsPsStartBtn');
     if (startBtn) { startBtn.disabled = true; startBtn.textContent = '처리 중...'; }
@@ -1148,21 +1227,21 @@
       }
     }
 
-    function _startWithPartnerData() {
+    function _startWithPartnerData(accessGrant) {
       _restorePartnerStartBtn();
       var partnerData = _collectPartnerScreenData();
-      _startGeneration(partnerData);
+      _startGeneration(partnerData, accessGrant, reportId);
     }
 
     try {
-      _logLoveSecretFlow('COIN_GATE_START', { mode: 'compatibility', hasUserChart: true, hasPartnerChart: true, hasCompatibility: true, featureKey: LOVE_SECRET_FEATURE_KEYS.compatibility, message: 'compatibility_gate_start' });
-      var gateResult = await _runLoveSecretCoinGate(LOVE_SECRET_FEATURE_KEYS.compatibility, '사주 프리미엄 궁합 리포트 생성', 'compatibility');
+      _logLoveSecretFlow('COIN_GATE_START', { mode: 'compatibility', hasUserChart: true, hasPartnerChart: true, hasCompatibility: true, featureKey: LOVE_SECRET_FEATURE_KEY, reportId: reportId, message: 'compatibility_gate_start' });
+      var gateResult = await _runLoveSecretCoinGate('compatibility', reportId);
       if (!gateResult.ok) {
         window.alert(gateResult.message || '결제 확인에 실패했습니다.');
         return;
       }
-      _logLoveSecretFlow('COIN_GATE_SUCCESS', { mode: 'compatibility', hasUserChart: true, hasPartnerChart: true, hasCompatibility: true, featureKey: LOVE_SECRET_FEATURE_KEYS.compatibility, purchaseId: gateResult.purchaseId || '', message: 'compatibility_gate_success' });
-      _startWithPartnerData();
+      _logLoveSecretFlow('COIN_GATE_SUCCESS', { mode: 'compatibility', hasUserChart: true, hasPartnerChart: true, hasCompatibility: true, featureKey: LOVE_SECRET_FEATURE_KEY, reportId: reportId, purchaseId: gateResult.purchaseId || '', message: 'compatibility_gate_success' });
+      _startWithPartnerData(gateResult.accessGrant || null);
     } finally {
       _restorePartnerStartBtn();
     }
@@ -1171,19 +1250,27 @@
   window.handleStartSoloLoveBook = async function () {
     if (_generating) return;
     _currentChapterMode = 'solo';
-    _logLoveSecretFlow('SOLO_GENERATE_CLICK', { mode: 'solo', hasUserChart: true, hasPartnerChart: false, hasCompatibility: false, featureKey: LOVE_SECRET_FEATURE_KEYS.solo, message: 'solo_click' });
+    var reportId = _lsBuildReportId('solo');
+    _logLoveSecretFlow('SOLO_GENERATE_CLICK', { mode: 'solo', hasUserChart: true, hasPartnerChart: false, hasCompatibility: false, featureKey: LOVE_SECRET_FEATURE_KEY, reportId: reportId, message: 'solo_click' });
     if (_premiumTokenMatches('loveSecret', 300)) {
-      _startGeneration('');
+      _startGeneration('', {
+        ok: true,
+        featureKey: LOVE_SECRET_FEATURE_KEY,
+        sessionId: 'love-book:' + reportId,
+        purchaseId: 'token:' + reportId,
+        reportId: reportId,
+        paidAt: new Date().toISOString()
+      }, reportId);
       return;
     }
-    _logLoveSecretFlow('COIN_GATE_START', { mode: 'solo', hasUserChart: true, hasPartnerChart: false, hasCompatibility: false, featureKey: LOVE_SECRET_FEATURE_KEYS.solo, message: 'solo_gate_start' });
-    var gateResult = await _runLoveSecretCoinGate(LOVE_SECRET_FEATURE_KEYS.solo, '사주 프리미엄 연애운 리포트 생성', 'solo');
+    _logLoveSecretFlow('COIN_GATE_START', { mode: 'solo', hasUserChart: true, hasPartnerChart: false, hasCompatibility: false, featureKey: LOVE_SECRET_FEATURE_KEY, reportId: reportId, message: 'solo_gate_start' });
+    var gateResult = await _runLoveSecretCoinGate('solo', reportId);
     if (!gateResult.ok) {
       window.alert(gateResult.message || '결제 확인에 실패했습니다.');
       return;
     }
-    _logLoveSecretFlow('COIN_GATE_SUCCESS', { mode: 'solo', hasUserChart: true, hasPartnerChart: false, hasCompatibility: false, featureKey: LOVE_SECRET_FEATURE_KEYS.solo, purchaseId: gateResult.purchaseId || '', message: 'solo_gate_success' });
-    _startGeneration('');
+    _logLoveSecretFlow('COIN_GATE_SUCCESS', { mode: 'solo', hasUserChart: true, hasPartnerChart: false, hasCompatibility: false, featureKey: LOVE_SECRET_FEATURE_KEY, reportId: reportId, purchaseId: gateResult.purchaseId || '', message: 'solo_gate_success' });
+    _startGeneration('', gateResult.accessGrant || null, reportId);
   };
 
   window.lsStartWithPartner = function () {
@@ -1194,11 +1281,14 @@
     return window.handleStartSoloLoveBook();
   };
 
-  function _startGeneration(partnerData) {
+  function _startGeneration(partnerData, accessGrant, reportId) {
     _generating = true;
     _cancelGeneration = false;
+    _lsAccessGrant = accessGrant || null;
     _currentChapterMode = partnerData ? 'compatibility' : 'solo';
-    _lsStartPremiumJob(window.__cdActiveBirthProfile || {}, _currentChapterMode);
+    _lsCurrentReportId = String(reportId || '').trim() || _lsBuildReportId(_currentChapterMode);
+    _setLoveBookGenerationState('preparing_generation');
+    _lsStartPremiumJob(window.__cdActiveBirthProfile || {}, _currentChapterMode, _lsAccessGrant, _lsCurrentReportId);
     _showScreen('lsLoadingScreen');
     _startLoadingAnimation();
     var sajuData = _cachedSajuData || _collectSajuData();
@@ -1220,8 +1310,7 @@
     }
     _setProgress(0);
 
-    var _lsReportId = 'love_secret_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
-    _lsCurrentReportId = _lsReportId;
+    var _lsReportId = _lsCurrentReportId;
 
     function _lsReadPremiumAccessToken() {
       var token = '';
@@ -1240,6 +1329,7 @@
         ? '두 사람의 궁합과 연애 비책을 집필하는 중입니다'
         : '연애 비책을 집필하는 중입니다';
     }
+    _setLoveBookGenerationState('calculating_saju');
 
     function _fetchChapter(idx) {
       return new Promise(function (resolve) {
@@ -1278,6 +1368,7 @@
           var _lsPremiumToken = _lsReadPremiumAccessToken();
           var _lsHeaders = { 'Content-Type': 'application/json' };
           if (_lsPremiumToken) _lsHeaders['x-premium-access-token'] = _lsPremiumToken;
+          _setLoveBookGenerationState('writing_with_llm');
 
           var timeoutId = setTimeout(function () {
             if (_controller) {
@@ -1292,13 +1383,18 @@
               reportId: _lsReportId,
               requestId: 'love-secret-' + _lsReportId + '-ch' + (idx + 1) + '-a' + _plan.retry,
               sessionId: idx + 1,
+              reportSessionId: String((_lsAccessGrant && _lsAccessGrant.sessionId) || ('love-book:' + _lsReportId)),
               chapter: idx + 1,
+              mode: _currentChapterMode,
+              featureKey: LOVE_SECRET_FEATURE_KEY,
+              purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || '').trim() || undefined,
               strictNoFallback: false,
               chapterTitle: _getLoveSecretChapterTitle(idx, _currentChapterMode),
               chapterSubtitle: _getLoveSecretChapterSubtitle(idx, _currentChapterMode),
               chapterSpecificSections: Array.isArray(_getLoveSecretStructuredLabels(idx + 1, _currentChapterMode))
                 ? _getLoveSecretStructuredLabels(idx + 1, _currentChapterMode).slice(0, 8)
                 : [],
+              accessGrant: _lsAccessGrant || undefined,
               premiumAccessToken: _lsPremiumToken || undefined,
               sajuData: sajuData,
               partnerData: partnerData || '',
@@ -1345,10 +1441,12 @@
         ? window.__cdRunPremiumChapterPipeline
         : null;
       if (!runPipeline) {
+        _setLoveBookGenerationState('failed');
         throw new Error('공통 챕터 파이프라인을 불러오지 못했습니다.');
       }
 
       var fallbackText = String(window.__cdPremiumChapterFallbackText || '일시적인 응답 지연으로 해석을 불러오지 못했습니다. 부분 재생성 버튼을 이용해주세요.');
+      _setLoveBookGenerationState('building_chapters');
       await runPipeline({
         totalChapters: totalChapters,
         maxAttempts: 3,

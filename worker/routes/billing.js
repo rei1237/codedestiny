@@ -375,6 +375,8 @@ function resolvePricingFromBody(body = {}) {
     subFeatureKey: body?.subFeatureKey,
     featureKey: body?.featureKey,
     reason: body?.reason,
+    mode: body?.mode,
+    reportMode: body?.reportMode,
   });
 }
 
@@ -469,10 +471,26 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     balance: Number.isFinite(balance) ? balance : null,
   });
 
+  const requestedFeatureKey = String(body?.featureKey || pricing?.featureKey || "").trim() || String(pricing?.featureKey || "").trim();
+  const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
+  const sessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || (reportId ? `love-book:${reportId}` : requestId)).trim();
+  const purchaseId = String(payload?.transactionId || payload?.data?.transactionId || "").trim();
+  const accessGrant = requestedFeatureKey && purchaseId
+    ? {
+      ok: true,
+      featureKey: requestedFeatureKey,
+      sessionId: sessionId || undefined,
+      purchaseId: purchaseId || undefined,
+      reportId: reportId || undefined,
+      paidAt: new Date().toISOString(),
+    }
+    : null;
+
   return success({
     pricing,
     consume: payload,
     premiumAccessToken: premiumAccessToken || null,
+    accessGrant,
     balance: Number.isFinite(balance) ? balance : null,
     user: payload?.user || null,
   }, toMessage(payload, "코인 결제가 완료되었습니다."), {

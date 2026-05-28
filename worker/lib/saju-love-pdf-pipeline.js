@@ -13,11 +13,13 @@ const SOLO_CHAPTER_DEFS = Object.freeze([
   { id: "love-solo-01", title: "Ch.1 본연의 연애 자아", categories: [["love-solo-01-01", "1-1 사랑 앞에서 드러나는 기본 성향"],["love-solo-01-02", "1-2 감정이 움직이는 방식"],["love-solo-01-03", "1-3 사랑에서 중요하게 여기는 것"],["love-solo-01-04", "1-4 연애 자아의 강점"],["love-solo-01-05", "1-5 연애 자아의 약점"],["love-solo-01-06", "1-6 핵심 사랑 키워드"]] },
   { id: "love-solo-02", title: "Ch.2 치명적 매력과 페로몬", categories: [["love-solo-02-01", "2-1 사주가 보여주는 매력의 결"],["love-solo-02-02", "2-2 도화·홍염·화개의 작동 방식"],["love-solo-02-03", "2-3 사람들이 끌리는 이유"],["love-solo-02-04", "2-4 무의식적 매력 포인트"],["love-solo-02-05", "2-5 매력이 약해지는 순간"],["love-solo-02-06", "2-6 건강한 매력 운용법"]] },
   { id: "love-solo-03", title: "Ch.3 운명의 상대방 리포트", categories: [["love-solo-03-01", "3-1 배우자성으로 보는 이상형"],["love-solo-03-02", "3-2 끌리지만 위험한 상대"],["love-solo-03-03", "3-3 오래 갈 수 있는 상대"],["love-solo-03-04", "3-4 반복되는 인연 유형"],["love-solo-03-05", "3-5 깊이 맞는 사람의 조건"],["love-solo-03-06", "3-6 반드시 피해야 할 유형"]] },
-  { id: "love-solo-04", title: "Ch.4 연애 패턴 분석", categories: [["love-solo-04-01", "4-1 좋아하는 순간의 패턴"],["love-solo-04-02", "4-2 불안해지는 순간의 패턴"],["love-solo-04-03", "4-3 반복되는 실수"],["love-solo-04-04", "4-4 썸과 밀착의 리듬"],["love-solo-04-05", "4-5 멀어지는 이유"],["love-solo-04-06", "4-6 패턴을 바꾸는 열쇠"]] },
-  { id: "love-solo-05", title: "Ch.5 결혼운과 장기 인연", categories: [["love-solo-05-01", "5-1 결혼에 대한 기본 태도"],["love-solo-05-02", "5-2 장기 관계에서 강해지는 부분"],["love-solo-05-03", "5-3 장기 관계에서 약해지는 부분"],["love-solo-05-04", "5-4 함께 살기 위한 조건"],["love-solo-05-05", "5-5 책임과 안정의 구조"],["love-solo-05-06", "5-6 장기 인연 운용 전략"]] },
-  { id: "love-solo-06", title: "Ch.6 사랑의 운 흐름", categories: [["love-solo-06-01", "6-1 대운·세운으로 보는 연애 흐름"],["love-solo-06-02", "6-2 인연이 들어오기 쉬운 시기"],["love-solo-06-03", "6-3 조심해야 할 시기"],["love-solo-06-04", "6-4 재회 가능성이 커지는 구간"],["love-solo-06-05", "6-5 타이밍을 놓치는 패턴"],["love-solo-06-06", "6-6 연애 시기 전략"]] },
-  { id: "love-solo-07", title: "Ch.7 실전 연애 전략", categories: [["love-solo-07-01", "7-1 고백·대화·거리감 실전 전략"],["love-solo-07-02", "7-2 관계 초기 운영 체크리스트"],["love-solo-07-03", "7-3 갈등 시 복구 루틴"],["love-solo-07-04", "7-4 나를 설명하는 방식"],["love-solo-07-05", "7-5 신뢰를 쌓는 행동"],["love-solo-07-06", "7-6 장기적 관계 운영 규칙"]] },
-  { id: "love-solo-08", title: "Ch.8 최종 연애 처방전", categories: [["love-solo-08-01", "8-1 핵심 매력 요약"],["love-solo-08-02", "8-2 반복 약점 정리"],["love-solo-08-03", "8-3 지금 강화할 태도"],["love-solo-08-04", "8-4 반드시 피할 선택"],["love-solo-08-05", "8-5 다음 사랑을 위한 준비"],["love-solo-08-06", "8-6 최종 실행 조언"]] },
+  { id: "love-solo-04", title: "Ch.4 연애 실패 패턴", categories: [["love-solo-04-01", "4-1 반복되는 붕괴 패턴"],["love-solo-04-02", "4-2 이별로 번지는 계기"],["love-solo-04-03", "4-3 자주 반복되는 실수"],["love-solo-04-04", "4-4 상처를 키우는 반응"],["love-solo-04-05", "4-5 망가지는 속도"],["love-solo-04-06", "4-6 패턴 차단 전략"]] },
+  { id: "love-solo-05", title: "Ch.5 감정 중독 구조", categories: [["love-solo-05-01", "5-1 집착의 발화점"],["love-solo-05-02", "5-2 불안이 커지는 조건"],["love-solo-05-03", "5-3 과몰입의 회로"],["love-solo-05-04", "5-4 감정 소진의 구조"],["love-solo-05-05", "5-5 중독 관계의 특징"],["love-solo-05-06", "5-6 정서 해독 전략"]] },
+  { id: "love-solo-06", title: "Ch.6 관계 회복력", categories: [["love-solo-06-01", "6-1 회복 탄성의 기본값"],["love-solo-06-02", "6-2 갈등 복구 방식"],["love-solo-06-03", "6-3 다시 연결되는 조건"],["love-solo-06-04", "6-4 신뢰 회복 루틴"],["love-solo-06-05", "6-5 복원에 필요한 시간"],["love-solo-06-06", "6-6 회복력 강화 전략"]] },
+  { id: "love-solo-07", title: "Ch.7 결혼 운과 장기 연애", categories: [["love-solo-07-01", "7-1 결혼에 대한 기본 태도"],["love-solo-07-02", "7-2 장기 관계에서 강해지는 부분"],["love-solo-07-03", "7-3 장기 관계에서 약해지는 부분"],["love-solo-07-04", "7-4 함께 살기 위한 조건"],["love-solo-07-05", "7-5 책임과 안정의 구조"],["love-solo-07-06", "7-6 장기 인연 운용 전략"]] },
+  { id: "love-solo-08", title: "Ch.8 위험한 사랑 패턴", categories: [["love-solo-08-01", "8-1 위험 인연의 신호"],["love-solo-08-02", "8-2 상처를 키우는 조합"],["love-solo-08-03", "8-3 피해야 할 집착 구조"],["love-solo-08-04", "8-4 반복 금기 패턴"],["love-solo-08-05", "8-5 경계선을 세우는 법"],["love-solo-08-06", "8-6 차단 기준"]] },
+  { id: "love-solo-09", title: "Ch.9 현실 연애 전략", categories: [["love-solo-09-01", "9-1 고백·대화·거리감 실전 전략"],["love-solo-09-02", "9-2 관계 초기 운영 체크리스트"],["love-solo-09-03", "9-3 갈등 시 복구 루틴"],["love-solo-09-04", "9-4 나를 설명하는 방식"],["love-solo-09-05", "9-5 신뢰를 쌓는 행동"],["love-solo-09-06", "9-6 장기적 관계 운영 규칙"]] },
+  { id: "love-solo-10", title: "Ch.10 최종 연애 로드맵", categories: [["love-solo-10-01", "10-1 핵심 매력 요약"],["love-solo-10-02", "10-2 반복 약점 정리"],["love-solo-10-03", "10-3 지금 강화할 태도"],["love-solo-10-04", "10-4 반드시 피할 선택"],["love-solo-10-05", "10-5 다음 사랑을 위한 준비"],["love-solo-10-06", "10-6 최종 실행 조언"]] },
 ]);
 
 const COMPAT_CHAPTER_DEFS = Object.freeze([
@@ -229,7 +231,7 @@ export function validateSajuLovePdfPayload(payload = {}) {
   });
 
   if (mode === "solo") {
-    if (soloChapters.length !== 8) errors.push("solo_chapters:must_be_8");
+    if (soloChapters.length !== 10) errors.push("solo_chapters:must_be_10");
     if (compatChapters.length > 0) errors.push("solo_mode_no_compatibility_chapters");
     if (payload?.partner) errors.push("solo_mode_no_partner");
     if (payload?.compatibility) errors.push("solo_mode_no_compatibility");

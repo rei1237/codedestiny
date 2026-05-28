@@ -49,9 +49,10 @@ test('love secret coin gate is only wired on solo and compatibility start handle
     'window.lsStartWithPartner = function () {'
   );
 
-  assert.ok(script.includes("'/api/billing/coin-gate'"));
+  assert.ok(script.includes("_getLoveBookCoinGateHelper"));
+  assert.ok(script.includes("saju_love_book_pdf"));
   assert.ok(compatibilitySlice.includes('_runLoveSecretCoinGate('));
-  assert.ok(compatibilitySlice.includes('LOVE_SECRET_FEATURE_KEYS.compatibility'));
+  assert.ok(compatibilitySlice.includes("_runLoveSecretCoinGate('compatibility'"));
   assert.ok(soloSlice.includes('_runLoveSecretCoinGate('));
-  assert.ok(soloSlice.includes('LOVE_SECRET_FEATURE_KEYS.solo'));
+  assert.ok(soloSlice.includes("_runLoveSecretCoinGate('solo'"));
 });
