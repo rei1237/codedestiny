@@ -17,6 +17,7 @@ import { handleUserRoutes } from "./routes/user.js";
 import { handleProfileRoutes } from "./routes/profile.js";
 import { handleSubscriptionRoutes } from "./routes/subscriptions.js";
 import { handleAstroRoutes } from "./routes/astro.js";
+import { handleSukuyoRoutes } from "./routes/sukuyo.js";
 import { handleInsightsRoutes } from "./routes/insights.js";
 import { handleContentRoutes } from "./routes/content.js";
 import { handlePalmRoutes } from "./routes/palm.js";
@@ -700,11 +701,7 @@ export default {
         url.pathname === "/api/sukuyo"
         || url.pathname.startsWith("/api/sukuyo/")
       ) {
-        return jsonResponse(request, env, {
-          ok: false,
-          error: "removed_feature",
-          message: "sukuyo premium PDF 엔드포인트는 제거되었습니다.",
-        }, { status: 410 });
+        return withCorsHeaders(request, env, await handleSukuyoRoutes(request, env));
       }
 
       if (url.pathname === "/api/astro" || url.pathname.startsWith("/api/astro/")) {

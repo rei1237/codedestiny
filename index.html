@@ -3108,7 +3108,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <h3 id="fgTitlePremiumVvip" class="feat-collection__title">VVIP 프리미엄 PDF 컬렉션</h3>
                 <p class="feat-collection__subtitle">로컬 계산 기반 프리미엄 PDF 리포트</p>
                 <p class="feat-collection__lede">사주와 점성술 계산 데이터를 바탕으로 프리미엄 리포트를 결제/권한 확인 후 생성 화면에서 제작할 수 있습니다.</p>
-                <p class="feat-collection__featureline">프리미엄 심층 분석 · 개인형 · 300~500코인</p>
+                <p class="feat-collection__featureline">프리미엄 심층 분석 · 개인/궁합형 · 300~500코인</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
                   <span class="fc-div-line"></span>
@@ -3193,6 +3193,30 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                       <span class="tarot-tile__badge">태양·달·상승궁</span>
                       <span class="tarot-tile__badge">행성·하우스·애스펙트</span>
                       <span class="tarot-tile__badge">점성술 리포트 생성하기</span>
+                    </div>
+                  </div>
+                </button>
+<button class="tarot-tile prem-card tarot-tile--sukyo-premium" type="button"
+                        data-action="gotoSukuyoPremium"
+                        data-coin-cost="490"
+                        data-service-detail-href="/services/sukyo"
+                        data-pvw-bypass="1"
+                        data-sukyo-premium-card="visible-v20260529"
+                        aria-label="숙요점 프리미엄 궁합 PDF 생성 시작">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/sukyo_premium.webp" data-img-alt="숙요점 프리미엄 궁합 PDF 대표 이미지">
+                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">💫</span></div>
+                    <span class="tarot-tile__badge tarot-tile__badge--new">SUKYO</span>
+                    <span class="tarot-tile__coin-badge">1회 490코인</span>
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">숙요점 프리미엄 궁합 PDF</span>
+                    <span class="tarot-tile__desc">27개의 달별로 읽는 두 사람의 인연</span>
+                    <span class="tarot-tile__desc">본인과 상대방의 숙을 바탕으로 끌림, 갈등, 전생 인연, 연애 궁합, 결혼 가능성, 관계 회복 전략까지 15챕터로 풀어드립니다.</span>
+                    <div class="tarot-tile__badges" aria-label="상품 특징">
+                      <span class="tarot-tile__badge">SUKYO</span>
+                      <span class="tarot-tile__badge">COMPATIBILITY</span>
+                      <span class="tarot-tile__badge">15 CHAPTERS</span>
+                      <span class="tarot-tile__badge">숙요점 궁합 PDF 생성하기</span>
                     </div>
                   </div>
                 </button>
@@ -5809,7 +5833,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     </div>
 
     <!-- 숙요점 프리미엄 모달 -->
-    <div id="sukuyoBookModal" class="lb-modal" role="dialog" aria-modal="true" aria-label="숙요점 프리미엄 리포트" style="display:none;">
+    <div id="sukuyoBookModal" class="lb-modal" role="dialog" aria-modal="true" aria-label="숙요점 프리미엄 궁합 리포트" style="display:none;">
       <div class="lb-modal__overlay" data-action="closeSukuyoBookModal"></div>
       <div class="lb-modal__panel" style="--lb-accent:#7dd3fc;--lb-accent2:#0284c7;">
         <div class="lb-modal__header">
@@ -5818,8 +5842,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <span class="lb-header-title-en">SUKUYO 宿曜占 PREMIUM</span>
             <span class="lb-header-star">✦</span>
           </div>
-          <h2 class="lb-modal__title" id="skModalTitle">💫 숙요점 프리미엄 리포트</h2>
-          <p class="lb-modal__subtitle" id="skModalSubtitle">불교 밀교 비전 27수 기반 12챕터 개인/궁합 통합 리포트</p>
+          <h2 class="lb-modal__title" id="skModalTitle">💫 숙요점 프리미엄 궁합 PDF</h2>
+          <p class="lb-modal__subtitle" id="skModalSubtitle">27개의 달별로 읽는 두 사람의 인연 지도 · 15챕터 리포트</p>
           <button class="lb-modal__close" data-action="closeSukuyoBookModal" aria-label="닫기">✕</button>
         </div>
 
@@ -5835,13 +5859,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         <div id="skStartScreen" class="lb-screen lb-screen--start">
           <div class="lb-marketing-hero">
             <div class="lb-trust-badges">
-              <span class="lb-trust-badge">💫 12챕터 달빛 리딩</span>
+              <span class="lb-trust-badge">💫 15챕터 달빛 궁합</span>
               <span class="lb-trust-badge">🌙 27수 숙요 시스템</span>
-              <span class="lb-trust-badge">🪷 개인/궁합 선택</span>
-              <span class="lb-trust-badge lb-trust-badge--coin">🪙 690코인 · 1회</span>
+              <span class="lb-trust-badge">🪷 본인/상대 숙 계산</span>
+              <span class="lb-trust-badge lb-trust-badge--coin">🪙 490코인 · 1회</span>
             </div>
-            <p class="lb-marketing-headline">숙요 코드를 <strong>개인 성장/관계 전략서</strong>로 완성합니다</p>
-            <p class="lb-marketing-sub">개인 리포트는 본명숙 중심 자기운영 전략을, 궁합 리포트는 관계 역학과 갈등/회복 플랜을 제공합니다.</p>
+            <p class="lb-marketing-headline">숙요 코드를 <strong>두 사람의 관계 전략서</strong>로 완성합니다</p>
+            <p class="lb-marketing-sub">본인과 상대방의 본명숙, 관계 타입, 거리감을 계산한 뒤 끌림·갈등·전생 인연·현실 조율을 15챕터로 정리합니다.</p>
           </div>
 
           <div class="lb-why-section">
@@ -5862,7 +5886,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <div class="lb-why-item">
               <span class="lb-why-icon">🧭</span>
               <div>
-                <strong>12챕터 관계 운영 가이드</strong>
+                <strong>15챕터 관계 운영 가이드</strong>
                 <span>언제 다가가고 언제 거리 둘지 시기별/상황별 전략을 제시합니다.</span>
               </div>
             </div>
@@ -5879,7 +5903,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <button type="button" class="tog-btn on" id="skModePersonalBtn">🪷 개인 리포트</button>
               <button type="button" class="tog-btn" id="skModeCompatBtn">💞 궁합 리포트</button>
             </div>
-            <p id="skModeHint" class="lb-start-desc" style="margin-top:10px;">본인 정보만으로 본명숙 성향과 실행 전략을 분석합니다.</p>
+            <p id="skModeHint" class="lb-start-desc" style="margin-top:10px;">숙요점 프리미엄 PDF는 본인과 상대방 정보를 함께 사용해 궁합 리포트로 생성됩니다.</p>
           </div>
 
           <!-- 상대방 정보 입력 폼 -->
@@ -5913,24 +5937,24 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           </div>
 
           <div class="lb-start-info">
-            <p class="lb-start-desc" id="skStartDesc">숙요 명반을 기반으로 <strong>개인 중심 12개 챕터</strong>를 제공합니다.</p>
+            <p class="lb-start-desc" id="skStartDesc">본인과 상대방의 본명숙, 관계 타입, 거리감을 바탕으로 <strong>15챕터 궁합 PDF</strong>를 생성합니다.</p>
             <div class="lb-coin-notice">
               <span class="lb-coin-icon">🪙</span>
-              <span class="lb-coin-label"><strong>690코인</strong> · 생성 즉시 PDF 저장</span>
+              <span class="lb-coin-label"><strong>490코인</strong> · 생성 즉시 PDF 저장</span>
             </div>
             <button class="lb-start__cta" id="skStartBtn" onclick="generateSukuyoBook()">
-              🪷 숙요 개인 리포트 생성하기
+              숙요점 궁합 PDF 생성하기
             </button>
             <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
           </div>
           <div class="lb-start__chapters">
-            <div class="lb-start__ch-label" id="skChapterLabel">📖 12챕터 구성</div>
+            <div class="lb-start__ch-label" id="skChapterLabel">📖 15챕터 구성</div>
             <ul class="lb-start__ch-list" id="skChapterList">
-              <li class="lb-start__ch-item"><span class="lb-start__ch-num">I</span><span>두 사람의 숙요 궁합 총론</span></li>
-              <li class="lb-start__ch-item"><span class="lb-start__ch-num">II</span><span>27숙 개별 성향 분석</span></li>
-              <li class="lb-start__ch-item"><span class="lb-start__ch-num">III</span><span>숙요 관계 유형 분석</span></li>
-              <li class="lb-start__ch-item"><span class="lb-start__ch-num">IV</span><span>현실 리듬 및 생활 조율</span></li>
-              <li class="lb-start__ch-item"><span class="lb-start__ch-num">V</span><span>최종 실행 전략</span></li>
+              <li class="lb-start__ch-item"><span class="lb-start__ch-num">1</span><span>나의 본명숙 — 태어날 때 새겨진 달의 별</span></li>
+              <li class="lb-start__ch-item"><span class="lb-start__ch-num">2</span><span>상대방의 본명숙 — 그 사람의 숨은 감정 코드</span></li>
+              <li class="lb-start__ch-item"><span class="lb-start__ch-num">3</span><span>두 사람의 관계 타입 — 인연의 이름</span></li>
+              <li class="lb-start__ch-item"><span class="lb-start__ch-num">4</span><span>관계 거리 — 가까운 인연인가, 먼 인연인가</span></li>
+              <li class="lb-start__ch-item"><span class="lb-start__ch-num">15</span><span>최종 궁합 판정 — 이 인연을 어떻게 살릴 것인가</span></li>
             </ul>
           </div>
         </div>
@@ -5943,32 +5967,42 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           <div class="lb-loading-orb" aria-hidden="true">
             <div class="lb-orb-ring lb-orb-ring--1"></div><div class="lb-orb-ring lb-orb-ring--2"></div><div class="lb-orb-ring lb-orb-ring--3"></div><div class="lb-orb-core">💫</div>
           </div>
-          <p class="lb-loading-title" id="skLoadingTitle">숙요 흐름을 해석하는 중입니다</p>
+          <p class="lb-loading-title" id="skLoadingTitle">숙요점 프리미엄 궁합 PDF를 생성하는 중입니다</p>
           <div class="lb-loading-chapter-box">
             <span class="lb-loading-chapter-num" id="skLoadingChapterNum">Chapter 1</span>
-            <p class="lb-loading-chapter" id="skLoadingChapter">탄생 숙요(宿曜)의 원형 코드를 해독하는 중...</p>
+            <p class="lb-loading-chapter" id="skLoadingChapter">두 사람의 달별을 찾는 중입니다</p>
           </div>
           <div class="lb-mystic-wrap">
             <span class="lb-mystic-deco" aria-hidden="true">✦</span>
-            <p class="lb-mystic-quote" id="skMysticQuote">숙요(宿曜)는 달이 하늘을 여행하며 만나는 27개의 별자리 여관입니다.</p>
+            <p class="lb-mystic-quote" id="skMysticQuote">계산된 본명숙과 관계 거리를 바탕으로 15챕터 상담 리포트를 구성하고 있습니다.</p>
             <span class="lb-mystic-deco" aria-hidden="true">✦</span>
           </div>
           <div class="lb-ch-grid" id="skChapterDotGrid">
-            <span class="lb-ch-dot sk-ch-dot lb-ch-dot--active" data-skch="1"  title="I 총론">Ⅰ</span>
-            <span class="lb-ch-dot sk-ch-dot" data-skch="2"  title="II 성향">Ⅱ</span>
-            <span class="lb-ch-dot sk-ch-dot" data-skch="3"  title="III 관계유형">Ⅲ</span>
-            <span class="lb-ch-dot sk-ch-dot" data-skch="4"  title="IV 거리">Ⅳ</span>
-            <span class="lb-ch-dot sk-ch-dot" data-skch="5"  title="V 첫끌림">Ⅴ</span>
+            <span class="lb-ch-dot sk-ch-dot lb-ch-dot--active" data-skch="1" title="Chapter 1">1</span>
+            <span class="lb-ch-dot sk-ch-dot" data-skch="2" title="Chapter 2">2</span>
+            <span class="lb-ch-dot sk-ch-dot" data-skch="3" title="Chapter 3">3</span>
+            <span class="lb-ch-dot sk-ch-dot" data-skch="4" title="Chapter 4">4</span>
+            <span class="lb-ch-dot sk-ch-dot" data-skch="5" title="Chapter 5">5</span>
+            <span class="lb-ch-dot sk-ch-dot" data-skch="6" title="Chapter 6">6</span>
+            <span class="lb-ch-dot sk-ch-dot" data-skch="7" title="Chapter 7">7</span>
+            <span class="lb-ch-dot sk-ch-dot" data-skch="8" title="Chapter 8">8</span>
+            <span class="lb-ch-dot sk-ch-dot" data-skch="9" title="Chapter 9">9</span>
+            <span class="lb-ch-dot sk-ch-dot" data-skch="10" title="Chapter 10">10</span>
+            <span class="lb-ch-dot sk-ch-dot" data-skch="11" title="Chapter 11">11</span>
+            <span class="lb-ch-dot sk-ch-dot" data-skch="12" title="Chapter 12">12</span>
+            <span class="lb-ch-dot sk-ch-dot" data-skch="13" title="Chapter 13">13</span>
+            <span class="lb-ch-dot sk-ch-dot" data-skch="14" title="Chapter 14">14</span>
+            <span class="lb-ch-dot sk-ch-dot" data-skch="15" title="Chapter 15">15</span>
           </div>
           <div class="lb-loading-progress"><div class="lb-progress-bar" id="skProgressBar"></div></div>
-          <p class="lb-progress-text" id="skProgressText">0 / 12 챕터 완성</p>
+          <p class="lb-progress-text" id="skProgressText">0 / 15 챕터 완성</p>
         </div>
 
         <!-- 결과 화면 -->
         <div id="skResultScreen" class="lb-screen lb-screen--result" style="display:none;">
           <div class="lb-result__header">
             <div class="lb-result__symbol" aria-hidden="true">💫</div>
-            <h3 class="lb-result__title" id="skResultTitle">숙요점 프리미엄 리포트 완성</h3>
+            <h3 class="lb-result__title" id="skResultTitle">숙요점 프리미엄 궁합 PDF 완성</h3>
             <div class="lb-result__meta">
               <span id="skResultName" class="lb-result__name"></span>
               <span id="skResultDate" class="lb-result__date"></span>
@@ -9089,6 +9123,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     generateLifeBook: true,
     openLoveSecretModal: true,
     generateLoveSecret: true,
+    gotoSukuyoPremium: true,
+    openSukuyoBookModal: true,
+    generateSukuyoBook: true,
   });
 
   // 회당 코인 차감 공통 로직 (click / touchend 양쪽에서 사용)
@@ -9615,6 +9652,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script data-cd-noncritical-src="/js/love-secret-v2.js?v=build-1779989955399" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/life-book.js?v=build-1779989955399" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/astro-book.js?v=build-1779989955399" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/sukuyo-book.js?v=build-1779992701558" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/image-fallback.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/runtime-stability.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/touch-perf.js" data-cd-mobile-delay="1"></script>
