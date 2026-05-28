@@ -2,7 +2,7 @@ const CHAPTER_DEFINITIONS = [
   {
     number: 1,
     roman: "I",
-    title: "Ch.1 사주 원국 총론 - 내 인생의 기본 설계도",
+    title: "원국 총론 — 타고난 삶의 설계도",
     subtitle: "원국의 핵심 구조와 반복 신호를 통합 진단",
     targetChars: 4200,
     sections: [
@@ -17,7 +17,7 @@ const CHAPTER_DEFINITIONS = [
   {
     number: 2,
     roman: "II",
-    title: "Ch.2 일간 심층 분석 - 나는 어떤 사람인가",
+    title: "일간과 자아 구조 — 나는 어떤 사람인가",
     subtitle: "일간 중심 성향, 강약, 생존 전략의 실전 해석",
     targetChars: 4200,
     sections: [
@@ -32,7 +32,7 @@ const CHAPTER_DEFINITIONS = [
   {
     number: 3,
     roman: "III",
-    title: "Ch.3 오행 균형 분석 - 내 삶의 에너지 지도",
+    title: "오행 균형 — 부족한 것과 넘치는 것",
     subtitle: "오행 분포와 생활 전략의 연결",
     targetChars: 4200,
     sections: [
@@ -47,7 +47,7 @@ const CHAPTER_DEFINITIONS = [
   {
     number: 4,
     roman: "IV",
-    title: "Ch.4 십성 분석 - 재능, 관계, 욕망의 구조",
+    title: "십성 구조 — 재능, 욕망, 관계 방식",
     subtitle: "십성 분포로 읽는 현실 행동 패턴",
     targetChars: 4200,
     sections: [
@@ -62,7 +62,7 @@ const CHAPTER_DEFINITIONS = [
   {
     number: 5,
     roman: "V",
-    title: "Ch.5 격국과 용신 - 운을 여는 핵심 키",
+    title: "강점과 약점 — 반복되는 인생 패턴",
     subtitle: "격국 구조와 용희기신 작동 조건",
     targetChars: 4200,
     sections: [
@@ -77,7 +77,7 @@ const CHAPTER_DEFINITIONS = [
   {
     number: 6,
     roman: "VI",
-    title: "Ch.6 직업과 재물 - 돈을 버는 방식과 성공 구조",
+    title: "직업과 돈 — 성공 방식과 재물 흐름",
     subtitle: "재성·식상·관성 중심 커리어/재물 전략",
     targetChars: 4200,
     sections: [
@@ -92,7 +92,7 @@ const CHAPTER_DEFINITIONS = [
   {
     number: 7,
     roman: "VII",
-    title: "Ch.7 인간관계와 사랑 - 관계에서 반복되는 패턴",
+    title: "사랑과 인간관계 — 끌림, 상처, 인연",
     subtitle: "관계 신호와 연애 패턴의 현실 해석",
     targetChars: 4200,
     sections: [
@@ -107,7 +107,7 @@ const CHAPTER_DEFINITIONS = [
   {
     number: 8,
     roman: "VIII",
-    title: "Ch.8 가족·뿌리·내면 안정 - 내가 기대고 싶은 자리",
+    title: "가족과 뿌리 — 원가족, 독립, 심리 구조",
     subtitle: "가족/뿌리 신호와 정서 기반 재정비",
     targetChars: 4200,
     sections: [
@@ -122,7 +122,7 @@ const CHAPTER_DEFINITIONS = [
   {
     number: 9,
     roman: "IX",
-    title: "Ch.9 건강과 마음의 습관 - 몸과 감정의 관리법",
+    title: "건강과 에너지 — 몸과 마음의 관리법",
     subtitle: "오행 불균형 기반의 소모/회복 루틴 진단",
     targetChars: 4200,
     sections: [
@@ -137,7 +137,7 @@ const CHAPTER_DEFINITIONS = [
   {
     number: 10,
     roman: "X",
-    title: "Ch.10 12운성과 인생 리듬 - 성장과 쇠퇴의 흐름",
+    title: "대운 흐름 — 인생 전환기의 지도",
     subtitle: "12운성 기반 리듬과 운영 전략",
     targetChars: 4200,
     sections: [
@@ -152,7 +152,7 @@ const CHAPTER_DEFINITIONS = [
   {
     number: 11,
     roman: "XI",
-    title: "Ch.11 대운 흐름 - 인생의 큰 전환점",
+    title: "위기와 회복 — 무너지는 패턴과 다시 서는 법",
     subtitle: "현재/다음 대운의 기회와 리스크 진단",
     targetChars: 4200,
     sections: [
@@ -167,7 +167,7 @@ const CHAPTER_DEFINITIONS = [
   {
     number: 12,
     roman: "XII",
-    title: "Ch.12 최종 인생 로드맵 - 앞으로의 선택 기준",
+    title: "최종 인생 로드맵 — 앞으로의 전략",
     subtitle: "전체 요약과 실행 중심 최종 전략",
     targetChars: 4200,
     sections: [

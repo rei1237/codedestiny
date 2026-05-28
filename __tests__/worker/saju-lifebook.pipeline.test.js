@@ -91,6 +91,9 @@ describe("Saju LifeBook pipeline", () => {
     const normalized = buildLifeBookInputData(makeBody(), { year: 1991, month: 2, day: 20, hour: 8, minute: 30 });
     const payload = buildSajuLifeBookPdfPayload(normalized, LIFE_BOOK_CHAPTERS);
 
+    expect(payload.featureKey).toBe("saju_life_book_pdf");
+    expect(payload.mode).toBe("life-book");
+    expect(payload.accessGrant && payload.accessGrant.featureKey).toBe("saju_life_book_pdf");
     expect(payload.chapters).toHaveLength(12);
     payload.chapters.forEach((chapter) => {
       expect(Array.isArray(chapter.categories)).toBe(true);

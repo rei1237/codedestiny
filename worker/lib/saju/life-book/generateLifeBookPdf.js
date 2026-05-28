@@ -10,6 +10,7 @@ import { renderLifeBookPdf } from "./renderLifeBookPdf.js";
 import {
   assertNoSajuLifeBookFallbackText,
   buildSajuLifeBookPdfPayload,
+  FEATURE_KEY_SAJU_LIFE_BOOK_PDF,
   validateSajuLifeBookPdfPayload,
 } from "./lifeBookPdfContract.js";
 
@@ -31,6 +32,18 @@ const LIFEBOOK_FORBIDDEN_TEXTS = [
   "schema",
   "status",
   "completed",
+];
+
+const LIFEBOOK_BANNED_CATEGORY_TEXTS = [
+  "현재 확보된",
+  "자동 복구 생성",
+  "내용이 없습니다",
+  "분석 결과를 준비",
+  "undefined",
+  "null",
+  "[object Object]",
+  "Chapter 1",
+  "Chapter 2",
 ];
 
 function logLifeBookStage(stage, detail = {}) {
@@ -108,6 +121,80 @@ function applyLenientLifeBookCoreDefaults(lifeBookInputData = {}) {
   };
 
   return data;
+}
+
+function mergeSajuResultIntoLifeBookInputData(lifeBookInputData = {}, sajuResult = {}) {
+  const next = lifeBookInputData && typeof lifeBookInputData === "object" ? { ...lifeBookInputData } : {};
+  const pillars = sajuResult && typeof sajuResult.pillars === "object" ? sajuResult.pillars : {};
+  next.sajuChart = {
+    ...(next.sajuChart || {}),
+    yearPillar: String((next.sajuChart && next.sajuChart.yearPillar) || pillars.year || "").trim(),
+    monthPillar: String((next.sajuChart && next.sajuChart.monthPillar) || pillars.month || "").trim(),
+    dayPillar: String((next.sajuChart && next.sajuChart.dayPillar) || pillars.day || "").trim(),
+    hourPillar: String((next.sajuChart && next.sajuChart.hourPillar) || pillars.hour || "").trim() || undefined,
+    dayMaster: String((next.sajuChart && next.sajuChart.dayMaster) || sajuResult.dayMaster || "").trim(),
+  };
+  next.fiveElements = {
+    ...(next.fiveElements || {}),
+    ...(sajuResult.fiveElements && typeof sajuResult.fiveElements === "object" ? sajuResult.fiveElements : {}),
+  };
+  next.tenGods = {
+    ...(next.tenGods || {}),
+    ...(sajuResult.tenGods && typeof sajuResult.tenGods === "object" ? sajuResult.tenGods : {}),
+  };
+  if (sajuResult.usefulGod || sajuResult.avoidGod) {
+    next.yongshin = {
+      ...(next.yongshin || {}),
+      yongshin: sajuResult.usefulGod ? [String(sajuResult.usefulGod)] : (next.yongshin?.yongshin || []),
+      gishin: sajuResult.avoidGod ? [String(sajuResult.avoidGod)] : (next.yongshin?.gishin || []),
+    };
+  }
+  return next;
+}
+
+function toLifeBookCategoryNo(chapterNo, categoryNo) {
+  return `c${String(chapterNo).padStart(2, "0")}-${String(categoryNo).padStart(2, "0")}`;
+}
+
+function buildLifeBookCategories(chapter = {}, chapterNo = 1) {
+  const chapterJson = chapter?.chapterJson && typeof chapter.chapterJson === "object" ? chapter.chapterJson : {};
+  const sections = Array.isArray(chapterJson.sections) ? chapterJson.sections : [];
+  return sections.map((section, idx) => {
+    const body = String(section?.body || section?.content || "").trim();
+    return {
+      categoryNo: toLifeBookCategoryNo(chapterNo, idx + 1),
+      title: String(section?.title || `세부 카테고리 ${idx + 1}`).trim(),
+      purpose: "사주 데이터 기반 상담문",
+      localSkeleton: String(section?.title || "").trim(),
+      llmText: body,
+      finalText: body,
+    };
+  });
+}
+
+function validateLifeBookCategory(category) {
+  const finalText = String(category?.finalText || "");
+  if (!finalText || finalText.length < 800) {
+    throw new Error(`CATEGORY_TEXT_EMPTY:${String(category?.categoryNo || "unknown")}`);
+  }
+  for (const word of LIFEBOOK_BANNED_CATEGORY_TEXTS) {
+    if (finalText.includes(word)) {
+      throw new Error(`CATEGORY_TEXT_INVALID:${String(category?.categoryNo || "unknown")}:${word}`);
+    }
+  }
+}
+
+function validateLifeBookBeforeRender(chapters = []) {
+  if (chapters.length !== 12) {
+    throw new Error(`LIFE_BOOK_CHAPTER_COUNT_INVALID:${chapters.length}`);
+  }
+  chapters.forEach((chapter, index) => {
+    const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
+    if (categories.length < 5) {
+      throw new Error(`LIFE_BOOK_CATEGORY_COUNT_INVALID:${index + 1}`);
+    }
+    categories.forEach((category) => validateLifeBookCategory(category));
+  });
 }
 
 function countChars(text) {
@@ -480,10 +567,14 @@ export async function generateLifeBookPdf(params = {}) {
   if (onProgress) onProgress({ code: "CALCULATING_SAJU", message: "사주 명식 계산 중" });
 
   logLifeBookStage("INPUT_NORMALIZE_START", { reportId });
-  const lifeBookInputData = applyLenientLifeBookCoreDefaults(buildLifeBookInputData(body, normalizedInput));
+  let lifeBookInputData = applyLenientLifeBookCoreDefaults(buildLifeBookInputData(body, normalizedInput));
+  if (body?.sajuResult && typeof body.sajuResult === "object") {
+    lifeBookInputData = mergeSajuResultIntoLifeBookInputData(lifeBookInputData, body.sajuResult);
+  }
   logLifeBookStage("INPUT_NORMALIZE_SUCCESS", { reportId });
 
   const strictCheck = isStrictMissingCore(lifeBookInputData);
+  const forceLocalForMissingCore = !strictCheck.ok;
   if (strictMode && !strictCheck.ok) {
     return {
       ok: false,
@@ -521,6 +612,17 @@ export async function generateLifeBookPdf(params = {}) {
     });
   }
   logLifeBookStage("PAYLOAD_NORMALIZE_SUCCESS", { reportId });
+  try {
+    console.info("[SajuLifeBookAPI] generation start", {
+      featureKey: FEATURE_KEY_SAJU_LIFE_BOOK_PDF,
+      accessOk: true,
+      hasSajuResult: Boolean(body?.sajuResult),
+      hasBirthData: Boolean(body?.birthData || lifeBookInputData?.userProfile?.birthDate),
+      reportId,
+    });
+  } catch {
+    // no-op
+  }
   if (onProgress) onProgress({ code: "NORMALIZING_INPUT", message: "인생의 책 데이터 정리 중" });
 
   const chapterManifest = Array.isArray(pdfPayload?.chapters) && pdfPayload.chapters.length
@@ -557,7 +659,7 @@ export async function generateLifeBookPdf(params = {}) {
       chapterConfig,
       lifeBookInputData,
       strictMode,
-      forceLocal: localOnly,
+      forceLocal: localOnly || forceLocalForMissingCore,
       maxRetries: 2,
       previousTexts: [
         ...previousTexts,
@@ -726,6 +828,33 @@ export async function generateLifeBookPdf(params = {}) {
   logLifeBookStage("RenderStart", { reportId });
 
   const sanitizedChapters = sanitizeLifeBookChapters(chapters);
+  const chaptersWithCategories = sanitizedChapters.map((chapter, idx) => ({
+    ...chapter,
+    chapterNo: idx + 1,
+    categories: buildLifeBookCategories(chapter, idx + 1),
+  }));
+  try {
+    const emptyCategories = chaptersWithCategories
+      .flatMap((chapter) => (Array.isArray(chapter.categories) ? chapter.categories : []))
+      .filter((cat) => !String(cat?.finalText || "").trim() || String(cat?.finalText || "").trim().length < 800)
+      .map((cat) => cat.categoryNo);
+    console.info("[SajuLifeBookPDF] before render", {
+      chapterCount: chaptersWithCategories.length,
+      categoryCount: chaptersWithCategories.reduce((sum, ch) => sum + (Array.isArray(ch.categories) ? ch.categories.length : 0), 0),
+      emptyCategories,
+    });
+    validateLifeBookBeforeRender(chaptersWithCategories);
+  } catch (error) {
+    return {
+      ok: false,
+      code: "SAJU_LIFE_BOOK_CATEGORY_VALIDATION_FAILED",
+      message: String(error?.message || "카테고리 본문 검증 실패"),
+      retryable: true,
+      detail: {
+        reportId,
+      },
+    };
+  }
   sanitizedChapters.forEach((chapter, index) => {
     const chapterMeta = targetChapters[index] || {};
     assertNoSajuLifeBookFallbackText(`${chapter?.title || ""}\n${chapter?.summary || ""}\n${chapter?.contentMarkdown || ""}`, {

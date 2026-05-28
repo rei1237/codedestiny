@@ -254,6 +254,10 @@ const ASTRO_FORBIDDEN_REPEATED_PHRASES = [
   "오늘 실행할 행동 1가지를 정하고",
   "반복 가능한 루틴은 작은 단위부터 고정",
   "관계/일/재정 적용",
+  "이번 주에는 추진할 것·보류할 것·점검할 것을 분리해 실행하세요.",
+  "동일한 방식으로 2주 연속 기록하면 반복 패턴이 명확해집니다.",
+  "강점 에너지를 과신하지 않고, 긴장 신호를 조기 감지하세요.",
+  "실행 속도와 회복 속도의 균형을 맞추는 것이 중요합니다.",
   "ASC·Sun·Moon은 같은 성격을 다른 각도에서 보여주는 좌표입니다.",
   "어스펙트는 저주가 아니라 에너지의 패턴이며, 관리 가능한 행동 변수입니다.",
   "장점과 약점은 같은 에너지의 사용 방식 차이에서 갈립니다.",
@@ -4113,12 +4117,21 @@ function normalizePremiumRequestBodyForPipeline(reportType, sourceInput = {}) {
   }
 
   if (reportType === "sookyoPremium") {
-    if (!hasMeaningfulValue(normalized.mode)) normalized.mode = "compatibility";
-    normalized.reportMode = "compatibility";
-    normalized.reportType = "compatibility";
-    normalized.includeCompatibility = true;
-    normalized._compatibilityRequired = true;
-    if (!hasMeaningfulValue(normalized.totalChapters)) normalized.totalChapters = 16;
+    const modeToken = String(normalized.mode || normalized.reportMode || normalized.reportType || "").trim().toLowerCase();
+    const isCompatMode = modeToken === "compatibility"
+      || modeToken === "compat"
+      || modeToken === "couple"
+      || modeToken === "partner"
+      || hasPremiumPartnerBirthData(extractPremiumPartnerBirth(normalized));
+    const resolvedMode = isCompatMode ? "compatibility" : "personal";
+    normalized.mode = resolvedMode;
+    normalized.reportMode = resolvedMode;
+    normalized.reportType = resolvedMode;
+    normalized.includeCompatibility = isCompatMode;
+    normalized._compatibilityRequired = isCompatMode;
+    if (!hasMeaningfulValue(normalized.totalChapters)) {
+      normalized.totalChapters = getSukyoPdfChapters(resolvedMode).length;
+    }
   }
 
   if (reportType === "loveSecret") {
@@ -5295,6 +5308,7 @@ function mapSookyoCalculatedData(canonical, requestBody) {
 
   const sukyoPdfContext = buildSukyoPdfContext({
     canonical: source,
+    normalizedPayload: requestBody?.sukuyoPayload || requestBody?.normalizedPayload || null,
     requestBody,
     rawBasicResult: {
       summary:
@@ -7251,28 +7265,114 @@ function buildChapterJsonPacks(reportType, chapterId, reportData) {
   }
 
   if (reportType === "westernAstrologyPremium") {
+    const canonicalFallback = reportData?.canonicalAstroChart
+      || ((reportData?.angles && reportData?.planets) ? reportData : null);
+    const fallbackPlanetMap = (() => {
+      if (!Array.isArray(canonicalFallback?.planets)) return {};
+      const out = {};
+      canonicalFallback.planets.forEach((row) => {
+        const key = String(row?.nameEn || "").trim().toLowerCase();
+        if (!key) return;
+        out[key] = {
+          sign: row?.sign || null,
+          degree: Number.isFinite(Number(row?.degree)) ? Number(row.degree) : null,
+          house: Number.isFinite(Number(row?.house)) ? Number(row.house) : null,
+        };
+      });
+      return out;
+    })();
+    const fallbackAspects = Array.isArray(canonicalFallback?.aspects)
+      ? canonicalFallback.aspects.map((row) => ({
+        from: String(row?.planetA || "").trim(),
+        to: String(row?.planetB || "").trim(),
+        type: String(row?.type || "").trim(),
+        orb: Number.isFinite(Number(row?.orb)) ? Number(row.orb) : null,
+      }))
+      : [];
+    const fallbackHouses = Array.isArray(canonicalFallback?.houses)
+      ? canonicalFallback.houses.map((row) => ({
+        house: Number.isFinite(Number(row?.house)) ? Number(row.house) : null,
+        sign: String(row?.cuspSign || "").trim(),
+        ruler: String(row?.ruler || "").trim(),
+      }))
+      : [];
+    const fallbackBirthInfo = canonicalFallback?.profile?.birth && typeof canonicalFallback.profile.birth === "object"
+      ? {
+        date: String(canonicalFallback.profile.birth.date || "").trim(),
+        time: String(canonicalFallback.profile.birth.time || "").trim(),
+        location: String(canonicalFallback.profile.birth.locationName || "").trim(),
+      }
+      : {};
+
     return {
       chapterCore,
       signals: {
-        birthInfo: toPlainObject(calculatedData.birthInfo),
-        angles: toPlainObject(calculatedData.angles),
+        birthInfo: (() => {
+          const raw = toPlainObject(calculatedData.birthInfo);
+          return Object.keys(raw).length > 0 ? raw : fallbackBirthInfo;
+        })(),
+        angles: (() => {
+          const raw = toPlainObject(calculatedData.angles);
+          if (Object.keys(raw).length > 0) return raw;
+          return {
+            ascendant: toPlainObject(canonicalFallback?.angles?.ascendant),
+            mc: toPlainObject(canonicalFallback?.angles?.mc),
+          };
+        })(),
         planets: {
-          sun: toPlainObject(calculatedData?.planets?.sun),
-          moon: toPlainObject(calculatedData?.planets?.moon),
-          venus: toPlainObject(calculatedData?.planets?.venus),
-          mars: toPlainObject(calculatedData?.planets?.mars),
-          saturn: toPlainObject(calculatedData?.planets?.saturn),
+          sun: (() => {
+            const raw = toPlainObject(calculatedData?.planets?.sun);
+            return Object.keys(raw).length > 0 ? raw : toPlainObject(fallbackPlanetMap.sun);
+          })(),
+          moon: (() => {
+            const raw = toPlainObject(calculatedData?.planets?.moon);
+            return Object.keys(raw).length > 0 ? raw : toPlainObject(fallbackPlanetMap.moon);
+          })(),
+          mercury: (() => {
+            const raw = toPlainObject(calculatedData?.planets?.mercury);
+            return Object.keys(raw).length > 0 ? raw : toPlainObject(fallbackPlanetMap.mercury);
+          })(),
+          venus: (() => {
+            const raw = toPlainObject(calculatedData?.planets?.venus);
+            return Object.keys(raw).length > 0 ? raw : toPlainObject(fallbackPlanetMap.venus);
+          })(),
+          mars: (() => {
+            const raw = toPlainObject(calculatedData?.planets?.mars);
+            return Object.keys(raw).length > 0 ? raw : toPlainObject(fallbackPlanetMap.mars);
+          })(),
+          jupiter: (() => {
+            const raw = toPlainObject(calculatedData?.planets?.jupiter);
+            return Object.keys(raw).length > 0 ? raw : toPlainObject(fallbackPlanetMap.jupiter);
+          })(),
+          saturn: (() => {
+            const raw = toPlainObject(calculatedData?.planets?.saturn);
+            return Object.keys(raw).length > 0 ? raw : toPlainObject(fallbackPlanetMap.saturn);
+          })(),
         },
       },
       timing: {
-        aspectsTop: toTopArray(calculatedData.aspects, 18),
-        housesTop: toTopArray(calculatedData.houses, 12),
+        aspectsTop: (() => {
+          const raw = toTopArray(calculatedData.aspects, 18);
+          return raw.length > 0 ? raw : fallbackAspects.slice(0, 18);
+        })(),
+        housesTop: (() => {
+          const raw = toTopArray(calculatedData.houses, 12);
+          return raw.length > 0 ? raw : fallbackHouses.slice(0, 12);
+        })(),
       },
       actions: {
         relationshipData: toPlainObject(calculatedData.relationshipData),
         careerData: toPlainObject(calculatedData.careerData),
-        elementBalance: toPlainObject(calculatedData.elementBalance),
-        modalityBalance: toPlainObject(calculatedData.modalityBalance),
+        elementBalance: (() => {
+          const raw = toPlainObject(calculatedData.elementBalance);
+          if (Object.keys(raw).length > 0) return raw;
+          return toPlainObject(canonicalFallback?.chartBalance?.elements);
+        })(),
+        modalityBalance: (() => {
+          const raw = toPlainObject(calculatedData.modalityBalance);
+          if (Object.keys(raw).length > 0) return raw;
+          return toPlainObject(canonicalFallback?.chartBalance?.modalities);
+        })(),
       },
     };
   }
@@ -7941,6 +8041,7 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
     chapterCount: Number(inputValidation?.chapterCount || 0),
     missingHardFields: hardMissing,
     missingSoftFields: softMissing,
+    normalizedPayload: inputValidation?.normalizedPayload || sukyoContext?.normalizedPayload || {},
   });
   const chapterMeta = {
     num: Number(chapterId || 1),
@@ -8029,8 +8130,8 @@ async function generateSukyoPremiumChapterFromContext({ env, context, chapterId,
     });
     return {
       ok: false,
-      code: "SUKYO_REPORT_PAYLOAD_INCOMPLETE",
-      message: "숙요 canonical reportPayload가 불완전하여 챕터를 생성할 수 없습니다.",
+      code: "SUKUYO_PDF_MISSING_FIELDS",
+      message: "숙요점 PDF 생성에 필요한 입력값이 부족합니다.",
       chapterMeta,
       missingFields: hardMissing,
       missingSoftFields: softMissing,
@@ -9572,6 +9673,21 @@ function buildAstrologyBookContext(canonical = {}, premiumInput = null, chapterM
   return context;
 }
 
+function buildAstroCategoryPromptPack(chapterMeta, canonical) {
+  const chapterConfig = findAstroWesternChapterConfig(chapterMeta?.key || "");
+  const sections = Array.isArray(chapterConfig?.sections) ? chapterConfig.sections : [];
+  return sections.map((section, idx) => {
+    const resolvedCategoryData = buildAstroResolvedCategoryData(section?.dataBinding || {}, canonical);
+    return {
+      id: String(section?.id || `c_${idx + 1}`),
+      title: String(section?.title || `섹션 ${idx + 1}`).trim(),
+      dataBinding: section?.dataBinding && typeof section.dataBinding === "object" ? section.dataBinding : {},
+      resolvedCategoryData,
+      localSeedText: buildAstroCategoryLocalSeedText(section, canonical, chapterMeta),
+    };
+  });
+}
+
 function buildAstroChapterPrompt(chapterMeta, canonical, previousTexts = [], premiumInput = null) {
   const chapterKey = String(chapterMeta?.key || "").trim();
   const focusKeywords = ASTRO_CHAPTER_FOCUS_KEYWORDS[chapterMeta?.key] || [];
@@ -9605,6 +9721,7 @@ function buildAstroChapterPrompt(chapterMeta, canonical, previousTexts = [], pre
   };
   const bookContext = buildAstrologyBookContext(canonical, premiumInput, chapterMeta);
   const lengthPolicy = getAstroChapterLengthPolicy(chapterMeta?.num || chapterMeta?.chapter || 1, "personal");
+  const categoryPromptPack = buildAstroCategoryPromptPack(chapterMeta, canonical);
   const summary = {
     asc: canonical?.angles?.ascendant,
     mc: canonical?.angles?.mc,
@@ -9640,6 +9757,7 @@ function buildAstroChapterPrompt(chapterMeta, canonical, previousTexts = [], pre
     "relevantHouses: 1~12 house cusps and occupied planets",
     "relevantAspects: use canonicalAstroChart.aspects sorted by orb asc",
     chapterContractText ? `[chapterContract]\n${chapterContractText}` : "",
+    `categoryPromptPack: ${stringifyCompact(categoryPromptPack, 5200)}`,
     `astrologyBookContext: ${JSON.stringify(bookContext)}`,
     `chartSummary: ${JSON.stringify(summary)}`,
     `premiumChapterJsonPacks: ${stringifyCompact(premiumChapterJsonPacks, 2200)}`,
@@ -9667,6 +9785,8 @@ function buildAstroChapterPrompt(chapterMeta, canonical, previousTexts = [], pre
     "- 데이터가 비어 있는 항목은 단정하지 말고 확보된 근거 중심으로 해석한다.",
     "- \"당신은 특별합니다\", \"우주는 말합니다\" 같은 상투 문장을 반복하지 않는다.",
     "- premiumChapterJsonPacks.core/signals/timing/actions 중 최소 3개를 근거 문장으로 반영한다.",
+    "- categoryPromptPack의 각 카테고리(localSeedText, resolvedCategoryData.facts)를 해당 섹션 문단에 직접 반영한다.",
+    "- 각 섹션(### 번호)은 categoryPromptPack의 동일 인덱스 카테고리와 의미적으로 매칭되어야 하며, 최소 2개 근거를 포함한다.",
     "- 실행 보강 메모, 패딩 문단, 동일 문장 반복을 금지한다.",
     previousTexts.length ? `- 이전 챕터에서 이미 사용한 문장 재사용 금지 목록: ${JSON.stringify(previousTexts.slice(-4))}` : "",
   ].filter(Boolean).join("\n");
@@ -9965,7 +10085,108 @@ function collectAstroBindingFacts(dataBinding = {}, canonical = {}) {
     out.push(`양식 ${key}: ${Number(modalities[key] || 0)}개`);
   }
 
+  const transitRows = Array.isArray(canonical?.forecast?.transits) ? canonical.forecast.transits : [];
+  if (Array.isArray(dataBinding?.transits) && dataBinding.transits.length > 0) {
+    const tokens = new Set(dataBinding.transits.map((row) => String(row || "").toLowerCase()));
+    if (tokens.has("strategy-only")) {
+      out.push("트랜짓 세부값이 제한되어 현재 차트의 안정 루틴 기준으로 운영");
+    }
+    if (tokens.has("roadmap")) {
+      out.push("3/6/12개월 로드맵은 핵심 행성 강약과 하우스 우선순위 기반으로 구성");
+    }
+    if (tokens.has("timing-signals")) {
+      out.push(`현재 트랜짓 신호 ${Math.max(0, transitRows.length)}건을 우선순위로 분류`);
+    }
+
+    const byPlanet = (planet) => transitRows.filter((row) => {
+      const source = `${String(row?.transitPlanet || "")} ${String(row?.planetA || "")} ${String(row?.planetB || "")}`.toLowerCase();
+      return source.includes(String(planet || "").toLowerCase());
+    });
+    const keyPlanets = ["jupiter", "saturn", "uranus", "neptune", "pluto"];
+    if (tokens.has("current")) {
+      transitRows.slice(0, 4).forEach((row) => {
+        const tp = String(row?.transitPlanet || row?.planetA || "").trim();
+        const np = String(row?.natalPlanet || row?.planetB || "").trim();
+        const type = String(row?.aspectType || row?.type || "").trim();
+        if (tp && np && type) out.push(`트랜짓 ${tp}-${np} ${type}`);
+      });
+    }
+    keyPlanets.forEach((planet) => {
+      if (!tokens.has(planet)) return;
+      const rows = byPlanet(planet).slice(0, 2);
+      rows.forEach((row) => {
+        const tp = String(row?.transitPlanet || row?.planetA || planet).trim();
+        const np = String(row?.natalPlanet || row?.planetB || "").trim();
+        const type = String(row?.aspectType || row?.type || "").trim();
+        if (tp && np && type) out.push(`트랜짓 ${tp}-${np} ${type}`);
+      });
+    });
+  }
+
   return Array.from(new Set(out)).slice(0, 10);
+}
+
+function buildAstroResolvedCategoryData(dataBinding = {}, canonical = {}) {
+  const facts = collectAstroBindingFacts(dataBinding, canonical);
+  const planets = Array.isArray(canonical?.planets) ? canonical.planets : [];
+  const houses = Array.isArray(canonical?.houses) ? canonical.houses : [];
+  const aspects = Array.isArray(canonical?.aspects) ? canonical.aspects : [];
+
+  const selectedPlanets = (Array.isArray(dataBinding?.planets) ? dataBinding.planets : [])
+    .map((name) => planets.find((row) => String(row?.nameEn || "").toLowerCase() === String(name || "").toLowerCase()))
+    .filter(Boolean)
+    .map((row) => ({
+      nameEn: row.nameEn,
+      nameKo: row.nameKo,
+      sign: row.sign,
+      degree: row.degree,
+      house: row.house,
+      retrograde: row.retrograde === true,
+    }));
+
+  const selectedHouses = (Array.isArray(dataBinding?.houses) ? dataBinding.houses : [])
+    .map((no) => houses.find((row) => Number(row?.house) === Number(no)))
+    .filter(Boolean)
+    .map((row) => ({
+      house: row.house,
+      sign: row.cuspSign,
+      ruler: row.ruler,
+    }));
+
+  const aspectTypes = new Set((Array.isArray(dataBinding?.aspects) ? dataBinding.aspects : []).map((row) => String(row || "").toLowerCase()));
+  const selectedAspects = aspects
+    .filter((row) => aspectTypes.size === 0 || aspectTypes.has(String(row?.type || "").toLowerCase()))
+    .slice(0, 8)
+    .map((row) => ({
+      planetA: row.planetA,
+      planetB: row.planetB,
+      type: row.type,
+      orb: row.orb,
+    }));
+
+  return {
+    facts,
+    selectedPlanets,
+    selectedHouses,
+    selectedAspects,
+    chartBalance: {
+      elements: toPlainObject(canonical?.chartBalance?.elements),
+      modalities: toPlainObject(canonical?.chartBalance?.modalities),
+    },
+  };
+}
+
+function buildAstroCategoryLocalSeedText(section = {}, canonical = {}, chapterMeta = null) {
+  const categoryTitle = String(section?.title || "핵심 해석").trim();
+  const chapterTitle = String(chapterMeta?.title || "점성술 프리미엄 리포트").trim();
+  const resolved = buildAstroResolvedCategoryData(section?.dataBinding || {}, canonical);
+  const facts = Array.isArray(resolved?.facts) ? resolved.facts : [];
+  const anchor = facts.slice(0, 4).join(" · ");
+  return [
+    `${chapterTitle}의 ${categoryTitle} 카테고리는 제공된 출생차트 JSON 근거만으로 해석합니다.`,
+    anchor ? `근거 축: ${anchor}` : "근거 축: 차트 핵심 배치(행성·하우스·애스펙트) 우선 해석",
+    "해석 규칙: 행성/하우스/애스펙트 근거를 문장에 명시하고, 바로 적용 가능한 실행 기준으로 연결합니다.",
+  ].join("\n");
 }
 
 function buildLocalAstroWesternSectionDraft(section, chart, chapterMeta = null) {
@@ -9980,8 +10201,9 @@ function buildLocalAstroWesternSectionDraft(section, chart, chapterMeta = null) 
   let draft = [
     opening,
     "이 구간의 핵심은 성격 단정이 아니라 의사결정 패턴을 읽고, 관계·일·재정·생활 루틴에 맞는 선택 기준을 세우는 데 있습니다.",
-    `특히 ${chapterTitle}의 맥락에서는 강점 에너지를 과신하지 않고, 긴장 신호를 조기 감지해 실행 속도와 회복 속도의 균형을 맞추는 것이 중요합니다.`,
+    `특히 ${chapterTitle}의 맥락에서는 과열 신호와 회복 신호를 분리해 관찰하고, 속도보다 판단 정확도를 먼저 확보하는 운영이 필요합니다.`,
     "실행 전략은 큰 결론 하나보다 작게 반복 가능한 행동 세트를 먼저 고정하는 방식이 효과적이며, 주간 점검을 통해 과도한 수정 없이 방향을 유지하는 것이 좋습니다.",
+    buildAstroCategoryLocalSeedText(section, chart, chapterMeta),
   ].join("\n\n");
 
   if (sectionTitle.includes("3/6/12")) {
@@ -9989,9 +10211,16 @@ function buildLocalAstroWesternSectionDraft(section, chart, chapterMeta = null) 
   }
 
   let round = 1;
+  const reinforceTemplates = [
+    "심화 근거 {n}: {anchor}를 핵심 축으로 삼아 이번 구간의 우선순위를 재정렬하고, 감정 반응보다 관찰 가능한 행동 지표를 먼저 확인하세요.",
+    "심화 근거 {n}: {anchor}가 반복될 때 성과가 나는 조건과 소모가 커지는 조건을 분리해, 실행 전 체크리스트를 고정하세요.",
+    "심화 근거 {n}: {anchor}를 기준으로 관계·커리어·재정 중 현재 가장 민감한 영역 하나에 집중해 리소스 분산을 줄이세요.",
+    "심화 근거 {n}: {anchor}의 패턴은 단기 대응보다 루틴 설계에서 효과가 크므로, 7일 단위 복기 규칙을 먼저 정하세요.",
+  ];
   while (countKoreanLikeChars(draft) < minChars) {
     const anchor = facts[(round - 1) % Math.max(1, facts.length)] || "현재 차트 근거";
-    draft += `\n\n심화 근거 ${round}: ${anchor}를 기준축으로 두고, 이번 주에는 추진할 것·보류할 것·점검할 것을 분리해 실행하세요. 동일한 방식으로 2주 연속 기록하면 반복 패턴이 명확해지고 리스크 대응의 정확도가 올라갑니다.`;
+    const template = reinforceTemplates[(round - 1) % reinforceTemplates.length];
+    draft += `\n\n${template.replace("{n}", String(round)).replace("{anchor}", anchor)}`;
     round += 1;
     if (round > 6) break;
   }
@@ -11522,7 +11751,7 @@ function normalizeLifebookBillingSnapshot(body = {}, authInfo = {}, reportId = "
   const requestId = String(payment?.requestId || body?.idempotencyKey || "").trim();
   const idempotencyKey = requestId || `lifebook:${String(authInfo?.userId || "").trim()}:${String(reportId || "").trim()}`;
   return {
-    featureKey: "premium_pdf_saju_life_book",
+    featureKey: "saju_life_book_pdf",
     status: transactionId ? "paid" : "not_charged",
     billingStatus: transactionId ? "paid" : "not_charged",
     transactionId,
@@ -12817,6 +13046,63 @@ function buildLoveSecretStatusPayload(reportId, includeText = false) {
     message: isComplete
       ? "연애 비책 생성이 완료되었습니다."
       : `연애 비책 생성 진행 중: ${completed}/${totalChapters} 챕터 완료`,
+  };
+}
+
+function buildSajuNewYearStatusPayload(reportId, includeText = false) {
+  const normalizedReportId = String(reportId || "").trim();
+  const entry = getStoredReportSession("saju-new-year", normalizedReportId);
+  const totalChapters = Number(entry?.totalChapters || SAJU_NEW_YEAR_TOTAL_CHAPTERS) || SAJU_NEW_YEAR_TOTAL_CHAPTERS;
+  const rows = Object.values(entry?.chapters || {})
+    .sort((a, b) => Number(a?.chapter || 0) - Number(b?.chapter || 0));
+  const chapters = rows.map((row) => {
+    const base = {
+      chapter: Number(row?.chapter || 0),
+      chapterMeta: row?.chapterMeta || null,
+      updatedAt: row?.updatedAt || entry?.updatedAt || null,
+      source: String(row?.extra?.engineSource || "local-saju-new-year-engine"),
+    };
+    if (includeText) base.text = String(row?.text || "");
+    return base;
+  });
+  const completed = rows.length;
+  const totalChars = rows.reduce((sum, row) => sum + String(row?.text || "").length, 0);
+  const isComplete = Boolean(totalChapters > 0 && completed >= totalChapters);
+  const currentChapter = isComplete ? totalChapters : Math.min(totalChapters, completed + 1);
+  const qualityGate = validateFullPdfQuality({
+    serviceKey: "sajuNewYear",
+    chapters: rows.map((row) => ({
+      chapterId: String(row?.chapter || ""),
+      title: String(row?.chapterMeta?.title || `Chapter ${row?.chapter || ""}`),
+      text: String(row?.text || ""),
+      targetChars: Number(SAJU_NEW_YEAR_CHAPTER_TARGETS[Number(row?.chapter || 1) - 1] || 0),
+    })),
+    minTotalChars: SAJU_NEW_YEAR_MIN_TOTAL_CHARS,
+    requiredChapterCount: totalChapters,
+    blockedPhrases: BLOCKED_FALLBACK_PHRASES,
+  });
+
+  return {
+    ok: true,
+    reportId: normalizedReportId,
+    featureKey: SAJU_NEW_YEAR_FEATURE_KEY,
+    totalChapters,
+    completed,
+    currentChapter,
+    minTotalChars: SAJU_NEW_YEAR_MIN_TOTAL_CHARS,
+    totalChars,
+    isMinTotalCharsMet: totalChars >= SAJU_NEW_YEAR_MIN_TOTAL_CHARS,
+    isComplete: isComplete && qualityGate.ok,
+    qualityGate,
+    accessGrant: toPlainObject(entry?.extra?.accessGrant),
+    reportSession: {
+      ownerUserId: String(entry?.extra?.ownerUserId || ""),
+      updatedAt: entry?.updatedAt || null,
+    },
+    chapters,
+    message: isComplete
+      ? "사주 신년운세 PDF 생성이 완료되었습니다."
+      : `사주 신년운세 생성 진행 중: ${completed}/${totalChapters} 챕터 완료`,
   };
 }
 
@@ -18739,11 +19025,12 @@ async function handleSukuyoLife(request, env, authInfo = null) {
   }
 
   if (!personASukuyo || !Number.isFinite(Number(personASukuyo?.index))) {
+    const missingFields = personAMissingFields.length ? personAMissingFields : ["user.birthDate", "user.calendarType"];
     return json({
       ok: false,
-      code: "SUKUYO_CALCULATION_INCOMPLETE",
-      message: "사용자 숙요 계산 데이터가 불완전합니다.",
-      missingFields: personAMissingFields.length ? personAMissingFields : ["personA.birth.lunarDate", "personA.sukuyo.index"],
+      code: "SUKUYO_PDF_MISSING_FIELDS",
+      message: "숙요점 PDF 생성에 필요한 입력값이 부족합니다.",
+      missingFields,
     }, { status: 422 });
   }
 
@@ -18976,11 +19263,12 @@ async function handleSukuyoLife(request, env, authInfo = null) {
   }
 
   if (!personBSukuyo || !Number.isFinite(Number(personBSukuyo?.index))) {
+    const missingFields = personBMissingFields.length ? personBMissingFields : ["partner.birthDate", "partner.calendarType"];
     return json({
       ok: false,
-      code: "SUKUYO_CALCULATION_INCOMPLETE",
-      message: "상대방 숙요 계산 데이터가 불완전합니다.",
-      missingFields: personBMissingFields.length ? personBMissingFields : ["personB.birth.lunarDate", "personB.sukuyo.index"],
+      code: "SUKUYO_PDF_MISSING_FIELDS",
+      message: "숙요점 PDF 생성에 필요한 입력값이 부족합니다.",
+      missingFields,
     }, { status: 422 });
   }
 
@@ -19511,9 +19799,92 @@ async function handleAstroLife(request, env, authInfo = null) {
     body?.previousChapterTexts,
     getStoredChapterTexts("astro", reportId, Number(meta.chapter)),
   );
+  const buildAstroPromptReportData = () => {
+    const planets = Array.isArray(canonicalAstroChart?.planets) ? canonicalAstroChart.planets : [];
+    const byName = (nameEn) => planets.find((row) => String(row?.nameEn || "").toLowerCase() === String(nameEn || "").toLowerCase()) || null;
+    const toPlanetPayload = (nameEn) => {
+      const row = byName(nameEn);
+      if (!row) return {};
+      return {
+        sign: row.sign,
+        degree: row.degree,
+        house: row.house,
+      };
+    };
+    const chapterData = {};
+    chapterPlan.forEach((row) => {
+      const chapterNo = Number(row?.chapter || 0);
+      if (!chapterNo) return;
+      chapterData[`ch${chapterNo}`] = {
+        chapterTitle: String(row?.title || `Chapter ${chapterNo}`),
+        purpose: String(row?.subtitle || ""),
+        requiredPaths: [
+          "calculatedData.angles",
+          "calculatedData.planets",
+          "calculatedData.aspects",
+          "calculatedData.houses",
+          "calculatedData.elementBalance",
+          "calculatedData.modalityBalance",
+        ],
+      };
+    });
+
+    return {
+      input: {
+        mode: "personal",
+        reportType: "personal",
+        reportMode: "personal",
+        birthYear: Number(input?.year || body?.year || 0) || undefined,
+        birthMonth: Number(input?.month || body?.month || 0) || undefined,
+        birthDay: Number(input?.day || body?.day || 0) || undefined,
+        birthHour: Number(input?.hour || body?.hour || 0) || undefined,
+        birthMinute: Number(input?.minute || body?.minute || 0) || undefined,
+        gender: String(body?.gender || "").trim(),
+      },
+      chapterData,
+      calculatedData: {
+        birthInfo: toPlainObject(canonicalAstroChart?.profile?.birth),
+        angles: {
+          ascendant: toPlainObject(canonicalAstroChart?.angles?.ascendant),
+          mc: toPlainObject(canonicalAstroChart?.angles?.mc),
+        },
+        planets: {
+          sun: toPlanetPayload("Sun"),
+          moon: toPlanetPayload("Moon"),
+          mercury: toPlanetPayload("Mercury"),
+          venus: toPlanetPayload("Venus"),
+          mars: toPlanetPayload("Mars"),
+          jupiter: toPlanetPayload("Jupiter"),
+          saturn: toPlanetPayload("Saturn"),
+        },
+        aspects: Array.isArray(canonicalAstroChart?.aspects)
+          ? canonicalAstroChart.aspects.map((row) => ({
+            from: row?.planetA,
+            to: row?.planetB,
+            type: row?.type,
+            orb: row?.orb,
+          }))
+          : [],
+        houses: Array.isArray(canonicalAstroChart?.houses)
+          ? canonicalAstroChart.houses.map((row) => ({
+            house: row?.house,
+            sign: row?.cuspSign,
+            ruler: row?.ruler,
+          }))
+          : [],
+        elementBalance: toPlainObject(canonicalAstroChart?.chartBalance?.elements),
+        modalityBalance: toPlainObject(canonicalAstroChart?.chartBalance?.modalities),
+        canonicalAstroChart,
+      },
+      interpretationSeed: {
+        chapterPlan,
+      },
+      canonicalAstroChart,
+    };
+  };
   const runtimeLlmInput = body?._premiumLlmInput && typeof body._premiumLlmInput === "object"
     ? body._premiumLlmInput
-    : buildLlmPromptInput("westernAstrologyPremium", Number(meta.chapter), canonicalAstroChart);
+    : buildLlmPromptInput("westernAstrologyPremium", Number(meta.chapter), buildAstroPromptReportData());
 
   let generated;
   try {
@@ -20110,6 +20481,7 @@ const LIFEBOOK_MIN_CHARS = 6000;
 
 const SAJU_NEW_YEAR_COST = 300;
 const SAJU_NEW_YEAR_REASON = "사주 신년운세 PDF 리포트 생성";
+const SAJU_NEW_YEAR_FEATURE_KEY = "saju_new_year_pdf";
 const SAJU_NEW_YEAR_TOTAL_CHAPTERS = 10;
 const SAJU_NEW_YEAR_MIN_TOTAL_CHARS = 48000;
 const SAJU_NEW_YEAR_FOCUS_LABELS = {
@@ -23841,6 +24213,10 @@ async function generateSajuNewYearChapterWithGemini(env, {
 
 async function handleSajuNewYearSession(request, env, authInfo = null) {
   const body = await readJson(request);
+  const headerFeatureKey = String(request.headers.get("x-premium-feature") || "").trim();
+  const headerSessionId = String(request.headers.get("x-premium-session") || "").trim();
+  const headerPurchaseId = String(request.headers.get("x-purchase-id") || "").trim();
+  const headerReportId = String(request.headers.get("x-report-id") || "").trim();
   const rawTargetYear = body?.targetYear;
   const person = body?.person && typeof body.person === "object" ? body.person : null;
   if (person) {
@@ -23864,10 +24240,33 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
   }
   Object.assign(body, normalizePremiumRequestBodyForPipeline("sajuNewYear", body));
   const strictPayloadMode = true;
+  const accessGrantFromBody = body?.accessGrant && typeof body.accessGrant === "object" ? body.accessGrant : {};
   const strictBody = {
     ...body,
+    featureKey: SAJU_NEW_YEAR_FEATURE_KEY,
+    accessGrant: {
+      ...(accessGrantFromBody || {}),
+      featureKey: SAJU_NEW_YEAR_FEATURE_KEY,
+      sessionId: String(accessGrantFromBody?.sessionId || accessGrantFromBody?.reportSessionId || body?.sessionId || body?.reportSessionId || headerSessionId || "").trim() || undefined,
+      purchaseId: String(accessGrantFromBody?.purchaseId || body?.purchaseId || body?.sourceTransactionId || body?.transactionId || headerPurchaseId || "").trim() || undefined,
+      reportId: String(accessGrantFromBody?.reportId || body?.reportId || headerReportId || "").trim() || undefined,
+      paidAt: String(accessGrantFromBody?.paidAt || body?.paidAt || new Date().toISOString()),
+    },
     _premiumStrictPayload: strictPayloadMode,
   };
+  const receivedFeatureKey = String(body?.featureKey || body?.featureType || body?.subFeatureKey || headerFeatureKey || SAJU_NEW_YEAR_FEATURE_KEY).trim();
+  if (receivedFeatureKey && receivedFeatureKey !== SAJU_NEW_YEAR_FEATURE_KEY) {
+    return json({
+      ok: false,
+      code: "SAJU_NEW_YEAR_ACCESS_DENIED",
+      reason: "FEATURE_KEY_MISMATCH",
+      expectedFeatureKey: SAJU_NEW_YEAR_FEATURE_KEY,
+      receivedFeatureKey,
+      receivedSessionId: Boolean(String(headerSessionId || body?.sessionId || body?.reportSessionId || "").trim()),
+      receivedPurchaseId: Boolean(String(headerPurchaseId || body?.purchaseId || body?.sourceTransactionId || body?.transactionId || "").trim()),
+      receivedReportId: Boolean(String(headerReportId || body?.reportId || "").trim()),
+    }, { status: 402 });
+  }
   const prepareOnly = asBool(strictBody.prepareOnly);
   const normalizedTargetYear = normalizeSajuNewYearTargetYear(rawTargetYear);
   if (!hasMeaningfulValue(rawTargetYear) || !Number.isFinite(Number(normalizedTargetYear))) {
@@ -23879,6 +24278,47 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
     }, { status: 400 });
   }
   strictBody.targetYear = Number(normalizedTargetYear);
+
+  const accessRequestBody = {
+    ...strictBody,
+    sessionId: String(strictBody?.accessGrant?.sessionId || strictBody?.sessionId || strictBody?.reportSessionId || headerSessionId || "").trim() || undefined,
+    reportSessionId: String(strictBody?.accessGrant?.sessionId || strictBody?.reportSessionId || strictBody?.sessionId || headerSessionId || "").trim() || undefined,
+    purchaseId: String(strictBody?.accessGrant?.purchaseId || strictBody?.purchaseId || strictBody?.sourceTransactionId || strictBody?.transactionId || headerPurchaseId || "").trim() || undefined,
+    reportId: String(strictBody?.accessGrant?.reportId || strictBody?.reportId || headerReportId || "").trim() || undefined,
+    payment: {
+      ...(strictBody?.payment && typeof strictBody.payment === "object" ? strictBody.payment : {}),
+      featureKey: SAJU_NEW_YEAR_FEATURE_KEY,
+      sessionId: String(strictBody?.accessGrant?.sessionId || strictBody?.sessionId || strictBody?.reportSessionId || headerSessionId || "").trim() || undefined,
+      purchaseId: String(strictBody?.accessGrant?.purchaseId || strictBody?.purchaseId || strictBody?.sourceTransactionId || strictBody?.transactionId || headerPurchaseId || "").trim() || undefined,
+      reportId: String(strictBody?.accessGrant?.reportId || strictBody?.reportId || headerReportId || "").trim() || undefined,
+      accessGrant: strictBody.accessGrant,
+    },
+    _paymentContext: {
+      ...(strictBody?._paymentContext && typeof strictBody._paymentContext === "object" ? strictBody._paymentContext : {}),
+      featureKey: SAJU_NEW_YEAR_FEATURE_KEY,
+      sessionId: String(strictBody?.accessGrant?.sessionId || strictBody?.sessionId || strictBody?.reportSessionId || headerSessionId || "").trim() || undefined,
+      purchaseId: String(strictBody?.accessGrant?.purchaseId || strictBody?.purchaseId || strictBody?.sourceTransactionId || strictBody?.transactionId || headerPurchaseId || "").trim() || undefined,
+      reportId: String(strictBody?.accessGrant?.reportId || strictBody?.reportId || headerReportId || "").trim() || undefined,
+      accessGrant: strictBody.accessGrant,
+    },
+    _accessRoute: String(strictBody?._accessRoute || "/api/saju-new-year/session"),
+  };
+  const access = await requirePremiumReportAccess(env, authInfo?.userId, "sajuNewYear", accessRequestBody);
+  if (!access?.ok) {
+    return json({
+      ok: false,
+      code: "SAJU_NEW_YEAR_ACCESS_DENIED",
+      reason: String(access?.reason || access?.code || "PAYMENT_REQUIRED"),
+      message: String(access?.message || "사주 신년운세 접근 권한을 확인하지 못했습니다."),
+      expectedFeatureKey: SAJU_NEW_YEAR_FEATURE_KEY,
+      receivedFeatureKey,
+      receivedSessionId: Boolean(String(accessRequestBody.sessionId || "").trim()),
+      receivedPurchaseId: Boolean(String(accessRequestBody.purchaseId || "").trim()),
+      receivedReportId: Boolean(String(accessRequestBody.reportId || "").trim()),
+      missing: Array.isArray(access?.missing) ? access.missing : [],
+    }, { status: Number(access?.status || 402) });
+  }
+
   if (!prepareOnly && !chapterRequestProvided(strictBody)) {
     return json({ ok: false, message: "sessionId 또는 chapter 값을 포함해 챕터별로만 생성할 수 있습니다." }, { status: 400 });
   }
@@ -23946,7 +24386,7 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
       ok: true,
       prepared: true,
       reportType: "sajuNewYear",
-      featureType: "saju_new_year_pdf",
+      featureType: SAJU_NEW_YEAR_FEATURE_KEY,
       totalChapters: SAJU_NEW_YEAR_TOTAL_CHAPTERS,
       chapterPlan,
       chapterJsonBlueprintByNumber,
@@ -24018,7 +24458,8 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
     text,
     {
       reportType: "sajuNewYear",
-      featureType: "saju_new_year_pdf",
+      featureType: SAJU_NEW_YEAR_FEATURE_KEY,
+      accessGrant: strictBody.accessGrant || null,
       chapterJson,
       ownerUserId,
       chapterSpecificSections,
@@ -24038,7 +24479,7 @@ async function handleSajuNewYearSession(request, env, authInfo = null) {
     ok: true,
     reportId,
     reportType: "sajuNewYear",
-    featureType: "saju_new_year_pdf",
+    featureType: SAJU_NEW_YEAR_FEATURE_KEY,
     source: generatedChapter?.usedFallback ? "local-engine" : "api",
     totalChapters: SAJU_NEW_YEAR_TOTAL_CHAPTERS,
     minTotalChars: PREMIUM_GLOBAL_MIN_TOTAL_CHARS,
@@ -24081,7 +24522,8 @@ async function handleLifebookSession(request, env, authInfo = null) {
   const prepareOnly = asBool(strictBody.prepareOnly);
   const explicitMode = String(strictBody.mode || "").trim().toLowerCase();
   const fullGenerateRequested = asBool(strictBody.generateAll)
-    || explicitMode === "lifebook";
+    || explicitMode === "lifebook"
+    || explicitMode === "life-book";
 
   if (!prepareOnly && !chapterRequestProvided(strictBody) && !fullGenerateRequested) {
     return json({ ok: false, message: "sessionId 또는 chapter 값을 포함해 챕터별로만 생성할 수 있습니다." }, { status: 400 });
@@ -24092,9 +24534,57 @@ async function handleLifebookSession(request, env, authInfo = null) {
   const chapter = input.chapter;
   const reportId = String(strictBody.reportId || "").trim() || lifebookReportIdFromInput(strictBody, input);
   const billingSnapshot = normalizeLifebookBillingSnapshot(strictBody, authInfo, reportId);
+  const receivedFeatureKey = String(
+    strictBody?.featureKey
+    || strictBody?.accessGrant?.featureKey
+    || strictBody?.payment?.featureKey
+    || "",
+  ).trim();
+  const accessGrant = {
+    ok: true,
+    featureKey: "saju_life_book_pdf",
+    sessionId: String(strictBody?.accessGrant?.sessionId || strictBody?.sessionId || `lifebook:${reportId}`).trim(),
+    purchaseId: String(strictBody?.accessGrant?.purchaseId || strictBody?.purchaseId || billingSnapshot.transactionId || `lifebook:${reportId}:purchase`).trim(),
+    reportId,
+    paidAt: new Date().toISOString(),
+    expiresAt: undefined,
+  };
+
+  if (fullGenerateRequested) {
+    const access = await requirePremiumReportAccess(env, ownerUserId, "lifeBook", {
+      ...strictBody,
+      featureKey: "saju_life_book_pdf",
+      purchaseId: accessGrant.purchaseId,
+      sessionId: accessGrant.sessionId,
+      reportId: accessGrant.reportId,
+      _accessRoute: "/api/lifebook/generate",
+    });
+    if (!access?.ok) {
+      return json({
+        ok: false,
+        code: "SAJU_LIFE_BOOK_ACCESS_DENIED",
+        expectedFeatureKey: "saju_life_book_pdf",
+        receivedFeatureKey,
+        hasSessionId: Boolean(accessGrant.sessionId),
+        hasPurchaseId: Boolean(accessGrant.purchaseId),
+        hasReportId: Boolean(accessGrant.reportId),
+        reason: access?.reason || access?.code || "ACCESS_DENIED",
+      }, { status: 402 });
+    }
+  }
+
+  console.info("[SajuLifeBook] access check", {
+    featureKey: "saju_life_book_pdf",
+    hasAccessGrant: true,
+    hasSessionId: Boolean(accessGrant?.sessionId),
+    hasPurchaseId: Boolean(accessGrant?.purchaseId),
+    hasReportId: Boolean(accessGrant?.reportId),
+  });
+
   upsertReportSessionMeta("lifebook", reportId, LIFE_BOOK_TOTAL_CHAPTERS, {
     ownerUserId,
     billing: billingSnapshot,
+    accessGrant,
     reportJobStatus: "created",
   });
   const rawLifebookSourceState = ensureLifebookSourceData(strictBody, input);
@@ -24246,6 +24736,8 @@ async function handleLifebookSession(request, env, authInfo = null) {
       ok: true,
       source: String(allGenerated?.source || "api"),
       mode: "life-book",
+      featureKey: "saju_life_book_pdf",
+      accessGrant,
       reportId,
       idempotencyKey: billingSnapshot.idempotencyKey || "",
       jobId: reportId,
@@ -24388,6 +24880,8 @@ async function handleLifebookSession(request, env, authInfo = null) {
     ok: true,
     source: String(generated?.source || (usedFallback ? "local" : "api")),
     mode: "life-book",
+    featureKey: "saju_life_book_pdf",
+    accessGrant,
     reportId,
     idempotencyKey: billingSnapshot.idempotencyKey || "",
     totalChapters: LIFE_BOOK_TOTAL_CHAPTERS,
@@ -29115,6 +29609,87 @@ export async function handlePremiumRoutes(request, env) {
     if (method === "GET" && path.startsWith("/pdf-reports/")) {
       const reportId = decodeURIComponent(String(path.slice("/pdf-reports/".length) || "").trim());
       return await ensurePdfNo422(await handlePremiumPdfHistoryDetail(request, env, authInfo, reportId));
+    }
+
+    if (path === "/saju-new-year" || path === "/saju-new-year/access" || path === "/saju-new-year/result" || path === "/saju-new-year/resume") {
+      if (method === "GET" && (path === "/saju-new-year/access" || path === "/saju-new-year/result")) {
+        const url = new URL(request.url);
+        const reportId = String(url.searchParams.get("reportId") || "").trim();
+        if (!reportId) {
+          return json({ ok: false, code: "REPORT_ID_REQUIRED", message: "reportId query parameter is required." }, { status: 400 });
+        }
+        const ownership = ensureReportSessionOwnership("saju-new-year", reportId, authInfo?.userId);
+        if (!ownership.ok) return json(ownership.payload, { status: ownership.status });
+        await persistPremiumPdfHistoryFromSession(env, "saju-new-year", reportId, {
+          ownerUserId: String(authInfo?.userId || "").trim(),
+        });
+        if (path === "/saju-new-year/access") {
+          const statusPayload = buildSajuNewYearStatusPayload(reportId, false);
+          const grant = statusPayload?.accessGrant && typeof statusPayload.accessGrant === "object" ? statusPayload.accessGrant : {};
+          return json({
+            ok: true,
+            featureKey: SAJU_NEW_YEAR_FEATURE_KEY,
+            reportId,
+            accessGrant: {
+              ok: true,
+              featureKey: SAJU_NEW_YEAR_FEATURE_KEY,
+              sessionId: String(grant?.sessionId || reportId || "").trim() || undefined,
+              purchaseId: String(grant?.purchaseId || "").trim() || undefined,
+              reportId: String(grant?.reportId || reportId || "").trim(),
+              paidAt: String(grant?.paidAt || "").trim() || undefined,
+            },
+            hasSessionId: Boolean(String(grant?.sessionId || reportId || "").trim()),
+            hasPurchaseId: Boolean(String(grant?.purchaseId || "").trim()),
+            hasReportId: Boolean(String(reportId || "").trim()),
+          });
+        }
+        return json(buildSajuNewYearStatusPayload(reportId, true));
+      }
+
+      if (method === "POST" && (path === "/saju-new-year" || path === "/saju-new-year/resume")) {
+        const body = await readJson(request.clone());
+        const incomingReportId = String(body?.reportId || "").trim();
+        if (incomingReportId) {
+          const ownership = ensureReportSessionOwnership("saju-new-year", incomingReportId, authInfo?.userId);
+          if (!ownership.ok) return json(ownership.payload, { status: ownership.status });
+        }
+        const statusPayload = incomingReportId ? buildSajuNewYearStatusPayload(incomingReportId, false) : null;
+        if (path === "/saju-new-year/resume" && statusPayload?.ok && statusPayload?.isComplete) {
+          return json({
+            ok: true,
+            resumed: true,
+            reportId: incomingReportId,
+            status: "completed",
+            result: statusPayload,
+          });
+        }
+
+        const nextChapter = (() => {
+          if (Number.isFinite(Number(body?.chapter))) return clampInt(body.chapter, 1, 1, SAJU_NEW_YEAR_TOTAL_CHAPTERS);
+          if (statusPayload?.ok) return clampInt(Number(statusPayload.completed || 0) + 1, 1, 1, SAJU_NEW_YEAR_TOTAL_CHAPTERS);
+          return 1;
+        })();
+
+        const normalizedBody = {
+          ...(body && typeof body === "object" ? body : {}),
+          reportType: "sajuNewYear",
+          featureKey: SAJU_NEW_YEAR_FEATURE_KEY,
+          featureType: SAJU_NEW_YEAR_FEATURE_KEY,
+          chapter: nextChapter,
+          chapterId: nextChapter,
+          sessionId: nextChapter,
+          _accessRoute: path === "/saju-new-year/resume" ? "/api/premium/saju-new-year/resume" : "/api/premium/saju-new-year",
+        };
+
+        const passthrough = new Request(request.url, {
+          method: "POST",
+          headers: request.headers,
+          body: JSON.stringify(normalizedBody),
+        });
+        return await ensurePdfNo422(await handleSajuNewYearSession(passthrough, env, authInfo));
+      }
+
+      return methodNotAllowed();
     }
 
     const legacyAliasByPath = (() => {

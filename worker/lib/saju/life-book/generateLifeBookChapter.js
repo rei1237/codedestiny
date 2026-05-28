@@ -344,6 +344,21 @@ function collectPreviousSentenceBanList(previousTexts = [], limit = 15) {
 function buildChapterPrompt(chapterConfig, lifeBookInputData, previousTexts = [], chapterMemories = []) {
   const manifest = buildSajuLifeBookChapterManifest(lifeBookInputData, [chapterConfig])[0] || {};
   const categories = Array.isArray(manifest.categories) ? manifest.categories : [];
+  categories.forEach((category) => {
+    try {
+      console.info("[SajuLifeBookLLM] category input", {
+        chapterKey: toStringSafe(chapterConfig?.id),
+        categoryKey: toStringSafe(category?.id),
+        hasPillars: Boolean(lifeBookInputData?.sajuChart?.yearPillar && lifeBookInputData?.sajuChart?.monthPillar && lifeBookInputData?.sajuChart?.dayPillar),
+        hasDayMaster: Boolean(lifeBookInputData?.sajuChart?.dayMaster),
+        hasFiveElements: Boolean(lifeBookInputData?.fiveElements && Object.keys(lifeBookInputData.fiveElements).length),
+        hasTenGods: Boolean(lifeBookInputData?.tenGods && Object.keys(lifeBookInputData.tenGods).length),
+        hasLocalSkeleton: Boolean(toStringSafe(category?.writingInstruction)),
+      });
+    } catch {
+      // no-op
+    }
+  });
   const safeContextJson = JSON.stringify(lifeBookInputData?.lifeBookContext || lifeBookInputData || {}, null, 2);
   const banList = collectPreviousSentenceBanList(previousTexts, 15);
   const hardRequirements = buildChapterHardRequirements(chapterConfig, lifeBookInputData);
@@ -522,7 +537,7 @@ function buildCategoryBody(category, chapterConfig, previousTexts = []) {
   }
 
   let body = paragraphs.join("\n\n").trim();
-  while (toKoreanLikeLength(body) < 720) {
+  while (toKoreanLikeLength(body) < 1000) {
     body += `\n\n실행 점검: ${title}의 데이터는 현재 선택 기준과 현실 행동을 연결하는 데만 사용하고, 감정적 해석은 최소화합니다.`;
   }
 

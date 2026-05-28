@@ -91,6 +91,12 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
   if (reportType === "lifeBook") {
     return [
       {
+        featureKey: "saju_life_book_pdf",
+        reason: "인생의 책 생성 (12챕터)",
+        minCost: 500,
+        windowMinutes: 120,
+      },
+      {
         featureKey: "premium_pdf_saju_life_book",
         reason: "인생의 책 생성 (12챕터)",
         minCost: 500,
@@ -115,6 +121,12 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     const modeToken = normalizeModeToken(requestBody);
     const isCouple = modeToken.includes("couple") || modeToken.includes("compat");
     return [
+      {
+        featureKey: "saju_love_book_pdf",
+        reason: isCouple ? "사주 프리미엄 궁합 리포트 생성" : "사주 프리미엄 연애운 리포트 생성",
+        minCost: isCouple ? 400 : 300,
+        windowMinutes: 120,
+      },
       {
         featureKey: isCouple ? "premium_pdf_saju_love_secret_compat" : "premium_pdf_saju_love_secret",
         reason: isCouple ? "사주 프리미엄 궁합 리포트 생성" : "사주 프리미엄 연애운 리포트 생성",
@@ -340,6 +352,13 @@ function extractPaymentLookupTokens(requestBody = {}) {
   const payment = source.payment && typeof source.payment === "object" ? source.payment : {};
   const alt = source._paymentContext && typeof source._paymentContext === "object" ? source._paymentContext : {};
   const consume = source.consume && typeof source.consume === "object" ? source.consume : {};
+  const grant = source.accessGrant && typeof source.accessGrant === "object"
+    ? source.accessGrant
+    : (payment.accessGrant && typeof payment.accessGrant === "object"
+      ? payment.accessGrant
+      : (alt.accessGrant && typeof alt.accessGrant === "object"
+        ? alt.accessGrant
+        : (consume.accessGrant && typeof consume.accessGrant === "object" ? consume.accessGrant : {})));
 
   const transactionId = String(
     source.transactionId
@@ -396,6 +415,11 @@ function extractPaymentLookupTokens(requestBody = {}) {
   const purchaseId = String(
     source.purchaseId
     || source.reportPurchaseId
+    || source.sourceTransactionId
+    || source.transactionId
+    || grant.purchaseId
+    || grant.transactionId
+    || grant.sourceTransactionId
     || payment.purchaseId
     || alt.purchaseId
     || consume.purchaseId
@@ -405,6 +429,8 @@ function extractPaymentLookupTokens(requestBody = {}) {
     source.sessionId
     || source.reportSessionId
     || source._premiumReportSessionId
+    || grant.sessionId
+    || grant.reportSessionId
     || payment.sessionId
     || payment.reportSessionId
     || alt.sessionId
@@ -430,6 +456,13 @@ function extractAccessBindingHints(requestBody = {}) {
   const payment = source.payment && typeof source.payment === "object" ? source.payment : {};
   const consume = source.consume && typeof source.consume === "object" ? source.consume : {};
   const ctx = source._paymentContext && typeof source._paymentContext === "object" ? source._paymentContext : {};
+  const grant = source.accessGrant && typeof source.accessGrant === "object"
+    ? source.accessGrant
+    : (payment.accessGrant && typeof payment.accessGrant === "object"
+      ? payment.accessGrant
+      : (ctx.accessGrant && typeof ctx.accessGrant === "object"
+        ? ctx.accessGrant
+        : (consume.accessGrant && typeof consume.accessGrant === "object" ? consume.accessGrant : {})));
   const profile = source.profile && typeof source.profile === "object" ? source.profile : {};
 
   return {
@@ -442,14 +475,16 @@ function extractAccessBindingHints(requestBody = {}) {
       || profile.id
       || "",
     ).trim(),
-    reportId: String(source.reportId || source.reportSessionId || source.generationId || "").trim(),
-    sessionId: String(source.sessionId || source.chapterSessionId || source.generationSessionId || "").trim(),
-    purchaseId: String(source.purchaseId || source.reportPurchaseId || payment.purchaseId || consume.purchaseId || ctx.purchaseId || "").trim(),
+    reportId: String(source.reportId || grant.reportId || source.reportSessionId || source.generationId || "").trim(),
+    sessionId: String(source.sessionId || grant.sessionId || source.chapterSessionId || source.generationSessionId || "").trim(),
+    purchaseId: String(source.purchaseId || grant.purchaseId || source.reportPurchaseId || payment.purchaseId || consume.purchaseId || ctx.purchaseId || "").trim(),
     requestId: String(source.requestId || source.sourceRequestId || payment.requestId || consume.requestId || ctx.requestId || "").trim(),
     transactionId: String(
       source.transactionId
       || source.sourceTransactionId
       || source.paymentId
+      || grant.transactionId
+      || grant.sourceTransactionId
       || payment.transactionId
       || payment.sourceTransactionId
       || consume.transactionId
@@ -480,10 +515,15 @@ function buildBindingClause(binding = {}) {
     clauses.push({ "metadata.selectedProfileId": binding.profileId });
   }
   if (binding.reportId) clauses.push({ "metadata.reportId": binding.reportId });
-  if (binding.sessionId) clauses.push({ "metadata.sessionId": binding.sessionId });
+  if (binding.sessionId) {
+    clauses.push({ "metadata.sessionId": binding.sessionId });
+    clauses.push({ "metadata.reportSessionId": binding.sessionId });
+  }
   if (binding.purchaseId) {
     clauses.push({ "metadata.purchaseId": binding.purchaseId });
     clauses.push({ "metadata.reportSessionId": binding.purchaseId });
+    clauses.push({ "metadata.sourceTransactionId": binding.purchaseId });
+    clauses.push({ "metadata.transactionId": binding.purchaseId });
   }
   return clauses;
 }
@@ -529,6 +569,12 @@ async function findLoveSecretBasePlusCompatibilityEvidence(userId, requestBody =
   if (!isCouple) return null;
 
   const baseRules = [
+    {
+      featureKey: "saju_love_book_pdf",
+      reason: "사주 프리미엄 연애운 리포트 생성",
+      minCost: 300,
+      windowMinutes: 120,
+    },
     {
       featureKey: "premium_pdf_saju_love_secret",
       reason: "사주 프리미엄 연애운 리포트 생성",
@@ -674,13 +720,31 @@ async function findEvidenceByPaymentTokens(userId, requestBody = {}, rules = [])
     if (byOrderId) return byOrderId;
   }
 
+  if (bindingClauses.length) {
+    const byBindingOnly = await PointHistory.findOne({
+      userId,
+      kind: "deduct",
+      ...featureQuery,
+      $or: bindingClauses,
+    })
+      .select("_id createdAt delta featureKey reason metadata")
+      .sort({ createdAt: -1 })
+      .lean();
+    if (byBindingOnly) return byBindingOnly;
+  }
+
   return null;
 }
 
-function buildPaymentRequiredResult(reportType, requiredRules = []) {
+function buildPaymentRequiredResult(reportType, requiredRules = [], requestBody = {}) {
   const hint = requiredRules.length
     ? requiredRules.map((rule) => `${rule.featureKey}:${rule.minCost}`).join(", ")
     : "unlock-or-payment";
+  const binding = extractAccessBindingHints(requestBody);
+  const missing = [];
+  if (!String(binding.sessionId || "").trim()) missing.push("sessionId");
+  if (!String(binding.purchaseId || "").trim()) missing.push("purchaseId");
+  if (!String(binding.reportId || "").trim()) missing.push("reportId");
 
   return {
     ok: false,
@@ -689,6 +753,8 @@ function buildPaymentRequiredResult(reportType, requiredRules = []) {
     message: "프리미엄 결제 또는 포인트 결제가 확인되지 않았습니다.",
     reportType,
     required: hint,
+    reason: "PAYMENT_EVIDENCE_NOT_FOUND",
+    missing,
   };
 }
 
@@ -700,6 +766,27 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
   const payment = requestBody && typeof requestBody.payment === "object" ? requestBody.payment : {};
   const paymentContext = requestBody && typeof requestBody._paymentContext === "object" ? requestBody._paymentContext : {};
   const consume = requestBody && typeof requestBody.consume === "object" ? requestBody.consume : {};
+  const accessBinding = extractAccessBindingHints(requestBody);
+  const receivedFeatureKey = String(
+    requestBody?.featureKey
+    || requestBody?.featureType
+    || payment?.featureKey
+    || consume?.featureKey
+    || requestBody?.subFeatureKey
+    || "",
+  ).trim();
+  const logSajuAccessResolved = (result = {}) => {
+    if (normalizedReportType !== "sajuNewYear") return;
+    console.info("[SajuNewYearAPI] access resolved", {
+      ok: Boolean(result?.ok),
+      expectedFeatureKey: "saju_new_year_pdf",
+      receivedFeatureKey,
+      hasSessionId: Boolean(String(accessBinding.sessionId || "").trim()),
+      hasPurchaseId: Boolean(String(accessBinding.purchaseId || "").trim()),
+      hasReportId: Boolean(String(accessBinding.reportId || "").trim()),
+      reason: result?.reason || result?.code || null,
+    });
+  };
   const premiumAccessToken = String(
     requestBody?.premiumAccessToken
     || requestBody?._premiumAccessToken
@@ -734,11 +821,13 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       reportType: normalizedReportType,
     });
     if (tokenCheck.ok && premiumTokenMatchesCurrentAccessRules(tokenCheck.payload, alternativeRules, requiredRules)) {
-      return {
+      const allowed = {
         ok: true,
         accessType: "signed-payment-token",
         reportType: normalizedReportType,
       };
+      logSajuAccessResolved(allowed);
+      return allowed;
     }
   }
 
@@ -750,13 +839,15 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       accessSource: "denied",
       deniedReason: "ACCESS_POLICY_MISSING",
     });
-    return {
+    const denied = {
       ok: false,
       status: 403,
       code: "ACCESS_POLICY_MISSING",
       message: "서버 접근 제어 정책이 정의되지 않은 reportType입니다.",
       reportType: normalizedReportType || null,
     };
+    logSajuAccessResolved(denied);
+    return denied;
   }
 
   await connectDb(env);
@@ -773,13 +864,15 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       accessSource: "denied",
       deniedReason: "UNAUTHORIZED",
     });
-    return {
+    const denied = {
       ok: false,
       status: 401,
       code: "UNAUTHORIZED",
       message: "유효한 사용자 인증이 필요합니다.",
       reportType: normalizedReportType,
     };
+    logSajuAccessResolved(denied);
+    return denied;
   }
 
   const unlockSet = new Set(uniqueStrings(user.unlockedFeatures || []));
@@ -797,7 +890,9 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
           accessSource: "denied",
           deniedReason: "REQUIRED_PAYMENT_BINDING_NOT_MATCHED",
         });
-        return buildPaymentRequiredResult(normalizedReportType, requiredRules);
+        const denied = buildPaymentRequiredResult(normalizedReportType, requiredRules, requestBody);
+        logSajuAccessResolved(denied);
+        return denied;
       }
     }
   }
@@ -811,12 +906,14 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       accessSource: "unlock",
       entitlementId: unlockPolicy[0] || "",
     });
-    return {
+    const allowed = {
       ok: true,
       accessType: "unlock",
       reportType: normalizedReportType,
       entitlementId: unlockPolicy[0] || "",
     };
+    logSajuAccessResolved(allowed);
+    return allowed;
   }
 
   const tokenEvidence = await findEvidenceByPaymentTokens(user._id, requestBody, alternativeRules);
@@ -829,13 +926,15 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       accessSource: "strict-payment-binding",
       matchedTransactionId: String(tokenEvidence?._id || ""),
     });
-    return {
+    const allowed = {
       ok: true,
       accessType: "strict-payment-binding",
       reportType: normalizedReportType,
       matchedTransactionId: String(tokenEvidence?._id || ""),
       featureKey: String(tokenEvidence?.featureKey || ""),
     };
+    logSajuAccessResolved(allowed);
+    return allowed;
   }
 
   logPremiumAccessDecision({
@@ -846,7 +945,9 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     accessSource: "denied",
     deniedReason: "STRICT_PAYMENT_BINDING_NOT_MATCHED",
   });
-  return buildPaymentRequiredResult(normalizedReportType, alternativeRules.length ? alternativeRules : unlockPolicy);
+  const denied = buildPaymentRequiredResult(normalizedReportType, alternativeRules.length ? alternativeRules : unlockPolicy, requestBody);
+  logSajuAccessResolved(denied);
+  return denied;
 }
 
 export const __accessControlTestUtils = {

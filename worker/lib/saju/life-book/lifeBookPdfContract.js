@@ -29,6 +29,8 @@ const LIFEBOOK_FORBIDDEN_PHRASES = [
   "궁합 분석",
 ];
 
+export const FEATURE_KEY_SAJU_LIFE_BOOK_PDF = "saju_life_book_pdf";
+
 function toText(value) {
   return String(value == null ? "" : value).trim();
 }
@@ -466,8 +468,60 @@ export function buildSajuLifeBookChapterManifest(lifeBookInputData = {}, chapter
 
 export function buildSajuLifeBookPdfPayload(lifeBookInputData = {}, chapterConfigs = []) {
   const normalized = normalizeLifeBookContext(lifeBookInputData);
+  const profileName = normalized.user.name || toText(lifeBookInputData?.userProfile?.name) || undefined;
+  const profileGender = toText(normalized.user.gender || lifeBookInputData?.userProfile?.gender || "unknown") || "unknown";
+  const birthDate = toText(normalized.user.birthInfo.birthDate || lifeBookInputData?.userProfile?.birthDate || "");
+  const birthTime = toText(normalized.user.birthInfo.birthTime || lifeBookInputData?.userProfile?.birthTime || "") || undefined;
+  const calendarType = toText(normalized.user.birthInfo.calendarType || lifeBookInputData?.userProfile?.calendarType || "solar") || "solar";
+  const chartId = toText(normalized.saju.chartId || normalized.saju.chartSignature);
+
+  const sajuResult = {
+    pillars: {
+      year: toText(normalized.saju.pillars?.year?.ganji || normalized.saju.pillars?.year),
+      month: toText(normalized.saju.pillars?.month?.ganji || normalized.saju.pillars?.month),
+      day: toText(normalized.saju.pillars?.day?.ganji || normalized.saju.pillars?.day),
+      hour: toText(normalized.saju.pillars?.hour?.ganji || normalized.saju.pillars?.hour) || undefined,
+    },
+    dayMaster: toText(normalized.saju.dayMaster),
+    tenGods: toObject(normalized.saju.tenGods),
+    fiveElements: {
+      wood: Number(normalized.saju.elements?.wood || 0),
+      fire: Number(normalized.saju.elements?.fire || 0),
+      earth: Number(normalized.saju.elements?.earth || 0),
+      metal: Number(normalized.saju.elements?.metal || 0),
+      water: Number(normalized.saju.elements?.water || 0),
+    },
+    usefulGod: toArray(normalized.saju.usefulGods?.yongsin).join(", ") || undefined,
+    avoidGod: toArray(normalized.saju.usefulGods?.gishin).join(", ") || undefined,
+    twelveStages: toObject(normalized.saju.twelveStages),
+    decadeLuck: toArray(normalized.saju.luckCycles?.daeun).map((row) => ({
+      ageRange: `${toText(row?.ageStart)}-${toText(row?.ageEnd)}`,
+      pillar: toText(row?.pillar),
+      theme: toText(row?.summary || row?.career || row?.wealth || row?.love || row?.health),
+    })),
+  };
+
   return {
-    mode: "lifeBook",
+    featureKey: FEATURE_KEY_SAJU_LIFE_BOOK_PDF,
+    mode: "life-book",
+    accessGrant: {
+      featureKey: FEATURE_KEY_SAJU_LIFE_BOOK_PDF,
+      sessionId: chartId || "lifebook-session",
+      purchaseId: chartId || "lifebook-purchase",
+      reportId: chartId || "lifebook-report",
+    },
+    profile: {
+      name: profileName,
+      gender: profileGender || "unknown",
+    },
+    birthData: {
+      birthDate,
+      birthTime,
+      calendarType: calendarType === "lunar" ? "lunar" : "solar",
+      lunarLeapMonth: false,
+    },
+    sajuResult,
+    modeLegacy: "lifeBook",
     reportType: "saju-life-book",
     reportTitle: "사주 인생의 책",
     user: {
@@ -506,13 +560,35 @@ function containsForbiddenStructure(value) {
 export function validateSajuLifeBookPdfPayload(payload = {}) {
   const missing = [];
   const p = toObject(payload);
+  const featureKey = toText(p.featureKey);
+  const accessGrant = toObject(p.accessGrant);
+  const profile = toObject(p.profile);
+  const birthData = toObject(p.birthData);
+  const sajuResult = toObject(p.sajuResult);
   const user = toObject(p.user);
   const birthInfo = toObject(user.birthInfo);
   const saju = toObject(p.saju);
   const pillars = toObject(saju.pillars);
   const chapters = toArray(p.chapters);
 
-  if (toText(p.mode) !== "lifeBook") missing.push("mode");
+  if (toText(p.mode) !== "lifeBook" && toText(p.mode) !== "life-book") missing.push("mode");
+  if (featureKey && featureKey !== FEATURE_KEY_SAJU_LIFE_BOOK_PDF) missing.push("featureKey");
+  if (!featureKey) missing.push("featureKey");
+  if (!toText(accessGrant.featureKey)) missing.push("accessGrant.featureKey");
+  if (!toText(accessGrant.sessionId)) missing.push("accessGrant.sessionId");
+  if (!toText(accessGrant.purchaseId)) missing.push("accessGrant.purchaseId");
+  if (!toText(accessGrant.reportId)) missing.push("accessGrant.reportId");
+  if (!toText(profile.gender) && !toText(user.gender)) missing.push("profile.gender");
+  if (!toText(birthData.birthDate) && !toText(birthInfo.birthDate)) missing.push("birthData.birthDate");
+  if (!toText(birthData.calendarType) && !toText(birthInfo.calendarType)) missing.push("birthData.calendarType");
+  if (hasMeaningfulValue(sajuResult)) {
+    if (!toText(toObject(sajuResult.pillars).year)) missing.push("sajuResult.pillars.year");
+    if (!toText(toObject(sajuResult.pillars).month)) missing.push("sajuResult.pillars.month");
+    if (!toText(toObject(sajuResult.pillars).day)) missing.push("sajuResult.pillars.day");
+    if (!toText(sajuResult.dayMaster)) missing.push("sajuResult.dayMaster");
+    if (!hasMeaningfulValue(sajuResult.fiveElements)) missing.push("sajuResult.fiveElements");
+    if (!hasMeaningfulValue(sajuResult.tenGods)) missing.push("sajuResult.tenGods");
+  }
   if (!toText(user.name)) missing.push("user.name");
   if (!toText(user.gender)) missing.push("user.gender");
   if (!toText(birthInfo.birthDate)) missing.push("user.birthInfo.birthDate");
