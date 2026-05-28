@@ -92,6 +92,11 @@ const SERVICE_ROUTE_PARAMS = new Map([
   ["/oracle/sikojen-povailu", ["service", "pig-oracle"]],
 ]);
 
+const SERVICE_ROUTE_EXTRA_QUERY = new Map([
+  ["/saju/love-secret", { premiumIntent: "love-secret-pdf", mode: "solo" }],
+  ["/saju/love-bible", { premiumIntent: "love-secret-pdf", mode: "solo" }],
+]);
+
 const LANDING_ONLY_ROUTES = new Set([
   "/faq",
   "/high-value",
@@ -327,6 +332,14 @@ export function middleware(request) {
     }
     const redirectUrl = buildMainRedirectUrl(request, (params) => {
       params.set("action", actionForRoute);
+      const extra = SERVICE_ROUTE_EXTRA_QUERY.get(routePath);
+      if (extra && typeof extra === "object") {
+        Object.entries(extra).forEach(([key, value]) => {
+          if (!key) return;
+          const safe = String(value || "").trim();
+          if (safe) params.set(key, safe);
+        });
+      }
     });
     return NextResponse.redirect(redirectUrl, 308);
   }

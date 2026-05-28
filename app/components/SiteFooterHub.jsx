@@ -27,7 +27,7 @@ const SEO_LINK_GROUPS = [
       { href: "/astrology/cosmic", text: "점성술 코즈믹 차트" },
       { href: "/saju/sibyl", text: "시빌라 시스템" },
       { href: "/saju/lifebook", text: "인생의 책" },
-      { href: "/saju/love-secret", text: "연애 비책" },
+      { href: "/saju/love-bible?premiumIntent=love-secret-pdf&mode=solo", text: "연애 비책" },
     ],
   },
   {

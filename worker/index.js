@@ -6,6 +6,7 @@ import { handleCelestialHarmonyRoutes } from "./routes/celestial-harmony.js";
 import { handleYoutubeRoutes } from "./routes/youtube.js";
 import { handlePaymentRoutes } from "./routes/payments.js";
 import { handleSajuLifebookRoutes } from "./routes/saju-lifebook.js";
+import { handleSajuLoveSecretRoutes } from "./routes/saju-love-secret.js";
 import { handleDreamRoutes } from "./routes/dream.js";
 import { handleDebugRoutes } from "./routes/debug.js";
 import { handleYogaGuruRoutes } from "./routes/yoga-guru.js";
@@ -648,11 +649,7 @@ export default {
       }
 
       if (url.pathname === "/api/love-secret" || url.pathname.startsWith("/api/love-secret/")) {
-        return jsonResponse(request, env, {
-          ok: false,
-          error: "removed_feature",
-          message: "연애 비책 PDF 엔드포인트는 제거되었습니다.",
-        }, { status: 410 });
+        return withCorsHeaders(request, env, await handleSajuLoveSecretRoutes(request, env));
       }
 
       if (url.pathname === "/api/dream" || url.pathname.startsWith("/api/dream/")) {

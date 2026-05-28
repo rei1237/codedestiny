@@ -777,6 +777,85 @@
     return lines.join('\n');
   }
 
+  function _collectSajuBase() {
+    var profile = window.__cdActiveBirthProfile || {};
+    var snap = window.__destinyFlowerSajuSnapshot || {};
+    var analysis = snap.analysis || snap.saju || {};
+    var G = window.G_PILLARS || {};
+    var counts = analysis.elementWeights || analysis.counts || {};
+    var tenGodCounts = (window.G_POWER && window.G_POWER.groups) ? window.G_POWER.groups : {};
+    var birth = profile.birth || snap.birth || {};
+
+    function _clean(v) { return String(v || '').trim(); }
+    function _safeNum(v) { var n = Number(v); return Number.isFinite(n) ? n : 0; }
+    function _birthDate() {
+      var y = Number(birth.year || 0);
+      var m = Number(birth.month || 0);
+      var d = Number(birth.day || 0);
+      if (!y || !m || !d) return '';
+      return String(y).padStart(4, '0') + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    }
+
+    return {
+      user: {
+        name: _clean(profile.name || snap.name || '사용자'),
+        gender: _clean(profile.gender || snap.gender || ''),
+        birthDate: _birthDate(),
+        birthTime: (birth.hour !== undefined && birth.minute !== undefined)
+          ? (String(birth.hour).padStart(2, '0') + ':' + String(birth.minute).padStart(2, '0'))
+          : '',
+        calendarType: _clean(birth.calType || 'solar') || 'solar'
+      },
+      pillars: {
+        year: { gan: _clean(G.y && G.y.g), zhi: _clean(G.y && G.y.j) },
+        month: { gan: _clean(G.m && G.m.g), zhi: _clean(G.m && G.m.j) },
+        day: { gan: _clean(G.d && G.d.g), zhi: _clean(G.d && G.d.j) },
+        hour: { gan: _clean(G.h && G.h.g), zhi: _clean(G.h && G.h.j) }
+      },
+      core: {
+        dayMaster: _clean((G.d && G.d.g) || analysis.dayStem || ''),
+        dayBranch: _clean((G.d && G.d.j) || ''),
+        monthBranch: _clean((G.m && G.m.j) || ''),
+        season: _clean(analysis.season || '')
+      },
+      elementBalance: {
+        counts: {
+          wood: _safeNum(counts.wood),
+          fire: _safeNum(counts.fire),
+          earth: _safeNum(counts.earth),
+          metal: _safeNum(counts.metal),
+          water: _safeNum(counts.water)
+        },
+        dominant: _clean(analysis.dominantElement || analysis.dominant || ''),
+        deficient: _clean(analysis.weakElement || analysis.deficient || ''),
+        balanceScore: _safeNum(analysis.balanceScore || 0)
+      },
+      tenGods: {
+        counts: tenGodCounts,
+        dominantTenGod: _clean(analysis.dominantTenGod || ''),
+        topTenGods: []
+      },
+      strength: {
+        isStrong: !!(window.G_POWER && window.G_POWER.isStrong),
+        label: _clean(analysis.power_label || ''),
+        reason: _clean((window.G_POWER && window.G_POWER.reason) || '')
+      },
+      johu: snap.johu || analysis.johu || null,
+      yongshin: {
+        usefulElements: Array.isArray(analysis.yongshin_elements) ? analysis.yongshin_elements.slice(0, 5) : []
+      },
+      specialStars: {
+        tao: _safeNum(analysis.taoPct || 0),
+        hwa: _safeNum(analysis.hwaPct || 0),
+        yeokma: _safeNum(analysis.yeokmaPct || 0),
+        gwimun: !!analysis.hasGwimun
+      },
+      timing: {
+        daeun: window.G_DAEWUN || window.G_DAEUN || []
+      }
+    };
+  }
+
   function _collectPartnerData() {
     var section = _qs('lsPartnerSection');
     if (!section || !section.classList.contains('open')) return '';
@@ -1450,6 +1529,7 @@
 
   /* ── 모듈 레벨 사주 데이터 저장 ───────────────────────────── */
   var _cachedSajuData = '';
+  var _cachedSajuBase = null;
 
     window.generateLoveSecret = function () {
     if (_generating) return;
@@ -1462,6 +1542,7 @@
       try { window.computeProfileForModal(window.__cdActiveBirthProfile); } catch (_cpE) {}
     }
     _cachedSajuData = _collectSajuData();
+    _cachedSajuBase = _collectSajuBase();
     _currentChapterMode = 'solo';
     _chapters = _buildChapterBuffer(_getLoveSecretModeTotalChapters(_currentChapterMode));
     _chapterStructured = _buildChapterBuffer(_getLoveSecretModeTotalChapters(_currentChapterMode));
@@ -1565,6 +1646,7 @@
     _prepareLoveSecretUi(_currentChapterMode);
     _startLoadingAnimation();
     var sajuData = _cachedSajuData || _collectSajuData();
+    var sajuBase = _cachedSajuBase || _collectSajuBase();
     var totalChapters = _getLoveSecretModeTotalChapters(_currentChapterMode);
     _chapters = _buildChapterBuffer(totalChapters);
     _chapterStructured = _buildChapterBuffer(totalChapters);
@@ -1670,6 +1752,8 @@
               accessGrant: _lsAccessGrant || undefined,
               premiumAccessToken: _lsPremiumToken || undefined,
               sajuData: sajuData,
+              sajuBase: sajuBase,
+              profile: window.__cdActiveBirthProfile || {},
               partnerData: partnerData || '',
             }),
             signal: _controller ? _controller.signal : undefined,

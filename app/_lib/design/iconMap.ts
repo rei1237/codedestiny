@@ -21,6 +21,7 @@ export const ROUTE_ICON_MAP: Record<string, DestinyIconName> = {
   "/saju/sibyl": "seal",
   "/saju/lifebook": "scroll",
   "/saju/love-secret": "heartGlow",
+  "/saju/love-bible": "heartGlow",
   "/saju/love-simulation": "heart",
   "/saju/destiny-bias": "photocard",
   "/saju/animal-test": "animalPaw",

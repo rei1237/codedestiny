@@ -6,7 +6,7 @@ export const SERVICE_SECTIONS = [
       { href: "/saju/basic", title: "사주 만세력 기본 해석", desc: "오행·십성 기반 명식 분석 · 무료" },
       { href: "/saju/sibyl", title: "시빌라 시스템", desc: "사주 기반 진로 적성 × 운명 위험 계수 · 기본 무료" },
       { href: "/saju/lifebook", title: "인생의 책", desc: "프리미엄 사주 심층 분석 · 500코인" },
-      { href: "/saju/love-secret", title: "연애 비책", desc: "사주 기반 연애 전략 · 1인 300코인 / 궁합 +100코인 (총 400코인)" },
+      { href: "/saju/love-bible?premiumIntent=love-secret-pdf&mode=solo", title: "연애 비책", desc: "사주 기반 연애 전략 · 1인 300코인 / 궁합 +100코인 (총 400코인)" },
       { href: "/saju/love-simulation", title: "LOVE CODE", desc: "사주 연애 시뮬레이션 · 무료" },
       { href: "/saju/destiny-bias", title: "최애운명", desc: "사주 기반 팬덤 공명 분석 · 1회 50코인" },
       { href: "/saju/animal-test", title: "십이운성 동물점", desc: "사주 속 십이운성으로 깨어나는 나만의 수호 동물 · 해금 100코인" },

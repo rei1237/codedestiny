@@ -54,6 +54,7 @@ const SLUG_CFG: Record<string, SlugCfg> = {
   "/saju/sibyl":        { icon:"⚡", badge:"SIBYL SYSTEM",   tag:"사주 기반 진로 적성 × 운명 위험 계수", particles:["⚡","☯","📊","⭐","🌟"] },
   "/saju/lifebook":     { icon:"📜", badge:"LIFE BOOK",     tag:"프리미엄 사주 심층 분석 리포트",  particles:["📜","✦","☯","⭐","💫"] },
   "/saju/love-secret":  { icon:"💕", badge:"LOVE SECRET",   tag:"사주 기반 연애 전략 · 이상형 분석", particles:["💕","🌹","☯","✦","🌸"] },
+  "/saju/love-bible":   { icon:"💕", badge:"LOVE SECRET",   tag:"사주 기반 연애 전략 · 이상형 분석", particles:["💕","🌹","☯","✦","🌸"] },
   "/saju/love-simulation": { icon:"💕", badge:"LOVE CODE",  tag:"사주 연애 시뮬레이션",            particles:["💕","🎲","☯","🌸","✦"] },
   "/ziwei/chart":       { icon:"☸",  badge:"ZIWEI",          tag:"12궁 자미두수 명반 분석",   particles:["☸","✦","⭐","🌙","🌟"] },
   "/astrology/cosmic":  { icon:"🌌", badge:"COSMIC CHART",   tag:"태양·달·상승궁 분석",       particles:["🌌","⭐","✦","🌙","🌟"] },
