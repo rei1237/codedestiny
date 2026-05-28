@@ -588,7 +588,12 @@ export default {
 
       if (
         (url.pathname === "/api/premium" || url.pathname.startsWith("/api/premium/"))
-        && !(url.pathname === "/api/premium/saju/life-book" || url.pathname.startsWith("/api/premium/saju/life-book/"))
+        && !(
+          url.pathname === "/api/premium/saju/life-book"
+          || url.pathname.startsWith("/api/premium/saju/life-book/")
+          || url.pathname === "/api/premium/saju-lifebook"
+          || url.pathname.startsWith("/api/premium/saju-lifebook/")
+        )
       ) {
         return jsonResponse(request, env, {
           ok: false,
@@ -626,6 +631,8 @@ export default {
       if (
         url.pathname === "/api/lifebook"
         || url.pathname.startsWith("/api/lifebook/")
+        || url.pathname === "/api/premium/saju-lifebook"
+        || url.pathname.startsWith("/api/premium/saju-lifebook/")
         || url.pathname === "/api/premium/saju/life-book"
         || url.pathname.startsWith("/api/premium/saju/life-book/")
       ) {

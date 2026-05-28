@@ -7,6 +7,8 @@
 
   var LIFEBOOK_TOTAL_CHAPTERS = 13;
   var LIFE_BOOK_FEATURE_KEY = 'saju_lifebook_pdf';
+  var LIFEBOOK_API_PREPARE_PATH = '/api/lifebook/prepare';
+  var LIFEBOOK_API_PREPARE_LEGACY_PATH = '/api/premium/saju-lifebook/prepare';
 
   /* ─────────────── 상수 ─────────────── */
   var CHAPTER_TITLES = [
@@ -224,6 +226,130 @@
       _urls.push(_url);
     }
     return _urls.length ? _urls : [_path];
+  }
+
+  function _buildLifeBookPrepareCandidates() {
+    var all = _buildApiCandidates(LIFEBOOK_API_PREPARE_PATH);
+    var legacy = _buildApiCandidates(LIFEBOOK_API_PREPARE_LEGACY_PATH);
+    var seen = {};
+    var merged = [];
+    all.concat(legacy).forEach(function (u) {
+      if (!u || seen[u]) return;
+      seen[u] = true;
+      merged.push(u);
+    });
+    return merged;
+  }
+
+  function _postLifeBookPrepare(payload, headers) {
+    return new Promise(function (resolve, reject) {
+      var endpoints = _buildLifeBookPrepareCandidates();
+      var settled = false;
+      var idx = 0;
+      var lastErr = '';
+
+      function doneOk(out) {
+        if (settled) return;
+        settled = true;
+        resolve(out);
+      }
+
+      function doneFail(message) {
+        if (settled) return;
+        settled = true;
+        reject(new Error(message || '인생의 책 엔드포인트 호출에 실패했습니다.'));
+      }
+
+      function runNext() {
+        if (idx >= endpoints.length) {
+          doneFail(lastErr || '인생의 책 엔드포인트 호출에 실패했습니다.');
+          return;
+        }
+
+        var endpoint = endpoints[idx++];
+        var controller = (typeof AbortController === 'function') ? new AbortController() : null;
+        var timerId = setTimeout(function () {
+          if (controller) {
+            try { controller.abort(); } catch (_) {}
+          }
+        }, 70000);
+
+        fetch(endpoint, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify(payload),
+          signal: controller ? controller.signal : undefined,
+        })
+          .then(function (res) {
+            return res.json().catch(function () { return {}; }).then(function (json) {
+              return { res: res, json: json, endpoint: endpoint };
+            });
+          })
+          .then(function (pack) {
+            clearTimeout(timerId);
+            if (pack.res && pack.res.ok && pack.json && pack.json.ok) {
+              doneOk(pack);
+              return;
+            }
+            var msg = pack && pack.json
+              ? (pack.json.message || pack.json.reason || pack.json.code || '')
+              : '';
+            lastErr = String(msg || ('HTTP ' + (pack && pack.res ? pack.res.status : 'ERR')));
+            runNext();
+          })
+          .catch(function (err) {
+            clearTimeout(timerId);
+            lastErr = String(err && err.message ? err.message : err || '요청 실패');
+            runNext();
+          });
+      }
+
+      runNext();
+    });
+  }
+
+  function _buildResultOverviewHtml() {
+    var snap = window.__destinyFlowerSajuSnapshot || {};
+    var analysis = snap.analysis || snap.saju || {};
+    var profile = window.__cdActiveBirthProfile || {};
+    var powerLabel = String(
+      analysis.power_label
+      || ((window.G_POWER && window.G_POWER.isStrong) ? '신강' : (window.G_POWER ? '신약' : '판정 대기'))
+    );
+    var yongshin = '';
+    if (Array.isArray(analysis.yongshin_elements) && analysis.yongshin_elements.length) {
+      yongshin = analysis.yongshin_elements.join(' · ');
+    } else if (window.G_POWER && Array.isArray(window.G_POWER.yongshin) && window.G_POWER.yongshin.length) {
+      yongshin = window.G_POWER.yongshin.join(' · ');
+    }
+
+    var weights = analysis.elementWeights || {};
+    var elemRows = [
+      { key: 'wood', label: '목', val: Number(weights.wood || 0) },
+      { key: 'fire', label: '화', val: Number(weights.fire || 0) },
+      { key: 'earth', label: '토', val: Number(weights.earth || 0) },
+      { key: 'metal', label: '금', val: Number(weights.metal || 0) },
+      { key: 'water', label: '수', val: Number(weights.water || 0) },
+    ];
+    elemRows.sort(function (a, b) { return b.val - a.val; });
+    var dominant = elemRows[0] || { label: '-', val: 0 };
+    var completed = _chapters.filter(function (c) { return typeof c === 'string' && c.trim().length > 0; }).length;
+    var completionPct = Math.round((completed / LIFEBOOK_TOTAL_CHAPTERS) * 100);
+    var name = String(profile.name || '사용자');
+
+    return '' +
+      '<div style="margin-bottom:14px;padding:14px;border:1px solid rgba(167,139,250,.35);border-radius:14px;background:linear-gradient(155deg,rgba(26,14,36,.9),rgba(37,22,56,.92));">' +
+      '  <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;">' +
+      '    <span style="font-size:12px;letter-spacing:.08em;padding:4px 8px;border-radius:999px;background:rgba(139,92,246,.18);border:1px solid rgba(139,92,246,.45);">PRECISION SNAPSHOT</span>' +
+      '    <span style="font-size:12px;padding:4px 8px;border-radius:999px;background:rgba(30,64,175,.22);border:1px solid rgba(96,165,250,.4);">' + _escHtml(name) + '</span>' +
+      '    <span style="font-size:12px;padding:4px 8px;border-radius:999px;background:rgba(22,163,74,.18);border:1px solid rgba(74,222,128,.35);">챕터 완성 ' + completionPct + '%</span>' +
+      '  </div>' +
+      '  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;">' +
+      '    <div style="padding:10px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);"><div style="font-size:11px;opacity:.78;">신강/신약</div><div style="font-weight:700;">' + _escHtml(powerLabel) + '</div></div>' +
+      '    <div style="padding:10px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);"><div style="font-size:11px;opacity:.78;">주도 오행</div><div style="font-weight:700;">' + _escHtml(dominant.label + ' (' + dominant.val + '%)') + '</div></div>' +
+      '    <div style="padding:10px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);"><div style="font-size:11px;opacity:.78;">핵심 용신</div><div style="font-weight:700;">' + _escHtml(yongshin || '분석 데이터 준비 중') + '</div></div>' +
+      '  </div>' +
+      '</div>';
   }
 
   /**
@@ -902,6 +1028,7 @@
     if (!bodyHtml && structured) bodyHtml = _md2html(_deriveTextFromChapterJson(structured));
     var html =
       '<div class="lb-chapter-wrap">' +
+      _buildResultOverviewHtml() +
       '<div class="lb-chapter-header">' +
       '<span class="lb-chapter-num">Chapter ' + ch + '</span>' +
       '<h2 class="lb-chapter-title">' + _escHtml(_getChapterMeta(idx).title) + '</h2>' +
@@ -1150,17 +1277,9 @@
       };
 
       _setGenerationState('writing_with_llm');
-      var _res = await fetch('/api/premium/saju-lifebook/prepare', {
-        method: 'POST',
-        headers: _headers,
-        body: JSON.stringify(_payload),
-      });
-
-      var _json = await _res.json().catch(function () { return {}; });
-      if (!_res.ok || !_json || !_json.ok) {
-        var _msg = String((_json && (_json.message || _json.reason || _json.code)) || ('HTTP ' + _res.status));
-        throw new Error(_msg);
-      }
+      var _prepare = await _postLifeBookPrepare(_payload, _headers);
+      var _res = _prepare.res;
+      var _json = _prepare.json;
 
       _setGenerationState('validating_chapters');
 
@@ -1186,6 +1305,9 @@
           }).filter(Boolean).join('\n\n');
         }
         _chapters[_i] = _text;
+        if (!_chapters[_i] || _chapters[_i].length < 120) {
+          _chapters[_i] = _buildChapterSkeleton(_i, '서버 응답이 짧아 챕터 골격으로 보강했습니다.');
+        }
         _chapterStructured[_i] = (_ch.chapterJson && typeof _ch.chapterJson === 'object')
           ? _ch.chapterJson
           : (Array.isArray(_ch.categories) ? { sections: _ch.categories.map(function (_cat) {
@@ -1199,7 +1321,9 @@
           subtitle: String(_ch.subtitle || CHAPTER_SUBTITLES[_i] || ''),
           isSkeleton: false,
         };
+        if (chapterMsg) chapterMsg.textContent = 'Chapter ' + (_i + 1) + ' 정리 완료 · 다음 챕터를 준비하고 있습니다...';
         _setProgress(_i + 1);
+        await new Promise(function (r) { setTimeout(r, 90); });
       }
 
       _setGenerationState('rendering_pdf');

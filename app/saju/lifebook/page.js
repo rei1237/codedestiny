@@ -196,7 +196,7 @@ export default function SajuLifebookPage() {
     startTicker();
 
     try {
-      const response = await fetch("/api/premium/saju-lifebook/prepare", {
+      const response = await fetch("/api/lifebook/prepare", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
