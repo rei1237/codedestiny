@@ -51,9 +51,9 @@ const __lazyActionLoaders = {
   openLifeBookModal: () => __loadScriptOnce('/js/life-book.js'),
   closeLifeBookModal: () => __loadScriptOnce('/js/life-book.js'),
   generateLifeBook: () => __loadScriptOnce('/js/life-book.js'),
-  openLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-1779988089675'),
-  closeLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-1779988089675'),
-  generateLoveSecret: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-1779988089675'),
+  openLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-1779989955399'),
+  closeLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-1779989955399'),
+  generateLoveSecret: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-1779989955399'),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
   openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=20260413-sibylfix1').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
