@@ -380,31 +380,46 @@ function buildChapterPrompt(seed, chapter) {
 }
 
 async function enhanceWithLlm(env, seed, localChapters) {
-  console.info("[NewYearBook][Flow] LLM_WRITE_START", { chapterCount: localChapters.length });
-  const chapters = [];
-  let fallbackUsed = false;
-  for (const chapter of localChapters) {
-    try {
+  // NOTE: 10 chapters are launched in parallel to avoid Cloudflare Worker 30s timeout.
+  // Per-chapter timeout is capped at 22s so all parallel calls fit within the 30s wall-clock limit.
+  const perChapterTimeoutMs = Math.min(
+    22000,
+    Number(env.PREMIUM_SAJU_NEW_YEAR_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 22000),
+  );
+  const perChapterTotalMs = Math.min(
+    25000,
+    Number(env.PREMIUM_SAJU_NEW_YEAR_GEMINI_TOTAL_TIMEOUT_MS || 25000),
+  );
+  const maxAttempts = Math.min(2, Number(env.PREMIUM_SAJU_NEW_YEAR_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 2));
+  console.info("[NewYearBook][Flow] LLM_WRITE_START", { chapterCount: localChapters.length, perChapterTimeoutMs, perChapterTotalMs, maxAttempts });
+
+  const settled = await Promise.allSettled(
+    localChapters.map(async (chapter) => {
       const result = await callGeminiText(env, buildChapterPrompt(seed, chapter), {
         modelEnvKeys: ["PREMIUM_SAJU_NEW_YEAR_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"],
         keyEnvKeys: ["PREMIUM_SAJU_NEW_YEAR_GEMINI_API_KEY", "PREMIUM_GEMINI_API_KEY1", "GEMINI_API_KEY"],
         temperature: 0.72,
         maxOutputTokens: 4096,
-        timeoutMs: Number(env.PREMIUM_SAJU_NEW_YEAR_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
-        totalTimeoutMs: Number(env.PREMIUM_SAJU_NEW_YEAR_GEMINI_TOTAL_TIMEOUT_MS || 90000),
-        maxAttemptsPerPair: Number(env.PREMIUM_SAJU_NEW_YEAR_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 4),
+        timeoutMs: perChapterTimeoutMs,
+        totalTimeoutMs: perChapterTotalMs,
+        maxAttemptsPerPair: maxAttempts,
       });
       if (!result?.ok) throw new Error(result?.message || result?.error || "llm_failed");
       const parsed = extractJsonObject(result.text || result.content || "");
       const normalized = normalizeGeneratedChapter(chapter, parsed);
       if (!normalized) throw new Error("llm_parse_failed");
-      chapters.push(normalized);
-    } catch (error) {
-      fallbackUsed = true;
-      console.warn("[NewYearBook][Flow] LLM_CHAPTER_FALLBACK", { chapter: chapter.no, message: clean(error?.message || error) });
-      chapters.push({ ...chapter, source: "local-fallback" });
-    }
-  }
+      return normalized;
+    }),
+  );
+
+  let fallbackUsed = false;
+  const chapters = settled.map((outcome, idx) => {
+    if (outcome.status === "fulfilled") return outcome.value;
+    fallbackUsed = true;
+    console.warn("[NewYearBook][Flow] LLM_CHAPTER_FALLBACK", { chapter: localChapters[idx].no, message: clean(outcome.reason?.message || outcome.reason) });
+    return { ...localChapters[idx], source: "local-fallback" };
+  });
+
   console.info("[NewYearBook][Flow] LLM_WRITE_OK", { chapterCount: chapters.length, fallbackUsed });
   return { chapters, fallbackUsed };
 }
@@ -550,7 +565,12 @@ export async function handleSajuNewYearRoutes(request, env = {}) {
     if (!["GET", "POST"].includes(method)) return methodNotAllowed(["GET", "POST"]);
     return json({ ok: false, serviceKey: SERVICE_KEY, message: "지원하지 않는 사주 신년운세 PDF 경로입니다." }, { status: 404 });
   } catch (error) {
-    console.error("[NewYearBook][Error]", { message: clean(error?.message || error) });
+    console.error("[NewYearBook][Error]", {
+      message: clean(error?.message || error),
+      name: clean(error?.name || ""),
+      status: Number(error?.status || 0) || null,
+      stack: clean(error?.stack || "").split("\n").slice(0, 5).join(" | "),
+    });
     return handleRouteError(error, "SajuNewYearRoutes");
   }
 }

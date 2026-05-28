@@ -43,10 +43,10 @@
   }
   function _logError(error, meta) {
     try {
-      console.error('[NewYearBook][Error]', {
-        message: String(error && error.message ? error.message : error || 'unknown'),
-        stage: meta && meta.stage ? String(meta.stage) : ''
-      });
+      var msg = String(error && error.message ? error.message : error || 'unknown');
+      var stage = meta && meta.stage ? String(meta.stage) : '';
+      var label = '[NewYearBook][Error]' + (stage ? '[' + stage + ']' : '') + ' ' + msg;
+      console.error(label, { message: msg, stage: stage, error: error });
     } catch (_) {}
   }
 
@@ -366,6 +366,7 @@
     var body = await response.json().catch(function () { return {}; });
     if (!response.ok || !body || body.ok === false) {
       var msg = _clean(body && body.message) || ('HTTP ' + response.status);
+      _log('PREPARE_HTTP_ERROR', { status: response.status, code: _clean(body && body.code), message: msg });
       throw new Error(msg);
     }
     return body;
