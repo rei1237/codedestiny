@@ -1,6 +1,15 @@
-const LOVE_BOOK_FEATURE_KEY = 'saju_love_book_pdf';
+(() => {
+  'use strict';
 
-function readPremiumAccessToken() {
+  // Guard against re-initialization
+  if (typeof globalThis !== 'undefined' && globalThis.__cdCoinGateHelperInitialized) {
+    return;
+  }
+
+  const LOVE_BOOK_FEATURE_KEY = 'saju_love_book_pdf';
+
+  function readPremiumAccessToken() {
+    async function getCoinGateHelper() {
   var token = '';
   try { token = String(globalThis.__cdPremiumAccessToken || '').trim(); } catch (_) { token = ''; }
   if (!token) {
@@ -165,14 +174,12 @@ async function getCoinGateHelper() {
     throw new Error('COIN_GATE_HELPER_MISSING');
   }
   return coinGateHelper;
+    return coinGateHelper;
+  }
 }
 
-// ESM export for dynamic import compatibility
-if (typeof module !== 'undefined' && typeof module.exports === 'undefined') {
-  // Browser environment - expose as module for import()
-  globalThis.__cdCoinGateHelperModule = {
-    coinGateHelper: coinGateHelper,
-    FEATURE_KEY_SAJU_LOVE_BOOK_PDF: FEATURE_KEY_SAJU_LOVE_BOOK_PDF,
-    getCoinGateHelper: getCoinGateHelper,
-  };
-}
+  // Mark initialization complete
+  if (typeof globalThis !== 'undefined') {
+    globalThis.__cdCoinGateHelperInitialized = true;
+  }
+})();

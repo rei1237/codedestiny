@@ -388,35 +388,56 @@
     
     // Load coin-gate-helper script if not already loaded
     if (!globalThis.__cdCoinGateHelperSingleton) {
-      // Fallback: load the script dynamically
       await new Promise((resolve, reject) => {
-        if (document.querySelector('script[src*="coin-gate-helper.js"]')) {
-          // Already loaded or loading
+        var scriptEl = document.querySelector('script[src*="coin-gate-helper.js"]');
+        if (scriptEl) {
+          // Script already exists, wait for initialization
           var attempts = 0;
-          var checkInterval = setInterval(() => {
-            if (globalThis.__cdCoinGateHelperSingleton) {
-              clearInterval(checkInterval);
+          var checkInit = setInterval(() => {
+            if (globalThis.__cdCoinGateHelperInitialized && globalThis.__cdCoinGateHelperSingleton) {
+              clearInterval(checkInit);
               resolve();
-            } else if (attempts++ > 50) {
-              clearInterval(checkInterval);
+            } else if (attempts++ > 100) {
+              clearInterval(checkInit);
               reject(new Error('COIN_GATE_HELPER_TIMEOUT'));
             }
-          }, 100);
+          }, 50);
         } else {
+          // Create and load the script
           var script = document.createElement('script');
-          script.src = '/js/coin-gate-helper.js?v=20260528-love-book';
-          script.onload = () => resolve();
-          script.onerror = () => reject(new Error('COIN_GATE_HELPER_LOAD_FAILED'));
+          script.src = '/js/coin-gate-helper.js?v=20260529-love-book';
+          var loadTimeout = setTimeout(() => {
+            reject(new Error('COIN_GATE_HELPER_TIMEOUT'));
+          }, 5000);
+          script.onload = () => {
+            // Wait a bit to ensure initialization is complete
+            var attempts = 0;
+            var checkInit = setInterval(() => {
+              if (globalThis.__cdCoinGateHelperInitialized && globalThis.__cdCoinGateHelperSingleton) {
+                clearTimeout(loadTimeout);
+                clearInterval(checkInit);
+                resolve();
+              } else if (attempts++ > 100) {
+                clearTimeout(loadTimeout);
+                clearInterval(checkInit);
+                reject(new Error('COIN_GATE_HELPER_INIT_TIMEOUT'));
+              }
+            }, 50);
+          };
+          script.onerror = () => {
+            clearTimeout(loadTimeout);
+            reject(new Error('COIN_GATE_HELPER_LOAD_FAILED'));
+          };
           document.head.appendChild(script);
         }
       });
     }
     
-    var helper = globalThis.__cdCoinGateHelperSingleton || (globalThis.__cdCoinGateHelperModule && globalThis.__cdCoinGateHelperModule.coinGateHelper);
-    if (!helper) {
+    var helper = globalThis.__cdCoinGateHelperSingleton;
+    if (!helper || typeof helper !== 'object') {
       throw new Error('COIN_GATE_HELPER_MISSING');
     }
-    console.info('[LoveBook] helper load', { helperLoaded: true });
+    console.info('[LoveBook] helper load', { helperLoaded: true, initialized: !!globalThis.__cdCoinGateHelperInitialized });
     return helper;
   }
 
