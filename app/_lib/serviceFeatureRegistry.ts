@@ -483,7 +483,7 @@ const FEATURES: ServiceFeature[] = ([
     image: "/fuctionassets/lifebook.webp",
     heroImageAlt: "사주 인생의 책 PDF 대표 이미지",
     detailRoute: "/services/saju-lifebook",
-    launchRoute: "/saju/lifebook",
+    launchRoute: "/premium/saju-lifebook",
     accessType: "premium_report",
     featureKey: "saju_lifebook_pdf",
     priceLabel: "500코인",

@@ -3,12 +3,12 @@
 import { useMemo, useState } from "react";
 
 const STEP_LABELS = [
-  "결제/권한 확인",
-  "입력값 검증",
-  "로컬 사주 계산",
-  "13챕터 골격 생성",
-  "LLM 보강 및 검수",
-  "PDF 준비 데이터 완성",
+  "기본 정보를 정리하는 중입니다",
+  "결제/권한 확인을 진행하는 중입니다",
+  "사주 원국을 계산하는 중입니다",
+  "13개의 인생 챕터를 구성하는 중입니다",
+  "상담문을 프리미엄 문장으로 다듬는 중입니다",
+  "PDF 책자로 편집하는 중입니다",
 ];
 
 function nowDate() {
@@ -38,6 +38,7 @@ export default function SajuLifebookPage() {
     name: "",
     gender: "female",
     birthDate: nowDate(),
+    birthTimeKnown: true,
     hour: "12",
     minute: "00",
     birthplace: "서울",
@@ -70,6 +71,12 @@ export default function SajuLifebookPage() {
       return;
     }
 
+    if (form.birthTimeKnown && (form.hour === "" || form.minute === "")) {
+      setLoading(false);
+      setError("태어난 시간 입력을 확인해 주세요.");
+      return;
+    }
+
     const authToken = (() => {
       try {
         return String(localStorage.getItem("fortune_auth_token") || "").trim();
@@ -81,7 +88,7 @@ export default function SajuLifebookPage() {
     if (!authToken) {
       setLoading(false);
       if (window.confirm("로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
-        window.location.assign("/login?next=%2Fsaju%2Flifebook");
+        window.location.assign("/login?next=%2Fpremium%2Fsaju-lifebook");
       }
       return;
     }
@@ -93,17 +100,20 @@ export default function SajuLifebookPage() {
       year,
       month,
       day,
-      hour: Number(form.hour),
-      minute: Number(form.minute),
+      birthTimeKnown: Boolean(form.birthTimeKnown),
+      hour: form.birthTimeKnown ? Number(form.hour) : null,
+      minute: form.birthTimeKnown ? Number(form.minute) : null,
       birthplace: String(form.birthplace || "").trim() || "서울",
     };
 
+    let nextStep = 0;
     const tick = window.setInterval(() => {
-      setStepIndex((prev) => (prev < STEP_LABELS.length - 1 ? prev + 1 : prev));
-    }, 550);
+      nextStep = Math.min(nextStep + 1, STEP_LABELS.length - 1);
+      setStepIndex(nextStep);
+    }, 650);
 
     try {
-      const response = await fetch("/api/premium/saju-lifebook/prepare", {
+      const response = await fetch("/api/premium/saju-lifebook", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -120,7 +130,8 @@ export default function SajuLifebookPage() {
       setStepIndex(STEP_LABELS.length - 1);
       setResult(data.data || null);
     } catch (err) {
-      setError(String(err?.message || "인생의 책 생성 중 오류가 발생했습니다."));
+      const message = String(err?.message || "인생의 책 생성 중 오류가 발생했습니다.");
+      setError(message.includes("결제") || message.includes("권한") ? message : "PDF 생성 중 문제가 발생했습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요.");
     } finally {
       window.clearInterval(tick);
       setLoading(false);
@@ -130,47 +141,27 @@ export default function SajuLifebookPage() {
   const onPrintPdf = () => {
     if (!result?.pdfReady) return;
 
-    const title = `${result.profile?.name || "사용자"} - 사주 인생의 책`;
-    const chapterHtml = (result.pdfReady.chapters || [])
-      .map((chapter) => {
-        return `
-          <section style="margin-bottom:28px;">
-            <h2 style="font-size:20px;margin:0 0 8px;">${chapter.chapter}. ${chapter.title}</h2>
-            <p style="white-space:pre-wrap;line-height:1.72;margin:0;">${String(chapter.text || "")}</p>
-          </section>
-        `;
-      })
-      .join("\n");
-
     const popup = window.open("", "_blank", "width=980,height=860");
     if (!popup) return;
 
-    popup.document.write(`
-      <html>
-        <head>
-          <title>${title}</title>
-          <meta charset="utf-8" />
-        </head>
-        <body style="font-family: 'Noto Sans KR', sans-serif; padding: 24px 28px;">
-          <h1 style="margin:0 0 12px;">${title}</h1>
-          <p style="margin:0 0 20px;color:#555;">생성 시각: ${new Date().toLocaleString("ko-KR")}</p>
-          ${chapterHtml}
-        </body>
-      </html>
-    `);
+    popup.document.write(String(result.pdfReady?.html || ""));
     popup.document.close();
     popup.focus();
     popup.print();
   };
 
   return (
-    <main style={{ maxWidth: 980, margin: "0 auto", padding: "32px 20px 64px" }}>
-      <h1 style={{ margin: "0 0 10px", fontSize: 34, lineHeight: 1.2 }}>사주 인생의 책 PDF 생성</h1>
-      <p style={{ margin: "0 0 22px", color: "#555" }}>
-        출생 정보를 입력하면 결제/권한을 재검증한 뒤 13챕터 프리미엄 리포트를 생성합니다.
-      </p>
+    <main style={{ maxWidth: 1080, margin: "0 auto", padding: "32px 20px 72px", color: "#1f130b" }}>
+      <section style={{ marginBottom: 20, padding: 22, borderRadius: 24, background: "linear-gradient(135deg, #1d130d 0%, #5e3a20 52%, #8a5f37 100%)", color: "#fff6eb", boxShadow: "0 24px 48px rgba(48, 29, 14, .18)" }}>
+        <p style={{ margin: 0, letterSpacing: ".18em", textTransform: "uppercase", opacity: .82 }}>Code:Destiny Premium PDF</p>
+        <h1 style={{ margin: "10px 0 10px", fontSize: 38, lineHeight: 1.1 }}>사주 인생의 책</h1>
+        <p style={{ margin: 0, fontSize: 18, color: "#ffe8d2" }}>팔자 8글자로 읽는 나만의 운명 해설서</p>
+        <p style={{ margin: "10px 0 0", maxWidth: 760, color: "#f7ddc0" }}>
+          원국, 월지, 일간, 용신, 대운, 격국, 관계, 연애, 재물, 직업, 건강, 위기관리, 실행 로드맵까지 13챕터로 정리한 프리미엄 사주 PDF입니다.
+        </p>
+      </section>
 
-      <form onSubmit={onSubmit} style={{ display: "grid", gap: 12, background: "#faf8f3", border: "1px solid #e7dcc8", borderRadius: 14, padding: 18 }}>
+      <form onSubmit={onSubmit} style={{ display: "grid", gap: 14, background: "#faf6ef", border: "1px solid #e7dcc8", borderRadius: 18, padding: 20, boxShadow: "0 16px 32px rgba(69, 47, 25, .07)" }}>
         <label>
           이름
           <input value={form.name} onChange={(e) => onChange("name", e.target.value)} placeholder="홍길동" style={{ display: "block", width: "100%", marginTop: 6, padding: "10px 12px" }} />
@@ -190,16 +181,25 @@ export default function SajuLifebookPage() {
           <input type="date" value={form.birthDate} onChange={(e) => onChange("birthDate", e.target.value)} style={{ display: "block", width: "100%", marginTop: 6, padding: "10px 12px" }} />
         </label>
 
+        <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <input type="checkbox" checked={form.birthTimeKnown} onChange={(e) => onChange("birthTimeKnown", e.target.checked)} />
+          태어난 시간을 알고 있어요
+        </label>
+
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           <label>
             출생 시
-            <input type="number" min="0" max="23" value={form.hour} onChange={(e) => onChange("hour", e.target.value)} style={{ display: "block", width: "100%", marginTop: 6, padding: "10px 12px" }} />
+            <input type="number" min="0" max="23" value={form.hour} onChange={(e) => onChange("hour", e.target.value)} disabled={!form.birthTimeKnown} placeholder={!form.birthTimeKnown ? "시간 미상" : "12"} style={{ display: "block", width: "100%", marginTop: 6, padding: "10px 12px", opacity: form.birthTimeKnown ? 1 : 0.55 }} />
           </label>
           <label>
             출생 분
-            <input type="number" min="0" max="59" value={form.minute} onChange={(e) => onChange("minute", e.target.value)} style={{ display: "block", width: "100%", marginTop: 6, padding: "10px 12px" }} />
+            <input type="number" min="0" max="59" value={form.minute} onChange={(e) => onChange("minute", e.target.value)} disabled={!form.birthTimeKnown} placeholder={!form.birthTimeKnown ? "시간 미상" : "00"} style={{ display: "block", width: "100%", marginTop: 6, padding: "10px 12px", opacity: form.birthTimeKnown ? 1 : 0.55 }} />
           </label>
         </div>
+
+        {!form.birthTimeKnown && (
+          <p style={{ margin: 0, color: "#7c5a3d", fontSize: 14 }}>태어난 시간이 없으면 시간 미상 기준으로 계산을 진행합니다.</p>
+        )}
 
         <label>
           출생지
@@ -207,13 +207,13 @@ export default function SajuLifebookPage() {
         </label>
 
         <button type="submit" disabled={loading} style={{ marginTop: 4, padding: "12px 14px", fontSize: 16, fontWeight: 700, borderRadius: 10, border: 0, background: "#111827", color: "#fff", cursor: loading ? "wait" : "pointer" }}>
-          {loading ? "생성 중..." : "500코인으로 생성 시작"}
+          {loading ? "생성 중..." : "13챕터 인생의 책 만들기"}
         </button>
       </form>
 
       {loading && (
-        <section style={{ marginTop: 18, border: "1px solid #e5e7eb", borderRadius: 12, padding: 14 }}>
-          <p style={{ margin: "0 0 8px", fontWeight: 700 }}>진행 단계: {STEP_LABELS[stepIndex]}</p>
+        <section style={{ marginTop: 18, border: "1px solid #e5e7eb", borderRadius: 16, padding: 16, background: "#fff" }}>
+          <p style={{ margin: "0 0 8px", fontWeight: 700 }}>{STEP_LABELS[stepIndex]}</p>
           <div style={{ height: 10, background: "#f3f4f6", borderRadius: 999 }}>
             <div style={{ height: "100%", width: `${progressPercent}%`, background: "#0ea5e9", borderRadius: 999, transition: "width .25s" }} />
           </div>
@@ -223,7 +223,7 @@ export default function SajuLifebookPage() {
       {error && <p style={{ marginTop: 14, color: "#b91c1c", fontWeight: 700 }}>{error}</p>}
 
       {result && (
-        <section style={{ marginTop: 22, border: "1px solid #d1d5db", borderRadius: 14, padding: 16 }}>
+        <section style={{ marginTop: 22, border: "1px solid #d1d5db", borderRadius: 18, padding: 18, background: "#fff" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <h2 style={{ margin: 0 }}>생성 완료: {result.profile?.name}님의 인생의 책</h2>
             <button type="button" onClick={onPrintPdf} style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #111", background: "#fff", cursor: "pointer", fontWeight: 700 }}>
@@ -235,9 +235,16 @@ export default function SajuLifebookPage() {
 
           <div style={{ display: "grid", gap: 10 }}>
             {(result.chapters || []).map((chapter, index) => (
-              <article key={chapter.id || index} style={{ border: "1px solid #e5e7eb", borderRadius: 10, padding: 12 }}>
+              <article key={chapter.id || index} style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 12, background: "#fcfcfb" }}>
                 <h3 style={{ margin: "0 0 6px", fontSize: 17 }}>{index + 1}. {chapter.title}</h3>
-                <p style={{ margin: 0, color: "#374151" }}>{chapterPreview(chapter.text)}</p>
+                <div style={{ display: "grid", gap: 8 }}>
+                  {(chapter.categories || []).map((category) => (
+                    <div key={category.id || category.title} style={{ padding: "10px 12px", borderRadius: 10, background: "#fff", border: "1px solid #ece2d0" }}>
+                      <strong style={{ display: "block", marginBottom: 4 }}>{category.title}</strong>
+                      <p style={{ margin: 0, color: "#374151" }}>{chapterPreview(category.finalText)}</p>
+                    </div>
+                  ))}
+                </div>
               </article>
             ))}
           </div>
