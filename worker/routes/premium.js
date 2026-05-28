@@ -14818,6 +14818,8 @@ async function generateVedicPremiumChapter(env, body, input, chapter, meta, cano
     warnings.push(`LOCAL_DETERMINISTIC_WRITER_USED:${localGeneratedCount.value}`);
   }
 
+  const internalFallbackUsed = localGeneratedCount.value > 0;
+
   return {
     ok: true,
     text,
