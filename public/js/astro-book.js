@@ -9,8 +9,10 @@
   var ASTRO_BILLING_FEATURE_KEY = 'premium-astrology-report';
   var ASTRO_PREPARE_API = '/api/astro/premium/prepare';
   var ASTRO_CHAPTERS_API = '/api/astro/premium/chapters';
+  var ASTRO_WESTERN_CHART_API = '/api/astro/western-chart';
   var ASTRO_TOTAL_CHAPTERS = 12;
   var ASTRO_COIN_COST = 390;
+  var ASTRO_SIGN_NAMES = ['양자리', '황소자리', '쌍둥이자리', '게자리', '사자자리', '처녀자리', '천칭자리', '전갈자리', '사수자리', '염소자리', '물병자리', '물고기자리'];
 
   var _chapters = [];
   var _canonicalChapters = [];
@@ -24,10 +26,34 @@
 
   function _clean(v) { return String(v || '').trim(); }
 
+  function _logFlow(code, meta) {
+    try {
+      console.info('[AstroBook][Flow] ' + code, meta || {});
+    } catch (_) {}
+  }
+
+  function _logError(error, meta) {
+    try {
+      console.error('[AstroBook][Error]', {
+        message: String(error && error.message ? error.message : error || 'unknown'),
+        code: String(error && error.code ? error.code : ''),
+        stage: meta && meta.stage ? String(meta.stage) : '',
+      });
+    } catch (_) {}
+  }
+
+  function _persistPremiumAccessToken(token) {
+    var value = String(token || '').trim();
+    if (!value) return;
+    try { window.__cdPremiumAccessToken = value; } catch (_) {}
+    try { sessionStorage.setItem('cd_premium_access_token', value); } catch (_) {}
+    try { localStorage.setItem('cd_premium_access_token', value); } catch (_) {}
+  }
+
   function _sanitizeText(v) {
     return String(v || '')
       .replace(/\b(undefined|null|nan)\b/gi, '')
-      .replace(/\b(payload|json|localdraft|fallback|llm|api)\b/gi, '')
+      .replace(/\b(payload|json|localdraft|fallback|llm)\b/gi, '')
       .replace(/chapter\s*1/gi, '')
       .replace(/자동\s*복구\s*생성/gi, '')
       .replace(/\s{2,}/g, ' ')
@@ -40,6 +66,16 @@
     if (!t) { try { t = String(sessionStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { t = ''; } }
     if (!t) { try { t = String(localStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { t = ''; } }
     return t;
+  }
+
+  function _extractPremiumToken(payload) {
+    if (!payload || typeof payload !== 'object') return '';
+    var keys = ['premiumAccessToken', '_premiumAccessToken', 'accessToken', 'token'];
+    for (var i = 0; i < keys.length; i += 1) {
+      var found = String(payload[keys[i]] || '').trim();
+      if (found) return found;
+    }
+    return _extractPremiumToken(payload.data) || _extractPremiumToken(payload.payload);
   }
 
   function _premiumTokenMatches(reportType) {
@@ -147,6 +183,38 @@
     _showScreen('abErrorScreen');
   }
 
+  function _setStartBusy(isBusy) {
+    var btn = _qs('abStartBtn');
+    if (!btn) return;
+    btn.disabled = !!isBusy;
+    btn.setAttribute('aria-busy', isBusy ? 'true' : 'false');
+  }
+
+  function _signFromIndex(index) {
+    var n = Number(index);
+    if (!Number.isFinite(n)) return '';
+    return ASTRO_SIGN_NAMES[((Math.floor(n) % 12) + 12) % 12] || '';
+  }
+
+  function _signFromLongitude(longitude) {
+    var n = Number(longitude);
+    if (!Number.isFinite(n)) return '';
+    return _signFromIndex(Math.floor((((n % 360) + 360) % 360) / 30));
+  }
+
+  function _readSign(node) {
+    if (!node) return '';
+    if (typeof node === 'string') return _clean(node);
+    if (typeof node === 'number') return _signFromIndex(node);
+    if (typeof node !== 'object') return '';
+    var direct = _clean(node.signKo || node.signName || node.name || node.value);
+    if (direct) return direct;
+    if (typeof node.sign === 'string') return _clean(node.sign);
+    if (typeof node.sign === 'number') return _signFromIndex(node.sign);
+    if (node.sign && typeof node.sign === 'object') return _readSign(node.sign);
+    return _signFromLongitude(node.longitude);
+  }
+
   function _buildApiCandidates(pathname) {
     var path = String(pathname || '');
     if (path.charAt(0) !== '/') path = '/' + path;
@@ -213,13 +281,13 @@
     for (var i = 0; i < keys.length; i++) {
       var k = keys[i];
       var p = dict[k] || {};
-      var signNode = p.sign || {};
+      var signName = _readSign(p);
       planets.push({
         name: k,
-        sign: _clean(signNode.sign || signNode.name),
-        degree: Number(signNode.deg),
+        sign: signName,
+        degree: Number(p.degree != null ? p.degree : (p.deg != null ? p.deg : (p.sign && p.sign.deg))),
         house: Number(p.house || 0) || undefined,
-        retrograde: Boolean(p.retro),
+        retrograde: Boolean(p.retrograde || p.retro),
       });
     }
     return planets;
@@ -228,12 +296,23 @@
   function _buildHouses(chart) {
     var houses = [];
     var h = (chart && chart.houses) ? chart.houses : {};
+    if ((!h || !Object.keys(h).length) && Array.isArray(chart && chart.houseCusps)) {
+      for (var c = 0; c < chart.houseCusps.length && c < 12; c++) {
+        var lon = Number(chart.houseCusps[c]);
+        houses.push({
+          house: c + 1,
+          sign: _signFromLongitude(lon),
+          degree: Number.isFinite(lon) ? Math.round((((lon % 30) + 30) % 30) * 100) / 100 : undefined,
+        });
+      }
+      return houses;
+    }
     for (var i = 1; i <= 12; i++) {
       var node = h['h' + i] || {};
       houses.push({
         house: i,
-        sign: _clean(node.sign || node.name),
-        degree: Number(node.deg),
+        sign: _readSign(node),
+        degree: Number(node.degree != null ? node.degree : (node.deg != null ? node.deg : (node.sign && node.sign.deg))),
       });
     }
     return houses;
@@ -241,12 +320,12 @@
 
   function _buildAspects(chart) {
     var aspects = [];
-    var arr = (chart && chart.natal && Array.isArray(chart.natal.aspects)) ? chart.natal.aspects : [];
+    var arr = (chart && chart.natal && Array.isArray(chart.natal.aspects)) ? chart.natal.aspects : (Array.isArray(chart && chart.aspects) ? chart.aspects : []);
     for (var i = 0; i < arr.length; i++) {
       var a = arr[i] || {};
       aspects.push({
-        planetA: _clean(a.a || a.planetA),
-        planetB: _clean(a.b || a.planetB),
+        planetA: _clean(a.a || a.p1 || a.planetA),
+        planetB: _clean(a.b || a.p2 || a.planetB),
         type: _clean(a.type || a.aspect),
         orb: Number(a.orb),
         strength: _clean(a.strength),
@@ -255,15 +334,15 @@
     return aspects;
   }
 
-  function _buildAstroBase(profile) {
+  function _buildAstroBaseFromChart(profile, chart) {
     var birthFmt = _formatBirth(profile);
-    var chart = _buildChartFromLocal(profile);
     if (!chart) return null;
 
-    var sunSign = _clean(chart.sun && chart.sun.sign);
-    var moonSign = _clean(chart.moon && chart.moon.sign);
-    var asc = _clean(chart.asc && chart.asc.sign);
-    var mc = _clean(chart.mc && chart.mc.sign);
+    var planetMap = (chart && chart.planets) || {};
+    var sunSign = _readSign(chart.sun || chart.Sun || planetMap.Sun);
+    var moonSign = _readSign(chart.moon || chart.Moon || planetMap.Moon);
+    var asc = _readSign(chart.asc || chart.ascendant);
+    var mc = _readSign(chart.mc || chart.midheaven);
 
     return {
       user: {
@@ -288,6 +367,84 @@
         monthlyThemes: [],
       },
     };
+  }
+
+  function _buildAstroBase(profile) {
+    return _buildAstroBaseFromChart(profile, _buildChartFromLocal(profile));
+  }
+
+  function _buildWesternChartRequest(profile) {
+    var birth = (profile && profile.birth) || {};
+    var location = (profile && profile.location) || {};
+    return {
+      year: Number(birth.year),
+      month: Number(birth.month),
+      day: Number(birth.day),
+      hour: Number(birth.hour || 12),
+      minute: Number(birth.minute || 0),
+      timezone: Number(location.tzOffset || location.timezone || 9),
+      lat: Number(location.lat || 37.5665),
+      lon: Number(location.lon || location.lng || 126.9780),
+    };
+  }
+
+  function _fetchWesternChart(profile) {
+    var endpoints = _buildApiCandidates(ASTRO_WESTERN_CHART_API);
+    var body = _buildWesternChartRequest(profile);
+    var idx = 0;
+
+    function run(resolve, reject, lastErr) {
+      if (idx >= endpoints.length) {
+        reject(new Error(lastErr || '점성술 계산 API 호출에 실패했습니다.'));
+        return;
+      }
+      var url = endpoints[idx++];
+      var headers = { 'Content-Type': 'application/json' };
+      var authToken = '';
+      try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) { authToken = ''; }
+      if (authToken) headers.Authorization = 'Bearer ' + authToken;
+      fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(body),
+        credentials: 'include',
+        cache: 'no-store',
+      })
+        .then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (json) {
+            return { res: res, json: json };
+          });
+        })
+        .then(function (pack) {
+          if (pack.res.ok && pack.json && pack.json.ok !== false) {
+            resolve(pack.json);
+            return;
+          }
+          run(resolve, reject, (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status));
+        })
+        .catch(function (err) {
+          run(resolve, reject, String(err && err.message || err || '요청 실패'));
+        });
+    }
+
+    return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
+  }
+
+  function _buildAstroBaseAsync(profile) {
+    var localBase = _buildAstroBase(profile);
+    if (localBase && localBase.chart && localBase.chart.sunSign && localBase.chart.moonSign && localBase.chart.ascendant) {
+      _logFlow('ASTRO_SEED_OK', { source: 'local' });
+      return Promise.resolve(localBase);
+    }
+    _logFlow('ASTRO_SEED_REMOTE_START');
+    return _fetchWesternChart(profile).then(function (chart) {
+      var remoteBase = _buildAstroBaseFromChart(profile, chart);
+      if (!remoteBase || !remoteBase.chart || !remoteBase.chart.sunSign || !remoteBase.chart.moonSign || !remoteBase.chart.ascendant) {
+        throw new Error('점성술 계산 결과가 PDF 생성에 필요한 구조와 맞지 않습니다.');
+      }
+      _logFlow('ASTRO_SEED_OK', { source: 'worker-western-chart' });
+      return remoteBase;
+    });
   }
 
   function _renderProfileSummary(profile) {
@@ -452,6 +609,7 @@
         })
         .then(function (pack) {
           if (pack.res.ok && pack.json && pack.json.ok) {
+            _persistPremiumAccessToken(_extractPremiumToken(pack.json));
             resolve(pack.json);
             return;
           }
@@ -471,8 +629,11 @@
       alert('결제 모듈을 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.');
       return false;
     }
-    window._cdCoinGatePerUse(ASTRO_COIN_COST, '프리미엄 점성술 PDF 생성', function () {
+    _logFlow('BILLING_CHECK_START', { featureKey: ASTRO_BILLING_FEATURE_KEY });
+    window._cdCoinGatePerUse(ASTRO_COIN_COST, '점성술 프리미엄 PDF 리포트 생성', function (_transactionId, data) {
+      _persistPremiumAccessToken(_extractPremiumToken(data));
       _markPremiumAccessVerified(25 * 60 * 1000);
+      _logFlow('BILLING_CHECK_OK', { featureKey: ASTRO_BILLING_FEATURE_KEY });
       window.generateAstroBook();
     }, null, {
       featureKey: ASTRO_BILLING_FEATURE_KEY,
@@ -482,6 +643,7 @@
   }
 
   window.openAstroBookModal = function () {
+    _logFlow('CARD_CLICK');
     var modal = _qs('astroBookModal');
     if (!modal) return;
 
@@ -516,6 +678,7 @@
   };
 
   window.gotoAstrologyPremium = function () {
+    _logFlow('CARD_VISIBLE_CHECK', { card: 'gotoAstrologyPremium' });
     window.openAstroBookModal();
   };
 
@@ -533,35 +696,45 @@
       return;
     }
 
-    var astroBase = _buildAstroBase(profile);
-    if (!astroBase || !astroBase.chart || !astroBase.chart.sunSign || !astroBase.chart.moonSign || !astroBase.chart.ascendant) {
-      _setError('점성술 차트 계산 정보를 찾을 수 없습니다. 기본 점성술 분석을 먼저 완료해 주세요.');
-      return;
-    }
-
     _generating = true;
+    _setStartBusy(true);
     _showScreen('abLoadingScreen');
+    _setLoadingProgress(1, ASTRO_TOTAL_CHAPTERS, '출생 차트의 핵심 좌표를 정리하는 중입니다');
     _startProgressAnimation();
 
-    _postPrepare({
-      featureKey: ASTRO_FEATURE_KEY,
-      premiumAccessToken: _readPremiumAccessToken() || undefined,
-      astroBase: astroBase,
-    })
+    _logFlow('ASTRO_SEED_START');
+    _buildAstroBaseAsync(profile)
+      .then(function (astroBase) {
+        _setLoadingProgress(2, ASTRO_TOTAL_CHAPTERS, '행성과 하우스의 관계를 분석하는 중입니다');
+        _logFlow('PDF_API_START', { featureKey: ASTRO_FEATURE_KEY });
+        return _postPrepare({
+          featureKey: ASTRO_FEATURE_KEY,
+          premiumAccessToken: _readPremiumAccessToken() || undefined,
+          astroBase: astroBase,
+        }).then(function (data) {
+          return { data: data, astroBase: astroBase };
+        });
+      })
       .then(function (data) {
+        var pack = data || {};
+        var response = pack.data || {};
+        var astroBase = pack.astroBase || null;
         _markPremiumAccessVerified(25 * 60 * 1000);
-        _resultPayload = data;
-        _chapters = Array.isArray(data.chapters) ? data.chapters : [];
+        _resultPayload = response;
+        _chapters = Array.isArray(response.chapters) ? response.chapters : [];
         if (!_chapters.length) throw new Error('점성술 챕터 데이터가 비어 있습니다.');
-        _setLoadingProgress(ASTRO_TOTAL_CHAPTERS, ASTRO_TOTAL_CHAPTERS, '최종 리포트를 완성하는 중...');
-        _renderResult(_chapters, data.payload || astroBase);
+        _setLoadingProgress(ASTRO_TOTAL_CHAPTERS, ASTRO_TOTAL_CHAPTERS, '프리미엄 점성술 PDF를 완성하는 중입니다');
+        _renderResult(_chapters, response.payload || astroBase);
+        _logFlow('PDF_API_OK', { chapterCount: _chapters.length, fallbackUsed: !!response.fallbackUsed });
         _showScreen('abResultScreen');
       })
       .catch(function (err) {
+        _logError(err, { stage: 'generate' });
         _setError(String(err && err.message ? err.message : err || '생성 실패'));
       })
       .finally(function () {
         _generating = false;
+        _setStartBusy(false);
         _stopProgressAnimation();
       });
   };

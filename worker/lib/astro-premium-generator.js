@@ -122,25 +122,58 @@ function buildSeedText(base, chapter, category) {
   const mc = clean(base?.chart?.midheaven) || "MC 정보";
   const dominantElement = clean(base?.balance?.dominantElement) || "균형";
   const dominantModality = clean(base?.balance?.dominantModality) || "리듬";
+  const planets = safeArray(base?.chart?.planets);
+  const houses = safeArray(base?.chart?.houses);
+  const planetByName = Object.fromEntries(planets.map((planet) => [clean(planet.name).toLowerCase(), planet]));
+  const houseByNo = Object.fromEntries(houses.map((house) => [Number(house.house), house]));
   const topAspect = safeArray(base?.chart?.aspects)[0];
   const topAspectText = topAspect
     ? `${topAspect.planetA}-${topAspect.planetB} ${topAspect.type}`
     : "주요 각도 흐름";
-
-  const map = {
-    sun,
-    moon,
-    asc,
-    mc,
-    dominantElement,
-    dominantModality,
-    topAspectText,
+  const pickPlanet = (...names) => names.map((name) => planetByName[String(name).toLowerCase()]).find(Boolean) || null;
+  const pickHouse = (...numbers) => numbers.map((number) => houseByNo[Number(number)]).find(Boolean) || null;
+  const describePlanet = (planet, fallbackName) => {
+    if (!planet) return fallbackName;
+    const sign = clean(planet.sign) || "별자리 미상";
+    const house = Number.isFinite(Number(planet.house)) ? `${Number(planet.house)}하우스` : "하우스 미상";
+    return `${clean(planet.name) || fallbackName} ${sign} ${house}`;
+  };
+  const describeHouse = (house, fallbackName) => {
+    if (!house) return fallbackName;
+    return `${Number(house.house)}하우스 ${clean(house.sign) || "별자리 미상"}`;
   };
 
+  const categorySignals = {
+    sun_mode: [sun, describePlanet(pickPlanet("Sun"), "태양")],
+    moon_button: [moon, describePlanet(pickPlanet("Moon"), "달")],
+    asc_mask: [asc, describeHouse(pickHouse(1), "1하우스")],
+    mc_goal: [mc, describeHouse(pickHouse(10), "10하우스")],
+    venus_charm: [describePlanet(pickPlanet("Venus"), "금성"), describeHouse(pickHouse(5, 7), "관계 하우스")],
+    venus_need: [describePlanet(pickPlanet("Venus"), "금성"), moon],
+    mars_presence: [describePlanet(pickPlanet("Mars"), "화성"), asc],
+    mars_desire: [describePlanet(pickPlanet("Mars"), "화성"), describePlanet(pickPlanet("Venus"), "금성")],
+    mercury_thinking: [describePlanet(pickPlanet("Mercury"), "수성"), topAspectText],
+    jupiter_opportunity: [describePlanet(pickPlanet("Jupiter"), "목성"), dominantElement],
+    saturn_wall: [describePlanet(pickPlanet("Saturn"), "토성"), topAspectText],
+    saturn_pressure: [describePlanet(pickPlanet("Saturn"), "토성"), describeHouse(pickHouse(10, 12), "압박 하우스")],
+    pluto_control: [describePlanet(pickPlanet("Pluto"), "명왕성"), topAspectText],
+    house2_money: [describeHouse(pickHouse(2), "2하우스"), describePlanet(pickPlanet("Venus", "Jupiter"), "금성/목성")],
+    house5_flirt: [describeHouse(pickHouse(5), "5하우스"), describePlanet(pickPlanet("Venus"), "금성")],
+    house6_workflow: [describeHouse(pickHouse(6), "6하우스"), dominantModality],
+    house7_partner: [describeHouse(pickHouse(7), "7하우스"), describePlanet(pickPlanet("Venus", "Mars"), "금성/화성")],
+    house7_type: [describeHouse(pickHouse(7), "7하우스"), moon],
+    house8_fear: [describeHouse(pickHouse(8), "8하우스"), describePlanet(pickPlanet("Pluto"), "명왕성")],
+    house10_stage: [describeHouse(pickHouse(10), "10하우스"), mc],
+    house12_subconscious: [describeHouse(pickHouse(12), "12하우스"), moon],
+  };
+
+  const signals = categorySignals[category.id] || [sun, moon, asc, mc, topAspectText].filter(Boolean).slice(0, 3);
+  const evidence = signals.filter(Boolean).join(" · ");
+
   return sanitizeAstroPremiumText(
-    `${category.title}: ${sun}/${moon}/${asc} 조합을 중심으로 ${chapter.title}의 관점에서 현실적인 해석을 제공합니다. `
-      + `현재 차트의 핵심 신호(${topAspectText}, 원소 ${dominantElement}, 양식 ${dominantModality})를 바탕으로 `
-      + `생활/관계/커리어에서 바로 적용 가능한 전략을 제시합니다.`,
+    `${category.title}: 이 항목은 ${evidence || `${sun}/${moon}/${asc}`} 신호를 우선 근거로 읽습니다. `
+      + `${chapter.title}의 주제 안에서 원소 ${dominantElement}, 양식 ${dominantModality}, ${topAspectText} 흐름이 어떻게 생활 습관과 선택 패턴으로 나타나는지 정리합니다. `
+      + `강점은 과장하지 않고 반복되는 부담은 회피하지 않으며, 관계·일·돈·멘탈 중 지금 조율해야 할 행동 기준을 구체적으로 제안합니다.`,
   ) || `${category.title}에 대한 개인 맞춤 점성술 상담문입니다.`;
 }
 
@@ -219,6 +252,9 @@ export async function enhanceAstroPremiumChaptersWithLLM(env, payload, chapterSe
     "절대 규칙: 챕터 id/순서/제목/세부 카테고리 제목을 변경하지 마세요.",
     "제공되지 않은 계산값을 계산 근거처럼 지어내지 마세요.",
     "내부 JSON/payload/debug/함수명을 출력하지 마세요.",
+    "행성, 하우스, 별자리, 어센던트, MC, 주요 각도, 원소/양식 균형 중 실제 JSON에 있는 데이터만 우선 사용하세요.",
+    "반복 문장, 일반론, 빈 위로 문장으로 분량을 채우지 마세요.",
+    "사용자에게 실질적인 성향, 관계, 직업, 돈, 인생 방향, 시기적 조언을 제공하세요.",
     "각 세부 카테고리에 현실적이고 구체적인 상담문을 작성하세요.",
     "반드시 JSON만 출력하세요. 코드펜스 금지.",
   ].join("\n");
@@ -251,9 +287,9 @@ export async function enhanceAstroPremiumChaptersWithLLM(env, payload, chapterSe
   const ai = await callGeminiText(env, `${systemPrompt}\n\n${userPrompt}`, {
     modelEnvKeys: ["ASTRO_PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"],
     temperature: 0.72,
-    maxOutputTokens: 7000,
-    timeoutMs: 12000,
-    totalTimeoutMs: 16000,
+    maxOutputTokens: 14000,
+    timeoutMs: 22000,
+    totalTimeoutMs: 28000,
   });
 
   if (!ai.ok) {
