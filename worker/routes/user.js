@@ -33,7 +33,7 @@ function logUserRouteError(stage, error, request, extras = {}) {
 
   try {
     console.error("[worker-user-route-error]", JSON.stringify(payload));
-  } catch {
+  } catch (e) {
     console.error("[worker-user-route-error]", payload);
   }
 }

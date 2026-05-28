@@ -86,7 +86,7 @@ function logServerAuthDiagnostic(req, routePath, provider, marker, error) {
 
   try {
     console.error("[server-auth-diagnostic]", JSON.stringify(payload));
-  } catch {
+  } catch (e) {
     console.error("[server-auth-diagnostic]", payload);
   }
 }
@@ -159,7 +159,7 @@ function getCookieValue(req, cookieName) {
     if (k === cookieName) {
       try {
         return decodeURIComponent(rest.join("="));
-      } catch {
+      } catch (e) {
         return rest.join("=");
       }
     }
@@ -292,7 +292,7 @@ function normalizeOriginOnly(rawValue) {
 
   try {
     return new URL(value).origin;
-  } catch {
+  } catch (e) {
     return "";
   }
 }
@@ -306,7 +306,7 @@ function normalizeAbsoluteUrl(rawValue) {
     parsed.search = "";
     parsed.hash = "";
     return parsed.toString().replace(/\/+$/, "");
-  } catch {
+  } catch (e) {
     return "";
   }
 }
@@ -315,7 +315,7 @@ function isWorkersDevOrigin(origin) {
   try {
     const hostname = new URL(origin).hostname.toLowerCase();
     return hostname === "workers.dev" || hostname.endsWith(".workers.dev");
-  } catch {
+  } catch (e) {
     return false;
   }
 }
@@ -354,7 +354,7 @@ function shouldUseRequestOrigin(origin) {
       return false;
     }
     return true;
-  } catch {
+  } catch (e) {
     return false;
   }
 }
@@ -673,7 +673,7 @@ async function hashPassword(rawPassword) {
 async function verifyPassword(rawPassword, passwordHash) {
   try {
     return await bcrypt.compare(rawPassword, passwordHash);
-  } catch {
+  } catch (e) {
     return false;
   }
 }
@@ -814,7 +814,7 @@ router.post("/refresh", async (req, res, next) => {
         issuer: getJwtIssuer(),
         audience: getJwtAudience(),
       });
-    } catch {
+    } catch (e) {
       clearAuthCookies(req, res);
       return res.status(401).json({ ok: false, message: "리프레시 토큰이 유효하지 않습니다." });
     }

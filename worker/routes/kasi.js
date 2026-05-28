@@ -53,7 +53,7 @@ function decodeServiceKeyCandidate(rawKey) {
   if (!key) return "";
   try {
     return decodeURIComponent(key);
-  } catch {
+  } catch (e) {
     return key;
   }
 }
@@ -320,7 +320,7 @@ function normalizePayloadFromRaw(rawText) {
 
   try {
     return { payload: JSON.parse(text), parsedAs: "json" };
-  } catch {
+  } catch (e) {
     const resultCode = extractXmlTagText(text, "resultCode");
     const resultMsg = extractXmlTagText(text, "resultMsg");
     const rows = parseXmlItems(text);

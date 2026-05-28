@@ -100,7 +100,7 @@ async function tryResolveRuntimeUser(request, env) {
       .select("unlockedFeatures profileSubscription points")
       .lean();
     return { auth, user };
-  } catch {
+  } catch (e) {
     return { auth: null, user: null };
   }
 }
@@ -218,7 +218,7 @@ function buildConsumeRequestId() {
     if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
       return `destiny-bias-${crypto.randomUUID()}`;
     }
-  } catch {
+  } catch (e) {
     // ignore
   }
 

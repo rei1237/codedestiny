@@ -107,7 +107,7 @@ export function readYeonProfileSeed(): YeonProfileSeed {
       source: "none",
       scope,
     };
-  } catch {
+  } catch (e) {
     return { name: "", birthDate: "", source: "none", scope: "guest" };
   }
 }

@@ -29,7 +29,7 @@ async function exists(relPath) {
   try {
     await fs.access(path.join(rootDir, relPath));
     return true;
-  } catch {
+  } catch (e) {
     return false;
   }
 }

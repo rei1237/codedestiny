@@ -192,7 +192,7 @@ function parseJsonCandidate(text) {
     try {
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === "object") return parsed;
-    } catch {
+    } catch (e) {
       // try next candidate
     }
   }

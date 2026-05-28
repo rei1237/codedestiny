@@ -104,7 +104,7 @@ export async function verifyFlowerAdminToken(token) {
     const now = Math.floor(Date.now() / 1000);
     const exp = Number(parsed?.exp || 0);
     return parsed && parsed.v === 1 && Number.isFinite(exp) && now <= exp;
-  } catch {
+  } catch (e) {
     // crypto 초기화 실패·parse 오류 등 → 미인증 처리 (500 방지)
     return false;
   }
@@ -139,7 +139,7 @@ export function extractAdminTokenFromRequest(request) {
     try {
       const decoded = decodeURIComponent(flowerMatch[1]);
       return FLOWER_ADMIN_TOKEN_RE.test(decoded) ? decoded : "";
-    } catch {
+    } catch (e) {
       return FLOWER_ADMIN_TOKEN_RE.test(flowerMatch[1]) ? flowerMatch[1] : "";
     }
   }
@@ -148,7 +148,7 @@ export function extractAdminTokenFromRequest(request) {
     try {
       const decoded = decodeURIComponent(legacyMatch[1]);
       return FLOWER_ADMIN_TOKEN_RE.test(decoded) ? decoded : "";
-    } catch {
+    } catch (e) {
       return FLOWER_ADMIN_TOKEN_RE.test(legacyMatch[1]) ? legacyMatch[1] : "";
     }
   }

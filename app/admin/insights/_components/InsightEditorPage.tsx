@@ -37,12 +37,12 @@ function getFlowerAdminTokenClient(): string {
   try {
     const fromSession = String(sessionStorage.getItem("flower_admin_token") || "").trim();
     if (FLOWER_ADMIN_TOKEN_RE.test(fromSession)) return fromSession;
-  } catch {}
+  } catch (e) {}
 
   try {
     const fromLocal = String(localStorage.getItem("flower_admin_token") || "").trim();
     if (FLOWER_ADMIN_TOKEN_RE.test(fromLocal)) return fromLocal;
-  } catch {}
+  } catch (e) {}
 
   return "";
 }
@@ -62,7 +62,7 @@ function resolveAdminRequestCredentials(apiBase: string): RequestCredentials {
 
   try {
     return new URL(base).origin === window.location.origin ? "include" : "omit";
-  } catch {
+  } catch (e) {
     return "include";
   }
 }
@@ -381,7 +381,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
       });
 
       return { duplicated, checkFailed: false };
-    } catch {
+    } catch (e) {
       return { duplicated: false, checkFailed: true };
     }
   }
@@ -577,7 +577,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
         }
 
         setContentLoaded(true);
-      } catch {
+      } catch (e) {
         if (!cancelled) setError("네트워크 오류로 글 정보를 불러오지 못했습니다.");
       } finally {
         if (!cancelled) setLoading(false);
@@ -704,7 +704,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
       }
 
       setMessage(status === "published" ? "발행 저장 완료" : status === "archived" ? "보관 저장 완료" : status === "private" ? "비공개 저장 완료" : "임시저장 완료");
-    } catch {
+    } catch (e) {
       setError("네트워크 오류로 저장하지 못했습니다.");
     } finally {
       setSavingStatus("");

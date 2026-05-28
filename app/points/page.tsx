@@ -283,7 +283,7 @@ function hasFlowerAdminPasswordSession(): boolean {
   if (typeof window === "undefined") return false;
   try {
     return String(sessionStorage.getItem("flower_admin_password_ok") || "") === "1";
-  } catch {
+  } catch (e) {
     return false;
   }
 }
@@ -294,11 +294,11 @@ function isFlowerAdminSessionClient(): boolean {
   try {
     const token = String(sessionStorage.getItem("flower_admin_token") || "");
     if (FLOWER_ADMIN_TOKEN_RE.test(token)) return true;
-  } catch {}
+  } catch (e) {}
   try {
     const token = String(localStorage.getItem("flower_admin_token") || "");
     if (FLOWER_ADMIN_TOKEN_RE.test(token)) return true;
-  } catch {}
+  } catch (e) {}
   return false;
 }
 
@@ -308,11 +308,11 @@ function getFlowerAdminTokenClient(): string {
   try {
     const token = sessionStorage.getItem("flower_admin_token");
     if (token && FLOWER_ADMIN_TOKEN_RE.test(String(token))) return String(token);
-  } catch {}
+  } catch (e) {}
   try {
     const token = localStorage.getItem("flower_admin_token");
     if (token && FLOWER_ADMIN_TOKEN_RE.test(String(token))) return String(token);
-  } catch {}
+  } catch (e) {}
   return "";
 }
 
@@ -321,7 +321,7 @@ function readAdminTestTierClient(): AdminTestTier {
   try {
     const raw = String(localStorage.getItem("flower_admin_test_tier") || "off").toLowerCase();
     if (raw === "standard" || raw === "premium" || raw === "vvip") return raw;
-  } catch {}
+  } catch (e) {}
   return "off";
 }
 
@@ -486,7 +486,7 @@ function readPendingOrder() {
     const raw = localStorage.getItem("fortune_pending_order");
     if (!raw) return null;
     return JSON.parse(raw) as PendingOrder;
-  } catch { return null; }
+  } catch (e) { return null; }
 }
 
 function savePendingOrder(order: PendingOrder) {
@@ -505,7 +505,7 @@ function readPendingSubscriptionOrder() {
     const raw = localStorage.getItem("fortune_pending_subscription_order");
     if (!raw) return null;
     return JSON.parse(raw) as PendingSubscriptionOrder;
-  } catch {
+  } catch (e) {
     return null;
   }
 }
@@ -1214,7 +1214,7 @@ export default function PointsPage() {
       const user = readSanitizedAuthUser() || {};
       user.points = points;
       persistSanitizedAuthUser(user);
-    } catch { /* noop */ }
+    } catch (e) { /* noop */ }
   }, []);
 
   /** 구독 성공 후 legacy destiny-profile.js가 읽는 localStorage 캐시를 갱신합니다. */
@@ -1232,7 +1232,7 @@ export default function PointsPage() {
       localStorage.setItem(scopedKey, payload);
       localStorage.setItem("fortune_profile_subscription", payload);
       localStorage.setItem("fortune_profile_subscription_owner", scope);
-    } catch { /* noop */ }
+    } catch (e) { /* noop */ }
   }, []);
 
   /* ── 서버에서 포인트 상태 조회 ─────────────────────────────────── */
@@ -1419,7 +1419,7 @@ export default function PointsPage() {
           retryOn401: true,
           apiBase,
         });
-      } catch {
+      } catch (e) {
         // 실패 보고는 보조 경로이므로 UI 흐름을 막지 않는다.
       }
     },
@@ -2111,7 +2111,7 @@ export default function PointsPage() {
       try {
         await handleSubscribeLegacy(plan);
         return;
-      } catch {
+      } catch (e) {
         pushToast("error", message);
       }
     } finally {

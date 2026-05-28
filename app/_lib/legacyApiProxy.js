@@ -6,7 +6,7 @@ function normalizeBaseUrl(rawValue) {
   try {
     const parsed = new URL(value);
     return parsed.origin.replace(/\/$/, "");
-  } catch {
+  } catch (e) {
     return "";
   }
 }
@@ -19,7 +19,7 @@ function isLocalHostName(hostname) {
 function parseUrlSafe(rawValue) {
   try {
     return new URL(String(rawValue || ""));
-  } catch {
+  } catch (e) {
     return null;
   }
 }

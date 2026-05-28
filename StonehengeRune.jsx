@@ -782,11 +782,11 @@ export default function StonehengeRune() {
 
       const kakaoUrl = `https://sharer.kakao.com/talk/friends/picker/link?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`${shareTitle} - ${shareText}`)}`;
       window.open(kakaoUrl, "_blank", "noopener,noreferrer");
-    } catch {
+    } catch (e) {
       try {
         await navigator.clipboard.writeText(shareUrl);
         window.alert("공유 링크를 복사했습니다. 카카오톡 대화창에 붙여넣어 공유해 주세요.");
-      } catch {
+      } catch (e) {
         window.alert("공유를 열 수 없었습니다. 잠시 후 다시 시도해 주세요.");
       }
     }

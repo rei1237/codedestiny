@@ -65,7 +65,7 @@ function decodeServiceKeyCandidate(rawKey: string) {
   if (!key) return "";
   try {
     return decodeURIComponent(key);
-  } catch {
+  } catch (e) {
     return key;
   }
 }
@@ -386,7 +386,7 @@ async function requestLegacyMethod(methodRaw: unknown, paramsRaw: unknown) {
       };
       writeCache(LEGACY_METHOD_CACHE, key, payload, LEGACY_CACHE_TTL_MS);
       return payload;
-    } catch {
+    } catch (e) {
       const fallback = buildLegacyLocalFallback(method, params, "KASI_FALLBACK_USED");
       writeCache(LEGACY_METHOD_CACHE, key, fallback, LEGACY_CACHE_TTL_MS);
       return fallback;
@@ -437,7 +437,7 @@ async function requestCalendarSummary(inputRaw: any) {
       };
       writeCache(CALENDAR_RESULT_CACHE, dateKey, merged, CALENDAR_CACHE_TTL_MS);
       return merged;
-    } catch {
+    } catch (e) {
       const fallback = {
         ...local,
         warnings: Array.from(new Set([...(local.warnings || []), "KASI_FALLBACK_USED"])),

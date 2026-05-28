@@ -83,7 +83,7 @@ async function detectCurrencyFromIP() {
     const data = await res.json();
     const country = (data.country_code || "").toUpperCase();
     return COUNTRY_TO_CURRENCY[country] || "USD";
-  } catch {
+  } catch (e) {
     return "USD";
   }
 }
@@ -129,7 +129,7 @@ export default function GlobalPricingCard({ locale, forceCurrency, onSelectTier 
             setRates(updatedRates);
           }
         }
-      } catch {
+      } catch (e) {
         // 폴백 유지
       }
 

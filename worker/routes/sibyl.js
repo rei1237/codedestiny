@@ -110,7 +110,7 @@ function parseJsonCandidate(text) {
     try {
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === "object") return parsed;
-    } catch {
+    } catch (e) {
       // try next
     }
   }
@@ -617,7 +617,7 @@ export async function handleSibylRoutes(request, env = {}) {
     let reportStatus = "generated";
     try {
       rich = await buildRichSibylReport(env, body);
-    } catch {
+    } catch (e) {
       rich = buildFallbackReport(body);
       rich.source = "fallback";
       rich.warnings = ["gemini generation failed"];
@@ -633,7 +633,7 @@ export async function handleSibylRoutes(request, env = {}) {
 
     try {
       validateSibylReport(mapped.chapterMap);
-    } catch {
+    } catch (e) {
       const hardFallback = mapToSibylChapters([], canonical);
       validateSibylReport(hardFallback.chapterMap);
       mapped.chapterMap = hardFallback.chapterMap;

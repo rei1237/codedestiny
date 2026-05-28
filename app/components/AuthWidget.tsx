@@ -51,7 +51,7 @@ export default function AuthWidget() {
         channel = new BroadcastChannel(AUTH_SYNC_CHANNEL);
         channel.onmessage = () => syncUser();
       }
-    } catch {
+    } catch (e) {
       channel = null;
     }
 

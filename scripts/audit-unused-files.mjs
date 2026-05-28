@@ -231,7 +231,7 @@ function collectPackageScriptEntries(packageJsonPath, allFilesSet) {
         if (allFilesSet.has(rel)) entries.add(rel);
       }
     }
-  } catch {
+  } catch (e) {
     return entries;
   }
 
@@ -253,7 +253,7 @@ function collectWranglerEntries(allFilesSet) {
         const mainRel = toPosix(path.posix.join(path.posix.dirname(rel), m[1]));
         if (allFilesSet.has(mainRel)) entries.add(mainRel);
       }
-    } catch {
+    } catch (e) {
       // noop
     }
   }
@@ -310,7 +310,7 @@ function buildReachability(allFiles, allFilesSet, entryPoints) {
     let content = "";
     try {
       content = fs.readFileSync(abs, "utf8");
-    } catch {
+    } catch (e) {
       continue;
     }
 
@@ -353,7 +353,7 @@ function makeUnusedReport(allFiles, allFilesSet, entryPoints, reachable, graphEd
     let size = 0;
     try {
       size = fs.statSync(path.join(rootDir, rel)).size;
-    } catch {
+    } catch (e) {
       size = 0;
     }
 
@@ -404,7 +404,7 @@ function makeDuplicateReport(allFiles) {
     let stat;
     try {
       stat = fs.statSync(abs);
-    } catch {
+    } catch (e) {
       continue;
     }
 
@@ -448,7 +448,7 @@ function makeLargeFileReport(allFiles) {
     let stat;
     try {
       stat = fs.statSync(abs);
-    } catch {
+    } catch (e) {
       continue;
     }
 

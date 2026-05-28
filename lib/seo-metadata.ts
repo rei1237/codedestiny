@@ -33,7 +33,7 @@ export function toAbsoluteUrl(pathOrUrl: string): string {
     if (safeInput.startsWith("http://") || safeInput.startsWith("https://")) {
       return new URL(safeInput).toString();
     }
-  } catch {
+  } catch (e) {
     return new URL("/", SITE_ORIGIN).toString();
   }
 

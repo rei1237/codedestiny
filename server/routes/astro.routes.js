@@ -64,7 +64,7 @@ function findSunLon(lon, startDate) {
     const result = Astronomy.SearchSunLongitude(lon, startDate, 400);
     if (!result) return null;
     return result.date;
-  } catch {
+  } catch (e) {
     return null;
   }
 }

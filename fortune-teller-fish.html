@@ -426,7 +426,7 @@ function getAuthToken() {
   const cookie = document.cookie.split(';').map(c => c.trim());
   for (const c of cookie) {
     if (c.startsWith('fortune_auth_token=')) {
-      try { return decodeURIComponent(c.slice('fortune_auth_token='.length)); } catch { return c.slice('fortune_auth_token='.length); }
+      try { return decodeURIComponent(c.slice('fortune_auth_token='.length)); } catch (e) { return c.slice('fortune_auth_token='.length); }
     }
   }
   return localStorage.getItem('fortune_auth_token') || null;

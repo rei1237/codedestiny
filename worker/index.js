@@ -57,7 +57,7 @@ function normalizeOrigin(rawValue) {
 
   try {
     return new URL(value).origin;
-  } catch {
+  } catch (e) {
     return "";
   }
 }
@@ -90,7 +90,7 @@ function isAllowedOrigin(origin, env) {
     if (protocol !== "http:" && protocol !== "https:") return false;
     if (hostname === "code-destiny.com" || hostname.endsWith(".code-destiny.com")) return true;
     if (hostname === "localhost" || hostname === "127.0.0.1") return true;
-  } catch {
+  } catch (e) {
     return false;
   }
 
@@ -218,7 +218,7 @@ function logWorkerUnhandledError(request, env, error) {
     const parsed = new URL(request.url);
     pathname = parsed.pathname || "";
     host = parsed.host || "";
-  } catch {
+  } catch (e) {
     // ignore parse failure
   }
 
@@ -234,7 +234,7 @@ function logWorkerUnhandledError(request, env, error) {
 
   try {
     console.error("[worker-unhandled]", JSON.stringify(payload));
-  } catch {
+  } catch (e) {
     console.error("[worker-unhandled]", payload);
   }
 }
@@ -309,7 +309,7 @@ function isLoop(requestUrl, upstreamOrigin) {
     return incoming.protocol === upstream.protocol
       && incoming.hostname === upstream.hostname
       && incoming.port === upstream.port;
-  } catch {
+  } catch (e) {
     return false;
   }
 }

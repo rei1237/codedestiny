@@ -26,7 +26,7 @@ export function normalizeBaseUrl(rawValue?: string | null): string {
     parsed.search = "";
     parsed.hash = "";
     return parsed.toString().replace(/\/$/, "");
-  } catch {
+  } catch (e) {
     return value.replace(/\/api\/?$/, "").replace(/\/$/, "");
   }
 }
@@ -41,7 +41,7 @@ function isLocalBaseUrl(baseUrl?: string | null): boolean {
 
   try {
     return isLocalHostname(new URL(value).hostname);
-  } catch {
+  } catch (e) {
     return /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i.test(value);
   }
 }
@@ -53,7 +53,7 @@ function isWorkersDevBaseUrl(baseUrl?: string | null): boolean {
   try {
     const hostname = new URL(value).hostname.toLowerCase();
     return hostname === "workers.dev" || hostname.endsWith(".workers.dev");
-  } catch {
+  } catch (e) {
     return /workers\.dev/i.test(value);
   }
 }

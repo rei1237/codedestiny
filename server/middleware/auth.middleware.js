@@ -106,7 +106,7 @@ async function requireAdmin(req, res, next) {
       { _id: req.auth.userId },
       { $set: { adminLastActivityAt: new Date() } },
     ).catch(() => {});
-  } catch {
+  } catch (e) {
     return res.status(404).json({ message: "Not found" });
   }
 

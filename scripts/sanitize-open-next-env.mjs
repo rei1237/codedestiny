@@ -17,7 +17,7 @@ function parseExportObject(source, exportName) {
   if (!m) return null;
   try {
     return JSON.parse(m[1]);
-  } catch {
+  } catch (e) {
     return null;
   }
 }

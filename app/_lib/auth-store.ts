@@ -76,7 +76,7 @@ function emitChange() {
   subscribers.forEach((listener) => {
     try {
       listener();
-    } catch {
+    } catch (e) {
       // ignore listener failures
     }
   });
@@ -108,7 +108,7 @@ function publishAuthSync(event: "login" | "logout") {
   };
   try {
     window.dispatchEvent(new CustomEvent("cd:auth-changed", { detail: payload }));
-  } catch {
+  } catch (e) {
     // best-effort
   }
   try {
@@ -117,7 +117,7 @@ function publishAuthSync(event: "login" | "logout") {
       channel.postMessage(payload);
       channel.close();
     }
-  } catch {
+  } catch (e) {
     // best-effort
   }
 }
@@ -202,7 +202,7 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
 
   try {
     return JSON.parse(rawText) as T;
-  } catch {
+  } catch (e) {
     const contentType = (response.headers.get("content-type") || "").toLowerCase();
     const looksLikeHtml = contentType.includes("text/html") || /^\s*</.test(rawText);
     if (looksLikeHtml) {
@@ -223,7 +223,7 @@ function clearStaleGuestCache() {
   staleKeys.forEach((key) => {
     try {
       localStorage.removeItem(key);
-    } catch {
+    } catch (e) {
       // ignore storage failures
     }
   });
@@ -458,7 +458,7 @@ export async function login(credentials: LoginCredentials) {
     if (payload.accessToken) {
       try {
         localStorage.setItem("fortune_auth_token", String(payload.accessToken));
-      } catch {
+      } catch (e) {
         // ignore storage failures
       }
     }

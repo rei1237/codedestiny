@@ -11,7 +11,7 @@ function extractDbNameFromUri(uri) {
     if (!pathname) return "";
     const firstSegment = pathname.split("/")[0] || "";
     return firstSegment.trim();
-  } catch {
+  } catch (e) {
     return "";
   }
 }
@@ -44,7 +44,7 @@ export async function resetMongooseConnection() {
         }),
       ]);
     }
-  } catch {
+  } catch (e) {
     // Ignore disconnect failures; next connect attempt will retry.
   }
 }
@@ -94,7 +94,7 @@ export async function connectDb(env = {}) {
         "MongoDB ping timed out in Worker.",
       );
       return mongoose.connection;
-    } catch {
+    } catch (e) {
       await resetMongooseConnection();
       connectPromise = null;
     }

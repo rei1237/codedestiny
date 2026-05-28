@@ -16,7 +16,7 @@ function normalizeOriginOnly(rawValue, label) {
 
   try {
     return new URL(value).origin;
-  } catch {
+  } catch (e) {
     console.error(`[deploy-worker] ${label} must be a valid absolute URL origin. Received: ${value}`);
     process.exit(1);
   }

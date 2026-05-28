@@ -107,7 +107,7 @@ async function run() {
   for (const sample of selected) {
     try {
       await fs.access(sample.fullPath);
-    } catch {
+    } catch (e) {
       missing.push(sample.fullPath);
     }
   }
@@ -158,7 +158,7 @@ async function run() {
       let json = null;
       try {
         json = await response.json();
-      } catch {
+      } catch (e) {
         json = null;
       }
 

@@ -28,13 +28,13 @@ export default function DisclaimerBanner({ dismissible = true, className = "" })
       const dismissedAt = raw ? Number(raw) : 0;
       const valid = Number.isFinite(dismissedAt) && dismissedAt > 0 && Date.now() - dismissedAt < DISMISS_TTL_MS;
       if (!valid) setVisible(true);
-    } catch {
+    } catch (e) {
       setVisible(true);
     }
   }, [dismissible]);
 
   function handleDismiss() {
-    try { localStorage.setItem(STORAGE_KEY, String(Date.now())); } catch { /* ignore */ }
+    try { localStorage.setItem(STORAGE_KEY, String(Date.now())); } catch (e) { /* ignore */ }
     setVisible(false);
   }
 

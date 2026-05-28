@@ -386,11 +386,11 @@ export default function SunHealingTarot() {
         await nav.share({ title: SHARE_TITLE, text, url });
         return;
       }
-    } catch {}
+    } catch (e) {}
     try {
       await navigator.clipboard.writeText(text);
       alert("링크를 복사했습니다.");
-    } catch {
+    } catch (e) {
       alert("공유를 지원하지 않는 환경입니다.");
     }
   }, [consultingHighlights]);

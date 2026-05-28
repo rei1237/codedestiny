@@ -194,7 +194,7 @@ export default function HwatuLifeCardTest() {
       try {
         await navigator.share({ title: "화투 인생 패 테스트", text });
         return;
-      } catch {
+      } catch (e) {
         // no-op
       }
     }
@@ -202,7 +202,7 @@ export default function HwatuLifeCardTest() {
     try {
       await navigator.clipboard.writeText(text);
       alert("결과 문구를 클립보드에 복사했소.");
-    } catch {
+    } catch (e) {
       alert(text);
     }
   };

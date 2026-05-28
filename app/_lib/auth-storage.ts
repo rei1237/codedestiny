@@ -76,7 +76,7 @@ export function persistSanitizedAuthUser(input: unknown): ClientAuthUser | null 
     }
     localStorage.setItem("fortune_auth_user", JSON.stringify(safe));
     return safe;
-  } catch {
+  } catch (e) {
     return null;
   }
 }
@@ -98,7 +98,7 @@ export function readSanitizedAuthUser(): ClientAuthUser | null {
     }
 
     return safe;
-  } catch {
+  } catch (e) {
     return null;
   }
 }

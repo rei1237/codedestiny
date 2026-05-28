@@ -44,7 +44,7 @@ function logBillingRouteError(stage, error, request, extras = {}) {
 
   try {
     console.error("[worker-billing-route-error]", JSON.stringify(payload));
-  } catch {
+  } catch (e) {
     console.error("[worker-billing-route-error]", payload);
   }
 }
@@ -106,7 +106,7 @@ function buildRoutedRequest(request, targetPath, method, body) {
 async function readPayloadSafe(response) {
   try {
     return await response.clone().json();
-  } catch {
+  } catch (e) {
     return {};
   }
 }
@@ -171,7 +171,7 @@ function isProductionRuntime(env) {
 function logCoinGateResult(payload) {
   try {
     console.log("[worker-billing-coin-gate]", JSON.stringify(payload));
-  } catch {
+  } catch (e) {
     console.log("[worker-billing-coin-gate]", payload);
   }
 }

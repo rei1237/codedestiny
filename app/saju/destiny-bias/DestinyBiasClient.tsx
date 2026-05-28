@@ -163,7 +163,7 @@ function readCurrentProfileSeed(): ProfileSeed {
       birthTimeInput: profileBirthTimeInput || fallbackBirthTimeInput,
       gender: normalizeGenderOption(profile?.gender) || fallbackGender,
     };
-  } catch {
+  } catch (e) {
     return {
       name: "",
       birthDateInput: "",
@@ -177,7 +177,7 @@ function readLocalToken() {
   if (typeof window === "undefined") return "";
   try {
     return String(localStorage.getItem("fortune_auth_token") || "").trim();
-  } catch {
+  } catch (e) {
     return "";
   }
 }
@@ -702,7 +702,7 @@ export default function DestinyBiasClient() {
     try {
       await navigator.clipboard.writeText(summary);
       setToast("결과 요약을 복사했어요.");
-    } catch {
+    } catch (e) {
       setError("결과 복사에 실패했습니다.");
     }
   }, [resultVm]);
@@ -721,7 +721,7 @@ export default function DestinyBiasClient() {
         });
         setToast("결과를 공유했어요.");
         return;
-      } catch {
+      } catch (e) {
         // 사용자가 공유 창을 닫은 경우는 조용히 처리
       }
     }
@@ -729,7 +729,7 @@ export default function DestinyBiasClient() {
     try {
       await navigator.clipboard.writeText(`${text}\n${window.location.href}`);
       setToast("공유용 텍스트를 복사했어요.");
-    } catch {
+    } catch (e) {
       setError("공유 텍스트 복사에 실패했습니다.");
     }
   }, [resultVm]);

@@ -180,7 +180,7 @@ export function buildAstroPremiumChapterSeeds(payload) {
 function parseJsonMaybe(text) {
   try {
     return JSON.parse(String(text || ""));
-  } catch {
+  } catch (e) {
     return null;
   }
 }

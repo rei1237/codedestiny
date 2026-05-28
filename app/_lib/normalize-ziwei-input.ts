@@ -70,7 +70,7 @@ function convertLunarToSolar(
       month: solar.getMonth(),
       day: solar.getDay(),
     };
-  } catch {
+  } catch (e) {
     return null;
   }
 }
@@ -85,7 +85,7 @@ function touchSolarLibrary(
   try {
     const s = Solar.fromYmdHms(year, month, day, hour, minute, 0);
     return !!s;
-  } catch {
+  } catch (e) {
     return false;
   }
 }

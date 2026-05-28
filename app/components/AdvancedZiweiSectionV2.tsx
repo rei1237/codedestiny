@@ -140,7 +140,7 @@ export default function AdvancedZiweiSectionV2({
       if (!document.fullscreenElement) {
         await el.requestFullscreen();
       }
-    } catch {
+    } catch (e) {
       // User gesture or browser policy can block fullscreen; continue without failure.
     }
   }, []);
@@ -150,7 +150,7 @@ export default function AdvancedZiweiSectionV2({
     if (!document.fullscreenElement || !document.exitFullscreen) return;
     try {
       await document.exitFullscreen();
-    } catch {
+    } catch (e) {
       // no-op
     }
   }, []);
@@ -261,7 +261,7 @@ export default function AdvancedZiweiSectionV2({
             RESULT_CACHE_KEY,
             JSON.stringify({ chart: nextChart, chapters: { overview, ming }, activeSection: "overview" }),
           );
-        } catch {
+        } catch (e) {
           // no-op
         }
 
@@ -330,7 +330,7 @@ export default function AdvancedZiweiSectionV2({
           autoComputeRef.current = true;
         }
       }
-    } catch {
+    } catch (e) {
       // no-op
     }
   }, []);

@@ -44,7 +44,7 @@ function parseServiceAccountFromEnv(): VertexServiceAccount | null {
   if (!jsonText && rawJsonBase64) {
     try {
       jsonText = Buffer.from(rawJsonBase64, "base64").toString("utf8").trim();
-    } catch {
+    } catch (e) {
       jsonText = "";
     }
   }
@@ -54,7 +54,7 @@ function parseServiceAccountFromEnv(): VertexServiceAccount | null {
   try {
     const parsed = JSON.parse(jsonText) as VertexServiceAccount;
     return parsed && typeof parsed === "object" ? parsed : null;
-  } catch {
+  } catch (e) {
     return null;
   }
 }
@@ -274,7 +274,7 @@ export async function callVertexGemini(
         }
         return text;
       }
-    } catch {
+    } catch (e) {
       // 타임아웃 등 → 다음 모델 시도
     }
   }

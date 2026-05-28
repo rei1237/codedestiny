@@ -92,7 +92,7 @@ async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: numbe
   const timeoutId = setTimeout(() => {
     try {
       controller.abort();
-    } catch {
+    } catch (e) {
       // ignore abort failures
     }
   }, ms);
@@ -130,7 +130,7 @@ async function tryFetchExternalSajuEngine(input: AnimalDestinyInput): Promise<Sa
     const data = (payload as Record<string, unknown>).data;
     if (data && typeof data === "object") return data as SajuEngineResult;
     return payload as SajuEngineResult;
-  } catch {
+  } catch (e) {
     return null;
   }
 }

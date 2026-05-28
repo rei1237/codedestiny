@@ -103,7 +103,7 @@ async function fetchKasiLunarFromSolar(req: NextRequest, year: number, month: nu
     }
 
     return { lunarYear, lunarMonth, lunarDay, isLeap };
-  } catch {
+  } catch (e) {
     return null;
   }
 }
@@ -137,7 +137,7 @@ async function fetchSwissSukuyoBasis(
       moonLongitude: extractSwissEclipticLongitude(chartPayload, "Moon"),
       sunLongitude: extractSwissEclipticLongitude(chartPayload, "Sun"),
     };
-  } catch {
+  } catch (e) {
     return null;
   }
 }

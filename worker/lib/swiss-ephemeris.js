@@ -145,7 +145,7 @@ async function getExternalVedicPlanets(env, input) {
       forceExternal,
       request: summarizeChartInput(input),
     }));
-  } catch {
+  } catch (e) {
     // ignore logging failure
   }
 
@@ -163,7 +163,7 @@ async function getExternalVedicPlanets(env, input) {
   let endpoint = "";
   try {
     endpoint = new URL(apiPath.startsWith("/") ? apiPath : `/${apiPath}`, baseUrl).toString();
-  } catch {
+  } catch (e) {
     throw toStatusError(503, "VEDIC_API_BASE_URL is invalid.");
   }
 
@@ -192,7 +192,7 @@ async function getExternalVedicPlanets(env, input) {
         ok: response.ok,
         hasPayload: Boolean(normalized),
       }));
-    } catch {
+    } catch (e) {
       // ignore logging failure
     }
 
@@ -314,7 +314,7 @@ function resolveEpheBaseUrl(env, options = {}) {
       const parsed = new URL(withProtocol);
       if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
       return parsed.origin;
-    } catch {
+    } catch (e) {
       return "";
     }
   };
@@ -330,7 +330,7 @@ function resolveEpheBaseUrl(env, options = {}) {
       if (parsed.protocol === "http:" || parsed.protocol === "https:") {
         return fromEnv.endsWith("/") ? fromEnv : `${fromEnv}/`;
       }
-    } catch {
+    } catch (e) {
       // Ignore malformed env URL and fallback to request origin below.
     }
   }
@@ -350,7 +350,7 @@ function resolveEpheBaseUrl(env, options = {}) {
   if (requestUrl) {
     try {
       return new URL("/ephe/", requestUrl).toString();
-    } catch {
+    } catch (e) {
       throw toStatusError(500, "Invalid request URL context for Swiss ephemeris base resolution.");
     }
   }
@@ -367,7 +367,7 @@ function resolveSwissWasmPath(env, options = {}) {
     if (!requestUrl) return "";
     try {
       return new URL(rawPath, requestUrl).toString();
-    } catch {
+    } catch (e) {
       return "";
     }
   };
@@ -381,7 +381,7 @@ function resolveSwissWasmPath(env, options = {}) {
   try {
     const parsed = new URL(rawPath);
     if (parsed.protocol === "http:" || parsed.protocol === "https:") return parsed.toString();
-  } catch {
+  } catch (e) {
     const resolved = tryResolveFromRequest();
     if (resolved) return resolved;
     return undefined;

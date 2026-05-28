@@ -8,7 +8,7 @@ async function parseJsonResponse(response) {
   if (!text) return {};
   try {
     return JSON.parse(text);
-  } catch {
+  } catch (e) {
     return { raw: text };
   }
 }

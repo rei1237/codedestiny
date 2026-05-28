@@ -509,7 +509,7 @@ export default function InsightArticleCosmicClient({
 
       await navigator.clipboard.writeText(shareUrl);
       setShareMessage("링크를 복사했습니다.");
-    } catch {
+    } catch (e) {
       setShareMessage("공유를 완료하지 못했습니다.");
     }
   }

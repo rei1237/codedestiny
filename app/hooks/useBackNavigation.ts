@@ -22,7 +22,7 @@ function resolveMaybe<T>(value: MaybeResolver<T> | undefined, fallback: T) {
   if (typeof value === "function") {
     try {
       return (value as () => T)();
-    } catch {
+    } catch (e) {
       return fallback;
     }
   }

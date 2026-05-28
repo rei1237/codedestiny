@@ -40,7 +40,7 @@ function looksLikeJsonText(text: string): boolean {
   try {
     JSON.parse(trimmed);
     return true;
-  } catch {
+  } catch (e) {
     return false;
   }
 }

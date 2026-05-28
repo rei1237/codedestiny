@@ -36,7 +36,7 @@ function sanitizeHttpUrl(value, maxLen = 2000) {
   try {
     const parsed = new URL(url);
     if (parsed.protocol === "http:" || parsed.protocol === "https:") return parsed.toString();
-  } catch {
+  } catch (e) {
     return "";
   }
 

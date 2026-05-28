@@ -28,7 +28,7 @@ console.log(`[minify-handler] Before: ${(beforeBytes / 1024 / 1024).toFixed(2)} 
 let build;
 try {
   ({ build } = await import("esbuild"));
-} catch {
+} catch (e) {
   console.warn("[minify-handler] esbuild not available — skipping identifier minification.");
   process.exit(0);
 }

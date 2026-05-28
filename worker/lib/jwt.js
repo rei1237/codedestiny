@@ -82,7 +82,7 @@ export async function verifyJwt(token, secret, options = {}) {
   let header;
   try {
     header = JSON.parse(new TextDecoder().decode(base64UrlDecode(headerPart)));
-  } catch {
+  } catch (e) {
     const error = new Error("invalid token header");
     error.name = "JsonWebTokenError";
     throw error;
@@ -111,7 +111,7 @@ export async function verifyJwt(token, secret, options = {}) {
   let payload;
   try {
     payload = JSON.parse(new TextDecoder().decode(base64UrlDecode(payloadPart)));
-  } catch {
+  } catch (e) {
     const error = new Error("invalid token payload");
     error.name = "JsonWebTokenError";
     throw error;

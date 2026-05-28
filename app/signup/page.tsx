@@ -78,7 +78,7 @@ function publishAuthSync(event: "login" | "logout") {
   };
   try {
     window.dispatchEvent(new CustomEvent("cd:auth-changed", { detail: payload }));
-  } catch {
+  } catch (e) {
     // ignore
   }
   try {
@@ -87,7 +87,7 @@ function publishAuthSync(event: "login" | "logout") {
       channel.postMessage(payload);
       channel.close();
     }
-  } catch {
+  } catch (e) {
     // ignore
   }
 }
@@ -98,7 +98,7 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
 
   try {
     return JSON.parse(rawText) as T;
-  } catch {
+  } catch (e) {
     const contentType = (response.headers.get("content-type") || "").toLowerCase();
     const looksLikeHtml = contentType.includes("text/html") || /^\s*</.test(rawText);
 
@@ -172,7 +172,7 @@ export default function SignupPage() {
     if (accessToken) {
       try {
         localStorage.setItem("fortune_auth_token", String(accessToken));
-      } catch {
+      } catch (e) {
         // ignore storage failures
       }
     }

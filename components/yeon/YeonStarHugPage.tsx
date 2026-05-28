@@ -114,7 +114,7 @@ export default function YeonStarHugPage() {
       if (target && typeof target.requestFullscreen === "function") {
         await target.requestFullscreen();
       }
-    } catch {
+    } catch (e) {
       // 전체화면 API 실패 시 기본 화면으로 그대로 진행한다.
     }
   }

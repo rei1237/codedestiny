@@ -290,7 +290,7 @@ main()
   .finally(async () => {
     try {
       await mongoose.disconnect();
-    } catch {
+    } catch (e) {
       // noop
     }
   });

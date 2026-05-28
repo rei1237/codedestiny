@@ -166,7 +166,7 @@ export function ensureGuardState(pathname: string, policyKind: BackPolicyKind) {
     window.history.replaceState(normalizedState, "", window.location.href);
     const guardState = buildHistoryState(pathname, policyKind, true);
     window.history.pushState(guardState, "", window.location.href);
-  } catch {
+  } catch (e) {
     // Ignore browser history permission/state errors.
   }
 }
@@ -178,7 +178,7 @@ export function rearmGuardState(pathname: string, policyKind: BackPolicyKind) {
   try {
     const guardState = buildHistoryState(pathname, policyKind, true);
     window.history.pushState(guardState, "", window.location.href);
-  } catch {
+  } catch (e) {
     // Ignore browser history permission/state errors.
   }
 }
@@ -228,7 +228,7 @@ function tryExitWithBridge(win: Window): ExitAttemptResult | null {
       );
       return { handled: true, strategy: "react-native-webview-postmessage" };
     }
-  } catch {
+  } catch (e) {
     return null;
   }
 
@@ -248,7 +248,7 @@ export function attemptAppExit(win: Window): ExitAttemptResult {
       }
       return { handled: true, strategy: "history-back" };
     }
-  } catch {
+  } catch (e) {
     // Ignore history errors.
   }
 
@@ -257,13 +257,13 @@ export function attemptAppExit(win: Window): ExitAttemptResult {
     if (win.closed) {
       return { handled: true, strategy: "window-close" };
     }
-  } catch {
+  } catch (e) {
     // Ignore close errors.
   }
 
   try {
     win.navigator.vibrate?.(18);
-  } catch {
+  } catch (e) {
     // Ignore unsupported vibration APIs.
   }
 

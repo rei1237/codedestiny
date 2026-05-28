@@ -166,7 +166,7 @@ function decodeJwtPayload(token) {
   try {
     if (typeof atob !== "function") return null;
     return JSON.parse(atob(padded));
-  } catch {
+  } catch (e) {
     return null;
   }
 }
@@ -236,7 +236,7 @@ function logMiddlewareError(request, error) {
 
   try {
     console.error("[middleware-auth-diagnostic]", JSON.stringify(payload));
-  } catch {
+  } catch (e) {
     console.error("[middleware-auth-diagnostic]", payload);
   }
 }

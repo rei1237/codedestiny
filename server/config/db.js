@@ -89,7 +89,7 @@ async function connectDB() {
     try {
       await __cdConnectionPromise;
       return;
-    } catch {
+    } catch (e) {
       __cdConnectionPromise = null;
     }
   }

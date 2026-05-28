@@ -68,7 +68,7 @@ function verifyFlowerToken(token) {
     const now = Math.floor(Date.now() / 1000);
     const exp = Number(parsed.exp || 0);
     return Number.isFinite(exp) && now <= exp;
-  } catch {
+  } catch (e) {
     return false;
   }
 }

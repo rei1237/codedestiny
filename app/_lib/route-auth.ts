@@ -65,7 +65,7 @@ function logRouteAuthDiagnostic(req: NextRequest, error: unknown, marker: string
 
   try {
     console.error("[route-auth-diagnostic]", JSON.stringify(payload));
-  } catch {
+  } catch (e) {
     console.error("[route-auth-diagnostic]", payload);
   }
 }
@@ -99,7 +99,7 @@ function verifyAccessTokenAndExtractUserId(token: string): string {
       audience: getJwtAudience(),
     });
     return extractUserId(decoded);
-  } catch {
+  } catch (e) {
     return "";
   }
 }
@@ -115,7 +115,7 @@ function verifyRefreshTokenAndExtractUserId(token: string): string {
     const payload = decoded as AuthPayload;
     if (String(payload.typ || "").trim().toLowerCase() !== "refresh") return "";
     return extractUserId(decoded);
-  } catch {
+  } catch (e) {
     return "";
   }
 }

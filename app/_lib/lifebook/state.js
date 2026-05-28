@@ -58,7 +58,7 @@ export function clearLifeBookStorage(store) {
     try {
       store.removeItem(key);
       removed.push(key);
-    } catch {
+    } catch (e) {
       // ignore storage errors
     }
   }
@@ -81,7 +81,7 @@ export function resetSajuLifeBookState(currentState, options = {}) {
   if (options.revokeObjectUrl && current.generatedPdf && typeof current.generatedPdf === "string") {
     try {
       options.revokeObjectUrl(current.generatedPdf);
-    } catch {
+    } catch (e) {
       // ignore revoke errors
     }
   }

@@ -528,7 +528,7 @@ async function sha256Hex(text) {
     return Array.from(new Uint8Array(digest))
       .map((byte) => byte.toString(16).padStart(2, "0"))
       .join("");
-  } catch {
+  } catch (e) {
     return "";
   }
 }
@@ -757,7 +757,7 @@ async function handleBalance(auth) {
   let unlockedFeatures = [];
   try {
     unlockedFeatures = await resolvePersistedUnlockFeatures(auth.userId, user.unlockedFeatures);
-  } catch {
+  } catch (e) {
     unlockedFeatures = normalizePersistentUnlockKeys(user.unlockedFeatures);
   }
   const points = Number(user.points || 0);
@@ -897,7 +897,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
           productId: productId || null,
           route: "/api/fortune/pig-coin/consume",
         }));
-      } catch {
+      } catch (e) {
         console.error("[fortune][pricing][unknown-feature]", {
           featureKey,
           requestedFeatureKey: requestedFeatureKey !== featureKey ? requestedFeatureKey : undefined,
@@ -1192,7 +1192,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
           featureKey,
           message: String(rollbackError?.message || "unknown"),
         });
-      } catch {
+      } catch (e) {
         console.error("[fortune][pig-coin-consume] rollback failed", rollbackError);
       }
     }
@@ -1205,7 +1205,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
         rollbackApplied,
         message: String(error?.message || "unknown"),
       });
-    } catch {
+    } catch (e) {
       console.error("[fortune][pig-coin-consume] point history create failed", error);
     }
 
@@ -1244,7 +1244,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
         transactionId: String(history?._id || requestId || ""),
         message: String(error?.message || "unknown"),
       });
-    } catch {
+    } catch (e) {
       console.warn("[fortune][pig-coin-consume] premium access token issue", error);
     }
   }
@@ -2868,7 +2868,7 @@ export async function handleFortuneRoutes(request, env) {
         code: error?.code || "FORTUNE_ROUTE_ERROR",
         message: String(error?.message || "Unknown error"),
       }));
-    } catch {
+    } catch (e) {
       console.error("[worker-fortune-route-error]", error);
     }
     trace.mongoQueryFailed = /mongo|mongoose|cast to objectid|findbyid|findone|query/i.test(String(error?.message || ""));

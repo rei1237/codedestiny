@@ -33,7 +33,7 @@ async function parseJsonSafe(response) {
   if (!text) return {};
   try {
     return JSON.parse(text);
-  } catch {
+  } catch (e) {
     return { raw: text.slice(0, 500) };
   }
 }

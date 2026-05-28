@@ -79,7 +79,7 @@ for (const file of files) {
   let text = "";
   try {
     text = readFileSync(file, "utf8");
-  } catch {
+  } catch (e) {
     continue;
   }
 

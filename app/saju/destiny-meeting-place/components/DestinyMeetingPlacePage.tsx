@@ -85,7 +85,7 @@ export default function DestinyMeetingPlacePage() {
         }));
         sessionStorage.removeItem(PREFILL_KEY);
       }
-    } catch {
+    } catch (e) {
       // ignore bad session payload
     }
 

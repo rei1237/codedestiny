@@ -33,12 +33,12 @@ function getFlowerAdminTokenClient(): string {
   try {
     const fromSession = String(sessionStorage.getItem("flower_admin_token") || "").trim();
     if (FLOWER_ADMIN_TOKEN_RE.test(fromSession)) return fromSession;
-  } catch {}
+  } catch (e) {}
 
   try {
     const fromLocal = String(localStorage.getItem("flower_admin_token") || "").trim();
     if (FLOWER_ADMIN_TOKEN_RE.test(fromLocal)) return fromLocal;
-  } catch {}
+  } catch (e) {}
 
   return "";
 }
@@ -58,7 +58,7 @@ function resolveAdminRequestCredentials(apiBase: string): RequestCredentials {
 
   try {
     return new URL(base).origin === window.location.origin ? "include" : "omit";
-  } catch {
+  } catch (e) {
     return "include";
   }
 }
@@ -168,7 +168,7 @@ export default function AdminInsightsPage() {
 
       setForbidden(false);
       setItems(Array.isArray(data?.items) ? data.items : []);
-    } catch {
+    } catch (e) {
       setError("네트워크 오류로 목록을 불러오지 못했습니다.");
       setItems([]);
     } finally {

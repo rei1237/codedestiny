@@ -25,7 +25,7 @@ function readPackageVersion() {
     const raw = readFileSync(packageJsonPath, "utf8");
     const parsed = JSON.parse(raw);
     return String(parsed?.version || "").trim();
-  } catch {
+  } catch (e) {
     return "";
   }
 }

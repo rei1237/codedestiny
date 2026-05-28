@@ -1253,7 +1253,7 @@ async function fetchOracle(q,cards,t){
     const txt=formatOraclePayload(data);
     if(!txt)return null;
     return {text:txt,advice:data?.advice||data?.actionTip||null};
-  }catch{return null;}
+  }catch (e) {return null;}
 }
 
 function formatOraclePayload(data){

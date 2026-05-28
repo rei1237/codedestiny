@@ -25,7 +25,7 @@ function sendFailBeacon(body: Record<string, unknown>) {
       navigator.sendBeacon("/api/billing/executions/fail", blob);
       return;
     }
-  } catch {
+  } catch (e) {
     // no-op
   }
 

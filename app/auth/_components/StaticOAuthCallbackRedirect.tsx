@@ -26,7 +26,7 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
       if (!isDev || typeof console === "undefined" || typeof console.debug !== "function") return;
       try {
         console.debug.apply(console, arguments);
-      } catch {}
+      } catch (e) {}
     }
 
     function normalizeBaseUrl(rawValue) {
@@ -38,7 +38,7 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
         parsed.search = "";
         parsed.hash = "";
         return parsed.toString().replace(/\\/$/, "");
-      } catch {
+      } catch (e) {
         return value.replace(/\\/api\\/?$/, "").replace(/\\/$/, "");
       }
     }
@@ -47,7 +47,7 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
       let runtimeBase = "";
       try {
         runtimeBase = normalizeBaseUrl(window.CODE_DESTINY_API_BASE_URL);
-      } catch {
+      } catch (e) {
         runtimeBase = "";
       }
 
@@ -84,7 +84,7 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
 
       try {
         return JSON.parse(rawText);
-      } catch {
+      } catch (e) {
         const contentType = (response.headers.get("content-type") || "").toLowerCase();
         const looksLikeHtml = contentType.includes("text/html") || /^\\s*</.test(rawText);
         if (looksLikeHtml) throw new Error("response_is_html");
@@ -114,14 +114,14 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
       const payload = { source: "oauth-callback", event, at: Date.now() };
       try {
         window.dispatchEvent(new CustomEvent("cd:auth-changed", { detail: payload }));
-      } catch {}
+      } catch (e) {}
       try {
         if (typeof BroadcastChannel !== "undefined") {
           const channel = new BroadcastChannel(${JSON.stringify(AUTH_SYNC_CHANNEL)});
           channel.postMessage(payload);
           channel.close();
         }
-      } catch {}
+      } catch (e) {}
     }
 
     function clearStaleGuestCache() {
@@ -132,7 +132,7 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
         "fortune_user_points",
       ];
       for (let i = 0; i < staleKeys.length; i += 1) {
-        try { localStorage.removeItem(staleKeys[i]); } catch {}
+        try { localStorage.removeItem(staleKeys[i]); } catch (e) {}
       }
     }
 
@@ -176,13 +176,13 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
       }
 
       if (!Object.keys(safe).length) {
-        try { localStorage.removeItem("fortune_auth_user"); } catch {}
+        try { localStorage.removeItem("fortune_auth_user"); } catch (e) {}
         return null;
       }
 
       try {
         localStorage.setItem("fortune_auth_user", JSON.stringify(safe));
-      } catch {}
+      } catch (e) {}
 
       return safe;
     }
@@ -191,7 +191,7 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
       if (payload && payload.accessToken) {
         try {
           localStorage.setItem("fortune_auth_token", String(payload.accessToken));
-        } catch {}
+        } catch (e) {}
       }
 
       if (payload && payload.user) {
@@ -205,7 +205,7 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
     function clearIntent() {
       try {
         sessionStorage.removeItem("cd_oauth_intent");
-      } catch {}
+      } catch (e) {}
     }
 
     const params = new URLSearchParams(window.location.search);
@@ -231,7 +231,7 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
           const parsed = JSON.parse(rawIntent);
           intentProvider = String((parsed && parsed.provider) || "").trim().toLowerCase();
         }
-      } catch {
+      } catch (e) {
         intentProvider = "";
       }
 
@@ -322,7 +322,7 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
                 debugAuth("[auth] me loaded", mePayload.user.id);
               }
             }
-          } catch {
+          } catch (e) {
             // ignore fallback errors
           }
         }
@@ -360,7 +360,7 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
                 const parsedUser = JSON.parse(rawUser);
                 parsedUser.points = nextPoints;
                 localStorage.setItem("fortune_auth_user", JSON.stringify(parsedUser));
-              } catch {}
+              } catch (e) {}
               debugAuth("[auth] coin refreshed");
             }),
           fetch(subscriptionUrl, {
@@ -381,7 +381,7 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
                   profileLimit: Number.isFinite(Number(subPayload.profileLimit)) ? Number(subPayload.profileLimit) : undefined,
                 };
                 localStorage.setItem("fortune_auth_user", JSON.stringify(parsedUser));
-              } catch {}
+              } catch (e) {}
             }),
           fetch(entitlementUrl, {
             method: "GET",

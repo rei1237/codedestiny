@@ -40,7 +40,7 @@ export async function readJson(request) {
 
   try {
     return JSON.parse(text);
-  } catch {
+  } catch (e) {
     throw createHttpError(400, "Request body must be valid JSON.");
   }
 }
@@ -71,7 +71,7 @@ export function cookieValue(request, name) {
 
     try {
       return decodeURIComponent(pair.slice(index + 1));
-    } catch {
+    } catch (e) {
       return pair.slice(index + 1);
     }
   }
@@ -100,7 +100,7 @@ function resolveRequestPathFromContext(context = {}) {
 
   try {
     return new URL(rawUrl).pathname;
-  } catch {
+  } catch (e) {
     return "";
   }
 }
@@ -191,7 +191,7 @@ export async function handleRouteError(error, context = {}) {
 
   try {
     console.error("[worker-route-error]", JSON.stringify(logPayload));
-  } catch {
+  } catch (e) {
     console.error("[worker-route-error]", logPayload);
   }
 

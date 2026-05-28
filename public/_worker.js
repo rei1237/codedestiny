@@ -20,7 +20,7 @@ function hardenResponse(requestUrl, response, options = {}) {
   const pathname = (() => {
     try {
       return new URL(requestUrl).pathname;
-    } catch {
+    } catch (e) {
       return "";
     }
   })();
@@ -63,7 +63,7 @@ function resolveApiWorkerOrigin(env) {
     .replace(/\/+$/, "");
   try {
     return new URL(raw).origin;
-  } catch {
+  } catch (e) {
     return "";
   }
 }

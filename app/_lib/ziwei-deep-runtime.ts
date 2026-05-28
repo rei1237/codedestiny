@@ -32,7 +32,7 @@ function readSessionCache(chartKey: string): ZiweiDeepRuntimeCache | null {
     const parsed = JSON.parse(raw) as ZiweiDeepRuntimeCache;
     if (!parsed || parsed.chartKey !== chartKey) return null;
     return parsed;
-  } catch {
+  } catch (e) {
     return null;
   }
 }
@@ -41,7 +41,7 @@ function writeSessionCache(cache: ZiweiDeepRuntimeCache) {
   if (!hasWindow()) return;
   try {
     window.sessionStorage.setItem(CACHE_KEY, JSON.stringify(cache));
-  } catch {
+  } catch (e) {
     // no-op
   }
 }
@@ -98,7 +98,7 @@ export function clearZiweiDeepRuntimeCache() {
   if (!hasWindow()) return;
   try {
     window.sessionStorage.removeItem(CACHE_KEY);
-  } catch {
+  } catch (e) {
     // no-op
   }
 }

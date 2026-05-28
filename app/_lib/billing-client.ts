@@ -127,7 +127,7 @@ async function parseBillingResponse<T>(response: Response): Promise<BillingResul
   let payload: Record<string, unknown> = {};
   try {
     payload = (await response.json()) as Record<string, unknown>;
-  } catch {
+  } catch (e) {
     payload = {};
   }
 

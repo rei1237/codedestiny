@@ -41,7 +41,7 @@ function findNextStaticSamplePath(): string {
     try {
       const parsed = new URL(src, window.location.origin);
       return `${parsed.pathname}${parsed.search || ""}`;
-    } catch {
+    } catch (e) {
       continue;
     }
   }

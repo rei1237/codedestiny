@@ -103,33 +103,33 @@ function isAdminSessionClient(){
   if (typeof window === "undefined") return false;
   try {
     if (window.__cdAdminBypass) return true;
-  } catch {}
+  } catch (e) {}
   try {
     const userRaw = localStorage.getItem("fortune_auth_user");
     if (userRaw) {
       const user = JSON.parse(userRaw);
       if (String(user?.role || "").toLowerCase() === "admin") return true;
     }
-  } catch {}
+  } catch (e) {}
   try {
     const userRaw = localStorage.getItem("cd_user");
     if (userRaw) {
       const user = JSON.parse(userRaw);
       if (String(user?.role || "").toLowerCase() === "admin") return true;
     }
-  } catch {}
+  } catch (e) {}
   try {
     const roleMatch = document.cookie.match(/(?:^|;\s*)cd_role=([^;]+)/);
     if (roleMatch && decodeURIComponent(roleMatch[1]).toLowerCase() === "admin") return true;
-  } catch {}
+  } catch (e) {}
   try {
     const tok = String(sessionStorage.getItem("flower_admin_token") || "");
     if (FLOWER_ADMIN_TOKEN_RE.test(tok)) return true;
-  } catch {}
+  } catch (e) {}
   try {
     const tok = String(localStorage.getItem("flower_admin_token") || "");
     if (FLOWER_ADMIN_TOKEN_RE.test(tok)) return true;
-  } catch {}
+  } catch (e) {}
   return false;
 }
 
@@ -734,10 +734,10 @@ function ReadingPhase({ topic, gem, cards, assignments, spreadCards, onReset }){
       try{
         const raw=String(sessionStorage.getItem("flower_admin_token")||localStorage.getItem("flower_admin_token")||"");
         return FLOWER_ADMIN_TOKEN_RE.test(raw)?raw:"";
-      }catch{return "";}
+      }catch (e) {return "";}
     })();
     const adminTier=(()=>{
-      try{return String(localStorage.getItem("flower_admin_test_tier")||"").toLowerCase();}catch{return "";}
+      try{return String(localStorage.getItem("flower_admin_test_tier")||"").toLowerCase();}catch (e) {return "";}
     })();
 
     try{
@@ -764,12 +764,12 @@ function ReadingPhase({ topic, gem, cards, assignments, spreadCards, onReset }){
           const u=JSON.parse(localStorage.getItem("fortune_auth_user")||"null")||{};
           u.points = Number(rd.user.points);
           localStorage.setItem("fortune_auth_user", JSON.stringify(u));
-        }catch{}
+        }catch (e) {}
       }
       setPaidTxId("");
       setPaid(false);
       return true;
-    }catch{
+    }catch (e) {
       return false;
     }
   },[paidTxId]);
@@ -846,7 +846,7 @@ function ReadingPhase({ topic, gem, cards, assignments, spreadCards, onReset }){
         setError(true);setLoading(false);return;
       }
       playReadingTypewriter(text);
-    }catch{
+    }catch (e) {
       const localText = buildLocalCrystalReading();
       if (localText) {
         playReadingTypewriter(localText);
@@ -872,10 +872,10 @@ function ReadingPhase({ topic, gem, cards, assignments, spreadCards, onReset }){
       try{
         const raw=String(sessionStorage.getItem("flower_admin_token")||localStorage.getItem("flower_admin_token")||"");
         return FLOWER_ADMIN_TOKEN_RE.test(raw)?raw:"";
-      }catch{return "";}
+      }catch (e) {return "";}
     })();
     const adminTier=(()=>{
-      try{return String(localStorage.getItem("flower_admin_test_tier")||"").toLowerCase();}catch{return "";}
+      try{return String(localStorage.getItem("flower_admin_test_tier")||"").toLowerCase();}catch (e) {return "";}
     })();
     if(!token){
       setPayError("로그인이 필요합니다.");
@@ -908,7 +908,7 @@ function ReadingPhase({ topic, gem, cards, assignments, spreadCards, onReset }){
       setPaidTxId(String(d?.transactionId||""));
       setPaid(true);
       doFetch();
-    }catch{
+    }catch (e) {
       setPayError("결제 처리 중 오류가 발생했습니다.");
     }finally{
       setPaying(false);

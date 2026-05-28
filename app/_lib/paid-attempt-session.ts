@@ -64,7 +64,7 @@ function readStorage(storage: Storage | undefined): string {
   if (!storage) return "";
   try {
     return String(storage.getItem(ATTEMPT_STORAGE_KEY) || "");
-  } catch {
+  } catch (e) {
     return "";
   }
 }
@@ -92,7 +92,7 @@ function parseAttempt(raw: string): PaidAttemptSession | null {
       expiresAt,
       lastUpdatedAt: String(parsed.lastUpdatedAt || createdAt),
     };
-  } catch {
+  } catch (e) {
     return null;
   }
 }
@@ -109,7 +109,7 @@ function writeAttempt(session: PaidAttemptSession | null) {
       } else {
         storage.setItem(ATTEMPT_STORAGE_KEY, value);
       }
-    } catch {
+    } catch (e) {
       // ignore storage errors
     }
   });
@@ -157,7 +157,7 @@ export function logPaidAttemptEvent(name: PaidAttemptEventName, payload: EventPa
       ts: payload.ts || nowIso(),
     };
     console.info(name, safePayload);
-  } catch {
+  } catch (e) {
     // ignore logging errors
   }
 }
@@ -192,7 +192,7 @@ export function getPaidAttemptIdFromUrl(): string {
   try {
     const current = new URL(window.location.href);
     return String(current.searchParams.get(ATTEMPT_URL_PARAM) || "").trim();
-  } catch {
+  } catch (e) {
     return "";
   }
 }
@@ -204,7 +204,7 @@ function setAttemptIdOnUrl(attemptId: string) {
     if (String(current.searchParams.get(ATTEMPT_URL_PARAM) || "") === attemptId) return;
     current.searchParams.set(ATTEMPT_URL_PARAM, attemptId);
     window.history.replaceState(window.history.state, "", current.toString());
-  } catch {
+  } catch (e) {
     // ignore URL mutation errors
   }
 }

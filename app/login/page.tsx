@@ -195,7 +195,7 @@ export default function LoginPage() {
 
     try {
       sessionStorage.setItem("cd_oauth_intent", JSON.stringify({ provider, flow: "login", at: Date.now() }));
-    } catch {
+    } catch (e) {
       // ignore storage failures
     }
 

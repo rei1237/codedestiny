@@ -312,7 +312,7 @@ async function createImageRenderer(file: File): Promise<ImageRenderer> {
           bitmap.close();
         },
       };
-    } catch {
+    } catch (e) {
       // fallback to Image element path
     }
   }
@@ -515,7 +515,7 @@ async function computeFileSignature(file: File): Promise<string> {
         .join("");
       return `${base}|${short}`;
     }
-  } catch {
+  } catch (e) {
     // fall back to metadata-based signature
   }
   return base;
@@ -1041,7 +1041,7 @@ export default function PalmDestinyMain() {
       let quality: PalmImageQualityFeedback | null = null;
       try {
         quality = await analyzeImageQuality(normalizedFile);
-      } catch {
+      } catch (e) {
         quality = null;
         if (!prepWarning) {
           prepWarning = "이 브라우저에서는 품질 사전점검이 제한되어 서버 분석 결과를 기준으로 안내합니다.";
@@ -1141,7 +1141,7 @@ export default function PalmDestinyMain() {
     if (typeof window === "undefined") return "";
     try {
       return String(window.localStorage.getItem("fortune_auth_token") || "").trim();
-    } catch {
+    } catch (e) {
       return "";
     }
   };
@@ -1407,7 +1407,7 @@ export default function PalmDestinyMain() {
           parsedUser.points = nextPoints;
           window.localStorage.setItem("fortune_auth_user", JSON.stringify(parsedUser));
         }
-      } catch {
+      } catch (e) {
         // ignore client-side storage failures
       }
 

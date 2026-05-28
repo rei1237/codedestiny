@@ -31,7 +31,7 @@ function isValidDailyFile(filePath, expectedDate) {
   try {
     const j = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     return !!(j && j.date === expectedDate);
-  } catch {
+  } catch (e) {
     return false;
   }
 }

@@ -1378,7 +1378,7 @@ export default function YeonStarHugPage() {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(`${shareText}\n${window.location.href}`);
       }
-    } catch {
+    } catch (e) {
       setShareFeedback("공유 중 문제가 발생했어요. 다시 눌러볼까요?");
     } finally {
       setIsExporting(false);

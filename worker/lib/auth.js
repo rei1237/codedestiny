@@ -107,7 +107,7 @@ function logAuthError(stage, error, extras = {}) {
 
   try {
     console.error("[worker-auth-error]", JSON.stringify(payload));
-  } catch {
+  } catch (e) {
     console.error("[worker-auth-error]", payload);
   }
 }

@@ -231,7 +231,7 @@ export default function MePage() {
       setCurrentId(profileId);
       emitDestinyProfileChanged(profiles, profileId);
       setAuthNotice("");
-    } catch {
+    } catch (e) {
       setAuthNotice("프로필 활성화 중 오류가 발생했습니다.");
     } finally {
       setBusyAction("");
@@ -264,7 +264,7 @@ export default function MePage() {
       setCanCreateMore(nextProfiles.length < profileLimit);
       emitDestinyProfileChanged(nextProfiles, nextCurrentId);
       setAuthNotice("");
-    } catch {
+    } catch (e) {
       setAuthNotice("프로필 삭제 중 오류가 발생했습니다.");
     } finally {
       setBusyAction("");

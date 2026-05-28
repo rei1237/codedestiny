@@ -316,7 +316,7 @@ router.get("/entry", async (req, res) => {
 
     // 보안: Location에 관리자 문자열/정보 노출 없이 해시 경로로만 이동한다.
     return res.redirect(302, `/${expected}/dashboard`);
-  } catch {
+  } catch (e) {
     const expected = String(process.env.ADMIN_SECRET_HASH || "").trim();
     if (!expected) return denyNotFound(res);
     return res.redirect(302, `/${expected}/login`);
@@ -341,7 +341,7 @@ router.post("/entry/password", async (req, res) => {
       adminToken,
       nextUrl: expected ? `/${expected}/login` : "/admin",
     });
-  } catch {
+  } catch (e) {
     return denyNotFound(res);
   }
 });
@@ -368,7 +368,7 @@ router.get("/auth/me", requireAuth, requireAdmin, async (req, res) => {
         role: "admin",
       },
     });
-  } catch {
+  } catch (e) {
     return denyNotFound(res);
   }
 });
@@ -395,7 +395,7 @@ router.post("/auth/logout", requireAuth, requireAdmin, async (req, res) => {
       meta: {},
     }).catch(() => {});
     return res.status(200).json({ ok: true });
-  } catch {
+  } catch (e) {
     return denyNotFound(res);
   }
 });
@@ -460,7 +460,7 @@ router.post("/auth/login", async (req, res) => {
     }
     // 2FA 설정이 필요할 경우 setup 화면으로 전환
     return res.status(200).json({ ok: true, flow: "setup" });
-  } catch {
+  } catch (e) {
     return denyNotFound(res);
   }
 });
@@ -489,7 +489,7 @@ router.post("/auth/unlock-request", async (req, res) => {
     }
 
     return res.status(200).json({ ok: true });
-  } catch {
+  } catch (e) {
     return denyNotFound(res);
   }
 });
@@ -515,7 +515,7 @@ router.post("/auth/unlock-verify", async (req, res) => {
     clearFailures(loginKey);
 
     return res.status(200).json({ ok: true });
-  } catch {
+  } catch (e) {
     return denyNotFound(res);
   }
 });
@@ -578,7 +578,7 @@ router.get("/auth/2fa-setup", async (req, res) => {
       qrcodeDataUrl,
       backupCodes,
     });
-  } catch {
+  } catch (e) {
     return denyNotFound(res);
   }
 });
@@ -619,7 +619,7 @@ router.post("/auth/2fa-setup-verify", async (req, res) => {
 
     res.clearCookie("fortune_admin_2fa_pending", { path: "/" });
     return res.status(200).json({ ok: true });
-  } catch {
+  } catch (e) {
     return denyNotFound(res);
   }
 });
@@ -689,7 +689,7 @@ router.post("/auth/verify-2fa", async (req, res) => {
 
     res.clearCookie("fortune_admin_2fa_pending", { path: "/" });
     return res.status(200).json({ ok: true });
-  } catch {
+  } catch (e) {
     return denyNotFound(res);
   }
 });
@@ -752,7 +752,7 @@ router.post("/security/allowed-ip", requireAuth, requireAdmin, async (req, res) 
     let content = "";
     try {
       content = fs.readFileSync(envPath, "utf8");
-    } catch {
+    } catch (e) {
       return res.status(500).json({ message: ".env 파일을 읽을 수 없습니다." });
     }
 

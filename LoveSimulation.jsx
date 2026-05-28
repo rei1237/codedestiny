@@ -2473,7 +2473,7 @@ export default function LoveSimulation() {
                         Number(matchForm.year), Number(matchForm.month), Number(matchForm.day), 12, pool
                       );
                       setMatchResults(results);
-                    } catch { showToast('궁합 계산 중 오류가 발생했어요.'); }
+                    } catch (e) { showToast('궁합 계산 중 오류가 발생했어요.'); }
                     finally { setMatchLoading(false); }
                   }}>
                   {matchLoading ? '계산 중…' : '💕 최고의 상대 찾기'}

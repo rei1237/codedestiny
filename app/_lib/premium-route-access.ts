@@ -378,7 +378,7 @@ async function findEvidenceByPaymentTokens(userId: string, requestBody: Record<s
         .sort({ createdAt: -1 })
         .lean();
       if (byTransaction) return byTransaction;
-    } catch {
+    } catch (e) {
       // Ignore malformed ids and continue.
     }
   }

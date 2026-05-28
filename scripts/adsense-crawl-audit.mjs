@@ -20,7 +20,7 @@ function normalizeUrl(input, base) {
     const url = new URL(input, base);
     url.hash = "";
     return url.toString();
-  } catch {
+  } catch (e) {
     return null;
   }
 }
@@ -28,7 +28,7 @@ function normalizeUrl(input, base) {
 function sameOrigin(url, origin) {
   try {
     return new URL(url).origin === origin;
-  } catch {
+  } catch (e) {
     return false;
   }
 }

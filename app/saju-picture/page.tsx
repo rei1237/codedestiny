@@ -362,7 +362,7 @@ function ResultCard({
     if (navigator.share) {
       try {
         await navigator.share({ title: "사주로 보는 내 동물", text });
-      } catch {
+      } catch (e) {
         /* 취소 */
       }
     } else {
@@ -556,7 +556,7 @@ export default function SajuPicturePage() {
 
       setApiData(localData);
       setPhase("result");
-    } catch {
+    } catch (e) {
       setErrorMsg("로컬 계산에 실패했어요. 입력값을 다시 확인해 주세요.");
       setPhase("error");
     }

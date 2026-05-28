@@ -60,7 +60,7 @@ for (const filePath of files) {
   let body = "";
   try {
     body = fs.readFileSync(filePath, "utf8");
-  } catch {
+  } catch (e) {
     continue;
   }
 

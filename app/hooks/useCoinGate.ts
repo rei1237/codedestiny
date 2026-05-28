@@ -99,7 +99,7 @@ export function useCoinGate() {
           });
           try {
             await refreshAuth({ force: true, silent: true });
-          } catch {
+          } catch (e) {
             // ignore auth refresh errors here; final state check below determines result.
           }
         }

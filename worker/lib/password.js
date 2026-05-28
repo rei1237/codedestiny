@@ -102,7 +102,7 @@ async function verifyHmac(password, encodedHash) {
     const expected = fromBase64Url(parts[2]);
     const actual = await signPasswordHmac(password, salt);
     return timingSafeEqual(expected, actual);
-  } catch {
+  } catch (e) {
     return false;
   }
 }
@@ -131,7 +131,7 @@ async function verifyPbkdf2(password, encodedHash) {
     const expected = fromBase64Url(hashRaw);
     const actual = await derivePbkdf2Key(password, salt, iterations);
     return timingSafeEqual(expected, actual);
-  } catch {
+  } catch (e) {
     return false;
   }
 }
@@ -154,7 +154,7 @@ export async function verifyPassword(password, encodedHash) {
     }
 
     return false;
-  } catch {
+  } catch (e) {
     return false;
   }
 }

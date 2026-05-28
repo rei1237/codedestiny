@@ -67,7 +67,7 @@ function parsePointChargePackages(raw) {
   let parsed;
   try {
     parsed = JSON.parse(raw);
-  } catch {
+  } catch (e) {
     throw new Error("POINT_CHARGE_PACKAGES must be a JSON object.");
   }
 

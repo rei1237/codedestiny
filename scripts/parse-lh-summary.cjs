@@ -29,7 +29,7 @@ function readJson(path) {
     try {
       const cleaned = text.replace(/^\uFEFF/, "").replace(/^\u00FE/, "");
       return JSON.parse(cleaned);
-    } catch {
+    } catch (e) {
       // try next decoding candidate
     }
   }

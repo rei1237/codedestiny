@@ -94,7 +94,7 @@ function parseCustomDataUserId(customData) {
   if (typeof customData === "string") {
     try {
       parsed = JSON.parse(customData);
-    } catch {
+    } catch (e) {
       return null;
     }
   }

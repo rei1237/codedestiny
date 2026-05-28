@@ -228,6 +228,6 @@ run().catch(async (error) => {
   console.error("[migrate-insights-to-content] failed", error);
   try {
     await mongoose.disconnect();
-  } catch {}
+  } catch (e) {}
   process.exit(1);
 });

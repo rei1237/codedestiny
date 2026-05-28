@@ -170,7 +170,7 @@ export default function FptiResultCard({ result }: Props) {
       setDeepReport(localReport);
       setActiveChapter(0);
       setDeepStageIndex(4);
-    } catch {
+    } catch (e) {
       setDeepError("FPTI 리포트 구성 중 문제가 발생했습니다. 입력값을 다시 확인해 주세요.");
     } finally {
       setDeepLoading(false);

@@ -66,7 +66,7 @@ function pruneOldDailyFiles(baseDir, keepDays, todayYmd) {
       try {
         fs.unlinkSync(filePath);
         deleted += 1;
-      } catch {
+      } catch (e) {
         // keep going; missing permissions or race should not abort daily generation
       }
     }
@@ -82,7 +82,7 @@ if (!force && fs.existsSync(dailyPath) && fs.existsSync(dailyPublicPath)) {
       console.log('[fortune-daily-once] Skip: already have daily package for', dateStr, '→', dailyPath, 'and', dailyPublicPath);
       process.exit(0);
     }
-  } catch {
+  } catch (e) {
     console.warn('[fortune-daily-once] Existing file invalid, regenerating:', dailyPath);
   }
 }

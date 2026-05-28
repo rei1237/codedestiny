@@ -16,7 +16,7 @@ const CONCURRENCY = Math.max(1, Number(readArg("--concurrency", process.env.SEO_
 const baseHostname = (() => {
   try {
     return new URL(BASE_URL).hostname.toLowerCase();
-  } catch {
+  } catch (e) {
     return "";
   }
 })();
@@ -298,7 +298,7 @@ function parseSitemapUrls(xmlText) {
 function safePathname(urlLike) {
   try {
     return new URL(urlLike).pathname.replace(/\/+$/, "") || "/";
-  } catch {
+  } catch (e) {
     return "";
   }
 }
@@ -308,7 +308,7 @@ function toAuditUrl(urlLike) {
   try {
     const u = new URL(urlLike);
     return new URL(`${u.pathname}${u.search}${u.hash}`, `${BASE_URL}/`).toString();
-  } catch {
+  } catch (e) {
     return urlLike;
   }
 }
@@ -338,7 +338,7 @@ function tryReadSeoGrowthSlugs() {
     const text = fs.readFileSync(new URL("../app/insights/seo-growth-articles.js", import.meta.url), "utf8");
     const matches = Array.from(text.matchAll(/slug:\s*"([^"]+)"/g));
     return matches.map((m) => m[1]).filter(Boolean);
-  } catch {
+  } catch (e) {
     return [];
   }
 }
@@ -358,7 +358,7 @@ async function main() {
       const robotsText = fs.readFileSync(new URL("../robots.txt", import.meta.url), "utf8");
       robotsRes = { ok: true, response: { status: 200 }, text: robotsText };
       notes.push("로컬 모드: robots.txt를 파일 시스템에서 대체 로드");
-    } catch {
+    } catch (e) {
       // ignore fallback failure
     }
   }
@@ -368,7 +368,7 @@ async function main() {
       const sitemapText = fs.readFileSync(new URL("../sitemap.xml", import.meta.url), "utf8");
       sitemapRes = { ok: true, response: { status: 200 }, text: sitemapText };
       notes.push("로컬 모드: sitemap.xml을 파일 시스템에서 대체 로드");
-    } catch {
+    } catch (e) {
       // ignore fallback failure
     }
   }
@@ -456,7 +456,7 @@ async function main() {
       const parts = pathname.split("/").filter(Boolean);
       if (parts.length !== 2) return false;
       return !INSIGHTS_CATEGORY_SLUGS.has(parts[1]);
-    } catch {
+    } catch (e) {
       return false;
     }
   });

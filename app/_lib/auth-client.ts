@@ -31,7 +31,7 @@ function readClientAccessToken() {
   if (typeof window === "undefined") return "";
   try {
     return String(localStorage.getItem("fortune_auth_token") || "").trim();
-  } catch {
+  } catch (e) {
     return "";
   }
 }
@@ -42,7 +42,7 @@ function persistClientAccessToken(token: unknown) {
   if (!normalized) return;
   try {
     localStorage.setItem("fortune_auth_token", normalized);
-  } catch {
+  } catch (e) {
     // ignore storage failures
   }
 }
@@ -73,7 +73,7 @@ function shouldTryRefresh(url: string) {
     if (path === "/api/auth/logout") return false;
     if (path === "/api/auth/oauth/complete") return false;
     return true;
-  } catch {
+  } catch (e) {
     return false;
   }
 }
@@ -84,7 +84,7 @@ function publishAuthSync(event: "login" | "logout") {
 
   try {
     window.dispatchEvent(new CustomEvent("cd:auth-changed", { detail: payload }));
-  } catch {
+  } catch (e) {
     // best-effort
   }
 
@@ -93,7 +93,7 @@ function publishAuthSync(event: "login" | "logout") {
     const channel = new BroadcastChannel(AUTH_SYNC_CHANNEL);
     channel.postMessage(payload);
     channel.close();
-  } catch {
+  } catch (e) {
     // best-effort
   }
 }
@@ -103,7 +103,7 @@ export function clearClientAuthState() {
   try {
     localStorage.removeItem("fortune_auth_token");
     localStorage.removeItem("fortune_auth_user");
-  } catch {
+  } catch (e) {
     // ignore storage failures
   }
   document.cookie = "fortune_auth_token=; path=/; max-age=0; samesite=lax";
@@ -138,11 +138,11 @@ async function refreshSession(apiBase: string) {
             persistSanitizedAuthUser(payload.user);
             publishAuthSync("login");
           }
-        } catch {
+        } catch (e) {
           // non-json responses are ignored here
         }
         return "success";
-      } catch {
+      } catch (e) {
         return "transient";
       } finally {
         refreshInFlight = null;
@@ -159,7 +159,7 @@ function isMeRequest(url: string, init: RequestInit = {}) {
   try {
     const parsed = new URL(url, "http://localhost");
     return parsed.pathname === "/api/auth/me";
-  } catch {
+  } catch (e) {
     return false;
   }
 }
@@ -211,7 +211,7 @@ export async function logoutWithServer(apiBase?: string) {
       credentials: "include",
       cache: "no-store",
     });
-  } catch {
+  } catch (e) {
     // local cleanup still required
   }
   clearClientAuthState();

@@ -23,7 +23,7 @@ export default function AdminLoginPage() {
         credentials: "include",
       });
       let data: Record<string, unknown> = {};
-      try { data = await res.json(); } catch {}
+      try { data = await res.json(); } catch (e) {}
       if (!res.ok) {
         if (data?.error === "config_key_mismatch") {
           const missingKeys = Array.isArray(data?.missingKeys)
@@ -47,13 +47,13 @@ export default function AdminLoginPage() {
       }
       // API가 Set-Cookie로 flower_admin_token을 이미 세팅; sessionStorage에만 저장 (localStorage 금지 — 자동 관리자 모드 방지)
       if (data?.adminToken) {
-        try { sessionStorage.setItem("flower_admin_token", String(data.adminToken)); } catch {}
-        try { sessionStorage.setItem("flower_admin_password_ok", "1"); } catch {}
+        try { sessionStorage.setItem("flower_admin_token", String(data.adminToken)); } catch (e) {}
+        try { sessionStorage.setItem("flower_admin_password_ok", "1"); } catch (e) {}
         // 혹시 이전 세션에서 남아있던 localStorage 토큰 제거
-        try { localStorage.removeItem("flower_admin_token"); } catch {}
+        try { localStorage.removeItem("flower_admin_token"); } catch (e) {}
       }
       window.location.assign("/admin/content");
-    } catch {
+    } catch (e) {
       setError("네트워크 오류가 발생했습니다.");
     } finally {
       setLoading(false);

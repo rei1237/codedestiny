@@ -77,7 +77,7 @@ function safeParse<T>(raw: string | null): T | null {
   if (!raw) return null;
   try {
     return JSON.parse(raw) as T;
-  } catch {
+  } catch (e) {
     return null;
   }
 }
@@ -375,7 +375,7 @@ export default function FptiExperience() {
       // 입력값을 사주 원천 데이터로 먼저 계산해 FPTI 상태와 동기화합니다.
       computed = calculateSajuSourceFromBirth(analysisInput);
       setSajuSource(computed);
-    } catch {
+    } catch (e) {
       setError("사주 계산에 필요한 입력값이 올바르지 않습니다. 날짜/시간 형식을 확인해 주세요.");
       setPhase("input");
       return false;
@@ -405,7 +405,7 @@ export default function FptiExperience() {
         });
       }
       return true;
-    } catch {
+    } catch (e) {
       setError("분석 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
       setPhase("input");
       return false;

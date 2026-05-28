@@ -28,7 +28,7 @@ function resolveAdminRequestCredentials(apiBase: string): RequestCredentials {
 
   try {
     return new URL(base).origin === window.location.origin ? "include" : "omit";
-  } catch {
+  } catch (e) {
     return "include";
   }
 }

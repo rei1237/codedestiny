@@ -141,7 +141,7 @@ function sanitizeHttpUrl(value, maxLen = 2000) {
     if (parsed.protocol === "http:" || parsed.protocol === "https:") {
       return parsed.toString();
     }
-  } catch {
+  } catch (e) {
     return "";
   }
 
@@ -492,7 +492,7 @@ function logAdminContent(event, details = {}) {
 
   try {
     console.log("[admin-content]", JSON.stringify(payload));
-  } catch {
+  } catch (e) {
     console.log("[admin-content]", payload);
   }
 }
@@ -761,7 +761,7 @@ async function handleInsightsUploadImage(request, env) {
 function decodeCookieValue(rawValue) {
   try {
     return decodeURIComponent(String(rawValue || ""));
-  } catch {
+  } catch (e) {
     return String(rawValue || "");
   }
 }
@@ -808,7 +808,7 @@ async function verifyFlowerAdminToken(request, env) {
   let payload = null;
   try {
     payload = JSON.parse(base64urlDecode(payloadB64));
-  } catch {
+  } catch (e) {
     return false;
   }
 
@@ -1059,7 +1059,7 @@ function parseAdminContentId(path) {
   let token = "";
   try {
     token = decodeURIComponent(String(matched[1] || "").trim());
-  } catch {
+  } catch (e) {
     return "";
   }
 
@@ -1078,7 +1078,7 @@ function parseAdminContentSlug(path) {
     if (!decoded || decoded.length > 240) return "";
     if (!/^[a-z0-9-]+$/.test(decoded)) return "";
     return decoded;
-  } catch {
+  } catch (e) {
     return "";
   }
 }
@@ -1560,7 +1560,7 @@ async function handleAdminDiag(request, env) {
   try {
     await connectDb(env);
     dbReady = true;
-  } catch {
+  } catch (e) {
     dbReady = false;
   }
 

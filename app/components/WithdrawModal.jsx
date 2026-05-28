@@ -44,7 +44,7 @@ function clearClientStorage() {
 
     // sessionStorage 전체 초기화
     sessionStorage.clear();
-  } catch {
+  } catch (e) {
     // 저장소 접근 오류는 탈퇴 처리를 막지 않음
   }
 }
@@ -83,7 +83,7 @@ export default function WithdrawModal({ isOpen, onClose, hasLocalAuth = true }) 
       if (!res.ok) throw new Error("CSRF 토큰 발급 실패");
       const data = await res.json();
       csrfTokenRef.current = data.csrfToken || "";
-    } catch {
+    } catch (e) {
       setError("보안 토큰을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
     }
   }, [apiBase]);

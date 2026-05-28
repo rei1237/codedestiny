@@ -198,7 +198,7 @@ function normalizeOriginOnly(rawValue) {
 
   try {
     return new URL(value).origin;
-  } catch {
+  } catch (e) {
     return "";
   }
 }
@@ -212,7 +212,7 @@ function normalizeAbsoluteUrl(rawValue) {
     parsed.search = "";
     parsed.hash = "";
     return parsed.toString().replace(/\/+$/, "");
-  } catch {
+  } catch (e) {
     return "";
   }
 }
@@ -221,7 +221,7 @@ function isWorkersDevOrigin(origin) {
   try {
     const hostname = new URL(origin).hostname.toLowerCase();
     return hostname === "workers.dev" || hostname.endsWith(".workers.dev");
-  } catch {
+  } catch (e) {
     return false;
   }
 }
@@ -247,7 +247,7 @@ function getAuthEnvPresence(env) {
 function getRequestHost(request) {
   try {
     return String(new URL(request.url).host || "");
-  } catch {
+  } catch (e) {
     return "";
   }
 }
@@ -277,7 +277,7 @@ function logAuthDiagnostic(request, env, routePath, provider, marker, error) {
 
   try {
     console.error("[auth-diagnostic]", JSON.stringify(payload));
-  } catch {
+  } catch (e) {
     console.error("[auth-diagnostic]", payload);
   }
 }
@@ -377,7 +377,7 @@ function getRequestOrigin(request) {
     const proto = request.headers.get("x-forwarded-proto") || url.protocol.replace(":", "");
     const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || url.host;
     return normalizeOriginOnly(`${proto}://${host}`);
-  } catch {
+  } catch (e) {
     return "";
   }
 }
@@ -776,7 +776,7 @@ function readCookieFromRequest(request, key) {
   if (!match) return "";
   try {
     return decodeURIComponent(match[1]);
-  } catch {
+  } catch (e) {
     return String(match[1] || "");
   }
 }
@@ -904,7 +904,7 @@ async function handleRegister(request, env) {
 
   try {
     body = await readJson(request);
-  } catch {
+  } catch (e) {
     return signupErrorResponse(
       request,
       env,
@@ -1299,7 +1299,7 @@ async function handleRefresh(request, env) {
       issuer: getJwtIssuer(env),
       audience: getJwtAudience(env),
     });
-  } catch {
+  } catch (e) {
     const response = json({ ok: false, message: "Refresh token is invalid or expired." }, { status: 401 });
     clearAuthCookies(response, request, env);
     return response;
@@ -1423,7 +1423,7 @@ async function handleWithdraw(request, env) {
   let body;
   try {
     body = await readJson(request);
-  } catch {
+  } catch (e) {
     return json({ message: "Request body must be valid JSON." }, { status: 400 });
   }
 

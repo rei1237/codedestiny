@@ -38,7 +38,7 @@ export async function downloadPngFromSvg(svgText: string, fileName: string) {
         await triggerBlobDownload(domBlob, fileName);
         return;
       }
-    } catch {
+    } catch (e) {
       // DOM 캡처가 실패하면 기존 SVG->Canvas 방식으로 자동 폴백
     }
   }

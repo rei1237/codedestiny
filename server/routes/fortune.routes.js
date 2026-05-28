@@ -677,7 +677,7 @@ async function handlePigCoinConsumeRoute(req, res, next) {
             productId: productId || null,
             route: "/api/fortune/pig-coin/consume",
           }));
-        } catch {
+        } catch (e) {
           console.error("[fortune][pricing][unknown-feature]", { featureKey, requestReason, productId: productId || null });
         }
       }

@@ -755,9 +755,9 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
 
   const handleShare = useCallback(async () => {
     if (navigator.share) {
-      try { await navigator.share({ title: "속마음 타로 리딩", text: reading.intro }); showMsg("공유 완료!"); return; } catch {}
+      try { await navigator.share({ title: "속마음 타로 리딩", text: reading.intro }); showMsg("공유 완료!"); return; } catch (e) {}
     }
-    try { await navigator.clipboard.writeText(buildText()); showMsg("텍스트 복사됨!"); } catch { showMsg("공유 실패"); }
+    try { await navigator.clipboard.writeText(buildText()); showMsg("텍스트 복사됨!"); } catch (e) { showMsg("공유 실패"); }
   }, [reading, buildText]);
 
   const handleKakaoShare = useCallback(async () => {
@@ -815,11 +815,11 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
         `&text=${encodeURIComponent(`${shareTitle}\n${shareDesc}`)}`;
       window.open(fallbackUrl, "_blank", "noopener,noreferrer");
       showMsg("카카오 공유 링크를 열었어요!");
-    } catch {
+    } catch (e) {
       try {
         await navigator.clipboard.writeText(`${shareTitle}\n${shareDesc}\n${currentUrl}`);
         showMsg("카카오 공유 대체로 링크를 복사했어요!");
-      } catch {
+      } catch (e) {
         showMsg("카카오 공유를 열지 못했습니다.");
       }
     }
@@ -832,7 +832,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
 
   const handleCopy = useCallback(async () => {
     try { await navigator.clipboard.writeText(buildText()); showMsg("클립보드에 복사됨!"); }
-    catch { showMsg("복사 실패"); }
+    catch (e) { showMsg("복사 실패"); }
   }, [buildText]);
 
   const handleSaveImage = useCallback(async () => {
@@ -842,7 +842,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
       const canvas = await html2canvas(reportRef.current, { backgroundColor: "#0a0820", scale: 2, useCORS: true });
       const a = document.createElement("a"); a.download = `mindscan-${Date.now()}.png`; a.href = canvas.toDataURL("image/png"); a.click();
       showMsg("이미지 저장 완료!");
-    } catch { showMsg("이미지 저장 실패"); }
+    } catch (e) { showMsg("이미지 저장 실패"); }
   }, [reportRef]);
 
   return (

@@ -6,7 +6,7 @@ let loadEnv = () => {};
 try {
   // Keep local DX for .env files, but do not hard-fail in minimal CI runners.
   ({ config: loadEnv } = await import('dotenv'));
-} catch {
+} catch (e) {
   loadEnv = () => {};
 }
 

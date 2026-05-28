@@ -41,7 +41,7 @@ export function toAbsoluteUrl(pathOrUrl: string): string {
   if (value.startsWith("http://") || value.startsWith("https://")) {
     try {
       return new URL(value).toString();
-    } catch {
+    } catch (e) {
       return SEO_SITE_URL;
     }
   }

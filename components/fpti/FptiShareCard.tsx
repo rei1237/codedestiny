@@ -33,7 +33,7 @@ export default function FptiShareCard({ result }: Props) {
       await navigator.clipboard.writeText(shareText);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1800);
-    } catch {
+    } catch (e) {
       setCopied(false);
     }
   };

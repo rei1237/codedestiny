@@ -318,7 +318,7 @@ function normalizePublicSlug(path) {
   let decoded = "";
   try {
     decoded = decodeURIComponent(raw).trim().toLowerCase();
-  } catch {
+  } catch (e) {
     return "";
   }
 
@@ -454,7 +454,7 @@ function normalizeImageKey(rawKey) {
   let decoded = "";
   try {
     decoded = decodeURIComponent(String(rawKey || "")).trim();
-  } catch {
+  } catch (e) {
     return "";
   }
   if (!decoded) return "";

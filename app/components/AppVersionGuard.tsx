@@ -49,7 +49,7 @@ async function resolveRuntimeVersion(): Promise<string> {
     if (!response.ok) return APP_VERSION;
     const data = await response.json();
     return pickRuntimeVersion(data);
-  } catch {
+  } catch (e) {
     return APP_VERSION;
   }
 }
@@ -61,7 +61,7 @@ async function nukeAllCaches(): Promise<void> {
       const regs = await navigator.serviceWorker.getRegistrations();
       await Promise.all(regs.map((reg) => reg.unregister()));
     }
-  } catch {
+  } catch (e) {
     // ignore
   }
 
@@ -70,7 +70,7 @@ async function nukeAllCaches(): Promise<void> {
       const keys = await caches.keys();
       await Promise.all(keys.map((key) => caches.delete(key)));
     }
-  } catch {
+  } catch (e) {
     // ignore
   }
 }
@@ -80,7 +80,7 @@ async function purgeIfNeeded(version: string): Promise<void> {
   let alreadyPurged = "";
   try {
     alreadyPurged = window.localStorage.getItem(SW_PURGED_VERSION_KEY) || "";
-  } catch {
+  } catch (e) {
     alreadyPurged = "";
   }
   if (alreadyPurged === version) return;
@@ -89,7 +89,7 @@ async function purgeIfNeeded(version: string): Promise<void> {
 
   try {
     window.localStorage.setItem(SW_PURGED_VERSION_KEY, version);
-  } catch {
+  } catch (e) {
     // ignore
   }
 }
@@ -100,7 +100,7 @@ async function retireLegacyServiceWorkersOnce(): Promise<void> {
   try {
     const already = window.localStorage.getItem(SW_RETIRE_ONCE_KEY) || "";
     if (already === SW_RETIRE_VERSION) return;
-  } catch {
+  } catch (e) {
     // ignore
   }
 
@@ -109,7 +109,7 @@ async function retireLegacyServiceWorkersOnce(): Promise<void> {
       const regs = await navigator.serviceWorker.getRegistrations();
       await Promise.all(regs.map((reg) => reg.unregister()));
     }
-  } catch {
+  } catch (e) {
     // ignore
   }
 
@@ -130,13 +130,13 @@ async function retireLegacyServiceWorkersOnce(): Promise<void> {
           .map((key) => caches.delete(key)),
       );
     }
-  } catch {
+  } catch (e) {
     // ignore
   }
 
   try {
     window.localStorage.setItem(SW_RETIRE_ONCE_KEY, SW_RETIRE_VERSION);
-  } catch {
+  } catch (e) {
     // ignore
   }
 }
@@ -145,7 +145,7 @@ function getWindowBooleanFlag(flagName: string): boolean {
   if (typeof window === "undefined") return false;
   try {
     return Boolean((window as unknown as RuntimeWindow)[flagName]);
-  } catch {
+  } catch (e) {
     return false;
   }
 }
@@ -224,14 +224,14 @@ export default function AppVersionGuard() {
     try {
       window.localStorage.setItem(VERSION_KEY, version);
       window.localStorage.setItem(SW_PURGED_VERSION_KEY, version);
-    } catch {
+    } catch (e) {
       // ignore
     }
 
     try {
       window.sessionStorage.setItem(RELOAD_GUARD_KEY, version);
       window.sessionStorage.removeItem(DEFER_GUARD_KEY);
-    } catch {
+    } catch (e) {
       // ignore
     }
 
@@ -248,7 +248,7 @@ export default function AppVersionGuard() {
     let savedVersion = "";
     try {
       savedVersion = window.localStorage.getItem(VERSION_KEY) || "";
-    } catch {
+    } catch (e) {
       savedVersion = "";
     }
 
@@ -262,14 +262,14 @@ export default function AppVersionGuard() {
     let reloadedVersion = "";
     try {
       reloadedVersion = window.sessionStorage.getItem(RELOAD_GUARD_KEY) || "";
-    } catch {
+    } catch (e) {
       reloadedVersion = "";
     }
 
     if (reloadedVersion === serverVersion) {
       try {
         window.localStorage.setItem(VERSION_KEY, serverVersion);
-      } catch {
+      } catch (e) {
         // ignore
       }
       await purgeIfNeeded(serverVersion);
@@ -280,7 +280,7 @@ export default function AppVersionGuard() {
     let deferredVersion = "";
     try {
       deferredVersion = window.sessionStorage.getItem(DEFER_GUARD_KEY) || "";
-    } catch {
+    } catch (e) {
       deferredVersion = "";
     }
 
@@ -368,7 +368,7 @@ export default function AppVersionGuard() {
             onClick={() => {
               try {
                 window.sessionStorage.setItem(DEFER_GUARD_KEY, pendingUpdate.version);
-              } catch {
+              } catch (e) {
                 // ignore
               }
               setPendingUpdate(null);

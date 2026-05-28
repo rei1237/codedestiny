@@ -252,7 +252,7 @@ export function calculateSajuSourceFromBirth(input: FptiFormInput): FptiSourceDa
         unknownTime: parsedTime.unknownTime,
       },
     }) as LegacySajuProfile;
-  } catch {
+  } catch (e) {
     throw new Error("사주 원국 계산에 실패했습니다. 날짜/시간/양음력 입력을 확인해 주세요.");
   }
 

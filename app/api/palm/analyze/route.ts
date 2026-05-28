@@ -343,7 +343,7 @@ function parseJsonObjectFromUnknown(value: unknown): Record<string, unknown> | n
       if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
         return parsed as Record<string, unknown>;
       }
-    } catch {
+    } catch (e) {
       return null;
     }
   }
@@ -734,7 +734,7 @@ async function extractPalmAstroCandidatesFromImage(
       palmCoverage: Number((darkCount / area).toFixed(4)),
       warnings: [],
     };
-  } catch {
+  } catch (e) {
     return { lineCandidates: [], handLandmarks: null, palmCoverage: 0, warnings: ["extract-error"] };
   }
 }
@@ -757,7 +757,7 @@ function getTrainingImages() {
         inline_data: { mime_type: "image/jpeg", data: fs.readFileSync(p2).toString("base64") }
       });
     }
-  } catch {
+  } catch (e) {
     // Ignore errors in production
   }
   return results;
@@ -901,7 +901,7 @@ async function analyzeHandWithGeminiVision(
     });
     if (!res.ok) return null;
     payload = await res.json();
-  } catch {
+  } catch (e) {
     return null;
   }
 
@@ -912,12 +912,12 @@ async function analyzeHandWithGeminiVision(
   let parsed: Record<string, unknown>;
   try {
     parsed = JSON.parse(jsonText);
-  } catch {
+  } catch (e) {
     const match = jsonText.match(/\{[\s\S]+\}/);
     if (!match) return null;
     try {
       parsed = JSON.parse(match[0]);
-    } catch {
+    } catch (e) {
       return null;
     }
   }
@@ -1329,7 +1329,7 @@ async function analyzeHandWithLocalEngine(input: {
         },
       qualityScore: computeQualityScore({ imageQuality, detectedLineKeys, palmDetected }),
     };
-  } catch {
+  } catch (e) {
     return null;
   }
 }

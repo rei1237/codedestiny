@@ -14,7 +14,7 @@ export function PhaseWelcoming() {
     if (!root || typeof root.requestFullscreen !== 'function') return;
     try {
       await root.requestFullscreen();
-    } catch {
+    } catch (e) {
       // Ignore browser policy errors and continue normal flow.
     }
   };

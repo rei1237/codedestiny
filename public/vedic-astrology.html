@@ -3000,7 +3000,7 @@ ${manglikInfo}`;
     blockedChakra:blkChIdx>=0?blkChIdx:0,
     // 다샤 필드
     dashas:dashasFmt,
-    currentDasha:dashasFmt.find(d=>{try{const now=new Date();const s=new Date(d.start);const e=new Date(d.end);return now>=s&&now<e;}catch{return false;}})||null,
+    currentDasha:dashasFmt.find(d=>{try{const now=new Date();const s=new Date(d.start);const e=new Date(d.end);return now>=s&&now<e;}catch (e) {return false;}})||null,
     dashaOverview:`빔쇼타리 다샤는 베다 점성술의 핵심 시간 예측 체계로, 달의 낙샤트라(<span class="keyword">${nak.name}</span>)를 기준으로 총 120년 주기의 대운·소운을 계산합니다. 현재 당신은 <span class="keyword">${PKR[chart.maha&&chart.maha.p||'Saturn']} 대운</span>을 걷고 있습니다. 어떤 행성의 대운을 걷느냐에 따라 삶의 풍경이 전혀 달라지므로, 각 대운의 특성을 이해하는 것이 삶의 전략을 짜는 핵심 도구입니다.`
   };
 }

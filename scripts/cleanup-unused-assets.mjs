@@ -48,7 +48,7 @@ for (const file of allFiles) {
   if (!TEXT_EXT.has(ext)) continue;
   try {
     corpus += "\n" + readFileSync(file, "utf8").toLowerCase();
-  } catch {
+  } catch (e) {
     // ignore unreadable/binary-ish text files
   }
 }

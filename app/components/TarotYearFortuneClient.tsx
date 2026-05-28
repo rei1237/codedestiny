@@ -46,7 +46,7 @@ export default function TarotYearFortuneClient() {
       window.clearInterval(timer);
       try {
         document.body.style.overflow = "";
-      } catch {
+      } catch (e) {
         // no-op
       }
     };
