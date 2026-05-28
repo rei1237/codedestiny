@@ -1375,6 +1375,12 @@
       _flowLog('GENERATION_STATE', { state: stateKey, message: msg });
     }
 
+    _flowLog('LIFE_BOOK_FLOW_START', {
+      featureKey: LIFE_BOOK_FEATURE_KEY,
+      hasAccessGrant: Boolean(_lbCurrentAccessGrant),
+      hasPremiumToken: Boolean(_lbCurrentPremiumToken),
+    });
+
     (async function runLifeBookSinglePass() {
       var _lbReportId = inputReportId || 'lifebook_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
       _lbCurrentReportId = _lbReportId;
@@ -1547,11 +1553,16 @@
   _flowLog('LIFE_BOOK_PDF_DONE', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: _lbReportId, chapterCount: LIFEBOOK_TOTAL_CHAPTERS });
       _flowLog('FRONT_PREVIEW_READY', { message: 'single-pass-complete', categoryCount: LIFEBOOK_TOTAL_CHAPTERS * 6 });
     })().catch(function (error) {
-      if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
-      _generating = false;
       var errMsg = String(error && error.message ? error.message : error || '챕터 생성 중 오류가 발생했습니다.');
       _flowLog('FRONT_PIPELINE_FAILED', { message: errMsg });
       alert('인생의 책 생성 중 오류가 발생했습니다: ' + errMsg);
+    }).finally(function () {
+      if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
+      if (_activeRequestController) _activeRequestController = null;
+      if (_cancelGeneration) {
+        _generating = false;
+        _flowLog('LIFE_BOOK_FLOW_CANCELLED', { reportId: _lbCurrentReportId || '' });
+      }
     });
     return;
 

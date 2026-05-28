@@ -78,41 +78,48 @@ function SajuReportComponent({ birthData }) {
   }, [birthData?.birthDate]);
 
   if (loading) {
-    return <div>📊 사주 계산 중... (메인 스레드 무응답 없음)</div>;
+    return React.createElement('div', null, '📊 사주 계산 중... (메인 스레드 무응답 없음)');
   }
 
   if (error) {
-    return <div style={{ color: 'red' }}>⚠️ 오류: {error}</div>;
+    return React.createElement('div', { style: { color: 'red' } }, '⚠️ 오류: ' + String(error));
   }
 
   if (!result) {
-    return <div>사주를 입력하여 계산해주세요</div>;
+    return React.createElement('div', null, '사주를 입력하여 계산해주세요');
   }
 
-  return (
-    <div style={{ padding: '20px', background: '#1a1a2e', color: '#fff', borderRadius: '8px' }}>
-      <h3>📿 사주 계산 결과</h3>
-      
-      <div style={{ marginTop: '12px', fontSize: '14px', lineHeight: '1.8' }}>
-        <p><b>생년월일:</b> {result.birthDate}</p>
-        <p><b>생시:</b> {result.birthTime}</p>
-        <p><b>성별:</b> {result.gender === 'M' ? '남' : '여'}</p>
-        
-        <p style={{ marginTop: '16px', color: '#ffd700' }}><b>음력:</b> {result.lunar.year}년 {result.lunar.month}월 {result.lunar.day}일{result.lunar.isLeap ? ' (윤달)' : ''}</p>
-        
-        <p style={{ marginTop: '12px' }}><b>천간지지:</b></p>
-        <ul style={{ marginLeft: '20px', margin: '8px 0' }}>
-          <li>년주: {result.ganji.year}</li>
-          <li>월주: {result.ganji.month}</li>
-          <li>일주: {result.ganji.day}</li>
-          <li>시주: {result.ganji.hour}</li>
-        </ul>
-      </div>
-
-      <div style={{ marginTop: '12px', fontSize: '12px', color: '#999' }}>
-        계산시간: {result.timestamp}
-      </div>
-    </div>
+  return React.createElement(
+    'div',
+    { style: { padding: '20px', background: '#1a1a2e', color: '#fff', borderRadius: '8px' } },
+    React.createElement('h3', null, '📿 사주 계산 결과'),
+    React.createElement(
+      'div',
+      { style: { marginTop: '12px', fontSize: '14px', lineHeight: '1.8' } },
+      React.createElement('p', null, React.createElement('b', null, '생년월일:'), ' ' + String(result.birthDate || '')),
+      React.createElement('p', null, React.createElement('b', null, '생시:'), ' ' + String(result.birthTime || '')),
+      React.createElement('p', null, React.createElement('b', null, '성별:'), ' ' + (result.gender === 'M' ? '남' : '여')),
+      React.createElement(
+        'p',
+        { style: { marginTop: '16px', color: '#ffd700' } },
+        React.createElement('b', null, '음력:'),
+        ' ' + String(result.lunar.year || '') + '년 ' + String(result.lunar.month || '') + '월 ' + String(result.lunar.day || '') + '일' + (result.lunar.isLeap ? ' (윤달)' : '')
+      ),
+      React.createElement('p', { style: { marginTop: '12px' } }, React.createElement('b', null, '천간지지:')),
+      React.createElement(
+        'ul',
+        { style: { marginLeft: '20px', margin: '8px 0' } },
+        React.createElement('li', null, '년주: ' + String(result.ganji.year || '')),
+        React.createElement('li', null, '월주: ' + String(result.ganji.month || '')),
+        React.createElement('li', null, '일주: ' + String(result.ganji.day || '')),
+        React.createElement('li', null, '시주: ' + String(result.ganji.hour || ''))
+      )
+    ),
+    React.createElement(
+      'div',
+      { style: { marginTop: '12px', fontSize: '12px', color: '#999' } },
+      '계산시간: ' + String(result.timestamp || '')
+    )
   );
 }
 
