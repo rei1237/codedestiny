@@ -6,7 +6,7 @@
   'use strict';
 
   var LIFEBOOK_TOTAL_CHAPTERS = 12;
-  var LIFE_BOOK_FEATURE_KEY = 'premium_pdf_saju_life_book';
+  var LIFE_BOOK_FEATURE_KEY = 'saju_life_book_pdf';
 
   /* ─────────────── 상수 ─────────────── */
   var CHAPTER_TITLES = [
@@ -1071,6 +1071,164 @@
 
     _setProgress(0);
 
+    var _lbStateMessages = {
+      payment_confirmed: '결제가 확인되었습니다. 인생의 책을 펼칠 준비를 하고 있습니다.',
+      calculating_saju: '사주 원국을 계산하고 있습니다.',
+      building_chapters: '12개의 챕터 구조를 구성하고 있습니다.',
+      writing_with_llm: '각 챕터의 상담문을 작성하고 있습니다.',
+      validating_chapters: '챕터별 결과가 빠짐없이 작성되었는지 확인하고 있습니다.',
+      rendering_pdf: 'PDF를 아름답게 편집하고 있습니다.',
+      saving_result: '완성된 인생의 책을 저장하고 있습니다.',
+    };
+
+    function _setGenerationState(stateKey) {
+      var msg = _lbStateMessages[String(stateKey || '')] || '인생의 책을 생성하고 있습니다.';
+      if (chapterMsg) chapterMsg.textContent = msg;
+      if (chapterNumEl) chapterNumEl.textContent = '진행 상태';
+      _flowLog('GENERATION_STATE', { state: stateKey, message: msg });
+    }
+
+    (async function runLifeBookSinglePass() {
+      var _lbReportId = 'lifebook_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+      _lbCurrentReportId = _lbReportId;
+
+      var _lbAuthToken = '';
+      try { _lbAuthToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
+      var _lbPremiumToken = '';
+      try { _lbPremiumToken = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { _lbPremiumToken = ''; }
+      if (!_lbPremiumToken) {
+        try { _lbPremiumToken = String(sessionStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { _lbPremiumToken = ''; }
+      }
+      if (!_lbPremiumToken) {
+        try { _lbPremiumToken = String(localStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { _lbPremiumToken = ''; }
+      }
+
+      var _sessionId = 'lb-session-' + Date.now().toString(36);
+      var _purchaseId = 'lb-purchase-' + Math.random().toString(36).slice(2, 10);
+      var _accessGrant = {
+        featureKey: LIFE_BOOK_FEATURE_KEY,
+        sessionId: _sessionId,
+        purchaseId: _purchaseId,
+        reportId: _lbReportId,
+        paidAt: new Date().toISOString(),
+      };
+
+      console.info('[SajuLifeBook] access check', {
+        featureKey: LIFE_BOOK_FEATURE_KEY,
+        hasAccessGrant: Boolean(_accessGrant),
+        hasSessionId: Boolean(_accessGrant && _accessGrant.sessionId),
+        hasPurchaseId: Boolean(_accessGrant && _accessGrant.purchaseId),
+        hasReportId: Boolean(_accessGrant && _accessGrant.reportId),
+      });
+
+      _setGenerationState('payment_confirmed');
+      _setProgress(1);
+      _setGenerationState('calculating_saju');
+      _setProgress(2);
+      _setGenerationState('building_chapters');
+      _setProgress(3);
+
+      var _headers = { 'Content-Type': 'application/json' };
+      if (_lbAuthToken) _headers.Authorization = 'Bearer ' + _lbAuthToken;
+      if (_lbPremiumToken) _headers['x-premium-access-token'] = _lbPremiumToken;
+
+      var _payload = {
+        featureKey: LIFE_BOOK_FEATURE_KEY,
+        mode: 'life-book',
+        generateAll: true,
+        reportId: _lbReportId,
+        accessGrant: _accessGrant,
+        profile: {
+          name: String((profile && profile.name) || '사용자'),
+          gender: profile && profile.gender === 'F' ? 'female' : (profile && profile.gender === 'M' ? 'male' : 'unknown'),
+        },
+        birthData: {
+          birthDate: [profile.birth.year, String(profile.birth.month).padStart(2, '0'), String(profile.birth.day).padStart(2, '0')].join('-'),
+          birthTime: String(String(profile.birth.hour || 12).padStart(2, '0') + ':' + String(profile.birth.minute || 0).padStart(2, '0')),
+          calendarType: 'solar',
+          lunarLeapMonth: false,
+        },
+        payment: {
+          featureKey: LIFE_BOOK_FEATURE_KEY,
+          purchaseId: _accessGrant.purchaseId,
+          sessionId: _accessGrant.sessionId,
+          reportId: _accessGrant.reportId,
+        },
+        sajuData: sajuData,
+      };
+
+      _setGenerationState('writing_with_llm');
+      var _res = await fetch('/api/lifebook/generate', {
+        method: 'POST',
+        headers: _headers,
+        body: JSON.stringify(_payload),
+      });
+
+      var _json = await _res.json().catch(function () { return {}; });
+      if (!_res.ok || !_json || !_json.ok) {
+        var _msg = String((_json && (_json.message || _json.reason || _json.code)) || ('HTTP ' + _res.status));
+        throw new Error(_msg);
+      }
+
+      _setGenerationState('validating_chapters');
+
+      var _serverChapters = Array.isArray(_json.chapters) ? _json.chapters : [];
+      if (_serverChapters.length !== LIFEBOOK_TOTAL_CHAPTERS) {
+        throw new Error('LIFE_BOOK_CHAPTER_COUNT_INVALID:' + _serverChapters.length);
+      }
+
+      _chapters = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
+      _chapterStructured = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
+      _chapterMeta = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
+
+      for (var _i = 0; _i < LIFEBOOK_TOTAL_CHAPTERS; _i++) {
+        var _ch = _serverChapters[_i] || {};
+        var _text = String(_ch.contentMarkdown || _ch.text || '').trim();
+        _chapters[_i] = _text;
+        _chapterStructured[_i] = (_ch.chapterJson && typeof _ch.chapterJson === 'object') ? _ch.chapterJson : null;
+        _chapterMeta[_i] = {
+          title: String(_ch.title || CHAPTER_TITLES[_i] || ('Chapter ' + (_i + 1))),
+          subtitle: String(_ch.subtitle || CHAPTER_SUBTITLES[_i] || ''),
+          isSkeleton: false,
+        };
+        _setProgress(_i + 1);
+      }
+
+      _setGenerationState('rendering_pdf');
+      _setGenerationState('saving_result');
+
+      if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
+      _generating = false;
+
+      _showScreen('lbResultScreen');
+      _updateTocState();
+      _renderChapter(1);
+      _bindToc();
+      _lbEnsurePartialRegenerateControl();
+
+      var prof = window.__cdActiveBirthProfile || {};
+      var nameEl = _qs('lbResultName');
+      var dateEl = _qs('lbResultDate');
+      if (nameEl) nameEl.textContent = '📜 ' + (prof.name || '사용자') + '님의 인생의 책';
+      if (dateEl) {
+        var b = prof.birth || {};
+        dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · ' + (prof.gender === 'F' ? '여성' : prof.gender === 'M' ? '남성' : '') + ' · 🗓️ ' + new Date().toLocaleDateString('ko-KR') + ' 발행';
+      }
+
+      _lbSaveResult(prof);
+      _lbRunPremiumJob(LIFEBOOK_TOTAL_CHAPTERS);
+      var lbEpBanner = _qs('lbEpilogueBanner');
+      if (lbEpBanner) lbEpBanner.style.display = '';
+      _flowLog('FRONT_PREVIEW_READY', { message: 'single-pass-complete', categoryCount: LIFEBOOK_TOTAL_CHAPTERS * 6 });
+    })().catch(function (error) {
+      if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
+      _generating = false;
+      var errMsg = String(error && error.message ? error.message : error || '챕터 생성 중 오류가 발생했습니다.');
+      _flowLog('FRONT_PIPELINE_FAILED', { message: errMsg });
+      alert('인생의 책 생성 중 오류가 발생했습니다: ' + errMsg);
+    });
+    return;
+
     var _lbReportId = 'lifebook_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
     _lbCurrentReportId = _lbReportId;
 
@@ -1431,7 +1589,7 @@
         window.generateLifeBook();
         return;
       }
-      var _lbCoinCost = Number(btn.getAttribute('data-coin-cost') || 490);
+      var _lbCoinCost = Number(btn.getAttribute('data-coin-cost') || 500);
       if (typeof window._cdCoinGatePerUse === 'function') {
         // 코인 게이트: 버튼 비활성화로 중복 클릭 방지 후 진행
         btn.disabled = true;
