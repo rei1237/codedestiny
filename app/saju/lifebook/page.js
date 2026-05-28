@@ -11,6 +11,22 @@ const STEP_LABELS = [
   "PDF 책자로 편집하는 중입니다",
 ];
 
+const CHAPTER_ROADMAP = [
+  "1. 사주 원국 완전 해설",
+  "2. 월지·일간·조후 기질 분석",
+  "3. 용신·희신 운용 전략",
+  "4. 대운 정밀 분석",
+  "5. 격국과 사회적 소명",
+  "6. 관계의 전략",
+  "7. 연애·결혼 완전 분석",
+  "8. 재물과 현실 감각",
+  "9. 직업·사업·커리어",
+  "10. 건강·멘탈·생활 리듬",
+  "11. 위기와 전환점",
+  "12. 숨은 복과 귀인",
+  "13. 최종 운명 로드맵",
+];
+
 function nowDate() {
   const d = new Date();
   const y = d.getFullYear();
@@ -94,7 +110,7 @@ export default function SajuLifebookPage() {
     }
 
     const payload = {
-      featureKey: "saju_lifebook_pdf",
+      featureKey: "saju_life_book_pdf",
       name: String(form.name || "").trim() || "사용자",
       gender: form.gender,
       year,
@@ -159,6 +175,20 @@ export default function SajuLifebookPage() {
         <p style={{ margin: "10px 0 0", maxWidth: 760, color: "#f7ddc0" }}>
           원국, 월지, 일간, 용신, 대운, 격국, 관계, 연애, 재물, 직업, 건강, 위기관리, 실행 로드맵까지 13챕터로 정리한 프리미엄 사주 PDF입니다.
         </p>
+        <div style={{ marginTop: 14, display: "inline-flex", gap: 8, flexWrap: "wrap" }}>
+          <span style={{ border: "1px solid rgba(255,255,255,.4)", borderRadius: 999, padding: "5px 10px", fontSize: 12 }}>500코인 1회 차감</span>
+          <span style={{ border: "1px solid rgba(255,255,255,.4)", borderRadius: 999, padding: "5px 10px", fontSize: 12 }}>결제 검증 → 생성 파이프라인</span>
+          <span style={{ border: "1px solid rgba(255,255,255,.4)", borderRadius: 999, padding: "5px 10px", fontSize: 12 }}>PDF 인쇄/저장</span>
+        </div>
+      </section>
+
+      <section style={{ marginBottom: 20, border: "1px solid #e9dcc8", borderRadius: 16, background: "#fffdf9", padding: 16 }}>
+        <h2 style={{ margin: "0 0 10px", fontSize: 20 }}>13챕터 구성 미리보기</h2>
+        <div style={{ display: "grid", gap: 8, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+          {CHAPTER_ROADMAP.map((row) => (
+            <div key={row} style={{ border: "1px solid #efe4d1", borderRadius: 10, padding: "9px 10px", background: "#fff" }}>{row}</div>
+          ))}
+        </div>
       </section>
 
       <form onSubmit={onSubmit} style={{ display: "grid", gap: 14, background: "#faf6ef", border: "1px solid #e7dcc8", borderRadius: 18, padding: 20, boxShadow: "0 16px 32px rgba(69, 47, 25, .07)" }}>

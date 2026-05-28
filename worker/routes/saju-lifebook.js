@@ -84,6 +84,13 @@ function clean(value) {
   return String(value || "").trim();
 }
 
+function resolveLifeBookFeatureKey(raw) {
+  const key = clean(raw);
+  if (!key) return "saju_life_book_pdf";
+  if (key === "saju_lifebook_pdf") return "saju_life_book_pdf";
+  return key;
+}
+
 function stripForbiddenTokens(value) {
   return clean(value)
     .replace(/\bundefined\b/gi, "")
@@ -492,10 +499,11 @@ async function handlePrepare(request, env) {
   }
 
   const profile = normalized.profile;
-  const access = await requirePremiumReportAccess(env, auth.userId, "sajuLifeBook", {
+  const featureKey = resolveLifeBookFeatureKey(body?.featureKey);
+  const access = await requirePremiumReportAccess(env, auth.userId, "lifeBook", {
     ...body,
-    featureKey: clean(body.featureKey) || "saju_lifebook_pdf",
-    reportType: "sajuLifeBook",
+    featureKey,
+    reportType: "lifeBook",
     _accessRoute: "/api/premium/saju-lifebook",
   });
 
@@ -557,8 +565,8 @@ async function handlePrepare(request, env) {
   }
 
   const pdfReady = buildPdfReadyPayload(profile, finalChapters, {
-    featureKey: "saju_lifebook_pdf",
-    reportType: "sajuLifeBook",
+    featureKey,
+    reportType: "lifeBook",
     accessType: String(access.accessType || "unknown"),
     pdfHtml: renderLifeBookPdf({ profile, signals, chapters: finalChapters, generatedAt: new Date().toISOString() }),
   });
@@ -567,8 +575,8 @@ async function handlePrepare(request, env) {
     ok: true,
     data: {
       reportId: `saju-lifebook-${Date.now()}`,
-      featureKey: "saju_lifebook_pdf",
-      reportType: "sajuLifeBook",
+      featureKey,
+      reportType: "lifeBook",
       profile,
       chapters: finalChapters,
       pdfReady,

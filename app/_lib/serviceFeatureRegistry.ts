@@ -485,7 +485,7 @@ const FEATURES: ServiceFeature[] = ([
     detailRoute: "/services/saju-lifebook",
     launchRoute: "/premium/saju-lifebook",
     accessType: "premium_report",
-    featureKey: "saju_lifebook_pdf",
+    featureKey: "saju_life_book_pdf",
     priceLabel: "500코인",
     tags: ["사주", "인생 전략", "13챕터", "PDF"],
     highlights: ["13챕터 고정 구조", "로컬 계산 우선", "PDF 저장용 결과"],
