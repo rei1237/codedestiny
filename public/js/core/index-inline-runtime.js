@@ -1639,19 +1639,28 @@ var __cdLazyActionLoaders = {
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
   openLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
   closeLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
-  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-1779961921263').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-1779961921263'); }); },
+  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-1779963957989').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-1779963957989'); }); },
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
-  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-1779961921263'); },
-  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-1779961921263'); },
+  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-1779963957989'); },
+  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-1779963957989'); },
   openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing/start')); },
   openTarotHealingPage: function() { return Promise.resolve(window.location.assign('/tarot/healing/start')); },
-  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-1779961921263'); },
-  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-1779961921263'); },
+  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-1779963957989'); },
+  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-1779963957989'); },
   openSibylModal: function() {
-    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-1779961921263').then(function() {
+    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-1779963957989').then(function() {
       if (typeof window.openSibylModal === 'function') window.openSibylModal();
     });
   },
+  openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
+  closeLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
+  generateLoveSecret: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
+  openLoveSecretLatestReport: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
+  downloadLoveSecretPdf: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
+  shareLoveSecretKakao: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
+  openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js'); },
+  closeLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js'); },
+  generateLifeBook: function() { return __cdLoadScriptOnce('/js/life-book.js'); },
   openLoveSimulation: function() { try { window.location.assign('/saju/love-simulation'); } catch(e) { window.open('/saju/love-simulation', '_self'); } return Promise.resolve(); },
   setTarotMode: function() { return __cdEnsureSajuCoreLoaded(); },
   selectTarotCategory: function() { return __cdEnsureSajuCoreLoaded(); },
@@ -1886,13 +1895,13 @@ function __cdEnsureSajuCoreLoaded() {
   if (__cdSajuCoreLoadPromise) return __cdSajuCoreLoadPromise;
 
   var chain = [
-    '/js/core/kasi-calendar-service.js?v=build-1779961921263',
-    '/js/compat-llm-prompts.js?v=build-1779961921263',
-    '/js/saju-engine.js?v=build-1779961921263',
-    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-1779961921263',
-    '/js/core/saju/modalProfileState.js?v=build-1779961921263',
-    '/js/core/saju/reportDashboard.js?v=build-1779961921263',
-    '/js/saju-engine-continuation.js?v=build-1779961921263',
+    '/js/core/kasi-calendar-service.js?v=build-1779963957989',
+    '/js/compat-llm-prompts.js?v=build-1779963957989',
+    '/js/saju-engine.js?v=build-1779963957989',
+    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-1779963957989',
+    '/js/core/saju/modalProfileState.js?v=build-1779963957989',
+    '/js/core/saju/reportDashboard.js?v=build-1779963957989',
+    '/js/saju-engine-continuation.js?v=build-1779963957989',
     '/js/entertain-engine.js'
   ];
 
@@ -1931,7 +1940,7 @@ function __cdEnsureSwissEphLoaded() {
   if (__cdSwissEphLoadPromise) return __cdSwissEphLoadPromise;
 
   __cdSwissEphLoadPromise = new Promise(function(resolve, reject) {
-    var src = '/js/swisseph-loader.js?v=build-1779961921263';
+    var src = '/js/swisseph-loader.js?v=build-1779963957989';
     var norm = __cdNormalizeScriptSrc(src);
     if (!norm) {
       reject(new Error('missing swisseph src'));
@@ -2580,8 +2589,8 @@ function __cdBindAnimalTotemTileDirect() {
         return;
       }
       raf(function() {
-        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-1779961921263')
-          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-1779961921263'); })
+        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-1779963957989')
+          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-1779963957989'); })
           .then(function() {
             try {
               if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
@@ -6948,9 +6957,9 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
   if (!needsCore) return Promise.resolve(true);
 
   var chain = [
-    '/js/compat-llm-prompts.js?v=build-1779961921263',
-    '/js/saju-engine.js?v=build-1779961921263',
-    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-1779961921263'
+    '/js/compat-llm-prompts.js?v=build-1779963957989',
+    '/js/saju-engine.js?v=build-1779963957989',
+    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-1779963957989'
   ];
 
   return __cdEnsureLunarLibReady().then(function() {
@@ -6970,7 +6979,7 @@ function __cdEnsureBirthModalDepsLoaded() {
     typeof _renderZiweiSection !== 'function' ||
     typeof _renderAstroSection !== 'function'
   ) {
-    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-1779961921263'));
+    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-1779963957989'));
   }
   tasks.push(__cdEnsureSukuyoZiweiCoreLoaded());
   if (!tasks.length) return Promise.resolve(true);
@@ -7619,8 +7628,8 @@ function openAnimalTotemModal() {
     typeof window.drawAnimalTotemSpread === 'function';
 
   if (!hasFullTotemFlow && typeof __cdLoadScriptOnce === 'function') {
-    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-1779961921263')
-      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-1779961921263'); })
+    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-1779963957989')
+      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-1779963957989'); })
       .then(function() {
         var upgradedOpen = window.openAnimalTotemModal;
         if (typeof upgradedOpen === 'function' && upgradedOpen !== currentOpenFn) {
@@ -7783,20 +7792,7 @@ function openSajuLifeBookBuilder() {
   window.location.href = '/premium/saju-lifebook';
 }
 
-function openSajuLoveBibleBuilder() {
-  var token = '';
-  try { token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
-  if (!token) {
-    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
-      window.location.href = '/login?next=%2Fpremium%2Fsaju-love-bible';
-    }
-    return;
-  }
-  window.location.href = '/premium/saju-love-bible';
-}
-
 window.openSajuLifeBookBuilder = openSajuLifeBookBuilder;
-window.openSajuLoveBibleBuilder = openSajuLoveBibleBuilder;
 
 (function() {
   function onFsChange() {
