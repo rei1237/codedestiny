@@ -3,6 +3,7 @@ import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { LOVE_SECRET_MODE_CONFIG } from "../lib/saju-premium-chapters.js";
+import { buildLoveSecretReference } from "../lib/love-secret-reference.js";
 import { connectDb, mongoose } from "../lib/db.js";
 
 const LOVE_SECRET_SERVICE_KEY = "saju-love-secret";
@@ -285,7 +286,7 @@ function normalizeSajuBase(body = {}) {
     || parseBirthDate(profile?.birthDate)
     || parseBirthDateFromSajuData(sajuData);
 
-  return {
+  const normalizedBase = {
     user: {
       name: clean(base?.user?.name) || clean(profile?.name) || "사용자",
       gender: clean(base?.user?.gender) || clean(profile?.gender) || "",
@@ -327,6 +328,11 @@ function normalizeSajuBase(body = {}) {
     yongshin: base?.yongshin && typeof base.yongshin === "object" ? base.yongshin : undefined,
     specialStars: base?.specialStars && typeof base.specialStars === "object" ? base.specialStars : undefined,
     timing: base?.timing && typeof base.timing === "object" ? base.timing : undefined,
+  };
+
+  return {
+    ...normalizedBase,
+    loveSecretReference: buildLoveSecretReference(normalizedBase),
   };
 }
 
@@ -372,10 +378,37 @@ function localCategoryDraft(base, chapterTitle, sectionTitle, mode, chapterNo) {
   const hourNote = hasHour
     ? "시주 정보가 있어 친밀감 세부 반응까지 비교적 선명하게 판단했습니다."
     : "출생 시간이 없는 경우에는 시주 영역의 세부 판단을 보수적으로 해석하며, 일주와 월지를 중심으로 연애 성향을 판단합니다.";
+  const ref = base?.loveSecretReference && typeof base.loveSecretReference === "object" ? base.loveSecretReference : null;
+  const identity = ref?.identity || null;
+  const primaryRisk = Array.isArray(ref?.risks) && ref.risks.length ? ref.risks[0] : null;
+  const bestMonths = Array.isArray(ref?.monthlyWindows?.best) ? ref.monthlyWindows.best.slice(0, 2).map((row) => `${row.month} ${row.score}점`).join(", ") : "";
+  const cautionMonths = Array.isArray(ref?.monthlyWindows?.caution) ? ref.monthlyWindows.caution.slice(0, 2).map((row) => `${row.month} ${row.score}점`).join(", ") : "";
+
+  const profileLines = [];
+  if (identity) {
+    profileLines.push(`${identity.title} 성향 기준으로 보면 ${identity.instinct}`);
+    profileLines.push(`무의식의 핵심은 ${identity.unconscious}`);
+  }
+  if (chapterNo <= 3 && ref?.idealPartner) {
+    profileLines.push(`보완 인연은 용신 오행 ${ref.yongshinElementLabel} 계열로, ${ref.idealPartner.personality} 흐름과 잘 맞습니다.`);
+  }
+  if (chapterNo >= 4 && primaryRisk) {
+    profileLines.push(`현재 가장 먼저 관리해야 할 리스크는 ${primaryRisk.title}이며, ${primaryRisk.solution}`);
+  }
+  if (chapterNo >= 7 && ref?.marriageAgeLabel) {
+    profileLines.push(`장기 안정성은 ${ref.marriageAgeLabel} 구간에서 더 선명해지고, ${ref.strengthTip}`);
+  }
+  if (chapterNo >= 9 && bestMonths) {
+    profileLines.push(`실행 타이밍은 상위 구간 ${bestMonths}에 집중하고, 주의 구간 ${cautionMonths || "저점 달"}에는 결론보다 조율을 우선해야 합니다.`);
+  }
+  if (chapterNo === 10 && ref?.gaeun) {
+    profileLines.push(`개운 루틴은 ${ref.gaeun.livingColor}, ${ref.gaeun.perfume}, 확언 "${ref.gaeun.affirmation}"을 함께 쓰는 방식이 가장 안정적입니다.`);
+  }
 
   const text = [
     `${chapterTitle}의 ${sectionTitle}는 일간 ${dm}, 일지 ${db}, 월지 ${mb}를 중심 축으로 해석했습니다.`,
     `${strengthLabel} 구조와 주도 십성(${tenGod})의 결합은 감정 표현의 방식과 관계의 주도권 이동을 결정합니다. 특히 ${mode === "compatibility" ? "두 사람의" : "개인의"} 반복 패턴은 우세 오행(${dominantEl})이 과열될 때 강해지고, 결핍 오행(${deficientEl})을 보강할 때 안정됩니다.`,
+    ...profileLines,
     `${hourNote}`,
     `${chapterNo}장에서는 추상적 위로보다 실제 실행 규칙을 우선합니다. 대화 빈도, 감정 과열 구간, 결정 타이밍을 분리해 운영하면 관계 피로도를 낮추고 장기 안정성을 높일 수 있습니다.`,
   ].join("\n\n");
@@ -611,6 +644,18 @@ function buildApiError(code, message, status = 400, debugSafe = null) {
   }, { status });
 }
 
+function isLikelyDbUnavailableError(error) {
+  const msg = clean(error?.message || error).toLowerCase();
+  return msg.includes("database is temporarily unavailable")
+    || msg.includes("db is temporarily unavailable")
+    || msg.includes("mongodb")
+    || msg.includes("server selection")
+    || msg.includes("connect")
+    || msg.includes("timeout")
+    || msg.includes("econn")
+    || msg.includes("topology");
+}
+
 async function authorizeLoveSecret(request, env, body, mode) {
   let auth;
   try {
@@ -753,69 +798,95 @@ async function handlePrepareAsync(request, env, ctx) {
 
   const config = safeModeChapterConfig(mode);
   const totalChapters = Number(config.totalChapters || 0);
-  const coll = await getLoveSecretJobsCollection(env);
-  const now = new Date();
+  try {
+    const coll = await getLoveSecretJobsCollection(env);
+    const now = new Date();
 
-  const insertDoc = {
-    service: LOVE_SECRET_SERVICE_KEY,
-    featureKey: authz.featureKey,
-    userId: String(authz?.auth?.userId || ""),
-    reportId: clean(body?.reportId),
-    mode,
-    status: "pending",
-    stage: "pending",
-    message: "연애 비책 생성 요청을 접수했습니다.",
-    chapterCount: totalChapters,
-    completedChapters: 0,
-    requestBody: {
+    const insertDoc = {
+      service: LOVE_SECRET_SERVICE_KEY,
+      featureKey: authz.featureKey,
+      userId: String(authz?.auth?.userId || ""),
       reportId: clean(body?.reportId),
-      sessionId: clean(body?.sessionId || body?.reportSessionId),
-      reportSessionId: clean(body?.reportSessionId || body?.sessionId),
       mode,
-      reportMode: mode,
-      sajuData: clean(body?.sajuData),
-      sajuBase: base,
-      profile: body?.profile && typeof body.profile === "object" ? body.profile : {},
-      partnerData: body?.partnerData || "",
-    },
-    result: null,
-    errorMessage: "",
-    createdAt: now,
-    updatedAt: now,
-  };
-
-  const inserted = await coll.insertOne(insertDoc);
-  const jobId = String(inserted?.insertedId || "");
-
-  await coll.updateOne(
-    { _id: inserted.insertedId },
-    {
-      $set: {
-        status: "pending",
-        stage: "queued",
-        message: "백그라운드 생성 대기열에 등록되었습니다.",
-        updatedAt: new Date(),
+      status: "pending",
+      stage: "pending",
+      message: "연애 비책 생성 요청을 접수했습니다.",
+      chapterCount: totalChapters,
+      completedChapters: 0,
+      requestBody: {
+        reportId: clean(body?.reportId),
+        sessionId: clean(body?.sessionId || body?.reportSessionId),
+        reportSessionId: clean(body?.reportSessionId || body?.sessionId),
+        mode,
+        reportMode: mode,
+        sajuData: clean(body?.sajuData),
+        sajuBase: base,
+        profile: body?.profile && typeof body.profile === "object" ? body.profile : {},
+        partnerData: body?.partnerData || "",
       },
-    },
-  );
+      result: null,
+      errorMessage: "",
+      createdAt: now,
+      updatedAt: now,
+    };
 
-  const runTask = runLoveSecretJob(env, jobId).catch((error) => {
-    console.error("[love-secret][async-job-failed]", error?.message || error);
-  });
+    const inserted = await coll.insertOne(insertDoc);
+    const jobId = String(inserted?.insertedId || "");
 
-  if (ctx && typeof ctx.waitUntil === "function") {
-    ctx.waitUntil(runTask);
-  } else {
-    Promise.resolve(runTask).catch(() => {});
+    await coll.updateOne(
+      { _id: inserted.insertedId },
+      {
+        $set: {
+          status: "pending",
+          stage: "queued",
+          message: "백그라운드 생성 대기열에 등록되었습니다.",
+          updatedAt: new Date(),
+        },
+      },
+    );
+
+    const runTask = runLoveSecretJob(env, jobId).catch((error) => {
+      console.error("[love-secret][async-job-failed]", error?.message || error);
+    });
+
+    if (ctx && typeof ctx.waitUntil === "function") {
+      ctx.waitUntil(runTask);
+    } else {
+      Promise.resolve(runTask).catch(() => {});
+    }
+
+    return json({
+      ok: true,
+      accepted: true,
+      jobId,
+      status: "pending",
+      pollAfterMs: LOVE_SECRET_JOB_POLL_AFTER_MS,
+    }, { status: 202 });
+  } catch (error) {
+    if (!isLikelyDbUnavailableError(error)) throw error;
+    console.warn("[love-secret][async-job-db-fallback]", clean(error?.message || error) || error);
+
+    const { chapters, fallbackUsed, totalChapters: directChapterCount } = await buildLoveSecretChapters(env, {
+      base,
+      mode,
+      config,
+      maxConcurrency: 1,
+    });
+
+    return json({
+      ok: true,
+      accepted: false,
+      direct: true,
+      mode,
+      featureKey: authz.featureKey,
+      sessionId: clean(body?.sessionId || body?.reportSessionId) || "",
+      chapterCount: directChapterCount,
+      fallbackUsed,
+      pdfUrl: "",
+      chapters,
+      message: "대기열 저장소 문제로 직접 생성 모드로 전환되었습니다.",
+    }, { status: 200 });
   }
-
-  return json({
-    ok: true,
-    accepted: true,
-    jobId,
-    status: "pending",
-    pollAfterMs: LOVE_SECRET_JOB_POLL_AFTER_MS,
-  }, { status: 202 });
 }
 
 async function handleJobStatus(request, env) {
