@@ -1980,6 +1980,60 @@
       });
     }
 
+    function _isDbQueueFailure(msg, status, code) {
+      var text = String(msg || '').toLowerCase();
+      var safeCode = String(code || '').toLowerCase();
+      var sc = Number(status || 0);
+      if (safeCode === 'database_unavailable' || safeCode === 'internal_server_error') return true;
+      if (text.indexOf('database is temporarily unavailable') >= 0) return true;
+      if (text.indexOf('internal server error') >= 0) return true;
+      if (text.indexOf('db') >= 0 && text.indexOf('unavailable') >= 0) return true;
+      return sc >= 500;
+    }
+
+    function _finalizeGenerationSuccess() {
+      _generating = false;
+      _setLoveBookGenerationState('completed');
+      _stopLoadingAnimation();
+      _showScreen('lsResultScreen');
+      _renderTocButtons(totalChapters);
+      _updateTocState(1);
+      _renderChapter(1);
+      _bindToc();
+      _ensureLoveSecretPartialRegenerateControl();
+      var profile = window.__cdActiveBirthProfile || {};
+      _saveResult(profile);
+      _renderResultHeader(profile.name, profile.birth, profile.gender, new Date(), true);
+    }
+
+    async function _runDirectChapterGeneration(reason) {
+      _logLoveSecretFlow('ASYNC_TO_DIRECT_FALLBACK', {
+        mode: _currentChapterMode,
+        reportId: _lsReportId,
+        reason: String(reason || ''),
+      });
+      if (chapterMsg) {
+        chapterMsg.textContent = '서버 대기열 상태가 불안정하여 직접 챕터 생성으로 전환합니다...';
+      }
+      _setLoveBookGenerationState('writing_with_llm');
+
+      for (var i = 0; i < totalChapters; i++) {
+        if (_cancelGeneration) {
+          throw new Error('사용자가 생성을 중단했습니다.');
+        }
+        var data = await _fetchChapter(i);
+        if (!data || !data.ok) {
+          throw new Error((data && data.message) || ('Chapter ' + (i + 1) + ' 생성 실패'));
+        }
+        _syncChapterMetaFromResponse(i, data);
+        _chapters[i] = String(data.text || '').trim();
+        _chapterStructured[i] = (Array.isArray(data.sections) && data.sections.length)
+          ? { sections: data.sections }
+          : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
+        _setProgress(i + 1);
+      }
+    }
+
     (async function runLoveSecretAsyncPollingFlow() {
       var _lsPremiumToken = _lsReadPremiumAccessToken();
       var submitHeaders = { 'Content-Type': 'application/json' };
@@ -2019,26 +2073,41 @@
       });
 
       var submitBody = await submitRes.json().catch(function () { return {}; });
+      if (submitRes.ok && submitBody && submitBody.ok && Array.isArray(submitBody.chapters) && !submitBody.jobId) {
+        _applyCompletedResult(submitBody);
+        if (_cancelGeneration) return;
+        _finalizeGenerationSuccess();
+        return;
+      }
       if (!submitRes.ok || !submitBody || !submitBody.ok || !submitBody.jobId) {
-        throw new Error((submitBody && submitBody.message) || ('HTTP ' + submitRes.status));
+        var submitMsg = (submitBody && submitBody.message) || ('HTTP ' + submitRes.status);
+        if (_isDbQueueFailure(submitMsg, submitRes.status, submitBody && submitBody.code)) {
+          await _runDirectChapterGeneration(submitMsg);
+          if (_cancelGeneration) return;
+          _finalizeGenerationSuccess();
+          return;
+        }
+        throw new Error(submitMsg);
       }
 
       _setLoveBookGenerationState('writing_with_llm');
-      var result = await _startStatusPolling(submitBody.jobId, submitBody.pollAfterMs);
+      var result;
+      try {
+        result = await _startStatusPolling(submitBody.jobId, submitBody.pollAfterMs);
+      } catch (pollError) {
+        var pollMsg = String(pollError && pollError.message ? pollError.message : pollError || 'polling_error');
+        if (_isDbQueueFailure(pollMsg, 500, '')) {
+          await _runDirectChapterGeneration(pollMsg);
+          if (_cancelGeneration) return;
+          _finalizeGenerationSuccess();
+          return;
+        }
+        throw pollError;
+      }
       if (_cancelGeneration) return;
 
       _applyCompletedResult(result);
-      _generating = false;
-      _stopLoadingAnimation();
-      _showScreen('lsResultScreen');
-      _renderTocButtons(totalChapters);
-      _updateTocState(1);
-      _renderChapter(1);
-      _bindToc();
-      _ensureLoveSecretPartialRegenerateControl();
-      var profile = window.__cdActiveBirthProfile || {};
-      _saveResult(profile);
-      _renderResultHeader(profile.name, profile.birth, profile.gender, new Date(), true);
+      _finalizeGenerationSuccess();
     })().catch(function (error) {
       _generating = false;
       _stopLoadingAnimation();
