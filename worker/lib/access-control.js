@@ -6,7 +6,6 @@ import { verifyPremiumAccessToken } from "./premium-access-token.js";
 export const PREMIUM_UNLOCK_POLICY = Object.freeze({
   sajuNewYear: ["premiumDivinationPack"],
   lifeBook: ["premiumDivinationPack"],
-  sajuLifeBook: ["saju_lifebook_pdf", "premiumDivinationPack"],
   loveSecret: ["premium-love-secret", "premiumDivinationPack", "premium-naming"],
   ziweiPremium: ["premium-ziwei", "premiumDivinationPack"],
   westernAstrologyPremium: ["premium-astrology", "premiumDivinationPack"],
@@ -40,7 +39,140 @@ function logPremiumAccessDecision(payload = {}) {
   console.info("[PremiumAccessDecision]", safe);
 }
 
+function hasCompatibilityPartnerInputs(requestBody = {}) {
+  const partnerYear = Number(requestBody?.partnerYear);
+  const partnerMonth = Number(requestBody?.partnerMonth);
+  const partnerDay = Number(requestBody?.partnerDay);
+  const partnerBirthDate = String(requestBody?.partnerBirthDate || requestBody?.partnerDob || "").trim();
+  const partner = requestBody && typeof requestBody.partner === "object" ? requestBody.partner : {};
+
+  const nestedPartnerYear = Number(partner?.year);
+  const nestedPartnerMonth = Number(partner?.month);
+  const nestedPartnerDay = Number(partner?.day);
+  const nestedPartnerBirthDate = String(partner?.birthDate || "").trim();
+
+  const hasFlatPartnerDate = Number.isFinite(partnerYear) && Number.isFinite(partnerMonth) && Number.isFinite(partnerDay);
+  const hasNestedPartnerDate = Number.isFinite(nestedPartnerYear) && Number.isFinite(nestedPartnerMonth) && Number.isFinite(nestedPartnerDay);
+
+  return hasFlatPartnerDate
+    || hasNestedPartnerDate
+    || Boolean(partnerBirthDate)
+    || Boolean(nestedPartnerBirthDate)
+    || requestBody?.compatibility === true;
+}
+
+function normalizeModeToken(requestBody = {}) {
+  const mode = String(requestBody?.mode || requestBody?.reportMode || "").trim().toLowerCase();
+  const reportMode = String(requestBody?.reportType || "").trim().toLowerCase();
+  const token = `${mode} ${reportMode}`.trim();
+  if (token.includes("compat") || token.includes("couple")) return token;
+  if (hasCompatibilityPartnerInputs(requestBody)) return `${token} compatibility`.trim();
+  return token;
+}
+
 export function buildAlternativePaymentRules(reportType, requestBody = {}) {
+  if (reportType === "sajuNewYear") {
+    return [
+      {
+        featureKey: "saju_new_year_pdf",
+        reason: "사주 신년운세 PDF 리포트 생성",
+        minCost: 300,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: "사주 신년운세 PDF 리포트 생성",
+        minCost: 300,
+        windowMinutes: 120,
+      },
+    ];
+  }
+
+  if (reportType === "lifeBook") {
+    return [
+      {
+        featureKey: "saju_life_book_pdf",
+        reason: "인생의 책 생성 (13챕터)",
+        minCost: 500,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "premium_pdf_saju_life_book",
+        reason: "인생의 책 생성 (13챕터)",
+        minCost: 500,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "premium-lifebook-report",
+        reason: "인생의 책 생성 (13챕터)",
+        minCost: 500,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: "인생의 책 생성 (13챕터)",
+        minCost: 500,
+        windowMinutes: 120,
+      },
+    ];
+  }
+
+  if (reportType === "loveSecret") {
+    const modeToken = normalizeModeToken(requestBody);
+    const isCouple = modeToken.includes("couple") || modeToken.includes("compat");
+    return [
+      {
+        featureKey: "saju_love_book_pdf",
+        reason: isCouple ? "사주 프리미엄 궁합 리포트 생성" : "사주 프리미엄 연애운 리포트 생성",
+        minCost: isCouple ? 400 : 300,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: isCouple ? "premium_pdf_saju_love_secret_compat" : "premium_pdf_saju_love_secret",
+        reason: isCouple ? "사주 프리미엄 궁합 리포트 생성" : "사주 프리미엄 연애운 리포트 생성",
+        minCost: isCouple ? 400 : 300,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: isCouple ? "premium-love-secret-couple" : "premium-love-secret-solo",
+        reason: isCouple ? "사주 프리미엄 궁합 리포트 생성" : "사주 프리미엄 연애운 리포트 생성",
+        minCost: isCouple ? 400 : 300,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: isCouple ? "사주 프리미엄 궁합 리포트 생성" : "사주 프리미엄 연애운 리포트 생성",
+        minCost: isCouple ? 400 : 300,
+        windowMinutes: 120,
+      },
+    ];
+  }
+
+  if (reportType === "ziweiPremium") {
+    const modeToken = normalizeModeToken(requestBody);
+    const isCompat = modeToken.includes("compat");
+    return [
+      {
+        featureKey: isCompat ? "premium_pdf_ziwei_compat" : "premium_pdf_ziwei",
+        reason: isCompat ? "자미두수 프리미엄 PDF 궁합 리포트 생성" : "자미두수 프리미엄 PDF 리포트 생성",
+        minCost: isCompat ? 690 : 590,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: isCompat ? "premium-ziwei-report-compat" : "premium-ziwei-report",
+        reason: isCompat ? "자미두수 프리미엄 PDF 궁합 리포트 생성" : "자미두수 프리미엄 PDF 리포트 생성",
+        minCost: isCompat ? 690 : 590,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: isCompat ? "자미두수 프리미엄 PDF 궁합 리포트 생성" : "자미두수 프리미엄 PDF 리포트 생성",
+        minCost: isCompat ? 690 : 590,
+        windowMinutes: 120,
+      },
+    ];
+  }
+
   if (reportType === "sibylDominator") {
     return [{
       featureKey: "premium-sibyl-dominator",
@@ -48,6 +180,115 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
       minCost: 100,
       windowMinutes: 45,
     }];
+  }
+
+  if (reportType === "westernAstrologyPremium") {
+    const modeToken = normalizeModeToken(requestBody);
+    const isCompat = modeToken.includes("compat");
+    return [
+      {
+        featureKey: isCompat ? "premium_pdf_western_astrology_compat" : "premium_pdf_western_astrology",
+        reason: isCompat ? "점성술 프리미엄 PDF 궁합 리포트 생성" : "점성술 프리미엄 PDF 리포트 생성",
+        minCost: isCompat ? 490 : 390,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: isCompat ? "premium-astrology-report-compat" : "premium-astrology-report",
+        reason: isCompat ? "점성술 프리미엄 PDF 궁합 리포트 생성" : "점성술 프리미엄 PDF 리포트 생성",
+        minCost: isCompat ? 490 : 390,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: isCompat ? "점성술 프리미엄 PDF 궁합 리포트 생성" : "점성술 프리미엄 PDF 리포트 생성",
+        minCost: isCompat ? 490 : 390,
+        windowMinutes: 120,
+      },
+    ];
+  }
+
+  if (reportType === "sookyoPremium") {
+    const modeToken = normalizeModeToken(requestBody);
+    const isCompat = modeToken.includes("compat");
+    const baseRules = [
+      {
+        featureKey: "premium-sukuyo",
+        reason: "숙요점 인생 총람 생성",
+        minCost: 390,
+        windowMinutes: 240,
+      },
+      {
+        featureKey: "premium_pdf_sukyo",
+        reason: "숙요점 프리미엄 PDF 리포트 생성",
+        minCost: 390,
+        windowMinutes: 240,
+      },
+      {
+        featureKey: "premium-sukuyo-report",
+        reason: "숙요점 프리미엄 PDF 리포트 생성",
+        minCost: 390,
+        windowMinutes: 240,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: "숙요점 프리미엄 PDF 리포트 생성",
+        minCost: 390,
+        windowMinutes: 240,
+      },
+    ];
+
+    if (!isCompat) return baseRules;
+
+    return [
+      ...baseRules,
+      {
+        featureKey: "premium-sukuyo-compat-extra",
+        reason: "숙요점 궁합 확장 분석 추가",
+        minCost: 300,
+        windowMinutes: 240,
+      },
+      {
+        featureKey: "premium_pdf_sukyo_compat",
+        reason: "숙요점 프리미엄 PDF 궁합 리포트 생성",
+        minCost: 490,
+        windowMinutes: 240,
+      },
+      {
+        featureKey: "premium-sukuyo-report-compat",
+        reason: "숙요점 프리미엄 PDF 궁합 리포트 생성",
+        minCost: 490,
+        windowMinutes: 240,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: "숙요점 프리미엄 PDF 궁합 리포트 생성",
+        minCost: 490,
+        windowMinutes: 240,
+      },
+    ];
+  }
+
+  if (reportType === "vedicPremium") {
+    return [
+      {
+        featureKey: "premium_pdf_vedic",
+        reason: "베다 점성술 프리미엄 PDF 리포트 생성",
+        minCost: 390,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "premium-vedic-report",
+        reason: "베다 점성술 프리미엄 PDF 리포트 생성",
+        minCost: 390,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: "베다 점성술 프리미엄 PDF 리포트 생성",
+        minCost: 390,
+        windowMinutes: 120,
+      },
+    ];
   }
 
   if (reportType === "fptiPremium") {
@@ -63,17 +304,6 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
         reason: "FPTI 프리미엄 리포트 생성",
         minCost: 200,
         windowMinutes: 45,
-      },
-    ];
-  }
-
-  if (reportType === "sajuLifeBook") {
-    return [
-      {
-        featureKey: "saju_lifebook_pdf",
-        reason: "사주 인생의 책 PDF 생성",
-        minCost: 500,
-        windowMinutes: 90,
       },
     ];
   }
@@ -359,7 +589,54 @@ function premiumTokenMatchesCurrentAccessRules(tokenPayload = {}, alternativeRul
 }
 
 async function findLoveSecretBasePlusCompatibilityEvidence(userId, requestBody = {}) {
-  return null;
+  const modeToken = normalizeModeToken(requestBody);
+  const isCouple = modeToken.includes("couple") || modeToken.includes("compat");
+  if (!isCouple) return null;
+
+  const baseRules = [
+    {
+      featureKey: "saju_love_book_pdf",
+      reason: "사주 프리미엄 연애운 리포트 생성",
+      minCost: 300,
+      windowMinutes: 120,
+    },
+    {
+      featureKey: "premium_pdf_saju_love_secret",
+      reason: "사주 프리미엄 연애운 리포트 생성",
+      minCost: 300,
+      windowMinutes: 120,
+    },
+    {
+      featureKey: "premium-love-secret-solo",
+      reason: "사주 프리미엄 연애운 리포트 생성",
+      minCost: 300,
+      windowMinutes: 120,
+    },
+  ];
+  const addonRules = [
+    {
+      featureKey: "coin-gate-per-use",
+      reason: "연애 비책 궁합 분석",
+      minCost: 100,
+      windowMinutes: 120,
+    },
+  ];
+
+  let baseEvidence = null;
+  for (let i = 0; i < baseRules.length; i += 1) {
+    baseEvidence = await findRecentDeductionEvidence(userId, baseRules[i]);
+    if (baseEvidence) break;
+  }
+  if (!baseEvidence) return null;
+
+  let addonEvidence = null;
+  for (let i = 0; i < addonRules.length; i += 1) {
+    addonEvidence = await findRecentDeductionEvidence(userId, addonRules[i]);
+    if (addonEvidence) break;
+  }
+  if (!addonEvidence) return null;
+
+  return { baseEvidence, addonEvidence };
 }
 
 async function findEvidenceByPaymentTokens(userId, requestBody = {}, rules = []) {
@@ -527,7 +804,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     if (normalizedReportType !== "sajuNewYear") return;
     console.info("[SajuNewYearAPI] access resolved", {
       ok: Boolean(result?.ok),
-      expectedFeatureKey: "removed",
+      expectedFeatureKey: "saju_new_year_pdf",
       receivedFeatureKey,
       hasSessionId: Boolean(String(accessBinding.sessionId || "").trim()),
       hasPurchaseId: Boolean(String(accessBinding.purchaseId || "").trim()),
@@ -548,7 +825,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
   ).trim();
 
   if (normalizedReportType === "sajuNewYear") {
-    const expectedFeatureKey = String((requiredRules[0] && requiredRules[0].featureKey) || (alternativeRules[0] && alternativeRules[0].featureKey) || "removed");
+    const expectedFeatureKey = String((requiredRules[0] && requiredRules[0].featureKey) || (alternativeRules[0] && alternativeRules[0].featureKey) || "saju_new_year_pdf");
     const receivedFeatureKey = String(requestBody?.featureKey || payment?.featureKey || consume?.featureKey || requestBody?.subFeatureKey || "");
     console.info("[SajuNewYear][Payment] CHECK_START", {
       expectedFeatureKey,

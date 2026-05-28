@@ -22,7 +22,7 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CF_PAGES_PROJECT_NAME: ${{ vars.CF_PAGES_PROJECT_NAME }}
       CF_PAGES_BRANCH: main
-      CF_PAGES_FORCE_DIRECT_DEPLOY: '1'
+      CF_PAGES_FORCE_DIRECT_DEPLOY: '0'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -72,5 +72,12 @@ jobs:
           NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH: ${{ vars.NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH || secrets.NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH }}
         run: npm run secrets:cf:pages -- --skip-empty
 
-      - name: Deploy Cloudflare Pages
+      - name: Deploy Cloudflare Pages (manual override only)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          CF_PAGES_FORCE_DIRECT_DEPLOY: '1'
         run: npm run deploy:cf:pages
+
+      - name: Skip direct deploy on push
+        if: github.event_name != 'workflow_dispatch'
+        run: echo "[deploy-pages] Direct deploy skipped on push. Cloudflare Git integration handles single deployment."

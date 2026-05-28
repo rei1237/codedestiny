@@ -5,6 +5,17 @@ import { handleTarotRoutes } from "./routes/tarot.js";
 import { handleCelestialHarmonyRoutes } from "./routes/celestial-harmony.js";
 import { handleYoutubeRoutes } from "./routes/youtube.js";
 import { handlePaymentRoutes } from "./routes/payments.js";
+import {
+  handleAstroPremiumRoutes,
+  handleLifebookRoutes,
+  handleLoveSecretRoutes,
+  handlePremiumReportRoutes,
+  handlePremiumRoutes,
+  handleSukuyoPremiumRoutes,
+  handleVedicPremiumRoutes,
+  handleZiweiRoutes,
+  handleZiweiBookRoutes,
+} from "./routes/premium.js";
 import { handleDreamRoutes } from "./routes/dream.js";
 import { handleDebugRoutes } from "./routes/debug.js";
 import { handleYogaGuruRoutes } from "./routes/yoga-guru.js";
@@ -21,7 +32,6 @@ import { handlePalmRoutes } from "./routes/palm.js";
 import { handleDestinyBiasRoutes } from "./routes/destiny-bias.js";
 import { handleBillingRoutes } from "./routes/billing.js";
 import { handleFptiRoutes } from "./routes/fpti.js";
-import { handleSajuLifebookRoutes } from "./routes/saju-lifebook.js";
 import { buildRuntimeKeyMatrix } from "./lib/key-health.js";
 import { getEnv } from "./lib/env.js";
 
@@ -558,10 +568,6 @@ export default {
         return withCorsHeaders(request, env, await handleFptiRoutes(request, env));
       }
 
-      if (url.pathname === "/api/premium/saju-lifebook" || url.pathname.startsWith("/api/premium/saju-lifebook/")) {
-        return withCorsHeaders(request, env, await handleSajuLifebookRoutes(request, env));
-      }
-
       if (url.pathname === "/api/subscription/status") {
         const rewrittenRequest = rewriteRequestPath(request, "/api/fortune/pig-coin/profile-subscription/status");
         return withCorsHeaders(request, env, await handleFortuneRoutes(rewrittenRequest, env));
@@ -586,27 +592,45 @@ export default {
         return withCorsHeaders(request, env, await handleYoutubeRoutes(request, env));
       }
 
-      if (
-        url.pathname === "/api/premium"
-        || url.pathname.startsWith("/api/premium/")
-        || url.pathname === "/api/premium-report"
-        || url.pathname.startsWith("/api/premium-report/")
-        || url.pathname === "/api/ziwei-book"
-        || url.pathname.startsWith("/api/ziwei-book/")
-        || url.pathname === "/api/lifebook"
-        || url.pathname.startsWith("/api/lifebook/")
-        || url.pathname === "/api/love-secret"
-        || url.pathname.startsWith("/api/love-secret/")
-      ) {
-        return jsonResponse(request, env, {
-          ok: false,
-          error: "removed_feature",
-          message: "Removed premium report endpoints are no longer available.",
-        }, { status: 410 });
-      }
-
       if (url.pathname === "/api/celestial-harmony" || url.pathname.startsWith("/api/celestial-harmony/")) {
         return withCorsHeaders(request, env, await handleCelestialHarmonyRoutes(request, env));
+      }
+
+      if (
+        (url.pathname === "/api/premium" || url.pathname.startsWith("/api/premium/"))
+        && !(url.pathname === "/api/premium/saju/life-book" || url.pathname.startsWith("/api/premium/saju/life-book/"))
+      ) {
+        return withCorsHeaders(request, env, await handlePremiumRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/premium-report" || url.pathname.startsWith("/api/premium-report/")) {
+        return withCorsHeaders(request, env, await handlePremiumReportRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/ziwei-book" || url.pathname.startsWith("/api/ziwei-book/")) {
+        return withCorsHeaders(request, env, await handleZiweiBookRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/ziwei" || url.pathname.startsWith("/api/ziwei/")) {
+        return withCorsHeaders(request, env, await handleZiweiRoutes(request, env));
+      }
+
+      if (
+        url.pathname === "/api/lifebook"
+        || url.pathname.startsWith("/api/lifebook/")
+        || url.pathname === "/api/premium/saju/life-book"
+        || url.pathname.startsWith("/api/premium/saju/life-book/")
+      ) {
+        let routedRequest = request;
+        if (url.pathname === "/api/premium/saju/life-book" || url.pathname.startsWith("/api/premium/saju/life-book/")) {
+          const suffix = url.pathname.slice("/api/premium/saju/life-book".length);
+          routedRequest = rewriteRequestPath(request, "/api/lifebook" + (suffix || ""));
+        }
+        return withCorsHeaders(request, env, await handleLifebookRoutes(routedRequest, env));
+      }
+
+      if (url.pathname === "/api/love-secret" || url.pathname.startsWith("/api/love-secret/")) {
+        return withCorsHeaders(request, env, await handleLoveSecretRoutes(request, env));
       }
 
       if (url.pathname === "/api/dream" || url.pathname.startsWith("/api/dream/")) {
@@ -633,19 +657,23 @@ export default {
         url.pathname === "/api/astro/generate-chapter"
         || url.pathname === "/api/astro/session"
         || url.pathname === "/api/astro/generate"
-        || url.pathname === "/api/vedic/generate-chapter"
+      ) {
+        return withCorsHeaders(request, env, await handleAstroPremiumRoutes(request, env));
+      }
+
+      if (
+        url.pathname === "/api/vedic/generate-chapter"
         || url.pathname === "/api/vedic/session"
         || url.pathname === "/api/vedic/generate"
-        || url.pathname === "/api/sukuyo"
-        || url.pathname.startsWith("/api/sukuyo/")
-        || url.pathname === "/api/ziwei"
-        || url.pathname.startsWith("/api/ziwei/")
       ) {
-        return jsonResponse(request, env, {
-          ok: false,
-          error: "removed_feature",
-          message: "Removed premium report endpoints are no longer available.",
-        }, { status: 410 });
+        return withCorsHeaders(request, env, await handleVedicPremiumRoutes(request, env));
+      }
+
+      if (
+        url.pathname === "/api/sukuyo"
+        || url.pathname.startsWith("/api/sukuyo/")
+      ) {
+        return withCorsHeaders(request, env, await handleSukuyoPremiumRoutes(request, env));
       }
 
       if (url.pathname === "/api/astro" || url.pathname.startsWith("/api/astro/")) {

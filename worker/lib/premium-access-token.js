@@ -28,10 +28,27 @@ export function resolvePremiumAccessReportType(featureKey = "", reason = "") {
   const why = String(reason || "").trim().toLowerCase();
 
   const reportTypeByFeatureKey = {
+    "saju_life_book_pdf": "lifeBook",
+    "saju_love_book_pdf": "loveSecret",
+    "premium-lifebook-report": "lifeBook",
+    "premium-love-secret-solo": "loveSecret",
+    "premium-love-secret-couple": "loveSecret",
+    "saju_new_year_pdf": "sajuNewYear",
+    "premium-ziwei-report": "ziweiPremium",
+    "premium-ziwei-report-compat": "ziweiPremium",
+    "premium-astrology-report": "westernAstrologyPremium",
+    "premium-astrology-report-compat": "westernAstrologyPremium",
+    "premium-sukuyo-report": "sookyoPremium",
+    "premium-sukuyo-report-compat": "sookyoPremium",
+    "premium-vedic-report": "vedicPremium",
   };
 
   if (reportTypeByFeatureKey[canonicalKey]) {
     return reportTypeByFeatureKey[canonicalKey];
+  }
+
+  if (key === "premium-saju-newyear-report" || why.includes("신년운세")) {
+    return "sajuNewYear";
   }
 
   return "";
