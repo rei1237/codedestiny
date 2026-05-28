@@ -37,6 +37,8 @@ export const NEW_YEAR_CHAPTERS = Object.freeze([
   { no: 10, title: "Chapter 10. 최종 신년 전략 — 올해를 내 편으로 만드는 법", categories: ["올해의 우선순위", "상반기와 하반기 전략", "운을 키우는 행동 습관", "마지막 종합 조언"] },
 ]);
 
+const MIN_CATEGORY_TEXT_LENGTH = 180;
+
 function clean(value) {
   return String(value || "").trim();
 }
@@ -215,6 +217,25 @@ function buildInterpretationSeeds(seed) {
   };
 }
 
+function buildCategoryEvidence(seed, chapter, category, idx) {
+  const annual = seed?.saju?.annualLuck || {};
+  const pillars = seed?.saju?.pillars || {};
+  const monthly = Array.isArray(seed?.saju?.monthlyLuck) ? seed.saju.monthlyLuck : [];
+  const sliceStart = chapter.no === 8 ? idx * 3 : idx;
+  const focusMonths = monthly.slice(sliceStart, sliceStart + (chapter.no === 8 ? 3 : 2));
+  const monthlyLine = focusMonths
+    .map((item) => `${item.month}월(${item.pillar?.label || "미상"}, ${item.score}점/${item.tone})`)
+    .join(", ");
+  const relationRows = Array.isArray(seed?.saju?.relations?.branchRelations) ? seed.saju.relations.branchRelations : [];
+  const relationLine = relationRows.slice(0, 2).map((row) => `${row.label}-${row.type}`).join(", ") || "합충 신호 약함";
+  return [
+    `핵심 근거: 세운 ${annual.label || "미상"}(${annual.elementKo || "토"}), 일간 기준 십성 ${annual.tenGod || "미정"}, 오행 관계 ${annual.dayMasterRelation || "중립"}.`,
+    `원국 기준: 일간 ${seed?.saju?.dayMaster || "미상"}, 연/월/일/시 지지 ${pillars.year?.branch || "-"}/${pillars.month?.branch || "-"}/${pillars.day?.branch || "-"}/${pillars.hour?.branch || "-"}, 관계 신호 ${relationLine}.`,
+    monthlyLine ? `월별 포인트: ${monthlyLine}.` : "월별 포인트: 월운 데이터 기준으로 보수/확장 리듬을 분리 운영합니다.",
+    `${category} 판단은 단일 사건 예언이 아니라 위 근거를 실행 우선순위와 리스크 관리 규칙으로 변환해 읽습니다.`,
+  ].join(" ");
+}
+
 function buildPdfSeed(profile, targetYear, body = {}) {
   const computed = normalizeEngineSaju(profile, body);
   const annual = sexagenaryYear(targetYear);
@@ -293,13 +314,14 @@ function localParagraph(seed, chapter, category, idx) {
   const annual = seed.saju.annualLuck;
   const line = seedLine(seed, category, idx);
   const relationText = (seed.saju.relations.branchRelations || []).slice(0, 2).map((item) => item.message).join(" ") || "원국과 세운의 관계는 급격한 단정이 아니라 월별 흐름을 보며 조율하는 방식으로 읽습니다.";
+  const evidence = buildCategoryEvidence(seed, chapter, category, idx);
   if (chapter.no === 8) {
     const start = idx * 3;
     const months = seed.saju.monthlyLuck.slice(start, start + 3);
     const monthly = months.map((item) => `${item.month}월은 ${item.pillar.label} 흐름으로 ${item.tone} 운영이 알맞고, 점수 ${item.score} 기준에서는 ${item.advice}`).join(" ");
-    return `${monthly}\n\n이 구간은 ${annual.label} 세운의 ${annual.elementKo} 기운이 실제 일정 속에서 드러나는 시기입니다. 높은 점수의 달에는 약속과 제안을 넓히고, 낮은 점수의 달에는 문서와 지출, 감정적 결정을 한 번 더 확인하는 방식이 안전합니다.`;
+    return `${monthly}\n\n${evidence}\n\n이 구간은 ${annual.label} 세운의 ${annual.elementKo} 기운이 실제 일정 속에서 드러나는 시기입니다. 높은 점수의 달에는 약속과 제안을 넓히고, 낮은 점수의 달에는 문서와 지출, 감정적 결정을 한 번 더 확인하는 방식이 안전합니다. 특히 점수 하락 구간에서는 계약 조항, 현금흐름, 관계 메시지의 오해 가능성을 체크리스트로 선제 관리하면 손실을 줄일 수 있습니다.`;
   }
-  return `${line} ${category}에서는 ${annual.label} 세운의 ${annual.tenGod} 성격을 현실 선택으로 바꾸는 것이 중요합니다. 현재 계산된 사주와 세운에서 확인되는 범위에서는 강하게 밀어붙이는 결정과 천천히 다듬어야 할 결정을 구분할수록 결과가 안정됩니다.\n\n${relationText} 따라서 올해는 운을 기다리기보다 일정, 관계, 돈의 기준선을 미리 정해두는 편이 좋습니다. 작은 신호를 기록하고 반복되는 상황을 조정하면 ${seed.targetYear}년의 흐름을 내 쪽으로 끌어올 수 있습니다.`;
+  return `${line} ${category}에서는 ${annual.label} 세운의 ${annual.tenGod} 성격을 현실 선택으로 바꾸는 것이 중요합니다. 현재 계산된 사주와 세운에서 확인되는 범위에서는 강하게 밀어붙이는 결정과 천천히 다듬어야 할 결정을 구분할수록 결과가 안정됩니다.\n\n${evidence}\n\n${relationText} 따라서 올해는 운을 기다리기보다 일정, 관계, 돈의 기준선을 미리 정해두는 편이 좋습니다. 작은 신호를 기록하고 반복되는 상황을 조정하면 ${seed.targetYear}년의 흐름을 내 쪽으로 끌어올 수 있습니다. 실행 단위는 월간 목표 1개, 주간 점검 1회, 위험 신호 발생 시 즉시 축소/보완의 3단계로 운영하는 것을 권합니다.`;
 }
 
 function buildLocalSkeleton(seed) {
@@ -367,11 +389,13 @@ function buildChapterPrompt(seed, chapter) {
     chapter: { title: chapter.title, categories: chapter.categories.map((item) => item.title) },
   };
   return [
-    "당신은 사주명리학과 신년운세 상담에 능한 전문 상담가입니다.",
+    "당신은 사주명리학과 신년운세 상담에 능한 최고 수준의 전문 상담가입니다.",
     "제공된 사주 원국, 대운, 세운, 월별 흐름 데이터와 챕터 뼈대만 근거로 사용하세요.",
     "사주 계산을 새로 하거나 JSON에 없는 신살, 격국, 용신, 월운을 임의로 만들지 마세요.",
     "챕터 제목과 세부 카테고리 제목은 변경하지 마세요.",
-    "각 세부 카테고리는 사용자가 읽는 완성형 상담문으로 2문단 이상 작성하세요.",
+    "각 세부 카테고리는 사용자가 읽는 완성형 상담문으로 최소 3문단, 220자 이상 작성하세요.",
+    "각 카테고리 본문에는 최소 2개의 실제 근거(세운 천간/지지, 십성, 오행 관계, 월별 점수)를 명시하세요.",
+    "문단 구성은 1) 근거 해석 2) 리스크/기회 판별 3) 실행 전략 순서로 유지하세요.",
     "예언 단정 대신 선택과 전략, 실전 조언 중심으로 쓰세요.",
     "본문에 payload, engine, debug, raw JSON, fallback 같은 내부 표현을 쓰지 마세요.",
     "반드시 JSON만 반환하세요. 형식: {\"sections\":[{\"title\":\"세부 카테고리\",\"body\":\"상담문\"}]}",
@@ -430,7 +454,13 @@ function validateChapters(chapters) {
     const chapter = chapters[idx];
     if (!chapter || chapter.title !== blueprint.title) return false;
     if (!Array.isArray(chapter.categories) || chapter.categories.length !== blueprint.categories.length) return false;
-    return blueprint.categories.every((category, catIdx) => chapter.categories[catIdx]?.title === category && clean(chapter.categories[catIdx]?.finalText).length >= 60);
+    return blueprint.categories.every((category, catIdx) => {
+      const text = clean(chapter.categories[catIdx]?.finalText);
+      if (chapter.categories[catIdx]?.title !== category) return false;
+      if (text.length < MIN_CATEGORY_TEXT_LENGTH) return false;
+      const paragraphCount = text.split(/\n\s*\n/).filter(Boolean).length;
+      return paragraphCount >= 2;
+    });
   });
 }
 

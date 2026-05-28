@@ -2485,7 +2485,8 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .lb-result__content,
 #vedicBookModal .lb-result__content,
 #sukuyoBookModal .lb-result__content,
-#lifeBookModal .lb-result__content {
+#lifeBookModal .lb-result__content,
+#sajuNewYearModal .lb-result__content {
   color: #edf3ff;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.22);
 }
@@ -2494,7 +2495,8 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .zb-chapter-num,
 #vedicBookModal .zb-chapter-num,
 #sukuyoBookModal .zb-chapter-num,
-#lifeBookModal .lb-chapter-num {
+#lifeBookModal .lb-chapter-num,
+#sajuNewYearModal .lb-chapter-num {
   color: #fcd34d !important;
 }
 
@@ -2502,7 +2504,8 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .zb-chapter-title,
 #vedicBookModal .zb-chapter-title,
 #sukuyoBookModal .zb-chapter-title,
-#lifeBookModal .lb-chapter-title {
+#lifeBookModal .lb-chapter-title,
+#sajuNewYearModal .lb-chapter-title {
   color: #f8fbff !important;
 }
 
@@ -2510,7 +2513,8 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .zb-chapter-sub,
 #vedicBookModal .zb-chapter-sub,
 #sukuyoBookModal .zb-chapter-sub,
-#lifeBookModal .lb-chapter-sub {
+#lifeBookModal .lb-chapter-sub,
+#sajuNewYearModal .lb-chapter-sub {
   color: #dbeafe !important;
 }
 
@@ -2518,7 +2522,8 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .zb-chapter-body,
 #vedicBookModal .zb-chapter-body,
 #sukuyoBookModal .zb-chapter-body,
-#lifeBookModal .lb-chapter-body {
+#lifeBookModal .lb-chapter-body,
+#sajuNewYearModal .lb-chapter-body {
   color: #e9f1ff !important;
   line-height: 1.92;
   font-size: 0.98rem;
@@ -2533,7 +2538,9 @@ body.theme-pig .lb-ch-dot--pending {
 #sukuyoBookModal .zb-md-h1,
 #sukuyoBookModal .zb-md-h2,
 #lifeBookModal .lb-md-h1,
-#lifeBookModal .lb-md-h2 {
+#lifeBookModal .lb-md-h2,
+#sajuNewYearModal .lb-md-h1,
+#sajuNewYearModal .lb-md-h2 {
   color: #f8fbff !important;
   background: rgba(59, 130, 246, 0.12) !important;
   border-left-color: rgba(191, 219, 254, 0.9) !important;
@@ -2548,7 +2555,9 @@ body.theme-pig .lb-ch-dot--pending {
 #sukuyoBookModal .zb-md-h3,
 #sukuyoBookModal .zb-md-h4,
 #lifeBookModal .lb-md-h3,
-#lifeBookModal .lb-md-h4 {
+#lifeBookModal .lb-md-h4,
+#sajuNewYearModal .lb-md-h3,
+#sajuNewYearModal .lb-md-h4 {
   color: #dbeafe !important;
 }
 
@@ -2557,11 +2566,13 @@ body.theme-pig .lb-ch-dot--pending {
 #vedicBookModal .zb-md-p,
 #sukuyoBookModal .zb-md-p,
 #lifeBookModal .lb-md-p,
+#sajuNewYearModal .lb-md-p,
 #ziweiBookModal .zb-md-li,
 #astroBookModal .zb-md-li,
 #vedicBookModal .zb-md-li,
 #sukuyoBookModal .zb-md-li,
-#lifeBookModal .lb-md-li {
+#lifeBookModal .lb-md-li,
+#sajuNewYearModal .lb-md-li {
   color: #e9f1ff !important;
 }
 
@@ -2569,7 +2580,8 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .zb-md-blockquote,
 #vedicBookModal .zb-md-blockquote,
 #sukuyoBookModal .zb-md-blockquote,
-#lifeBookModal .lb-md-blockquote {
+#lifeBookModal .lb-md-blockquote,
+#sajuNewYearModal .lb-md-blockquote {
   color: #e0f2fe !important;
   background: rgba(15, 23, 42, 0.45) !important;
   border-left-color: rgba(125, 211, 252, 0.95) !important;
@@ -2579,7 +2591,8 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .zb-chapter-body strong,
 #vedicBookModal .zb-chapter-body strong,
 #sukuyoBookModal .zb-chapter-body strong,
-#lifeBookModal .lb-chapter-body strong {
+#lifeBookModal .lb-chapter-body strong,
+#sajuNewYearModal .lb-chapter-body strong {
   color: #ffffff !important;
 }
 
@@ -2587,8 +2600,17 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .zb-chapter-body em,
 #vedicBookModal .zb-chapter-body em,
 #sukuyoBookModal .zb-chapter-body em,
-#lifeBookModal .lb-chapter-body em {
+#lifeBookModal .lb-chapter-body em,
+#sajuNewYearModal .lb-chapter-body em {
   color: #bfdbfe !important;
+}
+
+#sajuNewYearModal {
+  --lb-accent: #8b5cf6;
+  --lb-accent2: #3b82f6;
+  --lb-sheet-tint1: rgba(139, 92, 246, 0.16);
+  --lb-sheet-tint2: rgba(59, 130, 246, 0.14);
+  --lb-title-gradient: linear-gradient(90deg, #f5f3ff, #ddd6fe 52%, #bfdbfe);
 }
 
 /* cd-premium-pdf-cosmic-chapter-ui-v20260519 */
@@ -2636,7 +2658,8 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .lb-result-article,
 #vedicBookModal .lb-result-article,
 #sukuyoBookModal .lb-result-article,
-#lifeBookModal .lb-result-article {
+#lifeBookModal .lb-result-article,
+#sajuNewYearModal .lb-result-article {
   position: relative;
   overflow: hidden;
   margin: 18px 18px 22px;
@@ -2676,7 +2699,8 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .lb-result-article::before,
 #vedicBookModal .lb-result-article::before,
 #sukuyoBookModal .lb-result-article::before,
-#lifeBookModal .lb-result-article::before {
+#lifeBookModal .lb-result-article::before,
+#sajuNewYearModal .lb-result-article::before {
   content: "";
   position: absolute;
   inset: 0 0 auto;
@@ -2689,7 +2713,8 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .lb-result-article__chapter,
 #vedicBookModal .lb-result-article__chapter,
 #sukuyoBookModal .lb-result-article__chapter,
-#lifeBookModal .lb-result-article__chapter {
+#lifeBookModal .lb-result-article__chapter,
+#sajuNewYearModal .lb-result-article__chapter {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -2708,7 +2733,8 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .lb-result-article__chapter::before,
 #vedicBookModal .lb-result-article__chapter::before,
 #sukuyoBookModal .lb-result-article__chapter::before,
-#lifeBookModal .lb-result-article__chapter::before {
+#lifeBookModal .lb-result-article__chapter::before,
+#sajuNewYearModal .lb-result-article__chapter::before {
   content: "";
   width: 6px;
   height: 6px;
@@ -2721,7 +2747,8 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .lb-result-article__title,
 #vedicBookModal .lb-result-article__title,
 #sukuyoBookModal .lb-result-article__title,
-#lifeBookModal .lb-result-article__title {
+#lifeBookModal .lb-result-article__title,
+#sajuNewYearModal .lb-result-article__title {
   margin: 0;
   font-size: 1.12rem;
   line-height: 1.42;
@@ -2732,7 +2759,8 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .lb-result-article__title,
 #vedicBookModal .lb-result-article__title,
 #sukuyoBookModal .lb-result-article__title,
-#lifeBookModal .lb-result-article__title {
+#lifeBookModal .lb-result-article__title,
+#sajuNewYearModal .lb-result-article__title {
   background: var(--lb-title-gradient, linear-gradient(90deg, #f8fbff, #e2e8f0 52%, #cbd5e1));
   -webkit-background-clip: text;
   background-clip: text;
@@ -2743,7 +2771,8 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .lb-result-article__subtitle,
 #vedicBookModal .lb-result-article__subtitle,
 #sukuyoBookModal .lb-result-article__subtitle,
-#lifeBookModal .lb-result-article__subtitle {
+#lifeBookModal .lb-result-article__subtitle,
+#sajuNewYearModal .lb-result-article__subtitle {
   margin: 8px 0 0;
   color: #bfdbfe;
   font-size: 0.86rem;
@@ -2754,7 +2783,8 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .lb-result-article__summary,
 #vedicBookModal .lb-result-article__summary,
 #sukuyoBookModal .lb-result-article__summary,
-#lifeBookModal .lb-result-article__summary {
+#lifeBookModal .lb-result-article__summary,
+#sajuNewYearModal .lb-result-article__summary {
   margin: 16px 0 0;
   padding: 14px 15px;
   border: 1px solid rgba(125, 211, 252, 0.2);
@@ -2768,7 +2798,8 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .lb-result-article__body,
 #vedicBookModal .lb-result-article__body,
 #sukuyoBookModal .lb-result-article__body,
-#lifeBookModal .lb-result-article__body {
+#lifeBookModal .lb-result-article__body,
+#sajuNewYearModal .lb-result-article__body {
   margin-top: 18px;
   color: #edf3ff;
   line-height: 1.86;
@@ -2787,7 +2818,9 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .lb-result-article__list,
 #vedicBookModal .lb-result-article__list,
 #sukuyoBookModal .lb-result-article__list,
-#lifeBookModal .lb-result-article__list {
+#lifeBookModal .lb-result-article__list,
+#sajuNewYearModal .lb-result-article__section,
+#sajuNewYearModal .lb-result-article__list {
   margin-top: 14px;
   padding: 14px;
   border: 1px solid rgba(148, 163, 184, 0.16);
@@ -2823,7 +2856,9 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .lb-result-article__list h5,
 #vedicBookModal .lb-result-article__list h5,
 #sukuyoBookModal .lb-result-article__list h5,
-#lifeBookModal .lb-result-article__list h5 {
+#lifeBookModal .lb-result-article__list h5,
+#sajuNewYearModal .lb-result-article__section h4,
+#sajuNewYearModal .lb-result-article__list h5 {
   margin: 0 0 8px;
   color: #fef3c7;
   font-size: 0.92rem;
@@ -2839,7 +2874,9 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .lb-result-article__body p,
 #vedicBookModal .lb-result-article__body p,
 #sukuyoBookModal .lb-result-article__body p,
-#lifeBookModal .lb-result-article__body p {
+#lifeBookModal .lb-result-article__body p,
+#sajuNewYearModal .lb-result-article__section p,
+#sajuNewYearModal .lb-result-article__body p {
   margin: 0 0 10px;
 }
 
@@ -2847,9 +2884,24 @@ body.theme-pig .lb-ch-dot--pending {
 #astroBookModal .lb-result-article__extras,
 #vedicBookModal .lb-result-article__extras,
 #sukuyoBookModal .lb-result-article__extras,
-#lifeBookModal .lb-result-article__extras {
+#lifeBookModal .lb-result-article__extras,
+#sajuNewYearModal .lb-result-article__extras {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
   margin-top: 14px;
+}
+
+#sajuNewYearModal .lb-result-name,
+#sajuNewYearModal .lb-result-date,
+#sajuNewYearModal .lb-result-label {
+  color: #f5f3ff !important;
+  text-shadow: 0 1px 4px rgba(15, 23, 42, 0.45);
+}
+
+#sajuNewYearModal .lb-result-article h3 {
+  color: #f8fbff;
+  font-size: 1.08rem;
+  line-height: 1.45;
+  margin: 0 0 10px;
 }
 
 @media (max-width: 640px) {
