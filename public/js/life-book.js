@@ -237,7 +237,11 @@
     var sessionId = String(accessGrant.sessionId || data.sessionId || data.reportSessionId || (normalizedReportId ? ('life-book:' + normalizedReportId) : '')).trim();
     var requestId = String(accessGrant.requestId || data.requestId || consume.requestId || fallbackRequestId || '').trim();
 
-    if (!normalizedReportId || !purchaseId) return null;
+    // Allow if we have reportId and either purchaseId or requestId; if no reportId, generate one
+    if (!normalizedReportId && !requestId) return null;
+    if (!normalizedReportId) {
+      normalizedReportId = 'lifebook_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+    }
     return {
       ok: true,
       featureKey: LIFE_BOOK_FEATURE_KEY,

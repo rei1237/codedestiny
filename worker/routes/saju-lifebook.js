@@ -927,18 +927,35 @@ async function handlePrepare(request, env) {
 
   const signals = deriveLocalSignals(profile);
   const localChapters = buildLifeBookChapters(profile, signals);
+  
+  console.info("[LifeBook][Flow] LOCAL_CHAPTERS_READY", { chapterCount: localChapters.length });
   const enhanced = await enhanceLifeBookChaptersWithLLM(env, profile, signals, localChapters);
   let completedChapters = ensureCompleteLifeBookChapters(profile, signals, enhanced.chapters);
   let fallbackUsed = Boolean(enhanced.fallbackUsed);
   let chapterValidation = validateLifeBookChapters(completedChapters);
+  
   if (!chapterValidation.ok) {
+    console.warn("[LifeBook][Fallback] LLM validation failed, applying strong local fallback", { 
+      failedChapters: chapterValidation.errors?.length || 0 
+    });
     fallbackUsed = true;
-    completedChapters = reinforceFailedLifeBookChapters(profile, signals, completedChapters, chapterValidation.errors);
+    // Use strong local fallback similar to saju-new-year logic
+    completedChapters = buildLifeBookFallbackChapters(profile, signals, completedChapters);
     chapterValidation = validateLifeBookChapters(completedChapters);
   }
+  
   if (!chapterValidation.ok) {
+    console.warn("[LifeBook][Fallback] Local fallback validation still failed, using pure local skeleton", { 
+      failedChapters: chapterValidation.errors?.length || 0 
+    });
+    // Final safety net: pure local skeleton with no LLM enhancement
     fallbackUsed = true;
-    completedChapters = buildLifeBookFallbackChapters(profile, signals, completedChapters);
+    completedChapters = localChapters.map((chapter) => ({
+      ...chapter,
+      source: "pure-local-skeleton",
+      finalText: buildChapterBody(chapter.title, chapter.categories),
+      llmEnhancedText: "",
+    }));
   }
 
   const lifebookPayload = buildLifeBookPayload(profile, signals, completedChapters, {
