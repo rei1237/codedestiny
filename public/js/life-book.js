@@ -6,7 +6,7 @@
   'use strict';
 
   var LIFEBOOK_TOTAL_CHAPTERS = 13;
-  var LIFE_BOOK_FEATURE_KEY = 'saju_lifebook_pdf';
+  var LIFE_BOOK_FEATURE_KEY = 'premium_pdf_saju_life_book';
   var LIFEBOOK_API_PREPARE_PATH = '/api/lifebook/prepare';
   var LIFEBOOK_API_PREPARE_LEGACY_PATH = '/api/premium/saju-lifebook/prepare';
 

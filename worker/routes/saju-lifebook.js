@@ -122,8 +122,9 @@ const FORBIDDEN_TEXT = [
 ];
 
 const LIFEBOOK_SERVICE_KEY = "saju-lifebook";
-const LIFEBOOK_FEATURE_KEY_PUBLIC = "saju_lifebook_pdf";
+const LIFEBOOK_FEATURE_KEY_PUBLIC = "premium_pdf_saju_life_book";
 const LIFEBOOK_FEATURE_KEY_BILLING = "saju_life_book_pdf";
+const LIFEBOOK_FEATURE_KEY_COMPAT = "saju_lifebook_pdf";
 
 function clean(value) {
   return String(value || "").trim();
@@ -133,6 +134,7 @@ function resolveLifeBookFeatureKey(raw) {
   const key = clean(raw);
   if (!key) return LIFEBOOK_FEATURE_KEY_PUBLIC;
   if (key === LIFEBOOK_FEATURE_KEY_BILLING) return LIFEBOOK_FEATURE_KEY_PUBLIC;
+  if (key === LIFEBOOK_FEATURE_KEY_COMPAT) return LIFEBOOK_FEATURE_KEY_PUBLIC;
   return key;
 }
 
@@ -140,6 +142,7 @@ function toBillingFeatureKey(featureKey) {
   const key = clean(featureKey);
   if (!key) return LIFEBOOK_FEATURE_KEY_BILLING;
   if (key === LIFEBOOK_FEATURE_KEY_PUBLIC) return LIFEBOOK_FEATURE_KEY_BILLING;
+  if (key === LIFEBOOK_FEATURE_KEY_COMPAT) return LIFEBOOK_FEATURE_KEY_BILLING;
   return key;
 }
 
