@@ -92,6 +92,7 @@
   var _premiumPaidUntil = 0;
   var _abFetchChapterForPartialRegenerate = null;
   var _abJobStateKey = 'cd:premium-job:astro';
+  var ASTRO_CHAPTER_FETCH_TIMEOUT_MS = 210000;
 
   function _abGetJobClient() {
     return (typeof window !== 'undefined' && window.CDPremiumPdfJobClient) ? window.CDPremiumPdfJobClient : null;
@@ -707,12 +708,18 @@
 
     function _fetchChapter(idx) {
       return new Promise(function(resolve) {
-        var tid = setTimeout(function(){ resolve({ok:false,message:'응답 시간 초과 (60초).'}); },60000);
+        var _controller = (typeof AbortController === 'function') ? new AbortController() : null;
+        var _timeoutMs = Math.max(60000, Number(ASTRO_CHAPTER_FETCH_TIMEOUT_MS || 210000));
+        var tid = setTimeout(function(){
+          try { if (_controller) _controller.abort(); } catch (_) {}
+          resolve({ok:false,message:'응답 시간 초과 ('+Math.round(_timeoutMs/1000)+'초).'});
+        }, _timeoutMs);
         var _abPremiumToken=_abReadPremiumAccessToken();
         var _abHeaders={'Content-Type':'application/json'};
         if(_abPremiumToken) _abHeaders['x-premium-access-token']=_abPremiumToken;
         fetch('/api/astro/generate-chapter', {
           method:'POST', headers:_abHeaders,
+          signal: _controller ? _controller.signal : undefined,
           body: JSON.stringify({
             reportId:_abReportId,
             requestId:'astro-'+_abReportId+'-ch'+(idx+1),
@@ -734,7 +741,14 @@
         })
         .then(function(res){ return res.ok?res.json():res.json().catch(function(){return{};}).then(function(e){return{ok:false,message:(e&&e.message)||'HTTP '+res.status};}); })
         .then(function(data){ clearTimeout(tid); resolve(data); })
-        .catch(function(err){ clearTimeout(tid); resolve({ok:false,message:String(err&&err.message?err.message:err)}); });
+        .catch(function(err){
+          clearTimeout(tid);
+          if (err && (err.name === 'AbortError' || String(err.message || '').toLowerCase().includes('abort'))) {
+            resolve({ ok:false, message:'응답 시간 초과 ('+Math.round(_timeoutMs/1000)+'초).' });
+            return;
+          }
+          resolve({ok:false,message:String(err&&err.message?err.message:err)});
+        });
       });
     }
     _abFetchChapterForPartialRegenerate = _fetchChapter;
