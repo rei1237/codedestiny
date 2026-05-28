@@ -994,6 +994,47 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     }
   }
 
+  if (normalizedReportType === "loveSecret" && alternativeRules.length) {
+    for (let i = 0; i < alternativeRules.length; i += 1) {
+      const evidence = await findRecentDeductionEvidence(user._id, alternativeRules[i]);
+      if (!evidence) continue;
+      logPremiumAccessDecision({
+        route: requestBody?._accessRoute,
+        userId,
+        reportType: normalizedReportType,
+        featureKey: String(evidence?.featureKey || ""),
+        accessSource: "recent-payment-window",
+        matchedTransactionId: String(evidence?._id || ""),
+      });
+      return {
+        ok: true,
+        accessType: "recent-payment-window",
+        reportType: normalizedReportType,
+        matchedTransactionId: String(evidence?._id || ""),
+        featureKey: String(evidence?.featureKey || ""),
+      };
+    }
+
+    const splitEvidence = await findLoveSecretBasePlusCompatibilityEvidence(user._id, requestBody);
+    if (splitEvidence?.baseEvidence && splitEvidence?.addonEvidence) {
+      logPremiumAccessDecision({
+        route: requestBody?._accessRoute,
+        userId,
+        reportType: normalizedReportType,
+        featureKey: String(splitEvidence?.baseEvidence?.featureKey || ""),
+        accessSource: "recent-payment-window-split",
+        matchedTransactionId: String(splitEvidence?.addonEvidence?._id || splitEvidence?.baseEvidence?._id || ""),
+      });
+      return {
+        ok: true,
+        accessType: "recent-payment-window-split",
+        reportType: normalizedReportType,
+        matchedTransactionId: String(splitEvidence?.addonEvidence?._id || splitEvidence?.baseEvidence?._id || ""),
+        featureKey: String(splitEvidence?.baseEvidence?.featureKey || ""),
+      };
+    }
+  }
+
   logPremiumAccessDecision({
     route: requestBody?._accessRoute,
     userId,
