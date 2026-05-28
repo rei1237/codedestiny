@@ -1,4 +1,4 @@
-import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { callGeminiText } from "../lib/gemini.js";
@@ -839,6 +839,13 @@ async function handlePrepare(request, env) {
     throw error;
   }
   const body = await readJson(request);
+  const premiumAccessToken = String(
+    request.headers.get("x-premium-access-token")
+    || body?.premiumAccessToken
+    || body?._premiumAccessToken
+    || cookieValue(request, "cd_premium_access")
+    || "",
+  ).trim();
 
   const normalized = normalizeInput(body);
   if (!normalized.ok) {
@@ -852,6 +859,7 @@ async function handlePrepare(request, env) {
     ...body,
     featureKey: billingFeatureKey,
     reportType: "lifeBook",
+    premiumAccessToken: premiumAccessToken || undefined,
     _accessRoute: "/api/premium/saju-lifebook",
   });
 
