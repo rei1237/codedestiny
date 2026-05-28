@@ -11,10 +11,80 @@ import { callGeminiText, pickGeminiKeys, pickGeminiModels } from "./gemini.js";
 import {
   buildCanonicalZiweiPdfChapters,
   buildZiweiCategorySeed,
+  buildZiweiBroadChartSeed,
   resolveZiweiCategoryData,
+  normalizeZiweiPalaceKey,
+  normalizeZiweiPalaces,
   mapZiweiBrightnessToStrengthSymbol,
   normalizeZiweiStrengthSymbol,
 } from "./ziwei-premium-book-structure.js";
+
+/**
+ * 원인 추적 가능한 구조화 로그 헬퍼
+ *
+ * 구분 기준:
+ *   errorCode: "ZIWEI_LLM_KEY_MISSING"           → LLM API 키 미설정
+ *   errorCode: "LLM_SECTION_GENERATION_FAILED"   → LLM 호출 실패 (네트워크/쿼터)
+ *   errorCode: "LLM_VALIDATION_FAILED"           → LLM 출력이 품질 기준 미달
+ *   palaceCount: 0 / resolvedPalaceCount: 0      → 데이터 없음 (payload 비어 있음)
+ *   resolvedPalaceCount: 0, palaceCount > 0      → 키 불일치 (palace key alias 매핑 실패)
+ */
+function logZiweiFlow(level, stage, fields = {}) {
+  const payload = {
+    stage,
+    sessionId: String(fields.sessionId || fields.requestId || "").trim() || null,
+    purchaseId: String(fields.purchaseId || "").trim() || null,
+    reportId: String(fields.reportId || "").trim() || null,
+    chapterId: String(fields.chapterId || "").trim() || null,
+    chapterTitle: String(fields.chapterTitle || "").trim() || null,
+    categoryId: String(fields.categoryId || "").trim() || null,
+    categoryTitle: String(fields.categoryTitle || "").trim() || null,
+    // palace key 진단 — 개인정보 포함하지 않음
+    expectedPalaceKeys: Array.isArray(fields.expectedPalaceKeys) ? fields.expectedPalaceKeys : null,
+    resolvedPalaceKeys: Array.isArray(fields.resolvedPalaceKeys) ? fields.resolvedPalaceKeys : null,
+    availablePalaceKeys: Array.isArray(fields.availablePalaceKeys) ? fields.availablePalaceKeys : null,
+    palaceCount: typeof fields.palaceCount === "number" ? fields.palaceCount : null,
+    resolvedPalaceCount: typeof fields.resolvedPalaceCount === "number" ? fields.resolvedPalaceCount : null,
+    mainStarCount: typeof fields.mainStarCount === "number" ? fields.mainStarCount : null,
+    maleficStarCount: typeof fields.maleficStarCount === "number" ? fields.maleficStarCount : null,
+    transformationCount: typeof fields.transformationCount === "number" ? fields.transformationCount : null,
+    hasLifePalaceKey: typeof fields.hasLifePalaceKey === "boolean" ? fields.hasLifePalaceKey : null,
+    hasBodyPalaceKey: typeof fields.hasBodyPalaceKey === "boolean" ? fields.hasBodyPalaceKey : null,
+    hasFourTransformations: typeof fields.hasFourTransformations === "boolean" ? fields.hasFourTransformations : null,
+    // LLM 진단
+    keyCount: typeof fields.keyCount === "number" ? fields.keyCount : null,
+    modelCandidates: Array.isArray(fields.modelCandidates) ? fields.modelCandidates : null,
+    attempt: typeof fields.attempt === "number" ? fields.attempt : null,
+    maxAttempts: typeof fields.maxAttempts === "number" ? fields.maxAttempts : null,
+    validationErrors: Array.isArray(fields.validationErrors) ? fields.validationErrors : null,
+    // 오류 정보 — stack은 1000자 상한
+    errorCode: fields.errorCode || null,
+    errorName: fields.errorName || null,
+    errorMessage: fields.errorMessage || null,
+    errorStack: typeof fields.errorStack === "string" ? fields.errorStack.slice(0, 1000) : null,
+    // 기타
+    source: fields.source || null,
+    bodyLength: typeof fields.bodyLength === "number" ? fields.bodyLength : null,
+    message: fields.message || null,
+  };
+  // null 필드 제거하여 로그 크기 절감
+  const clean = Object.fromEntries(Object.entries(payload).filter(([, v]) => v !== null));
+  if (level === "error") console.error(`[ZiweiPremium][Flow] ${stage}`, clean);
+  else if (level === "warn") console.warn(`[ZiweiPremium][Flow] ${stage}`, clean);
+  else console.info(`[ZiweiPremium][Flow] ${stage}`, clean);
+}
+
+/** 최소 payload 진단 정보 추출 (개인정보 제외) */
+function _diagPayload(minimalPayload) {
+  const palaces = Array.isArray(minimalPayload?.chart?.palaces) ? minimalPayload.chart.palaces : [];
+  return {
+    palaceCount: palaces.length,
+    availablePalaceKeys: palaces.map((p) => String(p?.key || "")).filter(Boolean),
+    hasLifePalaceKey: Boolean(minimalPayload?.chart?.lifePalace),
+    hasBodyPalaceKey: Boolean(minimalPayload?.chart?.bodyPalace),
+    hasFourTransformations: palaces.some((p) => Array.isArray(p?.transformations) && p.transformations.length > 0),
+  };
+}
 
 const ZIWEI_SECTION_FORBIDDEN_WORDS = [
   "자동 복구 생성",
@@ -381,14 +451,16 @@ function toMinimalZiweiPayload(input = {}) {
   const profile = input.userProfile || {};
   const reportPayload = input.reportPayload || {};
   const canonicalZiweiChart = input.canonicalZiweiChart || {};
-  const sourcePalaces = Array.isArray(reportPayload?.palaces)
+  const sourcePalacesRaw = Array.isArray(reportPayload?.palaces)
     ? reportPayload.palaces
     : (Array.isArray(canonicalZiweiChart?.palaces) ? canonicalZiweiChart.palaces : []);
+  const sourcePalaces = normalizeZiweiPalaces(sourcePalacesRaw);
 
   const palaces = sourcePalaces.map((palace, index) => {
     const src = palace && typeof palace === "object" ? palace : {};
     const mainStars = Array.isArray(src.mainStars) ? src.mainStars : (Array.isArray(src.stars) ? src.stars : []);
     const subStars = Array.isArray(src.subStars) ? src.subStars : (Array.isArray(src.auxStars) ? src.auxStars : []);
+    const maleficStars = Array.isArray(src.maleficStars) ? src.maleficStars : [];
 
     const normalizeStar = (star) => {
       const name = String(star?.name || star?.nameKo || "").trim();
@@ -403,11 +475,18 @@ function toMinimalZiweiPayload(input = {}) {
       };
     };
 
+    const originalKey = String(src.originalKey || src.key || "").trim();
+    const normalizedKey = normalizeZiweiPalaceKey(src.key || src.nameKo || src.name || src.palace || originalKey);
+
     return {
-      key: String(src.key || `palace-${index + 1}`).trim() || `palace-${index + 1}`,
+      key: normalizedKey || String(src.key || `palace-${index + 1}`).trim() || `palace-${index + 1}`,
+      originalKey: originalKey || undefined,
       name: String(src.nameKo || src.name || src.palace || `궁${index + 1}`).trim() || `궁${index + 1}`,
       mainStars: mainStars.map(normalizeStar).filter(Boolean),
       subStars: subStars.map(normalizeStar).filter(Boolean),
+      maleficStars: maleficStars.map(normalizeStar).filter(Boolean),
+      isMing: Boolean(src.isMing),
+      isShen: Boolean(src.isShen),
       brightnessSummary: String(src.brightnessSummary || "").trim() || "",
       shortInterpretationSeed: String(src.interpretationSeed || src.shortInterpretationSeed || "").trim() || "",
     };
@@ -492,8 +571,18 @@ function formatZiweiPalaceSnapshot(palace) {
 
 function summarizeZiweiResolvedData(input = {}, payload = {}) {
   const category = normalizeZiweiSectionCategory(input);
+  const sectionId = String(input?.section?.sectionId || input?.section?.id || category.categoryId || "").trim();
+  const sectionOrder = Number(input?.section?.order || Number(String(sectionId).match(/-(\d{1,2})$/)?.[1] || 0) || 0);
+  const chapterOrder = Number(input?.chapter?.chapterNo || input?.canonicalChapter?.order || 0) || 0;
   const resolved = resolveZiweiCategoryData(
-    input.canonicalCategory || { id: category.categoryId, title: category.categoryTitle, requiredPalaces: input.chapter?.targetPalaces || [input.chapter?.targetPalace || "명궁"] },
+    input.canonicalCategory || {
+      id: category.categoryId,
+      order: sectionOrder || undefined,
+      chapterOrder: chapterOrder || undefined,
+      dataKey: String(input?.section?.dataKey || "").trim() || undefined,
+      title: category.categoryTitle,
+      requiredPalaces: input.chapter?.targetPalaces || [input.chapter?.targetPalace || "명궁"],
+    },
     payload,
   );
   const palaceNames = resolved.palaces.map((palace) => String(palace?.name || palace?.key || "").trim()).filter(Boolean);
@@ -526,35 +615,42 @@ function summarizeZiweiResolvedData(input = {}, payload = {}) {
   };
 }
 
-function containsAnyKnownZiweiStarOrPalace(body, input) {
+function containsZiweiEvidence(body, resolvedCategoryData = {}) {
   const text = String(body || "");
-  const summarySources = [
-    input?.relatedPalaceSummary,
-    input?.relatedStarSummary,
-    input?.transformationSummary,
-    input?.strengthSummary,
-    input?.localSeedText,
-    input?.chapterTitle,
-    input?.categoryTitle,
-  ];
-  const tokens = new Set();
-  summarySources.forEach((source) => {
-    String(source || "")
-      .split(/[\n,|/·:;\s]+/)
-      .map((token) => token.trim())
-      .filter((token) => token.length >= 2)
-      .forEach((token) => tokens.add(token));
-  });
-  const resolved = input?.resolved?.palaces || [];
-  resolved.forEach((palace) => {
-    const palaceName = String(palace?.name || palace?.key || "").trim();
-    if (palaceName) tokens.add(palaceName);
-    [...(palace?.mainStars || []), ...(palace?.assistantStars || []), ...(palace?.minorStars || []), ...(palace?.maleficStars || [])].forEach((star) => {
-      const starName = String(star?.name || star?.nameKo || "").trim();
-      if (starName) tokens.add(starName);
-    });
-  });
-  return Array.from(tokens).some((token) => text.includes(token));
+  if (!text) return false;
+
+  const palaceNames = Array.isArray(resolvedCategoryData?.palaceNames)
+    ? resolvedCategoryData.palaceNames.map((name) => String(name || "").trim()).filter(Boolean)
+    : [];
+  const mainStarNames = Array.isArray(resolvedCategoryData?.mainStars)
+    ? resolvedCategoryData.mainStars.map((star) => String(star?.name || star?.nameKo || "").trim()).filter(Boolean)
+    : [];
+  const assistantStarNames = Array.isArray(resolvedCategoryData?.assistantStars)
+    ? resolvedCategoryData.assistantStars.map((star) => String(star?.name || star?.nameKo || "").trim()).filter(Boolean)
+    : [];
+  const transformationNames = Array.isArray(resolvedCategoryData?.transformations)
+    ? resolvedCategoryData.transformations
+      .flatMap((row) => [
+        String(row?.type || row?.transformation || "").trim(),
+        String(row?.starName || row?.name || "").trim(),
+      ])
+      .filter(Boolean)
+    : [];
+  const brightnessTokens = new Set([
+    "◎", "O", "▲", "△", "X", "묘", "왕", "득", "리", "평", "함", "실", "강", "약",
+  ]);
+  String(resolvedCategoryData?.brightnessSummary || "")
+    .split(/[\s,|/()]+/)
+    .map((token) => token.trim())
+    .filter(Boolean)
+    .forEach((token) => brightnessTokens.add(token));
+
+  if (palaceNames.some((token) => text.includes(token))) return true;
+  if (mainStarNames.some((token) => text.includes(token))) return true;
+  if (assistantStarNames.some((token) => text.includes(token))) return true;
+  if (transformationNames.some((token) => text.includes(token))) return true;
+  if (Array.from(brightnessTokens).some((token) => token && text.includes(token))) return true;
+  return false;
 }
 
 function hasHighRepetitionRatio(body) {
@@ -574,24 +670,29 @@ function hasHighRepetitionRatio(body) {
 
 export function isLowQualityZiweiSection(body, input = {}) {
   const text = String(body || "").trim();
-  if (!text || text.length < 900) return true;
+  const minLength = Number(input?.writingRules?.minLength || 900);
+  if (!text || text.length < minLength) return true;
 
   const banned = [
+    "현재 확보된 명반 핵심값",
     "이 항목은 현재 확보된 명반 핵심값을 기준으로",
+    "이 항목은 현재 확보된",
     "실행 포인트: 강점 구간은 작은 실행을 빠르게 누적하고",
+    "실행 포인트: 강점 구간은",
     "변동 구간은 기준 루틴을 먼저 고정하세요",
+    "변동 구간은 기준 루틴",
     "자미두수 명반 데이터를 서버에서 구성하는 중 문제가 발생했습니다",
     "잠시 후 다시 시도해 주세요",
     "자동 복구 생성",
     "fallback",
     "데이터 미확보",
     "계산 데이터가 부족합니다",
-    "현재 확보된 명반 핵심값",
   ];
 
   if (banned.some((phrase) => text.includes(phrase))) return true;
-  if (!containsAnyKnownZiweiStarOrPalace(text, input)) return true;
-  return hasHighRepetitionRatio(text);
+  if (hasHighRepetitionRatio(text)) return true;
+  if (!containsZiweiEvidence(text, input?.resolvedCategoryData || {})) return true;
+  return false;
 }
 
 function getZiweiSectionTone(categoryId = "") {
@@ -729,18 +830,31 @@ export function normalizeZiweiSectionResult(input, raw, payload) {
   const rawBody = extractBodyFromLlmResponse(raw);
   const body = String(rawBody || "").trim();
   if (isLowQualityZiweiSection(body, input)) {
+    logZiweiFlow("warn", "LLM_SECTION_LOW_QUALITY", {
+      sessionId: input?.requestId || input?.sessionId,
+      purchaseId: input?.purchaseId,
+      reportId: input?.reportId,
+      chapterId: input?.chapterId,
+      chapterTitle: input?.chapterTitle,
+      categoryId: input?.categoryId,
+      categoryTitle: input?.categoryTitle,
+      bodyLength: body.length,
+      source: "expert-local-fallback",
+      errorCode: "LOW_QUALITY_SECTION",
+      message: "LLM 응답 품질 기준 미달로 expert-local-fallback 사용",
+    });
     return {
-      chapterId: input.chapterId,
-      categoryId: input.categoryId,
-      title: input.categoryTitle,
-      body: buildZiweiExpertLocalFallbackSection(input, payload),
+      chapterId: String(input?.chapterId || "").trim(),
+      categoryId: String(input?.categoryId || "").trim(),
+      title: String(input?.categoryTitle || "핵심 해석").trim() || "핵심 해석",
+      body: String(buildZiweiExpertLocalFallbackSection(input, payload) || "").trim(),
       source: "expert-local-fallback",
     };
   }
   return {
-    chapterId: input.chapterId,
-    categoryId: input.categoryId,
-    title: input.categoryTitle,
+    chapterId: String(input?.chapterId || "").trim(),
+    categoryId: String(input?.categoryId || "").trim(),
+    title: String(input?.categoryTitle || "핵심 해석").trim() || "핵심 해석",
     body,
     source: "llm",
   };
@@ -805,23 +919,53 @@ export async function generateZiweiSectionWithLLM(env, input) {
       : "",
   );
 
-  // Debug checklist: verify this log appears for each category generation attempt.
-  console.info("[ZiweiPremium][LLM] section-call-start", {
-    chapterId: input.chapter?.chapterId,
-    sectionId: input.section?.sectionId,
-    keyConfigured: resolvedKeyCount > 0,
-    processEnvKeyConfigured: processGeminiKeyConfigured,
+  // 섹션 생성 시작 — 원인 추적을 위한 구조화 진단 로그
+  const _dbgPalaces = Array.isArray(input.minimalPayload?.chart?.palaces) ? input.minimalPayload.chart.palaces : [];
+  const _dbgResolvedPalaces = Array.isArray(input.resolved?.resolved?.palaces) ? input.resolved.resolved.palaces : [];
+  const _diagBase = {
+    sessionId: input.requestId || input.sessionId,
+    purchaseId: input.purchaseId,
+    reportId: input.reportId,
+    chapterId: input.chapter?.chapterId || input.chapterId,
+    chapterTitle: input.chapter?.title || input.chapterTitle,
+    categoryId: input.section?.sectionId || input.categoryId,
+    categoryTitle: input.section?.title || input.categoryTitle,
+    ..._diagPayload(input.minimalPayload),
+    resolvedPalaceCount: _dbgResolvedPalaces.length,
+    resolvedPalaceKeys: _dbgResolvedPalaces.map((p) => String(p?.key || p?.name || "")).filter(Boolean),
+    mainStarCount: _dbgResolvedPalaces.reduce((s, p) => s + (Array.isArray(p?.mainStars) ? p.mainStars.length : 0), 0),
+    maleficStarCount: _dbgResolvedPalaces.reduce((s, p) => s + (Array.isArray(p?.maleficStars) ? p.maleficStars.length : 0), 0),
+    keyCount: resolvedKeyCount,
     modelCandidates: resolvedModels,
     maxAttempts,
-  });
+    localSeedLength: String(input.localSeedText || "").length,
+  };
+
+  const corePalaces = Array.isArray(input?.coreAnalysisJson?.palaces) ? input.coreAnalysisJson.palaces : [];
+  if (corePalaces.length <= 0) {
+    logZiweiFlow("error", "CORE_ANALYSIS_JSON_EMPTY", {
+      ..._diagBase,
+      errorCode: "ZIWEI_CORE_ANALYSIS_EMPTY",
+      errorMessage: "coreAnalysisJson.palaces is empty",
+      message: "LLM 입력 차단: coreAnalysisJson.palaces가 비어 있음",
+    });
+    return {
+      ok: false,
+      errorCode: "ZIWEI_CORE_ANALYSIS_EMPTY",
+      chapterId: input.chapter?.chapterId || input.chapterId,
+      sectionId: input.section?.sectionId || input.categoryId,
+      maxAttempts: 0,
+      lastError: "coreAnalysisJson.palaces is empty",
+      source: "llm",
+    };
+  }
 
   if (resolvedKeyCount <= 0) {
-    console.error("[ZiweiPremium][Flow] LLM_KEY_MISSING", {
-      chapterId: input.chapter?.chapterId,
-      sectionId: input.section?.sectionId,
-      keyCount: 0,
-      processEnvKeyConfigured: processGeminiKeyConfigured,
-      modelCandidates: resolvedModels,
+    logZiweiFlow("error", "LLM_KEY_MISSING", {
+      ..._diagBase,
+      errorCode: "ZIWEI_LLM_KEY_MISSING",
+      errorMessage: "Gemini API key not configured. Set GEMINIF_API_KEY1-4 or PREMIUM_GEMINI_API_KEY1-4 in worker secrets.",
+      message: "데이터 없음 아님 — LLM API 키 미설정. 키 환경변수를 확인하라.",
     });
     return {
       ok: false,
@@ -834,10 +978,22 @@ export async function generateZiweiSectionWithLLM(env, input) {
     };
   }
 
+  const prompt = buildZiweiSectionLLMPrompt(input);
+  logZiweiFlow("info", "LLM_SECTION_REQUEST_READY", {
+    ..._diagBase,
+    promptLength: prompt.length,
+    hasCorePalaces: corePalaces.length > 0,
+    message: "LLM 요청 입력 준비 완료",
+  });
+
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      // 프롬프트 구성
-      const prompt = buildZiweiSectionLLMPrompt(input);
+      logZiweiFlow("info", "LLM_SECTION_CALL_START", {
+        ..._diagBase,
+        attempt,
+        promptLength: prompt.length,
+        message: `LLM 호출 시작 (${attempt}/${maxAttempts})`,
+      });
 
       // LLM 호출
       const llmResult = await callGeminiText(env, prompt, {
@@ -853,16 +1009,12 @@ export async function generateZiweiSectionWithLLM(env, input) {
 
       if (!llmResult?.ok || !String(llmResult?.text || "").trim()) {
         lastError = new Error(String(llmResult?.message || llmResult?.error || "EMPTY_LLM_RESPONSE"));
-        console.warn("[ZiweiBook.LLMEmptyResponse]", {
-          chapterId: input.chapter?.chapterId,
-          sectionId: input.section?.sectionId,
+        logZiweiFlow("warn", "LLM_SECTION_CALL_FAILED", {
+          ..._diagBase,
           attempt,
-          error: String(lastError.message || "EMPTY_LLM_RESPONSE"),
-          status: Number(llmResult?.status || 0) || null,
-          keyConfigured: resolvedKeyCount > 0,
-          processEnvKeyConfigured: processGeminiKeyConfigured,
-          keyCount: resolvedKeyCount,
-          modelCandidates: resolvedModels,
+          errorCode: "EMPTY_LLM_RESPONSE",
+          errorMessage: String(lastError.message || "EMPTY_LLM_RESPONSE"),
+          message: `LLM 호출 실패 — 빈 응답. HTTP ${Number(llmResult?.status || 0) || "unknown"}. 시도 ${attempt}/${maxAttempts}.`,
         });
         continue;
       }
@@ -873,17 +1025,12 @@ export async function generateZiweiSectionWithLLM(env, input) {
       const validation = validateLLMSectionContent(content, input);
 
       if (validation.ok) {
-        console.info("[ZiweiPremium][Flow] SECTION_GENERATION_SUCCESS", makeSectionFlowPayload("SECTION_GENERATION_SUCCESS", input, {
-          chapterCount: Number(input.chapterCount || 0),
-          categoryCount: Number(input.categoryCount || 0),
-          message: "llm",
-        }));
-        console.info("[ZiweiBook.LLMSectionSuccess]", {
-          chapterId: input.chapter?.chapterId,
-          sectionId: input.section?.sectionId,
-          textLength: validation.textLength,
-          warnings: validation.warnings || [],
+        logZiweiFlow("info", "LLM_SECTION_CALL_SUCCESS", {
+          ..._diagBase,
           attempt,
+          bodyLength: validation.textLength,
+          source: "llm",
+          message: `LLM 성공. 텍스트 길이 ${validation.textLength}자. 경고: ${(validation.warnings || []).join(",") || "없음"}`,
         });
 
         return {
@@ -897,14 +1044,13 @@ export async function generateZiweiSectionWithLLM(env, input) {
 
       // 검증 실패
       lastError = new Error(validation.errors.join(";"));
-      console.warn("[ZiweiBook.LLMValidationFailed]", {
-        chapterId: input.chapter?.chapterId,
-        sectionId: input.section?.sectionId,
-        errors: validation.errors,
+      logZiweiFlow("warn", "LLM_SECTION_LOW_QUALITY", {
+        ..._diagBase,
         attempt,
-        keyConfigured: resolvedKeyCount > 0,
-        processEnvKeyConfigured: processGeminiKeyConfigured,
-        modelCandidates: resolvedModels,
+        errorCode: "LLM_VALIDATION_FAILED",
+        validationErrors: validation.errors,
+        errorMessage: validation.errors.join("; "),
+        message: `LLM 출력 품질 기준 미달. errors=[${validation.errors.join(",")}]. 시도 ${attempt}/${maxAttempts}. resolvedPalaceCount=${_dbgResolvedPalaces.length} — 키 불일치 가능성 확인.`,
       });
 
       // 마지막 시도가 아니면 재시도
@@ -913,15 +1059,14 @@ export async function generateZiweiSectionWithLLM(env, input) {
       }
     } catch (error) {
       lastError = error;
-      console.error("[ZiweiBook.LLMRequestFailed]", {
-        chapterId: input.chapter?.chapterId,
-        sectionId: input.section?.sectionId,
+      logZiweiFlow("error", "LLM_SECTION_CALL_FAILED", {
+        ..._diagBase,
         attempt,
-        message: String(error?.message || "UNKNOWN_ERROR"),
-        status: Number(error?.status || error?.code || 0) || null,
-        keyConfigured: resolvedKeyCount > 0,
-        processEnvKeyConfigured: processGeminiKeyConfigured,
-        modelCandidates: resolvedModels,
+        errorCode: "LLM_REQUEST_FAILED",
+        errorName: error?.name,
+        errorMessage: String(error?.message || "UNKNOWN_ERROR"),
+        errorStack: error?.stack,
+        message: `LLM API 호출 예외 발생. 시도 ${attempt}/${maxAttempts}. 네트워크/쿼터/타임아웃 확인.`,
       });
 
       if (attempt >= maxAttempts) {
@@ -951,17 +1096,13 @@ function buildZiweiSectionLLMPrompt(input) {
   const mustInclude = Array.isArray(writingRules.mustInclude) ? writingRules.mustInclude : [];
   const evidence = toZiweiPromptEvidence(input);
   const systemInstruction = [
-    "너는 최고의 자미두수 명리학자야.",
-    "너는 12궁과 사화를 실전적으로 해석하는 최고 수준의 자미두수 고수다.",
-    "너는 자미두수 전문가야. 사용자 명반 데이터([JSON 데이터 주입])를 바탕으로 현재 카테고리인 [현재 챕터명 및 세부 주제]에 대한 해석만 텍스트로 바로 출력해. 마크다운 기호나 불필요한 서론은 절대 빼고 순수 본문만 작성해.",
-    "제공된 [사용자 명반 데이터]를 바탕으로 [현재 챕터명]에 대한 구체적이고 실질적인 해석을 작성해.",
-    "절대로 '명반을 기준으로 분석합니다' 같은 안내 멘트나 더미 텍스트를 출력하지 말고, 곧바로 사용자의 기질, 운세, 구체적인 조언(실행 포인트)을 결과물로 도출해.",
-    "당신은 30년 경력의 자미두수 고수다.",
-    "사용자가 읽는 프리미엄 PDF 상담문을 작성한다.",
-    "반드시 제공된 자미두수 계산 데이터만 근거로 해석한다.",
-    "명반에 없는 별, 궁, 사화를 임의로 만들지 않는다.",
-    "계산을 새로 하지 않는다.",
-    "JSON, 내부 키, payload, fallback, debug 문구를 노출하지 않는다.",
+    "당신은 30년 경력의 자미두수 고수입니다.",
+    "사용자가 읽을 프리미엄 자미두수 PDF의 한 카테고리 본문을 작성합니다.",
+    "반드시 제공된 coreAnalysisJson과 resolvedCategoryData만 근거로 해석합니다.",
+    "명반에 없는 궁, 별, 사화, 밝기를 임의로 만들지 않습니다.",
+    "계산을 새로 하지 않습니다.",
+    "JSON 원문, 내부 key, payload, debug, fallback 표현을 사용자에게 노출하지 않습니다.",
+    "문체는 고급 상담문이어야 하며, 짧은 요약이나 범용 조언으로 끝내지 않습니다.",
     "각 카테고리 본문은 핵심 기질, 주성/보조성 상호작용, 밝기/강도, 반복 패턴, 위험 요소, 현실 조언의 순서로 쓴다.",
     "문체는 단정적인 예언이 아니라 명반 근거 기반의 깊은 상담문이어야 한다.",
     "막연한 위로나 일반론을 쓰지 말고, 반드시 제공된 궁/별/사화 데이터를 구체적으로 언급한다.",
@@ -979,7 +1120,14 @@ function buildZiweiSectionLLMPrompt(input) {
     `카테고리: ${input.categoryTitle || "핵심 해석"}`,
     `챕터 ID: ${input.chapterId || ""}`,
     `카테고리 ID: ${input.categoryId || ""}`,
+    `데이터 키: ${input.dataKey || ""}`,
     `최소 길이: ${Number(writingRules.minLength || 900)}자 이상`,
+    "",
+    `[핵심 분석 JSON]`,
+    JSON.stringify(input.coreAnalysisJson || {}, null, 2),
+    "",
+    `[카테고리 해석 데이터 JSON]`,
+    JSON.stringify(input.resolvedCategoryData || {}, null, 2),
     "",
     `[명반 근거]`,
     `궁 요약: ${String(input.relatedPalaceSummary || "").trim()}`,
@@ -994,12 +1142,16 @@ function buildZiweiSectionLLMPrompt(input) {
     JSON.stringify(evidence, null, 2),
     "",
     `[작성 규칙]`,
-    `- 해당 궁 이름을 반드시 언급한다.`,
-    `- 주성과 보조성 또는 살성 중 확인 가능한 요소를 자연스럽게 반영한다.`,
-    `- 별의 밝기/강도 해석을 넣는다.`,
-    `- 성향, 반복 패턴, 주의점, 현실 조언을 모두 포함한다.`,
+    `- 1. 해당 궁이 자미두수에서 의미하는 핵심 영역`,
+    `- 2. 해당 궁의 주성이 만드는 성향`,
+    `- 3. 보조성/잡성/살성이 만드는 보완 또는 위험 신호`,
+    `- 4. 밝기/강도 차이가 만드는 장점과 약점`,
+    `- 5. 실제 삶에서 반복되는 패턴`,
+    `- 6. 조심해야 할 선택`,
+    `- 7. 현실에서 적용할 수 있는 구체적 조언`,
     `- 내부 오류 문구나 fallback 문구를 절대 쓰지 않는다.`,
     `- 계산을 새로 하지 말고, 이미 주어진 명반 데이터만 해석한다.`,
+    `- coreAnalysisJson.palaces와 resolvedCategoryData.evidenceText를 반드시 직접 인용해 근거를 제시한다.`,
   ].filter(Boolean).join("\n");
 
   return `${systemInstruction}\n\n${userPrompt}`;
@@ -1026,6 +1178,37 @@ export async function generateZiweiChapterFromSections(env, input) {
   const minimalPayload = (input?.minimalPayload && typeof input.minimalPayload === "object")
     ? input.minimalPayload
     : toMinimalZiweiPayload(input);
+
+  logZiweiFlow("info", "ENGINE_CALC_SUCCESS", {
+    sessionId: input.requestId || input.reportId || input.sessionId,
+    purchaseId: input.purchaseId,
+    reportId: input.reportId,
+    chapterId: String(chapter?.chapterId || "").trim() || null,
+    chapterTitle: String(chapter?.title || "").trim() || null,
+    availablePalaceKeys: Array.isArray(minimalPayload?.chart?.palaces)
+      ? minimalPayload.chart.palaces.map((p) => String(p?.key || "")).filter(Boolean)
+      : [],
+    palaceCount: Array.isArray(minimalPayload?.chart?.palaces) ? minimalPayload.chart.palaces.length : 0,
+    hasLifePalaceKey: Boolean(minimalPayload?.chart?.lifePalace),
+    hasBodyPalaceKey: Boolean(minimalPayload?.chart?.bodyPalace),
+    message: "엔진 계산 결과가 섹션 생성 단계로 전달됨",
+  });
+
+  logZiweiFlow("info", "MINIMAL_PAYLOAD_READY", {
+    sessionId: input.requestId || input.reportId || input.sessionId,
+    purchaseId: input.purchaseId,
+    reportId: input.reportId,
+    chapterId: String(chapter?.chapterId || "").trim() || null,
+    chapterTitle: String(chapter?.title || "").trim() || null,
+    availablePalaceKeys: Array.isArray(minimalPayload?.chart?.palaces)
+      ? minimalPayload.chart.palaces.map((p) => String(p?.key || "")).filter(Boolean)
+      : [],
+    palaceCount: Array.isArray(minimalPayload?.chart?.palaces) ? minimalPayload.chart.palaces.length : 0,
+    hasLifePalaceKey: Boolean(minimalPayload?.chart?.lifePalace),
+    hasBodyPalaceKey: Boolean(minimalPayload?.chart?.bodyPalace),
+    message: "LLM 입력용 minimal payload 준비 완료",
+  });
+
   const canonicalChapters = buildCanonicalZiweiPdfChapters(minimalPayload);
   const chapterNo = Number(chapter?.chapterNo || 1);
   const canonicalChapter = canonicalChapters.find((row) => Number(row?.order || 0) === chapterNo) || null;
@@ -1041,9 +1224,31 @@ export async function generateZiweiChapterFromSections(env, input) {
   }));
 
   const createSectionTask = (section, idx) => {
+    const sectionId = String(section?.sectionId || section?.id || "").trim();
+    const sectionOrder = Number(section?.order || Number(String(sectionId).match(/-(\d{1,2})$/)?.[1] || 0) || 0);
     const canonicalCategory = Array.isArray(canonicalChapter?.categories)
-      ? canonicalChapter.categories[idx] || null
+      ? (
+        canonicalChapter.categories.find((cat) => String(cat?.id || "").trim() === sectionId)
+        || (sectionOrder > 0 ? canonicalChapter.categories.find((cat) => Number(cat?.order || 0) === sectionOrder) : null)
+        || null
+      )
       : null;
+
+    logZiweiFlow("info", "CATEGORY_DATA_RESOLVE_START", {
+      sessionId: input.requestId || input.reportId || input.sessionId,
+      purchaseId: input.purchaseId,
+      reportId: input.reportId,
+      chapterId: String(chapter.chapterId || canonicalChapter?.id || "").trim(),
+      chapterTitle: String(chapter.title || canonicalChapter?.title || "").trim(),
+      categoryId: String(canonicalCategory?.id || section?.sectionId || section?.id || "").trim(),
+      categoryTitle: String(section?.title || canonicalCategory?.title || "").trim(),
+      availablePalaceKeys: Array.isArray(minimalPayload?.chart?.palaces)
+        ? minimalPayload.chart.palaces.map((p) => String(p?.key || "")).filter(Boolean)
+        : [],
+      palaceCount: Array.isArray(minimalPayload?.chart?.palaces) ? minimalPayload.chart.palaces.length : 0,
+      message: "카테고리 데이터 해석 시작",
+    });
+
     const resolved = summarizeZiweiResolvedData({
       chapter,
       section,
@@ -1051,17 +1256,127 @@ export async function generateZiweiChapterFromSections(env, input) {
       canonicalCategory,
       minimalPayload,
     }, minimalPayload);
-    const localSeedText = String(canonicalCategory?.localSeedText || "").trim()
+    const weakData = !Boolean(resolved?.resolved?.hasAnyUsableData)
+      && Boolean(resolved?.resolved?.hasBroadChartData);
+    if (weakData) {
+      logZiweiFlow("warn", "CATEGORY_DATA_RESOLVE_WEAK", {
+        sessionId: input.requestId || input.reportId || input.sessionId,
+        purchaseId: input.purchaseId,
+        reportId: input.reportId,
+        chapterId: String(chapter.chapterId || canonicalChapter?.id || "").trim(),
+        chapterTitle: String(chapter.title || canonicalChapter?.title || "").trim(),
+        categoryId: String(canonicalCategory?.id || section?.sectionId || section?.id || "").trim(),
+        categoryTitle: String(section?.title || canonicalCategory?.title || "").trim(),
+        expectedPalaceKeys: Array.isArray(resolved?.resolved?.dataMap?.palaceKeys) ? resolved.resolved.dataMap.palaceKeys : [],
+        resolvedPalaceKeys: Array.isArray(resolved?.resolved?.palaces)
+          ? resolved.resolved.palaces.map((p) => String(p?.key || p?.name || "")).filter(Boolean)
+          : [],
+        availablePalaceKeys: Array.isArray(minimalPayload?.chart?.palaces)
+          ? minimalPayload.chart.palaces.map((p) => String(p?.key || "")).filter(Boolean)
+          : [],
+        palaceCount: Array.isArray(minimalPayload?.chart?.palaces) ? minimalPayload.chart.palaces.length : 0,
+        resolvedPalaceCount: Array.isArray(resolved?.resolved?.palaces) ? resolved.resolved.palaces.length : 0,
+        hasLifePalaceKey: Boolean(minimalPayload?.chart?.lifePalace),
+        hasBodyPalaceKey: Boolean(minimalPayload?.chart?.bodyPalace),
+        message: "카테고리 단위 데이터가 약해 broad chart seed로 보완합니다. 전체 실패로 처리하지 않습니다.",
+      });
+    } else {
+      logZiweiFlow("info", "CATEGORY_DATA_RESOLVE_SUCCESS", {
+        sessionId: input.requestId || input.reportId || input.sessionId,
+        purchaseId: input.purchaseId,
+        reportId: input.reportId,
+        chapterId: String(chapter.chapterId || canonicalChapter?.id || "").trim(),
+        chapterTitle: String(chapter.title || canonicalChapter?.title || "").trim(),
+        categoryId: String(canonicalCategory?.id || section?.sectionId || section?.id || "").trim(),
+        categoryTitle: String(section?.title || canonicalCategory?.title || "").trim(),
+        expectedPalaceKeys: Array.isArray(resolved?.resolved?.dataMap?.palaceKeys) ? resolved.resolved.dataMap.palaceKeys : [],
+        resolvedPalaceKeys: Array.isArray(resolved?.resolved?.palaces)
+          ? resolved.resolved.palaces.map((p) => String(p?.key || p?.name || "")).filter(Boolean)
+          : [],
+        availablePalaceKeys: Array.isArray(minimalPayload?.chart?.palaces)
+          ? minimalPayload.chart.palaces.map((p) => String(p?.key || "")).filter(Boolean)
+          : [],
+        palaceCount: Array.isArray(minimalPayload?.chart?.palaces) ? minimalPayload.chart.palaces.length : 0,
+        resolvedPalaceCount: Array.isArray(resolved?.resolved?.palaces) ? resolved.resolved.palaces.length : 0,
+        message: "카테고리 데이터 해석 성공",
+      });
+    }
+
+    const localSeedText = (weakData
+      ? buildZiweiBroadChartSeed(
+        {
+          id: canonicalCategory?.id || section?.sectionId || section?.id || "",
+          title: section?.title || canonicalCategory?.title || "핵심 해석",
+          dataKey: String(canonicalCategory?.dataKey || section?.dataKey || "").trim() || undefined,
+          order: Number(canonicalCategory?.order || sectionOrder || 0) || undefined,
+          chapterOrder: Number(canonicalCategory?.chapterOrder || chapterNo || 0) || undefined,
+        },
+        minimalPayload,
+      )
+      : "")
       || buildZiweiCategorySeed(
         {
           id: canonicalCategory?.id || section?.sectionId || section?.id || "",
+          order: Number(canonicalCategory?.order || sectionOrder || 0) || undefined,
+          chapterOrder: Number(canonicalCategory?.chapterOrder || chapterNo || 0) || undefined,
+          dataKey: String(canonicalCategory?.dataKey || section?.dataKey || "").trim() || undefined,
           title: section?.title || canonicalCategory?.title || "핵심 해석",
           requiredPalaces: Array.isArray(chapter?.targetPalaces)
             ? chapter.targetPalaces
             : (chapter?.targetPalace ? [chapter.targetPalace] : ["명궁"]),
         },
         minimalPayload,
+        resolved?.resolved,
       );
+
+    const _corePalaces = Array.isArray(minimalPayload?.chart?.palaces) ? minimalPayload.chart.palaces : [];
+    const _resolvedPalaces = Array.isArray(resolved?.resolved?.palaces) ? resolved.resolved.palaces : [];
+    const _resolvedMainStars = _resolvedPalaces.flatMap((p) => Array.isArray(p?.mainStars) ? p.mainStars : []);
+    const _resolvedAssistantStars = _resolvedPalaces.flatMap((p) => Array.isArray(p?.assistantStars) ? p.assistantStars : []);
+    const _resolvedMinorStars = _resolvedPalaces.flatMap((p) => Array.isArray(p?.minorStars) ? p.minorStars : []);
+    const _resolvedMaleficStars = _resolvedPalaces.flatMap((p) => Array.isArray(p?.maleficStars) ? p.maleficStars : []);
+    const _allPalaces = Array.isArray(resolved?.resolved?.allPalaces) ? resolved.resolved.allPalaces : [];
+    const _fallbackStarPool = _allPalaces.flatMap((p) => []
+      .concat(Array.isArray(p?.mainStars) ? p.mainStars : [])
+      .concat(Array.isArray(p?.assistantStars) ? p.assistantStars : [])
+      .concat(Array.isArray(p?.minorStars) ? p.minorStars : [])
+      .concat(Array.isArray(p?.maleficStars) ? p.maleficStars : [])
+    );
+    const _evidencePalaceNames = _resolvedPalaces.map((p) => String(p?.name || p?.key || "").trim()).filter(Boolean);
+    const _evidenceStarNames = []
+      .concat(_resolvedMainStars, _resolvedAssistantStars, _resolvedMinorStars, _resolvedMaleficStars)
+      .map((s) => String(s?.name || s?.nameKo || "").trim())
+      .filter(Boolean);
+    const _fallbackStarNames = _fallbackStarPool
+      .map((s) => String(s?.name || s?.nameKo || "").trim())
+      .filter(Boolean);
+    const _evidenceText = [
+      `궁 근거: ${_evidencePalaceNames.join(", ") || (Array.isArray(_corePalaces) && _corePalaces.length ? _corePalaces.map((p) => String(p?.name || p?.key || "").trim()).filter(Boolean).slice(0, 3).join(", ") : "없음")}`,
+      `별 근거: ${_evidenceStarNames.join(", ") || _fallbackStarNames.slice(0, 12).join(", ") || "주성 정보 제한"}`,
+      `밝기 근거: ${String(resolved?.brightnessSummary || "").trim() || "평/△"}`,
+      `사화 근거: ${String(resolved?.transformationSummary || "").trim() || "없음"}`,
+    ].join(" | ");
+
+    const coreAnalysisJson = {
+      lifePalaceKey: String(minimalPayload?.chart?.lifePalace || "").trim() || "life",
+      bodyPalaceKey: String(minimalPayload?.chart?.bodyPalace || "").trim() || undefined,
+      palaces: _corePalaces,
+      fourTransformations: minimalPayload?.chart?.fourTransformations || undefined,
+      strongestPalaces: minimalPayload?.chart?.strongestPalaces || undefined,
+      weakestPalaces: minimalPayload?.chart?.weakestPalaces || undefined,
+    };
+
+    const resolvedCategoryData = {
+      palaceKeys: _resolvedPalaces.map((p) => String(p?.key || "").trim()).filter(Boolean),
+      palaceNames: _resolvedPalaces.map((p) => String(p?.name || p?.key || "").trim()).filter(Boolean),
+      mainStars: _resolvedMainStars,
+      assistantStars: _resolvedAssistantStars,
+      minorStars: _resolvedMinorStars,
+      maleficStars: _resolvedMaleficStars,
+      transformations: Array.isArray(resolved?.resolved?.transformations) ? resolved.resolved.transformations : [],
+      brightnessSummary: String(resolved?.brightnessSummary || "").trim() || "평/△",
+      evidenceText: _evidenceText,
+    };
 
     const sectionInput = {
       service: "ziwei-premium",
@@ -1070,6 +1385,9 @@ export async function generateZiweiChapterFromSections(env, input) {
       chapterTitle: String(chapter.title || canonicalChapter?.title || `Chapter ${chapterNo}`).trim(),
       categoryId: String(canonicalCategory?.id || section?.sectionId || section?.id || "").trim(),
       categoryTitle: String(section?.title || canonicalCategory?.title || "핵심 해석").trim(),
+      dataKey: String(canonicalCategory?.dataKey || section?.dataKey || resolved?.resolved?.dataKey || "").trim() || String(canonicalCategory?.id || section?.sectionId || section?.id || "").trim(),
+      coreAnalysisJson,
+      resolvedCategoryData,
       localSeedText,
       relatedPalaceSummary: resolved.relatedPalaceSummary,
       relatedStarSummary: resolved.relatedStarSummary,
@@ -1080,6 +1398,7 @@ export async function generateZiweiChapterFromSections(env, input) {
         tone: "고급 자미두수 프리미엄 상담문",
         minLength: Number(section?.minChars || canonicalCategory?.minChars || 900),
         avoid: [
+          "현재 확보된 명반 핵심값",
           "이 항목은 현재 확보된 명반 핵심값을 기준으로",
           "실행 포인트: 강점 구간은 작은 실행을 빠르게 누적하고",
           "변동 구간은 기준 루틴을 먼저 고정하세요",
@@ -1121,6 +1440,19 @@ export async function generateZiweiChapterFromSections(env, input) {
       resolved,
     };
 
+    logZiweiFlow("info", "CATEGORY_SEED_READY", {
+      sessionId: input.requestId || input.reportId || input.sessionId,
+      purchaseId: input.purchaseId,
+      reportId: input.reportId,
+      chapterId: sectionInput.chapterId,
+      chapterTitle: sectionInput.chapterTitle,
+      categoryId: sectionInput.categoryId,
+      categoryTitle: sectionInput.categoryTitle,
+      resolvedPalaceCount: Array.isArray(resolved?.resolved?.palaces) ? resolved.resolved.palaces.length : 0,
+      localSeedLength: String(localSeedText || "").length,
+      message: weakData ? "weak-data seed 준비 완료" : "resolved seed 준비 완료",
+    });
+
     return {
       idx,
       section,
@@ -1139,6 +1471,22 @@ export async function generateZiweiChapterFromSections(env, input) {
       categoryCount: sections.length,
       message: "llm-request",
     }));
+
+    logZiweiFlow("info", "LLM_SECTION_REQUEST_READY", {
+      sessionId: input.requestId || input.reportId || input.sessionId,
+      purchaseId: input.purchaseId,
+      reportId: input.reportId,
+      chapterId: sectionInput.chapterId,
+      chapterTitle: sectionInput.chapterTitle,
+      categoryId: sectionInput.categoryId,
+      categoryTitle: sectionInput.categoryTitle,
+      resolvedPalaceCount: Array.isArray(sectionInput?.resolved?.resolved?.palaces)
+        ? sectionInput.resolved.resolved.palaces.length
+        : 0,
+      palaceCount: Array.isArray(sectionInput?.coreAnalysisJson?.palaces) ? sectionInput.coreAnalysisJson.palaces.length : 0,
+      localSeedLength: String(sectionInput.localSeedText || "").length,
+      message: "LLM 호출 직전 요청 입력 점검 완료",
+    });
 
     const result = await generateZiweiSectionWithLLM(env, sectionInput);
     const normalized = normalizeZiweiSectionResult(sectionInput, result.ok ? result.content : result, minimalPayload);
@@ -1159,16 +1507,9 @@ export async function generateZiweiChapterFromSections(env, input) {
 
   for (let start = 0; start < sectionTasks.length; start += batchConfig.batchSize) {
     const taskBatch = sectionTasks.slice(start, start + batchConfig.batchSize);
-    if (batchConfig.parallel && taskBatch.length > 1) {
-      const batchResults = await Promise.all(taskBatch.map((task) => runSectionTask(task)));
-      batchResults.forEach((row) => {
-        orderedTaskResults[row.task.idx] = row;
-      });
-    } else {
-      for (const task of taskBatch) {
-        const row = await runSectionTask(task);
-        orderedTaskResults[row.task.idx] = row;
-      }
+    for (const task of taskBatch) {
+      const row = await runSectionTask(task);
+      orderedTaskResults[row.task.idx] = row;
     }
   }
 
@@ -1178,20 +1519,25 @@ export async function generateZiweiChapterFromSections(env, input) {
     const { result, normalized, sectionInput, section, resolved } = row;
 
     if (result.ok && normalized.source === "llm") {
-      console.info("[ZiweiPremium][Flow] LLM_SECTION_SUCCESS", {
-        sessionId: String(input.requestId || input.reportId || input.sessionId || "").trim() || null,
-        purchaseId: String(input.purchaseId || input.reportId || "").trim() || null,
+      logZiweiFlow("info", "LLM_SECTION_CALL_SUCCESS", {
+        sessionId: input.requestId || input.reportId || input.sessionId,
+        purchaseId: input.purchaseId,
+        reportId: input.reportId,
         chapterId: sectionInput.chapterId,
+        chapterTitle: sectionInput.chapterTitle,
         categoryId: sectionInput.categoryId,
-        palaceKeys: Array.isArray(resolved.resolved?.dataMap?.palaceKeys) ? resolved.resolved.dataMap.palaceKeys : [],
-        palaceNames: resolved.resolved.palaces.map((palace) => String(palace?.name || palace?.key || "").trim()).filter(Boolean),
-        mainStarCount: resolved.resolved.palaces.reduce((sum, palace) => sum + (Array.isArray(palace?.mainStars) ? palace.mainStars.length : 0), 0),
-        assistantStarCount: resolved.resolved.palaces.reduce((sum, palace) => sum + (Array.isArray(palace?.assistantStars) ? palace.assistantStars.length : 0), 0),
+        categoryTitle: sectionInput.categoryTitle,
+        expectedPalaceKeys: Array.isArray(resolved.resolved?.dataMap?.palaceKeys) ? resolved.resolved.dataMap.palaceKeys : [],
+        resolvedPalaceKeys: resolved.resolved.palaces.map((p) => String(p?.key || p?.name || "")).filter(Boolean),
+        availablePalaceKeys: minimalPayload?.chart?.palaces?.map((p) => String(p?.key || "")),
+        palaceCount: minimalPayload?.chart?.palaces?.length ?? 0,
+        resolvedPalaceCount: resolved.resolved.palaces.length,
+        mainStarCount: resolved.resolved.palaces.reduce((s, p) => s + (Array.isArray(p?.mainStars) ? p.mainStars.length : 0), 0),
         transformationCount: Array.isArray(resolved.resolved?.transformations) ? resolved.resolved.transformations.length : 0,
+        hasLifePalaceKey: Boolean(minimalPayload?.chart?.lifePalace),
+        hasBodyPalaceKey: Boolean(minimalPayload?.chart?.bodyPalace),
         bodyLength: String(normalized.body || "").length,
-        source: normalized.source,
-        errorCode: null,
-        message: "llm-section-success",
+        source: "llm",
       });
       generatedSections.push({
         sectionId: sectionInput.categoryId || section.sectionId,
@@ -1201,47 +1547,61 @@ export async function generateZiweiChapterFromSections(env, input) {
         source: normalized.source,
       });
     } else {
-      console.info("[ZiweiPremium][Flow] LLM_SECTION_LOW_QUALITY", {
-        sessionId: String(input.requestId || input.reportId || input.sessionId || "").trim() || null,
-        purchaseId: String(input.purchaseId || input.reportId || "").trim() || null,
+      // CHAPTER_DATA_FAILED 원인 추적 — 이 로그에서 데이터없음/키불일치/LLM실패 구분 가능
+      const _resolvedPalaceKeys = resolved.resolved.palaces.map((p) => String(p?.key || p?.name || "")).filter(Boolean);
+      const _expectedPalaceKeys = Array.isArray(resolved.resolved?.dataMap?.palaceKeys) ? resolved.resolved.dataMap.palaceKeys : [];
+      const _availableKeys = minimalPayload?.chart?.palaces?.map((p) => String(p?.key || "")) ?? [];
+      const _palaceCount = minimalPayload?.chart?.palaces?.length ?? 0;
+      const _resolvedCount = resolved.resolved.palaces.length;
+      const _isWeakCategoryData = !Boolean(resolved?.resolved?.hasAnyUsableData)
+        && Boolean(resolved?.resolved?.hasBroadChartData);
+      // 원인 분류
+      const _diagReason = _palaceCount === 0
+        ? "데이터 없음 — minimalPayload.chart.palaces가 비어 있음"
+        : _resolvedCount === 0
+          ? `키 불일치 — expectedPalaceKeys=[${_expectedPalaceKeys.join(",")}], availableKeys=[${_availableKeys.join(",")}]`
+          : `LLM 호출 실패 또는 품질 기준 미달 — errorCode=${result.errorCode || "LOW_QUALITY_SECTION"}`;
+      const _fallbackStage = _isWeakCategoryData ? "CATEGORY_DATA_WEAK_FALLBACK" : "CHAPTER_DATA_FAILED";
+      logZiweiFlow(_isWeakCategoryData ? "info" : "warn", _fallbackStage, {
+        sessionId: input.requestId || input.reportId || input.sessionId,
+        purchaseId: input.purchaseId,
+        reportId: input.reportId,
         chapterId: sectionInput.chapterId,
+        chapterTitle: sectionInput.chapterTitle,
         categoryId: sectionInput.categoryId,
-        palaceKeys: Array.isArray(resolved.resolved?.dataMap?.palaceKeys) ? resolved.resolved.dataMap.palaceKeys : [],
-        palaceNames: resolved.resolved.palaces.map((palace) => String(palace?.name || palace?.key || "").trim()).filter(Boolean),
-        mainStarCount: resolved.resolved.palaces.reduce((sum, palace) => sum + (Array.isArray(palace?.mainStars) ? palace.mainStars.length : 0), 0),
-        assistantStarCount: resolved.resolved.palaces.reduce((sum, palace) => sum + (Array.isArray(palace?.assistantStars) ? palace.assistantStars.length : 0), 0),
+        categoryTitle: sectionInput.categoryTitle,
+        expectedPalaceKeys: _expectedPalaceKeys,
+        resolvedPalaceKeys: _resolvedPalaceKeys,
+        availablePalaceKeys: _availableKeys,
+        palaceCount: _palaceCount,
+        resolvedPalaceCount: _resolvedCount,
+        mainStarCount: resolved.resolved.palaces.reduce((s, p) => s + (Array.isArray(p?.mainStars) ? p.mainStars.length : 0), 0),
+        maleficStarCount: resolved.resolved.palaces.reduce((s, p) => s + (Array.isArray(p?.maleficStars) ? p.maleficStars.length : 0), 0),
         transformationCount: Array.isArray(resolved.resolved?.transformations) ? resolved.resolved.transformations.length : 0,
+        hasLifePalaceKey: Boolean(minimalPayload?.chart?.lifePalace),
+        hasBodyPalaceKey: Boolean(minimalPayload?.chart?.bodyPalace),
+        hasFourTransformations: _availableKeys.some((_, i) => Array.isArray(minimalPayload?.chart?.palaces?.[i]?.transformations) && minimalPayload.chart.palaces[i].transformations.length > 0),
         bodyLength: String(normalized.body || "").length,
         source: normalized.source,
         errorCode: result.errorCode || "LOW_QUALITY_SECTION",
-        message: String(result.lastError || result.errorCode || "low-quality-or-llm-failed"),
+        errorMessage: String(result.lastError || result.errorCode || "expert-local-fallback"),
+        message: _isWeakCategoryData
+          ? `최소 데이터 약함 보완 처리: ${_diagReason}`
+          : _diagReason,
       });
-      console.info("[ZiweiPremium][Flow] EXPERT_FALLBACK_USED", {
-        sessionId: String(input.requestId || input.reportId || input.sessionId || "").trim() || null,
-        purchaseId: String(input.purchaseId || input.reportId || "").trim() || null,
-        chapterId: sectionInput.chapterId,
-        categoryId: sectionInput.categoryId,
-        palaceKeys: Array.isArray(resolved.resolved?.dataMap?.palaceKeys) ? resolved.resolved.dataMap.palaceKeys : [],
-        palaceNames: resolved.resolved.palaces.map((palace) => String(palace?.name || palace?.key || "").trim()).filter(Boolean),
-        mainStarCount: resolved.resolved.palaces.reduce((sum, palace) => sum + (Array.isArray(palace?.mainStars) ? palace.mainStars.length : 0), 0),
-        assistantStarCount: resolved.resolved.palaces.reduce((sum, palace) => sum + (Array.isArray(palace?.assistantStars) ? palace.assistantStars.length : 0), 0),
-        transformationCount: Array.isArray(resolved.resolved?.transformations) ? resolved.resolved.transformations.length : 0,
-        bodyLength: String(normalized.body || "").length,
-        source: normalized.source,
-        errorCode: result.errorCode || "LOW_QUALITY_SECTION",
-        message: String(result.lastError || result.errorCode || "expert-local-fallback"),
-      });
-      failedSections.push({
-        sectionId: sectionInput.categoryId || section.sectionId,
-        sectionTitle: section.title,
-        errorCode: result.errorCode || "LOW_QUALITY_SECTION",
-        reason: result.lastError || "Unknown reason",
-      });
+      if (!_isWeakCategoryData && llmRequired) {
+        failedSections.push({
+          sectionId: sectionInput.categoryId || section.sectionId,
+          sectionTitle: section.title,
+          errorCode: result.errorCode || "LOW_QUALITY_SECTION",
+          reason: result.lastError || "Unknown reason",
+        });
+      }
       generatedSections.push({
         sectionId: sectionInput.categoryId || section.sectionId,
         sectionTitle: normalized.title,
-        content: `해석을 불러오는 데 실패했습니다.\n\n${String(normalized.body || "").trim()}`,
-        textLength: String(`해석을 불러오는 데 실패했습니다.\n\n${String(normalized.body || "").trim()}`).length,
+        content: String(normalized.body || "").trim(),
+        textLength: String(normalized.body || "").trim().length,
         source: normalized.source,
       });
     }
@@ -1249,19 +1609,19 @@ export async function generateZiweiChapterFromSections(env, input) {
 
   const nonLlmSections = generatedSections.filter((row) => String(row?.source || "") !== "llm");
   if (llmRequired && nonLlmSections.length > 0) {
-    return {
-      ok: false,
-      code: "ZIWEI_LLM_REQUIRED_NOT_SATISFIED",
-      message: "자미두수 PDF는 각 세부 카테고리를 LLM API 기반으로 생성해야 합니다.",
-      failedSections: nonLlmSections.map((row) => ({
-        sectionId: row?.sectionId || "",
-        sectionTitle: row?.sectionTitle || "",
-        reason: "NON_LLM_SOURCE",
-      })),
-      generatedSections,
-      totalLength: generatedSections.reduce((sum, row) => sum + Number(row?.textLength || 0), 0),
-      llmRequired: true,
-    };
+    // LLM 호출 실패 시 데이터 기반 expert fallback 허용 — ok: false 차단 제거
+    // 원인 로그는 LLM_SECTION_LOW_QUALITY / LLM_KEY_MISSING 에서 이미 기록됨
+    logZiweiFlow("warn", "LLM_REQUIRED_EXPERT_FALLBACK_ALLOWED", {
+      sessionId: input.requestId || input.reportId || input.sessionId,
+      purchaseId: input.purchaseId,
+      reportId: input.reportId,
+      chapterId: String(chapter.chapterId || canonicalChapter?.id || "").trim() || null,
+      availablePalaceKeys: minimalPayload?.chart?.palaces?.map((p) => String(p?.key || "")),
+      palaceCount: minimalPayload?.chart?.palaces?.length ?? 0,
+      hasLifePalaceKey: Boolean(minimalPayload?.chart?.lifePalace),
+      hasBodyPalaceKey: Boolean(minimalPayload?.chart?.bodyPalace),
+      message: `expert-fallback 허용: llmRequired=${llmRequired}, nonLlm=${nonLlmSections.length}/${generatedSections.length}. sectionIds=[${nonLlmSections.map((r) => r.sectionId).join(",")}]`,
+    });
   }
 
   const bannedPdfText = [
@@ -1273,41 +1633,42 @@ export async function generateZiweiChapterFromSections(env, input) {
     "자동 복구 생성",
     "fallback",
     "데이터 미확보",
+    "해석을 불러오는 데 실패했습니다",
   ];
   const finalText = generatedSections.map((row) => String(row?.content || "")).join("\n");
   const hasBanned = bannedPdfText.some((phrase) => finalText.includes(phrase));
+  const _baseChapterDiag = {
+    sessionId: input.requestId || input.reportId || input.sessionId,
+    purchaseId: input.purchaseId,
+    reportId: input.reportId,
+    chapterId: String(chapter.chapterId || canonicalChapter?.id || "").trim() || null,
+    availablePalaceKeys: minimalPayload?.chart?.palaces?.map((p) => String(p?.key || "")),
+    palaceCount: minimalPayload?.chart?.palaces?.length ?? 0,
+    hasLifePalaceKey: Boolean(minimalPayload?.chart?.lifePalace),
+    hasBodyPalaceKey: Boolean(minimalPayload?.chart?.bodyPalace),
+    bodyLength: finalText.length,
+  };
   if (hasBanned) {
-    console.warn("[ZiweiPremium][Flow] PDF_TEXT_VALIDATION_SUCCESS", {
-      sessionId: String(input.requestId || input.reportId || input.sessionId || "").trim() || null,
-      purchaseId: String(input.purchaseId || input.reportId || "").trim() || null,
-      chapterId: String(chapter.chapterId || canonicalChapter?.id || "").trim() || null,
-      categoryId: null,
-      palaceKeys: [],
-      palaceNames: [],
-      mainStarCount: 0,
-      assistantStarCount: 0,
-      transformationCount: 0,
-      bodyLength: finalText.length,
-      source: "validation-failed",
+    logZiweiFlow("warn", "PDF_TEXT_BANNED_CONTENT", {
+      ..._baseChapterDiag,
       errorCode: "BANNED_TEXT_PRESENT",
-      message: "pdf text contains banned ziwei text",
+      message: "PDF 본문에 금지어 포함됨. bannedPdfText 항목 확인 필요.",
     });
   } else {
-    console.info("[ZiweiPremium][Flow] PDF_TEXT_VALIDATION_SUCCESS", {
-      sessionId: String(input.requestId || input.reportId || input.sessionId || "").trim() || null,
-      purchaseId: String(input.purchaseId || input.reportId || "").trim() || null,
-      chapterId: String(chapter.chapterId || canonicalChapter?.id || "").trim() || null,
-      categoryId: null,
-      palaceKeys: [],
-      palaceNames: [],
-      mainStarCount: 0,
-      assistantStarCount: 0,
-      transformationCount: 0,
-      bodyLength: finalText.length,
+    logZiweiFlow("info", "PDF_TEXT_VALIDATION_PASS", {
+      ..._baseChapterDiag,
       source: "validation-success",
       errorCode: null,
       message: "pdf text validation success",
     });
+    const allBodiesPresent = generatedSections.every((row) => String(row?.content || "").trim().length > 0);
+    if (allBodiesPresent) {
+      logZiweiFlow("info", "PDF_RENDER_SUCCESS", {
+        ..._baseChapterDiag,
+        source: "pdf-ready",
+        message: "모든 카테고리 본문 생성 완료 및 렌더링 가능한 상태",
+      });
+    }
   }
 
   return {

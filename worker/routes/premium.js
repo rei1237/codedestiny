@@ -25238,11 +25238,21 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
       reportId,
     });
   } catch (error) {
-    console.error("[ZiweiPremium][Gemini] chapter runtime failure", {
-      chapter,
-      requestId,
-      reportType,
-      message: String(error?.message || "unknown"),
+    console.error("[ZiweiPremium][Flow] CHAPTER_RUNTIME_FAILURE", {
+      stage: "CHAPTER_RUNTIME_FAILURE",
+      sessionId: requestId || null,
+      reportId: reportId || null,
+      chapterId: String(chapterSpec?.chapterId || `ch${String(chapter).padStart(2, "0")}`),
+      chapterTitle: String(chapterSpec?.title || "").trim() || null,
+      palaceCount: Array.isArray(reportPayload?.palaces) ? reportPayload.palaces.length : 0,
+      availablePalaceKeys: Array.isArray(reportPayload?.palaces) ? reportPayload.palaces.map((p) => String(p?.key || "")).filter(Boolean) : [],
+      hasLifePalaceKey: Boolean(reportPayload?.chartMeta?.mingGong),
+      hasBodyPalaceKey: Boolean(reportPayload?.chartMeta?.shenGong),
+      hasFourTransformations: Array.isArray(reportPayload?.palaces) && reportPayload.palaces.some((p) => Array.isArray(p?.transformations) && p.transformations.length > 0),
+      errorName: error?.name || null,
+      errorMessage: String(error?.message || "UNKNOWN_ERROR"),
+      errorStack: typeof error?.stack === "string" ? error.stack.slice(0, 1000) : null,
+      message: "LLM 호출 실패 — 네트워크/쿼터/타임아웃 또는 payload 구성 오류 확인",
     });
     return json({
       ok: false,
@@ -25257,12 +25267,23 @@ async function handleZiweiBookSession(request, env, authInfo = null) {
   }
 
   if (!chapterResult?.ok) {
-    console.warn("[ZiweiBook] API_GENERATION_FAILED_NO_FALLBACK", {
-      requestId,
-      chapter,
-      code: chapterResult?.code || "ZIWEI_CHAPTER_GENERATION_FAILED",
-      message: chapterResult?.message || "챕터 생성 실패",
-      failedSections: chapterResult?.failedSections || [],
+    const _failedSections = Array.isArray(chapterResult?.failedSections) ? chapterResult.failedSections : [];
+    console.warn("[ZiweiPremium][Flow] CHAPTER_DATA_FAILED", {
+      stage: "CHAPTER_DATA_FAILED",
+      sessionId: requestId || null,
+      reportId: reportId || null,
+      chapterId: String(chapterSpec?.chapterId || `ch${String(chapter).padStart(2, "0")}`),
+      chapterTitle: String(chapterSpec?.title || "").trim() || null,
+      palaceCount: Array.isArray(reportPayload?.palaces) ? reportPayload.palaces.length : 0,
+      availablePalaceKeys: Array.isArray(reportPayload?.palaces) ? reportPayload.palaces.map((p) => String(p?.key || "")).filter(Boolean) : [],
+      hasLifePalaceKey: Boolean(reportPayload?.chartMeta?.mingGong),
+      hasBodyPalaceKey: Boolean(reportPayload?.chartMeta?.shenGong),
+      hasFourTransformations: Array.isArray(reportPayload?.palaces) && reportPayload.palaces.some((p) => Array.isArray(p?.transformations) && p.transformations.length > 0),
+      errorCode: chapterResult?.code || "ZIWEI_CHAPTER_GENERATION_FAILED",
+      errorMessage: chapterResult?.message || "챕터 생성 실패",
+      failedSectionIds: _failedSections.map((r) => String(r?.sectionId || "")),
+      failedReasons: _failedSections.map((r) => String(r?.reason || "")),
+      message: `CHAPTER_DATA_FAILED — code=${chapterResult?.code}. 세부 원인은 worker 로그의 CHAPTER_DATA_FAILED(section-generator)를 확인.`,
     });
     return json({
       ok: false,

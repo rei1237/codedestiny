@@ -62,3 +62,9 @@
 	- `id="cdAuthLogoutBtn" class="auth-btn auth-btn--logout"`
 - Mandatory check command before commit:
 	- `npm run verify:locale-main-sync`
+
+## 9) Long-Run Execution Continuity (Must Follow)
+- Do not stop work only because the task is taking a long time or requires many iterations.
+- Continue until the requested outcome is fully completed, or a real blocker is identified with concrete evidence.
+- If execution takes long, provide short progress updates and keep iterating instead of ending early.
+- Do not ask for "continue" to resume normal work unless a hard blocker requires user input/decision.

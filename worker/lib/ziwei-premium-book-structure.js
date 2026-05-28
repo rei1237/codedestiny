@@ -816,25 +816,88 @@ export const ZIWEI_PDF_CATEGORY_DATA_MAP = Object.freeze({
   "c12-07": { palaceKeys: ["all"], data: ["finalRoadmap"] },
 });
 
-const ZIWEI_PDF_PALACE_KEY_ALIASES = Object.freeze({
-  life: ["life", "ming", "명궁"],
-  body: ["body", "shen", "신궁"],
-  siblings: ["siblings", "brothers", "형제궁", "siblingsPalace"],
-  spouse: ["spouse", "partner", "부부궁", "marriage"],
-  children: ["children", "자녀궁", "offspring"],
-  wealth: ["wealth", "money", "재백궁", "finance"],
-  health: ["health", "질액궁", "illness"],
-  migration: ["migration", "천이궁", "travel", "move"],
-  friends: ["friends", "교우궁", "network", "support"],
-  career: ["career", "관록궁", "job", "work"],
-  property: ["property", "전택궁", "home", "house"],
-  fortune: ["fortune", "복덕궁", "blessing", "mind"],
-  parents: ["parents", "부모궁"],
+const ZIWEI_PALACE_KEY_ALIASES = Object.freeze({
+  life: ["life", "ming", "命宮", "명궁", "命宫"],
+  body: ["body", "shen", "身宮", "신궁", "身宫"],
+  siblings: ["siblings", "brothers", "兄弟宮", "형제궁"],
+  spouse: ["spouse", "marriage", "夫妻宮", "부부궁"],
+  children: ["children", "子女宮", "자녀궁"],
+  wealth: ["wealth", "money", "財帛宮", "재백궁", "财帛宫"],
+  health: ["health", "illness", "疾厄宮", "질액궁"],
+  migration: ["migration", "travel", "遷移宮", "천이궁", "迁移宫"],
+  friends: ["friends", "servants", "交友宮", "奴僕宮", "노복궁", "교우궁"],
+  career: ["career", "官祿宮", "관록궁", "事业宫"],
+  property: ["property", "田宅宮", "전택궁"],
+  fortune: ["fortune", "福德宮", "복덕궁"],
+  parents: ["parents", "父母宮", "부모궁"],
   all: ["all"],
 });
 
+function normalizeZiweiAliasToken(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, "");
+}
+
+const ZIWEI_PALACE_KEY_REVERSE_MAP = (() => {
+  const map = {};
+  Object.entries(ZIWEI_PALACE_KEY_ALIASES).forEach(([canonicalKey, aliases]) => {
+    [canonicalKey].concat(Array.isArray(aliases) ? aliases : []).forEach((alias) => {
+      const token = normalizeZiweiAliasToken(alias);
+      if (!token || map[token]) return;
+      map[token] = canonicalKey;
+    });
+  });
+  return Object.freeze(map);
+})();
+
+export function normalizeZiweiPalaceKey(rawKeyOrName) {
+  const token = normalizeZiweiAliasToken(rawKeyOrName);
+  if (!token) return null;
+  return ZIWEI_PALACE_KEY_REVERSE_MAP[token] || null;
+}
+
+export function normalizeZiweiPalaces(rawPalaces = []) {
+  const rows = Array.isArray(rawPalaces) ? rawPalaces : [];
+  return rows.map((palace, index) => {
+    const item = palace && typeof palace === "object" ? palace : {};
+    const originalKey = String(item.key || "").trim();
+    const aliasSeed = originalKey
+      || String(item.name || item.nameKo || item.palace || "").trim();
+    const normalizedKey = normalizeZiweiPalaceKey(aliasSeed);
+    return {
+      ...item,
+      key: normalizedKey || originalKey || `palace-${index + 1}`,
+      originalKey: originalKey || undefined,
+    };
+  });
+}
+
 function normalizeZiweiCategoryId(category = {}) {
   return String(category?.id || category?.categoryId || "").trim();
+}
+
+function toZiweiCategoryDataKeyByOrder(chapterOrder, categoryOrder) {
+  const c = Number(chapterOrder);
+  const s = Number(categoryOrder);
+  if (!Number.isInteger(c) || c <= 0 || !Number.isInteger(s) || s <= 0) return "";
+  return `c${String(c).padStart(2, "0")}-${String(s).padStart(2, "0")}`;
+}
+
+function resolveZiweiCategoryDataKey(category = {}) {
+  const explicit = String(category?.dataKey || "").trim();
+  if (explicit) return explicit;
+
+  const id = normalizeZiweiCategoryId(category);
+  if (id && ZIWEI_PDF_CATEGORY_DATA_MAP[id]) return id;
+
+  // dataKey가 없을 때만 chapter/category order 기반으로 안전 보정
+  const fallbackByOrder = toZiweiCategoryDataKeyByOrder(category?.chapterOrder, category?.order);
+  if (fallbackByOrder && ZIWEI_PDF_CATEGORY_DATA_MAP[fallbackByOrder]) return fallbackByOrder;
+
+  // 마지막 안전장치: 맵 키를 못 찾으면 빈 문자열 반환 후 all fallback 사용
+  return "";
 }
 
 function normalizeZiweiPalaceKeyToken(value) {
@@ -917,13 +980,14 @@ function formatZiweiPalaceStrength(palace) {
 }
 
 function collectPayloadPalaces(payload) {
-  const chartPalaces = Array.isArray(payload?.chart?.palaces) ? payload.chart.palaces : [];
+  const chartPalaces = normalizeZiweiPalaces(payload?.chart?.palaces || []);
   return chartPalaces.map((row, index) => {
     const item = row && typeof row === "object" ? row : {};
     const key = String(item.key || `palace-${index + 1}`).trim() || `palace-${index + 1}`;
     const name = String(item.name || item.nameKo || item.palace || key).trim() || key;
     return {
       key,
+      originalKey: String(item.originalKey || item.key || "").trim() || undefined,
       name,
       branch: String(item.branch || item.earthlyBranch || "").trim(),
       stem: String(item.stem || item.heavenlyStem || "").trim(),
@@ -931,6 +995,8 @@ function collectPayloadPalaces(payload) {
       assistantStars: normalizeZiweiStarList(item.assistantStars || item.subStars || item.auxStars || []),
       minorStars: normalizeZiweiStarList(item.minorStars || []),
       maleficStars: normalizeZiweiStarList(item.maleficStars || item.badStars || []),
+      isMing: Boolean(item.isMing),
+      isShen: Boolean(item.isShen),
       brightnessSummary: String(item.brightnessSummary || "").trim(),
       palaceStrength: String(item.palaceStrength || "").trim() || undefined,
       interpretationSeed: String(item.interpretationSeed || item.shortInterpretationSeed || "").trim(),
@@ -948,47 +1014,59 @@ function collectPayloadPalaces(payload) {
 }
 
 function getZiweiPalaceAliases(key) {
-  const token = normalizeZiweiPalaceKeyToken(key);
-  if (!token) return [];
-  return Array.isArray(ZIWEI_PDF_PALACE_KEY_ALIASES[token])
-    ? ZIWEI_PDF_PALACE_KEY_ALIASES[token]
-    : [token];
+  const canonicalKey = normalizeZiweiPalaceKey(key);
+  if (!canonicalKey) return [];
+  const aliases = Array.isArray(ZIWEI_PALACE_KEY_ALIASES[canonicalKey])
+    ? ZIWEI_PALACE_KEY_ALIASES[canonicalKey]
+    : [];
+  return [canonicalKey].concat(aliases).filter(Boolean);
 }
 
 function palaceMatchesToken(palace, token) {
-  const candidate = normalizeZiweiPalaceKeyToken(token);
+  const candidate = normalizeZiweiPalaceKey(token);
   if (!candidate) return false;
-  const names = [palace?.key, palace?.name, palace?.nameKo, palace?.palace, palace?.palaceName].map(normalizeZiweiPalaceKeyToken);
+  if (candidate === "all") return true;
+
+  const palaceKey = normalizeZiweiPalaceKey(palace?.key)
+    || normalizeZiweiPalaceKey(palace?.originalKey)
+    || normalizeZiweiPalaceKey(palace?.name)
+    || normalizeZiweiPalaceKey(palace?.nameKo)
+    || normalizeZiweiPalaceKey(palace?.palace)
+    || normalizeZiweiPalaceKey(palace?.palaceName);
+
   if (candidate === "life") {
-    return names.includes("ming") || names.includes("명궁") || names.includes(normalizeZiweiPalaceKeyToken(palace?.key));
+    return Boolean(palace?.isMing) || palaceKey === "life";
   }
   if (candidate === "body") {
-    return names.includes("shen") || names.includes("신궁");
+    return Boolean(palace?.isShen) || palaceKey === "body";
   }
-  return names.includes(candidate) || names.includes(candidate.replace(/palace$/, ""));
+  return palaceKey === candidate;
 }
 
 function resolveZiweiCategoryPalaces(category = {}, payload = {}) {
   const payloadPalaces = collectPayloadPalaces(payload);
   const categoryId = normalizeZiweiCategoryId(category);
-  const mapEntry = ZIWEI_PDF_CATEGORY_DATA_MAP[categoryId] || null;
-  const requestedKeys = Array.isArray(mapEntry?.palaceKeys) && mapEntry.palaceKeys.length
-    ? mapEntry.palaceKeys
-    : Array.isArray(category.requiredPalaces)
-      ? category.requiredPalaces
+  const dataKey = resolveZiweiCategoryDataKey(category);
+  const mapEntry = ZIWEI_PDF_CATEGORY_DATA_MAP[dataKey] || null;
+  // Canonical category.requiredPalaces가 최신 소스이므로 우선 사용한다.
+  const requestedKeys = Array.isArray(category.requiredPalaces) && category.requiredPalaces.length
+    ? category.requiredPalaces
+    : Array.isArray(mapEntry?.palaceKeys) && mapEntry.palaceKeys.length
+      ? mapEntry.palaceKeys
       : [];
   const aliases = requestedKeys.flatMap((key) => getZiweiPalaceAliases(key));
   const picked = payloadPalaces.filter((palace) => aliases.some((alias) => palaceMatchesToken(palace, alias)));
   if (picked.length) return picked;
   if (requestedKeys.includes("all")) return payloadPalaces;
-  return payloadPalaces.slice(0, 1);
+  return [];
 }
 
 export function resolveZiweiCategoryData(category = {}, payload = {}) {
   const palaces = resolveZiweiCategoryPalaces(category, payload);
   const payloadPalaces = collectPayloadPalaces(payload);
   const categoryId = normalizeZiweiCategoryId(category);
-  const mapEntry = ZIWEI_PDF_CATEGORY_DATA_MAP[categoryId] || { palaceKeys: ["all"], data: [] };
+  const dataKey = resolveZiweiCategoryDataKey(category);
+  const mapEntry = ZIWEI_PDF_CATEGORY_DATA_MAP[dataKey] || { palaceKeys: ["all"], data: [] };
   const transformations = palaces.flatMap((palace) => Array.isArray(palace.transformations) ? palace.transformations : []);
   const chartTransformations = payload?.chart?.fourTransformations && typeof payload.chart.fourTransformations === "object"
     ? Object.entries(payload.chart.fourTransformations)
@@ -1008,36 +1086,80 @@ export function resolveZiweiCategoryData(category = {}, payload = {}) {
     : [];
   const primaryPalace = palaces[0] || payloadPalaces[0] || null;
   const secondPalace = palaces[1] || null;
+  const hasCategoryPalaceShell = palaces.some((palace) => {
+    const key = String(palace?.key || "").trim();
+    const name = String(palace?.name || "").trim();
+    return Boolean(key || name);
+  });
+  const hasCategoryMainStars = palaces.some((palace) => Array.isArray(palace?.mainStars) && palace.mainStars.length > 0);
+  const hasBroadChartData = payloadPalaces.some((palace) => {
+    const key = String(palace?.key || "").trim();
+    const name = String(palace?.name || "").trim();
+    const hasMainStars = Array.isArray(palace?.mainStars) && palace.mainStars.length > 0;
+    return Boolean(key || name || hasMainStars);
+  });
+  const hasAnyUsableData = hasCategoryPalaceShell || hasCategoryMainStars;
 
   return {
     categoryId,
+    dataKey,
     dataMap: mapEntry,
     palaces,
     primaryPalace,
     secondPalace,
     transformations: transformations.concat(chartTransformations),
     allPalaces: payloadPalaces,
+    hasAnyUsableData,
+    hasBroadChartData,
   };
 }
 
-function buildZiweiResolvedCategorySummary(category = {}, payload = {}) {
-  const resolved = resolveZiweiCategoryData(category, payload);
-  const palaceNames = resolved.palaces.map((row) => String(row?.name || "").trim()).filter(Boolean);
-  const palaceSummary = palaceNames.length ? palaceNames.join(", ") : "핵심 궁 데이터";
-  const mainStars = resolved.palaces.map((palace) => formatZiweiStarList(palace.mainStars)).filter(Boolean).join(" | ");
-  const otherStars = resolved.palaces.map((palace) => formatZiweiOtherStarList(palace)).filter(Boolean).join(" || ");
-  const brightness = resolved.palaces.map((palace) => formatZiweiBrightnessSummary(palace)).filter(Boolean).join(" || ");
-  const transformations = formatZiweiTransformationList(resolved.transformations);
-  const strengths = resolved.palaces.map((palace) => formatZiweiPalaceStrength(palace)).filter(Boolean).join(" | ");
+export function buildZiweiBroadChartSeed(category = {}, payload = {}) {
+  const payloadPalaces = collectPayloadPalaces(payload);
+  const title = formatZiweiCategoryTitle(category);
+  const topPalaces = payloadPalaces.slice(0, 4);
+  const palaceSummary = topPalaces.length
+    ? topPalaces.map((palace) => String(palace?.name || palace?.key || "").trim()).filter(Boolean).join(", ")
+    : "전체 명반";
+  const mainStars = topPalaces
+    .flatMap((palace) => Array.isArray(palace?.mainStars) ? palace.mainStars : [])
+    .slice(0, 10);
+  const mainStarSummary = formatZiweiStarList(mainStars);
+  const brightnessSummary = topPalaces
+    .map((palace) => String(palace?.brightnessSummary || "").trim())
+    .filter(Boolean)
+    .join(" / ") || "평";
+  const hasTransformations = topPalaces.some((palace) => Array.isArray(palace?.transformations) && palace.transformations.length > 0);
+
+  return [
+    `${title}은 특정 궁 단일 해석 대신 전체 명반 요약(${palaceSummary})을 기반으로 보완한다.`,
+    `핵심 주성: ${mainStarSummary || "확인 가능한 주성 데이터가 제한적이므로 궁의 구조와 흐름 중심으로 해석한다."}`,
+    `밝기/강도 보정: ${brightnessSummary || "평"} (기본 강도 기호는 △로 보정).`,
+    hasTransformations ? "사화 정보가 있는 궁을 보조 근거로 사용한다." : "사화 정보가 부족하면 성향/패턴 중심의 보수 해석으로 보완한다.",
+    "assistantStars/minorStars가 비어 있어도 실패시키지 말고, 궁 이름/구조/주성 중심으로 실전 조언을 작성한다.",
+  ].filter(Boolean).join("\n");
+}
+
+function collectResolvedStarBuckets(palaces = []) {
   return {
-    resolved,
-    palaceSummary,
-    mainStars,
-    otherStars,
-    brightness,
-    transformations,
-    strengths,
+    mainStars: palaces.flatMap((palace) => Array.isArray(palace?.mainStars) ? palace.mainStars : []),
+    assistantStars: palaces.flatMap((palace) => Array.isArray(palace?.assistantStars) ? palace.assistantStars : []),
+    minorStars: palaces.flatMap((palace) => Array.isArray(palace?.minorStars) ? palace.minorStars : []),
+    maleficStars: palaces.flatMap((palace) => Array.isArray(palace?.maleficStars) ? palace.maleficStars : []),
   };
+}
+
+function resolveSeedPalacesFromDataMap(resolved = {}) {
+  const direct = Array.isArray(resolved?.palaces) ? resolved.palaces : [];
+  if (direct.length) return direct;
+
+  const allPalaces = Array.isArray(resolved?.allPalaces) ? resolved.allPalaces : [];
+  const requestedKeys = Array.isArray(resolved?.dataMap?.palaceKeys) ? resolved.dataMap.palaceKeys : [];
+  if (!allPalaces.length || !requestedKeys.length) return [];
+  if (requestedKeys.includes("all")) return allPalaces;
+
+  const aliases = requestedKeys.flatMap((key) => getZiweiPalaceAliases(key));
+  return allPalaces.filter((palace) => aliases.some((alias) => palaceMatchesToken(palace, alias)));
 }
 
 function normalizeRequiredPalaceToken(name) {
@@ -1051,19 +1173,44 @@ function formatZiweiCategoryTitle(category = {}) {
   return String(category?.title || "핵심 해석").trim() || "핵심 해석";
 }
 
-function buildZiweiCategorySeedText(category = {}, payload = {}) {
-  const summary = buildZiweiResolvedCategorySummary(category, payload);
+function buildZiweiCategorySeedText(category = {}, payload = {}, resolvedInput = null) {
+  const resolved = resolvedInput && typeof resolvedInput === "object"
+    ? resolvedInput
+    : resolveZiweiCategoryData(category, payload);
   const title = formatZiweiCategoryTitle(category);
-  const lines = [
-    `${title}은 자미두수 명반의 ${summary.palaceSummary}을 중심으로 해석한다.`,
-    `해당 궁의 주성: ${summary.mainStars || "없음"}.`,
-    `보조성/잡성/살성: ${summary.otherStars || "없음"}.`,
-    `별의 밝기와 강도: ${summary.brightness || "평"}.`,
-    summary.transformations ? `사화 및 변화 정보: ${summary.transformations}.` : "",
-    summary.strengths ? `궁 강도: ${summary.strengths}.` : "",
-    "이 항목에서는 위 명반 근거를 바탕으로 성향, 반복 패턴, 장점, 위험 요소, 현실 조언을 구체적으로 작성해야 한다.",
-  ].filter(Boolean);
-  return lines.join("\n");
+  const palaces = resolveSeedPalacesFromDataMap(resolved);
+  const palaceNames = palaces
+    .map((palace) => String(palace?.name || palace?.key || "").trim())
+    .filter(Boolean);
+  const starBuckets = collectResolvedStarBuckets(palaces);
+  const transformations = Array.isArray(resolved?.transformations) ? resolved.transformations : [];
+  const brightnessSummary = palaces
+    .map((palace) => String(palace?.brightnessSummary || "").trim())
+    .filter(Boolean)
+    .join(" / ") || summarizeZiweiBrightness(palaces);
+
+  return [
+    `${title}은 자미두수 명반의 ${palaceNames.join(", ") || "해당 궁"}을 중심으로 해석합니다.`,
+    `해당 궁의 주성은 ${formatZiweiStarList(starBuckets.mainStars, "확인 가능한 주성이 제한적입니다")}입니다.`,
+    starBuckets.assistantStars.length
+      ? `보조성은 ${formatZiweiStarList(starBuckets.assistantStars)}입니다.`
+      : "",
+    starBuckets.minorStars.length
+      ? `잡성은 ${formatZiweiStarList(starBuckets.minorStars)}입니다.`
+      : "",
+    starBuckets.maleficStars.length
+      ? `살성/주의 신호는 ${formatZiweiStarList(starBuckets.maleficStars)}입니다.`
+      : "",
+    brightnessSummary
+      ? `별의 밝기와 강도는 ${brightnessSummary} 흐름으로 해석합니다.`
+      : "",
+    transformations.length
+      ? `사화 작용은 ${formatZiweiTransformationList(transformations)}입니다.`
+      : "",
+    "이 카테고리는 위 명반 근거를 바탕으로 성향, 반복 패턴, 장점, 약점, 현실 조언을 구체적으로 작성해야 합니다.",
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 function summarizeZiweiStars(palaces = []) {
@@ -1105,16 +1252,24 @@ function resolveRequiredPalaces(requiredPalaces = [], payloadPalaces = []) {
   return payloadPalaces.slice(0, 1);
 }
 
-export function buildZiweiCategorySeed(category = {}, payload = {}) {
-  return buildZiweiCategorySeedText(category, payload);
+export function buildZiweiCategorySeed(category = {}, payload = {}, resolvedInput = null) {
+  return buildZiweiCategorySeedText(category, payload, resolvedInput);
 }
 
 export function buildCanonicalZiweiPdfChapters(payload = {}) {
   return CANONICAL_ZIWEI_PDF_CHAPTERS.map((chapter) => {
-    const categories = (Array.isArray(chapter.categories) ? chapter.categories : []).map((category) => {
+    const chapterOrder = Number(chapter.order || 0);
+    const categories = (Array.isArray(chapter.categories) ? chapter.categories : []).map((category, categoryIndex) => {
       const localSeedText = buildZiweiCategorySeed(category, payload);
+      const categoryOrder = Number(category?.order || (categoryIndex + 1));
+      const dataKey = String(category?.dataKey || "").trim()
+        || toZiweiCategoryDataKeyByOrder(chapterOrder, categoryOrder)
+        || String(category.id || "").trim();
       return {
         id: String(category.id || "").trim(),
+        order: categoryOrder,
+        chapterOrder,
+        dataKey,
         title: String(category.title || "").trim(),
         requiredPalaces: Array.isArray(category.requiredPalaces) ? category.requiredPalaces.slice() : [],
         requiredStars: Array.isArray(category.requiredStars) ? category.requiredStars.slice() : [],
