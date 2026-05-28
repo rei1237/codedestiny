@@ -87,7 +87,16 @@ async function generateLoveSecretChapter(env, base, mode, config, chapterNo) {
   const subtitle = stripUnsafeText(chapterMeta.subtitle || "");
   const sectionTitles = getChapterSpecificSections({}, chapterNo, mode);
   const local = buildLocalChapter(base, title, subtitle, sectionTitles, mode, chapterNo);
-  const llm = await maybeEnhanceWithLlm(env, base, local, mode, chapterNo);
+  let llm = { ...local, fallbackUsed: true };
+  try {
+    llm = await maybeEnhanceWithLlm(env, base, local, mode, chapterNo);
+  } catch (error) {
+    console.warn("[LoveBook][Chapter] FALLBACK_USED", {
+      index: chapterNo,
+      reason: clean(error?.message || error) || "llm_generation_error",
+    });
+    llm = { ...local, fallbackUsed: true };
+  }
   return {
     fallbackUsed: Boolean(llm.fallbackUsed),
     chapter: {
@@ -100,7 +109,7 @@ async function generateLoveSecretChapter(env, base, mode, config, chapterNo) {
   };
 }
 
-async function buildLoveSecretChapters(env, { base, mode, config, maxConcurrency = 2, onProgress = null } = {}) {
+async function buildLoveSecretChapters(env, { base, mode, config, onProgress = null } = {}) {
   const totalChapters = Number(config?.totalChapters || 0);
   if (!Number.isFinite(totalChapters) || totalChapters <= 0) {
     return { chapters: [], fallbackUsed: false, totalChapters: 0 };
@@ -108,26 +117,56 @@ async function buildLoveSecretChapters(env, { base, mode, config, maxConcurrency
 
   const chapters = new Array(totalChapters);
   let fallbackUsed = false;
-  let nextIndex = 0;
   let completed = 0;
-  const workerCount = Math.max(1, Math.min(Number(maxConcurrency || 2) || 2, totalChapters));
 
-  async function runWorker() {
-    while (nextIndex < totalChapters) {
-      const current = nextIndex;
-      nextIndex += 1;
-      const chapterNo = current + 1;
-      const generated = await generateLoveSecretChapter(env, base, mode, config, chapterNo);
-      if (generated.fallbackUsed) fallbackUsed = true;
-      chapters[current] = generated.chapter;
-      completed += 1;
-      if (typeof onProgress === "function") {
-        await onProgress({ completed, chapterNo, totalChapters });
-      }
+  console.info("[LoveBook][Flow] SKELETON_READY", { mode, chapterCount: totalChapters });
+  for (let current = 0; current < totalChapters; current += 1) {
+    const chapterNo = current + 1;
+    console.info("[LoveBook][Chapter] START", { index: chapterNo });
+    let generated = null;
+    try {
+      generated = await generateLoveSecretChapter(env, base, mode, config, chapterNo);
+    } catch (error) {
+      const chapterMeta = getLoveSecretChapterMeta(config, chapterNo);
+      const title = stripUnsafeText(chapterMeta.title || `연애 비책 ${chapterNo}장`);
+      const subtitle = stripUnsafeText(chapterMeta.subtitle || "");
+      const sectionTitles = getChapterSpecificSections({}, chapterNo, mode);
+      const local = buildLocalChapter(base, title, subtitle, sectionTitles, mode, chapterNo);
+      generated = {
+        fallbackUsed: true,
+        chapter: {
+          chapter: chapterNo,
+          title,
+          subtitle,
+          text: stripUnsafeText(local.finalText) || local.finalText,
+          sections: Array.isArray(local.sections) ? local.sections : [],
+        },
+      };
+      console.error("[LoveBook][ChapterError]", {
+        chapterIndex: chapterNo,
+        chapterTitle: title,
+        message: clean(error?.message || error) || "unknown_error",
+      });
     }
+
+    if (generated?.fallbackUsed) fallbackUsed = true;
+    chapters[current] = generated?.chapter || null;
+    completed += 1;
+
+    if (typeof onProgress === "function") {
+      await onProgress({ completed, chapterNo, totalChapters });
+    }
+
+    console.info("[LoveBook][Chapter] DONE", {
+      index: chapterNo,
+      fallbackUsed: Boolean(generated?.fallbackUsed),
+    });
   }
 
-  await Promise.all(Array.from({ length: workerCount }, () => runWorker()));
+  if (chapters.some((chapter) => !chapter)) {
+    throw new Error(`[LoveBook] Chapter count mismatch: expected ${totalChapters}, got ${chapters.filter(Boolean).length}`);
+  }
+  console.info("[LoveBook][Flow] ALL_CHAPTERS_DONE", { expected: totalChapters, actual: chapters.length });
   return { chapters, fallbackUsed, totalChapters };
 }
 
@@ -391,14 +430,23 @@ async function maybeEnhanceWithLlm(env, base, chapter, mode, chapterNo) {
     "응답은 위 chapterSchema와 동일한 JSON만 반환하세요.",
   ].join("\n\n");
 
-  const llm = await callGeminiText(env, `${systemPrompt}\n\n${userPrompt}`, {
-    modelEnvKeys: ["LOVE_SECRET_GEMINI_MODEL", "GEMINI_MODEL"],
-    temperature: 0.72,
-    maxOutputTokens: 1800,
-    timeoutMs: Number(env.LOVE_SECRET_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
-    totalTimeoutMs: Number(env.LOVE_SECRET_GEMINI_TOTAL_TIMEOUT_MS || 90000),
-    maxAttemptsPerPair: Number(env.LOVE_SECRET_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 4),
-  });
+  let llm = null;
+  try {
+    llm = await callGeminiText(env, `${systemPrompt}\n\n${userPrompt}`, {
+      modelEnvKeys: ["LOVE_SECRET_GEMINI_MODEL", "GEMINI_MODEL"],
+      temperature: 0.72,
+      maxOutputTokens: 1800,
+      timeoutMs: Number(env.LOVE_SECRET_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
+      totalTimeoutMs: Number(env.LOVE_SECRET_GEMINI_TOTAL_TIMEOUT_MS || 90000),
+      maxAttemptsPerPair: Number(env.LOVE_SECRET_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 4),
+    });
+  } catch (error) {
+    console.warn("[LoveBook][Chapter] FALLBACK_USED", {
+      index: chapterNo,
+      reason: clean(error?.message || error) || "llm_call_failed",
+    });
+    return { ...chapter, fallbackUsed: true };
+  }
 
   if (!llm?.ok || !clean(llm?.text)) {
     return { ...chapter, fallbackUsed: true };
@@ -485,12 +533,13 @@ async function runLoveSecretJob(env, jobId) {
     const mode = normalizeMode(job?.mode || "solo");
     const base = normalizeSajuBase(job?.requestBody || {});
     const config = safeModeChapterConfig(mode);
+    console.info("[LoveBook][Flow] START", { mode, expectedChapterCount: Number(config.totalChapters || 0) });
     const { chapters, fallbackUsed, totalChapters } = await buildLoveSecretChapters(env, {
       base,
       mode,
       config,
-      maxConcurrency: 2,
       onProgress: async ({ completed }) => {
+        const nextChapter = completed >= totalChapters ? totalChapters : completed + 1;
         await coll.updateOne(
           { _id },
           {
@@ -499,14 +548,16 @@ async function runLoveSecretJob(env, jobId) {
               stage: completed >= totalChapters ? "rendering_pdf" : "writing_with_llm",
               message: completed >= totalChapters
                 ? "PDF 파일 빌드를 준비하고 있습니다."
-                : `Chapter ${completed} 생성 중...`,
-              completedChapters: completed,
+                : `Chapter ${nextChapter} 생성 중...`,
+              completedChapters: Math.max(0, Math.min(totalChapters, completed)),
               updatedAt: new Date(),
             },
           },
         );
       },
     });
+
+    console.info("[LoveBook][Flow] PDF_RENDER_START", { chapterCount: chapters.length, fallbackUsed });
 
     await coll.updateOne(
       { _id },
@@ -532,7 +583,9 @@ async function runLoveSecretJob(env, jobId) {
         },
       },
     );
+    console.info("[LoveBook][Flow] PDF_RENDER_OK", { chapterCount: totalChapters, fallbackUsed });
   } catch (error) {
+    console.error("[LoveBook][Error]", clean(error?.message || error) || error);
     await coll.updateOne(
       { _id },
       {
