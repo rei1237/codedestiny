@@ -10,7 +10,7 @@
   var ASTRO_PREPARE_API = '/api/astro/premium/prepare';
   var ASTRO_CHAPTERS_API = '/api/astro/premium/chapters';
   var ASTRO_WESTERN_CHART_API = '/api/astro/western-chart';
-  var ASTRO_TOTAL_CHAPTERS = 12;
+  var ASTRO_TOTAL_CHAPTERS = 10;
   var ASTRO_COIN_COST = 390;
   var ASTRO_SIGN_NAMES = ['양자리', '황소자리', '쌍둥이자리', '게자리', '사자자리', '처녀자리', '천칭자리', '전갈자리', '사수자리', '염소자리', '물병자리', '물고기자리'];
 
@@ -40,12 +40,38 @@
     } catch (_) {}
   }
 
+  function normalizeAstroError(error) {
+    if (error instanceof Error) {
+      return {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      };
+    }
+    if (typeof error === 'object' && error !== null) {
+      try {
+        return JSON.parse(JSON.stringify(error));
+      } catch (_) {
+        return { message: String(error) };
+      }
+    }
+    return { message: String(error) };
+  }
+
+  function _logStage(stage, meta) {
+    try {
+      console.info('[AstroBook][' + stage + ']', meta || {});
+    } catch (_) {}
+  }
+
   function _logError(error, meta) {
     try {
       console.error('[AstroBook][Error]', {
-        message: String(error && error.message ? error.message : error || 'unknown'),
-        code: String(error && error.code ? error.code : ''),
         stage: meta && meta.stage ? String(meta.stage) : '',
+        message: String(error && error.message ? error.message : error || 'unknown'),
+        status: Number(error && error.status ? error.status : 0) || null,
+        code: String(error && error.code ? error.code : ''),
+        details: normalizeAstroError(error),
       });
     } catch (_) {}
   }
@@ -254,6 +280,98 @@
       birthDate: [String(y).padStart(4, '0'), String(m).padStart(2, '0'), String(d).padStart(2, '0')].join('-'),
       birthTime: [String(Number(birth.hour || 12)).padStart(2, '0'), String(Number(birth.minute || 0)).padStart(2, '0')].join(':'),
     };
+  }
+
+  function _parseBirthTimeInput(rawTime, rawHour, rawMinute) {
+    var text = _clean(rawTime);
+    if (/모름|미상|unknown|none|na/i.test(text)) {
+      return { birthTime: '', birthHour: null, birthMinute: 0, isTimeUnknown: true };
+    }
+    var hhmm = text.match(/^(\d{1,2})\s*[:시]\s*(\d{1,2})/);
+    if (hhmm) {
+      var h1 = Math.max(0, Math.min(23, Number(hhmm[1])));
+      var m1 = Math.max(0, Math.min(59, Number(hhmm[2])));
+      return {
+        birthTime: String(h1).padStart(2, '0') + ':' + String(m1).padStart(2, '0'),
+        birthHour: h1,
+        birthMinute: m1,
+        isTimeUnknown: false,
+      };
+    }
+    var korean = text.match(/오(전|후)\s*(\d{1,2})(?:\s*[:시]\s*(\d{1,2}))?/);
+    if (korean) {
+      var isPm = korean[1] === '후';
+      var h2 = Math.max(0, Math.min(23, Number(korean[2])));
+      var m2 = Math.max(0, Math.min(59, Number(korean[3] || 0)));
+      if (isPm && h2 < 12) h2 += 12;
+      if (!isPm && h2 === 12) h2 = 0;
+      return {
+        birthTime: String(h2).padStart(2, '0') + ':' + String(m2).padStart(2, '0'),
+        birthHour: h2,
+        birthMinute: m2,
+        isTimeUnknown: false,
+      };
+    }
+    var h3 = Number(rawHour);
+    var m3 = Number(rawMinute || 0);
+    if (!Number.isFinite(h3) && /^\d{1,2}$/.test(text)) h3 = Number(text);
+    if (Number.isFinite(h3)) {
+      h3 = Math.max(0, Math.min(23, Math.trunc(h3)));
+      m3 = Number.isFinite(m3) ? Math.max(0, Math.min(59, Math.trunc(m3))) : 0;
+      return {
+        birthTime: String(h3).padStart(2, '0') + ':' + String(m3).padStart(2, '0'),
+        birthHour: h3,
+        birthMinute: m3,
+        isTimeUnknown: false,
+      };
+    }
+    return { birthTime: '', birthHour: null, birthMinute: 0, isTimeUnknown: true };
+  }
+
+  function _normalizeAstroBirthInput(profile) {
+    var p = profile || {};
+    var b = p.birth || {};
+    var l = p.location || {};
+    var year = Number(b.year || 0);
+    var month = Number(b.month || 0);
+    var day = Number(b.day || 0);
+    var parsedTime = _parseBirthTimeInput(b.time || b.birthTime || '', b.hour, b.minute);
+    var tz = _clean(l.tz || l.timezone || p.timezone || 'Asia/Seoul') || 'Asia/Seoul';
+    var gender = _clean(p.gender).toLowerCase();
+    var normGender = 'unknown';
+    if (gender === 'm' || gender === 'male' || gender.indexOf('남') >= 0) normGender = 'male';
+    if (gender === 'f' || gender === 'female' || gender.indexOf('여') >= 0) normGender = 'female';
+    return {
+      name: _clean(p.name) || undefined,
+      gender: normGender,
+      birthDate: [String(year).padStart(4, '0'), String(month).padStart(2, '0'), String(day).padStart(2, '0')].join('-'),
+      birthYear: year,
+      birthMonth: month,
+      birthDay: day,
+      birthTime: parsedTime.birthTime,
+      birthHour: parsedTime.birthHour,
+      birthMinute: parsedTime.birthMinute,
+      timezone: tz,
+      birthPlace: _clean(l.label || p.birthPlace || ''),
+      latitude: Number.isFinite(Number(l.lat)) ? Number(l.lat) : null,
+      longitude: Number.isFinite(Number(l.lon || l.lng)) ? Number(l.lon || l.lng) : null,
+      isTimeUnknown: !!parsedTime.isTimeUnknown,
+    };
+  }
+
+  function _validateBirthInputBeforePayment(birthInput) {
+    var hasBirthDate = !!_clean(birthInput && birthInput.birthDate);
+    var hasBirthYmd = Number.isFinite(Number(birthInput && birthInput.birthYear))
+      && Number.isFinite(Number(birthInput && birthInput.birthMonth))
+      && Number.isFinite(Number(birthInput && birthInput.birthDay));
+    var hasBirthTime = Number.isFinite(Number(birthInput && birthInput.birthHour));
+    if (!hasBirthDate || !hasBirthYmd) {
+      return { ok: false, message: '생년월일 정보가 확인되지 않아 점성술 PDF를 생성할 수 없습니다. 프로필 카드에서 생년월일을 먼저 입력해주세요.' };
+    }
+    if (!hasBirthTime || birthInput.isTimeUnknown) {
+      return { ok: false, message: '점성술 PDF는 상승궁과 하우스 계산을 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 먼저 입력해주세요.' };
+    }
+    return { ok: true };
   }
 
   function _buildChartFromLocal(profile) {
@@ -631,23 +749,33 @@
     return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
   }
 
-  function _ensurePremiumPaymentThenStart() {
-    if (_hasPremiumAccessForGeneration()) return true;
-    if (typeof window._cdCoinGatePerUse !== 'function') {
-      alert('결제 모듈을 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.');
-      return false;
+  function _ensurePremiumPaymentAsync() {
+    if (_hasPremiumAccessForGeneration()) {
+      _logStage('PaymentGateStart', { featureKey: ASTRO_BILLING_FEATURE_KEY, reused: true });
+      _logStage('PaymentGateSuccess', { featureKey: ASTRO_BILLING_FEATURE_KEY, reused: true });
+      return Promise.resolve({ ok: true, skipped: true });
     }
-    _logFlow('BILLING_CHECK_START', { featureKey: ASTRO_BILLING_FEATURE_KEY });
-    window._cdCoinGatePerUse(ASTRO_COIN_COST, '점성술 프리미엄 PDF 리포트 생성', function (_transactionId, data) {
-      _persistPremiumAccessToken(_extractPremiumToken(data));
-      _markPremiumAccessVerified(25 * 60 * 1000);
-      _logFlow('BILLING_CHECK_OK', { featureKey: ASTRO_BILLING_FEATURE_KEY });
-      window.generateAstroBook();
-    }, null, {
-      featureKey: ASTRO_BILLING_FEATURE_KEY,
-      requestId: 'astro-premium-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+    if (typeof window._cdCoinGatePerUse !== 'function') {
+      return Promise.reject(new Error('결제 모듈을 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.'));
+    }
+    _logStage('PaymentGateStart', { featureKey: ASTRO_BILLING_FEATURE_KEY });
+    return new Promise(function (resolve, reject) {
+      try {
+        window._cdCoinGatePerUse(ASTRO_COIN_COST, '점성술 프리미엄 PDF 리포트 생성', function (_transactionId, data) {
+          _persistPremiumAccessToken(_extractPremiumToken(data));
+          _markPremiumAccessVerified(25 * 60 * 1000);
+          _logStage('PaymentGateSuccess', { featureKey: ASTRO_BILLING_FEATURE_KEY });
+          resolve({ ok: true, skipped: false, data: data || {} });
+        }, function () {
+          reject(new Error('결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.'));
+        }, {
+          featureKey: ASTRO_BILLING_FEATURE_KEY,
+          requestId: 'astro-premium-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+        });
+      } catch (error) {
+        reject(error);
+      }
     });
-    return false;
   }
 
   window.openAstroBookModal = function () {
@@ -706,35 +834,70 @@
 
   window.generateAstroBook = function () {
     if (_generating) return;
+    var profile = _getActiveBirthProfile();
+    _logStage('ProfileResolved', {
+      hasBirthDate: !!(profile && profile.birth && profile.birth.year),
+      hasBirthTime: !!(profile && profile.birth && Number.isFinite(Number(profile.birth.hour))),
+      hasLocation: !!(profile && profile.location),
+    });
 
-    if (!_hasPremiumAccessForGeneration()) {
-      if (!_ensurePremiumPaymentThenStart()) return;
+    if (!profile || !profile.birth) {
+      _showScreen('abNoProfileScreen');
       return;
     }
 
-    var profile = _getActiveBirthProfile();
-    if (!profile || !profile.birth) {
-      _showScreen('abNoProfileScreen');
+    var birthInput = _normalizeAstroBirthInput(profile);
+    _logStage('BirthInputNormalized', {
+      hasBirthDate: !!_clean(birthInput.birthDate),
+      hasBirthTime: Number.isFinite(Number(birthInput.birthHour)),
+      birthHour: Number.isFinite(Number(birthInput.birthHour)) ? Number(birthInput.birthHour) : null,
+      hasTimezone: !!_clean(birthInput.timezone),
+      hasLocation: !!_clean(birthInput.birthPlace),
+      houseSystemUsed: true,
+    });
+
+    var valid = _validateBirthInputBeforePayment(birthInput);
+    _logStage('ValidationBeforePayment', {
+      ok: !!valid.ok,
+      hasBirthDate: !!_clean(birthInput.birthDate),
+      hasBirthTime: Number.isFinite(Number(birthInput.birthHour)),
+      hasTimezone: !!_clean(birthInput.timezone),
+      hasLocation: !!_clean(birthInput.birthPlace),
+      houseSystemUsed: true,
+    });
+    if (!valid.ok) {
+      _setError(valid.message);
       return;
     }
 
     _generating = true;
     _setStartBusy(true);
     _showScreen('abLoadingScreen');
-    _setLoadingProgress(1, ASTRO_TOTAL_CHAPTERS, '출생 차트의 핵심 좌표를 정리하는 중입니다');
+    _setLoadingProgress(1, ASTRO_TOTAL_CHAPTERS, '프로필 정보 확인 중');
     _startProgressAnimation();
+    _setLoadingProgress(2, ASTRO_TOTAL_CHAPTERS, '출생 차트 계산 중');
 
-    _logFlow('ASTRO_SEED_START');
     _buildAstroBaseAsync(profile)
       .then(function (astroBase) {
-        _setLoadingProgress(2, ASTRO_TOTAL_CHAPTERS, '행성과 하우스의 관계를 분석하는 중입니다');
-        _logFlow('PDF_API_START', { featureKey: ASTRO_FEATURE_KEY });
-        return _postPrepare({
-          featureKey: ASTRO_FEATURE_KEY,
-          premiumAccessToken: _readPremiumAccessToken() || undefined,
-          astroBase: astroBase,
-        }).then(function (data) {
-          return { data: data, astroBase: astroBase };
+        return _ensurePremiumPaymentAsync().then(function () {
+          _logStage('SessionCreateStart', {
+            hasBirthDate: !!_clean(birthInput.birthDate),
+            hasBirthTime: Number.isFinite(Number(birthInput.birthHour)),
+          });
+          var sessionId = 'astro-premium:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
+          _logStage('SessionCreateSuccess', { sessionId: sessionId });
+          _setLoadingProgress(3, ASTRO_TOTAL_CHAPTERS, '챕터별 원고 생성 중');
+          _logStage('PdfRequestStart', { featureKey: ASTRO_FEATURE_KEY, sessionId: sessionId });
+          return _postPrepare({
+            featureKey: ASTRO_FEATURE_KEY,
+            premiumAccessToken: _readPremiumAccessToken() || undefined,
+            sessionId: sessionId,
+            birthInput: birthInput,
+            profile: profile,
+            astroBase: astroBase,
+          }).then(function (data) {
+            return { data: data, astroBase: astroBase };
+          });
         });
       })
       .then(function (data) {
@@ -745,9 +908,14 @@
         _resultPayload = response;
         _chapters = Array.isArray(response.chapters) ? response.chapters : [];
         if (!_chapters.length) throw new Error('점성술 챕터 데이터가 비어 있습니다.');
-        _setLoadingProgress(ASTRO_TOTAL_CHAPTERS, ASTRO_TOTAL_CHAPTERS, '프리미엄 점성술 PDF를 완성하는 중입니다');
+        _setLoadingProgress(4, ASTRO_TOTAL_CHAPTERS, 'AI 상담문 보강 중');
+        if (response && response.fallbackUsed) {
+          _setLoadingProgress(4, ASTRO_TOTAL_CHAPTERS, 'AI 문장 보강이 지연되어 로컬 점성술 계산 기반 프리미엄 원고로 PDF를 완성합니다.');
+        }
+        _setLoadingProgress(ASTRO_TOTAL_CHAPTERS - 1, ASTRO_TOTAL_CHAPTERS, 'PDF 편집/렌더링 중');
         _renderResult(_chapters, response.payload || astroBase);
-        _logFlow('PDF_API_OK', { chapterCount: _chapters.length, fallbackUsed: !!response.fallbackUsed });
+        _setLoadingProgress(ASTRO_TOTAL_CHAPTERS, ASTRO_TOTAL_CHAPTERS, '완료');
+        _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, fallbackUsed: !!response.fallbackUsed });
         _showScreen('abResultScreen');
       })
       .catch(function (err) {
