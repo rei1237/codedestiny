@@ -11,19 +11,19 @@
   var LAST_SEED = null;
 
   var CHAPTERS = [
-    'Chapter 1. 명궁 완전 해독 — 타고난 나의 중심 별',
-    'Chapter 2. 신궁 심층 분석 — 후천적으로 완성되는 나',
-    'Chapter 3. 형제궁과 인간관계 — 가까운 사람들과의 거리',
-    'Chapter 4. 부부궁 — 사랑, 결혼, 깊은 인연의 방식',
-    'Chapter 5. 자녀궁 — 창조성, 표현력, 이어지는 운',
-    'Chapter 6. 재백궁 — 돈, 자산, 현실 감각',
-    'Chapter 7. 질액궁 — 몸과 마음의 취약 지점',
-    'Chapter 8. 천이궁 — 세상 밖에서 열리는 기회',
-    'Chapter 9. 노복궁 — 사람을 얻고 쓰는 힘',
-    'Chapter 10. 관록궁 — 직업, 명예, 사회적 성취',
-    'Chapter 11. 전택궁 — 집, 기반, 축적되는 복',
-    'Chapter 12. 복덕궁 — 행복, 내면, 영혼의 쉼터',
-    'Chapter 13. 대운·유년 종합 전략 — 앞으로 열리는 운의 지도'
+    'Chapter 1. 명궁 완전 해석 — 나라는 사람의 첫 번째 별빛',
+    'Chapter 2. 신궁 심층 분석 — 인생 후반부와 실제 행동 패턴',
+    'Chapter 3. 복덕궁 — 마음의 깊이와 행복을 회복하는 방식',
+    'Chapter 4. 부모궁·형제궁 — 뿌리, 가족, 성장 환경의 흔적',
+    'Chapter 5. 부부궁 — 사랑, 결혼, 배우자 인연의 방향',
+    'Chapter 6. 자녀궁·노복궁 — 후배, 동료, 사람을 얻는 방식',
+    'Chapter 7. 재백궁 — 돈의 흐름과 재물 전략',
+    'Chapter 8. 관록궁 — 직업, 성공 방식, 사회적 역할',
+    'Chapter 9. 전택궁 — 집, 자산, 안정 기반',
+    'Chapter 10. 질액궁 — 건강 리듬과 생활 관리',
+    'Chapter 11. 천이궁 — 이동, 외부 기회, 귀인운',
+    'Chapter 12. 사화와 별의 강약 — 운명을 움직이는 핵심 신호',
+    'Chapter 13. 대운·세운 종합 전략 — 앞으로의 흐름과 실행 조언'
   ];
 
   var PALACE_KEY_BY_NAME = {
@@ -61,7 +61,18 @@
   function setDisplay(id, value){ var el = $(id); if(el) el.style.display = value; }
 
   function logFlow(tag, payload){
-    try { console.info('[ZiweiPremiumPDF][' + tag + ']', payload || {}); } catch(_) {}
+    try { console.info('[ZiweiBook][' + tag + ']', payload || {}); } catch(_) {}
+  }
+
+  function normalizeZiweiError(error){
+    if(error instanceof Error){
+      return { name: error.name, message: error.message, stack: error.stack };
+    }
+    if(typeof error === 'object' && error !== null){
+      try { return JSON.parse(JSON.stringify(error)); }
+      catch(_) { return { message: String(error) }; }
+    }
+    return { message: String(error) };
   }
 
   var EARTHLY_BRANCH_HOUR = {
@@ -166,7 +177,7 @@
   }
 
   function snapshotFormProfile(){
-    var birthDate = getField(['birthDate','birthdate','solarDate','birth_date']);
+    var birthDate = getField(['birthDate','birthdate','birthday','solarDate','lunarDate','date','birth_date']);
     var dateParts = parseDateParts(birthDate);
     var year = toFiniteInt(getField(['birthYear','year','yyyy']));
     var month = toFiniteInt(getField(['birthMonth','month','mm']));
@@ -177,14 +188,14 @@
     return {
       source: 'form',
       name: getField(['userName','name','birthName','profileName','nameInput']),
-      gender: getField(['gender','userGender','birthGender']),
-      calendarType: getField(['calendarType','birthCalendarType']),
+      gender: getField(['gender','sex','userGender','birthGender']),
+      calendarType: getField(['calendarType','calendar','birthCalendarType']),
       birthDate: birthDate,
       year: year,
       month: month,
       day: day,
-      birthTime: getField(['birthTime','birthtime','time','birth_time']),
-      hour: toFiniteInt(getField(['birthHour','hour','hh'])),
+      birthTime: getField(['birthTime','birthtime','time','timeText','birth_time']),
+      hour: toFiniteInt(getField(['birthHour','birth_hour','hour','hh'])),
       minute: toFiniteInt(getField(['birthMinute','minute','mi'])),
       timezone: 'Asia/Seoul',
       birthplace: getField(['birthplace','birthPlace'])
@@ -194,7 +205,7 @@
   function profileFromObject(obj, sourceName){
     var source = (obj && typeof obj === 'object') ? obj : {};
     var birth = (source.birth && typeof source.birth === 'object') ? source.birth : {};
-    var birthDateRaw = firstNonEmpty(source.birthDate, source.date, birth.birthDate, birth.solarDate, birth.date);
+    var birthDateRaw = firstNonEmpty(source.birthDate, source.birthday, source.solarDate, source.lunarDate, source.date, birth.birthDate, birth.solarDate, birth.lunarDate, birth.date);
     var dateParts = parseDateParts(birthDateRaw);
     var year = Number.isFinite(toFiniteInt(source.year)) ? toFiniteInt(source.year) : (Number.isFinite(toFiniteInt(birth.year)) ? toFiniteInt(birth.year) : (dateParts ? dateParts.year : NaN));
     var month = Number.isFinite(toFiniteInt(source.month)) ? toFiniteInt(source.month) : (Number.isFinite(toFiniteInt(birth.month)) ? toFiniteInt(birth.month) : (dateParts ? dateParts.month : NaN));
@@ -202,14 +213,14 @@
     return {
       source: sourceName,
       name: firstNonEmpty(source.name, source.profileName),
-      gender: firstNonEmpty(source.gender, birth.gender, window.GENDER),
-      calendarType: firstNonEmpty(source.calendarType, source.calType, birth.calType, birth.calendarType),
+      gender: firstNonEmpty(source.gender, source.sex, birth.gender, birth.sex, window.GENDER),
+      calendarType: firstNonEmpty(source.calendarType, source.calendar, source.calType, birth.calType, birth.calendarType),
       birthDate: birthDateRaw,
       year: year,
       month: month,
       day: day,
-      birthTime: firstNonEmpty(source.birthTime, source.time, source.timeText, birth.birthTime, birth.time),
-      hour: Number.isFinite(toFiniteInt(source.birthHour)) ? toFiniteInt(source.birthHour) : (Number.isFinite(toFiniteInt(source.hour)) ? toFiniteInt(source.hour) : toFiniteInt(birth.hour)),
+      birthTime: firstNonEmpty(source.birthTime, source.time, source.timeText, source.hourText, birth.birthTime, birth.time),
+      hour: Number.isFinite(toFiniteInt(source.birthHour)) ? toFiniteInt(source.birthHour) : (Number.isFinite(toFiniteInt(source.birth_hour)) ? toFiniteInt(source.birth_hour) : (Number.isFinite(toFiniteInt(source.hour)) ? toFiniteInt(source.hour) : toFiniteInt(birth.hour))),
       minute: Number.isFinite(toFiniteInt(source.birthMinute)) ? toFiniteInt(source.birthMinute) : (Number.isFinite(toFiniteInt(source.minute)) ? toFiniteInt(source.minute) : toFiniteInt(birth.minute)),
       timezone: firstNonEmpty(source.timezone, birth.timezone, 'Asia/Seoul'),
       birthplace: firstNonEmpty(source.birthplace, source.birthPlace, birth.birthplace, birth.birthPlace)
@@ -317,7 +328,7 @@
       throw new Error('자미두수 프리미엄 PDF 생성을 위해 프로필 카드의 생년월일을 확인해 주세요.');
     }
     if(input.isTimeUnknown || !Number.isFinite(input.birthHour)){
-      throw new Error('자미두수 프리미엄 PDF는 태어난 시간 정보가 필요합니다. 결제 전에 프로필 카드에서 시간을 입력해 주세요.');
+      throw new Error('자미두수 PDF는 명궁과 12궁 계산을 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 먼저 입력해주세요.');
     }
     if(input.birthHour < 0 || input.birthHour > 23 || input.birthMinute < 0 || input.birthMinute > 59){
       throw new Error('출생 시간 형식을 확인해 주세요. 예: 07:00, 오전 7시, 인시');
@@ -350,8 +361,8 @@
 
   function normalizeStrengthName(value){
     var raw = text(value);
-    if(/묘|왕|廟|旺|◎/.test(raw)) return '묘';
-    if(/득|得|○|O/.test(raw)) return '득';
+    if(/묘|廟|◎/.test(raw)) return '묘';
+    if(/왕|旺|득|得|○|O/.test(raw)) return '득';
     if(/리|利|약|▲/.test(raw)) return '리';
     if(/평|平|△/.test(raw)) return '평';
     if(/함|실|陷|불|쇠|×|X/i.test(raw)) return '함';
@@ -634,6 +645,11 @@
     modal.classList.add('active');
     modal.style.display = 'flex';
     document.body.classList.add('modal-open');
+    logFlow('ModalOpen', {
+      hasProfile: Boolean(profile && profile.year && profile.month),
+      hasBirthDate: Boolean(profile && profile.birthDate),
+      hasBirthTime: Boolean(profile && profile.birthTime)
+    });
 
     if(!RESULT){
       setDisplay('zbLoadingScreen','none');
@@ -688,31 +704,45 @@
       updateProgress(18, '자미두수 명반 계산 중');
       var profile = resolved.profileForEngine;
       var seed = await buildZiweiSeed(profile);
-      updateProgress(35, '챕터별 원고 생성 중');
+      updateProgress(35, '13챕터 로컬 원고 생성 중');
       logFlow('PaymentGateStart', { featureKey: FEATURE_KEY, coinCost: COIN_COST });
       updateProgress(46, '결제/코인 접근 확인 중');
       var payment = await ensurePayment();
-      updateProgress(58, 'LLM 상담문 보강 중');
+      logFlow('PaymentGateSuccess', {
+        hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken || payment.token))
+      });
+      updateProgress(58, '13챕터 로컬 원고 생성 중');
       logFlow('SessionCreateStart', { endpoint: PREPARE_API, hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken)) });
+      logFlow('PdfRequestStart', { endpoint: PREPARE_API, chapterTarget: TOTAL_CHAPTERS });
       var data = await postPrepare(profile, seed, payment, resolved.birthInput);
       logFlow('SessionCreateSuccess', {
         chapterCount: Array.isArray(data && data.chapters) ? data.chapters.length : 0,
         fallbackUsed: Boolean(data && data.fallbackUsed)
       });
-      var chapters = Array.isArray(data.chapters) ? data.chapters : [];
-      for(var i=0; i<Math.min(chapters.length, TOTAL_CHAPTERS); i++){
+      var localDraftCount = Number((data && data.localDraftChapterCount) || 0);
+      var chapterProgressCount = Math.max(0, Math.min(TOTAL_CHAPTERS, localDraftCount || Number((data && data.chapterCount) || 0)));
+      for(var i=0; i<chapterProgressCount; i++){
         markChapter(i);
-        updateProgress(62 + Math.round(((i + 1) / TOTAL_CHAPTERS) * 30), CHAPTERS[i] || '챕터를 완성하고 있습니다.');
+        updateProgress(62 + Math.round(((i + 1) / TOTAL_CHAPTERS) * 16), CHAPTERS[i] || '챕터를 완성하고 있습니다.');
+        logFlow('LocalDraftProgress', { chapterDone: i + 1, chapterTotal: TOTAL_CHAPTERS });
       }
+      updateProgress(82, 'AI 상담문 보강 중');
       updateProgress(95, 'PDF 편집/렌더링 중');
       RESULT = data;
       if(data && data.fallbackUsed && window.showToast){
-        window.showToast('AI 문장 보강이 지연되어 로컬 자미두수 계산 기반 프리미엄 원고로 PDF를 완성합니다.', 'info');
+        window.showToast('AI 문장 보강이 지연되어 로컬 자미두수 명반 기반 프리미엄 원고로 PDF를 완성합니다.', 'info');
       }
+      logFlow('PdfRequestSuccess', {
+        chapterCount: Array.isArray(data && data.chapters) ? data.chapters.length : 0,
+        localDraftChapterCount: localDraftCount,
+        fallbackUsed: Boolean(data && data.fallbackUsed)
+      });
       updateProgress(100, '완료');
       renderResult(data);
     } catch(error) {
-      showError(error && error.message ? error.message : String(error));
+      var normalizedError = normalizeZiweiError(error);
+      logFlow('Error', normalizedError);
+      showError(normalizedError && normalizedError.message ? normalizedError.message : String(error));
     } finally {
       GENERATING = false;
     }

@@ -111,7 +111,7 @@ describe("ziwei premium local manuscript", () => {
 
     expect(built.chapters.length).toBe(utils.CHAPTER_BLUEPRINTS.length);
     expect(validation.ok).toBe(true);
-    expect(validation.totalChars).toBeGreaterThanOrEqual(25000);
+    expect(validation.totalChars).toBeGreaterThanOrEqual(26000);
     expect(utils.computeDuplicateRate(built.chapters)).toBeLessThan(0.45);
   });
 });
