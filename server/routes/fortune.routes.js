@@ -390,6 +390,17 @@ async function resolvePersistedUnlockFeatures(userId, currentUnlocks) {
   return inferred;
 }
 
+function toValidDate(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date : null;
+}
+
+function toIsoOrNull(value) {
+  const date = toValidDate(value);
+  return date ? date.toISOString() : null;
+}
+
 function normalizeSubscriptionTier(value) {
   const tier = String(value || "").trim().toLowerCase();
   return VALID_SUB_TIERS.has(tier) ? tier : null;
@@ -1096,9 +1107,9 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
     const sub    = user.profileSubscription || {};
     const tier   = sub.tier || "free";
     const source = String(sub.source || "coin").toLowerCase();
-    const expAt  = sub.expiresAt || null;
+    const expAt  = toValidDate(sub.expiresAt);
     const cancelAtPeriodEnd = !!sub.cancelAtPeriodEnd;
-    const cancelRequestedAt = sub.cancelRequestedAt || null;
+    const cancelRequestedAt = toValidDate(sub.cancelRequestedAt);
     let points = Number(user.points || 0);
 
     const plan = PROFILE_SUB_PLANS[tier];
@@ -1106,7 +1117,7 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
 
     // 만료 여부 확인
     let effectiveTier = "free";
-    let effectiveExpAt = expAt ? new Date(expAt) : null;
+    let effectiveExpAt = expAt;
     let autoRenewed = false;
 
     if (tier !== "free" && effectiveExpAt) {
@@ -1158,7 +1169,7 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
       return res.status(200).json({
         tier:              adminTestTier,
         isActive:          true,
-        expiresAt:         effectiveExpAt ? effectiveExpAt.toISOString() : null,
+        expiresAt:         toIsoOrNull(effectiveExpAt),
         profileLimit:      simulatedPolicy.profileLimit,
         points,
         lowBalanceWarning: points <= simulatedPolicy.freeLimit,
@@ -1166,7 +1177,7 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
         cancelAtPeriodEnd: false,
         cancelRequestedAt: null,
         hasStartedPaidService: !!user.has_started_paid_service,
-        firstServiceAccessDate: user.first_service_access_date ? new Date(user.first_service_access_date).toISOString() : null,
+        firstServiceAccessDate: toIsoOrNull(user.first_service_access_date),
         adminMode:         true,
         simulated:         true,
         adminTestTier,
@@ -1181,15 +1192,15 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
       tier:              effectiveTier,
       source:            effectiveTier === "free" ? "coin" : source,
       isActive:          !!isActive,
-      expiresAt:         effectiveExpAt ? effectiveExpAt.toISOString() : null,
+      expiresAt:         toIsoOrNull(effectiveExpAt),
       profileLimit,
       points,
       lowBalanceWarning: !!lowBalanceWarning,
       autoRenewed:       !!autoRenewed,
       cancelAtPeriodEnd: !!cancelAtPeriodEnd,
-      cancelRequestedAt: cancelRequestedAt ? new Date(cancelRequestedAt).toISOString() : null,
+      cancelRequestedAt: toIsoOrNull(cancelRequestedAt),
       hasStartedPaidService: !!user.has_started_paid_service,
-      firstServiceAccessDate: user.first_service_access_date ? new Date(user.first_service_access_date).toISOString() : null,
+      firstServiceAccessDate: toIsoOrNull(user.first_service_access_date),
       adminMode:         req.auth?.role === "admin",
       simulated:         false,
       adminTestTier:     null,
