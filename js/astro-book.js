@@ -212,8 +212,12 @@
   }
 
   function _setError(msg) {
+    var message = _sanitizeText(msg);
+    if (/internal\s*server\s*error|\bobject\b/i.test(String(msg || ''))) {
+      message = 'AI 문장 보강이 지연되어 로컬 점성술 차트 기반 프리미엄 원고로 PDF를 완성합니다.';
+    }
     var el = _qs('abErrorMsg');
-    if (el) el.textContent = _sanitizeText(msg) || '생성 중 오류가 발생했습니다.';
+    if (el) el.textContent = message || '생성 중 오류가 발생했습니다.';
     _showScreen('abErrorScreen');
   }
 
@@ -609,6 +613,14 @@
     });
   }
 
+  function _getTotalChapters() {
+    var fromCanonical = Array.isArray(_canonicalChapters) ? _canonicalChapters.length : 0;
+    var fromResult = Array.isArray(_chapters) ? _chapters.length : 0;
+    var fromState = Number(ASTRO_TOTAL_CHAPTERS || 0);
+    var total = fromCanonical || fromResult || fromState || 1;
+    return Math.max(1, Math.trunc(total));
+  }
+
   function _stopProgressAnimation() {
     if (_progressTimer) {
       clearInterval(_progressTimer);
@@ -630,17 +642,19 @@
         '최종 우주 로드맵을 완성하는 중...',
       ];
     }
+    var total = _getTotalChapters();
     var idx = 1;
-    _setLoadingProgress(1, ASTRO_TOTAL_CHAPTERS, titles[0]);
+    _setLoadingProgress(1, total, titles[0]);
     _progressTimer = setInterval(function () {
       if (!_generating) {
         _stopProgressAnimation();
         return;
       }
+      total = _getTotalChapters();
       idx += 1;
-      if (idx > ASTRO_TOTAL_CHAPTERS) idx = ASTRO_TOTAL_CHAPTERS;
-      _setLoadingProgress(idx, ASTRO_TOTAL_CHAPTERS, titles[Math.min(idx - 1, titles.length - 1)]);
-      if (idx >= ASTRO_TOTAL_CHAPTERS) _stopProgressAnimation();
+      if (idx > total) idx = total;
+      _setLoadingProgress(idx, total, titles[Math.min(idx - 1, titles.length - 1)]);
+      if (idx >= total) _stopProgressAnimation();
     }, 850);
   }
 
@@ -780,6 +794,7 @@
 
   window.openAstroBookModal = function () {
     _logFlow('CARD_CLICK');
+    _logStage('ModalOpen', {});
     var modal = _qs('astroBookModal');
     if (!modal) return;
     _detachModalFromResultPage(modal);
@@ -873,12 +888,16 @@
     _generating = true;
     _setStartBusy(true);
     _showScreen('abLoadingScreen');
-    _setLoadingProgress(1, ASTRO_TOTAL_CHAPTERS, '프로필 정보 확인 중');
+    var total = _getTotalChapters();
+    _setLoadingProgress(1, total, '프로필 정보 확인 중');
     _startProgressAnimation();
-    _setLoadingProgress(2, ASTRO_TOTAL_CHAPTERS, '출생 차트 계산 중');
+    _setLoadingProgress(2, total, '출생 차트 계산 중');
+    _logStage('LocalCalculationStart', { totalChapters: total });
 
     _buildAstroBaseAsync(profile)
       .then(function (astroBase) {
+        _setLoadingProgress(total, total, '10챕터 로컬 원고 생성 중');
+        _logStage('LocalDraftProgress', { completed: total, total: total });
         return _ensurePremiumPaymentAsync().then(function () {
           _logStage('SessionCreateStart', {
             hasBirthDate: !!_clean(birthInput.birthDate),
@@ -886,7 +905,8 @@
           });
           var sessionId = 'astro-premium:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
           _logStage('SessionCreateSuccess', { sessionId: sessionId });
-          _setLoadingProgress(3, ASTRO_TOTAL_CHAPTERS, '챕터별 원고 생성 중');
+          _setLoadingProgress(total, total, 'AI 상담문 보강 중');
+          _logStage('LLMEnhanceStart', { sessionId: sessionId });
           _logStage('PdfRequestStart', { featureKey: ASTRO_FEATURE_KEY, sessionId: sessionId });
           return _postPrepare({
             featureKey: ASTRO_FEATURE_KEY,
@@ -908,13 +928,17 @@
         _resultPayload = response;
         _chapters = Array.isArray(response.chapters) ? response.chapters : [];
         if (!_chapters.length) throw new Error('점성술 챕터 데이터가 비어 있습니다.');
-        _setLoadingProgress(4, ASTRO_TOTAL_CHAPTERS, 'AI 상담문 보강 중');
+        ASTRO_TOTAL_CHAPTERS = _chapters.length;
+        total = _getTotalChapters();
+        _setLoadingProgress(total, total, 'AI 상담문 보강 중');
         if (response && response.fallbackUsed) {
-          _setLoadingProgress(4, ASTRO_TOTAL_CHAPTERS, 'AI 문장 보강이 지연되어 로컬 점성술 계산 기반 프리미엄 원고로 PDF를 완성합니다.');
+          _logStage('LLMEnhanceFailedUseLocal', { chapterCount: total });
+          _setLoadingProgress(total, total, 'AI 문장 보강이 지연되어 로컬 점성술 차트 기반 프리미엄 원고로 PDF를 완성합니다.');
         }
-        _setLoadingProgress(ASTRO_TOTAL_CHAPTERS - 1, ASTRO_TOTAL_CHAPTERS, 'PDF 편집/렌더링 중');
+        _logStage('PdfRenderStart', { chapterCount: total });
+        _setLoadingProgress(total, total, 'PDF 편집/렌더링 중');
         _renderResult(_chapters, response.payload || astroBase);
-        _setLoadingProgress(ASTRO_TOTAL_CHAPTERS, ASTRO_TOTAL_CHAPTERS, '완료');
+        _setLoadingProgress(total, total, '완료');
         _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, fallbackUsed: !!response.fallbackUsed });
         _showScreen('abResultScreen');
       })
@@ -941,18 +965,30 @@
       return;
     }
 
-    var win = window.open('', '_blank', 'width=980,height=760');
+    var blob = null;
+    var url = '';
+    try {
+      blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      url = URL.createObjectURL(blob);
+    } catch (_) {
+      url = '';
+    }
+
+    var win = window.open(url || '', '_blank', 'width=980,height=760');
     if (!win) {
       alert('팝업이 차단되어 출력 창을 열 수 없습니다. 팝업 허용 후 다시 시도해 주세요.');
       return;
     }
-    win.document.open();
-    win.document.write(html);
-    win.document.close();
-    win.focus();
+    if (!url) {
+      win.document.open();
+      win.document.write(html);
+      win.document.close();
+      win.focus();
+      return;
+    }
     setTimeout(function () {
-      try { win.print(); } catch (_) {}
-    }, 900);
+      try { URL.revokeObjectURL(url); } catch (_) {}
+    }, 15000);
   };
 
   document.addEventListener('click', function (e) {

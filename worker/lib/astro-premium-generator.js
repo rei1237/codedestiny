@@ -3,7 +3,7 @@ import { ASTRO_PREMIUM_CHAPTERS, sanitizeAstroPremiumText } from "./astro-premiu
 
 const MIN_SECTION_LENGTH = 500;
 const MIN_CHAPTER_LENGTH = 2000;
-const MIN_TOTAL_LENGTH = 25000;
+const MIN_TOTAL_LENGTH_FLOOR = 25000;
 const FORBIDDEN_PATTERNS = [
   /자동\s*복구\s*생성/gi,
   /fallback/gi,
@@ -12,7 +12,17 @@ const FORBIDDEN_PATTERNS = [
   /\bpayload\b/gi,
   /\bjson\b/gi,
   /\bdebug\b/gi,
+  /\bobject\b/gi,
+  /\bundefined\b/gi,
+  /\bnull\b/gi,
+  /\bnan\b/gi,
+  /\bcalculationmode\b/gi,
+  /\brecovered\b/gi,
+  /about:blank/gi,
+  /internal\s*server\s*error/gi,
 ];
+
+const SIGN_NAMES = ["양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리", "처녀자리", "천칭자리", "전갈자리", "사수자리", "염소자리", "물병자리", "물고기자리"];
 
 function clean(value) {
   return String(value || "").trim();
@@ -146,19 +156,19 @@ export function normalizeAstroPremiumBirthInput(rawInput = {}) {
   );
 
   const timeParts = parseTime(
-    pickFirst(body.birthTime, body.time, birth.time, user.birthTime),
+    pickFirst(body.birthTime, body.time, body.timeText, birth.time, birth.birthTime, user.birthTime),
     pickFirst(body.birthHour, body.hour, body.birth_hour, birth.hour),
     pickFirst(body.birthMinute, body.minute, birth.minute),
   );
 
-  const timezone = clean(pickFirst(body.timezone, body.tz, location.timezone, user.timezone)) || "Asia/Seoul";
-  const birthPlace = clean(pickFirst(body.birthPlace, body.place, body.locationName, body.location, location.label, location.name, user.birthPlace));
-  const latitude = parseNum(pickFirst(body.latitude, body.lat, location.lat), null);
-  const longitude = parseNum(pickFirst(body.longitude, body.lng, body.lon, location.lon), null);
+  const timezone = clean(pickFirst(body.timezone, body.tz, location.timezone, location.tz, user.timezone)) || "Asia/Seoul";
+  const birthPlace = clean(pickFirst(body.birthPlace, body.place, body.locationName, body.location, location.label, location.name, user.birthPlace, user.location));
+  const latitude = parseNum(pickFirst(body.latitude, body.lat, location.lat, location.latitude), null);
+  const longitude = parseNum(pickFirst(body.longitude, body.lng, body.lon, location.lon, location.longitude), null);
 
   const out = {
     name: clean(pickFirst(body.name, profile.name, user.name)) || undefined,
-    gender: normalizeGender(pickFirst(body.gender, profile.gender, user.gender)),
+    gender: normalizeGender(pickFirst(body.gender, body.sex, profile.gender, profile.sex, user.gender, user.sex)),
     birthDate: toIsoDate(dateParts.birthYear, dateParts.birthMonth, dateParts.birthDay),
     birthYear: Number.isFinite(dateParts.birthYear) ? dateParts.birthYear : 0,
     birthMonth: Number.isFinite(dateParts.birthMonth) ? dateParts.birthMonth : 0,
@@ -215,51 +225,194 @@ function strengthLabel(orb) {
   return "weak";
 }
 
-export function buildAstroLocalChartJson(birthInput, swissChart = {}) {
-  const planets = Object.entries(asObject(swissChart.planets)).map(([name, node]) => ({
-    name,
-    sign: signNameFromNode(node) || "미확인",
-    degree: Number.isFinite(Number(node?.degree)) ? Number(node.degree) : undefined,
-    house: Number.isFinite(Number(node?.house)) ? Number(node.house) : undefined,
-    retrograde: Boolean(node?.retrograde),
-  }));
+function signFromLongitude(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "";
+  const normalized = ((n % 360) + 360) % 360;
+  return SIGN_NAMES[Math.floor(normalized / 30)] || "";
+}
 
-  const houses = safeArray(swissChart.houseCusps).slice(0, 12).map((cusp, idx) => {
-    const signIndex = Math.floor((((Number(cusp) % 360) + 360) % 360) / 30);
-    const signMap = ["양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리", "처녀자리", "천칭자리", "전갈자리", "사수자리", "염소자리", "물병자리", "물고기자리"];
+function deriveSunSignFromDate(birthInput = {}) {
+  const month = Number(birthInput.birthMonth);
+  const day = Number(birthInput.birthDay);
+  if (!Number.isFinite(month) || !Number.isFinite(day)) return "";
+  const md = month * 100 + day;
+  if (md >= 321 && md <= 419) return "양자리";
+  if (md >= 420 && md <= 520) return "황소자리";
+  if (md >= 521 && md <= 621) return "쌍둥이자리";
+  if (md >= 622 && md <= 722) return "게자리";
+  if (md >= 723 && md <= 822) return "사자자리";
+  if (md >= 823 && md <= 922) return "처녀자리";
+  if (md >= 923 && md <= 1022) return "천칭자리";
+  if (md >= 1023 && md <= 1121) return "전갈자리";
+  if (md >= 1122 && md <= 1221) return "사수자리";
+  if (md >= 1222 || md <= 119) return "염소자리";
+  if (md >= 120 && md <= 218) return "물병자리";
+  if (md >= 219 && md <= 320) return "물고기자리";
+  return "";
+}
+
+function deriveMoonSeedSign(birthInput = {}) {
+  const year = Number(birthInput.birthYear || 0);
+  const month = Number(birthInput.birthMonth || 0);
+  const day = Number(birthInput.birthDay || 0);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return "";
+  const idx = ((year + month * 2 + day * 3) % 12 + 12) % 12;
+  return SIGN_NAMES[idx] || "";
+}
+
+function toSafePlanetNode(name, node = {}) {
+  const sign = signNameFromNode(node) || signFromLongitude(node?.longitude || node?.lon || node?.lambda) || "미확인";
+  const degree = Number.isFinite(Number(node?.degree))
+    ? Number(node.degree)
+    : (Number.isFinite(Number(node?.longitude)) ? Math.round((((Number(node.longitude) % 30) + 30) % 30) * 100) / 100 : undefined);
+  const house = Number.isFinite(Number(node?.house)) ? Number(node.house) : undefined;
+  return {
+    name,
+    sign,
+    degree,
+    house,
+    retrograde: Boolean(node?.retrograde),
+  };
+}
+
+function buildRecoveredChartFromBirthInput(birthInput = {}) {
+  const sunSign = deriveSunSignFromDate(birthInput) || "미확인";
+  const moonSign = deriveMoonSeedSign(birthInput) || "미확인";
+  const ascendantSign = sunSign !== "미확인" ? sunSign : moonSign;
+  const planets = [
+    { name: "Sun", sign: sunSign, house: 1 },
+    { name: "Moon", sign: moonSign, house: 4 },
+    { name: "Mercury", sign: sunSign, house: 3 },
+    { name: "Venus", sign: moonSign, house: 7 },
+    { name: "Mars", sign: sunSign, house: 6 },
+    { name: "Jupiter", sign: moonSign, house: 9 },
+    { name: "Saturn", sign: sunSign, house: 10 },
+  ];
+  const houses = Array.from({ length: 12 }, (_, idx) => ({
+    house: idx + 1,
+    sign: SIGN_NAMES[idx] || undefined,
+    cuspDegree: undefined,
+  }));
+  const aspects = [
+    { planetA: "Sun", planetB: "Moon", type: "seed-aspect", strength: "medium" },
+    { planetA: "Venus", planetB: "Mars", type: "relation-axis", strength: "medium" },
+  ];
+  return {
+    sunSign,
+    moonSign,
+    ascendantSign,
+    midheavenSign: planets.find((planet) => planet.name === "Saturn")?.sign || "미확인",
+    planets,
+    houses,
+    aspects,
+  };
+}
+
+function toAstroChartModel(birthInput, swissChart = {}, fallbackAstroBase = null) {
+  const swissPlanetsObj = asObject(swissChart?.planets);
+  const swissPlanetKeys = Object.keys(swissPlanetsObj);
+  let planets = [];
+  let calculationMode = "full";
+
+  if (swissPlanetKeys.length > 0) {
+    planets = swissPlanetKeys.map((name) => toSafePlanetNode(name, swissPlanetsObj[name] || {}));
+  } else if (Array.isArray(fallbackAstroBase?.chart?.planets) && fallbackAstroBase.chart.planets.length > 0) {
+    calculationMode = "basic";
+    planets = fallbackAstroBase.chart.planets.map((planet) => ({
+      name: clean(planet?.name || planet?.planet || "Unknown"),
+      sign: clean(planet?.sign || signFromLongitude(planet?.longitude) || "미확인"),
+      degree: Number.isFinite(Number(planet?.degree)) ? Number(planet.degree) : undefined,
+      house: Number.isFinite(Number(planet?.house)) ? Number(planet.house) : undefined,
+      retrograde: Boolean(planet?.retrograde),
+    })).filter((planet) => planet.name);
+  } else {
+    calculationMode = "recovered";
+    const recovered = buildRecoveredChartFromBirthInput(birthInput);
+    return {
+      calculationMode,
+      chart: recovered,
+    };
+  }
+
+  const housesFromSwiss = safeArray(swissChart?.houseCusps).slice(0, 12).map((cusp, idx) => {
+    const sign = signFromLongitude(cusp);
     return {
       house: idx + 1,
-      sign: signMap[signIndex] || undefined,
+      sign: sign || undefined,
       cuspDegree: Number.isFinite(Number(cusp)) ? Math.round((Number(cusp) % 30) * 100) / 100 : undefined,
     };
   });
+  const housesFromBase = Array.isArray(fallbackAstroBase?.chart?.houses)
+    ? fallbackAstroBase.chart.houses.map((house, idx) => ({
+      house: Number(house?.house || idx + 1),
+      sign: clean(house?.sign || signFromLongitude(house?.longitude) || "") || undefined,
+      cuspDegree: Number.isFinite(Number(house?.degree)) ? Number(house.degree) : undefined,
+    }))
+    : [];
+  const houses = housesFromSwiss.length ? housesFromSwiss : (housesFromBase.length ? housesFromBase : buildRecoveredChartFromBirthInput(birthInput).houses);
 
-  const aspects = safeArray(swissChart.aspects).map((aspect) => ({
+  const aspectsFromSwiss = safeArray(swissChart?.aspects).map((aspect) => ({
     planetA: clean(aspect?.p1 || aspect?.planetA),
     planetB: clean(aspect?.p2 || aspect?.planetB),
     type: clean(aspect?.type),
     orb: Number.isFinite(Number(aspect?.orb)) ? Number(aspect.orb) : undefined,
     strength: strengthLabel(aspect?.orb),
   })).filter((aspect) => aspect.planetA && aspect.planetB && aspect.type);
+  const aspectsFromBase = Array.isArray(fallbackAstroBase?.chart?.aspects)
+    ? fallbackAstroBase.chart.aspects.map((aspect) => ({
+      planetA: clean(aspect?.planetA || aspect?.p1),
+      planetB: clean(aspect?.planetB || aspect?.p2),
+      type: clean(aspect?.type),
+      orb: Number.isFinite(Number(aspect?.orb)) ? Number(aspect.orb) : undefined,
+      strength: clean(aspect?.strength) || strengthLabel(aspect?.orb),
+    })).filter((aspect) => aspect.planetA && aspect.planetB && aspect.type)
+    : [];
+  const aspects = aspectsFromSwiss.length ? aspectsFromSwiss : aspectsFromBase;
 
   const sun = planets.find((planet) => planet.name === "Sun");
   const moon = planets.find((planet) => planet.name === "Moon");
-  const ascSign = signNameFromNode(swissChart.ascendant) || "미확인";
-  const mcSign = signNameFromNode(swissChart.midheaven) || "미확인";
+  const ascFromSwiss = signNameFromNode(swissChart?.ascendant);
+  const mcFromSwiss = signNameFromNode(swissChart?.midheaven);
+  const ascFromBase = clean(fallbackAstroBase?.chart?.ascendant || fallbackAstroBase?.chart?.ascendantSign);
+  const mcFromBase = clean(fallbackAstroBase?.chart?.midheaven || fallbackAstroBase?.chart?.midheavenSign);
 
-  const seeds = buildInterpretationSeeds({ planets, houses, aspects, ascSign, mcSign, sun, moon });
+  const ascendantSign = ascFromSwiss || ascFromBase || clean(sun?.sign) || "미확인";
+  const midheavenSign = mcFromSwiss || mcFromBase || clean(planets.find((planet) => planet.name === "Saturn")?.sign) || "미확인";
 
   return {
-    birthInput,
+    calculationMode,
     chart: {
-      sunSign: clean(sun?.sign),
-      moonSign: clean(moon?.sign),
-      ascendantSign: ascSign,
-      midheavenSign: mcSign,
+      sunSign: clean(sun?.sign) || deriveSunSignFromDate(birthInput) || "미확인",
+      moonSign: clean(moon?.sign) || deriveMoonSeedSign(birthInput) || "미확인",
+      ascendantSign,
+      midheavenSign,
       planets,
       houses,
       aspects,
     },
+  };
+}
+
+export function buildAstroLocalChartJson(birthInput, swissChart = {}, fallbackAstroBase = null) {
+  const modeled = toAstroChartModel(birthInput, swissChart, fallbackAstroBase);
+  const chart = modeled.chart;
+  const sun = safeArray(chart.planets).find((planet) => planet.name === "Sun");
+  const moon = safeArray(chart.planets).find((planet) => planet.name === "Moon");
+  const seeds = buildInterpretationSeeds({
+    planets: safeArray(chart.planets),
+    houses: safeArray(chart.houses),
+    aspects: safeArray(chart.aspects),
+    ascSign: clean(chart.ascendantSign),
+    mcSign: clean(chart.midheavenSign),
+    sun,
+    moon,
+  });
+
+  return {
+    birthInput,
+    calculationMode: modeled.calculationMode,
+    chart,
     interpretationSeeds: seeds,
   };
 }
@@ -278,6 +431,7 @@ function buildInterpretationSeeds(ctx) {
     relationshipKeywords: ["금성", "화성", "7하우스", "관계경계", "대화조율"],
     healingKeywords: ["회복루틴", "정서조절", "에너지관리", "수면", "리듬"],
     timingKeywords: [aspectNames[0] || "전환신호", aspectNames[1] || "관찰신호", "시기판단", "우선순위", "점검체계"],
+    cautionKeywords: ["과속주의", "경계설정", "감정완충", "확인루틴", "리스크관리"],
   };
 }
 
@@ -334,6 +488,11 @@ function sanitizeBody(text) {
   let out = sanitizeAstroPremiumText(text);
   for (const pattern of FORBIDDEN_PATTERNS) out = out.replace(pattern, "");
   return out.replace(/\s{2,}/g, " ").replace(/\n\s*\n\s*\n+/g, "\n\n").trim();
+}
+
+function getDynamicTotalMinLength(chapterCount) {
+  const count = Math.max(1, Number(chapterCount || 0));
+  return Math.max(MIN_TOTAL_LENGTH_FLOOR, count * MIN_CHAPTER_LENGTH);
 }
 
 function ensureMinLength(text, minLength, appendix) {
@@ -411,20 +570,28 @@ function parseJsonMaybe(text) {
   }
 }
 
-function chapterPrompt(localAstroChartJson, chapterDraft) {
+function chapterPrompt(localAstroChartJson, localManuscript, chapterDraft) {
   const rules = [
     "너는 점성술 계산을 새로 하지 않는다.",
-    "이미 제공된 localAstroChartJson과 localChapterDraft만 사용한다.",
+    "이미 제공된 localAstroChartJson과 localManuscript, localChapterDraft만 사용한다.",
+    "챕터 수는 반드시 10개를 유지한다.",
     "챕터 수, 챕터 제목, 세부 섹션 제목을 절대 변경하지 않는다.",
-    "PDF 본문에 JSON, payload, debug, fallback, 자동 복구 생성이라는 표현을 출력하지 않는다.",
+    "누락된 계산값을 상상해서 만들지 않는다.",
+    "PDF 본문에 JSON, payload, debug, fallback, 자동 복구 생성, Internal server error, undefined, null 같은 표현을 출력하지 않는다.",
     "각 섹션은 실제 차트 데이터에 근거한 상담문으로 작성한다.",
     "동일 문장 반복을 금지한다.",
     "계산값이 일부 부족해도 없는 정보를 지어내지 말고, 제공된 차트 신호 중심으로 자연스럽게 보강한다.",
+    "태양, 달, 상승궁, 금성, 화성, 토성, MC, 하우스, 주요 각 정보가 있으면 반드시 해석에 반영한다.",
     "반드시 JSON만 반환한다. 형식: {\"sections\":[{\"title\":\"...\",\"body\":\"...\"}]}",
   ].join("\n");
 
   return `${rules}\n\n${JSON.stringify({
     localAstroChartJson,
+    localManuscript: safeArray(localManuscript).map((chapter) => ({
+      chapterNo: chapter.chapterNo,
+      title: chapter.title,
+      sections: safeArray(chapter.sections).map((section) => ({ title: section.title, body: section.body })),
+    })),
     localChapterDraft: {
       chapterNo: chapterDraft.chapterNo,
       title: chapterDraft.title,
@@ -454,40 +621,62 @@ function validateLlmChapterOutput(chapterDraft, parsed) {
   };
 }
 
-export async function enhanceAstroPremiumChaptersWithLLM(env, localAstroChartJson, localDrafts) {
-  console.info("[AstroPremiumPDF][LLMEnhanceStart]", { chapterCount: localDrafts.length });
+export async function enhanceAstroPremiumChaptersWithLLM(env, localAstroChartJson, localDrafts, options = {}) {
+  const emit = typeof options.log === "function"
+    ? options.log
+    : (stage, payload) => {
+      const tag = `[AstroPremiumPDF][${stage}]`;
+      if (stage === "LLMEnhanceFailedUseLocal") {
+        console.warn(tag, payload || {});
+        return;
+      }
+      console.info(tag, payload || {});
+    };
+
+  emit("LLMEnhanceStart", { chapterCount: localDrafts.length });
 
   const timeoutMs = Number(env.ASTRO_PREMIUM_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 26000);
   const totalTimeoutMs = Number(env.ASTRO_PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || 32000);
   const retries = Number(env.ASTRO_PREMIUM_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 2);
 
-  const settled = await Promise.allSettled(localDrafts.map(async (chapterDraft) => {
-    const response = await callGeminiText(env, chapterPrompt(localAstroChartJson, chapterDraft), {
-      modelEnvKeys: ["ASTRO_PREMIUM_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"],
-      temperature: 0.68,
-      maxOutputTokens: 4096,
-      timeoutMs,
-      totalTimeoutMs,
-      maxAttemptsPerPair: retries,
-    });
-    if (!response?.ok) throw new Error(clean(response?.message || response?.error || "llm_request_failed"));
-    const parsed = parseJsonMaybe(response?.text || response?.content || "");
-    const normalized = validateLlmChapterOutput(chapterDraft, parsed);
-    if (!normalized) throw new Error("llm_parse_or_schema_failed");
-    return normalized;
-  }));
+  const apiKeyPresent = Boolean(clean(env?.ASTRO_PREMIUM_GEMINI_API_KEY || env?.PREMIUM_GEMINI_API_KEY || env?.GEMINI_API_KEY));
+  if (!apiKeyPresent) {
+    emit("LLMEnhanceFailedUseLocal", { reason: "missing_api_key", chapterCount: localDrafts.length });
+    return { chapters: localDrafts.map((chapterDraft) => ({ ...chapterDraft, source: "local" })), fallbackUsed: true };
+  }
 
   let fallbackUsed = false;
-  const chapters = settled.map((item, index) => {
-    if (item.status === "fulfilled") return item.value;
-    fallbackUsed = true;
-    return { ...localDrafts[index], source: "local" };
-  });
+  const chapters = [];
+  for (let index = 0; index < localDrafts.length; index += 1) {
+    const chapterDraft = localDrafts[index];
+    try {
+      const response = await callGeminiText(env, chapterPrompt(localAstroChartJson, localDrafts, chapterDraft), {
+        modelEnvKeys: ["ASTRO_PREMIUM_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"],
+        temperature: 0.68,
+        maxOutputTokens: 4096,
+        timeoutMs,
+        totalTimeoutMs,
+        maxAttemptsPerPair: retries,
+      });
+      if (!response?.ok) throw new Error(clean(response?.message || response?.error || "llm_request_failed"));
+      const parsed = parseJsonMaybe(response?.text || response?.content || "");
+      const normalized = validateLlmChapterOutput(chapterDraft, parsed);
+      if (!normalized) throw new Error("llm_parse_or_schema_failed");
+      chapters.push(normalized);
+    } catch (error) {
+      fallbackUsed = true;
+      chapters.push({ ...chapterDraft, source: "local" });
+      emit("LLMEnhanceFailedUseLocal", {
+        chapterNo: Number(chapterDraft?.chapterNo || index + 1),
+        message: clean(error?.message || "llm_chapter_failed"),
+      });
+    }
+  }
 
   if (fallbackUsed) {
-    console.warn("[AstroPremiumPDF][LLMEnhanceFailedUseLocal]", { chapterCount: chapters.length });
+    emit("LLMEnhanceFailedUseLocal", { chapterCount: chapters.length, reason: "partial_or_full_llm_failure" });
   } else {
-    console.info("[AstroPremiumPDF][LLMEnhanceSuccess]", { chapterCount: chapters.length });
+    emit("LLMEnhanceSuccess", { chapterCount: chapters.length });
   }
 
   return { chapters, fallbackUsed };
@@ -517,6 +706,18 @@ function repeatedSentenceCount(text) {
   return Math.max(0, ...Array.from(map.values()));
 }
 
+function repeatedParagraphCount(text) {
+  const paragraphs = String(text || "")
+    .split(/\n{2,}/)
+    .map((line) => line.trim().replace(/\s+/g, " "))
+    .filter((line) => line.length >= 40);
+  const map = new Map();
+  for (const paragraph of paragraphs) {
+    map.set(paragraph, (map.get(paragraph) || 0) + 1);
+  }
+  return Math.max(0, ...Array.from(map.values()));
+}
+
 function reinforceManuscriptLength(chapters) {
   const updated = safeArray(chapters).map((chapter) => ({
     ...chapter,
@@ -530,12 +731,13 @@ function reinforceManuscriptLength(chapters) {
     })),
   }));
 
+  const requiredTotal = getDynamicTotalMinLength(updated.length);
   let currentTotal = totalLength(updated);
-  if (currentTotal >= MIN_TOTAL_LENGTH) return updated;
+  if (currentTotal >= requiredTotal) return updated;
 
   const supplement = "추가 실행 조언: 판단 기준을 명확히 문장화하고, 행동 결과를 수치와 기록으로 남기면 감정 기복이 큰 구간에서도 안정적인 의사결정을 유지할 수 있습니다.";
   let index = 0;
-  while (currentTotal < MIN_TOTAL_LENGTH && updated.length > 0) {
+  while (currentTotal < requiredTotal && updated.length > 0) {
     const chapter = updated[index % updated.length];
     const section = chapter.sections[index % chapter.sections.length];
     section.body = sanitizeBody(`${section.body}\n\n${supplement}`);
@@ -553,28 +755,41 @@ function validateFinalManuscript(localAstroChartJson, chapters) {
   if (!clean(birthInput.timezone)) issues.push("birthInput.timezone");
 
   const chart = asObject(localAstroChartJson?.chart);
-  if (!safeArray(chart.planets).length) issues.push("chart.planets");
+  if (!safeArray(chart.planets).length && !clean(chart.sunSign)) issues.push("chart.planets");
 
   if (!Array.isArray(chapters) || chapters.length !== ASTRO_PREMIUM_CHAPTERS.length) {
     issues.push("chapterCount");
   }
 
   for (const chapter of safeArray(chapters)) {
+    const schema = ASTRO_PREMIUM_CHAPTERS.find((item) => Number(item.order) === Number(chapter.chapterNo));
+    if (schema && clean(chapter.title) !== clean(schema.title)) issues.push(`chapter${chapter.chapterNo}.title`);
     if (!Array.isArray(chapter.sections) || chapter.sections.length < 3) {
       issues.push(`chapter${chapter.chapterNo}.sections`);
       continue;
     }
+    if (schema && safeArray(chapter.sections).length !== safeArray(schema.categories).length) {
+      issues.push(`chapter${chapter.chapterNo}.sectionCount`);
+    }
     if (chapterLength(chapter) < MIN_CHAPTER_LENGTH) issues.push(`chapter${chapter.chapterNo}.length`);
-    for (const section of chapter.sections) {
+    for (let sectionIndex = 0; sectionIndex < chapter.sections.length; sectionIndex += 1) {
+      const section = chapter.sections[sectionIndex];
       const body = clean(section.body);
+      const expectedSectionTitle = clean(schema?.categories?.[sectionIndex]?.title);
+      if (expectedSectionTitle && clean(section.title) !== expectedSectionTitle) {
+        issues.push(`chapter${chapter.chapterNo}.section${sectionIndex + 1}.title`);
+      }
       if (body.length < MIN_SECTION_LENGTH) issues.push(`chapter${chapter.chapterNo}.${section.title}.length`);
       if (!body) issues.push(`chapter${chapter.chapterNo}.${section.title}.empty`);
       if (containsForbidden(body)) issues.push(`chapter${chapter.chapterNo}.${section.title}.forbidden`);
-      if (repeatedSentenceCount(body) > 3) issues.push(`chapter${chapter.chapterNo}.${section.title}.repetition`);
+      if (repeatedSentenceCount(body) > 2 || repeatedParagraphCount(body) > 2) {
+        issues.push(`chapter${chapter.chapterNo}.${section.title}.repetition`);
+      }
     }
   }
 
-  if (totalLength(chapters) < MIN_TOTAL_LENGTH) issues.push("totalLength");
+  const requiredTotal = getDynamicTotalMinLength(safeArray(chapters).length || ASTRO_PREMIUM_CHAPTERS.length);
+  if (totalLength(chapters) < requiredTotal) issues.push("totalLength");
   return { ok: issues.length === 0, issues };
 }
 
@@ -619,18 +834,23 @@ function toLegacyChapters(chapterDrafts) {
 function renderAstroPremiumPdfFromDrafts(chapterDrafts, payload) {
   const name = sanitizeBody(payload?.user?.name) || "사용자";
   const birthDate = sanitizeBody(payload?.user?.birthDate) || "출생 정보";
-  const toc = safeArray(chapterDrafts).map((chapter, idx) => `<li>${idx + 1}. ${sanitizeBody(chapter.title)}</li>`).join("");
+  const toc = safeArray(chapterDrafts).map((chapter, idx) => {
+    const shortTitle = sanitizeBody(String(chapter.title || "").split(" - ")[0] || chapter.title);
+    return `<li>제${idx + 1}장 ${shortTitle}</li>`;
+  }).join("");
   const chaptersHtml = safeArray(chapterDrafts).map((chapter, idx) => {
+    const shortTitle = sanitizeBody(String(chapter.title || "").split(" - ")[0] || chapter.title);
     const sectionHtml = safeArray(chapter.sections).map((section) => `
       <article class="sec-card">
         <h3>${sanitizeBody(section.title)}</h3>
         ${sanitizeBody(section.body).split(/\n{2,}/).map((p) => `<p>${p.replace(/\n/g, "<br>")}</p>`).join("")}
       </article>
     `).join("");
-    return `<section class="chapter"><h2>${idx + 1}. ${sanitizeBody(chapter.title)}</h2>${sectionHtml}</section>`;
+    return `<section class="chapter"><h2>제${idx + 1}장 ${shortTitle}</h2>${sectionHtml}</section>`;
   }).join("");
 
   const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${name} 프리미엄 점성술 리포트</title><style>
+  @page{size:A4;margin:16mm}
   body{margin:0;background:#060f1f;color:#dbe6ff;font-family:'Noto Serif KR',serif;line-height:1.8}
   main{max-width:980px;margin:0 auto;padding:30px 24px 64px}
   .cover,.toc,.chapter{border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:18px;background:rgba(10,19,36,.88);margin-top:18px}
@@ -653,11 +873,26 @@ function renderAstroPremiumPdfFromDrafts(chapterDrafts, payload) {
   };
 }
 
-export async function generateAstroPremiumReport(env, rawInput = {}) {
-  const birthInput = normalizeAstroPremiumBirthInput(rawInput.birthInput || rawInput);
-  const localAstroChartJson = rawInput.localAstroChartJson || buildAstroLocalChartJson(birthInput, rawInput.chart || rawInput.swissChart || {});
+export async function generateAstroPremiumReport(env, rawInput = {}, options = {}) {
+  const emit = typeof options.log === "function"
+    ? options.log
+    : (stage, payload) => {
+      const tag = `[AstroPremiumPDF][${stage}]`;
+      if (stage === "LLMEnhanceFailedUseLocal") {
+        console.warn(tag, payload || {});
+        return;
+      }
+      console.info(tag, payload || {});
+    };
 
-  console.info("[AstroPremiumPDF][LocalDraftBuildStart]", {
+  const birthInput = normalizeAstroPremiumBirthInput(rawInput.birthInput || rawInput);
+  const localAstroChartJson = rawInput.localAstroChartJson || buildAstroLocalChartJson(
+    birthInput,
+    rawInput.chart || rawInput.swissChart || {},
+    rawInput.astroBase || rawInput.payload || null,
+  );
+
+  emit("LocalDraftBuildStart", {
     chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
     hasBirthDate: Boolean(clean(birthInput.birthDate)),
     hasBirthTime: Number.isFinite(Number(birthInput.birthHour)),
@@ -667,12 +902,27 @@ export async function generateAstroPremiumReport(env, rawInput = {}) {
   });
 
   const localDrafts = buildAstroLocalPremiumManuscript(localAstroChartJson);
-  console.info("[AstroPremiumPDF][LocalDraftBuildSuccess]", {
+  for (let i = 0; i < localDrafts.length; i += 1) {
+    emit("LocalDraftChapterDone", {
+      chapterNo: Number(localDrafts[i]?.chapterNo || i + 1),
+      chapterTitle: clean(localDrafts[i]?.title),
+    });
+  }
+  emit("LocalDraftBuildSuccess", {
+    chapterCount: localDrafts.length,
+    totalLength: totalLength(localDrafts),
+    calculationMode: clean(localAstroChartJson?.calculationMode) || "recovered",
+  });
+
+  const localValidation = validateFinalManuscript(localAstroChartJson, localDrafts);
+  emit("LocalQualityValidated", {
+    ok: localValidation.ok,
+    issueCount: localValidation.issues.length,
     chapterCount: localDrafts.length,
     totalLength: totalLength(localDrafts),
   });
 
-  const enhanced = await enhanceAstroPremiumChaptersWithLLM(env, localAstroChartJson, localDrafts);
+  const enhanced = await enhanceAstroPremiumChaptersWithLLM(env, localAstroChartJson, localDrafts, { log: emit });
   let finalDrafts = reinforceManuscriptLength(enhanced.chapters);
 
   let validated = validateFinalManuscript(localAstroChartJson, finalDrafts);
@@ -681,24 +931,30 @@ export async function generateAstroPremiumReport(env, rawInput = {}) {
     validated = validateFinalManuscript(localAstroChartJson, finalDrafts);
   }
 
-  console.info("[AstroPremiumPDF][FinalManuscriptValidated]", {
+  emit("FinalManuscriptValidated", {
     ok: validated.ok,
     issueCount: validated.issues.length,
     chapterCount: finalDrafts.length,
     totalLength: totalLength(finalDrafts),
   });
 
-  console.info("[AstroPremiumPDF][PdfRenderStart]", { chapterCount: finalDrafts.length });
+  emit("PdfRenderStart", { chapterCount: finalDrafts.length });
   const payload = toLegacyPayload(localAstroChartJson);
   const pdfReady = renderAstroPremiumPdfFromDrafts(finalDrafts, payload);
-  console.info("[AstroPremiumPDF][PdfRenderSuccess]", { chapterCount: finalDrafts.length });
+  emit("PdfRenderSuccess", { chapterCount: finalDrafts.length });
 
   const chapters = toLegacyChapters(finalDrafts);
+  const llmCount = finalDrafts.filter((chapter) => chapter?.source === "llm").length;
+  const manuscriptSource = llmCount === 0
+    ? "local"
+    : (llmCount === finalDrafts.length ? "llm-enhanced" : "mixed");
   return {
     payload,
     chapters,
     chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
     fallbackUsed: Boolean(enhanced.fallbackUsed),
+    manuscriptSource,
+    totalLength: totalLength(finalDrafts),
     pdfReady,
     localAstroChartJson,
     finalManuscript: finalDrafts,
