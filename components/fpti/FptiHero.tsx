@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
+import Link from "next/link";
 import styles from "./FptiCosmic.module.css";
 
 type Props = {
@@ -22,6 +23,14 @@ export default function FptiHero({ onStart }: Props) {
     <section className={`${styles.glassPanelStrong} relative isolate overflow-hidden rounded-[32px] p-6 text-slate-50 md:p-10`}>
       <div className={`${styles.starLayerSoft} absolute inset-0`} aria-hidden />
       <div className={`${styles.auroraLine} absolute left-0 top-0 h-[2px] w-full`} aria-hidden />
+
+      <Link
+        href="/"
+        className="absolute right-4 top-4 z-20 flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 backdrop-blur transition-all duration-200 hover:bg-white/10 hover:text-white"
+        aria-label="홈으로 가기"
+      >
+        <span>🏠</span> 홈으로
+      </Link>
 
       <motion.div
         initial={{ opacity: 0, y: 14 }}

@@ -472,13 +472,27 @@
     _populateTimeSelects();
     _forceCompatibilityMode();
     var profile = _getActiveBirthProfile();
-    if (profile && profile.birth) {
+    if (!profile || !profile.birth || !profile.birth.year) {
+      try {
+        var _dpNs = 'FORTUNE_APP_USER_PROFILES';
+        var _dpList = JSON.parse(localStorage.getItem(_dpNs + '.list') || '[]');
+        var _dpCurrId = localStorage.getItem(_dpNs + '.current');
+        var _dpMatch = (_dpCurrId && _dpList.find(function (item) { return item.id === _dpCurrId; })) || _dpList[0] || null;
+        if (_dpMatch && _dpMatch.birth && _dpMatch.birth.year) {
+          window.__cdActiveBirthProfile = _dpMatch;
+          profile = _dpMatch;
+        }
+      } catch (_dpE) {}
+    }
+
+    if (profile && profile.birth && profile.birth.year) {
       window.__cdActiveBirthProfile = profile;
       _renderProfileSummary(profile);
       _showScreen('skStartScreen');
     } else {
       _showScreen('skNoProfileScreen');
     }
+
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
     try { modal.setAttribute('aria-hidden', 'false'); } catch (_) {}

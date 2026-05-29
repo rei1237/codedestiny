@@ -249,3 +249,78 @@
     height: 16rem;
   }
 }
+
+/* Premium Cosmic Design Reinforcement */
+.cosmicGradientText {
+  background: linear-gradient(135deg, #a78bfa 0%, #3b82f6 50%, #f472b6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 12px rgba(167, 139, 250, 0.22);
+}
+
+.cosmicNeonCard {
+  position: relative;
+  background: linear-gradient(150deg, rgba(8, 12, 36, 0.94) 0%, rgba(18, 22, 48, 0.88) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.28) !important;
+  box-shadow: 
+    0 0 25px rgba(139, 92, 246, 0.16),
+    0 20px 55px rgba(2, 8, 25, 0.62),
+    inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  overflow: hidden;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.cosmicNeonCard:hover {
+  border-color: rgba(167, 139, 250, 0.58) !important;
+  box-shadow: 
+    0 0 35px rgba(139, 92, 246, 0.28),
+    0 22px 60px rgba(2, 8, 25, 0.68),
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.12);
+}
+
+.neonAxisChip {
+  border: 1px solid rgba(56, 189, 248, 0.28) !important;
+  background: rgba(14, 165, 233, 0.04) !important;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.08);
+  transition: all 0.25s ease;
+}
+
+.neonAxisChip:hover {
+  border-color: rgba(56, 189, 248, 0.55) !important;
+  background: rgba(14, 165, 233, 0.08) !important;
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.2);
+  transform: translateY(-1.5px);
+}
+
+.starGlow {
+  animation: starTwinkle 2.5s ease-in-out infinite alternate;
+}
+
+.glowingTitle {
+  text-shadow: 0 0 10px rgba(192, 132, 252, 0.6), 0 0 20px rgba(59, 130, 246, 0.3);
+  letter-spacing: 0.04em;
+}
+
+.neonTextGold {
+  color: #F6D365;
+  text-shadow: 0 0 12px rgba(246, 211, 101, 0.55);
+}
+
+.neonTextCyan {
+  color: #22d3ee;
+  text-shadow: 0 0 12px rgba(34, 211, 238, 0.55);
+}
+
+@keyframes starTwinkle {
+  0% { 
+    opacity: 0.65; 
+    filter: drop-shadow(0 0 2px rgba(255,255,255,0.4)); 
+  }
+  100% { 
+    opacity: 1; 
+    filter: drop-shadow(0 0 8px rgba(125,211,252,0.95)) drop-shadow(0 0 16px rgba(168,85,247,0.75)); 
+  }
+}
+

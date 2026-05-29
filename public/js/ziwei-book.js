@@ -369,13 +369,38 @@
 
   window.openZiweiBookModal = function(){
     var modal = $('ziweiBookModal');
-    if(modal){
-      modal.classList.add('active');
-      modal.style.display = 'flex';
-      document.body.classList.add('modal-open');
+    if(!modal) return;
+
+    var profile = getActiveProfile();
+    if (!profile || !profile.year || !profile.month) {
+      try {
+        var _dpNs = 'FORTUNE_APP_USER_PROFILES';
+        var _dpList = JSON.parse(localStorage.getItem(_dpNs + '.list') || '[]');
+        var _dpCurrId = localStorage.getItem(_dpNs + '.current');
+        var _dpMatch = (_dpCurrId && _dpList.find(function(p){return p.id===_dpCurrId;})) || (_dpList.length && _dpList[0]) || null;
+        if (_dpMatch && _dpMatch.birth && _dpMatch.birth.year) {
+          window.__cdActiveBirthProfile = _dpMatch;
+          profile = getActiveProfile();
+        }
+      } catch (_dpE) {}
     }
-    if(!RESULT){
+
+    if (profile && profile.year && profile.month) {
+      if (!window.__cdActiveBirthProfile || !window.__cdActiveBirthProfile.birth) {
+        window.__cdActiveBirthProfile = profile;
+      }
       setDisplay('zbStartScreen','block');
+      setDisplay('zbNoProfileScreen','none');
+    } else {
+      setDisplay('zbStartScreen','none');
+      setDisplay('zbNoProfileScreen','block');
+    }
+
+    modal.classList.add('active');
+    modal.style.display = 'flex';
+    document.body.classList.add('modal-open');
+
+    if(!RESULT){
       setDisplay('zbLoadingScreen','none');
       setDisplay('zbResultScreen','none');
       updateProgress(0, '자미두수 명반을 준비합니다.');

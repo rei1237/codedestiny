@@ -648,7 +648,20 @@
     if (!modal) return;
 
     var profile = _getActiveBirthProfile();
-    if (profile && profile.birth) {
+    if (!profile || !profile.birth || !profile.birth.year) {
+      try {
+        var _dpNs = 'FORTUNE_APP_USER_PROFILES';
+        var _dpList = JSON.parse(localStorage.getItem(_dpNs + '.list') || '[]');
+        var _dpCurrId = localStorage.getItem(_dpNs + '.current');
+        var _dpMatch = (_dpCurrId && _dpList.find(function (p) { return p.id === _dpCurrId; })) || (_dpList.length && _dpList[0]) || null;
+        if (_dpMatch && _dpMatch.birth && _dpMatch.birth.year) {
+          window.__cdActiveBirthProfile = _dpMatch;
+          profile = _dpMatch;
+        }
+      } catch (_dpE) {}
+    }
+
+    if (profile && profile.birth && profile.birth.year) {
       window.__cdActiveBirthProfile = profile;
       _renderProfileSummary(profile);
       _showScreen('abStartScreen');

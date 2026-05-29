@@ -14,6 +14,7 @@ import FptiTenGodsPanel from "./FptiTenGodsPanel";
 import FptiRelationshipCard from "./FptiRelationshipCard";
 import FptiShareCard from "./FptiShareCard";
 import FptiStrategyCard from "./FptiStrategyCard";
+import styles from "./FptiCosmic.module.css";
 
 type Props = {
   result: FptiAnalysisResult;
@@ -46,7 +47,7 @@ const QUALITY_LABELS = {
 
 function AxisChip({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-white/12 bg-white/5 p-3">
+    <div className={`${styles.neonAxisChip} rounded-2xl border border-white/12 bg-white/5 p-3`}>
       <p className="text-[11px] uppercase tracking-[0.18em] text-slate-300">{label}</p>
       <p className="mt-1 text-sm font-semibold text-slate-100">{value}</p>
     </div>
@@ -195,17 +196,17 @@ export default function FptiResultCard({ result }: Props) {
       transition={{ duration: 0.4 }}
       className="space-y-4"
     >
-      <div className="rounded-[28px] border border-white/20 bg-[linear-gradient(150deg,rgba(5,18,36,0.92),rgba(14,34,58,0.9))] p-5 shadow-[0_18px_50px_rgba(2,8,25,0.58)] backdrop-blur-xl md:p-7">
+      <div className={`${styles.cosmicNeonCard} rounded-[28px] p-5 shadow-[0_18px_50px_rgba(2,8,25,0.58)] backdrop-blur-xl md:p-7`}>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-xs tracking-[0.2em] text-[#f6d365]">당신의 FPTI 코드</p>
             <p className="text-xs tracking-[0.2em] text-[#bfdbfe]">SAJU FPTI RESULT</p>
-            <h2 className="mt-1 text-4xl font-bold text-[#F6D365] md:text-5xl">{result.code}</h2>
+            <h2 className={`${styles.neonTextGold} mt-1 text-4xl font-bold md:text-5xl`}>{result.code}</h2>
             <p className="mt-1 text-lg font-semibold text-slate-100">{result.typeName}</p>
             <p className="mt-2 max-w-2xl text-sm text-slate-300">{result.oneLiner}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {result.keywords.slice(0, 5).map((keyword) => (
-                <span key={keyword} className="rounded-full border border-[#e9c46a]/45 bg-[#f6d365]/10 px-3 py-1 text-xs text-[#fef3c7]">
+                <span key={keyword} className="rounded-full border border-[#e9c46a]/45 bg-[#f6d365]/10 px-3 py-1 text-xs text-[#fef3c7] shadow-[0_0_8px_rgba(246,211,101,0.2)]">
                   #{keyword}
                 </span>
               ))}
@@ -225,9 +226,9 @@ export default function FptiResultCard({ result }: Props) {
 
         <div className="mt-4 grid gap-2 md:grid-cols-4">
           {codeParts.map((part, idx) => (
-            <div key={`${part}-${idx}`} className="rounded-2xl border border-[#E9C46A]/35 bg-[#0b2039]/70 p-3">
+            <div key={`${part}-${idx}`} className={`${styles.neonAxisChip} rounded-2xl border border-[#E9C46A]/35 bg-[#0b2039]/70 p-3`}>
               <p className="text-[11px] text-slate-300">코드 {idx + 1}</p>
-              <p className="mt-1 text-2xl font-bold text-[#F6D365]">{part}</p>
+              <p className={`${styles.neonTextGold} mt-1 text-2xl font-bold`}>{part}</p>
               <p className="mt-1 text-xs text-slate-200">{AXIS_CARD_LABELS[part] || "복합 의미"}</p>
             </div>
           ))}
@@ -338,7 +339,7 @@ export default function FptiResultCard({ result }: Props) {
         </section>
       </div>
 
-      <div className="rounded-3xl border border-[#E9C46A]/35 bg-[radial-gradient(circle_at_15%_20%,rgba(245,158,11,0.25),transparent_38%),radial-gradient(circle_at_85%_30%,rgba(56,189,248,0.22),transparent_42%),linear-gradient(145deg,rgba(15,23,42,0.95),rgba(30,41,59,0.88))] p-4">
+      <div className={`${styles.cosmicNeonCard} rounded-3xl border border-[#E9C46A]/35 bg-[radial-gradient(circle_at_15%_20%,rgba(245,158,11,0.25),transparent_38%),radial-gradient(circle_at_85%_30%,rgba(56,189,248,0.22),transparent_42%),linear-gradient(145deg,rgba(15,23,42,0.95),rgba(30,41,59,0.88))] p-6`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs tracking-[0.18em] text-[#F6D365]">PREMIUM REPORT</p>
@@ -365,15 +366,15 @@ export default function FptiResultCard({ result }: Props) {
           </div>
         </div>
         <div className="mt-3 rounded-xl border border-white/15 bg-black/20 p-3 text-sm text-slate-100">
-          상태: {deepLoading ? stageLabel : deepReport ? "완료" : "대기"}
+          상태: <span className={deepReport ? styles.neonTextCyan : styles.neonTextGold}>{deepLoading ? stageLabel : deepReport ? "완료" : "대기"}</span>
         </div>
         {deepError && <p className="mt-3 rounded-xl border border-rose-300/35 bg-rose-500/15 p-3 text-sm text-rose-100">{deepError}</p>}
       </div>
 
       {deepReport && (
-        <section className="rounded-3xl border border-cyan-300/30 bg-[linear-gradient(140deg,rgba(8,47,73,0.7),rgba(30,41,59,0.8))] p-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] backdrop-blur-xl">
+        <section className={`${styles.cosmicNeonCard} rounded-3xl p-5 pb-[calc(5.5rem+env(safe-area-inset-bottom))]`}>
           <p className="text-xs tracking-[0.16em] text-cyan-200">COSMIC DESTINY REPORT</p>
-          <h4 className="mt-1 text-lg font-semibold text-sky-100">{deepReport.typeName} ({deepReport.typeCode})</h4>
+          <h4 className={`${styles.neonTextCyan} mt-1 text-lg font-semibold`}>{deepReport.typeName} ({deepReport.typeCode})</h4>
           <p className="mt-2 text-sm text-slate-200">{deepReport.summary.split("\n").slice(-1)[0]}</p>
 
           <div className="mt-3 flex flex-wrap gap-2">
