@@ -50,7 +50,8 @@ describe("Sibyl flow and KASI smoke", () => {
     const mapped = sibylUtils.mapToSibylChapters([], canonical);
     expect(mapped.chapterList).toHaveLength(10);
     expect(Object.keys(mapped.chapterMap)).toHaveLength(10);
-    expect(mapped.chapterList[8].title).toBe("CH.09 시스템 리스크 가이드");
+    expect(mapped.chapterList[6].title).toBe("CH.07 월별 리스크 플래너");
+    expect(mapped.chapterList[8].title).toBe("CH.09 재물과 직업 전략");
     expect(mapped.chapterList[9].title).toBe("CH.10 최종 실행 가이드");
     expect(() => sibylUtils.validateSibylReport(mapped.chapterMap)).not.toThrow();
   });

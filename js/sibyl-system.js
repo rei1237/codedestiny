@@ -21,10 +21,10 @@
     { key: 'tenGodPattern', title: 'CH.04 주도 십성과 행동 패턴', focus: '주도 십성 기반 행동·관계·의사결정 패턴' },
     { key: 'elementBalance', title: 'CH.05 오행 밸런스와 에너지 설계', focus: '오행 과부족, 보완 루틴, 환경 설계' },
     { key: 'yearlyFlow', title: 'CH.06 10년 위험 계수 그래프 해설', focus: '연도별 위험/기회 흐름과 실행 타이밍' },
-    { key: 'relationship', title: 'CH.07 관계와 애정 패턴', focus: '관계 충돌 패턴과 파트너십 운영' },
-    { key: 'moneyCareer', title: 'CH.08 재물과 직업 전략', focus: '재정 운용·직업 선택·리스크 대응' },
-    { key: 'systemWarning', title: 'CH.09 시스템 리스크 가이드', focus: '반복 실패 패턴과 예방 규칙' },
-    { key: 'finalMessage', title: 'CH.10 최종 실행 가이드', focus: '핵심 결론과 90일 실행 원칙' }
+    { key: 'monthlyPlanner', title: 'CH.07 월별 리스크 플래너', focus: '12개월 위험/엔진/배터리 기반 월별 운영 플랜' },
+    { key: 'relationship', title: 'CH.08 관계와 애정 패턴', focus: '관계 충돌 패턴과 파트너십 운영' },
+    { key: 'moneyCareer', title: 'CH.09 재물과 직업 전략', focus: '재정 운용·직업 선택·리스크 대응' },
+    { key: 'finalMessage', title: 'CH.10 최종 실행 가이드', focus: '핵심 결론과 7/30/90일 실행 원칙' }
   ];
   var SIBYL_PREMIUM_CHAPTER_KEYS = SIBYL_PREMIUM_CHAPTER_META.map(function(item) { return item.key; });
   var SibylState = Object.freeze({
@@ -44,6 +44,32 @@
   var SIBYL_DEFAULT_CAREER_SCORE = 60;
   var SIBYL_PRIMARY_TENGOD_FALLBACK = '중심 기질 분석 중';
   var SIBYL_CORE_MATRIX_FALLBACK = '사주 코어 매트릭스 데이터를 보강해 기본 분석을 재구성했습니다. 핵심 축은 유지되며, 누락 필드는 안전한 기준값으로 보정됩니다.';
+  var SIBYL_FORBIDDEN_REPORT_PATTERNS = [
+    /실행\s*보강\s*메모\s*R\d*/i,
+    /자동\s*복구\s*생성/i,
+    /핵심\s*신호를\s*바탕으로\s*현재\s*흐름을\s*구조적으로\s*해석합니다/i,
+    /이번\s*해석은\s*단정\s*예언이\s*아니라/i,
+    /1단계\s*실행\s*포인트/i,
+    /점수\s*해석을\s*행동\s*루틴으로\s*전환하고\s*7일\s*단위로\s*점검합니다/i,
+    /위험\s*계수\s*47\s*,?\s*적성\s*계수\s*608\s*기준으로\s*운영\s*강도를\s*조절합니다/i,
+    /사주\s*질문\s*프롬프트\s*만들기/i,
+    /결과\s*기반\s*고품질\s*질문/i,
+    /생성\s*비용\s*:\s*100코인/i,
+    /아래\s*내용을\s*AI에게\s*그대로\s*붙여넣어\s*질문해보세요/i,
+    /연이의\s*편지/i
+  ];
+  var SIBYL_CHAPTER_CATEGORY_HINTS = {
+    coreMatrix: ['입력', '지배 오행', '주도 십성', '위험 계수', '적성 계수', '신뢰도'],
+    riskAnalysis: ['리스크', '오행 불균형', '십성', '충·형·파·해', '대운·세운', '월별 변동성'],
+    aptitudeAnalysis: ['Career', 'Wealth', 'Execution', 'Social', 'Recovery', '적성'],
+    tenGodPattern: ['주도 십성', '비견', '재성', '관성', '인성', '행동 패턴'],
+    elementBalance: ['오행 분포', '지배 오행', '유리 오행', '주의 오행', '용신', '기신'],
+    yearlyFlow: ['10년', '연도', '위험', '기회', '세운', '대운'],
+    monthlyPlanner: ['월별', 'M01', '리스크 밴드', '포커스', '주의', '대응'],
+    relationship: ['관계', '애정', '연애', '협업', '갈등', '회복'],
+    moneyCareer: ['직업', '커리어', '재물', '수익', '실행 전략', '30일'],
+    finalMessage: ['최종', '7일', '30일', '90일', '개운', '실전 선언문']
+  };
 
   /* 십성 → 섹터 매핑 */
   var TENSTAR_SECTOR = {
@@ -1505,6 +1531,8 @@
         if (out.length && out[out.length - 1] !== '') out.push('');
         continue;
       }
+      var blocked = SIBYL_FORBIDDEN_REPORT_PATTERNS.some(function(rx) { return rx.test(trim); });
+      if (blocked) continue;
       var key = trim.toLowerCase();
       if (seen[key]) continue;
       seen[key] = true;
@@ -1514,6 +1542,89 @@
     return out.join('\n');
   }
 
+  function _countSibylPlaceholdersInText(text) {
+    var source = String(text || '');
+    var count = 0;
+    SIBYL_FORBIDDEN_REPORT_PATTERNS.forEach(function(rx) {
+      var m = source.match(new RegExp(rx.source, 'gi'));
+      if (m && m.length) count += m.length;
+    });
+    return count;
+  }
+
+  function dedupeSibylReportText(report) {
+    if (!report || !Array.isArray(report.chapters)) return report;
+    var seen = Object.create(null);
+    var duplicateCount = 0;
+    report.chapters = report.chapters.map(function(ch) {
+      var lines = String(ch && ch.content || '').replace(/\r/g, '').split('\n');
+      var kept = [];
+      for (var i = 0; i < lines.length; i += 1) {
+        var line = String(lines[i] || '').trim();
+        if (!line) {
+          if (kept.length && kept[kept.length - 1] !== '') kept.push('');
+          continue;
+        }
+        var normalized = line.toLowerCase();
+        if (seen[normalized]) {
+          duplicateCount += 1;
+          continue;
+        }
+        seen[normalized] = true;
+        kept.push(line);
+      }
+      var cleanContent = _sanitizeSibylChapterContent(kept.join('\n'));
+      return Object.assign({}, ch, { content: cleanContent });
+    });
+    report.__duplicateSentenceCount = duplicateCount;
+    return report;
+  }
+
+  function assertNoPlaceholderText(report) {
+    if (!report || !Array.isArray(report.chapters)) return { ok: true, placeholderCount: 0 };
+    var total = report.chapters.reduce(function(sum, ch) {
+      return sum + _countSibylPlaceholdersInText(ch && ch.content || '');
+    }, 0);
+    return { ok: total === 0, placeholderCount: total };
+  }
+
+  function assertChapterCategoryMatch(report) {
+    if (!report || !Array.isArray(report.chapters)) return { ok: false, warnings: ['chapters missing'] };
+    var warnings = [];
+    report.chapters.forEach(function(ch) {
+      var key = String(ch && ch.key || '').trim();
+      var hints = SIBYL_CHAPTER_CATEGORY_HINTS[key] || [];
+      if (!hints.length) return;
+      var body = String(ch && ch.content || '');
+      var hit = hints.reduce(function(sum, token) {
+        return sum + (body.indexOf(token) >= 0 ? 1 : 0);
+      }, 0);
+      if (hit < 2) warnings.push(key + ':category-match-low');
+    });
+    return { ok: warnings.length === 0, warnings: warnings };
+  }
+
+  function validateSibylReportSections(report) {
+    if (!report || !Array.isArray(report.chapters)) {
+      return { ok: false, reason: 'chapters-missing' };
+    }
+    if (report.chapters.length !== 10) {
+      return { ok: false, reason: 'chapter-count', count: report.chapters.length };
+    }
+    for (var i = 0; i < report.chapters.length; i += 1) {
+      var ch = report.chapters[i] || {};
+      var body = String(ch.content || '');
+      var sectionCount = (body.match(/(^##\s+|^-\s+)/gm) || []).length;
+      if (sectionCount < 5) {
+        return { ok: false, reason: 'category-count', key: ch.key, count: sectionCount };
+      }
+      if (_countSibylPlaceholdersInText(body) > 0) {
+        return { ok: false, reason: 'placeholder', key: ch.key };
+      }
+    }
+    return { ok: true };
+  }
+
   function _ensureSibylPremiumTotalChars(chapters, minTotalChars, canonicalData) {
     var list = Array.isArray(chapters) ? chapters : [];
     var minChars = _toInt(minTotalChars, SIBYL_MIN_PREMIUM_TOTAL_CHARS);
@@ -1521,38 +1632,7 @@
     var total = list.reduce(function(sum, chapter) { return sum + String(chapter && chapter.content || '').length; }, 0);
     if (!list.length || total >= minChars) return { chapters: list, totalChars: total };
 
-    var sibyl = canonicalData && canonicalData.sibyl ? canonicalData.sibyl : {};
-    var yearly = canonicalData && Array.isArray(canonicalData.yearlyFlow) ? canonicalData.yearlyFlow : [];
-    var signals = yearly.slice(0, 3).map(function(item) {
-      return String(item.year) + '년 위험 ' + _toInt(item.riskScore, 50) + ' / 기회 ' + _toInt(item.opportunityScore, 50);
-    }).join(' · ');
-    var rotation = [
-      '핵심 의사결정은 기록 기반으로 처리해 감정 편향을 줄입니다.',
-      '고위험 구간에는 실행보다 검증 비중을 높여 손실 곡선을 완화합니다.',
-      '안정 구간에는 핵심 과제 1개를 전진 배치해 성과를 고정합니다.',
-      '월별 리듬에 맞춘 일정 재배치로 변동성 충격을 흡수합니다.',
-      '관계·재정·업무 의사결정의 타이밍을 분리해 동시 리스크를 낮춥니다.'
-    ];
-
-    var guard = 0;
-    var idx = list.length - 1;
-    while (total < minChars && guard < 240) {
-      var seedText = [
-        '## 실행 보강 메모 R' + String(guard + 1).padStart(3, '0'),
-        '- 위험 계수 ' + _toInt(sibyl.riskScore, 45) + ', 적성 계수 ' + _toInt(sibyl.aptitudeScore, 520) + ' 기준으로 운영 강도를 조절합니다.',
-        '- 라운드 전략: ' + rotation[guard % rotation.length],
-        '- 연간 참고 신호: ' + (signals || '연간 시기 정보 재확인 필요') + '.',
-        '- 실행 원칙: 점수 해석을 행동 루틴으로 전환하고 7일 단위로 점검합니다.'
-      ].join('\n');
-      var target = list[idx];
-      if (target) {
-        target.content = _sanitizeSibylChapterContent(String(target.content || '').trim() + '\n\n' + seedText);
-      }
-      total = list.reduce(function(sum, chapter) { return sum + String(chapter && chapter.content || '').length; }, 0);
-      idx = (idx - 1 + list.length) % list.length;
-      guard += 1;
-    }
-
+    // 품질 보존 우선: 임의 filler로 길이를 강제로 채우지 않는다.
     return { chapters: list, totalChars: total };
   }
 
@@ -1585,6 +1665,13 @@
       map[chapter.key] = String(chapter.content || '').trim();
     });
 
+    var shaped = { chapters: chapters };
+    dedupeSibylReportText(shaped);
+    chapters = shaped.chapters;
+    chapters.forEach(function(chapter) {
+      map[chapter.key] = String(chapter.content || '').trim();
+    });
+
     source.chapterMap = map;
     source.chapters = chapters;
     source.categoryCount = chapters.length;
@@ -1592,6 +1679,13 @@
     source.totalChars = shapedTotals.totalChars;
     source.minTotalChars = Math.max(_toInt(source.minTotalChars, 0), SIBYL_MIN_PREMIUM_TOTAL_CHARS);
     source.canonicalData = canonicalData || source.canonicalData || null;
+
+    var placeholderState = assertNoPlaceholderText(source);
+    var chapterMatchState = assertChapterCategoryMatch(source);
+    var sectionState = validateSibylReportSections(source);
+    source.__placeholderCount = placeholderState.placeholderCount;
+    source.__chapterMatchWarnings = chapterMatchState.warnings || [];
+    source.__sectionValidation = sectionState;
 
     return source;
   }
@@ -2220,17 +2314,22 @@
     ].join('\n');
 
     var chapter4 = [
-      '## 충·형·파·해 핵심 경고',
-      '- 충(沖): ' + (conflictSignals.chungCount || 0) + '건',
-      '- 형(刑): ' + (conflictSignals.hyungCount || 0) + '건',
-      '- 파(破): ' + (conflictSignals.paCount || 0) + '건',
-      '- 해(害): ' + (conflictSignals.haeCount || 0) + '건',
+      '## 주도 십성 요약',
+      '- 주도 십성: ' + dominantTenStar,
+      '- 비견/겁재 합: ' + _bijabCount(normalized.tenStarCounts),
+      '- 재성 합: ' + ((normalized.tenStarCounts['편재'] || 0) + (normalized.tenStarCounts['정재'] || 0)),
+      '- 관성 합: ' + ((normalized.tenStarCounts['편관'] || 0) + (normalized.tenStarCounts['정관'] || 0)),
+      '- 인성 합: ' + ((normalized.tenStarCounts['편인'] || 0) + (normalized.tenStarCounts['정인'] || 0)),
       '',
-      (conflictSignals.notes.length
-        ? conflictSignals.notes.map(function(msg) { return '- ' + msg; }).join('\n')
-        : '- 당해 연도 기준 직격 충형파해 신호는 낮은 편입니다.'),
+      '## 행동 패턴 해석',
+      '- 업무 패턴: 주도 십성이 강한 구간에서 실행 속도는 빨라지나, 검증 단계를 생략하면 재작업 비용이 커집니다.',
+      '- 관계 패턴: 비겁/관성 균형이 무너지면 설득보다 대립으로 흐르기 쉬워 기록 기반 합의가 필요합니다.',
+      '- 돈/결정 패턴: 재성 대비 관성 비율이 낮은 달에는 이익보다 손실 방어 규칙을 먼저 고정해야 합니다.',
+      '- 감정 흔들림 반응: 회복 점수가 내려가는 달에는 결정을 하루 지연해 오류 확률을 줄이세요.',
       '',
-      '관계 리스크는 사건이 생긴 뒤 수습하면 비용이 큽니다. 충/형이 겹치는 구간에서는 말의 속도를 늦추고, 계약·재무·인사 의사결정의 확인 단계를 늘리는 것이 손실을 크게 줄입니다.'
+      '## 주도 십성을 좋게 쓰는 방법',
+      '- 강점 축은 주간 단위 실행 목표 1개로 집중하고, 약점 축은 체크리스트 자동화로 보완합니다.',
+      '- 과잉 작동 신호가 보이면 일정/대화/의사결정 속도를 분리해 동시 리스크를 낮춥니다.'
     ].join('\n');
 
     var annualNarrative = annualPlan.map(function(item, idx) {
@@ -2279,6 +2378,23 @@
     }).join('\n\n');
 
     var chapter5 = [
+      '## 오행 분포',
+      '- 목(木): ' + (normalized.dist.wood || 0) + ' / 화(火): ' + (normalized.dist.fire || 0) + ' / 토(土): ' + (normalized.dist.earth || 0) + ' / 금(金): ' + (normalized.dist.metal || 0) + ' / 수(水): ' + (normalized.dist.water || 0),
+      '- 지배 오행: ' + (EL_KR[dominantEl] || dominantEl),
+      '- 과다/결핍 축은 월별 집중력과 회복력에 직접 영향을 줍니다.',
+      '',
+      '## 퀀텀 오행 유불리',
+      '- 유리 오행: ' + ((quantumDiagnostics.favorableElements || []).join(', ') || '중립(추정)'),
+      '- 주의 오행: ' + ((quantumDiagnostics.cautionElements || []).join(', ') || '중립(추정)'),
+      '- 용신 배열: ' + ((quantumDiagnostics.yongshin || []).join(', ') || '중립(추정)'),
+      '- 기신 배열: ' + ((quantumDiagnostics.kishin || []).join(', ') || '중립(추정)'),
+      '',
+      '## 환경/루틴 설계',
+      '- 유리 오행에 맞춘 작업 환경을 주간 루틴에 고정해 에너지 누수를 줄입니다.',
+      '- 주의 오행이 강한 달에는 대면 일정과 고난도 결정을 분산 배치합니다.'
+    ].join('\n');
+
+    var chapter6 = [
       '## 10년 리스크 맵 (실연동)',
       annualNarrative,
       '',
@@ -2289,7 +2405,7 @@
       lowRiskYears.map(function(yItem) { return '- ' + yItem.year + '년: 위험 ' + yItem.risk + ' (' + yItem.ganZhi + ')'; }).join('\n')
     ].join('\n');
 
-    var chapter6 = [
+    var chapter7 = [
       '## 월별 리스크 플래너 (12개월)',
       monthlyNarrative,
       '',
@@ -2300,65 +2416,54 @@
       lowRiskMonths.map(function(mItem) { return '- ' + mItem.month + '월: 위험 ' + mItem.risk + ' · ' + mItem.focus; }).join('\n')
     ].join('\n');
 
-    var chapter7 = [
-      '## 분야별 실행 매뉴얼',
-      '- Career 전략: 분기 핵심 과제 1개를 정하고, 월별 위험 상위 구간에는 검증 단계를 추가하십시오.',
-      '- Wealth 전략: 고위험 월에는 현금흐름 방어(유동성/고정비 재조정), 안정 월에는 성장 자산 배분을 강화하십시오.',
-      '- Execution 전략: 실행 속도는 월별 배터리와 연동해 조절하십시오. 배터리 45 미만 구간은 품질 우선 운영이 유리합니다.',
-      '- Social 전략: 충형파해 신호가 강한 달에는 말의 속도를 늦추고 기록 기반 커뮤니케이션을 사용하십시오.',
-      '- Recovery 전략: 고위험 전후 월에 회복 루틴(수면, 운동, 일정 비우기)을 선배치해야 연간 성과가 무너지지 않습니다.',
-      '',
-      '## 30/90/180일 실행 프레임',
-      '- 30일: 손실 누수 차단(계약 검토 루틴, 관계 갈등 로그화).',
-      '- 90일: 성과 고정(프로젝트 1개 집중, 협업 규칙 명문화).',
-      '- 180일: 포트폴리오 재편(강점 영역 확장 + 고위험 영역 자동화).',
-      '',
-      '핵심은 점수 해석이 아니라 리듬 운영입니다. 같은 사주라도 운영 리듬이 다르면 결과는 완전히 달라집니다.'
-    ].join('\n');
-
     var chapter8 = [
-      '## 최종 결론',
-      '- 현재 리스크 축의 1순위는 ' + (riskBreakdown.parts.daewunSeunConflict >= riskBreakdown.parts.elementImbalance ? '대운·세운 충돌' : '오행 불균형') + '입니다.',
-      '- 지금 당장 바꿔야 할 1가지는 "고위험 월에서의 의사결정 지연 규칙"입니다.',
-      '- 지금 당장 강화할 1가지는 "안정 월의 공격적 실행 창 활용"입니다.',
-      '- 관찰 지표 3개: 월별 위험, 실행률, 회복 점수.',
+      '## 관계 기본 성향',
+      '- Social 점수: ' + aptData.components.social,
+      '- 주도 십성: ' + dominantTenStar,
+      '- 충·형·파·해 신호: 충 ' + (conflictSignals.chungCount || 0) + ' / 형 ' + (conflictSignals.hyungCount || 0) + ' / 파 ' + (conflictSignals.paCount || 0) + ' / 해 ' + (conflictSignals.haeCount || 0),
       '',
-      '이 리포트는 단순 문장 생성이 아니라 엔진 신호를 결합한 운영 가이드입니다. 숫자가 바뀌면 문장도 함께 바뀌어야 하며, 현재 결과는 그 연결 원칙을 따릅니다.'
+      '## 관계/애정 패턴',
+      '- 가까워질 때: 공통 목표가 분명할수록 신뢰 형성이 빠릅니다.',
+      '- 멀어질 때: 피로가 누적된 달에는 설명 생략으로 오해가 커지기 쉽습니다.',
+      '- 갈등 지점: 고위험 월에는 속도전 대화보다 확인형 대화가 유리합니다.',
+      '- 협업 주의: 역할/완료 기준을 먼저 문서화하면 재충돌을 줄일 수 있습니다.',
+      '- 회복 전략: 회복 점수 저점 달에는 관계 이슈를 일괄 처리하지 말고 우선순위를 분리하세요.'
     ].join('\n');
 
     var chapter9 = [
-      '## 퀀텀 명리 엔진 카테고리 매트릭스',
-      categoryMatrix.map(function(item, idx) {
-        return [
-          '- [' + String(idx + 1).padStart(2, '0') + '] ' + item.title + ' · 점수 ' + item.score + ' · 리스크밴드 ' + item.band,
-          '  · 해석: ' + item.summary,
-          '  · 액션: ' + item.action
-        ].join('\n');
-      }).join('\n'),
+      '## 직업/재물 전략 요약',
+      '- Career: ' + aptData.components.career + ' / Wealth: ' + aptData.components.wealth + ' / Execution: ' + aptData.components.execution,
+      '- 위험 계수: ' + risk + ' / 적성 계수: ' + coeff,
       '',
-      '## 퀀텀 오행 유불리',
-      '- 모드: ' + (quantumDiagnostics.mode || '억부+조후'),
-      '- 조후 타입: ' + (quantumDiagnostics.johuType || 'neutral'),
-      '- 유리 오행: ' + ((quantumDiagnostics.favorableElements || []).join(', ') || '중립(추정)'),
-      '- 주의 오행: ' + ((quantumDiagnostics.cautionElements || []).join(', ') || '중립(추정)'),
-      '- 용신 배열: ' + ((quantumDiagnostics.yongshin || []).join(', ') || '중립(추정)'),
-      '- 기신 배열: ' + ((quantumDiagnostics.kishin || []).join(', ') || '중립(추정)'),
+      '## 분야별 실행 매뉴얼',
+      '- 직업 성향: 주도 십성과 실행 점수 축을 기준으로 역할을 좁혀 성과를 고정합니다.',
+      '- 수익 전략: 고위험 월에는 현금흐름 방어, 안정 월에는 고효율 채널 확장을 적용합니다.',
+      '- 손실 패턴: 변동성 상위 월에 다중 의사결정을 겹치지 않는 것이 핵심입니다.',
+      '- 프로젝트 운영: 단독/협업 비율을 월별 리스크 밴드에 맞춰 동적으로 조정합니다.',
       '',
-      (quantumDiagnostics.roles || []).map(function(role) {
-        return '- ' + role.label + ' → ' + role.roleLabel;
-      }).join('\n'),
-      '',
-      '퀀텀 명리 엔진은 점수 하나를 만드는 도구가 아니라, 어떤 오행/환경/행동이 지금 나에게 유리한지를 실행 단위로 분해하는 지침입니다. 월별 운영에서 유리 오행과 충돌 오행을 분리해 쓰면 리스크 체감이 눈에 띄게 낮아집니다.'
+      '## 30/90/180일 실행 전략',
+      '- 30일: 손실 누수 차단(계약 검토 루틴, 의사결정 로그화).',
+      '- 90일: 성과 고정(핵심 프로젝트 1개 집중, 협업 규칙 명문화).',
+      '- 180일: 포트폴리오 재편(강점 영역 확장 + 고위험 업무 자동화).'
     ].join('\n');
 
     var chapter10 = [
       '## 최종 시빌라 메시지',
-      '당신의 명식은 "점수"보다 "운영 리듬"이 결과를 좌우하는 구조입니다.',
-      '- 위험 계수 ' + risk + ' 구간에서는 빠른 확장보다 손실 차단 규칙이 우선입니다.',
-      '- 적성 계수 ' + coeff + '는 충분히 높은 편이며, 강점 축(' + Object.keys(aptData.components || {}).sort(function(a, b) { return (aptData.components[b] || 0) - (aptData.components[a] || 0); }).slice(0, 2).join(', ') + ')을 중심으로 성과를 고정해야 합니다.',
-      '- 주도 십성 ' + dominantTenStar + '의 장점은 분명하지만, 과잉 작동 시 리스크가 확대되므로 경계 규칙을 반드시 병행해야 합니다.',
+      '- 지금 가장 중요한 위험 축: ' + (riskBreakdown.parts.daewunSeunConflict >= riskBreakdown.parts.elementImbalance ? '대운·세운 충돌' : '오행 불균형'),
+      '- 지금 가장 강한 기회 축: ' + Object.keys(aptData.components || {}).sort(function(a, b) { return (aptData.components[b] || 0) - (aptData.components[a] || 0); }).slice(0, 1).join(', '),
+      '- 당장 바꿔야 할 1가지: 고위험 월 의사결정 지연 규칙(24시간) 적용.',
+      '- 당장 강화해야 할 1가지: 안정 월 핵심 과제 단일트랙 집중.',
       '',
-      '실전 선언문: "고위험 구간에는 방어를 우선하고, 저위험 구간에는 집중 실행한다. 점수 해석을 행동 루틴으로 바꿔 결과를 만든다."'
+      '## 실행 루틴',
+      '- 7일: 위험 상위 신호 1개만 추적하며 일정 충돌 제거.',
+      '- 30일: 손실/성과 지표 1개씩 고정하고 루틴 유지율 점검.',
+      '- 90일: 전략 유지/폐기 항목을 분리해 운영 규칙 업데이트.',
+      '',
+      '## 개운 처방전',
+      '- 주도 십성 ' + dominantTenStar + ' 강점은 유지하되 과잉 구간에서 속도보다 검증을 우선합니다.',
+      '- 유리 오행(' + ((quantumDiagnostics.favorableElements || []).join(', ') || '중립') + ') 중심의 환경·루틴을 고정합니다.',
+      '',
+      '실전 선언문: "고위험 구간에는 방어를 우선하고, 저위험 구간에는 집중 실행한다. 분석 결과를 행동 규칙으로 전환한다."'
     ].join('\n');
 
     var canonicalData = _buildSibylCanonicalData(normalized, riskBreakdown, aptData, annualPlan, monthlyPlan);
@@ -2370,10 +2475,10 @@
       { key: 'tenGodPattern', title: 'CH.04 주도 십성과 행동 패턴', content: chapter4 },
       { key: 'elementBalance', title: 'CH.05 오행 밸런스와 에너지 설계', content: chapter5 },
       { key: 'yearlyFlow', title: 'CH.06 10년 위험 계수 그래프 해설', content: chapter6 },
-      { key: 'relationship', title: 'CH.07 관계와 애정 패턴', content: chapter7 },
-      { key: 'moneyCareer', title: 'CH.08 재물과 직업 전략', content: chapter8 },
-      { key: 'systemWarning', title: 'CH.09 시스템 경고문', content: chapter9 },
-      { key: 'finalMessage', title: 'CH.10 최종 시빌라 메시지', content: chapter10 }
+      { key: 'monthlyPlanner', title: 'CH.07 월별 리스크 플래너', content: chapter7 },
+      { key: 'relationship', title: 'CH.08 관계와 애정 패턴', content: chapter8 },
+      { key: 'moneyCareer', title: 'CH.09 재물과 직업 전략', content: chapter9 },
+      { key: 'finalMessage', title: 'CH.10 최종 실행 가이드', content: chapter10 }
     ];
 
     var localTotals = _ensureSibylPremiumTotalChars(chapters, SIBYL_MIN_PREMIUM_TOTAL_CHARS, canonicalData);
@@ -2389,6 +2494,37 @@
     chapters.forEach(function(ch) {
       chapterMap[ch.key] = String(ch.content || '').trim();
     });
+
+    var qualityState = {
+      chapters: chapters,
+      chapterMap: chapterMap
+    };
+    dedupeSibylReportText(qualityState);
+    chapters = qualityState.chapters;
+    chapterMap = {};
+    chapters.forEach(function(ch) {
+      chapterMap[ch.key] = String(ch.content || '').trim();
+    });
+
+    var placeholderCheck = assertNoPlaceholderText(qualityState);
+    var chapterMatchCheck = assertChapterCategoryMatch(qualityState);
+    var sectionCheck = validateSibylReportSections(qualityState);
+
+    if (_isSibylDevMode()) {
+      _sibylLogInfo('[SibylReport] seed resolved', {
+        dominantEl: dominantEl,
+        dominantTenStar: dominantTenStar,
+        risk: risk,
+        aptitude: coeff
+      });
+      _sibylLogInfo('[SibylReport] chapter count', chapters.length);
+      _sibylLogInfo('[SibylReport] chart slots', ['risk-breakdown', 'aptitude-profile', 'quantum-element-balance', 'ten-year-risk-map', 'monthly-risk-planner']);
+      _sibylLogInfo('[SibylReport] placeholder count', placeholderCheck.placeholderCount);
+      _sibylLogInfo('[SibylReport] duplicate sentence count', qualityState.__duplicateSentenceCount || 0);
+      _sibylLogInfo('[SibylReport] render body isolated', true);
+      if (!chapterMatchCheck.ok) _sibylLogWarn('[SibylReport] chapter-category warnings', chapterMatchCheck.warnings);
+      if (!sectionCheck.ok) _sibylLogWarn('[SibylReport] section validation warning', sectionCheck);
+    }
 
     var totalChars = localTotals.totalChars;
 
@@ -2409,6 +2545,13 @@
       quantumDiagnostics: quantumDiagnostics,
       categoryMatrix: categoryMatrix,
       integrity: normalized.integrity,
+      chartSlots: {
+        riskBreakdown: 'risk-breakdown',
+        aptitudeProfile: 'aptitude-profile',
+        quantumElementBalance: 'quantum-element-balance',
+        tenYearRiskMap: 'ten-year-risk-map',
+        monthlyRiskPlanner: 'monthly-risk-planner'
+      },
       chapterMap: chapterMap,
       canonicalData: canonicalData,
       chapters: chapters
@@ -3814,6 +3957,8 @@
     // Report chapters
     var chaptersEl = _q('sbReportChapters');
     if (chaptersEl && reportData && reportData.chapters) {
+      chaptersEl.id = 'sibyl-system-report-body';
+      chaptersEl.setAttribute('data-report-scope', 'sibyl-only');
       chaptersEl.innerHTML = '';
       var insightWrap = document.createElement('div');
       insightWrap.className = 'sb-report-insight';
@@ -3861,6 +4006,9 @@
         var target = _q('sbChapBody_'+i);
         if (target) target.innerHTML = _renderChapterBodyRich(ch.content || '');
       });
+      if (_isSibylDevMode()) {
+        _sibylLogInfo('[SibylReport] render body isolated', chaptersEl.id === 'sibyl-system-report-body');
+      }
     } else if (chaptersEl && reportData && reportData.text) {
       // Fallback: single text block
       chaptersEl.innerHTML = '<div class="sb-report-chapter"><div class="sb-chapter-body" id="sbChapBodyMain"></div></div>';

@@ -5,19 +5,6 @@ import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJ
 const SIBYL_MIN_TOTAL_CHARS = 20000;
 const SIBYL_MIN_CHAPTER_CHARS = 1900;
 const SIBYL_REPORT_MIN_CHAPTER_CHARS = 300;
-const SIBYL_CATEGORY_PLAN = [
-  { title: "운명 코드 코어 진단", focus: "일간·월지·지배 오행·주도 십성 기반의 성향 엔진" },
-  { title: "강점/약점 매트릭스", focus: "실제 환경에서 강점이 약점으로 뒤집히는 트리거 분석" },
-  { title: "커리어 적합도 세분화", focus: "조직형·창업형·프리랜스형·전문가형 비교" },
-  { title: "돈의 흐름과 수익 구조", focus: "수익 모델, 지출 누수, 리스크 관리, 현금흐름 습관" },
-  { title: "인간관계/협업 전략", focus: "갈등 유발 패턴과 협업 최적화 커뮤니케이션" },
-  { title: "리스크 시그널 해부", focus: "관성/재성/비겁 과다·부족에 따른 실패 패턴" },
-  { title: "연애/파트너십 적용", focus: "관계 선택 기준, 경계선 설정, 장기 파트너십 유지 방식" },
-  { title: "12개월 실행 로드맵", focus: "월별 의사결정 가이드와 실행 우선순위" },
-  { title: "3년 변곡점 시나리오", focus: "확장기·조정기·재정비기 행동 전략" },
-  { title: "Dominator 90일 실전 플랜", focus: "1~7일, 8~30일, 31~60일, 61~90일 단계별 처방" },
-];
-
 const SIBYL_REPORT_CHAPTERS = [
   { key: "coreMatrix", title: "CH.01 시빌라 코어 매트릭스", focus: "입력 사주, 일간, 지배 오행, 부족 오행, 주도 십성, 위험·적성 계수, 전체 진단" },
   { key: "riskAnalysis", title: "CH.02 위험 계수 정밀 분석", focus: "위험 계수 산정 이유, 오행 불균형·충형파해·세운 위험 분해" },
@@ -25,10 +12,25 @@ const SIBYL_REPORT_CHAPTERS = [
   { key: "tenGodPattern", title: "CH.04 주도 십성과 행동 패턴", focus: "주도 십성의 성격/관계/일 패턴과 불안정 구간 그림자" },
   { key: "elementBalance", title: "CH.05 오행 밸런스와 에너지 설계", focus: "강한 오행·부족 오행·보완 습관·환경 설계" },
   { key: "yearlyFlow", title: "CH.06 10년 위험 계수 그래프 해설", focus: "연도별 위험/기회 흐름, 확장·수비 타이밍, 10년 로드맵" },
-  { key: "relationship", title: "CH.07 관계와 애정 패턴", focus: "끌리는 사람, 충돌 패턴, 연애·결혼 리스크 관리" },
-  { key: "moneyCareer", title: "CH.08 재물과 직업 전략", focus: "돈 버는 방식, 손실 패턴, 직업 선택 기준, 장기 커리어" },
-  { key: "systemWarning", title: "CH.09 시스템 리스크 가이드", focus: "반복 실패 패턴, 오판 방지 규칙, 현실 행동 지침" },
+  { key: "monthlyPlanner", title: "CH.07 월별 리스크 플래너", focus: "월별 위험/엔진/배터리/대응 플랜" },
+  { key: "relationship", title: "CH.08 관계와 애정 패턴", focus: "끌리는 사람, 충돌 패턴, 연애·결혼 리스크 관리" },
+  { key: "moneyCareer", title: "CH.09 재물과 직업 전략", focus: "돈 버는 방식, 손실 패턴, 직업 선택 기준, 장기 커리어" },
   { key: "finalMessage", title: "CH.10 최종 실행 가이드", focus: "사주 구조 기반 최종 선언문과 운명 전략 문장" },
+];
+const SIBYL_CATEGORY_PLAN = SIBYL_REPORT_CHAPTERS.map((item) => ({ title: item.title, focus: item.focus, key: item.key }));
+const SIBYL_FORBIDDEN_REPORT_PATTERNS = [
+  /실행\s*보강\s*메모\s*R\d*/i,
+  /자동\s*복구\s*생성/i,
+  /핵심\s*신호를\s*바탕으로\s*현재\s*흐름을\s*구조적으로\s*해석합니다/i,
+  /이번\s*해석은\s*단정\s*예언이\s*아니라/i,
+  /1단계\s*실행\s*포인트/i,
+  /점수\s*해석을\s*행동\s*루틴으로\s*전환하고\s*7일\s*단위로\s*점검합니다/i,
+  /위험\s*계수\s*47\s*,?\s*적성\s*계수\s*608\s*기준으로\s*운영\s*강도를\s*조절합니다/i,
+  /사주\s*질문\s*프롬프트\s*만들기/i,
+  /결과\s*기반\s*고품질\s*질문/i,
+  /생성\s*비용\s*:\s*100코인/i,
+  /아래\s*내용을\s*AI에게\s*그대로\s*붙여넣어\s*질문해보세요/i,
+  /연이의\s*편지/i,
 ];
 
 function clean(value) {
@@ -71,6 +73,23 @@ function resolveSibylModeTitle(riskScore) {
 
 function normalizeLineBreaks(text) {
   return clean(String(text || "").replace(/\r\n?/g, "\n"));
+}
+
+function stripForbiddenSibylLines(text) {
+  const lines = normalizeLineBreaks(text).split("\n");
+  const out = [];
+  for (const rawLine of lines) {
+    const line = clean(rawLine);
+    if (!line) {
+      if (out.length && out[out.length - 1] !== "") out.push("");
+      continue;
+    }
+    const blocked = SIBYL_FORBIDDEN_REPORT_PATTERNS.some((rx) => rx.test(line));
+    if (blocked) continue;
+    out.push(line);
+  }
+  while (out.length && out[out.length - 1] === "") out.pop();
+  return out.join("\n");
 }
 
 function toNumber(value, fallback = 0) {
@@ -327,21 +346,21 @@ function mapToSibylChapters(chapters = [], canonical = {}) {
     const target = SIBYL_REPORT_CHAPTERS[i];
     const aiContent = clean(chapters?.[i]?.content || chapters?.[i]?.text || "");
     const fallback = buildCanonicalChapterText(canonical, target, i);
-    let merged = aiContent;
+    let merged = stripForbiddenSibylLines(aiContent);
 
     if (merged.length < SIBYL_REPORT_MIN_CHAPTER_CHARS) {
-      merged = normalizeLineBreaks([merged, fallback].filter(Boolean).join("\n\n"));
+      merged = normalizeLineBreaks([merged, stripForbiddenSibylLines(fallback)].filter(Boolean).join("\n\n"));
     }
 
     if (merged.length < SIBYL_REPORT_MIN_CHAPTER_CHARS) {
-      merged = buildCanonicalChapterText(canonical, target, i + 10);
+      merged = stripForbiddenSibylLines(buildCanonicalChapterText(canonical, target, i + 10));
     }
 
     chapterMap[target.key] = merged;
     chapterList.push({
       key: target.key,
       title: target.title,
-      content: merged,
+      content: stripForbiddenSibylLines(merged),
     });
   }
 
@@ -356,9 +375,9 @@ export function validateSibylReport(report = {}) {
     "tenGodPattern",
     "elementBalance",
     "yearlyFlow",
+    "monthlyPlanner",
     "relationship",
     "moneyCareer",
-    "systemWarning",
     "finalMessage",
   ];
 

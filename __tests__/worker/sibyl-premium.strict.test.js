@@ -19,9 +19,9 @@ describe("Sibyl premium report strict validation", () => {
       tenGodPattern: longText,
       elementBalance: longText,
       yearlyFlow: longText,
+      monthlyPlanner: longText,
       relationship: longText,
       moneyCareer: longText,
-      systemWarning: longText,
       finalMessage: longText,
     };
 
@@ -37,13 +37,13 @@ describe("Sibyl premium report strict validation", () => {
       tenGodPattern: longText,
       elementBalance: longText,
       yearlyFlow: longText,
+      monthlyPlanner: longText,
       relationship: longText,
       moneyCareer: longText,
-      systemWarning: "짧음",
-      finalMessage: longText,
+      finalMessage: "짧음",
     };
 
-    expect(() => sibylUtils.validateSibylReport(report)).toThrow(/systemWarning/i);
+    expect(() => sibylUtils.validateSibylReport(report)).toThrow(/finalMessage/i);
   });
 
   test("AI 챕터가 비어 있어도 canonical fallback으로 10챕터를 채움", () => {

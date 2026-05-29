@@ -44,6 +44,14 @@
   };
 
   function $(id){ return document.getElementById(id); }
+  function detachModalFromResultPage(modal){
+    try {
+      if (!modal || !modal.parentElement) return;
+      if (typeof modal.closest === 'function' && modal.closest('#resultPage')) {
+        document.body.appendChild(modal);
+      }
+    } catch (_) {}
+  }
   function text(value){ return String(value == null ? '' : value).trim(); }
   function esc(value){
     return text(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -370,6 +378,7 @@
   window.openZiweiBookModal = function(){
     var modal = $('ziweiBookModal');
     if(!modal) return;
+    detachModalFromResultPage(modal);
 
     var profile = getActiveProfile();
     if (!profile || !profile.year || !profile.month) {

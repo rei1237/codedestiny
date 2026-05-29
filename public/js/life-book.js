@@ -428,7 +428,7 @@
           })
           .catch(function (err) {
             clearTimeout(timerId);
-            lastErr = String(err && err.message ? err.message : err || '요청 실패');
+            lastErr = _normalizeLifeBookErrorMessage(err, '요청이 중단되었습니다. 네트워크 상태를 확인한 뒤 다시 시도해 주세요.');
             runNext();
           });
       }
@@ -833,6 +833,125 @@
     }
 
     return lines.join('\n');
+  }
+
+  function _normalizeLifeBookErrorMessage(error, fallback) {
+    var raw = String(error && error.message ? error.message : error || '').trim();
+    var defaultMsg = String(fallback || '요청 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    if (!raw) return defaultMsg;
+    if (/abort|aborted|AbortError|without reason/i.test(raw)) return defaultMsg;
+    if (/Failed to fetch|NetworkError|Load failed/i.test(raw)) {
+      return '네트워크 연결이 불안정합니다. 잠시 후 다시 시도해 주세요.';
+    }
+    return raw;
+  }
+
+  function _extractLifeBookSignal(text, pattern, fallback) {
+    var m = String(text || '').match(pattern);
+    if (!m || !m[1]) return String(fallback || '');
+    return String(m[1]).trim();
+  }
+
+  function _normalizeKoreanElement(value, fallback) {
+    var s = String(value || '').trim();
+    if (!s) return String(fallback || '토');
+    if (/목|wood/i.test(s)) return '목';
+    if (/화|fire/i.test(s)) return '화';
+    if (/토|earth/i.test(s)) return '토';
+    if (/금|metal/i.test(s)) return '금';
+    if (/수|water/i.test(s)) return '수';
+    return String(fallback || '토');
+  }
+
+  function _monthToElement(month) {
+    var m = Number(month || 0);
+    if (m >= 2 && m <= 4) return '목';
+    if (m >= 5 && m <= 7) return '화';
+    if (m >= 8 && m <= 10) return '금';
+    return '수';
+  }
+
+  function _buildLifeBookLocalSignals(sajuData, profile) {
+    var src = String(sajuData || '');
+    var dayMaster = _extractLifeBookSignal(src, /일간(?:\(日干\))?\s*[:：]\s*([갑을병정무기경신임계甲乙丙丁戊己庚辛壬癸])/i, '무');
+    var monthBranch = _extractLifeBookSignal(src, /월지(?:\(月支\))?\s*[:：]\s*([자축인묘진사오미신유술해子丑寅卯辰巳午未申酉戌亥])/i, '미');
+    var yongsin = _normalizeKoreanElement(_extractLifeBookSignal(src, /용신(?:\(用神\))?\s*[:：]\s*([^\n]+)/i, ''), _monthToElement(profile && profile.birth ? profile.birth.month : 0));
+    var huisin = _normalizeKoreanElement(_extractLifeBookSignal(src, /희신(?:\(喜神\))?\s*[:：]\s*([^\n]+)/i, ''), yongsin === '토' ? '금' : '토');
+    var gisin = _normalizeKoreanElement(_extractLifeBookSignal(src, /기신(?:\(忌神\))?\s*[:：]\s*([^\n]+)/i, ''), yongsin === '수' ? '화' : '수');
+    var strength = _extractLifeBookSignal(src, /(신강|신약)/, '균형형');
+    var dominant = _normalizeKoreanElement(_extractLifeBookSignal(src, /최강\s*오행\s*[:：]\s*([목화토금수木火土金水])/i, ''), yongsin);
+    var weakest = _normalizeKoreanElement(_extractLifeBookSignal(src, /최약\s*오행\s*[:：]\s*([목화토금수木火土金水])/i, ''), gisin);
+    return {
+      dayMaster: dayMaster,
+      monthBranch: monthBranch,
+      yongsin: yongsin,
+      huisin: huisin,
+      gisin: gisin,
+      strength: strength,
+      dominant: dominant,
+      weakest: weakest,
+    };
+  }
+
+  function _buildLocalCategoryBody(chapterTitle, categoryTitle, signals, profile, chapterNo, categoryNo) {
+    var person = String((profile && profile.name) || '사용자');
+    var birth = (profile && profile.birth) || {};
+    var birthText = [birth.year, birth.month, birth.day].filter(Boolean).join('.');
+    var p1 = person + '님의 사주는 일간 ' + signals.dayMaster + '를 중심으로 월지 ' + signals.monthBranch + '의 현실 감각이 강하게 작동하는 구조입니다. ' +
+      chapterTitle + '의 ' + categoryTitle + '에서는 용신 ' + signals.yongsin + ' 기운을 중심축으로 두고, 희신 ' + signals.huisin + '의 보조 흐름을 결합할 때 안정과 성장을 동시에 확보할 수 있습니다.';
+    var p2 = '현재 명식의 강약 판정은 ' + signals.strength + ' 경향으로 읽히며, 최강 오행 ' + signals.dominant + '은 추진력의 원천이지만 과속 시 관계·재정·건강에서 누수가 생길 수 있습니다. ' +
+      '반대로 최약 오행 ' + signals.weakest + '은 불안 요인이 아니라 보완 포인트입니다. 따라서 중요한 결정은 감정 반응보다 근거 기록, 실행 순서, 주간 점검 루틴으로 관리해야 재현 가능한 성과를 만듭니다.';
+    var p3 = '실전 전략은 세 단계가 핵심입니다. 첫째, 이번 주 우선순위를 1개로 압축해 ' + categoryTitle + '의 핵심 행동을 명확히 합니다. 둘째, 7일 단위로 결과를 수치와 문장으로 기록해 사주의 흐름과 현실 반응을 연결합니다. 셋째, 기신 ' + signals.gisin + '이 과도해지는 상황에서는 확장보다 정리·복기·재배치를 우선합니다. 이 패턴을 유지하면 챕터 ' + chapterNo + '-' + categoryNo + '의 주제가 단기 조언을 넘어 장기 체질 개선으로 이어집니다.';
+    var p4 = '보강 근거: 출생 정보(' + (birthText || '미입력') + ')와 원국 요약(일간 ' + signals.dayMaster + ', 월지 ' + signals.monthBranch + ', 용신 ' + signals.yongsin + ', 희신 ' + signals.huisin + ', 기신 ' + signals.gisin + ')을 기반으로 해석했습니다. ' +
+      '상황이 바뀌어도 해석 원리는 유지되므로, 실행 루틴만 조정하면 같은 운에서도 결과 품질을 안정적으로 끌어올릴 수 있습니다.';
+    return [p1, p2, p3, p4].join('\n\n');
+  }
+
+  function _buildLocalFallbackChapterPack(idx, sajuData, profile, failReason) {
+    var chapterNo = idx + 1;
+    var title = CHAPTER_TITLES[idx] || ('제 ' + chapterNo + '장');
+    var subtitle = CHAPTER_SUBTITLES[idx] || '';
+    var labels = Array.isArray(CHAPTER_STRUCTURED_LABELS[chapterNo]) && CHAPTER_STRUCTURED_LABELS[chapterNo].length
+      ? CHAPTER_STRUCTURED_LABELS[chapterNo].slice(0, 6)
+      : ['핵심 진단', '패턴 해석', '리스크', '기회', '실행 전략'];
+    var signals = _buildLifeBookLocalSignals(sajuData, profile);
+    var intro = '## ' + title + '\n' + (subtitle ? ('> ' + subtitle + '\n\n') : '\n')
+      + '이번 챕터는 로컬 사주 계산 결과를 기반으로 구조화했으며, 외부 API 응답 실패 시에도 핵심 해석이 끊기지 않도록 보강되었습니다.\n\n';
+    var sections = [];
+    for (var i = 0; i < labels.length; i++) {
+      var sectionTitle = String(labels[i] || ('핵심 항목 ' + (i + 1)));
+      var body = _buildLocalCategoryBody(title, sectionTitle, signals, profile, chapterNo, i + 1);
+      sections.push({ title: sectionTitle, body: body });
+    }
+    var markdown = intro + sections.map(function (s) { return '### ' + s.title + '\n\n' + s.body; }).join('\n\n')
+      + '\n\n### 챕터 결론\n\n'
+      + '핵심은 명식의 강점(용신·희신)을 일상 루틴으로 전환하고, 기신 구간에서는 과감한 확장보다 리스크 관리로 손실을 줄이는 것입니다. '
+      + '이 장의 실행 포인트를 90일간 반복하면 운의 밀물과 썰물에 휘둘리지 않고 방향성을 지킬 수 있습니다.'
+      + (failReason ? ('\n\n> 참고: 외부 API 보강 단계에서 오류가 발생해 로컬 계산 결과를 중심으로 복원했습니다. (' + String(failReason) + ')') : '');
+    return {
+      title: title,
+      subtitle: subtitle,
+      text: markdown,
+      chapterJson: { sections: sections },
+    };
+  }
+
+  function _applyLocalFallbackChapters(sajuData, profile, failReason) {
+    if (!String(sajuData || '').trim()) return false;
+    _chapters = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
+    _chapterStructured = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
+    _chapterMeta = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
+    for (var i = 0; i < LIFEBOOK_TOTAL_CHAPTERS; i++) {
+      var chapter = _buildLocalFallbackChapterPack(i, sajuData, profile, failReason);
+      _chapters[i] = chapter.text;
+      _chapterStructured[i] = chapter.chapterJson;
+      _chapterMeta[i] = {
+        title: chapter.title,
+        subtitle: chapter.subtitle,
+        isSkeleton: false,
+      };
+    }
+    return true;
   }
 
   /* ─────────────── 모달 제어 ─────────────── */
@@ -1488,6 +1607,7 @@
         hour: Number(profile.birth.hour || 12),
         minute: Number(profile.birth.minute || 0),
         birthplace: String((profile && profile.location && profile.location.label) || '대한민국'),
+        sajuData: sajuData,
       };
 
       _setGenerationState('writing_with_llm');
@@ -1570,8 +1690,35 @@
   _flowLog('LIFE_BOOK_PDF_DONE', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: _lbReportId, chapterCount: LIFEBOOK_TOTAL_CHAPTERS });
       _flowLog('FRONT_PREVIEW_READY', { message: 'single-pass-complete', categoryCount: LIFEBOOK_TOTAL_CHAPTERS * 6 });
     })().catch(function (error) {
-      var errMsg = String(error && error.message ? error.message : error || '챕터 생성 중 오류가 발생했습니다.');
+      var errMsg = _normalizeLifeBookErrorMessage(error, '네트워크 요청이 중단되었습니다. 잠시 후 다시 시도해 주세요.');
       _flowLog('FRONT_PIPELINE_FAILED', { message: errMsg });
+
+      var fallbackApplied = false;
+      try {
+        fallbackApplied = _applyLocalFallbackChapters(sajuData, profile, errMsg);
+      } catch (_) {
+        fallbackApplied = false;
+      }
+
+      if (fallbackApplied) {
+        _flowLog('LIFE_BOOK_LOCAL_FALLBACK_APPLIED', {
+          reportId: _lbCurrentReportId || '',
+          reason: errMsg,
+          chapterCount: LIFEBOOK_TOTAL_CHAPTERS,
+        });
+        _generating = false;
+        _showScreen('lbResultScreen');
+        _updateTocState();
+        _renderChapter(1);
+        _bindToc();
+        _lbEnsurePartialRegenerateControl();
+        _lbSaveResult(window.__cdActiveBirthProfile || {});
+        var lbEpBannerFallback = _qs('lbEpilogueBanner');
+        if (lbEpBannerFallback) lbEpBannerFallback.style.display = '';
+        alert('외부 보강 API가 일시적으로 실패해 로컬 사주 계산 결과로 13개 챕터를 완성했습니다.');
+        return;
+      }
+
       _generating = false;
       _showScreen('lbStartScreen');
       alert('인생의 책 생성 중 오류가 발생했습니다: ' + errMsg);
