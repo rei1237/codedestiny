@@ -17,6 +17,7 @@
   var _canonicalChapters = [];
   var _resultPayload = null;
   var _generating = false;
+  var _activeSessionId = '';
   var _premiumAccessVerifiedUntil = 0;
   var _premiumPaidUntil = 0;
 
@@ -67,9 +68,14 @@
       .replace(/\b(payload|json|localdraft|fallback|llm|api|debug|engine|about:blank)\b/gi, '')
       .replace(/\bchapter\s*\d+\b/gi, '')
       .replace(/\b(a\(안\)|b\(괴\)|near-triad|triad|d\d+)\b/gi, '')
+      .replace(/\b(internal\s+server\s+error)\b/gi, '')
       .replace(/자동\s*복구\s*생성/gi, '')
       .replace(/\s{2,}/g, ' ')
       .trim();
+  }
+
+  function _newSessionId() {
+    return 'sukuyo-session-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
   }
 
   function _extractPremiumToken(payload) {
@@ -292,8 +298,10 @@
     if (selected) return _normalizeGender(selected.value);
     var f = _qs('skPartnerGenderF');
     var m = _qs('skPartnerGenderM');
+    var u = _qs('skPartnerGenderU');
     if (f && f.classList.contains('on')) return 'female';
     if (m && m.classList.contains('on')) return 'male';
+    if (u && u.classList.contains('on')) return 'unknown';
     return 'unknown';
   }
 
@@ -435,15 +443,7 @@
   }
 
   function _forceCompatibilityMode() {
-    var personalBtn = _qs('skModePersonalBtn');
     var compatBtn = _qs('skModeCompatBtn');
-    if (personalBtn) {
-      personalBtn.classList.remove('on');
-      personalBtn.setAttribute('aria-disabled', 'true');
-      personalBtn.style.opacity = '0.45';
-      personalBtn.style.pointerEvents = 'none';
-      personalBtn.textContent = '개인 모드 비활성';
-    }
     if (compatBtn) {
       compatBtn.classList.add('on');
       compatBtn.textContent = '💞 궁합 리포트 전용';
@@ -659,6 +659,7 @@
 
   function _buildPrepareBody(normalizedInput) {
     return {
+      sessionId: _activeSessionId || _newSessionId(),
       featureKey: SUKYO_FEATURE_KEY,
       premiumAccessToken: _readPremiumAccessToken() || undefined,
       mode: 'compatibility',
@@ -845,6 +846,7 @@
     }
 
     _generating = true;
+    _activeSessionId = _newSessionId();
     _setStartBusy(true);
     _showScreen('skLoadingScreen');
     _setLoadingProgress(1, SUKYO_TOTAL_CHAPTERS, '프로필 정보 확인 중');
@@ -871,11 +873,16 @@
         _setLoadingProgress(3, SUKYO_TOTAL_CHAPTERS, '두 사람의 본명숙 계산 중');
         _setLoadingStage('두 사람의 본명숙 계산 중');
         _setLoadingNotice('관계 유형과 거리 계산을 준비하고 있습니다.');
+        _log('[SukuyoBook][LocalCalculationStart]', { sessionId: _activeSessionId });
 
         _log('[SukuyoBook][SessionCreateStart]', { featureKey: SUKYO_FEATURE_KEY });
         return _postJson(SUKYO_PREPARE_API, _buildPrepareBody(normalizedInput));
       })
       .then(function (response) {
+        if (response && response.status === 'running' && !Array.isArray(response.chapters)) {
+          _setError('이미 같은 세션에서 생성이 진행 중입니다. 잠시 후 다시 확인해 주세요.');
+          return;
+        }
         if (!response || !response.ok) throw new Error('SESSION_CREATE_FAILED');
         _log('[SukuyoBook][SessionCreateSuccess]', { chapterCount: response.chapterCount });
 
@@ -891,18 +898,29 @@
           throw new Error('15챕터 리포트 데이터가 비어 있습니다.');
         }
 
-        _setLoadingProgress(8, SUKYO_TOTAL_CHAPTERS, '15챕터 로컬 원고 생성 중');
+        _setLoadingStage('15챕터 로컬 원고 생성 중');
+        var localDraftCount = Number(response.localDraftChapterCount || _chapters.length || 0);
+        if (!Number.isFinite(localDraftCount) || localDraftCount < 0) localDraftCount = 0;
+        localDraftCount = Math.max(0, Math.min(SUKYO_TOTAL_CHAPTERS, localDraftCount));
+        if (localDraftCount < SUKYO_TOTAL_CHAPTERS) localDraftCount = SUKYO_TOTAL_CHAPTERS;
+        for (var i = 1; i <= localDraftCount; i += 1) {
+          _setLoadingProgress(i, SUKYO_TOTAL_CHAPTERS, '15챕터 로컬 원고 생성 중');
+          _log('[SukuyoBook][LocalDraftProgress]', { chapterDone: i, chapterTotal: SUKYO_TOTAL_CHAPTERS, sessionId: _activeSessionId });
+        }
         _setLoadingStage('15챕터 로컬 원고 생성 중');
         _syncDotsByChapters(_chapters);
 
-        _setLoadingProgress(12, SUKYO_TOTAL_CHAPTERS, 'AI 상담문 보강 중');
+        _log('[SukuyoBook][LLMEnhanceStart]', { sessionId: _activeSessionId });
+        _setLoadingProgress(SUKYO_TOTAL_CHAPTERS, SUKYO_TOTAL_CHAPTERS, 'AI 상담문 보강 중');
         _setLoadingStage('AI 상담문 보강 중');
 
-        if (response.fallbackUsed) {
+        if (response.fallbackUsed || response.manuscriptSource === 'local') {
+          _log('[SukuyoBook][LLMEnhanceFailedUseLocal]', { sessionId: _activeSessionId, manuscriptSource: response.manuscriptSource || 'local' });
           _setLoadingNotice('AI 문장 보강이 지연되어 로컬 숙요점 궁합 계산 기반 프리미엄 원고로 PDF를 완성합니다.');
         }
 
-        _setLoadingProgress(15, SUKYO_TOTAL_CHAPTERS, 'PDF 편집/렌더링 중');
+        _log('[SukuyoBook][PdfRenderStart]', { sessionId: _activeSessionId });
+        _setLoadingProgress(SUKYO_TOTAL_CHAPTERS, SUKYO_TOTAL_CHAPTERS, 'PDF 편집/렌더링 중');
         _setLoadingStage('PDF 편집/렌더링 중');
 
         _renderResult(_chapters, response);
@@ -910,6 +928,8 @@
         _log('[SukuyoBook][PdfRequestSuccess]', {
           chapterCount: _chapters.length,
           fallbackUsed: !!response.fallbackUsed,
+          manuscriptSource: response.manuscriptSource || 'unknown',
+          sessionId: _activeSessionId,
         });
 
         _setLoadingNotice('완료');
@@ -968,14 +988,26 @@
     if (target.id === 'skPartnerGenderF' || target.closest('#skPartnerGenderF')) {
       var f = _qs('skPartnerGenderF');
       var m = _qs('skPartnerGenderM');
+      var u = _qs('skPartnerGenderU');
       if (f) f.classList.add('on');
       if (m) m.classList.remove('on');
+      if (u) u.classList.remove('on');
     }
     if (target.id === 'skPartnerGenderM' || target.closest('#skPartnerGenderM')) {
       var ff = _qs('skPartnerGenderF');
       var mm = _qs('skPartnerGenderM');
+      var uu = _qs('skPartnerGenderU');
       if (ff) ff.classList.remove('on');
       if (mm) mm.classList.add('on');
+      if (uu) uu.classList.remove('on');
+    }
+    if (target.id === 'skPartnerGenderU' || target.closest('#skPartnerGenderU')) {
+      var fff = _qs('skPartnerGenderF');
+      var mmm = _qs('skPartnerGenderM');
+      var uuu = _qs('skPartnerGenderU');
+      if (fff) fff.classList.remove('on');
+      if (mmm) mmm.classList.remove('on');
+      if (uuu) uuu.classList.add('on');
     }
   });
 

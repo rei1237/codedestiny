@@ -14,6 +14,9 @@ import {
 import { buildCanonicalSukuyoCompatibility, buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 
+const SUKUYO_SESSION_LOCK_TTL_MS = 20 * 60 * 1000;
+const sukuyoPdfGenerationLocks = new Map();
+
 function clean(value) {
   return String(value == null ? "" : value).trim();
 }
@@ -45,6 +48,21 @@ function normalizeSukuyoError(error) {
   return {
     message: String(error),
   };
+}
+
+function getSukuyoSessionId(body = {}) {
+  const raw = clean(body?.sessionId || body?.requestId || body?.reportId);
+  return raw || `sukyo-session-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function cleanupExpiredSukuyoLocks() {
+  const now = Date.now();
+  for (const [key, value] of sukuyoPdfGenerationLocks.entries()) {
+    const startedAtMs = Date.parse(value?.startedAt || "") || 0;
+    if (startedAtMs <= 0 || now - startedAtMs > SUKUYO_SESSION_LOCK_TTL_MS) {
+      sukuyoPdfGenerationLocks.delete(key);
+    }
+  }
 }
 
 function parseDateParts(value) {
@@ -310,9 +328,11 @@ async function handleSukuyoPremiumPreflight(request) {
 
 async function handleSukuyoPremiumPrepare(request, env) {
   console.log("[SukuyoPremiumPDF][RequestReceived]");
+  cleanupExpiredSukuyoLocks();
 
   const auth = await requireAuth(request, env);
   const body = await readJson(request);
+  const sessionId = getSukuyoSessionId(body);
   const premiumAccessToken = readPremiumAccessToken(request, body);
   const featureKey = clean(body?.featureKey) || SUKYO_PDF_FEATURE_KEY;
 
@@ -336,6 +356,40 @@ async function handleSukuyoPremiumPrepare(request, env) {
 
   const dryRunSeed = buildSukuyoSeedFromCompatibility(input);
 
+  const existingLock = sukuyoPdfGenerationLocks.get(sessionId);
+  if (existingLock?.status === "running") {
+    return json({
+      ok: true,
+      status: "running",
+      sessionId,
+      reportType: "sookyoPremium",
+      mode: "compatibility",
+      message: "같은 세션의 숙요점 PDF 생성이 이미 진행 중입니다.",
+      progress: existingLock.progress || null,
+      startedAt: existingLock.startedAt,
+    });
+  }
+
+  if (existingLock?.status === "done" && existingLock?.result) {
+    return json({
+      ...existingLock.result,
+      status: "done",
+      sessionId,
+      fromCache: true,
+    });
+  }
+
+  sukuyoPdfGenerationLocks.set(sessionId, {
+    sessionId,
+    status: "running",
+    startedAt: new Date().toISOString(),
+    progress: {
+      stage: "input-validated",
+      selfBirthDateReady: Boolean(clean(input.self.birthDate)),
+      partnerBirthDateReady: Boolean(clean(input.partner.birthDate)),
+    },
+  });
+
   console.log("[SukuyoPremiumPDF][CompatibilityInputValidated]", {
     selfBirthDate: Boolean(clean(input.self.birthDate)),
     partnerBirthDate: Boolean(clean(input.partner.birthDate)),
@@ -345,40 +399,76 @@ async function handleSukuyoPremiumPrepare(request, env) {
     distance: clean(dryRunSeed?.compatibility?.distanceLabel),
   });
 
-  const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "sookyoPremium", {
-    reportType: "sookyoPremium",
-    mode: "compatibility",
-    reportMode: "compatibility",
-    featureKey,
-    premiumAccessToken: premiumAccessToken || undefined,
-    _accessRoute: "/api/sukuyo/premium/prepare",
-  });
+  try {
+    const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "sookyoPremium", {
+      reportType: "sookyoPremium",
+      mode: "compatibility",
+      reportMode: "compatibility",
+      featureKey,
+      premiumAccessToken: premiumAccessToken || undefined,
+      _accessRoute: "/api/sukuyo/premium/prepare",
+    });
 
-  if (!access?.ok) {
-    return json({
-      ok: false,
-      code: access?.code || "SUKUYO_PAYMENT_REQUIRED",
-      message: access?.message || "프리미엄 궁합 PDF 생성을 위해 코인 또는 이용권 확인이 필요합니다.",
-    }, { status: Number(access?.status) || 403 });
+    if (!access?.ok) {
+      sukuyoPdfGenerationLocks.set(sessionId, {
+        sessionId,
+        status: "failed",
+        startedAt: new Date().toISOString(),
+        progress: { stage: "payment-required" },
+      });
+      return json({
+        ok: false,
+        code: access?.code || "SUKUYO_PAYMENT_REQUIRED",
+        message: access?.message || "프리미엄 궁합 PDF 생성을 위해 코인 또는 이용권 확인이 필요합니다.",
+      }, { status: Number(access?.status) || 403 });
+    }
+
+    sukuyoPdfGenerationLocks.set(sessionId, {
+      sessionId,
+      status: "running",
+      startedAt: new Date().toISOString(),
+      progress: { stage: "payment-verified" },
+    });
+
+    const reportId = `sukyo-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    const generated = await generateSukyoPremiumReport(env, dryRunSeed);
+
+    const responseBody = {
+      ok: true,
+      reportType: "sookyoPremium",
+      mode: "compatibility",
+      sessionId,
+      featureKey,
+      canonicalFeatureKey: SUKYO_PDF_FEATURE_KEY,
+      aliasFeatureKey: SUKYO_PDF_ALIAS_FEATURE_KEY,
+      chapterCount: generated.chapterCount,
+      localDraftChapterCount: generated.localDraftChapterCount,
+      fallbackUsed: Boolean(generated.fallbackUsed),
+      manuscriptSource: generated.manuscriptSource || "local",
+      reportId,
+      chapters: generated.chapters,
+      payload: generated.payload,
+      pdfReady: generated.pdfReady,
+    };
+
+    sukuyoPdfGenerationLocks.set(sessionId, {
+      sessionId,
+      status: "done",
+      startedAt: new Date().toISOString(),
+      progress: { stage: "done", chapterCount: generated.chapterCount },
+      result: responseBody,
+    });
+
+    return json(responseBody);
+  } catch (error) {
+    sukuyoPdfGenerationLocks.set(sessionId, {
+      sessionId,
+      status: "failed",
+      startedAt: new Date().toISOString(),
+      progress: { stage: "failed", error: clean(error?.message || "unknown") },
+    });
+    throw error;
   }
-
-  const reportId = `sukyo-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-  const generated = await generateSukyoPremiumReport(env, dryRunSeed);
-
-  return json({
-    ok: true,
-    reportType: "sookyoPremium",
-    mode: "compatibility",
-    featureKey,
-    canonicalFeatureKey: SUKYO_PDF_FEATURE_KEY,
-    aliasFeatureKey: SUKYO_PDF_ALIAS_FEATURE_KEY,
-    chapterCount: generated.chapterCount,
-    fallbackUsed: Boolean(generated.fallbackUsed),
-    reportId,
-    chapters: generated.chapters,
-    payload: generated.payload,
-    pdfReady: generated.pdfReady,
-  });
 }
 
 export async function handleSukuyoRoutes(request, env) {

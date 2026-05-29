@@ -8,7 +8,7 @@ const MIN_CHAPTER_LENGTH = 2200;
 const MIN_SECTION_LENGTH = 500;
 const MIN_TOTAL_LENGTH = 33000;
 
-const INTERNAL_TOKEN_RE = /\b(?:payload|debug|engine|api|json|llm|fallback|localdraft|about:blank|internal\s+server\s+error|chapter\s*\d+|a\(안\)|b\(괴\)|near-triad(?:-[a-z0-9]+)?|\bd\d+\b|triad|자동\s*복구\s*생성)\b/gi;
+const INTERNAL_TOKEN_RE = /\b(?:payload|debug|engine|api|json|llm|fallback|localdraft|about:blank|internal\s+server\s+error|chapter\s*\d+|a\(안\)|b\(괴\)|near-triad(?:-[a-z0-9]+)?|\bd\d+\b|triad|자동\s*복구\s*생성|undefined|null|nan)\b/gi;
 const FORBIDDEN_BODY_PHRASES = [
   "Chapter 1",
   "Chapter 2",
@@ -45,6 +45,9 @@ const FORBIDDEN_BODY_PHRASES = [
   "debug",
   "about:blank",
   "Internal server error",
+  "undefined",
+  "null",
+  "NaN",
 ];
 
 export const SUKYO_PDF_CHAPTERS = Object.freeze([
@@ -169,9 +172,25 @@ function parseBirthTimeLoose(raw) {
 
 function normalizePersonInput(raw = {}, fallbackName) {
   const profile = raw.profile && typeof raw.profile === "object" ? raw.profile : raw;
-  const birthDate = text(profile.birthDate || profile.birthday || profile.solarDate || profile.date);
+  const birthDate = text(
+    profile.birthDate
+      || profile.birthday
+      || profile.solarDate
+      || profile.lunarDate
+      || profile.date
+      || profile.partnerBirth
+      || profile.partnerBirthDate
+      || profile.targetBirth
+      || profile.targetDate,
+  );
   const date = parseDateParts(birthDate);
-  const time = parseBirthTimeLoose(profile.birthTime || profile.time || profile.hour || profile.birth_hour);
+  const time = parseBirthTimeLoose(
+    profile.birthTime
+      || profile.time
+      || profile.partnerTime
+      || profile.hour
+      || profile.birth_hour,
+  );
 
   return {
     name: text(profile.name || profile.label || fallbackName),
@@ -781,13 +800,13 @@ export async function enhanceSukyoChaptersWithLLM(env, seed, skeleton) {
 
     if (!result?.ok) {
       console.warn("[SukuyoPremiumPDF][LLMEnhanceFailedUseLocal]", { reason: "request_not_ok" });
-      return { chapters: skeleton, fallbackUsed: true };
+      return { chapters: skeleton, fallbackUsed: true, enhancedChapterCount: 0 };
     }
 
     const parsed = parseSukyoGeminiChapterResponse(result.text);
     if (!Array.isArray(parsed) || !parsed.length) {
       console.warn("[SukuyoPremiumPDF][LLMEnhanceFailedUseLocal]", { reason: "json_parse_or_empty" });
-      return { chapters: skeleton, fallbackUsed: true };
+      return { chapters: skeleton, fallbackUsed: true, enhancedChapterCount: 0 };
     }
     const strictShapeOk = validateChapterShape(parsed);
 
@@ -802,16 +821,17 @@ export async function enhanceSukyoChaptersWithLLM(env, seed, skeleton) {
     }
     if (successCount === 0) {
       console.warn("[SukuyoPremiumPDF][LLMEnhanceFailedUseLocal]", { reason: "no_valid_chapter" });
-      return { chapters: skeleton, fallbackUsed: true };
+      return { chapters: skeleton, fallbackUsed: true, enhancedChapterCount: 0 };
     }
     console.log("[SukuyoPremiumPDF][LLMEnhanceSuccess]", { strictShapeOk: strictShapeOk });
     return {
       chapters: merged,
       fallbackUsed: successCount < skeleton.length,
+      enhancedChapterCount: successCount,
     };
   } catch (error) {
     console.warn("[SukuyoPremiumPDF][LLMEnhanceFailedUseLocal]", normalizeSukuyoError(error));
-    return { chapters: skeleton, fallbackUsed: true };
+    return { chapters: skeleton, fallbackUsed: true, enhancedChapterCount: 0 };
   }
 }
 
@@ -973,19 +993,42 @@ export async function generateSukyoPremiumReport(env, seed) {
     });
   }
   const localNormalized = enforceManuscriptLength(localDraft);
+  const localDraftChapterCount = Array.isArray(localDraft) ? localDraft.length : 0;
   let chapters = chapterArrayToRendererInput(localNormalized.chapters);
   console.log("[SukuyoPremiumPDF][LocalDraftBuildSuccess]", {
     chapterCount: chapters.length,
     totalLength: localNormalized.totalLength,
   });
 
+  let localValidation = validateRenderedManuscript(seed, chapters);
+  if (!localValidation.ok) {
+    const repairedLocal = enforceManuscriptLength(localDraft);
+    chapters = chapterArrayToRendererInput(repairedLocal.chapters);
+    localValidation = validateRenderedManuscript(seed, chapters);
+  }
+  console.log("[SukuyoPremiumPDF][LocalQualityValidated]", {
+    ok: localValidation.ok,
+    issues: localValidation.issues,
+    chapterCount: chapters.length,
+    totalLength: localValidation.totalLength,
+    forbiddenTermsCount: localValidation.forbiddenTermsCount,
+    repetitionScore: localValidation.repetitionScore,
+  });
+
+  const localChaptersSnapshot = chapterArrayToRendererInput(chapters);
   const llmResult = await enhanceSukyoChaptersWithLLM(env, { ...seed, localSukuyoCompatibilityJson: localJson }, chapters);
   chapters = chapterArrayToRendererInput(llmResult.chapters);
+  let manuscriptSource = "local";
+  if (!llmResult.fallbackUsed && Number(llmResult.enhancedChapterCount || 0) >= SUKYO_PDF_CHAPTER_COUNT) {
+    manuscriptSource = "llm-enhanced";
+  } else if (Number(llmResult.enhancedChapterCount || 0) > 0) {
+    manuscriptSource = "mixed";
+  }
 
   const finalValidation = validateRenderedManuscript(seed, chapters);
   if (!finalValidation.ok) {
-    const repaired = enforceManuscriptLength(localDraft);
-    chapters = chapterArrayToRendererInput(repaired.chapters);
+    chapters = localChaptersSnapshot;
+    manuscriptSource = "local";
   }
   const finalCheck = validateRenderedManuscript(seed, chapters);
   console.log("[SukuyoPremiumPDF][FinalManuscriptValidated]", {
@@ -997,6 +1040,7 @@ export async function generateSukyoPremiumReport(env, seed) {
     totalLength: finalCheck.totalLength,
     forbiddenTermsCount: finalCheck.forbiddenTermsCount,
     repetitionScore: finalCheck.repetitionScore,
+    manuscriptSource,
   });
 
   console.log("[SukuyoPremiumPDF][PdfRenderStart]");
@@ -1013,10 +1057,13 @@ export async function generateSukyoPremiumReport(env, seed) {
       localSukuyoCompatibilityJson: localJson,
       chapters,
       manuscriptValidation: finalCheck,
+      manuscriptSource,
     },
     chapters,
     chapterCount: SUKYO_PDF_CHAPTER_COUNT,
     fallbackUsed: Boolean(llmResult.fallbackUsed),
+    localDraftChapterCount,
+    manuscriptSource,
     pdfReady,
   };
 }

@@ -1831,10 +1831,11 @@ body.lb-modal-open {
 .sk-partner-field .toggle-wrap {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .sk-partner-field .tog-btn {
-  flex: 1;
+  flex: 1 1 120px;
   padding: 10px 0;
   min-height: 44px;
   background: rgba(255, 255, 255, 0.08);
@@ -1920,6 +1921,11 @@ body.lb-modal-open {
 @media (max-width: 768px) {
   .sk-partner-field .row2 {
     grid-template-columns: 1fr;
+  }
+
+  .sk-partner-field .tog-btn {
+    flex: 1 1 calc(33.33% - 6px);
+    min-height: 44px;
   }
 
   .sk-partner-inp {
