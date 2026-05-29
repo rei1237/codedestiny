@@ -23,6 +23,14 @@
   var _premiumPaidUntil = 0;
 
   function _qs(id) { return document.getElementById(id); }
+  function _detachModalFromResultPage(modal) {
+    try {
+      if (!modal || !modal.parentElement) return;
+      if (typeof modal.closest === 'function' && modal.closest('#resultPage')) {
+        document.body.appendChild(modal);
+      }
+    } catch (_) {}
+  }
 
   function _clean(v) { return String(v || '').trim(); }
 
@@ -646,6 +654,7 @@
     _logFlow('CARD_CLICK');
     var modal = _qs('astroBookModal');
     if (!modal) return;
+    _detachModalFromResultPage(modal);
 
     var profile = _getActiveBirthProfile();
     if (!profile || !profile.birth || !profile.birth.year) {

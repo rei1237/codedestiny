@@ -22,6 +22,14 @@
   var _partnerGender = 'F';
 
   function _qs(id) { return document.getElementById(id); }
+  function _detachModalFromResultPage(modal) {
+    try {
+      if (!modal || !modal.parentElement) return;
+      if (typeof modal.closest === 'function' && modal.closest('#resultPage')) {
+        document.body.appendChild(modal);
+      }
+    } catch (_) {}
+  }
   function _clean(value) { return String(value || '').trim(); }
   function _num(value, fallback) { var n = Number(value); return Number.isFinite(n) ? n : fallback; }
 
@@ -469,6 +477,7 @@
     _logFlow('CARD_CLICK');
     var modal = _qs('sukuyoBookModal');
     if (!modal) return;
+    _detachModalFromResultPage(modal);
     _populateTimeSelects();
     _forceCompatibilityMode();
     var profile = _getActiveBirthProfile();

@@ -21,6 +21,14 @@
   var _premiumPaidUntil = 0;
 
   function _qs(id) { return document.getElementById(id); }
+  function _detachModalFromResultPage(modal) {
+    try {
+      if (!modal || !modal.parentElement) return;
+      if (typeof modal.closest === 'function' && modal.closest('#resultPage')) {
+        document.body.appendChild(modal);
+      }
+    } catch (_) {}
+  }
   function _clean(value) { return String(value || '').trim(); }
 
   function _logFlow(code, meta) {
@@ -426,6 +434,7 @@
     _logFlow('CARD_CLICK');
     var modal = _qs('vedicBookModal');
     if (!modal) return;
+    _detachModalFromResultPage(modal);
     var profile = _getActiveBirthProfile();
     if (!profile || !profile.birth || !profile.birth.year) {
       try {
