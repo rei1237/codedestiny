@@ -80,7 +80,12 @@ describe("ziwei premium birth normalization", () => {
 });
 
 describe("ziwei premium local manuscript", () => {
-  test("로컬 원고만으로 챕터 품질 기준을 만족해야 한다", () => {
+  function buildLongText(title, chapterTitle) {
+    const sentence = `${chapterTitle}의 ${title}에서는 명궁, 신궁, 12궁의 흐름과 주성·보조성·사화 신호를 연결해 현실 전략으로 풀어냅니다. `;
+    return sentence.repeat(22);
+  }
+
+  test("ZiweiPdfSeed는 계산 JSON 중심 구조를 가져야 한다", () => {
     const profile = {
       name: "테스터",
       gender: "male",
@@ -106,12 +111,39 @@ describe("ziwei premium local manuscript", () => {
       },
     });
 
-    const built = utils.buildLocalChapters(profile, seed, 2);
-    const validation = utils.validateChapters(built.chapters);
+    expect(seed.ziweiPdfSeed).toBeTruthy();
+    expect(seed.ziweiPdfSeed.input.birthDate).toBe("1991-02-20");
+    expect(seed.ziweiPdfSeed.chartMeta.mingGong).toBeTruthy();
+    expect(Array.isArray(seed.ziweiPdfSeed.palaceMap)).toBe(true);
+    expect(seed.ziweiPdfSeed.palaceMap.length).toBeGreaterThanOrEqual(12);
+    expect(Array.isArray(seed.ziweiPdfSeed.derivedSignals.personalitySignals)).toBe(true);
+    expect(Array.isArray(seed.ziweiPdfSeed.cautionFlags)).toBe(true);
+    expect(Array.isArray(seed.ziweiPdfSeed.strengths)).toBe(true);
+  });
 
-    expect(built.chapters.length).toBe(utils.CHAPTER_BLUEPRINTS.length);
-    expect(validation.ok).toBe(true);
-    expect(validation.totalChars).toBeGreaterThanOrEqual(26000);
-    expect(utils.computeDuplicateRate(built.chapters)).toBeLessThan(0.45);
+  test("LLM 해석 품질 검증은 13챕터/5섹션 구조를 통과시켜야 한다", () => {
+    const chapters = utils.CHAPTER_BLUEPRINTS.map((blueprint, chapterIndex) => ({
+      id: blueprint.id,
+      roman: blueprint.roman,
+      title: blueprint.title,
+      categories: blueprint.categories.map((categoryTitle, categoryIndex) => ({
+        id: `${blueprint.id}-${String(categoryIndex + 1).padStart(2, "0")}`,
+        title: categoryTitle,
+        finalText: buildLongText(categoryTitle, blueprint.title),
+      })),
+      source: "llm-original",
+    }));
+
+    // Chapter 13 키워드 요건(3년/5년/10년) 보강
+    chapters[12].categories[3].finalText += " 앞으로 3년·5년·10년 전략을 분리해 실행 우선순위를 제시합니다.";
+
+    const quality = utils.validateZiweiPdfLLMInterpretationQuality({
+      chapters,
+      expectedChapters: utils.CHAPTER_BLUEPRINTS,
+      seed: { ziweiPdfSeed: { chartMeta: { mingGong: "자", shenGong: "오" } } },
+    });
+
+    expect(quality.ok).toBe(true);
+    expect(quality.totalChars).toBeGreaterThanOrEqual(39000);
   });
 });

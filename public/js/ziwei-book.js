@@ -22,19 +22,19 @@
   };
 
   var CHAPTERS = [
-    '제1장 명궁 완전 해석 — 나라는 사람의 첫 번째 별빛',
-    '제2장 신궁 심층 분석 — 인생 후반부와 실제 행동 패턴',
-    '제3장 복덕궁 — 마음의 깊이와 행복을 회복하는 방식',
-    '제4장 부모궁·형제궁 — 뿌리, 가족, 성장 환경의 흔적',
-    '제5장 부부궁 — 사랑, 결혼, 배우자 인연의 방향',
-    '제6장 자녀궁·노복궁 — 후배, 동료, 사람을 얻는 방식',
-    '제7장 재백궁 — 돈의 흐름과 재물 전략',
-    '제8장 관록궁 — 직업, 성공 방식, 사회적 역할',
-    '제9장 전택궁 — 집, 자산, 안정 기반',
-    '제10장 질액궁 — 건강 리듬과 생활 관리',
-    '제11장 천이궁 — 이동, 외부 기회, 귀인운',
-    '제12장 사화와 별의 강약 — 운명을 움직이는 핵심 신호',
-    '제13장 대운·세운 종합 전략 — 앞으로의 흐름과 실행 조언'
+    '제1장 명반의 첫 문 작성 중...',
+    '제2장 12궁 완전 해석 작성 중...',
+    '제3장 주성과 보조성 작성 중...',
+    '제4장 사화 해석 작성 중...',
+    '제5장 성격과 내면 작성 중...',
+    '제6장 사랑과 결혼 작성 중...',
+    '제7장 직업과 사회적 소명 작성 중...',
+    '제8장 재물과 성공 작성 중...',
+    '제9장 복덕과 마음의 안식처 작성 중...',
+    '제10장 질액과 위기 신호 작성 중...',
+    '제11장 대운과 전환점 작성 중...',
+    '제12장 업과 반복 패턴 작성 중...',
+    '제13장 최종 운명 전략 작성 중...'
   ];
 
   var PALACE_KEY_BY_NAME = {
@@ -191,7 +191,7 @@
   function updateProgress(percent, label){
     var fill = $('zbProgressBar');
     if(fill) fill.style.width = Math.max(0, Math.min(100, percent)) + '%';
-    setText('zbLoadingChapter', label || '자미두수 명반을 준비하고 있습니다.');
+    setText('zbLoadingChapter', label || '자미두수 명반을 펼치는 중입니다.');
     updateZiweiGenerationState({ message: text(label || ''), totalChapters: TOTAL_CHAPTERS });
   }
 
@@ -709,7 +709,7 @@
     if(!RESULT){
       setDisplay('zbLoadingScreen','none');
       setDisplay('zbResultScreen','none');
-      updateProgress(0, '자미두수 명반을 준비합니다.');
+      updateProgress(0, '자미두수 명반을 펼치는 중입니다.');
       markChapter(-1);
     }
   };
@@ -738,7 +738,7 @@
       setDisplay('zbResultScreen','none');
       setDisplay('zbErrorScreen','none');
       setDisplay('zbLoadingScreen','block');
-      updateProgress(8, '프로필 정보 확인 중');
+      updateProgress(8, '자미두수 명반을 펼치는 중입니다.');
       markChapter(-1);
       var resolved = await resolveBirthInput();
       logFlow('ProfileResolved', {
@@ -760,20 +760,20 @@
         hasBirthTime: true,
         birthHour: resolved.birthInput.birthHour
       });
-      updateProgress(18, '자미두수 명반 계산 중');
+      updateProgress(18, '명궁과 신궁의 흐름을 정리하고 있습니다.');
       updateZiweiGenerationState({ status: 'calculating' });
       var profile = resolved.profileForEngine;
       var seed = await buildZiweiSeed(profile);
-      updateProgress(35, '13챕터 로컬 원고 생성 중');
+      updateProgress(35, '12궁에 담긴 삶의 무대를 읽고 있습니다.');
       updateZiweiGenerationState({ status: 'drafting' });
       logFlow('PaymentGateStart', { featureKey: FEATURE_KEY, coinCost: COIN_COST });
-      updateProgress(46, '결제/코인 접근 확인 중');
+      updateProgress(46, '생성 준비를 마무리하고 있습니다.');
       updateZiweiGenerationState({ status: 'paymentChecking' });
       var payment = await ensurePayment();
       logFlow('PaymentGateSuccess', {
         hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken || payment.token))
       });
-      updateProgress(58, '13챕터 로컬 원고 생성 중');
+      updateProgress(58, '사랑과 직업, 재물의 흐름을 해석하고 있습니다.');
       var sessionId = 'ziwei-premium:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
       updateZiweiGenerationState({ status: 'generating', sessionId: sessionId, currentChapterNo: 1 });
       logFlow('SessionCreateStart', { endpoint: PREPARE_API, hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken)) });
@@ -790,23 +790,23 @@
       var chapterProgressCount = Math.max(0, Math.min(TOTAL_CHAPTERS, localDraftCount || Number((data && data.chapterCount) || 0)));
       for(var i=0; i<chapterProgressCount; i++){
         markChapter(i);
-        updateProgress(62 + Math.round(((i + 1) / TOTAL_CHAPTERS) * 16), CHAPTERS[i] || '챕터를 완성하고 있습니다.');
+        updateProgress(62 + Math.round(((i + 1) / TOTAL_CHAPTERS) * 24), CHAPTERS[i] || '챕터를 완성하고 있습니다.');
         logFlow('LocalDraftProgress', { chapterDone: i + 1, chapterTotal: TOTAL_CHAPTERS });
       }
-      updateProgress(82, 'AI 상담문 보강 중');
+      updateProgress(88, '인생의 반복 패턴과 전환점을 정리하고 있습니다.');
       updateZiweiGenerationState({ status: 'enhancing' });
-      updateProgress(95, 'PDF 편집/렌더링 중');
+      updateProgress(95, '마지막 운명 전략을 완성하고 있습니다.');
       updateZiweiGenerationState({ status: 'savingPdf' });
       RESULT = data;
       if(data && data.fallbackUsed && isZiweiReportReady(data) && window.showToast){
-        window.showToast('AI 문장 보강이 지연되어 로컬 자미두수 명반 기반 프리미엄 원고로 PDF를 완성합니다.', 'info');
+        window.showToast('일시 지연이 있었지만 보고서 생성을 다시 정교하게 완료했습니다.', 'info');
       }
       logFlow('PdfRequestSuccess', {
         chapterCount: Array.isArray(data && data.chapters) ? data.chapters.length : 0,
         localDraftChapterCount: localDraftCount,
         fallbackUsed: Boolean(data && data.fallbackUsed)
       });
-      updateProgress(100, '완료');
+      updateProgress(100, 'PDF를 완성하고 있습니다.');
       updateZiweiGenerationState({ status: 'completed', reportId: text(data && data.reportId), currentChapterNo: TOTAL_CHAPTERS });
       renderResult(data);
     } catch(error) {

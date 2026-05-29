@@ -22,11 +22,11 @@
   var _premiumVerifiedUntil = 0;
 
   var LOADING_MESSAGES = [
-    '사주 원국과 대상 연도를 검증하는 중입니다',
-    '결제 및 접근 권한을 확인하는 중입니다',
-    '로컬 엔진으로 신년운세를 계산하는 중입니다',
-    '10챕터 로컬 원고를 완성하는 중입니다',
-    'AI 상담문을 보강하고 최종 PDF를 렌더링하는 중입니다'
+    '새해의 운명 지도를 펼치는 중입니다',
+    '원국과 올해의 흐름을 맞춰보고 있습니다',
+    '대운과 세운이 만나는 지점을 읽고 있습니다',
+    '일과 재물, 사랑의 흐름을 정리하고 있습니다',
+    '올해의 마스터플랜을 완성하고 있습니다'
   ];
 
   function _qs(id) { return document.getElementById(id); }
@@ -321,16 +321,28 @@
     if (num) num.textContent = bounded >= TOTAL_CHAPTERS ? '완성' : Math.max(1, bounded + 1) + '장';
   }
 
-  function _startProgressAnimation() {
+  function _startProgressAnimation(targetYear) {
     _stopProgressAnimation();
     var step = 0;
+    var chapterTitles = [
+      '제1장 ' + targetYear + '년 총운 작성 중...',
+      '제2장 대운과 세운의 교차 작성 중...',
+      '제3장 일과 커리어 운 작성 중...',
+      '제4장 재물운 작성 중...',
+      '제5장 연애와 인연운 작성 중...',
+      '제6장 인간관계와 귀인운 작성 중...',
+      '제7장 건강과 멘탈운 작성 중...',
+      '제8장 월별 운세 작성 중...',
+      '제9장 위기와 반전 작성 중...',
+      '제10장 ' + targetYear + '년 마스터플랜 작성 중...'
+    ];
     _progressTimer = setInterval(function () {
       if (step < TOTAL_CHAPTERS) {
+        _setProgress(step + 1, chapterTitles[step] || LOADING_MESSAGES[step % LOADING_MESSAGES.length]);
         step += 1;
-        _setProgress(step, '10챕터 로컬 원고 생성 중 (' + step + '/' + TOTAL_CHAPTERS + ')');
         return;
       }
-      _setProgress(TOTAL_CHAPTERS, 'AI 상담문 보강 중');
+      _setProgress(TOTAL_CHAPTERS, 'PDF를 완성하고 있습니다');
     }, 900);
   }
 
@@ -554,7 +566,7 @@
       _setBusy(true);
       _showScreen('nyLoadingScreen');
       _setProgress(0, LOADING_MESSAGES[0]);
-      _startProgressAnimation();
+      _startProgressAnimation(targetYear);
 
       _log('RequestReceived', { reportId: reportId, targetYear: targetYear });
       _log('PaymentVerificationStarted', { featureKey: BILLING_FEATURE_KEY });
@@ -609,18 +621,13 @@
           return;
         }
         _markPremiumVerified(25 * 60 * 1000);
-        _log('LocalChapterDraftCompleted', { chapterCount: Number(data.localDraftChapterCount || TOTAL_CHAPTERS) });
-        _log('LocalQualityValidationPassed', { chapterCount: Number(data.localDraftChapterCount || TOTAL_CHAPTERS) });
-        _log('LLMEnhancementStarted', { llmUsed: !!(data && data.llmUsed) });
-        _log('LLMEnhancementCompleted', { manuscriptSource: _clean(data && data.manuscriptSource), fallbackUsed: !!(data && data.fallbackUsed) });
+        _log('ChapterGenerationStarted', { chapterCount: Number(data.chapterCount || TOTAL_CHAPTERS) });
+        _log('ChapterGenerationCompleted', { chapterCount: Number(data.chapterCount || TOTAL_CHAPTERS), llmUsed: !!(data && data.llmUsed) });
         _log('FinalValidationPassed', { chapterCount: data.chapterCount || TOTAL_CHAPTERS });
         _log('PDFRenderStarted', { chapterCount: data.chapterCount || TOTAL_CHAPTERS });
         _setProgress(TOTAL_CHAPTERS, '신년운세 프리미엄 PDF를 완성하는 중입니다');
         _renderResult(data, profile, targetYear);
         _log('PDFRenderCompleted', { chapterCount: _chapters.length, source: _clean(data && data.manuscriptSource) });
-        if (data && data.fallbackUsed && data.llmFallbackReason) {
-          _setProgress(TOTAL_CHAPTERS, 'AI 보강 일부가 지연되어 로컬 원고로 안전하게 완료했습니다');
-        }
         _showScreen('nyResultScreen');
       }).catch(function (error) {
         _logError(error, { stage: 'generate' });

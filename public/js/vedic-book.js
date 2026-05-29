@@ -504,7 +504,7 @@
 
   function _startProgressAnimation() {
     _stopProgressAnimation();
-    var titles = ['프로필 정보 확인 중', '베다 차트 계산 중', '12챕터 로컬 원고 생성 중'];
+    var titles = ['프로필 정보 확인 중', '베다 차트의 흐름을 정리하고 있습니다.', '12챕터 해석문을 정리하고 있습니다.'];
     var index = 1;
     _setLoadingProgress(1, VEDIC_TOTAL_CHAPTERS, titles[0]);
     _progressTimer = setInterval(function () {
@@ -717,8 +717,8 @@
     _fetchVedicChart(profile, birthInput)
       .then(function (chart) {
         var vedicBase = _buildVedicBase(profile, chart, birthInput);
-        _setLoadingProgress(2, VEDIC_TOTAL_CHAPTERS, '베다 차트 계산 중');
-        _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '12챕터 로컬 원고 생성 중');
+        _setLoadingProgress(2, VEDIC_TOTAL_CHAPTERS, '베다 차트의 흐름을 정리하고 있습니다.');
+        _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '12챕터 해석문을 정리하고 있습니다.');
         _logStage('SessionCreateStart', { endpoint: VEDIC_PREPARE_API, featureKey: VEDIC_FEATURE_KEY });
         var paymentGrant = _lastPremiumPayment && _lastPremiumPayment.accessGrant ? _lastPremiumPayment.accessGrant : null;
         var paymentContext = paymentGrant ? {
@@ -774,14 +774,14 @@
         _chapters = Array.isArray(response.chapters) ? response.chapters : [];
         if (!_chapters.length) throw new Error('베다점 챕터 데이터가 비어 있습니다.');
 
-        _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, 'AI 상담문 보강 중');
+        _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, 'PDF를 완성하고 있습니다.');
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, 'PDF 편집/렌더링 중');
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '완료');
         _renderResult(_chapters, response.payload || vedicBase);
         _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, fallbackUsed: !!response.fallbackUsed });
 
-        if (response && response.fallbackUsed && _isCompletedReportReady(response) && typeof window.showToast === 'function') {
-          window.showToast('AI 문장 보강이 지연되어 로컬 베다점 계산 기반 프리미엄 원고로 PDF를 완성합니다.', 'info');
+        if (response && _isCompletedReportReady(response) && typeof window.showToast === 'function') {
+          window.showToast('베다점 PDF가 완성되었습니다.', 'info');
         }
 
         _showScreen('vdResultScreen');

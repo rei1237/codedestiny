@@ -457,17 +457,23 @@ async function handleSukuyoPremiumPrepare(request, env) {
       manuscriptSource: generated.manuscriptSource,
       archive: {
         reportId,
-        reportType: "sukyo_book",
+        reportType: "sukyo_compatibility_book",
         displayName: "숙요점",
         title: `${clean(input?.self?.name || "사용자")} · ${clean(input?.partner?.name || "상대")} 궁합 리포트`,
         mode: "compatibility",
         birthName: clean(input?.self?.name),
         targetName: clean(input?.partner?.name),
-        summary: clean(generated?.chapters?.[0]?.sections?.[0]?.body || "", 1000),
+        summary: clean(generated?.chapters?.[0]?.sections?.[0]?.body || "").slice(0, 1000),
         pdfUrl: clean(generated?.pdfReady?.pdfUrl),
+        pdfStorageKey: clean(generated?.pdfReady?.pdfStorageKey),
+        createdAt: new Date().toISOString(),
+        completedAt: new Date().toISOString(),
         chapters: generated.chapters,
         payload: generated.payload,
         pdfReady: generated.pdfReady,
+        paymentSessionId: clean(executionCtx?.paymentSessionId),
+        coinAmount: Number(executionCtx?.coinAmount || 0),
+        status: "completed",
         canReopen: true,
         canDownload: Boolean(clean(generated?.pdfReady?.pdfUrl)),
       },
@@ -527,7 +533,16 @@ async function handleSukuyoPremiumPrepare(request, env) {
       startedAt: new Date().toISOString(),
       progress: { stage: "failed", error: clean(error?.message || "unknown") },
     });
-    throw error;
+    const safeMessage = clean(error?.message || "");
+    const refundMessage = safeMessage.includes("환불")
+      ? safeMessage
+      : "숙요점 PDF 생성이 완료되지 않아 사용된 코인이 자동으로 환불되었습니다. 다시 시도해 주세요.";
+    return json({
+      ok: false,
+      code: clean(error?.code) || "SUKYO_GENERATION_FAILED",
+      message: refundMessage,
+      autoRefunded: true,
+    }, { status: Number(error?.status) || 502 });
   }
 }
 

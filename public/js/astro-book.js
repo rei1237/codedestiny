@@ -10,7 +10,7 @@
   var ASTRO_PREPARE_API = '/api/astro/premium/prepare';
   var ASTRO_CHAPTERS_API = '/api/astro/premium/chapters';
   var ASTRO_WESTERN_CHART_API = '/api/astro/western-chart';
-  var ASTRO_TOTAL_CHAPTERS = 10;
+  var ASTRO_TOTAL_CHAPTERS = 12;
   var ASTRO_COIN_COST = 390;
   var ASTRO_SIGN_NAMES = ['양자리', '황소자리', '쌍둥이자리', '게자리', '사자자리', '처녀자리', '천칭자리', '전갈자리', '사수자리', '염소자리', '물병자리', '물고기자리'];
 
@@ -909,7 +909,7 @@
 
     _buildAstroBaseAsync(profile)
       .then(function (astroBase) {
-        _setLoadingProgress(total, total, '10챕터 로컬 원고 생성 중');
+        _setLoadingProgress(total, total, '12챕터 해석문을 정리하고 있습니다.');
         _logStage('LocalDraftProgress', { completed: total, total: total });
         return _ensurePremiumPaymentAsync().then(function (payment) {
           var paymentGrant = payment && payment.data && payment.data.accessGrant ? payment.data.accessGrant : (_lastPremiumPayment && _lastPremiumPayment.accessGrant ? _lastPremiumPayment.accessGrant : null);
@@ -927,7 +927,7 @@
           });
           var sessionId = 'astro-premium:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
           _logStage('SessionCreateSuccess', { sessionId: sessionId });
-          _setLoadingProgress(total, total, 'AI 상담문 보강 중');
+          _setLoadingProgress(total, total, '별의 해석을 정리하고 있습니다.');
           _logStage('LLMEnhanceStart', { sessionId: sessionId });
           _logStage('PdfRequestStart', { featureKey: ASTRO_FEATURE_KEY, sessionId: sessionId });
           return _postPrepare({
@@ -968,10 +968,9 @@
         if (!_chapters.length) throw new Error('점성술 챕터 데이터가 비어 있습니다.');
         ASTRO_TOTAL_CHAPTERS = _chapters.length;
         total = _getTotalChapters();
-        _setLoadingProgress(total, total, 'AI 상담문 보강 중');
-        if (response && response.fallbackUsed && _isCompletedReportReady(response)) {
-          _logStage('LLMEnhanceFailedUseLocal', { chapterCount: total });
-          _setLoadingProgress(total, total, 'AI 문장 보강이 지연되어 로컬 점성술 차트 기반 프리미엄 원고로 PDF를 완성합니다.');
+        _setLoadingProgress(total, total, 'PDF를 완성하고 있습니다.');
+        if (response && _isCompletedReportReady(response)) {
+          _setLoadingProgress(total, total, 'PDF를 완성하고 있습니다.');
         }
         _logStage('PdfRenderStart', { chapterCount: total });
         _setLoadingProgress(total, total, 'PDF 편집/렌더링 중');
