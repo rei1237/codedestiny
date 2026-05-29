@@ -166,6 +166,128 @@ function parsePositiveInt(value, fallback, min, max) {
   return Math.max(min, Math.min(max, Math.floor(num)));
 }
 
+function splitTags(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => normalizeText(item, 80))
+      .filter(Boolean);
+  }
+
+  const raw = normalizeText(value, 1000);
+  if (!raw) return [];
+
+  return raw
+    .split(/[#,|/\n\r\t]+|\s*,\s*/g)
+    .map((item) => normalizeText(item, 80))
+    .filter(Boolean);
+}
+
+function normalizeBool(value, fallback = false) {
+  if (typeof value === "boolean") return value;
+  const normalized = String(value || "").trim().toLowerCase();
+  if (["1", "true", "yes", "y", "published", "active"].includes(normalized)) return true;
+  if (["0", "false", "no", "n", "draft", "archived", "private"].includes(normalized)) return false;
+  return fallback;
+}
+
+function inferCategoryLabel(item) {
+  const bag = `${normalizeText(item?.categoryLabel, 120)} ${normalizeText(item?.categoryName, 120)} ${normalizeText(item?.categorySlug, 120)} ${normalizeText(item?.category, 120)} ${normalizeText(item?.type, 80)} ${normalizeText(item?.kind, 80)} ${normalizeText(item?.title, 240)} ${splitTags(item?.tags).join(" ")}`;
+
+  if (/자미|ziwei|명궁|궁위/i.test(bag)) return "자미두수";
+  if (/숙요|27숙|영친|업태|안괴/i.test(bag)) return "숙요점";
+  if (/타로|arcan|스프레드|카드/i.test(bag)) return "타로";
+  if (/베다|vedic|라그나|나크샤트라|다샤/i.test(bag)) return "베다점";
+  if (/점성|astrology|태양궁|상승궁|하우스/i.test(bag)) return "점성술";
+  if (/궁합|compatibility|연애/i.test(bag)) return "궁합";
+  if (/오늘|daily/i.test(bag)) return "오늘의 운세";
+  if (/신년|new\s*year|yearly/i.test(bag)) return "신년운세";
+  if (/룬|rune/i.test(bag)) return "룬";
+  if (/오미쿠지|omikuji/i.test(bag)) return "오미쿠지";
+  if (/사주|명리|오행|십성|대운|일간/i.test(bag)) return "사주";
+
+  return normalizeText(item?.category || item?.categoryLabel || "기타", 120) || "기타";
+}
+
+function estimateReadingTime(rawText) {
+  const text = stripHtml(rawText);
+  const chars = text.replace(/\s+/g, "").length;
+  return Math.max(1, Math.ceil(chars / 520));
+}
+
+function normalizeInsightPost(item) {
+  const body = normalizeText(item?.contentHtml || item?.content || item?.body || "", 600000);
+  const tags = Array.from(new Set([
+    ...splitTags(item?.tags),
+    ...splitTags(item?.tag),
+  ])).slice(0, 30);
+
+  const categoryLabel = inferCategoryLabel(item);
+  const status = String(item?.status || "").trim().toLowerCase();
+  const isPublished = status
+    ? status === "published"
+    : normalizeBool(item?.isPublished, true);
+
+  return {
+    _id: String(item?._id || ""),
+    slug: normalizeText(item?.slug, 240),
+    title: normalizeText(item?.title, 240),
+    subtitle: normalizeText(item?.subtitle, 400),
+    excerpt: buildExcerpt(item),
+    body,
+    category: categoryLabel,
+    categoryLabel,
+    tags,
+    featuredImage: {
+      url: normalizeText(item?.thumbnailUrl || item?.featuredImage?.url, 1000),
+      alt: normalizeText(item?.featuredImage?.alt || item?.title, 300),
+      width: Math.max(0, Number(item?.featuredImage?.width || 0) || 0),
+      height: Math.max(0, Number(item?.featuredImage?.height || 0) || 0),
+    },
+    serviceLink: normalizeText(item?.serviceLink || item?.ctaServiceRoute || item?.targetRoute || item?.cta?.links?.[0]?.href || item?.internalLinks?.[0]?.href, 220),
+    ctaLabel: normalizeText(item?.ctaLabel || item?.cta?.title, 120),
+    canonicalUrl: normalizeText(item?.seo?.canonicalUrl || item?.canonicalUrl, 1000),
+    metaTitle: normalizeText(item?.seo?.metaTitle || item?.metaTitle, 240),
+    metaDescription: normalizeText(item?.seo?.metaDescription || item?.metaDescription, 600),
+    ogTitle: normalizeText(item?.seo?.ogTitle || item?.ogTitle, 240),
+    ogDescription: normalizeText(item?.seo?.ogDescription || item?.ogDescription, 600),
+    ogImage: normalizeText(item?.seo?.ogImage || item?.ogImage, 1000),
+    twitterTitle: normalizeText(item?.twitterTitle, 240),
+    twitterDescription: normalizeText(item?.twitterDescription, 600),
+    twitterImage: normalizeText(item?.twitterImage, 1000),
+    isFeatured: normalizeBool(item?.isFeatured, false),
+    noIndex: normalizeBool(item?.noIndex, false),
+    isPublished,
+    viewCount: Math.max(0, Number(item?.viewCount || 0) || 0),
+    readingTime: Math.max(1, Number(item?.readingTime || 0) || estimateReadingTime(body)),
+    publishedAt: item?.publishedAt || null,
+    updatedAt: item?.updatedAt || null,
+    createdAt: item?.createdAt || null,
+    status,
+    type: normalizeText(item?.type, 80),
+  };
+}
+
+function isPublicInsight(item) {
+  const status = String(item?.status || "").trim().toLowerCase();
+  if (status) return status === "published";
+  return normalizeBool(item?.isPublished, true);
+}
+
+function normalizeSearchText(value) {
+  return String(value || "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function buildSearchBag(item) {
+  return normalizeSearchText([
+    item.title,
+    item.subtitle,
+    item.excerpt,
+    stripHtml(item.body),
+    item.categoryLabel,
+    item.tags.join(" "),
+  ].join(" "));
+}
+
 function buildListQuery(request) {
   const url = new URL(request.url);
   const params = url.searchParams;
@@ -179,36 +301,6 @@ function buildListQuery(request) {
   const featuredOnly = String(params.get("featured") || "") === "1";
   const excludeNoIndex = String(params.get("excludeNoIndex") || "") === "1";
 
-  const typeFilter = { $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }] };
-  const query = {
-    status: "published",
-    ...typeFilter,
-  };
-  if (category) query.category = category;
-  if (tag) query.tags = { $in: [tag] };
-  if (excludeNoIndex) query.noIndex = { $ne: true };
-  if (featuredOnly) query.isFeatured = true;
-
-  if (q) {
-    const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    query.$and = [
-      {
-        $or: [
-          { title: { $regex: escaped, $options: "i" } },
-          { subtitle: { $regex: escaped, $options: "i" } },
-          { summary: { $regex: escaped, $options: "i" } },
-          { excerpt: { $regex: escaped, $options: "i" } },
-          { category: { $regex: escaped, $options: "i" } },
-          { tags: { $elemMatch: { $regex: escaped, $options: "i" } } },
-        ],
-      },
-    ];
-  }
-
-  const sortSpec = sort === "popular"
-    ? { viewCount: -1, publishedAt: -1, updatedAt: -1 }
-    : { publishedAt: -1, updatedAt: -1, createdAt: -1 };
-
   return {
     q,
     category,
@@ -216,8 +308,8 @@ function buildListQuery(request) {
     sort,
     page,
     pageSize,
-    query,
-    sortSpec,
+    featuredOnly,
+    excludeNoIndex,
   };
 }
 
@@ -254,35 +346,79 @@ function buildShareUrl(request, slug) {
 
 async function handleInsightsList(request, env) {
   await connectDb(env);
-  const { q, category, tag, sort, page, pageSize, query, sortSpec } = buildListQuery(request);
+  const { q, category, tag, sort, page, pageSize, featuredOnly, excludeNoIndex } = buildListQuery(request);
 
-  const [items, totalCount, recommended, categories, tags] = await Promise.all([
-    Insight.find(query)
-      .sort(sortSpec)
-      .skip((page - 1) * pageSize)
-      .limit(pageSize)
-      .select("slug title subtitle summary excerpt category tags featuredImage thumbnailUrl canonicalUrl seo isFeatured noIndex viewCount readingTime publishedAt updatedAt createdAt")
-      .lean(),
-    Insight.countDocuments(query),
-    Insight.find({
-      status: "published",
-      isFeatured: true,
-      $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }],
+  const raw = await Insight.find({
+    $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }],
+  })
+    .select("slug title subtitle summary excerpt content contentHtml body category categoryLabel categoryName categorySlug tags tag featuredImage thumbnailUrl canonicalUrl seo isFeatured noIndex viewCount readingTime publishedAt updatedAt createdAt status isPublished cta ctaLabel ctaServiceRoute targetRoute serviceLink internalLinks type kind")
+    .limit(6000)
+    .lean();
+
+  const normalizedAll = raw
+    .map((item) => normalizeInsightPost(item))
+    .filter((item) => item.slug && item.title && isPublicInsight(item));
+
+  const qNorm = normalizeSearchText(q);
+
+  let filtered = normalizedAll.filter((item) => {
+    if (excludeNoIndex && item.noIndex) return false;
+    if (featuredOnly && !item.isFeatured) return false;
+
+    if (category) {
+      const categoryNorm = normalizeSearchText(category);
+      const itemCategoryNorm = normalizeSearchText(item.category || item.categoryLabel);
+      if (itemCategoryNorm !== categoryNorm) return false;
+    }
+
+    if (tag) {
+      const tagNorm = normalizeSearchText(tag);
+      if (!item.tags.some((itemTag) => normalizeSearchText(itemTag) === tagNorm)) return false;
+    }
+
+    if (qNorm) {
+      const bag = buildSearchBag(item);
+      if (!bag.includes(qNorm)) return false;
+    }
+
+    return true;
+  });
+
+  filtered = filtered.sort((a, b) => {
+    if (sort === "popular") {
+      if (b.viewCount !== a.viewCount) return b.viewCount - a.viewCount;
+    }
+    const timeA = new Date(a.publishedAt || a.updatedAt || a.createdAt || 0).getTime();
+    const timeB = new Date(b.publishedAt || b.updatedAt || b.createdAt || 0).getTime();
+    return timeB - timeA;
+  });
+
+  const totalCount = filtered.length;
+  const start = (page - 1) * pageSize;
+  const items = filtered.slice(start, start + pageSize);
+
+  const recommended = normalizedAll
+    .filter((item) => item.isFeatured)
+    .sort((a, b) => {
+      const timeA = new Date(a.publishedAt || a.updatedAt || a.createdAt || 0).getTime();
+      const timeB = new Date(b.publishedAt || b.updatedAt || b.createdAt || 0).getTime();
+      return timeB - timeA;
     })
-      .sort({ publishedAt: -1, updatedAt: -1 })
-      .limit(6)
-      .select("slug title subtitle summary excerpt category tags featuredImage thumbnailUrl canonicalUrl seo isFeatured noIndex viewCount readingTime publishedAt updatedAt createdAt")
-      .lean(),
-    Insight.distinct("category", {
-      status: "published",
-      category: { $ne: "" },
-      $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }],
-    }),
-    Insight.distinct("tags", {
-      status: "published",
-      $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }],
-    }),
-  ]);
+    .slice(0, 6);
+
+  const categories = Array.from(
+    new Set(
+      normalizedAll
+        .map((item) => normalizeText(item.categoryLabel || item.category, 120))
+        .filter(Boolean),
+    ),
+  );
+
+  const tags = Array.from(
+    new Set(
+      normalizedAll.flatMap((item) => item.tags),
+    ),
+  );
 
   return json({
     ok: true,
@@ -327,12 +463,6 @@ function normalizePublicSlug(path) {
   return decoded;
 }
 
-function estimateReadingTime(contentHtml) {
-  const text = stripHtml(contentHtml);
-  const chars = text.replace(/\s+/g, "").length;
-  return Math.max(1, Math.ceil(chars / 500));
-}
-
 function serializeLinkItem(item) {
   if (!item) return null;
   return {
@@ -374,64 +504,64 @@ async function handleInsightDetail(path, request, env) {
   const slug = normalizePublicSlug(path);
   if (!slug) return notFound();
 
-  const item = await Insight.findOneAndUpdate(
-    {
-      status: "published",
-      slug,
-      $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }],
-    },
-    { $inc: { viewCount: 1 } },
-    { returnDocument: "after" },
-  ).lean();
+  const rawItem = await Insight.findOne({
+    slug,
+    $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }],
+  }).lean();
 
-  if (!item) return notFound();
+  if (!rawItem) return notFound();
+
+  const item = normalizeInsightPost(rawItem);
+  if (!isPublicInsight(item)) return notFound();
+
+  await Insight.updateOne({ _id: rawItem._id }, { $inc: { viewCount: 1 } }).catch(() => null);
 
   const relatedConditions = [
-    item.category ? { category: item.category } : null,
+    normalizeText(rawItem?.category, 120) ? { category: normalizeText(rawItem?.category, 120) } : null,
     Array.isArray(item.tags) && item.tags.length > 0 ? { tags: { $in: item.tags.slice(0, 8) } } : null,
   ].filter(Boolean);
 
   const [related, prevNext] = await Promise.all([
     Insight.find({
       status: "published",
-      _id: { $ne: item._id },
+      _id: { $ne: rawItem._id },
       $and: [
         { $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }] },
-        { $or: relatedConditions.length ? relatedConditions : [{ _id: item._id }] },
+        { $or: relatedConditions.length ? relatedConditions : [{ _id: rawItem._id }] },
       ],
     })
       .sort({ publishedAt: -1, viewCount: -1, updatedAt: -1 })
       .limit(6)
       .select("slug title category publishedAt featuredImage thumbnailUrl")
       .lean(),
-    findPrevNextInsight(item._id),
+    findPrevNextInsight(rawItem._id),
   ]);
 
-  const contentHtml = sanitizeInsightHtml(item.contentHtml || "");
+  const contentHtml = sanitizeInsightHtml(item.body || rawItem.contentHtml || "");
 
   return json({
     ok: true,
     item: {
-      _id: String(item._id || ""),
+      _id: String(rawItem._id || ""),
       slug: normalizeText(item.slug, 240),
       title: normalizeText(item.title, 240),
       subtitle: normalizeText(item.subtitle, 400),
-      excerpt: buildExcerpt(item),
+      excerpt: normalizeText(item.excerpt, 420),
       contentHtml,
-      category: normalizeText(item.category, 120),
+      category: normalizeText(item.categoryLabel || item.category, 120),
       tags: Array.isArray(item.tags) ? item.tags.map((tag) => normalizeText(tag, 80)).filter(Boolean) : [],
       featuredImage: {
-        url: normalizeText(item?.thumbnailUrl || item?.featuredImage?.url, 1000),
+        url: normalizeText(item?.featuredImage?.url, 1000),
         alt: normalizeText(item?.featuredImage?.alt, 300),
         width: Math.max(0, Number(item?.featuredImage?.width || 0) || 0),
         height: Math.max(0, Number(item?.featuredImage?.height || 0) || 0),
       },
-      metaTitle: normalizeText(item?.seo?.metaTitle || item.metaTitle, 240),
-      metaDescription: normalizeText(item?.seo?.metaDescription || item.metaDescription, 600),
-      canonicalUrl: normalizeText(item?.seo?.canonicalUrl || item.canonicalUrl, 1000),
-      ogTitle: normalizeText(item?.seo?.ogTitle || item.ogTitle, 240),
-      ogDescription: normalizeText(item?.seo?.ogDescription || item.ogDescription, 600),
-      ogImage: normalizeText(item?.seo?.ogImage || item.ogImage, 1000),
+      metaTitle: normalizeText(item.metaTitle, 240),
+      metaDescription: normalizeText(item.metaDescription, 600),
+      canonicalUrl: normalizeText(item.canonicalUrl, 1000),
+      ogTitle: normalizeText(item.ogTitle, 240),
+      ogDescription: normalizeText(item.ogDescription, 600),
+      ogImage: normalizeText(item.ogImage, 1000),
       twitterTitle: normalizeText(item.twitterTitle, 240),
       twitterDescription: normalizeText(item.twitterDescription, 600),
       twitterImage: normalizeText(item.twitterImage, 1000),
@@ -442,6 +572,8 @@ async function handleInsightDetail(path, request, env) {
       publishedAt: item.publishedAt || null,
       updatedAt: item.updatedAt || null,
       createdAt: item.createdAt || null,
+      serviceLink: normalizeText(item.serviceLink, 220),
+      ctaLabel: normalizeText(item.ctaLabel, 120),
       shareUrl: buildShareUrl(request, item.slug),
     },
     related: related.map(serializeLinkItem),
