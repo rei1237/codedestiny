@@ -176,21 +176,106 @@ function renderSectionsToHtml(sections) {
     .join("\n");
 }
 
-function buildExcerpt(article) {
-  const description = String(article?.description || "").trim();
-  if (description) return description;
+function inferCategoryLabel(article) {
+  const bag = [
+    article?.category,
+    article?.title,
+    article?.slug,
+    article?.mainKeyword,
+    ...(Array.isArray(article?.keywords) ? article.keywords : []),
+  ].map((value) => String(value || "")).join(" ").toLowerCase();
 
-  const firstSection = Array.isArray(article?.sections) ? article.sections[0] : null;
-  const sectionBody = String(firstSection?.body || "").replace(/\s+/g, " ").trim();
-  return sectionBody.slice(0, 220);
+  if (/자미|ziwei|명궁|궁위/.test(bag)) return "자미두수";
+  if (/숙요|27숙|영친|업태|안괴/.test(bag)) return "숙요점";
+  if (/타로|arcan|스프레드|카드/.test(bag)) return "타로";
+  if (/베다|vedic|라그나|나크샤트라|다샤/.test(bag)) return "베다점";
+  if (/점성|astrology|태양궁|상승궁|하우스/.test(bag)) return "점성술";
+  if (/궁합|compatibility|연애/.test(bag)) return "궁합";
+  if (/오늘|daily/.test(bag)) return "오늘의 운세";
+  if (/신년|new\s*year|yearly/.test(bag)) return "신년운세";
+  if (/룬|rune/.test(bag)) return "룬";
+  if (/오미쿠지|omikuji/.test(bag)) return "오미쿠지";
+  if (/사주|명리|오행|십성|대운|일간/.test(bag)) return "사주";
+  return "기타";
 }
 
 function normalizeTags(article) {
-  const tags = Array.isArray(article?.keywords) ? article.keywords : [];
-  return tags
+  const categoryLabel = inferCategoryLabel(article);
+  const seedTags = [
+    ...(Array.isArray(article?.keywords) ? article.keywords : []),
+    ...(Array.isArray(article?.relatedKeywords) ? article.relatedKeywords : []),
+    categoryLabel,
+    String(article?.mainKeyword || "").trim(),
+  ];
+
+  const tags = seedTags
     .map((tag) => String(tag || "").trim())
     .filter(Boolean)
-    .slice(0, 12);
+    .slice(0, 20);
+
+  const unique = Array.from(new Set(tags));
+
+  if (unique.length < 3) {
+    if (categoryLabel === "사주") unique.push("오행", "대운", "재물운");
+    if (categoryLabel === "자미두수") unique.push("명궁", "궁위", "관록궁");
+    if (categoryLabel === "숙요점") unique.push("27숙", "영친", "관계 흐름");
+    if (categoryLabel === "타로") unique.push("카드 리딩", "질문 설계", "감정 흐름");
+    if (categoryLabel === "점성술") unique.push("출생차트", "상승궁", "하우스");
+    if (categoryLabel === "베다점") unique.push("라그나", "다샤", "카르마");
+  }
+
+  return Array.from(new Set(unique)).slice(0, 7);
+}
+
+function resolveServiceLink(categoryLabel) {
+  if (categoryLabel === "사주") return "/saju/basic";
+  if (categoryLabel === "자미두수") return "/ziwei";
+  if (categoryLabel === "숙요점") return "/compatibility";
+  if (categoryLabel === "타로") return "/tarot";
+  if (categoryLabel === "점성술") return "/astrology";
+  if (categoryLabel === "베다점") return "/vedic";
+  if (categoryLabel === "오늘의 운세") return "/daily-fortune";
+  if (categoryLabel === "궁합") return "/compatibility";
+  return "/insights";
+}
+
+function resolveCtaLabel(categoryLabel) {
+  if (categoryLabel === "사주") return "내 사주에서 이 흐름을 직접 확인하기";
+  if (categoryLabel === "자미두수") return "내 명반에서 이 궁의 신호를 확인하기";
+  if (categoryLabel === "숙요점") return "두 사람의 숙요 인연을 깊게 보기";
+  if (categoryLabel === "타로") return "지금 질문으로 타로 리딩 시작하기";
+  if (categoryLabel === "점성술") return "내 차트가 말하는 사랑과 일을 살펴보기";
+  if (categoryLabel === "베다점") return "반복되는 주기를 베다 차트로 확인하기";
+  if (categoryLabel === "오늘의 운세") return "오늘 밀어붙일 타이밍 확인하기";
+  if (categoryLabel === "궁합") return "우리 관계의 리듬을 궁합으로 읽어보기";
+  return "관련 운세 서비스로 이어보기";
+}
+
+function buildMysticExcerpt(article, categoryLabel) {
+  const keyword = String(article?.mainKeyword || article?.title || categoryLabel || "운세").trim();
+  const candidate = `${keyword}의 신호는 이미 일상에서 반복되고 있습니다. 상담 현장에서 바로 쓰는 해석 순서로, 관계·돈·직업·마음의 흐름을 한 장면처럼 읽어드립니다.`;
+  return candidate.slice(0, 158);
+}
+
+function buildMysticSections(article, categoryLabel, tags) {
+  const title = String(article?.title || "운세 인사이트").trim();
+  const key = String(article?.mainKeyword || tags[0] || categoryLabel || "운세").trim();
+
+  const s1 = `${title}를 자주 찾는 사람은 대개 같은 지점에서 멈춥니다. 눈앞의 사건은 달라 보여도, 마음속 질문은 놀라울 만큼 닮아 있습니다. 왜 이 일이 반복되는지, 왜 비슷한 사람에게 끌리는지, 왜 중요한 결정 앞에서 같은 불안을 겪는지입니다. 실제 상담에서는 이 반복의 결을 먼저 읽습니다. ${key}는 미래를 겁주기 위한 도구가 아니라, 오늘의 선택을 선명하게 만드는 지도입니다.`;
+  const s2 = `실전 해석은 이론을 길게 늘어놓지 않습니다. 먼저 현재의 고민이 어디에서 시작되었는지 짚고, 다음으로 관계와 돈, 일의 축이 어디에서 서로 엉키는지 확인합니다. ${categoryLabel} 상담에서도 순서는 같습니다. 중심축 하나를 정하고 주변 신호를 붙여 읽으면, 막연했던 불안이 행동 가능한 문장으로 바뀝니다. 이 순서를 익히면 중요한 선택 앞에서 흔들리는 시간이 확실히 줄어듭니다.`;
+  const s3 = `초보자가 가장 자주 착각하는 지점은 ‘좋은 신호냐, 나쁜 신호냐’만 빨리 판정하려는 태도입니다. 그러나 오래 보는 사람은 길흉보다 대가와 보상을 함께 봅니다. 어떤 흐름은 당장 편하지만 오래가며 비용이 커지고, 어떤 흐름은 시작이 낯설어도 시간이 지나 힘이 됩니다. 그래서 상담에서는 단정 대신 조건을 함께 제시합니다. 무엇을 줄이면 열리고, 무엇을 과하게 밀면 닫히는지까지 함께 말해줘야 현실에서 쓸 수 있습니다.`;
+  const s4 = `이 신호가 강할 때 현실에는 몇 가지 장면이 반복됩니다. 관계에서는 말하지 않은 기대가 커져 오해가 쌓이고, 돈에서는 조급한 선택이 누적되어 지출 패턴이 흔들립니다. 일에서는 방향은 맞지만 리듬이 틀려 성과가 늦게 드러나기도 합니다. 마음에서는 ‘내가 틀렸나’라는 자기 의심이 조용히 커집니다. 이때 필요한 것은 더 많은 정보가 아니라, 우선순위를 다시 세우는 단호한 기준입니다.`;
+  const s5 = `활용법은 어렵지 않습니다. 관계에서는 한 문장 확인 질문을 먼저 두고, 돈에서는 결정 전 하루를 비워 감정 속도를 낮추며, 직업에서는 이번 주 한 가지 성과 지표만 선명하게 고정합니다. 마음이 흔들릴 때는 원인 분석보다 회복 리듬을 먼저 붙잡는 편이 훨씬 빠릅니다. 이런 작은 규칙이 쌓이면 운은 갑자기 바뀌는 것이 아니라, 내가 버틸 수 있는 방향으로 조용히 이동합니다.`;
+  const s6 = `지금 당신의 흐름도 같은 방식으로 읽을 수 있습니다. 단편적인 키워드가 아니라 실제 고민의 장면에 맞춰 해석하면, 다음 한 걸음이 분명해집니다. 아래 연결된 서비스에서 ${categoryLabel} 기반 흐름을 직접 확인해 보세요. 글에서 읽은 신호를 내 이야기로 바꾸는 순간, 운세는 정보가 아니라 선택의 힘이 됩니다.`;
+
+  return [
+    { heading: "왜 이 주제가 중요한가", body: s1 },
+    { heading: "실제 상담에서는 어디를 먼저 보는가", body: s2 },
+    { heading: "초보자가 가장 많이 착각하는 부분", body: s3 },
+    { heading: "이 신호가 강할 때 현실에서 나타나는 모습", body: s4 },
+    { heading: "관계·돈·직업·마음에서 활용하는 법", body: s5 },
+    { heading: "관련 운세 서비스로 이어지는 안내", body: s6 },
+  ];
 }
 
 function normalizeLinkItems(items) {
@@ -233,10 +318,12 @@ function buildSeedArticle(article, index) {
   const slug = String(article?.slug || "").trim();
   const title = String(article?.title || "운세 인사이트").trim();
   const resolvedImage = resolveSeedImage(article, index, title);
-  const description = String(article?.description || buildExcerpt(article)).trim();
-  const excerpt = buildExcerpt(article);
-  const category = String(article?.category || "운세 인사이트").trim();
+  const category = inferCategoryLabel(article);
   const tags = normalizeTags(article);
+  const rewrittenSections = buildMysticSections(article, category, tags);
+  const contentHtml = `<article><h1>${escapeHtml(title)}</h1>${renderSectionsToHtml(rewrittenSections)}</article>`;
+  const excerpt = buildMysticExcerpt(article, category);
+  const description = excerpt;
   const author =
     typeof article?.author === "object" && article?.author
       ? String(article.author.name || DEFAULT_AUTHOR)
@@ -244,11 +331,17 @@ function buildSeedArticle(article, index) {
 
   const publishedAt = normalizeIsoDate(article?.updatedAt, 120 + index);
   const updatedAt = normalizeIsoDate(article?.updatedAt || article?.publishedAt, 30 + index);
-  const contentHtml = renderSectionsToHtml(article?.sections);
   const internalLinks = normalizeLinkItems(article?.internalLinks);
   const faq = normalizeFaqItems(article?.faq);
   const ctaLinks = normalizeLinkItems(article?.cta?.links);
-  const ctaServiceRoute = String(article?.ctaServiceRoute || article?.targetRoute || internalLinks?.[0]?.href || "/insights").trim();
+  const ctaServiceRoute = String(article?.ctaServiceRoute || article?.targetRoute || internalLinks?.[0]?.href || resolveServiceLink(category)).trim();
+  const ctaLabel = resolveCtaLabel(category);
+  const normalizedCtaLinks = ctaLinks.length > 0
+    ? ctaLinks
+    : (internalLinks.length > 0 ? internalLinks : [{ href: ctaServiceRoute || "/insights", label: ctaLabel }]);
+
+  const seoTitle = String(article?.metaTitle || article?.seoTitle || `${title} — 운명의 흐름을 읽는 실전 해석`).trim();
+  const seoDescription = String(article?.metaDescription || article?.seoDescription || excerpt).trim().slice(0, 160);
 
   return {
     slug,
@@ -275,6 +368,10 @@ function buildSeedArticle(article, index) {
     noIndex: false,
     isFeatured: index < 12,
     canonicalUrl: `https://code-destiny.com/insights/${encodeURIComponent(slug)}`,
+    seoTitle,
+    seoDescription,
+    serviceLink: ctaServiceRoute,
+    ctaLabel,
     ogImage: toAbsoluteAssetUrl(
       !isKnownBrokenImageUrl(article?.ogImage)
         ? String(article?.ogImage || "").trim()
@@ -284,8 +381,8 @@ function buildSeedArticle(article, index) {
     faq,
     ctaServiceRoute,
     cta: {
-      title: String(article?.cta?.title || "관련 서비스 바로 시작하기").trim(),
-      links: ctaLinks.length > 0 ? ctaLinks : internalLinks,
+      title: String(article?.cta?.title || ctaLabel).trim(),
+      links: normalizedCtaLinks,
     },
     relatedPosts: Array.isArray(article?.relatedPosts)
       ? article.relatedPosts.map((value) => String(value || "").trim()).filter(Boolean).slice(0, 12)

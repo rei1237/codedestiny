@@ -104,7 +104,7 @@ export const ADSENSE_READY_ARTICLES = [
   {
     slug: 'five-elements-balance-guide-for-real-life',
     title: '오행 균형 완전 가이드: 목화토금수로 읽는 나만의 현실 보완 전략',
-    description: '목화토금수 오행을 성격 라벨이 아니라 생활 전략으로 활용하는 방법을 정리했습니다. 오행 과부족을 파악하고 일상에서 균형을 맞추는 실전 가이드입니다.',
+    description: '목화토금수 오행을 성격 라벨이 아니라 생활 전략으로 활용하는 방법을 풀어냈습니다. 오행 과부족을 파악하고 일상에서 균형을 맞추는 실전 가이드입니다.',
     category: '사주 심화',
     updatedAt: '2026-04-05',
     keywords: ['오행 균형', '사주 보는 법', '내 운을 높이는 법', '오행 해석', '목화토금수'],
@@ -410,7 +410,7 @@ export const ADSENSE_READY_ARTICLES = [
   {
     slug: 'sleep-rhythm-energy-and-luck-connection',
     title: '수면과 운의 관계: 에너지 리듬을 회복하면 운이 달라지는 이유',
-    description: '수면 습관이 운세 체감과 판단력에 미치는 영향을 생활 관점으로 정리했습니다. 수면 리듬이 내 운을 높이는 기반이 되는 이유와 7일 리셋 방법을 안내합니다.',
+    description: '수면 습관이 운세 체감과 판단력에 미치는 영향을 생활 관점으로 풀어냈습니다. 수면 리듬이 내 운을 높이는 기반이 되는 이유와 7일 리셋 방법을 안내합니다.',
     category: '점성술',
     updatedAt: '2026-04-05',
     keywords: ['수면 루틴', '내 운을 높이는 법', '사주 보는 법', '에너지 관리', '생활 리듬'],
@@ -512,7 +512,7 @@ export const ADSENSE_READY_ARTICLES = [
   {
     slug: 'fortune-content-for-adsense-what-google-likes',
     title: '애드센스 승인 친화 운세 글 구조: 정보성·신뢰성·가독성 완전 가이드',
-    description: '운세 사이트가 애드센스 승인 확률을 높이기 위해 갖춰야 할 글 구조를 정리했습니다. 구글이 좋아하는 운세 콘텐츠 작성법과 SEO 최적화 방법을 단계별로 안내합니다.',
+    description: '운세 사이트가 애드센스 승인 확률을 높이기 위해 갖춰야 할 글 구조를 풀어냈습니다. 구글이 좋아하는 운세 콘텐츠 작성법과 SEO 최적화 방법을 단계별로 안내합니다.',
     category: '점성술',
     updatedAt: '2026-04-05',
     keywords: ['애드센스 승인', '사주 보는 법', '내 운을 높이는 법', '운세 콘텐츠', '구글 SEO'],
@@ -546,7 +546,7 @@ export const ADSENSE_READY_ARTICLES = [
   {
     slug: 'vedic-astrology-12-rasi-complete-personality-guide',
     title: '베다 점성술 12라시 완전 가이드: 메샤부터 미나까지 성격·운세·실전 해석',
-    description: '인도 베다 점성술(조티쉬)의 12라시(황도 별자리)를 고객 눈높이로 완전 정리했습니다. 각 라시의 성격 특징, 강점과 약점, 관계·커리어 경향, 현실 활용법까지 초보자도 바로 이해할 수 있도록 안내합니다.',
+    description: '인도 베다 점성술(조티쉬)의 12라시(황도 별자리)를 고객 눈높이로 완전 풀어냈습니다. 각 라시의 성격 특징, 강점과 약점, 관계·커리어 경향, 현실 활용법까지 초보자도 바로 이해할 수 있도록 안내합니다.',
     category: '베다점',
     updatedAt: '2026-04-05',
     keywords: ['베다 점성술', '베다 점성술 별자리', '조티쉬 라시', '베다 점성술 12개 별자리', '베다 점성술 운세', '인도 점성술 특징', '라시 궁합', '베다 점성술 성격'],
@@ -661,7 +661,7 @@ export const ADSENSE_READY_ARTICLES = [
   {
     slug: 'five-elements-ohang-complete-guide',
     title: '오행(목화토금수) 완전 정리: 성질·상생·상극·실생활 적용법',
-    description: '오행의 기본 성질부터 상생·상극 원리, 성격 분석, 건강·직업·관계에서의 실생활 적용법까지 완벽하게 정리했습니다.',
+    description: '오행의 기본 성질부터 상생·상극 원리, 성격 분석, 건강·직업·관계에서의 실생활 적용법까지 완벽하게 풀어냈습니다.',
     category: '사주 기초',
     publishedAt: '2026-04-05',
     updatedAt: '2026-04-05',
@@ -701,7 +701,7 @@ export const ADSENSE_READY_ARTICLES = [
   {
     slug: 'tarot-major-arcana-22-complete-meanings',
     title: '타로카드 대아르카나 22장 의미 완전 정리: 0번부터 21번까지',
-    description: '타로 대아르카나 22장의 핵심 키워드, 정방향·역방향 해석, 연애·직업·성장별 활용법을 초보자도 바로 쓸 수 있도록 완벽 정리했습니다.',
+    description: '타로 대아르카나 22장의 핵심 키워드, 정방향·역방향 해석, 연애·직업·성장별 활용법을 초보자도 바로 쓸 수 있도록 완벽 풀어냈습니다.',
     category: '타로 이론',
     publishedAt: '2026-04-05',
     updatedAt: '2026-04-05',

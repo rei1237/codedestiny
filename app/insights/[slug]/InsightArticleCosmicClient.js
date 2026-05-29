@@ -412,8 +412,14 @@ export default function InsightArticleCosmicClient({
   const ctaLinks = useMemo(() => {
     const fromCta = normalizeLinkItems(item?.cta?.links);
     if (fromCta.length > 0) return fromCta;
-    return normalizeLinkItems(item?.internalLinks);
-  }, [item?.cta?.links, item?.internalLinks]);
+    const fromInternal = normalizeLinkItems(item?.internalLinks);
+    if (fromInternal.length > 0) return fromInternal;
+
+    const fallbackHref = String(item?.serviceLink || "").trim();
+    const fallbackLabel = String(item?.ctaLabel || "관련 운세 서비스 바로가기").trim();
+    if (fallbackHref) return [{ href: fallbackHref, label: fallbackLabel }];
+    return [];
+  }, [item?.cta?.links, item?.internalLinks, item?.serviceLink, item?.ctaLabel]);
   const readingTime = Math.max(1, Number(item?.readingTime || 0) || 1);
   const shareUrl = buildShareUrl(item?.shareUrl, item?.slug || slug);
   const seo = useMemo(() => resolveSeo(item, shareUrl, imageBundle.ogUrl), [item, shareUrl, imageBundle.ogUrl]);
