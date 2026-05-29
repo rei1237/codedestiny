@@ -7,6 +7,24 @@ import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 const ZIWEI_SERVICE_KEY = "ziwei-book";
 const ZIWEI_FEATURE_KEY = "premium_pdf_ziwei";
 const ZIWEI_FEATURE_ALIASES = new Set(["premium-ziwei-report", "premium_pdf_ziwei"]);
+const CHAPTER_MIN_CHARS = 2000;
+const SECTION_MIN_CHARS = 500;
+const TOTAL_MIN_CHARS = 25000;
+
+const EARTHLY_BRANCH_HOUR = Object.freeze({
+  자: 23,
+  축: 1,
+  인: 3,
+  묘: 5,
+  진: 7,
+  사: 9,
+  오: 11,
+  미: 13,
+  신: 15,
+  유: 17,
+  술: 19,
+  해: 21,
+});
 
 const STRENGTH_LEGEND = Object.freeze({
   miao: "◎",
@@ -168,6 +186,91 @@ function normalizeFeatureKey(raw) {
   return key;
 }
 
+function toFiniteInt(value, fallback = NaN) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.trunc(n);
+}
+
+function pickNonEmpty(...values) {
+  for (const value of values) {
+    const normalized = clean(value);
+    if (normalized) return normalized;
+  }
+  return "";
+}
+
+function normalizeGender(value) {
+  const raw = clean(value).toLowerCase();
+  if (["m", "male", "man", "남", "남성"].includes(raw)) return "male";
+  if (["f", "female", "woman", "여", "여성"].includes(raw)) return "female";
+  return "unknown";
+}
+
+function normalizeCalendarType(value) {
+  const raw = clean(value).toLowerCase();
+  if (["solar", "양력", "양"].includes(raw)) return "solar";
+  if (["lunar", "음력", "음", "lunar_leap", "윤달"].includes(raw)) return "lunar";
+  return "unknown";
+}
+
+function isUnknownTimeMarker(value) {
+  const raw = clean(value).toLowerCase();
+  if (!raw) return false;
+  return /모름|미상|unknown|없음|미기재|not\s*known|n\/a|na|무시|모르/.test(raw);
+}
+
+function normalizeHourMinute(hour, minute = 0) {
+  if (!Number.isFinite(hour)) return null;
+  if (!Number.isFinite(minute)) minute = 0;
+  const normalizedHour = Math.max(0, Math.min(23, Math.trunc(hour)));
+  const normalizedMinute = Math.max(0, Math.min(59, Math.trunc(minute)));
+  return { hour: normalizedHour, minute: normalizedMinute };
+}
+
+function parseHourMinuteFromText(value) {
+  const raw = clean(value);
+  if (!raw) return null;
+  if (isUnknownTimeMarker(raw)) return { unknown: true };
+
+  const branchMatch = raw.match(/([자축인묘진사오미신유술해])\s*시/);
+  if (branchMatch && EARTHLY_BRANCH_HOUR[branchMatch[1]] != null) {
+    return normalizeHourMinute(EARTHLY_BRANCH_HOUR[branchMatch[1]], 0);
+  }
+
+  const hm = raw.match(/^(\d{1,2})\s*[:시]\s*(\d{1,2})?/);
+  if (hm) {
+    let hour = toFiniteInt(hm[1], NaN);
+    const minute = toFiniteInt(hm[2], 0);
+    if (/오후|pm|PM/.test(raw) && Number.isFinite(hour) && hour < 12) hour += 12;
+    if (/오전|am|AM/.test(raw) && Number.isFinite(hour) && hour === 12) hour = 0;
+    return normalizeHourMinute(hour, minute);
+  }
+
+  const hourOnly = raw.match(/^(오전|오후|am|pm|AM|PM)?\s*(\d{1,2})\s*시?$/);
+  if (hourOnly) {
+    let hour = toFiniteInt(hourOnly[2], NaN);
+    if (/오후|pm|PM/.test(hourOnly[1] || "") && Number.isFinite(hour) && hour < 12) hour += 12;
+    if (/오전|am|AM/.test(hourOnly[1] || "") && Number.isFinite(hour) && hour === 12) hour = 0;
+    return normalizeHourMinute(hour, 0);
+  }
+
+  return null;
+}
+
+function parseDateParts(value) {
+  const raw = clean(value);
+  if (!raw) return null;
+  const match = raw.match(/^(\d{4})[-./\s](\d{1,2})[-./\s](\d{1,2})$/);
+  if (!match) return null;
+  const year = toFiniteInt(match[1], NaN);
+  const month = toFiniteInt(match[2], NaN);
+  const day = toFiniteInt(match[3], NaN);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  return { year, month, day };
+}
+
 function toInt(value, fallback = 0) {
   const n = Number(value);
   return Number.isFinite(n) ? Math.trunc(n) : fallback;
@@ -231,32 +334,136 @@ function starsText(stars) {
 function normalizeInput(body = {}) {
   const bp = body.birthProfile && typeof body.birthProfile === "object" ? body.birthProfile : {};
   const birth = bp.birth && typeof bp.birth === "object" ? bp.birth : {};
-  const birthDate = clean(body.birthDate || bp.birthDate || birth.solarDate || birth.date);
-  const dateParts = birthDate.includes("-") ? birthDate.split("-").map((part) => toInt(part, NaN)) : [];
-  const year = Number.isFinite(toInt(body.year, NaN)) ? toInt(body.year, NaN) : (Number.isFinite(toInt(birth.year, NaN)) ? toInt(birth.year, NaN) : dateParts[0]);
-  const month = Number.isFinite(toInt(body.month, NaN)) ? toInt(body.month, NaN) : (Number.isFinite(toInt(birth.month, NaN)) ? toInt(birth.month, NaN) : dateParts[1]);
-  const day = Number.isFinite(toInt(body.day, NaN)) ? toInt(body.day, NaN) : (Number.isFinite(toInt(birth.day, NaN)) ? toInt(birth.day, NaN) : dateParts[2]);
-  const hour = Number.isFinite(toInt(body.hour, NaN)) ? toInt(body.hour, NaN) : (Number.isFinite(toInt(birth.hour, NaN)) ? toInt(birth.hour, NaN) : 12);
-  const minute = Number.isFinite(toInt(body.minute, NaN)) ? toInt(body.minute, NaN) : (Number.isFinite(toInt(birth.minute, NaN)) ? toInt(birth.minute, NaN) : 0);
+  const input = body.birthInput && typeof body.birthInput === "object" ? body.birthInput : {};
+
+  const birthDateRaw = pickNonEmpty(
+    input.birthDate,
+    body.birthDate,
+    bp.birthDate,
+    birth.birthDate,
+    birth.solarDate,
+    body.solarDate,
+    body.birthday,
+    birth.date,
+  );
+  const parsedDate = parseDateParts(birthDateRaw);
+
+  const year = Number.isFinite(toFiniteInt(input.birthYear, NaN))
+    ? toFiniteInt(input.birthYear, NaN)
+    : Number.isFinite(toFiniteInt(body.birthYear, NaN))
+      ? toFiniteInt(body.birthYear, NaN)
+      : Number.isFinite(toFiniteInt(body.year, NaN))
+        ? toFiniteInt(body.year, NaN)
+        : Number.isFinite(toFiniteInt(birth.year, NaN))
+          ? toFiniteInt(birth.year, NaN)
+          : parsedDate?.year;
+  const month = Number.isFinite(toFiniteInt(input.birthMonth, NaN))
+    ? toFiniteInt(input.birthMonth, NaN)
+    : Number.isFinite(toFiniteInt(body.birthMonth, NaN))
+      ? toFiniteInt(body.birthMonth, NaN)
+      : Number.isFinite(toFiniteInt(body.month, NaN))
+        ? toFiniteInt(body.month, NaN)
+        : Number.isFinite(toFiniteInt(birth.month, NaN))
+          ? toFiniteInt(birth.month, NaN)
+          : parsedDate?.month;
+  const day = Number.isFinite(toFiniteInt(input.birthDay, NaN))
+    ? toFiniteInt(input.birthDay, NaN)
+    : Number.isFinite(toFiniteInt(body.birthDay, NaN))
+      ? toFiniteInt(body.birthDay, NaN)
+      : Number.isFinite(toFiniteInt(body.day, NaN))
+        ? toFiniteInt(body.day, NaN)
+        : Number.isFinite(toFiniteInt(birth.day, NaN))
+          ? toFiniteInt(birth.day, NaN)
+          : parsedDate?.day;
+
+  const birthTimeRaw = pickNonEmpty(
+    input.birthTime,
+    body.birthTime,
+    body.time,
+    body.timeText,
+    body.birth_hour,
+    bp.birthTime,
+    birth.birthTime,
+    birth.time,
+  );
+  const explicitHour = Number.isFinite(toFiniteInt(input.birthHour, NaN))
+    ? toFiniteInt(input.birthHour, NaN)
+    : Number.isFinite(toFiniteInt(body.birthHour, NaN))
+      ? toFiniteInt(body.birthHour, NaN)
+      : Number.isFinite(toFiniteInt(body.hour, NaN))
+        ? toFiniteInt(body.hour, NaN)
+        : Number.isFinite(toFiniteInt(body.birth_hour, NaN))
+          ? toFiniteInt(body.birth_hour, NaN)
+          : Number.isFinite(toFiniteInt(birth.hour, NaN))
+            ? toFiniteInt(birth.hour, NaN)
+            : NaN;
+  const explicitMinute = Number.isFinite(toFiniteInt(input.birthMinute, NaN))
+    ? toFiniteInt(input.birthMinute, NaN)
+    : Number.isFinite(toFiniteInt(body.birthMinute, NaN))
+      ? toFiniteInt(body.birthMinute, NaN)
+      : Number.isFinite(toFiniteInt(body.minute, NaN))
+        ? toFiniteInt(body.minute, NaN)
+        : Number.isFinite(toFiniteInt(birth.minute, NaN))
+          ? toFiniteInt(birth.minute, NaN)
+          : 0;
+
+  const parsedTime = parseHourMinuteFromText(birthTimeRaw);
+  const isTimeUnknown = Boolean(
+    input.isTimeUnknown
+    || body.isTimeUnknown
+    || body.timeUnknown
+    || body.unknownHour
+    || bp.timeUnknown
+    || birth.timeUnknown
+    || (parsedTime && parsedTime.unknown)
+    || isUnknownTimeMarker(birthTimeRaw),
+  );
+
+  const hourMinute = Number.isFinite(explicitHour)
+    ? normalizeHourMinute(explicitHour, explicitMinute)
+    : parsedTime && !parsedTime.unknown
+      ? normalizeHourMinute(parsedTime.hour, parsedTime.minute)
+      : null;
+
   if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day) || month < 1 || month > 12 || day < 1 || day > 31) {
-    return { ok: false, message: "정확한 명반 계산을 위해 생년월일시 정보를 확인해 주세요." };
+    return { ok: false, message: "정확한 명반 계산을 위해 생년월일 정보를 확인해 주세요." };
   }
-  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
-    return { ok: false, message: "정확한 명반 계산을 위해 출생 시간을 확인해 주세요." };
+  if (isTimeUnknown || !hourMinute) {
+    return { ok: false, code: "BIRTH_TIME_REQUIRED", message: "자미두수 프리미엄 PDF는 태어난 시간 정보가 필요합니다. 프로필 카드에서 출생 시간을 먼저 입력해 주세요." };
   }
+
+  const gender = normalizeGender(pickNonEmpty(input.gender, body.gender, bp.gender, birth.gender));
+  const calendarType = normalizeCalendarType(pickNonEmpty(input.calendarType, body.calendarType, bp.calendarType, birth.calType, birth.calendarType));
+
+  const birthInput = {
+    name: pickNonEmpty(input.name, body.name, bp.name) || "사용자",
+    gender,
+    calendarType,
+    birthDate: `${year}-${pad2(month)}-${pad2(day)}`,
+    birthYear: year,
+    birthMonth: month,
+    birthDay: day,
+    birthTime: `${pad2(hourMinute.hour)}:${pad2(hourMinute.minute)}`,
+    birthHour: hourMinute.hour,
+    birthMinute: hourMinute.minute,
+    timezone: pickNonEmpty(input.timezone, body.timezone, bp.timezone, birth.timezone) || "Asia/Seoul",
+    isTimeUnknown: false,
+  };
+
   return {
     ok: true,
+    birthInput,
     profile: {
-      name: clean(body.name || bp.name) || "사용자",
-      gender: clean(body.gender || bp.gender) || "unknown",
+      name: birthInput.name,
+      gender: birthInput.gender,
       year,
       month,
       day,
-      hour,
-      minute,
-      calendarType: clean(body.calendarType || bp.calendarType) || "solar",
+      hour: birthInput.birthHour,
+      minute: birthInput.birthMinute,
+      calendarType: birthInput.calendarType,
       birthplace: clean(body.birthplace || bp.birthplace || bp.birthPlace) || "대한민국",
-      birthIso: `${year}-${pad2(month)}-${pad2(day)} ${pad2(hour)}:${pad2(minute)}`,
+      birthIso: `${year}-${pad2(month)}-${pad2(day)} ${pad2(birthInput.birthHour)}:${pad2(birthInput.birthMinute)}`,
     },
   };
 }
@@ -304,12 +511,15 @@ function normalizePalaces(base = {}) {
 }
 
 function findPalace(seed, key) {
+  const palaces = Array.isArray(seed?.palaces)
+    ? seed.palaces
+    : (Array.isArray(seed?.chart?.palaces) ? seed.chart.palaces : []);
   if (key === "body") {
-    return seed.bodyPalace || seed.palaces.find((p) => p.key === "body") || seed.palaces.find((p) => p.branch && p.branch === seed.chart.shenGong) || seed.lifePalace;
+    return seed.bodyPalace || palaces.find((p) => p.key === "body") || palaces.find((p) => p.branch && p.branch === seed.chart.shenGong) || seed.lifePalace;
   }
   if (key === "timing") return null;
   const expectedName = PALACE_LABELS[key];
-  return seed.palaces.find((p) => p.key === key) || seed.palaces.find((p) => p.nameKo === expectedName) || null;
+  return palaces.find((p) => p.key === key) || palaces.find((p) => p.nameKo === expectedName) || null;
 }
 
 function buildZiweiPdfSeed(profile, base) {
@@ -386,41 +596,107 @@ function timingEvidenceText(seed) {
   return `대운 기준은 ${decade}이며, 가까운 흐름은 ${sihua}를 중심으로 현실 선택의 우선순위를 정리합니다.`;
 }
 
-function buildCategoryText(profile, seed, blueprint, categoryTitle, categoryIndex) {
+function collectSignals(seed, palace) {
+  const usedStars = [];
+  const usedSignals = [];
+  const mainStars = normalizeStarList(palace?.mainStars || []);
+  const auxStars = normalizeStarList(palace?.auxStars || []);
+  const maleficStars = normalizeStarList(palace?.maleficStars || []);
+
+  for (const star of [...mainStars, ...auxStars, ...maleficStars]) {
+    if (!usedStars.includes(star.name)) usedStars.push(star.name);
+    const signal = `${star.name}${star.strengthSymbol}`;
+    if (!usedSignals.includes(signal)) usedSignals.push(signal);
+  }
+
+  if (Array.isArray(palace?.transformations)) {
+    for (const tf of palace.transformations) {
+      const token = `${clean(tf?.star)} ${clean(tf?.type || tf?.label)}`.trim();
+      if (token && !usedSignals.includes(token)) usedSignals.push(token);
+    }
+  }
+  return { usedStars, usedSignals };
+}
+
+function buildCategoryText(profile, seed, blueprint, categoryTitle, categoryIndex, pass = 1) {
   const palace = findPalace(seed, blueprint.palaceKey);
   const evidence = blueprint.palaceKey === "timing" ? timingEvidenceText(seed) : palaceEvidenceText(seed, palace);
   const label = blueprint.palaceKey === "timing" ? "대운·유년" : (palace?.nameKo || PALACE_LABELS[blueprint.palaceKey] || "해당 궁");
-  const strengthGuide = "별 강도는 묘 ◎, 득 O, 리 ▲, 평 △, 함·실 X 순서로 보며, 강한 별은 바로 쓰는 재능으로, 약한 별은 관리해야 할 습관으로 해석합니다.";
+  const signals = collectSignals(seed, palace);
+  const focusedStars = signals.usedStars.slice(0, 4).join(", ") || "핵심 별 신호";
+  const focusedSignal = signals.usedSignals.slice(0, 5).join(", ") || "궁간 상호작용";
+  const strengthGuide = `${categoryTitle} 해석에서는 ${label}의 별 강도를 묘 ◎, 득 O, 리 ▲, 평 △, 함·실 X 순서로 읽되, ${focusedStars}의 조합을 실행 우선순위로 연결하는 방식이 가장 현실적입니다.`;
   const practical = [
-    "먼저 확인되는 별과 궁의 신호를 하나의 결론으로 단정하지 말고, 반복되는 선택 패턴을 구분하는 기준으로 삼는 편이 좋습니다.",
-    "강한 신호는 작은 실행을 자주 반복할 때 성과가 커지고, 약한 신호는 일정·관계·돈의 경계를 먼저 세울 때 손실을 줄입니다.",
-    `${categoryTitle}에서는 ${label}의 특징을 기준으로 이번 달에 바로 조정할 행동 하나와 장기적으로 유지할 습관 하나를 분리해 보세요.`,
+    `이번 장에서는 ${label}의 구조를 ${focusedStars}의 배치와 ${focusedSignal}의 작동 축으로 읽어야 실제 선택이 선명해집니다.`,
+    `${categoryTitle}를 해석할 때 가장 중요한 지점은 단기 성과보다 반복 가능한 리듬을 먼저 고정하는 일입니다. 같은 별 조합이라도 실행 순서가 바뀌면 결과의 질이 달라지기 때문입니다.`,
+    `${profile.name}님의 경우 ${label}에서 드러나는 기회 신호는 즉시 확장보다 기준 확립에서 더 크게 살아납니다. 협업, 재정, 루틴을 동시에 다루기보다 주당 핵심 항목을 두세 개로 압축하면 체감 성과가 분명해집니다.`,
+    `${categoryTitle}에서는 강한 별을 추진력으로 쓰되, 약한 별은 ${label} 기준의 복구 규칙으로 관리해야 손실이 줄어듭니다. 일정 지연, 감정 피로, 관계 소모를 초기에 감지하도록 경보 조건을 만들면 운의 파동이 커져도 균형을 지킬 수 있습니다.`,
+    `실행 전략은 "분석-결정-실행-복기"의 4단계를 짧게 순환하는 방식이 좋습니다. 특히 ${categoryTitle}에서는 매주 같은 시간에 의사결정 로그를 남기면 별 신호가 행동으로 번역되고, 모호했던 고민이 다음 선택의 기준으로 축적됩니다.`,
   ];
   const focus = categoryIndex % 2 === 0
-    ? "현실적인 선택에서는 빠른 확장보다 안정적인 반복 구조가 유리합니다."
-    : "관계와 일의 균형에서는 부탁을 받을 때의 기준과 거절의 문장을 미리 정해두는 것이 도움이 됩니다.";
-  return stripForbiddenTokens(`${evidence}\n\n${strengthGuide}\n\n${practical.join("\n\n")}\n\n${focus}`);
+    ? `${categoryTitle}에서는 빠른 확장보다 안정적인 반복 구조가 유리하며, ${label}에서 포착된 신호를 월 단위 점검 항목으로 고정하면 변동 구간의 손실을 줄일 수 있습니다.`
+    : `${categoryTitle}에서는 관계와 일의 경계를 먼저 설계해야 하며, ${label}의 신호를 기준으로 부탁 수락 조건과 거절 문장을 미리 정해두면 에너지 누수를 줄일 수 있습니다.`;
+  const passBonus = pass > 1
+    ? `${categoryTitle}의 핵심 별 신호를 월 단위 운영 계획으로 내려서 관리하면, 대운·세운의 변동 구간에서도 시행착오를 크게 줄일 수 있습니다. 중요한 것은 거창한 결단이 아니라 작은 원칙을 반복해 구조적 우위를 만드는 것입니다.`
+    : "";
+  return stripForbiddenTokens(`이 절은 ${categoryTitle} 실행 전략을 ${label} 데이터에 맞춰 구체화한 안내입니다.\n\n${evidence}\n\n${strengthGuide}\n\n${practical.join("\n\n")}\n\n${focus}\n\n${passBonus}`);
 }
 
-function buildLocalChapters(profile, seed) {
-  return CHAPTER_BLUEPRINTS.map((blueprint) => {
-    const categories = blueprint.categories.map((categoryTitle, index) => ({
-      id: `${blueprint.id}-${String(index + 1).padStart(2, "0")}`,
-      title: categoryTitle,
-      localSummary: buildCategoryText(profile, seed, blueprint, categoryTitle, index),
-      finalText: buildCategoryText(profile, seed, blueprint, categoryTitle, index),
-      order: index + 1,
-    }));
+function buildZiweiLocalPremiumManuscript(profile, seed, pass = 1) {
+  return CHAPTER_BLUEPRINTS.map((blueprint, chapterIndex) => {
+    const palace = findPalace(seed, blueprint.palaceKey);
+    const signals = collectSignals(seed, palace);
+    const sections = blueprint.categories.map((categoryTitle, index) => {
+      const body = buildCategoryText(profile, seed, blueprint, categoryTitle, index, pass);
+      return {
+        title: categoryTitle,
+        body,
+        bullets: [
+          `${categoryTitle}의 핵심 별 신호: ${(signals.usedSignals.slice(0, 4).join(", ") || "기본 명반 신호")}`,
+          `실행 기준: ${(signals.usedStars.slice(0, 3).join(", ") || "핵심 별") + " 중심으로 우선순위 설정"}`,
+          "실전 루틴: 주간 복기와 월간 재정렬로 변동성 관리",
+        ],
+      };
+    });
     return {
-      id: blueprint.id,
-      roman: blueprint.roman,
+      chapterNo: chapterIndex + 1,
       title: blueprint.title,
-      categories,
-      finalText: categories.map((c) => `### ${c.title}\n\n${c.finalText}`).join("\n\n"),
-      text: categories.map((c) => `### ${c.title}\n\n${c.finalText}`).join("\n\n"),
-      source: "local-skeleton",
+      subtitle: `${PALACE_LABELS[blueprint.palaceKey] || "핵심 궁"} 중심 해석`,
+      sections,
+      localQuality: {
+        minLengthPassed: sections.every((section) => stripForbiddenTokens(section.body).length >= SECTION_MIN_CHARS),
+        usedPalaces: [palace?.nameKo || PALACE_LABELS[blueprint.palaceKey] || ""].filter(Boolean),
+        usedStars: signals.usedStars,
+        usedSignals: signals.usedSignals,
+      },
     };
   });
+}
+
+function draftToChapter(draft, blueprint, source = "local") {
+  const categories = (Array.isArray(draft.sections) ? draft.sections : []).map((section, index) => ({
+    id: `${blueprint.id}-${String(index + 1).padStart(2, "0")}`,
+    title: section.title,
+    localSummary: section.body,
+    finalText: section.body,
+    order: index + 1,
+  }));
+  return {
+    id: blueprint.id,
+    roman: blueprint.roman,
+    title: draft.title,
+    categories,
+    finalText: categories.map((c) => `### ${c.title}\n\n${c.finalText}`).join("\n\n"),
+    text: categories.map((c) => `### ${c.title}\n\n${c.finalText}`).join("\n\n"),
+    source,
+    localQuality: draft.localQuality,
+  };
+}
+
+function buildLocalChapters(profile, seed, pass = 1) {
+  const drafts = buildZiweiLocalPremiumManuscript(profile, seed, pass);
+  const chapters = drafts.map((draft, index) => draftToChapter(draft, CHAPTER_BLUEPRINTS[index], pass > 1 ? "local-reinforced" : "local-skeleton"));
+  return { drafts, chapters };
 }
 
 function parseJsonMaybe(text) {
@@ -450,23 +726,48 @@ function mergeLlmChapter(localChapter, llmJson) {
 function validateChapters(chapters = []) {
   const errors = [];
   if (!Array.isArray(chapters) || chapters.length !== CHAPTER_BLUEPRINTS.length) errors.push("chapter_count");
+  let totalChars = 0;
   CHAPTER_BLUEPRINTS.forEach((blueprint, index) => {
     const chapter = chapters[index];
     if (!chapter || clean(chapter.title) !== blueprint.title) errors.push(`chapter_${index + 1}_title`);
     const cats = Array.isArray(chapter?.categories) ? chapter.categories : [];
     if (cats.length !== blueprint.categories.length) errors.push(`chapter_${index + 1}_category_count`);
+    const chapterChars = cats.reduce((sum, cat) => sum + stripForbiddenTokens(cat?.finalText || cat?.text || "").length, 0);
+    totalChars += chapterChars;
+    if (chapterChars < CHAPTER_MIN_CHARS) errors.push(`chapter_${index + 1}_min_chars`);
     blueprint.categories.forEach((title, categoryIndex) => {
       const category = cats[categoryIndex];
       if (!category || clean(category.title) !== title) errors.push(`chapter_${index + 1}_category_${categoryIndex + 1}_title`);
       const text = stripForbiddenTokens(category?.finalText || category?.text || "");
-      if (text.length < 80) errors.push(`chapter_${index + 1}_category_${categoryIndex + 1}_text`);
+      if (text.length < SECTION_MIN_CHARS) errors.push(`chapter_${index + 1}_category_${categoryIndex + 1}_text`);
       const lowered = text.toLowerCase();
       for (const token of FORBIDDEN_TEXT) {
         if (lowered.includes(token.toLowerCase())) errors.push(`chapter_${index + 1}_forbidden_${token}`);
       }
     });
   });
-  return { ok: errors.length === 0, errors };
+  if (totalChars < TOTAL_MIN_CHARS) errors.push("total_min_chars");
+  return { ok: errors.length === 0, errors, totalChars };
+}
+
+function computeDuplicateRate(chapters = []) {
+  const source = chapters
+    .flatMap((chapter) => (Array.isArray(chapter?.categories) ? chapter.categories : []))
+    .map((item) => stripForbiddenTokens(item?.finalText || item?.text || ""))
+    .join("\n\n");
+  const paragraphs = source
+    .split(/\n\s*\n+/)
+    .map((row) => clean(row).replace(/\s+/g, " "))
+    .filter((row) => row.length >= 80);
+  if (!paragraphs.length) return 0;
+  const counter = new Map();
+  for (const paragraph of paragraphs) {
+    counter.set(paragraph, (counter.get(paragraph) || 0) + 1);
+  }
+  const repeated = Array.from(counter.values())
+    .filter((count) => count > 1)
+    .reduce((sum, count) => sum + (count - 1), 0);
+  return repeated / paragraphs.length;
 }
 
 async function enhanceChaptersWithLlm(env, profile, seed, localChapters) {
@@ -474,18 +775,19 @@ async function enhanceChaptersWithLlm(env, profile, seed, localChapters) {
   let fallbackUsed = false;
   for (let i = 0; i < localChapters.length; i += 1) {
     const chapter = localChapters[i];
-    console.info("[ZiweiBook][Flow] LLM_ENRICH_START", { chapter: i + 1 });
+    console.info("[ZiweiPremiumPDF][LLMEnhanceStart]", { chapter: i + 1, categoryCount: Array.isArray(chapter.categories) ? chapter.categories.length : 0 });
     const prompt = [
-      "당신은 자미두수 12궁, 명궁, 신궁, 사화, 대운·유년 해석에 능한 전문 상담가입니다.",
-      "제공된 자미두수 계산 결과와 13챕터 뼈대를 바탕으로 각 챕터와 세부 카테고리에 맞는 완성형 상담문을 작성하세요.",
-      "자미두수 계산을 새로 하지 말고, 제공된 명궁, 신궁, 12궁, 주성, 보조성, 별 강도, 사화, 대운·유년 데이터만 근거로 사용하세요.",
-      "챕터 제목과 세부 카테고리 제목은 절대 바꾸지 마세요.",
-      "각 세부 카테고리마다 2~4문단으로 설명하되, 예언을 단정하지 말고 선택과 전략 중심으로 쓰세요.",
-      "내부 데이터 구조, 계산 로그, 개발자용 단어를 본문에 노출하지 마세요.",
+      "너는 자미두수 계산을 새로 하지 않는다.",
+      "이미 제공된 localZiweiJson과 localChapterDraft만 사용한다.",
+      "챕터 수, 챕터 제목, 세부 섹션 제목을 절대 변경하지 않는다.",
+      "PDF 본문에 JSON, payload, debug, fallback, 자동 복구 생성이라는 표현을 출력하지 않는다.",
+      "각 섹션은 실제 명반 데이터에 근거한 상담문으로 작성한다.",
+      "동일 문장 반복을 금지한다.",
+      "각 세부 카테고리는 기존 의미를 유지하면서 문장 밀도만 높인다.",
       "반드시 JSON 객체 하나만 반환하세요. 형식: {\"chapter\":{\"title\":string,\"categories\":[{\"title\":string,\"finalText\":string}]}}",
-      `프로필: ${JSON.stringify({ name: profile.name, gender: profile.gender, birthDate: `${profile.year}-${pad2(profile.month)}-${pad2(profile.day)}`, birthTime: `${pad2(profile.hour)}:${pad2(profile.minute)}` })}`,
-      `계산 요약: ${JSON.stringify({ chart: seed.chart, legend: seed.strengthLegend })}`,
-      `챕터 뼈대: ${JSON.stringify(chapter)}`,
+      `프로필: ${JSON.stringify({ gender: profile.gender, birthDate: `${profile.year}-${pad2(profile.month)}-${pad2(profile.day)}`, birthTime: `${pad2(profile.hour)}:${pad2(profile.minute)}` })}`,
+      `localZiweiJson: ${JSON.stringify({ chart: seed.chart, legend: seed.strengthLegend })}`,
+      `localChapterDraft: ${JSON.stringify(chapter)}`,
     ].join("\n");
     try {
       const result = await callGeminiText(env, prompt, {
@@ -501,11 +803,15 @@ async function enhanceChaptersWithLlm(env, profile, seed, localChapters) {
       const merged = parsed ? mergeLlmChapter(chapter, parsed) : { ...chapter, source: "local" };
       if (!parsed) fallbackUsed = true;
       chapters.push(merged);
-      console.info("[ZiweiBook][Flow] LLM_ENRICH_OK", { chapter: i + 1, source: merged.source });
+      if (merged.source === "llm") {
+        console.info("[ZiweiPremiumPDF][LLMEnhanceSuccess]", { chapter: i + 1, source: merged.source });
+      } else {
+        console.warn("[ZiweiPremiumPDF][LLMEnhanceFailedUseLocal]", { chapter: i + 1, reason: "parse_or_empty" });
+      }
     } catch (error) {
       fallbackUsed = true;
       chapters.push({ ...chapter, source: "local" });
-      console.warn("[ZiweiBook][Flow] LLM_ENRICH_FALLBACK", { chapter: i + 1, message: clean(error?.message || error) });
+      console.warn("[ZiweiPremiumPDF][LLMEnhanceFailedUseLocal]", { chapter: i + 1, message: clean(error?.message || error) });
     }
   }
   return { chapters, fallbackUsed };
@@ -606,8 +912,35 @@ async function handlePrepare(request, env) {
   }
 
   const body = await readJson(request);
+  console.info("[ZiweiPremiumPDF][RequestReceived]", {
+    hasBirthInput: Boolean(body?.birthInput),
+    hasBirthProfile: Boolean(body?.birthProfile),
+    hasZiweiBase: Boolean(body?.ziweiBase || body?.ziweiPdfSeed || body?.chartResult?.reportPayload),
+  });
   const normalized = normalizeInput(body);
-  if (!normalized.ok) return json({ ok: false, serviceKey: ZIWEI_SERVICE_KEY, code: "INVALID_INPUT", message: normalized.message }, { status: 422 });
+  if (!normalized.ok) return json({ ok: false, serviceKey: ZIWEI_SERVICE_KEY, code: normalized.code || "INVALID_INPUT", message: normalized.message }, { status: 422 });
+
+  const profile = normalized.profile;
+  const birthInput = normalized.birthInput;
+  console.info("[ZiweiPremiumPDF][BirthInputValidated]", {
+    hasBirthDate: Boolean(birthInput.birthDate),
+    hasBirthTime: Boolean(birthInput.birthTime),
+    birthHour: birthInput.birthHour,
+    gender: birthInput.gender,
+  });
+
+  const base = getZiweiBase(body);
+  if (!base) {
+    return json({ ok: false, serviceKey: ZIWEI_SERVICE_KEY, code: "MISSING_ZIWEI_ENGINE_RESULT", message: "자미두수 명반 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요." }, { status: 422 });
+  }
+
+  console.info("[ZiweiPremiumPDF][LocalCalculationStart]", { hasBase: true });
+  const seed = buildZiweiPdfSeed(profile, base);
+  const seedValidation = validateSeed(seed);
+  if (!seedValidation.ok) {
+    return json({ ok: false, serviceKey: ZIWEI_SERVICE_KEY, code: "ZIWEI_SEED_INVALID", message: "자미두수 명반 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.", missing: seedValidation.errors }, { status: 422 });
+  }
+  console.info("[ZiweiPremiumPDF][LocalCalculationSuccess]", { palaceCount: seed?.chart?.palaces?.length || 0 });
 
   const premiumAccessToken = clean(
     request.headers.get("x-premium-access-token")
@@ -641,34 +974,43 @@ async function handlePrepare(request, env) {
   }
   console.info("[ZiweiBook][Flow] BILLING_CHECK_OK", { featureKey, accessType: clean(access.accessType || "") });
 
-  const base = getZiweiBase(body);
-  if (!base) {
-    return json({ ok: false, serviceKey: ZIWEI_SERVICE_KEY, code: "MISSING_ZIWEI_ENGINE_RESULT", message: "자미두수 명반 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요." }, { status: 422 });
+  console.info("[ZiweiPremiumPDF][LocalDraftBuildStart]", { chapterCount: CHAPTER_BLUEPRINTS.length });
+  const firstPass = buildLocalChapters(profile, seed, 1);
+  const firstValidation = validateChapters(firstPass.chapters);
+  const localBundle = firstValidation.ok ? firstPass : buildLocalChapters(profile, seed, 2);
+  let localChapters = localBundle.chapters;
+  const localValidation = validateChapters(localChapters);
+  if (!localValidation.ok) {
+    localChapters = buildLocalChapters(profile, seed, 3).chapters;
   }
+  const localMetrics = validateChapters(localChapters);
+  console.info("[ZiweiPremiumPDF][LocalDraftBuildSuccess]", {
+    chapterCount: localChapters.length,
+    totalChars: localMetrics.totalChars,
+    localDraftValid: localMetrics.ok,
+  });
 
-  console.info("[ZiweiBook][Flow] PDF_SEED_READY", { featureKey, hasBase: true });
-  const profile = normalized.profile;
-  const seed = buildZiweiPdfSeed(profile, base);
-  const seedValidation = validateSeed(seed);
-  if (!seedValidation.ok) {
-    return json({ ok: false, serviceKey: ZIWEI_SERVICE_KEY, code: "ZIWEI_SEED_INVALID", message: "자미두수 명반 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.", missing: seedValidation.errors }, { status: 422 });
-  }
-
-  const localChapters = buildLocalChapters(profile, seed);
-  console.info("[ZiweiBook][Flow] LOCAL_SKELETON_READY", { chapterCount: localChapters.length });
   const enhanced = await enhanceChaptersWithLlm(env, profile, seed, localChapters);
   let completedChapters = enhanced.chapters;
   let fallbackUsed = Boolean(enhanced.fallbackUsed);
   const validation = validateChapters(completedChapters);
-  if (!validation.ok) {
+  const duplicateRate = computeDuplicateRate(completedChapters);
+  if (!validation.ok || duplicateRate > 0.4) {
     fallbackUsed = true;
-    completedChapters = localChapters.map((chapter) => ({ ...chapter, source: "local-fallback" }));
+    completedChapters = localChapters.map((chapter) => ({ ...chapter, source: "local" }));
   }
+  const finalValidation = validateChapters(completedChapters);
+  console.info("[ZiweiPremiumPDF][FinalManuscriptValidated]", {
+    chapterCount: completedChapters.length,
+    totalChars: finalValidation.totalChars,
+    duplicateRate,
+    ok: finalValidation.ok,
+  });
 
-  console.info("[ZiweiBook][Flow] PDF_RENDER_START", { chapterCount: completedChapters.length, fallbackUsed });
+  console.info("[ZiweiPremiumPDF][PdfRenderStart]", { chapterCount: completedChapters.length, fallbackUsed });
   const ziweiPayload = buildZiweiPayload(profile, seed, completedChapters, { accessType: clean(access.accessType || "unknown") });
   const pdfReady = buildPdfReadyPayload(profile, seed, completedChapters, { featureKey, reportType: "ziweiPremium", fallbackUsed });
-  console.info("[ZiweiBook][Flow] PDF_RENDER_OK", { chapterCount: completedChapters.length });
+  console.info("[ZiweiPremiumPDF][PdfRenderSuccess]", { chapterCount: completedChapters.length });
 
   return json({
     ok: true,
@@ -702,4 +1044,8 @@ export const __ziweiBookTestUtils = {
   buildZiweiPdfSeed,
   buildLocalChapters,
   validateChapters,
+  normalizeInput,
+  parseHourMinuteFromText,
+  buildZiweiLocalPremiumManuscript,
+  computeDuplicateRate,
 };
