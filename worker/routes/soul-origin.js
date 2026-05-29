@@ -6,6 +6,8 @@ import { callGeminiText } from "../lib/gemini.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import { buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
+import { connectDb } from "../lib/db.js";
+import { ServiceExecutionTransaction } from "../lib/models.js";
 import {
   buildPremiumExecutionContext,
   completePremiumPdfExecution,
@@ -35,7 +37,7 @@ const FORBIDDEN_TERMS = [
 const CHAPTER_BLUEPRINTS = [
   {
     chapterNo: 1,
-    title: "Chapter 1. 태어난 순간의 문 — 영혼이 들어온 시간과 장소",
+    title: "태어난 순간의 문 — 영혼이 들어온 시간과 장소",
     subtitle: "당신의 첫 장면",
     sections: [
       "출생 순간이 여는 상징적 문",
@@ -46,7 +48,7 @@ const CHAPTER_BLUEPRINTS = [
   },
   {
     chapterNo: 2,
-    title: "Chapter 2. 나의 기원 코드 — 다섯 운명 체계의 공통 신호",
+    title: "나의 기원 코드 — 다섯 운명 체계의 공통 신호",
     subtitle: "영혼 원형의 윤곽",
     sections: [
       "사주가 말하는 현실적 기원",
@@ -59,7 +61,7 @@ const CHAPTER_BLUEPRINTS = [
   },
   {
     chapterNo: 3,
-    title: "Chapter 3. 반복되는 업의 패턴 — 왜 같은 상처가 되풀이되는가",
+    title: "반복되는 업의 패턴 — 왜 같은 상처가 되풀이되는가",
     subtitle: "반복의 메커니즘",
     sections: [
       "반복되는 감정의 구조",
@@ -71,7 +73,7 @@ const CHAPTER_BLUEPRINTS = [
   },
   {
     chapterNo: 4,
-    title: "Chapter 4. 오래된 감정의 기억 — 무의식과 고독의 근원",
+    title: "오래된 감정의 기억 — 무의식과 고독의 근원",
     subtitle: "내면의 저장소",
     sections: [
       "달과 마음의 기억",
@@ -83,7 +85,7 @@ const CHAPTER_BLUEPRINTS = [
   },
   {
     chapterNo: 5,
-    title: "Chapter 5. 관계의 업 — 사랑, 집착, 이별, 끌림의 이유",
+    title: "관계의 업 — 사랑, 집착, 이별, 끌림의 이유",
     subtitle: "관계의 인력",
     sections: [
       "왜 특정한 사람에게 강하게 끌리는가",
@@ -95,7 +97,7 @@ const CHAPTER_BLUEPRINTS = [
   },
   {
     chapterNo: 6,
-    title: "Chapter 6. 가족과 혈통의 과제 — 내가 물려받은 운명의 구조",
+    title: "가족과 혈통의 과제 — 내가 물려받은 운명의 구조",
     subtitle: "뿌리의 압력",
     sections: [
       "가족 안에서 만들어진 생존 방식",
@@ -107,7 +109,7 @@ const CHAPTER_BLUEPRINTS = [
   },
   {
     chapterNo: 7,
-    title: "Chapter 7. 고통이 재능으로 바뀌는 지점",
+    title: "고통이 재능으로 바뀌는 지점",
     subtitle: "변환의 기술",
     sections: [
       "결핍이 만든 감각",
@@ -119,7 +121,7 @@ const CHAPTER_BLUEPRINTS = [
   },
   {
     chapterNo: 8,
-    title: "Chapter 8. 이번 생의 시험 — 토성, 기신, 사화, 대운의 압력",
+    title: "이번 생의 시험 — 토성, 기신, 사화, 대운의 압력",
     subtitle: "압력의 해석",
     sections: [
       "피할 수 없는 인생의 시험",
@@ -131,7 +133,7 @@ const CHAPTER_BLUEPRINTS = [
   },
   {
     chapterNo: 9,
-    title: "Chapter 9. 운명의 반복 주기 — 대운, 다샤, 별의 흐름",
+    title: "운명의 반복 주기 — 대운, 다샤, 별의 흐름",
     subtitle: "시간의 파동",
     sections: [
       "인생이 크게 바뀌는 주기",
@@ -143,7 +145,7 @@ const CHAPTER_BLUEPRINTS = [
   },
   {
     chapterNo: 10,
-    title: "Chapter 10. 풀어야 할 업보 — 멈춰야 할 습관과 선택",
+    title: "풀어야 할 업보 — 멈춰야 할 습관과 선택",
     subtitle: "선택의 정화",
     sections: [
       "업보를 벌이 아니라 반복 패턴으로 해석하기",
@@ -155,7 +157,7 @@ const CHAPTER_BLUEPRINTS = [
   },
   {
     chapterNo: 11,
-    title: "Chapter 11. 해방의 방향 — 용신, 노드, 라후와 케투, 명궁의 통합 조언",
+    title: "해방의 방향 — 용신, 노드, 라후와 케투, 명궁의 통합 조언",
     subtitle: "회복의 축",
     sections: [
       "사주가 말하는 회복의 방향",
@@ -167,7 +169,7 @@ const CHAPTER_BLUEPRINTS = [
   },
   {
     chapterNo: 12,
-    title: "Chapter 12. 나의 신화 — 이번 생을 완성하는 철학적 선언문",
+    title: "나의 신화 — 이번 생을 완성하는 철학적 선언문",
     subtitle: "마지막 선언",
     sections: [
       "내 삶을 하나의 신화로 읽기",
@@ -182,6 +184,23 @@ const CHAPTER_BLUEPRINTS = [
 const REPORT_CACHE = globalThis.__SOUL_ORIGIN_REPORT_CACHE || new Map();
 if (!globalThis.__SOUL_ORIGIN_REPORT_CACHE) {
   globalThis.__SOUL_ORIGIN_REPORT_CACHE = REPORT_CACHE;
+}
+
+function logFlow(stage, payload = {}) {
+  const safe = {
+    stage: clean(stage || "Unknown"),
+    reportType: clean(payload.reportType || "soulOriginKarma"),
+    productKey: clean(payload.productKey || SOUL_ORIGIN_FEATURE_KEY),
+    sessionId: clean(payload.sessionId || ""),
+    requestId: clean(payload.requestId || ""),
+    errorCode: clean(payload.errorCode || ""),
+  };
+  const tag = `[DestinyPrayerBook] ${safe.stage}`;
+  if (safe.errorCode) {
+    console.error(tag, safe);
+    return;
+  }
+  console.info(tag, safe);
 }
 
 function clean(value) {
@@ -244,6 +263,10 @@ function normalizeInput(input = {}) {
     minute: Number.isFinite(minute) ? minute : 0,
     latitude: Number.isFinite(latitude) ? latitude : 37.5665,
     longitude: Number.isFinite(longitude) ? longitude : 126.978,
+    prayerTopic: clean(input.prayerTopic || input.wishTopic || ""),
+    currentConcern: clean(input.currentConcern || ""),
+    desiredOutcome: clean(input.desiredOutcome || ""),
+    partnerInfo: clean(input.partnerInfo || ""),
   };
 }
 
@@ -427,6 +450,10 @@ function buildSoulOriginSeed({ input, saju, western, sukuyo, ziwei, vedic }) {
       birthDate: input.birthDate,
       birthTime: input.birthTime,
       birthPlace: input.birthPlace,
+      prayerTopic: input.prayerTopic,
+      currentConcern: input.currentConcern,
+      desiredOutcome: input.desiredOutcome,
+      partnerInfo: input.partnerInfo,
     },
     sourceAvailability: {
       saju: saju.ok,
@@ -632,14 +659,13 @@ function mergeAiWithLocal(fallbackChapters, aiChapters, seed) {
 
 function buildAiPrompt(seed) {
   return [
-    "당신은 사주, 서양 점성술, 숙요점, 자미두수, 베다점의 상징을 통합하는 운명 서사 상담가입니다.",
-    "계산은 이미 완료되었습니다. 계산을 새로 하지 말고 아래 seed와 chapter skeleton만 사용하세요.",
-    "공포, 저주, 질병, 죽음, 사고, 파멸을 단정하지 마세요.",
-    "업보는 벌이 아니라 반복되는 패턴이며 해방 가능한 과제로 서술하세요.",
-    "각 챕터의 모든 섹션을 누락 없이 작성하세요.",
-    "같은 문장을 반복하지 말고, 섹션마다 관찰·원인·실천·검증의 흐름을 분명히 구분하세요.",
-    "각 섹션은 최소 700자 이상으로 작성해 전체 분량을 충분히 확보하세요.",
-    "본문에 payload, json, fallback, debug, engine 같은 기술 단어를 쓰지 마세요.",
+    "너는 사주 명리학과 심리 상담, 기도문 작성에 능한 운명 상담가다.",
+    "계산은 이미 로컬에서 완료되었다. 계산을 새로 하거나 계산값을 노출하지 말고 seed와 chapter skeleton만 사용하라.",
+    "사용자의 기원 주제와 현재 고민을 중심으로 작성하고, 위로에 그치지 말고 현실 행동을 제시하라.",
+    "각 챕터와 세부 카테고리를 절대 누락하지 말고, 각 카테고리마다 3~5문단 이상의 구체적 상담문을 작성하라.",
+    "공포 조장, 절대 예언, 저주, 불안 유도는 금지한다.",
+    "운명 기원서답게 마지막 문단은 사용자가 직접 읽을 수 있는 문장형 기원문을 포함하라.",
+    "본문에 payload, json, fallback, debug, engine, 자동 복구, Chapter, 데이터 부족 같은 내부 표현을 쓰지 마라.",
     "출력은 JSON 객체 하나만 반환하세요.",
     "출력 형식:",
     "{\"chapters\":[{\"chapterNo\":1,\"sections\":[{\"title\":\"...\",\"body\":\"...\"}]}]}",
@@ -668,6 +694,23 @@ function getPremiumAccessToken(request, body = {}) {
 async function handlePrepare(request, env) {
   const auth = await requireAuth(request, env);
   const body = await readJson(request);
+  const requestId = clean(body?.requestId || body?._paymentContext?.requestId || body?.payment?.requestId, 120);
+  const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId, 160);
+  const productKey = clean(body?.productKey || body?.featureKey || SOUL_ORIGIN_FEATURE_KEY, 80);
+  logFlow("ProductLookupStart", { reportType: "soulOriginKarma", productKey, requestId, sessionId });
+
+  if (!productKey) {
+    logFlow("ProductLookupFailed", {
+      reportType: "soulOriginKarma",
+      productKey,
+      requestId,
+      sessionId,
+      errorCode: "MISSING_PRODUCT_KEY",
+    });
+    return json({ ok: false, code: "MISSING_PRODUCT_KEY", message: "결제 상품 정보를 확인할 수 없습니다. 잠시 후 다시 시도해 주세요." }, { status: 422 });
+  }
+  logFlow("ProductLookupSuccess", { reportType: "soulOriginKarma", productKey, requestId, sessionId });
+
   const input = normalizeInput(body?.input || {});
 
   if (!hasCoreBirthData(input)) {
@@ -675,20 +718,34 @@ async function handlePrepare(request, env) {
   }
 
   const premiumAccessToken = getPremiumAccessToken(request, body);
+  logFlow("CoinGateStart", { reportType: "soulOriginKarma", productKey, requestId, sessionId });
   const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "soulOriginKarma", {
     reportType: "soulOriginKarma",
-    featureKey: clean(body?.featureKey) || "coin-gate-per-use",
+    featureKey: clean(body?.featureKey) || SOUL_ORIGIN_FEATURE_KEY,
     premiumAccessToken: premiumAccessToken || undefined,
     _accessRoute: "/api/soul-origin",
   });
 
   if (!access?.ok) {
+    logFlow("Failed", {
+      reportType: "soulOriginKarma",
+      productKey,
+      requestId,
+      sessionId,
+      errorCode: clean(access?.code || "ACCESS_DENIED", 80),
+    });
     return json({
       ok: false,
       code: access?.code || "UNAUTHORIZED",
       message: access?.message || "운명의 기원서 생성 권한을 확인할 수 없습니다.",
     }, { status: Number(access?.status) || 403 });
   }
+  logFlow("CoinGateSuccess", {
+    reportType: "soulOriginKarma",
+    productKey,
+    requestId,
+    sessionId: clean(access?.sessionId || sessionId, 160),
+  });
 
   const reportId = clean(body?.reportId) || makeReportId();
   const executionCtx = buildPremiumExecutionContext({
@@ -704,6 +761,12 @@ async function handlePrepare(request, env) {
   });
 
   await startPremiumPdfExecution(env, auth.userId, executionCtx);
+  logFlow("SessionCreateStart", {
+    reportType: "soulOriginKarma",
+    productKey,
+    requestId,
+    sessionId: clean(executionCtx?.sessionId || sessionId, 160),
+  });
 
   const snapshots = body?.engineSnapshots && typeof body.engineSnapshots === "object" ? body.engineSnapshots : {};
 
@@ -755,13 +818,33 @@ async function handlePrepare(request, env) {
     return json({ ok: false, code: "SOUL_ORIGIN_ENGINE_NOT_ENOUGH", message: CORE_INPUT_ERROR_MESSAGE }, { status: 422 });
   }
   try {
+    logFlow("LocalCalcStart", {
+      reportType: "soulOriginKarma",
+      productKey,
+      requestId,
+      sessionId: clean(executionCtx?.sessionId || sessionId, 160),
+    });
     const seed = buildSoulOriginSeed({ input, saju, western, sukuyo, ziwei, vedic });
     let localChapters = buildLocalChapters(seed);
     localChapters = enrichSectionsUntilLength(localChapters, seed, MIN_LOCAL_TOTAL_CHARS, 1);
     localChapters = appendUniquenessTag(localChapters);
+    logFlow("LocalCalcSuccess", {
+      reportType: "soulOriginKarma",
+      productKey,
+      requestId,
+      sessionId: clean(executionCtx?.sessionId || sessionId, 160),
+    });
 
     let chapters = localChapters;
+    let llmEnhanced = false;
+    let fallbackNotice = "";
     try {
+      logFlow("LLMStart", {
+        reportType: "soulOriginKarma",
+        productKey,
+        requestId,
+        sessionId: clean(executionCtx?.sessionId || sessionId, 160),
+      });
       const ai = await callGeminiText(env, buildAiPrompt(seed), {
         maxOutputTokens: 12288,
         temperature: 0.8,
@@ -771,9 +854,27 @@ async function handlePrepare(request, env) {
       if (ai?.ok && clean(ai.text)) {
         const parsed = extractJsonObject(ai.text);
         chapters = mergeAiWithLocal(localChapters, Array.isArray(parsed?.chapters) ? parsed.chapters : [], seed);
+        llmEnhanced = true;
+        logFlow("LLMSuccess", {
+          reportType: "soulOriginKarma",
+          productKey,
+          requestId,
+          sessionId: clean(executionCtx?.sessionId || sessionId, 160),
+        });
       }
     } catch (error) {
       console.warn("[SoulOrigin][LLMFailedUseLocal]", normalizeError(error));
+      fallbackNotice = "일부 문장이 기본 해석으로 보강되었습니다.";
+    }
+
+    if (!llmEnhanced) {
+      logFlow("Failed", {
+        reportType: "soulOriginKarma",
+        productKey,
+        requestId,
+        sessionId: clean(executionCtx?.sessionId || sessionId, 160),
+        errorCode: "LLM_FALLBACK_USED",
+      });
     }
 
     const finalLength = reportCharLength(chapters);
@@ -792,6 +893,8 @@ async function handlePrepare(request, env) {
       summary: buildSummary(chapters),
       createdAt,
       sourceAvailability,
+      notice: fallbackNotice || undefined,
+      sessionId: clean(executionCtx?.sessionId || sessionId, 160) || undefined,
     };
 
     REPORT_CACHE.set(reportId, {
@@ -801,6 +904,12 @@ async function handlePrepare(request, env) {
       payload: responseBody,
     });
 
+    logFlow("PDFCreateStart", {
+      reportType: "soulOriginKarma",
+      productKey,
+      requestId,
+      sessionId: clean(executionCtx?.sessionId || sessionId, 160),
+    });
     await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
       manuscriptSource: "mixed",
       chapterCount: Array.isArray(chapters) ? chapters.length : 0,
@@ -817,14 +926,29 @@ async function handlePrepare(request, env) {
         payload: {
           sourceAvailability,
           title: responseBody.title,
+          notice: fallbackNotice || "",
         },
         canReopen: true,
         canDownload: false,
       },
     });
 
+    logFlow("PDFCreateSuccess", {
+      reportType: "soulOriginKarma",
+      productKey,
+      requestId,
+      sessionId: clean(executionCtx?.sessionId || sessionId, 160),
+    });
+
     return json(responseBody);
   } catch (error) {
+    logFlow("Failed", {
+      reportType: "soulOriginKarma",
+      productKey,
+      requestId,
+      sessionId: clean(executionCtx?.sessionId || sessionId, 160),
+      errorCode: clean(error?.code || "SOUL_ORIGIN_GENERATION_FAILED", 80),
+    });
     await failPremiumPdfExecution(
       env,
       auth.userId,
@@ -847,7 +971,44 @@ async function handleReadReport(request, env) {
 
   const found = REPORT_CACHE.get(reportId);
   if (!found || found.userId !== auth.userId) {
-    return json({ ok: false, code: "REPORT_NOT_FOUND", message: "요청한 기원서를 찾을 수 없습니다." }, { status: 404 });
+    await connectDb(env);
+    const archived = await ServiceExecutionTransaction.findOne({
+      userId: auth.userId,
+      reportId,
+      status: "success",
+      premiumStatus: "completed",
+    })
+      .sort({ completedAt: -1, updatedAt: -1 })
+      .lean();
+
+    const archive = archived?.metadata?.archive && typeof archived.metadata.archive === "object"
+      ? archived.metadata.archive
+      : null;
+
+    if (!archive) {
+      return json({ ok: false, code: "REPORT_NOT_FOUND", message: "요청한 기원서를 찾을 수 없습니다." }, { status: 404 });
+    }
+
+    const payload = {
+      ok: true,
+      reportId: clean(archive.reportId || reportId),
+      title: clean(archive.title || "운명의 기원서") || "운명의 기원서",
+      chapters: Array.isArray(archive.chapters) ? archive.chapters : [],
+      summary: clean(archive.summary || ""),
+      createdAt: archived?.createdAt instanceof Date ? archived.createdAt.toISOString() : new Date().toISOString(),
+      sourceAvailability: archive?.payload?.sourceAvailability || {},
+      notice: clean(archive?.payload?.notice || "") || undefined,
+      sessionId: clean(archived?.sessionId || "") || undefined,
+    };
+
+    REPORT_CACHE.set(reportId, {
+      reportId,
+      userId: auth.userId,
+      createdAt: payload.createdAt,
+      payload,
+    });
+
+    return json(payload);
   }
 
   return json(found.payload);

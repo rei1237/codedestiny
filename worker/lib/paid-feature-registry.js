@@ -63,6 +63,8 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "premium-vedic-report-compat",
   "premium_pdf_vedic",
   "premium_pdf_vedic_compat",
+  "premium_pdf_soul_origin",
+  "premium-soul-origin-report",
   "premium-fpti-report",
   "premium_pdf_saju_love_secret",
   "premium_pdf_saju_love_secret_compat",
@@ -96,6 +98,7 @@ export const COIN_GATE_PER_USE_REASON_COSTS = Object.freeze({
   "숙요점 유명인 궁합": 50,
   "숙요점 궁합 분석": 50,
   "사주 신년운세 PDF 리포트 생성": 300,
+  "운명의 기원서 생성": 690,
 });
 
 export const FEATURE_KEY_REASON_COSTS = Object.freeze({
@@ -186,6 +189,8 @@ export const FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "premium-vedic-report-compat": { cost: 490, reason: "베다 점성술 프리미엄 PDF 궁합 리포트 생성" },
   "premium_pdf_vedic": { cost: 390, reason: "베다 점성술 프리미엄 PDF 리포트 생성" },
   "premium_pdf_vedic_compat": { cost: 490, reason: "베다 점성술 프리미엄 PDF 궁합 리포트 생성" },
+  "premium_pdf_soul_origin": { cost: 690, reason: "운명의 기원서 생성" },
+  "premium-soul-origin-report": { cost: 690, reason: "운명의 기원서 생성" },
   "premium-fpti-report": { cost: 200, reason: "FPTI 프리미엄 리포트 생성" },
   "premium-naming-report": { cost: 700, reason: "명운 프리미엄 작명 리포트 생성" },
   "premium-sukuyo-compat-extra": { cost: 300, reason: "숙요점 궁합 확장 분석 추가" },
@@ -314,6 +319,12 @@ export const PAID_FEATURE_KEY_ALIASES = Object.freeze({
   premium_pdf_sukyo_compat: "premium-sukuyo-report-compat",
   premium_pdf_vedic: "premium-vedic-report",
   premium_pdf_vedic_compat: "premium-vedic-report",
+  premium_pdf_soul_origin: "premium_pdf_soul_origin",
+  "premium-soul-origin-report": "premium_pdf_soul_origin",
+  openSoulOriginModal: "premium_pdf_soul_origin",
+  gotoSoulOriginPremium: "premium_pdf_soul_origin",
+  soul_origin_book: "premium_pdf_soul_origin",
+  destiny_prayer_book: "premium_pdf_soul_origin",
   premium_fpti_report: "premium-fpti-report",
   generateFptiDeepReport: "premium-fpti-report",
   openFptiDeepReport: "premium-fpti-report",

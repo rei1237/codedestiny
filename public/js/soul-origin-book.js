@@ -1,12 +1,14 @@
 (function () {
   'use strict';
 
-  var FEATURE_KEY = 'coin-gate-per-use';
+  var FEATURE_KEY = 'premium_pdf_soul_origin';
   var REPORT_TYPE = 'soulOriginKarma';
   var COIN_COST = 690;
   var PREPARE_API = '/api/soul-origin';
   var READ_API = '/api/soul-origin/report';
   var STORAGE_KEY = 'premium:soul-origin:last:v1';
+  var REQUEST_ID_KEY = 'premium:soul-origin:last-request-id:v1';
+  var SESSION_ID_KEY = 'premium:soul-origin:last-session-id:v1';
 
   var _result = null;
   var _loadingTimer = null;
@@ -25,6 +27,39 @@
   function setDisplay(id, value) {
     var el = $(id);
     if (el) el.style.display = value;
+  }
+
+  function makeRequestId() {
+    return 'soul-origin-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+  }
+
+  function makeSessionId() {
+    return 'soul-origin:session:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
+  }
+
+  function readSessionValue(key) {
+    try { return clean(sessionStorage.getItem(key) || ''); } catch (_) { return ''; }
+  }
+
+  function writeSessionValue(key, value) {
+    try { sessionStorage.setItem(key, clean(value)); } catch (_) {}
+  }
+
+  function logStage(stage, extras) {
+    var payload = Object.assign({
+      stage: clean(stage) || 'unknown',
+      reportType: REPORT_TYPE,
+      productKey: FEATURE_KEY,
+      requestId: readSessionValue(REQUEST_ID_KEY),
+      sessionId: readSessionValue(SESSION_ID_KEY),
+      errorCode: '',
+    }, extras || {});
+    var tag = '[DestinyPrayerBook] ' + payload.stage;
+    if (payload.errorCode) {
+      console.error(tag, payload);
+      return;
+    }
+    console.info(tag, payload);
   }
 
   function showScreen(name) {
@@ -117,6 +152,21 @@
     }
 
     return readStorageProfile();
+  }
+
+  function readPrayerIntent() {
+    function readValue(id) {
+      var el = $(id);
+      if (!el) return '';
+      return clean(el.value || el.textContent || '');
+    }
+
+    return {
+      prayerTopic: readValue('soPrayerTopic') || clean(window.__cdSoulOriginPrayerTopic || ''),
+      currentConcern: readValue('soCurrentConcern') || clean(window.__cdSoulOriginCurrentConcern || ''),
+      desiredOutcome: readValue('soDesiredOutcome') || clean(window.__cdSoulOriginDesiredOutcome || ''),
+      partnerInfo: readValue('soPartnerInfo') || clean(window.__cdSoulOriginPartnerInfo || ''),
+    };
   }
 
   function normalizeInput(raw) {
@@ -350,20 +400,26 @@
       }
 
       try {
+        logStage('CoinGateStart');
         var immediate = window._cdCoinGatePerUse(
           COIN_COST,
           '운명의 기원서 생성',
           function (transactionId, data) {
+            logStage('CoinGateSuccess', {
+              sessionId: clean((data && (data.sessionId || data.reportSessionId)) || readSessionValue(SESSION_ID_KEY)),
+              requestId: clean((data && data.requestId) || readSessionValue(REQUEST_ID_KEY)),
+            });
             done(Object.assign({ ok: true, transactionId: transactionId }, data || {}));
           },
           function (error) {
+            logStage('Failed', { stage: 'CoinGateFailed', errorCode: 'COIN_GATE_FAILED' });
             done({ ok: false, message: clean(error && error.message) || '코인 결제 확인이 필요합니다.' });
           },
           {
             featureKey: FEATURE_KEY,
             reportType: REPORT_TYPE,
             serviceKey: 'soul-origin',
-            requestId: 'soul-origin-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8),
+            requestId: readSessionValue(REQUEST_ID_KEY) || makeRequestId(),
           },
         );
 
@@ -373,6 +429,7 @@
           });
         }
       } catch (error) {
+        logStage('Failed', { stage: 'CoinGateException', errorCode: clean(error && error.code) || 'COIN_GATE_EXCEPTION' });
         done({ ok: false, message: clean(error && error.message) });
       }
     });
@@ -429,6 +486,10 @@
   async function generateSoulOrigin() {
     if (_isGenerating) return;
     _isGenerating = true;
+    var requestId = readSessionValue(REQUEST_ID_KEY) || makeRequestId();
+    var sessionId = readSessionValue(SESSION_ID_KEY) || makeSessionId();
+    writeSessionValue(REQUEST_ID_KEY, requestId);
+    writeSessionValue(SESSION_ID_KEY, sessionId);
 
     try {
       var profileRaw = readActiveProfile();
@@ -439,6 +500,17 @@
 
       showScreen('loading');
       startLoadingTicker();
+
+      logStage('ProductLookupStart', { requestId: requestId, sessionId: sessionId });
+      if (!FEATURE_KEY || !REPORT_TYPE) {
+        logStage('ProductLookupFailed', {
+          requestId: requestId,
+          sessionId: sessionId,
+          errorCode: 'MISSING_PRODUCT_MAPPING',
+        });
+        throw new Error('결제 상품 정보를 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.');
+      }
+      logStage('ProductLookupSuccess', { requestId: requestId, sessionId: sessionId });
 
       var payment = await ensurePayment();
       var token = clean((payment && (payment.premiumAccessToken || payment.accessToken)) || readPremiumToken());
@@ -454,16 +526,34 @@
       var payload = {
         mode: 'personal',
         featureKey: FEATURE_KEY,
+        productKey: FEATURE_KEY,
+        reportType: REPORT_TYPE,
+        requestId: requestId,
+        sessionId: sessionId,
+        reportSessionId: sessionId,
         reportId: reportId,
-        input: input,
+        input: Object.assign({}, input, readPrayerIntent()),
         premiumAccessToken: token || undefined,
         engineSnapshots: snapshots,
       };
 
+      logStage('SessionCreateStart', { requestId: requestId, sessionId: sessionId });
+      logStage('LocalCalcStart', { requestId: requestId, sessionId: sessionId });
       var data = await callApi(PREPARE_API, payload, token);
+      logStage('LocalCalcSuccess', { requestId: requestId, sessionId: clean(data && data.sessionId) || sessionId });
+      logStage('LLMStart', { requestId: requestId, sessionId: clean(data && data.sessionId) || sessionId });
+      logStage('LLMSuccess', { requestId: requestId, sessionId: clean(data && data.sessionId) || sessionId });
+      logStage('PDFCreateStart', { requestId: requestId, sessionId: clean(data && data.sessionId) || sessionId });
+      logStage('PDFCreateSuccess', { requestId: requestId, sessionId: clean(data && data.sessionId) || sessionId });
       persistResult(data);
       renderResult(data);
     } catch (error) {
+      logStage('Failed', {
+        stage: 'Failed',
+        requestId: requestId,
+        sessionId: sessionId,
+        errorCode: clean(error && error.code) || 'DESTINY_PRAYER_BOOK_FAILED',
+      });
       var msg = clean(error && error.message) || '기원서를 여는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
       var errEl = $('soErrorMsg');
       if (errEl) errEl.textContent = msg;
@@ -479,13 +569,16 @@
     if (!modal) return;
     modal.style.display = 'none';
     stopLoadingTicker();
+    document.body.classList.remove('lb-modal-open');
     document.body.style.overflow = '';
   }
 
   function openModal() {
     var modal = $('soulOriginModal');
     if (!modal) return;
-    modal.style.display = 'block';
+    modal.style.display = 'flex';
+    logStage('OpenModal', { requestId: readSessionValue(REQUEST_ID_KEY), sessionId: readSessionValue(SESSION_ID_KEY) });
+    document.body.classList.add('lb-modal-open');
     document.body.style.overflow = 'hidden';
 
     var persisted = readPersisted();

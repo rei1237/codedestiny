@@ -17,6 +17,7 @@ const PREMIUM_UNLOCK_POLICY: Record<string, string[]> = {
   lifeBook: ["premiumDivinationPack"],
   loveSecret: ["premium-love-secret", "premiumDivinationPack", "premium-naming"],
   sajuNewYear: ["premiumDivinationPack"],
+  soulOriginKarma: ["premiumDivinationPack"],
 };
 
 function uniqueStrings(values: unknown[]): string[] {
@@ -229,6 +230,29 @@ function buildAlternativePaymentRules(reportType: string, requestBody: Record<st
         featureKey: "coin-gate-per-use",
         reason: isCompat ? "자미두수 프리미엄 PDF 궁합 리포트 생성" : "자미두수 프리미엄 PDF 리포트 생성",
         minCost: isCompat ? 690 : 590,
+        windowMinutes: 120,
+      },
+    ];
+  }
+
+  if (reportType === "soulOriginKarma") {
+    return [
+      {
+        featureKey: "premium_pdf_soul_origin",
+        reason: "운명의 기원서 생성",
+        minCost: 690,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "premium-soul-origin-report",
+        reason: "운명의 기원서 생성",
+        minCost: 690,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: "운명의 기원서 생성",
+        minCost: 690,
         windowMinutes: 120,
       },
     ];
