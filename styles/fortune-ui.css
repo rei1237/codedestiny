@@ -4406,11 +4406,18 @@ body.neo-mode .lang-btn.active {
 }
 
 /* 기존 자동 축소/숨김 정책 제거: 메인 화면에서는 항상 보이게 유지 */
-.lang-toggle-wrap.collapsed .lang-trigger,
-.lang-toggle-wrap.lang-wrap--hidden {
+.lang-toggle-wrap.collapsed .lang-trigger {
   visibility: visible !important;
   pointer-events: auto !important;
   opacity: 1 !important;
+}
+
+.lang-toggle-wrap.lang-wrap--hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-8px) scale(0.96);
+  transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s ease;
 }
 
 @media (max-width: 680px) {
@@ -4419,23 +4426,37 @@ body.neo-mode .lang-btn.active {
     right: max(12px, env(safe-area-inset-right));
   }
   .lang-trigger {
-    min-width: 244px;
-    min-height: 52px;
-    padding: 7px 11px;
+    min-width: 166px;
+    min-height: 42px;
+    padding: 5px 9px;
+    gap: 8px;
   }
   .lang-trigger .lang-icon {
-    width: 34px;
-    height: 34px;
+    width: 26px;
+    height: 26px;
   }
   .lang-icon-svg {
-    width: 24px;
-    height: 24px;
+    width: 18px;
+    height: 18px;
   }
   .lang-trigger .lang-label {
-    font-size: 0.88rem;
+    font-size: 0.76rem;
+    letter-spacing: 0.06em;
+  }
+  .lang-state-icons {
+    gap: 3px;
+  }
+  .lang-state-icon {
+    width: 12px;
+    height: 12px;
   }
   .lang-status-note {
-    font-size: 0.47rem;
+    display: none;
+  }
+  .lang-dropdown {
+    min-width: 208px;
+    max-width: 240px;
+    right: -2px;
   }
 }
 
