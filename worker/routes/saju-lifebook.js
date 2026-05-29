@@ -3,6 +3,12 @@ import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
+import {
+  buildPremiumExecutionContext,
+  completePremiumPdfExecution,
+  failPremiumPdfExecution,
+  startPremiumPdfExecution,
+} from "../lib/premium-pdf-execution.js";
 
 const CHAPTER_BLUEPRINTS = [
   {
@@ -1402,6 +1408,19 @@ async function handlePrepare(request, env) {
   }
 
   logLifeBookServer("LocalCalculationStart", { sessionId });
+  const executionCtx = buildPremiumExecutionContext({
+    serviceKey: LIFEBOOK_SERVICE_KEY,
+    reportType: "lifeBook",
+    userId: auth.userId,
+    featureKey,
+    sessionId,
+    reportId: clean(body?.reportId || body?.accessGrant?.reportId),
+    access,
+    body,
+    timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+  });
+  await startPremiumPdfExecution(env, auth.userId, executionCtx);
+
   const signals = deriveLocalSignals(profile, body?.sajuData || "", body?.analysisSignals || {});
   const localSajuJson = buildLifeBookLocalSajuJson(birthInput, profile, signals, []);
   logLifeBookServer("LocalCalculationSuccess", {
@@ -1517,13 +1536,39 @@ async function handlePrepare(request, env) {
   });
   logLifeBookServer("PdfRenderSuccess", { sessionId, chapterCount: completedChapters.length });
 
+  const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `saju-lifebook-${Date.now()}`);
+  await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
+    manuscriptSource,
+    chapterCount: completedChapters.length,
+    archive: {
+      reportId,
+      reportType: "life_book",
+      displayName: "사주 인생의 책",
+      title: `${clean(profile?.name) || "사용자"}님의 인생의 책`,
+      mode: "personal",
+      birthName: clean(profile?.name),
+      summary: clean(
+        completedChapters?.[0]?.finalText
+        || completedChapters?.[0]?.categories?.[0]?.finalText
+        || completedChapters?.[0]?.categories?.[0]?.text,
+        1000,
+      ),
+      pdfUrl: clean(pdfReady?.pdfUrl),
+      chapters: completedChapters,
+      payload: lifebookPayload,
+      pdfReady,
+      canReopen: true,
+      canDownload: Boolean(clean(pdfReady?.pdfUrl)),
+    },
+  });
+
   const result = {
     ok: true,
     featureKey,
     chapterCount: CHAPTER_BLUEPRINTS.length,
     serviceKey: LIFEBOOK_SERVICE_KEY,
     data: {
-      reportId: `saju-lifebook-${Date.now()}`,
+      reportId,
       featureKey,
       sessionId,
       reportType: "lifeBook",
@@ -1547,6 +1592,25 @@ async function handlePrepare(request, env) {
 
   return json(result);
   } catch (error) {
+    const executionCtx = buildPremiumExecutionContext({
+      serviceKey: LIFEBOOK_SERVICE_KEY,
+      reportType: "lifeBook",
+      userId: auth.userId,
+      featureKey: resolveLifeBookFeatureKey(body?.featureKey),
+      sessionId,
+      reportId: clean(body?.reportId || body?.accessGrant?.reportId),
+      access: null,
+      body,
+      timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+    });
+    await failPremiumPdfExecution(
+      env,
+      auth.userId,
+      executionCtx,
+      "lifebook_generation_failed",
+      clean(error?.message || "인생의 책 PDF 생성에 실패했습니다."),
+      "lifebook-generation",
+    );
     const normalizedError = normalizeLifeBookError(error);
     logLifeBookServer("Error", {
       stage: "handlePrepare",

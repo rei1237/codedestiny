@@ -5,6 +5,7 @@ import { cancelPortOnePayment } from "./portone.js";
 const DEFAULT_TIMEOUT_SECONDS = 600;
 const DEFAULT_LOCK_SECONDS = 45;
 const DEFAULT_RETENTION_DAYS = 14;
+const DEFAULT_SOFT_ABANDON_GRACE_SECONDS = 900;
 
 function nowDate() {
   return new Date();
@@ -71,6 +72,43 @@ function normalizeReason(code, message) {
   };
 }
 
+function normalizeReportType(value) {
+  return String(value || "").trim().slice(0, 80);
+}
+
+function normalizeReportId(value) {
+  return String(value || "").trim().slice(0, 120);
+}
+
+function normalizeSessionId(value) {
+  return String(value || "").trim().slice(0, 160);
+}
+
+function normalizeIdempotencyKey(value) {
+  return String(value || "").trim().slice(0, 120);
+}
+
+function normalizeFailureStage(value) {
+  return String(value || "").trim().slice(0, 80);
+}
+
+function normalizeFailureReason(value) {
+  return String(value || "").trim().slice(0, 500);
+}
+
+function normalizeRefundReason(value) {
+  return String(value || "").trim().slice(0, 160);
+}
+
+function isSoftAbandonReason(reasonCode) {
+  const code = String(reasonCode || "").trim().toLowerCase();
+  return code === "client_disconnect"
+    || code === "client_background"
+    || code === "route_change"
+    || code === "navigation"
+    || code === "client_unload";
+}
+
 function safePaymentRef(input = {}) {
   return {
     impUid: String(input?.impUid || input?.paymentId || "").trim().slice(0, 120),
@@ -89,7 +127,13 @@ function toSummary(doc) {
     featureKey: String(doc.featureKey || ""),
     cost: Number(doc.cost || 0),
     sourceTransactionId: String(doc.sourceTransactionId || ""),
+    reportType: String(doc.reportType || ""),
+    reportId: String(doc.reportId || ""),
+    sessionId: String(doc.sessionId || ""),
+    coinTransactionId: String(doc.coinTransactionId || ""),
+    coinAmount: Number(doc.coinAmount || 0),
     status: String(doc.status || "pending"),
+    premiumStatus: String(doc.premiumStatus || "generating"),
     timeoutAt: doc.timeoutAt || null,
     nextRetryAt: doc.nextRetryAt || null,
     retryCount: Number(doc.retryCount || 0),
@@ -102,6 +146,14 @@ function toSummary(doc) {
       coinRefundTxId: String(doc?.compensation?.coinRefundTxId || ""),
       paymentCancelled: Boolean(doc?.compensation?.paymentCancelled),
     },
+    refundStatus: String(doc?.refundStatus || "none"),
+    refundReason: String(doc?.refundReason || ""),
+    generationStartedAt: doc?.generationStartedAt || null,
+    generationCompletedAt: doc?.generationCompletedAt || null,
+    generationFailedAt: doc?.generationFailedAt || null,
+    lastClientHeartbeatAt: doc?.lastClientHeartbeatAt || null,
+    clientClosedAt: doc?.clientClosedAt || null,
+    abandonedAt: doc?.abandonedAt || null,
   };
 }
 
@@ -227,16 +279,21 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
     const paymentResult = await runPaymentCancel(env, execution.paymentRef || {}, reason.message);
 
     const nextStatus = coinResult.refunded || paymentResult.cancelled ? "refunded" : "failed";
+    const now = nowDate();
     await ServiceExecutionTransaction.updateOne(
       { _id: execution._id },
       {
         $set: {
           status: nextStatus,
+          premiumStatus: nextStatus === "refunded" ? "refunded" : "refund_failed",
           reasonCode: reason.code,
           reasonMessage: reason.message,
-          completedAt: nowDate(),
-          compensatedAt: nowDate(),
-          nextRetryAt: nowDate(),
+          completedAt: now,
+          compensatedAt: now,
+          nextRetryAt: now,
+          refundStatus: nextStatus === "refunded" ? "refunded" : "failed",
+          refundedAt: nextStatus === "refunded" ? now : null,
+          refundReason: normalizeRefundReason(reason.code || reason.message || ""),
           "compensation.coinRefunded": Boolean(coinResult.refunded),
           "compensation.coinRefundTxId": String(coinResult.refundTxId || ""),
           "compensation.paymentCancelled": Boolean(paymentResult.cancelled),
@@ -294,9 +351,35 @@ export async function startServiceExecution(env, userId, payload = {}) {
   const featureKey = normalizeFeatureKey(payload.featureKey);
   const sourceTransactionId = String(payload.sourceTransactionId || "").trim().slice(0, 120);
   const cost = normalizeCost(payload.cost);
+  const reportType = normalizeReportType(payload.reportType);
+  const reportId = normalizeReportId(payload.reportId);
+  const sessionId = normalizeSessionId(payload.sessionId || payload.reportSessionId);
+  const paymentSessionId = normalizeSessionId(payload.paymentSessionId);
+  const coinTransactionId = normalizeReportId(payload.coinTransactionId || sourceTransactionId);
+  const coinAmount = normalizeCost(payload.coinAmount ?? payload.cost);
+  const idempotencyKey = normalizeIdempotencyKey(payload.idempotencyKey || executionKey);
 
   if (!executionKey) return { ok: false, status: 400, message: "executionKey is required." };
   if (!featureKey) return { ok: false, status: 400, message: "featureKey is required." };
+
+  if (paymentSessionId) {
+    const completedByPaymentSession = await ServiceExecutionTransaction.findOne({
+      userId: userObjectId,
+      paymentSessionId,
+      ...(reportType ? { reportType } : {}),
+      status: "success",
+      premiumStatus: "completed",
+    }).sort({ completedAt: -1, createdAt: -1 }).lean();
+
+    if (completedByPaymentSession) {
+      return {
+        ok: true,
+        status: 200,
+        idempotent: true,
+        execution: toSummary(completedByPaymentSession),
+      };
+    }
+  }
 
   const startedAt = nowDate();
   const timeoutAt = toTimeoutAt(startedAt, payload.timeoutSeconds);
@@ -306,20 +389,35 @@ export async function startServiceExecution(env, userId, payload = {}) {
     $setOnInsert: {
       userId: userObjectId,
       executionKey,
+      reportType,
+      reportId,
+      sessionId,
+      paymentSessionId,
+      coinTransactionId,
+      coinAmount,
+      idempotencyKey,
       featureKey,
       cost,
       sourceTransactionId,
       paymentRef: safePaymentRef(payload.payment),
       status: "pending",
+      premiumStatus: "generating",
       timeoutAt,
       nextRetryAt: startedAt,
       retryCount: 0,
       maxRetries: clampInt(payload.maxRetries, 5, 1, 20),
+      generationStartedAt: startedAt,
+      lastClientHeartbeatAt: startedAt,
+      refundStatus: "none",
       metadata: payload.metadata && typeof payload.metadata === "object" ? payload.metadata : null,
       retentionUntil,
     },
     $set: {
       heartbeatAt: startedAt,
+      lastClientHeartbeatAt: startedAt,
+      sessionId: sessionId || undefined,
+      reportId: reportId || undefined,
+      reportType: reportType || undefined,
     },
   };
 
@@ -353,6 +451,7 @@ export async function heartbeatServiceExecution(env, userId, payload = {}) {
     {
       $set: {
         heartbeatAt: now,
+        lastClientHeartbeatAt: now,
         timeoutAt,
       },
     },
@@ -377,14 +476,23 @@ export async function completeServiceExecution(env, userId, payload = {}) {
   if (!executionKey) return { ok: false, status: 400, message: "executionKey is required." };
 
   const now = nowDate();
+  const reportId = normalizeReportId(payload.reportId);
+  const sessionId = normalizeSessionId(payload.sessionId || payload.reportSessionId);
+  const completionMetadata = payload.metadata && typeof payload.metadata === "object" ? payload.metadata : null;
   const doc = await ServiceExecutionTransaction.findOneAndUpdate(
     { userId: userObjectId, executionKey, status: "pending" },
     {
       $set: {
         status: "success",
+        premiumStatus: "completed",
+        reportId: reportId || undefined,
+        sessionId: sessionId || undefined,
         completedAt: now,
+        generationCompletedAt: now,
+        refundStatus: "none",
         reasonCode: "",
         reasonMessage: "",
+        ...(completionMetadata ? { metadata: completionMetadata } : {}),
         "lock.token": "",
         "lock.until": null,
         "lock.acquiredAt": null,
@@ -411,10 +519,64 @@ export async function failServiceExecution(env, userId, payload = {}) {
   if (!executionKey) return { ok: false, status: 400, message: "executionKey is required." };
 
   const reason = normalizeReason(payload.reasonCode || "manual_fail", payload.reasonMessage || "Client reported execution failure.");
+  const failureStage = normalizeFailureStage(payload.failureStage || reason.code);
+  const failureReason = normalizeFailureReason(payload.failureReason || reason.message);
+  const softAbandon = isSoftAbandonReason(reason.code);
 
   const doc = await ServiceExecutionTransaction.findOne({ userId: userObjectId, executionKey }).lean();
   if (!doc) return { ok: false, status: 404, message: "Execution not found." };
   if (doc.status !== "pending") return { ok: true, status: 200, idempotent: true, execution: toSummary(doc) };
+
+  if (softAbandon) {
+    const now = nowDate();
+    const graceSeconds = clampInt(payload.graceSeconds, DEFAULT_SOFT_ABANDON_GRACE_SECONDS, 300, 3600);
+    const graceTimeoutAt = toTimeoutAt(now, graceSeconds);
+    const updated = await ServiceExecutionTransaction.findOneAndUpdate(
+      { _id: doc._id, status: "pending" },
+      {
+        $set: {
+          reasonCode: reason.code,
+          reasonMessage: reason.message,
+          failureStage,
+          failureReason,
+          premiumStatus: "abandoned",
+          clientClosedAt: now,
+          abandonedAt: now,
+          nextRetryAt: now,
+          timeoutAt: graceTimeoutAt,
+          "lock.token": "",
+          "lock.until": null,
+          "lock.acquiredAt": null,
+        },
+      },
+      { returnDocument: "after" },
+    ).lean();
+
+    return {
+      ok: true,
+      status: 202,
+      idempotent: false,
+      execution: toSummary(updated || doc),
+      settlement: {
+        ok: true,
+        status: "pending",
+        deferred: true,
+      },
+    };
+  }
+
+  await ServiceExecutionTransaction.updateOne(
+    { _id: doc._id, status: "pending" },
+    {
+      $set: {
+        premiumStatus: "failed",
+        generationFailedAt: nowDate(),
+        failureStage,
+        failureReason,
+        refundStatus: "pending",
+      },
+    },
+  );
 
   const settled = await settleExecutionById(env, doc._id, reason.code, reason.message);
   const latest = await ServiceExecutionTransaction.findById(doc._id).lean();
@@ -426,6 +588,31 @@ export async function failServiceExecution(env, userId, payload = {}) {
     execution: toSummary(latest),
     settlement: settled,
   };
+}
+
+export async function getServiceExecution(env, userId, payload = {}) {
+  await connectDb(env);
+  const userObjectId = toObjectId(userId);
+  if (!userObjectId) return { ok: false, status: 400, message: "Invalid user id." };
+
+  const executionKey = normalizeExecutionKey(payload.executionKey || payload.requestId);
+  const sessionId = normalizeSessionId(payload.sessionId || payload.reportSessionId);
+  const reportId = normalizeReportId(payload.reportId);
+
+  let query = null;
+  if (executionKey) {
+    query = { userId: userObjectId, executionKey };
+  } else if (sessionId) {
+    query = { userId: userObjectId, sessionId };
+  } else if (reportId) {
+    query = { userId: userObjectId, reportId };
+  } else {
+    return { ok: false, status: 400, message: "executionKey or sessionId or reportId is required." };
+  }
+
+  const doc = await ServiceExecutionTransaction.findOne(query).sort({ createdAt: -1 }).lean();
+  if (!doc) return { ok: false, status: 404, message: "Execution not found." };
+  return { ok: true, status: 200, execution: toSummary(doc) };
 }
 
 async function lockNextTimedOutExecution() {

@@ -21,7 +21,7 @@ describe("Sukuyo preflight and recovery guard", () => {
     expect(compatibility[14].key).toBe("chapter-15-final");
     expect(compatibility[0].title).toBe("두 사람의 숙요 기본 지도 — 본명숙과 상대 숙의 첫 해석");
     expect(compatibility[14].title).toBe("최종 궁합 판정 — 이 인연을 어떻게 살릴 것인가");
-    expect(compatibility[0].sections).toHaveLength(4);
+    expect(compatibility[0].sections).toHaveLength(5);
   });
 
   test("validateSukyoPdfInput allows generation when both birth dates and relation type exist", () => {
@@ -172,7 +172,7 @@ describe("Sukuyo preflight and recovery guard", () => {
     expect(sanitized.coreReading).toBe("");
     expect(Array.isArray(sanitized.sections)).toBe(true);
     expect(sanitized.sections).toHaveLength(2);
-    expect(sanitized.sections[0].heading).toBe("핵심 숙요 신호");
+    expect(sanitized.sections[0].heading).toBe("본인 숙의 관계 기질");
     expect(sanitized.sections[0].body).toBe("");
     expect(sanitized.fallbackUsed).toBe(false);
   });

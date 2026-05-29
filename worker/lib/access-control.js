@@ -11,6 +11,7 @@ export const PREMIUM_UNLOCK_POLICY = Object.freeze({
   westernAstrologyPremium: ["premium-astrology", "premiumDivinationPack"],
   sookyoPremium: ["premium-sukuyo", "premiumDivinationPack"],
   vedicPremium: ["premium-veda", "premiumDivinationPack"],
+  soulOriginKarma: ["premiumDivinationPack"],
 });
 
 function uniqueStrings(values) {
@@ -286,6 +287,29 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
         featureKey: "coin-gate-per-use",
         reason: "베다 점성술 프리미엄 PDF 리포트 생성",
         minCost: 390,
+        windowMinutes: 120,
+      },
+    ];
+  }
+
+  if (reportType === "soulOriginKarma") {
+    return [
+      {
+        featureKey: "premium_pdf_soul_origin",
+        reason: "운명의 기원서 생성",
+        minCost: 690,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "premium-soul-origin-report",
+        reason: "운명의 기원서 생성",
+        minCost: 690,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: "운명의 기원서 생성",
+        minCost: 690,
         windowMinutes: 120,
       },
     ];
@@ -965,6 +989,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       reportType: normalizedReportType,
       matchedTransactionId: String(tokenEvidence?._id || ""),
       featureKey: String(tokenEvidence?.featureKey || ""),
+      chargedCoins: Math.abs(Number(tokenEvidence?.delta || 0)),
     };
     logSajuAccessResolved(allowed);
     return allowed;
@@ -988,6 +1013,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
         reportType: normalizedReportType,
         matchedTransactionId: String(evidence?._id || ""),
         featureKey: String(evidence?.featureKey || ""),
+        chargedCoins: Math.abs(Number(evidence?.delta || 0)),
       };
       logSajuAccessResolved(allowed);
       return allowed;
@@ -1012,6 +1038,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
         reportType: normalizedReportType,
         matchedTransactionId: String(evidence?._id || ""),
         featureKey: String(evidence?.featureKey || ""),
+        chargedCoins: Math.abs(Number(evidence?.delta || 0)),
       };
     }
 
@@ -1031,6 +1058,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
         reportType: normalizedReportType,
         matchedTransactionId: String(splitEvidence?.addonEvidence?._id || splitEvidence?.baseEvidence?._id || ""),
         featureKey: String(splitEvidence?.baseEvidence?.featureKey || ""),
+        chargedCoins: Math.abs(Number(splitEvidence?.baseEvidence?.delta || 0)) + Math.abs(Number(splitEvidence?.addonEvidence?.delta || 0)),
       };
     }
   }

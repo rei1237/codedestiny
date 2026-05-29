@@ -4,6 +4,12 @@ import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
+import {
+  buildPremiumExecutionContext,
+  completePremiumPdfExecution,
+  failPremiumPdfExecution,
+  startPremiumPdfExecution,
+} from "../lib/premium-pdf-execution.js";
 
 const SERVICE_KEY = "saju-new-year";
 const FEATURE_KEY = "premium_pdf_saju_new_year";
@@ -775,6 +781,19 @@ async function handlePrepare(request, env) {
     }
     console.info("[NewYearPremiumPDF][PaymentVerificationPassed]", { featureKey, accessType: clean(access.accessType || "") });
 
+    const executionCtx = buildPremiumExecutionContext({
+      serviceKey: SERVICE_KEY,
+      reportType: "sajuNewYear",
+      userId: auth.userId,
+      featureKey,
+      sessionId: sessionKey,
+      reportId: clean(body?.reportId || body?.accessGrant?.reportId),
+      access,
+      body,
+      timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+    });
+    await startPremiumPdfExecution(env, auth.userId, executionCtx);
+
     let chapters = localManuscript;
     let fallbackUsed = false;
     let manuscriptSource = "local-only";
@@ -808,11 +827,34 @@ async function handlePrepare(request, env) {
     });
     console.info("[NewYearPremiumPDF][PDFRenderCompleted]", { chapterCount: chapters.length, manuscriptSource });
 
+    const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `new-year-${Date.now().toString(36)}`);
+    await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
+      manuscriptSource,
+      chapterCount: chapters.length,
+      targetYear: localYearSajuJson.targetYear,
+      archive: {
+        reportId,
+        reportType: "new_year",
+        displayName: "사주 신년운세",
+        title: `${clean(normalized?.profile?.name) || "사용자"}님의 ${String(localYearSajuJson.targetYear || "")}년 신년운세`,
+        mode: "personal",
+        birthName: clean(normalized?.profile?.name),
+        summary: clean(chapters?.[0]?.summary || chapters?.[0]?.sections?.[0]?.body || "", 1000),
+        pdfUrl: clean(pdfReady?.pdfUrl),
+        chapters,
+        payload: localYearSajuJson,
+        pdfReady,
+        canReopen: true,
+        canDownload: Boolean(clean(pdfReady?.pdfUrl)),
+      },
+    });
+
     const responsePayload = {
       ok: true,
       serviceKey: SERVICE_KEY,
       status: "done",
       sessionId: sessionKey,
+      reportId,
       featureKey,
       targetYear: localYearSajuJson.targetYear,
       chapterCount: NEW_YEAR_CHAPTERS.length,
@@ -830,6 +872,24 @@ async function handlePrepare(request, env) {
     newYearPdfLocks.set(sessionKey, { status: "done", startedAtMs: Date.now(), result: responsePayload });
     return json(responsePayload);
   } catch (error) {
+    const executionCtx = buildPremiumExecutionContext({
+      serviceKey: SERVICE_KEY,
+      reportType: "sajuNewYear",
+      userId: auth.userId,
+      featureKey,
+      sessionId: sessionKey,
+      access: null,
+      body,
+      timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+    });
+    await failPremiumPdfExecution(
+      env,
+      auth.userId,
+      executionCtx,
+      "new_year_generation_failed",
+      clean(error?.message || "신년운세 PDF 생성에 실패했습니다."),
+      "new-year-generation",
+    );
     newYearPdfLocks.delete(sessionKey);
     throw error;
   }

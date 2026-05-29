@@ -436,10 +436,20 @@
     var element = _qs('vdErrorMsg');
     var safe = _sanitizeText(message);
     if (/internal\s*server\s*error/i.test(String(message || ''))) {
-      safe = 'AI 문장 보강이 지연되어 로컬 베다점 차트 기반 프리미엄 원고로 PDF를 완성합니다.';
+      safe = 'PDF 생성이 완료되지 않아 사용된 코인이 자동으로 환불되었습니다. 다시 시도해 주세요.';
     }
     if (element) element.textContent = safe || '생성 중 오류가 발생했습니다.';
     _showScreen('vdErrorScreen');
+  }
+
+  function _isCompletedReportReady(response) {
+    var payload = response || {};
+    var chapters = Array.isArray(payload.chapters) ? payload.chapters : [];
+    var total = Number(VEDIC_TOTAL_CHAPTERS || 0) || 12;
+    var completed = _clean(payload.status || '').toLowerCase();
+    var hasReportId = !!_clean(payload.reportId);
+    var hasPdfHtml = !!_clean(payload && payload.pdfReady && payload.pdfReady.html);
+    return hasReportId && hasPdfHtml && chapters.length >= total && (!completed || completed === 'completed');
   }
 
   function _setStartBusy(isBusy) {
@@ -731,6 +741,9 @@
         if (response && response.status === 'running') {
           throw new Error('이미 같은 세션의 베다점 PDF 생성이 진행 중입니다. 잠시 후 다시 확인해주세요.');
         }
+        if (!_isCompletedReportReady(response)) {
+          throw new Error('베다점 PDF 결과가 아직 완전히 저장되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+        }
 
         _markPremiumAccessVerified(25 * 60 * 1000);
         _resultPayload = response;
@@ -743,7 +756,7 @@
         _renderResult(_chapters, response.payload || vedicBase);
         _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, fallbackUsed: !!response.fallbackUsed });
 
-        if (response && response.fallbackUsed && typeof window.showToast === 'function') {
+        if (response && response.fallbackUsed && _isCompletedReportReady(response) && typeof window.showToast === 'function') {
           window.showToast('AI 문장 보강이 지연되어 로컬 베다점 계산 기반 프리미엄 원고로 PDF를 완성합니다.', 'info');
         }
 

@@ -921,6 +921,13 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
     chapterCount: localDrafts.length,
     totalLength: totalLength(localDrafts),
   });
+  if (!localValidation.ok) {
+    const error = new Error("점성술 프리미엄 로컬 원고 검증에 실패했습니다.");
+    error.code = "ASTRO_LOCAL_MANUSCRIPT_INVALID";
+    error.status = 422;
+    error.details = localValidation;
+    throw error;
+  }
 
   const enhanced = await enhanceAstroPremiumChaptersWithLLM(env, localAstroChartJson, localDrafts, { log: emit });
   let finalDrafts = reinforceManuscriptLength(enhanced.chapters);
@@ -937,6 +944,13 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
     chapterCount: finalDrafts.length,
     totalLength: totalLength(finalDrafts),
   });
+  if (!validated.ok) {
+    const error = new Error("점성술 프리미엄 원고 검증에 실패했습니다.");
+    error.code = "ASTRO_MANUSCRIPT_INVALID";
+    error.status = 422;
+    error.details = validated;
+    throw error;
+  }
 
   emit("PdfRenderStart", { chapterCount: finalDrafts.length });
   const payload = toLegacyPayload(localAstroChartJson);
@@ -952,7 +966,7 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
     payload,
     chapters,
     chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
-    fallbackUsed: Boolean(enhanced.fallbackUsed),
+    fallbackUsed: manuscriptSource !== "llm-enhanced",
     manuscriptSource,
     totalLength: totalLength(finalDrafts),
     pdfReady,

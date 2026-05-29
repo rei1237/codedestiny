@@ -4,9 +4,9 @@ export const SUKYO_PDF_FEATURE_KEY = "premium-sukuyo-report-compat";
 export const SUKYO_PDF_ALIAS_FEATURE_KEY = "premium_pdf_sukyo_compat";
 export const SUKYO_PDF_CHAPTER_COUNT = 15;
 
-const MIN_CHAPTER_LENGTH = 2200;
-const MIN_SECTION_LENGTH = 500;
-const MIN_TOTAL_LENGTH = 33000;
+const MIN_CHAPTER_LENGTH = 3500;
+const MIN_SECTION_LENGTH = 700;
+const MIN_TOTAL_LENGTH = 56000;
 
 const INTERNAL_TOKEN_RE = /\b(?:payload|debug|engine|api|json|llm|fallback|localdraft|about:blank|internal\s+server\s+error|chapter\s*\d+|a\(안\)|b\(괴\)|near-triad(?:-[a-z0-9]+)?|\bd\d+\b|triad|자동\s*복구\s*생성|undefined|null|nan)\b/gi;
 const FORBIDDEN_BODY_PHRASES = [
@@ -51,22 +51,30 @@ const FORBIDDEN_BODY_PHRASES = [
 ];
 
 export const SUKYO_PDF_CHAPTERS = Object.freeze([
-  { key: "chapter-01-core-map", order: 1, title: "두 사람의 숙요 기본 지도 — 본명숙과 상대 숙의 첫 해석", sections: ["핵심 숙요 신호", "두 사람의 강점", "주의해야 할 위험", "관계를 살리는 실전 조언"] },
-  { key: "chapter-02-relation-type", order: 2, title: "인연 유형 판정 — 이 관계가 끌리는 방식", sections: ["관계 유형의 본질", "끌림의 작동 방식", "감정의 안전장치", "관계 운영 핵심 원칙"] },
-  { key: "chapter-03-distance", order: 3, title: "거리와 온도 — 근거리·중거리·원거리의 관계 체감", sections: ["거리 체감 구조", "가까울 때의 장점과 리스크", "멀어질 때의 복구 전략", "일상 거리 조절 가이드"] },
-  { key: "chapter-04-first-impression", order: 4, title: "첫인상과 끌림 — 왜 서로에게 반응하는가", sections: ["첫 반응의 근거", "매력의 지속 조건", "환상과 현실의 경계", "건강한 끌림 유지법"] },
-  { key: "chapter-05-emotion", order: 5, title: "감정 리듬 — 사랑이 깊어지는 방식과 불안의 패턴", sections: ["감정 상승 리듬", "불안 신호의 패턴", "정서적 안전 회복", "사랑의 안정화 루틴"] },
-  { key: "chapter-06-communication", order: 6, title: "대화와 오해 — 말투, 침묵, 연락의 궁합", sections: ["대화 속도와 결", "침묵이 오해가 되는 순간", "연락의 기대치 조율", "갈등 대화 복구 스크립트"] },
-  { key: "chapter-07-love", order: 7, title: "연애 궁합 — 설렘, 애착, 질투, 안정감", sections: ["설렘과 애착의 균형", "질투와 경계선", "안정감 형성 조건", "사랑을 오래 가게 하는 합의"] },
-  { key: "chapter-08-conflict", order: 8, title: "갈등 구조 — 반복되는 충돌과 감정 폭발 지점", sections: ["반복 충돌의 원인", "폭발 직전 경보", "감정 소모 차단법", "갈등 후 재접속 단계"] },
-  { key: "chapter-09-recovery", order: 9, title: "화해와 회복 — 다시 가까워지는 방법", sections: ["회복의 최소 조건", "사과와 인정의 순서", "신뢰 재건의 작은 루틴", "관계 회복 체크리스트"] },
-  { key: "chapter-10-marriage", order: 10, title: "결혼·동거 궁합 — 현실 생활에서 맞춰야 할 부분", sections: ["생활 리듬 합의", "역할 분담의 기준", "갈등 예방 장치", "장기 동행 설계"] },
-  { key: "chapter-11-money", order: 11, title: "돈과 생활 습관 — 소비, 책임감, 생활 리듬", sections: ["돈 감각의 차이", "소비와 책임의 균형", "생활 습관 충돌 완화", "현실 운영 합의안"] },
-  { key: "chapter-12-family", order: 12, title: "가족·주변 인연 — 관계를 흔드는 외부 변수", sections: ["외부 변수 진단", "경계선 설정", "개입 관리 전략", "두 사람 우선순위 유지법"] },
-  { key: "chapter-13-karma", order: 13, title: "전생적 인연과 카르마 — 왜 이 인연이 강하게 느껴지는가", sections: ["강한 인연의 심리 구조", "반복되는 숙제", "성장으로 전환하는 선택", "카르마 소모 대신 성숙"] },
-  { key: "chapter-14-long-term", order: 14, title: "장기 관계 전략 — 오래 가기 위한 선택과 거리 조절", sections: ["장기 전략의 축", "거리 조절 규칙", "관계 피로도 관리", "성숙한 동행 운영법"] },
-  { key: "chapter-15-final", order: 15, title: "최종 궁합 판정 — 이 인연을 어떻게 살릴 것인가", sections: ["최종 관계 진단", "핵심 강점과 경계", "지금 필요한 선택", "실행 가능한 30일 계획"] },
+  { key: "chapter-01-core-map", order: 1, title: "두 사람의 숙요 기본 지도 — 본명숙과 상대 숙의 첫 해석", sections: ["본인 숙의 관계 기질", "상대 숙의 관계 기질", "두 숙이 만났을 때 생기는 첫 반응", "관계의 기본 강점", "초반부터 주의해야 할 위험 신호"] },
+  { key: "chapter-02-relation-type", order: 2, title: "인연 유형 판정 — 이 관계가 끌리는 방식", sections: ["관계 유형의 본질", "안괴/영친/업태/성위/위성/명의 의미", "이 인연이 강하게 느껴지는 이유", "관계가 빠르게 가까워지는 조건", "관계가 불안정해지는 조건"] },
+  { key: "chapter-03-distance", order: 3, title: "거리와 온도 — 근거리·중거리·원거리의 관계 체감", sections: ["거리 판정의 의미", "가까울 때 강해지는 감정", "멀어질 때 생기는 오해", "적정 거리 조절법", "연락과 만남의 현실적 리듬"] },
+  { key: "chapter-04-first-impression", order: 4, title: "첫인상과 끌림 — 왜 서로에게 반응하는가", sections: ["첫인상에서 작동하는 숙요 신호", "서로에게 매력을 느끼는 지점", "환상과 현실의 차이", "끌림이 집착으로 변하는 순간", "건강한 설렘을 유지하는 방법"] },
+  { key: "chapter-05-emotion", order: 5, title: "감정 리듬 — 사랑이 깊어지는 방식과 불안의 패턴", sections: ["감정이 올라가는 속도", "불안이 생기는 타이밍", "애정 확인 방식의 차이", "정서적 안전감을 회복하는 법", "사랑을 안정시키는 루틴"] },
+  { key: "chapter-06-communication", order: 6, title: "대화와 오해 — 말투, 침묵, 연락의 궁합", sections: ["대화 속도와 표현 방식", "침묵이 오해가 되는 순간", "연락 빈도와 기대치", "다툼 중 피해야 할 말투", "갈등 대화 복구 스크립트"] },
+  { key: "chapter-07-love", order: 7, title: "연애 궁합 — 설렘, 애착, 질투, 안정감", sections: ["설렘과 애착의 균형", "질투와 소유욕의 작동 방식", "안정감을 느끼는 조건", "사랑이 불안으로 바뀌는 지점", "오래 가는 연애를 위한 합의"] },
+  { key: "chapter-08-conflict", order: 8, title: "갈등 구조 — 반복되는 충돌과 감정 폭발 지점", sections: ["반복 충돌의 핵심 원인", "감정 폭발 전조", "서로의 약점을 건드리는 방식", "싸움이 커지는 패턴", "소모적 갈등을 끊는 방법"] },
+  { key: "chapter-09-recovery", order: 9, title: "화해와 회복 — 다시 가까워지는 방법", sections: ["화해가 가능한 타이밍", "먼저 풀어야 하는 감정", "사과와 설명의 적절한 순서", "다시 가까워질 때 필요한 조건", "관계 회복을 위한 실전 문장"] },
+  { key: "chapter-10-marriage", order: 10, title: "결혼·동거 궁합 — 현실 생활에서 맞춰야 할 부분", sections: ["함께 살 때 드러나는 차이", "생활 리듬과 책임 분담", "감정과 현실의 균형", "장기 관계에서 생기는 피로", "결혼·동거를 안정시키는 원칙"] },
+  { key: "chapter-11-money", order: 11, title: "돈과 생활 습관 — 소비, 책임감, 생활 리듬", sections: ["돈을 대하는 태도 차이", "소비와 절약의 충돌", "책임감과 부담의 균형", "생활 습관에서 생기는 작은 갈등", "현실 문제를 감정 싸움으로 키우지 않는 법"] },
+  { key: "chapter-12-family", order: 12, title: "가족·주변 인연 — 관계를 흔드는 외부 변수", sections: ["가족 개입에 대한 민감도", "친구와 주변 사람의 영향", "외부 시선에 흔들리는 지점", "둘만의 기준을 세우는 법", "관계를 보호하기 위한 경계선"] },
+  { key: "chapter-13-karma", order: 13, title: "전생적 인연과 카르마 — 왜 이 인연이 강하게 느껴지는가", sections: ["숙요점에서 보는 전생적 끌림", "반복되는 인연의 과제", "업처럼 느껴지는 감정의 이유", "이 관계가 가르치는 것", "집착이 아닌 성장으로 바꾸는 법"] },
+  { key: "chapter-14-long-term", order: 14, title: "장기 관계 전략 — 오래 가기 위한 선택과 거리 조절", sections: ["장기 관계의 가능성", "오래 갈수록 강해지는 장점", "시간이 지나며 커지는 위험", "관계를 유지하는 거리 조절법", "3개월·1년·3년 관계 운영 전략"] },
+  { key: "chapter-15-final", order: 15, title: "최종 궁합 판정 — 이 인연을 어떻게 살릴 것인가", sections: ["두 사람의 최종 궁합 요약", "이 관계의 가장 큰 강점", "이 관계의 가장 큰 위험", "반드시 지켜야 할 관계 원칙", "이 인연을 살리기 위한 최종 조언"] },
 ]);
+
+const CHAPTER_REQUIRED_KEYWORDS = Object.freeze({
+  6: ["말투", "침묵", "연락", "스크립트"],
+  10: ["동거", "생활", "책임", "장기"],
+  11: ["돈", "소비", "책임", "생활"],
+  13: ["전생", "반복", "집착", "성장"],
+  15: ["강점", "위험", "원칙", "최종"],
+});
 
 function text(value, fallback = "") {
   const out = String(value == null ? "" : value).trim();
@@ -294,6 +302,64 @@ function computeRepetitionScore(value) {
   return repeatedCount / Math.max(1, lines.length);
 }
 
+function normalizeKoreanText(value) {
+  return text(value)
+    .toLowerCase()
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+function hasRepeatedParagraphs(chapters) {
+  const paragraphs = (Array.isArray(chapters) ? chapters : [])
+    .flatMap((chapter) => (Array.isArray(chapter.sections) ? chapter.sections : []))
+    .flatMap((section) => text(section.body).split(/\n{2,}/))
+    .map((p) => p.trim())
+    .filter((p) => p.length >= 80);
+
+  const seen = new Set();
+  for (const p of paragraphs) {
+    const key = normalizeKoreanText(p);
+    if (!key) continue;
+    if (seen.has(key)) return true;
+    seen.add(key);
+  }
+  return false;
+}
+
+function hasForbiddenFallbackText(chapters) {
+  const merged = (Array.isArray(chapters) ? chapters : [])
+    .flatMap((chapter) => (Array.isArray(chapter.sections) ? chapter.sections : []))
+    .map((section) => text(section.body))
+    .join("\n")
+    .toLowerCase();
+
+  const forbidden = [
+    "자동 복구 생성",
+    "fallback",
+    "로컬 복구",
+    "데이터 부족",
+    "chapter 1",
+    "품질 보정",
+    "llm 실패",
+    "payload",
+    "json",
+    "undefined",
+    "null",
+  ];
+  return forbidden.some((token) => merged.includes(token.toLowerCase()));
+}
+
+function chapterIncludesKeywords(chapter, keywords) {
+  const body = (Array.isArray(chapter?.sections) ? chapter.sections : [])
+    .map((section) => text(section.body))
+    .join("\n")
+    .toLowerCase();
+
+  return (Array.isArray(keywords) ? keywords : []).every((keyword) => body.includes(String(keyword).toLowerCase()));
+}
+
 export function isLowQualityShukuyoSection(value) {
   const body = text(value).toLowerCase();
   if (!body) return true;
@@ -496,11 +562,13 @@ function buildSectionBody(localJson, chapter, sectionHeading, sectionIndex) {
   const daily = safeArray(localJson?.relation?.dailyLifeKeywords).slice(0, 2).join(" · ") || "생활 합의";
   const guide = CHAPTER_TOPIC_GUIDE[chapterNo] || ["관계 핵심", "감정 반응", "주의 지점", "실행 전략"];
 
+  const sectionFocus = `${chapterNo}-${sectionIndex + 1}`;
   const paragraphs = [
-    `${selfStar}숙과 ${partnerStar}숙이 만나는 장면을 ${sectionHeading}의 관점에서 보면, 이 관계의 속도와 밀도는 ${relationType} 흐름과 ${distanceLabel} 체감이 동시에 결정합니다. 같은 사건이라도 한 사람은 관계의 의미를 먼저 읽고, 다른 사람은 감정의 안전을 먼저 확인하려는 경향이 있어 반응 순서가 자주 엇갈립니다. ${guide[0]}을 먼저 합의하면 "왜 저 말이 불편했는지"를 추측이 아니라 확인으로 바꿀 수 있고, 초기에 생기는 오해를 크게 줄일 수 있습니다.`,
-    `${chapter.title}에서 다루는 ${sectionHeading}은 단순한 분위기 해석이 아니라 두 사람이 실제로 반복해 온 선택 패턴을 다룹니다. ${chemistry}가 살아나는 구간에서는 작은 배려가 크게 체감되지만, ${conflict} 신호가 겹치는 시기에는 확인받고 싶은 마음이 방어 반응으로 드러날 수 있습니다. 이때는 누가 옳은지보다 ${guide[1]}을 먼저 맞추는 것이 중요하며, 상대의 속도를 강제로 바꾸기보다 자신의 요청 문장을 명확히 정리하는 편이 관계 안정에 유리합니다.`,
-    `${sectionHeading} 단계에서 특히 주의할 점은 감정의 강도와 사실의 순서를 뒤섞지 않는 것입니다. ${karmic}처럼 오래된 감정 과제가 자극될 때는 현재 사건보다 과거 기억이 반응을 키울 수 있으므로, "지금 문제"와 "이전 상처"를 분리해 말해야 갈등이 누적되지 않습니다. 두 사람의 궁합 점수${relationScore == null ? "" : `(${relationScore})`}는 방향을 보여주는 참고치이며, 실제 관계 품질은 ${guide[2]}을 얼마나 일관되게 지키는지에서 결정됩니다.`,
-    `실전에서는 거창한 약속보다 ${daily}처럼 생활에서 즉시 실행 가능한 합의가 효과적입니다. 예를 들어 감정이 올라온 날에는 결론을 미루고 확인 질문 2개만 나누는 규칙, 연락 공백이 길어질 때는 한 줄 안부로 신호를 남기는 규칙, 주 1회 관계 점검 시간을 고정하는 규칙처럼 작고 구체적인 습관이 필요합니다. ${guide[3]}을 꾸준히 반복하면 이 인연은 소모를 줄이면서도 친밀도를 천천히 높일 수 있고, 장기적으로 서로의 삶을 지지하는 동행 구조로 성장할 수 있습니다.`,
+    `${chapter.title}의 ${sectionHeading}은 ${selfStar}숙과 ${partnerStar}숙 조합에서 나타나는 실제 관계 반응을 세밀하게 분해하는 구간입니다. ${relationType} 관계에서는 감정의 온도가 빠르게 올라가더라도 상대가 무엇을 불안해하는지 해석하는 속도가 다르면 체감이 크게 어긋납니다. 특히 ${distanceLabel} 흐름에서는 같은 사건을 두고도 한 사람은 "관계의 의미"를, 다른 사람은 "지금의 안전"을 먼저 확인하려는 경향이 있어 초반 소통이 뒤틀리기 쉽습니다. 이 섹션에서는 그 차이를 오해가 아닌 합의의 출발점으로 다루는 것이 핵심입니다.`,
+    `관계 강점은 ${chemistry} 같은 공명 포인트에서 드러나고, 취약 지점은 ${conflict} 신호가 겹칠 때 선명해집니다. 점수가 ${relationScore == null ? "미제공" : relationScore}라고 해서 결과가 고정되는 것은 아니며, 실제 체감은 어떤 문장을 먼저 꺼내고 어떤 순서로 반응을 정리하는지에 의해 달라집니다. ${guide[0]}과 ${guide[1]}을 분리해 보면, 감정이 큰 날에도 관계를 지키는 선택이 가능해집니다. 서로의 속도를 바꾸려 하기보다 반응의 맥락을 먼저 확인하는 방식이 이 조합에 특히 효과적입니다.`,
+    `${sectionHeading} 관점에서 반드시 지켜야 할 원칙은 사실과 감정을 같은 문장에 뒤섞지 않는 것입니다. ${karmic}처럼 과거의 패턴이 자극되면 현재의 사건보다 오래된 기억이 먼저 튀어나와 갈등을 키우기 쉽습니다. 그래서 "지금 불편한 행동"과 "내가 느낀 감정"을 분리해 표현해야 하고, 해석이 어긋났을 때는 책임 공방보다 재확인 질문을 먼저 두는 편이 관계 회복률이 높습니다. 이때 ${guide[2]}을 기준으로 대화를 재정렬하면 반복 충돌을 줄일 수 있습니다.`,
+    `실행 단계에서는 추상적인 다짐보다 생활 문장으로 합의해야 유지됩니다. ${daily} 같은 생활 축을 중심으로 "연락 공백이 길어질 때 남길 최소 문장", "감정이 큰 날 결론을 미루는 기준", "주간 점검에서 확인할 질문"을 미리 정하면 감정 소모를 크게 줄일 수 있습니다. ${guide[3]}은 특별한 이벤트가 아니라 반복 가능한 루틴이어야 하며, 매주 같은 시간에 짧게 점검할수록 안정감이 빨라집니다.`,
+    `마지막으로 ${sectionHeading}은 이론 요약이 아니라 실제 행동 설계여야 합니다. 제안 문장을 예시로 들면 "나는 지금 결론보다 감정 정리가 먼저 필요해"처럼 상태를 말하고, 이어서 "오늘은 20분 뒤에 다시 이야기하자"처럼 시간 경계를 제시하는 구조가 좋습니다. 이 조합에서는 강한 끌림만으로 관계를 유지하기 어렵기 때문에, 작은 합의를 지키는 빈도가 신뢰의 핵심 지표가 됩니다. ${sectionFocus} 구간의 목표는 서로를 바꾸는 것이 아니라, 같은 상황에서도 덜 다치고 더 빨리 회복하는 운영 체계를 만드는 것입니다.`,
   ];
 
   return repeatToLength(paragraphs, MIN_SECTION_LENGTH + 40);
@@ -632,24 +700,38 @@ function validateRenderedManuscript(seed, chapters) {
   const chapterOpeningSet = new Set();
   const chapterClosingSet = new Set();
 
+  const chapterNos = new Set((Array.isArray(chapters) ? chapters : []).map((ch) => safeNumber(ch.order || ch.chapterNo, 0)).filter((n) => n > 0));
+  for (let i = 1; i <= SUKYO_PDF_CHAPTER_COUNT; i += 1) {
+    if (!chapterNos.has(i)) issues.push(`chapter.missing.${i}`);
+  }
+
   for (const chapter of chapters) {
+    const chapterNo = safeNumber(chapter.order || chapter.chapterNo, 0);
+    const chapterSpec = SUKYO_PDF_CHAPTERS[chapterNo - 1];
     const chapterSections = Array.isArray(chapter.sections) ? chapter.sections : [];
     const chapterLength = chapterSections.reduce((sum, section) => sum + text(section.body).length, 0);
     totalLength += chapterLength;
-    if (chapterLength < MIN_CHAPTER_LENGTH) issues.push(`chapter.length.${chapter.order}`);
-    if (!Array.isArray(chapter.sections) || chapter.sections.length !== 4) issues.push(`chapter.sections.${chapter.order}`);
+    if (chapterLength < MIN_CHAPTER_LENGTH) issues.push(`chapter.length.${chapterNo}`);
+    if (!Array.isArray(chapter.sections) || chapter.sections.length !== (chapterSpec?.sections?.length || 0)) {
+      issues.push(`chapter.sections.${chapterNo}`);
+    }
+
+    const requiredKeywords = CHAPTER_REQUIRED_KEYWORDS[chapterNo];
+    if (requiredKeywords && !chapterIncludesKeywords(chapter, requiredKeywords)) {
+      issues.push(`chapter.keywords.${chapterNo}`);
+    }
 
     for (const section of chapterSections) {
       const body = text(section.body);
-      if (!body || body.length < MIN_SECTION_LENGTH) issues.push(`section.length.${chapter.order}`);
+      if (!body || body.length < MIN_SECTION_LENGTH) issues.push(`section.length.${chapterNo}`);
       const sectionForbiddenCount = countForbiddenTerms(body);
       forbiddenTermsCount += sectionForbiddenCount;
       if (sectionForbiddenCount > 0) {
-        issues.push(`forbidden.${chapter.order}`);
+        issues.push(`forbidden.${chapterNo}`);
       }
       if (computeRepetitionScore(body) >= 0.42) {
         repeatedSectionCount += 1;
-        issues.push(`section.repetition.${chapter.order}`);
+        issues.push(`section.repetition.${chapterNo}`);
       }
     }
 
@@ -663,12 +745,14 @@ function validateRenderedManuscript(seed, chapters) {
     const sectionBodies = chapterSections.map((section) => text(section.body).replace(/\s+/g, " ").trim().slice(0, 200));
     const uniqueBodies = new Set(sectionBodies.filter(Boolean));
     if (uniqueBodies.size <= Math.max(1, Math.floor(chapterSections.length * 0.6))) {
-      issues.push(`chapter.pattern_repeat.${chapter.order}`);
+      issues.push(`chapter.pattern_repeat.${chapterNo}`);
     }
   }
   if (totalLength < MIN_TOTAL_LENGTH) issues.push("total.length");
   if (forbiddenTermsCount > 0) issues.push("forbidden.total");
   if (repeatedSectionCount >= 2) issues.push("repetition.section");
+  if (hasRepeatedParagraphs(chapters)) issues.push("repetition.paragraph.global");
+  if (hasForbiddenFallbackText(chapters)) issues.push("forbidden.fallback_text");
   if (chapterOpeningSet.size < Math.max(1, Math.floor(SUKYO_PDF_CHAPTER_COUNT * 0.8))) issues.push("repetition.chapter.opening");
   if (chapterClosingSet.size < Math.max(1, Math.floor(SUKYO_PDF_CHAPTER_COUNT * 0.8))) issues.push("repetition.chapter.closing");
 
@@ -679,6 +763,45 @@ function validateRenderedManuscript(seed, chapters) {
     forbiddenTermsCount,
     repetitionScore: repeatedSectionCount / Math.max(1, SUKYO_PDF_CHAPTER_COUNT),
   };
+}
+
+export function validateSukyoCompatibilityPdfQuality(chapters = []) {
+  return validateRenderedManuscript({ mode: "compatibility" }, chapters);
+}
+
+export function assertSukyoCompatibilityPdfComplete({ chapters = [], expectedChapterCount = SUKYO_PDF_CHAPTER_COUNT, expectedSectionsByChapter = SUKYO_PDF_CHAPTERS } = {}) {
+  const issues = [];
+  if (!Array.isArray(chapters) || chapters.length !== expectedChapterCount) issues.push("chapter_count_mismatch");
+
+  for (let idx = 0; idx < expectedSectionsByChapter.length; idx += 1) {
+    const spec = expectedSectionsByChapter[idx];
+    const chapterNo = idx + 1;
+    const chapter = (Array.isArray(chapters) ? chapters : []).find((item) => safeNumber(item.order || item.chapterNo, 0) === chapterNo);
+    if (!chapter) {
+      issues.push(`chapter_missing_${chapterNo}`);
+      continue;
+    }
+    const sections = Array.isArray(chapter.sections) ? chapter.sections : [];
+    if (sections.length !== spec.sections.length) issues.push(`section_count_mismatch_${chapterNo}`);
+    for (const section of sections) {
+      if (text(section.body).length < MIN_SECTION_LENGTH) issues.push(`section_too_short_${chapterNo}`);
+    }
+  }
+
+  if (hasRepeatedParagraphs(chapters)) issues.push("repeated_paragraphs");
+  if (hasForbiddenFallbackText(chapters)) issues.push("forbidden_text");
+
+  const quality = validateRenderedManuscript({ mode: "compatibility" }, chapters);
+  if (!quality.ok) issues.push(...quality.issues);
+
+  if (issues.length) {
+    const error = new Error(`SUKYO_PDF_INCOMPLETE:${issues.join(",")}`);
+    error.code = "SUKYO_PDF_INCOMPLETE";
+    error.issues = issues;
+    throw error;
+  }
+
+  return { ok: true };
 }
 
 function normalizeSukuyoError(error) {
@@ -1031,6 +1154,17 @@ export async function generateSukyoPremiumReport(env, seed) {
     manuscriptSource = "local";
   }
   const finalCheck = validateRenderedManuscript(seed, chapters);
+  if (!finalCheck.ok) {
+    const error = new Error("숙요점 궁합 PDF 품질 검증에 실패했습니다.");
+    error.code = "SUKYO_PDF_QUALITY_FAILED";
+    error.issues = finalCheck.issues;
+    throw error;
+  }
+  assertSukyoCompatibilityPdfComplete({
+    chapters,
+    expectedChapterCount: SUKYO_PDF_CHAPTER_COUNT,
+    expectedSectionsByChapter: SUKYO_PDF_CHAPTERS,
+  });
   console.log("[SukuyoPremiumPDF][FinalManuscriptValidated]", {
     ok: finalCheck.ok,
     issues: finalCheck.issues,
@@ -1058,12 +1192,15 @@ export async function generateSukyoPremiumReport(env, seed) {
       chapters,
       manuscriptValidation: finalCheck,
       manuscriptSource,
+      qualityStatus: "passed",
     },
     chapters,
     chapterCount: SUKYO_PDF_CHAPTER_COUNT,
     fallbackUsed: Boolean(llmResult.fallbackUsed),
     localDraftChapterCount,
     manuscriptSource,
+    qualityStatus: "passed",
+    serverStatus: "completed",
     pdfReady,
   };
 }

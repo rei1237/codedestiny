@@ -6,6 +6,12 @@ import { callGeminiText } from "../lib/gemini.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import { buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
+import {
+  buildPremiumExecutionContext,
+  completePremiumPdfExecution,
+  failPremiumPdfExecution,
+  startPremiumPdfExecution,
+} from "../lib/premium-pdf-execution.js";
 
 const SOUL_ORIGIN_FEATURE_KEY = "premium_pdf_soul_origin";
 const SOUL_ORIGIN_SERVICE_KEY = "soul-origin";
@@ -684,6 +690,21 @@ async function handlePrepare(request, env) {
     }, { status: Number(access?.status) || 403 });
   }
 
+  const reportId = clean(body?.reportId) || makeReportId();
+  const executionCtx = buildPremiumExecutionContext({
+    serviceKey: SOUL_ORIGIN_SERVICE_KEY,
+    reportType: "soulOriginKarma",
+    userId: auth.userId,
+    featureKey: clean(body?.featureKey) || SOUL_ORIGIN_FEATURE_KEY,
+    sessionId: clean(body?.sessionId || body?.reportSessionId || `soul-origin:${reportId}`),
+    reportId,
+    access,
+    body,
+    timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+  });
+
+  await startPremiumPdfExecution(env, auth.userId, executionCtx);
+
   const snapshots = body?.engineSnapshots && typeof body.engineSnapshots === "object" ? body.engineSnapshots : {};
 
   let western = { ok: false, highlights: [], timing: null };
@@ -723,57 +744,97 @@ async function handlePrepare(request, env) {
   const hasRequiredPair = (saju.ok && western.ok) || (saju.ok && ziwei.ok) || availableCount >= 2;
 
   if (!hasRequiredPair) {
+    await failPremiumPdfExecution(
+      env,
+      auth.userId,
+      executionCtx,
+      "soul_origin_engine_not_enough",
+      CORE_INPUT_ERROR_MESSAGE,
+      "soul-origin-validate",
+    );
     return json({ ok: false, code: "SOUL_ORIGIN_ENGINE_NOT_ENOUGH", message: CORE_INPUT_ERROR_MESSAGE }, { status: 422 });
   }
-
-  const seed = buildSoulOriginSeed({ input, saju, western, sukuyo, ziwei, vedic });
-  let localChapters = buildLocalChapters(seed);
-  localChapters = enrichSectionsUntilLength(localChapters, seed, MIN_LOCAL_TOTAL_CHARS, 1);
-  localChapters = appendUniquenessTag(localChapters);
-
-  let chapters = localChapters;
   try {
-    const ai = await callGeminiText(env, buildAiPrompt(seed), {
-      maxOutputTokens: 12288,
-      temperature: 0.8,
-      timeoutMs: 35000,
-      totalTimeoutMs: 55000,
-    });
-    if (ai?.ok && clean(ai.text)) {
-      const parsed = extractJsonObject(ai.text);
-      chapters = mergeAiWithLocal(localChapters, Array.isArray(parsed?.chapters) ? parsed.chapters : [], seed);
+    const seed = buildSoulOriginSeed({ input, saju, western, sukuyo, ziwei, vedic });
+    let localChapters = buildLocalChapters(seed);
+    localChapters = enrichSectionsUntilLength(localChapters, seed, MIN_LOCAL_TOTAL_CHARS, 1);
+    localChapters = appendUniquenessTag(localChapters);
+
+    let chapters = localChapters;
+    try {
+      const ai = await callGeminiText(env, buildAiPrompt(seed), {
+        maxOutputTokens: 12288,
+        temperature: 0.8,
+        timeoutMs: 35000,
+        totalTimeoutMs: 55000,
+      });
+      if (ai?.ok && clean(ai.text)) {
+        const parsed = extractJsonObject(ai.text);
+        chapters = mergeAiWithLocal(localChapters, Array.isArray(parsed?.chapters) ? parsed.chapters : [], seed);
+      }
+    } catch (error) {
+      console.warn("[SoulOrigin][LLMFailedUseLocal]", normalizeError(error));
     }
+
+    const finalLength = reportCharLength(chapters);
+    if (finalLength < TARGET_TOTAL_CHARS_AFTER_ENHANCEMENT) {
+      chapters = enrichSectionsUntilLength(chapters, seed, TARGET_TOTAL_CHARS_AFTER_ENHANCEMENT, 3);
+      chapters = appendUniquenessTag(chapters);
+    }
+
+    const createdAt = new Date().toISOString();
+
+    const responseBody = {
+      ok: true,
+      reportId,
+      title: "운명의 기원서",
+      chapters,
+      summary: buildSummary(chapters),
+      createdAt,
+      sourceAvailability,
+    };
+
+    REPORT_CACHE.set(reportId, {
+      reportId,
+      userId: auth.userId,
+      createdAt,
+      payload: responseBody,
+    });
+
+    await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
+      manuscriptSource: "mixed",
+      chapterCount: Array.isArray(chapters) ? chapters.length : 0,
+      archive: {
+        reportId,
+        reportType: "soul_origin_book",
+        displayName: "운명의 기원서",
+        title: "운명의 기원서",
+        mode: "personal",
+        birthName: clean(input?.name),
+        summary: clean(responseBody?.summary, 1000),
+        pdfUrl: "",
+        chapters,
+        payload: {
+          sourceAvailability,
+          title: responseBody.title,
+        },
+        canReopen: true,
+        canDownload: false,
+      },
+    });
+
+    return json(responseBody);
   } catch (error) {
-    console.warn("[SoulOrigin][LLMFailedUseLocal]", normalizeError(error));
+    await failPremiumPdfExecution(
+      env,
+      auth.userId,
+      executionCtx,
+      "soul_origin_generation_failed",
+      clean(error?.message || "운명의 기원서 생성에 실패했습니다."),
+      "soul-origin-generation",
+    );
+    throw error;
   }
-
-  const finalLength = reportCharLength(chapters);
-  if (finalLength < TARGET_TOTAL_CHARS_AFTER_ENHANCEMENT) {
-    chapters = enrichSectionsUntilLength(chapters, seed, TARGET_TOTAL_CHARS_AFTER_ENHANCEMENT, 3);
-    chapters = appendUniquenessTag(chapters);
-  }
-
-  const reportId = clean(body?.reportId) || makeReportId();
-  const createdAt = new Date().toISOString();
-
-  const responseBody = {
-    ok: true,
-    reportId,
-    title: "운명의 기원서",
-    chapters,
-    summary: buildSummary(chapters),
-    createdAt,
-    sourceAvailability,
-  };
-
-  REPORT_CACHE.set(reportId, {
-    reportId,
-    userId: auth.userId,
-    createdAt,
-    payload: responseBody,
-  });
-
-  return json(responseBody);
 }
 
 async function handleReadReport(request, env) {

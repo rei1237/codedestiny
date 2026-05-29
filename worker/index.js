@@ -20,6 +20,7 @@ import { handleProfileRoutes } from "./routes/profile.js";
 import { handleSubscriptionRoutes } from "./routes/subscriptions.js";
 import { handleAstroRoutes } from "./routes/astro.js";
 import { handleSukuyoRoutes } from "./routes/sukuyo.js";
+import { handleSoulOriginRoutes } from "./routes/soul-origin.js";
 import { handleInsightsRoutes } from "./routes/insights.js";
 import { handleContentRoutes } from "./routes/content.js";
 import { handlePalmRoutes } from "./routes/palm.js";
@@ -433,7 +434,7 @@ export default {
           service: "code-destiny-api-worker",
           mode: "worker-native",
           backendOnly: true,
-          nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "youtube", "celestial-harmony", "premium", "ziwei-book", "lifebook", "love-secret", "dream", "yoga-guru", "sibyl", "oracle", "kasi", "astro", "vedic", "palm", "destiny-bias", "geo"],
+          nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "youtube", "celestial-harmony", "premium", "ziwei-book", "lifebook", "love-secret", "dream", "yoga-guru", "sibyl", "oracle", "kasi", "astro", "vedic", "soul-origin", "palm", "destiny-bias", "geo"],
           fallbackProxyMode: upstreamOrigin
             ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "enabled")
             : "disabled",
@@ -586,6 +587,12 @@ export default {
         return withCorsHeaders(request, env, await handleYoutubeRoutes(request, env));
       }
 
+      if (url.pathname === "/api/premium/pdf-archive" || url.pathname.startsWith("/api/premium/pdf-archive/")) {
+        const suffix = url.pathname.slice("/api/premium/pdf-archive".length);
+        const routedRequest = rewriteRequestPath(request, "/api/billing/pdf-archive" + (suffix || ""));
+        return withCorsHeaders(request, env, await handleBillingRoutes(routedRequest, env));
+      }
+
       if (url.pathname === "/api/celestial-harmony" || url.pathname.startsWith("/api/celestial-harmony/")) {
         return withCorsHeaders(request, env, await handleCelestialHarmonyRoutes(request, env));
       }
@@ -593,7 +600,9 @@ export default {
       if (
         (url.pathname === "/api/premium" || url.pathname.startsWith("/api/premium/"))
         && !(
-          url.pathname === "/api/premium/saju/life-book"
+          url.pathname === "/api/premium/pdf-archive"
+          || url.pathname.startsWith("/api/premium/pdf-archive/")
+          || url.pathname === "/api/premium/saju/life-book"
           || url.pathname.startsWith("/api/premium/saju/life-book/")
           || url.pathname === "/api/premium/saju-lifebook"
           || url.pathname.startsWith("/api/premium/saju-lifebook/")
@@ -712,6 +721,10 @@ export default {
 
       if (url.pathname === "/api/vedic" || url.pathname.startsWith("/api/vedic/")) {
         return withCorsHeaders(request, env, await handleAstroRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/soul-origin" || url.pathname.startsWith("/api/soul-origin/")) {
+        return withCorsHeaders(request, env, await handleSoulOriginRoutes(request, env));
       }
 
       if (url.pathname === "/api/debug" || url.pathname.startsWith("/api/debug/")) {

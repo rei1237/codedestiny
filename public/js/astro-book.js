@@ -214,11 +214,22 @@
   function _setError(msg) {
     var message = _sanitizeText(msg);
     if (/internal\s*server\s*error|\bobject\b/i.test(String(msg || ''))) {
-      message = 'AI 문장 보강이 지연되어 로컬 점성술 차트 기반 프리미엄 원고로 PDF를 완성합니다.';
+      message = 'PDF 생성이 완료되지 않아 사용된 코인이 자동으로 환불되었습니다. 다시 시도해 주세요.';
     }
     var el = _qs('abErrorMsg');
     if (el) el.textContent = message || '생성 중 오류가 발생했습니다.';
     _showScreen('abErrorScreen');
+  }
+
+  function _isCompletedReportReady(response) {
+    var payload = response || {};
+    var chapters = Array.isArray(payload.chapters) ? payload.chapters : [];
+    var total = _getTotalChapters();
+    var hasReportId = !!_clean(payload.reportId);
+    var hasPdfHtml = !!_clean(payload && payload.pdfReady && payload.pdfReady.html);
+    var completed = _clean(payload.status || '').toLowerCase();
+    var chapterComplete = chapters.length >= total;
+    return hasReportId && hasPdfHtml && chapterComplete && (!completed || completed === 'completed');
   }
 
   function _setStartBusy(isBusy) {
@@ -924,6 +935,9 @@
         var pack = data || {};
         var response = pack.data || {};
         var astroBase = pack.astroBase || null;
+        if (!_isCompletedReportReady(response)) {
+          throw new Error('점성술 PDF 결과가 아직 완전히 저장되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+        }
         _markPremiumAccessVerified(25 * 60 * 1000);
         _resultPayload = response;
         _chapters = Array.isArray(response.chapters) ? response.chapters : [];
@@ -931,7 +945,7 @@
         ASTRO_TOTAL_CHAPTERS = _chapters.length;
         total = _getTotalChapters();
         _setLoadingProgress(total, total, 'AI 상담문 보강 중');
-        if (response && response.fallbackUsed) {
+        if (response && response.fallbackUsed && _isCompletedReportReady(response)) {
           _logStage('LLMEnhanceFailedUseLocal', { chapterCount: total });
           _setLoadingProgress(total, total, 'AI 문장 보강이 지연되어 로컬 점성술 차트 기반 프리미엄 원고로 PDF를 완성합니다.');
         }

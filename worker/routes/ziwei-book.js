@@ -3,6 +3,12 @@ import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
+import {
+  buildPremiumExecutionContext,
+  completePremiumPdfExecution,
+  failPremiumPdfExecution,
+  startPremiumPdfExecution,
+} from "../lib/premium-pdf-execution.js";
 
 const ZIWEI_SERVICE_KEY = "ziwei-book";
 const ZIWEI_FEATURE_KEY = "premium_pdf_ziwei";
@@ -1127,6 +1133,21 @@ async function handlePrepare(request, env) {
   }
   console.info("[ZiweiBook][Flow] BILLING_CHECK_OK", { featureKey, accessType: clean(access.accessType || "") });
 
+  const executionCtx = buildPremiumExecutionContext({
+    serviceKey: ZIWEI_SERVICE_KEY,
+    reportType: "ziweiPremium",
+    userId: auth.userId,
+    featureKey,
+    sessionId: clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId),
+    reportId: clean(body?.reportId || body?.accessGrant?.reportId),
+    access,
+    body,
+    timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+  });
+  await startPremiumPdfExecution(env, auth.userId, executionCtx);
+
+  try {
+
   console.info("[ZiweiPremiumPDF][LocalDraftBuildStart]", { chapterCount: CHAPTER_BLUEPRINTS.length });
   const firstPass = buildLocalChapters(profile, seed, 1);
   const firstValidation = validateChapters(firstPass.chapters);
@@ -1185,10 +1206,33 @@ async function handlePrepare(request, env) {
   const pdfReady = buildPdfReadyPayload(profile, seed, completedChapters, { featureKey, reportType: "ziweiPremium", fallbackUsed });
   console.info("[ZiweiPremiumPDF][PdfRenderSuccess]", { chapterCount: completedChapters.length });
 
+  const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `ziwei-premium-${Date.now().toString(36)}`);
+  await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
+    manuscriptSource: fallbackUsed ? "mixed" : "llm-enhanced",
+    chapterCount: completedChapters.length,
+    archive: {
+      reportId,
+      reportType: "ziwei_book",
+      displayName: "자미두수",
+      title: `${clean(profile?.name) || "사용자"}님의 자미두수 리포트`,
+      mode: "personal",
+      birthName: clean(profile?.name),
+      summary: clean(completedChapters?.[0]?.sections?.[0]?.body || "", 1000),
+      pdfUrl: clean(pdfReady?.pdfUrl),
+      chapters: completedChapters,
+      payload: ziweiPayload,
+      pdfReady,
+      canReopen: true,
+      canDownload: Boolean(clean(pdfReady?.pdfUrl)),
+    },
+  });
+
   return json({
     ok: true,
     serviceKey: ZIWEI_SERVICE_KEY,
     featureKey,
+    reportId,
+    sessionId: executionCtx.sessionId || clean(body?.sessionId || body?.reportSessionId || ""),
     chapterCount: CHAPTER_BLUEPRINTS.length,
     chapters: completedChapters,
     payload: ziweiPayload,
@@ -1199,6 +1243,17 @@ async function handlePrepare(request, env) {
     localDraftChapterCount: localChapters.length,
     finalChapterCount: completedChapters.length,
   });
+  } catch (error) {
+    await failPremiumPdfExecution(
+      env,
+      auth.userId,
+      executionCtx,
+      "ziwei_generation_failed",
+      clean(error?.message || "자미두수 PDF 생성에 실패했습니다."),
+      "ziwei-generation",
+    );
+    throw error;
+  }
 }
 
 export async function handleZiweiBookRoutes(request, env = {}) {

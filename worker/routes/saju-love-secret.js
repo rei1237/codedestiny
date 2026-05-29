@@ -5,6 +5,12 @@ import { callGeminiText } from "../lib/gemini.js";
 import { LOVE_SECRET_MODE_CONFIG } from "../lib/saju-premium-chapters.js";
 import { buildLoveSecretReference } from "../lib/love-secret-reference.js";
 import { connectDb, mongoose } from "../lib/db.js";
+import {
+  buildPremiumExecutionContext,
+  completePremiumPdfExecution,
+  failPremiumPdfExecution,
+  startPremiumPdfExecution,
+} from "../lib/premium-pdf-execution.js";
 
 const LOVE_SECRET_SERVICE_KEY = "saju-love-secret";
 const LOVE_SECRET_FEATURE_KEY_BY_MODE = Object.freeze({
@@ -780,6 +786,13 @@ async function runLoveSecretJob(env, jobId) {
   if (!job) return;
 
    const sessionId = clean(job?.requestBody?.sessionId || job?.requestBody?.reportSessionId);
+  const execRaw = job?.execution && typeof job.execution === "object" ? job.execution : {};
+  const executionCtx = {
+    executionKey: clean(execRaw.executionKey, 120),
+    sessionId: clean(execRaw.sessionId || sessionId, 180),
+    reportId: clean(execRaw.reportId || job?.reportId, 120),
+    metadata: execRaw.metadata && typeof execRaw.metadata === "object" ? execRaw.metadata : null,
+  };
 
   await coll.updateOne(
     { _id },
@@ -996,6 +1009,30 @@ async function runLoveSecretJob(env, jobId) {
       },
     );
     console.info("[LoveBookPremiumPDF][PdfRenderSuccess]", { chapterCount: totalChapters, fallbackUsed, manuscriptSource });
+    await completePremiumPdfExecution(
+      env,
+      String(job?.userId || ""),
+      executionCtx,
+      clean(job?.reportId),
+      {
+        manuscriptSource,
+        chapterCount: totalChapters,
+        archive: {
+          reportId: clean(job?.reportId),
+          reportType: "love_book",
+          displayName: "사주 연애 비책",
+          title: `${clean(base?.user?.name || "사용자")}님의 연애 비책`,
+          mode,
+          birthName: clean(base?.user?.name),
+          summary: clean(finalChapters?.[0]?.sections?.[0]?.body || "", 1000),
+          pdfUrl: "",
+          chapters: finalChapters,
+          payload: { mode, chapterCount: totalChapters },
+          canReopen: true,
+          canDownload: false,
+        },
+      },
+    );
     resolveLoveSecretLock(sessionId, "done", String(_id));
   } catch (error) {
     console.error("[LoveBookPremiumPDF][Error]", normalizeLoveBookError(error));
@@ -1011,6 +1048,14 @@ async function runLoveSecretJob(env, jobId) {
           updatedAt: new Date(),
         },
       },
+    );
+    await failPremiumPdfExecution(
+      env,
+      String(job?.userId || ""),
+      executionCtx,
+      "love_secret_generation_failed",
+      clean(error?.message || "연애 비책 생성 실패"),
+      "love-secret-generation",
     );
     resolveLoveSecretLock(sessionId, "failed", String(_id));
   }
@@ -1087,7 +1132,7 @@ async function authorizeLoveSecret(request, env, body, mode) {
     };
   }
 
-  return { ok: true, auth, featureKey };
+  return { ok: true, auth, featureKey, access };
 }
 
 async function handleGenerateChapter(request, env) {
@@ -1166,6 +1211,21 @@ async function handlePrepare(request, env) {
   }
 
   const config = safeModeChapterConfig(mode);
+  const sessionId = clean(body?.sessionId || body?.reportSessionId) || "";
+  const executionCtx = buildPremiumExecutionContext({
+    serviceKey: LOVE_SECRET_SERVICE_KEY,
+    reportType: "loveSecret",
+    userId: authz?.auth?.userId,
+    featureKey: authz.featureKey,
+    sessionId,
+    reportId: clean(body?.reportId),
+    access: authz.access,
+    body,
+    timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+  });
+  await startPremiumPdfExecution(env, authz?.auth?.userId, executionCtx);
+
+  try {
   console.info("[LoveBookPremiumPDF][LocalCalculationStart]", { mode });
   console.info("[LoveBookPremiumPDF][LocalCalculationSuccess]", {
     selfDayMasterResolved: Boolean(clean(base?.core?.dayMaster)),
@@ -1236,17 +1296,49 @@ async function handlePrepare(request, env) {
   console.info("[LoveBookPremiumPDF][PdfRenderStart]", { chapterCount: finalChapters.length, fallbackUsed, manuscriptSource });
   console.info("[LoveBookPremiumPDF][PdfRenderSuccess]", { chapterCount: finalChapters.length, fallbackUsed, manuscriptSource });
 
+  const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `love-secret-${Date.now().toString(36)}`);
+  await completePremiumPdfExecution(env, authz?.auth?.userId, executionCtx, reportId, {
+    manuscriptSource,
+    chapterCount: totalChapters,
+    archive: {
+      reportId,
+      reportType: "love_book",
+      displayName: "사주 연애 비책",
+      title: `${clean(base?.user?.name || "사용자")}님의 연애 비책`,
+      mode,
+      birthName: clean(base?.user?.name),
+      summary: clean(finalChapters?.[0]?.sections?.[0]?.body || "", 1000),
+      pdfUrl: "",
+      chapters: finalChapters,
+      payload: { mode, chapterCount: totalChapters },
+      canReopen: true,
+      canDownload: false,
+    },
+  });
+
   return json({
     ok: true,
     featureKey: authz.featureKey,
     mode,
-    sessionId: clean(body?.sessionId || body?.reportSessionId) || "",
+    reportId,
+    sessionId,
     chapterCount: totalChapters,
     fallbackUsed,
     manuscriptSource,
     pdfUrl: "",
     chapters: finalChapters,
   });
+  } catch (error) {
+    await failPremiumPdfExecution(
+      env,
+      authz?.auth?.userId,
+      executionCtx,
+      "love_secret_prepare_failed",
+      clean(error?.message || "연애 비책 생성 실패"),
+      "love-secret-prepare-sync",
+    );
+    throw error;
+  }
 }
 
 async function handlePrepareAsync(request, env, ctx) {
@@ -1270,6 +1362,18 @@ async function handlePrepareAsync(request, env, ctx) {
 
   const config = safeModeChapterConfig(mode);
   const sessionId = clean(body?.sessionId || body?.reportSessionId || `love-book:${clean(body?.reportId)}`);
+  const executionCtx = buildPremiumExecutionContext({
+    serviceKey: LOVE_SECRET_SERVICE_KEY,
+    reportType: "loveSecret",
+    userId: authz?.auth?.userId,
+    featureKey: authz.featureKey,
+    sessionId,
+    reportId: clean(body?.reportId),
+    access: authz.access,
+    body,
+    timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+  });
+  await startPremiumPdfExecution(env, authz?.auth?.userId, executionCtx);
   const lockState = acquireLoveSecretLock(sessionId);
   if (!lockState.ok) {
     const existing = lockState.existing || {};
@@ -1335,6 +1439,12 @@ async function handlePrepareAsync(request, env, ctx) {
         profile: body?.profile && typeof body.profile === "object" ? body.profile : {},
         partnerData: body?.partnerData || "",
       },
+      execution: {
+        executionKey: executionCtx.executionKey,
+        sessionId: executionCtx.sessionId,
+        reportId: executionCtx.reportId,
+        metadata: executionCtx.metadata,
+      },
       result: null,
       errorMessage: "",
       createdAt: now,
@@ -1376,6 +1486,14 @@ async function handlePrepareAsync(request, env, ctx) {
       pollAfterMs: LOVE_SECRET_JOB_POLL_AFTER_MS,
     }, { status: 202 });
   } catch (error) {
+    await failPremiumPdfExecution(
+      env,
+      authz?.auth?.userId,
+      executionCtx,
+      "love_secret_prepare_failed",
+      clean(error?.message || "연애 비책 준비 실패"),
+      "love-secret-prepare",
+    );
     if (!isLikelyDbUnavailableError(error)) {
       resolveLoveSecretLock(sessionId, "failed", "");
       throw error;
@@ -1390,6 +1508,31 @@ async function handlePrepareAsync(request, env, ctx) {
     });
 
     resolveLoveSecretLock(sessionId, "done", "");
+
+    await completePremiumPdfExecution(
+      env,
+      authz?.auth?.userId,
+      executionCtx,
+      clean(body?.reportId),
+      {
+        manuscriptSource: fallbackUsed ? "mixed" : "local",
+        chapterCount: directChapterCount,
+        archive: {
+          reportId: clean(body?.reportId),
+          reportType: "love_book",
+          displayName: "사주 연애 비책",
+          title: `${clean(base?.user?.name || "사용자")}님의 연애 비책`,
+          mode,
+          birthName: clean(base?.user?.name),
+          summary: clean(chapters?.[0]?.sections?.[0]?.body || "", 1000),
+          pdfUrl: "",
+          chapters,
+          payload: { mode, chapterCount: directChapterCount },
+          canReopen: true,
+          canDownload: false,
+        },
+      },
+    );
 
     return json({
       ok: true,

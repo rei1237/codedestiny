@@ -11,9 +11,12 @@ import {
 import {
   completeServiceExecution,
   failServiceExecution,
+  getServiceExecution,
   heartbeatServiceExecution,
   startServiceExecution,
 } from "../lib/service-execution-task.js";
+import { connectDb } from "../lib/db.js";
+import { ServiceExecutionTransaction } from "../lib/models.js";
 
 const ACCESS_DECISION_REASONS = Object.freeze({
   FREE: "free",
@@ -68,6 +71,136 @@ function toCode(payload) {
 
 function success(data, message = "요청이 성공했습니다.", init = {}) {
   return json({ ok: true, data, message }, init);
+}
+
+function cleanText(value, max = 240) {
+  return String(value || "").trim().slice(0, max);
+}
+
+function toIso(value) {
+  if (!value) return "";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toISOString();
+}
+
+const REPORT_TYPE_FALLBACK = Object.freeze({
+  lifeBook: { reportType: "life_book", displayName: "사주 인생의 책" },
+  loveSecret: { reportType: "love_book", displayName: "사주 연애 비책" },
+  sajuNewYear: { reportType: "new_year", displayName: "사주 신년운세" },
+  ziweiPremium: { reportType: "ziwei_book", displayName: "자미두수" },
+  sookyoPremium: { reportType: "sukyo_book", displayName: "숙요점" },
+  westernAstrologyPremium: { reportType: "western_astro_book", displayName: "점성술" },
+  vedicPremium: { reportType: "vedic_book", displayName: "베다점" },
+  soulOriginKarma: { reportType: "soul_origin_book", displayName: "운명의 기원서" },
+});
+
+function toArchiveBase(doc) {
+  const metadata = (doc && typeof doc.metadata === "object" && doc.metadata) ? doc.metadata : {};
+  const archive = (metadata.archive && typeof metadata.archive === "object") ? metadata.archive : {};
+  const fallback = REPORT_TYPE_FALLBACK[String(doc?.reportType || "")] || {
+    reportType: cleanText(doc?.reportType || "premium_report", 80) || "premium_report",
+    displayName: "프리미엄 리포트",
+  };
+
+  const reportId = cleanText(doc?.reportId || archive.reportId || metadata.reportId, 120);
+  const createdAt = toIso(doc?.createdAt || archive.createdAt || doc?.updatedAt);
+  const completedAt = toIso(doc?.completedAt || archive.completedAt || doc?.updatedAt || doc?.createdAt);
+  const updatedAt = toIso(doc?.updatedAt || completedAt || createdAt);
+  const pdfUrl = cleanText(archive.pdfUrl || archive?.pdfReady?.pdfUrl, 500);
+  const chapters = Array.isArray(archive.chapters) ? archive.chapters : [];
+  const canReopen = Boolean(pdfUrl || chapters.length > 0 || (archive.payload && typeof archive.payload === "object"));
+
+  return {
+    reportId,
+    reportType: cleanText(archive.reportType || fallback.reportType, 80) || fallback.reportType,
+    title: cleanText(archive.title || "", 240),
+    displayName: cleanText(archive.displayName || fallback.displayName, 120) || fallback.displayName,
+    mode: cleanText(archive.mode || "", 40),
+    status: "completed",
+    createdAt,
+    completedAt,
+    updatedAt,
+    birthName: cleanText(archive.birthName || "", 120),
+    targetName: cleanText(archive.targetName || "", 120),
+    pdfUrl,
+    pdfStorageKey: cleanText(archive.pdfStorageKey || "", 200),
+    summary: cleanText(archive.summary || "", 1000),
+    chapters,
+    payload: archive.payload && typeof archive.payload === "object" ? archive.payload : null,
+    paymentSessionId: cleanText(doc?.paymentSessionId || metadata.purchaseId || "", 160),
+    coinAmount: Number(doc?.coinAmount || 0),
+    canReopen,
+    canDownload: Boolean(pdfUrl),
+  };
+}
+
+async function requireArchiveAuth(request, env) {
+  const auth = await getOptionalUserFromRequest(request, env);
+  if (!auth?.userId) {
+    return {
+      ok: false,
+      response: failure(401, "AUTH_REQUIRED", "로그인이 필요합니다."),
+      auth: null,
+    };
+  }
+  return { ok: true, auth, response: null };
+}
+
+async function handlePdfArchiveList(request, env) {
+  const authCheck = await requireArchiveAuth(request, env);
+  if (!authCheck.ok) return authCheck.response;
+
+  await connectDb(env);
+  const docs = await ServiceExecutionTransaction.find({
+    userId: authCheck.auth.userId,
+    status: "success",
+    premiumStatus: "completed",
+    reportId: { $exists: true, $ne: "" },
+  })
+    .sort({ completedAt: -1, updatedAt: -1, createdAt: -1 })
+    .limit(120)
+    .lean();
+
+  const items = docs
+    .map((doc) => toArchiveBase(doc))
+    .filter((item) => item.reportId)
+    .sort((a, b) => String(b.completedAt || b.updatedAt || "").localeCompare(String(a.completedAt || a.updatedAt || "")));
+
+  return json({ ok: true, items });
+}
+
+async function handlePdfArchiveDetail(request, env, reportIdRaw) {
+  const authCheck = await requireArchiveAuth(request, env);
+  if (!authCheck.ok) return authCheck.response;
+
+  const reportId = cleanText(reportIdRaw, 120);
+  if (!reportId) {
+    return failure(400, "MISSING_REPORT_ID", "reportId가 필요합니다.");
+  }
+
+  await connectDb(env);
+
+  const foundAny = await ServiceExecutionTransaction.findOne({ reportId }).lean();
+  if (foundAny && String(foundAny.userId || "") !== String(authCheck.auth.userId || "")) {
+    return failure(403, "FORBIDDEN", "이 리포트를 열람할 권한이 없습니다.");
+  }
+
+  const doc = await ServiceExecutionTransaction.findOne({
+    userId: authCheck.auth.userId,
+    reportId,
+    status: "success",
+    premiumStatus: "completed",
+  })
+    .sort({ completedAt: -1, updatedAt: -1 })
+    .lean();
+
+  if (!doc) {
+    return failure(404, "REPORT_NOT_FOUND", "저장된 PDF 결과를 찾을 수 없습니다.");
+  }
+
+  const report = toArchiveBase(doc);
+  return json({ ok: true, report });
 }
 
 function failure(status, code, message, debugMessage, extras = {}, errorDetails) {
@@ -760,6 +893,29 @@ async function runServiceExecutionAction(request, env, action) {
   }, "서비스 실행 상태가 반영되었습니다.", { status: Number(result.status || 200) });
 }
 
+async function getServiceExecutionStatus(request, env) {
+  const authCheck = await requireBillingAuth(request, env, { cost: 1 });
+  if (!authCheck.ok) return authCheck.response;
+
+  const url = new URL(request.url);
+  const result = await getServiceExecution(env, authCheck.auth.userId, {
+    executionKey: String(url.searchParams.get("executionKey") || "").trim(),
+    requestId: String(url.searchParams.get("requestId") || "").trim(),
+    sessionId: String(url.searchParams.get("sessionId") || "").trim(),
+    reportId: String(url.searchParams.get("reportId") || "").trim(),
+  });
+
+  if (!result?.ok) {
+    return failure(
+      Number(result?.status || 400),
+      "SERVICE_EXECUTION_NOT_FOUND",
+      String(result?.message || "서비스 실행 상태를 찾을 수 없습니다."),
+    );
+  }
+
+  return success({ execution: result.execution || null }, "서비스 실행 상태를 조회했습니다.");
+}
+
 export async function handleBillingRoutes(request, env) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/billing");
@@ -783,6 +939,12 @@ export async function handleBillingRoutes(request, env) {
     if (method === "POST" && path === "/executions/heartbeat") return await runServiceExecutionAction(request, env, "heartbeat");
     if (method === "POST" && path === "/executions/complete") return await runServiceExecutionAction(request, env, "complete");
     if (method === "POST" && path === "/executions/fail") return await runServiceExecutionAction(request, env, "fail");
+    if (method === "GET" && path === "/executions/status") return await getServiceExecutionStatus(request, env);
+    if (method === "GET" && path === "/pdf-archive") return await handlePdfArchiveList(request, env);
+    if (method === "GET" && path.startsWith("/pdf-archive/")) {
+      const reportId = cleanText(path.slice("/pdf-archive/".length), 120);
+      return await handlePdfArchiveDetail(request, env, reportId);
+    }
 
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();

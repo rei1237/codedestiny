@@ -12,6 +12,12 @@ import {
 import { VEDIC_PREMIUM_CHAPTERS, VEDIC_PREMIUM_FEATURE_KEY } from "../lib/vedic-premium-chapters.js";
 import { generateVedicPremiumReport, normalizeVedicError, validateVedicPayloadForApi } from "../lib/vedic-premium-generator.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
+import {
+  buildPremiumExecutionContext,
+  completePremiumPdfExecution,
+  failPremiumPdfExecution,
+  startPremiumPdfExecution,
+} from "../lib/premium-pdf-execution.js";
 
 const ASTRO_PREMIUM_LOCK_TTL_MS = 10 * 60 * 1000;
 const astroPremiumGenerationLocks = new Map();
@@ -136,10 +142,12 @@ function toSafeVedicChartLog(localVedicChartJson = {}) {
 }
 
 async function handleAstroPremiumPrepare(request, env) {
+  let auth = null;
+  let body = {};
   let sessionId = "";
   try {
-    const auth = await requireAuth(request, env);
-    const body = await readJson(request);
+    auth = await requireAuth(request, env);
+    body = await readJson(request);
     sessionId = getAstroSessionId(body);
     const premiumAccessToken = readPremiumAccessToken(request, body);
     const featureKey = String(body?.featureKey || ASTRO_PREMIUM_FEATURE_KEY);
@@ -243,6 +251,19 @@ async function handleAstroPremiumPrepare(request, env) {
       }, { status: Number(access?.status) || 403 });
     }
 
+    const executionCtx = buildPremiumExecutionContext({
+      serviceKey: "astro-premium",
+      reportType: "westernAstrologyPremium",
+      userId: auth.userId,
+      featureKey,
+      sessionId,
+      reportId: clean(body?.reportId || body?.accessGrant?.reportId),
+      access,
+      body,
+      timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+    });
+    await startPremiumPdfExecution(env, auth.userId, executionCtx);
+
     const generated = await generateAstroPremiumReport(env, {
       ...body,
       sessionId,
@@ -259,12 +280,38 @@ async function handleAstroPremiumPrepare(request, env) {
         console.info(tag, payload || {});
       },
     });
-    const reportId = `astro-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    if (!generated?.validation?.ok) {
+      const error = new Error("점성술 프리미엄 원고 검증에 실패했습니다.");
+      error.code = "ASTRO_MANUSCRIPT_INVALID";
+      error.status = 422;
+      throw error;
+    }
+    const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `astro-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
+    await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
+      chapterCount: generated.chapterCount,
+      manuscriptSource: generated.manuscriptSource,
+      archive: {
+        reportId,
+        reportType: "western_astro_book",
+        displayName: "점성술",
+        title: `${clean(generated?.payload?.profile?.name || body?.name || "사용자")}님의 점성술 리포트`,
+        mode: clean(body?.mode || body?.reportMode || "personal"),
+        birthName: clean(generated?.payload?.profile?.name || body?.name),
+        summary: clean(generated?.chapters?.[0]?.sections?.[0]?.body || "", 1000),
+        pdfUrl: clean(generated?.pdfReady?.pdfUrl),
+        chapters: generated.chapters,
+        payload: generated.payload,
+        pdfReady: generated.pdfReady,
+        canReopen: true,
+        canDownload: Boolean(clean(generated?.pdfReady?.pdfUrl)),
+      },
+    });
 
     const responsePayload = {
       ok: true,
       featureKey,
       sessionId,
+      status: "completed",
       chapterCount: generated.chapterCount,
       fallbackUsed: Boolean(generated.fallbackUsed),
       pdfUrl: "",
@@ -277,6 +324,8 @@ async function handleAstroPremiumPrepare(request, env) {
       manuscriptSource: generated.manuscriptSource,
       finalManuscript: generated.finalManuscript,
       totalLength: generated.totalLength,
+      localDraftChapterCount: Array.isArray(generated?.finalManuscript) ? generated.finalManuscript.length : 0,
+      finalChapterCount: Array.isArray(generated?.chapters) ? generated.chapters.length : 0,
     };
 
     astroPremiumGenerationLocks.set(sessionId, {
@@ -290,6 +339,24 @@ async function handleAstroPremiumPrepare(request, env) {
 
     return json(responsePayload);
   } catch (error) {
+    await failPremiumPdfExecution(
+      env,
+      auth?.userId,
+      buildPremiumExecutionContext({
+        serviceKey: "astro-premium",
+        reportType: "westernAstrologyPremium",
+        userId: auth?.userId,
+        featureKey: String(body?.featureKey || ASTRO_PREMIUM_FEATURE_KEY),
+        sessionId,
+        reportId: clean(body?.reportId || body?.accessGrant?.reportId),
+        access: null,
+        body,
+        timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+      }),
+      "astro_generation_failed",
+      clean(error?.message || "점성술 프리미엄 PDF 생성에 실패했습니다."),
+      "astro-generation",
+    );
     if (sessionId) {
       astroPremiumGenerationLocks.set(sessionId, {
         sessionId,
@@ -308,9 +375,11 @@ async function handleAstroPremiumPrepare(request, env) {
 }
 
 async function handleVedicPremiumPrepare(request, env) {
+  let auth = null;
+  let body = {};
   try {
-    const auth = await requireAuth(request, env);
-    const body = await readJson(request);
+    auth = await requireAuth(request, env);
+    body = await readJson(request);
     const premiumAccessToken = readPremiumAccessToken(request, body);
     const featureKey = String(body?.featureKey || VEDIC_PREMIUM_FEATURE_KEY);
 
@@ -360,6 +429,19 @@ async function handleVedicPremiumPrepare(request, env) {
       }, { status: Number(access?.status) || 403 });
     }
 
+    const executionCtx = buildPremiumExecutionContext({
+      serviceKey: "vedic-premium",
+      reportType: "vedicPremium",
+      userId: auth.userId,
+      featureKey,
+      sessionId: clean(body?.sessionId || body?.reportSessionId || body?.generationId),
+      reportId: clean(body?.reportId || body?.accessGrant?.reportId),
+      access,
+      body,
+      timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+    });
+    await startPremiumPdfExecution(env, auth.userId, executionCtx);
+
     const generated = await generateVedicPremiumReport(env, body?.vedicBase || body, {
       log: (stage, payload) => {
         const tag = `[VedicPremiumPDF][${stage}]`;
@@ -370,11 +452,39 @@ async function handleVedicPremiumPrepare(request, env) {
         console.info(tag, payload || {});
       },
     });
-    const reportId = `vedic-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    if (!generated?.diagnostics?.manuscript?.ok) {
+      const error = new Error("베다점 프리미엄 원고 검증에 실패했습니다.");
+      error.code = "VEDIC_MANUSCRIPT_INVALID";
+      error.status = 422;
+      throw error;
+    }
+    const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `vedic-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
+    const vedicSessionId = clean(body?.sessionId || body?.reportSessionId || body?.generationId) || `vedic-premium:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`;
+    await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
+      chapterCount: generated.chapterCount,
+      manuscriptSource: generated.manuscriptSource,
+      archive: {
+        reportId,
+        reportType: "vedic_book",
+        displayName: "베다점",
+        title: `${clean(generated?.payload?.profile?.name || body?.name || "사용자")}님의 베다점 리포트`,
+        mode: clean(body?.mode || body?.reportMode || "personal"),
+        birthName: clean(generated?.payload?.profile?.name || body?.name),
+        summary: clean(generated?.chapters?.[0]?.sections?.[0]?.body || "", 1000),
+        pdfUrl: clean(generated?.pdfReady?.pdfUrl),
+        chapters: generated.chapters,
+        payload: generated.payload,
+        pdfReady: generated.pdfReady,
+        canReopen: true,
+        canDownload: Boolean(clean(generated?.pdfReady?.pdfUrl)),
+      },
+    });
 
     return json({
       ok: true,
       featureKey,
+      status: "completed",
+      sessionId: vedicSessionId,
       chapterCount: generated.chapterCount,
       fallbackUsed: Boolean(generated.fallbackUsed),
       pdfUrl: "",
@@ -383,8 +493,29 @@ async function handleVedicPremiumPrepare(request, env) {
       payload: generated.payload,
       pdfReady: generated.pdfReady,
       quality: generated.quality,
+      manuscriptSource: generated.manuscriptSource,
+      localDraftChapterCount: Array.isArray(generated?.localDraft?.chapters) ? generated.localDraft.chapters.length : 0,
+      finalChapterCount: Array.isArray(generated?.chapters) ? generated.chapters.length : 0,
     });
   } catch (error) {
+    await failPremiumPdfExecution(
+      env,
+      auth?.userId,
+      buildPremiumExecutionContext({
+        serviceKey: "vedic-premium",
+        reportType: "vedicPremium",
+        userId: auth?.userId,
+        featureKey: String(body?.featureKey || VEDIC_PREMIUM_FEATURE_KEY),
+        sessionId: clean(body?.sessionId || body?.reportSessionId || body?.generationId),
+        reportId: clean(body?.reportId || body?.accessGrant?.reportId),
+        access: null,
+        body,
+        timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+      }),
+      "vedic_generation_failed",
+      clean(error?.message || "베다점 프리미엄 PDF 생성에 실패했습니다."),
+      "vedic-generation",
+    );
     console.error("[VedicPremiumPDF][Error]", {
       code: String(error?.code || "VEDIC_PREMIUM_GENERATION_FAILED"),
       message: String(error?.message || "베다점 프리미엄 PDF 생성에 실패했습니다."),

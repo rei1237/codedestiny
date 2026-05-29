@@ -9,6 +9,17 @@
   var RESULT = null;
   var GENERATING = false;
   var LAST_SEED = null;
+  var ZIWEI_GENERATION_STATE = {
+    isOpen: false,
+    status: 'idle',
+    currentChapterNo: 1,
+    totalChapters: TOTAL_CHAPTERS,
+    completedChapters: [],
+    failedChapters: [],
+    sessionId: null,
+    reportId: null,
+    message: ''
+  };
 
   var CHAPTERS = [
     '제1장 명궁 완전 해석 — 나라는 사람의 첫 번째 별빛',
@@ -59,6 +70,33 @@
   function pad2(value){ return String(Number(value) || 0).padStart(2, '0'); }
   function setText(id, value){ var el = $(id); if(el) el.textContent = value; }
   function setDisplay(id, value){ var el = $(id); if(el) el.style.display = value; }
+
+  function updateZiweiGenerationState(patch){
+    ZIWEI_GENERATION_STATE = Object.assign({}, ZIWEI_GENERATION_STATE, patch || {});
+    try { window.__ziweiPdfGenerationState = ZIWEI_GENERATION_STATE; } catch (_) {}
+  }
+
+  function resetZiweiGenerationState(){
+    updateZiweiGenerationState({
+      isOpen: true,
+      status: 'preparing',
+      currentChapterNo: 1,
+      totalChapters: TOTAL_CHAPTERS,
+      completedChapters: [],
+      failedChapters: [],
+      sessionId: null,
+      reportId: null,
+      message: ''
+    });
+  }
+
+  function isZiweiReportReady(data){
+    var payload = data || {};
+    var chapters = Array.isArray(payload.chapters) ? payload.chapters : [];
+    var hasReportId = Boolean(text(payload.reportId));
+    var hasPdfHtml = Boolean(text(payload && payload.pdfReady && payload.pdfReady.html));
+    return hasReportId && hasPdfHtml && chapters.length >= TOTAL_CHAPTERS;
+  }
 
   function logFlow(tag, payload){
     try { console.info('[ZiweiBook][' + tag + ']', payload || {}); } catch(_) {}
@@ -154,6 +192,7 @@
     var fill = $('zbProgressBar');
     if(fill) fill.style.width = Math.max(0, Math.min(100, percent)) + '%';
     setText('zbLoadingChapter', label || '자미두수 명반을 준비하고 있습니다.');
+    updateZiweiGenerationState({ message: text(label || ''), totalChapters: TOTAL_CHAPTERS });
   }
 
   function markChapter(index){
@@ -166,6 +205,13 @@
     var countText = Math.max(0, Math.min(TOTAL_CHAPTERS, index + 1)) + ' / ' + TOTAL_CHAPTERS + ' 챕터 완성';
     if($('zbChapterCount')) setText('zbChapterCount', countText);
     else setText('zbProgressText', countText);
+    var safeIndex = Math.max(-1, Math.min(TOTAL_CHAPTERS - 1, Number(index) || -1));
+    var completed = [];
+    for(var c = 1; c <= safeIndex + 1; c++) completed.push(c);
+    updateZiweiGenerationState({
+      currentChapterNo: Math.max(1, safeIndex + 1),
+      completedChapters: completed
+    });
   }
 
   function getField(ids){
@@ -558,11 +604,13 @@
 
   async function postPrepare(profile, seed, payment, birthInput){
     var token = (payment && (payment.premiumAccessToken || payment.accessToken)) || getPremiumToken();
+    var sessionId = text(payment && payment.sessionId);
     var headers = { 'Content-Type': 'application/json' };
     if(token) headers['x-premium-access-token'] = token;
     var body = {
       featureKey: FEATURE_KEY,
       reportType: 'ziweiPremium',
+      sessionId: sessionId || undefined,
       premiumAccessToken: token || '',
       paymentContext: payment || {},
       birthProfile: profile,
@@ -606,8 +654,14 @@
 
   function showError(message){
     setDisplay('zbLoadingScreen','none');
-    setDisplay('zbStartScreen','block');
-    var msg = message || '자미두수 PDF 생성 중 문제가 발생했습니다.';
+    setDisplay('zbStartScreen','none');
+    setDisplay('zbErrorScreen','block');
+    var msg = message || 'PDF 생성이 완료되지 않아 사용된 코인이 자동으로 환불되었습니다. 다시 시도해 주세요.';
+    updateZiweiGenerationState({
+      status: 'failed',
+      failedChapters: ZIWEI_GENERATION_STATE.failedChapters.concat([Math.max(1, Number(ZIWEI_GENERATION_STATE.currentChapterNo || 1))]),
+      message: msg
+    });
     if(window.showToast) window.showToast(msg, 'error');
     else alert(msg);
   }
@@ -645,6 +699,7 @@
     modal.classList.add('active');
     modal.style.display = 'flex';
     document.body.classList.add('modal-open');
+    updateZiweiGenerationState({ isOpen: true, totalChapters: TOTAL_CHAPTERS });
     logFlow('ModalOpen', {
       hasProfile: Boolean(profile && profile.year && profile.month),
       hasBirthDate: Boolean(profile && profile.birthDate),
@@ -666,6 +721,7 @@
       modal.style.display = 'none';
       document.body.classList.remove('modal-open');
     }
+    updateZiweiGenerationState({ isOpen: false, status: GENERATING ? 'generating' : ZIWEI_GENERATION_STATE.status });
   };
 
   window.gotoZiweiPremium = function(){
@@ -676,9 +732,11 @@
     if(GENERATING) return;
     GENERATING = true;
     RESULT = null;
+    resetZiweiGenerationState();
     try {
       setDisplay('zbStartScreen','none');
       setDisplay('zbResultScreen','none');
+      setDisplay('zbErrorScreen','none');
       setDisplay('zbLoadingScreen','block');
       updateProgress(8, '프로필 정보 확인 중');
       markChapter(-1);
@@ -696,25 +754,34 @@
         isTimeUnknown: resolved.birthInput.isTimeUnknown
       });
       validateBirthInputOrThrow(resolved.birthInput);
+      updateZiweiGenerationState({ status: 'birthInputValidated' });
       logFlow('ValidationBeforePayment', {
         hasBirthDate: true,
         hasBirthTime: true,
         birthHour: resolved.birthInput.birthHour
       });
       updateProgress(18, '자미두수 명반 계산 중');
+      updateZiweiGenerationState({ status: 'calculating' });
       var profile = resolved.profileForEngine;
       var seed = await buildZiweiSeed(profile);
       updateProgress(35, '13챕터 로컬 원고 생성 중');
+      updateZiweiGenerationState({ status: 'drafting' });
       logFlow('PaymentGateStart', { featureKey: FEATURE_KEY, coinCost: COIN_COST });
       updateProgress(46, '결제/코인 접근 확인 중');
+      updateZiweiGenerationState({ status: 'paymentChecking' });
       var payment = await ensurePayment();
       logFlow('PaymentGateSuccess', {
         hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken || payment.token))
       });
       updateProgress(58, '13챕터 로컬 원고 생성 중');
+      var sessionId = 'ziwei-premium:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
+      updateZiweiGenerationState({ status: 'generating', sessionId: sessionId, currentChapterNo: 1 });
       logFlow('SessionCreateStart', { endpoint: PREPARE_API, hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken)) });
       logFlow('PdfRequestStart', { endpoint: PREPARE_API, chapterTarget: TOTAL_CHAPTERS });
-      var data = await postPrepare(profile, seed, payment, resolved.birthInput);
+      var data = await postPrepare(profile, seed, Object.assign({}, payment, { sessionId: sessionId }), resolved.birthInput);
+      if(!isZiweiReportReady(data)){
+        throw new Error('자미두수 PDF 결과가 아직 완전히 저장되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+      }
       logFlow('SessionCreateSuccess', {
         chapterCount: Array.isArray(data && data.chapters) ? data.chapters.length : 0,
         fallbackUsed: Boolean(data && data.fallbackUsed)
@@ -727,9 +794,11 @@
         logFlow('LocalDraftProgress', { chapterDone: i + 1, chapterTotal: TOTAL_CHAPTERS });
       }
       updateProgress(82, 'AI 상담문 보강 중');
+      updateZiweiGenerationState({ status: 'enhancing' });
       updateProgress(95, 'PDF 편집/렌더링 중');
+      updateZiweiGenerationState({ status: 'savingPdf' });
       RESULT = data;
-      if(data && data.fallbackUsed && window.showToast){
+      if(data && data.fallbackUsed && isZiweiReportReady(data) && window.showToast){
         window.showToast('AI 문장 보강이 지연되어 로컬 자미두수 명반 기반 프리미엄 원고로 PDF를 완성합니다.', 'info');
       }
       logFlow('PdfRequestSuccess', {
@@ -738,6 +807,7 @@
         fallbackUsed: Boolean(data && data.fallbackUsed)
       });
       updateProgress(100, '완료');
+      updateZiweiGenerationState({ status: 'completed', reportId: text(data && data.reportId), currentChapterNo: TOTAL_CHAPTERS });
       renderResult(data);
     } catch(error) {
       var normalizedError = normalizeZiweiError(error);
