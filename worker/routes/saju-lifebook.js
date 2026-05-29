@@ -170,6 +170,64 @@ function round(value) {
   return Math.round(Number(value || 0));
 }
 
+function safeNumber(value, fallback = 0) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function normalizeIncomingAnalysisSignals(raw = {}) {
+  const src = raw && typeof raw === "object" ? raw : {};
+  const weights = src.elementWeights && typeof src.elementWeights === "object"
+    ? {
+        wood: safeNumber(src.elementWeights.wood, 0),
+        fire: safeNumber(src.elementWeights.fire, 0),
+        earth: safeNumber(src.elementWeights.earth, 0),
+        metal: safeNumber(src.elementWeights.metal, 0),
+        water: safeNumber(src.elementWeights.water, 0),
+      }
+    : null;
+
+  const yongList = Array.isArray(src.yongshinElements)
+    ? src.yongshinElements.map((v) => normalizeSajuElementToken(v, "")).filter(Boolean)
+    : [];
+  const kiList = Array.isArray(src.kishinElements)
+    ? src.kishinElements.map((v) => normalizeSajuElementToken(v, "")).filter(Boolean)
+    : [];
+
+  const tenGodCounts = src.tenGodCounts && typeof src.tenGodCounts === "object"
+    ? { ...src.tenGodCounts }
+    : null;
+
+  return {
+    dayMaster: clean(src.dayMaster),
+    monthBranch: clean(src.monthBranch),
+    powerLabel: clean(src.powerLabel),
+    johuType: clean(src.johuType),
+    yongshinElements: yongList,
+    kishinElements: kiList,
+    currentDaewun: clean(src.currentDaewun),
+    isJong: Boolean(src.isJong),
+    jongName: clean(src.jongName),
+    elementWeights: weights,
+    tenGodCounts,
+  };
+}
+
+function pickTopTenGod(tenGodCounts = null) {
+  const map = tenGodCounts && typeof tenGodCounts === "object" ? tenGodCounts : null;
+  if (!map) return "";
+  let topKey = "";
+  let topValue = -1;
+  Object.keys(map).forEach((key) => {
+    const value = safeNumber(map[key], 0);
+    if (value > topValue) {
+      topValue = value;
+      topKey = String(key);
+    }
+  });
+  return topKey;
+}
+
 function deriveElementBalance(profile, signals) {
   const seed = (profile.year * 31) + (profile.month * 17) + (profile.day * 13) + (Number(profile.hour || 12) * 7);
   const dayEl = STEM_TO_ELEMENT[String(signals.dayMaster || "")] || "earth";
@@ -374,7 +432,7 @@ function extractSignalFromSajuData(rawSajuData = "") {
   };
 }
 
-function deriveLocalSignals(profile, rawSajuData = "") {
+function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
   const stems = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
   const branches = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
   const elements = ["목", "화", "토", "금", "수"];
@@ -395,26 +453,73 @@ function deriveLocalSignals(profile, rawSajuData = "") {
   const caution = pickByIndex(elements, seed + 1);
 
   const parsed = extractSignalFromSajuData(rawSajuData);
+  const parsedAnalysis = normalizeIncomingAnalysisSignals(analysisSignals);
+  const analysisWeights = parsedAnalysis.elementWeights;
+
+  let dominantElement = "";
+  let weakestElement = "";
+  if (analysisWeights) {
+    const entries = [
+      ["목", safeNumber(analysisWeights.wood, 0)],
+      ["화", safeNumber(analysisWeights.fire, 0)],
+      ["토", safeNumber(analysisWeights.earth, 0)],
+      ["금", safeNumber(analysisWeights.metal, 0)],
+      ["수", safeNumber(analysisWeights.water, 0)],
+    ].sort((a, b) => Number(b[1]) - Number(a[1]));
+    dominantElement = String(entries[0]?.[0] || "");
+    weakestElement = String(entries[entries.length - 1]?.[0] || "");
+  }
+
+  const topTenGod = pickTopTenGod(parsedAnalysis.tenGodCounts);
 
   return {
-    dayMaster: parsed?.dayMaster || dayMaster,
+    dayMaster: parsedAnalysis.dayMaster || parsed?.dayMaster || dayMaster,
     yearBranch,
-    monthBranch: parsed?.monthBranch || monthBranch,
-    useful: parsed?.useful || useful,
-    support: parsed?.support || support,
-    caution: parsed?.caution || caution,
+    monthBranch: parsedAnalysis.monthBranch || parsed?.monthBranch || monthBranch,
+    useful: parsedAnalysis.yongshinElements[0] || parsed?.useful || useful,
+    support: parsedAnalysis.yongshinElements[1] || parsed?.support || support,
+    caution: parsedAnalysis.kishinElements[0] || parsed?.caution || caution,
     timeKnown: Boolean(profile.timeKnown),
     timeLabel: profile.timeKnown ? `${pad2(profile.hour)}:${pad2(profile.minute)}` : "시간 미상",
     rhythm: `${pickByIndex(branches, seed)}-${pickByIndex(branches, seed + 3)}-${pickByIndex(branches, seed + 6)}`,
+    powerLabel: parsedAnalysis.powerLabel,
+    johuType: parsedAnalysis.johuType,
+    yongshinElements: parsedAnalysis.yongshinElements,
+    kishinElements: parsedAnalysis.kishinElements,
+    currentDaewun: parsedAnalysis.currentDaewun,
+    isJong: parsedAnalysis.isJong,
+    jongName: parsedAnalysis.jongName,
+    elementWeights: analysisWeights,
+    dominantElement,
+    weakestElement,
+    tenGodCounts: parsedAnalysis.tenGodCounts,
+    topTenGod,
   };
 }
 
 function buildCategoryText(profile, signals, chapterTitle, categoryTitle, categoryIndex) {
   const opening = `${profile.name}님의 흐름에서 ${categoryTitle}은(는) 단일 조언이 아니라 ${chapterTitle} 전체를 움직이는 축으로 읽혀야 합니다.`;
+  const elementRatioText = signals.elementWeights
+    ? `오행 분포는 목 ${safeNumber(signals.elementWeights.wood, 0)}%, 화 ${safeNumber(signals.elementWeights.fire, 0)}%, 토 ${safeNumber(signals.elementWeights.earth, 0)}%, 금 ${safeNumber(signals.elementWeights.metal, 0)}%, 수 ${safeNumber(signals.elementWeights.water, 0)}%로 읽힙니다.`
+    : "오행 분포는 현재 명식 흐름상 균형 재배치가 필요한 상태로 읽힙니다.";
+
+  const powerText = signals.powerLabel
+    ? `신강/신약 판정은 ${signals.powerLabel}이며, 조후는 ${signals.johuType || "중립"} 성향으로 나타납니다.`
+    : "신강/신약과 조후는 현재 구간에서 실행 속도보다 방향 정밀도가 우선입니다.";
+
+  const tenGodText = signals.topTenGod
+    ? `십성 분포에서는 ${signals.topTenGod} 성향이 두드러져 관계/직업/재정 판단에서 해당 성향의 장단점을 함께 관리해야 합니다.`
+    : "십성 분포는 특정 한 축보다 복합 반응이 강해, 상황별 의사결정 기준을 미리 문서화하는 것이 유리합니다.";
+
+  const daewunText = signals.currentDaewun
+    ? `현재 대운 ${signals.currentDaewun}의 흐름은 단기 성과보다 구조적 체질 개선에 힘을 실어 주며, 큰 결정을 내릴 때는 월 단위 검증 루틴이 필요합니다.`
+    : `현재 운의 리듬(${signals.rhythm})은 변동성이 있으므로 중요한 결정은 최소 2회 이상 교차 검증하는 방식이 안전합니다.`;
+
   const body = [
-    `${signals.dayMaster} 일간의 선택 방식은 ${signals.monthBranch} 월지의 현실 감각과 만나면서, ${signals.useful} 기운을 잘 쓰는 쪽으로 삶의 방향을 정리할 때 가장 안정적으로 힘을 냅니다.`,
-    `${categoryTitle}은(는) ${categoryIndex + 1}번째 관점으로 볼수록 선명해집니다. 감정의 즉흥성보다 일정, 관계 경계, 실행 단위를 먼저 고정하면 같은 운도 더 좋은 결과로 바뀝니다.`,
-    `${signals.support} 기운은 확장과 연결을, ${signals.caution} 기운은 과속과 누수를 뜻합니다. 그러므로 중요한 선택 앞에서는 사실 확인, 우선순위 재배치, 7일 단위 검토를 함께 적용하는 편이 좋습니다.`,
+    `${signals.dayMaster} 일간의 선택 방식은 ${signals.monthBranch} 월지의 현실 감각과 만나면서, 용신 ${signals.useful}과 희신 ${signals.support}을 생활 전략으로 옮길 때 가장 안정적으로 힘을 냅니다. 반대로 기신 ${signals.caution} 구간에서는 과속과 누수를 줄이는 통제력이 성패를 가릅니다.`,
+    `${elementRatioText} 최강 오행 ${signals.dominantElement || signals.useful}은 추진의 엔진이고, 취약 오행 ${signals.weakestElement || signals.caution}은 보완해야 할 기반입니다. 따라서 ${categoryTitle}에서는 즉흥 반응보다 근거 기록, 우선순위 압축, 주간 회고를 먼저 고정해야 같은 운에서도 결과 편차를 줄일 수 있습니다.`,
+    `${powerText} ${tenGodText} ${signals.isJong ? `종격(${signals.jongName || "종격"}) 성향이 보이는 시기이므로 장점 오행을 따르는 방향을 거스르지 않는 운영이 중요합니다.` : "강약 균형이 핵심이므로 특정 오행에 과몰입하지 않는 운영이 중요합니다."}`,
+    `${daewunText} ${categoryTitle}은(는) ${categoryIndex + 1}번째 관점으로 갈수록 실행 정밀도가 중요해집니다. 첫째, 이번 주 핵심 행동을 1~2개로 제한합니다. 둘째, 실행 결과를 수치와 문장으로 동시에 기록합니다. 셋째, 실패 패턴을 일정/관계/돈/건강 4축으로 분해해 다음 주에 즉시 반영합니다.`,
   ].join("\n\n");
 
   return `${opening}\n\n${body}`;
@@ -959,7 +1064,7 @@ async function handlePrepare(request, env) {
     }, { status });
   }
 
-  const signals = deriveLocalSignals(profile, body?.sajuData || "");
+  const signals = deriveLocalSignals(profile, body?.sajuData || "", body?.analysisSignals || {});
   const localChapters = buildLifeBookChapters(profile, signals);
   
   console.info("[LifeBook][Flow] LOCAL_CHAPTERS_READY", { chapterCount: localChapters.length });

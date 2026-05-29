@@ -835,6 +835,71 @@
     return lines.join('\n');
   }
 
+  function _collectLifeBookAnalysisSignals(profile) {
+    var snap = window.__destinyFlowerSajuSnapshot || {};
+    var analysis = snap.analysis || snap.saju || {};
+    var power = window.G_POWER || {};
+    var johu = window.G_JOHU || {};
+    var pillars = window.G_PILLARS || {};
+    var daewunList = window.G_DAEWUN || window.G_DAEUN || [];
+
+    var elementWeights = analysis.elementWeights && typeof analysis.elementWeights === 'object'
+      ? {
+          wood: Number(analysis.elementWeights.wood || 0),
+          fire: Number(analysis.elementWeights.fire || 0),
+          earth: Number(analysis.elementWeights.earth || 0),
+          metal: Number(analysis.elementWeights.metal || 0),
+          water: Number(analysis.elementWeights.water || 0),
+        }
+      : null;
+
+    var yongList = [];
+    if (Array.isArray(analysis.yongshin_elements)) yongList = analysis.yongshin_elements.slice(0, 4);
+    if (!yongList.length && Array.isArray(power.yongshin)) yongList = power.yongshin.slice(0, 4);
+
+    var kiList = [];
+    if (Array.isArray(analysis.kishin_elements)) kiList = analysis.kishin_elements.slice(0, 4);
+    if (!kiList.length && Array.isArray(power.kijishin)) kiList = power.kijishin.slice(0, 4);
+
+    var tenGods = null;
+    if (power && power.groups && typeof power.groups === 'object') {
+      tenGods = Object.assign({}, power.groups);
+    }
+
+    var currentDaewun = '';
+    if (Array.isArray(daewunList) && daewunList.length && profile && profile.birth && profile.birth.year) {
+      var currentAge = new Date().getFullYear() - Number(profile.birth.year || 0) + 1;
+      for (var i = 0; i < daewunList.length; i++) {
+        var cur = daewunList[i] || {};
+        var next = daewunList[i + 1] || null;
+        var ageStart = Number(cur.age || 0);
+        var ageEnd = next ? Number(next.age || 999) : 999;
+        if (currentAge >= ageStart && currentAge < ageEnd) {
+          currentDaewun = String((cur.g || '') + (cur.j || '')).trim();
+          break;
+        }
+      }
+      if (!currentDaewun) {
+        var last = daewunList[daewunList.length - 1] || {};
+        currentDaewun = String((last.g || '') + (last.j || '')).trim();
+      }
+    }
+
+    return {
+      dayMaster: String((analysis.dayStem || (pillars.d && pillars.d.g) || '') || '').trim(),
+      monthBranch: String(((pillars.m && pillars.m.j) || '') || '').trim(),
+      powerLabel: String((analysis.power_label || analysis.powerLabel || '') || '').trim(),
+      johuType: String((analysis.johuType || analysis.johu_type || johu.type || '') || '').trim(),
+      yongshinElements: yongList,
+      kishinElements: kiList,
+      elementWeights: elementWeights,
+      tenGodCounts: tenGods,
+      currentDaewun: currentDaewun,
+      isJong: Boolean(analysis.isJong),
+      jongName: String(analysis.jongName || ''),
+    };
+  }
+
   function _normalizeLifeBookErrorMessage(error, fallback) {
     var raw = String(error && error.message ? error.message : error || '').trim();
     var defaultMsg = String(fallback || '요청 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.');
@@ -1608,6 +1673,7 @@
         minute: Number(profile.birth.minute || 0),
         birthplace: String((profile && profile.location && profile.location.label) || '대한민국'),
         sajuData: sajuData,
+        analysisSignals: _collectLifeBookAnalysisSignals(profile),
       };
 
       _setGenerationState('writing_with_llm');
