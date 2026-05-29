@@ -174,6 +174,50 @@ describe("Fortune coin access guard", () => {
     expect(priced.pricingSource).toBe("feature-reason");
   });
 
+  test("featureKey 없이 들어온 네빌 명상 60분 reason도 서버 가격표로 처리해야 한다", () => {
+    const priced = utils.resolveServerCoinPricing({
+      env: { NODE_ENV: "production" },
+      productSpec: null,
+      requestedCost: 999,
+      featureKey: "pig-coin-unlock",
+      reason: "openNevilleMeditationPage 60분 코스",
+    });
+
+    expect(priced.ok).toBe(true);
+    expect(priced.featureKey).toBe("neville-meditation");
+    expect(priced.cost).toBe(50);
+    expect(priced.pricingSource).toBe("feature-reason");
+  });
+
+  test("coin-gate-per-use 요청도 액션형 reason이면 정규 feature 가격표로 처리해야 한다", () => {
+    const priced = utils.resolveServerCoinPricing({
+      env: { NODE_ENV: "production" },
+      productSpec: null,
+      requestedCost: 1,
+      featureKey: "coin-gate-per-use",
+      reason: "openCosmicSoulMeditation 60분 코스",
+    });
+
+    expect(priced.ok).toBe(true);
+    expect(priced.featureKey).toBe("cosmic-soul-meditation");
+    expect(priced.cost).toBe(100);
+    expect(priced.pricingSource).toBe("feature-reason");
+  });
+
+  test("애니멀 토템 심화 reason은 서버 가격표 60코인으로 처리해야 한다", () => {
+    const priced = utils.resolveServerCoinPricing({
+      env: { NODE_ENV: "production" },
+      productSpec: null,
+      requestedCost: 1,
+      featureKey: "coin-gate-per-use",
+      reason: "애니멀 토템 심화 리딩",
+    });
+
+    expect(priced.ok).toBe(true);
+    expect(priced.cost).toBe(60);
+    expect(priced.featureKey).toBe("animal-totem-deep");
+  });
+
   test("가격표 없는 featureKey는 운영환경에서 400으로 차단해야 한다", () => {
     const priced = utils.resolveServerCoinPricing({
       env: { NODE_ENV: "production" },

@@ -183,6 +183,17 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
       };
     }
 
+    const inferredFeatureKey = inferFeatureKeyFromReason(reasonText, key);
+    if (inferredFeatureKey && inferredFeatureKey !== key) {
+      return resolveServerCoinPricing({
+        env,
+        productSpec,
+        requestedCost,
+        featureKey: inferredFeatureKey,
+        reason: reasonText,
+      });
+    }
+
     if (isDynamicCostFallbackEnabled(env) && Number.isFinite(requestCost) && requestCost > 0) {
       return {
         ok: true,
@@ -267,6 +278,17 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
         pricingSource: "unlock-reason-fallback",
       };
     }
+
+    const inferredFeatureKey = inferFeatureKeyFromReason(reasonText, key);
+    if (inferredFeatureKey && inferredFeatureKey !== key) {
+      return resolveServerCoinPricing({
+        env,
+        productSpec,
+        requestedCost,
+        featureKey: inferredFeatureKey,
+        reason: reasonText,
+      });
+    }
   }
 
   if (isDynamicCostFallbackEnabled(env) && Number.isFinite(requestCost) && requestCost > 0) {
@@ -286,6 +308,24 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
     message: "결제 상품 정보를 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.",
     availableFeatureKeys: listServerPricedFeatureKeys(),
   };
+}
+
+function inferFeatureKeyFromReason(reason, fallbackFeatureKey = "") {
+  const reasonText = String(reason || "").trim();
+  const fallbackKey = normalizeFeatureKey(fallbackFeatureKey);
+  if (!reasonText) return fallbackKey;
+
+  const actionToken = reasonText.split(/\s+/)[0] || "";
+  const candidates = [actionToken, reasonText];
+
+  for (let i = 0; i < candidates.length; i += 1) {
+    const normalized = normalizeFeatureKey(candidates[i]);
+    if (normalized && normalized !== "pig-coin-unlock" && normalized !== "coin-gate-per-use") {
+      return normalized;
+    }
+  }
+
+  return fallbackKey;
 }
 
 function resolveUnlockProductSpec(productId) {
@@ -878,6 +918,9 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   const requestedFeatureKey = String(productSpec?.featureKey || body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
   let featureKey = normalizeFeatureKey(requestedFeatureKey).slice(0, 60);
   const requestReason = String(productSpec?.reason || body?.reason || "Paid feature unlock").trim().slice(0, 120);
+  if (!featureKey || featureKey === "pig-coin-unlock") {
+    featureKey = inferFeatureKeyFromReason(requestReason, featureKey).slice(0, 60);
+  }
   const requestedCost = Number(productSpec ? productSpec.cost : body?.cost);
   const pricing = resolveServerCoinPricing({
     env,
