@@ -1,19 +1,17 @@
 export const VEDIC_PREMIUM_FEATURE_KEY = "premium_pdf_vedic";
-export const VEDIC_SOLO_TARGET_CHARS = 52000;
+export const VEDIC_SOLO_TARGET_CHARS = 25000;
 
 const rows = [
-  ["vedic_lagna_gate", "I", "라그나 — 영혼이 선택한 첫 번째 문", "라그나가 여는 삶의 첫 방향", "lotus", [["lagna_nature", "라그나가 보여주는 기본 성향"], ["lagna_presence", "세상에 드러나는 첫인상과 생존 방식"], ["lagna_start", "삶을 시작하는 태도와 핵심 기질"], ["lagna_advice", "라그나 기반 실전 조언"]]],
-  ["vedic_moon_mind", "II", "달과 마음 — 내면의 감정 지도", "달이 보여주는 정서 리듬", "moon", [["moon_reaction", "달 별자리로 보는 감정 반응"], ["moon_stability", "안정감을 느끼는 방식"], ["moon_anxiety", "불안과 집착이 생기는 패턴"], ["moon_recovery", "마음을 회복시키는 생활 전략"]]],
-  ["vedic_nakshatra_code", "III", "나크샤트라 — 영혼의 별자리 코드", "달의 별자리 습관과 직관", "star", [["nakshatra_symbol", "나크샤트라의 핵심 상징"], ["nakshatra_theme", "반복되는 인생 테마"], ["nakshatra_intuition", "타고난 감각과 직관"], ["nakshatra_relationship", "관계와 선택에서 드러나는 별자리 습관"]]],
-  ["vedic_sun_self", "IV", "태양과 자아 — 내가 세상에 증명하려는 것", "태양이 세우는 자존감과 역할", "sun", [["sun_selfworth", "태양이 보여주는 자존감의 방향"], ["sun_role", "사회적 역할과 명예욕"], ["sun_recognition", "인정받고 싶은 방식"], ["sun_balance", "자아를 건강하게 세우는 법"]]],
-  ["vedic_graha_council", "V", "행성의 회의 — 그라하들이 말하는 재능과 결핍", "주요 행성의 강점과 과제", "planet", [["graha_strength", "주요 행성의 강점"], ["graha_task", "약하거나 불안정한 행성의 과제"], ["graha_talent", "재능으로 발전시킬 수 있는 에너지"], ["graha_mistake", "조심해야 할 반복 실수"]]],
-  ["vedic_twelve_houses", "VI", "12하우스 — 삶의 무대별 운명 구조", "하우스별 삶의 무대와 활성 영역", "chart", [["houses_1_4", "1~4하우스: 나, 자산, 소통, 가족/기반"], ["houses_5_8", "5~8하우스: 창조성, 일, 관계, 변화"], ["houses_9_12", "9~12하우스: 철학, 사회적 성취, 인맥, 해방"], ["houses_activated", "강하게 활성화된 삶의 영역"]]],
-  ["vedic_love_marriage", "VII", "사랑과 결혼 — 인연을 맺는 방식", "관계와 장기 인연의 구조", "heart", [["love_attraction", "연애에서 끌리는 사람의 유형"], ["love_pattern", "관계에서 반복되는 감정 패턴"], ["love_marriage_task", "결혼과 장기 관계의 핵심 과제"], ["love_advice", "좋은 인연을 유지하는 실전 조언"]]],
-  ["vedic_dharma_work", "VIII", "직업과 소명 — 다르마의 방향", "일의 방식과 사회적 인정 포인트", "dharma", [["work_style", "타고난 일의 방식"], ["work_environment", "잘 맞는 직업적 환경"], ["work_recognition", "사회적으로 인정받는 포인트"], ["work_strategy", "소명을 현실화하는 전략"]]],
-  ["vedic_artha_money", "IX", "돈과 현실 감각 — 아르타의 흐름", "재물 운용과 현실 감각", "coin", [["money_style", "돈을 벌고 관리하는 방식"], ["money_strength", "재물운의 강점과 약점"], ["money_pattern", "과소비/불안/집착 패턴"], ["money_growth", "현실적으로 재물 흐름을 키우는 법"]]],
-  ["vedic_karma_patterns", "X", "카르마와 반복 패턴 — 넘어서야 할 숙제", "반복되는 선택과 넘어야 할 숙제", "karma", [["karma_problem", "인생에서 반복되는 문제"], ["karma_relationship", "관계와 선택에서 나타나는 카르마"], ["karma_self_sabotage", "피해야 할 자기파괴 패턴"], ["karma_break", "같은 운명을 반복하지 않는 법"]]],
-  ["vedic_dasha_timing", "XI", "다샤와 시기 흐름 — 지금 열리는 운명의 문", "현재 시기와 가까운 흐름", "time", [["dasha_current", "현재 시기의 핵심 에너지"], ["dasha_focus", "가까운 흐름에서 집중할 일"], ["dasha_caution", "조심해야 할 선택"], ["dasha_opportunity", "기회를 크게 만드는 행동 전략"]]],
-  ["vedic_integrated_advice", "XII", "통합 조언 — 별의 언어를 현실로 바꾸는 법", "차트를 현실 선택으로 바꾸는 마지막 정리", "compass", [["final_summary", "전체 차트의 핵심 요약"], ["final_attitude", "지금 가장 먼저 바꿔야 할 태도"], ["final_priority", "관계·일·돈·마음의 우선순위"], ["final_message", "앞으로의 삶을 위한 최종 조언"]]],
+  ["vedic_core_design", "I", "베다 차트의 핵심 설계도 — 라그나·태양·달의 기본 구조", "차트의 중심축으로 전체 방향을 읽는 장", "lotus", [["core_signals", "핵심 차트 신호"], ["core_strengths", "강점과 기회"], ["core_cautions", "주의할 점"], ["core_actions", "현실 실행 전략"]]],
+  ["vedic_nakshatra_deep", "II", "나크샤트라 심층 해석 — 영혼의 성향과 본능적 리듬", "달 나크샤트라로 감정 리듬을 읽는 장", "star", [["nakshatra_signals", "핵심 차트 신호"], ["nakshatra_gifts", "강점과 기회"], ["nakshatra_risks", "주의할 점"], ["nakshatra_actions", "관계/마음 관리 조언"]]],
+  ["vedic_personality_path", "III", "성격과 인생 방향 — 라그나 로드와 주요 행성 배치", "기질과 방향성을 생활 선택으로 연결하는 장", "sun", [["personality_signals", "핵심 차트 신호"], ["personality_growth", "강점과 기회"], ["personality_blocks", "주의할 점"], ["personality_actions", "현실 실행 전략"]]],
+  ["vedic_love_relationship", "IV", "사랑과 관계 — 금성, 7하우스, 배우자 인연", "관계 패턴과 인연 유지법을 다루는 장", "heart", [["love_signals", "핵심 차트 신호"], ["love_opportunity", "강점과 기회"], ["love_risks", "주의할 점"], ["love_actions", "관계 관리 조언"]]],
+  ["vedic_career_role", "V", "직업과 사회적 역할 — 10하우스, 토성, 태양, 라그나 로드", "일과 성취의 방향을 설계하는 장", "dharma", [["career_signals", "핵심 차트 신호"], ["career_opportunity", "강점과 기회"], ["career_risks", "주의할 점"], ["career_actions", "현실 실행 전략"]]],
+  ["vedic_money_base", "VI", "돈과 현실 기반 — 2하우스, 11하우스, 목성의 재물 흐름", "재물 흐름과 습관을 정리하는 장", "coin", [["money_signals", "핵심 차트 신호"], ["money_opportunity", "강점과 기회"], ["money_risks", "주의할 점"], ["money_actions", "재물 관리 조언"]]],
+  ["vedic_karma_growth", "VII", "카르마와 성장 과제 — 라후·케투와 반복되는 인생 패턴", "반복 패턴의 원인과 전환법을 다루는 장", "karma", [["karma_signals", "핵심 차트 신호"], ["karma_strengths", "강점과 기회"], ["karma_risks", "주의할 점"], ["karma_actions", "성장 실행 전략"]]],
+  ["vedic_health_rhythm", "VIII", "건강과 생활 리듬 — 6하우스, 달, 토성의 관리 포인트", "생활 리듬과 회복 루틴을 다루는 장", "moon", [["health_signals", "핵심 차트 신호"], ["health_strengths", "강점과 기회"], ["health_risks", "주의할 점"], ["health_actions", "마음/생활 관리 조언"]]],
+  ["vedic_dasha_flow", "IX", "다샤와 운의 흐름 — 현재 주기와 앞으로의 전환점", "시기 해석과 선택 타이밍을 다루는 장", "time", [["dasha_signals", "핵심 차트 신호"], ["dasha_opportunity", "강점과 기회"], ["dasha_risks", "주의할 점"], ["dasha_actions", "현실 실행 전략"]]],
+  ["vedic_final_strategy", "X", "종합 실행 전략 — 사랑, 일, 돈, 회복을 위한 현실 조언", "전체 차트를 삶의 운영 전략으로 통합하는 장", "compass", [["final_signals", "핵심 차트 신호"], ["final_priorities", "강점과 기회"], ["final_cautions", "주의할 점"], ["final_actions", "종합 실행 전략"]]],
 ];
 
 export const VEDIC_PDF_CHAPTERS = Object.freeze(rows.map((row, index) => Object.freeze({
@@ -60,6 +58,8 @@ export function sanitizeVedicPremiumText(value) {
   return String(value || "")
     .replace(/\b(undefined|null|nan)\b/gi, "")
     .replace(/\b(payload|json|localdraft|fallback|llm|api|debug)\b/gi, "")
+    .replace(/chapter\s*1\s*chapter\s*1/gi, "")
+    .replace(/데이터가\s*부족합니다/gi, "")
     .replace(/자동\s*복구\s*생성/gi, "")
     .replace(/\s{2,}/g, " ")
     .trim();

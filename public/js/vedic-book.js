@@ -1,6 +1,6 @@
 /**
  * Vedic Premium PDF (Jyotish)
- * Worker Vedic-engine-first pipeline + premium prepare endpoint.
+ * Worker-native local-first premium pipeline.
  */
 (function () {
   'use strict';
@@ -9,7 +9,7 @@
   var VEDIC_PREPARE_API = '/api/vedic/premium/prepare';
   var VEDIC_CHAPTERS_API = '/api/vedic/premium/chapters';
   var VEDIC_PLANETS_API = '/api/vedic/planets';
-  var VEDIC_TOTAL_CHAPTERS = 12;
+  var VEDIC_TOTAL_CHAPTERS = 10;
   var VEDIC_COIN_COST = 390;
 
   var _chapters = [];
@@ -21,6 +21,8 @@
   var _premiumPaidUntil = 0;
 
   function _qs(id) { return document.getElementById(id); }
+  function _clean(value) { return String(value || '').trim(); }
+
   function _detachModalFromResultPage(modal) {
     try {
       if (!modal || !modal.parentElement) return;
@@ -29,18 +31,33 @@
       }
     } catch (_) {}
   }
-  function _clean(value) { return String(value || '').trim(); }
 
-  function _logFlow(code, meta) {
-    try { console.info('[VedicBook][Flow] ' + code, meta || {}); } catch (_) {}
+  function _logStage(stage, meta) {
+    try { console.info('[VedicBook][' + stage + ']', meta || {}); } catch (_) {}
+  }
+
+  function normalizeVedicError(error) {
+    if (error instanceof Error) {
+      return { name: error.name, message: error.message, stack: error.stack };
+    }
+    if (typeof error === 'object' && error !== null) {
+      try { return JSON.parse(JSON.stringify(error)); } catch (_) { return { message: String(error) }; }
+    }
+    return { message: String(error) };
   }
 
   function _logError(error, meta) {
+    var stage = _clean(meta && meta.stage) || 'unknown';
+    var message = _clean(error && error.message) || _clean(error) || 'unknown';
+    var status = Number(error && error.status);
+    var code = _clean(error && error.code);
     try {
       console.error('[VedicBook][Error]', {
-        message: String(error && error.message ? error.message : error || 'unknown'),
-        code: String(error && error.code ? error.code : ''),
-        stage: meta && meta.stage ? String(meta.stage) : '',
+        stage: stage,
+        message: message,
+        status: Number.isFinite(status) ? status : null,
+        code: code || null,
+        details: normalizeVedicError(error),
       });
     } catch (_) {}
   }
@@ -50,6 +67,8 @@
       .replace(/\b(undefined|null|nan)\b/gi, '')
       .replace(/\b(payload|json|localdraft|fallback|llm|api|debug)\b/gi, '')
       .replace(/자동\s*복구\s*생성/gi, '')
+      .replace(/chapter\s*1\s*chapter\s*1/gi, '')
+      .replace(/데이터가\s*부족합니다/gi, '')
       .replace(/\s{2,}/g, ' ')
       .trim();
   }
@@ -149,10 +168,18 @@
       var day = Number(parts[2]);
       if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
       var option = countryEl && countryEl.options ? countryEl.options[countryEl.selectedIndex] : null;
+      var h = hourEl ? Number(hourEl.value) : NaN;
+      var m = minuteEl ? Number(minuteEl.value) : 0;
       return {
         name: (nameEl && nameEl.value && nameEl.value.trim()) || '사용자',
         gender: femaleEl && femaleEl.checked ? 'F' : 'M',
-        birth: { year: year, month: month, day: day, hour: hourEl ? Number(hourEl.value || 12) : 12, minute: minuteEl ? Number(minuteEl.value || 0) : 0 },
+        birth: {
+          year: year,
+          month: month,
+          day: day,
+          hour: Number.isFinite(h) ? h : null,
+          minute: Number.isFinite(m) ? m : 0,
+        },
         location: {
           label: option ? (option.textContent || '대한민국 (서울)') : '대한민국 (서울)',
           lat: parseFloat(option && option.getAttribute('data-lat') || '37.5665'),
@@ -183,35 +210,93 @@
     return null;
   }
 
-  function _formatBirth(profile) {
-    var birth = (profile && profile.birth) || {};
-    var year = Number(birth.year || 0);
-    var month = Number(birth.month || 0);
-    var day = Number(birth.day || 0);
-    return {
-      birthDate: [String(year).padStart(4, '0'), String(month).padStart(2, '0'), String(day).padStart(2, '0')].join('-'),
-      birthTime: [String(Number(birth.hour || 12)).padStart(2, '0'), String(Number(birth.minute || 0)).padStart(2, '0')].join(':'),
-    };
+  function _normalizeGender(value) {
+    var token = _clean(value).toLowerCase();
+    if (token === 'm' || token === 'male' || token === '남' || token === '남자' || token === '남성') return 'male';
+    if (token === 'f' || token === 'female' || token === '여' || token === '여자' || token === '여성') return 'female';
+    return 'unknown';
   }
 
-  function _buildVedicChartRequest(profile) {
+  function _toTimezoneOffset(timezone) {
+    var raw = _clean(timezone);
+    if (!raw) return 9;
+    var n = Number(raw);
+    if (Number.isFinite(n)) return n;
+    var lower = raw.toLowerCase();
+    if (lower === 'asia/seoul' || lower === 'asia/tokyo') return 9;
+    if (lower === 'utc' || lower === 'etc/utc' || lower === 'gmt') return 0;
+    return 9;
+  }
+
+  function _normalizeBirthInput(profile) {
     var birth = (profile && profile.birth) || {};
     var location = (profile && profile.location) || {};
+    var year = Number(birth.year);
+    var month = Number(birth.month);
+    var day = Number(birth.day);
+    var hasDate = Number.isFinite(year) && Number.isFinite(month) && Number.isFinite(day) && year > 1800;
+
+    var hour = Number(birth.hour);
+    var minute = Number(birth.minute);
+    if (!Number.isFinite(minute)) minute = 0;
+    var isTimeUnknown = !Number.isFinite(hour);
+    if (!isTimeUnknown) {
+      hour = Math.max(0, Math.min(23, Math.floor(hour)));
+      minute = Math.max(0, Math.min(59, Math.floor(minute)));
+    }
+
     return {
-      year: Number(birth.year),
-      month: Number(birth.month),
-      day: Number(birth.day),
-      hour: Number(birth.hour || 12),
-      minute: Number(birth.minute || 0),
-      timezone: Number(location.tzOffset || location.timezone || 9),
-      lat: Number(location.lat || 37.5665),
-      lon: Number(location.lon || location.lng || 126.9780),
+      name: _clean(profile && profile.name) || undefined,
+      gender: _normalizeGender(profile && profile.gender),
+      birthDate: hasDate ? [String(year).padStart(4, '0'), String(month).padStart(2, '0'), String(day).padStart(2, '0')].join('-') : '',
+      birthYear: hasDate ? year : null,
+      birthMonth: hasDate ? month : null,
+      birthDay: hasDate ? day : null,
+      birthTime: isTimeUnknown ? '' : [String(hour).padStart(2, '0'), String(minute).padStart(2, '0')].join(':'),
+      birthHour: isTimeUnknown ? null : hour,
+      birthMinute: minute,
+      timezone: _clean(location.tz) || 'Asia/Seoul',
+      birthPlace: _clean(location.label) || undefined,
+      latitude: Number.isFinite(Number(location.lat)) ? Number(location.lat) : null,
+      longitude: Number.isFinite(Number(location.lon || location.lng)) ? Number(location.lon || location.lng) : null,
+      isTimeUnknown: isTimeUnknown,
     };
   }
 
-  function _fetchVedicChart(profile) {
+  function _validateBeforePayment(birthInput) {
+    if (!_clean(birthInput && birthInput.birthDate)) {
+      var dateErr = new Error('베다점 PDF 생성을 위해 생년월일 정보가 필요합니다. 프로필 카드를 먼저 확인해주세요.');
+      dateErr.code = 'BIRTH_DATE_REQUIRED';
+      dateErr.status = 422;
+      throw dateErr;
+    }
+    if (birthInput && (birthInput.isTimeUnknown || birthInput.birthHour == null)) {
+      var timeErr = new Error('베다점 PDF는 라그나와 하우스 계산을 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 먼저 입력해주세요.');
+      timeErr.code = 'BIRTH_TIME_REQUIRED';
+      timeErr.status = 422;
+      throw timeErr;
+    }
+  }
+
+  function _buildVedicChartRequest(profile, birthInput) {
+    var birth = (profile && profile.birth) || {};
+    var location = (profile && profile.location) || {};
+    var normalized = birthInput || _normalizeBirthInput(profile || {});
+    return {
+      year: Number(normalized.birthYear || birth.year),
+      month: Number(normalized.birthMonth || birth.month),
+      day: Number(normalized.birthDay || birth.day),
+      hour: Number(normalized.birthHour != null ? normalized.birthHour : (birth.hour || 12)),
+      minute: Number(normalized.birthMinute != null ? normalized.birthMinute : (birth.minute || 0)),
+      timezone: Number(location.tzOffset != null ? location.tzOffset : _toTimezoneOffset(normalized.timezone || location.tz || location.timezone)),
+      lat: Number(normalized.latitude != null ? normalized.latitude : (location.lat || 37.5665)),
+      lon: Number(normalized.longitude != null ? normalized.longitude : (location.lon || location.lng || 126.9780)),
+    };
+  }
+
+  function _fetchVedicChart(profile, birthInput) {
     var endpoints = _buildApiCandidates(VEDIC_PLANETS_API);
-    var body = _buildVedicChartRequest(profile);
+    var body = _buildVedicChartRequest(profile, birthInput);
     var endpointIndex = 0;
     function run(resolve, reject, lastErr) {
       if (endpointIndex >= endpoints.length) {
@@ -234,16 +319,17 @@
     return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
   }
 
-  function _buildVedicBase(profile, chart) {
-    var birthFmt = _formatBirth(profile);
+  function _buildVedicBase(profile, chart, birthInput) {
+    var normalized = birthInput || _normalizeBirthInput(profile || {});
     return {
+      birthInput: normalized,
       user: {
-        name: _clean(profile.name) || '사용자',
-        birthDate: birthFmt.birthDate,
-        birthTime: birthFmt.birthTime,
-        birthPlace: _clean(profile.location && profile.location.label) || '대한민국 (서울)',
-        timezone: _clean(profile.location && profile.location.tz) || 'Asia/Seoul',
-        gender: _clean(profile.gender),
+        name: _clean(normalized.name) || '사용자',
+        birthDate: _clean(normalized.birthDate),
+        birthTime: _clean(normalized.birthTime),
+        birthPlace: _clean(normalized.birthPlace) || '대한민국 (서울)',
+        timezone: _clean(normalized.timezone) || 'Asia/Seoul',
+        gender: _clean(normalized.gender),
       },
       chart: {
         planets: (chart && chart.planets) || {},
@@ -251,6 +337,10 @@
         ayanamsa: chart && chart.ayanamsa,
         ascendantSidereal: chart && chart.ascendantSidereal,
         source: _clean(chart && chart.source) || 'worker-vedic-planets',
+      },
+      location: {
+        lat: Number(normalized.latitude != null ? normalized.latitude : 37.5665),
+        lon: Number(normalized.longitude != null ? normalized.longitude : 126.9780),
       },
     };
   }
@@ -285,7 +375,11 @@
     }
     var birth = profile.birth || {};
     var place = (profile.location && profile.location.label) || '대한민국 (서울)';
-    var time = [String(Number(birth.hour || 12)).padStart(2, '0'), String(Number(birth.minute || 0)).padStart(2, '0')].join(':');
+    var hour = Number(birth.hour);
+    var minute = Number(birth.minute);
+    var time = Number.isFinite(hour)
+      ? [String(Math.max(0, Math.min(23, Math.floor(hour)))).padStart(2, '0'), String(Number.isFinite(minute) ? Math.max(0, Math.min(59, Math.floor(minute))) : 0).padStart(2, '0')].join(':')
+      : '시간 미입력';
     element.textContent = [(profile.name || '사용자') + ' · ' + (profile.gender === 'F' ? '여성' : profile.gender === 'M' ? '남성' : ''), [birth.year, birth.month, birth.day].filter(Boolean).join('년 ') + '일 ' + time, place].join(' · ');
   }
 
@@ -316,12 +410,13 @@
 
   function _startProgressAnimation() {
     _stopProgressAnimation();
-    var titles = _canonicalChapters.length ? _canonicalChapters.map(function (chapter) { return chapter.title; }) : [
-      '라그나의 첫 빛을 계산하는 중입니다',
-      '달의 별자리와 나크샤트라를 정리하는 중입니다',
-      '행성들이 머무는 하우스의 의미를 해석하는 중입니다',
-      '다르마와 카르마의 흐름을 12챕터로 엮는 중입니다',
-      '베다점 프리미엄 PDF를 아름답게 완성하는 중입니다',
+    var titles = [
+      '프로필 정보 확인 중',
+      '베다 차트 계산 중',
+      '챕터별 원고 생성 중',
+      'AI 상담문 보강 중',
+      'PDF 편집/렌더링 중',
+      '완료'
     ];
     var index = 1;
     _setLoadingProgress(1, VEDIC_TOTAL_CHAPTERS, titles[0]);
@@ -417,11 +512,11 @@
       alert('결제 모듈을 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.');
       return false;
     }
-    _logFlow('BILLING_CHECK_START', { featureKey: VEDIC_FEATURE_KEY });
+    _logStage('PaymentGateStart', { featureKey: VEDIC_FEATURE_KEY });
     window._cdCoinGatePerUse(VEDIC_COIN_COST, '베다 점성술 프리미엄 PDF 리포트 생성', function (_transactionId, data) {
       _persistPremiumAccessToken(_extractPremiumToken(data));
       _markPremiumAccessVerified(25 * 60 * 1000);
-      _logFlow('BILLING_CHECK_OK', { featureKey: VEDIC_FEATURE_KEY });
+      _logStage('PaymentGateSuccess', { featureKey: VEDIC_FEATURE_KEY });
       window.generateVedicBook();
     }, null, {
       featureKey: VEDIC_FEATURE_KEY,
@@ -431,7 +526,7 @@
   }
 
   window.openVedicBookModal = function () {
-    _logFlow('CARD_CLICK');
+    _logStage('CardClick');
     var modal = _qs('vedicBookModal');
     if (!modal) return;
     _detachModalFromResultPage(modal);
@@ -446,7 +541,7 @@
           window.__cdActiveBirthProfile = _dpMatch;
           profile = _dpMatch;
         }
-      } catch (_dpE) {}
+      } catch (_) {}
     }
 
     if (profile && profile.birth && profile.birth.year) {
@@ -460,6 +555,7 @@
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
     try { modal.setAttribute('aria-hidden', 'false'); } catch (_) {}
+
     _fetchCanonicalChapters().then(function (chapters) {
       if (Array.isArray(chapters) && chapters.length) {
         _canonicalChapters = chapters;
@@ -478,43 +574,98 @@
   };
 
   window.gotoVedicPremium = function () {
-    _logFlow('CARD_VISIBLE_CHECK', { card: 'gotoVedicPremium' });
+    _logStage('CardVisibleCheck', { card: 'gotoVedicPremium' });
     window.openVedicBookModal();
   };
 
   window.generateVedicBook = function () {
     if (_generating) return;
+
+    var profile = _getActiveBirthProfile();
+    if (!profile || !profile.birth) {
+      _showScreen('vdNoProfileScreen');
+      return;
+    }
+
+    var birthInput = _normalizeBirthInput(profile);
+    _logStage('ProfileResolved', {
+      hasBirthDate: Boolean(_clean(birthInput.birthDate)),
+      hasBirthTime: Boolean(_clean(birthInput.birthTime)),
+      birthHour: birthInput.birthHour,
+      hasTimezone: Boolean(_clean(birthInput.timezone)),
+      hasLocation: Boolean(_clean(birthInput.birthPlace)),
+    });
+    _logStage('BirthInputNormalized', {
+      birthDate: _clean(birthInput.birthDate),
+      birthYear: birthInput.birthYear,
+      birthMonth: birthInput.birthMonth,
+      birthDay: birthInput.birthDay,
+      birthHour: birthInput.birthHour,
+      birthMinute: birthInput.birthMinute,
+      timezone: _clean(birthInput.timezone),
+    });
+
+    try {
+      _validateBeforePayment(birthInput);
+      _logStage('ValidationBeforePayment', {
+        hasBirthDate: Boolean(_clean(birthInput.birthDate)),
+        hasBirthTime: Boolean(_clean(birthInput.birthTime)),
+        birthHour: birthInput.birthHour,
+      });
+    } catch (error) {
+      _logError(error, { stage: 'ValidationBeforePayment' });
+      _setError(String(error && error.message ? error.message : error || '입력값 검증 실패'));
+      return;
+    }
+
     if (!_hasPremiumAccessForGeneration()) {
       if (!_ensurePremiumPaymentThenStart()) return;
       return;
     }
-    var profile = _getActiveBirthProfile();
-    if (!profile || !profile.birth) { _showScreen('vdNoProfileScreen'); return; }
+
     _generating = true;
     _setStartBusy(true);
     _showScreen('vdLoadingScreen');
-    _setLoadingProgress(1, VEDIC_TOTAL_CHAPTERS, '라그나의 첫 빛을 계산하는 중입니다');
+    _setLoadingProgress(1, VEDIC_TOTAL_CHAPTERS, '프로필 정보 확인 중');
     _startProgressAnimation();
-    _logFlow('VEDIC_SEED_START');
-    _fetchVedicChart(profile)
+
+    _fetchVedicChart(profile, birthInput)
       .then(function (chart) {
-        var vedicBase = _buildVedicBase(profile, chart);
-        _setLoadingProgress(2, VEDIC_TOTAL_CHAPTERS, '달의 별자리와 나크샤트라를 정리하는 중입니다');
-        _logFlow('PDF_API_START', { featureKey: VEDIC_FEATURE_KEY });
-        return _postPrepare({ featureKey: VEDIC_FEATURE_KEY, premiumAccessToken: _readPremiumAccessToken() || undefined, vedicBase: vedicBase }).then(function (data) {
+        var vedicBase = _buildVedicBase(profile, chart, birthInput);
+        _setLoadingProgress(2, VEDIC_TOTAL_CHAPTERS, '베다 차트 계산 중');
+        _logStage('SessionCreateStart', { endpoint: VEDIC_PREPARE_API, featureKey: VEDIC_FEATURE_KEY });
+        return _postPrepare({
+          featureKey: VEDIC_FEATURE_KEY,
+          premiumAccessToken: _readPremiumAccessToken() || undefined,
+          vedicBase: vedicBase,
+        }).then(function (data) {
+          _logStage('SessionCreateSuccess', {
+            chapterCount: Number(data && data.chapterCount || 0),
+            fallbackUsed: Boolean(data && data.fallbackUsed),
+          });
+          _logStage('PdfRequestStart', {
+            chapterCount: Number(data && data.chapterCount || 0),
+          });
           return { data: data, vedicBase: vedicBase };
         });
       })
       .then(function (pack) {
         var response = (pack && pack.data) || {};
         var vedicBase = (pack && pack.vedicBase) || null;
+
         _markPremiumAccessVerified(25 * 60 * 1000);
         _resultPayload = response;
         _chapters = Array.isArray(response.chapters) ? response.chapters : [];
         if (!_chapters.length) throw new Error('베다점 챕터 데이터가 비어 있습니다.');
-        _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '베다점 프리미엄 PDF를 아름답게 완성하는 중입니다');
+
+        _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '완료');
         _renderResult(_chapters, response.payload || vedicBase);
-        _logFlow('PDF_API_OK', { chapterCount: _chapters.length, fallbackUsed: !!response.fallbackUsed });
+        _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, fallbackUsed: !!response.fallbackUsed });
+
+        if (response && response.fallbackUsed && typeof window.showToast === 'function') {
+          window.showToast('AI 문장 보강이 지연되어 로컬 베다점 계산 기반 프리미엄 원고로 PDF를 완성합니다.', 'info');
+        }
+
         _showScreen('vdResultScreen');
       })
       .catch(function (error) {
@@ -534,9 +685,15 @@
       return;
     }
     var html = String(_resultPayload.pdfReady.html || '');
-    if (!html) { alert('PDF 본문을 생성하지 못했습니다. 다시 시도해 주세요.'); return; }
+    if (!html) {
+      alert('PDF 본문을 생성하지 못했습니다. 다시 시도해 주세요.');
+      return;
+    }
     var popup = window.open('', '_blank', 'width=980,height=760');
-    if (!popup) { alert('팝업이 차단되어 출력 창을 열 수 없습니다. 팝업 허용 후 다시 시도해 주세요.'); return; }
+    if (!popup) {
+      alert('팝업이 차단되어 출력 창을 열 수 없습니다. 팝업 허용 후 다시 시도해 주세요.');
+      return;
+    }
     popup.document.open();
     popup.document.write(html);
     popup.document.close();
