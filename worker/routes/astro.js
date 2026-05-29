@@ -15,8 +15,6 @@ import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 
 const ASTRO_PREMIUM_LOCK_TTL_MS = 10 * 60 * 1000;
 const astroPremiumGenerationLocks = new Map();
-const VEDIC_PREMIUM_LOCK_TTL_MS = 10 * 60 * 1000;
-const vedicPremiumGenerationLocks = new Map();
 
 function toNumber(value, fallback) {
   const n = Number(value);
@@ -130,31 +128,11 @@ function toSafeVedicBirthLog(input = {}, chapterCount = 0) {
 
 function toSafeVedicChartLog(localVedicChartJson = {}) {
   return {
-    calculationMode: String(localVedicChartJson?.calculationMode || "").trim() || null,
     hasAyanamsa: Boolean(String(localVedicChartJson?.settings?.ayanamsa || "").trim()),
     hasLagna: Boolean(String(localVedicChartJson?.chart?.lagnaSign || "").trim()),
     hasMoonSign: Boolean(String(localVedicChartJson?.chart?.moonSign || "").trim()),
     hasNakshatra: Boolean(String(localVedicChartJson?.chart?.nakshatra?.name || "").trim()),
-    hasAtmakaraka: Boolean(String(localVedicChartJson?.chart?.atmakaraka || "").trim()),
-    hasDasha: Boolean(String(localVedicChartJson?.chart?.dashas?.currentMahaDasha || "").trim()),
-    planetCount: Array.isArray(localVedicChartJson?.chart?.planets) ? localVedicChartJson.chart.planets.length : 0,
-    houseCount: Array.isArray(localVedicChartJson?.chart?.houses) ? localVedicChartJson.chart.houses.length : 0,
   };
-}
-
-function getVedicSessionId(body = {}) {
-  const fromBody = clean(body?.sessionId || body?.reportSessionId || body?.generationId);
-  if (fromBody) return fromBody.slice(0, 160);
-  return `vedic-premium:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function compactVedicPremiumLocks(now = Date.now()) {
-  for (const [sessionId, state] of vedicPremiumGenerationLocks.entries()) {
-    const startedAtMs = Number(state?.startedAtMs || 0);
-    if (!startedAtMs || now - startedAtMs > VEDIC_PREMIUM_LOCK_TTL_MS) {
-      vedicPremiumGenerationLocks.delete(sessionId);
-    }
-  }
 }
 
 async function handleAstroPremiumPrepare(request, env) {
@@ -330,46 +308,15 @@ async function handleAstroPremiumPrepare(request, env) {
 }
 
 async function handleVedicPremiumPrepare(request, env) {
-  let sessionId = "";
   try {
     const auth = await requireAuth(request, env);
     const body = await readJson(request);
-    sessionId = getVedicSessionId(body);
     const premiumAccessToken = readPremiumAccessToken(request, body);
     const featureKey = String(body?.featureKey || VEDIC_PREMIUM_FEATURE_KEY);
-
-    compactVedicPremiumLocks();
-    const existingLock = vedicPremiumGenerationLocks.get(sessionId);
-    if (existingLock?.status === "running") {
-      return json({
-        ok: true,
-        deduped: true,
-        status: "running",
-        sessionId,
-        startedAt: existingLock.startedAt,
-      }, { status: 202 });
-    }
-    if (existingLock?.status === "done" && existingLock?.result) {
-      return json({
-        ...existingLock.result,
-        deduped: true,
-        status: "done",
-        sessionId,
-      });
-    }
-
-    vedicPremiumGenerationLocks.set(sessionId, {
-      sessionId,
-      status: "running",
-      startedAt: new Date().toISOString(),
-      startedAtMs: Date.now(),
-      stage: "request-received",
-    });
 
     console.info("[VedicPremiumPDF][RequestReceived]", {
       userId: auth.userId,
       featureKey,
-      sessionId,
       hasPremiumAccessToken: Boolean(premiumAccessToken),
     });
 
@@ -379,13 +326,6 @@ async function handleVedicPremiumPrepare(request, env) {
         code: String(validation?.code || "MISSING_VEDIC_DATA"),
         message: String(validation?.message || "베다점 계산 데이터가 부족합니다."),
         ...toSafeVedicBirthLog(validation?.birthInput, VEDIC_PREMIUM_CHAPTERS.length),
-      });
-      vedicPremiumGenerationLocks.set(sessionId, {
-        sessionId,
-        status: "failed",
-        startedAt: new Date().toISOString(),
-        startedAtMs: Date.now(),
-        stage: "birth-input-invalid",
       });
       return json({
         ok: false,
@@ -413,13 +353,6 @@ async function handleVedicPremiumPrepare(request, env) {
         message: String(access?.message || "베다점 프리미엄 PDF 접근 권한이 필요합니다."),
         ...toSafeVedicBirthLog(validation?.birthInput, VEDIC_PREMIUM_CHAPTERS.length),
       });
-      vedicPremiumGenerationLocks.set(sessionId, {
-        sessionId,
-        status: "failed",
-        startedAt: new Date().toISOString(),
-        startedAtMs: Date.now(),
-        stage: "access-denied",
-      });
       return json({
         ok: false,
         code: access?.code || "UNAUTHORIZED",
@@ -427,10 +360,7 @@ async function handleVedicPremiumPrepare(request, env) {
       }, { status: Number(access?.status) || 403 });
     }
 
-    const generated = await generateVedicPremiumReport(env, {
-      ...(body?.vedicBase || body),
-      sessionId,
-    }, {
+    const generated = await generateVedicPremiumReport(env, body?.vedicBase || body, {
       log: (stage, payload) => {
         const tag = `[VedicPremiumPDF][${stage}]`;
         if (stage === "LLMEnhanceFailedUseLocal") {
@@ -442,10 +372,9 @@ async function handleVedicPremiumPrepare(request, env) {
     });
     const reportId = `vedic-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
-    const responsePayload = {
+    return json({
       ok: true,
       featureKey,
-      sessionId,
       chapterCount: generated.chapterCount,
       fallbackUsed: Boolean(generated.fallbackUsed),
       pdfUrl: "",
@@ -453,32 +382,10 @@ async function handleVedicPremiumPrepare(request, env) {
       chapters: generated.chapters,
       payload: generated.payload,
       pdfReady: generated.pdfReady,
-      manuscriptSource: generated.manuscriptSource,
       quality: generated.quality,
-    };
-
-    vedicPremiumGenerationLocks.set(sessionId, {
-      sessionId,
-      status: "done",
-      startedAt: new Date().toISOString(),
-      startedAtMs: Date.now(),
-      stage: "done",
-      result: responsePayload,
     });
-
-    return json(responsePayload);
   } catch (error) {
-    if (sessionId) {
-      vedicPremiumGenerationLocks.set(sessionId, {
-        sessionId,
-        status: "failed",
-        startedAt: new Date().toISOString(),
-        startedAtMs: Date.now(),
-        stage: "error",
-      });
-    }
     console.error("[VedicPremiumPDF][Error]", {
-      sessionId: sessionId || null,
       code: String(error?.code || "VEDIC_PREMIUM_GENERATION_FAILED"),
       message: String(error?.message || "베다점 프리미엄 PDF 생성에 실패했습니다."),
       status: Number(error?.status || 500),
