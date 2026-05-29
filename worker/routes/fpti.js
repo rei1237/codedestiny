@@ -2,7 +2,7 @@ import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJ
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 
-const CHAPTER_MIN = 2500;
+const CHAPTER_MIN = 1400;
 const CHAPTERS = [
   { id: "overview", title: "I. FPTI 유형 총론 - 내 운명 성향의 핵심 구조" },
   { id: "inner", title: "II. 내면 성격과 감정 패턴" },
@@ -146,29 +146,68 @@ function chapterIntro(chapterId, input) {
   return `${input.growthTips.join(" ")} 7일 및 30일 실행 로드맵을 통해 강점 활용과 약점 보완 루틴을 고정합니다.`;
 }
 
-function expandChapter(chapter, input) {
-  const growthLines = [
-    "실천 전략은 거창한 목표보다 반복 가능한 작동 규칙으로 구성해야 유지됩니다.",
-    "하루 루틴에서 핵심 행동 1개를 완료하면 자기효능감이 축적되고 다음 행동의 진입 장벽이 낮아집니다.",
-    "갈등 장면에서는 사실 확인, 감정 명명, 요청 제안, 재확인의 순서를 고정하면 관계 피로가 크게 줄어듭니다.",
-    "재정 장면에서는 지출 통로를 기본 유지, 성장 투자, 실험 비용으로 분리하면 통제감과 유연성을 동시에 확보할 수 있습니다.",
-    "피로 누적 구간에서는 속도보다 정확도를 우선해야 장기 손실을 줄일 수 있습니다.",
-    "성과가 좋은 시기에도 점검 루틴을 유지해야 급격한 편향과 과신을 예방할 수 있습니다.",
-    "자기비판은 관찰 언어로 전환할 때 수정 가능성이 높아집니다. 문제를 성격이 아닌 절차로 기록하세요.",
-    "주간 리뷰에서는 잘한 점 2개와 중단할 점 2개를 고정 포맷으로 기록하면 개선 속도가 안정됩니다.",
+function chapterSpecificParagraphs(chapterId, input) {
+  const axis = `현재 축 점수는 에너지 ${Number(input.axisScores.A || 50)}, 판단 ${Number(input.axisScores.H || 50)}, 실행 ${Number(input.axisScores.F || 50)}, 전망 ${Number(input.axisScores.R || 50)}입니다.`;
+  if (chapterId === "overview") {
+    return [
+      `${axis} 총론에서는 강점 자체보다 강점이 안정적으로 발휘되는 조건을 먼저 정의해야 합니다.`,
+      "당신의 선택 품질은 큰 결심보다 작고 반복 가능한 운영 기준에서 빠르게 안정됩니다. 오늘의 기준 문장과 주간 점검 문장을 분리해 기록하면 체감 변화가 빨라집니다.",
+      "핵심은 완벽한 정보가 아니라 실행 가능한 정보의 기준입니다. 결정을 미루는 조건과 확정하는 조건을 사전에 분리하면 흔들림이 크게 줄어듭니다.",
+    ];
+  }
+  if (chapterId === "inner") {
+    return [
+      `${axis} 내면 챕터에서는 감정을 통제하려 하기보다 반응 이후 순서를 고정하는 접근이 유효합니다.`,
+      "감정이 큰 날에는 사실 확인-감정 명명-다음 행동 1개 순서를 지키면 과잉 반응을 줄일 수 있습니다. 감정의 존재를 문제로 보지 말고 상태 신호로 다루는 것이 중요합니다.",
+      "회복은 이벤트가 아니라 일정입니다. 짧은 정리 루틴을 평일에 고정할수록 집중력 복귀 속도가 빨라집니다.",
+    ];
+  }
+  if (chapterId === "relationship") {
+    return [
+      `${axis} 관계 챕터에서는 표현 강도보다 표현 빈도의 일관성이 만족도를 더 크게 좌우합니다.`,
+      "반복 갈등의 주요 원인은 기대치 비대칭입니다. 추측 대신 합의 문장을 남기는 습관이 오해를 줄이고 신뢰를 지킵니다.",
+      "배려와 책임의 경계를 분리하면 관계 피로가 낮아집니다. 도움을 주더라도 결과 책임은 분리해야 장기 친밀감이 유지됩니다.",
+    ];
+  }
+  if (chapterId === "career") {
+    return [
+      `${axis} 커리어 챕터에서는 착수 기준과 마감 기준을 분리할 때 산출물 품질이 안정됩니다.`,
+      "협업 후 정리 시간 블록을 고정하지 않으면 실행 밀도가 급격히 떨어질 수 있습니다. 회의 직후 20~30분 정리 루틴을 기본값으로 두세요.",
+      "성과는 재능 자체보다 절차의 재현성에서 커집니다. 문제 정의-우선순위-실행-리뷰 순서를 고정하면 흔들리는 날에도 품질이 유지됩니다.",
+    ];
+  }
+  if (chapterId === "wealth") {
+    return [
+      `${axis} 재정 챕터에서는 감정 상태와 숫자 판단을 동시에 점검하는 구조가 리스크를 낮춥니다.`,
+      "지출을 생활 유지, 성장 투자, 실험 비용으로 분리하면 통제감과 유연성을 함께 확보할 수 있습니다. 중요한 지출은 하루 유예 후 재확인하는 방식이 안전합니다.",
+      "기록의 목적은 처벌이 아니라 관찰입니다. 월간 점검에서 감정 소비 패턴을 함께 보면 재정 안정성이 높아집니다.",
+    ];
+  }
+  if (chapterId === "stress") {
+    return [
+      `${axis} 스트레스 챕터에서는 위기 신호를 조기에 식별하는 규칙이 핵심입니다.`,
+      "수면 붕괴, 반응 과열, 결정 지연 같은 신호를 미리 정해 두고 두 개 이상 겹치면 중요 결정을 하루 유예하세요.",
+      "회복은 의지 경쟁이 아니라 마찰 관리입니다. 무너진 뒤 복구보다 무너지기 전 속도 조절이 손실을 훨씬 줄입니다.",
+    ];
+  }
+  return [
+    `${axis} 성장 챕터에서는 7일 착수 루틴과 30일 유지 구조를 분리 설계하는 접근이 효과적입니다.`,
+    "변화의 핵심은 더 많이 하는 것이 아니라 덜 흔들리는 시스템을 만드는 데 있습니다. 하루 핵심 행동 1개와 주간 점검 1회를 고정하세요.",
+    "실패한 날의 목표는 분석이 아니라 복귀입니다. 복귀 속도가 빨라질수록 장기 성과가 안정됩니다.",
   ];
+}
 
-  let paragraphs = dedupeParagraphs(chapter.content.split(/\n\n+/));
+function expandChapter(chapter, input) {
+  const support = chapterSpecificParagraphs(chapter.id, input);
+  let paragraphs = dedupeParagraphs(chapter.content.split(/\n\n+/).concat(support));
   let cursor = 0;
 
-  while (paragraphs.join("\n\n").length < CHAPTER_MIN) {
-    const line = growthLines[cursor % growthLines.length];
+  while (paragraphs.join("\n\n").length < CHAPTER_MIN && cursor < 8) {
     paragraphs = dedupeParagraphs([
       ...paragraphs,
-      `${line} 현재 유형(${input.typeName}, ${input.code})에서는 축 조합과 근거 데이터를 함께 보며 적용할 때 일관성이 높아지고 재발 확률이 낮아집니다.`,
+      `${chapter.title} 실행 보강 ${cursor + 1}: ${input.typeName}(${input.code})에게는 기록-점검-실행의 순서를 고정하는 방식이 재발 방지에 유효합니다.`,
     ]);
     cursor += 1;
-    if (cursor > 140) break;
   }
 
   return {

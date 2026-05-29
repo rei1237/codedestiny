@@ -83,6 +83,29 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+const isDev = process.env.NODE_ENV !== "production";
+
+function countDuplicateSentences(report: FptiPremiumReport): number {
+  const counts = new Map<string, number>();
+  for (const chapter of report.chapters) {
+    for (const category of chapter.categories) {
+      const chunks = String(category.body || "")
+        .split(/(?<=[.!?\u3002\uFF01\uFF1F])\s+|\n+/)
+        .map((line) => line.trim().replace(/\s+/g, " "))
+        .filter((line) => line.length >= 18);
+      for (const line of chunks) {
+        counts.set(line, (counts.get(line) || 0) + 1);
+      }
+    }
+  }
+
+  let duplicate = 0;
+  for (const value of counts.values()) {
+    if (value >= 2) duplicate += 1;
+  }
+  return duplicate;
+}
+
 export default function FptiResultCard({ result }: Props) {
   const codeParts = result.code.split("").filter(Boolean);
   const [deepLoading, setDeepLoading] = useState(false);
@@ -113,6 +136,9 @@ export default function FptiResultCard({ result }: Props) {
     setDeepLoading(true);
 
     try {
+      if (isDev) {
+        console.info("[FPTI Premium] coin gate start", { code: result.code, typeName: result.typeName });
+      }
       const requestId = `fpti-premium-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const purchase = await purchaseFeature({
         featureKey: "premium-fpti-report",
@@ -134,11 +160,18 @@ export default function FptiResultCard({ result }: Props) {
         return;
       }
 
+      if (isDev) {
+        console.info("[FPTI Premium] coin gate success", {
+          status: purchase.status,
+          requestId,
+        });
+      }
+
       setDeepStageIndex(1);
       await sleep(180);
 
       setDeepStageIndex(2);
-      const localReport = buildFptiPremiumReport({
+      const payload = {
         result,
         fptiType: result.code,
         fptiSubtype: result.typeName,
@@ -163,7 +196,34 @@ export default function FptiResultCard({ result }: Props) {
           result.loveSummary,
           result.careerMoneySummary,
         ].join(" "),
+      };
+
+      if (isDev) {
+        console.info("[FPTI Premium] report request payload", {
+          fptiType: payload.fptiType,
+          fptiSubtype: payload.fptiSubtype,
+          userName: payload.userName,
+          dimensionScores: payload.dimensionScores,
+        });
+      }
+
+      const localReport = buildFptiPremiumReport({
+        ...payload,
       });
+
+      if (isDev) {
+        console.info("[FPTI Premium] resolved type", {
+          typeCode: localReport.typeCode,
+          typeName: localReport.typeName,
+        });
+        console.info("[FPTI Premium] section count", {
+          chapterCount: localReport.chapters.length,
+          categoryCount: localReport.chapters.reduce((sum, chapter) => sum + chapter.categories.length, 0),
+        });
+        console.info("[FPTI Premium] duplicate sentence count", {
+          duplicateCount: countDuplicateSentences(localReport),
+        });
+      }
 
       setDeepStageIndex(3);
       await sleep(130);
@@ -171,7 +231,18 @@ export default function FptiResultCard({ result }: Props) {
       setDeepReport(localReport);
       setActiveChapter(0);
       setDeepStageIndex(4);
+
+      if (isDev) {
+        console.info("[FPTI Premium] render section count", {
+          renderedChapters: localReport.chapters.length,
+        });
+      }
     } catch (e) {
+      if (isDev) {
+        console.error("[FPTI Premium] error", {
+          message: e instanceof Error ? e.message : String(e),
+        });
+      }
       setDeepError("FPTI 리포트 구성 중 문제가 발생했습니다. 입력값을 다시 확인해 주세요.");
     } finally {
       setDeepLoading(false);

@@ -74,8 +74,8 @@ type FptiInterpretationContext = {
   stabilityStyle: string;
 };
 
-const CATEGORY_MIN = 1000;
-const CHAPTER_MIN = 5200;
+const CATEGORY_MIN = 280;
+const CHAPTER_MIN = 1500;
 
 const FORBIDDEN_PHRASES = [
   "축 점수 구조",
@@ -96,6 +96,9 @@ const FORBIDDEN_PHRASES = [
   "판단 ",
   "실행 ",
   "전망 ",
+  "핵심 신호를 바탕으로 현재 흐름을 구조적으로 해석합니다",
+  "이번 해석은 단정 예언이 아니라 선택의 품질을 높이는 실행형 상담 문장으로 구성됩니다",
+  "1단계 실행 포인트를 기준으로 우선순위를 좁혀 적용하면",
 ];
 
 const CHAPTER_SPECS: ChapterSpec[] = [
@@ -699,15 +702,45 @@ function chapterTopicFragments(chapterId: string, categoryId: string, ctx: FptiI
   ];
 }
 
-function padCategoryBody(baseBody: string, chapterId: string, categoryTitle: string, ctx: FptiInterpretationContext): string {
+function categoryFocus(chapterId: string, categoryTitle: string): string {
+  if (chapterId === "overview") return `${categoryTitle}에서는 관찰을 행동으로 연결하는 전환 속도가 핵심입니다.`;
+  if (chapterId === "inner") return `${categoryTitle}에서는 감정 반응을 억누르기보다 순서를 재배치하는 방식이 효과적입니다.`;
+  if (chapterId === "relationship") return `${categoryTitle}에서는 기대 기준을 문장으로 합의하는 습관이 만족도를 높입니다.`;
+  if (chapterId === "career") return `${categoryTitle}에서는 착수 기준과 마감 기준을 분리할수록 결과 품질이 안정됩니다.`;
+  if (chapterId === "wealth") return `${categoryTitle}에서는 감정 상태와 숫자 판단을 함께 점검할 때 손실 확률이 줄어듭니다.`;
+  if (chapterId === "stress") return `${categoryTitle}에서는 위기 신호를 빠르게 감지하고 결정을 유예하는 규칙이 중요합니다.`;
+  return `${categoryTitle}에서는 작은 기준의 반복이 장기 변화로 연결되는 속도를 높입니다.`;
+}
+
+function replaceSharedParagraph(
+  paragraph: string,
+  chapterId: string,
+  categoryId: string,
+  categoryTitle: string,
+  ctx: FptiInterpretationContext,
+): string {
+  const shared = new Set(coreFragments(ctx).map((line) => clean(line)));
+  if (!shared.has(clean(paragraph))) return paragraph;
+
+  const energy = Math.round(ctx.scores.energy);
+  const judgment = Math.round(ctx.scores.judgment);
+  const execution = Math.round(ctx.scores.execution);
+  const vision = Math.round(ctx.scores.vision);
+
+  return `${ctx.typeName}의 ${categoryTitle} 해석에서는 ${ctx.socialStyle}과 ${ctx.decisionStyle}의 균형을 먼저 확인하는 것이 중요합니다. 특히 ${chapterId}/${categoryId} 구간에서는 에너지 ${energy}, 판단 ${judgment}, 실행 ${execution}, 전망 ${vision} 점수의 결을 함께 읽어야 과잉 해석을 줄일 수 있습니다. ${categoryFocus(chapterId, categoryTitle)} 결국 이 카테고리의 목적은 정답 찾기가 아니라, 오늘 바로 적용 가능한 운영 기준을 확보하는 데 있습니다.`;
+}
+
+function padCategoryBody(baseBody: string, chapterId: string, categoryId: string, categoryTitle: string, ctx: FptiInterpretationContext): string {
   const additions = [
-    `${categoryTitle}를 실제 생활에 적용할 때 가장 중요한 원칙은 한 번에 완벽히 바꾸려 하지 않는 것입니다. 이 유형은 변화의 속도를 올리기보다 리듬을 고정할 때 결과가 오래 유지됩니다. 따라서 오늘 적용할 기준을 한 문장으로 정하고, 그 기준을 지켰는지 하루 끝에 짧게 확인하는 흐름이 효과적입니다.`,
-    `${ctx.typeName}의 장점은 분명하지만, 장점은 맥락에 따라 부담으로 전환될 수 있다는 점을 함께 기억해야 합니다. 지나친 책임감, 과도한 배려, 빠른 결론은 모두 좋은 의도에서 시작되지만 피로가 누적되면 소모로 바뀔 수 있습니다. 그래서 자신의 상태를 주기적으로 점검하고 속도를 조절하는 작은 규칙이 필요합니다.`,
-    `이 장의 핵심은 자기비판이 아니라 자기이해입니다. 스스로를 고쳐야 할 대상으로 보지 않고, 잘 작동하는 조건을 설계할 대상으로 볼 때 변화가 빨라집니다. 당신의 성향은 결함이 아니라 방향입니다. 방향을 알고 나면 선택은 훨씬 가벼워지고, 삶은 예측 가능성을 되찾습니다.`,
-    `마지막으로 ${categoryTitle}는 단독 주제가 아니라 전체 삶의 구조와 연결되어 있습니다. 관계의 안정은 일의 집중을 높이고, 일의 정돈은 재정 판단을 안정시키며, 안정된 생활 구조는 다시 감정 회복력을 강화합니다. 이 선순환을 만들기 위해서는 작은 기준을 반복하는 꾸준함이 가장 강력한 전략입니다.`,
+    `${categoryTitle}를 다룰 때 ${ctx.typeName}에게 유효한 방식은 즉흥 결론을 줄이고 ${ctx.decisionStyle} 기준으로 확인 질문을 먼저 두는 것입니다. ${chapterId} 장면에서는 문제를 크게 해결하려 하기보다 ${categoryId} 단위로 쪼개 실행할 때 실제 변화율이 올라갑니다.`,
+    `${ctx.executionStyle} 특성을 활용해 오늘 안에 끝낼 행동 하나와 이번 주에 유지할 규칙 하나를 분리해 두세요. 이 두 축이 분리되면 ${categoryTitle} 관련 피로가 줄고, 반복되는 실수가 빠르게 줄어듭니다.`,
+    `${ctx.outlookStyle} 성향은 장기 안정에 강점이 있지만 판단 지연으로 이어질 수 있습니다. 그래서 ${categoryTitle}에서는 결정 시간을 고정하고, 점검 시간을 별도로 두는 이중 리듬이 효율적입니다.`,
+    `${ctx.stabilityStyle} 회복 축을 살리려면 결과 평가보다 과정 평가를 먼저 해야 합니다. ${chapterId} 챕터의 핵심은 완벽함이 아니라 재현 가능성이고, ${categoryTitle}에서는 그 원칙이 특히 중요합니다.`,
   ];
 
-  let paragraphs = lineParagraphs(baseBody);
+  let paragraphs = lineParagraphs(baseBody).map((paragraph) =>
+    replaceSharedParagraph(paragraph, chapterId, categoryId, categoryTitle, ctx),
+  );
   let cursor = 0;
 
   while (joinParagraphs(paragraphs).length < CATEGORY_MIN && cursor < additions.length * 3) {
@@ -779,7 +812,7 @@ function buildActionTips(chapterId: string, categoryId: string): string[] {
 
 function buildCategory(chapterId: string, category: { id: string; title: string }, ctx: FptiInterpretationContext): FptiReportCategory {
   const seed = chapterTopicFragments(chapterId, category.id, ctx);
-  const body = padCategoryBody(joinParagraphs(seed), chapterId, category.title, ctx);
+  const body = padCategoryBody(joinParagraphs(seed), chapterId, category.id, category.title, ctx);
 
   return {
     id: category.id,
@@ -931,13 +964,17 @@ export function validateFptiPremiumReport(report: FptiPremiumReport): { valid: b
 }
 
 function fallbackCategoryBody(categoryTitle: string, ctx: FptiInterpretationContext): string {
-  const text = [
-    `${categoryTitle}에서 가장 중요한 기준은 자신의 성향을 부정하지 않고 운영 방식으로 전환하는 것입니다. ${ctx.typeName}인 당신은 상황을 깊게 읽는 감각이 뛰어나므로, 급하게 결론을 내리기보다 맥락을 정리한 뒤 선택할 때 훨씬 안정적인 결과를 만들 수 있습니다. 이 방식은 느려 보이지만 장기적으로 후회 비용을 줄이는 가장 현실적인 전략입니다.`,
-    `또한 이 주제는 단독으로 존재하지 않습니다. 관계, 일, 돈, 건강은 서로 연결되어 있기 때문에 한 영역에서 작은 균형이 회복되면 다른 영역도 함께 안정됩니다. 그래서 변화의 출발점은 거대한 목표가 아니라 오늘 지킬 기준 한 문장을 정하는 일입니다. 문장이 명확해질수록 행동은 가벼워지고, 반복은 쉬워집니다.`,
-    `당신의 강점은 한 번의 폭발력이 아니라 지속 가능한 밀도입니다. 하루를 완벽하게 만들려 하기보다 핵심 행동 하나를 확실히 마무리하는 방식이 더 큰 변화를 만듭니다. 이 리듬이 정착되면 자기신뢰가 회복되고, 불안한 상황에서도 기준을 잃지 않게 됩니다. 결국 운명은 거대한 선언보다 반복 가능한 선택에서 바뀝니다.`,
-    `실전 적용에서는 세 가지를 기억하세요. 첫째, 판단 전 맥락을 짧게 정리하기. 둘째, 감정이 큰 날에는 결정을 유예하기. 셋째, 일주일에 한 번 패턴을 복기하기. 이 세 규칙만 지켜도 삶의 마찰은 크게 줄고, 중요한 장면에서의 선택 품질이 눈에 띄게 좋아집니다.`,
+  const tone = [
+    `이 구간에서는 ${ctx.socialStyle}과 ${ctx.decisionStyle}을 같은 비중으로 다루는 것이 안전합니다. 공감만 앞세우거나 기준만 앞세우면 오히려 판단 오차가 커질 수 있으므로, 두 축을 번갈아 점검하는 방식을 유지하세요.`,
+    `${ctx.typeName}은 ${ctx.executionStyle} 특성 덕분에 작은 실행 단위를 빠르게 누적할 수 있습니다. 오늘은 핵심 행동 하나, 이번 주는 유지 규칙 하나를 분리해 기록하면 ${categoryTitle}의 변화가 더 선명해집니다.`,
+    `${ctx.outlookStyle} 성향은 장기 방향 설계에 강점이 있습니다. 다만 방향만 세우고 착수가 늦어지지 않도록, 결정 시점과 점검 시점을 미리 달력에 고정해 두는 것이 중요합니다.`,
+    `${ctx.stabilityStyle} 회복 축을 살리려면 실패 원인 탐색보다 재시작 절차를 먼저 확보하세요. ${categoryTitle}는 의지의 문제가 아니라 구조의 문제이므로, 작고 반복 가능한 규칙이 가장 강력한 해법입니다.`,
   ];
-  return padCategoryBody(joinParagraphs(text), "fallback", categoryTitle, ctx);
+  const text = [
+    `${categoryTitle}에서 가장 중요한 기준은 자신의 성향을 부정하지 않고 운영 방식으로 전환하는 것입니다. ${ctx.typeName}인 당신은 상황을 깊게 읽는 감각이 뛰어나므로, 급하게 결론을 내리기보다 맥락을 정리한 뒤 선택할 때 훨씬 안정적인 결과를 만들 수 있습니다.`,
+    ...tone,
+  ];
+  return padCategoryBody(joinParagraphs(text), "fallback", "fallback", categoryTitle, ctx);
 }
 
 function repairReport(report: FptiPremiumReport, ctx: FptiInterpretationContext): FptiPremiumReport {
