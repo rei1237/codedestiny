@@ -9,7 +9,7 @@ const ZIWEI_FEATURE_KEY = "premium_pdf_ziwei";
 const ZIWEI_FEATURE_ALIASES = new Set(["premium-ziwei-report", "premium_pdf_ziwei"]);
 const CHAPTER_MIN_CHARS = 2000;
 const SECTION_MIN_CHARS = 500;
-const TOTAL_MIN_CHARS = 26000;
+const TOTAL_MIN_CHARS = 30000;
 
 const EARTHLY_BRANCH_HOUR = Object.freeze({
   자: 23,
@@ -156,6 +156,9 @@ const FORBIDDEN_TEXT = [
   "fallback",
   "chapter 1 chapter 1",
   "데이터가 부족합니다",
+  "internal server error",
+  "about:blank",
+  "calculationmode",
 ];
 
 function clean(value) {
@@ -898,11 +901,26 @@ function computeDuplicateRate(chapters = []) {
 }
 
 async function enhanceChaptersWithLlm(env, profile, seed, localChapters) {
-  const perChapterTimeoutMs = Math.min(22000, Number(env.ZIWEI_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 22000));
-  const perChapterTotalMs = Math.min(26000, Number(env.ZIWEI_GEMINI_TOTAL_TIMEOUT_MS || env.PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || 26000));
-  const maxAttempts = Math.min(2, Number(env.ZIWEI_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 2));
+  // 순차 실행 + 벽시계 버짓: Cloudflare Worker 30s 제한 이내 완료 보장
+  const wallBudgetMs = Math.min(18000, Number(env.ZIWEI_LLM_WALL_BUDGET_MS || 18000));
+  const perChapterTimeoutMs = Math.min(10000, Number(env.ZIWEI_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 10000));
+  const perChapterTotalMs = Math.min(12000, Number(env.ZIWEI_GEMINI_TOTAL_TIMEOUT_MS || env.PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || 12000));
+  const maxAttempts = 1;
 
-  const settled = await Promise.allSettled(localChapters.map(async (chapter, i) => {
+  const chapters = localChapters.map((c) => ({ ...c, source: "local" }));
+  let fallbackUsed = false;
+  const budgetStart = Date.now();
+
+  for (let i = 0; i < localChapters.length; i += 1) {
+    const elapsed = Date.now() - budgetStart;
+    const remaining = wallBudgetMs - elapsed;
+    if (remaining < perChapterTimeoutMs + 1500) {
+      fallbackUsed = true;
+      console.warn("[ZiweiPremiumPDF][LLMBudgetExhausted]", { chapter: i + 1, elapsed, remaining, wallBudgetMs });
+      break;
+    }
+
+    const chapter = localChapters[i];
     console.info("[ZiweiPremiumPDF][LLMEnhanceStart]", { chapter: i + 1, categoryCount: Array.isArray(chapter.categories) ? chapter.categories.length : 0 });
     const prompt = [
       "너는 자미두수 계산을 새로 하지 않는다.",
@@ -919,34 +937,29 @@ async function enhanceChaptersWithLlm(env, profile, seed, localChapters) {
       `localChapterDraft: ${JSON.stringify(chapter)}`,
     ].join("\n");
 
-    const result = await callGeminiText(env, prompt, {
-      keyEnvKeys: ["ZIWEI_GEMINI_API_KEY"],
-      modelEnvKeys: ["ZIWEI_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"],
-      temperature: 0.55,
-      maxOutputTokens: 4096,
-      timeoutMs: perChapterTimeoutMs,
-      totalTimeoutMs: perChapterTotalMs,
-      maxAttemptsPerPair: maxAttempts,
-    });
+    try {
+      const result = await callGeminiText(env, prompt, {
+        keyEnvKeys: ["ZIWEI_GEMINI_API_KEY"],
+        modelEnvKeys: ["ZIWEI_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"],
+        temperature: 0.55,
+        maxOutputTokens: 4096,
+        timeoutMs: perChapterTimeoutMs,
+        totalTimeoutMs: perChapterTotalMs,
+        maxAttemptsPerPair: maxAttempts,
+      });
 
-    const parsed = result?.ok ? parseJsonMaybe(result.text) : null;
-    if (!parsed) throw new Error("parse_or_empty");
-    const merged = mergeLlmChapter(chapter, parsed);
-    if (merged.source !== "llm") throw new Error("merge_failed");
-    return { chapterNo: i + 1, chapter: merged };
-  }));
-
-  let fallbackUsed = false;
-  const chapters = settled.map((outcome, idx) => {
-    if (outcome.status === "fulfilled") {
-      console.info("[ZiweiPremiumPDF][LLMEnhanceSuccess]", { chapter: outcome.value.chapterNo, source: "llm" });
-      return outcome.value.chapter;
+      const parsed = result?.ok ? parseJsonMaybe(result.text) : null;
+      if (!parsed) throw new Error("parse_or_empty");
+      const merged = mergeLlmChapter(chapter, parsed);
+      if (merged.source !== "llm") throw new Error("merge_failed");
+      chapters[i] = merged;
+      console.info("[ZiweiPremiumPDF][LLMEnhanceSuccess]", { chapter: i + 1, source: "llm" });
+    } catch (err) {
+      fallbackUsed = true;
+      const normalized = normalizeZiweiError(err);
+      console.warn("[ZiweiPremiumPDF][LLMEnhanceFailedUseLocal]", { chapter: i + 1, message: clean(normalized.message || "llm_failed") });
     }
-    fallbackUsed = true;
-    const err = normalizeZiweiError(outcome.reason);
-    console.warn("[ZiweiPremiumPDF][LLMEnhanceFailedUseLocal]", { chapter: idx + 1, message: clean(err.message || "llm_failed") });
-    return { ...localChapters[idx], source: "local" };
-  });
+  }
 
   return { chapters, fallbackUsed };
 }
@@ -979,12 +992,17 @@ function buildZiweiPayload(profile, seed, chapters, metadata = {}) {
   };
 }
 
+function toKoreanChapterTitle(title, index) {
+  const stripped = String(title || "").replace(/^Chapter\s*\d+\.?\s*/i, "").trim();
+  return `제${index + 1}장 ${stripped}`;
+}
+
 function renderZiweiPdf({ profile, seed, chapters, generatedAt, fallbackUsed }) {
-  const toc = chapters.map((chapter) => `<li><span>${esc(chapter.roman)}</span><strong>${esc(chapter.title)}</strong></li>`).join("\n");
+  const toc = chapters.map((chapter, index) => `<li><span>${esc(chapter.roman)}</span><strong>${esc(toKoreanChapterTitle(chapter.title, index))}</strong></li>`).join("\n");
   const palaceSummary = seed.chart.palaces.slice(0, 12).map((p) => `<tr><td>${esc(p.nameKo)}</td><td>${esc(p.branch)}</td><td>${esc(starsText(p.mainStars))}</td></tr>`).join("\n");
   const chapterHtml = chapters.map((chapter, index) => {
     const categoryHtml = chapter.categories.map((category) => `<section class="zb-category"><h3>${esc(category.title)}</h3><p>${esc(category.finalText)}</p></section>`).join("\n");
-    return `<article class="zb-chapter"><div class="zb-eyebrow">${esc(chapter.roman)} · 제 ${index + 1}장</div><h2>${esc(chapter.title)}</h2>${categoryHtml}</article>`;
+    return `<article class="zb-chapter"><div class="zb-eyebrow">${esc(chapter.roman)} · 제 ${index + 1}장</div><h2>${esc(toKoreanChapterTitle(chapter.title, index))}</h2>${categoryHtml}</article>`;
   }).join("\n");
   return `<!doctype html>
 <html lang="ko">
