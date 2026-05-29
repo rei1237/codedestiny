@@ -20,6 +20,7 @@
   var _premiumAccessVerifiedUntil = 0;
   var _premiumPaidUntil = 0;
   var _currentVedicSessionId = '';
+  var _lastPremiumPayment = null;
 
   function _qs(id) { return document.getElementById(id); }
   function _clean(value) { return String(value || '').trim(); }
@@ -603,6 +604,7 @@
     }
     _logStage('PaymentGateStart', { featureKey: VEDIC_FEATURE_KEY });
     window._cdCoinGatePerUse(VEDIC_COIN_COST, '베다 점성술 프리미엄 PDF 리포트 생성', function (_transactionId, data) {
+      _lastPremiumPayment = data || null;
       _persistPremiumAccessToken(_extractPremiumToken(data));
       _markPremiumAccessVerified(25 * 60 * 1000);
       _logStage('PaymentGateSuccess', { featureKey: VEDIC_FEATURE_KEY });
@@ -718,10 +720,32 @@
         _setLoadingProgress(2, VEDIC_TOTAL_CHAPTERS, '베다 차트 계산 중');
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '12챕터 로컬 원고 생성 중');
         _logStage('SessionCreateStart', { endpoint: VEDIC_PREPARE_API, featureKey: VEDIC_FEATURE_KEY });
+        var paymentGrant = _lastPremiumPayment && _lastPremiumPayment.accessGrant ? _lastPremiumPayment.accessGrant : null;
+        var paymentContext = paymentGrant ? {
+          featureKey: VEDIC_FEATURE_KEY,
+          requestId: paymentGrant.requestId || paymentGrant.transactionId || '',
+          purchaseId: paymentGrant.purchaseId || '',
+          sessionId: paymentGrant.sessionId || paymentGrant.reportSessionId || '',
+          reportSessionId: paymentGrant.reportSessionId || paymentGrant.sessionId || '',
+          reportId: paymentGrant.reportId || '',
+        } : undefined;
         return _postPrepare({
           sessionId: _currentVedicSessionId,
           featureKey: VEDIC_FEATURE_KEY,
-          premiumAccessToken: _readPremiumAccessToken() || undefined,
+          reportSessionId: paymentGrant && (paymentGrant.reportSessionId || paymentGrant.sessionId) || _currentVedicSessionId,
+          purchaseId: paymentGrant && paymentGrant.purchaseId || undefined,
+          requestId: paymentGrant && (paymentGrant.requestId || paymentGrant.transactionId) || undefined,
+          accessGrant: paymentGrant || undefined,
+          premiumAccessToken: _readPremiumAccessToken() || _extractPremiumToken(_lastPremiumPayment) || undefined,
+          payment: paymentContext ? {
+            featureKey: VEDIC_FEATURE_KEY,
+            requestId: paymentContext.requestId,
+            purchaseId: paymentContext.purchaseId,
+            sessionId: paymentContext.sessionId,
+            reportSessionId: paymentContext.reportSessionId,
+            reportId: paymentContext.reportId,
+          } : undefined,
+          _paymentContext: paymentContext,
           vedicBase: vedicBase,
         }).then(function (data) {
           _logStage('SessionCreateSuccess', {

@@ -21,6 +21,7 @@
   var _progressTimer = null;
   var _premiumAccessVerifiedUntil = 0;
   var _premiumPaidUntil = 0;
+  var _lastPremiumPayment = null;
 
   function _qs(id) { return document.getElementById(id); }
   function _detachModalFromResultPage(modal) {
@@ -787,6 +788,7 @@
     return new Promise(function (resolve, reject) {
       try {
         window._cdCoinGatePerUse(ASTRO_COIN_COST, '점성술 프리미엄 PDF 리포트 생성', function (_transactionId, data) {
+          _lastPremiumPayment = data || null;
           _persistPremiumAccessToken(_extractPremiumToken(data));
           _markPremiumAccessVerified(25 * 60 * 1000);
           _logStage('PaymentGateSuccess', { featureKey: ASTRO_BILLING_FEATURE_KEY });
@@ -909,7 +911,16 @@
       .then(function (astroBase) {
         _setLoadingProgress(total, total, '10챕터 로컬 원고 생성 중');
         _logStage('LocalDraftProgress', { completed: total, total: total });
-        return _ensurePremiumPaymentAsync().then(function () {
+        return _ensurePremiumPaymentAsync().then(function (payment) {
+          var paymentGrant = payment && payment.data && payment.data.accessGrant ? payment.data.accessGrant : (_lastPremiumPayment && _lastPremiumPayment.accessGrant ? _lastPremiumPayment.accessGrant : null);
+          var paymentContext = paymentGrant ? {
+            featureKey: ASTRO_BILLING_FEATURE_KEY,
+            requestId: paymentGrant.requestId || paymentGrant.transactionId || '',
+            purchaseId: paymentGrant.purchaseId || '',
+            sessionId: paymentGrant.sessionId || paymentGrant.reportSessionId || '',
+            reportSessionId: paymentGrant.reportSessionId || paymentGrant.sessionId || '',
+            reportId: paymentGrant.reportId || '',
+          } : undefined;
           _logStage('SessionCreateStart', {
             hasBirthDate: !!_clean(birthInput.birthDate),
             hasBirthTime: Number.isFinite(Number(birthInput.birthHour)),
@@ -921,8 +932,21 @@
           _logStage('PdfRequestStart', { featureKey: ASTRO_FEATURE_KEY, sessionId: sessionId });
           return _postPrepare({
             featureKey: ASTRO_FEATURE_KEY,
-            premiumAccessToken: _readPremiumAccessToken() || undefined,
+            premiumAccessToken: _readPremiumAccessToken() || _extractPremiumToken(payment && payment.data) || undefined,
             sessionId: sessionId,
+            reportSessionId: paymentGrant && (paymentGrant.reportSessionId || paymentGrant.sessionId) || sessionId,
+            purchaseId: paymentGrant && paymentGrant.purchaseId || undefined,
+            requestId: paymentGrant && (paymentGrant.requestId || paymentGrant.transactionId) || undefined,
+            accessGrant: paymentGrant || undefined,
+            payment: paymentContext ? {
+              featureKey: ASTRO_BILLING_FEATURE_KEY,
+              requestId: paymentContext.requestId,
+              purchaseId: paymentContext.purchaseId,
+              sessionId: paymentContext.sessionId,
+              reportSessionId: paymentContext.reportSessionId,
+              reportId: paymentContext.reportId,
+            } : undefined,
+            _paymentContext: paymentContext,
             birthInput: birthInput,
             profile: profile,
             astroBase: astroBase,
