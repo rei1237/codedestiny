@@ -106,6 +106,12 @@
       } catch (_) {}
     }
 
+  function _lifeBookLog(tag, extra) {
+    try {
+      console.info('[LifeBook][' + String(tag || 'Log') + ']', extra || {});
+    } catch (_) {}
+  }
+
   var _generating = false;
   var _currentChapter = 1;
   var _mysticTimer = null;
@@ -114,6 +120,7 @@
   var _premiumPaidUntil = 0;
   var _premiumAccessVerifiedUntil = 0;
   var _lbPendingSavedResult = null;
+  var _lbPendingPdfHtml = '';
   var _lbJobStateKey = 'cd:premium-job:life-book';
   var _lbCurrentReportId = '';
   var _lbCurrentAccessGrant = null;
@@ -835,6 +842,71 @@
     return lines.join('\n');
   }
 
+  function _collectLifeBookAnalysisSignals(profile) {
+    var snap = window.__destinyFlowerSajuSnapshot || {};
+    var analysis = snap.analysis || snap.saju || {};
+    var power = window.G_POWER || {};
+    var johu = window.G_JOHU || {};
+    var pillars = window.G_PILLARS || {};
+    var daewunList = window.G_DAEWUN || window.G_DAEUN || [];
+
+    var elementWeights = analysis.elementWeights && typeof analysis.elementWeights === 'object'
+      ? {
+          wood: Number(analysis.elementWeights.wood || 0),
+          fire: Number(analysis.elementWeights.fire || 0),
+          earth: Number(analysis.elementWeights.earth || 0),
+          metal: Number(analysis.elementWeights.metal || 0),
+          water: Number(analysis.elementWeights.water || 0),
+        }
+      : null;
+
+    var yongList = [];
+    if (Array.isArray(analysis.yongshin_elements)) yongList = analysis.yongshin_elements.slice(0, 4);
+    if (!yongList.length && Array.isArray(power.yongshin)) yongList = power.yongshin.slice(0, 4);
+
+    var kiList = [];
+    if (Array.isArray(analysis.kishin_elements)) kiList = analysis.kishin_elements.slice(0, 4);
+    if (!kiList.length && Array.isArray(power.kijishin)) kiList = power.kijishin.slice(0, 4);
+
+    var tenGods = null;
+    if (power && power.groups && typeof power.groups === 'object') {
+      tenGods = Object.assign({}, power.groups);
+    }
+
+    var currentDaewun = '';
+    if (Array.isArray(daewunList) && daewunList.length && profile && profile.birth && profile.birth.year) {
+      var currentAge = new Date().getFullYear() - Number(profile.birth.year || 0) + 1;
+      for (var i = 0; i < daewunList.length; i++) {
+        var cur = daewunList[i] || {};
+        var next = daewunList[i + 1] || null;
+        var ageStart = Number(cur.age || 0);
+        var ageEnd = next ? Number(next.age || 999) : 999;
+        if (currentAge >= ageStart && currentAge < ageEnd) {
+          currentDaewun = String((cur.g || '') + (cur.j || '')).trim();
+          break;
+        }
+      }
+      if (!currentDaewun) {
+        var last = daewunList[daewunList.length - 1] || {};
+        currentDaewun = String((last.g || '') + (last.j || '')).trim();
+      }
+    }
+
+    return {
+      dayMaster: String((analysis.dayStem || (pillars.d && pillars.d.g) || '') || '').trim(),
+      monthBranch: String(((pillars.m && pillars.m.j) || '') || '').trim(),
+      powerLabel: String((analysis.power_label || analysis.powerLabel || '') || '').trim(),
+      johuType: String((analysis.johuType || analysis.johu_type || johu.type || '') || '').trim(),
+      yongshinElements: yongList,
+      kishinElements: kiList,
+      elementWeights: elementWeights,
+      tenGodCounts: tenGods,
+      currentDaewun: currentDaewun,
+      isJong: Boolean(analysis.isJong),
+      jongName: String(analysis.jongName || ''),
+    };
+  }
+
   function _normalizeLifeBookErrorMessage(error, fallback) {
     var raw = String(error && error.message ? error.message : error || '').trim();
     var defaultMsg = String(fallback || '요청 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.');
@@ -1172,6 +1244,7 @@
     }
 
     _flowLog('DETAIL_POPUP_OPEN', { message: 'open-only' });
+    _lifeBookLog('ModalOpen', {});
     var profile = _getActiveBirthProfile();
     // ★ 프로필 없으면 localStorage 운명 카드(Destiny Profile)에서 복구 시도
     if (!profile) {
@@ -1193,6 +1266,12 @@
       alert('📜 인생의 책을 생성하려면 생년월일 · 출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
       return;
     }
+
+    _lifeBookLog('ProfileResolved', {
+      hasBirthDate: Boolean(profile && profile.birth && profile.birth.year),
+      hasBirthTime: Boolean(profile && profile.birth && Number.isFinite(Number(profile.birth.hour))),
+      gender: String((profile && profile.gender) || ''),
+    });
 
     // 복구된 프로필이 있으면 window에 주입
     if (!window.__cdActiveBirthProfile || !window.__cdActiveBirthProfile.birth) {
@@ -1278,7 +1357,7 @@
       '<div class="lb-chapter-wrap">' +
       _buildResultOverviewHtml() +
       '<div class="lb-chapter-header">' +
-      '<span class="lb-chapter-num">Chapter ' + ch + '</span>' +
+      '<span class="lb-chapter-num">제 ' + ch + '장</span>' +
       '<h2 class="lb-chapter-title">' + _escHtml(_getChapterMeta(idx).title) + '</h2>' +
       '<p class="lb-chapter-sub">' + _escHtml(_getChapterMeta(idx).subtitle) + '</p>' +
       '</div>' +
@@ -1347,6 +1426,7 @@
     if (!_hasPremiumAccessForGeneration() && !inputAccessGrant) {
       var gateReportId = inputReportId || ('lifebook_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8));
       _flowLog('COIN_GATE_START', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: gateReportId, message: 'lifebook-gate-start' });
+      _lifeBookLog('PaymentGateStart', { reportId: gateReportId });
       (async function runLifeBookGateThenGenerate() {
         try {
           var gate = await _runLifeBookCoinGate(gateReportId);
@@ -1363,6 +1443,10 @@
             purchaseId: String(gate.accessGrant.purchaseId || ''),
             sessionId: String(gate.accessGrant.sessionId || ''),
             requestId: String(gate.accessGrant.requestId || gate.requestId || ''),
+          });
+          _lifeBookLog('PaymentGateSuccess', {
+            reportId: gateReportId,
+            sessionId: String(gate.accessGrant.sessionId || ''),
           });
           window.generateLifeBook({
             reportId: String(gate.accessGrant.reportId || gateReportId),
@@ -1383,6 +1467,11 @@
       alert('사주 계산을 먼저 완료해 주세요.');
       return;
     }
+    _lifeBookLog('ProfileResolved', {
+      hasBirthDate: Boolean(profile && profile.birth && profile.birth.year),
+      hasBirthTime: Boolean(profile && profile.birth && Number.isFinite(Number(profile.birth.hour))),
+      gender: String((profile && profile.gender) || ''),
+    });
     // 복구된 프로필 주입
     if (!window.__cdActiveBirthProfile || !window.__cdActiveBirthProfile.birth) {
       window.__cdActiveBirthProfile = profile;
@@ -1422,6 +1511,13 @@
       try { window.computeProfileForModal(profile); } catch (_cpE) {}
     }
     var sajuData = _collectSajuData();
+    _lifeBookLog('BirthInputNormalized', {
+      hasBirthDate: Boolean(profile && profile.birth && profile.birth.year),
+      hasBirthTime: Boolean(profile && profile.birth && Number.isFinite(Number(profile.birth.hour))),
+      birthHour: Number(profile && profile.birth ? profile.birth.hour : NaN),
+      gender: String(profile && profile.gender || ''),
+      calendarType: 'solar',
+    });
     _flowLog('SAJU_DATA_READY', {
       featureKey: LIFE_BOOK_FEATURE_KEY,
       hasSajuData: Boolean(sajuData && sajuData.length >= 30),
@@ -1431,9 +1527,11 @@
     // 사주 데이터가 최소한으로 채워졌는지 확인
     if (!sajuData || sajuData.length < 30) {
       _generating = false;
+      _lifeBookLog('ValidationBeforePayment', { ok: false, reason: 'missing_saju_data' });
       alert('사주 데이터를 불러오지 못했습니다. 생년월일을 입력하고 사주 분석을 먼저 실행해 주세요.');
       return;
     }
+    _lifeBookLog('ValidationBeforePayment', { ok: true });
 
     _showScreen('lbLoadingScreen');
 
@@ -1477,7 +1575,7 @@
       if (chapterMsg && done < LIFEBOOK_TOTAL_CHAPTERS) chapterMsg.textContent = LOADING_MSGS[done] || '분석 중...';
       if (chapterMsg && done >= LIFEBOOK_TOTAL_CHAPTERS) chapterMsg.textContent = '모든 챕터가 완성되었습니다 ✦';
       if (chapterNumEl) {
-        chapterNumEl.textContent = done < LIFEBOOK_TOTAL_CHAPTERS ? 'Chapter ' + (done + 1) : '✦ 완성 ✦';
+        chapterNumEl.textContent = done < LIFEBOOK_TOTAL_CHAPTERS ? ('제 ' + (done + 1) + '장') : '완료';
       }
       // 챕터 아이콘 업데이트
       Array.prototype.forEach.call(chDots, function (d) {
@@ -1495,13 +1593,14 @@
     _setProgress(0);
 
     var _lbStateMessages = {
-      payment_confirmed: '결제가 확인되었습니다. 인생의 책을 펼칠 준비를 하고 있습니다.',
-      calculating_saju: '사주 원국을 계산하고 있습니다.',
-      building_chapters: '13개의 챕터 구조를 구성하고 있습니다.',
-      writing_with_llm: '각 챕터의 상담문을 작성하고 있습니다.',
-      validating_chapters: '챕터별 결과가 빠짐없이 작성되었는지 확인하고 있습니다.',
-      rendering_pdf: 'PDF를 아름답게 편집하고 있습니다.',
-      saving_result: '완성된 인생의 책을 저장하고 있습니다.',
+      profile_check: '프로필 정보 확인 중',
+      calculating_saju: '사주 원국 계산 중',
+      daewoon_calc: '대운·세운 흐름 계산 중',
+      local_draft: '13챕터 로컬 원고 생성 중',
+      writing_with_llm: 'AI 상담문 보강 중',
+      rendering_pdf: 'PDF 편집/렌더링 중',
+      done: '완료',
+      llm_failed_local: 'AI 문장 보강이 지연되어 로컬 사주 계산 기반 프리미엄 원고로 PDF를 완성합니다.',
     };
 
     function _setGenerationState(stateKey) {
@@ -1516,6 +1615,7 @@
       hasAccessGrant: Boolean(_lbCurrentAccessGrant),
       hasPremiumToken: Boolean(_lbCurrentPremiumToken),
     });
+    _lifeBookLog('SessionCreateStart', {});
 
     (async function runLifeBookSinglePass() {
       var _lbReportId = inputReportId || 'lifebook_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
@@ -1552,7 +1652,7 @@
         hasReportId: Boolean(_accessGrant && _accessGrant.reportId),
       });
 
-      _setGenerationState('payment_confirmed');
+      _setGenerationState('profile_check');
       _flowLog('PAYMENT_ACCESS_CHECK', {
         featureKey: LIFE_BOOK_FEATURE_KEY,
         reportId: _lbReportId,
@@ -1560,8 +1660,10 @@
         hasSessionId: Boolean(_sessionId),
         hasPurchaseId: Boolean(_purchaseId),
       });
+      _lifeBookLog('PaymentGateSuccess', { reportId: _lbReportId });
       _setGenerationState('calculating_saju');
-      _setGenerationState('building_chapters');
+      _lifeBookLog('LocalCalculationStart', { reportId: _lbReportId });
+      _setGenerationState('daewoon_calc');
       _flowLog('LIFE_BOOK_GENERATION_SESSION_CREATED', {
         featureKey: LIFE_BOOK_FEATURE_KEY,
         reportId: _lbReportId,
@@ -1569,6 +1671,7 @@
         purchaseId: _purchaseId,
         requestId: _requestId,
       });
+      _lifeBookLog('SessionCreateSuccess', { reportId: _lbReportId, sessionId: _sessionId });
 
       var _headers = { 'Content-Type': 'application/json' };
       if (_lbAuthToken) _headers.Authorization = 'Bearer ' + _lbAuthToken;
@@ -1608,17 +1711,16 @@
         minute: Number(profile.birth.minute || 0),
         birthplace: String((profile && profile.location && profile.location.label) || '대한민국'),
         sajuData: sajuData,
+        analysisSignals: _collectLifeBookAnalysisSignals(profile),
       };
 
-      _setGenerationState('writing_with_llm');
-  _flowLog('LIFE_BOOK_LLM_ENHANCE_START', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: _lbReportId });
+        _setGenerationState('local_draft');
       var _prepare = await _postLifeBookPrepare(_payload, _headers);
       var _res = _prepare.res;
       var _json = _prepare.json;
 
-      _setGenerationState('validating_chapters');
-
       var _data = (_json && _json.data && typeof _json.data === 'object') ? _json.data : _json;
+        _lbPendingPdfHtml = String((_data && _data.pdfReady && _data.pdfReady.html) || '');
       var _serverChapters = Array.isArray(_data.chapters) ? _data.chapters : [];
       if (_serverChapters.length !== LIFEBOOK_TOTAL_CHAPTERS) {
         throw new Error('LIFE_BOOK_CHAPTER_COUNT_INVALID:' + _serverChapters.length);
@@ -1659,12 +1761,21 @@
         };
         if (chapterMsg) chapterMsg.textContent = 'Chapter ' + (_i + 1) + ' 정리 완료 · 다음 챕터를 준비하고 있습니다...';
         _setProgress(_i + 1);
+        _lifeBookLog('LocalDraftProgress', { chapterDone: _i + 1, total: LIFEBOOK_TOTAL_CHAPTERS });
         await new Promise(function (r) { setTimeout(r, 90); });
+      }
+
+      _setGenerationState('writing_with_llm');
+      _flowLog('LIFE_BOOK_LLM_ENHANCE_START', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: _lbReportId });
+      _lifeBookLog('LLMEnhanceStart', { reportId: _lbReportId });
+      if (_data && _data.fallbackUsed) {
+        _setGenerationState('llm_failed_local');
+        _lifeBookLog('LLMEnhanceFailedUseLocal', { reportId: _lbReportId });
       }
 
       _setGenerationState('rendering_pdf');
       _flowLog('LIFE_BOOK_PDF_RENDER_START', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: _lbReportId, chapterCount: LIFEBOOK_TOTAL_CHAPTERS });
-      _setGenerationState('saving_result');
+      _lifeBookLog('PdfRenderStart', { reportId: _lbReportId });
 
       if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
       _generating = false;
@@ -1688,10 +1799,13 @@
       var lbEpBanner = _qs('lbEpilogueBanner');
       if (lbEpBanner) lbEpBanner.style.display = '';
   _flowLog('LIFE_BOOK_PDF_DONE', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: _lbReportId, chapterCount: LIFEBOOK_TOTAL_CHAPTERS });
+      _setGenerationState('done');
+      _lifeBookLog('PdfRequestSuccess', { reportId: _lbReportId });
       _flowLog('FRONT_PREVIEW_READY', { message: 'single-pass-complete', categoryCount: LIFEBOOK_TOTAL_CHAPTERS * 6 });
     })().catch(function (error) {
       var errMsg = _normalizeLifeBookErrorMessage(error, '네트워크 요청이 중단되었습니다. 잠시 후 다시 시도해 주세요.');
       _flowLog('FRONT_PIPELINE_FAILED', { message: errMsg });
+      _lifeBookLog('Error', { stage: 'generate', message: errMsg });
 
       var fallbackApplied = false;
       try {
@@ -1715,13 +1829,14 @@
         _lbSaveResult(window.__cdActiveBirthProfile || {});
         var lbEpBannerFallback = _qs('lbEpilogueBanner');
         if (lbEpBannerFallback) lbEpBannerFallback.style.display = '';
-        alert('외부 보강 API가 일시적으로 실패해 로컬 사주 계산 결과로 13개 챕터를 완성했습니다.');
+        _setGenerationState('llm_failed_local');
+        alert('AI 문장 보강이 지연되어 로컬 사주 계산 기반 프리미엄 원고로 PDF를 완성합니다.');
         return;
       }
 
       _generating = false;
       _showScreen('lbStartScreen');
-      alert('인생의 책 생성 중 오류가 발생했습니다: ' + errMsg);
+      alert('인생의 책 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }).finally(function () {
       if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
       if (_activeRequestController) _activeRequestController = null;
@@ -1988,7 +2103,8 @@
         '</div>';
     }
 
-    var fullHtml = '<!DOCTYPE html><html lang="ko"><head>' +
+    var fullHtml = String(_lbPendingPdfHtml || '').trim();
+    if (!fullHtml) fullHtml = '<!DOCTYPE html><html lang="ko"><head>' +
       '<meta charset="UTF-8">' +
       '<title>' + _escHtml(name) + '</title>' +
       '<style>' +
@@ -2045,21 +2161,26 @@
       bodyHtml +
       '</body></html>';
 
+    var blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+    var blobUrl = URL.createObjectURL(blob);
+
     // 새 창 열어서 print
-    var win = window.open('', '_blank', 'width=900,height=700');
+    var win = window.open(blobUrl, '_blank', 'noopener,noreferrer,width=900,height=700');
     if (!win) {
       alert('팝업이 차단되어 PDF 생성 창을 열 수 없습니다.\n브라우저 팝업 허용 후 다시 시도해 주세요.');
+      URL.revokeObjectURL(blobUrl);
       return;
     }
-    win.document.open();
-    win.document.write(fullHtml);
-    win.document.close();
-    win.focus();
     setTimeout(function () {
       try {
+        win.focus();
         win.print();
         _flowLog('PDF_RENDER_SUCCESS', { message: 'print-opened' });
+        _lifeBookLog('PdfRenderStart', { mode: 'print', source: _lbPendingPdfHtml ? 'server-html' : 'local-html' });
       } catch (_) {}
+      setTimeout(function () {
+        URL.revokeObjectURL(blobUrl);
+      }, 1200);
     }, 1200);
   };
 

@@ -6,20 +6,13 @@ const SERVICE_KEY = "saju-lifebook";
 const FEATURE_KEY = "saju_life_book_pdf";
 
 const STEP_LABELS = [
-  "기본 정보를 정리하는 중입니다",
-  "결제/권한 확인을 진행하는 중입니다",
-  "사주 원국을 계산하는 중입니다",
-  "팔자 8글자의 균형을 살펴보는 중입니다",
-  "일간과 월지의 중심 기질을 읽는 중입니다",
-  "용신과 희신의 방향을 정리하는 중입니다",
-  "대운의 큰 흐름을 분석하는 중입니다",
-  "관계와 인연의 패턴을 정리하는 중입니다",
-  "재물과 직업의 현실 전략을 구성하는 중입니다",
-  "숨은 복과 귀인의 흐름을 살펴보는 중입니다",
-  "13개의 인생 챕터를 구성하는 중입니다",
-  "상담문을 프리미엄 문장으로 다듬는 중입니다",
-  "PDF 책자로 편집하는 중입니다",
-  "인생의 책이 완성되었습니다",
+  "프로필 정보 확인 중",
+  "사주 원국 계산 중",
+  "대운·세운 흐름 계산 중",
+  "13챕터 로컬 원고 생성 중",
+  "AI 상담문 보강 중",
+  "PDF 편집/렌더링 중",
+  "완료",
 ];
 
 const CHAPTER_ROADMAP = [
@@ -126,6 +119,7 @@ export default function SajuLifebookPage() {
   const [loading, setLoading] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [error, setError] = useState("");
+  const [infoNote, setInfoNote] = useState("");
   const [result, setResult] = useState(null);
   const [selectedChapter, setSelectedChapter] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState(0);
@@ -165,12 +159,14 @@ export default function SajuLifebookPage() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
+    setInfoNote("");
     setResult(null);
     setSelectedChapter(0);
     setSelectedCategory(0);
     setShowDetail(false);
 
     const name = String(form.name || "").trim();
+    console.info("[LifeBook][ModalOpen]");
     if (!name) {
       setError("이름을 입력해 주세요.");
       return;
@@ -194,8 +190,16 @@ export default function SajuLifebookPage() {
     setLoading(true);
     setStepIndex(0);
     startTicker();
+    console.info("[LifeBook][ProfileResolved]", {
+      hasBirthDate: Boolean(form.birthDate),
+      hasBirthTime: Boolean(form.birthTimeKnown),
+      gender: form.gender,
+    });
+    console.info("[LifeBook][BirthInputNormalized]");
+    console.info("[LifeBook][ValidationBeforePayment]");
 
     try {
+      console.info("[LifeBook][SessionCreateStart]");
       const response = await fetch("/api/lifebook/prepare", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -223,7 +227,14 @@ export default function SajuLifebookPage() {
       setStepIndex(STEP_LABELS.length - 1);
       setResult(payload.data || null);
       setShowDetail(true);
+      console.info("[LifeBook][SessionCreateSuccess]");
+      console.info("[LifeBook][PdfRequestSuccess]");
+      if (payload?.data?.fallbackUsed) {
+        setInfoNote("AI 문장 보강이 지연되어 로컬 사주 계산 기반 프리미엄 원고로 PDF를 완성합니다.");
+        console.info("[LifeBook][LLMEnhanceFailedUseLocal]");
+      }
     } catch (submitError) {
+      console.info("[LifeBook][Error]", { message: String(submitError?.message || "") });
       setError(String(submitError?.message || "PDF 생성 중 문제가 발생했습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요."));
     } finally {
       stopTicker();
@@ -244,11 +255,17 @@ export default function SajuLifebookPage() {
       return;
     }
 
-    popup.document.open();
-    popup.document.write(html);
-    popup.document.close();
-    popup.focus();
-    popup.print();
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const blobUrl = URL.createObjectURL(blob);
+    popup.location.href = blobUrl;
+    setTimeout(() => {
+      try {
+        popup.focus();
+        popup.print();
+      } finally {
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1200);
+      }
+    }, 500);
   };
 
   return (
@@ -355,6 +372,12 @@ export default function SajuLifebookPage() {
           {error ? (
             <div style={{ marginTop: 12, borderRadius: 10, border: "1px solid #cc775f", background: "rgba(204,119,95,.15)", color: "#ffd8ce", padding: "10px 12px" }}>
               {error}
+            </div>
+          ) : null}
+
+          {infoNote ? (
+            <div style={{ marginTop: 12, borderRadius: 10, border: "1px solid #8aa95c", background: "rgba(138,169,92,.15)", color: "#e5f4cc", padding: "10px 12px" }}>
+              {infoNote}
             </div>
           ) : null}
         </form>
