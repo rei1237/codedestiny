@@ -9,6 +9,7 @@ import {
   SUKYO_PDF_FEATURE_KEY,
   buildSukyoPdfSeed,
   generateSukyoPremiumReport,
+  validateSukyoPdfInput,
 } from "../lib/sukyo-pdf.js";
 import { buildCanonicalSukuyoCompatibility, buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
@@ -20,6 +21,30 @@ function clean(value) {
 function toNumber(value, fallback = NaN) {
   const n = Number(value);
   return Number.isFinite(n) ? n : fallback;
+}
+
+function normalizeSukuyoError(error) {
+  if (error instanceof Error) {
+    return {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    };
+  }
+
+  if (typeof error === "object" && error !== null) {
+    try {
+      return JSON.parse(JSON.stringify(error));
+    } catch {
+      return {
+        message: String(error),
+      };
+    }
+  }
+
+  return {
+    message: String(error),
+  };
 }
 
 function parseDateParts(value) {
@@ -34,50 +59,139 @@ function parseDateParts(value) {
   return { year, month, day };
 }
 
+const KOREAN_HOUR_MAP = {
+  자시: 23,
+  축시: 1,
+  인시: 3,
+  묘시: 5,
+  진시: 7,
+  사시: 9,
+  오시: 11,
+  미시: 13,
+  신시: 15,
+  유시: 17,
+  술시: 19,
+  해시: 21,
+};
+
 function parseTimeParts(value) {
   const raw = clean(value);
-  const match = raw.match(/^(\d{1,2})(?::(\d{1,2}))?$/);
-  if (!match) return { hour: 12, minute: 0, hasTime: false };
-  const hour = Math.max(0, Math.min(23, toNumber(match[1], 12)));
-  const minute = Math.max(0, Math.min(59, toNumber(match[2], 0)));
-  return { hour, minute, hasTime: true };
-}
+  const lower = raw.toLowerCase();
 
-function normalizeProfile(raw = {}, fallbackName = "사용자") {
-  const profile = raw.profile && typeof raw.profile === "object" ? raw.profile : raw;
-  const parts = parseDateParts(profile.birthDate || raw.birthDate || profile.date);
-  const time = parseTimeParts(profile.birthTime || raw.birthTime || profile.time);
+  if (!raw || /모름|unknown/.test(lower)) {
+    return { hour: 12, minute: 0, hasTime: false, isTimeUnknown: true, normalizedTime: "" };
+  }
+
+  if (Number.isFinite(KOREAN_HOUR_MAP[raw])) {
+    const hour = KOREAN_HOUR_MAP[raw];
+    return { hour, minute: 0, hasTime: true, isTimeUnknown: false, normalizedTime: `${String(hour).padStart(2, "0")}:00` };
+  }
+
+  let hour = null;
+  let minute = 0;
+
+  const hhmm = lower.match(/^(\d{1,2})(?::(\d{1,2}))?$/);
+  if (hhmm) {
+    hour = Number(hhmm[1]);
+    minute = Number(hhmm[2] || "0");
+  }
+
+  const korean = lower.match(/^(오전|오후)\s*(\d{1,2})\s*시(?:\s*(\d{1,2})\s*분?)?$/);
+  if (korean) {
+    const base = Number(korean[2]);
+    const isPm = korean[1] === "오후";
+    hour = base % 12;
+    if (isPm) hour += 12;
+    minute = Number(korean[3] || "0");
+  }
+
+  if (!Number.isFinite(hour) || hour < 0 || hour > 23 || !Number.isFinite(minute) || minute < 0 || minute > 59) {
+    return { hour: 12, minute: 0, hasTime: false, isTimeUnknown: true, normalizedTime: "" };
+  }
+
   return {
-    name: clean(profile.name || raw.name) || fallbackName,
-    gender: clean(profile.gender || raw.gender),
-    birthDate: clean(profile.birthDate || raw.birthDate || profile.date),
-    birthTime: time.hasTime ? `${String(time.hour).padStart(2, "0")}:${String(time.minute).padStart(2, "0")}` : "",
-    calendarType: clean(profile.calendarType || raw.calendarType || profile.calType || "solar") || "solar",
-    year: parts?.year,
-    month: parts?.month,
-    day: parts?.day,
-    hour: time.hour,
-    minute: time.minute,
+    hour,
+    minute,
+    hasTime: true,
+    isTimeUnknown: false,
+    normalizedTime: `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
   };
 }
 
-function toLunarBirth(profile) {
-  if (!Number.isFinite(profile.year) || !Number.isFinite(profile.month) || !Number.isFinite(profile.day)) {
-    throw Object.assign(new Error("본인과 상대방의 생년월일 정보를 확인해 주세요."), { status: 400, code: "SUKUYO_MISSING_BIRTH" });
+function normalizeGender(raw) {
+  const token = clean(raw).toLowerCase();
+  if (["m", "male", "man", "남", "남성"].includes(token)) return "male";
+  if (["f", "female", "woman", "여", "여성"].includes(token)) return "female";
+  return "unknown";
+}
+
+function normalizeCalendarType(raw) {
+  const token = clean(raw).toLowerCase();
+  if (token.includes("solar") || token.includes("양")) return "solar";
+  if (token.includes("lunar") || token.includes("음")) return "lunar";
+  return "unknown";
+}
+
+function normalizePersonInput(raw = {}, fallbackName = "사용자") {
+  const profile = raw.profile && typeof raw.profile === "object" ? raw.profile : raw;
+  const birthDate = clean(
+    profile.birthDate
+      || profile.birthday
+      || profile.solarDate
+      || profile.lunarDate
+      || profile.date
+      || profile.partnerBirth
+      || profile.partnerBirthDate
+      || profile.targetBirth
+      || profile.targetDate,
+  );
+
+  const date = parseDateParts(birthDate);
+  const time = parseTimeParts(
+    profile.birthTime
+      || profile.time
+      || profile.partnerTime
+      || profile.hour
+      || profile.birth_hour,
+  );
+
+  return {
+    name: clean(profile.name || profile.label || fallbackName),
+    gender: normalizeGender(profile.gender || profile.sex),
+    calendarType: normalizeCalendarType(profile.calendarType || profile.calType),
+    birthDate,
+    birthYear: date?.year ?? null,
+    birthMonth: date?.month ?? null,
+    birthDay: date?.day ?? null,
+    birthTime: time.normalizedTime,
+    birthHour: time.hasTime ? time.hour : null,
+    birthMinute: time.hasTime ? time.minute : null,
+    timezone: clean(profile.timezone || "Asia/Seoul") || "Asia/Seoul",
+    isTimeUnknown: time.isTimeUnknown,
+  };
+}
+
+function toLunarBirth(person) {
+  if (!Number.isFinite(person.birthYear) || !Number.isFinite(person.birthMonth) || !Number.isFinite(person.birthDay)) {
+    throw Object.assign(new Error("두 사람의 생년월일을 정확히 입력해 주세요."), { status: 400, code: "SUKUYO_MISSING_BIRTH" });
   }
-  const calendarType = clean(profile.calendarType).toLowerCase();
-  if (calendarType.includes("lunar")) {
+
+  if (person.calendarType === "lunar") {
     return {
-      lunarYear: profile.year,
-      lunarMonth: profile.month,
-      lunarDay: profile.day,
-      isLeapMonth: calendarType.includes("leap") || calendarType.includes("윤"),
+      lunarYear: person.birthYear,
+      lunarMonth: person.birthMonth,
+      lunarDay: person.birthDay,
+      isLeapMonth: false,
       source: "user-lunar-input",
     };
   }
-  const solar = Solar.fromYmdHms(profile.year, profile.month, profile.day, profile.hour || 12, profile.minute || 0, 0);
+
+  const hour = Number.isFinite(person.birthHour) ? person.birthHour : 12;
+  const minute = Number.isFinite(person.birthMinute) ? person.birthMinute : 0;
+  const solar = Solar.fromYmdHms(person.birthYear, person.birthMonth, person.birthDay, hour, minute, 0);
   const lunar = solar.getLunar();
   const lunarMonth = Number(lunar.getMonth());
+
   return {
     lunarYear: Number(lunar.getYear()),
     lunarMonth: Math.abs(lunarMonth),
@@ -87,43 +201,55 @@ function toLunarBirth(profile) {
   };
 }
 
-function buildPersonSukuyo(profile) {
-  const lunar = toLunarBirth(profile);
+function buildPersonSukuyo(person) {
+  const lunar = toLunarBirth(person);
   const sukuyo = buildSukuyoFromLunar(lunar.lunarMonth, lunar.lunarDay, {
     isLeapMonth: lunar.isLeapMonth,
     source: lunar.source,
   });
   if (!sukuyo) {
-    throw Object.assign(new Error("숙요점 관계 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요."), { status: 422, code: "SUKUYO_CALC_FAILED" });
+    throw Object.assign(new Error("숙요점 27숙 계산에 실패했습니다."), { status: 422, code: "SUKUYO_CALC_FAILED" });
   }
   return { ...sukuyo, lunarYear: lunar.lunarYear };
 }
 
-function readPremiumAccessToken(request, body = {}) {
-  const headerToken = clean(request.headers.get("x-premium-access-token"));
-  if (headerToken) return headerToken;
-  return clean(body?.premiumAccessToken || body?._premiumAccessToken || body?.accessToken);
+function normalizeCompatibilityInput(body = {}) {
+  const mode = "compatibility";
+  const self = normalizePersonInput(body.self || body.user || body.userProfile || body.birthInput || {}, "사용자");
+  const partner = normalizePersonInput(body.partner || body.partnerProfile || body.partnerInput || {}, "상대방");
+  return { mode, self, partner };
 }
 
-function buildSukuyoSeedFromBody(body = {}) {
-  const user = normalizeProfile(body.user || body.userProfile || {}, "사용자");
-  const partner = normalizeProfile(body.partner || body.partnerProfile || {}, "상대방");
-  const personASukuyo = buildPersonSukuyo(user);
-  const personBSukuyo = buildPersonSukuyo(partner);
+function buildSukuyoSeedFromCompatibility(input = {}) {
+  const selfSukuyo = buildPersonSukuyo(input.self);
+  const partnerSukuyo = buildPersonSukuyo(input.partner);
+
   const canonical = buildCanonicalSukuyoCompatibility({
     reportType: "compatibility",
-    personAName: user.name,
-    personBName: partner.name,
-    personAInput: user,
-    personBInput: partner,
-    personASukuyo,
-    personBSukuyo,
+    personAName: input.self.name,
+    personBName: input.partner.name,
+    personAInput: {
+      year: input.self.birthYear,
+      month: input.self.birthMonth,
+      day: input.self.birthDay,
+      hour: input.self.birthHour,
+      minute: input.self.birthMinute,
+    },
+    personBInput: {
+      year: input.partner.birthYear,
+      month: input.partner.birthMonth,
+      day: input.partner.birthDay,
+      hour: input.partner.birthHour,
+      minute: input.partner.birthMinute,
+    },
+    personASukuyo: selfSukuyo,
+    personBSukuyo: partnerSukuyo,
     calendarSource: "lunar-javascript",
-    methodVersion: "sukyo-premium-compat-15-v1",
+    methodVersion: "sukyo-premium-compat-v2",
   });
 
   if (!canonical?.validation?.hasPersonAHost || !canonical?.validation?.hasPersonBHost || !canonical?.validation?.hasRelationType) {
-    throw Object.assign(new Error("숙요점 관계 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요."), {
+    throw Object.assign(new Error("숙요점 궁합 계산 필수값이 부족합니다."), {
       status: 422,
       code: "SUKUYO_PDF_MISSING_FIELDS",
       missing: canonical?.validation?.missingFields || [],
@@ -132,26 +258,92 @@ function buildSukuyoSeedFromBody(body = {}) {
 
   return buildSukyoPdfSeed({
     mode: "compatibility",
-    userProfile: user,
-    partnerProfile: partner,
+    userProfile: input.self,
+    partnerProfile: input.partner,
     userSukyo: canonical.personA?.sukuyo,
     partnerSukyo: canonical.personB?.sukuyo,
     canonical,
   });
 }
 
+function readPremiumAccessToken(request, body = {}) {
+  const headerToken = clean(request.headers.get("x-premium-access-token"));
+  if (headerToken) return headerToken;
+  return clean(body?.premiumAccessToken || body?._premiumAccessToken || body?.accessToken);
+}
+
+async function handleSukuyoPremiumPreflight(request) {
+  const body = await readJson(request);
+  const input = normalizeCompatibilityInput(body);
+
+  const validation = validateSukyoPdfInput({
+    mode: "compatibility",
+    self: input.self,
+    partner: input.partner,
+    sukuyoResult: { relationshipType: "preflight" },
+  });
+
+  if (!validation.canGenerate) {
+    return json({
+      ok: false,
+      code: "SUKUYO_INVALID_INPUT_BEFORE_PAYMENT",
+      message: "두 사람의 생년월일을 정확히 입력해 주세요.",
+      hardMissingFields: validation.hardMissingFields,
+      softMissingFields: validation.softMissingFields,
+    }, { status: 400 });
+  }
+
+  const seed = buildSukuyoSeedFromCompatibility(input);
+  return json({
+    ok: true,
+    mode: "compatibility",
+    input,
+    dryRun: {
+      selfStarReady: Boolean(clean(seed?.userSukyo?.nameKo)),
+      partnerStarReady: Boolean(clean(seed?.partnerSukyo?.nameKo)),
+      relationType: clean(seed?.compatibility?.relationType),
+      distance: clean(seed?.compatibility?.distanceLabel),
+      chapterCount: SUKYO_PDF_CHAPTER_COUNT,
+    },
+  });
+}
+
 async function handleSukuyoPremiumPrepare(request, env) {
+  console.log("[SukuyoPremiumPDF][RequestReceived]");
+
   const auth = await requireAuth(request, env);
   const body = await readJson(request);
   const premiumAccessToken = readPremiumAccessToken(request, body);
   const featureKey = clean(body?.featureKey) || SUKYO_PDF_FEATURE_KEY;
 
-  if (!body?.user && !body?.userProfile) {
-    return json({ ok: false, code: "SUKUYO_MISSING_USER", message: "숙요점 PDF 생성을 위해 본인 생년월일 정보를 확인해 주세요." }, { status: 400 });
+  const input = normalizeCompatibilityInput(body);
+  const validation = validateSukyoPdfInput({
+    mode: "compatibility",
+    self: input.self,
+    partner: input.partner,
+    sukuyoResult: { relationshipType: "pre-validated" },
+  });
+
+  if (!validation.canGenerate) {
+    return json({
+      ok: false,
+      code: "SUKUYO_INVALID_INPUT_BEFORE_PAYMENT",
+      message: "두 사람의 생년월일을 정확히 입력해 주세요.",
+      hardMissingFields: validation.hardMissingFields,
+      softMissingFields: validation.softMissingFields,
+    }, { status: 400 });
   }
-  if (!body?.partner && !body?.partnerProfile) {
-    return json({ ok: false, code: "SUKUYO_MISSING_PARTNER", message: "숙요점 궁합 PDF는 상대방 생년월일 정보가 필요합니다." }, { status: 400 });
-  }
+
+  const dryRunSeed = buildSukuyoSeedFromCompatibility(input);
+
+  console.log("[SukuyoPremiumPDF][CompatibilityInputValidated]", {
+    selfBirthDate: Boolean(clean(input.self.birthDate)),
+    partnerBirthDate: Boolean(clean(input.partner.birthDate)),
+    selfStarReady: Boolean(clean(dryRunSeed?.userSukyo?.nameKo)),
+    partnerStarReady: Boolean(clean(dryRunSeed?.partnerSukyo?.nameKo)),
+    relationType: clean(dryRunSeed?.compatibility?.relationType),
+    distance: clean(dryRunSeed?.compatibility?.distanceLabel),
+  });
 
   const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "sookyoPremium", {
     reportType: "sookyoPremium",
@@ -170,9 +362,8 @@ async function handleSukuyoPremiumPrepare(request, env) {
     }, { status: Number(access?.status) || 403 });
   }
 
-  const seed = buildSukuyoSeedFromBody(body);
-  const generated = await generateSukyoPremiumReport(env, seed);
   const reportId = `sukyo-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  const generated = await generateSukyoPremiumReport(env, dryRunSeed);
 
   return json({
     ok: true,
@@ -208,6 +399,11 @@ export async function handleSukuyoRoutes(request, env) {
       });
     }
 
+    if (path === "/premium/preflight") {
+      if (method !== "POST") return methodNotAllowed();
+      return await handleSukuyoPremiumPreflight(request);
+    }
+
     if (path === "/premium/prepare") {
       if (method !== "POST") return methodNotAllowed();
       return await handleSukuyoPremiumPrepare(request, env);
@@ -216,6 +412,7 @@ export async function handleSukuyoRoutes(request, env) {
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
+    console.error("[SukuyoPremiumPDF][Error]", normalizeSukuyoError(error));
     const status = Number(error?.status) || 0;
     if (status >= 400 && status < 500) {
       return json({
