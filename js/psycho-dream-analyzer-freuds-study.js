@@ -12,6 +12,7 @@
   var RESULT_MARKDOWN_ID = "psychoDreamResultMarkdown";
   var REPORT_META_ID = "psychoDreamReportMeta";
   var WIZARD_LINE_ID = "psychoDreamWizardLine";
+  var INTAKE_FIELDS_HOST_ID = "psychoDreamIntakeFields";
 
   var LOADING_MESSAGES = [
     "무의식의 방을 탐색 중입니다...",
@@ -75,6 +76,37 @@
 
   function $(id) {
     return document.getElementById(id);
+  }
+
+  function ensureIntakeFields() {
+    var host = $(INTAKE_FIELDS_HOST_ID);
+    if (host) return host;
+
+    var textarea = $(TEXTAREA_ID);
+    if (!textarea) return null;
+    var paper = textarea.closest(".ps-journal-paper");
+    if (!paper) return null;
+
+    host = document.createElement("div");
+    host.id = INTAKE_FIELDS_HOST_ID;
+    host.className = "ps-intake-grid";
+    host.innerHTML =
+      '<label class="ps-intake-item" for="psychoDreamEmotionInput"><span>현재 가장 강한 감정</span><input id="psychoDreamEmotionInput" class="ps-intake-input" type="text" maxlength="120" placeholder="예: 불안, 억울함, 공허함" /></label>' +
+      '<label class="ps-intake-item" for="psychoDreamConcernInput"><span>반복되는 고민</span><input id="psychoDreamConcernInput" class="ps-intake-input" type="text" maxlength="220" placeholder="예: 관계에서 계속 같은 갈등" /></label>' +
+      '<label class="ps-intake-item" for="psychoDreamStressInput"><span>최근 스트레스 맥락</span><input id="psychoDreamStressInput" class="ps-intake-input" type="text" maxlength="220" placeholder="예: 업무 과부하, 가족 갈등" /></label>' +
+      '<label class="ps-intake-item" for="psychoDreamGoalInput"><span>이번 해석에서 원하는 도움</span><input id="psychoDreamGoalInput" class="ps-intake-input" type="text" maxlength="220" placeholder="예: 감정 정리법, 행동 우선순위" /></label>';
+
+    paper.insertBefore(host, textarea);
+    return host;
+  }
+
+  function collectIntakeAnswers() {
+    return {
+      emotionalState: ($("psychoDreamEmotionInput") && $("psychoDreamEmotionInput").value || "").trim(),
+      recurringConcern: ($("psychoDreamConcernInput") && $("psychoDreamConcernInput").value || "").trim(),
+      recentStressContext: ($("psychoDreamStressInput") && $("psychoDreamStressInput").value || "").trim(),
+      desiredOutcome: ($("psychoDreamGoalInput") && $("psychoDreamGoalInput").value || "").trim(),
+    };
   }
 
   function escapeHtml(s) {
@@ -244,6 +276,10 @@
       "background:radial-gradient(closest-side, rgba(212,175,37,.14), transparent 62%);\n" +
       "animation:psNibGlow .55s ease-out;pointer-events:none;}\n") +
       "@keyframes psNibGlow{0%{opacity:0;transform:scale(.98)}100%{opacity:1;transform:scale(1.01)}}\n" +
+      "#".concat(OVERLAY_ID, " .ps-intake-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px;margin:0 0 12px;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-intake-item{display:flex;flex-direction:column;gap:6px;font-family:var(--ps-font-sans);font-size:.84rem;color:rgba(24,28,34,.78);font-weight:700;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-intake-input{width:100%;height:38px;border-radius:10px;border:1px solid rgba(165,120,58,.34);background:rgba(255,255,255,.62);padding:8px 10px;color:#1c2430;font-size:.9rem;outline:none;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-intake-input:focus{border-color:rgba(165,90,42,.7);box-shadow:0 0 0 2px rgba(212,175,37,.2);}\n") +
       "#".concat(OVERLAY_ID, " .ps-input-footer{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;margin-top:10px;padding:0 4px;}\n") +
       "#".concat(OVERLAY_ID, " .ps-error{width:100%;text-align:center;min-height:20px;color:rgba(165,42,42,.95);font-family:var(--ps-font-sans);font-weight:700;font-size:.92rem;}\n") +
       "#".concat(OVERLAY_ID, " .ps-btn{appearance:none;border-radius:14px;border:1px solid rgba(212,175,37,.42);background:rgba(255,255,255,.06);color:rgba(253,253,253,.95);\n" +
@@ -294,7 +330,7 @@
       "#".concat(OVERLAY_ID, " .ps-report-list li::marker{color:rgba(165,90,42,.88);font-weight:700;}\n") +
       "#".concat(OVERLAY_ID, " .ps-result-actions .ps-btn{min-width:220px}\n") +
       "#".concat(OVERLAY_ID, " .ps-stamp{margin:16px auto 0;display:flex;justify-content:center;}\n") +
-      "@media (max-width: 768px){#" + OVERLAY_ID + " .ps-dialog{margin:10px 10px calc(14px + env(safe-area-inset-bottom));padding:16px 14px 18px;border-radius:14px;position:relative;z-index:1;}#" + OVERLAY_ID + " .ps-header h2{font-size:1.4rem;}#" + OVERLAY_ID + " .ps-wizard{gap:10px;padding:10px 4px 6px;}#" + OVERLAY_ID + " .ps-wizard-medallion{width:64px;height:64px;}#" + OVERLAY_ID + " .ps-textarea{min-height:148px;max-height:min(46dvh,calc(var(--ps-safe-vh,100vh) * 0.42));font-size:1.04rem;line-height:1.82;}#" + OVERLAY_ID + " .ps-result-actions .ps-btn{min-width:100%;}#" + OVERLAY_ID + " .ps-report-title{font-size:1.35rem;}#" + OVERLAY_ID + " .ps-report-meta{font-size:.82rem;padding:8px 10px;}#" + OVERLAY_ID + " .ps-report-body{max-height:min(52vh,520px);border-radius:16px;}#" + OVERLAY_ID + " .ps-report-body .ps-report-section{padding:14px 14px 12px;}#" + OVERLAY_ID + " .ps-report-section-body{font-size:1rem;line-height:2.02;}#" + OVERLAY_ID + " .ps-report-section-title{font-size:1rem;gap:10px;}}\n";
+      "@media (max-width: 768px){#" + OVERLAY_ID + " .ps-dialog{margin:10px 10px calc(14px + env(safe-area-inset-bottom));padding:16px 14px 18px;border-radius:14px;position:relative;z-index:1;}#" + OVERLAY_ID + " .ps-header h2{font-size:1.4rem;}#" + OVERLAY_ID + " .ps-wizard{gap:10px;padding:10px 4px 6px;}#" + OVERLAY_ID + " .ps-wizard-medallion{width:64px;height:64px;}#" + OVERLAY_ID + " .ps-intake-grid{grid-template-columns:1fr;}#" + OVERLAY_ID + " .ps-textarea{min-height:148px;max-height:min(46dvh,calc(var(--ps-safe-vh,100vh) * 0.42));font-size:1.04rem;line-height:1.82;}#" + OVERLAY_ID + " .ps-result-actions .ps-btn{min-width:100%;}#" + OVERLAY_ID + " .ps-report-title{font-size:1.35rem;}#" + OVERLAY_ID + " .ps-report-meta{font-size:.82rem;padding:8px 10px;}#" + OVERLAY_ID + " .ps-report-body{max-height:min(52vh,520px);border-radius:16px;}#" + OVERLAY_ID + " .ps-report-body .ps-report-section{padding:14px 14px 12px;}#" + OVERLAY_ID + " .ps-report-section-body{font-size:1rem;line-height:2.02;}#" + OVERLAY_ID + " .ps-report-section-title{font-size:1rem;gap:10px;}}\n";
 
     document.head.appendChild(style);
   }
@@ -361,6 +397,10 @@
     setError("");
     var input = $(TEXTAREA_ID);
     if (input) input.value = "";
+    ["psychoDreamEmotionInput", "psychoDreamConcernInput", "psychoDreamStressInput", "psychoDreamGoalInput"].forEach(function (id) {
+      var el = $(id);
+      if (el) el.value = "";
+    });
     setScreen("input");
   }
 
@@ -568,6 +608,7 @@
 
     var anonKey = getOrCreateAnonKey();
     var token = getAuthToken();
+    var intake = collectIntakeAnswers();
 
     try {
       var headers = {
@@ -594,7 +635,10 @@
         res = await fetch(getPsychoAnalysisUrl(), {
           method: "POST",
           headers: headers,
-          body: JSON.stringify({ dreamText: dreamText }),
+          body: JSON.stringify({
+            dreamText: dreamText,
+            intake: intake,
+          }),
           signal: controller ? controller.signal : undefined,
         });
       } finally {
@@ -639,8 +683,15 @@
         var cachedTag = data.cached ? " (캐시됨)" : "";
         var dateStr = new Date().toLocaleString();
         var bits = [dateStr, "정신분석 데이터 분석"];
+        var llmSource = (data.llm && data.llm.source) || (data.record && data.record.source) || "unknown";
+        bits.push(llmSource === "gemini" ? "LLM: Gemini" : "LLM: Fallback");
+        if (data.llm && data.llm.model) bits.push(String(data.llm.model));
         if (data.formatWarning) bits.push("섹션 형식은 일부 자동 정리됨");
         metaEl.textContent = bits.join(" · ") + cachedTag;
+      }
+
+      if (data.llm && data.llm.used === false) {
+        setError("LLM 응답 지연으로 안전 모드 분석이 표시되었습니다. 잠시 후 다시 시도하면 더 정밀한 결과가 생성될 수 있습니다.");
       }
 
       var mdEl = $(RESULT_MARKDOWN_ID);
@@ -776,6 +827,7 @@
   }
 
   injectFreudsStudyStyles();
+  ensureIntakeFields();
   ensureResultHomeButton();
   attachPsychoCloseGuards();
   attachJournalMicroInteractions();

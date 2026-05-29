@@ -1,12 +1,29 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { callGeminiText } from "../lib/gemini.js";
 
+let dreamGeminiCaller = callGeminiText;
+
 function normalizeDreamText(payload) {
   const text = String(payload?.dreamText || "").trim();
   if (!text) return { ok: false, message: "꿈 내용을 입력해 주세요." };
   if (text.length < 8) return { ok: false, message: "꿈 내용을 조금 더 자세히 작성해 주세요. (최소 8자)" };
   if (text.length > 6000) return { ok: false, message: "꿈 내용이 너무 깁니다. 6000자 이하로 입력해 주세요." };
   return { ok: true, text };
+}
+
+function normalizePsychoIntake(payload) {
+  const intake = payload && typeof payload === "object" ? payload : {};
+  const emotionalState = String(intake.emotionalState || intake.currentEmotion || "").trim().slice(0, 120);
+  const recurringConcern = String(intake.recurringConcern || intake.mainConcern || "").trim().slice(0, 220);
+  const recentStressContext = String(intake.recentStressContext || intake.stressContext || "").trim().slice(0, 220);
+  const desiredOutcome = String(intake.desiredOutcome || intake.goal || "").trim().slice(0, 220);
+
+  return {
+    emotionalState,
+    recurringConcern,
+    recentStressContext,
+    desiredOutcome,
+  };
 }
 
 function pickGeminiKeys(env) {
@@ -24,10 +41,18 @@ function pickGeminiModels(env) {
   return primary ? [primary, ...defaults.filter((m) => m !== primary)] : defaults;
 }
 
-function psychoPrompt(dreamText) {
+function psychoPrompt(dreamText, intake) {
+  const intakeBlock = [
+    `- 현재 가장 강한 감정: ${intake.emotionalState || "미입력"}`,
+    `- 반복되는 고민: ${intake.recurringConcern || "미입력"}`,
+    `- 최근 스트레스 맥락: ${intake.recentStressContext || "미입력"}`,
+    `- 이번 해몽에서 원하는 도움: ${intake.desiredOutcome || "미입력"}`,
+  ].join("\n");
+
   return [
-    "당신은 프로이트 관점의 꿈 해석 상담가입니다.",
-    "반드시 한국어로 답하고, 추상적인 문장 대신 구체적인 행동 조언을 포함하세요.",
+    "당신은 정신건강 상담 훈련을 받은 프로이트 관점의 꿈 해석 상담가입니다.",
+    "반드시 한국어로 답하고, 단정/예언/낙인 없이 공감 기반으로 설명하세요.",
+    "진단명 확정, 병리 낙인, 공포 유발 문장을 금지하고 행동 가능한 조언을 제시하세요.",
     "",
     "출력 형식:",
     "## 핵심 상징",
@@ -35,8 +60,14 @@ function psychoPrompt(dreamText) {
     "## 감정 패턴",
     "## 현재 삶과 연결",
     "## 7일 실천 가이드",
+    "## 상담 질문 3개",
     "",
     "각 섹션은 3문단 이상 작성하고, 필요시 불릿 목록을 사용하세요.",
+    "'7일 실천 가이드'는 하루 1개씩 현실적으로 실행 가능한 항목을 작성하세요.",
+    "'상담 질문 3개'는 내담자가 자기 인식을 확장할 수 있는 개방형 질문만 제시하세요.",
+    "",
+    "[상담 인테이크]",
+    intakeBlock,
     "",
     "[꿈 원문]",
     dreamText,
@@ -80,6 +111,11 @@ function fallbackMarkdown(dreamText) {
     "- 5일차: 잠들기 전 5분 호흡 + 메모 5줄",
     "- 6일차: 한 주간 감정 점수 변화를 비교",
     "- 7일차: 다음 주에 유지할 습관 1개 확정",
+    "",
+    "## 상담 질문 3개",
+    "- 이 꿈에서 가장 강하게 느껴진 감정은 현실의 어떤 장면과 닮아 있나요?",
+    "- 반복해서 피하고 있는 선택이 있다면, 그것이 두렵게 느껴지는 핵심 이유는 무엇인가요?",
+    "- 이번 주에 내 마음을 보호하기 위해 반드시 지켜야 할 경계 1가지는 무엇인가요?",
   ].join("\n");
 }
 
@@ -237,6 +273,7 @@ async function handleTarotConsult(request, env) {
   });
 
   const ai = await callGeminiText(env, prompt, {
+    keyEnvKeys: ["DREAM_TAROT_GEMINI_API_KEY", "PSYCHO_ANALYSIS_GEMINI_API_KEY"],
     modelEnvKeys: ["DREAM_TAROT_GEMINI_MODEL", "PSYCHO_ANALYSIS_GEMINI_MODEL"],
     temperature: 0.84,
     topP: 0.93,
@@ -281,7 +318,8 @@ async function handleTarotConsult(request, env) {
 }
 
 async function callGemini(env, prompt) {
-  return callGeminiText(env, prompt, {
+  return dreamGeminiCaller(env, prompt, {
+    keyEnvKeys: ["PSYCHO_ANALYSIS_GEMINI_API_KEY", "DREAM_TAROT_GEMINI_API_KEY"],
     modelEnvKeys: ["PSYCHO_ANALYSIS_GEMINI_MODEL"],
     temperature: 0.88,
     topP: 0.95,
@@ -297,7 +335,8 @@ async function handlePsychoAnalysis(request, env) {
     return json({ ok: false, message: normalized.message }, { status: 400 });
   }
 
-  const prompt = psychoPrompt(normalized.text);
+  const intake = normalizePsychoIntake(body?.intake || body);
+  const prompt = psychoPrompt(normalized.text, intake);
   const ai = await callGemini(env, prompt);
 
   let markdown = "";
@@ -318,6 +357,12 @@ async function handlePsychoAnalysis(request, env) {
     ok: true,
     cached: false,
     formatWarning,
+    llm: {
+      used: Boolean(ai.ok),
+      source: ai.ok ? "gemini" : "fallback",
+      model: ai.ok ? String(ai.model || "gemini") : "fallback/local",
+      error: ai.ok ? "" : String(ai.message || ""),
+    },
     record: {
       id: `psycho-${Date.now()}`,
       markdown,
@@ -327,6 +372,16 @@ async function handlePsychoAnalysis(request, env) {
     },
     message: ai.ok ? "ok" : ai.message,
   });
+}
+
+export function __setDreamGeminiCallerForTest(fn) {
+  if (typeof fn === "function") {
+    dreamGeminiCaller = fn;
+  }
+}
+
+export function __resetDreamGeminiCallerForTest() {
+  dreamGeminiCaller = callGeminiText;
 }
 
 export async function handleDreamRoutes(request, env) {
