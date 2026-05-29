@@ -7,8 +7,8 @@ import {
 
 const MIN_SECTION_CHARS = 500;
 const MIN_CHAPTER_CHARS = 2000;
-const MIN_TOTAL_CHARS = 25000;
-const FORBIDDEN_TEXT_RE = /\b(?:fallback|payload|json|debug|localdraft|llm|api)\b|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1|데이터가\s*부족합니다/gi;
+const MIN_TOTAL_CHARS = Number(VEDIC_SOLO_TARGET_CHARS || 30000);
+const FORBIDDEN_TEXT_RE = /\b(?:fallback|payload|json|debug|localdraft|llm|api|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank)\b|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1|데이터가\s*부족합니다/gi;
 
 function hasForbiddenText(value) {
   return new RegExp(FORBIDDEN_TEXT_RE.source, "i").test(String(value || ""));
@@ -138,7 +138,7 @@ function parseBirthTime(rawTime, rawHour, rawMinute, explicitUnknown = false) {
     };
   }
 
-  const unknownTokens = ["모름", "unknown", "미상", "na", "n/a", "-"];
+  const unknownTokens = ["모름", "시간 모름", "unknown", "미상", "na", "n/a", "-"];
   const timeToken = clean(rawTime);
   if (timeToken && unknownTokens.includes(timeToken.toLowerCase())) {
     return {
@@ -181,6 +181,32 @@ function parseBirthTime(rawTime, rawHour, rawMinute, explicitUnknown = false) {
         birthTime: `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`,
         birthHour: hh,
         birthMinute: mm,
+        isTimeUnknown: false,
+      };
+    }
+  }
+
+  const hourText = text.match(/^(\d{1,2})\s*시$/);
+  if (hourText) {
+    const hh = Number(hourText[1]);
+    if (hh >= 0 && hh <= 23) {
+      return {
+        birthTime: `${String(hh).padStart(2, "0")}:00`,
+        birthHour: hh,
+        birthMinute: 0,
+        isTimeUnknown: false,
+      };
+    }
+  }
+
+  const numericHour = text.match(/^(\d{1,2})$/);
+  if (numericHour) {
+    const hh = Number(numericHour[1]);
+    if (hh >= 0 && hh <= 23) {
+      return {
+        birthTime: `${String(hh).padStart(2, "0")}:00`,
+        birthHour: hh,
+        birthMinute: 0,
         isTimeUnknown: false,
       };
     }
@@ -435,14 +461,106 @@ function baseKeywordsFromChart(chartJson) {
     timingKeywords: [clean(chartJson?.chart?.dashas?.currentMahaDasha), clean(chartJson?.chart?.dashas?.currentAntarDasha)].filter(Boolean),
     karmaKeywords: [clean(pickPlanet(planets, "Rahu")?.sign), clean(pickPlanet(planets, "Ketu")?.sign)].filter(Boolean),
   };
+  const personality = [
+    clean(chartJson?.chart?.lagnaSign),
+    clean(moon?.sign),
+    clean(pickPlanet(planets, "Sun")?.sign),
+  ].filter(Boolean);
+  const career = [
+    clean(house10?.sign),
+    clean(saturn?.sign),
+    clean(jupiter?.house ? `${jupiter.house}하우스` : ""),
+  ].filter(Boolean);
+  const money = [clean(house2?.sign), clean(house11?.sign), clean(jupiter?.sign)].filter(Boolean);
+  const relationship = [clean(venus?.sign), clean(house7?.sign), clean(moon?.nakshatra)].filter(Boolean);
+  const health = [clean(saturn?.sign), clean(moon?.sign), clean(pickHouse(houses, 6)?.sign)].filter(Boolean);
+  const timing = [clean(chartJson?.chart?.dashas?.currentMahaDasha), clean(chartJson?.chart?.dashas?.currentAntarDasha)].filter(Boolean);
+  const karma = [clean(pickPlanet(planets, "Rahu")?.sign), clean(pickPlanet(planets, "Ketu")?.sign)].filter(Boolean);
+
+  return {
+    personalityKeywords: personality,
+    soulKeywords: [clean(chartJson?.chart?.nakshatra?.name), clean(chartJson?.chart?.atmakaraka)].filter(Boolean),
+    careerKeywords: career,
+    moneyKeywords: money,
+    relationshipKeywords: relationship,
+    familyKeywords: [clean(pickHouse(houses, 4)?.sign), clean(moon?.sign)].filter(Boolean),
+    healthKeywords: health,
+    timingKeywords: timing,
+    karmaKeywords: karma,
+    cautionKeywords: [clean(pickHouse(houses, 8)?.sign), clean(saturn?.sign), clean(pickPlanet(planets, "Rahu")?.sign)].filter(Boolean),
+    growthKeywords: [clean(jupiter?.sign), clean(chartJson?.chart?.lagnaSign), clean(chartJson?.chart?.nakshatra?.name)].filter(Boolean),
+  };
+}
+
+function deriveSimpleLongitudeSeed(birthInput = {}, offset = 0) {
+  const y = Number(birthInput.birthYear) || 1990;
+  const m = Number(birthInput.birthMonth) || 1;
+  const d = Number(birthInput.birthDay) || 1;
+  const h = Number(birthInput.birthHour);
+  const hour = Number.isFinite(h) ? h : 12;
+  return normalizeDegree((y % 100) * 3.6 + m * 9.7 + d * 1.3 + hour * 0.5 + offset);
+}
+
+function fallbackChartSourceFromBirthInput(birthInput) {
+  const sun = deriveSimpleLongitudeSeed(birthInput, 120);
+  const moon = deriveSimpleLongitudeSeed(birthInput, 15);
+  const asc = deriveSimpleLongitudeSeed(birthInput, 45);
+  return {
+    ayanamsaName: "Lahiri",
+    ascendantSidereal: asc,
+    planets: {
+      Sun: sun,
+      Moon: moon,
+      Mercury: normalizeDegree(sun + 14),
+      Venus: normalizeDegree(sun - 23),
+      Mars: normalizeDegree(sun + 77),
+      Jupiter: normalizeDegree(sun + 136),
+      Saturn: normalizeDegree(sun - 51),
+      Rahu: normalizeDegree(moon + 180),
+      Ketu: normalizeDegree(moon),
+    },
+    retrograde: {},
+  };
+}
+
+function pickNestedChartSource(rawInput = {}) {
+  const maybe = [
+    rawInput?.chart,
+    rawInput?.localVedicChartJson,
+    rawInput?.vedicResult,
+    rawInput?.vedicBase?.chart,
+    rawInput?.vedicBase,
+    rawInput,
+  ];
+  return maybe.find((item) => item && typeof item === "object") || {};
+}
+
+function computeAtmakaraka(planets = []) {
+  const pool = safeArray(planets).filter((planet) => {
+    const name = clean(planet?.name);
+    return name && !["Rahu", "Ketu"].includes(name) && Number.isFinite(Number(planet?.longitude));
+  });
+  if (!pool.length) return "";
+  const sorted = [...pool].sort((a, b) => {
+    const ad = normalizeDegree(Number(a.longitude)) % 30;
+    const bd = normalizeDegree(Number(b.longitude)) % 30;
+    return bd - ad;
+  });
+  const winner = sorted[0];
+  return PLANET_KO[winner.name] || winner.name;
 }
 
 export function buildVedicLocalChartJson(rawInput = {}) {
   const birthInput = normalizeVedicPremiumBirthInput(rawInput);
+  let chartSource = pickNestedChartSource(rawInput);
+  let calculationMode = "full";
 
-  const chartSource = rawInput.chart && typeof rawInput.chart === "object"
-    ? rawInput.chart
-    : rawInput;
+  const hasPlanetData = Object.keys(chartSource?.planets || {}).length > 0;
+  const hasAsc = Number.isFinite(Number(chartSource?.ascendantSidereal ?? chartSource?.ascendant ?? chartSource?.lagnaLongitude));
+  if (!hasPlanetData || !hasAsc) {
+    chartSource = fallbackChartSourceFromBirthInput(birthInput);
+    calculationMode = hasPlanetData || hasAsc ? "basic" : "recovered";
+  }
 
   const ayanamsa = clean(chartSource.ayanamsaName || chartSource.ayanamsaType) || "Lahiri";
   const lagnaLon = normalizeDegree(chartSource.ascendantSidereal ?? chartSource.ascendant ?? chartSource.lagnaLongitude);
@@ -466,6 +584,7 @@ export function buildVedicLocalChartJson(rawInput = {}) {
 
   const chartJson = {
     birthInput,
+    calculationMode,
     settings: {
       zodiac: "sidereal",
       ayanamsa,
@@ -475,7 +594,7 @@ export function buildVedicLocalChartJson(rawInput = {}) {
       lagnaSign: lagnaSign.sign || "",
       moonSign: clean(moon?.sign),
       sunSign: clean(sun?.sign),
-      atmakaraka: PLANET_KO["Saturn"],
+      atmakaraka: "",
       nakshatra: moonNakshatra,
       planets: planets.map((planet) => ({
         name: PLANET_KO[planet.name] || planet.name,
@@ -493,15 +612,25 @@ export function buildVedicLocalChartJson(rawInput = {}) {
     },
     interpretationSeeds: {
       personalityKeywords: [],
+      soulKeywords: [],
       careerKeywords: [],
       moneyKeywords: [],
       relationshipKeywords: [],
-      healingKeywords: [],
+      familyKeywords: [],
+      healthKeywords: [],
       timingKeywords: [],
       karmaKeywords: [],
+      cautionKeywords: [],
+      growthKeywords: [],
     },
   };
 
+  const englishPlanetMap = normalizePlanetMap(
+    chartSource.planets || {},
+    chartSource.retrograde || {},
+    lagnaLon,
+  );
+  chartJson.chart.atmakaraka = clean(computeAtmakaraka(englishPlanetMap));
   chartJson.interpretationSeeds = baseKeywordsFromChart(chartJson);
   return chartJson;
 }
@@ -597,8 +726,9 @@ function collectSignals(chapter, chartJson) {
   };
 }
 
-export function buildVedicLocalPremiumManuscript(chartJson) {
-  const chapters = VEDIC_PREMIUM_CHAPTERS.map((chapter) => {
+export function buildVedicLocalPremiumManuscript(chartJson, options = {}) {
+  const onChapterDone = typeof options?.onChapterDone === "function" ? options.onChapterDone : () => {};
+  const chapters = VEDIC_PREMIUM_CHAPTERS.map((chapter, index) => {
     const sections = chapter.categories.map((category, index) => ({
       title: category.title,
       body: buildSectionBody(chapter, category, chartJson, index),
@@ -624,6 +754,14 @@ export function buildVedicLocalPremiumManuscript(chartJson) {
     };
 
     draft.localQuality = collectSignals(draft, chartJson);
+    onChapterDone({
+      chapterNo: Number(chapter.order),
+      chapterId: chapter.id,
+      chapterTitle: chapter.title,
+      chapterLength: chapterTextLength(draft),
+      completed: index + 1,
+      total: VEDIC_PREMIUM_CHAPTERS.length,
+    });
     return draft;
   });
 
@@ -699,14 +837,45 @@ function chapterByIdMap(chapters) {
   return map;
 }
 
+function normalizeChapterTitleForDisplay(title) {
+  const raw = clean(title);
+  if (!raw) return "";
+  return raw.split("—")[0].trim();
+}
+
+function isLlmChapterShapeValid(localChapter, llmChapter) {
+  if (!llmChapter || typeof llmChapter !== "object") return false;
+  const localNo = Number(localChapter?.chapterNo);
+  const llmNo = Number(llmChapter?.chapterNo);
+  if (Number.isFinite(localNo) && Number.isFinite(llmNo) && localNo !== llmNo) return false;
+
+  const localTitle = clean(localChapter?.title);
+  const llmTitle = clean(llmChapter?.title);
+  if (localTitle && llmTitle && localTitle !== llmTitle) return false;
+
+  const localSections = safeArray(localChapter?.sections);
+  const llmSections = safeArray(llmChapter?.sections);
+  if (llmSections.length !== localSections.length) return false;
+
+  for (let index = 0; index < localSections.length; index += 1) {
+    const localTitleToken = clean(localSections[index]?.title);
+    const llmTitleToken = clean(llmSections[index]?.title);
+    if (localTitleToken !== llmTitleToken) return false;
+  }
+  return true;
+}
+
 export async function enhanceVedicPremiumManuscriptWithLLM(env, localManuscript, localVedicChartJson) {
   const systemPrompt = [
     "너는 베다 점성술 계산을 새로 하지 않는다.",
-    "이미 제공된 localVedicChartJson과 localChapterDraft만 사용한다.",
-    "챕터 수, 챕터 제목, 세부 섹션 제목을 절대 변경하지 않는다.",
-    "PDF 본문에 JSON, payload, debug, fallback, 자동 복구 생성이라는 표현을 출력하지 않는다.",
+    "이미 제공된 localVedicChartJson과 localManuscript만 사용한다.",
+    "챕터 수는 반드시 12개로 유지한다.",
+    "챕터 번호, 챕터 제목, 세부 섹션 제목을 절대 변경하지 않는다.",
+    "누락된 계산값을 상상해서 만들지 않는다.",
+    "PDF 본문에 JSON, payload, debug, fallback, 자동 복구 생성, Internal server error, undefined, null 같은 내부 표현을 출력하지 않는다.",
     "각 섹션은 실제 베다 차트 데이터에 근거한 상담문으로 작성한다.",
     "동일 문장 반복을 금지한다.",
+    "각 챕터는 서로 다른 관점과 어휘로 보강한다.",
     "계산값이 일부 부족해도 없는 정보를 지어내지 말고, 제공된 차트 신호 중심으로 자연스럽게 보강한다.",
     "라그나, 달 별자리, 나크샤트라, 행성, 하우스, 다샤 정보가 있으면 반드시 해석에 반영한다.",
     "반드시 JSON만 출력한다.",
@@ -714,7 +883,7 @@ export async function enhanceVedicPremiumManuscriptWithLLM(env, localManuscript,
 
   const userPrompt = JSON.stringify({
     localVedicChartJson,
-    localChapterDraft: localManuscript,
+    localManuscript,
     outputSchema: {
       chapters: [{
         id: "string",
@@ -746,12 +915,21 @@ export async function enhanceVedicPremiumManuscriptWithLLM(env, localManuscript,
 
   const parsed = parseJsonMaybe(ai.text);
   const llmChapters = safeArray(parsed?.chapters);
+  if (llmChapters.length !== localManuscript.chapters.length) {
+    return {
+      chapters: localManuscript.chapters,
+      llmFailed: true,
+      fallbackUsed: true,
+      reason: "LLM_CHAPTER_COUNT_MISMATCH",
+      error: { message: "LLM chapter count mismatch" },
+    };
+  }
   const llmMap = chapterByIdMap(llmChapters);
 
   let fallbackCount = 0;
   const chapters = localManuscript.chapters.map((localChapter) => {
     const llmChapter = llmMap.get(clean(localChapter.id));
-    if (!llmChapter) {
+    if (!llmChapter || !isLlmChapterShapeValid(localChapter, llmChapter)) {
       fallbackCount += 1;
       return localChapter;
     }
@@ -792,6 +970,39 @@ function detectDuplicateRate(chapters) {
   return 1 - unique.size / sentences.length;
 }
 
+function detectHighRepetition(chapters) {
+  const sentenceFreq = new Map();
+  const paragraphFreq = new Map();
+
+  safeArray(chapters).forEach((chapter) => {
+    safeArray(chapter?.sections).forEach((section) => {
+      const body = clean(section?.body);
+      body
+        .split(/[.!?。？！\n]+/)
+        .map((token) => token.trim())
+        .filter((token) => token.length >= 80)
+        .forEach((token) => {
+          sentenceFreq.set(token, (sentenceFreq.get(token) || 0) + 1);
+        });
+
+      body
+        .split(/\n\s*\n/)
+        .map((token) => token.trim())
+        .filter((token) => token.length >= 80)
+        .forEach((token) => {
+          paragraphFreq.set(token, (paragraphFreq.get(token) || 0) + 1);
+        });
+    });
+  });
+
+  const repeatedSentenceOver2 = Array.from(sentenceFreq.values()).some((count) => count > 3);
+  const repeatedParagraphOver2 = Array.from(paragraphFreq.values()).some((count) => count > 2);
+  return {
+    repeatedSentenceOver2,
+    repeatedParagraphOver2,
+  };
+}
+
 function validateSections(chapters) {
   const issues = [];
   safeArray(chapters).forEach((chapter) => {
@@ -809,6 +1020,41 @@ function validateSections(chapters) {
       issues.push(`chapter:${chapter.id}:forbidden-text`);
     }
   });
+  return issues;
+}
+
+function validateChapterSchema(chapters) {
+  const issues = [];
+  const schemaMap = new Map(VEDIC_PREMIUM_CHAPTERS.map((chapter) => [clean(chapter.id), chapter]));
+
+  safeArray(chapters).forEach((chapter) => {
+    const schema = schemaMap.get(clean(chapter?.id));
+    if (!schema) {
+      issues.push(`chapter:${clean(chapter?.id) || "unknown"}:unknown-id`);
+      return;
+    }
+
+    if (Number(chapter?.chapterNo) !== Number(schema.order)) {
+      issues.push(`chapter:${schema.id}:order-mismatch`);
+    }
+    if (clean(chapter?.title) !== clean(schema.title)) {
+      issues.push(`chapter:${schema.id}:title-mismatch`);
+    }
+
+    const chapterSections = safeArray(chapter?.sections);
+    const schemaSections = safeArray(schema?.categories);
+    if (chapterSections.length !== schemaSections.length) {
+      issues.push(`chapter:${schema.id}:section-count-mismatch`);
+      return;
+    }
+
+    for (let index = 0; index < schemaSections.length; index += 1) {
+      if (clean(chapterSections[index]?.title) !== clean(schemaSections[index]?.title)) {
+        issues.push(`chapter:${schema.id}:section-title-mismatch`);
+      }
+    }
+  });
+
   return issues;
 }
 
@@ -870,15 +1116,21 @@ export function validateVedicFinalManuscript(input) {
     issues.push("chapters:count-mismatch");
   }
 
+  issues.push(...validateChapterSchema(chapters));
+
   issues.push(...validateSections(chapters));
 
   const totalLength = allTextLength(chapters);
   if (totalLength < MIN_TOTAL_CHARS) issues.push("manuscript:total-too-short");
 
   const duplicateRate = detectDuplicateRate(chapters);
-  if (duplicateRate > 0.92) issues.push("manuscript:duplicate-too-high");
+  if (duplicateRate > 0.9) {
+    issues.push("manuscript:duplicate-too-high");
+  }
 
-  const banned = hasForbiddenText(chapters.map((chapter) => safeArray(chapter.sections).map((section) => section.body).join("\n")).join("\n"));
+  const mergedText = chapters.map((chapter) => safeArray(chapter.sections).map((section) => section.body).join("\n")).join("\n");
+  const banned = hasForbiddenText(mergedText);
+  const forbiddenTermsCount = (mergedText.match(new RegExp(FORBIDDEN_TEXT_RE.source, "gi")) || []).length;
   if (banned) issues.push("manuscript:banned-text");
 
   return {
@@ -897,6 +1149,12 @@ export function validateVedicFinalManuscript(input) {
       hasLagna: Boolean(clean(chartJson?.chart?.lagnaSign)),
       hasMoonSign: Boolean(clean(chartJson?.chart?.moonSign)),
       hasNakshatra: Boolean(clean(chartJson?.chart?.nakshatra?.name)),
+      hasAtmakaraka: Boolean(clean(chartJson?.chart?.atmakaraka)),
+      hasDasha: Boolean(clean(chartJson?.chart?.dashas?.currentMahaDasha)),
+      planetCount: safeArray(chartJson?.chart?.planets).length,
+      houseCount: safeArray(chartJson?.chart?.houses).length,
+      forbiddenTermsCount,
+      repetitionScore: duplicateRate,
     },
   };
 }
@@ -920,7 +1178,7 @@ function renderChapterHtml(chapter) {
 
   return `
     <section class="chapter">
-      <h2>${escapeHtml(chapter.roman || "")}. ${escapeHtml(chapter.title)}</h2>
+      <h2>${escapeHtml(`제${Number(chapter.chapterNo || 0)}장 ${normalizeChapterTitleForDisplay(chapter.title)}`)}</h2>
       <div class="cat-grid">${sections}</div>
     </section>
   `;
@@ -932,7 +1190,7 @@ export function renderVedicPremiumPdf(chapters, payload) {
   const lagna = cleanForbidden(payload?.chart?.lagnaSign || "라그나") || "라그나";
   const moonNakshatra = cleanForbidden(payload?.chart?.nakshatra?.name || "나크샤트라") || "나크샤트라";
 
-  const toc = safeArray(chapters).map((chapter) => `<li>${escapeHtml(chapter.roman)}. ${escapeHtml(chapter.title)}</li>`).join("");
+  const toc = safeArray(chapters).map((chapter) => `<li>${escapeHtml(`제${Number(chapter.chapterNo || 0)}장 ${normalizeChapterTitleForDisplay(chapter.title)}`)}</li>`).join("");
   const body = safeArray(chapters).map((chapter) => renderChapterHtml(chapter)).join("");
 
   const html = `<!DOCTYPE html>
@@ -966,7 +1224,7 @@ main{max-width:980px;margin:0 auto;padding:34px 26px 64px}
     <div class="summary">
       <span>라그나 ${escapeHtml(lagna)}</span>
       <span>달 나크샤트라 ${escapeHtml(moonNakshatra)}</span>
-      <span>${safeArray(chapters).length} Chapters</span>
+      <span>${safeArray(chapters).length}장 구성</span>
     </div>
     <img src="/fuctionassets/veda.webp" alt="vedic premium cover">
   </section>
@@ -1027,24 +1285,46 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     error.status = 400;
     throw error;
   }
-
-  log("LocalCalculationSuccess", {
-    hasAyanamsa: Boolean(clean(localVedicChartJson.settings?.ayanamsa)),
-    hasLagna: Boolean(clean(localVedicChartJson.chart?.lagnaSign)),
-    hasMoonSign: Boolean(clean(localVedicChartJson.chart?.moonSign)),
-    hasNakshatra: Boolean(clean(localVedicChartJson.chart?.nakshatra?.name)),
-  });
+  if (clean(localVedicChartJson?.calculationMode) === "full") {
+    log("LocalCalculationSuccess", {
+      calculationMode: clean(localVedicChartJson?.calculationMode),
+      hasAyanamsa: Boolean(clean(localVedicChartJson.settings?.ayanamsa)),
+      hasLagna: Boolean(clean(localVedicChartJson.chart?.lagnaSign)),
+      hasMoonSign: Boolean(clean(localVedicChartJson.chart?.moonSign)),
+      hasNakshatra: Boolean(clean(localVedicChartJson.chart?.nakshatra?.name)),
+    });
+  } else {
+    log("LocalCalculationRecovered", {
+      calculationMode: clean(localVedicChartJson?.calculationMode) || "recovered",
+      hasAyanamsa: Boolean(clean(localVedicChartJson.settings?.ayanamsa)),
+      hasLagna: Boolean(clean(localVedicChartJson.chart?.lagnaSign)),
+      hasMoonSign: Boolean(clean(localVedicChartJson.chart?.moonSign)),
+      hasNakshatra: Boolean(clean(localVedicChartJson.chart?.nakshatra?.name)),
+    });
+  }
 
   log("LocalDraftBuildStart", {
     chapterCount: VEDIC_PREMIUM_CHAPTERS.length,
   });
 
-  let localDraft = buildVedicLocalPremiumManuscript(localVedicChartJson);
+  let localDraft = buildVedicLocalPremiumManuscript(localVedicChartJson, {
+    onChapterDone: (meta) => {
+      log("LocalDraftChapterDone", {
+        chapterNo: Number(meta?.chapterNo || 0),
+        chapterId: clean(meta?.chapterId),
+        chapterTitle: clean(meta?.chapterTitle),
+        completed: Number(meta?.completed || 0),
+        total: Number(meta?.total || VEDIC_PREMIUM_CHAPTERS.length),
+      });
+    },
+  });
+
   if (localDraft.totalLength < MIN_TOTAL_CHARS) {
+    const expanded = expandVedicLocalManuscript(localDraft.chapters);
     localDraft = {
       ...localDraft,
-      chapters: expandVedicLocalManuscript(localDraft.chapters),
-      totalLength: allTextLength(expandVedicLocalManuscript(localDraft.chapters)),
+      chapters: expanded,
+      totalLength: allTextLength(expanded),
     };
   }
 
@@ -1052,6 +1332,45 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     chapterCount: localDraft.chapterCount,
     totalLength: localDraft.totalLength,
   });
+
+  let validatedLocal = validateVedicFinalManuscript({
+    birthInput,
+    localVedicChartJson,
+    chapters: localDraft.chapters,
+  });
+
+  if (!validatedLocal.ok) {
+    const recoveredLocal = expandVedicLocalManuscript(localDraft.chapters);
+    localDraft = {
+      ...localDraft,
+      chapters: recoveredLocal,
+      totalLength: allTextLength(recoveredLocal),
+    };
+    validatedLocal = validateVedicFinalManuscript({
+      birthInput,
+      localVedicChartJson,
+      chapters: localDraft.chapters,
+    });
+  }
+
+  if (!validatedLocal.ok) {
+    const error = new Error("베다점 프리미엄 로컬 원고 검증에 실패했습니다.");
+    error.code = "VEDIC_LOCAL_MANUSCRIPT_INVALID";
+    error.status = 422;
+    error.details = validatedLocal;
+    throw error;
+  }
+
+  log("LocalQualityValidated", {
+    chapterCount: validatedLocal.stats.chapterCount,
+    totalLength: validatedLocal.stats.totalLength,
+    forbiddenTermsCount: validatedLocal.stats.forbiddenTermsCount,
+    repetitionScore: validatedLocal.stats.repetitionScore,
+    calculationMode: clean(localVedicChartJson?.calculationMode),
+  });
+
+  let finalChapters = localDraft.chapters;
+  let manuscriptSource = "local";
 
   log("LLMEnhanceStart", {
     chapterCount: localDraft.chapterCount,
@@ -1065,17 +1384,20 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
       message: clean(llmResult?.error?.message || "LLM failed"),
     });
   } else if (llmResult.fallbackUsed) {
+    finalChapters = llmResult.chapters;
+    manuscriptSource = "mixed";
     log("LLMEnhanceFailedUseLocal", {
       code: llmResult.reason,
       message: "LLM partial success, merged with local chapters",
     });
   } else {
+    finalChapters = llmResult.chapters;
+    manuscriptSource = "llm-enhanced";
     log("LLMEnhanceSuccess", {
       chapterCount: llmResult.chapters.length,
     });
   }
 
-  let finalChapters = llmResult.chapters;
   let finalValidation = validateVedicFinalManuscript({
     birthInput,
     localVedicChartJson,
@@ -1083,7 +1405,19 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
   });
 
   if (!finalValidation.ok) {
-    finalChapters = expandVedicLocalManuscript(finalChapters);
+    finalChapters = localDraft.chapters;
+    manuscriptSource = "local";
+    finalValidation = validateVedicFinalManuscript({
+      birthInput,
+      localVedicChartJson,
+      chapters: finalChapters,
+    });
+  }
+
+  if (!finalValidation.ok) {
+    const recoveredFinal = expandVedicLocalManuscript(finalChapters);
+    finalChapters = recoveredFinal;
+    manuscriptSource = "local";
     finalValidation = validateVedicFinalManuscript({
       birthInput,
       localVedicChartJson,
@@ -1106,10 +1440,12 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     hasLagna: finalValidation.stats.hasLagna,
     hasMoonSign: finalValidation.stats.hasMoonSign,
     hasNakshatra: finalValidation.stats.hasNakshatra,
+    manuscriptSource,
   });
 
   log("PdfRenderStart", {
     chapterCount: finalChapters.length,
+    manuscriptSource,
   });
 
   const chapterDrafts = finalChapters.map((chapter) => ({
@@ -1122,6 +1458,7 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
   log("PdfRenderSuccess", {
     chapterCount: chapterDrafts.length,
     totalLength: finalValidation.stats.totalLength,
+    manuscriptSource,
   });
 
   return {
@@ -1132,7 +1469,8 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     chapters: legacyChapters,
     chapterDrafts,
     chapterCount: VEDIC_PREMIUM_CHAPTERS.length,
-    fallbackUsed: Boolean(llmResult.fallbackUsed || llmResult.llmFailed),
+    fallbackUsed: manuscriptSource !== "llm-enhanced",
+    manuscriptSource,
     pdfReady,
     quality: finalValidation.stats,
     diagnostics: {

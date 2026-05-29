@@ -60,12 +60,13 @@ describe("vedic premium local-first pipeline", () => {
     expect(Array.isArray(validation.missing)).toBe(true);
   });
 
-  test("LLM 실패에도 로컬 원고로 10챕터가 생성된다", async () => {
+  test("LLM 실패에도 로컬 원고로 12챕터가 생성된다", async () => {
     const generated = await vedic.generateVedicPremiumReport({}, makeInput());
-    expect(generated.chapterCount).toBe(10);
+    expect(generated.chapterCount).toBe(12);
     expect(Array.isArray(generated.chapters)).toBe(true);
-    expect(generated.chapters).toHaveLength(10);
+    expect(generated.chapters).toHaveLength(12);
     expect(generated.fallbackUsed).toBe(true);
+    expect(generated.manuscriptSource).toBe("local");
     expect(generated.pdfReady && generated.pdfReady.html).toBeTruthy();
   });
 
