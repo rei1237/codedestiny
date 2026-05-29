@@ -342,7 +342,39 @@ function pickByIndex(list, index) {
   return list[((index % list.length) + list.length) % list.length];
 }
 
-function deriveLocalSignals(profile) {
+function normalizeSajuElementToken(value, fallback = "토") {
+  const raw = String(value || "").trim();
+  if (!raw) return fallback;
+  if (/목|wood/i.test(raw)) return "목";
+  if (/화|fire/i.test(raw)) return "화";
+  if (/토|earth/i.test(raw)) return "토";
+  if (/금|metal/i.test(raw)) return "금";
+  if (/수|water/i.test(raw)) return "수";
+  return fallback;
+}
+
+function extractSignalFromSajuData(rawSajuData = "") {
+  const text = String(rawSajuData || "");
+  if (!text.trim()) return null;
+
+  const dayMaster = (text.match(/일간(?:\(日干\))?\s*[:：]\s*([갑을병정무기경신임계甲乙丙丁戊己庚辛壬癸])/i) || [])[1] || "";
+  const monthBranch = (text.match(/월지(?:\(月支\))?\s*[:：]\s*([자축인묘진사오미신유술해子丑寅卯辰巳午未申酉戌亥])/i) || [])[1] || "";
+  const yongsinRaw = (text.match(/용신(?:\(用神\))?\s*[:：]\s*([^\n]+)/i) || [])[1] || "";
+  const huisinRaw = (text.match(/희신(?:\(喜神\))?\s*[:：]\s*([^\n]+)/i) || [])[1] || "";
+  const gisinRaw = (text.match(/기신(?:\(忌神\))?\s*[:：]\s*([^\n]+)/i) || [])[1] || "";
+
+  if (!dayMaster && !monthBranch && !yongsinRaw && !huisinRaw && !gisinRaw) return null;
+
+  return {
+    dayMaster: String(dayMaster || "").trim(),
+    monthBranch: String(monthBranch || "").trim(),
+    useful: normalizeSajuElementToken(yongsinRaw, "토"),
+    support: normalizeSajuElementToken(huisinRaw, "금"),
+    caution: normalizeSajuElementToken(gisinRaw, "수"),
+  };
+}
+
+function deriveLocalSignals(profile, rawSajuData = "") {
   const stems = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
   const branches = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
   const elements = ["목", "화", "토", "금", "수"];
@@ -362,13 +394,15 @@ function deriveLocalSignals(profile) {
   const support = pickByIndex(elements, seed + 4);
   const caution = pickByIndex(elements, seed + 1);
 
+  const parsed = extractSignalFromSajuData(rawSajuData);
+
   return {
-    dayMaster,
+    dayMaster: parsed?.dayMaster || dayMaster,
     yearBranch,
-    monthBranch,
-    useful,
-    support,
-    caution,
+    monthBranch: parsed?.monthBranch || monthBranch,
+    useful: parsed?.useful || useful,
+    support: parsed?.support || support,
+    caution: parsed?.caution || caution,
     timeKnown: Boolean(profile.timeKnown),
     timeLabel: profile.timeKnown ? `${pad2(profile.hour)}:${pad2(profile.minute)}` : "시간 미상",
     rhythm: `${pickByIndex(branches, seed)}-${pickByIndex(branches, seed + 3)}-${pickByIndex(branches, seed + 6)}`,
@@ -925,7 +959,7 @@ async function handlePrepare(request, env) {
     }, { status });
   }
 
-  const signals = deriveLocalSignals(profile);
+  const signals = deriveLocalSignals(profile, body?.sajuData || "");
   const localChapters = buildLifeBookChapters(profile, signals);
   
   console.info("[LifeBook][Flow] LOCAL_CHAPTERS_READY", { chapterCount: localChapters.length });
