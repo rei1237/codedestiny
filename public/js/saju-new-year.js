@@ -22,11 +22,11 @@
   var _premiumVerifiedUntil = 0;
 
   var LOADING_MESSAGES = [
-    '올해의 세운을 계산하는 중입니다',
-    '대운과 올해의 기운이 만나는 지점을 읽는 중입니다',
-    '일, 돈, 사랑, 건강의 흐름을 정리하는 중입니다',
-    '12개월 운세 흐름을 10챕터로 엮는 중입니다',
-    '신년운세 프리미엄 PDF를 완성하는 중입니다'
+    '사주 원국과 대상 연도를 검증하는 중입니다',
+    '결제 및 접근 권한을 확인하는 중입니다',
+    '로컬 엔진으로 신년운세를 계산하는 중입니다',
+    '10챕터 로컬 원고를 완성하는 중입니다',
+    'AI 상담문을 보강하고 최종 PDF를 렌더링하는 중입니다'
   ];
 
   function _qs(id) { return document.getElementById(id); }
@@ -38,16 +38,72 @@
   }
   function _pad2(value) { return String(Number(value || 0)).padStart(2, '0'); }
 
-  function _log(code, meta) {
-    try { console.info('[NewYearBook][Flow] ' + code, meta || {}); } catch (_) {}
+  function _log(stage, meta) {
+    try { console.info('[NewYearPremiumPDF][' + String(stage || 'Unknown') + ']', meta || {}); } catch (_) {}
   }
   function _logError(error, meta) {
     try {
       var msg = String(error && error.message ? error.message : error || 'unknown');
       var stage = meta && meta.stage ? String(meta.stage) : '';
-      var label = '[NewYearBook][Error]' + (stage ? '[' + stage + ']' : '') + ' ' + msg;
+      var label = '[NewYearPremiumPDF][Error]' + (stage ? '[' + stage + ']' : '') + ' ' + msg;
       console.error(label, { message: msg, stage: stage, error: error });
     } catch (_) {}
+  }
+
+  function _resolveDefaultTargetYear() {
+    return new Date().getFullYear() + 1;
+  }
+
+  function _parseBirthTime(rawTime, rawHour, rawMinute) {
+    var token = _clean(rawTime).toLowerCase();
+    if (!token && (rawHour === null || rawHour === undefined || rawHour === '')) {
+      return { birthTime: '', birthHour: null, birthMinute: null, isTimeUnknown: true };
+    }
+    if (/(모름|unknown|미상|없음)/.test(token)) {
+      return { birthTime: '', birthHour: null, birthMinute: null, isTimeUnknown: true };
+    }
+    var hour = Number(rawHour);
+    var minute = Number(rawMinute);
+    var hm = token.match(/(?:오전|오후)?\s*(\d{1,2})\s*(?::|시)\s*(\d{1,2})?\s*(?:분)?/);
+    if (hm) {
+      hour = Number(hm[1]);
+      minute = hm[2] ? Number(hm[2]) : 0;
+    }
+    if (token.indexOf('오후') >= 0 && Number.isFinite(hour) && hour < 12) hour += 12;
+    if (token.indexOf('오전') >= 0 && hour === 12) hour = 0;
+    if (!Number.isFinite(hour)) {
+      return { birthTime: '', birthHour: null, birthMinute: null, isTimeUnknown: true };
+    }
+    if (!Number.isFinite(minute)) minute = 0;
+    hour = Math.max(0, Math.min(23, Math.trunc(hour)));
+    minute = Math.max(0, Math.min(59, Math.trunc(minute)));
+    return {
+      birthTime: _pad2(hour) + ':' + _pad2(minute),
+      birthHour: hour,
+      birthMinute: minute,
+      isTimeUnknown: false
+    };
+  }
+
+  function _normalizeBirthInput(profile) {
+    var birth = profile && profile.birth ? profile.birth : {};
+    var year = Number(birth.year || profile.birthYear || 0);
+    var month = Number(birth.month || profile.birthMonth || 0);
+    var day = Number(birth.day || profile.birthDay || 0);
+    var time = _parseBirthTime(birth.birthTime || profile.birthTime || '', birth.hour, birth.minute);
+    return {
+      name: _clean(profile && profile.name) || '사용자',
+      gender: _clean(profile && profile.gender) || '',
+      calendarType: _clean(birth.calendarType || birth.calType || profile.calendarType || 'solar') || 'solar',
+      birthYear: year,
+      birthMonth: month,
+      birthDay: day,
+      birthDate: year && month && day ? String(year).padStart(4, '0') + '-' + _pad2(month) + '-' + _pad2(day) : '',
+      birthTime: time.birthTime,
+      birthHour: time.birthHour,
+      birthMinute: time.birthMinute,
+      isTimeUnknown: time.isTimeUnknown
+    };
   }
 
   function _readPremiumAccessToken() {
@@ -269,9 +325,13 @@
     _stopProgressAnimation();
     var step = 0;
     _progressTimer = setInterval(function () {
-      step = Math.min(TOTAL_CHAPTERS - 1, step + 1);
-      _setProgress(step, LOADING_MESSAGES[step % LOADING_MESSAGES.length]);
-    }, 2400);
+      if (step < TOTAL_CHAPTERS) {
+        step += 1;
+        _setProgress(step, '10챕터 로컬 원고 생성 중 (' + step + '/' + TOTAL_CHAPTERS + ')');
+        return;
+      }
+      _setProgress(TOTAL_CHAPTERS, 'AI 상담문 보강 중');
+    }, 900);
   }
 
   function _stopProgressAnimation() {
@@ -281,7 +341,7 @@
 
   function _targetYear() {
     var el = _qs('nyTargetYear');
-    var year = Number(el && el.value || new Date().getFullYear());
+    var year = Number(el && el.value || _resolveDefaultTargetYear());
     if (!Number.isFinite(year) || year < 1900 || year > 2100) return 0;
     return Math.trunc(year);
   }
@@ -323,7 +383,7 @@
     var premiumToken = _readPremiumAccessToken();
     var headers = { 'Content-Type': 'application/json' };
     if (premiumToken) headers['x-premium-access-token'] = premiumToken;
-    _log('BILLING_CHECK_START', { featureKey: BILLING_FEATURE_KEY, reportId: reportId });
+    _log('PaymentVerificationStarted', { featureKey: BILLING_FEATURE_KEY, reportId: reportId });
     var response = await fetch('/api/billing/coin-gate', {
       method: 'POST',
       credentials: 'include',
@@ -349,7 +409,7 @@
     if (!response.ok || payload.ok === false || !grant) {
       return { ok: false, status: response.status, message: _clean(payload.message || (payload.error && payload.error.message)) || '프리미엄 PDF 생성을 위해 코인 또는 이용권 확인이 필요합니다.' };
     }
-    _log('BILLING_CHECK_OK', { featureKey: BILLING_FEATURE_KEY, reportId: reportId, hasPurchaseId: !!grant.purchaseId });
+    _log('PaymentVerificationPassed', { featureKey: BILLING_FEATURE_KEY, reportId: reportId, hasPurchaseId: !!grant.purchaseId });
     return { ok: true, accessGrant: grant, premiumAccessToken: token, requestId: requestId };
   }
 
@@ -366,7 +426,7 @@
     var body = await response.json().catch(function () { return {}; });
     if (!response.ok || !body || body.ok === false) {
       var msg = _clean(body && body.message) || ('HTTP ' + response.status);
-      _log('PREPARE_HTTP_ERROR', { status: response.status, code: _clean(body && body.code), message: msg });
+      _log('RequestFailed', { status: response.status, code: _clean(body && body.code), message: msg });
       throw new Error(msg);
     }
     return body;
@@ -437,11 +497,11 @@
   }
 
   window.openSajuNewYearModal = function () {
-    _log('CARD_CLICK');
+    _log('ModalOpen');
     var modal = _qs('sajuNewYearModal');
     if (!modal) return;
     var yearEl = _qs('nyTargetYear');
-    if (yearEl && !yearEl.value) yearEl.value = String(new Date().getFullYear());
+    if (yearEl && !yearEl.value) yearEl.value = String(_resolveDefaultTargetYear());
     var profile = _getActiveBirthProfile();
     if (profile && profile.birth) {
       window.__cdActiveBirthProfile = profile;
@@ -476,6 +536,13 @@
       _setError('신년운세를 볼 대상 연도를 선택해 주세요.');
       return;
     }
+    var normalizedBirth = _normalizeBirthInput(profile);
+    if (!normalizedBirth.birthDate) {
+      _setError('정확한 신년운세 계산을 위해 생년월일 정보를 확인해 주세요.');
+      return;
+    }
+    _log('BirthInputValidated', { birthDate: normalizedBirth.birthDate, isTimeUnknown: normalizedBirth.isTimeUnknown });
+    _log('TargetYearValidated', { targetYear: targetYear });
 
     if (typeof window.computeProfileForModal === 'function') {
       try { window.computeProfileForModal(profile); } catch (_) {}
@@ -486,17 +553,13 @@
       _generating = true;
       _setBusy(true);
       _showScreen('nyLoadingScreen');
-      _setProgress(0, '올해의 세운을 계산하는 중입니다');
+      _setProgress(0, LOADING_MESSAGES[0]);
       _startProgressAnimation();
 
-      _log('INPUT_READY', { hasBirth: true });
-      _log('TARGET_YEAR_READY', { targetYear: targetYear });
-      _log('ENGINE_CALC_START', { targetYear: targetYear });
+      _log('RequestReceived', { reportId: reportId, targetYear: targetYear });
+      _log('PaymentVerificationStarted', { featureKey: BILLING_FEATURE_KEY });
       var sajuBase = _collectSajuBase();
-      _log('ENGINE_CALC_OK', { hasDayMaster: !!(sajuBase.core && sajuBase.core.dayMaster) });
-      _log('PDF_SEED_READY', { targetYear: targetYear });
-      _log('LOCAL_SKELETON_READY', { chapterCount: TOTAL_CHAPTERS });
-      _log('LLM_WRITE_START', { chapterCount: TOTAL_CHAPTERS });
+      _log('LocalEngineStarted', { targetYear: targetYear });
 
       _postPrepare({
         serviceKey: SERVICE_KEY,
@@ -528,22 +591,36 @@
           reportId: reportId
         } : undefined,
         targetYear: targetYear,
-        name: profile.name || '사용자',
-        gender: profile.gender || '',
-        calendarType: (profile.birth && (profile.birth.calendarType || profile.birth.calType)) || 'solar',
-        birthDate: profile.birth.year + '-' + _pad2(profile.birth.month) + '-' + _pad2(profile.birth.day),
-        birthTimeKnown: true,
-        hour: Number(profile.birth.hour || 12),
-        minute: Number(profile.birth.minute || 0),
+        selectedYear: targetYear,
+        name: normalizedBirth.name,
+        gender: normalizedBirth.gender,
+        calendarType: normalizedBirth.calendarType,
+        birthDate: normalizedBirth.birthDate,
+        birthTime: normalizedBirth.birthTime,
+        birthTimeKnown: !normalizedBirth.isTimeUnknown,
+        hour: normalizedBirth.birthHour,
+        minute: normalizedBirth.birthMinute,
         profile: profile,
+        birthInput: normalizedBirth,
         sajuBase: sajuBase
       }).then(function (data) {
+        if (String(data && data.status || '') === 'running') {
+          _setProgress(TOTAL_CHAPTERS, '동일 세션 생성이 진행 중입니다. 잠시 후 결과를 확인합니다.');
+          return;
+        }
         _markPremiumVerified(25 * 60 * 1000);
-        _log('LLM_WRITE_OK', { chapterCount: data.chapterCount || TOTAL_CHAPTERS, fallbackUsed: !!data.fallbackUsed });
-        _log('PDF_RENDER_START', { chapterCount: data.chapterCount || TOTAL_CHAPTERS });
+        _log('LocalChapterDraftCompleted', { chapterCount: Number(data.localDraftChapterCount || TOTAL_CHAPTERS) });
+        _log('LocalQualityValidationPassed', { chapterCount: Number(data.localDraftChapterCount || TOTAL_CHAPTERS) });
+        _log('LLMEnhancementStarted', { llmUsed: !!(data && data.llmUsed) });
+        _log('LLMEnhancementCompleted', { manuscriptSource: _clean(data && data.manuscriptSource), fallbackUsed: !!(data && data.fallbackUsed) });
+        _log('FinalValidationPassed', { chapterCount: data.chapterCount || TOTAL_CHAPTERS });
+        _log('PDFRenderStarted', { chapterCount: data.chapterCount || TOTAL_CHAPTERS });
         _setProgress(TOTAL_CHAPTERS, '신년운세 프리미엄 PDF를 완성하는 중입니다');
         _renderResult(data, profile, targetYear);
-        _log('PDF_RENDER_OK', { chapterCount: _chapters.length });
+        _log('PDFRenderCompleted', { chapterCount: _chapters.length, source: _clean(data && data.manuscriptSource) });
+        if (data && data.fallbackUsed && data.llmFallbackReason) {
+          _setProgress(TOTAL_CHAPTERS, 'AI 보강 일부가 지연되어 로컬 원고로 안전하게 완료했습니다');
+        }
         _showScreen('nyResultScreen');
       }).catch(function (error) {
         _logError(error, { stage: 'generate' });
@@ -579,17 +656,19 @@
       window.alert('신년운세 리포트가 아직 준비되지 않았습니다. 먼저 생성해 주세요.');
       return;
     }
-    var win = window.open('', '_blank', 'width=980,height=760');
+    var html = String(_resultPayload.pdfReady.html || '');
+    var htmlBlob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    var htmlUrl = URL.createObjectURL(htmlBlob);
+    var win = window.open(htmlUrl, '_blank', 'width=980,height=760');
     if (!win) {
+      URL.revokeObjectURL(htmlUrl);
       window.alert('팝업이 차단되어 출력 창을 열 수 없습니다. 팝업 허용 후 다시 시도해 주세요.');
       return;
     }
-    win.document.open();
-    win.document.write(String(_resultPayload.pdfReady.html || ''));
-    win.document.close();
     win.focus();
     setTimeout(function () {
       try { win.print(); } catch (_) {}
+      try { URL.revokeObjectURL(htmlUrl); } catch (_) {}
     }, 900);
   };
 

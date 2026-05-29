@@ -11,19 +11,19 @@
   var LAST_SEED = null;
 
   var CHAPTERS = [
-    'Chapter 1. 명궁 완전 해독 — 타고난 나의 중심 별',
-    'Chapter 2. 신궁 심층 분석 — 후천적으로 완성되는 나',
-    'Chapter 3. 형제궁과 인간관계 — 가까운 사람들과의 거리',
-    'Chapter 4. 부부궁 — 사랑, 결혼, 깊은 인연의 방식',
-    'Chapter 5. 자녀궁 — 창조성, 표현력, 이어지는 운',
-    'Chapter 6. 재백궁 — 돈, 자산, 현실 감각',
-    'Chapter 7. 질액궁 — 몸과 마음의 취약 지점',
-    'Chapter 8. 천이궁 — 세상 밖에서 열리는 기회',
-    'Chapter 9. 노복궁 — 사람을 얻고 쓰는 힘',
-    'Chapter 10. 관록궁 — 직업, 명예, 사회적 성취',
-    'Chapter 11. 전택궁 — 집, 기반, 축적되는 복',
-    'Chapter 12. 복덕궁 — 행복, 내면, 영혼의 쉼터',
-    'Chapter 13. 대운·유년 종합 전략 — 앞으로 열리는 운의 지도'
+    '제1장 명궁 완전 해석 — 나라는 사람의 첫 번째 별빛',
+    '제2장 신궁 심층 분석 — 인생 후반부와 실제 행동 패턴',
+    '제3장 복덕궁 — 마음의 깊이와 행복을 회복하는 방식',
+    '제4장 부모궁·형제궁 — 뿌리, 가족, 성장 환경의 흔적',
+    '제5장 부부궁 — 사랑, 결혼, 배우자 인연의 방향',
+    '제6장 자녀궁·노복궁 — 후배, 동료, 사람을 얻는 방식',
+    '제7장 재백궁 — 돈의 흐름과 재물 전략',
+    '제8장 관록궁 — 직업, 성공 방식, 사회적 역할',
+    '제9장 전택궁 — 집, 자산, 안정 기반',
+    '제10장 질액궁 — 건강 리듬과 생활 관리',
+    '제11장 천이궁 — 이동, 외부 기회, 귀인운',
+    '제12장 사화와 별의 강약 — 운명을 움직이는 핵심 신호',
+    '제13장 대운·세운 종합 전략 — 앞으로의 흐름과 실행 조언'
   ];
 
   var PALACE_KEY_BY_NAME = {
@@ -60,6 +60,96 @@
   function setText(id, value){ var el = $(id); if(el) el.textContent = value; }
   function setDisplay(id, value){ var el = $(id); if(el) el.style.display = value; }
 
+  function logFlow(tag, payload){
+    try { console.info('[ZiweiBook][' + tag + ']', payload || {}); } catch(_) {}
+  }
+
+  function normalizeZiweiError(error){
+    if(error instanceof Error){
+      return { name: error.name, message: error.message, stack: error.stack };
+    }
+    if(typeof error === 'object' && error !== null){
+      try { return JSON.parse(JSON.stringify(error)); }
+      catch(_) { return { message: String(error) }; }
+    }
+    return { message: String(error) };
+  }
+
+  var EARTHLY_BRANCH_HOUR = {
+    '자': 23, '축': 1, '인': 3, '묘': 5, '진': 7, '사': 9,
+    '오': 11, '미': 13, '신': 15, '유': 17, '술': 19, '해': 21
+  };
+
+  function firstNonEmpty(){
+    for(var i=0;i<arguments.length;i++){
+      var v = text(arguments[i]);
+      if(v) return v;
+    }
+    return '';
+  }
+
+  function normalizeGender(value){
+    var raw = text(value).toLowerCase();
+    if(raw === 'm' || raw === 'male' || raw === 'man' || raw === '남' || raw === '남성') return 'male';
+    if(raw === 'f' || raw === 'female' || raw === 'woman' || raw === '여' || raw === '여성') return 'female';
+    return 'unknown';
+  }
+
+  function normalizeCalendarType(value){
+    var raw = text(value).toLowerCase();
+    if(raw === 'solar' || raw === '양력' || raw === '양') return 'solar';
+    if(raw === 'lunar' || raw === '음력' || raw === '음' || raw === 'lunar_leap' || raw === '윤달') return 'lunar';
+    return 'unknown';
+  }
+
+  function isUnknownTime(value){
+    var raw = text(value).toLowerCase();
+    if(!raw) return false;
+    return /모름|미상|unknown|없음|미기재|n\/a|na|not\s*known|모르/.test(raw);
+  }
+
+  function toFiniteInt(value){
+    var n = Number(value);
+    return Number.isFinite(n) ? Math.trunc(n) : NaN;
+  }
+
+  function parseDateParts(value){
+    var raw = text(value);
+    if(!raw) return null;
+    var m = raw.match(/^(\d{4})[-./\s](\d{1,2})[-./\s](\d{1,2})$/);
+    if(!m) return null;
+    var y = toFiniteInt(m[1]);
+    var mo = toFiniteInt(m[2]);
+    var d = toFiniteInt(m[3]);
+    if(!Number.isFinite(y) || !Number.isFinite(mo) || !Number.isFinite(d)) return null;
+    if(mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+    return { year: y, month: mo, day: d };
+  }
+
+  function parseBirthTime(value){
+    var raw = text(value);
+    if(!raw) return null;
+    if(isUnknownTime(raw)) return { unknown: true };
+    var branch = raw.match(/([자축인묘진사오미신유술해])\s*시/);
+    if(branch && EARTHLY_BRANCH_HOUR.hasOwnProperty(branch[1])) return { hour: EARTHLY_BRANCH_HOUR[branch[1]], minute: 0 };
+    var hm = raw.match(/^(\d{1,2})\s*[:시]\s*(\d{1,2})?/);
+    if(hm){
+      var hour = toFiniteInt(hm[1]);
+      var minute = Number.isFinite(toFiniteInt(hm[2])) ? toFiniteInt(hm[2]) : 0;
+      if(/오후|pm|PM/.test(raw) && hour < 12) hour += 12;
+      if(/오전|am|AM/.test(raw) && hour === 12) hour = 0;
+      if(hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) return { hour: hour, minute: minute };
+    }
+    var ho = raw.match(/^(오전|오후|am|pm|AM|PM)?\s*(\d{1,2})\s*시?$/);
+    if(ho){
+      var hh = toFiniteInt(ho[2]);
+      if(/오후|pm|PM/.test(ho[1] || '') && hh < 12) hh += 12;
+      if(/오전|am|AM/.test(ho[1] || '') && hh === 12) hh = 0;
+      if(hh >= 0 && hh <= 23) return { hour: hh, minute: 0 };
+    }
+    return null;
+  }
+
   function updateProgress(percent, label){
     var fill = $('zbProgressBar');
     if(fill) fill.style.width = Math.max(0, Math.min(100, percent)) + '%';
@@ -86,48 +176,193 @@
     return '';
   }
 
-  function getActiveProfile(){
-    var saved = window.__cdActiveBirthProfile || window._cdCurrentProfile || window.currentProfile || window._currentProfile || {};
-    var birth = (saved && typeof saved.birth === 'object') ? saved.birth : {};
-    var name = getField(['userName','name','birthName','profileName','nameInput']) || text(saved.name) || '사용자';
-    var gender = getField(['gender','userGender','birthGender']) || text(saved.gender) || text(window.GENDER) || 'unknown';
-    var birthDate = getField(['birthDate','birthdate','solarDate','birth_date']) || text(saved.birthDate) || text(saved.date) || text(birth.birthDate || birth.date || birth.solarDate) || '';
-    var year = Number(getField(['birthYear','year','yyyy'])) || Number(saved.year) || Number(birth.year) || 0;
-    var month = Number(getField(['birthMonth','month','mm'])) || Number(saved.month) || Number(birth.month) || 0;
-    var day = Number(getField(['birthDay','day','dd'])) || Number(saved.day) || Number(birth.day) || 0;
-    if(birthDate && /^\d{4}-\d{1,2}-\d{1,2}$/.test(birthDate)){
-      var parts = birthDate.split('-').map(function(v){ return Number(v); });
-      year = year || parts[0]; month = month || parts[1]; day = day || parts[2];
-    }
-    var birthTime = getField(['birthTime','birthtime','time','birth_time']) || text(saved.birthTime) || text(saved.time) || text(birth.birthTime || birth.time) || '';
-    var hour = Number(getField(['birthHour','hour','hh'])) || Number(saved.hour) || Number(birth.hour);
-    var minute = Number(getField(['birthMinute','minute','mi'])) || Number(saved.minute) || Number(birth.minute);
-    if(birthTime && /^\d{1,2}:\d{1,2}$/.test(birthTime)){
-      var tp = birthTime.split(':').map(function(v){ return Number(v); });
-      if(!Number.isFinite(hour)) hour = tp[0];
-      if(!Number.isFinite(minute)) minute = tp[1];
-    }
-    if(!Number.isFinite(hour)) hour = 12;
-    if(!Number.isFinite(minute)) minute = 0;
+  function snapshotFormProfile(){
+    var birthDate = getField(['birthDate','birthdate','birthday','solarDate','lunarDate','date','birth_date']);
+    var dateParts = parseDateParts(birthDate);
+    var year = toFiniteInt(getField(['birthYear','year','yyyy']));
+    var month = toFiniteInt(getField(['birthMonth','month','mm']));
+    var day = toFiniteInt(getField(['birthDay','day','dd']));
+    if(!Number.isFinite(year) && dateParts) year = dateParts.year;
+    if(!Number.isFinite(month) && dateParts) month = dateParts.month;
+    if(!Number.isFinite(day) && dateParts) day = dateParts.day;
     return {
-      name: name,
-      gender: gender,
+      source: 'form',
+      name: getField(['userName','name','birthName','profileName','nameInput']),
+      gender: getField(['gender','sex','userGender','birthGender']),
+      calendarType: getField(['calendarType','calendar','birthCalendarType']),
+      birthDate: birthDate,
       year: year,
       month: month,
       day: day,
-      hour: hour,
-      minute: minute,
-      birthDate: year && month && day ? year + '-' + pad2(month) + '-' + pad2(day) : birthDate,
-      birthTime: pad2(hour) + ':' + pad2(minute),
-      calendarType: getField(['calendarType','birthCalendarType']) || text(saved.calendarType || birth.calendarType) || 'solar',
-      birthplace: getField(['birthplace','birthPlace']) || text(saved.birthplace || saved.birthPlace || birth.birthplace || birth.birthPlace) || '대한민국'
+      birthTime: getField(['birthTime','birthtime','time','timeText','birth_time']),
+      hour: toFiniteInt(getField(['birthHour','birth_hour','hour','hh'])),
+      minute: toFiniteInt(getField(['birthMinute','minute','mi'])),
+      timezone: 'Asia/Seoul',
+      birthplace: getField(['birthplace','birthPlace'])
     };
+  }
+
+  function profileFromObject(obj, sourceName){
+    var source = (obj && typeof obj === 'object') ? obj : {};
+    var birth = (source.birth && typeof source.birth === 'object') ? source.birth : {};
+    var birthDateRaw = firstNonEmpty(source.birthDate, source.birthday, source.solarDate, source.lunarDate, source.date, birth.birthDate, birth.solarDate, birth.lunarDate, birth.date);
+    var dateParts = parseDateParts(birthDateRaw);
+    var year = Number.isFinite(toFiniteInt(source.year)) ? toFiniteInt(source.year) : (Number.isFinite(toFiniteInt(birth.year)) ? toFiniteInt(birth.year) : (dateParts ? dateParts.year : NaN));
+    var month = Number.isFinite(toFiniteInt(source.month)) ? toFiniteInt(source.month) : (Number.isFinite(toFiniteInt(birth.month)) ? toFiniteInt(birth.month) : (dateParts ? dateParts.month : NaN));
+    var day = Number.isFinite(toFiniteInt(source.day)) ? toFiniteInt(source.day) : (Number.isFinite(toFiniteInt(birth.day)) ? toFiniteInt(birth.day) : (dateParts ? dateParts.day : NaN));
+    return {
+      source: sourceName,
+      name: firstNonEmpty(source.name, source.profileName),
+      gender: firstNonEmpty(source.gender, source.sex, birth.gender, birth.sex, window.GENDER),
+      calendarType: firstNonEmpty(source.calendarType, source.calendar, source.calType, birth.calType, birth.calendarType),
+      birthDate: birthDateRaw,
+      year: year,
+      month: month,
+      day: day,
+      birthTime: firstNonEmpty(source.birthTime, source.time, source.timeText, source.hourText, birth.birthTime, birth.time),
+      hour: Number.isFinite(toFiniteInt(source.birthHour)) ? toFiniteInt(source.birthHour) : (Number.isFinite(toFiniteInt(source.birth_hour)) ? toFiniteInt(source.birth_hour) : (Number.isFinite(toFiniteInt(source.hour)) ? toFiniteInt(source.hour) : toFiniteInt(birth.hour))),
+      minute: Number.isFinite(toFiniteInt(source.birthMinute)) ? toFiniteInt(source.birthMinute) : (Number.isFinite(toFiniteInt(source.minute)) ? toFiniteInt(source.minute) : toFiniteInt(birth.minute)),
+      timezone: firstNonEmpty(source.timezone, birth.timezone, 'Asia/Seoul'),
+      birthplace: firstNonEmpty(source.birthplace, source.birthPlace, birth.birthplace, birth.birthPlace)
+    };
+  }
+
+  function readStorageProfile(){
+    try {
+      var ns = 'FORTUNE_APP_USER_PROFILES';
+      var list = JSON.parse(localStorage.getItem(ns + '.list') || '[]');
+      var currentId = localStorage.getItem(ns + '.current');
+      var selected = (currentId && list.find(function(p){ return p && (p.id === currentId || p.profileId === currentId); })) || list[0] || null;
+      if(selected) return profileFromObject(selected, 'storageProfile');
+    } catch(_) {}
+    try {
+      var pre = JSON.parse(localStorage.getItem('premium:ziwei:session:v1') || 'null');
+      if(pre && pre.birthProfile) return profileFromObject(pre.birthProfile, 'storageSession');
+    } catch(_) {}
+    return null;
+  }
+
+  async function readApiProfile(){
+    try {
+      var res = await fetch('/api/profile', { method: 'GET', credentials: 'include' });
+      if(!res.ok) return null;
+      var data = await res.json().catch(function(){ return {}; });
+      var profiles = Array.isArray(data && data.profiles) ? data.profiles : [];
+      var currentId = text(data && data.currentId);
+      var selected = (currentId && profiles.find(function(p){ return p && (p.id === currentId || p.profileId === currentId); })) || profiles[0] || null;
+      if(!selected) return null;
+      return profileFromObject(selected, 'profileApi');
+    } catch(_) {
+      return null;
+    }
+  }
+
+  function mergeProfilesByPriority(sources){
+    var merged = {
+      name: '사용자', gender: 'unknown', calendarType: 'unknown', birthDate: '', year: NaN, month: NaN, day: NaN,
+      birthTime: '', hour: NaN, minute: NaN, timezone: 'Asia/Seoul', birthplace: '대한민국', pickedFrom: []
+    };
+    function pickString(key){
+      for(var i=0;i<sources.length;i++){
+        var v = text(sources[i] && sources[i][key]);
+        if(v){ merged.pickedFrom.push(key + ':' + (sources[i].source || ('s'+i))); return v; }
+      }
+      return '';
+    }
+    function pickNumber(key){
+      for(var i=0;i<sources.length;i++){
+        var n = toFiniteInt(sources[i] && sources[i][key]);
+        if(Number.isFinite(n)){ merged.pickedFrom.push(key + ':' + (sources[i].source || ('s'+i))); return n; }
+      }
+      return NaN;
+    }
+    merged.name = pickString('name') || '사용자';
+    merged.gender = pickString('gender') || 'unknown';
+    merged.calendarType = pickString('calendarType') || 'unknown';
+    merged.birthDate = pickString('birthDate');
+    merged.year = pickNumber('year');
+    merged.month = pickNumber('month');
+    merged.day = pickNumber('day');
+    merged.birthTime = pickString('birthTime');
+    merged.hour = pickNumber('hour');
+    merged.minute = pickNumber('minute');
+    merged.timezone = pickString('timezone') || 'Asia/Seoul';
+    merged.birthplace = pickString('birthplace') || '대한민국';
+    if((!Number.isFinite(merged.year) || !Number.isFinite(merged.month) || !Number.isFinite(merged.day)) && merged.birthDate){
+      var d = parseDateParts(merged.birthDate);
+      if(d){
+        if(!Number.isFinite(merged.year)) merged.year = d.year;
+        if(!Number.isFinite(merged.month)) merged.month = d.month;
+        if(!Number.isFinite(merged.day)) merged.day = d.day;
+      }
+    }
+    return merged;
+  }
+
+  function normalizeBirthInput(merged){
+    var parsedTime = parseBirthTime(merged.birthTime);
+    var hour = Number.isFinite(merged.hour) ? merged.hour : (parsedTime && !parsedTime.unknown ? parsedTime.hour : NaN);
+    var minute = Number.isFinite(merged.minute) ? merged.minute : (parsedTime && !parsedTime.unknown ? parsedTime.minute : 0);
+    var isTimeUnknown = Boolean(isUnknownTime(merged.birthTime) || (parsedTime && parsedTime.unknown));
+    var birthDate = Number.isFinite(merged.year) && Number.isFinite(merged.month) && Number.isFinite(merged.day)
+      ? merged.year + '-' + pad2(merged.month) + '-' + pad2(merged.day)
+      : text(merged.birthDate);
+    return {
+      name: text(merged.name),
+      gender: normalizeGender(merged.gender),
+      calendarType: normalizeCalendarType(merged.calendarType),
+      birthDate: birthDate,
+      birthYear: Number.isFinite(merged.year) ? merged.year : NaN,
+      birthMonth: Number.isFinite(merged.month) ? merged.month : NaN,
+      birthDay: Number.isFinite(merged.day) ? merged.day : NaN,
+      birthTime: Number.isFinite(hour) ? (pad2(hour) + ':' + pad2(minute)) : text(merged.birthTime),
+      birthHour: Number.isFinite(hour) ? hour : null,
+      birthMinute: Number.isFinite(minute) ? minute : 0,
+      timezone: text(merged.timezone) || 'Asia/Seoul',
+      isTimeUnknown: isTimeUnknown
+    };
+  }
+
+  function validateBirthInputOrThrow(input){
+    if(!Number.isFinite(input.birthYear) || !Number.isFinite(input.birthMonth) || !Number.isFinite(input.birthDay)){
+      throw new Error('자미두수 프리미엄 PDF 생성을 위해 프로필 카드의 생년월일을 확인해 주세요.');
+    }
+    if(input.isTimeUnknown || !Number.isFinite(input.birthHour)){
+      throw new Error('자미두수 PDF는 명궁과 12궁 계산을 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 먼저 입력해주세요.');
+    }
+    if(input.birthHour < 0 || input.birthHour > 23 || input.birthMinute < 0 || input.birthMinute > 59){
+      throw new Error('출생 시간 형식을 확인해 주세요. 예: 07:00, 오전 7시, 인시');
+    }
+  }
+
+  async function resolveBirthInput(){
+    var formProfile = snapshotFormProfile();
+    var activeProfile = profileFromObject(window.__cdActiveBirthProfile || window._cdCurrentProfile || window.currentProfile || window._currentProfile || {}, 'activeProfile');
+    var apiProfile = await readApiProfile();
+    var storageProfile = readStorageProfile();
+    var merged = mergeProfilesByPriority([activeProfile, apiProfile || {}, storageProfile || {}, formProfile]);
+    var birthInput = normalizeBirthInput(merged);
+    var profileForEngine = {
+      name: birthInput.name || '사용자',
+      gender: birthInput.gender,
+      year: birthInput.birthYear,
+      month: birthInput.birthMonth,
+      day: birthInput.birthDay,
+      hour: birthInput.birthHour,
+      minute: birthInput.birthMinute,
+      birthDate: birthInput.birthDate,
+      birthTime: birthInput.birthTime,
+      calendarType: birthInput.calendarType,
+      timezone: birthInput.timezone,
+      birthplace: merged.birthplace || '대한민국'
+    };
+    return { birthInput: birthInput, profileForEngine: profileForEngine, merged: merged };
   }
 
   function normalizeStrengthName(value){
     var raw = text(value);
-    if(/묘|왕|廟|旺|◎/.test(raw)) return '묘';
-    if(/득|得|○|O/.test(raw)) return '득';
+    if(/묘|廟|◎/.test(raw)) return '묘';
+    if(/왕|旺|득|得|○|O/.test(raw)) return '득';
     if(/리|利|약|▲/.test(raw)) return '리';
     if(/평|平|△/.test(raw)) return '평';
     if(/함|실|陷|불|쇠|×|X/i.test(raw)) return '함';
@@ -214,15 +449,16 @@
     if(!profile.year || !profile.month || !profile.day){
       throw new Error('자미두수 PDF 생성을 위해 생년월일을 입력해 주세요.');
     }
+    var genderForEngine = profile.gender === 'male' ? 'M' : (profile.gender === 'female' ? 'F' : 'OTHER');
     window._ziweiBirth = {
       year: profile.year,
       month: profile.month,
       day: profile.day,
       hour: profile.hour,
       minute: profile.minute,
-      gender: profile.gender
+      gender: genderForEngine
     };
-    if(profile.gender) window.GENDER = profile.gender;
+    if(genderForEngine) window.GENDER = genderForEngine;
     var raw = window.calcZiweiPalaces(profile.year, profile.month, profile.day, profile.hour, profile.minute);
     if(!raw || !raw.palaceStarData){
       throw new Error('자미두수 명반 계산 결과가 비어 있습니다. 입력값을 확인해 주세요.');
@@ -320,7 +556,7 @@
     });
   }
 
-  async function postPrepare(profile, seed, payment){
+  async function postPrepare(profile, seed, payment, birthInput){
     var token = (payment && (payment.premiumAccessToken || payment.accessToken)) || getPremiumToken();
     var headers = { 'Content-Type': 'application/json' };
     if(token) headers['x-premium-access-token'] = token;
@@ -330,6 +566,7 @@
       premiumAccessToken: token || '',
       paymentContext: payment || {},
       birthProfile: profile,
+      birthInput: birthInput,
       year: profile.year,
       month: profile.month,
       day: profile.day,
@@ -380,7 +617,7 @@
     if(!modal) return;
     detachModalFromResultPage(modal);
 
-    var profile = getActiveProfile();
+    var profile = profileFromObject(window.__cdActiveBirthProfile || window._cdCurrentProfile || window.currentProfile || window._currentProfile || {}, 'activeProfile');
     if (!profile || !profile.year || !profile.month) {
       try {
         var _dpNs = 'FORTUNE_APP_USER_PROFILES';
@@ -389,7 +626,7 @@
         var _dpMatch = (_dpCurrId && _dpList.find(function(p){return p.id===_dpCurrId;})) || (_dpList.length && _dpList[0]) || null;
         if (_dpMatch && _dpMatch.birth && _dpMatch.birth.year) {
           window.__cdActiveBirthProfile = _dpMatch;
-          profile = getActiveProfile();
+          profile = profileFromObject(_dpMatch, 'activeProfile');
         }
       } catch (_dpE) {}
     }
@@ -408,6 +645,11 @@
     modal.classList.add('active');
     modal.style.display = 'flex';
     document.body.classList.add('modal-open');
+    logFlow('ModalOpen', {
+      hasProfile: Boolean(profile && profile.year && profile.month),
+      hasBirthDate: Boolean(profile && profile.birthDate),
+      hasBirthTime: Boolean(profile && profile.birthTime)
+    });
 
     if(!RESULT){
       setDisplay('zbLoadingScreen','none');
@@ -438,25 +680,69 @@
       setDisplay('zbStartScreen','none');
       setDisplay('zbResultScreen','none');
       setDisplay('zbLoadingScreen','block');
-      updateProgress(8, '입력값과 로그인 상태를 확인합니다.');
+      updateProgress(8, '프로필 정보 확인 중');
       markChapter(-1);
-      var profile = getActiveProfile();
-      updateProgress(18, '로컬 자미두수 명반을 계산합니다.');
+      var resolved = await resolveBirthInput();
+      logFlow('ProfileResolved', {
+        hasBirthDate: Boolean(resolved.birthInput.birthDate),
+        hasBirthTime: Boolean(resolved.birthInput.birthTime),
+        birthHour: resolved.birthInput.birthHour,
+        pickedCount: Array.isArray(resolved.merged.pickedFrom) ? resolved.merged.pickedFrom.length : 0
+      });
+      logFlow('BirthInputNormalized', {
+        gender: resolved.birthInput.gender,
+        calendarType: resolved.birthInput.calendarType,
+        birthHour: resolved.birthInput.birthHour,
+        isTimeUnknown: resolved.birthInput.isTimeUnknown
+      });
+      validateBirthInputOrThrow(resolved.birthInput);
+      logFlow('ValidationBeforePayment', {
+        hasBirthDate: true,
+        hasBirthTime: true,
+        birthHour: resolved.birthInput.birthHour
+      });
+      updateProgress(18, '자미두수 명반 계산 중');
+      var profile = resolved.profileForEngine;
       var seed = await buildZiweiSeed(profile);
-      updateProgress(28, '프리미엄 이용권과 코인을 확인합니다.');
+      updateProgress(35, '13챕터 로컬 원고 생성 중');
+      logFlow('PaymentGateStart', { featureKey: FEATURE_KEY, coinCost: COIN_COST });
+      updateProgress(46, '결제/코인 접근 확인 중');
       var payment = await ensurePayment();
-      updateProgress(42, '13챕터 PDF seed를 서버에 전달합니다.');
-      var data = await postPrepare(profile, seed, payment);
-      var chapters = Array.isArray(data.chapters) ? data.chapters : [];
-      for(var i=0; i<Math.min(chapters.length, TOTAL_CHAPTERS); i++){
+      logFlow('PaymentGateSuccess', {
+        hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken || payment.token))
+      });
+      updateProgress(58, '13챕터 로컬 원고 생성 중');
+      logFlow('SessionCreateStart', { endpoint: PREPARE_API, hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken)) });
+      logFlow('PdfRequestStart', { endpoint: PREPARE_API, chapterTarget: TOTAL_CHAPTERS });
+      var data = await postPrepare(profile, seed, payment, resolved.birthInput);
+      logFlow('SessionCreateSuccess', {
+        chapterCount: Array.isArray(data && data.chapters) ? data.chapters.length : 0,
+        fallbackUsed: Boolean(data && data.fallbackUsed)
+      });
+      var localDraftCount = Number((data && data.localDraftChapterCount) || 0);
+      var chapterProgressCount = Math.max(0, Math.min(TOTAL_CHAPTERS, localDraftCount || Number((data && data.chapterCount) || 0)));
+      for(var i=0; i<chapterProgressCount; i++){
         markChapter(i);
-        updateProgress(48 + Math.round(((i + 1) / TOTAL_CHAPTERS) * 44), CHAPTERS[i] || '챕터를 완성하고 있습니다.');
+        updateProgress(62 + Math.round(((i + 1) / TOTAL_CHAPTERS) * 16), CHAPTERS[i] || '챕터를 완성하고 있습니다.');
+        logFlow('LocalDraftProgress', { chapterDone: i + 1, chapterTotal: TOTAL_CHAPTERS });
       }
+      updateProgress(82, 'AI 상담문 보강 중');
+      updateProgress(95, 'PDF 편집/렌더링 중');
       RESULT = data;
-      updateProgress(100, '자미두수 프리미엄 PDF가 준비되었습니다.');
+      if(data && data.fallbackUsed && window.showToast){
+        window.showToast('AI 문장 보강이 지연되어 로컬 자미두수 명반 기반 프리미엄 원고로 PDF를 완성합니다.', 'info');
+      }
+      logFlow('PdfRequestSuccess', {
+        chapterCount: Array.isArray(data && data.chapters) ? data.chapters.length : 0,
+        localDraftChapterCount: localDraftCount,
+        fallbackUsed: Boolean(data && data.fallbackUsed)
+      });
+      updateProgress(100, '완료');
       renderResult(data);
     } catch(error) {
-      showError(error && error.message ? error.message : String(error));
+      var normalizedError = normalizeZiweiError(error);
+      logFlow('Error', normalizedError);
+      showError(normalizedError && normalizedError.message ? normalizedError.message : String(error));
     } finally {
       GENERATING = false;
     }

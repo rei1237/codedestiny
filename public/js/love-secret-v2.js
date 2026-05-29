@@ -16,28 +16,28 @@
   var LOVE_SECRET_CHAPTER_META = {
     solo: {
       titles: [
-        '💘 본연의 연애 자아',
-        '🌹 치명적 매력과 페로몬',
-        '🧲 운명의 상대방 리포트',
-        '🧩 연애 실패 패턴',
-        '🫀 감정 중독 구조',
-        '🛟 관계 회복력',
-        '🏡 결혼 운과 장기 연애',
-        '⚠️ 위험한 사랑 패턴',
-        '🔥 현실 연애 전략',
-        '🗝️ 최종 연애 로드맵'
+        '나의 연애 기본값',
+        '끌림의 패턴',
+        '배우자궁 해석',
+        '도화·홍염·화개',
+        '연애의 강점',
+        '반복되는 연애 실수',
+        '결혼 가능성과 장기 인연',
+        '이별과 회복',
+        '연애운의 타이밍',
+        '사랑을 위한 실행 전략'
       ],
       subtitles: [
-        '일간·월지·오행·십성으로 보는 사랑의 기본 구조',
-        '도화·홍염·화개와 표현 매력의 실제 힘',
-        '배우자성·이성운·인연 유형으로 보는 이상형과 경계 대상',
-        '반복되는 연애 붕괴 패턴과 실패 원인 추적',
-        '감정 과몰입, 집착, 불안의 중독 구조 해석',
-        '관계가 흔들릴 때 회복하는 정서 탄성 분석',
-        '배우자궁과 장기 관계 적합도로 보는 결혼 지속력',
-        '위험 인연, 금지 패턴, 경계해야 할 사랑의 구조',
-        '현실적인 연애 운영법과 행동 전략 정리',
-        '지금부터 실행할 최종 연애 로드맵'
+        '사랑 앞에서 드러나는 진짜 성향',
+        '내가 강하게 반응하는 사람',
+        '인연이 들어오고 머무는 자리',
+        '매력과 고독의 사랑 신호',
+        '사랑에서 빛나는 나의 무기',
+        '무너지는 지점과 방어 패턴',
+        '관계가 현실이 되는 조건',
+        '마음이 닫히고 다시 열리는 방식',
+        '대운·세운으로 보는 흐름',
+        '좋은 인연을 붙잡는 법'
       ],
       loading: [
         '사주 속 연애 자아의 기본 구조를 분석하는 중...',
@@ -66,18 +66,18 @@
     },
     compatibility: {
       titles: [
-        'Ch.1 두 사람의 인연 구조',
-        'Ch.2 감정 궁합',
-        'Ch.3 애정 표현 충돌',
-        'Ch.4 성적/스킨십 궁합',
-        'Ch.5 싸움 패턴',
-        'Ch.6 이별 위기 구조',
-        'Ch.7 재회 가능성',
-        'Ch.8 결혼 궁합',
-        'Ch.9 현실 생활 궁합',
-        'Ch.10 관계 유지 전략',
-        'Ch.11 karmic 관계 분석',
-        'Ch.12 최종 궁합 총론'
+        '두 사람의 인연 구조',
+        '감정 궁합',
+        '애정 표현 충돌',
+        '성적·스킨십 궁합',
+        '싸움 패턴',
+        '이별 위기 구조',
+        '재회 가능성',
+        '결혼 궁합',
+        '현실 생활 궁합',
+        '관계 유지 전략',
+        'karmic 관계 분석',
+        '최종 궁합 총론'
       ],
       subtitles: [
         '두 사람을 엮는 인연의 기본 골격과 결속 구조',
@@ -167,7 +167,7 @@
 
   function _getLoveSecretChapterTitle(idx, mode) {
     var chapterSet = _getLoveSecretChapterSet(mode);
-    return String((chapterSet.titles || [])[idx] || ('Chapter ' + (idx + 1)));
+    return String((chapterSet.titles || [])[idx] || ('제' + (idx + 1) + '장'));
   }
 
   function _getLoveSecretChapterSubtitle(idx, mode) {
@@ -265,13 +265,15 @@
     loading_helper: '연애 비책을 펼칠 준비를 하고 있습니다.',
     checking_payment: '결제 정보를 확인하고 있습니다.',
     payment_confirmed: '결제가 확인되었습니다. 생성 준비를 이어갑니다.',
-    preparing_generation: '연애 비책 생성 세션을 준비하고 있습니다.',
-    calculating_saju: '사주 속 연애 구조를 분석하고 있습니다.',
-    building_chapters: '연애 챕터를 구성하고 있습니다.',
-    writing_with_llm: '각 카테고리의 상담문을 작성하고 있습니다.',
-    validating_chapters: '결과가 빠짐없이 작성되었는지 검증하고 있습니다.',
+    preparing_generation: '프로필 정보 확인 중',
+    calculating_saju: '연애 사주 신호 계산 중',
+    validating_partner: '궁합 모드일 경우 상대방 사주 확인 중',
+    building_chapters: '모드별 로컬 원고 생성 중',
+    writing_with_llm: 'AI 상담문 보강 중',
+    validating_chapters: '최종 원고 검증 중',
     rendering_pdf: '연애 비책 PDF를 완성하고 있습니다.',
     completed: '연애 비책 PDF가 준비되었습니다.',
+    llm_failed_use_local: 'AI 문장 보강이 지연되어 로컬 사주 연애 계산 기반 프리미엄 원고로 PDF를 완성합니다.',
     failed: '연애 비책 생성이 중단되었습니다.'
   };
 
@@ -286,7 +288,7 @@
     var titleEl = _qs('lsLoadingTitle');
     var chapterEl = _qs('lsLoadingChapter');
     if (titleEl) titleEl.textContent = message;
-    if (chapterEl && (key === 'loading_helper' || key === 'checking_payment' || key === 'payment_confirmed' || key === 'preparing_generation' || key === 'failed')) {
+    if (chapterEl && (key === 'loading_helper' || key === 'checking_payment' || key === 'payment_confirmed' || key === 'preparing_generation' || key === 'validating_partner' || key === 'failed' || key === 'llm_failed_use_local')) {
       chapterEl.textContent = message;
     }
   }
@@ -379,7 +381,7 @@
 
   function _logLoveSecretFlow(stage, payload) {
     try {
-      console.info('[SajuLoveBook][Flow] ' + String(stage || 'UNKNOWN'), payload || {});
+      console.info('[LoveBook][' + String(stage || 'Unknown') + ']', payload || {});
     } catch (_) {}
   }
 
@@ -1198,33 +1200,104 @@
     return Number.isFinite(n) ? n : fallback;
   }
 
+  function _lsParseFlexibleBirthTime(rawTime, rawHour, rawMinute) {
+    var unknownTokens = ['시간 모름', '모름', '미상', 'unknown', 'na', 'n/a', '-'];
+    var zodiacHour = {
+      '자시': 23, '축시': 1, '인시': 3, '묘시': 5,
+      '진시': 7, '사시': 9, '오시': 11, '미시': 13,
+      '신시': 15, '유시': 17, '술시': 19, '해시': 21
+    };
+
+    var hourNum = Number(rawHour);
+    var minuteNum = Number(rawMinute);
+    if (Number.isFinite(hourNum)) {
+      var hh = Math.max(0, Math.min(23, Math.floor(hourNum)));
+      var mm = Number.isFinite(minuteNum) ? Math.max(0, Math.min(59, Math.floor(minuteNum))) : 0;
+      return { hour: hh, minute: mm, isUnknown: false };
+    }
+
+    var text = String(rawTime || '').trim();
+    if (!text) {
+      return { hour: 12, minute: 0, isUnknown: true };
+    }
+    var lower = text.toLowerCase();
+    if (unknownTokens.indexOf(lower) >= 0) {
+      return { hour: 12, minute: 0, isUnknown: true };
+    }
+    if (zodiacHour[text] !== undefined) {
+      return { hour: zodiacHour[text], minute: 0, isUnknown: false };
+    }
+
+    var hhmm = text.match(/^(\d{1,2})\s*:\s*(\d{1,2})$/);
+    if (hhmm) {
+      var h1 = Number(hhmm[1]);
+      var m1 = Number(hhmm[2]);
+      if (h1 >= 0 && h1 <= 23 && m1 >= 0 && m1 <= 59) {
+        return { hour: h1, minute: m1, isUnknown: false };
+      }
+    }
+
+    var korean = text.match(/^(오전|오후)\s*(\d{1,2})\s*시(?:\s*(\d{1,2})\s*분?)?$/);
+    if (korean) {
+      var marker = korean[1];
+      var h2 = Number(korean[2]);
+      var m2 = korean[3] ? Number(korean[3]) : 0;
+      if (h2 >= 1 && h2 <= 12) {
+        if (marker === '오전') {
+          if (h2 === 12) h2 = 0;
+        } else if (h2 !== 12) {
+          h2 += 12;
+        }
+        if (!(m2 >= 0 && m2 <= 59)) m2 = 0;
+        return { hour: h2, minute: m2, isUnknown: false };
+      }
+    }
+
+    var hourText = text.match(/^(\d{1,2})\s*시$/);
+    if (hourText) {
+      var h3 = Number(hourText[1]);
+      if (h3 >= 0 && h3 <= 23) {
+        return { hour: h3, minute: 0, isUnknown: false };
+      }
+    }
+
+    var numOnly = text.match(/^(\d{1,2})$/);
+    if (numOnly) {
+      var h4 = Number(numOnly[1]);
+      if (h4 >= 0 && h4 <= 23) {
+        return { hour: h4, minute: 0, isUnknown: false };
+      }
+    }
+
+    return { hour: 12, minute: 0, isUnknown: true };
+  }
+
   function _lsNormalizeProfile(raw) {
     if (!raw || typeof raw !== 'object') return null;
 
-    var birth = raw.birth || {};
+    var birth = raw.birth || raw.birthInput || raw.profileBirth || {};
     if (!birth || typeof birth !== 'object') {
       birth = {
-        year: raw.birthYear,
-        month: raw.birthMonth,
-        day: raw.birthDay,
-        hour: raw.birthHour,
-        minute: raw.birthMinute,
-        calType: raw.calType
+        year: raw.birthYear || raw.year,
+        month: raw.birthMonth || raw.month,
+        day: raw.birthDay || raw.day,
+        hour: raw.birthHour || raw.hour,
+        minute: raw.birthMinute || raw.minute,
+        calType: raw.calType || raw.calendarType || raw.calendar
       };
-      if ((!birth.year || !birth.month || !birth.day) && typeof raw.birthDate === 'string') {
-        var parts = raw.birthDate.trim().split(/[-/]/);
+      if ((!birth.year || !birth.month || !birth.day) && typeof (raw.birthDate || raw.birthday || raw.date || raw.solarDate || raw.lunarDate) === 'string') {
+        var birthDateText = String(raw.birthDate || raw.birthday || raw.date || raw.solarDate || raw.lunarDate || '').trim();
+        var parts = birthDateText.split(/[-/.]/);
         if (parts.length >= 3) {
           birth.year = birth.year || _lsToInt(parts[0], null);
           birth.month = birth.month || _lsToInt(parts[1], null);
           birth.day = birth.day || _lsToInt(parts[2], null);
         }
       }
-      if ((birth.hour == null || birth.minute == null) && typeof raw.birthTime === 'string') {
-        var tparts = raw.birthTime.trim().split(':');
-        if (tparts.length >= 2) {
-          if (birth.hour == null) birth.hour = _lsToInt(tparts[0], 12);
-          if (birth.minute == null) birth.minute = _lsToInt(tparts[1], 0);
-        }
+      if (birth.hour == null || birth.minute == null) {
+        var parsed = _lsParseFlexibleBirthTime(raw.birthTime || raw.time, raw.birth_hour || raw.hour, raw.birthMinute || raw.minute);
+        birth.hour = parsed.hour;
+        birth.minute = parsed.minute;
       }
     }
 
@@ -1233,8 +1306,9 @@
     var day = _lsToInt(birth.day, 0);
     if (!year || !month || !day) return null;
 
-    var hour = _lsToInt(birth.hour, 12);
-    var minute = _lsToInt(birth.minute, 0);
+    var parsedTime = _lsParseFlexibleBirthTime(birth.birthTime || birth.time || raw.birthTime || raw.time, birth.hour, birth.minute);
+    var hour = _lsToInt(parsedTime.hour, 12);
+    var minute = _lsToInt(parsedTime.minute, 0);
     hour = Math.max(0, Math.min(23, hour));
     minute = Math.max(0, Math.min(59, minute));
 
@@ -1245,14 +1319,15 @@
 
     return {
       name: String(raw.name || raw.username || raw.displayName || '사용자').trim() || '사용자',
-      gender: String(raw.gender || 'F').trim().toUpperCase() === 'M' ? 'M' : 'F',
+      gender: String(raw.gender || raw.sex || 'F').trim().toUpperCase() === 'M' ? 'M' : 'F',
       birth: {
         year: year,
         month: month,
         day: day,
         hour: hour,
         minute: minute,
-        calType: birth.calType || 'solar'
+        calType: birth.calType || raw.calendarType || raw.calendar || 'solar',
+        isTimeUnknown: !!parsedTime.isUnknown
       },
       location: {
         label: String(location.label || '대한민국 (서울)'),
@@ -1433,7 +1508,9 @@
     _chapters = _buildChapterBuffer(_getLoveSecretModeTotalChapters(_currentChapterMode));
     _chapterStructured = _buildChapterBuffer(_getLoveSecretModeTotalChapters(_currentChapterMode));
     _chapterMeta = _buildChapterBuffer(_getLoveSecretModeTotalChapters(_currentChapterMode));
-    _logLoveSecretFlow('DETAIL_POPUP_OPEN', { mode: 'solo', hasUserChart: hasData, hasPartnerChart: false, hasCompatibility: false, message: 'modal_open' });
+    _logLoveSecretFlow('ModalOpen', { mode: 'solo', hasUserChart: hasData });
+    _logLoveSecretFlow('ModeResolved', { mode: 'solo' });
+    _logLoveSecretFlow('ProfileResolved', { hasProfile: hasData });
     _showScreen('lsStartScreen');
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -1552,7 +1629,7 @@
     content.innerHTML =
       '<div class="ls-chapter-wrap">' +
       '<div class="ls-chapter-header">' +
-      '<span class="ls-chapter-num">Chapter ' + ch + '</span>' +
+      '<span class="ls-chapter-num">제' + ch + '장</span>' +
       '<h2 class="ls-chapter-title">' + _escHtml(_getChapterMeta(idx).title) + '</h2>' +
       '<p class="ls-chapter-sub">' + _escHtml(_getChapterMeta(idx).subtitle) + '</p>' +
       '</div>' +
@@ -1596,9 +1673,29 @@
     _bindPartnerScreen();
   };
 
+  function _validateLoveBookInputBeforePayment(mode, partnerData) {
+    var profile = _lsNormalizeProfile(window.__cdActiveBirthProfile || {});
+    var birth = profile && profile.birth ? profile.birth : null;
+    var hasSelf = !!(birth && Number(birth.year) && Number(birth.month) && Number(birth.day));
+    var hasPartner = String(partnerData || '').trim().length > 0;
+    _logLoveSecretFlow('ValidationBeforePayment', {
+      mode: String(mode || 'solo'),
+      hasSelf: hasSelf,
+      hasPartner: hasPartner,
+    });
+    if (!hasSelf) {
+      return { ok: false, message: '생년월일 정보가 부족하여 결제를 진행할 수 없습니다.' };
+    }
+    if (String(mode || 'solo') === 'compatibility' && !hasPartner) {
+      return { ok: false, message: '궁합 모드는 상대방 생년월일 입력이 필요합니다.' };
+    }
+    return { ok: true };
+  }
+
   window.handleStartCompatibilityLoveBook = async function () {
     if (_generating) return;
     _currentChapterMode = 'compatibility';
+    _logLoveSecretFlow('ModeResolved', { mode: 'compatibility' });
     var year = parseInt((_qs('lsPsYear') || {}).value || '0', 10);
     var month = parseInt((_qs('lsPsMonth') || {}).value || '0', 10);
     var day = parseInt((_qs('lsPsDay') || {}).value || '0', 10);
@@ -1613,7 +1710,14 @@
     }
 
     var reportId = _lsBuildReportId('compatibility');
-    _logLoveSecretFlow('COMPATIBILITY_GENERATE_CLICK', { mode: 'compatibility', hasUserChart: true, hasPartnerChart: true, hasCompatibility: true, featureKey: _getLoveSecretFeatureKey('compatibility'), reportId: reportId, message: 'compatibility_click' });
+    var prePartnerData = _collectPartnerScreenData();
+    _logLoveSecretFlow('PartnerInputResolved', { hasPartnerInput: !!String(prePartnerData || '').trim() });
+    var preValidation = _validateLoveBookInputBeforePayment('compatibility', prePartnerData);
+    if (!preValidation.ok) {
+      window.alert(preValidation.message || '입력값 확인이 필요합니다.');
+      return;
+    }
+    _logLoveSecretFlow('BirthInputNormalized', { mode: 'compatibility', hasSelfBirth: true, hasPartnerBirth: true });
 
     var startBtn = _qs('lsPsStartBtn');
     if (startBtn) { startBtn.disabled = true; startBtn.textContent = '처리 중...'; }
@@ -1628,17 +1732,18 @@
     function _startWithPartnerData(accessGrant) {
       _restorePartnerStartBtn();
       var partnerData = _collectPartnerScreenData();
+      _logLoveSecretFlow('PartnerInputResolved', { hasPartnerInput: !!String(partnerData || '').trim() });
       _startGeneration(partnerData, accessGrant, reportId);
     }
 
     try {
-      _logLoveSecretFlow('COIN_GATE_START', { mode: 'compatibility', hasUserChart: true, hasPartnerChart: true, hasCompatibility: true, featureKey: _getLoveSecretFeatureKey('compatibility'), reportId: reportId, message: 'compatibility_gate_start' });
+      _logLoveSecretFlow('PaymentGateStart', { mode: 'compatibility', reportId: reportId });
       var gateResult = await _runLoveSecretCoinGate('compatibility', reportId);
       if (!gateResult.ok) {
         window.alert(gateResult.message || '결제 확인에 실패했습니다.');
         return;
       }
-      _logLoveSecretFlow('COIN_GATE_SUCCESS', { mode: 'compatibility', hasUserChart: true, hasPartnerChart: true, hasCompatibility: true, featureKey: _getLoveSecretFeatureKey('compatibility'), reportId: reportId, purchaseId: gateResult.purchaseId || '', message: 'compatibility_gate_success' });
+      _logLoveSecretFlow('PaymentGateSuccess', { mode: 'compatibility', reportId: reportId, purchaseId: gateResult.purchaseId || '' });
       _startWithPartnerData(gateResult.accessGrant || null);
     } finally {
       _restorePartnerStartBtn();
@@ -1648,9 +1753,15 @@
   window.handleStartSoloLoveBook = async function () {
     if (_generating) return;
     _currentChapterMode = 'solo';
+    _logLoveSecretFlow('ModeResolved', { mode: 'solo' });
     var reportId = _lsBuildReportId('solo');
     var _soloFeatureKey = _getLoveSecretFeatureKey('solo');
-    _logLoveSecretFlow('SOLO_GENERATE_CLICK', { mode: 'solo', hasUserChart: true, hasPartnerChart: false, hasCompatibility: false, featureKey: _soloFeatureKey, reportId: reportId, message: 'solo_click' });
+    var preValidation = _validateLoveBookInputBeforePayment('solo', '');
+    if (!preValidation.ok) {
+      window.alert(preValidation.message || '입력값 확인이 필요합니다.');
+      return;
+    }
+    _logLoveSecretFlow('BirthInputNormalized', { mode: 'solo', hasSelfBirth: true, hasPartnerBirth: false });
     if (_premiumTokenMatches('loveSecret', _getLoveSecretRequiredCoins('solo'))) {
       _startGeneration('', {
         ok: true,
@@ -1662,13 +1773,13 @@
       }, reportId);
       return;
     }
-    _logLoveSecretFlow('COIN_GATE_START', { mode: 'solo', hasUserChart: true, hasPartnerChart: false, hasCompatibility: false, featureKey: _soloFeatureKey, reportId: reportId, message: 'solo_gate_start' });
+    _logLoveSecretFlow('PaymentGateStart', { mode: 'solo', reportId: reportId });
     var gateResult = await _runLoveSecretCoinGate('solo', reportId);
     if (!gateResult.ok) {
       window.alert(gateResult.message || '결제 확인에 실패했습니다.');
       return;
     }
-    _logLoveSecretFlow('COIN_GATE_SUCCESS', { mode: 'solo', hasUserChart: true, hasPartnerChart: false, hasCompatibility: false, featureKey: _soloFeatureKey, reportId: reportId, purchaseId: gateResult.purchaseId || '', message: 'solo_gate_success' });
+    _logLoveSecretFlow('PaymentGateSuccess', { mode: 'solo', reportId: reportId, purchaseId: gateResult.purchaseId || '' });
     _startGeneration('', gateResult.accessGrant || null, reportId);
   };
 
@@ -1686,6 +1797,12 @@
     _lsLastStateKey = '';
     _lsAccessGrant = accessGrant || null;
     _currentChapterMode = partnerData ? 'compatibility' : 'solo';
+    _logLoveSecretFlow('ModeResolved', { mode: _currentChapterMode });
+    _logLoveSecretFlow('ProfileResolved', { hasProfile: !!window.__cdActiveBirthProfile });
+    if (_currentChapterMode === 'compatibility') {
+      _setLoveBookGenerationState('validating_partner');
+      _logLoveSecretFlow('PartnerInputResolved', { hasPartnerInput: !!String(partnerData || '').trim() });
+    }
     _lsCurrentReportId = String(reportId || '').trim() || _lsBuildReportId(_currentChapterMode);
     _setLoveBookGenerationState('preparing_generation');
     _showScreen('lsLoadingScreen');
@@ -1700,6 +1817,8 @@
     var progressBar = _qs('lsProgressBar');
     var progressText = _qs('lsProgressText');
     var chapterMsg = _qs('lsLoadingChapter');
+    var _llmStartLogged = false;
+    var _pdfStartLogged = false;
 
     function _setProgress(done) {
       var pct = totalChapters > 0 ? (done / totalChapters) * 100 : 0;
@@ -1708,6 +1827,11 @@
       if (chapterMsg && done < totalChapters) chapterMsg.textContent = _getLoveSecretLoadingMessage(done, _currentChapterMode);
       if (chapterMsg && done >= totalChapters) chapterMsg.textContent = '모든 챕터가 완성되었습니다 💕';
       _updateLoadPills(done);
+      _logLoveSecretFlow('LocalDraftProgress', {
+        mode: _currentChapterMode,
+        completed: done,
+        total: totalChapters,
+      });
     }
     _setProgress(0);
 
@@ -1814,6 +1938,7 @@
         : '연애 비책을 집필하는 중입니다';
     }
     _setLoveBookGenerationState('calculating_saju');
+    _logLoveSecretFlow('LocalCalculationStart', { mode: _currentChapterMode, totalChapters: totalChapters });
 
     function _fetchChapter(idx) {
       return new Promise(function (resolve) {
@@ -1857,6 +1982,10 @@
           var _lsHeaders = { 'Content-Type': 'application/json' };
           if (_lsPremiumToken) _lsHeaders['x-premium-access-token'] = _lsPremiumToken;
           _setLoveBookGenerationState('writing_with_llm');
+          if (!_llmStartLogged) {
+            _llmStartLogged = true;
+            _logLoveSecretFlow('LLMEnhanceStart', { mode: _currentChapterMode, reportId: _lsReportId });
+          }
 
           var timeoutId = setTimeout(function () {
             if (_controller) {
@@ -1962,6 +2091,14 @@
           : null;
       }
       _setProgress(Math.max(0, Math.min(totalChapters, list.length || totalChapters)));
+      if (payload && (payload.manuscriptSource === 'local' || payload.fallbackUsed)) {
+        _setLoveBookGenerationState('llm_failed_use_local');
+        _logLoveSecretFlow('LLMEnhanceFailedUseLocal', {
+          mode: _currentChapterMode,
+          manuscriptSource: String(payload.manuscriptSource || 'local'),
+          fallbackUsed: !!payload.fallbackUsed,
+        });
+      }
     }
 
     function _startStatusPolling(jobId, pollAfterMs) {
@@ -2142,6 +2279,7 @@
       if (_lsPremiumToken) submitHeaders['x-premium-access-token'] = _lsPremiumToken;
 
       _setLoveBookGenerationState('building_chapters');
+      _logLoveSecretFlow('SessionCreateStart', { mode: _currentChapterMode, reportId: _lsReportId, sessionId: _lsSessionId });
       var submitRes = await fetch('/api/love-secret/prepare-async', {
         method: 'POST',
         credentials: 'include',
@@ -2192,7 +2330,18 @@
         throw new Error(submitMsg);
       }
 
+      _logLoveSecretFlow('SessionCreateSuccess', {
+        mode: _currentChapterMode,
+        reportId: _lsReportId,
+        sessionId: _lsSessionId,
+        jobId: String(submitBody.jobId || ''),
+      });
+
       _setLoveBookGenerationState('writing_with_llm');
+      if (!_llmStartLogged) {
+        _llmStartLogged = true;
+        _logLoveSecretFlow('LLMEnhanceStart', { mode: _currentChapterMode, reportId: _lsReportId });
+      }
       var result;
       try {
         result = await _startStatusPolling(submitBody.jobId, submitBody.pollAfterMs);
@@ -2209,9 +2358,15 @@
       if (_cancelGeneration) return;
 
       _applyCompletedResult(result);
+      if (!_pdfStartLogged) {
+        _pdfStartLogged = true;
+        _logLoveSecretFlow('PdfRenderStart', { mode: _currentChapterMode, reportId: _lsReportId });
+      }
       _finalizeGenerationSuccess();
+      _logLoveSecretFlow('PdfRequestSuccess', { mode: _currentChapterMode, reportId: _lsReportId });
     })().catch(function (error) {
       var msg = String(error && error.message ? error.message : error || '챕터 생성 중 오류가 발생했습니다.');
+      _logLoveSecretFlow('Error', { mode: _currentChapterMode, message: msg, reportId: _lsReportId });
       if (_cancelGeneration) {
         _generating = false;
         _stopLoadingAnimation();
@@ -2219,7 +2374,10 @@
         return;
       }
       _fillLocalFallbackChapters(msg, partnerData, true);
+      _setLoveBookGenerationState('llm_failed_use_local');
+      _logLoveSecretFlow('LLMEnhanceFailedUseLocal', { mode: _currentChapterMode, message: msg });
       _finalizeGenerationSuccess();
+      _logLoveSecretFlow('PdfRequestSuccess', { mode: _currentChapterMode, reportId: _lsReportId, fallback: true });
     });
   }
 
@@ -2239,7 +2397,7 @@
       bodyHtml +=
         '<div class="chapter" style="page-break-before:' + (i > 0 ? 'always' : 'auto') + '">' +
         '<div class="chapter-header">' +
-        '<span class="chapter-num">Chapter ' + (i + 1) + '</span>' +
+        '<span class="chapter-num">제' + (i + 1) + '장</span>' +
         '<h2 class="chapter-title">' + _escHtml(_meta.title) + '</h2>' +
         '<p class="chapter-sub">' + _escHtml(_meta.subtitle) + '</p>' +
         '</div>' +
@@ -2249,7 +2407,7 @@
 
     var tocHtml = _chapters.map(function (c, i) {
       if (!c) return '';
-      return '<div class="toc-item"><span class="toc-num">Chapter ' + (i + 1) + '</span><span class="toc-text">' + _escHtml(_getChapterMeta(i).title) + '</span></div>';
+      return '<div class="toc-item"><span class="toc-num">제' + (i + 1) + '장</span><span class="toc-text">' + _escHtml(_getChapterMeta(i).title) + '</span></div>';
     }).join('');
 
     var fullHtml = '<!DOCTYPE html><html lang="ko"><head>' +
@@ -2283,6 +2441,7 @@
       '.ls-md-ul{margin:0 0 14px;padding-left:24px;}' +
       '.ls-md-li{margin-bottom:6px;line-height:1.7;}' +
       '.ls-md-hr{border:none;border-top:1px solid #fce7f3;margin:24px 0;}' +
+      '@page{size:A4;margin:14mm;}' +
       '@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.cover{min-height:auto;padding:60px 40px;}}' +
       '</style></head><body>' +
       '<div class="cover">' +
@@ -2298,15 +2457,20 @@
       bodyHtml +
       '</body></html>';
 
-    var blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
-    var url = URL.createObjectURL(blob);
-    var win = window.open(url, '_blank');
+    var win = window.open('', '_blank', 'noopener,noreferrer');
     if (win) {
+      try {
+        win.document.open();
+        win.document.write(fullHtml);
+        win.document.close();
+      } catch (_) {}
       win.onload = function () {
-        setTimeout(function () { win.print(); }, 600);
+        setTimeout(function () {
+          try { win.focus(); } catch (_) {}
+          try { win.print(); } catch (_) {}
+        }, 600);
       };
     }
-    setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
   };
 
   /* ── 클릭 핸들러 (data-action 디스패치) ──────────────────── */

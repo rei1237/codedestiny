@@ -4192,44 +4192,129 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
 .lang-trigger {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-width: 88px;
-  height: 42px;
-  padding: 0 12px;
+  justify-content: flex-start;
+  gap: 10px;
+  min-width: 286px;
+  min-height: 56px;
+  padding: 7px 13px;
   border-radius: 999px;
-  border: 1px solid rgba(227, 198, 255, 0.38);
-  background: linear-gradient(135deg, rgba(19, 9, 44, 0.98) 0%, rgba(51, 20, 102, 0.95) 52%, rgba(31, 47, 121, 0.92) 100%);
-  box-shadow: 0 18px 38px rgba(9, 7, 26, 0.56), 0 0 28px rgba(168, 104, 255, 0.34), inset 0 1px 0 rgba(255,255,255,0.12);
-  backdrop-filter: blur(12px) saturate(1.06);
-  -webkit-backdrop-filter: blur(12px) saturate(1.06);
+  border: 1px solid rgba(208, 186, 255, 0.46);
+  background:
+    radial-gradient(150% 170% at 12% -18%, rgba(194, 171, 255, 0.35) 0%, rgba(194, 171, 255, 0) 52%),
+    radial-gradient(130% 170% at 120% 132%, rgba(88, 182, 255, 0.28) 0%, rgba(88, 182, 255, 0) 50%),
+    linear-gradient(118deg, rgba(33, 12, 66, 0.98) 0%, rgba(63, 28, 122, 0.96) 54%, rgba(44, 58, 144, 0.95) 100%);
+  box-shadow: 0 16px 38px rgba(7, 6, 24, 0.58), 0 0 34px rgba(123, 99, 234, 0.35), inset 0 1px 0 rgba(255,255,255,0.16), inset 0 -10px 26px rgba(3, 6, 31, 0.26);
+  backdrop-filter: blur(14px) saturate(1.12);
+  -webkit-backdrop-filter: blur(14px) saturate(1.12);
   cursor: pointer;
-  transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease, filter 0.24s ease;
+  transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease, filter 0.24s ease, background 0.24s ease;
   color: #f7f1ff;
   user-select: none;
+  overflow: hidden;
 }
 .lang-trigger:hover {
-  transform: translateY(-1px) scale(1.03);
-  border-color: rgba(247, 231, 255, 0.66);
-  box-shadow: 0 22px 44px rgba(8, 6, 24, 0.64), 0 0 36px rgba(205, 143, 255, 0.46), inset 0 1px 0 rgba(255,255,255,0.16);
+  transform: translateY(-1px) scale(1.015);
+  border-color: rgba(234, 217, 255, 0.72);
+  box-shadow: 0 22px 48px rgba(8, 6, 26, 0.66), 0 0 42px rgba(164, 129, 255, 0.42), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -12px 28px rgba(5, 11, 40, 0.3);
+}
+.lang-trigger::before,
+.lang-trigger::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.lang-trigger::before {
+  background:
+    radial-gradient(66px 30px at 40px 8px, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 70%),
+    radial-gradient(180px 80px at 44% 132%, rgba(35, 180, 255, 0.24), rgba(35, 180, 255, 0) 75%);
+  mix-blend-mode: screen;
+}
+.lang-trigger::after {
+  background:
+    linear-gradient(90deg, rgba(33, 110, 187, 0.14) 0 5%, rgba(255,255,255,0) 5% 10%, rgba(33, 110, 187, 0.12) 10% 12%, rgba(255,255,255,0) 12% 100%);
+  opacity: 0.42;
 }
 .lang-trigger .lang-icon {
-  width: 22px;
-  height: 22px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  font-size: 0.86rem;
-  background: radial-gradient(circle at 28% 28%, rgba(186, 235, 255, 0.95), rgba(120, 196, 255, 0.74) 45%, rgba(55, 102, 207, 0.95) 100%);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22), 0 0 14px rgba(120, 206, 255, 0.35);
+  font-size: 0.9rem;
+  background: radial-gradient(circle at 26% 24%, rgba(239, 251, 255, 0.98) 0%, rgba(150, 213, 255, 0.9) 48%, rgba(71, 120, 230, 0.96) 100%);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.46), 0 0 18px rgba(115, 206, 255, 0.54), 0 5px 14px rgba(10, 36, 88, 0.44);
   flex: 0 0 auto;
+  position: relative;
+  z-index: 1;
+}
+.lang-icon-svg {
+  width: 28px;
+  height: 28px;
+  display: block;
+}
+.lang-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+  position: relative;
+  z-index: 1;
+}
+.lang-main-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .lang-trigger .lang-label {
   flex: 0 0 auto;
-  font-size: 0.78rem;
-  font-weight: 800;
+  font-size: 0.96rem;
+  font-family: "Cinzel", "Noto Serif KR", serif;
+  font-weight: 700;
   letter-spacing: 0.08em;
-  text-shadow: 0 0 10px rgba(255, 232, 255, 0.42);
+  text-shadow: 0 0 14px rgba(255, 235, 255, 0.52);
+}
+.lang-state-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.lang-state-icon {
+  width: 15px;
+  height: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: #eef8ff;
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.26));
+}
+.lang-state-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.lang-state-icon--shield {
+  color: #8fffc8;
+  text-shadow: 0 0 7px rgba(120, 255, 203, 0.7);
+}
+.lang-state-icon--commit {
+  color: #90dbff;
+  text-shadow: 0 0 7px rgba(120, 214, 255, 0.74);
+}
+.lang-status-note {
+  max-width: 100%;
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  color: rgba(225, 239, 255, 0.84);
+  line-height: 1.16;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 0 8px rgba(157, 206, 255, 0.4);
 }
 .lang-trigger .lang-arrow {
   display: none;
@@ -4242,7 +4327,7 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
 }
 .lang-dropdown {
   position: absolute;
-  top: calc(100% + 10px);
+  top: calc(100% + 9px);
   right: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4311,7 +4396,7 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
 }
 
 body.neo-mode .lang-trigger {
-  border-color: rgba(219, 188, 255, 0.32);
+  border-color: rgba(214, 189, 255, 0.44);
 }
 body.neo-mode .lang-dropdown {
   border-color: rgba(219, 188, 255, 0.24);
@@ -4326,6 +4411,32 @@ body.neo-mode .lang-btn.active {
   visibility: visible !important;
   pointer-events: auto !important;
   opacity: 1 !important;
+}
+
+@media (max-width: 680px) {
+  .lang-toggle-wrap {
+    top: max(12px, env(safe-area-inset-top));
+    right: max(12px, env(safe-area-inset-right));
+  }
+  .lang-trigger {
+    min-width: 244px;
+    min-height: 52px;
+    padding: 7px 11px;
+  }
+  .lang-trigger .lang-icon {
+    width: 34px;
+    height: 34px;
+  }
+  .lang-icon-svg {
+    width: 24px;
+    height: 24px;
+  }
+  .lang-trigger .lang-label {
+    font-size: 0.88rem;
+  }
+  .lang-status-note {
+    font-size: 0.47rem;
+  }
 }
 
 /* ── 구글 번역 기본 위젯/툴바 완전 은닉 + 레이아웃 점프 방지 ── */
