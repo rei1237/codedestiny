@@ -64,7 +64,9 @@
   function _sanitizeText(value) {
     return String(value || '')
       .replace(/\b(undefined|null|nan)\b/gi, '')
-      .replace(/\b(payload|json|localdraft|fallback|llm|api|debug|engine)\b/gi, '')
+      .replace(/\b(payload|json|localdraft|fallback|llm|api|debug|engine|about:blank)\b/gi, '')
+      .replace(/\bchapter\s*\d+\b/gi, '')
+      .replace(/\b(a\(안\)|b\(괴\)|near-triad|triad|d\d+)\b/gi, '')
       .replace(/자동\s*복구\s*생성/gi, '')
       .replace(/\s{2,}/g, ' ')
       .trim();
@@ -363,20 +365,52 @@
 
   function _validateBeforePayment(input) {
     var errors = [];
+    var fieldErrors = {};
     if (!input || input.mode !== 'compatibility') errors.push('mode');
 
     var selfDate = _parseDateParts(input && input.self && input.self.birthDate);
     var partnerDate = _parseDateParts(input && input.partner && input.partner.birthDate);
 
     if (!selfDate) errors.push('self.birthDate');
-    if (!partnerDate) errors.push('partner.birthDate');
+    if (!partnerDate) {
+      errors.push('partner.birthDate');
+      fieldErrors.skPartnerBirthDate = '상대방 생년월일을 정확히 입력해 주세요.';
+    }
+
+    if (partnerDate && input && input.partner && input.partner.isTimeUnknown !== true) {
+      var hasPartnerTime = _clean(input.partner.birthTime) || Number.isFinite(input.partner.birthHour);
+      if (!hasPartnerTime) {
+        fieldErrors.skPartnerBirthTimeText = '태어난 시간을 모르시면 체크박스를 선택해 주세요.';
+      }
+    }
 
     return {
       ok: errors.length === 0,
       errors: errors,
+      fieldErrors: fieldErrors,
       selfBirthDateReady: !!selfDate,
       partnerBirthDateReady: !!partnerDate,
     };
+  }
+
+  function _clearInputErrors() {
+    Array.prototype.forEach.call(document.querySelectorAll('.sk-field-error'), function (el) {
+      el.textContent = '';
+      el.style.display = 'none';
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.sk-partner-inp'), function (el) {
+      el.classList.remove('is-error');
+    });
+  }
+
+  function _setInputError(fieldId, message) {
+    var field = _qs(fieldId);
+    if (field && field.classList) field.classList.add('is-error');
+    var errorEl = _qs(fieldId + 'Error');
+    if (errorEl) {
+      errorEl.textContent = '⚠ ' + _sanitizeText(message || '입력값을 확인해 주세요.');
+      errorEl.style.display = '';
+    }
   }
 
   function _renderProfileSummary(profile) {
@@ -389,6 +423,15 @@
     var birth = profile.birth || {};
     var time = [String(_num(birth.hour, 12)).padStart(2, '0'), String(_num(birth.minute, 0)).padStart(2, '0')].join(':');
     element.textContent = [(_clean(profile.name) || '사용자'), [birth.year, birth.month, birth.day].filter(Boolean).join('-') + ' ' + time, _clean(profile.gender)].filter(Boolean).join(' · ');
+
+    var selfName = _qs('skSelfNameValue');
+    var selfBirth = _qs('skSelfBirthValue');
+    var selfTime = _qs('skSelfTimeValue');
+    var selfGender = _qs('skSelfGenderValue');
+    if (selfName) selfName.textContent = _clean(profile.name) || '사용자';
+    if (selfBirth) selfBirth.textContent = [birth.year, birth.month, birth.day].filter(Boolean).join('-') || '-';
+    if (selfTime) selfTime.textContent = time;
+    if (selfGender) selfGender.textContent = _clean(profile.gender) || '미지정';
   }
 
   function _forceCompatibilityMode() {
@@ -410,7 +453,10 @@
     if (section) section.style.display = '';
 
     var hint = _qs('skModeHint');
-    if (hint) hint.textContent = '숙요점 프리미엄 PDF는 궁합 전용 서비스입니다. 두 사람의 생년월일 정보가 모두 필요합니다.';
+    if (hint) {
+      hint.textContent = '숙요점 프리미엄 PDF는 궁합 전용 서비스입니다. 두 사람의 생년월일 정보가 모두 필요합니다.';
+      hint.classList.remove('sk-inline-error');
+    }
 
     var startDesc = _qs('skStartDesc');
     if (startDesc) startDesc.innerHTML = '숙요점 프리미엄 궁합 PDF는 <strong>두 사람의 관계 해석 전용</strong>입니다. 두 사람의 생년월일과 시간을 기반으로 27숙 궁합 15챕터를 생성합니다.';
@@ -422,7 +468,7 @@
     if (subtitle) subtitle.textContent = '27개의 달별로 읽는 두 사람의 인연 지도 · 15챕터 리포트';
 
     var startBtn = _qs('skStartBtn');
-    if (startBtn) startBtn.textContent = '숙요점 궁합 PDF 생성하기';
+    if (startBtn) startBtn.textContent = '두 사람의 숙요 궁합 PDF 생성하기';
 
     var coinMsg = _qs('skCompatNeedMsg');
     if (coinMsg) coinMsg.textContent = '궁합 PDF는 두 사람의 생년월일이 모두 필요합니다.';
@@ -516,7 +562,7 @@
     var chapter = _qs('skLoadingChapter');
     if (bar) bar.style.width = pct + '%';
     if (text) text.textContent = step + ' / ' + total + ' 챕터 완료';
-    if (number) number.textContent = 'Chapter ' + step;
+    if (number) number.textContent = '제' + step + '장';
     if (chapter) chapter.textContent = _sanitizeText(title || '숙요점 챕터를 생성하는 중입니다');
 
     Array.prototype.forEach.call(document.querySelectorAll('.sk-ch-dot'), function (dot) {
@@ -666,7 +712,7 @@
         var button = document.createElement('button');
         button.type = 'button';
         button.className = 'lb-toc-item loaded';
-        button.textContent = 'Chapter ' + chapter.order + '. ' + _sanitizeText(chapter.title);
+        button.textContent = '제' + chapter.order + '장. ' + _sanitizeText(chapter.title);
         button.addEventListener('click', function () {
           var section = document.getElementById('skChapter-' + (index + 1));
           if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -678,7 +724,7 @@
         var sectionEl = document.createElement('section');
         sectionEl.id = 'skChapter-' + (index + 1);
         sectionEl.className = 'lb-chapter-card';
-        var html = '<h4 class="lb-chapter-title">Chapter ' + chapter.order + '. ' + _sanitizeText(chapter.title) + '</h4>';
+        var html = '<h4 class="lb-chapter-title">제' + chapter.order + '장. ' + _sanitizeText(chapter.title) + '</h4>';
         var sections = Array.isArray(chapter.sections) ? chapter.sections : [];
         sections.forEach(function (section) {
           html += '<article class="lb-sub-card"><h5 class="lb-sub-title">' + _sanitizeText(section.heading || '') + '</h5><p class="lb-sub-body">' + _sanitizeText(section.body || '') + '</p></article>';
@@ -703,6 +749,8 @@
   window.openSukuyoBookModal = function () {
     var modal = _qs('sukuyoBookModal');
     if (!modal) return;
+
+    _log('[SukuyoBook][ModalOpen]', { featureKey: SUKYO_FEATURE_KEY });
 
     _detachModalFromResultPage(modal);
     _populateTimeSelects();
@@ -783,8 +831,16 @@
 
     var check = _validateBeforePayment(normalizedInput);
     _log('[SukuyoBook][ValidationBeforePayment]', check);
+    _clearInputErrors();
     if (!check.ok) {
-      _setError('궁합 PDF는 두 사람의 생년월일이 모두 필요합니다. 입력값을 확인해 주세요.');
+      Object.keys(check.fieldErrors || {}).forEach(function (fieldId) {
+        _setInputError(fieldId, check.fieldErrors[fieldId]);
+      });
+      var modeHint = _qs('skModeHint');
+      if (modeHint) {
+        modeHint.textContent = '입력값을 확인해 주세요. 궁합 PDF는 두 사람의 생년월일이 모두 필요합니다.';
+        modeHint.classList.add('sk-inline-error');
+      }
       return;
     }
 
@@ -877,17 +933,23 @@
     }
 
     var html = String(_resultPayload.pdfReady.html || '');
-    var popup = window.open('', '_blank', 'width=980,height=760');
+    var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    var blobUrl = URL.createObjectURL(blob);
+    var popup = window.open(blobUrl, '_blank', 'width=980,height=760');
     if (!popup) {
       alert('팝업이 차단되어 출력 창을 열 수 없습니다. 팝업 허용 후 다시 시도해 주세요.');
+      var link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = 'sukuyo-premium-compat-report.html';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(function () { try { URL.revokeObjectURL(blobUrl); } catch (_) {} }, 1500);
       return;
     }
-
-    popup.document.open();
-    popup.document.write(html);
-    popup.document.close();
     popup.focus();
     setTimeout(function () { try { popup.print(); } catch (_) {} }, 900);
+    setTimeout(function () { try { URL.revokeObjectURL(blobUrl); } catch (_) {} }, 120000);
   };
 
   document.addEventListener('click', function (event) {

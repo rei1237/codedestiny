@@ -4,19 +4,47 @@ export const SUKYO_PDF_FEATURE_KEY = "premium-sukuyo-report-compat";
 export const SUKYO_PDF_ALIAS_FEATURE_KEY = "premium_pdf_sukyo_compat";
 export const SUKYO_PDF_CHAPTER_COUNT = 15;
 
-const MIN_CHAPTER_LENGTH = 1800;
-const MIN_SECTION_LENGTH = 450;
-const MIN_TOTAL_LENGTH = 27000;
+const MIN_CHAPTER_LENGTH = 2200;
+const MIN_SECTION_LENGTH = 500;
+const MIN_TOTAL_LENGTH = 33000;
 
-const INTERNAL_TOKEN_RE = /\b(?:payload|debug|engine|api|json|llm|fallback|localdraft|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1)\b/gi;
+const INTERNAL_TOKEN_RE = /\b(?:payload|debug|engine|api|json|llm|fallback|localdraft|about:blank|internal\s+server\s+error|chapter\s*\d+|a\(안\)|b\(괴\)|near-triad(?:-[a-z0-9]+)?|\bd\d+\b|triad|자동\s*복구\s*생성)\b/gi;
 const FORBIDDEN_BODY_PHRASES = [
+  "Chapter 1",
+  "Chapter 2",
+  "Chapter 3",
+  "Chapter 4",
+  "Chapter 5",
+  "Chapter 6",
+  "Chapter 7",
+  "Chapter 8",
+  "Chapter 9",
+  "Chapter 10",
+  "Chapter 11",
+  "Chapter 12",
+  "Chapter 13",
+  "Chapter 14",
+  "Chapter 15",
+  "A(안)",
+  "B(괴)",
+  "NEAR-TRIAD",
+  "D3",
+  "TRIAD",
+  "상극 · 안괴-NEAR",
   "자동 복구 생성",
   "fallback",
-  "Chapter 1 Chapter 1",
   "데이터가 부족합니다",
+  "시간 정보가 일부 비어 있어도",
+  "예측 정확도를 과장하는 것이 아니라",
+  "지금 확인된 신호를 1주 단위 행동 계획으로 연결",
+  "근거리 거리감에 맞는 소통 밀도",
+  "사실과 감정의 순서를 분리해 대화",
+  "합의 문장을 고정해 두면",
   "payload",
   "JSON",
   "debug",
+  "about:blank",
+  "Internal server error",
 ];
 
 export const SUKYO_PDF_CHAPTERS = Object.freeze([
@@ -216,15 +244,47 @@ export function sanitizeSukyoPremiumText(value) {
   return out;
 }
 
+function splitMeaningfulSentences(value) {
+  return text(value)
+    .split(/[.!?。？！\n]+/)
+    .map((line) => line.trim())
+    .filter((line) => line.length >= 24);
+}
+
+function countForbiddenTerms(value) {
+  const body = text(value);
+  let hit = 0;
+  for (const phrase of FORBIDDEN_BODY_PHRASES) {
+    const re = new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+    if (re.test(body)) hit += 1;
+  }
+  return hit;
+}
+
+function computeRepetitionScore(value) {
+  const lines = splitMeaningfulSentences(value);
+  if (!lines.length) return 1;
+  const seen = new Map();
+  for (const line of lines) {
+    seen.set(line, (seen.get(line) || 0) + 1);
+  }
+  let repeatedCount = 0;
+  for (const count of seen.values()) {
+    if (count >= 2) repeatedCount += count;
+  }
+  return repeatedCount / Math.max(1, lines.length);
+}
+
 export function isLowQualityShukuyoSection(value) {
   const body = text(value).toLowerCase();
   if (!body) return true;
   if (FORBIDDEN_BODY_PHRASES.some((phrase) => body.includes(String(phrase).toLowerCase()))) return true;
-  if (/\b(payload|debug|json|fallback|자동\s*복구\s*생성)\b/i.test(body)) return true;
+  if (/\b(payload|debug|json|fallback|자동\s*복구\s*생성|about:blank)\b/i.test(body)) return true;
   const chunks = body.split(/[.!?。？！\n]+/).map((s) => s.trim()).filter((s) => s.length > 20);
   if (chunks.length < 3) return true;
   const unique = new Set(chunks);
-  return unique.size <= Math.max(1, Math.floor(chunks.length * 0.45));
+  if (unique.size <= Math.max(1, Math.floor(chunks.length * 0.45))) return true;
+  return computeRepetitionScore(body) >= 0.42;
 }
 
 export function getSukyoPdfChapters() {
@@ -386,33 +446,45 @@ function repeatToLength(base, minLength) {
   return sanitizeSukyoPremiumText(out);
 }
 
+const CHAPTER_TOPIC_GUIDE = Object.freeze({
+  1: ["본명숙의 기질", "상대 숙의 반응", "두 사람의 기본 리듬", "관계 운영 출발점"],
+  2: ["관계 유형의 본질", "끌림의 작동 방식", "심리적 안전장치", "지속 가능한 규칙"],
+  3: ["거리감 체감", "가까울 때의 강점", "멀어질 때의 위험", "거리 조절 합의"],
+  4: ["첫인상 코드", "초기 끌림의 이유", "기대와 현실의 간극", "호감 유지 전략"],
+  5: ["감정 상승 구간", "불안 촉발 지점", "정서 회복 조건", "사랑의 안정화"],
+  6: ["대화 템포", "침묵의 해석", "연락 기대치", "오해 복구 대화"],
+  7: ["애착과 설렘", "질투와 경계", "안정감 형성", "연애 지속 장치"],
+  8: ["충돌 반복 구조", "감정 폭발 전조", "소모 차단 방법", "갈등 후 회복 순서"],
+  9: ["화해의 조건", "사과의 구조", "신뢰 재건 루틴", "재접속 습관"],
+  10: ["생활 운영", "역할 분담", "현실 갈등 예방", "동거/결혼 설계"],
+  11: ["소비 성향", "책임감 분배", "생활 리듬 충돌", "돈 대화 합의"],
+  12: ["외부 관계 개입", "경계선 유지", "주변 변수 관리", "두 사람 우선순위"],
+  13: ["강한 인연의 감각", "반복 숙제", "성장 전환 포인트", "성숙의 방향"],
+  14: ["장기 운영 축", "피로 관리", "거리 조절 원칙", "장기 동행 설계"],
+  15: ["최종 진단", "핵심 강점", "즉시 실행 전략", "관계 유지 결론"],
+});
+
 function buildSectionBody(localJson, chapter, sectionHeading, sectionIndex) {
-  const selfStar = text(localJson.self.sukuyoStar, "A");
-  const partnerStar = text(localJson.partner.sukuyoStar, "B");
-  const relType = text(localJson.relation.typeKo, "관계");
-  const distance = text(localJson.relation.distanceLabel, "중거리");
   const chapterNo = safeNumber(chapter?.order || chapter?.chapterNo, 0);
-  const chemistry = safeArray(localJson.relation.chemistryKeywords).slice(0, 2).join(" · ") || "관계 에너지";
-  const conflict = safeArray(localJson.relation.conflictKeywords).slice(0, 2).join(" · ") || "긴장 신호";
-  const daily = safeArray(localJson.relation.dailyLifeKeywords).slice(0, 2).join(" · ") || "생활 루틴";
+  const selfStar = text(localJson?.self?.sukuyoStar, "본인");
+  const partnerStar = text(localJson?.partner?.sukuyoStar, "상대");
+  const relationType = text(localJson?.relation?.typeKo, "관계");
+  const distanceLabel = text(localJson?.relation?.distanceLabel, "중거리");
+  const relationScore = safeNumber(localJson?.relation?.compatibilityScore, null);
+  const chemistry = safeArray(localJson?.relation?.chemistryKeywords).slice(0, 2).join(" · ") || "정서 공명";
+  const conflict = safeArray(localJson?.relation?.conflictKeywords).slice(0, 2).join(" · ") || "긴장 신호";
+  const karmic = safeArray(localJson?.relation?.karmicKeywords).slice(0, 2).join(" · ") || "인연 과제";
+  const daily = safeArray(localJson?.relation?.dailyLifeKeywords).slice(0, 2).join(" · ") || "생활 합의";
+  const guide = CHAPTER_TOPIC_GUIDE[chapterNo] || ["관계 핵심", "감정 반응", "주의 지점", "실행 전략"];
 
-  const openers = ["핵심 진단", "상호 반응", "실전 적용", "회복 설계"];
-  const actionFrames = ["질문-응답 프레임", "감정 온도 기록", "갈등 전환 신호", "재접속 합의문"];
-  const repairFrames = ["5분 정리 대화", "24시간 룰", "주간 체크인", "경계선 재설정"];
-
-  const opener = openers[(chapterNo + sectionIndex) % openers.length];
-  const actionFrame = actionFrames[(chapterNo + sectionIndex) % actionFrames.length];
-  const repairFrame = repairFrames[(chapterNo + (sectionIndex * 2)) % repairFrames.length];
-
-  const seeds = [
-    `Chapter ${chapterNo}의 ${sectionHeading} 섹션에서는 ${opener} 관점으로 ${selfStar}宿과 ${partnerStar}宿의 반응 차이를 읽어야 합니다. ${relType} 관계의 ${sectionHeading} 맥락에서 ${chemistry}가 잘 작동할 때는 감정 교환이 빨라지지만, ${conflict}가 겹치면 같은 사건도 완전히 다른 의미로 받아들여집니다. 그래서 ${sectionHeading}에서는 해석의 기준을 먼저 맞추고, 사실과 감정의 순서를 분리해 대화해야 오해 누적을 줄일 수 있습니다.`,
-    `${chapter.title}의 ${sectionHeading} 운영 포인트는 ${distance} 거리감에 맞는 소통 밀도를 설정하는 데 있습니다. 연락 횟수와 응답 리듬을 ${sectionHeading} 기준의 ${actionFrame} 방식으로 고정하면 감정 변동이 있어도 관계의 기본 축을 유지할 수 있습니다. 특히 ${sectionHeading}에서 반응이 급해지는 구간에서는 결론을 서두르지 말고, 무엇이 서운했는지부터 짧게 합의하는 절차를 먼저 여는 것이 효과적입니다.`,
-    `${sectionHeading} 단계에서는 ${daily}처럼 일상 행동으로 번역 가능한 규칙이 필요합니다. ${sectionHeading}에서의 관계 강점은 의도적으로 반복해 습관으로 만들고, 약점은 경고 문장을 사전에 정해 조기 탐지 체계를 만드는 편이 안정적입니다. 예를 들어 ${sectionHeading} 합의 문장을 고정해 두면 감정 소모를 줄이고 회복 시간을 단축할 수 있습니다.`,
-    `마지막으로 Chapter ${chapterNo}의 ${sectionHeading} 결과는 ${repairFrame} 루틴으로 마무리해야 실행력이 생깁니다. ${sectionHeading}에서 시간 정보가 일부 비어 있어도 날짜 기반 숙요 신호와 현재 행동 데이터만으로 충분히 실전 전략을 설계할 수 있습니다. ${sectionHeading}의 핵심은 예측 정확도를 과장하는 것이 아니라, 지금 확인된 신호를 1주 단위 행동 계획으로 연결해 관계의 복원력을 높이는 것입니다.`,
+  const paragraphs = [
+    `${selfStar}숙과 ${partnerStar}숙이 만나는 장면을 ${sectionHeading}의 관점에서 보면, 이 관계의 속도와 밀도는 ${relationType} 흐름과 ${distanceLabel} 체감이 동시에 결정합니다. 같은 사건이라도 한 사람은 관계의 의미를 먼저 읽고, 다른 사람은 감정의 안전을 먼저 확인하려는 경향이 있어 반응 순서가 자주 엇갈립니다. ${guide[0]}을 먼저 합의하면 "왜 저 말이 불편했는지"를 추측이 아니라 확인으로 바꿀 수 있고, 초기에 생기는 오해를 크게 줄일 수 있습니다.`,
+    `${chapter.title}에서 다루는 ${sectionHeading}은 단순한 분위기 해석이 아니라 두 사람이 실제로 반복해 온 선택 패턴을 다룹니다. ${chemistry}가 살아나는 구간에서는 작은 배려가 크게 체감되지만, ${conflict} 신호가 겹치는 시기에는 확인받고 싶은 마음이 방어 반응으로 드러날 수 있습니다. 이때는 누가 옳은지보다 ${guide[1]}을 먼저 맞추는 것이 중요하며, 상대의 속도를 강제로 바꾸기보다 자신의 요청 문장을 명확히 정리하는 편이 관계 안정에 유리합니다.`,
+    `${sectionHeading} 단계에서 특히 주의할 점은 감정의 강도와 사실의 순서를 뒤섞지 않는 것입니다. ${karmic}처럼 오래된 감정 과제가 자극될 때는 현재 사건보다 과거 기억이 반응을 키울 수 있으므로, "지금 문제"와 "이전 상처"를 분리해 말해야 갈등이 누적되지 않습니다. 두 사람의 궁합 점수${relationScore == null ? "" : `(${relationScore})`}는 방향을 보여주는 참고치이며, 실제 관계 품질은 ${guide[2]}을 얼마나 일관되게 지키는지에서 결정됩니다.`,
+    `실전에서는 거창한 약속보다 ${daily}처럼 생활에서 즉시 실행 가능한 합의가 효과적입니다. 예를 들어 감정이 올라온 날에는 결론을 미루고 확인 질문 2개만 나누는 규칙, 연락 공백이 길어질 때는 한 줄 안부로 신호를 남기는 규칙, 주 1회 관계 점검 시간을 고정하는 규칙처럼 작고 구체적인 습관이 필요합니다. ${guide[3]}을 꾸준히 반복하면 이 인연은 소모를 줄이면서도 친밀도를 천천히 높일 수 있고, 장기적으로 서로의 삶을 지지하는 동행 구조로 성장할 수 있습니다.`,
   ];
 
-  const body = repeatToLength(seeds.slice(sectionIndex).concat(seeds.slice(0, sectionIndex)), MIN_SECTION_LENGTH + 60);
-  return sanitizeSukyoPremiumText(body);
+  return repeatToLength(paragraphs, MIN_SECTION_LENGTH + 40);
 }
 
 function buildSukuyoCompatibilityLocalManuscript(localJson) {
@@ -435,6 +507,8 @@ function buildSukuyoCompatibilityLocalManuscript(localJson) {
       sections,
       localQuality: {
         minLengthPassed: chapterText.length >= MIN_CHAPTER_LENGTH,
+        repetitionPassed: computeRepetitionScore(chapterText) < 0.38,
+        forbiddenTermsPassed: countForbiddenTerms(chapterText) === 0,
         usedStars: [text(localJson.self.sukuyoStar), text(localJson.partner.sukuyoStar)].filter(Boolean),
         usedRelationTypes: [text(localJson.relation.typeKo)].filter(Boolean),
         usedSignals: [text(localJson.relation.distanceLabel), ...safeArray(localJson.relation.chemistryKeywords)].filter(Boolean),
@@ -534,25 +608,57 @@ function validateRenderedManuscript(seed, chapters) {
   if (!Array.isArray(chapters) || chapters.length !== SUKYO_PDF_CHAPTER_COUNT) issues.push("chapter.count");
 
   let totalLength = 0;
+  let forbiddenTermsCount = 0;
+  let repeatedSectionCount = 0;
+  const chapterOpeningSet = new Set();
+  const chapterClosingSet = new Set();
+
   for (const chapter of chapters) {
-    const chapterLength = (Array.isArray(chapter.sections) ? chapter.sections : []).reduce((sum, section) => sum + text(section.body).length, 0);
+    const chapterSections = Array.isArray(chapter.sections) ? chapter.sections : [];
+    const chapterLength = chapterSections.reduce((sum, section) => sum + text(section.body).length, 0);
     totalLength += chapterLength;
     if (chapterLength < MIN_CHAPTER_LENGTH) issues.push(`chapter.length.${chapter.order}`);
-    if (!Array.isArray(chapter.sections) || chapter.sections.length < 3) issues.push(`chapter.sections.${chapter.order}`);
-    for (const section of chapter.sections || []) {
+    if (!Array.isArray(chapter.sections) || chapter.sections.length !== 4) issues.push(`chapter.sections.${chapter.order}`);
+
+    for (const section of chapterSections) {
       const body = text(section.body);
       if (!body || body.length < MIN_SECTION_LENGTH) issues.push(`section.length.${chapter.order}`);
-      if (FORBIDDEN_BODY_PHRASES.some((phrase) => body.toLowerCase().includes(String(phrase).toLowerCase()))) {
+      const sectionForbiddenCount = countForbiddenTerms(body);
+      forbiddenTermsCount += sectionForbiddenCount;
+      if (sectionForbiddenCount > 0) {
         issues.push(`forbidden.${chapter.order}`);
       }
+      if (computeRepetitionScore(body) >= 0.42) {
+        repeatedSectionCount += 1;
+        issues.push(`section.repetition.${chapter.order}`);
+      }
+    }
+
+    const opening = splitMeaningfulSentences(chapterSections[0]?.body || "")[0] || "";
+    const closingSource = chapterSections[chapterSections.length - 1]?.body || "";
+    const closingSentences = splitMeaningfulSentences(closingSource);
+    const closing = closingSentences[closingSentences.length - 1] || "";
+    if (opening) chapterOpeningSet.add(opening);
+    if (closing) chapterClosingSet.add(closing);
+
+    const sectionBodies = chapterSections.map((section) => text(section.body).replace(/\s+/g, " ").trim().slice(0, 200));
+    const uniqueBodies = new Set(sectionBodies.filter(Boolean));
+    if (uniqueBodies.size <= Math.max(1, Math.floor(chapterSections.length * 0.6))) {
+      issues.push(`chapter.pattern_repeat.${chapter.order}`);
     }
   }
   if (totalLength < MIN_TOTAL_LENGTH) issues.push("total.length");
+  if (forbiddenTermsCount > 0) issues.push("forbidden.total");
+  if (repeatedSectionCount >= 2) issues.push("repetition.section");
+  if (chapterOpeningSet.size < Math.max(1, Math.floor(SUKYO_PDF_CHAPTER_COUNT * 0.8))) issues.push("repetition.chapter.opening");
+  if (chapterClosingSet.size < Math.max(1, Math.floor(SUKYO_PDF_CHAPTER_COUNT * 0.8))) issues.push("repetition.chapter.closing");
 
   return {
     ok: issues.length === 0,
     issues,
     totalLength,
+    forbiddenTermsCount,
+    repetitionScore: repeatedSectionCount / Math.max(1, SUKYO_PDF_CHAPTER_COUNT),
   };
 }
 
@@ -586,11 +692,13 @@ export function buildSukyoGeminiPrompt(seed, chapters) {
     instruction: [
       "너는 숙요점 계산을 새로 하지 않는다.",
       "이미 제공된 localSukuyoCompatibilityJson과 localChapterDraft만 사용한다.",
-      "챕터 수, 챕터 제목, 세부 섹션 제목을 절대 변경하지 않는다.",
-      "PDF 본문에 JSON, payload, debug, fallback, 자동 복구 생성이라는 표현을 출력하지 않는다.",
+      "챕터 수는 반드시 15개로 유지한다.",
+      "챕터 제목과 세부 섹션 제목을 절대 변경하지 않는다.",
+      "PDF 본문에 Chapter 1, JSON, payload, debug, fallback, 자동 복구 생성, NEAR-TRIAD, A(안), B(괴) 같은 내부 표현을 출력하지 않는다.",
       "모든 문장은 두 사람의 궁합과 관계 흐름을 중심으로 작성한다.",
       "각 섹션은 실제 숙요점 궁합 데이터에 근거한 상담문으로 작성한다.",
       "동일 문장 반복을 금지한다.",
+      "같은 조언을 여러 챕터에 반복하지 않는다.",
       "계산값이 일부 부족해도 없는 정보를 지어내지 말고, 제공된 숙요 신호 중심으로 자연스럽게 보강한다.",
       "반드시 JSON만 출력한다.",
     ],
@@ -677,16 +785,29 @@ export async function enhanceSukyoChaptersWithLLM(env, seed, skeleton) {
     }
 
     const parsed = parseSukyoGeminiChapterResponse(result.text);
-    if (!validateChapterShape(parsed)) {
-      console.warn("[SukuyoPremiumPDF][LLMEnhanceFailedUseLocal]", { reason: "shape_invalid" });
+    if (!Array.isArray(parsed) || !parsed.length) {
+      console.warn("[SukuyoPremiumPDF][LLMEnhanceFailedUseLocal]", { reason: "json_parse_or_empty" });
       return { chapters: skeleton, fallbackUsed: true };
     }
+    const strictShapeOk = validateChapterShape(parsed);
 
     const merged = mergeLlmWithLocal(skeleton, parsed);
-    console.log("[SukuyoPremiumPDF][LLMEnhanceSuccess]");
+    let successCount = 0;
+    for (let i = 0; i < merged.length; i += 1) {
+      const mergedChapter = merged[i];
+      const baseChapter = skeleton[i] || {};
+      const mergedBody = JSON.stringify((mergedChapter.sections || []).map(function (s) { return text(s.body); }));
+      const baseBody = JSON.stringify((baseChapter.sections || []).map(function (s) { return text(s.body); }));
+      if (mergedBody !== baseBody) successCount += 1;
+    }
+    if (successCount === 0) {
+      console.warn("[SukuyoPremiumPDF][LLMEnhanceFailedUseLocal]", { reason: "no_valid_chapter" });
+      return { chapters: skeleton, fallbackUsed: true };
+    }
+    console.log("[SukuyoPremiumPDF][LLMEnhanceSuccess]", { strictShapeOk: strictShapeOk });
     return {
       chapters: merged,
-      fallbackUsed: false,
+      fallbackUsed: successCount < skeleton.length,
     };
   } catch (error) {
     console.warn("[SukuyoPremiumPDF][LLMEnhanceFailedUseLocal]", normalizeSukuyoError(error));
@@ -724,7 +845,7 @@ export function renderSukyoPremiumPdf(chapters, seed) {
   const userHost = `${sanitizeSukyoPremiumText(seed?.userSukyo?.nameKo) || "?"}宿`;
   const partnerHost = `${sanitizeSukyoPremiumText(seed?.partnerSukyo?.nameKo) || "?"}宿`;
 
-  const toc = chapters.map((chapter) => `<li><span>Chapter ${chapter.order}</span>${escapeHtml(chapter.title)}</li>`).join("");
+  const toc = chapters.map((chapter) => `<li><span>제${chapter.order}장</span>${escapeHtml(chapter.title)}</li>`).join("");
   const chapterHtml = chapters.map((chapter) => {
     const sections = chapter.sections.map((section) => `
       <article class="section-card">
@@ -734,7 +855,7 @@ export function renderSukyoPremiumPdf(chapters, seed) {
 
     return `
       <section class="chapter">
-        <p class="chapter-kicker">Chapter ${chapter.order}</p>
+        <p class="chapter-kicker">제${chapter.order}장</p>
         <h2>${escapeHtml(chapter.title)}</h2>
         <div class="section-grid">${sections}</div>
       </section>`;
@@ -843,6 +964,14 @@ export async function generateSukyoPremiumReport(env, seed) {
 
   console.log("[SukuyoPremiumPDF][LocalDraftBuildStart]");
   const localDraft = buildSukuyoCompatibilityLocalManuscript(localJson);
+  for (const chapter of localDraft) {
+    const chapterTextLength = (Array.isArray(chapter?.sections) ? chapter.sections : []).reduce((sum, section) => sum + text(section?.body).length, 0);
+    console.log("[SukuyoPremiumPDF][LocalDraftChapterDone]", {
+      chapterNo: safeNumber(chapter?.chapterNo, 0),
+      title: text(chapter?.title),
+      chapterLength: chapterTextLength,
+    });
+  }
   const localNormalized = enforceManuscriptLength(localDraft);
   let chapters = chapterArrayToRendererInput(localNormalized.chapters);
   console.log("[SukuyoPremiumPDF][LocalDraftBuildSuccess]", {
@@ -862,8 +991,12 @@ export async function generateSukyoPremiumReport(env, seed) {
   console.log("[SukuyoPremiumPDF][FinalManuscriptValidated]", {
     ok: finalCheck.ok,
     issues: finalCheck.issues,
+    relationType: text(localJson?.relation?.typeKo),
+    distance: text(localJson?.relation?.distanceLabel),
     chapterCount: chapters.length,
     totalLength: finalCheck.totalLength,
+    forbiddenTermsCount: finalCheck.forbiddenTermsCount,
+    repetitionScore: finalCheck.repetitionScore,
   });
 
   console.log("[SukuyoPremiumPDF][PdfRenderStart]");

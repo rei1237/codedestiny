@@ -1719,18 +1719,55 @@ body.lb-modal-open {
 
 /* ── 숙요 상대방 입력 폼 ── */
 .lb-start__partner-box {
-  background: rgba(14, 30, 60, 0.55) !important;
-  border-color: rgba(125, 211, 252, 0.28) !important;
+  background: rgba(20, 13, 44, 0.62) !important;
+  border-color: rgba(216, 180, 254, 0.38) !important;
 }
 
 .lb-start__partner-box .lb-start__profile-label {
-  color: rgba(125, 211, 252, 0.75);
+  color: #f7ecff;
+}
+
+.sk-self-card-wrap {
+  border-color: rgba(216, 180, 254, 0.35) !important;
+  background: rgba(17, 12, 35, 0.6) !important;
+}
+
+.sk-self-card {
+  margin-top: 10px;
+  border: 1px solid rgba(216, 180, 254, 0.28);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.sk-self-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(216, 180, 254, 0.16);
+}
+
+.sk-self-row:last-child {
+  border-bottom: 0;
+}
+
+.sk-self-row span {
+  color: #c4b5fd;
+  font-size: 0.83rem;
+}
+
+.sk-self-row strong {
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .lb-start__partner-fields {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   margin-top: 6px;
 }
 
@@ -1738,22 +1775,38 @@ body.lb-modal-open {
   margin: 0 !important;
 }
 
+.sk-partner-field .form-label {
+  color: #f7ecff !important;
+  margin-bottom: 7px;
+}
+
 .sk-partner-inp {
-  background: rgba(10, 20, 45, 0.7) !important;
-  color: #e2e8f0 !important;
-  border: 1px solid rgba(125, 211, 252, 0.28) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(216, 180, 254, 0.4) !important;
   border-radius: 9px;
-  padding: 9px 12px;
+  padding: 12px 12px;
   font-size: 0.9rem;
   width: 100%;
   box-sizing: border-box;
   font-family: inherit;
+  min-height: 48px;
+}
+
+.sk-partner-inp::placeholder {
+  color: #bfa9e8;
+  opacity: 1;
 }
 
 .sk-partner-inp:focus {
   outline: none;
-  border-color: rgba(125, 211, 252, 0.65) !important;
-  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.12);
+  border-color: #c084fc !important;
+  box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.16);
+}
+
+.sk-partner-inp.is-error {
+  border-color: rgba(248, 113, 113, 0.95) !important;
+  box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.2);
 }
 
 .sk-partner-radio-row {
@@ -1763,7 +1816,7 @@ body.lb-modal-open {
 }
 
 .sk-partner-radio-row label {
-  color: #94a3b8;
+  color: #e9d5ff;
   font-size: 0.83rem;
   cursor: pointer;
   display: flex;
@@ -1772,7 +1825,7 @@ body.lb-modal-open {
 }
 
 .sk-partner-radio-row input[type="radio"] {
-  accent-color: #7dd3fc;
+  accent-color: #c084fc;
 }
 
 .sk-partner-field .toggle-wrap {
@@ -1782,10 +1835,11 @@ body.lb-modal-open {
 
 .sk-partner-field .tog-btn {
   flex: 1;
-  padding: 8px 0;
-  background: rgba(10, 20, 45, 0.6);
-  color: #94a3b8;
-  border: 1px solid rgba(125, 211, 252, 0.25);
+  padding: 10px 0;
+  min-height: 44px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #e9d5ff;
+  border: 1px solid rgba(216, 180, 254, 0.35);
   border-radius: 9px;
   font-size: 0.88rem;
   cursor: pointer;
@@ -1794,16 +1848,45 @@ body.lb-modal-open {
 }
 
 .sk-partner-field .tog-btn.on {
-  background: rgba(125, 211, 252, 0.18);
-  color: #7dd3fc;
-  border-color: rgba(125, 211, 252, 0.5);
+  background: rgba(192, 132, 252, 0.24);
+  color: #ffffff;
+  border-color: rgba(250, 204, 21, 0.85);
   font-weight: 700;
 }
 
 .sk-partner-field .row2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.sk-help-text {
+  display: block;
+  margin-top: 6px;
+  color: #c4b5fd;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.sk-help-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  color: #f3e8ff;
+  font-size: 0.84rem;
+}
+
+.sk-field-error {
+  margin: 6px 0 0;
+  color: #f87171;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.sk-inline-error {
+  color: #fca5a5 !important;
 }
 
 .lb-start__cta {
@@ -1832,6 +1915,16 @@ body.lb-modal-open {
   background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%);
   transform: translateY(-2px);
   box-shadow: 0 14px 36px rgba(124,58,237,0.6), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+
+@media (max-width: 768px) {
+  .sk-partner-field .row2 {
+    grid-template-columns: 1fr;
+  }
+
+  .sk-partner-inp {
+    min-height: 48px;
+  }
 }
 
 .lb-start__cta:active {
