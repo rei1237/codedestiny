@@ -658,17 +658,16 @@
 
       if (!data || typeof data !== "object") {
         stopTyping();
-        var hint =
-          res.status === 404
-            ? "분석 서비스 경로를 찾을 수 없습니다. 배포·도메인 설정을 확인해 주세요."
-            : "서버 응답을 받지 못했습니다. 네트워크 후 다시 시도해 주세요.";
+        var hint = "해몽 결과를 완성하지 못했습니다. 잠시 후 다시 시도해 주세요.";
         setError(hint);
         setScreen("input");
         return;
       }
 
       if (!res.ok || !data.ok) {
-        var msg = (data && data.message) || "분석에 실패했습니다.";
+        var msg = res.status === 400
+          ? ((data && data.message) || "입력 내용을 다시 확인해 주세요.")
+          : "해몽 결과를 완성하지 못했습니다. 잠시 후 다시 시도해 주세요.";
         stopTyping();
         setError(msg);
         setScreen("input");
@@ -680,18 +679,9 @@
 
       var metaEl = $(REPORT_META_ID);
       if (metaEl) {
-        var cachedTag = data.cached ? " (캐시됨)" : "";
         var dateStr = new Date().toLocaleString();
-        var bits = [dateStr, "정신분석 데이터 분석"];
-        var llmSource = (data.llm && data.llm.source) || (data.record && data.record.source) || "unknown";
-        bits.push(llmSource === "gemini" ? "LLM: Gemini" : "LLM: Fallback");
-        if (data.llm && data.llm.model) bits.push(String(data.llm.model));
-        if (data.formatWarning) bits.push("섹션 형식은 일부 자동 정리됨");
-        metaEl.textContent = bits.join(" · ") + cachedTag;
-      }
-
-      if (data.llm && data.llm.used === false) {
-        setError("LLM 응답 지연으로 안전 모드 분석이 표시되었습니다. 잠시 후 다시 시도하면 더 정밀한 결과가 생성될 수 있습니다.");
+        var toneText = data && data.tone && data.tone.primary ? "감정 톤: " + String(data.tone.primary) : "감정 톤: 분석됨";
+        metaEl.textContent = [dateStr, "정신분석 해몽 리포트", toneText].join(" · ");
       }
 
       var mdEl = $(RESULT_MARKDOWN_ID);
@@ -728,10 +718,7 @@
     } catch (e) {
       stopLoading();
       stopTyping();
-      var msg = (e && e.message) || "네트워크 오류로 분석에 실패했습니다.";
-      if (e && (e.name === "AbortError" || String(msg || "").toLowerCase().includes("abort"))) {
-        msg = "분석 요청이 지연되어 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.";
-      }
+      var msg = "해몽 결과를 완성하지 못했습니다. 잠시 후 다시 시도해 주세요.";
       setError(msg);
       setScreen("input");
       // 모바일: 키보드 베일만 해제 (body lock은 모달이 열린 상태이므로 해제 금지)
