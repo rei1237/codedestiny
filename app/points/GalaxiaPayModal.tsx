@@ -249,7 +249,7 @@ export default function GalaxiaPayModal({
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm px-0 sm:px-4"
+      className="fixed inset-0 z-[2147483000] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm px-0 sm:px-4"
       onClick={(e) => { if (e.target === e.currentTarget && !isLaunching && !isProcessing) onClose(); }}
     >
       <div className="w-full max-w-lg rounded-t-[28px] sm:rounded-[28px] overflow-hidden shadow-[0_-8px_60px_rgba(0,0,0,0.35)] sm:shadow-[0_24px_70px_rgba(0,0,0,0.4)]">

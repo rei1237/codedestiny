@@ -36,7 +36,7 @@ export default function PaymentLoading({
       role="alertdialog"
       aria-modal="true"
       aria-live="assertive"
-      className="fixed inset-0 z-[130] flex items-center justify-center bg-[#050510]/80 px-4 backdrop-blur-xl"
+      className="fixed inset-0 z-[2147483001] flex items-center justify-center bg-[#050510]/80 px-4 backdrop-blur-xl"
     >
       <div className="w-full max-w-md relative overflow-hidden rounded-[2rem] border border-indigo-500/30 bg-gradient-to-b from-[#0B0C21]/95 to-[#060612]/95 p-8 text-center shadow-[0_0_80px_rgba(79,70,229,0.3)]">
         {/* 장식용 은하수 글로우 */}
