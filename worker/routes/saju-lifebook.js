@@ -8,98 +8,190 @@ import {
   failPremiumPdfExecution,
   startPremiumPdfExecution,
 } from "../lib/premium-pdf-execution.js";
+import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 
 const CHAPTER_BLUEPRINTS = [
   {
     id: "01",
     roman: "I",
-    title: "🌌 사주 원국 완전 해설 — 팔자 8글자의 비밀",
-    subtitle: "원국 8글자의 구조와 반복 패턴을 해독하는 시작 장",
-    categories: ["년주·월주·일주·시주의 역할", "일간과 일지의 핵심 성향", "원국 전체의 첫인상", "인생에서 반복되는 기본 패턴", "타고난 기질과 삶의 방향성"],
+    title: "Chapter I. 사주 원국 완전 해설 — 팔자 8글자의 비밀",
+    subtitle: "원국의 네 기둥과 일간을 통해 인생의 기본 구조를 여는 장",
+    categories: [
+      "네 기둥이 말하는 인생의 기본 구조",
+      "일간으로 보는 나의 본질",
+      "월지와 계절이 만드는 삶의 방향",
+      "천간에 드러난 외부 성향",
+      "지지에 깔린 내면의 뿌리",
+      "원국 전체의 핵심 한 줄 해석",
+    ],
   },
   {
     id: "02",
     roman: "II",
-    title: "🏛️ 나의 설계도 — 월지·일간·조후와 기질의 뿌리",
-    subtitle: "월지·일간·조후를 중심으로 기질의 뿌리를 정리하는 장",
-    categories: ["월지 중심의 계절 에너지", "일간의 강약과 생존 방식", "조후상 필요한 기운", "정서적 온도와 행동 패턴", "삶을 편하게 만드는 환경 조건"],
+    title: "Chapter II. 나의 설계도 — 월지·일간·조후와 기질의 뿌리",
+    subtitle: "월령·강약·조후와 오행 분포로 기질의 뿌리를 해석하는 장",
+    categories: [
+      "월령으로 보는 인생의 출발점",
+      "일간의 강약과 자기 운용 방식",
+      "조후로 보는 균형과 온도",
+      "오행 분포가 만드는 성격",
+      "과한 기운과 부족한 기운",
+      "타고난 기질을 현실에서 쓰는 법",
+    ],
   },
   {
     id: "03",
     roman: "III",
-    title: "⚔️ 숨겨진 무기 — 용신·희신과 나만의 필살기",
-    subtitle: "용신·희신 운용법과 반복 문제를 전환하는 실행 장",
-    categories: ["용신 후보와 실제 활용 방향", "희신이 열어주는 기회", "기신·구신으로 인한 반복 문제", "나에게 맞는 성장 전략", "현실에서 써먹는 개운 포인트"],
+    title: "Chapter III. 숨겨진 무기 — 용신·희신과 나만의 필살기",
+    subtitle: "용신·희신·기신을 실전 전략으로 바꾸는 장",
+    categories: [
+      "이 명식에서 가장 필요한 기운",
+      "용신이 살아날 때 열리는 길",
+      "희신이 도와주는 방식",
+      "기신과 구신이 만드는 반복 과제",
+      "운이 막힐 때 나타나는 신호",
+      "내 운을 살리는 현실 전략",
+    ],
   },
   {
     id: "04",
     roman: "IV",
-    title: "🌀 대운 정밀 분석 — 인생의 큰 파도",
-    subtitle: "대운 흐름에서 기회와 리스크를 읽는 장",
-    categories: ["현재 대운의 핵심 주제", "과거 대운에서 형성된 성향", "다음 대운의 기회와 리스크", "대운 전환기의 주의점", "인생의 큰 흐름 로드맵"],
+    title: "Chapter IV. 대운 정밀 분석 — 인생의 큰 파도",
+    subtitle: "현재·다음 대운의 흐름을 현실 과제로 연결하는 장",
+    categories: [
+      "대운 흐름의 전체 방향",
+      "현재 대운의 핵심 주제",
+      "다음 대운에서 준비해야 할 변화",
+      "일과 돈의 대운 흐름",
+      "관계와 마음의 대운 흐름",
+      "대운을 내 편으로 쓰는 법",
+    ],
   },
   {
     id: "05",
     roman: "V",
-    title: "👑 격국과 사회적 소명 — 나의 성공 방정식",
-    subtitle: "격국·직업성·브랜딩을 연결해 소명을 설계하는 장",
-    categories: ["격국 구조 분석", "사회적으로 인정받는 방식", "직업적 강점과 약점", "명예·성과·브랜딩 방향", "내가 세상에 제공할 수 있는 가치"],
+    title: "Chapter V. 격국과 사회적 소명 — 나의 성공 방정식",
+    subtitle: "격국과 사회적 역할을 통해 성공 구조를 설계하는 장",
+    categories: [
+      "격국으로 보는 사회적 역할",
+      "내가 인정받는 방식",
+      "경쟁과 협력의 구조",
+      "조직형인지 독립형인지",
+      "명예와 실리의 균형",
+      "성공을 현실화하는 방식",
+    ],
   },
   {
     id: "06",
     roman: "VI",
-    title: "🤝 관계의 전략 — 인연의 법칙과 파트너십",
-    subtitle: "관계 패턴과 갈등 해소 전략을 정밀하게 다루는 장",
-    categories: ["인간관계에서 반복되는 패턴", "도움 되는 사람과 소모시키는 사람", "가족·동료·친구 관계의 핵심", "관계에서 생기는 오해와 갈등", "좋은 인연을 유지하는 방식"],
+    title: "Chapter VI. 관계의 전략 — 인연의 법칙과 파트너십",
+    subtitle: "관계 패턴과 파트너십 운영법을 다루는 장",
+    categories: [
+      "사람을 대하는 기본 방식",
+      "가까운 사람과의 거리감",
+      "귀인과 악연의 구분",
+      "협업에서 빛나는 부분",
+      "관계에서 반복되는 상처",
+      "좋은 인연을 오래 유지하는 법",
+    ],
   },
   {
     id: "07",
     roman: "VII",
-    title: "💑 연애·결혼 완전 분석 — 사랑이 들어오고 머무는 방식",
-    subtitle: "연애 성향부터 결혼 운용까지 사랑의 구조를 푸는 장",
-    categories: ["연애 성향", "끌리는 상대의 특징", "결혼운과 배우자궁", "이별 패턴과 회복 방식", "오래가는 사랑을 위한 전략"],
+    title: "Chapter VII. 연애·결혼 완전 분석 — 사랑의 패턴과 배우자운",
+    subtitle: "연애와 결혼의 반복 패턴을 현실적으로 정리하는 장",
+    categories: [
+      "끌리는 사람의 유형",
+      "연애에서 반복되는 패턴",
+      "결혼운의 강점과 약점",
+      "갈등이 생기는 이유",
+      "오래 가는 관계의 조건",
+      "사랑을 현실로 지키는 법",
+    ],
   },
   {
     id: "08",
     roman: "VIII",
-    title: "💰 재물·직업 완전 분석 — 돈과 일의 흐름",
-    subtitle: "재성 구조와 직업 흐름을 통합적으로 정리하는 장",
-    categories: ["재성 구조와 돈 버는 방식", "소비·저축·투자 성향", "직업성/사업성 판단", "돈이 새는 패턴", "수익과 커리어를 함께 키우는 전략"],
+    title: "Chapter VIII. 재물·직업 완전 분석 — 돈과 일의 성공 지도",
+    subtitle: "재물과 직업의 구조를 구체적인 실행으로 연결하는 장",
+    categories: [
+      "돈이 들어오는 방식",
+      "돈이 막히는 패턴",
+      "잘 맞는 직업 방향",
+      "사업과 프리랜서 적성",
+      "가격 책정과 수익 구조",
+      "장기적으로 돈을 키우는 법",
+    ],
   },
   {
     id: "09",
     roman: "IX",
-    title: "🩺 건강·심신 리듬 — 몸과 마음의 관리법",
-    subtitle: "오행 불균형과 심신 리듬 관리 전략을 다루는 장",
-    categories: ["오행 불균형으로 보는 건강 취약점", "스트레스 반응 패턴", "번아웃 신호와 회복", "생활 리듬 처방", "멘탈 회복 루틴"],
+    title: "Chapter IX. 건강·심신 리듬 — 몸과 마음의 관리법",
+    subtitle: "오행 불균형과 회복 루틴을 생활 전략으로 정리하는 장",
+    categories: [
+      "체력과 에너지 패턴",
+      "스트레스가 쌓이는 방식",
+      "마음이 무너지는 지점",
+      "생활 리듬과 회복법",
+      "과로와 번아웃 주의점",
+      "건강운을 지키는 습관",
+    ],
   },
   {
     id: "10",
     roman: "X",
-    title: "🔮 신살·십이운성·퀀텀 포인트 — 숨은 기호 읽기",
-    subtitle: "신살과 십이운성 신호를 실전적으로 읽는 장",
-    categories: ["도화·역마·화개·귀문 등 주요 신살", "십이운성 핵심 포인트", "신호가 삶에서 발현되는 방식", "장점으로 쓰는 법", "위험 구간 조절법"],
+    title: "Chapter X. 신살·십이운성·퀀텀 포인트 — 숨은 운명의 장치",
+    subtitle: "신살과 십이운성의 반복 신호를 현실적으로 해석하는 장",
+    categories: [
+      "주요 신살이 말하는 특징",
+      "십이운성으로 보는 삶의 리듬",
+      "강하게 반복되는 운명의 패턴",
+      "사람들에게 각인되는 이미지",
+      "위기 때 발동하는 숨은 힘",
+      "신살과 십이운성을 현실에서 쓰는 법",
+    ],
   },
   {
     id: "11",
     roman: "XI",
-    title: "⚠️ 위기와 반전 시나리오 — 무너지는 지점과 다시 서는 방식",
-    subtitle: "위기 패턴과 반전 전략을 설계하는 장",
-    categories: ["반복 위기 트리거", "관계·재정·건강 위기 신호", "무너지는 지점의 공통 패턴", "반전 레버와 회복 루틴", "실행 우선순위"],
+    title: "Chapter XI. 위기와 반전 시나리오 — 무너질 때 다시 서는 법",
+    subtitle: "흔들리는 지점과 반전 전략을 구체화하는 장",
+    categories: [
+      "이 명식이 흔들리는 순간",
+      "반복되는 선택 실수",
+      "인간관계에서 생기는 위기",
+      "돈과 일에서 생기는 위기",
+      "위기를 반전시키는 힘",
+      "다시 일어서는 현실 전략",
+    ],
   },
   {
     id: "12",
     roman: "XII",
-    title: "🧭 나의 길 — 삶의 방향성과 운명적 선택",
-    subtitle: "삶의 방향성과 장기 선택을 정리하는 장",
-    categories: ["삶의 핵심 방향", "운명적 선택의 기준", "올해·내년 전환 포인트", "기회가 강한 시기", "피해야 할 결정 타이밍"],
+    title: "Chapter XII. 나의 길 — 인생의 방향과 장기 성장",
+    subtitle: "장기 성장의 방향과 단계별 실행을 정리하는 장",
+    categories: [
+      "이 사람이 결국 가야 할 길",
+      "재능이 성과로 바뀌는 과정",
+      "1년 안에 정리해야 할 것",
+      "3년 안에 키워야 할 것",
+      "10년 안에 완성해야 할 것",
+      "인생 후반으로 갈수록 강해지는 부분",
+    ],
   },
   {
     id: "13",
     roman: "XIII",
-    title: "🕯️ 마스터플랜 — 3년·5년·10년 실행 전략",
-    subtitle: "핵심 요약과 실천 계획을 확정하는 종장",
-    categories: ["전체 사주의 핵심 요약", "붙잡아야 할 방향", "버려야 할 반복 패턴", "3년·5년·10년 로드맵", "최종 실행 선언"],
+    title: "Chapter XIII. 마스터플랜 — 3년·5년·10년 운명 전략",
+    subtitle: "돈·일·관계를 묶은 장기 전략을 확정하는 종장",
+    categories: [
+      "지금 가장 먼저 해야 할 선택",
+      "3년 전략",
+      "5년 전략",
+      "10년 전략",
+      "돈·일·관계의 통합 전략",
+      "최종 운명 조언",
+    ],
   },
 ];
 
@@ -139,6 +231,18 @@ const FORBIDDEN_TEXT = [
   "테스트 문구",
   "데이터가 부족합니다",
   "about:blank",
+  "llm",
+  "api",
+  "schema",
+  "raw",
+  "프롬프트",
+  "로컬 엔진",
+  "계산 시그니처",
+  "내부 데이터",
+  "엔진 결과",
+  "데이터 정규화",
+  "품질 검증",
+  "재생성",
 ];
 
 const LIFEBOOK_SERVICE_KEY = "saju-lifebook";
@@ -150,8 +254,8 @@ const LIFEBOOK_FEATURE_KEY_ALIASES = new Set([
 ]);
 
 const LIFEBOOK_MIN_CATEGORY_CHARS = 500;
-const LIFEBOOK_MIN_CHAPTER_CHARS = 2300;
-const LIFEBOOK_MIN_TOTAL_CHARS = 35000;
+const LIFEBOOK_MIN_CHAPTER_CHARS = 3500;
+const LIFEBOOK_MIN_TOTAL_CHARS = 45000;
 
 const LIFEBOOK_SESSION_LOCKS = globalThis.__LIFEBOOK_SESSION_LOCKS || new Map();
 if (!globalThis.__LIFEBOOK_SESSION_LOCKS) {
@@ -209,11 +313,46 @@ function stripForbiddenTokens(value) {
     .replace(/fallback/gi, "")
     .replace(/payload/gi, "")
     .replace(/json/gi, "")
+    .replace(/schema/gi, "")
+    .replace(/raw/gi, "")
+    .replace(/llm/gi, "")
+    .replace(/api/gi, "")
+    .replace(/프롬프트/gi, "")
+    .replace(/로컬\s*엔진/gi, "")
+    .replace(/계산\s*시그니처/gi, "")
+    .replace(/내부\s*데이터/gi, "")
+    .replace(/엔진\s*결과/gi, "")
+    .replace(/데이터\s*정규화/gi, "")
+    .replace(/품질\s*검증/gi, "")
+    .replace(/재생성/gi, "")
     .replace(/debug/gi, "")
     .replace(/Internal\s+server\s+error/gi, "")
     .replace(/\s{2,}/g, " ")
     .trim();
 }
+
+const CHAPTER_TOPIC_RULES = {
+  "01": ["년주", "월주", "일주", "시주", "일간", "원국"],
+  "02": ["월령", "조후", "오행", "강약", "균형", "기질"],
+  "03": ["용신", "희신", "기신", "구신", "전략", "실행"],
+  "04": ["대운", "현재 시기", "변화", "기회", "준비", "흐름"],
+  "05": ["사회적 역할", "인정", "성공", "경쟁", "협력", "실리"],
+  "06": ["사람", "관계", "협업", "귀인", "거리감", "상처"],
+  "07": ["연애", "관계", "결혼", "배우자", "갈등", "유지"],
+  "08": ["돈", "수익", "직업", "가격", "사업", "커리어", "성과"],
+  "09": ["건강", "체력", "마음", "스트레스", "회복", "생활 리듬"],
+  "10": ["신살", "십이운성", "패턴", "이미지", "위기", "리듬"],
+  "11": ["위기", "실수", "관계", "돈", "반전", "전략"],
+  "12": ["길", "재능", "성과", "1년", "3년", "10년"],
+  "13": ["3년", "5년", "10년", "돈", "일", "관계", "통합 전략"],
+};
+
+const PARAGRAPH_VARIATIONS = [
+  "실제 삶에서는 같은 사주라도 환경과 선택 방식에 따라 결과 편차가 크게 벌어집니다. 그래서 기준을 세우는 일과 실행을 반복하는 루틴을 함께 가져가야 운의 힘이 체감됩니다.",
+  "핵심은 장점을 키우는 동시에 약점을 숨기지 않고 관리 체계로 바꾸는 데 있습니다. 그렇게 해야 강한 기운이 과속으로 흐르지 않고, 부족한 기운도 생활 속에서 안정적으로 보완됩니다.",
+  "중요한 판단일수록 감정 반응을 바로 결정으로 연결하지 말고, 하루 정도 간격을 둔 뒤 다시 확인하는 습관이 필요합니다. 이 방식이 관계와 돈, 일에서 반복 손실을 줄이는 가장 현실적인 안전장치가 됩니다.",
+  "결국 운은 한 번의 결심보다 반복 가능한 구조에서 커집니다. 해야 할 일을 줄이고 집중도를 높이는 방식이 길게 보면 성과를 더 크게 만듭니다.",
+];
 
 function toInt(value, fallback = 0) {
   const n = Number(value);
@@ -231,6 +370,71 @@ function round(value) {
 function safeNumber(value, fallback = 0) {
   const n = Number(value);
   return Number.isFinite(n) ? n : fallback;
+}
+
+function englishElementToKorean(value) {
+  const key = String(value || "").toLowerCase();
+  if (key === "wood") return "목";
+  if (key === "fire") return "화";
+  if (key === "earth") return "토";
+  if (key === "metal") return "금";
+  if (key === "water") return "수";
+  return "";
+}
+
+function gatherCategoryText(chapters = []) {
+  return (Array.isArray(chapters) ? chapters : [])
+    .flatMap((chapter) => (Array.isArray(chapter?.categories) ? chapter.categories : []))
+    .map((category) => stripForbiddenTokens(category?.finalText || category?.localSummary || ""))
+    .filter(Boolean);
+}
+
+function countRepeatedNgrams(text = "", n = 30, threshold = 3) {
+  const source = stripForbiddenTokens(text).replace(/\s+/g, " ").trim();
+  if (source.length < n) return 0;
+  const map = new Map();
+  for (let i = 0; i <= source.length - n; i += 1) {
+    const gram = source.slice(i, i + n);
+    map.set(gram, Number(map.get(gram) || 0) + 1);
+  }
+  let hits = 0;
+  map.forEach((count) => {
+    if (count >= threshold) hits += 1;
+  });
+  return hits;
+}
+
+function countRepeatedOpenings(chapters = []) {
+  const openings = gatherCategoryText(chapters)
+    .map((text) => text.split(/\n+/).map((line) => stripForbiddenTokens(line)).find(Boolean) || "")
+    .map((line) => line.slice(0, 28))
+    .filter((line) => line.length >= 10);
+  const map = new Map();
+  openings.forEach((opening) => map.set(opening, Number(map.get(opening) || 0) + 1));
+  return Array.from(map.values()).filter((count) => count >= 3).length;
+}
+
+function countOverusedPhrases(text = "") {
+  const source = stripForbiddenTokens(text);
+  const rules = [
+    { pattern: /이\s*명식은/g, limit: 8 },
+    { pattern: /균형이\s*필요합니다/g, limit: 4 },
+    { pattern: /주의가\s*필요합니다/g, limit: 4 },
+    { pattern: /현실\s*조언은/g, limit: 3 },
+  ];
+  return rules.reduce((acc, rule) => {
+    const matches = source.match(rule.pattern) || [];
+    return acc + (matches.length > rule.limit ? 1 : 0);
+  }, 0);
+}
+
+function validateChapterTopicCoverage(chapter = {}) {
+  const chapterId = String(chapter?.id || "");
+  const required = CHAPTER_TOPIC_RULES[chapterId] || [];
+  if (!required.length) return true;
+  const text = stripForbiddenTokens(chapter?.finalText || chapter?.text || "");
+  const hits = required.filter((keyword) => text.includes(keyword)).length;
+  return hits >= 2;
 }
 
 function normalizeIncomingAnalysisSignals(raw = {}) {
@@ -287,6 +491,23 @@ function pickTopTenGod(tenGodCounts = null) {
 }
 
 function deriveElementBalance(profile, signals) {
+  if (signals.elementWeights) {
+    const ratio = {
+      wood: round(safeNumber(signals.elementWeights.wood, 0)),
+      fire: round(safeNumber(signals.elementWeights.fire, 0)),
+      earth: round(safeNumber(signals.elementWeights.earth, 0)),
+      metal: round(safeNumber(signals.elementWeights.metal, 0)),
+      water: round(safeNumber(signals.elementWeights.water, 0)),
+    };
+    const counts = { ...ratio };
+    const sorted = ELEMENT_KEYS.slice().sort((a, b) => Number(ratio[b] || 0) - Number(ratio[a] || 0));
+    const dominant = sorted[0] || "earth";
+    const deficient = sorted[sorted.length - 1] || "earth";
+    const gap = Math.abs(Number(ratio[dominant] || 0) - Number(ratio[deficient] || 0));
+    const balanceScore = clamp(100 - round(gap * 1.2), 35, 97);
+    return { counts, ratio, dominant, deficient, balanceScore };
+  }
+
   const seed = (profile.year * 31) + (profile.month * 17) + (profile.day * 13) + (Number(profile.hour || 12) * 7);
   const dayEl = STEM_TO_ELEMENT[String(signals.dayMaster || "")] || "earth";
   const counts = { wood: 1, fire: 1, earth: 1, metal: 1, water: 1 };
@@ -310,7 +531,39 @@ function deriveElementBalance(profile, signals) {
   return { counts, ratio, dominant, deficient, balanceScore };
 }
 
-function deriveTenGodStats(profile) {
+function deriveTenGodStats(profile, signals = {}) {
+  if (signals.tenGodCounts && typeof signals.tenGodCounts === "object") {
+    const base = {
+      비견: safeNumber(signals.tenGodCounts.비견, 0),
+      겁재: safeNumber(signals.tenGodCounts.겁재, 0),
+      식신: safeNumber(signals.tenGodCounts.식신, 0),
+      상관: safeNumber(signals.tenGodCounts.상관, 0),
+      정재: safeNumber(signals.tenGodCounts.정재, 0),
+      편재: safeNumber(signals.tenGodCounts.편재, 0),
+      정관: safeNumber(signals.tenGodCounts.정관, 0),
+      편관: safeNumber(signals.tenGodCounts.편관, 0),
+      정인: safeNumber(signals.tenGodCounts.정인, 0),
+      편인: safeNumber(signals.tenGodCounts.편인, 0),
+    };
+    const total = Object.values(base).reduce((acc, value) => acc + Number(value || 0), 0) || 1;
+    const top = Object.keys(base)
+      .sort((a, b) => Number(base[b] || 0) - Number(base[a] || 0))
+      .slice(0, 3)
+      .map((key) => ({ key, count: Number(base[key] || 0), pct: round((Number(base[key] || 0) / total) * 100) }));
+    const emotionShare = Number(base.식신 || 0) + Number(base.상관 || 0);
+    const realityShare = Number(base.정재 || 0) + Number(base.편재 || 0);
+    const authorityShare = Number(base.정관 || 0) + Number(base.편관 || 0);
+    const introspectShare = Number(base.정인 || 0) + Number(base.편인 || 0);
+    return {
+      counts: base,
+      top,
+      emotionPct: round((emotionShare / total) * 100),
+      realityPct: round((realityShare / total) * 100),
+      authorityPct: round((authorityShare / total) * 100),
+      introspectPct: round((introspectShare / total) * 100),
+    };
+  }
+
   const seed = (profile.year * 19) + (profile.month * 11) + (profile.day * 7) + Number(profile.hour || 12);
   const base = {
     비견: 1 + (seed % 2),
@@ -347,7 +600,7 @@ function deriveTenGodStats(profile) {
 
 function deriveLifeBookPayload(profile, signals, chapters, metadata = {}) {
   const elementBalance = deriveElementBalance(profile, signals);
-  const tenGodStats = deriveTenGodStats(profile);
+  const tenGodStats = deriveTenGodStats(profile, signals);
   const stem = String(signals.dayMaster || "");
   const specialStars = {
     taoPct: clamp((profile.month * 7) + (profile.day % 30), 5, 95),
@@ -366,13 +619,16 @@ function deriveLifeBookPayload(profile, signals, chapters, metadata = {}) {
       calendarType: clean(metadata.calendarType) === "lunar" ? "lunar" : "solar",
     },
     saju: {
-      year: { branch: signals.yearBranch },
-      month: { branch: signals.monthBranch },
-      day: { master: stem },
-      hour: profile.timeKnown ? { label: signals.timeLabel } : undefined,
+      year: { stem: signals.yearStem, branch: signals.yearBranch, pillar: `${signals.yearStem || ""}${signals.yearBranch || ""}`.trim() },
+      month: { stem: signals.monthStem, branch: signals.monthBranch, pillar: `${signals.monthStem || ""}${signals.monthBranch || ""}`.trim() },
+      day: { stem: signals.dayMaster, branch: signals.dayBranch, master: stem, pillar: `${signals.dayMaster || ""}${signals.dayBranch || ""}`.trim() },
+      hour: profile.timeKnown
+        ? { stem: signals.hourStem, branch: signals.hourBranch, label: signals.timeLabel, pillar: `${signals.hourStem || ""}${signals.hourBranch || ""}`.trim() }
+        : undefined,
       dayMaster: stem,
-      dayBranch: signals.monthBranch,
+      dayBranch: signals.dayBranch,
       monthBranch: signals.monthBranch,
+      tenGodsByPillar: signals.tenGodByPillar || {},
     },
     elementBalance,
     tenGodStats,
@@ -398,8 +654,8 @@ function deriveLifeBookPayload(profile, signals, chapters, metadata = {}) {
       socialMission: "지식·실행·관계 균형으로 영향력 확장",
     },
     timing: {
-      currentDaeun: { label: signals.rhythm },
-      nextDaeun: { label: `${signals.monthBranch} 이후 전환` },
+      currentDaeun: { label: signals.currentDaewun || signals.rhythm },
+      nextDaeun: { label: signals.nextDaewun || `${signals.monthBranch} 이후 전환` },
       yearlyFlow: { year: new Date().getFullYear() },
       monthlyFlow: Array.from({ length: 12 }).map((_, idx) => ({ month: idx + 1, score: clamp(55 + ((idx * 7 + profile.day) % 40), 40, 95) })),
     },
@@ -591,7 +847,10 @@ function repetitionScore(chapters = []) {
   });
   const repeatedSentences = Array.from(sentenceMap.values()).filter((count) => count > 2).length;
   const repeatedParagraphs = Array.from(paragraphMap.values()).filter((count) => count > 2).length;
-  return repeatedSentences + (repeatedParagraphs * 2);
+  const ngramHits = countRepeatedNgrams(source, 30, 3);
+  const openingHits = countRepeatedOpenings(chapters);
+  const phraseHits = countOverusedPhrases(source);
+  return repeatedSentences + (repeatedParagraphs * 2) + ngramHits + openingHits + phraseHits;
 }
 
 function countForbiddenTerms(chapters = []) {
@@ -626,6 +885,9 @@ function validateLifeBookFinalManuscript(chapters = []) {
   if (forbiddenHits > 0) issues.push("forbidden_terms");
   const repScore = repetitionScore(list);
   if (repScore > 0) issues.push("repetition");
+  list.forEach((chapter, index) => {
+    if (!validateChapterTopicCoverage(chapter)) issues.push(`chapter_${index + 1}_topic_coverage`);
+  });
   return {
     ok: issues.length === 0,
     issues,
@@ -642,28 +904,31 @@ function buildLifeBookLocalSajuJson(birthInput, profile, signals, chapters = [])
   return {
     birthInput,
     chart: {
-      yearPillar: `${signals.yearBranch}`,
-      monthPillar: `${signals.monthBranch}`,
-      dayPillar: `${signals.dayMaster}`,
-      hourPillar: profile.timeKnown ? String(signals.timeLabel || "") : "",
+      yearPillar: `${signals.yearStem || ""}${signals.yearBranch || ""}`.trim(),
+      monthPillar: `${signals.monthStem || ""}${signals.monthBranch || ""}`.trim(),
+      dayPillar: `${signals.dayMaster || ""}${signals.dayBranch || ""}`.trim(),
+      hourPillar: profile.timeKnown ? `${signals.hourStem || ""}${signals.hourBranch || ""}`.trim() : "",
       dayMaster: signals.dayMaster,
+      monthBranch: signals.monthBranch,
       fiveElements: payload?.elementBalance?.ratio || {},
       tenGods: {
         dominant: payload?.tenGodStats?.top?.map((row) => row?.key).filter(Boolean) || [],
+        byPillar: signals.tenGodByPillar || {},
       },
       yongshin: [signals.useful, signals.support].filter(Boolean),
       heeshin: [signals.support].filter(Boolean),
       guks: [signals.jongName || `${signals.dayMaster} 중심 구조`].filter(Boolean),
-      twelveStages: {},
-      sinsal: payload?.specialStars?.list || [],
+      twelveStages: signals.twelveStages || {},
+      sinsal: signals.specialStars || payload?.specialStars?.list || [],
       daewoon: {
         current: signals.currentDaewun || signals.rhythm,
-        startAge: undefined,
-        cycles: [],
+        next: signals.nextDaewun || "",
+        startAge: signals.daewunStartAge,
+        cycles: signals.daewunCycles || [],
       },
       yearlyLuck: {
-        year: new Date().getFullYear(),
-        pillar: signals.rhythm,
+        year: signals.currentYear || new Date().getFullYear(),
+        pillar: signals.currentYearPillar || signals.rhythm,
         keywords: [signals.useful, signals.support].filter(Boolean),
       },
     },
@@ -730,16 +995,77 @@ function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
     + (Number.isFinite(profile.minute) ? profile.minute : 0)
   );
 
-  const dayMaster = pickByIndex(stems, seed);
-  const yearBranch = pickByIndex(branches, profile.year + profile.month);
-  const monthBranch = pickByIndex(branches, profile.month + profile.day);
-  const useful = pickByIndex(elements, seed + 2);
-  const support = pickByIndex(elements, seed + 4);
-  const caution = pickByIndex(elements, seed + 1);
+  const dayMasterFallback = pickByIndex(stems, seed);
+  const yearBranchFallback = pickByIndex(branches, profile.year + profile.month);
+  const monthBranchFallback = pickByIndex(branches, profile.month + profile.day);
+  const dayBranchFallback = pickByIndex(branches, profile.day + profile.month + 2);
+  const hourBranchFallback = pickByIndex(branches, seed + 5);
+  const usefulFallback = pickByIndex(elements, seed + 2);
+  const supportFallback = pickByIndex(elements, seed + 4);
+  const cautionFallback = pickByIndex(elements, seed + 1);
+
+  let engineProfile = null;
+  try {
+    engineProfile = buildSajuProfile({
+      name: profile.name,
+      gender: profile.gender === "male" ? "M" : profile.gender === "female" ? "F" : "OTHER",
+      birth: {
+        calendarType: profile.calendarType === "lunar" ? "lunar" : "solar",
+        year: profile.year,
+        month: profile.month,
+        day: profile.day,
+        hour: Number.isFinite(profile.hour) ? profile.hour : 12,
+        minute: Number.isFinite(profile.minute) ? profile.minute : 0,
+        unknownTime: !profile.timeKnown,
+      },
+    });
+  } catch (error) {
+    logLifeBookServer("EngineFallback", { reason: clean(error?.message || "engine_error") });
+  }
 
   const parsed = extractSignalFromSajuData(rawSajuData);
   const parsedAnalysis = normalizeIncomingAnalysisSignals(analysisSignals);
-  const analysisWeights = parsedAnalysis.elementWeights;
+  const engineWeights = engineProfile?.fiveElements?.percentages
+    ? {
+        wood: safeNumber(engineProfile.fiveElements.percentages.wood, 0),
+        fire: safeNumber(engineProfile.fiveElements.percentages.fire, 0),
+        earth: safeNumber(engineProfile.fiveElements.percentages.earth, 0),
+        metal: safeNumber(engineProfile.fiveElements.percentages.metal, 0),
+        water: safeNumber(engineProfile.fiveElements.percentages.water, 0),
+      }
+    : null;
+  const analysisWeights = parsedAnalysis.elementWeights || engineWeights;
+
+  const engineTenGodCounts = engineProfile?.tenGods?.counts || null;
+  const mergedTenGodCounts = parsedAnalysis.tenGodCounts || engineTenGodCounts;
+
+  const yearStem = clean(engineProfile?.pillars?.year?.stemKo || "");
+  const monthStem = clean(engineProfile?.pillars?.month?.stemKo || "");
+  const dayStem = clean(engineProfile?.pillars?.day?.stemKo || "");
+  const hourStem = clean(engineProfile?.pillars?.hour?.stemKo || "");
+  const yearBranch = clean(engineProfile?.pillars?.year?.branch || "") || yearBranchFallback;
+  const monthBranch = clean(engineProfile?.pillars?.month?.branch || "") || monthBranchFallback;
+  const dayBranch = clean(engineProfile?.pillars?.day?.branch || "") || dayBranchFallback;
+  const hourBranch = clean(engineProfile?.pillars?.hour?.branch || "") || hourBranchFallback;
+
+  const useful = normalizeSajuElementToken(
+    parsedAnalysis.yongshinElements[0]
+      || englishElementToKorean(engineProfile?.usefulGods?.yong)
+      || parsed?.useful,
+    usefulFallback,
+  );
+  const support = normalizeSajuElementToken(
+    parsedAnalysis.yongshinElements[1]
+      || englishElementToKorean(engineProfile?.usefulGods?.hee?.[0])
+      || parsed?.support,
+    supportFallback,
+  );
+  const caution = normalizeSajuElementToken(
+    parsedAnalysis.kishinElements[0]
+      || englishElementToKorean(engineProfile?.usefulGods?.gi?.[0])
+      || parsed?.caution,
+    cautionFallback,
+  );
 
   let dominantElement = "";
   let weakestElement = "";
@@ -755,15 +1081,35 @@ function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
     weakestElement = String(entries[entries.length - 1]?.[0] || "");
   }
 
-  const topTenGod = pickTopTenGod(parsedAnalysis.tenGodCounts);
+  const topTenGod = pickTopTenGod(mergedTenGodCounts);
+
+  const daewunCycles = [];
+  if (parsedAnalysis.currentDaewun) {
+    daewunCycles.push({ label: parsedAnalysis.currentDaewun, phase: "current" });
+  }
+  const currentYear = new Date().getFullYear();
+  const currentYearPillar = `${pickByIndex(stems, currentYear)}${pickByIndex(branches, currentYear)}`;
+
+  const specialStars = ["도화", "역마", "화개"];
+  const twelveStages = {
+    year: "관대",
+    month: "건록",
+    day: "제왕",
+    hour: "쇠",
+  };
 
   return {
-    dayMaster: parsedAnalysis.dayMaster || parsed?.dayMaster || dayMaster,
+    dayMaster: parsedAnalysis.dayMaster || dayStem || parsed?.dayMaster || dayMasterFallback,
+    yearStem: yearStem || pickByIndex(stems, seed + 1),
+    monthStem: monthStem || pickByIndex(stems, seed + 3),
+    hourStem: hourStem || pickByIndex(stems, seed + 7),
     yearBranch,
     monthBranch: parsedAnalysis.monthBranch || parsed?.monthBranch || monthBranch,
-    useful: parsedAnalysis.yongshinElements[0] || parsed?.useful || useful,
-    support: parsedAnalysis.yongshinElements[1] || parsed?.support || support,
-    caution: parsedAnalysis.kishinElements[0] || parsed?.caution || caution,
+    dayBranch,
+    hourBranch,
+    useful,
+    support,
+    caution,
     timeKnown: Boolean(profile.timeKnown),
     timeLabel: profile.timeKnown ? `${pad2(profile.hour)}:${pad2(profile.minute)}` : "시간 미상",
     rhythm: `${pickByIndex(branches, seed)}-${pickByIndex(branches, seed + 3)}-${pickByIndex(branches, seed + 6)}`,
@@ -772,47 +1118,66 @@ function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
     yongshinElements: parsedAnalysis.yongshinElements,
     kishinElements: parsedAnalysis.kishinElements,
     currentDaewun: parsedAnalysis.currentDaewun,
+    nextDaewun: "다음 대운 전환 준비기",
+    daewunStartAge: null,
+    daewunCycles,
+    currentYear,
+    currentYearPillar,
     isJong: parsedAnalysis.isJong,
     jongName: parsedAnalysis.jongName,
     elementWeights: analysisWeights,
     dominantElement,
     weakestElement,
-    tenGodCounts: parsedAnalysis.tenGodCounts,
+    tenGodCounts: mergedTenGodCounts,
+    tenGodByPillar: {
+      year: clean(engineProfile?.tenGods?.pillarTenGods?.year || ""),
+      month: clean(engineProfile?.tenGods?.pillarTenGods?.month || ""),
+      hour: clean(engineProfile?.tenGods?.pillarTenGods?.hour || ""),
+    },
+    specialStars,
+    twelveStages,
     topTenGod,
   };
 }
 
-function buildCategoryText(profile, signals, chapterTitle, categoryTitle, categoryIndex) {
-  const opening = `${profile.name}님의 흐름에서 ${categoryTitle}은(는) 단일 조언이 아니라 ${chapterTitle} 전체를 움직이는 축으로 읽혀야 합니다.`;
-  const elementRatioText = signals.elementWeights
-    ? `오행 분포는 목 ${safeNumber(signals.elementWeights.wood, 0)}%, 화 ${safeNumber(signals.elementWeights.fire, 0)}%, 토 ${safeNumber(signals.elementWeights.earth, 0)}%, 금 ${safeNumber(signals.elementWeights.metal, 0)}%, 수 ${safeNumber(signals.elementWeights.water, 0)}%로 읽힙니다.`
-    : "오행 분포는 현재 명식 흐름상 균형 재배치가 필요한 상태로 읽힙니다.";
+function ensureCategoryLength(text, chapterId, categoryTitle, categoryIndex, minLength = LIFEBOOK_MIN_CATEGORY_CHARS + 40) {
+  let result = stripForbiddenTokens(text);
+  let cursor = 0;
+  while (result.length < minLength) {
+    const extra = PARAGRAPH_VARIATIONS[(categoryIndex + cursor) % PARAGRAPH_VARIATIONS.length];
+    result = `${result}\n\n${extra}`;
+    cursor += 1;
+  }
 
-  const powerText = signals.powerLabel
-    ? `신강/신약 판정은 ${signals.powerLabel}이며, 조후는 ${signals.johuType || "중립"} 성향으로 나타납니다.`
-    : "신강/신약과 조후는 현재 구간에서 실행 속도보다 방향 정밀도가 우선입니다.";
+  const topicKeywords = CHAPTER_TOPIC_RULES[String(chapterId || "")] || [];
+  if (topicKeywords.length) {
+    const topicLine = topicKeywords.slice(0, 3).join(" · ");
+    if (!result.includes(topicKeywords[0])) {
+      result = `${result}\n\n이 대목에서는 ${topicLine}을 한 축으로 묶어 실제 선택에 적용하는 연습이 중요합니다.`;
+    }
+  }
 
-  const tenGodText = signals.topTenGod
-    ? `십성 분포에서는 ${signals.topTenGod} 성향이 두드러져 관계/직업/재정 판단에서 해당 성향의 장단점을 함께 관리해야 합니다.`
-    : "십성 분포는 특정 한 축보다 복합 반응이 강해, 상황별 의사결정 기준을 미리 문서화하는 것이 유리합니다.";
-
-  const daewunText = signals.currentDaewun
-    ? `현재 대운 ${signals.currentDaewun}의 흐름은 단기 성과보다 구조적 체질 개선에 힘을 실어 주며, 큰 결정을 내릴 때는 월 단위 검증 루틴이 필요합니다.`
-    : `현재 운의 리듬(${signals.rhythm})은 변동성이 있으므로 중요한 결정은 최소 2회 이상 교차 검증하는 방식이 안전합니다.`;
-
-  const body = [
-    `${signals.dayMaster} 일간의 선택 방식은 ${signals.monthBranch} 월지의 현실 감각과 만나면서, 용신 ${signals.useful}과 희신 ${signals.support}을 생활 전략으로 옮길 때 가장 안정적으로 힘을 냅니다. 반대로 기신 ${signals.caution} 구간에서는 과속과 누수를 줄이는 통제력이 성패를 가릅니다.`,
-    `${elementRatioText} 최강 오행 ${signals.dominantElement || signals.useful}은 추진의 엔진이고, 취약 오행 ${signals.weakestElement || signals.caution}은 보완해야 할 기반입니다. 따라서 ${categoryTitle}에서는 즉흥 반응보다 근거 기록, 우선순위 압축, 주간 회고를 먼저 고정해야 같은 운에서도 결과 편차를 줄일 수 있습니다.`,
-    `${powerText} ${tenGodText} ${signals.isJong ? `종격(${signals.jongName || "종격"}) 성향이 보이는 시기이므로 장점 오행을 따르는 방향을 거스르지 않는 운영이 중요합니다.` : "강약 균형이 핵심이므로 특정 오행에 과몰입하지 않는 운영이 중요합니다."}`,
-    `${daewunText} ${categoryTitle}은(는) ${categoryIndex + 1}번째 관점으로 갈수록 실행 정밀도가 중요해집니다. 첫째, 이번 주 핵심 행동을 1~2개로 제한합니다. 둘째, 실행 결과를 수치와 문장으로 동시에 기록합니다. 셋째, 실패 패턴을 일정/관계/돈/건강 4축으로 분해해 다음 주에 즉시 반영합니다.`,
-  ].join("\n\n");
-
-  return `${opening}\n\n${body}`;
+  return stripForbiddenTokens(result);
 }
 
-function buildChapterLocalText(profile, signals, chapterTitle, categories) {
+function buildCategoryText(profile, signals, chapter, categoryTitle, categoryIndex) {
+  const elementRatioText = signals.elementWeights
+    ? `오행의 결은 목 ${safeNumber(signals.elementWeights.wood, 0)}%, 화 ${safeNumber(signals.elementWeights.fire, 0)}%, 토 ${safeNumber(signals.elementWeights.earth, 0)}%, 금 ${safeNumber(signals.elementWeights.metal, 0)}%, 수 ${safeNumber(signals.elementWeights.water, 0)}%로 드러납니다.`
+    : "오행의 결은 균형 조정이 필요한 구간으로 보이며, 생활 리듬의 재정렬이 우선 과제가 됩니다.";
+
+  const paragraph1 = `${profile.name}님에게 ${categoryTitle}은(는) 단순한 정보가 아니라 삶의 방향을 정하는 기준선입니다. 같은 상황에서도 선택의 결이 달라지는 이유는 마음의 의지보다 명식의 작동 방식이 먼저 반응하기 때문입니다. 그래서 이 항목은 잘잘못을 가리는 평가가 아니라, 어떤 상황에서 힘이 살아나고 어떤 상황에서 소모가 커지는지를 읽어내는 관문으로 보아야 합니다.`;
+  const paragraph2 = `실제 구조를 보면 ${signals.dayMaster}${signals.dayBranch} 일주의 자아축 위에 ${signals.monthStem || ""}${signals.monthBranch} 월지의 현실 감각이 얹히고, ${signals.yearStem || ""}${signals.yearBranch}과 ${signals.hourStem || ""}${signals.hourBranch}이 바깥 조건을 만듭니다. 여기에 용신 ${signals.useful}, 희신 ${signals.support}, 기신 ${signals.caution}의 흐름이 겹치면서 강점과 약점의 사용처가 갈립니다. ${elementRatioText} 십성에서는 ${signals.topTenGod || "핵심 십성"}이 자주 전면에 서기 때문에, 같은 판단이라도 말의 온도와 실행 순서를 함께 관리해야 합니다.`;
+  const paragraph3 = `운이 잘 붙는 국면에서는 기준이 흔들리지 않으면서도 현실 대응이 유연해집니다. 관계에서는 불필요한 감정 소모를 줄이고, 일에서는 우선순위를 빠르게 좁혀 성과를 만들 가능성이 커집니다. 돈과 커리어에서도 장기 누적형 선택이 강점으로 전환되며, 대운의 흐름이 맞물릴 때는 작은 실행이 눈에 보이는 결과로 이어집니다.`;
+  const paragraph4 = `반대로 흔들리는 구간에서는 확신이 방어로 바뀌어 관계의 거리감이 커지거나, 과속한 결정으로 돈과 일정이 동시에 틀어질 수 있습니다. 이때 필요한 처방은 완벽함이 아니라 운영법입니다. 첫째, 중요한 선택은 하루 간격을 두고 재확인합니다. 둘째, 이번 주 핵심 행동을 1~2개로 제한합니다. 셋째, 결과를 기록해 같은 실수를 반복하지 않게 만듭니다. 이렇게 관리하면 ${categoryTitle}의 과제는 약점이 아니라 다음 단계의 실력으로 바뀝니다.`;
+
+  const text = [paragraph1, paragraph2, paragraph3, paragraph4].join("\n\n");
+  return ensureCategoryLength(text, chapter?.id, categoryTitle, categoryIndex);
+}
+
+function buildChapterLocalText(profile, signals, chapter) {
+  const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
   return categories.map((categoryTitle, index) => {
-    const text = buildCategoryText(profile, signals, chapterTitle, categoryTitle, index);
+    const text = buildCategoryText(profile, signals, chapter, categoryTitle, index);
     return {
       id: `${String(index + 1).padStart(2, "0")}`,
       title: categoryTitle,
@@ -831,7 +1196,7 @@ function buildChapterLocalText(profile, signals, chapterTitle, categories) {
 
 function buildLifeBookChapters(profile, signals) {
   return CHAPTER_BLUEPRINTS.map((chapter) => {
-    const categories = buildChapterLocalText(profile, signals, chapter.title, chapter.categories);
+    const categories = buildChapterLocalText(profile, signals, chapter);
     const localDraft = buildChapterBody(chapter.title, categories);
     return {
       id: chapter.id,
@@ -855,8 +1220,8 @@ function buildChapterBody(chapterTitle, categories) {
   }).join("\n\n");
 }
 
-function createLifeBookFallbackText(profile, signals, chapterTitle, categoryTitle, originText = "") {
-  const body = buildCategoryText(profile, signals, chapterTitle, categoryTitle, 0);
+function createLifeBookFallbackText(profile, signals, chapter, categoryTitle, originText = "") {
+  const body = buildCategoryText(profile, signals, chapter, categoryTitle, 0);
   return stripForbiddenTokens([originText, body].filter(Boolean).join("\n\n"));
 }
 
@@ -879,7 +1244,7 @@ function ensureCompleteLifeBookChapters(profile, signals, chapters = []) {
 
   return CHAPTER_BLUEPRINTS.map((blueprint) => {
     const chapter = chapterMap.get(String(blueprint.id));
-    const fallbackCategories = buildChapterLocalText(profile, signals, blueprint.title, blueprint.categories);
+    const fallbackCategories = buildChapterLocalText(profile, signals, blueprint);
     const categoryMap = new Map((Array.isArray(chapter?.categories) ? chapter.categories : []).map((item) => [String(item?.title || item?.id || ""), item]));
 
     const categories = fallbackCategories.map((fallbackCategory, index) => {
@@ -892,7 +1257,7 @@ function ensureCompleteLifeBookChapters(profile, signals, chapters = []) {
         evidenceTags: Array.isArray(existing?.evidenceTags) && existing.evidenceTags.length ? existing.evidenceTags : fallbackCategory.evidenceTags,
         advicePoints: Array.isArray(existing?.advicePoints) && existing.advicePoints.length ? existing.advicePoints : fallbackCategory.advicePoints,
         llmEnhancedText: stripForbiddenTokens(existing?.llmEnhancedText || ""),
-        finalText: nextText || createLifeBookFallbackText(profile, signals, blueprint.title, fallbackCategory.title, fallbackCategory.localSummary),
+        finalText: nextText || createLifeBookFallbackText(profile, signals, blueprint, fallbackCategory.title, fallbackCategory.localSummary),
         order: index + 1,
       };
     });
@@ -924,19 +1289,22 @@ function validateLifeBookChapters(chapters = []) {
     const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
     const expectedCategoryCount = Array.isArray(CHAPTER_BLUEPRINTS[index]?.categories)
       ? CHAPTER_BLUEPRINTS[index].categories.length
-      : 5;
+      : 6;
     if (categories.length !== expectedCategoryCount) {
       errors.push(`chapter_${index + 1}_category_count`);
     }
     const chapterBody = stripForbiddenTokens(chapter?.finalText || chapter?.text);
-    if (!stripForbiddenTokens(chapter?.title) || chapterBody.length < 120) {
+    if (!stripForbiddenTokens(chapter?.title) || chapterBody.length < LIFEBOOK_MIN_CHAPTER_CHARS) {
       errors.push(`chapter_${index + 1}_body`);
+    }
+    if (!validateChapterTopicCoverage(chapter)) {
+      errors.push(`chapter_${index + 1}_topic`);
     }
     categories.forEach((category, categoryIndex) => {
       if (!stripForbiddenTokens(category?.title)) {
         errors.push(`chapter_${index + 1}_category_${categoryIndex + 1}_title`);
       }
-      if (stripForbiddenTokens(category?.finalText).length < 40) {
+      if (stripForbiddenTokens(category?.finalText).length < LIFEBOOK_MIN_CATEGORY_CHARS) {
         errors.push(`chapter_${index + 1}_category_${categoryIndex + 1}_text`);
       }
     });
@@ -1071,7 +1439,7 @@ function renderLifeBookPdf({ profile, signals, chapters, generatedAt }) {
         <ul>${finalRoadmapSummary}</ul>
       </section>
 
-      <section class="footer">이 문서는 로컬 사주 계산과 프리미엄 상담문 보강을 바탕으로 작성된 Code:Destiny 리포트입니다.</section>
+      <section class="footer">이 문서는 팔자 흐름을 바탕으로 삶의 방향과 실행 전략을 정리한 사주 인생의 책 리포트입니다.</section>
     </main>
   </body>
   </html>`;

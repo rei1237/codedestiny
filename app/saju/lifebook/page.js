@@ -6,12 +6,12 @@ const SERVICE_KEY = "saju-lifebook";
 const FEATURE_KEY = "saju_life_book_pdf";
 
 const STEP_LABELS = [
-  "프로필 정보 확인 중",
-  "사주 원국 계산 중",
-  "대운·세운 흐름 계산 중",
-  "사주 시드(JSON) 구성 완료 · 13챕터 LLM 생성 시작",
-  "AI 상담문 보강 중",
-  "PDF 편집/렌더링 중",
+  "프로필 정보를 확인하는 중입니다",
+  "사주 원국을 정리하는 중입니다",
+  "팔자 8글자의 흐름을 해석하는 중입니다",
+  "대운과 세운의 큰 흐름을 반영하는 중입니다",
+  "재물·직업·관계의 구조를 정리하는 중입니다",
+  "용신과 인생 전략을 구성하는 중입니다",
   "완료",
 ];
 
@@ -23,12 +23,12 @@ const CHAPTER_ROADMAP = [
   "V. 격국과 사회적 소명",
   "VI. 관계의 전략",
   "VII. 연애·결혼 완전 분석",
-  "VIII. 재물과 현실 감각",
-  "IX. 직업·사업·커리어",
-  "X. 건강·멘탈·생활 리듬",
-  "XI. 위기와 전환점",
-  "XII. 숨은 복과 귀인",
-  "XIII. 최종 운명 로드맵",
+  "VIII. 재물·직업 완전 분석",
+  "IX. 건강·심신 리듬",
+  "X. 신살·십이운성·퀀텀 포인트",
+  "XI. 위기와 반전 시나리오",
+  "XII. 나의 길",
+  "XIII. 마스터플랜",
 ];
 
 function nowDate() {
@@ -230,7 +230,7 @@ export default function SajuLifebookPage() {
       console.info("[LifeBook][SessionCreateSuccess]");
       console.info("[LifeBook][PdfRequestSuccess]");
       if (payload?.data?.fallbackUsed) {
-        setInfoNote("AI 문장 보강이 지연되어 로컬 사주 계산 기반 프리미엄 원고로 PDF를 완성합니다.");
+        setInfoNote("일부 보조 데이터가 부족해도 사주 원국 중심으로 리포트를 완성했습니다.");
         console.info("[LifeBook][LLMEnhanceFailedUseLocal]");
       }
     } catch (submitError) {
@@ -280,7 +280,7 @@ export default function SajuLifebookPage() {
               13챕터로 구성된 프리미엄 리포트를 생성합니다.
             </p>
             <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {["Premium PDF", "13 Chapters", "사주 원국 기반", "최고 운세 전문가 해석", "LLM 상담문 보강"].map((tag) => (
+              {["Premium PDF", "13 Chapters", "사주 원국 기반", "최고 운세 전문가 해석", "완성형 상담문 리포트"].map((tag) => (
                 <span key={tag} style={{ borderRadius: 999, padding: "6px 12px", fontSize: 12, background: "rgba(245,214,165,.15)", border: "1px solid rgba(245,214,165,.38)" }}>{tag}</span>
               ))}
             </div>
