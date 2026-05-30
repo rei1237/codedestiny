@@ -511,30 +511,239 @@ function calcPlacements(dateStr,timeStr,userName,sunKeyOverride){
   const satElem=SIGNS.find(s=>s.key===satk).elem;
   const merElem=SIGNS.find(s=>s.key===merk).elem;
   const sunElem=SIGNS[si].elem;
+  const sun=make(sk,"태양","아폴론","☀️","sun");
+  const moon=make(mk,"달","아르테미스","🌙","moon");
+  const rising=make(rk,"상승궁","헤르메스","⬆️","rising");
+  const venus=make(vk,"금성","아프로디테","💘","venus");
+  const mars=make(mrk,"화성","아레스","🔥","mars");
+  const jupiter=make(jupk,"목성","제우스","⚡","sun");
+  const saturn=make(satk,"토성","크로노스","⏳","moon");
+  const mercury=make(merk,"수성","헤르메스","🗣️","rising");
+  const element=ELEMENTS[sunElem];
+  const futureFlow=futures[(y+m+day)%4];
+  const tazza={ style:TAZZA_STYLE[sunElem], luck:JUPITER_LUCK[jupElem], trap:SATURN_TRAP[satElem] };
+  const premium=buildPremiumContent({
+    name:userName||"당신",
+    sun,
+    moon,
+    rising,
+    venus,
+    mars,
+    jupiter,
+    saturn,
+    mercury,
+    element,
+    elemKey:sunElem,
+    future:futureFlow,
+    tazza,
+    devil:DEVIL_MAP[sk],
+  });
   return {
-    sun:make(sk,"태양","아폴론","☀️","sun"),
-    moon:make(mk,"달","아르테미스","🌙","moon"),
-    rising:make(rk,"상승궁","헤르메스","⬆️","rising"),
-    venus:make(vk,"금성","아프로디테","💘","venus"),
-    mars:make(mrk,"화성","아레스","🔥","mars"),
-    jupiter:make(jupk,"목성","제우스","⚡","sun"), jupElem,
-    saturn:make(satk,"토성","크로노스","⏳","moon"), satElem,
-    mercury:make(merk,"수성","헤르메스","🗣️","rising"), merElem,
-    element:ELEMENTS[sunElem], elemKey:sunElem,
-    future:futures[(y+m+day)%4],
+    sun,
+    moon,
+    rising,
+    venus,
+    mars,
+    jupiter, jupElem,
+    saturn, satElem,
+    mercury, merElem,
+    element, elemKey:sunElem,
+    future:futureFlow,
     name:userName||"당신",
     daily:DAILY_ORACLES[sk][(day+y)%2],
-    tazza:{ style:TAZZA_STYLE[sunElem], luck:JUPITER_LUCK[jupElem], trap:SATURN_TRAP[satElem] },
+    tazza,
     devil:DEVIL_MAP[sk],
     office:OFFICE_DATA[sk],
     japan:JAPAN_MAP[sunElem],
     fakbok:FAKBOK[sk],
+    premium,
     sunKey:sk,
     birthDay:day, birthMonth:m, birthYear:y,
   };
 }
 function getCompat(ea,eb){
   return COMPAT_DB.find(c=>(c.a===ea&&c.b===eb)||(c.a===eb&&c.b===ea))||{title:"우주적 중립 관계",sub:"신들도 이 조합은 모름",score:60,detail:{synergy:"특별한 케미는 없지만 나쁜 것도 아님.",sun:"정보 없음.",moon:"정보 없음.",love:"그냥 사귀면 됨.",warning:"별자리 탓 금지."}};
+}
+
+function buildPremiumContent(ctx){
+  const summary = [
+    `${ctx.name}의 현재 차트는 ${ctx.sun.name} 태양의 방향성과 ${ctx.moon.name} 달의 정서 리듬, 그리고 ${ctx.rising.name} 상승궁의 현실 진입 방식이 뚜렷하게 분리되어 보이는 구조입니다. 겉에서 보이는 속도와 내면의 회복 속도가 다르기 때문에, 성과는 빠르게 내도 감정 회복은 의식적으로 챙겨야 안정적으로 오래 갑니다.`,
+    `핵심 동력은 ${ctx.element.name} 원소에 기반합니다. 이 원소는 당신의 기본 반응, 스트레스 처리 방식, 관계에서 먼저 보여주는 태도를 결정하고, 오늘의 선택에서 "무엇을 지키고 무엇을 확장할지"를 가르는 기준점이 됩니다.`,
+    `${ctx.jupiter.name} 목성은 기회가 어디서 열리는지, ${ctx.saturn.name} 토성은 어떤 패턴에서 손실이 나는지를 동시에 보여줍니다. 따라서 성장의 핵심은 무작정 확장이 아니라, 강한 구간에서는 과감하게 밀고 약한 구간에서는 규칙으로 손실을 차단하는 운영입니다.`,
+    `연애와 인간관계에서는 ${ctx.venus.name} 금성이 끌림의 언어를, ${ctx.mars.name} 화성이 갈등과 추진의 언어를 담당합니다. 이 둘의 결이 맞는 사람과는 속도가 붙고, 결이 어긋나는 사람과는 사소한 대화에서도 에너지 누수가 커질 수 있습니다.`,
+    `현재 흐름 신호는 다음과 같습니다. ${ctx.future} 이 문장은 단순 운세 문구가 아니라, 이번 사이클에서 어떤 행동은 바로 실행하고 어떤 행동은 타이밍을 분할해야 하는지 알려주는 운영 지침으로 읽는 것이 정확합니다.`
+  ];
+
+  const sunInterpretation = [
+    `${ctx.sun.name} 태양은 당신이 결국 어떤 사람으로 남고 싶은지를 말합니다. 이 축은 단기 기분보다 장기 명분을 선택하게 만들며, 삶의 방향을 정할 때 "내가 자랑스러울 선택인가"를 먼저 묻는 성향으로 나타납니다.`,
+    `반복적으로 끌리는 방향은 역할의 선명함입니다. 애매한 자리보다 책임이 분명한 자리에서 에너지가 살아나고, 목표가 뚜렷할수록 당신의 실행력과 몰입은 빠르게 올라갑니다.`,
+    `성공할 때 드러나는 모습은 ${ctx.sun.god}의 상징과 닮아 있습니다. 존재감이 커지고 판단이 단순해지며, 주변은 당신을 "흔들리지 않는 기준점"으로 인식하기 시작합니다.`,
+    `무너질 때의 그림자는 과도한 자기 몰입입니다. 방향을 잃는 순간 자신을 의심하거나, 반대로 확신 과잉으로 타인의 리듬을 놓칠 수 있습니다. 이때는 결정의 속도보다 결정의 근거를 복구하는 것이 먼저입니다.`,
+    `태양궁을 현실에서 잘 쓰는 전략은 세 가지입니다. 큰 목표를 주간 단위 행동으로 쪼개고, 성과 지표를 외부 인정이 아닌 내부 기준으로 잡고, 관계에서는 주도권보다 합의의 속도를 관리해야 장기전에서 지치지 않습니다.`,
+    `${ctx.sun.god}의 신탁 상징은 "방향의 불꽃"입니다. 당신은 누군가의 허락으로 움직이는 사람이 아니라, 스스로 방향을 점화할 때 가장 강해지는 타입입니다.`
+  ];
+
+  const moonInterpretation = [
+    `${ctx.moon.name} 달궁은 당신의 감정이 움직이는 기본 알고리즘입니다. 생각보다 감정이 먼저 반응하고, 그 반응을 해석하는 과정에서 하루의 컨디션이 결정되는 경향이 분명합니다.`,
+    `외로움을 느끼는 패턴은 "이해받지 못한다"는 감각에서 시작됩니다. 사람의 수가 적어서가 아니라, 감정의 결을 안전하게 말할 수 있는 공간이 없을 때 정서적 고립이 커집니다.`,
+    `사랑받고 있다고 느끼는 조건은 화려한 이벤트보다 일관성입니다. 답장의 톤, 약속의 반복, 작은 배려의 누적 같은 미세한 신뢰 신호가 당신의 안정 회로를 여는 핵심 조건입니다.`,
+    `불안할 때의 반응은 과해석 혹은 과회피로 갈리기 쉽습니다. 그래서 감정이 올라오는 날에는 결론을 미루고, 몸의 리듬을 먼저 회복하는 루틴이 필요합니다.`,
+    `회복을 돕는 장소는 소음이 낮고 리듬이 일정한 곳입니다. 물길이 보이는 산책로, 시야가 열린 루프탑, 조용한 서가처럼 감정 압력을 분산시키는 공간이 특히 잘 맞습니다.`,
+    `달궁이 추천 장소와 연결되는 이유는 단순 취향이 아니라 회복 메커니즘 때문입니다. 당신은 공간의 결에 따라 정서 복구 속도가 크게 달라지는 타입이며, 맞는 장소를 고르면 관계와 일의 품질까지 함께 올라갑니다.`
+  ];
+
+  const risingInterpretation = [
+    `${ctx.rising.name} 상승궁은 사람들이 처음 체감하는 당신의 공기입니다. 첫인상에서 드러나는 말투, 속도, 표정의 질감이 기회의 문을 여는 방식까지 직접 연결됩니다.`,
+    `세상에 적응하는 방식은 "먼저 판을 읽고 그다음 포지션을 잡는" 전략입니다. 즉흥처럼 보여도 실제로는 상대의 분위기와 규칙을 빠르게 스캔한 뒤 움직이는 편입니다.`,
+    `기회를 잡는 첫 행동 패턴은 작은 신호를 놓치지 않는 민감성입니다. 짧은 대화, 미묘한 타이밍, 사소한 요청 안에서 다음 기회의 문장을 먼저 읽어내는 강점이 있습니다.`,
+    `상승궁이 강해질 때는 대외운이 열립니다. 소개, 제안, 협업, 첫 만남에서 성과가 나고 당신의 전문성은 예상보다 빠르게 신뢰를 얻게 됩니다.`,
+    `상승궁이 약해질 때의 오해는 "겉모습과 속마음의 불일치"입니다. 좋은 의도라도 전달 방식이 거칠거나 과장되면 당신의 진심이 왜곡되어 받아들여질 수 있습니다.`,
+    `지금부터 강화할 외적 전략은 세 가지입니다. 첫 문장을 짧고 명확하게 시작하고, 약속의 마감 시간을 수치로 말하고, 첫인상 이후 24시간 내 후속 메시지로 신뢰를 고정하면 운의 문이 오래 열립니다.`
+  ];
+
+  const synthesis = [
+    `당신의 태양은 ${ctx.sun.name}의 방식으로 삶의 방향을 밀어붙이고, 달은 ${ctx.moon.name}의 방식으로 안전과 정서적 확인을 원하며, 상승궁은 ${ctx.rising.name}의 방식으로 세상과 첫 접점을 만듭니다. 이 세 축은 서로 다른 언어를 쓰지만, 정렬되면 매우 강한 추진력을 만듭니다.`,
+    `충돌은 대체로 "속도"에서 발생합니다. 태양은 장기 목표를 위해 전진하고 싶은데, 달은 감정 복구 시간을 요구하고, 상승궁은 외부 기대에 맞춰 즉각 반응하려 하기 때문에 내외부 리듬이 어긋날 수 있습니다.`,
+    `조화를 이루는 핵심은 역할 분리입니다. 태양에게는 방향 결정을, 달에게는 회복 루틴을, 상승궁에게는 실행 커뮤니케이션을 맡기면 각각의 강점이 충돌하지 않고 연결됩니다.`,
+    `운이 열릴 때의 징후는 분명합니다. 감정이 과열되지 않은 상태에서 빠른 실행이 가능해지고, 관계에서는 설명이 줄어도 오해가 줄어드는 흐름이 나타납니다. 이것이 세 축이 한 방향으로 정렬됐다는 신호입니다.`,
+    `한 줄 신탁: "당신의 태양은 앞으로 가라고 명령하고, 달은 다치지 말라고 속삭이며, 상승궁은 웃으며 문을 여니, 지금 당신의 승부처는 속도가 아니라 리듬을 잃지 않는 전진입니다."`
+  ];
+
+  const places = buildPremiumPlaces(ctx);
+  const tazzaGuide = buildPremiumTazzaGuide(ctx);
+  const finalOracles = [
+    `당신이 지금 걸어야 할 것은 과시가 아니라 반복 가능한 루틴입니다.`,
+    `운은 큰 결심보다 작은 정렬에서 먼저 열린다는 사실을 잊지 마세요.`,
+    `사람의 마음을 얻기 전에 먼저 내 리듬을 지키면 관계운이 오래갑니다.`,
+    `이번 사이클의 승부처는 속공이 아니라, 손실을 줄인 정밀한 전진입니다.`,
+    `${ctx.sun.god}의 문장은 단순합니다. 두려움을 없애려 하지 말고, 두려움과 함께 정확하게 움직이세요.`
+  ];
+
+  return { summary, sunInterpretation, moonInterpretation, risingInterpretation, synthesis, places, tazzaGuide, finalOracles };
+}
+
+function buildPremiumPlaces(ctx){
+  const moonElem = ctx.moon.elem;
+  const risingElem = ctx.rising.elem;
+  const sunElem = ctx.elemKey;
+  const catTargets = [
+    "회복 장소",
+    "집중 장소",
+    "연애운이 열리는 장소",
+    "금전운이 살아나는 장소",
+    "영감이 오는 장소",
+    "인간관계를 정리하기 좋은 장소",
+    "새로운 시작에 좋은 장소",
+    "혼자 가면 좋은 장소",
+    "누군가와 함께 가면 좋은 장소",
+    "피해야 할 장소",
+  ];
+  const base = [
+    { name:"깊은 물빛이 보이는 강변 산책로", cats:["회복 장소","혼자 가면 좋은 장소"], elems:["water","air"], actions:"혼자 걷기, 생각 정리, 음성 메모", luck:"감정 정리운과 관계 회복운", caution:"사람이 몰리는 주말 오후는 피하세요", avoidTime:"주말 오후" },
+    { name:"시야가 열린 조용한 루프탑 카페", cats:["집중 장소","영감이 오는 장소"], elems:["air","fire"], actions:"계획 수립, 노트북 작업, 기획 메모", luck:"아이디어 실현운과 실행 타이밍운", caution:"카페인 과다로 리듬이 깨지지 않게 90분 단위로 쉬세요", avoidTime:"야간 피로 누적 시간" },
+    { name:"햇빛이 오래 머무는 식물 온실", cats:["회복 장소","새로운 시작에 좋은 장소"], elems:["earth","fire"], actions:"호흡 정리, 다음 달 목표 3개 작성", luck:"재생운과 건강 리셋운", caution:"한 번에 많은 결정을 하지 말고 1개만 확정하세요", avoidTime:"과열된 한낮" },
+    { name:"작은 독립서점의 창가 좌석", cats:["집중 장소","영감이 오는 장소"], elems:["earth","air"], actions:"자료 조사, 공부, 문장 정리", luck:"학습운과 문서 성과운", caution:"완벽주의로 오래 붙잡지 말고 2시간 타이머를 거세요", avoidTime:"폐점 직전" },
+    { name:"로컬 재래시장 새벽 구간", cats:["금전운이 살아나는 장소","새로운 시작에 좋은 장소"], elems:["earth","fire"], actions:"가격 감각 익히기, 현실 아이디어 수집", luck:"현금 흐름운과 사업 감각운", caution:"충동 지출 대신 예산 한도를 먼저 정하세요", avoidTime:"점심 이후 혼잡 시간" },
+    { name:"공예 작업실이 모인 골목", cats:["영감이 오는 장소","누군가와 함께 가면 좋은 장소"], elems:["water","earth"], actions:"창작 시도, 취향 탐색, 협업 대화", luck:"창작운과 인연 연결운", caution:"비교 심리가 올라오면 기록만 하고 판단은 미루세요", avoidTime:"피곤한 저녁" },
+    { name:"조용한 사찰길 혹은 오래된 성곽길", cats:["인간관계를 정리하기 좋은 장소","혼자 가면 좋은 장소"], elems:["earth","water"], actions:"관계 우선순위 정리, 미련 정리 노트", luck:"관계 정리운과 마음 안정운", caution:"죄책감으로 결정을 번복하지 않도록 기준을 미리 적어두세요", avoidTime:"폭우/강풍 시간" },
+    { name:"아침 첫차 시간의 해변 산책로", cats:["새로운 시작에 좋은 장소","회복 장소"], elems:["water","fire"], actions:"새 출발 선언, 짧은 러닝, 호흡", luck:"출발운과 결단력운", caution:"밤샘 후 방문은 피로를 키울 수 있습니다", avoidTime:"수면 부족한 날" },
+    { name:"작은 재즈바의 오픈 직후 좌석", cats:["연애운이 열리는 장소","누군가와 함께 가면 좋은 장소"], elems:["water","air"], actions:"깊은 대화, 관계 속도 조절", luck:"호감 신호 감지운과 관계 심화운", caution:"감정 과열 상태에서 중요한 약속은 보류하세요", avoidTime:"자정 이후" },
+    { name:"도시 전망이 보이는 코워킹 라운지", cats:["금전운이 살아나는 장소","집중 장소"], elems:["air","earth"], actions:"제안서 작성, 예산 계획, 협업 미팅", luck:"수입 확장운과 협업 성과운", caution:"멀티태스킹 과부하를 막기 위해 1순위 작업만 먼저 진행하세요", avoidTime:"점심 직후 저집중 구간" },
+    { name:"인파가 과밀한 소음형 쇼핑몰", cats:["피해야 할 장소"], elems:["fire"], actions:"필요한 일만 빠르게 끝내고 이탈", luck:"불필요한 소모 차단운", caution:"자극 과부하로 판단이 흐려지기 쉬우니 체류 시간을 40분 이내로 제한하세요", avoidTime:"주말 피크타임" },
+    { name:"의견이 충돌하기 쉬운 폐쇄형 모임 공간", cats:["피해야 할 장소","인간관계를 정리하기 좋은 장소"], elems:["air"], actions:"감정 토론 대신 사실 확인만 진행", luck:"갈등 손실 최소화운", caution:"결론을 강요하면 오해가 커집니다. 기록 중심으로 짧게 끝내세요", avoidTime:"피로 누적 저녁" },
+  ];
+
+  const ranked = base.map((item, idx)=>{
+    let score = 0;
+    if (item.elems.includes(sunElem)) score += 3;
+    if (item.elems.includes(moonElem)) score += 2;
+    if (item.elems.includes(risingElem)) score += 2;
+    if (item.cats.includes("피해야 할 장소")) score -= 3;
+    score += (idx % 3);
+    return { ...item, score };
+  }).sort((a,b)=>b.score-a.score);
+
+  const picks = [];
+  catTargets.forEach((cat)=>{
+    const found = ranked.find(r=>r.cats.includes(cat) && !picks.includes(r));
+    if (found) picks.push(found);
+  });
+  ranked.forEach((r)=>{
+    if (picks.length >= 10) return;
+    if (!picks.includes(r)) picks.push(r);
+  });
+
+  return picks.slice(0, 10).map((p)=>({
+    name:p.name,
+    category:p.cats[0],
+    reason:`${ctx.sun.name} 태양의 방향성은 ${ctx.element.name} 방식으로 추진력을 만들고, ${ctx.moon.name} 달은 정서 회복을 요구합니다. ${ctx.rising.name} 상승궁의 대외 리듬까지 함께 보면 이 공간은 에너지를 소모하지 않고 집중 혹은 회복을 동시에 만들기 좋습니다. 현재 흐름인 "${ctx.future}"와도 맞물려 실행력과 정서 안정의 균형을 잡아줍니다.`,
+    actions:p.actions,
+    luckOpen:p.luck,
+    caution:p.caution,
+    avoidTime:p.avoidTime,
+  }));
+}
+
+function buildPremiumTazzaGuide(ctx){
+  const winAreas = ["일", "돈", "관계", "창작", "공부", "이동"];
+  return [
+    {
+      title:"내 인생의 패",
+      paragraphs:[
+        `당신의 인생 패는 한 방형이 아니라 승률 누적형입니다. ${ctx.mars.name} 화성이 초반 추진력을 만들고 ${ctx.mercury.name} 수성이 변수 판독을 보완해, 큰 승부보다 반복 가능한 이김을 쌓을 때 전체 승률이 가장 높아집니다.`,
+        `핵심은 "무조건 이길 판"을 고르는 선구안입니다. 상대의 말보다 흐름과 타이밍을 먼저 읽는 장점이 있어, 들어가지 말아야 할 판을 거르는 순간 승률이 급격히 올라가는 구조를 가집니다.`,
+        `위기 국면에서도 당신의 승률을 지키는 카드는 감정 대응이 아니라 운영 규칙입니다. 손절 기준, 시간 제한, 우선순위 1개 고정 같은 룰을 먼저 적용하면 연패를 끊고 장기 승률을 회복할 수 있습니다.`
+      ]
+    },
+    {
+      title:"지금 걸어도 되는 판",
+      paragraphs:[
+        `${ctx.jupiter.name} 목성 흐름이 열리는 영역은 ${winAreas.join(" · ")} 중에서도 지금 가장 에너지가 붙는 축입니다. 특히 작은 실험을 빠르게 반복하는 형태의 도전이 유리합니다.`,
+        `일에서는 제안서와 실행안, 돈에서는 고정비 최적화와 수입 다변화, 관계에서는 짧고 명확한 약속이 승률을 높입니다.`,
+        `창작과 공부는 완성 욕심보다 공개 가능한 최소 단위로 먼저 내보내세요. 이동운은 목적 없는 이동보다 성과형 이동에서 확률이 올라갑니다.`
+      ]
+    },
+    {
+      title:"지금 피해야 하는 판",
+      paragraphs:[
+        `${ctx.saturn.name} 토성 함정은 ${ctx.tazza.trap.trap}입니다. 감정이 달아오른 상태에서 즉답하거나 즉결하면 손실이 커질 수 있습니다.`,
+        `손해 보기 쉬운 선택은 관계에서의 과잉해석, 돈에서의 보상심리 소비, 일에서의 무리한 약속입니다. 이 세 가지는 초반엔 시원하지만 후반에 복구 비용이 큽니다.`,
+        `기다려야 하는 이유는 간단합니다. 하루만 간격을 두면 정보가 늘고, 정보가 늘면 블러핑에 휘둘리지 않기 때문입니다.`
+      ]
+    },
+    {
+      title:"베팅 타이밍",
+      paragraphs:[
+        `빠르게 움직여야 하는 시기는 조건이 명확할 때입니다. 책임, 보상, 마감이 문장으로 합의되면 그때는 망설임이 손실입니다.`,
+        `관망해야 하는 시기는 감정 피로가 누적된 날입니다. 그날의 결심은 실력보다 기분에 좌우될 확률이 높습니다.`,
+        `가장 좋은 방식은 작은 실험 후 증액입니다. 1차는 소액 테스트, 2차는 검증 확대, 3차에서만 본 베팅으로 들어가면 승률이 안정됩니다.`
+      ]
+    },
+    {
+      title:"올인하면 위험한 것",
+      paragraphs:[
+        `올인 위험 대상은 인정 욕구와 자존심 승부입니다. 상대를 이기는 데 집중하면 판을 가져와도 체력이 먼저 무너집니다.`,
+        `관계에서는 확인 강박, 돈에서는 단기 수익 집착, 일에서는 완벽주의 집착이 역전패의 시작점이 됩니다.`,
+        `특히 불안이 올라오는 밤에는 결정을 줄이세요. 밤의 불안은 현실 신호가 아니라 피로 신호인 경우가 많습니다.`
+      ]
+    },
+    {
+      title:"승률을 높이는 방식",
+      paragraphs:[
+        `성공 전략의 1순위는 감정 관리입니다. 감정이 흔들릴수록 지표를 보고, 지표가 불충분하면 결정을 미루는 규칙을 고정하세요.`,
+        `사람을 고르는 기준은 말보다 반복 행동입니다. 약속 이행률, 피드백 태도, 위기 시 책임감이 당신의 필터가 되어야 합니다.`,
+        `돈과 시간은 분산보다 우선순위 집중이 유리합니다. 한 번에 한 판만 크게 다루고, 나머지는 방어적으로 운영해야 복리 승률이 쌓입니다.`
+      ]
+    },
+    {
+      title:"최종 한 줄 판결",
+      paragraphs:[
+        `지금 당신의 판은 화려한 올인이 아니라, 손실을 줄이며 승률을 쌓는 장기전입니다.`,
+        `사람의 반응에 베팅하지 말고, 내가 반복할 수 있는 루틴에 베팅하세요.`,
+        `최종 판결: 지금 당신이 걸어야 할 것은 상대의 마음이 아니라, 무너지지 않는 실행 리듬입니다.`
+      ]
+    }
+  ];
 }
 
 /* ════════════════════════════════════════════════════════
@@ -950,6 +1159,8 @@ function ProfileTab({result}){
         <p style={{fontSize:12,color:'rgba(239,228,192,.75)',lineHeight:1.85}}>{planets[ap].pd.t}</p>
       </div>
 
+      <PremiumOracleSection result={result}/>
+
       {/* SECTION 1 — 팩폭 주의보 */}
       <FakbokSection fakbok={result.fakbok} result={result}/>
 
@@ -972,7 +1183,7 @@ function ProfileTab({result}){
       </div>
 
       {/* SECTION 3 — 타짜: 인생 베팅 스타일 */}
-      <TazzaSection data={result.tazza} marsSign={result.mars} jupSign={result.jupiter} satSign={result.saturn}/>
+      <TazzaSection data={result.tazza} marsSign={result.mars} jupSign={result.jupiter} satSign={result.saturn} guide={result.premium?.tazzaGuide || []}/>
 
       {/* SECTION 4 — 악마 계약서 */}
       <DevilSection devil={result.devil} rising={result.rising} mercury={result.mercury}/>
@@ -998,6 +1209,88 @@ function ProfileTab({result}){
             <div key={i} style={{fontSize:10,color:'rgba(201,168,76,.6)',background:'rgba(201,168,76,.05)',border:'1px solid rgba(201,168,76,.16)',borderRadius:20,padding:'3px 10px'}}>{tag}</div>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function PremiumOracleSection({result}){
+  const premium = result.premium;
+  const [insightTab,setInsightTab] = useState('sun');
+  const [openPlace,setOpenPlace] = useState(null);
+  if (!premium) return null;
+
+  const insightMap = {
+    sun:{label:'태양궁 해석',icon:'☀️',items:premium.sunInterpretation},
+    moon:{label:'달궁 해석',icon:'🌙',items:premium.moonInterpretation},
+    rising:{label:'상승궁 해석',icon:'⬆️',items:premium.risingInterpretation},
+    synthesis:{label:'태양·달·상승 통합',icon:'🧭',items:premium.synthesis},
+  };
+  const activeInsight = insightMap[insightTab];
+
+  return(
+    <div className="scard gb" style={{marginBottom:12}}>
+      <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:12}}>
+        <span style={{fontSize:17}}>⚡</span>
+        <div>
+          <p className="cin" style={{fontSize:8,color:'rgba(201,168,76,.5)',letterSpacing:2}}>PREMIUM DOSSIER</p>
+          <h3 style={{fontSize:13,color:'#F0D060'}}>올림푸스 신탁 확장 리포트</h3>
+        </div>
+      </div>
+
+      <div style={{background:'rgba(201,168,76,.05)',borderRadius:10,padding:'11px 13px',border:'1px solid rgba(201,168,76,.14)',marginBottom:10}}>
+        <p className="cin" style={{fontSize:9,color:'#C9A84C',letterSpacing:2,marginBottom:7}}>핵심 요약</p>
+        {premium.summary.map((p,i)=>(
+          <p key={i} style={{fontSize:12,color:'rgba(239,228,192,.8)',lineHeight:1.85,marginBottom:i<premium.summary.length-1?8:0}}>{p}</p>
+        ))}
+      </div>
+
+      <div style={{display:'flex',gap:6,marginBottom:10,flexWrap:'wrap'}}>
+        {['sun','moon','rising','synthesis'].map((k)=>(
+          <button key={k} className={`btn-tab${insightTab===k?' act':''}`} onClick={()=>setInsightTab(k)} style={{flex:'1 1 120px',padding:'8px 10px'}}>
+            {insightMap[k].icon} {insightMap[k].label}
+          </button>
+        ))}
+      </div>
+
+      <div style={{background:'rgba(255,255,255,.02)',borderRadius:10,padding:'11px 13px',border:'1px solid rgba(201,168,76,.12)',marginBottom:10}}>
+        <p className="cin" style={{fontSize:9,color:'rgba(201,168,76,.7)',letterSpacing:2,marginBottom:7}}>{activeInsight.icon} {activeInsight.label}</p>
+        {activeInsight.items.map((p,i)=>(
+          <p key={i} style={{fontSize:12,color:'rgba(239,228,192,.8)',lineHeight:1.85,marginBottom:i<activeInsight.items.length-1?8:0}}>{p}</p>
+        ))}
+      </div>
+
+      <div style={{marginBottom:10}}>
+        <p className="cin" style={{fontSize:9,color:'#C9A84C',letterSpacing:2,marginBottom:7}}>추천 장소 리스트 (10선)</p>
+        <div style={{display:'flex',flexDirection:'column',gap:7}}>
+          {premium.places.map((pl,i)=>(
+            <div key={i} style={{background:'rgba(255,255,255,.02)',borderRadius:8,padding:'10px 12px',border:'1px solid rgba(201,168,76,.11)'}}>
+              <div style={{display:'flex',justifyContent:'space-between',gap:8,alignItems:'center'}}>
+                <div>
+                  <p style={{fontSize:12,color:'#F0D060',fontWeight:600}}>{pl.name}</p>
+                  <p style={{fontSize:10,color:'rgba(201,168,76,.6)',marginTop:2}}>{pl.category}</p>
+                  <p style={{fontSize:11,color:'rgba(239,228,192,.75)',lineHeight:1.75,marginTop:5}}><b style={{color:'#C9A84C'}}>추천 이유</b> {pl.reason}</p>
+                </div>
+                <button className="btn-o" onClick={()=>setOpenPlace(openPlace===i?null:i)} style={{padding:'6px 10px',fontSize:10,whiteSpace:'nowrap'}}>{openPlace===i?'접기':'상세'}</button>
+              </div>
+              {openPlace===i&&(
+                <div className="fi" style={{marginTop:8,paddingTop:8,borderTop:'1px solid rgba(201,168,76,.15)'}}>
+                  <p style={{fontSize:11,color:'rgba(239,228,192,.78)',lineHeight:1.75,marginBottom:6}}><b style={{color:'#C9A84C'}}>좋은 행동</b> {pl.actions}</p>
+                  <p style={{fontSize:11,color:'rgba(239,228,192,.78)',lineHeight:1.75,marginBottom:6}}><b style={{color:'#C9A84C'}}>열어주는 운</b> {pl.luckOpen}</p>
+                  <p style={{fontSize:11,color:'rgba(239,228,192,.78)',lineHeight:1.75,marginBottom:6}}><b style={{color:'#C9A84C'}}>피해야 할 시간대</b> {pl.avoidTime}</p>
+                  <p style={{fontSize:11,color:'rgba(239,228,192,.78)',lineHeight:1.75}}><b style={{color:'#C9A84C'}}>주의할 점</b> {pl.caution}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{background:'rgba(12,8,2,.7)',borderRadius:10,padding:'11px 13px',border:'1px solid rgba(201,168,76,.15)'}}>
+        <p className="cin" style={{fontSize:9,color:'#C9A84C',letterSpacing:2,marginBottom:7}}>최종 신탁 문장</p>
+        {premium.finalOracles.map((line,i)=>(
+          <p key={i} style={{fontSize:12,color:'rgba(239,228,192,.84)',lineHeight:1.8,marginBottom:i<premium.finalOracles.length-1?7:0}}>{i+1}. {line}</p>
+        ))}
       </div>
     </div>
   );
@@ -1086,9 +1379,10 @@ function FakbokSection({fakbok,result}){
   );
 }
 
-function TazzaSection({data,marsSign,jupSign,satSign}){
+function TazzaSection({data,marsSign,jupSign,satSign,guide}){
   const {style,luck,trap}=data;
   const [showOdds,setShowOdds]=useState(false);
+  const [openGuide,setOpenGuide]=useState(null);
   useEffect(()=>{const t=setTimeout(()=>setShowOdds(true),400);return()=>clearTimeout(t);},[]);
   const cards=['🀇','🀈','🀉','🀊','🀋'];
   return(
@@ -1148,6 +1442,26 @@ function TazzaSection({data,marsSign,jupSign,satSign}){
       <div style={{marginTop:12,background:'rgba(0,0,0,.4)',borderRadius:8,padding:'8px 12px',border:'1px solid rgba(220,20,60,.15)'}}>
         <p style={{fontSize:10,color:'rgba(220,20,60,.5)',textAlign:'center'}}>오늘의 베팅 칩: <span style={{color:'#DC143C',fontWeight:700}}>{style.chip}</span> — 도박은 올림포스 신들도 말립니다</p>
       </div>
+
+      {Array.isArray(guide) && guide.length>0 && (
+        <div style={{marginTop:10,display:'flex',flexDirection:'column',gap:7}}>
+          {guide.map((item,i)=>(
+            <div key={i} style={{background:'rgba(255,255,255,.02)',borderRadius:8,padding:'10px 12px',border:'1px solid rgba(220,20,60,.2)'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8}}>
+                <p style={{fontSize:12,color:'#DC143C',fontWeight:700}}>{item.title}</p>
+                <button className="btn-o" onClick={()=>setOpenGuide(openGuide===i?null:i)} style={{padding:'5px 9px',fontSize:10,borderColor:'rgba(220,20,60,.45)',color:'#DC143C'}}>{openGuide===i?'접기':'보기'}</button>
+              </div>
+              {openGuide===i&&(
+                <div className="fi" style={{marginTop:8,paddingTop:8,borderTop:'1px solid rgba(220,20,60,.2)'}}>
+                  {item.paragraphs.map((txt,pIdx)=>(
+                    <p key={pIdx} style={{fontSize:11,color:'rgba(239,228,192,.78)',lineHeight:1.75,marginBottom:pIdx<item.paragraphs.length-1?6:0}}>{txt}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
