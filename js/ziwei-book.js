@@ -136,6 +136,36 @@
       || code.indexOf('PREMIUM') >= 0;
   }
 
+  function _getZiweiStatusSpecificMessage(status, details) {
+    var details = details || {};
+    var httpStatus = Number(status || 0) || 0;
+    var failureStage = String(details.failureStage || details.stage || '');
+    
+    if (httpStatus === 429) {
+      return '자미두수 PDF 생성 AI 할당량이 임시로 부족합니다. 잠시 후 다시 시도해주세요.';
+    }
+    if (httpStatus === 503) {
+      return '서버가 현재 이용 불가능합니다. 잠시 후 다시 시도해주세요.';
+    }
+    if (httpStatus === 422) {
+      return '입력한 정보가 올바르지 않습니다. 다시 확인해주세요.';
+    }
+    if (httpStatus === 500 || httpStatus === 502 || httpStatus === 504) {
+      if (failureStage === 'chapter_generation') {
+        var chapterNo = String(details.failedChapterNo || '');
+        if (chapterNo) {
+          return '챕터 ' + chapterNo + ' 생성에 실패했습니다. 잠시 후 다시 시도해주세요.';
+        }
+        return '자미두수 PDF 챕터 생성에 실패했습니다. 잠시 후 다시 시도해주세요.';
+      }
+      if (failureStage === 'preparation') {
+        return '자미두수 PDF 준비 중에 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+      }
+      return '자미두수 PDF 생성 중에 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+    }
+    return '자미두수 PDF 생성 요청에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+  }
+
   function updateZiweiGenerationState(patch){
     ZIWEI_GENERATION_STATE = Object.assign({}, ZIWEI_GENERATION_STATE, patch || {});
     try { window.__ziweiPdfGenerationState = ZIWEI_GENERATION_STATE; } catch (_) {}
@@ -704,7 +734,7 @@
       var err = new Error(message || '자미두수 PDF 생성 요청에 실패했습니다.');
       err.status = Number(status || 0) || 0;
       err.code = String((details && details.code) || 'ZIWEI_PREPARE_FAILED');
-      err.details = details || {};
+      err.details = Object.assign({ httpStatus: err.status, message: message, timestamp: new Date().toISOString() }, details || {});
       return err;
     }
 
@@ -738,11 +768,14 @@
       }
 
       if(_isZiweiAuthOrPaymentFailure(status, json)) {
+        logFlow('AuthOrPaymentFailure', { status: status, code: json.code, message: json.message });
         throw toError(json.message || json.error || '로그인 또는 결제 확인이 필요합니다.', status, json);
       }
       if(!_isRetryableZiweiStatus(status)) {
+        logFlow('NonRetryableError', { status: status, code: json.code, message: json.message, endpoint: endpoints[endpointIndex - 1] });
         throw toError(json.message || json.error || ('자미두수 PDF 생성 요청에 실패했습니다. HTTP ' + status), status, json);
       }
+      logFlow('RetryableStatus', { status: status, endpointIndex: endpointIndex, totalEndpoints: endpoints.length });
     }
 
     throw new Error('자미두수 PDF 생성 요청에 실패했습니다. 잠시 후 다시 시도해 주세요.');
@@ -920,8 +953,18 @@
       renderResult(data);
     } catch(error) {
       var normalizedError = normalizeZiweiError(error);
-      logFlow('Error', normalizedError);
-      showError(normalizedError && normalizedError.message ? normalizedError.message : String(error));
+      var enhancedError = Object.assign({}, normalizedError, { status: error.status, code: error.code, details: error.details });
+      var userMessage = _getZiweiStatusSpecificMessage(error.status, error.details);
+      logFlow('GenerationFailed', {
+        status: error.status || 0,
+        code: error.code || 'UNKNOWN',
+        message: error.message,
+        sessionId: ZIWEI_GENERATION_STATE.sessionId,
+        currentChapterNo: ZIWEI_GENERATION_STATE.currentChapterNo,
+        failedChapters: ZIWEI_GENERATION_STATE.failedChapters,
+        details: error.details
+      });
+      showError(userMessage || (normalizedError && normalizedError.message ? normalizedError.message : String(error)));
     } finally {
       GENERATING = false;
     }

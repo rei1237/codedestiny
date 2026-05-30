@@ -13,10 +13,28 @@ import {
 const ZIWEI_SERVICE_KEY = "ziwei-book";
 const ZIWEI_FEATURE_KEY = "premium_pdf_ziwei";
 const ZIWEI_FEATURE_ALIASES = new Set(["premium-ziwei-report", "premium_pdf_ziwei"]);
-const CHAPTER_MIN_CHARS = 3000;
-const SECTION_MIN_CHARS = 600;
-const TOTAL_MIN_CHARS = 39000;
-const CHAPTER_MAX_RETRIES = 3;
+
+// Sensible defaults; can be overridden via env vars
+const DEFAULT_CHAPTER_MIN_CHARS = 3000;
+const DEFAULT_SECTION_MIN_CHARS = 600;
+const DEFAULT_TOTAL_MIN_CHARS = 39000;
+const DEFAULT_CHAPTER_MAX_RETRIES = 3;
+
+// Helper to resolve quality gate thresholds from env
+function getQualityGateThresholds(env = {}) {
+  return {
+    sectionMinChars: Math.max(100, Number(env.ZIWEI_SECTION_MIN_CHARS || DEFAULT_SECTION_MIN_CHARS)),
+    chapterMinChars: Math.max(1000, Number(env.ZIWEI_CHAPTER_MIN_CHARS || DEFAULT_CHAPTER_MIN_CHARS)),
+    totalMinChars: Math.max(10000, Number(env.ZIWEI_TOTAL_MIN_CHARS || DEFAULT_TOTAL_MIN_CHARS)),
+    chapterMaxRetries: Math.max(1, Number(env.ZIWEI_CHAPTER_MAX_RETRIES || DEFAULT_CHAPTER_MAX_RETRIES)),
+  };
+}
+
+// For backward compatibility, also export module-level constants
+const CHAPTER_MIN_CHARS = DEFAULT_CHAPTER_MIN_CHARS;
+const SECTION_MIN_CHARS = DEFAULT_SECTION_MIN_CHARS;
+const TOTAL_MIN_CHARS = DEFAULT_TOTAL_MIN_CHARS;
+const CHAPTER_MAX_RETRIES = DEFAULT_CHAPTER_MAX_RETRIES;
 
 const EARTHLY_BRANCH_HOUR = Object.freeze({
   자: 23,
@@ -1315,11 +1333,14 @@ async function generateZiweiChapterByLlm({ env, seed, chapterSpec, previousChapt
 }
 
 async function generateZiweiPdfWithLLMOnlyInterpretation({ env, seed, chapterSpecs, sessionId, onProgress, options = {} }) {
+  const thresholds = getQualityGateThresholds(env);
   const chapters = [];
+  const failedChapterNos = [];
   for (const chapterSpec of chapterSpecs) {
     let chapter = null;
     let lastError = null;
-    for (let attempt = 1; attempt <= CHAPTER_MAX_RETRIES; attempt += 1) {
+    const attemptLogs = [];
+    for (let attempt = 1; attempt <= thresholds.chapterMaxRetries; attempt += 1) {
       try {
         chapter = await generateZiweiChapterByLlm({
           env,
@@ -1329,18 +1350,37 @@ async function generateZiweiPdfWithLLMOnlyInterpretation({ env, seed, chapterSpe
           attempt,
           previousFailureReason: lastError ? clean(lastError.message || "") : "",
           options,
+          thresholds: { chapterMinChars: thresholds.chapterMinChars, sectionMinChars: thresholds.sectionMinChars },
+        });
+        console.info("[ZiweiPremiumPDF][ChapterSuccess]", {
+          chapterNo: Number(chapterSpec.id),
+          totalAttempts: attempt,
+          sessionId,
         });
         break;
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
+        const failureReason = clean(lastError.message || "chapter_failed");
+        attemptLogs.push({ attempt, reason: failureReason });
         console.warn("[ZiweiPremiumPDF][ChapterRetry]", {
           chapterNo: Number(chapterSpec.id),
           attempt,
-          reason: clean(lastError.message || "chapter_failed"),
+          maxRetries: thresholds.chapterMaxRetries,
+          reason: failureReason,
+          sessionId,
         });
       }
     }
     if (!chapter) {
+      const chapterNo = Number(chapterSpec.id);
+      failedChapterNos.push(chapterNo);
+      console.error("[ZiweiPremiumPDF][ChapterFailed]", {
+        chapterNo,
+        totalAttempts: thresholds.chapterMaxRetries,
+        attempts: attemptLogs,
+        finalError: clean(lastError?.message || "unknown"),
+        sessionId,
+      });
       throw new Error(`chapter_${chapterSpec.id}_failed_after_retry:${clean(lastError?.message || "unknown")}`);
     }
 
@@ -1355,7 +1395,7 @@ async function generateZiweiPdfWithLLMOnlyInterpretation({ env, seed, chapterSpe
     }
   }
 
-  return chapters;
+  return { chapters, failedChapterNos };
 }
 
 function validateZiweiPdfLLMInterpretationQuality({ chapters, expectedChapters, seed }) {
@@ -1629,7 +1669,7 @@ async function handlePrepare(request, env) {
   try {
 
   console.info("[ZiweiPremiumPDF][LLMOnlyInterpretationStart]", { chapterCount: CHAPTER_BLUEPRINTS.length });
-  const completedChapters = await generateZiweiPdfWithLLMOnlyInterpretation({
+  const generatedManuscript = await generateZiweiPdfWithLLMOnlyInterpretation({
     env,
     seed,
     chapterSpecs: CHAPTER_BLUEPRINTS,
@@ -1642,6 +1682,9 @@ async function handlePrepare(request, env) {
       });
     },
   });
+  const completedChapters = Array.isArray(generatedManuscript?.chapters) ? generatedManuscript.chapters : [];
+  const failedChapterNos = Array.isArray(generatedManuscript?.failedChapterNos) ? generatedManuscript.failedChapterNos : [];
+  
   if (!Array.isArray(completedChapters) || completedChapters.length !== CHAPTER_BLUEPRINTS.length) {
     throw new Error(`ziwei_chapter_count_invalid:${Array.isArray(completedChapters) ? completedChapters.length : 0}`);
   }
@@ -1714,17 +1757,60 @@ async function handlePrepare(request, env) {
     ziweiPdfSeed: seed.ziweiPdfSeed,
     pdfReady,
     finalChapterCount: completedChapters.length,
+    // Enhanced diagnostics
+    chapterStatusMap: completedChapters.reduce((map, ch, idx) => {
+      map[Number(ch.id || idx + 1)] = {
+        status: "completed",
+        chars: (ch.categories || []).reduce((sum, cat) => sum + (String(cat.finalText || "").length || 0), 0),
+        categoryCount: (ch.categories || []).length,
+      };
+      return map;
+    }, {}),
+    totalChars: finalValidation.totalChars || 0,
+    duplicateRate: duplicateRate || 0,
+    qualityGates: {
+      sectionMinChars: SECTION_MIN_CHARS,
+      chapterMinChars: CHAPTER_MIN_CHARS,
+      totalMinChars: TOTAL_MIN_CHARS,
+    },
   });
   } catch (error) {
+    const errorMessage = clean(error?.message || "자미두수 PDF 생성에 실패했습니다.");
+    const failureStage = errorMessage.includes("chapter_") ? "chapter_generation" : "preparation";
+    const failedChapterMatch = errorMessage.match(/chapter_(\d+)/);
+    const failedChapterNo = failedChapterMatch ? Number(failedChapterMatch[1]) : null;
+    
     await failPremiumPdfExecution(
       env,
       auth.userId,
       executionCtx,
       "ziwei_generation_failed",
-      clean(error?.message || "자미두수 PDF 생성에 실패했습니다."),
+      errorMessage,
       "ziwei-generation",
     );
-    throw error;
+    
+    const errorResponse = {
+      ok: false,
+      serviceKey: ZIWEI_SERVICE_KEY,
+      code: "ZIWEI_GENERATION_FAILED",
+      message: errorMessage,
+      failureStage,
+      failedChapterNo,
+      errorDetails: {
+        reason: errorMessage,
+        stage: failureStage,
+        timestamp: new Date().toISOString(),
+        sessionId: executionCtx.sessionId,
+        qualityGates: {
+          sectionMinChars: SECTION_MIN_CHARS,
+          chapterMinChars: CHAPTER_MIN_CHARS,
+          totalMinChars: TOTAL_MIN_CHARS,
+        },
+      },
+    };
+    
+    console.error("[ZiweiPremiumPDF][GenerationError]", errorResponse);
+    throw new HttpError(errorMessage, 500, errorResponse);
   }
 }
 
