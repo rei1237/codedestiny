@@ -162,26 +162,101 @@ function parseJsonCandidate(text) {
   return null;
 }
 
-function normalizeSequenceItem(item, index) {
+function pickFirstText(values) {
+  for (const value of values) {
+    const text = clean(value);
+    if (text) return text;
+  }
+  return "";
+}
+
+function normalizeInstructionList(raw) {
+  if (Array.isArray(raw)) {
+    return raw.map((value) => clean(value)).filter(Boolean).slice(0, 8);
+  }
+  const text = clean(raw);
+  if (!text) return [];
+  return text
+    .split(/\n+|\s*[•·▪▸]\s*/)
+    .map((value) => clean(value))
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function buildFallbackInstructions(type, stepName, focusArea, deityTheme, index) {
+  const name = clean(stepName) || "이 동작";
+  const focus = clean(focusArea) || "전신 균형";
+  const deity = clean(deityTheme) || "수호 에너지";
+  const templatesByType = {
+    Warmup: [
+      `${name}에 들어가기 전, ${focus}이 깨어나는 감각을 천천히 확인하며 가동 범위를 넓혀주세요.`,
+      `들이숨마다 척추를 길게 세우고 날숨마다 어깨와 턱의 힘을 부드럽게 풀어 ${deity}의 흐름을 맞이합니다.`,
+      `통증이 아니라 부드러운 열감이 올라오는 지점까지만 움직이며 몸의 준비도를 먼저 읽어주세요.`,
+    ],
+    Asana: [
+      `${name} 자세에서 발과 골반의 정렬을 먼저 세우고, ${focus}에 힘이 모이는 지점을 분명히 느껴주세요.`,
+      `들이숨에는 공간을 만들고 날숨에는 불필요한 긴장을 내려놓으며 자세를 억지로 밀어붙이지 않습니다.`,
+      `${deity}의 상징을 떠올리듯 시선과 호흡을 한 점에 모아 자세의 중심을 안정적으로 유지하세요.`,
+    ],
+    Pranayama: [
+      `${name} 호흡에서는 템포보다 균일함이 중요합니다. 한 호흡이 다음 호흡으로 매끄럽게 이어지게 만드세요.`,
+      `가슴보다 아랫배와 옆구리의 확장을 먼저 느끼며 호흡 리듬이 ${focus} 전반을 정돈하도록 둡니다.`,
+      `어지럽거나 답답하면 즉시 길이를 줄이고 자연 호흡으로 돌아와 자율신경의 안정이 우선되게 하세요.`,
+    ],
+    Meditation: [
+      `${name} 명상에서는 생각을 비우려 하기보다 떠오르는 흐름을 조용히 바라보며 집중의 결을 가다듬습니다.`,
+      `들이숨마다 의식이 또렷해지고 날숨마다 눈가와 혀, 턱의 미세한 긴장이 녹아내리는 것을 느껴보세요.`,
+      `${deity}와 연결된 상징색이나 빛을 마음속에 띄우며 지금 필요한 감정적 회복 포인트를 붙잡으세요.`,
+    ],
+    Relaxation: [
+      `${name} 단계에서는 몸을 바닥에 맡기고 ${focus}에 남은 잔여 긴장이 숨과 함께 사라지도록 둡니다.`,
+      `발끝에서 정수리까지 천천히 스캔하며 어느 부위도 붙들지 않고 무게를 아래로 내려보내세요.`,
+      `마지막 몇 호흡 동안 ${deity}의 여운이 몸 전체에 퍼지듯 오늘 수련의 안정감을 저장합니다.`,
+    ],
+  };
+
+  const templates = templatesByType[type] || templatesByType.Asana;
+  return templates.map((line, offset) => {
+    if (index === 0 && offset === 0) return `첫 단계에서는 ${line}`;
+    return line;
+  });
+}
+
+function normalizeSequenceItem(item, index, meta) {
   const safe = item && typeof item === "object" ? item : {};
   const type = ["Warmup", "Asana", "Pranayama", "Meditation", "Relaxation"].includes(clean(safe.type))
     ? clean(safe.type)
     : "Asana";
+  const instructions = normalizeInstructionList(
+    safe.instructions
+      ?? safe.instruction
+      ?? safe.instruction_text
+      ?? safe.guide
+      ?? safe.guide_text
+      ?? safe.guidance
+      ?? safe.text
+  );
+  const safeName = pickFirstText([safe.english_name, safe.sanskrit_name, safe.name, safe.title]) || "Guided Step (가이드 동작)";
+  const fallbackInstructions = buildFallbackInstructions(
+    type,
+    safeName,
+    meta?.focus_area,
+    meta?.deity_theme,
+    index
+  );
 
   return {
     step_number: Number.isFinite(Number(safe.step_number)) ? Number(safe.step_number) : (index + 1),
     type,
     sanskrit_name: clean(safe.sanskrit_name) || "Asana",
-    english_name: clean(safe.english_name) || "Guided Step (가이드 동작)",
+    english_name: safeName,
     duration_seconds: Math.max(30, Number(safe.duration_seconds) || 120),
-    instructions: Array.isArray(safe.instructions)
-      ? safe.instructions.map((x) => clean(x)).filter(Boolean).slice(0, 8)
-      : [],
-    breathing_guide: clean(safe.breathing_guide) || "들이숨 4박, 날숨 6박으로 호흡을 고르게 유지하세요.",
-    benefits_physical: clean(safe.benefits_physical) || "긴장 완화와 순환 개선에 도움이 됩니다.",
-    benefits_spiritual: clean(safe.benefits_spiritual) || "호흡과 주의 집중을 통해 내면 안정감을 회복합니다.",
-    caution: clean(safe.caution) || "통증이 느껴지면 즉시 강도를 낮추고 호흡을 안정시키세요.",
-    visual_cue_ui: clean(safe.visual_cue_ui) || "부드러운 빛이 몸의 중심을 따라 흐르는 장면",
+    instructions: (instructions.length ? instructions : fallbackInstructions).slice(0, 8),
+    breathing_guide: pickFirstText([safe.breathing_guide, safe.breathing, safe.breath]) || "들이숨 4박, 날숨 6박으로 호흡을 고르게 유지하세요.",
+    benefits_physical: pickFirstText([safe.benefits_physical, safe.physical_benefits, safe.body_benefits]) || "긴장 완화와 순환 개선에 도움이 됩니다.",
+    benefits_spiritual: pickFirstText([safe.benefits_spiritual, safe.spiritual_benefits, safe.mythic_meaning, safe.energy_focus]) || "호흡과 주의 집중을 통해 내면 안정감을 회복합니다.",
+    caution: pickFirstText([safe.caution, safe.safety, safe.warning]) || "통증이 느껴지면 즉시 강도를 낮추고 호흡을 안정시키세요.",
+    visual_cue_ui: pickFirstText([safe.visual_cue_ui, safe.visual_cue, safe.visualization]) || "부드러운 빛이 몸의 중심을 따라 흐르는 장면",
   };
 }
 
@@ -194,7 +269,10 @@ function normalizeCoursePayload(candidate, userPrompt) {
 
   const sequenceInput = Array.isArray(parsed.sequence) ? parsed.sequence : [];
   const sequence = (sequenceInput.length ? sequenceInput : fallback.sequence)
-    .map((item, index) => normalizeSequenceItem(item, index))
+    .map((item, index) => normalizeSequenceItem(item, index, {
+      focus_area: clean(meta.focus_area) || fallback.course_metadata.focus_area,
+      deity_theme: clean(meta.deity_theme) || fallback.course_metadata.deity_theme,
+    }))
     .slice(0, 16);
 
   const duration = Number.isFinite(Number(meta.duration_min))

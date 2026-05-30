@@ -1822,20 +1822,25 @@ function playRelativeMusic(offset) {
 
 function buildTypingLines(courseData) {
   const lines = [];
+  const addGuideLine = (text, status) => {
+    const safeText = String(text || '').trim();
+    if (!safeText) return;
+    lines.push({ text: safeText, status: String(status || '').trim() });
+  };
   const meta = courseData?.course_metadata || {};
   const durationMin = Number(meta.duration_min || selectedDuration || 30);
   const deityTheme = meta.deity_theme || (durationMin >= 60 ? '시바 신 · Shiva' : '가네샤 신 · Ganesha');
 
   // ── 오프닝 (9줄) ──
-  lines.push(`✦ ${meta.title || '신성한 요가 수련'} — ${durationMin}분 여정 ✦`);
-  lines.push(`수호신: ${deityTheme}  |  차크라: ${meta.chakra_focus || '전체 에너지 센터'}  |  강도: ${meta.intensity || 'Beginner'}`);
-  lines.push(`집중 부위: ${meta.focus_area || '전신 균형'}  |  지금 이 순간, 수련을 위한 공간을 만듭니다.`);
-  lines.push('수련을 시작합니다. 이루려 하지 마십시오. 지금 이 순간에 존재하는 것만으로 충분합니다.');
-  lines.push('어깨를 뒤로 당겨 내리고, 턱 끝을 살짝 들어올려 목 뒤를 길게 합니다.');
-  lines.push('코끝으로 들어오는 공기의 온도를 느낍니다. 들숨에서 배가 먼저 부풀고, 날숨에서 늑골이 천천히 닫힙니다.');
-  lines.push('발바닥 전체가 대지와 연결됩니다. 지구의 에너지가 발바닥을 통해 척추를 따라 정수리로 오릅니다.');
-  lines.push('지금부터 안내 문장은 수련 전체 시간에 걸쳐 리듬 있게 흘러갑니다. 완벽한 동작보다 호흡을 우선하세요.');
-  lines.push('눈을 반 정도 감고 시선을 부드럽게 내립니다. 이제 시작합니다.');
+  addGuideLine(`✦ ${meta.title || '신성한 요가 수련'} — ${durationMin}분 여정 ✦`, '여정 시작');
+  addGuideLine(`수호신: ${deityTheme}  |  차크라: ${meta.chakra_focus || '전체 에너지 센터'}  |  강도: ${meta.intensity || 'Beginner'}`, '세팅 정렬');
+  addGuideLine(`집중 부위: ${meta.focus_area || '전신 균형'}  |  지금 이 순간, 수련을 위한 공간을 만듭니다.`, '집중 영역 정렬');
+  addGuideLine('수련을 시작합니다. 이루려 하지 마십시오. 지금 이 순간에 존재하는 것만으로 충분합니다.', '호흡 정착');
+  addGuideLine('어깨를 뒤로 당겨 내리고, 턱 끝을 살짝 들어올려 목 뒤를 길게 합니다.', '상체 정렬');
+  addGuideLine('코끝으로 들어오는 공기의 온도를 느낍니다. 들숨에서 배가 먼저 부풀고, 날숨에서 늑골이 천천히 닫힙니다.', '호흡 동기화');
+  addGuideLine('발바닥 전체가 대지와 연결됩니다. 지구의 에너지가 발바닥을 통해 척추를 따라 정수리로 오릅니다.', '접지 안정화');
+  addGuideLine('지금부터 안내 문장은 수련 전체 시간에 걸쳐 리듬 있게 흘러갑니다. 완벽한 동작보다 호흡을 우선하세요.', '리듬 안내');
+  addGuideLine('눈을 반 정도 감고 시선을 부드럽게 내립니다. 이제 시작합니다.', '첫 단계 진입');
 
   const steps = Array.isArray(courseData?.sequence) ? courseData.sequence : [];
   const totalSteps = steps.length || 8;
@@ -1876,48 +1881,50 @@ function buildTypingLines(courseData) {
     // ── 스텝 헤더 (4줄) ──
     const dur = step.duration_seconds || 30;
     const durStr = dur >= 60 ? `${Math.floor(dur/60)}분${dur%60 > 0 ? ' '+dur%60+'초' : ''}` : `${dur}초`;
-    lines.push(`━━ ${idx + 1}단계 · ${step.english_name || step.sanskrit_name || 'Yoga Practice'} ━━`);
-    lines.push(`산스크리트: ${step.sanskrit_name || '—'}  |  유형: ${step.type || 'Asana'}  |  유지: ${durStr}`);
-    lines.push(`신체 효과: ${step.benefits_physical || '전신 순환 강화 및 유연성 향상'}`);
-    lines.push(`신화적 의미: ${step.benefits_spiritual || '신성한 에너지와의 합일 — 자아와 우주의 경계가 사라집니다.'}`);
+    const stepLabel = `${idx + 1}단계 · ${step.english_name || step.sanskrit_name || 'Yoga Practice'}`;
+    addGuideLine(`━━ ${stepLabel} ━━`, stepLabel);
+    addGuideLine(`산스크리트: ${step.sanskrit_name || '—'}  |  유형: ${step.type || 'Asana'}  |  유지: ${durStr}`, `${stepLabel} 준비`);
+    addGuideLine(`신체 효과: ${step.benefits_physical || '전신 순환 강화 및 유연성 향상'}`, `${stepLabel} 효과 인식`);
+    addGuideLine(`신화적 의미: ${step.benefits_spiritual || '신성한 에너지와의 합일 — 자아와 우주의 경계가 사라집니다.'}`, `${stepLabel} 의식 집중`);
 
     // ── 전체 지시사항 ──
     if (Array.isArray(step.instructions) && step.instructions.length) {
-      step.instructions.forEach((ins) => lines.push(ins));
+      step.instructions.forEach((ins, instructionIndex) => addGuideLine(ins, `${stepLabel} 동작 ${instructionIndex + 1}`));
     }
 
     // ── 호흡 안내 + 차크라 집중 + 주의사항 ──
-    lines.push(`호흡 안내: ${step.breathing_guide || '들이숨 4박, 날숨 8박으로 호흡을 길게 연결하세요.'}`);
-    lines.push(`에너지 집중: ${mysticAnchors[idx % mysticAnchors.length]}`);
-    if (step.caution) lines.push(`⚠ 주의: ${step.caution}`);
+    addGuideLine(`호흡 안내: ${step.breathing_guide || '들이숨 4박, 날숨 8박으로 호흡을 길게 연결하세요.'}`, `${stepLabel} 호흡`);
+    addGuideLine(`에너지 집중: ${mysticAnchors[idx % mysticAnchors.length]}`, `${stepLabel} 차크라 집중`);
+    if (step.visual_cue_ui) addGuideLine(`시각화: ${step.visual_cue_ui}`, `${stepLabel} 장면 고정`);
+    if (step.caution) addGuideLine(`⚠ 주의: ${step.caution}`, `${stepLabel} 안전 체크`);
 
     // ── 유도 사이클 (적응형 개수) ──
     for (let c = 1; c <= cyclesNeeded; c++) {
-      lines.push(`${idx+1}단계 — 호흡 사이클 ${c}/${cyclesNeeded} · 들숨에서 자세를 1% 더 열고, 날숨에서 중력에 완전히 맡기십시오.`);
-      lines.push(`${idx+1}단계 — 정렬 확인 ${c} · ${alignmentCues[(idx + c) % alignmentCues.length]}`);
-      lines.push(`${idx+1}단계 — 내면 집중 ${c} · ${mysticAnchors[(idx + c) % mysticAnchors.length]}`);
-      lines.push(`${idx+1}단계 — 신체 감각 ${c} · 지금 가장 강하게 느껴지는 감각에 의식을 완전히 고정하십시오. 그것이 이 순간 수련의 중심입니다.`);
-      lines.push(`${idx+1}단계 — 호흡 심화 ${c} · ${breathCues[(idx + c) % breathCues.length]}`);
+      addGuideLine(`${idx+1}단계 — 호흡 사이클 ${c}/${cyclesNeeded} · 들숨에서 자세를 1% 더 열고, 날숨에서 중력에 완전히 맡기십시오.`, `${stepLabel} 호흡 사이클 ${c}`);
+      addGuideLine(`${idx+1}단계 — 정렬 확인 ${c} · ${alignmentCues[(idx + c) % alignmentCues.length]}`, `${stepLabel} 정렬 점검 ${c}`);
+      addGuideLine(`${idx+1}단계 — 내면 집중 ${c} · ${mysticAnchors[(idx + c) % mysticAnchors.length]}`, `${stepLabel} 내면 집중 ${c}`);
+      addGuideLine(`${idx+1}단계 — 신체 감각 ${c} · 지금 가장 강하게 느껴지는 감각에 의식을 완전히 고정하십시오. 그것이 이 순간 수련의 중심입니다.`, `${stepLabel} 감각 관찰 ${c}`);
+      addGuideLine(`${idx+1}단계 — 호흡 심화 ${c} · ${breathCues[(idx + c) % breathCues.length]}`, `${stepLabel} 호흡 심화 ${c}`);
       // 4사이클마다 중간 점검 (2줄 추가)
       if (c % 4 === 0) {
-        lines.push(`${idx+1}단계 — ${c}사이클 완료 · 자세에서 잠깐 풀어냅니다. 몸 전체를 스캔하며 긴장이 남은 부위에 의도적으로 호흡을 보냅니다.`);
-        lines.push(`다시 자세로 돌아옵니다. 처음보다 5mm 더 깊이, 더 자연스럽게.`);
+        addGuideLine(`${idx+1}단계 — ${c}사이클 완료 · 자세에서 잠깐 풀어냅니다. 몸 전체를 스캔하며 긴장이 남은 부위에 의도적으로 호흡을 보냅니다.`, `${stepLabel} 중간 리셋`);
+        addGuideLine(`다시 자세로 돌아옵니다. 처음보다 5mm 더 깊이, 더 자연스럽게.`, `${stepLabel} 재진입`);
       }
     }
 
     // ── 스텝 마무리 (2줄) ──
-    lines.push(`이 자세에서 마지막 3호흡을 완전히 채웁니다. 시선은 부드럽고, 목 뒤는 길게.`);
-    lines.push(`다음 자세로 천천히 이동합니다 — 호흡이 동작을 먼저 이끌게 하십시오.`);
+    addGuideLine(`이 자세에서 마지막 3호흡을 완전히 채웁니다. 시선은 부드럽고, 목 뒤는 길게.`, `${stepLabel} 마무리`);
+    addGuideLine(`다음 자세로 천천히 이동합니다 — 호흡이 동작을 먼저 이끌게 하십시오.`, `${stepLabel} 전환`);
   });
 
   // ── 클로징 (5줄) ──
   if (courseData?.closing_mantra) {
-    lines.push(`✦ 마무리 만트라: ${courseData.closing_mantra}`);
+    addGuideLine(`✦ 마무리 만트라: ${courseData.closing_mantra}`, '마무리 만트라');
   }
-  lines.push('두 손바닥을 가볍게 비벼 체온을 올립니다. 따뜻해진 손을 눈 위에 올려 잔광을 느껴보세요.');
-  lines.push('천천히 손을 내려놓습니다. 눈을 감은 채 오늘 수련에서 가장 깊이 남은 감각을 기억합니다.');
-  lines.push('이 수련이 당신의 하루 전체에 스며들 것입니다. 오늘 이 고요함을 간직하십시오.');
-  lines.push('수련이 끝났습니다. 눈을 감고 3번의 호흡으로 심신의 중심을 다시 확인해 주세요.');
+  addGuideLine('두 손바닥을 가볍게 비벼 체온을 올립니다. 따뜻해진 손을 눈 위에 올려 잔광을 느껴보세요.', '에너지 회수');
+  addGuideLine('천천히 손을 내려놓습니다. 눈을 감은 채 오늘 수련에서 가장 깊이 남은 감각을 기억합니다.', '감각 저장');
+  addGuideLine('이 수련이 당신의 하루 전체에 스며들 것입니다. 오늘 이 고요함을 간직하십시오.', '여운 정착');
+  addGuideLine('수련이 끝났습니다. 눈을 감고 3번의 호흡으로 심신의 중심을 다시 확인해 주세요.', '수련 완료');
   return lines;
 }
 
@@ -1980,7 +1987,11 @@ function scheduleFadeStep() {
     return;
   }
 
-  const text = typingLines[typingLineIdx];
+  const entry = typingLines[typingLineIdx] || {};
+  const text = typeof entry === 'string' ? entry : String(entry.text || '');
+  const statusText = typeof entry === 'string' ? '' : String(entry.status || '');
+  const statusEl = document.getElementById('autoGuideStatus');
+  if (statusEl && statusText) statusEl.textContent = statusText;
 
   // 1단계: 현재 텍스트 fade-out
   out.style.transition = 'opacity 0.7s ease, transform 0.7s ease';
@@ -2264,6 +2275,54 @@ const typeKo = {
 function renderCourse(data) {
   const meta = data.course_metadata;
   const durationMin = Number(meta?.duration_min || selectedDuration || 30);
+  const steps = Array.isArray(data.sequence) ? data.sequence : [];
+  const summaryChips = [
+    `${durationMin}분 자동 유도`,
+    `${steps.length || 0}개 단계`,
+    `${meta.intensity || 'Beginner'} 강도`,
+    meta.focus_area || '전신 균형',
+  ].filter(Boolean);
+  const sequenceMarkup = steps.map((step, index) => {
+    const parts = String(step.english_name || '').split(/\s*\(([^)]*)\)/);
+    const englishName = (parts[0] || step.english_name || '').trim();
+    const koreanName = parts[1] ? parts[1].trim() : '';
+    const instructions = Array.isArray(step.instructions) ? step.instructions : [];
+    const typeClass = `type-${escapeHtml(step.type || 'Asana')}`;
+    return `
+      <article class="step-card${index === 0 ? ' expanded' : ''}" style="animation-delay:${(index * 0.08).toFixed(2)}s">
+        <button type="button" class="step-header" onclick="toggleStep(this.closest('.step-card'))" aria-label="${escapeHtml(englishName || `Step ${index + 1}`)} 단계 열기">
+          <div class="step-number ${typeClass}">${escapeHtml(String(step.step_number || index + 1))}</div>
+          <div class="step-names">
+            <div class="step-sanskrit">${escapeHtml(step.sanskrit_name || '—')}</div>
+            <div class="step-english">${escapeHtml(englishName || step.sanskrit_name || 'Yoga Practice')}</div>
+            <div class="step-english-ko">${escapeHtml(koreanName || typeKo[step.type] || '가이드 단계')}</div>
+          </div>
+          <div class="step-duration">${escapeHtml(formatDuration(Number(step.duration_seconds) || 0))}<span>${index === 0 ? '▴ 닫기' : '▾ 자세히'}</span></div>
+        </button>
+        <div class="step-body">
+          <ul class="instruction-list">${instructions.map((instruction) => `<li>${escapeHtml(instruction)}</li>`).join('')}</ul>
+          <div class="info-grid">
+            <div class="info-box breathing">
+              <div class="info-box-label">Breath</div>
+              <div class="info-box-text">${escapeHtml(step.breathing_guide || '들이숨 4박, 날숨 6박')}</div>
+            </div>
+            <div class="info-box physical">
+              <div class="info-box-label">Body</div>
+              <div class="info-box-text">${escapeHtml(step.benefits_physical || '긴장 완화와 순환 개선')}</div>
+            </div>
+            <div class="info-box spiritual">
+              <div class="info-box-label">Spirit</div>
+              <div class="info-box-text">${escapeHtml(step.benefits_spiritual || '내면 안정감 회복')}</div>
+            </div>
+            <div class="info-box caution">
+              <div class="info-box-label">Caution</div>
+              <div class="info-box-text">${escapeHtml(step.caution || '통증 시 즉시 강도를 낮추세요.')}</div>
+            </div>
+          </div>
+          <div class="visual-cue">${escapeHtml(step.visual_cue_ui || '부드러운 빛이 몸의 중심을 따라 흐르는 장면')}</div>
+        </div>
+      </article>`;
+  }).join('');
 
   const output = document.getElementById('courseOutput');
   output.innerHTML = `
@@ -2273,6 +2332,9 @@ function renderCourse(data) {
       <div class="practice-label">Step 3 · Practice Flow</div>
       <h3 class="practice-title">Mystic Auto-Guided Yoga Chamber</h3>
       <p class="practice-desc">전체 여정은 자동 진행됩니다. 안내 문장을 따라 자세와 호흡을 맞추며 고요하게 수련하세요.</p>
+      <div class="meta-grid" style="margin-top:0;margin-bottom:18px;">
+        ${summaryChips.map((chip) => `<div class="meta-item"><div class="meta-value">${escapeHtml(chip)}</div></div>`).join('')}
+      </div>
       <div class="auto-guide-wrap">
         <div class="auto-guide-head">
           <strong>Auto Sacred Guidance</strong>
@@ -2312,6 +2374,9 @@ function renderCourse(data) {
       <div class="mantra-text">${escapeHtml((data.closing_mantra || '').split('·')[0])}</div>
       <div class="mantra-translation">${escapeHtml(data.closing_mantra || '')}</div>
     </div>
+
+    <div class="sequence-header">Sacred Sequence · 단계별 수련 지도</div>
+    ${sequenceMarkup}
 
     <button class="restart-btn" onclick="restartJourney()">✦ 새로운 여정 시작하기 ✦</button>
   `;
