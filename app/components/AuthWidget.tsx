@@ -14,6 +14,10 @@ type AuthUser = {
   image?: string;
   role: "user" | "admin";
   points?: number;
+  profileSubscription?: {
+    tier?: string;
+    isActive?: boolean;
+  };
 };
 
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
@@ -31,6 +35,7 @@ export default function AuthWidget() {
     });
 
     const syncUser = () => {
+      primeAuthFromCache();
       refreshAuth({ silent: true }).catch(() => {
         // transient failures should not break header rendering
       });
@@ -75,6 +80,23 @@ export default function AuthWidget() {
     const displayImage = String(user.image || "");
     const initial = displayName.trim().charAt(0) || "사";
     const displayPoints = user.points ?? 0;
+    const subscriptionTier = user.profileSubscription?.isActive
+      ? String(user.profileSubscription?.tier || "free").toLowerCase()
+      : "free";
+    const subscriptionLabel = subscriptionTier === "vvip"
+      ? "VVIP"
+      : subscriptionTier === "premium"
+        ? "PREMIUM"
+        : subscriptionTier === "standard"
+          ? "STANDARD"
+          : "FREE";
+    const subscriptionCls = subscriptionTier === "vvip"
+      ? "border-purple-300/50 bg-purple-500/15 text-purple-100"
+      : subscriptionTier === "premium"
+        ? "border-rose-300/50 bg-rose-500/15 text-rose-100"
+        : subscriptionTier === "standard"
+          ? "border-amber-300/50 bg-amber-500/15 text-amber-100"
+          : "border-slate-400/30 bg-slate-700/40 text-slate-300";
     return (
       <div className="flex items-center gap-2">
         {displayImage ? (
@@ -111,6 +133,13 @@ export default function AuthWidget() {
           title="포인트 충전/내역"
         >
           {displayPoints.toLocaleString()}P
+        </Link>
+        <Link
+          href="/points"
+          className={`rounded-lg border px-2.5 py-1 text-xs font-semibold transition ${subscriptionCls}`}
+          title="현재 구독 티어"
+        >
+          {subscriptionLabel}
         </Link>
         <Link
           href="/me"

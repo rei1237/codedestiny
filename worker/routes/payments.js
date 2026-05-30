@@ -45,6 +45,13 @@ const SUBSCRIPTION_PAYMENT_PLANS = {
   vvip: { tier: "vvip", name: "VVIP 꿀단지", wonPrice: 59000, durationDays: 30, profileLimit: 15 },
 };
 
+const SUBSCRIPTION_TIER_RANK = Object.freeze({
+  free: 0,
+  standard: 1,
+  premium: 2,
+  vvip: 3,
+});
+
 function resolveSubscriptionPlan(tierRaw) {
   const tier = String(tierRaw || "").trim().toLowerCase();
   return SUBSCRIPTION_PAYMENT_PLANS[tier] || null;
@@ -85,6 +92,33 @@ function hasActiveSubscriptionConflict(sub) {
   const tier = String(sub?.tier || "free").toLowerCase();
   const expAt = toValidDate(sub?.expiresAt);
   return tier !== "free" && !!expAt && expAt.getTime() > Date.now();
+}
+
+function getTierRank(tierRaw) {
+  const tier = String(tierRaw || "free").trim().toLowerCase();
+  return Number(SUBSCRIPTION_TIER_RANK[tier] || 0);
+}
+
+function evaluateSubscriptionTierTransition(currentSub, requestedTierRaw) {
+  const requestedTier = String(requestedTierRaw || "").trim().toLowerCase();
+  const requestedRank = getTierRank(requestedTier);
+  const active = hasActiveSubscriptionConflict(currentSub);
+  if (!active) {
+    return { allow: true, code: "OK", isUpgrade: false, activeTier: "free" };
+  }
+
+  const activeTier = String(currentSub?.tier || "free").trim().toLowerCase();
+  const activeRank = getTierRank(activeTier);
+
+  if (requestedRank > activeRank) {
+    return { allow: true, code: "UPGRADE_ALLOWED", isUpgrade: true, activeTier };
+  }
+
+  if (requestedRank < activeRank) {
+    return { allow: false, code: "SUBSCRIPTION_DOWNGRADE_BLOCKED", isUpgrade: false, activeTier };
+  }
+
+  return { allow: false, code: "SUBSCRIPTION_CONFLICT", isUpgrade: false, activeTier };
 }
 
 function parseCustomDataUserId(customData) {
@@ -966,10 +1000,14 @@ async function handleSubscriptionPrepare(request, auth) {
     return json({ message: "User not found." }, { status: 404 });
   }
 
-  if (hasActiveSubscriptionConflict(currentUser?.profileSubscription)) {
+  const transition = evaluateSubscriptionTierTransition(currentUser?.profileSubscription, tier);
+  if (!transition.allow) {
     return json({
-      message: "An active subscription already exists. Concurrent subscriptions are not allowed.",
-      code: "SUBSCRIPTION_CONFLICT",
+      message: transition.code === "SUBSCRIPTION_DOWNGRADE_BLOCKED"
+        ? "A higher-tier subscription is currently active. Lower-tier purchase is disabled."
+        : "An active subscription of the same tier already exists. Concurrent subscriptions are not allowed.",
+      code: transition.code,
+      activeTier: transition.activeTier,
     }, { status: 409 });
   }
 
@@ -1175,10 +1213,14 @@ async function handleSubscriptionConfirm(request, env, auth) {
   const customerUid = customerUidFromClient || buildSubscriptionCustomerUid(auth.userId);
 
   const existingUser = await User.findById(auth.userId).select("profileSubscription").lean();
-  if (hasActiveSubscriptionConflict(existingUser?.profileSubscription)) {
+  const transition = evaluateSubscriptionTierTransition(existingUser?.profileSubscription, tier);
+  if (!transition.allow) {
     return json({
-      message: "An active subscription already exists. Concurrent subscriptions are not allowed.",
-      code: "SUBSCRIPTION_CONFLICT",
+      message: transition.code === "SUBSCRIPTION_DOWNGRADE_BLOCKED"
+        ? "A higher-tier subscription is currently active. Lower-tier purchase is disabled."
+        : "An active subscription of the same tier already exists. Concurrent subscriptions are not allowed.",
+      code: transition.code,
+      activeTier: transition.activeTier,
     }, { status: 409 });
   }
 

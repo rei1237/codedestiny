@@ -13,6 +13,7 @@ export const PREMIUM_UNLOCK_POLICY = Object.freeze({
   vedicPremium: ["premium-veda", "premiumDivinationPack"],
   celestialHarmony: ["premiumDivinationPack"],
   soulOriginKarma: ["premiumDivinationPack"],
+  fptiPremium: ["premium-fpti-report"],
 });
 
 function uniqueStrings(values) {

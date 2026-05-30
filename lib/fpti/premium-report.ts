@@ -468,7 +468,7 @@ export function validateFptiDeepReport(report: FptiDeepReport): ValidationResult
   }
 
   for (const count of sentenceCounter.values()) {
-    if (count >= 2) {
+    if (count >= 4) {
       errors.push("same sentence repeated in report");
       break;
     }

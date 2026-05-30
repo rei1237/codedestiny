@@ -260,6 +260,18 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   },
 ];
 
+const SUBSCRIPTION_TIER_RANK: Record<SubscriptionTier, number> = {
+  free: 0,
+  standard: 1,
+  premium: 2,
+  vvip: 3,
+};
+
+function getSubscriptionTierRank(tier: SubscriptionTier | string | null | undefined) {
+  const normalized = String(tier || "free").toLowerCase() as SubscriptionTier;
+  return SUBSCRIPTION_TIER_RANK[normalized] ?? 0;
+}
+
 /** 패키지별 기본 코인 수 (보너스 제외) */
 const BASE_COINS: Record<string, number> = {
   sample: 30,
@@ -582,6 +594,7 @@ function SubscriptionSection({
   const adminTierPlan = adminTestTier !== "off"
     ? SUBSCRIPTION_PLANS.find((plan) => plan.id === adminTestTier)
     : null;
+  const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;
 
   return (
     <section
@@ -794,6 +807,9 @@ function SubscriptionSection({
           const isCurrentActive = subscription.isActive && subscription.tier === plan.id;
           const isHighlighted = highlightedPlan === plan.id;
           const canAfford = currentPoints >= plan.coins;
+          const planTierRank = getSubscriptionTierRank(plan.id);
+          const lowerTierBlocked = !isFlowerAdminMode && activeTierRank > 0 && planTierRank < activeTierRank;
+          const ctaDisabled = isProcessing || lowerTierBlocked || (!isFlowerAdminMode && !canAfford);
           return (
             <div
               key={plan.id}
@@ -804,6 +820,7 @@ function SubscriptionSection({
                   : isHighlighted
                     ? `${theme.card} ring-2 ring-rose-400/70 shadow-[0_10px_24px_rgba(244,63,94,0.22)]`
                     : `${theme.card} shadow-[0_4px_18px_rgba(120,80,10,0.09)]`,
+                lowerTierBlocked ? "opacity-65" : "",
               ].join(" ")}
             >
               {/* 뱃지 */}
@@ -873,7 +890,7 @@ function SubscriptionSection({
               <button
                 type="button"
                 onClick={() => onSubscribe(plan)}
-                disabled={isProcessing || (!isFlowerAdminMode && !canAfford)}
+                disabled={ctaDisabled}
                 className={[
                   "mt-4 w-full rounded-[12px] px-3 py-2.5 text-[13px] font-black text-white shadow transition-all",
                   "hover:-translate-y-0.5 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50",
@@ -884,12 +901,20 @@ function SubscriptionSection({
               >
                 {isCurrentActive
                   ? "🔄 갱신하기 (30일 연장)"
+                  : lowerTierBlocked
+                    ? "상위 티어 사용 중 (구매 불가)"
                   : isHighlighted && canAfford
                     ? `${theme.icon} 이 플랜으로 시작`
                   : canAfford
                     ? `${theme.icon} ${plan.title} 시작`
                     : `코인 부족 (${plan.coins - currentPoints}개 더 필요)`}
               </button>
+
+              {lowerTierBlocked && (
+                <p className="mt-2 text-[11px] font-semibold text-violet-700">
+                  현재 상위 티어 구독이 활성화되어 하위 플랜은 선택할 수 없습니다.
+                </p>
+              )}
             </div>
           );
         })}
@@ -1241,6 +1266,16 @@ export default function PointsPage() {
       user.points = points;
       persistSanitizedAuthUser(user);
     } catch (e) { /* noop */ }
+
+    try {
+      const payload = { source: "points-page", event: "points", at: Date.now() };
+      window.dispatchEvent(new CustomEvent("cd:auth-changed", { detail: payload }));
+      if (typeof BroadcastChannel !== "undefined") {
+        const channel = new BroadcastChannel("code-destiny-auth-sync");
+        channel.postMessage(payload);
+        channel.close();
+      }
+    } catch (e) { /* noop */ }
   }, []);
 
   /** 구독 성공 후 legacy destiny-profile.js가 읽는 localStorage 캐시를 갱신합니다. */
@@ -1248,16 +1283,34 @@ export default function PointsPage() {
     try {
       const user = readSanitizedAuthUser();
       const scope = resolveAuthScopeFromUser(user) || "guest";
+      const nextUser = {
+        ...(user || {}),
+        profileSubscription: {
+          tier: sub.tier || "free",
+          isActive: !!sub.isActive,
+          profileLimit: sub.profileLimit ?? 1,
+          expiresAt: sub.expiresAt || null,
+        },
+      };
       const payload = JSON.stringify({
         tier: sub.tier || "free",
         isActive: !!sub.isActive,
         profileLimit: sub.profileLimit ?? 1,
         expiresAt: sub.expiresAt || null,
       });
+      persistSanitizedAuthUser(nextUser);
       const scopedKey = `fortune_profile_subscription::${scope}`;
       localStorage.setItem(scopedKey, payload);
       localStorage.setItem("fortune_profile_subscription", payload);
       localStorage.setItem("fortune_profile_subscription_owner", scope);
+
+      const eventPayload = { source: "points-page", event: "subscription", at: Date.now() };
+      window.dispatchEvent(new CustomEvent("cd:auth-changed", { detail: eventPayload }));
+      if (typeof BroadcastChannel !== "undefined") {
+        const channel = new BroadcastChannel("code-destiny-auth-sync");
+        channel.postMessage(eventPayload);
+        channel.close();
+      }
     } catch (e) { /* noop */ }
   }, []);
 
@@ -1893,6 +1946,8 @@ export default function PointsPage() {
   const handleSubscribeLegacy = async (plan: SubscriptionPlan) => {
     const isFlowerAdmin = authUser?.role === "admin" && isFlowerAdminSessionClient();
     const flowerAdminToken = getFlowerAdminTokenClient();
+    const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;
+    const requestedTierRank = getSubscriptionTierRank(plan.id);
 
     if (!authUser) {
       router.replace("/login?next=%2Fpoints");
@@ -1900,6 +1955,10 @@ export default function PointsPage() {
     }
     if (!isFlowerAdmin && currentPoints < plan.coins) {
       pushToast("error", `코인이 부족합니다. ${plan.coins}코인 필요 (보유: ${currentPoints}코인)`);
+      return;
+    }
+    if (!isFlowerAdmin && activeTierRank > requestedTierRank) {
+      pushToast("info", "현재 상위 티어 구독이 활성화되어 하위 플랜은 신청할 수 없습니다.");
       return;
     }
     setIsProcessing(true);
@@ -1958,10 +2017,18 @@ export default function PointsPage() {
   };
 
   const handleSubscribe = async (plan: SubscriptionPlan) => {
+    const isFlowerAdmin = authUser?.role === "admin" && isFlowerAdminSessionClient();
     const flowerAdminToken = getFlowerAdminTokenClient();
+    const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;
+    const requestedTierRank = getSubscriptionTierRank(plan.id);
 
     if (!authUser) {
       router.replace("/login?next=%2Fpoints");
+      return;
+    }
+
+    if (!isFlowerAdmin && activeTierRank > requestedTierRank) {
+      pushToast("info", "현재 상위 티어 구독이 활성화되어 하위 플랜은 신청할 수 없습니다.");
       return;
     }
 

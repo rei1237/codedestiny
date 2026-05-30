@@ -719,6 +719,24 @@ async function handleBalance(request, env) {
   }, "코인 잔액을 조회했습니다.");
 }
 
+async function readSubscriptionStatusSnapshot(request, env) {
+  try {
+    const delegatedRequest = buildRoutedRequest(request, "/api/fortune/pig-coin/profile-subscription/status", "GET");
+    const delegatedResponse = await handleFortuneRoutes(delegatedRequest, env);
+    if (!delegatedResponse.ok) {
+      return { isActive: false, tier: "free", freeLimit: 0 };
+    }
+    const payload = await readPayloadSafe(delegatedResponse);
+    return {
+      isActive: Boolean(payload?.isActive),
+      tier: String(payload?.tier || "free"),
+      freeLimit: Number(payload?.freeLimit || 0),
+    };
+  } catch (_) {
+    return { isActive: false, tier: "free", freeLimit: 0 };
+  }
+}
+
 async function handleUnlockStatus(request, env) {
   const url = new URL(request.url);
   const categoryKey = String(url.searchParams.get("categoryKey") || "").trim();
@@ -743,13 +761,26 @@ async function handleUnlockStatus(request, env) {
   const pricing = pricingResult.pricing;
   const unlocked = Boolean(unlockMap[pricing.featureKey]);
   const currentBalance = Number(data.balance || 0);
+  const subscription = await readSubscriptionStatusSnapshot(request, env);
+
+  const access = buildAccessDecision({
+    pricing,
+    authenticated: Boolean(data.authenticated),
+    balance: currentBalance,
+    unlockMap,
+    subscription,
+  });
 
   return success({
     pricing,
     unlocked,
+    accessReason: access.reason,
+    subscriptionTier: subscription.tier,
+    freeLimit: Number(subscription.freeLimit || 0),
+    freeBySubscription: access.reason === ACCESS_DECISION_REASONS.SUBSCRIPTION_ACTIVE,
     currentBalance,
-    requiredCoins: Number(pricing.cost || 0),
-    canAccess: unlocked || currentBalance >= Number(pricing.cost || 0),
+    requiredCoins: access.reason === ACCESS_DECISION_REASONS.SUBSCRIPTION_ACTIVE ? 0 : Number(pricing.cost || 0),
+    canAccess: Boolean(access.allowed),
   }, "기능 접근 상태를 조회했습니다.");
 }
 

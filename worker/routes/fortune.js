@@ -341,6 +341,17 @@ const PROFILE_SUB_PLANS = {
 };
 
 const VALID_SUB_TIERS = new Set(["standard", "premium", "vvip"]);
+const SUBSCRIPTION_TIER_RANK = Object.freeze({
+  free: 0,
+  standard: 1,
+  premium: 2,
+  vvip: 3,
+});
+
+function getSubscriptionTierRank(tierRaw) {
+  const tier = String(tierRaw || "free").trim().toLowerCase();
+  return Number(SUBSCRIPTION_TIER_RANK[tier] || 0);
+}
 
 const SHARE_REWARD_AMOUNT = 10;
 const SHARE_REWARD_DAILY_LIMIT = 3;
@@ -2657,7 +2668,20 @@ async function handleSubscribe(request, auth) {
   const existingTier = String(existingUser?.profileSubscription?.tier || "free");
   const existingSource = String(existingUser?.profileSubscription?.source || "coin").toLowerCase();
   const existingExpAt = toValidDate(existingUser?.profileSubscription?.expiresAt);
-  if (existingSource === "card" && existingTier !== "free" && existingExpAt && existingExpAt > now) {
+  const hasActiveSubscription = Boolean(existingExpAt && existingExpAt > now && existingTier !== "free");
+  const requestedTierRank = getSubscriptionTierRank(reqTier);
+  const activeTierRank = hasActiveSubscription ? getSubscriptionTierRank(existingTier) : 0;
+
+  if (hasActiveSubscription && requestedTierRank < activeTierRank) {
+    return json({
+      message: "상위 티어 구독 이용 중에는 하위 티어를 신청할 수 없습니다.",
+      code: "SUBSCRIPTION_DOWNGRADE_BLOCKED",
+      activeTier: existingTier,
+      requestedTier: reqTier,
+    }, { status: 409 });
+  }
+
+  if (existingSource === "card" && hasActiveSubscription && requestedTierRank <= activeTierRank) {
     return json({
       message: "카드 정기결제가 활성화되어 있어 코인 구독을 동시에 신청할 수 없습니다.",
       code: "SUBSCRIPTION_CONFLICT",

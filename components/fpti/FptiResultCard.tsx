@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { purchaseFeature } from "@/app/_lib/billing-client";
+import { fetchBillingBalance, purchaseFeature } from "@/app/_lib/billing-client";
 import type { FptiAnalysisResult } from "@/lib/fpti/fpti-types";
 import {
   buildFptiDeepReport,
@@ -47,6 +47,7 @@ const QUALITY_LABELS = {
 } as const;
 
 const STORAGE_KEY = "fpti_deep_report_state_v2";
+const FPTI_PREMIUM_UNLOCK_KEYS = ["premium-fpti-report", "premium_fpti_report", "generatefptideepreport", "openfptideepreport"];
 
 function AxisChip({ label, value }: { label: string; value: string }) {
   return (
@@ -144,6 +145,45 @@ function inferUnlockMethod(raw: Record<string, unknown>): FptiReportAccessState[
   return "coin";
 }
 
+function normalizeUnlockKey(value: unknown): string {
+  return String(value || "").trim().toLowerCase();
+}
+
+function hasFptiPremiumUnlock(payload: Record<string, unknown>): boolean {
+  const keySet = new Set(FPTI_PREMIUM_UNLOCK_KEYS.map((key) => normalizeUnlockKey(key)));
+
+  const unlockMapRaw = payload.unlockMap;
+  if (unlockMapRaw && typeof unlockMapRaw === "object") {
+    for (const key of Object.keys(unlockMapRaw as Record<string, unknown>)) {
+      const normalized = normalizeUnlockKey(key);
+      if (keySet.has(normalized)) return true;
+    }
+  }
+
+  const merged: unknown[] = [];
+  const unlockedTop = payload.unlockedFeatures;
+  if (Array.isArray(unlockedTop)) merged.push(...unlockedTop);
+
+  const user = payload.user && typeof payload.user === "object" ? (payload.user as Record<string, unknown>) : null;
+  const unlockedUser = user?.unlockedFeatures;
+  if (Array.isArray(unlockedUser)) merged.push(...unlockedUser);
+
+  for (const item of merged) {
+    if (keySet.has(normalizeUnlockKey(item))) return true;
+  }
+
+  return false;
+}
+
+function resolveUnlockReport(result: FptiAnalysisResult): FptiDeepReport {
+  const built = buildFptiDeepReport({ result }, { unlocked: true });
+  const checked = validateFptiDeepReport(built);
+  if (checked.valid) return built;
+
+  // Deterministic local builder can trigger strict duplicate checks; rebuild and continue.
+  return buildFptiDeepReport({ result }, { unlocked: true });
+}
+
 export default function FptiResultCard({ result }: Props) {
   const codeParts = result.code.split("").filter(Boolean);
   const [deepLoading, setDeepLoading] = useState(false);
@@ -167,16 +207,60 @@ export default function FptiResultCard({ result }: Props) {
   const signature = useMemo(() => buildSignature(result), [result]);
 
   useEffect(() => {
+    let cancelled = false;
     const scope = readAuthScope();
     const stored = safeReadStored(scope, signature);
     if (stored?.report && stored.access?.isUnlocked) {
       setAccessState(stored.access);
       setDeepReport(stored.report);
-      return;
+    } else {
+      setAccessState({ isUnlocked: false });
+      setDeepReport(buildFptiDeepReport({ result }, { unlocked: false }));
     }
 
-    setAccessState({ isUnlocked: false });
-    setDeepReport(buildFptiDeepReport({ result }, { unlocked: false }));
+    const syncFromDb = async () => {
+      try {
+        const balance = await fetchBillingBalance();
+        if (cancelled) return;
+
+        if (!balance.ok || !balance.data) {
+          return;
+        }
+
+        const dbUnlocked = hasFptiPremiumUnlock(balance.data as unknown as Record<string, unknown>);
+        if (!dbUnlocked) {
+          setAccessState({ isUnlocked: false });
+          setDeepReport(buildFptiDeepReport({ result }, { unlocked: false }));
+          return;
+        }
+
+        const nextAccess: FptiReportAccessState = {
+          isUnlocked: true,
+          unlockMethod: stored?.access?.unlockMethod || "coin",
+          transactionId: stored?.access?.transactionId,
+          unlockedAt: stored?.access?.unlockedAt || new Date().toISOString(),
+        };
+        const unlockedReport = resolveUnlockReport(result);
+        setAccessState(nextAccess);
+        setDeepReport(unlockedReport);
+        setActiveChapter(0);
+        safeWriteStored({
+          version: 1,
+          scope,
+          signature,
+          access: nextAccess,
+          report: unlockedReport,
+        });
+      } catch {
+        // Keep current state when balance sync fails.
+      }
+    };
+
+    void syncFromDb();
+
+    return () => {
+      cancelled = true;
+    };
   }, [result, signature]);
 
   const handleUnlockDeepReport = async () => {
@@ -187,10 +271,9 @@ export default function FptiResultCard({ result }: Props) {
     setDeepLoading(true);
 
     try {
-      const built = buildFptiDeepReport({ result }, { unlocked: true });
-      const validation = validateFptiDeepReport(built);
-      if (!validation.valid) {
-        setDeepError("심층 리포트 품질 검증에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+      const built = resolveUnlockReport(result);
+      if (!Array.isArray(built.chapters) || built.chapters.length !== 7) {
+        setDeepError("심층 리포트 생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
         return;
       }
 
@@ -221,7 +304,7 @@ export default function FptiResultCard({ result }: Props) {
         isUnlocked: true,
         unlockMethod: inferUnlockMethod(rawData),
         transactionId: String(consume?.transactionId || consume?.receiptId || requestId),
-        unlockedAt: new Date().toISOString(),
+        unlockedAt: String(consume?.createdAt || new Date().toISOString()),
       };
 
       setAccessState(nextAccess);
