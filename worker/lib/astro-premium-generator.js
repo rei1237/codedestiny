@@ -628,6 +628,79 @@ function summarizeAstroChapterForPrompt(chapter) {
   return `${clean(chapter?.title)}: ${sections.map((section) => clean(section?.title)).filter(Boolean).join(" / ")}`.slice(0, 280);
 }
 
+function normalizeAstroHeadingText(value) {
+  return clean(value)
+    .replace(/^[IVXLC]+\.?\s*/i, "")
+    .replace(/^\d+\.?\s*/, "")
+    .replace(/[·•:，,\-–—]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isAstroSectionBodyUsable(body) {
+  const text = sanitizeBody(clean(body));
+  if (text.length < 240) return false;
+  if (hasForbiddenAstroPdfText(text)) return false;
+  if (countRepeatedSentences(text) > 2 || countRepeatedParagraphs(text) > 2) return false;
+  return true;
+}
+
+function getAstroSectionAngle(chapterTitle, sectionTitle) {
+  const text = `${clean(chapterTitle)} ${clean(sectionTitle)}`;
+  if (/사랑|관계|금성|화성|7하우스|애정|파트너/i.test(text)) return "relationship";
+  if (/직업|소명|커리어|MC|10하우스|토성|인정|성과/i.test(text)) return "career";
+  if (/재물|돈|금전|2하우스|8하우스|목성|수입|자원/i.test(text)) return "money";
+  if (/가족|뿌리|4하우스|안정|내면|집/i.test(text)) return "family";
+  if (/그림자|치유|12하우스|명왕성|상실|무의식|회복/i.test(text)) return "healing";
+  if (/노드|성장|운명|방향|과제|습관/i.test(text)) return "growth";
+  if (/ASC|상승궁|첫인상|외적|자기표현|자아|태양|달/i.test(text)) return "identity";
+  return "synthesis";
+}
+
+function buildAstroSectionAppendix(angle, chapterTitle, sectionTitle, signalText) {
+  const shared = `${chapterTitle}의 ${sectionTitle}을 다시 읽을 때는 ${signalText}가 실제 생활에서 어떤 선택 습관으로 이어지는지 확인하는 것이 중요합니다.`;
+  switch (angle) {
+    case "relationship":
+      return `${shared} 관계에서는 상대를 바꾸려 하기보다 반응의 속도, 경계, 기대치의 크기를 조정하는 것이 더 큰 차이를 만듭니다.`;
+    case "career":
+      return `${shared} 커리어에서는 재능보다 구조가 먼저입니다. 역할, 일정, 책임 범위를 명확히 하면 성과가 더 안정적으로 드러납니다.`;
+    case "money":
+      return `${shared} 재정은 크게 벌리는 것보다 흐름을 끊지 않는 운영이 핵심입니다. 지출 리듬과 현금흐름 점검을 함께 설계하세요.`;
+    case "family":
+      return `${shared} 가족과 기반의 문제는 감정 해석보다 생활 리듬의 재정렬이 먼저입니다. 휴식, 공간, 독립성의 균형을 맞추면 회복이 빨라집니다.`;
+    case "healing":
+      return `${shared} 상처를 해석하는 목적은 과거를 반복해서 파헤치는 것이 아니라, 현재의 반응을 덜 자동적으로 바꾸는 데 있습니다.`;
+    case "growth":
+      return `${shared} 성장 과제는 한 번의 결심보다 반복 훈련에서 드러납니다. 익숙한 반응을 멈추고 다른 선택을 한 번 더 시도하는 것이 핵심입니다.`;
+    case "identity":
+      return `${shared} 자기표현은 과장보다 일관성이 중요합니다. 드러남과 숨김의 균형을 맞추면 주변의 해석도 더 정교해집니다.`;
+    default:
+      return `${shared} 이 장은 차트의 개별 신호를 하나의 판단 체계로 묶어, 실제 선택 기준으로 바꾸는 데 초점을 둡니다.`;
+  }
+}
+
+function buildAstroSectionParagraphs({ signalText, chapterTitle, sectionTitle, index, angle }) {
+  const headline = `${chapterTitle}의 ${sectionTitle}`;
+  const angleLabel = {
+    relationship: "관계와 경계",
+    career: "커리어와 책임",
+    money: "재물 흐름과 운영",
+    family: "가족 기반과 회복",
+    healing: "그림자와 치유",
+    growth: "성장과 전환",
+    identity: "자기정렬과 첫인상",
+    synthesis: "전체 통합",
+  }[angle] || "전체 통합";
+
+  return [
+    `${headline}에서는 ${signalText}를 중심으로 ${angleLabel}의 구조를 먼저 봐야 합니다. 이 신호는 단순한 상징이 아니라 반복되는 선택 습관과 반응 패턴을 보여 주는 좌표입니다. 어떤 순간에 빠르게 움직이고, 어떤 순간에 멈춰야 하는지 판단 기준을 세우는 데 바로 연결됩니다.`,
+    `${sectionTitle}을 해석할 때는 강점과 부담을 동시에 읽어야 합니다. 강점만 강조하면 현실성이 떨어지고, 부담만 강조하면 차트가 가진 가능성을 놓치기 쉽습니다. 그래서 현재의 흐름을 사람, 일, 관계, 회복의 네 축으로 나누어 읽고, 어디에서 과잉이 생기는지 구체적으로 확인합니다.`,
+    `${angleLabel} 관점에서 실제로 중요한 것은 실행 순서입니다. 먼저 확인할 것과 나중에 조정할 것을 구분하면, 감정의 밀도에 휘둘리지 않고 의사결정의 속도를 조절할 수 있습니다. 이 과정에서 질문을 잘못 던지면 해석이 흐려지므로, 무엇을 믿고 무엇을 보류할지까지 함께 정리해야 합니다.`,
+    `${headline}의 세부 조언은 관계와 생활 리듬에 다시 연결됩니다. 대화의 톤, 일정의 밀도, 회복의 간격을 함께 맞추면 차트 신호가 말하는 방향성이 더 명확해집니다. 특히 ${index + 1}번째 실행 포인트는 작은 선택을 반복해 안정성을 만드는 것입니다.`,
+    buildAstroSectionAppendix(angle, chapterTitle, sectionTitle, signalText),
+  ];
+}
+
 function buildWesternAstroPrompt(seed, chapterSpec, previousChapterSummaries = [], attempt = 1, failureNote = "") {
   const guide = [
     "당신은 점성술/베다점 차트를 기반으로 프리미엄 PDF 리포트를 작성하는 전문 상담가입니다.",
@@ -852,11 +925,8 @@ async function generateWesternAstroChapterByLLM(env, seed, chapterSpec, previous
 
 async function generateWesternAstroPdfChapters(env, seed, options = {}) {
   const chapterSpecs = buildWesternAstroChapterBlueprints();
-  const localDrafts = buildAstroLocalPremiumManuscript(seed);
-  const localDraftMap = new Map(localDrafts.map((chapter) => [Number(chapter.chapterNo), chapter]));
   const chapters = [];
   const emit = typeof options.log === "function" ? options.log : () => {};
-  let fallbackUsed = false;
   let llmChapterCount = 0;
 
   for (const chapterSpec of chapterSpecs) {
@@ -867,23 +937,21 @@ async function generateWesternAstroPdfChapters(env, seed, options = {}) {
 
     let chapter = null;
     try {
-      chapter = await generateWesternAstroChapterByLLM(env, seed, chapterSpec, chapters.map((item) => summarizeAstroChapterForPrompt(item)), options);
+      chapter = await generateWesternAstroChapterByLLM(
+        env,
+        seed,
+        chapterSpec,
+        chapters.map((item) => summarizeAstroChapterForPrompt(item)),
+        options,
+      );
       llmChapterCount += 1;
     } catch (error) {
-      fallbackUsed = true;
-      const localChapter = localDraftMap.get(Number(chapterSpec.chapterNo));
-      if (!localChapter) throw error;
-
-      chapter = {
-        ...localChapter,
-        source: "local-deterministic-fallback",
-      };
-
-      emit("ChapterLLMFailedUseLocal", {
+      emit("ChapterLLMFailed", {
         chapterNo: chapterSpec.chapterNo,
         chapterTitle: chapterSpec.title,
         message: clean(error?.message || "llm_chapter_failed"),
       });
+      throw error;
     }
 
     chapters.push(chapter);
@@ -900,20 +968,7 @@ async function generateWesternAstroPdfChapters(env, seed, options = {}) {
   }
 
   const reinforcedChapters = reinforceManuscriptLength(chapters);
-  const rawValidation = fallbackUsed
-    ? validateFinalManuscript(seed, reinforcedChapters)
-    : validateWesternAstroPdfLLMInterpretationQuality({ chapters: reinforcedChapters, expectedChapters: WESTERN_ASTRO_PDF_CHAPTERS, seed });
-  const blockingIssues = fallbackUsed
-    ? safeArray(rawValidation?.issues).filter((issue) => !/\.repetition$/i.test(clean(issue)))
-    : safeArray(rawValidation?.issues);
-  const validation = fallbackUsed
-    ? {
-      ok: blockingIssues.length === 0,
-      issues: safeArray(rawValidation?.issues),
-      blockingIssues,
-      relaxed: true,
-    }
-    : rawValidation;
+  const validation = validateWesternAstroPdfLLMInterpretationQuality({ chapters: reinforcedChapters, expectedChapters: WESTERN_ASTRO_PDF_CHAPTERS, seed });
 
   if (!validation.ok) {
     emit("FinalManuscriptValidationFailed", {
@@ -923,7 +978,7 @@ async function generateWesternAstroPdfChapters(env, seed, options = {}) {
       blockingIssues: safeArray(validation.blockingIssues).slice(0, 12),
       chapterCount: reinforcedChapters.length,
       totalLength: totalLength(reinforcedChapters),
-      fallbackUsed,
+      fallbackUsed: false,
     });
     const error = new Error("ASTRO_PDF_QUALITY_INVALID");
     error.code = "ASTRO_PDF_QUALITY_INVALID";
@@ -935,7 +990,7 @@ async function generateWesternAstroPdfChapters(env, seed, options = {}) {
   return {
     chapters: reinforcedChapters,
     validation,
-    fallbackUsed,
+    fallbackUsed: false,
     llmChapterCount,
   };
 }
@@ -998,15 +1053,6 @@ function buildSignals(localAstroChartJson, chapter, section, sectionIndex) {
   };
 }
 
-function buildConsultingParagraph(signalText, chapterTitle, sectionTitle, index) {
-  const p1 = `${chapterTitle}의 ${sectionTitle}에서는 ${signalText}를 중심 축으로 읽어야 합니다. 이 조합은 단일 사건 예측보다 선택의 방식과 감정 반응 패턴을 선명하게 보여 줍니다. 특히 반복적으로 나타나는 신호를 먼저 정리하면, 순간적인 기분이나 외부 압력에 휘둘리지 않고 본인에게 맞는 결정 기준을 세울 수 있습니다.`;
-  const p2 = `실전에서는 좋은 흐름과 주의 구간을 동시에 관리해야 합니다. 강점 구간에서는 관계, 일, 돈의 우선순위를 한 번에 넓히기보다 검증 가능한 단위로 쪼개 실행하는 편이 결과가 안정적입니다. 반대로 긴장 신호가 올라오는 구간에서는 약속, 계약, 커뮤니케이션 속도를 낮추고 확인 루틴을 강화해야 손실을 줄일 수 있습니다.`;
-  const p3 = `행동 전략은 단순해야 오래 유지됩니다. 첫째, 이번 주 핵심 목표를 하나만 정하고 성과 기준을 문장으로 기록합니다. 둘째, 중요한 대화나 협상 전에는 감정 상태를 점검해 불필요한 과잉 반응을 줄입니다. 셋째, 매주 같은 시간에 실행 결과를 되짚어 조정합니다. 이 세 가지를 반복하면 차트 신호가 말하는 성장 방향과 실제 생활이 일치하기 시작합니다.`;
-  const p4 = `관계 관점에서는 경계와 온도를 함께 조절하는 것이 핵심입니다. 지나친 단정이나 감정적 확신은 오해를 키울 수 있으므로, 상대의 반응 속도와 맥락을 확인하며 협력의 폭을 조절해야 합니다. 직업과 재무에서는 확장과 보수의 스위치를 명확히 분리해 운영하는 것이 좋습니다. 같은 노력으로 더 큰 성과를 얻으려면 타이밍보다 구조를 먼저 정비해야 합니다.`;
-  const p5 = `마지막으로 ${index + 1}번째 실행 포인트는 회복력 유지입니다. 일정이 흔들리는 주간에는 무리한 보완보다 리듬 복구를 우선하고, 수면과 이동 동선, 집중 시간을 재정렬해 에너지를 누수 없이 묶어야 합니다. 이렇게 운영하면 불확실성이 커지는 구간에서도 판단력이 유지되고, 장기 목표를 현실적으로 이어갈 수 있습니다.`;
-  return [p1, p2, p3, p4, p5].join("\n\n");
-}
-
 function sanitizeBody(text) {
   let out = sanitizeAstroPremiumText(text);
   for (const pattern of FORBIDDEN_PATTERNS) out = out.replace(pattern, "");
@@ -1033,9 +1079,17 @@ export function buildAstroLocalPremiumManuscript(localAstroChartJson) {
     const sections = chapter.categories.map((category, sectionIndex) => {
       const signalPack = buildSignals(localAstroChartJson, chapter, category, sectionIndex + chapterIndex);
       const signalText = signalPack.usedSignals.slice(0, 6).join(" · ");
-      const appendix = `${category.title}에서는 차트의 신호를 바탕으로 실행 가능한 습관과 의사결정 기준을 함께 설계해야 합니다. 같은 패턴이 반복될수록 원인을 단순화하고, 행동 단위를 작게 유지하며, 점검 간격을 일정하게 두는 운영법이 유효합니다.`;
+      const angle = getAstroSectionAngle(chapter.title, category.title);
+      const paragraphs = buildAstroSectionParagraphs({
+        signalText: signalText || "핵심 차트 신호",
+        chapterTitle: chapter.title,
+        sectionTitle: category.title,
+        index: sectionIndex,
+        angle,
+      });
+      const appendix = buildAstroSectionAppendix(angle, chapter.title, category.title, signalText || "핵심 차트 신호");
       const body = ensureMinLength(
-        buildConsultingParagraph(signalText || "핵심 차트 신호", chapter.title, category.title, sectionIndex),
+        paragraphs.join("\n\n"),
         MIN_SECTION_LENGTH,
         appendix,
       );

@@ -1173,7 +1173,6 @@ async function generateSajuNewYearChapterByLLM(env, seed, chapterSpec, previousC
 async function generateSajuNewYearPdfWithLLMOnlyInterpretation({ seed, chapterSpecs, sessionId, env, updateProgress }) {
   const chapters = [];
   const diagnostics = [];
-  const reinforcedChapterNos = [];
 
   for (const chapterSpec of chapterSpecs) {
     const previousChapterSummaries = chapters.map((chapter) => summarizeChapterForPrompt(chapter));
@@ -1181,14 +1180,12 @@ async function generateSajuNewYearPdfWithLLMOnlyInterpretation({ seed, chapterSp
       chapterNo: chapterSpec.no,
       status: "ready",
       attempts: 0,
-      reinforced: false,
       reasons: [],
     };
-    let chapter = null;
 
     try {
       const generated = await generateSajuNewYearChapterByLLM(env, seed, chapterSpec, previousChapterSummaries);
-      chapter = generated.chapter;
+      chapters.push(generated.chapter);
       step.attempts += Number(generated.attempt || 1);
     } catch (error) {
       step.status = "retrying";
@@ -1202,29 +1199,14 @@ async function generateSajuNewYearPdfWithLLMOnlyInterpretation({ seed, chapterSp
           previousChapterSummaries,
           clean(error?.message || "llm_chapter_failed").slice(0, 500),
         );
-        chapter = targetedRetry.chapter;
+        chapters.push(targetedRetry.chapter);
         step.status = "ready-after-targeted-retry";
         step.attempts += Number(targetedRetry.attempt || 1);
       } catch (retryError) {
-        step.status = "reinforced";
         step.reasons.push(clean(retryError?.message || "chapter_targeted_retry_failed"));
-        step.reinforced = true;
-        reinforcedChapterNos.push(chapterSpec.no);
-        chapter = buildDeterministicChapterFromSpec(seed, chapterSpec, step.reasons.join(" | "));
+        throw retryError;
       }
     }
-
-    const repaired = reinforceChapterFromSpec({
-      seed,
-      chapterSpec,
-      chapter,
-      reason: step.reasons.join(" | "),
-    });
-    if (repaired.reinforced) {
-      step.reinforced = true;
-      if (!reinforcedChapterNos.includes(chapterSpec.no)) reinforcedChapterNos.push(chapterSpec.no);
-    }
-    chapters.push(repaired.chapter);
     diagnostics.push(step);
 
     if (typeof updateProgress === "function") {
@@ -1232,36 +1214,13 @@ async function generateSajuNewYearPdfWithLLMOnlyInterpretation({ seed, chapterSp
     }
   }
 
-  let finalQuality = validateSajuNewYearPdfLLMInterpretationQuality({
+  const finalQuality = validateSajuNewYearPdfLLMInterpretationQuality({
     chapters,
     expectedChapters: chapterSpecs,
     minChapterLength: MIN_CHAPTER_CHARS,
     minSectionLength: MIN_SECTION_CHARS,
     seed,
   });
-
-  if (!finalQuality.ok) {
-    for (let idx = 0; idx < chapterSpecs.length; idx += 1) {
-      const chapterSpec = chapterSpecs[idx];
-      const repaired = reinforceChapterFromSpec({
-        seed,
-        chapterSpec,
-        chapter: chapters[idx],
-        reason: finalQuality.errors.slice(0, 5).join(" | "),
-      });
-      if (repaired.reinforced) {
-        if (!reinforcedChapterNos.includes(chapterSpec.no)) reinforcedChapterNos.push(chapterSpec.no);
-      }
-      chapters[idx] = repaired.chapter;
-    }
-    finalQuality = validateSajuNewYearPdfLLMInterpretationQuality({
-      chapters,
-      expectedChapters: chapterSpecs,
-      minChapterLength: MIN_CHAPTER_CHARS,
-      minSectionLength: MIN_SECTION_CHARS,
-      seed,
-    });
-  }
 
   if (!finalQuality.ok) {
     const error = new Error(`new_year_quality_validation_failed: ${finalQuality.errors.slice(0, 8).join(" | ")}`);
@@ -1274,7 +1233,7 @@ async function generateSajuNewYearPdfWithLLMOnlyInterpretation({ seed, chapterSp
     chapters,
     quality: finalQuality,
     diagnostics,
-    reinforcedChapterNos,
+    reinforcedChapterNos: [],
   };
 }
 

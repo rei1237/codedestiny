@@ -12,6 +12,7 @@
   var PREPARE_API = '/api/saju-new-year/prepare';
   var TOTAL_CHAPTERS = 10;
   var COIN_COST = 300;
+  var NEW_YEAR_FETCH_TIMEOUT_MS = 30000;
   var COVER_IMAGE = '/fuctionassets/신년운세.webp';
 
   var _generating = false;
@@ -37,6 +38,71 @@
     });
   }
   function _pad2(value) { return String(Number(value || 0)).padStart(2, '0'); }
+
+  function _buildApiCandidates(pathname) {
+    var path = String(pathname || '');
+    if (path.charAt(0) !== '/') path = '/' + path;
+    var bases = [
+      '',
+      (typeof window !== 'undefined' && window.__CD_API_BASE_URL) || '',
+      (typeof window !== 'undefined' && window.__API_BASE_URL) || '',
+      (typeof window !== 'undefined' && window.__AUTH_API_BASE_URL) || '',
+      (typeof window !== 'undefined' && window.location && window.location.origin) || ''
+    ];
+    var seen = {};
+    var out = [];
+    for (var i = 0; i < bases.length; i += 1) {
+      var base = String(bases[i] || '').trim();
+      var url = base ? (base.replace(/\/+$/, '') + path) : path;
+      if (seen[url]) continue;
+      seen[url] = true;
+      out.push(url);
+    }
+    return out.length ? out : [path];
+  }
+
+  function _fetchJsonWithTimeout(url, init, timeoutMs) {
+    var controller = (typeof AbortController === 'function') ? new AbortController() : null;
+    var timerId = null;
+    if (controller) {
+      timerId = setTimeout(function () {
+        try { controller.abort(); } catch (_) {}
+      }, Math.max(1000, Number(timeoutMs || NEW_YEAR_FETCH_TIMEOUT_MS)));
+    }
+
+    return fetch(url, Object.assign({}, init || {}, {
+      credentials: 'include',
+      cache: 'no-store',
+      signal: controller ? controller.signal : undefined,
+    }))
+      .then(function (res) {
+        return res.text().then(function (body) {
+          var json = {};
+          if (body) {
+            try { json = JSON.parse(body); } catch (_) { json = {}; }
+          }
+          return { res: res, json: json };
+        });
+      })
+      .finally(function () {
+        if (timerId) clearTimeout(timerId);
+      });
+  }
+
+  function _isRetryableNewYearStatus(status) {
+    var code = Number(status || 0);
+    return code >= 500 || code === 408 || code === 425 || code === 429;
+  }
+
+  function _isNewYearAuthOrPaymentFailure(status, payload) {
+    var code = String((payload && (payload.code || payload.error || payload.message)) || '').toUpperCase();
+    if (status === 401 || status === 402 || status === 403) return true;
+    return code.indexOf('AUTH') >= 0
+      || code.indexOf('UNAUTHORIZED') >= 0
+      || code.indexOf('FORBIDDEN') >= 0
+      || code.indexOf('PAYMENT') >= 0
+      || code.indexOf('PREMIUM') >= 0;
+  }
 
   function _log(stage, meta) {
     try { console.info('[NewYearPremiumPDF][' + String(stage || 'Unknown') + ']', meta || {}); } catch (_) {}
@@ -391,57 +457,147 @@
   }
 
   async function _runCoinGate(reportId) {
+    var endpoints = _buildApiCandidates('/api/billing/coin-gate');
+    var endpointIndex = 0;
     var requestId = 'saju-new-year:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
-    var premiumToken = _readPremiumAccessToken();
-    var headers = { 'Content-Type': 'application/json' };
-    if (premiumToken) headers['x-premium-access-token'] = premiumToken;
+    var authToken = '';
+    try { authToken = String(localStorage.getItem('fortune_auth_token') || '').trim(); } catch (_) { authToken = ''; }
     _log('PaymentVerificationStarted', { featureKey: BILLING_FEATURE_KEY, reportId: reportId });
-    var response = await fetch('/api/billing/coin-gate', {
-      method: 'POST',
-      credentials: 'include',
-      headers: headers,
-      body: JSON.stringify({
-        categoryKey: 'premium-report',
-        featureKey: BILLING_FEATURE_KEY,
-        reason: REASON,
-        mode: 'saju-new-year',
-        reportId: reportId,
-        sessionId: 'saju-new-year:' + reportId,
-        reportSessionId: 'saju-new-year:' + reportId,
-        requestId: requestId,
-        forceDeduct: true
-      })
-    });
-    var payload = {};
-    try { payload = await response.json(); } catch (_) { payload = {}; }
-    var data = payload && payload.data && typeof payload.data === 'object' ? payload.data : payload;
-    var token = _extractPremiumToken(payload);
-    if (token) _persistPremiumAccessToken(token);
-    var grant = _normalizeAccessGrant(data, reportId, requestId);
-    if (!response.ok || payload.ok === false || !grant) {
-      return { ok: false, status: response.status, message: _clean(payload.message || (payload.error && payload.error.message)) || '프리미엄 PDF 생성을 위해 코인 또는 이용권 확인이 필요합니다.' };
+    while (endpointIndex < endpoints.length) {
+      var premiumToken = _readPremiumAccessToken();
+      var headers = { 'Content-Type': 'application/json' };
+      if (premiumToken) headers['x-premium-access-token'] = premiumToken;
+      if (authToken) headers.Authorization = 'Bearer ' + authToken;
+
+      var pack;
+      try {
+        pack = await _fetchJsonWithTimeout(endpoints[endpointIndex++], {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({
+            categoryKey: 'premium-report',
+            featureKey: BILLING_FEATURE_KEY,
+            reason: REASON,
+            mode: 'saju-new-year',
+            reportId: reportId,
+            sessionId: 'saju-new-year:' + reportId,
+            reportSessionId: 'saju-new-year:' + reportId,
+            requestId: requestId,
+            forceDeduct: true
+          })
+        }, NEW_YEAR_FETCH_TIMEOUT_MS);
+      } catch (error) {
+        if (endpointIndex < endpoints.length) continue;
+        throw error;
+      }
+
+      var response = pack.res;
+      var payload = pack.json || {};
+      var data = payload && payload.data && typeof payload.data === 'object' ? payload.data : payload;
+      var token = _extractPremiumToken(payload);
+      if (token) _persistPremiumAccessToken(token);
+      var grant = _normalizeAccessGrant(data, reportId, requestId);
+      if (response.ok && payload.ok !== false && grant) {
+        _log('PaymentVerificationPassed', { featureKey: BILLING_FEATURE_KEY, reportId: reportId, hasPurchaseId: !!grant.purchaseId });
+        return { ok: true, accessGrant: grant, premiumAccessToken: token, requestId: requestId };
+      }
+
+      if (_isNewYearAuthOrPaymentFailure(Number(response.status || 0), payload || {})) {
+        return { ok: false, status: response.status, message: _clean(payload.message || (payload.error && payload.error.message)) || '프리미엄 PDF 생성을 위해 코인 또는 이용권 확인이 필요합니다.' };
+      }
+      if (!_isRetryableNewYearStatus(Number(response.status || 0))) {
+        return { ok: false, status: response.status, message: _clean(payload.message || (payload.error && payload.error.message)) || ('결제 확인에 실패했습니다. HTTP ' + response.status) };
+      }
     }
-    _log('PaymentVerificationPassed', { featureKey: BILLING_FEATURE_KEY, reportId: reportId, hasPurchaseId: !!grant.purchaseId });
-    return { ok: true, accessGrant: grant, premiumAccessToken: token, requestId: requestId };
+
+    return { ok: false, status: 0, message: '프리미엄 결제 확인 요청이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.' };
   }
 
   async function _postPrepare(payload) {
-    var token = _readPremiumAccessToken();
-    var headers = { 'Content-Type': 'application/json' };
-    if (token) headers['x-premium-access-token'] = token;
-    var response = await fetch(PREPARE_API, {
-      method: 'POST',
-      credentials: 'include',
-      headers: headers,
-      body: JSON.stringify(payload)
-    });
-    var body = await response.json().catch(function () { return {}; });
-    if (!response.ok || !body || body.ok === false) {
-      var msg = _clean(body && body.message) || ('HTTP ' + response.status);
-      _log('RequestFailed', { status: response.status, code: _clean(body && body.code), message: msg });
-      throw new Error(msg);
+    var endpoints = _buildApiCandidates(PREPARE_API);
+    var endpointIndex = 0;
+    var authToken = '';
+    try { authToken = String(localStorage.getItem('fortune_auth_token') || '').trim(); } catch (_) { authToken = ''; }
+
+    while (endpointIndex < endpoints.length) {
+      var token = _readPremiumAccessToken();
+      var headers = { 'Content-Type': 'application/json' };
+      if (token) headers['x-premium-access-token'] = token;
+      if (authToken) headers.Authorization = 'Bearer ' + authToken;
+
+      var pack;
+      try {
+        pack = await _fetchJsonWithTimeout(endpoints[endpointIndex++], {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify(payload)
+        }, NEW_YEAR_FETCH_TIMEOUT_MS);
+      } catch (error) {
+        if (endpointIndex < endpoints.length) continue;
+        var timeoutErr = new Error('신년운세 PDF 요청 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.');
+        timeoutErr.status = 0;
+        timeoutErr.code = 'NEW_YEAR_PREPARE_TIMEOUT';
+        throw timeoutErr;
+      }
+
+      var response = pack.res;
+      var body = pack.json || {};
+      if (response.ok && body && body.ok !== false) {
+        return body;
+      }
+
+      if (_isNewYearAuthOrPaymentFailure(Number(response.status || 0), body || {})) {
+        var authErr = new Error(_clean(body && body.message) || '로그인 또는 결제 확인이 필요합니다.');
+        authErr.status = response.status;
+        authErr.code = _clean(body && body.code).toUpperCase() || 'NEW_YEAR_PREPARE_AUTH';
+        authErr.serverMessage = _clean(body && body.message);
+        authErr.errorDetails = body && body.errorDetails ? body.errorDetails : null;
+        throw authErr;
+      }
+
+      if (!_isRetryableNewYearStatus(Number(response.status || 0))) {
+        var msg = _clean(body && body.message) || ('HTTP ' + response.status);
+        var code = _clean(body && body.code).toUpperCase();
+        var err = new Error(msg || '요청 처리 중 문제가 발생했습니다.');
+        err.status = response.status;
+        err.code = code || 'NEW_YEAR_PREPARE_FAILED';
+        err.serverMessage = msg;
+        err.errorDetails = body && body.errorDetails ? body.errorDetails : null;
+        _log('RequestFailed', { status: response.status, code: err.code, message: msg });
+        throw err;
+      }
     }
-    return body;
+
+    var finalErr = new Error('신년운세 PDF 생성 요청에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+    finalErr.status = 0;
+    finalErr.code = 'NEW_YEAR_PREPARE_RETRY_EXHAUSTED';
+    throw finalErr;
+  }
+
+  function _toFriendlyErrorMessage(error) {
+    var message = _clean(error && error.message);
+    var code = _clean(error && error.code).toUpperCase();
+    var status = Number(error && error.status || 0);
+
+    if (code === 'SAJU_NEW_YEAR_SEED_INVALID' || code === 'MISSING_BIRTH' || code === 'INVALID_TARGET_YEAR') {
+      return '입력 정보를 확인해 주세요. 생년월일/시간 정보가 부족하면 신년운세를 완성할 수 없습니다.';
+    }
+    if (code === 'PAYMENT_REQUIRED' || status === 402) {
+      return '프리미엄 이용권 또는 코인 상태를 확인해 주세요.';
+    }
+    if (code === 'UNAUTHORIZED' || status === 401) {
+      return '로그인이 만료되었습니다. 다시 로그인한 뒤 시도해 주세요.';
+    }
+    if (code === 'NEW_YEAR_LLM_TIMEOUT' || status === 504) {
+      return 'AI 해석 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    if (code === 'NEW_YEAR_LLM_CHAPTER_FAILED' || code === 'NEW_YEAR_FINAL_QUALITY_FAILED') {
+      return '일부 챕터를 정밀하게 다듬는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    if (/internal server error/i.test(message)) {
+      return '서버 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    return message || 'PDF 생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
   }
 
   function _mdToHtml(text) {
@@ -626,6 +782,12 @@
         if (!llmUsed || manuscriptSource !== 'llm-only' || chapterCount !== TOTAL_CHAPTERS) {
           throw new Error('신년운세 PDF 생성 결과가 LLM 전용 규격을 충족하지 않았습니다. 잠시 후 다시 시도해 주세요.');
         }
+        _log('GenerationDiagnostics', {
+          reinforcedChapterNos: Array.isArray(data && data.generationDiagnostics && data.generationDiagnostics.reinforcedChapterNos)
+            ? data.generationDiagnostics.reinforcedChapterNos
+            : [],
+          duplicateSentenceCount: Number(data && data.generationDiagnostics && data.generationDiagnostics.duplicateSentenceCount || 0)
+        });
         _markPremiumVerified(25 * 60 * 1000);
         _log('ChapterGenerationStarted', { chapterCount: Number(data.chapterCount || TOTAL_CHAPTERS) });
         _log('ChapterGenerationCompleted', { chapterCount: Number(data.chapterCount || TOTAL_CHAPTERS), llmUsed: !!(data && data.llmUsed) });
@@ -637,7 +799,7 @@
         _showScreen('nyResultScreen');
       }).catch(function (error) {
         _logError(error, { stage: 'generate' });
-        _setError(String(error && error.message ? error.message : error || 'PDF 생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.'));
+        _setError(_toFriendlyErrorMessage(error));
       }).finally(function () {
         _generating = false;
         _setBusy(false);

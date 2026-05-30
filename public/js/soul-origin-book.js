@@ -6,6 +6,7 @@
   var COIN_COST = 690;
   var PREPARE_API = '/api/soul-origin';
   var READ_API = '/api/soul-origin/report';
+  var SOUL_ORIGIN_FETCH_TIMEOUT_MS = 30000;
   var STORAGE_KEY = 'premium:soul-origin:last:v1';
   var REQUEST_ID_KEY = 'premium:soul-origin:last-request-id:v1';
   var SESSION_ID_KEY = 'premium:soul-origin:last-session-id:v1';
@@ -399,6 +400,12 @@
     return token;
   }
 
+  function readAuthToken() {
+    var token = '';
+    try { token = clean(localStorage.getItem('fortune_auth_token') || ''); } catch (_) { token = ''; }
+    return token;
+  }
+
   function storePremiumToken(token) {
     var value = clean(token);
     if (!value) return;
@@ -407,9 +414,147 @@
     try { localStorage.setItem('cd_premium_access_token', value); } catch (_) {}
   }
 
+  function fetchJsonWithTimeout(url, init, timeoutMs) {
+    var controller = (typeof AbortController === 'function') ? new AbortController() : null;
+    var timerId = null;
+    if (controller) {
+      timerId = setTimeout(function () {
+        try { controller.abort(); } catch (_) {}
+      }, Math.max(1000, Number(timeoutMs || SOUL_ORIGIN_FETCH_TIMEOUT_MS)));
+    }
+
+    return fetch(url, Object.assign({}, init || {}, {
+      credentials: 'include',
+      cache: 'no-store',
+      signal: controller ? controller.signal : undefined,
+    }))
+      .then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (data) {
+          return { ok: res.ok, status: Number(res.status || 0), data: data };
+        });
+      })
+      .finally(function () {
+        if (timerId) clearTimeout(timerId);
+      });
+  }
+
+  function isRetryableStatus(status) {
+    var code = Number(status || 0);
+    return code >= 500 || code === 408 || code === 425 || code === 429;
+  }
+
+  function isAuthOrPaymentFailure(status, payload) {
+    var code = clean(payload && (payload.code || payload.error || payload.message)).toUpperCase();
+    if (status === 401 || status === 402 || status === 403) return true;
+    return code.indexOf('AUTH') >= 0
+      || code.indexOf('UNAUTHORIZED') >= 0
+      || code.indexOf('FORBIDDEN') >= 0
+      || code.indexOf('PAYMENT') >= 0
+      || code.indexOf('PREMIUM') >= 0;
+  }
+
+  function normalizeAccessGrant(raw, reportId, requestId, sessionId) {
+    var data = raw && typeof raw === 'object' ? raw : {};
+    var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
+    var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
+
+    var normalizedReportId = clean(accessGrant.reportId || data.reportId || reportId);
+    var normalizedRequestId = clean(accessGrant.requestId || data.requestId || consume.requestId || requestId);
+    var normalizedSessionId = clean(accessGrant.sessionId || data.sessionId || data.reportSessionId || sessionId);
+    var purchaseId = clean(accessGrant.purchaseId || data.purchaseId || data.transactionId || consume.transactionId);
+
+    if (!normalizedReportId || !normalizedSessionId || !normalizedRequestId || !purchaseId) return null;
+
+    return {
+      ok: true,
+      featureKey: FEATURE_KEY,
+      reportId: normalizedReportId,
+      sessionId: normalizedSessionId,
+      reportSessionId: normalizedSessionId,
+      requestId: normalizedRequestId,
+      purchaseId: purchaseId,
+      paidAt: clean(accessGrant.paidAt || data.paidAt || new Date().toISOString()),
+    };
+  }
+
+  function runServerCoinGate(reportId, requestId, sessionId) {
+    var endpoints = getApiBaseCandidates('/api/billing/coin-gate');
+    var idx = 0;
+
+    function next(resolve, reject, lastMessage) {
+      if (idx >= endpoints.length) {
+        reject(new Error(lastMessage || '코인 결제 확인에 실패했습니다.'));
+        return;
+      }
+
+      var token = readPremiumToken();
+      var authToken = readAuthToken();
+      var headers = { 'Content-Type': 'application/json' };
+      if (token) headers['x-premium-access-token'] = token;
+      if (authToken) headers.Authorization = 'Bearer ' + authToken;
+
+      fetchJsonWithTimeout(endpoints[idx++], {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          categoryKey: 'premium-report',
+          featureKey: FEATURE_KEY,
+          reason: '운명의 기원서 생성',
+          reportType: REPORT_TYPE,
+          mode: 'soul-origin',
+          reportId: reportId,
+          sessionId: sessionId,
+          reportSessionId: sessionId,
+          requestId: requestId,
+          forceDeduct: true,
+        }),
+      }, SOUL_ORIGIN_FETCH_TIMEOUT_MS)
+        .then(function (pack) {
+          var payload = pack && pack.data ? pack.data : {};
+          var data = payload && payload.data && typeof payload.data === 'object' ? payload.data : payload;
+          var premiumToken = clean((data && (data.premiumAccessToken || data.accessToken || data.token)) || (payload && (payload.premiumAccessToken || payload.accessToken || payload.token)));
+          if (premiumToken) storePremiumToken(premiumToken);
+
+          var grant = normalizeAccessGrant(data, reportId, requestId, sessionId);
+          if (pack.ok && payload.ok !== false && grant) {
+            resolve({
+              ok: true,
+              premiumAccessToken: premiumToken || readPremiumToken(),
+              accessGrant: grant,
+              requestId: grant.requestId,
+              sessionId: grant.sessionId,
+            });
+            return;
+          }
+
+          if (isAuthOrPaymentFailure(pack.status, payload)) {
+            reject(new Error(clean(payload.message || payload.error || payload.code) || '코인 결제 확인이 필요합니다.'));
+            return;
+          }
+
+          if (!isRetryableStatus(pack.status)) {
+            reject(new Error(clean(payload.message || payload.error || payload.code) || ('HTTP ' + pack.status)));
+            return;
+          }
+
+          next(resolve, reject, clean(payload.message || payload.error || payload.code));
+        })
+        .catch(function (error) {
+          next(resolve, reject, clean(error && error.message));
+        });
+    }
+
+    return new Promise(function (resolve, reject) { next(resolve, reject, ''); });
+  }
+
   function ensurePayment() {
+    var requestId = readSessionValue(REQUEST_ID_KEY) || makeRequestId();
+    var sessionId = readSessionValue(SESSION_ID_KEY) || makeSessionId();
+    writeSessionValue(REQUEST_ID_KEY, requestId);
+    writeSessionValue(SESSION_ID_KEY, sessionId);
+
     if (typeof window._cdCoinGatePerUse !== 'function') {
-      return Promise.resolve({ ok: true, premiumAccessToken: readPremiumToken() });
+      return runServerCoinGate('soul-origin:' + Date.now().toString(36), requestId, sessionId);
     }
 
     return new Promise(function (resolve, reject) {
@@ -418,12 +563,23 @@
         if (settled) return;
         settled = true;
         if (payload && payload.ok === false) {
-          reject(new Error(clean(payload.message) || '코인 결제 확인이 필요합니다.'));
+          runServerCoinGate('soul-origin:' + Date.now().toString(36), requestId, sessionId)
+            .then(resolve)
+            .catch(function () {
+              reject(new Error(clean(payload.message) || '코인 결제 확인이 필요합니다.'));
+            });
           return;
         }
         var token = clean((payload && (payload.premiumAccessToken || payload.accessToken || payload.token)) || '');
         if (token) storePremiumToken(token);
-        resolve(payload || { ok: true, premiumAccessToken: readPremiumToken() });
+        var reportId = clean(payload && payload.reportId) || ('soul-origin:' + Date.now().toString(36));
+        var grant = normalizeAccessGrant(payload, reportId, requestId, sessionId);
+        resolve(Object.assign({}, payload || { ok: true, premiumAccessToken: readPremiumToken() }, {
+          requestId: clean((payload && payload.requestId) || requestId),
+          sessionId: clean((payload && (payload.sessionId || payload.reportSessionId)) || sessionId),
+          premiumAccessToken: token || readPremiumToken(),
+          accessGrant: grant,
+        }));
       }
 
       try {
@@ -446,7 +602,7 @@
             featureKey: FEATURE_KEY,
             reportType: REPORT_TYPE,
             serviceKey: 'soul-origin',
-            requestId: readSessionValue(REQUEST_ID_KEY) || makeRequestId(),
+            requestId: requestId,
           },
         );
 
@@ -475,26 +631,23 @@
         }
 
         var headers = { 'Content-Type': 'application/json' };
-        if (token) headers['x-premium-access-token'] = token;
+        var premiumToken = clean(token || readPremiumToken());
+        var authToken = readAuthToken();
+        if (premiumToken) headers['x-premium-access-token'] = premiumToken;
+        if (authToken) headers.Authorization = 'Bearer ' + authToken;
 
-        fetch(endpoints[idx], {
+        fetchJsonWithTimeout(endpoints[idx], {
           method: 'POST',
-          credentials: 'include',
           headers: headers,
           body: JSON.stringify(payload),
-        })
-          .then(function (res) {
-            return res.json().catch(function () { return {}; }).then(function (data) {
-              return { ok: res.ok, status: res.status, data: data };
-            });
-          })
+        }, SOUL_ORIGIN_FETCH_TIMEOUT_MS)
           .then(function (pack) {
             if (pack.ok && pack.data && pack.data.ok) {
               resolve(pack.data);
               return;
             }
 
-            if (pack.status >= 400 && pack.status < 500) {
+            if (isAuthOrPaymentFailure(pack.status, pack.data || {}) || (pack.status >= 400 && pack.status < 500 && !isRetryableStatus(pack.status))) {
               var message = clean(pack.data && (pack.data.message || pack.data.error || pack.data.code));
               lastClientError = message || '입력값 또는 결제 상태를 확인해 주세요.';
               reject(new Error(lastClientError));
@@ -545,7 +698,12 @@
       logStage('ProductLookupSuccess', { requestId: requestId, sessionId: sessionId });
 
       var payment = await ensurePayment();
-      var token = clean((payment && (payment.premiumAccessToken || payment.accessToken)) || readPremiumToken());
+      var token = clean((payment && (payment.premiumAccessToken || payment.accessToken || payment.token)) || readPremiumToken());
+      var paymentRequestId = clean((payment && payment.requestId) || requestId);
+      var paymentSessionId = clean((payment && (payment.sessionId || payment.reportSessionId)) || sessionId);
+      var accessGrant = payment && payment.accessGrant && typeof payment.accessGrant === 'object' ? payment.accessGrant : null;
+      writeSessionValue(REQUEST_ID_KEY, paymentRequestId || requestId);
+      writeSessionValue(SESSION_ID_KEY, paymentSessionId || sessionId);
 
       var snapshots = {
         saju: buildSajuSnapshot(),
@@ -560,12 +718,25 @@
         featureKey: FEATURE_KEY,
         productKey: FEATURE_KEY,
         reportType: REPORT_TYPE,
-        requestId: requestId,
-        sessionId: sessionId,
-        reportSessionId: sessionId,
+        requestId: paymentRequestId || requestId,
+        sessionId: paymentSessionId || sessionId,
+        reportSessionId: paymentSessionId || sessionId,
         reportId: reportId,
         input: Object.assign({}, input, readPrayerIntent()),
         premiumAccessToken: token || undefined,
+        accessGrant: accessGrant || undefined,
+        payment: accessGrant ? {
+          requestId: clean(accessGrant.requestId || paymentRequestId || requestId) || undefined,
+          purchaseId: clean(accessGrant.purchaseId || '') || undefined,
+          sessionId: clean(accessGrant.sessionId || paymentSessionId || sessionId) || undefined,
+          reportSessionId: clean(accessGrant.reportSessionId || accessGrant.sessionId || paymentSessionId || sessionId) || undefined,
+        } : undefined,
+        _paymentContext: accessGrant ? {
+          requestId: clean(accessGrant.requestId || paymentRequestId || requestId) || undefined,
+          purchaseId: clean(accessGrant.purchaseId || '') || undefined,
+          sessionId: clean(accessGrant.sessionId || paymentSessionId || sessionId) || undefined,
+          reportSessionId: clean(accessGrant.reportSessionId || accessGrant.sessionId || paymentSessionId || sessionId) || undefined,
+        } : undefined,
         engineSnapshots: snapshots,
       };
 
@@ -647,12 +818,10 @@
         alert('요청한 기원서를 찾지 못했습니다.');
         return;
       }
-      fetch(endpoints[idx], { method: 'GET', credentials: 'include' })
-        .then(function (res) {
-          return res.json().catch(function () { return {}; }).then(function (data) {
-            return { ok: res.ok, data: data };
-          });
-        })
+      var headers = {};
+      var authToken = readAuthToken();
+      if (authToken) headers.Authorization = 'Bearer ' + authToken;
+      fetchJsonWithTimeout(endpoints[idx], { method: 'GET', headers: headers }, 15000)
         .then(function (pack) {
           if (pack.ok && pack.data && pack.data.ok) {
             persistResult(pack.data);

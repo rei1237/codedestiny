@@ -364,6 +364,12 @@
     return token;
   }
 
+  function _readAuthToken() {
+    var token = '';
+    try { token = String(localStorage.getItem('fortune_auth_token') || '').trim(); } catch (_) { token = ''; }
+    return token;
+  }
+
   function _premiumTokenMatches(reportType, minCoins) {
     var token = _readPremiumTokenForReport();
     if (!token || typeof atob !== 'function') return false;
@@ -596,6 +602,30 @@
       _urls.push(_url);
     }
     return _urls.length ? _urls : [_path];
+  }
+
+  function _fetchJsonWithTimeout(url, init, timeoutMs) {
+    var controller = (typeof AbortController === 'function') ? new AbortController() : null;
+    var timerId = null;
+    if (controller) {
+      timerId = setTimeout(function () {
+        try { controller.abort(); } catch (_) {}
+      }, Math.max(1000, Number(timeoutMs || 15000)));
+    }
+
+    return fetch(url, Object.assign({}, init || {}, {
+      credentials: 'include',
+      cache: 'no-store',
+      signal: controller ? controller.signal : undefined,
+    }))
+      .then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (body) {
+          return { ok: res.ok, status: res.status, body: body };
+        });
+      })
+      .finally(function () {
+        if (timerId) clearTimeout(timerId);
+      });
   }
 
   function _escHtml(s) {
@@ -1159,6 +1189,11 @@
       var el = _qs(screens[i]);
       if (el) el.style.display = (screens[i] === id) ? '' : 'none';
     }
+  }
+
+  function _removeLoveSecretLoadingRetryButton() {
+    var btn = _qs('lsLoadingRetryBtn');
+    if (btn && btn.parentNode) btn.parentNode.removeChild(btn);
   }
 
   function _renderTocButtons(totalChapters) {
@@ -1786,6 +1821,7 @@
     _lsCurrentReportId = String(reportId || '').trim() || _lsBuildReportId(_currentChapterMode);
     _setLoveBookGenerationState('preparing_generation');
     _showScreen('lsLoadingScreen');
+    _removeLoveSecretLoadingRetryButton();
     _prepareLoveSecretUi(_currentChapterMode);
     _startLoadingAnimation();
     var sajuData = _cachedSajuData || _collectSajuData();
@@ -1878,8 +1914,10 @@
           var _controller = (typeof AbortController === 'function') ? new AbortController() : null;
           if (_controller) _activeRequestController = _controller;
           var _lsPremiumToken = _lsReadPremiumAccessToken();
+          var _lsAuthToken = _readAuthToken();
           var _lsHeaders = { 'Content-Type': 'application/json' };
           if (_lsPremiumToken) _lsHeaders['x-premium-access-token'] = _lsPremiumToken;
+          if (_lsAuthToken) _lsHeaders.Authorization = 'Bearer ' + _lsAuthToken;
           _setLoveBookGenerationState('writing_with_llm');
           if (!_llmStartLogged) {
             _llmStartLogged = true;
@@ -2040,13 +2078,28 @@
             return;
           }
 
-          var statusUrl = '/api/love-secret/status?id=' + encodeURIComponent(String(jobId || '').trim());
-          fetch(statusUrl, { method: 'GET', credentials: 'include' })
-            .then(function (res) {
-              return res.json().catch(function () { return {}; }).then(function (body) {
-                return { ok: res.ok, status: res.status, body: body };
-              });
-            })
+          var statusUrls = _buildApiCandidates('/api/love-secret/status?id=' + encodeURIComponent(String(jobId || '').trim()), {
+            sameOriginOnly: true,
+            preferSameOrigin: true,
+          });
+          var statusIndex = 0;
+          var authToken = _readAuthToken();
+
+          function pollCandidates() {
+            if (statusIndex >= statusUrls.length) {
+              throw new Error('상태 조회 엔드포인트에 연결할 수 없습니다.');
+            }
+            var headers = {};
+            if (authToken) headers.Authorization = 'Bearer ' + authToken;
+            return _fetchJsonWithTimeout(statusUrls[statusIndex++], {
+              method: 'GET',
+              headers: headers,
+            }, 15000).catch(function () {
+              return pollCandidates();
+            });
+          }
+
+          pollCandidates()
             .then(function (pack) {
               if (!pack.ok || !pack.body || !pack.body.ok) {
                 throw new Error((pack.body && pack.body.message) || ('HTTP ' + pack.status));
@@ -2099,21 +2152,11 @@
       });
     }
 
-    function _isDbQueueFailure(msg, status, code) {
-      var text = String(msg || '').toLowerCase();
-      var safeCode = String(code || '').toLowerCase();
-      var sc = Number(status || 0);
-      if (safeCode === 'database_unavailable' || safeCode === 'internal_server_error') return true;
-      if (text.indexOf('database is temporarily unavailable') >= 0) return true;
-      if (text.indexOf('internal server error') >= 0) return true;
-      if (text.indexOf('db') >= 0 && text.indexOf('unavailable') >= 0) return true;
-      return sc >= 500;
-    }
-
     function _finalizeGenerationSuccess() {
       _generating = false;
       _setLoveBookGenerationState('completed');
       _stopLoadingAnimation();
+      _removeLoveSecretLoadingRetryButton();
       _showScreen('lsResultScreen');
       _renderTocButtons(totalChapters);
       _updateTocState(1);
@@ -2125,74 +2168,90 @@
       _renderResultHeader(profile.name, profile.birth, profile.gender, new Date(), true);
     }
 
-    async function _runDirectChapterGeneration(reason) {
-      _logLoveSecretFlow('ASYNC_TO_DIRECT_FALLBACK', {
-        mode: _currentChapterMode,
-        reportId: _lsReportId,
-        reason: String(reason || ''),
+    function _showLoadingRetryButton(lastMessage) {
+      _removeLoveSecretLoadingRetryButton();
+      var anchor = chapterMsg || _qs('lsProgressText') || _qs('lsLoadingScreen');
+      if (!anchor || !anchor.parentNode) return;
+      var btn = document.createElement('button');
+      btn.id = 'lsLoadingRetryBtn';
+      btn.type = 'button';
+      btn.className = 'auth-btn auth-btn--retry';
+      btn.style.marginTop = '12px';
+      btn.textContent = '다시 시도';
+      btn.addEventListener('click', function () {
+        if (_generating) return;
+        _logLoveSecretFlow('RetryFromLoading', {
+          mode: _currentChapterMode,
+          reportId: _lsCurrentReportId,
+          message: String(lastMessage || ''),
+        });
+        _startGeneration(partnerData || '', _lsAccessGrant || accessGrant || null, _lsCurrentReportId || reportId);
       });
-      if (chapterMsg) {
-        chapterMsg.textContent = '연애 비책 챕터를 다시 확인하고 있습니다...';
-      }
-      _setLoveBookGenerationState('writing_with_llm');
-
-      for (var i = 0; i < totalChapters; i++) {
-        if (_cancelGeneration) {
-          throw new Error('사용자가 생성을 중단했습니다.');
-        }
-        var data = await _fetchChapter(i);
-        if (!data || !data.ok) {
-          throw new Error((data && data.message) || ('Chapter ' + (i + 1) + ' 생성 실패'));
-        }
-        _syncChapterMetaFromResponse(i, data);
-        _chapters[i] = String(data.text || '').trim();
-        _chapterStructured[i] = (Array.isArray(data.sections) && data.sections.length)
-          ? { sections: data.sections }
-          : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
-        _setProgress(i + 1);
-      }
+      anchor.parentNode.appendChild(btn);
     }
 
     (async function runLoveSecretAsyncPollingFlow() {
       var _lsPremiumToken = _lsReadPremiumAccessToken();
+      var _lsAuthToken = _readAuthToken();
       var submitHeaders = { 'Content-Type': 'application/json' };
       if (_lsPremiumToken) submitHeaders['x-premium-access-token'] = _lsPremiumToken;
+      if (_lsAuthToken) submitHeaders.Authorization = 'Bearer ' + _lsAuthToken;
+      var submitEndpoints = _buildApiCandidates('/api/love-secret/prepare-async', {
+        sameOriginOnly: true,
+        preferSameOrigin: true,
+      });
 
       _setLoveBookGenerationState('building_chapters');
       _logLoveSecretFlow('SessionCreateStart', { mode: _currentChapterMode, reportId: _lsReportId, sessionId: _lsSessionId });
-      var submitRes = await fetch('/api/love-secret/prepare-async', {
-        method: 'POST',
-        credentials: 'include',
-        headers: submitHeaders,
-        body: JSON.stringify({
-          reportId: _lsReportId,
+      var submitPayload = {
+        reportId: _lsReportId,
+        sessionId: _lsSessionId,
+        reportSessionId: _lsSessionId,
+        mode: _currentChapterMode,
+        featureKey: _lsFeatureKey,
+        purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || '').trim() || undefined,
+        accessGrant: _lsAccessGrant || undefined,
+        premiumAccessToken: _lsPremiumToken || undefined,
+        payment: {
+          requestId: String((_lsAccessGrant && _lsAccessGrant.requestId) || '').trim() || undefined,
+          purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || '').trim() || undefined,
           sessionId: _lsSessionId,
           reportSessionId: _lsSessionId,
-          mode: _currentChapterMode,
-          featureKey: _lsFeatureKey,
+        },
+        _paymentContext: {
+          requestId: String((_lsAccessGrant && _lsAccessGrant.requestId) || '').trim() || undefined,
           purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || '').trim() || undefined,
-          accessGrant: _lsAccessGrant || undefined,
-          premiumAccessToken: _lsPremiumToken || undefined,
-          payment: {
-            requestId: String((_lsAccessGrant && _lsAccessGrant.requestId) || '').trim() || undefined,
-            purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || '').trim() || undefined,
-            sessionId: _lsSessionId,
-            reportSessionId: _lsSessionId,
-          },
-          _paymentContext: {
-            requestId: String((_lsAccessGrant && _lsAccessGrant.requestId) || '').trim() || undefined,
-            purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || '').trim() || undefined,
-            sessionId: _lsSessionId,
-            reportSessionId: _lsSessionId,
-          },
-          sajuData: sajuData,
-          sajuBase: sajuBase,
-          profile: window.__cdActiveBirthProfile || {},
-          partnerData: partnerData || '',
-        }),
-      });
+          sessionId: _lsSessionId,
+          reportSessionId: _lsSessionId,
+        },
+        sajuData: sajuData,
+        sajuBase: sajuBase,
+        profile: window.__cdActiveBirthProfile || {},
+        partnerData: partnerData || '',
+      };
 
-      var submitBody = await submitRes.json().catch(function () { return {}; });
+      var submitPack = null;
+      var submitIndex = 0;
+      while (submitIndex < submitEndpoints.length) {
+        try {
+          submitPack = await _fetchJsonWithTimeout(submitEndpoints[submitIndex++], {
+            method: 'POST',
+            headers: submitHeaders,
+            body: JSON.stringify(submitPayload),
+          }, 25000);
+        } catch (_) {
+          continue;
+        }
+        if (submitPack && submitPack.ok) break;
+        if (submitPack && (submitPack.status === 401 || submitPack.status === 402 || submitPack.status === 403 || submitPack.status === 400)) break;
+      }
+
+      if (!submitPack) {
+        throw new Error('연애 비책 생성 요청 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+      }
+
+      var submitRes = { ok: !!submitPack.ok, status: Number(submitPack.status || 0) };
+      var submitBody = submitPack.body || {};
       if (submitRes.ok && submitBody && submitBody.ok && Array.isArray(submitBody.chapters) && !submitBody.jobId) {
         _applyCompletedResult(submitBody);
         if (_cancelGeneration) return;
@@ -2201,12 +2260,6 @@
       }
       if (!submitRes.ok || !submitBody || !submitBody.ok || !submitBody.jobId) {
         var submitMsg = (submitBody && submitBody.message) || ('HTTP ' + submitRes.status);
-        if (_isDbQueueFailure(submitMsg, submitRes.status, submitBody && submitBody.code)) {
-          await _runDirectChapterGeneration(submitMsg);
-          if (_cancelGeneration) return;
-          _finalizeGenerationSuccess();
-          return;
-        }
         throw new Error(submitMsg);
       }
 
@@ -2226,13 +2279,6 @@
       try {
         result = await _startStatusPolling(submitBody.jobId, submitBody.pollAfterMs);
       } catch (pollError) {
-        var pollMsg = String(pollError && pollError.message ? pollError.message : pollError || 'polling_error');
-        if (_isDbQueueFailure(pollMsg, 500, '')) {
-          await _runDirectChapterGeneration(pollMsg);
-          if (_cancelGeneration) return;
-          _finalizeGenerationSuccess();
-          return;
-        }
         throw pollError;
       }
       if (_cancelGeneration) return;
@@ -2257,6 +2303,7 @@
       _stopLoadingAnimation();
       _setLoveBookGenerationState('failed');
       if (chapterMsg) chapterMsg.textContent = '연애 비책 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+      _showLoadingRetryButton(msg);
       _logLoveSecretFlow('LLMChapterGenerationFailed', { mode: _currentChapterMode, message: msg });
     });
   }

@@ -480,10 +480,19 @@
           return;
         }
         var endpoint = endpoints[idx++];
+        var controller = (typeof AbortController === 'function') ? new AbortController() : null;
+        var timerId = setTimeout(function () {
+          if (controller) {
+            try { controller.abort(); } catch (_) {}
+          }
+        }, 15000);
+
         fetch(endpoint, {
           method: 'GET',
           headers: headers,
           credentials: 'include',
+          cache: 'no-store',
+          signal: controller ? controller.signal : undefined,
         })
           .then(function (res) {
             return res.json().catch(function () { return {}; }).then(function (json) {
@@ -491,8 +500,13 @@
             });
           })
           .then(function (pack) {
+            clearTimeout(timerId);
             if (pack.res && pack.res.ok && pack.json && pack.json.ok) {
               doneOk(pack.json && pack.json.data ? pack.json.data : null);
+              return;
+            }
+            if (pack && pack.res && _isAuthOrPaymentFailure(Number(pack.res.status || 0), pack.json || {})) {
+              doneFail(String((pack.json && (pack.json.message || pack.json.reason || pack.json.code)) || '인증 또는 결제 상태를 확인해 주세요.'));
               return;
             }
             lastErr = String(
@@ -502,6 +516,7 @@
             runNext();
           })
           .catch(function (err) {
+            clearTimeout(timerId);
             lastErr = _normalizeLifeBookErrorMessage(err, '상태 조회 요청이 중단되었습니다.');
             runNext();
           });

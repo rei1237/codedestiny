@@ -1542,7 +1542,7 @@ function mergeLifeBookLlmResult(chapter, llmResult) {
 
   next.categories = next.categories.map((category, index) => {
     const incoming = incomingCategories.find((item) => String(item?.id || item?.title || "") === String(category.id || category.title || "")) || incomingCategories[index];
-    const finalText = stripForbiddenTokens(incoming?.finalText || incoming?.text || incoming?.llmEnhancedText || category.finalText || category.localSummary);
+    const finalText = stripForbiddenTokens(incoming?.finalText || incoming?.text || incoming?.llmEnhancedText || "");
     return {
       ...category,
       llmEnhancedText: stripForbiddenTokens(incoming?.llmEnhancedText || incoming?.text || ""),
@@ -1551,7 +1551,7 @@ function mergeLifeBookLlmResult(chapter, llmResult) {
   });
 
   next.llmEnhancedText = buildChapterBody(next.title, next.categories);
-  next.finalText = next.llmEnhancedText || next.localDraft || "";
+  next.finalText = next.llmEnhancedText;
   next.text = next.finalText;
   return next;
 }
