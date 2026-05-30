@@ -82,6 +82,21 @@ function clearAuth() {
 
 function formatProfileBirth(profile: DestinyProfile) {
   const birth = profile.birth;
+  const birthDateText = String((profile as DestinyProfile & { birthDate?: string; birthIso?: string }).birthDate || "").trim();
+  const birthIsoText = String((profile as DestinyProfile & { birthDate?: string; birthIso?: string }).birthIso || "").trim();
+  const birthTimeText = String((profile as DestinyProfile & { birthTime?: string }).birthTime || "").trim();
+
+  if (birthDateText) {
+    const normalizedDate = birthDateText.replace(/[./]/g, "-");
+    const dateMatch = normalizedDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (dateMatch) {
+      const timeMatch = birthTimeText.match(/^(\d{2}):(\d{2})$/) || birthIsoText.match(/\s(\d{2}):(\d{2})$/);
+      const hour = timeMatch ? timeMatch[1] : String(Number(birth?.hour || 0)).padStart(2, "0");
+      const minute = timeMatch ? timeMatch[2] : String(Number(birth?.minute || 0)).padStart(2, "0");
+      return `${dateMatch[1]}.${dateMatch[2]}.${dateMatch[3]} ${hour}:${minute}`;
+    }
+  }
+
   if (!birth?.year || !birth.month || !birth.day) return "생년월일 미입력";
   const hour = String(Number(birth.hour || 0)).padStart(2, "0");
   const minute = String(Number(birth.minute || 0)).padStart(2, "0");

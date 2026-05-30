@@ -55,6 +55,25 @@ describe("ziwei premium birth normalization", () => {
     expect(normalized.birthInput.birthMinute).toBe(0);
   });
 
+  test("birthProfile의 birthDate/birthTime 별칭도 정규화해야 한다", () => {
+    const normalized = utils.normalizeInput({
+      birthProfile: {
+        name: "테스터",
+        gender: "F",
+        birthDate: "1991.02.20",
+        birthTime: "07:00",
+        birth: {
+          calType: "solar",
+        },
+      },
+    });
+
+    expect(normalized.ok).toBe(true);
+    expect(normalized.birthInput.birthDate).toBe("1991-02-20");
+    expect(normalized.birthInput.birthHour).toBe(7);
+    expect(normalized.profile.birthIso).toBe("1991-02-20 07:00");
+  });
+
   test("오전 7시, 인시, 07:00 파싱이 모두 동작해야 한다", () => {
     const am = utils.parseHourMinuteFromText("오전 7시");
     const branch = utils.parseHourMinuteFromText("인시");

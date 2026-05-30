@@ -30,6 +30,40 @@ function sanitizeGender(value) {
   return "OTHER";
 }
 
+function pickNonEmpty(...values) {
+  for (const value of values) {
+    if (value === null || value === undefined) continue;
+    const text = String(value).trim();
+    if (text) return text;
+  }
+  return "";
+}
+
+function parseBirthDateText(value) {
+  const text = pickNonEmpty(value);
+  if (!text) return null;
+  const compact = text.replace(/\s+/g, "");
+  const normalized = compact.match(/^(\d{4})[-./]?(\d{2})[-./]?(\d{2})$/);
+  if (!normalized) return null;
+  const year = Number(normalized[1]);
+  const month = Number(normalized[2]);
+  const day = Number(normalized[3]);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+  return { year, month, day };
+}
+
+function parseBirthTimeText(value) {
+  const text = pickNonEmpty(value);
+  if (!text) return null;
+  const normalized = text.replace(/\s+/g, "");
+  const match = normalized.match(/^(\d{2}):?(\d{2})$/);
+  if (!match) return null;
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
+  return { hour, minute };
+}
+
 function sanitizeInt(value, min, max, fallback) {
   const n = Number(value);
   if (!Number.isFinite(n)) return fallback;
@@ -63,17 +97,27 @@ function normalizeIncomingProfile(raw, index) {
   const source = raw && typeof raw === "object" ? raw : {};
   const birth = source.birth && typeof source.birth === "object" ? source.birth : {};
   const location = source.location && typeof source.location === "object" ? source.location : {};
+  const parsedDate = parseBirthDateText(
+    source.birthDate
+    || source.birthIso
+    || source.solarDate
+    || birth.birthDate
+    || birth.solarDate
+    || birth.lunarDate
+    || source.date
+  );
+  const parsedTime = parseBirthTimeText(source.birthTime || birth.birthTime || birth.time || source.time);
 
   return {
     profileId: buildProfileId(source.profileId || source.id, index),
     name: sanitizeName(source.name),
     gender: sanitizeGender(source.gender),
     birth: {
-      year: sanitizeInt(birth.year, 1000, 9999, 1900),
-      month: sanitizeInt(birth.month, 1, 12, 1),
-      day: sanitizeInt(birth.day, 1, 31, 1),
-      hour: sanitizeInt(birth.hour, 0, 23, 0),
-      minute: sanitizeInt(birth.minute, 0, 59, 0),
+      year: sanitizeInt(birth.year ?? parsedDate?.year, 1000, 9999, 1900),
+      month: sanitizeInt(birth.month ?? parsedDate?.month, 1, 12, 1),
+      day: sanitizeInt(birth.day ?? parsedDate?.day, 1, 31, 1),
+      hour: sanitizeInt(birth.hour ?? parsedTime?.hour, 0, 23, 0),
+      minute: sanitizeInt(birth.minute ?? parsedTime?.minute, 0, 59, 0),
       calType: sanitizeCalType(birth.calType),
     },
     location: {
@@ -111,12 +155,15 @@ function toClientProfile(doc) {
     profileId: String(doc.profileId || ""),
     name: String(doc.name || "이름 없음"),
     gender: sanitizeGender(doc.gender),
+    birthDate: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+    birthTime: `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
+    birthIso: `${birthDate} ${birthTime}`,
     birth: {
-      year: Number(doc?.birth?.year || 1900),
-      month: Number(doc?.birth?.month || 1),
-      day: Number(doc?.birth?.day || 1),
-      hour: Number(doc?.birth?.hour || 0),
-      minute: Number(doc?.birth?.minute || 0),
+      year,
+      month,
+      day,
+      hour,
+      minute,
       calType: sanitizeCalType(doc?.birth?.calType),
     },
     location: {

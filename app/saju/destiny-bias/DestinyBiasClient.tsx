@@ -54,6 +54,9 @@ type StoredProfile = {
   id?: string;
   name?: string;
   gender?: string;
+  birthDate?: string;
+  birthTime?: string;
+  birthIso?: string;
   birth?: {
     year?: number;
     month?: number;
@@ -91,6 +94,32 @@ function buildBirthDateInput(birth: StoredProfile["birth"]) {
   const day = toPaddedNumber(birth?.day, 2);
   if (!year || !month || !day) return "";
   return `${year}${month}${day}`;
+}
+
+function normalizeBirthDateDigits(value: unknown) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length === 8) return digits;
+  if (digits.length === 6) return `${digits.slice(0, 4)}01${digits.slice(4)}`;
+  return "";
+}
+
+function buildBirthDateInputFromText(profile: StoredProfile) {
+  const candidates = [profile.birthDate, profile.birthIso, profile.birth?.year ? `${profile.birth.year}-${profile.birth.month}-${profile.birth.day}` : ""];
+  for (const candidate of candidates) {
+    const digits = normalizeBirthDateDigits(candidate);
+    if (digits) return digits;
+  }
+  return "";
+}
+
+function buildBirthTimeInputFromText(profile: StoredProfile) {
+  const candidates = [profile.birthTime, profile.birthIso, profile.birth?.hour !== undefined && profile.birth?.minute !== undefined ? `${profile.birth.hour}:${profile.birth.minute}` : ""];
+  for (const candidate of candidates) {
+    const digits = String(candidate || "").replace(/\D/g, "");
+    if (digits.length === 4) return digits;
+    if (digits.length === 2) return `${digits}00`;
+  }
+  return "";
 }
 
 function buildBirthTimeInput(birth: StoredProfile["birth"]) {
@@ -157,10 +186,12 @@ function readCurrentProfileSeed(): ProfileSeed {
     const profile = (currentId ? list.find((item) => item?.id === currentId) : undefined) || list[0];
     const profileBirthDateInput = buildBirthDateInput(profile?.birth);
     const profileBirthTimeInput = buildBirthTimeInput(profile?.birth);
+    const profileBirthDateTextInput = buildBirthDateInputFromText(profile || {});
+    const profileBirthTimeTextInput = buildBirthTimeInputFromText(profile || {});
     return {
       name: String(profile?.name || fallbackName).trim(),
-      birthDateInput: profileBirthDateInput || fallbackBirthDateInput,
-      birthTimeInput: profileBirthTimeInput || fallbackBirthTimeInput,
+      birthDateInput: profileBirthDateInput || profileBirthDateTextInput || fallbackBirthDateInput,
+      birthTimeInput: profileBirthTimeInput || profileBirthTimeTextInput || fallbackBirthTimeInput,
       gender: normalizeGenderOption(profile?.gender) || fallbackGender,
     };
   } catch (e) {

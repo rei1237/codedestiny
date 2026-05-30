@@ -250,6 +250,40 @@ function clean(value) {
   return String(value == null ? "" : value).trim();
 }
 
+function pickNonEmpty(...values) {
+  for (const value of values) {
+    if (value === null || value === undefined) continue;
+    const text = clean(value);
+    if (text) return text;
+  }
+  return "";
+}
+
+function parseDateText(value) {
+  const text = pickNonEmpty(value);
+  if (!text) return null;
+  const compact = text.replace(/\s+/g, "").replace(/[./]/g, "-");
+  const matched = compact.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!matched) return null;
+  const year = Number(matched[1]);
+  const month = Number(matched[2]);
+  const day = Number(matched[3]);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+  return { year, month, day };
+}
+
+function parseTimeText(value) {
+  const text = pickNonEmpty(value);
+  if (!text) return null;
+  const compact = text.replace(/\s+/g, "");
+  const matched = compact.match(/^(\d{2}):?(\d{2})$/);
+  if (!matched) return null;
+  const hour = Number(matched[1]);
+  const minute = Number(matched[2]);
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
+  return { hour, minute };
+}
+
 function normalizeZiweiError(error) {
   if (error instanceof Error) {
     return {
@@ -309,14 +343,6 @@ function toFiniteInt(value, fallback = NaN) {
   const n = Number(value);
   if (!Number.isFinite(n)) return fallback;
   return Math.trunc(n);
-}
-
-function pickNonEmpty(...values) {
-  for (const value of values) {
-    const normalized = clean(value);
-    if (normalized) return normalized;
-  }
-  return "";
 }
 
 function normalizeGender(value) {
@@ -460,21 +486,25 @@ function normalizeInput(body = {}) {
     input.birthday,
     input.solarDate,
     input.lunarDate,
+    input.birthIso,
     input.date,
     body.birthDate,
     body.birthday,
     body.solarDate,
     body.lunarDate,
+    body.birthIso,
     body.date,
     bp.birthDate,
+    bp.birthIso,
     birth.birthDate,
     birth.solarDate,
     birth.lunarDate,
+    birth.birthIso,
     body.solarDate,
     body.birthday,
     birth.date,
   );
-  const parsedDate = parseDateParts(birthDateRaw);
+  const parsedDate = parseDateParts(birthDateRaw) || parseDateText(birthDateRaw);
 
   const year = Number.isFinite(toFiniteInt(input.birthYear, NaN))
     ? toFiniteInt(input.birthYear, NaN)
@@ -506,6 +536,7 @@ function normalizeInput(body = {}) {
 
   const birthTimeRaw = pickNonEmpty(
     input.birthTime,
+    input.birth_time,
     body.birthTime,
     body.time,
     body.timeText,
@@ -513,6 +544,7 @@ function normalizeInput(body = {}) {
     body.hourText,
     body.hour_text,
     bp.birthTime,
+    bp.birthTimeText,
     birth.birthTime,
     birth.time,
   );
@@ -600,6 +632,8 @@ function normalizeInput(body = {}) {
       calendarType: birthInput.calendarType,
       birthplace: clean(body.birthplace || bp.birthplace || bp.birthPlace) || "대한민국",
       birthIso: `${year}-${pad2(month)}-${pad2(day)} ${pad2(birthInput.birthHour)}:${pad2(birthInput.birthMinute)}`,
+      birthDate: `${year}-${pad2(month)}-${pad2(day)}`,
+      birthTime: `${pad2(birthInput.birthHour)}:${pad2(birthInput.birthMinute)}`,
     },
   };
 }
@@ -840,6 +874,7 @@ function buildZiweiPdfSeed(profile, base) {
     birthProfile: {
       birthDate: `${profile.year}-${pad2(profile.month)}-${pad2(profile.day)}`,
       birthTime: `${pad2(profile.hour)}:${pad2(profile.minute)}`,
+      birthIso: `${profile.year}-${pad2(profile.month)}-${pad2(profile.day)} ${pad2(profile.hour)}:${pad2(profile.minute)}`,
       calendarType: profile.calendarType,
       gender: profile.gender,
       birthplace: profile.birthplace,
