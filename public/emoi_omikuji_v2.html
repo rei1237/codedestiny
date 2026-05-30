@@ -1387,9 +1387,9 @@
 
             <div class="charm-wrap">
               <h3>🧿 오늘의 오미쿠지 부적</h3>
-              <p class="charm-sub">일본 행운 상징을 담은 신사 부적 4장을 오늘의 흐름에 맞춰 드립니다.</p>
+              <p class="charm-sub">일본 행운 상징을 담은 신사 부적 1장을 오늘의 흐름에 맞춰 드립니다.</p>
               <div class="charm-gallery" id="result-charm-gallery" aria-label="오늘의 오미쿠지 부적 이미지"></div>
-              <p class="charm-text" id="result-charm">도리이 개운문 | 오마모리 매듭 | 벚꽃 문장 인연 | 행운 잉어 번영</p>
+              <p class="charm-text" id="result-charm">도리이 개운문</p>
               <button class="btn btn-gold" id="btn-copy-charm" aria-label="오늘의 오미쿠지 부적 설명 복사하기">부적 설명 복사하기 🧿</button>
             </div>
 
@@ -1437,6 +1437,99 @@
       '선택운': '고민 상담',
       '행운아이템운': '오늘의 운세'
     };
+
+    const INTENT_THEME_RULES = [
+      {
+        key: 'wealth',
+        categories: ['재물', '오늘의 운세', '고민 상담'],
+        re: /(돈|재물|수익|월급|연봉|부자|통장|매출|수입|저축|소비|사업)/,
+        label: '재물 기회 확대',
+        support: ['금전운의 물꼬가 트이는 신호가 보여요.', '오늘의 작은 절약이 내일의 큰 여유로 연결돼요.', '돈이 들어오는 통로를 키우는 행동이 빛을 발해요.'],
+        mission: ['지갑/통장 흐름 10분 점검하기', '오늘 지출 1건 줄여 저축으로 이동하기', '수익 가능 행동 1개를 바로 실행하기'],
+        caution: ['기분 소비', '수수료 무시', '충동 결제'],
+        mantra: ['재물운은 들어오는 돈과 지키는 돈의 합이에요.', '당신의 재정 감각은 이미 좋아지는 방향으로 가고 있어요.']
+      },
+      {
+        key: 'love',
+        categories: ['연애', '인간관계', '오늘의 운세', '고민 상담'],
+        re: /(연애|사랑|썸|고백|재회|호감|남친|여친|애인|인연|짝사랑)/,
+        label: '연애 흐름 정렬',
+        support: ['따뜻한 연결운이 선명하게 열리고 있어요.', '관계의 온도를 맞추는 다정함이 큰 힘이 돼요.', '진심을 부드럽게 전하면 좋은 반응이 따라와요.'],
+        mission: ['부담 없는 안부 메시지 1건 보내기', '내 마음을 한 문장으로 또렷하게 적기', '상대의 리듬을 존중하는 템포 유지하기'],
+        caution: ['답장 속도 집착', '감정 과속', '확인 강요'],
+        mantra: ['좋은 인연은 속도보다 방향에서 자라나요.', '당신의 다정함은 관계를 살리는 가장 강한 매력입니다.']
+      },
+      {
+        key: 'relationship',
+        categories: ['인간관계', '연애', '오늘의 운세', '고민 상담'],
+        re: /(인간관계|친구|동료|팀|갈등|오해|소통|거리감|화해|관계)/,
+        label: '관계 회복과 소통 개선',
+        support: ['관계의 오해를 풀 기회가 들어오고 있어요.', '한 번의 따뜻한 설명이 흐름을 바꿀 수 있어요.', '선명한 경계와 배려가 함께 통하는 날이에요.'],
+        mission: ['감사 메시지 1건 보내기', '오해될 문장 대신 질문형 문장 사용하기', '소모 관계에는 시간 경계 세우기'],
+        caution: ['단정형 말투', '메신저 과해석', '비교 발언'],
+        mantra: ['건강한 관계는 배려와 경계를 함께 세울 때 오래가요.', '당신의 한마디 배려가 분위기를 바꿀 힘이 충분해요.']
+      },
+      {
+        key: 'anxiety',
+        categories: ['멘탈/감정', '고민 상담', '오늘의 운세'],
+        re: /(불안|걱정|초조|두려움|막막|무서|스트레스|압박|걱정돼|불확실)/,
+        label: '불안 안정과 회복',
+        support: ['지금의 불안은 당신이 진지하게 살아온 증거예요.', '마음을 안정시키는 작은 루틴이 빠르게 효과를 보여요.', '오늘은 버티기가 아니라 회복 설계가 정답이에요.'],
+        mission: ['호흡 1분 + 물 한 잔 루틴 실행', '걱정을 통제 가능/불가로 2칸 분류하기', '오늘 꼭 할 일 1개만 완료하기'],
+        caution: ['파국 상상', '자기비난', '비교 루프'],
+        mantra: ['불안은 경고이지 실패가 아니에요.', '당신은 이미 회복으로 가는 버튼을 누르고 있어요.']
+      },
+      {
+        key: 'exam',
+        categories: ['직장/학업', '오늘의 운세', '고민 상담'],
+        re: /(합격|시험|수능|면접|취업|이직|자격증|공부|성적|채용|발표)/,
+        label: '합격/성취 집중 모드',
+        support: ['합격운은 준비된 루틴에서 강하게 올라와요.', '성과를 만드는 집중력이 지금 살아나고 있어요.', '오늘의 꾸준함이 결과를 당겨오는 흐름입니다.'],
+        mission: ['핵심 과제 1개를 먼저 끝내기', '오답/실수 포인트 3개 복기하기', '면접/시험 답변 10분 리허설하기'],
+        caution: ['완벽주의 지연', '벼락치기 과부하', '실수 점검 생략'],
+        mantra: ['합격운은 하루 루틴의 누적으로 완성돼요.', '당신의 준비는 합격이라는 결과로 이어질 힘이 충분해요.']
+      },
+      {
+        key: 'health',
+        categories: ['멘탈/감정', '오늘의 운세', '고민 상담'],
+        re: /(건강|몸|체력|다이어트|운동|회복|수면|컨디션|피곤|아픔)/,
+        label: '건강 회복과 체력 상승',
+        support: ['몸을 돌보는 선택이 운을 빠르게 끌어올려요.', '오늘의 휴식과 루틴이 내일의 에너지를 만듭니다.', '회복운이 들어오니 작은 습관부터 붙이면 좋아요.'],
+        mission: ['물 2잔 추가로 마시기', '가벼운 스트레칭 5분 하기', '잠들기 전 화면 시간 20분 줄이기'],
+        caution: ['수면 미루기', '과한 카페인', '무리한 자기비난'],
+        mantra: ['당신의 몸은 이미 회복할 준비가 되어 있어요.', '오늘의 돌봄은 가장 확실한 행운 투자입니다.']
+      },
+      {
+        key: 'family',
+        categories: ['인간관계', '오늘의 운세', '고민 상담'],
+        re: /(가족|부모|엄마|아빠|형제|자매|자녀|아이(?!디어)|육아|집안)/,
+        label: '가족 화합과 안정',
+        support: ['가족운은 따뜻한 한마디에서 크게 열려요.', '작은 이해와 경청이 집안 분위기를 편안하게 만듭니다.', '서로의 속도를 인정하면 갈등이 빠르게 줄어요.'],
+        mission: ['가족에게 감사 한 문장 전하기', '오늘 대화에서 경청 시간 5분 늘리기', '집안 할 일 1개를 먼저 챙기기'],
+        caution: ['감정 섞인 단정', '과거 일 반복 소환', '비교성 발언'],
+        mantra: ['가족운은 완벽함보다 따뜻함에서 자랍니다.', '당신의 배려가 집안의 안정감을 키우고 있어요.']
+      },
+      {
+        key: 'creative',
+        categories: ['직장/학업', '고민 상담', '오늘의 운세'],
+        re: /(창작|글쓰기|그림|디자인|콘텐츠|유튜브|브랜딩|아이디어|프로젝트|작품)/,
+        label: '창작 영감과 실행력',
+        support: ['영감운이 살아나니 시작 버튼을 누를 타이밍이에요.', '완벽보다 초안이 오늘의 승리 포인트입니다.', '당신의 아이디어는 지금 실행될 준비가 되어 있어요.'],
+        mission: ['초안 10줄 먼저 쓰기', '아이디어 3개를 메모로 남기기', '결과물 1개를 작게라도 공개하기'],
+        caution: ['완벽주의 멈춤', '비교로 의욕 꺾기', '마감 없는 계획'],
+        mantra: ['작은 완성이 큰 자신감을 불러옵니다.', '당신의 창작 감각은 이미 충분히 빛나고 있어요.']
+      },
+      {
+        key: 'travel',
+        categories: ['오늘의 운세', '고민 상담', '인간관계'],
+        re: /(여행|휴가|해외|비행기|숙소|일정|출발|로드트립|바다|산)/,
+        label: '여행운과 리프레시',
+        support: ['이동운이 좋아서 기분 전환이 큰 복으로 들어와요.', '새로운 장소의 공기가 당신의 에너지를 환기해 줄 거예요.', '작은 외출만으로도 흐름이 바뀌는 날입니다.'],
+        mission: ['가고 싶은 장소 1곳 확정하기', '이동 동선/예산 10분 정리하기', '오늘 15분 산책으로 몸 풀기'],
+        caution: ['즉흥 과소비', '무리한 일정', '준비물 체크 생략'],
+        mantra: ['좋은 여행운은 준비와 여유가 함께 만들어요.', '당신의 일상에 새로운 바람이 들어오고 있어요.']
+      }
+    ];
 
     const CATEGORY_LABEL_EMOJI = {
       '연애': ['💗', '💌', '🌸', '🫶', '✨'],
@@ -2017,10 +2110,61 @@
 
       const fallbackKeyword = selectedCategory.replace('/', ' ');
       const finalKeywords = keywords.length > 0 ? keywords : [fallbackKeyword];
+
+      let matchedTheme = null;
+      for (const rule of INTENT_THEME_RULES) {
+        if (rule.re.test(cleaned)) {
+          matchedTheme = rule;
+          break;
+        }
+      }
+      if (matchedTheme) {
+        intentLabel = matchedTheme.label;
+      }
+
       return {
         intentLabel,
         keywords: finalKeywords,
         focusSentence: finalKeywords.slice(0, 2).join(', '),
+        themeKey: matchedTheme ? matchedTheme.key : null,
+        themeLabel: matchedTheme ? matchedTheme.label : null,
+        inferredCategory: matchedTheme ? matchedTheme.categories[0] : null,
+      };
+    }
+
+    function resolveEffectiveCategory(selectedCategory, intent) {
+      const fallback = CATEGORY_TEMPLATE_MAP[selectedCategory] ? selectedCategory : '오늘의 운세';
+      if (!intent || !intent.inferredCategory) return fallback;
+      if (!CATEGORY_TEMPLATE_MAP[intent.inferredCategory]) return fallback;
+      if (fallback === '오늘의 운세' || fallback === '고민 상담') {
+        return intent.inferredCategory;
+      }
+      return fallback;
+    }
+
+    function pickIntentRule(intent) {
+      if (!intent || !intent.themeKey) return null;
+      return INTENT_THEME_RULES.find((rule) => rule.key === intent.themeKey) || null;
+    }
+
+    function buildIntentSupportPack(intent, seed) {
+      const rule = pickIntentRule(intent);
+      if (!rule) {
+        return {
+          supportLine: '',
+          missionLine: '',
+          cautionLine: '',
+          mantraLine: '',
+          themeLabel: '',
+        };
+      }
+
+      return {
+        supportLine: pickBySeed(rule.support, seed, 101),
+        missionLine: pickBySeed(rule.mission, seed, 102),
+        cautionLine: pickBySeed(rule.caution, seed, 103),
+        mantraLine: pickBySeed(rule.mantra, seed, 104),
+        themeLabel: rule.label,
       };
     }
 
@@ -2118,7 +2262,7 @@
 
       const offset = unique.length ? seed % unique.length : 0;
       const rotated = unique.slice(offset).concat(unique.slice(0, offset));
-      return rotated.slice(0, 4);
+      return rotated.slice(0, 1);
     }
 
     function buildAiTextEmojiSet(category, emotion, tone, seed) {
@@ -2140,8 +2284,9 @@
     function generateEmojiOmikujiResult(rawInput) {
       const input = normalizeOmikujiInput(rawInput);
       const intent = detectQuestionIntent(input.question, input.category);
+      const effectiveCategory = resolveEffectiveCategory(input.category, intent);
       const emotionModifier = getEmotionModifier(input.emotion);
-      const categoryTemplate = getCategoryTemplate(input.category);
+      const categoryTemplate = getCategoryTemplate(effectiveCategory);
       const toneModifier = TONE_MODIFIERS[input.tone];
       const emojiThemeSet = getEmojiThemeSet(input.emojiTheme);
 
@@ -2157,29 +2302,34 @@
 
       const grade = drawFortuneGrade(baseSeed);
       const gradeMessage = getFortuneGradeMessage(grade);
-      const aiTextEmojiSet = buildAiTextEmojiSet(input.category, input.emotion, input.tone, baseSeed + input.reroll * 13);
+      const aiTextEmojiSet = buildAiTextEmojiSet(effectiveCategory, input.emotion, input.tone, baseSeed + input.reroll * 13);
+      const intentSupport = buildIntentSupportPack(intent, baseSeed + input.reroll * 29);
       const title = `${pickBySeed(categoryTemplate.title, baseSeed, 2)} ${emojiThemeSet[0]} ${aiTextEmojiSet[0]}`;
-      const shortMessage = `${aiTextEmojiSet[1]} ${pickBySeed(categoryTemplate.short, baseSeed, 3)} ${toneModifier.closer} ${aiTextEmojiSet[2]}`;
+      const shortCore = pickBySeed(categoryTemplate.short, baseSeed, 3);
+      const shortMessage = `${aiTextEmojiSet[1]} ${shortCore} ${intentSupport.supportLine} ${toneModifier.closer} ${aiTextEmojiSet[2]}`.replace(/\s+/g, ' ').trim();
 
-      const sectionCards = composeSectionCards(input.category, categoryTemplate, baseSeed + input.reroll * 17)
+      const sectionCards = composeSectionCards(effectiveCategory, categoryTemplate, baseSeed + input.reroll * 17)
         .map((card, idx) => ({
           ...card,
           body: `${aiTextEmojiSet[(idx + 3) % aiTextEmojiSet.length]} ${card.body} ${aiTextEmojiSet[(idx + 4) % aiTextEmojiSet.length]}`,
         }));
-      const mission = `${pickBySeed(categoryTemplate.mission, baseSeed, 8)} ${aiTextEmojiSet[5]}`;
-      const caution = `${pickBySeed(categoryTemplate.caution, baseSeed, 9)} ${aiTextEmojiSet[6]}`;
-      const advice = `${pickBySeed(categoryTemplate.advice, baseSeed, 10)} ${aiTextEmojiSet[7]}`;
-      const mantra = `${pickBySeed(categoryTemplate.mantra, baseSeed, 11)} ${aiTextEmojiSet[8]}`;
-      const categoryAnchor = buildCategoryAnchor(input.category, input.question, intent.intentLabel, input.emotion, input.tone);
+      const missionBase = pickBySeed(categoryTemplate.mission, baseSeed, 8);
+      const mission = `${missionBase}${intentSupport.missionLine ? ` · ${intentSupport.missionLine}` : ''} ${aiTextEmojiSet[5]}`;
+      const cautionBase = pickBySeed(categoryTemplate.caution, baseSeed, 9);
+      const caution = `${cautionBase}${intentSupport.cautionLine ? ` · ${intentSupport.cautionLine}` : ''} ${aiTextEmojiSet[6]}`;
+      const advice = `${pickBySeed(categoryTemplate.advice, baseSeed, 10)} ${intentSupport.supportLine ? `핵심 의도는 '${intentSupport.themeLabel}'이므로 그 흐름에 맞춘 행동을 우선하세요.` : ''} ${aiTextEmojiSet[7]}`.replace(/\s+/g, ' ').trim();
+      const mantraBase = pickBySeed(categoryTemplate.mantra, baseSeed, 11);
+      const mantra = `${mantraBase}${intentSupport.mantraLine ? ` ${intentSupport.mantraLine}` : ''} ${aiTextEmojiSet[8]}`;
+      const categoryAnchor = buildCategoryAnchor(effectiveCategory, input.question, intent.intentLabel, input.emotion, input.tone);
 
-      const luckyCharms = buildLuckyCharms(input.category, input.emojiTheme, grade, baseSeed);
+      const luckyCharms = buildLuckyCharms(effectiveCategory, input.emojiTheme, grade, baseSeed);
       const luckyEmoji = luckyCharms.map((item) => item.glyph);
       const charmText = luckyCharms.map((item) => `${item.glyph} ${item.name}`).join(' | ');
 
       const keywordText = intent.keywords.join(', ');
       const questionEcho = input.question
         ? `💬 입력한 고민: "${input.question}" ${aiTextEmojiSet[2]}\n\n이 질문에서 읽힌 핵심 키워드는 ${keywordText}이며, 이번 제비는 '${intent.intentLabel}' 방향으로 답합니다. ${aiTextEmojiSet[3]}`
-        : `💬 입력한 고민이 없어서 ${input.category} 기본 흐름으로 답을 구성했어요. ${aiTextEmojiSet[4]}`;
+        : `💬 입력한 고민이 없어서 ${effectiveCategory} 기본 흐름으로 답을 구성했어요. ${aiTextEmojiSet[4]}`;
 
       const detailParts = [
         `🌸 오늘의 오미쿠지 ${aiTextEmojiSet[0]}`,
@@ -2206,7 +2356,8 @@
       }
 
       return {
-        category: input.category,
+        category: effectiveCategory,
+        selectedCategory: input.category,
         question: input.question,
         emotion: input.emotion,
         tone: input.tone,
@@ -2225,6 +2376,7 @@
         charmText,
         aiTextEmojiSet,
         questionEcho,
+        intentThemeLabel: intentSupport.themeLabel,
         seed: baseSeed,
       };
     }
