@@ -12,9 +12,9 @@ import {
 const ZIWEI_SERVICE_KEY = "ziwei-book";
 const ZIWEI_FEATURE_KEY = "premium_pdf_ziwei";
 const ZIWEI_FEATURE_ALIASES = new Set(["premium-ziwei-report", "premium_pdf_ziwei"]);
-const CHAPTER_MIN_CHARS = 2000;
+const CHAPTER_MIN_CHARS = 3500;
 const SECTION_MIN_CHARS = 500;
-const TOTAL_MIN_CHARS = 30000;
+const TOTAL_MIN_CHARS = 45000;
 
 const EARTHLY_BRANCH_HOUR = Object.freeze({
   자: 23,
@@ -43,93 +43,184 @@ const CHAPTER_BLUEPRINTS = [
   {
     id: "01",
     roman: "I",
-    palaceKey: "ming",
-    title: "Chapter 1. 명궁 완전 해석 — 나라는 사람의 첫 번째 별빛",
-    categories: ["핵심 명반 신호", "현실에서 드러나는 모습", "강점과 기회", "주의해야 할 흐름", "실전 조언"],
+    title: "Chapter 1. 명반 전체 요약 — 이 사람의 운명 구조",
+    palaceKeys: ["ming", "body", "wealth", "career", "travel", "spouse", "fortune"],
+    categories: [
+      "명궁과 신궁으로 보는 인생의 기본 방향",
+      "가장 강하게 작동하는 별",
+      "가장 조심해야 할 약점 축",
+      "사화가 만드는 인생의 흐름",
+      "대궁과 삼방사정으로 본 전체 균형",
+      "이 명반의 핵심 한 줄 조언",
+    ],
   },
   {
     id: "02",
     roman: "II",
-    palaceKey: "body",
-    title: "Chapter 2. 신궁 심층 분석 — 인생 후반부와 실제 행동 패턴",
-    categories: ["핵심 명반 신호", "후천적 변화 패턴", "강점과 기회", "주의해야 할 흐름", "실전 조언"],
+    title: "Chapter 2. 명궁 — 타고난 성격과 삶의 태도",
+    palaceKeys: ["ming", "body"],
+    categories: [
+      "기본 성향",
+      "장점이 살아나는 방식",
+      "감정과 판단의 습관",
+      "약점이 드러나는 순간",
+      "사람들에게 보이는 인상",
+      "인생 운영 조언",
+    ],
   },
   {
     id: "03",
     roman: "III",
-    palaceKey: "fortune",
-    title: "Chapter 3. 복덕궁 — 마음의 깊이와 행복을 회복하는 방식",
-    categories: ["핵심 명반 신호", "감정 회복 리듬", "강점과 기회", "주의해야 할 흐름", "실전 조언"],
+    title: "Chapter 3. 형제궁·노복궁 — 가까운 사람과 인맥의 운",
+    palaceKeys: ["siblings", "friends"],
+    categories: [
+      "형제·동료·가까운 지인과의 관계",
+      "친구와 조력자의 성향",
+      "귀인운과 인맥 확장 방식",
+      "피해야 할 인간관계 패턴",
+      "팀워크와 협업운",
+      "관계를 현실적 기회로 바꾸는 법",
+    ],
   },
   {
     id: "04",
     roman: "IV",
-    palaceKey: "parents",
-    title: "Chapter 4. 부모궁·형제궁 — 뿌리, 가족, 성장 환경의 흔적",
-    categories: ["핵심 명반 신호", "가족 관계 패턴", "강점과 기회", "주의해야 할 흐름", "실전 조언"],
+    title: "Chapter 4. 부부궁 — 연애와 결혼의 구조",
+    palaceKeys: ["spouse", "career", "ming"],
+    categories: [
+      "끌리는 상대의 유형",
+      "연애에서 반복되는 흐름",
+      "결혼운의 강점",
+      "갈등이 생기는 원인",
+      "관계를 오래 유지하는 방식",
+      "배우자와 함께 성장하는 법",
+    ],
   },
   {
     id: "05",
     roman: "V",
-    palaceKey: "spouse",
-    title: "Chapter 5. 부부궁 — 사랑, 결혼, 배우자 인연의 방향",
-    categories: ["핵심 명반 신호", "관계 패턴", "강점과 기회", "주의해야 할 흐름", "실전 조언"],
+    title: "Chapter 5. 자녀궁 — 창작물, 후배, 결과물의 운",
+    palaceKeys: ["children", "friends", "career"],
+    categories: [
+      "자녀운과 후배운",
+      "내가 세상에 남기는 결과물",
+      "창작과 생산성",
+      "책임감과 통제욕의 균형",
+      "후대에 이어지는 영향력",
+      "결과물을 키우는 현실 전략",
+    ],
   },
   {
     id: "06",
     roman: "VI",
-    palaceKey: "children",
-    title: "Chapter 6. 자녀궁·노복궁 — 후배, 동료, 사람을 얻는 방식",
-    categories: ["핵심 명반 신호", "관계 확장 방식", "강점과 기회", "주의해야 할 흐름", "실전 조언"],
+    title: "Chapter 6. 재백궁 — 돈과 수익 구조",
+    palaceKeys: ["wealth", "career", "travel", "property"],
+    categories: [
+      "돈이 들어오는 방식",
+      "재물운의 강점",
+      "돈이 막히는 패턴",
+      "잘 맞는 수익 모델",
+      "계약·문서·가격 책정 주의점",
+      "재물운을 키우는 습관",
+    ],
   },
   {
     id: "07",
     roman: "VII",
-    palaceKey: "wealth",
-    title: "Chapter 7. 재백궁 — 돈의 흐름과 재물 전략",
-    categories: ["핵심 명반 신호", "재물 흐름 패턴", "강점과 기회", "주의해야 할 흐름", "실전 조언"],
+    title: "Chapter 7. 관록궁 — 직업, 성공, 사회적 역할",
+    palaceKeys: ["career", "wealth", "travel", "ming"],
+    categories: [
+      "직업 적성",
+      "성공하는 방식",
+      "조직과 독립의 적합도",
+      "커리어에서 강한 무기",
+      "직업상 주의할 점",
+      "장기 커리어 전략",
+    ],
   },
   {
     id: "08",
     roman: "VIII",
-    palaceKey: "career",
-    title: "Chapter 8. 관록궁 — 직업, 성공 방식, 사회적 역할",
-    categories: ["핵심 명반 신호", "커리어 성장 패턴", "강점과 기회", "주의해야 할 흐름", "실전 조언"],
+    title: "Chapter 8. 천이궁 — 외부 활동, 이동, 세상과의 접점",
+    palaceKeys: ["travel", "ming", "career", "friends"],
+    categories: [
+      "밖에서 드러나는 모습",
+      "이동·확장·외부 기회",
+      "대중과 만날 때의 강점",
+      "말과 행동에서 생기는 오해",
+      "외부 활동에서 성공하는 법",
+      "세상과 부딪힐 때의 조언",
+    ],
   },
   {
     id: "09",
     roman: "IX",
-    palaceKey: "property",
-    title: "Chapter 9. 전택궁 — 집, 자산, 안정 기반",
-    categories: ["핵심 명반 신호", "생활 기반 패턴", "강점과 기회", "주의해야 할 흐름", "실전 조언"],
+    title: "Chapter 9. 전택궁 — 집, 기반, 자산, 안정성",
+    palaceKeys: ["property", "wealth", "fortune"],
+    categories: [
+      "집과 공간의 운",
+      "부동산과 축적 자산",
+      "안정감을 얻는 방식",
+      "가족 기반과 독립성",
+      "장기 프로젝트와 저장되는 가치",
+      "삶의 기반을 튼튼하게 만드는 법",
+    ],
   },
   {
     id: "10",
     roman: "X",
-    palaceKey: "health",
-    title: "Chapter 10. 질액궁 — 건강 리듬과 생활 관리",
-    categories: ["핵심 명반 신호", "건강 리듬 패턴", "강점과 기회", "주의해야 할 흐름", "실전 조언"],
+    title: "Chapter 10. 질액궁·복덕궁 — 건강, 마음, 회복력",
+    palaceKeys: ["health", "fortune", "parents", "ming"],
+    categories: [
+      "몸의 약점과 관리 포인트",
+      "스트레스가 쌓이는 방식",
+      "마음의 회복력",
+      "번아웃이 오는 패턴",
+      "휴식과 루틴의 중요성",
+      "건강운을 지키는 현실 조언",
+    ],
   },
   {
     id: "11",
     roman: "XI",
-    palaceKey: "travel",
-    title: "Chapter 11. 천이궁 — 이동, 외부 기회, 귀인운",
-    categories: ["핵심 명반 신호", "외부 기회 패턴", "강점과 기회", "주의해야 할 흐름", "실전 조언"],
+    title: "Chapter 11. 부모궁 — 부모, 윗사람, 권위자와의 관계",
+    palaceKeys: ["parents", "health", "ming"],
+    categories: [
+      "부모와의 인연 구조",
+      "윗사람과의 관계",
+      "도움과 부담이 함께 오는 영역",
+      "독립심이 만들어지는 과정",
+      "권위자와 부딪힐 때의 패턴",
+      "상처를 힘으로 바꾸는 법",
+    ],
   },
   {
     id: "12",
     roman: "XII",
-    palaceKey: "signals",
-    title: "Chapter 12. 사화와 별의 강약 — 운명을 움직이는 핵심 신호",
-    categories: ["핵심 명반 신호", "사화 작동 패턴", "강점과 기회", "주의해야 할 흐름", "실전 조언"],
+    title: "Chapter 12. 대운·세운 — 시기별 인생 흐름",
+    palaceKeys: ["timing", "ming", "wealth", "career", "spouse"],
+    categories: [
+      "대운의 큰 흐름",
+      "현재 시기의 핵심 과제",
+      "가까운 미래의 기회",
+      "주의해야 할 시기",
+      "직업·돈·관계의 변화 포인트",
+      "앞으로의 운을 준비하는 법",
+    ],
   },
   {
     id: "13",
     roman: "XIII",
-    palaceKey: "timing",
-    title: "Chapter 13. 대운·세운 종합 전략 — 앞으로의 흐름과 실행 조언",
-    categories: ["핵심 명반 신호", "대운·세운 패턴", "강점과 기회", "주의해야 할 흐름", "실전 조언"],
+    title: "Chapter 13. 최종 운명 전략 — 이 명반을 가장 잘 쓰는 법",
+    palaceKeys: ["ming", "body", "wealth", "career", "travel", "spouse", "fortune"],
+    categories: [
+      "이 명반의 가장 큰 무기",
+      "반드시 관리해야 할 약점",
+      "돈과 일의 성공 전략",
+      "관계와 사랑의 전략",
+      "멘탈과 건강의 전략",
+      "1년·3년·10년 실행 방향",
+    ],
   },
 ];
 
@@ -155,6 +246,10 @@ const FORBIDDEN_TEXT = [
   "raw json",
   "json",
   "debug",
+  "api",
+  "llm",
+  "prompt",
+  "schema",
   "engine",
   "자동 복구 생성",
   "localdraft",
@@ -164,7 +259,263 @@ const FORBIDDEN_TEXT = [
   "internal server error",
   "about:blank",
   "calculationmode",
+  "로컬 엔진",
+  "계산 시그니처",
+  "내부 데이터",
+  "엔진 결과",
+  "데이터 정규화",
+  "품질 검증",
+  "재생성",
+  "삼방사정 연결궁은",
+  "대궁은",
+  "사화는",
+  "작동합니다",
+  "해석 원칙은",
+  "전체 키워드는",
 ];
+
+const ZIWEI_STAR_INTERPRETATION = Object.freeze({
+  자미: Object.freeze({
+    core: "중심을 잡고 전체를 정리하는 힘",
+    strength: "강해지면 책임과 판단이 선명해지고, 사람과 상황을 묶어 세우는 능력이 커진다.",
+    caution: "약해지면 기준이 지나치게 높아져 스스로를 몰아붙이기 쉽다.",
+    advice: "중심을 지키되 모든 짐을 혼자 떠안지 말고, 위임과 조율을 함께 써야 한다.",
+    sentences: Object.freeze({
+      base: "자미는 전체를 묶어 방향을 세우는 별로 읽힌다.",
+      strong: "기운이 살아나면 책임감과 결단력이 곧 신뢰로 이어진다.",
+      weak: "기운이 약해질 때는 중심을 잡으려다 오히려 긴장만 쌓일 수 있다.",
+      money: "돈에서는 기준을 세우고 질서를 만들수록 안정이 붙는다.",
+      career: "일에서는 리더십, 관리, 조율, 최종 판단이 강점이 된다.",
+      relation: "관계에서는 사람을 포용하되 선을 분명히 긋는 태도가 필요하다.",
+      health: "몸과 마음은 책임을 오래 끌어안지 않도록 쉬는 규칙이 중요하다.",
+      advice: "크게 움직이기보다 중심을 지키는 작은 습관을 반복해야 힘이 오래 간다.",
+    }),
+  }),
+  천기: Object.freeze({
+    core: "분석하고 설계하고 흐름을 읽는 힘",
+    strength: "강하면 빠르게 맥락을 읽고 전략을 세우는 능력이 살아난다.",
+    caution: "약하면 생각이 많아져 실행이 늦어질 수 있다.",
+    advice: "생각을 한 번 더 정리하기보다 바로 작게 실행해 보며 감을 다듬어야 한다.",
+    sentences: Object.freeze({
+      base: "천기는 흐름을 읽고 길을 찾는 별이다.",
+      strong: "머리가 맑을 때는 빠른 판단과 구조화가 큰 장점이 된다.",
+      weak: "기운이 흔들리면 작은 변수에도 마음이 복잡해질 수 있다.",
+      money: "돈에서는 설계와 비교, 정보 정리가 곧 수익의 기반이 된다.",
+      career: "일에서는 기획, 분석, 조율, 설명이 잘 맞는다.",
+      relation: "관계에서는 말의 속도보다 이해의 정확도가 더 중요하다.",
+      health: "몸과 마음은 과도한 생각이 쌓이지 않게 쉬는 시간이 필요하다.",
+      advice: "복잡해질수록 한 문장으로 정리하는 습관이 운을 돕는다.",
+    }),
+  }),
+  태양: Object.freeze({
+    core: "드러남, 따뜻함, 기여, 시야의 확장",
+    strength: "강하면 사람을 밝히고 앞에서 방향을 보여 주는 힘이 크다.",
+    caution: "약하면 너무 많은 배려로 자기 에너지를 소진하기 쉽다.",
+    advice: "밝힘과 소모를 구분하고, 도움도 지속 가능한 방식으로 써야 한다.",
+    sentences: Object.freeze({
+      base: "태양은 존재를 드러내며 주변을 밝히는 성향으로 읽힌다.",
+      strong: "기운이 붙으면 선명한 표현과 자신감이 사람을 끌어당긴다.",
+      weak: "기운이 약할 때는 너무 많은 책임감이 숨은 피로를 만든다.",
+      money: "돈에서는 신뢰와 공개성, 정직한 전달이 유리하게 작동한다.",
+      career: "일에서는 공개적 역할, 안내, 교육, 대표성이 맞다.",
+      relation: "관계에서는 따뜻함이 장점이지만 상대의 부담까지 떠안지 않도록 해야 한다.",
+      health: "몸과 마음은 에너지를 넓게 쓰는 만큼 회복 시간을 챙겨야 한다.",
+      advice: "밝게 빛나되 오래 빛날 수 있는 페이스를 유지하는 것이 중요하다.",
+    }),
+  }),
+  무곡: Object.freeze({
+    core: "현실 감각, 수치, 관리, 돈의 구조",
+    strength: "강하면 돈과 실무를 단단하게 붙잡는 힘이 생긴다.",
+    caution: "약하면 계산이 거칠어져 손익을 놓치기 쉽다.",
+    advice: "숫자와 약속을 선명하게 다루고, 감정과 계산을 분리해야 한다.",
+    sentences: Object.freeze({
+      base: "무곡은 현실을 숫자와 결과로 정리하는 별이다.",
+      strong: "기운이 좋을 때는 절약, 집행, 정산 능력이 강해진다.",
+      weak: "기운이 약할 때는 고집이나 비용 과다가 문제로 드러난다.",
+      money: "돈에서는 수익 구조와 고정비 관리가 핵심이 된다.",
+      career: "일에서는 관리, 회계, 실무, 거래처럼 손에 잡히는 업무가 맞다.",
+      relation: "관계에서는 약속과 책임을 분명히 할수록 안정이 생긴다.",
+      health: "몸과 마음은 긴장과 절제만으로 버티지 않게 균형이 필요하다.",
+      advice: "좋은 자원은 아끼는 것이 아니라 정확히 쓰는 데서 힘이 산다.",
+    }),
+  }),
+  천동: Object.freeze({
+    core: "부드러운 유연함, 회복, 정서적 순환",
+    strength: "강하면 사람을 편안하게 하고 분위기를 살리는 힘이 커진다.",
+    caution: "약하면 미루기와 흐름에 맡김이 길어질 수 있다.",
+    advice: "편안함을 지키되 해야 할 일은 작은 단위로 끝내는 습관이 필요하다.",
+    sentences: Object.freeze({
+      base: "천동은 부드럽게 흘러가며 회복하는 성향으로 읽힌다.",
+      strong: "기운이 살아나면 사람을 편하게 하고 관계의 온도를 낮춘다.",
+      weak: "기운이 흔들리면 지나친 안일함이 일정과 결정을 늦출 수 있다.",
+      money: "돈에서는 서두르기보다 편안한 구조를 만들수록 오래 간다.",
+      career: "일에서는 상담, 서비스, 조정, 돌봄이 잘 맞는다.",
+      relation: "관계에서는 상대를 다그치기보다 함께 쉬는 감각이 중요하다.",
+      health: "몸과 마음은 편안한 리듬이 깨지지 않도록 생활 패턴을 지켜야 한다.",
+      advice: "느슨함이 장점이 되려면 최소한의 기준이 함께 있어야 한다.",
+    }),
+  }),
+  염정: Object.freeze({
+    core: "기준, 매력, 긴장감, 선명한 감정",
+    strength: "강하면 존재감과 집중력이 선명해진다.",
+    caution: "약하면 감정이 과열되거나 관계에 날이 서기 쉽다.",
+    advice: "매력을 성급한 판단으로 쓰지 말고, 선명한 기준과 절제와 함께 써야 한다.",
+    sentences: Object.freeze({
+      base: "염정은 분위기를 바꾸는 선명한 힘으로 읽힌다.",
+      strong: "기운이 붙으면 사람의 시선을 모으고 결정을 밀어붙이는 힘이 커진다.",
+      weak: "기운이 약할 때는 예민함이 먼저 올라와 관계가 날카로워질 수 있다.",
+      money: "돈에서는 기준과 속도를 함께 잡아야 손실을 줄인다.",
+      career: "일에서는 기획, 예술, 브랜드, 협상처럼 존재감이 드러나는 역할이 맞다.",
+      relation: "관계에서는 강한 감정이 오갈수록 말의 온도가 중요하다.",
+      health: "몸과 마음은 긴장과 흥분이 쌓이지 않게 중간중간 식혀야 한다.",
+      advice: "강한 느낌을 오래 쓰려면 차분한 구조가 반드시 필요하다.",
+    }),
+  }),
+  천부: Object.freeze({
+    core: "저장, 보호, 품격, 안정의 토대",
+    strength: "강하면 사람과 자원을 안정적으로 묶어 두는 힘이 생긴다.",
+    caution: "약하면 가진 것을 아끼다 보니 흐름이 굳어질 수 있다.",
+    advice: "안정은 숨기는 데서 오기보다 잘 구조화하는 데서 길게 이어진다.",
+    sentences: Object.freeze({
+      base: "천부는 큰 그릇처럼 자원과 시간을 안정적으로 담는 별이다.",
+      strong: "기운이 좋을 때는 믿음과 품격이 자산으로 이어진다.",
+      weak: "기운이 약할 때는 안정만 고집해 변화를 놓칠 수 있다.",
+      money: "돈에서는 저장과 분산, 장기 보유가 잘 맞는다.",
+      career: "일에서는 관리, 운영, 보관, 신뢰 기반의 역할이 좋다.",
+      relation: "관계에서는 오래 보는 태도와 책임감이 강점이 된다.",
+      health: "몸과 마음은 과하게 움켜쥐지 않고 순환을 확보해야 한다.",
+      advice: "지켜야 할 것은 지키되 흐름이 멈추지 않도록 열어 두어야 한다.",
+    }),
+  }),
+  태음: Object.freeze({
+    core: "축적, 감수성, 내면의 깊이, 조용한 회복",
+    strength: "강하면 섬세함과 축적 능력이 삶을 부드럽게 만든다.",
+    caution: "약하면 예민함과 망설임이 길어질 수 있다.",
+    advice: "조용한 강점을 현실에서 쓰려면 감정과 재정을 분리해 정리해야 한다.",
+    sentences: Object.freeze({
+      base: "태음은 조용히 쌓이고 오래 남는 힘으로 읽힌다.",
+      strong: "기운이 좋으면 섬세한 감각이 품격과 안정으로 이어진다.",
+      weak: "기운이 흔들리면 걱정이 많아져 결정을 미루기 쉽다.",
+      money: "돈에서는 꾸준한 적립과 정리가 잘 맞는다.",
+      career: "일에서는 기록, 디자인, 기획 보조, 자산 관리에 힘이 실린다.",
+      relation: "관계에서는 조용히 챙기되 마음속 부담을 오래 끌지 않는 것이 중요하다.",
+      health: "몸과 마음은 수면과 리듬이 흐트러지지 않게 챙겨야 한다.",
+      advice: "작은 안정이 오래 가도록 생활 구조를 부드럽게 유지해야 한다.",
+    }),
+  }),
+  탐랑: Object.freeze({
+    core: "확장, 호기심, 매력, 즐거움을 찾아가는 힘",
+    strength: "강하면 사람을 끌어당기고 기회를 넓히는 재능이 살아난다.",
+    caution: "약하면 자극을 좇다 방향이 흔들릴 수 있다.",
+    advice: "즐거움은 동력이지만, 기준 없이 쓰면 분산이 커지므로 선을 세워야 한다.",
+    sentences: Object.freeze({
+      base: "탐랑은 관심과 매력을 바탕으로 확장하는 별이다.",
+      strong: "기운이 살아나면 사람과 기회를 동시에 끌어오는 힘이 커진다.",
+      weak: "기운이 약할 때는 한 번에 많은 것을 건드려 지치기 쉽다.",
+      money: "돈에서는 매력, 홍보, 소개, 유입이 중요해진다.",
+      career: "일에서는 영업, 콘텐츠, 기획, 대외 활동에 잘 맞는다.",
+      relation: "관계에서는 즐거움을 주지만 경계가 흐려지지 않게 관리해야 한다.",
+      health: "몸과 마음은 자극이 과해지면 금세 피로가 쌓일 수 있다.",
+      advice: "넓게 손대기보다 가장 잘되는 한두 가지를 깊게 쓰는 편이 유리하다.",
+    }),
+  }),
+  거문: Object.freeze({
+    core: "말, 설명, 분석, 숨은 사실을 밝히는 힘",
+    strength: "강하면 설득과 검토 능력이 선명해진다.",
+    caution: "약하면 의심과 말의 꼬임이 생길 수 있다.",
+    advice: "말을 길게 하기보다 핵심을 정확히 놓는 연습이 필요하다.",
+    sentences: Object.freeze({
+      base: "거문은 말과 분석을 통해 흐름을 드러내는 별이다.",
+      strong: "기운이 좋으면 질문과 답변, 검토와 설득이 강점이 된다.",
+      weak: "기운이 약할 때는 생각이 겹치며 말이 길어질 수 있다.",
+      money: "돈에서는 설명, 계약, 조건 정리가 중요하다.",
+      career: "일에서는 상담, 법률, 문서, 커뮤니케이션이 맞다.",
+      relation: "관계에서는 사실 확인보다 상대의 감정을 함께 살피는 것이 중요하다.",
+      health: "몸과 마음은 걱정이 많아질수록 쉼을 더 의식해야 한다.",
+      advice: "한 번 더 묻고 한 번 더 정리하면 오해가 크게 줄어든다.",
+    }),
+  }),
+  천상: Object.freeze({
+    core: "균형, 품위, 중재, 관계의 완충",
+    strength: "강하면 사람 사이의 긴장을 부드럽게 풀어 주는 힘이 생긴다.",
+    caution: "약하면 눈치만 보다가 결정이 늦어질 수 있다.",
+    advice: "품위를 유지하되 선택은 분명하게, 해야 할 말은 적시에 해야 한다.",
+    sentences: Object.freeze({
+      base: "천상은 균형과 중재를 통해 관계를 다듬는 별이다.",
+      strong: "기운이 좋으면 사람을 편안하게 하고 신뢰를 얻는다.",
+      weak: "기운이 흔들리면 지나친 조율로 자기 결정을 미루게 된다.",
+      money: "돈에서는 조건 조정과 신뢰 관리가 핵심이 된다.",
+      career: "일에서는 협상, 조정, 관리, 대외 대응이 잘 맞는다.",
+      relation: "관계에서는 예의와 균형감이 장점이지만 원칙도 함께 있어야 한다.",
+      health: "몸과 마음은 편안함을 유지하는 생활 리듬이 중요하다.",
+      advice: "분위기를 맞추는 것과 의사를 분명히 하는 것을 같이 가져가야 한다.",
+    }),
+  }),
+  천량: Object.freeze({
+    core: "보호, 기준, 어른다운 판단, 오래 보는 시선",
+    strength: "강하면 사람을 지켜 주고 기준을 세우는 힘이 커진다.",
+    caution: "약하면 잔소리나 과잉 통제로 보일 수 있다.",
+    advice: "보호는 지시보다 신뢰에서 오래 간다.",
+    sentences: Object.freeze({
+      base: "천량은 사람과 상황을 보호하고 기준을 세우는 별이다.",
+      strong: "기운이 좋으면 공정함과 안정감이 주변에 신뢰를 만든다.",
+      weak: "기운이 약할 때는 판단이 지나치게 엄격해질 수 있다.",
+      money: "돈에서는 무리한 확장보다 안전장치가 중요하다.",
+      career: "일에서는 관리, 감독, 조언, 책임 있는 역할이 잘 맞는다.",
+      relation: "관계에서는 기준을 세우되 상대를 보호하는 말투가 필요하다.",
+      health: "몸과 마음은 과한 책임을 줄이고 회복 루틴을 챙겨야 한다.",
+      advice: "정리와 보호를 동시에 할 수 있을 때 천량의 힘이 살아난다.",
+    }),
+  }),
+  칠살: Object.freeze({
+    core: "결단, 돌파, 속도, 승부의 기운",
+    strength: "강하면 어려운 상황에서 먼저 앞으로 나아가는 힘이 생긴다.",
+    caution: "약하면 급함이 실수로 이어질 수 있다.",
+    advice: "돌파는 필요하지만, 방향 없는 속도는 손실을 키우므로 기준이 필요하다.",
+    sentences: Object.freeze({
+      base: "칠살은 단단한 결단과 빠른 실행으로 읽힌다.",
+      strong: "기운이 붙으면 위기에서 버티고 치고 나가는 힘이 커진다.",
+      weak: "기운이 약할 때는 성급함 때문에 관계와 자원에 손상이 생길 수 있다.",
+      money: "돈에서는 과감함이 유리해도 위험 관리가 먼저다.",
+      career: "일에서는 책임, 전환, 위기 대응, 빠른 판단이 맞다.",
+      relation: "관계에서는 직선적 태도를 부드럽게 조율해야 한다.",
+      health: "몸과 마음은 긴장 상태가 길어지지 않게 풀어 줄 필요가 있다.",
+      advice: "강한 속도는 한 번 더 점검할 때 가장 안전하게 살아난다.",
+    }),
+  }),
+  파군: Object.freeze({
+    core: "해체, 전환, 새 판 짜기, 변화를 밀어내는 힘",
+    strength: "강하면 낡은 구조를 바꾸고 새로운 길을 여는 힘이 크다.",
+    caution: "약하면 끊고 바꾸는 과정에서 혼란이 커질 수 있다.",
+    advice: "새로운 판을 짤 때는 과감함과 함께 복구 계획이 있어야 한다.",
+    sentences: Object.freeze({
+      base: "파군은 기존 질서를 흔들고 새 구조를 만드는 별이다.",
+      strong: "기운이 좋으면 변화를 두려워하지 않고 길을 바꿀 수 있다.",
+      weak: "기운이 약할 때는 급한 전환이 불안정한 결과를 남길 수 있다.",
+      money: "돈에서는 한 번에 크게 바꾸기보다 단계적 전환이 낫다.",
+      career: "일에서는 재편, 혁신, 구조 개편, 새 시장 개척에 강점이 있다.",
+      relation: "관계에서는 끊고 다시 잇는 선택보다 먼저 대화를 시도하는 편이 낫다.",
+      health: "몸과 마음은 변화가 잦을수록 생활 리듬을 고정해야 한다.",
+      advice: "흔드는 힘이 클수록 다시 세우는 기준을 선명하게 해야 한다.",
+    }),
+  }),
+});
+
+const CHAPTER_TOPIC_KEYWORDS = Object.freeze({
+  "Chapter 1. 명반 전체 요약 — 이 사람의 운명 구조": ["명궁", "신궁", "사화", "대궁", "삼방사정", "핵심", "조언"],
+  "Chapter 2. 명궁 — 타고난 성격과 삶의 태도": ["성향", "장점", "감정", "판단", "인상", "조언"],
+  "Chapter 3. 형제궁·노복궁 — 가까운 사람과 인맥의 운": ["형제", "동료", "친구", "조력자", "인맥", "협업"],
+  "Chapter 4. 부부궁 — 연애와 결혼의 구조": ["연애", "결혼", "배우자", "관계", "갈등", "유지"],
+  "Chapter 5. 자녀궁 — 창작물, 후배, 결과물의 운": ["자녀", "후배", "창작", "결과물", "책임", "영향력"],
+  "Chapter 6. 재백궁 — 돈과 수익 구조": ["돈", "수익", "가격", "계약", "신뢰", "재물"],
+  "Chapter 7. 관록궁 — 직업, 성공, 사회적 역할": ["직업", "일", "커리어", "성공", "사회적 역할", "실행"],
+  "Chapter 8. 천이궁 — 외부 활동, 이동, 세상과의 접점": ["외부 활동", "이동", "대중", "말", "기회", "오해"],
+  "Chapter 9. 전택궁 — 집, 기반, 자산, 안정성": ["집", "기반", "자산", "안정", "저장", "가치"],
+  "Chapter 10. 질액궁·복덕궁 — 건강, 마음, 회복력": ["건강", "체력", "마음", "스트레스", "회복", "루틴"],
+  "Chapter 11. 부모궁 — 부모, 윗사람, 권위자와의 관계": ["부모", "윗사람", "권위자", "독립", "책임", "부담"],
+  "Chapter 12. 대운·세운 — 시기별 인생 흐름": ["대운", "세운", "현재", "가까운 미래", "기회", "주의"],
+  "Chapter 13. 최종 운명 전략 — 이 명반을 가장 잘 쓰는 법": ["전략", "돈", "일", "관계", "건강", "실행"],
+});
 
 function clean(value) {
   return String(value == null ? "" : value).trim();
@@ -722,26 +1073,170 @@ function buildZiweiPdfSeed(profile, base) {
   return seed;
 }
 
-function buildZiweiLlmPrompt({ seed, chapterSpec, previousChapterSummaries = [], attempt = 1, previousFailureReason = "" } = {}) {
-  const groundTruth = seed?.ziweiPdfSeed?.groundTruth || {
-    palaces: seed?.chart?.palaces || [],
-    transformations: seed?.chart?.transformations || [],
-  };
-  return [
-    "SYSTEM:",
-    "반드시 아래 groundTruth JSON에만 근거해 해석하고, 추측하지 말 것.",
-    "GROUND TRUTH JSON:",
-    JSON.stringify(groundTruth),
-    "RESPONSE SCHEMA:",
-    '{"chapter":{"title":string,"categories":[{"title":string,"finalText":string}]}}',
-    `TARGET CHAPTER: ${clean(chapterSpec?.title)}`,
-    `ATTEMPT: ${Number(attempt) || 1}`,
-    `PREV FAILURE: ${clean(previousFailureReason || "none")}`,
-    `PREVIOUS SUMMARY COUNT: ${Array.isArray(previousChapterSummaries) ? previousChapterSummaries.length : 0}`,
-  ].join("\n");
+function uniqueByName(stars = []) {
+  const seen = new Set();
+  const list = [];
+  for (const star of stars) {
+    if (!star || !star.name) continue;
+    if (seen.has(star.name)) continue;
+    seen.add(star.name);
+    list.push(star);
+  }
+  return list;
 }
 
-function validateZiweiPdfLLMInterpretationQuality({ chapters = [], expectedChapters = CHAPTER_BLUEPRINTS } = {}) {
+function scoreStrengthSymbol(symbol) {
+  if (symbol === "◎") return 5;
+  if (symbol === "O") return 4;
+  if (symbol === "▲") return 3;
+  if (symbol === "△") return 2;
+  return 1;
+}
+
+function pickStrongestStar(stars = []) {
+  return uniqueByName(stars).sort((left, right) => scoreStrengthSymbol(right.strengthSymbol) - scoreStrengthSymbol(left.strengthSymbol))[0] || null;
+}
+
+function pickWeakestStar(stars = []) {
+  return uniqueByName(stars).sort((left, right) => scoreStrengthSymbol(left.strengthSymbol) - scoreStrengthSymbol(right.strengthSymbol))[0] || null;
+}
+
+function findPalacesByKeys(seed, keys = []) {
+  const palaces = Array.isArray(seed?.chart?.palaces) ? seed.chart.palaces : [];
+  const lookup = new Map();
+  for (const palace of palaces) {
+    if (palace && palace.key && !lookup.has(palace.key)) lookup.set(palace.key, palace);
+  }
+  const list = [];
+  for (const key of keys) {
+    const palace = lookup.get(key) || findPalace(seed, key);
+    if (palace && !list.includes(palace)) list.push(palace);
+  }
+  return list;
+}
+
+function collectStarPoolFromPalaces(palaces = []) {
+  return uniqueByName(
+    palaces.flatMap((palace) => [
+      ...(Array.isArray(palace?.mainStars) ? palace.mainStars : []),
+      ...(Array.isArray(palace?.auxStars) ? palace.auxStars : []),
+      ...(Array.isArray(palace?.maleficStars) ? palace.maleficStars : []),
+    ]),
+  );
+}
+
+function starInterpretationLine(star, topic = "", lane = "base") {
+  const info = ZIWEI_STAR_INTERPRETATION[clean(star?.name)] || null;
+  const tone = info?.sentences?.[lane] || info?.sentences?.base || "";
+  const strength = `${clean(star?.name)}${clean(star?.strengthSymbol || "")}`;
+  const strengthName = clean(star?.strengthName || "");
+  if (!info) {
+    return `${strength}은 ${topic || "해당 영역"}에서 현실 감각과 선택의 기준을 만들어 주는 신호로 볼 수 있습니다.`;
+  }
+  return `${strength}(${strengthName})은 ${topic || "이 영역"}에서 ${info.core}로 작동하며, ${tone || info.strength} ${info.advice}`;
+}
+
+function summarizePalaceBundle(seed, palaceList) {
+  const palaces = palaceList.filter(Boolean);
+  const names = palaces.map((palace) => palace.nameKo || PALACE_LABELS[palace.key] || palace.key).filter(Boolean);
+  const mainStars = collectStarPoolFromPalaces(palaces);
+  const strongest = pickStrongestStar(mainStars);
+  const weakest = pickWeakestStar(mainStars);
+  const transformationText = Array.isArray(seed?.chart?.transformations) && seed.chart.transformations.length
+    ? seed.chart.transformations.map((item) => `${clean(item.star)} ${clean(item.type)}`.trim()).filter(Boolean).join(", ")
+    : "사화 흐름은 직접 신호보다 생활 선택에서 간접적으로 드러납니다";
+  const triadHint = palaces.length > 1
+    ? `${names.slice(0, 3).join(", ")}의 연결을 함께 보면 한 궁만 볼 때보다 판단이 훨씬 선명해집니다.`
+    : `${names[0] || "해당 궁"}의 단독 신호보다 주변 궁과의 연결을 함께 봐야 합니다.`;
+  return {
+    names,
+    mainStars,
+    strongest,
+    weakest,
+    transformationText,
+    triadHint,
+  };
+}
+
+function chapterPaletteLine(blueprint, bundle) {
+  const names = bundle.names.length ? bundle.names.join("·") : "해당 궁";
+  const strongest = bundle.strongest ? `${bundle.strongest.name}${bundle.strongest.strengthSymbol}` : "핵심 별";
+  const weakest = bundle.weakest ? `${bundle.weakest.name}${bundle.weakest.strengthSymbol}` : "보완 축";
+  const keywords = CHAPTER_TOPIC_KEYWORDS[blueprint.title] || [];
+  return `${blueprint.title}는 ${names}의 흐름을 함께 엮어 읽는 장입니다. 핵심 키워드는 ${keywords.slice(0, 4).join(", ")}이며, 이 장에서는 ${strongest}의 장점과 ${weakest}의 관리 과제를 함께 다룹니다.`;
+}
+
+function buildParagraphVariants(blueprint, categoryTitle, bundle, chapterIndex, categoryIndex, pass) {
+  const stars = bundle.mainStars;
+  const leadStar = bundle.strongest || stars[0] || null;
+  const supportStar = stars.find((star) => star !== leadStar) || bundle.weakest || null;
+  const topicKeywords = CHAPTER_TOPIC_KEYWORDS[blueprint.title] || [];
+  const topic = topicKeywords.slice(0, 4).join(", ") || categoryTitle;
+  const variant = (chapterIndex + categoryIndex + pass) % 4;
+  const strengthSentence = leadStar ? starInterpretationLine(leadStar, categoryTitle, variant % 2 === 0 ? "strong" : "base") : `${categoryTitle}는 이 명반에서 선택의 질이 운을 좌우하는 주제입니다.`;
+  const cautionSentence = supportStar ? starInterpretationLine(supportStar, categoryTitle, variant % 2 === 0 ? "weak" : "advice") : `${categoryTitle}는 기준이 흐려질수록 선택이 늦어지므로, 판단과 실행을 분리해 두는 편이 좋습니다.`;
+  const openingSet = [
+    `${categoryTitle}는 ${topic}의 흐름을 실제 생활로 옮겨 읽는 자리입니다.`,
+    `이 장의 ${categoryTitle}는 단순한 설명이 아니라, ${topic}이 삶에서 어떻게 반복되는지를 보는 해석입니다.`,
+    `${categoryTitle}에서는 겉으로 보이는 사건보다, 그 사건이 왜 반복되는지를 먼저 읽는 것이 중요합니다.`,
+    `이 항목은 ${categoryTitle}이 어떤 선택과 태도로 살아나는지 정리하는 안내입니다.`,
+  ];
+  const developmentSet = [
+    `${bundle.triadHint} ${bundle.transformationText}를 함께 보면, 강점은 어떤 방식으로 밀리고 약점은 어떤 순간에 드러나는지 더 분명해집니다.`,
+    `특히 ${leadStar ? leadStar.name : "핵심 별"}의 움직임은 ${categoryTitle}에서 가장 먼저 반응하고, 다른 별들은 그 흐름을 돕거나 조절하는 역할을 합니다.`,
+    `이 명반은 ${bundle.names.slice(0, 3).join(", ") || "주요 궁"}의 연결이 살아 있을 때 판단이 안정되고, 외부 조건이 흔들려도 방향을 잃지 않는 구조를 보여 줍니다.`,
+    `${bundle.transformationText}은 단순한 덧붙임이 아니라, 같은 사건을 다른 방식으로 해석하게 만드는 결입니다.`,
+  ];
+  const successSet = [
+    `${categoryTitle}가 잘 풀릴 때는 ${leadStar ? leadStar.name : "강점"}의 힘이 실생활의 결과로 연결되어, 사람들은 이 영역에서 당신을 믿고 맡기려는 경향을 보입니다.`,
+    `좋은 흐름에서는 이 주제가 곧 안정감과 신뢰, 그리고 반복 가능한 실적으로 이어집니다.`,
+    `장점이 살아날 때는 ${categoryTitle}가 단순한 기질이 아니라, 관계와 선택을 바꾸는 실제 능력이 됩니다.`,
+    `잘 맞는 환경에서는 ${categoryTitle}가 부담이 아니라 자산이 되며, 주변 사람도 그 안정감을 알아봅니다.`,
+  ];
+  const cautionSet = [
+    `${cautionSentence} 그래서 이 영역은 무리해서 밀기보다, 기준을 좁혀서 다루는 편이 더 좋습니다.`,
+    `흔들릴 때는 같은 힘이 집착이나 과속으로 바뀔 수 있으니, 속도보다 구조를 먼저 점검해야 합니다.`,
+    `이 주제가 꼬일 때는 감정, 말, 약속, 돈, 책임이 한꺼번에 얽히기 쉬우므로 경계선을 명확히 두는 것이 중요합니다.`,
+    `운이 약하게 느껴지는 시기에는 이 영역을 없애려 하지 말고, 작게 나누어 다루면서 회복의 여지를 남겨 두어야 합니다.`,
+  ];
+  return [
+    `${openingSet[variant]}
+
+${chapterPaletteLine(blueprint, bundle)}
+
+${strengthSentence}`,
+    `${developmentSet[variant]}
+
+${starInterpretationLine(leadStar, categoryTitle, "money")}
+
+${starInterpretationLine(leadStar, categoryTitle, "career")}`,
+    `${successSet[variant]}
+
+${starInterpretationLine(leadStar, categoryTitle, "relation")}
+
+${starInterpretationLine(leadStar, categoryTitle, "health")}`,
+    `${cautionSet[variant]}
+
+${starInterpretationLine(supportStar || leadStar, categoryTitle, "advice")}
+
+${bundle.names.length > 1 ? `여러 궁의 흐름이 함께 움직이므로 ${bundle.names.join("·")} 사이의 연결을 함께 보는 것이 좋습니다.` : `이 장의 핵심은 단일 신호보다 반복 패턴을 어떻게 정리하느냐에 있습니다.`}`,
+  ];
+}
+
+function buildZiweiLocalChapterGuide({ seed, blueprint, chapterIndex, categoryIndex, pass = 1, categoryTitle }) {
+  const palaceList = findPalacesByKeys(seed, blueprint.palaceKeys);
+  const bundle = summarizePalaceBundle(seed, palaceList);
+  const paragraphs = buildParagraphVariants(blueprint, categoryTitle, bundle, chapterIndex, categoryIndex, pass);
+  const text = paragraphs.map((paragraph) => stripForbiddenTokens(paragraph)).join("\n\n");
+  return {
+    title: categoryTitle,
+    body: text,
+    paragraphs,
+    bundle,
+  };
+}
+
+function validateZiweiPdfChapterQuality({ chapters = [], expectedChapters = CHAPTER_BLUEPRINTS } = {}) {
   const base = validateChapters(chapters);
   const chapterCountOk = Array.isArray(chapters) && chapters.length === expectedChapters.length;
   const totalChars = Number(base.totalChars || 0);
@@ -777,6 +1272,7 @@ function validateFinalManuscript({ birthInput, seed, chapters }) {
   const chapterValidation = validateChapters(chapters);
   if (!chapterValidation.ok) errors.push(...chapterValidation.errors);
   if (computeDuplicateRate(chapters) > 0.45) errors.push("duplicate_rate_high");
+  if (!chapterValidation.repetition?.ok) errors.push("repetition_detected");
   return { ok: errors.length === 0, errors, chapterValidation };
 }
 
@@ -823,56 +1319,43 @@ function collectSignals(seed, palace) {
 }
 
 function buildCategoryText(profile, seed, blueprint, categoryTitle, categoryIndex, pass = 1) {
-  const palace = findPalace(seed, blueprint.palaceKey);
-  const evidence = blueprint.palaceKey === "timing" ? timingEvidenceText(seed) : palaceEvidenceText(seed, palace);
-  const label = blueprint.palaceKey === "timing" ? "대운·유년" : (palace?.nameKo || PALACE_LABELS[blueprint.palaceKey] || "해당 궁");
-  const signals = collectSignals(seed, palace);
-  const focusedStars = signals.usedStars.slice(0, 4).join(", ") || "핵심 별 신호";
-  const focusedSignal = signals.usedSignals.slice(0, 5).join(", ") || "궁간 상호작용";
-  const strengthGuide = `${categoryTitle} 해석에서는 ${label}의 별 강도를 묘 ◎, 득 O, 리 ▲, 평 △, 함·실 X 순서로 읽되, ${focusedStars}의 조합을 실행 우선순위로 연결하는 방식이 가장 현실적입니다.`;
-  const practical = [
-    `이번 장에서는 ${label}의 구조를 ${focusedStars}의 배치와 ${focusedSignal}의 작동 축으로 읽어야 실제 선택이 선명해집니다.`,
-    `${categoryTitle}를 해석할 때 가장 중요한 지점은 단기 성과보다 반복 가능한 리듬을 먼저 고정하는 일입니다. 같은 별 조합이라도 실행 순서가 바뀌면 결과의 질이 달라지기 때문입니다.`,
-    `${profile.name}님의 경우 ${label}에서 드러나는 기회 신호는 즉시 확장보다 기준 확립에서 더 크게 살아납니다. 협업, 재정, 루틴을 동시에 다루기보다 주당 핵심 항목을 두세 개로 압축하면 체감 성과가 분명해집니다.`,
-    `${categoryTitle}에서는 강한 별을 추진력으로 쓰되, 약한 별은 ${label} 기준의 복구 규칙으로 관리해야 손실이 줄어듭니다. 일정 지연, 감정 피로, 관계 소모를 초기에 감지하도록 경보 조건을 만들면 운의 파동이 커져도 균형을 지킬 수 있습니다.`,
-    `실행 전략은 "분석-결정-실행-복기"의 4단계를 짧게 순환하는 방식이 좋습니다. 특히 ${categoryTitle}에서는 매주 같은 시간에 의사결정 로그를 남기면 별 신호가 행동으로 번역되고, 모호했던 고민이 다음 선택의 기준으로 축적됩니다.`,
-  ];
-  const focus = categoryIndex % 2 === 0
-    ? `${categoryTitle}에서는 빠른 확장보다 안정적인 반복 구조가 유리하며, ${label}에서 포착된 신호를 월 단위 점검 항목으로 고정하면 변동 구간의 손실을 줄일 수 있습니다.`
-    : `${categoryTitle}에서는 관계와 일의 경계를 먼저 설계해야 하며, ${label}의 신호를 기준으로 부탁 수락 조건과 거절 문장을 미리 정해두면 에너지 누수를 줄일 수 있습니다.`;
-  const passBonus = pass > 1
-    ? `${categoryTitle}의 핵심 별 신호를 월 단위 운영 계획으로 내려서 관리하면, 대운·세운의 변동 구간에서도 시행착오를 크게 줄일 수 있습니다. 중요한 것은 거창한 결단이 아니라 작은 원칙을 반복해 구조적 우위를 만드는 것입니다.`
-    : "";
-  return stripForbiddenTokens(`이 절은 ${categoryTitle} 실행 전략을 ${label} 데이터에 맞춰 구체화한 안내입니다.\n\n${evidence}\n\n${strengthGuide}\n\n${practical.join("\n\n")}\n\n${focus}\n\n${passBonus}`);
+  const guide = buildZiweiLocalChapterGuide({
+    seed,
+    blueprint,
+    chapterIndex: CHAPTER_BLUEPRINTS.findIndex((item) => item.id === blueprint.id),
+    categoryIndex,
+    pass,
+    categoryTitle,
+  });
+  return guide.body;
 }
 
 function buildZiweiLocalPremiumManuscript(profile, seed, pass = 1) {
   return CHAPTER_BLUEPRINTS.map((blueprint, chapterIndex) => {
-    const palace = findPalace(seed, blueprint.palaceKey);
-    const signals = collectSignals(seed, palace);
-    const sections = blueprint.categories.map((categoryTitle, index) => {
-      const body = buildCategoryText(profile, seed, blueprint, categoryTitle, index, pass);
+    const categories = blueprint.categories.map((categoryTitle, categoryIndex) => {
+      const guide = buildZiweiLocalChapterGuide({ seed, blueprint, chapterIndex, categoryIndex, pass, categoryTitle });
       return {
         title: categoryTitle,
-        body,
-        bullets: [
-          `${categoryTitle}의 핵심 별 신호: ${(signals.usedSignals.slice(0, 4).join(", ") || "기본 명반 신호")}`,
-          `실행 기준: ${(signals.usedStars.slice(0, 3).join(", ") || "핵심 별") + " 중심으로 우선순위 설정"}`,
-          "실전 루틴: 주간 복기와 월간 재정렬로 변동성 관리",
-        ],
+        body: guide.body,
+        paragraphs: guide.paragraphs,
+        bundle: guide.bundle,
       };
     });
+    const chapterBody = categories.map((section) => `### ${section.title}\n\n${section.body}`).join("\n\n");
+    const palaceList = findPalacesByKeys(seed, blueprint.palaceKeys);
+    const bundle = summarizePalaceBundle(seed, palaceList);
     return {
       chapterNo: chapterIndex + 1,
       title: blueprint.title,
-      subtitle: `${PALACE_LABELS[blueprint.palaceKey] || "핵심 궁"} 중심 해석`,
-      sections,
+      subtitle: `${bundle.names.join("·") || "핵심 궁"} 중심 해석`,
+      sections: categories,
       localQuality: {
-        minLengthPassed: sections.every((section) => stripForbiddenTokens(section.body).length >= SECTION_MIN_CHARS),
-        usedPalaces: [palace?.nameKo || PALACE_LABELS[blueprint.palaceKey] || ""].filter(Boolean),
-        usedStars: signals.usedStars,
-        usedSignals: signals.usedSignals,
+        minLengthPassed: categories.every((section) => stripForbiddenTokens(section.body).length >= SECTION_MIN_CHARS),
+        usedPalaces: bundle.names,
+        usedStars: bundle.mainStars.map((star) => star.name),
+        usedSignals: bundle.mainStars.map((star) => `${star.name}${star.strengthSymbol}`),
       },
+      body: chapterBody,
     };
   });
 }
@@ -883,6 +1366,7 @@ function draftToChapter(draft, blueprint, source = "local") {
     title: section.title,
     localSummary: section.body,
     finalText: section.body,
+    paragraphs: Array.isArray(section.paragraphs) ? section.paragraphs : [section.body],
     order: index + 1,
   }));
   return {
@@ -899,8 +1383,51 @@ function draftToChapter(draft, blueprint, source = "local") {
 
 function buildLocalChapters(profile, seed, pass = 1) {
   const drafts = buildZiweiLocalPremiumManuscript(profile, seed, pass);
-  const chapters = drafts.map((draft, index) => draftToChapter(draft, CHAPTER_BLUEPRINTS[index], pass > 1 ? "local-reinforced" : "local-skeleton"));
+  const chapters = drafts.map((draft, index) => draftToChapter(draft, CHAPTER_BLUEPRINTS[index], "local-only"));
   return { drafts, chapters };
+}
+
+function validateNoZiweiPdfRepetition(chapters = []) {
+  const sections = chapters
+    .flatMap((chapter) => (Array.isArray(chapter?.categories) ? chapter.categories : []))
+    .map((item) => stripForbiddenTokens(item?.finalText || item?.text || ""))
+    .map((text) => clean(text).replace(/\s+/g, " "))
+    .filter((text) => text.length >= 120);
+
+  const exactTextCounts = new Map();
+  const openingCounts = new Map();
+  const sentenceCounts = new Map();
+
+  for (const section of sections) {
+    exactTextCounts.set(section, (exactTextCounts.get(section) || 0) + 1);
+    const opening = section.slice(0, 120);
+    openingCounts.set(opening, (openingCounts.get(opening) || 0) + 1);
+
+    const sentences = section
+      .split(/[.!?。]\s*/)
+      .map((row) => clean(row).replace(/\s+/g, " "))
+      .filter((row) => row.length >= 80);
+    const uniqueSentences = new Set(sentences);
+
+    for (const sentence of uniqueSentences) {
+      sentenceCounts.set(sentence, (sentenceCounts.get(sentence) || 0) + 1);
+    }
+  }
+
+  const repeatedSection = Array.from(exactTextCounts.values()).some((count) => count >= 2);
+  const repeatedOpening = Array.from(openingCounts.values()).some((count) => count >= 3);
+  const repeatedSentence = Array.from(sentenceCounts.values()).some((count) => count >= 4);
+  const repeatedChunk = sections.some((section) => {
+    const normalized = section.slice(0, 180);
+    return normalized.length >= 120 && sections.filter((other) => other.includes(normalized)).length >= 2;
+  });
+  return {
+    ok: !(repeatedSection || repeatedSentence || repeatedOpening || repeatedChunk),
+    repeatedSection,
+    repeatedSentence,
+    repeatedOpening,
+    repeatedChunk,
+  };
 }
 
 function validateChapters(chapters = []) {
@@ -927,7 +1454,9 @@ function validateChapters(chapters = []) {
     });
   });
   if (totalChars < TOTAL_MIN_CHARS) errors.push("total_min_chars");
-  return { ok: errors.length === 0, errors, totalChars };
+  const repetition = validateNoZiweiPdfRepetition(chapters);
+  if (!repetition.ok) errors.push("repetition_detected");
+  return { ok: errors.length === 0, errors, totalChars, repetition };
 }
 
 function computeDuplicateRate(chapters = []) {
@@ -1002,7 +1531,7 @@ function renderZiweiPdf({ profile, seed, chapters, generatedAt, fallbackUsed }) 
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>자미두수 프리미엄 리포트</title>
+  <title>자미두수 프리미엄 명반서</title>
   <style>
     :root{color-scheme:light}*{box-sizing:border-box}body{margin:0;font-family:"Noto Serif KR","Malgun Gothic",serif;background:#100821;color:#f8f4ff;line-height:1.82}.page{max-width:980px;margin:0 auto;padding:28px 20px 64px}.cover{position:relative;overflow:hidden;min-height:92vh;padding:42px 34px;border-radius:24px;background:radial-gradient(circle at 72% 12%,rgba(250,204,21,.25),transparent 26%),linear-gradient(145deg,#160729 0%,#30125f 48%,#091b3a 100%);box-shadow:0 24px 60px rgba(0,0,0,.32);display:flex;flex-direction:column;justify-content:center}.cover::after{content:"";position:absolute;inset:24px;border:1px solid rgba(250,204,21,.28);border-radius:20px;pointer-events:none}.cover img{position:relative;z-index:1;width:min(320px,82%);border-radius:18px;margin:24px 0 0;box-shadow:0 18px 42px rgba(0,0,0,.34);background:#271146}.cover h1{position:relative;z-index:1;margin:8px 0 8px;font-size:44px;line-height:1.12;color:#fff7d6}.cover p{position:relative;z-index:1;margin:4px 0;color:#d8ccff}.badge{letter-spacing:.22em;text-transform:uppercase;color:#facc15;font-size:12px}.panel,.toc,.zb-chapter,.legend{margin-top:20px;padding:20px;border:1px solid rgba(216,180,254,.28);border-radius:18px;background:rgba(255,255,255,.08);box-shadow:0 14px 30px rgba(0,0,0,.16)}.panel h2,.toc h2,.legend h2{margin:0 0 12px;color:#fde68a}.meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.meta-item{padding:12px;border-radius:14px;background:rgba(16,8,33,.52);border:1px solid rgba(250,204,21,.2)}.meta-item b{display:block;color:#facc15}.legend-list{display:flex;flex-wrap:wrap;gap:8px}.legend-list span{padding:6px 10px;border-radius:999px;background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.26)}.palace-table{width:100%;border-collapse:collapse;font-size:13px}.palace-table td,.palace-table th{border-bottom:1px solid rgba(255,255,255,.12);padding:8px;text-align:left;vertical-align:top}.toc ol{margin:0;padding-left:20px}.toc li{margin:8px 0}.toc span{display:inline-block;min-width:44px;color:#facc15}.zb-chapter{break-inside:avoid-page;page-break-inside:avoid;background:#fbf7ff;color:#241333}.zb-eyebrow{letter-spacing:.18em;text-transform:uppercase;color:#7c3aed;font-size:12px}.zb-chapter h2{margin:8px 0 18px;color:#2e1065;font-size:26px}.zb-category{padding:14px 16px;margin:12px 0;border-radius:14px;background:#fff;border:1px solid #e9d5ff}.zb-category h3{margin:0 0 8px;color:#5b21b6;font-size:18px}.zb-category p{margin:0;white-space:pre-wrap;color:#2f2440}.notice{color:#d8ccff;font-size:13px}.footer{margin-top:22px;text-align:center;color:#c4b5fd;font-size:13px}@page{size:A4;margin:16mm 14mm 18mm}@media print{body{background:#fff}.page{padding:0}.cover,.panel,.toc,.legend,.zb-chapter{box-shadow:none}.cover{border-radius:0}.zb-chapter{break-before:page;page-break-before:always}.zb-chapter:first-of-type{break-before:auto;page-break-before:auto}}@media(max-width:720px){.cover h1{font-size:32px}.meta-grid{grid-template-columns:1fr}.page{padding:14px 10px 40px}}
   </style>
@@ -1011,14 +1540,14 @@ function renderZiweiPdf({ profile, seed, chapters, generatedAt, fallbackUsed }) 
   <main class="page">
     <section class="cover">
       <p class="badge">Code:Destiny Premium Ziwei</p>
-      <h1>자미두수 프리미엄 리포트</h1>
-      <p>명궁과 12궁으로 읽는 나만의 운명 설계도</p>
+      <h1>자미두수 프리미엄 명반서</h1>
+      <p>명궁과 12궁으로 읽는 나만의 운명 해설서</p>
       <p>${esc(profile.name)} · ${esc(profile.birthIso)}</p>
       <img src="/fuctionassets/jamipremiun.webp" alt="자미두수 프리미엄 리포트 표지 이미지" />
     </section>
     <section class="panel">
       <div class="meta-grid"><div class="meta-item"><b>명궁</b>${esc(seed.chart.mingGong || "확인 범위 내")}</div><div class="meta-item"><b>신궁</b>${esc(seed.chart.shenGong || "확인 범위 내")}</div><div class="meta-item"><b>발행일</b>${esc(new Date(generatedAt).toLocaleDateString("ko-KR"))}</div></div>
-      <p class="notice">${fallbackUsed ? "일부 해석은 기본 명반 해석으로 생성되었습니다." : "계산된 명반을 바탕으로 상담문을 보강했습니다."}</p>
+      <p class="notice">${fallbackUsed ? "일부 구간은 기본 명반 해석을 바탕으로 채워졌습니다." : "계산된 명반을 바탕으로 상담문을 정리했습니다."}</p>
     </section>
     <section class="legend"><h2>별 강도 기호</h2><div class="legend-list"><span>◎ 묘: 가장 강하게 드러나는 별</span><span>O 득: 안정적으로 힘을 얻은 별</span><span>▲ 리: 이롭게 활용할 수 있는 별</span><span>△ 평: 균형 관리가 필요한 별</span><span>X 함·실: 보완과 주의가 필요한 별</span></div></section>
     <section class="panel"><h2>12궁 핵심 명반</h2><table class="palace-table"><thead><tr><th>궁</th><th>지지</th><th>주성</th></tr></thead><tbody>${palaceSummary}</tbody></table></section>
@@ -1033,7 +1562,7 @@ function renderZiweiPdf({ profile, seed, chapters, generatedAt, fallbackUsed }) 
 function buildPdfReadyPayload(profile, seed, chapters, metadata = {}) {
   const html = renderZiweiPdf({ profile, seed, chapters, generatedAt: new Date().toISOString(), fallbackUsed: Boolean(metadata.fallbackUsed) });
   return {
-    title: `${stripForbiddenTokens(profile.name)} 자미두수 프리미엄 리포트`,
+    title: `${stripForbiddenTokens(profile.name)} 자미두수 프리미엄 명반서`,
     filename: `ziwei-premium-${String(profile.name || "user").replace(/\s+/g, "-").toLowerCase()}.html`,
     generatedAt: new Date().toISOString(),
     html,
@@ -1159,21 +1688,12 @@ async function handlePrepare(request, env) {
     localDraftValid: localMetrics.ok,
   });
 
-  const enhanced = await enhanceChaptersLocally(env, profile, seed, localChapters);
-  let completedChapters = enhanced.chapters;
-  let fallbackUsed = Boolean(enhanced.fallbackUsed);
-  const validation = validateChapters(completedChapters);
-  const duplicateRate = computeDuplicateRate(completedChapters);
-  if (!validation.ok || duplicateRate > 0.4) {
-    fallbackUsed = true;
-    completedChapters = localChapters.map((chapter) => ({ ...chapter, source: "local" }));
-  }
-  let finalValidation = validateChapters(completedChapters);
+  const completedChapters = localChapters.map((chapter) => ({ ...chapter, source: "local-only" }));
+  const finalValidation = validateChapters(completedChapters);
   const finalBundleValidation = validateFinalManuscript({ birthInput, seed, chapters: completedChapters });
-  if (!finalBundleValidation.ok) {
-    fallbackUsed = true;
-    completedChapters = localChapters.map((chapter) => ({ ...chapter, source: "local" }));
-    finalValidation = validateChapters(completedChapters);
+  const duplicateRate = computeDuplicateRate(completedChapters);
+  if (!finalBundleValidation.ok || duplicateRate > 0.4) {
+    throw new Error("자미두수 PDF 상담문 원고가 충분히 정리되지 않았습니다.");
   }
   console.info("[ZiweiPremiumPDF][FinalManuscriptValidated]", {
     chapterCount: completedChapters.length,
@@ -1188,9 +1708,9 @@ async function handlePrepare(request, env) {
     palaceCount: Array.isArray(seed.chart.palaces) ? seed.chart.palaces.length : 0,
   });
 
-  console.info("[ZiweiPremiumPDF][PdfRenderStart]", { chapterCount: completedChapters.length, fallbackUsed });
+  console.info("[ZiweiPremiumPDF][PdfRenderStart]", { chapterCount: completedChapters.length, fallbackUsed: false });
   const ziweiPayload = buildZiweiPayload(profile, seed, completedChapters, { accessType: clean(access.accessType || "unknown") });
-  const pdfReady = buildPdfReadyPayload(profile, seed, completedChapters, { featureKey, reportType: "ziweiPremium", fallbackUsed });
+  const pdfReady = buildPdfReadyPayload(profile, seed, completedChapters, { featureKey, reportType: "ziweiPremium", fallbackUsed: false });
   console.info("[ZiweiPremiumPDF][PdfRenderSuccess]", { chapterCount: completedChapters.length });
 
   const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `ziwei-premium-${Date.now().toString(36)}`);
@@ -1260,12 +1780,13 @@ export async function handleZiweiBookRoutes(request, env = {}) {
 export const __ziweiBookTestUtils = {
   CHAPTER_BLUEPRINTS,
   buildZiweiPdfSeed,
-  buildZiweiLlmPrompt,
-  validateZiweiPdfLLMInterpretationQuality,
+  buildZiweiLocalChapterGuide,
+  validateZiweiPdfChapterQuality,
   buildLocalChapters,
   validateChapters,
   normalizeInput,
   parseHourMinuteFromText,
   buildZiweiLocalPremiumManuscript,
   computeDuplicateRate,
+  validateNoZiweiPdfRepetition,
 };
