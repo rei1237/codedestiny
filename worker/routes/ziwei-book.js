@@ -1325,15 +1325,32 @@ async function generateZiweiChapterByLlm({ env, seed, chapterSpec, previousChapt
     const prompt = buildZiweiLlmPrompt({ seed, chapterSpec, previousChapterSummaries, attempt, previousFailureReason });
 
     result = await callGeminiText(env, prompt, {
-      keyEnvKeys: ["ZIWEI_GEMINI_API_KEY"],
+      keyEnvKeys: [
+        "ZIWEI_GEMINI_API_KEY1",
+        "ZIWEI_GEMINI_API_KEY2",
+        "ZIWEI_GEMINI_API_KEY3",
+        "ZIWEI_GEMINI_API_KEY4",
+        "ZIWEI_GEMINI_API_KEY5",
+        "ZIWEI_GEMINI_API_KEY",
+        "PREMIUM_GEMINI_API_KEY1",
+        "PREMIUM_GEMINI_API_KEY2",
+        "PREMIUM_GEMINI_API_KEY3",
+        "PREMIUM_GEMINI_API_KEY4",
+        "PREMIUM_GEMINI_API_KEY5",
+      ],
       modelEnvKeys: ["ZIWEI_VERTEX_GEMINI_MODEL", "VERTEX_GEMINI_MODEL", "ZIWEI_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"],
       temperature: 0.72,
       maxOutputTokens: 8192,
-      timeoutMs: Math.min(20000, Number(env.ZIWEI_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 18000)),
-      totalTimeoutMs: Math.min(26000, Number(env.ZIWEI_GEMINI_TOTAL_TIMEOUT_MS || env.PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || 24000)),
-      maxAttemptsPerPair: 1,
-      preferVertexFirst: isTruthyEnv(env.ZIWEI_VERTEX_PREFER_FIRST || env.VERTEX_PREFER_FIRST),
-      vertexOnly: isTruthyEnv(env.ZIWEI_VERTEX_ONLY || env.VERTEX_ONLY),
+      timeoutMs: Math.max(12000, Number(env.ZIWEI_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 22000)),
+      totalTimeoutMs: Math.max(90000, Number(env.ZIWEI_GEMINI_TOTAL_TIMEOUT_MS || env.PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || 150000)),
+      maxAttemptsPerPair: Math.max(1, Number(env.ZIWEI_GEMINI_MAX_ATTEMPTS_PER_PAIR || 1)),
+      // Ziwei는 Gemini API 키 풀 우선 경로를 강제한다.
+      validateKeysBeforeCall: true,
+      keyProbeTimeoutMs: Math.max(2000, Number(env.ZIWEI_GEMINI_KEY_PROBE_TIMEOUT_MS || 5000)),
+      useSdk: false,
+      preferVertexFirst: false,
+      vertexOnly: false,
+      disableVertexFallback: true,
     });
   }
 

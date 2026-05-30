@@ -6,6 +6,10 @@ let vertexAccessTokenCache = {
   token: "",
   expiresAtMs: 0,
 };
+const geminiKeyHealthCache = new Map();
+const GEMINI_KEY_TTL_OK_MS = 10 * 60 * 1000;
+const GEMINI_KEY_TTL_RATE_LIMIT_MS = 45 * 1000;
+const GEMINI_KEY_TTL_INVALID_MS = 60 * 60 * 1000;
 
 function clean(value) {
   return String(value || "").trim();
@@ -37,6 +41,12 @@ export function pickGeminiKeys(env, preferredEnvKeys = []) {
   const preferred = preferredEnvKeys.map((key) => getEnv(env, key));
   return unique([
     ...preferred,
+    getEnv(env, "ZIWEI_GEMINI_API_KEY1"),
+    getEnv(env, "ZIWEI_GEMINI_API_KEY2"),
+    getEnv(env, "ZIWEI_GEMINI_API_KEY3"),
+    getEnv(env, "ZIWEI_GEMINI_API_KEY4"),
+    getEnv(env, "ZIWEI_GEMINI_API_KEY5"),
+    getEnv(env, "ZIWEI_GEMINI_API_KEY"),
     getEnv(env, "PREMIUM_GEMINI_API_KEY1"),
     getEnv(env, "PREMIUM_GEMINI_API_KEY2"),
     getEnv(env, "PREMIUM_GEMINI_API_KEY3"),
@@ -79,6 +89,122 @@ function rotate(values, seed = 0) {
   if (!values.length) return values;
   const start = ((Number(seed) || 0) % values.length + values.length) % values.length;
   return [...values.slice(start), ...values.slice(0, start)];
+}
+
+function isTrueLike(value) {
+  const normalized = String(value ?? "").trim().toLowerCase();
+  return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
+}
+
+function readGeminiKeyCache(key) {
+  const state = geminiKeyHealthCache.get(key);
+  if (!state) return null;
+  if (!Number.isFinite(state.untilMs) || state.untilMs <= Date.now()) {
+    geminiKeyHealthCache.delete(key);
+    return null;
+  }
+  return state;
+}
+
+function writeGeminiKeyCache(key, status, ttlMs, message = "") {
+  geminiKeyHealthCache.set(key, {
+    status,
+    message: clean(message),
+    untilMs: Date.now() + Math.max(1000, Number(ttlMs) || 1000),
+  });
+}
+
+async function probeGeminiApiKeySequential(key, models = [], timeoutMs = 7000) {
+  const modelCandidates = Array.isArray(models) && models.length ? models.slice(0, 3) : ["gemini-1.5-flash", "gemini-2.0-flash"];
+  let lastStatus = 0;
+  let lastMessage = "";
+
+  for (const model of modelCandidates) {
+    const endpoint = GEMINI_ENDPOINT.replace("{model}", encodeURIComponent(model));
+    try {
+      const response = await fetch(`${endpoint}?key=${encodeURIComponent(key)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: "응답 가능 여부만 확인" }] }],
+          generationConfig: {
+            temperature: 0,
+            maxOutputTokens: 8,
+          },
+        }),
+        signal: buildSignal(Math.max(1500, Number(timeoutMs) || 7000)),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (response.ok) {
+        return { ok: true, status: 200, message: "ok", model };
+      }
+
+      lastStatus = Number(response.status || 0) || 0;
+      lastMessage = clean(payload?.error?.message || `Gemini request failed (${response.status})`);
+      if (lastStatus === 401 || lastStatus === 403) {
+        return { ok: false, status: lastStatus, message: lastMessage || "invalid_key", model };
+      }
+      if (lastStatus === 429) {
+        return { ok: false, status: 429, message: lastMessage || "quota_exhausted", model };
+      }
+    } catch (error) {
+      lastStatus = Number(error?.status || error?.code || 0) || 0;
+      lastMessage = clean(error?.message || String(error));
+    }
+  }
+
+  return {
+    ok: false,
+    status: lastStatus || 500,
+    message: lastMessage || "probe_failed",
+    model: modelCandidates[0] || "",
+  };
+}
+
+async function resolveUsableGeminiKeys(env, options = {}, keys = [], models = []) {
+  const shouldValidate = isTrueLike(options.validateKeysBeforeCall ?? getEnv(env, "GEMINI_VALIDATE_KEYS_BEFORE_CALL") ?? false);
+  if (!shouldValidate) {
+    return { keys, checked: 0, usable: keys.length, summary: [] };
+  }
+
+  const out = [];
+  const summary = [];
+  for (const key of keys) {
+    const cached = readGeminiKeyCache(key);
+    if (cached) {
+      if (cached.status === "ok") out.push(key);
+      summary.push({ source: "cache", status: cached.status, message: cached.message });
+      continue;
+    }
+
+    const probe = await probeGeminiApiKeySequential(
+      key,
+      models,
+      Number(options.keyProbeTimeoutMs || getEnv(env, "GEMINI_KEY_PROBE_TIMEOUT_MS") || 7000),
+    );
+    if (probe.ok) {
+      writeGeminiKeyCache(key, "ok", GEMINI_KEY_TTL_OK_MS, "ok");
+      out.push(key);
+      summary.push({ source: "probe", status: "ok", message: probe.message });
+      continue;
+    }
+
+    if (Number(probe.status) === 401 || Number(probe.status) === 403) {
+      writeGeminiKeyCache(key, "invalid", GEMINI_KEY_TTL_INVALID_MS, probe.message);
+      summary.push({ source: "probe", status: "invalid", message: probe.message });
+      continue;
+    }
+    if (Number(probe.status) === 429) {
+      writeGeminiKeyCache(key, "rate_limited", GEMINI_KEY_TTL_RATE_LIMIT_MS, probe.message);
+      summary.push({ source: "probe", status: "rate_limited", message: probe.message });
+      continue;
+    }
+
+    writeGeminiKeyCache(key, "error", GEMINI_KEY_TTL_RATE_LIMIT_MS, probe.message);
+    summary.push({ source: "probe", status: "error", message: probe.message });
+  }
+
+  return { keys: out, checked: keys.length, usable: out.length, summary };
 }
 
 function sleep(ms) {
@@ -417,7 +543,7 @@ function canUseNodeSdk() {
 
 function shouldUseGeminiSdk(env, options = {}) {
   if (!canUseNodeSdk()) return false;
-  const explicit = String(options?.useSdk ?? getEnv(env, "GEMINI_USE_SDK") ?? getEnv(env, "PREMIUM_GEMINI_USE_SDK") ?? "true").trim().toLowerCase();
+  const explicit = String(options?.useSdk ?? getEnv(env, "GEMINI_USE_SDK") ?? getEnv(env, "PREMIUM_GEMINI_USE_SDK") ?? "false").trim().toLowerCase();
   return !(explicit === "0" || explicit === "false" || explicit === "no");
 }
 
@@ -498,6 +624,8 @@ export async function callGeminiText(env, prompt, options = {}) {
   const vertexOnly = String(options.vertexOnly ?? getEnv(env, "VERTEX_ONLY") ?? "").trim().toLowerCase();
   const shouldPreferVertexFirst = preferVertexFirst === "1" || preferVertexFirst === "true" || preferVertexFirst === "yes";
   const shouldUseVertexOnly = vertexOnly === "1" || vertexOnly === "true" || vertexOnly === "yes";
+  const disableVertexFallbackRaw = String(options.disableVertexFallback ?? getEnv(env, "GEMINI_DISABLE_VERTEX_FALLBACK") ?? "").trim().toLowerCase();
+  const disableVertexFallback = disableVertexFallbackRaw === "1" || disableVertexFallbackRaw === "true" || disableVertexFallbackRaw === "yes";
   const totalTimeoutMs = Number.isFinite(totalTimeoutMsRaw) && totalTimeoutMsRaw > 0
     ? Math.max(1000, totalTimeoutMsRaw)
     : 0;
@@ -557,7 +685,13 @@ export async function callGeminiText(env, prompt, options = {}) {
   const processGeminiKeyConfigured = Boolean(
     canUseNodeSdk()
       ? clean(
-        process?.env?.PREMIUM_GEMINI_API_KEY1
+        process?.env?.ZIWEI_GEMINI_API_KEY1
+          || process?.env?.ZIWEI_GEMINI_API_KEY2
+          || process?.env?.ZIWEI_GEMINI_API_KEY3
+          || process?.env?.ZIWEI_GEMINI_API_KEY4
+          || process?.env?.ZIWEI_GEMINI_API_KEY5
+          || process?.env?.ZIWEI_GEMINI_API_KEY
+          || process?.env?.PREMIUM_GEMINI_API_KEY1
           || process?.env?.PREMIUM_GEMINI_API_KEY2
           || process?.env?.PREMIUM_GEMINI_API_KEY3
           || process?.env?.PREMIUM_GEMINI_API_KEY4
@@ -602,7 +736,21 @@ export async function callGeminiText(env, prompt, options = {}) {
   }
 
   const models = pickGeminiModels(env, options.modelEnvKeys || []);
-  const rotatedKeys = rotate(keys, textPrompt.length);
+  const usableKeyResult = await resolveUsableGeminiKeys(env, options, keys, models);
+  const effectiveKeys = usableKeyResult.keys;
+  if (!effectiveKeys.length) {
+    const digest = usableKeyResult.summary
+      .map((row, idx) => `${idx + 1}:${row.status}`)
+      .join(",");
+    return {
+      ok: false,
+      error: "gemini_keys_unusable",
+      status: 429,
+      message: `유효한 Gemini 키가 없습니다. keyCheck=${usableKeyResult.checked}, usable=${usableKeyResult.usable}, summary=${digest || "none"}`,
+    };
+  }
+  const rotatedKeys = rotate(effectiveKeys, textPrompt.length);
+  const keyPoolSize = rotatedKeys.length;
   const generationConfig = {
     temperature: Number.isFinite(Number(options.temperature)) ? Number(options.temperature) : 0.86,
     topP: Number.isFinite(Number(options.topP)) ? Number(options.topP) : 0.95,
@@ -687,6 +835,23 @@ export async function callGeminiText(env, prompt, options = {}) {
     }
   }
 
+  if (disableVertexFallback) {
+    console.error("[Gemini] Exhausted all attempts (Vertex fallback disabled)", {
+      status: lastStatus,
+      keyPoolSize,
+      keyConfigured: keys.length > 0,
+      processEnvKeyConfigured: processGeminiKeyConfigured,
+      modelCandidates: models,
+      message: clean(lastError),
+    });
+    return {
+      ok: false,
+      error: "gemini_exhausted",
+      status: lastStatus,
+      message: `${lastError || "Gemini request failed for all configured keys and models."} (keyPool=${keyPoolSize})`,
+    };
+  }
+
   const vertexResult = await callVertexGeminiText(env, textPrompt, options);
   if (vertexResult?.ok && clean(vertexResult.text)) {
     return {
@@ -701,6 +866,7 @@ export async function callGeminiText(env, prompt, options = {}) {
 
   console.error("[Gemini] Exhausted all attempts", {
     status: lastStatus,
+    keyPoolSize,
     keyConfigured: keys.length > 0,
     processEnvKeyConfigured: processGeminiKeyConfigured,
     modelCandidates: models,
@@ -711,6 +877,6 @@ export async function callGeminiText(env, prompt, options = {}) {
     ok: false,
     error: "gemini_exhausted",
     status: lastStatus,
-    message: lastError || "Gemini request failed for all configured keys and models.",
+    message: `${lastError || "Gemini request failed for all configured keys and models."} (keyPool=${keyPoolSize})`,
   };
 }
