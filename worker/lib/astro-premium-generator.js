@@ -569,6 +569,45 @@ export function buildAstroLocalChartJson(birthInput, swissChart = {}, fallbackAs
   };
 }
 
+export function validateAstroPdfSeed(seed = {}) {
+  const missing = [];
+  const input = asObject(seed.input);
+  const chartMeta = asObject(seed.chartMeta);
+  const planets = safeArray(seed.planets);
+  const houses = safeArray(seed.houses);
+  const aspects = safeArray(seed.aspects);
+  const derivedSignals = asObject(seed.derivedSignals);
+
+  if (!clean(input.birthDate)) missing.push("input.birthDate");
+  if (!Number.isFinite(Number(input.birthHour)) && !/^\d{2}:\d{2}$/.test(clean(input.birthTime))) missing.push("input.birthTime");
+  if (!clean(input.timezone)) missing.push("input.timezone");
+
+  if (!clean(chartMeta.ascendant)) missing.push("chartMeta.ascendant");
+  if (!clean(chartMeta.midheaven)) missing.push("chartMeta.midheaven");
+
+  if (planets.length < 7) {
+    missing.push("planets");
+  } else {
+    const planetNames = new Set(planets.map((planet) => clean(planet?.name).toLowerCase()).filter(Boolean));
+    const corePlanets = ["sun", "moon", "venus", "mars", "saturn"];
+    for (const planetName of corePlanets) {
+      if (!planetNames.has(planetName)) missing.push(`planets.${planetName}`);
+    }
+  }
+
+  if (houses.length < 12) missing.push("houses");
+  if (!aspects.length) missing.push("aspects");
+
+  if (!safeArray(derivedSignals.personalitySignals).length) missing.push("derivedSignals.personalitySignals");
+  if (!safeArray(derivedSignals.loveRelationshipSignals).length) missing.push("derivedSignals.loveRelationshipSignals");
+  if (!safeArray(derivedSignals.careerSignals).length) missing.push("derivedSignals.careerSignals");
+
+  return {
+    ok: missing.length === 0,
+    missing,
+  };
+}
+
 const WESTERN_ASTRO_PDF_CHAPTERS = ASTRO_PREMIUM_CHAPTERS;
 
 function buildWesternAstroChapterBlueprints() {
@@ -693,6 +732,12 @@ function hasForbiddenAstroPdfText(value) {
 export function validateWesternAstroPdfLLMInterpretationQuality({ chapters, expectedChapters = WESTERN_ASTRO_PDF_CHAPTERS, seed } = {}) {
   const issues = [];
   const chapterList = safeArray(chapters);
+  const seedValidation = validateAstroPdfSeed(seed);
+
+  if (!seedValidation.ok) {
+    issues.push("seed-structure");
+    issues.push(...seedValidation.missing.map((entry) => `seed-${entry}`));
+  }
 
   if (chapterList.length !== safeArray(expectedChapters).length) {
     issues.push("chapter-count");
@@ -1319,6 +1364,14 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
     rawInput.chart || rawInput.swissChart || {},
     rawInput.astroBase || rawInput.payload || null,
   );
+  const seedValidation = validateAstroPdfSeed(seed);
+  if (!seedValidation.ok) {
+    const error = new Error("점성술 계산 seed JSON이 불완전하여 프리미엄 PDF 생성을 진행할 수 없습니다. 출생 정보와 차트 계산값을 다시 확인해 주세요.");
+    error.code = "ASTRO_PDF_SEED_INVALID";
+    error.status = 422;
+    error.details = seedValidation;
+    throw error;
+  }
 
   emit("SeedBuildSuccess", {
     chapterCount: WESTERN_ASTRO_PDF_CHAPTERS.length,

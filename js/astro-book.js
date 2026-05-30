@@ -739,9 +739,9 @@
     try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) { authToken = ''; }
     var premiumToken = _readPremiumAccessToken();
 
-    function run(resolve, reject, lastErr) {
+    function run(resolve, reject, lastErr, lastErrObj) {
       if (idx >= endpoints.length) {
-        reject(new Error(lastErr || '점성술 프리미엄 API 호출에 실패했습니다.'));
+        reject(lastErrObj || new Error(lastErr || '점성술 프리미엄 API 호출에 실패했습니다.'));
         return;
       }
       var url = endpoints[idx++];
@@ -765,14 +765,21 @@
             resolve(pack.json);
             return;
           }
-          run(resolve, reject, (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status));
+          var apiErr = new Error((pack.json && (pack.json.message || pack.json.error || pack.json.code)) || ('HTTP ' + pack.res.status));
+          apiErr.code = String((pack.json && pack.json.code) || '');
+          apiErr.status = Number(pack.res && pack.res.status || 0) || 0;
+          apiErr.details = pack.json || {};
+          run(resolve, reject, apiErr.message, apiErr);
         })
         .catch(function (err) {
-          run(resolve, reject, String(err && err.message || err || '요청 실패'));
+          var reqErr = err instanceof Error ? err : new Error(String(err && err.message || err || '요청 실패'));
+          reqErr.code = reqErr.code || 'ASTRO_PREPARE_REQUEST_FAILED';
+          reqErr.status = Number(reqErr.status || 0) || 0;
+          run(resolve, reject, reqErr.message, reqErr);
         });
     }
 
-    return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
+    return new Promise(function (resolve, reject) { run(resolve, reject, '', null); });
   }
 
   function _ensurePremiumPaymentAsync() {

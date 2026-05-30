@@ -100,6 +100,29 @@ describe('Astro premium generator LLM-only pipeline', () => {
     ).rejects.toMatchObject({ code: 'ASTRO_CHAPTER_LLM_FAILED' });
   });
 
+  test('seed JSON 핵심 계산값이 누락되면 ASTRO_PDF_SEED_INVALID로 실패해야 한다', async () => {
+    await expect(
+      astro.generateAstroPremiumReport({}, makeInput({
+        localAstroChartJson: {
+          input: { birthDate: '1991-02-20' },
+          chartMeta: {},
+          planets: [],
+          houses: [],
+          aspects: [],
+          derivedSignals: {},
+        },
+      }), {
+        llmChapterGenerator: async ({ chapterSpec }) => ({
+          title: chapterSpec.title,
+          sections: chapterSpec.sections.map((section) => ({
+            title: section.title,
+            body: buildBody(chapterSpec, section.title, astroTokensForChapter(chapterSpec.chapterNo)),
+          })),
+        }),
+      }),
+    ).rejects.toMatchObject({ code: 'ASTRO_PDF_SEED_INVALID' });
+  });
+
   test('birth input 정규화가 한국어 시간/별칭 필드를 처리해야 한다', () => {
     const normalized = astro.normalizeAstroPremiumBirthInput({
       name: '사용자',
