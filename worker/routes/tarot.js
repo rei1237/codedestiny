@@ -1087,6 +1087,11 @@ async function buildNumerologyReadingPayload(body = {}, env = {}) {
     throw createHttpError(400, "생년월일을 입력해 주세요.");
   }
 
+  const question = asText(body?.question);
+  if (!question) {
+    throw createHttpError(400, "상담 질문을 입력해 주세요.");
+  }
+
   const topic = normalizeTopic(body?.topic);
   const numerology = buildNumerologyContext({
     birthDate,
@@ -1109,14 +1114,14 @@ async function buildNumerologyReadingPayload(body = {}, env = {}) {
     cards,
     topic,
     name: asText(body?.name),
-    question: asText(body?.question),
+    question,
   });
 
   const prompt = buildGeminiPrompt({
     numerology,
     cards,
     topic,
-    question: asText(body?.question),
+    question,
     name: asText(body?.name),
   });
 
@@ -1141,7 +1146,7 @@ async function buildNumerologyReadingPayload(body = {}, env = {}) {
   }
 
   const parsed = parseJsonCandidate(aiResult.text);
-  const interpretation = normalizeInterpretation(parsed, fallback, cards, topic, asText(body?.question));
+  const normalizedInterpretation = normalizeInterpretation(parsed, fallback, cards, topic, question);
 
   return {
     ok: true,
@@ -1149,7 +1154,7 @@ async function buildNumerologyReadingPayload(body = {}, env = {}) {
     topic,
     numerology,
     cards,
-    interpretation,
+    interpretation: normalizedInterpretation,
     model: asText(aiResult.model),
   };
 }
@@ -1239,11 +1244,16 @@ export async function handleTarotRoutes(request, env = {}) {
 
     if (path === "/mindscan") {
       const pairs = Array.isArray(body?.pairs) ? body.pairs : [];
+      const question = String(body?.question || "").trim();
       if (!pairs.length) {
         return json({ ok: false, message: "카드 페어 데이터가 필요합니다." }, { status: 400 });
       }
 
-      const reading = buildMindscanReadingPayload(pairs);
+      if (!question) {
+        return json({ ok: false, message: "상담 질문이 필요합니다." }, { status: 400 });
+      }
+
+      const reading = await buildMindscanReadingPayload(pairs, { question, env });
       if (!reading?.ok) {
         return json(
           {

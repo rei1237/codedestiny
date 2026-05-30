@@ -515,11 +515,14 @@ interface SpreadStageProps {
   revealedCount: number;
   readingLoading: boolean;
   readingError: string;
+  question: string;
+  onQuestionChange: (value: string) => void;
   onGenerateReading: () => void;
 }
 
-function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingError, onGenerateReading }: SpreadStageProps) {
+function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingError, question, onQuestionChange, onGenerateReading }: SpreadStageProps) {
   const allRevealed = revealedCount >= POSITIONS.length;
+  const questionReady = String(question || "").trim().length > 0;
 
   return (
     <motion.div className="fixed inset-0 flex flex-col items-center justify-center z-20 overflow-y-auto bg-[radial-gradient(circle_at_24%_14%,rgba(56,189,248,0.10),transparent_35%),radial-gradient(circle_at_76%_16%,rgba(217,70,239,0.11),transparent_34%)]"
@@ -623,13 +626,30 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
               initial={{ opacity: 0, y: 22, scale: 0.88 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 18 }}>
+              <div className="mx-auto mb-4 w-full max-w-xl rounded-[1.2rem] border border-fuchsia-300/20 bg-slate-950/45 px-4 py-4 text-left backdrop-blur-md">
+                <label className="block">
+                  <span className="mb-2 block text-[11px] font-semibold tracking-[0.18em] text-fuchsia-100/80 uppercase">
+                    상담 질문
+                  </span>
+                  <textarea
+                    value={question}
+                    onChange={(event) => onQuestionChange(event.target.value)}
+                    placeholder="예: 그 사람이 먼저 다시 연락할 가능성이 있는지, 있다면 어떤 방식으로 접근해야 하는지 알고 싶어요."
+                    rows={3}
+                    className="w-full resize-none rounded-2xl border border-fuchsia-200/20 bg-slate-900/70 px-4 py-3 text-sm leading-relaxed text-white outline-none transition focus:border-fuchsia-300/45 focus:bg-slate-900"
+                  />
+                </label>
+                <p className="mt-2 text-[11px] leading-relaxed text-purple-200/55">
+                  질문은 필수입니다. 질문의 맥락이 있어야 카드 상징과 감정 흐름을 구체적으로 결합할 수 있습니다.
+                </p>
+              </div>
               <p className="text-xs text-purple-300/45 mb-4 tracking-wide">
                 10장의 카드가 모두 준비되었습니다
               </p>
               {readingError && (
                 <p className="text-xs text-rose-300/80 mb-3 max-w-xs mx-auto leading-relaxed">{readingError}</p>
               )}
-              <motion.button onClick={onGenerateReading} disabled={readingLoading}
+              <motion.button onClick={onGenerateReading} disabled={readingLoading || !questionReady}
                 className="relative overflow-hidden px-11 py-4 rounded-full text-white font-bold text-sm tracking-widest uppercase disabled:opacity-60"
                 style={{
                   background: readingLoading
@@ -1294,6 +1314,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
 export default function MindScanTarot() {
   const { ensurePaidAccess } = useCoinGate();
   const [stage, setStage] = useState<Stage>("intro");
+  const [question, setQuestion] = useState("");
   const [pickRound, setPickRound] = useState<PickRound>("main");
   const [mainPicks, setMainPicks] = useState<number[]>([]);
   const [subPicks, setSubPicks] = useState<number[]>([]);
@@ -1368,6 +1389,11 @@ export default function MindScanTarot() {
 
   const handleGenerateReading = useCallback(async () => {
     if (readingLoading || reading) return;
+    const trimmedQuestion = question.trim();
+    if (!trimmedQuestion) {
+      setReadingError("상담 질문을 입력해 주세요.");
+      return;
+    }
     const pairs = POSITIONS.map((pos, idx) => ({
       slot: idx + 1,
       positionId: pos.id,
@@ -1402,7 +1428,7 @@ export default function MindScanTarot() {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ pairs }),
+          body: JSON.stringify({ pairs, question: trimmedQuestion }),
         });
         const data = await res.json().catch(() => ({}));
         if (res.ok && data && Array.isArray(data.sections)) {
@@ -1466,10 +1492,11 @@ export default function MindScanTarot() {
     } finally {
       setReadingLoading(false);
     }
-  }, [ensurePaidAccess, readingLoading, reading]);
+  }, [ensurePaidAccess, question, readingLoading, reading]);
 
   const restart = useCallback(() => {
     setStage("intro"); setPickRound("main");
+    setQuestion("");
     setMainPicks([]); setSubPicks([]);
     setDrawn({}); setDrawnSub({}); setUsedCardIds(new Set());
     setRevealedCount(0); setReading(null); setReadingError("");
@@ -1494,6 +1521,7 @@ export default function MindScanTarot() {
           <SpreadStage key="spread"
             drawn={drawn} drawnSub={drawnSub} revealedCount={revealedCount}
             readingLoading={readingLoading} readingError={readingError}
+            question={question} onQuestionChange={setQuestion}
             onGenerateReading={handleGenerateReading} />
         )}
         {stage === "result" && reading && (

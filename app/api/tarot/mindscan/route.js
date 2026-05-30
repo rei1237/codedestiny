@@ -155,6 +155,7 @@ export async function POST(req) {
   try {
     const body = await req.json().catch(() => ({}));
     const pairs = Array.isArray(body?.pairs) ? body.pairs.slice(0, 5) : [];
+    const question = toText(body?.question);
 
     if (!Array.isArray(pairs) || pairs.length === 0) {
       return NextResponse.json(
@@ -163,8 +164,15 @@ export async function POST(req) {
       );
     }
 
+    if (!question) {
+      return NextResponse.json(
+        { ok: false, message: "상담 질문이 필요합니다." },
+        { status: 400 }
+      );
+    }
+
     const { buildMindscanReadingPayload } = await import("../../../../lib/tarot/mindscan-reading.mjs");
-    const reading = buildMindscanReadingPayload(pairs);
+    const reading = await buildMindscanReadingPayload(pairs, { question, env: process.env });
     if (!reading?.ok) {
       return NextResponse.json(
         {

@@ -18,6 +18,7 @@ const SAMPLE_PAIRS = [
   { slot: 4, positionLabel: "우", positionMeaning: "숨겨진 욕구", mainCardId: 2, subCardId: 11 },
   { slot: 5, positionLabel: "아래", positionMeaning: "관계에 대한 판단", mainCardId: 14, subCardId: 20 },
 ];
+const SAMPLE_QUESTION = "그 사람이 먼저 다시 연락할 가능성이 있는지, 있다면 어떤 태도로 기다려야 하는지 알고 싶어요.";
 
 beforeAll(async () => {
   const tarotMod = await import("../../worker/routes/tarot.js");
@@ -26,7 +27,7 @@ beforeAll(async () => {
   signJwt = jwtMod.signJwt;
 });
 
-async function callMindscan(pairs = SAMPLE_PAIRS) {
+async function callMindscan(pairs = SAMPLE_PAIRS, question = SAMPLE_QUESTION) {
   const token = await signJwt(
     {
       userId: "64f0a1b2c3d4e5f678901234",
@@ -47,7 +48,7 @@ async function callMindscan(pairs = SAMPLE_PAIRS) {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ pairs }),
+    body: JSON.stringify({ pairs, question }),
   });
 
   const res = await handleTarotRoutes(req, env);
@@ -60,12 +61,24 @@ describe("worker /api/tarot/mindscan quality", () => {
     const req = new Request("https://example.com/api/tarot/mindscan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pairs: SAMPLE_PAIRS }),
+      body: JSON.stringify({ pairs: SAMPLE_PAIRS, question: SAMPLE_QUESTION }),
     });
     const res = await handleTarotRoutes(req, env);
     const payload = await res.json();
     expect(res.status).toBe(200);
     expect(payload.ok).toBe(true);
+  });
+
+  test("질문이 없으면 400을 반환해야 한다", async () => {
+    const req = new Request("https://example.com/api/tarot/mindscan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pairs: SAMPLE_PAIRS, question: "" }),
+    });
+    const res = await handleTarotRoutes(req, env);
+    const payload = await res.json();
+    expect(res.status).toBe(400);
+    expect(String(payload?.message || "")).toMatch(/상담 질문/);
   });
 
   test("결과 구조에 필수 섹션/요약/메시지 3개가 포함되어야 한다", async () => {
@@ -166,7 +179,7 @@ describe("worker /api/tarot/mindscan quality", () => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ pairs: [] }),
+      body: JSON.stringify({ pairs: [], question: SAMPLE_QUESTION }),
     });
 
     const res = await handleTarotRoutes(req, env);

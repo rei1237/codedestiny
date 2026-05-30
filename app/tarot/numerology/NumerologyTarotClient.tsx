@@ -460,6 +460,10 @@ export default function NumerologyTarotClient() {
       setError("생년월일을 입력해 주세요.");
       return;
     }
+    if (!toText(question)) {
+      setError("상담 질문을 입력해 주세요.");
+      return;
+    }
 
     const context = buildNumerologyContext({
       birthDate,
@@ -510,6 +514,10 @@ export default function NumerologyTarotClient() {
   async function payAndRead() {
     if (!cards.length || !numerology) {
       setError("먼저 카드 뽑기를 진행해 주세요.");
+      return;
+    }
+    if (!toText(question)) {
+      setError("상담 질문을 입력해 주세요.");
       return;
     }
     if (revealed.length < cards.length) {
@@ -665,12 +673,12 @@ export default function NumerologyTarotClient() {
                   </label>
 
                   <label className={`${styles.field} ${styles.fieldWide}`}>
-                    <span className={styles.label}>질문 (선택)</span>
+                    <span className={styles.label}>질문 (필수)</span>
                     <input
                       className={styles.input}
                       value={question}
                       onChange={(event) => setQuestion(event.target.value)}
-                      placeholder="예: 오늘 이 관계의 흐름은 어떻게 전개될까요?"
+                      placeholder="예: 이 관계가 앞으로 어떤 방향으로 흘러가며, 내가 먼저 조정해야 할 태도는 무엇인가요?"
                     />
                   </label>
                 </div>
