@@ -4,6 +4,7 @@
 
 let handleTarotRoutes;
 let signJwt;
+let normalizeLoveReadingPayload;
 
 const env = {
   JWT_ACCESS_SECRET: "test-access-secret",
@@ -32,8 +33,10 @@ const DEFAULT_CARDS = [
 beforeAll(async () => {
   const tarotMod = await import("../../worker/routes/tarot.js");
   const jwtMod = await import("../../worker/lib/jwt.js");
+  const normalizerMod = await import("../../lib/tarot/love-reading-normalizer.mjs");
   handleTarotRoutes = tarotMod.handleTarotRoutes;
   signJwt = jwtMod.signJwt;
+  normalizeLoveReadingPayload = normalizerMod.normalizeLoveReadingPayload;
 });
 
 function normalizeSentences(text) {
@@ -149,6 +152,41 @@ describe("worker /api/tarot/love-reading quality", () => {
     expect(String(revP1?.orientationLabel || "")).toBe("역방향");
     expect(String(upP1?.headline || "")).not.toBe(String(revP1?.headline || ""));
     expect(String(upP1?.detail || "")).not.toBe(String(revP1?.detail || ""));
+  });
+
+  test("모든 포지션에 동일한 원문이 들어와도 포지션별 텍스트가 중복되지 않아야 한다", async () => {
+    const duplicatedSentence = "관계에서는 감정 확인과 합의가 동시에 이뤄질 때 안정됩니다. 지금의 감정 에너지는 명확한 선택과 실행으로 안정될 가능성이 큽니다.";
+    const cards = [
+      { cardId: "W07", position: "position_1", orientation: "upright" },
+      { cardId: "C08", position: "position_2", orientation: "upright" },
+      { cardId: "P01", position: "position_3", orientation: "upright" },
+      { cardId: "C11", position: "position_4", orientation: "upright" },
+      { cardId: "C09", position: "position_5", orientation: "reversed" },
+      { cardId: "M03", position: "position_6", orientation: "upright" },
+    ];
+
+    const reading = normalizeLoveReadingPayload(
+      {
+        positionBreakdown: cards.map(() => ({
+          headline: duplicatedSentence,
+          summary: duplicatedSentence,
+          detail: duplicatedSentence,
+          relationshipInsight: duplicatedSentence,
+          advice: duplicatedSentence,
+          caution: duplicatedSentence,
+        })),
+      },
+      cards,
+    );
+
+    const positions = reading?.positionBreakdown || [];
+    expect(positions).toHaveLength(6);
+
+    ["headline", "summary", "detail", "relationshipInsight", "advice"].forEach((field) => {
+      const list = positions.map((item) => String(item?.[field] || ""));
+      const unique = new Set(list.map((line) => line.replace(/\s+/g, " ").trim()));
+      expect(unique.size).toBe(list.length);
+    });
   });
 
   test("각 포지션 텍스트에는 구체성 키워드가 최소 2개 이상 포함되어야 한다", async () => {
