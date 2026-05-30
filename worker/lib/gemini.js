@@ -113,6 +113,58 @@ function decodeBase64ToBytes(raw) {
   return out;
 }
 
+function decodeBase64ToText(raw) {
+  const text = clean(raw).replace(/\s+/g, "");
+  if (!text) return "";
+  if (typeof Buffer !== "undefined") {
+    return Buffer.from(text, "base64").toString("utf8");
+  }
+  const binary = atob(text);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+function parseServiceAccountJsonCandidate(rawValue) {
+  const raw = clean(rawValue);
+  if (!raw) return null;
+
+  try {
+    if (raw.startsWith("{")) {
+      const parsed = JSON.parse(raw);
+      return typeof parsed === "object" && parsed ? parsed : null;
+    }
+  } catch {
+    // Fall through to base64 decode path.
+  }
+
+  try {
+    const decoded = decodeBase64ToText(raw);
+    if (!decoded) return null;
+    const parsed = JSON.parse(decoded);
+    return typeof parsed === "object" && parsed ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function parseServiceAccountJsonFromEnv(env) {
+  const candidates = [
+    getEnv(env, "VERTEX_SA_JSON"),
+    getEnv(env, "VERTEX_SA_JSON_BASE64"),
+    getEnv(env, "GCP_SERVICE_ACCOUNT_JSON"),
+    getEnv(env, "GCP_SERVICE_ACCOUNT_JSON_BASE64"),
+    getEnv(env, "GOOGLE_SERVICE_ACCOUNT_JSON"),
+    getEnv(env, "GOOGLE_SERVICE_ACCOUNT_JSON_BASE64"),
+  ];
+
+  for (const candidate of candidates) {
+    const parsed = parseServiceAccountJsonCandidate(candidate);
+    if (parsed) return parsed;
+  }
+  return null;
+}
+
 function pemToPkcs8Bytes(pem) {
   const normalized = clean(pem)
     .replace(/\\n/g, "\n")
@@ -134,10 +186,11 @@ async function importServiceAccountPrivateKey(privateKeyPem) {
 }
 
 function getVertexServiceAccountConfig(env) {
-  const projectId = clean(getEnv(env, "VERTEX_PROJECT_ID"));
+  const serviceAccountJson = parseServiceAccountJsonFromEnv(env) || {};
+  const projectId = clean(getEnv(env, "VERTEX_PROJECT_ID") || serviceAccountJson.project_id);
   const location = clean(getEnv(env, "VERTEX_LOCATION")) || "us-central1";
-  const clientEmail = clean(getEnv(env, "VERTEX_SA_CLIENT_EMAIL"));
-  const privateKey = clean(getEnv(env, "VERTEX_SA_PRIVATE_KEY"));
+  const clientEmail = clean(getEnv(env, "VERTEX_SA_CLIENT_EMAIL") || serviceAccountJson.client_email);
+  const privateKey = clean(getEnv(env, "VERTEX_SA_PRIVATE_KEY") || serviceAccountJson.private_key);
   if (!projectId || !clientEmail || !privateKey) return null;
   return { projectId, location, clientEmail, privateKey };
 }
