@@ -339,7 +339,11 @@ function countCoreSajuSignals(reading: FavoriteDestinyReading) {
     ...(Array.isArray(reading.sajuSignals.longTermSignals) ? reading.sajuSignals.longTermSignals : []),
   ].filter((value) => Boolean(String(value || "").trim()));
 
-  return unique([...baseSignals, ...dynamicSignals]).length;
+  const scoreSignals = Object.entries(reading.scores || {})
+    .filter(([key, value]) => key !== "total" && Number.isFinite(value))
+    .map(([key]) => `score:${key}`);
+
+  return unique([...baseSignals, ...dynamicSignals, ...scoreSignals]).length;
 }
 
 export function buildFavoriteDestinyFromSaju(
@@ -527,7 +531,7 @@ export function buildFavoriteDestinyFromSaju(
         {
           title: "핵심 한눈 정리",
           usedSignals: [dayMasterRelation, branchRelationText],
-          text: `이 조합은 ${chemistryType}에 가깝고, 종합 ${scores.total}점입니다. 가장 강한 축은 ${strongestAxis[0]}(${strongestAxis[1]}점), 보완이 필요한 축은 ${weakestAxis[0]}(${weakestAxis[1]}점)입니다.`,
+          text: `이 조합은 ${chemistryType} 무드에 가깝고, 무대 궁합은 ${scores.total}점입니다. 지금은 ${strongestAxis[0]}(${strongestAxis[1]}점) 파트에서 응원봉이 가장 밝게 켜지고, ${weakestAxis[0]}(${weakestAxis[1]}점)은 앙코르 전에 맞춰두면 훨씬 완성도가 올라가요.`,
         },
       ],
     },
@@ -541,7 +545,7 @@ export function buildFavoriteDestinyFromSaju(
         {
           title: "사주 케미 근거",
           usedSignals: [dayMasterRelation, `일지:${branchRelationText}`, fiveElementBalance, `십성:${tenGodRelation}`],
-          text: `일간 관계는 ${dayMasterRelation}이고, 일지 흐름은 ${branchRelationText}입니다. 오행 축은 ${fiveElementBalance}라서 ${harmonySignals.length > 0 ? "친밀감이 쉽게 붙는" : "템포를 맞추면 안정되는"} 패턴입니다.`,
+          text: `일간 합은 ${dayMasterRelation}, 일지 호흡은 ${branchRelationText}로 읽힙니다. 오행 축은 ${fiveElementBalance}라서 ${harmonySignals.length > 0 ? "첫 멘트부터 합창이 붙는" : "템포를 맞출수록 후렴이 살아나는"} 팬-아이돌 케미예요.`,
         },
       ],
     },
@@ -555,7 +559,7 @@ export function buildFavoriteDestinyFromSaju(
         {
           title: "끌림과 오해 포인트",
           usedSignals: conflictSignals.length ? conflictSignals : ["완충 신호"],
-          text: `감정선 ${scores.emotion}점, 설렘 ${scores.excitement}점입니다. ${conflictSignals.length ? "설렘이 빠르게 올라오지만 반응 속도 차이에서 오해가 생길 수 있어요." : "급한 불꽃보다 편안한 끌림이 오래 유지되는 타입이에요."}`,
+          text: `감정선 ${scores.emotion}점, 설렘 ${scores.excitement}점입니다. ${conflictSignals.length ? "심장 박수는 빠른데 답장 박자가 어긋나면 살짝 삐끗할 수 있어요." : "한 번에 터지는 불꽃보다 잔광이 오래 남는 타입이라, 덕심이 안정적으로 누적됩니다."}`,
         },
       ],
     },
@@ -569,8 +573,8 @@ export function buildFavoriteDestinyFromSaju(
         {
           title: "덕심 포인트",
           usedSignals: charmSignals.length ? charmSignals : ["기본 매력 신호"],
-          text: `팬심 ${scores.fanBias}점입니다. ${charmSignals.length ? "도화/화개 계열 매력 신호가 있어 '왜 자꾸 눈이 가지?'가 강해질 수 있어요." : "자극형보다는 누적형 매력으로 오래 몰입되는 패턴이에요."}`,
-          action: "과몰입 신호가 오면 기록 1줄 + 휴식 10분으로 감정 피로를 정리하세요.",
+          text: `팬심 ${scores.fanBias}점입니다. ${charmSignals.length ? "도화/화개 매력 포인트가 살아 있어서, 직캠 한 번 보면 알고리즘이 아니라 심장이 먼저 재생 버튼을 눌러요." : "한방 임팩트보다 스며드는 매력형이라, 회차가 쌓일수록 최애 확신이 강해집니다."}`,
+          action: "과몰입이 올라오면 '오늘 최애 포인트 1줄'만 남기고 10분 환기해 감정 체력을 지켜보세요.",
         },
       ],
     },
@@ -584,8 +588,8 @@ export function buildFavoriteDestinyFromSaju(
         {
           title: "장기 지속력",
           usedSignals: longTermSignals.length ? longTermSignals : ["루틴 보완 필요"],
-          text: `안정 ${scores.stability}점, 장기 ${scores.longTerm}점입니다. ${longTermSignals.length ? "루틴형 응원과 회복 리듬이 맞아 장기 지속에 강점이 있어요." : "감정 강도보다 일정한 루틴을 만들수록 오래가는 케미가 됩니다."}`,
-          action: "응원 루틴을 주 2~3회 고정하면 만족도가 크게 올라갑니다.",
+          text: `안정 ${scores.stability}점, 장기 ${scores.longTerm}점입니다. ${longTermSignals.length ? "정주행-휴식-재입장 루틴이 잘 맞아, 오래 덕질해도 번아웃이 적은 조합이에요." : "초반 텐션보다 리듬 있는 응원 루틴을 만들수록 관계 체감이 더 깊어집니다."}`,
+          action: "응원 루틴을 주 2~3회 고정해두면 만족도와 지속력이 함께 올라가요.",
         },
       ],
     },
@@ -599,8 +603,8 @@ export function buildFavoriteDestinyFromSaju(
         {
           title: "갈등 신호 해석",
           usedSignals: conflictSignals.length ? conflictSignals : ["갈등 과열 낮음"],
-          text: `${conflictSignals.length ? "충/해/파 신호가 있을 때는 '안 맞는다'가 아니라 기대 속도 차이를 조율하면 훨씬 편해집니다." : "큰 충돌 신호는 약하지만, 감정 추측이 쌓이면 피로가 올 수 있으니 사실 확인 질문을 먼저 두세요."}`,
-          action: "비교·소유욕이 올라올 땐 반응 전에 하루 템포를 먼저 낮춰보세요.",
+          text: `${conflictSignals.length ? "충/해/파 신호는 불화 선언이 아니라 템포 차이 알림이에요. 기대 속도만 맞추면 케미가 다시 안정권으로 돌아옵니다." : "큰 충돌은 약한 편이지만 혼자 추측해서 스토리를 쓰기 시작하면 피로가 쌓일 수 있어요."}`,
+          action: "비교/소유욕 신호가 오면 바로 반응하지 말고, 한 템포 쉬고 사실부터 확인해 보세요.",
         },
       ],
     },
@@ -614,15 +618,15 @@ export function buildFavoriteDestinyFromSaju(
         {
           title: "실전 행동 가이드",
           usedSignals: [dayMasterRelation, `소통:${scores.communication}`],
-          text: `오늘은 감정 강도보다 소통 ${scores.communication}점 축을 살리는 게 핵심입니다. 짧고 선명한 응원 한 번 + 루틴 유지가 이 조합에 가장 잘 맞아요.`,
-          action: "오늘의 행동: 최애에게 끌린 이유를 한 문장으로 기록해 감정선을 안정시키기.",
+          text: `오늘은 감정 강도보다 소통 ${scores.communication}점 라인을 살리는 게 핵심입니다. 길게 불타기보다 짧고 선명한 응원 한 번이 이 조합의 체감 만족도를 가장 빠르게 올려줘요.`,
+          action: "오늘의 미션: 최애에게 끌린 포인트를 한 문장으로 적고, 내일 다시 읽어 감정 리듬을 정돈해 보세요.",
         },
       ],
     },
   ];
 
   const summary = sanitizeFavoriteDestinyText(
-    `이 조합은 ${chemistryType}으로 읽히며, 사주 기준 ${dayMasterRelation}과 ${branchRelationText} 신호가 핵심입니다. 설렘(${scores.excitement})과 안정(${scores.stability})의 균형을 조절하면 가장 좋은 결과가 납니다.`
+    `이번 팬-아이돌 궁합은 ${chemistryType} 무드로 읽히며, 사주 기준 ${dayMasterRelation}과 ${branchRelationText} 신호가 핵심입니다. 설렘(${scores.excitement})과 안정(${scores.stability}) 밸런스를 맞추면 덕심 만족도가 가장 크게 올라갑니다.`
   );
 
   return {
@@ -662,6 +666,11 @@ export function buildFavoriteDestinyFromSaju(
 
 export function validateFavoriteDestinyReading(reading: FavoriteDestinyReading): ValidationResult {
   const errors: string[] = [];
+
+  const invalidScore = Object.entries(reading.scores || {}).find(([, value]) => !Number.isFinite(value));
+  if (invalidScore) {
+    errors.push(`점수 계산값이 유효하지 않습니다: ${invalidScore[0]}`);
+  }
 
   if ((reading.imageCard.oneLineLink || "").length > 45) {
     errors.push("이미지 카드 oneLineLink가 45자를 초과했습니다.");
