@@ -260,7 +260,7 @@ function InputField({
   error?: string;
 }) {
   return (
-    <label className="grid gap-0.5 text-sm text-white/90">
+    <label className="grid gap-1 text-sm text-white/90">
       {subLabel ? <span className="text-[10px] font-semibold tracking-[0.15em] text-white/55">{subLabel}</span> : null}
       <span className="font-semibold text-white/95">{label}</span>
       <input
@@ -269,7 +269,7 @@ function InputField({
         value={value}
         onChange={(event) => onChange(maxLength ? event.target.value.slice(0, maxLength) : event.target.value)}
         placeholder={placeholder}
-        className={styles.premiumInput}
+        className="h-12 rounded-xl border border-white/20 bg-black/35 px-3 text-sm text-white outline-none ring-1 ring-transparent transition placeholder:text-white/45 focus:border-cyan-200/70 focus:ring-cyan-200/35"
       />
       {error ? <span className="text-xs text-[#FF9AD8]">{error}</span> : null}
     </label>
@@ -976,7 +976,7 @@ export default function DestinyBiasClient() {
                     <select
                       value={meGender}
                       onChange={(event) => setMeGender(event.target.value as (typeof GENDER_OPTIONS)[number])}
-                      className={styles.cosmicSelect}
+                      className="h-12 rounded-xl border border-white/20 bg-black/35 px-3 text-sm text-white outline-none ring-1 ring-transparent transition focus:border-cyan-200/70 focus:ring-cyan-200/35"
                     >
                       {GENDER_OPTIONS.map((item) => (
                         <option key={item} value={item}>{item}</option>
@@ -1089,7 +1089,7 @@ export default function DestinyBiasClient() {
                       value={biasPresetQuery}
                       onChange={(event) => setBiasPresetQuery(event.target.value)}
                       placeholder="이름, 그룹/작품, 카테고리로 검색해 보세요"
-                      className={styles.premiumInput}
+                      className="h-12 rounded-xl border border-white/20 bg-black/35 px-3 text-sm text-white outline-none ring-1 ring-transparent transition placeholder:text-white/45 focus:border-cyan-200/70 focus:ring-cyan-200/35"
                     />
                     <div className={styles.celebTabRow}>
                       {destinyBiasCelebCategories.map((category) => {
@@ -1193,7 +1193,7 @@ export default function DestinyBiasClient() {
                     <select
                       value={biasMood}
                       onChange={(event) => setBiasMood(event.target.value as (typeof BIAS_MOODS)[number])}
-                      className={styles.cosmicSelect}
+                      className="h-12 rounded-xl border border-white/20 bg-black/35 px-3 text-sm text-white outline-none ring-1 ring-transparent transition focus:border-cyan-200/70 focus:ring-cyan-200/35"
                     >
                       {BIAS_MOODS.map((item) => (
                         <option key={item} value={item}>{item}</option>
@@ -1209,7 +1209,7 @@ export default function DestinyBiasClient() {
                     <select
                       value={relationMood}
                       onChange={(event) => setRelationMood(event.target.value as (typeof RELATION_MOODS)[number])}
-                      className={styles.cosmicSelect}
+                      className="h-12 rounded-xl border border-white/20 bg-black/35 px-3 text-sm text-white outline-none ring-1 ring-transparent transition focus:border-cyan-200/70 focus:ring-cyan-200/35"
                     >
                       {RELATION_MOODS.map((item) => (
                         <option key={item} value={item}>{item}</option>

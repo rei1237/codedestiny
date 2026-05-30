@@ -324,6 +324,24 @@ function unique<T>(arr: T[]) {
   return Array.from(new Set(arr));
 }
 
+function countCoreSajuSignals(reading: FavoriteDestinyReading) {
+  const baseSignals = [
+    reading.sajuSignals.dayMasterRelation,
+    reading.sajuSignals.dayBranchRelation,
+    reading.sajuSignals.fiveElementBalance,
+    reading.sajuSignals.tenGodRelation,
+  ].filter((value) => Boolean(String(value || "").trim()));
+
+  const dynamicSignals = [
+    ...(Array.isArray(reading.sajuSignals.harmonySignals) ? reading.sajuSignals.harmonySignals : []),
+    ...(Array.isArray(reading.sajuSignals.conflictSignals) ? reading.sajuSignals.conflictSignals : []),
+    ...(Array.isArray(reading.sajuSignals.charmSignals) ? reading.sajuSignals.charmSignals : []),
+    ...(Array.isArray(reading.sajuSignals.longTermSignals) ? reading.sajuSignals.longTermSignals : []),
+  ].filter((value) => Boolean(String(value || "").trim()));
+
+  return unique([...baseSignals, ...dynamicSignals]).length;
+}
+
 export function buildFavoriteDestinyFromSaju(
   userChartInput: { name: string; birthDate: string; birthTimeInput?: string },
   favoriteChartInput: { name: string; birthDate: string; birthTimeInput?: string },
@@ -652,7 +670,7 @@ export function validateFavoriteDestinyReading(reading: FavoriteDestinyReading):
     errors.push("이미지 카드 keywords가 3개를 초과했습니다.");
   }
 
-  if ((reading.sajuSignals.harmonySignals.length + reading.sajuSignals.conflictSignals.length + reading.sajuSignals.charmSignals.length + reading.sajuSignals.longTermSignals.length) < 5) {
+  if (countCoreSajuSignals(reading) < 5) {
     errors.push("사주 계산 신호가 5개 미만입니다.");
   }
 
