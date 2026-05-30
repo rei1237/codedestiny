@@ -1163,6 +1163,31 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     }
   }
 
+  if (normalizedReportType === "celestialHarmony" && alternativeRules.length) {
+    for (let i = 0; i < alternativeRules.length; i += 1) {
+      const evidence = await findRecentDeductionEvidence(user._id, alternativeRules[i]);
+      if (!evidence) continue;
+      logPremiumAccessDecision({
+        route: requestBody?._accessRoute,
+        userId,
+        reportType: normalizedReportType,
+        featureKey: String(evidence?.featureKey || ""),
+        accessSource: "recent-payment-window",
+        matchedTransactionId: String(evidence?._id || ""),
+      });
+      const allowed = {
+        ok: true,
+        accessType: "recent-payment-window",
+        reportType: normalizedReportType,
+        matchedTransactionId: String(evidence?._id || ""),
+        featureKey: String(evidence?.featureKey || ""),
+        chargedCoins: Math.abs(Number(evidence?.delta || 0)),
+      };
+      logSajuAccessResolved(allowed);
+      return allowed;
+    }
+  }
+
   logPremiumAccessDecision({
     route: requestBody?._accessRoute,
     userId,
