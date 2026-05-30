@@ -129,34 +129,17 @@ function makeSectionBodies(seed, chapterSpec) {
   return chapterSpec.categories.map((category, idx) => {
     const scopeKey = `${chapterSpec.no}-${idx + 1}`;
     if (chapterSpec.no === 8) {
-      if (idx === 0) {
-        return makeBody(`${category}: 상반기는 1월부터 6월까지 ${yearSignal} 흐름으로, ${dayMaster} 일간의 기준을 세우는 구간입니다. 1월, 2월, 3월, 4월, 5월, 6월의 이동을 한 번에 묶어 실행 우선순위를 정리합니다.`, 760, scopeKey);
-      }
-      if (idx === 1) {
-        return makeBody(`${category}: 하반기는 7월부터 12월까지 ${yearSignal} 흐름을 수익화하고 구조화하는 구간입니다. 7월, 8월, 9월, 10월, 11월, 12월의 흐름을 실제 일정과 연결합니다.`, 760, scopeKey);
-      }
-      if (idx === 2) {
-        return makeBody(`${category}: ${opportunitySignal || "고점 월"}에서는 ${annualPillar} 세운이 강하게 드러나며 제안, 계약, 런칭을 검토하기 좋습니다. 월별 점수보다 실행 타이밍을 더 정밀하게 맞춥니다.`, 760, scopeKey);
-      }
-      if (idx === 3) {
-        return makeBody(`${category}: ${crisisSignal || "저점 월"}에서는 ${annualTenGod} 신호가 압박으로 바뀔 수 있어 지출과 감정 반응을 늦추는 것이 좋습니다. 1월부터 12월까지 모든 달을 점검표로 관리합니다.`, 760, scopeKey);
-      }
-      return makeBody(`${category}: ${monthlySignal} 흐름을 기준으로 월별 행동표를 만듭니다. 1월부터 12월까지 각 달의 선택 기준을 분리해서 기록합니다.`, 760, scopeKey);
+      const start = idx * 2;
+      const months = seed.luckCycles.monthlyFortunes.slice(start, start + 2);
+      const monthNames = months.map((m) => `${m.month}월`).join("와 ");
+      return makeBody(`${category}: ${monthNames} 구간은 ${yearSignal} 흐름으로 분석합니다. 1월부터 12월까지 모든 달의 점수와 조언을 실행 일정과 연결합니다.`, 760, scopeKey);
     }
 
     if (chapterSpec.no === 10) {
-      if (idx === 1) {
-        return makeBody(`${category}: 첫 3개월은 ${yearSignal}를 바탕으로 기반을 고정하는 구간입니다. 3개월 전략은 일정, 관계, 지출을 먼저 정리하는 데 초점을 둡니다.`, 760, scopeKey);
-      }
-      if (idx === 2) {
-        return makeBody(`${category}: 6개월 전략은 ${careerSignal}와 ${moneySignal} 신호를 연결해 실행 효율을 높이는 단계입니다. 6개월 동안 반복 가능한 수익 구조를 만들고 품질을 고도화합니다.`, 760, scopeKey);
-      }
-      if (idx === 3) {
-        return makeBody(`${category}: 12개월 전략은 ${loveSignal}와 ${relationSignal} 신호까지 포함해 한 해 전체를 완성하는 구간입니다. 12개월 완성 전략은 연말에 남길 결과와 습관을 함께 설계합니다.`, 760, scopeKey);
-      }
-      if (idx === 4) {
-        return makeBody(`${category}: 최종 조언과 선언문은 ${healthSignal}와 ${crisisSignal}를 의식한 현실적 선택을 강조합니다. 올해를 마무리하는 핵심 선언을 한 문장으로 정리합니다.`, 760, scopeKey);
-      }
+      if (idx === 1) return makeBody(`${category}: 1분기(1~3월)는 ${yearSignal}를 바탕으로 기반을 고정하는 구간입니다. 1분기 전략은 일정, 관계, 지출을 먼저 정리하는 데 초점을 둡니다.`, 760, scopeKey);
+      if (idx === 2) return makeBody(`${category}: 2분기(4~6월) 전략은 ${careerSignal}와 ${moneySignal} 신호를 연결해 실행 효율을 높이는 단계입니다. 2분기 동안 반복 가능한 수익 구조를 만듭니다.`, 760, scopeKey);
+      if (idx === 3) return makeBody(`${category}: 3분기(7~9월) 전략은 ${loveSignal}와 ${relationSignal} 신호까지 포함해 성과를 가시화하는 구간입니다. 3분기 완성을 위해 목표를 점검합니다.`, 760, scopeKey);
+      if (idx === 4) return makeBody(`${category}: 4분기(10~12월) 전략은 ${healthSignal}와 ${crisisSignal}를 의식한 현실적 마무리를 강조합니다. 4분기에 올해를 완성하는 핵심 선언을 정리합니다.`, 760, scopeKey);
     }
 
     const base = [
@@ -208,8 +191,8 @@ describe("saju new year LLM-only pipeline", () => {
     expect(seed.fiveElements.strongest.length).toBeGreaterThan(0);
     expect(seed.luckCycles.monthlyFortunes).toHaveLength(12);
     expect(seed.chapterSpecs).toHaveLength(10);
-    expect(chapterSpecs[0].title).toContain("2026년 총운");
-    expect(chapterSpecs[9].title).toContain("2026년 마스터플랜");
+    expect(chapterSpecs[0].title).toContain("Chapter I");
+    expect(chapterSpecs[9].title).toContain("Chapter X");
   });
 
   test("핵심 seed JSON이 비면 SAJU_NEW_YEAR_SEED_INVALID 검증에 걸려야 한다", () => {
@@ -258,9 +241,8 @@ describe("saju new year LLM-only pipeline", () => {
     expect(chapters).toHaveLength(10);
     expect(chapters[7].text).toContain("1월");
     expect(chapters[7].text).toContain("12월");
-    expect(chapters[9].text).toContain("3개월");
-    expect(chapters[9].text).toContain("6개월");
-    expect(chapters[9].text).toContain("12개월");
+    expect(chapters[9].text).toContain("1분기");
+    expect(chapters[9].text).toContain("2분기");
   });
 
   test("정규화된 챕터는 섹션 제목과 본문을 보존한다", () => {
@@ -277,7 +259,7 @@ describe("saju new year LLM-only pipeline", () => {
 
     const normalizedChapter = utils.normalizeGeneratedChapter(chapterSpec, parsed);
     expect(normalizedChapter).not.toBeNull();
-    expect(normalizedChapter.sections).toHaveLength(5);
+    expect(normalizedChapter.sections).toHaveLength(6);
     expect(normalizedChapter.sections[0].title).toBe(chapterSpec.categories[0]);
   });
 
