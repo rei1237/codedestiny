@@ -89,6 +89,7 @@ type DayRulerSnapshot = {
 };
 
 type ConsultationResult = {
+  recipientLabel: string;
   sign: ZodiacSign;
   period: string;
   overall: number;
@@ -309,6 +310,106 @@ const DOMAIN_TIP: Record<ConcernDomain, string> = {
   growth: "자기성장은 비교보다 오늘의 작은 진전 기록이 핵심이야.",
   legal: "법률 이슈는 절차와 기록을 차분히 쌓을수록 유리해져. 작은 준비가 결국 판을 바꿔줘.",
 };
+
+const LETTER_TOPIC_BY_DOMAIN: Record<ConcernDomain, string[]> = {
+  career: [
+    "업무 우선순위를 정리하고 에너지를 보호하는 주제",
+    "성과 압박 속에서도 마음의 중심을 지키는 주제",
+    "커리어 방향을 조급하지 않게 다듬는 주제",
+  ],
+  study: [
+    "시험과 학습 리듬을 안정적으로 회복하는 주제",
+    "집중력의 파동을 다정하게 관리하는 주제",
+    "결과보다 학습 루틴을 단단히 만드는 주제",
+  ],
+  social: [
+    "대화의 온도와 관계 경계를 균형 있게 맞추는 주제",
+    "오해를 줄이고 마음을 안전하게 표현하는 주제",
+    "관계 피로를 줄이며 연결을 회복하는 주제",
+  ],
+  romance: [
+    "연애 감정의 속도를 조율하며 신뢰를 쌓는 주제",
+    "설렘과 불안을 건강하게 다루는 주제",
+    "관계 기대치와 현실 호흡을 맞추는 주제",
+  ],
+  familyCare: [
+    "가족 관계에서 감정 소진을 줄이는 주제",
+    "돌봄과 자기보호의 균형을 세우는 주제",
+    "가족 대화의 충돌을 완화하는 주제",
+  ],
+  finance: [
+    "지출 판단을 차분하게 재정렬하는 주제",
+    "불안 소비를 줄이고 안정감을 회복하는 주제",
+    "현실적 재정 루틴을 재건하는 주제",
+  ],
+  wellness: [
+    "마음과 몸의 회복 속도를 맞추는 주제",
+    "긴장 해소와 수면 리듬을 되찾는 주제",
+    "지친 감정에 안전한 휴식 공간을 만드는 주제",
+  ],
+  growth: [
+    "자기확신을 무리 없이 복원하는 주제",
+    "방향성 혼란 속에서도 기준을 세우는 주제",
+    "작은 성장을 장기 흐름으로 연결하는 주제",
+  ],
+  legal: [
+    "절차 중심으로 불안을 관리하는 주제",
+    "기록과 증빙을 통해 주도권을 회복하는 주제",
+    "법적 이슈에서 감정 소모를 줄이는 주제",
+  ],
+};
+
+const LETTER_CARE_BY_EMOTION: Record<EmotionKey, string[]> = {
+  happy: [
+    "밝은 에너지가 높아도 속도를 조절하시면 실수가 줄어듭니다.",
+    "좋은 기운이 들어오는 날일수록 우선순위 1개에 집중하시면 더 안정적입니다.",
+  ],
+  calm: [
+    "고요한 집중력이 강점이니 오늘 결정을 서두르지 않으셔도 충분합니다.",
+    "차분함이 큰 자산이니, 현재의 리듬을 유지하는 것만으로도 좋은 흐름입니다.",
+  ],
+  tired: [
+    "피로 신호가 뚜렷하니 성과보다 회복 루틴을 먼저 두시는 것이 정확합니다.",
+    "지친 날에는 판단 기준을 단순화하시면 마음 부담이 훨씬 줄어듭니다.",
+  ],
+  worried: [
+    "걱정이 클수록 확인 가능한 사실부터 정리하시면 불안이 빠르게 낮아집니다.",
+    "불확실성에 마음이 흔들릴 때는 결론보다 질문 정리가 먼저입니다.",
+  ],
+  flutter: [
+    "설렘이 큰 시기일수록 관계와 일정의 균형을 함께 잡으시면 더 오래 갑니다.",
+    "기대감이 높아도 한 걸음씩 확인하시면 좋은 결과를 안정적으로 만들 수 있습니다.",
+  ],
+  blue: [
+    "감정 에너지가 낮은 날이니 자신을 다그치지 않으시는 선택이 가장 현명합니다.",
+    "우울감이 올라올 때는 해야 할 일의 양보다 회복 가능한 리듬이 우선입니다.",
+  ],
+};
+
+const LETTER_CLOSING_POOL: string[] = [
+  "오늘도 충분히 잘하고 계십니다. 느리더라도 멈추지 않으시면 흐름은 반드시 회복됩니다.",
+  "완벽하지 않아도 괜찮습니다. 작은 실행 한 가지가 내일의 안정감을 크게 만들어드립니다.",
+  "마음이 흔들리는 날에도 기준을 지키고 계신 점이 이미 큰 강점입니다. 저는 끝까지 응원합니다.",
+];
+
+function formatRecipientLabel(name: string) {
+  const trimmed = String(name || "").trim();
+  if (!trimmed) return "소중한 당신";
+  const withoutHonorific = trimmed.replace(/님$/u, "").trim();
+  return withoutHonorific ? `${withoutHonorific}님` : "소중한 당신";
+}
+
+function pickBySeed<T>(items: T[], seed: string): T {
+  if (!Array.isArray(items) || items.length === 0) {
+    throw new Error("pickBySeed requires a non-empty array");
+  }
+  let hash = 0;
+  const text = String(seed || "seed");
+  for (let i = 0; i < text.length; i += 1) {
+    hash = (hash * 33 + text.charCodeAt(i)) >>> 0;
+  }
+  return items[hash % items.length];
+}
 
 const LUCKY_ITEM_BY_CATEGORY: Record<ConcernCategory, string[]> = {
   love: ["장미향 립밤", "파스텔 메모카드", "작은 향수 샘플", "하트 북마크"],
@@ -1025,24 +1126,46 @@ function buildDetailedForecast(args: {
 }
 
 function buildWarmLetterMessage(args: {
+  recipientName: string;
   selectedEmotion: EmotionKey;
   concern: ConcernAnalysis;
+  selectedSign: ZodiacSign;
+  todaySunSign: ZodiacSign;
+  moon: MoonSnapshot;
+  aspect: AspectSnapshot;
+  dayRuler: DayRulerSnapshot;
 }) {
-  const { selectedEmotion, concern } = args;
+  const { recipientName, selectedEmotion, concern, selectedSign, todaySunSign, moon, aspect, dayRuler } = args;
+
+  const recipientLabel = formatRecipientLabel(recipientName);
+  const moonPct = Math.round(moon.illumination * 100);
+  const topic = pickBySeed(
+    LETTER_TOPIC_BY_DOMAIN[concern.topDomain],
+    `${recipientLabel}-${concern.topDomain}-${concern.topCategory}-${selectedSign}`
+  );
+  const emotionCare = pickBySeed(
+    LETTER_CARE_BY_EMOTION[selectedEmotion],
+    `${recipientLabel}-${selectedEmotion}-${moon.phaseKey}-${dayRuler.label}`
+  );
+  const closing = pickBySeed(
+    LETTER_CLOSING_POOL,
+    `${recipientLabel}-${concern.topDomain}-${selectedSign}-${todaySunSign}-${aspect.label}`
+  );
 
   const priorityDomain = DOMAIN_LABEL[concern.topDomain];
   const firstKeyword = concern.domainKeywords[0] ?? concern.topKeywords[0] ?? CATEGORY_LABEL[concern.topCategory];
   const safeKeyword = String(firstKeyword).replace(/\s+/g, "");
 
   return [
-    "사랑하는 너에게,",
-    `${EMOTION_OPENING[selectedEmotion]} 지금의 너는 충분히 잘하고 있어.`,
-    `오늘은 ${priorityDomain} 흐름에서 특히 네 힘이 살아나는 날이야. 너무 많이 증명하려 하지 말고, 네 호흡대로 한 걸음만 가도 괜찮아.`,
-    `지금 고민이 커진 건 네가 약해서가 아니라, ${priorityDomain}에서 진심으로 책임을 다하려고 했기 때문이야. 그러니 이렇게 흔들리는 건 정말 그럴 수 있어.`,
+    `${recipientLabel}께,`,
+    `${EMOTION_OPENING[selectedEmotion]} 오늘 상담은 ${topic}에 집중해 안내드립니다.`,
+    `점성술 흐름을 보면 ${selectedSign} 기준 오늘 태양 ${todaySunSign}과 ${aspect.label} 각도가 형성되어 ${priorityDomain} 이슈에서 체감이 커지기 쉬운 날입니다.`,
+    `달의 조도는 ${moonPct}%(${moon.label})이고, 요일 행성은 ${dayRuler.label}입니다. 그래서 결론을 서두르기보다 확인 가능한 사실부터 정리하시면 훨씬 안정적입니다.`,
+    `${emotionCare}`,
+    `오늘의 실전 권장 순서는 "${priorityDomain} → ${CATEGORY_LABEL[concern.topCategory]}"입니다. 작은 실행 하나를 먼저 완료해 주세요.`,
     `응원 키워드: #${safeKeyword} #${priorityDomain.replace(/\//g, "")} #연이응원`,
-    `실행 우선순위는 "${priorityDomain} → ${CATEGORY_LABEL[concern.topCategory]}" 순서로 부드럽게 잡아보자.`,
-    "완벽하지 않아도 돼. 오늘의 작은 전진이 내일의 너를 지켜줄 거야. 힘내, 연이는 끝까지 네 편이야.",
-    "연이는 오늘도 네 편이야.",
+    closing,
+    "연이는 오늘도 진심으로 응원합니다.",
   ].join("\n\n");
 }
 
@@ -1065,7 +1188,13 @@ function buildConcernReasoning(args: {
   ];
 }
 
-function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey, concernText: string, date: Date): ConsultationResult {
+function buildConsultation(
+  selectedSign: ZodiacSign,
+  selectedEmotion: EmotionKey,
+  concernText: string,
+  recipientName: string,
+  date: Date
+): ConsultationResult {
   const todaySunSign = getSignByMonthDay(date.getMonth() + 1, date.getDate());
   const moon = getMoonSnapshot(date);
   const aspect = getAspectSnapshot(selectedSign, todaySunSign);
@@ -1156,8 +1285,14 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
   });
 
   const warmMessage = buildWarmLetterMessage({
+    recipientName,
     selectedEmotion,
     concern,
+    selectedSign,
+    todaySunSign,
+    moon,
+    aspect,
+    dayRuler,
   });
   const concernReasoning = buildConcernReasoning({
     concern,
@@ -1171,6 +1306,7 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
   const signInfo = ZODIAC_SIGNS.find((item) => item.sign === selectedSign) ?? ZODIAC_SIGNS[0];
 
   return {
+    recipientLabel: formatRecipientLabel(recipientName),
     sign: selectedSign,
     period: signInfo.period,
     overall,
@@ -1210,7 +1346,7 @@ function buildReadingFromConsultation(
   const letterLine = consultation.warmMessage
     .split(/\n+/)
     .map((line) => line.trim())
-    .find((line) => line && !line.startsWith("응원 키워드")) || "오늘의 너는 조금 느려도 괜찮아.";
+    .find((line) => line && !line.startsWith("응원 키워드") && !/께,$/.test(line)) || "오늘의 너는 조금 느려도 괜찮아.";
 
   const reading = buildYeonHeartStarReading(
     {
@@ -1574,22 +1710,23 @@ export default function YeonStarHugPage() {
   }, [consultation, selectedSign, selectedEmotion]);
 
   const displayWarmMessage = useMemo(() => {
-    if (!reading) return "";
-    const yeonMessageSection = reading.categories.find((section) => section.id === "yeonMessage");
-    return sanitizeYeonHeartStarText(yeonMessageSection?.healingReading || reading.displayCard.oneLineMessage);
-  }, [reading]);
+    if (!consultation) return "";
+    return consultation.warmMessage;
+  }, [consultation]);
 
   const runConsultation = () => {
     if (isGenerating) return;
     setIsGenerating(true);
     window.setTimeout(() => {
       const matchedSign = parseSignFromBirthDateInput(birthDateInput) || selectedSign;
-      const normalizedConcernText = concernText.trim() || `${profileNameInput || "사용자"}의 오늘 마음 흐름이 궁금해요.`;
+      const recipientName = String(profileSeed.name || profileNameInput || "").trim();
+      const recipientLabel = formatRecipientLabel(recipientName);
+      const normalizedConcernText = concernText.trim() || `${recipientLabel}의 오늘 마음 흐름이 궁금해요.`;
       if (matchedSign !== selectedSign) {
         setSelectedSign(matchedSign);
       }
 
-      const next = buildConsultation(matchedSign, selectedEmotion, normalizedConcernText, new Date());
+      const next = buildConsultation(matchedSign, selectedEmotion, normalizedConcernText, recipientName, new Date());
       const spriteFrame = getCardSpriteFrame(matchedSign, selectedEmotion, next.concernCategory, next.concernDomain);
       const nextReading = buildReadingFromConsultation(next, selectedEmotion, activeEmotion.label, spriteFrame);
       setConsultation(next);
@@ -1898,7 +2035,7 @@ export default function YeonStarHugPage() {
 
                   <div className="mt-4 rounded-2xl border border-white/20 bg-white/90 p-4 text-slate-700">
                     <div className="rounded-xl border border-rose-100 bg-rose-50/60 px-4 py-3">
-                      <p className="text-xs font-semibold text-rose-500">사랑하는 너에게,</p>
+                      <p className="text-xs font-semibold text-rose-500">{consultation.recipientLabel}께,</p>
                       <p className="mt-1 text-sm font-bold leading-relaxed text-slate-700 md:text-base">{reading.displayCard.oneLineMessage}</p>
                       <div className="mt-2 flex flex-wrap gap-2">
                         {reading.displayCard.keywords.map((keyword) => (
@@ -1910,6 +2047,43 @@ export default function YeonStarHugPage() {
                     </div>
 
                     <div className="mt-3 rounded-xl border border-pink-100 bg-white px-4 py-3">
+                      <div className="mb-3 overflow-hidden rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 via-pink-50 to-white shadow-[0_10px_24px_rgba(244,114,182,0.14)]">
+                        <div className="bg-gradient-to-r from-rose-200/70 via-pink-100/70 to-amber-100/70 px-3 py-2">
+                          <p className="text-[11px] font-bold tracking-[0.08em] text-rose-700">연이의 응원 편지</p>
+                        </div>
+                        <div className="grid gap-3 px-3 py-3 sm:grid-cols-[88px_minmax(0,1fr)] sm:items-start">
+                          <div className="rounded-xl border border-pink-100 bg-white/80 p-1.5">
+                            <div className="mx-auto h-[72px] w-[72px] overflow-hidden rounded-lg border border-white/70 bg-white/70 shadow-sm">
+                              <svg viewBox="0 0 1 1" className="h-full w-full" role="img" aria-label="연이 스프라이트 컷">
+                                <image
+                                  href={SPRITE_SHEET}
+                                  x={-(speechSpriteFrame % SPRITE_GRID_COLS)}
+                                  y={-Math.floor(speechSpriteFrame / SPRITE_GRID_COLS)}
+                                  width={SPRITE_GRID_COLS}
+                                  height={SPRITE_GRID_ROWS}
+                                  preserveAspectRatio="xMinYMin slice"
+                                />
+                              </svg>
+                            </div>
+                            <p className="mt-1.5 text-center text-[10px] font-semibold text-pink-500">연이의 오늘 스탬프</p>
+                          </div>
+
+                          <AnimatePresence mode="wait">
+                            <motion.div
+                              key={`${selectedEmotion}-${selectedSign}-${displayWarmMessage}`}
+                              initial={reduceMotion ? undefined : { opacity: 0, y: 6 }}
+                              animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+                              exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
+                              transition={{ duration: 0.25 }}
+                              className="min-h-[140px] whitespace-pre-line rounded-xl border border-rose-100 bg-white/85 px-3 py-3 text-sm leading-relaxed text-slate-700"
+                            >
+                              <p className="text-xs font-semibold text-rose-500">{consultation.recipientLabel}께 드리는 오늘의 편지</p>
+                              <p className="mt-1.5 text-sm font-semibold leading-relaxed text-slate-700">{displayWarmMessage}</p>
+                            </motion.div>
+                          </AnimatePresence>
+                        </div>
+                      </div>
+
                       <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-3 sm:px-3.5 sm:py-3.5">
                         <p className="text-[11px] font-extrabold tracking-[0.08em] text-amber-700">고민이 커진 이유 (점성술 분석)</p>
                         <div className="mt-2.5 grid gap-2">
@@ -1925,38 +2099,7 @@ export default function YeonStarHugPage() {
                         </p>
                       </div>
 
-                      <p className="text-xs font-semibold text-pink-500">연이의 응원</p>
-                      <div className="mt-2 grid gap-3 sm:grid-cols-[88px_minmax(0,1fr)] sm:items-center">
-                        <div className="rounded-xl border border-pink-100 bg-rose-50/60 p-1.5">
-                          <div className="mx-auto h-[72px] w-[72px] overflow-hidden rounded-lg border border-white/70 bg-white/70 shadow-sm">
-                            <svg viewBox="0 0 1 1" className="h-full w-full" role="img" aria-label="연이 스프라이트 컷">
-                              <image
-                                href={SPRITE_SHEET}
-                                x={-(speechSpriteFrame % SPRITE_GRID_COLS)}
-                                y={-Math.floor(speechSpriteFrame / SPRITE_GRID_COLS)}
-                                width={SPRITE_GRID_COLS}
-                                height={SPRITE_GRID_ROWS}
-                                preserveAspectRatio="xMinYMin slice"
-                              />
-                            </svg>
-                          </div>
-                          <p className="mt-1.5 text-center text-[10px] font-semibold text-pink-400">연이의 오늘 스탬프</p>
-                        </div>
-
-                        <AnimatePresence mode="wait">
-                          <motion.p
-                            key={`${selectedEmotion}-${selectedSign}-${displayWarmMessage}`}
-                            initial={reduceMotion ? undefined : { opacity: 0, y: 6 }}
-                            animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-                            exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
-                            transition={{ duration: 0.25 }}
-                            className="whitespace-pre-line rounded-lg border border-rose-100 bg-rose-50/55 px-3 py-2 text-sm font-semibold leading-relaxed text-slate-700"
-                          >
-                            {displayWarmMessage}
-                          </motion.p>
-                        </AnimatePresence>
-
-                        <div className="rounded-lg border border-purple-100 bg-purple-50/50 px-3 py-2 sm:col-span-2">
+                        <div className="rounded-lg border border-purple-100 bg-purple-50/50 px-3 py-2">
                           <p className="text-[11px] font-semibold text-purple-500">오늘의 별빛 상담 7가지</p>
                           <div className="mt-2 grid gap-2">
                             {reading.categories.map((section) => (
@@ -1978,7 +2121,6 @@ export default function YeonStarHugPage() {
                         </div>
                       </div>
                     </div>
-                  </div>
                 </motion.article>
 
                 <motion.article
