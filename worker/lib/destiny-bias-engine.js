@@ -157,15 +157,46 @@ function normalizeCalendarType(value) {
   return "solar";
 }
 
+function parseBirthDateParts(rawDate) {
+  const text = String(rawDate || "").trim();
+  if (!text) return null;
+
+  const m = text.match(/^(\d{4})[./-](\d{1,2})[./-](\d{1,2})(?:\D|$)/);
+  if (!m) return null;
+
+  const year = Number(m[1]);
+  const month = Number(m[2]);
+  const day = Number(m[3]);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+
+  return { year, month, day };
+}
+
+function parseBirthTimeParts(rawTime) {
+  const text = String(rawTime || "").trim();
+  if (!text) return null;
+
+  const m = text.match(/^(\d{1,2}):(\d{1,2})/);
+  if (!m) return null;
+
+  const hour = Number(m[1]);
+  const minute = Number(m[2]);
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
+
+  return { hour, minute };
+}
+
 export function normalizeBirthPayload(rawBirth = {}) {
+  const dateParts = parseBirthDateParts(rawBirth.birthDate || rawBirth.date || rawBirth.solarDate || rawBirth.birthday || "");
+  const timeParts = parseBirthTimeParts(rawBirth.birthTime || rawBirth.time || "");
   const calendarType = normalizeCalendarType(rawBirth.calendarType || rawBirth.calendar || rawBirth.type);
   const normalized = {
     calendarType,
-    year: clampInt(rawBirth.year, 1900, 2100),
-    month: clampInt(rawBirth.month, 1, 12),
-    day: clampInt(rawBirth.day, 1, 31),
-    hour: clampInt(rawBirth.hour, 0, 23),
-    minute: clampInt(rawBirth.minute, 0, 59),
+    year: clampInt(rawBirth.year ?? dateParts?.year, 1900, 2100),
+    month: clampInt(rawBirth.month ?? dateParts?.month, 1, 12),
+    day: clampInt(rawBirth.day ?? dateParts?.day, 1, 31),
+    hour: clampInt(rawBirth.hour ?? timeParts?.hour, 0, 23),
+    minute: clampInt(rawBirth.minute ?? timeParts?.minute, 0, 59),
     unknownTime: Boolean(rawBirth.unknownTime),
   };
 

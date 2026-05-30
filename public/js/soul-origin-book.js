@@ -175,7 +175,21 @@
     var src = raw || {};
     var date = parseDateParts(src.birthDate || '');
     var time = parseTimeParts(src.birthTime || '');
-    if (!date || !time) return null;
+    if (!date) return null;
+
+    var fallbackHour = Number(src.birthHour);
+    var fallbackMinute = Number(src.birthMinute);
+    if ((!time || !Number.isFinite(time.hour)) && Number.isFinite(fallbackHour)) {
+      time = {
+        hour: fallbackHour,
+        minute: Number.isFinite(fallbackMinute) ? fallbackMinute : 0,
+      };
+    }
+
+    if (!time || !Number.isFinite(time.hour)) {
+      // 시간 미상인 경우 정오 기준으로 로컬 계산을 진행해 생성 파이프라인을 유지한다.
+      time = { hour: 12, minute: 0 };
+    }
 
     var lat = Number(src.latitude);
     var lon = Number(src.longitude);
@@ -188,7 +202,7 @@
       name: clean(src.name || '사용자') || '사용자',
       gender: clean(src.gender || 'unknown') || 'unknown',
       birthDate: src.birthDate,
-      birthTime: src.birthTime,
+      birthTime: clean(src.birthTime) || [String(time.hour).padStart(2, '0'), String(time.minute).padStart(2, '0')].join(':'),
       birthPlace: clean(src.birthPlace || '출생지 미상') || '출생지 미상',
       timezone: timezone,
       timezoneOffset: inferTimezoneOffsetHours(timezone),
@@ -253,9 +267,20 @@
     }).filter(function (item) { return clean(item.nameKo); });
   }
 
-  function buildZiweiSnapshot(input) {
+  async function ensureZiweiEngineReady() {
+    if (typeof window.calcZiweiPalaces === 'function') return true;
+    if (typeof window.__cdEnsureSajuCoreLoaded === 'function') {
+      try {
+        await window.__cdEnsureSajuCoreLoaded();
+      } catch (_) {}
+    }
+    return typeof window.calcZiweiPalaces === 'function';
+  }
+
+  async function buildZiweiSnapshot(input) {
     try {
-      if (typeof window.calcZiweiPalaces !== 'function') return null;
+      var hasZiweiEngine = await ensureZiweiEngineReady();
+      if (!hasZiweiEngine) return null;
       var gender = input.gender === 'male' ? 'M' : (input.gender === 'female' ? 'F' : 'OTHER');
       var date = parseDateParts(input.birthDate);
       var time = parseTimeParts(input.birthTime);
@@ -502,7 +527,7 @@
       var profileRaw = readActiveProfile();
       var input = normalizeInput(profileRaw || {});
       if (!input) {
-        throw new Error('태어난 시간과 장소 정보를 다시 확인해야 기원서를 열 수 있습니다. 입력값을 확인한 뒤 다시 시도해주세요.');
+        throw new Error('태어난 날짜 정보를 확인해야 기원서를 열 수 있습니다. 생년월일을 확인한 뒤 다시 시도해주세요.');
       }
 
       showScreen('loading');
@@ -526,7 +551,7 @@
         saju: buildSajuSnapshot(),
       };
 
-      var ziwei = buildZiweiSnapshot(input);
+      var ziwei = await buildZiweiSnapshot(input);
       if (ziwei) snapshots.ziwei = ziwei;
 
       var reportId = 'soul-origin:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);

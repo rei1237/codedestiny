@@ -623,26 +623,6 @@
     };
   }
 
-  function _buildChapterSkeleton(idx, reason) {
-    var meta = _getChapterMeta(idx);
-    return [
-      '## ' + meta.title,
-      meta.subtitle ? ('> ' + meta.subtitle) : '',
-      '',
-      '### 챕터 구조 복구',
-      '- 일시적인 응답 문제로 기본 구조를 우선 생성했습니다.',
-      '- 동일 reportId로 재생성하면 본문이 자동 보강됩니다.',
-      '',
-      '### 관계 포인트',
-      '- 감정 패턴 요약',
-      '- 갈등 트리거 정리',
-      '- 실전 대화 액션 1개',
-      '',
-      reason ? ('### 참고\n- 원인: ' + String(reason)) : '',
-      ''
-    ].filter(Boolean).join('\n');
-  }
-
   function _md2html(text) {
     if (!text) return '';
     var h = text
@@ -1834,87 +1814,6 @@
       });
     }
     _setProgress(0);
-
-    function _buildLocalFallbackContext(partnerRaw) {
-      var dominant = (((sajuBase || {}).elementBalance || {}).dominant || '') || '균형';
-      var deficient = (((sajuBase || {}).elementBalance || {}).deficient || '') || '없음';
-      var dayMaster = (((sajuBase || {}).core || {}).dayMaster || '') || '일간 미상';
-      var strengthLabel = (((sajuBase || {}).strength || {}).label || '') || '중립';
-      var useful = ((((sajuBase || {}).yongshin || {}).usefulElements) || []).slice(0, 3);
-      var partnerHint = String(partnerRaw || '').trim();
-      var isCompat = _currentChapterMode === 'compatibility';
-      return {
-        dominant: String(dominant),
-        deficient: String(deficient),
-        dayMaster: String(dayMaster),
-        strengthLabel: String(strengthLabel),
-        useful: useful.length ? useful.join(', ') : '용신 정보 없음',
-        partnerHint: partnerHint,
-        relationFocus: isCompat
-          ? '두 사람의 상호작용과 감정 리듬'
-          : '사용자 단독 연애 패턴과 실행 전략',
-      };
-    }
-
-    function _buildLocalFallbackSectionBody(chapterNo, label, reason, context) {
-      var lines = [];
-      lines.push('사주 핵심값(일간 ' + context.dayMaster + ', 강도 ' + context.strengthLabel + ', 우세 오행 ' + context.dominant + ')을 기반으로 ' + label + '을 정리했습니다.');
-      lines.push('현재 부족 오행은 ' + context.deficient + '로 판단되며, 용신/보완 요소는 ' + context.useful + '입니다.');
-      lines.push('핵심 관찰: Chapter ' + chapterNo + '에서는 ' + context.relationFocus + '을 우선 해석했습니다.');
-      lines.push('실행 제안: 오늘 바로 실행 가능한 대화 1개와 경계 신호 1개를 기록해 반복 패턴을 끊어주세요.');
-      if (context.partnerHint && _currentChapterMode === 'compatibility') {
-        lines.push('궁합 보강: 파트너 입력 데이터의 주요 단서를 반영해 감정 속도 차이를 완충하는 문장을 우선 제안합니다.');
-      }
-      if (reason) {
-        lines.push('로컬 폴백 사유: ' + String(reason));
-      }
-      return lines.join('\n\n');
-    }
-
-    function _buildLocalFallbackChapter(idx, reason, partnerRaw) {
-      var chapterNo = idx + 1;
-      var labels = _getLoveSecretStructuredLabels(chapterNo, _currentChapterMode);
-      if (!Array.isArray(labels) || !labels.length) {
-        labels = ['핵심 진단', '감정 흐름', '리스크', '실행 전략', '체크포인트'];
-      }
-      var context = _buildLocalFallbackContext(partnerRaw);
-      var sections = labels.map(function (label) {
-        return {
-          title: String(label),
-          body: _buildLocalFallbackSectionBody(chapterNo, String(label), reason, context),
-        };
-      });
-      var text = sections.map(function (row) {
-        return '## ' + row.title + '\n' + row.body;
-      }).join('\n\n');
-
-      return {
-        title: _getLoveSecretChapterTitle(idx, _currentChapterMode),
-        subtitle: _getLoveSecretChapterSubtitle(idx, _currentChapterMode),
-        text: text,
-        sections: sections,
-      };
-    }
-
-    function _fillLocalFallbackChapters(reason, partnerRaw, forceAll) {
-      for (var i = 0; i < totalChapters; i++) {
-        if (!forceAll && (_chapters[i] || _chapterStructured[i])) continue;
-        var localChapter = _buildLocalFallbackChapter(i, reason, partnerRaw);
-        _chapterMeta[i] = {
-          title: String(localChapter.title || _getLoveSecretChapterTitle(i, _currentChapterMode)),
-          subtitle: String(localChapter.subtitle || _getLoveSecretChapterSubtitle(i, _currentChapterMode)),
-          isSkeleton: true,
-        };
-        _chapters[i] = String(localChapter.text || '').trim();
-        _chapterStructured[i] = { sections: localChapter.sections || [] };
-      }
-      _setProgress(totalChapters);
-      _logLoveSecretFlow('LOCAL_FALLBACK_RENDERED', {
-        mode: _currentChapterMode,
-        reportId: _lsCurrentReportId,
-        reason: String(reason || 'unknown'),
-      });
-    }
 
     var _lsReportId = _lsCurrentReportId;
     var _lsFeatureKey = _getLoveSecretFeatureKey(_currentChapterMode);

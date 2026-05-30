@@ -132,7 +132,16 @@ describe("worker /api/tarot/reading self-esteem quality", () => {
     const guide = payload?.reading?.levelupGuide || {};
     const flow = String(guide?.flow || payload?.reading?.levelupGuidance || "");
     expect(/정의|절제|완드/.test(flow)).toBe(true);
-    expect(/에서 시작해|에서 .*으로 이어|으로 이어/.test(flow)).toBe(true);
+    expect(flow).toContain("|");
+  });
+
+  test("자존감 가이드는 중복 접두사 대신 파이프형 카테고리로 정리되어야 한다", async () => {
+    const { payload } = await callSelfEsteemReading();
+    const guide = payload?.reading?.levelupGuide || {};
+    const top = payload?.reading?.topSummary || {};
+    expect(String(guide?.summaryPattern || "")).toContain("|");
+    expect(String(guide?.summaryPattern || "")).not.toMatch(/현재 자존감 패턴 요약:\s*현재 자존감 패턴 요약:/);
+    expect(String(top?.flow || "")).toContain("|");
   });
 
   test("역방향 카드는 역방향 의미로 해석되어야 한다", async () => {

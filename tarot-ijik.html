@@ -1553,19 +1553,14 @@ async function initDeckFromApi() {
   isDeckReady = false;
   const msg = document.getElementById('statusMsg');
   const btn = document.getElementById('readBtn');
-  msg.textContent = '타로 엔진에서 7장을 준비하는 중입니다...';
+  msg.textContent = '로컬 타로 덱에서 7장을 준비하는 중입니다...';
   btn.disabled = true;
   try {
-    const data = await callTarotApi('draw', { spreadType: TAROT_SPREAD_TYPE });
-    const cards = Array.isArray(data?.cards) ? data.cards : [];
-    if (cards.length !== 7) throw new Error('drawn card count mismatch');
-    drawnCards = cards;
-    isDeckReady = true;
-    msg.textContent = '카드를 클릭하여 한 장씩 뽑아보세요 ✦';
-  } catch (error) {
-    console.error('[tarot-ijik] draw failed', error);
     drawnCards = pickLocalJobChangeCards();
     isDeckReady = drawnCards.length === 7;
+    msg.textContent = '카드를 클릭하여 한 장씩 뽑아보세요 ✦';
+  } catch (error) {
+    console.error('[tarot-ijik] local draw failed', error);
     if (isDeckReady) {
       msg.textContent = '카드를 클릭하여 한 장씩 뽑아보세요 ✦';
     } else {
@@ -1874,29 +1869,12 @@ async function getReading() {
   textEl.innerHTML = '<div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>';
 
   try {
-    const cardsPayload = drawnCards.map((c) => ({
-      cardId: c.cardId,
-      position: c.position,
-      orientation: c.orientation,
-    }));
-
-    const data = await callTarotApi('reading', {
-      category: 'career',
-      spreadType: TAROT_SPREAD_TYPE,
-      cards: cardsPayload,
-    });
-    const reading = data?.reading || {};
-    const rawText = reading.fullText || [reading.stage1, reading.stage2, reading.stage3, reading.finalAdvice].filter(Boolean).join('\n\n') || '해석 결과를 불러오지 못했습니다.';
+    const rawText = createLocalJobChangeReading(drawnCards);
     textEl.textContent = '';
     await typeWriteText(textEl, rawText);
     btn.innerHTML = '<div>✦ 해석 완료</div>';
   } catch (e) {
-    console.error('[tarot-ijik] reading failed', e);
-    var refunded = await _ijikAutoRefundCoin(IJIK_COIN_COST, _ijikLastCoinTx);
-    if (refunded) {
-      _ijikLastCoinTx = '';
-      window.alert('API 오류로 이번 결제 코인이 자동 환불되었습니다.');
-    }
+    console.error('[tarot-ijik] local reading failed', e);
     const localText = createLocalJobChangeReading(drawnCards);
     textEl.textContent = '';
     await typeWriteText(textEl, localText);

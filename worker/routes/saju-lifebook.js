@@ -1495,21 +1495,6 @@ function buildChapterBody(chapterTitle, categories) {
   }).join("\n\n");
 }
 
-function createLifeBookFallbackText(profile, signals, chapterTitle, categoryTitle, categoryIndex = 0, originText = "") {
-  const body = buildCategoryText(profile, signals, chapterTitle, categoryTitle, categoryIndex);
-  return stripForbiddenTokens([originText, body].filter(Boolean).join("\n\n"));
-}
-
-function buildLifeBookFallbackChapters(profile, signals, chapters = []) {
-  return ensureCompleteLifeBookChapters(profile, signals, chapters).map((chapter) => ({
-    ...chapter,
-    llmEnhancedText: "",
-    finalText: buildChapterBody(chapter.title, chapter.categories),
-    text: buildChapterBody(chapter.title, chapter.categories),
-    source: "local-fallback",
-  }));
-}
-
 function validateChapterText(text) {
   const source = stripForbiddenTokens(text);
   if (!source) return { ok: false, reason: "empty" };
@@ -1575,46 +1560,6 @@ function buildLifeBookPayload(profile, signals, chapters, metadata = {}) {
   return deriveLifeBookPayload(profile, signals, chapters, metadata);
 }
 
-function ensureCompleteLifeBookChapters(profile, signals, chapters = []) {
-  const chapterMap = new Map((Array.isArray(chapters) ? chapters : []).map((item) => [String(item?.id || ""), item]));
-
-  return CHAPTER_BLUEPRINTS.map((blueprint) => {
-    const chapter = chapterMap.get(String(blueprint.id));
-    const fallbackCategories = buildChapterLocalText(profile, signals, blueprint.title, blueprint.categories);
-    const categoryMap = new Map((Array.isArray(chapter?.categories) ? chapter.categories : []).map((item) => [String(item?.title || item?.id || ""), item]));
-
-    const categories = fallbackCategories.map((fallbackCategory, index) => {
-      const existing = categoryMap.get(String(fallbackCategory.title)) || categoryMap.get(String(fallbackCategory.id));
-      const nextText = stripForbiddenTokens(existing?.finalText || existing?.llmEnhancedText || existing?.localSummary || fallbackCategory.localSummary);
-      return {
-        id: fallbackCategory.id,
-        title: fallbackCategory.title,
-        localSummary: fallbackCategory.localSummary,
-        evidenceTags: Array.isArray(existing?.evidenceTags) && existing.evidenceTags.length ? existing.evidenceTags : fallbackCategory.evidenceTags,
-        advicePoints: Array.isArray(existing?.advicePoints) && existing.advicePoints.length ? existing.advicePoints : fallbackCategory.advicePoints,
-        llmEnhancedText: stripForbiddenTokens(existing?.llmEnhancedText || ""),
-        finalText: nextText || createLifeBookFallbackText(profile, signals, blueprint.title, fallbackCategory.title, index, fallbackCategory.localSummary),
-        order: index + 1,
-      };
-    });
-
-    const chapterText = buildChapterBody(blueprint.title, categories);
-
-    return {
-      id: blueprint.id,
-      roman: blueprint.roman,
-      title: blueprint.title,
-      subtitle: blueprint.subtitle,
-      categories,
-      localDraft: chapterText,
-      llmEnhancedText: stripForbiddenTokens(chapter?.llmEnhancedText || ""),
-      finalText: stripForbiddenTokens(chapter?.finalText || chapterText),
-      text: stripForbiddenTokens(chapter?.finalText || chapterText),
-      source: chapter?.source || "local",
-    };
-  });
-}
-
 function validateLifeBookChapters(chapters = []) {
   const errors = [];
   if (!Array.isArray(chapters) || chapters.length !== CHAPTER_BLUEPRINTS.length) {
@@ -1644,33 +1589,6 @@ function validateLifeBookChapters(chapters = []) {
   });
 
   return { ok: errors.length === 0, errors };
-}
-
-function parseFailedLifeBookChapterIndexes(errors = []) {
-  const indexes = new Set();
-  (Array.isArray(errors) ? errors : []).forEach((errorCode) => {
-    const text = String(errorCode || "");
-    const match = text.match(/^chapter_(\d+)_/);
-    if (!match) return;
-    const chapterNumber = Number(match[1]);
-    if (!Number.isFinite(chapterNumber)) return;
-    const idx = chapterNumber - 1;
-    if (idx >= 0 && idx < CHAPTER_BLUEPRINTS.length) indexes.add(idx);
-  });
-  return indexes;
-}
-
-function reinforceFailedLifeBookChapters(profile, signals, chapters = [], errors = []) {
-  const failedIndexes = parseFailedLifeBookChapterIndexes(errors);
-  if (!failedIndexes.size) return Array.isArray(chapters) ? chapters : [];
-
-  const source = Array.isArray(chapters) ? chapters : [];
-  const fallbackAll = buildLifeBookFallbackChapters(profile, signals, source);
-
-  return source.map((chapter, index) => {
-    if (!failedIndexes.has(index)) return chapter;
-    return fallbackAll[index] || chapter;
-  });
 }
 
 function renderLifeBookPdf({ profile, signals, chapters, generatedAt }) {

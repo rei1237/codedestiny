@@ -108,6 +108,18 @@ const CRYSTAL_BY_NAME = Object.values(CRYSTAL_MEANINGS).reduce((acc, item) => {
 }, {});
 
 const CATEGORY_DEFS = {
+  overall: {
+    id: "overall",
+    name: "전체 흐름 · 오늘의 메시지",
+    spread: [
+      { order: 1, title: "오늘의 핵심 기운", question: "오늘 가장 먼저 느껴야 할 흐름은 무엇인가?" },
+      { order: 2, title: "지금 눈앞의 주제", question: "지금 즉시 다뤄야 할 중심 문제는 무엇인가?" },
+      { order: 3, title: "흐름을 막는 요소", question: "에너지 흐름을 흔드는 변수는 무엇인가?" },
+      { order: 4, title: "오늘의 선택", question: "오늘 어떤 태도와 선택이 도움이 되는가?" },
+      { order: 5, title: "마무리 메시지", question: "오늘의 흐름이 남기는 최종 메시지는 무엇인가?" },
+    ],
+    focus: "전체 흐름, 방향 전환, 오늘의 우선순위를 한 번에 정리합니다.",
+  },
   wealth: {
     id: "wealth",
     name: "재물 · 사업",
@@ -193,6 +205,125 @@ const CATEGORY_DEFS = {
     focus: "신뢰, 경계, 대화 온도, 협력의 균형점을 실천 중심으로 제시합니다.",
   },
 };
+
+const CATEGORY_VOICES = {
+  overall: {
+    summaryLead: "오늘의 기운을 한 장으로 묶어 방향을 정리하는 흐름입니다.",
+    pulse: "전체 판을 먼저 보고, 지금 가장 중요한 한 가지를 정리하는 태도가 유리합니다.",
+    caution: "여러 신호를 한꺼번에 잡으려다 오히려 중심을 놓치는 것을 조심해야 합니다.",
+    uplift: "원석의 안정감으로 생각을 정돈하고, 카드가 지목한 핵심만 먼저 실행하면 됩니다.",
+    neo: "지금은 많이 움직이는 것보다, 제대로 고르는 것이 더 큰 힘이 됩니다.",
+    youn: "당신은 이미 흐름을 느끼고 있어요. 오늘은 그 감각을 믿고 한 걸음만 또렷하게 내디디면 충분합니다.",
+    action: [
+      "오늘 가장 먼저 처리할 일 1개를 정하고 나머지는 뒤로 미룹니다.",
+      "불안이 올라오는 순간, 결정 기준을 한 줄로 적어 다시 확인합니다.",
+      "저녁 전에 실제로 실행한 행동 1개를 기록해 흐름을 남깁니다.",
+    ],
+    crystalHook: "전체 흐름을 정돈하고 중심을 잡는 힘",
+  },
+  wealth: {
+    summaryLead: "재물운은 숫자와 조건을 다시 맞추는 구간입니다.",
+    pulse: "지출, 계약, 수익 구조가 함께 움직이니 감정이 아니라 계산이 우선입니다.",
+    caution: "확인되지 않은 제안, 즉흥 지출, 과한 기대를 동시에 조심해야 합니다.",
+    uplift: "원석의 현실 감각을 빌려 수익과 비용을 분리하면 흐름이 또렷해집니다.",
+    neo: "지금은 벌 수 있느냐보다, 지켜 낼 수 있느냐가 더 중요합니다.",
+    youn: "당신의 판단은 충분히 섬세해요. 숫자를 적고 비교하면 마음도 함께 안정됩니다.",
+    action: [
+      "이번 주 들어갈 돈과 멈출 돈을 각각 한 줄씩 적습니다.",
+      "제안이 오면 바로 답하지 말고 조건표를 먼저 확인합니다.",
+      "수익과 비용을 분리한 메모를 남겨 선택 기준을 숫자로 바꿉니다.",
+    ],
+    crystalHook: "수익 구조를 보호하고 현실 판단을 돕는 힘",
+  },
+  love: {
+    summaryLead: "연애운은 마음의 온도와 표현 방식이 핵심입니다.",
+    pulse: "감정은 살아 있지만, 말하지 않은 부분이 관계의 온도를 흔들고 있습니다.",
+    caution: "서운함을 마음속에만 쌓아 두거나, 반대로 급하게 확인하려는 태도를 조심하세요.",
+    uplift: "원석의 부드러운 힘으로 마음을 풀고, 카드가 보여 준 속도를 존중하면 됩니다.",
+    neo: "사랑은 감정을 숨기는 게임이 아니라, 필요한 말을 예쁘게 꺼내는 기술입니다.",
+    youn: "당신이 먼저 부드러워지면 관계도 따라옵니다. 오늘은 따뜻한 한 문장이 회복의 시작이에요.",
+    action: [
+      "상대에게 보내고 싶은 말을 한 번 고쳐 읽고 짧게 정리합니다.",
+      "감정 확인보다 먼저, 지금 필요한 것은 공감인지 경계인지 구분합니다.",
+      "대화가 필요하면 메시지보다 먼저 시간과 분위기를 맞춥니다.",
+    ],
+    crystalHook: "감정을 안정시키고 관계의 온도를 회복하는 힘",
+  },
+  reunion: {
+    summaryLead: "재회운은 미련보다 조건을 먼저 보는 흐름입니다.",
+    pulse: "남은 감정은 분명하지만, 다시 가까워지기 위한 전제가 아직 정리되지 않았습니다.",
+    caution: "상대의 속도와 준비를 무시한 재접근은 같은 상처를 반복할 수 있습니다.",
+    uplift: "원석의 통찰로 감정과 현실을 분리하면, 재회의 가능성도 더 정확히 보입니다.",
+    neo: "재회는 감정이 남아 있는 것만으로 성사되지 않습니다. 조건과 태도가 함께 맞아야 합니다.",
+    youn: "서로를 다그치기보다, 필요한 시간을 인정할수록 인연은 더 분명하게 드러나요.",
+    action: [
+      "상대에게 원하는 것을 한 줄로 적고, 그것이 현실 가능한지 확인합니다.",
+      "연락을 시도하기 전 현재 관계의 경계선을 먼저 정리합니다.",
+      "재회를 바라는 이유가 그리움인지, 실제 회복인지 구분합니다.",
+    ],
+    crystalHook: "흐려진 감정을 정리하고 재접근의 조건을 읽는 힘",
+  },
+  move: {
+    summaryLead: "이동과 변화는 타이밍과 준비가 맞아야 부드럽게 열립니다.",
+    pulse: "환경을 바꾸고 싶은 마음은 분명하지만, 지금은 동선과 조건을 함께 맞춰야 합니다.",
+    caution: "움직이고 싶은 마음만 앞세우면 준비 부족이 뒤따를 수 있습니다.",
+    uplift: "원석의 전략성을 활용해 이동 후의 생활까지 계산하면 변화가 훨씬 안전합니다.",
+    neo: "이동의 핵심은 빨리 가는 것이 아니라, 도착한 뒤 버틸 수 있게 준비하는 것입니다.",
+    youn: "조금 천천히 가도 괜찮아요. 제대로 옮겨 놓는 선택이 결국 마음을 편하게 합니다.",
+    action: [
+      "이동 전에 비용, 거리, 일정, 생활 변수를 각각 따로 적습니다.",
+      "즉흥 결정 대신 1주일 뒤의 현실 조건까지 함께 살펴봅니다.",
+      "새 환경에서 지켜야 할 루틴 1개를 먼저 정해 둡니다.",
+    ],
+    crystalHook: "변화의 방향을 읽고 준비를 현실화하는 힘",
+  },
+  career: {
+    summaryLead: "직업운은 실력과 보이게 되는 방식이 함께 움직입니다.",
+    pulse: "지금 필요한 것은 버티기보다 정리된 방향성입니다. 무엇을 잘하는지가 더 분명해져야 합니다.",
+    caution: "과한 비교, 무작정 이동, 평가 기준을 모르는 상태의 선택을 조심하세요.",
+    uplift: "원석의 정리력으로 역할과 강점을 선명하게 만들면 커리어 흐름이 살아납니다.",
+    neo: "커리어는 운이 아니라 구조입니다. 구조를 읽는 순간 결과도 바뀝니다.",
+    youn: "당신은 이미 성장 중이에요. 오늘은 스스로의 강점을 다시 적어 두는 것만으로도 충분합니다.",
+    action: [
+      "지금 맡은 일에서 성과로 연결되는 지점을 하나만 골라 정리합니다.",
+      "이직이나 변화가 필요하면 기준 3개를 먼저 적어 비교합니다.",
+      "오늘 끝낼 수 있는 업무 1개를 마감해 흐름을 눈에 보이게 만듭니다.",
+    ],
+    crystalHook: "우선순위를 정돈하고 성장 방향을 선명하게 만드는 힘",
+  },
+  health: {
+    summaryLead: "건강운은 몸보다 먼저 생활 리듬과 감정 피로를 살펴야 합니다.",
+    pulse: "회복은 한 번에 오는 것이 아니라, 쉬는 방식과 스트레스의 패턴을 바꾸면서 생깁니다.",
+    caution: "무리한 버티기, 수면 부족, 감정 소모를 가볍게 넘기지 마세요.",
+    uplift: "원석의 회복 기운을 빌려 생활 루틴을 정리하면 에너지가 다시 모입니다.",
+    neo: "몸은 늘 먼저 신호를 보냅니다. 늦게 알아차리기 전에 패턴을 바꾸는 것이 좋습니다.",
+    youn: "쉬는 것도 기술이에요. 조금만 정돈하면 생각보다 빨리 숨이 돌아옵니다.",
+    action: [
+      "오늘 잠들기 전 화면 시간을 30분만 줄입니다.",
+      "피로를 키우는 일을 하나 골라 잠시 멈춥니다.",
+      "식사, 물, 호흡 중 하나를 먼저 정리해 몸의 리듬을 되돌립니다.",
+    ],
+    crystalHook: "에너지를 보호하고 회복 루틴을 만들게 하는 힘",
+  },
+  relation: {
+    summaryLead: "대인관계는 신뢰와 경계의 균형을 다시 맞추는 흐름입니다.",
+    pulse: "사람 사이의 온도는 맞지만, 말의 방식과 기준이 조금씩 엇갈리고 있습니다.",
+    caution: "모두에게 맞추려다 지치거나, 경계를 너무 늦게 세우는 것을 조심하세요.",
+    uplift: "원석의 보호 기운을 활용하면 관계를 지키면서도 소모를 줄일 수 있습니다.",
+    neo: "좋은 관계는 참는 관계가 아니라, 서로의 선을 존중하는 관계입니다.",
+    youn: "당신은 이미 잘 버티고 있어요. 이제는 모든 사람을 살피기보다, 나를 지키는 기준도 챙겨야 합니다.",
+    action: [
+      "이번 주에 꼭 지켜야 할 관계의 경계를 한 문장으로 적습니다.",
+      "불편한 대화는 문자보다 시간과 맥락을 먼저 맞춥니다.",
+      "도움이 되는 사람과 소모되는 사람을 나누어 관계 에너지를 점검합니다.",
+    ],
+    crystalHook: "소모를 막고 관계의 경계를 세우는 힘",
+  },
+};
+
+function getCategoryVoice(categoryId) {
+  return CATEGORY_VOICES[categoryId] || CATEGORY_VOICES.overall;
+}
 
 const CARD_MEANING_OVERRIDES = {
   "Five of Pentacles": "결핍감, 재정 압박, 소외감, 부족함에 대한 두려움",
@@ -285,13 +416,32 @@ function buildCrystalSoulSection(cardName, crystal, position, category, orientat
     ? card.keywords.slice(0, 5)
     : [cardSuite(cardName), orientation === "reversed" ? "지연" : "진행", "핵심 전환", "행동 필요"];
 
+  const voice = getCategoryVoice(category.id);
   const cardMeaning = buildCardMeaning(cardNameEn, orientation, tarotKeywords);
   const crystalMeaning = `${crystal.meaning} 이 원석의 조언 톤은 "${crystal.adviceTone}"이며, 주의 톤은 "${crystal.cautionTone}"입니다.`;
   const positionInterpretation = `${position.title} 자리의 질문은 "${position.question}"입니다. ${cardNameKo} 카드가 이 자리에 놓였다는 것은 ${category.focus} 라는 카테고리 핵심 안에서 지금 반드시 점검할 우선순위가 분명하다는 신호입니다.`;
-  const categoryReading = `${category.name} 관점에서 ${cardNameKo}${orientation === "reversed" ? "(역방향)" : "(정방향)"}은(는) 단순한 분위기 묘사가 아니라 실제 선택 기준을 요구합니다. ${cardMeaning} 특히 ${crystal.nameKo}의 기운이 결합되면 감정적 즉흥보다 근거 중심의 해석으로 전환되어, 현재 위치에서 무엇을 줄이고 무엇을 늘려야 하는지가 선명해집니다.`;
-  const opportunity = `${tarotKeywords.slice(0, 2).join(" · ")} 신호를 살리면 ${position.title}에서 작지만 현실적인 기회가 열립니다. 이번 주에는 추상적 기대보다 확인 가능한 지표 1개를 정해 진척을 추적해 보세요.`;
-  const caution = `${orientation === "reversed" ? "같은 패턴의 반복" : "과속 실행"}이 가장 큰 리스크입니다. ${crystal.cautionTone}를 기억하고, 감정 과열 상태에서 결정을 확정하지 않는 것이 안전합니다.`;
-  const action = `오늘의 행동: ${position.title}와 연결된 결정 1개를 문장으로 적고, 실행 전후 기준(숫자·대화·시간)을 체크리스트로 남기세요. 이 기록이 다음 카드 흐름의 기준점이 됩니다.`;
+  const oneLineSummary = `${voice.summaryLead} ${cardNameKo}${orientation === "reversed" ? "(역방향)" : "(정방향)"}가 ${position.title}에 놓이며 보여 주는 핵심은 ${voice.crystalHook}입니다.`;
+  const crystalEnergy = `${crystal.nameKo}의 ${crystal.keywords.slice(0, 3).join(" · ")} 기운은 ${category.name} 흐름을 흔들기보다 정리하는 방향으로 작동합니다. ${crystalMeaning}`;
+  const cardFlow = `${cardMeaning} ${cardNameKo} 카드의 메시지는 ${category.name} 안에서 지금 어떤 선택이 열리고 어떤 선택을 멈춰야 하는지를 분명하게 드러냅니다. ${position.title}는 단순한 자리 설명이 아니라, 현재 실제로 손대야 할 우선순위를 가리킵니다.`;
+  const currentPulse = `${voice.pulse} 지금 드러나는 심리는 ${tarotKeywords.slice(0, 2).join("과 ")} 같은 키워드로 요약됩니다. ${orientation === "reversed" ? "뒤집힌 흐름은 미뤄 둔 감정과 반복 습관을 먼저 점검하라는 신호" : "정방향 흐름은 이미 열려 있는 기회를 행동으로 옮기라는 신호"}입니다.`;
+  const caution = `${voice.caution} ${orientation === "reversed" ? "같은 패턴이 반복될 수 있으니, 멈춤과 확인의 간격을 한 번 더 두는 것이 안전합니다." : "기회가 보여도 속도를 너무 올리면 카드가 주는 장점이 흐려질 수 있습니다."}`;
+  const uplift = `${voice.uplift} ${crystal.nameKo}의 기운을 붙이면 감정적 흔들림보다 기준과 순서가 먼저 서게 됩니다. ${category.name}에서는 작은 실행을 단단히 붙잡는 쪽이 더 오래 갑니다.`;
+  const practicalActions = Array.isArray(voice.action) ? voice.action.slice(0, 3) : [];
+  const opportunity = `${tarotKeywords.slice(0, 2).join(" · ")} 신호를 살리면 ${position.title}에서 작지만 현실적인 기회가 열립니다. ${voice.uplift} 이번 주에는 추상적 기대보다 확인 가능한 지표 1개를 정해 진척을 추적해 보세요.`;
+  const action = practicalActions.join(" / ");
+  const neoLine = `네오: ${voice.neo}`;
+  const younLine = `연이: ${voice.youn}`;
+  const categoryReading = [
+    oneLineSummary,
+    crystalEnergy,
+    cardFlow,
+    currentPulse,
+    caution,
+    uplift,
+    `실전 조언: ${action}`,
+    neoLine,
+    younLine,
+  ].join(" ");
 
   return {
     order: position.order,
@@ -304,34 +454,45 @@ function buildCrystalSoulSection(cardName, crystal, position, category, orientat
     crystalName: crystal.nameKo,
     crystalKeywords: crystal.keywords.slice(0, 5),
     tarotKeywords,
+    oneLineSummary,
+    crystalEnergy,
+    cardFlow,
+    currentPulse,
     cardMeaning,
     crystalMeaning,
     positionInterpretation,
     categoryReading,
     opportunity,
     caution,
+    uplift,
+    practicalActions,
     action,
+    neoLine,
+    younLine,
   };
 }
 
 function buildCrystalSoulSummary(category, sections, coreCrystal) {
   const strongest = sections[2] || sections[0];
+  const voice = getCategoryVoice(category.id);
   const practicalActions = [
-    "핵심 문제를 한 줄로 정의하고 오늘 기준으로 점수화한다.",
-    "이번 주 실행 1개와 중단 1개를 동시에 결정한다.",
-    "관찰 지표(숫자/감정/대화)를 3일 단위로 기록한다.",
-    "외부 변수와 내적 패턴을 분리해 판단 메모를 남긴다.",
+    voice.action[0],
+    voice.action[1],
+    voice.action[2],
+    `${coreCrystal.nameKo}의 기운을 떠올리며 오늘의 선택 기준 1개를 메모에 남깁니다.`,
   ];
   return {
     category: category.name,
     coreCrystal: coreCrystal.nameKo,
-    overallFlow: `${category.name}의 5장 흐름은 초반의 현재 진단에서 중반의 방해 요인 노출, 후반의 실행 조정과 결과 가시화로 이어집니다. 즉 지금의 핵심은 단기 감정 반응이 아니라 구조를 재정렬하는 일입니다. 카드군은 문제를 과장하기보다 "무엇을 당장 실행하면 흐름이 바뀌는가"를 반복해서 묻고 있으며, 원석 결합은 그 실행을 오래 유지할 수 있는 심리적 균형을 제공합니다.`,
-    strongestSignal: `${strongest.cardNameKo} · ${strongest.positionTitle} 조합이 가장 강한 신호입니다. 이 조합은 현재 상황을 회피하지 말고 구체적인 기준을 세워 바로 검증하라는 메시지를 강조합니다.`,
-    opportunity: `기회는 ${sections[1]?.positionTitle || "두 번째 자리"}에서 드러납니다. 카드가 제시한 핵심 키워드를 행동 단위로 잘게 쪼개면, 과장된 목표 없이도 체감 가능한 전환이 가능합니다.`,
-    risk: `주의할 점은 ${sections[2]?.positionTitle || "세 번째 자리"}의 경고를 가볍게 넘기는 것입니다. 같은 말투·같은 의사결정 습관이 반복되면 결과 카드의 잠재력이 줄어들 수 있습니다.`,
-    timingAdvice: "지금은 즉흥 확장보다 14~30일 검증 구간을 먼저 확보하는 타이밍입니다. 준비와 실행을 분리하지 말고, 작은 실행을 하면서 동시에 데이터를 수집하는 방식이 유리합니다.",
+    overallFlow: `${category.name}의 5장 흐름은 ${voice.summaryLead} 초반의 ${sections[0]?.positionTitle || "첫 번째 자리"}에서 흐름의 바탕을 보고, 중반의 ${sections[2]?.positionTitle || "세 번째 자리"}에서 막힘을 확인한 뒤, 후반의 ${sections[4]?.positionTitle || "마지막 자리"}에서 실제로 무엇을 남길지 정리하도록 설계되어 있습니다. ${coreCrystal.nameKo}의 에너지는 이 전체 구조를 안정적으로 묶어 주며, 감정적 즉흥보다 기준을 세우고 실행을 나누는 쪽이 결과를 더 선명하게 만듭니다.`,
+    strongestSignal: `${strongest.cardNameKo} · ${strongest.positionTitle} 조합이 가장 강한 신호입니다. ${strongest.oneLineSummary} 이 조합은 현재 상황을 회피하지 말고 구체적인 기준을 세워 바로 검증하라는 메시지를 강조합니다.`,
+    opportunity: `기회는 ${sections[1]?.positionTitle || "두 번째 자리"}에서 드러납니다. ${sections[1]?.tarotKeywords.slice(0, 2).join(" · ")} 신호를 행동 단위로 바꾸면, 과장된 목표 없이도 체감 가능한 전환이 가능합니다.`,
+    risk: `주의할 점은 ${sections[2]?.positionTitle || "세 번째 자리"}의 경고를 가볍게 넘기는 것입니다. ${voice.caution} 같은 말투·같은 의사결정 습관이 반복되면 결과 카드의 잠재력이 줄어들 수 있습니다.`,
+    timingAdvice: `${voice.pulse} 지금은 즉흥 확장보다 14~30일 검증 구간을 먼저 확보하는 타이밍입니다. 준비와 실행을 분리하지 말고, 작은 실행을 하면서 동시에 데이터를 수집하는 방식이 유리합니다.`,
     practicalActions,
     oracleMessage: `${coreCrystal.nameKo}의 오라클: "지금 당신에게 필요한 기적은 거대한 반전이 아니라, 흐린 직감을 기준 있는 결단으로 바꾸는 첫 번째 실행이다."`,
+    neoLine: `네오: ${voice.neo}`,
+    younLine: `연이: ${voice.youn}`,
   };
 }
 
@@ -343,7 +504,10 @@ function readingSectionLength(section) {
     section.categoryReading,
     section.opportunity,
     section.caution,
+    section.uplift,
     section.action,
+    section.neoLine,
+    section.younLine,
   ].join(" ").length;
 }
 
@@ -357,7 +521,7 @@ function validateCrystalSoulReading(reading) {
     if (!asText(section.cardMeaning)) issues.push(`${idx + 1}번 카드 기본 의미 누락`);
     if (!asText(section.crystalMeaning)) issues.push(`${idx + 1}번 카드 원석 의미 누락`);
     if (!asText(section.categoryReading)) issues.push(`${idx + 1}번 카드 카테고리 상담 누락`);
-    if (readingSectionLength(section) < 350) issues.push(`${idx + 1}번 카드 섹션 길이 부족`);
+    if (readingSectionLength(section) < 600) issues.push(`${idx + 1}번 카드 섹션 길이 부족`);
   });
 
   const summaryText = [
@@ -368,7 +532,7 @@ function validateCrystalSoulReading(reading) {
     summary.timingAdvice,
     summary.oracleMessage,
   ].join(" ");
-  if (summaryText.length < 500) issues.push("종합 리딩 길이 부족");
+  if (summaryText.length < 800) issues.push("종합 리딩 길이 부족");
   if (!Array.isArray(summary.practicalActions) || summary.practicalActions.length < 3) {
     issues.push("실행 체크리스트 최소 개수 미달");
   }
@@ -387,13 +551,20 @@ function crystalReadingToText(reading) {
     lines.push(`원석: ${section.crystalName}`);
     lines.push(`타로 키워드: ${section.tarotKeywords.join(", ")}`);
     lines.push(`원석 키워드: ${section.crystalKeywords.join(", ")}`);
+    lines.push(`한 줄 요약: ${section.oneLineSummary}`);
+    lines.push(`원석 에너지: ${section.crystalEnergy}`);
+    lines.push(`카드 흐름: ${section.cardFlow}`);
     lines.push(`기본 의미: ${section.cardMeaning}`);
     lines.push(`원석의 기운: ${section.crystalMeaning}`);
     lines.push(`위치 해석: ${section.positionInterpretation}`);
+    lines.push(`지금의 흐름: ${section.currentPulse}`);
     lines.push(`카테고리 상담: ${section.categoryReading}`);
     lines.push(`기회: ${section.opportunity}`);
     lines.push(`주의점: ${section.caution}`);
-    lines.push(`오늘의 행동: ${section.action}`);
+    lines.push(`좋게 살리는 방법: ${section.uplift}`);
+    lines.push(`실전 조언: ${(section.practicalActions || []).join(" / ")}`);
+    lines.push(section.neoLine);
+    lines.push(section.younLine);
     lines.push("");
   }
   lines.push("종합 리딩");

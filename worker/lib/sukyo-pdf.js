@@ -488,62 +488,6 @@ export function validateSukyoPdfSeed(seed = {}) {
   };
 }
 
-function buildSukyoFallbackParagraph(seed, chapterSpec, sectionHeading, sectionIndex, paragraphIndex, previousChapterSummaries = []) {
-  const personA = text(seed?.personA?.宿Label || seed?.personA?.宿 || seed?.input?.personA?.name || "본인 숙");
-  const personB = text(seed?.personB?.宿Label || seed?.personB?.宿 || seed?.input?.personB?.name || "상대 숙");
-  const relationType = text(seed?.compatibility?.relationTypeLabel || seed?.compatibility?.relationType || "관계");
-  const distance = text(seed?.compatibility?.distanceLabel || seed?.compatibility?.distance || "거리");
-  const relationSignals = dedupeSignals([
-    ...(Array.isArray(seed?.compatibility?.relationTypeKeywords) ? seed.compatibility.relationTypeKeywords : []),
-    ...(Array.isArray(seed?.compatibility?.communicationSignals) ? seed.compatibility.communicationSignals : []),
-    ...(Array.isArray(seed?.compatibility?.conflictSignals) ? seed.compatibility.conflictSignals : []),
-    ...(Array.isArray(seed?.derivedSignals?.relationshipSignals) ? seed.derivedSignals.relationshipSignals : []),
-    ...(Array.isArray(seed?.derivedSignals?.emotionalSignals) ? seed.derivedSignals.emotionalSignals : []),
-    ...(Array.isArray(seed?.derivedSignals?.practicalAdviceSignals) ? seed.derivedSignals.practicalAdviceSignals : []),
-  ], 5);
-  const chapterHighlights = Array.isArray(chapterSpec?.sections) ? chapterSpec.sections : [];
-  const previousSummary = Array.isArray(previousChapterSummaries) && previousChapterSummaries.length
-    ? text(previousChapterSummaries[previousChapterSummaries.length - 1]?.title || previousChapterSummaries[previousChapterSummaries.length - 1]?.highlights?.[0])
-    : "앞 장의 흐름";
-  const beforeLabel = chapterHighlights[Math.max(0, sectionIndex - 1)] || sectionHeading;
-  const afterLabel = chapterHighlights[Math.min(chapterHighlights.length - 1, sectionIndex + 1)] || sectionHeading;
-  const leadWords = ["관찰", "정리", "조율", "실행"];
-  const lead = leadWords[paragraphIndex % leadWords.length];
-  const signalText = relationSignals.length ? relationSignals.join(" · ") : `${relationType} · ${distance}`;
-
-  if (paragraphIndex === 0) {
-    return `${chapterSpec.order}장 ${chapterSpec.title}의 ${sectionHeading}은 ${personA}과 ${personB}의 ${relationType} 흐름을 ${distance} 기준으로 다시 배치하는 시작점입니다. 이 장면에서는 감정의 크기보다 반복되는 반응의 패턴을 먼저 살펴야 하며, 어떤 상황에서 관계가 빨라지고 어떤 상황에서 관계가 느려지는지를 차분하게 확인하는 것이 핵심입니다. ${signalText} 같은 신호는 단순한 설명이 아니라 실제 만남과 연락, 거리 조절, 기대치 조율이 어떻게 움직이는지 알려 주는 실제 지표로 읽어야 합니다.`;
-  }
-
-  if (paragraphIndex === 1) {
-    return `이 섹션을 읽을 때는 ${previousSummary}과 이어지는 흐름도 함께 봐야 합니다. 앞선 장에서 드러난 결론이 ${beforeLabel}와 지금 주제를 지나며 어떻게 실제 행동으로 바뀌는지 확인하면, 둘 사이의 긴장과 안정이 어떤 조건에서 교차하는지 더 선명해집니다. ${personA}은 ${relationType} 안에서 주도와 반응의 균형을 어떻게 잡는지, ${personB}는 ${distance} 감각을 어떤 말과 태도로 체감하는지를 함께 놓고 봐야 해석이 흔들리지 않습니다.`;
-  }
-
-  if (paragraphIndex === 2) {
-    return `${lead} 포인트는 한 번에 큰 결론을 내리는 것이 아니라, ${sectionHeading}을 생활 문장으로 바꾸는 데 있습니다. 예를 들어 오늘의 대화, 이번 주의 연락 빈도, 다음 만남에서의 거리 조절처럼 작은 단위의 선택이 쌓일 때 관계의 안정성이 드러납니다. ${relationType}의 장점은 빠른 결속이나 강한 끌림만이 아니라, 둘이 서로를 알아보는 속도와 오해를 줄이는 방식이 합의될 때 훨씬 길게 살아난다는 점입니다.`;
-  }
-
-  return `마지막으로 ${afterLabel}까지 연결해 보면, ${sectionHeading}은 단독 항목이 아니라 전체 관계 리듬의 중간 고리라는 점이 보입니다. 어느 한 장면만 놓고 판단하기보다 이전과 다음의 신호를 같이 읽어야 실제 선택 기준이 정리되며, 그렇게 해야 ${personA}과 ${personB}가 ${relationType} 관계 안에서 반복할 질문과 답을 분명하게 만들 수 있습니다. 이번 장의 목적은 운명을 단정하는 것이 아니라, ${distance} 감각과 상호 반응을 바탕으로 더 나은 운영 원칙을 세우는 데 있습니다.`;
-}
-
-function buildSukyoFallbackSectionBody(seed, chapterSpec, sectionHeading, sectionIndex, previousChapterSummaries = []) {
-  const paragraphs = [0, 1, 2, 3].map((paragraphIndex) => buildSukyoFallbackParagraph(seed, chapterSpec, sectionHeading, sectionIndex, paragraphIndex, previousChapterSummaries));
-  return paragraphs.join("\n\n");
-}
-
-function buildSukyoFallbackChapter(seed, chapterSpec, previousChapterSummaries = []) {
-  return {
-    key: text(chapterSpec.key),
-    order: Number(chapterSpec.order),
-    title: text(chapterSpec.title),
-    sections: (Array.isArray(chapterSpec.sections) ? chapterSpec.sections : []).map((heading, index) => ({
-      heading: text(heading),
-      body: buildSukyoFallbackSectionBody(seed, chapterSpec, heading, index, previousChapterSummaries),
-    })),
-    fallbackUsed: true,
-  };
-}
-
 function chapterSpecByOrder(mode, chapterNo) {
   return getChapterSpecs(mode).find((spec) => Number(spec.order) === Number(chapterNo));
 }
@@ -848,10 +792,6 @@ export async function enhanceSukyoChaptersWithLLM(env, seed, skeleton, options =
     completed.push(chapter);
   }
   return { chapters: completed, fallbackUsed: completed.some((chapter) => Boolean(chapter?.fallbackUsed)), enhancedChapterCount: completed.length };
-}
-
-export function buildSukyoFallbackChapters(_seed, skeleton) {
-  return chapterArrayToRendererInput(Array.isArray(skeleton) ? skeleton : []);
 }
 
 export function renderSukyoChapterMarkdown(chapter = {}) {

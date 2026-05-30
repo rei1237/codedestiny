@@ -11,6 +11,7 @@ const publicDir = resolve(rootDir, "public");
 const staticTargets = [
   "_headers",
   "vedic-astrology.html",
+  "tarot-ijik.html",
   "neville-meditation.html",
   "cosmic-soul-meditation.html",
   "yoga-guru.html",

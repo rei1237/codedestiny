@@ -1,5 +1,6 @@
 import { Solar } from "lunar-javascript";
 import { getSwissVedicPlanets, getSwissWesternChart } from "../lib/swiss-ephemeris.js";
+import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { callGeminiText } from "../lib/gemini.js";
@@ -246,8 +247,8 @@ function normalizeInput(input = {}) {
   const year = dateMatch ? toNumber(dateMatch[1]) : NaN;
   const month = dateMatch ? toNumber(dateMatch[2]) : NaN;
   const day = dateMatch ? toNumber(dateMatch[3]) : NaN;
-  const hour = timeMatch ? toNumber(timeMatch[1]) : NaN;
-  const minute = timeMatch ? toNumber(timeMatch[2]) : 0;
+  const hour = timeMatch ? toNumber(timeMatch[1], 12) : 12;
+  const minute = timeMatch ? toNumber(timeMatch[2], 0) : 0;
   const partnerYear = partnerDateMatch ? toNumber(partnerDateMatch[1]) : NaN;
   const partnerMonth = partnerDateMatch ? toNumber(partnerDateMatch[2]) : NaN;
   const partnerDay = partnerDateMatch ? toNumber(partnerDateMatch[3]) : NaN;
@@ -360,6 +361,52 @@ function normalizeSajuSnapshot(raw = {}) {
     highlights,
     timing: daewoon.slice(0, 8),
   };
+}
+
+function buildSajuSnapshotFromInput(input) {
+  try {
+    const profile = buildSajuProfile({
+      name: clean(input?.name || "사용자"),
+      gender: clean(input?.gender || "OTHER"),
+      birth: {
+        year: Number(input?.year || 0),
+        month: Number(input?.month || 0),
+        day: Number(input?.day || 0),
+        hour: Number.isFinite(Number(input?.hour)) ? Number(input.hour) : 12,
+        minute: Number.isFinite(Number(input?.minute)) ? Number(input.minute) : 0,
+        calendarType: "solar",
+        unknownTime: false,
+      },
+    });
+
+    const dayMaster = clean(profile?.dayMaster?.stemKo || profile?.dayMaster?.stem || "");
+    const powerLabel = clean(profile?.usefulGods?.strength || "");
+    const yongshin = [
+      clean(profile?.usefulGods?.yong || ""),
+      clean(profile?.usefulGods?.hee?.[0] || profile?.usefulGods?.hee || ""),
+    ].filter(Boolean);
+    const percentages = profile?.fiveElements?.percentages || {};
+    const daewoonLabel = clean(profile?.pillars?.month?.ganji || "");
+
+    return normalizeSajuSnapshot({
+      dayMaster,
+      analysis: {
+        power_label: powerLabel,
+        yongshin_elements: yongshin,
+        elementWeights: {
+          wood: Number(percentages.wood || 0),
+          fire: Number(percentages.fire || 0),
+          earth: Number(percentages.earth || 0),
+          metal: Number(percentages.metal || 0),
+          water: Number(percentages.water || 0),
+        },
+      },
+      daewoon: daewoonLabel ? [{ label: daewoonLabel, period: "현재 흐름" }] : [],
+    });
+  } catch (error) {
+    console.warn("[SoulOrigin][LocalSajuFallbackFailed]", normalizeError(error));
+    return { ok: false, highlights: [], timing: [] };
+  }
 }
 
 function normalizeZiweiSnapshot(raw = {}) {
@@ -859,7 +906,10 @@ async function handlePrepare(request, env) {
     console.warn("[SoulOrigin][SukuyoFailed]", normalizeError(error));
   }
 
-  const saju = normalizeSajuSnapshot(snapshots.saju || {});
+  let saju = normalizeSajuSnapshot(snapshots.saju || {});
+  if (!saju.ok) {
+    saju = buildSajuSnapshotFromInput(input);
+  }
   const ziwei = normalizeZiweiSnapshot(snapshots.ziwei || {});
 
   const sourceAvailability = {

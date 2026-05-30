@@ -1224,6 +1224,35 @@ const IJIK_COIN_COST = 50;
 
 let _ijikLastCoinTx = '';
 
+function setIjikPaymentPending(show, message) {
+  var text = String(message || '').trim() || '결제가 진행 중입니다.';
+  try {
+    if (typeof window._cdSetCoinGateOverlay === 'function') {
+      window._cdSetCoinGateOverlay(!!show, text);
+      return;
+    }
+  } catch (_) {}
+
+  var overlay = document.getElementById('cdStandalonePaymentOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'cdStandalonePaymentOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483000;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 50%, rgba(15,23,42,.78), rgba(2,6,23,.92));backdrop-filter:blur(8px);padding:16px;';
+    overlay.innerHTML = '<div style="width:min(420px,100%);border-radius:20px;border:1px solid rgba(125,211,252,.42);background:linear-gradient(135deg, rgba(15,23,42,.92), rgba(30,41,59,.94));box-shadow:0 24px 54px rgba(2,6,23,.5);padding:22px 18px;color:rgba(226,232,240,.98);text-align:center;"><div style="width:44px;height:44px;margin:0 auto 12px;border-radius:999px;border:3px solid rgba(125,211,252,.22);border-top-color:rgba(125,211,252,.96);animation:cdStandalonePaymentSpin .9s linear infinite"></div><p style="margin:0;font-size:19px;font-weight:800;color:rgba(224,242,254,.98)">은하 결제망 동기화 중...</p><p style="margin:9px 0 0;font-size:14px;color:rgba(186,230,253,.95)">별빛 회로로 결제 정보를 안전하게 확인하고 있습니다.</p><p id="cdStandalonePaymentOverlayStatus" style="margin:13px 0 0;border-radius:12px;border:1px solid rgba(167,243,208,.3);background:linear-gradient(135deg, rgba(15,23,42,.44), rgba(6,78,59,.3));padding:8px 10px;color:rgba(220,252,231,.98);font-size:13px;font-weight:600">결제가 진행 중입니다.</p></div>';
+    document.body.appendChild(overlay);
+    if (!document.getElementById('cdStandalonePaymentOverlayStyle')) {
+      var style = document.createElement('style');
+      style.id = 'cdStandalonePaymentOverlayStyle';
+      style.textContent = '@keyframes cdStandalonePaymentSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
+      document.head.appendChild(style);
+    }
+  }
+
+  var status = document.getElementById('cdStandalonePaymentOverlayStatus');
+  if (status) status.textContent = text;
+  overlay.style.display = show ? 'flex' : 'none';
+}
+
 const TAROT_LOCAL_BASE = '/tarot-cards/';
 const TAROT_CARD_IMAGE_BY_ID = {
   M00: 'thefool.jpeg', M01: 'themagician.jpeg', M02: 'thehighpriestess.jpeg', M03: 'theempress.jpeg',
@@ -1439,24 +1468,24 @@ function createLocalJobChangeReading(cards) {
       re: '현재 선택한 경로가 내면의 소명과 점점 어긋나고 있음을 이 카드는 경고합니다. 외부 기대나 경제적 이유로 결정한 방향이 진짜 목소리를 억누르고 있을 수 있습니다. 지금 느끼는 공허감의 원인을 정확히 파악하는 것이 이직보다 먼저입니다. 오늘 20분만 시간을 내어 "어떤 일을 할 때 가장 살아있다고 느끼는가"를 세 문장으로 적어보세요. 그 답이 현재 직무와 얼마나 일치하는지 솔직하게 평가하는 것이 방향 전환의 출발점입니다. 단기 손실이 두렵더라도 지금 점검하지 않으면 수년 후에도 같은 고민을 반복하게 됩니다. 작은 불일치를 무시해 온 시간이 쌓일수록 이직 후 만족도가 낮아지므로, 지금 이 자리에서 점검을 시작하는 것이 가장 현명합니다.',
     },
     { // 1: 행복한 직업의 방향
-      up: '행복한 직업이란 단순히 급여가 높은 곳이 아니라 당신의 강점이 매일 발휘될 수 있는 환경을 의미합니다. 이 카드는 협력과 창의성이 균형 잡힌 조직에서 특히 빛날 가능성을 보여줍니다. 개인 아이디어가 존중받는 문화, 성장 기회가 투명하게 제시되는 조직, 사람과의 연결이 풍부한 직무를 우선순위로 검토하세요. 현재 직장의 불만 요소 5가지를 구체적으로 적고 그 반대 조건을 충족하는 기업을 3개 이상 리스트업하는 것이 명확한 출발점입니다. 희망 조건과 현실 조건의 교집합을 창는 과정이 이직 방향을 정확하게 잡아줍니다. 직무 상세와 재직자 후기를 병행 조사하면 기대와 현실의 간격을 크게 줄일 수 있습니다.',
-      re: '지금 그리는 이상적 직업이 현실과 과도하게 괴리되어 있을 수 있습니다. 막연한 기대 대신 구체적인 직무 조건으로 내려와 생각해야 할 시점입니다. 원하는 직업의 실제 하루를 조사해 보세요. 채용 공고, 재직자 후기, 직무 인터뷰 영상을 통해 낙만적 기대와 실제 업무 사이의 간격을 먼저 파악해야 합니다. 이직 후 3개월 만에 불만족으로 돌아가는 패턴을 반복하지 않으려면 감정적 결정보다 데이터 기반 분석이 반드시 필요합니다. 지금의 불만이 환경 문제인지 역할 문제인지 정확히 진단하는 것이 올바른 방향 설정의 핵심 조건입니다. 감정이 아닌 조건으로 판단하는 훈련이 이직 성공률을 높이는 가장 효과적인 방법입니다.',
+      up: '행복한 직업이란 단순히 급여가 높은 곳이 아니라 당신의 강점이 매일 발휘될 수 있는 환경을 의미합니다. 이 카드는 협력과 창의성이 균형 잡힌 조직에서 특히 빛날 가능성을 보여줍니다. 개인 아이디어가 존중받는 문화, 성장 기회가 투명하게 제시되는 조직, 사람과의 연결이 풍부한 직무를 우선순위로 검토하세요. 현재 직장의 불만 요소 5가지를 구체적으로 적고 그 반대 조건을 충족하는 기업을 3개 이상 리스트업하는 것이 명확한 출발점입니다. 희망 조건과 현실 조건의 교집합을 찾는 과정이 이직 방향을 정확하게 잡아줍니다. 직무 상세와 재직자 후기를 병행 조사하면 기대와 현실의 간격을 크게 줄일 수 있습니다.',
+      re: '지금 그리는 이상적 직업이 현실과 과도하게 괴리되어 있을 수 있습니다. 막연한 기대 대신 구체적인 직무 조건으로 내려와 생각해야 할 시점입니다. 채용 공고, 재직자 후기, 직무 인터뷰 영상을 통해 낭만적 기대와 실제 업무 사이의 간격을 먼저 파악해야 합니다. 이직 후 3개월 만에 불만족으로 돌아가는 패턴을 반복하지 않으려면 감정적 결정보다 데이터 기반 분석이 반드시 필요합니다. 지금의 불만이 환경 문제인지 역할 문제인지 정확히 진단하는 것이 올바른 방향 설정의 핵심 조건입니다. 감정이 아닌 조건으로 판단하는 훈련이 이직 성공률을 높이는 가장 효과적인 방법입니다.',
     },
     { // 2: 내면의 소명
-      up: '당신의 소명은 단순한 직업 선택을 넘어 삶 전체의 방향성과 맞닿아 있습니다. 이 카드가 전하는 메시지는 "지금 하는 일로 어떤 문제를 해결하고 싶은가"라는 질문에 솔직하게 답하라는 것입니다. 세상에 기여하고 싶은 방식, 당신이 없으면 아쉬울 것 같은 가치 — 그것이 소명의 핵심입니다. 매일 저녁 "오늘 이 일을 왜 하는가"를 한 줄로 적는 습관이 소명과의 거리를 점점 족없힙니다. 지금 당장 거창한 소명을 정의하지 않아도 됩니다. 다만 "왜"를 묻는 것을 멈추지 않는 것이 진짜 방향을 창는 유일한 방법입니다. 1년 후 어떤 사람이 되고 싶은지를 먼저 정의하면 그에 맞는 직업은 자연스럽게 좌혁집니다.',
+      up: '당신의 소명은 단순한 직업 선택을 넘어 삶 전체의 방향성과 맞닿아 있습니다. 이 카드가 전하는 메시지는 "지금 하는 일로 어떤 문제를 해결하고 싶은가"라는 질문에 솔직하게 답하라는 것입니다. 세상에 기여하고 싶은 방식, 당신이 없으면 아쉬울 것 같은 가치 — 그것이 소명의 핵심입니다. 매일 저녁 "오늘 이 일을 왜 하는가"를 한 줄로 적는 습관이 소명과의 거리를 점점 좁혀줍니다. 지금 당장 거창한 소명을 정의하지 않아도 됩니다. 다만 "왜"를 묻는 것을 멈추지 않는 것이 진짜 방향을 찾는 유일한 방법입니다. 1년 후 어떤 사람이 되고 싶은지를 먼저 정의하면 그에 맞는 직업은 자연스럽게 좁혀집니다.',
       re: '소명감이 사라진 상태에서 이직을 결정하면 새 환경에서도 동일한 공허감이 반복될 수 있습니다. 지금의 무력감이 직장 환경 문제인지 내면의 방향 상실인지 먼저 구분이 필요합니다. 외부 환경을 탓하기 전에 스스로 에너지를 쏟고 싶은 영역이 무엇인지 재발견하는 시간이 필요합니다. 짧은 봉사 활동, 사이드 프로젝트, 새로운 커뮤니티 참여 등 작은 실험들이 잃어버린 소명 감각을 되살리는 데 효과적입니다. 결정을 잠시 미루고 내면을 들여다보는 시간을 갖는 것이 이 순간 가장 지혜로운 행동입니다. 소명이 없는 이직은 나침반 없이 항해를 시작하는 것과 다름없습니다.',
     },
     { // 3: 이직 이후의 삶
-      up: '이직 이후의 삶은 예상보다 빠르게 안정될 가능성이 높습니다. 새로운 환경의 첫 90일은 학습 곡선이 가툔러 체력이 소모되지만 그 과정을 성실하게 통과하면 역량과 자신감이 동시에 성장합니다. 새 팀에서 신뢰를 빠르게 쌓으려면 작은 약속을 먼저 완벽하게 지키는 것부터 시작하세요. 첫 한 달은 성과를 보여주기보다 경청과 관찰을 우선하는 전략이 장기적으로 훨씬 유리합니다. 이직 후 새로운 자신을 발견하는 과정 자체가 이미 소중한 경험임을 기억하세요. 새로운 환경은 당신 안의 잠재력을 끌어낼 수 있는 귀한 기회를 제공합니다.',
-      re: '이직 이후의 삶이 기대와 크게 다를 수 있다는 신호를 이 카드는 전하고 있습니다. 새 직장에서 즉각적인 행복을 기대하기보다는 적응 기간의 어려움을 미리 예상하고 준비하는 것이 필요합니다. 이직 동기가 현재 상황에서의 도피라면 새 환경에서도 유사한 불만이 반복될 가능성이 있습니다. 이직 전에 현재 직장에서 해결 가능한 문제와 구조적으로 불가능한 문제를 명확히 분리하는 것이 중요합니다. 이 분리 작업이 선명할수록 이직 후 만족도가 높아집니다. 셃부른 기대보다 현실적 계획이 당신을 안전하게 새 곳으로 인도합니다.',
+      up: '이직 이후의 삶은 예상보다 빠르게 안정될 가능성이 높습니다. 새로운 환경의 첫 90일은 학습 곡선이 가팔라 체력이 소모되지만 그 과정을 성실하게 통과하면 역량과 자신감이 동시에 성장합니다. 새 팀에서 신뢰를 빠르게 쌓으려면 작은 약속을 먼저 완벽하게 지키는 것부터 시작하세요. 첫 한 달은 성과를 보여주기보다 경청과 관찰을 우선하는 전략이 장기적으로 훨씬 유리합니다. 이직 후 새로운 자신을 발견하는 과정 자체가 이미 소중한 경험임을 기억하세요. 새로운 환경은 당신 안의 잠재력을 끌어낼 수 있는 귀한 기회를 제공합니다.',
+      re: '이직 이후의 삶이 기대와 크게 다를 수 있다는 신호를 이 카드는 전하고 있습니다. 새 직장에서 즉각적인 행복을 기대하기보다는 적응 기간의 어려움을 미리 예상하고 준비하는 것이 필요합니다. 이직 동기가 현재 상황에서의 도피라면 새 환경에서도 유사한 불만이 반복될 가능성이 있습니다. 이직 전에 현재 직장에서 해결 가능한 문제와 구조적으로 불가능한 문제를 명확히 분리하는 것이 중요합니다. 이 분리 작업이 선명할수록 이직 후 만족도가 높아집니다. 섣부른 기대보다 현실적 계획이 당신을 안전하게 새 곳으로 인도합니다.',
     },
     { // 4: 현실화를 위한 행동
       up: '이직을 현실로 만들기 위해 오늘 당장 실행할 수 있는 가장 작은 행동부터 시작하세요. 채용 공고 5개를 분석하여 자주 등장하는 역량 키워드를 추출하고, 본인이 이미 보유한 것과 3개월 내 습득 가능한 것으로 나눠보세요. 이력서 업데이트를 "더 쌓고 나서"라는 이유로 미루지 마세요. 불완전하더라도 지금 초안을 먼저 작성하고 부족한 부분을 채워나가는 방식이 훨씬 효율적입니다. 링크드인 프로필 한 섹션 업데이트, 관심 기업 담당자에게 연락 한 건 — 이런 작은 행동들이 이직의 진짜 모멘텀을 만들어 냅니다. 지금 시작하는 1%의 행동이 이후의 99%를 결정합니다.',
-      re: '행동을 취해야 한다는 것을 알면서도 계속 미루고 있는 상황입니다. 완벽한 타이밍을 기다리는 것이 실제로는 두려움을 회피하는 방식일 수 있습니다. 작은 행동조차 실행하지 못하는 원인이 무엇인지 먼저 직시해야 합니다. 두려움인지 정보 부족인지 에너지 고갈인지 파악하고 그에 맞는 해결책을 찾는 것이 순서입니다. 이번 주에 단 한 가지만 실행해 보세요. 이력서 파일을 열어 날짜 하나를 바꾸는 것만이라도, 그 작은 시작이 흐름을 만들어 냅니다. 미루는 것은 결정을 안 하는 게 아니라 현 상태를 선택하는 것임을 기억하세요.',
+      re: '行동을 취해야 한다는 것을 알면서도 계속 미루고 있는 상황입니다. 완벽한 타이밍을 기다리는 것이 실제로는 두려움을 회피하는 방식일 수 있습니다. 작은 행동조차 실행하지 못하는 원인이 무엇인지 먼저 직시해야 합니다. 두려움인지 정보 부족인지 에너지 고갈인지 파악하고 그에 맞는 해결책을 찾는 것이 순서입니다. 이번 주에 단 한 가지만 실행해 보세요. 이력서 파일을 열어 날짜 하나를 바꾸는 것만이라도, 그 작은 시작이 흐름을 만들어 냅니다. 미루는 것은 결정을 안 하는 게 아니라 현 상태를 선택하는 것임을 기억하세요.',
     },
     { // 5: 포기해야 할 것
-      up: '성공적인 이직을 위해 가장 먼저 내령놓아야 할 것은 "준비가 완벽해지면 움직이겠다"는 완벽주의적 지연입니다. 완벽주의는 종종 용기 부족을 합리화하는 방어기제로 작동합니다. 현재 직장의 작은 편의, 익숙한 루틴, 잘 알려진 인간관계에 과하게 의존하는 패턴도 점검이 필요합니다. 이직 후의 불안은 충분히 인정하되 그 불안이 최종 결정권을 갖지 않도록 해야 합니다. 버려야 할 가장 큰 것은 "지금의 나로는 충분하지 않다"는 낙은 자기 기대치입니다. 이 기대치 하나만 높여도 이직 성공 확률이 눈에 띄게 상승합니다. 내령놓음이 손실이 아니라 새 시작을 위한 공간 확보임을 기억하세요.',
-      re: '내령놓아야 할 것을 알면서도 매달리고 있는 상황입니다. 현재 직장의 안정감, 오랫동안 쌓아온 관계, 편안한 루틴 — 이것들이 발목을 잡고 있을 수 있습니다. 변화에 대한 두려움은 자연스럽지만 그것이 성장을 막는 수준이라면 직면해야 합니다. 지금 놓지 못하는 것들의 리스트를 만들고 5년 후에도 진정한 가치를 갖는지 냉정하게 평가해 보세요. 집착을 놓는 것이 손실이 아니라 새로운 가능성을 여는 시작임을 기억하세요. 무엇을 버릴지 결정하지 않으면 무엇을 얻을지도 결정되지 않습니다.',
+      up: '성공적인 이직을 위해 가장 먼저 내려놓아야 할 것은 "준비가 완벽해지면 움직이겠다"는 완벽주의적 지연입니다. 완벽주의는 종종 용기 부족을 합리화하는 방어기제로 작동합니다. 현재 직장의 작은 편의, 익숙한 루틴, 잘 알려진 인간관계에 과하게 의존하는 패턴도 점검이 필요합니다. 이직 후의 불안은 충분히 인정하되 그 불안이 최종 결정권을 갖지 않도록 해야 합니다. 버려야 할 가장 큰 것은 "지금의 나로는 충분하지 않다"는 낮은 자기 기대치입니다. 이 기대치 하나만 높여도 이직 성공 확률이 눈에 띄게 상승합니다. 내려놓음이 손실이 아니라 새 시작을 위한 공간 확보임을 기억하세요.',
+      re: '내려놓아야 할 것을 알면서도 매달리고 있는 상황입니다. 현재 직장의 안정감, 오랫동안 쌓아온 관계, 편안한 루틴 — 이것들이 발목을 잡고 있을 수 있습니다. 변화에 대한 두려움은 자연스럽지만 그것이 성장을 막는 수준이라면 직면해야 합니다. 지금 놓지 못하는 것들의 리스트를 만들고 5년 후에도 진정한 가치를 갖는지 냉정하게 평가해 보세요. 집착을 놓는 것이 손실이 아니라 새로운 가능성을 여는 시작임을 기억하세요. 무엇을 버릴지 결정하지 않으면 무엇을 얻을지도 결정되지 않습니다.',
     },
     { // 6: 전체적인 조언
       up: '7장의 카드가 전하는 종합 메시지는 명확합니다. 이직은 도망이 아닌 선택이어야 하며 그 선택은 명확한 기준과 충분한 준비를 바탕으로 이루어져야 합니다. 지금 당신에게 필요한 것은 더 많은 정보 수집이 아니라 이미 알고 있는 것들을 행동으로 전환하는 결단입니다. 30일 내 실행할 구체적 행동 3가지를 오늘 캘린더에 등록하세요. 천직 탐색, 이력서 정비, 네트워킹 — 이 세 축을 동시에 움직이면 강력한 시너지가 생깁니다. 운명의 카드가 방향을 가리킬 수는 있지만 그 길을 실제로 걷는 것은 오직 당신 자신입니다. 오늘의 작은 결단이 내일의 큰 전환을 만들어 냅니다.',
@@ -1524,19 +1553,14 @@ async function initDeckFromApi() {
   isDeckReady = false;
   const msg = document.getElementById('statusMsg');
   const btn = document.getElementById('readBtn');
-  msg.textContent = '타로 엔진에서 7장을 준비하는 중입니다...';
+  msg.textContent = '로컬 타로 덱에서 7장을 준비하는 중입니다...';
   btn.disabled = true;
   try {
-    const data = await callTarotApi('draw', { spreadType: TAROT_SPREAD_TYPE });
-    const cards = Array.isArray(data?.cards) ? data.cards : [];
-    if (cards.length !== 7) throw new Error('drawn card count mismatch');
-    drawnCards = cards;
-    isDeckReady = true;
-    msg.textContent = '카드를 클릭하여 한 장씩 뽑아보세요 ✦';
-  } catch (error) {
-    console.error('[tarot-ijik] draw failed', error);
     drawnCards = pickLocalJobChangeCards();
     isDeckReady = drawnCards.length === 7;
+    msg.textContent = '카드를 클릭하여 한 장씩 뽑아보세요 ✦';
+  } catch (error) {
+    console.error('[tarot-ijik] local draw failed', error);
     if (isDeckReady) {
       msg.textContent = '카드를 클릭하여 한 장씩 뽑아보세요 ✦';
     } else {
@@ -1601,6 +1625,7 @@ async function ijikCoinGate(cost, reason) {
   if (!window.confirm('🪙 ' + reason + '\n\n이용할 때마다 ' + cost + '코인이 차감됩니다.\n현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n진행하시겠습니까?')) {
     return false;
   }
+  setIjikPaymentPending(true, '이직 타로 결제를 확인하는 중입니다...');
   try {
     var headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
     if (adminToken) headers['x-admin-token'] = adminToken;
@@ -1627,6 +1652,8 @@ async function ijikCoinGate(cost, reason) {
     console.error('[tarot-ijik coin-gate]', e);
     window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     return false;
+  } finally {
+    setIjikPaymentPending(false);
   }
 }
 
@@ -1842,29 +1869,12 @@ async function getReading() {
   textEl.innerHTML = '<div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>';
 
   try {
-    const cardsPayload = drawnCards.map((c) => ({
-      cardId: c.cardId,
-      position: c.position,
-      orientation: c.orientation,
-    }));
-
-    const data = await callTarotApi('reading', {
-      category: 'career',
-      spreadType: TAROT_SPREAD_TYPE,
-      cards: cardsPayload,
-    });
-    const reading = data?.reading || {};
-    const rawText = reading.fullText || [reading.stage1, reading.stage2, reading.stage3, reading.finalAdvice].filter(Boolean).join('\n\n') || '해석 결과를 불러오지 못했습니다.';
+    const rawText = createLocalJobChangeReading(drawnCards);
     textEl.textContent = '';
     await typeWriteText(textEl, rawText);
     btn.innerHTML = '<div>✦ 해석 완료</div>';
   } catch (e) {
-    console.error('[tarot-ijik] reading failed', e);
-    var refunded = await _ijikAutoRefundCoin(IJIK_COIN_COST, _ijikLastCoinTx);
-    if (refunded) {
-      _ijikLastCoinTx = '';
-      window.alert('API 오류로 이번 결제 코인이 자동 환불되었습니다.');
-    }
+    console.error('[tarot-ijik] local reading failed', e);
     const localText = createLocalJobChangeReading(drawnCards);
     textEl.textContent = '';
     await typeWriteText(textEl, localText);

@@ -249,7 +249,7 @@ async function main() {
 
   ensure(prepareResult.ok && payload.ok, "점성술 prepare 실패", payload);
   ensure(chapters.length === 12, "챕터 수가 12가 아님", { chapterCount: chapters.length, payload });
-  ensure(manuscriptSource === "llm-only", "LLM 전용 원고가 아님", { manuscriptSource, payload });
+  ensure(["llm-only", "llm-local-hybrid"].includes(manuscriptSource), "허용되지 않은 원고 소스", { manuscriptSource, payload });
   ensure(calcMode === "full", "Swiss 기반 full 계산 seed 아님", { calcMode, payload });
   ensure(validationOk, "최종 원고 검증 실패", payload?.validation || payload);
   ensure(hasPdfHtml, "PDF html 누락", payload?.pdfReady || payload);

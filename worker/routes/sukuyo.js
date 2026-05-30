@@ -492,7 +492,7 @@ async function handleSukuyoPremiumPrepare(request, env) {
       chapterCount: generated.chapterCount,
       localDraftChapterCount: generated.localDraftChapterCount,
       fallbackUsed: Boolean(generated.fallbackUsed),
-      manuscriptSource: generated.manuscriptSource || "local",
+      manuscriptSource: generated.manuscriptSource || "llm-only",
       reportId,
       chapters: generated.chapters,
       payload: generated.payload,

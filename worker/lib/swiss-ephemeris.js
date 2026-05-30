@@ -1,4 +1,5 @@
 import SwissEPH from "sweph-wasm";
+import * as Astronomy from "astronomy-engine";
 import { getEnv } from "./env.js";
 import { createHttpError } from "./http.js";
 
@@ -421,6 +422,106 @@ function normalizeChartInput(payload) {
   };
 }
 
+function degToRad(value) {
+  return (Number(value) * Math.PI) / 180;
+}
+
+function radToDeg(value) {
+  return (Number(value) * 180) / Math.PI;
+}
+
+function makeUtcDateFromInput(input) {
+  const utcHour = input.hour + (input.minute / 60) - input.timezone;
+  const utcMillis = Date.UTC(input.year, input.month - 1, input.day, 0, 0, 0, 0) + utcHour * 3600000;
+  if (!Number.isFinite(utcMillis)) {
+    throw toStatusError(400, "Invalid chart input: datetime conversion failed.");
+  }
+  return new Date(utcMillis);
+}
+
+function calcAscMcByAstronomyEngine(input, utcDate) {
+  const siderealHours = Number(Astronomy.SiderealTime(utcDate));
+  const localSiderealDeg = nd((siderealHours * 15) + input.lon);
+  const theta = degToRad(localSiderealDeg);
+  const latitude = degToRad(input.lat);
+  // Mean obliquity is adequate for asc/mc fallback when Swiss runtime is unavailable.
+  const epsilon = degToRad(23.4392911);
+
+  const mc = nd(radToDeg(Math.atan2(Math.sin(theta), Math.cos(theta) * Math.cos(epsilon))));
+  const asc = nd(radToDeg(Math.atan2(
+    -Math.cos(theta),
+    (Math.sin(theta) * Math.cos(epsilon)) + (Math.tan(latitude) * Math.sin(epsilon)),
+  )));
+
+  const houseCusps = Array.from({ length: 12 }, (_, idx) => nd(asc + (idx * 30)));
+  return { asc, mc, houseCusps };
+}
+
+function calcWesternPlanetsByAstronomyEngine(input, utcDate) {
+  const epochMs = utcDate.getTime();
+  const oneHourMs = 3600000;
+  const prevDate = new Date(epochMs - oneHourMs);
+  const nextDate = new Date(epochMs + oneHourMs);
+
+  const out = {};
+  for (const [name] of WESTERN_PLANETS) {
+    const body = Astronomy.Body?.[name];
+    if (!body) continue;
+
+    const center = Astronomy.Ecliptic(Astronomy.GeoVector(body, utcDate, true));
+    const prev = Astronomy.Ecliptic(Astronomy.GeoVector(body, prevDate, true));
+    const next = Astronomy.Ecliptic(Astronomy.GeoVector(body, nextDate, true));
+
+    const longitude = nd(center?.elon);
+    if (!Number.isFinite(longitude)) continue;
+
+    const delta = nd(next?.elon) - nd(prev?.elon);
+    const unwrappedDelta = delta > 180 ? delta - 360 : (delta < -180 ? delta + 360 : delta);
+    const speedLongitude = Number.isFinite(unwrappedDelta) ? (unwrappedDelta / 2) : null;
+
+    out[name] = {
+      longitude,
+      speedLongitude: Number.isFinite(speedLongitude) ? Math.round(speedLongitude * 1000000) / 1000000 : null,
+      retrograde: Number.isFinite(speedLongitude) ? speedLongitude < 0 : null,
+    };
+  }
+
+  return out;
+}
+
+function buildAstronomyFallbackWesternChart(input) {
+  const utcDate = makeUtcDateFromInput(input);
+  const rawPlanets = calcWesternPlanetsByAstronomyEngine(input, utcDate);
+  const { asc, mc, houseCusps } = calcAscMcByAstronomyEngine(input, utcDate);
+
+  const planets = {};
+  for (const [name] of WESTERN_PLANETS) {
+    const raw = rawPlanets[name];
+    if (!raw || !Number.isFinite(raw.longitude)) continue;
+    planets[name] = {
+      ...signInfo(raw.longitude, asc),
+      house: locateHouseByCusps(raw.longitude, houseCusps),
+      speedLongitude: raw.speedLongitude,
+      retrograde: raw.retrograde,
+    };
+  }
+
+  const aspects = calcAspects(planets);
+  if (Object.keys(planets).length < 7 || houseCusps.length !== 12 || !Number.isFinite(asc) || !Number.isFinite(mc) || aspects.length === 0) {
+    throw toStatusError(500, "Astronomy fallback chart failed to satisfy minimum chart completeness.");
+  }
+
+  return {
+    planets,
+    ascendant: { ...signInfo(asc, asc), house: 1 },
+    midheaven: { ...signInfo(mc, asc), house: locateHouseByCusps(mc, houseCusps) },
+    houseCusps,
+    houseSystem: "equal",
+    aspects,
+    source: "astronomy-engine-fallback",
+  };
+}
+
 function validateChartInput(input) {
   if (!Number.isFinite(input.year) || !Number.isFinite(input.month) || !Number.isFinite(input.day)) {
     throw toStatusError(400, "Invalid chart input: year/month/day are required.");
@@ -652,39 +753,54 @@ export async function getSwissWesternChart(env, payload, options = {}) {
     return external;
   }
 
-  const swe = await getSwiss(env, options);
+  try {
+    const swe = await getSwiss(env, options);
 
-  const jd = julianDayFromInput(swe, input);
-  const iflag = swe.SEFLG_SWIEPH | swe.SEFLG_SPEED;
+    const jd = julianDayFromInput(swe, input);
+    const iflag = swe.SEFLG_SWIEPH | swe.SEFLG_SPEED;
 
-  const rawPlanets = calcPlanetsByMap(swe, jd, iflag, WESTERN_PLANETS);
-  const { asc, mc, houseCusps } = calcAscMc(swe, jd, iflag, input.lat, input.lon);
+    const rawPlanets = calcPlanetsByMap(swe, jd, iflag, WESTERN_PLANETS);
+    const { asc, mc, houseCusps } = calcAscMc(swe, jd, iflag, input.lat, input.lon);
 
-  const planets = {};
-  for (const [name] of WESTERN_PLANETS) {
-    const raw = rawPlanets[name] || {};
-    planets[name] = {
-      ...signInfo(raw.longitude, asc),
-      house: locateHouseByCusps(raw.longitude, houseCusps),
-      speedLongitude: raw.speedLongitude,
-      retrograde: raw.retrograde,
+    const planets = {};
+    for (const [name] of WESTERN_PLANETS) {
+      const raw = rawPlanets[name] || {};
+      planets[name] = {
+        ...signInfo(raw.longitude, asc),
+        house: locateHouseByCusps(raw.longitude, houseCusps),
+        speedLongitude: raw.speedLongitude,
+        retrograde: raw.retrograde,
+      };
+    }
+
+    const trueNodeLon = readLongitudeFromResult(swe.swe_calc_ut(jd, swe.SE_TRUE_NODE, iflag), "NorthNode");
+    const aspects = calcAspects(planets);
+
+    return {
+      planets,
+      ascendant: { ...signInfo(asc, asc), house: 1 },
+      midheaven: { ...signInfo(mc, asc), house: locateHouseByCusps(mc, houseCusps) },
+      northNode: { ...signInfo(trueNodeLon, asc), house: locateHouseByCusps(trueNodeLon, houseCusps) },
+      southNode: { ...signInfo(trueNodeLon + 180, asc), house: locateHouseByCusps(trueNodeLon + 180, houseCusps) },
+      houseCusps,
+      houseSystem: "placidus",
+      aspects,
+      source: "swiss-wasm-local",
     };
+  } catch (error) {
+    const strictSwissOnly = toBool(getEnv(env, "ASTRO_SWISS_STRICT_ONLY"));
+    if (strictSwissOnly) throw error;
+
+    try {
+      console.warn("[astro-western-fallback]", JSON.stringify({
+        reason: String(error?.message || error || "unknown"),
+      }));
+    } catch (e) {
+      // ignore logging failure
+    }
+
+    return buildAstronomyFallbackWesternChart(input);
   }
-
-  const trueNodeLon = readLongitudeFromResult(swe.swe_calc_ut(jd, swe.SE_TRUE_NODE, iflag), "NorthNode");
-  const aspects = calcAspects(planets);
-
-  return {
-    planets,
-    ascendant: { ...signInfo(asc, asc), house: 1 },
-    midheaven: { ...signInfo(mc, asc), house: locateHouseByCusps(mc, houseCusps) },
-    northNode: { ...signInfo(trueNodeLon, asc), house: locateHouseByCusps(trueNodeLon, houseCusps) },
-    southNode: { ...signInfo(trueNodeLon + 180, asc), house: locateHouseByCusps(trueNodeLon + 180, houseCusps) },
-    houseCusps,
-    houseSystem: "placidus",
-    aspects,
-    source: "swiss-wasm-local",
-  };
 }
 
 export async function getSwissVedicPlanets(env, payload, options = {}) {

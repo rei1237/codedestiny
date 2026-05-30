@@ -918,112 +918,21 @@
     return raw;
   }
 
-  function _extractLifeBookSignal(text, pattern, fallback) {
-    var m = String(text || '').match(pattern);
-    if (!m || !m[1]) return String(fallback || '');
-    return String(m[1]).trim();
+  function _normalizeGenderForApi(rawGender) {
+    var g = String(rawGender || '').trim().toLowerCase();
+    if (g === 'f' || g === 'female' || g === 'woman' || g === '여' || g === '여성') return 'female';
+    if (g === 'm' || g === 'male' || g === 'man' || g === '남' || g === '남성') return 'male';
+    return 'unknown';
   }
 
-  function _normalizeKoreanElement(value, fallback) {
-    var s = String(value || '').trim();
-    if (!s) return String(fallback || '토');
-    if (/목|wood/i.test(s)) return '목';
-    if (/화|fire/i.test(s)) return '화';
-    if (/토|earth/i.test(s)) return '토';
-    if (/금|metal/i.test(s)) return '금';
-    if (/수|water/i.test(s)) return '수';
-    return String(fallback || '토');
-  }
-
-  function _monthToElement(month) {
-    var m = Number(month || 0);
-    if (m >= 2 && m <= 4) return '목';
-    if (m >= 5 && m <= 7) return '화';
-    if (m >= 8 && m <= 10) return '금';
-    return '수';
-  }
-
-  function _buildLifeBookLocalSignals(sajuData, profile) {
-    var src = String(sajuData || '');
-    var dayMaster = _extractLifeBookSignal(src, /일간(?:\(日干\))?\s*[:：]\s*([갑을병정무기경신임계甲乙丙丁戊己庚辛壬癸])/i, '무');
-    var monthBranch = _extractLifeBookSignal(src, /월지(?:\(月支\))?\s*[:：]\s*([자축인묘진사오미신유술해子丑寅卯辰巳午未申酉戌亥])/i, '미');
-    var yongsin = _normalizeKoreanElement(_extractLifeBookSignal(src, /용신(?:\(用神\))?\s*[:：]\s*([^\n]+)/i, ''), _monthToElement(profile && profile.birth ? profile.birth.month : 0));
-    var huisin = _normalizeKoreanElement(_extractLifeBookSignal(src, /희신(?:\(喜神\))?\s*[:：]\s*([^\n]+)/i, ''), yongsin === '토' ? '금' : '토');
-    var gisin = _normalizeKoreanElement(_extractLifeBookSignal(src, /기신(?:\(忌神\))?\s*[:：]\s*([^\n]+)/i, ''), yongsin === '수' ? '화' : '수');
-    var strength = _extractLifeBookSignal(src, /(신강|신약)/, '균형형');
-    var dominant = _normalizeKoreanElement(_extractLifeBookSignal(src, /최강\s*오행\s*[:：]\s*([목화토금수木火土金水])/i, ''), yongsin);
-    var weakest = _normalizeKoreanElement(_extractLifeBookSignal(src, /최약\s*오행\s*[:：]\s*([목화토금수木火土金水])/i, ''), gisin);
-    return {
-      dayMaster: dayMaster,
-      monthBranch: monthBranch,
-      yongsin: yongsin,
-      huisin: huisin,
-      gisin: gisin,
-      strength: strength,
-      dominant: dominant,
-      weakest: weakest,
-    };
-  }
-
-  function _buildLocalCategoryBody(chapterTitle, categoryTitle, signals, profile, chapterNo, categoryNo) {
-    var person = String((profile && profile.name) || '사용자');
-    var birth = (profile && profile.birth) || {};
-    var birthText = [birth.year, birth.month, birth.day].filter(Boolean).join('.');
-    var p1 = person + '님의 사주는 일간 ' + signals.dayMaster + '를 중심으로 월지 ' + signals.monthBranch + '의 현실 감각이 강하게 작동하는 구조입니다. ' +
-      chapterTitle + '의 ' + categoryTitle + '에서는 용신 ' + signals.yongsin + ' 기운을 중심축으로 두고, 희신 ' + signals.huisin + '의 보조 흐름을 결합할 때 안정과 성장을 동시에 확보할 수 있습니다.';
-    var p2 = '현재 명식의 강약 판정은 ' + signals.strength + ' 경향으로 읽히며, 최강 오행 ' + signals.dominant + '은 추진력의 원천이지만 과속 시 관계·재정·건강에서 누수가 생길 수 있습니다. ' +
-      '반대로 최약 오행 ' + signals.weakest + '은 불안 요인이 아니라 보완 포인트입니다. 따라서 중요한 결정은 감정 반응보다 근거 기록, 실행 순서, 주간 점검 루틴으로 관리해야 재현 가능한 성과를 만듭니다.';
-    var p3 = '실전 전략은 세 단계가 핵심입니다. 첫째, 이번 주 우선순위를 1개로 압축해 ' + categoryTitle + '의 핵심 행동을 명확히 합니다. 둘째, 7일 단위로 결과를 수치와 문장으로 기록해 사주의 흐름과 현실 반응을 연결합니다. 셋째, 기신 ' + signals.gisin + '이 과도해지는 상황에서는 확장보다 정리·복기·재배치를 우선합니다. 이 패턴을 유지하면 챕터 ' + chapterNo + '-' + categoryNo + '의 주제가 단기 조언을 넘어 장기 체질 개선으로 이어집니다.';
-    var p4 = '보강 근거: 출생 정보(' + (birthText || '미입력') + ')와 원국 요약(일간 ' + signals.dayMaster + ', 월지 ' + signals.monthBranch + ', 용신 ' + signals.yongsin + ', 희신 ' + signals.huisin + ', 기신 ' + signals.gisin + ')을 기반으로 해석했습니다. ' +
-      '상황이 바뀌어도 해석 원리는 유지되므로, 실행 루틴만 조정하면 같은 운에서도 결과 품질을 안정적으로 끌어올릴 수 있습니다.';
-    return [p1, p2, p3, p4].join('\n\n');
-  }
-
-  function _buildLocalFallbackChapterPack(idx, sajuData, profile, failReason) {
-    var chapterNo = idx + 1;
-    var title = CHAPTER_TITLES[idx] || ('제 ' + chapterNo + '장');
-    var subtitle = CHAPTER_SUBTITLES[idx] || '';
-    var labels = Array.isArray(CHAPTER_STRUCTURED_LABELS[chapterNo]) && CHAPTER_STRUCTURED_LABELS[chapterNo].length
-      ? CHAPTER_STRUCTURED_LABELS[chapterNo].slice(0, 6)
-      : ['핵심 진단', '패턴 해석', '리스크', '기회', '실행 전략'];
-    var signals = _buildLifeBookLocalSignals(sajuData, profile);
-    var intro = '## ' + title + '\n' + (subtitle ? ('> ' + subtitle + '\n\n') : '\n')
-      + '이번 챕터는 로컬 사주 계산 결과를 기반으로 구조화했으며, 외부 API 응답 실패 시에도 핵심 해석이 끊기지 않도록 보강되었습니다.\n\n';
-    var sections = [];
-    for (var i = 0; i < labels.length; i++) {
-      var sectionTitle = String(labels[i] || ('핵심 항목 ' + (i + 1)));
-      var body = _buildLocalCategoryBody(title, sectionTitle, signals, profile, chapterNo, i + 1);
-      sections.push({ title: sectionTitle, body: body });
-    }
-    var markdown = intro + sections.map(function (s) { return '### ' + s.title + '\n\n' + s.body; }).join('\n\n')
-      + '\n\n### 챕터 결론\n\n'
-      + '핵심은 명식의 강점(용신·희신)을 일상 루틴으로 전환하고, 기신 구간에서는 과감한 확장보다 리스크 관리로 손실을 줄이는 것입니다. '
-      + '이 장의 실행 포인트를 90일간 반복하면 운의 밀물과 썰물에 휘둘리지 않고 방향성을 지킬 수 있습니다.'
-      + (failReason ? ('\n\n> 참고: 외부 API 보강 단계에서 오류가 발생해 로컬 계산 결과를 중심으로 복원했습니다. (' + String(failReason) + ')') : '');
-    return {
-      title: title,
-      subtitle: subtitle,
-      text: markdown,
-      chapterJson: { sections: sections },
-    };
-  }
-
-  function _applyLocalFallbackChapters(sajuData, profile, failReason) {
-    if (!String(sajuData || '').trim()) return false;
-    _chapters = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
-    _chapterStructured = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
-    _chapterMeta = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
-    for (var i = 0; i < LIFEBOOK_TOTAL_CHAPTERS; i++) {
-      var chapter = _buildLocalFallbackChapterPack(i, sajuData, profile, failReason);
-      _chapters[i] = chapter.text;
-      _chapterStructured[i] = chapter.chapterJson;
-      _chapterMeta[i] = {
-        title: chapter.title,
-        subtitle: chapter.subtitle,
-        isSkeleton: false,
-      };
-    }
-    return true;
+  function _resolveCalendarTypeForApi(profile) {
+    var raw = String(
+      (profile && profile.birth && profile.birth.calendarType)
+      || (profile && profile.calendarType)
+      || 'solar'
+    ).trim().toLowerCase();
+    if (raw === 'lunar' || raw === '음력' || raw === 'moon') return 'lunar';
+    return 'solar';
   }
 
   /* ─────────────── 모달 제어 ─────────────── */
@@ -1391,29 +1300,6 @@
     };
   }
 
-  function _buildChapterSkeleton(idx, reason) {
-    var meta = _getChapterMeta(idx);
-    return [
-      '## ' + meta.title,
-      meta.subtitle ? ('> ' + meta.subtitle) : '',
-      '',
-      '### 챕터 구조 복구',
-      '- 서버 응답 불안정으로 챕터 골격을 먼저 구성했습니다.',
-      '- 다음 재생성 시 동일 reportId 기준으로 본문이 자동 보강됩니다.',
-      '',
-      '### 핵심 요약',
-      '- 이 챕터의 핵심 키워드를 우선 배치했습니다.',
-      '',
-      '### 실행 포인트',
-      '- 현재 상태 점검',
-      '- 우선순위 1개 선택',
-      '- 다음 챕터 연계 액션 정의',
-      '',
-      reason ? ('### 참고\n- 원인: ' + String(reason)) : '',
-      ''
-    ].filter(Boolean).join('\n');
-  }
-
   /* ─────────────── 생성 로직 ─────────────── */
   window.generateLifeBook = function (options) {
     if (_generating) return;
@@ -1524,14 +1410,23 @@
       hasAccessGrant: Boolean(_lbCurrentAccessGrant),
     });
 
-    // 사주 데이터가 최소한으로 채워졌는지 확인
-    if (!sajuData || sajuData.length < 30) {
+    // 핵심 출생 정보만 유효하면 서버 로컬 계산 seed(JSON)로 생성을 진행한다.
+    var _hasBirthCore = Boolean(profile && profile.birth && profile.birth.year && profile.birth.month && profile.birth.day);
+    if (!_hasBirthCore) {
       _generating = false;
-      _lifeBookLog('ValidationBeforePayment', { ok: false, reason: 'missing_saju_data' });
-      alert('사주 데이터를 불러오지 못했습니다. 생년월일을 입력하고 사주 분석을 먼저 실행해 주세요.');
+      _lifeBookLog('ValidationBeforePayment', { ok: false, reason: 'missing_birth_core' });
+      alert('생년월일 정보를 확인해 주세요. 출생 정보가 있어야 인생의 책을 생성할 수 있습니다.');
       return;
     }
-    _lifeBookLog('ValidationBeforePayment', { ok: true });
+    if (!sajuData || sajuData.length < 30) {
+      _lifeBookLog('ValidationBeforePayment', {
+        ok: true,
+        reason: 'sparse_saju_data_continue_with_server_seed',
+        sajuDataLength: Number((sajuData || '').length || 0)
+      });
+    } else {
+      _lifeBookLog('ValidationBeforePayment', { ok: true });
+    }
 
     _showScreen('lbLoadingScreen');
 
@@ -1677,10 +1572,15 @@
       if (_lbAuthToken) _headers.Authorization = 'Bearer ' + _lbAuthToken;
       if (_lbPremiumToken) _headers['x-premium-access-token'] = _lbPremiumToken;
 
+      var _birthHourRaw = Number(profile && profile.birth ? profile.birth.hour : NaN);
+      var _birthMinuteRaw = Number(profile && profile.birth ? profile.birth.minute : NaN);
+      var _birthTimeKnown = Number.isFinite(_birthHourRaw) && _birthHourRaw >= 0 && _birthHourRaw <= 23;
       var _payload = {
         serviceKey: 'saju-lifebook',
         productKey: LIFE_BOOK_FEATURE_KEY,
         featureKey: LIFE_BOOK_FEATURE_KEY,
+        generationMode: 'llm-only-interpretation',
+        seedSource: 'local-calculation-json',
         reportId: _lbReportId,
         sessionId: _sessionId,
         reportSessionId: _sessionId,
@@ -1703,14 +1603,14 @@
         },
         reason: LIFE_BOOK_REASON,
         name: String((profile && profile.name) || '사용자'),
-        gender: profile && profile.gender === 'F' ? 'female' : (profile && profile.gender === 'M' ? 'male' : 'unknown'),
-        calendarType: 'solar',
+        gender: _normalizeGenderForApi(profile && profile.gender),
+        calendarType: _resolveCalendarTypeForApi(profile),
         birthDate: [profile.birth.year, String(profile.birth.month).padStart(2, '0'), String(profile.birth.day).padStart(2, '0')].join('-'),
-        birthTimeKnown: true,
-        hour: Number(profile.birth.hour || 12),
-        minute: Number(profile.birth.minute || 0),
+        birthTimeKnown: _birthTimeKnown,
+        hour: _birthTimeKnown ? _birthHourRaw : 12,
+        minute: _birthTimeKnown ? Number.isFinite(_birthMinuteRaw) ? _birthMinuteRaw : 0 : 0,
         birthplace: String((profile && profile.location && profile.location.label) || '대한민국'),
-        sajuData: sajuData,
+        sajuData: String(sajuData || ''),
         analysisSignals: _collectLifeBookAnalysisSignals(profile),
       };
 
@@ -1748,7 +1648,7 @@
         }
         _chapters[_i] = _text;
         if (!_chapters[_i] || _chapters[_i].length < 120) {
-          _chapters[_i] = _buildChapterSkeleton(_i, '서버 응답이 짧아 챕터 골격으로 보강했습니다.');
+          throw new Error('LIFE_BOOK_CHAPTER_TEXT_INVALID:' + (_i + 1));
         }
         _chapterStructured[_i] = (_ch.chapterJson && typeof _ch.chapterJson === 'object')
           ? _ch.chapterJson
@@ -1823,218 +1723,6 @@
       }
     });
     return;
-
-    var _lbReportId = 'lifebook_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
-    _lbCurrentReportId = _lbReportId;
-
-    function _lbReadPremiumAccessToken() {
-      var token = '';
-      try { token = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { token = ''; }
-      if (!token) {
-        try { token = String(sessionStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
-      }
-      if (!token) {
-        try { token = String(localStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
-      }
-      return token;
-    }
-
-    /** 챕터 fetch (다중 엔드포인트 + 재시도 + 타임아웃) */
-    function _fetchChapter(idx) {
-      var _lbAuthToken = '';
-      try { _lbAuthToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
-      return new Promise(function (resolve) {
-        var _settled = false;
-        var _abortMsg = '응답 시간 초과 (45초). 네트워크 상태를 확인해 주세요.';
-        var _endpoints = _buildApiCandidates('/api/lifebook/generate-chapter');
-        var _attemptPlan = [];
-        var _lastMsg = '';
-
-        for (var _ei = 0; _ei < _endpoints.length; _ei++) {
-          for (var _ri = 0; _ri < 2; _ri++) {
-            _attemptPlan.push({ url: _endpoints[_ei], retry: _ri + 1 });
-          }
-        }
-
-        function _done(payload) {
-          if (_settled) return;
-          _settled = true;
-          _abortActiveRequest();
-          resolve(payload);
-        }
-
-        function _runAttempt(at) {
-          if (_cancelGeneration) {
-            _done({ ok: false, message: '사용자가 생성을 중단했습니다.' });
-            return;
-          }
-          if (at >= _attemptPlan.length) {
-            _done({ ok: false, message: _lastMsg || '모든 API 엔드포인트 시도에 실패했습니다.' });
-            return;
-          }
-
-          var _plan = _attemptPlan[at];
-          var _controller = (typeof AbortController === 'function') ? new AbortController() : null;
-          if (_controller) _activeRequestController = _controller;
-          var _lbHeaders = { 'Content-Type': 'application/json' };
-          var _lbPremiumToken = _lbReadPremiumAccessToken();
-          if (_lbAuthToken) _lbHeaders['Authorization'] = 'Bearer ' + _lbAuthToken;
-          if (_lbPremiumToken) _lbHeaders['x-premium-access-token'] = _lbPremiumToken;
-
-          var timeoutId = setTimeout(function () {
-            if (_controller) {
-              try { _controller.abort(); } catch (_) {}
-            }
-          }, 45000);
-
-          fetch(_plan.url, {
-            method: 'POST',
-            headers: _lbHeaders,
-            body: JSON.stringify({
-              reportId: _lbReportId,
-              requestId: 'lifebook-' + _lbReportId + '-ch' + (idx + 1) + '-a' + _plan.retry,
-              sessionId: idx + 1,
-              chapter: idx + 1,
-              strictNoFallback: false,
-              chapterTitle: CHAPTER_TITLES[idx] || ('Chapter ' + (idx + 1)),
-              chapterSubtitle: CHAPTER_SUBTITLES[idx] || '',
-              chapterSpecificSections: Array.isArray(CHAPTER_STRUCTURED_LABELS[idx + 1])
-                ? CHAPTER_STRUCTURED_LABELS[idx + 1].slice(0, 8)
-                : [],
-              premiumAccessToken: _lbPremiumToken || undefined,
-              sajuData: sajuData,
-            }),
-            signal: _controller ? _controller.signal : undefined,
-          })
-            .then(function (res) {
-              if (!res.ok) {
-                return res.json().catch(function () { return {}; }).then(function (e) {
-                  return { ok: false, message: (e && e.message) || ('HTTP ' + res.status) };
-                });
-              }
-              return res.json().catch(function () { return { ok: false, message: 'JSON 파싱 오류' }; });
-            })
-            .then(function (data) {
-              clearTimeout(timeoutId);
-              if (_activeRequestController === _controller) _activeRequestController = null;
-              if (data && data.ok) {
-                _done(data);
-                return;
-              }
-              _lastMsg = (data && data.message) ? data.message : 'API 응답 실패';
-              _runAttempt(at + 1);
-            })
-            .catch(function (err) {
-              clearTimeout(timeoutId);
-              if (_activeRequestController === _controller) _activeRequestController = null;
-              if (err && err.name === 'AbortError') {
-                _lastMsg = _cancelGeneration ? '사용자가 생성을 중단했습니다.' : _abortMsg;
-              } else {
-                _lastMsg = String(err && err.message ? err.message : err);
-              }
-              _runAttempt(at + 1);
-            });
-        }
-
-        _runAttempt(0);
-      });
-    }
-    _lbPartialFetchChapter = _fetchChapter;
-
-    var _failCount = 0;
-
-    (async function runLifeBookChapterPipeline() {
-      var runPipeline = (typeof window.__cdRunPremiumChapterPipeline === 'function')
-        ? window.__cdRunPremiumChapterPipeline
-        : null;
-      if (!runPipeline) {
-        throw new Error('공통 챕터 파이프라인을 불러오지 못했습니다.');
-      }
-
-      var fallbackText = String(window.__cdPremiumChapterFallbackText || '일시적인 응답 지연으로 해석을 불러오지 못했습니다. 부분 재생성 버튼을 이용해주세요.');
-      await runPipeline({
-        totalChapters: LIFEBOOK_TOTAL_CHAPTERS,
-        maxAttempts: 3,
-        interChapterDelayMs: 3000,
-        retryDelayMs: 3000,
-        shouldStop: function () { return _cancelGeneration; },
-        fetchChapter: function (idx) {
-          if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
-          return _fetchChapter(idx);
-        },
-        isSuccess: function (data) {
-          var text = data && typeof data.text === 'string' ? data.text.trim() : '';
-          return !!(data && data.ok && text.length >= 500);
-        },
-        onSuccess: function (idx, data) {
-          _syncChapterMetaFromResponse(idx, data);
-          _chapters[idx] = data.text;
-          _chapterStructured[idx] = (Array.isArray(data.sections) && data.sections.length)
-            ? { sections: data.sections }
-            : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
-          _lbSaveResult(window.__cdActiveBirthProfile || {});
-        },
-        onFallback: function (idx, fallbackPayload, data) {
-          _failCount += 1;
-          var text = data && typeof data.text === 'string' ? data.text.trim() : '';
-          var msg = fallbackPayload && fallbackPayload.message
-            ? String(fallbackPayload.message)
-            : (text && text.length > 0 && text.length < 500
-              ? '챕터 내용이 너무 짧습니다 (' + text.length + '자). API가 불완전한 응답을 반환했습니다.'
-              : '알 수 없는 오류');
-          console.warn('[인생의 책] Chapter ' + (idx + 1) + ' 실패:', msg);
-          _chapters[idx] = fallbackText;
-          _chapterStructured[idx] = null;
-          _lbSaveResult(window.__cdActiveBirthProfile || {});
-        },
-        onProgress: function (idx) {
-          _setProgress(idx + 1);
-        }
-      });
-
-      if (_cancelGeneration) {
-        if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
-        return;
-      }
-
-      clearInterval(_mysticTimer);
-      _mysticTimer = null;
-      _generating = false;
-
-      var _validCount = _chapters.filter(function(c) {
-        return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
-      }).length;
-      if (_validCount < 10) {
-        console.warn('[인생의 책] 일부 챕터가 불완전합니다. PDF는 생성 가능합니다. 성공:', _validCount, '/' + LIFEBOOK_TOTAL_CHAPTERS);
-      }
-      _flowLog('FRONT_PREVIEW_READY', { message: 'all-chapters-ready', categoryCount: _validCount });
-
-      _showScreen('lbResultScreen');
-      _updateTocState();
-      _renderChapter(1);
-      _bindToc();
-      _lbEnsurePartialRegenerateControl();
-
-      var prof = window.__cdActiveBirthProfile || {};
-      var nameEl = _qs('lbResultName');
-      var dateEl = _qs('lbResultDate');
-      if (nameEl) nameEl.textContent = '📜 ' + (prof.name || '사용자') + '님의 인생의 책';
-      if (dateEl) {
-        var b = prof.birth || {};
-        dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · ' + (prof.gender === 'F' ? '여성' : prof.gender === 'M' ? '남성' : '') + ' · 🗓️ ' + new Date().toLocaleDateString('ko-KR') + ' 발행';
-      }
-      _lbSaveResult(prof);
-      _lbRunPremiumJob(LIFEBOOK_TOTAL_CHAPTERS);
-      var lbEpBanner = _qs('lbEpilogueBanner');
-      if (lbEpBanner) lbEpBanner.style.display = '';
-    })().catch(function (error) {
-      clearInterval(_mysticTimer);
-      _mysticTimer = null;
-      _generating = false;
-      var errMsg = String(error && error.message ? error.message : error || '챕터 생성 중 오류가 발생했습니다.');
-      _flowLog('FRONT_PIPELINE_FAILED', { message: errMsg });
-      alert('인생의 책 생성 중 오류가 발생했습니다: ' + errMsg);
-    });
   };
 
   function _updateTocState() {
@@ -2049,94 +1737,13 @@
 
   /* ─────────────── PDF 다운로드 ─────────────── */
   window.downloadLifeBookPdf = function () {
-    var _hasAnyChapter = _chapters.some(function(c) {
-      return typeof c === 'string' && c.trim().length > 0;
-    });
-    if (!_hasAnyChapter) {
-      alert('인생의 책이 아직 생성되지 않았거나 내용이 비어 있습니다. 먼저 생성해 주세요.');
+    var fullHtml = String(_lbPendingPdfHtml || '').trim();
+    if (!fullHtml) {
+      alert('PDF 본문이 준비되지 않았습니다. 다시 생성해 주세요.');
       return;
     }
 
-    var profile = window.__cdActiveBirthProfile || {};
-    var name = (profile.name || '사용자') + '님의 인생의 책';
-    var birth = profile.birth || {};
-    var birthStr = [birth.year, birth.month, birth.day].filter(Boolean).join('년 ') + (birth.day ? '일' : '');
-    var issued = new Date().toLocaleDateString('ko-KR');
-
-    // PDF용 HTML 생성
-    var bodyHtml = '';
     _flowLog('PDF_RENDER_START', { message: 'download-requested' });
-    for (var i = 0; i < LIFEBOOK_TOTAL_CHAPTERS; i++) {
-      if (!_chapters[i]) continue;
-      var _meta = _getChapterMeta(i);
-      bodyHtml +=
-        '<div class="chapter" style="page-break-before:' + (i > 0 ? 'always' : 'auto') + '">' +
-        '<div class="chapter-header">' +
-        '<span class="chapter-num">제 ' + (i + 1) + '장</span>' +
-        '<h2 class="chapter-title">' + _escHtml(_meta.title) + '</h2>' +
-        '<p class="chapter-sub">' + _escHtml(_meta.subtitle) + '</p>' +
-        '</div>' +
-        '<div class="chapter-body">' + _md2html(_chapters[i]) + '</div>' +
-        '</div>';
-    }
-
-    var fullHtml = String(_lbPendingPdfHtml || '').trim();
-    if (!fullHtml) fullHtml = '<!DOCTYPE html><html lang="ko"><head>' +
-      '<meta charset="UTF-8">' +
-      '<title>' + _escHtml(name) + '</title>' +
-      '<style>' +
-      '@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Dodum&display=swap");' +
-      'body{font-family:"Noto Serif KR","Gowun Dodum",serif;color:#1a1a2e;background:#fff;margin:0;padding:0;}' +
-      '.cover{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:40px;background:linear-gradient(135deg,#0a0a1a 0%,#1a1a40 50%,#0a0a1a 100%);color:#fff;page-break-after:always;}' +
-      '.cover-badge{font-size:0.75rem;letter-spacing:0.2em;color:#c4b5fd;margin-bottom:16px;text-transform:uppercase;}' +
-      '.cover-title{font-size:2.8rem;font-weight:700;margin:0 0 12px;color:#f5f0ff;letter-spacing:0.05em;}' +
-      '.cover-subtitle{font-size:1.1rem;color:#a78bfa;margin:0 0 32px;}' +
-      '.cover-name{font-size:1.6rem;color:#fde68a;margin:0 0 8px;}' +
-      '.cover-info{font-size:0.9rem;color:#94a3b8;margin:0 0 48px;}' +
-      '.cover-deco{font-size:1.5rem;color:#7c3aed;letter-spacing:0.3em;}' +
-      '.toc{padding:48px 56px;page-break-after:always;}' +
-      '.toc-title{font-size:1.4rem;color:#4c1d95;margin-bottom:32px;border-bottom:2px solid #7c3aed;padding-bottom:12px;}' +
-      '.toc-item{display:flex;align-items:baseline;gap:8px;margin-bottom:16px;font-size:1rem;}' +
-      '.toc-num{color:#7c3aed;font-weight:700;min-width:80px;}' +
-      '.toc-text{color:#1e1b4b;}' +
-      '.chapter{padding:52px 60px;}' +
-      '.chapter-header{border-bottom:2px solid #ede9fe;margin-bottom:36px;padding-bottom:26px;}' +
-      '.chapter-num{font-size:0.72rem;letter-spacing:0.25em;color:#7c3aed;text-transform:uppercase;display:block;margin-bottom:10px;}' +
-      '.chapter-title{font-size:1.9rem;font-weight:700;color:#1e1b4b;margin:0 0 8px;}' +
-      '.chapter-sub{font-size:0.95rem;color:#6d28d9;margin:0;}' +
-      '.chapter-body{line-height:2.0;font-size:1.0rem;color:#2d2d4e;}' +
-      '.lb-md-h1,.lb-md-h2{font-size:1.3rem;font-weight:700;color:#1e1b4b;margin:30px 0 13px;border-left:4px solid #7c3aed;padding:6px 12px;background:#f5f0ff;}' +
-      '.lb-md-h3{font-size:1.1rem;font-weight:700;color:#312e81;margin:22px 0 9px;border-left:2px solid #a78bfa;padding-left:10px;}' +
-      '.lb-md-h4{font-size:1rem;font-weight:700;color:#4c1d95;margin:16px 0 6px;}' +
-      '.lb-md-p{margin:0 0 16px;}' +
-      '.lb-md-ul{margin:0 0 16px;padding-left:26px;}' +
-      '.lb-md-li{margin-bottom:8px;line-height:1.8;}' +
-      '.lb-md-hr{border:none;border-top:2px solid #ede9fe;margin:28px 0;}' +
-      '.lb-md-blockquote{border-left:4px solid #d4a72c;background:#fffbeb;padding:14px 20px;margin:20px 0;border-radius:0 8px 8px 0;color:#7c5500;font-style:italic;font-size:0.97rem;line-height:1.75;}' +
-      '@media print{' +
-      'body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
-      '.cover{min-height:auto;padding:80px 60px;}' +
-      '.chapter{padding:52px 60px;}' +
-      '}' +
-      '</style></head><body>' +
-      '<div class="cover">' +
-      '<p class="cover-badge">✦ CODE DESTINY · PREMIUM SAJU ANALYSIS ✦</p>' +
-      '<h1 class="cover-title">📜 인생의 책</h1>' +
-      '<p class="cover-subtitle">運命의 알고리즘을 해독하다</p>' +
-      '<h2 class="cover-name">' + _escHtml(profile.name || '사용자') + ' 님</h2>' +
-      '<p class="cover-info">' + _escHtml(birthStr) + ' · ' + _escHtml(profile.gender === 'F' ? '여성' : profile.gender === 'M' ? '남성' : '') + '</p>' +
-      '<p class="cover-info">발행일: ' + _escHtml(issued) + '</p>' +
-      '<div class="cover-deco">✦ ◈ ✦</div>' +
-      '</div>' +
-      '<div class="toc">' +
-      '<h2 class="toc-title">목 차 (Table of Contents)</h2>' +
-      _chapters.map(function (c, i) {
-        if (!c) return '';
-        return '<div class="toc-item"><span class="toc-num">제 ' + (i + 1) + '장</span><span class="toc-text">' + _escHtml(_getChapterMeta(i).title) + '</span></div>';
-      }).join('') +
-      '</div>' +
-      bodyHtml +
-      '</body></html>';
 
     var blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
     var blobUrl = URL.createObjectURL(blob);
@@ -2153,7 +1760,7 @@
         win.focus();
         win.print();
         _flowLog('PDF_RENDER_SUCCESS', { message: 'print-opened' });
-        _lifeBookLog('PdfRenderStart', { mode: 'print', source: _lbPendingPdfHtml ? 'server-html' : 'local-html' });
+        _lifeBookLog('PdfRenderStart', { mode: 'print', source: 'server-html' });
       } catch (_) {}
       setTimeout(function () {
         URL.revokeObjectURL(blobUrl);

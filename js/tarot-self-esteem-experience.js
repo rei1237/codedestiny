@@ -1044,7 +1044,7 @@
         '<p class="tse-levelup-body"><strong>5장 흐름:</strong> ' + escapeHtml(String(ts.flow || "")) + '</p>' +
         '<ul class="tse-levelup-list">' +
         '  <li class="tse-levelup-item"><strong>핵심 패턴:</strong> ' + escapeHtml(String(ts.corePattern || "")) + '</li>' +
-        '  <li class="tse-levelup-item"><strong>회복 키워드:</strong> ' + escapeHtml(Array.isArray(ts.recoveryKeywords) ? ts.recoveryKeywords.join(" · ") : "") + '</li>' +
+        '  <li class="tse-levelup-item"><strong>회복 키워드:</strong> ' + escapeHtml(Array.isArray(ts.recoveryKeywords) ? ts.recoveryKeywords.join(" | ") : "") + '</li>' +
         '  <li class="tse-levelup-item"><strong>주의할 자동 사고:</strong> ' + escapeHtml(String(ts.cognitiveTrap || "")) + '</li>' +
         '  <li class="tse-levelup-item"><strong>오늘의 대표 회복 액션:</strong> ' + escapeHtml(String(ts.representativeAction || "")) + '</li>' +
         '</ul>';
@@ -1129,10 +1129,10 @@
       insightCard.appendChild(meaning);
 
       [
-        { label: "심리 패턴", value: patternAnalysis },
-        { label: "자존감 영향", value: selfEsteemImpact },
-        { label: "회복 조언", value: recoveryAdvice },
-        { label: "주의점", value: caution },
+        { label: "상처의 패턴", value: patternAnalysis },
+        { label: "무너지는 지점", value: selfEsteemImpact },
+        { label: "회복 처방", value: recoveryAdvice },
+        { label: "자동 사고 경보", value: caution },
       ].forEach(function (field) {
         if (!field.value) return;
         var p = document.createElement("p");
@@ -1156,7 +1156,7 @@
       if (todayAction) {
         var action = document.createElement("p");
         action.className = "tse-card-action";
-        action.textContent = "오늘의 회복 액션: " + todayAction;
+        action.textContent = "오늘의 회복 실천: " + todayAction;
         insightCard.appendChild(action);
       }
 
@@ -1178,12 +1178,12 @@
 
       var guide = r.levelupGuide || {};
       var guideLines = [];
-      if (guide.summaryPattern) guideLines.push("현재 자존감 패턴 요약: " + guide.summaryPattern);
-      if (guide.rootCause) guideLines.push("가장 깊은 원인: " + guide.rootCause);
-      if (guide.drainArea) guideLines.push("가장 크게 소모되는 영역: " + guide.drainArea);
+      if (guide.summaryPattern) guideLines.push("반복 패턴: " + guide.summaryPattern);
+      if (guide.rootCause) guideLines.push("상처의 뿌리: " + guide.rootCause);
+      if (guide.drainArea) guideLines.push("소모되는 지점: " + guide.drainArea);
       if (guide.recoveryPoint) guideLines.push("핵심 회복 포인트: " + guide.recoveryPoint);
-      if (guide.longTermStandard) guideLines.push("장기적으로 세워야 할 자기 기준: " + guide.longTermStandard);
-      if (guide.caution) guideLines.push("조심해야 할 패턴: " + guide.caution);
+      if (guide.longTermStandard) guideLines.push("세워야 할 기준: " + guide.longTermStandard);
+      if (guide.caution) guideLines.push("자동 사고 경보: " + guide.caution);
       if (guide.practice) guideLines.push("오늘의 연습 문장: " + guide.practice);
       if (Array.isArray(guide.mission) && guide.mission.length) {
         guide.mission.forEach(function (line) {

@@ -11,6 +11,7 @@ export const PREMIUM_UNLOCK_POLICY = Object.freeze({
   westernAstrologyPremium: ["premium-astrology", "premiumDivinationPack"],
   sookyoPremium: ["premium-sukuyo", "premiumDivinationPack"],
   vedicPremium: ["premium-veda", "premiumDivinationPack"],
+  celestialHarmony: ["premiumDivinationPack"],
   soulOriginKarma: ["premiumDivinationPack"],
 });
 
@@ -181,6 +182,29 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
         featureKey: "coin-gate-per-use",
         reason: isCompat ? "자미두수 프리미엄 PDF 궁합 리포트 생성" : "자미두수 프리미엄 PDF 리포트 생성",
         minCost: isCompat ? 690 : 590,
+        windowMinutes: 120,
+      },
+    ];
+  }
+
+  if (reportType === "celestialHarmony") {
+    return [
+      {
+        featureKey: "tarot-celestial-harmony",
+        reason: "셀레스티얼 하모니 타로 리딩",
+        minCost: 100,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "premium-celestial-harmony-report",
+        reason: "셀레스티얼 하모니 타로 리딩",
+        minCost: 100,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: "셀레스티얼 하모니 타로 리딩",
+        minCost: 100,
         windowMinutes: 120,
       },
     ];

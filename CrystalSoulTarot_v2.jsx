@@ -65,6 +65,21 @@ const GEMSTONES = [
 
 const TOPICS = [
   {
+    id: "overall",
+    title: "전체 흐름 · 오늘의 메시지",
+    subtitle: "오늘의 핵심, 우선순위, 마지막 조언을 한 번에 정리합니다.",
+    icon: "☉",
+    themeCrystal: "애머지스트",
+    themeKeywords: ["정리", "우선순위", "방향성"],
+    spread: [
+      { order: 1, title: "오늘의 핵심 기운", question: "오늘 가장 먼저 느껴야 할 흐름은 무엇인가?" },
+      { order: 2, title: "지금 눈앞의 주제", question: "지금 즉시 다뤄야 할 중심 문제는 무엇인가?" },
+      { order: 3, title: "흐름을 막는 요소", question: "에너지 흐름을 흔드는 변수는 무엇인가?" },
+      { order: 4, title: "오늘의 선택", question: "오늘 어떤 태도와 선택이 도움이 되는가?" },
+      { order: 5, title: "마무리 메시지", question: "오늘의 흐름이 남기는 최종 메시지는 무엇인가?" },
+    ],
+  },
+  {
     id: "wealth",
     title: "재물 · 사업",
     subtitle: "돈의 흐름, 사업의 기회, 현실적 결단을 비춰봅니다.",
@@ -292,6 +307,10 @@ function findGemByName(name) {
   return GEMSTONES.find((gem) => gem.name === name) || GEMSTONES[0];
 }
 
+function findGemById(id) {
+  return GEMSTONES.find((gem) => gem.id === id) || GEMSTONES[0];
+}
+
 function buildAssignments(coreGemId, cardsLength) {
   const ids = GEMSTONES.map((gem) => gem.id);
   const assignments = {};
@@ -313,15 +332,18 @@ function buildLocalFallback(topic, coreGem, cards) {
   lines.push("");
   cards.forEach((card, idx) => {
     const spread = topic.spread[idx];
+    const cardLabel = CARD_KR[card] || card;
     lines.push(`${idx + 1}. ${spread.title}`);
-    lines.push(`카드: ${CARD_KR[card] || card}`);
+    lines.push(`카드: ${cardLabel}`);
     lines.push(`질문: ${spread.question}`);
-    lines.push(`${coreGem.name}의 기운은 지금 과도한 불안이나 기대를 잠시 내려놓고, 한 번에 하나의 실행으로 흐름을 바꿔보라고 말합니다.`);
-    lines.push("오늘은 결론을 서두르기보다 기준을 세우고 검증 가능한 행동을 먼저 남겨 보세요.");
+    lines.push(`${coreGem.name}의 기운은 ${topic.title} 안에서 ${coreGem.keywords.slice(0, 2).join("과 ")} 중심을 다시 잡도록 돕습니다.`);
+    lines.push(`${cardLabel}은(는) 지금의 질문에 ${topic.title} 특유의 현실적인 선택 기준을 더해 줍니다.`);
+    lines.push("오늘은 결론을 서두르기보다, 확인 가능한 기준 1개와 실행 1개를 분리해 적어 보세요.");
+    lines.push(`실전 조언: ${spread.title}와 연결된 행동을 오늘 안에 한 가지만 끝내고, 끝낸 뒤의 감각을 메모로 남기세요.`);
     lines.push("");
   });
   lines.push("종합 조언");
-  lines.push("지금의 흐름은 막힘이 아니라 재정렬의 신호입니다. 문제를 크게 보는 대신, 오늘 움직일 수 있는 가장 작은 행동을 선택하면 리딩의 방향성이 현실에서 작동하기 시작합니다.");
+  lines.push(`지금의 흐름은 막힘이 아니라 재정렬의 신호입니다. ${coreGem.name}가 보여 주는 핵심은 '${coreGem.meaning}'이며, ${topic.title}에서는 추상적 기대보다 오늘 바로 확인할 수 있는 행동을 하나 남기는 쪽이 더 강하게 작동합니다.`);
   return lines.join("\n");
 }
 
@@ -352,12 +374,12 @@ function TopicCard({ topic, onSelect }) {
         textAlign: "left",
         borderRadius: 18,
         border: `1px solid ${gem.color}55`,
-        background: `linear-gradient(155deg, ${gem.color}1f, rgba(8,8,14,.92) 65%)`,
+        background: `linear-gradient(160deg, rgba(255,255,255,.04), ${gem.color}18 42%, rgba(5,5,10,.96) 92%)`,
         padding: "18px 16px",
-        boxShadow: `0 0 0 1px rgba(255,255,255,.04), 0 18px 48px ${gem.glow}22`,
+        boxShadow: `0 0 0 1px rgba(255,255,255,.04), 0 18px 48px ${gem.glow}1f`,
         color: "#f2e8da",
         cursor: "pointer",
-        transition: "transform .24s ease, box-shadow .24s ease",
+        transition: "transform .24s ease, box-shadow .24s ease, border-color .24s ease",
       }}
       onMouseEnter={(event) => {
         event.currentTarget.style.transform = "translateY(-3px)";
@@ -365,7 +387,7 @@ function TopicCard({ topic, onSelect }) {
       }}
       onMouseLeave={(event) => {
         event.currentTarget.style.transform = "translateY(0)";
-        event.currentTarget.style.boxShadow = `0 0 0 1px rgba(255,255,255,.04), 0 18px 48px ${gem.glow}22`;
+        event.currentTarget.style.boxShadow = `0 0 0 1px rgba(255,255,255,.04), 0 18px 48px ${gem.glow}1f`;
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
@@ -373,7 +395,7 @@ function TopicCard({ topic, onSelect }) {
         <span style={{ fontSize: 11, color: "#dac7aa", letterSpacing: ".08em" }}>{topic.themeCrystal}</span>
       </div>
       <div style={{ fontFamily: "Noto Serif KR,serif", fontSize: 18, lineHeight: 1.45, marginBottom: 8 }}>{topic.title}</div>
-      <div style={{ fontSize: 12, color: "#c7b7a1", lineHeight: 1.65, marginBottom: 10 }}>{topic.subtitle}</div>
+      <div style={{ fontSize: 12, color: "#c7b7a1", lineHeight: 1.65, marginBottom: 12 }}>{topic.subtitle}</div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
         {topic.themeKeywords.slice(0, 3).map((keyword) => (
           <span
@@ -395,16 +417,72 @@ function TopicCard({ topic, onSelect }) {
   );
 }
 
-function ReadingSection({ section, expanded, onToggle }) {
+function GemCard({ gem, selected, recommended, onSelect }) {
   return (
-    <article style={{ border: "1px solid rgba(255,255,255,.12)", borderRadius: 16, background: "rgba(12,12,20,.8)", overflow: "hidden" }}>
+    <button
+      type="button"
+      onClick={() => onSelect(gem)}
+      style={{
+        position: "relative",
+        width: "100%",
+        borderRadius: 18,
+        border: `1px solid ${selected ? gem.glow : recommended ? gem.color + "88" : "rgba(255,255,255,.08)"}`,
+        background: selected
+          ? `linear-gradient(160deg, ${gem.color}28, rgba(5,5,10,.96) 78%)`
+          : recommended
+            ? `linear-gradient(160deg, ${gem.color}18, rgba(5,5,10,.96) 80%)`
+            : "rgba(255,255,255,.03)",
+        padding: "16px 14px 14px",
+        color: "#f4ebdd",
+        cursor: "pointer",
+        boxShadow: selected ? `0 0 0 1px rgba(255,255,255,.08), 0 20px 50px ${gem.glow}44` : `0 10px 28px rgba(0,0,0,.24)`,
+        transition: "transform .22s ease, box-shadow .22s ease, border-color .22s ease",
+        textAlign: "left",
+      }}
+      onMouseEnter={(event) => {
+        event.currentTarget.style.transform = "translateY(-2px)";
+      }}
+      onMouseLeave={(event) => {
+        event.currentTarget.style.transform = "translateY(0)";
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ width: 10, height: 10, borderRadius: 999, background: gem.glow, boxShadow: `0 0 10px ${gem.glow}` }} />
+          <span style={{ fontSize: 11, color: "#d9c7ab", letterSpacing: ".08em" }}>{selected ? "선택됨" : recommended ? "추천" : "원석"}</span>
+        </div>
+        <span style={{ fontSize: 18, color: gem.glow }}>✦</span>
+      </div>
+      <div style={{ fontFamily: "Noto Serif KR,serif", fontSize: 17, marginBottom: 6 }}>{gem.name}</div>
+      <div style={{ fontSize: 11, color: "#d4c1a7", lineHeight: 1.6, marginBottom: 10 }}>{gem.meaning}</div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        {gem.keywords.map((keyword) => (
+          <span key={keyword} style={{ fontSize: 10, color: "#efe0c6", borderRadius: 999, padding: "3px 7px", border: "1px solid rgba(255,255,255,.14)" }}>
+            {keyword}
+          </span>
+        ))}
+      </div>
+    </button>
+  );
+}
+
+function ReadingAccordion({ section, expanded, onToggle }) {
+  const actionItems = Array.isArray(section.practicalActions) && section.practicalActions.length
+    ? section.practicalActions
+    : String(section.action || "")
+        .split(" / ")
+        .map((item) => item.trim())
+        .filter(Boolean);
+
+  return (
+    <article style={{ border: "1px solid rgba(255,255,255,.12)", borderRadius: 18, background: "rgba(11,11,18,.82)", overflow: "hidden", boxShadow: "0 12px 28px rgba(0,0,0,.22)" }}>
       <button
         type="button"
         onClick={onToggle}
         style={{
           width: "100%",
           textAlign: "left",
-          background: "linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.01))",
+          background: "linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.015))",
           color: "#f0e3d1",
           border: "none",
           padding: "14px 14px 12px",
@@ -412,8 +490,8 @@ function ReadingSection({ section, expanded, onToggle }) {
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <div style={{ width: 44, height: 74, borderRadius: 8, overflow: "hidden", border: "1px solid rgba(255,255,255,.2)", background: "#111" }}>
+          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <div style={{ width: 46, height: 76, borderRadius: 10, overflow: "hidden", border: "1px solid rgba(255,255,255,.18)", background: "#111" }}>
               {section.cardImageUrl ? (
                 <img
                   src={section.cardImageUrl}
@@ -426,35 +504,67 @@ function ReadingSection({ section, expanded, onToggle }) {
               ) : null}
             </div>
             <div>
-            <div style={{ fontSize: 11, color: "#c9b390", marginBottom: 4 }}>{section.order}번 카드 · {section.positionTitle}</div>
-            <div style={{ fontFamily: "Noto Serif KR,serif", fontSize: 16 }}>
-              {section.cardNameKo} <span style={{ fontSize: 12, color: "#d7c7b0" }}>({section.orientation === "reversed" ? "역방향" : "정방향"})</span>
-            </div>
+              <div style={{ fontSize: 11, color: "#c9b390", marginBottom: 4 }}>{section.order}번 카드 · {section.positionTitle}</div>
+              <div style={{ fontFamily: "Noto Serif KR,serif", fontSize: 16 }}>
+                {section.cardNameKo} <span style={{ fontSize: 12, color: "#d7c7b0" }}>({section.orientation === "reversed" ? "역방향" : "정방향"})</span>
+              </div>
+              <div style={{ fontSize: 11, color: "#bba88d", marginTop: 4 }}>{section.crystalName}</div>
             </div>
           </div>
           <div style={{ fontSize: 12, color: "#d8c7af" }}>{expanded ? "접기" : "펼치기"}</div>
         </div>
-        <div style={{ marginTop: 6, fontSize: 12, color: "#bba88d" }}>{section.crystalName}</div>
       </button>
 
       {expanded && (
-        <div style={{ padding: "14px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 8, marginBottom: 12 }}>
-            <div style={{ border: "1px solid rgba(255,255,255,.1)", borderRadius: 12, padding: "8px 10px", fontSize: 12, color: "#dccdb8" }}>
-              타로 키워드: {section.tarotKeywords.join(", ")}
+        <div style={{ padding: 14 }}>
+          <p style={{ color: "#efe2d0", fontSize: 13, lineHeight: 1.9, margin: "0 0 12px" }}>{section.categoryReading}</p>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10, marginBottom: 12 }}>
+            <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
+              <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>한 줄 핵심</div>
+              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{section.oneLineSummary}</div>
             </div>
-            <div style={{ border: "1px solid rgba(255,255,255,.1)", borderRadius: 12, padding: "8px 10px", fontSize: 12, color: "#dccdb8" }}>
-              원석 키워드: {section.crystalKeywords.join(", ")}
+            <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
+              <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>원석 에너지</div>
+              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{section.crystalEnergy}</div>
+            </div>
+            <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
+              <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>카드가 보여주는 흐름</div>
+              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{section.cardFlow}</div>
+            </div>
+            <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
+              <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>지금의 심리</div>
+              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{section.currentPulse}</div>
+            </div>
+            <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
+              <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>조심할 점</div>
+              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{section.caution}</div>
+            </div>
+            <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
+              <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>좋게 살리는 방법</div>
+              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{section.uplift}</div>
             </div>
           </div>
 
-          <p style={{ color: "#e8dbc8", fontSize: 13, lineHeight: 1.8, marginBottom: 10 }}><strong>이 카드의 기본 의미</strong><br />{section.cardMeaning}</p>
-          <p style={{ color: "#e8dbc8", fontSize: 13, lineHeight: 1.8, marginBottom: 10 }}><strong>이 원석의 기운</strong><br />{section.crystalMeaning}</p>
-          <p style={{ color: "#e8dbc8", fontSize: 13, lineHeight: 1.8, marginBottom: 10 }}><strong>이 위치에서의 해석</strong><br />{section.positionInterpretation}</p>
-          <p style={{ color: "#e8dbc8", fontSize: 13, lineHeight: 1.8, marginBottom: 10 }}><strong>카테고리별 상담</strong><br />{section.categoryReading}</p>
-          <p style={{ color: "#e8dbc8", fontSize: 13, lineHeight: 1.8, marginBottom: 10 }}><strong>기회</strong><br />{section.opportunity}</p>
-          <p style={{ color: "#e8dbc8", fontSize: 13, lineHeight: 1.8, marginBottom: 10 }}><strong>주의점</strong><br />{section.caution}</p>
-          <p style={{ color: "#e8dbc8", fontSize: 13, lineHeight: 1.8 }}><strong>오늘의 행동</strong><br />{section.action}</p>
+          <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12, marginBottom: 12 }}>
+            <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>실전 조언</div>
+            <ol style={{ margin: 0, paddingLeft: 18, color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>
+              {actionItems.map((item, idx) => (
+                <li key={`${idx}-${item}`}>{item}</li>
+              ))}
+            </ol>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10 }}>
+            <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
+              <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>네오 한마디</div>
+              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{section.neoLine}</div>
+            </div>
+            <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
+              <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>연이 한마디</div>
+              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{section.younLine}</div>
+            </div>
+          </div>
         </div>
       )}
     </article>
@@ -462,7 +572,9 @@ function ReadingSection({ section, expanded, onToggle }) {
 }
 
 export default function CrystalSoulTarot() {
+  const [stage, setStage] = useState("topic");
   const [selectedTopic, setSelectedTopic] = useState(null);
+  const [selectedGem, setSelectedGem] = useState(null);
   const [selectedCards, setSelectedCards] = useState([]);
   const [assignments, setAssignments] = useState({});
   const [readingPayload, setReadingPayload] = useState(null);
@@ -474,46 +586,71 @@ export default function CrystalSoulTarot() {
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState("");
   const [paidTxId, setPaidTxId] = useState("");
+  const [syncEnergy, setSyncEnergy] = useState(0);
+  const [isCharging, setIsCharging] = useState(false);
   const typeTimerRef = useRef(null);
+  const chargeAreaRef = useRef(null);
+  const lastPointRef = useRef(null);
 
   useBodyLock(true);
 
   const coreGem = useMemo(() => {
     if (!selectedTopic) return null;
-    return findGemByName(selectedTopic.themeCrystal);
-  }, [selectedTopic]);
+    return selectedGem || findGemByName(selectedTopic.themeCrystal);
+  }, [selectedGem, selectedTopic]);
+
+  const resetReadingState = useCallback(() => {
+    if (typeTimerRef.current) {
+      window.clearInterval(typeTimerRef.current);
+      typeTimerRef.current = null;
+    }
+    setReadingPayload(null);
+    setReadingText("");
+    setExpandedSet(new Set([0]));
+    setLoading(false);
+    setError("");
+    setPaid(false);
+    setPaying(false);
+    setPayError("");
+    setPaidTxId("");
+  }, []);
 
   const resetAll = useCallback(() => {
+    setStage("topic");
     setSelectedTopic(null);
+    setSelectedGem(null);
     setSelectedCards([]);
     setAssignments({});
-    setReadingPayload(null);
-    setReadingText("");
-    setExpandedSet(new Set([0]));
-    setLoading(false);
-    setError("");
-    setPaid(false);
-    setPaying(false);
-    setPayError("");
-    setPaidTxId("");
-  }, []);
+    setSyncEnergy(0);
+    setIsCharging(false);
+    lastPointRef.current = null;
+    resetReadingState();
+  }, [resetReadingState]);
 
   const onSelectTopic = useCallback((topic) => {
-    const cards = pickUniqueCards(5);
-    const primaryGem = findGemByName(topic.themeCrystal);
     setSelectedTopic(topic);
+    setSelectedGem(findGemByName(topic.themeCrystal));
+    setSelectedCards([]);
+    setAssignments({});
+    setSyncEnergy(0);
+    setIsCharging(false);
+    lastPointRef.current = null;
+    setStage("gem");
+    resetReadingState();
+  }, [resetReadingState]);
+
+  const onSelectGem = useCallback((gem) => {
+    if (!selectedTopic) return;
+    const cards = pickUniqueCards(5);
+    setSelectedGem(gem);
     setSelectedCards(cards);
-    setAssignments(buildAssignments(primaryGem.id, cards.length));
-    setReadingPayload(null);
-    setReadingText("");
-    setExpandedSet(new Set([0]));
-    setLoading(false);
-    setError("");
-    setPaid(false);
-    setPaying(false);
-    setPayError("");
-    setPaidTxId("");
-  }, []);
+    setAssignments(buildAssignments(gem.id, cards.length));
+    setSyncEnergy(0);
+    setIsCharging(false);
+    lastPointRef.current = null;
+    setStage("sync");
+    resetReadingState();
+  }, [resetReadingState, selectedTopic]);
 
   const autoRefundCrystal = useCallback(async () => {
     const txId = String(paidTxId || "").trim();
@@ -580,6 +717,7 @@ export default function CrystalSoulTarot() {
       setLoading(false);
       return;
     }
+    setStage("result");
     if (typeTimerRef.current) window.clearInterval(typeTimerRef.current);
     let index = 0;
     setReadingText("");
@@ -604,6 +742,7 @@ export default function CrystalSoulTarot() {
 
   const requestReading = useCallback(async () => {
     if (!selectedTopic || !coreGem || selectedCards.length !== 5) return;
+    setStage("result");
     setLoading(true);
     setError("");
     setReadingPayload(null);
@@ -624,7 +763,7 @@ export default function CrystalSoulTarot() {
           cards: selectedCards,
           assignments,
           positions: selectedTopic.spread.map((item) => item.title),
-          gemstonesMap: Object.fromEntries(GEMSTONES.map((gem) => [gem.id, { name: gem.name, theme: gem.meaning }])),
+          gemstonesMap: Object.fromEntries(GEMSTONES.map((gem) => [gem.id, { name: gem.name, theme: gem.meaning }])) ,
         }),
       });
 
@@ -634,6 +773,7 @@ export default function CrystalSoulTarot() {
 
       if (payload) {
         setReadingPayload(payload);
+        setStage("result");
         setLoading(false);
       } else {
         playTypewriter(text);
@@ -736,11 +876,56 @@ export default function CrystalSoulTarot() {
     });
   }, []);
 
+  const handleChargeStart = useCallback((event) => {
+    if (!chargeAreaRef.current || stage !== "sync") return;
+    setIsCharging(true);
+    lastPointRef.current = { x: event.clientX, y: event.clientY };
+  }, [stage]);
+
+  const handleChargeMove = useCallback((event) => {
+    if (!isCharging || !chargeAreaRef.current || stage !== "sync") return;
+    const rect = chargeAreaRef.current.getBoundingClientRect();
+    const current = { x: event.clientX, y: event.clientY };
+    const last = lastPointRef.current || current;
+    const dx = Math.abs(current.x - last.x);
+    const dy = Math.abs(current.y - last.y);
+    lastPointRef.current = current;
+    const delta = Math.min(100 - syncEnergy, Math.max(1.5, (dx + dy) * 0.42));
+    if (delta <= 0) return;
+    setSyncEnergy((prev) => Math.min(100, prev + delta));
+    if (syncEnergy >= 99) {
+      setIsCharging(false);
+      lastPointRef.current = null;
+    }
+    if (rect) {
+      const inBounds = current.x >= rect.left && current.x <= rect.right && current.y >= rect.top && current.y <= rect.bottom;
+      if (!inBounds) {
+        setIsCharging(false);
+        lastPointRef.current = null;
+      }
+    }
+  }, [isCharging, stage, syncEnergy]);
+
+  const handleChargeEnd = useCallback(() => {
+    setIsCharging(false);
+    lastPointRef.current = null;
+  }, []);
+
+  const selectedGemSource = coreGem || (selectedTopic ? findGemByName(selectedTopic.themeCrystal) : null);
+  const syncReady = syncEnergy >= 88;
+
+  const stageLabel = stage === "topic"
+    ? "주제 선택"
+    : stage === "gem"
+      ? "원석 선택"
+      : stage === "sync"
+        ? "원석 올리기"
+        : "결과 보기";
+
   const summaryLine = useMemo(() => {
     if (!readingPayload?.summary) return "";
-    const risk = String(readingPayload.summary.risk || "").trim();
-    const opportunity = String(readingPayload.summary.opportunity || "").trim();
-    return opportunity || risk;
+    const summary = readingPayload.summary;
+    return summary.oracleMessage || summary.opportunity || summary.risk || summary.overallFlow || "";
   }, [readingPayload]);
 
   return (
@@ -752,19 +937,19 @@ export default function CrystalSoulTarot() {
         minHeight: "100dvh",
         overflowY: "auto",
         overscrollBehavior: "contain",
-        background: "radial-gradient(circle at 50% -10%, #1a1329 0%, #090811 48%, #040407 100%)",
+        background: "radial-gradient(circle at 50% -10%, #271a3d 0%, #0b0914 46%, #040407 100%)",
         color: "#f5ebdc",
       }}
     >
       <div
         style={{
-          maxWidth: 1040,
+          maxWidth: 1180,
           margin: "0 auto",
           padding: "18px 16px calc(56px + env(safe-area-inset-bottom))",
           minHeight: "100dvh",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
           <button
             type="button"
             onClick={selectedTopic ? resetAll : () => window.history.back()}
@@ -778,19 +963,22 @@ export default function CrystalSoulTarot() {
               cursor: "pointer",
             }}
           >
-            {selectedTopic ? "카테고리로" : "뒤로가기"}
+            {selectedTopic ? "다른 카테고리" : "뒤로가기"}
           </button>
-          <div style={{ fontSize: 11, color: "#ceb89a", letterSpacing: ".14em" }}>CRYSTAL SOUL TAROT</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
+            <div style={{ fontSize: 11, color: "#ceb89a", letterSpacing: ".14em" }}>CRYSTAL SOUL TAROT</div>
+            <div style={{ fontSize: 11, color: "#f1dcc0", borderRadius: 999, border: "1px solid rgba(255,255,255,.15)", padding: "4px 10px", background: "rgba(255,255,255,.05)" }}>{stageLabel}</div>
+          </div>
         </div>
 
         {!selectedTopic && (
           <div>
             <header style={{ marginBottom: 22 }}>
-              <h1 style={{ fontFamily: "Noto Serif KR,serif", fontSize: "clamp(24px,4.6vw,36px)", fontWeight: 400, lineHeight: 1.45, marginBottom: 8 }}>
-                독립된 신비의 리딩 공간
+              <h1 style={{ fontFamily: "Noto Serif KR,serif", fontSize: "clamp(24px,4.6vw,38px)", fontWeight: 400, lineHeight: 1.45, marginBottom: 10 }}>
+                원석을 올리고, 빛이 켜진 자리에서 읽는 타로
               </h1>
-              <p style={{ color: "#d6c4ab", fontSize: 13, lineHeight: 1.8 }}>
-                지금 가장 중요한 질문 카테고리를 고르면 5장의 카드와 원석 상징을 결합해 깊이 있는 상담형 리딩을 제공합니다.
+              <p style={{ color: "#d6c4ab", fontSize: 13, lineHeight: 1.85, maxWidth: 720 }}>
+                주제를 고른 뒤 원석을 선택하고, 원석을 올려 빛을 채우면 카드와 원석이 함께 말하는 상세 상담형 리딩이 열립니다.
               </p>
             </header>
 
@@ -802,208 +990,352 @@ export default function CrystalSoulTarot() {
           </div>
         )}
 
-        {selectedTopic && (
+        {selectedTopic && stage === "gem" && (
           <div>
-            <header
-              style={{
-                border: `1px solid ${coreGem?.color || "#c8960c"}66`,
-                borderRadius: 18,
-                background: "rgba(8,8,14,.82)",
-                padding: "14px",
-                marginBottom: 16,
-                boxShadow: `0 0 36px ${(coreGem?.glow || "#daa520")}2d`,
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                <div>
-                  <div style={{ color: "#d8c5a9", fontSize: 11, marginBottom: 5 }}>선택 카테고리</div>
-                  <div style={{ fontFamily: "Noto Serif KR,serif", fontSize: 22, marginBottom: 8 }}>{selectedTopic.title}</div>
-                  <div style={{ color: "#cbb69a", fontSize: 12, lineHeight: 1.7 }}>{selectedTopic.subtitle}</div>
+            <header style={{ border: `1px solid ${(selectedGemSource?.color || "#c8960c")}66`, borderRadius: 20, background: "rgba(8,8,14,.82)", padding: 16, marginBottom: 16, boxShadow: `0 0 36px ${(selectedGemSource?.glow || "#daa520")}22` }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
+                <div style={{ minWidth: 220 }}>
+                  <div style={{ color: "#d8c5a9", fontSize: 11, marginBottom: 6 }}>선택 카테고리</div>
+                  <div style={{ fontFamily: "Noto Serif KR,serif", fontSize: 24, marginBottom: 8 }}>{selectedTopic.title}</div>
+                  <div style={{ color: "#cbb69a", fontSize: 12, lineHeight: 1.75 }}>{selectedTopic.subtitle}</div>
                 </div>
-                <div style={{ minWidth: 190 }}>
-                  <div style={{ color: "#d8c5a9", fontSize: 11, marginBottom: 5 }}>핵심 원석</div>
-                  <div style={{ fontSize: 15, marginBottom: 6 }}>{coreGem?.name}</div>
-                  <div style={{ color: "#cbb69a", fontSize: 12, lineHeight: 1.65 }}>{coreGem?.meaning}</div>
+                <div style={{ minWidth: 220 }}>
+                  <div style={{ color: "#d8c5a9", fontSize: 11, marginBottom: 6 }}>추천 원석</div>
+                  <div style={{ fontSize: 16, marginBottom: 6 }}>{selectedTopic.themeCrystal}</div>
+                  <div style={{ color: "#cbb69a", fontSize: 12, lineHeight: 1.65 }}>원하는 원석을 직접 골라도 됩니다. 원석의 감각을 먼저 맞추는 단계입니다.</div>
                 </div>
               </div>
-
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-                {selectedTopic.themeKeywords.map((keyword) => (
-                  <span key={keyword} style={{ fontSize: 11, color: "#e4d4bf", borderRadius: 999, border: "1px solid rgba(255,255,255,.2)", padding: "3px 9px" }}>
-                    {keyword}
-                  </span>
-                ))}
-              </div>
-
-              <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: 8 }}>
-                {selectedCards.map((card, idx) => (
-                  <div key={`${card}-${idx}`} style={{ borderRadius: 12, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: "8px" }}>
-                    <div style={{ fontSize: 10, color: "#c8b28f", marginBottom: 4 }}>{selectedTopic.spread[idx]?.title}</div>
-                    <div style={{ fontSize: 12, color: "#f1e5d2", marginBottom: 4 }}>{CARD_KR[card] || card}</div>
-                    <div style={{ fontSize: 10, color: "#c0ac8d" }}>{GEMSTONES.find((gem) => gem.id === assignments[idx])?.name || coreGem?.name}</div>
-                  </div>
-                ))}
-              </div>
-
-              {summaryLine && <p style={{ marginTop: 12, fontSize: 12, color: "#f0debf", lineHeight: 1.7 }}>{summaryLine}</p>}
             </header>
 
-            {!paid && (
-              <div
-                style={{
-                  border: `1px solid ${(coreGem?.color || "#c8960c")}66`,
-                  borderRadius: 16,
-                  background: "rgba(3,3,7,.76)",
-                  padding: "18px",
-                  marginBottom: 16,
-                  textAlign: "center",
-                }}
-              >
-                <p style={{ color: "#dbc9ae", fontSize: 13, lineHeight: 1.8, marginBottom: 12 }}>
-                  리딩 결과 열람 시 <strong style={{ color: coreGem?.color }}>{CRYSTAL_COST}코인</strong>이 차감됩니다.
-                </p>
-                {payError && <p style={{ color: "#ff9f9f", fontSize: 12, marginBottom: 10 }}>{payError}</p>}
-                <button
-                  type="button"
-                  onClick={handlePay}
-                  disabled={paying}
-                  style={{
-                    border: `1px solid ${(coreGem?.color || "#c8960c")}88`,
-                    borderRadius: 999,
-                    background: paying ? "rgba(255,255,255,.08)" : `${coreGem?.color || "#c8960c"}25`,
-                    color: paying ? "#9f927e" : "#f2e4d1",
-                    fontSize: 13,
-                    letterSpacing: ".06em",
-                    padding: "10px 18px",
-                    cursor: paying ? "not-allowed" : "pointer",
-                  }}
-                >
-                  {paying ? "처리 중..." : `리딩 열람하기 (${CRYSTAL_COST}코인)`}
-                </button>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 14 }}>
+              {GEMSTONES.map((gem) => (
+                <GemCard
+                  key={gem.id}
+                  gem={gem}
+                  selected={coreGem?.id === gem.id}
+                  recommended={selectedTopic.themeCrystal === gem.name}
+                  onSelect={onSelectGem}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {selectedTopic && stage === "sync" && (
+          <div>
+            <header style={{ border: `1px solid ${(selectedGemSource?.color || "#c8960c")}66`, borderRadius: 20, background: "rgba(8,8,14,.82)", padding: 16, marginBottom: 16, boxShadow: `0 0 42px ${(selectedGemSource?.glow || "#daa520")}22` }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 14, flexWrap: "wrap", alignItems: "flex-start" }}>
+                <div style={{ minWidth: 220 }}>
+                  <div style={{ color: "#d8c5a9", fontSize: 11, marginBottom: 6 }}>선택 카테고리</div>
+                  <div style={{ fontFamily: "Noto Serif KR,serif", fontSize: 24, marginBottom: 8 }}>{selectedTopic.title}</div>
+                  <div style={{ color: "#cbb69a", fontSize: 12, lineHeight: 1.75 }}>{selectedTopic.subtitle}</div>
+                </div>
+                <div style={{ minWidth: 220 }}>
+                  <div style={{ color: "#d8c5a9", fontSize: 11, marginBottom: 6 }}>현재 원석</div>
+                  <div style={{ fontSize: 16, marginBottom: 6 }}>{selectedGemSource?.name}</div>
+                  <div style={{ color: "#cbb69a", fontSize: 12, lineHeight: 1.65 }}>{selectedGemSource?.meaning}</div>
+                </div>
               </div>
-            )}
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
+                {(selectedTopic.themeKeywords || []).map((keyword) => (
+                  <span key={keyword} style={{ fontSize: 11, color: "#e4d4bf", borderRadius: 999, border: "1px solid rgba(255,255,255,.2)", padding: "3px 9px" }}>{keyword}</span>
+                ))}
+              </div>
+            </header>
 
-            {paid && (
-              <>
-                {loading && (
-                  <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.12)", padding: "20px", background: "rgba(0,0,0,.45)", marginBottom: 14 }}>
-                    <p style={{ color: "#d8c7ad", fontSize: 13 }}>원석과 카드의 상징을 결합해 상담을 생성하고 있습니다...</p>
-                  </div>
-                )}
-
-                {!!error && (
-                  <div style={{ borderRadius: 14, border: "1px solid rgba(255,120,120,.5)", padding: "14px", background: "rgba(40,0,0,.35)", marginBottom: 14 }}>
-                    <p style={{ color: "#ffb0b0", fontSize: 12 }}>{error}</p>
-                  </div>
-                )}
-
-                {readingPayload && (
-                  <div style={{ marginBottom: 14 }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 8, marginBottom: 10 }}>
-                      {readingPayload.sections.map((section, index) => (
-                        <div key={`summary-${index}`} style={{ borderRadius: 12, border: "1px solid rgba(255,255,255,.12)", background: "rgba(255,255,255,.04)", padding: "8px" }}>
-                          <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6 }}>
-                            <div style={{ width: 34, height: 56, borderRadius: 6, overflow: "hidden", border: "1px solid rgba(255,255,255,.2)", background: "#111" }}>
-                              {section.cardImageUrl ? (
-                                <img
-                                  src={section.cardImageUrl}
-                                  alt={section.cardNameKo}
-                                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                                  onError={(event) => {
-                                    event.currentTarget.style.display = "none";
-                                  }}
-                                />
-                              ) : null}
-                            </div>
-                            <div>
-                              <div style={{ fontSize: 10, color: "#d5c09f" }}>{section.positionTitle}</div>
-                              <div style={{ fontSize: 12, color: "#f2e5d1" }}>{section.cardNameKo}</div>
-                            </div>
-                          </div>
-                          <div style={{ fontSize: 10, color: "#c6b091", marginBottom: 2 }}>{section.orientation === "reversed" ? "역방향" : "정방향"}</div>
-                          <div style={{ fontSize: 10, color: "#c6b091", marginBottom: 2 }}>{section.crystalName}</div>
-                          <div style={{ fontSize: 10, color: "#b9a689", lineHeight: 1.45 }}>타로: {section.tarotKeywords.slice(0, 2).join(", ")}</div>
-                          <div style={{ fontSize: 10, color: "#b9a689", lineHeight: 1.45 }}>원석: {section.crystalKeywords.slice(0, 2).join(", ")}</div>
-                        </div>
-                      ))}
+            <div style={{ display: "grid", gridTemplateColumns: "1.05fr .95fr", gap: 16, alignItems: "start" }}>
+              <div
+                ref={chargeAreaRef}
+                style={{
+                  position: "relative",
+                  borderRadius: 24,
+                  border: "1px solid rgba(255,255,255,.12)",
+                  background: "linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.22))",
+                  padding: 18,
+                  minHeight: 520,
+                  overflow: "hidden",
+                }}
+                onPointerDown={handleChargeStart}
+                onPointerMove={handleChargeMove}
+                onPointerUp={handleChargeEnd}
+                onPointerLeave={handleChargeEnd}
+              >
+                <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at 50% 30%, ${(selectedGemSource?.glow || "#daa520")}18, transparent 48%)`, pointerEvents: "none" }} />
+                <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 280, gap: 12 }}>
+                  <div style={{ color: "#ead8c1", fontSize: 11, letterSpacing: ".18em" }}>원석을 올려서 빛을 채우세요</div>
+                  <div style={{ position: "relative", width: 240, height: 240, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: `1px solid ${(selectedGemSource?.glow || "#daa520")}22`, boxShadow: `0 0 30px ${(selectedGemSource?.glow || "#daa520")}22`, background: "radial-gradient(circle, rgba(255,255,255,.05), rgba(0,0,0,.1))" }} />
+                    <div style={{ position: "absolute", inset: 18, borderRadius: "50%", border: `1px solid ${(selectedGemSource?.glow || "#daa520")}18` }} />
+                    <div style={{ position: "absolute", inset: 40, borderRadius: "50%", border: `1px dashed ${(selectedGemSource?.glow || "#daa520")}24` }} />
+                    <div style={{ position: "relative", width: 136, height: 136, borderRadius: 34, border: `1px solid ${(selectedGemSource?.color || "#c8960c")}88`, background: `linear-gradient(160deg, ${(selectedGemSource?.color || "#c8960c")}30, rgba(10,10,16,.96) 74%)`, boxShadow: `0 0 24px ${(selectedGemSource?.glow || "#daa520")}44, inset 0 1px 0 rgba(255,255,255,.12)`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, textAlign: "center" }}>
+                      <div style={{ fontSize: 18, color: selectedGemSource?.glow || "#daa520" }}>✦</div>
+                      <div style={{ fontFamily: "Noto Serif KR,serif", fontSize: 20 }}>{selectedGemSource?.name}</div>
+                      <div style={{ fontSize: 11, color: "#ddccb7", lineHeight: 1.6, padding: "0 12px" }}>{selectedGemSource?.keywords?.slice(0, 3).join(" · ")}</div>
                     </div>
+                  </div>
+                  <div style={{ width: "100%", maxWidth: 360, height: 4, borderRadius: 999, overflow: "hidden", background: "rgba(255,255,255,.08)" }}>
+                    <div style={{ width: `${syncEnergy}%`, height: "100%", borderRadius: 999, background: `linear-gradient(90deg, ${(selectedGemSource?.color || "#c8960c")}99, ${(selectedGemSource?.glow || "#daa520")})`, boxShadow: `0 0 14px ${(selectedGemSource?.glow || "#daa520")}aa`, transition: "width .08s linear" }} />
+                  </div>
+                  <div style={{ color: syncEnergy >= 88 ? (selectedGemSource?.glow || "#daa520") : "#d0c0a7", fontSize: 12, letterSpacing: ".08em" }}>
+                    {syncEnergy >= 88 ? "의식이 활성화되었습니다." : `${Math.floor(syncEnergy)}% 충전 중`}
+                  </div>
+                </div>
 
-                    <div style={{ display: "grid", gap: 10 }}>
-                    {readingPayload.sections.map((section, index) => (
-                      <ReadingSection
-                        key={`${section.positionTitle}-${index}`}
-                        section={section}
-                        expanded={expandedSet.has(index)}
-                        onToggle={() => toggleSection(index)}
-                      />
+                <div style={{ marginTop: 26, position: "relative", zIndex: 1 }}>
+                  <div style={{ color: "#d8c5a9", fontSize: 11, marginBottom: 10 }}>배치된 카드</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(110px,1fr))", gap: 10 }}>
+                    {selectedCards.map((card, idx) => (
+                      <div key={`${card}-${idx}`} style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 10, minHeight: 92 }}>
+                        <div style={{ fontSize: 10, color: "#c8b28f", marginBottom: 6 }}>{selectedTopic.spread[idx]?.title}</div>
+                        <div style={{ fontSize: 12, color: "#f1e5d2", marginBottom: 6 }}>{CARD_KR[card] || card}</div>
+                        <div style={{ fontSize: 10, color: "#bda98b", lineHeight: 1.45 }}>{GEMSTONES.find((gem) => gem.id === assignments[idx])?.name || selectedGemSource?.name}</div>
+                      </div>
                     ))}
-                    </div>
                   </div>
-                )}
+                </div>
+              </div>
 
-                {!readingPayload && !!readingText && (
-                  <div style={{ border: "1px solid rgba(255,255,255,.12)", borderRadius: 14, background: "rgba(8,8,14,.72)", padding: "14px", marginBottom: 14 }}>
-                    <pre style={{ margin: 0, whiteSpace: "pre-wrap", fontFamily: "Noto Serif KR,serif", lineHeight: 1.95, color: "#e8dbc8", fontSize: 13 }}>
-                      {readingText}
-                    </pre>
+              <aside style={{ borderRadius: 24, border: "1px solid rgba(255,255,255,.12)", background: "rgba(8,8,14,.8)", padding: 18, minHeight: 520 }}>
+                <div style={{ fontSize: 11, color: "#d8c5a9", marginBottom: 6 }}>의식 가이드</div>
+                <div style={{ fontFamily: "Noto Serif KR,serif", fontSize: 23, marginBottom: 12 }}>원석이 충분히 올라오면 리딩을 열 수 있습니다</div>
+                <p style={{ color: "#d5c7b0", fontSize: 13, lineHeight: 1.9, marginBottom: 16 }}>
+                  원석을 누르고 문지르듯 움직이면 빛이 차오릅니다. 빛이 어느 정도 모이면 카드의 의미와 원석의 상징이 함께 묶여 결과 화면으로 넘어갑니다.
+                </p>
+
+                <div style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 14, marginBottom: 14 }}>
+                  <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>현재 원석</div>
+                  <div style={{ fontSize: 18, marginBottom: 8 }}>{selectedGemSource?.name}</div>
+                  <div style={{ fontSize: 12, color: "#ddceb8", lineHeight: 1.75 }}>{selectedGemSource?.meaning}</div>
+                </div>
+
+                <div style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 14, marginBottom: 14 }}>
+                  <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>충전 상태</div>
+                  <div style={{ width: "100%", height: 8, borderRadius: 999, overflow: "hidden", background: "rgba(255,255,255,.08)", marginBottom: 8 }}>
+                    <div style={{ width: `${syncEnergy}%`, height: "100%", borderRadius: 999, background: `linear-gradient(90deg, ${(selectedGemSource?.color || "#c8960c")}90, ${(selectedGemSource?.glow || "#daa520")})`, boxShadow: `0 0 12px ${(selectedGemSource?.glow || "#daa520")}88` }} />
                   </div>
-                )}
+                  <div style={{ color: syncEnergy >= 88 ? (selectedGemSource?.glow || "#daa520") : "#d0c0a7", fontSize: 12 }}>{syncEnergy >= 88 ? "열람 준비 완료" : `${Math.floor(syncEnergy)}%`}</div>
+                </div>
 
-                {readingPayload?.summary && (
-                  <footer style={{ border: "1px solid rgba(255,255,255,.14)", borderRadius: 16, background: "rgba(8,8,14,.82)", padding: "14px", marginBottom: 16 }}>
-                    <h3 style={{ margin: 0, marginBottom: 10, fontFamily: "Noto Serif KR,serif", fontSize: 18 }}>카테고리 종합 리딩</h3>
-                    <p style={{ fontSize: 13, lineHeight: 1.8, color: "#e9dcc8", marginBottom: 8 }}><strong>전체 흐름</strong><br />{readingPayload.summary.overallFlow}</p>
-                    <p style={{ fontSize: 13, lineHeight: 1.8, color: "#e9dcc8", marginBottom: 8 }}><strong>가장 강한 신호</strong><br />{readingPayload.summary.strongestSignal}</p>
-                    <p style={{ fontSize: 13, lineHeight: 1.8, color: "#e9dcc8", marginBottom: 8 }}><strong>기회</strong><br />{readingPayload.summary.opportunity}</p>
-                    <p style={{ fontSize: 13, lineHeight: 1.8, color: "#e9dcc8", marginBottom: 8 }}><strong>주의할 점</strong><br />{readingPayload.summary.risk}</p>
-                    <p style={{ fontSize: 13, lineHeight: 1.8, color: "#e9dcc8", marginBottom: 8 }}><strong>타이밍 조언</strong><br />{readingPayload.summary.timingAdvice}</p>
-                    <div style={{ marginBottom: 8 }}>
-                      <div style={{ fontSize: 13, color: "#f2e5d1", marginBottom: 4 }}><strong>실행 체크리스트</strong></div>
-                      <ol style={{ margin: 0, paddingLeft: 18, color: "#e9dcc8", fontSize: 13, lineHeight: 1.8 }}>
-                        {(readingPayload.summary.practicalActions || []).map((item, idx) => (
-                          <li key={`${idx}-${item}`}>{item}</li>
-                        ))}
-                      </ol>
-                    </div>
-                    <p style={{ fontSize: 13, lineHeight: 1.8, color: "#f2e1c4", marginBottom: 0 }}><strong>크리스탈 오라클 메시지</strong><br />{readingPayload.summary.oracleMessage}</p>
-                  </footer>
-                )}
-
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <div style={{ display: "grid", gap: 10, marginTop: 16 }}>
                   <button
                     type="button"
-                    onClick={requestReading}
-                    disabled={loading}
+                    onClick={handlePay}
+                    disabled={paying || !syncReady}
                     style={{
                       borderRadius: 999,
-                      border: "1px solid rgba(255,255,255,.24)",
-                      background: "rgba(255,255,255,.06)",
-                      color: "#e7d8c2",
-                      fontSize: 12,
-                      padding: "8px 12px",
-                      cursor: loading ? "not-allowed" : "pointer",
+                      border: `1px solid ${(selectedGemSource?.color || "#c8960c")}88`,
+                      background: paying || !syncReady ? "rgba(255,255,255,.06)" : `${selectedGemSource?.color || "#c8960c"}28`,
+                      color: paying || !syncReady ? "#9f927e" : "#f2e4d1",
+                      fontSize: 13,
+                      letterSpacing: ".06em",
+                      padding: "12px 18px",
+                      cursor: paying || !syncReady ? "not-allowed" : "pointer",
                     }}
                   >
-                    다시 뽑기
+                    {paying ? "처리 중..." : syncReady ? `리딩 열람하기 (${CRYSTAL_COST}코인)` : "원석을 조금 더 올려주세요"}
                   </button>
                   <button
                     type="button"
-                    onClick={resetAll}
+                    onClick={() => setStage("gem")}
                     style={{
                       borderRadius: 999,
-                      border: "1px solid rgba(255,255,255,.24)",
+                      border: "1px solid rgba(255,255,255,.16)",
                       background: "transparent",
                       color: "#e7d8c2",
                       fontSize: 12,
-                      padding: "8px 12px",
+                      padding: "10px 16px",
                       cursor: "pointer",
                     }}
                   >
-                    다른 카테고리 보기
+                    원석 다시 고르기
                   </button>
                 </div>
-              </>
+
+                {payError && <p style={{ color: "#ff9f9f", fontSize: 12, marginTop: 12, marginBottom: 0 }}>{payError}</p>}
+              </aside>
+            </div>
+          </div>
+        )}
+
+        {selectedTopic && stage === "result" && (
+          <div>
+            <header style={{ border: `1px solid ${(selectedGemSource?.color || "#c8960c")}66`, borderRadius: 24, background: "rgba(8,8,14,.84)", padding: 18, marginBottom: 16, boxShadow: `0 0 48px ${(selectedGemSource?.glow || "#daa520")}24` }}>
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.15fr) minmax(280px,.85fr)", gap: 16, alignItems: "stretch" }}>
+                <div>
+                  <div style={{ color: "#d8c5a9", fontSize: 11, marginBottom: 6 }}>선택 카테고리</div>
+                  <div style={{ fontFamily: "Noto Serif KR,serif", fontSize: 26, marginBottom: 10 }}>{selectedTopic.title}</div>
+                  <div style={{ color: "#cbb69a", fontSize: 12, lineHeight: 1.75, marginBottom: 12 }}>{selectedTopic.subtitle}</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+                    {selectedTopic.themeKeywords.map((keyword) => (
+                      <span key={keyword} style={{ fontSize: 11, color: "#e4d4bf", borderRadius: 999, border: "1px solid rgba(255,255,255,.2)", padding: "3px 9px" }}>{keyword}</span>
+                    ))}
+                  </div>
+                  <div style={{ color: "#f2e2c6", fontSize: 13, lineHeight: 1.85, borderRadius: 16, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 14 }}>
+                    {summaryLine || "원석과 카드가 함께 정리한 전체 흐름이 아래 상세 상담으로 이어집니다."}
+                  </div>
+                </div>
+                <div style={{ borderRadius: 22, border: "1px solid rgba(255,255,255,.12)", background: `linear-gradient(160deg, ${(selectedGemSource?.color || "#c8960c")}24, rgba(8,8,14,.98) 74%)`, padding: 18, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                  <div>
+                    <div style={{ color: "#d8c5a9", fontSize: 11, marginBottom: 6 }}>선택 원석</div>
+                    <div style={{ fontFamily: "Noto Serif KR,serif", fontSize: 24, marginBottom: 8 }}>{selectedGemSource?.name}</div>
+                    <div style={{ color: "#d0c0ab", fontSize: 12, lineHeight: 1.75 }}>{selectedGemSource?.meaning}</div>
+                  </div>
+                  <div style={{ marginTop: 16, borderRadius: 16, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
+                    <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>원석 키워드</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      {selectedGemSource?.keywords.map((keyword) => (
+                        <span key={keyword} style={{ fontSize: 10, color: "#efe0c6", borderRadius: 999, padding: "3px 7px", border: "1px solid rgba(255,255,255,.14)" }}>{keyword}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(110px,1fr))", gap: 8 }}>
+                {selectedCards.map((card, idx) => (
+                  <div key={`${card}-${idx}`} style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 10 }}>
+                    <div style={{ fontSize: 10, color: "#c8b28f", marginBottom: 4 }}>{selectedTopic.spread[idx]?.title}</div>
+                    <div style={{ fontSize: 12, color: "#f1e5d2", marginBottom: 4 }}>{CARD_KR[card] || card}</div>
+                    <div style={{ fontSize: 10, color: "#c0ac8d" }}>{GEMSTONES.find((gem) => gem.id === assignments[idx])?.name || selectedGemSource?.name}</div>
+                  </div>
+                ))}
+              </div>
+            </header>
+
+            {loading && (
+              <div style={{ borderRadius: 18, border: "1px solid rgba(255,255,255,.12)", padding: 20, background: "rgba(0,0,0,.45)", marginBottom: 14 }}>
+                <p style={{ color: "#d8c7ad", fontSize: 13, margin: 0 }}>원석과 카드의 상징을 결합해 상담을 생성하고 있습니다...</p>
+              </div>
             )}
+
+            {!!error && (
+              <div style={{ borderRadius: 18, border: "1px solid rgba(255,120,120,.5)", padding: 14, background: "rgba(40,0,0,.35)", marginBottom: 14 }}>
+                <p style={{ color: "#ffb0b0", fontSize: 12, margin: 0 }}>{error}</p>
+              </div>
+            )}
+
+            {readingPayload && (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 10, marginBottom: 12 }}>
+                  {readingPayload.sections.map((section, index) => (
+                    <div key={`summary-${index}`} style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.12)", background: "rgba(255,255,255,.04)", padding: 10 }}>
+                      <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6 }}>
+                        <div style={{ width: 36, height: 58, borderRadius: 8, overflow: "hidden", border: "1px solid rgba(255,255,255,.2)", background: "#111" }}>
+                          {section.cardImageUrl ? (
+                            <img
+                              src={section.cardImageUrl}
+                              alt={section.cardNameKo}
+                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                              onError={(event) => {
+                                event.currentTarget.style.display = "none";
+                              }}
+                            />
+                          ) : null}
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10, color: "#d5c09f" }}>{section.positionTitle}</div>
+                          <div style={{ fontSize: 12, color: "#f2e5d1" }}>{section.cardNameKo}</div>
+                        </div>
+                      </div>
+                      <div style={{ fontSize: 10, color: "#c6b091", marginBottom: 2 }}>{section.orientation === "reversed" ? "역방향" : "정방향"}</div>
+                      <div style={{ fontSize: 10, color: "#c6b091", marginBottom: 2 }}>{section.crystalName}</div>
+                      <div style={{ fontSize: 10, color: "#b9a689", lineHeight: 1.45 }}>타로: {section.tarotKeywords.slice(0, 2).join(", ")}</div>
+                      <div style={{ fontSize: 10, color: "#b9a689", lineHeight: 1.45 }}>원석: {section.crystalKeywords.slice(0, 2).join(", ")}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: "grid", gap: 10 }}>
+                  {readingPayload.sections.map((section, index) => (
+                    <ReadingAccordion
+                      key={`${section.positionTitle}-${index}`}
+                      section={section}
+                      expanded={expandedSet.has(index)}
+                      onToggle={() => toggleSection(index)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {!readingPayload && !!readingText && (
+              <div style={{ border: "1px solid rgba(255,255,255,.12)", borderRadius: 18, background: "rgba(8,8,14,.72)", padding: 16, marginBottom: 14 }}>
+                <pre style={{ margin: 0, whiteSpace: "pre-wrap", fontFamily: "Noto Serif KR,serif", lineHeight: 1.95, color: "#e8dbc8", fontSize: 13 }}>{readingText}</pre>
+              </div>
+            )}
+
+            {readingPayload?.summary && (
+              <footer style={{ border: "1px solid rgba(255,255,255,.14)", borderRadius: 20, background: "rgba(8,8,14,.82)", padding: 16, marginBottom: 16 }}>
+                <h3 style={{ margin: 0, marginBottom: 12, fontFamily: "Noto Serif KR,serif", fontSize: 20 }}>카테고리 종합 리딩</h3>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10, marginBottom: 12 }}>
+                  {[
+                    ["전체 흐름", readingPayload.summary.overallFlow],
+                    ["가장 강한 신호", readingPayload.summary.strongestSignal],
+                    ["기회", readingPayload.summary.opportunity],
+                    ["주의할 점", readingPayload.summary.risk],
+                    ["타이밍 조언", readingPayload.summary.timingAdvice],
+                  ].map(([label, value]) => (
+                    <div key={String(label)} style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
+                      <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>{label}</div>
+                      <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.85 }}>{value}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{ fontSize: 13, color: "#f2e5d1", marginBottom: 6 }}><strong>실행 체크리스트</strong></div>
+                  <ol style={{ margin: 0, paddingLeft: 18, color: "#e9dcc8", fontSize: 13, lineHeight: 1.8 }}>
+                    {(readingPayload.summary.practicalActions || []).map((item, idx) => (
+                      <li key={`${idx}-${item}`}>{item}</li>
+                    ))}
+                  </ol>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10, marginBottom: 12 }}>
+                  <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
+                    <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>네오 & 연이</div>
+                    <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.85 }}>{readingPayload.summary.neoLine}</div>
+                    <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.85, marginTop: 8 }}>{readingPayload.summary.younLine}</div>
+                  </div>
+                  <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
+                    <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>크리스탈 오라클 메시지</div>
+                    <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.85 }}>{readingPayload.summary.oracleMessage}</div>
+                  </div>
+                </div>
+              </footer>
+            )}
+
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={requestReading}
+                disabled={loading}
+                style={{
+                  borderRadius: 999,
+                  border: "1px solid rgba(255,255,255,.24)",
+                  background: "rgba(255,255,255,.06)",
+                  color: "#e7d8c2",
+                  fontSize: 12,
+                  padding: "8px 12px",
+                  cursor: loading ? "not-allowed" : "pointer",
+                }}
+              >
+                다시 뽑기
+              </button>
+              <button
+                type="button"
+                onClick={resetAll}
+                style={{
+                  borderRadius: 999,
+                  border: "1px solid rgba(255,255,255,.24)",
+                  background: "transparent",
+                  color: "#e7d8c2",
+                  fontSize: 12,
+                  padding: "8px 12px",
+                  cursor: "pointer",
+                }}
+              >
+                다른 카테고리 보기
+              </button>
+            </div>
           </div>
         )}
       </div>

@@ -818,21 +818,16 @@
     }
   };
 
-  function buildFallbackPrintHtml(){
-    if(!RESULT) return '';
-    var chapters = Array.isArray(RESULT.chapters) ? RESULT.chapters : [];
-    return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>자미두수 프리미엄 PDF</title><style>body{font-family:Malgun Gothic,serif;line-height:1.8;padding:28px;color:#241333}img{max-width:300px;border-radius:16px}h1{color:#3b0764}article{page-break-before:always;border-top:2px solid #7c3aed;padding-top:18px}.cat{border:1px solid #e9d5ff;border-radius:12px;padding:12px;margin:12px 0}p{white-space:pre-wrap}</style></head><body><h1>자미두수 프리미엄 PDF</h1><img src="' + esc(COVER_IMAGE) + '" alt="표지"><p>명궁과 12궁으로 읽는 운명의 별자리</p>' + chapters.map(function(chapter){
-      var cats = Array.isArray(chapter.categories) ? chapter.categories : [];
-      return '<article><h2>' + esc(chapter.title) + '</h2>' + cats.map(function(cat){ return '<div class="cat"><h3>' + esc(cat.title) + '</h3><p>' + esc(cat.finalText || cat.text || '') + '</p></div>'; }).join('') + '</article>';
-    }).join('') + '</body></html>';
-  }
-
   window.downloadZiweiBookPdf = function(){
     if(!RESULT){
       showError('먼저 자미두수 PDF를 생성해 주세요.');
       return;
     }
-    var html = RESULT.pdfReady && RESULT.pdfReady.html ? RESULT.pdfReady.html : buildFallbackPrintHtml();
+    var html = RESULT.pdfReady && RESULT.pdfReady.html ? RESULT.pdfReady.html : '';
+    if(!html){
+      showError('PDF 본문이 준비되지 않았습니다. 다시 생성해 주세요.');
+      return;
+    }
     var win = window.open('', '_blank', 'noopener,noreferrer');
     if(!win){
       showError('팝업이 차단되었습니다. 브라우저 팝업 허용 후 다시 시도해 주세요.');

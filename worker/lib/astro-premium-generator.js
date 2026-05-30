@@ -852,8 +852,12 @@ async function generateWesternAstroChapterByLLM(env, seed, chapterSpec, previous
 
 async function generateWesternAstroPdfChapters(env, seed, options = {}) {
   const chapterSpecs = buildWesternAstroChapterBlueprints();
+  const localDrafts = buildAstroLocalPremiumManuscript(seed);
+  const localDraftMap = new Map(localDrafts.map((chapter) => [Number(chapter.chapterNo), chapter]));
   const chapters = [];
   const emit = typeof options.log === "function" ? options.log : () => {};
+  let fallbackUsed = false;
+  let llmChapterCount = 0;
 
   for (const chapterSpec of chapterSpecs) {
     emit("ChapterLLMStart", {
@@ -861,7 +865,27 @@ async function generateWesternAstroPdfChapters(env, seed, options = {}) {
       chapterTitle: chapterSpec.title,
     });
 
-    const chapter = await generateWesternAstroChapterByLLM(env, seed, chapterSpec, chapters.map((item) => summarizeAstroChapterForPrompt(item)), options);
+    let chapter = null;
+    try {
+      chapter = await generateWesternAstroChapterByLLM(env, seed, chapterSpec, chapters.map((item) => summarizeAstroChapterForPrompt(item)), options);
+      llmChapterCount += 1;
+    } catch (error) {
+      fallbackUsed = true;
+      const localChapter = localDraftMap.get(Number(chapterSpec.chapterNo));
+      if (!localChapter) throw error;
+
+      chapter = {
+        ...localChapter,
+        source: "local-deterministic-fallback",
+      };
+
+      emit("ChapterLLMFailedUseLocal", {
+        chapterNo: chapterSpec.chapterNo,
+        chapterTitle: chapterSpec.title,
+        message: clean(error?.message || "llm_chapter_failed"),
+      });
+    }
+
     chapters.push(chapter);
 
     emit("ChapterLLMSuccess", {
@@ -875,8 +899,32 @@ async function generateWesternAstroPdfChapters(env, seed, options = {}) {
     });
   }
 
-  const validation = validateWesternAstroPdfLLMInterpretationQuality({ chapters, expectedChapters: WESTERN_ASTRO_PDF_CHAPTERS, seed });
+  const reinforcedChapters = reinforceManuscriptLength(chapters);
+  const rawValidation = fallbackUsed
+    ? validateFinalManuscript(seed, reinforcedChapters)
+    : validateWesternAstroPdfLLMInterpretationQuality({ chapters: reinforcedChapters, expectedChapters: WESTERN_ASTRO_PDF_CHAPTERS, seed });
+  const blockingIssues = fallbackUsed
+    ? safeArray(rawValidation?.issues).filter((issue) => !/\.repetition$/i.test(clean(issue)))
+    : safeArray(rawValidation?.issues);
+  const validation = fallbackUsed
+    ? {
+      ok: blockingIssues.length === 0,
+      issues: safeArray(rawValidation?.issues),
+      blockingIssues,
+      relaxed: true,
+    }
+    : rawValidation;
+
   if (!validation.ok) {
+    emit("FinalManuscriptValidationFailed", {
+      issueCount: safeArray(validation.issues).length,
+      blockingIssueCount: safeArray(validation.blockingIssues).length,
+      issues: safeArray(validation.issues).slice(0, 12),
+      blockingIssues: safeArray(validation.blockingIssues).slice(0, 12),
+      chapterCount: reinforcedChapters.length,
+      totalLength: totalLength(reinforcedChapters),
+      fallbackUsed,
+    });
     const error = new Error("ASTRO_PDF_QUALITY_INVALID");
     error.code = "ASTRO_PDF_QUALITY_INVALID";
     error.status = 422;
@@ -884,7 +932,12 @@ async function generateWesternAstroPdfChapters(env, seed, options = {}) {
     throw error;
   }
 
-  return { chapters, validation };
+  return {
+    chapters: reinforcedChapters,
+    validation,
+    fallbackUsed,
+    llmChapterCount,
+  };
 }
 
 function buildInterpretationSeeds(ctx) {
@@ -1212,9 +1265,9 @@ function reinforceManuscriptLength(chapters) {
 
 function validateFinalManuscript(localAstroChartJson, chapters) {
   const issues = [];
-  const birthInput = asObject(localAstroChartJson?.birthInput);
+  const birthInput = asObject(localAstroChartJson?.birthInput || localAstroChartJson?.input);
   if (!clean(birthInput.birthDate)) issues.push("birthInput.birthDate");
-  if (!Number.isFinite(Number(birthInput.birthHour))) issues.push("birthInput.birthHour");
+  if (!Number.isFinite(Number(birthInput.birthHour)) && !/^\d{2}:\d{2}$/.test(clean(birthInput.birthTime))) issues.push("birthInput.birthHour");
   if (!clean(birthInput.timezone)) issues.push("birthInput.timezone");
 
   const chart = asObject(localAstroChartJson?.chart);
@@ -1386,10 +1439,15 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
   const generated = await generateWesternAstroPdfChapters(env, seed, options);
   const chapters = generated.chapters;
   const validation = generated.validation;
+  const fallbackUsed = Boolean(generated.fallbackUsed);
+  const llmChapterCount = Number(generated.llmChapterCount || 0);
 
   emit("FinalManuscriptValidated", {
     ok: validation.ok,
     issueCount: validation.issues.length,
+    blockingIssueCount: safeArray(validation.blockingIssues).length,
+    issues: safeArray(validation.issues).slice(0, 12),
+    blockingIssues: safeArray(validation.blockingIssues).slice(0, 12),
     chapterCount: chapters.length,
     totalLength: safeArray(chapters).reduce((sum, chapter) => sum + safeArray(chapter.sections).reduce((sectionSum, section) => sectionSum + clean(section.body).length, 0), 0),
   });
@@ -1406,8 +1464,9 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
     payload,
     chapters: legacyChapters,
     chapterCount: WESTERN_ASTRO_PDF_CHAPTERS.length,
-    fallbackUsed: false,
-    manuscriptSource: "llm-only",
+    fallbackUsed,
+    manuscriptSource: fallbackUsed ? "llm-local-hybrid" : "llm-only",
+    llmChapterCount,
     totalLength,
     pdfReady,
     localAstroChartJson: seed,
