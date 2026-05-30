@@ -237,13 +237,22 @@ function normalizeError(error) {
 function normalizeInput(input = {}) {
   const birthDate = clean(input.birthDate || input.date);
   const birthTime = clean(input.birthTime || input.time);
+  const partnerBirthDate = clean(input.partnerBirthDate || input.partnerDate || "");
+  const partnerBirthTime = clean(input.partnerBirthTime || input.partnerTime || "");
   const dateMatch = birthDate.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
   const timeMatch = birthTime.match(/^(\d{1,2}):(\d{1,2})$/);
+  const partnerDateMatch = partnerBirthDate.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  const partnerTimeMatch = partnerBirthTime.match(/^(\d{1,2}):(\d{1,2})$/);
   const year = dateMatch ? toNumber(dateMatch[1]) : NaN;
   const month = dateMatch ? toNumber(dateMatch[2]) : NaN;
   const day = dateMatch ? toNumber(dateMatch[3]) : NaN;
   const hour = timeMatch ? toNumber(timeMatch[1]) : NaN;
   const minute = timeMatch ? toNumber(timeMatch[2]) : 0;
+  const partnerYear = partnerDateMatch ? toNumber(partnerDateMatch[1]) : NaN;
+  const partnerMonth = partnerDateMatch ? toNumber(partnerDateMatch[2]) : NaN;
+  const partnerDay = partnerDateMatch ? toNumber(partnerDateMatch[3]) : NaN;
+  const partnerHour = partnerTimeMatch ? toNumber(partnerTimeMatch[1]) : NaN;
+  const partnerMinute = partnerTimeMatch ? toNumber(partnerTimeMatch[2]) : 0;
   const latitude = toNumber(input.latitude, NaN);
   const longitude = toNumber(input.longitude ?? input.lng, NaN);
   const timezoneOffset = toNumber(input.timezoneOffset, 9);
@@ -267,6 +276,55 @@ function normalizeInput(input = {}) {
     currentConcern: clean(input.currentConcern || ""),
     desiredOutcome: clean(input.desiredOutcome || ""),
     partnerInfo: clean(input.partnerInfo || ""),
+    partnerBirthDate,
+    partnerBirthTime,
+    partner: {
+      birthDate: partnerBirthDate,
+      birthTime: partnerBirthTime,
+      year: partnerYear,
+      month: partnerMonth,
+      day: partnerDay,
+      hour: Number.isFinite(partnerHour) ? partnerHour : null,
+      minute: Number.isFinite(partnerMinute) ? partnerMinute : 0,
+    },
+  };
+}
+
+function hasPartnerBirthData(input) {
+  return Number.isFinite(input?.partner?.year)
+    && Number.isFinite(input?.partner?.month)
+    && Number.isFinite(input?.partner?.day);
+}
+
+function buildPartnerRelationInsight(input) {
+  if (!hasPartnerBirthData(input)) return { enabled: false };
+
+  const selfDate = Date.UTC(input.year, input.month - 1, input.day);
+  const partnerDate = Date.UTC(input.partner.year, input.partner.month - 1, input.partner.day);
+  const dayGap = Math.abs(Math.round((selfDate - partnerDate) / 86400000));
+  const hasPartnerTime = Number.isFinite(input.partner.hour);
+  const selfMinutes = Number(input.hour) * 60 + Number(input.minute || 0);
+  const partnerMinutes = hasPartnerTime ? Number(input.partner.hour) * 60 + Number(input.partner.minute || 0) : null;
+  const minuteGap = hasPartnerTime ? Math.abs(selfMinutes - partnerMinutes) : null;
+
+  let tone = "리듬 조율형";
+  if (dayGap % 9 <= 2) tone = "높은 공명형";
+  else if (dayGap % 9 >= 6) tone = "성장 자극형";
+
+  let action = "감정 해석보다 사실 확인 질문을 먼저 두면 관계 소모가 줄어듭니다.";
+  if (hasPartnerTime && Number.isFinite(minuteGap)) {
+    action = minuteGap <= 180
+      ? "서로의 일상 리듬이 유사하니 대화 시간을 고정하면 관계 만족도가 빠르게 올라갑니다."
+      : "생활 리듬 차이가 큰 편이므로 대화 기대치를 먼저 합의하면 오해를 크게 줄일 수 있습니다.";
+  }
+
+  return {
+    enabled: true,
+    dayGap,
+    minuteGap,
+    tone,
+    summary: `상대 생년월일${hasPartnerTime ? "시" : ""}를 반영한 관계 축은 ${tone}으로 나타납니다.`,
+    action,
   };
 }
 
@@ -417,6 +475,7 @@ function calculateSukuyo(input) {
 }
 
 function buildSoulOriginSeed({ input, saju, western, sukuyo, ziwei, vedic }) {
+  const relationInsight = buildPartnerRelationInsight(input);
   const archetypeKeywords = [
     ...saju.highlights.slice(0, 2),
     ...western.highlights.slice(0, 2),
@@ -454,6 +513,8 @@ function buildSoulOriginSeed({ input, saju, western, sukuyo, ziwei, vedic }) {
       currentConcern: input.currentConcern,
       desiredOutcome: input.desiredOutcome,
       partnerInfo: input.partnerInfo,
+      partnerBirthDate: input.partnerBirthDate,
+      partnerBirthTime: input.partnerBirthTime,
     },
     sourceAvailability: {
       saju: saju.ok,
@@ -469,7 +530,9 @@ function buildSoulOriginSeed({ input, saju, western, sukuyo, ziwei, vedic }) {
     },
     karmicThemes: {
       loneliness: "고독은 단절이 아니라 내면의 구조를 정렬하기 위한 시간으로 나타납니다.",
-      love: "사랑은 구원보다 동행의 기술을 배우는 장면으로 반복됩니다.",
+      love: relationInsight.enabled
+        ? `${relationInsight.summary} ${relationInsight.action}`
+        : "사랑은 구원보다 동행의 기술을 배우는 장면으로 반복됩니다.",
       family: "가족의 기대와 자신의 속도 사이에서 경계 설정이 핵심 과제로 드러납니다.",
       career: "성과보다 방향의 정합성을 맞출 때 기회가 커집니다.",
       money: "불안 기반의 선택을 줄이고 주기 기반 전략이 필요합니다.",
@@ -478,8 +541,12 @@ function buildSoulOriginSeed({ input, saju, western, sukuyo, ziwei, vedic }) {
       transformation: "반복의 해석이 바뀌는 순간 고통이 재능으로 전환됩니다.",
     },
     repeatedPatterns,
-    shadowPatterns,
-    liberationKeys,
+    shadowPatterns: relationInsight.enabled
+      ? [...shadowPatterns, "관계 속도 차이를 감정 거절로 오해하는 패턴"]
+      : shadowPatterns,
+    liberationKeys: relationInsight.enabled
+      ? [...liberationKeys, relationInsight.action]
+      : liberationKeys,
     timingSignals: {
       sajuDaewoon: saju.timing,
       westernTransits: western.timing,

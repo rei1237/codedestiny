@@ -166,6 +166,8 @@
       currentConcern: readValue('soCurrentConcern') || clean(window.__cdSoulOriginCurrentConcern || ''),
       desiredOutcome: readValue('soDesiredOutcome') || clean(window.__cdSoulOriginDesiredOutcome || ''),
       partnerInfo: readValue('soPartnerInfo') || clean(window.__cdSoulOriginPartnerInfo || ''),
+      partnerBirthDate: readValue('soPartnerBirthDate') || clean(window.__cdSoulOriginPartnerBirthDate || ''),
+      partnerBirthTime: readValue('soPartnerBirthTime') || clean(window.__cdSoulOriginPartnerBirthTime || ''),
     };
   }
 
@@ -438,11 +440,12 @@
   function callApi(path, payload, token) {
     var endpoints = getApiBaseCandidates(path);
     var idx = 0;
+    var lastClientError = '';
 
     return new Promise(function (resolve, reject) {
       function run() {
         if (idx >= endpoints.length) {
-          reject(new Error('요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.'));
+          reject(new Error(lastClientError || '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.'));
           return;
         }
 
@@ -466,15 +469,19 @@
               return;
             }
 
-            if (pack.status === 401 || pack.status === 403 || pack.status === 422) {
-              reject(new Error(clean(pack.data && pack.data.message) || '입력값 또는 결제 상태를 확인해 주세요.'));
+            if (pack.status >= 400 && pack.status < 500) {
+              var message = clean(pack.data && (pack.data.message || pack.data.error || pack.data.code));
+              lastClientError = message || '입력값 또는 결제 상태를 확인해 주세요.';
+              reject(new Error(lastClientError));
               return;
             }
 
             idx += 1;
             run();
           })
-          .catch(function () {
+          .catch(function (error) {
+            var reason = clean(error && error.message);
+            if (reason && !lastClientError) lastClientError = reason;
             idx += 1;
             run();
           });
