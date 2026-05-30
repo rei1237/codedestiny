@@ -28,6 +28,23 @@ type PaymentProcessingProviderProps = {
 
 const DEFAULT_PROCESSING_MESSAGE = "결제가 진행 중입니다.";
 
+function resolveProcessingCopy(message: string) {
+  const normalizedMessage = String(message || "");
+  const isUnlockFlow = /잠금|해금|unlock|해제/i.test(normalizedMessage);
+
+  if (isUnlockFlow) {
+    return {
+      title: "잠금 해제 중입니다...",
+      description: "우주 결제 게이트를 확인하고 해금 권한을 적용하고 있습니다. 잠시만 기다려 주세요.",
+    };
+  }
+
+  return {
+    title: "운명을 읽어오는 중입니다...",
+    description: "결제가 진행 중입니다. 잠시만 기다려 주세요.",
+  };
+}
+
 const PaymentProcessingContext = createContext<PaymentProcessingContextValue | undefined>(
   undefined,
 );
@@ -39,6 +56,7 @@ export function PaymentProcessingProvider({
   const [processingMessage, setProcessingMessageState] = useState(
     DEFAULT_PROCESSING_MESSAGE,
   );
+  const overlayCopy = resolveProcessingCopy(processingMessage);
 
   const startProcessing = useCallback((message?: string) => {
     if (typeof message === "string" && message.trim()) {
@@ -145,8 +163,8 @@ export function PaymentProcessingProvider({
       {children}
       <PaymentProcessingOverlay
         open={isProcessing}
-        title="운명을 읽어오는 중입니다..."
-        description="결제가 진행 중입니다. 잠시만 기다려 주세요."
+        title={overlayCopy.title}
+        description={overlayCopy.description}
         statusMessage={processingMessage}
       />
     </PaymentProcessingContext.Provider>

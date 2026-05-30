@@ -520,9 +520,8 @@ function redirectPerUseFeature(key: PerUseKey) {
   if (!destination) return;
   window.location.href = destination;
 }
-
 export default function KkulkkulManseryukMain() {
-  const { startPayment, endPayment, setPaymentMessage } = usePayment();
+  const { isPaymentLoading, startPayment, endPayment, setPaymentMessage } = usePayment();
   const [currentCoins, setCurrentCoins] = useState(0);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [globalRuntimeError, setGlobalRuntimeError] = useState("");
@@ -567,8 +566,9 @@ export default function KkulkkulManseryukMain() {
 
   const unlockByCoins = async (key: UnlockKey, cost: number, alsoUnlock?: UnlockKey[]) => {
     if (unlockedFeatures[key]) return;
+    if (isPaymentLoading) return;
 
-    startPayment(`결제를 진행 중입니다.`);
+    startPayment("잠금 해제 중입니다...");
     try {
       const productId = UNLOCK_PRODUCT_BY_KEY[key];
       const requestId = `unlock:${productId || key}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9);
@@ -612,7 +612,7 @@ export default function KkulkkulManseryukMain() {
         return next;
       });
       setSparkleTarget(key);
-      setPaymentMessage("✅ 성공적으로 해금되었습니다!");
+      setPaymentMessage("잠금 해제가 완료되었습니다. 결과를 열고 있습니다...");
       await new Promise(r => setTimeout(r, 1000));
       showToast(`🎉 해금이 완료되었습니다! 바로 확인해 보세요.`, "success");
     } catch (e) {
@@ -629,7 +629,9 @@ export default function KkulkkulManseryukMain() {
       return;
     }
 
-    startPayment(`결제를 진행 중입니다.`);
+    if (isPaymentLoading) return;
+
+    startPayment("운명 콘텐츠를 여는 중입니다...");
     try {
       const purchaseResult = await purchaseFeature({
         featureKey: key,
