@@ -112,6 +112,34 @@ describe('Vedic premium generator LLM-only pipeline', () => {
     ).rejects.toMatchObject({ code: 'VEDIC_CHAPTER_LLM_FAILED' });
   });
 
+  test('seed JSON 핵심 계산값이 누락되면 VEDIC_PDF_SEED_INVALID로 실패해야 한다', async () => {
+    await expect(
+      vedic.generateVedicPremiumReport({}, makeInput({
+        localVedicChartJson: {
+          birthInput: {
+            birthDate: '1991-02-20',
+            birthTime: '07:00',
+            birthHour: 7,
+            birthMinute: 0,
+            timezone: 'Asia/Seoul',
+          },
+          chart: { planets: [], houses: [], aspects: [] },
+          dashas: { periods: [] },
+          interpretationSeeds: {},
+          chartMeta: {},
+        },
+      }), {
+        llmChapterGenerator: async ({ chapterSpec }) => ({
+          title: chapterSpec.title,
+          sections: chapterSpec.sections.map((section) => ({
+            title: section.title,
+            body: buildBody(chapterSpec, section.title, vedicTokensForChapter(chapterSpec.chapterNo)),
+          })),
+        }),
+      }),
+    ).rejects.toMatchObject({ code: 'VEDIC_PDF_SEED_INVALID' });
+  });
+
   test('birthInput 정규화가 표준 스키마를 충족한다', () => {
     const normalized = vedic.normalizeVedicPremiumBirthInput(makeInput());
     expect(normalized.birthYear).toBe(1991);

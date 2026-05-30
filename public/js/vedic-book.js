@@ -579,8 +579,8 @@
     var authToken = '';
     try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) { authToken = ''; }
     var premiumToken = _readPremiumAccessToken();
-    function run(resolve, reject, lastErr) {
-      if (endpointIndex >= endpoints.length) { reject(new Error(lastErr || '베다점 프리미엄 API 호출에 실패했습니다.')); return; }
+    function run(resolve, reject, lastErr, lastErrObj) {
+      if (endpointIndex >= endpoints.length) { reject(lastErrObj || new Error(lastErr || '베다점 프리미엄 API 호출에 실패했습니다.')); return; }
       var url = endpoints[endpointIndex++];
       var headers = { 'Content-Type': 'application/json' };
       if (authToken) headers.Authorization = 'Bearer ' + authToken;
@@ -589,11 +589,20 @@
         .then(function (res) { return res.json().catch(function () { return {}; }).then(function (json) { return { res: res, json: json }; }); })
         .then(function (pack) {
           if (pack.res.ok && pack.json && pack.json.ok) { _persistPremiumAccessToken(_extractPremiumToken(pack.json)); resolve(pack.json); return; }
-          run(resolve, reject, (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status));
+          var apiErr = new Error((pack.json && (pack.json.message || pack.json.error || pack.json.code)) || ('HTTP ' + pack.res.status));
+          apiErr.code = String((pack.json && pack.json.code) || '');
+          apiErr.status = Number(pack.res && pack.res.status || 0) || 0;
+          apiErr.details = pack.json || {};
+          run(resolve, reject, apiErr.message, apiErr);
         })
-        .catch(function (error) { run(resolve, reject, String(error && error.message || error || '요청 실패')); });
+        .catch(function (error) {
+          var reqErr = error instanceof Error ? error : new Error(String(error && error.message || error || '요청 실패'));
+          reqErr.code = reqErr.code || 'VEDIC_PREPARE_REQUEST_FAILED';
+          reqErr.status = Number(reqErr.status || 0) || 0;
+          run(resolve, reject, reqErr.message, reqErr);
+        });
     }
-    return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
+    return new Promise(function (resolve, reject) { run(resolve, reject, '', null); });
   }
 
   function _ensurePremiumPaymentThenStart() {

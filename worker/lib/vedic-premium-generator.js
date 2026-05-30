@@ -385,6 +385,11 @@ function summarizeChapter(chapter) {
 export function validateVedicPdfLLMInterpretationQuality({ chapters, expectedChapters = VEDIC_PREMIUM_CHAPTERS, seed } = {}) {
   const issues = [];
   const chapterList = safeArray(chapters);
+  const seedValidation = validateVedicPdfSeed(seed);
+  if (!seedValidation.ok) {
+    issues.push('seed-structure');
+    issues.push(...seedValidation.missing.map((entry) => `seed-${entry}`));
+  }
   if (chapterList.length !== safeArray(expectedChapters).length) issues.push('chapter-count');
   const combinedText = chapterList.flatMap((chapter) => safeArray(chapter?.sections).map((section) => clean(section?.body))).join('\n');
   if (hasForbiddenText(combinedText)) issues.push('forbidden-text');
@@ -423,6 +428,48 @@ export function validateVedicPdfLLMInterpretationQuality({ chapters, expectedCha
   const seedText = JSON.stringify(seed || {});
   if (!/라그나|달|나크샤트라|다샤|금성|토성/i.test(seedText)) issues.push('seed-core-signals');
   return { ok: issues.length === 0, issues };
+}
+
+export function validateVedicPdfSeed(seed = {}) {
+  const missing = [];
+  const input = seed && typeof seed.birthInput === 'object' ? seed.birthInput : (seed && typeof seed.input === 'object' ? seed.input : {});
+  const chart = seed && typeof seed.chart === 'object' ? seed.chart : {};
+  const chartMeta = seed && typeof seed.chartMeta === 'object' ? seed.chartMeta : {};
+  const planets = safeArray(chart.planets);
+  const houses = safeArray(chart.houses);
+  const aspects = safeArray(chart.aspects);
+  const dashas = seed && typeof seed.dashas === 'object' ? seed.dashas : (chart && typeof chart.dashas === 'object' ? chart.dashas : {});
+  const interpretationSeeds = seed && typeof seed.interpretationSeeds === 'object' ? seed.interpretationSeeds : {};
+
+  if (!clean(input.birthDate)) missing.push('input.birthDate');
+  if (!Number.isFinite(Number(input.birthHour)) && !/^\d{2}:\d{2}$/.test(clean(input.birthTime))) missing.push('input.birthTime');
+  if (!clean(input.timezone)) missing.push('input.timezone');
+
+  if (!clean(chart.lagnaSign) && !clean(chartMeta.lagnaSign)) missing.push('chart.lagnaSign');
+  if (!clean(chart.moonSign) && !clean(chartMeta.moonSign)) missing.push('chart.moonSign');
+  if (!clean(chart.nakshatra && chart.nakshatra.name) && !clean(chartMeta.moonNakshatra)) missing.push('chart.nakshatra');
+
+  if (planets.length < 7) {
+    missing.push('chart.planets');
+  } else {
+    const names = new Set(planets.map((planet) => clean(planet && planet.name)).filter(Boolean));
+    const required = ['태양', '달', '금성', '토성'];
+    for (let i = 0; i < required.length; i += 1) {
+      if (!names.has(required[i])) missing.push(`chart.planets.${required[i]}`);
+    }
+  }
+
+  if (houses.length < 12) missing.push('chart.houses');
+  if (!aspects.length) missing.push('chart.aspects');
+
+  if (!clean(dashas.currentMahadasha) || !clean(dashas.currentAntardasha)) missing.push('dashas.current');
+  if (!safeArray(dashas.periods).length) missing.push('dashas.periods');
+
+  if (!safeArray(interpretationSeeds.personalityKeywords).length) missing.push('interpretationSeeds.personalityKeywords');
+  if (!safeArray(interpretationSeeds.timingKeywords).length) missing.push('interpretationSeeds.timingKeywords');
+  if (!safeArray(interpretationSeeds.relationshipKeywords).length) missing.push('interpretationSeeds.relationshipKeywords');
+
+  return { ok: missing.length === 0, missing };
 }
 
 async function generateVedicChapterByLLM(env, seed, chapterSpec, previousSummaries, options = {}) {
@@ -521,6 +568,14 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     error.code = 'BIRTH_INPUT_INVALID';
     error.status = 400;
     error.details = birthValidation;
+    throw error;
+  }
+  const seedValidation = validateVedicPdfSeed(seed);
+  if (!seedValidation.ok) {
+    const error = new Error('베다점 계산 seed JSON이 불완전하여 프리미엄 PDF 생성을 진행할 수 없습니다. 출생 정보와 차트 계산값을 다시 확인해 주세요.');
+    error.code = 'VEDIC_PDF_SEED_INVALID';
+    error.status = 422;
+    error.details = seedValidation;
     throw error;
   }
   log('SeedBuildSuccess', { chapterCount: VEDIC_PREMIUM_CHAPTERS.length, hasLagna: Boolean(clean(seed?.chart?.lagnaSign)), hasMoonSign: Boolean(clean(seed?.chart?.moonSign)), hasNakshatra: Boolean(clean(seed?.nakshatra?.moonNakshatra || seed?.chart?.nakshatra?.name)) });
