@@ -3,6 +3,64 @@ import { SERVICE_SECTIONS } from "../_lib/serviceSections";
 import FeatureSymbol from "./icons/FeatureSymbol";
 import DestinyIcon from "./icons/DestinyIcon";
 
+const MAIN_ACTION_ROUTE_MAP: Record<string, string> = {
+  "/saju/basic": "/index.html",
+  "/daily-fortune": "/index.html",
+  "/manse": "/index.html",
+  "/compatibility": "/index.html?action=runCompat",
+  "/tarot/mingri": "/index.html?action=openTarotModal",
+  "/ziwei/chart": "/index.html?action=openZiweiModal",
+  "/oracle/sukuyo": "/index.html?action=openSukuyoModal",
+  "/astrology/cosmic": "/index.html?action=openAstroModal",
+  "/vedic/jyotish": "/index.html?action=navigateToVedic",
+  "/dream": "/index.html?action=openDreamModal",
+  "/animal/physio": "/index.html?action=openPhysiognomyApp",
+  "/premium": "/index.html",
+  "/oracle/ifa": "/index.html?action=openIfaOracle",
+  "/oracle/royal-tea": "/index.html?action=openRoyalTeaOracle",
+  "/oracle/sikojen-povailu": "/index.html?action=openSikojenPovailu",
+  "/flower/destiny": "/index.html?action=openDestinyFlowerStudio",
+  "/dream/tarot": "/index.html?action=openDreamModal",
+  "/saju/sibyl": "/index.html?action=openSibylModal",
+  "/saju/lifebook": "/index.html?action=openLifeBookModal",
+  "/saju/love-bible?premiumIntent=love-secret-pdf&mode=solo": "/index.html?action=openLoveSecretModal&premiumIntent=love-secret-pdf&mode=solo",
+  "/saju/love-simulation": "/index.html?action=openLoveSimulation",
+  "/saju/destiny-bias": "/index.html?action=openDestinyBias",
+  "/saju/animal-test": "/index.html?action=openSajuAnimalPage",
+  "/saju/destiny-meeting-place": "/index.html",
+  "/tarot/love": "/index.html?action=openTarotLoveModal",
+  "/tarot/healing": "/index.html?action=openTarotHealingModal",
+  "/tarot/self-esteem": "/index.html?action=openTarotSelfEsteemModal",
+  "/tarot/reunion": "/index.html?action=openTarotReunionModal",
+  "/tarot/year": "/index.html?action=openTarotYearFortuneModal",
+  "/tarot/crystal-soul/": "/index.html?action=startCrystalSoulTarot",
+  "/tarot/mindscan/": "/index.html?action=startMindScanTarot",
+  "/celestial-harmony.html": "/index.html?action=openCelestialHarmony",
+  "/tarot-ijik.html": "/index.html?action=startIjikTarot",
+  "/oracle/hwatu": "/index.html?action=openHwatuModal",
+  "/oracle/hwatu-life": "/index.html?action=openHwatuModal",
+  "/oracle/kemet": "/index.html?action=openKemetModal",
+  "/oracle/juyuk": "/index.html?action=openJuyukModal",
+  "/geomancy-oracle-v4.html": "/index.html?action=openGeomancyOracle",
+  "/royal-tea-oracle.html": "/index.html?action=openRoyalTeaOracle",
+  "/destiny-poker.html": "/index.html",
+  "/dream/psycho": "/index.html?action=openPsychoDreamModal",
+  "/secret-house_real.html": "/index.html?action=openSecretHouseRoute",
+  "/animal/mbti": "/index.html?action=openMbtiModal",
+  "/animal/totem": "/index.html?action=openAnimalTotemModal",
+  "/flower/astrology": "/index.html?action=openAstrologyFlowerStudio",
+  "/flower/jamidusu": "/index.html?action=openJamidusuFlowerStudio",
+  "/flower/sukuyo": "/index.html?action=openSukuyoFlowerStudio",
+  "/ziwei": "/index.html?action=openZiweiModal",
+  "/astrology": "/index.html?action=openAstroModal",
+  "/sukuyo": "/index.html?action=openSukuyoModal",
+  "/vedic": "/index.html?action=navigateToVedic",
+};
+
+function toMainActionHref(href: string): string {
+  return MAIN_ACTION_ROUTE_MAP[href] || "/index.html";
+}
+
 type Props = {
   /** When legacy iframe is above, hide redundant “open legacy” CTA and shorten copy. */
   variant?: "default" | "belowLegacy";
@@ -56,7 +114,7 @@ export default function HomeServiceSections({ variant = "default" }: Props) {
             {mysticQuickLinks.map((item) => (
               <Link
                 key={item.href}
-                href={item.href}
+                href={toMainActionHref(item.href)}
                 className="inline-flex items-center gap-1.5 rounded-full border border-violet-300/35 bg-violet-900/35 px-3 py-1.5 text-xs font-semibold text-violet-100 transition hover:border-cyan-300/45 hover:text-cyan-100"
               >
                 <FeatureSymbol route={item.href} size={14} className="text-violet-100" variant="soft" />
@@ -75,7 +133,7 @@ export default function HomeServiceSections({ variant = "default" }: Props) {
               {section.items.map((item) => (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={toMainActionHref(item.href)}
                   className="rounded-2xl border border-violet-300/20 bg-[linear-gradient(160deg,rgba(39,26,67,0.72),rgba(25,34,64,0.72))] p-4 transition hover:-translate-y-0.5 hover:border-cyan-300/45 hover:shadow-[0_10px_24px_rgba(34,211,238,0.15)]"
                 >
                   <div className="flex items-center gap-1.5 text-sm font-semibold text-violet-50">

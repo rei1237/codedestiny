@@ -26,18 +26,18 @@ export const metadata = createI18nMetadata({
 });
 
 const SERVICE_LINKS = [
-  { href: "/saju/basic", label: "무료 사주풀이 보기" },
-  { href: "/daily-fortune", label: "오늘의 운세 확인하기" },
-  { href: "/manse", label: "꿀꿀 만세력 확인하기" },
-  { href: "/compatibility", label: "사주 궁합 분석하기" },
-  { href: "/tarot/mingri", label: "AI 타로 리딩 시작하기" },
-  { href: "/ziwei/chart", label: "자미두수 명반 보기" },
-  { href: "/oracle/sukuyo", label: "숙요점 궁합 바로 보기" },
-  { href: "/astrology/cosmic", label: "점성술 차트 보기" },
-  { href: "/vedic/jyotish", label: "베다점성술 라그나 보기" },
-  { href: "/dream", label: "무료 꿈해몽 보기" },
-  { href: "/animal/physio", label: "동물관상 분석하기" },
-  { href: "/premium", label: "프리미엄 운세 리포트 보기" },
+  { href: "/index.html", label: "무료 사주풀이 보기" },
+  { href: "/index.html", label: "오늘의 운세 확인하기" },
+  { href: "/index.html", label: "꿀꿀 만세력 확인하기" },
+  { href: "/index.html?action=runCompat", label: "사주 궁합 분석하기" },
+  { href: "/index.html?action=openTarotModal", label: "AI 타로 리딩 시작하기" },
+  { href: "/index.html?action=openZiweiModal", label: "자미두수 명반 보기" },
+  { href: "/index.html?action=openSukuyoModal", label: "숙요점 궁합 바로 보기" },
+  { href: "/index.html?action=openAstroModal", label: "점성술 차트 보기" },
+  { href: "/index.html?action=navigateToVedic", label: "베다점성술 라그나 보기" },
+  { href: "/index.html?action=openDreamModal", label: "무료 꿈해몽 보기" },
+  { href: "/index.html?action=openPhysiognomyApp", label: "동물관상 분석하기" },
+  { href: "/index.html", label: "프리미엄 운세 리포트 보기" },
 ];
 
 export default function HomePage() {

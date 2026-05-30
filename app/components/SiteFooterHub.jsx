@@ -1,5 +1,42 @@
 import styles from "./SiteFooterHub.module.css";
 
+const MAIN_ACTION_ROUTE_MAP = {
+  "/saju": "/index.html",
+  "/manse": "/index.html",
+  "/daily-fortune": "/index.html",
+  "/compatibility": "/index.html?action=runCompat",
+  "/premium": "/index.html",
+  "/saju/basic": "/index.html",
+  "/ziwei/chart": "/index.html?action=openZiweiModal",
+  "/astrology/cosmic": "/index.html?action=openAstroModal",
+  "/saju/sibyl": "/index.html?action=openSibylModal",
+  "/saju/lifebook": "/index.html?action=openLifeBookModal",
+  "/saju/love-bible?premiumIntent=love-secret-pdf&mode=solo": "/index.html?action=openLoveSecretModal&premiumIntent=love-secret-pdf&mode=solo",
+  "/tarot": "/index.html?action=openTarotModal",
+  "/physiognomy": "/index.html?action=openPhysiognomyApp",
+  "/tarot/mingri": "/index.html?action=openTarotModal",
+  "/tarot/love": "/index.html?action=openTarotLoveModal",
+  "/tarot/healing": "/index.html?action=openTarotHealingModal",
+  "/tarot/self-esteem": "/index.html?action=openTarotSelfEsteemModal",
+  "/tarot/reunion": "/index.html?action=openTarotReunionModal",
+  "/tarot/year": "/index.html?action=openTarotYearFortuneModal",
+  "/ziwei": "/index.html?action=openZiweiModal",
+  "/astrology": "/index.html?action=openAstroModal",
+  "/sukuyo": "/index.html?action=openSukuyoModal",
+  "/vedic": "/index.html?action=navigateToVedic",
+  "/dream": "/index.html?action=openDreamModal",
+  "/oracle/hwatu-life": "/index.html?action=openHwatuModal",
+  "/oracle/ifa": "/index.html?action=openIfaOracle",
+  "/oracle/royal-tea": "/index.html?action=openRoyalTeaOracle",
+  "/oracle/rune": "/index.html?action=openRuneOracle",
+  "/oracle/sikojen-povailu": "/index.html?action=openSikojenPovailu",
+};
+
+function toMainActionHref(href, title) {
+  if (title === "추천 가이드") return href;
+  return MAIN_ACTION_ROUTE_MAP[href] || "/index.html";
+}
+
 const POLICY_LINKS = [
   { href: "/privacy", text: "개인정보처리방침 / Privacy" },
   { href: "/terms", text: "이용약관 / Terms" },
@@ -113,7 +150,7 @@ export default function SiteFooterHub() {
                 <h2 className={styles.sfhGroupTitle}>{group.title}</h2>
                 <nav className={styles.sfhLinkNav} aria-label={`${group.title} 링크`}>
                   {group.links.map((link) => (
-                    <a key={link.href} href={link.href} className={styles.sfhLink}>
+                    <a key={link.href} href={toMainActionHref(link.href, group.title)} className={styles.sfhLink}>
                       {link.text}
                     </a>
                   ))}

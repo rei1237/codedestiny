@@ -9383,6 +9383,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       window.location.href = '/oracle/rune';
       return;
     }
+    if (action === 'openSikojenPovailu') {
+      window.location.href = '/oracle/sikojen-povailu';
+      return;
+    }
     if (action === 'openOlympusOracleModal') {
       var _openOlympus = function() {
         if (typeof window.openFortuneFromProfile === 'function') {
