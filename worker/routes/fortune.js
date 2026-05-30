@@ -13,21 +13,25 @@ import {
 } from "../lib/paid-feature-registry.js";
 import {
   buildZiweiAIPrompt,
+  buildZiweiAIPromptWithDomain,
   ZIWEI_AI_PROMPT_FEATURE_KEY,
   ZIWEI_AI_PROMPT_PRICE,
 } from "../lib/ziwei-ai-prompt.js";
 import {
   buildSukuyoAIPrompt,
+  buildSukuyoAIPromptWithDomain,
   SUKUYO_AI_PROMPT_FEATURE_KEY,
   SUKUYO_AI_PROMPT_PRICE,
 } from "../lib/sukuyo-ai-prompt.js";
 import {
   buildSajuAIPrompt,
+  buildSajuAIPromptWithDomain,
   SAJU_AI_PROMPT_FEATURE_KEY,
   SAJU_AI_PROMPT_PRICE,
 } from "../lib/saju-ai-prompt.js";
 import {
   buildAstrologyAIPrompt,
+  buildAstrologyAIPromptWithDomain,
   ASTROLOGY_AI_PROMPT_FEATURE_KEY,
   ASTROLOGY_AI_PROMPT_PRICE,
 } from "../lib/astrology-ai-prompt.js";
@@ -364,6 +368,10 @@ const PERSISTENT_UNLOCK_ALIAS_MAP = Object.freeze({
   "flower-astro": ["flower-fc"],
   "flower-ziwei": ["flower-fc"],
   "flower-sukuyo": ["flower-fc"],
+  "premium-fpti-report": ["premium_fpti_report", "generateFptiDeepReport", "openFptiDeepReport"],
+  premium_fpti_report: ["premium-fpti-report", "generateFptiDeepReport", "openFptiDeepReport"],
+  generateFptiDeepReport: ["premium-fpti-report", "premium_fpti_report", "openFptiDeepReport"],
+  openFptiDeepReport: ["premium-fpti-report", "premium_fpti_report", "generateFptiDeepReport"],
   allPaidSaju: [
     "rpgCharacter",
     "travelDestiny",
@@ -414,6 +422,10 @@ const PERSISTENT_UNLOCK_KEY_SET = new Set([
   "premium-sukuyo",
   "premium-veda",
   "premium-naming",
+  "premium-fpti-report",
+  "premium_fpti_report",
+  "generateFptiDeepReport",
+  "openFptiDeepReport",
 ]);
 
 function isPersistentUnlockFeatureKey(rawKey) {
@@ -1004,7 +1016,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   ).trim().slice(0, 120);
   const forceDeductRaw = productSpec ? productSpec.forceDeduct : body?.forceDeduct;
   const forceDeduct = forceDeductRaw === true || String(forceDeductRaw || "").toLowerCase() === "true";
-  const forceDeductApplied = Boolean(forceDeduct && unlockKeysToPersist.length > 0);
+  const forceDeductRequested = Boolean(forceDeduct && unlockKeysToPersist.length > 0);
   const authEmail = String(auth?.email || "").trim().toLowerCase();
   const forcePaidEmails = getForcePaidTestAccountEmails(env);
   const forcePaidMode = Boolean(authEmail && forcePaidEmails.has(authEmail));
@@ -1012,6 +1024,8 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   if (adminMode && !forcePaidMode) {
     const adminTestTier = normalizeSubscriptionTier(request.headers.get("x-admin-subscription-tier"));
     const policy = getPlanPolicy(adminTestTier);
+    const adminIncludedBySubscription = Boolean(adminTestTier && cost <= policy.freeLimit);
+    const adminForceDeductApplied = Boolean(forceDeductRequested && !adminIncludedBySubscription);
     let currentPoints = null;
     let unlockedFeatures = [];
     if (auth?.userId) {
@@ -1036,8 +1050,8 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       freeLimit: policy.freeLimit,
       profileLimit: policy.profileLimit,
       recommendedCoins: policy.recommendedCoins,
-      freeBySubscription: Boolean(adminTestTier && !forceDeductApplied && cost <= policy.freeLimit),
-      forceDeductApplied,
+      freeBySubscription: adminIncludedBySubscription,
+      forceDeductApplied: adminForceDeductApplied,
       user: auth?.userId
         ? userPayload(auth, currentPoints == null ? 0 : currentPoints, unlockedFeatures)
         : { id: "admin", points: null },
@@ -1067,7 +1081,9 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   const runtimeUser = renewState.user || user;
   const effectiveTier = renewState.effectiveTier;
   const policy = getPlanPolicy(effectiveTier);
-  const isIncludedBySubscription = Boolean(!forceDeductApplied && effectiveTier && cost <= policy.freeLimit);
+  const isCoveredBySubscription = Boolean(effectiveTier && cost <= policy.freeLimit);
+  const forceDeductApplied = Boolean(forceDeductRequested && !isCoveredBySubscription);
+  const isIncludedBySubscription = Boolean(isCoveredBySubscription && !forceDeductApplied);
   const previousUnlockFeatures = normalizePersistentUnlockKeys(runtimeUser?.unlockedFeatures || []);
   const newlyUnlockedFeatures = unlockKeysToPersist.filter((key) => !previousUnlockFeatures.includes(key));
 
@@ -1083,7 +1099,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     });
 
     return buildJsonWithPremiumAccessCookie({
-      message: `${PROFILE_SUB_PLANS[effectiveTier]?.name || "구독"} 구독 중이라 코인이 차감되지 않는다. 별빛 혜택이 당신의 리딩을 지키고 있어요.`,
+      message: `${PROFILE_SUB_PLANS[effectiveTier]?.name || "구독"} 플랜 혜택으로 이번 리딩은 코인이 차감되지 않았어요. 연이가 별빛 방패로 안전하게 지켜드렸어요.`,
       code: "SUBSCRIPTION_INCLUDED",
       productId: productId || null,
       requiredCoins: cost,
@@ -1640,6 +1656,7 @@ function mapVedicConsumeFailure(response, payload) {
 async function handleAstrologyAIPrompt(request, auth, env) {
   const body = await readJson(request);
   const question = String(body?.question || "").trim();
+  const domain = String(body?.domain || "").trim();
   const astrologyResult = body?.astrologyResult;
   const compatibilityResult = body?.compatibilityResult;
 
@@ -1653,11 +1670,18 @@ async function handleAstrologyAIPrompt(request, auth, env) {
 
   let builtPrompt = null;
   try {
-    builtPrompt = buildAstrologyAIPrompt({
-      question,
-      astrologyResult,
-      compatibilityResult,
-    });
+    builtPrompt = domain
+      ? buildAstrologyAIPromptWithDomain({
+        question,
+        astrologyResult,
+        compatibilityResult,
+        domain,
+      })
+      : buildAstrologyAIPrompt({
+        question,
+        astrologyResult,
+        compatibilityResult,
+      });
   } catch (error) {
     const code = String(error?.message || "").trim();
     if (code === "INVALID_QUESTION") {
@@ -1672,6 +1696,9 @@ async function handleAstrologyAIPrompt(request, auth, env) {
         "궁합 질문은 시나스트리 결과를 먼저 계산한 후 다시 시도해 주세요.",
         400,
       );
+    }
+    if (code === "UNKNOWN_ASTROLOGY_DOMAIN") {
+      return buildAstrologyAIPromptError("INVALID_DOMAIN", "지원하지 않는 점성술 AI 주제(domain)입니다.", 400);
     }
     console.error("[fortune][astrology-ai-prompt] prompt build failed:", error);
     return buildAstrologyAIPromptError("PROMPT_GENERATION_FAILED", "프롬프트 생성 중 오류가 발생했습니다.", 500);
@@ -1698,7 +1725,7 @@ async function handleAstrologyAIPrompt(request, auth, env) {
         forceDeduct: true,
         requestId,
         categoryKey: "astrology",
-        subFeatureKey: String(builtPrompt.questionType || "general").slice(0, 60),
+        subFeatureKey: String(builtPrompt.domain || builtPrompt.questionType || "general").slice(0, 60),
         payloadHash,
       }),
     });
@@ -1890,6 +1917,7 @@ async function handleSajuAIPrompt(request, auth, env) {
   const body = await readJson(request);
   const question = String(body?.question || "").trim();
   const sajuResult = body?.sajuResult;
+  const domain = String(body?.domain || "").trim();
 
   if (!question || question.length < 5 || question.length > 1000) {
     return buildSajuAIPromptError("INVALID_QUESTION", "질문은 5자 이상 1000자 이하로 입력해 주세요.", 400);
@@ -1901,7 +1929,9 @@ async function handleSajuAIPrompt(request, auth, env) {
 
   let builtPrompt = null;
   try {
-    builtPrompt = buildSajuAIPrompt({ question, sajuResult });
+    builtPrompt = domain
+      ? buildSajuAIPromptWithDomain({ question, sajuResult, domain })
+      : buildSajuAIPrompt({ question, sajuResult });
   } catch (error) {
     const code = String(error?.message || "").trim();
     if (code === "INVALID_QUESTION") {
@@ -1909,6 +1939,9 @@ async function handleSajuAIPrompt(request, auth, env) {
     }
     if (code === "MISSING_SAJU_RESULT") {
       return buildSajuAIPromptError("MISSING_SAJU_RESULT", "기본 사주 분석 결과가 필요합니다.", 400);
+    }
+    if (code.startsWith("UNKNOWN_SAJU_DOMAIN:")) {
+      return buildSajuAIPromptError("INVALID_DOMAIN", "지원하지 않는 사주 AI 주제(domain)입니다.", 400);
     }
     console.error("[fortune][saju-ai-prompt] prompt build failed:", error);
     return buildSajuAIPromptError("PROMPT_GENERATION_FAILED", "프롬프트 생성 중 오류가 발생했습니다.", 500);
@@ -1935,7 +1968,7 @@ async function handleSajuAIPrompt(request, auth, env) {
         forceDeduct: true,
         requestId,
         categoryKey: "saju",
-        subFeatureKey: String(builtPrompt.questionType || "general").slice(0, 60),
+        subFeatureKey: String(builtPrompt.domain || builtPrompt.questionType || "general").slice(0, 60),
         payloadHash,
       }),
     });
@@ -2000,6 +2033,7 @@ async function handleSajuAIPrompt(request, auth, env) {
 async function handleZiweiAIPrompt(request, auth, env) {
   const body = await readJson(request);
   const question = String(body?.question || "").trim();
+  const domain = String(body?.domain || "").trim();
   const chartResult = body?.chartResult;
 
   if (!question || question.length < 5 || question.length > 1000) {
@@ -2012,7 +2046,9 @@ async function handleZiweiAIPrompt(request, auth, env) {
 
   let builtPrompt = null;
   try {
-    builtPrompt = buildZiweiAIPrompt({ question, chartResult });
+    builtPrompt = domain
+      ? buildZiweiAIPromptWithDomain({ question, chartResult, domain })
+      : buildZiweiAIPrompt({ question, chartResult });
   } catch (error) {
     const code = String(error?.message || "").trim();
     if (code === "INVALID_QUESTION") {
@@ -2020,6 +2056,9 @@ async function handleZiweiAIPrompt(request, auth, env) {
     }
     if (code === "MISSING_CHART_RESULT") {
       return buildZiweiAIPromptError("MISSING_CHART_RESULT", "기본 자미두수 명반 결과가 필요합니다.", 400);
+    }
+    if (code === "UNKNOWN_ZIWEI_DOMAIN") {
+      return buildZiweiAIPromptError("INVALID_DOMAIN", "지원하지 않는 자미두수 AI 주제(domain)입니다.", 400);
     }
     console.error("[fortune][ziwei-ai-prompt] prompt build failed:", error);
     return buildZiweiAIPromptError("PROMPT_GENERATION_FAILED", "프롬프트 생성 중 오류가 발생했습니다.", 500);
@@ -2051,7 +2090,7 @@ async function handleZiweiAIPrompt(request, auth, env) {
         forceDeduct: true,
         requestId,
         categoryKey: "ziweidoushu",
-        subFeatureKey: String(builtPrompt.questionType || "general").slice(0, 60),
+        subFeatureKey: String(builtPrompt.domain || builtPrompt.questionType || "general").slice(0, 60),
         payloadHash,
       }),
     });
@@ -2144,6 +2183,7 @@ function mapSukuyoConsumeFailure(response, payload) {
 async function handleSukuyoAIPrompt(request, auth, env) {
   const body = await readJson(request);
   const question = String(body?.question || "").trim();
+  const domain = String(body?.domain || "").trim();
   const basicResult = body?.basicResult;
   const compatibilityResult = body?.compatibilityResult;
 
@@ -2153,11 +2193,18 @@ async function handleSukuyoAIPrompt(request, auth, env) {
 
   let builtPrompt = null;
   try {
-    builtPrompt = buildSukuyoAIPrompt({
-      question,
-      basicResult,
-      compatibilityResult,
-    });
+    builtPrompt = domain
+      ? buildSukuyoAIPromptWithDomain({
+        question,
+        basicResult,
+        compatibilityResult,
+        domain,
+      })
+      : buildSukuyoAIPrompt({
+        question,
+        basicResult,
+        compatibilityResult,
+      });
   } catch (error) {
     const code = String(error?.message || "").trim();
     if (code === "INVALID_QUESTION") {
@@ -2172,6 +2219,9 @@ async function handleSukuyoAIPrompt(request, auth, env) {
         "궁합 질문은 숙요 궁합 계산 결과를 먼저 만든 뒤 다시 시도해 주세요.",
         400,
       );
+    }
+    if (code === "UNKNOWN_SUKUYO_DOMAIN") {
+      return buildSukuyoAIPromptError("INVALID_DOMAIN", "지원하지 않는 숙요 도메인입니다.", 400);
     }
     console.error("[fortune][sukuyo-ai-prompt] prompt build failed:", error);
     return buildSukuyoAIPromptError("PROMPT_GENERATION_FAILED", "프롬프트 생성 중 오류가 발생했습니다.", 500);
@@ -2198,7 +2248,7 @@ async function handleSukuyoAIPrompt(request, auth, env) {
         forceDeduct: true,
         requestId,
         categoryKey: "sukuyo",
-        subFeatureKey: String(builtPrompt.questionType || "general").slice(0, 60),
+        subFeatureKey: String(builtPrompt.domain || builtPrompt.questionType || "general").slice(0, 60),
         payloadHash,
       }),
     });

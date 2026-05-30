@@ -1196,6 +1196,126 @@
     } catch (_) {}
   }
 
+  function _cdShowSubscriptionShieldNotice(meta) {
+    try {
+      var info = meta && typeof meta === 'object' ? meta : {};
+      var tierRaw = String(info.subscriptionTier || info.tier || '').trim().toLowerCase();
+      var tierLabel = tierRaw === 'vvip' ? 'VVIP' : (tierRaw === 'premium' ? '프리미엄' : (tierRaw === 'standard' ? '스탠다드' : '구독'));
+      var requiredCoins = Number(info.requiredCoins || 0);
+      var freeLimit = Number(info.freeLimit || 0);
+      var message = String(info.message || '').trim() || (tierLabel + ' 혜택으로 이번 리딩은 코인이 차감되지 않았어요. 연이가 별빛 방패로 지켜드렸어요.');
+
+      var root = document.getElementById('cd-subscription-notice-root');
+      if (!root) {
+        root = document.createElement('div');
+        root.id = 'cd-subscription-notice-root';
+        root.style.position = 'fixed';
+        root.style.top = '74px';
+        root.style.right = '16px';
+        root.style.zIndex = '100000';
+        root.style.display = 'flex';
+        root.style.flexDirection = 'column';
+        root.style.gap = '10px';
+        root.style.pointerEvents = 'none';
+        document.body.appendChild(root);
+      }
+
+      var card = document.createElement('div');
+      card.style.minWidth = '290px';
+      card.style.maxWidth = '430px';
+      card.style.borderRadius = '18px';
+      card.style.border = '1px solid rgba(249, 168, 212, 0.44)';
+      card.style.background = 'linear-gradient(135deg, rgba(120,53,15,0.95), rgba(159,18,57,0.93) 52%, rgba(30,58,138,0.93))';
+      card.style.boxShadow = '0 24px 48px rgba(15,23,42,0.48)';
+      card.style.color = '#fff7ed';
+      card.style.padding = '12px 14px';
+      card.style.display = 'grid';
+      card.style.gridTemplateColumns = '66px 1fr';
+      card.style.gap = '12px';
+      card.style.alignItems = 'center';
+      card.style.pointerEvents = 'auto';
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(-10px) scale(0.97)';
+      card.style.transition = 'opacity 230ms ease, transform 230ms ease';
+
+      var spriteWrap = document.createElement('div');
+      spriteWrap.style.width = '66px';
+      spriteWrap.style.height = '66px';
+      spriteWrap.style.borderRadius = '14px';
+      spriteWrap.style.overflow = 'hidden';
+      spriteWrap.style.border = '1px solid rgba(255,255,255,0.28)';
+      spriteWrap.style.background = 'radial-gradient(circle at 30% 20%, rgba(255,255,255,0.38), rgba(255,255,255,0.06) 52%, rgba(15,23,42,0.22))';
+
+      var sprite = document.createElement('div');
+      sprite.style.width = '100%';
+      sprite.style.height = '100%';
+      sprite.style.backgroundImage = 'url("/fuctionassets/%EC%97%B0%EC%9D%B4%20%EC%BA%90%EB%A6%AD%ED%84%B0%20%EC%8A%A4%ED%94%84%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%EC%8B%9C%ED%8A%B8.webp")';
+      sprite.style.backgroundRepeat = 'no-repeat';
+      sprite.style.backgroundSize = '400% 300%';
+      sprite.style.imageRendering = 'auto';
+      spriteWrap.appendChild(sprite);
+
+      var textWrap = document.createElement('div');
+      var heading = document.createElement('strong');
+      heading.style.display = 'block';
+      heading.style.fontSize = '12px';
+      heading.style.letterSpacing = '.06em';
+      heading.style.color = '#fbcfe8';
+      heading.textContent = 'YEON SUBSCRIPTION SHIELD';
+
+      var body = document.createElement('div');
+      body.style.fontSize = '13px';
+      body.style.lineHeight = '1.52';
+      body.style.marginTop = '2px';
+      body.textContent = message;
+
+      var policy = document.createElement('div');
+      policy.style.marginTop = '4px';
+      policy.style.fontSize = '12px';
+      policy.style.color = 'rgba(255,247,237,0.9)';
+      var policyLabel = '구독 정책 적용: ' + tierLabel + ' 플랜';
+      if (freeLimit > 0) {
+        policyLabel += ' · ' + freeLimit.toLocaleString('ko-KR') + '코인 이하 서비스 비차감';
+      }
+      if (requiredCoins > 0) {
+        policyLabel += ' · 이번 서비스 ' + requiredCoins.toLocaleString('ko-KR') + '코인';
+      }
+      policy.textContent = policyLabel;
+
+      textWrap.appendChild(heading);
+      textWrap.appendChild(body);
+      textWrap.appendChild(policy);
+      card.appendChild(spriteWrap);
+      card.appendChild(textWrap);
+      root.appendChild(card);
+
+      var frames = [0, 1, 2, 1, 4, 5, 4, 1];
+      var cols = 4;
+      var frameIdx = 0;
+      var frameTimer = setInterval(function() {
+        frameIdx = (frameIdx + 1) % frames.length;
+        var frame = frames[frameIdx];
+        var col = frame % cols;
+        var row = Math.floor(frame / cols);
+        sprite.style.backgroundPosition = (col * -100 / (cols - 1)) + '% ' + (row * -100 / 2) + '%';
+      }, 130);
+
+      requestAnimationFrame(function() {
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0) scale(1)';
+      });
+
+      setTimeout(function() {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(-8px) scale(0.98)';
+        setTimeout(function() {
+          clearInterval(frameTimer);
+          if (card.parentNode) card.parentNode.removeChild(card);
+        }, 240);
+      }, 4700);
+    } catch (_) {}
+  }
+
   function _dpSetPaymentPending(show, message) {
     var text = String(message || '').trim() || '결제가 진행 중입니다.';
 
@@ -1483,7 +1603,12 @@
       try { var _u3 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {}; _u3.points = nb; _dpWriteAuthUser(_u3); } catch(_) {}
       if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nb);
       if (freeBySubscription) {
-        window.alert(String(data.message || '구독 중이라 코인이 차감되지 않는다. 별빛 혜택이 당신의 리딩을 지키고 있어요.'));
+        _cdShowSubscriptionShieldNotice({
+          message: data.message,
+          subscriptionTier: data.subscriptionTier,
+          freeLimit: data.freeLimit,
+          requiredCoins: requestedCost,
+        });
       } else if (chargedCoins > 0) {
         _cdShowCoinDeductNotice(chargedCoins, nb, reason);
       }
@@ -1655,7 +1780,12 @@
         if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(newBalance);
         var chargedCoins = Number((res.data && res.data.chargedCoins) || info.cost);
         if (res.data && res.data.freeBySubscription === true) {
-          window.alert(String(res.data.message || '구독 중이라 코인이 차감되지 않는다. 별빛 혜택이 당신의 리딩을 지키고 있어요.'));
+          _cdShowSubscriptionShieldNotice({
+            message: res.data.message,
+            subscriptionTier: res.data.subscriptionTier,
+            freeLimit: res.data.freeLimit,
+            requiredCoins: info.cost,
+          });
         } else if (chargedCoins > 0) {
           _cdShowCoinDeductNotice(chargedCoins, newBalance, info.name + ' 영구 해금');
         }
