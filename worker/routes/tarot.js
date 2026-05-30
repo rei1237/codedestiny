@@ -3,6 +3,7 @@ import { requireAuth } from "../lib/auth.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { buildImageCandidates, getTarotCardByAnyId, TAROT_CARDS } from "../../lib/tarot/tarot-cards.mjs";
 import { buildMindscanReadingPayload } from "../../lib/tarot/mindscan-reading.mjs";
+import { buildLoveConsultingHighlights, normalizeLoveReadingPayload } from "../../lib/tarot/love-reading-normalizer.mjs";
 import { expectedCardCount, listSpreadIds, normalizeSpreadType, getSpreadDefinition } from "../../lib/tarot/spreads.mjs";
 import {
   buildGeminiPrompt,
@@ -286,6 +287,8 @@ export async function handleTarotRoutes(request, env = {}) {
         userQuestion: asText(body?.userQuestion),
         userContext: body?.userContext,
       });
+      payload.reading = normalizeLoveReadingPayload(payload?.reading, payload?.cards || []);
+      payload.consultingHighlights = buildLoveConsultingHighlights(payload.reading);
       payload.isRelationshipReading = true;
       payload.api = "love-reading";
       return json(payload);
