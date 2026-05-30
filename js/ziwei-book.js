@@ -140,6 +140,18 @@
     var details = details || {};
     var httpStatus = Number(status || 0) || 0;
     var failureStage = String(details.failureStage || details.stage || '');
+    var errorCode = String(details.code || details.errorCode || '').toUpperCase();
+    var reasonText = String(details.reason || details.message || '').toLowerCase();
+
+    if (httpStatus === 0) {
+      if (errorCode === 'ZIWEI_PREPARE_TIMEOUT') {
+        return '자미두수 PDF 응답이 지연되고 있습니다. 잠시 후 다시 시도해주세요.';
+      }
+      if (errorCode === 'ZIWEI_NETWORK_ERROR') {
+        return '네트워크 연결 문제로 자미두수 PDF 요청에 실패했습니다. 연결 상태 확인 후 다시 시도해주세요.';
+      }
+      return '자미두수 PDF 요청 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+    }
     
     if (httpStatus === 429) {
       return '자미두수 PDF 생성 AI 할당량이 임시로 부족합니다. 잠시 후 다시 시도해주세요.';
@@ -151,6 +163,9 @@
       return '입력한 정보가 올바르지 않습니다. 다시 확인해주세요.';
     }
     if (httpStatus === 500 || httpStatus === 502 || httpStatus === 504) {
+      if (reasonText.indexOf('_llm_error:429') >= 0 || reasonText.indexOf('quota') >= 0 || reasonText.indexOf('rate-limit') >= 0) {
+        return '자미두수 PDF 생성 AI 할당량이 임시로 부족합니다. 잠시 후 다시 시도해주세요.';
+      }
       if (failureStage === 'chapter_generation') {
         var chapterNo = String(details.failedChapterNo || '');
         if (chapterNo) {
@@ -738,7 +753,9 @@
       return err;
     }
 
+    var lastError = null;
     while(endpointIndex < endpoints.length){
+      var endpointUrl = endpoints[endpointIndex];
       var token = (payment && (payment.premiumAccessToken || payment.accessToken)) || getPremiumToken();
       var headers = { 'Content-Type': 'application/json' };
       if(token) headers['x-premium-access-token'] = token;
@@ -746,18 +763,38 @@
 
       var pack;
       try {
-        pack = await _fetchJsonWithTimeout(endpoints[endpointIndex++], {
+        pack = await _fetchJsonWithTimeout(endpointUrl, {
           method: 'POST',
           headers: headers,
           body: JSON.stringify(body),
         }, ZIWEI_FETCH_TIMEOUT_MS);
+        endpointIndex += 1;
       } catch(error){
         if(error && error.name === 'AbortError') {
+          lastError = toError('자미두수 PDF 생성 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.', 0, {
+            code: 'ZIWEI_PREPARE_TIMEOUT',
+            endpoint: endpointUrl,
+          });
+          logFlow('PrepareTimeout', { endpoint: endpointUrl, endpointIndex: endpointIndex + 1, totalEndpoints: endpoints.length });
+          endpointIndex += 1;
           if(endpointIndex < endpoints.length) continue;
-          throw toError('자미두수 PDF 생성 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.', 0, { code: 'ZIWEI_PREPARE_TIMEOUT' });
+          throw lastError;
         }
+        lastError = toError((error && error.message) || '네트워크 오류가 발생했습니다.', 0, {
+          code: 'ZIWEI_NETWORK_ERROR',
+          endpoint: endpointUrl,
+          errorName: error && error.name,
+        });
+        logFlow('PrepareNetworkError', {
+          endpoint: endpointUrl,
+          endpointIndex: endpointIndex + 1,
+          totalEndpoints: endpoints.length,
+          errorName: error && error.name,
+          message: error && error.message,
+        });
+        endpointIndex += 1;
         if(endpointIndex < endpoints.length) continue;
-        throw error;
+        throw lastError;
       }
 
       var json = pack.json || {};
@@ -767,18 +804,27 @@
         return json;
       }
 
+      lastError = toError(json.message || json.error || ('자미두수 PDF 생성 요청에 실패했습니다. HTTP ' + status), status, Object.assign({}, json, { endpoint: endpointUrl }));
+
       if(_isZiweiAuthOrPaymentFailure(status, json)) {
         logFlow('AuthOrPaymentFailure', { status: status, code: json.code, message: json.message });
-        throw toError(json.message || json.error || '로그인 또는 결제 확인이 필요합니다.', status, json);
+        throw toError(json.message || json.error || '로그인 또는 결제 확인이 필요합니다.', status, Object.assign({}, json, { endpoint: endpointUrl }));
       }
       if(!_isRetryableZiweiStatus(status)) {
-        logFlow('NonRetryableError', { status: status, code: json.code, message: json.message, endpoint: endpoints[endpointIndex - 1] });
-        throw toError(json.message || json.error || ('자미두수 PDF 생성 요청에 실패했습니다. HTTP ' + status), status, json);
+        logFlow('NonRetryableError', { status: status, code: json.code, message: json.message, endpoint: endpointUrl });
+        throw toError(json.message || json.error || ('자미두수 PDF 생성 요청에 실패했습니다. HTTP ' + status), status, Object.assign({}, json, { endpoint: endpointUrl }));
       }
-      logFlow('RetryableStatus', { status: status, endpointIndex: endpointIndex, totalEndpoints: endpoints.length });
+      logFlow('RetryableStatus', {
+        status: status,
+        code: json.code,
+        message: json.message,
+        endpoint: endpointUrl,
+        endpointIndex: endpointIndex,
+        totalEndpoints: endpoints.length
+      });
     }
 
-    throw new Error('자미두수 PDF 생성 요청에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+    throw (lastError || toError('자미두수 PDF 생성 요청에 실패했습니다. 잠시 후 다시 시도해 주세요.', 0, { code: 'ZIWEI_PREPARE_FAILED' }));
   }
 
   function renderResult(data){

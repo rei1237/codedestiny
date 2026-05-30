@@ -41,10 +41,12 @@ export function pickGeminiKeys(env, preferredEnvKeys = []) {
     getEnv(env, "PREMIUM_GEMINI_API_KEY2"),
     getEnv(env, "PREMIUM_GEMINI_API_KEY3"),
     getEnv(env, "PREMIUM_GEMINI_API_KEY4"),
+    getEnv(env, "PREMIUM_GEMINI_API_KEY5"),
     getEnv(env, "GEMINIF_API_KEY1"),
     getEnv(env, "GEMINIF_API_KEY2"),
     getEnv(env, "GEMINIF_API_KEY3"),
     getEnv(env, "GEMINIF_API_KEY4"),
+    getEnv(env, "GEMINIF_API_KEY5"),
     getEnv(env, "GEMINI_API_KEY"),
     getEnv(env, "GOOGLE_GEMINI_API_KEY"),
     getEnv(env, "GOOGLE_GENERATIVE_AI_API_KEY"),
@@ -233,6 +235,7 @@ async function callVertexGeminiText(env, prompt, options = {}) {
 
   const maxAttemptsPerPair = Math.max(1, Math.min(3, Number(options.maxAttemptsPerPair) || 2));
   let lastError = "";
+  let lastStatus = null;
 
   for (const model of models) {
     const endpoint = getVertexGenerateEndpoint(env, model);
@@ -255,6 +258,7 @@ async function callVertexGeminiText(env, prompt, options = {}) {
 
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) {
+          lastStatus = Number(response.status || 0) || null;
           lastError = clean(payload?.error?.message || `Vertex Gemini request failed (${response.status})`);
           if (attempt < maxAttemptsPerPair && (isRetriableStatus(response.status) || isRetriableErrorMessage(lastError))) {
             await sleep(computeRetryDelayMs(attempt, response, lastError));
@@ -276,6 +280,7 @@ async function callVertexGeminiText(env, prompt, options = {}) {
         break;
       } catch (error) {
         lastError = clean(error?.message || String(error));
+        lastStatus = Number(error?.status || error?.code || 0) || null;
         if (attempt < maxAttemptsPerPair && isRetriableErrorMessage(lastError)) {
           await sleep(computeRetryDelayMs(attempt, null, lastError));
           continue;
@@ -287,6 +292,8 @@ async function callVertexGeminiText(env, prompt, options = {}) {
 
   return {
     ok: false,
+    status: lastStatus,
+    error: "vertex_exhausted",
     message: lastError || "Vertex Gemini request failed for all configured models.",
   };
 }
@@ -434,6 +441,10 @@ export async function callGeminiText(env, prompt, options = {}) {
   }
 
   const totalTimeoutMsRaw = Number(options.totalTimeoutMs);
+  const preferVertexFirst = String(options.preferVertexFirst ?? getEnv(env, "VERTEX_PREFER_FIRST") ?? "").trim().toLowerCase();
+  const vertexOnly = String(options.vertexOnly ?? getEnv(env, "VERTEX_ONLY") ?? "").trim().toLowerCase();
+  const shouldPreferVertexFirst = preferVertexFirst === "1" || preferVertexFirst === "true" || preferVertexFirst === "yes";
+  const shouldUseVertexOnly = vertexOnly === "1" || vertexOnly === "true" || vertexOnly === "yes";
   const totalTimeoutMs = Number.isFinite(totalTimeoutMsRaw) && totalTimeoutMsRaw > 0
     ? Math.max(1000, totalTimeoutMsRaw)
     : 0;
@@ -458,6 +469,37 @@ export async function callGeminiText(env, prompt, options = {}) {
     return Math.max(250, Math.min(configuredMs, budgetMs));
   }
 
+  async function tryVertexFirst() {
+    const vertexAttemptTimeoutMs = computeAttemptTimeoutMs();
+    const vertexResult = await callVertexGeminiText(env, textPrompt, {
+      ...options,
+      timeoutMs: vertexAttemptTimeoutMs > 0 ? vertexAttemptTimeoutMs : options.timeoutMs,
+    });
+    if (vertexResult?.ok && clean(vertexResult.text)) {
+      return {
+        ok: true,
+        text: clean(vertexResult.text),
+        model: clean(vertexResult.model) || "vertex",
+      };
+    }
+    return vertexResult || { ok: false, error: "vertex_exhausted", message: "Vertex request failed." };
+  }
+
+  if (shouldPreferVertexFirst || shouldUseVertexOnly) {
+    const vertexFirstResult = await tryVertexFirst();
+    if (vertexFirstResult?.ok) {
+      return vertexFirstResult;
+    }
+    if (shouldUseVertexOnly) {
+      return {
+        ok: false,
+        error: clean(vertexFirstResult?.error || "vertex_exhausted") || "vertex_exhausted",
+        status: Number(vertexFirstResult?.status || 0) || null,
+        message: clean(vertexFirstResult?.message || "Vertex request failed."),
+      };
+    }
+  }
+
   const keys = pickGeminiKeys(env, options.keyEnvKeys || []);
   const processGeminiKeyConfigured = Boolean(
     canUseNodeSdk()
@@ -466,10 +508,12 @@ export async function callGeminiText(env, prompt, options = {}) {
           || process?.env?.PREMIUM_GEMINI_API_KEY2
           || process?.env?.PREMIUM_GEMINI_API_KEY3
           || process?.env?.PREMIUM_GEMINI_API_KEY4
+          || process?.env?.PREMIUM_GEMINI_API_KEY5
           || process?.env?.GEMINIF_API_KEY1
           || process?.env?.GEMINIF_API_KEY2
           || process?.env?.GEMINIF_API_KEY3
           || process?.env?.GEMINIF_API_KEY4
+          || process?.env?.GEMINIF_API_KEY5
           || process?.env?.GEMINI_API_KEY
           || process?.env?.GOOGLE_GEMINI_API_KEY
           || "",
@@ -486,7 +530,7 @@ export async function callGeminiText(env, prompt, options = {}) {
       ok: false,
       error: "gemini_keys_missing",
       status: 401,
-      message: "Gemini API 키가 설정되어 있지 않습니다. PREMIUM_GEMINI_API_KEY1~4, GEMINIF_API_KEY1~4 또는 GEMINI_API_KEY를 설정하세요.",
+      message: "Gemini API 키가 설정되어 있지 않습니다. PREMIUM_GEMINI_API_KEY1~5, GEMINIF_API_KEY1~5 또는 GEMINI_API_KEY를 설정하세요.",
     };
   }
 

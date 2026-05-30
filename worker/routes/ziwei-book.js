@@ -268,6 +268,18 @@ function clean(value) {
   return String(value == null ? "" : value).trim();
 }
 
+function compactText(value, maxLen = 240) {
+  return clean(value).replace(/\s+/g, " ").slice(0, Math.max(32, Number(maxLen) || 240));
+}
+
+function isFatalLlmError(message) {
+  const text = clean(message || "");
+  if (!text.includes("_llm_error:")) return false;
+  const matched = text.match(/_llm_error:(\d{3}):/);
+  const status = matched ? Number(matched[1]) : 0;
+  return status === 401 || status === 403 || status === 429;
+}
+
 function pickNonEmpty(...values) {
   for (const value of values) {
     if (value === null || value === undefined) continue;
@@ -318,6 +330,11 @@ function normalizeZiweiError(error) {
     }
   }
   return { message: String(error) };
+}
+
+function isTruthyEnv(value) {
+  const normalized = clean(value).toLowerCase();
+  return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
 }
 
 function esc(value) {
@@ -1309,16 +1326,25 @@ async function generateZiweiChapterByLlm({ env, seed, chapterSpec, previousChapt
 
     result = await callGeminiText(env, prompt, {
       keyEnvKeys: ["ZIWEI_GEMINI_API_KEY"],
-      modelEnvKeys: ["ZIWEI_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"],
+      modelEnvKeys: ["ZIWEI_VERTEX_GEMINI_MODEL", "VERTEX_GEMINI_MODEL", "ZIWEI_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"],
       temperature: 0.72,
       maxOutputTokens: 8192,
       timeoutMs: Math.min(20000, Number(env.ZIWEI_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 18000)),
       totalTimeoutMs: Math.min(26000, Number(env.ZIWEI_GEMINI_TOTAL_TIMEOUT_MS || env.PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || 24000)),
       maxAttemptsPerPair: 1,
+      preferVertexFirst: isTruthyEnv(env.ZIWEI_VERTEX_PREFER_FIRST || env.VERTEX_PREFER_FIRST),
+      vertexOnly: isTruthyEnv(env.ZIWEI_VERTEX_ONLY || env.VERTEX_ONLY),
     });
   }
 
-  if (!result?.ok || !clean(result.text)) {
+  if (!result?.ok) {
+    const llmStatus = Number(result?.status || 0) || 0;
+    const llmError = compactText(result?.error || "llm_failed", 160);
+    const llmMessage = compactText(result?.message || "", 220);
+    throw new Error(`chapter_${chapterSpec.id}_llm_error:${llmStatus}:${llmError}:${llmMessage}`);
+  }
+
+  if (!clean(result.text)) {
     throw new Error(`chapter_${chapterSpec.id}_llm_empty`);
   }
 
@@ -1369,6 +1395,14 @@ async function generateZiweiPdfWithLLMOnlyInterpretation({ env, seed, chapterSpe
           reason: failureReason,
           sessionId,
         });
+        if (isFatalLlmError(failureReason)) {
+          console.warn("[ZiweiPremiumPDF][ChapterRetryAbort]", {
+            chapterNo: Number(chapterSpec.id),
+            reason: failureReason,
+            sessionId,
+          });
+          break;
+        }
       }
     }
     if (!chapter) {
@@ -1815,16 +1849,24 @@ async function handlePrepare(request, env) {
 }
 
 export async function handleZiweiBookRoutes(request, env = {}) {
+  const method = request.method.toUpperCase();
+  const path = getRoutePath(request, "/api/ziwei-book");
   try {
-    const method = request.method.toUpperCase();
-    const path = getRoutePath(request, "/api/ziwei-book");
     if (method === "GET" && (path === "/chapters" || path === "chapters")) return await handleChapters();
     if (method === "POST" && (path === "" || path === "/" || path === "/prepare" || path === "prepare")) return await handlePrepare(request, env);
     if (!["GET", "POST"].includes(method)) return methodNotAllowed(["GET", "POST"]);
     return json({ ok: false, serviceKey: ZIWEI_SERVICE_KEY, message: "지원하지 않는 자미두수 PDF 경로입니다." }, { status: 404 });
   } catch (error) {
     console.error("[ZiweiPremiumPDF][Error]", normalizeZiweiError(error));
-    return handleRouteError(error, "ZiweiBookRoutes");
+    return handleRouteError(error, {
+      request,
+      env,
+      trace: {
+        route: "ZiweiBookRoutes",
+        method,
+        path,
+      },
+    });
   }
 }
 

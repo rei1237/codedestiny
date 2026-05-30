@@ -1601,6 +1601,7 @@ function listGeminiKeyStatus(env) {
     "PREMIUM_GEMINI_API_KEY2",
     "PREMIUM_GEMINI_API_KEY3",
     "PREMIUM_GEMINI_API_KEY4",
+    "PREMIUM_GEMINI_API_KEY5",
     "GEMINI_API_KEY",
     "GOOGLE_GEMINI_API_KEY",
     "GOOGLE_GENERATIVE_AI_API_KEY",
@@ -1610,6 +1611,7 @@ function listGeminiKeyStatus(env) {
     "GEMINIF_API_KEY2",
     "GEMINIF_API_KEY3",
     "GEMINIF_API_KEY4",
+    "GEMINIF_API_KEY5",
   ];
   const status = {};
   let enabledCount = 0;
@@ -1632,11 +1634,17 @@ async function runGeminiSmoke(env, requestId) {
       "PREMIUM_GEMINI_API_KEY2",
       "PREMIUM_GEMINI_API_KEY3",
       "PREMIUM_GEMINI_API_KEY4",
+      "PREMIUM_GEMINI_API_KEY5",
       "GEMINI_API_KEY",
       "GOOGLE_GEMINI_API_KEY",
       "GOOGLE_GENERATIVE_AI_API_KEY",
       "GOOGLE_AI_API_KEY",
       "GOOGLE_API_KEY",
+      "GEMINIF_API_KEY1",
+      "GEMINIF_API_KEY2",
+      "GEMINIF_API_KEY3",
+      "GEMINIF_API_KEY4",
+      "GEMINIF_API_KEY5",
     ],
     modelEnvKeys: ["PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"],
     temperature: 0,

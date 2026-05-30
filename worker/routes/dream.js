@@ -53,6 +53,7 @@ function pickGeminiKeys(env) {
     env.GEMINIF_API_KEY2,
     env.GEMINIF_API_KEY3,
     env.GEMINIF_API_KEY4,
+    env.GEMINIF_API_KEY5,
   ].map((v) => String(v || "").trim()).filter(Boolean);
 }
 
