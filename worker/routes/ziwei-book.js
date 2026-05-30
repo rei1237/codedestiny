@@ -1,4 +1,4 @@
-import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, readJson } from "../lib/http.js";
+import { cookieValue, createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, readJson } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { callGeminiText } from "../lib/gemini.js";
@@ -1810,7 +1810,7 @@ async function handlePrepare(request, env) {
     };
     
     console.error("[ZiweiPremiumPDF][GenerationError]", errorResponse);
-    throw new HttpError(errorMessage, 500, errorResponse);
+    throw createHttpError(errorMessage, 500, errorResponse);
   }
 }
 
