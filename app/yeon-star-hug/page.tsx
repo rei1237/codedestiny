@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   BatteryLow,
@@ -22,6 +22,7 @@ import {
   type YeonHeartStarReading,
   validateYeonHeartStarReading,
 } from "@/lib/yeon/heartStarReading";
+import { readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
 
 type EmotionKey = "happy" | "calm" | "tired" | "worried" | "flutter" | "blue";
 type ZodiacSign =
@@ -100,6 +101,8 @@ type ConsultationResult = {
   actionPlan: string[];
   astroEvidence: string[];
   keywordSupportLines: string[];
+  concernReasoning: string[];
+  resilienceMessage: string;
   concernCategory: ConcernCategory;
   concernDomain: ConcernDomain;
   concernCategoryLabel: string;
@@ -109,6 +112,28 @@ type ConsultationResult = {
   moon: MoonSnapshot;
   aspect: AspectSnapshot;
   dayRuler: DayRulerSnapshot;
+};
+
+type StoredProfile = {
+  id?: string;
+  name?: string;
+  birth?: {
+    year?: number;
+    month?: number;
+    day?: number;
+    hour?: number;
+    minute?: number;
+  };
+  birthDate?: string;
+  birthIso?: string;
+  birthTime?: string;
+};
+
+type ProfileSeed = {
+  name: string;
+  birthDateInput: string;
+  birthTimeInput: string;
+  source: "profile" | "auth" | "none";
 };
 
 type HeartSymbolId = "clover" | "moonStar" | "lotus" | "goldKey" | "butterfly" | "comet";
@@ -389,6 +414,8 @@ const STAR_DOTS = [
   { left: "86%", top: "82%", delay: 1.25 },
 ];
 
+const PROFILE_NS = "FORTUNE_APP_USER_PROFILES";
+
 const HEART_SYMBOL_LIBRARY: Record<HeartSymbolId, HeartSymbol> = {
   clover: {
     id: "clover",
@@ -575,6 +602,110 @@ function renderHeartSymbolGlyph(symbolId: HeartSymbolId, cx: number, cy: number)
 
 function toScore(value: number) {
   return Math.round(clamp(value, 1, 5));
+}
+
+function toPaddedNumber(value: unknown, length: number) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "";
+  return String(Math.trunc(n)).padStart(length, "0");
+}
+
+function buildBirthDateInput(birth: StoredProfile["birth"]) {
+  const year = toPaddedNumber(birth?.year, 4);
+  const month = toPaddedNumber(birth?.month, 2);
+  const day = toPaddedNumber(birth?.day, 2);
+  if (!year || !month || !day) return "";
+  return `${year}${month}${day}`;
+}
+
+function normalizeBirthDateText(value: unknown) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length !== 8) return "";
+  return digits;
+}
+
+function normalizeBirthTimeText(value: unknown) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length === 4) return digits;
+  return "";
+}
+
+function buildBirthDateInputFromText(profile: StoredProfile) {
+  return normalizeBirthDateText(profile.birthDate || profile.birthIso || "");
+}
+
+function buildBirthTimeInputFromText(profile: StoredProfile) {
+  return normalizeBirthTimeText(profile.birthTime || profile.birthIso || "");
+}
+
+function formatBirthDateInput(value: string) {
+  const digits = normalizeBirthDateText(value);
+  if (!digits) return "생년월일 미연결";
+  return `${digits.slice(0, 4)}.${digits.slice(4, 6)}.${digits.slice(6, 8)}`;
+}
+
+function formatBirthTimeInput(value: string) {
+  const digits = normalizeBirthTimeText(value);
+  if (!digits) return "--:--";
+  return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`;
+}
+
+function parseSignFromBirthDateInput(value: string): ZodiacSign | null {
+  const digits = normalizeBirthDateText(value);
+  if (!digits) return null;
+
+  const month = Number(digits.slice(4, 6));
+  const day = Number(digits.slice(6, 8));
+  if (!Number.isFinite(month) || !Number.isFinite(day)) return null;
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+
+  return getSignByMonthDay(month, day);
+}
+
+function readProfileSeedFromStorage(): ProfileSeed {
+  if (typeof window === "undefined") {
+    return { name: "", birthDateInput: "", birthTimeInput: "", source: "none" };
+  }
+
+  try {
+    const user = readSanitizedAuthUser();
+    const scope = resolveAuthScopeFromUser(user) || "guest";
+    const fallbackName = String(user?.name || "").trim();
+    const fallbackBirthDateInput = normalizeBirthDateText((user as { birthDate?: string } | null)?.birthDate);
+    const fallbackBirthTimeInput = normalizeBirthTimeText((user as { birthTime?: string } | null)?.birthTime);
+
+    const listRaw =
+      window.localStorage.getItem(`${PROFILE_NS}.list::${scope}`) ||
+      window.localStorage.getItem(`${PROFILE_NS}.list`) ||
+      "[]";
+    const currentId =
+      window.localStorage.getItem(`${PROFILE_NS}.current::${scope}`) ||
+      window.localStorage.getItem(`${PROFILE_NS}.current`) ||
+      "";
+
+    const list = JSON.parse(listRaw) as StoredProfile[];
+    if (!Array.isArray(list) || list.length === 0) {
+      return {
+        name: fallbackName,
+        birthDateInput: fallbackBirthDateInput,
+        birthTimeInput: fallbackBirthTimeInput,
+        source: fallbackBirthDateInput ? "auth" : "none",
+      };
+    }
+
+    const profile = (currentId ? list.find((item) => item?.id === currentId) : undefined) || list[0] || {};
+    const profileBirthDateInput = buildBirthDateInput(profile.birth) || buildBirthDateInputFromText(profile) || fallbackBirthDateInput;
+    const profileBirthTimeInput = buildBirthTimeInputFromText(profile) || fallbackBirthTimeInput;
+
+    return {
+      name: String(profile.name || fallbackName).trim(),
+      birthDateInput: profileBirthDateInput,
+      birthTimeInput: profileBirthTimeInput,
+      source: profileBirthDateInput ? "profile" : fallbackBirthDateInput ? "auth" : "none",
+    };
+  } catch (_error) {
+    return { name: "", birthDateInput: "", birthTimeInput: "", source: "none" };
+  }
 }
 
 function getSignByMonthDay(month: number, day: number): ZodiacSign {
@@ -907,11 +1038,31 @@ function buildWarmLetterMessage(args: {
     "사랑하는 너에게,",
     `${EMOTION_OPENING[selectedEmotion]} 지금의 너는 충분히 잘하고 있어.`,
     `오늘은 ${priorityDomain} 흐름에서 특히 네 힘이 살아나는 날이야. 너무 많이 증명하려 하지 말고, 네 호흡대로 한 걸음만 가도 괜찮아.`,
+    `지금 고민이 커진 건 네가 약해서가 아니라, ${priorityDomain}에서 진심으로 책임을 다하려고 했기 때문이야. 그러니 이렇게 흔들리는 건 정말 그럴 수 있어.`,
     `응원 키워드: #${safeKeyword} #${priorityDomain.replace(/\//g, "")} #연이응원`,
     `실행 우선순위는 "${priorityDomain} → ${CATEGORY_LABEL[concern.topCategory]}" 순서로 부드럽게 잡아보자.`,
-    "완벽하지 않아도 돼. 오늘의 작은 전진이 내일의 너를 지켜줄 거야.",
+    "완벽하지 않아도 돼. 오늘의 작은 전진이 내일의 너를 지켜줄 거야. 힘내, 연이는 끝까지 네 편이야.",
     "연이는 오늘도 네 편이야.",
   ].join("\n\n");
+}
+
+function buildConcernReasoning(args: {
+  concern: ConcernAnalysis;
+  selectedSign: ZodiacSign;
+  todaySunSign: ZodiacSign;
+  moon: MoonSnapshot;
+  aspect: AspectSnapshot;
+  dayRuler: DayRulerSnapshot;
+}) {
+  const { concern, selectedSign, todaySunSign, moon, aspect, dayRuler } = args;
+  const moonPct = Math.round(moon.illumination * 100);
+  const keyLabel = concern.domainKeywords[0] || concern.topKeywords[0] || CATEGORY_LABEL[concern.topCategory];
+
+  return [
+    `${selectedSign}인 너와 오늘 태양 ${todaySunSign}의 ${aspect.label} 각도(${aspect.summary})가 맞물리면서, ${DOMAIN_LABEL[concern.topDomain]} 고민에서 감정 반응이 예민해지기 쉬운 흐름이야.`,
+    `${moon.label} (조도 ${moonPct}%) 구간이라 마음의 체감 강도가 커져서 '${keyLabel}' 이슈가 평소보다 더 크게 느껴질 수 있어.`,
+    `${dayRuler.label} 리듬(${dayRuler.summary})까지 겹쳐서 생각이 반복되기 쉬운 날이지만, 이건 네가 약해서가 아니라 중요한 것을 지키려는 정상 반응이야.`,
+  ];
 }
 
 function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey, concernText: string, date: Date): ConsultationResult {
@@ -1008,6 +1159,14 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
     selectedEmotion,
     concern,
   });
+  const concernReasoning = buildConcernReasoning({
+    concern,
+    selectedSign,
+    todaySunSign,
+    moon,
+    aspect,
+    dayRuler,
+  });
 
   const signInfo = ZODIAC_SIGNS.find((item) => item.sign === selectedSign) ?? ZODIAC_SIGNS[0];
 
@@ -1024,6 +1183,8 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
     actionPlan: ACTION_PLAN_BY_DOMAIN[concern.topDomain] ?? ACTION_PLAN_BY_CATEGORY[concern.topCategory],
     astroEvidence,
     keywordSupportLines,
+    concernReasoning,
+    resilienceMessage: "그럴 수 있어. 오늘은 네 마음이 약한 게 아니라, 버틴 시간이 길었다는 증거야. 천천히 가도 괜찮아. 힘내.",
     concernCategory: concern.topCategory,
     concernDomain: concern.topDomain,
     concernCategoryLabel: CATEGORY_LABEL[concern.topCategory],
@@ -1323,8 +1484,70 @@ export default function YeonStarHugPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [shareFeedback, setShareFeedback] = useState("SVG 상징 카드로 저장하거나 공유할 수 있어요.");
+  const [profileSeed, setProfileSeed] = useState<ProfileSeed>({ name: "", birthDateInput: "", birthTimeInput: "", source: "none" });
+  const [profileSyncNote, setProfileSyncNote] = useState("프로필 카드 생년월일을 연결하면 별자리를 자동으로 맞춰드려요.");
+  const [profileNameInput, setProfileNameInput] = useState("");
+  const [birthDateInput, setBirthDateInput] = useState("");
+  const [birthTimeInput, setBirthTimeInput] = useState("");
   const [consultation, setConsultation] = useState<ConsultationResult | null>(null);
   const [reading, setReading] = useState<YeonHeartStarReading | null>(null);
+
+  useEffect(() => {
+    const applyProfileSeed = () => {
+      const nextSeed = readProfileSeedFromStorage();
+      setProfileSeed(nextSeed);
+      setProfileNameInput(nextSeed.name || "");
+      setBirthDateInput(normalizeBirthDateText(nextSeed.birthDateInput));
+      setBirthTimeInput(normalizeBirthTimeText(nextSeed.birthTimeInput));
+
+      const signByProfile = parseSignFromBirthDateInput(nextSeed.birthDateInput);
+      if (signByProfile) {
+        setSelectedSign(signByProfile);
+        setProfileSyncNote(`프로필 카드 기준 별자리 ${signByProfile}로 자동 동기화했어요.`);
+      } else {
+        setProfileSyncNote("프로필 카드 생년월일을 찾지 못해 현재 별자리를 유지하고 있어요.");
+      }
+    };
+
+    applyProfileSeed();
+    if (typeof window === "undefined") return;
+
+    window.addEventListener("destinyProfileChanged", applyProfileSeed);
+    return () => {
+      window.removeEventListener("destinyProfileChanged", applyProfileSeed);
+    };
+  }, []);
+
+  const syncSignFromProfile = () => {
+    const nextSeed = readProfileSeedFromStorage();
+    setProfileSeed(nextSeed);
+    setProfileNameInput(nextSeed.name || "");
+    setBirthDateInput(normalizeBirthDateText(nextSeed.birthDateInput));
+    setBirthTimeInput(normalizeBirthTimeText(nextSeed.birthTimeInput));
+    const signByProfile = parseSignFromBirthDateInput(nextSeed.birthDateInput);
+    if (signByProfile) {
+      setSelectedSign(signByProfile);
+      setProfileSyncNote(`프로필 카드 생년월일(${formatBirthDateInput(nextSeed.birthDateInput)}) 기준으로 ${signByProfile}를 적용했어요.`);
+      return;
+    }
+    setProfileSyncNote("프로필 카드에 생년월일이 없어 별자리를 자동 계산하지 못했어요.");
+  };
+
+  const handleBirthDateInputChange = (value: string) => {
+    const normalized = String(value || "").replace(/\D/g, "").slice(0, 8);
+    setBirthDateInput(normalized);
+
+    const signByInput = parseSignFromBirthDateInput(normalized);
+    if (signByInput) {
+      setSelectedSign(signByInput);
+      setProfileSyncNote(`입력폼 생년월일(${formatBirthDateInput(normalized)}) 기준으로 ${signByInput}에 매칭했어요.`);
+    }
+  };
+
+  const handleBirthTimeInputChange = (value: string) => {
+    const normalized = String(value || "").replace(/\D/g, "").slice(0, 4);
+    setBirthTimeInput(normalized);
+  };
 
   const activeEmotion = useMemo(
     () => EMOTIONS.find((item) => item.key === selectedEmotion) ?? EMOTIONS[0],
@@ -1360,8 +1583,14 @@ export default function YeonStarHugPage() {
     if (isGenerating) return;
     setIsGenerating(true);
     window.setTimeout(() => {
-      const next = buildConsultation(selectedSign, selectedEmotion, concernText, new Date());
-      const spriteFrame = getCardSpriteFrame(selectedSign, selectedEmotion, next.concernCategory, next.concernDomain);
+      const matchedSign = parseSignFromBirthDateInput(birthDateInput) || selectedSign;
+      const normalizedConcernText = concernText.trim() || `${profileNameInput || "사용자"}의 오늘 마음 흐름이 궁금해요.`;
+      if (matchedSign !== selectedSign) {
+        setSelectedSign(matchedSign);
+      }
+
+      const next = buildConsultation(matchedSign, selectedEmotion, normalizedConcernText, new Date());
+      const spriteFrame = getCardSpriteFrame(matchedSign, selectedEmotion, next.concernCategory, next.concernDomain);
       const nextReading = buildReadingFromConsultation(next, selectedEmotion, activeEmotion.label, spriteFrame);
       setConsultation(next);
       setReading(nextReading);
@@ -1499,6 +1728,62 @@ export default function YeonStarHugPage() {
             <h2 className="text-xl font-black text-slate-700">감정 선택 → 별자리 → 고민 입력</h2>
             <p className="mb-4 mt-1 text-sm text-slate-500">오늘 마음을 편안하게 정리할 수 있도록 입력 동선을 간결하게 준비했어요.</p>
 
+            <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50/75 p-3">
+              <p className="text-xs font-bold text-amber-700">프로필 카드 연동</p>
+              <p className="mt-1 text-xs text-amber-800/90">이름: {profileSeed.name || "미연결"} · 생년월일: {formatBirthDateInput(profileSeed.birthDateInput)}</p>
+              <p className="mt-1 text-xs text-amber-800/90">출생시간: {formatBirthTimeInput(profileSeed.birthTimeInput)} · 소스: {profileSeed.source === "profile" ? "프로필 카드" : profileSeed.source === "auth" ? "계정 정보" : "미연결"}</p>
+              <p className="mt-1 text-[11px] text-amber-700">{profileSyncNote}</p>
+              <button
+                type="button"
+                onClick={syncSignFromProfile}
+                className="mt-2 inline-flex min-h-9 items-center justify-center rounded-full border border-amber-300 bg-white px-3 py-1 text-[11px] font-bold text-amber-700 transition hover:bg-amber-100"
+              >
+                프로필 카드 기준으로 별자리 다시 맞추기
+              </button>
+            </div>
+
+            <div className="grid gap-2 rounded-2xl border border-pink-100 bg-pink-50/45 p-3 sm:grid-cols-2">
+              <label htmlFor="yeon-profile-name" className="grid gap-1">
+                <span className="text-[11px] font-semibold text-pink-500">이름 (프로필 카드 자동 입력)</span>
+                <input
+                  id="yeon-profile-name"
+                  type="text"
+                  value={profileNameInput}
+                  onChange={(event) => setProfileNameInput(event.target.value.slice(0, 30))}
+                  placeholder="예: 연이"
+                  className="min-h-10 rounded-xl border border-pink-100 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-pink-300 focus-visible:ring-2 focus-visible:ring-pink-100"
+                />
+              </label>
+
+              <label htmlFor="yeon-birth-date" className="grid gap-1">
+                <span className="text-[11px] font-semibold text-pink-500">생년월일 (YYYYMMDD)</span>
+                <input
+                  id="yeon-birth-date"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={8}
+                  value={birthDateInput}
+                  onChange={(event) => handleBirthDateInputChange(event.target.value)}
+                  placeholder="19990125"
+                  className="min-h-10 rounded-xl border border-pink-100 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-pink-300 focus-visible:ring-2 focus-visible:ring-pink-100"
+                />
+              </label>
+
+              <label htmlFor="yeon-birth-time" className="grid gap-1 sm:col-span-2">
+                <span className="text-[11px] font-semibold text-pink-500">출생시간 (HHMM, 선택)</span>
+                <input
+                  id="yeon-birth-time"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={birthTimeInput}
+                  onChange={(event) => handleBirthTimeInputChange(event.target.value)}
+                  placeholder="0730"
+                  className="min-h-10 rounded-xl border border-pink-100 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-pink-300 focus-visible:ring-2 focus-visible:ring-pink-100"
+                />
+              </label>
+            </div>
+
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {EMOTIONS.map((emotion) => {
                 const isActive = selectedEmotion === emotion.key;
@@ -1599,6 +1884,11 @@ export default function YeonStarHugPage() {
 
                   <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
                     <span className="rounded-full border border-pink-100 bg-pink-50 px-3 py-1 text-slate-700">별자리: {consultation.sign}</span>
+                    {profileSeed.birthDateInput ? (
+                      <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-amber-700">
+                        프로필 기준 생일: {formatBirthDateInput(profileSeed.birthDateInput)}
+                      </span>
+                    ) : null}
                     <span className="rounded-full border border-purple-100 bg-purple-50 px-3 py-1 text-slate-700">기간: {consultation.period}</span>
                     <span className="rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-pink-500">태양: {consultation.todaySunSign}</span>
                     <span className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-violet-500">달: {consultation.moon.label}</span>
@@ -1620,6 +1910,21 @@ export default function YeonStarHugPage() {
                     </div>
 
                     <div className="mt-3 rounded-xl border border-pink-100 bg-white px-4 py-3">
+                      <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-3 sm:px-3.5 sm:py-3.5">
+                        <p className="text-[11px] font-extrabold tracking-[0.08em] text-amber-700">고민이 커진 이유 (점성술 분석)</p>
+                        <div className="mt-2.5 grid gap-2">
+                          {consultation.concernReasoning.map((line, idx) => (
+                            <div key={`reason-${idx}`} className="rounded-lg border border-amber-200 bg-white/90 px-2.5 py-2">
+                              <p className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-amber-600">근거 {idx + 1}</p>
+                              <p className="mt-1 text-[12px] leading-6 text-amber-900/90 sm:text-xs sm:leading-relaxed">{line}</p>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="mt-2.5 rounded-lg border border-amber-300 bg-white/85 px-3 py-2.5 text-[12px] font-semibold leading-6 text-amber-800 sm:text-xs sm:leading-relaxed">
+                          {consultation.resilienceMessage}
+                        </p>
+                      </div>
+
                       <p className="text-xs font-semibold text-pink-500">연이의 응원</p>
                       <div className="mt-2 grid gap-3 sm:grid-cols-[88px_minmax(0,1fr)] sm:items-center">
                         <div className="rounded-xl border border-pink-100 bg-rose-50/60 p-1.5">
