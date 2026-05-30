@@ -56,14 +56,16 @@ async function callMindscan(pairs = SAMPLE_PAIRS) {
 }
 
 describe("worker /api/tarot/mindscan quality", () => {
-  test("인증 없이 접근하면 401이어야 한다", async () => {
+  test("인증 없이도 로컬 속마음 리딩이 생성되어야 한다", async () => {
     const req = new Request("https://example.com/api/tarot/mindscan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ pairs: SAMPLE_PAIRS }),
     });
     const res = await handleTarotRoutes(req, env);
-    expect(res.status).toBe(401);
+    const payload = await res.json();
+    expect(res.status).toBe(200);
+    expect(payload.ok).toBe(true);
   });
 
   test("결과 구조에 필수 섹션/요약/메시지 3개가 포함되어야 한다", async () => {
@@ -75,13 +77,13 @@ describe("worker /api/tarot/mindscan quality", () => {
     expect(sections).toHaveLength(7);
 
     const mergedTitles = sections.map((s) => String(s?.title || "")).join(" ");
+    expect(mergedTitles).toMatch(/상대의 현재 마음/);
     expect(mergedTitles).toMatch(/겉으로 보이는 태도/);
-    expect(mergedTitles).toMatch(/실제 속마음/);
-    expect(mergedTitles).toMatch(/다가오지 않는 이유/);
-    expect(mergedTitles).toMatch(/숨겨진 욕구/);
-    expect(mergedTitles).toMatch(/관계에 대한 판단/);
-    expect(mergedTitles).toMatch(/앞으로의 흐름/);
-    expect(mergedTitles).toMatch(/지금 당신에게 필요한 행동/);
+    expect(mergedTitles).toMatch(/숨겨진 진짜 속마음/);
+    expect(mergedTitles).toMatch(/상대가 망설이는 이유/);
+    expect(mergedTitles).toMatch(/앞으로의 연락 흐름/);
+    expect(mergedTitles).toMatch(/내가 취해야 할 태도/);
+    expect(mergedTitles).toMatch(/관계의 최종 흐름/);
 
     const summary = payload.summaryCard || {};
     expect(typeof summary.corePsychology).toBe("string");

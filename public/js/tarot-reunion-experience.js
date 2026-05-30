@@ -7,19 +7,19 @@
   "use strict";
 
   var POSITION_META = [
-    { key: "past_bond", label: "1. 우리는 과거에 어떤 모습이었을지 (과거의 인연)", labelPos: "bottom" },
-    { key: "their_now", label: "2. 그 사람은 지금 뭐하고 지낼지 (상대방의 현재 근황)", labelPos: "top" },
-    { key: "outside_factor", label: "3. 그 사람 주변에 다른 이성이 있을지 (주변의 방해물 또는 상황)", labelPos: "bottom" },
-    { key: "their_heart", label: "4. 지금 나한테 어떤 감정을 가지고 있을지 (나를 향한 속마음)", labelPos: "top" },
-    { key: "reunion_outcome", label: "5. 그 사람이 나랑 다시 만나고 싶어 할지 (재회의 가능성과 결과)", labelPos: "bottom" },
+    { key: "past_bond", label: "1. 현재 관계의 에너지", labelPos: "bottom" },
+    { key: "their_now", label: "2. 상대방의 현재 속마음", labelPos: "top" },
+    { key: "outside_factor", label: "3. 상대가 연락하지 못하는 이유", labelPos: "bottom" },
+    { key: "their_heart", label: "4. 앞으로 연락이 올 가능성", labelPos: "top" },
+    { key: "reunion_outcome", label: "5. 재회 가능성과 회복 전략", labelPos: "bottom" },
   ];
 
   var GUIDE_LABELS = [
-    "첫 번째 카드: 과거의 인연을 천천히 마주해 보세요.",
-    "두 번째 카드: 그 사람의 현재 리듬을 살펴보세요.",
-    "세 번째 카드: 관계 주변의 상황과 방해 요소를 확인하세요.",
-    "네 번째 카드: 그 사람의 속마음을 조심스럽게 열어보세요.",
-    "다섯 번째 카드: 재회의 가능성과 결과를 받아들여 보세요.",
+    "첫 번째 카드: 아직 남아 있는 감정의 온도를 확인하세요.",
+    "두 번째 카드: 겉태도 뒤에 있는 속마음의 결을 읽으세요.",
+    "세 번째 카드: 연락을 막는 심리·현실 장벽을 구분하세요.",
+    "네 번째 카드: 실제 연락 가능성과 타이밍을 점검하세요.",
+    "다섯 번째 카드: 재회 현실성과 회복 전략을 종합하세요.",
   ];
 
   var state = {
@@ -1127,6 +1127,10 @@
     /이번\s*리딩의\s*핵심은\s*재회\s*가능성\s*자체보다[^.。!?]*[.。!?]?/gi,
     /관계\s*상담\s*관점에서[^.。!?]*[.。!?]?/gi,
     /다섯\s*장의\s*카드가\s*재회의\s*실마리를[^.。!?]*[.。!?]?/gi,
+    /상대방도\s*마음이\s*있을\s*수\s*있습니다\.?/gi,
+    /천천히\s*기다려보세요\.?/gi,
+    /상황을\s*지켜보는\s*것이\s*좋습니다\.?/gi,
+    /좋은\s*흐름입니다\.?/gi,
   ];
 
   function cleanReunionText(input) {
@@ -1155,7 +1159,18 @@
     var title = String(src.positionTitle || REUNION_POSITION_TITLES[idx] || (idx + 1) + ") 포지션").trim();
     var cardName = String(src.cardName || cardDisplayName(card)).trim() || "이름이 확인되지 않은 카드";
     var orient = String(src.orientationLabel || orientationLabel(card.orientation)).trim() || "정방향";
+    var keywords = Array.isArray(src.keywords) ? src.keywords.map(cleanReunionText).filter(Boolean) : [];
     return {
+      order: Number(src.order || idx + 1),
+      title: cleanReunionText(src.title || title),
+      question: cleanReunionText(src.question || ""),
+      cardNameKo: cleanReunionText(src.cardNameKo || cardName),
+      cardNameEn: cleanReunionText(src.cardNameEn || ""),
+      orientation: String(src.orientation || (String(card.orientation || "") === "reversed" ? "reversed" : "upright")),
+      keywords: keywords,
+      cardMeaning: cleanReunionText(src.cardMeaning || ""),
+      reunionInterpretation: cleanReunionText(src.reunionInterpretation || ""),
+      caution: cleanReunionText(src.caution || ""),
       positionTitle: title,
       cardName: cardName,
       orientationLabel: orient,
@@ -1168,11 +1183,11 @@
   }
 
   var REUNION_POSITION_TITLES = [
-    "과거의 인연",
-    "상대의 현재 근황",
-    "주변의 방해물 또는 상황",
-    "나를 향한 속마음",
-    "재회의 가능성과 결과",
+    "현재 관계의 에너지",
+    "상대방의 현재 속마음",
+    "상대가 연락하지 못하는 이유",
+    "앞으로 연락이 올 가능성",
+    "재회 가능성의 현실성과 회복 전략",
   ];
 
   function normalizeReunionResultData(reading, cards) {
@@ -1192,6 +1207,15 @@
       bestContactTiming: cleanReunionText(summarySrc.bestContactTiming || "자연스러운 계기 필요"),
       mainObstacle: cleanReunionText(summarySrc.mainObstacle || "오해"),
       oneLineAdvice: cleanReunionText(summarySrc.oneLineAdvice || "긴 고백보다 짧은 안부 메시지가 유리합니다."),
+      comprehensive: {
+        reunionChanceVerdict: cleanReunionText(summarySrc?.comprehensive?.reunionChanceVerdict || label),
+        partnerEmotionTemperature: cleanReunionText(summarySrc?.comprehensive?.partnerEmotionTemperature || summarySrc.partnerState || "중립"),
+        contactPossibility: cleanReunionText(summarySrc?.comprehensive?.contactPossibility || "중간"),
+        shouldYouMoveFirst: cleanReunionText(summarySrc?.comprehensive?.shouldYouMoveFirst || "조건부 가능"),
+        biggestVariable: cleanReunionText(summarySrc?.comprehensive?.biggestVariable || summarySrc.mainObstacle || "관계 패턴 재발"),
+        avoidNow: cleanReunionText(summarySrc?.comprehensive?.avoidNow || "답을 강요하는 질문과 장문 메시지"),
+        finalOneLineAdvice: cleanReunionText(summarySrc?.comprehensive?.finalOneLineAdvice || summarySrc.oneLineAdvice || "짧고 현실적인 접촉부터 시작하세요."),
+      },
     };
 
     var rawPositions = Array.isArray(src.positions) ? src.positions : [];
@@ -1348,6 +1372,9 @@
 
     var summarySection = document.createElement("section");
     summarySection.className = "tarot-reunion-section tarot-reunion-section--guidance tarot-reunion-summary-section";
+    var comprehensive = (r.summary && r.summary.comprehensive && typeof r.summary.comprehensive === "object")
+      ? r.summary.comprehensive
+      : {};
     summarySection.innerHTML =
       '<h4 class="tarot-reunion-section-title">🌙 재회운 핵심 요약</h4>' +
       '<div class="tarot-reunion-summary-grid">' +
@@ -1356,6 +1383,15 @@
       '  <article class="tarot-reunion-summary-item"><h5>⏳ 연락 타이밍</h5><p>' + escapeHtml(r.summary.bestContactTiming) + '</p></article>' +
       '  <article class="tarot-reunion-summary-item"><h5>🚧 핵심 장애물</h5><p>' + escapeHtml(r.summary.mainObstacle) + '</p></article>' +
       '  <article class="tarot-reunion-summary-item"><h5>🕯️ 지금 할 일</h5><p>' + escapeHtml(r.summary.oneLineAdvice) + '</p></article>' +
+      '</div>' +
+      '<div class="tarot-reunion-summary-grid" style="margin-top:10px">' +
+      '  <article class="tarot-reunion-summary-item"><h5>1) 재회 종합 판단</h5><p>' + escapeHtml(comprehensive.reunionChanceVerdict || r.summary.reunionChanceLabel) + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>2) 감정 온도</h5><p>' + escapeHtml(comprehensive.partnerEmotionTemperature || "중립") + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>3) 연락 가능성</h5><p>' + escapeHtml(comprehensive.contactPossibility || "중간") + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>4) 먼저 움직여도 되는지</h5><p>' + escapeHtml(comprehensive.shouldYouMoveFirst || "조건부 가능") + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>5) 가장 큰 변수</h5><p>' + escapeHtml(comprehensive.biggestVariable || "재발 방지 합의") + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>6) 지금 피할 행동</h5><p>' + escapeHtml(comprehensive.avoidNow || "감정 추궁") + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>7) 최종 한 줄 조언</h5><p>' + escapeHtml(comprehensive.finalOneLineAdvice || r.summary.oneLineAdvice) + '</p></article>' +
       '</div>';
     container.appendChild(summarySection);
 
@@ -1377,7 +1413,7 @@
 
       var title = document.createElement("h4");
       title.className = "tarot-reunion-section-title";
-      title.textContent = (idx + 1) + ") " + (pos.positionTitle || REUNION_POSITION_TITLES[idx] || "포지션");
+      title.textContent = (idx + 1) + ") " + (pos.title || pos.positionTitle || REUNION_POSITION_TITLES[idx] || "포지션");
       head.appendChild(title);
 
       var card = state.cards[idx] || null;
@@ -1432,12 +1468,21 @@
 
       var body = document.createElement("div");
       body.className = "tarot-reunion-position-body";
+      var keywordHtml = (Array.isArray(pos.keywords) ? pos.keywords : [])
+        .slice(0, 5)
+        .map(function (kw) {
+          return '<span class="tarot-reunion-orientation-badge" style="margin-right:6px">' + escapeHtml(kw) + '</span>';
+        })
+        .join("");
       body.innerHTML =
-        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">한 줄 핵심</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.headline || "") + '</p></div>' +
-        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">직관 해석</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.directAnswer || "") + '</p></div>' +
-        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">상세 해석</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.detailedReading || "") + '</p></div>' +
-        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">재회 포인트</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.reunionPoint || "") + '</p></div>' +
-        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">조언</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.advice || "") + '</p></div>';
+        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">카드 번호 / 카테고리</p><p class="tarot-reunion-section-text">' + escapeHtml(String(pos.order || (idx + 1))) + '번 · ' + escapeHtml(pos.title || pos.positionTitle || "포지션") + '</p></div>' +
+        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">질문</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.question || "") + '</p></div>' +
+        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">카드명 / 방향</p><p class="tarot-reunion-section-text">' + escapeHtml((pos.cardNameKo || pos.cardName || "") + ((pos.cardNameEn || "") ? ' (' + pos.cardNameEn + ')' : '')) + ' · ' + escapeHtml(pos.orientationLabel || "") + '</p></div>' +
+        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">핵심 키워드</p><p class="tarot-reunion-section-text">' + (keywordHtml || '<span>-</span>') + '</p></div>' +
+        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">카드 의미 요약</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.cardMeaning || pos.headline || "") + '</p></div>' +
+        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">재회 상황 해석</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.reunionInterpretation || pos.detailedReading || pos.directAnswer || "") + '</p></div>' +
+        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">현실 조언</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.advice || "") + '</p></div>' +
+        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">주의할 점</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.caution || pos.reunionPoint || "") + '</p></div>';
       sec.appendChild(body);
       container.appendChild(sec);
     });

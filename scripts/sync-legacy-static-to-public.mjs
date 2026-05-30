@@ -250,7 +250,15 @@ function stripLegacyPublicBlocks(html) {
 function cacheBustUiBindingsScriptRefs(source, buildTimestamp) {
   const html = String(source || "");
   return html.replace(
-    /(\/js\/(?:ziwei-book|astro-book|sukuyo-book|vedic-book|saju-new-year|life-book|love-secret-v2|core\/index-inline-runtime|mobile-backstack-navigation)\.js\?v=)[a-zA-Z0-9_-]+/g,
+    /(\/js\/(?:ziwei-book|astro-book|sukuyo-book|vedic-book|saju-new-year|life-book|love-secret-v2|tarot-year-fortune-experience|core\/index-inline-runtime|mobile-backstack-navigation)\.js\?v=)[a-zA-Z0-9_-]+/g,
+    `$1${buildTimestamp}`,
+  );
+}
+
+function cacheBustMobileInteractionPatchScriptRefs(source, buildTimestamp) {
+  const js = String(source || "");
+  return js.replace(
+    /(js\/tarot-year-fortune-experience\.js\?v=)[a-zA-Z0-9_-]+/g,
     `$1${buildTimestamp}`,
   );
 }
@@ -440,6 +448,16 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     }
   }
 
+  const mobilePatchPath = resolve(publicDir, "js", "mobile-interaction-patch.js");
+  if (existsSync(mobilePatchPath)) {
+    const mobilePatchJs = readFileSync(mobilePatchPath, "utf8");
+    const bustedMobilePatchJs = cacheBustMobileInteractionPatchScriptRefs(mobilePatchJs, buildTimestamp);
+    if (bustedMobilePatchJs !== mobilePatchJs) {
+      writeFileSync(mobilePatchPath, bustedMobilePatchJs);
+      console.log(`[sync-legacy-static-to-public] Auto cache-busted mobile-interaction-patch.js tarot loader with ${buildTimestamp}`);
+    }
+  }
+
   assertEntryHtmlHealthy(baseIndexHtml, "public/index.html");
   const indexBuf = Buffer.from(baseIndexHtml, "utf8");
   const currentPublicHtml = existsSync(publicIndex)
@@ -492,6 +510,16 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     if (bustedRootUiBindingsJs !== rootUiBindingsJs) {
       writeFileSync(rootUiBindingsPath, bustedRootUiBindingsJs);
       console.log(`[sync-legacy-static-to-public] Updated root uiBindings.js PDF/runtime loaders with ${buildTimestamp}`);
+    }
+  }
+
+  const rootMobilePatchPath = resolve(rootDir, "js", "mobile-interaction-patch.js");
+  if (existsSync(rootMobilePatchPath)) {
+    const rootMobilePatchJs = readFileSync(rootMobilePatchPath, "utf8");
+    const bustedRootMobilePatchJs = cacheBustMobileInteractionPatchScriptRefs(rootMobilePatchJs, buildTimestamp);
+    if (bustedRootMobilePatchJs !== rootMobilePatchJs) {
+      writeFileSync(rootMobilePatchPath, bustedRootMobilePatchJs);
+      console.log(`[sync-legacy-static-to-public] Updated root mobile-interaction-patch.js tarot loader with ${buildTimestamp}`);
     }
   }
 

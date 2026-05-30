@@ -26,9 +26,9 @@ const checks = [
     includes: ["fixed inset-x-0 bottom-0", "md:hidden"],
   },
   {
-    name: "sticker editor present",
+    name: "result tab and photocard ui wired",
     file: "app/saju/destiny-bias/DestinyBiasClient.tsx",
-    includes: ["스티커 커스텀 에디터", "cardStickers", "텍스트 스티커"],
+    includes: ["BiasDestinyMainCard", "BiasDestinyResultTabs", "BiasDestinyStageSummary"],
   },
 ];
 

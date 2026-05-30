@@ -141,9 +141,9 @@ var TAROT_CONTEXT = {
     revelation: function(c, r) {
       return r
         ? c.name_kr+'이(가) 역행합니다. '+SIPSIN_CARD_META[c.sipsinTag].neg+' 지금 섣불리 투자하거나 계약에 서명하는 일은 피하십시오. 재성은 흐름이 돌아올 때까지 기다릴 줄 아는 자에게 돌아옵니다.'
-        : c.name_kr+'의 기운이 순행합니다. '+SIPSIN_CARD_META[c.sipsinTag].pos+' 흐름이 열려 있는 지금, 결단이 빠른 자가 시장을 선점합니다. 단, 과욕 없이 분수에 맞는 행보를 유지하십시오.';
+        : c.name_kr+'의 기운이 순행합니다. '+SIPSIN_CARD_META[c.sipsinTag].pos+' 지금은 성급한 확장보다 기준 있는 실행이 수익의 질을 높이는 구간입니다.';
     },
-    oracle: function(c, r) { return r ? '재성(財星)이 막혀있다. '+c.name_kr+'. 돈은 방향을 잃은 의지를 따르지 않는다.' : '재성의 문이 열린다. '+c.name_kr+'. 계산보다 빠른 발이 지금의 기회를 잡는다.'; }
+    oracle: function(c, r) { return r ? '재성(財星)이 막혀있다. '+c.name_kr+'. 돈은 방향을 잃은 의지를 따르지 않는다.' : c.name_kr+'의 신호는 자금 흐름을 정교하게 관리하라는 요청입니다. 속도보다 구조를 먼저 점검하십시오.'; }
   },
 
   contract: {
@@ -897,46 +897,298 @@ function getTarotDeepProfile(card) {
   };
 }
 
-function getTarotMingriLens(card, isReversed, category) {
-  var ctx = TAROT_CONTEXT[category] || {};
-  var sipsin = (card && card.sipsinTag) || '미정';
-  var meta = SIPSIN_CARD_META[sipsin] || { pos: '', neg: '' };
-  var flow = isReversed ? '역행' : '순행';
-  var stance = isReversed ? meta.neg : meta.pos;
+var TAROT_ORIENTATION_LABEL_KO = {
+  upright: '순행(順行)',
+  reversed: '역행(逆行)'
+};
+
+var MYEONGRI_TEN_GODS = ['비견', '겁재', '식신', '상관', '편재', '정재', '편관', '정관', '편인', '정인'];
+
+var TEN_GOD_GROUPS = {
+  self: ['비견', '겁재'],
+  output: ['식신', '상관'],
+  wealth: ['편재', '정재'],
+  officer: ['편관', '정관'],
+  resource: ['편인', '정인']
+};
+
+var SUIT_TEN_GOD_AFFINITY = {
+  wands: { primary: ['식신', '상관', '비견'], theme: '행동력, 창작, 추진력' },
+  cups: { primary: ['정인', '편인', '정재'], theme: '감정, 관계, 회복' },
+  swords: { primary: ['정관', '편관', '상관'], theme: '판단, 갈등, 기준' },
+  pentacles: { primary: ['정재', '편재', '정관'], theme: '돈, 일, 안정, 성과' },
+  major: { primary: ['contextual'], theme: '인생의 큰 전환과 운의 방향성' }
+};
+
+var TEN_GOD_DETAILS = {
+  '비견': { group: 'self', label: '비견', meaning: '자기주장, 독립성, 동등한 관계를 다루는 기운입니다.', shadow: '고집과 경쟁심으로 혼자 버티려는 경향이 커질 수 있습니다.' },
+  '겁재': { group: 'self', label: '겁재', meaning: '경쟁과 돌파, 생존 본능을 활성화하는 기운입니다.', shadow: '불안정한 욕심과 비교심으로 손실을 키울 수 있습니다.' },
+  '식신': { group: 'output', label: '식신', meaning: '표현, 창작, 결과물, 꾸준한 생산성을 보여줍니다.', shadow: '안일함과 미루기로 실행력이 분산될 수 있습니다.' },
+  '상관': { group: 'output', label: '상관', meaning: '말과 개성, 창의적 돌파를 이끄는 기운입니다.', shadow: '말실수와 충돌, 권위와의 마찰이 생기기 쉽습니다.' },
+  '편재': { group: 'wealth', label: '편재', meaning: '기회, 확장, 사람과 돈의 흐름을 다룹니다.', shadow: '산만함과 과욕, 관계의 거래화로 흐를 수 있습니다.' },
+  '정재': { group: 'wealth', label: '정재', meaning: '안정, 계획, 관리, 꾸준한 수익을 의미합니다.', shadow: '계산적 태도와 과도한 안정 집착이 생길 수 있습니다.' },
+  '편관': { group: 'officer', label: '편관', meaning: '압박 속 책임, 위기 대응, 승부 본능을 뜻합니다.', shadow: '불안과 강박, 과긴장으로 소진될 수 있습니다.' },
+  '정관': { group: 'officer', label: '정관', meaning: '질서, 평판, 직업 구조, 신뢰를 다룹니다.', shadow: '경직, 눈치, 자기 억압이 강해질 수 있습니다.' },
+  '편인': { group: 'resource', label: '편인', meaning: '직관, 연구, 고독, 비주류 감각을 살립니다.', shadow: '의심과 고립, 현실 회피로 흐를 수 있습니다.' },
+  '정인': { group: 'resource', label: '정인', meaning: '회복, 학습, 보호, 내면의 안전감을 줍니다.', shadow: '의존, 미루기, 수동성으로 에너지가 가라앉을 수 있습니다.' }
+};
+
+var REPEATED_MYEONGRI_TAROT_PHRASES = [
+  '카드 의미와 질문 카테고리를 결합한 맞춤 상담입니다.',
+  '재성의 기운이 순행하니',
+  '결단이 빠른 자가 시장을 선점합니다.',
+  '과욕 없이 분수에 맞는 행보를 유지하십시오.',
+  '작고 반복 가능한 루틴으로 신뢰를 다시 쌓으세요.',
+  '재성의 문이 열린다.',
+  '흐름이 열려 있습니다.',
+  '카드의 기운이 순행합니다.'
+];
+
+function normalizeTenGod(raw) {
+  var val = String(raw || '').trim();
+  if (MYEONGRI_TEN_GODS.indexOf(val) >= 0) return val;
+  var alias = {
+    '식상': '식신',
+    '비겁': '비견',
+    '재성': '정재',
+    '관성': '정관',
+    '인성': '정인',
+    '역마': '편재'
+  };
+  return alias[val] || '';
+}
+
+function inferSuitFromCard(card) {
+  var shortName = String((card && card.short) || '').toLowerCase();
+  if (shortName.indexOf('wands') >= 0) return 'wands';
+  if (shortName.indexOf('cups') >= 0) return 'cups';
+  if (shortName.indexOf('swords') >= 0) return 'swords';
+  if (shortName.indexOf('pentacles') >= 0) return 'pentacles';
+  if (String((card && card.type) || '').toLowerCase() === 'major') return 'major';
+  return 'major';
+}
+
+function mapCategoryToMyeongriCategory(category) {
+  var map = {
+    love: '연애',
+    reunion: '재회',
+    friendship: '인간관계',
+    wealth: '직업',
+    loss: '금전',
+    contract: '선택',
+    travel: '종합',
+    creative: '종합',
+    health: '멘탈'
+  };
+  return map[category] || '오늘';
+}
+
+function resolveMainTenGod(card) {
+  var dayMaster = (typeof G_PILLARS !== 'undefined' && G_PILLARS && G_PILLARS.d && G_PILLARS.d.g) ? String(G_PILLARS.d.g) : '';
+  var suit = inferSuitFromCard(card);
+  var targetStemBySuit = { wands: '丙', cups: '癸', swords: '辛', pentacles: '己', major: '甲' };
+  if (dayMaster && typeof getTenGod === 'function') {
+    try {
+      var tg = normalizeTenGod(getTenGod(dayMaster, targetStemBySuit[suit] || '甲'));
+      if (tg) return tg;
+    } catch (_) {}
+  }
+  var fromCard = normalizeTenGod(card && card.sipsinTag);
+  if (fromCard) return fromCard;
+  var affinity = SUIT_TEN_GOD_AFFINITY[suit] || SUIT_TEN_GOD_AFFINITY.major;
+  return affinity.primary[0] === 'contextual' ? '정인' : affinity.primary[0];
+}
+
+function resolveCardBridge(cardName, tenGod, orientation) {
+  var bridge = {
+    '별': {
+      '정인': '상처 이후 내면을 회복하고 다시 배울 힘이 살아나는 흐름입니다.',
+      '식신': '나를 치유하는 표현과 꾸준한 창작이 회복의 통로가 됩니다.',
+      '정재': '큰 수익보다 현실 기준을 다시 세워 안정감을 복구해야 합니다.',
+      '편인': '직관의 고요 속에서 회복의 실마리를 찾되 현실 검증을 놓치지 말아야 합니다.'
+    },
+    '탑': {
+      '정관': '기존 질서와 책임 구조가 흔들리며, 무너진 기준을 다시 세우는 시험이 옵니다.',
+      '편관': '급한 압박 속에서 위기 대응력은 살아나지만 과긴장은 반드시 관리해야 합니다.'
+    },
+    '달': {
+      '편인': '불안의 안개를 통과해 직관을 정제해야 진실이 보입니다.',
+      '정인': '감정 안전망을 먼저 복구하면 왜곡된 해석이 줄어듭니다.'
+    }
+  };
+  var byCard = bridge[cardName] || null;
+  if (!byCard || !byCard[tenGod]) return '';
+  if (orientation === 'reversed') {
+    return byCard[tenGod] + ' 다만 역행에서는 이 힘이 늦게 발현되므로 루틴으로 붙잡아야 합니다.';
+  }
+  return byCard[tenGod];
+}
+
+function removeRepeatedMyeongriTarotPhrases(text) {
+  var out = String(text || '');
+  REPEATED_MYEONGRI_TAROT_PHRASES.forEach(function(phrase) {
+    if (!phrase) return;
+    out = out.split(phrase).join('');
+  });
+  return out.replace(/\s{2,}/g, ' ').trim();
+}
+
+function ensureTenGodConsistency(reading) {
+  var out = Object.assign({}, reading || {});
+  if (!out.tenGod || !out.tenGod.main) return out;
+  var main = out.tenGod.main;
+  var fields = ['opening', 'cardMeaning', 'tenGodInterpretation', 'combinedReading', 'shadowWarning', 'practicalAdvice', 'oracleMessage'];
+  fields.forEach(function(field) {
+    var text = String(out[field] || '');
+    MYEONGRI_TEN_GODS.forEach(function(tg) {
+      if (tg !== main) {
+        var rx = new RegExp(tg + '(?:이|가|은|는)?\\s*(?:순행|역행|기운|관점|흐름)', 'g');
+        text = text.replace(rx, '');
+      }
+    });
+    out[field] = removeRepeatedMyeongriTarotPhrases(text);
+  });
+  return out;
+}
+
+function validateMyeongriTarotReading(reading) {
+  var issues = [];
+  if (!reading || !reading.tenGod || !reading.tenGod.main) {
+    issues.push('주 십성이 비어 있습니다.');
+  }
+  var main = reading && reading.tenGod ? reading.tenGod.main : '';
+  var fullText = [
+    reading && reading.cardMeaning,
+    reading && reading.tenGodInterpretation,
+    reading && reading.combinedReading,
+    reading && reading.shadowWarning,
+    reading && reading.practicalAdvice,
+    reading && reading.oracleMessage
+  ].join(' ');
+
+  if (String(fullText).indexOf('순행') < 0 && String(fullText).indexOf('역행') < 0) {
+    issues.push('순행/역행 차이가 본문에 반영되지 않았습니다.');
+  }
+  if (main) {
+    MYEONGRI_TEN_GODS.forEach(function(tg) {
+      if (tg === main) return;
+      if (new RegExp(tg + '(?:이|가|은|는)?\\s*(?:순행|역행|관점|흐름)').test(fullText)) {
+        issues.push('십성 충돌 문장이 감지되었습니다: ' + tg);
+      }
+    });
+  }
+  if (REPEATED_MYEONGRI_TAROT_PHRASES.some(function(p) { return String(fullText).indexOf(p) >= 0; })) {
+    issues.push('금지 반복 문장이 남아 있습니다.');
+  }
+
   return {
-    axis: (ctx.sipsin || '십성 균형') + ' 관점에서 ' + sipsin + '이(가) ' + flow + '합니다.',
-    stance: stance
+    ok: issues.length === 0,
+    issues: issues
+  };
+}
+
+function combineTarotAndTenGod(card, tenGod, category, orientation) {
+  var cardName = String((card && card.name_kr) || '타로 카드');
+  var cardEn = String((card && card.name) || 'Tarot Card');
+  var catKo = mapCategoryToMyeongriCategory(category);
+  var dir = orientation === 'reversed' ? 'reversed' : 'upright';
+  var directionLabel = TAROT_ORIENTATION_LABEL_KO[dir];
+  var profile = getTarotDeepProfile(card);
+  var suit = inferSuitFromCard(card);
+  var mainTenGod = normalizeTenGod(tenGod) || resolveMainTenGod(card);
+  var tenMeta = TEN_GOD_DETAILS[mainTenGod] || TEN_GOD_DETAILS['정인'];
+  var suitTheme = (SUIT_TEN_GOD_AFFINITY[suit] || SUIT_TEN_GOD_AFFINITY.major).theme;
+
+  var opening = cardName + '은(는) ' + catKo + ' 질문에 대해 ' + directionLabel + '의 신호를 보냅니다.';
+  var cardMeaning = dir === 'reversed'
+    ? cardName + '의 역행은 카드 의미가 지연되거나 내면으로 가라앉는 상태를 뜻합니다. ' + profile.shadow + ' 지금은 좋은 말보다 실질적인 회복 루틴이 필요합니다.'
+    : cardName + '의 순행은 카드의 본래 힘이 비교적 자연스럽게 발현되는 상태입니다. ' + profile.core + ' ' + profile.psych;
+  var tenGodInterpretation = mainTenGod + '은(는) ' + tenMeta.meaning + ' ' + (dir === 'reversed' ? '장점이 막히거나 왜곡되기 쉬우므로 그림자 관리가 우선입니다.' : '장점이 밖으로 드러나기 쉬우나 과하면 그림자도 함께 커집니다.');
+
+  var bridge = resolveCardBridge(cardName, mainTenGod, dir);
+  var combinedReading = cardName + '의 상징과 ' + mainTenGod + '의 작용이 만나는 지점은 ' + catKo + ' 영역의 우선순위를 다시 세우는 데 있습니다. ' +
+    (bridge || ('지금은 ' + suitTheme + '의 주제를 ' + tenMeta.label + '의 방식으로 정교하게 다루면 해석의 밀도가 살아납니다.'));
+
+  var shadowWarning = tenMeta.shadow + ' 특히 ' + catKo + ' 질문에서는 성급한 결론보다 맥락 정리가 먼저입니다.';
+  var practicalAdvice = dir === 'reversed'
+    ? '오늘은 결론을 강요하지 말고, 20분짜리 회복 루틴 하나를 정해 실제로 실행하세요.'
+    : '오늘은 카드가 가리킨 주제를 1개의 행동으로 압축해 24시간 안에 실행하고 기록하세요.';
+
+  var oracleMessage = dir === 'reversed'
+    ? cardName + '의 빛은 아직 안쪽에서 켜지고 있습니다. 서두르지 말고 ' + mainTenGod + '의 리듬으로 숨을 고르면 길이 다시 보입니다.'
+    : cardName + '의 신호는 이미 문턱에 도착했습니다. ' + mainTenGod + '의 강점을 조용히 실행하면 오늘의 운은 현실이 됩니다.';
+
+  var reading = {
+    category: catKo,
+    card: {
+      nameKo: cardName,
+      nameEn: cardEn,
+      orientation: dir,
+      keywords: [profile.core, tenMeta.label, suitTheme, directionLabel].slice(0, 5)
+    },
+    tenGod: {
+      main: mainTenGod,
+      group: tenMeta.group,
+      label: tenMeta.label,
+      meaning: tenMeta.meaning
+    },
+    title: cardName + ' · ' + mainTenGod + ' ' + catKo + ' 리딩',
+    opening: opening,
+    cardMeaning: cardMeaning,
+    tenGodInterpretation: tenGodInterpretation,
+    combinedReading: combinedReading,
+    shadowWarning: shadowWarning,
+    practicalAdvice: practicalAdvice,
+    oracleMessage: oracleMessage
+  };
+
+  return ensureTenGodConsistency(reading);
+}
+
+function buildMyeongriTarotReadingHtml(reading, slotLabel) {
+  var valid = validateMyeongriTarotReading(reading);
+  var qualityTag = valid.ok ? '' : '<div style="margin-top:8px;color:#fca5a5;font-size:.84rem;">※ 해석 점검: ' + escapeTarotHtml(valid.issues.join(' / ')) + '</div>';
+  var orientationLabel = TAROT_ORIENTATION_LABEL_KO[reading.card.orientation] || '순행(順行)';
+  var cardKw = (reading.card.keywords || []).slice(0, 5).join(' · ');
+
+  return '' +
+    '<div style="margin-bottom:18px;padding:14px;border:1px solid rgba(255,255,255,0.14);border-radius:12px;background:rgba(17,24,39,0.34);">' +
+      '<b style="color:#ffd700;font-size:1.02rem">' + escapeTarotHtml(slotLabel || '핵심 카드') + ' — ' + escapeTarotHtml(reading.card.nameKo) + ' (' + escapeTarotHtml(orientationLabel) + ')</b>' +
+      '<div style="margin-top:8px;line-height:1.85;color:#e5e7eb;">' +
+        '<b style="color:#a7f3d0;">질문 카테고리:</b> ' + escapeTarotHtml(reading.category) + '<br>' +
+        '<b style="color:#c4b5fd;">오늘의 명리 타로 제목:</b> ' + escapeTarotHtml(reading.title) + '<br>' +
+        '<b style="color:#fde68a;">카드 핵심 키워드:</b> ' + escapeTarotHtml(cardKw) + '<br>' +
+        '<b style="color:#93c5fd;">십성 핵심 키워드:</b> ' + escapeTarotHtml(reading.tenGod.main + ' · ' + reading.tenGod.group + ' · ' + reading.tenGod.meaning) +
+      '</div>' +
+      '<div style="margin-top:10px;line-height:1.85;"><b style="color:#c4b5fd;">타로 카드 해석:</b> ' + escapeTarotHtml(reading.cardMeaning) + '</div>' +
+      '<div style="margin-top:8px;line-height:1.85;"><b style="color:#93c5fd;">십성 해석:</b> ' + escapeTarotHtml(reading.tenGodInterpretation) + '</div>' +
+      '<div style="margin-top:8px;line-height:1.85;"><b style="color:#86efac;">카드 + 십성 결합 해석:</b> ' + escapeTarotHtml(reading.combinedReading) + '</div>' +
+      '<div style="margin-top:8px;line-height:1.85;"><b style="color:#fca5a5;">그림자 경고:</b> ' + escapeTarotHtml(reading.shadowWarning) + '</div>' +
+      '<div style="margin-top:8px;line-height:1.85;"><b style="color:#fcd34d;">현실 조언:</b> ' + escapeTarotHtml(reading.practicalAdvice) + '</div>' +
+      '<div style="margin-top:8px;line-height:1.85;color:#d1fae5;"><b>오늘의 오라클 메시지:</b> "' + escapeTarotHtml(reading.oracleMessage) + '"</div>' +
+      qualityTag +
+    '</div>';
+}
+
+function getTarotMingriLens(card, isReversed, category) {
+  var orientation = isReversed ? 'reversed' : 'upright';
+  var reading = combineTarotAndTenGod(card, '', category, orientation);
+  return {
+    axis: reading.tenGod.main + ' · ' + reading.tenGod.group,
+    stance: reading.tenGod.meaning
   };
 }
 
 function buildTarotCardCounselHtml(card, isReversed, category, slotLabel) {
-  var profile = getTarotDeepProfile(card);
-  var lens = getTarotMingriLens(card, isReversed, category);
-  var line = (TAROT_CONTEXT[category] && TAROT_CONTEXT[category].oracleLine)
-    ? TAROT_CONTEXT[category].oracleLine(card, isReversed)
-    : '';
-  var reveal = (TAROT_CONTEXT[category] && TAROT_CONTEXT[category].revelation)
-    ? TAROT_CONTEXT[category].revelation(card, isReversed)
-    : '';
-  var dir = isReversed ? '역행' : '순행';
-
-  return '' +
-    '<div style="margin-bottom:18px;padding:14px;border:1px solid rgba(255,255,255,0.14);border-radius:12px;background:rgba(17,24,39,0.34);">' +
-      '<b style="color:#ffd700;font-size:1.02rem">' + escapeTarotHtml(slotLabel || '핵심') + ' — ' + escapeTarotHtml(card.name_kr) + ' (' + dir + ')</b><br>' +
-      '<span style="display:block;margin-top:8px;color:#fde68a;line-height:1.8;font-style:italic">"' + escapeTarotHtml(line) + '"</span>' +
-      '<span style="display:block;margin-top:8px;line-height:1.85;"><b style="color:#c4b5fd;">카드의 핵심 의미:</b> ' + escapeTarotHtml(profile.core) + '</span>' +
-      '<span style="display:block;margin-top:6px;line-height:1.85;"><b style="color:#93c5fd;">심리 해석:</b> ' + escapeTarotHtml(profile.psych) + '</span>' +
-      '<span style="display:block;margin-top:6px;line-height:1.85;"><b style="color:#fca5a5;">그림자 경고:</b> ' + escapeTarotHtml(profile.shadow) + '</span>' +
-      '<span style="display:block;margin-top:6px;line-height:1.85;"><b style="color:#86efac;">명리 접목:</b> ' + escapeTarotHtml(lens.axis + ' ' + lens.stance) + '</span>' +
-      '<span style="display:block;margin-top:6px;line-height:1.85;color:#e2e8f0;">' + escapeTarotHtml(reveal) + '</span>' +
-      '<span style="display:block;margin-top:8px;line-height:1.82;color:#d1fae5;"><b>힐링 코칭:</b> ' + escapeTarotHtml(profile.heal) + '</span>' +
-    '</div>';
+  var orientation = isReversed ? 'reversed' : 'upright';
+  var reading = combineTarotAndTenGod(card, '', category, orientation);
+  return buildMyeongriTarotReadingHtml(reading, slotLabel || '핵심');
 }
 
 function summarizeDominantSipsin(cardsData) {
   var count = {};
   (cardsData || []).forEach(function(data) {
-    var tag = data && data.card ? data.card.sipsinTag : '';
+    var tag = data && data.card ? resolveMainTenGod(data.card) : '';
     if (!tag) return;
     count[tag] = (count[tag] || 0) + 1;
   });
@@ -948,28 +1200,27 @@ function summarizeDominantSipsin(cardsData) {
 }
 
 function buildTarotRealityPlan(cardsData, category, labels) {
-  var now = cardsData[1] || cardsData[0];
-  var fut = cardsData[2] || cardsData[cardsData.length - 1];
-  var dom = summarizeDominantSipsin(cardsData);
-  var nowProfile = getTarotDeepProfile(now.card);
-  var futProfile = getTarotDeepProfile(fut.card);
-  var ctx = TAROT_CONTEXT[category] || {};
+  var now = cardsData[1] || cardsData[0] || {};
+  var fut = cardsData[2] || cardsData[cardsData.length - 1] || now;
+  var dom = summarizeDominantSipsin(cardsData) || '정인';
+  var nowReading = combineTarotAndTenGod(now.card || {}, '', category, now.isReversed ? 'reversed' : 'upright');
+  var futReading = combineTarotAndTenGod(fut.card || {}, '', category, fut.isReversed ? 'reversed' : 'upright');
   var l1 = labels[0] || '과거';
   var l2 = labels[1] || '현재';
   var l3 = labels[2] || '미래';
-  var axisText = (ctx.sipsin || '현재 주제') + ' 축에서 해석하면, ' + l2 + ' 자리의 ' + now.card.name_kr + '가 지금의 핵심 과제를 직접 가리킵니다.';
+  var axisText = l2 + ' 자리의 ' + ((now.card && now.card.name_kr) || '카드') + '는 ' + dom + ' 관점에서 지금의 핵심 과제를 압축해 보여줍니다.';
 
   return '' +
     '<div style="margin-top:10px;padding:14px 16px;border:1px solid rgba(196,181,253,0.4);border-radius:12px;background:rgba(76,29,149,0.16);">' +
       '<b style="color:#c4b5fd;font-size:1em">🧭 통합 심리-명리 진단</b><br><br>' +
       '<span style="line-height:1.85;">주도 십성은 <b>' + escapeTarotHtml(dom) + '</b>입니다. ' + escapeTarotHtml(axisText) + '</span><br><br>' +
-      '<span style="line-height:1.85;">' + l1 + '의 흔적은 현재 반응을 만들고, ' + l3 + '는 고정된 운명이 아니라 선택의 방향을 보여줍니다. 그래서 지금 필요한 것은 감정의 해석보다 행동의 정렬입니다.</span>' +
+      '<span style="line-height:1.85;">' + l1 + '의 흔적은 현재 반응을 만들고, ' + l3 + '는 고정된 운명이 아니라 선택의 방향을 보여줍니다. 카드와 십성을 따로 보지 말고 한 문장으로 묶어 읽을 때 해석의 정확도가 올라갑니다.</span>' +
     '</div>' +
     '<div style="margin-top:10px;padding:14px 16px;border:1px solid rgba(253,230,138,0.35);border-radius:12px;background:rgba(120,53,15,0.14);">' +
       '<b style="color:#fde68a;font-size:1em">🛠 현실 실행 플랜 (24시간·7일·30일)</b><br><br>' +
       '<span style="line-height:1.85;"><b>1) 24시간:</b> 지금 가장 무거운 감정 1가지를 적고, 그 감정 아래 숨은 욕구를 한 줄로 정리하세요.</span><br>' +
-      '<span style="line-height:1.85;"><b>2) 7일:</b> 현재 카드 <b>' + escapeTarotHtml(now.card.name_kr) + '</b>의 과제인 "' + escapeTarotHtml(nowProfile.heal) + '"를 매일 10분 실천하세요.</span><br>' +
-      '<span style="line-height:1.85;"><b>3) 30일:</b> 미래 카드 <b>' + escapeTarotHtml(fut.card.name_kr) + '</b>의 방향성( ' + escapeTarotHtml(futProfile.core) + ' )에 맞춰 하나의 장기 선택을 확정하세요.</span>' +
+      '<span style="line-height:1.85;"><b>2) 7일:</b> 현재 카드 <b>' + escapeTarotHtml((now.card && now.card.name_kr) || '현재 카드') + '</b> 해석을 기준으로 "' + escapeTarotHtml(nowReading.practicalAdvice) + '"를 매일 10분 실천하세요.</span><br>' +
+      '<span style="line-height:1.85;"><b>3) 30일:</b> 미래 카드 <b>' + escapeTarotHtml((fut.card && fut.card.name_kr) || '미래 카드') + '</b>의 메시지( ' + escapeTarotHtml(futReading.combinedReading) + ' )를 기준으로 장기 선택 1개를 확정하세요.</span>' +
     '</div>';
 }
 
@@ -1096,18 +1347,24 @@ function _runShowTarotFinalInterpretation() {
     cardNameEl.innerHTML =
       escapeTarotHtml(labels[0]) + ' · ' + escapeTarotHtml(labels[1]) + ' · ' + escapeTarotHtml(labels[2]);
   }
-  // 명리 타로: 로컬 TAROT_CONTEXT 해석 사용 (타로 엔진 API 호출 없음)
-  var parts = cardsData.map(function(data, idx) {
+  var readings = cardsData.map(function(data) {
+    return combineTarotAndTenGod(data.card, '', curTarotCat, data.isReversed ? 'reversed' : 'upright');
+  });
+  var parts = readings.map(function(reading, idx) {
     var label = labels[idx] || TAROT_SPREAD_LABELS.default[idx] || ('카드 ' + (idx + 1));
-    return buildTarotCardCounselHtml(data.card, data.isReversed, curTarotCat, label);
+    return buildMyeongriTarotReadingHtml(reading, label);
   }).join('');
   var realityPlan = buildTarotRealityPlan(cardsData, curTarotCat, labels);
-  var advice = '질문 카테고리(' + (TAROT_CONTEXT[curTarotCat] ? TAROT_CONTEXT[curTarotCat].label : curTarotCat) + ') 기준으로 보면, 지금은 ' +
+  var dominantTenGod = summarizeDominantSipsin(cardsData);
+  var advice = removeRepeatedMyeongriTarotPhrases(
+    '질문 카테고리 ' + mapCategoryToMyeongriCategory(curTarotCat) + '에서는 ' +
     cardsData.map(function(d) { return d.card.name_kr; }).join(' -> ') +
-    '의 흐름을 순서대로 받아들이는 것이 핵심입니다.';
+    '의 흐름을 ' + dominantTenGod + ' 관점으로 연결해 읽을 때 가장 정확합니다.'
+  );
+  var oracle = (readings[readings.length - 1] && readings[readings.length - 1].oracleMessage) || '';
   var interpretation = '' +
     '<b style="color:#c4b5fd;font-size:1.02em">🔮 명리학 타로 3카드 리딩</b><br>' +
-    '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">카드 간 맥락을 연결한 명리-타로 통합 상담입니다.</span><br><br>' +
+    '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">카드 · 십성 · 카테고리를 하나의 상담문으로 통합한 리딩입니다.</span><br><br>' +
     parts +
     realityPlan +
     '<div style="margin-top:10px;padding:14px 16px;border:1px solid rgba(167,243,208,0.35);border-radius:12px;background:rgba(5,150,105,0.10);">' +
@@ -1116,10 +1373,10 @@ function _runShowTarotFinalInterpretation() {
     '</div>';
   var oracleEl = document.getElementById('tarotOracleText');
   if (oracleEl) {
-    oracleEl.innerHTML = advice
-      ? '<div style="font-weight:700;color:#FFD700;margin-bottom:6px;letter-spacing:0.03em">✨ 현재 카드의 오라클 메시지</div><span style="font-style:italic;line-height:1.8">"' + escapeTarotHtml(advice) + '"</span>'
+    oracleEl.innerHTML = oracle
+      ? '<div style="font-weight:700;color:#FFD700;margin-bottom:6px;letter-spacing:0.03em">✨ 오늘의 오라클 메시지</div><span style="font-style:italic;line-height:1.8">"' + escapeTarotHtml(oracle) + '"</span>'
       : '';
-    if (advice) oracleEl.classList.add('show');
+    if (oracle) oracleEl.classList.add('show');
   }
   var resultEl = document.getElementById('tarotResultContainer');
   var fortuneEl = document.getElementById('destinyFortune');
@@ -1216,15 +1473,15 @@ function _runStartTarotReading() {
         direction +
         '</div>';
     }
+    var reading = combineTarotAndTenGod(picked, '', curTarotCat, isReversed ? 'reversed' : 'upright');
     var resultEl = document.getElementById('tarotResultContainer');
     if (resultEl) resultEl.classList.remove('is-empty');
     var interpretation = '<b style="color:#ddd6fe;font-size:1.02em">🌙 명리학 타로 원카드 리딩</b><br>' +
-      '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">카드 의미와 질문 카테고리를 결합한 맞춤 상담입니다.</span><br><br>' +
-      buildTarotCardCounselHtml(picked, isReversed, curTarotCat, '오늘');
+      '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">타로 카드, 십성, 질문 맥락을 한 문장으로 연결한 상담입니다.</span><br><br>' +
+      buildMyeongriTarotReadingHtml(reading, '오늘');
     streamRitualHtmlTyped(interpretation, 'destinyFortune', function() {
       if (token !== tarotLifecycleToken) return;
-      var ctx = TAROT_CONTEXT[curTarotCat];
-      var advice = ctx && ctx.oracle ? ctx.oracle(picked, isReversed) : '';
+      var advice = removeRepeatedMyeongriTarotPhrases(reading.oracleMessage || '');
       var oracleEl = document.getElementById('tarotOracleText');
       if (oracleEl) {
         oracleEl.innerHTML = advice

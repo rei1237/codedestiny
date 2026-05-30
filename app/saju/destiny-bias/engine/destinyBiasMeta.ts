@@ -9,7 +9,7 @@ const AURA_TYPES = [
   "별빛 공명",
   "네온 심연",
   "유리 새벽",
-  "달빛 파동",
+  "맑은 공명",
   "오로라 리듬",
   "장미 성운",
   "코튼 스타",
@@ -19,7 +19,7 @@ const AURA_TYPES = [
 
 const AURA_MATERIALS = [
   "Aurora Glass",
-  "Moonlight Velvet",
+  "Clear Velvet",
   "Neon Prism",
   "Starlight Chrome",
   "Rose Quartz Film",
@@ -154,7 +154,7 @@ export function getStageAuraComment(score: number, auraType: string) {
 export function getCheerPoint(score: number, relationMood: string) {
   if (score >= 90) return `피크 공명 구간 오픈. ${relationMood} 모드로 짧고 강하게 한 번만 찍어도 존재감이 폭발해요.`;
   if (score >= 75) return `집중 파동 잘 맞는 날. ${relationMood} 톤 메시지 하루 1회면 잔광이 길게 남습니다.`;
-  if (score >= 60) return `안정 누적형 흐름. ${relationMood} 템포에 맞춰 플리 3곡 루프 돌리면 감정선이 깔끔하게 정렬돼요.`;
+  if (score >= 60) return `안정 누적형 흐름. ${relationMood} 템포에 맞춰 짧은 루틴을 반복하면 감정선이 안정적으로 정렬돼요.`;
   if (score >= 40) return `성장 잠금해제 단계. ${relationMood} 루틴 주 2회 고정하면 다음 사이클에서 공명 강도가 확 올라갑니다.`;
   return `초기 동기화 단계. ${relationMood} 감정 과속보다 컨디션 회복 먼저 챙기면 후반 파동이 훨씬 안정적으로 붙어요.`;
 }

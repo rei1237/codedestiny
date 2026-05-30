@@ -15,6 +15,13 @@ import {
 } from "./ziwei-star-interpretations";
 import { MASTER_TEMPLATE, OVERVIEW_TEMPLATE, ZIWEI_PALACE_TEMPLATES } from "./ziwei-deep-templates";
 import { transformationTypeToLabel } from "./ziwei-advanced-normalization";
+import {
+  buildZiweiDeepPalaceReading,
+  buildZiweiDeepPalaceText,
+  removeRepeatedZiweiDeepPhrases,
+  sanitizeZiweiDeepText,
+  validateZiweiDeepReading,
+} from "./ziwei-deep-reading";
 
 type StrengthSymbol = "◎" | "O" | "▲" | "△" | "X" | "";
 
@@ -414,64 +421,41 @@ function buildOverview(chart: ZiweiDeepChart): ZiweiDeepChapter {
   const travel = chart.palaces.find((p) => p.id === "travel") || null;
   const career = chart.palaces.find((p) => p.id === "career") || null;
   const wealth = chart.palaces.find((p) => p.id === "wealth") || null;
-
-  const lines = [
-    "CH.01 명궁 분석: 나의 핵심 설계도",
-    `명궁 주성/보조성/살성: ${groupBadge(lifePalace.mainStars)} / ${groupBadge(lifePalace.auxiliaryStars)} / ${groupBadge(lifePalace.maleficStars)}`,
-    `명궁 핵심 해석: ${buildPalaceLongBody(chart, lifePalace).slice(0, 2200)}`,
-    "",
-    "CH.02 신궁 분석: 후천적으로 강해지는 나",
-    `신궁 위치: ${chart.shenGong} · 대응 궁: ${bodyPalace?.name || "미확인"}`,
-    bodyPalace
-      ? `신궁 별 배치: ${groupBadge(bodyPalace.mainStars)}. 명궁과 비교하면 '${lifePalace.name}'의 타고난 기질이 '${bodyPalace.name}'의 현실 행동으로 구체화됩니다.`
-      : "신궁 궁위 식별이 제한되어 명궁 중심으로 보수 해석합니다.",
-    "",
-    "CH.03 삼방사정 분석: 인생의 무기와 수익 모델",
-    `명궁: ${groupBadge(lifePalace.mainStars)}`,
-    `천이궁: ${groupBadge(travel?.mainStars || [])}`,
-    `관록궁: ${groupBadge(career?.mainStars || [])}`,
-    `재백궁: ${groupBadge(wealth?.mainStars || [])}`,
-    "삼방사정 해석은 명궁 하나만 보는 것이 아니라, 외부 인터페이스(천이)·직업 로직(관록)·수익 구조(재백)를 교차해 성공 공식을 도출하는 과정입니다.",
-    "",
-    "삼방사정 연결 결론",
+  const strongestStar = chart.palaces
+    .flatMap((palace) => palace.mainStars)
+    .sort((left, right) => String(right.strengthSymbol || right.symbol || "").localeCompare(String(left.strengthSymbol || left.symbol || "")))[0];
+  const fullText = removeRepeatedZiweiDeepPhrases([
+    `명궁 ${groupBadge(lifePalace.mainStars)}는 이 명반의 기준점이고, 신궁 ${bodyPalace ? `${bodyPalace.name} ${groupBadge(bodyPalace.mainStars)}` : "보수 해석"}은 그 기준이 현실 행동으로 어떻게 발현되는지를 보여 줍니다.`,
+    `삼방사정의 핵심 축은 천이궁 ${groupBadge(travel?.mainStars || [])}, 관록궁 ${groupBadge(career?.mainStars || [])}, 재백궁 ${groupBadge(wealth?.mainStars || [])}입니다. 명궁 하나만 읽지 말고 외부 확장, 직업 구조, 수익 흐름을 함께 붙여야 실제 삶의 전략이 나옵니다.`,
     `${buildTriadLink(chart, lifePalace)}`,
-    "",
-    "핵심 전략",
-    "1) 명궁의 강점 별(◎/O/▲)은 브랜드/역할로 전환하고, 약점 별(△/X)은 운영 규칙으로 관리합니다.",
-    "2) 관록궁-재백궁 연결로 수익 모델을 설계하고, 천이궁으로 외부 노출 방식을 설계합니다.",
-    "3) 단기 결과보다 90일 단위 실행 루틴을 고정하면 명반 강점이 복리로 누적됩니다.",
-  ].join("\n");
-
-  const fullText = ensureMinLength(lines, 6200, "핵심 구조 보강", [
-    "명궁은 성격 설명이 아니라 의사결정 기준의 원형입니다. 기준을 글로 고정할수록 삶의 노이즈가 줄어듭니다.",
-    "신궁은 나이가 들수록 더 체감되는 행동 패턴입니다. 명궁과 차이를 의식하면 후천 운용력이 급상승합니다.",
-    "삼방사정은 성공 모델과 리스크 모델을 동시에 보여줍니다. 확장 전략과 방어 전략을 항상 짝으로 설계하세요.",
-  ]);
+    `사화는 화록 ${chart.sihua.hualu || "미확인"}, 화권 ${chart.sihua.huaquan || "미확인"}, 화과 ${chart.sihua.huake || "미확인"}, 화기 ${chart.sihua.huaji || "미확인"}로 작동합니다. 화기는 막힘이라는 단어보다 '집중 과제'라는 말로 읽어야 오판을 줄일 수 있습니다.`,
+    `전체 키워드는 ${chart.summary.keywords.slice(0, 3).join(", ")}이며, 가장 먼저 주목할 주성은 ${strongestStar ? `${strongestStar.name}${strongestStar.strengthSymbol || strongestStar.symbol || ""}` : "명반 재확인 필요"}입니다.`,
+  ].join("\n\n"));
 
   return {
     sectionId: "overview",
     title: OVERVIEW_TEMPLATE.title,
     summary: [
-      `명궁: ${groupBadge(lifePalace.mainStars)}`,
-      `신궁: ${bodyPalace ? bodyPalace.name : "미확인"}`,
+      `명궁·신궁: ${groupBadge(lifePalace.mainStars)} / ${bodyPalace ? `${bodyPalace.name} ${groupBadge(bodyPalace.mainStars)}` : "신궁 보수 해석"}`,
+      `가장 강한 주성: ${strongestStar ? `${strongestStar.name}${strongestStar.strengthSymbol || strongestStar.symbol || ""}` : "확인 중"}`,
       `삼방사정 축: ${[travel?.name, career?.name, wealth?.name].filter(Boolean).join(", ")}`,
     ],
     fullText,
     highlights: ["명궁", "신궁", "삼방사정", ...chart.summary.keywords].slice(0, 8),
     strengths: [
-      "강약 기호 기반으로 궁별 실행 우선순위를 분리할 수 있습니다.",
-      "명궁-신궁 차이를 인식하면 후천 운용력이 크게 상승합니다.",
-      "삼방사정으로 직업/수익/확장 모델을 동시에 설계할 수 있습니다.",
+      "로컬 엔진이 계산한 12궁과 사화를 먼저 읽고 그 위에 상담문을 얹습니다.",
+      "명궁·신궁·삼방사정이 한 화면에서 연결되어 자기 운용법을 빠르게 파악할 수 있습니다.",
+      "가장 강한 주성과 약한 축을 동시에 보여 주어 확장과 방어 전략을 분리할 수 있습니다.",
     ],
     cautions: [
-      "명궁 단일 해석으로 결론 내리면 현실 발현 예측이 왜곡될 수 있습니다.",
-      "약점 별의 리스크를 무시하면 성과 변동성이 커집니다.",
-      "대궁 관점이 빠지면 단기 감정 반응이 전략을 압도할 수 있습니다.",
+      "한 궁만 읽고 결론 내리면 실제 운용 포인트를 놓치기 쉽습니다.",
+      "화기와 약세 별은 실패 예언이 아니라 관리 우선순위로 읽어야 합니다.",
+      "공궁은 비어 있는 것이 아니라 대궁·삼방사정이 더 강하게 작동하는 구조입니다.",
     ],
     remedies: [
       "주 1회 명궁-신궁 비교 회고",
       "삼방사정 3궁 체크포인트 기록",
-      "강약 기호별 행동 우선순위표 작성",
+      "강점 별과 약점 별을 따로 운영표에 적기",
     ],
     actionItems: ["명궁 강점 1개를 이번 주 실행으로 전환", "신궁 약점 1개를 운영 규칙으로 보완", "삼방사정 기반 수익 모델 1개 정의"],
     routine7Days: ["매일 5분 기준 기록", "핵심 결정 24시간 재검토", "관계·일·돈 통합 점검"],
@@ -490,7 +474,7 @@ function buildMaster(chart: ZiweiDeepChart): ZiweiDeepChapter {
   const annualKey = chart.annualFlow?.yearLabel || "유년 데이터";
   const annualPalaces = (chart.annualFlow?.keyPalaces || []).map((id) => ZIWEI_PALACE_NAME[id]).join(", ");
 
-  const fullText = ensureMinLength([
+  const fullText = removeRepeatedZiweiDeepPhrases([
     "CH.12 사화 분석: 화록·화권·화과·화기",
     buildSihuaAnalysis(chart),
     "",
@@ -520,11 +504,7 @@ function buildMaster(chart: ZiweiDeepChart): ZiweiDeepChapter {
     "| 8~30일 | 실행 가속 | 강점 궁 기반 프로젝트 집중 | 과부하 누적 경계 | 성과 체감 상승 |",
     "| 31~60일 | 구조 검증 | 사화/삼방사정 교차 점검 | 관계 소모 방치 금지 | 재현성 강화 |",
     "| 61~90일 | 확장 설계 | 수익 모델 다변화/자동화 | 무리한 확장 금지 | 장기 성장 기반 확보 |",
-  ].join("\n"), 6200, "마스터플랜 보강", [
-    "사화는 운의 방향키입니다. 화록/화권/화과는 확장 축, 화기는 집중 과제 축으로 함께 관리해야 성과가 안정됩니다.",
-    "대운은 속도보다 방향, 세운은 방향보다 실행 품질을 검증합니다. 둘을 분리해서 읽어야 오판을 줄일 수 있습니다.",
-    "성공 공식은 재능이 아니라 운영입니다. 강점 별은 복리로 키우고, 약점 별은 제도로 보완하세요.",
-  ]);
+  ].join("\n"));
 
   return {
     sectionId: "master",
@@ -566,19 +546,19 @@ export function generateZiweiDeepChapter(chart: ZiweiDeepChart, sectionId: Ziwei
     };
   }
 
-  const title = `${ZIWEI_PALACE_NAME[palace.id]} 심화 분석`;
-  const fullText = buildPalaceLongBody(chart, palace);
+  const palaceReading = buildZiweiDeepPalaceReading(chart, palace);
+  const fullText = sanitizeZiweiDeepText(buildZiweiDeepPalaceText(palaceReading));
 
-  return {
+  const chapter: ZiweiDeepChapter = {
     sectionId,
     palaceId: palace.id,
-    title,
-    subtitle: `${palace.name} · 지지 ${palace.earthlyBranch}`,
+    title: `${ZIWEI_PALACE_NAME[palace.id]} 심화 분석`,
+    subtitle: `${palaceReading.palaceName} · 지지 ${palace.earthlyBranch}`,
     summary: [
-      `궁의 의미: ${ZIWEI_PALACE_TEMPLATES[palace.id].meaning}`,
-      `주성: ${palace.isEmptyMainStarPalace ? "무주성궁" : groupBadge(palace.mainStars)}`,
-      `보조성/살성: ${groupBadge(palace.auxiliaryStars)} / ${groupBadge(palace.maleficStars)}`,
-      `사화: ${sentenceList((palace.fourTransformations || []).map((item) => `${transformationTypeToLabel(item.type)} ${item.starName}`), "직접 사화 없음")}`,
+      palaceReading.summary,
+      `주성: ${palaceReading.mainStars.length ? palaceReading.mainStars.map((star) => `${star.name}${star.strengthSymbol || star.symbol || ""}`).join(", ") : "공궁이라 대궁·삼방사정 중심"}`,
+      `보조성/잡성: ${palaceReading.supportStars.length ? palaceReading.supportStars.map((star) => `${star.name}${star.strengthSymbol || star.symbol || ""}`).join(", ") : "직접 보조성 약함"} / ${palaceReading.minorStars.length ? palaceReading.minorStars.map((star) => `${star.name}${star.strengthSymbol || star.symbol || ""}`).join(", ") : "잡성 영향 경미"}`,
+      `사화: ${palaceReading.transformations.length ? palaceReading.transformations.map((item) => `${item.type} ${item.starName}`).join(", ") : "직접 사화는 약하고 연결궁 유입 중심"}`,
     ],
     fullText,
     highlights: [
@@ -586,18 +566,21 @@ export function generateZiweiDeepChapter(chart: ZiweiDeepChart, sectionId: Ziwei
       ...(palace.fourTransformations || []).map((item) => `${transformationTypeToLabel(item.type)} ${item.starName}`),
     ].slice(0, 8),
     strengths: [
-      "별 강약 기호를 근거로 행동 우선순위를 제시합니다.",
-      "삼방사정·대궁 연결을 통해 단일 궁 해석의 왜곡을 줄입니다.",
-      "살성과 화기를 리스크 관리와 집중 과제로 번역합니다.",
+      palaceReading.brightnessSummary,
+      palaceReading.categories[0]?.usedSignals.slice(0, 2).join(" · ") || "핵심 신호 정리",
+      palaceReading.sanFangSiZheng?.summary || "삼방사정 연결 확인",
     ],
-    cautions: [
-      "강약 기호가 약한 별은 환경 의존성이 크므로 루틴 기반 보완이 필요합니다.",
-      "충돌 별이 강한 구간은 관계·일정 완충을 먼저 설계해야 합니다.",
-      "사화 변화는 단기 감정이 아니라 장기 운영 관점으로 읽어야 합니다.",
-    ],
-    remedies: ZIWEI_PALACE_TEMPLATES[palace.id].remedies,
-    actionItems: ["강점 별 1개 확장", "약점 별 1개 보완 규칙 수립", "삼방사정 체크포인트 주간 고정"],
+    cautions: palaceReading.categories.slice(0, 3).map((category) => category.caution),
+    remedies: [...ZIWEI_PALACE_TEMPLATES[palace.id].remedies, ...palaceReading.practicalAdvice].slice(0, 6),
+    actionItems: palaceReading.categories.slice(0, 4).map((category) => category.action),
     routine7Days: ["5분 기준 기록", "결정 24시간 재검토", "회복 루틴 점검"],
     routine30Days: ["궁별 성과 리뷰", "리스크 패턴 정리", "다음 달 전략 재설계"],
+    palaceReading,
   };
+
+  const validation = validateZiweiDeepReading(chapter);
+  if (!validation.valid) {
+    chapter.fullText = removeRepeatedZiweiDeepPhrases(chapter.fullText);
+  }
+  return chapter;
 }

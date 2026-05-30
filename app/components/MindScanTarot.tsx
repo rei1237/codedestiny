@@ -28,6 +28,15 @@ interface ReadingSummaryCard {
   situationPressure?: string;
   emotionalNeed?: string;
 }
+interface InnerHeartSummary {
+  emotionalTemperature?: string;
+  hiddenCore?: string;
+  contactPossibility?: string;
+  relationshipRisk?: string;
+  recommendedAttitude?: string;
+  finalFlow?: string;
+  oracleMessage?: string;
+}
 interface ReadingInsightCard {
   id: string;
   icon?: string;
@@ -43,6 +52,17 @@ interface ReadingSection {
   icon?: string;
   title: string;
   subtitle?: string;
+  positionTitle?: string;
+  cardNameKo?: string;
+  cardNameEn?: string;
+  orientation?: "upright" | "reversed";
+  keywords?: string[];
+  cardMeaning?: string;
+  positionMeaning?: string;
+  emotionalReading?: string;
+  hiddenMessage?: string;
+  caution?: string;
+  advice?: string;
   content?: string;
   summary?: string;
   detail?: string[];
@@ -59,6 +79,7 @@ interface ReadingResult {
   intro: string;
   sections: ReadingSection[];
   summaryCard?: ReadingSummaryCard;
+  innerHeartSummary?: InnerHeartSummary;
   insightDeck?: ReadingInsightCard[];
   masterAdvice?: string;
   suggestedMessages?: ReadingMessageExample[];
@@ -670,6 +691,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
   const [shareMsg, setShareMsg] = useState("");
   const [visibleCount, setVisibleCount] = useState(0);
   const summaryCard = reading.summaryCard || {};
+  const innerHeartSummary = reading.innerHeartSummary || {};
   const insightDeck = useMemo(
     () => (Array.isArray(reading.insightDeck) ? reading.insightDeck.slice(0, 6) : []),
     [reading.insightDeck],
@@ -722,6 +744,15 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
     `감정 욕구: ${summaryCard.emotionalNeed || "안전감과 존중 확인 욕구"}`,
     `추천 행동: ${summaryCard.recommendedAction || "부담 없는 안부로 접점 만들기"}`,
     "",
+    "[속마음 종합 상담]",
+    `상대의 감정 온도: ${innerHeartSummary.emotionalTemperature || "감정과 방어가 동시에 움직이는 흐름"}`,
+    `숨겨진 핵심 마음: ${innerHeartSummary.hiddenCore || "겉표현 아래에 망설임과 미련이 함께 남아 있습니다."}`,
+    `연락 가능성: ${innerHeartSummary.contactPossibility || "타이밍을 존중한 접근에서 반응 가능성이 열립니다."}`,
+    `관계의 위험 신호: ${innerHeartSummary.relationshipRisk || "확답 요구와 감정 압박은 방어를 강화할 수 있습니다."}`,
+    `내가 취할 태도: ${innerHeartSummary.recommendedAttitude || "짧고 안정적인 메시지로 리듬을 맞추는 태도"}`,
+    `최종 흐름: ${innerHeartSummary.finalFlow || "조정 구간을 거치며 관계 방향이 정해지는 흐름"}`,
+    `오라클 메시지: ${innerHeartSummary.oracleMessage || "안전감을 주는 말 한 줄이 흐름을 바꿉니다."}`,
+    "",
     "[상대방 감정/상황 딥다이브 카드]",
     ...(insightDeck || []).map((card, idx) =>
       [
@@ -749,7 +780,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
     reading.masterAdvice || "",
     "",
     reading.oneLineConclusion || reading.closing,
-  ].join("\n"), [insightDeck, reading, suggestedMessages, summaryCard]);
+  ].join("\n"), [innerHeartSummary, insightDeck, reading, suggestedMessages, summaryCard]);
 
   const showMsg = (msg: string) => { setShareMsg(msg); setTimeout(() => setShareMsg(""), 2500); };
 
@@ -948,6 +979,20 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
                 상황 압력: <b>{summaryCard.situationPressure || "접근 강도 조절이 필요한 구간"}</b>
               </div>
             </div>
+            <div className="mt-4 grid grid-cols-1 gap-2 text-[12px]">
+              <div className="rounded-xl border border-cyan-300/20 bg-cyan-500/10 px-3 py-2 text-cyan-50/95">
+                상대의 감정 온도: <b>{innerHeartSummary.emotionalTemperature || "감정과 방어가 동시에 움직이는 흐름"}</b>
+              </div>
+              <div className="rounded-xl border border-indigo-300/20 bg-indigo-500/10 px-3 py-2 text-indigo-50/95">
+                핵심 카드 흐름: <b>{innerHeartSummary.hiddenCore || "속마음과 망설임이 동시에 작동합니다."}</b>
+              </div>
+              <div className="rounded-xl border border-amber-300/20 bg-amber-500/10 px-3 py-2 text-amber-50/95">
+                연락 가능성 요약: <b>{innerHeartSummary.contactPossibility || "압박 없는 접점에서 반응 가능성이 열립니다."}</b>
+              </div>
+              <div className="rounded-xl border border-emerald-300/20 bg-emerald-500/10 px-3 py-2 text-emerald-50/95">
+                오늘 내가 취할 태도: <b>{innerHeartSummary.recommendedAttitude || "짧고 안전한 대화 리듬을 먼저 만드세요."}</b>
+              </div>
+            </div>
           </motion.article>
 
           {/* Insight card draw */}
@@ -1077,6 +1122,24 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
               <p className="text-[15px] sm:text-base text-purple-100/90 leading-8 tracking-[0.01em] sm:pl-12 whitespace-pre-line">
                 {s.summary || s.content}
               </p>
+              {Array.isArray(s.keywords) && s.keywords.length > 0 && (
+                <div className="sm:pl-12 mt-2 flex flex-wrap gap-1.5">
+                  {s.keywords.slice(0, 5).map((kw) => (
+                    <span key={`${s.slot}-kw-${kw}`} className="px-2 py-0.5 rounded-full text-[10px] border border-cyan-300/35 bg-cyan-500/10 text-cyan-100/95">
+                      #{kw}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="sm:pl-12 mt-3 grid grid-cols-1 gap-2">
+                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>카드명/방향:</b> {s.cardNameKo || s.mainCardName || "카드"} {s.orientation ? `(${s.orientation === "reversed" ? "역방향" : "정방향"})` : ""}</p>
+                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>카드 기본 의미:</b> {s.cardMeaning || s.summary || s.content}</p>
+                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>이 위치에서의 의미:</b> {s.positionMeaning || s.subtitle || "이 포지션의 질문에 맞춘 해석"}</p>
+                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>상대 속마음 해석:</b> {s.emotionalReading || s.summary || "감정과 방어가 함께 작동하는 흐름"}</p>
+                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>상대가 말하지 못하는 메시지:</b> {s.hiddenMessage || "확답보다 안전한 대화 환경을 먼저 원하고 있습니다."}</p>
+                <p className="text-[13px] sm:text-sm text-amber-100/90 leading-7"><b>주의할 점:</b> {s.caution || "감정 확인을 몰아붙이면 방어가 강화될 수 있습니다."}</p>
+                <p className="text-[13px] sm:text-sm text-emerald-100/90 leading-7"><b>내가 취할 태도:</b> {s.advice || "짧고 부담 없는 메시지로 리듬을 회복하세요."}</p>
+              </div>
               {(Array.isArray(s.detail) && s.detail.length > 0) && (
                 <div className="sm:pl-12 mt-2.5 space-y-2">
                   {s.detail.map((line, idx) => (
@@ -1124,6 +1187,20 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
               <p className="text-[15px] sm:text-base text-purple-50/90 leading-8 tracking-[0.01em] whitespace-pre-line">{reading.masterAdvice}</p>
             </motion.article>
           )}
+
+          <motion.article className={`${COSMIC_CARD} p-5 sm:p-6`}
+            style={{ background: "linear-gradient(135deg,rgba(6,182,212,0.12),rgba(59,130,246,0.06),transparent)" }}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: visibleCount >= 15 ? 1 : 0, y: visibleCount >= 15 ? 0 : 16 }}
+            transition={{ duration: 0.38 }}>
+            <h4 className="text-sm sm:text-base font-bold text-cyan-50 mb-3">전체 종합 상담</h4>
+            <div className="space-y-2">
+              <p className="text-[13px] sm:text-sm text-cyan-100/92 leading-7"><b>관계의 위험 신호:</b> {innerHeartSummary.relationshipRisk || "확답을 강요하면 관계 방어가 강화될 수 있습니다."}</p>
+              <p className="text-[13px] sm:text-sm text-cyan-100/92 leading-7"><b>연락 가능성:</b> {innerHeartSummary.contactPossibility || "부담을 낮춘 접점에서 반응 가능성이 열립니다."}</p>
+              <p className="text-[13px] sm:text-sm text-cyan-100/92 leading-7"><b>최종 흐름:</b> {innerHeartSummary.finalFlow || "관계는 조정 단계를 거쳐 방향을 결정할 가능성이 큽니다."}</p>
+              <p className="text-[13px] sm:text-sm text-cyan-50/95 leading-7"><b>오라클 메시지:</b> {innerHeartSummary.oracleMessage || "안전감을 주는 말 한 줄이 상대의 방어를 낮춥니다."}</p>
+            </div>
+          </motion.article>
 
           {/* Closing */}
           <motion.div className={`${COSMIC_CARD} p-5 sm:p-6 text-center`}
@@ -1219,6 +1296,20 @@ export default function MindScanTarot() {
   const usedRef = useRef<Set<number>>(new Set());
   const drawnRef = useRef<Record<string, number>>({});
   const drawnSubRef = useRef<Record<string, number>>({});
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const body = document.body;
+    const html = document.documentElement;
+    const prevBodyOverflow = body.style.overflow;
+    const prevHtmlOverflow = html.style.overflow;
+    body.style.overflow = "hidden";
+    html.style.overflow = "hidden";
+    return () => {
+      body.style.overflow = prevBodyOverflow;
+      html.style.overflow = prevHtmlOverflow;
+    };
+  }, []);
 
   useEffect(() => { usedRef.current = usedCardIds; }, [usedCardIds]);
   useEffect(() => { drawnRef.current = drawn; }, [drawn]);

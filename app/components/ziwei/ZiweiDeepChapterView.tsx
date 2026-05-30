@@ -39,7 +39,9 @@ export default function ZiweiDeepChapterView({ chapter }: ZiweiDeepChapterViewPr
   const [mobileBodyOpen, setMobileBodyOpen] = useState(true);
   const [mobileInsightOpen, setMobileInsightOpen] = useState(false);
   const [mobileChecklistOpen, setMobileChecklistOpen] = useState(false);
+  const [openCategoryTitle, setOpenCategoryTitle] = useState<string | null>(null);
   const bodyRef = useRef<HTMLElement | null>(null);
+  const palaceReading = chapter.palaceReading;
 
   const estimatedMinutes = useMemo(() => {
     return Math.max(4, Math.round(chapter.fullText.length / 650));
@@ -56,6 +58,7 @@ export default function ZiweiDeepChapterView({ chapter }: ZiweiDeepChapterViewPr
     setMobileBodyOpen(true);
     setMobileInsightOpen(false);
     setMobileChecklistOpen(false);
+    setOpenCategoryTitle(chapter.palaceReading?.categories[0]?.categoryTitle || null);
   }, [chapter.sectionId]);
 
   useEffect(() => {
@@ -81,6 +84,127 @@ export default function ZiweiDeepChapterView({ chapter }: ZiweiDeepChapterViewPr
 
   if (chapter.sectionId === "master") {
     return <ZiweiMasterPlan chapter={chapter} />;
+  }
+
+  if (palaceReading) {
+    return (
+      <article className="space-y-5 rounded-3xl border border-white/15 bg-white/5 p-5 backdrop-blur-xl md:p-7">
+        <header className="space-y-3">
+          <p className="text-xs font-bold tracking-wide text-amber-200/90">Deep Palace Reading</p>
+          <div className="rounded-2xl border border-white/10 bg-slate-950/35 p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="text-2xl font-black text-slate-100">{chapter.title}</h2>
+                <p className="mt-1 text-sm text-slate-300">{chapter.subtitle}</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <span className="rounded-full border border-cyan-300/40 bg-cyan-200/10 px-3 py-1 text-xs font-semibold text-cyan-100">
+                  {palaceReading.isEmptyPalace ? "공궁" : "주성 직좌"}
+                </span>
+                <span className="rounded-full border border-amber-300/40 bg-amber-200/10 px-3 py-1 text-xs font-semibold text-amber-100">
+                  지지 {palaceReading.palaceBranch || "미확인"}
+                </span>
+              </div>
+            </div>
+            <p className="mt-3 text-sm leading-7 text-slate-200">{palaceReading.summary}</p>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">주성</p>
+              <p className="mt-2 text-sm font-semibold leading-6 text-slate-100">
+                {palaceReading.mainStars.length ? palaceReading.mainStars.map((star) => `${star.name}${star.strengthSymbol || star.symbol || ""}`).join(", ") : "대궁·삼방사정 중심 해석"}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">보조성</p>
+              <p className="mt-2 text-sm font-semibold leading-6 text-slate-100">
+                {palaceReading.supportStars.length ? palaceReading.supportStars.map((star) => `${star.name}${star.strengthSymbol || star.symbol || ""}`).join(", ") : "직접 보조성 약함"}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">사화</p>
+              <p className="mt-2 text-sm font-semibold leading-6 text-slate-100">
+                {palaceReading.transformations.length ? palaceReading.transformations.map((item) => `${item.type} ${item.starName}`).join(", ") : "직접 사화 약함"}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">삼방사정</p>
+              <p className="mt-2 text-sm font-semibold leading-6 text-slate-100">{palaceReading.sanFangSiZheng?.sourcePalaces.join(", ") || "확인 중"}</p>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-amber-300/25 bg-gradient-to-br from-amber-200/10 via-white/5 to-cyan-200/10 p-4">
+            <p className="text-xs font-bold text-amber-100">별 세기 요약</p>
+            <p className="mt-2 text-sm leading-7 text-slate-100">{palaceReading.brightnessSummary}</p>
+            <p className="mt-3 text-xs text-slate-300">대궁 {palaceReading.oppositePalace || "미확인"} · {palaceReading.sanFangSiZheng?.summary}</p>
+          </div>
+        </header>
+
+        <section className="space-y-3">
+          {palaceReading.categories.map((category, index) => {
+            const open = openCategoryTitle === category.categoryTitle;
+            return (
+              <article key={category.categoryTitle} className="overflow-hidden rounded-2xl border border-white/10 bg-slate-950/35">
+                <button
+                  type="button"
+                  onClick={() => setOpenCategoryTitle((prev) => prev === category.categoryTitle ? null : category.categoryTitle)}
+                  className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left"
+                  aria-expanded={open}
+                >
+                  <div>
+                    <p className="text-[11px] font-bold tracking-[0.18em] text-cyan-200/80">CATEGORY {String(index + 1).padStart(2, "0")}</p>
+                    <h3 className="mt-1 text-lg font-black text-slate-100">{category.categoryTitle}</h3>
+                    <p className="mt-1 text-sm text-slate-300">{category.categoryQuestion}</p>
+                  </div>
+                  <span className="shrink-0 rounded-full border border-white/15 px-3 py-1 text-xs text-slate-200">{open ? "접기" : "펼치기"}</span>
+                </button>
+                {open ? (
+                  <div className="border-t border-white/10 px-4 py-4">
+                    <div className="flex flex-wrap gap-2">
+                      {category.usedSignals.map((signal) => (
+                        <span key={signal} className="rounded-full border border-cyan-300/30 bg-cyan-200/10 px-2.5 py-1 text-[11px] text-cyan-100">
+                          {signal}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="mt-4 space-y-4 text-sm leading-7 text-slate-100">
+                      <div>
+                        <p className="text-xs font-bold text-slate-400">상세 해석</p>
+                        <p className="mt-1 whitespace-pre-wrap">{category.interpretation}</p>
+                      </div>
+                      <div className="grid gap-3 xl:grid-cols-3">
+                        <div className="rounded-xl border border-emerald-300/20 bg-emerald-200/5 p-3">
+                          <p className="text-xs font-bold text-emerald-100">기회</p>
+                          <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-100">{category.opportunity}</p>
+                        </div>
+                        <div className="rounded-xl border border-rose-300/20 bg-rose-200/5 p-3">
+                          <p className="text-xs font-bold text-rose-100">주의점</p>
+                          <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-100">{category.caution}</p>
+                        </div>
+                        <div className="rounded-xl border border-amber-300/20 bg-amber-200/5 p-3">
+                          <p className="text-xs font-bold text-amber-100">현실 조언</p>
+                          <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-100">{category.action}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
+        </section>
+
+        <section className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <p className="text-xs font-bold text-amber-100">궁별 실전 조언</p>
+          <ul className="mt-3 space-y-2 text-sm leading-7 text-slate-100">
+            {palaceReading.practicalAdvice.map((advice) => (
+              <li key={advice}>- {advice}</li>
+            ))}
+          </ul>
+        </section>
+      </article>
+    );
   }
 
   return (

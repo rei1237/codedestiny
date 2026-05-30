@@ -1,13 +1,9 @@
-import { calculateBiasCompatibility } from "./compatibilityScore";
 import { normalizeBirthDateInput } from "./birthEnergy";
 import {
-  generateBiasPersonalityReport,
-  generateBiasEnergySummary,
-  generateChemistrySummary,
-  generateCompatibilityReport,
-  generateDestinySignal,
-  generateEnergyConnectionReport,
-} from "./reportTemplates";
+  buildFavoriteDestinyFromSaju,
+  sanitizeFavoriteDestinyText,
+  validateFavoriteDestinyReading,
+} from "./favoriteDestinyReading";
 import { createDestinyBiasCardSvg } from "../utils/createDestinyBiasSvg";
 import { createBiasEnergySvg } from "../utils/createBiasEnergySvg";
 import {
@@ -23,8 +19,10 @@ import {
 export type DestinyBiasAnalyzeInput = {
   userName: string;
   userBirthDateInput: string;
+  userBirthTimeInput?: string;
   biasName: string;
   biasBirthDateInput: string;
+  biasBirthTimeInput?: string;
   linkedArtistName?: string;
   biasMood: string;
   relationMood: string;
@@ -73,6 +71,34 @@ export type DestinyBiasAnalyzeResult = {
   destinyId: string;
   issuedAt: string;
   cardSvg: string;
+  chemistryType: string;
+  birthDataStatus: {
+    user: "complete" | "dateOnly" | "unknownTime";
+    favorite: "complete" | "dateOnly" | "unknownTime";
+  };
+  sajuSignals: {
+    dayMasterRelation?: string;
+    dayBranchRelation?: string;
+    fiveElementBalance?: string;
+    tenGodRelation?: string;
+    harmonySignals: string[];
+    conflictSignals: string[];
+    charmSignals: string[];
+    longTermSignals: string[];
+  };
+  detailedTabs: Array<{
+    id: "summary" | "chemistry" | "emotion" | "fanBias" | "stability" | "caution" | "advice";
+    label: string;
+    shortLabel: string;
+    title: string;
+    keywords: string[];
+    sections: Array<{
+      title: string;
+      usedSignals: string[];
+      text: string;
+      action?: string;
+    }>;
+  }>;
 };
 
 function normalizeName(value: string, fallback: string) {
@@ -114,52 +140,46 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
     throw new Error(`최애의 생년월일: ${reason}`);
   }
 
-  const compatibility = calculateBiasCompatibility({
-    userBirthDate: normalizedUserBirth.value,
-    biasBirthDate: normalizedBiasBirth.value,
-    userName,
-    biasName,
-    biasMood: input.biasMood,
-    relationMood: input.relationMood,
-  });
+  const reading = buildFavoriteDestinyFromSaju(
+    {
+      name: userName,
+      birthDate: normalizedUserBirth.value,
+      birthTimeInput: input.userBirthTimeInput,
+    },
+    {
+      name: biasName,
+      birthDate: normalizedBiasBirth.value,
+      birthTimeInput: input.biasBirthTimeInput,
+    }
+  );
 
-  const reportArgs = {
-    userName,
-    biasName,
-    userBirthDate: normalizedUserBirth.value,
-    biasBirthDate: normalizedBiasBirth.value,
-    userEnergyType: compatibility.userEnergyType,
-    biasEnergyType: compatibility.biasEnergyType,
-    totalScore: compatibility.totalScore,
-    emotionalScore: compatibility.emotionalScore,
-    fandomScore: compatibility.fandomScore,
-    longTermScore: compatibility.longTermScore,
-    supportStyleScore: compatibility.supportStyleScore,
-    relationMood: input.relationMood,
-    biasMood: input.biasMood,
-    connectionKeyword: compatibility.connectionKeyword,
-  };
+  const validation = validateFavoriteDestinyReading(reading);
+  if (!validation.ok) {
+    throw new Error(`최애운명 리딩 검증 실패: ${validation.errors[0] || "알 수 없는 오류"}`);
+  }
 
-  const biasPersonalityReport = generateBiasPersonalityReport(reportArgs);
-  const compatibilityReport = generateCompatibilityReport(reportArgs);
-  const energyReport = generateEnergyConnectionReport(reportArgs);
-  const chemistrySummary = generateChemistrySummary(reportArgs);
-  const destinySignal = generateDestinySignal(reportArgs);
-  const biasEnergySummary = generateBiasEnergySummary(reportArgs);
+  const userEnergyType = `${reading.sajuSignals.dayMasterRelation || "중립형"} / ${reading.sajuSignals.dayBranchRelation || "일지미상"}`;
+  const biasEnergyType = `${reading.chemistryType} · ${reading.sajuSignals.fiveElementBalance || "오행균형"}`;
 
-  const gradeMeta = getDestinyGrade(compatibility.totalScore);
-  const auraMeta = getAuraTheme(`${userName}:${biasName}:${compatibility.biasEnergyType}`, compatibility.totalScore);
-  const pairingAlias = getPairingAlias(userName, biasName, compatibility.totalScore);
-  const fansignMessage = getFansignMessage(`${userName}:${biasName}:${input.relationMood}`, compatibility.totalScore);
-  const stageAuraComment = getStageAuraComment(compatibility.totalScore, auraMeta.auraType);
-  const cheerPoint = getCheerPoint(compatibility.totalScore, input.relationMood);
+  const gradeMeta = getDestinyGrade(reading.scores.total);
+  const auraMeta = getAuraTheme(`${userName}:${biasName}:${biasEnergyType}`, reading.scores.total);
+  const pairingAlias = getPairingAlias(userName, biasName, reading.scores.total);
+  const fansignMessage = sanitizeFavoriteDestinyText(
+    reading.tabs.find((tab) => tab.id === "advice")?.sections[0]?.text ||
+    getFansignMessage(`${userName}:${biasName}:${input.relationMood}`, reading.scores.total)
+  );
+  const stageAuraComment = getStageAuraComment(reading.scores.total, auraMeta.auraType);
+  const cheerPoint = sanitizeFavoriteDestinyText(
+    reading.tabs.find((tab) => tab.id === "fanBias")?.sections[0]?.action ||
+    getCheerPoint(reading.scores.total, input.relationMood)
+  );
   const moodKeywords = getMoodKeywords(`${userName}:${biasName}:${input.biasMood}:${input.relationMood}`, 3);
-  const matchingTags = [...moodKeywords, ...compatibility.connectionKeyword].slice(0, 6);
+  const matchingTags = [...moodKeywords, ...reading.imageCard.keywords].slice(0, 6);
   const linkedArtist = normalizeName(input.linkedArtistName || "", `${biasName} Stage Line`);
   const stageChemistryKeywords = [
-    compatibility.connectionKeyword[0] || "Neon",
-    compatibility.connectionKeyword[1] || "Rhythm",
-    moodKeywords[0] || "Spark",
+    reading.imageCard.keywords[0] || "공명",
+    reading.imageCard.keywords[1] || "안정",
+    moodKeywords[0] || "케미",
   ].slice(0, 3);
 
   const seed = [
@@ -167,7 +187,7 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
     biasName,
     normalizedUserBirth.value,
     normalizedBiasBirth.value,
-    String(compatibility.totalScore),
+    String(reading.scores.total),
     input.biasMood,
     input.relationMood,
   ].join("|");
@@ -178,16 +198,16 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
   const cardSvg = createDestinyBiasCardSvg({
     userName,
     biasName,
-    userEnergyType: compatibility.userEnergyType,
-    biasEnergyType: compatibility.biasEnergyType,
+    userEnergyType,
+    biasEnergyType,
     relationMood: input.relationMood,
     linkedArtist,
-    compatibilityScore: compatibility.totalScore,
+    compatibilityScore: reading.scores.total,
     auraType: auraMeta.auraType,
     auraMaterial: auraMeta.auraMaterial,
     destinyGrade: gradeMeta.destinyGrade,
-    destinyMessage: energyReport.oneLine,
-    destinySignal,
+    destinyMessage: sanitizeFavoriteDestinyText(reading.imageCard.oneLineLink),
+    destinySignal: sanitizeFavoriteDestinyText(reading.tabs.find((tab) => tab.id === "caution")?.sections[0]?.text || ""),
     fansignMessage,
     destinyId,
     issuedAt,
@@ -201,15 +221,23 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
 
   const biasEnergySvg = createBiasEnergySvg({
     biasName,
-    biasEnergyType: compatibility.biasEnergyType,
+    biasEnergyType,
     auraType: auraMeta.auraType,
     auraMaterial: auraMeta.auraMaterial,
     energyColor: auraMeta.energyColor,
     relationMood: input.relationMood,
     themeKey: input.themeKey,
-    totalScore: compatibility.totalScore,
-    connectionKeywords: compatibility.connectionKeyword,
+    totalScore: reading.scores.total,
+    connectionKeywords: reading.imageCard.keywords,
   });
+
+  const summaryTab = reading.tabs.find((tab) => tab.id === "summary");
+  const chemistryTab = reading.tabs.find((tab) => tab.id === "chemistry");
+  const emotionTab = reading.tabs.find((tab) => tab.id === "emotion");
+  const cautionTab = reading.tabs.find((tab) => tab.id === "caution");
+  const adviceTab = reading.tabs.find((tab) => tab.id === "advice");
+  const stabilityTab = reading.tabs.find((tab) => tab.id === "stability");
+  const fanBiasTab = reading.tabs.find((tab) => tab.id === "fanBias");
 
   return {
     userName,
@@ -217,13 +245,13 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
     linkedArtist,
     userBirthDate: normalizedUserBirth.value,
     biasBirthDate: normalizedBiasBirth.value,
-    totalScore: compatibility.totalScore,
-    emotionalScore: compatibility.emotionalScore,
-    fandomScore: compatibility.fandomScore,
-    longTermScore: compatibility.longTermScore,
-    supportStyleScore: compatibility.supportStyleScore,
-    userEnergyType: compatibility.userEnergyType,
-    biasEnergyType: compatibility.biasEnergyType,
+    totalScore: reading.scores.total,
+    emotionalScore: reading.scores.emotion,
+    fandomScore: reading.scores.fanBias,
+    longTermScore: reading.scores.longTerm,
+    supportStyleScore: reading.scores.stability,
+    userEnergyType,
+    biasEnergyType,
     auraType: auraMeta.auraType,
     auraMaterial: auraMeta.auraMaterial,
     destinyGrade: gradeMeta.destinyGrade,
@@ -233,24 +261,38 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
     editionLabel: auraMeta.editionLabel,
     moodKeywords,
     matchingTags,
-    connectionKeyword: compatibility.connectionKeyword,
-    chemistrySummary,
-    compatibilityDetail: compatibilityReport,
-    energyConnectionDetail: energyReport.report,
-    biasPersonalityReport,
-    compatibilityReport,
-    energyConnectionReport: energyReport.report,
-    oneLineDestinyMessage: energyReport.oneLine,
+    connectionKeyword: reading.imageCard.keywords,
+    chemistrySummary: sanitizeFavoriteDestinyText(reading.summary),
+    compatibilityDetail: sanitizeFavoriteDestinyText(summaryTab?.sections[0]?.text || ""),
+    energyConnectionDetail: sanitizeFavoriteDestinyText(emotionTab?.sections[0]?.text || ""),
+    biasPersonalityReport: sanitizeFavoriteDestinyText(chemistryTab?.sections[0]?.text || ""),
+    compatibilityReport: sanitizeFavoriteDestinyText(summaryTab?.sections[0]?.text || ""),
+    energyConnectionReport: sanitizeFavoriteDestinyText(emotionTab?.sections[0]?.text || ""),
+    oneLineDestinyMessage: sanitizeFavoriteDestinyText(reading.imageCard.oneLineLink),
     stageAuraComment,
-    destinySignal,
+    destinySignal: sanitizeFavoriteDestinyText(cautionTab?.sections[0]?.text || ""),
     fansignMessage,
     stageChemistryKeywords,
-    todayMission: energyReport.mission,
+    todayMission: sanitizeFavoriteDestinyText(adviceTab?.sections[0]?.action || ""),
     cheerPoint,
     biasEnergySvg,
-    biasEnergySummary,
+    biasEnergySummary: sanitizeFavoriteDestinyText(stabilityTab?.sections[0]?.text || ""),
     destinyId,
     issuedAt,
     cardSvg,
+    chemistryType: reading.chemistryType,
+    birthDataStatus: {
+      user: reading.user.birthDataStatus,
+      favorite: reading.favorite.birthDataStatus,
+    },
+    sajuSignals: reading.sajuSignals,
+    detailedTabs: reading.tabs.map((tab) => ({
+      ...tab,
+      sections: tab.sections.map((section) => ({
+        ...section,
+        text: sanitizeFavoriteDestinyText(section.text),
+        action: section.action ? sanitizeFavoriteDestinyText(section.action) : undefined,
+      })),
+    })),
   };
 }

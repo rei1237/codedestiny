@@ -770,6 +770,12 @@ export default function AdvancedZiweiSectionV2({
                         <p className="text-[11px] text-slate-400">핵심 성공 공식</p>
                         <p className="mt-1 text-sm font-bold text-slate-100">{chart.summary.direction}</p>
                       </div>
+                      <div className="rounded-xl border border-white/10 bg-white/5 p-3 md:col-span-3">
+                        <p className="text-[11px] text-slate-400">인생 전체 키워드 · 명궁/신궁 요약</p>
+                        <p className="mt-1 text-sm font-bold text-slate-100">
+                          {chart.summary.keywords.slice(0, 3).join(" · ")} · 명궁 {chart.palaces.find((p) => p.id === "ming")?.mainStars.map((star) => `${star.name}${star.strengthSymbol || star.symbol || ""}`).join(", ") || "확인 중"} · 신궁 {chart.palaces.find((p) => p.earthlyBranch === chart.shenGong)?.name || chart.shenGong}
+                        </p>
+                      </div>
                     </div>
                   )}
                 </section>

@@ -1,4 +1,5 @@
 import { ZiweiChapterValidation, ZiweiDeepChart, ZiweiDeepChapter, ZiweiSectionId } from "./ziwei-types";
+import { validateNoZiweiDebugPhrases, validateZiweiDeepReading } from "./ziwei-deep-reading";
 
 export interface ZiweiChartValidationResult {
   valid: boolean;
@@ -60,8 +61,17 @@ export function validateZiweiChapter(sectionId: ZiweiSectionId, chapter: ZiweiDe
   const issues: string[] = [];
   if (!chapter.title?.trim()) issues.push(`${sectionId} 제목 누락`);
   if (!chapter.fullText?.trim()) issues.push(`${sectionId} 본문 누락`);
-  if (chapter.fullText.length < 3200) issues.push(`${sectionId} 본문이 너무 짧습니다`);
   if (!chapter.actionItems.length) issues.push(`${sectionId} 실천 항목 누락`);
+
+  const debugValidation = validateNoZiweiDebugPhrases(`${chapter.title}\n${chapter.summary.join(" ")}\n${chapter.fullText}`);
+  issues.push(...debugValidation.issues);
+
+  const deepValidation = validateZiweiDeepReading(chapter);
+  issues.push(...deepValidation.issues);
+
+  if (chapter.palaceReading && chapter.palaceReading.categories.length < 8) {
+    issues.push(`${sectionId} 카테고리 수 부족`);
+  }
 
   return {
     isValid: issues.length === 0,

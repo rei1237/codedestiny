@@ -305,17 +305,17 @@
       starsBg.appendChild(s);
     }
     var PLANETS = [
-      { name:'태양',   symbol:'&#x2609;', en:'Sun',     key:'sun',     question:'다른 사람들이 나에게서 가장 먼저 알아보는 것은 무엇인가', energy:'정체성·자기표현·생명력의 축' },
-      { name:'수성',   symbol:'&#x263F;', en:'Mercury', key:'mercury', question:'나는 다른 사람들과 어떻게 지적으로 교류하는가', energy:'소통·지성·학습·언어의 축' },
-      { name:'금성',   symbol:'&#x2640;', en:'Venus',   key:'venus',   question:'나는 내 삶에서 다른 사람들을 어떻게 사랑하는가', energy:'사랑·아름다움·가치·쾌락의 축' },
-      { name:'지구',   symbol:'&#x2295;', en:'Earth',   key:'earth',   question:'무엇이 나를 안정적인 사람으로 만드는가', energy:'물질·안정·현실기반·뿌리의 축' },
-      { name:'달',     symbol:'&#x263D;', en:'Moon',    key:'moon',    question:'내가 가장 강하게 느끼는 감정은 무엇인가', energy:'감정·직관·무의식·내면리듬의 축' },
-      { name:'화성',   symbol:'&#x2642;', en:'Mars',    key:'mars',    question:'나는 대립이나 갈등 상황에 어떻게 대처하는가', energy:'의지·열정·행동·용기의 축' },
-      { name:'목성',   symbol:'&#x2643;', en:'Jupiter', key:'jupiter', question:'나는 재정적인 삶을 어떻게 관리하는가', energy:'풍요·확장·신뢰·철학의 축' },
-      { name:'토성',   symbol:'&#x2644;', en:'Saturn',  key:'saturn',  question:'나는 어떻게 더 규율을 잘 지킬 수 있는가', energy:'규율·카르마·한계·지혜의 축' },
-      { name:'천왕성', symbol:'&#x26E2;', en:'Uranus',  key:'uranus',  question:'내 삶에서 나를 옭아매는 제약은 무엇인가', energy:'혁신·해방·예측불허·변혁의 축' },
-      { name:'해왕성', symbol:'&#x2646;', en:'Neptune', key:'neptune', question:'나는 어떻게 무조건적인 사랑을 보여줄 수 있는가', energy:'영성·꿈·환상·연민의 축' },
-      { name:'명왕성', symbol:'&#x2647;', en:'Pluto',   key:'pluto',   question:'내 삶에서 변형하고 탈바꿈해야 할 것은 무엇인가', energy:'변환·소멸·재탄생·심층무의식의 축' }
+      { name:'태양', symbol:'&#x2609;', en:'Sun', key:'sun', question:'나는 지금 어떤 자아와 생명력으로 세상에 드러나는가?', energy:'의식의 중심' },
+      { name:'달', symbol:'&#x263D;', en:'Moon', key:'moon', question:'내 마음 깊은 곳에서 반복되는 감정 기억은 무엇인가?', energy:'무의식의 물결' },
+      { name:'수성', symbol:'&#x263F;', en:'Mercury', key:'mercury', question:'나는 어떤 생각과 말의 패턴으로 현실을 해석하는가?', energy:'생각과 언어의 회로' },
+      { name:'금성', symbol:'&#x2640;', en:'Venus', key:'venus', question:'나는 무엇을 사랑하고 무엇에서 가치를 느끼는가?', energy:'사랑과 가치의 결' },
+      { name:'화성', symbol:'&#x2642;', en:'Mars', key:'mars', question:'내 안의 욕망과 분노는 어디로 향하는가?', energy:'욕망과 행동의 불꽃' },
+      { name:'목성', symbol:'&#x2643;', en:'Jupiter', key:'jupiter', question:'내 삶은 어디에서 확장되고 어떤 믿음이 나를 성장시키는가?', energy:'확장과 믿음의 문' },
+      { name:'토성', symbol:'&#x2644;', en:'Saturn', key:'saturn', question:'내가 통과해야 할 현실의 시험과 책임은 무엇인가?', energy:'한계와 책임의 문턱' },
+      { name:'천왕성', symbol:'&#x26E2;', en:'Uranus', key:'uranus', question:'내 안에서 깨어나는 자유와 변화의 충동은 무엇인가?', energy:'각성과 해방의 번개' },
+      { name:'해왕성', symbol:'&#x2646;', en:'Neptune', key:'neptune', question:'내 영혼은 무엇을 꿈꾸며 어디에서 환상에 젖어 있는가?', energy:'꿈과 환상의 바다' },
+      { name:'명왕성', symbol:'&#x2647;', en:'Pluto', key:'pluto', question:'내가 직면해야 할 가장 깊은 그림자와 변화의 핵은 무엇인가?', energy:'그림자와 변형의 심연' },
+      { name:'카이론', symbol:'&#x26B7;', en:'Chiron', key:'chiron', question:'내 상처는 어떤 방식으로 치유와 지혜가 되는가?', energy:'상처와 치유의 별' }
     ];
     var MAJOR = [
       {n:'바보',en:'The Fool',r:'0'},{n:'마법사',en:'The Magician',r:'I'},{n:'여사제',en:'The High Priestess',r:'II'},{n:'여황제',en:'The Empress',r:'III'},
@@ -325,55 +325,82 @@
       {n:'탑',en:'The Tower',r:'XVI'},{n:'별',en:'The Star',r:'XVII'},{n:'달',en:'The Moon',r:'XVIII'},{n:'태양',en:'The Sun',r:'XIX'},
       {n:'심판',en:'Judgement',r:'XX'},{n:'세계',en:'The World',r:'XXI'}
     ];
+
     function $(id){return document.getElementById(id);}
     var $draw=$('drawBtn'),$read=$('readBtn'),$reset=$('resetBtn');
     var $boardSec=$('boardSec'),$board=$('board');
     var $loadSec=$('loadSec'),$loadMsg=$('loadMsg');
     var $resSec=$('resSec'),$resCon=$('resCon');
     var $goldSec=$('goldSec'),$goldCon=$('goldCon');
-    var spread=[],goldenCard=null;
-    /* 행성 스프레드 포지션 매핑 (이미지 기준)
-       Row1: [1=명왕성, 2=지구]
-       Row2: [3=해왕성, 4=달, 5=수성]
-       Row3: [6=천왕성, 7=태양, 8=금성]
-       Row4: [9=토성, 10=화성]
-       Row5: [11=목성]  */
-    var SPREAD_ORDER=[10,3,1,4,2,8,0,5,7,9,6]; // PLANETS index → position 1..11
+
+    var STORAGE_NS='cd:celestial:harmony:';
+    var spread=[];
+    var goldenCard=null;
+    var currentReportId='';
+    var currentTransactionId='';
+    var isPaid=false;
+
+    // 기존 보드 레이아웃을 유지하되 11번째를 카이론으로 사용
+    var SPREAD_ORDER=[10,8,1,4,2,7,0,5,6,9,3];
 
     function shuffle(arr){var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
     function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-    function rfld(label,txt,hcls){if(!txt)return '';return '<div style="margin-bottom:1.25rem;"><h4 class="'+hcls+'" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.5rem;">'+label+'</h4><p class="rt">'+esc(txt)+'</p></div>';}
-    function bfld(label,txt,hcls){if(!txt)return '';return '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:1rem;"><h4 class="'+hcls+'" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.5rem;">'+label+'</h4><p class="rt">'+esc(txt)+'</p></div>';}
-    function gfld(label,txt){if(!txt)return '';return '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(245,158,11,.18);border-radius:14px;padding:1.25rem;"><h4 style="color:rgba(245,208,111,.75);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.75rem;">'+label+'</h4><p class="rt" style="color:rgba(253,230,138,.78);">'+esc(txt)+'</p></div>';}
+    function clean(s){return String(s||'').trim();}
 
-    function mandalaPath(){
-      /* 간단한 동심원 + 별 SVG */
-      return '<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">'+
-        '<circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width=".6" opacity=".6"/>'+
-        '<circle cx="50" cy="50" r="28" stroke="currentColor" stroke-width=".5" opacity=".5"/>'+
-        '<circle cx="50" cy="50" r="16" stroke="currentColor" stroke-width=".4" opacity=".4"/>'+
-        '<line x1="50" y1="10" x2="50" y2="90" stroke="currentColor" stroke-width=".4" opacity=".3"/>'+
-        '<line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" stroke-width=".4" opacity=".3"/>'+
-        '<line x1="22" y1="22" x2="78" y2="78" stroke="currentColor" stroke-width=".3" opacity=".2"/>'+
-        '<line x1="78" y1="22" x2="22" y2="78" stroke="currentColor" stroke-width=".3" opacity=".2"/>'+
-      '</svg>';
+    function buildReportId(){
+      return 'celestial:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2,8);
+    }
+
+    function readAuthToken(){
+      try{return clean(localStorage.getItem('fortune_auth_token')||'');}catch(_){return '';}
+    }
+
+    function persistSession(payload){
+      try{
+        var key = STORAGE_NS + (payload.reportId || payload.transactionId || 'last');
+        localStorage.setItem(key, JSON.stringify(payload));
+        localStorage.setItem(STORAGE_NS + 'last', key);
+      }catch(_){ }
+    }
+
+    function restoreSession(){
+      try{
+        var key = localStorage.getItem(STORAGE_NS + 'last') || '';
+        if(!key) return null;
+        var raw = localStorage.getItem(key) || '';
+        if(!raw) return null;
+        return JSON.parse(raw);
+      }catch(_){
+        return null;
+      }
+    }
+
+    function buildCardsPayload(){
+      return spread.map(function(sp,idx){
+        return {
+          idx: idx+1,
+          planet: sp.planet.name,
+          planetName: sp.planet.name,
+          question: sp.planet.question,
+          orientation: sp.orientation,
+          tarot: sp.tarot,
+          cardName: sp.tarot.n,
+        };
+      });
     }
 
     function renderBoard(){
       $boardSec.style.display='block';
-      /* SPREAD_ORDER[i] = PLANETS 배열 인덱스, 위치 순서로 나열 */
       var cells=[];
       for(var pos=0;pos<11;pos++){
         var pi=SPREAD_ORDER[pos];
         var item=spread[pi];
         var pk='p-'+item.planet.key;
         var dl=(pos*.06).toFixed(2)+'s';
+        var dir=item.orientation==='reversed'?'역':'정';
         cells.push(
-          '<article class="tarot-card tarot-card--revealed '+pk+' spread-pos-'+(pos+1)+' board-in" '+
-            'style="animation-delay:'+dl+';" '+
-            'data-planet-idx="'+pi+'" aria-label="'+esc(item.planet.name)+' 카드">'+
-            '<div class="tarot-card__mandala" aria-hidden="true" style="color:var(--pc);">'+mandalaPath()+'</div>'+
-            '<p class="tarot-card__planet-name">'+esc(item.planet.en.toUpperCase())+'</p>'+
+          '<article class="tarot-card tarot-card--revealed '+pk+' spread-pos-'+(pos+1)+' board-in" style="animation-delay:'+dl+';">'+
+            '<p class="tarot-card__planet-name">'+esc(item.planet.en.toUpperCase())+' · '+dir+'</p>'+
             '<span class="tarot-card__symbol">'+item.planet.symbol+'</span>'+
             '<p class="tarot-card__arcana">'+esc(item.tarot.r)+' '+esc(item.tarot.n)+'</p>'+
             '<p class="tarot-card__num">'+String(pos+1).padStart(2,'0')+'</p>'+
@@ -382,224 +409,240 @@
       }
       $board.innerHTML=cells.join('');
     }
-    function renderResults(result){
-      var perCard=Array.isArray(result&&result.perCard)?result.perCard:[];
+
+    function renderResults(reading){
+      var cards=Array.isArray(reading&&reading.cards)?reading.cards:[];
       $resSec.style.display='block';
-      $resCon.innerHTML=perCard.map(function(item,idx){
-        var p=PLANETS[idx]||{},pk='p-'+(p.key||'sun'),sp=spread[idx];
-        var cn=item.cardName||(sp?(sp.tarot.r+' '+sp.tarot.n):'');
-        var dl=(idx*.09).toFixed(2)+'s';
-        return '<article class="planet-card fade-rise '+pk+'" style="border-radius:20px;overflow:hidden;animation-delay:'+dl+';">'+
-          '<div style="background:rgba(0,0,0,.38);padding:1.25rem 1.5rem;">'+
-            '<div class="flex items-start gap-4">'+
-              '<div style="flex-shrink:0;width:4rem;height:4rem;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);">'+
-                '<span class="planet-sym" style="font-size:2rem;">'+esc(p.symbol||'')+'</span>'+
-              '</div>'+
-              '<div style="flex:1;min-width:0;">'+
-                '<p style="color:rgba(255,255,255,.3);font-size:.68rem;font-family:monospace;margin-bottom:3px;">행성 '+String(idx+1).padStart(2,'0')+' &middot; '+esc(p.en||'')+' &middot; '+esc(p.energy||'')+'</p>'+
-                '<h3 class="planet-lbl" style="font-size:1.3rem;font-weight:700;margin-bottom:4px;">'+esc(p.name||item.planet||'')+'</h3>'+
-                '<p style="color:rgba(255,255,255,.52);font-size:.85rem;line-height:1.6;">'+esc(item.question||p.question||'')+'</p>'+
-              '</div>'+
-              '<div style="flex-shrink:0;text-align:right;margin-left:.5rem;">'+
-                '<p style="color:rgba(255,255,255,.28);font-size:.68rem;margin-bottom:2px;">타로 카드</p>'+
-                '<p class="planet-lbl" style="font-size:.85rem;font-weight:700;">'+esc(cn)+'</p>'+
-              '</div>'+
-            '</div>'+
+      $resCon.innerHTML=cards.map(function(item,idx){
+        var p=PLANETS[idx]||{};
+        var pk='p-'+(p.key||item.planetId||'sun');
+        var dir=item.orientation==='reversed'?'역방향':'정방향';
+        return '<article class="planet-card fade-rise '+pk+'" style="border-radius:20px;overflow:hidden;animation-delay:'+(idx*0.08).toFixed(2)+'s;">'+
+          '<div style="background:rgba(0,0,0,.38);padding:1.2rem 1.4rem;">'+
+            '<p style="color:rgba(255,255,255,.35);font-size:.68rem;font-family:monospace;margin:0 0 .35rem;">'+esc(item.planetEn)+' · '+esc(item.layer)+' · '+esc(item.planetSymbol)+'</p>'+
+            '<h3 class="planet-lbl" style="font-size:1.25rem;font-weight:700;margin:0 0 .5rem;">'+esc(item.planetKo)+' - '+esc(item.planetTitle)+'</h3>'+
+            '<p style="color:rgba(255,255,255,.56);font-size:.85rem;line-height:1.6;margin:0;">'+esc(item.cardNameKo)+' ('+esc(item.cardNameEn)+') · '+dir+'</p>'+
           '</div>'+
-          '<div style="padding:1.5rem;">'+
-            rfld('&#x1F31F; 핵심 해석',item.core,'planet-heading')+
-            rfld('&#x1F504; 패턴 분석',item.patterns,'planet-heading')+
-            rfld('&#x26A1; 에너지 리딩',item.energyReading,'planet-heading')+
-            rfld('&#x1F311; 내면 성장 (그림자 작업)',item.shadowWork,'planet-heading')+
-            rfld('&#x1F4A1; 실행 조언',item.advice,'planet-heading')+
-            '<div class="grid sm:grid-cols-2 gap-3" style="margin-top:.5rem;">'+
-              bfld('&#x26A1; 오늘의 행동',item.action,'planet-heading')+
-              bfld('&#x2728; 확언',item.affirmation,'planet-heading')+
-            '</div>'+
-          '</div>'+
+          '<details open style="padding:1.2rem 1.4rem;">'+
+            '<summary style="cursor:pointer;color:rgba(245,208,111,.95);font-weight:700;margin-bottom:.7rem;">심층 리딩 펼치기/접기</summary>'+
+            '<p class="rt"><strong>타로 키워드</strong> '+esc((item.tarotKeywords||[]).join(', '))+'</p>'+
+            '<p class="rt"><strong>행성 키워드</strong> '+esc((item.planetKeywords||[]).join(', '))+'</p>'+
+            '<p class="rt"><strong>카드 기본 의미</strong> '+esc(item.cardMeaning||'')+'</p>'+
+            '<p class="rt"><strong>행성 원형 의미</strong> '+esc(item.planetMeaning||'')+'</p>'+
+            '<p class="rt"><strong>원형 심층 해석</strong> '+esc(item.archetypeReading||'')+'</p>'+
+            '<p class="rt"><strong>의식 메시지</strong> '+esc(item.consciousMessage||'')+'</p>'+
+            '<p class="rt"><strong>무의식 패턴</strong> '+esc(item.unconsciousPattern||'')+'</p>'+
+            '<p class="rt"><strong>그림자 경고</strong> '+esc(item.shadowWarning||'')+'</p>'+
+            '<p class="rt"><strong>영혼의 과제</strong> '+esc(item.soulLesson||'')+'</p>'+
+            '<p class="rt"><strong>통합 실천</strong> '+esc(item.integrationPractice||'')+'</p>'+
+          '</details>'+
         '</article>';
       }).join('');
     }
-    function renderGolden(g){
-      if(!g)return;
+
+    function renderSummary(reading){
+      var s=reading&&reading.summary?reading.summary:{};
+      var payment=reading&&reading.payment?reading.payment:{};
+      var practices=Array.isArray(s.practices)?s.practices:[];
       $goldSec.style.display='block';
-      $goldCon.innerHTML='<div class="golden-card fade-rise" style="padding:2.5rem 2rem;">'+
+      $goldCon.innerHTML='<div class="golden-card fade-rise" style="padding:2rem 1.6rem;">'+
         '<div class="golden-inner-border"></div>'+
         '<div style="position:relative;z-index:1;">'+
-          '<div style="text-align:center;margin-bottom:2rem;">'+
-            '<p style="color:rgba(245,158,11,.5);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;font-family:monospace;margin-bottom:.75rem;">&#x2726; Final Synthesis &middot; Golden Card &#x2726;</p>'+
-            '<h3 class="shimmer-gold" style="font-size:clamp(1.5rem,3vw,2.2rem);font-weight:700;margin-bottom:1rem;line-height:1.25;">'+esc(g.title||'황금빛 통합 카드')+'</h3>'+
-            '<div class="pulse-gold" style="display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.5rem;border-radius:999px;font-size:.9rem;font-weight:700;background:linear-gradient(135deg,rgba(245,158,11,.16),rgba(253,230,138,.07));border:1px solid rgba(245,158,11,.38);">'+
-              '<span style="color:#f5d06f;font-size:1rem;">&#x2B50;</span>'+
-              '<span style="color:rgba(253,230,138,.9);">'+esc(g.goldenCard||'')+'</span>'+
-            '</div>'+
-          '</div>'+
-          '<div class="grid md:grid-cols-2 gap-4">'+
-            gfld('&#x1F30C; 전체 흐름 요약',g.summary)+
-            gfld('&#x1F3AD; 리딩 톤 &amp; 매너',g.toneManner)+
-            gfld('&#x1F4AB; 치유 메시지',g.healing)+
-            gfld('&#x1F31F; 응원 메시지',g.encouragement)+
-            (g.cosmicMessage?gfld('&#x1FA90; 우주적 메시지',g.cosmicMessage):'')+
-            (g.manifestation?gfld('&#x2728; 현현 가이드',g.manifestation):'')+
-          '</div>'+
+          '<h3 class="shimmer-gold" style="font-size:clamp(1.35rem,2.8vw,2rem);font-weight:700;margin:0 0 .8rem;">11장 종합 리딩</h3>'+
+          '<p class="rt" style="margin-bottom:.9rem;"><strong>영혼의 전체 선율</strong> '+esc(s.overallTheme||'')+'</p>'+
+          '<p class="rt"><strong>가장 강한 원형 에너지</strong> '+esc(s.strongestPlanetSignal||'')+'</p>'+
+          '<p class="rt"><strong>그림자의 핵심</strong> '+esc(s.deepestShadow||'')+'</p>'+
+          '<p class="rt"><strong>영혼의 성장 과제</strong> '+esc(s.soulLesson||'')+'</p>'+
+          '<p class="rt"><strong>현실 통합 방법</strong> '+esc(s.integrationPath||'')+'</p>'+
+          '<p class="rt"><strong>레이어/슈트/메이저 비율</strong> '+esc(s.dominantLayer||'')+' / '+esc(s.dominantSuit||'')+' / '+esc(s.majorArcanaRatio||'')+'</p>'+
+          '<div style="margin:.8rem 0;">'+practices.map(function(p){return '<p class="rt" style="margin:.25rem 0;">• '+esc(p)+'</p>';}).join('')+'</div>'+
+          '<p class="rt" style="color:rgba(253,230,138,.95);"><strong>최종 오라클 메시지</strong> '+esc(s.finalOracle||'')+'</p>'+
+          '<p style="color:rgba(255,255,255,.35);font-size:.75rem;margin-top:1rem;">reportId: '+esc(payment.reportId||'')+' / transactionId: '+esc(payment.transactionId||'')+'</p>'+
         '</div>'+
       '</div>';
     }
-    function readBtnOn(on){$read.disabled=!on;$read.style.opacity=on?'1':'.4';$read.style.cursor=on?'pointer':'not-allowed';}
-    var _CH_ADMIN_TOKEN_RE=/^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/;
-    var _chLastCoinTx='';
-    function _chIsAdminLikeUser(){
-      try{if(window.__cdAdminBypass)return true;}catch(_){ }
-      try{
-        var rawUser=localStorage.getItem('fortune_auth_user')||'';
-        if(rawUser){
-          var user=JSON.parse(rawUser);
-          if(user&&user.role==='admin')return true;
-        }
-      }catch(_){ }
-      try{
-        var sTok=String(sessionStorage.getItem('flower_admin_token')||'');
-        if(_CH_ADMIN_TOKEN_RE.test(sTok))return true;
-      }catch(_){ }
-      try{
-        var lTok=String(localStorage.getItem('flower_admin_token')||'');
-        if(_CH_ADMIN_TOKEN_RE.test(lTok))return true;
-      }catch(_){ }
-      return false;
+
+    function readBtnOn(on){
+      $read.disabled=!on;
+      $read.style.opacity=on?'1':'.4';
+      $read.style.cursor=on?'pointer':'not-allowed';
     }
-    async function _chAutoRefundCoin(cost, sourceTransactionId){
-      var txId=String(sourceTransactionId||'').trim();
-      if(!txId)return false;
-      var tk=localStorage.getItem('fortune_auth_token')||'';
-      if(!tk)return false;
-      var adminTk='';
-      try{adminTk=String(sessionStorage.getItem('flower_admin_token')||localStorage.getItem('flower_admin_token')||'');}catch(_){adminTk='';}
-      if(adminTk&&!_CH_ADMIN_TOKEN_RE.test(adminTk))adminTk='';
-      var adminTier='';
-      try{adminTier=String(localStorage.getItem('flower_admin_test_tier')||'').toLowerCase();}catch(_){adminTier='';}
-      var headers={'Content-Type':'application/json','Authorization':'Bearer '+tk};
-      if(adminTk)headers['x-admin-token']=adminTk;
-      if(adminTk&&(adminTier==='standard'||adminTier==='premium'||adminTier==='vvip'))headers['x-admin-subscription-tier']=adminTier;
-      try{
-        var rr=await fetch('/api/fortune/pig-coin/refund',{
-          method:'POST',
-          headers:headers,
-          body:JSON.stringify({
-            cost:Number(cost||0),
-            reason:'천체의 선율 API 실패 자동 환불',
-            featureKey:'tarot-celestial-harmony',
-            sourceTransactionId:txId,
-            requestId:'refund:celestial:'+txId,
-          })
-        });
-        var rd={};
-        try{rd=await rr.json();}catch(_){rd={};}
-        if(!rr.ok&&!rd.alreadyRefunded)return false;
-        if(rd&&rd.user&&typeof rd.user.points==='number'){
-          try{
-            var _u=JSON.parse(localStorage.getItem('fortune_auth_user')||'{}');
-            _u.points=rd.user.points;
-            localStorage.setItem('fortune_auth_user',JSON.stringify(_u));
-          }catch(_){ }
-          if(typeof window.__cdSetGoldenBalance==='function')window.__cdSetGoldenBalance(rd.user.points);
-        }
-        return true;
-      }catch(_){
-        return false;
+
+    function setLoading(on, message){
+      $loadSec.style.display = on ? 'block' : 'none';
+      if(message) $loadMsg.innerHTML = message;
+      if(on){
+        $resSec.style.display='none';
+        $goldSec.style.display='none';
       }
     }
-    function _chSetPaymentPending(show, message){
-      var text = String(message || '').trim() || '천체의 선율 결제를 확인하는 중입니다...';
-      try {
-        if (typeof window._cdSetCoinGateOverlay === 'function') {
-          window._cdSetCoinGateOverlay(!!show, text);
-          return;
-        }
-      } catch (_) {}
 
-      var overlay = document.getElementById('chPaymentOverlay');
-      if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'chPaymentOverlay';
-        overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483000;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 50%, rgba(15,23,42,.75), rgba(2,6,23,.92));backdrop-filter:blur(6px);padding:16px;';
-        overlay.innerHTML = '<div style="width:min(420px,100%);border-radius:18px;border:1px solid rgba(167,139,250,.35);background:linear-gradient(135deg, rgba(30,27,75,.95), rgba(12,24,48,.95));box-shadow:0 18px 48px rgba(0,0,0,.45);padding:18px;text-align:center;color:#ede9fe;"><div style="width:42px;height:42px;margin:0 auto 10px;border-radius:999px;border:3px solid rgba(196,181,253,.25);border-top-color:rgba(196,181,253,.95);animation:chPaySpin .9s linear infinite"></div><p style="margin:0 0 6px;font-size:17px;font-weight:800;">코즈믹 결제 채널 정렬 중</p><p id="chPaymentOverlayMsg" style="margin:0;font-size:13px;color:rgba(221,214,254,.95);">천체의 선율 결제를 확인하는 중입니다...</p></div>';
-        document.body.appendChild(overlay);
-        if (!document.getElementById('chPaymentOverlayStyle')) {
-          var st = document.createElement('style');
-          st.id = 'chPaymentOverlayStyle';
-          st.textContent = '@keyframes chPaySpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
-          document.head.appendChild(st);
-        }
+    async function callCoinGate(reportId){
+      var token = readAuthToken();
+      if(!token) throw new Error('로그인이 필요한 기능입니다.');
+      var headers={ 'Content-Type':'application/json', 'Authorization':'Bearer '+token };
+      var body={
+        categoryKey:'premium-report',
+        featureKey:'tarot-celestial-harmony',
+        reason:'천체의 선율 코즈믹 리딩',
+        requestId:'celestial:'+reportId,
+        reportId:reportId,
+        sessionId:'celestial-harmony:'+reportId,
+        reportSessionId:'celestial-harmony:'+reportId,
+        forceDeduct:true,
+      };
+      var res=await fetch('/api/billing/coin-gate',{method:'POST',headers:headers,credentials:'include',body:JSON.stringify(body)});
+      var payload={};
+      try{payload=await res.json();}catch(_){payload={};}
+      if(!res.ok || payload.ok===false){
+        throw new Error((payload&&payload.error&&payload.error.message)||payload.message||'코인 결제 실패');
       }
+      var data=payload.data||{};
+      var consume=data.consume||{};
+      var accessGrant=data.accessGrant||{};
+      return {
+        transactionId: clean(accessGrant.purchaseId || consume.transactionId || ''),
+        reportId: clean(accessGrant.reportId || reportId),
+        accessGrant: accessGrant,
+      };
+    }
 
-      var msg = document.getElementById('chPaymentOverlayMsg');
-      if (msg) msg.textContent = text;
-      overlay.style.display = show ? 'flex' : 'none';
+    async function callGenerate(reportId, transactionId, restored){
+      var cards=buildCardsPayload();
+      var res=await fetch('/api/celestial-harmony',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        credentials:'include',
+        body:JSON.stringify({
+          cards:cards,
+          reportId:reportId,
+          transactionId:transactionId,
+          restoredFromPaidSession:!!restored,
+          coinCharged:true,
+        })
+      });
+      var payload={};
+      try{payload=await res.json();}catch(_){payload={};}
+      if(!res.ok || !payload || payload.ok===false || !payload.result){
+        throw new Error((payload&&payload.message)||'결과 생성 실패');
+      }
+      return payload.result;
     }
-    function _chCoinGate(onOk,onCancel){
-      if(_chIsAdminLikeUser()){onOk('');return;}
-      var tk=localStorage.getItem('fortune_auth_token');
-      var adminTk='';
-      try{adminTk=String(sessionStorage.getItem('flower_admin_token')||localStorage.getItem('flower_admin_token')||'');}catch(_){adminTk='';}
-      if(adminTk&&!_CH_ADMIN_TOKEN_RE.test(adminTk))adminTk='';
-      var adminTier='';
-      try{adminTier=String(localStorage.getItem('flower_admin_test_tier')||'').toLowerCase();}catch(_){adminTier='';}
-      if(!tk){alert('로그인이 필요한 기능입니다.');if(onCancel)onCancel();return;}
-      var headers={'Content-Type':'application/json','Authorization':'Bearer '+tk};
-      if(adminTk)headers['x-admin-token']=adminTk;
-      if(adminTk&&(adminTier==='standard'||adminTier==='premium'||adminTier==='vvip'))headers['x-admin-subscription-tier']=adminTier;
-      _chSetPaymentPending(true, '천체의 선율 코즈믹 리딩 결제를 확인하는 중입니다...');
-      fetch('/api/fortune/pig-coin/consume',{method:'POST',headers:headers,body:JSON.stringify({amount:100,cost:100,reason:'천체의 선율 코즈믹 리딩',featureKey:'tarot-celestial-harmony',forceDeduct:true,requestId:'celestial:'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9)})})
-        .then(function(r){return r.json();})
-        .then(function(d){if(d&&d.ok){_chLastCoinTx=String(d.transactionId||'');onOk(_chLastCoinTx);}else{alert((d&&d.message)||'코인이 부족합니다.');if(onCancel)onCancel();}})
-        .catch(function(){alert('결제 중 오류가 발생했습니다.');if(onCancel)onCancel();})
-        .finally(function(){_chSetPaymentPending(false);});
+
+    async function restoreFromApi(reportId, transactionId){
+      var q='';
+      if(reportId) q='reportId='+encodeURIComponent(reportId);
+      else if(transactionId) q='transactionId='+encodeURIComponent(transactionId);
+      else return null;
+      try{
+        var res=await fetch('/api/celestial-harmony?'+q,{method:'GET',credentials:'include'});
+        if(!res.ok) return null;
+        var payload=await res.json();
+        if(payload&&payload.ok&&payload.result) return payload.result;
+      }catch(_){ }
+      return null;
     }
+
+    async function runReadingFlow(){
+      if(!spread.length || $read.disabled) return;
+      readBtnOn(false);
+      setLoading(true,'코인 결제 및 리딩 세션을 확인하는 중입니다...');
+
+      try{
+        if(!currentReportId) currentReportId = buildReportId();
+
+        if(!isPaid){
+          var gate = await callCoinGate(currentReportId);
+          currentTransactionId = gate.transactionId || currentTransactionId;
+          currentReportId = gate.reportId || currentReportId;
+          isPaid = true;
+          persistSession({ reportId:currentReportId, transactionId:currentTransactionId, paid:true, cards:buildCardsPayload(), spread:spread, goldenCard:goldenCard });
+        }
+
+        setLoading(true,'11행성 원형과 카드 의미를 결합해 심층 리딩을 생성 중입니다...');
+        var reading = await callGenerate(currentReportId, currentTransactionId, false);
+        renderResults(reading);
+        renderSummary(reading);
+        persistSession({ reportId:currentReportId, transactionId:currentTransactionId, paid:true, reading:reading, cards:buildCardsPayload(), spread:spread, goldenCard:goldenCard });
+        setLoading(false,'');
+        setTimeout(function(){$resSec.scrollIntoView({behavior:'smooth'});},100);
+      }catch(err){
+        setLoading(false,'');
+        window.alert('리딩 처리 중 오류가 발생했습니다: '+((err&&err.message)||'unknown'));
+      }finally{
+        readBtnOn(true);
+      }
+    }
+
     $draw.addEventListener('click',function(){
       var deck=shuffle(MAJOR);
-      spread=PLANETS.map(function(pl,i){return{planet:pl,tarot:deck[i]};});
+      spread=PLANETS.map(function(pl,i){
+        return { planet:pl, tarot:deck[i], orientation:(Math.random()>0.5?'upright':'reversed') };
+      });
       goldenCard=deck[11]||deck[0];
-      renderBoard();readBtnOn(true);
+      currentReportId = buildReportId();
+      currentTransactionId = '';
+      isPaid = false;
+      renderBoard();
+      readBtnOn(true);
       $resSec.style.display='none';$resCon.innerHTML='';
       $goldSec.style.display='none';$goldCon.innerHTML='';
+      persistSession({ reportId:currentReportId, transactionId:'', paid:false, cards:buildCardsPayload(), spread:spread, goldenCard:goldenCard });
       setTimeout(function(){$boardSec.scrollIntoView({behavior:'smooth',block:'start'});},80);
     });
+
     $read.addEventListener('click',function(){
-      if(!spread.length||$read.disabled)return;
-      readBtnOn(false);
-      _chCoinGate(async function(sourceTxId){
-        $loadSec.style.display='block';$resSec.style.display='none';$goldSec.style.display='none';
-        setTimeout(function(){$loadSec.scrollIntoView({behavior:'smooth'});},80);
-        var msgs=['태양의 황금빛 에너지를 분석 중&#8230;','수성의 지적 파동을 해독 중&#8230;','금성의 사랑 에너지를 채널링 중&#8230;','달의 무의식 깊은 곳을 탐색 중&#8230;','화성의 의지 흐름을 읽는 중&#8230;','목성의 풍요 코드를 해석 중&#8230;','토성의 카르마 패턴을 인식 중&#8230;','천왕성의 혁신 신호를 수신 중&#8230;','우주의 깊은 지혜를 통합 중&#8230;'];
-        var mi=0,mt=setInterval(function(){mi=(mi+1)%msgs.length;$loadMsg.innerHTML=msgs[mi];},2800);
-        try{
-          var cards=spread.map(function(sp,idx){return{idx:idx+1,planet:sp.planet.name,symbol:sp.planet.symbol,en:sp.planet.en,energy:sp.planet.energy,question:sp.planet.question,tarot:sp.tarot};});
-          var res=await fetch('/api/celestial-harmony',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cards:cards,goldenCard:goldenCard})});
-          var payload=await res.json();
-          clearInterval(mt);$loadSec.style.display='none';
-          var resultData=(payload&&payload.result)||(payload&&payload.data&&payload.data.result)||(payload&&payload.data)||null;
-          if(!payload||payload.ok===false||!resultData)throw new Error((payload&&payload.message)||'리딩 생성 실패');
-          renderResults(resultData);renderGolden(resultData.finalGolden||null);
-          setTimeout(function(){$resSec.scrollIntoView({behavior:'smooth'});},80);
-        }catch(err){
-          clearInterval(mt);$loadSec.style.display='none';
-          var refunded=await _chAutoRefundCoin(100,sourceTxId||_chLastCoinTx);
-          if(refunded){
-            _chLastCoinTx='';
-            window.alert('리딩 생성에 실패하여 코인이 자동 환불되었습니다.');
-          }
-          window.alert('리딩 생성 중 오류가 발생했습니다: '+((err&&err.message)||'unknown'));
-        }
-        finally{readBtnOn(true);}
-      },function(){readBtnOn(true);});
+      runReadingFlow();
     });
+
     $reset.addEventListener('click',function(){
       spread=[];goldenCard=null;
+      currentReportId='';
+      currentTransactionId='';
+      isPaid=false;
       $boardSec.style.display='none';$board.innerHTML='';
       $resSec.style.display='none';$resCon.innerHTML='';
       $goldSec.style.display='none';$goldCon.innerHTML='';
-      $loadSec.style.display='none';readBtnOn(false);
+      $loadSec.style.display='none';
+      readBtnOn(false);
     });
+
+    (async function bootstrapRestore(){
+      var saved = restoreSession();
+      var url = new URL(location.href);
+      var qReport = clean(url.searchParams.get('reportId')||'');
+      var qTx = clean(url.searchParams.get('transactionId')||'');
+
+      if(saved && Array.isArray(saved.spread) && saved.spread.length===11){
+        spread=saved.spread;
+        goldenCard=saved.goldenCard||null;
+        currentReportId=clean(saved.reportId||'');
+        currentTransactionId=clean(saved.transactionId||'');
+        isPaid=!!saved.paid;
+        renderBoard();
+        readBtnOn(true);
+        if(saved.reading){
+          renderResults(saved.reading);
+          renderSummary(saved.reading);
+        }
+      }
+
+      var remote = await restoreFromApi(qReport || currentReportId, qTx || currentTransactionId);
+      if(remote){
+        renderResults(remote);
+        renderSummary(remote);
+        currentReportId = clean((remote.payment&&remote.payment.reportId)||qReport||currentReportId);
+        currentTransactionId = clean((remote.payment&&remote.payment.transactionId)||qTx||currentTransactionId);
+        isPaid = true;
+        persistSession({ reportId:currentReportId, transactionId:currentTransactionId, paid:true, reading:remote, cards:buildCardsPayload(), spread:spread, goldenCard:goldenCard });
+      } else if(saved && saved.paid && !saved.reading && spread.length===11){
+        // 결제는 완료됐으나 결과가 없는 경우 자동 재생성
+        try {
+          isPaid = true;
+          await runReadingFlow();
+        } catch (_) { }
+      }
+    }());
   }());
   </script>
 </body>

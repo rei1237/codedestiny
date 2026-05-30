@@ -21,6 +21,7 @@
     activeCategory: "general",
     monthSpreadCache: {},
     monthCategoryCache: {},
+    monthNarrativeCache: {},
     monthRequestToken: 0
   };
   var YEAR_COIN_COST = 30;
@@ -906,6 +907,115 @@ function updateMonthCategoryPanel(text, cat) {
   }
 }
 
+function escapeHtml(text) {
+  return String(text || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function ensureMonthNarrativeList() {
+  var content = byId("tarotYearMonthDetailContent");
+  if (!content) return null;
+  var existing = byId("tarotYearMonthNarrativeList");
+  if (existing) return existing;
+  var tabs = byId("tarotYearMonthCategoryTabs");
+  var section = document.createElement("section");
+  section.className = "ty-monthly-section";
+  section.innerHTML = '<h5 class="ty-monthly-section-title">월별 상세 운세</h5><div id="tarotYearMonthNarrativeList" class="ty-monthly-list"></div>';
+  if (tabs && tabs.parentNode === content) {
+    content.insertBefore(section, tabs);
+  } else {
+    content.appendChild(section);
+  }
+  return byId("tarotYearMonthNarrativeList");
+}
+
+function getMonthlySectionText(monthly, key, fallback) {
+  if (!monthly) return fallback || "";
+  var direct = monthly[key];
+  if (Array.isArray(direct)) {
+    var joined = direct.map(function (line) { return String(line || "").trim(); }).filter(Boolean).join(" ");
+    if (joined) return joined;
+  }
+  if (typeof direct === "string" && direct.trim()) return direct.trim();
+  return fallback || "";
+}
+
+function buildMonthNarrativeItem(title, bodyHtml, extraClass) {
+  return '<article class="ty-month-item ty-month-item--open ' + (extraClass || "") + '">' +
+    '<button type="button" class="ty-month-header" aria-expanded="true">' + escapeHtml(title) + '</button>' +
+    '<div class="ty-month-body">' + bodyHtml + '</div>' +
+    '</article>';
+}
+
+function buildMonthDetailHtml(monthly, spreadCards, triadReading, cat) {
+  if (!monthly) return "";
+  var mainCard = monthly.mainCard || {};
+  var categoryTitle = getCategoryTitle(cat || "general");
+  var spreadText = [];
+  if (Array.isArray(spreadCards) && spreadCards.length) {
+    spreadCards.forEach(function (card, idx) {
+      var label = idx === 0 ? "원인" : idx === 1 ? "전개" : "결과";
+      spreadText.push('<p class="ty-month-detail-item"><strong>' + label + '</strong> ' + escapeHtml((card.nameKr || card.name || "카드") + (card.orientation === "reversed" ? " (역)" : " (정)")) + '</p>');
+    });
+  }
+  var triadStory = triadReading && triadReading.summary ? String(triadReading.summary || "") : getMonthlySectionText(monthly, "triadReading", "");
+  var triadAdvice = triadReading && triadReading.advice ? String(triadReading.advice || "") : getMonthlySectionText(monthly, "advice", "");
+  var triadParts = Array.isArray(triadReading && triadReading.cardSections) ? triadReading.cardSections : [];
+  var triadCardSections = triadParts.length
+    ? triadParts.map(function (section) {
+        return '<p class="ty-month-detail-item"><strong>' + escapeHtml(section.positionLabel || section.positionTitle || "삼재") + '</strong> ' + escapeHtml((section.cardName || section.cardNameKo || "카드") + " · " + (section.orientationLabel || section.orientation || "")) + '</p>';
+      }).join("")
+    : spreadText.join("");
+
+  var sections = [
+    buildMonthNarrativeItem(
+      "1. 이달의 천운 카드",
+      '<p class="ty-month-detail-item"><strong>메인 카드</strong> ' + escapeHtml((mainCard.nameKo || monthly.monthLabel || "이달의 카드") + (mainCard.orientation === "reversed" ? " (역방향)" : " (정방향)")) + '</p>' +
+        '<p class="ty-month-detail-item"><strong>핵심 키워드</strong> ' + escapeHtml((monthly.keywords || []).join(" · ") || (mainCard.keywords || []).join(" · ") || "흐름 점검") + '</p>' +
+        '<p class="ty-month-detail-item"><strong>월 지배력</strong> ' + escapeHtml(getMonthlySectionText(monthly, "overall", mainCard.questionSpecificMeaning || "")) + '</p>',
+      "ty-month-item--main"
+    ),
+    buildMonthNarrativeItem(
+      "2. 십이지신 월운 해석",
+      '<p class="ty-month-detail-item"><strong>' + escapeHtml(monthly.zodiacSymbol + " " + monthly.zodiacAnimal) + '</strong> ' + escapeHtml(monthly.zodiacTheme || "") + '</p>' +
+        '<p class="ty-month-detail-item"><strong>결합 해석</strong> ' + escapeHtml(getMonthlySectionText(monthly, "zodiacReading", "")) + '</p>' +
+        '<p class="ty-month-detail-item"><strong>월의 결</strong> ' + escapeHtml(getMonthlySectionText(monthly, "flow", monthly.overall || "")) + '</p>',
+      "ty-month-item--zodiac"
+    ),
+    buildMonthNarrativeItem(
+      "3. 삼재 스프레드",
+      triadCardSections +
+        '<p class="ty-month-detail-item"><strong>흐름 해석</strong> ' + escapeHtml(triadStory || "원인·전개·결과를 연결해 이번 달의 사건 흐름을 읽습니다.") + '</p>' +
+        '<p class="ty-month-detail-item"><strong>연결 조언</strong> ' + escapeHtml(triadAdvice || "삼재 스프레드는 월 메인 카드와 함께 해석해야 정확도가 올라갑니다.") + '</p>',
+      "ty-month-item--triad"
+    ),
+    buildMonthNarrativeItem("4. 전반 운세", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "overall", monthly.mainCard.questionSpecificMeaning || "")) + '</p>', "ty-month-item--overall"),
+    buildMonthNarrativeItem("5. 연애운 / 관계운", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "love", monthly.mainCard.love && monthly.mainCard.love[0] || "")) + '</p>', "ty-month-item--love"),
+    buildMonthNarrativeItem("6. 금전운 / 직업운", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "moneyWork", monthly.mainCard.moneyWork && monthly.mainCard.moneyWork[0] || "")) + '</p>', "ty-month-item--money"),
+    buildMonthNarrativeItem("7. 건강운 / 멘탈운", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "healthMind", monthly.mainCard.healthMind && monthly.mainCard.healthMind[0] || "")) + '</p>', "ty-month-item--health"),
+    buildMonthNarrativeItem("8. 이달의 기회", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "opportunity", "이번 달에 활용할 수 있는 구체적 기회가 드러납니다.")) + '</p>', "ty-month-item--opportunity"),
+    buildMonthNarrativeItem("9. 이달의 주의점", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "caution", monthly.mainCard.caution || "")) + '</p>', "ty-month-item--caution"),
+    buildMonthNarrativeItem("10. 천운 조언", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "advice", monthly.mainCard.advice || "")) + '</p>', "ty-month-item--advice"),
+  ];
+
+  return sections.join("");
+}
+
+function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
+  var monthly = getMonthlyReadingByMonth(state.reading, monthNum);
+  var list = ensureMonthNarrativeList();
+  if (!monthly || !list) return;
+  var monthKey = String(monthNum);
+  var html = buildMonthDetailHtml(monthly, spreadCards, triadReading, cat || state.activeCategory || "general");
+  if (!html) return;
+  state.monthNarrativeCache[monthKey] = html;
+  list.innerHTML = html;
+}
+
   function bindMonthCategoryTabs() {
     var tabs = byId("tarotYearMonthCategoryTabs");
     if (!tabs || tabs.__bound) return;
@@ -943,6 +1053,10 @@ function updateMonthCategoryPanel(text, cat) {
     if (!state.monthCategoryCache[monthKey]) state.monthCategoryCache[monthKey] = {};
     if (state.monthCategoryCache[monthKey][cat]) {
       updateMonthCategoryPanel(state.monthCategoryCache[monthKey][cat], cat);
+      var cachedNarrative = state.monthNarrativeCache[monthKey];
+      if (cachedNarrative) {
+        renderMonthDetailNarrative(monthNum, cat, cachedNarrative.spreadCards || [], cachedNarrative.triadReading || null);
+      }
       return Promise.resolve();
     }
 
@@ -959,6 +1073,8 @@ function updateMonthCategoryPanel(text, cat) {
       var onlyBase = toReadableText(baseText, fallbackByCat[cat]);
       state.monthCategoryCache[monthKey][cat] = onlyBase;
       updateMonthCategoryPanel(onlyBase, cat);
+      state.monthNarrativeCache[monthKey] = { spreadCards: [], triadReading: null };
+      renderMonthDetailNarrative(monthNum, cat, [], null);
       return Promise.resolve();
     }
 
@@ -974,10 +1090,17 @@ function updateMonthCategoryPanel(text, cat) {
       var text = toReadableText(combined, fallbackByCat[cat]);
       state.monthCategoryCache[monthKey][cat] = text;
       updateMonthCategoryPanel(text, cat);
+      state.monthNarrativeCache[monthKey] = {
+        spreadCards: spreadCards,
+        triadReading: res && res.reading ? res.reading : null,
+      };
+      renderMonthDetailNarrative(monthNum, cat, spreadCards, res && res.reading ? res.reading : null);
     }).catch(function () {
       var text = toReadableText(baseText, fallbackByCat[cat]);
       state.monthCategoryCache[monthKey][cat] = text;
       updateMonthCategoryPanel(text, cat);
+      state.monthNarrativeCache[monthKey] = { spreadCards: spreadCards, triadReading: null };
+      renderMonthDetailNarrative(monthNum, cat, spreadCards, null);
     });
   }
 
@@ -1084,6 +1207,8 @@ function updateMonthCategoryPanel(text, cat) {
             .slice(0, 4)
         : [];
       state.engineMeta = data && typeof data.engineMeta === "object" ? data.engineMeta : null;
+      state.monthNarrativeCache = {};
+      state.monthCategoryCache = {};
       if (intro) intro.classList.remove("is-active");
       if (draw) draw.classList.remove("is-active");
       if (result) result.classList.add("is-active");
@@ -1188,19 +1313,25 @@ function updateMonthCategoryPanel(text, cat) {
       return;
     }
 
+    var annual = r.annualSummary || {};
+
     var summaryEl = byId("tarotYearSummary");
     if (summaryEl) {
-    var highlightsPrefix = "";
-    if (Array.isArray(state.consultingHighlights) && state.consultingHighlights.length) {
-      highlightsPrefix = "🔭 핵심 상담 하이라이트\n" + state.consultingHighlights.map(function (line) { return "• " + line; }).join("\n") + "\n\n";
-    }
-    summaryEl.style.display = "block";
-    typewriterText(
-      summaryEl,
-      highlightsPrefix + (r.summary ||
-        "천상의 열두 수호신이 한 해의 문을 열었습니다. 1月부터 12月까지 각 월패를 눌러 해당 달의 전반 운세, 재물·연애·인간관계·합격운을 천천히 따라가 보세요."),
-      24
-    );
+      var summaryLines = [];
+      if (Array.isArray(state.consultingHighlights) && state.consultingHighlights.length) {
+        summaryLines.push("🔭 핵심 상담 하이라이트");
+        summaryLines.push(state.consultingHighlights.map(function (line) { return "• " + line; }).join("\n"));
+        summaryLines.push("");
+      }
+      if (annual.summary) summaryLines.push(annual.summary);
+      if (annual.overallFlow) summaryLines.push(annual.overallFlow);
+      summaryLines.push("가장 강한 슈트: " + (annual.dominantSuit || "메이저"));
+      summaryLines.push("역방향 비율: " + (typeof annual.reversedRatio === "number" ? annual.reversedRatio + "%" : "0%"));
+      summaryLines.push("메이저 비율: " + (typeof annual.majorRatio === "number" ? annual.majorRatio + "%" : "0%"));
+      if (annual.bestMonth) summaryLines.push("가장 좋은 달: " + (annual.bestMonth.monthLabel || (annual.bestMonth.month + "월")));
+      if (annual.cautionMonth) summaryLines.push("주의할 달: " + (annual.cautionMonth.monthLabel || (annual.cautionMonth.month + "월")));
+      summaryEl.style.display = "block";
+      typewriterText(summaryEl, summaryLines.join("\n\n"), 24);
     }
 
     var cardsEl = byId("tarotYearResultCards");
@@ -1261,8 +1392,14 @@ function updateMonthCategoryPanel(text, cat) {
 
     var adviceEl = byId("tarotYearFinalAdvice");
   if (adviceEl) {
-    var adviceText = r.finalAdvice ||
+    var adviceText = r.finalAdvice || annual.annualAdvice ||
       "한 달의 흐름을 확인한 뒤, 실천 가능한 한 가지 행동으로 운의 방향을 고정하세요.";
+    if (annual.repeatedRanks && annual.repeatedRanks.length) {
+      adviceText += "\n\n반복 숫자: " + annual.repeatedRanks.join(", ");
+    }
+    if (annual.repeatedCourts && annual.repeatedCourts.length) {
+      adviceText += "\n반복 궁정 카드: " + annual.repeatedCourts.join(", ");
+    }
     if (state.engineMeta && state.engineMeta.qualityEnhanced) {
       adviceText += "\n\n✨ 엔진 품질 강화: 카드별 맥락 기반 고품질 상담";
     }

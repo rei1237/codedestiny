@@ -14,10 +14,14 @@ import {
   Share2,
   Smile,
   Sparkles,
-  Star,
-  Sun,
   type LucideIcon,
 } from "lucide-react";
+import {
+  buildYeonHeartStarReading,
+  sanitizeYeonHeartStarText,
+  type YeonHeartStarReading,
+  validateYeonHeartStarReading,
+} from "@/lib/yeon/heartStarReading";
 
 type EmotionKey = "happy" | "calm" | "tired" | "worried" | "flutter" | "blue";
 type ZodiacSign =
@@ -1032,6 +1036,59 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
   };
 }
 
+function buildReadingFromConsultation(
+  consultation: ConsultationResult,
+  selectedEmotion: EmotionKey,
+  emotionLabel: string,
+  spriteFrame: number
+): YeonHeartStarReading {
+  const userProfile = ZODIAC_PROFILE[consultation.sign];
+  const sunProfile = ZODIAC_PROFILE[consultation.todaySunSign];
+  const elementRelation = getElementRelation(userProfile.element, sunProfile.element);
+  const symbol = pickHeartSymbols(consultation, selectedEmotion)[0] ?? HEART_SYMBOL_LIBRARY.moonStar;
+  const letterLine = consultation.warmMessage
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .find((line) => line && !line.startsWith("응원 키워드")) || "오늘의 너는 조금 느려도 괜찮아.";
+
+  const reading = buildYeonHeartStarReading(
+    {
+      generatedAt: new Date().toISOString(),
+      zodiacSign: consultation.sign,
+      emotion: emotionLabel,
+      concernCategory: `${consultation.concernCategoryLabel}/${consultation.concernDomainLabel}`,
+      oneLineMessage: letterLine,
+      warmLetter: consultation.warmMessage,
+      luckyItem: consultation.luckyItem,
+      luckySymbolName: symbol.name,
+      luckySymbolEmoji: symbol.id === "clover" ? "🍀" : symbol.id === "moonStar" ? "🌙" : symbol.id === "lotus" ? "🪷" : symbol.id === "goldKey" ? "🗝️" : symbol.id === "butterfly" ? "🦋" : "☄️",
+      luckySymbolMeaning: symbol.whisper,
+      auraColorName: selectedEmotion === "happy" || selectedEmotion === "flutter" ? "복숭아빛" : selectedEmotion === "calm" ? "크림 라벤더" : "핑크 미스트",
+      auraKeywords: consultation.keywordSupportLines,
+      keywords: consultation.keywordSupportLines,
+      yeonSprite: String(spriteFrame),
+      tinyActions: {
+        heartWeather: consultation.actionPlan[0] || "잠들기 전, 오늘 머릿속에 남은 생각 3개를 적어보세요.",
+        loveRelation: consultation.actionPlan[1] || "오늘 먼저 건네고 싶은 말 한 문장을 보내보세요.",
+        moneyReality: consultation.actionPlan[2] || "결제 전 한 번 숨 고르고 필요/욕구를 나눠보세요.",
+        selfCare: "따뜻한 음료를 천천히 마시며 마음 속도를 낮춰보세요.",
+        luckyRitual: "복숭아빛 메모지에 오늘 고마웠던 일 하나를 적어보세요.",
+      },
+    },
+    {
+      sunSign: consultation.todaySunSign,
+      moonPhase: consultation.moon.label,
+      weekdayPlanet: consultation.dayRuler.label,
+      zodiacAspect: consultation.aspect.label,
+      elementResonance: elementRelation.label,
+      modalityTone: userProfile.modality === sunProfile.modality ? "리듬이 잘 맞는" : "속도를 조절하면 편안해지는",
+    }
+  );
+
+  const quality = validateYeonHeartStarReading(reading);
+  return quality.ok ? reading : { ...reading, meta: { ...reading.meta, debugVisible: false } };
+}
+
 function escapeXml(text: string) {
   return text
     .replace(/&/g, "&amp;")
@@ -1088,7 +1145,10 @@ function buildHeartCardSvg(
   const mainSpriteY = 152 - mainCellY * mainScale;
   const subSpriteX = 842 - mainCellX * subScale;
   const subSpriteY = 1180 - mainCellY * subScale;
-  const messageLines = wrapByLength(consultation.warmMessage, 24).slice(0, 3);
+  const safeWarmMessage = sanitizeYeonHeartStarText(consultation.warmMessage);
+  const safeLuckyItem = sanitizeYeonHeartStarText(consultation.luckyItem);
+  const safeConcernKeywords = consultation.concernKeywords.map((keyword) => sanitizeYeonHeartStarText(keyword));
+  const messageLines = wrapByLength(safeWarmMessage, 24).slice(0, 3);
   const messageText = messageLines
     .map((line, index) => {
       const y = 612 + index * 74;
@@ -1097,8 +1157,8 @@ function buildHeartCardSvg(
     .join("");
 
   const heartSymbol = pickHeartSymbols(consultation, emotionKey)[0];
-  const keywordLine = consultation.concernKeywords.length > 0
-    ? consultation.concernKeywords.join(", ")
+  const keywordLine = safeConcernKeywords.length > 0
+    ? safeConcernKeywords.join(", ")
     : "감정 중심 리딩";
 
   return `
@@ -1197,7 +1257,7 @@ function buildHeartCardSvg(
   <text x="324" y="1022" fill="#7c3aed" font-size="27" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">키워드: ${escapeXml(keywordLine)}</text>
 
   <rect x="86" y="1100" width="908" height="80" rx="22" fill="url(#chip)"/>
-  <text x="128" y="1152" fill="#ffffff" font-size="32" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">오늘의 오라 아이템: ${escapeXml(consultation.luckyItem)}</text>
+  <text x="128" y="1152" fill="#ffffff" font-size="32" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">오늘의 오라 아이템: ${escapeXml(safeLuckyItem)}</text>
 
   <rect x="86" y="1190" width="908" height="102" rx="24" fill="#fff7fb" stroke="#fbcfe8"/>
   <text x="126" y="1240" fill="#be185d" font-size="28" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">연이의 응원은 짧고 선명하게, 너의 오늘을 지켜줄 거야.</text>
@@ -1251,20 +1311,6 @@ function downloadBlob(blob: Blob, fileName: string) {
   URL.revokeObjectURL(url);
 }
 
-function RatingStars({ value }: { value: number }) {
-  return (
-    <div className="flex items-center gap-1" aria-label={`${value}점`}>
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Star
-          key={i}
-          className={`h-4 w-4 ${i < value ? "fill-pink-400 text-pink-400" : "text-pink-200/60"}`}
-          strokeWidth={1.8}
-        />
-      ))}
-    </div>
-  );
-}
-
 export default function YeonStarHugPage() {
   const reduceMotion = useReducedMotion();
   const today = useMemo(() => new Date(), []);
@@ -1278,6 +1324,7 @@ export default function YeonStarHugPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [shareFeedback, setShareFeedback] = useState("SVG 상징 카드로 저장하거나 공유할 수 있어요.");
   const [consultation, setConsultation] = useState<ConsultationResult | null>(null);
+  const [reading, setReading] = useState<YeonHeartStarReading | null>(null);
 
   const activeEmotion = useMemo(
     () => EMOTIONS.find((item) => item.key === selectedEmotion) ?? EMOTIONS[0],
@@ -1303,19 +1350,28 @@ export default function YeonStarHugPage() {
     return getCardSpriteFrame(selectedSign, selectedEmotion, consultation.concernCategory, consultation.concernDomain);
   }, [consultation, selectedSign, selectedEmotion]);
 
+  const displayWarmMessage = useMemo(() => {
+    if (!reading) return "";
+    const yeonMessageSection = reading.categories.find((section) => section.id === "yeonMessage");
+    return sanitizeYeonHeartStarText(yeonMessageSection?.healingReading || reading.displayCard.oneLineMessage);
+  }, [reading]);
+
   const runConsultation = () => {
     if (isGenerating) return;
     setIsGenerating(true);
     window.setTimeout(() => {
       const next = buildConsultation(selectedSign, selectedEmotion, concernText, new Date());
+      const spriteFrame = getCardSpriteFrame(selectedSign, selectedEmotion, next.concernCategory, next.concernDomain);
+      const nextReading = buildReadingFromConsultation(next, selectedEmotion, activeEmotion.label, spriteFrame);
       setConsultation(next);
-      setShareFeedback("연이가 오늘의 행운 상징 리딩을 업데이트했어요.");
+      setReading(nextReading);
+      setShareFeedback("연이가 오늘의 마음 별자리 리딩을 따뜻하게 정리했어요.");
       setIsGenerating(false);
     }, 260);
   };
 
   const handleShare = async () => {
-    if (isExporting || !consultation || !cardSvg) return;
+    if (isExporting || !consultation || !reading || !cardSvg) return;
 
     setIsExporting(true);
     setShareFeedback("SVG 상징 카드를 준비하고 있어요...");
@@ -1325,7 +1381,7 @@ export default function YeonStarHugPage() {
       const svgFileName = `yeon-heart-card-${selectedSign}-${selectedEmotion}.svg`;
       const svgFile = new File([svgBlob], svgFileName, { type: "image/svg+xml" });
 
-      const shareText = `${activeEmotion.label} 감정 기준 ${consultation.sign} 상담 완료. ${consultation.practicalTip}`;
+      const shareText = `${reading.displayCard.zodiacLabel} · ${reading.displayCard.oneLineMessage}`;
       if (navigator.share && typeof navigator.canShare === "function" && navigator.canShare({ files: [svgFile] })) {
         await navigator.share({
           title: "연이의 마음 별자리",
@@ -1520,7 +1576,7 @@ export default function YeonStarHugPage() {
           </motion.article>
 
           <div className="flex min-w-0 flex-col gap-4">
-            {!consultation ? (
+            {!reading ? (
               <motion.article
                 initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
                 animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
@@ -1551,18 +1607,15 @@ export default function YeonStarHugPage() {
                   </div>
 
                   <div className="mt-4 rounded-2xl border border-white/20 bg-white/90 p-4 text-slate-700">
-                    <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
-                      <div className="flex items-center justify-between rounded-lg bg-pink-50 px-3 py-2">
-                        <span>전체 운세</span>
-                        <RatingStars value={consultation.overall} />
-                      </div>
-                      <div className="flex items-center justify-between rounded-lg bg-purple-50 px-3 py-2">
-                        <span>연애/관계</span>
-                        <RatingStars value={consultation.love} />
-                      </div>
-                      <div className="flex items-center justify-between rounded-lg bg-indigo-50 px-3 py-2">
-                        <span>금전/현실</span>
-                        <RatingStars value={consultation.money} />
+                    <div className="rounded-xl border border-rose-100 bg-rose-50/60 px-4 py-3">
+                      <p className="text-xs font-semibold text-rose-500">사랑하는 너에게,</p>
+                      <p className="mt-1 text-sm font-bold leading-relaxed text-slate-700 md:text-base">{reading.displayCard.oneLineMessage}</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {reading.displayCard.keywords.map((keyword) => (
+                          <span key={keyword} className="rounded-full border border-pink-200 bg-pink-50 px-2.5 py-1 text-[11px] font-semibold text-pink-600">
+                            {keyword}
+                          </span>
+                        ))}
                       </div>
                     </div>
 
@@ -1582,47 +1635,41 @@ export default function YeonStarHugPage() {
                               />
                             </svg>
                           </div>
-                          <p className="mt-1.5 text-center text-[10px] font-semibold text-pink-400">선택된 스프라이트 프레임</p>
+                          <p className="mt-1.5 text-center text-[10px] font-semibold text-pink-400">연이의 오늘 스탬프</p>
                         </div>
 
                         <AnimatePresence mode="wait">
                           <motion.p
-                            key={`${selectedEmotion}-${selectedSign}-${consultation.warmMessage}`}
+                            key={`${selectedEmotion}-${selectedSign}-${displayWarmMessage}`}
                             initial={reduceMotion ? undefined : { opacity: 0, y: 6 }}
                             animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
                             exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
                             transition={{ duration: 0.25 }}
                             className="whitespace-pre-line rounded-lg border border-rose-100 bg-rose-50/55 px-3 py-2 text-sm font-semibold leading-relaxed text-slate-700"
                           >
-                            {consultation.warmMessage}
+                            {displayWarmMessage}
                           </motion.p>
                         </AnimatePresence>
 
                         <div className="rounded-lg border border-purple-100 bg-purple-50/50 px-3 py-2 sm:col-span-2">
-                          <p className="text-[11px] font-semibold text-purple-500">키워드별 응원 메모</p>
-                          <ul className="mt-1 space-y-1 text-xs leading-relaxed text-slate-600">
-                            {consultation.keywordSupportLines.map((line) => (
-                              <li key={line}>- {line}</li>
+                          <p className="text-[11px] font-semibold text-purple-500">오늘의 별빛 상담 7가지</p>
+                          <div className="mt-2 grid gap-2">
+                            {reading.categories.map((section) => (
+                              <div key={section.id} className="rounded-lg border border-white/70 bg-white/80 px-2.5 py-2">
+                                <p className="text-xs font-bold text-slate-700">{section.icon} {section.label}</p>
+                                <div className="mt-1 flex flex-wrap gap-1.5">
+                                  {section.keywords.slice(0, 3).map((keyword) => (
+                                    <span key={`${section.id}-${keyword}`} className="rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[10px] font-semibold text-rose-600">
+                                      {keyword}
+                                    </span>
+                                  ))}
+                                </div>
+                                <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-700">{section.shortMessage}</p>
+                                <p className="mt-1 text-xs leading-relaxed text-slate-600">{section.healingReading}</p>
+                                <p className="mt-1 text-[11px] font-semibold text-pink-600">오늘의 작은 행동: {section.tinyAction}</p>
+                              </div>
                             ))}
-                          </ul>
-                        </div>
-
-                        <div className="rounded-lg border border-indigo-100 bg-indigo-50/45 px-3 py-2 sm:col-span-2">
-                          <p className="text-[11px] font-semibold text-indigo-500">계산 기반 상세 상담</p>
-                          <ul className="mt-1 space-y-1 text-xs leading-relaxed text-slate-600">
-                            {consultation.detailedForecast.map((line) => (
-                              <li key={line}>- {line}</li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        <div className="rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2 sm:col-span-2">
-                          <p className="text-[11px] font-semibold text-slate-600">점성술 계산 근거</p>
-                          <ul className="mt-1 space-y-1 text-xs leading-relaxed text-slate-600">
-                            {consultation.astroEvidence.map((line) => (
-                              <li key={line}>- {line}</li>
-                            ))}
-                          </ul>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1649,7 +1696,7 @@ export default function YeonStarHugPage() {
                   <button
                     type="button"
                     onClick={handleShare}
-                    disabled={isExporting || !consultation}
+                    disabled={isExporting || !reading}
                     className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-400 to-fuchsia-400 px-4 py-3 text-sm font-bold text-white shadow-[0_12px_20px_rgba(251,113,133,0.33)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
                   >
                     {isExporting ? <Download className="h-4 w-4 animate-pulse" /> : <Share2 className="h-4 w-4" />}
@@ -1660,21 +1707,18 @@ export default function YeonStarHugPage() {
                   <div className="mt-3 grid gap-3 sm:grid-cols-2">
                     <div className="rounded-xl border border-pink-200/35 bg-white/90 p-3 text-slate-700">
                       <p className="text-xs font-semibold text-pink-500">핵심 포커스</p>
-                      <p className="mt-1 text-xs font-semibold text-purple-600">{consultation.concernCategoryLabel} · {consultation.concernDomainLabel}</p>
-                      <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-relaxed text-slate-600">{consultation.practicalTip}</p>
-                      {consultation.concernKeywords.length > 0 ? (
-                        <p className="mt-2 text-xs text-slate-500">인식 키워드: {consultation.concernKeywords.join(", ")}</p>
-                      ) : null}
+                      <p className="mt-1 text-xs font-semibold text-purple-600">{reading.summary.title}</p>
+                      <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-relaxed text-slate-600">{reading.summary.description}</p>
                     </div>
 
                     <div className="rounded-xl border border-rose-200/35 bg-white/90 p-3 text-slate-700">
                       <p className="text-xs font-semibold text-rose-500">오늘의 실행 3단계</p>
                       <ol className="mt-2 list-inside list-decimal space-y-1 text-xs leading-relaxed text-slate-600">
-                        {consultation.actionPlan.map((step) => (
-                          <li key={step} className="break-words">{step}</li>
+                        {reading.categories.slice(0, 3).map((section) => (
+                          <li key={section.id} className="break-words">{section.tinyAction}</li>
                         ))}
                       </ol>
-                      <p className="mt-2 text-xs font-semibold text-slate-700">행운 아이템: {consultation.luckyItem}</p>
+                      <p className="mt-2 text-xs font-semibold text-slate-700">행운 아이템: {reading.displayCard.auraItem.name}</p>
                     </div>
                   </div>
                 </motion.article>

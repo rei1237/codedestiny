@@ -4,7 +4,7 @@ import { requirePremiumReportAccess } from "../lib/access-control.js";
 
 const CHAPTER_MIN = 1400;
 const CHAPTERS = [
-  { id: "overview", title: "I. FPTI 유형 총론 - 내 운명 성향의 핵심 구조" },
+  { id: "overview", title: "I. FPTI 유형 총론 - 나의 운명 성향 코드" },
   { id: "inner", title: "II. 내면 성격과 감정 패턴" },
   { id: "relationship", title: "III. 관계와 연애 패턴" },
   { id: "career", title: "IV. 일과 재능의 사용 방식" },
@@ -246,7 +246,7 @@ function buildLocalReport(input) {
     summary,
     sections,
     generatedAt: new Date().toISOString(),
-    source: "local-rule-engine",
+    source: "local",
   };
 }
 

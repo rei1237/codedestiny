@@ -120,7 +120,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Noto San
 .compat-qa-card.is-dragging{cursor:grabbing;transition:none;}
 .compat-qa-card.fly-good{transform:translateX(115%) rotate(14deg)!important;opacity:0;}
 .compat-qa-card.fly-bad{transform:translateX(-115%) rotate(-14deg)!important;opacity:0;}
-.compat-qa-badge{position:absolute;top:12px;padding:4px 10px;border:2px solid var(--black);border-radius:999px;font-size:11px;font-weight:900;background:#fff;opacity:.18;transition:opacity .12s ease;pointer-events:none;}
+.compat-qa-badge{position:absolute;top:12px;padding:4px 10px;border:2px solid var(--black);border-radius:999px;font-size:11px;font-weight:900;background:#fff;opacity:0;transition:opacity .12s ease;pointer-events:none;}
 .compat-qa-badge.bad{left:12px;}
 .compat-qa-badge.good{right:12px;}
 .compat-qa-progress{font-size:11px;font-weight:800;color:#666;margin-bottom:8px;}
@@ -1195,8 +1195,8 @@ function initCompatSwipeCard() {
     const dy = p.clientY - startY;
     card.style.transform = `translateX(${dx}px) rotate(${dx * 0.08}deg) translateY(${dy * 0.08}px)`;
     const badgeOpacity = Math.min(1, 0.2 + Math.abs(dx) / 80);
-    if (badBadge) badBadge.style.opacity = dx < 0 ? String(badgeOpacity) : '0.18';
-    if (goodBadge) goodBadge.style.opacity = dx > 0 ? String(badgeOpacity) : '0.18';
+    if (badBadge) badBadge.style.opacity = dx < 0 ? String(badgeOpacity) : '0';
+    if (goodBadge) goodBadge.style.opacity = dx > 0 ? String(badgeOpacity) : '0';
   };
 
   const onEnd = () => {
@@ -1210,8 +1210,8 @@ function initCompatSwipeCard() {
     }
 
     card.style.transform = '';
-    if (badBadge) badBadge.style.opacity = '0.18';
-    if (goodBadge) goodBadge.style.opacity = '0.18';
+    if (badBadge) badBadge.style.opacity = '0';
+    if (goodBadge) goodBadge.style.opacity = '0';
   };
 
   card.addEventListener('mousedown', onStart);

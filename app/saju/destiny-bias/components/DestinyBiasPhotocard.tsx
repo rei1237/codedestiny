@@ -18,8 +18,9 @@ export default function DestinyBiasPhotocard({
   const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
   const hasImage = Boolean(biasImageUrl);
   const relationHeadline = `${vm.userName} x ${vm.biasName}`;
-  const relationSignal = `${vm.userEnergyType} ↔ ${vm.biasEnergyType}`;
-  const oneLine = String(vm.chemistrySummary || vm.oneLineDestinyMessage || "").replace(/\s+/g, " ").trim();
+  const relationSignal = `${vm.chemistryType || "잔잔응원형"} · ${vm.totalScore}점`;
+  const oneLine = String(vm.oneLineDestinyMessage || vm.chemistrySummary || "").replace(/\s+/g, " ").trim().slice(0, 45);
+  const cardKeywords = (Array.isArray(vm.stageChemistryKeywords) ? vm.stageChemistryKeywords : []).filter(Boolean).slice(0, 3);
   const imageRatio = imageAspectRatio && Number.isFinite(imageAspectRatio) ? imageAspectRatio : 1;
   const imageWrapClass = hasImage
     ? imageRatio >= 1.2
@@ -60,7 +61,7 @@ export default function DestinyBiasPhotocard({
   return (
     <motion.div
       id="destiny-bias-card-preview"
-      className="relative isolate mx-auto w-full max-w-[360px]"
+      className="relative isolate mx-auto w-full max-w-[420px]"
       onMouseMove={handleMove}
       onMouseLeave={resetMove}
       initial={{ opacity: 0, scale: reduceMotion ? 1 : 0.95, y: reduceMotion ? 0 : 16 }}
@@ -111,7 +112,7 @@ export default function DestinyBiasPhotocard({
               <div>
                 <p className="text-[11px] font-semibold tracking-[0.16em] text-cyan-100/80">ENERGY RELATION</p>
                 <h3 className={`${styles.cardClamp1} mt-1 text-2xl font-black leading-tight text-white`}>{vm.biasName}</h3>
-                <p className={`${styles.cardClamp1} mt-1 text-xs text-white/75`}>{vm.relationMood} 공명 모드</p>
+                <p className={`${styles.cardClamp1} mt-1 text-xs text-white/75`}>{vm.chemistryType || "잔잔응원형"}</p>
               </div>
               <div className="relative grid h-16 w-16 place-items-center">
                 <div className="pointer-events-none absolute -inset-3 rounded-full bg-[radial-gradient(circle,rgba(56,189,248,0.22),transparent_68%)] blur-md" aria-hidden />
@@ -152,9 +153,16 @@ export default function DestinyBiasPhotocard({
               <div className="relative z-10 space-y-3">
                 <p className={`${styles.cardClamp1} text-xs font-semibold tracking-[0.04em] text-white/90`}>{relationHeadline}</p>
                 <p className={`${styles.cardClamp1} rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-sm font-semibold text-cyan-50`}>{relationSignal}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {cardKeywords.map((keyword) => (
+                    <span key={keyword} className="max-w-[120px] truncate rounded-full border border-cyan-200/35 bg-cyan-300/10 px-2 py-1 text-[11px] font-semibold text-cyan-100/90">
+                      #{keyword}
+                    </span>
+                  ))}
+                </div>
                 <div className="rounded-xl border border-pink-100/20 bg-pink-300/10 px-3 py-2">
                   <p className="text-[10px] font-semibold tracking-[0.15em] text-pink-100/85">ONE LINE LINK</p>
-                  <p className={`${styles.cardClamp2} mt-1 text-sm leading-6 text-white/92`}>{oneLine}</p>
+                  <p className={`${styles.cardClamp2} mt-1 break-keep text-sm leading-6 text-white/92`}>{oneLine}</p>
                 </div>
               </div>
             </div>

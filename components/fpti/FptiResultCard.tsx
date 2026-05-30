@@ -1,13 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { purchaseFeature } from "@/app/_lib/billing-client";
 import type { FptiAnalysisResult } from "@/lib/fpti/fpti-types";
 import {
-  buildFptiPremiumPdfText,
-  buildFptiPremiumReport,
-  type FptiPremiumReport,
+  buildFptiDeepReport,
+  type FptiDeepReport,
+  type FptiReportAccessState,
+  validateFptiDeepReport,
 } from "@/lib/fpti/premium-report";
 import FptiElementChart from "./FptiElementChart";
 import FptiTenGodsPanel from "./FptiTenGodsPanel";
@@ -20,13 +21,13 @@ type Props = {
   result: FptiAnalysisResult;
 };
 
-const LOADING_STAGES = [
-  "테스트 결과 계산 중",
-  "유형 분석 중",
-  "프리미엄 리포트 구성 중",
-  "챕터 정리 중",
-  "완료",
-] as const;
+type StoredDeepReport = {
+  version: number;
+  scope: string;
+  signature: string;
+  access: FptiReportAccessState;
+  report: FptiDeepReport;
+};
 
 const AXIS_CARD_LABELS: Record<string, string> = {
   A: "외향 발산형",
@@ -44,6 +45,8 @@ const QUALITY_LABELS = {
   partial: "부분 정밀 분석",
   fallback: "기본 패턴 분석",
 } as const;
+
+const STORAGE_KEY = "fpti_deep_report_state_v2";
 
 function AxisChip({ label, value }: { label: string; value: string }) {
   return (
@@ -79,43 +82,75 @@ function CosmicRadar() {
   );
 }
 
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function readAuthScope(): string {
+  if (typeof window === "undefined") return "anonymous";
+  try {
+    const raw = localStorage.getItem("fortune_auth_user");
+    if (!raw) return "anonymous";
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    return String(parsed.userId || parsed.id || parsed.email || "anonymous");
+  } catch {
+    return "anonymous";
+  }
 }
 
-const isDev = process.env.NODE_ENV !== "production";
+function buildSignature(result: FptiAnalysisResult): string {
+  const axis = result.axisScores;
+  return [
+    result.code,
+    result.typeName,
+    axis.A,
+    axis.M,
+    axis.H,
+    axis.L,
+    axis.F,
+    axis.B,
+    axis.R,
+    axis.V,
+    result.source?.dayMaster || "",
+    result.source?.monthBranch || "",
+  ].join("|");
+}
 
-function countDuplicateSentences(report: FptiPremiumReport): number {
-  const counts = new Map<string, number>();
-  for (const chapter of report.chapters) {
-    for (const category of chapter.categories) {
-      const chunks = String(category.body || "")
-        .split(/(?<=[.!?\u3002\uFF01\uFF1F])\s+|\n+/)
-        .map((line) => line.trim().replace(/\s+/g, " "))
-        .filter((line) => line.length >= 18);
-      for (const line of chunks) {
-        counts.set(line, (counts.get(line) || 0) + 1);
-      }
-    }
+function safeReadStored(scope: string, signature: string): StoredDeepReport | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as StoredDeepReport;
+    if (!parsed || parsed.version !== 1) return null;
+    if (parsed.scope !== scope) return null;
+    if (parsed.signature !== signature) return null;
+    if (!parsed.access?.isUnlocked) return null;
+    return parsed;
+  } catch {
+    return null;
   }
+}
 
-  let duplicate = 0;
-  for (const value of counts.values()) {
-    if (value >= 2) duplicate += 1;
+function safeWriteStored(payload: StoredDeepReport) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch {
+    // ignore storage failure on private mode/quota
   }
-  return duplicate;
+}
+
+function inferUnlockMethod(raw: Record<string, unknown>): FptiReportAccessState["unlockMethod"] {
+  const joined = JSON.stringify(raw).toLowerCase();
+  if (joined.includes("subscription")) return "subscription";
+  if (joined.includes("admin")) return "admin";
+  return "coin";
 }
 
 export default function FptiResultCard({ result }: Props) {
   const codeParts = result.code.split("").filter(Boolean);
   const [deepLoading, setDeepLoading] = useState(false);
-  const [deepStageIndex, setDeepStageIndex] = useState(0);
   const [deepError, setDeepError] = useState("");
-  const [deepReport, setDeepReport] = useState<FptiPremiumReport | null>(null);
   const [activeChapter, setActiveChapter] = useState(0);
-
-  const stageLabel = LOADING_STAGES[Math.min(deepStageIndex, LOADING_STAGES.length - 1)];
-  const canDownloadPdf = Boolean(deepReport) && !deepLoading;
+  const [accessState, setAccessState] = useState<FptiReportAccessState>({ isUnlocked: false });
+  const [deepReport, setDeepReport] = useState<FptiDeepReport>(() => buildFptiDeepReport({ result }, { unlocked: false }));
 
   const freeHighlights = useMemo(
     () => [
@@ -129,17 +164,37 @@ export default function FptiResultCard({ result }: Props) {
     [result],
   );
 
-  const handleDeepReport = async () => {
+  const signature = useMemo(() => buildSignature(result), [result]);
+
+  useEffect(() => {
+    const scope = readAuthScope();
+    const stored = safeReadStored(scope, signature);
+    if (stored?.report && stored.access?.isUnlocked) {
+      setAccessState(stored.access);
+      setDeepReport(stored.report);
+      return;
+    }
+
+    setAccessState({ isUnlocked: false });
+    setDeepReport(buildFptiDeepReport({ result }, { unlocked: false }));
+  }, [result, signature]);
+
+  const handleUnlockDeepReport = async () => {
     if (deepLoading) return;
+    if (accessState.isUnlocked) return;
+
     setDeepError("");
-    setDeepStageIndex(0);
     setDeepLoading(true);
 
     try {
-      if (isDev) {
-        console.info("[FPTI Premium] coin gate start", { code: result.code, typeName: result.typeName });
+      const built = buildFptiDeepReport({ result }, { unlocked: true });
+      const validation = validateFptiDeepReport(built);
+      if (!validation.valid) {
+        setDeepError("심층 리포트 품질 검증에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+        return;
       }
-      const requestId = `fpti-premium-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+      const requestId = `fpti-deep-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const purchase = await purchaseFeature({
         featureKey: "premium-fpti-report",
         reason: "FPTI 프리미엄 리포트 생성",
@@ -153,111 +208,39 @@ export default function FptiResultCard({ result }: Props) {
           return;
         }
         if (purchase.status === 402) {
-          setDeepError("코인이 부족합니다. FPTI 프리미엄 리포트는 200코인이 필요합니다.");
+          setDeepError("코인이 부족합니다. 심층 리포트 잠금 해제에는 200코인이 필요합니다.");
           return;
         }
-        setDeepError(purchase.message || "코인 결제 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+        setDeepError(purchase.message || "결제 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.");
         return;
       }
 
-      if (isDev) {
-        console.info("[FPTI Premium] coin gate success", {
-          status: purchase.status,
-          requestId,
-        });
-      }
-
-      setDeepStageIndex(1);
-      await sleep(180);
-
-      setDeepStageIndex(2);
-      const payload = {
-        result,
-        fptiType: result.code,
-        fptiSubtype: result.typeName,
-        userName: result.source?.dayMaster || "사용자",
-        scoreMap: {
-          energy: result.axisScores.A,
-          judgment: result.axisScores.H,
-          execution: result.axisScores.F,
-          vision: result.axisScores.R,
-        },
-        dimensionScores: {
-          energy: result.axisScores.A,
-          judgment: result.axisScores.H,
-          execution: result.axisScores.F,
-          vision: result.axisScores.R,
-        },
-        sajuSummary: [
-          result.elementSummary,
-          result.behaviorSummary,
-          result.relationshipSummary,
-          result.strategySummary,
-          result.loveSummary,
-          result.careerMoneySummary,
-        ].join(" "),
+      const rawData = (purchase.data || {}) as Record<string, unknown>;
+      const consume = rawData.consume as Record<string, unknown> | undefined;
+      const nextAccess: FptiReportAccessState = {
+        isUnlocked: true,
+        unlockMethod: inferUnlockMethod(rawData),
+        transactionId: String(consume?.transactionId || consume?.receiptId || requestId),
+        unlockedAt: new Date().toISOString(),
       };
 
-      if (isDev) {
-        console.info("[FPTI Premium] report request payload", {
-          fptiType: payload.fptiType,
-          fptiSubtype: payload.fptiSubtype,
-          userName: payload.userName,
-          dimensionScores: payload.dimensionScores,
-        });
-      }
-
-      const localReport = buildFptiPremiumReport({
-        ...payload,
-      });
-
-      if (isDev) {
-        console.info("[FPTI Premium] resolved type", {
-          typeCode: localReport.typeCode,
-          typeName: localReport.typeName,
-        });
-        console.info("[FPTI Premium] section count", {
-          chapterCount: localReport.chapters.length,
-          categoryCount: localReport.chapters.reduce((sum, chapter) => sum + chapter.categories.length, 0),
-        });
-        console.info("[FPTI Premium] duplicate sentence count", {
-          duplicateCount: countDuplicateSentences(localReport),
-        });
-      }
-
-      setDeepStageIndex(3);
-      await sleep(130);
-
-      setDeepReport(localReport);
+      setAccessState(nextAccess);
+      setDeepReport(built);
       setActiveChapter(0);
-      setDeepStageIndex(4);
 
-      if (isDev) {
-        console.info("[FPTI Premium] render section count", {
-          renderedChapters: localReport.chapters.length,
-        });
-      }
-    } catch (e) {
-      if (isDev) {
-        console.error("[FPTI Premium] error", {
-          message: e instanceof Error ? e.message : String(e),
-        });
-      }
-      setDeepError("FPTI 리포트 구성 중 문제가 발생했습니다. 입력값을 다시 확인해 주세요.");
+      const scope = readAuthScope();
+      safeWriteStored({
+        version: 1,
+        scope,
+        signature,
+        access: nextAccess,
+        report: built,
+      });
+    } catch {
+      setDeepError("심층 리포트 잠금 해제 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
       setDeepLoading(false);
     }
-  };
-
-  const handleDownloadPdf = () => {
-    if (!deepReport) return;
-    const text = buildFptiPremiumPdfText(deepReport);
-    const html = `<!doctype html><html><head><meta charset=\"utf-8\"><title>${deepReport.typeName}</title><style>body{font-family:'Noto Serif KR',serif;padding:28px;line-height:1.84;color:#0b172a;}h1{font-size:24px;margin:0 0 8px;}p{margin:0 0 12px;}pre{white-space:pre-wrap;word-break:break-word;font-family:'Noto Serif KR',serif;line-height:1.88;}@media print{@page{size:A4;margin:18mm;}pre{page-break-inside:avoid;}}</style></head><body><h1>${deepReport.typeName} (${deepReport.typeCode})</h1><p>${deepReport.subtitle}</p><pre>${text.replace(/</g, "&lt;")}</pre><script>window.onload=()=>window.print();</script></body></html>`;
-    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const popup = window.open(url, "_blank", "noopener,noreferrer");
-    if (popup) popup.focus();
-    window.setTimeout(() => URL.revokeObjectURL(url), 60000);
   };
 
   return (
@@ -390,136 +373,105 @@ export default function FptiResultCard({ result }: Props) {
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
-          <h4 className="text-sm font-semibold text-slate-100">연애에서의 나</h4>
-          <ul className="mt-2 space-y-1 text-sm text-slate-200">
-            {result.loveTips.map((item) => (
-              <li key={item}>- {item}</li>
-            ))}
-          </ul>
-        </section>
-
-        <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
-          <h4 className="text-sm font-semibold text-slate-100">돈과 일에서 빛나는 방식</h4>
-          <ul className="mt-2 space-y-1 text-sm text-slate-200">
-            {result.careerTips.map((item) => (
-              <li key={item}>- {item}</li>
-            ))}
-          </ul>
-        </section>
-      </div>
-
       <div className={`${styles.cosmicNeonCard} rounded-3xl border border-[#E9C46A]/35 bg-[radial-gradient(circle_at_15%_20%,rgba(245,158,11,0.25),transparent_38%),radial-gradient(circle_at_85%_30%,rgba(56,189,248,0.22),transparent_42%),linear-gradient(145deg,rgba(15,23,42,0.95),rgba(30,41,59,0.88))] p-6`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs tracking-[0.18em] text-[#F6D365]">PREMIUM REPORT</p>
-            <h4 className="text-lg font-semibold text-amber-100">FPTI 심층 리포트(200코인)</h4>
-            <p className="text-sm text-amber-50">로컬 계산 엔진으로 7개 챕터 심층 리포트를 구성합니다.</p>
+            <p className="text-xs tracking-[0.18em] text-[#F6D365]">PREMIUM DEEP REPORT</p>
+            <h4 className="text-lg font-semibold text-amber-100">FPTI 심층 리포트 잠금 해제 (200코인)</h4>
+            <p className="text-sm text-amber-50">결제 전 미리보기, 결제 후 7개 챕터 전체 열람으로 동작합니다.</p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          {!accessState.isUnlocked && (
             <button
               type="button"
-              onClick={handleDeepReport}
+              onClick={handleUnlockDeepReport}
               disabled={deepLoading}
               className="rounded-full bg-[linear-gradient(120deg,#0ea5e9,#2563eb,#f59e0b)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(14,165,233,0.35)] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {deepLoading ? "로컬 리포트 계산 중" : "심층 리포트 열기 (200코인)"}
+              {deepLoading ? "잠금 해제 처리 중" : "심층 리포트 잠금 해제"}
             </button>
-            <button
-              type="button"
-              onClick={handleDownloadPdf}
-              disabled={!canDownloadPdf}
-              className="rounded-full border border-cyan-200/45 bg-cyan-500/10 px-4 py-2.5 text-sm font-semibold text-cyan-100 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              PDF 다운로드
-            </button>
-          </div>
+          )}
         </div>
         <div className="mt-3 rounded-xl border border-white/15 bg-black/20 p-3 text-sm text-slate-100">
-          상태: <span className={deepReport ? styles.neonTextCyan : styles.neonTextGold}>{deepLoading ? stageLabel : deepReport ? "완료" : "대기"}</span>
+          상태: <span className={accessState.isUnlocked ? styles.neonTextCyan : styles.neonTextGold}>{accessState.isUnlocked ? "잠금 해제 완료" : "미리보기"}</span>
         </div>
         {deepError && <p className="mt-3 rounded-xl border border-rose-300/35 bg-rose-500/15 p-3 text-sm text-rose-100">{deepError}</p>}
       </div>
 
-      {deepReport && (
-        <section className={`${styles.cosmicNeonCard} rounded-3xl p-5 pb-[calc(5.5rem+env(safe-area-inset-bottom))]`}>
-          <p className="text-xs tracking-[0.16em] text-cyan-200">COSMIC DESTINY REPORT</p>
-          <h4 className={`${styles.neonTextCyan} mt-1 text-lg font-semibold`}>{deepReport.typeName} ({deepReport.typeCode})</h4>
-          <p className="mt-2 text-sm text-slate-200">{deepReport.summary.split("\n").slice(-1)[0]}</p>
+      <section className={`${styles.cosmicNeonCard} rounded-3xl p-5 pb-[calc(5.5rem+env(safe-area-inset-bottom))]`}>
+        <p className="text-xs tracking-[0.16em] text-cyan-200">FPTI DEEP REPORT</p>
+        <h4 className={`${styles.neonTextCyan} mt-1 text-lg font-semibold`}>{deepReport.typeName} ({deepReport.userTypeCode})</h4>
+        <p className="mt-2 text-sm text-slate-200">{deepReport.summary.preview}</p>
 
-          <div className="mt-3 flex flex-wrap gap-2">
-            {result.keywords.slice(0, 5).map((keyword) => (
-              <span key={`deep-${keyword}`} className="rounded-full border border-cyan-200/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-100">
-                #{keyword}
-              </span>
-            ))}
-          </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {deepReport.summary.highlights.map((item) => (
+            <span key={item} className="rounded-full border border-cyan-200/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-100">
+              {item}
+            </span>
+          ))}
+        </div>
 
-          <div className="mt-4 rounded-2xl border border-cyan-200/20 bg-[#07142c]/70 p-3">
-            <p className="text-xs tracking-[0.14em] text-cyan-200">TYPE CARD</p>
-            <div className="mt-2"><CosmicRadar /></div>
-          </div>
+        <div className="mt-4 rounded-2xl border border-cyan-200/20 bg-[#07142c]/70 p-3">
+          <p className="text-xs tracking-[0.14em] text-cyan-200">TYPE CARD</p>
+          <div className="mt-2"><CosmicRadar /></div>
+        </div>
 
-          <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-            {deepReport.chapters.map((chapter, idx) => (
-              <button
-                key={chapter.id}
-                type="button"
-                onClick={() => setActiveChapter(idx)}
-                className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold ${activeChapter === idx ? "border-cyan-200 bg-cyan-500/20 text-cyan-100" : "border-white/20 bg-white/5 text-slate-200"}`}
-              >
-                {idx + 1}장
-              </button>
-            ))}
-          </div>
+        <div className="mt-4 space-y-3">
+          {deepReport.chapters.map((chapter, idx) => {
+            const open = idx === activeChapter;
+            return (
+              <article key={`${chapter.roman}-${chapter.order}`} className="rounded-2xl border border-white/15 bg-black/20">
+                <button
+                  type="button"
+                  onClick={() => setActiveChapter(idx)}
+                  className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+                >
+                  <h5 className="text-sm font-semibold text-sky-100">{chapter.roman}. {chapter.title}</h5>
+                  <span className="text-xs text-slate-300">{open ? "접기" : "열기"}</span>
+                </button>
+                {open && (
+                  <div className="border-t border-white/10 px-4 pb-4 pt-3">
+                    {!accessState.isUnlocked && (
+                      <p className="mb-3 rounded-xl border border-amber-300/30 bg-amber-400/10 p-3 text-xs text-amber-100">
+                        이 챕터는 미리보기 1~2문장만 표시됩니다. 전체 내용을 보려면 잠금을 해제하세요.
+                      </p>
+                    )}
 
-          <div className="mt-4 space-y-3">
-            {deepReport.chapters.map((chapter, idx) => {
-              const open = idx === activeChapter;
-              return (
-                <article key={chapter.id} className="rounded-2xl border border-white/15 bg-black/20">
-                  <button
-                    type="button"
-                    onClick={() => setActiveChapter(idx)}
-                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
-                  >
-                    <h5 className="text-sm font-semibold text-sky-100">{chapter.title}</h5>
-                    <span className="text-xs text-slate-300">{open ? "접기" : "열기"}</span>
-                  </button>
-                  {open && (
-                    <div className="border-t border-white/10 px-4 pb-4 pt-3">
-                      <p className="text-sm leading-8 text-slate-100">{chapter.intro}</p>
-                      <p className="mt-3 text-sm leading-8 text-slate-200">{chapter.analysis}</p>
-                      <div className="mt-4 grid gap-3 lg:grid-cols-2">
-                        {chapter.categories.map((category) => (
-                          <article key={`${chapter.id}-${category.id}`} className="rounded-2xl border border-cyan-300/20 bg-cyan-500/5 p-3 transition hover:shadow-[0_0_20px_rgba(56,189,248,0.22)]">
-                            <h6 className="text-sm font-semibold text-cyan-100">{category.title}</h6>
-                            <p className="mt-2 whitespace-pre-wrap text-sm leading-8 text-slate-100">{category.body}</p>
-                            {Array.isArray(category.actionTips) && category.actionTips.length > 0 && (
-                              <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-2">
-                                <p className="text-xs font-semibold tracking-[0.14em] text-slate-300">실천 포인트</p>
-                                <ul className="mt-2 space-y-1 text-xs text-slate-200">
-                                  {category.actionTips.map((tip) => (
-                                    <li key={`${category.id}-${tip}`}>- {tip}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                          </article>
-                        ))}
-                      </div>
-                      <p className="mt-4 rounded-xl border border-amber-200/30 bg-amber-300/10 p-3 text-sm leading-7 text-amber-100">{chapter.actionGuide}</p>
+                    <div className="space-y-3">
+                      {chapter.sections.map((section) => (
+                        <article key={`${chapter.roman}-${section.title}`} className="rounded-2xl border border-cyan-300/20 bg-cyan-500/5 p-3 transition hover:shadow-[0_0_20px_rgba(56,189,248,0.22)]">
+                          <h6 className="text-sm font-semibold text-cyan-100">{section.title}</h6>
+                          <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-100">{section.interpretation}</p>
+                          {accessState.isUnlocked && (
+                            <div className="mt-3 grid gap-2 md:grid-cols-3">
+                              <p className="rounded-lg border border-emerald-200/25 bg-emerald-500/10 p-2 text-xs text-emerald-100">강점: {section.strength}</p>
+                              <p className="rounded-lg border border-amber-200/25 bg-amber-500/10 p-2 text-xs text-amber-100">주의: {section.risk}</p>
+                              <p className="rounded-lg border border-sky-200/25 bg-sky-500/10 p-2 text-xs text-sky-100">실행: {section.action}</p>
+                            </div>
+                          )}
+                          <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-2">
+                            <p className="text-xs font-semibold tracking-[0.14em] text-slate-300">해석에 반영된 성향</p>
+                            <ul className="mt-2 space-y-1 text-xs text-slate-200">
+                              {section.usedSignals.map((signal) => (
+                                <li key={`${section.title}-${signal}`}>- {signal}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </article>
+                      ))}
                     </div>
-                  )}
-                </article>
-              );
-            })}
-          </div>
 
-          <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-[#081329] to-transparent pb-[env(safe-area-inset-bottom)] pt-10" />
-        </section>
-      )}
+                    <p className="mt-4 rounded-xl border border-amber-200/30 bg-amber-300/10 p-3 text-sm leading-7 text-amber-100">
+                      {chapter.chapterSummary}
+                    </p>
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
+
+        <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-[#081329] to-transparent pb-[env(safe-area-inset-bottom)] pt-10" />
+      </section>
 
       <FptiShareCard result={result} />
     </motion.section>

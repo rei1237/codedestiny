@@ -1035,6 +1035,22 @@
       container.appendChild(openDiv);
     }
 
+    if (r.topSummary && typeof r.topSummary === "object") {
+      var ts = r.topSummary;
+      var summaryCard = document.createElement("div");
+      summaryCard.className = "tse-levelup-card";
+      summaryCard.innerHTML =
+        '<p class="tse-levelup-title">🧭 상단 요약</p>' +
+        '<p class="tse-levelup-body"><strong>5장 흐름:</strong> ' + escapeHtml(String(ts.flow || "")) + '</p>' +
+        '<ul class="tse-levelup-list">' +
+        '  <li class="tse-levelup-item"><strong>핵심 패턴:</strong> ' + escapeHtml(String(ts.corePattern || "")) + '</li>' +
+        '  <li class="tse-levelup-item"><strong>회복 키워드:</strong> ' + escapeHtml(Array.isArray(ts.recoveryKeywords) ? ts.recoveryKeywords.join(" · ") : "") + '</li>' +
+        '  <li class="tse-levelup-item"><strong>주의할 자동 사고:</strong> ' + escapeHtml(String(ts.cognitiveTrap || "")) + '</li>' +
+        '  <li class="tse-levelup-item"><strong>오늘의 대표 회복 액션:</strong> ' + escapeHtml(String(ts.representativeAction || "")) + '</li>' +
+        '</ul>';
+      container.appendChild(summaryCard);
+    }
+
     // Per-position insight cards
     var positions = [
       { pos: "past_debuff",     num: "1", text: r.pastDebuff,     label: POSITION_LABELS.past_debuff },
@@ -1052,6 +1068,16 @@
       var extra = insightMap[item.pos] || {};
       var keywords = Array.isArray(extra.keywords) ? extra.keywords.slice(0, 3) : [];
       var actionStep = String(extra.actionStep || "").trim();
+      var todayAction = String(extra.todayAction || actionStep || "").trim();
+      var orientationText = String(extra.orientation === "reversed" ? "역방향" : (extra.orientation === "upright" ? "정방향" : "")).trim();
+      var cardMeaning = String(extra.cardMeaning || item.text || "").trim();
+      var patternAnalysis = String(extra.patternAnalysis || "").trim();
+      var selfEsteemImpact = String(extra.selfEsteemImpact || "").trim();
+      var recoveryAdvice = String(extra.recoveryAdvice || "").trim();
+      var caution = String(extra.caution || "").trim();
+      var question = String(extra.question || "").trim();
+      var cardNameKo = String(extra.cardNameKo || cardName || "").trim();
+      var cardNameEn = String(extra.cardNameEn || "").trim();
 
       var insightCard = document.createElement("div");
       insightCard.className = "tse-insight-card";
@@ -1067,7 +1093,7 @@
 
       var icon = document.createElement("span");
       icon.className = "tse-card-icon";
-      icon.textContent = ICONS[item.pos] || "✦";
+      icon.textContent = String(extra.icon || ICONS[item.pos] || "✦");
 
       var meta = document.createElement("div");
       meta.className = "tse-card-meta";
@@ -1087,13 +1113,33 @@
       header.appendChild(badge);
       header.appendChild(icon);
       header.appendChild(meta);
-
-      var body = document.createElement("p");
-      body.className = "tse-card-body";
-      body.textContent = item.text;
-
       insightCard.appendChild(header);
-      insightCard.appendChild(body);
+
+      var intro = document.createElement("p");
+      intro.className = "tse-card-body";
+      intro.innerHTML =
+        (question ? "<strong>질문:</strong> " + escapeHtml(question) + "<br>" : "") +
+        ((cardNameKo || cardNameEn) ? "<strong>카드:</strong> " + escapeHtml(cardNameKo + (cardNameEn ? (" (" + cardNameEn + ")") : "")) + "<br>" : "") +
+        (orientationText ? "<strong>방향:</strong> " + escapeHtml(orientationText) : "");
+      if (intro.innerHTML) insightCard.appendChild(intro);
+
+      var meaning = document.createElement("p");
+      meaning.className = "tse-card-body";
+      meaning.innerHTML = "<strong>카드 의미:</strong> " + escapeHtml(cardMeaning);
+      insightCard.appendChild(meaning);
+
+      [
+        { label: "심리 패턴", value: patternAnalysis },
+        { label: "자존감 영향", value: selfEsteemImpact },
+        { label: "회복 조언", value: recoveryAdvice },
+        { label: "주의점", value: caution },
+      ].forEach(function (field) {
+        if (!field.value) return;
+        var p = document.createElement("p");
+        p.className = "tse-card-body";
+        p.innerHTML = "<strong>" + escapeHtml(field.label) + ":</strong> " + escapeHtml(field.value);
+        insightCard.appendChild(p);
+      });
 
       if (keywords.length) {
         var keywordWrap = document.createElement("div");
@@ -1107,10 +1153,10 @@
         insightCard.appendChild(keywordWrap);
       }
 
-      if (actionStep) {
+      if (todayAction) {
         var action = document.createElement("p");
         action.className = "tse-card-action";
-        action.textContent = "오늘의 회복 액션: " + actionStep;
+        action.textContent = "오늘의 회복 액션: " + todayAction;
         insightCard.appendChild(action);
       }
 
@@ -1132,7 +1178,11 @@
 
       var guide = r.levelupGuide || {};
       var guideLines = [];
+      if (guide.summaryPattern) guideLines.push("현재 자존감 패턴 요약: " + guide.summaryPattern);
+      if (guide.rootCause) guideLines.push("가장 깊은 원인: " + guide.rootCause);
+      if (guide.drainArea) guideLines.push("가장 크게 소모되는 영역: " + guide.drainArea);
       if (guide.recoveryPoint) guideLines.push("핵심 회복 포인트: " + guide.recoveryPoint);
+      if (guide.longTermStandard) guideLines.push("장기적으로 세워야 할 자기 기준: " + guide.longTermStandard);
       if (guide.caution) guideLines.push("조심해야 할 패턴: " + guide.caution);
       if (guide.practice) guideLines.push("오늘의 연습 문장: " + guide.practice);
       if (Array.isArray(guide.mission) && guide.mission.length) {
@@ -1156,7 +1206,30 @@
     }
 
     // Action Quest Plan
-    if (Array.isArray(r.actionPlan) && r.actionPlan.length) {
+    if (Array.isArray(r.levelupQuests) && r.levelupQuests.length) {
+      var questCard = document.createElement("div");
+      questCard.className = "tse-action-card";
+      var questTitle = document.createElement("p");
+      questTitle.className = "tse-action-title";
+      questTitle.textContent = "⚔️ 오늘의 레벨업 퀘스트";
+      var questUl = document.createElement("ul");
+      questUl.className = "tse-quest-list";
+      r.levelupQuests.slice(0, 3).forEach(function (quest, i) {
+        var li = document.createElement("li");
+        li.className = "tse-quest-item";
+        li.innerHTML =
+          '<span class="tse-quest-num">' + String(i + 1) + '</span>' +
+          '<span><strong>' + escapeHtml(String(quest.title || "퀘스트")) + '</strong>' +
+          '<br><small>난이도: ' + escapeHtml(String(quest.difficulty || "normal")) + '</small>' +
+          '<br><small>목적: ' + escapeHtml(String(quest.purpose || "")) + '</small>' +
+          '<br><small>행동: ' + escapeHtml(String(quest.action || "")) + '</small>' +
+          '<br><small>완료 확인: ' + escapeHtml(String(quest.completionCheck || "")) + '</small></span>';
+        questUl.appendChild(li);
+      });
+      questCard.appendChild(questTitle);
+      questCard.appendChild(questUl);
+      container.appendChild(questCard);
+    } else if (Array.isArray(r.actionPlan) && r.actionPlan.length) {
       var actionCard = document.createElement("div");
       actionCard.className = "tse-action-card";
       var actionTitle = document.createElement("p");

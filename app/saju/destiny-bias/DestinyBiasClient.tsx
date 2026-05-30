@@ -568,8 +568,10 @@ export default function DestinyBiasClient() {
       const localResult = analyzeDestinyBias({
         userName: meInput.name,
         userBirthDateInput: meInput.birthDateInput,
+        userBirthTimeInput: meInput.birthTimeInput,
         biasName: biasInput.name,
         biasBirthDateInput: biasInput.birthDateInput,
+        biasBirthTimeInput: biasInput.birthTimeInput,
         linkedArtistName: biasArtistInput,
         biasMood,
         relationMood,
@@ -1112,7 +1114,7 @@ export default function DestinyBiasClient() {
       </div>
 
       {uiStep > 0 && uiStep < 4 ? (
-        <div className={`md:hidden ${styles.stickyCtaBar}`} {...guardHandlers}>
+        <div className={`fixed inset-x-0 bottom-0 md:hidden ${styles.stickyCtaBar}`} {...guardHandlers}>
           <div className="mx-auto flex w-full max-w-7xl gap-2">
             {uiStep > 0 ? (
               <button

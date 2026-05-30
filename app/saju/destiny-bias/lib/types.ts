@@ -61,4 +61,32 @@ export type DestinyBiasResultViewModel = {
   themeLabel: string;
   biasMood: string;
   relationMood: string;
+  chemistryType: string;
+  birthDataStatus: {
+    user: "complete" | "dateOnly" | "unknownTime";
+    favorite: "complete" | "dateOnly" | "unknownTime";
+  };
+  sajuSignals: {
+    dayMasterRelation?: string;
+    dayBranchRelation?: string;
+    fiveElementBalance?: string;
+    tenGodRelation?: string;
+    harmonySignals: string[];
+    conflictSignals: string[];
+    charmSignals: string[];
+    longTermSignals: string[];
+  };
+  detailedTabs: Array<{
+    id: "summary" | "chemistry" | "emotion" | "fanBias" | "stability" | "caution" | "advice";
+    label: string;
+    shortLabel: string;
+    title: string;
+    keywords: string[];
+    sections: Array<{
+      title: string;
+      usedSignals: string[];
+      text: string;
+      action?: string;
+    }>;
+  }>;
 };

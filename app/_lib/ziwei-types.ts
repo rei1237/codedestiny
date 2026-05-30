@@ -194,6 +194,49 @@ export interface ZiweiDeepSummary {
   }>;
 }
 
+export interface ValidationResult {
+  valid: boolean;
+  issues: string[];
+}
+
+export interface ZiweiTransformation {
+  type: "화록" | "화권" | "화과" | "화기";
+  starName: string;
+  palaceName?: string;
+  influence: string;
+}
+
+export interface ZiweiPalaceCategoryReading {
+  categoryTitle: string;
+  categoryQuestion: string;
+  usedSignals: string[];
+  interpretation: string;
+  opportunity: string;
+  caution: string;
+  action: string;
+}
+
+export interface ZiweiDeepPalaceReading {
+  palaceId: string;
+  palaceName: string;
+  palaceBranch?: string;
+  isEmptyPalace: boolean;
+  mainStars: ZiweiStarMeta[];
+  supportStars: ZiweiStarMeta[];
+  minorStars: ZiweiStarMeta[];
+  transformations: ZiweiTransformation[];
+  brightnessSummary: string;
+  oppositePalace?: string;
+  sanFangSiZheng?: {
+    sourcePalaces: string[];
+    keyStars: ZiweiStarMeta[];
+    summary: string;
+  };
+  categories: ZiweiPalaceCategoryReading[];
+  summary: string;
+  practicalAdvice: string[];
+}
+
 export interface ZiweiDeepChart {
   version: string;
   user: ZiweiUserInput;
@@ -233,6 +276,7 @@ export interface ZiweiDeepChapter {
   actionItems: string[];
   routine7Days: string[];
   routine30Days: string[];
+  palaceReading?: ZiweiDeepPalaceReading;
 }
 
 export interface ZiweiChapterValidation {
@@ -269,7 +313,7 @@ export const ZIWEI_PALACE_NAME: Record<ZiweiPalaceId, string> = {
   wealth: "재백궁",
   health: "질액궁",
   travel: "천이궁",
-  friends: "교우궁",
+  friends: "노복궁",
   career: "관록궁",
   property: "전택궁",
   fortune: "복덕궁",
@@ -277,18 +321,18 @@ export const ZIWEI_PALACE_NAME: Record<ZiweiPalaceId, string> = {
 };
 
 export const ZIWEI_SECTIONS: Array<{ id: ZiweiSectionId; title: string; palaceId?: ZiweiPalaceId }> = [
-  { id: "overview", title: "CH.01~03 핵심 구조 요약" },
-  { id: "ming", title: "CH.01 명궁·CH.02 신궁" , palaceId: "ming" },
-  { id: "career", title: "CH.04 관록궁" , palaceId: "career" },
-  { id: "wealth", title: "CH.05 재백궁" , palaceId: "wealth" },
-  { id: "travel", title: "CH.06 천이궁" , palaceId: "travel" },
-  { id: "spouse", title: "CH.07 부부궁" , palaceId: "spouse" },
-  { id: "fortune", title: "CH.08 복덕궁" , palaceId: "fortune" },
-  { id: "health", title: "CH.09 질액궁" , palaceId: "health" },
-  { id: "property", title: "CH.10 전택궁" , palaceId: "property" },
-  { id: "parents", title: "CH.11 부모궁" , palaceId: "parents" },
-  { id: "siblings", title: "CH.11 형제궁" , palaceId: "siblings" },
-  { id: "children", title: "CH.11 자녀궁" , palaceId: "children" },
-  { id: "friends", title: "CH.11 교우궁" , palaceId: "friends" },
-  { id: "master", title: "CH.12~14 사화·대운세운·마스터플랜" },
+  { id: "overview", title: "심화 자미두수 요약" },
+  { id: "ming", title: "명궁·신궁", palaceId: "ming" },
+  { id: "siblings", title: "형제궁", palaceId: "siblings" },
+  { id: "spouse", title: "부부궁", palaceId: "spouse" },
+  { id: "children", title: "자녀궁", palaceId: "children" },
+  { id: "wealth", title: "재백궁", palaceId: "wealth" },
+  { id: "health", title: "질액궁", palaceId: "health" },
+  { id: "travel", title: "천이궁", palaceId: "travel" },
+  { id: "friends", title: "노복궁", palaceId: "friends" },
+  { id: "career", title: "관록궁", palaceId: "career" },
+  { id: "property", title: "전택궁", palaceId: "property" },
+  { id: "fortune", title: "복덕궁", palaceId: "fortune" },
+  { id: "parents", title: "부모궁", palaceId: "parents" },
+  { id: "master", title: "사화·대운·운용 전략" },
 ];
