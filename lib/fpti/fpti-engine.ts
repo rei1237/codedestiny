@@ -18,6 +18,21 @@ const ELEMENT_LABEL: Record<FiveElementKey, string> = {
 const YANG_STEMS = new Set(["갑", "병", "무", "경", "임", "甲", "丙", "戊", "庚", "壬"]);
 const YIN_STEMS = new Set(["을", "정", "기", "신", "계", "乙", "丁", "己", "辛", "癸"]);
 
+type TenGodKey = "비견" | "겁재" | "식신" | "상관" | "정재" | "편재" | "정관" | "편관" | "정인" | "편인";
+
+const TEN_GOD_MEANINGS: Record<TenGodKey, { personality: string; career: string; caution: string }> = {
+  비견: { personality: "자기 기준과 주도성이 강하고, 내 결정에 대한 신뢰가 분명합니다.", career: "독립 실행, 동료와의 대등한 협업, 자기 주도 프로젝트에 강합니다.", caution: "너무 자기 방식만 고집하면 유연성이 떨어질 수 있습니다." },
+  겁재: { personality: "경쟁심과 반응 속도가 살아 있어 상황 대응이 빠릅니다.", career: "빠른 현장 대응, 실전 협상, 위기 돌파형 업무에 강합니다.", caution: "경쟁 의식이 과해지면 소모전으로 번질 수 있습니다." },
+  식신: { personality: "꾸준함과 생활 감각이 좋아 감정 기복을 완만하게 만듭니다.", career: "콘텐츠 생산, 서비스 품질, 안정적 결과물 축적에 강합니다.", caution: "편안함이 늘어나면 속도가 느려질 수 있습니다." },
+  상관: { personality: "표현력과 문제 제기 능력이 강해 틀린 것을 잘 못 넘깁니다.", career: "기획, 발표, 개선 제안, 혁신형 직무에서 존재감이 큽니다.", caution: "말이 앞서면 관계 마찰이 생기기 쉽습니다." },
+  정재: { personality: "현실 감각과 관리 본능이 강해 안전한 선택을 선호합니다.", career: "예산 관리, 정산, 운영, 안정 수익 구조 설계에 강합니다.", caution: "너무 보수적으로만 가면 기회를 늦출 수 있습니다." },
+  편재: { personality: "기회 포착과 유연한 자원 활용이 빠릅니다.", career: "영업, 프로젝트 확장, 부업, 수익 다각화에서 강점이 큽니다.", caution: "너무 넓게 벌리면 집중이 흐트러질 수 있습니다." },
+  정관: { personality: "책임감과 기준 준수가 분명해 신뢰를 주는 타입입니다.", career: "조직 운영, 관리직, 규정 기반 직무, 품질 통제에 강합니다.", caution: "기준이 너무 엄격해지면 스스로도 피곤해질 수 있습니다." },
+  편관: { personality: "압박을 받는 상황에서 오히려 추진력이 살아납니다.", career: "리스크 대응, 위기 관리, 구조 개편, 결단이 필요한 자리에서 강합니다.", caution: "긴장 상태가 오래가면 소진이 빠릅니다." },
+  정인: { personality: "내면 정리와 학습, 회복력이 강해 생각의 깊이가 있습니다.", career: "연구, 기획 보조, 분석, 자격 기반 전문성 축적에 강합니다.", caution: "혼자만 정리하다 보면 실행이 늦어질 수 있습니다." },
+  편인: { personality: "감각적 통찰과 비정형 이해가 빠릅니다.", career: "창의 기획, 특수 분야 탐구, 틈새 전략, 대안 설계에 강합니다.", caution: "너무 안으로만 파고들면 외부 실행이 늦어질 수 있습니다." },
+};
+
 function normalizeElementToken(input: string): FiveElementKey | undefined {
   const value = String(input || "").trim().toLowerCase();
   if (!value) return undefined;
@@ -229,6 +244,23 @@ function tenGodRanking(source: FptiSourceData) {
   );
 }
 
+function tenGodNarrative(source: FptiSourceData, strongTenGods: string[]) {
+  const rank = strongTenGods.slice(0, 3) as TenGodKey[];
+  const primary = rank[0] || "정인";
+  const secondary = rank[1] || primary;
+  const tertiary = rank[2] || secondary;
+
+  const primaryMeaning = TEN_GOD_MEANINGS[primary] || TEN_GOD_MEANINGS.정인;
+  const secondaryMeaning = TEN_GOD_MEANINGS[secondary] || TEN_GOD_MEANINGS.정관;
+  const tertiaryMeaning = TEN_GOD_MEANINGS[tertiary] || TEN_GOD_MEANINGS.식신;
+
+  const personality = `${primary}·${secondary} 축이 성격의 중심입니다. ${primaryMeaning.personality} ${secondaryMeaning.personality}`;
+  const career = `${tertiary}까지 함께 보면 진로 성향이 더 선명합니다. ${primaryMeaning.career} ${secondaryMeaning.career} ${tertiaryMeaning.career}`;
+  const caution = `${primaryMeaning.caution} ${secondaryMeaning.caution} ${tertiaryMeaning.caution}`;
+
+  return { personality, career, caution, primary, secondary, tertiary };
+}
+
 function resolveRelationStyle(axis: FptiAxisCodes) {
   if (axis.judgment === "H" && axis.execution === "F") {
     return { key: "Open" as const, description: "감정 교류를 빠르게 열고 분위기를 먼저 따뜻하게 만듭니다." };
@@ -290,6 +322,7 @@ export function analyzeFpti(source: FptiSourceData): FptiAnalysisResult {
   const weakElements = bottomKeys(percentages, 2).map((key) => ELEMENT_LABEL[key as FiveElementKey] || key);
   const strongTenGods = tenGodRanking(source);
   const strategyGuide = buildStrategyGuide(axis);
+  const tenGodView = tenGodNarrative(source, strongTenGods);
 
   const narrative = paragraphNarrative({
     typeName: copy.name,
@@ -302,26 +335,26 @@ export function analyzeFpti(source: FptiSourceData): FptiAnalysisResult {
     relationDescription: relationStyle.description,
   });
 
-  const elementSummary = `강한 오행은 ${strongElements.join("/")}이며, 약한 오행은 ${weakElements.join("/")}입니다.`;
+  const elementSummary = `강한 오행은 ${strongElements.join("/")}이며, 약한 오행은 ${weakElements.join("/")}입니다. 십성으로 보면 ${tenGodView.primary}/${tenGodView.secondary}/${tenGodView.tertiary} 흐름이 성격과 선택 기준을 잡습니다.`;
   const behaviorSummary =
     axis.energy === "A"
-      ? "에너지를 밖으로 발산할수록 동력이 살아나는 유형입니다."
-      : "내면에서 에너지를 축적할수록 집중력과 완성도가 높아지는 유형입니다.";
-  const relationshipSummary = `관계 흐름은 ${relationStyle.key} 성향이 우세합니다. ${relationStyle.description}`;
+      ? `에너지를 밖으로 발산할수록 동력이 살아나는 유형입니다. 특히 ${tenGodView.primary}와 ${tenGodView.secondary}가 강하면 자기 기준과 반응 속도가 더 분명해집니다.`
+      : `내면에서 에너지를 축적할수록 집중력과 완성도가 높아지는 유형입니다. 특히 ${tenGodView.primary}와 ${tenGodView.secondary}가 강하면 정리·학습·회복의 질이 올라갑니다.`;
+  const relationshipSummary = `관계 흐름은 ${relationStyle.key} 성향이 우세합니다. ${relationStyle.description} 십성 기준으로는 ${tenGodView.primary}/${tenGodView.secondary}의 작동 방식이 거리감과 신뢰 형성을 좌우합니다.`;
   const strategySummary =
     axis.execution === "F"
-      ? "실행은 유연 탐색형이 적합합니다."
-      : "실행은 질서 구축형이 적합합니다.";
+      ? `실행은 유연 탐색형이 적합합니다. 다만 ${tenGodView.primary}와 ${tenGodView.secondary}가 강한 경우, 즉흥성보다 기준을 한 줄로 고정하는 쪽이 더 잘 맞습니다.`
+      : `실행은 질서 구축형이 적합합니다. ${tenGodView.primary}와 ${tenGodView.secondary}의 힘을 살려 일정, 규칙, 책임을 먼저 묶으면 성과가 안정됩니다.`;
 
   const loveSummary =
     axis.judgment === "H"
-      ? "연애에서는 감정의 안전감과 공감의 빈도가 관계 만족도를 크게 좌우합니다."
-      : "연애에서는 명확한 기준과 약속이 신뢰를 빠르게 안정시킵니다.";
+      ? `연애에서는 감정의 안전감과 공감의 빈도가 관계 만족도를 크게 좌우합니다. 특히 ${tenGodView.primary}가 정인/식신 계열이면 따뜻한 돌봄이, 상관/편인 계열이면 감각적 교류가 중요해집니다.`
+      : `연애에서는 명확한 기준과 약속이 신뢰를 빠르게 안정시킵니다. 특히 정관/편관 계열이 강하면 관계의 룰과 책임 분담이 만족도를 좌우합니다.`;
 
   const careerMoneySummary =
     axis.vision === "R"
-      ? "일/재능과 돈 흐름은 현실 지표 관리와 우선순위 실행에서 상승폭이 큽니다."
-      : "일/재능과 돈 흐름은 의미 중심 프로젝트를 선택할 때 장기 성장 탄력이 커집니다.";
+      ? `일/재능과 돈 흐름은 현실 지표 관리와 우선순위 실행에서 상승폭이 큽니다. 정재/편재가 강하면 돈은 "얼마나 벌까"보다 "어떤 구조로 굴릴까"에서 차이가 납니다.`
+      : `일/재능과 돈 흐름은 의미 중심 프로젝트를 선택할 때 장기 성장 탄력이 커집니다. 정인/편인이 강하면 전문성 축적과 기획력이 진로의 핵심 자산이 됩니다.`;
 
   const calculationNotes = [
     `1축 에너지(A/M): 비겁+식상 vs 인성+관성, 일간(${source.dayMaster}) 음양 보정`,
@@ -353,13 +386,13 @@ export function analyzeFpti(source: FptiSourceData): FptiAnalysisResult {
     tenGodGroupScores: grouped,
     strengths: [
       `${strongElements.join("/")} 기운이 살아 있어 핵심 상황에서 몰입과 추진력이 올라갑니다.`,
-      `${strongTenGods[0] || "정인"} 축이 강해 문제 해결 방식이 분명합니다.`,
-      strategyGuide,
+      `${tenGodView.primary}와 ${tenGodView.secondary}가 강해 성격의 핵심 방향이 분명합니다.`,
+      `${tenGodView.primary}는 ${TEN_GOD_MEANINGS[tenGodView.primary as TenGodKey]?.personality || "문제 해결 중심"} ${TEN_GOD_MEANINGS[tenGodView.primary as TenGodKey]?.career || "진로 판단에도 일관성이 생깁니다."}`,
     ],
     weaknesses: [
       `${weakElements.join("/")} 기운이 약해질 때 판단이 한쪽으로 쏠릴 수 있습니다.`,
-      "과열 시점에는 관계 템포와 실행 템포가 어긋날 수 있습니다.",
-      "장기 목표는 월 단위 점검 루틴으로 재보정하는 것이 안전합니다.",
+      `${tenGodView.caution}`,
+      "과열 시점에는 관계 템포와 실행 템포가 어긋날 수 있습니다. 장기 목표는 월 단위 점검 루틴으로 재보정하는 것이 안전합니다.",
     ],
     relationStyle,
     essenceNarrative: narrative,
@@ -370,19 +403,19 @@ export function analyzeFpti(source: FptiSourceData): FptiAnalysisResult {
     loveSummary,
     careerMoneySummary,
     growthTips: [
-      strategyGuide,
-      "강한 오행 1개와 약한 오행 1개를 같이 보완하는 주간 루틴을 만드세요.",
-      "감정/에너지 기복이 큰 날은 중요한 결정을 하루 미루고 재확인하세요.",
+      `${strategyGuide} 특히 ${tenGodView.primary}/${tenGodView.secondary}가 강한 날은 기준 문장을 먼저 써두면 흔들림이 줄어듭니다.`,
+      `강한 오행 1개와 약한 오행 1개를 같이 보완하는 주간 루틴을 만드세요. 동시에 ${tenGodView.primary}의 장점은 살리고, ${tenGodView.secondary}와 ${tenGodView.tertiary}가 과열될 때는 속도를 줄이세요.`,
+      `감정/에너지 기복이 큰 날은 중요한 결정을 하루 미루고 재확인하세요. ${tenGodView.secondary}가 강한 사람일수록 기준 없는 즉흥 판단을 경계해야 합니다.`,
     ],
     careerTips: [
-      "실행축에 맞는 업무 방식(탐색형/구축형)을 명확히 분리하세요.",
-      "판단축이 다른 동료와는 의사결정 기준을 먼저 합의하세요.",
-      "성과 목표를 주간 숫자로 설정하고 월간 단위로만 전략을 조정하세요.",
+      `실행축에 맞는 업무 방식(탐색형/구축형)을 명확히 분리하세요. ${tenGodView.primary}가 정인/정관 계열이면 정리·관리·검증형, 편재/편관 계열이면 확장·돌파·조율형이 더 잘 맞습니다.`,
+      `판단축이 다른 동료와는 의사결정 기준을 먼저 합의하세요. ${tenGodView.secondary}가 상관/편인이면 제안과 질문이 많아질 수 있으니, 회의 전 핵심 질문을 3개로 줄이세요.`,
+      `성과 목표를 주간 숫자로 설정하고 월간 단위로만 전략을 조정하세요. ${tenGodView.tertiary}가 식신/정재라면 반복성과 안정 수익을, 비견/겁재라면 독립 프로젝트와 실행 속도를 함께 보세요.`,
     ],
     loveTips: [
       "관계 속도와 표현 빈도를 합의하면 마찰이 크게 줄어듭니다.",
-      "희신 오행 활동(색, 공간, 시간대)을 데이트 루틴에 넣어 보세요.",
-      "강한 십성이 과하게 작동하는 시기에는 반대 성향 질문을 의식적으로 추가하세요.",
+      `희신 오행 활동(색, 공간, 시간대)을 데이트 루틴에 넣어 보세요. ${tenGodView.primary}가 정인/식신이면 편안한 시간, 정관/편관이면 명확한 약속이 특히 중요합니다.`,
+      `강한 십성이 과하게 작동하는 시기에는 반대 성향 질문을 의식적으로 추가하세요. ${tenGodView.secondary}가 상관/편재라면 "지금 이 선택의 책임은 누구에게 있는가"를 먼저 물어보는 것이 좋습니다.`,
     ],
     goodMatch: matches.goodMatch,
     cautionMatch: matches.cautionMatch,

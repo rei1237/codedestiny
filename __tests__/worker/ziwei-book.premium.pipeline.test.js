@@ -135,12 +135,84 @@ describe("ziwei premium local manuscript", () => {
     expect(seed.ziweiPdfSeed.chartMeta.mingGong).toBeTruthy();
     expect(Array.isArray(seed.ziweiPdfSeed.palaceMap)).toBe(true);
     expect(seed.ziweiPdfSeed.palaceMap.length).toBeGreaterThanOrEqual(12);
+    expect(seed.ziweiPdfSeed.groundTruth).toBeTruthy();
+    expect(seed.ziweiPdfSeed.groundTruth.palaces.length).toBeGreaterThanOrEqual(12);
+    expect(seed.ziweiPdfSeed.groundTruth.starInventory.mainStars.length).toBeGreaterThan(0);
+    expect(seed.ziweiPdfSeed.groundTruth.starInventory.assistantStars.length).toBeGreaterThan(0);
+    expect(seed.ziweiPdfSeed.groundTruth.starInventory.maleficStars.length).toBeGreaterThan(0);
+    expect(seed.ziweiPdfSeed.groundTruth.transformations.length).toBeGreaterThan(0);
     expect(Array.isArray(seed.ziweiPdfSeed.derivedSignals.personalitySignals)).toBe(true);
     expect(Array.isArray(seed.ziweiPdfSeed.cautionFlags)).toBe(true);
     expect(Array.isArray(seed.ziweiPdfSeed.strengths)).toBe(true);
   });
 
+  test("Ziwei LLM 프롬프트는 groundTruth JSON과 JSON-only 제약을 포함해야 한다", () => {
+    const profile = {
+      name: "테스터",
+      gender: "male",
+      year: 1991,
+      month: 2,
+      day: 20,
+      hour: 7,
+      minute: 0,
+      calendarType: "solar",
+      birthplace: "대한민국",
+    };
+
+    const seed = utils.buildZiweiPdfSeed(profile, {
+      chartMeta: {
+        mingGong: "자",
+        shenGong: "오",
+      },
+      palaces: makeBasePalaces(),
+      transformations: [{ star: "자미", type: "화록" }],
+      luck: {
+        decadeLuck: [{ label: "31-40", current: true }],
+        annual: [{ year: 2026, palace: "ming" }],
+      },
+    });
+
+    const prompt = utils.buildZiweiLlmPrompt({
+      seed,
+      chapterSpec: utils.CHAPTER_BLUEPRINTS[0],
+      previousChapterSummaries: [{ title: "이전 장" }],
+      attempt: 2,
+      previousFailureReason: "category_min_chars",
+    });
+
+    expect(prompt).toContain("SYSTEM:");
+    expect(prompt).toContain("GROUND TRUTH JSON:");
+    expect(prompt).toContain("반드시 아래 groundTruth JSON에만 근거해 해석하고");
+    expect(prompt).toContain(utils.CHAPTER_BLUEPRINTS[0].title);
+    expect(prompt).toContain("RESPONSE SCHEMA:");
+  });
+
   test("LLM 해석 품질 검증은 13챕터/5섹션 구조를 통과시켜야 한다", () => {
+    const profile = {
+      name: "테스터",
+      gender: "male",
+      year: 1991,
+      month: 2,
+      day: 20,
+      hour: 7,
+      minute: 0,
+      calendarType: "solar",
+      birthplace: "대한민국",
+    };
+
+    const seed = utils.buildZiweiPdfSeed(profile, {
+      chartMeta: {
+        mingGong: "자",
+        shenGong: "오",
+      },
+      palaces: makeBasePalaces(),
+      transformations: [{ star: "자미", type: "화록" }],
+      luck: {
+        decadeLuck: [{ label: "31-40", current: true }],
+        annual: [{ year: 2026, palace: "ming" }],
+      },
+    });
+
     const chapters = utils.CHAPTER_BLUEPRINTS.map((blueprint, chapterIndex) => ({
       id: blueprint.id,
       roman: blueprint.roman,
@@ -159,17 +231,7 @@ describe("ziwei premium local manuscript", () => {
     const quality = utils.validateZiweiPdfLLMInterpretationQuality({
       chapters,
       expectedChapters: utils.CHAPTER_BLUEPRINTS,
-      seed: {
-        ziweiPdfSeed: {
-          chartMeta: { mingGong: "자", shenGong: "오" },
-          palaceMap: makeBasePalaces().map((palace) => ({ palaceName: palace.nameKo, branch: palace.branch })),
-          derivedSignals: {
-            personalitySignals: ["주도성"],
-          },
-          strengths: ["강점"],
-          cautionFlags: ["주의"],
-        },
-      },
+      seed,
     });
 
     expect(quality.ok).toBe(true);

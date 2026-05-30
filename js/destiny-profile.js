@@ -224,6 +224,12 @@
       var primary = String(localStorage.getItem('fortune_auth_token') || '').trim();
       if (primary) return primary;
 
+      var sessionToken = String(sessionStorage.getItem('fortune_auth_token') || '').trim();
+      if (sessionToken) {
+        try { localStorage.setItem('fortune_auth_token', sessionToken); } catch (_) {}
+        return sessionToken;
+      }
+
       var legacy = String(localStorage.getItem('cdToken') || '').trim();
       if (!legacy) return '';
 
@@ -992,6 +998,12 @@
     return _dpHasSessionHint();
   }
 
+  try {
+    window.hasAuthToken = function() {
+      return _dpHasAuthToken();
+    };
+  } catch (_) {}
+
   function _dpResolveUnlockAliasKeys(lockKey) {
     var base = String(lockKey || '').trim();
     if (!base) return [];
@@ -1206,6 +1218,21 @@
     } catch (_) {}
   }
 
+  function _dpWaitForPaymentOverlayPaint() {
+    return new Promise(function(resolve) {
+      if (typeof window === 'undefined') {
+        resolve();
+        return;
+      }
+      var raf = typeof window.requestAnimationFrame === 'function'
+        ? window.requestAnimationFrame.bind(window)
+        : function(callback) { return setTimeout(callback, 16); };
+      raf(function() {
+        setTimeout(resolve, 0);
+      });
+    });
+  }
+
   function _dpEnsureStandalonePaymentOverlayStyle() {
     if (typeof document === 'undefined') return;
     if (document.getElementById('cdStandalonePaymentOverlayStyle')) return;
@@ -1400,15 +1427,17 @@
     window.__cdCoinGatePerUseLockAt = Date.now();
     var pendingLabel = String(reason || '').trim() || '유료 서비스';
     _dpSetPaymentPending(true, pendingLabel + ' 결제를 확인하는 중입니다...');
-    _dpFetchJsonWithFallback('/api/fortune/pig-coin/consume', {
-      method: 'POST',
-      headers: consumeHeaders,
-      credentials: 'include',
-      cache: 'no-store',
-      body: JSON.stringify({ cost: cost, reason: reason, featureKey: normalizedFeatureKey, forceDeduct: true, requestId: requestId })
-    }, {
-      retryOn401: true,
-      timeoutMs: _DP_FETCH_TIMEOUT_MS,
+    _dpWaitForPaymentOverlayPaint().then(function() {
+      return _dpFetchJsonWithFallback('/api/fortune/pig-coin/consume', {
+        method: 'POST',
+        headers: consumeHeaders,
+        credentials: 'include',
+        cache: 'no-store',
+        body: JSON.stringify({ cost: cost, reason: reason, featureKey: normalizedFeatureKey, forceDeduct: true, requestId: requestId })
+      }, {
+        retryOn401: true,
+        timeoutMs: _DP_FETCH_TIMEOUT_MS,
+      });
     })
     .then(function(res) {
       window._cdCoinGatePerUseInFlight = false;
@@ -1582,15 +1611,17 @@
       };
       if (token) unlockHeaders.Authorization = 'Bearer ' + token;
       _dpSetPaymentPending(true, info.name + ' 결제를 처리하는 중입니다...');
-      _dpFetchJsonWithFallback(endpoint, {
-        method: 'POST',
-        headers: unlockHeaders,
-        credentials: 'include',
-        cache: 'no-store',
-        body: JSON.stringify(payload)
-      }, {
-        retryOn401: true,
-        timeoutMs: _DP_FETCH_TIMEOUT_MS,
+      _dpWaitForPaymentOverlayPaint().then(function () {
+        return _dpFetchJsonWithFallback(endpoint, {
+          method: 'POST',
+          headers: unlockHeaders,
+          credentials: 'include',
+          cache: 'no-store',
+          body: JSON.stringify(payload)
+        }, {
+          retryOn401: true,
+          timeoutMs: _DP_FETCH_TIMEOUT_MS,
+        });
       })
       .then(function (res) {
         inFlight = false;

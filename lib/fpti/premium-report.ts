@@ -106,6 +106,22 @@ type LocalTypeResult = {
   axes: FptiAxisResult[];
   topAxes: FptiAxisResult[];
   lowAxes: FptiAxisResult[];
+  source: FptiAnalysisResult["source"];
+};
+
+type TenGodName = "비견" | "겁재" | "식신" | "상관" | "정재" | "편재" | "정관" | "편관" | "정인" | "편인";
+
+const TEN_GOD_CUES: Record<TenGodName, { personality: string; career: string }> = {
+  비견: { personality: "자기 기준과 주체성이 강한 축", career: "독립 실행과 대등 협업에 강한 축" },
+  겁재: { personality: "경쟁 반응과 돌파력이 강한 축", career: "위기 대응과 현장 전환에 강한 축" },
+  식신: { personality: "꾸준함과 생활 리듬이 안정적인 축", career: "생산성·콘텐츠·서비스에 강한 축" },
+  상관: { personality: "표현력과 문제 제기가 분명한 축", career: "기획·개선·발표에 강한 축" },
+  정재: { personality: "현실 감각과 관리 본능이 강한 축", career: "정산·운영·예산 관리에 강한 축" },
+  편재: { personality: "기회 포착과 유동성이 빠른 축", career: "영업·확장·수익 다각화에 강한 축" },
+  정관: { personality: "책임감과 기준 준수가 분명한 축", career: "조직 운영·규정·품질 통제에 강한 축" },
+  편관: { personality: "압박 속 추진력과 결단이 살아나는 축", career: "리스크 관리·구조 개편에 강한 축" },
+  정인: { personality: "정리·학습·회복이 깊은 축", career: "연구·분석·기획 보조에 강한 축" },
+  편인: { personality: "통찰과 비정형 이해가 빠른 축", career: "창의 기획·특수 분야 탐구에 강한 축" },
 };
 
 const FORBIDDEN_TEXT = [
@@ -263,6 +279,12 @@ function axisLevel(score: number): "low" | "mid" | "high" {
   return "low";
 }
 
+function formatScore(score: number): string {
+  if (!Number.isFinite(score)) return "0";
+  const fixed = score.toFixed(1);
+  return fixed.endsWith(".0") ? fixed.slice(0, -2) : fixed;
+}
+
 function uniqueList(values: string[], max = 6): string[] {
   const out: string[] = [];
   for (const value of values) {
@@ -305,7 +327,135 @@ function localTypeResult(input: FptiPremiumInput): LocalTypeResult {
     axes,
     topAxes,
     lowAxes,
+    source: result?.source,
   };
+}
+
+function sourceFragments(source: LocalTypeResult["source"]): string[] {
+  const parts = [
+    toText(source?.dayMaster),
+    toText(source?.monthBranch),
+    toText(source?.season),
+    ...(Array.isArray(source?.usefulGods) ? source.usefulGods : []),
+    ...(Array.isArray(source?.favorableElements) ? source.favorableElements : []),
+  ];
+  return uniqueList(parts, 5);
+}
+
+function tenGodHighlights(source: LocalTypeResult["source"]): { primary: TenGodName; secondary: TenGodName; tertiary: TenGodName } {
+  const raw = source?.tenGods;
+  const ranked = [
+    ["비견", Number(raw?.biGyeon || 0)],
+    ["겁재", Number(raw?.geopJae || 0)],
+    ["식신", Number(raw?.sikSin || 0)],
+    ["상관", Number(raw?.sangGwan || 0)],
+    ["정재", Number(raw?.jeongJae || 0)],
+    ["편재", Number(raw?.pyeonJae || 0)],
+    ["정관", Number(raw?.jeongGwan || 0)],
+    ["편관", Number(raw?.pyeonGwan || 0)],
+    ["정인", Number(raw?.jeongIn || 0)],
+    ["편인", Number(raw?.pyeonIn || 0)],
+  ] as Array<[TenGodName, number]>;
+
+  ranked.sort((a, b) => b[1] - a[1]);
+  return {
+    primary: ranked[0]?.[0] || "정인",
+    secondary: ranked[1]?.[0] || "정관",
+    tertiary: ranked[2]?.[0] || "식신",
+  };
+}
+
+function chapterBackdrop(chapterOrder: number, typeResult: LocalTypeResult): string {
+  const top = typeResult.topAxes[0];
+  const sub = typeResult.topAxes[1];
+  const low = typeResult.lowAxes[0];
+  const sourceBits = sourceFragments(typeResult.source);
+  const tenGods = tenGodHighlights(typeResult.source);
+  const sourceLine = sourceBits.length > 0 ? ` 사주의 기준 좌표는 ${sourceBits.join(" · ")}로 묶입니다.` : "";
+  const tenGodLine = ` 십성 축으로는 ${tenGods.primary}·${tenGods.secondary}·${tenGods.tertiary}가 핵심 성향과 진로 감각을 이끕니다.`;
+
+  if (chapterOrder === 1) {
+    return `${typeResult.code}(${typeResult.typeName})는 ${top.label} ${formatScore(top.score)}가 앞에서 운전을 잡고, ${sub.label} ${formatScore(sub.score)}가 뒤에서 속도를 보탭니다.${sourceLine}${tenGodLine} 반대로 ${low.label} ${formatScore(low.score)}는 과로가 오기 쉬운 구간이라, 기준을 세우지 않으면 판단보다 소모가 먼저 커집니다.`;
+  }
+  if (chapterOrder === 2) {
+    return `겉으로는 차분해 보여도 실제 내면은 ${top.label}의 계산과 ${low.label}의 피로를 동시에 감지합니다.${sourceLine}${tenGodLine} 그래서 감정은 폭발보다 누적형으로 나타나며, 정리되지 않은 생각이 길어질수록 자기방어가 먼저 올라옵니다.`;
+  }
+  if (chapterOrder === 3) {
+    return `관계에서는 ${top.label}가 신뢰를 만들고, ${low.label}가 경계를 늦게 알려줍니다.${sourceLine}${tenGodLine} 가까워질수록 기준이 더 분명해지는 타입이라, 감정의 양보다 거리 조절과 합의 문장이 만족도를 좌우합니다.`;
+  }
+  if (chapterOrder === 4) {
+    return `일에서는 ${top.label}의 현실 점검이 성과의 기본값이고, ${sub.label}의 보조 전개가 결과를 안정시킵니다.${sourceLine}${tenGodLine} 다만 ${low.label}가 흔들리면 협업 속도보다 완료 기준이 먼저 흐려지므로, 시스템과 역할을 먼저 맞춰야 합니다.`;
+  }
+  if (chapterOrder === 5) {
+    return `돈을 볼 때 ${top.label}는 숫자보다 "이 선택이 오래 버티는가"를 먼저 묻습니다.${sourceLine}${tenGodLine} ${low.label}가 약해질수록 충동 소비보다 보수적 회피가 더 문제로 드러나기 때문에, 리스크를 줄이는 장치와 성장 자금을 동시에 설계해야 합니다.`;
+  }
+  if (chapterOrder === 6) {
+    return `${top.label}가 강한 사람일수록 외부 압박보다 내부 과부하에서 먼저 무너집니다.${sourceLine}${tenGodLine} ${low.label}는 휴식과 경계가 무너지면 판단 속도를 잃고, 그 순간부터는 결정보다 회피와 과통제가 번갈아 나타납니다.`;
+  }
+  return `${typeResult.code}(${typeResult.typeName})의 성장 핵심은 ${top.label}의 강점을 과신하지 않고 ${low.label}의 취약 구간을 생활 루틴으로 낮추는 데 있습니다.${sourceLine}${tenGodLine} 단기 목표보다 복귀 속도와 점검 습관이 장기 성취를 더 크게 바꿉니다.`;
+}
+
+function sectionLens(chapterOrder: number, title: string, typeResult: LocalTypeResult): string {
+  const top = typeResult.topAxes[0];
+  const low = typeResult.lowAxes[0];
+  const tenGods = tenGodHighlights(typeResult.source);
+  const titleHint = title.replace(/^[0-9IVXL.\s-]+/g, "").trim();
+
+  if (chapterOrder === 7 && title.includes("7일")) {
+    return `> 7일 실행은 완벽한 변화가 아니라 ${top.label}를 실제 행동으로 옮기는 복귀 훈련입니다.`;
+  }
+  if (chapterOrder === 7 && title.includes("30일")) {
+    return `> 30일 로드맵은 ${low.label}가 흔들리는 날에도 자동으로 돌아오는 생활 시스템을 만드는 작업입니다.`;
+  }
+  if (title.includes("관계") || title.includes("연애")) {
+    return `> 관계는 감정의 크기보다 합의의 정확도가 더 중요하고, ${top.label}는 그 기준을 선명하게 만듭니다. 십성으로는 ${tenGods.primary}와 ${tenGods.secondary}가 관계의 거리와 신뢰를 다룹니다.`;
+  }
+  if (title.includes("돈") || title.includes("재물")) {
+    return `> 돈은 한 번의 큰 결정보다, ${low.label}가 과열될 때 새는 작은 선택들을 먼저 다루는 쪽이 훨씬 중요합니다. 십성으로는 ${tenGods.primary}가 관리 본능을, ${tenGods.secondary}가 확장 감각을 만집니다.`;
+  }
+  if (title.includes("스트레스") || title.includes("그림자")) {
+    return `> 스트레스는 성격의 문제가 아니라 ${low.label}가 경고를 보내는 방식으로 이해해야 정확합니다. 십성 축에서 보면 ${tenGods.primary}와 ${tenGods.tertiary}가 흔들릴 때 피로가 빨리 드러납니다.`;
+  }
+  if (title.includes("성장") || title.includes("로드맵")) {
+    return `> 성장 전략은 의지 선언문이 아니라 ${top.label}를 유지하고 ${low.label}를 보호하는 운영 규칙입니다. 십성으로는 ${tenGods.primary}/${tenGods.secondary}를 강점화하는 설계가 핵심입니다.`;
+  }
+  if (title.includes("일") || title.includes("재능")) {
+    return `> 일과 재능은 속도 경쟁이 아니라 ${top.label}의 기준을 반복 가능한 프로세스로 바꾸는 문제입니다. 십성으로는 ${tenGods.primary}가 진로 방향을, ${tenGods.secondary}가 직무 적합도를 보여줍니다.`;
+  }
+  if (title.includes("내면") || title.includes("감정")) {
+    return `> 내면 패턴은 감정의 세기가 아니라, ${top.label}와 ${low.label}가 언제 교대로 작동하는지에서 드러납니다. 십성으로는 ${tenGods.primary}의 자기 기준과 ${tenGods.tertiary}의 회복력이 중요합니다.`;
+  }
+  if (title.includes("총론") || title.includes("유형")) {
+    return `> ${titleHint}은 ${typeResult.code}가 왜 같은 선택을 반복하는지 설명하는 가장 압축된 지도입니다.`;
+  }
+  return `> ${titleHint}은 ${typeResult.code}의 현재 축이 실제 생활에서 어떤 모습으로 나타나는지 보여줍니다.`;
+}
+
+function chapterClose(chapterOrder: number, flavor: { strength: string; risk: string; action: string }, typeResult: LocalTypeResult): string {
+  const top = typeResult.topAxes[0];
+  const low = typeResult.lowAxes[0];
+  const tenGods = tenGodHighlights(typeResult.source);
+  const profile = `${top.label} ${formatScore(top.score)}와 ${low.label} ${formatScore(low.score)}의 차이가 클수록, 강점은 더 선명해지지만 에너지 관리도 더 중요해집니다.`;
+
+  if (chapterOrder === 1) {
+    return `- 핵심 운영 원칙: ${flavor.strength}\n- 흔들림 경고: ${flavor.risk}\n- 실행 기준: ${flavor.action}\n- 십성 기준: ${tenGods.primary}는 성격의 중심, ${tenGods.secondary}는 진로의 보조 엔진입니다.\n- 점수 해석: ${profile}`;
+  }
+  if (chapterOrder === 2) {
+    return `- 감정의 시작: 작은 피로가 누적되면 반응이 먼저 변합니다.\n- 방어 패턴: 설명보다 정리와 거리두기가 먼저 나올 수 있습니다.\n- 회복 기준: 사실과 감정을 분리해 적는 순간 복원이 시작됩니다.\n- 십성 기준: ${tenGods.primary}/${tenGods.tertiary}는 감정 처리 방식의 핵심입니다.\n- 축 참고: ${profile}`;
+  }
+  if (chapterOrder === 3) {
+    return `- 관계 강점: 신뢰를 천천히 쌓으면 관계 유지력이 높아집니다.\n- 관계 약점: 피곤한 마음을 늦게 말하면 오해가 커집니다.\n- 실천 기준: 기대치와 경계를 먼저 합의하세요.\n- 십성 기준: ${tenGods.primary}는 관계 태도, ${tenGods.secondary}는 표현 방식에 가깝습니다.\n- 축 참고: ${profile}`;
+  }
+  if (chapterOrder === 4) {
+    return `- 업무 강점: 기준이 선명한 환경에서 성과가 가장 잘 납니다.\n- 업무 약점: 역할이 흐리면 책임이 과도하게 쌓입니다.\n- 실천 기준: 시작 전에 완료 기준을 문장으로 고정하세요.\n- 십성 기준: ${tenGods.primary}는 업무 스타일, ${tenGods.secondary}는 커리어 방향을 설명합니다.\n- 축 참고: ${profile}`;
+  }
+  if (chapterOrder === 5) {
+    return `- 재물 강점: ${flavor.strength}\n- 재물 약점: ${flavor.risk}\n- 실천 기준: 소비와 투자, 예비비를 분리해 관리하세요.\n- 십성 기준: ${tenGods.primary}는 돈 관리, ${tenGods.tertiary}는 수익 확장과 연결됩니다.\n- 축 참고: ${profile}`;
+  }
+  if (chapterOrder === 6) {
+    return `- 번아웃 신호: 속도가 아니라 판단의 질이 먼저 무너집니다.\n- 그림자 패턴: 숨 고르기보다 과통제가 먼저 올라올 수 있습니다.\n- 실천 기준: 회복이 끝날 때까지 큰 결정을 미루세요.\n- 십성 기준: ${tenGods.primary}와 ${tenGods.secondary}가 과열되면 판단보다 방어가 앞설 수 있습니다.\n- 축 참고: ${profile}`;
+  }
+  return `- 성장 강점: ${flavor.strength}\n- 성장 리스크: ${flavor.risk}\n- 실천 기준: 하루 핵심 행동 1개와 주간 점검 1회를 고정하세요.\n- 십성 기준: ${tenGods.primary}는 유지, ${tenGods.secondary}는 활용, ${tenGods.tertiary}는 보완의 우선순위입니다.\n- 축 참고: ${profile}`;
 }
 
 function renderSignals(typeResult: LocalTypeResult, chapterTitle: string, sectionTitle: string): string[] {
@@ -342,16 +492,16 @@ export function buildFptiDeepSection(typeResult: LocalTypeResult, sectionDefinit
   const low = typeResult.lowAxes[0];
   const flavor = chapterFlavor(chapter.order);
 
-  let interpretation = `${chapter.roman}. ${chapter.title}의 '${title}' 항목에서는 ${typeResult.typeName}(${typeResult.code})의 실제 축 점수를 바탕으로 선택 패턴을 읽습니다. 현재 가장 강한 축은 ${top.label}(${top.score})이며, 보조 축은 ${sub.label}(${sub.score})입니다. 반대로 에너지 누수 위험이 큰 축은 ${low.label}(${low.score})로 나타나므로, 이 구간에서 무리하면 성과보다 소모가 커질 수 있습니다. 이 해석은 성격 단정이 아니라 운영 전략 제안이며, 실제 일상에서는 기준-실행-점검의 순서를 고정할 때 변동성이 줄어듭니다.`;
+  let interpretation = `${chapterBackdrop(chapter.order, typeResult)}\n\n${sectionLens(chapter.order, title, typeResult)}\n\n- 현재 가장 강한 축: ${top.label} ${formatScore(top.score)}\n- 보조 축: ${sub.label} ${formatScore(sub.score)}\n- 취약 축: ${low.label} ${formatScore(low.score)}\n- 이 항목의 읽는 법: ${title}은 ${typeResult.code}의 성향이 실제 생활에서 어떤 습관으로 드러나는지 보여주는 체크포인트입니다.`;
 
-  interpretation += ` 특히 '${title}'에서는 반응 속도보다 재현 가능한 선택 기준이 중요합니다. 같은 유형이라도 점수 분포가 다르면 결과가 달라지므로, ${top.label}의 강점을 유지하면서 ${low.label}을 보완하는 장치를 병행해야 합니다. 구체적으로는 하루 핵심 행동 1개, 주간 점검 1회, 관계·일·돈 우선순위 문장화 같은 간단한 루틴이 가장 실효성이 높습니다. 이 방식은 과도한 자기비판을 줄이고 장기적으로 신뢰 가능한 성과를 남깁니다.`;
+  interpretation += `\n\n${chapter.order === 1 ? "총론에서는 유형의 큰 방향을, 나머지 챕터에서는 같은 방향이 관계·일·돈·스트레스에서 어떻게 다른 모습으로 나타나는지를 봐야 합니다." : "이 장면에서 중요한 것은 강점을 더 세게 쓰는 것이 아니라, 약해지는 구간을 미리 알아차리고 운영 규칙으로 바꾸는 일입니다."}\n\n${chapterClose(chapter.order, flavor, typeResult)}`;
 
   if (chapter.order === 7 && title === "7일 실행 과제") {
-    interpretation = `7일 실행 과제는 유형별 성향을 행동으로 전환하기 위한 착수 루틴입니다. 1일차는 기준 문장 1개 작성, 2일차는 가장 미룬 과제 25분 착수, 3일차는 관계 기대치 1개 명확화, 4일차는 지출 3통로 분리 기록, 5일차는 갈등 상황 대응 문장 리허설, 6일차는 회복 루틴 2개 고정, 7일차는 일주일 리뷰와 다음 주 우선순위 확정으로 진행합니다. ${top.label} 강점을 실전으로 연결하면서 ${low.label} 약점을 과열 없이 보완하도록 설계했습니다. 핵심은 완벽 수행이 아니라 매일 복귀하는 일관성입니다.`;
+    interpretation = `7일 실행 과제는 유형별 성향을 행동으로 전환하기 위한 착수 루틴입니다.\n\n- 1일차: 기준 문장 1개 작성\n- 2일차: 가장 미룬 과제 25분 착수\n- 3일차: 관계 기대치 1개 명확화\n- 4일차: 지출 3통로 분리 기록\n- 5일차: 갈등 상황 대응 문장 리허설\n- 6일차: 회복 루틴 2개 고정\n- 7일차: 일주일 리뷰와 다음 주 우선순위 확정\n\n${top.label} 강점을 실전으로 연결하면서 ${low.label} 약점을 과열 없이 보완하도록 설계했습니다. 핵심은 완벽 수행이 아니라 매일 복귀하는 일관성입니다.`;
   }
 
   if (chapter.order === 7 && title === "30일 성장 로드맵") {
-    interpretation = `30일 로드맵은 1주차 리듬 정리, 2주차 실행 고정, 3주차 관계·업무 경계 조정, 4주차 유지 시스템 정착의 4단계로 운영합니다. 1주차에는 수면·집중 시간대를 안정화하고, 2주차에는 하루 핵심 행동 1개를 고정하며, 3주차에는 요청 수락 기준과 거절 문장을 정리하고, 4주차에는 월간 점검표를 만들어 다음 달에 반복 적용합니다. ${sub.label} 보조 강점을 유지하면서 ${low.label} 취약 축의 변동성을 줄이는 구조이며, 단기 성과보다 재현 가능한 성장 시스템을 확보하는 데 초점을 둡니다.`;
+    interpretation = `30일 로드맵은 1주차 리듬 정리, 2주차 실행 고정, 3주차 관계·업무 경계 조정, 4주차 유지 시스템 정착의 4단계로 운영합니다.\n\n- 1주차: 수면·집중 시간대 안정화\n- 2주차: 하루 핵심 행동 1개 고정\n- 3주차: 요청 수락 기준과 거절 문장 정리\n- 4주차: 월간 점검표를 만들어 반복 적용\n\n${sub.label} 보조 강점을 유지하면서 ${low.label} 취약 축의 변동성을 줄이는 구조이며, 단기 성과보다 재현 가능한 성장 시스템을 확보하는 데 초점을 둡니다.`;
   }
 
   return {
@@ -375,7 +525,7 @@ export function buildFptiDeepChapter(typeResult: LocalTypeResult, chapterDefinit
   });
 
   const summary = repeatSafe(
-    `${chapterDefinition.roman}. ${chapterDefinition.title} 요약: 이 챕터는 ${typeResult.typeName}(${typeResult.code})의 점수 분포를 바탕으로 행동 패턴을 현실 언어로 정리합니다. 상위 축인 ${typeResult.topAxes[0].label}(${typeResult.topAxes[0].score})과 ${typeResult.topAxes[1].label}(${typeResult.topAxes[1].score})은 강점이 발휘되는 장면을 설명하고, 하위 축인 ${typeResult.lowAxes[0].label}(${typeResult.lowAxes[0].score})은 피로 누적과 의사결정 지연이 발생하기 쉬운 조건을 보여 줍니다. 따라서 이 챕터의 핵심은 장점을 과신하지 않고 약점을 억지로 지우지도 않으면서, 생활 루틴 안에 실행 가능한 기준을 고정하는 데 있습니다. 섹션별 해석은 중복 문장을 피하고 주제별로 분리되어 있어, 관계·일·돈·감정 영역에서 바로 적용 가능한 운영 포인트를 찾을 수 있게 구성했습니다.`,
+    `${chapterDefinition.roman}. ${chapterDefinition.title} 요약: 이 챕터는 ${typeResult.typeName}(${typeResult.code})의 점수 분포를 바탕으로 행동 패턴을 현실 언어로 정리합니다. 상위 축인 ${typeResult.topAxes[0].label}(${formatScore(typeResult.topAxes[0].score)})과 ${typeResult.topAxes[1].label}(${formatScore(typeResult.topAxes[1].score)})은 강점이 발휘되는 장면을 설명하고, 하위 축인 ${typeResult.lowAxes[0].label}(${formatScore(typeResult.lowAxes[0].score)})은 피로 누적과 의사결정 지연이 발생하기 쉬운 조건을 보여 줍니다. 따라서 이 챕터의 핵심은 장점을 과신하지 않고 약점을 억지로 지우지도 않으면서, 생활 루틴 안에 실행 가능한 기준을 고정하는 데 있습니다. 섹션별 해석은 중복 문장을 피하고 주제별로 분리되어 있어, 관계·일·돈·감정 영역에서 바로 적용 가능한 운영 포인트를 찾을 수 있게 구성했습니다. ${chapter.order === 1 ? "총론은 나머지 여섯 챕터를 읽는 기준점입니다." : "이 챕터는 같은 유형 안에서도 상황에 따라 달라지는 운영 포인트를 구분해 줍니다."}`,
   );
 
   return {
@@ -505,13 +655,15 @@ export function buildFptiDeepReport(input: FptiPremiumInput, options?: { unlocke
     unlocked,
     chapters,
     summary: {
-      preview: repeatSafe(`${typeResult.typeName}(${typeResult.code})은 ${typeResult.topAxes[0].summary} 성향이 강하고, ${typeResult.lowAxes[0].summary} 구간에서 피로가 누적되기 쉽습니다. 잠금 해제 후 7개 챕터 전체에서 관계·일·돈·스트레스·성장 전략을 세부적으로 확인할 수 있습니다.`),
+      preview: repeatSafe(`${typeResult.typeName}(${typeResult.code})은 ${typeResult.topAxes[0].summary} 성향이 강하고, ${typeResult.lowAxes[0].summary} 구간에서 피로가 누적되기 쉽습니다. 잠금 해제 후 7개 챕터 전체에서 관계·일·돈·스트레스·성장 전략을 세부적으로 확인할 수 있습니다. 현재 축의 핵심은 ${typeResult.topAxes[0].label} ${formatScore(typeResult.topAxes[0].score)}, 보조 동력은 ${typeResult.topAxes[1].label} ${formatScore(typeResult.topAxes[1].score)}, 보완 과제는 ${typeResult.lowAxes[0].label} ${formatScore(typeResult.lowAxes[0].score)}입니다. 십성 기준으로는 ${tenGodHighlights(typeResult.source).primary}/${tenGodHighlights(typeResult.source).secondary}/${tenGodHighlights(typeResult.source).tertiary}가 성격과 진로 방향을 설명합니다.`),
       highlights: uniqueList([
         `${typeResult.topAxes[0].label} 강점 활용`,
         `${typeResult.topAxes[1].label} 보조 활용`,
         `${typeResult.lowAxes[0].label} 보완 전략 필요`,
+        `${tenGodHighlights(typeResult.source).primary} 십성 활용`,
+        `${tenGodHighlights(typeResult.source).secondary} 진로 축`,
       ], 3),
-      caution: `${typeResult.lowAxes[0].label}(${typeResult.lowAxes[0].score}) 구간에서 의사결정이 급하거나 늦어지기 쉬우므로, 기준 문장과 점검 루틴을 함께 유지하세요.`,
+      caution: `${typeResult.lowAxes[0].label}(${typeResult.lowAxes[0].score}) 구간에서 의사결정이 급하거나 늦어지기 쉬우므로, 기준 문장과 점검 루틴을 함께 유지하세요. 십성으로는 ${tenGodHighlights(typeResult.source).primary}와 ${tenGodHighlights(typeResult.source).secondary}가 과해질 때 한 박자 쉬어가는 게 좋습니다.`,
     },
     meta: {
       engineVersion: "fpti-local-deep-v2.0.0",

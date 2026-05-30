@@ -874,12 +874,6 @@
         hasBirthTime: true,
         birthHour: resolved.birthInput.birthHour
       });
-      updateProgress(18, '명궁과 신궁의 흐름을 정리하고 있습니다.');
-      updateZiweiGenerationState({ status: 'calculating' });
-      var profile = resolved.profileForEngine;
-      var seed = await buildZiweiSeed(profile);
-      updateProgress(35, '12궁에 담긴 삶의 무대를 읽고 있습니다.');
-      updateZiweiGenerationState({ status: 'drafting' });
       logFlow('PaymentGateStart', { featureKey: FEATURE_KEY, coinCost: COIN_COST });
       updateProgress(46, '생성 준비를 마무리하고 있습니다.');
       updateZiweiGenerationState({ status: 'paymentChecking' });
@@ -887,6 +881,12 @@
       logFlow('PaymentGateSuccess', {
         hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken || payment.token))
       });
+      updateProgress(18, '명궁과 신궁의 흐름을 정리하고 있습니다.');
+      updateZiweiGenerationState({ status: 'calculating' });
+      var profile = resolved.profileForEngine;
+      var seed = await buildZiweiSeed(profile);
+      updateProgress(35, '12궁에 담긴 삶의 무대를 읽고 있습니다.');
+      updateZiweiGenerationState({ status: 'drafting' });
       updateProgress(58, '사랑과 직업, 재물의 흐름을 해석하고 있습니다.');
       var sessionId = 'ziwei-premium:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
       updateZiweiGenerationState({ status: 'generating', sessionId: sessionId, currentChapterNo: 1 });

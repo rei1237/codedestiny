@@ -50,6 +50,140 @@
     return ANIMAL_TOTEM_BILLING_BY_MODE[mode] || ANIMAL_TOTEM_BILLING_BY_MODE.three;
   }
 
+  function ensureLocalPaymentOverlay() {
+    if (refs.paymentOverlay && document.contains(refs.paymentOverlay)) return refs.paymentOverlay;
+    ensureRefs();
+    var host = refs.overlay || document.body;
+    if (!host) return null;
+    var overlay = document.createElement("div");
+    overlay.id = "animalTotemPaymentOverlay";
+    overlay.setAttribute("aria-live", "polite");
+    overlay.style.cssText = [
+      "position:absolute",
+      "inset:0",
+      "display:none",
+      "align-items:center",
+      "justify-content:center",
+      "z-index:9999",
+      "background:linear-gradient(135deg,rgba(7,10,27,.82),rgba(20,12,38,.74))",
+      "backdrop-filter:blur(6px)",
+      "pointer-events:auto"
+    ].join(";");
+
+    var card = document.createElement("div");
+    card.style.cssText = [
+      "min-width:240px",
+      "max-width:86%",
+      "padding:14px 16px",
+      "border-radius:14px",
+      "border:1px solid rgba(167,243,208,.3)",
+      "background:linear-gradient(135deg,rgba(15,23,42,.8),rgba(6,78,59,.45))",
+      "box-shadow:0 14px 30px rgba(2,6,23,.45)",
+      "text-align:center",
+      "color:#ecfeff"
+    ].join(";");
+    card.innerHTML = '<p style="margin:0;font-size:15px;font-weight:800">결제를 확인 중입니다...</p><p id="animalTotemPaymentOverlayStatus" style="margin:8px 0 0;font-size:12px;opacity:.92">잠시만 기다려 주세요.</p>';
+    overlay.appendChild(card);
+
+    var computed = host === document.body ? null : global.getComputedStyle(host);
+    if (host !== document.body && computed && computed.position === "static") {
+      host.style.position = "relative";
+    }
+    host.appendChild(overlay);
+    refs.paymentOverlay = overlay;
+    refs.paymentOverlayStatus = overlay.querySelector("#animalTotemPaymentOverlayStatus");
+    return overlay;
+  }
+
+  function togglePaymentOverlay(show, message) {
+    var text = String(message || "").trim() || "결제를 진행 중입니다.";
+    if (typeof global._cdSetCoinGateOverlay === "function") {
+      global._cdSetCoinGateOverlay(!!show, text);
+      return;
+    }
+    var overlay = ensureLocalPaymentOverlay();
+    if (!overlay) return;
+    if (refs.paymentOverlayStatus) refs.paymentOverlayStatus.textContent = text;
+    overlay.style.display = show ? "flex" : "none";
+  }
+
+  function openAuthRequiredUi() {
+    if (typeof global.__cdOpenLoginRequiredModal === "function") {
+      global.__cdOpenLoginRequiredModal({
+        reason: "로그인 후 이용할 수 있는 기능입니다.",
+        redirectTo: global.location.pathname + global.location.search + global.location.hash
+      });
+      return;
+    }
+    if (global.confirm("로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
+      global.location.href = "/login?next=" + encodeURIComponent(global.location.pathname + global.location.search);
+    }
+  }
+
+  function openInsufficientCoinsUi() {
+    if (typeof global.__cdOpenChargeModal === "function") {
+      global.alert("코인이 부족합니다. 코인 충전 창을 열겠습니다.");
+      global.__cdOpenChargeModal();
+      return;
+    }
+    global.alert("코인이 부족합니다. 코인을 충전한 뒤 다시 시도해 주세요.");
+  }
+
+  async function consumeAnimalTotemViaCommonGate(spec) {
+    if (typeof global._cdCoinGatePerUse !== "function") return null;
+
+    togglePaymentOverlay(true, "결제를 확인 중입니다...");
+    try {
+      var requestId = "animal-totem:" + spec.subFeatureKey + ":" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
+      var immediate = global._cdCoinGatePerUse(
+        spec.cost,
+        spec.reason,
+        null,
+        null,
+        {
+          categoryKey: "animal-totem",
+          subFeatureKey: spec.subFeatureKey,
+          featureKey: spec.featureKey,
+          forceDeduct: true,
+          requestId: requestId,
+        }
+      );
+
+      var result = immediate;
+      if (result && typeof result.then === "function") {
+        result = await result;
+      }
+      result = result || {};
+
+      var ok = result.ok !== false;
+      var code = String(result.code || (result.error && result.error.code) || "").toUpperCase();
+      var status = Number(result.status || 0);
+
+      if (!ok) {
+        if (status === 401 || status === 403 || code === "AUTH_REQUIRED") {
+          openAuthRequiredUi();
+          return false;
+        }
+        if (status === 402 || code === "INSUFFICIENT_COINS") {
+          openInsufficientCoinsUi();
+          return false;
+        }
+        var errorMessage = String(result.message || (result.error && result.error.message) || "코인 결제에 실패했습니다.");
+        global.alert(errorMessage);
+        return false;
+      }
+
+      syncUserPointsFromBilling(result);
+      return true;
+    } catch (error) {
+      console.error("[animal-totem][common-coin-gate]", error);
+      global.alert("결제 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      return false;
+    } finally {
+      togglePaymentOverlay(false);
+    }
+  }
+
   function syncUserPointsFromBilling(payload) {
     try {
       var data = payload && payload.data ? payload.data : payload;
@@ -87,13 +221,14 @@
       return false;
     }
 
+    var commonGateResult = await consumeAnimalTotemViaCommonGate(spec);
+    if (commonGateResult !== null) return commonGateResult;
+
     var token = "";
     try { token = String(localStorage.getItem("fortune_auth_token") || ""); } catch (_) {}
     var headers = { "Content-Type": "application/json" };
     if (token) headers.Authorization = "Bearer " + token;
-    if (typeof global._cdSetCoinGateOverlay === "function") {
-      global._cdSetCoinGateOverlay(true, "결제를 확인 중입니다...");
-    }
+    togglePaymentOverlay(true, "결제를 확인 중입니다...");
 
     try {
       var response = await fetch("/api/billing/coin-gate", {
@@ -118,24 +253,12 @@
       ).toUpperCase();
 
       if (response.status === 401 || response.status === 403 || code === "AUTH_REQUIRED") {
-        if (typeof global.__cdOpenLoginRequiredModal === "function") {
-          global.__cdOpenLoginRequiredModal({
-            reason: "로그인 후 이용할 수 있는 기능입니다.",
-            redirectTo: global.location.pathname + global.location.search + global.location.hash
-          });
-        } else if (global.confirm("로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
-          global.location.href = "/login?next=" + encodeURIComponent(global.location.pathname + global.location.search);
-        }
+        openAuthRequiredUi();
         return false;
       }
 
       if (response.status === 402 || code === "INSUFFICIENT_COINS") {
-        if (typeof global.__cdOpenChargeModal === "function") {
-          global.alert("코인이 부족합니다. 코인 충전 창을 열겠습니다.");
-          global.__cdOpenChargeModal();
-        } else {
-          global.alert("코인이 부족합니다. 코인을 충전한 뒤 다시 시도해 주세요.");
-        }
+        openInsufficientCoinsUi();
         return false;
       }
 
@@ -156,9 +279,7 @@
       global.alert("결제 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
       return false;
     } finally {
-      if (typeof global._cdSetCoinGateOverlay === "function") {
-        global._cdSetCoinGateOverlay(false);
-      }
+      togglePaymentOverlay(false);
     }
   }
 
