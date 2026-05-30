@@ -69,6 +69,24 @@ const ZIWEI_STRENGTH_META = Object.freeze({
   "X": { name: "함", meaning: "약함" },
 });
 
+const ZIWEI_ACTION_TERMS = Object.freeze([
+  "실행",
+  "행동",
+  "우선순위",
+  "점검",
+  "조정",
+  "선택",
+]);
+
+const ZIWEI_VAGUE_GUARD_TERMS = Object.freeze([
+  "좋은 운",
+  "나쁜 운",
+  "노력하면",
+  "마음먹기에",
+  "상황에 따라",
+  "무난",
+]);
+
 function toText(value, fallback = DEFAULT_TEXT) {
   const text = String(value == null ? "" : value).trim();
   return text || fallback;
@@ -433,6 +451,62 @@ function buildZiweiFollowUps(questionType) {
   return common;
 }
 
+function collectZiweiPromptEvidence(normalizedChart) {
+  const palaces = Array.isArray(normalizedChart?.palaces) ? normalizedChart.palaces : [];
+  const palaceNames = palaces
+    .map((palace) => toText(palace?.name, ""))
+    .filter(Boolean)
+    .slice(0, 12);
+
+  const starNames = [];
+  const pushStar = (name) => {
+    const n = toText(name, "");
+    if (!n) return;
+    if (starNames.includes(n)) return;
+    starNames.push(n);
+  };
+
+  for (let i = 0; i < palaces.length; i += 1) {
+    const palace = palaces[i] || {};
+    const main = Array.isArray(palace.mainStars) ? palace.mainStars : [];
+    const aux = Array.isArray(palace.auxiliaryStars) ? palace.auxiliaryStars : [];
+    const weak = Array.isArray(palace?.strengthSummary?.weakStars) ? palace.strengthSummary.weakStars : [];
+    main.forEach((star) => pushStar(star?.name));
+    aux.forEach((star) => pushStar(star?.name));
+    weak.forEach((star) => pushStar(star?.name));
+  }
+
+  return {
+    palaceNames: palaceNames.slice(0, 12),
+    starNames: starNames.slice(0, 18),
+    sihuaTerms: [normalizedChart?.hualu, normalizedChart?.huaquan, normalizedChart?.huake, normalizedChart?.huaji]
+      .map((value) => toText(value, ""))
+      .filter(Boolean),
+    timingTerms: []
+      .concat(Array.isArray(normalizedChart?.majorPeriods) ? normalizedChart.majorPeriods : [])
+      .concat(Array.isArray(normalizedChart?.annualFlow?.notes) ? normalizedChart.annualFlow.notes : [])
+      .map((value) => toText(value, ""))
+      .filter(Boolean)
+      .slice(0, 8),
+  };
+}
+
+function buildZiweiSpecificityGuardLines(normalizedChart, questionType) {
+  const evidence = collectZiweiPromptEvidence(normalizedChart);
+  const mustPalaces = (QUESTION_TYPE_PALACES[questionType] || QUESTION_TYPE_PALACES.general)
+    .map((id) => PALACE_LABELS[id] || id)
+    .filter(Boolean);
+
+  return [
+    `심화 출력 강제 규칙: 반드시 ${mustPalaces.slice(0, 3).join(", ")} 중 2개 이상을 근거 궁으로 명시`,
+    `심화 출력 강제 규칙: 반드시 seed에 있는 별 이름 2개 이상 직접 인용 (${evidence.starNames.slice(0, 6).join(", ") || "주성 2개 이상"})`,
+    "심화 출력 강제 규칙: 사화(화록/화권/화과/화기) 또는 대한·세운 타이밍 근거를 반드시 포함",
+    `심화 출력 강제 규칙: 액션 플랜은 ${ZIWEI_ACTION_TERMS.join("/")} 중 2개 이상 단어를 포함`,
+    `모호표현 금지: ${ZIWEI_VAGUE_GUARD_TERMS.join(", ")}`,
+    "답변 순서 고정: [근거 궁/별/사화] -> [해석] -> [단기 4주 행동] -> [중기 6개월 행동]",
+  ];
+}
+
 function ensureValidQuestion(question) {
   const normalized = String(question || "").trim();
   if (!normalized || normalized.length < 5) {
@@ -464,6 +538,8 @@ export function buildZiweiAIPrompt({ question, chartResult }) {
   const normalizedChart = normalizeChart(chartResult);
   const questionTypeLabel = QUESTION_TYPE_LABELS[questionType] || QUESTION_TYPE_LABELS.general;
   const relatedPalaceLines = buildRelatedPalaceLines(normalizedChart, questionType);
+  const evidence = collectZiweiPromptEvidence(normalizedChart);
+  const specificityGuardLines = buildZiweiSpecificityGuardLines(normalizedChart, questionType);
 
   const domainDataLines = [
     `질문 유형: ${questionTypeLabel}`,
@@ -475,7 +551,23 @@ export function buildZiweiAIPrompt({ question, chartResult }) {
     `대한/대운 요약: ${normalizedChart.majorPeriods.join(" | ")}`,
     `세운: ${normalizedChart.annualFlow.yearLabel} / 핵심궁 ${normalizedChart.annualFlow.keyPalaces.join(", ")}`,
     `핵심 궁 참조: ${relatedPalaceLines.join(" || ")}`,
+    `seed 궁 목록: ${evidence.palaceNames.join(", ") || DEFAULT_TEXT}`,
+    `seed 별 목록: ${evidence.starNames.join(", ") || DEFAULT_TEXT}`,
+    `seed 사화 근거: ${evidence.sihuaTerms.join(", ") || DEFAULT_TEXT}`,
+    `seed 타이밍 근거: ${evidence.timingTerms.join(" | ") || DEFAULT_TEXT}`,
+    ...specificityGuardLines,
   ];
+
+  const analysisAngles = buildZiweiAngles(questionType).concat([
+    "근거 궁 2개 이상, 근거 별 2개 이상을 명시하고 문장마다 근거를 대응",
+    "사화/대한/세운 근거를 행동 타이밍으로 변환해 단기·중기 전략으로 분리",
+    "모호 표현 없이 질문 주제에 대한 결론을 선택 단위(무엇을/언제/어떻게)로 제시",
+  ]);
+
+  const followUps = buildZiweiFollowUps(questionType).concat([
+    "근거로 사용한 궁과 별 각각 2개를 다시 짚어 설명해 주세요.",
+    "4주 실행 체크리스트 5개와 6개월 조정 포인트 3개를 제시해 주세요.",
+  ]);
 
   const promptPackage = buildFortuneQuestionPromptPackage({
     fortuneType: "ziwei",
@@ -492,8 +584,8 @@ export function buildZiweiAIPrompt({ question, chartResult }) {
       timezone: normalizedChart.timezone,
     },
     questionTypeLabel,
-    analysisAngles: buildZiweiAngles(questionType),
-    recommendedFollowUpQuestions: buildZiweiFollowUps(questionType),
+    analysisAngles,
+    recommendedFollowUpQuestions: followUps,
     caution: "궁/별 해석은 경향성 기반이며 실제 결정은 현재 환경과 함께 판단해야 합니다.",
     domainDataLines,
     minPromptLength: 1700,
