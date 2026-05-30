@@ -705,9 +705,11 @@ export default function CrystalSoulTarot() {
   const [paidTxId, setPaidTxId] = useState("");
   const [syncEnergy, setSyncEnergy] = useState(0);
   const [isCharging, setIsCharging] = useState(false);
+  const [syncParticles, setSyncParticles] = useState([]);
   const typeTimerRef = useRef(null);
   const chargeAreaRef = useRef(null);
   const lastPointRef = useRef(null);
+  const particleIdRef = useRef(0);
 
   useBodyLock(true);
 
@@ -1009,8 +1011,19 @@ export default function CrystalSoulTarot() {
     lastPointRef.current = current;
     const delta = Math.min(100 - syncEnergy, Math.max(1.5, (dx + dy) * 0.42));
     if (delta <= 0) return;
+
+    const particleId = ++particleIdRef.current;
+    const px = current.x - rect.left;
+    const py = current.y - rect.top;
+    const tx = (Math.random() - 0.5) * 80;
+    const ty = -(Math.random() * 60 + 18);
+    setSyncParticles((prev) => [...prev.slice(-24), { id: particleId, x: px, y: py, tx, ty }]);
+    window.setTimeout(() => {
+      setSyncParticles((prev) => prev.filter((p) => p.id !== particleId));
+    }, 920);
+
     setSyncEnergy((prev) => Math.min(100, prev + delta));
-    if (syncEnergy >= 99) {
+    if (syncEnergy + delta >= 99) {
       setIsCharging(false);
       lastPointRef.current = null;
     }
@@ -1061,6 +1074,8 @@ export default function CrystalSoulTarot() {
       <style>{`
         @keyframes cdGlowPulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
         @keyframes cdFadeUp { from { opacity: 0; transform: translateY(18px);} to { opacity: 1; transform: translateY(0);} }
+        @keyframes cdRippleOut { 0% { transform: scale(.3); opacity: .9; } 100% { transform: scale(4.6); opacity: 0; } }
+        @keyframes cdParticleUp { 0% { opacity: 1; transform: translate(0,0) scale(1); } 100% { opacity: 0; transform: translate(var(--tx),var(--ty)) scale(0); } }
         .cd-scroll-surface { scrollbar-width: thin; scrollbar-color: rgba(214,174,96,.62) rgba(255,255,255,.08); }
         .cd-scroll-surface::-webkit-scrollbar { width: 8px; height: 8px; }
         .cd-scroll-surface::-webkit-scrollbar-track { background: rgba(255,255,255,.08); border-radius: 999px; }
@@ -1186,7 +1201,7 @@ export default function CrystalSoulTarot() {
               </div>
             </header>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1.05fr .95fr", gap: 16, alignItems: "start" }}>
+            <div className="cd-sync-grid" style={{ display: "grid", gridTemplateColumns: "1.05fr .95fr", gap: 16, alignItems: "start" }}>
               <div
                 ref={chargeAreaRef}
                 style={{
@@ -1205,16 +1220,65 @@ export default function CrystalSoulTarot() {
               >
                 <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at 50% 30%, ${(selectedGemSource?.glow || "#daa520")}18, transparent 48%)`, pointerEvents: "none" }} />
                 <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 280, gap: 12 }}>
-                  <div style={{ color: "#ead8c1", fontSize: 11, letterSpacing: ".18em" }}>원석을 올려서 빛을 채우세요</div>
+                  <div style={{ color: "#ead8c1", fontSize: 11, letterSpacing: ".18em" }}>원석 이미지를 문질러 빛을 깨우세요</div>
                   <div style={{ position: "relative", width: 240, height: 240, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: `1px solid ${(selectedGemSource?.glow || "#daa520")}22`, boxShadow: `0 0 30px ${(selectedGemSource?.glow || "#daa520")}22`, background: "radial-gradient(circle, rgba(255,255,255,.05), rgba(0,0,0,.1))" }} />
                     <div style={{ position: "absolute", inset: 18, borderRadius: "50%", border: `1px solid ${(selectedGemSource?.glow || "#daa520")}18` }} />
                     <div style={{ position: "absolute", inset: 40, borderRadius: "50%", border: `1px dashed ${(selectedGemSource?.glow || "#daa520")}24` }} />
-                    <div style={{ position: "relative", width: 136, height: 136, borderRadius: 34, border: `1px solid ${(selectedGemSource?.color || "#c8960c")}88`, background: `linear-gradient(160deg, ${(selectedGemSource?.color || "#c8960c")}30, rgba(10,10,16,.96) 74%)`, boxShadow: `0 0 24px ${(selectedGemSource?.glow || "#daa520")}44, inset 0 1px 0 rgba(255,255,255,.12)`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, textAlign: "center" }}>
-                      <div style={{ fontSize: 18, color: selectedGemSource?.glow || "#daa520" }}>✦</div>
-                      <div style={{ fontFamily: "Noto Serif KR,serif", fontSize: 20 }}>{selectedGemSource?.name}</div>
-                      <div style={{ fontSize: 11, color: "#ddccb7", lineHeight: 1.6, padding: "0 12px" }}>{selectedGemSource?.keywords?.slice(0, 3).join(" · ")}</div>
+                    <div style={{ position: "relative", width: 148, height: 148, borderRadius: 40, border: `1px solid ${(selectedGemSource?.color || "#c8960c")}88`, overflow: "hidden", boxShadow: `0 0 26px ${(selectedGemSource?.glow || "#daa520")}44, inset 0 1px 0 rgba(255,255,255,.12)` }}>
+                      <img
+                        src="/fuctionassets/stonetaro.webp"
+                        alt={selectedGemSource?.name || "원석 이미지"}
+                        draggable={false}
+                        style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.92, userSelect: "none", pointerEvents: "none" }}
+                        onError={(event) => {
+                          event.currentTarget.style.display = "none";
+                        }}
+                      />
+                      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${selectedGemSource?.color || "#c8960c"}22, rgba(8,8,14,.78))` }} />
+                      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, textAlign: "center" }}>
+                        <div style={{ fontSize: 19, color: selectedGemSource?.glow || "#daa520" }}>✦</div>
+                        <div style={{ fontFamily: "Noto Serif KR,serif", fontSize: 20 }}>{selectedGemSource?.name}</div>
+                        <div style={{ fontSize: 11, color: "#ddccb7", lineHeight: 1.55, padding: "0 12px" }}>{selectedGemSource?.keywords?.slice(0, 3).join(" · ")}</div>
+                      </div>
                     </div>
+
+                    {syncParticles.map((particle) => (
+                      <div
+                        key={particle.id}
+                        style={{
+                          position: "absolute",
+                          left: particle.x,
+                          top: particle.y,
+                          width: 7,
+                          height: 7,
+                          borderRadius: "50%",
+                          background: selectedGemSource?.color || "#c8960c",
+                          boxShadow: `0 0 10px ${selectedGemSource?.glow || "#daa520"}`,
+                          animation: "cdParticleUp .9s ease forwards",
+                          "--tx": `${particle.tx}px`,
+                          "--ty": `${particle.ty}px`,
+                          pointerEvents: "none",
+                          zIndex: 3,
+                          marginLeft: -3.5,
+                          marginTop: -3.5,
+                        }}
+                      />
+                    ))}
+
+                    {syncEnergy >= 100 && [1, 2, 3].map((idx) => (
+                      <div
+                        key={`sync-ripple-${idx}`}
+                        style={{
+                          position: "absolute",
+                          inset: `-${idx * 12}px`,
+                          borderRadius: "50%",
+                          background: `radial-gradient(circle, ${(selectedGemSource?.glow || "#daa520")}33 0%, transparent 70%)`,
+                          animation: `cdRippleOut ${0.34 + idx * 0.18}s ${idx * 0.12}s ease forwards`,
+                          pointerEvents: "none",
+                        }}
+                      />
+                    ))}
                   </div>
                   <div style={{ width: "100%", maxWidth: 360, height: 4, borderRadius: 999, overflow: "hidden", background: "rgba(255,255,255,.08)" }}>
                     <div style={{ width: `${syncEnergy}%`, height: "100%", borderRadius: 999, background: `linear-gradient(90deg, ${(selectedGemSource?.color || "#c8960c")}99, ${(selectedGemSource?.glow || "#daa520")})`, boxShadow: `0 0 14px ${(selectedGemSource?.glow || "#daa520")}aa`, transition: "width .08s linear" }} />

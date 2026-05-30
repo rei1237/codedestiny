@@ -491,6 +491,32 @@ function removeRepeatedCrystalSoulPhrases(text) {
   return kept.join("\n");
 }
 
+function uniqueSentenceList(items = []) {
+  const seen = new Set();
+  const result = [];
+  for (const item of items) {
+    const text = asText(item);
+    if (!text) continue;
+    const normalized = text.replace(/[“”"'`]/g, "").replace(/\s+/g, " ").toLowerCase();
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    result.push(text);
+  }
+  return result;
+}
+
+function buildVariedReadingLead(position, cardNameKo, orientation, categoryName, crystalName) {
+  const orientationLabel = orientation === "reversed" ? "역방향" : "정방향";
+  const templates = [
+    `${position.title}에서는 ${cardNameKo} ${orientationLabel}의 흐름이 ${categoryName}의 첫 숨을 정리합니다.`,
+    `${cardNameKo} ${orientationLabel}은 ${position.title}에서 지금 당장 손대야 할 우선순위를 드러냅니다.`,
+    `${position.title}에 놓인 ${cardNameKo}는 ${crystalName}과 만나 감정과 현실의 접점을 다시 맞춥니다.`,
+    `${categoryName} 전체에서 ${position.title}은(는) 흐름의 방향을 바꾸는 관문처럼 작동합니다.`,
+    `${cardNameKo} ${orientationLabel}이 보여 주는 핵심은 ${position.title}에 맞는 행동 속도를 찾는 일입니다.`,
+  ];
+  return templates[(position.order - 1) % templates.length];
+}
+
 function buildCrystalSoulSection(cardName, crystal, position, category, orientation, idx) {
   const card = getTarotCardByAnyId(cardName);
   const cardNameKo = asText(card?.nameKo) || asText(cardName) || `카드 ${idx + 1}`;
@@ -502,20 +528,21 @@ function buildCrystalSoulSection(cardName, crystal, position, category, orientat
 
   const voice = getCategoryVoice(category.id);
   const cardMeaning = buildCardMeaning(cardNameEn, orientation, tarotKeywords);
-  const crystalMeaning = `${crystal.meaning} 이 원석의 조언 톤은 "${crystal.adviceTone}"이며, 주의 톤은 "${crystal.cautionTone}"입니다.`;
-  const positionInterpretation = `${position.title} 자리의 질문은 "${position.question}"입니다. ${cardNameKo} 카드가 이 자리에 놓였다는 것은 ${category.focus} 라는 카테고리 핵심 안에서 지금 반드시 점검할 우선순위가 분명하다는 신호입니다.`;
-  const oneLineSummary = `${voice.summaryLead} ${cardNameKo}${orientation === "reversed" ? "(역방향)" : "(정방향)"}가 ${position.title}에 놓이며 보여 주는 핵심은 ${voice.crystalHook}입니다.`;
-  const crystalEnergy = `${crystal.nameKo}의 ${crystal.keywords.slice(0, 3).join(" · ")} 기운은 ${category.name} 흐름을 흔들기보다 정리하는 방향으로 작동합니다. ${crystalMeaning}`;
-  const cardFlow = `${cardMeaning} ${cardNameKo} 카드의 메시지는 ${category.name} 안에서 지금 어떤 선택이 열리고 어떤 선택을 멈춰야 하는지를 분명하게 드러냅니다. ${position.title}는 단순한 자리 설명이 아니라, 현재 실제로 손대야 할 우선순위를 가리킵니다.`;
-  const currentPulse = `${voice.pulse} 지금 드러나는 심리는 ${tarotKeywords.slice(0, 2).join("과 ")} 같은 키워드로 요약됩니다. ${orientation === "reversed" ? "뒤집힌 흐름은 미뤄 둔 감정과 반복 습관을 먼저 점검하라는 신호" : "정방향 흐름은 이미 열려 있는 기회를 행동으로 옮기라는 신호"}입니다.`;
-  const caution = `${voice.caution} ${orientation === "reversed" ? "같은 패턴이 반복될 수 있으니, 멈춤과 확인의 간격을 한 번 더 두는 것이 안전합니다." : "기회가 보여도 속도를 너무 올리면 카드가 주는 장점이 흐려질 수 있습니다."}`;
-  const uplift = `${voice.uplift} ${crystal.nameKo}의 기운을 붙이면 감정적 흔들림보다 기준과 순서가 먼저 서게 됩니다. ${category.name}에서는 작은 실행을 단단히 붙잡는 쪽이 더 오래 갑니다.`;
-  const practicalActions = Array.isArray(voice.action) ? voice.action.slice(0, 3) : [];
-  const opportunity = `${tarotKeywords.slice(0, 2).join(" · ")} 신호를 살리면 ${position.title}에서 작지만 현실적인 기회가 열립니다. ${voice.uplift} 이번 주에는 추상적 기대보다 확인 가능한 지표 1개를 정해 진척을 추적해 보세요.`;
+  const cardLean = buildVariedReadingLead(position, cardNameKo, orientation, category.name, crystal.nameKo);
+  const crystalMeaning = `${crystal.nameKo}는 ${crystal.meaning.replace(/입니다\.?$/, "")}. ${crystal.adviceTone} 쪽이 살고, ${crystal.cautionTone}는 잠시 낮춰야 합니다.`;
+  const positionInterpretation = `${position.title}의 질문은 "${position.question}"입니다. 이 위치에 ${cardNameKo}가 들어왔다는 것은 ${category.focus}의 큰 흐름을 현실 선택으로 번역하라는 신호입니다.`;
+  const oneLineSummary = `${cardLean} ${voice.crystalHook}`;
+  const crystalEnergy = `${crystal.nameKo}의 ${crystal.keywords.slice(0, 3).join(" · ")} 파동은 ${category.name}의 흐름을 부드럽게 정리합니다. ${crystalMeaning}`;
+  const cardFlow = `${cardMeaning} 따라서 이 카드는 "무엇을 더할지"보다 "무엇을 덜어낼지"를 분명하게 말합니다. ${position.title}는 지금의 판단이 어디로 향해야 하는지 알려 주는 좌표입니다.`;
+  const currentPulse = `${orientation === "reversed" ? "지연과 재검토의 심리" : "전진과 확인의 심리"}가 동시에 떠오릅니다. 핵심 키워드 ${tarotKeywords.slice(0, 2).join(" · ")}를 기준으로 오늘의 감정을 한 문장으로 정리해 보세요.`;
+  const caution = `${orientation === "reversed" ? "같은 실수를 설명만으로 넘기지 말고 중단 지점을 먼저 세워야 합니다." : "속도를 올리기보다 기준을 먼저 맞춰야 결과가 오래 갑니다."}`;
+  const uplift = `${crystal.nameKo}의 기운은 ${category.name}에서 기준과 순서를 회복시키는 편입니다. ${voice.uplift} ${position.title}의 결론은 한 번에 바꾸는 것이 아니라, 오늘의 선택을 작게 바로잡는 데 있습니다.`;
+  const practicalActions = uniqueSentenceList([...(Array.isArray(voice.action) ? voice.action : []), `${position.title}와 연결된 행동을 오늘 1개만 끝냅니다.`, `${crystal.nameKo}를 떠올리며 판단 기준을 1줄로 적습니다.`]).slice(0, 4);
+  const opportunity = `${tarotKeywords.slice(0, 2).join(" · ")} 신호는 ${position.title}에서 실질적 기회를 만듭니다. 이번 주에는 기대보다 확인 가능한 지표 하나를 정해 움직여 보세요.`;
   const action = practicalActions.join(" / ");
   const neoLine = `네오: ${voice.neo}`;
   const younLine = `연이: ${voice.youn}`;
-  const categoryReading = [
+  const categoryReading = uniqueSentenceList([
     oneLineSummary,
     crystalEnergy,
     cardFlow,
@@ -525,7 +552,7 @@ function buildCrystalSoulSection(cardName, crystal, position, category, orientat
     `실전 조언: ${action}`,
     neoLine,
     younLine,
-  ].join(" ");
+  ]).join(" ");
 
   return {
     order: position.order,
@@ -560,22 +587,22 @@ function buildCrystalSoulSection(cardName, crystal, position, category, orientat
 function buildCrystalSoulSummary(category, sections, coreCrystal) {
   const strongest = sections[2] || sections[0];
   const voice = getCategoryVoice(category.id);
-  const practicalActions = [
+  const practicalActions = uniqueSentenceList([
     voice.action[0],
     voice.action[1],
     voice.action[2],
     `${coreCrystal.nameKo}의 기운을 떠올리며 오늘의 선택 기준 1개를 메모에 남깁니다.`,
-  ];
+  ]);
   return {
     category: category.name,
     coreCrystal: coreCrystal.nameKo,
-    overallFlow: `${category.name}의 5장 흐름은 ${voice.summaryLead} 초반의 ${sections[0]?.positionTitle || "첫 번째 자리"}에서 흐름의 바탕을 보고, 중반의 ${sections[2]?.positionTitle || "세 번째 자리"}에서 막힘을 확인한 뒤, 후반의 ${sections[4]?.positionTitle || "마지막 자리"}에서 실제로 무엇을 남길지 정리하도록 설계되어 있습니다. ${coreCrystal.nameKo}의 에너지는 이 전체 구조를 안정적으로 묶어 주며, 감정적 즉흥보다 기준을 세우고 실행을 나누는 쪽이 결과를 더 선명하게 만듭니다.`,
-    strongestSignal: `${strongest.cardNameKo} · ${strongest.positionTitle} 조합이 가장 강한 신호입니다. ${strongest.oneLineSummary} 이 조합은 현재 상황을 회피하지 말고 구체적인 기준을 세워 바로 검증하라는 메시지를 강조합니다.`,
-    opportunity: `기회는 ${sections[1]?.positionTitle || "두 번째 자리"}에서 드러납니다. ${sections[1]?.tarotKeywords.slice(0, 2).join(" · ")} 신호를 행동 단위로 바꾸면, 과장된 목표 없이도 체감 가능한 전환이 가능합니다.`,
-    risk: `주의할 점은 ${sections[2]?.positionTitle || "세 번째 자리"}의 경고를 가볍게 넘기는 것입니다. ${voice.caution} 같은 말투·같은 의사결정 습관이 반복되면 결과 카드의 잠재력이 줄어들 수 있습니다.`,
-    timingAdvice: `${voice.pulse} 지금은 즉흥 확장보다 14~30일 검증 구간을 먼저 확보하는 타이밍입니다. 준비와 실행을 분리하지 말고, 작은 실행을 하면서 동시에 데이터를 수집하는 방식이 유리합니다.`,
+    overallFlow: `${category.name}의 5장 흐름은 초반 ${sections[0]?.positionTitle || "첫 번째 자리"}에서 감지된 시작점을, 중반 ${sections[2]?.positionTitle || "세 번째 자리"}에서 걸림을 확인하고, 후반 ${sections[4]?.positionTitle || "마지막 자리"}에서 실제 선택으로 마무리하도록 안내합니다. ${coreCrystal.nameKo}는 이 흐름을 한 줄로 묶기보다 단계별로 정돈하게 돕습니다.`,
+    strongestSignal: `${strongest.cardNameKo}와 ${strongest.positionTitle}의 결합이 가장 선명한 신호입니다. ${strongest.oneLineSummary} 이 조합은 회피보다 확인, 감정보다 기준을 먼저 두라고 말합니다.`,
+    opportunity: `${sections[1]?.positionTitle || "두 번째 자리"}에서는 ${sections[1]?.tarotKeywords.slice(0, 2).join(" · ")} 신호가 실제 기회로 바뀝니다. 기대를 키우기보다 지금 할 수 있는 작은 실행으로 번역하는 편이 유리합니다.`,
+    risk: `${sections[2]?.positionTitle || "세 번째 자리"}의 경고를 흐리게 읽으면 같은 패턴이 다시 반복될 수 있습니다. ${voice.caution} 따라서 반응을 늦추고 사실을 먼저 확인하는 태도가 필요합니다.`,
+    timingAdvice: `${voice.pulse} 지금은 크게 밀어붙이기보다 14~30일 검증 구간을 두는 타이밍입니다. 준비와 실행을 분리해 기록하면 흐름이 더 또렷해집니다.`,
     practicalActions,
-    oracleMessage: `${coreCrystal.nameKo}의 오라클: "지금 당신에게 필요한 기적은 거대한 반전이 아니라, 흐린 직감을 기준 있는 결단으로 바꾸는 첫 번째 실행이다."`,
+    oracleMessage: `${coreCrystal.nameKo}의 오라클: "지금 필요한 것은 큰 반전이 아니라, 흐린 감각을 오늘의 작은 결단으로 바꾸는 첫 번째 실행이다."`,
     neoLine: `네오: ${voice.neo}`,
     younLine: `연이: ${voice.youn}`,
   };
