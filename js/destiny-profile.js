@@ -1251,7 +1251,8 @@
       sprite.style.height = '100%';
       sprite.style.backgroundImage = 'url("/fuctionassets/%EC%97%B0%EC%9D%B4%20%EC%BA%90%EB%A6%AD%ED%84%B0%20%EC%8A%A4%ED%94%84%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%EC%8B%9C%ED%8A%B8.webp")';
       sprite.style.backgroundRepeat = 'no-repeat';
-      sprite.style.backgroundSize = '400% 300%';
+      sprite.style.backgroundSize = 'calc(100% * 4) calc(100% * 3)';
+      sprite.style.backgroundPosition = '0% 0%';
       sprite.style.imageRendering = 'auto';
       spriteWrap.appendChild(sprite);
 
@@ -1289,15 +1290,26 @@
       card.appendChild(textWrap);
       root.appendChild(card);
 
-      var frames = [0, 1, 2, 1, 4, 5, 4, 1];
+      var frames = [0, 1, 2, 1, 4, 5, 6, 5, 4, 1, 0, 3];
       var cols = 4;
-      var frameIdx = 0;
+      var rows = 3;
+      var randomFrame = Math.floor(Math.random() * (cols * rows));
+      var randomPickIdx = frames.indexOf(randomFrame);
+      var frameIdx = randomPickIdx >= 0 ? randomPickIdx : Math.floor(Math.random() * frames.length);
+      function applySpriteFrame(frame) {
+        var safeFrame = Number(frame);
+        if (!isFinite(safeFrame)) safeFrame = 0;
+        var normalized = ((Math.floor(safeFrame) % (cols * rows)) + (cols * rows)) % (cols * rows);
+        var col = normalized % cols;
+        var row = Math.floor(normalized / cols);
+        var x = cols <= 1 ? 0 : (col * 100 / (cols - 1));
+        var y = rows <= 1 ? 0 : (row * 100 / (rows - 1));
+        sprite.style.backgroundPosition = x + '% ' + y + '%';
+      }
+      applySpriteFrame(frames[frameIdx]);
       var frameTimer = setInterval(function() {
         frameIdx = (frameIdx + 1) % frames.length;
-        var frame = frames[frameIdx];
-        var col = frame % cols;
-        var row = Math.floor(frame / cols);
-        sprite.style.backgroundPosition = (col * -100 / (cols - 1)) + '% ' + (row * -100 / 2) + '%';
+        applySpriteFrame(frames[frameIdx]);
       }, 130);
 
       requestAnimationFrame(function() {
