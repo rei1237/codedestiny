@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCoinGate } from "../../hooks/useCoinGate";
 import { showSubscriptionIncludedNotice } from "../../components/subscriptionNotice";
 import { showToast } from "../../components/Toast";
+import { authFetch } from "../../_lib/auth-client";
 import styles from "./numerology-tarot.module.css";
 import {
   NUMEROLOGY_DATA,
@@ -485,9 +486,8 @@ export default function NumerologyTarotClient() {
   }
 
   async function requestReading() {
-    const res = await fetch("/api/tarot/numerology-reading", {
+    const res = await authFetch("/api/tarot/numerology-reading", {
       method: "POST",
-      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: toText(name),
