@@ -482,11 +482,11 @@ export default function FptiResultCard({ result }: Props) {
 
       <section className={`${styles.cosmicNeonCard} rounded-3xl p-5 pb-[calc(5.5rem+env(safe-area-inset-bottom))]`}>
         <p className="text-xs tracking-[0.16em] text-cyan-200">FPTI DEEP REPORT</p>
-        <h4 className={`${styles.neonTextCyan} mt-1 text-lg font-semibold`}>{deepReport.typeName} ({deepReport.userTypeCode})</h4>
-        <p className="mt-2 text-sm text-slate-200">{deepReport.summary.preview}</p>
+        <h4 className={`${styles.neonTextCyan} mt-1 text-lg font-semibold`}>{deepReport?.typeName || "리포트"} ({deepReport?.userTypeCode || ""})</h4>
+        <p className="mt-2 text-sm text-slate-200">{deepReport?.summary?.preview || ""}</p>
 
         <div className="mt-3 flex flex-wrap gap-2">
-          {deepReport.summary.highlights.map((item) => (
+          {Array.isArray(deepReport?.summary?.highlights) && deepReport.summary.highlights.map((item) => (
             <span key={item} className="rounded-full border border-cyan-200/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-100">
               {item}
             </span>
@@ -499,16 +499,16 @@ export default function FptiResultCard({ result }: Props) {
         </div>
 
         <div className="mt-4 space-y-3">
-          {deepReport.chapters.map((chapter, idx) => {
+          {Array.isArray(deepReport?.chapters) && deepReport.chapters.map((chapter, idx) => {
             const open = idx === activeChapter;
             return (
-              <article key={`${chapter.roman}-${chapter.order}`} className="rounded-2xl border border-white/15 bg-black/20">
+              <article key={`${chapter?.roman}-${chapter?.order}`} className="rounded-2xl border border-white/15 bg-black/20">
                 <button
                   type="button"
                   onClick={() => setActiveChapter(idx)}
                   className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
                 >
-                  <h5 className="text-sm font-semibold text-sky-100">{chapter.roman}. {chapter.title}</h5>
+                  <h5 className="text-sm font-semibold text-sky-100">{chapter?.roman}. {chapter?.title}</h5>
                   <span className="text-xs text-slate-300">{open ? "접기" : "열기"}</span>
                 </button>
                 {open && (
@@ -520,22 +520,22 @@ export default function FptiResultCard({ result }: Props) {
                     )}
 
                     <div className="space-y-3">
-                      {chapter.sections.map((section) => (
-                        <article key={`${chapter.roman}-${section.title}`} className="rounded-2xl border border-cyan-300/20 bg-cyan-500/5 p-3 transition hover:shadow-[0_0_20px_rgba(56,189,248,0.22)]">
-                          <h6 className="text-sm font-semibold text-cyan-100">{section.title}</h6>
-                          <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-100">{section.interpretation}</p>
+                      {chapter.sections && Array.isArray(chapter.sections) && chapter.sections.map((section) => (
+                        <article key={`${chapter.roman}-${section?.title}`} className="rounded-2xl border border-cyan-300/20 bg-cyan-500/5 p-3 transition hover:shadow-[0_0_20px_rgba(56,189,248,0.22)]">
+                          <h6 className="text-sm font-semibold text-cyan-100">{section?.title || "제목 없음"}</h6>
+                          <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-100">{section?.interpretation || ""}</p>
                           {accessState.isUnlocked && (
                             <div className="mt-3 grid gap-2 md:grid-cols-3">
-                              <p className="rounded-lg border border-emerald-200/25 bg-emerald-500/10 p-2 text-xs text-emerald-100">강점: {section.strength}</p>
-                              <p className="rounded-lg border border-amber-200/25 bg-amber-500/10 p-2 text-xs text-amber-100">주의: {section.risk}</p>
-                              <p className="rounded-lg border border-sky-200/25 bg-sky-500/10 p-2 text-xs text-sky-100">실행: {section.action}</p>
+                              <p className="rounded-lg border border-emerald-200/25 bg-emerald-500/10 p-2 text-xs text-emerald-100">강점: {section?.strength || "-"}</p>
+                              <p className="rounded-lg border border-amber-200/25 bg-amber-500/10 p-2 text-xs text-amber-100">주의: {section?.risk || "-"}</p>
+                              <p className="rounded-lg border border-sky-200/25 bg-sky-500/10 p-2 text-xs text-sky-100">실행: {section?.action || "-"}</p>
                             </div>
                           )}
                           <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-2">
                             <p className="text-xs font-semibold tracking-[0.14em] text-slate-300">해석에 반영된 성향</p>
                             <ul className="mt-2 space-y-1 text-xs text-slate-200">
-                              {section.usedSignals.map((signal) => (
-                                <li key={`${section.title}-${signal}`}>- {signal}</li>
+                              {Array.isArray(section?.usedSignals) && section.usedSignals.map((signal) => (
+                                <li key={`${section?.title}-${signal}`}>- {signal}</li>
                               ))}
                             </ul>
                           </div>
@@ -544,7 +544,7 @@ export default function FptiResultCard({ result }: Props) {
                     </div>
 
                     <p className="mt-4 rounded-xl border border-amber-200/30 bg-amber-300/10 p-3 text-sm leading-7 text-amber-100">
-                      {chapter.chapterSummary}
+                      {chapter?.chapterSummary || ""}
                     </p>
                   </div>
                 )}

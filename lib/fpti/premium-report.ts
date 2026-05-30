@@ -517,10 +517,11 @@ export function buildFptiDeepSection(typeResult: LocalTypeResult, sectionDefinit
 export function buildFptiDeepChapter(typeResult: LocalTypeResult, chapterDefinition: ChapterDefinition, unlocked = true): FptiDeepChapter {
   const sections = chapterDefinition.sections.map((title) => buildFptiDeepSection(typeResult, { chapter: chapterDefinition, title }));
   const previewSections = sections.map((section) => {
-    const previewText = section.interpretation.split(". ").slice(0, 2).join(". ").trim();
+    const interpretation = section.interpretation || "";
+    const previewText = interpretation.split(". ").slice(0, 2).join(". ").trim();
     return {
       ...section,
-      interpretation: previewText.length > 0 ? `${previewText}.` : section.interpretation,
+      interpretation: previewText.length > 0 ? `${previewText}.` : interpretation,
     };
   });
 
