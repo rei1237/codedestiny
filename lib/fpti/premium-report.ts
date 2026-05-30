@@ -332,6 +332,7 @@ function localTypeResult(input: FptiPremiumInput): LocalTypeResult {
 }
 
 function sourceFragments(source: LocalTypeResult["source"]): string[] {
+  if (!source) return [];
   const parts = [
     toText(source?.dayMaster),
     toText(source?.monthBranch),
@@ -339,11 +340,12 @@ function sourceFragments(source: LocalTypeResult["source"]): string[] {
     ...(Array.isArray(source?.usefulGods) ? source.usefulGods : []),
     ...(Array.isArray(source?.favorableElements) ? source.favorableElements : []),
   ];
-  return uniqueList(parts, 5);
+  return uniqueList(parts.filter(Boolean), 5);
 }
 
 function tenGodHighlights(source: LocalTypeResult["source"]): { primary: TenGodName; secondary: TenGodName; tertiary: TenGodName } {
-  const raw = source?.tenGods;
+  if (!source) return { primary: "정인", secondary: "정관", tertiary: "식신" };
+  const raw = source?.tenGods || {};
   const ranked = [
     ["비견", Number(raw?.biGyeon || 0)],
     ["겁재", Number(raw?.geopJae || 0)],
@@ -366,69 +368,77 @@ function tenGodHighlights(source: LocalTypeResult["source"]): { primary: TenGodN
 }
 
 function chapterBackdrop(chapterOrder: number, typeResult: LocalTypeResult): string {
-  const top = typeResult.topAxes[0];
-  const sub = typeResult.topAxes[1];
-  const low = typeResult.lowAxes[0];
-  const sourceBits = sourceFragments(typeResult.source);
-  const tenGods = tenGodHighlights(typeResult.source);
-  const sourceLine = sourceBits.length > 0 ? ` 사주의 기준 좌표는 ${sourceBits.join(" · ")}로 묶입니다.` : "";
-  const tenGodLine = ` 십성 축으로는 ${tenGods.primary}·${tenGods.secondary}·${tenGods.tertiary}가 핵심 성향과 진로 감각을 이끕니다.`;
+  try {
+    const top = typeResult.topAxes[0];
+    const sub = typeResult.topAxes[1];
+    const low = typeResult.lowAxes[0];
+    const sourceBits = sourceFragments(typeResult.source);
+    const tenGods = tenGodHighlights(typeResult.source);
+    const sourceLine = sourceBits.length > 0 ? ` 사주의 기준 좌표는 ${sourceBits.join(" · ")}로 묶입니다.` : "";
+    const tenGodLine = ` 십성 축으로는 ${tenGods.primary}·${tenGods.secondary}·${tenGods.tertiary}가 핵심 성향과 진로 감각을 이끕니다.`;
 
-  if (chapterOrder === 1) {
-    return `${typeResult.code}(${typeResult.typeName})는 ${top.label} ${formatScore(top.score)}가 앞에서 운전을 잡고, ${sub.label} ${formatScore(sub.score)}가 뒤에서 속도를 보탭니다.${sourceLine}${tenGodLine} 반대로 ${low.label} ${formatScore(low.score)}는 과로가 오기 쉬운 구간이라, 기준을 세우지 않으면 판단보다 소모가 먼저 커집니다.`;
+    if (chapterOrder === 1) {
+      return `${typeResult.code}(${typeResult.typeName})는 ${top.label} ${formatScore(top.score)}가 앞에서 운전을 잡고, ${sub.label} ${formatScore(sub.score)}가 뒤에서 속도를 보탭니다.${sourceLine}${tenGodLine} 반대로 ${low.label} ${formatScore(low.score)}는 과로가 오기 쉬운 구간이라, 기준을 세우지 않으면 판단보다 소모가 먼저 커집니다.`;
+    }
+    if (chapterOrder === 2) {
+      return `겉으로는 차분해 보여도 실제 내면은 ${top.label}의 계산과 ${low.label}의 피로를 동시에 감지합니다.${sourceLine}${tenGodLine} 그래서 감정은 폭발보다 누적형으로 나타나며, 정리되지 않은 생각이 길어질수록 자기방어가 먼저 올라옵니다.`;
+    }
+    if (chapterOrder === 3) {
+      return `관계에서는 ${top.label}가 신뢰를 만들고, ${low.label}가 경계를 늦게 알려줍니다.${sourceLine}${tenGodLine} 가까워질수록 기준이 더 분명해지는 타입이라, 감정의 양보다 거리 조절과 합의 문장이 만족도를 좌우합니다.`;
+    }
+    if (chapterOrder === 4) {
+      return `일에서는 ${top.label}의 현실 점검이 성과의 기본값이고, ${sub.label}의 보조 전개가 결과를 안정시킵니다.${sourceLine}${tenGodLine} 다만 ${low.label}가 흔들리면 협업 속도보다 완료 기준이 먼저 흐려지므로, 시스템과 역할을 먼저 맞춰야 합니다.`;
+    }
+    if (chapterOrder === 5) {
+      return `돈을 볼 때 ${top.label}는 숫자보다 "이 선택이 오래 버티는가"를 먼저 묻습니다.${sourceLine}${tenGodLine} ${low.label}가 약해질수록 충동 소비보다 보수적 회피가 더 문제로 드러나기 때문에, 리스크를 줄이는 장치와 성장 자금을 동시에 설계해야 합니다.`;
+    }
+    if (chapterOrder === 6) {
+      return `${top.label}가 강한 사람일수록 외부 압박보다 내부 과부하에서 먼저 무너집니다.${sourceLine}${tenGodLine} ${low.label}는 휴식과 경계가 무너지면 판단 속도를 잃고, 그 순간부터는 결정보다 회피와 과통제가 번갈아 나타납니다.`;
+    }
+    return `${typeResult.code}(${typeResult.typeName})의 성장 핵심은 ${top.label}의 강점을 과신하지 않고 ${low.label}의 취약 구간을 생활 루틴으로 낮추는 데 있습니다.${sourceLine}${tenGodLine} 단기 목표보다 복귀 속도와 점검 습관이 장기 성취를 더 크게 바꿉니다.`;
+  } catch (e) {
+    return `이 장의 해석을 로드할 수 없습니다. 잠시 후 다시 시도해 주세요.`;
   }
-  if (chapterOrder === 2) {
-    return `겉으로는 차분해 보여도 실제 내면은 ${top.label}의 계산과 ${low.label}의 피로를 동시에 감지합니다.${sourceLine}${tenGodLine} 그래서 감정은 폭발보다 누적형으로 나타나며, 정리되지 않은 생각이 길어질수록 자기방어가 먼저 올라옵니다.`;
-  }
-  if (chapterOrder === 3) {
-    return `관계에서는 ${top.label}가 신뢰를 만들고, ${low.label}가 경계를 늦게 알려줍니다.${sourceLine}${tenGodLine} 가까워질수록 기준이 더 분명해지는 타입이라, 감정의 양보다 거리 조절과 합의 문장이 만족도를 좌우합니다.`;
-  }
-  if (chapterOrder === 4) {
-    return `일에서는 ${top.label}의 현실 점검이 성과의 기본값이고, ${sub.label}의 보조 전개가 결과를 안정시킵니다.${sourceLine}${tenGodLine} 다만 ${low.label}가 흔들리면 협업 속도보다 완료 기준이 먼저 흐려지므로, 시스템과 역할을 먼저 맞춰야 합니다.`;
-  }
-  if (chapterOrder === 5) {
-    return `돈을 볼 때 ${top.label}는 숫자보다 "이 선택이 오래 버티는가"를 먼저 묻습니다.${sourceLine}${tenGodLine} ${low.label}가 약해질수록 충동 소비보다 보수적 회피가 더 문제로 드러나기 때문에, 리스크를 줄이는 장치와 성장 자금을 동시에 설계해야 합니다.`;
-  }
-  if (chapterOrder === 6) {
-    return `${top.label}가 강한 사람일수록 외부 압박보다 내부 과부하에서 먼저 무너집니다.${sourceLine}${tenGodLine} ${low.label}는 휴식과 경계가 무너지면 판단 속도를 잃고, 그 순간부터는 결정보다 회피와 과통제가 번갈아 나타납니다.`;
-  }
-  return `${typeResult.code}(${typeResult.typeName})의 성장 핵심은 ${top.label}의 강점을 과신하지 않고 ${low.label}의 취약 구간을 생활 루틴으로 낮추는 데 있습니다.${sourceLine}${tenGodLine} 단기 목표보다 복귀 속도와 점검 습관이 장기 성취를 더 크게 바꿉니다.`;
 }
 
 function sectionLens(chapterOrder: number, title: string, typeResult: LocalTypeResult): string {
-  const top = typeResult.topAxes[0];
-  const low = typeResult.lowAxes[0];
-  const tenGods = tenGodHighlights(typeResult.source);
-  const titleHint = title.replace(/^[0-9IVXL.\s-]+/g, "").trim();
+  try {
+    const top = typeResult.topAxes[0];
+    const low = typeResult.lowAxes[0];
+    const tenGods = tenGodHighlights(typeResult.source);
+    const titleHint = title.replace(/^[0-9IVXL.\s-]+/g, "").trim();
 
   if (chapterOrder === 7 && title.includes("7일")) {
     return `> 7일 실행은 완벽한 변화가 아니라 ${top.label}를 실제 행동으로 옮기는 복귀 훈련입니다.`;
   }
-  if (chapterOrder === 7 && title.includes("30일")) {
-    return `> 30일 로드맵은 ${low.label}가 흔들리는 날에도 자동으로 돌아오는 생활 시스템을 만드는 작업입니다.`;
+    if (chapterOrder === 7 && title.includes("30일")) {
+      return `> 30일 로드맵은 ${low?.label}가 흔들리는 날에도 자동으로 돌아오는 생활 시스템을 만드는 작업입니다.`;
+    }
+    if (title.includes("관계") || title.includes("연애")) {
+      return `> 관계는 감정의 크기보다 합의의 정확도가 더 중요하고, ${top?.label}는 그 기준을 선명하게 만듭니다. 십성으로는 ${tenGods?.primary}와 ${tenGods?.secondary}가 관계의 거리와 신뢰를 다룹니다.`;
+    }
+    if (title.includes("돈") || title.includes("재물")) {
+      return `> 돈은 한 번의 큰 결정보다, ${low?.label}가 과열될 때 새는 작은 선택들을 먼저 다루는 쪽이 훨씬 중요합니다. 십성으로는 ${tenGods?.primary}가 관리 본능을, ${tenGods?.secondary}가 확장 감각을 만집니다.`;
+    }
+    if (title.includes("스트레스") || title.includes("그림자")) {
+      return `> 스트레스는 성격의 문제가 아니라 ${low?.label}가 경고를 보내는 방식으로 이해해야 정확합니다. 십성 축에서 보면 ${tenGods?.primary}와 ${tenGods?.tertiary}가 흔들릴 때 피로가 빨리 드러납니다.`;
+    }
+    if (title.includes("성장") || title.includes("로드맵")) {
+      return `> 성장 전략은 의지 선언문이 아니라 ${top?.label}를 유지하고 ${low?.label}를 보호하는 운영 규칙입니다. 십성으로는 ${tenGods?.primary}/${tenGods?.secondary}를 강점화하는 설계가 핵심입니다.`;
+    }
+    if (title.includes("일") || title.includes("재능")) {
+      return `> 일과 재능은 속도 경쟁이 아니라 ${top?.label}의 기준을 반복 가능한 프로세스로 바꾸는 문제입니다. 십성으로는 ${tenGods?.primary}가 진로 방향을, ${tenGods?.secondary}가 직무 적합도를 보여줍니다.`;
+    }
+    if (title.includes("내면") || title.includes("감정")) {
+      return `> 내면 패턴은 감정의 세기가 아니라, ${top?.label}와 ${low?.label}가 언제 교대로 작동하는지에서 드러납니다. 십성으로는 ${tenGods?.primary}의 자기 기준과 ${tenGods?.tertiary}의 회복력이 중요합니다.`;
+    }
+    if (title.includes("총론") || title.includes("유형")) {
+      return `> ${titleHint}은 ${typeResult.code}가 왜 같은 선택을 반복하는지 설명하는 가장 압축된 지도입니다.`;
+    }
+    return `> ${titleHint}은 ${typeResult.code}의 현재 축이 실제 생활에서 어떤 모습으로 나타나는지 보여줍니다.`;
+  } catch (e) {
+    return `> 이 섹션의 상세 해석을 로드 중입니다.`;
   }
-  if (title.includes("관계") || title.includes("연애")) {
-    return `> 관계는 감정의 크기보다 합의의 정확도가 더 중요하고, ${top.label}는 그 기준을 선명하게 만듭니다. 십성으로는 ${tenGods.primary}와 ${tenGods.secondary}가 관계의 거리와 신뢰를 다룹니다.`;
-  }
-  if (title.includes("돈") || title.includes("재물")) {
-    return `> 돈은 한 번의 큰 결정보다, ${low.label}가 과열될 때 새는 작은 선택들을 먼저 다루는 쪽이 훨씬 중요합니다. 십성으로는 ${tenGods.primary}가 관리 본능을, ${tenGods.secondary}가 확장 감각을 만집니다.`;
-  }
-  if (title.includes("스트레스") || title.includes("그림자")) {
-    return `> 스트레스는 성격의 문제가 아니라 ${low.label}가 경고를 보내는 방식으로 이해해야 정확합니다. 십성 축에서 보면 ${tenGods.primary}와 ${tenGods.tertiary}가 흔들릴 때 피로가 빨리 드러납니다.`;
-  }
-  if (title.includes("성장") || title.includes("로드맵")) {
-    return `> 성장 전략은 의지 선언문이 아니라 ${top.label}를 유지하고 ${low.label}를 보호하는 운영 규칙입니다. 십성으로는 ${tenGods.primary}/${tenGods.secondary}를 강점화하는 설계가 핵심입니다.`;
-  }
-  if (title.includes("일") || title.includes("재능")) {
-    return `> 일과 재능은 속도 경쟁이 아니라 ${top.label}의 기준을 반복 가능한 프로세스로 바꾸는 문제입니다. 십성으로는 ${tenGods.primary}가 진로 방향을, ${tenGods.secondary}가 직무 적합도를 보여줍니다.`;
-  }
-  if (title.includes("내면") || title.includes("감정")) {
-    return `> 내면 패턴은 감정의 세기가 아니라, ${top.label}와 ${low.label}가 언제 교대로 작동하는지에서 드러납니다. 십성으로는 ${tenGods.primary}의 자기 기준과 ${tenGods.tertiary}의 회복력이 중요합니다.`;
-  }
-  if (title.includes("총론") || title.includes("유형")) {
-    return `> ${titleHint}은 ${typeResult.code}가 왜 같은 선택을 반복하는지 설명하는 가장 압축된 지도입니다.`;
-  }
-  return `> ${titleHint}은 ${typeResult.code}의 현재 축이 실제 생활에서 어떤 모습으로 나타나는지 보여줍니다.`;
 }
 
 function chapterClose(chapterOrder: number, flavor: { strength: string; risk: string; action: string }, typeResult: LocalTypeResult): string {
@@ -640,10 +650,26 @@ export function validateFptiDeepReport(report: FptiDeepReport): ValidationResult
 }
 
 export function buildFptiDeepReport(input: FptiPremiumInput, options?: { unlocked?: boolean }): FptiDeepReport {
-  const typeResult = localTypeResult(input);
-  const unlocked = options?.unlocked !== false;
+  try {
+    const typeResult = localTypeResult(input);
+    const unlocked = options?.unlocked !== false;
 
-  const chapters = CHAPTERS.map((chapter) => buildFptiDeepChapter(typeResult, chapter, unlocked));
+    const chapters = CHAPTERS.map((chapter) => {
+      try {
+        return buildFptiDeepChapter(typeResult, chapter, unlocked);
+      } catch (e) {
+        // Return minimal fallback chapter on error
+        return {
+          order: chapter.order,
+          roman: chapter.roman,
+          title: chapter.title,
+          isPreview: !unlocked,
+          locked: !unlocked,
+          sections: [],
+          chapterSummary: "섹션 로딩 중입니다.",
+        };
+      }
+    });
 
   const report: FptiDeepReport = {
     reportType: "FPTI_DEEP_REPORT",
@@ -674,7 +700,32 @@ export function buildFptiDeepReport(input: FptiPremiumInput, options?: { unlocke
     },
   };
 
-  return report;
+    return report;
+  } catch (e) {
+    // Return absolute minimal fallback report
+    return {
+      reportType: "FPTI_DEEP_REPORT",
+      mode: "local",
+      generatedAt: new Date().toISOString(),
+      userTypeCode: input.result?.code || "ERR",
+      typeName: input.result?.typeName || "리포트 로딩 오류",
+      scores: { A: 50, M: 50, H: 50, L: 50, F: 50, B: 50, R: 50, V: 50 },
+      axes: [],
+      unlocked: options?.unlocked !== false,
+      chapters: [],
+      summary: {
+        preview: "리포트 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+        highlights: [],
+        caution: "문제가 지속되면 문의해 주세요.",
+      },
+      meta: {
+        engineVersion: "fpti-local-deep-v2.0.0",
+        apiUsed: false,
+        pdfEnabled: false,
+        chapterCount: 7,
+      },
+    };
+  }
 }
 
 export function validateFptiPremiumReport(report: FptiPremiumReport): ValidationResult {

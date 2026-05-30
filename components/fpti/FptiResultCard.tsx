@@ -184,13 +184,43 @@ function resolveUnlockReport(result: FptiAnalysisResult): FptiDeepReport {
   return buildFptiDeepReport({ result }, { unlocked: true });
 }
 
+function createInitialDeepReport(result: FptiAnalysisResult): FptiDeepReport {
+  try {
+    return buildFptiDeepReport({ result }, { unlocked: false });
+  } catch (e) {
+    // Return safe fallback on initialization error
+    return {
+      reportType: "FPTI_DEEP_REPORT",
+      mode: "local",
+      generatedAt: new Date().toISOString(),
+      userTypeCode: result?.code || "ERR",
+      typeName: result?.typeName || "리포트 로딩 오류",
+      scores: { A: 50, M: 50, H: 50, L: 50, F: 50, B: 50, R: 50, V: 50 },
+      axes: [],
+      unlocked: false,
+      chapters: [],
+      summary: {
+        preview: "리포트 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+        highlights: [],
+        caution: "페이지를 새로고침 후 다시 시도해 주세요.",
+      },
+      meta: {
+        engineVersion: "fpti-local-deep-v2.0.0",
+        apiUsed: false,
+        pdfEnabled: false,
+        chapterCount: 7,
+      },
+    };
+  }
+}
+
 export default function FptiResultCard({ result }: Props) {
-  const codeParts = result.code.split("").filter(Boolean);
+  const codeParts = (result?.code || "").split("").filter(Boolean);
   const [deepLoading, setDeepLoading] = useState(false);
   const [deepError, setDeepError] = useState("");
   const [activeChapter, setActiveChapter] = useState(0);
   const [accessState, setAccessState] = useState<FptiReportAccessState>({ isUnlocked: false });
-  const [deepReport, setDeepReport] = useState<FptiDeepReport>(() => buildFptiDeepReport({ result }, { unlocked: false }));
+  const [deepReport, setDeepReport] = useState<FptiDeepReport>(() => createInitialDeepReport(result));
 
   const freeHighlights = useMemo(
     () => [
@@ -215,7 +245,7 @@ export default function FptiResultCard({ result }: Props) {
       setDeepReport(stored.report);
     } else {
       setAccessState({ isUnlocked: false });
-      setDeepReport(buildFptiDeepReport({ result }, { unlocked: false }));
+      setDeepReport(createInitialDeepReport(result));
     }
 
     const syncFromDb = async () => {
@@ -230,7 +260,7 @@ export default function FptiResultCard({ result }: Props) {
         const dbUnlocked = hasFptiPremiumUnlock(balance.data as unknown as Record<string, unknown>);
         if (!dbUnlocked) {
           setAccessState({ isUnlocked: false });
-          setDeepReport(buildFptiDeepReport({ result }, { unlocked: false }));
+          setDeepReport(createInitialDeepReport(result));
           return;
         }
 
@@ -240,17 +270,23 @@ export default function FptiResultCard({ result }: Props) {
           transactionId: stored?.access?.transactionId,
           unlockedAt: stored?.access?.unlockedAt || new Date().toISOString(),
         };
-        const unlockedReport = resolveUnlockReport(result);
-        setAccessState(nextAccess);
-        setDeepReport(unlockedReport);
-        setActiveChapter(0);
-        safeWriteStored({
-          version: 1,
-          scope,
-          signature,
-          access: nextAccess,
-          report: unlockedReport,
-        });
+        try {
+          const unlockedReport = buildFptiDeepReport({ result }, { unlocked: true });
+          setAccessState(nextAccess);
+          setDeepReport(unlockedReport);
+          setActiveChapter(0);
+          safeWriteStored({
+            version: 1,
+            scope,
+            signature,
+            access: nextAccess,
+            report: unlockedReport,
+          });
+        } catch (e) {
+          // Fallback if unlock fails
+          setAccessState(nextAccess);
+          setDeepReport(createInitialDeepReport(result));
+        }
       } catch {
         // Keep current state when balance sync fails.
       }
@@ -271,8 +307,15 @@ export default function FptiResultCard({ result }: Props) {
     setDeepLoading(true);
 
     try {
-      const built = resolveUnlockReport(result);
-      if (!Array.isArray(built.chapters) || built.chapters.length !== 7) {
+      let built: FptiDeepReport;
+      try {
+        built = buildFptiDeepReport({ result }, { unlocked: true });
+      } catch (e) {
+        // Fallback on build error
+        built = createInitialDeepReport(result);
+      }
+
+      if (!Array.isArray(built.chapters) || built.chapters.length === 0) {
         setDeepError("심층 리포트 생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
         return;
       }
@@ -319,7 +362,7 @@ export default function FptiResultCard({ result }: Props) {
         access: nextAccess,
         report: built,
       });
-    } catch {
+    } catch (e) {
       setDeepError("심층 리포트 잠금 해제 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
       setDeepLoading(false);
