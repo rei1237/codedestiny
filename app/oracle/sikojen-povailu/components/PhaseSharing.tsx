@@ -4,6 +4,7 @@ import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 import { useSikojenpovailuContext } from '../SikojenpovailuContext';
 import { YeonSpriteAvatar } from './YeonSpriteAvatar';
+import { PigCounselBubble } from './PigCounselBubble';
 
 const BLESSING_MESSAGES = [
   {
@@ -127,6 +128,12 @@ export function PhaseSharing() {
         <h2 className="text-3xl md:text-4xl font-bold text-rose-500 text-center" style={{ fontFamily: "'Jua', sans-serif" }}>
           행운이 활짝 피었어요! 🌺
         </h2>
+
+        <PigCounselBubble
+          className="w-full max-w-md"
+          title="연이의 마무리 상담"
+          message="오늘 받은 메시지를 저장해두면 다음 선택이 훨씬 쉬워져. 공유 버튼으로 마음 친구에게도 복을 나눠줘!"
+        />
 
         {/* 결과 카드 미리보기 */}
         {selectedShape && (

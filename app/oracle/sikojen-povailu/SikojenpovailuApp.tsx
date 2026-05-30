@@ -47,10 +47,30 @@ function PhaseRouter() {
  * + Shadow - 숨겨진 그림자 의미 (선택)
  */
 export default function SikojenpovailuApp() {
+  const appRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const target = appRef.current;
+    if (target && !document.fullscreenElement && typeof target.requestFullscreen === 'function') {
+      target.requestFullscreen().catch(() => {
+        // Some browsers require an explicit user gesture for fullscreen.
+      });
+    }
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
   return (
     <SikojenpovailuProvider>
-      <div className="sikojen-app" style={{
-        width: '100%',
+      <div ref={appRef} className="sikojen-app" style={{
+        position: 'fixed',
+        inset: 0,
+        width: '100vw',
         minHeight: '100dvh',
         height: '100dvh',
         display: 'block',

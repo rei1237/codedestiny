@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSikojenpovailuContext } from '../SikojenpovailuContext';
 import { YeonSpriteAvatar } from './YeonSpriteAvatar';
+import { PigCounselBubble } from './PigCounselBubble';
 
 export function PhaseReveal() {
   const { selectedShape, setPhase } = useSikojenpovailuContext();
@@ -80,6 +81,12 @@ export function PhaseReveal() {
                 Result View
               </span>
             </div>
+
+            <PigCounselBubble
+              className="mb-4"
+              title="연이의 결과 상담"
+              message="겉으로 보인 뜻과 그림자 뜻을 같이 읽으면 더 정확해져. 내가 핵심 문장만 딱 집어서 알려줄게."
+            />
 
             <div className="sikojen-reveal-card relative flex max-h-[calc(100dvh-120px)] flex-col overflow-hidden rounded-3xl border-2 border-amber-200/70 bg-gradient-to-br from-amber-50 via-rose-50 to-yellow-50 shadow-[0_24px_60px_rgba(4,4,24,0.48)]">
               <div className="sikojen-reveal-scroll overflow-y-auto px-5 pb-5 pt-6 sm:px-7 sm:pb-7 sm:pt-7">

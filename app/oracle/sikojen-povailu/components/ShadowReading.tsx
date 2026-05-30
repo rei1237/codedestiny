@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSikojenpovailuContext } from '../SikojenpovailuContext';
 import { YeonSpriteAvatar } from './YeonSpriteAvatar';
+import { PigCounselBubble } from './PigCounselBubble';
 
 export function ShadowReading() {
   const { setPhase, selectedShape } = useSikojenpovailuContext();
@@ -84,6 +85,12 @@ export function ShadowReading() {
         <h2 className="text-3xl md:text-4xl font-bold text-purple-300 text-center" style={{ fontFamily: "'Jua', sans-serif" }}>
           🌑 영혼의 그림자 읽기 👁️
         </h2>
+
+        <PigCounselBubble
+          className="w-full max-w-md border-purple-300/70 bg-purple-50/85"
+          title="연이의 그림자 상담"
+          message="불안한 마음은 숨기지 말고 같이 보자. 그림자 해석은 네가 지켜야 할 감정의 경계를 알려줘."
+        />
 
         {/* 벽면 - 그림자 디스플레이 */}
         <div className="relative w-full h-64 rounded-2xl border-4 border-purple-500/50 bg-gradient-to-b from-slate-800 to-slate-900 shadow-2xl overflow-hidden">

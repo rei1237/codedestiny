@@ -33,7 +33,7 @@ interface SikojenpovailuContextType {
 const SikojenpovailuContext = createContext<SikojenpovailuContextType | undefined>(undefined);
 
 export function SikojenpovailuProvider({ children }: { children: ReactNode }) {
-  const [currentPhase, setCurrentPhase] = useState<SikojenpovailuContextType['currentPhase']>('welcome');
+  const [currentPhase, setCurrentPhase] = useState<SikojenpovailuContextType['currentPhase']>('ritual-prep');
   const [selectedCategory, setSelectedCategory] = useState<'금전운' | '연애운' | '행운' | null>(null);
   const [selectedShape, setSelectedShape] = useState<Shape | null>(null);
   const [isRitualing, setIsRitualing] = useState(false);
@@ -65,7 +65,7 @@ export function SikojenpovailuProvider({ children }: { children: ReactNode }) {
   };
 
   const resetGame = () => {
-    setCurrentPhase('welcome');
+    setCurrentPhase('ritual-prep');
     setSelectedCategory(null);
     setSelectedShape(null);
     setIsRitualing(false);

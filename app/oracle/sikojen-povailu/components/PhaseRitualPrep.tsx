@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useSikojenpovailuContext } from '../SikojenpovailuContext';
 import { YeonSpriteAvatar } from './YeonSpriteAvatar';
+import { PigCounselBubble } from './PigCounselBubble';
 
 export function PhaseRitualPrep() {
   const { setPhase, selectCategory } = useSikojenpovailuContext();
@@ -79,6 +80,10 @@ export function PhaseRitualPrep() {
             intervalMs={840}
           />
         </div>
+        <PigCounselBubble
+          className="mt-3 w-72"
+          message="마음이 끌리는 주머니 하나만 골라줘. 나 연이가 거기서 오늘의 운세 상담을 시작할게!"
+        />
       </div>
 
       {/* 메인 콘텐츠 */}

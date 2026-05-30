@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useSikojenpovailuContext } from '../SikojenpovailuContext';
 import { YeonSpriteAvatar } from './YeonSpriteAvatar';
+import { PigCounselBubble } from './PigCounselBubble';
 
 export function PhaseCasting() {
   const { setPhase, setIsCasting, generateShape, selectedCategory } = useSikojenpovailuContext();
@@ -84,6 +85,12 @@ export function PhaseCasting() {
         <h2 className="text-3xl md:text-4xl font-bold text-pink-600 mb-12 text-center drop-shadow-lg" style={{ fontFamily: "'Jua', serif" }}>
           🔥 주석이 녹아내려 ✨
         </h2>
+
+        <PigCounselBubble
+          className="mb-7 w-full max-w-md"
+          title="연이의 주조 상담"
+          message="틀을 한 번만 톡 눌러줘. 굳는 모양을 보면서 너한테 필요한 조언을 내가 바로 읽어줄게."
+        />
 
         {/* 캐스팅 영역 */}
         <div className="relative w-full h-80 flex items-center justify-center">
