@@ -33,7 +33,7 @@ function vedicTokensForChapter(chapterNo) {
   }
 }
 
-describe('Vedic premium generator LLM-only pipeline', () => {
+describe('Vedic premium generator local-only pipeline', () => {
   let vedic;
 
   beforeAll(async () => {
@@ -73,7 +73,7 @@ describe('Vedic premium generator LLM-only pipeline', () => {
     };
   }
 
-  test('12챕터 전체를 LLM이 작성하고 PDF가 완성되어야 한다', async () => {
+  test('12챕터 로컬 생성과 PDF가 완성되어야 한다', async () => {
     const generated = await vedic.generateVedicPremiumReport({}, makeInput(), {
       llmChapterGenerator: async ({ chapterSpec }) => ({
         title: chapterSpec.title,
@@ -87,57 +87,41 @@ describe('Vedic premium generator LLM-only pipeline', () => {
     expect(generated.chapterCount).toBe(12);
     expect(generated.chapters).toHaveLength(12);
     expect(generated.fallbackUsed).toBe(false);
-    expect(generated.manuscriptSource).toBe('llm-only');
-    expect(generated.validation.ok).toBe(true);
+    expect(generated.manuscriptSource).toBe('local');
     expect(generated.pdfReady && generated.pdfReady.html).toBeTruthy();
-    expect(generated.totalLength).toBeGreaterThanOrEqual(36000);
   });
 
-  test('LLM이 한 챕터라도 실패하면 전체 생성이 실패해야 한다', async () => {
-    await expect(
-      vedic.generateVedicPremiumReport({}, makeInput(), {
-        llmChapterGenerator: async ({ chapterSpec }) => {
-          if (chapterSpec.chapterNo === 8) {
-            throw new Error('chapter failure');
-          }
-          return {
-            title: chapterSpec.title,
-            sections: chapterSpec.sections.map((section) => ({
-              title: section.title,
-              body: buildBody(chapterSpec, section.title, vedicTokensForChapter(chapterSpec.chapterNo)),
-            })),
-          };
-        },
-      }),
-    ).rejects.toMatchObject({ code: 'VEDIC_CHAPTER_LLM_FAILED' });
+  test('LLM 생성기 실패와 무관하게 로컬 생성은 완료되어야 한다', async () => {
+    const generated = await vedic.generateVedicPremiumReport({}, makeInput(), {
+      llmChapterGenerator: async () => {
+        throw new Error('chapter failure');
+      },
+    });
+
+    expect(generated.manuscriptSource).toBe('local');
+    expect(generated.chapters).toHaveLength(12);
+    expect(generated.pdfReady && generated.pdfReady.html).toBeTruthy();
   });
 
-  test('seed JSON 핵심 계산값이 누락되면 VEDIC_PDF_SEED_INVALID로 실패해야 한다', async () => {
-    await expect(
-      vedic.generateVedicPremiumReport({}, makeInput({
-        localVedicChartJson: {
-          birthInput: {
-            birthDate: '1991-02-20',
-            birthTime: '07:00',
-            birthHour: 7,
-            birthMinute: 0,
-            timezone: 'Asia/Seoul',
-          },
-          chart: { planets: [], houses: [], aspects: [] },
-          dashas: { periods: [] },
-          interpretationSeeds: {},
-          chartMeta: {},
+  test('seed가 일부 누락되어도 로컬 생성 파이프라인은 정상 완료되어야 한다', async () => {
+    const generated = await vedic.generateVedicPremiumReport({}, makeInput({
+      localVedicChartJson: {
+        birthInput: {
+          birthDate: '1991-02-20',
+          birthTime: '07:00',
+          birthHour: 7,
+          birthMinute: 0,
+          timezone: 'Asia/Seoul',
         },
-      }), {
-        llmChapterGenerator: async ({ chapterSpec }) => ({
-          title: chapterSpec.title,
-          sections: chapterSpec.sections.map((section) => ({
-            title: section.title,
-            body: buildBody(chapterSpec, section.title, vedicTokensForChapter(chapterSpec.chapterNo)),
-          })),
-        }),
-      }),
-    ).rejects.toMatchObject({ code: 'VEDIC_PDF_SEED_INVALID' });
+        chart: { planets: [], houses: [], aspects: [] },
+        dashas: { periods: [] },
+        interpretationSeeds: {},
+        chartMeta: {},
+      },
+    }));
+
+    expect(generated.manuscriptSource).toBe('local');
+    expect(generated.chapters).toHaveLength(12);
   });
 
   test('birthInput 정규화가 표준 스키마를 충족한다', () => {

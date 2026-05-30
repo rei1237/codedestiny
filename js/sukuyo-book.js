@@ -18,7 +18,6 @@
   var _resultPayload = null;
   var _generating = false;
   var _activeSessionId = '';
-  var _lastPremiumPayment = null;
   var _premiumAccessVerifiedUntil = 0;
   var _premiumPaidUntil = 0;
   var SUKYO_GENERATION_STATE_KEY = 'cd:sukuyo:compat:generation:v2';
@@ -88,26 +87,6 @@
       if (found) return found;
     }
     return _extractPremiumToken(payload.data) || _extractPremiumToken(payload.payload);
-  }
-
-  function _extractAccessGrant(payload) {
-    if (!payload || typeof payload !== 'object') return null;
-    if (payload.accessGrant && typeof payload.accessGrant === 'object') return payload.accessGrant;
-    return _extractAccessGrant(payload.data) || _extractAccessGrant(payload.payload);
-  }
-
-  function _buildPaymentContextFromPaymentData(paymentData) {
-    var accessGrant = _extractAccessGrant(paymentData);
-    if (!accessGrant || typeof accessGrant !== 'object') return null;
-    return {
-      featureKey: _clean(accessGrant.featureKey) || SUKYO_FEATURE_KEY,
-      requestId: _clean(accessGrant.requestId || accessGrant.transactionId),
-      purchaseId: _clean(accessGrant.purchaseId),
-      sessionId: _clean(accessGrant.sessionId || accessGrant.reportSessionId),
-      reportSessionId: _clean(accessGrant.reportSessionId || accessGrant.sessionId),
-      reportId: _clean(accessGrant.reportId),
-      accessGrant: accessGrant,
-    };
   }
 
   function _persistPremiumAccessToken(token) {
@@ -631,7 +610,7 @@
         var chapterNo = Number(chapter.order || chapter.chapterNo || (i + 1)) || (i + 1);
         var title = _sanitizeText(chapter.title || ('제' + chapterNo + '장'));
         _setLoadingProgress(chapterNo, SUKYO_TOTAL_CHAPTERS, '제' + chapterNo + '장 ' + title + ' 작성 중...');
-        _setLoadingStage('두 사람의 숙요 인연을 펼치는 중입니다.');
+        _setLoadingStage('숙요점 궁합 PDF 생성 중');
         _persistGenerationState({
           isOpen: true,
           status: 'generating',
@@ -737,32 +716,16 @@
   }
 
   function _buildPrepareBody(normalizedInput) {
-    var paymentContext = _buildPaymentContextFromPaymentData(_lastPremiumPayment);
-    var premiumAccessToken = _readPremiumAccessToken() || _extractPremiumToken(_lastPremiumPayment) || undefined;
     return {
       sessionId: _activeSessionId || _newSessionId(),
       featureKey: SUKYO_FEATURE_KEY,
-      premiumAccessToken: premiumAccessToken,
+      premiumAccessToken: _readPremiumAccessToken() || undefined,
       mode: 'compatibility',
       reportMode: 'compatibility',
       reportType: 'sookyoPremium',
       self: normalizedInput.self,
       partner: normalizedInput.partner,
       user: normalizedInput.self,
-      accessGrant: paymentContext && paymentContext.accessGrant ? paymentContext.accessGrant : undefined,
-      requestId: paymentContext && paymentContext.requestId ? paymentContext.requestId : undefined,
-      purchaseId: paymentContext && paymentContext.purchaseId ? paymentContext.purchaseId : undefined,
-      reportSessionId: paymentContext && paymentContext.reportSessionId ? paymentContext.reportSessionId : (_activeSessionId || undefined),
-      payment: paymentContext ? {
-        featureKey: paymentContext.featureKey,
-        requestId: paymentContext.requestId,
-        purchaseId: paymentContext.purchaseId,
-        sessionId: paymentContext.sessionId,
-        reportSessionId: paymentContext.reportSessionId,
-        reportId: paymentContext.reportId,
-        accessGrant: paymentContext.accessGrant,
-      } : undefined,
-      _paymentContext: paymentContext || undefined,
     };
   }
 
@@ -775,7 +738,6 @@
     _log('[SukuyoBook][PaymentGateStart]', { featureKey: SUKYO_FEATURE_KEY, mode: 'compatibility' });
     return new Promise(function (resolve, reject) {
       window._cdCoinGatePerUse(SUKYO_COIN_COST, '숙요점 프리미엄 궁합 PDF 생성', function (_transactionId, data) {
-        _lastPremiumPayment = data || null;
         _persistPremiumAccessToken(_extractPremiumToken(data));
         _markPremiumAccessVerified(25 * 60 * 1000);
         _log('[SukuyoBook][PaymentGateSuccess]', { featureKey: SUKYO_FEATURE_KEY });
@@ -947,15 +909,15 @@
     _resetGenerationState(_newSessionId());
     _setStartBusy(true);
     _showScreen('skLoadingScreen');
-    _setLoadingProgress(0, SUKYO_TOTAL_CHAPTERS, '두 사람의 숙요 인연을 펼치는 중입니다.');
-    _setLoadingStage('두 사람의 숙요 인연을 펼치는 중입니다.');
-    _setLoadingNotice('본명숙과 상대 숙의 흐름을 정리하고 있습니다.');
+    _setLoadingProgress(0, SUKYO_TOTAL_CHAPTERS, '숙요점 궁합 리포트를 준비하고 있습니다.');
+    _setLoadingStage('숙요점 궁합 PDF 생성 중');
+    _setLoadingNotice('두 사람의 본명숙과 인연 유형을 확인하는 중입니다.');
 
     _runPreflight(normalizedInput)
       .then(function (preflight) {
-        _setLoadingProgress(0, SUKYO_TOTAL_CHAPTERS, '인연 유형과 거리의 의미를 읽고 있습니다.');
-        _setLoadingStage('두 사람의 숙요 인연을 펼치는 중입니다.');
-        _setLoadingNotice('사랑과 갈등, 화해의 방향을 해석하고 있습니다.');
+        _setLoadingProgress(0, SUKYO_TOTAL_CHAPTERS, '입력 정보를 확인했습니다. 결제 확인을 진행합니다.');
+        _setLoadingStage('숙요점 궁합 PDF 생성 중');
+        _setLoadingNotice('결제 확인 후 제1장부터 순서대로 작성합니다.');
 
         if (!preflight || !preflight.ok) {
           throw new Error('결제 전 입력 검증에 실패했습니다.');
@@ -969,8 +931,8 @@
       })
       .then(function () {
         _setLoadingProgress(1, SUKYO_TOTAL_CHAPTERS, '제1장 작성 준비 중...');
-        _setLoadingStage('두 사람의 숙요 인연을 펼치는 중입니다.');
-        _setLoadingNotice('장기 관계 전략을 정리하고 있습니다.');
+        _setLoadingStage('숙요점 궁합 PDF 생성 중');
+        _setLoadingNotice('제1장부터 15장까지 순서대로 생성합니다.');
 
         _log('[SukuyoBook][LocalCalculationStart]', { sessionId: _activeSessionId });
 
@@ -990,22 +952,16 @@
         _resultPayload = response;
         _chapters = Array.isArray(response.chapters) ? response.chapters : [];
 
-        var expectedChapterCount = Number(response.chapterCount);
-        if (!Number.isFinite(expectedChapterCount) || expectedChapterCount <= 0) {
-          expectedChapterCount = Number(SUKYO_TOTAL_CHAPTERS) || 15;
-        }
-
-        if (!_chapters.length || Number(_chapters.length) !== expectedChapterCount) {
+        if (!_chapters.length || Number(response.chapterCount) !== 15 || Number(_chapters.length) !== 15) {
           throw new Error('15챕터 리포트 데이터가 비어 있습니다.');
         }
-        var qualityStatus = _clean(response.qualityStatus);
-        if (_clean(response.serverStatus) !== 'completed' || (qualityStatus !== 'passed' && qualityStatus !== 'passed_with_warnings') || !_clean(response.reportId)) {
+        if (_clean(response.serverStatus) !== 'completed' || _clean(response.qualityStatus) !== 'passed' || !_clean(response.reportId)) {
           throw new Error('일부 챕터의 내용을 더 정밀하게 다듬고 있습니다.');
         }
 
         return _playChapterProgress(_chapters).then(function () {
           _syncDotsByChapters(_chapters);
-          _setLoadingProgress(SUKYO_TOTAL_CHAPTERS, SUKYO_TOTAL_CHAPTERS, 'PDF를 완성하고 있습니다.');
+          _setLoadingProgress(SUKYO_TOTAL_CHAPTERS, SUKYO_TOTAL_CHAPTERS, '최종 검증 및 PDF 저장 중...');
           _setLoadingNotice('모든 챕터 작성을 완료했습니다. 결과를 준비하고 있습니다.');
           _renderResult(_chapters, response);
 
@@ -1013,7 +969,6 @@
             chapterCount: _chapters.length,
             fallbackUsed: !!response.fallbackUsed,
             manuscriptSource: response.manuscriptSource || 'unknown',
-            qualityStatus: qualityStatus || 'unknown',
             sessionId: _activeSessionId,
           });
 
@@ -1027,16 +982,12 @@
             failedChapters: [],
             reportId: _clean(response.reportId),
             sessionId: _activeSessionId,
-            qualityStatus: qualityStatus === 'passed_with_warnings' ? 'passed_with_warnings' : 'passed',
+            qualityStatus: 'passed',
             serverStatus: 'completed',
             updatedAt: Date.now(),
           });
 
-          if (qualityStatus === 'passed_with_warnings') {
-            _setLoadingNotice('완료되었습니다. 일부 문장은 더 정교하게 다듬어졌습니다.');
-          } else {
-            _setLoadingNotice('완료');
-          }
+          _setLoadingNotice('완료');
           _showScreen('skResultScreen');
         });
       })

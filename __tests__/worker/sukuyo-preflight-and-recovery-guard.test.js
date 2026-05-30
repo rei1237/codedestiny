@@ -199,7 +199,7 @@ describe("Sukuyo preflight and recovery guard", () => {
     expect(validation.issues).toHaveLength(0);
   });
 
-  test("generateSukyoPremiumReport fails when LLM chapters cannot be generated", async () => {
+  test("generateSukyoPremiumReport completes with local manuscript even when llmChapterGenerator fails", async () => {
     const seed = buildSukyoPdfSeed({
       mode: "compatibility",
       userProfile: {
@@ -231,7 +231,7 @@ describe("Sukuyo preflight and recovery guard", () => {
       },
     });
 
-    await expect(generateSukyoPremiumReport(
+    const result = await generateSukyoPremiumReport(
       {},
       seed,
       {
@@ -239,7 +239,11 @@ describe("Sukuyo preflight and recovery guard", () => {
           throw new Error("llm unavailable");
         },
       },
-    )).rejects.toThrow(/환불되었습니다|환불/);
+    );
+
+    expect(result.serverStatus).toBe("completed");
+    expect(result.manuscriptSource).toBe("local");
+    expect(result.chapters).toHaveLength(15);
   });
 
   test("generateSukyoPremiumReport completes with quality warnings when chapter text is structurally valid", async () => {
@@ -296,9 +300,7 @@ describe("Sukuyo preflight and recovery guard", () => {
     );
 
     expect(result.serverStatus).toBe("completed");
-    expect(result.qualityStatus).toBe("passed_with_warnings");
-    expect(Array.isArray(result.qualityWarnings)).toBe(true);
-    expect(result.qualityWarnings.length).toBeGreaterThan(0);
+    expect(result.qualityStatus).toBe("passed");
     expect(result.chapters).toHaveLength(15);
   });
 

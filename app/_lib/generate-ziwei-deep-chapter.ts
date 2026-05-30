@@ -425,41 +425,41 @@ function buildOverview(chart: ZiweiDeepChart): ZiweiDeepChapter {
     .flatMap((palace) => palace.mainStars)
     .sort((left, right) => String(right.strengthSymbol || right.symbol || "").localeCompare(String(left.strengthSymbol || left.symbol || "")))[0];
   const fullText = removeRepeatedZiweiDeepPhrases([
-    `명궁 ${groupBadge(lifePalace.mainStars)}는 이 명반의 기준점이고, 신궁 ${bodyPalace ? `${bodyPalace.name} ${groupBadge(bodyPalace.mainStars)}` : "보수 해석"}은 그 기준이 현실 행동으로 어떻게 발현되는지를 보여 줍니다.`,
-    `삼방사정의 핵심 축은 천이궁 ${groupBadge(travel?.mainStars || [])}, 관록궁 ${groupBadge(career?.mainStars || [])}, 재백궁 ${groupBadge(wealth?.mainStars || [])}입니다. 명궁 하나만 읽지 말고 외부 확장, 직업 구조, 수익 흐름을 함께 붙여야 실제 삶의 전략이 나옵니다.`,
-    `${buildTriadLink(chart, lifePalace)}`,
-    `사화는 화록 ${chart.sihua.hualu || "미확인"}, 화권 ${chart.sihua.huaquan || "미확인"}, 화과 ${chart.sihua.huake || "미확인"}, 화기 ${chart.sihua.huaji || "미확인"}로 작동합니다. 화기는 막힘이라는 단어보다 '집중 과제'라는 말로 읽어야 오판을 줄일 수 있습니다.`,
-    `전체 키워드는 ${chart.summary.keywords.slice(0, 3).join(", ")}이며, 가장 먼저 주목할 주성은 ${strongestStar ? `${strongestStar.name}${strongestStar.strengthSymbol || strongestStar.symbol || ""}` : "명반 재확인 필요"}입니다.`,
+    `당신의 기본 결은 ${groupBadge(lifePalace.mainStars)}로 시작되고, 실제 생활 습관과 행동 패턴은 ${bodyPalace ? `${bodyPalace.name} ${groupBadge(bodyPalace.mainStars)}` : "현재 확인 가능한 범위"}에서 더 뚜렷하게 드러납니다. 즉, 마음속 기준과 현실의 선택 방식이 어떻게 연결되는지를 함께 보면 스스로를 훨씬 정확하게 이해할 수 있습니다.`,
+    `삶의 확장과 성과는 바깥 활동(${groupBadge(travel?.mainStars || [])}), 일의 구조(${groupBadge(career?.mainStars || [])}), 돈의 흐름(${groupBadge(wealth?.mainStars || [])})이 맞물릴 때 커집니다. 그래서 한 영역만 잘하는 전략보다, 사람·일·수익을 같은 리듬으로 설계하는 전략이 더 오래갑니다.`,
+    `마주 보는 궁과 연결된 궁의 흐름을 같이 보면, 겉으로 보이는 성향과 실제 결과 사이의 간격을 줄일 수 있습니다. 이 관점은 "운이 좋다/나쁘다"를 따지는 방식이 아니라, 어디를 먼저 조정하면 삶이 부드럽게 풀리는지를 찾는 데 도움이 됩니다.`,
+    `올해의 변화 신호는 기회가 흘러드는 지점, 주도권이 강해지는 지점, 평판이 올라가는 지점, 반복 과제로 남는 지점을 함께 보여 줍니다. 특히 반복 과제는 실패 낙인이 아니라, 생활 규칙과 감정 관리 루틴을 세울 때 성과로 전환되는 구간입니다.`,
+    `현재 핵심 키워드는 ${chart.summary.keywords.slice(0, 3).join(", ")}이고, 지금 가장 먼저 살려야 할 강점 별은 ${strongestStar ? `${strongestStar.name}${strongestStar.strengthSymbol || strongestStar.symbol || ""}` : "명반 재확인 필요"}입니다. 이 강점을 일상 행동으로 옮길수록 삶의 체감 난이도는 낮아지고 선택의 확신은 높아집니다.`,
   ].join("\n\n"));
 
   return {
     sectionId: "overview",
     title: OVERVIEW_TEMPLATE.title,
     summary: [
-      `명궁·신궁: ${groupBadge(lifePalace.mainStars)} / ${bodyPalace ? `${bodyPalace.name} ${groupBadge(bodyPalace.mainStars)}` : "신궁 보수 해석"}`,
-      `가장 강한 주성: ${strongestStar ? `${strongestStar.name}${strongestStar.strengthSymbol || strongestStar.symbol || ""}` : "확인 중"}`,
-      `삼방사정 축: ${[travel?.name, career?.name, wealth?.name].filter(Boolean).join(", ")}`,
+      `당신의 기준과 행동 축: ${groupBadge(lifePalace.mainStars)} / ${bodyPalace ? `${bodyPalace.name} ${groupBadge(bodyPalace.mainStars)}` : "현재 확인 가능한 범위"}`,
+      `지금 먼저 살릴 강점 별: ${strongestStar ? `${strongestStar.name}${strongestStar.strengthSymbol || strongestStar.symbol || ""}` : "확인 중"}`,
+      `함께 보아야 할 생활 축: ${[travel?.name, career?.name, wealth?.name].filter(Boolean).join(", ")}`,
     ],
     fullText,
-    highlights: ["명궁", "신궁", "삼방사정", ...chart.summary.keywords].slice(0, 8),
+    highlights: ["기본 성향", "행동 패턴", "생활 축", ...chart.summary.keywords].slice(0, 8),
     strengths: [
-      "로컬 엔진이 계산한 12궁과 사화를 먼저 읽고 그 위에 상담문을 얹습니다.",
-      "명궁·신궁·삼방사정이 한 화면에서 연결되어 자기 운용법을 빠르게 파악할 수 있습니다.",
-      "가장 강한 주성과 약한 축을 동시에 보여 주어 확장과 방어 전략을 분리할 수 있습니다.",
+      "당신의 기본 성향과 현실 행동을 함께 보여 주어 자기 이해의 정확도를 높입니다.",
+      "사람·일·돈의 연결 흐름을 같이 보게 해 주어 실제 전략으로 옮기기 쉽습니다.",
+      "강한 지점과 흔들리는 지점을 동시에 제시해 확장 전략과 방어 전략을 분리할 수 있습니다.",
     ],
     cautions: [
-      "한 궁만 읽고 결론 내리면 실제 운용 포인트를 놓치기 쉽습니다.",
-      "화기와 약세 별은 실패 예언이 아니라 관리 우선순위로 읽어야 합니다.",
-      "공궁은 비어 있는 것이 아니라 대궁·삼방사정이 더 강하게 작동하는 구조입니다.",
+      "한 영역만 보고 결론 내리면 실제 변화 포인트를 놓치기 쉽습니다.",
+      "반복 과제 신호와 약세 별은 실패 예언이 아니라 관리 우선순위로 읽어야 합니다.",
+      "중심 별이 비어 보이는 궁도 연결 흐름의 영향이 커서 충분히 강하게 작동할 수 있습니다.",
     ],
     remedies: [
-      "주 1회 명궁-신궁 비교 회고",
-      "삼방사정 3궁 체크포인트 기록",
-      "강점 별과 약점 별을 따로 운영표에 적기",
+      "주 1회 내 기준과 실제 행동 비교 회고",
+      "사람·일·돈 3축 체크포인트 기록",
+      "강점 별과 보완 별을 분리해 운영표 작성",
     ],
-    actionItems: ["명궁 강점 1개를 이번 주 실행으로 전환", "신궁 약점 1개를 운영 규칙으로 보완", "삼방사정 기반 수익 모델 1개 정의"],
+    actionItems: ["핵심 강점 1개를 이번 주 행동으로 전환", "흔들리는 패턴 1개를 운영 규칙으로 보완", "사람·일·돈을 잇는 수익 시나리오 1개 정의"],
     routine7Days: ["매일 5분 기준 기록", "핵심 결정 24시간 재검토", "관계·일·돈 통합 점검"],
-    routine30Days: ["명궁/신궁 비교 리뷰", "삼방사정 성과 회고", "다음 달 전략 리셋"],
+    routine30Days: ["기준/행동 축 비교 리뷰", "생활 3축 성과 회고", "다음 달 전략 리셋"],
   };
 }
 
@@ -556,9 +556,9 @@ export function generateZiweiDeepChapter(chart: ZiweiDeepChart, sectionId: Ziwei
     subtitle: `${palaceReading.palaceName} · 지지 ${palace.earthlyBranch}`,
     summary: [
       palaceReading.summary,
-      `주성: ${palaceReading.mainStars.length ? palaceReading.mainStars.map((star) => `${star.name}${star.strengthSymbol || star.symbol || ""}`).join(", ") : "공궁이라 대궁·삼방사정 중심"}`,
+      `핵심 별 흐름: ${palaceReading.mainStars.length ? palaceReading.mainStars.map((star) => `${star.name}${star.strengthSymbol || star.symbol || ""}`).join(", ") : "연결된 궁의 영향 중심"}`,
       `보조성/잡성: ${palaceReading.supportStars.length ? palaceReading.supportStars.map((star) => `${star.name}${star.strengthSymbol || star.symbol || ""}`).join(", ") : "직접 보조성 약함"} / ${palaceReading.minorStars.length ? palaceReading.minorStars.map((star) => `${star.name}${star.strengthSymbol || star.symbol || ""}`).join(", ") : "잡성 영향 경미"}`,
-      `사화: ${palaceReading.transformations.length ? palaceReading.transformations.map((item) => `${item.type} ${item.starName}`).join(", ") : "직접 사화는 약하고 연결궁 유입 중심"}`,
+      `변화 신호: ${palaceReading.transformations.length ? palaceReading.transformations.map((item) => `${item.type} ${item.starName}`).join(", ") : "직접 변화 신호는 약하고 연결 흐름 중심"}`,
     ],
     fullText,
     highlights: [
@@ -568,7 +568,7 @@ export function generateZiweiDeepChapter(chart: ZiweiDeepChart, sectionId: Ziwei
     strengths: [
       palaceReading.brightnessSummary,
       palaceReading.categories[0]?.usedSignals.slice(0, 2).join(" · ") || "핵심 신호 정리",
-      palaceReading.sanFangSiZheng?.summary || "삼방사정 연결 확인",
+      palaceReading.sanFangSiZheng?.summary || "연결 흐름 확인",
     ],
     cautions: palaceReading.categories.slice(0, 3).map((category) => category.caution),
     remedies: [...ZIWEI_PALACE_TEMPLATES[palace.id].remedies, ...palaceReading.practicalAdvice].slice(0, 6),

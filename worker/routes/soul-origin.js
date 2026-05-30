@@ -3,7 +3,6 @@ import { getSwissVedicPlanets, getSwissWesternChart } from "../lib/swiss-ephemer
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
-import { callGeminiText } from "../lib/gemini.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import { buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
@@ -730,66 +729,6 @@ function appendUniquenessTag(chapters) {
   return chapters;
 }
 
-function extractJsonObject(text) {
-  const raw = clean(text);
-  if (!raw) return null;
-  const direct = raw.match(/\{[\s\S]*\}$/);
-  const fenced = raw.match(/```json\s*([\s\S]*?)\s*```/i);
-  const candidate = (fenced && fenced[1]) || (direct && direct[0]) || raw;
-  try {
-    return JSON.parse(candidate);
-  } catch {
-    return null;
-  }
-}
-
-function coerceAiChapters(parsed, fallbackChapters) {
-  const chapters = Array.isArray(parsed?.chapters) ? parsed.chapters : [];
-  if (!chapters.length) return fallbackChapters;
-
-  return fallbackChapters.map((fallback, index) => {
-    const src = chapters[index] || {};
-    const srcSections = Array.isArray(src.sections) ? src.sections : [];
-    return {
-      chapterNo: fallback.chapterNo,
-      title: fallback.title,
-      subtitle: fallback.subtitle,
-      sections: fallback.sections.map((section, secIndex) => {
-        const aiSection = srcSections[secIndex] || {};
-        const body = sanitizeText(aiSection.body || section.body || "");
-        return {
-          title: section.title,
-          body: body || section.body,
-        };
-      }),
-    };
-  });
-}
-
-function mergeAiWithLocal(fallbackChapters, aiChapters, seed) {
-  const merged = coerceAiChapters({ chapters: aiChapters }, fallbackChapters);
-  return appendUniquenessTag(enrichSectionsUntilLength(merged, seed, TARGET_TOTAL_CHARS_AFTER_ENHANCEMENT, 2));
-}
-
-function buildAiPrompt(seed) {
-  return [
-    "너는 사주 명리학과 심리 상담, 기도문 작성에 능한 운명 상담가다.",
-    "계산은 이미 로컬에서 완료되었다. 계산을 새로 하거나 계산값을 노출하지 말고 seed와 chapter skeleton만 사용하라.",
-    "사용자의 기원 주제와 현재 고민을 중심으로 작성하고, 위로에 그치지 말고 현실 행동을 제시하라.",
-    "각 챕터와 세부 카테고리를 절대 누락하지 말고, 각 카테고리마다 3~5문단 이상의 구체적 상담문을 작성하라.",
-    "공포 조장, 절대 예언, 저주, 불안 유도는 금지한다.",
-    "운명 기원서답게 마지막 문단은 사용자가 직접 읽을 수 있는 문장형 기원문을 포함하라.",
-    "본문에 payload, json, fallback, debug, engine, 자동 복구, Chapter, 데이터 부족 같은 내부 표현을 쓰지 마라.",
-    "출력은 JSON 객체 하나만 반환하세요.",
-    "출력 형식:",
-    "{\"chapters\":[{\"chapterNo\":1,\"sections\":[{\"title\":\"...\",\"body\":\"...\"}]}]}",
-    "seed:",
-    JSON.stringify(seed),
-    "chapterSkeleton:",
-    JSON.stringify(CHAPTER_BLUEPRINTS),
-  ].join("\n");
-}
-
 function buildSummary(chapters) {
   const first = chapters?.[0]?.sections?.[0]?.body || "";
   return sanitizeText(first).slice(0, 300) || "당신의 기원은 반복을 해석하는 순간 해방의 방향으로 열립니다.";
@@ -953,46 +892,7 @@ async function handlePrepare(request, env) {
     });
 
     let chapters = localChapters;
-    let llmEnhanced = false;
-    let fallbackNotice = "";
-    try {
-      logFlow("LLMStart", {
-        reportType: "soulOriginKarma",
-        productKey,
-        requestId,
-        sessionId: clean(executionCtx?.sessionId || sessionId, 160),
-      });
-      const ai = await callGeminiText(env, buildAiPrompt(seed), {
-        maxOutputTokens: 12288,
-        temperature: 0.8,
-        timeoutMs: 35000,
-        totalTimeoutMs: 55000,
-      });
-      if (ai?.ok && clean(ai.text)) {
-        const parsed = extractJsonObject(ai.text);
-        chapters = mergeAiWithLocal(localChapters, Array.isArray(parsed?.chapters) ? parsed.chapters : [], seed);
-        llmEnhanced = true;
-        logFlow("LLMSuccess", {
-          reportType: "soulOriginKarma",
-          productKey,
-          requestId,
-          sessionId: clean(executionCtx?.sessionId || sessionId, 160),
-        });
-      }
-    } catch (error) {
-      console.warn("[SoulOrigin][LLMFailedUseLocal]", normalizeError(error));
-      fallbackNotice = "일부 문장이 기본 해석으로 보강되었습니다.";
-    }
-
-    if (!llmEnhanced) {
-      logFlow("Failed", {
-        reportType: "soulOriginKarma",
-        productKey,
-        requestId,
-        sessionId: clean(executionCtx?.sessionId || sessionId, 160),
-        errorCode: "LLM_FALLBACK_USED",
-      });
-    }
+    const fallbackNotice = "";
 
     const finalLength = reportCharLength(chapters);
     if (finalLength < TARGET_TOTAL_CHARS_AFTER_ENHANCEMENT) {
@@ -1028,7 +928,7 @@ async function handlePrepare(request, env) {
       sessionId: clean(executionCtx?.sessionId || sessionId, 160),
     });
     await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
-      manuscriptSource: "mixed",
+      manuscriptSource: "local-only",
       chapterCount: Array.isArray(chapters) ? chapters.length : 0,
       archive: {
         reportId,

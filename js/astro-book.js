@@ -10,9 +10,8 @@
   var ASTRO_PREPARE_API = '/api/astro/premium/prepare';
   var ASTRO_CHAPTERS_API = '/api/astro/premium/chapters';
   var ASTRO_WESTERN_CHART_API = '/api/astro/western-chart';
-  var ASTRO_TOTAL_CHAPTERS = 12;
+  var ASTRO_TOTAL_CHAPTERS = 10;
   var ASTRO_COIN_COST = 390;
-  var ASTRO_FETCH_TIMEOUT_MS = 30000;
   var ASTRO_SIGN_NAMES = ['양자리', '황소자리', '쌍둥이자리', '게자리', '사자자리', '처녀자리', '천칭자리', '전갈자리', '사수자리', '염소자리', '물병자리', '물고기자리'];
 
   var _chapters = [];
@@ -35,49 +34,6 @@
   }
 
   function _clean(v) { return String(v || '').trim(); }
-
-  function _fetchJsonWithTimeout(url, init, timeoutMs) {
-    var controller = (typeof AbortController === 'function') ? new AbortController() : null;
-    var timer = null;
-    if (controller) {
-      timer = setTimeout(function () {
-        try { controller.abort(); } catch (_) {}
-      }, Math.max(1000, Number(timeoutMs || ASTRO_FETCH_TIMEOUT_MS)));
-    }
-
-    return fetch(url, Object.assign({}, init || {}, {
-      signal: controller ? controller.signal : undefined,
-      credentials: 'include',
-      cache: 'no-store',
-    }))
-      .then(function (res) {
-        return res.text().then(function (text) {
-          var json = {};
-          if (text) {
-            try { json = JSON.parse(text); } catch (_) { json = {}; }
-          }
-          return { res: res, json: json };
-        });
-      })
-      .finally(function () {
-        if (timer) clearTimeout(timer);
-      });
-  }
-
-  function _isRetryableAstroStatus(status) {
-    var code = Number(status || 0);
-    return code >= 500 || code === 408 || code === 425 || code === 429;
-  }
-
-  function _isAstroAuthOrPaymentFailure(status, payload) {
-    var code = String((payload && (payload.code || payload.error || payload.message)) || '').toUpperCase();
-    if (status === 401 || status === 402 || status === 403) return true;
-    return code.indexOf('AUTH') >= 0
-      || code.indexOf('UNAUTHORIZED') >= 0
-      || code.indexOf('FORBIDDEN') >= 0
-      || code.indexOf('PAYMENT') >= 0
-      || code.indexOf('PREMIUM') >= 0;
-  }
 
   function _logFlow(code, meta) {
     try {
@@ -129,14 +85,6 @@
     try { localStorage.setItem('cd_premium_access_token', value); } catch (_) {}
   }
 
-  function _clearPremiumAccessHints() {
-    _premiumAccessVerifiedUntil = 0;
-    _premiumPaidUntil = 0;
-    try { window.__cdPremiumAccessToken = ''; } catch (_) {}
-    try { sessionStorage.removeItem('cd_premium_access_token'); } catch (_) {}
-    try { localStorage.removeItem('cd_premium_access_token'); } catch (_) {}
-  }
-
   function _sanitizeText(v) {
     return String(v || '')
       .replace(/\b(undefined|null|nan)\b/gi, '')
@@ -163,18 +111,6 @@
       if (found) return found;
     }
     return _extractPremiumToken(payload.data) || _extractPremiumToken(payload.payload);
-  }
-
-  function _isAccessDeniedError(error) {
-    var status = Number(error && error.status || 0);
-    var code = _clean(error && error.code || '').toUpperCase();
-    var detailCode = _clean(error && error.details && error.details.code || '').toUpperCase();
-    var msg = _clean(error && error.message || '').toUpperCase();
-    if (status === 402 || status === 403) return true;
-    if (code.indexOf('UNAUTHORIZED') >= 0 || code.indexOf('PAYMENT') >= 0 || code.indexOf('COIN') >= 0 || code.indexOf('INSUFFICIENT') >= 0) return true;
-    if (detailCode.indexOf('UNAUTHORIZED') >= 0 || detailCode.indexOf('PAYMENT') >= 0 || detailCode.indexOf('COIN') >= 0 || detailCode.indexOf('INSUFFICIENT') >= 0) return true;
-    if (msg.indexOf('UNAUTHORIZED') >= 0 || msg.indexOf('PAYMENT') >= 0 || msg.indexOf('COIN') >= 0 || msg.indexOf('INSUFFICIENT') >= 0) return true;
-    return false;
   }
 
   function _premiumTokenMatches(reportType) {
@@ -609,31 +545,26 @@
       var authToken = '';
       try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) { authToken = ''; }
       if (authToken) headers.Authorization = 'Bearer ' + authToken;
-      _fetchJsonWithTimeout(url, {
+      fetch(url, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(body),
+        credentials: 'include',
+        cache: 'no-store',
       })
+        .then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (json) {
+            return { res: res, json: json };
+          });
+        })
         .then(function (pack) {
           if (pack.res.ok && pack.json && pack.json.ok !== false) {
             resolve(pack.json);
             return;
           }
-          if (_isAstroAuthOrPaymentFailure(Number(pack.res.status || 0), pack.json || {})) {
-            reject(new Error((pack.json && (pack.json.message || pack.json.code)) || '로그인 또는 결제 확인이 필요합니다.'));
-            return;
-          }
-          if (!_isRetryableAstroStatus(Number(pack.res.status || 0))) {
-            reject(new Error((pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status)));
-            return;
-          }
           run(resolve, reject, (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status));
         })
         .catch(function (err) {
-          if (err && err.name === 'AbortError') {
-            run(resolve, reject, '점성술 계산 API 응답이 지연되고 있습니다.');
-            return;
-          }
           run(resolve, reject, String(err && err.message || err || '요청 실패'));
         });
     }
@@ -787,9 +718,9 @@
     function next(resolve) {
       if (idx >= endpoints.length) return resolve([]);
       var u = endpoints[idx++];
-      _fetchJsonWithTimeout(u, { method: 'GET' }, 12000)
-        .then(function (pack) {
-          var data = pack && pack.json ? pack.json : {};
+      fetch(u)
+        .then(function (res) { return res.json().catch(function () { return {}; }); })
+        .then(function (data) {
           if (data && data.ok && Array.isArray(data.chapters) && data.chapters.length) {
             resolve(data.chapters);
             return;
@@ -806,64 +737,46 @@
     var idx = 0;
     var authToken = '';
     try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) { authToken = ''; }
+    var premiumToken = _readPremiumAccessToken();
 
-    function run(resolve, reject, lastErr, lastErrObj) {
+    function run(resolve, reject, lastErr) {
       if (idx >= endpoints.length) {
-        reject(lastErrObj || new Error(lastErr || '점성술 프리미엄 API 호출에 실패했습니다.'));
+        reject(new Error(lastErr || '점성술 프리미엄 API 호출에 실패했습니다.'));
         return;
       }
       var url = endpoints[idx++];
       var headers = { 'Content-Type': 'application/json' };
       if (authToken) headers.Authorization = 'Bearer ' + authToken;
-      var premiumToken = _readPremiumAccessToken();
       if (premiumToken) headers['x-premium-access-token'] = premiumToken;
 
-      _fetchJsonWithTimeout(url, {
+      fetch(url, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(body),
       })
+        .then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (json) {
+            return { res: res, json: json };
+          });
+        })
         .then(function (pack) {
           if (pack.res.ok && pack.json && pack.json.ok) {
             _persistPremiumAccessToken(_extractPremiumToken(pack.json));
             resolve(pack.json);
             return;
           }
-          var apiErr = new Error((pack.json && (pack.json.message || pack.json.error || pack.json.code)) || ('HTTP ' + pack.res.status));
-          apiErr.code = String((pack.json && pack.json.code) || '');
-          apiErr.status = Number(pack.res && pack.res.status || 0) || 0;
-          apiErr.details = pack.json || {};
-          if (_isAstroAuthOrPaymentFailure(apiErr.status, apiErr.details || {})) {
-            reject(apiErr);
-            return;
-          }
-          if (!_isRetryableAstroStatus(apiErr.status)) {
-            reject(apiErr);
-            return;
-          }
-          run(resolve, reject, apiErr.message, apiErr);
+          run(resolve, reject, (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status));
         })
         .catch(function (err) {
-          var reqErr = err instanceof Error ? err : new Error(String(err && err.message || err || '요청 실패'));
-          if (reqErr && reqErr.name === 'AbortError') {
-            reqErr = new Error('점성술 프리미엄 생성 요청이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.');
-          }
-          reqErr.code = reqErr.code || 'ASTRO_PREPARE_REQUEST_FAILED';
-          reqErr.status = Number(reqErr.status || 0) || 0;
-          if (!_isRetryableAstroStatus(reqErr.status) && reqErr.status > 0) {
-            reject(reqErr);
-            return;
-          }
-          run(resolve, reject, reqErr.message, reqErr);
+          run(resolve, reject, String(err && err.message || err || '요청 실패'));
         });
     }
 
-    return new Promise(function (resolve, reject) { run(resolve, reject, '', null); });
+    return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
   }
 
-  function _ensurePremiumPaymentAsync(force) {
-    var shouldForce = !!force;
-    if (!shouldForce && _hasPremiumAccessForGeneration()) {
+  function _ensurePremiumPaymentAsync() {
+    if (_hasPremiumAccessForGeneration()) {
       _logStage('PaymentGateStart', { featureKey: ASTRO_BILLING_FEATURE_KEY, reused: true });
       _logStage('PaymentGateSuccess', { featureKey: ASTRO_BILLING_FEATURE_KEY, reused: true });
       return Promise.resolve({ ok: true, skipped: true });
@@ -996,7 +909,7 @@
 
     _buildAstroBaseAsync(profile)
       .then(function (astroBase) {
-        _setLoadingProgress(total, total, '12챕터 해석문을 정리하고 있습니다.');
+        _setLoadingProgress(total, total, '10챕터 로컬 원고 생성 중');
         _logStage('LocalDraftProgress', { completed: total, total: total });
         return _ensurePremiumPaymentAsync().then(function (payment) {
           var paymentGrant = payment && payment.data && payment.data.accessGrant ? payment.data.accessGrant : (_lastPremiumPayment && _lastPremiumPayment.accessGrant ? _lastPremiumPayment.accessGrant : null);
@@ -1014,10 +927,10 @@
           });
           var sessionId = 'astro-premium:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
           _logStage('SessionCreateSuccess', { sessionId: sessionId });
-          _setLoadingProgress(total, total, '별의 해석을 정리하고 있습니다.');
+          _setLoadingProgress(total, total, 'AI 상담문 보강 중');
           _logStage('LLMEnhanceStart', { sessionId: sessionId });
           _logStage('PdfRequestStart', { featureKey: ASTRO_FEATURE_KEY, sessionId: sessionId });
-          var prepareBody = {
+          return _postPrepare({
             featureKey: ASTRO_FEATURE_KEY,
             premiumAccessToken: _readPremiumAccessToken() || _extractPremiumToken(payment && payment.data) || undefined,
             sessionId: sessionId,
@@ -1037,47 +950,6 @@
             birthInput: birthInput,
             profile: profile,
             astroBase: astroBase,
-          };
-          return _postPrepare(prepareBody).catch(function (firstErr) {
-            if (!_isAccessDeniedError(firstErr)) throw firstErr;
-            _logStage('PaymentGateRetry', {
-              reason: _clean(firstErr && (firstErr.code || firstErr.message) || 'access-denied'),
-              status: Number(firstErr && firstErr.status || 0) || null,
-            });
-            _clearPremiumAccessHints();
-            return _ensurePremiumPaymentAsync(true).then(function (retryPayment) {
-              var retryGrant = retryPayment && retryPayment.data && retryPayment.data.accessGrant
-                ? retryPayment.data.accessGrant
-                : (_lastPremiumPayment && _lastPremiumPayment.accessGrant ? _lastPremiumPayment.accessGrant : null);
-              return _postPrepare({
-                featureKey: ASTRO_FEATURE_KEY,
-                premiumAccessToken: _readPremiumAccessToken() || _extractPremiumToken(retryPayment && retryPayment.data) || undefined,
-                sessionId: sessionId,
-                reportSessionId: retryGrant && (retryGrant.reportSessionId || retryGrant.sessionId) || sessionId,
-                purchaseId: retryGrant && retryGrant.purchaseId || undefined,
-                requestId: retryGrant && (retryGrant.requestId || retryGrant.transactionId) || undefined,
-                accessGrant: retryGrant || undefined,
-                payment: retryGrant ? {
-                  featureKey: ASTRO_BILLING_FEATURE_KEY,
-                  requestId: retryGrant.requestId || retryGrant.transactionId || '',
-                  purchaseId: retryGrant.purchaseId || '',
-                  sessionId: retryGrant.sessionId || retryGrant.reportSessionId || '',
-                  reportSessionId: retryGrant.reportSessionId || retryGrant.sessionId || '',
-                  reportId: retryGrant.reportId || '',
-                } : undefined,
-                _paymentContext: retryGrant ? {
-                  featureKey: ASTRO_BILLING_FEATURE_KEY,
-                  requestId: retryGrant.requestId || retryGrant.transactionId || '',
-                  purchaseId: retryGrant.purchaseId || '',
-                  sessionId: retryGrant.sessionId || retryGrant.reportSessionId || '',
-                  reportSessionId: retryGrant.reportSessionId || retryGrant.sessionId || '',
-                  reportId: retryGrant.reportId || '',
-                } : undefined,
-                birthInput: birthInput,
-                profile: profile,
-                astroBase: astroBase,
-              });
-            });
           }).then(function (data) {
             return { data: data, astroBase: astroBase };
           });
@@ -1096,9 +968,10 @@
         if (!_chapters.length) throw new Error('점성술 챕터 데이터가 비어 있습니다.');
         ASTRO_TOTAL_CHAPTERS = _chapters.length;
         total = _getTotalChapters();
-        _setLoadingProgress(total, total, 'PDF를 완성하고 있습니다.');
-        if (response && _isCompletedReportReady(response)) {
-          _setLoadingProgress(total, total, 'PDF를 완성하고 있습니다.');
+        _setLoadingProgress(total, total, 'AI 상담문 보강 중');
+        if (response && response.fallbackUsed && _isCompletedReportReady(response)) {
+          _logStage('LLMEnhanceFailedUseLocal', { chapterCount: total });
+          _setLoadingProgress(total, total, 'AI 문장 보강이 지연되어 로컬 점성술 차트 기반 프리미엄 원고로 PDF를 완성합니다.');
         }
         _logStage('PdfRenderStart', { chapterCount: total });
         _setLoadingProgress(total, total, 'PDF 편집/렌더링 중');

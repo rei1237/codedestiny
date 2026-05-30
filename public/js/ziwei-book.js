@@ -5,14 +5,10 @@
   var FEATURE_KEY = 'premium_pdf_ziwei';
   var COIN_COST = 590;
   var PREPARE_API = '/api/ziwei-book/prepare';
-  var BILLING_EXEC_FAIL_API = '/api/billing/executions/fail';
-  var ZIWEI_FETCH_TIMEOUT_MS = 30000;
   var COVER_IMAGE = '/fuctionassets/jamipremiun.webp';
   var RESULT = null;
   var GENERATING = false;
   var LAST_SEED = null;
-  var CANCEL_REQUESTED = false;
-  var EXECUTION_FAIL_NOTIFIED = false;
   var ZIWEI_GENERATION_STATE = {
     isOpen: false,
     status: 'idle',
@@ -26,19 +22,19 @@
   };
 
   var CHAPTERS = [
-    '제1장 명반의 첫 문 작성 중...',
-    '제2장 12궁 완전 해석 작성 중...',
-    '제3장 주성과 보조성 작성 중...',
-    '제4장 사화 해석 작성 중...',
-    '제5장 성격과 내면 작성 중...',
-    '제6장 사랑과 결혼 작성 중...',
-    '제7장 직업과 사회적 소명 작성 중...',
-    '제8장 재물과 성공 작성 중...',
-    '제9장 복덕과 마음의 안식처 작성 중...',
-    '제10장 질액과 위기 신호 작성 중...',
-    '제11장 대운과 전환점 작성 중...',
-    '제12장 업과 반복 패턴 작성 중...',
-    '제13장 최종 운명 전략 작성 중...'
+    '제1장 명궁 완전 해석 — 나라는 사람의 첫 번째 별빛',
+    '제2장 신궁 심층 분석 — 인생 후반부와 실제 행동 패턴',
+    '제3장 복덕궁 — 마음의 깊이와 행복을 회복하는 방식',
+    '제4장 부모궁·형제궁 — 뿌리, 가족, 성장 환경의 흔적',
+    '제5장 부부궁 — 사랑, 결혼, 배우자 인연의 방향',
+    '제6장 자녀궁·노복궁 — 후배, 동료, 사람을 얻는 방식',
+    '제7장 재백궁 — 돈의 흐름과 재물 전략',
+    '제8장 관록궁 — 직업, 성공 방식, 사회적 역할',
+    '제9장 전택궁 — 집, 자산, 안정 기반',
+    '제10장 질액궁 — 건강 리듬과 생활 관리',
+    '제11장 천이궁 — 이동, 외부 기회, 귀인운',
+    '제12장 사화와 별의 강약 — 운명을 움직이는 핵심 신호',
+    '제13장 대운·세운 종합 전략 — 앞으로의 흐름과 실행 조언'
   ];
 
   var PALACE_KEY_BY_NAME = {
@@ -75,189 +71,6 @@
   function setText(id, value){ var el = $(id); if(el) el.textContent = value; }
   function setDisplay(id, value){ var el = $(id); if(el) el.style.display = value; }
 
-  function _buildApiCandidates(pathname){
-    var path = String(pathname || '');
-    if(path.charAt(0) !== '/') path = '/' + path;
-    var bases = [
-      '',
-      (typeof window !== 'undefined' && window.__CD_API_BASE_URL) || '',
-      (typeof window !== 'undefined' && window.__API_BASE_URL) || '',
-      (typeof window !== 'undefined' && window.__AUTH_API_BASE_URL) || '',
-      (typeof window !== 'undefined' && window.location && window.location.origin) || ''
-    ];
-    var seen = {};
-    var out = [];
-    for(var i=0;i<bases.length;i++){
-      var base = String(bases[i] || '').trim();
-      var url = base ? (base.replace(/\/+$/, '') + path) : path;
-      if(seen[url]) continue;
-      seen[url] = true;
-      out.push(url);
-    }
-    return out.length ? out : [path];
-  }
-
-  function _fetchJsonWithTimeout(url, init, timeoutMs){
-    var controller = (typeof AbortController === 'function') ? new AbortController() : null;
-    var timerId = null;
-    if(controller){
-      timerId = setTimeout(function(){
-        try { controller.abort(); } catch(_) {}
-      }, Math.max(1000, Number(timeoutMs || ZIWEI_FETCH_TIMEOUT_MS)));
-    }
-    return fetch(url, Object.assign({}, init || {}, {
-      credentials: 'include',
-      cache: 'no-store',
-      signal: controller ? controller.signal : undefined,
-    }))
-      .then(function(res){
-        return res.text().then(function(textBody){
-          var json = {};
-          if(textBody){
-            try { json = JSON.parse(textBody); } catch(_) { json = {}; }
-          }
-          return { res: res, json: json };
-        });
-      })
-      .finally(function(){
-        if(timerId) clearTimeout(timerId);
-      });
-  }
-
-  function _buildExecutionFailPayload(reasonCode, reasonMessage, options){
-    var opts = options || {};
-    var sessionId = text(opts.sessionId || ZIWEI_GENERATION_STATE.sessionId);
-    if(!sessionId) return null;
-    return {
-      sessionId: sessionId,
-      reportType: 'ziweiPremium',
-      featureKey: FEATURE_KEY,
-      reasonCode: text(reasonCode || 'client_cancelled') || 'client_cancelled',
-      reasonMessage: text(reasonMessage || '사용자 요청으로 생성이 취소되었습니다.') || '사용자 요청으로 생성이 취소되었습니다.',
-      failureStage: text(opts.failureStage || 'client_close') || 'client_close',
-      failureReason: text(reasonMessage || opts.failureReason || '사용자 요청으로 생성이 취소되었습니다.'),
-      forceRefundOnClose: true
-    };
-  }
-
-  function _isCloseRefundEligible(){
-    if(!GENERATING) return false;
-    if(RESULT) return false;
-    return String(ZIWEI_GENERATION_STATE.status || '').toLowerCase() !== 'completed';
-  }
-
-  async function notifyExecutionFailed(reasonCode, reasonMessage, options){
-    if(EXECUTION_FAIL_NOTIFIED) return true;
-    var payload = _buildExecutionFailPayload(reasonCode, reasonMessage, options);
-    if(!payload) return false;
-
-    var endpoints = _buildApiCandidates(BILLING_EXEC_FAIL_API);
-    var authToken = '';
-    try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch(_) { authToken = ''; }
-
-    var opts = options || {};
-    if(opts.useBeacon && typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function'){
-      var sent = false;
-      for(var i=0;i<endpoints.length;i++){
-        try {
-          var beaconBody = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-          if(navigator.sendBeacon(endpoints[i], beaconBody)){
-            sent = true;
-            break;
-          }
-        } catch(_) {}
-      }
-      if(sent){
-        EXECUTION_FAIL_NOTIFIED = true;
-        return true;
-      }
-    }
-
-    for(var j=0;j<endpoints.length;j++){
-      try {
-        var headers = { 'Content-Type': 'application/json' };
-        if(authToken) headers.Authorization = 'Bearer ' + authToken;
-        var res = await fetch(endpoints[j], {
-          method: 'POST',
-          headers: headers,
-          body: JSON.stringify(payload),
-          credentials: 'include',
-          cache: 'no-store',
-          keepalive: Boolean(opts.keepalive),
-        });
-        if(res && res.ok){
-          EXECUTION_FAIL_NOTIFIED = true;
-          return true;
-        }
-      } catch(_) {}
-    }
-    return false;
-  }
-
-  function _isRetryableZiweiStatus(status){
-    var code = Number(status || 0);
-    return code >= 500 || code === 408 || code === 425 || code === 429;
-  }
-
-  function _isZiweiAuthOrPaymentFailure(status, payload){
-    var code = String((payload && (payload.code || payload.error || payload.message)) || '').toUpperCase();
-    if(status === 401 || status === 402 || status === 403) return true;
-    return code.indexOf('AUTH') >= 0
-      || code.indexOf('UNAUTHORIZED') >= 0
-      || code.indexOf('FORBIDDEN') >= 0
-      || code.indexOf('PAYMENT') >= 0
-      || code.indexOf('PREMIUM') >= 0;
-  }
-
-  function _getZiweiStatusSpecificMessage(status, details) {
-    var details = details || {};
-    var httpStatus = Number(status || 0) || 0;
-    var failureStage = String(details.failureStage || details.stage || '');
-    var errorCode = String(details.code || details.errorCode || '').toUpperCase();
-    var reasonText = String(details.reason || details.message || '').toLowerCase();
-
-    if (httpStatus === 0) {
-      if (errorCode === 'ZIWEI_PREPARE_TIMEOUT') {
-        return '자미두수 PDF 응답이 지연되고 있습니다. 잠시 후 다시 시도해주세요.';
-      }
-      if (errorCode === 'ZIWEI_NETWORK_ERROR') {
-        return '네트워크 연결 문제로 자미두수 PDF 요청에 실패했습니다. 연결 상태 확인 후 다시 시도해주세요.';
-      }
-      return '자미두수 PDF 요청 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-    }
-
-    if (httpStatus === 499 || errorCode === 'ZIWEI_CLIENT_CANCELLED') {
-      return '생성이 취소되어 사용된 코인이 자동 환불 처리됩니다. 잠시 후 잔액을 확인해 주세요.';
-    }
-    
-    if (httpStatus === 429) {
-      return '자미두수 PDF 생성 AI 할당량이 임시로 부족합니다. 잠시 후 다시 시도해주세요.';
-    }
-    if (httpStatus === 503) {
-      return '서버가 현재 이용 불가능합니다. 잠시 후 다시 시도해주세요.';
-    }
-    if (httpStatus === 422) {
-      return '입력한 정보가 올바르지 않습니다. 다시 확인해주세요.';
-    }
-    if (httpStatus === 500 || httpStatus === 502 || httpStatus === 504) {
-      if (reasonText.indexOf('_llm_error:429') >= 0 || reasonText.indexOf('quota') >= 0 || reasonText.indexOf('rate-limit') >= 0) {
-        return '자미두수 PDF 생성 AI 할당량이 임시로 부족합니다. 잠시 후 다시 시도해주세요.';
-      }
-      if (failureStage === 'chapter_generation') {
-        var chapterNo = String(details.failedChapterNo || '');
-        if (chapterNo) {
-          return '챕터 ' + chapterNo + ' 생성에 실패했습니다. 잠시 후 다시 시도해주세요.';
-        }
-        return '자미두수 PDF 챕터 생성에 실패했습니다. 잠시 후 다시 시도해주세요.';
-      }
-      if (failureStage === 'preparation') {
-        return '자미두수 PDF 준비 중에 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-      }
-      return '자미두수 PDF 생성 중에 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-    }
-    return '자미두수 PDF 생성 요청에 실패했습니다. 잠시 후 다시 시도해 주세요.';
-  }
-
   function updateZiweiGenerationState(patch){
     ZIWEI_GENERATION_STATE = Object.assign({}, ZIWEI_GENERATION_STATE, patch || {});
     try { window.__ziweiPdfGenerationState = ZIWEI_GENERATION_STATE; } catch (_) {}
@@ -282,7 +95,7 @@
     var chapters = Array.isArray(payload.chapters) ? payload.chapters : [];
     var hasReportId = Boolean(text(payload.reportId));
     var hasPdfHtml = Boolean(text(payload && payload.pdfReady && payload.pdfReady.html));
-    return hasReportId && hasPdfHtml && chapters.length === TOTAL_CHAPTERS;
+    return hasReportId && hasPdfHtml && chapters.length >= TOTAL_CHAPTERS;
   }
 
   function logFlow(tag, payload){
@@ -378,7 +191,7 @@
   function updateProgress(percent, label){
     var fill = $('zbProgressBar');
     if(fill) fill.style.width = Math.max(0, Math.min(100, percent)) + '%';
-    setText('zbLoadingChapter', label || '자미두수 명반을 펼치는 중입니다.');
+    setText('zbLoadingChapter', label || '자미두수 명반을 준비하고 있습니다.');
     updateZiweiGenerationState({ message: text(label || ''), totalChapters: TOTAL_CHAPTERS });
   }
 
@@ -476,23 +289,15 @@
   }
 
   async function readApiProfile(){
-    var endpoints = _buildApiCandidates('/api/profile');
-    var endpointIndex = 0;
     try {
-      while(endpointIndex < endpoints.length){
-        var pack = await _fetchJsonWithTimeout(endpoints[endpointIndex++], { method: 'GET' }, 12000);
-        if(!pack.res.ok){
-          if(!_isRetryableZiweiStatus(pack.res.status)) return null;
-          continue;
-        }
-        var data = pack.json || {};
-        var profiles = Array.isArray(data && data.profiles) ? data.profiles : [];
-        var currentId = text(data && data.currentId);
-        var selected = (currentId && profiles.find(function(p){ return p && (p.id === currentId || p.profileId === currentId); })) || profiles[0] || null;
-        if(!selected) continue;
-        return profileFromObject(selected, 'profileApi');
-      }
-      return null;
+      var res = await fetch('/api/profile', { method: 'GET', credentials: 'include' });
+      if(!res.ok) return null;
+      var data = await res.json().catch(function(){ return {}; });
+      var profiles = Array.isArray(data && data.profiles) ? data.profiles : [];
+      var currentId = text(data && data.currentId);
+      var selected = (currentId && profiles.find(function(p){ return p && (p.id === currentId || p.profileId === currentId); })) || profiles[0] || null;
+      if(!selected) return null;
+      return profileFromObject(selected, 'profileApi');
     } catch(_) {
       return null;
     }
@@ -798,16 +603,15 @@
   }
 
   async function postPrepare(profile, seed, payment, birthInput){
-    var endpoints = _buildApiCandidates(PREPARE_API);
-    var endpointIndex = 0;
+    var token = (payment && (payment.premiumAccessToken || payment.accessToken)) || getPremiumToken();
     var sessionId = text(payment && payment.sessionId);
-    var authToken = '';
-    try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch(_) { authToken = ''; }
+    var headers = { 'Content-Type': 'application/json' };
+    if(token) headers['x-premium-access-token'] = token;
     var body = {
       featureKey: FEATURE_KEY,
       reportType: 'ziweiPremium',
       sessionId: sessionId || undefined,
-      premiumAccessToken: ((payment && (payment.premiumAccessToken || payment.accessToken)) || getPremiumToken()) || '',
+      premiumAccessToken: token || '',
       paymentContext: payment || {},
       birthProfile: profile,
       birthInput: birthInput,
@@ -821,87 +625,13 @@
       birthplace: profile.birthplace,
       ziweiBase: seed
     };
-
-    function toError(message, status, details){
-      var err = new Error(message || '자미두수 PDF 생성 요청에 실패했습니다.');
-      err.status = Number(status || 0) || 0;
-      err.code = String((details && details.code) || 'ZIWEI_PREPARE_FAILED');
-      err.details = Object.assign({ httpStatus: err.status, message: message, timestamp: new Date().toISOString() }, details || {});
-      return err;
+    var res = await fetch(PREPARE_API, { method: 'POST', credentials: 'include', headers: headers, body: JSON.stringify(body) });
+    var json = await res.json().catch(function(){ return {}; });
+    if(!res.ok || !json.ok){
+      throw new Error(json.message || json.error || ('자미두수 PDF 생성 요청에 실패했습니다. HTTP ' + res.status));
     }
-
-    var lastError = null;
-    while(endpointIndex < endpoints.length){
-      var endpointUrl = endpoints[endpointIndex];
-      var token = (payment && (payment.premiumAccessToken || payment.accessToken)) || getPremiumToken();
-      var headers = { 'Content-Type': 'application/json' };
-      if(token) headers['x-premium-access-token'] = token;
-      if(authToken) headers.Authorization = 'Bearer ' + authToken;
-
-      var pack;
-      try {
-        pack = await _fetchJsonWithTimeout(endpointUrl, {
-          method: 'POST',
-          headers: headers,
-          body: JSON.stringify(body),
-        }, ZIWEI_FETCH_TIMEOUT_MS);
-        endpointIndex += 1;
-      } catch(error){
-        if(error && error.name === 'AbortError') {
-          lastError = toError('자미두수 PDF 생성 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.', 0, {
-            code: 'ZIWEI_PREPARE_TIMEOUT',
-            endpoint: endpointUrl,
-          });
-          logFlow('PrepareTimeout', { endpoint: endpointUrl, endpointIndex: endpointIndex + 1, totalEndpoints: endpoints.length });
-          endpointIndex += 1;
-          if(endpointIndex < endpoints.length) continue;
-          throw lastError;
-        }
-        lastError = toError((error && error.message) || '네트워크 오류가 발생했습니다.', 0, {
-          code: 'ZIWEI_NETWORK_ERROR',
-          endpoint: endpointUrl,
-          errorName: error && error.name,
-        });
-        logFlow('PrepareNetworkError', {
-          endpoint: endpointUrl,
-          endpointIndex: endpointIndex + 1,
-          totalEndpoints: endpoints.length,
-          errorName: error && error.name,
-          message: error && error.message,
-        });
-        endpointIndex += 1;
-        if(endpointIndex < endpoints.length) continue;
-        throw lastError;
-      }
-
-      var json = pack.json || {};
-      var status = Number(pack.res && pack.res.status || 0) || 0;
-      if(pack.res && pack.res.ok && json.ok){
-        if(json.premiumAccessToken || json.accessToken) storePremiumToken(json.premiumAccessToken || json.accessToken);
-        return json;
-      }
-
-      lastError = toError(json.message || json.error || ('자미두수 PDF 생성 요청에 실패했습니다. HTTP ' + status), status, Object.assign({}, json, { endpoint: endpointUrl }));
-
-      if(_isZiweiAuthOrPaymentFailure(status, json)) {
-        logFlow('AuthOrPaymentFailure', { status: status, code: json.code, message: json.message });
-        throw toError(json.message || json.error || '로그인 또는 결제 확인이 필요합니다.', status, Object.assign({}, json, { endpoint: endpointUrl }));
-      }
-      if(!_isRetryableZiweiStatus(status)) {
-        logFlow('NonRetryableError', { status: status, code: json.code, message: json.message, endpoint: endpointUrl });
-        throw toError(json.message || json.error || ('자미두수 PDF 생성 요청에 실패했습니다. HTTP ' + status), status, Object.assign({}, json, { endpoint: endpointUrl }));
-      }
-      logFlow('RetryableStatus', {
-        status: status,
-        code: json.code,
-        message: json.message,
-        endpoint: endpointUrl,
-        endpointIndex: endpointIndex,
-        totalEndpoints: endpoints.length
-      });
-    }
-
-    throw (lastError || toError('자미두수 PDF 생성 요청에 실패했습니다. 잠시 후 다시 시도해 주세요.', 0, { code: 'ZIWEI_PREPARE_FAILED' }));
+    if(json.premiumAccessToken || json.accessToken) storePremiumToken(json.premiumAccessToken || json.accessToken);
+    return json;
   }
 
   function renderResult(data){
@@ -979,7 +709,7 @@
     if(!RESULT){
       setDisplay('zbLoadingScreen','none');
       setDisplay('zbResultScreen','none');
-      updateProgress(0, '자미두수 명반을 펼치는 중입니다.');
+      updateProgress(0, '자미두수 명반을 준비합니다.');
       markChapter(-1);
     }
   };
@@ -991,19 +721,7 @@
       modal.style.display = 'none';
       document.body.classList.remove('modal-open');
     }
-    if(_isCloseRefundEligible()){
-      CANCEL_REQUESTED = true;
-      updateZiweiGenerationState({ status: 'cancelling', message: '생성을 취소하고 환불을 처리하고 있습니다.' });
-      notifyExecutionFailed('client_closed_refund', '사용자가 자미두수 PDF 생성을 취소했습니다.', {
-        failureStage: 'client_close',
-        keepalive: true,
-      });
-      if(window.showToast) window.showToast('생성 취소를 처리 중입니다. 사용된 코인은 자동 환불됩니다.', 'info');
-    }
-    updateZiweiGenerationState({
-      isOpen: false,
-      status: GENERATING ? (CANCEL_REQUESTED ? 'cancelling' : 'generating') : ZIWEI_GENERATION_STATE.status
-    });
+    updateZiweiGenerationState({ isOpen: false, status: GENERATING ? 'generating' : ZIWEI_GENERATION_STATE.status });
   };
 
   window.gotoZiweiPremium = function(){
@@ -1013,8 +731,6 @@
   window.generateZiweiBook = async function(){
     if(GENERATING) return;
     GENERATING = true;
-    CANCEL_REQUESTED = false;
-    EXECUTION_FAIL_NOTIFIED = false;
     RESULT = null;
     resetZiweiGenerationState();
     try {
@@ -1022,7 +738,7 @@
       setDisplay('zbResultScreen','none');
       setDisplay('zbErrorScreen','none');
       setDisplay('zbLoadingScreen','block');
-      updateProgress(8, '자미두수 명반을 펼치는 중입니다.');
+      updateProgress(8, '프로필 정보 확인 중');
       markChapter(-1);
       var resolved = await resolveBirthInput();
       logFlow('ProfileResolved', {
@@ -1044,116 +760,79 @@
         hasBirthTime: true,
         birthHour: resolved.birthInput.birthHour
       });
-      logFlow('PaymentGateStart', { featureKey: FEATURE_KEY, coinCost: COIN_COST });
-      updateProgress(46, '생성 준비를 마무리하고 있습니다.');
-      updateZiweiGenerationState({ status: 'paymentChecking' });
-      var payment = await ensurePayment();
-      if(CANCEL_REQUESTED){
-        var cancelEarly = new Error('생성이 취소되어 자동 환불 처리 중입니다.');
-        cancelEarly.status = 499;
-        cancelEarly.code = 'ZIWEI_CLIENT_CANCELLED';
-        throw cancelEarly;
-      }
-      logFlow('PaymentGateSuccess', {
-        hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken || payment.token))
-      });
-      updateProgress(18, '명궁과 신궁의 흐름을 정리하고 있습니다.');
+      updateProgress(18, '자미두수 명반 계산 중');
       updateZiweiGenerationState({ status: 'calculating' });
       var profile = resolved.profileForEngine;
       var seed = await buildZiweiSeed(profile);
-      if(CANCEL_REQUESTED){
-        var cancelAfterSeed = new Error('생성이 취소되어 자동 환불 처리 중입니다.');
-        cancelAfterSeed.status = 499;
-        cancelAfterSeed.code = 'ZIWEI_CLIENT_CANCELLED';
-        throw cancelAfterSeed;
-      }
-      updateProgress(35, '12궁에 담긴 삶의 무대를 읽고 있습니다.');
+      updateProgress(35, '13챕터 로컬 원고 생성 중');
       updateZiweiGenerationState({ status: 'drafting' });
-      updateProgress(58, '사랑과 직업, 재물의 흐름을 해석하고 있습니다.');
+      logFlow('PaymentGateStart', { featureKey: FEATURE_KEY, coinCost: COIN_COST });
+      updateProgress(46, '결제/코인 접근 확인 중');
+      updateZiweiGenerationState({ status: 'paymentChecking' });
+      var payment = await ensurePayment();
+      logFlow('PaymentGateSuccess', {
+        hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken || payment.token))
+      });
+      updateProgress(58, '13챕터 로컬 원고 생성 중');
       var sessionId = 'ziwei-premium:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
       updateZiweiGenerationState({ status: 'generating', sessionId: sessionId, currentChapterNo: 1 });
       logFlow('SessionCreateStart', { endpoint: PREPARE_API, hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken)) });
       logFlow('PdfRequestStart', { endpoint: PREPARE_API, chapterTarget: TOTAL_CHAPTERS });
       var data = await postPrepare(profile, seed, Object.assign({}, payment, { sessionId: sessionId }), resolved.birthInput);
-      if(CANCEL_REQUESTED){
-        var cancelAfterPrepare = new Error('생성이 취소되어 자동 환불 처리 중입니다.');
-        cancelAfterPrepare.status = 499;
-        cancelAfterPrepare.code = 'ZIWEI_CLIENT_CANCELLED';
-        throw cancelAfterPrepare;
-      }
       if(!isZiweiReportReady(data)){
         throw new Error('자미두수 PDF 결과가 아직 완전히 저장되지 않았습니다. 잠시 후 다시 시도해 주세요.');
       }
       logFlow('SessionCreateSuccess', {
         chapterCount: Array.isArray(data && data.chapters) ? data.chapters.length : 0,
-        llmOnly: true
+        fallbackUsed: Boolean(data && data.fallbackUsed)
       });
-      var chapterProgressCount = Math.max(0, Math.min(TOTAL_CHAPTERS, Number((data && data.chapterCount) || 0)));
+      var localDraftCount = Number((data && data.localDraftChapterCount) || 0);
+      var chapterProgressCount = Math.max(0, Math.min(TOTAL_CHAPTERS, localDraftCount || Number((data && data.chapterCount) || 0)));
       for(var i=0; i<chapterProgressCount; i++){
         markChapter(i);
-        updateProgress(62 + Math.round(((i + 1) / TOTAL_CHAPTERS) * 24), CHAPTERS[i] || '챕터를 완성하고 있습니다.');
+        updateProgress(62 + Math.round(((i + 1) / TOTAL_CHAPTERS) * 16), CHAPTERS[i] || '챕터를 완성하고 있습니다.');
         logFlow('LocalDraftProgress', { chapterDone: i + 1, chapterTotal: TOTAL_CHAPTERS });
       }
-      updateProgress(88, '인생의 반복 패턴과 전환점을 정리하고 있습니다.');
+      updateProgress(82, 'AI 상담문 보강 중');
       updateZiweiGenerationState({ status: 'enhancing' });
-      updateProgress(95, '마지막 운명 전략을 완성하고 있습니다.');
+      updateProgress(95, 'PDF 편집/렌더링 중');
       updateZiweiGenerationState({ status: 'savingPdf' });
       RESULT = data;
+      if(data && data.fallbackUsed && isZiweiReportReady(data) && window.showToast){
+        window.showToast('AI 문장 보강이 지연되어 로컬 자미두수 명반 기반 프리미엄 원고로 PDF를 완성합니다.', 'info');
+      }
       logFlow('PdfRequestSuccess', {
         chapterCount: Array.isArray(data && data.chapters) ? data.chapters.length : 0,
-        llmOnly: true
+        localDraftChapterCount: localDraftCount,
+        fallbackUsed: Boolean(data && data.fallbackUsed)
       });
-      updateProgress(100, 'PDF를 완성하고 있습니다.');
+      updateProgress(100, '완료');
       updateZiweiGenerationState({ status: 'completed', reportId: text(data && data.reportId), currentChapterNo: TOTAL_CHAPTERS });
       renderResult(data);
     } catch(error) {
-      var isClientCancelled = CANCEL_REQUESTED || Number(error && error.status || 0) === 499 || String(error && error.code || '').toUpperCase() === 'ZIWEI_CLIENT_CANCELLED';
-      await notifyExecutionFailed(
-        isClientCancelled ? 'client_closed_refund' : 'ziwei_generation_failed_client',
-        (error && error.message) || (isClientCancelled ? '사용자가 생성을 취소했습니다.' : '자미두수 PDF 생성이 실패했습니다.'),
-        { failureStage: isClientCancelled ? 'client_close' : 'generation', keepalive: true },
-      );
       var normalizedError = normalizeZiweiError(error);
-      var enhancedError = Object.assign({}, normalizedError, { status: error.status, code: error.code, details: error.details });
-      var userMessage = _getZiweiStatusSpecificMessage(error.status, error.details);
-      logFlow('GenerationFailed', {
-        status: error.status || 0,
-        code: error.code || 'UNKNOWN',
-        message: error.message,
-        sessionId: ZIWEI_GENERATION_STATE.sessionId,
-        currentChapterNo: ZIWEI_GENERATION_STATE.currentChapterNo,
-        failedChapters: ZIWEI_GENERATION_STATE.failedChapters,
-        details: error.details
-      });
-      if(isClientCancelled && !ZIWEI_GENERATION_STATE.isOpen){
-        return;
-      }
-      showError(userMessage || (normalizedError && normalizedError.message ? normalizedError.message : String(error)));
+      logFlow('Error', normalizedError);
+      showError(normalizedError && normalizedError.message ? normalizedError.message : String(error));
     } finally {
       GENERATING = false;
     }
   };
 
-  window.addEventListener('pagehide', function(){
-    if(!_isCloseRefundEligible()) return;
-    CANCEL_REQUESTED = true;
-    notifyExecutionFailed('client_unload_refund', '사용자가 페이지를 벗어나 자미두수 PDF 생성을 취소했습니다.', {
-      failureStage: 'client_close',
-      useBeacon: true,
-      keepalive: true,
-    });
-  });
+  function buildFallbackPrintHtml(){
+    if(!RESULT) return '';
+    var chapters = Array.isArray(RESULT.chapters) ? RESULT.chapters : [];
+    return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>자미두수 프리미엄 PDF</title><style>body{font-family:Malgun Gothic,serif;line-height:1.8;padding:28px;color:#241333}img{max-width:300px;border-radius:16px}h1{color:#3b0764}article{page-break-before:always;border-top:2px solid #7c3aed;padding-top:18px}.cat{border:1px solid #e9d5ff;border-radius:12px;padding:12px;margin:12px 0}p{white-space:pre-wrap}</style></head><body><h1>자미두수 프리미엄 PDF</h1><img src="' + esc(COVER_IMAGE) + '" alt="표지"><p>명궁과 12궁으로 읽는 운명의 별자리</p>' + chapters.map(function(chapter){
+      var cats = Array.isArray(chapter.categories) ? chapter.categories : [];
+      return '<article><h2>' + esc(chapter.title) + '</h2>' + cats.map(function(cat){ return '<div class="cat"><h3>' + esc(cat.title) + '</h3><p>' + esc(cat.finalText || cat.text || '') + '</p></div>'; }).join('') + '</article>';
+    }).join('') + '</body></html>';
+  }
 
   window.downloadZiweiBookPdf = function(){
     if(!RESULT){
       showError('먼저 자미두수 PDF를 생성해 주세요.');
       return;
     }
-    var html = RESULT.pdfReady && RESULT.pdfReady.html ? RESULT.pdfReady.html : '';
-    if(!html){
-      showError('PDF 본문이 준비되지 않았습니다. 다시 생성해 주세요.');
-      return;
-    }
+    var html = RESULT.pdfReady && RESULT.pdfReady.html ? RESULT.pdfReady.html : buildFallbackPrintHtml();
     var win = window.open('', '_blank', 'noopener,noreferrer');
     if(!win){
       showError('팝업이 차단되었습니다. 브라우저 팝업 허용 후 다시 시도해 주세요.');

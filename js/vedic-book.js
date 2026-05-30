@@ -9,8 +9,6 @@
   var VEDIC_PREPARE_API = '/api/vedic/premium/prepare';
   var VEDIC_CHAPTERS_API = '/api/vedic/premium/chapters';
   var VEDIC_PLANETS_API = '/api/vedic/planets';
-  var BILLING_COIN_GATE_API = '/api/billing/coin-gate';
-  var VEDIC_FETCH_TIMEOUT_MS = 30000;
   var VEDIC_TOTAL_CHAPTERS = 12;
   var VEDIC_COIN_COST = 390;
 
@@ -75,36 +73,6 @@
       .replace(/데이터가\s*부족합니다/gi, '')
       .replace(/\s{2,}/g, ' ')
       .trim();
-  }
-
-  function _mapVedicUiError(errorOrMessage) {
-    var rawMessage = '';
-    var code = '';
-    if (errorOrMessage && typeof errorOrMessage === 'object') {
-      rawMessage = _clean(errorOrMessage.message || errorOrMessage.error || '');
-      code = _clean(errorOrMessage.code || (errorOrMessage.details && errorOrMessage.details.code) || '');
-    } else {
-      rawMessage = _clean(errorOrMessage);
-    }
-
-    var lowered = (rawMessage || '').toLowerCase();
-    if (code === 'SWISS_WASM_EMBEDDER_BLOCKED' || lowered.indexOf('wasm code generation disallowed by embedder') >= 0) {
-      return '현재 서버 계산 엔진 연결이 제한되어 베다점 PDF를 생성할 수 없습니다. 잠시 후 다시 시도해 주세요.';
-    }
-    if (code === 'VEDIC_API_CONFIG_INCOMPLETE' || code === 'VEDIC_API_CONFIG_INVALID') {
-      return '베다점 계산 서비스 설정이 아직 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.';
-    }
-    if (code === 'VEDIC_API_TIMEOUT' || code === 'VEDIC_API_REQUEST_FAILED' || code === 'VEDIC_API_UPSTREAM_FAILED') {
-      return '베다점 계산 서비스 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.';
-    }
-    if (code === 'BIRTH_INPUT_INVALID' || code === 'MISSING_VEDIC_DATA' || code === 'VEDIC_PAYLOAD_INVALID') {
-      return '출생 정보가 충분하지 않아 베다점 PDF를 생성할 수 없습니다. 프로필 정보를 확인해 주세요.';
-    }
-
-    if (/internal\s*server\s*error/i.test(rawMessage)) {
-      return 'PDF 생성이 완료되지 않아 사용된 코인이 자동으로 환불되었습니다. 다시 시도해 주세요.';
-    }
-    return _sanitizeText(rawMessage) || '생성 중 오류가 발생했습니다.';
   }
 
   function _persistPremiumAccessToken(token) {
@@ -185,49 +153,6 @@
       out.push(url);
     }
     return out;
-  }
-
-  function _fetchJsonWithTimeout(url, init, timeoutMs) {
-    var controller = (typeof AbortController === 'function') ? new AbortController() : null;
-    var timerId = null;
-    if (controller) {
-      timerId = setTimeout(function () {
-        try { controller.abort(); } catch (_) {}
-      }, Math.max(1000, Number(timeoutMs || VEDIC_FETCH_TIMEOUT_MS)));
-    }
-
-    return fetch(url, Object.assign({}, init || {}, {
-      credentials: 'include',
-      cache: 'no-store',
-      signal: controller ? controller.signal : undefined,
-    }))
-      .then(function (res) {
-        return res.text().then(function (body) {
-          var json = {};
-          if (body) {
-            try { json = JSON.parse(body); } catch (_) { json = {}; }
-          }
-          return { res: res, json: json };
-        });
-      })
-      .finally(function () {
-        if (timerId) clearTimeout(timerId);
-      });
-  }
-
-  function _isRetryableVedicStatus(status) {
-    var code = Number(status || 0);
-    return code >= 500 || code === 408 || code === 425 || code === 429;
-  }
-
-  function _isVedicAuthOrPaymentFailure(status, payload) {
-    var code = String((payload && (payload.code || payload.error || payload.message)) || '').toUpperCase();
-    if (status === 401 || status === 402 || status === 403) return true;
-    return code.indexOf('AUTH') >= 0
-      || code.indexOf('UNAUTHORIZED') >= 0
-      || code.indexOf('FORBIDDEN') >= 0
-      || code.indexOf('PAYMENT') >= 0
-      || code.indexOf('PREMIUM') >= 0;
   }
 
   function _recoverBirthFromDOM() {
@@ -331,13 +256,9 @@
       if (endpointIndex >= endpoints.length) { resolve(null); return; }
       var headers = {};
       if (authToken) headers.Authorization = 'Bearer ' + authToken;
-      _fetchJsonWithTimeout(endpoints[endpointIndex++], { method: 'GET', headers: headers }, 12000)
-        .then(function (pack) {
-          if (!pack.res.ok && !_isRetryableVedicStatus(pack.res.status)) {
-            resolve(null);
-            return;
-          }
-          var data = pack.json || {};
+      fetch(endpoints[endpointIndex++], { method: 'GET', headers: headers, credentials: 'include', cache: 'no-store' })
+        .then(function (res) { return res.json().catch(function () { return {}; }); })
+        .then(function (data) {
           var profile = _toProfileFromAuthMe(data);
           if (_hasValidBirthProfile(profile)) { resolve(profile); return; }
           run(resolve);
@@ -467,17 +388,10 @@
       var authToken = '';
       try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) { authToken = ''; }
       if (authToken) headers.Authorization = 'Bearer ' + authToken;
-      _fetchJsonWithTimeout(url, { method: 'POST', headers: headers, body: JSON.stringify(body) }, VEDIC_FETCH_TIMEOUT_MS)
+      fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(body), credentials: 'include', cache: 'no-store' })
+        .then(function (res) { return res.json().catch(function () { return {}; }).then(function (json) { return { res: res, json: json }; }); })
         .then(function (pack) {
           if (pack.res.ok && pack.json && pack.json.ok !== false) { resolve(pack.json); return; }
-          if (_isVedicAuthOrPaymentFailure(Number(pack.res.status || 0), pack.json || {})) {
-            reject(new Error((pack.json && (pack.json.message || pack.json.code)) || '로그인 또는 결제 확인이 필요합니다.'));
-            return;
-          }
-          if (!_isRetryableVedicStatus(Number(pack.res.status || 0))) {
-            reject(new Error((pack.json && (pack.json.message || pack.json.error || pack.json.code)) || ('HTTP ' + pack.res.status)));
-            return;
-          }
           run(resolve, reject, (pack.json && (pack.json.message || pack.json.error || pack.json.code)) || ('HTTP ' + pack.res.status));
         })
         .catch(function (error) { run(resolve, reject, String(error && error.message || error || '요청 실패')); });
@@ -519,9 +433,12 @@
     });
   }
 
-  function _setError(message, errorMeta) {
+  function _setError(message) {
     var element = _qs('vdErrorMsg');
-    var safe = _mapVedicUiError(errorMeta || message);
+    var safe = _sanitizeText(message);
+    if (/internal\s*server\s*error/i.test(String(message || ''))) {
+      safe = 'PDF 생성이 완료되지 않아 사용된 코인이 자동으로 환불되었습니다. 다시 시도해 주세요.';
+    }
     if (element) element.textContent = safe || '생성 중 오류가 발생했습니다.';
     _showScreen('vdErrorScreen');
   }
@@ -587,7 +504,7 @@
 
   function _startProgressAnimation() {
     _stopProgressAnimation();
-    var titles = ['프로필 정보 확인 중', '베다 차트의 흐름을 정리하고 있습니다.', '12챕터 해석문을 정리하고 있습니다.'];
+    var titles = ['프로필 정보 확인 중', '베다 차트 계산 중', '12챕터 로컬 원고 생성 중'];
     var index = 1;
     _setLoadingProgress(1, VEDIC_TOTAL_CHAPTERS, titles[0]);
     _progressTimer = setInterval(function () {
@@ -645,9 +562,9 @@
     function next(resolve) {
       if (endpointIndex >= endpoints.length) return resolve([]);
       var url = endpoints[endpointIndex++];
-      _fetchJsonWithTimeout(url, { method: 'GET' }, 12000)
-        .then(function (pack) {
-          var data = pack && pack.json ? pack.json : {};
+      fetch(url)
+        .then(function (res) { return res.json().catch(function () { return {}; }); })
+        .then(function (data) {
           if (data && data.ok && Array.isArray(data.chapters) && data.chapters.length) { resolve(data.chapters); return; }
           next(resolve);
         })
@@ -661,187 +578,41 @@
     var endpointIndex = 0;
     var authToken = '';
     try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) { authToken = ''; }
-    function run(resolve, reject, lastErr, lastErrObj) {
-      if (endpointIndex >= endpoints.length) { reject(lastErrObj || new Error(lastErr || '베다점 프리미엄 API 호출에 실패했습니다.')); return; }
+    var premiumToken = _readPremiumAccessToken();
+    function run(resolve, reject, lastErr) {
+      if (endpointIndex >= endpoints.length) { reject(new Error(lastErr || '베다점 프리미엄 API 호출에 실패했습니다.')); return; }
       var url = endpoints[endpointIndex++];
       var headers = { 'Content-Type': 'application/json' };
       if (authToken) headers.Authorization = 'Bearer ' + authToken;
-      var premiumToken = _readPremiumAccessToken();
       if (premiumToken) headers['x-premium-access-token'] = premiumToken;
-      _fetchJsonWithTimeout(url, { method: 'POST', headers: headers, body: JSON.stringify(body) }, VEDIC_FETCH_TIMEOUT_MS)
+      fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(body), credentials: 'include', cache: 'no-store' })
+        .then(function (res) { return res.json().catch(function () { return {}; }).then(function (json) { return { res: res, json: json }; }); })
         .then(function (pack) {
           if (pack.res.ok && pack.json && pack.json.ok) { _persistPremiumAccessToken(_extractPremiumToken(pack.json)); resolve(pack.json); return; }
-          var apiErr = new Error((pack.json && (pack.json.message || pack.json.error || pack.json.code)) || ('HTTP ' + pack.res.status));
-          apiErr.code = String((pack.json && pack.json.code) || '');
-          apiErr.status = Number(pack.res && pack.res.status || 0) || 0;
-          apiErr.details = pack.json || {};
-          if (_isVedicAuthOrPaymentFailure(apiErr.status, apiErr.details || {})) {
-            reject(apiErr);
-            return;
-          }
-          if (!_isRetryableVedicStatus(apiErr.status)) {
-            reject(apiErr);
-            return;
-          }
-          run(resolve, reject, apiErr.message, apiErr);
+          run(resolve, reject, (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status));
         })
-        .catch(function (error) {
-          var reqErr = error instanceof Error ? error : new Error(String(error && error.message || error || '요청 실패'));
-          reqErr.code = reqErr.code || 'VEDIC_PREPARE_REQUEST_FAILED';
-          reqErr.status = Number(reqErr.status || 0) || 0;
-          if (!_isRetryableVedicStatus(reqErr.status) && reqErr.status > 0) {
-            reject(reqErr);
-            return;
-          }
-          run(resolve, reject, reqErr.message, reqErr);
-        });
+        .catch(function (error) { run(resolve, reject, String(error && error.message || error || '요청 실패')); });
     }
-    return new Promise(function (resolve, reject) { run(resolve, reject, '', null); });
-  }
-
-  function _normalizeVedicAccessGrant(raw, fallbackSessionId, fallbackRequestId) {
-    var data = raw && typeof raw === 'object' ? raw : {};
-    var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
-    var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
-    var transactionId = _clean(data.transactionId || consume.transactionId || accessGrant.transactionId);
-    var requestId = _clean(accessGrant.requestId || data.requestId || consume.requestId || fallbackRequestId);
-    var reportId = _clean(accessGrant.reportId || data.reportId);
-    var sessionId = _clean(accessGrant.sessionId || data.sessionId || data.reportSessionId || fallbackSessionId);
-    var purchaseId = _clean(accessGrant.purchaseId || data.purchaseId || transactionId);
-    if (!reportId) {
-      reportId = 'vedic-premium-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
-    }
-    if (!sessionId) sessionId = fallbackSessionId || ('vedic-premium:' + reportId);
-    if (!requestId) requestId = fallbackRequestId;
-    if (!purchaseId && transactionId) purchaseId = transactionId;
-
-    if (!reportId || !sessionId || !requestId) return null;
-
-    return {
-      ok: true,
-      featureKey: VEDIC_FEATURE_KEY,
-      reportId: reportId,
-      sessionId: sessionId,
-      reportSessionId: sessionId,
-      requestId: requestId,
-      purchaseId: purchaseId || undefined,
-      transactionId: transactionId || undefined,
-      paidAt: _clean(accessGrant.paidAt || data.paidAt || new Date().toISOString()) || new Date().toISOString(),
-    };
-  }
-
-  function _runVedicServerCoinGate(sessionId, requestId) {
-    var premiumToken = _readPremiumAccessToken();
-    var headers = { 'Content-Type': 'application/json' };
-    if (premiumToken) headers['x-premium-access-token'] = premiumToken;
-
-    return fetch(BILLING_COIN_GATE_API, {
-      method: 'POST',
-      credentials: 'include',
-      headers: headers,
-      body: JSON.stringify({
-        categoryKey: 'premium-report',
-        featureKey: VEDIC_FEATURE_KEY,
-        reason: '베다 점성술 프리미엄 PDF 리포트 생성',
-        reportType: 'vedicPremium',
-        mode: 'vedic-book',
-        forceDeduct: true,
-        requestId: requestId,
-        sessionId: sessionId || undefined,
-        reportSessionId: sessionId || undefined,
-      }),
-    }).then(function (response) {
-      return response.json().catch(function () { return {}; }).then(function (payload) {
-        var data = payload && payload.data && typeof payload.data === 'object' ? payload.data : payload;
-        if (!response.ok || !payload || payload.ok === false) {
-          throw new Error((payload && (payload.message || (payload.error && payload.error.message) || payload.code)) || ('결제 확인에 실패했습니다. HTTP ' + response.status));
-        }
-        var token = _extractPremiumToken(data) || _extractPremiumToken(payload);
-        if (token) _persistPremiumAccessToken(token);
-        return {
-          ok: true,
-          premiumAccessToken: token,
-          accessGrant: _normalizeVedicAccessGrant(data, sessionId, requestId),
-          transactionId: _clean(data && data.transactionId),
-          consume: data && data.consume ? data.consume : null,
-        };
-      });
-    });
+    return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
   }
 
   function _ensurePremiumPaymentThenStart() {
     if (_hasPremiumAccessForGeneration()) return true;
-
-    var requestId = 'vedic-premium-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
-    var fallbackSessionId = _currentVedicSessionId || ('vedic-premium:' + requestId);
-    _logStage('PaymentGateStart', { featureKey: VEDIC_FEATURE_KEY, requestId: requestId });
-
-    function finish(result) {
-      var normalized = result && typeof result === 'object' ? result : {};
-      var accessGrant = _normalizeVedicAccessGrant(normalized, fallbackSessionId, requestId);
-      _lastPremiumPayment = {
-        ok: true,
-        requestId: requestId,
-        accessGrant: accessGrant,
-        transactionId: _clean(normalized.transactionId || (normalized.consume && normalized.consume.transactionId) || (accessGrant && accessGrant.transactionId)),
-        consume: normalized.consume || null,
-        premiumAccessToken: _extractPremiumToken(normalized),
-      };
-      _persistPremiumAccessToken(_extractPremiumToken(normalized));
-      _markPremiumAccessVerified(25 * 60 * 1000);
-      _logStage('PaymentGateSuccess', {
-        featureKey: VEDIC_FEATURE_KEY,
-        hasAccessGrant: Boolean(accessGrant),
-        hasTransactionId: Boolean(_lastPremiumPayment.transactionId),
-      });
-      window.generateVedicBook();
-    }
-
     if (typeof window._cdCoinGatePerUse !== 'function') {
-      _runVedicServerCoinGate(fallbackSessionId, requestId)
-        .then(finish)
-        .catch(function (error) {
-          _logError(error, { stage: 'PaymentGateFallback' });
-          _setError(String(error && error.message ? error.message : error || '결제 확인에 실패했습니다.'), error);
-        });
+      alert('결제 모듈을 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.');
       return false;
     }
-
-    var handled = false;
-    function onSuccess(_transactionId, data) {
-      if (handled) return;
-      handled = true;
-      finish(Object.assign({ transactionId: _clean(_transactionId) }, data || {}));
-    }
-    function onFailure(error) {
-      if (handled) return;
-      handled = true;
-      _runVedicServerCoinGate(fallbackSessionId, requestId)
-        .then(finish)
-        .catch(function (fallbackError) {
-          _logError(fallbackError || error, { stage: 'PaymentGate' });
-          _setError(String((fallbackError && fallbackError.message) || (error && error.message) || '결제 확인에 실패했습니다.'), fallbackError || error);
-        });
-    }
-
-    try {
-      var immediate = window._cdCoinGatePerUse(VEDIC_COIN_COST, '베다 점성술 프리미엄 PDF 리포트 생성', onSuccess, onFailure, {
-        featureKey: VEDIC_FEATURE_KEY,
-        requestId: requestId,
-      });
-      if (immediate && typeof immediate.then === 'function') {
-        immediate.then(function (result) {
-          if (result && result.ok === false) {
-            onFailure(new Error(_clean(result.message) || '결제 확인에 실패했습니다.'));
-            return;
-          }
-          onSuccess(_clean(result && result.transactionId), result || {});
-        }).catch(onFailure);
-      }
-    } catch (error) {
-      onFailure(error);
-    }
-
+    _logStage('PaymentGateStart', { featureKey: VEDIC_FEATURE_KEY });
+    window._cdCoinGatePerUse(VEDIC_COIN_COST, '베다 점성술 프리미엄 PDF 리포트 생성', function (_transactionId, data) {
+      _lastPremiumPayment = data || null;
+      _persistPremiumAccessToken(_extractPremiumToken(data));
+      _markPremiumAccessVerified(25 * 60 * 1000);
+      _logStage('PaymentGateSuccess', { featureKey: VEDIC_FEATURE_KEY });
+      window.generateVedicBook();
+    }, null, {
+      featureKey: VEDIC_FEATURE_KEY,
+      requestId: 'vedic-premium-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+    });
     return false;
   }
 
@@ -946,30 +717,24 @@
     _fetchVedicChart(profile, birthInput)
       .then(function (chart) {
         var vedicBase = _buildVedicBase(profile, chart, birthInput);
-        _setLoadingProgress(2, VEDIC_TOTAL_CHAPTERS, '베다 차트의 흐름을 정리하고 있습니다.');
-        _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '12챕터 해석문을 정리하고 있습니다.');
+        _setLoadingProgress(2, VEDIC_TOTAL_CHAPTERS, '베다 차트 계산 중');
+        _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '12챕터 로컬 원고 생성 중');
         _logStage('SessionCreateStart', { endpoint: VEDIC_PREPARE_API, featureKey: VEDIC_FEATURE_KEY });
         var paymentGrant = _lastPremiumPayment && _lastPremiumPayment.accessGrant ? _lastPremiumPayment.accessGrant : null;
-        var paymentRequestId = _clean(_lastPremiumPayment && _lastPremiumPayment.requestId) || _clean(paymentGrant && paymentGrant.requestId);
-        var paymentTransactionId = _clean(_lastPremiumPayment && _lastPremiumPayment.transactionId) || _clean(paymentGrant && paymentGrant.transactionId);
-        var paymentPurchaseId = _clean(paymentGrant && paymentGrant.purchaseId);
         var paymentContext = paymentGrant ? {
           featureKey: VEDIC_FEATURE_KEY,
-          requestId: paymentRequestId || paymentTransactionId || '',
-          purchaseId: paymentPurchaseId || paymentTransactionId || '',
+          requestId: paymentGrant.requestId || paymentGrant.transactionId || '',
+          purchaseId: paymentGrant.purchaseId || '',
           sessionId: paymentGrant.sessionId || paymentGrant.reportSessionId || '',
           reportSessionId: paymentGrant.reportSessionId || paymentGrant.sessionId || '',
           reportId: paymentGrant.reportId || '',
-          transactionId: paymentTransactionId || '',
         } : undefined;
         return _postPrepare({
           sessionId: _currentVedicSessionId,
           featureKey: VEDIC_FEATURE_KEY,
           reportSessionId: paymentGrant && (paymentGrant.reportSessionId || paymentGrant.sessionId) || _currentVedicSessionId,
-          purchaseId: paymentPurchaseId || paymentTransactionId || undefined,
-          requestId: paymentRequestId || paymentTransactionId || undefined,
-          transactionId: paymentTransactionId || undefined,
-          sourceTransactionId: paymentTransactionId || undefined,
+          purchaseId: paymentGrant && paymentGrant.purchaseId || undefined,
+          requestId: paymentGrant && (paymentGrant.requestId || paymentGrant.transactionId) || undefined,
           accessGrant: paymentGrant || undefined,
           premiumAccessToken: _readPremiumAccessToken() || _extractPremiumToken(_lastPremiumPayment) || undefined,
           payment: paymentContext ? {
@@ -979,7 +744,6 @@
             sessionId: paymentContext.sessionId,
             reportSessionId: paymentContext.reportSessionId,
             reportId: paymentContext.reportId,
-            transactionId: paymentContext.transactionId,
           } : undefined,
           _paymentContext: paymentContext,
           vedicBase: vedicBase,
@@ -1010,21 +774,21 @@
         _chapters = Array.isArray(response.chapters) ? response.chapters : [];
         if (!_chapters.length) throw new Error('베다점 챕터 데이터가 비어 있습니다.');
 
-        _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, 'PDF를 완성하고 있습니다.');
+        _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, 'AI 상담문 보강 중');
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, 'PDF 편집/렌더링 중');
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '완료');
         _renderResult(_chapters, response.payload || vedicBase);
         _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, fallbackUsed: !!response.fallbackUsed });
 
-        if (response && _isCompletedReportReady(response) && typeof window.showToast === 'function') {
-          window.showToast('베다점 PDF가 완성되었습니다.', 'info');
+        if (response && response.fallbackUsed && _isCompletedReportReady(response) && typeof window.showToast === 'function') {
+          window.showToast('AI 문장 보강이 지연되어 로컬 베다점 계산 기반 프리미엄 원고로 PDF를 완성합니다.', 'info');
         }
 
         _showScreen('vdResultScreen');
       })
       .catch(function (error) {
         _logError(error, { stage: 'generate' });
-        _setError(String(error && error.message ? error.message : error || '생성 실패'), error);
+        _setError(String(error && error.message ? error.message : error || '생성 실패'));
       })
       .finally(function () {
         _generating = false;
@@ -1034,7 +798,7 @@
       });
     }).catch(function (error) {
       _logError(error, { stage: 'resolve-profile' });
-      _setError(String(error && error.message ? error.message : error || '생성 실패'), error);
+      _setError(String(error && error.message ? error.message : error || '생성 실패'));
     });
   };
 

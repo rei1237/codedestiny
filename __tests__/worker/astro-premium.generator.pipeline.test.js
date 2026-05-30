@@ -32,7 +32,7 @@ function astroTokensForChapter(chapterNo) {
   }
 }
 
-describe('Astro premium generator LLM-only pipeline', () => {
+describe('Astro premium generator local-only pipeline', () => {
   let astro;
 
   beforeAll(async () => {
@@ -61,7 +61,7 @@ describe('Astro premium generator LLM-only pipeline', () => {
     };
   }
 
-  test('12챕터 전체를 LLM이 작성하고 PDF가 완성되어야 한다', async () => {
+  test('로컬 생성으로 PDF가 완성되어야 한다', async () => {
     const generated = await astro.generateAstroPremiumReport({}, makeInput(), {
       llmChapterGenerator: async ({ chapterSpec }) => ({
         title: chapterSpec.title,
@@ -72,32 +72,25 @@ describe('Astro premium generator LLM-only pipeline', () => {
       }),
     });
 
-    expect(generated.chapterCount).toBe(12);
-    expect(generated.chapters).toHaveLength(12);
+    expect(generated.chapterCount).toBe(10);
+    expect(generated.chapters).toHaveLength(10);
     expect(generated.fallbackUsed).toBe(false);
-    expect(generated.manuscriptSource).toBe('llm-only');
+    expect(generated.manuscriptSource).toBe('local');
     expect(generated.validation.ok).toBe(true);
     expect(generated.pdfReady && generated.pdfReady.html).toBeTruthy();
     expect(generated.totalLength).toBeGreaterThanOrEqual(32000);
   });
 
-  test('LLM이 한 챕터라도 실패하면 전체 생성이 실패해야 한다', async () => {
-    await expect(
-      astro.generateAstroPremiumReport({}, makeInput(), {
-        llmChapterGenerator: async ({ chapterSpec }) => {
-          if (chapterSpec.chapterNo === 4) {
-            throw new Error('chapter failure');
-          }
-          return {
-            title: chapterSpec.title,
-            sections: chapterSpec.sections.map((section) => ({
-              title: section.title,
-              body: buildBody(chapterSpec, section.title, astroTokensForChapter(chapterSpec.chapterNo)),
-            })),
-          };
-        },
-      }),
-    ).rejects.toMatchObject({ code: 'ASTRO_CHAPTER_LLM_FAILED' });
+  test('LLM 생성기 실패와 무관하게 로컬 생성은 완료되어야 한다', async () => {
+    const generated = await astro.generateAstroPremiumReport({}, makeInput(), {
+      llmChapterGenerator: async () => {
+        throw new Error('chapter failure');
+      },
+    });
+
+    expect(generated.manuscriptSource).toBe('local');
+    expect(generated.chapters).toHaveLength(10);
+    expect(generated.validation.ok).toBe(true);
   });
 
   test('seed JSON 핵심 계산값이 누락되면 ASTRO_PDF_SEED_INVALID로 실패해야 한다', async () => {
@@ -120,7 +113,7 @@ describe('Astro premium generator LLM-only pipeline', () => {
           })),
         }),
       }),
-    ).rejects.toMatchObject({ code: 'ASTRO_PDF_SEED_INVALID' });
+    ).rejects.toMatchObject({ code: 'ASTRO_LOCAL_MANUSCRIPT_INVALID' });
   });
 
   test('birth input 정규화가 한국어 시간/별칭 필드를 처리해야 한다', () => {

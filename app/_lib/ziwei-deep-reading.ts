@@ -247,12 +247,12 @@ function buildSignalPack(chart: ZiweiDeepChart, palace: ZiweiPalace) {
     ? palace.sanFangSiZheng.palaceNames
     : palace.triadPalaceIds.map((id) => palaceById(chart, id)?.name || ZIWEI_PALACE_NAME[id]);
   const usedSignals = unique([
-    mainStars.length ? `주성 ${mainStars.map(starBadge).join(", ")}` : "주성 직접 배치 없음",
-    supportStars.length ? `보조성 ${supportStars.join(", ")}` : "보조성 직접 보강 약함",
-    minorStars.length ? `잡성·살성 ${minorStars.join(", ")}` : "잡성 영향 경미",
-    transformations.length ? `사화 ${transformations.map((item) => `${item.type} ${item.starName}`).join(", ")}` : "사화는 삼방사정과 대궁 기준으로 읽음",
-    `대궁 ${palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId]}`,
-    `삼방사정 ${triadNames.join(", ")}`,
+    mainStars.length ? `핵심 별 흐름: ${mainStars.map(starBadge).join(", ")}` : "핵심 별은 주변 궁의 영향으로 읽습니다",
+    supportStars.length ? `보조 별 흐름: ${supportStars.join(", ")}` : "보조 별의 직접 보강은 약한 편입니다",
+    minorStars.length ? `긴장 신호: ${minorStars.join(", ")}` : "긴장 신호는 비교적 약한 편입니다",
+    transformations.length ? `변화 흐름: ${transformations.map((item) => `${item.type} ${item.starName}`).join(", ")}` : "변화 신호는 연결된 궁에서 간접적으로 들어옵니다",
+    `마주보는 궁 영향: ${palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId]}`,
+    `함께 움직이는 궁: ${triadNames.join(", ")}`,
   ], 6);
 
   return {
@@ -281,15 +281,15 @@ export function buildZiweiPalaceCategoryReading(
   const signals = buildSignalPack(chartContext, palace);
   const baseMeaning = ZIWEI_PALACE_TEMPLATES[palace.id].meaning;
   const starLine = palace.isEmptyMainStarPalace
-    ? `${palace.name}은 공궁이라 대궁 ${palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId]}와 삼방사정 ${signals.triadNames.join(", ")}이 주성 역할을 대신합니다.`
+    ? `${palace.name}은(는) 중심 별이 직접 놓이지 않아, 마주 보는 궁 ${palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId]}과 연결된 궁 ${signals.triadNames.join(", ")}의 흐름을 함께 봐야 실제 모습이 분명해집니다.`
     : `${palace.name}의 주성 ${signals.mainStars.map(starBadge).join(", ")}이 이 항목의 해석 중심축을 만듭니다.`;
   const supportLine = signals.supportStars.length
-    ? `보조성 ${signals.supportStars.join(", ")}은 세부 톤을 조정하고, 잡성·살성 ${signals.minorStars.join(", ")}은 방어 규칙이 필요한 지점을 알려 줍니다.`
-    : `보조성보다 삼방사정 유입이 더 크게 작동해 연결궁의 사건이 이 항목 체감도를 좌우합니다.`;
+    ? `보조 별 ${signals.supportStars.join(", ")}은 디테일을 살려 주고, 긴장 신호 ${signals.minorStars.join(", ")}은 감정 과속을 조절해야 할 지점을 알려 줍니다.`
+    : `보조 별의 직접 영향보다 연결된 궁의 상황이 이 항목의 체감도를 좌우합니다.`;
   const transformLine = signals.transformations.length
-    ? `사화는 ${signals.transformations.map((item) => `${item.type} ${item.starName}`).join(", ")}로 포착되며, 이 항목의 사건성은 갑자기 떨어지기보다 기존 성향이 특정 영역에서 과속되며 드러납니다.`
-    : `직접 사화는 약하지만, 생년사화 유입이 ${signals.triadNames.join("·")}을 통해 이 항목의 사건성을 만듭니다.`;
-  const relationLine = `이 항목을 실제 삶에 적용할 때는 대궁 ${palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId]}과 삼방사정 ${signals.triadNames.join(", ")}을 같이 읽어야 합니다. 한 궁만 보면 일반론처럼 보이지만, 연결궁까지 보아야 선택 전략이 드러납니다.`;
+    ? `변화 신호는 ${signals.transformations.map((item) => `${item.type} ${item.starName}`).join(", ")}로 나타나며, 갑작스러운 단절보다는 익숙한 패턴이 특정 순간에 과해지며 드러나는 경향이 있습니다.`
+    : `직접 변화 신호는 약하지만, ${signals.triadNames.join("·")} 쪽의 흐름이 간접적으로 영향을 주기 쉽습니다.`;
+  const relationLine = `이 항목을 삶에 적용할 때는 ${palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId]}과 ${signals.triadNames.join(", ")}의 맥락을 함께 보아야 합니다. 한 곳만 보면 막연해 보일 수 있지만, 연결된 궁까지 같이 보면 실제 선택 기준이 선명해집니다.`;
 
   return {
     categoryTitle: category.title,
@@ -300,12 +300,12 @@ export function buildZiweiPalaceCategoryReading(
       starLine,
       supportLine,
       transformLine,
-      `${baseMeaning} 따라서 ${category.title}은 심리 설명으로 끝내지 말고 실제 선택 기준, 사람 배치, 시간 사용, 돈과 에너지의 흐름까지 연결해 읽어야 합니다.`,
+      `${baseMeaning} 그래서 ${category.title}은 성향 설명에서 멈추지 말고, 실제 선택 기준과 사람·시간·돈의 배분 방식까지 연결해서 읽어야 효과가 있습니다.`,
       relationLine,
     ].join(" "), palace, category),
-    opportunity: ensureLength(`${palace.name}의 ${category.title}에서 기회는 ${signals.mainStars.length ? signals.mainStars.map((star) => star.name).join("·") : `대궁 ${palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId]}`}가 방향을 잡고 ${signals.triadNames.slice(0, 2).join("·")}이 실행 무대를 보강할 때 커집니다. ${signals.transformations[0] ? `${signals.transformations[0].type} ${signals.transformations[0].starName} 흐름은 이 기회를 구조화할 명분을 더합니다.` : "직접 사화가 약해도 연결궁이 열어 주는 우회 경로가 있습니다."}`, palace, category),
+    opportunity: ensureLength(`${palace.name}의 ${category.title}에서 기회는 ${signals.mainStars.length ? signals.mainStars.map((star) => star.name).join("·") : `${palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId]}의 영향`}가 방향을 잡고 ${signals.triadNames.slice(0, 2).join("·")}이 실행 무대를 보강할 때 커집니다. ${signals.transformations[0] ? `${signals.transformations[0].type} ${signals.transformations[0].starName} 흐름은 이 기회를 실전 구조로 묶어 주는 힘이 됩니다.` : "직접 신호가 약해도 연결된 궁에서 열리는 우회 기회를 활용할 수 있습니다."}`, palace, category),
     caution: ensureLength(`${category.title}을 해석할 때는 ${signals.brightnessSummary} ${signals.minorStars.length ? `특히 ${signals.minorStars.join(", ")}` : "약세 신호"}를 무시하면 안 됩니다. 이 구간은 마음이 급할수록 오판이 커지므로 속도보다 기준 유지가 우선입니다.`, palace, category),
-    action: ensureLength(`${category.title} 실전 조언은 ${signals.mainStars[0]?.name || signals.supportStars[0] || "연결궁 신호"}의 장점을 한 가지 역할로 고정하고, ${signals.triadNames[0] || palace.name}과 연결된 루틴을 주간 일정에 넣는 것입니다. ${signals.transformations[0]?.type === "화기" ? "화기 계열은 몰입을 일정·예산·관계 규칙으로 묶어야 장점으로 전환됩니다." : signals.transformations[0] ? `${signals.transformations[0].type} 흐름은 기회가 보여도 재현 가능한 구조를 먼저 세우는 편이 안전합니다.` : "직접 사화가 약한 만큼 결과를 서두르기보다 기준을 먼저 문장화하세요."}`, palace, category),
+    action: ensureLength(`${category.title} 실전 조언은 ${signals.mainStars[0]?.name || signals.supportStars[0] || "연결 신호"}의 장점을 한 가지 역할로 고정하고, ${signals.triadNames[0] || palace.name}과 연결된 루틴을 주간 일정에 넣는 것입니다. ${signals.transformations[0]?.type === "화기" ? "집중 압력이 강한 흐름은 일정·예산·관계 규칙으로 먼저 묶어야 강점으로 바뀝니다." : signals.transformations[0] ? `${signals.transformations[0].type} 흐름은 기회가 보여도 반복 가능한 구조를 먼저 세우는 편이 안전합니다.` : "직접 변화 신호가 약할수록 결과를 서두르기보다 기준을 먼저 문장으로 고정하세요."}`, palace, category),
   };
 }
 
@@ -326,7 +326,7 @@ export function buildZiweiDeepPalaceReading(chart: ZiweiDeepChart, palace: Ziwei
     sanFangSiZheng: {
       sourcePalaces: signals.triadNames,
       keyStars: palace.sanFangSiZheng.mainStars,
-      summary: `삼방사정 ${signals.triadNames.join(", ")}과 대궁 ${palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId]}을 같이 보아야 ${palace.name}의 실제 발현이 보입니다.`,
+      summary: `연결된 궁 ${signals.triadNames.join(", ")}과 마주 보는 궁 ${palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId]}을 함께 볼 때 ${palace.name}의 실제 흐름이 선명해집니다.`,
     },
     categories,
     summary: removeRepeatedZiweiDeepPhrases(`${ZIWEI_PALACE_TEMPLATES[palace.id].meaning} ${signals.brightnessSummary}`),
