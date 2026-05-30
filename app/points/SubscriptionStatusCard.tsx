@@ -86,16 +86,28 @@ const TIER_META: Record<SubscriptionTier, {
 export default function SubscriptionStatusCard({ subscription }: Props) {
   const meta = TIER_META[subscription.tier];
 
-  const expiresDate = subscription.expiresAt
-    ? new Date(subscription.expiresAt).toLocaleDateString("ko-KR", {
+  // Date validation: ensure expiresAt is a valid date string
+  const toValidDate = (value: string | null | undefined): Date | null => {
+    if (!value) return null;
+    try {
+      const date = new Date(value);
+      return Number.isFinite(date.getTime()) ? date : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const validExpiresDate = toValidDate(subscription.expiresAt);
+  const expiresDate = validExpiresDate
+    ? validExpiresDate.toLocaleDateString("ko-KR", {
         year: "numeric",
         month: "long",
         day: "numeric",
       })
     : null;
 
-  const daysLeft = subscription.expiresAt
-    ? Math.max(0, Math.ceil((new Date(subscription.expiresAt).getTime() - Date.now()) / 86_400_000))
+  const daysLeft = validExpiresDate
+    ? Math.max(0, Math.ceil((validExpiresDate.getTime() - Date.now()) / 86_400_000))
     : null;
 
   const isExpiringSoon = daysLeft !== null && daysLeft <= 7 && daysLeft > 0;
