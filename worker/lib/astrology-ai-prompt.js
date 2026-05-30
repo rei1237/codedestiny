@@ -298,6 +298,31 @@ function buildAstrologyFollowUps(questionType) {
   return common;
 }
 
+function buildAstrologySectionGuide(questionType, hasCompatibility) {
+  const sections = [
+    "Cosmic Summary: (1) 한눈에 보는 기질 (2) 겉모습/속마음 (3) 오래 갈수록 강해지는 부분 (4) 주의 패턴 (5) 오늘의 한 줄",
+    "Life Area Reading: 나의 기본 성향, 감정과 안정감, 사랑과 관계, 일과 사회적 방향, 돈과 재능, 성장과 인생 과제, 내면세계와 회복",
+    "Personal Guidance: 강점 사용법, 약점이 터지는 상황, 사람 사이 처세술, 일/돈 처세술, 오늘 실행 조언 3개",
+    "심화 섹션: 태양·달·상승궁 / 수성·목성·외행성 / 커리어 / 연애 / 목성 흐름 / 오늘 집중 포인트 / 시너지 사람",
+  ];
+
+  if (hasCompatibility) {
+    sections.push("궁합 핵심 리포트: 태양·달·금성·화성·상승궁 관계, 끌림/안정/충돌/조율법");
+  } else {
+    sections.push("궁합 데이터가 없으면 분석 본문을 만들지 말고, 궁합 분석 시작 안내 문장만 1~2문장으로 작성");
+  }
+
+  if (questionType === "career" || questionType === "money") {
+    sections.push("커리어/재정 파트는 실행 단위 조언(기간, 우선순위, 체크포인트) 중심으로 작성");
+  }
+
+  if (questionType === "love" || questionType === "compatibility" || questionType === "relationship") {
+    sections.push("관계 파트는 비난 어조 금지, 관리 가능한 패턴/대화법 중심으로 작성");
+  }
+
+  return sections;
+}
+
 export function buildAstrologyAIPrompt({ question, astrologyResult, compatibilityResult }) {
   const normalizedQuestion = ensureValidQuestion(question);
   ensureAstrologyResultPresence(astrologyResult);
@@ -350,6 +375,12 @@ export function buildAstrologyAIPrompt({ question, astrologyResult, compatibilit
     `주요 어스펙트: ${toArrayText(majorAspects)}`,
     `시나스트리: ${compatibility ? `${compatibility.relationType} (${compatibility.score}/100)` : "미제공"}`,
     `시나스트리 상세: ${compatibilityLines.join(" | ")}`,
+    "작성 규칙: 같은 문장/표현 반복 금지, 섹션마다 역할을 분리하고 서로 다른 정보 가치를 제공",
+    "작성 규칙: 점성술 용어는 쉬운 한국어로 풀어 설명하고, 전문 용어 단독 나열 금지",
+    "작성 규칙: 모든 주요 단락은 최소 3문장 이상, 핵심 섹션은 4~6문장 권장",
+    "작성 규칙: 데이터가 부족하면 '현재 차트에서 확인 가능한 범위'로만 해석하고 임의 추정 금지",
+    "작성 규칙: 추상 응원문(예: '당신은 특별합니다') 반복 금지, 행동 단위 조언 우선",
+    `결과 섹션 가이드: ${buildAstrologySectionGuide(questionType, Boolean(compatibility)).join(" || ")}`,
   ];
 
   const promptPackage = buildFortuneQuestionPromptPackage({
