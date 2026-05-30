@@ -533,6 +533,7 @@ function SubscriptionSection({
   isFlowerAdminMode,
   adminTestTier,
   onChangeAdminTestTier,
+  highlightedPlan,
 }: {
   subscription:  SubscriptionStatus;
   currentPoints: number;
@@ -542,6 +543,7 @@ function SubscriptionSection({
   isFlowerAdminMode: boolean;
   adminTestTier: AdminTestTier;
   onChangeAdminTestTier: (tier: AdminTestTier) => void;
+  highlightedPlan: "standard" | "premium" | "vvip" | null;
 }) {
   type PlanThemeKey = "amber" | "rose" | "purple";
   const planThemeMap: Record<PlanThemeKey, {
@@ -692,6 +694,15 @@ function SubscriptionSection({
           </div>
         )}
 
+        {highlightedPlan && (
+          <div className="mb-4 rounded-[14px] border border-rose-300 bg-rose-50/70 px-4 py-3">
+            <p className="text-[11.5px] font-extrabold text-rose-800">🎯 메인 화면에서 선택한 플랜으로 안내 중</p>
+            <p className="mt-1 text-[11.5px] text-rose-700">
+              선택 플랜: <strong>{highlightedPlan === "standard" ? "스탠다드 꿀" : highlightedPlan === "premium" ? "프리미엄 꿀" : "VVIP 꿀단지"}</strong>
+            </p>
+          </div>
+        )}
+
       </div>
 
       {/* ────────────────────────────────────────────────── */}
@@ -781,6 +792,7 @@ function SubscriptionSection({
         {SUBSCRIPTION_PLANS.map((plan) => {
           const theme = planThemeMap[plan.theme];
           const isCurrentActive = subscription.isActive && subscription.tier === plan.id;
+          const isHighlighted = highlightedPlan === plan.id;
           const canAfford = currentPoints >= plan.coins;
           return (
             <div
@@ -789,7 +801,9 @@ function SubscriptionSection({
                 "relative flex flex-col rounded-[20px] border p-4 transition-shadow",
                 isCurrentActive
                   ? "border-emerald-400 bg-gradient-to-b from-emerald-50/60 to-white shadow-[0_4px_20px_rgba(16,185,129,0.20)]"
-                  : `${theme.card} shadow-[0_4px_18px_rgba(120,80,10,0.09)]`,
+                  : isHighlighted
+                    ? `${theme.card} ring-2 ring-rose-400/70 shadow-[0_10px_24px_rgba(244,63,94,0.22)]`
+                    : `${theme.card} shadow-[0_4px_18px_rgba(120,80,10,0.09)]`,
               ].join(" ")}
             >
               {/* 뱃지 */}
@@ -870,6 +884,8 @@ function SubscriptionSection({
               >
                 {isCurrentActive
                   ? "🔄 갱신하기 (30일 연장)"
+                  : isHighlighted && canAfford
+                    ? `${theme.icon} 이 플랜으로 시작`
                   : canAfford
                     ? `${theme.icon} ${plan.title} 시작`
                     : `코인 부족 (${plan.coins - currentPoints}개 더 필요)`}
@@ -1165,6 +1181,7 @@ export default function PointsPage() {
   const [galaxiaInitialPayType, setGalaxiaInitialPayType] = useState<"card" | "simple">("card");
   const [galaxiaInitialCardId, setGalaxiaInitialCardId] = useState("");
   const [adminTestTier, setAdminTestTier] = useState<AdminTestTier>("off");
+  const [landingPlanPreset, setLandingPlanPreset] = useState<"standard" | "premium" | "vvip" | null>(null);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [subscription, setSubscription] = useState<SubscriptionStatus>({
     tier:         "free",
@@ -1178,6 +1195,15 @@ export default function PointsPage() {
 
   /** Toast 알림 목록 */
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const query = new URLSearchParams(window.location.search);
+    const raw = String(query.get("plan") || "").toLowerCase();
+    if (raw === "standard" || raw === "premium" || raw === "vvip") {
+      setLandingPlanPreset(raw);
+    }
+  }, []);
 
   /* ── Toast 헬퍼 ───────────────────────────────────────────────── */
 
@@ -2316,6 +2342,7 @@ export default function PointsPage() {
           isFlowerAdminMode={isFlowerAdminMode}
           adminTestTier={adminTestTier}
           onChangeAdminTestTier={setAdminTestTier}
+          highlightedPlan={landingPlanPreset}
         />
 
         {/* ③ 섹션 구분선 */}
