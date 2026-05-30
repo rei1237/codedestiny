@@ -8,13 +8,90 @@ const CHAPTER_MIN = 1400;
 const FPTI_REPORT_TYPE = "fptiPremium";
 const FPTI_FEATURE_KEY = "premium-fpti-report";
 const CHAPTERS = [
-  { id: "overview", title: "I. FPTI 유형 총론 - 나의 운명 성향 코드" },
-  { id: "inner", title: "II. 내면 성격과 감정 패턴" },
-  { id: "relationship", title: "III. 관계와 연애 패턴" },
-  { id: "career", title: "IV. 일과 재능의 사용 방식" },
-  { id: "wealth", title: "V. 돈과 현실 감각" },
-  { id: "stress", title: "VI. 스트레스와 그림자 성향" },
-  { id: "growth", title: "VII. 성장 전략과 실행 로드맵" },
+  {
+    id: "overview",
+    title: "FPTI 유형 총론 - 나의 운명 성향 코드",
+    categories: [
+      "FPTI 코드가 말해주는 기본 기질",
+      "대표 십성이 만드는 성격의 중심축",
+      "겉모습과 실제 내면의 차이",
+      "반복되는 선택 패턴",
+      "이 유형이 강해지는 조건",
+      "이 유형이 흔들리는 조건",
+    ],
+  },
+  {
+    id: "inner",
+    title: "내면 성격과 감정 패턴",
+    categories: [
+      "감정을 받아들이는 기본 방식",
+      "무의식적으로 자신을 지키는 방식",
+      "가까운 사람 앞에서 드러나는 진짜 모습",
+      "혼자 있을 때 회복되는 리듬",
+      "감정이 쌓였을 때 나타나는 신호",
+      "마음을 안정시키는 현실적 기준",
+    ],
+  },
+  {
+    id: "relationship",
+    title: "관계와 연애 패턴",
+    categories: [
+      "사람을 끌어당기는 매력 포인트",
+      "좋아하는 사람 앞에서 나타나는 행동",
+      "관계에서 반복되는 기대와 실망",
+      "연애에서 강점이 되는 십성",
+      "관계를 망치기 쉬운 그림자",
+      "건강한 관계를 위한 조율 전략",
+    ],
+  },
+  {
+    id: "career",
+    title: "일과 재능의 사용 방식",
+    categories: [
+      "타고난 일 처리 방식",
+      "성과가 잘 나는 환경",
+      "피해야 하는 업무 구조",
+      "십성으로 보는 재능 사용법",
+      "리더십과 협업 방식",
+      "직업적 성장 전략",
+    ],
+  },
+  {
+    id: "wealth",
+    title: "돈과 현실 감각",
+    categories: [
+      "돈을 바라보는 기본 태도",
+      "소비와 저축의 무의식 패턴",
+      "재성 구조로 보는 현실 감각",
+      "돈 때문에 흔들리는 지점",
+      "안정적인 수익 구조를 만드는 방식",
+      "현실 판단력을 높이는 습관",
+    ],
+  },
+  {
+    id: "stress",
+    title: "스트레스와 그림자 성향",
+    categories: [
+      "압박을 받을 때 나타나는 반응",
+      "과잉 십성이 만드는 문제",
+      "부족한 십성이 만드는 불안",
+      "인간관계에서 드러나는 방어기제",
+      "무너질 때 반복하는 선택",
+      "회복을 위한 현실적 처방",
+    ],
+  },
+  {
+    id: "growth",
+    title: "성장 전략과 실행 로드맵",
+    categories: [
+      "이 유형의 인생 성장 방향",
+      "지금 가장 먼저 고쳐야 할 습관",
+      "관계·일·돈의 균형 전략",
+      "30일 실행 루틴",
+      "90일 변화 로드맵",
+      "이 유형에게 필요한 한 문장",
+    ],
+  },
 ];
 
 function clean(value) {
@@ -52,62 +129,83 @@ function buildReportSignature(input) {
   return `fpti-${hash.toString(16).padStart(8, "0")}`;
 }
 
-function splitParagraphs(content) {
-  const lines = String(content || "")
-    .split(/\n\n+/)
-    .map((line) => clean(line))
-    .filter(Boolean);
-  if (lines.length) return lines;
-  const fallback = clean(content);
-  return fallback ? [fallback] : [];
+function takeTenGods(input) {
+  const list = clampList(input?.evidence?.strongTenGods, 4);
+  return {
+    primary: list[0] || "정인",
+    secondary: list[1] || "정관",
+    tertiary: list[2] || "식신",
+  };
 }
 
-function chapterSectionsFromContent(content, chapterTitle) {
-  const paragraphs = splitParagraphs(content);
-  const minCount = 4;
-  const result = [];
-  for (let i = 0; i < paragraphs.length; i += 1) {
-    const body = clean(paragraphs[i]);
-    if (!body) continue;
-    result.push({
-      title: `${chapterTitle} 섹션 ${i + 1}`,
-      body,
-      advice: "핵심 행동 1개를 정하고 주간 점검으로 반복하세요.",
-    });
-  }
-
-  let pad = 1;
-  while (result.length < minCount) {
-    result.push({
-      title: `${chapterTitle} 보강 ${pad}`,
-      body: `${chapterTitle} 보강 안내입니다. 현재 성향의 강점이 발휘되는 조건과 흔들리는 조건을 분리해, 관계·일·돈·감정 장면에서 실행 가능한 기준으로 연결하세요. 하루 핵심 행동 1개와 주간 점검 1회를 고정하면 안정성이 높아집니다.`,
-      advice: "하루 핵심 행동 1개를 먼저 완료하고 복귀 루틴을 고정하세요.",
-    });
-    pad += 1;
-  }
-
-  return result;
+function takeElements(input) {
+  return {
+    strong: clampList(input?.evidence?.strongElements, 2).join(" · ") || "목 · 화",
+    weak: clampList(input?.evidence?.weakElements, 2).join(" · ") || "금 · 수",
+  };
 }
 
-function toDeepChapters(localSections = []) {
-  return localSections.slice(0, CHAPTERS.length).map((section, index) => {
-    const chapter = CHAPTERS[index] || { id: `chapter-${index + 1}`, title: `Chapter ${index + 1}` };
-    const title = clean(section?.title || chapter.title) || chapter.title;
-    const chapterSections = chapterSectionsFromContent(section?.content, title);
-    const preview = clean(chapterSections[0]?.body || "").split(". ").slice(0, 2).join(". ").trim();
+function chapterTone(chapterId) {
+  if (chapterId === "overview") return "성향 지도";
+  if (chapterId === "inner") return "감정 운영";
+  if (chapterId === "relationship") return "관계 조율";
+  if (chapterId === "career") return "일의 구조";
+  if (chapterId === "wealth") return "현실 재정";
+  if (chapterId === "stress") return "위기 복원";
+  return "성장 실행";
+}
+
+function buildCategoryBody(input, chapter, categoryTitle, index) {
+  const ten = takeTenGods(input);
+  const elements = takeElements(input);
+  const axisA = Number(input?.axisScores?.A || 50);
+  const axisH = Number(input?.axisScores?.H || 50);
+  const axisF = Number(input?.axisScores?.F || 50);
+  const axisR = Number(input?.axisScores?.R || 50);
+  const mood = chapterTone(chapter.id);
+
+  const lines = [
+    `${chapter.title}에서 ${categoryTitle}은 ${input.typeName}(${input.code})의 선택 리듬을 가장 구체적으로 보여주는 지점입니다.`,
+    `일간 ${input.evidence.dayMaster}과 월지 ${input.evidence.monthBranch}를 기준으로 보면 ${ten.primary}이 중심을 잡고 ${ten.secondary}이 보조하는 흐름이 분명합니다.`,
+    `${ten.primary}이 강하게 작동하는 시기에는 자기 기준이 선명해지고, ${ten.tertiary} 축이 열리면 문제를 다루는 말과 실행력이 동시에 살아납니다.`,
+    `오행은 ${elements.strong}가 추진력을 만들고 ${elements.weak}가 흔들리는 구간에서 피로 신호를 먼저 보여 주므로, ${mood} 관점의 운영 규칙이 중요합니다.`,
+    `축 점수는 에너지 ${axisA}, 판단 ${axisH}, 실행 ${axisF}, 전망 ${axisR}로 읽을 수 있으며, 이 차이를 인지할수록 관계·일·돈 장면에서 선택의 품질이 안정됩니다.`,
+  ];
+
+  const strength = `${ten.primary} 성향이 살아 있을 때 기준을 빠르게 세우고 꾸준히 밀어 가는 힘이 선명합니다.`;
+  const risk = `${ten.secondary} 반응이 과열되면 상대의 속도를 통제하려는 마음이 커져 피로가 누적될 수 있습니다.`;
+  const action = `${index + 1}번째 실천으로 이번 주에 지킬 판단 기준 문장 1개와 멈춤 기준 문장 1개를 먼저 적고, 하루 종료 전에 실제 적용 여부를 점검하세요.`;
+
+  return {
+    id: `${chapter.id}-cat-${index + 1}`,
+    title: categoryTitle,
+    body: lines.join(" "),
+    strength,
+    risk,
+    action,
+    advice: action,
+  };
+}
+
+function toDeepChapters(input) {
+  return CHAPTERS.map((chapter, index) => {
+    const categories = Array.isArray(chapter.categories) ? chapter.categories : [];
+    const sections = categories.map((categoryTitle, categoryIndex) => buildCategoryBody(input, chapter, categoryTitle, categoryIndex));
     return {
       id: clean(chapter.id || `chapter-${index + 1}`),
       order: index + 1,
-      title,
+      title: chapter.title,
       subtitle: "사주 십성 기반 심층 해석",
-      preview: preview ? `${preview}.` : "",
-      sections: chapterSections,
+      preview: clean(sections[0]?.body || "").split(/(?<=[.!?])\s+/).slice(0, 2).join(" "),
+      chapterSummary: `${chapter.title}은 ${input.code} 유형의 ${chapterTone(chapter.id)} 관점을 다루며, 여섯 개 카테고리에서 강점·주의·실행 기준을 분리해 제공합니다.`,
+      sections,
+      categories: sections,
     };
   });
 }
 
-function toDeepPayload(local, reportSignature, persisted = {}) {
-  const chapters = toDeepChapters(Array.isArray(local?.sections) ? local.sections : []);
+function toDeepPayload(local, reportSignature, persisted = {}, input = {}) {
+  const chapters = toDeepChapters(input);
   return {
     reportType: "fpti-deep",
     productKey: FPTI_FEATURE_KEY,
@@ -466,7 +564,7 @@ async function handleDeepReport(request, env) {
   }
 
   const local = buildLocalReport(input);
-  const report = toDeepPayload(local, reportSignature);
+  const report = toDeepPayload(local, reportSignature, {}, input);
   await writeArchivedReport(env, auth.userId, reportSignature, report, access || {});
 
   return json({

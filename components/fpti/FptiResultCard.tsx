@@ -50,6 +50,27 @@ const QUALITY_LABELS = {
 const STORAGE_KEY = "fpti_deep_report_state_v2";
 const FPTI_PREMIUM_UNLOCK_KEYS = ["premium-fpti-report", "premium_fpti_report", "generatefptideepreport", "openfptideepreport"];
 const DISALLOWED_RENDER_TEXT = ["섹션 로딩 중입니다.", "내용 준비 중입니다.", "fallback", "skeleton", "undefined", "null", "[object Object]", "데이터가 없습니다"];
+const CATEGORY_SCHEMA: string[][] = [
+  ["FPTI 코드가 말해주는 기본 기질", "대표 십성이 만드는 성격의 중심축", "겉모습과 실제 내면의 차이", "반복되는 선택 패턴", "이 유형이 강해지는 조건", "이 유형이 흔들리는 조건"],
+  ["감정을 받아들이는 기본 방식", "무의식적으로 자신을 지키는 방식", "가까운 사람 앞에서 드러나는 진짜 모습", "혼자 있을 때 회복되는 리듬", "감정이 쌓였을 때 나타나는 신호", "마음을 안정시키는 현실적 기준"],
+  ["사람을 끌어당기는 매력 포인트", "좋아하는 사람 앞에서 나타나는 행동", "관계에서 반복되는 기대와 실망", "연애에서 강점이 되는 십성", "관계를 망치기 쉬운 그림자", "건강한 관계를 위한 조율 전략"],
+  ["타고난 일 처리 방식", "성과가 잘 나는 환경", "피해야 하는 업무 구조", "십성으로 보는 재능 사용법", "리더십과 협업 방식", "직업적 성장 전략"],
+  ["돈을 바라보는 기본 태도", "소비와 저축의 무의식 패턴", "재성 구조로 보는 현실 감각", "돈 때문에 흔들리는 지점", "안정적인 수익 구조를 만드는 방식", "현실 판단력을 높이는 습관"],
+  ["압박을 받을 때 나타나는 반응", "과잉 십성이 만드는 문제", "부족한 십성이 만드는 불안", "인간관계에서 드러나는 방어기제", "무너질 때 반복하는 선택", "회복을 위한 현실적 처방"],
+  ["이 유형의 인생 성장 방향", "지금 가장 먼저 고쳐야 할 습관", "관계·일·돈의 균형 전략", "30일 실행 루틴", "90일 변화 로드맵", "이 유형에게 필요한 한 문장"],
+];
+
+function stripRomanPrefix(value: unknown): string {
+  return String(value || "")
+    .replace(/^\s*[IVXLCDM]+\.\s*/gi, "")
+    .replace(/^\s*[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ]+\.\s*/g, "")
+    .trim();
+}
+
+function toRoman(order: number): string {
+  const map = ["I", "II", "III", "IV", "V", "VI", "VII"];
+  return map[Math.max(1, Math.min(7, Number(order) || 1)) - 1] || "I";
+}
 
 function sanitizeUserText(value: unknown, fallbackText: string): string {
   const text = String(value || "").trim();
@@ -78,20 +99,20 @@ function normalizeDeepReport(report: FptiDeepReport, unlocked: boolean): FptiDee
       );
       return {
         ...section,
-        title: sanitizeUserText(section?.title, `핵심 섹션 ${sectionIdx + 1}`),
+        title: sanitizeUserText(stripRomanPrefix(section?.title), CATEGORY_SCHEMA[idx]?.[sectionIdx] || `핵심 항목 ${sectionIdx + 1}`),
         interpretation: safeBody,
         body: safeBody,
-        strength: sanitizeUserText(section?.strength, "장점을 과열 없이 유지하면 안정성이 높아집니다."),
-        risk: sanitizeUserText(section?.risk, "피로가 누적되면 판단 속도가 급격히 흔들릴 수 있습니다."),
-        action: sanitizeUserText(section?.action, "하루 핵심 행동 1개를 먼저 완료하고 복귀 루틴을 고정하세요."),
-        advice: sanitizeUserText((section as Record<string, unknown>)?.advice || section?.action, "하루 핵심 행동 1개를 먼저 완료하고 복귀 루틴을 고정하세요."),
+        strength: sanitizeUserText(section?.strength, "강점이 발휘되는 장면을 정확히 읽으면 선택의 일관성이 높아집니다."),
+        risk: sanitizeUserText(section?.risk, "피로 구간에서 감정 해석이 앞서면 판단 기준이 흐려질 수 있습니다."),
+        action: sanitizeUserText(section?.action, "이번 주에 유지할 기준 문장 1개와 중단 문장 1개를 정하고 매일 적용 여부를 체크하세요."),
+        advice: sanitizeUserText((section as Record<string, unknown>)?.advice || section?.action, "이번 주에 유지할 기준 문장 1개와 중단 문장 1개를 정하고 매일 적용 여부를 체크하세요."),
       };
     });
 
     return {
       ...chapter,
       id: String((chapter as Record<string, unknown>)?.id || chapter?.order || idx + 1),
-      title: sanitizeUserText(chapter?.title, `챕터 ${idx + 1}`),
+      title: sanitizeUserText(stripRomanPrefix(chapter?.title), `챕터 ${idx + 1}`),
       chapterSummary: sanitizeUserText(
         chapter?.chapterSummary,
         `${idx + 1}장은 현재 성향 축의 강점과 취약 구간을 생활 장면에 맞춰 해석한 실행형 요약입니다.`,
@@ -99,13 +120,13 @@ function normalizeDeepReport(report: FptiDeepReport, unlocked: boolean): FptiDee
       sections: unlocked
         ? (normalizedSections.length ? normalizedSections : [{
           title: "핵심 해석",
-          usedSignals: ["성향 축", "십성 분포", "행동 패턴"],
+          usedSignals: ["성향 축", "십성 기반 해석", "실행 기준"],
           interpretation: "현재 데이터 변동이 있어도 읽을 수 있도록 기준형 본문을 보강했습니다. 이 장은 강점이 발휘되는 조건, 무너지는 조건, 복귀 전략을 함께 설명합니다.",
           body: "현재 데이터 변동이 있어도 읽을 수 있도록 기준형 본문을 보강했습니다. 이 장은 강점이 발휘되는 조건, 무너지는 조건, 복귀 전략을 함께 설명합니다.",
           strength: "상황 판단 기준이 선명해집니다.",
           risk: "피로가 누적되면 결정 품질이 낮아질 수 있습니다.",
-          action: "핵심 행동 1개를 먼저 완료하고 점검 루틴을 유지하세요.",
-          advice: "핵심 행동 1개를 먼저 완료하고 점검 루틴을 유지하세요.",
+          action: "작은 기준을 매일 반복해 복귀 속도를 높이세요.",
+          advice: "작은 기준을 매일 반복해 복귀 속도를 높이세요.",
         }])
         : (idx === 0 ? normalizedSections.slice(0, 1) : []),
     };
@@ -140,16 +161,16 @@ function mapServerDeepReport(result: FptiAnalysisResult, serverRaw: unknown): Fp
       const section = sectionRaw && typeof sectionRaw === "object" ? (sectionRaw as Record<string, unknown>) : {};
       const body = sanitizeUserText(section.body || section.interpretation, `${idx + 1}장 ${sectionIdx + 1}절은 현재 성향 축을 기준으로 관계, 일, 돈, 감정 패턴을 현실적으로 정리한 해석입니다.`);
       return {
-        title: sanitizeUserText(section.title, `핵심 섹션 ${sectionIdx + 1}`),
+        title: sanitizeUserText(stripRomanPrefix(section.title), CATEGORY_SCHEMA[idx]?.[sectionIdx] || `핵심 항목 ${sectionIdx + 1}`),
         usedSignals: Array.isArray(section.usedSignals)
           ? (section.usedSignals as unknown[]).map((v) => sanitizeUserText(v, "핵심 성향 신호")).filter(Boolean)
-          : ["사주 십성 분포", "성향 축 점수", "행동 패턴"],
+          : ["십성 기반 성향", "축 해석 요약", "실행 기준"],
         interpretation: body,
         body,
-        strength: sanitizeUserText(section.strength, "강점을 과열 없이 유지하면 실행 안정성이 올라갑니다."),
-        risk: sanitizeUserText(section.risk, "피로 누적 구간에서 판단 지연이 생길 수 있습니다."),
-        action: sanitizeUserText(section.action, "핵심 행동 1개를 먼저 완료하고 복귀 루틴을 유지하세요."),
-        advice: sanitizeUserText(section.advice || section.action, "핵심 행동 1개를 먼저 완료하고 복귀 루틴을 유지하세요."),
+        strength: sanitizeUserText(section.strength, "강점이 살아나는 환경을 구분하면 성과의 안정성이 높아집니다."),
+        risk: sanitizeUserText(section.risk, "컨디션이 낮은 날에는 판단 속도보다 기준 유지가 먼저 필요합니다."),
+        action: sanitizeUserText(section.action, "하루 마감 전에 적용한 기준과 보류한 기준을 각각 한 줄로 기록하세요."),
+        advice: sanitizeUserText(section.advice || section.action, "하루 마감 전에 적용한 기준과 보류한 기준을 각각 한 줄로 기록하세요."),
       };
     });
 
@@ -158,7 +179,7 @@ function mapServerDeepReport(result: FptiAnalysisResult, serverRaw: unknown): Fp
       ...baseChapter,
       id: sanitizeUserText(chapter.id, String(baseChapter?.order || idx + 1)),
       order: Number(chapter.order || baseChapter?.order || idx + 1),
-      title: sanitizeUserText(chapter.title, baseChapter?.title || `챕터 ${idx + 1}`),
+      title: sanitizeUserText(stripRomanPrefix(chapter.title), baseChapter?.title || `챕터 ${idx + 1}`),
       subtitle: sanitizeUserText(chapter.subtitle, "사주 십성 기반 심층 해석"),
       preview: sanitizeUserText(chapter.preview, sections[0]?.interpretation || ""),
       locked: false,
@@ -723,7 +744,7 @@ export default function FptiResultCard({ result }: Props) {
                   onClick={() => setActiveChapter(idx)}
                   className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
                 >
-                  <h5 className="text-sm font-semibold text-sky-100">{chapter?.roman}. {chapter?.title}</h5>
+                  <h5 className="text-sm font-semibold text-sky-100">{toRoman(Number(chapter?.order || idx + 1))}. {stripRomanPrefix(chapter?.title)}</h5>
                   <span className="text-xs text-slate-300">{lockedChapter ? "잠금" : open ? "접기" : "열기"}</span>
                 </button>
                 {open && (
@@ -752,7 +773,7 @@ export default function FptiResultCard({ result }: Props) {
                             </div>
                           )}
                           <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-2">
-                            <p className="text-xs font-semibold tracking-[0.14em] text-slate-300">해석에 반영된 성향</p>
+                            <p className="text-xs font-semibold tracking-[0.14em] text-slate-300">해석 근거 신호</p>
                             <ul className="mt-2 space-y-1 text-xs text-slate-200">
                               {Array.isArray(section?.usedSignals) && section.usedSignals.map((signal) => (
                                 <li key={`${section?.title}-${signal}`}>- {signal}</li>

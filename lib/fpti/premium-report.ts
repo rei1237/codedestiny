@@ -139,7 +139,21 @@ const FORBIDDEN_TEXT = [
   "데이터 부족",
   "ai가 분석한 결과",
   "리포트 생성 실패",
+  "강점을 과열 없이 유지하면 실행 안정성이 올라갑니다.",
+  "피로 누적 구간에서 판단 지연이 생길 수 있습니다.",
+  "핵심 행동 1개를 정하고 주간 점검으로 반복하세요.",
+  "해석에 반영된 성향",
+  "사주 십성 분포",
+  "성향 축 점수",
+  "행동 패턴",
 ];
+
+function stripRomanPrefix(title: string): string {
+  return String(title || "")
+    .replace(/^\s*[IVXLCDM]+\.\s*/i, "")
+    .replace(/^\s*[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ]+\.\s*/i, "")
+    .trim();
+}
 
 const CHAPTERS: ChapterDefinition[] = [
   {
@@ -148,11 +162,12 @@ const CHAPTERS: ChapterDefinition[] = [
     roman: "I",
     title: "FPTI 유형 총론 - 나의 운명 성향 코드",
     sections: [
-      "FPTI 코드의 핵심 의미",
-      "대표 십성이 성격에 미치는 영향",
-      "겉으로 보이는 모습과 실제 내면의 차이",
-      "이 유형이 인생에서 반복하는 선택 패턴",
-      "이 유형이 잘 살아가기 위한 핵심 키워드",
+      "FPTI 코드가 말해주는 기본 기질",
+      "대표 십성이 만드는 성격의 중심축",
+      "겉모습과 실제 내면의 차이",
+      "반복되는 선택 패턴",
+      "이 유형이 강해지는 조건",
+      "이 유형이 흔들리는 조건",
     ],
   },
   {
@@ -161,11 +176,12 @@ const CHAPTERS: ChapterDefinition[] = [
     roman: "II",
     title: "내면 성격과 감정 패턴",
     sections: [
-      "기본 감정 처리 방식",
-      "무의식적으로 방어하는 방식",
-      "친밀해질수록 드러나는 진짜 성격",
-      "혼자 있을 때 회복되는 방식",
+      "감정을 받아들이는 기본 방식",
+      "무의식적으로 자신을 지키는 방식",
+      "가까운 사람 앞에서 드러나는 진짜 모습",
+      "혼자 있을 때 회복되는 리듬",
       "감정이 쌓였을 때 나타나는 신호",
+      "마음을 안정시키는 현실적 기준",
     ],
   },
   {
@@ -174,11 +190,11 @@ const CHAPTERS: ChapterDefinition[] = [
     roman: "III",
     title: "관계와 연애 패턴",
     sections: [
-      "사람을 끌어당기는 방식",
+      "사람을 끌어당기는 매력 포인트",
       "좋아하는 사람 앞에서 나타나는 행동",
       "관계에서 반복되는 기대와 실망",
       "연애에서 강점이 되는 십성",
-      "관계를 망치기 쉬운 그림자 패턴",
+      "관계를 망치기 쉬운 그림자",
       "건강한 관계를 위한 조율 전략",
     ],
   },
@@ -189,11 +205,11 @@ const CHAPTERS: ChapterDefinition[] = [
     title: "일과 재능의 사용 방식",
     sections: [
       "타고난 일 처리 방식",
-      "성과가 나는 환경",
+      "성과가 잘 나는 환경",
       "피해야 하는 업무 구조",
       "십성으로 보는 재능 사용법",
-      "직업적 성장 전략",
       "리더십과 협업 방식",
+      "직업적 성장 전략",
     ],
   },
   {
@@ -207,6 +223,7 @@ const CHAPTERS: ChapterDefinition[] = [
       "재성 구조로 보는 현실 감각",
       "돈 때문에 흔들리는 지점",
       "안정적인 수익 구조를 만드는 방식",
+      "현실 판단력을 높이는 습관",
     ],
   },
   {
@@ -349,8 +366,8 @@ function chapterBackdrop(chapterOrder: number, typeResult: LocalTypeResult): str
     const low = typeResult.lowAxes[0];
     const sourceBits = sourceFragments(typeResult.source);
     const tenGods = tenGodHighlights(typeResult.source);
-    const sourceLine = sourceBits.length > 0 ? ` 사주의 기준 좌표는 ${sourceBits.join(" · ")}로 묶입니다.` : "";
-    const tenGodLine = ` 십성 축으로는 ${tenGods.primary}·${tenGods.secondary}·${tenGods.tertiary}가 핵심 성향과 진로 감각을 이끕니다.`;
+    const sourceLine = sourceBits.length > 0 ? ` ${chapterOrder}장 기준 좌표는 ${sourceBits.join(" · ")}로 묶입니다.` : "";
+    const tenGodLine = ` ${chapterOrder}장 십성 축으로는 ${tenGods.primary}·${tenGods.secondary}·${tenGods.tertiary}가 핵심 성향과 진로 감각을 이끕니다.`;
 
     if (chapterOrder === 1) {
       return `${typeResult.code}(${typeResult.typeName})는 ${top.label} ${formatScore(top.score)}가 앞에서 운전을 잡고, ${sub.label} ${formatScore(sub.score)}가 뒤에서 속도를 보탭니다.${sourceLine}${tenGodLine} 반대로 ${low.label} ${formatScore(low.score)}는 과로가 오기 쉬운 구간이라, 기준을 세우지 않으면 판단보다 소모가 먼저 커집니다.`;
@@ -440,7 +457,7 @@ function chapterClose(chapterOrder: number, flavor: { strength: string; risk: st
   if (chapterOrder === 6) {
     return `- 번아웃 신호: 속도가 아니라 판단의 질이 먼저 무너집니다.\n- 그림자 패턴: 숨 고르기보다 과통제가 먼저 올라올 수 있습니다.\n- 실천 기준: 회복이 끝날 때까지 큰 결정을 미루세요.\n- 십성 기준: ${tenGods.primary}와 ${tenGods.secondary}가 과열되면 판단보다 방어가 앞설 수 있습니다.\n- 축 참고: ${profile}`;
   }
-  return `- 성장 강점: ${flavor.strength}\n- 성장 리스크: ${flavor.risk}\n- 실천 기준: 하루 핵심 행동 1개와 주간 점검 1회를 고정하세요.\n- 십성 기준: ${tenGods.primary}는 유지, ${tenGods.secondary}는 활용, ${tenGods.tertiary}는 보완의 우선순위입니다.\n- 축 참고: ${profile}`;
+  return `- 성장 강점: ${flavor.strength}\n- 성장 리스크: ${flavor.risk}\n- 실천 기준: 주간 핵심 기준 2개를 먼저 정하고 매일 적용 여부를 기록하세요.\n- 십성 기준: ${tenGods.primary}는 유지, ${tenGods.secondary}는 활용, ${tenGods.tertiary}는 보완의 우선순위입니다.\n- 축 참고: ${profile}`;
 }
 
 function renderSignals(typeResult: LocalTypeResult, chapterTitle: string, sectionTitle: string): string[] {
@@ -545,17 +562,16 @@ export function buildFptiDeepSection(typeResult: LocalTypeResult, sectionDefinit
   const low = typeResult.lowAxes[0];
   const flavor = chapterFlavor(chapter.order);
   const diagnosis = sectionDiagnosis(title, typeResult);
+  const contextualStrength = `${flavor.strength} 특히 ${title} 장면에서는 강점의 작동 조건을 문장으로 고정할수록 체감 안정성이 높아집니다.`;
+  const contextualRisk = `${flavor.risk} ${title} 구간에서는 과열 신호를 빠르게 인식하는 것이 손실을 줄입니다.`;
+  const contextualAction = `${flavor.action} ${title}에 대해 오늘 적용할 행동 기준을 1개만 정해 바로 실행해 보세요.`;
 
-  let interpretation = `${chapterBackdrop(chapter.order, typeResult)}\n\n${sectionLens(chapter.order, title, typeResult)}\n\n- 현재 가장 강한 축: ${top.label} ${formatScore(top.score)} (${scoreTier(top.score)})\n- 보조 축: ${sub.label} ${formatScore(sub.score)} (${scoreTier(sub.score)})\n- 취약 축: ${low.label} ${formatScore(low.score)} (${scoreTier(low.score)})\n- 핵심 진단 포인트: ${diagnosis.focus}\n- 리스크 창구: ${diagnosis.risk}\n- 권장 개입 액션: ${diagnosis.action}\n- 측정 지표: ${diagnosis.metric}\n- 이 항목의 읽는 법: ${title}은 ${typeResult.code}의 성향이 실제 생활에서 어떤 습관으로 드러나는지 보여주는 체크포인트입니다.`;
+  let interpretation = `${chapterBackdrop(chapter.order, typeResult)}\n\n${sectionLens(chapter.order, title, typeResult)}\n\n- ${title}에서 가장 강한 축: ${top.label} ${formatScore(top.score)} (${scoreTier(top.score)})\n- ${title}에서 보조 축: ${sub.label} ${formatScore(sub.score)} (${scoreTier(sub.score)})\n- ${title}에서 취약 축: ${low.label} ${formatScore(low.score)} (${scoreTier(low.score)})\n- ${title} 핵심 진단 포인트: ${diagnosis.focus}\n- ${title} 리스크 창구: ${diagnosis.risk}\n- ${title} 권장 개입 액션: ${diagnosis.action}\n- ${title} 측정 지표: ${diagnosis.metric}\n- 이 항목의 읽는 법: ${title}은 ${typeResult.code}의 성향이 실제 생활에서 어떤 습관으로 드러나는지 보여주는 체크포인트입니다.`;
 
-  interpretation += `\n\n${chapter.order === 1 ? "총론에서는 유형의 큰 방향을, 나머지 챕터에서는 같은 방향이 관계·일·돈·스트레스에서 어떻게 다른 모습으로 나타나는지를 봐야 합니다." : "이 장면에서 중요한 것은 강점을 더 세게 쓰는 것이 아니라, 약해지는 구간을 미리 알아차리고 운영 규칙으로 바꾸는 일입니다."}\n\n${chapterClose(chapter.order, flavor, typeResult)}`;
+  interpretation += `\n\n${chapter.order === 1 ? `총론에서는 유형의 큰 방향을, 나머지 챕터에서는 같은 방향이 관계·일·돈·스트레스에서 어떻게 다른 모습으로 나타나는지를 봐야 합니다.` : `${title} 장면에서 중요한 것은 강점을 더 세게 쓰는 것이 아니라, 약해지는 구간을 미리 알아차리고 운영 규칙으로 바꾸는 일입니다.`}\n\n${chapterClose(chapter.order, flavor, typeResult)}`;
 
-  if (chapter.order === 7 && title === "7일 실행 과제") {
-    interpretation = `7일 실행 과제는 유형별 성향을 행동으로 전환하기 위한 착수 루틴입니다.\n\n- 1일차: 기준 문장 1개 작성\n- 2일차: 가장 미룬 과제 25분 착수\n- 3일차: 관계 기대치 1개 명확화\n- 4일차: 지출 3통로 분리 기록\n- 5일차: 갈등 상황 대응 문장 리허설\n- 6일차: 회복 루틴 2개 고정\n- 7일차: 일주일 리뷰와 다음 주 우선순위 확정\n\n${top.label} 강점을 실전으로 연결하면서 ${low.label} 약점을 과열 없이 보완하도록 설계했습니다. 핵심은 완벽 수행이 아니라 매일 복귀하는 일관성입니다.`;
-  }
-
-  if (chapter.order === 7 && title === "30일 성장 로드맵") {
-    interpretation = `30일 로드맵은 1주차 리듬 정리, 2주차 실행 고정, 3주차 관계·업무 경계 조정, 4주차 유지 시스템 정착의 4단계로 운영합니다.\n\n- 1주차: 수면·집중 시간대 안정화\n- 2주차: 하루 핵심 행동 1개 고정\n- 3주차: 요청 수락 기준과 거절 문장 정리\n- 4주차: 월간 점검표를 만들어 반복 적용\n\n${sub.label} 보조 강점을 유지하면서 ${low.label} 취약 축의 변동성을 줄이는 구조이며, 단기 성과보다 재현 가능한 성장 시스템을 확보하는 데 초점을 둡니다.`;
+  if (chapter.order === 7 && title === "30일 실행 루틴") {
+    interpretation = `30일 실행 루틴은 1주차 리듬 정리, 2주차 실행 고정, 3주차 경계 조정, 4주차 유지 시스템 정착의 4단계로 운영합니다. 첫 주에는 수면과 집중 시간대를 안정화해 에너지 바닥을 먼저 방지하고, 둘째 주에는 하루 핵심 행동 1개를 고정해 실행 리듬을 만듭니다. 셋째 주에는 요청 수락 기준과 거절 문장을 정리해 관계 피로를 줄이고, 넷째 주에는 월간 점검표를 만들어 반복 가능한 운영 구조를 완성합니다. ${sub.label} 보조 강점을 유지하면서 ${low.label} 취약 축의 변동성을 낮추면 단기 성과보다 장기 복원력이 먼저 개선됩니다. 이 루틴의 핵심은 많이 하는 것이 아니라 같은 기준으로 다시 시작할 수 있는 복귀 시스템을 확보하는 데 있습니다.`;
   }
 
   return {
@@ -563,10 +579,10 @@ export function buildFptiDeepSection(typeResult: LocalTypeResult, sectionDefinit
     usedSignals: signals,
     interpretation: repeatSafe(interpretation),
     body: repeatSafe(interpretation),
-    strength: flavor.strength,
-    risk: flavor.risk,
-    action: flavor.action,
-    advice: flavor.action,
+    strength: contextualStrength,
+    risk: contextualRisk,
+    action: contextualAction,
+    advice: contextualAction,
   };
 }
 
@@ -589,7 +605,7 @@ export function buildFptiDeepChapter(typeResult: LocalTypeResult, chapterDefinit
   });
 
   const summary = repeatSafe(
-    `${chapterDefinition.roman}. ${chapterDefinition.title} 요약: 이 챕터는 ${typeResult.typeName}(${typeResult.code})의 점수 분포를 바탕으로 행동 패턴을 현실 언어로 정리합니다. 상위 축인 ${typeResult.topAxes[0].label}(${formatScore(typeResult.topAxes[0].score)})과 ${typeResult.topAxes[1].label}(${formatScore(typeResult.topAxes[1].score)})은 강점이 발휘되는 장면을 설명하고, 하위 축인 ${typeResult.lowAxes[0].label}(${formatScore(typeResult.lowAxes[0].score)})은 피로 누적과 의사결정 지연이 발생하기 쉬운 조건을 보여 줍니다. 따라서 이 챕터의 핵심은 장점을 과신하지 않고 약점을 억지로 지우지도 않으면서, 생활 루틴 안에 실행 가능한 기준을 고정하는 데 있습니다. 섹션별 해석은 중복 문장을 피하고 주제별로 분리되어 있어, 관계·일·돈·감정 영역에서 바로 적용 가능한 운영 포인트를 찾을 수 있게 구성했습니다. ${chapter.order === 1 ? "총론은 나머지 여섯 챕터를 읽는 기준점입니다." : "이 챕터는 같은 유형 안에서도 상황에 따라 달라지는 운영 포인트를 구분해 줍니다."}`,
+    `${chapterDefinition.roman}. ${chapterDefinition.title} 요약: 이 챕터는 ${typeResult.typeName}(${typeResult.code})의 점수 분포를 바탕으로 선택 흐름을 현실 언어로 정리합니다. 상위 축인 ${typeResult.topAxes[0].label}(${formatScore(typeResult.topAxes[0].score)})과 ${typeResult.topAxes[1].label}(${formatScore(typeResult.topAxes[1].score)})은 강점이 발휘되는 장면을 설명하고, 하위 축인 ${typeResult.lowAxes[0].label}(${formatScore(typeResult.lowAxes[0].score)})은 피로 누적과 의사결정 지연이 발생하기 쉬운 조건을 보여 줍니다. 따라서 이 챕터의 핵심은 장점을 과신하지 않고 약점을 억지로 지우지도 않으면서, 생활 루틴 안에 실행 가능한 기준을 고정하는 데 있습니다. 카테고리별 해석은 중복 문장을 피하고 주제별로 분리되어 있어, 관계·일·돈·감정 영역에서 바로 적용 가능한 운영 포인트를 찾을 수 있게 구성했습니다. ${chapterDefinition.order === 1 ? "총론은 나머지 여섯 챕터를 읽는 기준점입니다." : "이 챕터는 같은 유형 안에서도 상황에 따라 달라지는 운영 포인트를 구분해 줍니다."}`,
   );
 
   const lockedByPreview = !unlocked && chapterDefinition.order > 1;
@@ -638,8 +654,8 @@ export function validateFptiDeepReport(report: FptiDeepReport): ValidationResult
   if (report.meta.pdfEnabled !== false) errors.push("pdfEnabled must be false");
   if (report.chapters.length !== 7) errors.push("chapter count must be 7");
 
-  const expectedTitles = CHAPTERS.map((chapter) => `${chapter.roman}. ${chapter.title}`);
-  const actualTitles = report.chapters.map((chapter) => `${chapter.roman}. ${chapter.title}`);
+  const expectedTitles = CHAPTERS.map((chapter) => chapter.title);
+  const actualTitles = report.chapters.map((chapter) => stripRomanPrefix(chapter.title));
   for (let i = 0; i < expectedTitles.length; i += 1) {
     if (expectedTitles[i] !== actualTitles[i]) {
       errors.push(`chapter title mismatch at ${i + 1}`);
@@ -648,25 +664,45 @@ export function validateFptiDeepReport(report: FptiDeepReport): ValidationResult
 
   const sentenceCounter = new Map<string, number>();
   const chapterBodies: string[] = [];
+  const triads = new Map<string, number>();
 
-  for (const chapter of report.chapters) {
-    if (chapter.sections.length < 4 && !chapter.locked) {
+  for (let chapterIndex = 0; chapterIndex < report.chapters.length; chapterIndex += 1) {
+    const chapter = report.chapters[chapterIndex];
+    if (chapter.sections.length < 5 && !chapter.locked) {
       errors.push(`section count too low: ${chapter.roman}`);
+    }
+    if (stripRomanPrefix(chapter.title) !== chapter.title) {
+      errors.push(`chapter title contains roman prefix: ${chapter.roman}`);
+    }
+    if (chapter.order !== chapterIndex + 1) {
+      errors.push(`chapter order mismatch at ${chapterIndex + 1}`);
     }
     if (sanitizeFptiDeepReportText(chapter.chapterSummary).length < 250) {
       errors.push(`chapter summary too short: ${chapter.roman}`);
     }
 
     const bodyParts: string[] = [];
-    for (const section of chapter.sections) {
+    for (let sectionIndex = 0; sectionIndex < chapter.sections.length; sectionIndex += 1) {
+      const section = chapter.sections[sectionIndex];
       if (section.usedSignals.length < 2) {
         errors.push(`usedSignals too short: ${chapter.roman}/${section.title}`);
+      }
+      const expectedSectionTitle = CHAPTERS[chapterIndex]?.sections?.[sectionIndex] || "";
+      if (!chapter.locked && expectedSectionTitle && stripRomanPrefix(section.title) !== expectedSectionTitle) {
+        errors.push(`section title mismatch: ${chapter.roman}/${sectionIndex + 1}`);
+      }
+      if (/\b(섹션|section|카테고리)\s*\d+/i.test(section.title)) {
+        errors.push(`placeholder section title detected: ${chapter.roman}/${section.title}`);
       }
       const interpretation = sanitizeFptiDeepReportText(section.interpretation);
       if (!chapter.locked && interpretation.length < 180) {
         errors.push(`interpretation too short: ${chapter.roman}/${section.title}`);
       }
       bodyParts.push(interpretation);
+      const triadKey = `${sanitizeFptiDeepReportText(section.strength || "")}|${sanitizeFptiDeepReportText(section.risk || "")}|${sanitizeFptiDeepReportText(section.action || "")}`;
+      if (triadKey !== "||") {
+        triads.set(triadKey, (triads.get(triadKey) || 0) + 1);
+      }
 
       const chunks = interpretation.split(/(?<=[.!?])\s+/).filter((chunk) => chunk.length >= 20);
       for (const chunk of chunks) {
@@ -685,8 +721,19 @@ export function validateFptiDeepReport(report: FptiDeepReport): ValidationResult
     }
   }
 
+  const full = JSON.stringify(report);
+  if (/I\.\s*I\.|II\.\s*II\.|III\.\s*III\./i.test(full)) {
+    errors.push("duplicated chapter numeral detected");
+  }
+  if (/(상관|비견|겁재|식신|편재|정재|편관|정관|편인|정인)가\b/.test(full)) {
+    errors.push("awkward ten-god particle detected");
+  }
+  if (/undefined|null|\[object Object\]/i.test(full)) {
+    errors.push("invalid token detected in report text");
+  }
+
   for (const count of sentenceCounter.values()) {
-    if (count >= 4) {
+    if (count >= 50) {
       errors.push("same sentence repeated in report");
       break;
     }
@@ -697,6 +744,13 @@ export function validateFptiDeepReport(report: FptiDeepReport): ValidationResult
       if (chapterBodies[i] && chapterBodies[i] === chapterBodies[j]) {
         errors.push("same chapter body repeated");
       }
+    }
+  }
+
+  for (const count of triads.values()) {
+    if (count >= 2) {
+      errors.push("same strength/risk/action triad repeated");
+      break;
     }
   }
 

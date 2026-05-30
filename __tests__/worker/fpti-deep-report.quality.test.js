@@ -39,6 +39,6 @@ describe("fpti deep report quality", () => {
     expect(source.includes("PDF 다운로드")).toBe(false);
     expect(source.includes("buildFptiPremiumPdfText")).toBe(false);
     expect(source.includes("심층 리포트 잠금 해제")).toBe(true);
-    expect(source.includes("해석에 반영된 성향")).toBe(true);
+    expect(source.includes("해석 근거 신호")).toBe(true);
   });
 });
