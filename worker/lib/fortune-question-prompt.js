@@ -139,6 +139,7 @@ export function buildFortuneQuestionPromptPackage({
   recommendedFollowUpQuestions,
   caution,
   domainDataLines,
+  customPrompt,
   minPromptLength = DEFAULT_MIN_PROMPT_LENGTH,
 }) {
   const normalizedQuestion = toText(userQuestion, "질문이 제공되지 않았습니다.");
@@ -164,52 +165,65 @@ export function buildFortuneQuestionPromptPackage({
     analysisResult: analysisResult && typeof analysisResult === "object" ? analysisResult : {},
   };
 
-  const lines = [
-    `당신은 ${safeExpertLabel}입니다.`,
-    "",
-    `${safeFortuneLabel} 기반 AI 상담 프롬프트`,
-    "",
-    "아래의 분석 데이터를 바탕으로 사용자의 질문에 대해 매우 구체적으로 분석해주세요.",
-    "",
-    "[사용자 질문]",
-    normalizedQuestion,
-    "",
-    "[질문의 숨은 의도]",
-    summaryIntent,
-    "",
-    "[핵심 분석 요청]",
-    ...buildCoreRequestLines(),
-    "",
-    "[세부 분석 관점]",
-    ...(angles.length ? angles.map((angle) => `- ${angle}`) : ["- 질문과 관련된 핵심 관점이 충분히 제공되지 않았습니다. 제공된 데이터에서 직접 핵심 관점을 추출해주세요."]),
-    "",
-    "[분석 데이터 요약]",
-    ...(safeDomainDataLines.length ? safeDomainDataLines.map((line) => `- ${line}`) : ["- 분석 데이터 요약이 제공되지 않았습니다. JSON 원문을 우선 근거로 해석해주세요."]),
-    "",
-    "[분석 데이터(JSON)]",
-    "```json",
-    safeJsonBlock(snapshot),
-    "```",
-    "",
-    "[답변 형식]",
-    ...buildAnswerFormatLines(),
-    "",
-    "[작성 규칙]",
-    "- 근거 없는 단정 대신 근거와 불확실성을 함께 제시해주세요.",
-    "- 분석 근거를 먼저 제시하고, 그 뒤에 조언을 제시해주세요.",
-    "- 실전 적용 가능한 액션 플랜으로 마무리해주세요.",
-    "- 필요하면 표/리스트를 활용하되, 핵심 판단 이유를 생략하지 마세요.",
-  ];
+  // customPrompt가 제공되면 그것을 우선 사용
+  let generatedPrompt;
+  if (customPrompt && typeof customPrompt === "string" && customPrompt.trim().length > 0) {
+    generatedPrompt = ensureMinLength(
+      customPrompt,
+      angles,
+      followUps,
+      caution,
+      Math.max(1200, Number(minPromptLength) || DEFAULT_MIN_PROMPT_LENGTH),
+    );
+  } else {
+    // 기존 로직
+    const lines = [
+      `당신은 ${safeExpertLabel}입니다.`,
+      "",
+      `${safeFortuneLabel} 기반 AI 상담 프롬프트`,
+      "",
+      "아래의 분석 데이터를 바탕으로 사용자의 질문에 대해 매우 구체적으로 분석해주세요.",
+      "",
+      "[사용자 질문]",
+      normalizedQuestion,
+      "",
+      "[질문의 숨은 의도]",
+      summaryIntent,
+      "",
+      "[핵심 분석 요청]",
+      ...buildCoreRequestLines(),
+      "",
+      "[세부 분석 관점]",
+      ...(angles.length ? angles.map((angle) => `- ${angle}`) : ["- 질문과 관련된 핵심 관점이 충분히 제공되지 않았습니다. 제공된 데이터에서 직접 핵심 관점을 추출해주세요."]),
+      "",
+      "[분석 데이터 요약]",
+      ...(safeDomainDataLines.length ? safeDomainDataLines.map((line) => `- ${line}`) : ["- 분석 데이터 요약이 제공되지 않았습니다. JSON 원문을 우선 근거로 해석해주세요."]),
+      "",
+      "[분석 데이터(JSON)]",
+      "```json",
+      safeJsonBlock(snapshot),
+      "```",
+      "",
+      "[답변 형식]",
+      ...buildAnswerFormatLines(),
+      "",
+      "[작성 규칙]",
+      "- 근거 없는 단정 대신 근거와 불확실성을 함께 제시해주세요.",
+      "- 분석 근거를 먼저 제시하고, 그 뒤에 조언을 제시해주세요.",
+      "- 실전 적용 가능한 액션 플랜으로 마무리해주세요.",
+      "- 필요하면 표/리스트를 활용하되, 핵심 판단 이유를 생략하지 마세요.",
+    ];
 
-  if (followUps.length) {
-    lines.push("", "[추천 후속 질문]", ...followUps.map((q) => `- ${q}`));
+    if (followUps.length) {
+      lines.push("", "[추천 후속 질문]", ...followUps.map((q) => `- ${q}`));
+    }
+
+    if (toText(caution)) {
+      lines.push("", `[주의사항] ${toText(caution)}`);
+    }
+
+    generatedPrompt = ensureMinLength(lines.join("\n"), angles, followUps, caution, Math.max(1200, Number(minPromptLength) || DEFAULT_MIN_PROMPT_LENGTH));
   }
-
-  if (toText(caution)) {
-    lines.push("", `[주의사항] ${toText(caution)}`);
-  }
-
-  const generatedPrompt = ensureMinLength(lines.join("\n"), angles, followUps, caution, Math.max(1200, Number(minPromptLength) || DEFAULT_MIN_PROMPT_LENGTH));
 
   return {
     title: `${safeFortuneLabel} 심층 질문 프롬프트`,

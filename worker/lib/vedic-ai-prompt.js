@@ -1,9 +1,15 @@
 import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js";
+import {
+  VEDIC_PROMPT_TEMPLATES,
+  getVedicPromptTemplate,
+  classifyQuestionToVedicDomain,
+} from "./vedic-ai-prompt-templates.mjs";
 
 const DEFAULT_TEXT = "제공되지 않음";
 
 export const VEDIC_AI_PROMPT_FEATURE_KEY = "vedic_ai_prompt_generator";
 export const VEDIC_AI_PROMPT_PRICE = 100;
+export { VEDIC_PROMPT_TEMPLATES, getVedicPromptTemplate, classifyQuestionToVedicDomain };
 
 const QUESTION_TYPE_RULES = Object.freeze({
   compatibility: ["궁합", "상대", "상대방", "커플", "재회", "배우자", "우리 둘", "인연"],
@@ -436,6 +442,208 @@ function buildVedicFollowUps(questionType) {
   }
 
   return common;
+}
+
+/**
+ * 주제별(domain) 베다 점성술 AI 프롬프트 생성
+ * domain이 명시되면 그 도메인의 전문 프롬프트를 생성
+ * domain이 없으면 기존 질문 타입 분류로 진행
+ */
+export function buildVedicAIPromptWithDomain({
+  question,
+  vedicResult,
+  compatibilityResult,
+  domain = null,
+}) {
+  const normalizedQuestion = ensureValidQuestion(question);
+  ensureVedicResult(vedicResult);
+
+  // domain이 명시되지 않으면 질문에서 자동 분류
+  const targetDomain = domain || classifyQuestionToVedicDomain(normalizedQuestion);
+  const template = getVedicPromptTemplate(targetDomain);
+
+  if (!template) {
+    throw new Error(`UNKNOWN_VEDIC_DOMAIN: ${targetDomain}`);
+  }
+
+  const profile = normalizeProfile(vedicResult);
+  const lagna = normalizeLagna(vedicResult);
+  const moonNak = normalizeMoonNakshatra(vedicResult);
+  const karakas = normalizeKarakas(vedicResult);
+  const yogas = normalizeYogas(vedicResult);
+  const planets = normalizePlanets(vedicResult);
+  const bhavas = normalizeBhavas(vedicResult);
+  const dasha = normalizeDasha(vedicResult);
+  const domain_ = normalizeDomainSummary(vedicResult);
+  const compatibility = normalizeCompatibility(compatibilityResult);
+
+  const activeDasha = dasha.find((row) => row.active) || null;
+  const activeDashaName = activeDasha ? `${activeDasha.planet} (${activeDasha.start}~${activeDasha.end})` : "알 수 없음";
+
+  // 도메인별 프롬프트 상세화
+  const domainContextLines = buildDomainContext({
+    domain: targetDomain,
+    template,
+    profile,
+    lagna,
+    moonNak,
+    karakas,
+    yogas,
+    planets,
+    bhavas,
+    dasha,
+    activeDashaName,
+    domainSummary: domain_,
+    compatibility,
+  });
+
+  const guidance = createDomainGuidance(targetDomain, template, profile.birthTimeKnown);
+
+  const promptContent = [
+    template.corePrompt,
+    "",
+    "[추가 컨텍스트 정보]",
+    `사용자 질문: ${normalizedQuestion}`,
+    `상담 도메인: ${template.domainKo}`,
+    `출생 정보: ${profile.birthDate} ${profile.birthTime} ${profile.timezone}`,
+    `라그나: ${lagna.signKo}(${lagna.sign}) / 로드: ${lagna.lord}`,
+    `문 낙샤트라: ${moonNak.name} P${Number.isFinite(moonNak.pada) ? moonNak.pada : "?"} (${moonNak.lord})`,
+    `카라카: AK ${karakas.atmakaraka}, AmK ${karakas.amatyakaraka}, DK ${karakas.darakaraka}`,
+    `활성 다샤: ${activeDashaName}`,
+    ...domainContextLines,
+    "",
+    "[분석 가이드]",
+    ...guidance,
+    "",
+    "[추천 후속 질문]",
+    ...template.questionPatterns.map((q) => `- ${q.replace("{{dashaName}}", activeDashaName)}`),
+  ].join("\n");
+
+  const promptPackage = buildFortuneQuestionPromptPackage({
+    fortuneType: "vedic",
+    fortuneLabel: "베다 점성술",
+    expertLabel: template.expertRole,
+    userQuestion: normalizedQuestion,
+    analysisResult: vedicResult,
+    profile,
+    compatibilityTarget: compatibility || undefined,
+    mode: targetDomain,
+    questionTypeLabel: template.domainKo,
+    analysisAngles: template.analysisAngles,
+    recommendedFollowUpQuestions: template.questionPatterns,
+    caution: `${template.cautions.join(" / ")} / 주의: ${template.domainKo} 상담은 전문 자문을 대체하지 않습니다.`,
+    customPrompt: promptContent,
+    minPromptLength: 2000,
+  });
+
+  const digestSource = [
+    normalizedQuestion,
+    targetDomain,
+    profile.birthDate,
+    lagna.sign,
+    karakas.atmakaraka,
+    karakas.amatyakaraka,
+    activeDashaName,
+    template.houseFocus.join("|"),
+    template.planetFocus.join("|"),
+  ].join("\n");
+
+  return {
+    prompt: promptPackage.generatedPrompt,
+    generatedPrompt: promptPackage.generatedPrompt,
+    title: `${template.title} - ${normalizedQuestion.substring(0, 30)}...`,
+    summaryIntent: promptPackage.summaryIntent,
+    analysisAngles: template.analysisAngles,
+    recommendedFollowUpQuestions: template.questionPatterns,
+    caution: promptPackage.caution,
+    domain: targetDomain,
+    domainLabel: template.domainKo,
+    keywordWeights: template.keywordWeights,
+    houseFocus: template.houseFocus,
+    planetFocus: template.planetFocus,
+    darakaFocus: template.darakaFocus,
+    digestSource,
+  };
+}
+
+/**
+ * 도메인별 분석 컨텍스트 생성
+ */
+function buildDomainContext({
+  domain,
+  template,
+  profile,
+  lagna,
+  moonNak,
+  karakas,
+  yogas,
+  planets,
+  bhavas,
+  dasha,
+  activeDashaName,
+  domainSummary,
+  compatibility,
+}) {
+  const lines = [];
+
+  // 중점 하우스 정보
+  const focusHouses = template.houseFocus
+    .map((h) => bhavas.find((b) => b.number === h))
+    .filter(Boolean);
+  if (focusHouses.length) {
+    lines.push("");
+    lines.push("[중점 하우스]");
+    focusHouses.forEach((house) => {
+      const planetsInHouse = house.planets.join(", ") || "없음";
+      lines.push(`- ${house.number}H (${house.sign}) [lord: ${house.lord}] / 행성: ${planetsInHouse}`);
+    });
+  }
+
+  // 중점 행성 정보
+  const focusPlanets = template.planetFocus
+    .map((p) => planets.find((pl) => pl.graha === p))
+    .filter(Boolean);
+  if (focusPlanets.length) {
+    lines.push("");
+    lines.push("[중점 행성]");
+    focusPlanets.forEach((planet) => {
+      lines.push(
+        `- ${planet.graha}: ${planet.rashi} ${planet.bhava}H (${planet.nakshatra} P${planet.pada}, 상태: ${planet.dignity})`,
+      );
+    });
+  }
+
+  // 키워드 중요도 정보
+  if (Object.keys(template.keywordWeights).length) {
+    lines.push("");
+    lines.push("[이번 상담 핵심 키워드 (중요도 순)]");
+    const sortedKeywords = Object.entries(template.keywordWeights)
+      .sort((a, b) => b[1].weight - a[1].weight)
+      .slice(0, 5);
+    sortedKeywords.forEach(([keyword, meta]) => {
+      lines.push(`- ${keyword}: ${(meta.weight * 100).toFixed(0)}% (${meta.depth}) / 표지자: ${meta.markers.join(", ")}`);
+    });
+  }
+
+  return lines;
+}
+
+/**
+ * 도메인별 분석 가이드 생성
+ */
+function createDomainGuidance(domain, template, birthTimeKnown) {
+  const guidance = [
+    `주요 분석 초점: ${template.analysisAngles[0]}`,
+    "- 과장, 공포 조장, 단정적 예언을 금지하고 구체적 분석 중심으로 작성",
+    "- 데이터에 없는 사실은 추정으로 명시하고 확정하지 않기",
+    "- 2주~6주 실행 가능한 구체적 액션 플랜 포함",
+  ];
+
+  if (!birthTimeKnown) {
+    guidance.push("- 출생시간 미상/불확실 전제로 하우스 해석은 보수적으로 제시");
+  }
+
+  return guidance;
 }
 
 export function buildVedicAIPrompt({ question, vedicResult, compatibilityResult }) {

@@ -308,16 +308,46 @@ function buildChemistryType(scores: FavoriteDestinyScore, signals: FavoriteDesti
 }
 
 function shortTypeMood(type: FavoriteChemistryType) {
-  if (type === "설렘폭발형") return "끌림이 빠르게 점화되는 조합";
-  if (type === "운명착붙형") return "낯설어도 금방 친밀해지는 조합";
-  if (type === "티격태격중독형") return "긴장과 끌림이 함께 오는 조합";
-  if (type === "덕심폭주형") return "자꾸 눈길이 가는 매력 집중 조합";
-  if (type === "현실안정형") return "편안하게 오래 갈 수 있는 조합";
-  if (type === "거리감있는신비형") return "가까운 듯 멀어 신비감이 도는 조합";
-  if (type === "성장파트너형") return "서로를 자극해 성장하는 조합";
-  if (type === "힐링보호형") return "감정 소모를 줄여주는 안정 조합";
-  if (type === "천천히스며드는형") return "시간이 갈수록 깊어지는 조합";
-  return "잔잔하게 마음이 붙는 조합";
+  if (type === "설렘폭발형") return "도파민 바로 점화되는 마라맛 케미";
+  if (type === "운명착붙형") return "입덕 부정기 끝내는 순식간 착붙 케미";
+  if (type === "티격태격중독형") return "티키타카 싸움도 도파민 되는 케미";
+  if (type === "덕심폭주형") return "알고리즘보다 심장이 먼저 누르는 케미";
+  if (type === "현실안정형") return "현생 멘탈 지켜주는 코어팬 케미";
+  if (type === "거리감있는신비형") return "멀수록 더 궁금한 신비 텐션 케미";
+  if (type === "성장파트너형") return "덕질이 곧 성장 서사가 되는 케미";
+  if (type === "힐링보호형") return "지친 날도 멘탈 회복되는 힐링 케미";
+  if (type === "천천히스며드는형") return "볼수록 깊게 스며드는 뚝배기 케미";
+  return "잔잔한데 강하게 남는 코어팬 케미";
+}
+
+function elementPairMeme(userEl: ElementKey, favoriteEl: ElementKey) {
+  const pair = `${userEl}-${favoriteEl}`;
+  if (pair === "metal-earth" || pair === "earth-metal") return "흔들림 없는 단단함 + 스며드는 국밥 매력";
+  if (pair === "water-wood" || pair === "wood-water") return "청량함 + 성장 서사로 개안되는 비타민 합";
+  if (pair.includes("fire")) return "도파민 폭발하는 마라맛 텐션 합";
+  if (pair.includes("wood")) return "천천히 스며들어 코어팬 만드는 잔향 합";
+  if (pair.includes("water")) return "감정선 정리해 주는 힐링 파도 합";
+  return "묵직하게 오래 가는 코어팬 합";
+}
+
+function buildOneLineLink(params: {
+  userElement: ElementKey;
+  favoriteElement: ElementKey;
+  relation: string;
+  strongestAxisLabel: string;
+  strongestAxisScore: number;
+}) {
+  const elementMeme = elementPairMeme(params.userElement, params.favoriteElement);
+  if (params.relation.includes("보호형") || params.relation.includes("상생")) {
+    return `현생 멱살 잡는 ${elementMeme} 케미`;
+  }
+  if (params.strongestAxisLabel === "설렘") {
+    return `입덕 부정기 박살내는 ${elementMeme} 텐션`;
+  }
+  if (params.strongestAxisScore >= 78) {
+    return `코어팬 확정! ${elementMeme} 시너지`; 
+  }
+  return `볼수록 스며드는 ${elementMeme} 궁합`;
 }
 
 function unique<T>(arr: T[]) {
@@ -513,7 +543,13 @@ export function buildFavoriteDestinyFromSaju(
     chemistryType,
     shortMood: shortTypeMood(chemistryType),
     keywords,
-    oneLineLink: `처음엔 ${scores.excitement >= scores.stability ? "설렘" : "안정"}이 먼저 오고, 볼수록 ${strongestAxis[0]} 축이 살아나는 케미`,
+    oneLineLink: buildOneLineLink({
+      userElement: userChart.dayElement,
+      favoriteElement: favoriteChart.dayElement,
+      relation: dayMasterRelation,
+      strongestAxisLabel: strongestAxis[0],
+      strongestAxisScore: strongestAxis[1],
+    }),
     cardId,
     createdAt: createdDate,
   });
@@ -525,13 +561,13 @@ export function buildFavoriteDestinyFromSaju(
       id: "summary",
       label: "요약",
       shortLabel: "요약",
-      title: "이번 케미 요약",
+      title: "운명 스테이지 요약",
       keywords,
       sections: [
         {
-          title: "핵심 한눈 정리",
+          title: "핵심 케미",
           usedSignals: [dayMasterRelation, branchRelationText],
-          text: `이 조합은 ${chemistryType} 무드에 가깝고, 무대 궁합은 ${scores.total}점입니다. 지금은 ${strongestAxis[0]}(${strongestAxis[1]}점) 파트에서 응원봉이 가장 밝게 켜지고, ${weakestAxis[0]}(${weakestAxis[1]}점)은 앙코르 전에 맞춰두면 훨씬 완성도가 올라가요.`,
+          text: `${ELEMENT_LABEL[userChart.dayElement]}-${ELEMENT_LABEL[favoriteChart.dayElement]} 축은 ${elementPairMeme(userChart.dayElement, favoriteChart.dayElement)}으로 읽혀요. 지금 조합은 ${chemistryType}이고 궁합은 ${scores.total}점. 첫인상 한방보다 볼수록 스며들어 코어팬 모드가 켜지는 타입입니다.`,
         },
       ],
     },
@@ -539,13 +575,13 @@ export function buildFavoriteDestinyFromSaju(
       id: "chemistry",
       label: "케미",
       shortLabel: "케미",
-      title: "왜 잘 맞는지",
+      title: "사주 케미 해설",
       keywords,
       sections: [
         {
           title: "사주 케미 근거",
           usedSignals: [dayMasterRelation, `일지:${branchRelationText}`, fiveElementBalance, `십성:${tenGodRelation}`],
-          text: `일간 합은 ${dayMasterRelation}, 일지 호흡은 ${branchRelationText}로 읽힙니다. 오행 축은 ${fiveElementBalance}라서 ${harmonySignals.length > 0 ? "첫 멘트부터 합창이 붙는" : "템포를 맞출수록 후렴이 살아나는"} 팬-아이돌 케미예요.`,
+          text: `일간은 ${dayMasterRelation}, 일지는 ${branchRelationText}, 오행은 ${fiveElementBalance} 결입니다. ${harmonySignals.length > 0 ? "초반부터 합이 잘 맞는 라이브형" : "처음엔 낯가리다 후반에 폭발하는 역주행형"}이라 입덕 포인트가 뒤로 갈수록 커져요.`,
         },
       ],
     },
@@ -553,13 +589,13 @@ export function buildFavoriteDestinyFromSaju(
       id: "emotion",
       label: "감정",
       shortLabel: "감정",
-      title: "감정선 리딩",
+      title: "강하게 끌리는 포인트",
       keywords,
       sections: [
         {
-          title: "끌림과 오해 포인트",
+          title: "감정선 & 덕심 분석",
           usedSignals: conflictSignals.length ? conflictSignals : ["완충 신호"],
-          text: `감정선 ${scores.emotion}점, 설렘 ${scores.excitement}점입니다. ${conflictSignals.length ? "심장 박수는 빠른데 답장 박자가 어긋나면 살짝 삐끗할 수 있어요." : "한 번에 터지는 불꽃보다 잔광이 오래 남는 타입이라, 덕심이 안정적으로 누적됩니다."}`,
+          text: `감정 ${scores.emotion}점, 설렘 ${scores.excitement}점이라 덕통사고와 안정 코어팬 지수가 동시에 들어와요. ${conflictSignals.length ? "치명적인 텐션 때문에 뇌피셜이 과열되기 쉬운 조합" : "잔광이 길게 남아 현생 중에도 계속 생각나는 조합"}이라 시간과 애정이 자연스럽게 몰립니다.`,
         },
       ],
     },
@@ -573,8 +609,8 @@ export function buildFavoriteDestinyFromSaju(
         {
           title: "덕심 포인트",
           usedSignals: charmSignals.length ? charmSignals : ["기본 매력 신호"],
-          text: `팬심 ${scores.fanBias}점입니다. ${charmSignals.length ? "도화/화개 매력 포인트가 살아 있어서, 직캠 한 번 보면 알고리즘이 아니라 심장이 먼저 재생 버튼을 눌러요." : "한방 임팩트보다 스며드는 매력형이라, 회차가 쌓일수록 최애 확신이 강해집니다."}`,
-          action: "과몰입이 올라오면 '오늘 최애 포인트 1줄'만 남기고 10분 환기해 감정 체력을 지켜보세요.",
+          text: `팬심 ${scores.fanBias}점. ${charmSignals.length ? "도화/화개 포인트가 살아 있어서 직캠 1개만 봐도 도파민이 바로 치솟는 타입" : "자극보다 여운으로 스며드는 타입이라 N회차 후 코어팬 확정"}입니다.`,
+          action: "오늘 덕질 로그에 최애 레전드 순간 1개만 저장하고, 내일 다시 보면 입덕 포인트가 더 선명해져요 📌",
         },
       ],
     },
@@ -588,8 +624,8 @@ export function buildFavoriteDestinyFromSaju(
         {
           title: "장기 지속력",
           usedSignals: longTermSignals.length ? longTermSignals : ["루틴 보완 필요"],
-          text: `안정 ${scores.stability}점, 장기 ${scores.longTerm}점입니다. ${longTermSignals.length ? "정주행-휴식-재입장 루틴이 잘 맞아, 오래 덕질해도 번아웃이 적은 조합이에요." : "초반 텐션보다 리듬 있는 응원 루틴을 만들수록 관계 체감이 더 깊어집니다."}`,
-          action: "응원 루틴을 주 2~3회 고정해두면 만족도와 지속력이 함께 올라가요.",
+          text: `안정 ${scores.stability}점은 꾸준한 코어팬 지수, 장기 ${scores.longTerm}점은 덕질 지속력입니다. ${longTermSignals.length ? "현생-덕질 밸런스를 잘 타서 길게 달릴수록 더 맛이 나는 궁합" : "단기 과열보다 일정한 루틴이 붙을 때 진가가 터지는 궁합"}이에요.`,
+          action: "주 2~3회 '짧고 굵게' 덕질 타임을 잡으면 만족도랑 지속력이 같이 올라갑니다 🔥",
         },
       ],
     },
@@ -597,14 +633,14 @@ export function buildFavoriteDestinyFromSaju(
       id: "caution",
       label: "주의",
       shortLabel: "주의",
-      title: "조율 포인트",
+      title: "조심해야 할 감정 패턴",
       keywords,
       sections: [
         {
-          title: "갈등 신호 해석",
+          title: "과몰입 주의보",
           usedSignals: conflictSignals.length ? conflictSignals : ["갈등 과열 낮음"],
-          text: `${conflictSignals.length ? "충/해/파 신호는 불화 선언이 아니라 템포 차이 알림이에요. 기대 속도만 맞추면 케미가 다시 안정권으로 돌아옵니다." : "큰 충돌은 약한 편이지만 혼자 추측해서 스토리를 쓰기 시작하면 피로가 쌓일 수 있어요."}`,
-          action: "비교/소유욕 신호가 오면 바로 반응하지 말고, 한 템포 쉬고 사실부터 확인해 보세요.",
+          text: `${conflictSignals.length ? "🚨 텐션 과열 구간! ${branchRelationText} 신호가 강하게 들어오면 혼자 떡밥 세계관 확장하다 멘탈이 털릴 수 있어요." : "🚨 큰 충돌은 약하지만, 입덕 부정기 모드에서 혼자 상상 서사를 과하게 돌리면 에너지가 훅 빠질 수 있어요."}`,
+          action: "떡밥 없는 날엔 과감히 현생 1퀘스트 클리어하고 돌아오면 케미 밸런스가 다시 살아납니다 🎯",
         },
       ],
     },
@@ -612,21 +648,21 @@ export function buildFavoriteDestinyFromSaju(
       id: "advice",
       label: "조언",
       shortLabel: "조언",
-      title: "오늘의 작은 행동",
+      title: "✨ 오늘의 덕질/관계 조언",
       keywords,
       sections: [
         {
-          title: "실전 행동 가이드",
+          title: "실행 포인트",
           usedSignals: [dayMasterRelation, `소통:${scores.communication}`],
-          text: `오늘은 감정 강도보다 소통 ${scores.communication}점 라인을 살리는 게 핵심입니다. 길게 불타기보다 짧고 선명한 응원 한 번이 이 조합의 체감 만족도를 가장 빠르게 올려줘요.`,
-          action: "오늘의 미션: 최애에게 끌린 포인트를 한 문장으로 적고, 내일 다시 읽어 감정 리듬을 정돈해 보세요.",
+          text: `오늘의 승부수는 소통 ${scores.communication}점 라인을 살리는 것. 길게 앓기보다 한 번 제대로 도파민 채우는 덕질이 이 조합에 더 잘 맞아요.`,
+          action: "오늘의 미션: 최애 레전드 직캠 1개만 보고 깔끔하게 종료! 굵고 짧은 덕질이 오늘 운을 최상으로 끌어올립니다 🚀",
         },
       ],
     },
   ];
 
   const summary = sanitizeFavoriteDestinyText(
-    `이번 팬-아이돌 궁합은 ${chemistryType} 무드로 읽히며, 사주 기준 ${dayMasterRelation}과 ${branchRelationText} 신호가 핵심입니다. 설렘(${scores.excitement})과 안정(${scores.stability}) 밸런스를 맞추면 덕심 만족도가 가장 크게 올라갑니다.`
+    `이번 팬-아이돌 궁합은 ${chemistryType} 무드로 읽히며, 사주 기준 ${dayMasterRelation}과 ${branchRelationText} 신호가 핵심입니다. 설렘(${scores.excitement})과 코어팬 안정(${scores.stability}) 밸런스를 잡으면 덕질 만족도가 크게 올라갑니다.`
   );
 
   return {
