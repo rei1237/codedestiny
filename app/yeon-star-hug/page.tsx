@@ -628,7 +628,7 @@ function getAspectSnapshot(userSign: ZodiacSign, todaySunSign: ZodiacSign): Aspe
   if (distance === 0) {
     return {
       distance,
-      label: "컨정션(Conjunction)",
+      label: "합(0°)",
       summary: "오늘 태양과 네 별자리가 같은 축에 있어 집중력이 또렷해.",
       scoreBias: 0.8,
     };
@@ -636,7 +636,7 @@ function getAspectSnapshot(userSign: ZodiacSign, todaySunSign: ZodiacSign): Aspe
   if (distance === 2) {
     return {
       distance,
-      label: "섹스타일(Sextile)",
+      label: "육분(60°)",
       summary: "작은 기회가 자연스럽게 연결되는 날의 각도야.",
       scoreBias: 0.5,
     };
@@ -644,7 +644,7 @@ function getAspectSnapshot(userSign: ZodiacSign, todaySunSign: ZodiacSign): Aspe
   if (distance === 3) {
     return {
       distance,
-      label: "스퀘어(Square)",
+      label: "직각(90°)",
       summary: "마찰이 있지만 방향 수정으로 성과를 만드는 각도야.",
       scoreBias: -0.6,
     };
@@ -652,7 +652,7 @@ function getAspectSnapshot(userSign: ZodiacSign, todaySunSign: ZodiacSign): Aspe
   if (distance === 4) {
     return {
       distance,
-      label: "트라인(Trine)",
+      label: "삼분(120°)",
       summary: "흐름이 부드럽게 이어지는 행운의 각도야.",
       scoreBias: 0.9,
     };
@@ -660,7 +660,7 @@ function getAspectSnapshot(userSign: ZodiacSign, todaySunSign: ZodiacSign): Aspe
   if (distance === 6) {
     return {
       distance,
-      label: "오포지션(Opposition)",
+      label: "대립(180°)",
       summary: "상대 시선을 통해 균형을 회복하는 조율 각도야.",
       scoreBias: -0.7,
     };
@@ -832,7 +832,7 @@ function collectConcernKeywords(concern: ConcernAnalysis) {
 
 function buildKeywordSupportLines(
   concern: ConcernAnalysis,
-  context: {
+  _context: {
     selectedSign: ZodiacSign;
     todaySunSign: ZodiacSign;
     moon: MoonSnapshot;
@@ -842,26 +842,15 @@ function buildKeywordSupportLines(
   }
 ) {
   const keywords = collectConcernKeywords(concern).slice(0, 3);
-  const plans = ACTION_PLAN_BY_DOMAIN[concern.topDomain] ?? ACTION_PLAN_BY_CATEGORY[concern.topCategory];
-  const moonPct = Math.round(context.moon.illumination * 100);
-  const dominantScoreLabel =
-    context.scores.love >= context.scores.money && context.scores.love >= context.scores.overall
-      ? "관계운"
-      : context.scores.money >= context.scores.overall
-      ? "현실운"
-      : "종합운";
 
   if (keywords.length === 0) {
     return [
-      `[핵심신호] ${DOMAIN_LABEL[concern.topDomain]}: ${context.selectedSign}·${context.todaySunSign} 각도 ${context.aspect.label} / 달 조도 ${moonPct}% / 요일 행성 ${context.dayRuler.label}`,
-      `[실행포인트] ${plans[0]}`,
-      `[운세중심] 오늘은 ${dominantScoreLabel} 우선으로 판단하면 흐름이 안정돼.`,
+      `#${DOMAIN_LABEL[concern.topDomain]}`,
+      `#${CATEGORY_LABEL[concern.topCategory]}`,
+      `#오늘도괜찮아`,
     ];
   }
-  return keywords.map((keyword, index) => {
-    const plan = plans[index % plans.length];
-    return `[키워드:${keyword}] 계산근거(${context.aspect.label} · 달조도 ${moonPct}% · ${context.dayRuler.label})를 기준으로 보면, 지금은 ${plan}`;
-  });
+  return keywords.map((keyword) => `#${String(keyword).replace(/\s+/g, "")}`);
 }
 
 function buildDetailedForecast(args: {
@@ -876,55 +865,47 @@ function buildDetailedForecast(args: {
 }) {
   const { concern, selectedSign, todaySunSign, moon, aspect, dayRuler, elementRelation, scores } = args;
   const moonPct = Math.round(moon.illumination * 100);
+  const dominantTrackLabel =
+    scores.love >= scores.money && scores.love >= scores.overall
+      ? "관계/연애"
+      : scores.money >= scores.overall
+      ? "재정/현실"
+      : "종합 균형";
   const topTrack =
     scores.love >= scores.money && scores.love >= scores.overall
       ? "관계/연애 트랙"
       : scores.money >= scores.overall
       ? "재정/현실 트랙"
       : "종합 균형 트랙";
+  const domainAction = ACTION_PLAN_BY_DOMAIN[concern.topDomain]?.[0] ?? ACTION_PLAN_BY_CATEGORY[concern.topCategory][0];
+  const scoreSpan = Math.max(scores.overall, scores.love, scores.money) - Math.min(scores.overall, scores.love, scores.money);
+  const confidenceLabel = scoreSpan >= 2 ? "특정 영역 집중" : "균형 운영";
 
   return [
-    `별자리 계산 요약: 당신의 ${selectedSign}와 오늘 태양 ${todaySunSign}의 각도는 ${aspect.label}이며, ${aspect.summary}`,
-    `월령 계산 요약: 달 나이 ${moon.age.toFixed(1)}일, 조도 ${moonPct}% (${moon.label})로 감정 리듬은 일반 영역보다 ${DOMAIN_LABEL[concern.topDomain]}에서 반응이 빠르게 나타날 수 있어.`,
-    `원소/요일 계산 요약: ${elementRelation.detail} 또한 ${dayRuler.label}(${dayRuler.summary}) 영향으로 오늘은 ${topTrack}에 의사결정 에너지가 더 배분돼.`,
-    `실전 상담 결론: 종합 ${scores.overall}점 · 관계 ${scores.love}점 · 재정 ${scores.money}점 흐름이므로, ${ACTION_PLAN_BY_DOMAIN[concern.topDomain]?.[0] ?? ACTION_PLAN_BY_CATEGORY[concern.topCategory][0]}`,
+    `핵심 각도 해석: ${selectedSign} 기준 오늘 태양 ${todaySunSign}과 ${aspect.label} 구도이며, ${aspect.summary}`,
+    `달 위상 해석: 달 나이 ${moon.age.toFixed(1)}일 · 조도 ${moonPct}% (${moon.label}) 상태라 ${DOMAIN_LABEL[concern.topDomain]} 이슈에서 감정 반응이 빠르게 올라올 수 있어.`,
+    `행성 리듬 해석: ${dayRuler.label}(${dayRuler.summary}) + ${elementRelation.label}(${elementRelation.detail}) 조합으로 오늘 결정 중심축은 ${dominantTrackLabel}이고, 운영 모드는 ${confidenceLabel}이 유리해.`,
+    `실행 처방: 종합 ${scores.overall}점 · 관계 ${scores.love}점 · 재정 ${scores.money}점 기준, 첫 행동은 "${domainAction}". 이후 ${topTrack} 우선으로 일정 1개만 확정해.`,
   ];
 }
 
 function buildWarmLetterMessage(args: {
   selectedEmotion: EmotionKey;
-  selectedSign: ZodiacSign;
-  todaySunSign: ZodiacSign;
   concern: ConcernAnalysis;
-  dayRuler: DayRulerSnapshot;
-  aspect: AspectSnapshot;
-  moon: MoonSnapshot;
-  elementRelation: { label: string; scoreBias: number; detail: string };
-  keywordSupportLines: string[];
 }) {
-  const {
-    selectedEmotion,
-    selectedSign,
-    todaySunSign,
-    concern,
-    dayRuler,
-    aspect,
-    moon,
-    elementRelation,
-    keywordSupportLines,
-  } = args;
+  const { selectedEmotion, concern } = args;
 
-  const keywordBlock = keywordSupportLines.map((line) => `- ${line}`).join("\n");
-  const moonPct = Math.round(moon.illumination * 100);
   const priorityDomain = DOMAIN_LABEL[concern.topDomain];
+  const firstKeyword = concern.domainKeywords[0] ?? concern.topKeywords[0] ?? CATEGORY_LABEL[concern.topCategory];
+  const safeKeyword = String(firstKeyword).replace(/\s+/g, "");
 
   return [
     "사랑하는 너에게,",
-    `${EMOTION_OPENING[selectedEmotion]} 오늘 계산된 점성술 지표는 ${aspect.label}, ${moon.label}(조도 ${moonPct}%), ${dayRuler.label} 흐름이야.`,
-    `${selectedSign}의 결은 오늘 태양 ${todaySunSign}와 ${elementRelation.label}로 맞물리면서 ${priorityDomain}에 특히 집중력을 더해줘.`,
-    `지금 네 고민의 중심은 ${CATEGORY_LABEL[concern.topCategory]}이고, 아래 키워드별 상담은 같은 계산 템플릿으로 정리했어.\n${keywordBlock}`,
-    `실행 우선순위는 "${priorityDomain} → ${CATEGORY_LABEL[concern.topCategory]}" 순서야. 첫 행동은 ${ACTION_PLAN_BY_DOMAIN[concern.topDomain]?.[0] ?? ACTION_PLAN_BY_CATEGORY[concern.topCategory][0]}`,
-    "오늘은 감정 해석보다 계산된 흐름에 맞춘 작은 행동이 운의 체감을 더 빠르게 바꿔줄 거야.",
+    `${EMOTION_OPENING[selectedEmotion]} 지금의 너는 충분히 잘하고 있어.`,
+    `오늘은 ${priorityDomain} 흐름에서 특히 네 힘이 살아나는 날이야. 너무 많이 증명하려 하지 말고, 네 호흡대로 한 걸음만 가도 괜찮아.`,
+    `응원 키워드: #${safeKeyword} #${priorityDomain.replace(/\//g, "")} #연이응원`,
+    `실행 우선순위는 "${priorityDomain} → ${CATEGORY_LABEL[concern.topCategory]}" 순서로 부드럽게 잡아보자.`,
+    "완벽하지 않아도 돼. 오늘의 작은 전진이 내일의 너를 지켜줄 거야.",
     "연이는 오늘도 네 편이야.",
   ].join("\n\n");
 }
@@ -986,12 +967,17 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
   const practicalTip = `${CATEGORY_LABEL[concern.topCategory]} · ${DOMAIN_LABEL[concern.topDomain]} 고민은 "작게 쪼개서 실행"할수록 정확도가 올라가. ${DOMAIN_TIP[concern.topDomain]}`;
 
   const astroEvidence = [
-    `태양 위치: ${todaySunSign} (${sunProfile.element} 원소 · ${sunProfile.modality} 성질 · 주관 ${sunProfile.ruler})`,
-    `당신 별자리: ${selectedSign} (${userProfile.element} 원소)와 태양 관계는 ${elementRelation.label}`,
-    `달 위상: ${moon.label} (phase=${moon.phaseKey}, 달 나이 ${moon.age.toFixed(1)}일 · 조도 ${moonIlluminationPct}%)`,
-    `별자리 각도: ${aspect.label} (${zodiacDegree}°)`,
-    `요일 행성: ${dayRuler.label} - ${dayRuler.summary}`,
-    `주요 키워드 포착: ${concernHint}`,
+    `입력 기준: 감정=${EMOTION_LABEL[selectedEmotion]} · 고민 카테고리=${CATEGORY_LABEL[concern.topCategory]} · 도메인=${DOMAIN_LABEL[concern.topDomain]}`,
+    `태양 기준값: ${todaySunSign} (${sunProfile.element} 원소 · ${sunProfile.modality} 성질 · 주관 ${sunProfile.ruler})`,
+    `사용자 기준값: ${selectedSign} (${userProfile.element} 원소 · ${userProfile.modality} 성질 · 주관 ${userProfile.ruler})`,
+    `별자리 각도 계산: 거리 ${aspect.distance}칸 × 30° = ${zodiacDegree}° → ${aspect.label} (bias ${aspect.scoreBias.toFixed(2)})`,
+    `달 위상 계산: 달 나이 ${moon.age.toFixed(1)}일 · 조도 ${moonIlluminationPct}% · 위상 ${moon.label} (bias O:${moon.scoreBias.overall.toFixed(2)} / L:${moon.scoreBias.love.toFixed(2)} / M:${moon.scoreBias.money.toFixed(2)})`,
+    `요일 행성 계산: ${dayRuler.label} (${dayRuler.summary}) (bias O:${dayRuler.scoreBias.overall.toFixed(2)} / L:${dayRuler.scoreBias.love.toFixed(2)} / M:${dayRuler.scoreBias.money.toFixed(2)})`,
+    `원소 상성 계산: ${elementRelation.label} (bias ${elementRelation.scoreBias.toFixed(2)})`,
+    `점수식(종합): 3 + 감정(${emotionBias.overall.toFixed(2)}) + 달(${moon.scoreBias.overall.toFixed(2)}) + 요일(${dayRuler.scoreBias.overall.toFixed(2)}) + 각도(${(aspect.scoreBias * 0.45).toFixed(2)}) + 포커스(${(focusBias.overall * 0.2).toFixed(2)}) + 원소(${(elementRelation.scoreBias * 0.5).toFixed(2)}) + 모달(${modalityBias.toFixed(2)}) → ${overall}점`,
+    `점수식(관계): 3 + 감정(${emotionBias.love.toFixed(2)}) + 달(${moon.scoreBias.love.toFixed(2)}) + 요일(${dayRuler.scoreBias.love.toFixed(2)}) + 각도(${(aspect.scoreBias * 0.4).toFixed(2)}) + 포커스(${(focusBias.love * 0.25).toFixed(2)}) + 원소(${(elementRelation.scoreBias * 0.35).toFixed(2)}) + 모달(${(modalityBias * 0.5).toFixed(2)}) → ${love}점`,
+    `점수식(재정): 3 + 감정(${emotionBias.money.toFixed(2)}) + 달(${moon.scoreBias.money.toFixed(2)}) + 요일(${dayRuler.scoreBias.money.toFixed(2)}) + 각도(${(aspect.scoreBias * 0.3).toFixed(2)}) + 포커스(${(focusBias.money * 0.22).toFixed(2)}) + 원소(${(elementRelation.scoreBias * 0.25).toFixed(2)}) + 모달(${(modalityBias * 0.35).toFixed(2)}) → ${money}점`,
+    `인식 키워드: ${concernHint}`,
   ];
 
   const keywordSupportLines = buildKeywordSupportLines(concern, {
@@ -1016,14 +1002,7 @@ function buildConsultation(selectedSign: ZodiacSign, selectedEmotion: EmotionKey
 
   const warmMessage = buildWarmLetterMessage({
     selectedEmotion,
-    selectedSign,
-    todaySunSign,
     concern,
-    dayRuler,
-    aspect,
-    moon,
-    elementRelation,
-    keywordSupportLines,
   });
 
   const signInfo = ZODIAC_SIGNS.find((item) => item.sign === selectedSign) ?? ZODIAC_SIGNS[0];
