@@ -18962,6 +18962,54 @@ const GLOBAL_CELEBS = [
   });
 })();
 
+function normalizeCelebBirthValue(value) {
+  var text = String(value || '').trim();
+  var m = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (!m) return '';
+  var year = Number(m[1]);
+  var month = Number(m[2]);
+  var day = Number(m[3]);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return '';
+  if (month < 1 || month > 12 || day < 1 || day > 31) return '';
+  return String(year).padStart(4, '0') + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+}
+
+function normalizeCelebClockValue(value, fallback) {
+  var num = Number(value);
+  return Number.isFinite(num) ? num : fallback;
+}
+
+var CELEB_PROFILE_BY_NAME = Object.create(null);
+
+function resolveCelebProfile(input) {
+  var raw = (input && typeof input === 'object') ? input : { name: input };
+  var canonical = raw && raw.name ? CELEB_PROFILE_BY_NAME[raw.name] : null;
+  var birth = normalizeCelebBirthValue(raw.birth) || (canonical ? canonical.birth : '');
+  var hour = normalizeCelebClockValue(raw.hour, canonical ? canonical.hour : 12);
+  var minute = normalizeCelebClockValue(raw.minute, canonical ? canonical.minute : 0);
+  return {
+    cat: raw.cat || (canonical ? canonical.cat : ''),
+    name: String(raw.name || (canonical ? canonical.name : '') || '').trim(),
+    birth: birth,
+    hour: Math.max(0, Math.min(23, hour)),
+    minute: Math.max(0, Math.min(59, minute)),
+    nationality: raw.nationality || (canonical ? canonical.nationality : ''),
+    birthGeo: raw.birthGeo || (canonical ? canonical.birthGeo : null),
+    timeKnown: typeof raw.timeKnown === 'boolean' ? raw.timeKnown : Boolean(canonical && canonical.timeKnown),
+    gender: raw.gender || (canonical ? canonical.gender : '')
+  };
+}
+
+(function() {
+  CELEBS.forEach(function(c) {
+    var normalized = resolveCelebProfile(c);
+    if (normalized.birth) c.birth = normalized.birth;
+    c.hour = normalized.hour;
+    c.minute = normalized.minute;
+    if (normalized.name) CELEB_PROFILE_BY_NAME[normalized.name] = normalized;
+  });
+})();
+
 function populateCelebList(){
   var container=document.getElementById('celebsList');
   if(!container) return;
@@ -19032,7 +19080,7 @@ function populateCelebList(){
       var list=filterCat
         ?CELEBS.filter(function(c){return c.cat===filterCat;})
         :CELEBS;
-      list.forEach(function(c){
+      list.map(resolveCelebProfile).filter(function(c){ return !!c.birth; }).forEach(function(c){
         var btn=document.createElement('button');
         btn.type='button';
         btn.className='celeb-btn';
@@ -19052,10 +19100,15 @@ function populateCelebList(){
 }
 
 function setCeleb(c){
-  document.getElementById('compatName').value=c.name;
-  document.getElementById('compatBirthDate').value=c.birth;
-  document.getElementById('compatBirthHour').value=(c.hour!==undefined?c.hour:12);
-  document.getElementById('compatBirthMinute').value=(c.minute!==undefined?c.minute:0);
+  var profile = resolveCelebProfile(c);
+  if(!profile.birth){
+    alert('선택한 연예인/유명인의 생년월일 데이터가 준비되지 않았습니다. 다른 인물을 먼저 선택해 주세요.');
+    return;
+  }
+  document.getElementById('compatName').value=profile.name;
+  document.getElementById('compatBirthDate').value=profile.birth;
+  document.getElementById('compatBirthHour').value=profile.hour;
+  document.getElementById('compatBirthMinute').value=profile.minute;
   /* 양/음력 라디오 프리뷰도 업데이트 */
   try{updateLunarPreview('compatBirthDate','compatCalType','compatLunarPreview');}catch(e){}
   /* 사주 미계산 시에는 폼만 채우고 안내 */
@@ -19275,53 +19328,10 @@ async function runCompatCore(compatRunBtn, name, bd, type){
     var power2=calcPower(p2);
     var jong2=detectJong(p2);
 
-    var partnerBirthForZiwei = {
-      year: year,
-      month: month,
-      day: day,
-      hour: hour,
-      minute: minute,
-      lat: meMeta.latitude != null ? meMeta.latitude : ((meBirth && meBirth.lat) || 37.5665),
-      lon: meMeta.longitude != null ? meMeta.longitude : ((meBirth && meBirth.lon) || 126.9780),
-      tz: meBirth && meBirth.tz != null ? meBirth.tz : 9
-    };
-    var meBirthForZiwei = meBirth || {
-      year: meYear || year,
-      month: meMonth || month,
-      day: meDay || day,
-      hour: 12,
-      minute: 0,
-      lat: partnerBirthForZiwei.lat,
-      lon: partnerBirthForZiwei.lon,
-      tz: partnerBirthForZiwei.tz
-    };
-    var meBirthForAstro = window._astroBirth || meBirthForZiwei;
-    var partnerBirthForAstro = {
-      year: year,
-      month: month,
-      day: day,
-      hour: hour,
-      minute: minute,
-      lat: partnerBirthForZiwei.lat,
-      lon: partnerBirthForZiwei.lon,
-      tz: partnerBirthForZiwei.tz
-    };
-
-    var ziweiLite = computeZiweiCompatLite(meBirthForZiwei, partnerBirthForZiwei);
-    var astroLite = computeAstroCompatLite(meBirthForAstro, partnerBirthForAstro);
-    var blendInfo = {
-      ziwei: ziweiLite,
-      astro: astroLite,
-      source: {
-        kasiPairResolved: !!pairCtx,
-        kasiGanjiApplied: kasiApplied
-      }
-    };
-
     var resultArea=document.getElementById('compatResult');
     var llmHost=cdEnsureCompatLlmHost();
     if(llmHost) llmHost.innerHTML='';
-    var compat=analyzeCompat(G_PILLARS,G_NATAL,G_POWER,G_JOHU,G_JONG,p2,natal2,power2,johu2,jong2,type,name,blendInfo);
+    var compat=analyzeCompat(G_PILLARS,G_NATAL,G_POWER,G_JOHU,G_JONG,p2,natal2,power2,johu2,jong2,type,name);
     if(resultArea) resultArea.innerHTML=compat.html;
     var pastHtml=analyzePastLifeCompat(G_PILLARS,p2,name);
     if(resultArea) resultArea.insertAdjacentHTML('beforeend',pastHtml);
@@ -19358,7 +19368,7 @@ async function runCompatCore(compatRunBtn, name, bd, type){
   }
 }
 
-function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name,blendInfo){
+function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
   var score=0;
   var reasons=[];
 
@@ -19561,14 +19571,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name,blendInfo){
     return Math.max(20, Math.min(96, Math.round(58 + (raw * 2.8))));
   };
   var scoreMyeongri = normalizeMyeongri(score);
-  var scoreZiwei = (blendInfo && blendInfo.ziwei && typeof blendInfo.ziwei.score === 'number') ? blendInfo.ziwei.score : 50;
-  var scoreAstro = (blendInfo && blendInfo.astro && typeof blendInfo.astro.score === 'number') ? blendInfo.astro.score : 50;
-  var integratedScore = Math.max(20, Math.min(96, Math.round((scoreMyeongri * 0.58) + (scoreZiwei * 0.24) + (scoreAstro * 0.18))));
-  var integratedSourceBadges = [];
-  if (blendInfo && blendInfo.source) {
-    if (blendInfo.source.kasiPairResolved) integratedSourceBadges.push('KASI Pair Sync');
-    if (blendInfo.source.kasiGanjiApplied) integratedSourceBadges.push('KASI Ganji Applied');
-  }
+  var integratedScore = scoreMyeongri;
 
   var grade,gradeCls,gradeLabel,gradeComment;
   if(score>=13){grade='S급';gradeCls='grade-s';gradeLabel='🌟 전생의 은인';gradeComment='타고난 인연입니다. 서로의 부족한 에너지를 정확히 채워주고 기신까지 제거해주는, 명리학적으로 가장 이상적인 궁합입니다.';}
@@ -19601,6 +19604,36 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name,blendInfo){
   }
   var factHtml=factLines.map(function(f){return '<div class="compat-check-item"><span class="compat-check-icon" style="color:#d81b60; font-size:1.1rem">🔥</span><span>'+f+'</span></div>';}).join('');
 
+  var emotionalSummary = sok.text.split('<br><br>')[0] || '두 사람의 감정 리듬을 명리 중심으로 해석한 요약입니다.';
+  var conflictSummary = heTrapFound
+    ? '끌림은 강하지만 합의 결과가 기신을 건드려 오래 갈수록 답답함이 쌓일 수 있습니다. 편안함과 정체를 구분하는 합의가 핵심입니다.'
+    : clashEls.length
+      ? '한쪽의 용신이 다른 한쪽의 기신이 되는 구간이 있어, 생활 방식과 우선순위를 정할 때 쉽게 예민해질 수 있습니다.'
+      : '큰 충돌축은 약한 편이지만, 강한 끌림이 있는 만큼 말하지 않은 기대치가 갈등으로 바뀌지 않도록 기준을 미리 맞추는 편이 좋습니다.';
+  var practicalSummary = type==='business'
+    ? '일정, 권한, 돈의 흐름을 문서로 고정할수록 궁합 장점이 실적으로 이어집니다. 감정 조율보다 역할 설계가 먼저입니다.'
+    : type==='friend'
+      ? '연락 빈도와 에너지 텐포를 맞추면 오래 갑니다. 친밀감의 방식이 달라도 서운함을 즉시 언어화하는 편이 유리합니다.'
+      : '연애에서는 감정 회복 속도와 표현 방식의 차이를 먼저 다뤄야 합니다. 좋아하는 방식보다 서운할 때 어떻게 복구할지를 합의하는 쪽이 오래 갑니다.';
+  var longTermSummary = integratedScore >= 80
+    ? '장기적으로 서로의 결핍을 채워주는 구조가 강합니다. 익숙함에 기대기보다 공동 목표를 만들면 관계의 상승폭이 커집니다.'
+    : integratedScore >= 65
+      ? '호감과 현실성이 함께 있는 관계입니다. 루틴만 잘 설계하면 안정적으로 깊어질 수 있습니다.'
+      : integratedScore >= 50
+        ? '매력은 있지만 운영 난도가 있는 관계입니다. 갈등 이후 복구 방식이 정착되지 않으면 감정 소모가 반복될 수 있습니다.'
+        : '초반 끌림과 별개로 장기 운용에는 체력과 합의가 많이 필요한 관계입니다. 경계선과 기대치를 분명히 해야 손실을 줄일 수 있습니다.';
+  var detailCardsHtml = [
+    { title:'감정 리듬', body: emotionalSummary },
+    { title:'갈등 스위치', body: conflictSummary },
+    { title:'현실 운영', body: practicalSummary },
+    { title:'장기 전망', body: longTermSummary }
+  ].map(function(card){
+    return '<div style="background:rgba(255,255,255,0.72);border:1px solid rgba(216,27,96,0.12);border-radius:14px;padding:14px;">'
+      +'<div style="font-size:.82rem;font-weight:900;color:#c2185b;margin-bottom:6px;">'+card.title+'</div>'
+      +'<div style="font-size:.8rem;color:#4e5358;line-height:1.72;">'+card.body+'</div>'
+      +'</div>';
+  }).join('');
+
   var advLines=[];
   if(score>=8){
     advLines.push('<b>[유지 천기] 방치 금물:</b> 하늘이 점지해 준 대길(大吉)의 궁합이라도 방치하면 녹슬기 마련입니다. 너무 완벽해서 오히려 루즈해지기 쉬우니 정기적으로 "함께 도달할 새로운 하이그림자 파동 목표(재테크, 여행, 공동 취미)"를 세워 관계에 새로운 숨결을 불어넣으세요.');
@@ -19629,18 +19662,21 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name,blendInfo){
     '<div class="compat-grade-badge '+gradeCls+'">'+grade+'</div>'+
     '<div class="compat-grade-label">'+titleMap[type]+' — '+USER_NAME+' × '+name+'<br><span style="font-size:.78rem;color:#888;font-weight:600">'+gradeLabel+'</span></div>'+
     '<div class="compat-grade-desc">'+gradeComment+'</div>'+
-    '<div style="margin-top:6px;font-size:.79rem;color:#5f6368;font-weight:700;">멀티 엔진 종합 점수: '+integratedScore+'/100</div>'+
+    '<div style="margin-top:6px;font-size:.79rem;color:#5f6368;font-weight:700;">명리 전용 궁합 점수: '+integratedScore+'/100</div>'+
     '</div></div>'+
     '<div class="compat-section">'+
-    '<div class="compat-section-title">🧭 다각도 통합 스코어</div>'+
+    '<div class="compat-section-title">🧭 사주 궁합 총평</div>'+
     '<div style="font-size:.8rem;color:#4e5358;line-height:1.7">'
-      +'명리 '+scoreMyeongri+' · 자미 '+scoreZiwei+' · 점성 '+scoreAstro+' → <b>종합 '+integratedScore+'</b>/100'
-      +(integratedSourceBadges.length ? ('<br><span style="font-size:.72rem;color:#7a7f86">'+integratedSourceBadges.join(' · ')+'</span>') : '')+
+      +'이번 결과는 <b>사주 명리만</b>으로 계산했습니다. 일간·일지 합충, 조후, 용신/기신, 십성 구조를 합산해 <b>'+integratedScore+'</b>/100으로 정리했습니다.'+
     '</div>'+
     '</div>'+
     '<div class="compat-section">'+
     '<div class="compat-section-title">🌡️ 에너지 조화</div>'+
     '<div style="font-size:.8rem;color:#555;line-height:1.7">'+sok.text+'</div>'+
+    '</div>'+
+    '<div class="compat-section">'+
+    '<div class="compat-section-title">🧩 세부 해석</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;">'+detailCardsHtml+'</div>'+
     '</div>'+
     '<div class="compat-section">'+
     '<div class="compat-section-title">📋 궁합 포인트 체크 <span style="font-size:.7rem;font-weight:400;color:#aaa">총점 '+score.toFixed(1)+'점</span></div>'+
