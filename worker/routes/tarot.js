@@ -380,6 +380,90 @@ function buildCardMeaning(cardName, orientation, tarotKeywords = []) {
   return `${base}. ${orientationMeaning(orientation)} ${keywordLine}`.trim();
 }
 
+const CRYSTAL_MASTER_CHAPTER_TITLES = [
+  "챕터 1. 오프닝 오라 진단",
+  "챕터 2. 카드 핵심 키워드 해석",
+  "챕터 3. 아르카나 · 수비학 통합",
+  "챕터 4. 크리스탈 치유 주파수",
+  "챕터 5. 관계와 현실 행동 전략",
+  "챕터 6. 14~30일 실행 리추얼",
+  "챕터 7. 마스터의 봉인 조언",
+];
+
+const MAJOR_ARCANA_NUMBERS = {
+  "The Fool": 0,
+  "The Magician": 1,
+  "The High Priestess": 2,
+  "The Empress": 3,
+  "The Emperor": 4,
+  "The Hierophant": 5,
+  "The Lovers": 6,
+  "The Chariot": 7,
+  Strength: 8,
+  "The Hermit": 9,
+  "Wheel of Fortune": 10,
+  Justice: 11,
+  "The Hanged Man": 12,
+  Death: 13,
+  Temperance: 14,
+  "The Devil": 15,
+  "The Tower": 16,
+  "The Star": 17,
+  "The Moon": 18,
+  "The Sun": 19,
+  Judgement: 20,
+  "The World": 21,
+};
+
+const MINOR_CARD_NUMBERS = {
+  Ace: 1,
+  Two: 2,
+  Three: 3,
+  Four: 4,
+  Five: 5,
+  Six: 6,
+  Seven: 7,
+  Eight: 8,
+  Nine: 9,
+  Ten: 10,
+  Page: 11,
+  Knight: 12,
+  Queen: 13,
+  King: 14,
+};
+
+function buildKeywordVisual(keywords = []) {
+  const list = Array.isArray(keywords) ? keywords.filter(Boolean).slice(0, 4) : [];
+  return `[키워드: ${list.join(", ")}]`;
+}
+
+function tarotNumerologyInsight(cardNameEn) {
+  const majorNo = MAJOR_ARCANA_NUMBERS[cardNameEn];
+  if (Number.isFinite(majorNo)) {
+    return `메이저 아르카나 ${majorNo}번의 상징이므로 삶의 큰 축을 재정렬하는 신호가 강합니다.`;
+  }
+  const parts = String(cardNameEn || "").split(" ");
+  const head = parts[0];
+  const number = MINOR_CARD_NUMBERS[head];
+  if (Number.isFinite(number)) {
+    return `마이너 아르카나 ${number} 수비학 파동이므로 구체적 생활 루틴과 행동 선택에 바로 반영하는 것이 중요합니다.`;
+  }
+  return "카드의 수비학 단서는 오늘의 선택을 작게 쪼개 실행하도록 안내합니다.";
+}
+
+function ensureTextLength(text, minLength = 220) {
+  const value = asText(text);
+  return value.length >= minLength ? value : "";
+}
+
+function hasGeminiKey(env = {}) {
+  return Boolean(
+    asText(env?.GEMINI_API_KEY) ||
+    asText(env?.GOOGLE_API_KEY) ||
+    asText(env?.GOOGLE_GENERATIVE_AI_API_KEY),
+  );
+}
+
 function sanitizeCrystalSoulText(text) {
   return String(text || "")
     .replace(/[\t\r]+/g, " ")
@@ -454,6 +538,7 @@ function buildCrystalSoulSection(cardName, crystal, position, category, orientat
     crystalName: crystal.nameKo,
     crystalKeywords: crystal.keywords.slice(0, 5),
     tarotKeywords,
+    keywordVisual: buildKeywordVisual(tarotKeywords),
     oneLineSummary,
     crystalEnergy,
     cardFlow,
@@ -515,12 +600,14 @@ function validateCrystalSoulReading(reading) {
   const issues = [];
   const sections = Array.isArray(reading?.sections) ? reading.sections : [];
   const summary = reading?.summary || {};
+  const masterChapters = Array.isArray(reading?.masterChapters) ? reading.masterChapters : [];
 
   if (sections.length !== 5) issues.push("카드 섹션 수가 5장이 아닙니다.");
   sections.forEach((section, idx) => {
     if (!asText(section.cardMeaning)) issues.push(`${idx + 1}번 카드 기본 의미 누락`);
     if (!asText(section.crystalMeaning)) issues.push(`${idx + 1}번 카드 원석 의미 누락`);
     if (!asText(section.categoryReading)) issues.push(`${idx + 1}번 카드 카테고리 상담 누락`);
+    if (!asText(section.keywordVisual)) issues.push(`${idx + 1}번 카드 키워드 비주얼 누락`);
     if (readingSectionLength(section) < 600) issues.push(`${idx + 1}번 카드 섹션 길이 부족`);
   });
 
@@ -536,8 +623,279 @@ function validateCrystalSoulReading(reading) {
   if (!Array.isArray(summary.practicalActions) || summary.practicalActions.length < 3) {
     issues.push("실행 체크리스트 최소 개수 미달");
   }
+  if (masterChapters.length !== 7) {
+    issues.push("마스터 챕터 수가 7개가 아닙니다.");
+  } else {
+    masterChapters.forEach((chapter, idx) => {
+      if (!asText(chapter?.title)) issues.push(`${idx + 1}번 마스터 챕터 제목 누락`);
+      if (!asText(chapter?.keywordVisual)) issues.push(`${idx + 1}번 마스터 챕터 키워드 누락`);
+      if (!ensureTextLength(chapter?.content, 260)) issues.push(`${idx + 1}번 마스터 챕터 본문 길이 부족`);
+    });
+  }
 
   return { ok: issues.length === 0, issues };
+}
+
+function buildCrystalSoulMasterChaptersFallback(readingData) {
+  const sections = Array.isArray(readingData?.sections) ? readingData.sections : [];
+  const summary = readingData?.summary || {};
+  const s1 = sections[0] || {};
+  const s2 = sections[1] || {};
+  const s3 = sections[2] || {};
+  const s4 = sections[3] || {};
+  const s5 = sections[4] || {};
+
+  const chapters = [
+    {
+      title: CRYSTAL_MASTER_CHAPTER_TITLES[0],
+      openingKeywords: ["오라", "현재 파동", "상담 오프닝"],
+      keywordVisual: buildKeywordVisual((s1.tarotKeywords || []).concat(s2.tarotKeywords || [])),
+      content: `내담자님, 오늘 당신의 무의식이 선택한 첫 번째 진입점은 ${summary.coreCrystal || readingData.coreCrystal}의 파동입니다. ${summary.overallFlow || "현재 흐름은 즉흥보다 기준을 세우는 쪽에 힘이 실립니다."} 지금의 장면은 좋은 운과 나쁜 운을 이분법으로 판정하는 구간이 아니라, 현재 감정과 현실 행동의 간격을 정교하게 맞추는 구간입니다. ${s1.oneLineSummary || "첫 번째 카드가 핵심 기운을 보여 줍니다."} 이 문장을 오프닝의 중심으로 붙잡아 두시면, 이후 챕터에서 제시되는 행동 지침을 더 안정적으로 소화할 수 있습니다.`,
+    },
+    {
+      title: CRYSTAL_MASTER_CHAPTER_TITLES[1],
+      openingKeywords: ["핵심 키워드", "상징", "무의식"],
+      keywordVisual: buildKeywordVisual(s2.tarotKeywords || []),
+      content: `카드 키워드는 단어 목록이 아니라 심리 구조 지도입니다. ${s2.keywordVisual || buildKeywordVisual(s2.tarotKeywords || [])} 이 조합은 지금 내담자님의 선택 기준이 어디에서 흔들리고 어디에서 회복되는지를 직접 보여 줍니다. ${s2.cardFlow || "카드 흐름은 현재 선택의 우선순위를 명확히 합니다."} 또한 ${s3.keywordVisual || buildKeywordVisual(s3.tarotKeywords || [])}는 반복 습관의 그림자를 가리키는 경향이 있어, 같은 자극에 같은 반응을 하지 않도록 호흡 간격을 의식적으로 늘릴 필요가 있습니다. 키워드별로 오늘 바로 실행할 행동 하나씩을 붙이면 텍스트 해석이 현실 전략으로 변환됩니다.`,
+    },
+    {
+      title: CRYSTAL_MASTER_CHAPTER_TITLES[2],
+      openingKeywords: ["메이저", "마이너", "수비학"],
+      keywordVisual: buildKeywordVisual([s1.cardNameKo, s3.cardNameKo, s5.cardNameKo]),
+      content: `${s1.cardNameKo || "첫 번째 카드"}는 ${tarotNumerologyInsight(s1.cardNameEn)} ${s3.cardNameKo || "세 번째 카드"}는 ${tarotNumerologyInsight(s3.cardNameEn)} ${s5.cardNameKo || "다섯 번째 카드"}는 ${tarotNumerologyInsight(s5.cardNameEn)} 메이저 아르카나는 인생 축의 전환과 신념 프레임을, 마이너 아르카나는 일상 루틴과 관계 언어를 조정하라고 말합니다. 따라서 이번 리딩의 결론은 거대한 결심보다, 14일 단위의 실행 체크포인트를 세팅해 수비학적 리듬을 현실 캘린더에 반영하는 것입니다.`,
+    },
+    {
+      title: CRYSTAL_MASTER_CHAPTER_TITLES[3],
+      openingKeywords: ["원석", "정화", "치유 주파수"],
+      keywordVisual: buildKeywordVisual([readingData.coreCrystal, "정화", "회복", "안정"]),
+      content: `${readingData.coreCrystal}는 감정을 눌러 버리는 돌이 아니라, 감정과 판단의 속도를 맞춰 주는 조율자입니다. ${s1.crystalEnergy || "첫 번째 카드에 배치된 원석 에너지는 흐름을 안정화합니다."} ${s4.crystalEnergy || "네 번째 카드의 원석은 실전 행동의 결을 잡아 줍니다."} 내담자님이 해야 할 치유 동작은 복잡하지 않습니다. 하루 10분 호흡 정리, 하루 1회 감정 기록, 하루 1회 기준 문장 확인만 지켜도 원석 파동은 점진적으로 안정 신호를 키웁니다. 정화 주파수는 즉시 극적인 변화를 만들기보다, 반복 가능한 회복 루틴을 통해 누적 효과를 냅니다.`,
+    },
+    {
+      title: CRYSTAL_MASTER_CHAPTER_TITLES[4],
+      openingKeywords: ["관계", "현실", "실행"],
+      keywordVisual: buildKeywordVisual(["경계", "표현", "협상", "기준"]),
+      content: `상담의 품질은 통찰 문장보다 실행 문장에서 결정됩니다. ${summary.strongestSignal || "가장 강한 신호는 핵심 카드 조합에서 드러납니다."} ${summary.opportunity || "두 번째 자리에서 실제 기회가 열립니다."} 관계에서는 감정 해명을 길게 하기보다, 사실 1개와 요청 1개를 분리해 전달하세요. 재물/진로 영역에서는 이번 주 실행 목표를 하나만 남기고, 성공 기준을 수치화해야 합니다. 내담자님이 오늘 만들 문장은 길 필요가 없습니다. '지금은 무엇을 멈추고, 무엇을 시작할지' 이 두 문장을 또렷하게 쓰는 순간, 카드가 말한 가능성은 행동의 형태를 얻습니다.`,
+    },
+    {
+      title: CRYSTAL_MASTER_CHAPTER_TITLES[5],
+      openingKeywords: ["타이밍", "루틴", "14~30일"],
+      keywordVisual: buildKeywordVisual(["타이밍", "체크포인트", "리추얼", "누적"]),
+      content: `${summary.timingAdvice || "지금은 즉흥 확장보다 검증 구간을 먼저 확보하는 타이밍입니다."} 14~30일 구간은 운세를 기다리는 기간이 아니라 실험 기간입니다. 1주차에는 정리와 관찰, 2주차에는 소규모 실행, 3~4주차에는 유지 여부 판단을 권장합니다. 리추얼은 화려할 필요가 없습니다. 같은 시간대에 3분 정리 메모를 남기고, 매주 한 번 카드 키워드를 다시 읽어 오늘의 행동과 일치율을 점검하세요. 이렇게 하면 타로 상징이 추상 언어에서 벗어나 생활의 반복 가능한 의사결정 프로토콜로 바뀝니다.`,
+    },
+    {
+      title: CRYSTAL_MASTER_CHAPTER_TITLES[6],
+      openingKeywords: ["봉인 조언", "통합", "마무리"],
+      keywordVisual: buildKeywordVisual(["통합", "결단", "회복", "전환"]),
+      content: `마지막으로 내담자님께 봉인 조언을 남깁니다. ${summary.oracleMessage || "지금 필요한 기적은 기준 있는 결단입니다."} 오늘의 리딩은 불안을 없애 주는 마법이 아니라, 불안을 다루는 구조를 선물합니다. ${summary.risk || "반복 습관을 방치하면 카드 잠재력이 줄어듭니다."} 그러므로 결론은 단순합니다. 지금 즉시 시작할 행동 1개, 즉시 중단할 행동 1개를 정하고 7일 동안만 지켜 보세요. 그 7일이 지나면 이미 파동이 바뀐 체감을 얻게 될 가능성이 큽니다.`,
+    },
+  ];
+
+  return chapters.map((chapter, idx) => ({
+    no: idx + 1,
+    title: chapter.title,
+    openingKeywords: chapter.openingKeywords,
+    keywordVisual: chapter.keywordVisual,
+    content: chapter.content,
+  }));
+}
+
+function buildCrystalSoulMasterPrompt(readingData, intake = {}) {
+  const category = asText(readingData?.category) || "크리스탈 소울";
+  const coreCrystal = asText(readingData?.coreCrystal) || "그린 플로라이트";
+  const topicHint = asText(intake?.topic?.hint || intake?.topic?.name || "");
+
+  const sectionSeeds = (Array.isArray(readingData?.sections) ? readingData.sections : []).map((section) => ({
+    order: section.order,
+    positionTitle: section.positionTitle,
+    question: section.question,
+    cardNameKo: section.cardNameKo,
+    cardNameEn: section.cardNameEn,
+    orientation: section.orientation,
+    tarotKeywords: section.tarotKeywords,
+    crystalName: section.crystalName,
+    crystalKeywords: section.crystalKeywords,
+    cardMeaning: section.cardMeaning,
+    crystalMeaning: section.crystalMeaning,
+    positionInterpretation: section.positionInterpretation,
+  }));
+
+  return [
+    "당신은 세계 최고 수준의 프리미엄 타로 마스터입니다.",
+    "문체 규칙:",
+    "- 반드시 1:1 상담 대화체로 작성하고, 기계적 나열형 문장을 금지합니다.",
+    "- 각 카드 해설은 메이저/마이너 아르카나 맥락과 수비학 신호를 자연스럽게 포함합니다.",
+    "- 카드와 원석의 치유 주파수를 결합해 실전 치유 솔루션을 제시합니다.",
+    "- 각 섹션 도입부에 반드시 [키워드: ...] 형식 문자열을 제공합니다.",
+    "- 분량 축소 금지: 카드 5섹션 + 마스터 7챕터를 모두 작성합니다.",
+    "",
+    "출력 규칙:",
+    "- JSON만 출력합니다. 코드펜스/설명문/주석 금지.",
+    "- 아래 스키마를 정확히 따릅니다.",
+    "",
+    '{"sections":[{"order":1,"keywordVisual":"[키워드: ...]","categoryReading":"...","crystalEnergy":"...","cardFlow":"...","currentPulse":"...","caution":"...","uplift":"...","practicalActions":["...","...","..."]}],"summary":{"overallFlow":"...","strongestSignal":"...","opportunity":"...","risk":"...","timingAdvice":"...","oracleMessage":"...","practicalActions":["...","...","...","..."]},"masterChapters":[{"no":1,"title":"...","openingKeywords":["...","...","..."],"keywordVisual":"[키워드: ...]","content":"..."}]}',
+    "",
+    "길이 규칙:",
+    "- sections는 정확히 5개.",
+    "- 각 section.categoryReading은 최소 650자.",
+    "- masterChapters는 정확히 7개.",
+    "- 각 chapter.content는 최소 650자.",
+    "- practicalActions는 섹션별 최소 3개, summary는 최소 4개.",
+    "",
+    `카테고리: ${category}`,
+    `핵심 원석: ${coreCrystal}`,
+    `내담자 질문 힌트: ${topicHint || "없음"}`,
+    "",
+    "[입력 시드 JSON]",
+    JSON.stringify({
+      category,
+      coreCrystal,
+      topicHint,
+      summarySeed: readingData?.summary || {},
+      sections: sectionSeeds,
+    }),
+  ].join("\n");
+}
+
+function normalizeCrystalSoulAiSections(baseSections, aiSections) {
+  if (!Array.isArray(aiSections) || aiSections.length !== 5) return null;
+
+  const merged = [];
+  for (let i = 0; i < baseSections.length; i += 1) {
+    const base = baseSections[i];
+    const ai = aiSections[i] || {};
+    const practicalActions = Array.isArray(ai.practicalActions)
+      ? ai.practicalActions.map((item) => asText(item)).filter(Boolean).slice(0, 5)
+      : base.practicalActions;
+
+    const categoryReading = ensureTextLength(ai.categoryReading, 320) || base.categoryReading;
+    const crystalEnergy = ensureTextLength(ai.crystalEnergy, 120) || base.crystalEnergy;
+    const cardFlow = ensureTextLength(ai.cardFlow, 120) || base.cardFlow;
+    const currentPulse = ensureTextLength(ai.currentPulse, 90) || base.currentPulse;
+    const caution = ensureTextLength(ai.caution, 80) || base.caution;
+    const uplift = ensureTextLength(ai.uplift, 80) || base.uplift;
+
+    merged.push({
+      ...base,
+      keywordVisual: asText(ai.keywordVisual) || base.keywordVisual || buildKeywordVisual(base.tarotKeywords),
+      categoryReading,
+      crystalEnergy,
+      cardFlow,
+      currentPulse,
+      caution,
+      uplift,
+      practicalActions,
+      action: practicalActions.join(" / "),
+    });
+  }
+  return merged;
+}
+
+function normalizeCrystalSoulAiSummary(baseSummary, aiSummary) {
+  const actions = Array.isArray(aiSummary?.practicalActions)
+    ? aiSummary.practicalActions.map((item) => asText(item)).filter(Boolean).slice(0, 6)
+    : baseSummary.practicalActions;
+
+  return {
+    ...baseSummary,
+    overallFlow: ensureTextLength(aiSummary?.overallFlow, 140) || baseSummary.overallFlow,
+    strongestSignal: ensureTextLength(aiSummary?.strongestSignal, 120) || baseSummary.strongestSignal,
+    opportunity: ensureTextLength(aiSummary?.opportunity, 110) || baseSummary.opportunity,
+    risk: ensureTextLength(aiSummary?.risk, 110) || baseSummary.risk,
+    timingAdvice: ensureTextLength(aiSummary?.timingAdvice, 110) || baseSummary.timingAdvice,
+    oracleMessage: ensureTextLength(aiSummary?.oracleMessage, 100) || baseSummary.oracleMessage,
+    practicalActions: actions,
+  };
+}
+
+function normalizeCrystalSoulAiChapters(aiChapters, fallbackChapters) {
+  if (!Array.isArray(aiChapters) || aiChapters.length !== 7) {
+    return fallbackChapters;
+  }
+
+  const merged = aiChapters.map((chapter, idx) => {
+    const fallback = fallbackChapters[idx] || {};
+    const openingKeywords = Array.isArray(chapter?.openingKeywords)
+      ? chapter.openingKeywords.map((item) => asText(item)).filter(Boolean).slice(0, 5)
+      : fallback.openingKeywords;
+    return {
+      no: idx + 1,
+      title: asText(chapter?.title) || fallback.title || CRYSTAL_MASTER_CHAPTER_TITLES[idx],
+      openingKeywords: openingKeywords && openingKeywords.length ? openingKeywords : fallback.openingKeywords || [],
+      keywordVisual: asText(chapter?.keywordVisual) || fallback.keywordVisual || buildKeywordVisual(openingKeywords),
+      content: ensureTextLength(chapter?.content, 260) || fallback.content || "",
+    };
+  });
+
+  return merged;
+}
+
+async function buildCrystalSoulReading(body = {}, env = {}) {
+  const categoryId = asText(body?.topic?.id) || "wealth";
+  const category = CATEGORY_DEFS[categoryId] || CATEGORY_DEFS.wealth;
+  const cards = Array.isArray(body?.cards) ? body.cards.slice(0, 5) : [];
+  const coreCrystal = findCrystalByAssignment(0, body, asText(body?.gem?.name));
+
+  const sections = category.spread.map((position, idx) => {
+    const cardName = asText(cards[idx]) || `Card ${idx + 1}`;
+    const orientation = resolveOrientation(cardName, idx, body?.orientations);
+    const crystal = findCrystalByAssignment(idx, body, asText(body?.gem?.name));
+    return buildCrystalSoulSection(cardName, crystal, position, category, orientation, idx);
+  });
+
+  const summary = buildCrystalSoulSummary(category, sections, coreCrystal);
+  const fallbackReadingData = {
+    category: category.name,
+    categoryId: category.id,
+    coreCrystal: coreCrystal.nameKo,
+    sections,
+    summary,
+  };
+  fallbackReadingData.masterChapters = buildCrystalSoulMasterChaptersFallback(fallbackReadingData);
+
+  let readingData = fallbackReadingData;
+  let source = "deterministic";
+  let model = "";
+
+  if (hasGeminiKey(env)) {
+    try {
+      const prompt = buildCrystalSoulMasterPrompt(fallbackReadingData, body);
+      const aiResult = await callGeminiText(env, prompt, {
+        modelEnvKeys: ["TAROT_GEMINI_MODEL", "NUMEROLOGY_TAROT_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"],
+        maxOutputTokens: 4096,
+        timeoutMs: 14000,
+        totalTimeoutMs: 26000,
+      });
+
+      if (aiResult?.ok && asText(aiResult?.text)) {
+        const parsed = parseJsonCandidate(aiResult.text);
+        if (parsed && typeof parsed === "object") {
+          const mergedSections = normalizeCrystalSoulAiSections(fallbackReadingData.sections, parsed.sections);
+          const mergedSummary = normalizeCrystalSoulAiSummary(fallbackReadingData.summary, parsed.summary || {});
+          if (mergedSections) {
+            readingData = {
+              ...fallbackReadingData,
+              sections: mergedSections,
+              summary: mergedSummary,
+              masterChapters: normalizeCrystalSoulAiChapters(parsed.masterChapters, fallbackReadingData.masterChapters),
+            };
+            source = "gemini";
+            model = asText(aiResult.model);
+          }
+        }
+      }
+    } catch (error) {
+      console.warn("[tarot] crystal-soul ai enhancement fallback", asText(error?.message));
+    }
+  }
+
+  const validation = validateCrystalSoulReading(readingData);
+  return {
+    reading: crystalReadingToText(readingData),
+    readingData,
+    validation,
+    source,
+    model,
+  };
 }
 
 function crystalReadingToText(reading) {
@@ -547,6 +905,7 @@ function crystalReadingToText(reading) {
   lines.push("");
   for (const section of reading.sections) {
     lines.push(`${section.order}. ${section.positionTitle} (${section.question})`);
+    lines.push(section.keywordVisual || buildKeywordVisual(section.tarotKeywords));
     lines.push(`카드: ${section.cardNameKo} / ${section.orientation === "reversed" ? "역방향" : "정방향"}`);
     lines.push(`원석: ${section.crystalName}`);
     lines.push(`타로 키워드: ${section.tarotKeywords.join(", ")}`);
@@ -576,6 +935,19 @@ function crystalReadingToText(reading) {
   lines.push("실행 체크리스트:");
   (reading.summary.practicalActions || []).forEach((item, idx) => lines.push(`${idx + 1}. ${item}`));
   lines.push(`크리스탈 오라클: ${reading.summary.oracleMessage}`);
+
+  const chapters = Array.isArray(reading.masterChapters) ? reading.masterChapters : [];
+  if (chapters.length) {
+    lines.push("");
+    lines.push("마스터 7챕터 심층 상담");
+    chapters.forEach((chapter, idx) => {
+      lines.push("");
+      lines.push(`${chapter.title || `챕터 ${idx + 1}`}`);
+      lines.push(chapter.keywordVisual || buildKeywordVisual(chapter.openingKeywords || []));
+      lines.push(asText(chapter.content));
+    });
+  }
+
   return removeRepeatedCrystalSoulPhrases(sanitizeCrystalSoulText(lines.join("\n")));
 }
 
@@ -621,36 +993,6 @@ function toUiCard(drawn, spreadType, idx) {
     proxyImageUrl: "",
     localImageUrl: images[0],
     keywords: card.keywords.slice(0, 5),
-  };
-}
-
-function buildCrystalSoulReading(body = {}) {
-  const categoryId = asText(body?.topic?.id) || "wealth";
-  const category = CATEGORY_DEFS[categoryId] || CATEGORY_DEFS.wealth;
-  const cards = Array.isArray(body?.cards) ? body.cards.slice(0, 5) : [];
-  const coreCrystal = findCrystalByAssignment(0, body, asText(body?.gem?.name));
-
-  const sections = category.spread.map((position, idx) => {
-    const cardName = asText(cards[idx]) || `Card ${idx + 1}`;
-    const orientation = resolveOrientation(cardName, idx, body?.orientations);
-    const crystal = findCrystalByAssignment(idx, body, asText(body?.gem?.name));
-    return buildCrystalSoulSection(cardName, crystal, position, category, orientation, idx);
-  });
-
-  const summary = buildCrystalSoulSummary(category, sections, coreCrystal);
-  const readingData = {
-    category: category.name,
-    categoryId: category.id,
-    coreCrystal: coreCrystal.nameKo,
-    sections,
-    summary,
-  };
-
-  const validation = validateCrystalSoulReading(readingData);
-  return {
-    reading: crystalReadingToText(readingData),
-    readingData,
-    validation,
   };
 }
 
@@ -856,10 +1198,12 @@ export async function handleTarotRoutes(request, env = {}) {
       if (!cards.length) {
         return json({ ok: false, message: "카드 데이터가 필요합니다." }, { status: 400 });
       }
-      const crystal = buildCrystalSoulReading(body);
+      const crystal = await buildCrystalSoulReading(body, env);
       return json({
         ok: true,
         source: "worker/routes/tarot.js",
+        readingSource: crystal.source,
+        model: crystal.model,
         reading: crystal.reading,
         readingData: crystal.readingData,
         validation: crystal.validation,

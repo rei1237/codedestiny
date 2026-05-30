@@ -27,6 +27,7 @@
     "우리는 고통을 기억보다 반복으로 더 분명히 드러냅니다.",
     "말해지지 못한 감정은 증상으로 말하려 합니다."
   ];
+  var PSYCHO_API_TIMEOUT_MS = 45000;
 
   var state = {
     uiLocked: false,
@@ -72,6 +73,107 @@
     var base = getPsychoApiBase();
     var path = "/api/dream/psycho-analysis";
     return base ? base + path : path;
+  }
+
+  function normalizeApiBase(raw) {
+    var value = String(raw || "").trim();
+    if (!value) return "";
+    return value.replace(/\/+$/, "");
+  }
+
+  function buildPsychoApiBaseCandidates() {
+    var out = [];
+    function add(base) {
+      var normalized = normalizeApiBase(base);
+      if (normalized && out.indexOf(normalized) === -1) out.push(normalized);
+    }
+
+    out.push("");
+    try {
+      if (location && location.origin) add(location.origin);
+    } catch (_) {}
+
+    add(getPsychoApiBase());
+    add("https://code-destiny.com");
+    return out;
+  }
+
+  function parseJsonSafely(text) {
+    var body = String(text || "").trim();
+    if (!body) return null;
+    try {
+      return JSON.parse(body);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function isRetriablePsychoStatus(status) {
+    var code = Number(status || 0);
+    return code >= 500 || code === 408 || code === 425 || code === 429;
+  }
+
+  async function postPsychoAnalysisWithFallback(headers, payload) {
+    var bases = buildPsychoApiBaseCandidates();
+    var lastError = null;
+
+    for (var i = 0; i < bases.length; i += 1) {
+      var base = bases[i];
+      var url = (base ? base : "") + "/api/dream/psycho-analysis";
+      var controller = typeof AbortController === "function" ? new AbortController() : null;
+      var timeoutId = null;
+      if (controller) {
+        timeoutId = setTimeout(function () {
+          try {
+            controller.abort();
+          } catch (_) {}
+        }, PSYCHO_API_TIMEOUT_MS);
+      }
+
+      try {
+        var res = await fetch(url, {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify(payload || {}),
+          credentials: "include",
+          cache: "no-store",
+          signal: controller ? controller.signal : undefined,
+        });
+
+        var bodyText = "";
+        try {
+          bodyText = await res.text();
+        } catch (_) {
+          bodyText = "";
+        }
+        var data = parseJsonSafely(bodyText);
+
+        // For user input errors (400), return immediately instead of trying other bases.
+        if (res.status === 400) {
+          return { res: res, data: data };
+        }
+
+        if (res.status === 401 || res.status === 402 || res.status === 403) {
+          return { res: res, data: data };
+        }
+
+        if (!res.ok || !data || typeof data !== "object") {
+          lastError = new Error("Psycho API failed: " + res.status + " @ " + url);
+          if (!isRetriablePsychoStatus(res.status)) {
+            throw lastError;
+          }
+          continue;
+        }
+
+        return { res: res, data: data };
+      } catch (e) {
+        lastError = e;
+      } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+      }
+    }
+
+    throw lastError || new Error("Psycho API request failed");
   }
 
   function $(id) {
@@ -617,44 +719,12 @@
       };
       if (token) headers["Authorization"] = "Bearer " + token;
 
-      // External provider 응답이 지연될 때 “무한 로딩”처럼 보이지 않도록
-      // 프론트에서도 Abort 기반 타임아웃을 둡니다.
-      var controller = typeof AbortController === "function" ? new AbortController() : null;
-      var timeoutMs = 45000;
-      var timeoutId = null;
-      if (controller) {
-        timeoutId = setTimeout(function () {
-          try {
-            controller.abort();
-          } catch (_) {}
-        }, timeoutMs);
-      }
-
-      var res = null;
-      try {
-        res = await fetch(getPsychoAnalysisUrl(), {
-          method: "POST",
-          headers: headers,
-          body: JSON.stringify({
-            dreamText: dreamText,
-            intake: intake,
-          }),
-          signal: controller ? controller.signal : undefined,
-        });
-      } finally {
-        if (timeoutId) clearTimeout(timeoutId);
-      }
-
-      var data = null;
-      try {
-        var ct = (res.headers && res.headers.get && res.headers.get("content-type")) || "";
-        if (ct.indexOf("application/json") === -1) {
-          throw new Error("non-json");
-        }
-        data = await res.json();
-      } catch (_) {
-        data = null;
-      }
+      var responseBundle = await postPsychoAnalysisWithFallback(headers, {
+        dreamText: dreamText,
+        intake: intake,
+      });
+      var res = responseBundle && responseBundle.res;
+      var data = responseBundle && responseBundle.data;
 
       if (!data || typeof data !== "object") {
         stopTyping();

@@ -6,6 +6,46 @@
   }
 
   const LOVE_BOOK_FEATURE_KEY = 'saju_love_book_pdf';
+  const COIN_GATE_TIMEOUT_MS = 25000;
+
+  function normalizeApiBase(raw) {
+    var value = String(raw || '').trim();
+    if (!value) return '';
+    return value.replace(/\/+$/, '');
+  }
+
+  function buildApiCandidates(path) {
+    var pathname = String(path || '').trim();
+    if (!pathname) pathname = '/';
+    if (pathname.charAt(0) !== '/') pathname = '/' + pathname;
+
+    var seen = {};
+    var list = [];
+    function push(url) {
+      var normalized = String(url || '').trim();
+      if (!normalized || seen[normalized]) return;
+      seen[normalized] = true;
+      list.push(normalized);
+    }
+
+    push(pathname);
+
+    var baseCandidates = [];
+    try { baseCandidates.push((typeof window !== 'undefined' && window.location && window.location.origin) || ''); } catch (_) {}
+    try { baseCandidates.push((typeof window !== 'undefined' && window.CODE_DESTINY_API_BASE_URL) || ''); } catch (_) {}
+    try { baseCandidates.push((typeof window !== 'undefined' && window.__CD_API_BASE_URL) || ''); } catch (_) {}
+    try { baseCandidates.push((typeof window !== 'undefined' && window.__API_BASE_URL) || ''); } catch (_) {}
+    try { baseCandidates.push((typeof window !== 'undefined' && window.__AUTH_API_BASE_URL) || ''); } catch (_) {}
+    baseCandidates.push('https://code-destiny.com');
+
+    for (var i = 0; i < baseCandidates.length; i += 1) {
+      var base = normalizeApiBase(baseCandidates[i]);
+      if (!base) continue;
+      push(base + pathname);
+    }
+
+    return list;
+  }
 
   function readPremiumAccessToken() {
     var token = '';
@@ -19,33 +59,128 @@
     return token;
   }
 
+  function readAuthToken() {
+    var token = '';
+    try { token = String(localStorage.getItem('fortune_auth_token') || '').trim(); } catch (_) { token = ''; }
+    return token;
+  }
+
+  function shouldRetryRequest(status, error) {
+    if (Number(status || 0) >= 500) return true;
+    if (status === 408 || status === 425 || status === 429) return true;
+    if (error && error.name === 'AbortError') return true;
+    if (error instanceof TypeError && !status) return true;
+    var message = String((error && error.message) || '').toLowerCase();
+    if (!status && (message.indexOf('network') !== -1 || message.indexOf('fetch') !== -1 || message.indexOf('timeout') !== -1)) return true;
+    return false;
+  }
+
+  async function parseJsonSafely(response) {
+    var text = '';
+    try {
+      text = await response.text();
+    } catch (_) {
+      text = '';
+    }
+    if (!text) return {};
+    try {
+      var parsed = JSON.parse(text);
+      return (parsed && typeof parsed === 'object') ? parsed : {};
+    } catch (_) {
+      return {};
+    }
+  }
+
   async function requestJson(path, init) {
     if (typeof window !== 'undefined' && typeof window.fetchJsonWithAuth === 'function') {
       return window.fetchJsonWithAuth(path, init || {});
     }
 
-    var headers = Object.assign({ 'Content-Type': 'application/json' }, (init && init.headers) || {});
-    var token = readPremiumAccessToken();
-    if (token) headers['x-premium-access-token'] = token;
+    var method = String((init && init.method) || 'POST').toUpperCase();
+    var endpoints = buildApiCandidates(path);
+    var lastStatus = 0;
+    var lastPayload = {};
+    var lastError = null;
 
-    var response = await fetch(path, {
-      method: (init && init.method) || 'POST',
-      headers: headers,
-      body: init && init.body,
-      credentials: 'include',
-    });
+    for (var i = 0; i < endpoints.length; i += 1) {
+      var endpoint = endpoints[i];
+      var headers = Object.assign({ 'Content-Type': 'application/json', 'Accept': 'application/json' }, (init && init.headers) || {});
 
-    var payload = {};
-    try {
-      payload = await response.json();
-    } catch (_) {
-      payload = {};
+      var premiumToken = readPremiumAccessToken();
+      if (premiumToken) headers['x-premium-access-token'] = premiumToken;
+
+      var authToken = readAuthToken();
+      if (authToken && !headers.Authorization) headers.Authorization = 'Bearer ' + authToken;
+
+      var controller = (typeof AbortController === 'function') ? new AbortController() : null;
+      var timeoutId = null;
+      if (controller) {
+        timeoutId = setTimeout(function () {
+          try { controller.abort(); } catch (_) {}
+        }, COIN_GATE_TIMEOUT_MS);
+      }
+
+      try {
+        var response = await fetch(endpoint, {
+          method: method,
+          headers: headers,
+          body: init && init.body,
+          credentials: 'include',
+          cache: 'no-store',
+          signal: controller ? controller.signal : undefined,
+        });
+
+        var payload = await parseJsonSafely(response);
+        var status = Number(response.status || 0);
+        lastStatus = status;
+        lastPayload = payload;
+
+        if (response.ok && payload && payload.ok !== false) {
+          if (timeoutId) clearTimeout(timeoutId);
+          return {
+            ok: true,
+            status: status,
+            payload: payload,
+          };
+        }
+
+        if (!shouldRetryRequest(status, null)) {
+          if (timeoutId) clearTimeout(timeoutId);
+          return {
+            ok: false,
+            status: status,
+            payload: payload || {},
+          };
+        }
+      } catch (error) {
+        lastError = error;
+        if (!shouldRetryRequest(0, error)) {
+          if (timeoutId) clearTimeout(timeoutId);
+          return {
+            ok: false,
+            status: 0,
+            payload: {
+              ok: false,
+              code: (error && error.name === 'AbortError') ? 'TIMEOUT' : 'NETWORK_ERROR',
+              message: String((error && error.message) || '요청 중 네트워크 오류가 발생했습니다.'),
+            },
+          };
+        }
+      } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+      }
     }
 
     return {
-      ok: !!response.ok && payload && payload.ok !== false,
-      status: Number(response.status || 0),
-      payload: payload,
+      ok: false,
+      status: Number(lastStatus || 0),
+      payload: (lastPayload && Object.keys(lastPayload).length)
+        ? lastPayload
+        : {
+            ok: false,
+            code: (lastError && lastError.name === 'AbortError') ? 'TIMEOUT' : 'REQUEST_FAILED',
+            message: String((lastError && lastError.message) || '요청 처리에 실패했습니다.'),
+          },
     };
   }
 

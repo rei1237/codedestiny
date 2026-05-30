@@ -34,35 +34,35 @@ export function PhaseReveal() {
   };
 
   return (
-    <div className="fixed inset-0 z-40 bg-[linear-gradient(160deg,#1f1027_0%,#140b2a_48%,#0d0a1f_100%)]">
+    <div className="relative z-40 min-h-[100dvh] w-full bg-gradient-to-b from-rose-50 via-pink-50 to-amber-50">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-20 left-1/2 h-[320px] w-[320px] -translate-x-1/2 rounded-full bg-rose-300/20 blur-3xl" />
-        <div className="absolute -bottom-12 right-[10%] h-[220px] w-[220px] rounded-full bg-amber-200/20 blur-3xl" />
+        <div className="absolute -top-24 left-1/2 h-[340px] w-[340px] -translate-x-1/2 rounded-full bg-rose-200/45 blur-3xl" />
+        <div className="absolute -bottom-14 right-[8%] h-[240px] w-[240px] rounded-full bg-amber-200/45 blur-3xl" />
       </div>
 
       {!showResultCard ? (
-        <div className="relative z-10 flex h-full w-full flex-col items-center justify-center px-6 text-center">
+        <div className="relative z-10 flex min-h-[100dvh] w-full flex-col items-center justify-center px-6 text-center">
           <div className="mb-6 flex h-28 w-28 items-center justify-center rounded-full border border-rose-200/50 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.95),rgba(255,193,211,0.72)_55%,rgba(255,173,120,0.65)_100%)] shadow-[0_0_34px_rgba(255,165,185,0.45)]">
             <span className="text-5xl" style={{ animation: 'moltenPulse 1.2s ease-in-out infinite' }}>🫧</span>
           </div>
-          <p className="mb-2 text-xl font-bold text-rose-100" style={{ fontFamily: "'Jua', sans-serif" }}>
+          <p className="mb-2 text-xl font-bold text-rose-700" style={{ fontFamily: "'Jua', sans-serif" }}>
             주석이 운명의 형상으로 굳어지고 있어요
           </p>
-          <p className="text-sm text-rose-100/85">연이가 마지막 별빛을 불어넣는 중...</p>
+          <p className="text-sm text-rose-600">연이가 마지막 별빛을 불어넣는 중...</p>
           <div className="mt-6 h-2 w-56 overflow-hidden rounded-full bg-white/20">
             <div className="h-full w-1/2 rounded-full bg-gradient-to-r from-yellow-200 via-pink-200 to-rose-200" style={{ animation: 'loadSweep 1.6s ease-in-out infinite' }} />
           </div>
         </div>
       ) : (
         <div
-          className="relative z-10 flex h-full w-full items-start justify-center overflow-y-auto px-4"
+          className="relative z-10 flex w-full items-start justify-center px-4"
           style={{
             paddingTop: 'max(20px, env(safe-area-inset-top))',
             paddingBottom: 'max(24px, env(safe-area-inset-bottom))',
           }}
         >
           <div className="sikojen-result-shell w-full max-w-xl animate-[revealRise_620ms_cubic-bezier(0.2,0.75,0.28,1)_both]">
-            <div className="mb-4 flex items-center justify-between rounded-2xl border border-pink-200/35 bg-white/10 px-4 py-3 shadow-[0_12px_24px_rgba(20,8,32,0.3)] backdrop-blur-md">
+            <div className="mb-4 flex items-center justify-between rounded-2xl border border-pink-200/80 bg-white/85 px-4 py-3 shadow-[0_10px_24px_rgba(190,24,93,0.14)] backdrop-blur-md">
               <div className="flex items-center gap-3">
                 <YeonSpriteAvatar
                   frames={[3, 2, 1, 2]}
@@ -73,11 +73,11 @@ export function PhaseReveal() {
                   intervalMs={920}
                 />
                 <div>
-                  <p className="text-xs font-semibold tracking-wide text-rose-100">SIKOJEN POVAILU</p>
-                  <p className="text-sm font-bold text-rose-50">연이가 읽어준 주석 형상 결과</p>
+                  <p className="text-xs font-semibold tracking-wide text-rose-500">SIKOJEN POVAILU</p>
+                  <p className="text-sm font-bold text-rose-700">연이가 읽어준 주석 형상 결과</p>
                 </div>
               </div>
-              <span className="rounded-full border border-amber-200/60 bg-amber-200/25 px-2.5 py-1 text-[11px] font-bold text-amber-50">
+              <span className="rounded-full border border-amber-300 bg-amber-100 px-2.5 py-1 text-[11px] font-bold text-amber-700">
                 Result View
               </span>
             </div>
@@ -88,8 +88,8 @@ export function PhaseReveal() {
               message="겉으로 보인 뜻과 그림자 뜻을 같이 읽으면 더 정확해져. 내가 핵심 문장만 딱 집어서 알려줄게."
             />
 
-            <div className="sikojen-reveal-card relative flex max-h-[calc(100dvh-120px)] flex-col overflow-hidden rounded-3xl border-2 border-amber-200/70 bg-gradient-to-br from-amber-50 via-rose-50 to-yellow-50 shadow-[0_24px_60px_rgba(4,4,24,0.48)]">
-              <div className="sikojen-reveal-scroll overflow-y-auto px-5 pb-5 pt-6 sm:px-7 sm:pb-7 sm:pt-7">
+            <div className="sikojen-reveal-card relative flex flex-col overflow-hidden rounded-3xl border-2 border-amber-200/80 bg-gradient-to-br from-amber-50 via-rose-50 to-yellow-50 shadow-[0_20px_42px_rgba(190,24,93,0.16)]">
+              <div className="sikojen-reveal-scroll px-5 pb-5 pt-6 sm:px-7 sm:pb-7 sm:pt-7">
                 <div className="absolute inset-0 rounded-3xl opacity-10 pointer-events-none" style={{
                   backgroundImage: 'repeating-linear-gradient(45deg, rgba(212,175,55,0.28) 0px, rgba(212,175,55,0.28) 2px, transparent 2px, transparent 10px)'
                 }} />
@@ -170,7 +170,7 @@ export function PhaseReveal() {
                 <div className="relative z-10 flex flex-col gap-3 pb-1">
                   <button
                     onClick={handleShadowRead}
-                    className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-600 px-4 py-3 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-purple-600 hover:via-indigo-600 hover:to-purple-700 md:text-base"
+                    className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-rose-400 via-pink-400 to-amber-300 px-4 py-3 text-sm font-bold text-rose-900 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:from-rose-500 hover:via-pink-500 hover:to-amber-400 md:text-base"
                   >
                     <span className="absolute inset-0 -skew-x-12 bg-white/20 transition-transform duration-500 group-hover:translate-x-full" />
                     <span className="relative">👁️ 영혼의 그림자 읽기</span>
@@ -192,40 +192,35 @@ export function PhaseReveal() {
       {/* 그림자 읽기 모달 */}
       {showShadowReading && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-rose-100/55 px-4 backdrop-blur-sm"
           onClick={handleCloseShadow}
         >
           <div
-            className="relative max-w-md w-full rounded-2xl bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 border-2 border-purple-500 shadow-2xl p-8 transform transition-all animate-pulse"
+            className="relative max-w-md w-full rounded-2xl border-2 border-rose-300 bg-gradient-to-br from-rose-50 via-pink-50 to-amber-50 p-8 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 어두운 배경 효과 */}
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-black/50 to-purple-900/20 pointer-events-none"></div>
+            <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-tr from-white/40 to-rose-100/20"></div>
 
-            {/* 그림자 텍스트 */}
             <div className="relative z-10 text-center">
-              <h3 className="text-2xl font-bold text-purple-300 mb-4" style={{ fontFamily: "'Jua', sans-serif" }}>
+              <h3 className="mb-4 text-2xl font-bold text-rose-600" style={{ fontFamily: "'Jua', sans-serif" }}>
                 🌙 영혼의 그림자
               </h3>
               
               <div className="mb-6 space-y-3">
-                <p className="text-sm text-purple-200 leading-relaxed">
+                <p className="text-sm leading-relaxed text-rose-600">
                   이 형태의 숨겨진 의미는...
                 </p>
-                <p className="text-base text-purple-100 font-semibold">
+                <p className="text-base font-semibold text-rose-700">
                   {selectedShape.shadow_meaning_ko}
                 </p>
-                <p className="text-xs text-purple-300 italic">
+                <p className="text-xs italic text-rose-500">
                   &quot;{selectedShape.shadow_meaning_fi}&quot;
                 </p>
               </div>
 
-              {/* 닫기 버튼 */}
               <button
                 onClick={handleCloseShadow}
-                className="w-full py-2 px-4 bg-gradient-to-r from-purple-600 to-indigo-600
-                  text-white font-bold rounded-lg hover:from-purple-700 hover:to-indigo-700
-                  transform hover:scale-105 transition-all duration-300 text-sm"
+                className="w-full rounded-lg bg-gradient-to-r from-rose-400 to-amber-300 px-4 py-2 text-sm font-bold text-rose-900 transition-all duration-300 hover:from-rose-500 hover:to-amber-400 hover:scale-[1.02]"
               >
                 확인
               </button>
@@ -259,7 +254,6 @@ export function PhaseReveal() {
         .sikojen-reveal-scroll {
           scrollbar-width: thin;
           scrollbar-color: rgba(236, 72, 153, 0.45) transparent;
-          overscroll-behavior: contain;
         }
 
         .sikojen-reveal-scroll::-webkit-scrollbar {

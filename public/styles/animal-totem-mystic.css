@@ -92,6 +92,7 @@ body.animal-totem-modal-open .lang-toggle-wrap {
   max-width: 1020px;
   margin: 36px auto;
   min-height: 100%;
+  min-height: 100dvh;
   padding: 0 16px max(24px, env(safe-area-inset-bottom, 0px));
 }
 .animal-totem-overlay.is-result-view .animal-totem-shell {
@@ -99,6 +100,7 @@ body.animal-totem-modal-open .lang-toggle-wrap {
 }
 .animal-totem-panel {
   position: relative;
+  width: 100%;
   border: 1px solid rgba(232,220,200,0.16);
   border-radius: var(--at-radius-lg);
   background: linear-gradient(165deg,
@@ -666,6 +668,7 @@ body.animal-totem-modal-open .lang-toggle-wrap {
 .totem-result-container {
   max-width: 660px; margin: 0 auto;
   display: flex; flex-direction: column; gap: 0;
+  width: 100%;
 }
 .totem-result-header      { text-align: center; margin-bottom: 24px; }
 .totem-result-title {
@@ -745,6 +748,19 @@ body.animal-totem-modal-open .lang-toggle-wrap {
 
 /*  결과 텍스트 패널  */
 .totem-result-content { display: flex; flex-direction: column; gap: 18px; }
+.totem-result-content,
+.totem-consult-list,
+.totem-guidance-card,
+.totem-panel-float {
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+
+.animal-totem-panel img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
 .totem-panel-float {
   border-radius: var(--at-radius-lg);
   border: 1px solid rgba(92,64,51,0.42);
@@ -844,15 +860,24 @@ body.animal-totem-modal-open .lang-toggle-wrap {
   .animal-totem-close { width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
   .totem-draw-card { width: 90px; height: 135px; }
   .totem-card-grid--organic { gap: 12px 14px; }
+  .totem-panel-float p,
+  .totem-panel-float li,
+  .totem-guidance-section p,
+  .totem-guidance-section li { font-size: 0.96rem; line-height: 1.72; }
 }
 @media (max-width: 480px) {
   .totem-draw-card { width: 80px; height: 120px; }
   .totem-card-grid--organic { gap: 10px 10px; }
   .totem-result-cards--3, .totem-result-cards--5 { grid-template-columns: repeat(3, 1fr); max-width: 300px; gap: 8px; }
+  .totem-result-title { font-size: 1.28rem; }
   .totem-result-card-emoji  { font-size: 1.9rem; }
   .totem-result-card-name   { font-size: 0.8rem; }
   .totem-card-face--back .atc-glyph { font-size: 1.6rem; }
   .totem-card-face--front .atc-animal { font-size: 2.2rem; }
+  .totem-panel-float p,
+  .totem-panel-float li,
+  .totem-guidance-section p,
+  .totem-guidance-section li { font-size: 0.92rem; line-height: 1.68; }
 }
 @media (max-width: 420px) {
   .totem-mode-grid  { grid-template-columns: 1fr; gap: 12px; }

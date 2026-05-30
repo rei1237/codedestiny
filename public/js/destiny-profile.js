@@ -920,6 +920,46 @@
     }
   }
 
+  function _dpMeasureViewportTopOffset() {
+    var offset = 0;
+    try {
+      var nav = document.querySelector('.fsn-navbar');
+      if (nav) {
+        var style = window.getComputedStyle ? window.getComputedStyle(nav) : null;
+        var isPinned = style && (style.position === 'fixed' || style.position === 'sticky');
+        if (isPinned) {
+          var navRect = nav.getBoundingClientRect();
+          if (navRect && navRect.height > 0) offset += navRect.height;
+        }
+      }
+    } catch (_) {}
+    // Keep a small breathing room so title text is not glued under the header.
+    return Math.max(0, Math.round(offset + 12));
+  }
+
+  function _dpScrollProfileIntoViewMobile() {
+    if (!_isMobileViewport()) return;
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        var target = document.getElementById('dpMasterCard') || document.querySelector('.input-section');
+        if (!target || typeof target.getBoundingClientRect !== 'function') return;
+
+        var topOffset = _dpMeasureViewportTopOffset();
+        var rect = target.getBoundingClientRect();
+        var currentTop = window.pageYOffset || document.documentElement.scrollTop || 0;
+        var targetTop = Math.max(0, Math.round(currentTop + rect.top - topOffset));
+
+        try {
+          window.scrollTo({ top: targetTop, behavior: 'smooth' });
+        } catch (_) {
+          window.scrollTo(0, targetTop);
+        }
+      });
+    });
+  }
+
   /* lockBody 호출 여부 추적 — mobile 에서 unlockBody 불필요 호출 방지 */
   var _bodyLocked = false;
 
@@ -2681,6 +2721,7 @@
       spawnStardust(document.getElementById('dpSaveBtn'));
       renderMasterCard(curr);
       renderProfileList();
+      _dpScrollProfileIntoViewMobile();
       broadcastProfileChange(curr || created || null);
       _dpUpdateSaveBtn();
 

@@ -280,4 +280,53 @@ describe("saju new year LLM-only pipeline", () => {
     expect(normalizedChapter.sections).toHaveLength(5);
     expect(normalizedChapter.sections[0].title).toBe(chapterSpec.categories[0]);
   });
+
+  test("품질 미달 챕터는 deterministic 보강으로 최소 기준을 충족해야 한다", () => {
+    const utils = route.__sajuNewYearTestUtils;
+    const normalized = utils.normalizeInput(makePayload({ selectedYear: 2026 }));
+    const seed = utils.buildPdfSeed(normalized.profile, normalized.targetYear, makePayload());
+    const chapterSpecs = utils.buildSajuNewYearChapterSpecs(seed.input.targetYear);
+    const chapters = chapterSpecs.map((spec) => makeChapterDraft(seed, spec));
+    const weakSpec = chapterSpecs[0];
+    const weakChapter = {
+      no: weakSpec.no,
+      title: weakSpec.title,
+      sections: weakSpec.categories.map((title) => ({
+        title,
+        body: "짧은 일반론 문장입니다. 올해는 좋은 일이 생길 수 있습니다.",
+      })),
+      text: "짧은 일반론 문장",
+      source: "llm",
+    };
+
+    const repaired = utils.reinforceChapterFromSpec({
+      seed,
+      chapterSpec: weakSpec,
+      chapter: weakChapter,
+      reason: "test_quality_repair",
+    });
+    chapters[0] = repaired.chapter;
+
+    expect(repaired.reinforced).toBe(true);
+    const quality = utils.validateSajuNewYearPdfLLMInterpretationQuality({
+      chapters,
+      expectedChapters: chapterSpecs,
+      minChapterLength: 3000,
+      minSectionLength: 600,
+      seed,
+    });
+    expect(quality.ok).toBe(true);
+  });
+
+  test("LLM 챕터가 비어도 deterministic 챕터를 즉시 구성할 수 있어야 한다", () => {
+    const utils = route.__sajuNewYearTestUtils;
+    const normalized = utils.normalizeInput(makePayload({ selectedYear: 2026 }));
+    const seed = utils.buildPdfSeed(normalized.profile, normalized.targetYear, makePayload());
+    const chapterSpec = utils.buildSajuNewYearChapterSpecs(seed.input.targetYear)[3];
+    const chapter = utils.buildDeterministicChapterFromSpec(seed, chapterSpec, "forced_fallback");
+
+    expect(chapter.sections).toHaveLength(chapterSpec.categories.length);
+    expect(chapter.source).toBe("llm-reinforced");
+    expect(chapter.sections.every((section) => typeof section.body === "string" && section.body.length >= 600)).toBe(true);
+  });
 });

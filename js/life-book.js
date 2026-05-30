@@ -9,7 +9,7 @@
   var LIFE_BOOK_FEATURE_KEY = 'saju_life_book_pdf';
   var LIFE_BOOK_REASON = '인생의 책 생성 (13챕터)';
   var LIFEBOOK_API_PREPARE_PATH = '/api/lifebook/prepare';
-  var LIFEBOOK_API_PREPARE_LEGACY_PATH = '/api/premium/saju-lifebook/prepare';
+  var LIFEBOOK_API_STATUS_PATH = '/api/lifebook/status';
 
   /* ─────────────── 상수 ─────────────── */
   var CHAPTER_TITLES = [
@@ -355,6 +355,11 @@
     return _buildApiCandidates(LIFEBOOK_API_PREPARE_PATH);
   }
 
+  function _buildLifeBookStatusCandidates(sessionId) {
+    var _sid = encodeURIComponent(String(sessionId || '').trim());
+    return _buildApiCandidates(LIFEBOOK_API_STATUS_PATH + '?sessionId=' + _sid);
+  }
+
   function _isAuthOrPaymentFailure(status, payload) {
     var code = String((payload && (payload.code || (payload.error && payload.error.code))) || '').toUpperCase();
     if (status === 401 || status === 402 || status === 403) return true;
@@ -397,7 +402,7 @@
           if (controller) {
             try { controller.abort(); } catch (_) {}
           }
-        }, 70000);
+        }, 420000);
 
         fetch(endpoint, {
           method: 'POST',
@@ -442,6 +447,99 @@
 
       runNext();
     });
+  }
+
+  function _fetchLifeBookStatus(sessionId, headers) {
+    return new Promise(function (resolve, reject) {
+      var _sid = String(sessionId || '').trim();
+      if (!_sid) {
+        resolve(null);
+        return;
+      }
+
+      var endpoints = _buildLifeBookStatusCandidates(_sid);
+      var settled = false;
+      var idx = 0;
+      var lastErr = '';
+
+      function doneOk(out) {
+        if (settled) return;
+        settled = true;
+        resolve(out);
+      }
+
+      function doneFail(message) {
+        if (settled) return;
+        settled = true;
+        reject(new Error(message || '인생의 책 상태 조회에 실패했습니다.'));
+      }
+
+      function runNext() {
+        if (idx >= endpoints.length) {
+          doneFail(lastErr || '인생의 책 상태 조회에 실패했습니다.');
+          return;
+        }
+        var endpoint = endpoints[idx++];
+        var controller = (typeof AbortController === 'function') ? new AbortController() : null;
+        var timerId = setTimeout(function () {
+          if (controller) {
+            try { controller.abort(); } catch (_) {}
+          }
+        }, 15000);
+
+        fetch(endpoint, {
+          method: 'GET',
+          headers: headers,
+          credentials: 'include',
+          cache: 'no-store',
+          signal: controller ? controller.signal : undefined,
+        })
+          .then(function (res) {
+            return res.json().catch(function () { return {}; }).then(function (json) {
+              return { res: res, json: json };
+            });
+          })
+          .then(function (pack) {
+            clearTimeout(timerId);
+            if (pack.res && pack.res.ok && pack.json && pack.json.ok) {
+              doneOk(pack.json && pack.json.data ? pack.json.data : null);
+              return;
+            }
+            if (pack && pack.res && _isAuthOrPaymentFailure(Number(pack.res.status || 0), pack.json || {})) {
+              doneFail(String((pack.json && (pack.json.message || pack.json.reason || pack.json.code)) || '인증 또는 결제 상태를 확인해 주세요.'));
+              return;
+            }
+            lastErr = String(
+              (pack && pack.json && (pack.json.message || pack.json.code))
+              || ('HTTP ' + (pack && pack.res ? pack.res.status : 'ERR'))
+            );
+            runNext();
+          })
+          .catch(function (err) {
+            clearTimeout(timerId);
+            lastErr = _normalizeLifeBookErrorMessage(err, '상태 조회 요청이 중단되었습니다.');
+            runNext();
+          });
+      }
+
+      runNext();
+    });
+  }
+
+  async function _pollLifeBookStatus(sessionId, headers, onProgress, shouldStop) {
+    var _sid = String(sessionId || '').trim();
+    if (!_sid) return;
+    for (;;) {
+      if (typeof shouldStop === 'function' && shouldStop()) return;
+      try {
+        var data = await _fetchLifeBookStatus(_sid, headers);
+        if (data && typeof onProgress === 'function') onProgress(data);
+      } catch (_) {
+        // 상태 조회 실패는 최종 prepare 응답으로 복구 가능하므로 폴링은 지속한다.
+      }
+      if (typeof shouldStop === 'function' && shouldStop()) return;
+      await new Promise(function (r) { setTimeout(r, 1800); });
+    }
   }
 
   function _buildResultOverviewHtml() {
@@ -1491,7 +1589,8 @@
       profile_check: '프로필 정보 확인 중',
       calculating_saju: '사주 원국 계산 중',
       daewoon_calc: '대운·세운 흐름 계산 중',
-      local_draft: '13챕터 로컬 원고 생성 중',
+      local_draft: '사주 시드(JSON) 구성 완료 · 13챕터 LLM 생성 시작',
+      seed_ready_llm_start: '사주 시드(JSON) 구성 완료 · 13챕터 LLM 생성 시작',
       writing_with_llm: 'AI 상담문 보강 중',
       rendering_pdf: 'PDF 편집/렌더링 중',
       done: '완료',
@@ -1614,8 +1713,42 @@
         analysisSignals: _collectLifeBookAnalysisSignals(profile),
       };
 
-        _setGenerationState('local_draft');
-      var _prepare = await _postLifeBookPrepare(_payload, _headers);
+      _setGenerationState('seed_ready_llm_start');
+      var _statusPollingStop = false;
+      var _statusPollingPromise = _pollLifeBookStatus(
+        _sessionId,
+        _headers,
+        function (_statusData) {
+          if (!_statusData || typeof _statusData !== 'object') return;
+          var _stateKey = String(((_statusData.progress || {}).stateKey) || '').trim();
+          var _status = String(_statusData.status || '').trim();
+          var _current = Number(((_statusData.progress || {}).currentChapterNo) || 0);
+          var _total = Number(((_statusData.progress || {}).totalChapters) || LIFEBOOK_TOTAL_CHAPTERS);
+          if (_stateKey) _setGenerationState(_stateKey);
+          if (_status === 'running') {
+            _setGenerationState('writing_with_llm');
+          }
+          if (Number.isFinite(_current) && _current > 0) {
+            _setProgress(Math.min(LIFEBOOK_TOTAL_CHAPTERS, Math.max(0, _current)));
+            _lifeBookLog('LLMEnhanceProgress', {
+              chapterDone: Math.min(LIFEBOOK_TOTAL_CHAPTERS, Math.max(0, _current)),
+              total: Number.isFinite(_total) && _total > 0 ? _total : LIFEBOOK_TOTAL_CHAPTERS,
+            });
+          }
+          if (_status === 'done') {
+            _setProgress(LIFEBOOK_TOTAL_CHAPTERS);
+          }
+        },
+        function () { return _statusPollingStop; }
+      );
+
+      var _prepare;
+      try {
+        _prepare = await _postLifeBookPrepare(_payload, _headers);
+      } finally {
+        _statusPollingStop = true;
+        await _statusPollingPromise.catch(function () {});
+      }
       var _res = _prepare.res;
       var _json = _prepare.json;
 

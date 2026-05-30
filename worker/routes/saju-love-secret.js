@@ -1358,66 +1358,20 @@ async function handlePrepareAsync(request, env, ctx) {
     }, { status: 202 });
   } catch (error) {
     await failPremiumPdfExecution(env, authz?.auth?.userId, executionCtx, "love_secret_prepare_failed", clean(error?.message || "연애 비책 준비 실패"), "love-secret-prepare");
-    if (!isLikelyDbUnavailableError(error)) {
-      resolveLoveSecretLock(sessionId, "failed", "");
-      throw error;
+    resolveLoveSecretLock(sessionId, "failed", "");
+    if (isLikelyDbUnavailableError(error)) {
+      return buildApiError(
+        "DATABASE_UNAVAILABLE",
+        "현재 생성 대기열 저장소에 일시적 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+        503,
+        {
+          mode,
+          reportId: clean(body?.reportId),
+          sessionId,
+        },
+      );
     }
-
-    console.warn("[love-secret][async-job-db-fallback]", clean(error?.message || error) || error);
-    const seed = buildLoveSecretPdfSeed(body, base, mode);
-    const chapterSpecs = seed.chapterSpecs || buildLoveSecretChapterSpecs(mode);
-    const chapters = await generateLoveSecretChaptersWithLLMOnlyInterpretation(env, { mode, seed, chapterSpecs, sessionId });
-    const finalValidation = validateSajuLoveBookPdfLLMInterpretationQuality({ mode, chapters, chapterSpecs, seed });
-    const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `love-secret-${Date.now().toString(36)}`);
-    const pdfReady = buildLoveSecretPdfReadyPayload(seed, chapters, {
-      featureKey: authz.featureKey,
-      reportType: "loveSecret",
-      manuscriptSource: "llm-only",
-      sessionId,
-      reportId,
-      accessType: clean(authz?.access?.accessType || "unknown"),
-    });
-
-    await completePremiumPdfExecution(env, authz?.auth?.userId, executionCtx, reportId, {
-      manuscriptSource: "llm-only",
-      chapterCount: chapterSpecs.length,
-      quality: finalValidation,
-      archive: {
-        reportId,
-        reportType: "love_book",
-        displayName: "사주 연애 비책",
-        title: `${clean(base?.user?.name || "사용자")}님의 연애 비책`,
-        mode,
-        birthName: clean(base?.user?.name),
-        summary: clean(chapters?.[0]?.sections?.[0]?.body || chapters?.[0]?.text || "", 1000),
-        pdfUrl: clean(pdfReady?.pdfUrl),
-        pdfStorageKey: clean(pdfReady?.pdfStorageKey),
-        chapters,
-        payload: { mode, chapterCount: chapterSpecs.length },
-        pdfReady,
-        canReopen: true,
-        canDownload: Boolean(clean(pdfReady?.pdfUrl) || clean(pdfReady?.pdfStorageKey)),
-      },
-    });
-
-    resolveLoveSecretLock(sessionId, "done", "");
-    return json({
-      ok: true,
-      accepted: false,
-      direct: true,
-      mode,
-      featureKey: authz.featureKey,
-      sessionId,
-      chapterCount: chapterSpecs.length,
-      fallbackUsed: false,
-      manuscriptSource: "llm-only",
-      pdfUrl: clean(pdfReady?.pdfUrl),
-      pdfStorageKey: clean(pdfReady?.pdfStorageKey),
-      pdfReady,
-      chapters,
-      quality: finalValidation,
-      message: "대기열 저장소 문제로 직접 생성 모드로 전환되었습니다.",
-    }, { status: 200 });
+    throw error;
   }
 }
 

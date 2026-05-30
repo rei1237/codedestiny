@@ -609,6 +609,9 @@
     try {
       var host = String(location.host || '').toLowerCase();
       if (host === 'api.code-destiny.com') return location.origin || '';
+      if (host.endsWith('.pages.dev') || host.endsWith('.workers.dev')) {
+        return 'https://code-destiny.com';
+      }
     } catch (_) {}
 
     return '';
@@ -628,7 +631,23 @@
 
     add(getRuntimeEnvApiBase());
     add(getDreamTarotApiBase());
+    add('https://code-destiny.com');
     return out;
+  }
+
+  function isRetriableApiError(error) {
+    if (!error) return false;
+    if (error.name === 'AbortError') return true;
+    var msg = String(error.message || '').toLowerCase();
+    if (msg.indexOf('timeout') !== -1) return true;
+    if (msg.indexOf('network') !== -1) return true;
+
+    var status = Number(error.status || 0);
+    if (status >= 500) return true;
+    if (status === 408 || status === 425 || status === 429) return true;
+
+    if (!status && error instanceof TypeError) return true;
+    return false;
   }
 
   function fetchJsonWithTimeout(url, payload) {
@@ -639,7 +658,12 @@
 
     return fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      cache: 'no-store',
+      credentials: 'include',
       body: JSON.stringify(payload || {}),
       signal: controller ? controller.signal : undefined
     })
@@ -691,6 +715,9 @@
 
       return fetchJsonWithTimeout(url, payload).catch(function (error) {
         lastError = error;
+        if (!isRetriableApiError(error)) {
+          throw error;
+        }
         return tryNext();
       });
     }
@@ -713,6 +740,9 @@
 
       return fetchJsonWithTimeout(url, payload).catch(function (error) {
         lastError = error;
+        if (!isRetriableApiError(error)) {
+          throw error;
+        }
         return tryNext();
       });
     }

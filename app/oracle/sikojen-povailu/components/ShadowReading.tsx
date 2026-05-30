@@ -35,14 +35,14 @@ export function ShadowReading() {
   }
 
   return (
-    <div className="min-h-screen w-full relative bg-gradient-to-b from-slate-900 via-purple-900 to-slate-950 flex items-center justify-center px-4 py-8 overflow-hidden">
+    <div className="min-h-[100dvh] w-full relative bg-gradient-to-b from-rose-50 via-pink-50 to-amber-50 flex items-start justify-center px-4 py-8 overflow-y-auto">
       
       {/* 신비로운 배경 입자 */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {Array.from({ length: 15 }).map((_, i) => (
           <div
             key={i}
-            className="absolute rounded-full bg-purple-400/20 blur-xl animate-pulse"
+            className="absolute rounded-full bg-rose-200/35 blur-xl animate-pulse"
             style={{
               width: `${Math.random() * 300 + 100}px`,
               height: `${Math.random() * 300 + 100}px`,
@@ -55,12 +55,12 @@ export function ShadowReading() {
       </div>
 
       {/* 어두운 네온 격자 */}
-      <div className="absolute inset-0 opacity-10" style={{
-        backgroundImage: `linear-gradient(90deg, #6366f1 1px, transparent 1px), linear-gradient(#6366f1 1px, transparent 1px)`,
+      <div className="absolute inset-0 opacity-10 pointer-events-none" style={{
+        backgroundImage: `linear-gradient(90deg, #fb7185 1px, transparent 1px), linear-gradient(#fb7185 1px, transparent 1px)`,
         backgroundSize: '50px 50px'
       }}></div>
 
-      <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-lg gap-8">
+      <div className="relative z-10 flex flex-col items-center justify-start w-full max-w-lg gap-8">
         
         {/* 연이와 손전등 */}
         <div className="relative w-32 h-32">
@@ -69,7 +69,7 @@ export function ShadowReading() {
               frames={[12, 11, 10, 9]}
               size={120}
               alt="연이 그림자 읽기"
-              ringClassName="from-violet-400 to-purple-500"
+              ringClassName="from-rose-300 to-pink-300"
               intervalMs={820}
             />
           </div>
@@ -78,26 +78,26 @@ export function ShadowReading() {
             🔦
           </div>
           {/* 손전등 광선 */}
-          <div className="absolute inset-0 bg-gradient-to-r from-yellow-300/30 to-transparent rounded-full blur-2xl animate-pulse"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-amber-200/35 to-transparent rounded-full blur-2xl animate-pulse"></div>
         </div>
 
         {/* 제목 */}
-        <h2 className="text-3xl md:text-4xl font-bold text-purple-300 text-center" style={{ fontFamily: "'Jua', sans-serif" }}>
+        <h2 className="text-3xl md:text-4xl font-bold text-rose-600 text-center" style={{ fontFamily: "'Jua', sans-serif" }}>
           🌑 영혼의 그림자 읽기 👁️
         </h2>
 
         <PigCounselBubble
-          className="w-full max-w-md border-purple-300/70 bg-purple-50/85"
+          className="w-full max-w-md"
           title="연이의 그림자 상담"
           message="불안한 마음은 숨기지 말고 같이 보자. 그림자 해석은 네가 지켜야 할 감정의 경계를 알려줘."
         />
 
         {/* 벽면 - 그림자 디스플레이 */}
-        <div className="relative w-full h-64 rounded-2xl border-4 border-purple-500/50 bg-gradient-to-b from-slate-800 to-slate-900 shadow-2xl overflow-hidden">
+        <div className="relative w-full h-64 rounded-2xl border-4 border-rose-300/70 bg-gradient-to-b from-rose-100 to-pink-100 shadow-2xl overflow-hidden">
           
           {/* 벽면 텍스처 */}
           <div className="absolute inset-0 opacity-20" style={{
-            backgroundImage: `repeating-linear-gradient(90deg, #1e293b 0px, #1e293b 2px, transparent 2px, transparent 4px)`
+            backgroundImage: `repeating-linear-gradient(90deg, #fecdd3 0px, #fecdd3 2px, transparent 2px, transparent 4px)`
           }}></div>
 
           {/* 그림자 아이콘 */}
@@ -105,7 +105,7 @@ export function ShadowReading() {
             className="absolute inset-0 flex items-center justify-center text-9xl transition-opacity duration-1000"
             style={{ opacity: shadowOpacity }}
           >
-            <div className="text-purple-500/60 drop-shadow-2xl">
+            <div className="text-rose-500/60 drop-shadow-2xl">
               {selectedShape.icon}
             </div>
           </div>
@@ -119,44 +119,44 @@ export function ShadowReading() {
           </div>
 
           {/* 조명 효과 */}
-          <div className="absolute inset-0 bg-gradient-to-t from-purple-900/50 via-transparent to-yellow-300/20 animate-pulse"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-rose-200/60 via-transparent to-amber-200/25 animate-pulse"></div>
         </div>
 
         {/* 연이의 내레이션 */}
         <div className="text-center space-y-2">
-          <p className="text-lg text-purple-300 font-bold">
+            <p className="text-lg text-rose-600 font-bold">
             그림자 속에 또 다른 운세가 숨어있어...
           </p>
-          <p className="text-sm text-purple-400 italic">
+            <p className="text-sm text-rose-500 italic">
             &quot;{selectedShape.name_ko}&quot;의 참된 의미
           </p>
         </div>
 
         {/* 숨겨진 영역 - 진정한 의미 */}
         {revealText && (
-          <div className="w-full rounded-2xl border-2 border-purple-400 bg-gradient-to-br from-purple-900/50 to-indigo-900/50 backdrop-blur-sm p-6 animate-fade-in">
+          <div className="w-full rounded-2xl border-2 border-rose-300 bg-gradient-to-br from-white via-rose-50 to-amber-50 p-6 animate-fade-in shadow-[0_14px_32px_rgba(190,24,93,0.14)]">
             
-            <h3 className="text-xl md:text-2xl font-bold text-purple-200 text-center mb-4" style={{ fontFamily: "'Jua', sans-serif" }}>
+            <h3 className="text-xl md:text-2xl font-bold text-rose-700 text-center mb-4" style={{ fontFamily: "'Jua', sans-serif" }}>
               🌑 진짜 의미
             </h3>
 
             {/* 한글 해석 */}
             <div className="mb-4 text-center">
-              <p className="text-sm md:text-base text-purple-100 leading-relaxed font-semibold">
+              <p className="text-sm md:text-base text-rose-700 leading-relaxed font-semibold">
                 {selectedShape.shadow_meaning_ko}
               </p>
             </div>
 
             {/* 핀란드어 해석 */}
-            <div className="text-center border-t border-purple-500/50 pt-4">
-              <p className="text-xs md:text-sm text-purple-300 italic leading-relaxed">
+            <div className="text-center border-t border-rose-200 pt-4">
+              <p className="text-xs md:text-sm text-rose-500 italic leading-relaxed">
                 &quot;{selectedShape.shadow_meaning_fi}&quot;
               </p>
             </div>
 
             {/* 신비로운 힌트 */}
             <div className="mt-4 text-center">
-              <p className="text-xs text-purple-400 bg-purple-800/30 rounded-lg px-3 py-2">
+              <p className="text-xs text-rose-600 bg-rose-100 rounded-lg px-3 py-2 border border-rose-200">
                 ✧ 이것이 형태가 진정으로 속삭이는 것 ✧
               </p>
             </div>
@@ -166,8 +166,8 @@ export function ShadowReading() {
         {/* 돌아가기 버튼 */}
         <button
           onClick={handleReturn}
-          className="py-3 px-6 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600
-            text-white font-bold rounded-xl hover:from-indigo-600 hover:via-purple-600 hover:to-indigo-700
+          className="py-3 px-6 bg-gradient-to-r from-rose-400 via-pink-400 to-amber-300
+            text-rose-900 font-bold rounded-xl hover:from-rose-500 hover:via-pink-500 hover:to-amber-400
             transform hover:scale-105 transition-all duration-300 shadow-lg text-sm md:text-base
             relative overflow-hidden group"
         >
@@ -178,7 +178,7 @@ export function ShadowReading() {
         </button>
 
         {/* 신비로운 텍스트 힌트 */}
-        <p className="text-center text-xs text-purple-400 italic">
+        <p className="text-center text-xs text-rose-500 italic">
           숨겨진 진실을 발견했어... 이제 이 지혜를 나눠주겠어?
         </p>
       </div>

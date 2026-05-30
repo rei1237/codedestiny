@@ -998,7 +998,8 @@
         if (!_chapters.length || Number(_chapters.length) !== expectedChapterCount) {
           throw new Error('15챕터 리포트 데이터가 비어 있습니다.');
         }
-        if (_clean(response.serverStatus) !== 'completed' || _clean(response.qualityStatus) !== 'passed' || !_clean(response.reportId)) {
+        var qualityStatus = _clean(response.qualityStatus);
+        if (_clean(response.serverStatus) !== 'completed' || (qualityStatus !== 'passed' && qualityStatus !== 'passed_with_warnings') || !_clean(response.reportId)) {
           throw new Error('일부 챕터의 내용을 더 정밀하게 다듬고 있습니다.');
         }
 
@@ -1012,6 +1013,7 @@
             chapterCount: _chapters.length,
             fallbackUsed: !!response.fallbackUsed,
             manuscriptSource: response.manuscriptSource || 'unknown',
+            qualityStatus: qualityStatus || 'unknown',
             sessionId: _activeSessionId,
           });
 
@@ -1025,12 +1027,16 @@
             failedChapters: [],
             reportId: _clean(response.reportId),
             sessionId: _activeSessionId,
-            qualityStatus: 'passed',
+            qualityStatus: qualityStatus === 'passed_with_warnings' ? 'passed_with_warnings' : 'passed',
             serverStatus: 'completed',
             updatedAt: Date.now(),
           });
 
-          _setLoadingNotice('완료');
+          if (qualityStatus === 'passed_with_warnings') {
+            _setLoadingNotice('완료되었습니다. 일부 문장은 더 정교하게 다듬어졌습니다.');
+          } else {
+            _setLoadingNotice('완료');
+          }
           _showScreen('skResultScreen');
         });
       })

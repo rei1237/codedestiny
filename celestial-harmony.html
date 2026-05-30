@@ -300,6 +300,29 @@
       color:rgba(200,168,75,.38); letter-spacing:.08em;
     }
     .tarot-card--revealed .tarot-card__planet-name { color:color-mix(in srgb,var(--pc,#c8a84b) 45%,transparent); }
+    .tarot-card--locked {
+      cursor: not-allowed;
+      opacity: .62;
+      filter: grayscale(.12) saturate(.78);
+    }
+    .tarot-card--locked::after {
+      content: 'LOCK';
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      border-radius: 999px;
+      padding: 2px 7px;
+      font-size: .5rem;
+      letter-spacing: .08em;
+      font-family: monospace;
+      color: rgba(253,230,138,.95);
+      border: 1px solid rgba(245,208,111,.32);
+      background: rgba(0,0,0,.45);
+    }
+    .tarot-card.is-selected {
+      transform: translateY(-6px) scale(1.03);
+      box-shadow: 0 14px 44px rgba(0,0,0,.62), 0 0 0 1px color-mix(in srgb,var(--pc,#c8a84b) 80%,transparent), 0 0 26px var(--pg, rgba(200,168,75,.45));
+    }
 
     @media(max-width:400px){
       .spread-grid{ max-width:320px; gap:8px 7px; }
@@ -468,7 +491,11 @@
     var currentAccessGrant=null;
     var currentConsume=null;
     var currentRequestId='';
-    var isPaid=false;
+    var hasAccess=false;
+    var canDraw=false;
+    var paymentInFlight=false;
+    var selectedCardIdx=-1;
+    var lastTapAt=0;
 
     // 기존 보드 레이아웃을 유지하되 11번째를 카이론으로 사용
     var SPREAD_ORDER=[10,8,1,4,2,7,0,5,6,9,3];
@@ -571,8 +598,10 @@
         var pk='p-'+item.planet.key;
         var dl=(pos*.06).toFixed(2)+'s';
         var dir=item.orientation==='reversed'?'역':'정';
+        var lockedClass = canDraw ? '' : ' tarot-card--locked';
+        var selectedClass = selectedCardIdx===pi ? ' is-selected' : '';
         cells.push(
-          '<article class="tarot-card tarot-card--revealed '+pk+' spread-pos-'+(pos+1)+' board-in" style="animation-delay:'+dl+';">'+
+          '<article class="tarot-card tarot-card--revealed '+pk+' spread-pos-'+(pos+1)+lockedClass+selectedClass+' board-in" data-card-idx="'+pi+'" role="button" tabindex="0" aria-disabled="'+(canDraw?'false':'true')+'" style="animation-delay:'+dl+';">'+
             '<p class="tarot-card__planet-name">'+esc(item.planet.en.toUpperCase())+' · '+dir+'</p>'+
             '<span class="tarot-card__symbol">'+item.planet.symbol+'</span>'+
             '<p class="tarot-card__arcana">'+esc(item.tarot.r)+' '+esc(item.tarot.n)+'</p>'+
@@ -590,7 +619,7 @@
         var p=PLANETS[idx]||{};
         var pk='p-'+(p.key||item.planetId||'sun');
         var dir=item.orientation==='reversed'?'역방향':'정방향';
-        return '<article class="planet-card fade-rise '+pk+'" style="border-radius:20px;overflow:hidden;animation-delay:'+(idx*0.08).toFixed(2)+'s;">'+
+        return '<article class="planet-card fade-rise '+pk+'" data-reading-idx="'+idx+'" style="border-radius:20px;overflow:hidden;animation-delay:'+(idx*0.08).toFixed(2)+'s;">'+
           '<div style="background:rgba(0,0,0,.38);padding:1.2rem 1.4rem;">'+
             '<p style="color:rgba(255,255,255,.35);font-size:.68rem;font-family:monospace;margin:0 0 .35rem;">'+esc(item.planetEn)+' · '+esc(item.layer)+' · '+esc(item.planetSymbol)+'</p>'+
             '<h3 class="planet-lbl" style="font-size:1.25rem;font-weight:700;margin:0 0 .5rem;">'+esc(item.planetKo)+' - '+esc(item.planetTitle)+'</h3>'+
@@ -716,53 +745,6 @@
         cost: COIN_COST,
         forceDeduct:true,
       };
-      if(typeof window._cdCoinGatePerUse === 'function'){
-        return new Promise(function(resolve,reject){
-          var resolved = false;
-          function done(payload){
-            if(resolved) return;
-            resolved = true;
-            var data = payload && payload.data ? payload.data : payload || {};
-            var consume = data.consume || payload.consume || {};
-            var accessGrant = data.accessGrant || payload.accessGrant || {};
-            var premiumToken = clean(payload.premiumAccessToken || accessGrant.premiumAccessToken || payload.token || payload.accessToken || '');
-            if(premiumToken) persistPremiumToken(premiumToken);
-            resolve({
-              transactionId: clean(accessGrant.purchaseId || consume.transactionId || payload.transactionId || ''),
-              reportId: clean(accessGrant.reportId || reportId),
-              accessGrant: accessGrant,
-              consume: consume,
-              premiumAccessToken: premiumToken,
-              requestId: clean(accessGrant.requestId || consume.requestId || body.requestId),
-            });
-          }
-          function fail(err){ if(resolved) return; resolved = true; reject(err instanceof Error ? err : new Error(String(err || '코인 결제 실패'))); }
-
-          try{
-            var immediate = window._cdCoinGatePerUse(
-              COIN_COST,
-              '천체의 선율 코즈믹 리딩',
-              function(_transactionId, data){ done(data || {}); },
-              function(error){ fail(error && error.message ? error.message : '코인 결제가 취소되었습니다.'); },
-              {
-                featureKey: FEATURE_KEY,
-                reason: '천체의 선율 코즈믹 리딩',
-                requestId: body.requestId,
-                reportId: body.reportId,
-                sessionId: body.sessionId,
-                reportSessionId: body.reportSessionId,
-                forceDeduct: true,
-              }
-            );
-            if(immediate && typeof immediate.then === 'function'){
-              immediate.then(function(payload){ if(payload && payload.ok===false) fail(payload.message || '코인 결제 실패'); else done(payload || {}); }).catch(fail);
-            }
-          }catch(error){
-            fail(error);
-          }
-        });
-      }
-
       var res=await fetch('/api/billing/coin-gate',{method:'POST',headers:headers,credentials:'include',body:JSON.stringify(body)});
       var payload={};
       try{payload=await res.json();}catch(_){payload={};}
@@ -782,6 +764,41 @@
         premiumAccessToken: premiumToken,
         requestId: clean(accessGrant.requestId || consume.requestId || body.requestId),
       };
+    }
+
+    function activateAccessState(paymentInfo){
+      hasAccess = true;
+      canDraw = true;
+      if(paymentInfo){
+        currentAccessGrant = paymentInfo.accessGrant || currentAccessGrant;
+        currentConsume = paymentInfo.consume || currentConsume;
+      }
+    }
+
+    function focusReadingByCard(cardIdx){
+      if(cardIdx<0) return;
+      selectedCardIdx = cardIdx;
+      renderBoard();
+      var target = $resCon && $resCon.querySelector('[data-reading-idx="'+cardIdx+'"]');
+      if(target){
+        target.scrollIntoView({behavior:'smooth',block:'center'});
+        target.classList.remove('pulse-gold');
+        void target.offsetWidth;
+        target.classList.add('pulse-gold');
+      }
+    }
+
+    function handleCardInteraction(cardIdx){
+      if(!spread.length || cardIdx<0 || cardIdx>=spread.length) return;
+      if(!canDraw){
+        updatePremiumStatus('premium locked','결제 검증이 완료되면 카드 인터랙션이 즉시 잠금 해제됩니다.','payment',['draw']);
+        if(!paymentInFlight) runReadingFlow();
+        return;
+      }
+      focusReadingByCard(cardIdx);
+      if($resSec.style.display==='none' && !paymentInFlight){
+        runReadingFlow();
+      }
     }
 
     async function callGenerate(reportId, transactionId, restored, paymentInfo){
@@ -843,7 +860,8 @@
     }
 
     async function runReadingFlow(){
-      if(!spread.length || $read.disabled) return;
+      if(!spread.length || $read.disabled || paymentInFlight) return;
+      paymentInFlight = true;
       readBtnOn(false);
       updatePremiumStatus('premium active','결제 및 리딩 플로우를 시작합니다.','payment',['draw']);
       setLoading(true,'코인 결제 및 리딩 세션을 확인하는 중입니다...');
@@ -851,15 +869,15 @@
       try{
         if(!currentReportId) currentReportId = buildReportId();
 
-        if(!isPaid){
+        if(!hasAccess){
           var gate = await callCoinGate(currentReportId);
           currentTransactionId = gate.transactionId || currentTransactionId;
           currentReportId = gate.reportId || currentReportId;
-          currentAccessGrant = gate.accessGrant || null;
-          currentConsume = gate.consume || null;
+          currentAccessGrant = gate.accessGrant || currentAccessGrant;
+          currentConsume = gate.consume || currentConsume;
           currentRequestId = gate.requestId || currentRequestId || ('celestial:'+currentReportId);
           if(gate.premiumAccessToken) persistPremiumToken(gate.premiumAccessToken);
-          isPaid = true;
+          activateAccessState(gate);
           updatePremiumStatus('premium paid','결제 확인이 완료되었습니다. 리딩 생성을 진행합니다.','generate',['draw','payment']);
           persistSession({ reportId:currentReportId, transactionId:currentTransactionId, paid:true, cards:buildCardsPayload(), spread:spread, goldenCard:goldenCard });
         }
@@ -878,7 +896,7 @@
         setLoading(false,'');
         setTimeout(function(){$resSec.scrollIntoView({behavior:'smooth'});},100);
       }catch(err){
-        var recoverable = isPaid && (currentReportId || currentTransactionId);
+        var recoverable = hasAccess && (currentReportId || currentTransactionId);
         if(recoverable){
           try {
             updatePremiumStatus('premium recover','결제는 완료되어 복구 가능한 결과를 조회합니다.','generate',['draw','payment']);
@@ -897,6 +915,7 @@
         updatePremiumStatus('premium issue','결제 또는 리딩 단계에서 오류가 발생했습니다. 다시 시도해 주세요.','payment',['draw']);
         window.alert('리딩 처리 중 오류가 발생했습니다: '+((err&&err.message)||'unknown'));
       }finally{
+        paymentInFlight = false;
         readBtnOn(true);
       }
     }
@@ -913,7 +932,9 @@
       currentAccessGrant = null;
       currentConsume = null;
       currentRequestId = 'celestial:'+currentReportId;
-      isPaid = false;
+      hasAccess = false;
+      canDraw = false;
+      selectedCardIdx = -1;
       renderBoard();
       readBtnOn(true);
       updatePremiumStatus('premium ready','카드 배치가 완료되었습니다. 결제 확인 후 심층 리딩을 시작할 수 있습니다.','payment',['draw']);
@@ -927,6 +948,40 @@
       runReadingFlow();
     });
 
+    $board.addEventListener('click', function(event){
+      var card = event.target && event.target.closest ? event.target.closest('.tarot-card') : null;
+      if(!card) return;
+      event.preventDefault();
+      var idx = Number(card.getAttribute('data-card-idx'));
+      if(!Number.isFinite(idx)) return;
+      handleCardInteraction(idx);
+    });
+
+    $board.addEventListener('keydown', function(event){
+      var card = event.target && event.target.closest ? event.target.closest('.tarot-card') : null;
+      if(!card) return;
+      if(event.key!=='Enter' && event.key!==' ') return;
+      event.preventDefault();
+      var idx = Number(card.getAttribute('data-card-idx'));
+      if(!Number.isFinite(idx)) return;
+      handleCardInteraction(idx);
+    });
+
+    $board.addEventListener('touchend', function(event){
+      var now = Date.now();
+      if(now-lastTapAt<260) return;
+      lastTapAt = now;
+      var touch = event.changedTouches && event.changedTouches[0];
+      if(!touch) return;
+      var target = document.elementFromPoint(touch.clientX, touch.clientY);
+      var card = target && target.closest ? target.closest('.tarot-card') : null;
+      if(!card) return;
+      event.preventDefault();
+      var idx = Number(card.getAttribute('data-card-idx'));
+      if(!Number.isFinite(idx)) return;
+      handleCardInteraction(idx);
+    }, { passive:false });
+
     $reset.addEventListener('click',function(){
       spread=[];goldenCard=null;
       currentReportId='';
@@ -935,7 +990,10 @@
       currentAccessGrant=null;
       currentConsume=null;
       currentRequestId='';
-      isPaid=false;
+      hasAccess=false;
+      canDraw=false;
+      paymentInFlight=false;
+      selectedCardIdx=-1;
       $boardSec.style.display='none';$board.innerHTML='';
       $resSec.style.display='none';$resCon.innerHTML='';
       $goldSec.style.display='none';$goldCon.innerHTML='';
@@ -957,14 +1015,16 @@
         currentTransactionId=clean(saved.transactionId||'');
         currentPremiumToken=readPremiumToken();
         currentRequestId='celestial:'+(currentReportId || buildReportId());
-        isPaid=!!saved.paid;
+        hasAccess=!!saved.paid;
+        canDraw=hasAccess;
+        selectedCardIdx=-1;
         renderBoard();
         readBtnOn(true);
         updatePremiumStatus(
-          isPaid ? 'premium paid' : 'premium ready',
-          isPaid ? '저장된 결제 세션이 감지되었습니다. 결과 복구를 시도합니다.' : '저장된 카드 세션을 복원했습니다. 결제 후 리딩 가능합니다.',
-          isPaid ? 'generate' : 'payment',
-          isPaid ? ['draw','payment'] : ['draw']
+          hasAccess ? 'premium paid' : 'premium ready',
+          hasAccess ? '저장된 결제 세션이 감지되었습니다. 결과 복구를 시도합니다.' : '저장된 카드 세션을 복원했습니다. 결제 후 리딩 가능합니다.',
+          hasAccess ? 'generate' : 'payment',
+          hasAccess ? ['draw','payment'] : ['draw']
         );
         if(saved.reading){
           renderResults(saved.reading);
@@ -979,13 +1039,15 @@
         renderSummary(remote);
         currentReportId = clean((remote.payment&&remote.payment.reportId)||qReport||currentReportId);
         currentTransactionId = clean((remote.payment&&remote.payment.transactionId)||qTx||currentTransactionId);
-        isPaid = true;
+        hasAccess = true;
+        canDraw = true;
         updatePremiumStatus('premium complete','서버에서 결제된 리딩 결과를 복구했습니다.','complete',['draw','payment','generate','complete']);
         persistSession({ reportId:currentReportId, transactionId:currentTransactionId, paid:true, reading:remote, cards:buildCardsPayload(), spread:spread, goldenCard:goldenCard });
       } else if(saved && saved.paid && !saved.reading && spread.length===11){
         // 결제는 완료됐으나 결과가 없는 경우 자동 재생성
         try {
-          isPaid = true;
+          hasAccess = true;
+          canDraw = true;
           updatePremiumStatus('premium recover','결제된 세션 재생성을 시도합니다.','generate',['draw','payment']);
           await runReadingFlow();
         } catch (_) { }

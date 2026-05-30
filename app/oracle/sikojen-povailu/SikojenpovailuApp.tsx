@@ -58,13 +58,6 @@ export default function SikojenpovailuApp() {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
-    const target = appRef.current;
-    if (target && !document.fullscreenElement && typeof target.requestFullscreen === 'function') {
-      target.requestFullscreen().catch(() => {
-        // Some browsers require an explicit user gesture for fullscreen.
-      });
-    }
-
     return () => {
       document.body.style.overflow = previousOverflow;
     };
@@ -90,10 +83,13 @@ export default function SikojenpovailuApp() {
         zIndex: 2147483000,
         width: '100vw',
         minHeight: '100dvh',
-        height: '100dvh',
+        height: '100%',
         display: 'block',
         overflowX: 'hidden',
         overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        overscrollBehaviorY: 'contain',
+        touchAction: 'pan-y',
       }}>
         <button
           type="button"

@@ -242,6 +242,66 @@ describe("Sukuyo preflight and recovery guard", () => {
     )).rejects.toThrow(/환불되었습니다|환불/);
   });
 
+  test("generateSukyoPremiumReport completes with quality warnings when chapter text is structurally valid", async () => {
+    const seed = buildSukyoPdfSeed({
+      mode: "compatibility",
+      userProfile: {
+        name: "나",
+      },
+      partnerProfile: {
+        name: "상대",
+      },
+      canonical: {
+        personA: {
+          sukuyo: {
+            nameKo: "각",
+            nameHan: "角",
+            index: 1,
+          },
+        },
+        personB: {
+          sukuyo: {
+            nameKo: "항",
+            nameHan: "亢",
+            index: 2,
+          },
+        },
+        compatibility: {
+          relationType: "영친",
+          distanceLabel: "근거리",
+          relationVariant: "상호 끌림",
+        },
+      },
+    });
+
+    const result = await generateSukyoPremiumReport(
+      {},
+      seed,
+      {
+        llmChapterGenerator: async ({ chapterSpec }) => ({
+          ok: true,
+          text: JSON.stringify({
+            chapter: {
+              key: chapterSpec.key,
+              order: chapterSpec.order,
+              title: chapterSpec.title,
+              sections: chapterSpec.sections.map((heading) => ({
+                heading,
+                body: Array.from({ length: 50 }, (_, index) => `${heading} ${chapterSpec.key} ${index + 1}번째 관점은 관계 운영에 필요한 서로 다른 설명을 담습니다.`).join(" "),
+              })),
+            },
+          }),
+        }),
+      },
+    );
+
+    expect(result.serverStatus).toBe("completed");
+    expect(result.qualityStatus).toBe("passed_with_warnings");
+    expect(Array.isArray(result.qualityWarnings)).toBe(true);
+    expect(result.qualityWarnings.length).toBeGreaterThan(0);
+    expect(result.chapters).toHaveLength(15);
+  });
+
   test("sanitizeSukyoChapterJson does not inject narrative fallback text", () => {
     const chapter = {
       key: "chapter-01-core-map",

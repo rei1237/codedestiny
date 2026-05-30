@@ -311,6 +311,38 @@ function findGemById(id) {
   return GEMSTONES.find((gem) => gem.id === id) || GEMSTONES[0];
 }
 
+function StarField() {
+  const stars = useRef(Array.from({ length: 55 }, () => ({
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 1.4 + 0.4,
+    opacity: Math.random() * 0.35 + 0.08,
+    dur: Math.random() * 4 + 3,
+    delay: Math.random() * 6,
+  }))).current;
+
+  return (
+    <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }}>
+      {stars.map((star, idx) => (
+        <div
+          key={`star-${idx}`}
+          style={{
+            position: "absolute",
+            left: `${star.x}%`,
+            top: `${star.y}%`,
+            width: star.size,
+            height: star.size,
+            borderRadius: "50%",
+            background: "#d4c5a9",
+            opacity: star.opacity,
+            animation: `cdGlowPulse ${star.dur}s ${star.delay}s ease-in-out infinite`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function buildAssignments(coreGemId, cardsLength) {
   const ids = GEMSTONES.map((gem) => gem.id);
   const assignments = {};
@@ -466,6 +498,88 @@ function GemCard({ gem, selected, recommended, onSelect }) {
   );
 }
 
+function ResultFlipCard({ section }) {
+  return (
+    <div
+      className="cd-crystal-flip"
+      style={{
+        borderRadius: 14,
+        minHeight: 132,
+        perspective: 900,
+      }}
+    >
+      <div
+        className="cd-crystal-flip__inner"
+        style={{
+          position: "relative",
+          width: "100%",
+          minHeight: 132,
+          transformStyle: "preserve-3d",
+          transition: "transform .72s cubic-bezier(.4,0,.2,1)",
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backfaceVisibility: "hidden",
+            borderRadius: 14,
+            border: "1px solid rgba(255,255,255,.12)",
+            background: "linear-gradient(148deg,#140e18 0%,#1e1228 50%,#140e18 100%)",
+            boxShadow: "0 10px 22px rgba(0,0,0,.28)",
+            padding: 10,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+          }}
+        >
+          <div style={{ fontSize: 10, color: "#ceb89a" }}>{section.positionTitle}</div>
+          <div style={{ fontSize: 12, color: "#f1e5d2" }}>{section.cardNameKo}</div>
+          <div style={{ fontSize: 10, color: "#b9a689", lineHeight: 1.45 }}>
+            {section.keywordVisual || `타로: ${(section.tarotKeywords || []).slice(0, 2).join(", ")}`}
+          </div>
+        </div>
+
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backfaceVisibility: "hidden",
+            transform: "rotateY(180deg)",
+            borderRadius: 14,
+            border: "1px solid rgba(255,255,255,.16)",
+            background: "rgba(255,255,255,.06)",
+            boxShadow: "0 10px 24px rgba(0,0,0,.24)",
+            padding: 10,
+            display: "flex",
+            gap: 8,
+            alignItems: "center",
+          }}
+        >
+          <div style={{ width: 36, height: 58, borderRadius: 8, overflow: "hidden", border: "1px solid rgba(255,255,255,.2)", background: "#111", flexShrink: 0 }}>
+            {section.cardImageUrl ? (
+              <img
+                src={section.cardImageUrl}
+                alt={section.cardNameKo}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                onError={(event) => {
+                  event.currentTarget.style.display = "none";
+                }}
+              />
+            ) : null}
+          </div>
+          <div>
+            <div style={{ fontSize: 10, color: "#c6b091", marginBottom: 2 }}>{section.orientation === "reversed" ? "역방향" : "정방향"}</div>
+            <div style={{ fontSize: 10, color: "#c6b091", marginBottom: 3 }}>{section.crystalName}</div>
+            <div style={{ fontSize: 10, color: "#b9a689", lineHeight: 1.45 }}>타로: {(section.tarotKeywords || []).slice(0, 2).join(", ")}</div>
+            <div style={{ fontSize: 10, color: "#b9a689", lineHeight: 1.45 }}>원석: {(section.crystalKeywords || []).slice(0, 2).join(", ")}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ReadingAccordion({ section, expanded, onToggle }) {
   const actionItems = Array.isArray(section.practicalActions) && section.practicalActions.length
     ? section.practicalActions
@@ -517,6 +631,9 @@ function ReadingAccordion({ section, expanded, onToggle }) {
 
       {expanded && (
         <div style={{ padding: 14 }}>
+          {section.keywordVisual ? (
+            <p style={{ color: "#d9c6a9", fontSize: 12, lineHeight: 1.75, margin: "0 0 8px" }}>{section.keywordVisual}</p>
+          ) : null}
           <p style={{ color: "#efe2d0", fontSize: 13, lineHeight: 1.9, margin: "0 0 12px" }}>{section.categoryReading}</p>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10, marginBottom: 12 }}>
@@ -941,12 +1058,38 @@ export default function CrystalSoulTarot() {
         color: "#f5ebdc",
       }}
     >
+      <style>{`
+        @keyframes cdGlowPulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+        @keyframes cdFadeUp { from { opacity: 0; transform: translateY(18px);} to { opacity: 1; transform: translateY(0);} }
+        .cd-scroll-surface { scrollbar-width: thin; scrollbar-color: rgba(214,174,96,.62) rgba(255,255,255,.08); }
+        .cd-scroll-surface::-webkit-scrollbar { width: 8px; height: 8px; }
+        .cd-scroll-surface::-webkit-scrollbar-track { background: rgba(255,255,255,.08); border-radius: 999px; }
+        .cd-scroll-surface::-webkit-scrollbar-thumb {
+          border-radius: 999px;
+          background: linear-gradient(180deg, rgba(223,189,121,.85), rgba(166,123,56,.72));
+          box-shadow: 0 0 10px rgba(223,189,121,.45);
+        }
+        .cd-crystal-flip:hover .cd-crystal-flip__inner,
+        .cd-crystal-flip:focus-within .cd-crystal-flip__inner { transform: rotateY(180deg); }
+        .cd-result-enter { animation: cdFadeUp .75s cubic-bezier(.16,1,.3,1) both; }
+        @media (max-width: 920px) {
+          .cd-result-header-grid { grid-template-columns: minmax(0,1fr) !important; }
+          .cd-sync-grid { grid-template-columns: minmax(0,1fr) !important; }
+        }
+      `}</style>
+      <StarField />
+      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }}>
+        <div style={{ position: "absolute", top: -120, left: "14%", width: 360, height: 360, borderRadius: "50%", background: "radial-gradient(circle, rgba(130,93,196,.18), transparent 68%)" }} />
+        <div style={{ position: "absolute", top: "22%", right: "8%", width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, rgba(218,165,32,.14), transparent 70%)" }} />
+      </div>
       <div
         style={{
           maxWidth: 1180,
           margin: "0 auto",
           padding: "18px 16px calc(56px + env(safe-area-inset-bottom))",
           minHeight: "100dvh",
+          position: "relative",
+          zIndex: 1,
         }}
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
@@ -1159,8 +1302,8 @@ export default function CrystalSoulTarot() {
 
         {selectedTopic && stage === "result" && (
           <div>
-            <header style={{ border: `1px solid ${(selectedGemSource?.color || "#c8960c")}66`, borderRadius: 24, background: "rgba(8,8,14,.84)", padding: 18, marginBottom: 16, boxShadow: `0 0 48px ${(selectedGemSource?.glow || "#daa520")}24` }}>
-              <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.15fr) minmax(280px,.85fr)", gap: 16, alignItems: "stretch" }}>
+            <header style={{ border: `1px solid ${(selectedGemSource?.color || "#c8960c")}66`, borderRadius: 24, background: "rgba(8,8,14,.56)", backdropFilter: "blur(14px)", padding: 18, marginBottom: 16, boxShadow: `0 0 48px ${(selectedGemSource?.glow || "#daa520")}24` }}>
+              <div className="cd-result-header-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0,1.15fr) minmax(280px,.85fr)", gap: 16, alignItems: "stretch" }}>
                 <div>
                   <div style={{ color: "#d8c5a9", fontSize: 11, marginBottom: 6 }}>선택 카테고리</div>
                   <div style={{ fontFamily: "Noto Serif KR,serif", fontSize: 26, marginBottom: 10 }}>{selectedTopic.title}</div>
@@ -1174,7 +1317,7 @@ export default function CrystalSoulTarot() {
                     {summaryLine || "원석과 카드가 함께 정리한 전체 흐름이 아래 상세 상담으로 이어집니다."}
                   </div>
                 </div>
-                <div style={{ borderRadius: 22, border: "1px solid rgba(255,255,255,.12)", background: `linear-gradient(160deg, ${(selectedGemSource?.color || "#c8960c")}24, rgba(8,8,14,.98) 74%)`, padding: 18, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                <div style={{ borderRadius: 22, border: "1px solid rgba(255,255,255,.12)", background: `linear-gradient(160deg, ${(selectedGemSource?.color || "#c8960c")}24, rgba(8,8,14,.82) 74%)`, backdropFilter: "blur(10px)", padding: 18, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                   <div>
                     <div style={{ color: "#d8c5a9", fontSize: 11, marginBottom: 6 }}>선택 원석</div>
                     <div style={{ fontFamily: "Noto Serif KR,serif", fontSize: 24, marginBottom: 8 }}>{selectedGemSource?.name}</div>
@@ -1191,12 +1334,23 @@ export default function CrystalSoulTarot() {
                 </div>
               </div>
 
-              <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(110px,1fr))", gap: 8 }}>
+              <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 10 }}>
                 {selectedCards.map((card, idx) => (
-                  <div key={`${card}-${idx}`} style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 10 }}>
-                    <div style={{ fontSize: 10, color: "#c8b28f", marginBottom: 4 }}>{selectedTopic.spread[idx]?.title}</div>
-                    <div style={{ fontSize: 12, color: "#f1e5d2", marginBottom: 4 }}>{CARD_KR[card] || card}</div>
-                    <div style={{ fontSize: 10, color: "#c0ac8d" }}>{GEMSTONES.find((gem) => gem.id === assignments[idx])?.name || selectedGemSource?.name}</div>
+                  <div key={`${card}-${idx}`} style={{ borderRadius: 14 }}>
+                    <div className="cd-crystal-flip" style={{ borderRadius: 14, perspective: 900 }}>
+                      <div className="cd-crystal-flip__inner" style={{ position: "relative", minHeight: 124, transformStyle: "preserve-3d", transition: "transform .72s cubic-bezier(.4,0,.2,1)" }}>
+                        <div style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden", borderRadius: 14, border: "1px solid rgba(255,255,255,.12)", background: "linear-gradient(148deg,#140e18 0%,#1e1228 50%,#140e18 100%)", padding: 10 }}>
+                          <div style={{ fontSize: 10, color: "#c8b28f", marginBottom: 6 }}>{selectedTopic.spread[idx]?.title}</div>
+                          <div style={{ fontSize: 12, color: "#f1e5d2", marginBottom: 4 }}>{CARD_KR[card] || card}</div>
+                          <div style={{ fontSize: 10, color: "#c0ac8d" }}>{GEMSTONES.find((gem) => gem.id === assignments[idx])?.name || selectedGemSource?.name}</div>
+                        </div>
+                        <div style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden", transform: "rotateY(180deg)", borderRadius: 14, border: "1px solid rgba(255,255,255,.16)", background: "rgba(255,255,255,.08)", padding: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#dfcaa7", lineHeight: 1.6, textAlign: "center" }}>
+                          선택된 카드의 상징을
+                          <br />
+                          원석 파동과 결합 중
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1215,37 +1369,14 @@ export default function CrystalSoulTarot() {
             )}
 
             {readingPayload && (
-              <div style={{ marginBottom: 16 }}>
+              <div style={{ marginBottom: 16 }} className="cd-result-enter">
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 10, marginBottom: 12 }}>
                   {readingPayload.sections.map((section, index) => (
-                    <div key={`summary-${index}`} style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.12)", background: "rgba(255,255,255,.04)", padding: 10 }}>
-                      <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6 }}>
-                        <div style={{ width: 36, height: 58, borderRadius: 8, overflow: "hidden", border: "1px solid rgba(255,255,255,.2)", background: "#111" }}>
-                          {section.cardImageUrl ? (
-                            <img
-                              src={section.cardImageUrl}
-                              alt={section.cardNameKo}
-                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                              onError={(event) => {
-                                event.currentTarget.style.display = "none";
-                              }}
-                            />
-                          ) : null}
-                        </div>
-                        <div>
-                          <div style={{ fontSize: 10, color: "#d5c09f" }}>{section.positionTitle}</div>
-                          <div style={{ fontSize: 12, color: "#f2e5d1" }}>{section.cardNameKo}</div>
-                        </div>
-                      </div>
-                      <div style={{ fontSize: 10, color: "#c6b091", marginBottom: 2 }}>{section.orientation === "reversed" ? "역방향" : "정방향"}</div>
-                      <div style={{ fontSize: 10, color: "#c6b091", marginBottom: 2 }}>{section.crystalName}</div>
-                      <div style={{ fontSize: 10, color: "#b9a689", lineHeight: 1.45 }}>타로: {section.tarotKeywords.slice(0, 2).join(", ")}</div>
-                      <div style={{ fontSize: 10, color: "#b9a689", lineHeight: 1.45 }}>원석: {section.crystalKeywords.slice(0, 2).join(", ")}</div>
-                    </div>
+                    <ResultFlipCard key={`summary-${index}`} section={section} />
                   ))}
                 </div>
 
-                <div style={{ display: "grid", gap: 10 }}>
+                <div className="cd-scroll-surface" style={{ display: "grid", gap: 10, maxHeight: "56vh", overflowY: "auto", paddingRight: 4 }}>
                   {readingPayload.sections.map((section, index) => (
                     <ReadingAccordion
                       key={`${section.positionTitle}-${index}`}
@@ -1255,11 +1386,28 @@ export default function CrystalSoulTarot() {
                     />
                   ))}
                 </div>
+
+                {Array.isArray(readingPayload.masterChapters) && readingPayload.masterChapters.length ? (
+                  <div className="cd-scroll-surface" style={{ marginTop: 12, borderRadius: 18, border: "1px solid rgba(255,255,255,.14)", background: "rgba(8,8,14,.62)", backdropFilter: "blur(12px)", padding: 14, maxHeight: "46vh", overflowY: "auto" }}>
+                    <h4 style={{ margin: 0, marginBottom: 10, fontFamily: "Noto Serif KR,serif", fontSize: 18 }}>마스터 7챕터 심층 상담</h4>
+                    <div style={{ display: "grid", gap: 10 }}>
+                      {readingPayload.masterChapters.map((chapter) => (
+                        <article key={chapter.no || chapter.title} style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
+                          <div style={{ fontSize: 11, color: "#d8c5a9", marginBottom: 5 }}>{chapter.title}</div>
+                          {chapter.keywordVisual ? (
+                            <div style={{ fontSize: 12, color: "#e2cfad", marginBottom: 7 }}>{chapter.keywordVisual}</div>
+                          ) : null}
+                          <div style={{ fontSize: 13, color: "#f3e6d2", lineHeight: 1.88, whiteSpace: "pre-wrap" }}>{chapter.content}</div>
+                        </article>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             )}
 
             {!readingPayload && !!readingText && (
-              <div style={{ border: "1px solid rgba(255,255,255,.12)", borderRadius: 18, background: "rgba(8,8,14,.72)", padding: 16, marginBottom: 14 }}>
+              <div className="cd-scroll-surface" style={{ border: "1px solid rgba(255,255,255,.12)", borderRadius: 18, background: "rgba(8,8,14,.72)", padding: 16, marginBottom: 14, maxHeight: "56vh", overflowY: "auto" }}>
                 <pre style={{ margin: 0, whiteSpace: "pre-wrap", fontFamily: "Noto Serif KR,serif", lineHeight: 1.95, color: "#e8dbc8", fontSize: 13 }}>{readingText}</pre>
               </div>
             )}

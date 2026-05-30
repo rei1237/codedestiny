@@ -2227,6 +2227,78 @@ function buildPdfReadyPayload(profile, chapters, metadata = {}) {
   };
 }
 
+function buildLifeBookSessionStatusPayload(lock = {}) {
+  const status = clean(lock?.status || "unknown") || "unknown";
+  const progress = lock?.progress && typeof lock.progress === "object" ? lock.progress : {};
+  const currentChapterNo = toInt(progress.currentChapterNo, 0);
+  const totalChapters = toInt(progress.totalChapters, CHAPTER_BLUEPRINTS.length);
+  const chapterTitle = clean(progress.chapterTitle || "");
+  const stage = clean(progress.stage || "");
+  const stateKey = (() => {
+    if (status === "done") return "done";
+    if (status === "failed") return "failed";
+    if (stage === "seed-ready") return "seed_ready_llm_start";
+    if (stage.startsWith("chapter-")) return "writing_with_llm";
+    return "profile_check";
+  })();
+
+  return {
+    status,
+    startedAt: clean(lock?.startedAt || ""),
+    progress: {
+      stage,
+      stateKey,
+      currentChapterNo,
+      totalChapters,
+      chapterTitle,
+    },
+    error: lock?.error || null,
+  };
+}
+
+async function handleStatus(request) {
+  let sessionId = "";
+  try {
+    const url = new URL(request.url);
+    sessionId = clean(url.searchParams.get("sessionId") || url.searchParams.get("reportSessionId") || "");
+  } catch (_) {
+    sessionId = "";
+  }
+
+  if (!sessionId) {
+    return json({
+      ok: false,
+      serviceKey: LIFEBOOK_SERVICE_KEY,
+      code: "SESSION_ID_REQUIRED",
+      message: "sessionId가 필요합니다.",
+    }, { status: 400 });
+  }
+
+  const lock = LIFEBOOK_SESSION_LOCKS.get(sessionId);
+  if (!lock) {
+    return json({
+      ok: false,
+      serviceKey: LIFEBOOK_SERVICE_KEY,
+      code: "SESSION_NOT_FOUND",
+      message: "생성 세션을 찾을 수 없습니다. 다시 생성을 시작해 주세요.",
+      data: {
+        sessionId,
+        status: "not_found",
+      },
+    }, { status: 404 });
+  }
+
+  const statusPayload = buildLifeBookSessionStatusPayload(lock);
+  return json({
+    ok: true,
+    serviceKey: LIFEBOOK_SERVICE_KEY,
+    data: {
+      sessionId,
+      ...statusPayload,
+    },
+  });
+}
+
 async function handlePrepare(request, env) {
   logLifeBookServer("RequestReceived", { route: "/api/lifebook/prepare" });
   let auth;
@@ -2270,14 +2342,14 @@ async function handlePrepare(request, env) {
   const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId) || `life-book:${auth.userId}:${birthInput.birthDate}:${birthInput.birthTime || "unknown"}`;
   const existingLock = LIFEBOOK_SESSION_LOCKS.get(sessionId);
   if (existingLock?.status === "running") {
+    const statusPayload = buildLifeBookSessionStatusPayload(existingLock);
     return json({
       ok: true,
       serviceKey: LIFEBOOK_SERVICE_KEY,
       chapterCount: CHAPTER_BLUEPRINTS.length,
       data: {
         sessionId,
-        status: "running",
-        startedAt: existingLock.startedAt,
+        ...statusPayload,
       },
     });
   }
@@ -2577,6 +2649,10 @@ export async function handleSajuLifebookRoutes(request, env = {}) {
         chapterCount: SAJU_LIFE_BOOK_PDF_CHAPTER_SPECS.length,
         chapterSpecs: SAJU_LIFE_BOOK_PDF_CHAPTER_SPECS,
       });
+    }
+
+    if (method === "GET" && (path === "/status" || path === "/session")) {
+      return await handleStatus(request);
     }
 
     if (method === "POST" && (path === "" || path === "/" || path === "/prepare")) {

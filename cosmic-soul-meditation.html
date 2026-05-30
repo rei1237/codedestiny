@@ -3,15 +3,31 @@
 <head>
   <meta charset="UTF-8">
 <script>
-(function(){
+(async function(){
   'use strict';
   var KEY = 'openCosmicSoulMeditation';
   try { if (sessionStorage.getItem('flower_admin_token') && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(sessionStorage.getItem('flower_admin_token') || '')) return; } catch(_ae) {}
   var token = '';
   try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(e) {}
   if (!token) {
-    if (window.confirm('이 서비스는 로그인 후 이용 가능합니다.\n로그인 페이지로 이동하시겠습니까?')) {
-      window.location.replace('/login?next=' + encodeURIComponent(window.location.pathname));
+    try {
+      var authRes = await fetch('/api/auth/me', { method: 'GET', credentials: 'include', cache: 'no-store' });
+      if (authRes.ok) {
+        var authData = await authRes.json().catch(function(){ return null; });
+        if (authData && authData.accessToken) {
+          token = String(authData.accessToken || '').trim();
+          if (token) localStorage.setItem('fortune_auth_token', token);
+        }
+        if (authData && authData.user && typeof authData.user === 'object') {
+          localStorage.setItem('fortune_auth_user', JSON.stringify(authData.user));
+          token = token || '__cookie_session__';
+        }
+      }
+    } catch(_) {}
+  }
+  if (!token) {
+    if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+      window.__cdOpenLoginRequiredModal({ reason: 'mobile_auth_resync', redirectTo: window.location.pathname });
     } else { window.history.back(); }
     return;
   }
@@ -1445,14 +1461,39 @@ function _isAdminMeditationSession(){
   }
 }
 
+async function _resolveMeditationAuthToken(){
+  var token='';
+  try{token=localStorage.getItem('fortune_auth_token')||'';}catch(_){token='';}
+  if(token)return token;
+
+  try{
+    var authRes=await fetch('/api/auth/me',{method:'GET',credentials:'include',cache:'no-store'});
+    if(!authRes.ok)return '';
+    var authData=await authRes.json().catch(function(){return null;});
+    var nextToken=String((authData&&authData.accessToken)||'').trim();
+    if(nextToken){
+      try{localStorage.setItem('fortune_auth_token',nextToken);}catch(_){ }
+      return nextToken;
+    }
+    if(authData&&authData.user&&typeof authData.user==='object'){
+      try{localStorage.setItem('fortune_auth_user',JSON.stringify(authData.user));}catch(_){ }
+      return '__cookie_session__';
+    }
+  }catch(_){ }
+
+  return '';
+}
+
 function _getMeditationAuthToken(){
   try{return localStorage.getItem('fortune_auth_token')||'';}catch(_){return '';}
 }
 
 function _redirectLoginForMeditation(){
-  if(window.confirm('이 서비스는 로그인 후 이용 가능합니다.\n로그인 페이지로 이동하시겠습니까?')){
-    window.location.replace('/login?next='+encodeURIComponent(window.location.pathname));
+  if(typeof window.__cdOpenLoginRequiredModal==='function'){
+    window.__cdOpenLoginRequiredModal({reason:'mobile_auth_resync',redirectTo:window.location.pathname});
+    return;
   }
+  window.location.replace('/login?next='+encodeURIComponent(window.location.pathname));
 }
 
 var _cdMeditationPayToastTimer=null;
@@ -1524,7 +1565,7 @@ function _showMeditationDeductedUi(cost,balanceAfter){
 async function _consumeMeditationCoin(cost,reason){
   if(_isAdminMeditationSession())return true;
 
-  var token=_getMeditationAuthToken();
+  var token=await _resolveMeditationAuthToken();
   if(!token){
     _redirectLoginForMeditation();
     return false;

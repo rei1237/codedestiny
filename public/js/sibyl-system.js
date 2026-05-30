@@ -362,7 +362,14 @@
       var raw = localStorage.getItem(key);
       if (!raw) return null;
       var parsed = JSON.parse(raw);
-      if (!parsed || parsed.version !== SIBYL_REPORT_CACHE_VERSION) return null;
+      if (!parsed || typeof parsed !== 'object') return null;
+      // Keep previously generated reports accessible even after cache version bumps.
+      if (parsed.version && parsed.version !== SIBYL_REPORT_CACHE_VERSION) {
+        _sibylLogWarn('[SIBYL] cache version mismatch, using legacy payload if valid', {
+          cachedVersion: String(parsed.version || ''),
+          expectedVersion: SIBYL_REPORT_CACHE_VERSION
+        });
+      }
       if (!parsed.reportData || !Array.isArray(parsed.reportData.chapters) || !parsed.reportData.chapters.length) return null;
       return parsed;
     } catch (_) {
@@ -401,9 +408,20 @@
     }
   }
 
-  function _syncSibylUnlockButton(profile) {
+  function _syncSibylUnlockButton(profile, unlockStatus) {
     var btn = _q('sbUnlockBtn');
     if (!btn) return;
+    if (unlockStatus && unlockStatus.ok) {
+      if (unlockStatus.unlocked) {
+        btn.textContent = '⚡ 저장된 DOMINATOR 리포트 열기';
+        btn.disabled = false;
+        return;
+      }
+      btn.textContent = '⚡ EXECUTE DOMINATOR — 100코인';
+      btn.disabled = false;
+      return;
+    }
+
     var cached = _loadSibylCachedReport(profile);
     if (cached) {
       btn.textContent = '⚡ 저장된 DOMINATOR 리포트 열기';
@@ -434,6 +452,17 @@
     _renderDominatorReport(shaped, analysis);
     _saveSibylCachedReport(profile, shaped, analysis);
     return true;
+  }
+
+  async function _openCachedDominatorReportIfUnlocked(profile, fallbackAnalysis) {
+    if (_isAdminBypassUser()) {
+      return _openCachedDominatorReport(profile, fallbackAnalysis);
+    }
+
+    var unlockStatus = await _resolveSibylUnlockStatus();
+    _syncSibylUnlockButton(profile, unlockStatus);
+    if (!(unlockStatus && unlockStatus.ok && unlockStatus.unlocked)) return false;
+    return _openCachedDominatorReport(profile, fallbackAnalysis);
   }
 
   /* G_PILLARS → 십성 카운트 */
@@ -3469,10 +3498,6 @@
 
     var currentProfile = _getCurrentProfile();
     var currentData = window._sibylCurrentData || {};
-    if (_openCachedDominatorReport(currentProfile, currentData)) {
-      _restoreUnlockBtn();
-      return;
-    }
 
     var lockEl = _q('sbLockOverlay');
     if (lockEl) lockEl.classList.add('sb-hidden');
@@ -3503,7 +3528,24 @@
       } else {
         _setSibylState(SibylState.PROCESSING_PAYMENT, '>> 결제 상태를 확인하는 중입니다…');
         var unlockStatus = await _resolveSibylUnlockStatus();
+
+        if (!unlockStatus || !unlockStatus.ok) {
+          if (_openCachedDominatorReport(currentProfile, currentData)) {
+            _restoreUnlockBtn();
+            return;
+          }
+          throw (unlockStatus && unlockStatus.error) || {
+            status: 503,
+            code: 'UNLOCK_STATUS_UNAVAILABLE',
+            message: '잠금 해제 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.'
+          };
+        }
+
         if (unlockStatus && unlockStatus.ok && unlockStatus.unlocked) {
+          if (_openCachedDominatorReport(currentProfile, currentData)) {
+            _restoreUnlockBtn();
+            return;
+          }
           paymentContext = {
             bypass: true,
             unlocked: true,
@@ -4092,7 +4134,13 @@
       _runScanAnim(function() {
         _renderFreeSection(pillars, natal);
         _syncSibylUnlockButton(profile);
-        _openCachedDominatorReport(profile, window._sibylCurrentData || {});
+        _openCachedDominatorReportIfUnlocked(profile, window._sibylCurrentData || {}).catch(function(err) {
+          _sibylLogWarn('[SIBYL] unlock-state precheck failed', {
+            code: String(err && err.code || ''),
+            message: String(err && err.message || '')
+          });
+          _syncSibylUnlockButton(profile);
+        });
       });
     }
 

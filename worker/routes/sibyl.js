@@ -1,6 +1,8 @@
 ﻿import { requireAuth } from "../lib/auth.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { requirePremiumReportAccess } from "../lib/access-control.js";
+import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 
 const SIBYL_MIN_TOTAL_CHARS = 20000;
 const SIBYL_MIN_CHAPTER_CHARS = 1900;
@@ -626,7 +628,26 @@ export async function handleSibylRoutes(request, env = {}) {
     const body = await readJson(request);
     const canonical = normalizeCanonicalSibylData(body);
     const requestId = clean(body?.requestId || body?.paymentContext?.requestId || "").slice(0, 120) || `sibyl_${stableHash(JSON.stringify(body?.pillars || {})).slice(0, 8)}`;
-    const featureKey = clean(body?.featureKey || body?.paymentContext?.featureKey || "sibyl-dominator-report");
+    const featureKey = clean(body?.featureKey || body?.paymentContext?.featureKey || "premium-sibyl-dominator");
+    const premiumAccessToken = clean(body?.premiumAccessToken || body?._premiumAccessToken || body?.payment?.premiumAccessToken || body?.consume?.premiumAccessToken || "");
+
+    const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "sibylDominator", {
+      ...body,
+      featureKey,
+      reportType: "sibylDominator",
+      premiumAccessToken: premiumAccessToken || undefined,
+      _accessRoute: "/api/sibyl/report",
+    });
+    if (!access?.ok) {
+      const status = Number(access?.status || 402);
+      return json({
+        ok: false,
+        code: access?.code || (status === 401 ? "UNAUTHORIZED" : "PAYMENT_REQUIRED"),
+        message: status === 401
+          ? "시빌라 도미네이터 리포트 생성을 위해 먼저 로그인해 주세요."
+          : "시빌라 도미네이터 리포트는 잠금 해제 후 이용할 수 있습니다.",
+      }, { status });
+    }
     const profileValidation = {
       ok: Array.isArray(canonical?.debug?.missingFields) ? canonical.debug.missingFields.length === 0 : true,
       missingFields: Array.isArray(canonical?.debug?.missingFields) ? canonical.debug.missingFields : [],
@@ -668,6 +689,7 @@ export async function handleSibylRoutes(request, env = {}) {
       featureKey,
       hasUserId: Boolean(auth?.userId),
       unlocked: true,
+      accessType: clean(access?.accessType || ""),
       profileValidation,
       reportStatus,
       totalChars,

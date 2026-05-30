@@ -942,9 +942,11 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
     seed,
   });
 
+  const qualityWarnings = [];
+
   if (!quality.ok) {
-    console.error("[SukuyoPremiumPDF][QualityFailed]", { issues: quality.issues });
-    throw buildFailureWithRefundMessage("quality_failed", "SUKYO_PDF_QUALITY_FAILED");
+    qualityWarnings.push(...quality.issues);
+    console.warn("[SukuyoPremiumPDF][QualityWarning]", { issues: quality.issues });
   }
 
   assertSukyoCompatibilityPdfComplete({
@@ -958,6 +960,7 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
     chapterCount: normalizedChapters.length,
     mode,
     fallbackUsed: false,
+    qualityWarnings: qualityWarnings.length,
   });
 
   const reportJson = {
@@ -965,7 +968,8 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
     seed,
     chapters: normalizedChapters,
     chapterCount: normalizedChapters.length,
-    qualityStatus: "passed",
+    qualityStatus: qualityWarnings.length ? "passed_with_warnings" : "passed",
+    qualityWarnings,
     fallbackUsed: false,
   };
 
@@ -976,14 +980,16 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
       chapters: normalizedChapters,
       reportJson,
       manuscriptSource: "llm-only",
-      qualityStatus: "passed",
+      qualityStatus: qualityWarnings.length ? "passed_with_warnings" : "passed",
+      qualityWarnings,
     },
     chapters: normalizedChapters,
     chapterCount: normalizedChapters.length,
     fallbackUsed: false,
     localDraftChapterCount: 0,
     manuscriptSource: "llm-only",
-    qualityStatus: "passed",
+    qualityStatus: qualityWarnings.length ? "passed_with_warnings" : "passed",
+    qualityWarnings,
     serverStatus: "completed",
     pdfReady,
     reportJson,

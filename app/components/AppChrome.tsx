@@ -11,7 +11,6 @@ const CHROMELESS_ROUTES = [
   "/saju-fpti",
   "/tarot/numerology",
   "/tarot/crystal-soul",
-  "/tarot/mindscan",
   "/saju/animal-destiny",
   "/saju/animal-test",
 ];

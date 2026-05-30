@@ -896,6 +896,89 @@ function normalizeGeneratedChapter(chapterSpec, generated) {
   };
 }
 
+function buildDeterministicSectionBody(seed, chapterSpec, categoryTitle, idx, reason = "") {
+  const chapterMeta = {
+    no: chapterSpec.no,
+    title: chapterSpec.title,
+    categories: chapterSpec.categories,
+  };
+  const annual = seed?.luckCycles?.targetYearSewoon || {};
+  const monthly = Array.isArray(seed?.luckCycles?.monthlyFortunes) ? seed.luckCycles.monthlyFortunes : [];
+  const monthFocus = monthly.slice(idx, idx + 3).map((row) => `${row.month}월(${row.pillar || "흐름"}, ${row.score || 0}점)`).join(", ");
+  const base = [
+    `${chapterSpec.no}장 ${categoryTitle}는 ${seed?.input?.targetYear || "올해"}년 ${clean(annual.pillar || annual.label || "세운")}과 일간 ${clean(seed?.natalChart?.dayMaster || "미상")}의 상호작용을 중심으로 해석합니다.`,
+    `핵심 기준은 ${clean(annual.tenGodToDayMaster || "십성 미상")}의 작동 방식과 월운 강약이며, 단일 사건 예언이 아니라 실행 우선순위 조정에 초점을 둡니다.`,
+    monthFocus ? `이번 섹션의 월운 참고 구간은 ${monthFocus}입니다.` : "월운 데이터와 관계 신호를 함께 보며 보수/확장 리듬을 나눠 운영합니다.",
+  ].join(" ");
+  const evidence = buildCategoryEvidence(seed, chapterMeta, categoryTitle, idx);
+  const reasonHint = clean(reason);
+  let text = `${base}\n\n${evidence}`;
+  if (reasonHint) {
+    text += `\n\n실행 메모: ${reasonHint} 상황을 반영해 이번 섹션은 핵심 근거 중심으로 재구성했습니다.`;
+  }
+  text = ensureMinLength(text, MIN_SECTION_CHARS, { seed, categoryTitle });
+  if (countSignalHits(text, seed) < 2) {
+    const annual = seed?.luckCycles?.targetYearSewoon || {};
+    text += `\n\n근거 보강: 세운 ${clean(annual.pillar || annual.label || "")}, 일간 ${clean(seed?.natalChart?.dayMaster || "")}, 월운 신호를 함께 참조해 실행 우선순위를 정합니다.`;
+  }
+  return stripForbiddenText(text);
+}
+
+function buildDeterministicChapterFromSpec(seed, chapterSpec, reason = "") {
+  const sections = chapterSpec.categories.map((categoryTitle, idx) => ({
+    title: categoryTitle,
+    body: buildDeterministicSectionBody(seed, chapterSpec, categoryTitle, idx, reason),
+  }));
+  return {
+    no: chapterSpec.no,
+    title: chapterSpec.title,
+    sections,
+    text: sections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n"),
+    source: "llm-reinforced",
+  };
+}
+
+function reinforceChapterFromSpec({ seed, chapterSpec, chapter, reason = "" }) {
+  const sourceSections = getChapterSections(chapter);
+  let reinforced = false;
+  const sections = chapterSpec.categories.map((categoryTitle, idx) => {
+    const source = sourceSections[idx] || {};
+    const sourceTitle = clean(source.title || categoryTitle);
+    const sourceBody = stripForbiddenText(source.body || source.finalText || source.localSummary || source.text || "");
+    const shouldReinforce = (
+      sourceTitle !== clean(categoryTitle)
+      || sourceBody.length < MIN_SECTION_CHARS
+      || hasForbiddenText(sourceBody)
+      || GENERAL_PHRASE_RE.test(sourceBody)
+      || countSignalHits(sourceBody, seed) < 2
+    );
+
+    if (!shouldReinforce) {
+      return {
+        title: categoryTitle,
+        body: ensureMinLength(sourceBody, MIN_SECTION_CHARS, { seed, categoryTitle }),
+      };
+    }
+
+    reinforced = true;
+    return {
+      title: categoryTitle,
+      body: buildDeterministicSectionBody(seed, chapterSpec, categoryTitle, idx, reason),
+    };
+  });
+
+  return {
+    reinforced,
+    chapter: {
+      no: chapterSpec.no,
+      title: chapterSpec.title,
+      sections,
+      text: sections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n"),
+      source: reinforced ? "llm-reinforced" : clean(chapter?.source || "llm"),
+    },
+  };
+}
+
 function buildManuscriptEnhancePrompt(localYearSajuJson, localManuscript) {
   const safeSeed = {
     targetYear: localYearSajuJson.targetYear,
@@ -1089,29 +1172,144 @@ async function generateSajuNewYearChapterByLLM(env, seed, chapterSpec, previousC
 
 async function generateSajuNewYearPdfWithLLMOnlyInterpretation({ seed, chapterSpecs, sessionId, env, updateProgress }) {
   const chapters = [];
+  const diagnostics = [];
+  const reinforcedChapterNos = [];
+
   for (const chapterSpec of chapterSpecs) {
     const previousChapterSummaries = chapters.map((chapter) => summarizeChapterForPrompt(chapter));
-    const generated = await generateSajuNewYearChapterByLLM(env, seed, chapterSpec, previousChapterSummaries);
-    chapters.push(generated.chapter);
+    const step = {
+      chapterNo: chapterSpec.no,
+      status: "ready",
+      attempts: 0,
+      reinforced: false,
+      reasons: [],
+    };
+    let chapter = null;
+
+    try {
+      const generated = await generateSajuNewYearChapterByLLM(env, seed, chapterSpec, previousChapterSummaries);
+      chapter = generated.chapter;
+      step.attempts += Number(generated.attempt || 1);
+    } catch (error) {
+      step.status = "retrying";
+      step.reasons.push(clean(error?.message || "llm_chapter_failed"));
+
+      try {
+        const targetedRetry = await generateSajuNewYearChapterByLLM(
+          env,
+          seed,
+          chapterSpec,
+          previousChapterSummaries,
+          clean(error?.message || "llm_chapter_failed").slice(0, 500),
+        );
+        chapter = targetedRetry.chapter;
+        step.status = "ready-after-targeted-retry";
+        step.attempts += Number(targetedRetry.attempt || 1);
+      } catch (retryError) {
+        step.status = "reinforced";
+        step.reasons.push(clean(retryError?.message || "chapter_targeted_retry_failed"));
+        step.reinforced = true;
+        reinforcedChapterNos.push(chapterSpec.no);
+        chapter = buildDeterministicChapterFromSpec(seed, chapterSpec, step.reasons.join(" | "));
+      }
+    }
+
+    const repaired = reinforceChapterFromSpec({
+      seed,
+      chapterSpec,
+      chapter,
+      reason: step.reasons.join(" | "),
+    });
+    if (repaired.reinforced) {
+      step.reinforced = true;
+      if (!reinforcedChapterNos.includes(chapterSpec.no)) reinforcedChapterNos.push(chapterSpec.no);
+    }
+    chapters.push(repaired.chapter);
+    diagnostics.push(step);
+
     if (typeof updateProgress === "function") {
       await updateProgress({ sessionId, currentChapterNo: chapterSpec.no, totalChapters: chapterSpecs.length });
     }
   }
 
-  const finalQuality = validateSajuNewYearPdfLLMInterpretationQuality({
+  let finalQuality = validateSajuNewYearPdfLLMInterpretationQuality({
     chapters,
     expectedChapters: chapterSpecs,
     minChapterLength: MIN_CHAPTER_CHARS,
     minSectionLength: MIN_SECTION_CHARS,
     seed,
   });
+
+  if (!finalQuality.ok) {
+    for (let idx = 0; idx < chapterSpecs.length; idx += 1) {
+      const chapterSpec = chapterSpecs[idx];
+      const repaired = reinforceChapterFromSpec({
+        seed,
+        chapterSpec,
+        chapter: chapters[idx],
+        reason: finalQuality.errors.slice(0, 5).join(" | "),
+      });
+      if (repaired.reinforced) {
+        if (!reinforcedChapterNos.includes(chapterSpec.no)) reinforcedChapterNos.push(chapterSpec.no);
+      }
+      chapters[idx] = repaired.chapter;
+    }
+    finalQuality = validateSajuNewYearPdfLLMInterpretationQuality({
+      chapters,
+      expectedChapters: chapterSpecs,
+      minChapterLength: MIN_CHAPTER_CHARS,
+      minSectionLength: MIN_SECTION_CHARS,
+      seed,
+    });
+  }
+
   if (!finalQuality.ok) {
     const error = new Error(`new_year_quality_validation_failed: ${finalQuality.errors.slice(0, 8).join(" | ")}`);
+    error.code = "NEW_YEAR_FINAL_QUALITY_FAILED";
     error.qualityErrors = finalQuality.errors;
     throw error;
   }
 
-  return { chapters, quality: finalQuality };
+  return {
+    chapters,
+    quality: finalQuality,
+    diagnostics,
+    reinforcedChapterNos,
+  };
+}
+
+function mapSajuNewYearFailure(error) {
+  const rawMessage = clean(error?.message || "신년운세 PDF 생성에 실패했습니다.");
+  const rawCode = clean(error?.code || "").toUpperCase();
+
+  let status = 500;
+  let code = rawCode || "NEW_YEAR_GENERATION_FAILED";
+  let message = "신년운세 리포트 생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+
+  if (rawCode === "SAJU_NEW_YEAR_SEED_INVALID" || rawMessage.includes("SAJU_NEW_YEAR_SEED_INVALID")) {
+    status = 422;
+    code = "SAJU_NEW_YEAR_SEED_INVALID";
+    message = "입력 정보를 확인한 뒤 다시 시도해 주세요. 생년월일/시간 정보가 부족해 리포트를 완성하지 못했습니다.";
+  } else if (rawCode === "NEW_YEAR_FINAL_QUALITY_FAILED" || rawMessage.includes("new_year_quality_validation_failed")) {
+    status = 502;
+    code = "NEW_YEAR_FINAL_QUALITY_FAILED";
+    message = "챕터 내용을 정밀하게 다듬는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+  } else if (/chapter_\d+_quality_failed|chapter_\d+_normalize_failed|llm_failed/i.test(rawMessage)) {
+    status = 502;
+    code = "NEW_YEAR_LLM_CHAPTER_FAILED";
+    message = "일부 챕터 해석이 지연되어 리포트 완성이 늦어지고 있습니다. 잠시 후 다시 시도해 주세요.";
+  } else if (/timeout|timed out|time out/i.test(rawMessage)) {
+    status = 504;
+    code = "NEW_YEAR_LLM_TIMEOUT";
+    message = "AI 해석 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.";
+  }
+
+  return {
+    status,
+    code,
+    message,
+    detail: rawMessage,
+  };
 }
 
 function mergeLlmChaptersWithLocal(localChapters, parsed) {
@@ -1457,6 +1655,12 @@ async function handlePrepare(request, env) {
     });
     const chapters = generation.chapters;
     const finalQuality = generation.quality;
+    const generationDiagnostics = {
+      chapterAttempts: Array.isArray(generation.diagnostics) ? generation.diagnostics : [],
+      reinforcedChapterNos: Array.isArray(generation.reinforcedChapterNos) ? generation.reinforcedChapterNos : [],
+      duplicateSentenceCount: Number(finalQuality?.stats?.duplicateSentenceCount || 0),
+      qualityWarnings: Array.isArray(finalQuality?.errors) ? finalQuality.errors.slice(0, 8) : [],
+    };
 
     console.info("[NewYearPremiumPDF][FinalValidationPassed]", {
       chapterCount: chapters.length,
@@ -1490,6 +1694,7 @@ async function handlePrepare(request, env) {
         chapters,
         payload: localYearSajuJson,
         pdfReady,
+        generationDiagnostics,
         canReopen: true,
         canDownload: Boolean(clean(pdfReady?.pdfUrl)),
       },
@@ -1510,6 +1715,7 @@ async function handlePrepare(request, env) {
       seed: { ...localYearSajuJson, chapterSpecs: undefined },
       newYearPayload: localYearSajuJson,
       pdfReady,
+      generationDiagnostics,
       fallbackUsed: false,
       llmFallbackReason: "",
     };
@@ -1536,7 +1742,17 @@ async function handlePrepare(request, env) {
       "new-year-generation",
     );
     newYearPdfLocks.delete(sessionKey);
-    throw error;
+    const failure = mapSajuNewYearFailure(error);
+    return json({
+      ok: false,
+      serviceKey: SERVICE_KEY,
+      code: failure.code,
+      message: failure.message,
+      errorDetails: {
+        code: failure.code,
+        message: failure.detail,
+      },
+    }, { status: failure.status });
   }
 }
 
@@ -1574,4 +1790,6 @@ export const __sajuNewYearTestUtils = {
   validateSajuNewYearPdfQuality,
   validateSajuNewYearSeed,
   stripForbiddenText,
+  buildDeterministicChapterFromSpec,
+  reinforceChapterFromSpec,
 };

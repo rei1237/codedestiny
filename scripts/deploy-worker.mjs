@@ -76,6 +76,17 @@ const workerName =
   process.env.CLOUDFLARE_WORKER_NAME ||
   "";
 
+const truthy = (value) => ["1", "true", "yes", "on"].includes(String(value || "").trim().toLowerCase());
+const vedicForceExternal = truthy(process.env.VEDIC_API_FORCE_EXTERNAL);
+if (vedicForceExternal) {
+  const hasVedicBaseUrl = Boolean(String(process.env.VEDIC_API_BASE_URL || process.env.VEDIC_API_BASE || "").trim());
+  const hasVedicApiKey = Boolean(String(process.env.VEDIC_API_KEY || process.env.VEDIC_API_TOKEN || "").trim());
+  if (!hasVedicBaseUrl || !hasVedicApiKey) {
+    console.error("[deploy-worker] VEDIC_API_FORCE_EXTERNAL=true requires VEDIC_API_BASE_URL (or VEDIC_API_BASE) and VEDIC_API_KEY (or VEDIC_API_TOKEN).");
+    process.exit(1);
+  }
+}
+
 const args = ["wrangler", "deploy", "--config", "worker/wrangler.toml"];
 if (workerName.trim()) {
   args.push("--name", workerName.trim());

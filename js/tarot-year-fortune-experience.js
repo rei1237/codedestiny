@@ -167,9 +167,13 @@
     var timeoutId = setTimeout(function () { controller.abort(); }, TAROT_API_TIMEOUT_MS);
     return fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
       body: body,
       cache: "no-store",
+      credentials: "include",
       signal: controller.signal,
     })
       .catch(function (error) {
@@ -233,6 +237,21 @@
         });
     }
 
+    function isRetriableApiError(error) {
+      if (!error) return false;
+      if (error.name === "AbortError") return true;
+      var msg = String(error.message || "").toLowerCase();
+      if (msg.indexOf("timeout") !== -1) return true;
+      if (msg.indexOf("network") !== -1) return true;
+
+      var status = Number(error.status || 0);
+      if (status >= 500) return true;
+      if (status === 408 || status === 425 || status === 429) return true;
+
+      if (!status && error instanceof TypeError) return true;
+      return false;
+    }
+
     function tryNext() {
       if (index >= bases.length) {
         throw lastError || new Error("Tarot API request failed");
@@ -240,6 +259,9 @@
       var base = bases[index++];
       return requestWithBase(base).catch(function (error) {
         lastError = error;
+        if (!isRetriableApiError(error)) {
+          throw error;
+        }
         if (index < bases.length) {
           console.error("[Tarot API Debug] retry_next_base", {
             endpoint: endpoint,

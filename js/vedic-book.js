@@ -10,6 +10,7 @@
   var VEDIC_CHAPTERS_API = '/api/vedic/premium/chapters';
   var VEDIC_PLANETS_API = '/api/vedic/planets';
   var BILLING_COIN_GATE_API = '/api/billing/coin-gate';
+  var VEDIC_FETCH_TIMEOUT_MS = 30000;
   var VEDIC_TOTAL_CHAPTERS = 12;
   var VEDIC_COIN_COST = 390;
 
@@ -74,6 +75,36 @@
       .replace(/데이터가\s*부족합니다/gi, '')
       .replace(/\s{2,}/g, ' ')
       .trim();
+  }
+
+  function _mapVedicUiError(errorOrMessage) {
+    var rawMessage = '';
+    var code = '';
+    if (errorOrMessage && typeof errorOrMessage === 'object') {
+      rawMessage = _clean(errorOrMessage.message || errorOrMessage.error || '');
+      code = _clean(errorOrMessage.code || (errorOrMessage.details && errorOrMessage.details.code) || '');
+    } else {
+      rawMessage = _clean(errorOrMessage);
+    }
+
+    var lowered = (rawMessage || '').toLowerCase();
+    if (code === 'SWISS_WASM_EMBEDDER_BLOCKED' || lowered.indexOf('wasm code generation disallowed by embedder') >= 0) {
+      return '현재 서버 계산 엔진 연결이 제한되어 베다점 PDF를 생성할 수 없습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    if (code === 'VEDIC_API_CONFIG_INCOMPLETE' || code === 'VEDIC_API_CONFIG_INVALID') {
+      return '베다점 계산 서비스 설정이 아직 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    if (code === 'VEDIC_API_TIMEOUT' || code === 'VEDIC_API_REQUEST_FAILED' || code === 'VEDIC_API_UPSTREAM_FAILED') {
+      return '베다점 계산 서비스 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    if (code === 'BIRTH_INPUT_INVALID' || code === 'MISSING_VEDIC_DATA' || code === 'VEDIC_PAYLOAD_INVALID') {
+      return '출생 정보가 충분하지 않아 베다점 PDF를 생성할 수 없습니다. 프로필 정보를 확인해 주세요.';
+    }
+
+    if (/internal\s*server\s*error/i.test(rawMessage)) {
+      return 'PDF 생성이 완료되지 않아 사용된 코인이 자동으로 환불되었습니다. 다시 시도해 주세요.';
+    }
+    return _sanitizeText(rawMessage) || '생성 중 오류가 발생했습니다.';
   }
 
   function _persistPremiumAccessToken(token) {
@@ -154,6 +185,49 @@
       out.push(url);
     }
     return out;
+  }
+
+  function _fetchJsonWithTimeout(url, init, timeoutMs) {
+    var controller = (typeof AbortController === 'function') ? new AbortController() : null;
+    var timerId = null;
+    if (controller) {
+      timerId = setTimeout(function () {
+        try { controller.abort(); } catch (_) {}
+      }, Math.max(1000, Number(timeoutMs || VEDIC_FETCH_TIMEOUT_MS)));
+    }
+
+    return fetch(url, Object.assign({}, init || {}, {
+      credentials: 'include',
+      cache: 'no-store',
+      signal: controller ? controller.signal : undefined,
+    }))
+      .then(function (res) {
+        return res.text().then(function (body) {
+          var json = {};
+          if (body) {
+            try { json = JSON.parse(body); } catch (_) { json = {}; }
+          }
+          return { res: res, json: json };
+        });
+      })
+      .finally(function () {
+        if (timerId) clearTimeout(timerId);
+      });
+  }
+
+  function _isRetryableVedicStatus(status) {
+    var code = Number(status || 0);
+    return code >= 500 || code === 408 || code === 425 || code === 429;
+  }
+
+  function _isVedicAuthOrPaymentFailure(status, payload) {
+    var code = String((payload && (payload.code || payload.error || payload.message)) || '').toUpperCase();
+    if (status === 401 || status === 402 || status === 403) return true;
+    return code.indexOf('AUTH') >= 0
+      || code.indexOf('UNAUTHORIZED') >= 0
+      || code.indexOf('FORBIDDEN') >= 0
+      || code.indexOf('PAYMENT') >= 0
+      || code.indexOf('PREMIUM') >= 0;
   }
 
   function _recoverBirthFromDOM() {
@@ -257,9 +331,13 @@
       if (endpointIndex >= endpoints.length) { resolve(null); return; }
       var headers = {};
       if (authToken) headers.Authorization = 'Bearer ' + authToken;
-      fetch(endpoints[endpointIndex++], { method: 'GET', headers: headers, credentials: 'include', cache: 'no-store' })
-        .then(function (res) { return res.json().catch(function () { return {}; }); })
-        .then(function (data) {
+      _fetchJsonWithTimeout(endpoints[endpointIndex++], { method: 'GET', headers: headers }, 12000)
+        .then(function (pack) {
+          if (!pack.res.ok && !_isRetryableVedicStatus(pack.res.status)) {
+            resolve(null);
+            return;
+          }
+          var data = pack.json || {};
           var profile = _toProfileFromAuthMe(data);
           if (_hasValidBirthProfile(profile)) { resolve(profile); return; }
           run(resolve);
@@ -389,10 +467,17 @@
       var authToken = '';
       try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) { authToken = ''; }
       if (authToken) headers.Authorization = 'Bearer ' + authToken;
-      fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(body), credentials: 'include', cache: 'no-store' })
-        .then(function (res) { return res.json().catch(function () { return {}; }).then(function (json) { return { res: res, json: json }; }); })
+      _fetchJsonWithTimeout(url, { method: 'POST', headers: headers, body: JSON.stringify(body) }, VEDIC_FETCH_TIMEOUT_MS)
         .then(function (pack) {
           if (pack.res.ok && pack.json && pack.json.ok !== false) { resolve(pack.json); return; }
+          if (_isVedicAuthOrPaymentFailure(Number(pack.res.status || 0), pack.json || {})) {
+            reject(new Error((pack.json && (pack.json.message || pack.json.code)) || '로그인 또는 결제 확인이 필요합니다.'));
+            return;
+          }
+          if (!_isRetryableVedicStatus(Number(pack.res.status || 0))) {
+            reject(new Error((pack.json && (pack.json.message || pack.json.error || pack.json.code)) || ('HTTP ' + pack.res.status)));
+            return;
+          }
           run(resolve, reject, (pack.json && (pack.json.message || pack.json.error || pack.json.code)) || ('HTTP ' + pack.res.status));
         })
         .catch(function (error) { run(resolve, reject, String(error && error.message || error || '요청 실패')); });
@@ -434,12 +519,9 @@
     });
   }
 
-  function _setError(message) {
+  function _setError(message, errorMeta) {
     var element = _qs('vdErrorMsg');
-    var safe = _sanitizeText(message);
-    if (/internal\s*server\s*error/i.test(String(message || ''))) {
-      safe = 'PDF 생성이 완료되지 않아 사용된 코인이 자동으로 환불되었습니다. 다시 시도해 주세요.';
-    }
+    var safe = _mapVedicUiError(errorMeta || message);
     if (element) element.textContent = safe || '생성 중 오류가 발생했습니다.';
     _showScreen('vdErrorScreen');
   }
@@ -563,9 +645,9 @@
     function next(resolve) {
       if (endpointIndex >= endpoints.length) return resolve([]);
       var url = endpoints[endpointIndex++];
-      fetch(url)
-        .then(function (res) { return res.json().catch(function () { return {}; }); })
-        .then(function (data) {
+      _fetchJsonWithTimeout(url, { method: 'GET' }, 12000)
+        .then(function (pack) {
+          var data = pack && pack.json ? pack.json : {};
           if (data && data.ok && Array.isArray(data.chapters) && data.chapters.length) { resolve(data.chapters); return; }
           next(resolve);
         })
@@ -579,27 +661,38 @@
     var endpointIndex = 0;
     var authToken = '';
     try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) { authToken = ''; }
-    var premiumToken = _readPremiumAccessToken();
     function run(resolve, reject, lastErr, lastErrObj) {
       if (endpointIndex >= endpoints.length) { reject(lastErrObj || new Error(lastErr || '베다점 프리미엄 API 호출에 실패했습니다.')); return; }
       var url = endpoints[endpointIndex++];
       var headers = { 'Content-Type': 'application/json' };
       if (authToken) headers.Authorization = 'Bearer ' + authToken;
+      var premiumToken = _readPremiumAccessToken();
       if (premiumToken) headers['x-premium-access-token'] = premiumToken;
-      fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(body), credentials: 'include', cache: 'no-store' })
-        .then(function (res) { return res.json().catch(function () { return {}; }).then(function (json) { return { res: res, json: json }; }); })
+      _fetchJsonWithTimeout(url, { method: 'POST', headers: headers, body: JSON.stringify(body) }, VEDIC_FETCH_TIMEOUT_MS)
         .then(function (pack) {
           if (pack.res.ok && pack.json && pack.json.ok) { _persistPremiumAccessToken(_extractPremiumToken(pack.json)); resolve(pack.json); return; }
           var apiErr = new Error((pack.json && (pack.json.message || pack.json.error || pack.json.code)) || ('HTTP ' + pack.res.status));
           apiErr.code = String((pack.json && pack.json.code) || '');
           apiErr.status = Number(pack.res && pack.res.status || 0) || 0;
           apiErr.details = pack.json || {};
+          if (_isVedicAuthOrPaymentFailure(apiErr.status, apiErr.details || {})) {
+            reject(apiErr);
+            return;
+          }
+          if (!_isRetryableVedicStatus(apiErr.status)) {
+            reject(apiErr);
+            return;
+          }
           run(resolve, reject, apiErr.message, apiErr);
         })
         .catch(function (error) {
           var reqErr = error instanceof Error ? error : new Error(String(error && error.message || error || '요청 실패'));
           reqErr.code = reqErr.code || 'VEDIC_PREPARE_REQUEST_FAILED';
           reqErr.status = Number(reqErr.status || 0) || 0;
+          if (!_isRetryableVedicStatus(reqErr.status) && reqErr.status > 0) {
+            reject(reqErr);
+            return;
+          }
           run(resolve, reject, reqErr.message, reqErr);
         });
     }
@@ -709,7 +802,7 @@
         .then(finish)
         .catch(function (error) {
           _logError(error, { stage: 'PaymentGateFallback' });
-          _setError(String(error && error.message ? error.message : error || '결제 확인에 실패했습니다.'));
+          _setError(String(error && error.message ? error.message : error || '결제 확인에 실패했습니다.'), error);
         });
       return false;
     }
@@ -727,7 +820,7 @@
         .then(finish)
         .catch(function (fallbackError) {
           _logError(fallbackError || error, { stage: 'PaymentGate' });
-          _setError(String((fallbackError && fallbackError.message) || (error && error.message) || '결제 확인에 실패했습니다.'));
+          _setError(String((fallbackError && fallbackError.message) || (error && error.message) || '결제 확인에 실패했습니다.'), fallbackError || error);
         });
     }
 
@@ -931,7 +1024,7 @@
       })
       .catch(function (error) {
         _logError(error, { stage: 'generate' });
-        _setError(String(error && error.message ? error.message : error || '생성 실패'));
+        _setError(String(error && error.message ? error.message : error || '생성 실패'), error);
       })
       .finally(function () {
         _generating = false;
@@ -941,7 +1034,7 @@
       });
     }).catch(function (error) {
       _logError(error, { stage: 'resolve-profile' });
-      _setError(String(error && error.message ? error.message : error || '생성 실패'));
+      _setError(String(error && error.message ? error.message : error || '생성 실패'), error);
     });
   };
 

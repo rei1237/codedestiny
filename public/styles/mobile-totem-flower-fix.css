@@ -249,12 +249,12 @@
     min-width: 100% !important;
     max-width: 100vw !important;
     z-index: 99999 !important;
-    height: 100dvh !important;
-    min-height: 100dvh !important;
+    height: auto !important;
+    max-height: none !important;
     min-height: 100vh !important;
-    min-height: -webkit-fill-available !important;
+    min-height: 100dvh !important;
     -webkit-overflow-scrolling: touch !important;
-    overflow-y: scroll !important;
+    overflow-y: auto !important;
     overflow-x: hidden !important;
     overscroll-behavior: contain !important;
     overscroll-behavior-y: contain !important;
@@ -272,12 +272,14 @@
 /* ─── 5. 애니멀 토템 오버레이 모바일 overflow 방지 ─── */
 @media (max-width: 768px) {
   .animal-totem-shell {
-    padding: 0 12px max(24px, env(safe-area-inset-bottom, 0px));
+    padding: 0 12px max(28px, env(safe-area-inset-bottom, 0px));
     max-width: 100%;
     overflow-x: hidden;
+    min-height: 100dvh;
   }
   .animal-totem-overlay {
     overflow-x: hidden;
+    overflow-y: auto;
   }
 }
 
