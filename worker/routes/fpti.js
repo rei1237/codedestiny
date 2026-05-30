@@ -1,8 +1,12 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
+import { connectDb } from "../lib/db.js";
+import { ServiceExecutionTransaction } from "../lib/models.js";
 
 const CHAPTER_MIN = 1400;
+const FPTI_REPORT_TYPE = "fptiPremium";
+const FPTI_FEATURE_KEY = "premium-fpti-report";
 const CHAPTERS = [
   { id: "overview", title: "I. FPTI 유형 총론 - 나의 운명 성향 코드" },
   { id: "inner", title: "II. 내면 성격과 감정 패턴" },
@@ -15,6 +19,178 @@ const CHAPTERS = [
 
 function clean(value) {
   return String(value || "").trim();
+}
+
+function toIso(value) {
+  const d = value instanceof Date ? value : new Date(value || Date.now());
+  if (Number.isNaN(d.getTime())) return new Date().toISOString();
+  return d.toISOString();
+}
+
+function buildReportSignature(input) {
+  const axis = input?.axisScores || {};
+  const ev = input?.evidence || {};
+  const base = [
+    clean(input?.code),
+    clean(input?.typeName),
+    Number(axis.A || 0),
+    Number(axis.M || 0),
+    Number(axis.H || 0),
+    Number(axis.L || 0),
+    Number(axis.F || 0),
+    Number(axis.B || 0),
+    Number(axis.R || 0),
+    Number(axis.V || 0),
+    clean(ev.dayMaster),
+    clean(ev.monthBranch),
+  ].join("|").toLowerCase();
+
+  let hash = 0;
+  for (let i = 0; i < base.length; i += 1) {
+    hash = (hash * 31 + base.charCodeAt(i)) >>> 0;
+  }
+  return `fpti-${hash.toString(16).padStart(8, "0")}`;
+}
+
+function splitParagraphs(content) {
+  const lines = String(content || "")
+    .split(/\n\n+/)
+    .map((line) => clean(line))
+    .filter(Boolean);
+  if (lines.length) return lines;
+  const fallback = clean(content);
+  return fallback ? [fallback] : [];
+}
+
+function chapterSectionsFromContent(content, chapterTitle) {
+  const paragraphs = splitParagraphs(content);
+  const minCount = 4;
+  const result = [];
+  for (let i = 0; i < paragraphs.length; i += 1) {
+    const body = clean(paragraphs[i]);
+    if (!body) continue;
+    result.push({
+      title: `${chapterTitle} 섹션 ${i + 1}`,
+      body,
+      advice: "핵심 행동 1개를 정하고 주간 점검으로 반복하세요.",
+    });
+  }
+
+  let pad = 1;
+  while (result.length < minCount) {
+    result.push({
+      title: `${chapterTitle} 보강 ${pad}`,
+      body: `${chapterTitle} 보강 안내입니다. 현재 성향의 강점이 발휘되는 조건과 흔들리는 조건을 분리해, 관계·일·돈·감정 장면에서 실행 가능한 기준으로 연결하세요. 하루 핵심 행동 1개와 주간 점검 1회를 고정하면 안정성이 높아집니다.`,
+      advice: "하루 핵심 행동 1개를 먼저 완료하고 복귀 루틴을 고정하세요.",
+    });
+    pad += 1;
+  }
+
+  return result;
+}
+
+function toDeepChapters(localSections = []) {
+  return localSections.slice(0, CHAPTERS.length).map((section, index) => {
+    const chapter = CHAPTERS[index] || { id: `chapter-${index + 1}`, title: `Chapter ${index + 1}` };
+    const title = clean(section?.title || chapter.title) || chapter.title;
+    const chapterSections = chapterSectionsFromContent(section?.content, title);
+    const preview = clean(chapterSections[0]?.body || "").split(". ").slice(0, 2).join(". ").trim();
+    return {
+      id: clean(chapter.id || `chapter-${index + 1}`),
+      order: index + 1,
+      title,
+      subtitle: "사주 십성 기반 심층 해석",
+      preview: preview ? `${preview}.` : "",
+      sections: chapterSections,
+    };
+  });
+}
+
+function toDeepPayload(local, reportSignature, persisted = {}) {
+  const chapters = toDeepChapters(Array.isArray(local?.sections) ? local.sections : []);
+  return {
+    reportType: "fpti-deep",
+    productKey: FPTI_FEATURE_KEY,
+    reportSignature,
+    reportId: clean(persisted.reportId || `fpti-deep-${reportSignature}`),
+    sessionId: clean(persisted.sessionId || reportSignature),
+    title: clean(local?.title || "FPTI 프리미엄 심층 리포트"),
+    summary: clean(local?.summary || ""),
+    source: clean(local?.source || "local") || "local",
+    generatedAt: toIso(local?.generatedAt),
+    chapters,
+  };
+}
+
+async function readArchivedReport(env, userId, reportSignature) {
+  await connectDb(env);
+  const executionKey = `fpti-deep:${reportSignature}`;
+  const doc = await ServiceExecutionTransaction.findOne({
+    userId,
+    executionKey,
+    reportType: FPTI_REPORT_TYPE,
+    status: "success",
+    premiumStatus: "completed",
+  })
+    .sort({ completedAt: -1, updatedAt: -1 })
+    .lean();
+
+  const archive = doc?.metadata?.archive && typeof doc.metadata.archive === "object"
+    ? doc.metadata.archive
+    : null;
+  if (!archive) return null;
+
+  return {
+    ...archive,
+    reportSignature,
+    reportId: clean(archive.reportId || doc?.reportId || `fpti-deep-${reportSignature}`),
+    sessionId: clean(archive.sessionId || doc?.sessionId || reportSignature),
+    generatedAt: toIso(archive.generatedAt || doc?.createdAt || Date.now()),
+  };
+}
+
+async function writeArchivedReport(env, userId, reportSignature, payload, access = {}) {
+  await connectDb(env);
+  const executionKey = `fpti-deep:${reportSignature}`;
+  const reportId = clean(payload?.reportId || `fpti-deep-${reportSignature}`);
+  const sessionId = clean(payload?.sessionId || reportSignature);
+  const now = new Date();
+  const update = {
+    $set: {
+      reportType: FPTI_REPORT_TYPE,
+      reportId,
+      sessionId,
+      featureKey: FPTI_FEATURE_KEY,
+      cost: 200,
+      sourceTransactionId: clean(access?.matchedTransactionId || access?.entitlementId || ""),
+      status: "success",
+      premiumStatus: "completed",
+      reasonCode: "",
+      reasonMessage: "",
+      completedAt: now,
+      generationCompletedAt: now,
+      timeoutAt: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 180),
+      nextRetryAt: now,
+      metadata: {
+        source: "fpti.deep-report",
+        archive: payload,
+      },
+    },
+    $setOnInsert: {
+      executionKey,
+      coinAmount: 200,
+      maxRetries: 1,
+      retryCount: 0,
+      idempotencyKey: executionKey,
+      retentionUntil: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 180),
+    },
+  };
+
+  await ServiceExecutionTransaction.findOneAndUpdate(
+    { userId, executionKey },
+    update,
+    { upsert: true, returnDocument: "after" },
+  ).lean();
 }
 
 function clampList(value, limit = 8) {
@@ -252,7 +428,17 @@ function buildLocalReport(input) {
 
 async function handleDeepReport(request, env) {
   const auth = await requireAuth(request, env);
-  const access = await requirePremiumReportAccess(env, auth.userId, "fptiPremium", {});
+  const body = await readJson(request);
+  const input = normalizeInput(body);
+  const reportSignature = clean(body?.reportSignature || body?.sessionId || body?.reportId || buildReportSignature(input));
+  if (!reportSignature) {
+    return json({ ok: false, code: "MISSING_REPORT_SIGNATURE", message: "reportSignature가 필요합니다." }, { status: 400 });
+  }
+
+  const access = await requirePremiumReportAccess(env, auth.userId, "fptiPremium", {
+    reportId: reportSignature,
+    sessionId: reportSignature,
+  });
   if (!access?.ok) {
     return json(
       {
@@ -264,23 +450,67 @@ async function handleDeepReport(request, env) {
     );
   }
 
-  const body = await readJson(request);
-  const input = normalizeInput(body);
-
   if (!input.code) {
     return json({ ok: false, message: "FPTI 코드가 누락되었습니다." }, { status: 400 });
   }
 
+  const archived = await readArchivedReport(env, auth.userId, reportSignature);
+  if (archived?.chapters?.length) {
+    return json({
+      ok: true,
+      data: {
+        source: archived.source || "archive",
+        report: archived,
+      },
+    });
+  }
+
   const local = buildLocalReport(input);
+  const report = toDeepPayload(local, reportSignature);
+  await writeArchivedReport(env, auth.userId, reportSignature, report, access || {});
 
   return json({
     ok: true,
     data: {
-      source: local.source,
-      title: local.title,
-      summary: local.summary,
-      sections: local.sections,
-      generatedAt: local.generatedAt,
+      source: report.source,
+      report,
+    },
+  });
+}
+
+async function handleReadDeepReport(request, env) {
+  const auth = await requireAuth(request, env);
+  const url = new URL(request.url);
+  const reportSignature = clean(url.searchParams.get("reportSignature") || url.searchParams.get("sessionId") || url.searchParams.get("reportId"));
+  if (!reportSignature) {
+    return json({ ok: false, code: "MISSING_REPORT_SIGNATURE", message: "reportSignature가 필요합니다." }, { status: 400 });
+  }
+
+  const access = await requirePremiumReportAccess(env, auth.userId, "fptiPremium", {
+    reportId: reportSignature,
+    sessionId: reportSignature,
+  });
+  if (!access?.ok) {
+    return json(
+      {
+        ok: false,
+        message: access?.message || "FPTI 프리미엄 리포트 결제가 필요합니다.",
+        code: access?.code || "PAYMENT_REQUIRED",
+      },
+      { status: Number(access?.status || 402) },
+    );
+  }
+
+  const archived = await readArchivedReport(env, auth.userId, reportSignature);
+  if (!archived) {
+    return json({ ok: false, code: "REPORT_NOT_FOUND", message: "저장된 리포트를 찾을 수 없습니다." }, { status: 404 });
+  }
+
+  return json({
+    ok: true,
+    data: {
+      source: archived.source || "archive",
+      report: archived,
     },
   });
 }
@@ -292,6 +522,10 @@ export async function handleFptiRoutes(request, env = {}) {
 
     if (method === "POST" && path === "/deep-report") {
       return handleDeepReport(request, env);
+    }
+
+    if (method === "GET" && path === "/deep-report") {
+      return handleReadDeepReport(request, env);
     }
 
     if (["GET", "POST"].includes(method)) return notFound();

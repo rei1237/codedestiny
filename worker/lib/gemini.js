@@ -57,6 +57,9 @@ export function pickGeminiKeys(env, preferredEnvKeys = []) {
     getEnv(env, "GEMINIF_API_KEY3"),
     getEnv(env, "GEMINIF_API_KEY4"),
     getEnv(env, "GEMINIF_API_KEY5"),
+    getEnv(env, "GEMINIF_API_KEY6"),
+    getEnv(env, "GEMINIF_API_KEY7"),
+    getEnv(env, "GEMINIF_API_KEY8"),
     getEnv(env, "GEMINI_API_KEY"),
     getEnv(env, "GOOGLE_GEMINI_API_KEY"),
     getEnv(env, "GOOGLE_GENERATIVE_AI_API_KEY"),
@@ -163,8 +166,26 @@ async function probeGeminiApiKeySequential(key, models = [], timeoutMs = 7000) {
 
 async function resolveUsableGeminiKeys(env, options = {}, keys = [], models = []) {
   const shouldValidate = isTrueLike(options.validateKeysBeforeCall ?? getEnv(env, "GEMINI_VALIDATE_KEYS_BEFORE_CALL") ?? false);
+  const stopAfterFirstUsable = isTrueLike(options.stopAfterFirstUsableKey ?? getEnv(env, "GEMINI_STOP_AFTER_FIRST_USABLE_KEY") ?? false);
   if (!shouldValidate) {
-    return { keys, checked: 0, usable: keys.length, summary: [] };
+    const summary = [];
+    const filtered = [];
+    for (const key of keys) {
+      const cached = readGeminiKeyCache(key);
+      if (!cached) {
+        filtered.push(key);
+        continue;
+      }
+
+      summary.push({ source: "cache", status: cached.status, message: cached.message });
+      if (cached.status === "invalid" || cached.status === "rate_limited" || cached.status === "error") {
+        continue;
+      }
+      filtered.push(key);
+    }
+
+    const effective = filtered.length ? filtered : keys;
+    return { keys: effective, checked: 0, usable: effective.length, summary };
   }
 
   const out = [];
@@ -186,6 +207,9 @@ async function resolveUsableGeminiKeys(env, options = {}, keys = [], models = []
       writeGeminiKeyCache(key, "ok", GEMINI_KEY_TTL_OK_MS, "ok");
       out.push(key);
       summary.push({ source: "probe", status: "ok", message: probe.message });
+      if (stopAfterFirstUsable) {
+        break;
+      }
       continue;
     }
 
@@ -403,14 +427,20 @@ async function callVertexGeminiText(env, prompt, options = {}) {
     return { ok: false, message: token.message || "Failed to get Vertex access token." };
   }
 
-  const models = pickGeminiModels(env, options.modelEnvKeys || []);
+  const models = Array.isArray(options.models) && options.models.length
+    ? unique(options.models.map((item) => clean(item)).filter(Boolean))
+    : pickGeminiModels(env, options.modelEnvKeys || []);
   const generationConfig = {
     temperature: Number.isFinite(Number(options.temperature)) ? Number(options.temperature) : 0.86,
     topP: Number.isFinite(Number(options.topP)) ? Number(options.topP) : 0.95,
     maxOutputTokens: Number.isFinite(Number(options.maxOutputTokens)) ? Number(options.maxOutputTokens) : 8192,
-    frequencyPenalty: Number.isFinite(Number(options.frequencyPenalty)) ? Number(options.frequencyPenalty) : 0.5,
-    presencePenalty: Number.isFinite(Number(options.presencePenalty)) ? Number(options.presencePenalty) : 0.5,
   };
+  if (Number.isFinite(Number(options.frequencyPenalty))) {
+    generationConfig.frequencyPenalty = Number(options.frequencyPenalty);
+  }
+  if (Number.isFinite(Number(options.presencePenalty))) {
+    generationConfig.presencePenalty = Number(options.presencePenalty);
+  }
 
   const maxAttemptsPerPair = Math.max(1, Math.min(3, Number(options.maxAttemptsPerPair) || 2));
   let lastError = "";
@@ -560,7 +590,9 @@ async function callGeminiTextViaSdk(env, prompt, options = {}) {
     };
   }
 
-  const models = pickGeminiModels(env, options.modelEnvKeys || []);
+  const models = Array.isArray(options.models) && options.models.length
+    ? unique(options.models.map((item) => clean(item)).filter(Boolean))
+    : pickGeminiModels(env, options.modelEnvKeys || []);
   const maxAttemptsPerPair = Math.max(1, Math.min(5, Number(options.maxAttemptsPerPair) || 2));
   let lastError = "";
   let lastStatus = null;
@@ -701,6 +733,9 @@ export async function callGeminiText(env, prompt, options = {}) {
           || process?.env?.GEMINIF_API_KEY3
           || process?.env?.GEMINIF_API_KEY4
           || process?.env?.GEMINIF_API_KEY5
+          || process?.env?.GEMINIF_API_KEY6
+          || process?.env?.GEMINIF_API_KEY7
+          || process?.env?.GEMINIF_API_KEY8
           || process?.env?.GEMINI_API_KEY
           || process?.env?.GOOGLE_GEMINI_API_KEY
           || "",
@@ -717,7 +752,7 @@ export async function callGeminiText(env, prompt, options = {}) {
       ok: false,
       error: "gemini_keys_missing",
       status: 401,
-      message: "Gemini API 키가 설정되어 있지 않습니다. PREMIUM_GEMINI_API_KEY1~5, GEMINIF_API_KEY1~5 또는 GEMINI_API_KEY를 설정하세요.",
+      message: "Gemini API 키가 설정되어 있지 않습니다. PREMIUM_GEMINI_API_KEY1~5, GEMINIF_API_KEY1~8 또는 GEMINI_API_KEY를 설정하세요.",
     };
   }
 
@@ -735,7 +770,9 @@ export async function callGeminiText(env, prompt, options = {}) {
     });
   }
 
-  const models = pickGeminiModels(env, options.modelEnvKeys || []);
+  const models = Array.isArray(options.models) && options.models.length
+    ? unique(options.models.map((item) => clean(item)).filter(Boolean))
+    : pickGeminiModels(env, options.modelEnvKeys || []);
   const usableKeyResult = await resolveUsableGeminiKeys(env, options, keys, models);
   const effectiveKeys = usableKeyResult.keys;
   if (!effectiveKeys.length) {
@@ -755,9 +792,13 @@ export async function callGeminiText(env, prompt, options = {}) {
     temperature: Number.isFinite(Number(options.temperature)) ? Number(options.temperature) : 0.86,
     topP: Number.isFinite(Number(options.topP)) ? Number(options.topP) : 0.95,
     maxOutputTokens: Number.isFinite(Number(options.maxOutputTokens)) ? Number(options.maxOutputTokens) : 8192,
-    frequencyPenalty: Number.isFinite(Number(options.frequencyPenalty)) ? Number(options.frequencyPenalty) : 0.5,
-    presencePenalty: Number.isFinite(Number(options.presencePenalty)) ? Number(options.presencePenalty) : 0.5,
   };
+  if (Number.isFinite(Number(options.frequencyPenalty))) {
+    generationConfig.frequencyPenalty = Number(options.frequencyPenalty);
+  }
+  if (Number.isFinite(Number(options.presencePenalty))) {
+    generationConfig.presencePenalty = Number(options.presencePenalty);
+  }
 
   const maxAttemptsPerPair = Math.max(1, Math.min(5, Number(options.maxAttemptsPerPair) || 2));
   let lastError = "";
@@ -789,6 +830,17 @@ export async function callGeminiText(env, prompt, options = {}) {
           if (!response.ok) {
             lastError = payload?.error?.message || `Gemini request failed (${response.status})`;
             lastStatus = Number(response.status || 0) || null;
+            if (response.status === 401 || response.status === 403) {
+              writeGeminiKeyCache(key, "invalid", GEMINI_KEY_TTL_INVALID_MS, lastError);
+              break;
+            }
+            if (response.status === 429) {
+              writeGeminiKeyCache(key, "rate_limited", GEMINI_KEY_TTL_RATE_LIMIT_MS, lastError);
+              break;
+            }
+            if (response.status === 400) {
+              break outer;
+            }
             if (attempt < maxAttemptsPerPair && (isRetriableStatus(response.status) || isRetriableErrorMessage(lastError))) {
               const delayMs = computeRetryDelayMs(attempt, response, lastError);
               if (deadlineAt && (remainingBudgetMs() - delayMs) <= 150) {
@@ -803,6 +855,7 @@ export async function callGeminiText(env, prompt, options = {}) {
 
           const text = extractGeminiText(payload);
           if (text) {
+            writeGeminiKeyCache(key, "ok", GEMINI_KEY_TTL_OK_MS, "ok");
             return { ok: true, text, model };
           }
 

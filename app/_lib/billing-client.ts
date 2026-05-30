@@ -184,6 +184,9 @@ export async function runBillingCoinGate(input: {
   requestId?: string;
   forceDeduct?: boolean;
   payloadHash?: string;
+  reportId?: string;
+  sessionId?: string;
+  reportSessionId?: string;
 }): Promise<BillingResult<{
   pricing: BillingFeaturePricing;
   consume: Record<string, unknown>;
@@ -236,6 +239,9 @@ export async function purchaseFeature(input: {
   payloadHash?: string;
   productId?: string;
   cost?: number;
+  reportId?: string;
+  sessionId?: string;
+  reportSessionId?: string;
 }) {
   return runBillingCoinGate(input as Parameters<typeof runBillingCoinGate>[0]);
 }

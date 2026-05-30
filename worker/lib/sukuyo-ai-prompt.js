@@ -1,9 +1,14 @@
 import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js";
+import {
+  classifyQuestionToSukuyoDomain,
+  getSukuyoPromptTemplate,
+} from "./sukuyo-ai-prompt-templates.mjs";
 
 const DEFAULT_TEXT = "미상";
 
 export const SUKUYO_AI_PROMPT_FEATURE_KEY = "sukuyo_ai_prompt_generator";
 export const SUKUYO_AI_PROMPT_PRICE = 100;
+export { classifyQuestionToSukuyoDomain, getSukuyoPromptTemplate };
 
 const QUESTION_TYPE_RULES = Object.freeze({
   compatibility: ["궁합", "상대", "재회", "썸", "연애", "결혼", "인연", "관계"],
@@ -237,6 +242,27 @@ function buildSukuyoPromptCaution(questionType, compatibilityUsed) {
   return "숙요 해석은 관계의 경향성을 보여주며, 상대 의사와 현실 환경을 함께 고려해야 합니다.";
 }
 
+function buildKeywordWeightLines(keywordWeights) {
+  const entries = keywordWeights && typeof keywordWeights === "object"
+    ? Object.entries(keywordWeights)
+    : [];
+  return entries.map(([keyword, meta]) => {
+    const weight = Number(meta?.weight);
+    const depth = String(meta?.depth || "일반").trim() || "일반";
+    const markers = Array.isArray(meta?.markers) ? meta.markers.filter(Boolean) : [];
+    const markerText = markers.length ? `, markers=${markers.join("/")}` : "";
+    return `- ${keyword}: weight=${Number.isFinite(weight) ? weight.toFixed(2) : "0.70"}, depth=${depth}${markerText}`;
+  });
+}
+
+function fillPatternVariables(text, ctx) {
+  const source = String(text || "");
+  return source
+    .replace(/\{myMansion\}/g, String(ctx?.myMansion || DEFAULT_TEXT))
+    .replace(/\{partnerMansion\}/g, String(ctx?.partnerMansion || DEFAULT_TEXT))
+    .replace(/\{relationType\}/g, String(ctx?.relationType || DEFAULT_TEXT));
+}
+
 function buildPromptBody({ question, questionType, basicResult, compatibilityResult, compatibilityHint }) {
   const typeLabel = QUESTION_TYPE_LABELS[questionType] || QUESTION_TYPE_LABELS.general;
 
@@ -308,14 +334,21 @@ function buildPromptBody({ question, questionType, basicResult, compatibilityRes
   return lines.join("\n");
 }
 
-export function buildSukuyoAIPrompt({ question, basicResult, compatibilityResult }) {
+export function buildSukuyoAIPromptWithDomain({ question, basicResult, compatibilityResult, domain }) {
   const normalizedQuestion = ensureValidQuestion(question);
   const normalizedType = classifyQuestionType(normalizedQuestion);
+  const resolvedDomain = String(domain || "").trim() || classifyQuestionToSukuyoDomain(normalizedQuestion);
+  const domainTemplate = getSukuyoPromptTemplate(resolvedDomain);
+  if (!domainTemplate) {
+    throw new Error("UNKNOWN_SUKUYO_DOMAIN");
+  }
   const normalizedBasic = normalizeBasicResult(basicResult);
   const normalizedCompat = normalizeCompatibilityResult(compatibilityResult, normalizedBasic);
-  const compatibilityFocus = normalizedType === "compatibility" || normalizedType === "love";
+  const compatibilityFocus = domainTemplate.requiresCompatibility
+    || normalizedType === "compatibility"
+    || normalizedType === "love";
 
-  if (normalizedType === "compatibility" && !normalizedCompat) {
+  if ((normalizedType === "compatibility" || domainTemplate.requiresCompatibility) && !normalizedCompat) {
     throw new Error("MISSING_COMPATIBILITY_RESULT");
   }
 
@@ -333,7 +366,9 @@ export function buildSukuyoAIPrompt({ question, basicResult, compatibilityResult
 
   const domainDataLines = compatibilityFocus
     ? [
+      `요청 도메인: ${domainTemplate.domainKo} (${resolvedDomain})`,
       `질문 유형: ${QUESTION_TYPE_LABELS[normalizedType] || QUESTION_TYPE_LABELS.general}`,
+      `상황별 가중 키워드:\n${buildKeywordWeightLines(domainTemplate.keywordWeights).join("\n")}`,
       `나의 숙요 데이터: ${normalizedBasic.mansion} (${normalizedBasic.mansionIdx}), 핵심성향=${normalizedBasic.traits.core}, 그림자=${normalizedBasic.traits.hidden}, 연애리듬=${normalizedBasic.traits.love}, 달빛톤=${normalizedBasic.moonTone}`,
       normalizedCompat
         ? `상대 숙요 데이터: ${normalizedCompat.partnerMansion} (${normalizedCompat.partnerIdx}), 이름=${normalizedCompat.partnerName || DEFAULT_TEXT}, 성별=${normalizedCompat.partnerGender}`
@@ -353,10 +388,17 @@ export function buildSukuyoAIPrompt({ question, basicResult, compatibilityResult
       normalizedCompat && (normalizedCompat.partnerCore || normalizedCompat.partnerHidden || normalizedCompat.partnerLove || normalizedCompat.partnerMoonTone)
         ? `상대 성향 보조: core=${normalizedCompat.partnerCore || DEFAULT_TEXT}, hidden=${normalizedCompat.partnerHidden || DEFAULT_TEXT}, love=${normalizedCompat.partnerLove || DEFAULT_TEXT}, moonTone=${normalizedCompat.partnerMoonTone || DEFAULT_TEXT}`
         : "상대 성향 보조: 제공되지 않음",
+      `상황별 후속 질문 템플릿: ${(domainTemplate.questionPatterns || []).map((p) => fillPatternVariables(p, {
+        myMansion: normalizedBasic.mansion,
+        partnerMansion: normalizedCompat?.partnerMansion,
+        relationType: normalizedCompat?.relationType,
+      })).join(" | ")}`,
       `레거시 초안(참고): ${legacyPrompt.slice(0, 220)}...`,
     ]
     : [
+      `요청 도메인: ${domainTemplate.domainKo} (${resolvedDomain})`,
       `질문 유형: ${QUESTION_TYPE_LABELS[normalizedType] || QUESTION_TYPE_LABELS.general}`,
+      `상황별 가중 키워드:\n${buildKeywordWeightLines(domainTemplate.keywordWeights).join("\n")}`,
       `본명숙: ${normalizedBasic.mansion} (${normalizedBasic.mansionIdx})`,
       `핵심 성향: ${normalizedBasic.traits.core}`,
       `연애/일/재물 리듬: ${normalizedBasic.traits.love} / ${normalizedBasic.traits.work} / ${normalizedBasic.traits.wealth}`,
@@ -364,6 +406,7 @@ export function buildSukuyoAIPrompt({ question, basicResult, compatibilityResult
       normalizedCompat
         ? `궁합: ${normalizedCompat.partnerMansion}, 관계유형 ${normalizedCompat.relationType}, 점수 ${normalizedCompat.score != null ? normalizedCompat.score : DEFAULT_TEXT}`
         : `궁합 데이터 없음: ${compatibilityHint}`,
+      `상황별 후속 질문 템플릿: ${(domainTemplate.questionPatterns || []).join(" | ")}`,
       `레거시 프롬프트 초안: ${legacyPrompt.slice(0, 420)}...`,
     ];
 
@@ -393,8 +436,18 @@ export function buildSukuyoAIPrompt({ question, basicResult, compatibilityResult
       ? "compatibility"
       : (normalizedType === "love" && normalizedCompat ? "compatibility" : (normalizedType === "love" ? "love" : "personal")),
     questionTypeLabel: QUESTION_TYPE_LABELS[normalizedType] || QUESTION_TYPE_LABELS.general,
-    analysisAngles: buildSukuyoAngles(normalizedType, Boolean(normalizedCompat)),
-    recommendedFollowUpQuestions: buildSukuyoFollowUps(normalizedType),
+    analysisAngles: [
+      ...buildSukuyoAngles(normalizedType, Boolean(normalizedCompat)),
+      ...(Array.isArray(domainTemplate.analysisAngles) ? domainTemplate.analysisAngles : []),
+    ],
+    recommendedFollowUpQuestions: [
+      ...buildSukuyoFollowUps(normalizedType),
+      ...((domainTemplate.questionPatterns || []).map((p) => fillPatternVariables(p, {
+        myMansion: normalizedBasic.mansion,
+        partnerMansion: normalizedCompat?.partnerMansion,
+        relationType: normalizedCompat?.relationType,
+      }))),
+    ],
     caution: buildSukuyoPromptCaution(normalizedType, Boolean(normalizedCompat)),
     domainDataLines,
     minPromptLength: 1600,
@@ -403,6 +456,7 @@ export function buildSukuyoAIPrompt({ question, basicResult, compatibilityResult
   const digestSource = [
     normalizedQuestion,
     normalizedType,
+    resolvedDomain,
     normalizedBasic.mansion,
     String(normalizedBasic.mansionIdx),
     normalizedBasic.traits.core,
@@ -428,8 +482,19 @@ export function buildSukuyoAIPrompt({ question, basicResult, compatibilityResult
     recommendedFollowUpQuestions: promptPackage.recommendedFollowUpQuestions,
     caution: promptPackage.caution,
     questionType: normalizedType,
+    domain: resolvedDomain,
+    domainLabel: domainTemplate.domainKo,
+    keywordWeights: domainTemplate.keywordWeights,
     digestSource,
     compatibilityUsed: Boolean(normalizedCompat),
     compatibilityHint,
   };
+}
+
+export function buildSukuyoAIPrompt({ question, basicResult, compatibilityResult }) {
+  return buildSukuyoAIPromptWithDomain({
+    question,
+    basicResult,
+    compatibilityResult,
+  });
 }

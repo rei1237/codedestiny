@@ -1,9 +1,14 @@
 import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js";
+import {
+  classifyQuestionToZiweiDomain,
+  getZiweiPromptTemplate,
+} from "./ziwei-ai-prompt-templates.mjs";
 
 const DEFAULT_TEXT = "제공되지 않음";
 
 export const ZIWEI_AI_PROMPT_FEATURE_KEY = "ziwei_ai_prompt_generator";
 export const ZIWEI_AI_PROMPT_PRICE = 100;
+export { classifyQuestionToZiweiDomain, getZiweiPromptTemplate };
 
 const QUESTION_TYPE_RULES = Object.freeze({
   love: ["연애", "결혼", "재회", "상대", "남자", "여자", "배우자", "인연"],
@@ -530,11 +535,29 @@ function ensureChartPresence(chartResult) {
   }
 }
 
-export function buildZiweiAIPrompt({ question, chartResult }) {
+function buildKeywordWeightLines(keywordWeights) {
+  const entries = keywordWeights && typeof keywordWeights === "object"
+    ? Object.entries(keywordWeights)
+    : [];
+  return entries.map(([keyword, meta]) => {
+    const weight = Number(meta?.weight);
+    const depth = String(meta?.depth || "일반").trim() || "일반";
+    const markers = Array.isArray(meta?.markers) ? meta.markers.filter(Boolean) : [];
+    const markerText = markers.length ? `, markers=${markers.join("/")}` : "";
+    return `- ${keyword}: weight=${Number.isFinite(weight) ? weight.toFixed(2) : "0.70"}, depth=${depth}${markerText}`;
+  });
+}
+
+export function buildZiweiAIPromptWithDomain({ question, chartResult, domain }) {
   const normalizedQuestion = ensureValidQuestion(question);
   ensureChartPresence(chartResult);
 
   const questionType = classifyZiweiPromptQuestionType(normalizedQuestion);
+  const resolvedDomain = String(domain || "").trim() || classifyQuestionToZiweiDomain(normalizedQuestion);
+  const domainTemplate = getZiweiPromptTemplate(resolvedDomain);
+  if (!domainTemplate) {
+    throw new Error("UNKNOWN_ZIWEI_DOMAIN");
+  }
   const normalizedChart = normalizeChart(chartResult);
   const questionTypeLabel = QUESTION_TYPE_LABELS[questionType] || QUESTION_TYPE_LABELS.general;
   const relatedPalaceLines = buildRelatedPalaceLines(normalizedChart, questionType);
@@ -542,7 +565,9 @@ export function buildZiweiAIPrompt({ question, chartResult }) {
   const specificityGuardLines = buildZiweiSpecificityGuardLines(normalizedChart, questionType);
 
   const domainDataLines = [
+    `요청 도메인: ${domainTemplate.domainKo} (${resolvedDomain})`,
     `질문 유형: ${questionTypeLabel}`,
+    `상황별 가중 키워드:\n${buildKeywordWeightLines(domainTemplate.keywordWeights).join("\n")}`,
     "강약 판정 기준: ◎=묘(가장 강함), O=득(강함), ▲=리(이로움), △=평(보통 중간), X=함/실(약함)",
     `명궁/신궁: ${normalizedChart.mingGong} / ${normalizedChart.shenGong}`,
     `명궁 주성/신궁 주성: ${normalizedChart.mingMainStars} / ${normalizedChart.shenMainStars}`,
@@ -555,19 +580,26 @@ export function buildZiweiAIPrompt({ question, chartResult }) {
     `seed 별 목록: ${evidence.starNames.join(", ") || DEFAULT_TEXT}`,
     `seed 사화 근거: ${evidence.sihuaTerms.join(", ") || DEFAULT_TEXT}`,
     `seed 타이밍 근거: ${evidence.timingTerms.join(" | ") || DEFAULT_TEXT}`,
+    `상황별 후속 질문 템플릿: ${(domainTemplate.questionPatterns || []).join(" | ")}`,
     ...specificityGuardLines,
   ];
 
-  const analysisAngles = buildZiweiAngles(questionType).concat([
+  const analysisAngles = buildZiweiAngles(questionType).concat(
+    Array.isArray(domainTemplate.analysisAngles) ? domainTemplate.analysisAngles : [],
+    [
     "근거 궁 2개 이상, 근거 별 2개 이상을 명시하고 문장마다 근거를 대응",
     "사화/대한/세운 근거를 행동 타이밍으로 변환해 단기·중기 전략으로 분리",
     "모호 표현 없이 질문 주제에 대한 결론을 선택 단위(무엇을/언제/어떻게)로 제시",
-  ]);
+    ],
+  );
 
-  const followUps = buildZiweiFollowUps(questionType).concat([
+  const followUps = buildZiweiFollowUps(questionType).concat(
+    Array.isArray(domainTemplate.questionPatterns) ? domainTemplate.questionPatterns : [],
+    [
     "근거로 사용한 궁과 별 각각 2개를 다시 짚어 설명해 주세요.",
     "4주 실행 체크리스트 5개와 6개월 조정 포인트 3개를 제시해 주세요.",
-  ]);
+    ],
+  );
 
   const promptPackage = buildFortuneQuestionPromptPackage({
     fortuneType: "ziwei",
@@ -594,6 +626,7 @@ export function buildZiweiAIPrompt({ question, chartResult }) {
   const digestSource = [
     normalizedQuestion,
     questionType,
+    resolvedDomain,
     normalizedChart.gender,
     normalizedChart.calendarType,
     normalizedChart.birthDate,
@@ -623,6 +656,16 @@ export function buildZiweiAIPrompt({ question, chartResult }) {
     recommendedFollowUpQuestions: promptPackage.recommendedFollowUpQuestions,
     caution: promptPackage.caution,
     questionType,
+    domain: resolvedDomain,
+    domainLabel: domainTemplate.domainKo,
+    keywordWeights: domainTemplate.keywordWeights,
     digestSource,
   };
+}
+
+export function buildZiweiAIPrompt({ question, chartResult }) {
+  return buildZiweiAIPromptWithDomain({
+    question,
+    chartResult,
+  });
 }

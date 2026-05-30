@@ -1326,6 +1326,14 @@ async function generateZiweiChapterByLlm({ env, seed, chapterSpec, previousChapt
 
     result = await callGeminiText(env, prompt, {
       keyEnvKeys: [
+        "GEMINIF_API_KEY8",
+        "GEMINIF_API_KEY7",
+        "GEMINIF_API_KEY6",
+        "GEMINIF_API_KEY5",
+        "GEMINIF_API_KEY4",
+        "GEMINIF_API_KEY3",
+        "GEMINIF_API_KEY2",
+        "GEMINIF_API_KEY1",
         "ZIWEI_GEMINI_API_KEY1",
         "ZIWEI_GEMINI_API_KEY2",
         "ZIWEI_GEMINI_API_KEY3",
@@ -1339,13 +1347,15 @@ async function generateZiweiChapterByLlm({ env, seed, chapterSpec, previousChapt
         "PREMIUM_GEMINI_API_KEY5",
       ],
       modelEnvKeys: ["ZIWEI_VERTEX_GEMINI_MODEL", "VERTEX_GEMINI_MODEL", "ZIWEI_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"],
+      models: [String(env.ZIWEI_GEMINI_MODEL || "gemini-2.5-flash").trim() || "gemini-2.5-flash"],
       temperature: 0.72,
       maxOutputTokens: 8192,
       timeoutMs: Math.max(12000, Number(env.ZIWEI_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 22000)),
       totalTimeoutMs: Math.max(90000, Number(env.ZIWEI_GEMINI_TOTAL_TIMEOUT_MS || env.PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || 150000)),
       maxAttemptsPerPair: Math.max(1, Number(env.ZIWEI_GEMINI_MAX_ATTEMPTS_PER_PAIR || 1)),
       // Ziwei는 Gemini API 키 풀 우선 경로를 강제한다.
-      validateKeysBeforeCall: true,
+      validateKeysBeforeCall: false,
+      stopAfterFirstUsableKey: false,
       keyProbeTimeoutMs: Math.max(2000, Number(env.ZIWEI_GEMINI_KEY_PROBE_TIMEOUT_MS || 5000)),
       useSdk: false,
       preferVertexFirst: false,

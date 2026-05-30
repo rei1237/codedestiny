@@ -7719,6 +7719,38 @@ function renderAstroInsight() {
       +'.astro-syn-quick-title{font-size:11px;color:#a5f3fc;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px;}'
       +'.astro-syn-quick ul{margin:0;padding-left:16px;}'
       +'.astro-syn-quick li{font-size:12px;line-height:1.66;color:#e2e8f0;margin-bottom:3px;}'
+      +'.astro-rel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;}'
+      +'.astro-rel-name{font-size:14px;font-weight:800;color:#fdf2f8;}'
+      +'.astro-rel-score{font-size:12px;color:#fbcfe8;background:rgba(244,114,182,.12);border:1px solid rgba(244,114,182,.35);padding:5px 10px;border-radius:999px;}'
+      +'.astro-rel-score b{font-size:16px;color:#fff;margin-right:3px;}'
+      +'.astro-rel-one-line{margin:0 0 8px 0;font-size:14px;line-height:1.7;color:#f8fafc;font-weight:700;}'
+      +'.astro-rel-accuracy{margin:0 0 10px 0;font-size:12px;color:#fbcfe8;}'
+      +'.astro-rel-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}'
+      +'.astro-rel-tag{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;background:rgba(244,114,182,.15);border:1px solid rgba(244,114,182,.32);font-size:11px;color:#f9a8d4;font-weight:700;}'
+      +'.astro-rel-points{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:10px;}'
+      +'.astro-rel-point{border-radius:10px;padding:10px;border:1px solid rgba(148,163,184,.24);background:rgba(15,23,42,.5);}'
+      +'.astro-rel-point.good{border-color:rgba(52,211,153,.35);background:rgba(16,185,129,.09);}'
+      +'.astro-rel-point.caution{border-color:rgba(251,113,133,.35);background:rgba(127,29,29,.16);}'
+      +'.astro-rel-point h5{margin:0 0 5px 0;font-size:12px;}'
+      +'.astro-rel-point p{margin:0 0 6px 0;font-size:12px;line-height:1.65;color:#e2e8f0;}'
+      +'.astro-rel-evidence{font-size:11px;color:#cbd5e1 !important;margin-bottom:0 !important;}'
+      +'.astro-rel-mode-tabs{display:flex;gap:6px;overflow:auto;padding-bottom:4px;margin-bottom:8px;}'
+      +'.astro-rel-mode-btn{border:1px solid rgba(125,211,252,.3);background:rgba(15,23,42,.65);color:#cbd5e1;border-radius:999px;padding:6px 10px;font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer;}'
+      +'.astro-rel-mode-btn.is-active{background:linear-gradient(135deg,#ec4899,#8b5cf6);border-color:rgba(244,114,182,.7);color:#fff;}'
+      +'.astro-rel-mode-panel{border:1px solid rgba(148,163,184,.24);border-radius:10px;background:rgba(2,6,23,.45);padding:10px;margin-bottom:10px;}'
+      +'.astro-rel-mode-head{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:#f8fafc;margin-bottom:6px;}'
+      +'.astro-rel-mode-panel p{margin:0 0 6px 0;font-size:12px;line-height:1.62;color:#e2e8f0;}'
+      +'.astro-rel-actions{border:1px dashed rgba(125,211,252,.35);border-radius:10px;padding:10px;margin-bottom:10px;background:rgba(14,116,144,.12);}'
+      +'.astro-rel-actions h5{margin:0 0 6px 0;color:#a5f3fc;font-size:12px;}'
+      +'.astro-rel-actions ul{margin:0;padding-left:18px;}'
+      +'.astro-rel-actions li{font-size:12px;line-height:1.65;color:#e2e8f0;margin-bottom:4px;}'
+      +'.astro-rel-expert{border:1px solid rgba(148,163,184,.22);border-radius:10px;background:rgba(15,23,42,.5);}'
+      +'.astro-rel-expert > summary{cursor:pointer;list-style:none;padding:10px 11px;font-size:12px;font-weight:700;color:#cbd5e1;}'
+      +'.astro-rel-expert > summary::-webkit-details-marker{display:none;}'
+      +'.astro-rel-expert-body{padding:0 11px 10px 11px;font-size:12px;color:#cbd5e1;line-height:1.6;}'
+      +'.astro-rel-expert-body p{margin:0 0 6px 0;}'
+      +'.astro-rel-expert-body ul{margin:0 0 8px 0;padding-left:18px;}'
+      +'.astro-rel-expert-body li{margin-bottom:3px;}'
       +'.astro-neon-wrap{position:relative;overflow:hidden;border-radius:22px;padding:16px;border:1px solid rgba(96,165,250,.38);background:linear-gradient(165deg,#0b0e14 0%,#0f1d3a 46%,#1a1c2c 100%);box-shadow:0 0 0 1px rgba(34,211,238,.18),0 24px 48px -28px rgba(56,189,248,.75),inset 0 1px 0 rgba(255,255,255,.07);}'
       +'.astro-neon-wrap:before{content:"";position:absolute;inset:-40% auto auto -25%;width:240px;height:240px;background:radial-gradient(circle,rgba(45,212,191,.22),rgba(45,212,191,0));filter:blur(4px);pointer-events:none;}'
       +'.astro-neon-wrap:after{content:"";position:absolute;right:-90px;bottom:-110px;width:260px;height:260px;background:radial-gradient(circle,rgba(168,85,247,.28),rgba(168,85,247,0));filter:blur(8px);pointer-events:none;}'
@@ -7971,14 +8003,7 @@ function renderAstroInsight() {
 
         /* ── 통합 인연 리포트 (Synastry & Bond) ── */
         +'<div class="astro-section astro-neon-accent astro-neon-accent-pink">'
-        +'<div class="astro-subhead" style="color:#f472b6;">💞 궁합 핵심 리포트 - 한눈에 보는 관계 포인트</div>'
-        +'<div class="astro-desc">'
-        +(hasCompatibilitySeed
-          ? ('<p><b>[끌림 포인트]</b> 태양·달·금성·화성의 상호작용이 강하게 연결될수록 초반 호감과 몰입이 빠르게 올라갑니다.</p>'
-            +'<p><b>[안정감 포인트]</b> 달 축의 정서 리듬이 맞아야 관계가 오래갑니다. 금성/화성 리듬이 달라도 대화 순서 조율로 충분히 보완할 수 있습니다.</p>'
-            +'<p><b>[충돌 포인트와 조율법]</b> '+(vmAspect||vmCalcFallback)+' 갈등 시에는 감정 확인 후 실행 합의를 붙이는 2단계 대화가 효과적입니다.</p>')
-          : ('<p>궁합 데이터가 아직 없어서 핵심 리포트는 준비되지 않았어요. 궁합 분석을 시작하면 두 사람의 관계 흐름을 자세히 볼 수 있습니다.</p>'))
-        +'</div>'
+        +'<div id="astroCompatibilityCoreMount"></div>'
         +'</div>'
 
         /* ── ★ 직접 입력 시나스트리 궁합 ── */
@@ -8214,6 +8239,7 @@ function renderAstroInsight() {
         +'</div>';
 
     document.getElementById('astroResult').innerHTML = html;
+    _astroRefreshCompatibilityCoreReport();
 
     function _astroInitBirthMapSection(){
       var wrap = document.getElementById('astroBirthMapSection');
@@ -9006,6 +9032,286 @@ function renderAstroInsight() {
       return { relType: rel, loveDesc: love, busDesc: busi, spiritDesc: spirit };
     }
 
+    function _syEsc(v){
+      return String(v == null ? '' : v)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+    function _syClampScore(v){
+      var n = Number(v);
+      if (!Number.isFinite(n)) return 0;
+      return Math.max(0, Math.min(100, Math.round(n)));
+    }
+    function _syGradeLabel(score){
+      if (score >= 85) return '운명급 케미';
+      if (score >= 70) return '잘 맞는 인연';
+      if (score >= 55) return '맞춰가면 좋아지는 인연';
+      if (score >= 40) return '연습이 필요한 인연';
+      return '거리 조절이 필요한 인연';
+    }
+    function _syOneLineVerdict(score, challengeExists, supportExists){
+      if (score >= 85) return challengeExists ? '강하게 끌리고 오래 갈 잠재력이 큰 관계, 속도 조율만 잡으면 최상입니다.' : '서로의 결이 자연스럽게 맞물리는 운명급 케미입니다.';
+      if (score >= 70) return challengeExists ? '대화와 실행이 잘 맞지만 갈등 루틴을 정하면 더 탄탄해지는 관계입니다.' : '편안함과 성장성이 함께 살아있는 잘 맞는 인연입니다.';
+      if (score >= 55) return '끌림은 충분하고, 표현 속도와 생활 리듬을 맞추면 빠르게 좋아지는 관계입니다.';
+      if (score >= 40) return supportExists ? '좋은 포인트는 분명하니 규칙을 세우면 안정성을 높일 수 있는 관계입니다.' : '오해가 쌓이기 쉬우니 말의 온도와 기대치를 먼저 맞추는 것이 핵심입니다.';
+      return '감정 소모를 줄이기 위해 경계선과 합의 규칙이 먼저 필요한 관계입니다.';
+    }
+    function _syTranslateAspect(row, positive){
+      if (!row || !row.asp) {
+        return {
+          title: positive ? '자연스럽게 맞는 포인트' : '조율이 필요한 포인트',
+          description: positive
+            ? '말투와 생활 리듬이 맞는 구간을 먼저 살리면 관계 에너지가 올라갑니다.'
+            : '속도와 기대치를 맞추는 대화부터 시작하면 불필요한 오해를 줄일 수 있습니다.',
+          source: '세부 근거 확보 중'
+        };
+      }
+      var aspName = String(row.asp.name || '');
+      var title = positive ? '이 관계의 가장 좋은 포인트' : '이 관계의 가장 조심할 포인트';
+      var desc = positive
+        ? '감정 리듬과 표현 방식이 맞물리는 구간이 있어, 한쪽이 편안해지면 다른 한쪽도 자신감을 얻기 쉽습니다.'
+        : '좋아하는 방식과 다가가는 템포가 달라, 끌림이 강한 만큼 오해도 빨리 생길 수 있습니다. 표현 속도와 거리감 기준을 먼저 맞추세요.';
+      if (aspName.indexOf('삼합') >= 0 || aspName.indexOf('육합') >= 0) {
+        desc = '서로의 장점을 자연스럽게 끌어주는 각도입니다. 잘 되는 습관을 반복하면 관계 만족도가 빠르게 올라갑니다.';
+      }
+      if (aspName.indexOf('직각') >= 0 || aspName.indexOf('충') >= 0 || aspName.indexOf('퀸컨스') >= 0) {
+        desc = '강하게 끌리지만 관점이 어긋나기 쉬운 각도입니다. 감정 확인 후 실행 합의 순서를 지키면 충돌을 성장으로 바꿀 수 있습니다.';
+      }
+      return {
+        title: title,
+        description: desc,
+        source: row.pair + ' · ' + aspName + ' · orb ' + Number(row.asp.orb || 0).toFixed(2) + '°'
+      };
+    }
+    function _syBuildChemistryTags(score, result){
+      var tags = [];
+      if (score >= 85) tags.push('#운명급케미');
+      else if (score >= 70) tags.push('#잘맞는인연');
+      else if (score >= 55) tags.push('#맞춰가면좋아짐');
+      else if (score >= 40) tags.push('#연습이필요한인연');
+      else tags.push('#거리조절필요');
+      if (result && result.bestSupport) tags.push('#끌림은강함');
+      if (result && result.bestChallenge) tags.push('#대화템포조율');
+      if (result && result.houseOverlay && (result.houseOverlay.mySunInPartnerHouse || result.houseOverlay.partnerSunInMyHouse)) tags.push('#관계무대가선명함');
+      tags.push('#갈등후복구가핵심');
+      return tags.slice(0, 5);
+    }
+    function _syAccuracyText(acc){
+      var myUnknown = !!(acc && acc.myTimeUnknown);
+      var partnerUnknown = !!(acc && acc.partnerTimeUnknown);
+      if (!myUnknown && !partnerUnknown) return '정확도: 높음 · 출생시간 반영';
+      if (myUnknown && partnerUnknown) return '정확도: 참고용 · 행성 각도 중심 해석';
+      return '정확도: 보통 · 상대 출생시간 미상으로 달/하우스 해석은 참고용';
+    }
+    function _syModeKeyLabel(modeKey){
+      var map = {
+        love: '연애/썸',
+        longterm: '결혼/장기연애',
+        business: '사업/동업',
+        teamwork: '직장/팀워크',
+        friendship: '친구',
+        family: '가족',
+        reunion: '재회/과거 인연'
+      };
+      return map[modeKey] || modeKey;
+    }
+    function _syBuildModeReport(modeKey, score, report){
+      var base = {
+        scoreLabel: _syGradeLabel(score),
+        summary: '',
+        strength: '',
+        risk: '',
+        recommendedRule: '',
+        avoid: ''
+      };
+      if (modeKey === 'love') {
+        base.summary = '끌림과 설렘은 살아있고, 연락 템포와 애정 표현 방식 조율이 승부처입니다.';
+        base.strength = '호감 신호를 빨리 감지하고 감정 온도를 높이는 힘이 좋습니다.';
+        base.risk = '표현 속도 차이로 오해가 생기면 감정 소모가 커질 수 있습니다.';
+        base.recommendedRule = '감정 대화는 짧게 자주, 결론 대화는 감정이 가라앉은 뒤 진행하세요.';
+        base.avoid = '읽씹 해석, 테스트성 말투, 즉답 강요';
+      } else if (modeKey === 'longterm') {
+        base.summary = '장기 관계는 생활 리듬과 돈/책임 분담 규칙을 세울수록 안정성이 올라갑니다.';
+        base.strength = '현실 운영을 합의하면 관계 체력이 빠르게 올라갑니다.';
+        base.risk = '가사/시간/돈 기준이 모호하면 반복 갈등으로 피로가 누적됩니다.';
+        base.recommendedRule = '주간 생활 체크인 20분과 월 1회 재정 점검을 고정하세요.';
+        base.avoid = '말로만 합의, 책임 전가, 감정 누적 방치';
+      } else if (modeKey === 'business') {
+        base.summary = '사업 궁합은 역할 분담과 의사결정 속도 합의가 성패를 가릅니다.';
+        base.strength = '관계 몰입도가 높아 목표를 밀어붙이는 추진력이 좋습니다.';
+        base.risk = '리더십 충돌이 생기면 의사결정이 지연될 수 있습니다.';
+        base.recommendedRule = '역할/권한/마감 기준을 문서로 남기고 분기마다 업데이트하세요.';
+        base.avoid = '구두 합의만 유지, 책임 범위 모호화';
+      } else if (modeKey === 'teamwork') {
+        base.summary = '팀워크는 피드백 말투와 보고 리듬을 맞추면 협업 피로를 크게 줄일 수 있습니다.';
+        base.strength = '강점 배치가 맞으면 실행 속도와 품질이 동시에 올라갑니다.';
+        base.risk = '지적 톤이 강해지면 감정 방어가 커질 수 있습니다.';
+        base.recommendedRule = '문제 제기 시 대안 1개를 함께 제시하는 규칙을 쓰세요.';
+        base.avoid = '공개 망신성 피드백, 책임자 미지정';
+      } else if (modeKey === 'friendship') {
+        base.summary = '친구 모드는 편안함이 장점이며, 거리감 합의가 오래 가는 핵심입니다.';
+        base.strength = '대화 결이 맞아 정서 회복 친구가 되기 쉽습니다.';
+        base.risk = '기대치 차이를 말하지 않으면 갑작스러운 거리두기가 생길 수 있습니다.';
+        base.recommendedRule = '연락 빈도와 선호 대화 주제를 가볍게 합의해 두세요.';
+        base.avoid = '당연한 친밀감 전제, 답장 압박';
+      } else if (modeKey === 'family') {
+        base.summary = '가족 모드는 정서 안정감과 말투 조율이 가장 중요합니다.';
+        base.strength = '돌봄과 현실 운영을 동시에 챙길 잠재력이 있습니다.';
+        base.risk = '기대와 책임의 비대칭이 커지면 감정이 쉽게 소진됩니다.';
+        base.recommendedRule = '요청은 구체적으로, 감사 표현은 즉시 전하는 루틴을 쓰세요.';
+        base.avoid = '마음 읽기 기대, 감정 단정';
+      } else {
+        base.summary = '재회는 다시 끌리는 이유와 과거 반복 패턴을 함께 점검할 때만 안정적입니다.';
+        base.strength = '정서적 연결을 다시 살릴 포인트가 분명합니다.';
+        base.risk = '과거 갈등 구조를 바꾸지 않으면 같은 패턴이 반복될 수 있습니다.';
+        base.recommendedRule = '재시작 전 바꿀 규칙 3개를 합의하고 시작 시점을 잡으세요.';
+        base.avoid = '사과 없는 재시작, 기준 없는 즉흥 재회';
+      }
+      if (report && report.cautionPoint && report.cautionPoint.source) {
+        base.risk += ' (' + report.cautionPoint.source + ')';
+      }
+      return base;
+    }
+    function _syBuildCoreReport(seed){
+      var result = seed && typeof seed === 'object' ? seed : null;
+      var score = _syClampScore(result && result.score);
+      var majorAspects = Array.isArray(result && result.majorAspects) ? result.majorAspects : [];
+      var supportRow = result && result.topSupportRow ? result.topSupportRow : (majorAspects.filter(function(r){ return Number(r && r.weighted) > 0; }).sort(function(a,b){ return Math.abs(Number(b && b.weighted || 0)) - Math.abs(Number(a && a.weighted || 0)); })[0] || null);
+      var challengeRow = result && result.topChallengeRow ? result.topChallengeRow : (majorAspects.filter(function(r){ return Number(r && r.weighted) < 0; }).sort(function(a,b){ return Math.abs(Number(b && b.weighted || 0)) - Math.abs(Number(a && a.weighted || 0)); })[0] || null);
+      var hasData = !!(
+        Number.isFinite(Number(score)) && score > 0
+        || (result && result.bestSupport)
+        || (result && result.bestChallenge)
+        || majorAspects.length
+        || (result && result.houseOverlay)
+      );
+      var bestPoint = _syTranslateAspect(supportRow, true);
+      var cautionPoint = _syTranslateAspect(challengeRow, false);
+      var report = {
+        hasData: hasData,
+        score: score,
+        grade: _syGradeLabel(score),
+        relationLabel: String((result && result.relationType) || _syOneLineVerdict(score, !!challengeRow, !!supportRow)),
+        oneLineSummary: _syOneLineVerdict(score, !!challengeRow, !!supportRow),
+        chemistryTags: _syBuildChemistryTags(score, result),
+        bestPoint: bestPoint,
+        cautionPoint: cautionPoint,
+        relationshipModes: {},
+        actionTips: [
+          '중요한 대화는 감정이 올라온 직후보다 30분 뒤에 하세요.',
+          '돈·일정·역할 합의는 말로만 두지 말고 짧게라도 기록으로 남기세요.',
+          '표현 방식이 다르다고 애정 부족으로 단정하지 말고 확인 질문을 먼저 하세요.'
+        ],
+        accuracy: _syAccuracyText(result && result.accuracy)
+      };
+      ['love','longterm','business','teamwork','friendship','family','reunion'].forEach(function(modeKey){
+        report.relationshipModes[modeKey] = _syBuildModeReport(modeKey, score, report);
+      });
+      return report;
+    }
+    function _syRenderModePanel(modeKey, report){
+      var mode = (report && report.relationshipModes && report.relationshipModes[modeKey]) ? report.relationshipModes[modeKey] : null;
+      if (!mode) return '';
+      return ''
+        + '<div class="astro-rel-mode-panel" data-mode-panel="'+_syEsc(modeKey)+'">'
+        + '<div class="astro-rel-mode-head"><b>'+_syEsc(_syModeKeyLabel(modeKey))+'</b><span>'+_syEsc(mode.scoreLabel)+'</span></div>'
+        + '<p><b>요약:</b> '+_syEsc(mode.summary)+'</p>'
+        + '<p><b>잘 맞는 부분:</b> '+_syEsc(mode.strength)+'</p>'
+        + '<p><b>충돌하기 쉬운 부분:</b> '+_syEsc(mode.risk)+'</p>'
+        + '<p><b>이 관계를 살리는 규칙:</b> '+_syEsc(mode.recommendedRule)+'</p>'
+        + '<p><b>피해야 할 말/행동:</b> '+_syEsc(mode.avoid)+'</p>'
+        + '</div>';
+    }
+    function _astroRenderCompatibilityCoreSection(seed){
+      var report = _syBuildCoreReport(seed);
+      if (!report.hasData) {
+        return ''
+          + '<div class="astro-subhead" style="color:#f472b6;">💞 궁합 핵심 리포트 - 한눈에 보는 관계 포인트</div>'
+          + '<div class="astro-desc">'
+          + '<p>궁합 데이터가 아직 없어서 핵심 리포트는 준비되지 않았어요. 궁합 분석을 시작하면 두 사람의 관계 흐름을 자세히 볼 수 있습니다.</p>'
+          + '</div>';
+      }
+      var modeButtons = ['love','longterm','business','teamwork','friendship','family','reunion'].map(function(modeKey, idx){
+        return '<button type="button" class="astro-rel-mode-btn'+(idx === 0 ? ' is-active' : '')+'" data-rel-mode="'+modeKey+'">'+_syEsc(_syModeKeyLabel(modeKey))+'</button>';
+      }).join('');
+      var modePanels = ['love','longterm','business','teamwork','friendship','family','reunion'].map(function(modeKey, idx){
+        return '<div class="astro-rel-mode-slot" data-rel-mode-slot="'+modeKey+'" style="display:'+(idx === 0 ? 'block' : 'none')+';">'+_syRenderModePanel(modeKey, report)+'</div>';
+      }).join('');
+      var tags = (report.chemistryTags || []).map(function(tag){ return '<span class="astro-rel-tag">'+_syEsc(tag)+'</span>'; }).join('');
+      var partnerName = _syEsc(seed && seed.partner && seed.partner.name ? seed.partner.name : '상대');
+      var score = _syClampScore(report.score);
+      var evidenceAspects = Array.isArray(seed && seed.majorAspects) ? seed.majorAspects.slice(0, 6) : [];
+      var evidenceRows = evidenceAspects.map(function(r){
+        var pair = _syEsc(String(r && r.pair || '주요 각도'));
+        var asp = _syEsc(String(r && r.asp && r.asp.name || r && r.aspect || '-'));
+        var orb = Number.isFinite(Number(r && r.asp && r.asp.orb)) ? Number(r.asp.orb).toFixed(2) : (Number.isFinite(Number(r && r.orbDeg)) ? Number(r.orbDeg).toFixed(2) : '-');
+        return '<li>'+pair+' · '+asp+' · orb '+orb+'°</li>';
+      }).join('');
+      return ''
+        + '<div class="astro-subhead" style="color:#f472b6;">💞 궁합 핵심 리포트 - 한눈에 보는 관계 포인트</div>'
+        + '<div class="astro-rel-head">'
+        + '<div class="astro-rel-name">나 × '+partnerName+'</div>'
+        + '<div class="astro-rel-score"><b>'+score+'</b>/100 <span>'+_syEsc(report.grade)+'</span></div>'
+        + '</div>'
+        + '<p class="astro-rel-one-line">'+_syEsc(report.oneLineSummary)+'</p>'
+        + '<p class="astro-rel-accuracy">'+_syEsc(report.accuracy)+'</p>'
+        + '<div class="astro-rel-tags">'+tags+'</div>'
+        + '<div class="astro-rel-points">'
+        + '<div class="astro-rel-point good"><h5>이 관계의 매력</h5><p>'+_syEsc(report.bestPoint.description)+'</p><p class="astro-rel-evidence">세부 근거: '+_syEsc(report.bestPoint.source || '분석 근거 보강 중')+'</p></div>'
+        + '<div class="astro-rel-point caution"><h5>이 관계의 위험</h5><p>'+_syEsc(report.cautionPoint.description)+'</p><p class="astro-rel-evidence">세부 근거: '+_syEsc(report.cautionPoint.source || '분석 근거 보강 중')+'</p></div>'
+        + '</div>'
+        + '<div class="astro-rel-mode-tabs">'+modeButtons+'</div>'
+        + '<div id="astroRelModePanels">'+modePanels+'</div>'
+        + '<div class="astro-rel-actions">'
+        + '<h5>오늘 바로 해볼 행동</h5>'
+        + '<ul>'
+        + (report.actionTips || []).map(function(t){ return '<li>'+_syEsc(t)+'</li>'; }).join('')
+        + '</ul>'
+        + '</div>'
+        + '<details class="astro-rel-expert">'
+        + '<summary>전문가용 세부 근거 보기</summary>'
+        + '<div class="astro-rel-expert-body">'
+        + '<p><b>관계 판정:</b> '+_syEsc(report.relationLabel)+'</p>'
+        + '<p><b>Major Aspects:</b></p>'
+        + '<ul>'+(evidenceRows || '<li>주요 각도 데이터 준비 중</li>')+'</ul>'
+        + '<p><b>하우스 오버레이:</b> '
+        + '내 태양 '+_syEsc(String(seed && seed.houseOverlay && seed.houseOverlay.mySunInPartnerHouse || '-'))+' · '
+        + '상대 태양 '+_syEsc(String(seed && seed.houseOverlay && seed.houseOverlay.partnerSunInMyHouse || '-'))+' · '
+        + '내 달 '+_syEsc(String(seed && seed.houseOverlay && seed.houseOverlay.myMoonInPartnerHouse || '-'))+' · '
+        + '상대 달 '+_syEsc(String(seed && seed.houseOverlay && seed.houseOverlay.partnerMoonInMyHouse || '-'))
+        + '</p>'
+        + '<p><b>Whole Sign 기준 안내:</b> 하우스 오버레이는 상승궁 기준 Whole Sign 방식으로 관계 무대를 읽습니다.</p>'
+        + '</div>'
+        + '</details>';
+    }
+    function _astroBindCompatibilityModeTabs(){
+      var wrap = document.getElementById('astroCompatibilityCoreMount');
+      if (!wrap) return;
+      var btns = wrap.querySelectorAll('.astro-rel-mode-btn');
+      if (!btns || !btns.length) return;
+      btns.forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var key = btn.getAttribute('data-rel-mode');
+          btns.forEach(function(x){ x.classList.remove('is-active'); });
+          btn.classList.add('is-active');
+          var panels = wrap.querySelectorAll('[data-rel-mode-slot]');
+          panels.forEach(function(p){
+            var show = p.getAttribute('data-rel-mode-slot') === key;
+            p.style.display = show ? 'block' : 'none';
+          });
+        });
+      });
+    }
+    function _astroRefreshCompatibilityCoreReport(){
+      var mount = document.getElementById('astroCompatibilityCoreMount');
+      if (!mount) return;
+      mount.innerHTML = _astroRenderCompatibilityCoreSection(astroLatestCompatibilityResult);
+      _astroBindCompatibilityModeTabs();
+    }
+
     /* ── 유명인 선택 → 시나스트리 결과 계산 ── */
     window._astroPickCeleb = function(name, birth, hour) {
         /* 50코인 퍼유즈 게이트 */
@@ -9107,7 +9413,7 @@ function renderAstroInsight() {
                 var overlayScore = synRes.overlayScore || 0;
                 var overlayNorm = synRes.overlayNorm || 0;
                 var overlayMode = synRes.overlayMode || 'balanced';
-                var synConfidence = synMax > 0 ? Math.min(99, Math.round((Math.abs(synRaw) / synMax) * 100)) : 0;
+                var myTimeUnknown = Number(h) === 12 && Number(min || 0) === 0;
                 var bestSupport = _syTopAspectText(aspectRows, true);
                 var bestChallenge = _syTopAspectText(aspectRows, false);
                 var topSupportRow = _syTopAspect(aspectRows, true);
@@ -9138,6 +9444,9 @@ function renderAstroInsight() {
                   spiritDesc: spiritDesc,
                   bestSupport: bestSupport,
                   bestChallenge: bestChallenge,
+                  topSupportRow: topSupportRow,
+                  topChallengeRow: topChallengeRow,
+                  majorAspects: (aspectRows || []).slice(0, 16),
                   partner: {
                     name: name,
                     gender: celebRec && celebRec.gender ? celebRec.gender : 'OTHER',
@@ -9153,8 +9462,13 @@ function renderAstroInsight() {
                     partnerMoonInMyHouse: _astroHouseLabel(overlayTheirMoonToMy),
                     myVenusInPartnerHouse: _astroHouseLabel(overlayMyVenusToTheir),
                     partnerVenusInMyHouse: _astroHouseLabel(overlayTheirVenusToMy)
+                  },
+                  accuracy: {
+                    myTimeUnknown: myTimeUnknown,
+                    partnerTimeUnknown: isUnknownTime
                   }
                 };
+                _astroRefreshCompatibilityCoreReport();
 
                 /* ── HTML 렌더 ── */
                 var html2 = '<div class="astro-neon-syn-wrap"><div class="astro-neon-syn-top"><div class="astro-neon-syn-title">🌌 셀럽 시나스트리 리포트</div><span class="astro-neon-syn-chip">네온 궁합 모드</span></div><p class="astro-neon-mz-tip">오늘의 별자리 브리핑 톤 그대로 적용했어요. 점수는 내비게이션, 진짜 키는 대화 템포와 감정 회복 루틴입니다.</p>';
@@ -9198,7 +9512,7 @@ function renderAstroInsight() {
                   +'<div class="astro-syn-data-copy">'
                   +'정규화 점수: <b>'+synScore+'</b>/100 · 가중 합산: <b>'+synRaw.toFixed(2)+'</b> / 최대 '+synMax.toFixed(2)+'<br>'
                   +'하우스 오버레이 보정(7H/8H 포함): <b>'+overlayScore.toFixed(2)+'</b> · 영향도 '+(overlayNorm*100).toFixed(1)+'% ('+overlayMode+')<br>'
-                  +'해석 신뢰도(각도 데이터 기준): <b>'+synConfidence+'%</b><br>'
+                  +'정확도 안내: <b>'+_syAccuracyText({ myTimeUnknown: myTimeUnknown, partnerTimeUnknown: isUnknownTime })+'</b><br>'
                   +'가장 강한 조화: '+bestSupport+'<br>'
                   +'가장 강한 긴장: '+bestChallenge
                   +'</div>'
@@ -9251,6 +9565,7 @@ function renderAstroInsight() {
                 resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             } catch(e) {
               astroLatestCompatibilityResult = null;
+              _astroRefreshCompatibilityCoreReport();
                 resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div style="color:#fda4af;font-size:0.85rem;">시나스트리 계산 중 오류가 발생했습니다: ' + (e.message || e) + '</div></div>';
             }
         }, 50);
@@ -9398,6 +9713,8 @@ function renderAstroInsight() {
                 var overlayNorm2 = synRes2.overlayNorm || 0;
                 var overlayMode2 = synRes2.overlayMode || 'balanced';
                 var synConfidence2 = synMax2 > 0 ? Math.min(99, Math.round((Math.abs(synRaw2) / synMax2) * 100)) : 0;
+                var myTimeUnknown2 = Number(h) === 12 && Number(min || 0) === 0;
+                var partnerTimeUnknown2 = String(timeVal || '12:00') === '12:00';
                 var bestSupport2 = _syTopAspectText(aspectRows2, true);
                 var bestChallenge2 = _syTopAspectText(aspectRows2, false);
                 var topSupportRow2 = _syTopAspect(aspectRows2, true);
@@ -9438,6 +9755,9 @@ function renderAstroInsight() {
                   spiritDesc: spiritDesc2,
                   bestSupport: bestSupport2,
                   bestChallenge: bestChallenge2,
+                  topSupportRow: topSupportRow2,
+                  topChallengeRow: topChallengeRow2,
+                  majorAspects: (aspectRows2 || []).slice(0, 16),
                   partner: {
                     name: nameVal,
                     gender: genderVal,
@@ -9453,8 +9773,13 @@ function renderAstroInsight() {
                     partnerMoonInMyHouse: _astroHouseLabel(ovPartnerMoonToMy),
                     myVenusInPartnerHouse: _astroHouseLabel(ovMyVenusToPartner),
                     partnerVenusInMyHouse: _astroHouseLabel(ovPartnerVenusToMy)
+                  },
+                  accuracy: {
+                    myTimeUnknown: myTimeUnknown2,
+                    partnerTimeUnknown: partnerTimeUnknown2
                   }
                 };
+                _astroRefreshCompatibilityCoreReport();
 
                 /* ── 렌더 ── */
                 var h = '<div class="astro-neon-syn-wrap"><div class="astro-neon-syn-top"><div class="astro-neon-syn-title">💫 직접 입력 시나스트리 리포트</div><span class="astro-neon-syn-chip">실전 궁합 맵</span></div><p class="astro-neon-mz-tip">오늘 브리핑 감성으로 풀어낸 실전 버전입니다. 점수는 방향표이고, 관계의 승부는 합의 루틴과 리페어 속도에서 갈려요.</p>';
@@ -9508,7 +9833,7 @@ function renderAstroInsight() {
                   +'<div class="astro-syn-data-copy">'
                   +'정규화 점수: <b>'+synScore2+'</b>/100 · 가중 합산: <b>'+synRaw2.toFixed(2)+'</b> / 최대 '+synMax2.toFixed(2)+'<br>'
                   +'하우스 오버레이 보정(7H/8H 포함): <b>'+overlayScore2.toFixed(2)+'</b> · 영향도 '+(overlayNorm2*100).toFixed(1)+'% ('+overlayMode2+')<br>'
-                  +'해석 신뢰도(각도 기반): <b>'+synConfidence2+'%</b><br>'
+                  +'정확도 안내: <b>'+_syAccuracyText({ myTimeUnknown: myTimeUnknown2, partnerTimeUnknown: partnerTimeUnknown2 })+'</b><br>'
                   +'가장 강한 조화: '+bestSupport2+'<br>'
                   +'가장 강한 긴장: '+bestChallenge2
                   +'</div>'
@@ -9633,6 +9958,7 @@ function renderAstroInsight() {
                 }
             } catch(e) {
               astroLatestCompatibilityResult = null;
+              _astroRefreshCompatibilityCoreReport();
                 resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div style="color:#fda4af;font-size:0.85rem;">계산 중 오류가 발생했습니다: ' + (e.message || e) + '</div></div>';
             }
         }, 50);

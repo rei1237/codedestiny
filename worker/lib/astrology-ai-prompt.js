@@ -1,9 +1,14 @@
 import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js";
+import {
+  classifyQuestionToAstrologyDomain,
+  getAstrologyPromptTemplate,
+} from "./astrology-ai-prompt-templates.mjs";
 
 const DEFAULT_TEXT = "제공되지 않음";
 
 export const ASTROLOGY_AI_PROMPT_FEATURE_KEY = "astrology_ai_prompt_generator";
 export const ASTROLOGY_AI_PROMPT_PRICE = 100;
+export { classifyQuestionToAstrologyDomain, getAstrologyPromptTemplate };
 
 const QUESTION_TYPE_RULES = Object.freeze({
   compatibility: ["궁합", "시나스트리", "상대", "연인", "배우자", "결혼 가능성", "재회"],
@@ -323,15 +328,42 @@ function buildAstrologySectionGuide(questionType, hasCompatibility) {
   return sections;
 }
 
-export function buildAstrologyAIPrompt({ question, astrologyResult, compatibilityResult }) {
+function buildKeywordWeightLines(keywordWeights) {
+  const entries = keywordWeights && typeof keywordWeights === "object"
+    ? Object.entries(keywordWeights)
+    : [];
+  return entries.map(([keyword, meta]) => {
+    const weight = Number(meta?.weight);
+    const depth = String(meta?.depth || "일반").trim() || "일반";
+    const markers = Array.isArray(meta?.markers) ? meta.markers.filter(Boolean) : [];
+    const markerText = markers.length ? `, markers=${markers.join("/")}` : "";
+    return `- ${keyword}: weight=${Number.isFinite(weight) ? weight.toFixed(2) : "0.70"}, depth=${depth}${markerText}`;
+  });
+}
+
+function fillPatternVariables(text, ctx) {
+  const source = String(text || "");
+  return source
+    .replace(/\{sun\}/g, String(ctx?.sun || DEFAULT_TEXT))
+    .replace(/\{moon\}/g, String(ctx?.moon || DEFAULT_TEXT))
+    .replace(/\{asc\}/g, String(ctx?.asc || DEFAULT_TEXT))
+    .replace(/\{relationType\}/g, String(ctx?.relationType || DEFAULT_TEXT));
+}
+
+export function buildAstrologyAIPromptWithDomain({ question, astrologyResult, compatibilityResult, domain }) {
   const normalizedQuestion = ensureValidQuestion(question);
   ensureAstrologyResultPresence(astrologyResult);
 
   const questionType = classifyAstrologyPromptQuestionType(normalizedQuestion);
+  const resolvedDomain = String(domain || "").trim() || classifyQuestionToAstrologyDomain(normalizedQuestion);
+  const domainTemplate = getAstrologyPromptTemplate(resolvedDomain);
+  if (!domainTemplate) {
+    throw new Error("UNKNOWN_ASTROLOGY_DOMAIN");
+  }
   const questionTypeLabel = QUESTION_TYPE_LABELS[questionType] || QUESTION_TYPE_LABELS.general;
 
   const compatibility = normalizeCompatibility(compatibilityResult);
-  if (questionType === "compatibility" && !compatibility) {
+  if ((questionType === "compatibility" || domainTemplate.requiresCompatibility) && !compatibility) {
     throw new Error("COMPATIBILITY_CONTEXT_REQUIRED");
   }
 
@@ -364,7 +396,9 @@ export function buildAstrologyAIPrompt({ question, astrologyResult, compatibilit
     : ["- 없음(궁합 계산 결과 미제공)"];
 
   const domainDataLines = [
+    `요청 도메인: ${domainTemplate.domainKo} (${resolvedDomain})`,
     `질문 유형: ${questionTypeLabel}`,
+    `상황별 가중 키워드:\n${buildKeywordWeightLines(domainTemplate.keywordWeights).join("\n")}`,
     `핵심 시그니처: 태양 ${signs.sun}, 달 ${signs.moon}, ASC ${signs.asc}, MC ${signs.mc}`,
     `원소 분포: 불 ${elements.counts.fire}, 흙 ${elements.counts.earth}, 공기 ${elements.counts.air}, 물 ${elements.counts.water}`,
     `우세/보완 원소: ${elements.dominant} / ${elements.weakest}`,
@@ -380,6 +414,12 @@ export function buildAstrologyAIPrompt({ question, astrologyResult, compatibilit
     "작성 규칙: 모든 주요 단락은 최소 3문장 이상, 핵심 섹션은 4~6문장 권장",
     "작성 규칙: 데이터가 부족하면 '현재 차트에서 확인 가능한 범위'로만 해석하고 임의 추정 금지",
     "작성 규칙: 추상 응원문(예: '당신은 특별합니다') 반복 금지, 행동 단위 조언 우선",
+    `상황별 후속 질문 템플릿: ${(domainTemplate.questionPatterns || []).map((p) => fillPatternVariables(p, {
+      sun: signs.sun,
+      moon: signs.moon,
+      asc: signs.asc,
+      relationType: compatibility?.relationType,
+    })).join(" | ")}`,
     `결과 섹션 가이드: ${buildAstrologySectionGuide(questionType, Boolean(compatibility)).join(" || ")}`,
   ];
 
@@ -393,8 +433,19 @@ export function buildAstrologyAIPrompt({ question, astrologyResult, compatibilit
     compatibilityTarget: compatibility || undefined,
     mode: questionType,
     questionTypeLabel,
-    analysisAngles: buildAstrologyAngles(questionType),
-    recommendedFollowUpQuestions: buildAstrologyFollowUps(questionType),
+    analysisAngles: [
+      ...buildAstrologyAngles(questionType),
+      ...(Array.isArray(domainTemplate.analysisAngles) ? domainTemplate.analysisAngles : []),
+    ],
+    recommendedFollowUpQuestions: [
+      ...buildAstrologyFollowUps(questionType),
+      ...((domainTemplate.questionPatterns || []).map((p) => fillPatternVariables(p, {
+        sun: signs.sun,
+        moon: signs.moon,
+        asc: signs.asc,
+        relationType: compatibility?.relationType,
+      }))),
+    ],
     caution: "점성술 해석은 방향성 참고용이며 투자/의료/법률의 확정 판단으로 사용하면 안 됩니다.",
     domainDataLines,
     minPromptLength: 1700,
@@ -403,6 +454,7 @@ export function buildAstrologyAIPrompt({ question, astrologyResult, compatibilit
   const digestSource = [
     normalizedQuestion,
     questionType,
+    resolvedDomain,
     birth.birthDate,
     birth.birthTime,
     birth.timezone,
@@ -447,7 +499,18 @@ export function buildAstrologyAIPrompt({ question, astrologyResult, compatibilit
     recommendedFollowUpQuestions: promptPackage.recommendedFollowUpQuestions,
     caution: promptPackage.caution,
     questionType,
+    domain: resolvedDomain,
+    domainLabel: domainTemplate.domainKo,
+    keywordWeights: domainTemplate.keywordWeights,
     compatibilityUsed: Boolean(compatibility),
     digestSource,
   };
+}
+
+export function buildAstrologyAIPrompt({ question, astrologyResult, compatibilityResult }) {
+  return buildAstrologyAIPromptWithDomain({
+    question,
+    astrologyResult,
+    compatibilityResult,
+  });
 }

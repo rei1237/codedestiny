@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { fetchBillingBalance, purchaseFeature } from "@/app/_lib/billing-client";
+import { authFetch } from "@/app/_lib/auth-client";
 import type { FptiAnalysisResult } from "@/lib/fpti/fpti-types";
 import {
   buildFptiDeepReport,
@@ -48,6 +49,161 @@ const QUALITY_LABELS = {
 
 const STORAGE_KEY = "fpti_deep_report_state_v2";
 const FPTI_PREMIUM_UNLOCK_KEYS = ["premium-fpti-report", "premium_fpti_report", "generatefptideepreport", "openfptideepreport"];
+const DISALLOWED_RENDER_TEXT = ["섹션 로딩 중입니다.", "내용 준비 중입니다.", "fallback", "skeleton", "undefined", "null", "[object Object]", "데이터가 없습니다"];
+
+function sanitizeUserText(value: unknown, fallbackText: string): string {
+  const text = String(value || "").trim();
+  if (!text) return fallbackText;
+  const lowered = text.toLowerCase();
+  if (DISALLOWED_RENDER_TEXT.some((token) => lowered.includes(token.toLowerCase()))) return fallbackText;
+  return text;
+}
+
+function buildUnlockRequestId(scope: string, signature: string): string {
+  const base = `${scope}|${signature}`.toLowerCase();
+  let hash = 0;
+  for (let i = 0; i < base.length; i += 1) {
+    hash = (hash * 31 + base.charCodeAt(i)) >>> 0;
+  }
+  return `fpti-deep-${hash.toString(16).padStart(8, "0")}`;
+}
+
+function normalizeDeepReport(report: FptiDeepReport, unlocked: boolean): FptiDeepReport {
+  const safeChapters = Array.isArray(report?.chapters) ? report.chapters.slice(0, 7).map((chapter, idx) => {
+    const sectionArray = Array.isArray(chapter?.sections) ? chapter.sections : [];
+    const normalizedSections = sectionArray.map((section, sectionIdx) => {
+      const safeBody = sanitizeUserText(
+        (section as Record<string, unknown>)?.body || section?.interpretation,
+        `${idx + 1}장 ${sectionIdx + 1}절은 현재 성향 축을 기준으로 관계, 일, 돈, 감정 패턴을 현실적으로 해석한 안내입니다. 핵심은 강점을 과신하지 않고 취약 구간을 운영 규칙으로 전환하는 것입니다.`,
+      );
+      return {
+        ...section,
+        title: sanitizeUserText(section?.title, `핵심 섹션 ${sectionIdx + 1}`),
+        interpretation: safeBody,
+        body: safeBody,
+        strength: sanitizeUserText(section?.strength, "장점을 과열 없이 유지하면 안정성이 높아집니다."),
+        risk: sanitizeUserText(section?.risk, "피로가 누적되면 판단 속도가 급격히 흔들릴 수 있습니다."),
+        action: sanitizeUserText(section?.action, "하루 핵심 행동 1개를 먼저 완료하고 복귀 루틴을 고정하세요."),
+        advice: sanitizeUserText((section as Record<string, unknown>)?.advice || section?.action, "하루 핵심 행동 1개를 먼저 완료하고 복귀 루틴을 고정하세요."),
+      };
+    });
+
+    return {
+      ...chapter,
+      id: String((chapter as Record<string, unknown>)?.id || chapter?.order || idx + 1),
+      title: sanitizeUserText(chapter?.title, `챕터 ${idx + 1}`),
+      chapterSummary: sanitizeUserText(
+        chapter?.chapterSummary,
+        `${idx + 1}장은 현재 성향 축의 강점과 취약 구간을 생활 장면에 맞춰 해석한 실행형 요약입니다.`,
+      ),
+      sections: unlocked
+        ? (normalizedSections.length ? normalizedSections : [{
+          title: "핵심 해석",
+          usedSignals: ["성향 축", "십성 분포", "행동 패턴"],
+          interpretation: "현재 데이터 변동이 있어도 읽을 수 있도록 기준형 본문을 보강했습니다. 이 장은 강점이 발휘되는 조건, 무너지는 조건, 복귀 전략을 함께 설명합니다.",
+          body: "현재 데이터 변동이 있어도 읽을 수 있도록 기준형 본문을 보강했습니다. 이 장은 강점이 발휘되는 조건, 무너지는 조건, 복귀 전략을 함께 설명합니다.",
+          strength: "상황 판단 기준이 선명해집니다.",
+          risk: "피로가 누적되면 결정 품질이 낮아질 수 있습니다.",
+          action: "핵심 행동 1개를 먼저 완료하고 점검 루틴을 유지하세요.",
+          advice: "핵심 행동 1개를 먼저 완료하고 점검 루틴을 유지하세요.",
+        }])
+        : (idx === 0 ? normalizedSections.slice(0, 1) : []),
+    };
+  }) : [];
+
+  return {
+    ...report,
+    unlocked,
+    summary: {
+      ...report.summary,
+      preview: sanitizeUserText(report?.summary?.preview, "사주 십성 기반으로 성향, 관계, 일, 돈, 스트레스 패턴을 단계적으로 해석한 리포트입니다."),
+      caution: sanitizeUserText(report?.summary?.caution, "피로 누적 구간에서는 큰 결정보다 복귀 루틴을 먼저 유지하세요."),
+      highlights: Array.isArray(report?.summary?.highlights)
+        ? report.summary.highlights.map((item) => sanitizeUserText(item, "핵심 포인트")).filter(Boolean)
+        : [],
+    },
+    chapters: safeChapters,
+  };
+}
+
+function mapServerDeepReport(result: FptiAnalysisResult, serverRaw: unknown): FptiDeepReport | null {
+  if (!serverRaw || typeof serverRaw !== "object") return null;
+  const raw = serverRaw as Record<string, unknown>;
+  const rawChapters = Array.isArray(raw.chapters) ? raw.chapters : [];
+  if (!rawChapters.length) return null;
+
+  const base = resolveUnlockReport(result);
+  const mappedChapters = rawChapters.slice(0, 7).map((chapterRaw, idx) => {
+    const chapter = chapterRaw && typeof chapterRaw === "object" ? (chapterRaw as Record<string, unknown>) : {};
+    const rawSections = Array.isArray(chapter.sections) ? chapter.sections : [];
+    const sections = rawSections.map((sectionRaw, sectionIdx) => {
+      const section = sectionRaw && typeof sectionRaw === "object" ? (sectionRaw as Record<string, unknown>) : {};
+      const body = sanitizeUserText(section.body || section.interpretation, `${idx + 1}장 ${sectionIdx + 1}절은 현재 성향 축을 기준으로 관계, 일, 돈, 감정 패턴을 현실적으로 정리한 해석입니다.`);
+      return {
+        title: sanitizeUserText(section.title, `핵심 섹션 ${sectionIdx + 1}`),
+        usedSignals: Array.isArray(section.usedSignals)
+          ? (section.usedSignals as unknown[]).map((v) => sanitizeUserText(v, "핵심 성향 신호")).filter(Boolean)
+          : ["사주 십성 분포", "성향 축 점수", "행동 패턴"],
+        interpretation: body,
+        body,
+        strength: sanitizeUserText(section.strength, "강점을 과열 없이 유지하면 실행 안정성이 올라갑니다."),
+        risk: sanitizeUserText(section.risk, "피로 누적 구간에서 판단 지연이 생길 수 있습니다."),
+        action: sanitizeUserText(section.action, "핵심 행동 1개를 먼저 완료하고 복귀 루틴을 유지하세요."),
+        advice: sanitizeUserText(section.advice || section.action, "핵심 행동 1개를 먼저 완료하고 복귀 루틴을 유지하세요."),
+      };
+    });
+
+    const baseChapter = base.chapters[idx] || base.chapters[0];
+    return {
+      ...baseChapter,
+      id: sanitizeUserText(chapter.id, String(baseChapter?.order || idx + 1)),
+      order: Number(chapter.order || baseChapter?.order || idx + 1),
+      title: sanitizeUserText(chapter.title, baseChapter?.title || `챕터 ${idx + 1}`),
+      subtitle: sanitizeUserText(chapter.subtitle, "사주 십성 기반 심층 해석"),
+      preview: sanitizeUserText(chapter.preview, sections[0]?.interpretation || ""),
+      locked: false,
+      isPreview: false,
+      sections,
+      chapterSummary: sanitizeUserText(chapter.chapterSummary, baseChapter?.chapterSummary || `${idx + 1}장의 핵심 요약입니다.`),
+    };
+  });
+
+  return {
+    ...base,
+    unlocked: true,
+    generatedAt: sanitizeUserText(raw.generatedAt, base.generatedAt),
+    summary: {
+      ...base.summary,
+      preview: sanitizeUserText(raw.summary, base.summary.preview),
+      highlights: base.summary.highlights,
+      caution: base.summary.caution,
+    },
+    chapters: mappedChapters,
+  };
+}
+
+async function fetchServerDeepReport(result: FptiAnalysisResult, signature: string): Promise<FptiDeepReport | null> {
+  try {
+    const response = await authFetch("/api/fpti/deep-report", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        reportSignature: signature,
+        reportId: signature,
+        sessionId: signature,
+        result,
+      }),
+      cache: "no-store",
+    });
+
+    if (!response.ok) return null;
+    const payload = await response.json().catch(() => ({}));
+    const serverReport = (payload?.data && typeof payload.data === "object" ? payload.data.report : null) as unknown;
+    return mapServerDeepReport(result, serverReport);
+  } catch {
+    return null;
+  }
+}
 
 function AxisChip({ label, value }: { label: string; value: string }) {
   return (
@@ -123,7 +279,10 @@ function safeReadStored(scope: string, signature: string): StoredDeepReport | nu
     if (parsed.scope !== scope) return null;
     if (parsed.signature !== signature) return null;
     if (!parsed.access?.isUnlocked) return null;
-    return parsed;
+    return {
+      ...parsed,
+      report: normalizeDeepReport(parsed.report, true),
+    };
   } catch {
     return null;
   }
@@ -218,9 +377,11 @@ export default function FptiResultCard({ result }: Props) {
   const codeParts = (result?.code || "").split("").filter(Boolean);
   const [deepLoading, setDeepLoading] = useState(false);
   const [deepError, setDeepError] = useState("");
+  const [deepNotice, setDeepNotice] = useState("");
   const [activeChapter, setActiveChapter] = useState(0);
   const [accessState, setAccessState] = useState<FptiReportAccessState>({ isUnlocked: false });
-  const [deepReport, setDeepReport] = useState<FptiDeepReport>(() => createInitialDeepReport(result));
+  const [deepReport, setDeepReport] = useState<FptiDeepReport>(() => normalizeDeepReport(createInitialDeepReport(result), false));
+  const unlockingRef = useRef(false);
 
   const freeHighlights = useMemo(
     () => [
@@ -242,10 +403,10 @@ export default function FptiResultCard({ result }: Props) {
     const stored = safeReadStored(scope, signature);
     if (stored?.report && stored.access?.isUnlocked) {
       setAccessState(stored.access);
-      setDeepReport(stored.report);
+      setDeepReport(normalizeDeepReport(stored.report, true));
     } else {
       setAccessState({ isUnlocked: false });
-      setDeepReport(createInitialDeepReport(result));
+      setDeepReport(normalizeDeepReport(createInitialDeepReport(result), false));
     }
 
     const syncFromDb = async () => {
@@ -260,7 +421,7 @@ export default function FptiResultCard({ result }: Props) {
         const dbUnlocked = hasFptiPremiumUnlock(balance.data as unknown as Record<string, unknown>);
         if (!dbUnlocked) {
           setAccessState({ isUnlocked: false });
-          setDeepReport(createInitialDeepReport(result));
+          setDeepReport(normalizeDeepReport(createInitialDeepReport(result), false));
           return;
         }
 
@@ -271,21 +432,24 @@ export default function FptiResultCard({ result }: Props) {
           unlockedAt: stored?.access?.unlockedAt || new Date().toISOString(),
         };
         try {
-          const unlockedReport = buildFptiDeepReport({ result }, { unlocked: true });
+          const unlockedReport = await fetchServerDeepReport(result, signature)
+            || buildFptiDeepReport({ result }, { unlocked: true });
           setAccessState(nextAccess);
-          setDeepReport(unlockedReport);
+          setDeepReport(normalizeDeepReport(unlockedReport, true));
           setActiveChapter(0);
+          setDeepNotice("이미 잠금 해제된 리포트입니다. 전체 내용을 표시합니다.");
           safeWriteStored({
             version: 1,
             scope,
             signature,
             access: nextAccess,
-            report: unlockedReport,
+            report: normalizeDeepReport(unlockedReport, true),
           });
         } catch (e) {
           // Fallback if unlock fails
           setAccessState(nextAccess);
-          setDeepReport(createInitialDeepReport(result));
+          setDeepReport(normalizeDeepReport(resolveUnlockReport(result), true));
+          setDeepNotice("이미 잠금 해제된 리포트입니다. 전체 내용을 표시합니다.");
         }
       } catch {
         // Keep current state when balance sync fails.
@@ -300,32 +464,23 @@ export default function FptiResultCard({ result }: Props) {
   }, [result, signature]);
 
   const handleUnlockDeepReport = async () => {
-    if (deepLoading) return;
+    if (deepLoading || unlockingRef.current) return;
     if (accessState.isUnlocked) return;
 
+    unlockingRef.current = true;
     setDeepError("");
+    setDeepNotice("");
     setDeepLoading(true);
 
     try {
-      let built: FptiDeepReport;
-      try {
-        built = buildFptiDeepReport({ result }, { unlocked: true });
-      } catch (e) {
-        // Fallback on build error
-        built = createInitialDeepReport(result);
-      }
-
-      if (!Array.isArray(built.chapters) || built.chapters.length === 0) {
-        setDeepError("심층 리포트 생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
-        return;
-      }
-
-      const requestId = `fpti-deep-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const scope = readAuthScope();
+      const requestIdStable = buildUnlockRequestId(scope, signature);
       const purchase = await purchaseFeature({
         featureKey: "premium-fpti-report",
         reason: "FPTI 프리미엄 리포트 생성",
-        requestId,
-        forceDeduct: true,
+        requestId: requestIdStable,
+        reportId: signature,
+        sessionId: signature,
       });
 
       if (!purchase.ok) {
@@ -343,29 +498,39 @@ export default function FptiResultCard({ result }: Props) {
 
       const rawData = (purchase.data || {}) as Record<string, unknown>;
       const consume = rawData.consume as Record<string, unknown> | undefined;
+      const responseCode = String((purchase.raw as Record<string, unknown>)?.code || "").toUpperCase();
+      const chargedCoins = Number((purchase.raw as Record<string, unknown>)?.chargedCoins || (consume?.chargedCoins as number) || 0);
       const nextAccess: FptiReportAccessState = {
         isUnlocked: true,
         unlockMethod: inferUnlockMethod(rawData),
-        transactionId: String(consume?.transactionId || consume?.receiptId || requestId),
+        transactionId: String(consume?.transactionId || consume?.receiptId || requestIdStable),
         unlockedAt: String(consume?.createdAt || new Date().toISOString()),
       };
 
-      setAccessState(nextAccess);
-      setDeepReport(built);
-      setActiveChapter(0);
+      const unlockedReport = await fetchServerDeepReport(result, signature)
+        || resolveUnlockReport(result);
 
-      const scope = readAuthScope();
+      setAccessState(nextAccess);
+      setDeepReport(normalizeDeepReport(unlockedReport, true));
+      setActiveChapter(0);
+      if (responseCode === "IDEMPOTENT_REPLAY" || chargedCoins === 0) {
+        setDeepNotice("이미 잠금 해제된 리포트입니다. 전체 내용을 표시합니다.");
+      } else {
+        setDeepNotice("잠금 해제가 완료되었습니다. 7개 챕터 전체를 열람할 수 있습니다.");
+      }
+
       safeWriteStored({
         version: 1,
         scope,
         signature,
         access: nextAccess,
-        report: built,
+        report: normalizeDeepReport(unlockedReport, true),
       });
     } catch (e) {
       setDeepError("심층 리포트 잠금 해제 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
       setDeepLoading(false);
+      unlockingRef.current = false;
     }
   };
 
@@ -513,13 +678,19 @@ export default function FptiResultCard({ result }: Props) {
               disabled={deepLoading}
               className="rounded-full bg-[linear-gradient(120deg,#0ea5e9,#2563eb,#f59e0b)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(14,165,233,0.35)] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {deepLoading ? "잠금 해제 처리 중" : "심층 리포트 잠금 해제"}
+              {deepLoading ? "잠금 해제 처리 중" : "FPTI 심층 리포트 잠금 해제 (200코인)"}
+            </button>
+          )}
+          {accessState.isUnlocked && (
+            <button type="button" disabled className="rounded-full border border-emerald-200/30 bg-emerald-500/20 px-5 py-2.5 text-sm font-semibold text-emerald-50 opacity-90">
+              이미 잠금 해제됨
             </button>
           )}
         </div>
         <div className="mt-3 rounded-xl border border-white/15 bg-black/20 p-3 text-sm text-slate-100">
-          상태: <span className={accessState.isUnlocked ? styles.neonTextCyan : styles.neonTextGold}>{accessState.isUnlocked ? "잠금 해제 완료" : "미리보기"}</span>
+          상태: <span className={accessState.isUnlocked ? styles.neonTextCyan : styles.neonTextGold}>{accessState.isUnlocked ? "전체 열람 가능" : "미리보기"}</span>
         </div>
+        {deepNotice && <p className="mt-3 rounded-xl border border-emerald-300/35 bg-emerald-500/15 p-3 text-sm text-emerald-100">{deepNotice}</p>}
         {deepError && <p className="mt-3 rounded-xl border border-rose-300/35 bg-rose-500/15 p-3 text-sm text-rose-100">{deepError}</p>}
       </div>
 
@@ -544,34 +715,40 @@ export default function FptiResultCard({ result }: Props) {
         <div className="mt-4 space-y-3">
           {Array.isArray(deepReport?.chapters) && deepReport.chapters.map((chapter, idx) => {
             const open = idx === activeChapter;
+            const lockedChapter = !accessState.isUnlocked && idx > 0;
             return (
-              <article key={`${chapter?.roman}-${chapter?.order}`} className="rounded-2xl border border-white/15 bg-black/20">
+              <article key={`${chapter?.roman}-${chapter?.order}`} className={`rounded-2xl border border-white/15 bg-black/20 ${lockedChapter ? "opacity-90" : ""}`}>
                 <button
                   type="button"
                   onClick={() => setActiveChapter(idx)}
                   className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
                 >
                   <h5 className="text-sm font-semibold text-sky-100">{chapter?.roman}. {chapter?.title}</h5>
-                  <span className="text-xs text-slate-300">{open ? "접기" : "열기"}</span>
+                  <span className="text-xs text-slate-300">{lockedChapter ? "잠금" : open ? "접기" : "열기"}</span>
                 </button>
                 {open && (
                   <div className="border-t border-white/10 px-4 pb-4 pt-3">
-                    {!accessState.isUnlocked && (
+                    {lockedChapter && (
                       <p className="mb-3 rounded-xl border border-amber-300/30 bg-amber-400/10 p-3 text-xs text-amber-100">
-                        이 챕터는 미리보기 1~2문장만 표시됩니다. 전체 내용을 보려면 잠금을 해제하세요.
+                        🔒 이 챕터는 잠금 상태입니다. FPTI 심층 리포트 잠금 해제 후 전체 본문을 볼 수 있습니다.
+                      </p>
+                    )}
+                    {!accessState.isUnlocked && idx === 0 && (
+                      <p className="mb-3 rounded-xl border border-amber-300/30 bg-amber-400/10 p-3 text-xs text-amber-100">
+                        1챕터는 1~2문장 미리보기로 제공됩니다. 잠금 해제 시 7개 챕터 전체가 열립니다.
                       </p>
                     )}
 
-                    <div className="space-y-3">
+                    {!lockedChapter && <div className="space-y-3">
                       {chapter.sections && Array.isArray(chapter.sections) && chapter.sections.map((section) => (
                         <article key={`${chapter.roman}-${section?.title}`} className="rounded-2xl border border-cyan-300/20 bg-cyan-500/5 p-3 transition hover:shadow-[0_0_20px_rgba(56,189,248,0.22)]">
                           <h6 className="text-sm font-semibold text-cyan-100">{section?.title || "제목 없음"}</h6>
-                          <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-100">{section?.interpretation || ""}</p>
+                          <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-100">{sanitizeUserText((section as Record<string, unknown>)?.body || section?.interpretation, "이 섹션은 현재 성향 축과 십성 분포를 바탕으로 행동 패턴, 관계 반응, 현실 선택 전략을 균형 있게 해석한 안내입니다.")}</p>
                           {accessState.isUnlocked && (
                             <div className="mt-3 grid gap-2 md:grid-cols-3">
                               <p className="rounded-lg border border-emerald-200/25 bg-emerald-500/10 p-2 text-xs text-emerald-100">강점: {section?.strength || "-"}</p>
                               <p className="rounded-lg border border-amber-200/25 bg-amber-500/10 p-2 text-xs text-amber-100">주의: {section?.risk || "-"}</p>
-                              <p className="rounded-lg border border-sky-200/25 bg-sky-500/10 p-2 text-xs text-sky-100">실행: {section?.action || "-"}</p>
+                              <p className="rounded-lg border border-sky-200/25 bg-sky-500/10 p-2 text-xs text-sky-100">실행: {sanitizeUserText((section as Record<string, unknown>)?.advice || section?.action, "핵심 행동 1개를 먼저 완료하고 주간 점검을 고정하세요.")}</p>
                             </div>
                           )}
                           <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-2">
@@ -584,10 +761,10 @@ export default function FptiResultCard({ result }: Props) {
                           </div>
                         </article>
                       ))}
-                    </div>
+                    </div>}
 
                     <p className="mt-4 rounded-xl border border-amber-200/30 bg-amber-300/10 p-3 text-sm leading-7 text-amber-100">
-                      {chapter?.chapterSummary || ""}
+                      {sanitizeUserText(chapter?.chapterSummary, "이 챕터는 성향 축의 강점과 취약 구간을 현실 행동으로 연결하는 실행형 요약입니다.")}
                     </p>
                   </div>
                 )}

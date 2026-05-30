@@ -100,6 +100,11 @@ function normalizeRefundReason(value) {
   return String(value || "").trim().slice(0, 160);
 }
 
+function isTruthy(value) {
+  const raw = String(value == null ? "" : value).trim().toLowerCase();
+  return raw === "1" || raw === "true" || raw === "yes" || raw === "on";
+}
+
 function isSoftAbandonReason(reasonCode) {
   const code = String(reasonCode || "").trim().toLowerCase();
   return code === "client_disconnect"
@@ -516,18 +521,31 @@ export async function failServiceExecution(env, userId, payload = {}) {
   if (!userObjectId) return { ok: false, status: 400, message: "Invalid user id." };
 
   const executionKey = normalizeExecutionKey(payload.executionKey || payload.requestId);
-  if (!executionKey) return { ok: false, status: 400, message: "executionKey is required." };
+  const sessionId = normalizeSessionId(payload.sessionId || payload.reportSessionId);
+  const reportId = normalizeReportId(payload.reportId);
+  if (!executionKey && !sessionId && !reportId) {
+    return { ok: false, status: 400, message: "executionKey or sessionId or reportId is required." };
+  }
 
   const reason = normalizeReason(payload.reasonCode || "manual_fail", payload.reasonMessage || "Client reported execution failure.");
   const failureStage = normalizeFailureStage(payload.failureStage || reason.code);
   const failureReason = normalizeFailureReason(payload.failureReason || reason.message);
   const softAbandon = isSoftAbandonReason(reason.code);
+  const closeRefundImmediate = payload.forceRefundOnClose === true
+    || (payload.forceRefundOnClose == null && !isTruthy(env?.SERVICE_EXEC_DEFER_SOFT_ABANDON));
 
-  const doc = await ServiceExecutionTransaction.findOne({ userId: userObjectId, executionKey }).lean();
+  const query = { userId: userObjectId };
+  if (executionKey) query.executionKey = executionKey;
+  else if (sessionId) query.sessionId = sessionId;
+  else query.reportId = reportId;
+
+  const doc = await ServiceExecutionTransaction.findOne(query)
+    .sort({ createdAt: -1, updatedAt: -1 })
+    .lean();
   if (!doc) return { ok: false, status: 404, message: "Execution not found." };
   if (doc.status !== "pending") return { ok: true, status: 200, idempotent: true, execution: toSummary(doc) };
 
-  if (softAbandon) {
+  if (softAbandon && !closeRefundImmediate) {
     const now = nowDate();
     const graceSeconds = clampInt(payload.graceSeconds, DEFAULT_SOFT_ABANDON_GRACE_SECONDS, 300, 3600);
     const graceTimeoutAt = toTimeoutAt(now, graceSeconds);

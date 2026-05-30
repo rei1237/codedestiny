@@ -1,9 +1,15 @@
 import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js";
+import {
+  SAJU_PROMPT_TEMPLATES,
+  getSajuPromptTemplate,
+  classifyQuestionToSajuDomain,
+} from "./saju-ai-prompt-templates.mjs";
 
 const DEFAULT_TEXT = "제공되지 않음";
 
 export const SAJU_AI_PROMPT_FEATURE_KEY = "saju_ai_prompt_generator";
 export const SAJU_AI_PROMPT_PRICE = 100;
+export { SAJU_PROMPT_TEMPLATES, getSajuPromptTemplate, classifyQuestionToSajuDomain };
 
 const QUESTION_TYPE_RULES = Object.freeze({
   love: ["연애", "결혼", "재회", "상대", "배우자", "인연", "썸"],
@@ -252,12 +258,48 @@ function buildSajuFollowUps(questionType) {
   return common;
 }
 
-export function buildSajuAIPrompt({ question, sajuResult, profile: profileOverride, compatibilityTarget, mode } = {}) {
+function buildKeywordWeightLines(template) {
+  const keywordWeights = template && typeof template.keywordWeights === "object"
+    ? template.keywordWeights
+    : {};
+  const ranked = Object.entries(keywordWeights)
+    .sort((a, b) => Number(b?.[1]?.weight || 0) - Number(a?.[1]?.weight || 0))
+    .slice(0, 5);
+
+  if (!ranked.length) return [DEFAULT_TEXT];
+
+  return ranked.map(([keyword, meta]) => {
+    const pct = Math.round(Number(meta?.weight || 0) * 100);
+    const depth = toText(meta?.depth, "기본");
+    const markers = Array.isArray(meta?.markers) ? meta.markers.slice(0, 4).join(", ") : DEFAULT_TEXT;
+    return `${keyword} ${pct}% (${depth}) [${markers}]`;
+  });
+}
+
+function fillPatternVariables(pattern, context) {
+  return String(pattern || "")
+    .replace(/\{\{\s*dayStem\s*\}\}/g, String(context?.dayStem || "일간"))
+    .replace(/\{\{\s*questionType\s*\}\}/g, String(context?.questionTypeLabel || "질문 주제"));
+}
+
+export function buildSajuAIPromptWithDomain({
+  question,
+  sajuResult,
+  profile: profileOverride,
+  compatibilityTarget,
+  mode,
+  domain,
+} = {}) {
   const normalizedQuestion = ensureValidQuestion(question);
   ensureSajuResultPresence(sajuResult);
 
   const questionType = classifySajuPromptQuestionType(normalizedQuestion);
   const questionTypeLabel = QUESTION_TYPE_LABELS[questionType] || QUESTION_TYPE_LABELS.general;
+  const resolvedDomain = String(domain || "").trim() || classifyQuestionToSajuDomain(normalizedQuestion);
+  const template = getSajuPromptTemplate(resolvedDomain);
+  if (!template) {
+    throw new Error(`UNKNOWN_SAJU_DOMAIN:${resolvedDomain}`);
+  }
 
   const normalizedProfile = normalizeBirthInfo(profileOverride || sajuResult.profile, sajuResult.snapshot);
   const pillars = normalizePillars(sajuResult.pillars);
@@ -266,7 +308,10 @@ export function buildSajuAIPrompt({ question, sajuResult, profile: profileOverri
   const power = sajuResult.power && typeof sajuResult.power === "object" ? sajuResult.power : {};
   const jong = sajuResult.jong && typeof sajuResult.jong === "object" ? sajuResult.jong : {};
 
+  const keywordWeightLines = buildKeywordWeightLines(template);
+
   const domainDataLines = [
+    `도메인: ${template.domainKo}`,
     `질문 유형: ${questionTypeLabel}`,
     `이름/성별: ${normalizedProfile.name} / ${normalizedProfile.gender}`,
     `생년월일/시간: ${normalizedProfile.birthDate} ${normalizedProfile.birthTime}`,
@@ -278,7 +323,13 @@ export function buildSajuAIPrompt({ question, sajuResult, profile: profileOverri
     `신강/신약: ${typeof power.isStrong === "boolean" ? (power.isStrong ? "신강" : "신약") : DEFAULT_TEXT}`,
     `용신/기신 후보: ${toArrayText(power.yongshin)} / ${toArrayText(power.kijishin)}`,
     `종격 여부: ${jong.isJong ? `예 (${toText(jong.name, "종격")})` : "아니오"}`,
+    `핵심 키워드 가중치: ${keywordWeightLines.join(" | ")}`,
   ];
+
+  const followUps = (Array.isArray(template.questionPatterns) ? template.questionPatterns : []).map((pattern) => fillPatternVariables(pattern, {
+    dayStem: pillars.dayStem,
+    questionTypeLabel,
+  }));
 
   const promptPackage = buildFortuneQuestionPromptPackage({
     fortuneType: "saju",
@@ -288,10 +339,10 @@ export function buildSajuAIPrompt({ question, sajuResult, profile: profileOverri
     analysisResult: sajuResult,
     profile: normalizedProfile,
     compatibilityTarget,
-    mode,
-    questionTypeLabel,
-    analysisAngles: buildSajuAnalysisAngles(questionType, normalizedQuestion),
-    recommendedFollowUpQuestions: buildSajuFollowUps(questionType),
+    mode: mode || resolvedDomain,
+    questionTypeLabel: `${template.domainKo}/${questionTypeLabel}`,
+    analysisAngles: (template.analysisAngles || []).concat(buildSajuAnalysisAngles(questionType, normalizedQuestion)),
+    recommendedFollowUpQuestions: followUps.length ? followUps : buildSajuFollowUps(questionType),
     caution: "사주는 확률적 경향 해석이며 법률/의료/투자 결정을 대체하지 않습니다.",
     domainDataLines,
     minPromptLength: 1800,
@@ -299,6 +350,7 @@ export function buildSajuAIPrompt({ question, sajuResult, profile: profileOverri
 
   const digestSource = [
     normalizedQuestion,
+    resolvedDomain,
     questionType,
     normalizedProfile.gender,
     normalizedProfile.birthDate,
@@ -335,6 +387,19 @@ export function buildSajuAIPrompt({ question, sajuResult, profile: profileOverri
     recommendedFollowUpQuestions: promptPackage.recommendedFollowUpQuestions,
     caution: promptPackage.caution,
     questionType,
+    domain: resolvedDomain,
+    domainLabel: template.domainKo,
+    keywordWeights: template.keywordWeights,
     digestSource,
   };
+}
+
+export function buildSajuAIPrompt({ question, sajuResult, profile: profileOverride, compatibilityTarget, mode } = {}) {
+  return buildSajuAIPromptWithDomain({
+    question,
+    sajuResult,
+    profile: profileOverride,
+    compatibilityTarget,
+    mode,
+  });
 }

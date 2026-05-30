@@ -5,11 +5,14 @@
   var FEATURE_KEY = 'premium_pdf_ziwei';
   var COIN_COST = 590;
   var PREPARE_API = '/api/ziwei-book/prepare';
+  var BILLING_EXEC_FAIL_API = '/api/billing/executions/fail';
   var ZIWEI_FETCH_TIMEOUT_MS = 30000;
   var COVER_IMAGE = '/fuctionassets/jamipremiun.webp';
   var RESULT = null;
   var GENERATING = false;
   var LAST_SEED = null;
+  var CANCEL_REQUESTED = false;
+  var EXECUTION_FAIL_NOTIFIED = false;
   var ZIWEI_GENERATION_STATE = {
     isOpen: false,
     status: 'idle',
@@ -121,6 +124,76 @@
       });
   }
 
+  function _buildExecutionFailPayload(reasonCode, reasonMessage, options){
+    var opts = options || {};
+    var sessionId = text(opts.sessionId || ZIWEI_GENERATION_STATE.sessionId);
+    if(!sessionId) return null;
+    return {
+      sessionId: sessionId,
+      reportType: 'ziweiPremium',
+      featureKey: FEATURE_KEY,
+      reasonCode: text(reasonCode || 'client_cancelled') || 'client_cancelled',
+      reasonMessage: text(reasonMessage || '사용자 요청으로 생성이 취소되었습니다.') || '사용자 요청으로 생성이 취소되었습니다.',
+      failureStage: text(opts.failureStage || 'client_close') || 'client_close',
+      failureReason: text(reasonMessage || opts.failureReason || '사용자 요청으로 생성이 취소되었습니다.'),
+      forceRefundOnClose: true
+    };
+  }
+
+  function _isCloseRefundEligible(){
+    if(!GENERATING) return false;
+    if(RESULT) return false;
+    return String(ZIWEI_GENERATION_STATE.status || '').toLowerCase() !== 'completed';
+  }
+
+  async function notifyExecutionFailed(reasonCode, reasonMessage, options){
+    if(EXECUTION_FAIL_NOTIFIED) return true;
+    var payload = _buildExecutionFailPayload(reasonCode, reasonMessage, options);
+    if(!payload) return false;
+
+    var endpoints = _buildApiCandidates(BILLING_EXEC_FAIL_API);
+    var authToken = '';
+    try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch(_) { authToken = ''; }
+
+    var opts = options || {};
+    if(opts.useBeacon && typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function'){
+      var sent = false;
+      for(var i=0;i<endpoints.length;i++){
+        try {
+          var beaconBody = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+          if(navigator.sendBeacon(endpoints[i], beaconBody)){
+            sent = true;
+            break;
+          }
+        } catch(_) {}
+      }
+      if(sent){
+        EXECUTION_FAIL_NOTIFIED = true;
+        return true;
+      }
+    }
+
+    for(var j=0;j<endpoints.length;j++){
+      try {
+        var headers = { 'Content-Type': 'application/json' };
+        if(authToken) headers.Authorization = 'Bearer ' + authToken;
+        var res = await fetch(endpoints[j], {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify(payload),
+          credentials: 'include',
+          cache: 'no-store',
+          keepalive: Boolean(opts.keepalive),
+        });
+        if(res && res.ok){
+          EXECUTION_FAIL_NOTIFIED = true;
+          return true;
+        }
+      } catch(_) {}
+    }
+    return false;
+  }
+
   function _isRetryableZiweiStatus(status){
     var code = Number(status || 0);
     return code >= 500 || code === 408 || code === 425 || code === 429;
@@ -151,6 +224,10 @@
         return '네트워크 연결 문제로 자미두수 PDF 요청에 실패했습니다. 연결 상태 확인 후 다시 시도해주세요.';
       }
       return '자미두수 PDF 요청 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+    }
+
+    if (httpStatus === 499 || errorCode === 'ZIWEI_CLIENT_CANCELLED') {
+      return '생성이 취소되어 사용된 코인이 자동 환불 처리됩니다. 잠시 후 잔액을 확인해 주세요.';
     }
     
     if (httpStatus === 429) {
@@ -914,7 +991,19 @@
       modal.style.display = 'none';
       document.body.classList.remove('modal-open');
     }
-    updateZiweiGenerationState({ isOpen: false, status: GENERATING ? 'generating' : ZIWEI_GENERATION_STATE.status });
+    if(_isCloseRefundEligible()){
+      CANCEL_REQUESTED = true;
+      updateZiweiGenerationState({ status: 'cancelling', message: '생성을 취소하고 환불을 처리하고 있습니다.' });
+      notifyExecutionFailed('client_closed_refund', '사용자가 자미두수 PDF 생성을 취소했습니다.', {
+        failureStage: 'client_close',
+        keepalive: true,
+      });
+      if(window.showToast) window.showToast('생성 취소를 처리 중입니다. 사용된 코인은 자동 환불됩니다.', 'info');
+    }
+    updateZiweiGenerationState({
+      isOpen: false,
+      status: GENERATING ? (CANCEL_REQUESTED ? 'cancelling' : 'generating') : ZIWEI_GENERATION_STATE.status
+    });
   };
 
   window.gotoZiweiPremium = function(){
@@ -924,6 +1013,8 @@
   window.generateZiweiBook = async function(){
     if(GENERATING) return;
     GENERATING = true;
+    CANCEL_REQUESTED = false;
+    EXECUTION_FAIL_NOTIFIED = false;
     RESULT = null;
     resetZiweiGenerationState();
     try {
@@ -957,6 +1048,12 @@
       updateProgress(46, '생성 준비를 마무리하고 있습니다.');
       updateZiweiGenerationState({ status: 'paymentChecking' });
       var payment = await ensurePayment();
+      if(CANCEL_REQUESTED){
+        var cancelEarly = new Error('생성이 취소되어 자동 환불 처리 중입니다.');
+        cancelEarly.status = 499;
+        cancelEarly.code = 'ZIWEI_CLIENT_CANCELLED';
+        throw cancelEarly;
+      }
       logFlow('PaymentGateSuccess', {
         hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken || payment.token))
       });
@@ -964,6 +1061,12 @@
       updateZiweiGenerationState({ status: 'calculating' });
       var profile = resolved.profileForEngine;
       var seed = await buildZiweiSeed(profile);
+      if(CANCEL_REQUESTED){
+        var cancelAfterSeed = new Error('생성이 취소되어 자동 환불 처리 중입니다.');
+        cancelAfterSeed.status = 499;
+        cancelAfterSeed.code = 'ZIWEI_CLIENT_CANCELLED';
+        throw cancelAfterSeed;
+      }
       updateProgress(35, '12궁에 담긴 삶의 무대를 읽고 있습니다.');
       updateZiweiGenerationState({ status: 'drafting' });
       updateProgress(58, '사랑과 직업, 재물의 흐름을 해석하고 있습니다.');
@@ -972,6 +1075,12 @@
       logFlow('SessionCreateStart', { endpoint: PREPARE_API, hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken)) });
       logFlow('PdfRequestStart', { endpoint: PREPARE_API, chapterTarget: TOTAL_CHAPTERS });
       var data = await postPrepare(profile, seed, Object.assign({}, payment, { sessionId: sessionId }), resolved.birthInput);
+      if(CANCEL_REQUESTED){
+        var cancelAfterPrepare = new Error('생성이 취소되어 자동 환불 처리 중입니다.');
+        cancelAfterPrepare.status = 499;
+        cancelAfterPrepare.code = 'ZIWEI_CLIENT_CANCELLED';
+        throw cancelAfterPrepare;
+      }
       if(!isZiweiReportReady(data)){
         throw new Error('자미두수 PDF 결과가 아직 완전히 저장되지 않았습니다. 잠시 후 다시 시도해 주세요.');
       }
@@ -998,6 +1107,12 @@
       updateZiweiGenerationState({ status: 'completed', reportId: text(data && data.reportId), currentChapterNo: TOTAL_CHAPTERS });
       renderResult(data);
     } catch(error) {
+      var isClientCancelled = CANCEL_REQUESTED || Number(error && error.status || 0) === 499 || String(error && error.code || '').toUpperCase() === 'ZIWEI_CLIENT_CANCELLED';
+      await notifyExecutionFailed(
+        isClientCancelled ? 'client_closed_refund' : 'ziwei_generation_failed_client',
+        (error && error.message) || (isClientCancelled ? '사용자가 생성을 취소했습니다.' : '자미두수 PDF 생성이 실패했습니다.'),
+        { failureStage: isClientCancelled ? 'client_close' : 'generation', keepalive: true },
+      );
       var normalizedError = normalizeZiweiError(error);
       var enhancedError = Object.assign({}, normalizedError, { status: error.status, code: error.code, details: error.details });
       var userMessage = _getZiweiStatusSpecificMessage(error.status, error.details);
@@ -1010,11 +1125,24 @@
         failedChapters: ZIWEI_GENERATION_STATE.failedChapters,
         details: error.details
       });
+      if(isClientCancelled && !ZIWEI_GENERATION_STATE.isOpen){
+        return;
+      }
       showError(userMessage || (normalizedError && normalizedError.message ? normalizedError.message : String(error)));
     } finally {
       GENERATING = false;
     }
   };
+
+  window.addEventListener('pagehide', function(){
+    if(!_isCloseRefundEligible()) return;
+    CANCEL_REQUESTED = true;
+    notifyExecutionFailed('client_unload_refund', '사용자가 페이지를 벗어나 자미두수 PDF 생성을 취소했습니다.', {
+      failureStage: 'client_close',
+      useBeacon: true,
+      keepalive: true,
+    });
+  });
 
   window.downloadZiweiBookPdf = function(){
     if(!RESULT){

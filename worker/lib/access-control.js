@@ -917,10 +917,17 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       reportType: normalizedReportType,
     });
     if (tokenCheck.ok && premiumTokenMatchesCurrentAccessRules(tokenCheck.payload, alternativeRules, requiredRules)) {
+      const tokenPayload = tokenCheck.payload || {};
+      const tokenTransactionId = String(tokenPayload.transactionId || requestBody?.sourceTransactionId || requestBody?.transactionId || "").trim();
+      const tokenFeatureKey = String(tokenPayload.featureKey || requestBody?.featureKey || "").trim();
+      const tokenChargedCoins = Math.max(0, Math.abs(Number(tokenPayload.chargedCoins || requestBody?.chargedCoins || 0)));
       const allowed = {
         ok: true,
         accessType: "signed-payment-token",
         reportType: normalizedReportType,
+        matchedTransactionId: tokenTransactionId,
+        featureKey: tokenFeatureKey,
+        chargedCoins: tokenChargedCoins,
       };
       logSajuAccessResolved(allowed);
       return allowed;

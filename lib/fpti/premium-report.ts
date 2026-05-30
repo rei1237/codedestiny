@@ -45,15 +45,20 @@ export type FptiDeepSection = {
   title: string;
   usedSignals: string[];
   interpretation: string;
+  body?: string;
   strength?: string;
   risk?: string;
   action?: string;
+  advice?: string;
 };
 
 export type FptiDeepChapter = {
+  id?: string;
   order: number;
   roman: "I" | "II" | "III" | "IV" | "V" | "VI" | "VII";
   title: string;
+  subtitle?: string;
+  preview?: string;
   isPreview: boolean;
   locked: boolean;
   sections: FptiDeepSection[];
@@ -93,6 +98,7 @@ export type ValidationResult = {
 export type FptiPremiumReport = FptiDeepReport;
 
 type ChapterDefinition = {
+  id: string;
   order: number;
   roman: FptiDeepChapter["roman"];
   title: string;
@@ -137,169 +143,98 @@ const FORBIDDEN_TEXT = [
 
 const CHAPTERS: ChapterDefinition[] = [
   {
+    id: "overview",
     order: 1,
     roman: "I",
     title: "FPTI 유형 총론 - 나의 운명 성향 코드",
     sections: [
-      "나의 FPTI 유형 코드",
-      "유형 코드의 구조적 의미",
-      "유형 코드가 형성된 결정 요인",
-      "유형을 구성하는 핵심 축",
-      "핵심 축 간 우선순위",
-      "가장 강하게 드러난 성향",
-      "보조적으로 작동하는 성향",
-      "강점 축 과열 시 나타나는 패턴",
-      "취약 축 보완의 출발점",
-      "이 유형의 인생 운영 방식",
-      "이 유형이 세상을 해석하는 방식",
+      "FPTI 코드의 핵심 의미",
+      "대표 십성이 성격에 미치는 영향",
       "겉으로 보이는 모습과 실제 내면의 차이",
-      "이 유형의 대표 강점",
-      "이 유형의 대표 약점",
-      "성향 변동이 큰 시간대와 상황",
-      "성향 안정화를 위한 기준 문장",
-      "한 줄 핵심 정의",
-      "이 유형에게 가장 중요한 삶의 기준",
+      "이 유형이 인생에서 반복하는 선택 패턴",
+      "이 유형이 잘 살아가기 위한 핵심 키워드",
     ],
   },
   {
+    id: "inner",
     order: 2,
     roman: "II",
     title: "내면 성격과 감정 패턴",
     sections: [
-      "기본 성격 구조",
-      "성격의 자동 반응 트리거",
-      "감정을 느끼는 방식",
-      "감정을 표현하는 방식",
-      "감정 억제와 분출의 경계점",
-      "혼자 있을 때의 내면 상태",
-      "불안하거나 흔들릴 때의 반응",
-      "스트레스 상황의 사고 왜곡 패턴",
-      "자존감이 올라가는 조건",
-      "자존감이 떨어지는 조건",
-      "비교 심리와 자기평가 패턴",
-      "인정 욕구와 자기 기준",
-      "감정 회복 방식",
-      "내면에서 반복되는 생각",
-      "감정 안정에 필요한 환경 조건",
-      "자기대화 재구성 문장",
-      "스스로를 다루는 방법",
+      "기본 감정 처리 방식",
+      "무의식적으로 방어하는 방식",
+      "친밀해질수록 드러나는 진짜 성격",
+      "혼자 있을 때 회복되는 방식",
+      "감정이 쌓였을 때 나타나는 신호",
     ],
   },
   {
+    id: "relationship",
     order: 3,
     roman: "III",
     title: "관계와 연애 패턴",
     sections: [
-      "사람을 대하는 기본 태도",
-      "첫인상과 신뢰 형성 방식",
-      "가까워지는 속도",
-      "거리 조절 기준선",
-      "좋아하는 사람 앞에서의 모습",
-      "연애에서 강하게 원하는 것",
-      "연애에서 불안해지는 지점",
-      "애착 반응의 촉발 요인",
-      "관계에서 반복되는 실수",
-      "갈등 전조 신호와 조기 개입 포인트",
-      "잘 맞는 상대 유형",
-      "피곤해지는 상대 유형",
-      "갈등이 생겼을 때의 반응",
-      "화해가 잘 되는 대화 구조",
-      "이별 또는 거리감이 생기는 패턴",
-      "관계 경계선 선언 문장",
-      "오래 가는 관계를 위한 조언",
+      "사람을 끌어당기는 방식",
+      "좋아하는 사람 앞에서 나타나는 행동",
+      "관계에서 반복되는 기대와 실망",
+      "연애에서 강점이 되는 십성",
+      "관계를 망치기 쉬운 그림자 패턴",
+      "건강한 관계를 위한 조율 전략",
     ],
   },
   {
+    id: "career",
     order: 4,
     roman: "IV",
     title: "일과 재능의 사용 방식",
     sections: [
-      "일할 때 가장 강해지는 방식",
-      "성과를 높이는 업무 진입 루틴",
-      "타고난 재능의 방향",
-      "재능의 생산성 전환 포인트",
-      "집중력이 살아나는 환경",
-      "성과를 만드는 방식",
-      "완성도를 떨어뜨리는 병목 구간",
-      "조직에서의 역할",
-      "혼자 일할 때와 함께 일할 때의 차이",
-      "협업 시 갈등을 줄이는 합의 방식",
-      "어울리는 직무 방향",
-      "피해야 할 업무 환경",
-      "인정받는 방식",
-      "리더십/팔로워십 발휘 조건",
-      "커리어에서 반복되는 문제",
-      "커리어 전환 타이밍 판단 기준",
-      "재능을 돈으로 연결하는 방법",
+      "타고난 일 처리 방식",
+      "성과가 나는 환경",
+      "피해야 하는 업무 구조",
+      "십성으로 보는 재능 사용법",
+      "직업적 성장 전략",
+      "리더십과 협업 방식",
     ],
   },
   {
+    id: "wealth",
     order: 5,
     roman: "V",
     title: "돈과 현실 감각",
     sections: [
       "돈을 바라보는 기본 태도",
-      "현금흐름에 대한 심리 반응",
-      "소비 습관",
-      "소비 후 후회가 발생하는 패턴",
-      "돈이 모이는 방식",
-      "돈이 새는 패턴",
-      "재정 의사결정의 감정 개입 지점",
-      "현실 감각의 강점",
-      "현실 감각의 약점",
-      "안정과 도전의 균형",
-      "손실 회피와 기회 비용의 균형",
-      "사업·부업·수익화 가능성",
-      "수익 다각화 우선순위",
-      "돈 때문에 스트레스받는 지점",
-      "재정 관리에 필요한 기준",
-      "월간 재정 점검 체크리스트",
-      "이 유형에게 맞는 돈 관리 전략",
+      "소비와 저축의 무의식 패턴",
+      "재성 구조로 보는 현실 감각",
+      "돈 때문에 흔들리는 지점",
+      "안정적인 수익 구조를 만드는 방식",
     ],
   },
   {
+    id: "stress",
     order: 6,
     roman: "VI",
     title: "스트레스와 그림자 성향",
     sections: [
-      "스트레스를 받는 핵심 원인",
-      "스트레스 누적 속도와 임계점",
-      "압박을 받을 때의 반응",
-      "관계 스트레스 패턴",
-      "일 스트레스 패턴",
-      "돈 스트레스 패턴",
-      "과부하 시 신체-감정 연동 반응",
-      "감정적으로 무너지는 순간",
-      "회피하거나 폭발하는 방식",
-      "그림자 성향",
-      "그림자 성향이 강해지는 조건",
-      "반복되는 자기방어 패턴",
-      "번아웃 신호",
-      "번아웃 직전 행동 지표",
-      "응급 회복 프로토콜 24시간",
-      "회복을 위해 가장 먼저 줄여야 할 것",
+      "압박을 받을 때 나타나는 반응",
+      "과잉 십성이 만드는 문제",
+      "부족한 십성이 만드는 불안",
+      "인간관계에서 드러나는 방어기제",
+      "무너질 때 반복하는 선택",
+      "회복을 위한 현실적 처방",
     ],
   },
   {
+    id: "growth",
     order: 7,
     roman: "VII",
     title: "성장 전략과 실행 로드맵",
     sections: [
-      "이 유형의 성장 핵심 키워드",
-      "성장 목표의 계량 지표 설정",
-      "가장 먼저 바꿔야 할 습관",
-      "유지해야 할 강점",
-      "버려야 할 방어 패턴",
-      "실행 지속률을 높이는 환경 설계",
-      "관계에서의 성장 전략",
-      "일에서의 성장 전략",
-      "돈과 현실에서의 성장 전략",
-      "감정 회복 루틴",
-      "주간 리뷰 질문 세트",
-      "실패 후 복귀 프로토콜",
-      "7일 실행 과제",
-      "30일 성장 로드맵",
-      "최종 조언",
+      "이 유형의 인생 성장 방향",
+      "지금 가장 먼저 고쳐야 할 습관",
+      "관계·일·돈의 균형 전략",
+      "30일 실행 루틴",
+      "90일 변화 로드맵",
+      "이 유형에게 필요한 한 문장",
     ],
   },
 ];
@@ -477,7 +412,7 @@ function sectionLens(chapterOrder: number, title: string, typeResult: LocalTypeR
     }
     return `> ${titleHint}은 ${typeResult.code}의 현재 축이 실제 생활에서 어떤 모습으로 나타나는지 보여줍니다.`;
   } catch (e) {
-    return `> 이 섹션의 상세 해석을 로드 중입니다.`;
+    return `> 이 섹션은 현재 점수 분포를 기준으로 감정, 행동, 현실 선택을 안정적으로 해석한 안내입니다.`;
   }
 }
 
@@ -627,20 +562,29 @@ export function buildFptiDeepSection(typeResult: LocalTypeResult, sectionDefinit
     title,
     usedSignals: signals,
     interpretation: repeatSafe(interpretation),
+    body: repeatSafe(interpretation),
     strength: flavor.strength,
     risk: flavor.risk,
     action: flavor.action,
+    advice: flavor.action,
   };
 }
 
 export function buildFptiDeepChapter(typeResult: LocalTypeResult, chapterDefinition: ChapterDefinition, unlocked = true): FptiDeepChapter {
   const sections = chapterDefinition.sections.map((title) => buildFptiDeepSection(typeResult, { chapter: chapterDefinition, title }));
+  const previewSection = sections[0]
+    ? {
+      ...sections[0],
+      interpretation: `${sections[0].interpretation.split(". ").slice(0, 2).join(". ").trim()}.`,
+    }
+    : null;
   const previewSections = sections.map((section) => {
     const interpretation = section.interpretation || "";
     const previewText = interpretation.split(". ").slice(0, 2).join(". ").trim();
     return {
       ...section,
       interpretation: previewText.length > 0 ? `${previewText}.` : interpretation,
+      body: previewText.length > 0 ? `${previewText}.` : interpretation,
     };
   });
 
@@ -648,14 +592,18 @@ export function buildFptiDeepChapter(typeResult: LocalTypeResult, chapterDefinit
     `${chapterDefinition.roman}. ${chapterDefinition.title} 요약: 이 챕터는 ${typeResult.typeName}(${typeResult.code})의 점수 분포를 바탕으로 행동 패턴을 현실 언어로 정리합니다. 상위 축인 ${typeResult.topAxes[0].label}(${formatScore(typeResult.topAxes[0].score)})과 ${typeResult.topAxes[1].label}(${formatScore(typeResult.topAxes[1].score)})은 강점이 발휘되는 장면을 설명하고, 하위 축인 ${typeResult.lowAxes[0].label}(${formatScore(typeResult.lowAxes[0].score)})은 피로 누적과 의사결정 지연이 발생하기 쉬운 조건을 보여 줍니다. 따라서 이 챕터의 핵심은 장점을 과신하지 않고 약점을 억지로 지우지도 않으면서, 생활 루틴 안에 실행 가능한 기준을 고정하는 데 있습니다. 섹션별 해석은 중복 문장을 피하고 주제별로 분리되어 있어, 관계·일·돈·감정 영역에서 바로 적용 가능한 운영 포인트를 찾을 수 있게 구성했습니다. ${chapter.order === 1 ? "총론은 나머지 여섯 챕터를 읽는 기준점입니다." : "이 챕터는 같은 유형 안에서도 상황에 따라 달라지는 운영 포인트를 구분해 줍니다."}`,
   );
 
+  const lockedByPreview = !unlocked && chapterDefinition.order > 1;
+
   return {
+    id: chapterDefinition.id,
     order: chapterDefinition.order,
     roman: chapterDefinition.roman,
     title: chapterDefinition.title,
+    preview: previewSection?.interpretation || "",
     isPreview: !unlocked,
-    locked: !unlocked,
-    sections: unlocked ? sections : previewSections,
-    chapterSummary: summary,
+    locked: lockedByPreview,
+    sections: unlocked ? sections : (chapterDefinition.order === 1 ? (previewSection ? [previewSection] : previewSections.slice(0, 1)) : []),
+    chapterSummary: lockedByPreview ? "잠금 해제 후 전체 내용을 확인할 수 있습니다." : summary,
   };
 }
 
@@ -702,7 +650,7 @@ export function validateFptiDeepReport(report: FptiDeepReport): ValidationResult
   const chapterBodies: string[] = [];
 
   for (const chapter of report.chapters) {
-    if (chapter.sections.length < 8) {
+    if (chapter.sections.length < 4 && !chapter.locked) {
       errors.push(`section count too low: ${chapter.roman}`);
     }
     if (sanitizeFptiDeepReportText(chapter.chapterSummary).length < 250) {
@@ -768,14 +716,29 @@ export function buildFptiDeepReport(input: FptiPremiumInput, options?: { unlocke
         return buildFptiDeepChapter(typeResult, chapter, unlocked);
       } catch (e) {
         // Return minimal fallback chapter on error
+        const safeText = `${chapter.roman}. ${chapter.title}은 현재 데이터 변동이 있어도 안정적으로 읽을 수 있도록 기준형 해석으로 보강되었습니다. 이 섹션에서는 성향 축, 관계 패턴, 실행 전략을 순서대로 정리해 실제 생활에 적용할 수 있는 문장 중심 가이드를 제공합니다. 핵심은 강점의 과신을 줄이고 취약 구간을 운영 규칙으로 바꾸는 것입니다.`;
         return {
+          id: chapter.id,
           order: chapter.order,
           roman: chapter.roman,
           title: chapter.title,
           isPreview: !unlocked,
-          locked: !unlocked,
-          sections: [],
-          chapterSummary: "섹션 로딩 중입니다.",
+          locked: !unlocked && chapter.order > 1,
+          sections: !unlocked && chapter.order > 1
+            ? []
+            : [{
+              title: chapter.sections[0] || "핵심 해석",
+              usedSignals: ["기본 성향 축", "십성 분포", "생활 적용 문장"],
+              interpretation: safeText,
+              body: safeText,
+              strength: "상황 판단 기준이 분명해집니다.",
+              risk: "피로 누적 시 판단이 느려질 수 있습니다.",
+              action: "하루 1개 핵심 행동을 먼저 완료하세요.",
+              advice: "하루 1개 핵심 행동을 먼저 완료하세요.",
+            }],
+          chapterSummary: !unlocked && chapter.order > 1
+            ? "잠금 해제 후 전체 내용을 확인할 수 있습니다."
+            : safeText,
         };
       }
     });
