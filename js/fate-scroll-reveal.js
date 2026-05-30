@@ -75,15 +75,51 @@
   var lateRevealObserver = null;
   var resultPageObserver = null;
   var visibilityObserver = null;
+  var loadingObserver = null;
 
   function isResultVisible() {
     var rp = document.getElementById('resultPage');
     return !!(rp && isDisplayed(rp));
   }
 
+  function isLoadingVisible() {
+    var selectors = [
+      '#resultPage [id$="LoadingScreen"]',
+      '#resultPage [id$="LoadingOverlay"]',
+      '#resultPage [data-loading="true"]',
+      '#resultPage [aria-busy="true"]',
+      '[id$="LoadingScreen"]',
+      '[id$="LoadingOverlay"]'
+    ];
+
+    for (var i = 0; i < selectors.length; i++) {
+      var nodes = document.querySelectorAll(selectors[i]);
+      for (var j = 0; j < nodes.length; j++) {
+        if (isDisplayed(nodes[j])) return true;
+      }
+    }
+
+    return false;
+  }
+
+  function shouldShowIndicator() {
+    return isResultVisible() && !isLoadingVisible();
+  }
+
   function hideIndicator() {
     if (!indicatorEl) return;
     indicatorEl.classList.remove('fate-scroll-next-visible');
+  }
+
+  function updateIndicatorVisibility() {
+    if (!indicatorEl) return;
+    if (!shouldShowIndicator()) {
+      hideIndicator();
+      return;
+    }
+    if (currentSection) {
+      indicatorEl.classList.add('fate-scroll-next-visible');
+    }
   }
 
   function setIndicatorArrow(isToTop) {
@@ -176,7 +212,7 @@
     if (!('IntersectionObserver' in window)) return;
     try {
       sectionObserver = new IntersectionObserver(function (entries) {
-        if (!isResultVisible()) {
+        if (!shouldShowIndicator()) {
           hideIndicator();
           return;
         }
@@ -193,12 +229,11 @@
             var titleTxt = getSectionTitle(nextEl);
             setIndicatorArrow(false);
             setIndicatorText('다음: ' + titleTxt + ' (' + (idx + 2) + '/' + all.length + ')');
-            indicatorEl.classList.add('fate-scroll-next-visible');
           } else {
             setIndicatorArrow(true);
             setIndicatorText('맨 위로 가기');
-            indicatorEl.classList.add('fate-scroll-next-visible');
           }
+          updateIndicatorVisibility();
         });
       }, {
         rootMargin: '-22% 0px -22% 0px',
@@ -264,6 +299,7 @@
         initReveal();
         initSectionTracker();
         watchLateReveal();
+        updateIndicatorVisibility();
       });
     });
   }
@@ -289,6 +325,16 @@
     });
     visibilityObserver.observe(rp, { attributes: true, attributeFilter: ['style', 'class'] });
 
+    loadingObserver = new MutationObserver(function () {
+      updateIndicatorVisibility();
+    });
+    loadingObserver.observe(rp, {
+      attributes: true,
+      childList: true,
+      subtree: true,
+      attributeFilter: ['style', 'class', 'aria-busy', 'data-loading']
+    });
+
     /* 이미 표시 중인 경우 즉시 초기화 */
     if (rp.style.display !== 'none' && isDisplayed(rp)) onResultVisible();
   }
@@ -298,6 +344,7 @@
     if (sectionObserver) { sectionObserver.disconnect(); sectionObserver = null; }
     if (lateRevealObserver) { lateRevealObserver.disconnect(); lateRevealObserver = null; }
     if (resultPageObserver) { resultPageObserver.disconnect(); resultPageObserver = null; }
+    if (loadingObserver) { loadingObserver.disconnect(); loadingObserver = null; }
   }
 
   function disposeObservers() {

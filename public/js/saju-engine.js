@@ -3970,32 +3970,56 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
   var box = document.createElement('div');
   box.id = 'sajuAiPromptQuestionBox';
   box.className = 'prem-box';
-  box.style.background = 'radial-gradient(120% 150% at 6% 0%, rgba(251,191,36,0.22), transparent 48%), linear-gradient(145deg,#fffdf7,#fff7ed 46%,#fffbeb)';
-  box.style.border = '1px solid rgba(180,83,9,0.28)';
-  box.style.boxShadow = '0 22px 48px rgba(180,83,9,0.14), inset 0 1px 0 rgba(255,255,255,0.9)';
-  box.style.borderRadius = '16px';
+  box.style.position = 'relative';
+  box.style.overflow = 'hidden';
+  box.style.padding = '16px';
+  box.style.background = 'radial-gradient(120% 150% at 6% 0%, rgba(251,191,36,0.18), transparent 46%), radial-gradient(72% 90% at 100% 0%, rgba(244,114,182,0.08), transparent 34%), linear-gradient(180deg,#fffaf2 0%,#fff7ea 100%)';
+  box.style.border = '1px solid rgba(180,83,9,0.22)';
+  box.style.boxShadow = '0 24px 54px rgba(180,83,9,0.12), inset 0 1px 0 rgba(255,255,255,0.92)';
+  box.style.borderRadius = '22px';
   box.style.marginBottom = '12px';
 
+  var exampleQuestions = [
+    { label: '재물운', text: '올해 금전운과 투자 타이밍은 언제가 가장 좋을까요?' },
+    { label: '연애운', text: '현재 연애 흐름에서 재회 가능성과 주의점은 무엇인가요?' },
+    { label: '직업운', text: '이직이나 사업 확장에 가장 유리한 시기와 조건은 무엇인가요?' }
+  ];
+
   box.innerHTML = ''
-    + '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px">'
-    + '  <span class="prem-title" style="color:#7c2d12;font-size:0.95rem;letter-spacing:0.2px;">사주 질문 프롬프트 만들기</span>'
-    + '  <span style="font-size:0.7rem;color:#9a3412;border:1px solid rgba(180,83,9,0.28);background:rgba(251,191,36,0.14);padding:3px 8px;border-radius:999px;">결과 기반 고품질 질문</span>'
+    + '<div aria-hidden="true" style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,0.32),transparent 35%),radial-gradient(circle at top right, rgba(251,191,36,0.18), transparent 28%),radial-gradient(circle at bottom left, rgba(244,114,182,0.08), transparent 25%);"></div>'
+    + '<div style="position:relative;display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:10px;">'
+    + '  <div style="min-width:0;flex:1 1 280px;">'
+    + '    <div class="prem-title" style="color:#6b2a0f;font-size:1.02rem;letter-spacing:0.2px;line-height:1.35;">사주 질문 프롬프트 만들기</div>'
+    + '    <p style="margin:6px 0 0;font-size:0.82rem;color:#8a4b22;line-height:1.72;">현재 사주 분석 결과를 바탕으로, AI에게 더 깊고 정확한 질문을 던질 수 있게 문장을 정리해드립니다.</p>'
+    + '  </div>'
+    + '  <span style="align-self:flex-start;font-size:0.71rem;font-weight:700;letter-spacing:0.08em;color:#9a3412;border:1px solid rgba(180,83,9,0.22);background:rgba(251,191,36,0.16);padding:5px 10px;border-radius:999px;white-space:nowrap;">결과 기반 고품질 질문</span>'
     + '</div>'
-    + '<p style="font-size:0.8rem;color:#7c2d12;margin-bottom:8px;line-height:1.62;">'
-    + '궁금한 내용을 짧게 적어주시면, 현재 사주 분석 결과를 바탕으로 AI에게 더 깊게 물어볼 수 있는 질문 프롬프트로 정리해드립니다.'
-    + '</p>'
-    + '<textarea id="sajuAiPromptQuestionInput" maxlength="1000" placeholder="예: 올해 돈을 벌 수 있을까요? / 그 사람과 다시 이어질 수 있을까요?" style="width:100%;min-height:106px;border:1px solid rgba(194,120,3,0.42);border-radius:12px;padding:11px;font-size:0.84rem;line-height:1.65;color:#3f2a13;background:rgba(255,255,255,0.86);backdrop-filter:blur(1.8px);resize:vertical;box-sizing:border-box;box-shadow:inset 0 1px 2px rgba(146,64,14,0.08);"></textarea>'
-    + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:7px;flex-wrap:wrap;">'
+    + '<div style="position:relative;display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">'
+    + exampleQuestions.map(function(item) {
+      return '<button type="button" data-saju-example-question="' + item.text.replace(/"/g, '&quot;') + '" style="appearance:none;border:1px solid rgba(180,83,9,0.18);background:rgba(255,252,244,0.95);color:#7c2d12;border-radius:999px;padding:8px 11px;font-size:0.77rem;font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(180,83,9,0.08);transition:transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;">' + item.label + '</button>';
+    }).join('')
+    + '</div>'
+    + '<div style="position:relative;display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">'
+    + '  <label for="sajuAiPromptQuestionInput" style="font-size:0.75rem;font-weight:700;letter-spacing:0.08em;color:#9a3412;text-transform:uppercase;">질문 입력</label>'
+    + '  <span style="font-size:0.72rem;color:#8a4b22;">짧게 적어도 AI가 더 긴 질문으로 다듬어 드립니다.</span>'
+    + '</div>'
+    + '<textarea id="sajuAiPromptQuestionInput" maxlength="1000" placeholder="예: 올해 돈을 벌 수 있을까요? / 그 사람과 다시 이어질 수 있을까요?" style="position:relative;width:100%;min-height:124px;border:1px solid rgba(194,120,3,0.34);border-radius:16px;padding:14px 15px;font-size:0.86rem;line-height:1.72;color:#3f2a13;background:linear-gradient(180deg,rgba(255,255,255,0.96),rgba(255,249,237,0.92));backdrop-filter:blur(2px);resize:vertical;box-sizing:border-box;box-shadow:inset 0 1px 2px rgba(146,64,14,0.08);"></textarea>'
+    + '<div style="position:relative;display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap;">'
     + '  <span id="sajuAiPromptQuestionCount" style="font-size:0.73rem;color:#9a3412;">0 / 1000</span>'
-    + '  <span style="font-size:0.73rem;color:#9a3412;">생성 비용: <b>100코인</b></span>'
+    + '  <span style="font-size:0.73rem;color:#9a3412;border:1px solid rgba(180,83,9,0.18);background:rgba(255,255,255,0.58);padding:4px 10px;border-radius:999px;">생성 비용: <b>100코인</b></span>'
     + '</div>'
-    + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">'
-    + '  <button id="sajuAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#b45309,#f59e0b 58%,#fbbf24);color:#fff;border:1px solid rgba(180,83,9,0.5);border-radius:10px;padding:10px 13px;font-size:0.79rem;font-weight:800;cursor:pointer;box-shadow:0 8px 18px rgba(180,83,9,0.28);">질문 프롬프트 만들기 (100코인)</button>'
-    + '  <button id="sajuAiPromptCopyBtn" type="button" style="display:none;background:linear-gradient(135deg,#0f172a,#1d4ed8);color:#fff;border:1px solid rgba(37,99,235,0.52);border-radius:10px;padding:10px 12px;font-size:0.79rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
+    + '<div style="position:relative;display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;align-items:center;">'
+    + '  <button id="sajuAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#a16207,#d97706 52%,#f59e0b 82%);color:#fff;border:1px solid rgba(180,83,9,0.45);border-radius:14px;padding:11px 15px;font-size:0.8rem;font-weight:800;cursor:pointer;box-shadow:0 10px 22px rgba(180,83,9,0.22);">질문 프롬프트 만들기 (100코인)</button>'
+    + '  <button id="sajuAiPromptCopyBtn" type="button" style="display:none;background:linear-gradient(135deg,#111827,#334155);color:#fff;border:1px solid rgba(51,65,85,0.45);border-radius:14px;padding:11px 14px;font-size:0.8rem;font-weight:800;cursor:pointer;box-shadow:0 10px 20px rgba(15,23,42,0.18);">프롬프트 복사</button>'
     + '</div>'
-    + '<div style="margin-top:10px;font-size:0.78rem;color:#7c2d12;">아래 내용을 AI에게 그대로 붙여넣어 질문해보세요.</div>'
-    + '<textarea id="sajuAiPromptOutput" readonly style="display:none;margin-top:10px;width:100%;min-height:200px;border:1px solid rgba(59,130,246,0.38);border-radius:12px;padding:11px;font-size:0.83rem;line-height:1.65;color:#111827;background:linear-gradient(180deg,#f8fbff,#eef5ff);resize:vertical;box-sizing:border-box;"></textarea>'
-    + '<div id="sajuAiPromptStatus" style="margin-top:8px;font-size:0.78rem;color:#7c2d12;"></div>';
+    + '<div style="position:relative;margin-top:12px;padding:13px;border:1px solid rgba(180,83,9,0.14);background:linear-gradient(180deg,rgba(255,255,255,0.75),rgba(255,250,242,0.96));border-radius:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.8);display:none;" id="sajuAiPromptOutputPanel">'
+    + '  <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">'
+    + '    <div style="font-size:0.74rem;font-weight:800;letter-spacing:0.08em;color:#92400e;text-transform:uppercase;">생성된 프롬프트</div>'
+    + '    <div style="font-size:0.72rem;color:#8a4b22;">복사 버튼으로 바로 사용할 수 있습니다.</div>'
+    + '  </div>'
+    + '  <textarea id="sajuAiPromptOutput" readonly style="display:none;width:100%;min-height:220px;border:1px solid rgba(59,130,246,0.18);border-radius:16px;padding:14px 15px;font-size:0.84rem;line-height:1.72;color:#111827;background:linear-gradient(180deg,#fcfeff,#f4f8ff);resize:vertical;box-sizing:border-box;box-shadow:inset 0 1px 2px rgba(15,23,42,0.06);"></textarea>'
+    + '</div>'
+    + '<div id="sajuAiPromptStatus" style="position:relative;margin-top:10px;font-size:0.78rem;color:#7c2d12;line-height:1.6;"></div>';
 
   aiCard.insertBefore(box, aiCard.firstChild);
 
@@ -4009,6 +4033,12 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
   if (!inputEl || !countEl || !generateBtn || !copyBtn || !outputEl || !statusEl) return;
 
   var inFlight = false;
+
+  function applyExampleQuestion(text) {
+    inputEl.value = String(text || '').trim();
+    updateCount();
+    inputEl.focus();
+  }
 
   function setLoading(nextLoading) {
     inFlight = !!nextLoading;
@@ -4096,6 +4126,8 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
     }).then(function(result) {
       var payload = result.payload || {};
       if (result.ok && payload.ok === true && typeof payload.prompt === 'string' && payload.prompt.trim()) {
+        var outputPanel = document.getElementById('sajuAiPromptOutputPanel');
+        if (outputPanel) outputPanel.style.display = 'block';
         outputEl.style.display = 'block';
         outputEl.value = payload.prompt;
         outputEl.scrollTop = 0;
@@ -4157,6 +4189,24 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
       _setSajuAIPromptStatus(statusEl, '프롬프트를 복사했습니다.', 'success');
     }).catch(function() {
       _setSajuAIPromptStatus(statusEl, '복사에 실패했습니다. 텍스트를 직접 복사해 주세요.', 'error');
+    });
+  });
+
+  var exampleButtons = box.querySelectorAll('[data-saju-example-question]');
+  Array.prototype.forEach.call(exampleButtons, function(button) {
+    button.addEventListener('click', function() {
+      applyExampleQuestion(button.getAttribute('data-saju-example-question'));
+      _setSajuAIPromptStatus(statusEl, '예시 질문을 입력했습니다. 필요하면 더 구체적으로 다듬어 보세요.', 'info');
+    });
+    button.addEventListener('mouseenter', function() {
+      button.style.transform = 'translateY(-1px)';
+      button.style.boxShadow = '0 10px 22px rgba(180,83,9,0.12)';
+      button.style.borderColor = 'rgba(180,83,9,0.28)';
+    });
+    button.addEventListener('mouseleave', function() {
+      button.style.transform = 'translateY(0)';
+      button.style.boxShadow = '0 6px 18px rgba(180,83,9,0.08)';
+      button.style.borderColor = 'rgba(180,83,9,0.18)';
     });
   });
 

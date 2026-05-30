@@ -5,6 +5,7 @@
   var topIndicatorEl = null;
   var ticking = false;
   var resultObserver = null;
+  var loadingObserver = null;
 
   function isDisplayed(el) {
     return !!(el && el.offsetParent !== null && getComputedStyle(el).display !== 'none');
@@ -86,7 +87,25 @@
     /* 하단 120px 이내로 스크롤됐는지 */
     var reachedBottom = (st + viewportH) >= (docH - 120);
 
-    return longEnough && reachedBottom;
+    if (!longEnough || !reachedBottom) return false;
+
+    var loadingSelectors = [
+      '#resultPage [id$="LoadingScreen"]',
+      '#resultPage [id$="LoadingOverlay"]',
+      '#resultPage [data-loading="true"]',
+      '#resultPage [aria-busy="true"]',
+      '[id$="LoadingScreen"]',
+      '[id$="LoadingOverlay"]'
+    ];
+
+    for (var i = 0; i < loadingSelectors.length; i++) {
+      var nodes = document.querySelectorAll(loadingSelectors[i]);
+      for (var j = 0; j < nodes.length; j++) {
+        if (isDisplayed(nodes[j])) return false;
+      }
+    }
+
+    return true;
   }
 
   function updateTopIndicator() {
@@ -125,12 +144,24 @@
         childList: true,
         subtree: true
       });
+
+      loadingObserver = new MutationObserver(requestUpdate);
+      loadingObserver.observe(rp, {
+        attributes: true,
+        childList: true,
+        subtree: true,
+        attributeFilter: ['style', 'class', 'aria-busy', 'data-loading']
+      });
     }
 
     window.addEventListener('pagehide', function () {
       if (resultObserver) {
         resultObserver.disconnect();
         resultObserver = null;
+      }
+      if (loadingObserver) {
+        loadingObserver.disconnect();
+        loadingObserver = null;
       }
     }, { once: true });
   }
