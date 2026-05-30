@@ -14,6 +14,7 @@ const staticTargets = [
   "tarot-ijik.html",
   "neville-meditation.html",
   "cosmic-soul-meditation.html",
+  "celestial-harmony.html",
   "yoga-guru.html",
   "emoi_omikuji_v2.html",
   "blood-type-app.html",

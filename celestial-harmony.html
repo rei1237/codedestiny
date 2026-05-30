@@ -773,6 +773,8 @@
         currentAccessGrant = paymentInfo.accessGrant || currentAccessGrant;
         currentConsume = paymentInfo.consume || currentConsume;
       }
+      // Immediately re-render to remove LOCK visuals/aria state after payment verification.
+      if(spread.length) renderBoard();
     }
 
     function focusReadingByCard(cardIdx){
