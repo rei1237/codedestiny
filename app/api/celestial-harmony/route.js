@@ -7,6 +7,8 @@ import {
 } from "../../../lib/tarot/celestial-melody-reading.mjs";
 
 export const runtime = "nodejs";
+export const dynamic = "force-static";
+export const revalidate = false;
 
 const SESSION_CACHE = new Map();
 const DEFAULT_GEMINI_MODEL = "gemini-2.0-flash";
