@@ -2310,7 +2310,7 @@ export default function PointsPage() {
         <SubscriptionSection
           subscription={subscription}
           currentPoints={currentPoints}
-          onSubscribe={handleSubscribe}
+          onSubscribe={handleSubscribeLegacy}
           onCancelSubscription={handleSubscriptionCancel}
           isProcessing={isProcessing}
           isFlowerAdminMode={isFlowerAdminMode}
