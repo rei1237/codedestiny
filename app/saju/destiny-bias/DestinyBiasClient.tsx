@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { fetchBillingBalance, runBillingCoinGate } from "@/app/_lib/billing-client";
 import { readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
@@ -21,6 +22,12 @@ import FansignEditionBadge from "./components/FansignEditionBadge";
 import MyDestinyBiasHero from "./components/MyDestinyBiasHero";
 import DestinyBiasHeader from "./components/DestinyBiasHeader";
 import styles from "./destiny-bias.module.css";
+import {
+  destinyBiasCelebCategories,
+  destinyBiasCelebrityPresets,
+  type DestinyBiasCelebCategory,
+  type DestinyBiasCelebrityPreset,
+} from "./lib/celebrityProfiles";
 import { destinyBiasIntroCopy, destinyBiasLoadingMessages } from "./lib/destinyBiasCopy";
 import { destinyBiasThemeChoices } from "./lib/destinyBiasTheme";
 import { useDestinyBiasTouchGuard } from "./lib/destinyBiasTouchGuard";
@@ -49,6 +56,8 @@ const INITIAL_BIAS: PersonInputState = {
   birthDateInput: "",
   birthTimeInput: "",
 };
+
+const FEATURED_CELEB_PRESET_COUNT = 8;
 
 type StoredProfile = {
   id?: string;
@@ -152,6 +161,18 @@ function normalizeGenderOption(value: unknown): (typeof GENDER_OPTIONS)[number] 
   return "";
 }
 
+function formatBirthdayPreview(value: string) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length !== 8) return "";
+  return `${digits.slice(0, 4)}.${digits.slice(4, 6)}.${digits.slice(6, 8)}`;
+}
+
+function formatTimePreview(value: string) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length !== 4) return "";
+  return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`;
+}
+
 function readCurrentProfileSeed(): ProfileSeed {
   if (typeof window === "undefined") {
     return {
@@ -194,7 +215,7 @@ function readCurrentProfileSeed(): ProfileSeed {
       birthTimeInput: profileBirthTimeInput || profileBirthTimeTextInput || fallbackBirthTimeInput,
       gender: normalizeGenderOption(profile?.gender) || fallbackGender,
     };
-  } catch (e) {
+  } catch {
     return {
       name: "",
       birthDateInput: "",
@@ -208,7 +229,7 @@ function readLocalToken() {
   if (typeof window === "undefined") return "";
   try {
     return String(localStorage.getItem("fortune_auth_token") || "").trim();
-  } catch (e) {
+  } catch {
     return "";
   }
 }
@@ -264,6 +285,10 @@ export default function DestinyBiasClient() {
   const [biasInput, setBiasInput] = useState<PersonInputState>(INITIAL_BIAS);
   const [meGender, setMeGender] = useState<(typeof GENDER_OPTIONS)[number]>(() => readCurrentProfileSeed().gender || "기타");
   const [biasArtistInput, setBiasArtistInput] = useState("");
+  const [biasPresetQuery, setBiasPresetQuery] = useState("");
+  const [activeCelebCategory, setActiveCelebCategory] = useState<DestinyBiasCelebCategory>("전체");
+  const [activeAnimeSeries, setActiveAnimeSeries] = useState("전체 작품");
+  const [selectedCelebPresetId, setSelectedCelebPresetId] = useState("");
   const [biasImageDataUrl, setBiasImageDataUrl] = useState("");
   const [biasImageName, setBiasImageName] = useState("");
   const [biasImageError, setBiasImageError] = useState("");
@@ -301,6 +326,42 @@ export default function DestinyBiasClient() {
   const selectedTheme = useMemo(() => {
     return destinyBiasThemeChoices.find((item) => item.key === activeThemeKey) || destinyBiasThemeChoices[0];
   }, [activeThemeKey]);
+
+  const featuredCelebPresets = useMemo(() => {
+    return destinyBiasCelebrityPresets.slice(0, FEATURED_CELEB_PRESET_COUNT);
+  }, []);
+
+  const animeSeriesOptions = useMemo(() => {
+    const base = ["전체 작품"];
+    const values = destinyBiasCelebrityPresets
+      .filter((preset) => preset.category === "애니 캐릭터")
+      .map((preset) => String(preset.artist || "").trim())
+      .filter(Boolean);
+    const deduped = Array.from(new Set(values));
+    return base.concat(deduped);
+  }, []);
+
+  const filteredCelebPresets = useMemo(() => {
+    const keyword = biasPresetQuery.trim().toLowerCase();
+    return destinyBiasCelebrityPresets.filter((preset) => {
+      if (activeCelebCategory !== "전체" && preset.category !== activeCelebCategory) return false;
+      if (activeCelebCategory === "애니 캐릭터" && activeAnimeSeries !== "전체 작품") {
+        if (preset.artist !== activeAnimeSeries) return false;
+      }
+      if (!keyword) return true;
+      return preset.searchText.includes(keyword);
+    });
+  }, [activeAnimeSeries, activeCelebCategory, biasPresetQuery]);
+
+  useEffect(() => {
+    if (activeCelebCategory !== "애니 캐릭터" && activeAnimeSeries !== "전체 작품") {
+      setActiveAnimeSeries("전체 작품");
+    }
+  }, [activeAnimeSeries, activeCelebCategory]);
+
+  const selectedCelebPreset = useMemo(() => {
+    return destinyBiasCelebrityPresets.find((preset) => preset.id === selectedCelebPresetId) || null;
+  }, [selectedCelebPresetId]);
 
   useEffect(() => {
     const localToken = readLocalToken();
@@ -561,6 +622,23 @@ export default function DestinyBiasClient() {
     return "";
   }, [biasInput.birthDateInput, biasInput.name, meInput.birthDateInput, meInput.name, validateBirthInput]);
 
+  const applyCelebPreset = useCallback((preset: DestinyBiasCelebrityPreset) => {
+    setSelectedCelebPresetId(preset.id);
+    setBiasInput({
+      name: preset.name,
+      birthDateInput: preset.birthDateInput,
+      birthTimeInput: preset.birthTimeInput,
+    });
+    setBiasArtistInput(preset.artist);
+    setBirthInputErrors((prev) => ({ ...prev, bias: "" }));
+    setError("");
+    setToast(
+      preset.timeKnown
+        ? `${preset.sourceLabel} 정보를 바로 불러왔어요.`
+        : `${preset.sourceLabel} 생일을 바로 넣었어요. 시간은 공개된 경우만 자동 입력됩니다.`,
+    );
+  }, []);
+
   const nextStep = useCallback((currentStep: 1 | 2 | 3) => {
     const message = validateStep(currentStep);
     if (message) {
@@ -692,14 +770,17 @@ export default function DestinyBiasClient() {
   }, [
     analyzing,
     biasInput.birthDateInput,
+    biasInput.birthTimeInput,
     biasInput.name,
     biasArtistInput,
     biasMood,
     isLoggedIn,
     meInput.birthDateInput,
+    meInput.birthTimeInput,
     meInput.name,
     openCoinNotice,
     relationMood,
+    selectedTheme.key,
     selectedTheme.name,
     validateStep,
   ]);
@@ -735,7 +816,7 @@ export default function DestinyBiasClient() {
     try {
       await navigator.clipboard.writeText(summary);
       setToast("결과 요약을 복사했어요.");
-    } catch (e) {
+    } catch {
       setError("결과 복사에 실패했습니다.");
     }
   }, [resultVm]);
@@ -754,7 +835,7 @@ export default function DestinyBiasClient() {
         });
         setToast("결과를 공유했어요.");
         return;
-      } catch (e) {
+      } catch {
         // 사용자가 공유 창을 닫은 경우는 조용히 처리
       }
     }
@@ -762,7 +843,7 @@ export default function DestinyBiasClient() {
     try {
       await navigator.clipboard.writeText(`${text}\n${window.location.href}`);
       setToast("공유용 텍스트를 복사했어요.");
-    } catch (e) {
+    } catch {
       setError("공유 텍스트 복사에 실패했습니다.");
     }
   }, [resultVm]);
@@ -919,7 +1000,10 @@ export default function DestinyBiasClient() {
                     subLabel="BIAS NAME / 최애 이름"
                     label="최애 이름"
                     value={biasInput.name}
-                    onChange={(value) => setBiasInput((prev) => ({ ...prev, name: value }))}
+                    onChange={(value) => {
+                      setSelectedCelebPresetId("");
+                      setBiasInput((prev) => ({ ...prev, name: value }));
+                    }}
                     placeholder="예: MY BIAS"
                     maxLength={24}
                   />
@@ -929,6 +1013,7 @@ export default function DestinyBiasClient() {
                     label="최애의 생년월일"
                     value={biasInput.birthDateInput}
                     onChange={(value) => {
+                      setSelectedCelebPresetId("");
                       setBiasInput((prev) => ({ ...prev, birthDateInput: value }));
                       if (value.trim()) validateBirthInput(value, "bias");
                       else setBirthInputErrors((prev) => ({ ...prev, bias: "" }));
@@ -945,7 +1030,10 @@ export default function DestinyBiasClient() {
                     subLabel="ARTIST / 그룹 또는 아티스트"
                     label="연결 아티스트/그룹"
                     value={biasArtistInput}
-                    onChange={setBiasArtistInput}
+                    onChange={(value) => {
+                      setSelectedCelebPresetId("");
+                      setBiasArtistInput(value);
+                    }}
                     placeholder="예: STARLIGHT UNIT"
                     maxLength={36}
                   />
@@ -954,11 +1042,148 @@ export default function DestinyBiasClient() {
                     subLabel="BIRTH TIME / 태어난 시간"
                     label="태어난 시간은 선택 입력"
                     value={biasInput.birthTimeInput}
-                    onChange={(value) => setBiasInput((prev) => ({ ...prev, birthTimeInput: value }))}
+                    onChange={(value) => {
+                      setSelectedCelebPresetId("");
+                      setBiasInput((prev) => ({ ...prev, birthTimeInput: value }));
+                    }}
                     placeholder="예: 0915 (선택)"
                     inputMode="numeric"
                     maxLength={4}
                   />
+                </div>
+
+                <div className={`${styles.celebPickerShell} mt-4`}>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-[10px] font-semibold tracking-[0.15em] text-cyan-100/80">STAR ARCHIVE / 유명인·캐릭터 바로 불러오기</p>
+                      <h3 className="mt-1 text-base font-black text-white">사주 분석 화면 기반 프로필을 빠르게 채우기</h3>
+                      <p className="mt-1 text-sm leading-6 text-white/72">
+                        아이돌, 배우, 정치인, 애니 캐릭터까지 검색하거나 탭으로 골라서 이름과 생년월일을 한 번에 입력할 수 있어요.
+                      </p>
+                    </div>
+                    <div className={styles.celebCountBadge}>{filteredCelebPresets.length}명 표시 중</div>
+                  </div>
+
+                  <div className="mt-3">
+                    <div className={styles.celebQuickGrid}>
+                      {featuredCelebPresets.map((preset) => {
+                        const selected = preset.id === selectedCelebPresetId;
+                        return (
+                          <button
+                            key={preset.id}
+                            type="button"
+                            onClick={() => applyCelebPreset(preset)}
+                            className={`${styles.celebQuickChip} ${selected ? styles.celebQuickChipActive : ""}`}
+                          >
+                            <span className="text-sm font-black text-white">{preset.name}</span>
+                            <span className="mt-1 text-[11px] text-cyan-100/80">{preset.artist || preset.category}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+                    <input
+                      type="text"
+                      value={biasPresetQuery}
+                      onChange={(event) => setBiasPresetQuery(event.target.value)}
+                      placeholder="이름, 그룹/작품, 카테고리로 검색해 보세요"
+                      className={styles.premiumInput}
+                    />
+                    <div className={styles.celebTabRow}>
+                      {destinyBiasCelebCategories.map((category) => {
+                        const active = activeCelebCategory === category;
+                        return (
+                          <button
+                            key={category}
+                            type="button"
+                            onClick={() => {
+                              setActiveCelebCategory(category);
+                              if (category !== "애니 캐릭터") setActiveAnimeSeries("전체 작품");
+                            }}
+                            className={`${styles.celebTabBtn} ${active ? styles.celebTabBtnActive : ""}`}
+                          >
+                            {category}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {activeCelebCategory === "애니 캐릭터" ? (
+                    <div className="mt-2 grid gap-2">
+                      <p className="text-[11px] font-semibold tracking-[0.08em] text-cyan-100/82">작품별로 좁혀보기</p>
+                      <div className={styles.celebTabRow}>
+                        {animeSeriesOptions.map((seriesName) => {
+                          const active = activeAnimeSeries === seriesName;
+                          return (
+                            <button
+                              key={seriesName}
+                              type="button"
+                              onClick={() => setActiveAnimeSeries(seriesName)}
+                              className={`${styles.celebTabBtn} ${active ? styles.celebTabBtnActive : ""}`}
+                            >
+                              {seriesName}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {selectedCelebPreset ? (
+                    <div className={`${styles.celebSelectedBar} mt-3`}>
+                      <div>
+                        <p className="text-sm font-black text-white">{selectedCelebPreset.sourceLabel}</p>
+                        <p className="mt-1 text-xs text-white/72">
+                          생일 {formatBirthdayPreview(selectedCelebPreset.birthDateInput)}
+                          {selectedCelebPreset.timeKnown
+                            ? ` · 시간 ${formatTimePreview(selectedCelebPreset.birthTimeInput)}`
+                            : " · 시간 정보는 비공개라 생일만 자동 입력했어요."}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => applyCelebPreset(selectedCelebPreset)}
+                        className="rounded-full border border-cyan-200/40 bg-cyan-300/10 px-4 py-2 text-xs font-bold text-cyan-50 transition hover:border-cyan-100/70 hover:bg-cyan-300/20"
+                      >
+                        다시 넣기
+                      </button>
+                    </div>
+                  ) : null}
+
+                  <div className={`${styles.celebListGrid} mt-3`}>
+                    {filteredCelebPresets.slice(0, 24).map((preset) => {
+                      const selected = preset.id === selectedCelebPresetId;
+                      return (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => applyCelebPreset(preset)}
+                          className={`${styles.celebCard} ${selected ? styles.celebCardSelected : ""}`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-black text-white">{preset.name}</p>
+                              <p className="mt-1 text-xs text-cyan-100/82">{preset.artist || preset.category}</p>
+                            </div>
+                            <span className="rounded-full border border-white/15 bg-white/8 px-2 py-1 text-[10px] font-semibold text-white/72">
+                              {preset.category}
+                            </span>
+                          </div>
+                          <p className="mt-3 text-xs text-white/72">
+                            {formatBirthdayPreview(preset.birthDateInput)}
+                            {preset.timeKnown ? ` · ${formatTimePreview(preset.birthTimeInput)}` : " · 시간 비공개"}
+                          </p>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {filteredCelebPresets.length === 0 ? (
+                    <p className="mt-3 text-sm text-white/68">검색 결과가 없어요. 이름 일부나 그룹명으로 다시 찾아보세요.</p>
+                  ) : null}
                 </div>
 
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
@@ -1018,9 +1243,12 @@ export default function DestinyBiasClient() {
 
                   {biasImageDataUrl ? (
                     <div className="mt-3 flex items-center gap-3 rounded-2xl border border-cyan-200/25 bg-cyan-300/8 p-2">
-                      <img
+                      <Image
                         src={biasImageDataUrl}
                         alt="업로드한 최애 이미지 미리보기"
+                        width={64}
+                        height={64}
+                        unoptimized
                         className="h-16 w-16 rounded-xl border border-white/20 object-cover"
                       />
                       <div className="min-w-0">
