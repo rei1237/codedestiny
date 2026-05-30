@@ -81,7 +81,7 @@ describe("ziwei premium birth normalization", () => {
 
 describe("ziwei premium local manuscript", () => {
   function buildLongText(title, chapterTitle) {
-    const sentence = `${chapterTitle}의 ${title}에서는 명궁, 신궁, 12궁의 흐름과 주성·보조성·사화 신호를 연결해 현실 전략으로 풀어냅니다. `;
+    const sentence = `${chapterTitle}의 ${title}에서는 명궁, 신궁, 12궁의 흐름과 주성·보조성·사화 신호를 연결해 현실 전략으로 풀어냅니다. 화록, 화권, 화과, 화기와 대운, 그리고 3년·5년·10년 계획까지 함께 반영해 읽습니다. `;
     return sentence.repeat(22);
   }
 
@@ -140,7 +140,17 @@ describe("ziwei premium local manuscript", () => {
     const quality = utils.validateZiweiPdfLLMInterpretationQuality({
       chapters,
       expectedChapters: utils.CHAPTER_BLUEPRINTS,
-      seed: { ziweiPdfSeed: { chartMeta: { mingGong: "자", shenGong: "오" } } },
+      seed: {
+        ziweiPdfSeed: {
+          chartMeta: { mingGong: "자", shenGong: "오" },
+          palaceMap: makeBasePalaces().map((palace) => ({ palaceName: palace.nameKo, branch: palace.branch })),
+          derivedSignals: {
+            personalitySignals: ["주도성"],
+          },
+          strengths: ["강점"],
+          cautionFlags: ["주의"],
+        },
+      },
     });
 
     expect(quality.ok).toBe(true);

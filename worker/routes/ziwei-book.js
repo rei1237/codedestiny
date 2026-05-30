@@ -870,6 +870,90 @@ function validateSeed(seed) {
   return { ok: errors.length === 0, errors };
 }
 
+function validateZiweiPdfSeed(seed) {
+  const errors = [];
+  const ziweiPdfSeed = seed?.ziweiPdfSeed || {};
+  const chartMeta = ziweiPdfSeed?.chartMeta || {};
+  const palaceMap = Array.isArray(ziweiPdfSeed?.palaceMap) ? ziweiPdfSeed.palaceMap : [];
+  const derivedSignals = ziweiPdfSeed?.derivedSignals || {};
+
+  if (!clean(chartMeta.mingGong)) errors.push("ziweiPdfSeed.chartMeta.mingGong");
+  if (!clean(chartMeta.shenGong)) errors.push("ziweiPdfSeed.chartMeta.shenGong");
+  if (palaceMap.length < 12) errors.push("ziweiPdfSeed.palaceMap");
+  if (!Array.isArray(derivedSignals.personalitySignals) || !derivedSignals.personalitySignals.length) errors.push("ziweiPdfSeed.derivedSignals.personalitySignals");
+  if (!Array.isArray(ziweiPdfSeed.strengths) || !ziweiPdfSeed.strengths.length) errors.push("ziweiPdfSeed.strengths");
+  if (!Array.isArray(ziweiPdfSeed.cautionFlags) || !ziweiPdfSeed.cautionFlags.length) errors.push("ziweiPdfSeed.cautionFlags");
+
+  return { ok: errors.length === 0, errors };
+}
+
+function buildZiweiFallbackParagraph(seed, chapterSpec, categoryTitle, categoryIndex, paragraphIndex, previousChapterSummaries = []) {
+  const ziweiPdfSeed = seed?.ziweiPdfSeed || {};
+  const chartMeta = ziweiPdfSeed?.chartMeta || {};
+  const palaceMap = Array.isArray(ziweiPdfSeed?.palaceMap) ? ziweiPdfSeed.palaceMap : [];
+  const primaryPalace = palaceMap[categoryIndex % Math.max(1, palaceMap.length)] || palaceMap[0] || {};
+  const nextPalace = palaceMap[(categoryIndex + 1) % Math.max(1, palaceMap.length)] || primaryPalace;
+  const seedSignals = [
+    ...(Array.isArray(ziweiPdfSeed?.derivedSignals?.personalitySignals) ? ziweiPdfSeed.derivedSignals.personalitySignals : []),
+    ...(Array.isArray(ziweiPdfSeed?.derivedSignals?.careerSignals) ? ziweiPdfSeed.derivedSignals.careerSignals : []),
+    ...(Array.isArray(ziweiPdfSeed?.derivedSignals?.wealthSignals) ? ziweiPdfSeed.derivedSignals.wealthSignals : []),
+    ...(Array.isArray(ziweiPdfSeed?.strengths) ? ziweiPdfSeed.strengths : []),
+    ...(Array.isArray(ziweiPdfSeed?.cautionFlags) ? ziweiPdfSeed.cautionFlags : []),
+  ].filter(Boolean);
+  const signalText = uniqueShortKeywords(seedSignals, 5).join(" · ") || `${clean(chartMeta.mingGong)} · ${clean(chartMeta.shenGong)}`;
+  const prevSummary = Array.isArray(previousChapterSummaries) && previousChapterSummaries.length
+    ? clean(previousChapterSummaries[previousChapterSummaries.length - 1]?.title || previousChapterSummaries[previousChapterSummaries.length - 1]?.summary || "")
+    : "앞 장의 해석 흐름";
+  const anchorText = clean(primaryPalace?.nameKo || chartMeta.mingGong || "명궁");
+  const nextAnchorText = clean(nextPalace?.nameKo || chartMeta.shenGong || "신궁");
+  const branchText = clean(primaryPalace?.branch || nextPalace?.branch || chartMeta.yearBranch || "");
+  const strengthText = uniqueShortKeywords([
+    ...uniqueShortKeywords(ziweiPdfSeed?.strengths || [], 2),
+    ...uniqueShortKeywords(ziweiPdfSeed?.cautionFlags || [], 2),
+  ], 4).join(" · ");
+
+  if (paragraphIndex === 0) {
+    return `${chapterSpec.title}의 ${categoryTitle}은 ${anchorText}와 ${nextAnchorText}의 연결을 ${branchText ? `${branchText} 축` : "명반 축"}에서 다시 읽는 출발점입니다. 계산 JSON이 보여 주는 궁·별·사화 신호를 그대로 반영해, 이 장에서는 추상적인 운세가 아니라 실제 삶의 선택이 어디에서 갈리는지를 먼저 확인합니다. ${signalText} 같은 핵심 신호는 자아의 결, 관계의 거리, 일의 집중도, 돈의 흐름을 한 묶음으로 읽게 해 줍니다.`;
+  }
+
+  if (paragraphIndex === 1) {
+    return `이전 장의 흐름인 ${prevSummary}과 이어서 보면, 같은 명반이라도 어떤 궁이 먼저 반응하는지에 따라 삶의 체감이 달라집니다. ${anchorText}가 주도권을 잡는 순간과 ${nextAnchorText}가 보완 역할을 하는 순간을 나눠 읽어야, 왜 어떤 선택은 곧바로 성과로 이어지고 어떤 선택은 천천히 누적되는지 설명할 수 있습니다. 따라서 이 섹션은 계산 JSON을 다시 해석하는 안내서로서, 성향의 장점과 경고 신호를 동시에 붙잡아야 합니다.`;
+  }
+
+  if (paragraphIndex === 2) {
+    return `실행 관점에서는 ${strengthText || "강점과 경고 신호"}를 기준으로, 이 주제를 오늘의 행동 문장으로 바꾸는 일이 중요합니다. 관계라면 누가 먼저 다가오고 누가 거리를 조절하는지, 일이라면 어떤 타이밍에 집중력을 쓰고 어떤 구간에서 쉬어야 하는지를 분리해서 적어야 합니다. 자미두수 PDF는 계산값을 설명하는 데서 끝나지 않고, 그 계산이 실제 일정과 선택에 어떻게 작동하는지까지 이어져야 완성됩니다.`;
+  }
+
+  return `마지막 정리에서는 ${categoryTitle}을 ${chapterSpec.title} 전체 맥락 속에 놓고, ${anchorText}에서 시작한 흐름이 ${nextAnchorText}로 어떻게 이어지는지 확인합니다. 이 연결을 통해 같은 명반도 장면별로 다르게 드러난다는 점을 분명히 하고, 계산 JSON의 빈칸 없이 해석이 쌓였을 때만 PDF의 완성도가 유지됩니다. 결론적으로 이 장은 계산된 결과를 다시 계산하는 것이 아니라, 이미 완성된 seed를 실제 리포트 문장으로 안정적으로 고정하는 역할을 합니다.`;
+}
+
+function buildZiweiFallbackCategoryText(seed, chapterSpec, categoryTitle, categoryIndex, previousChapterSummaries = []) {
+  return [0, 1, 2, 3]
+    .map((paragraphIndex) => buildZiweiFallbackParagraph(seed, chapterSpec, categoryTitle, categoryIndex, paragraphIndex, previousChapterSummaries))
+    .join("\n\n");
+}
+
+function buildZiweiFallbackChapter(seed, chapterSpec, previousChapterSummaries = []) {
+  const categories = chapterSpec.categories.map((title, index) => ({
+    id: `${chapterSpec.id}-${String(index + 1).padStart(2, "0")}`,
+    title,
+    finalText: buildZiweiFallbackCategoryText(seed, chapterSpec, title, index, previousChapterSummaries),
+    order: index + 1,
+  }));
+
+  return {
+    id: chapterSpec.id,
+    roman: chapterSpec.roman,
+    chapterNo: Number(chapterSpec.id),
+    title: chapterSpec.title,
+    categories,
+    finalText: categories.map((item) => `### ${item.title}\n\n${item.finalText}`).join("\n\n"),
+    text: categories.map((item) => `### ${item.title}\n\n${item.finalText}`).join("\n\n"),
+    source: "local-fallback",
+    usedFallback: true,
+  };
+}
+
 function hasRequiredPalaceCoverage(seed) {
   const palaces = Array.isArray(seed?.chart?.palaces) ? seed.chart.palaces : [];
   return palaces.length >= 12;
@@ -1012,36 +1096,42 @@ function validateZiweiChapterOrThrow(chapter, chapterSpec) {
   }
 }
 
-async function generateZiweiChapterByLlm({ env, seed, chapterSpec, previousChapterSummaries, attempt, previousFailureReason }) {
+async function generateZiweiChapterByLlm({ env, seed, chapterSpec, previousChapterSummaries, attempt, previousFailureReason, options = {} }) {
+  const llmChapterGenerator = typeof options.llmChapterGenerator === "function" ? options.llmChapterGenerator : null;
   const forbiddenGuide = "JSON, payload, seed, rawData, engine, local, debug, calculation, undefined, null, fallback, 자동 복구";
-  const prompt = [
-    "당신은 자미두수 명반을 기반으로 프리미엄 PDF 리포트를 작성하는 전문 상담가입니다.",
-    "계산은 이미 내부 자미두수 엔진에서 완료되었습니다. 계산을 새로 하지 않습니다.",
-    "로컬 원고를 고치는 것이 아니라, 지금부터 챕터 본문을 새로 작성합니다.",
-    "제공된 JSON seed와 챕터/세부 카테고리 제목에 정확히 맞는 내용을 작성하세요.",
-    "JSON에 없는 별, 궁, 사화, 대운 정보를 임의로 만들지 마세요.",
-    "각 세부 카테고리는 서로 다른 관점과 내용을 가져야 하며 문장 구조를 반복하지 마세요.",
-    `PDF 본문에는 다음 기술 문구를 절대 노출하지 마세요: ${forbiddenGuide}`,
-    `현재 생성 대상 챕터: ${chapterSpec.title}`,
-    `세부 카테고리: ${JSON.stringify(chapterSpec.categories)}`,
-    "각 세부 카테고리 본문은 최소 600자 이상 작성하세요.",
-    "반드시 JSON 객체 하나만 반환하세요.",
-    "형식: {\"chapter\":{\"title\":string,\"categories\":[{\"title\":string,\"finalText\":string}]}}",
-    `시도 횟수: ${attempt}`,
-    previousFailureReason ? `이전 실패 사유: ${previousFailureReason}` : "",
-    `이전 챕터 요약: ${JSON.stringify(previousChapterSummaries || [])}`,
-    `ZiweiPdfSeed: ${JSON.stringify(seed.ziweiPdfSeed || {})}`,
-  ].filter(Boolean).join("\n");
+  let result = null;
+  if (llmChapterGenerator) {
+    result = await llmChapterGenerator({ seed, chapterSpec, previousChapterSummaries, attempt, previousFailureReason });
+  } else {
+    const prompt = [
+      "당신은 자미두수 명반을 기반으로 프리미엄 PDF 리포트를 작성하는 전문 상담가입니다.",
+      "계산은 이미 내부 자미두수 엔진에서 완료되었습니다. 계산을 새로 하지 않습니다.",
+      "로컬 원고를 고치는 것이 아니라, 지금부터 챕터 본문을 새로 작성합니다.",
+      "제공된 JSON seed와 챕터/세부 카테고리 제목에 정확히 맞는 내용을 작성하세요.",
+      "JSON에 없는 별, 궁, 사화, 대운 정보를 임의로 만들지 마세요.",
+      "각 세부 카테고리는 서로 다른 관점과 내용을 가져야 하며 문장 구조를 반복하지 마세요.",
+      `PDF 본문에는 다음 기술 문구를 절대 노출하지 마세요: ${forbiddenGuide}`,
+      `현재 생성 대상 챕터: ${chapterSpec.title}`,
+      `세부 카테고리: ${JSON.stringify(chapterSpec.categories)}`,
+      "각 세부 카테고리 본문은 최소 600자 이상 작성하세요.",
+      "반드시 JSON 객체 하나만 반환하세요.",
+      "형식: {\"chapter\":{\"title\":string,\"categories\":[{\"title\":string,\"finalText\":string}]}}",
+      `시도 횟수: ${attempt}`,
+      previousFailureReason ? `이전 실패 사유: ${previousFailureReason}` : "",
+      `이전 챕터 요약: ${JSON.stringify(previousChapterSummaries || [])}`,
+      `ZiweiPdfSeed: ${JSON.stringify(seed.ziweiPdfSeed || {})}`,
+    ].filter(Boolean).join("\n");
 
-  const result = await callGeminiText(env, prompt, {
-    keyEnvKeys: ["ZIWEI_GEMINI_API_KEY"],
-    modelEnvKeys: ["ZIWEI_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"],
-    temperature: 0.72,
-    maxOutputTokens: 8192,
-    timeoutMs: Math.min(20000, Number(env.ZIWEI_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 18000)),
-    totalTimeoutMs: Math.min(26000, Number(env.ZIWEI_GEMINI_TOTAL_TIMEOUT_MS || env.PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || 24000)),
-    maxAttemptsPerPair: 1,
-  });
+    result = await callGeminiText(env, prompt, {
+      keyEnvKeys: ["ZIWEI_GEMINI_API_KEY"],
+      modelEnvKeys: ["ZIWEI_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"],
+      temperature: 0.72,
+      maxOutputTokens: 8192,
+      timeoutMs: Math.min(20000, Number(env.ZIWEI_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 18000)),
+      totalTimeoutMs: Math.min(26000, Number(env.ZIWEI_GEMINI_TOTAL_TIMEOUT_MS || env.PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || 24000)),
+      maxAttemptsPerPair: 1,
+    });
+  }
 
   if (!result?.ok || !clean(result.text)) {
     throw new Error(`chapter_${chapterSpec.id}_llm_empty`);
@@ -1053,11 +1143,15 @@ async function generateZiweiChapterByLlm({ env, seed, chapterSpec, previousChapt
   }
 
   const chapter = normalizeGeneratedChapter(parsed, chapterSpec);
-  validateZiweiChapterOrThrow(chapter, chapterSpec);
-  return chapter;
+  try {
+    validateZiweiChapterOrThrow(chapter, chapterSpec);
+    return chapter;
+  } catch (error) {
+    throw error;
+  }
 }
 
-async function generateZiweiPdfWithLLMOnlyInterpretation({ env, seed, chapterSpecs, sessionId, onProgress }) {
+async function generateZiweiPdfWithLLMOnlyInterpretation({ env, seed, chapterSpecs, sessionId, onProgress, options = {} }) {
   const chapters = [];
   for (const chapterSpec of chapterSpecs) {
     let chapter = null;
@@ -1071,6 +1165,7 @@ async function generateZiweiPdfWithLLMOnlyInterpretation({ env, seed, chapterSpe
           previousChapterSummaries: chapters.map((item) => summarizeChapter(item)),
           attempt,
           previousFailureReason: lastError ? clean(lastError.message || "") : "",
+          options,
         });
         break;
       } catch (error) {
@@ -1164,9 +1259,13 @@ function validateZiweiPdfLLMInterpretationQuality({ chapters, expectedChapters, 
     errors.push("duplicate_rate_high");
   }
 
+  const seedValidation = validateZiweiPdfSeed(seed);
   const seedCore = JSON.stringify(seed?.ziweiPdfSeed?.chartMeta || {});
   if (!seedCore || seedCore === "{}") {
     errors.push("seed_chart_meta_missing");
+  }
+  if (!seedValidation.ok) {
+    errors.push(...seedValidation.errors);
   }
 
   return { ok: errors.length === 0, errors, totalChars };

@@ -820,12 +820,16 @@ async function generateSukyoChapterByLLM({ env, mode, seed, chapterSpec, previou
     } catch (error) {
       failures.push({ attempt, reason: text(error?.message || "unknown") });
       if (attempt >= CHAPTER_RETRY_LIMIT) {
-        return buildSukyoFallbackChapter(seed, chapterSpec, previousChapterSummaries);
+        const fail = new Error(`SUKYO_CHAPTER_RETRY_EXHAUSTED:${chapterSpec.order}`);
+        fail.code = "SUKYO_CHAPTER_RETRY_EXHAUSTED";
+        fail.chapterNo = chapterSpec.order;
+        fail.failures = failures;
+        throw fail;
       }
     }
   }
 
-  return buildSukyoFallbackChapter(seed, chapterSpec, previousChapterSummaries);
+  throw new Error("SUKYO_CHAPTER_UNREACHABLE");
 }
 
 export async function enhanceSukyoChaptersWithLLM(env, seed, skeleton, options = {}) {
@@ -961,7 +965,6 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
   });
 
   const chapters = [];
-  let fallbackUsed = false;
 
   try {
     for (const chapterSpec of chapterSpecs) {
@@ -975,13 +978,11 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
       });
 
       chapters.push(chapter);
-      fallbackUsed = fallbackUsed || Boolean(chapter?.fallbackUsed);
       console.log("[SukuyoPremiumPDF][ChapterCompleted]", {
         chapterNo: chapterSpec.order,
         chapterTitle: chapterSpec.title,
         completed: chapters.length,
         total: chapterSpecs.length,
-        fallbackUsed: Boolean(chapter?.fallbackUsed),
       });
     }
   } catch (error) {
@@ -990,9 +991,7 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
       chapterNo: safeNumber(error?.chapterNo),
       message: text(error?.message),
     });
-    const repairedChapters = chapterSpecs.map((chapterSpec, index) => chapters[index] || buildSukyoFallbackChapter(seed, chapterSpec, chapters.map(summarizeChapter)));
-    chapters.splice(0, chapters.length, ...repairedChapters);
-    fallbackUsed = true;
+    throw buildFailureWithRefundMessage("chapter_generation_failed", "SUKYO_LLM_CHAPTER_FAILED");
   }
 
   const normalizedChapters = chapterArrayToRendererInput(chapters);
@@ -1005,22 +1004,7 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
 
   if (!quality.ok) {
     console.error("[SukuyoPremiumPDF][QualityFailed]", { issues: quality.issues });
-    const fallbackChapters = chapterSpecs.map((chapterSpec, index) => buildSukyoFallbackChapter(seed, chapterSpec, normalizedChapters.slice(0, index).map(summarizeChapter)));
-    const fallbackNormalized = chapterArrayToRendererInput(fallbackChapters);
-    const fallbackQuality = validateSukyoPdfLLMInterpretationQuality({
-      mode,
-      chapters: fallbackNormalized,
-      expectedChapters: chapterSpecs,
-      seed,
-    });
-
-    if (!fallbackQuality.ok) {
-      throw buildFailureWithRefundMessage("quality_failed", "SUKYO_PDF_QUALITY_FAILED");
-    }
-
-    chapters.splice(0, chapters.length, ...fallbackChapters);
-    normalizedChapters.splice(0, normalizedChapters.length, ...fallbackNormalized);
-    fallbackUsed = true;
+    throw buildFailureWithRefundMessage("quality_failed", "SUKYO_PDF_QUALITY_FAILED");
   }
 
   assertSukyoCompatibilityPdfComplete({
@@ -1033,7 +1017,7 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
   console.log("[SukuyoPremiumPDF][PdfRenderSuccess]", {
     chapterCount: normalizedChapters.length,
     mode,
-    fallbackUsed,
+    fallbackUsed: false,
   });
 
   const reportJson = {
@@ -1051,14 +1035,14 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
       seed,
       chapters: normalizedChapters,
       reportJson,
-      manuscriptSource: fallbackUsed ? "llm+fallback" : "llm-only",
+      manuscriptSource: "llm-only",
       qualityStatus: "passed",
     },
     chapters: normalizedChapters,
     chapterCount: normalizedChapters.length,
-    fallbackUsed,
+    fallbackUsed: false,
     localDraftChapterCount: 0,
-    manuscriptSource: fallbackUsed ? "llm+fallback" : "llm-only",
+    manuscriptSource: "llm-only",
     qualityStatus: "passed",
     serverStatus: "completed",
     pdfReady,

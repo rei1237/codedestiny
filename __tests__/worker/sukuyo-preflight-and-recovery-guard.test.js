@@ -199,7 +199,7 @@ describe("Sukuyo preflight and recovery guard", () => {
     expect(validation.issues).toHaveLength(0);
   });
 
-  test("generateSukyoPremiumReport falls back to deterministic chapters when LLM fails", async () => {
+  test("generateSukyoPremiumReport fails when LLM chapters cannot be generated", async () => {
     const seed = buildSukyoPdfSeed({
       mode: "compatibility",
       userProfile: {
@@ -231,7 +231,7 @@ describe("Sukuyo preflight and recovery guard", () => {
       },
     });
 
-    const result = await generateSukyoPremiumReport(
+    await expect(generateSukyoPremiumReport(
       {},
       seed,
       {
@@ -239,14 +239,7 @@ describe("Sukuyo preflight and recovery guard", () => {
           throw new Error("llm unavailable");
         },
       },
-    );
-
-    expect(result.fallbackUsed).toBe(true);
-    expect(result.chapterCount).toBe(15);
-    expect(result.chapters).toHaveLength(15);
-    expect(result.reportJson).toBeDefined();
-    expect(result.reportJson.chapterCount).toBe(15);
-    expect(result.payload.reportJson.chapterCount).toBe(15);
+    )).rejects.toThrow(/환불되었습니다|환불/);
   });
 
   test("sanitizeSukyoChapterJson does not inject narrative fallback text", () => {
