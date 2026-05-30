@@ -1810,7 +1810,7 @@ async function handlePrepare(request, env) {
     };
     
     console.error("[ZiweiPremiumPDF][GenerationError]", errorResponse);
-    throw createHttpError(errorMessage, 500, errorResponse);
+    throw createHttpError(500, errorMessage, errorResponse);
   }
 }
 
