@@ -8,6 +8,9 @@ import {
   sanitizeSukyoChapterJson,
   isLowQualityShukuyoSection,
   normalizeShukuyoPdfPayload,
+  validateSukyoPdfSeed,
+  buildSukyoPdfSeed,
+  generateSukyoPremiumReport,
 } from "../../worker/lib/sukyo-pdf.js";
 
 describe("Sukuyo preflight and recovery guard", () => {
@@ -157,6 +160,93 @@ describe("Sukuyo preflight and recovery guard", () => {
     expect(normalized.sukuyoResult.partner宿).toBe("항");
     expect(normalized.sukuyoResult.relationshipType).toBe("영친");
     expect(normalized.sukuyoResult.distance).toBe("near");
+  });
+
+  test("validateSukyoPdfSeed accepts a complete compatibility seed", () => {
+    const seed = buildSukyoPdfSeed({
+      mode: "compatibility",
+      userProfile: {
+        name: "나",
+      },
+      partnerProfile: {
+        name: "상대",
+      },
+      canonical: {
+        personA: {
+          sukuyo: {
+            nameKo: "각",
+            nameHan: "角",
+            index: 1,
+          },
+        },
+        personB: {
+          sukuyo: {
+            nameKo: "항",
+            nameHan: "亢",
+            index: 2,
+          },
+        },
+        compatibility: {
+          relationType: "영친",
+          distanceLabel: "근거리",
+          relationVariant: "상호 끌림",
+        },
+      },
+    });
+
+    const validation = validateSukyoPdfSeed(seed);
+    expect(validation.ok).toBe(true);
+    expect(validation.issues).toHaveLength(0);
+  });
+
+  test("generateSukyoPremiumReport falls back to deterministic chapters when LLM fails", async () => {
+    const seed = buildSukyoPdfSeed({
+      mode: "compatibility",
+      userProfile: {
+        name: "나",
+      },
+      partnerProfile: {
+        name: "상대",
+      },
+      canonical: {
+        personA: {
+          sukuyo: {
+            nameKo: "각",
+            nameHan: "角",
+            index: 1,
+          },
+        },
+        personB: {
+          sukuyo: {
+            nameKo: "항",
+            nameHan: "亢",
+            index: 2,
+          },
+        },
+        compatibility: {
+          relationType: "영친",
+          distanceLabel: "근거리",
+          relationVariant: "상호 끌림",
+        },
+      },
+    });
+
+    const result = await generateSukyoPremiumReport(
+      {},
+      seed,
+      {
+        llmChapterGenerator: async () => {
+          throw new Error("llm unavailable");
+        },
+      },
+    );
+
+    expect(result.fallbackUsed).toBe(true);
+    expect(result.chapterCount).toBe(15);
+    expect(result.chapters).toHaveLength(15);
+    expect(result.reportJson).toBeDefined();
+    expect(result.reportJson.chapterCount).toBe(15);
+    expect(result.payload.reportJson.chapterCount).toBe(15);
   });
 
   test("sanitizeSukyoChapterJson does not inject narrative fallback text", () => {
