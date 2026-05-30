@@ -35,6 +35,7 @@ import {
   ASTROLOGY_AI_PROMPT_FEATURE_KEY,
   ASTROLOGY_AI_PROMPT_PRICE,
 } from "../lib/astrology-ai-prompt.js";
+import { getSwissWesternChart } from "../lib/swiss-ephemeris.js";
 import {
   buildVedicAIPrompt,
   VEDIC_AI_PROMPT_FEATURE_KEY,
@@ -1653,11 +1654,244 @@ function mapVedicConsumeFailure(response, payload) {
   );
 }
 
+const ASTROLOGY_SWISS_SIGN_KO = ["양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리", "처녀자리", "천칭자리", "전갈자리", "사수자리", "염소자리", "물병자리", "물고기자리"];
+const ASTROLOGY_SWISS_SIGN_EMOJI = ["♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓"];
+const ASTROLOGY_SWISS_PLANET_ORDER = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
+const ASTROLOGY_SWISS_PLANET_KO = Object.freeze({
+  Sun: "태양",
+  Moon: "달",
+  Mercury: "수성",
+  Venus: "금성",
+  Mars: "화성",
+  Jupiter: "목성",
+  Saturn: "토성",
+  Uranus: "천왕성",
+  Neptune: "해왕성",
+  Pluto: "명왕성",
+});
+
+const ASTROLOGY_SWISS_ASPECT_LABEL = Object.freeze({
+  conjunction: "딱 맞는 각(합)",
+  sextile: "도움 각(육합)",
+  square: "긴장 각(직각)",
+  trine: "편한 각(삼합)",
+  opposition: "마주보는 각(충)",
+});
+
+function toAstrologyPromptSafeText(value) {
+  return String(value == null ? "" : value).trim();
+}
+
+function parseAstrologyTimezoneOffset(rawTimezone) {
+  if (Number.isFinite(Number(rawTimezone))) return Number(rawTimezone);
+  const text = toAstrologyPromptSafeText(rawTimezone);
+  if (!text) return NaN;
+  const match = text.match(/([+-]?\d+(?:\.\d+)?)/);
+  if (!match) return NaN;
+  const parsed = Number(match[1]);
+  return Number.isFinite(parsed) ? parsed : NaN;
+}
+
+function isAstrologyPromptFieldMissing(value) {
+  const text = toAstrologyPromptSafeText(value);
+  if (!text) return true;
+  if (text === "-" || text === "행성") return true;
+  if (text.includes("제공되지 않음")) return true;
+  return false;
+}
+
+function hasValidAstrologyPlacements(astrologyResult) {
+  const rows = Array.isArray(astrologyResult?.placements) ? astrologyResult.placements : [];
+  return rows.some((row) => {
+    const planet = toAstrologyPromptSafeText(row?.planet);
+    const sign = toAstrologyPromptSafeText(row?.sign);
+    return !isAstrologyPromptFieldMissing(planet) && !isAstrologyPromptFieldMissing(sign);
+  });
+}
+
+function hasValidAstrologyAspects(astrologyResult) {
+  const rows = Array.isArray(astrologyResult?.majorAspects) ? astrologyResult.majorAspects : [];
+  return rows.some((row) => {
+    const pair = toAstrologyPromptSafeText(row?.pair);
+    return !isAstrologyPromptFieldMissing(pair);
+  });
+}
+
+function normalizeAstrologyBirthForSwiss(astrologyResult) {
+  const birth = astrologyResult?.birth && typeof astrologyResult.birth === "object" ? astrologyResult.birth : {};
+  const year = Number(birth.year);
+  const month = Number(birth.month);
+  const day = Number(birth.day);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+
+  const hourRaw = Number(birth.hour);
+  const minuteRaw = Number(birth.minute);
+  const timezoneRaw = parseAstrologyTimezoneOffset(birth.timezone);
+  const latRaw = Number(birth.latitude);
+  const lonRaw = Number(birth.longitude);
+
+  return {
+    year,
+    month,
+    day,
+    hour: Number.isFinite(hourRaw) ? hourRaw : 12,
+    minute: Number.isFinite(minuteRaw) ? minuteRaw : 0,
+    timezone: Number.isFinite(timezoneRaw) ? timezoneRaw : 9,
+    lat: Number.isFinite(latRaw) ? latRaw : 37.5665,
+    lon: Number.isFinite(lonRaw) ? lonRaw : 126.978,
+  };
+}
+
+function formatAstrologyDegreeText(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return "-";
+  const normalized = ((numeric % 30) + 30) % 30;
+  let degree = Math.floor(normalized);
+  let minute = Math.round((normalized - degree) * 60);
+  if (minute >= 60) {
+    degree += 1;
+    minute = 0;
+  }
+  if (degree >= 30) degree = 29;
+  return `${String(degree)}° ${String(minute).padStart(2, "0")}'`;
+}
+
+function formatAstrologySignLabel(position) {
+  if (!position || typeof position !== "object") return "";
+  const signIdx = Number(position.sign);
+  const signKo = Number.isInteger(signIdx) && signIdx >= 0 && signIdx < 12
+    ? ASTROLOGY_SWISS_SIGN_KO[signIdx]
+    : toAstrologyPromptSafeText(position.signKo);
+  const signEmoji = Number.isInteger(signIdx) && signIdx >= 0 && signIdx < 12
+    ? ASTROLOGY_SWISS_SIGN_EMOJI[signIdx]
+    : toAstrologyPromptSafeText(position.signEmoji);
+  const degree = formatAstrologyDegreeText(position.degree);
+  if (!signKo) return "";
+  return `${signKo}(${signEmoji || "?"}) ${degree}`;
+}
+
+function buildAstrologyPlacementsFromSwiss(swissChart) {
+  const planets = swissChart?.planets && typeof swissChart.planets === "object" ? swissChart.planets : {};
+  const rows = [];
+  for (let i = 0; i < ASTROLOGY_SWISS_PLANET_ORDER.length; i += 1) {
+    const key = ASTROLOGY_SWISS_PLANET_ORDER[i];
+    const item = planets[key];
+    if (!item || typeof item !== "object") continue;
+    const sign = formatAstrologySignLabel(item);
+    if (!sign) continue;
+    const houseNumber = Number(item.house);
+    const house = Number.isFinite(houseNumber) ? `${Math.trunc(houseNumber)}H` : "-";
+    const degree = `${formatAstrologyDegreeText(item.degree)}${item.retrograde ? " Rx" : ""}`;
+    rows.push({
+      planet: ASTROLOGY_SWISS_PLANET_KO[key] || key,
+      sign,
+      house,
+      degree,
+    });
+  }
+  return rows;
+}
+
+function buildAstrologyMajorAspectsFromSwiss(swissChart) {
+  const rows = Array.isArray(swissChart?.aspects) ? swissChart.aspects : [];
+  return rows
+    .filter((row) => ASTROLOGY_SWISS_PLANET_KO[row?.p1] && ASTROLOGY_SWISS_PLANET_KO[row?.p2])
+    .map((row) => {
+      const p1 = ASTROLOGY_SWISS_PLANET_KO[row.p1] || String(row.p1 || "").trim() || "행성";
+      const p2 = ASTROLOGY_SWISS_PLANET_KO[row.p2] || String(row.p2 || "").trim() || "행성";
+      const aspectLabel = ASTROLOGY_SWISS_ASPECT_LABEL[row?.type] || String(row?.type || "주요 각도").trim();
+      const orbRaw = Number(row?.orb);
+      const orbText = Number.isFinite(orbRaw) ? `${orbRaw.toFixed(2)}°` : "-";
+      return {
+        pair: `${p1} - ${p2} : ${aspectLabel} (orb ${orbText})`,
+        aspect: aspectLabel,
+        orb: orbText,
+        _orbValue: Number.isFinite(orbRaw) ? orbRaw : 999,
+      };
+    })
+    .sort((a, b) => a._orbValue - b._orbValue)
+    .slice(0, 12)
+    .map(({ _orbValue, ...rest }) => rest);
+}
+
+function buildAstrologyCoreSignsFromSwiss(swissChart) {
+  const sun = formatAstrologySignLabel(swissChart?.planets?.Sun);
+  const moon = formatAstrologySignLabel(swissChart?.planets?.Moon);
+  const asc = formatAstrologySignLabel(swissChart?.ascendant);
+  const mc = formatAstrologySignLabel(swissChart?.midheaven);
+
+  let desc = "";
+  const ascSign = Number(swissChart?.ascendant?.sign);
+  const ascDegree = Number(swissChart?.ascendant?.degree);
+  if (Number.isInteger(ascSign) && ascSign >= 0 && ascSign < 12) {
+    const descSign = (ascSign + 6) % 12;
+    desc = `${ASTROLOGY_SWISS_SIGN_KO[descSign]}(${ASTROLOGY_SWISS_SIGN_EMOJI[descSign]}) ${formatAstrologyDegreeText(ascDegree)}`;
+  }
+
+  return {
+    sun,
+    moon,
+    asc,
+    mc,
+    desc,
+  };
+}
+
+async function enrichAstrologyPromptResultWithSwiss(astrologyResult, env, requestUrl) {
+  if (!astrologyResult || typeof astrologyResult !== "object") return astrologyResult;
+
+  const needsPlacements = !hasValidAstrologyPlacements(astrologyResult);
+  const needsAspects = !hasValidAstrologyAspects(astrologyResult);
+  const coreSigns = astrologyResult.coreSigns && typeof astrologyResult.coreSigns === "object"
+    ? astrologyResult.coreSigns
+    : {};
+  const needsCoreSigns = ["sun", "moon", "asc", "mc"].some((key) => isAstrologyPromptFieldMissing(coreSigns[key]));
+
+  if (!needsPlacements && !needsAspects && !needsCoreSigns) {
+    return astrologyResult;
+  }
+
+  const swissInput = normalizeAstrologyBirthForSwiss(astrologyResult);
+  if (!swissInput) return astrologyResult;
+
+  try {
+    const swissChart = await getSwissWesternChart(env, swissInput, { requestUrl });
+    const enriched = { ...astrologyResult };
+
+    if (needsPlacements) {
+      const placementRows = buildAstrologyPlacementsFromSwiss(swissChart);
+      if (placementRows.length > 0) enriched.placements = placementRows;
+    }
+
+    if (needsAspects) {
+      const aspectRows = buildAstrologyMajorAspectsFromSwiss(swissChart);
+      if (aspectRows.length > 0) enriched.majorAspects = aspectRows;
+    }
+
+    if (needsCoreSigns) {
+      const swissCore = buildAstrologyCoreSignsFromSwiss(swissChart);
+      enriched.coreSigns = {
+        ...coreSigns,
+        sun: isAstrologyPromptFieldMissing(coreSigns.sun) ? swissCore.sun : coreSigns.sun,
+        moon: isAstrologyPromptFieldMissing(coreSigns.moon) ? swissCore.moon : coreSigns.moon,
+        asc: isAstrologyPromptFieldMissing(coreSigns.asc) ? swissCore.asc : coreSigns.asc,
+        mc: isAstrologyPromptFieldMissing(coreSigns.mc) ? swissCore.mc : coreSigns.mc,
+        desc: isAstrologyPromptFieldMissing(coreSigns.desc) ? swissCore.desc : coreSigns.desc,
+      };
+    }
+
+    return enriched;
+  } catch (error) {
+    console.warn("[fortune][astrology-ai-prompt] swiss enrichment skipped:", error?.message || error);
+    return astrologyResult;
+  }
+}
+
 async function handleAstrologyAIPrompt(request, auth, env) {
   const body = await readJson(request);
   const question = String(body?.question || "").trim();
   const domain = String(body?.domain || "").trim();
-  const astrologyResult = body?.astrologyResult;
+  const astrologyResult = await enrichAstrologyPromptResultWithSwiss(body?.astrologyResult, env, request.url);
   const compatibilityResult = body?.compatibilityResult;
 
   if (!question || question.length < 5 || question.length > 1000) {

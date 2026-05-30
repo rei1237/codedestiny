@@ -8341,19 +8341,27 @@ function renderAstroInsight() {
 
     function _astroBuildPromptContext() {
       var placements = Array.isArray(placementData) ? placementData.slice(0, 12).map(function(row) {
+        var signText = '';
+        if (Number.isFinite(Number(row && row.signIdx)) && astrologer && Array.isArray(astrologer.signs)) {
+          signText = String(astrologer.signs[Number(row.signIdx)] || '');
+        }
+        if (!signText && row && row.longitudeText) {
+          signText = String(row.longitudeText).split(' ')[0] || '';
+        }
         return {
-          planet: String(row && row.planet || ''),
-          sign: String(row && row.sign || ''),
-          house: row && row.wholeSignHouse ? (String(row.wholeSignHouse) + 'H') : '-',
-          degree: (row && Number.isFinite(Number(row.lon))) ? (Number(row.lon).toFixed(2) + '°') : '-'
+          planet: String(row && (row.label || row.planet || row.key) || ''),
+          sign: signText,
+          house: row && row.hWhole ? (String(row.hWhole) + 'H') : '-',
+          degree: String(row && row.longitudeText || '-')
         };
       }) : [];
 
       var majorAspects = Array.isArray(majorAspectRows) ? majorAspectRows.slice(0, 12).map(function(row) {
         var text = String(row && row.text || '').trim();
+        var aspectName = String(row && (row.name || row.aspectName || row.aspect) || '').trim();
         return {
           pair: text || '주요 각도',
-          aspect: String(row && row.aspectName || row && row.aspect || '').trim() || '-',
+          aspect: aspectName || '-',
           orb: Number.isFinite(Number(row && row.orb)) ? (Number(row.orb).toFixed(2) + '°') : '-'
         };
       }) : [];
