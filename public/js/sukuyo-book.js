@@ -18,6 +18,7 @@
   var _resultPayload = null;
   var _generating = false;
   var _activeSessionId = '';
+  var _lastPremiumPayment = null;
   var _premiumAccessVerifiedUntil = 0;
   var _premiumPaidUntil = 0;
   var SUKYO_GENERATION_STATE_KEY = 'cd:sukuyo:compat:generation:v2';
@@ -87,6 +88,26 @@
       if (found) return found;
     }
     return _extractPremiumToken(payload.data) || _extractPremiumToken(payload.payload);
+  }
+
+  function _extractAccessGrant(payload) {
+    if (!payload || typeof payload !== 'object') return null;
+    if (payload.accessGrant && typeof payload.accessGrant === 'object') return payload.accessGrant;
+    return _extractAccessGrant(payload.data) || _extractAccessGrant(payload.payload);
+  }
+
+  function _buildPaymentContextFromPaymentData(paymentData) {
+    var accessGrant = _extractAccessGrant(paymentData);
+    if (!accessGrant || typeof accessGrant !== 'object') return null;
+    return {
+      featureKey: _clean(accessGrant.featureKey) || SUKYO_FEATURE_KEY,
+      requestId: _clean(accessGrant.requestId || accessGrant.transactionId),
+      purchaseId: _clean(accessGrant.purchaseId),
+      sessionId: _clean(accessGrant.sessionId || accessGrant.reportSessionId),
+      reportSessionId: _clean(accessGrant.reportSessionId || accessGrant.sessionId),
+      reportId: _clean(accessGrant.reportId),
+      accessGrant: accessGrant,
+    };
   }
 
   function _persistPremiumAccessToken(token) {
@@ -716,16 +737,32 @@
   }
 
   function _buildPrepareBody(normalizedInput) {
+    var paymentContext = _buildPaymentContextFromPaymentData(_lastPremiumPayment);
+    var premiumAccessToken = _readPremiumAccessToken() || _extractPremiumToken(_lastPremiumPayment) || undefined;
     return {
       sessionId: _activeSessionId || _newSessionId(),
       featureKey: SUKYO_FEATURE_KEY,
-      premiumAccessToken: _readPremiumAccessToken() || undefined,
+      premiumAccessToken: premiumAccessToken,
       mode: 'compatibility',
       reportMode: 'compatibility',
       reportType: 'sookyoPremium',
       self: normalizedInput.self,
       partner: normalizedInput.partner,
       user: normalizedInput.self,
+      accessGrant: paymentContext && paymentContext.accessGrant ? paymentContext.accessGrant : undefined,
+      requestId: paymentContext && paymentContext.requestId ? paymentContext.requestId : undefined,
+      purchaseId: paymentContext && paymentContext.purchaseId ? paymentContext.purchaseId : undefined,
+      reportSessionId: paymentContext && paymentContext.reportSessionId ? paymentContext.reportSessionId : (_activeSessionId || undefined),
+      payment: paymentContext ? {
+        featureKey: paymentContext.featureKey,
+        requestId: paymentContext.requestId,
+        purchaseId: paymentContext.purchaseId,
+        sessionId: paymentContext.sessionId,
+        reportSessionId: paymentContext.reportSessionId,
+        reportId: paymentContext.reportId,
+        accessGrant: paymentContext.accessGrant,
+      } : undefined,
+      _paymentContext: paymentContext || undefined,
     };
   }
 
@@ -738,6 +775,7 @@
     _log('[SukuyoBook][PaymentGateStart]', { featureKey: SUKYO_FEATURE_KEY, mode: 'compatibility' });
     return new Promise(function (resolve, reject) {
       window._cdCoinGatePerUse(SUKYO_COIN_COST, '숙요점 프리미엄 궁합 PDF 생성', function (_transactionId, data) {
+        _lastPremiumPayment = data || null;
         _persistPremiumAccessToken(_extractPremiumToken(data));
         _markPremiumAccessVerified(25 * 60 * 1000);
         _log('[SukuyoBook][PaymentGateSuccess]', { featureKey: SUKYO_FEATURE_KEY });
@@ -952,7 +990,12 @@
         _resultPayload = response;
         _chapters = Array.isArray(response.chapters) ? response.chapters : [];
 
-        if (!_chapters.length || Number(response.chapterCount) !== 15 || Number(_chapters.length) !== 15) {
+        var expectedChapterCount = Number(response.chapterCount);
+        if (!Number.isFinite(expectedChapterCount) || expectedChapterCount <= 0) {
+          expectedChapterCount = Number(SUKYO_TOTAL_CHAPTERS) || 15;
+        }
+
+        if (!_chapters.length || Number(_chapters.length) !== expectedChapterCount) {
           throw new Error('15챕터 리포트 데이터가 비어 있습니다.');
         }
         if (_clean(response.serverStatus) !== 'completed' || _clean(response.qualityStatus) !== 'passed' || !_clean(response.reportId)) {

@@ -1190,6 +1190,27 @@ function countSignalHits(text, seed) {
   return uniqueHits.size;
 }
 
+function validateSajuNewYearSeed(seed) {
+  const errors = [];
+  const monthly = Array.isArray(seed?.luckCycles?.monthlyFortunes) ? seed.luckCycles.monthlyFortunes : [];
+  const chapterSpecs = Array.isArray(seed?.chapterSpecs) ? seed.chapterSpecs : [];
+  const yearlySignals = Array.isArray(seed?.derivedSignals?.yearlyThemeSignals) ? seed.derivedSignals.yearlyThemeSignals.filter(Boolean) : [];
+
+  if (!clean(seed?.input?.birthDate)) errors.push("input.birthDate");
+  if (!Number.isFinite(Number(seed?.input?.targetYear))) errors.push("input.targetYear");
+  if (!clean(seed?.natalChart?.dayMaster)) errors.push("natalChart.dayMaster");
+  if (!clean(seed?.luckCycles?.targetYearSewoon?.pillar)) errors.push("luckCycles.targetYearSewoon.pillar");
+  if (!clean(seed?.luckCycles?.targetYearSewoon?.tenGodToDayMaster)) errors.push("luckCycles.targetYearSewoon.tenGodToDayMaster");
+  if (monthly.length !== 12) errors.push("luckCycles.monthlyFortunes");
+  if (!yearlySignals.length) errors.push("derivedSignals.yearlyThemeSignals");
+  if (chapterSpecs.length !== SAJU_NEW_YEAR_CHAPTERS.length) errors.push("chapterSpecs");
+
+  return {
+    ok: errors.length === 0,
+    errors,
+  };
+}
+
 export function validateSajuNewYearPdfLLMInterpretationQuality({
   chapters: draft,
   expectedChapters = SAJU_NEW_YEAR_CHAPTERS,
@@ -1379,6 +1400,13 @@ async function handlePrepare(request, env) {
     console.info("[NewYearPremiumPDF][LocalEngineStarted]", { targetYear: normalized.targetYear, sessionId: sessionKey });
     const localYearSajuJson = buildPdfSeed(normalized.profile, normalized.targetYear, body);
     console.info("[NewYearPremiumPDF][LocalEngineCompleted]", { hasDayMaster: Boolean(localYearSajuJson.natalChart?.dayMaster), targetYear: localYearSajuJson.input.targetYear });
+    const seedValidation = validateSajuNewYearSeed(localYearSajuJson);
+    if (!seedValidation.ok) {
+      const seedError = new Error(`SAJU_NEW_YEAR_SEED_INVALID: ${seedValidation.errors.join(",")}`);
+      seedError.code = "SAJU_NEW_YEAR_SEED_INVALID";
+      seedError.seedErrors = seedValidation.errors;
+      throw seedError;
+    }
 
     const premiumAccessToken = clean(request.headers.get("x-premium-access-token") || body?.premiumAccessToken || body?._premiumAccessToken || cookieValue(request, "cd_premium_access"));
 
@@ -1544,5 +1572,6 @@ export const __sajuNewYearTestUtils = {
   validateChapters,
   validateSajuNewYearPdfLLMInterpretationQuality,
   validateSajuNewYearPdfQuality,
+  validateSajuNewYearSeed,
   stripForbiddenText,
 };

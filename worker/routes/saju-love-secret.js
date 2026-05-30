@@ -857,45 +857,43 @@ async function runLoveSecretJob(env, jobId) {
     };
     console.info("[LoveBookPremiumPDF][BirthInputValidated]", safeBirthLog);
 
-    const config = safeModeChapterConfig(mode);
-    const expectedChapterCount = Number(config.totalChapters || 0);
-
     console.info("[LoveBookPremiumPDF][LocalCalculationStart]", { mode });
     console.info("[LoveBookPremiumPDF][LocalCalculationSuccess]", {
       selfDayMasterResolved: Boolean(clean(base?.core?.dayMaster)),
       romanceStarsResolved: Boolean(base?.specialStars && typeof base.specialStars === "object"),
     });
 
+    const seed = buildLoveSecretPdfSeed(job?.requestBody || {}, base, mode);
+    const chapterSpecs = seed.chapterSpecs || buildLoveSecretChapterSpecs(mode);
+    const totalChapters = Number(chapterSpecs.length || 0);
+    const fallbackUsed = false;
+    const manuscriptSource = "llm-only";
+
     await coll.updateOne(
       { _id },
       {
         $set: {
-          stage: "local_draft_building",
-          message: "모드별 로컬 원고를 생성하고 있습니다.",
+          stage: "llm_enhance",
+          message: "사주 seed 기반 AI 상담문을 생성하고 있습니다.",
           updatedAt: new Date(),
         },
       },
     );
 
-    console.info("[LoveBookPremiumPDF][LocalDraftBuildStart]", { chapterCount: expectedChapterCount });
-    const { chapters: localChapters, totalChapters } = await buildLoveSecretChapters(env, {
-      base,
+    console.info("[LoveBookPremiumPDF][LLMEnhanceStart]", { chapterCount: totalChapters, manuscriptSource });
+    const finalChapters = await generateLoveSecretChaptersWithLLMOnlyInterpretation(env, {
       mode,
-      config,
-      onProgress: async ({ completed, chapterNo, totalChapters: progressTotal }) => {
-        console.info("[LoveBookPremiumPDF][LocalDraftChapterDone]", {
-          chapter: chapterNo,
-          completed,
-        });
+      seed,
+      chapterSpecs,
+      sessionId,
+      onProgress: async ({ completed, totalChapters: progressTotal }) => {
         await coll.updateOne(
           { _id },
           {
             $set: {
               status: "processing",
-              stage: completed >= progressTotal ? "local_quality_validation" : "local_draft_building",
-              message: completed >= progressTotal
-                ? "로컬 원고 품질을 검증하고 있습니다."
-                : `로컬 원고 ${completed}/${progressTotal} 챕터 생성 중...`,
+              stage: "llm_enhance",
+              message: `AI 상담문 생성 ${completed}/${progressTotal} 챕터 진행 중...`,
               completedChapters: Math.max(0, Math.min(progressTotal, completed)),
               updatedAt: new Date(),
             },
@@ -904,110 +902,18 @@ async function runLoveSecretJob(env, jobId) {
       },
     });
 
-    console.info("[LoveBookPremiumPDF][LocalDraftBuildSuccess]", { chapterCount: localChapters.length });
-
-    const localValidation = validateLoveSecretManuscript({
-      mode,
-      chapters: localChapters,
-      config,
-      minChapterChars: Number(config?.chapterMinDefault || 2000),
-    });
-    if (!localValidation.ok) {
-      throw new Error(`LOCAL_DRAFT_INVALID: expected=${localValidation.expected}, actual=${localValidation.actual}, totalChars=${localValidation.totalChars}`);
-    }
-    console.info("[LoveBookPremiumPDF][LocalQualityValidated]", {
-      chapterCount: localValidation.actual,
-      totalLength: localValidation.totalChars,
-      forbiddenTermsCount: localValidation.forbiddenTermsCount,
-      repetitionScore: localValidation.repetitionScore,
-    });
-
-    await coll.updateOne(
-      { _id },
-      {
-        $set: {
-          stage: "llm_enhance",
-          message: "AI 상담문 보강을 진행하고 있습니다.",
-          localValidation,
-          localManuscript: {
-            mode,
-            chapterCount: localChapters.length,
-            chapters: localChapters,
-            source: LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL,
-          },
-          updatedAt: new Date(),
-        },
-      },
-    );
-
-    let finalChapters = localChapters;
-    let fallbackUsed = false;
-    let manuscriptSource = LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL;
-
-    try {
-      console.info("[LoveBookPremiumPDF][LLMEnhanceStart]", { chapterCount: localChapters.length });
-      const llmEnhanced = await enhanceLoveSecretManuscriptWithLlm(env, {
-        mode,
-        base,
-        chapters: localChapters,
-        config,
-        onProgress: async ({ completed, totalChapters }) => {
-          await coll.updateOne(
-            { _id },
-            {
-              $set: {
-                status: "processing",
-                stage: "llm_enhance",
-                message: `AI 상담문 보강 ${completed}/${totalChapters} 챕터 진행 중...`,
-                updatedAt: new Date(),
-              },
-            },
-          );
-        },
-      });
-
-      finalChapters = llmEnhanced.chapters;
-      fallbackUsed = Boolean(llmEnhanced.hadFailure);
-      manuscriptSource = fallbackUsed ? LOVE_SECRET_MANUSCRIPT_SOURCE.MIXED : LOVE_SECRET_MANUSCRIPT_SOURCE.LLM_ENHANCED;
-      console.info("[LoveBookPremiumPDF][LLMEnhanceSuccess]", {
-        chapterCount: finalChapters.length,
-        manuscriptSource,
-      });
-    } catch (error) {
-      fallbackUsed = true;
-      finalChapters = localChapters;
-      manuscriptSource = LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL;
-      console.warn("[LoveBookPremiumPDF][LLMEnhanceFailedUseLocal]", normalizeLoveBookError(error));
-    }
-
-    const finalValidation = validateLoveSecretManuscript({
+    const finalValidation = validateSajuLoveBookPdfLLMInterpretationQuality({
       mode,
       chapters: finalChapters,
-      config,
-      minChapterChars: Number(config?.chapterMinDefault || 2000),
+      chapterSpecs,
+      seed,
     });
 
-    if (!finalValidation.ok) {
-      fallbackUsed = true;
-      finalChapters = localChapters;
-      manuscriptSource = LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL;
-    }
-
-    const validatedFinal = validateLoveSecretManuscript({
-      mode,
-      chapters: finalChapters,
-      config,
-      minChapterChars: Number(config?.chapterMinDefault || 2000),
-    });
-    if (!validatedFinal.ok) {
-      throw new Error("FINAL_MANUSCRIPT_INVALID");
-    }
     console.info("[LoveBookPremiumPDF][FinalManuscriptValidated]", {
       mode,
-      chapterCount: validatedFinal.actual,
-      totalLength: validatedFinal.totalChars,
-      forbiddenTermsCount: validatedFinal.forbiddenTermsCount,
-      repetitionScore: validatedFinal.repetitionScore,
+      chapterCount: finalValidation.chapterCount,
+      totalLength: finalValidation.totalChars,
+      repetitionScore: finalValidation.repeatedSentenceRate,
       manuscriptSource,
     });
 

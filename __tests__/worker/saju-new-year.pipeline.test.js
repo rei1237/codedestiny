@@ -212,6 +212,20 @@ describe("saju new year LLM-only pipeline", () => {
     expect(chapterSpecs[9].title).toContain("2026년 마스터플랜");
   });
 
+  test("핵심 seed JSON이 비면 SAJU_NEW_YEAR_SEED_INVALID 검증에 걸려야 한다", () => {
+    const utils = route.__sajuNewYearTestUtils;
+    const normalized = utils.normalizeInput(makePayload({ selectedYear: 2026 }));
+    const seed = utils.buildPdfSeed(normalized.profile, normalized.targetYear, makePayload());
+
+    seed.natalChart.dayMaster = "";
+    seed.luckCycles.monthlyFortunes = [];
+
+    const validation = utils.validateSajuNewYearSeed(seed);
+    expect(validation.ok).toBe(false);
+    expect(validation.errors).toContain("natalChart.dayMaster");
+    expect(validation.errors).toContain("luckCycles.monthlyFortunes");
+  });
+
   test("프롬프트는 로컬 원고 보강이 아니라 새 챕터 작성 지침을 담는다", () => {
     const utils = route.__sajuNewYearTestUtils;
     const normalized = utils.normalizeInput(makePayload({ selectedYear: 2026 }));

@@ -85,6 +85,14 @@
     try { localStorage.setItem('cd_premium_access_token', value); } catch (_) {}
   }
 
+  function _clearPremiumAccessHints() {
+    _premiumAccessVerifiedUntil = 0;
+    _premiumPaidUntil = 0;
+    try { window.__cdPremiumAccessToken = ''; } catch (_) {}
+    try { sessionStorage.removeItem('cd_premium_access_token'); } catch (_) {}
+    try { localStorage.removeItem('cd_premium_access_token'); } catch (_) {}
+  }
+
   function _sanitizeText(v) {
     return String(v || '')
       .replace(/\b(undefined|null|nan)\b/gi, '')
@@ -111,6 +119,18 @@
       if (found) return found;
     }
     return _extractPremiumToken(payload.data) || _extractPremiumToken(payload.payload);
+  }
+
+  function _isAccessDeniedError(error) {
+    var status = Number(error && error.status || 0);
+    var code = _clean(error && error.code || '').toUpperCase();
+    var detailCode = _clean(error && error.details && error.details.code || '').toUpperCase();
+    var msg = _clean(error && error.message || '').toUpperCase();
+    if (status === 402 || status === 403) return true;
+    if (code.indexOf('UNAUTHORIZED') >= 0 || code.indexOf('PAYMENT') >= 0 || code.indexOf('COIN') >= 0 || code.indexOf('INSUFFICIENT') >= 0) return true;
+    if (detailCode.indexOf('UNAUTHORIZED') >= 0 || detailCode.indexOf('PAYMENT') >= 0 || detailCode.indexOf('COIN') >= 0 || detailCode.indexOf('INSUFFICIENT') >= 0) return true;
+    if (msg.indexOf('UNAUTHORIZED') >= 0 || msg.indexOf('PAYMENT') >= 0 || msg.indexOf('COIN') >= 0 || msg.indexOf('INSUFFICIENT') >= 0) return true;
+    return false;
   }
 
   function _premiumTokenMatches(reportType) {
@@ -782,8 +802,9 @@
     return new Promise(function (resolve, reject) { run(resolve, reject, '', null); });
   }
 
-  function _ensurePremiumPaymentAsync() {
-    if (_hasPremiumAccessForGeneration()) {
+  function _ensurePremiumPaymentAsync(force) {
+    var shouldForce = !!force;
+    if (!shouldForce && _hasPremiumAccessForGeneration()) {
       _logStage('PaymentGateStart', { featureKey: ASTRO_BILLING_FEATURE_KEY, reused: true });
       _logStage('PaymentGateSuccess', { featureKey: ASTRO_BILLING_FEATURE_KEY, reused: true });
       return Promise.resolve({ ok: true, skipped: true });
@@ -937,7 +958,7 @@
           _setLoadingProgress(total, total, '별의 해석을 정리하고 있습니다.');
           _logStage('LLMEnhanceStart', { sessionId: sessionId });
           _logStage('PdfRequestStart', { featureKey: ASTRO_FEATURE_KEY, sessionId: sessionId });
-          return _postPrepare({
+          var prepareBody = {
             featureKey: ASTRO_FEATURE_KEY,
             premiumAccessToken: _readPremiumAccessToken() || _extractPremiumToken(payment && payment.data) || undefined,
             sessionId: sessionId,
@@ -957,6 +978,47 @@
             birthInput: birthInput,
             profile: profile,
             astroBase: astroBase,
+          };
+          return _postPrepare(prepareBody).catch(function (firstErr) {
+            if (!_isAccessDeniedError(firstErr)) throw firstErr;
+            _logStage('PaymentGateRetry', {
+              reason: _clean(firstErr && (firstErr.code || firstErr.message) || 'access-denied'),
+              status: Number(firstErr && firstErr.status || 0) || null,
+            });
+            _clearPremiumAccessHints();
+            return _ensurePremiumPaymentAsync(true).then(function (retryPayment) {
+              var retryGrant = retryPayment && retryPayment.data && retryPayment.data.accessGrant
+                ? retryPayment.data.accessGrant
+                : (_lastPremiumPayment && _lastPremiumPayment.accessGrant ? _lastPremiumPayment.accessGrant : null);
+              return _postPrepare({
+                featureKey: ASTRO_FEATURE_KEY,
+                premiumAccessToken: _readPremiumAccessToken() || _extractPremiumToken(retryPayment && retryPayment.data) || undefined,
+                sessionId: sessionId,
+                reportSessionId: retryGrant && (retryGrant.reportSessionId || retryGrant.sessionId) || sessionId,
+                purchaseId: retryGrant && retryGrant.purchaseId || undefined,
+                requestId: retryGrant && (retryGrant.requestId || retryGrant.transactionId) || undefined,
+                accessGrant: retryGrant || undefined,
+                payment: retryGrant ? {
+                  featureKey: ASTRO_BILLING_FEATURE_KEY,
+                  requestId: retryGrant.requestId || retryGrant.transactionId || '',
+                  purchaseId: retryGrant.purchaseId || '',
+                  sessionId: retryGrant.sessionId || retryGrant.reportSessionId || '',
+                  reportSessionId: retryGrant.reportSessionId || retryGrant.sessionId || '',
+                  reportId: retryGrant.reportId || '',
+                } : undefined,
+                _paymentContext: retryGrant ? {
+                  featureKey: ASTRO_BILLING_FEATURE_KEY,
+                  requestId: retryGrant.requestId || retryGrant.transactionId || '',
+                  purchaseId: retryGrant.purchaseId || '',
+                  sessionId: retryGrant.sessionId || retryGrant.reportSessionId || '',
+                  reportSessionId: retryGrant.reportSessionId || retryGrant.sessionId || '',
+                  reportId: retryGrant.reportId || '',
+                } : undefined,
+                birthInput: birthInput,
+                profile: profile,
+                astroBase: astroBase,
+              });
+            });
           }).then(function (data) {
             return { data: data, astroBase: astroBase };
           });

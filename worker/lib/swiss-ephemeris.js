@@ -26,6 +26,7 @@ const VEDIC_PLANETS = [
   ["Saturn", "SE_SATURN"],
 ];
 const EPHE_FILES = ["seas_18.se1", "sepl_18.se1", "semo_18.se1", "sefstars.txt"];
+const DEFAULT_SWISS_WASM_URL = "https://cdn.jsdelivr.net/npm/sweph-wasm/dist/wasm/swisseph.wasm";
 
 let swissPromise = null;
 
@@ -129,6 +130,73 @@ function normalizeExternalVedicPayload(payload = {}) {
   };
 }
 
+function normalizeExternalWesternPayload(payload = {}) {
+  const rawPlanets = payload?.planets && typeof payload.planets === "object" ? payload.planets : {};
+  const rawHouseCusps = Array.isArray(payload?.houseCusps) ? payload.houseCusps : [];
+  const houseCusps = rawHouseCusps
+    .map((value) => nd(value))
+    .filter((value) => Number.isFinite(value))
+    .slice(0, 12);
+
+  const ascLon = parsePlanetLongitude(payload?.ascendant?.longitude ?? payload?.ascendant?.lon ?? payload?.ascendant);
+  const mcLon = parsePlanetLongitude(payload?.midheaven?.longitude ?? payload?.midheaven?.lon ?? payload?.midheaven);
+
+  if (!Number.isFinite(ascLon) || !Number.isFinite(mcLon) || houseCusps.length !== 12) {
+    return null;
+  }
+
+  const planets = {};
+  for (const [name] of WESTERN_PLANETS) {
+    const raw = rawPlanets[name] || rawPlanets[name.toLowerCase()] || null;
+    const lon = parsePlanetLongitude(raw?.longitude ?? raw?.lon ?? raw?.lambda ?? raw);
+    if (!Number.isFinite(lon)) return null;
+
+    const speedLongitude = Number(raw?.speedLongitude ?? raw?.speed ?? raw?.spd);
+    planets[name] = {
+      ...signInfo(lon, ascLon),
+      house: Number.isFinite(Number(raw?.house)) ? Number(raw.house) : locateHouseByCusps(lon, houseCusps),
+      speedLongitude: Number.isFinite(speedLongitude) ? Math.round(speedLongitude * 1000000) / 1000000 : null,
+      retrograde: typeof raw?.retrograde === "boolean"
+        ? raw.retrograde
+        : (Number.isFinite(speedLongitude) ? speedLongitude < 0 : null),
+    };
+  }
+
+  const northNodeLon = parsePlanetLongitude(
+    payload?.northNode?.longitude
+      ?? payload?.northNode?.lon
+      ?? payload?.trueNode
+      ?? payload?.trueNodeLon,
+  );
+
+  const aspects = Array.isArray(payload?.aspects)
+    ? payload.aspects
+      .map((aspect) => ({
+        p1: String(aspect?.p1 || aspect?.planetA || "").trim(),
+        p2: String(aspect?.p2 || aspect?.planetB || "").trim(),
+        type: String(aspect?.type || "").trim(),
+        orb: Number(aspect?.orb),
+      }))
+      .filter((aspect) => aspect.p1 && aspect.p2 && aspect.type && Number.isFinite(aspect.orb))
+    : [];
+
+  return {
+    planets,
+    ascendant: { ...signInfo(ascLon, ascLon), house: 1 },
+    midheaven: { ...signInfo(mcLon, ascLon), house: locateHouseByCusps(mcLon, houseCusps) },
+    northNode: Number.isFinite(northNodeLon)
+      ? { ...signInfo(northNodeLon, ascLon), house: locateHouseByCusps(northNodeLon, houseCusps) }
+      : undefined,
+    southNode: Number.isFinite(northNodeLon)
+      ? { ...signInfo(northNodeLon + 180, ascLon), house: locateHouseByCusps(northNodeLon + 180, houseCusps) }
+      : undefined,
+    houseCusps,
+    houseSystem: "placidus",
+    aspects: aspects.length ? aspects : calcAspects(planets),
+    source: String(payload?.source || "external-swiss-api"),
+  };
+}
+
 async function getExternalVedicPlanets(env, input) {
   const baseUrl = clean(getEnv(env, "VEDIC_API_BASE_URL") || getEnv(env, "VEDIC_API_BASE"));
   const apiKey = clean(getEnv(env, "VEDIC_API_KEY") || getEnv(env, "VEDIC_API_TOKEN"));
@@ -207,6 +275,80 @@ async function getExternalVedicPlanets(env, input) {
   } catch (error) {
     if (error?.status) throw error;
     throw toStatusError(503, `External Vedic API request failed: ${error?.message || error}`);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function getExternalWesternChart(env, input, options = {}) {
+  const baseUrl = clean(getEnv(env, "SWISS_API_BASE_URL") || getEnv(env, "ASTRO_SWISS_BASE_URL") || getEnv(env, "SWISS_API_BASE"));
+  const apiKey = clean(getEnv(env, "SWISS_API_KEY") || getEnv(env, "SWISS_API_TOKEN"));
+  const apiPath = clean(getEnv(env, "SWISS_API_WESTERN_PATH") || "/api/astro/western-chart");
+  const forceExternal = toBool(getEnv(env, "SWISS_API_FORCE_EXTERNAL"));
+
+  if (!baseUrl && !apiKey) {
+    if (forceExternal) {
+      throw toStatusError(503, "External Swiss API is required but SWISS_API_BASE_URL/KEY are not configured.");
+    }
+    return null;
+  }
+
+  if (!baseUrl || !apiKey) {
+    throw toStatusError(503, "External Swiss API configuration is incomplete. Set both SWISS_API_BASE_URL and SWISS_API_KEY.");
+  }
+
+  let endpoint = "";
+  try {
+    endpoint = new URL(apiPath.startsWith("/") ? apiPath : `/${apiPath}`, baseUrl).toString();
+  } catch (e) {
+    throw toStatusError(503, "SWISS_API_BASE_URL is invalid.");
+  }
+
+  const requestUrl = clean(options.requestUrl);
+  if (requestUrl) {
+    try {
+      const requestParsed = new URL(requestUrl);
+      const endpointParsed = new URL(endpoint);
+      const sameOrigin = requestParsed.origin === endpointParsed.origin;
+      const sameRoute = requestParsed.pathname === endpointParsed.pathname;
+      if (sameOrigin && sameRoute) {
+        throw toStatusError(503, "SWISS_API_BASE_URL points to the same western-chart route and would recurse.");
+      }
+    } catch (error) {
+      if (error?.status) throw error;
+    }
+  }
+
+  const timeoutMs = Math.max(2000, Number(getEnv(env, "SWISS_API_TIMEOUT_MS") || 15000));
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": apiKey,
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(input),
+      signal: controller.signal,
+    });
+
+    const data = await response.json().catch(() => null);
+    const normalized = normalizeExternalWesternPayload(data || {});
+
+    if (!response.ok) {
+      throw toStatusError(503, `External Swiss API request failed with status ${response.status}.`);
+    }
+    if (!normalized) {
+      throw toStatusError(503, "External Swiss API returned invalid western payload.");
+    }
+
+    return normalized;
+  } catch (error) {
+    if (error?.status) throw error;
+    throw toStatusError(503, `External Swiss API request failed: ${error?.message || error}`);
   } finally {
     clearTimeout(timer);
   }
@@ -360,7 +502,7 @@ function resolveEpheBaseUrl(env, options = {}) {
 
 function resolveSwissWasmPath(env, options = {}) {
   const rawPath = sanitizeUrlLikeEnvValue(getEnv(env, "SWISS_WASM_PATH") || options.wasmPath);
-  if (!rawPath) return undefined;
+  if (!rawPath) return DEFAULT_SWISS_WASM_URL;
 
   const requestUrl = clean(options.requestUrl);
   const tryResolveFromRequest = () => {
@@ -384,15 +526,51 @@ function resolveSwissWasmPath(env, options = {}) {
   } catch (e) {
     const resolved = tryResolveFromRequest();
     if (resolved) return resolved;
-    return undefined;
+    return DEFAULT_SWISS_WASM_URL;
   }
 
-  return undefined;
+  return DEFAULT_SWISS_WASM_URL;
 }
 
 async function createSwissInstance(env, options = {}) {
   const wasmPath = resolveSwissWasmPath(env, options);
-  const swe = await SwissEPH.init(wasmPath || undefined);
+  let swe = null;
+
+  try {
+    console.info("[swiss-init]", JSON.stringify({
+      hasWasmPath: Boolean(String(wasmPath || "").trim()),
+      wasmPathPrefix: String(wasmPath || "").slice(0, 120),
+    }));
+  } catch (e) {
+    // ignore logging failure
+  }
+
+  const initSwiss = async (pathValue) => {
+    if (typeof pathValue === "string" && pathValue.trim()) {
+      return SwissEPH.init(pathValue);
+    }
+    return SwissEPH.init();
+  };
+
+  try {
+    swe = await initSwiss(wasmPath);
+  } catch (error) {
+    const message = String(error?.message || error || "").toLowerCase();
+    const recoverablePathError = message.includes("invalid url")
+      || message.includes("invalid url string")
+      || message.includes("failed to parse url")
+      || message.includes("typeerror");
+    if (!recoverablePathError) {
+      throw toStatusError(500, `Swiss wasm init failed: ${String(error?.message || error || "unknown")}`);
+    }
+
+    try {
+      swe = await initSwiss("");
+    } catch (retryError) {
+      throw toStatusError(500, `Swiss wasm init failed after fallback: ${String(retryError?.message || retryError || "unknown")}`);
+    }
+  }
+
   const epheBaseUrl = resolveEpheBaseUrl(env, options);
 
   try {
@@ -466,9 +644,15 @@ function calcAspects(planetsBySignInfo) {
 }
 
 export async function getSwissWesternChart(env, payload, options = {}) {
-  const swe = await getSwiss(env, options);
   const input = normalizeChartInput(payload);
   validateChartInput(input);
+
+  const external = await getExternalWesternChart(env, input, options);
+  if (external) {
+    return external;
+  }
+
+  const swe = await getSwiss(env, options);
 
   const jd = julianDayFromInput(swe, input);
   const iflag = swe.SEFLG_SWIEPH | swe.SEFLG_SPEED;

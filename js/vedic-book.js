@@ -9,6 +9,7 @@
   var VEDIC_PREPARE_API = '/api/vedic/premium/prepare';
   var VEDIC_CHAPTERS_API = '/api/vedic/premium/chapters';
   var VEDIC_PLANETS_API = '/api/vedic/planets';
+  var BILLING_COIN_GATE_API = '/api/billing/coin-gate';
   var VEDIC_TOTAL_CHAPTERS = 12;
   var VEDIC_COIN_COST = 390;
 
@@ -605,23 +606,149 @@
     return new Promise(function (resolve, reject) { run(resolve, reject, '', null); });
   }
 
+  function _normalizeVedicAccessGrant(raw, fallbackSessionId, fallbackRequestId) {
+    var data = raw && typeof raw === 'object' ? raw : {};
+    var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
+    var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
+    var transactionId = _clean(data.transactionId || consume.transactionId || accessGrant.transactionId);
+    var requestId = _clean(accessGrant.requestId || data.requestId || consume.requestId || fallbackRequestId);
+    var reportId = _clean(accessGrant.reportId || data.reportId);
+    var sessionId = _clean(accessGrant.sessionId || data.sessionId || data.reportSessionId || fallbackSessionId);
+    var purchaseId = _clean(accessGrant.purchaseId || data.purchaseId || transactionId);
+    if (!reportId) {
+      reportId = 'vedic-premium-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+    }
+    if (!sessionId) sessionId = fallbackSessionId || ('vedic-premium:' + reportId);
+    if (!requestId) requestId = fallbackRequestId;
+    if (!purchaseId && transactionId) purchaseId = transactionId;
+
+    if (!reportId || !sessionId || !requestId) return null;
+
+    return {
+      ok: true,
+      featureKey: VEDIC_FEATURE_KEY,
+      reportId: reportId,
+      sessionId: sessionId,
+      reportSessionId: sessionId,
+      requestId: requestId,
+      purchaseId: purchaseId || undefined,
+      transactionId: transactionId || undefined,
+      paidAt: _clean(accessGrant.paidAt || data.paidAt || new Date().toISOString()) || new Date().toISOString(),
+    };
+  }
+
+  function _runVedicServerCoinGate(sessionId, requestId) {
+    var premiumToken = _readPremiumAccessToken();
+    var headers = { 'Content-Type': 'application/json' };
+    if (premiumToken) headers['x-premium-access-token'] = premiumToken;
+
+    return fetch(BILLING_COIN_GATE_API, {
+      method: 'POST',
+      credentials: 'include',
+      headers: headers,
+      body: JSON.stringify({
+        categoryKey: 'premium-report',
+        featureKey: VEDIC_FEATURE_KEY,
+        reason: '베다 점성술 프리미엄 PDF 리포트 생성',
+        reportType: 'vedicPremium',
+        mode: 'vedic-book',
+        forceDeduct: true,
+        requestId: requestId,
+        sessionId: sessionId || undefined,
+        reportSessionId: sessionId || undefined,
+      }),
+    }).then(function (response) {
+      return response.json().catch(function () { return {}; }).then(function (payload) {
+        var data = payload && payload.data && typeof payload.data === 'object' ? payload.data : payload;
+        if (!response.ok || !payload || payload.ok === false) {
+          throw new Error((payload && (payload.message || (payload.error && payload.error.message) || payload.code)) || ('결제 확인에 실패했습니다. HTTP ' + response.status));
+        }
+        var token = _extractPremiumToken(data) || _extractPremiumToken(payload);
+        if (token) _persistPremiumAccessToken(token);
+        return {
+          ok: true,
+          premiumAccessToken: token,
+          accessGrant: _normalizeVedicAccessGrant(data, sessionId, requestId),
+          transactionId: _clean(data && data.transactionId),
+          consume: data && data.consume ? data.consume : null,
+        };
+      });
+    });
+  }
+
   function _ensurePremiumPaymentThenStart() {
     if (_hasPremiumAccessForGeneration()) return true;
+
+    var requestId = 'vedic-premium-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+    var fallbackSessionId = _currentVedicSessionId || ('vedic-premium:' + requestId);
+    _logStage('PaymentGateStart', { featureKey: VEDIC_FEATURE_KEY, requestId: requestId });
+
+    function finish(result) {
+      var normalized = result && typeof result === 'object' ? result : {};
+      var accessGrant = _normalizeVedicAccessGrant(normalized, fallbackSessionId, requestId);
+      _lastPremiumPayment = {
+        ok: true,
+        requestId: requestId,
+        accessGrant: accessGrant,
+        transactionId: _clean(normalized.transactionId || (normalized.consume && normalized.consume.transactionId) || (accessGrant && accessGrant.transactionId)),
+        consume: normalized.consume || null,
+        premiumAccessToken: _extractPremiumToken(normalized),
+      };
+      _persistPremiumAccessToken(_extractPremiumToken(normalized));
+      _markPremiumAccessVerified(25 * 60 * 1000);
+      _logStage('PaymentGateSuccess', {
+        featureKey: VEDIC_FEATURE_KEY,
+        hasAccessGrant: Boolean(accessGrant),
+        hasTransactionId: Boolean(_lastPremiumPayment.transactionId),
+      });
+      window.generateVedicBook();
+    }
+
     if (typeof window._cdCoinGatePerUse !== 'function') {
-      alert('결제 모듈을 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.');
+      _runVedicServerCoinGate(fallbackSessionId, requestId)
+        .then(finish)
+        .catch(function (error) {
+          _logError(error, { stage: 'PaymentGateFallback' });
+          _setError(String(error && error.message ? error.message : error || '결제 확인에 실패했습니다.'));
+        });
       return false;
     }
-    _logStage('PaymentGateStart', { featureKey: VEDIC_FEATURE_KEY });
-    window._cdCoinGatePerUse(VEDIC_COIN_COST, '베다 점성술 프리미엄 PDF 리포트 생성', function (_transactionId, data) {
-      _lastPremiumPayment = data || null;
-      _persistPremiumAccessToken(_extractPremiumToken(data));
-      _markPremiumAccessVerified(25 * 60 * 1000);
-      _logStage('PaymentGateSuccess', { featureKey: VEDIC_FEATURE_KEY });
-      window.generateVedicBook();
-    }, null, {
-      featureKey: VEDIC_FEATURE_KEY,
-      requestId: 'vedic-premium-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
-    });
+
+    var handled = false;
+    function onSuccess(_transactionId, data) {
+      if (handled) return;
+      handled = true;
+      finish(Object.assign({ transactionId: _clean(_transactionId) }, data || {}));
+    }
+    function onFailure(error) {
+      if (handled) return;
+      handled = true;
+      _runVedicServerCoinGate(fallbackSessionId, requestId)
+        .then(finish)
+        .catch(function (fallbackError) {
+          _logError(fallbackError || error, { stage: 'PaymentGate' });
+          _setError(String((fallbackError && fallbackError.message) || (error && error.message) || '결제 확인에 실패했습니다.'));
+        });
+    }
+
+    try {
+      var immediate = window._cdCoinGatePerUse(VEDIC_COIN_COST, '베다 점성술 프리미엄 PDF 리포트 생성', onSuccess, onFailure, {
+        featureKey: VEDIC_FEATURE_KEY,
+        requestId: requestId,
+      });
+      if (immediate && typeof immediate.then === 'function') {
+        immediate.then(function (result) {
+          if (result && result.ok === false) {
+            onFailure(new Error(_clean(result.message) || '결제 확인에 실패했습니다.'));
+            return;
+          }
+          onSuccess(_clean(result && result.transactionId), result || {});
+        }).catch(onFailure);
+      }
+    } catch (error) {
+      onFailure(error);
+    }
+
     return false;
   }
 
@@ -730,20 +857,26 @@
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '12챕터 해석문을 정리하고 있습니다.');
         _logStage('SessionCreateStart', { endpoint: VEDIC_PREPARE_API, featureKey: VEDIC_FEATURE_KEY });
         var paymentGrant = _lastPremiumPayment && _lastPremiumPayment.accessGrant ? _lastPremiumPayment.accessGrant : null;
+        var paymentRequestId = _clean(_lastPremiumPayment && _lastPremiumPayment.requestId) || _clean(paymentGrant && paymentGrant.requestId);
+        var paymentTransactionId = _clean(_lastPremiumPayment && _lastPremiumPayment.transactionId) || _clean(paymentGrant && paymentGrant.transactionId);
+        var paymentPurchaseId = _clean(paymentGrant && paymentGrant.purchaseId);
         var paymentContext = paymentGrant ? {
           featureKey: VEDIC_FEATURE_KEY,
-          requestId: paymentGrant.requestId || paymentGrant.transactionId || '',
-          purchaseId: paymentGrant.purchaseId || '',
+          requestId: paymentRequestId || paymentTransactionId || '',
+          purchaseId: paymentPurchaseId || paymentTransactionId || '',
           sessionId: paymentGrant.sessionId || paymentGrant.reportSessionId || '',
           reportSessionId: paymentGrant.reportSessionId || paymentGrant.sessionId || '',
           reportId: paymentGrant.reportId || '',
+          transactionId: paymentTransactionId || '',
         } : undefined;
         return _postPrepare({
           sessionId: _currentVedicSessionId,
           featureKey: VEDIC_FEATURE_KEY,
           reportSessionId: paymentGrant && (paymentGrant.reportSessionId || paymentGrant.sessionId) || _currentVedicSessionId,
-          purchaseId: paymentGrant && paymentGrant.purchaseId || undefined,
-          requestId: paymentGrant && (paymentGrant.requestId || paymentGrant.transactionId) || undefined,
+          purchaseId: paymentPurchaseId || paymentTransactionId || undefined,
+          requestId: paymentRequestId || paymentTransactionId || undefined,
+          transactionId: paymentTransactionId || undefined,
+          sourceTransactionId: paymentTransactionId || undefined,
           accessGrant: paymentGrant || undefined,
           premiumAccessToken: _readPremiumAccessToken() || _extractPremiumToken(_lastPremiumPayment) || undefined,
           payment: paymentContext ? {
@@ -753,6 +886,7 @@
             sessionId: paymentContext.sessionId,
             reportSessionId: paymentContext.reportSessionId,
             reportId: paymentContext.reportId,
+            transactionId: paymentContext.transactionId,
           } : undefined,
           _paymentContext: paymentContext,
           vedicBase: vedicBase,

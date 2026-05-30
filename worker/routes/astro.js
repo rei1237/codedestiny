@@ -78,6 +78,25 @@ function toAstroErrorMeta(error) {
   };
 }
 
+function ensureSwissChartForAstroPremium(swissChart = {}) {
+  const planets = swissChart && typeof swissChart.planets === "object" ? Object.keys(swissChart.planets) : [];
+  const hasAsc = Boolean(swissChart?.ascendant && (swissChart.ascendant.signKo || swissChart.ascendant.signName || swissChart.ascendant.sign));
+  const hasMc = Boolean(swissChart?.midheaven && (swissChart.midheaven.signKo || swissChart.midheaven.signName || swissChart.midheaven.sign));
+  const houseCusps = Array.isArray(swissChart?.houseCusps) ? swissChart.houseCusps : [];
+  const aspects = Array.isArray(swissChart?.aspects) ? swissChart.aspects : [];
+  const ok = planets.length >= 7 && hasAsc && hasMc && houseCusps.length === 12 && aspects.length > 0;
+  return {
+    ok,
+    diagnostics: {
+      planetCount: planets.length,
+      hasAsc,
+      hasMc,
+      houseCuspCount: houseCusps.length,
+      aspectCount: aspects.length,
+    },
+  };
+}
+
 function clean(value) {
   return String(value || "").trim();
 }
@@ -215,18 +234,30 @@ async function handleAstroPremiumPrepare(request, env) {
     let swissChart = {};
     try {
       swissChart = await getSwissWesternChart(env, swissInput, { requestUrl: request.url });
+      const swissValidation = ensureSwissChartForAstroPremium(swissChart);
+      if (!swissValidation.ok) {
+        const swissError = new Error("점성술 프리미엄 PDF는 Swiss 계산값(행성/ASC/MC/하우스/어스펙트)이 완전할 때만 생성할 수 있습니다.");
+        swissError.code = "ASTRO_SWISS_REQUIRED";
+        swissError.status = 422;
+        swissError.details = swissValidation.diagnostics;
+        throw swissError;
+      }
       console.info("[AstroPremiumPDF][LocalCalculationSuccess]", {
         planetCount: Object.keys(swissChart?.planets || {}).length,
         hasAscendant: Boolean(swissChart?.ascendant),
         hasMidheaven: Boolean(swissChart?.midheaven),
+        houseCuspCount: Array.isArray(swissChart?.houseCusps) ? swissChart.houseCusps.length : 0,
+        aspectCount: Array.isArray(swissChart?.aspects) ? swissChart.aspects.length : 0,
         ...toSafeBirthLog(birthInput, ASTRO_PREMIUM_CHAPTERS.length),
       });
     } catch (error) {
-      swissChart = {};
-      console.warn("[AstroPremiumPDF][LocalCalculationRecovered]", {
+      console.error("[AstroPremiumPDF][LocalCalculationFailed]", {
         ...toSafeBirthLog(birthInput, ASTRO_PREMIUM_CHAPTERS.length),
         error: toAstroErrorMeta(error),
       });
+      if (!error?.code) error.code = "ASTRO_SWISS_REQUIRED";
+      if (!error?.status) error.status = 422;
+      throw error;
     }
 
     const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "westernAstrologyPremium", {
@@ -280,6 +311,15 @@ async function handleAstroPremiumPrepare(request, env) {
         console.info(tag, payload || {});
       },
     });
+    if (clean(generated?.localAstroChartJson?.calculationMode || "") !== "full") {
+      const strictError = new Error("점성술 프리미엄 PDF는 Swiss 실계산 기반 seed(JSON)에서만 생성됩니다.");
+      strictError.code = "ASTRO_SWISS_REQUIRED";
+      strictError.status = 422;
+      strictError.details = {
+        calculationMode: clean(generated?.localAstroChartJson?.calculationMode || "") || "unknown",
+      };
+      throw strictError;
+    }
     if (!generated?.validation?.ok) {
       const error = new Error("점성술 프리미엄 원고 검증에 실패했습니다.");
       error.code = "ASTRO_MANUSCRIPT_INVALID";
@@ -377,6 +417,7 @@ async function handleAstroPremiumPrepare(request, env) {
 async function handleVedicPremiumPrepare(request, env) {
   let auth = null;
   let body = {};
+  let executionCtx = null;
   try {
     auth = await requireAuth(request, env);
     body = await readJson(request);
@@ -389,8 +430,49 @@ async function handleVedicPremiumPrepare(request, env) {
       hasPremiumAccessToken: Boolean(premiumAccessToken),
     });
 
+    const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "vedicPremium", {
+      reportType: "vedicPremium",
+      featureKey,
+      premiumAccessToken: premiumAccessToken || undefined,
+      _accessRoute: "/api/vedic/premium/prepare",
+    });
+
+    executionCtx = buildPremiumExecutionContext({
+      serviceKey: "vedic-premium",
+      reportType: "vedicPremium",
+      userId: auth.userId,
+      featureKey,
+      sessionId: clean(body?.sessionId || body?.reportSessionId || body?.generationId),
+      reportId: clean(body?.reportId || body?.accessGrant?.reportId),
+      access,
+      body,
+      timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+    });
+
+    if (!access?.ok) {
+      console.error("[VedicPremiumPDF][Error]", {
+        code: String(access?.code || "UNAUTHORIZED"),
+        message: String(access?.message || "베다점 프리미엄 PDF 접근 권한이 필요합니다."),
+      });
+      return json({
+        ok: false,
+        code: access?.code || "UNAUTHORIZED",
+        message: access?.message || "베다점 프리미엄 PDF 접근 권한이 필요합니다.",
+      }, { status: Number(access?.status) || 403 });
+    }
+
+    await startPremiumPdfExecution(env, auth.userId, executionCtx);
+
     const validation = validateVedicPayloadForApi(body?.vedicBase || body);
     if (!validation.ok) {
+      await failPremiumPdfExecution(
+        env,
+        auth.userId,
+        executionCtx,
+        "vedic_seed_validation_failed",
+        clean(validation?.message || "베다점 계산 데이터가 부족합니다."),
+        "vedic-seed-validation",
+      );
       console.error("[VedicPremiumPDF][Error]", {
         code: String(validation?.code || "MISSING_VEDIC_DATA"),
         message: String(validation?.message || "베다점 계산 데이터가 부족합니다."),
@@ -408,39 +490,6 @@ async function handleVedicPremiumPrepare(request, env) {
       ...toSafeVedicBirthLog(validation?.birthInput, VEDIC_PREMIUM_CHAPTERS.length),
       ...toSafeVedicChartLog(validation?.localVedicChartJson),
     });
-
-    const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "vedicPremium", {
-      reportType: "vedicPremium",
-      featureKey,
-      premiumAccessToken: premiumAccessToken || undefined,
-      _accessRoute: "/api/vedic/premium/prepare",
-    });
-
-    if (!access?.ok) {
-      console.error("[VedicPremiumPDF][Error]", {
-        code: String(access?.code || "UNAUTHORIZED"),
-        message: String(access?.message || "베다점 프리미엄 PDF 접근 권한이 필요합니다."),
-        ...toSafeVedicBirthLog(validation?.birthInput, VEDIC_PREMIUM_CHAPTERS.length),
-      });
-      return json({
-        ok: false,
-        code: access?.code || "UNAUTHORIZED",
-        message: access?.message || "베다점 프리미엄 PDF 접근 권한이 필요합니다.",
-      }, { status: Number(access?.status) || 403 });
-    }
-
-    const executionCtx = buildPremiumExecutionContext({
-      serviceKey: "vedic-premium",
-      reportType: "vedicPremium",
-      userId: auth.userId,
-      featureKey,
-      sessionId: clean(body?.sessionId || body?.reportSessionId || body?.generationId),
-      reportId: clean(body?.reportId || body?.accessGrant?.reportId),
-      access,
-      body,
-      timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
-    });
-    await startPremiumPdfExecution(env, auth.userId, executionCtx);
 
     const generated = await generateVedicPremiumReport(env, body?.vedicBase || body, {
       log: (stage, payload) => {
@@ -501,7 +550,7 @@ async function handleVedicPremiumPrepare(request, env) {
     await failPremiumPdfExecution(
       env,
       auth?.userId,
-      buildPremiumExecutionContext({
+      executionCtx || buildPremiumExecutionContext({
         serviceKey: "vedic-premium",
         reportType: "vedicPremium",
         userId: auth?.userId,

@@ -620,6 +620,12 @@
           _setProgress(TOTAL_CHAPTERS, '동일 세션 생성이 진행 중입니다. 잠시 후 결과를 확인합니다.');
           return;
         }
+        var manuscriptSource = _clean(data && data.manuscriptSource);
+        var llmUsed = !!(data && data.llmUsed);
+        var chapterCount = Array.isArray(data && data.chapters) ? data.chapters.length : 0;
+        if (!llmUsed || manuscriptSource !== 'llm-only' || chapterCount !== TOTAL_CHAPTERS) {
+          throw new Error('신년운세 PDF 생성 결과가 LLM 전용 규격을 충족하지 않았습니다. 잠시 후 다시 시도해 주세요.');
+        }
         _markPremiumVerified(25 * 60 * 1000);
         _log('ChapterGenerationStarted', { chapterCount: Number(data.chapterCount || TOTAL_CHAPTERS) });
         _log('ChapterGenerationCompleted', { chapterCount: Number(data.chapterCount || TOTAL_CHAPTERS), llmUsed: !!(data && data.llmUsed) });

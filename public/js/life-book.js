@@ -1600,7 +1600,7 @@
       writing_with_llm: 'AI 상담문 보강 중',
       rendering_pdf: 'PDF 편집/렌더링 중',
       done: '완료',
-      llm_failed_local: 'AI 문장 보강이 지연되어 로컬 사주 계산 기반 프리미엄 원고로 PDF를 완성합니다.',
+      llm_failed_local: 'AI 상담문 생성이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.',
     };
 
     function _setGenerationState(stateKey) {
@@ -1721,6 +1721,10 @@
 
       var _data = (_json && _json.data && typeof _json.data === 'object') ? _json.data : _json;
         _lbPendingPdfHtml = String((_data && _data.pdfReady && _data.pdfReady.html) || '');
+      var _manuscriptSource = String((_data && _data.manuscriptSource) || '').trim();
+      if (_manuscriptSource !== 'llm-only-interpretation') {
+        throw new Error('LIFE_BOOK_LLM_ONLY_REQUIRED');
+      }
       var _serverChapters = Array.isArray(_data.chapters) ? _data.chapters : [];
       if (_serverChapters.length !== LIFEBOOK_TOTAL_CHAPTERS) {
         throw new Error('LIFE_BOOK_CHAPTER_COUNT_INVALID:' + _serverChapters.length);
@@ -1807,36 +1811,9 @@
       _flowLog('FRONT_PIPELINE_FAILED', { message: errMsg });
       _lifeBookLog('Error', { stage: 'generate', message: errMsg });
 
-      var fallbackApplied = false;
-      try {
-        fallbackApplied = _applyLocalFallbackChapters(sajuData, profile, errMsg);
-      } catch (_) {
-        fallbackApplied = false;
-      }
-
-      if (fallbackApplied) {
-        _flowLog('LIFE_BOOK_LOCAL_FALLBACK_APPLIED', {
-          reportId: _lbCurrentReportId || '',
-          reason: errMsg,
-          chapterCount: LIFEBOOK_TOTAL_CHAPTERS,
-        });
-        _generating = false;
-        _showScreen('lbResultScreen');
-        _updateTocState();
-        _renderChapter(1);
-        _bindToc();
-        _lbEnsurePartialRegenerateControl();
-        _lbSaveResult(window.__cdActiveBirthProfile || {});
-        var lbEpBannerFallback = _qs('lbEpilogueBanner');
-        if (lbEpBannerFallback) lbEpBannerFallback.style.display = '';
-        _setGenerationState('llm_failed_local');
-        alert('AI 문장 보강이 지연되어 로컬 사주 계산 기반 프리미엄 원고로 PDF를 완성합니다.');
-        return;
-      }
-
       _generating = false;
       _showScreen('lbStartScreen');
-      alert('인생의 책 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      alert('인생의 책 생성 중 오류가 발생했습니다. 사주 seed 기반 LLM 해석이 완료되지 않아 생성을 중단했습니다. 잠시 후 다시 시도해 주세요.');
     }).finally(function () {
       if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
       if (_activeRequestController) _activeRequestController = null;

@@ -31,6 +31,6 @@ describe("Swiss URL builder safety", () => {
   test("SWISS_WASM_PATH가 비정상 문자열이어도 Invalid URL string을 직접 유발하지 않아야 한다", () => {
     const env = { SWISS_WASM_PATH: "undefined" };
     const resolved = utils.resolveSwissWasmPath(env, {});
-    expect(resolved).toBeUndefined();
+    expect(String(resolved || "")).toMatch(/^https:\/\//);
   });
 });

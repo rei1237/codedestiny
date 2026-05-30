@@ -2051,6 +2051,12 @@
               clearTimeout(timeoutId);
               if (_activeRequestController === _controller) _activeRequestController = null;
               if (data && data.ok) {
+                var source = String((data && data.manuscriptSource) || '').trim().toLowerCase();
+                if (data.fallbackUsed || source !== 'llm-only') {
+                  _lastMsg = '생성 결과가 정책과 맞지 않아 완료할 수 없습니다.';
+                  _runAttempt(at + 1);
+                  return;
+                }
                 _done(data);
                 return;
               }
@@ -2091,7 +2097,8 @@
           : null;
       }
       _setProgress(Math.max(0, Math.min(totalChapters, list.length || totalChapters)));
-      if (payload && (payload.manuscriptSource === 'local' || payload.fallbackUsed)) {
+      var manuscriptSource = String((payload && payload.manuscriptSource) || '').trim().toLowerCase();
+      if (!payload || payload.fallbackUsed || manuscriptSource !== 'llm-only') {
         throw new Error('생성 결과가 정책과 맞지 않아 완료할 수 없습니다.');
       }
     }

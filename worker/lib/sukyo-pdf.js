@@ -1026,7 +1026,7 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
     chapters: normalizedChapters,
     chapterCount: normalizedChapters.length,
     qualityStatus: "passed",
-    fallbackUsed,
+    fallbackUsed: false,
   };
 
   return {

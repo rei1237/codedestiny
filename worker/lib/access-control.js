@@ -81,6 +81,18 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
         windowMinutes: 120,
       },
       {
+        featureKey: "premium_pdf_saju_new_year",
+        reason: "사주 신년운세 PDF 리포트 생성",
+        minCost: 300,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "premium-saju-newyear-report",
+        reason: "사주 신년운세 PDF 리포트 생성",
+        minCost: 300,
+        windowMinutes: 120,
+      },
+      {
         featureKey: "coin-gate-per-use",
         reason: "사주 신년운세 PDF 리포트 생성",
         minCost: 300,
@@ -605,6 +617,8 @@ function paymentEvidenceMatchesRule(evidence = {}, rule = {}) {
 }
 
 function premiumTokenMatchesCurrentAccessRules(tokenPayload = {}, alternativeRules = [], requiredRules = []) {
+  if (tokenPayload?.freeBySubscription === true) return true;
+
   const rules = uniqueStrings([]).length
     ? []
     : [...(Array.isArray(requiredRules) ? requiredRules : []), ...(Array.isArray(alternativeRules) ? alternativeRules : [])];
@@ -886,6 +900,42 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       logSajuAccessResolved(allowed);
       return allowed;
     }
+
+    // 결제 토큰은 유효하지만 cost/feature 정규화가 맞지 않는 경우, DB 증빙으로 최종 확인한다.
+    if (tokenCheck.ok) {
+      const tokenPayload = tokenCheck.payload || {};
+      const tokenEvidenceRequest = {
+        ...requestBody,
+        transactionId: String(tokenPayload.transactionId || requestBody?.transactionId || "").trim(),
+        sourceTransactionId: String(tokenPayload.transactionId || requestBody?.sourceTransactionId || "").trim(),
+        paymentId: String(tokenPayload.transactionId || requestBody?.paymentId || "").trim(),
+        requestId: String(requestBody?.requestId || "").trim(),
+        purchaseId: String(requestBody?.purchaseId || requestBody?.reportPurchaseId || tokenPayload.transactionId || "").trim(),
+        featureKey: String(requestBody?.featureKey || tokenPayload.featureKey || "").trim(),
+      };
+
+      const tokenBoundEvidence = await findEvidenceByPaymentTokens(userId, tokenEvidenceRequest, alternativeRules);
+      if (tokenBoundEvidence) {
+        logPremiumAccessDecision({
+          route: requestBody?._accessRoute,
+          userId,
+          reportType: normalizedReportType,
+          featureKey: String(tokenBoundEvidence?.featureKey || ""),
+          accessSource: "signed-payment-token-db-evidence",
+          matchedTransactionId: String(tokenBoundEvidence?._id || ""),
+        });
+        const allowed = {
+          ok: true,
+          accessType: "signed-payment-token-db-evidence",
+          reportType: normalizedReportType,
+          matchedTransactionId: String(tokenBoundEvidence?._id || ""),
+          featureKey: String(tokenBoundEvidence?.featureKey || ""),
+          chargedCoins: Math.abs(Number(tokenBoundEvidence?.delta || 0)),
+        };
+        logSajuAccessResolved(allowed);
+        return allowed;
+      }
+    }
   }
 
   if (!normalizedReportType || (!unlockPolicy.length && !alternativeRules.length && !requiredRules.length)) {
@@ -996,6 +1046,31 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
   }
 
   if (normalizedReportType === "lifeBook" && alternativeRules.length) {
+    for (let i = 0; i < alternativeRules.length; i += 1) {
+      const evidence = await findRecentDeductionEvidence(user._id, alternativeRules[i]);
+      if (!evidence) continue;
+      logPremiumAccessDecision({
+        route: requestBody?._accessRoute,
+        userId,
+        reportType: normalizedReportType,
+        featureKey: String(evidence?.featureKey || ""),
+        accessSource: "recent-payment-window",
+        matchedTransactionId: String(evidence?._id || ""),
+      });
+      const allowed = {
+        ok: true,
+        accessType: "recent-payment-window",
+        reportType: normalizedReportType,
+        matchedTransactionId: String(evidence?._id || ""),
+        featureKey: String(evidence?.featureKey || ""),
+        chargedCoins: Math.abs(Number(evidence?.delta || 0)),
+      };
+      logSajuAccessResolved(allowed);
+      return allowed;
+    }
+  }
+
+  if (normalizedReportType === "sajuNewYear" && alternativeRules.length) {
     for (let i = 0; i < alternativeRules.length; i += 1) {
       const evidence = await findRecentDeductionEvidence(user._id, alternativeRules[i]);
       if (!evidence) continue;

@@ -34,6 +34,8 @@ export function resolvePremiumAccessReportType(featureKey = "", reason = "") {
     "premium-love-secret-solo": "loveSecret",
     "premium-love-secret-couple": "loveSecret",
     "saju_new_year_pdf": "sajuNewYear",
+    "premium_pdf_saju_new_year": "sajuNewYear",
+    "premium-saju-newyear-report": "sajuNewYear",
     "premium-ziwei-report": "ziweiPremium",
     "premium-ziwei-report-compat": "ziweiPremium",
     "premium-astrology-report": "westernAstrologyPremium",
