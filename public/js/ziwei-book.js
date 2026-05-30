@@ -160,7 +160,7 @@
     var chapters = Array.isArray(payload.chapters) ? payload.chapters : [];
     var hasReportId = Boolean(text(payload.reportId));
     var hasPdfHtml = Boolean(text(payload && payload.pdfReady && payload.pdfReady.html));
-    return hasReportId && hasPdfHtml && chapters.length >= TOTAL_CHAPTERS;
+    return hasReportId && hasPdfHtml && chapters.length === TOTAL_CHAPTERS;
   }
 
   function logFlow(tag, payload){
@@ -898,10 +898,9 @@
       }
       logFlow('SessionCreateSuccess', {
         chapterCount: Array.isArray(data && data.chapters) ? data.chapters.length : 0,
-        fallbackUsed: Boolean(data && data.fallbackUsed)
+        llmOnly: true
       });
-      var localDraftCount = Number((data && data.localDraftChapterCount) || 0);
-      var chapterProgressCount = Math.max(0, Math.min(TOTAL_CHAPTERS, localDraftCount || Number((data && data.chapterCount) || 0)));
+      var chapterProgressCount = Math.max(0, Math.min(TOTAL_CHAPTERS, Number((data && data.chapterCount) || 0)));
       for(var i=0; i<chapterProgressCount; i++){
         markChapter(i);
         updateProgress(62 + Math.round(((i + 1) / TOTAL_CHAPTERS) * 24), CHAPTERS[i] || '챕터를 완성하고 있습니다.');
@@ -912,13 +911,9 @@
       updateProgress(95, '마지막 운명 전략을 완성하고 있습니다.');
       updateZiweiGenerationState({ status: 'savingPdf' });
       RESULT = data;
-      if(data && data.fallbackUsed && isZiweiReportReady(data) && window.showToast){
-        window.showToast('일시 지연이 있었지만 보고서 생성을 다시 정교하게 완료했습니다.', 'info');
-      }
       logFlow('PdfRequestSuccess', {
         chapterCount: Array.isArray(data && data.chapters) ? data.chapters.length : 0,
-        localDraftChapterCount: localDraftCount,
-        fallbackUsed: Boolean(data && data.fallbackUsed)
+        llmOnly: true
       });
       updateProgress(100, 'PDF를 완성하고 있습니다.');
       updateZiweiGenerationState({ status: 'completed', reportId: text(data && data.reportId), currentChapterNo: TOTAL_CHAPTERS });

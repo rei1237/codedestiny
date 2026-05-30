@@ -2813,6 +2813,27 @@ body.theme-pig .lb-ch-dot--pending {
   --lb-title-gradient: linear-gradient(90deg, #fef3c7, #f5d0fe 52%, #bfdbfe);
 }
 
+/* Ensure Ziwei loading scene stays visually centered across breakpoints. */
+#ziweiBookModal .lb-loading-screen {
+  align-items: center;
+  text-align: center;
+}
+
+#ziweiBookModal .lb-loading-orb,
+#ziweiBookModal .lb-loading-title,
+#ziweiBookModal .lb-loading-chapter-box,
+#ziweiBookModal .lb-mystic-wrap,
+#ziweiBookModal .lb-ch-grid,
+#ziweiBookModal .lb-loading-progress,
+#ziweiBookModal .lb-progress-text {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#ziweiBookModal .lb-mystic-wrap {
+  justify-content: center;
+}
+
 #astroBookModal {
   --lb-accent: #38bdf8;
   --lb-accent2: #0ea5e9;
