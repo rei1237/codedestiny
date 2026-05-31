@@ -15,7 +15,7 @@ const CHAPTER_BLUEPRINTS = [
   {
     id: "01",
     roman: "I",
-    title: "Chapter I. 사주 원국 완전 해설 — 팔자 8글자의 비밀",
+    title: "제 1장 사주 원국 완전 해설 — 팔자 8글자의 비밀",
     subtitle: "원국의 네 기둥과 일간을 통해 인생의 기본 구조를 여는 장",
     categories: [
       "네 기둥이 말하는 인생의 기본 구조",
@@ -29,7 +29,7 @@ const CHAPTER_BLUEPRINTS = [
   {
     id: "02",
     roman: "II",
-    title: "Chapter II. 나의 설계도 — 월지·일간·조후와 기질의 뿌리",
+    title: "제 2장 나의 설계도 — 월지·일간·조후와 기질의 뿌리",
     subtitle: "월령·강약·조후와 오행 분포로 기질의 뿌리를 해석하는 장",
     categories: [
       "월령으로 보는 인생의 출발점",
@@ -43,7 +43,7 @@ const CHAPTER_BLUEPRINTS = [
   {
     id: "03",
     roman: "III",
-    title: "Chapter III. 숨겨진 무기 — 용신·희신과 나만의 필살기",
+    title: "제 3장 숨겨진 무기 — 용신·희신과 나만의 필살기",
     subtitle: "용신·희신·기신을 실전 전략으로 바꾸는 장",
     categories: [
       "이 명식에서 가장 필요한 기운",
@@ -57,7 +57,7 @@ const CHAPTER_BLUEPRINTS = [
   {
     id: "04",
     roman: "IV",
-    title: "Chapter IV. 대운 정밀 분석 — 인생의 큰 파도",
+    title: "제 4장 대운 정밀 분석 — 인생의 큰 파도",
     subtitle: "현재·다음 대운의 흐름을 현실 과제로 연결하는 장",
     categories: [
       "대운 흐름의 전체 방향",
@@ -71,7 +71,7 @@ const CHAPTER_BLUEPRINTS = [
   {
     id: "05",
     roman: "V",
-    title: "Chapter V. 격국과 사회적 소명 — 나의 성공 방정식",
+    title: "제 5장 격국과 사회적 소명 — 나의 성공 방정식",
     subtitle: "격국과 사회적 역할을 통해 성공 구조를 설계하는 장",
     categories: [
       "격국으로 보는 사회적 역할",
@@ -85,7 +85,7 @@ const CHAPTER_BLUEPRINTS = [
   {
     id: "06",
     roman: "VI",
-    title: "Chapter VI. 관계의 전략 — 인연의 법칙과 파트너십",
+    title: "제 6장 관계의 전략 — 인연의 법칙과 파트너십",
     subtitle: "관계 패턴과 파트너십 운영법을 다루는 장",
     categories: [
       "사람을 대하는 기본 방식",
@@ -99,7 +99,7 @@ const CHAPTER_BLUEPRINTS = [
   {
     id: "07",
     roman: "VII",
-    title: "Chapter VII. 연애·결혼 완전 분석 — 사랑의 패턴과 배우자운",
+    title: "제 7장 연애·결혼 완전 분석 — 사랑의 패턴과 배우자운",
     subtitle: "연애와 결혼의 반복 패턴을 현실적으로 정리하는 장",
     categories: [
       "끌리는 사람의 유형",
@@ -113,7 +113,7 @@ const CHAPTER_BLUEPRINTS = [
   {
     id: "08",
     roman: "VIII",
-    title: "Chapter VIII. 재물·직업 완전 분석 — 돈과 일의 성공 지도",
+    title: "제 8장 재물·직업 완전 분석 — 돈과 일의 성공 지도",
     subtitle: "재물과 직업의 구조를 구체적인 실행으로 연결하는 장",
     categories: [
       "돈이 들어오는 방식",
@@ -127,7 +127,7 @@ const CHAPTER_BLUEPRINTS = [
   {
     id: "09",
     roman: "IX",
-    title: "Chapter IX. 건강·심신 리듬 — 몸과 마음의 관리법",
+    title: "제 9장 건강·심신 리듬 — 몸과 마음의 관리법",
     subtitle: "오행 불균형과 회복 루틴을 생활 전략으로 정리하는 장",
     categories: [
       "체력과 에너지 패턴",
@@ -141,7 +141,7 @@ const CHAPTER_BLUEPRINTS = [
   {
     id: "10",
     roman: "X",
-    title: "Chapter X. 신살·십이운성·퀀텀 포인트 — 숨은 운명의 장치",
+    title: "제 10장 신살·십이운성·퀀텀 포인트 — 숨은 운명의 장치",
     subtitle: "신살과 십이운성의 반복 신호를 현실적으로 해석하는 장",
     categories: [
       "주요 신살이 말하는 특징",
@@ -155,7 +155,7 @@ const CHAPTER_BLUEPRINTS = [
   {
     id: "11",
     roman: "XI",
-    title: "Chapter XI. 위기와 반전 시나리오 — 무너질 때 다시 서는 법",
+    title: "제 11장 위기와 반전 시나리오 — 무너질 때 다시 서는 법",
     subtitle: "흔들리는 지점과 반전 전략을 구체화하는 장",
     categories: [
       "이 명식이 흔들리는 순간",
@@ -169,7 +169,7 @@ const CHAPTER_BLUEPRINTS = [
   {
     id: "12",
     roman: "XII",
-    title: "Chapter XII. 나의 길 — 인생의 방향과 장기 성장",
+    title: "제 12장 나의 길 — 인생의 방향과 장기 성장",
     subtitle: "장기 성장의 방향과 단계별 실행을 정리하는 장",
     categories: [
       "이 사람이 결국 가야 할 길",
@@ -183,7 +183,7 @@ const CHAPTER_BLUEPRINTS = [
   {
     id: "13",
     roman: "XIII",
-    title: "Chapter XIII. 마스터플랜 — 3년·5년·10년 운명 전략",
+    title: "제 13장 마스터플랜 — 3년·5년·10년 운명 전략",
     subtitle: "돈·일·관계를 묶은 장기 전략을 확정하는 종장",
     categories: [
       "지금 가장 먼저 해야 할 선택",
@@ -213,6 +213,12 @@ const ELEMENT_KEYS = ["wood", "fire", "earth", "metal", "water"];
 
 const FORBIDDEN_TEXT = [
   "fallback",
+  "seed",
+  "skeleton",
+  "local",
+  "engine",
+  "validation",
+  "retry",
   "자동 복구 생성",
   "chapter 1 chapter 1",
   "chapter 1",
@@ -238,6 +244,9 @@ const FORBIDDEN_TEXT = [
   "raw",
   "프롬프트",
   "로컬 엔진",
+  "로컬 기반",
+  "데이터 부족",
+  "템플릿",
   "계산 시그니처",
   "내부 데이터",
   "엔진 결과",
@@ -246,7 +255,7 @@ const FORBIDDEN_TEXT = [
   "재생성",
 ];
 
-const LIFEBOOK_FORBIDDEN_RE = /\b(?:fallback|payload|json|schema|debug|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw|llm|api|prompt)\b|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1|데이터가\s*부족합니다|로컬\s*엔진|계산\s*시그니처|내부\s*데이터|엔진\s*결과|데이터\s*정규화|품질\s*검증|재생성/gi;
+const LIFEBOOK_FORBIDDEN_RE = /\b(?:fallback|seed|skeleton|local|engine|validation|retry|payload|json|schema|debug|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw|llm|api|prompt)\b|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1|데이터가\s*부족합니다|데이터\s*부족|로컬\s*엔진|로컬\s*기반|템플릿|계산\s*시그니처|내부\s*데이터|엔진\s*결과|데이터\s*정규화|품질\s*검증|재생성/gi;
 
 const LIFEBOOK_SERVICE_KEY = "saju-lifebook";
 const LIFEBOOK_FEATURE_KEY = "saju_life_book_pdf";
@@ -256,8 +265,8 @@ const LIFEBOOK_FEATURE_KEY_ALIASES = new Set([
   "premium-lifebook-report",
 ]);
 
-const LIFEBOOK_MIN_CATEGORY_CHARS = 500;
-const LIFEBOOK_MIN_CHAPTER_CHARS = 3500;
+const LIFEBOOK_MIN_CATEGORY_CHARS = 700;
+const LIFEBOOK_MIN_CHAPTER_CHARS = 4300;
 const LIFEBOOK_MIN_TOTAL_CHARS = 45000;
 
 const LIFEBOOK_SESSION_LOCKS = globalThis.__LIFEBOOK_SESSION_LOCKS || new Map();
@@ -269,8 +278,16 @@ const STEM_KO_MAP = Object.freeze({
   甲: "갑", 乙: "을", 丙: "병", 丁: "정", 戊: "무", 己: "기", 庚: "경", 辛: "신", 壬: "임", 癸: "계",
 });
 
+const STEM_HAN_MAP = Object.freeze({
+  갑: "甲", 을: "乙", 병: "丙", 정: "丁", 무: "戊", 기: "己", 경: "庚", 신: "辛", 임: "壬", 계: "癸",
+});
+
 const BRANCH_KO_MAP = Object.freeze({
   子: "자", 丑: "축", 寅: "인", 卯: "묘", 辰: "진", 巳: "사", 午: "오", 未: "미", 申: "신", 酉: "유", 戌: "술", 亥: "해",
+});
+
+const BRANCH_HAN_MAP = Object.freeze({
+  자: "子", 축: "丑", 인: "寅", 묘: "卯", 진: "辰", 사: "巳", 오: "午", 미: "未", 신: "申", 유: "酉", 술: "戌", 해: "亥",
 });
 
 function clean(value) {
@@ -322,6 +339,12 @@ function stripForbiddenTokens(value) {
     .replace(/Chapter\s*1/gi, "")
     .replace(/자동 복구/gi, "")
     .replace(/fallback/gi, "")
+    .replace(/seed/gi, "")
+    .replace(/skeleton/gi, "")
+    .replace(/\blocal\b/gi, "")
+    .replace(/\bengine\b/gi, "")
+    .replace(/validation/gi, "")
+    .replace(/retry/gi, "")
     .replace(/payload/gi, "")
     .replace(/json/gi, "")
     .replace(/schema/gi, "")
@@ -330,6 +353,15 @@ function stripForbiddenTokens(value) {
     .replace(/api/gi, "")
     .replace(/프롬프트/gi, "")
     .replace(/로컬\s*엔진/gi, "")
+    .replace(/로컬\s*기반/gi, "")
+    .replace(/데이터\s*부족/gi, "")
+    .replace(/템플릿/gi, "")
+    .replace(/Chapter\s*I(?:V|X|L|C|M)*/gi, "")
+    .replace(/이\s*장에서는/g, "")
+    .replace(/\d{2}장의\s*기준에\s*맞춰/g, "")
+    .replace(/기준\s*세\s*가지/g, "")
+    .replace(/원국\s*구조이/g, "원국 구조가")
+    .replace(/([갑을병정무기경신임계甲乙丙丁戊己庚辛壬癸])은\(는\)/g, "$1은")
     .replace(/계산\s*시그니처/gi, "")
     .replace(/내부\s*데이터/gi, "")
     .replace(/엔진\s*결과/gi, "")
@@ -424,6 +456,16 @@ function getPillarGanjiLabel(pillar = {}) {
   const stem = getPillarStemLabel(pillar);
   const branch = getPillarBranchLabel(pillar);
   return `${stem}${branch}`.trim();
+}
+
+function formatGanjiWithHanja(stem = "", branch = "") {
+  const koStem = normalizeStemLabel(stem);
+  const koBranch = normalizeBranchLabel(branch);
+  const hanStem = STEM_HAN_MAP[koStem] || clean(stem);
+  const hanBranch = BRANCH_HAN_MAP[koBranch] || clean(branch);
+  if (!koStem || !koBranch) return `${koStem}${koBranch}`.trim();
+  if (!hanStem || !hanBranch) return `${koStem}${koBranch}`;
+  return `${koStem}${koBranch}(${hanStem}${hanBranch})`;
 }
 
 function describeTopTenGods(signals = {}) {
@@ -939,6 +981,19 @@ function allowedLifeBookRepetitionScore(chapters = []) {
   return Math.max(12, Math.floor(categoryCount * 0.7) + Math.floor(list.length / 2));
 }
 
+function evaluateCounselingQuality(text = "") {
+  const source = stripForbiddenTokens(text);
+  const practicalRe = /(오늘|이번\s*주|먼저|우선|정리|기록|점검|줄이|지출|수면|식사|대화|경계|루틴|실행)/;
+  const warmRe = /(괜찮습니다|충분히|응원|믿습니다|당신의\s*속도|천천히|잘\s*해낼|따뜻하게|함께)/;
+  const sentenceCount = source.split(/[.!?\n]+/).map((s) => s.trim()).filter((s) => s.length >= 10).length;
+  const tail = source.slice(-220);
+  return {
+    hasPracticalAdvice: practicalRe.test(source),
+    hasWarmEnding: warmRe.test(tail),
+    sentenceCount,
+  };
+}
+
 function validateLifeBookFinalManuscript(chapters = []) {
   const errors = [];
   const chapterMetrics = [];
@@ -963,6 +1018,16 @@ function validateLifeBookFinalManuscript(chapters = []) {
       }
       if (hasForbiddenText(body)) {
         errors.push(`chapter_${idx + 1}_category_${cidx + 1}_forbidden_text`);
+      }
+      const quality = evaluateCounselingQuality(body);
+      if (!quality.hasPracticalAdvice) {
+        errors.push(`chapter_${idx + 1}_category_${cidx + 1}_practical_missing`);
+      }
+      if (!quality.hasWarmEnding) {
+        errors.push(`chapter_${idx + 1}_category_${cidx + 1}_warm_ending_missing`);
+      }
+      if (quality.sentenceCount < 12) {
+        errors.push(`chapter_${idx + 1}_category_${cidx + 1}_sentence_too_few`);
       }
     });
 
@@ -1560,9 +1625,10 @@ function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
 function ensureCategoryLength(text, chapterId, categoryTitle, categoryIndex, minLength = LIFEBOOK_MIN_CATEGORY_CHARS + 120) {
   let result = stripForbiddenTokens(text);
   const fillerPool = [
-    `${chapterId}장의 ${categoryTitle}에서는 감정이 올라온 순간 바로 결론을 내리기보다, 하루 단위로 판단과 실행을 분리해 기록하는 습관이 중요합니다. 이렇게 해야 사주가 가진 장점이 실제 선택에서 꾸준히 살아납니다.`,
-    `${categoryTitle}을 다룰 때는 관계, 일, 돈, 마음 중 지금 가장 압력이 큰 한 축을 먼저 정하고 그 축에 맞는 행동을 반복해야 운의 방향이 흐트러지지 않습니다. 작은 루틴이 쌓일수록 결과가 안정됩니다.`,
-    `${chapterId}장의 ${categoryTitle}에서 말하는 핵심은 화려한 결론보다 지속 가능한 운영법입니다. ${categoryTitle}의 기준을 문장으로 적고, 한 주의 우선순위를 두세 개로 줄이면 명식의 강점이 흔들림 없이 이어집니다.`,
+    `선택이 흔들릴 때는 마음속 판단을 길게 끌지 말고, 오늘 해야 할 한 가지 행동을 먼저 정해 몸으로 실행해 보시길 권합니다. 명식의 장점은 생각만 할 때보다 행동으로 옮길 때 훨씬 또렷해집니다.`,
+    `사람과 일을 동시에 챙겨야 하는 시기일수록 기준을 줄이는 것이 좋습니다. 한 번에 많은 것을 바꾸려 하면 에너지가 분산되지만, 우선순위를 선명하게 두면 운의 결이 차분히 살아납니다.`,
+    `좋은 흐름은 거창한 결심보다 작은 반복에서 만들어집니다. 일주일 단위로 점검 시간을 고정하고, 잘된 선택과 아쉬운 선택을 짧게 기록하면 다음 판단의 정확도가 빠르게 올라갑니다.`,
+    `지금 필요한 것은 자신을 몰아붙이는 긴장감이 아니라, 오래 버틸 수 있는 리듬입니다. 속도를 조금 낮추고 호흡을 고르면 명식이 가진 판단력과 회복력이 함께 살아나기 시작합니다.`,
   ];
   while (result.length < minLength) {
     const extra = fillerPool[(result.length + categoryIndex) % fillerPool.length];
@@ -1582,55 +1648,99 @@ function ensureCategoryLength(text, chapterId, categoryTitle, categoryIndex, min
 
 function buildCategoryText(profile, signals, chapter, categoryTitle, categoryIndex) {
   const chapterId = String(chapter?.id || "");
-  const lens = LIFEBOOK_CHAPTER_LENSES[chapterId] || LIFEBOOK_CHAPTER_LENSES["01"];
-  const openingVariants = [
-    `${categoryTitle}을 보면 ${profile.name}님 명식의 ${lens.focus}이 가장 먼저 드러납니다. ${lens.tone}으로 읽어야 이 항목이 단순한 성격 묘사에서 끝나지 않고 실제 삶의 기준으로 이어집니다.`,
-    `${chapter.title}에서 ${categoryTitle}은 ${profile.name}님이 어떤 기준으로 움직이고 멈추는지를 설명하는 핵심 대목입니다. ${lens.practical}이라는 점을 놓치지 않아야 이 장의 해석이 현실과 연결됩니다.`,
-    `${categoryTitle}은 ${profile.name}님의 사주에서 지금까지 반복되어 온 선택 패턴을 가장 선명하게 보여주는 항목입니다. 그래서 이 부분은 느낌보다 구조를 먼저 읽고, 구조를 읽은 뒤 생활 방식으로 번역해야 합니다.`,
+  const openers = [
+    `${clean(profile.name) || "의뢰인"}님의 삶은 한 번에 크게 치고 나가기보다, 결을 맞춘 선택을 오래 이어 갈 때 진가가 드러나는 명식입니다.`,
+    `명식의 첫 인상은 강한 추진력보다 정교한 판단력에 가깝습니다. 그래서 작은 선택의 품질이 쌓일수록 인생 전체의 방향이 안정됩니다.`,
+    `사주는 성격 설명으로 끝나지 않고 삶의 운영법으로 이어져야 힘이 생깁니다. 지금 보이는 흐름도 결국 매일의 선택 습관에서 결과가 갈립니다.`,
+    `중요한 시기일수록 자신의 결을 거스르지 않는 방식이 필요합니다. 타고난 리듬에 맞는 속도를 찾으면 성과와 마음의 평형이 함께 살아납니다.`,
+    `이 명식은 겉으로 단단해 보여도 내면의 기준이 분명한 사람에게 유리하게 작동합니다. 기준이 선명해질수록 관계와 일의 피로가 눈에 띄게 줄어듭니다.`,
+    `삶이 답답하게 느껴질 때는 운이 막혔다기보다 중심축이 흐려진 경우가 많습니다. 중심을 다시 세우면 같은 환경에서도 체감이 빠르게 달라집니다.`,
   ];
+  const opener = openers[(Number(chapterId || 0) * 7 + categoryIndex) % openers.length];
 
-  const paragraph1 = openingVariants[categoryIndex % openingVariants.length];
-  const paragraph2 = `원국의 뼈대를 펼쳐 보면 년주는 ${signals.yearPillar || `${signals.yearStem}${signals.yearBranch}`}, 월주는 ${signals.monthPillar || `${signals.monthStem}${signals.monthBranch}`}, 일주는 ${signals.dayPillar || `${signals.dayMaster}${signals.dayBranch}`}, 시주는 ${signals.hourPillar || `${signals.hourStem}${signals.hourBranch}`}로 연결됩니다. 일간 ${signals.dayMaster}은(는) 바깥 자극에 반응하는 중심축이고, 월지 ${signals.monthBranch}는 현실 감각과 생존 리듬을 결정합니다. ${describeElementRatio(signals)} 십성은 ${describeTopTenGods(signals)} 순으로 비중이 드러나기 때문에, 무엇을 잘하고 무엇에서 쉽게 소모되는지 역시 이 축을 따라 읽어야 합니다.`;
+  const yearPillar = formatGanjiWithHanja(signals.yearStem, signals.yearBranch);
+  const monthPillar = formatGanjiWithHanja(signals.monthStem, signals.monthBranch);
+  const dayPillar = formatGanjiWithHanja(signals.dayMaster, signals.dayBranch);
+  const hourPillar = formatGanjiWithHanja(signals.hourStem, signals.hourBranch);
+  const dominant = clean(signals.dominantElement || signals.useful || "토");
+  const weakest = clean(signals.weakestElement || signals.caution || "수");
+  const topTenGod = clean(signals.topTenGod || "핵심 십성");
+
+  const paragraph2 = `${yearPillar}, ${monthPillar}, ${dayPillar}, ${hourPillar}로 이어지는 흐름을 보면 바깥 환경과 내면의 판단이 서로 분리되지 않고 맞물려 움직입니다. 일간 ${clean(signals.dayMaster)}의 감각은 기준을 섬세하게 다듬는 쪽에서 강점이 살아나고, 월지 ${clean(signals.monthBranch)}의 계절감은 현실에서 무엇을 우선해야 하는지 방향을 잡아 줍니다. 오행의 무게중심이 ${dominant}으로 기울 때는 추진력과 판단력이 살아나며, ${weakest} 기운이 약해지는 구간에서는 피로 누적과 감정 소모를 먼저 관리해야 흐름이 무너지지 않습니다.`;
 
   let paragraph3 = "";
   if (chapterId === "01") {
-    paragraph3 = `이 장에서는 네 기둥이 서로 어떻게 이어지는지가 중요합니다. 년주와 월주는 환경과 성장 배경을, 일주와 시주는 현재의 선택 방식과 미래로 뻗는 힘을 드러냅니다. ${categoryTitle}을 해석할 때는 특히 ${signals.dayPillar} 일주가 중심을 잡고 ${signals.monthPillar} 월주의 계절감이 방향을 정한다는 점을 기억해야 합니다. 그래서 같은 재능이라도 언제는 부드럽게 풀리고 언제는 예민하게 반응하는지 설명이 됩니다.`;
+    paragraph3 = `네 기둥은 각자 다른 역할을 맡고 있습니다. 년주와 월주는 성장 배경과 사회적 장면을 비추고, 일주와 시주는 지금의 결단과 미래의 확장성을 보여 줍니다. 특히 ${dayPillar}의 중심감이 흔들리지 않아야 전체 해석이 살아나며, ${monthPillar}이 가진 현실 감각이 일상의 선택을 실제 성과로 연결하는 통로가 됩니다.`;
   } else if (chapterId === "02") {
-    paragraph3 = `월령과 조후를 함께 보면 ${profile.name}님은 ${signals.monthBranch}의 현실 감각 위에 ${signals.powerLabel || "중화"}의 에너지를 얹고 살아갑니다. 강한 기운은 밀어붙이는 힘이 되지만, 약한 쪽은 쉽게 지치거나 흔들리는 지점이 됩니다. ${signals.dominantElement}이(가) 앞에 설 때는 추진력이 살아나고, ${signals.weakestElement}이(가) 약해질 때는 몸과 마음의 균형이 흔들리기 쉽습니다. 따라서 ${categoryTitle}은 기질을 아는 데서 끝나지 않고 생활 속 온도 조절과 루틴 설계까지 이어져야 합니다.`;
+    paragraph3 = `월령과 조후를 함께 보면 기질의 사용법이 분명해집니다. ${clean(signals.powerLabel || "중화")}에 가까운 상태에서는 과속보다 리듬 유지가 성과를 키우고, 계절감과 반대로 생활하면 같은 능력도 소모가 빨라집니다. 그래서 자신의 강점은 더 선명하게 쓰고, 약한 축은 생활 습관으로 보완하는 방식이 가장 현실적입니다.`;
   } else if (chapterId === "03") {
-    paragraph3 = `용신 ${signals.useful}, 희신 ${signals.support}, 기신 ${signals.caution}의 흐름은 잘 되는 환경과 소모되는 환경을 분명하게 가릅니다. ${categoryTitle}에서 중요한 것은 강점을 무조건 밀어붙이는 것이 아니라, 어떤 장소와 사람과 일의 방식에서 힘이 살아나는지 정확히 구분하는 일입니다. 운이 막힐 때는 대개 ${signals.caution} 기운이 과해져 판단이 급해지거나 불필요한 감정 소모가 커집니다. 반대로 ${signals.useful} 기운을 생활 환경과 일의 방식에 심어 두면 같은 노력도 훨씬 오래 갑니다.`;
+    paragraph3 = `용신 ${clean(signals.useful)}과 희신 ${clean(signals.support)}은 삶의 문이 열리는 방향을 가리키고, 기신 ${clean(signals.caution)}은 과도하게 붙잡을수록 손실이 커지는 지점을 알려 줍니다. 잘 맞는 환경에서는 집중력이 길게 유지되지만, 맞지 않는 장면에 오래 머물면 감정 해석이 과해지고 판단이 급해질 수 있습니다. 결국 운을 살린다는 말은 자신의 기운이 편안하게 흐르는 자리를 스스로 선택한다는 뜻입니다.`;
   } else if (chapterId === "04") {
-    paragraph3 = `시기의 흐름을 보면 현재 대운은 ${signals.currentDaewun || "전환기"}, 다음 대운은 ${signals.nextDaewun || "다음 단계 준비기"}로 읽힙니다. 올해 세운은 ${signals.currentYearPillar || `${signals.currentYear}년 흐름`}을 통해 작동하므로, ${categoryTitle}에서는 지금 당장 강하게 밀어야 할 것과 천천히 준비해야 할 것을 구분하는 것이 중요합니다. 대운은 단순히 좋고 나쁨을 말하는 것이 아니라, 어느 영역에 힘을 모아야 성과가 크게 나는지를 알려주는 큰 파도입니다.`;
+    paragraph3 = `대운의 흐름은 인생의 속도와 과제를 크게 바꿉니다. 현재 ${clean(signals.currentDaewun || "전환기")}에서는 무리한 확장보다 기준을 정리하는 쪽이 이익이고, 다음 ${clean(signals.nextDaewun || "준비기")}로 넘어갈수록 준비해 둔 역량이 수면 위로 올라옵니다. 세운 ${clean(signals.currentYearPillar || "당해 흐름")}까지 함께 보면 지금은 무엇을 지키고 무엇을 바꿔야 할지 훨씬 명확해집니다.`;
   } else if (chapterId === "05") {
-    paragraph3 = `격국과 사회적 역할은 타고난 성향을 어디에서 가장 값있게 써야 하는지 알려줍니다. ${signals.geokguk}라는 구조 위에 ${signals.careerSignal}이 겹치면, ${categoryTitle}은 인정과 성과가 어떻게 동시에 커질 수 있는지를 설명하는 대목이 됩니다. 여기서 중요한 것은 남과 같은 방식으로 성공하는 것이 아니라, 명식이 원래 잘 버티고 잘 집중하는 환경을 찾아 그 무대에서 반복 가능한 성과를 만드는 일입니다.`;
+    paragraph3 = `격국은 재능의 종류보다 재능이 빛나는 무대를 알려 줍니다. ${clean(signals.geokguk)}의 결은 성급한 승부보다 누적형 성과에 강하고, ${clean(signals.careerSignal)}의 흐름은 신뢰를 쌓은 뒤 영향력이 커지는 구조에 가깝습니다. 같은 노력이라도 역할이 맞는 자리에서는 평가와 결과가 함께 올라가고, 맞지 않는 자리에서는 노력 대비 소모가 커지기 쉽습니다.`;
   } else if (chapterId === "06") {
-    paragraph3 = `관계는 감정만으로 움직이지 않습니다. ${signals.relationshipFocus}이라는 기본 리듬 위에 ${signals.relationshipSignal}이 겹치면서 가까운 사람과의 거리감, 협업의 속도, 상처를 회복하는 방식까지 결정됩니다. ${categoryTitle}에서는 특히 상대의 태도를 세밀하게 읽는 장점이 살아날 수 있지만, 확실하지 않은 신호까지 먼저 해석하면 피로가 커질 수 있습니다. 그래서 좋은 인연일수록 기준과 경계선을 함께 말하는 습관이 중요합니다.`;
+    paragraph3 = `관계 운에서는 상대를 읽는 속도가 빠른 편입니다. ${clean(signals.relationshipFocus)}의 패턴 덕분에 사람의 결을 빨리 파악하지만, 피로한 시기에는 확인 욕구가 커져 스스로 마음을 소모할 수 있습니다. 협업은 기준을 먼저 맞추는 방식이 좋고, 가까운 인연일수록 기대와 경계를 부드럽게 말해 두는 편이 오래 안정됩니다.`;
   } else if (chapterId === "07") {
-    paragraph3 = `연애와 결혼의 패턴은 일지와 배우자 감각에서 선명하게 드러납니다. ${signals.spouseSignal} ${categoryTitle}에서는 어떤 사람에게 끌리는지보다, 친밀감이 생긴 뒤 어떤 방식으로 신뢰를 확인하고 갈등을 다루는지가 더 중요합니다. 사랑이 잘 풀릴 때는 섬세함이 배려로 작동하지만, 불안이 커질 때는 확인 욕구와 해석 과다가 관계의 피로를 키울 수 있습니다.`;
+    paragraph3 = `사랑의 흐름은 설렘보다 신뢰를 구축하는 과정에서 갈립니다. ${clean(signals.spouseSignal)}이 보여 주는 핵심은 상대의 말보다 태도의 일관성을 보고 관계를 깊게 만든다는 점입니다. 관계가 좋은 방향으로 갈 때는 배려가 깊이로 이어지고, 불안이 커질 때는 해석이 앞서면서 대화가 어긋날 수 있으니 감정과 사실을 나눠 확인하는 습관이 특히 중요합니다.`;
   } else if (chapterId === "08") {
-    paragraph3 = `돈과 일의 문제는 감각보다 구조가 중요합니다. ${signals.wealthSignal} ${signals.careerSignal} ${categoryTitle}에서는 어떤 형태의 수익이 오래가고, 어떤 일 방식이 성과를 누적시키는지 읽어야 합니다. 한 번에 큰 결론을 내리는 방식보다, 가격 기준과 일의 범위를 먼저 정리하고 반복 가능한 프로세스를 만드는 쪽이 이 명식에는 더 잘 맞습니다. 수익은 급한 승부보다 꾸준한 운영에서 커집니다.`;
+    paragraph3 = `재물과 직업은 감각보다 구조의 힘이 큽니다. ${clean(signals.wealthSignal)}과 ${clean(signals.careerSignal)}을 함께 보면, 빠른 한 번의 성과보다 반복 가능한 수익 모델을 만들 때 돈의 흐름이 안정됩니다. 가격 기준과 일의 범위를 선명하게 정하고, 잘하는 영역에 집중할수록 수입 변동이 줄어 장기적으로 훨씬 유리해집니다.`;
   } else if (chapterId === "09") {
-    paragraph3 = `건강과 심신의 리듬은 오행의 과부족과 조후에서 드러납니다. ${signals.johuType || "평형"}의 온도 위에서 ${signals.weakestElement} 기운이 약해질 때는 체력과 감정 회복이 함께 흔들릴 수 있습니다. ${categoryTitle}에서는 몸이 먼저 보내는 신호를 무시하지 않는 것이 중요합니다. 쉬는 시간을 죄책감으로 채우기보다, 수면과 식사와 움직임을 일정한 리듬으로 유지할 때 운의 안정감도 같이 살아납니다.`;
+    paragraph3 = `건강은 의지의 문제가 아니라 리듬의 문제입니다. ${clean(signals.johuType || "평형")}의 온도를 유지하지 못하면 몸의 피로와 마음의 예민함이 함께 올라오기 쉽습니다. 특히 ${weakest} 기운이 약해지는 시기에는 잠과 식사, 회복 시간을 일정하게 고정하는 것만으로도 컨디션이 크게 달라집니다.`;
   } else if (chapterId === "10") {
     const stageSummary = Array.isArray(signals.twelveGrowthStages) && signals.twelveGrowthStages.length
       ? signals.twelveGrowthStages.slice(0, 3).map((item) => `${item.pillar} ${item.stage}`).join(", ")
-      : "십이운성 흐름이 정리되는 중";
-    paragraph3 = `신살과 십이운성은 눈에 잘 보이지 않는 반복 패턴을 설명합니다. 현재 명식에서는 ${Array.isArray(signals.specialStars) && signals.specialStars.length ? signals.specialStars.join(", ") : "특정 신살보다 생활 패턴"}이 자주 강조되고, 십이운성은 ${stageSummary} 순으로 읽힙니다. ${categoryTitle}은 겉으로는 우연처럼 보였던 반복이 사실은 어떤 리듬 위에서 다시 나타나는지 보여 줍니다. 이 구조를 이해하면 막연한 불안이 줄고, 대응법도 훨씬 구체적으로 세울 수 있습니다.`;
+      : "십이운성 흐름이 이어집니다";
+    const starSummary = Array.isArray(signals.specialStars) && signals.specialStars.length ? signals.specialStars.join(", ") : "생활 리듬의 반복 신호";
+    paragraph3 = `신살과 십이운성은 눈에 잘 보이지 않는 반복 장면을 설명해 줍니다. ${starSummary}이 두드러질수록 특정 상황에서 감정 반응이 빠르게 올라오고, ${stageSummary} 흐름은 삶의 강약이 바뀌는 타이밍을 알려 줍니다. 이 신호를 알고 있으면 불안을 키우기보다 미리 대응 계획을 세울 수 있습니다.`;
   } else if (chapterId === "11") {
-    paragraph3 = `위기는 갑자기 생기는 것처럼 보여도, 실제로는 몇 가지 약한 신호가 누적되다가 한 번에 드러나는 경우가 많습니다. ${signals.weakSignals?.join(", ") || `${signals.caution} 기운 과속`}이 반복될 때는 관계와 돈과 일정이 동시에 흔들릴 수 있습니다. ${categoryTitle}에서는 실패를 피하려는 마음보다 흔들릴 때 무엇부터 다시 세울지 순서를 정하는 것이 중요합니다. 현재 대운 ${signals.currentDaewun || "전환기"}는 무리한 확장보다 기준을 다시 세우는 쪽에서 반전을 만듭니다.`;
+    paragraph3 = `위기는 갑자기 터지는 사건처럼 보여도 실제로는 작은 신호가 누적되어 나타납니다. ${Array.isArray(signals.weakSignals) && signals.weakSignals.length ? signals.weakSignals.join(", ") : `${clean(signals.caution)} 기운의 과속`}이 반복되면 관계와 일정, 재정이 동시에 흔들릴 수 있습니다. 반전의 핵심은 완벽한 해답을 찾는 일이 아니라, 무너질 때 가장 먼저 회복할 축을 정해 순서대로 복구하는 데 있습니다.`;
   } else if (chapterId === "12") {
-    paragraph3 = `장기 성장은 순간의 의욕보다 내가 오래 버틸 수 있는 방향을 찾는 데서 시작합니다. ${signals.talentSignal} ${signals.careerSignal} ${categoryTitle}에서는 타고난 재능을 어디에 묶을 때 성과와 만족이 함께 커지는지 읽어야 합니다. 특히 지금의 흐름이 빠르게 성과를 내라고 재촉하더라도, 실제로는 몇 년 동안 누적할 기반을 만드는 편이 더 큰 결과를 가져올 수 있습니다.`;
+    paragraph3 = `장기 성장의 핵심은 재능을 오래 쓰는 구조를 만드는 데 있습니다. ${clean(signals.talentSignal)}과 ${clean(signals.careerSignal)}을 함께 놓고 보면, 빠른 확장보다 기반을 단단히 다진 뒤 폭을 넓히는 방식이 훨씬 유리합니다. 당장의 성과 압박이 있더라도 자신의 축을 지키는 선택이 결국 더 큰 결과를 만듭니다.`;
   } else {
-    paragraph3 = `마스터플랜은 좋은 말 한 줄이 아니라 3년, 5년, 10년을 나눠 운영하는 계획이어야 합니다. 현재 흐름은 ${signals.timing?.current || signals.currentDaewun || "현재 단계"}, 다음 단계는 ${signals.timing?.next || signals.nextDaewun || "다음 준비기"}, 올해는 ${signals.timing?.yearPillar || `${signals.currentYear}년`} 기준으로 읽힙니다. ${categoryTitle}에서는 돈과 일과 관계를 따로 최적화하려 하지 말고, 내가 지키고 싶은 기준 세 가지를 먼저 세워 같은 방향으로 묶는 것이 핵심입니다.`;
+    paragraph3 = `장기 계획은 목표 문장보다 운영 습관에서 완성됩니다. 현재 ${clean(signals.timing?.current || signals.currentDaewun || "흐름")}에서 다져 놓은 기준이 3년 뒤 성과의 형태를 만들고, ${clean(signals.timing?.next || signals.nextDaewun || "다음 흐름")}에서는 그 기준이 확장됩니다. 돈, 일, 관계를 따로 다루기보다 한 방향의 원칙으로 묶어 가면 흔들림이 크게 줄어듭니다.`;
   }
 
-  const actionVariants = [
-    `${categoryTitle}이 실제 발현으로 이어지려면 ${chapter.title}의 핵심 기준을 생활 문장으로 먼저 고정해야 합니다. 관계에서는 기대치를 먼저 맞추고, 일에서는 이번 주 핵심 과제 한두 개만 남기고, 돈에서는 즉흥 지출과 과속 결정을 하루만 늦추면 ${categoryTitle}이 약점이 아니라 실력으로 바뀝니다.`,
-    `${chapter.title}의 ${categoryTitle}에서 특히 조심할 점은 잘 풀릴 때의 과속과 흔들릴 때의 지연입니다. ${profile.name}님은 중요한 선택을 앞두고 감정과 사실을 따로 적고, ${categoryTitle}의 기준 세 가지를 먼저 확인할수록 흐름이 더 안정적으로 이어집니다.`,
-    `${categoryTitle}에 대한 현실 조정은 크게 어렵지 않습니다. 오늘부터 ${chapterId}장의 기준에 맞춰 한 주의 우선순위를 세 가지 이하로 줄이고, 중요한 관계와 일의 기준을 짧은 문장으로 적어 두면 ${profile.name}님 명식의 장점이 훨씬 단단하게 살아납니다.`,
+  const paragraph4Variants = [
+    `실전에서는 한 번에 인생을 바꾸려 하지 않는 편이 좋습니다. 이번 주에 꼭 지킬 한 가지 원칙과 내려놓을 한 가지 습관만 정해도 흐름의 질이 분명히 달라집니다.`,
+    `상담 현장에서 자주 확인되는 패턴은, 기준이 선명한 사람이 결국 더 빨리 안정된다는 점입니다. 중요한 선택 앞에서는 감정의 온도와 사실의 근거를 분리해 적어 보시길 권합니다.`,
+    `좋은 운은 우연히 오기보다 준비된 생활 방식 위에 머뭅니다. 하루의 끝에서 선택을 짧게 복기하고 다음 날의 우선순위를 정리하면 판단의 흔들림이 눈에 띄게 줄어듭니다.`,
   ];
 
-  const text = dedupeParagraphs([paragraph1, paragraph2, paragraph3, actionVariants[(categoryIndex + Number(chapterId || 0)) % actionVariants.length]].join("\n\n"));
+  const practicalByChapter = {
+    "01": `먼저 이번 주 일정표를 펼쳐서 사람, 일, 휴식 항목을 각각 한 줄로만 정리해 보세요. 일정이 복잡할수록 우선순위를 세 칸으로 제한하면 판단 부담이 줄고 실행력이 살아납니다.`,
+    "02": `생활 리듬에서는 수면 시간과 식사 시간을 먼저 고정해 보시는 것이 좋습니다. 조후가 흔들리는 시기일수록 몸의 리듬을 일정하게 두면 감정 기복이 확연히 줄어듭니다.`,
+    "03": `일과 관계에서 에너지가 붙는 장면과 빠지는 장면을 각각 세 가지씩 기록해 보세요. 용신이 살아나는 환경을 의식적으로 늘리면 같은 노력으로도 성과의 밀도가 높아집니다.`,
+    "04": `대운 전환 구간에는 확장보다 정리가 우선입니다. 당장 수익이 나지 않는 일을 줄이고, 3개월 안에 성과를 확인할 수 있는 과제부터 순서대로 실행해 보세요.`,
+    "05": `성과를 키우려면 잘하는 일을 더 많이 하는 구조를 만드셔야 합니다. 역할을 넓히기보다 강점이 분명한 업무 비중을 올리고, 성과 기준을 문서로 남겨 협의하는 습관이 도움이 됩니다.`,
+    "06": `관계 피로를 줄이려면 부탁을 받을 때 바로 답하지 말고 한 템포 늦춰서 일정과 에너지를 확인한 뒤 답해 보세요. 경계선을 부드럽게 말하는 연습이 관계를 오래 지켜 줍니다.`,
+    "07": `사랑에서는 감정 해석보다 사실 확인이 중요합니다. 갈등이 생기면 그날 바로 결론내기보다, 다음 날 대화 시간을 정해 서로의 의도를 문장으로 확인해 보세요.`,
+    "08": `재정에서는 지출을 감정 소비와 필요 소비로 나눠 기록해 보시길 권합니다. 돈의 흐름이 보이기 시작하면 수익 전략도 선명해지고, 불필요한 소모가 빠르게 줄어듭니다.`,
+    "09": `건강 관리는 의욕보다 반복이 중요합니다. 잠드는 시간, 가벼운 움직임, 수분 섭취를 같은 시간대에 맞추는 것만으로도 회복 속도가 달라집니다.`,
+    "10": `반복되는 위기 장면을 월별로 한 줄씩 적어 보세요. 패턴을 눈으로 확인하면 신살과 십이운성 신호를 불안이 아니라 대비 전략으로 바꿀 수 있습니다.`,
+    "11": `흔들리는 시기에는 모든 문제를 동시에 해결하려 하지 않는 것이 핵심입니다. 지금 당장 복구해야 할 한 축을 먼저 정하고, 나머지는 순서를 나눠 대응하면 다시 균형이 잡힙니다.`,
+    "12": `장기 성장에서는 분기 단위 점검이 효과적입니다. 3개월마다 버릴 것 하나, 키울 것 하나를 정해 실행하면 재능이 성과로 바뀌는 속도가 빨라집니다.`,
+    "13": `3년 계획은 기반, 5년 계획은 확장, 10년 계획은 안정으로 나눠 적어 보세요. 돈, 일, 관계를 한 장표에 함께 두고 점검하면 삶의 방향이 쉽게 흐트러지지 않습니다.`,
+  };
+
+  const warmClosings = [
+    `${clean(profile.name) || "의뢰인"}님은 이미 자신의 결을 지켜낼 힘을 갖고 있습니다. 서두르지 않고 한 걸음씩 맞춰 가면 충분히 좋은 결과를 만들어 내실 수 있습니다.`,
+    `조급해지는 날이 와도 괜찮습니다. ${clean(profile.name) || "의뢰인"}님의 속도로 차분히 정리해 가시면, 삶은 다시 안정된 방향으로 흐르기 시작합니다.`,
+    `완벽한 답을 한 번에 찾지 않아도 됩니다. 지금처럼 기준을 다듬어 가면 ${clean(profile.name) || "의뢰인"}님은 결국 자신에게 맞는 길을 따뜻하게 완성해 가실 수 있습니다.`,
+  ];
+
+  const practicalParagraph = practicalByChapter[chapterId] || practicalByChapter["13"];
+  const warmClosing = warmClosings[(categoryIndex + Number(chapterId || 0)) % warmClosings.length];
+
+  const text = dedupeParagraphs([
+    opener,
+    paragraph2,
+    paragraph3,
+    paragraph4Variants[(categoryIndex + Number(chapterId || 0)) % paragraph4Variants.length],
+    practicalParagraph,
+    `${clean(profile.name) || "의뢰인"}님 명식에서 반복되는 핵심 십성은 ${topTenGod}이며, 이 기운은 장점으로 쓰면 전문성과 신뢰를 만들고 무리해서 쓰면 피로와 자기검열을 키울 수 있습니다. 따라서 중요한 결정은 속도보다 정합성을 우선해 정리하는 편이 결과적으로 더 멀리 갑니다.`,
+    warmClosing,
+  ].join("\n\n"));
   return ensureCategoryLength(text, chapter?.id, categoryTitle, categoryIndex);
 }
 
@@ -1849,7 +1959,7 @@ function renderLifeBookPdf({ profile, signals, chapters, generatedAt }) {
     `).join("\n");
     return `
       <article class="lb-chapter">
-        <div class="lb-chapter__eyebrow">제 ${String(index + 1).padStart(2, "0")}장</div>
+        <div class="lb-chapter__eyebrow">제 ${String(index + 1)}장</div>
         <h2>${stripForbiddenTokens(chapter.title)}</h2>
         <p class="lb-chapter__intro">${stripForbiddenTokens(chapter.subtitle || "핵심 흐름과 실행 전략을 정리합니다.")}</p>
         <div class="lb-keywords">${keywordTags}</div>
