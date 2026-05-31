@@ -669,3 +669,34 @@ export function buildZiweiAIPrompt({ question, chartResult }) {
     chartResult,
   });
 }
+
+export function buildZiweiCounselingToneProfile({ question, chartResult, domain } = {}) {
+  const resolvedDomain = String(domain || "").trim() || "life_direction";
+  const resolvedQuestion = String(question || "").trim() || "이 자미두수 명반을 상담하는 가장 정확하고 신비한 톤을 정리해 주세요.";
+  const builtPrompt = buildZiweiAIPromptWithDomain({
+    question: resolvedQuestion,
+    chartResult,
+    domain: resolvedDomain,
+  });
+
+  return {
+    domain: builtPrompt.domain,
+    domainLabel: builtPrompt.domainLabel,
+    questionType: builtPrompt.questionType,
+    questionTypeLabel: QUESTION_TYPE_LABELS[builtPrompt.questionType] || QUESTION_TYPE_LABELS.general,
+    summaryIntent: builtPrompt.summaryIntent,
+    analysisAngles: Array.isArray(builtPrompt.analysisAngles) ? builtPrompt.analysisAngles.slice(0, 8) : [],
+    recommendedFollowUpQuestions: Array.isArray(builtPrompt.recommendedFollowUpQuestions)
+      ? builtPrompt.recommendedFollowUpQuestions.slice(0, 8)
+      : [],
+    caution: builtPrompt.caution,
+    toneQuestion: resolvedQuestion,
+    toneRules: [
+      "궁·별·사화 근거를 먼저 제시하고",
+      "해석은 상담자의 현재 선택으로 좁히며",
+      "실행은 4주와 6개월 단위로 나누어 안내",
+    ],
+    toneLead: `${builtPrompt.domainLabel} 상담의 기본 어조를 ${builtPrompt.questionType} 축으로 정렬한 프로필입니다.`,
+    toneDigest: String(builtPrompt.digestSource || "").slice(0, 240),
+  };
+}

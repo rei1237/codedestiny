@@ -5,6 +5,8 @@
   var FEATURE_KEY = 'premium_pdf_ziwei';
   var COIN_COST = 590;
   var PREPARE_API = '/api/ziwei-book/prepare';
+  var RESULT_API = '/api/ziwei-book/result';
+  var PAID_SESSION_STORAGE_KEY = 'premium:ziwei:paid-session:v1';
   var COVER_IMAGE = '/fuctionassets/jamipremiun.webp';
   var RESULT = null;
   var GENERATING = false;
@@ -54,6 +56,26 @@
     '부모궁': 'parents'
   };
 
+  var REQUIRED_PALACE_ORDER = [
+    'ming', 'siblings', 'spouse', 'children', 'wealth', 'health',
+    'travel', 'friends', 'career', 'property', 'fortune', 'parents'
+  ];
+
+  var PALACE_NAME_BY_KEY = {
+    ming: '명궁',
+    siblings: '형제궁',
+    spouse: '부부궁',
+    children: '자녀궁',
+    wealth: '재백궁',
+    health: '질액궁',
+    travel: '천이궁',
+    friends: '노복궁',
+    career: '관록궁',
+    property: '전택궁',
+    fortune: '복덕궁',
+    parents: '부모궁'
+  };
+
   function $(id){ return document.getElementById(id); }
   function detachModalFromResultPage(modal){
     try {
@@ -70,6 +92,93 @@
   function pad2(value){ return String(Number(value) || 0).padStart(2, '0'); }
   function setText(id, value){ var el = $(id); if(el) el.textContent = value; }
   function setDisplay(id, value){ var el = $(id); if(el) el.style.display = value; }
+
+  function toHexHash(input){
+    var src = text(input);
+    var hash = 2166136261;
+    for(var i = 0; i < src.length; i++){
+      hash ^= src.charCodeAt(i);
+      hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+    }
+    return (hash >>> 0).toString(16);
+  }
+
+  function makeBirthHash(birthInput){
+    var safe = birthInput || {};
+    var token = [
+      text(safe.birthDate),
+      pad2(safe.birthHour),
+      pad2(safe.birthMinute),
+      text(safe.gender).toLowerCase(),
+      text(safe.calendarType).toLowerCase()
+    ].join('|');
+    return 'bh-' + toHexHash(token);
+  }
+
+  function readPaidSession(){
+    try {
+      var raw = localStorage.getItem(PAID_SESSION_STORAGE_KEY) || sessionStorage.getItem(PAID_SESSION_STORAGE_KEY) || '';
+      if(!raw) return null;
+      var parsed = JSON.parse(raw);
+      if(!parsed || typeof parsed !== 'object') return null;
+      return parsed;
+    } catch(_) {
+      return null;
+    }
+  }
+
+  function writePaidSession(patch){
+    var current = readPaidSession() || {};
+    var next = Object.assign({}, current, patch || {});
+    try {
+      localStorage.setItem(PAID_SESSION_STORAGE_KEY, JSON.stringify(next));
+      sessionStorage.setItem(PAID_SESSION_STORAGE_KEY, JSON.stringify(next));
+    } catch(_) {}
+    return next;
+  }
+
+  function clearPaidSession(){
+    try {
+      localStorage.removeItem(PAID_SESSION_STORAGE_KEY);
+      sessionStorage.removeItem(PAID_SESSION_STORAGE_KEY);
+    } catch(_) {}
+  }
+
+  function isReusablePaidStatus(status){
+    var s = text(status);
+    return s === 'paid' || s === 'generating' || s === 'failed_retryable';
+  }
+
+  function isSamePaidSessionTarget(session, birthHash){
+    var saved = session || {};
+    return text(saved.featureKey) === FEATURE_KEY
+      && text(saved.reportType) === 'ziweiPremium'
+      && text(saved.birthHash) === text(birthHash)
+      && isReusablePaidStatus(saved.status)
+      && Boolean(text(saved.premiumAccessToken));
+  }
+
+  async function verifyPaidSessionAccess(saved){
+    var token = text(saved && saved.premiumAccessToken);
+    if(!token) return false;
+    try {
+      var res = await fetch('/api/billing/unlock-status?featureKey=' + encodeURIComponent(FEATURE_KEY), {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'x-premium-access-token': token }
+      });
+      if(!res.ok) return false;
+      var json = await res.json().catch(function(){ return {}; });
+      var data = json && json.data && typeof json.data === 'object' ? json.data : json;
+      return Boolean(data && (data.canAccess || data.unlocked));
+    } catch(_) {
+      return false;
+    }
+  }
+
+  function buildSessionId(birthHash){
+    return 'ziwei-premium:' + text(birthHash || 'unknown') + ':' + Date.now().toString(36);
+  }
 
   function updateZiweiGenerationState(patch){
     ZIWEI_GENERATION_STATE = Object.assign({}, ZIWEI_GENERATION_STATE, patch || {});
@@ -90,12 +199,29 @@
     });
   }
 
-  function isZiweiReportReady(data){
+  function getZiweiReportReadiness(data){
     var payload = data || {};
     var chapters = Array.isArray(payload.chapters) ? payload.chapters : [];
+    var hasSessionId = Boolean(text(payload.sessionId));
     var hasReportId = Boolean(text(payload.reportId));
     var hasPdfHtml = Boolean(text(payload && payload.pdfReady && payload.pdfReady.html));
-    return hasReportId && hasPdfHtml && chapters.length >= TOTAL_CHAPTERS;
+    var ok = payload.ok === true;
+    var processing = text(payload.status) === 'processing' || text(payload.serverStatus) === 'processing';
+    var successCandidate = ok && (hasReportId || hasSessionId);
+    return {
+      ok: ok,
+      processing: processing,
+      successCandidate: successCandidate,
+      completed: successCandidate && hasPdfHtml && chapters.length >= TOTAL_CHAPTERS,
+      hasPdfHtml: hasPdfHtml,
+      chapterCount: chapters.length,
+      hasReportId: hasReportId,
+      hasSessionId: hasSessionId
+    };
+  }
+
+  function isZiweiReportReady(data){
+    return getZiweiReportReadiness(data).completed;
   }
 
   function logFlow(tag, payload){
@@ -457,6 +583,60 @@
     return list.map(normalizeStar).filter(Boolean);
   }
 
+  function normalizePalaceName(name){
+    var raw = text(name);
+    if(raw === '부처궁') return '부부궁';
+    return raw;
+  }
+
+  function summarizeStrength(stars){
+    var rows = Array.isArray(stars) ? stars : [];
+    var tally = { '◎': 0, 'O': 0, '▲': 0, '△': 0, 'X': 0 };
+    for(var i = 0; i < rows.length; i++){
+      var symbol = text(rows[i] && rows[i].strengthSymbol);
+      if(symbol === '○') symbol = 'O';
+      if(tally.hasOwnProperty(symbol)) tally[symbol] += 1;
+    }
+    return {
+      miao: tally['◎'],
+      de: tally['O'],
+      li: tally['▲'],
+      ping: tally['△'],
+      xian: tally['X'],
+      legend: '◎ O ▲ △ X'
+    };
+  }
+
+  function fillMissingPalaces(palaces){
+    var source = Array.isArray(palaces) ? palaces.slice() : [];
+    var byKey = {};
+    for(var i = 0; i < source.length; i++){
+      var key = text(source[i] && source[i].key);
+      if(key && !byKey[key]) byKey[key] = source[i];
+    }
+    var finalPalaces = [];
+    for(var idx = 0; idx < REQUIRED_PALACE_ORDER.length; idx++){
+      var reqKey = REQUIRED_PALACE_ORDER[idx];
+      var item = byKey[reqKey] || null;
+      if(!item){
+        item = {
+          key: reqKey,
+          nameKo: PALACE_NAME_BY_KEY[reqKey],
+          branch: '',
+          index: idx,
+          mainStars: [],
+          auxStars: [],
+          maleficStars: [],
+          transformations: []
+        };
+      }
+      var allStars = [].concat(item.mainStars || [], item.auxStars || [], item.maleficStars || []);
+      item.strengthSummary = summarizeStrength(allStars);
+      finalPalaces.push(item);
+    }
+    return finalPalaces;
+  }
+
   function normalizePalaces(chart){
     var source = [];
     if(Array.isArray(chart && chart.palaces)) source = chart.palaces;
@@ -464,20 +644,26 @@
     else if(chart && chart.palacesByIndex){
       source = Object.keys(chart.palacesByIndex).map(function(key){ return chart.palacesByIndex[key]; });
     }
-    return source.map(function(p, index){
-      var name = text(p.nameKo || p.name || p.palace || p.gung || p.palaceName);
+    var mapped = source.map(function(p, index){
+      var name = normalizePalaceName(p.nameKo || p.name || p.palace || p.gung || p.palaceName);
       var key = text(p.key || p.id || PALACE_KEY_BY_NAME[name]);
+      var mainStars = normalizeStars(p.mainStars || p.stars || p.main || []);
+      var auxStars = normalizeStars(p.auxStars || p.auxiliaryStars || p.aux || []);
+      var maleficStars = normalizeStars(p.maleficStars || p.badStars || p.bad || []);
+      var allStars = [].concat(mainStars, auxStars, maleficStars);
       return {
         key: key,
         nameKo: name,
         branch: text(p.branch || p.zhi || p.earthlyBranch),
         index: index,
-        mainStars: normalizeStars(p.mainStars || p.stars || p.main || []),
-        auxStars: normalizeStars(p.auxStars || p.auxiliaryStars || p.aux || []),
-        maleficStars: normalizeStars(p.maleficStars || p.badStars || p.bad || []),
-        transformations: Array.isArray(p.transformations) ? p.transformations : []
+        mainStars: mainStars,
+        auxStars: auxStars,
+        maleficStars: maleficStars,
+        transformations: Array.isArray(p.transformations) ? p.transformations : [],
+        strengthSummary: summarizeStrength(allStars)
       };
     });
+    return fillMissingPalaces(mapped);
   }
 
   async function ensureZiweiEngine(){
@@ -540,6 +726,11 @@
         generatedAt: new Date().toISOString()
       }
     };
+    logFlow('SeedValidated', {
+      birthHash: toHexHash([profile.year, profile.month, profile.day, profile.hour, profile.minute, profile.gender].join('|')),
+      palaceCount: palaces.length,
+      hasToken: Boolean(getPremiumToken())
+    });
     LAST_SEED = seed;
     return seed;
   }
@@ -563,10 +754,46 @@
     } catch(e) {}
   }
 
-  async function ensurePayment(){
-    if(typeof window._cdCoinGatePerUse !== 'function'){
-      return { ok: true, premiumAccessToken: getPremiumToken() };
+  async function ensurePaymentOrRestore(birthInput){
+    var birthHash = makeBirthHash(birthInput || {});
+    var saved = readPaidSession();
+    if(isSamePaidSessionTarget(saved, birthHash)){
+      var verified = await verifyPaidSessionAccess(saved);
+      logFlow('PaymentReuse', {
+        birthHash: birthHash,
+        hasToken: Boolean(text(saved && saved.premiumAccessToken)),
+        palaceCount: Number((LAST_SEED && LAST_SEED.diagnostics && LAST_SEED.diagnostics.palaceCount) || 0),
+        verified: verified
+      });
+      return Object.assign({}, saved, {
+        ok: true,
+        reused: true,
+        verified: verified,
+        sessionId: text(saved.sessionId) || buildSessionId(birthHash),
+        premiumAccessToken: text(saved.premiumAccessToken) || getPremiumToken(),
+        birthHash: birthHash
+      });
     }
+
+    if(typeof window._cdCoinGatePerUse !== 'function'){
+      var existingToken = getPremiumToken();
+      if(existingToken){
+        var fallback = writePaidSession({
+          featureKey: FEATURE_KEY,
+          reportType: 'ziweiPremium',
+          sessionId: buildSessionId(birthHash),
+          premiumAccessToken: existingToken,
+          transactionId: '',
+          paidAt: new Date().toISOString(),
+          birthHash: birthHash,
+          status: 'paid'
+        });
+        logFlow('PaymentReuse', { birthHash: birthHash, hasToken: true, palaceCount: Number((LAST_SEED && LAST_SEED.diagnostics && LAST_SEED.diagnostics.palaceCount) || 0) });
+        return Object.assign({ ok: true, reused: true }, fallback);
+      }
+      throw new Error('결제 권한을 확인할 수 없습니다. 로그인 상태와 결제 수단을 확인해 주세요.');
+    }
+
     return new Promise(function(resolve, reject){
       var settled = false;
       function finish(result){
@@ -576,9 +803,31 @@
           reject(new Error(result.message || '코인 결제 확인이 필요합니다.'));
           return;
         }
-        var token = result && (result.premiumAccessToken || result.accessToken || result.token);
+        var token = text(result && (result.premiumAccessToken || result.accessToken || result.token)) || getPremiumToken();
         if(token) storePremiumToken(token);
-        resolve(result || { ok: true, premiumAccessToken: getPremiumToken() });
+        var sessionId = text(result && (result.sessionId || result.reportSessionId)) || buildSessionId(birthHash);
+        var transactionId = text(result && (result.transactionId || (result.paymentContext && result.paymentContext.transactionId)));
+        var savedSession = writePaidSession({
+          featureKey: FEATURE_KEY,
+          reportType: 'ziweiPremium',
+          sessionId: sessionId,
+          premiumAccessToken: token,
+          transactionId: transactionId,
+          paidAt: new Date().toISOString(),
+          birthHash: birthHash,
+          status: 'paid'
+        });
+        logFlow('PaymentCreated', {
+          birthHash: birthHash,
+          hasToken: Boolean(token),
+          palaceCount: Number((LAST_SEED && LAST_SEED.diagnostics && LAST_SEED.diagnostics.palaceCount) || 0)
+        });
+        resolve(Object.assign({}, savedSession, result || {}, {
+          ok: true,
+          premiumAccessToken: token,
+          sessionId: sessionId,
+          birthHash: birthHash
+        }));
       }
       try {
         var immediate = window._cdCoinGatePerUse(COIN_COST, '자미두수 프리미엄 PDF 리포트 생성', function(_transactionId, data){
@@ -602,15 +851,85 @@
     });
   }
 
+  function buildRetryableError(message, status, code, kind){
+    var error = new Error(message || '자미두수 PDF 생성 요청에 실패했습니다.');
+    error.status = Number(status || 500);
+    error.code = text(code || 'ZIWEI_PREPARE_FAILED') || 'ZIWEI_PREPARE_FAILED';
+    error.kind = text(kind || 'generation') || 'generation';
+    return error;
+  }
+
+  async function fetchZiweiResult(sessionId, reportId){
+    var query = [];
+    if(text(sessionId)) query.push('sessionId=' + encodeURIComponent(text(sessionId)));
+    if(text(reportId)) query.push('reportId=' + encodeURIComponent(text(reportId)));
+    if(!query.length) return null;
+    var url = RESULT_API + '?' + query.join('&');
+    var res = await fetch(url, { method: 'GET', credentials: 'include' });
+    var json = await res.json().catch(function(){ return {}; });
+    if(!res.ok) return null;
+    if(!json || json.ok !== true) return null;
+    return json;
+  }
+
+  function ensureChapterFallback(chapters){
+    var base = Array.isArray(chapters) ? chapters.slice(0, TOTAL_CHAPTERS) : [];
+    var fallbackTitles = ['핵심 별자리 신호', '궁 연결 해석', '시기별 실행 전략', '관계/일/재정 실전 조언'];
+    for(var i = base.length; i < TOTAL_CHAPTERS; i++){
+      base.push({
+        title: CHAPTERS[i] || ('Chapter ' + (i + 1)),
+        categories: fallbackTitles.map(function(title){
+          return { title: title, finalText: '현재 생성 중인 리포트입니다. 잠시 후 재조회하면 완성본이 반영됩니다.' };
+        })
+      });
+    }
+    return base;
+  }
+
+  async function recoverPendingResult(data, payment){
+    var initial = data || {};
+    var baseSession = text(initial.sessionId) || text(payment && payment.sessionId);
+    var baseReport = text(initial.reportId) || text(payment && payment.reportId);
+    var readiness = getZiweiReportReadiness(initial);
+    if(readiness.completed){
+      return initial;
+    }
+    for(var attempt = 0; attempt < 3; attempt++){
+      var recovered = await fetchZiweiResult(baseSession, baseReport);
+      if(recovered){
+        var recoveredReadiness = getZiweiReportReadiness(recovered);
+        logFlow('ReportRecovered', {
+          birthHash: text(payment && payment.birthHash),
+          chapterCount: Number(recoveredReadiness.chapterCount || 0),
+          hasToken: Boolean(text(payment && payment.premiumAccessToken))
+        });
+        if(recoveredReadiness.completed) return recovered;
+        if(recoveredReadiness.processing) return Object.assign({}, recovered, { status: 'processing' });
+      }
+      await new Promise(function(resolve){ setTimeout(resolve, 850); });
+    }
+    if(readiness.successCandidate){
+      return Object.assign({}, initial, {
+        status: 'processing',
+        chapters: ensureChapterFallback(initial.chapters)
+      });
+    }
+    return initial;
+  }
+
   async function postPrepare(profile, seed, payment, birthInput){
     var token = (payment && (payment.premiumAccessToken || payment.accessToken)) || getPremiumToken();
-    var sessionId = text(payment && payment.sessionId);
+    var sessionId = text(payment && payment.sessionId) || buildSessionId(text(payment && payment.birthHash));
+    var birthHash = text(payment && payment.birthHash) || makeBirthHash(birthInput || {});
     var headers = { 'Content-Type': 'application/json' };
     if(token) headers['x-premium-access-token'] = token;
     var body = {
       featureKey: FEATURE_KEY,
       reportType: 'ziweiPremium',
       sessionId: sessionId || undefined,
+      reportSessionId: sessionId || undefined,
+      idempotencyKey: 'ziwei:' + sessionId + ':' + birthHash,
+      birthHash: birthHash,
       premiumAccessToken: token || '',
       paymentContext: payment || {},
       birthProfile: profile,
@@ -625,10 +944,23 @@
       birthplace: profile.birthplace,
       ziweiBase: seed
     };
+    logFlow('PrepareRequest', {
+      birthHash: birthHash,
+      chapterCount: 0,
+      hasToken: Boolean(token)
+    });
     var res = await fetch(PREPARE_API, { method: 'POST', credentials: 'include', headers: headers, body: JSON.stringify(body) });
     var json = await res.json().catch(function(){ return {}; });
     if(!res.ok || !json.ok){
-      throw new Error(json.message || json.error || ('자미두수 PDF 생성 요청에 실패했습니다. HTTP ' + res.status));
+      var code = text(json.code || json.error || 'ZIWEI_PREPARE_FAILED');
+      var message = text(json.message || json.error || ('자미두수 PDF 생성 요청에 실패했습니다. HTTP ' + res.status));
+      if(res.status === 401 || res.status === 402 || res.status === 403){
+        throw buildRetryableError(message, res.status, code, 'payment');
+      }
+      if(res.status === 422 || res.status >= 500){
+        throw buildRetryableError(message, res.status, code, 'generation');
+      }
+      throw buildRetryableError(message, res.status, code, 'request');
     }
     if(json.premiumAccessToken || json.accessToken) storePremiumToken(json.premiumAccessToken || json.accessToken);
     return json;
@@ -650,13 +982,76 @@
     setDisplay('zbStartScreen','none');
     setDisplay('zbLoadingScreen','none');
     setDisplay('zbResultScreen','block');
+    ensureErrorActions();
   }
 
-  function showError(message){
+  async function reopenPreviousReport(){
+    var saved = readPaidSession();
+    if(!saved || !text(saved.reportId)){
+      showError('재열람 가능한 이전 리포트가 없습니다.');
+      return;
+    }
+    var recovered = await fetchZiweiResult(text(saved.sessionId), text(saved.reportId));
+    if(!recovered){
+      showError('이전 리포트를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      return;
+    }
+    RESULT = recovered;
+    renderResult(recovered);
+    logFlow('ReportRecovered', {
+      birthHash: text(saved.birthHash),
+      chapterCount: Number((Array.isArray(recovered.chapters) ? recovered.chapters.length : 0) || 0),
+      hasToken: Boolean(text(saved.premiumAccessToken))
+    });
+  }
+
+  function ensureErrorActions(){
+    var screen = $('zbErrorScreen');
+    if(!screen) return;
+    var actions = screen.querySelector('.lb-error__actions');
+    if(!actions) return;
+    var retryBtn = actions.querySelector('.lb-error__retry');
+    if(retryBtn){
+      retryBtn.textContent = '결제 내역으로 다시 생성';
+      retryBtn.setAttribute('onclick', 'generateZiweiBook(true)');
+    }
+
+    var previousBtn = $('zbOpenPreviousBtn');
+    if(!previousBtn){
+      previousBtn = document.createElement('button');
+      previousBtn.id = 'zbOpenPreviousBtn';
+      previousBtn.className = 'lb-error__retry';
+      previousBtn.style.marginLeft = '8px';
+      previousBtn.textContent = '이전 PDF 열기';
+      previousBtn.onclick = function(){ reopenPreviousReport(); };
+      actions.insertBefore(previousBtn, actions.firstChild);
+    }
+    var paid = readPaidSession();
+    previousBtn.style.display = paid && text(paid.reportId) ? 'inline-flex' : 'none';
+  }
+
+  function mapErrorMessage(error){
+    var status = Number(error && error.status || 0);
+    var kind = text(error && error.kind);
+    if(kind === 'payment' || status === 401 || status === 402 || status === 403){
+      return '결제 또는 이용권 확인이 필요합니다. 로그인 상태와 결제 내역을 확인해 주세요.';
+    }
+    if(status === 422){
+      return '명반 계산 또는 입력값 검증 단계에서 오류가 발생했습니다. 프로필 정보를 확인한 뒤 다시 시도해 주세요.';
+    }
+    if(status >= 500){
+      return '결제는 확인되었습니다. 생성 재시도를 진행합니다.';
+    }
+    return text(error && error.message) || '생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+  }
+
+  function showError(message, error){
     setDisplay('zbLoadingScreen','none');
     setDisplay('zbStartScreen','none');
     setDisplay('zbErrorScreen','block');
-    var msg = message || 'PDF 생성이 완료되지 않아 사용된 코인이 자동으로 환불되었습니다. 다시 시도해 주세요.';
+    var msg = message || mapErrorMessage(error || {});
+    setText('zbErrorMsg', msg);
+    ensureErrorActions();
     updateZiweiGenerationState({
       status: 'failed',
       failedChapters: ZIWEI_GENERATION_STATE.failedChapters.concat([Math.max(1, Number(ZIWEI_GENERATION_STATE.currentChapterNo || 1))]),
@@ -712,6 +1107,13 @@
       updateProgress(0, '자미두수 명반을 준비합니다.');
       markChapter(-1);
     }
+    ensureErrorActions();
+
+    var paid = readPaidSession();
+    if(paid && text(paid.reportId)){
+      var openPrev = $('zbOpenPreviousBtn');
+      if(openPrev) openPrev.style.display = 'inline-flex';
+    }
   };
 
   window.closeZiweiBookModal = function(){
@@ -728,7 +1130,7 @@
     window.openZiweiBookModal();
   };
 
-  window.generateZiweiBook = async function(){
+  window.generateZiweiBook = async function(usePaidSessionOnly){
     if(GENERATING) return;
     GENERATING = true;
     RESULT = null;
@@ -767,20 +1169,48 @@
       logFlow('PaymentGateStart', { featureKey: FEATURE_KEY, coinCost: COIN_COST });
       updateProgress(30, '3/9 결제/이용권 확인 중');
       updateZiweiGenerationState({ status: 'paymentChecking' });
-      var payment = await ensurePayment();
+      var payment = await ensurePaymentOrRestore(resolved.birthInput);
+      if(usePaidSessionOnly === true && !payment.reused){
+        throw buildRetryableError('결제 내역을 찾지 못했습니다. 먼저 결제를 완료해 주세요.', 402, 'PAYMENT_REUSE_MISSING', 'payment');
+      }
+      writePaidSession({
+        featureKey: FEATURE_KEY,
+        reportType: 'ziweiPremium',
+        sessionId: text(payment.sessionId),
+        premiumAccessToken: text(payment.premiumAccessToken || payment.accessToken || payment.token),
+        transactionId: text(payment.transactionId),
+        paidAt: text(payment.paidAt) || new Date().toISOString(),
+        birthHash: text(payment.birthHash),
+        status: 'generating'
+      });
       logFlow('PaymentGateSuccess', {
         hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken || payment.token))
       });
       updateProgress(40, '4/9 해석 규칙 로딩 중');
       updateProgress(52, '5/9 13챕터 원고 작성 중');
       updateZiweiGenerationState({ status: 'drafting' });
-      var sessionId = 'ziwei-premium:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
+      var sessionId = text(payment && payment.sessionId) || buildSessionId(text(payment && payment.birthHash));
       updateZiweiGenerationState({ status: 'generating', sessionId: sessionId, currentChapterNo: 1 });
       logFlow('SessionCreateStart', { endpoint: PREPARE_API, hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken)) });
       logFlow('PdfRequestStart', { endpoint: PREPARE_API, chapterTarget: TOTAL_CHAPTERS });
       var data = await postPrepare(profile, seed, Object.assign({}, payment, { sessionId: sessionId }), resolved.birthInput);
+      var readiness = getZiweiReportReadiness(data);
+      if(!readiness.completed){
+        var recoveredData = await recoverPendingResult(data, payment);
+        readiness = getZiweiReportReadiness(recoveredData);
+        if(readiness.processing){
+          writePaidSession({
+            status: 'failed_retryable',
+            reportId: text(recoveredData.reportId || data.reportId),
+            sessionId: text(recoveredData.sessionId || sessionId)
+          });
+          throw buildRetryableError('결제는 확인되었습니다. 생성 재시도를 진행합니다.', 500, 'ZIWEI_PROCESSING', 'generation');
+        }
+        data = recoveredData;
+      }
       if(!isZiweiReportReady(data)){
-        throw new Error('자미두수 PDF 결과가 아직 완전히 저장되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+        writePaidSession({ status: 'failed_retryable', reportId: text(data && data.reportId), sessionId: text(data && data.sessionId) || sessionId });
+        throw buildRetryableError('결제는 확인되었습니다. 생성 재시도를 진행합니다.', 500, 'ZIWEI_REPORT_RECOVERY_REQUIRED', 'generation');
       }
       logFlow('SessionCreateSuccess', {
         chapterCount: Array.isArray(data && data.chapters) ? data.chapters.length : 0,
@@ -793,6 +1223,11 @@
         markChapter(i);
         updateProgress(68 + Math.round(((i + 1) / TOTAL_CHAPTERS) * 12), '7/9 ' + (CHAPTERS[i] || '챕터 정교화 중'));
         logFlow('LocalDraftProgress', { chapterDone: i + 1, chapterTotal: TOTAL_CHAPTERS });
+        logFlow('ChapterGenerated', {
+          birthHash: text(payment && payment.birthHash),
+          chapterCount: i + 1,
+          hasToken: Boolean(text(payment && (payment.premiumAccessToken || payment.accessToken || payment.token)))
+        });
       }
       updateProgress(84, '8/9 PDF 렌더링 중');
       updateZiweiGenerationState({ status: 'enhancing' });
@@ -806,11 +1241,38 @@
       });
       updateProgress(100, '완료');
       updateZiweiGenerationState({ status: 'completed', reportId: text(data && data.reportId), currentChapterNo: TOTAL_CHAPTERS });
+      writePaidSession({
+        featureKey: FEATURE_KEY,
+        reportType: 'ziweiPremium',
+        sessionId: text(data && data.sessionId) || sessionId,
+        reportId: text(data && data.reportId),
+        premiumAccessToken: text(payment && (payment.premiumAccessToken || payment.accessToken || payment.token)),
+        transactionId: text(payment && payment.transactionId),
+        birthHash: text(payment && payment.birthHash),
+        paidAt: text(payment && payment.paidAt) || new Date().toISOString(),
+        status: 'completed'
+      });
+      logFlow('PdfRendered', {
+        birthHash: text(payment && payment.birthHash),
+        chapterCount: Number((Array.isArray(data && data.chapters) ? data.chapters.length : 0) || 0),
+        hasToken: Boolean(text(payment && (payment.premiumAccessToken || payment.accessToken || payment.token)))
+      });
       renderResult(data);
     } catch(error) {
       var normalizedError = normalizeZiweiError(error);
+      if((Number(error && error.status || 0) >= 422 && Number(error && error.status || 0) !== 401 && Number(error && error.status || 0) !== 402 && Number(error && error.status || 0) !== 403) || text(error && error.kind) === 'generation'){
+        var paid = readPaidSession();
+        if(paid){
+          writePaidSession({ status: 'failed_retryable' });
+        }
+        logFlow('PrepareFailedRetryable', {
+          birthHash: text(paid && paid.birthHash),
+          chapterCount: Number((Array.isArray(RESULT && RESULT.chapters) ? RESULT.chapters.length : 0) || 0),
+          hasToken: Boolean(text(paid && paid.premiumAccessToken))
+        });
+      }
       logFlow('Error', normalizedError);
-      showError(normalizedError && normalizedError.message ? normalizedError.message : String(error));
+      showError(mapErrorMessage(error), error);
     } finally {
       GENERATING = false;
     }
@@ -819,6 +1281,11 @@
   window.downloadZiweiBookPdf = function(){
     if(!RESULT){
       showError('먼저 자미두수 PDF를 생성해 주세요.');
+      return;
+    }
+    var chapters = Array.isArray(RESULT.chapters) ? RESULT.chapters : [];
+    if(chapters.length < TOTAL_CHAPTERS){
+      showError('아직 13챕터가 모두 준비되지 않았습니다. 결제 내역으로 다시 생성 버튼을 눌러 복구해 주세요.');
       return;
     }
     var html = RESULT.pdfReady && RESULT.pdfReady.html ? RESULT.pdfReady.html : '';

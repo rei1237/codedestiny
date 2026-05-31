@@ -10556,8 +10556,174 @@ function buildZwSummaryTableHtml(palace) {
     return kw+(isDual?dualNote:'')+' <b>'+brightPart+'</b>'+auxNote+advPart;
   }
 
+  var MAIN_STAR_MEANINGS = {
+    '자미': { essence:'중심성과 책임', strength:'판을 정리하고 방향을 세우는 힘', shadow:'과도한 통제와 고립감' },
+    '천기': { essence:'전략과 변통', strength:'상황을 읽고 방식을 바꾸는 힘', shadow:'생각 과다와 결정 지연' },
+    '태양': { essence:'표현과 공적 영향력', strength:'드러난 자리에서 추진력을 내는 힘', shadow:'과열과 소진' },
+    '무곡': { essence:'재무 감각과 결단', strength:'수치와 구조로 결과를 만드는 힘', shadow:'경직과 관계 피로' },
+    '천동': { essence:'완충과 정서 회복', strength:'관계를 부드럽게 이어가는 힘', shadow:'미루기와 회피' },
+    '염정': { essence:'집중과 욕구의 순도', strength:'원하는 것을 끝까지 밀어내는 힘', shadow:'집착과 감정 마찰' },
+    '천부': { essence:'저장과 안정', strength:'기반을 쌓아 장기 수익으로 바꾸는 힘', shadow:'변화 대응 지연' },
+    '태음': { essence:'감수성과 직관', strength:'정서 결을 읽고 섬세하게 선택하는 힘', shadow:'불안과 내면 소모' },
+    '탐랑': { essence:'매력과 확장 욕구', strength:'기회와 사람을 끌어오는 힘', shadow:'과잉 분산' },
+    '거문': { essence:'분석과 언어', strength:'핵심 쟁점을 정확히 짚는 힘', shadow:'의심과 구설' },
+    '천상': { essence:'균형과 조율', strength:'이해관계를 맞추는 힘', shadow:'우유부단' },
+    '천량': { essence:'원칙과 보호', strength:'기준을 지켜 신뢰를 얻는 힘', shadow:'완고함' },
+    '칠살': { essence:'돌파와 독립성', strength:'위기에서 속도를 내는 힘', shadow:'관계 마찰' },
+    '파군': { essence:'혁신과 재편', strength:'낡은 구조를 끊고 새 판을 여는 힘', shadow:'리스크 과대' },
+    '좌보': { essence:'실무 보정', strength:'부족한 부분을 메우는 지원', shadow:'의존성' },
+    '우필': { essence:'협업 보정', strength:'사람과 자원을 엮는 지원', shadow:'관계 피로' },
+    '문창': { essence:'기획과 문서력', strength:'지식과 문서로 결과를 키우는 지원', shadow:'완벽주의' },
+    '문곡': { essence:'표현과 설득력', strength:'메시지를 매력적으로 전달하는 지원', shadow:'감정 과잉' },
+    '천괴': { essence:'귀인', strength:'결정적 순간의 외부 도움', shadow:'타이밍 의존' },
+    '천월': { essence:'완충', strength:'위험을 줄이는 조력', shadow:'주도성 약화' },
+    '녹존': { essence:'축적', strength:'자원을 붙잡고 지키는 힘', shadow:'보수성' },
+    '경양': { essence:'절단과 속도', strength:'느린 구조를 잘라내는 힘', shadow:'충돌' },
+    '타라': { essence:'저항과 지연', strength:'검증을 강화하는 힘', shadow:'진척 정체' },
+    '화성': { essence:'점화', strength:'정체 구간을 깨는 힘', shadow:'성급함' },
+    '영성': { essence:'파동', strength:'무감각한 구간에 각성 신호를 주는 힘', shadow:'감정 기복' },
+    '지공': { essence:'공백 감지', strength:'불필요를 비워 효율을 높이는 힘', shadow:'허무감' },
+    '지겁': { essence:'손실 경고', strength:'리스크를 빨리 감지하는 힘', shadow:'불안 증폭' },
+    '천마': { essence:'이동과 전환', strength:'환경 전환으로 활로를 여는 힘', shadow:'기반 불안정' }
+  };
+  var AUX_STAR_MEANINGS = {
+    '좌보': { essence:'실무 보정', strength:'실수 여지를 메워 실행 완성도를 높임', shadow:'대리 의존' },
+    '우필': { essence:'협업 결속', strength:'사람과 자원을 연결해 속도를 높임', shadow:'관계 피로' },
+    '문창': { essence:'문서·기획', strength:'기록과 구조화로 성과를 키움', shadow:'완벽주의로 지연' },
+    '문곡': { essence:'표현·설득', strength:'메시지 전달력으로 기회를 열어줌', shadow:'감정 과잉 표현' },
+    '천괴': { essence:'귀인 접점', strength:'결정적 순간에 외부 지원 유입', shadow:'타이밍 의존' },
+    '천월': { essence:'완충', strength:'충돌을 줄여 회복 탄성을 높임', shadow:'결정 지연' },
+    '녹존': { essence:'축적', strength:'들어온 자원을 붙잡아 자산으로 전환', shadow:'보수성 경직' }
+  };
+  var MAL_STAR_MEANINGS = {
+    '경양': { essence:'절단과 속도', strength:'불필요를 잘라 진척을 만듦', shadow:'충돌 비용' },
+    '타라': { essence:'저항과 검증', strength:'허술한 구조를 걸러냄', shadow:'지연과 정체' },
+    '화성': { essence:'점화', strength:'정체 구간을 깨고 실행을 시작', shadow:'성급한 과속' },
+    '영성': { essence:'파동', strength:'무감각한 흐름에 각성 신호', shadow:'감정 기복' },
+    '지공': { essence:'공백 인식', strength:'낭비를 비워 효율을 회복', shadow:'허무감 증폭' },
+    '지겁': { essence:'손실 경계', strength:'리스크를 빠르게 감지', shadow:'불안 확대' },
+    '천마': { essence:'이동 변수', strength:'환경 전환으로 활로 개척', shadow:'기반 흔들림' }
+  };
+  var BRIGHTNESS_MEANINGS = {
+    '묘': '별의 장점이 가장 선명하게 드러나 주도권과 성과가 안정적으로 이어집니다.',
+    '득': '별의 장점이 현실에서 잘 발휘되어 꾸준히 밀면 확실한 결과를 만듭니다.',
+    '리': '방향을 정확히 잡으면 큰 도움이 되며, 선택 기준이 분명할수록 힘이 커집니다.',
+    '평': '좋고 나쁨이 균형 상태라 운영 방식에 따라 결과 편차가 크게 벌어집니다.',
+    '함': '장점이 바로 드러나기보다 지연·왜곡·부담으로 체감되기 쉬워 세밀한 관리가 필요합니다.'
+  };
+  var SIHUA_MEANINGS = {
+    '화록': '이 궁에서 인연·기회·재원 유입이 살아납니다. 쉽게 들어온 만큼 관리 체계를 먼저 세우는 것이 핵심입니다.',
+    '화권': '이 궁에서 권한과 책임이 커집니다. 리더십은 강해지지만 독단과 과로를 경계해야 합니다.',
+    '화과': '이 궁에서 평판·인정·학습 성과가 살아납니다. 기록과 문서화가 체감 이익을 키웁니다.',
+    '화기': '이 궁은 피해야 할 곳이 아니라 가장 세심히 관리해야 할 과제 궁입니다. 오해·지연·집착 비용을 줄이는 설계가 필요합니다.'
+  };
+  var BORROWED_STAR_RULES = {
+    base: '차성은 힘이 없는 뜻이 아니라 간접 발현 구조입니다.',
+    guide: '주변 궁·관계·환경을 맞출수록 장점이 후반에 선명해집니다.',
+    caution: '조건이 맞지 않으면 별의 그림자가 먼저 드러날 수 있어 속도보다 순서 관리가 중요합니다.'
+  };
+  var BUREAU_MEANINGS = {
+    '수이국': '수이국은 흐름 감각과 정보 민감도가 높아 변동 대응력이 강합니다.',
+    '목삼국': '목삼국은 성장·확장·기획력이 좋아 장기 프로젝트에서 강점을 보입니다.',
+    '금사국': '금사국은 구조화·품질·정밀도가 강해 체계화할수록 성과가 안정됩니다.',
+    '토오국': '토오국은 누적·관리·지속성이 강해 기반을 쌓을수록 운의 회복력이 큽니다.',
+    '화육국': '화육국은 추진력·표현력·확산력이 강해 실행과 공개를 병행할수록 유리합니다.'
+  };
+  var DAHAN_INTERPRET_RULES = {
+    strong: '강한 궁과 대운 구간이 맞물리면 성과 회수 속도가 빨라집니다.',
+    weak: '약한 궁 대운에서는 확장보다 복구·정렬을 우선해야 손실을 줄일 수 있습니다.',
+    bridge: '대운은 운명의 정답이 아니라, 어떤 궁을 먼저 관리할지 알려주는 우선순위 지도입니다.'
+  };
+  var PALACE_MEANINGS = {
+    '명궁': '선천 성향·삶의 기준점·위기 반응의 중심 궁',
+    '형제궁': '가까운 사람과의 심리적 거리·수평 관계 궁',
+    '부처궁': '연애·결혼·관계 회복 구조를 읽는 궁',
+    '자녀궁': '자녀·후배·창작물·프로젝트 결과물의 궁',
+    '재백궁': '수입 구조와 자산 방어 습관을 함께 보는 궁',
+    '질액궁': '체질·회복·생활 리듬 관리 궁',
+    '천이궁': '외부 무대·이동·대외 기회 궁',
+    '노복궁': '협력자·팀원·고객·커뮤니티 연결 궁',
+    '관록궁': '일하는 방식·커리어 성공 구조 궁',
+    '전택궁': '주거·기반·장기 축적 궁',
+    '복덕궁': '내면 안정·행복감·번아웃 관리 궁',
+    '부모궁': '부모·상사·스승·문서·제도 관계 궁'
+  };
+  var STAR_MEANING = MAIN_STAR_MEANINGS;
+  var BRIGHTNESS_RULE = BRIGHTNESS_MEANINGS;
+  var SIHUA_RULE = SIHUA_MEANINGS;
+  var PALACE_CONTEXT = {
+    '명궁': { key:'자기 운영', reality:'첫인상·기본 태도·위기 반응', bonus:'삶의 중심축을 붙잡는 힘', caution:'반복되는 자기 소모 패턴', advice:'기준을 문장으로 고정해 흔들리는 날의 복귀 지점을 확보하세요.', one:'당신의 기준이 곧 운의 방향입니다.' },
+    '형제궁': { key:'수평 관계', reality:'형제·친구·동료와의 거리감', bonus:'협업 리듬과 네트워크 확장', caution:'비교심리와 신뢰 비용', advice:'가까운 관계일수록 역할과 경계를 먼저 합의하세요.', one:'가까운 사람과의 합의가 복을 지킵니다.' },
+    '부처궁': { key:'연애·결혼 구조', reality:'끌리는 상대·관계 패턴·갈등 회복', bonus:'정서적 성숙과 관계 성장', caution:'감정 과속과 반복 갈등', advice:'관계 조건을 감정 이전에 문장으로 확인하세요.', one:'좋은 사랑은 감정과 규칙이 함께 갑니다.' },
+    '자녀궁': { key:'생산과 결과물', reality:'자녀·프로젝트·창작물·후배', bonus:'만든 것을 세상에 내보내는 힘', caution:'성과 집착으로 인한 피로', advice:'완성 기준을 낮춰도 발행 주기는 높게 유지하세요.', one:'완벽보다 발행이 운을 엽니다.' },
+    '재백궁': { key:'현금흐름 운영', reality:'수입 구조·지출 습관·계약 감각', bonus:'버는 힘과 지키는 힘의 균형', caution:'유입 대비 누수 관리 부족', advice:'돈의 흐름을 수입 파이프와 방어 규칙으로 분리해 설계하세요.', one:'버는 기술과 지키는 규칙을 함께 키우세요.' },
+    '질액궁': { key:'체질 관리', reality:'에너지 소모·회복 리듬·생활 습관', bonus:'자기 돌봄 루틴 최적화', caution:'과로 누적과 회복 지연', advice:'수면·식사·운동의 최소 루틴을 먼저 고정하세요.', one:'몸의 신호를 빠르게 듣는 사람이 오래 갑니다.' },
+    '천이궁': { key:'외부 무대', reality:'이직·이사·타지·대외 활동', bonus:'낯선 환경 적응과 기회 포착', caution:'준비 없는 이동', advice:'밖으로 나갈수록 기준과 계약 문서를 더 촘촘히 점검하세요.', one:'확장은 준비된 이동에서 시작됩니다.' },
+    '노복궁': { key:'협력 생태계', reality:'팀원·고객·팬·커뮤니티', bonus:'사람을 모으고 유지하는 힘', caution:'도움 주고도 소진되는 패턴', advice:'협력자를 역할·기여·보상 구조로 설계해 관계를 보호하세요.', one:'사람 복은 구조를 만들 때 커집니다.' },
+    '관록궁': { key:'일의 성공 방식', reality:'업무 스타일·리더십/참모 포지션', bonus:'성과의 재현성', caution:'환경 미스매치', advice:'직업명보다 일하는 방식의 궁합을 우선 선택하세요.', one:'어떤 일을 하느냐보다 어떻게 하느냐가 승부입니다.' },
+    '전택궁': { key:'생활 기반', reality:'주거 안정·공간 감각·자산 축적', bonus:'기반을 자산으로 바꾸는 힘', caution:'기반 불안정의 연쇄 피로', advice:'공간 정리와 장기 자산 규칙을 동시에 설계하세요.', one:'기반이 안정되면 운의 회복 속도가 빨라집니다.' },
+    '복덕궁': { key:'내면 회복력', reality:'행복감·번아웃·휴식 방식', bonus:'심리 탄성과 삶의 만족도', caution:'쉬어도 못 쉬는 패턴', advice:'회복 활동을 일정표에 먼저 예약해 번아웃을 선제 차단하세요.', one:'내면이 쉬어야 운도 멀리 갑니다.' },
+    '부모궁': { key:'상위 구조 관계', reality:'부모·상사·스승·문서·제도', bonus:'보호와 후원 연결', caution:'권위 충돌과 문서 실수', advice:'권위 관계일수록 기록 중심 소통으로 오해를 줄이세요.', one:'윗선과의 합은 문서에서 결정됩니다.' }
+  };
+  var BENEFIC_AUX = ['좌보','우필','문창','문곡','천괴','천월','녹존'];
+  var VOLATILE_STARS = ['경양','타라','화성','영성','지공','지겁','천마'];
+
+  function escText(v){
+    return String(v == null ? '' : v)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+  function uniqList(arr){
+    var seen = Object.create(null);
+    var out = [];
+    (arr || []).forEach(function(v){
+      var k = String(v || '').trim();
+      if(!k || seen[k]) return;
+      seen[k] = 1;
+      out.push(k);
+    });
+    return out;
+  }
+  function getStarMeaning(starName){
+    return MAIN_STAR_MEANINGS[starName]
+      || AUX_STAR_MEANINGS[starName]
+      || MAL_STAR_MEANINGS[starName]
+      || { essence: starName + '의 핵심 작용', strength: '상황을 바꿀 단서를 제공', shadow: '과하면 균형이 흔들림' };
+  }
+  function energyFromRow(row){
+    var base = 50;
+    var brightnessPts = { '묘':30, '득':22, '리':14, '평':6, '함':-12 };
+    var score = base;
+    for(var i=0;i<row.mainEntries.length;i++){
+      var w = i === 0 ? 1 : (i === 1 ? 0.65 : 0.45);
+      score += (brightnessPts[row.mainEntries[i].brightness] || 0) * w;
+    }
+    score += row.beneficAux.length * 5;
+    score -= row.volatilityStars.length * 5;
+    if(row.sihuaType === '화록') score += 8;
+    else if(row.sihuaType === '화권') score += 6;
+    else if(row.sihuaType === '화과') score += 6;
+    else if(row.sihuaType === '화기') score -= 10;
+    if(row.borrowedMainNames.length) score -= 8;
+    return Math.max(0, Math.min(100, Math.round(score)));
+  }
+  function palaceLabel(name){
+    var d = zwDisplayPalaceName(name);
+    return d === '부처궁' ? '부부궁' : d;
+  }
+  function strengthTag(score){
+    if(score >= 78) return '강점 발현 구간';
+    if(score >= 62) return '안정 운용 구간';
+    if(score >= 46) return '관리 분기점';
+    return '집중 보정 구간';
+  }
+
   var rows='';
   var cardRows=[];
+  var palaceDetailRows=[];
   for(var pi=0;pi<ZW_PALACE_ORDER.length;pi++){
     var pName=ZW_PALACE_ORDER[pi];
     var zhi=palace.palaces[pName]; if(!zhi) continue;
@@ -10565,12 +10731,25 @@ function buildZwSummaryTableHtml(palace) {
     var stObj=palace.stars[zhiIdx]||{main:[],aux:[],bad:[],borrowedMain:[]};
     var mainList = (stObj.main && stObj.main.length) ? stObj.main : (stObj.borrowedMain || []);
     var mainMeta=mainList.map(parseMainStar).filter(function(m){return !!m.name;});
-    var mainClean=mainMeta.map(function(m){return m.name;});
     var mainSihua=null;
     for(var k=0;k<mainMeta.length;k++){if(mainMeta[k].sihua){mainSihua=mainMeta[k].sihua;break;}}
     for(var k=0;k<stObj.aux.length;k++){var sh2=getSihua(stObj.aux[k]);if(sh2&&!mainSihua){mainSihua=sh2;break;}}
-    var auxClean=stObj.aux.map(getCleanStarName).filter(function(s){return !!s;});
-    var badClean=stObj.bad.map(getCleanStarName).filter(function(s){return !!s;});
+    var auxClean=uniqList(stObj.aux.map(getCleanStarName).filter(function(s){return !!s;}));
+    var badClean=uniqList(stObj.bad.map(getCleanStarName).filter(function(s){return !!s;}));
+    var enrichedMain = mainMeta.map(function(m){
+      var b2 = getEffectiveBr(m.name, zhi, m.isBorrowed, m.brHint);
+      return {
+        name: m.name,
+        isBorrowed: !!m.isBorrowed,
+        sihua: m.sihua || null,
+        brightness: b2,
+        symbol: zwStrengthToSymbol(b2)
+      };
+    });
+    var beneficAux = auxClean.filter(function(s){ return BENEFIC_AUX.indexOf(s) >= 0; });
+    var volatilityStars = uniqList(auxClean.concat(badClean)).filter(function(s){ return VOLATILE_STARS.indexOf(s) >= 0; });
+    var borrowedMainNames = enrichedMain.filter(function(m){ return m.isBorrowed; }).map(function(m){ return m.name; });
+
     var starsDisp='';
     if(mainMeta.length){
       starsDisp=mainMeta.map(function(m){
@@ -10592,15 +10771,37 @@ function buildZwSummaryTableHtml(palace) {
     var icon=ZW_PALACE_ICON[pName]||'◆';
     var borderStyle=mainSihua==='화기'?'border-left:3px solid #f87171':(mainSihua?'border-left:3px solid #4ade80':'border-left:3px solid transparent');
     rows+='<tr style="background:'+rowBg+';'+borderStyle+'">';
-    rows+='<td style="padding:9px 10px;white-space:nowrap;font-weight:800;color:#d8b4fe;font-size:0.82rem;vertical-align:top">'+icon+' '+zwDisplayPalaceName(pName)+'<br><span style="color:#64748b;font-size:0.67rem;font-weight:400">'+ZW_GUNG_DEF[pName]+'</span></td>';
+    rows+='<td style="padding:9px 10px;white-space:nowrap;font-weight:800;color:#d8b4fe;font-size:0.82rem;vertical-align:top">'+icon+' '+palaceLabel(pName)+'<br><span style="color:#64748b;font-size:0.67rem;font-weight:400">'+ZW_GUNG_DEF[pName]+'</span></td>';
     rows+='<td style="padding:9px 10px;color:#fde68a;font-size:0.81rem;vertical-align:top;line-height:1.8">'+starsDisp+'</td>';
     rows+='<td style="padding:9px 10px;font-size:0.73rem;color:#94a3b8;vertical-align:top">'+auxDisp+'</td>';
     rows+='<td style="padding:9px 10px;font-size:0.78rem;color:#e2e8f0;line-height:1.6;vertical-align:top">'+summaryText+'</td>';
     rows+='</tr>';
 
+    var entry = {
+      pName: pName,
+      pNameDisplay: palaceLabel(pName),
+      icon: icon,
+      defn: ZW_GUNG_DEF[pName],
+      zhi: zhi,
+      mainEntries: enrichedMain,
+      auxStars: auxClean,
+      badStars: badClean,
+      beneficAux: beneficAux,
+      volatilityStars: volatilityStars,
+      borrowedMainNames: borrowedMainNames,
+      sihuaType: mainSihua,
+      starsDisp: starsDisp,
+      auxDisp: auxDisp || '<span style="color:#64748b">없음</span>',
+      summaryText: summaryText,
+      rowBg: rowBg,
+      borderColor: mainSihua==='화기' ? '#f87171' : (mainSihua ? '#4ade80' : 'rgba(255,255,255,0.12)')
+    };
+    entry.energyScore = energyFromRow(entry);
+    palaceDetailRows.push(entry);
+
     cardRows.push({
       pName: pName,
-      pNameDisplay: zwDisplayPalaceName(pName),
+      pNameDisplay: palaceLabel(pName),
       icon: icon,
       defn: ZW_GUNG_DEF[pName],
       starsDisp: starsDisp,
@@ -10617,6 +10818,241 @@ function buildZwSummaryTableHtml(palace) {
     +'<span>사화: <b style="color:#4ade80">화록▲</b>=재물·인연 · <b style="color:#60a5fa">화권▲</b>=권위 · <b style="color:#c084fc">화과▲</b>=명성 · <b style="color:#f87171">화기▼</b>=주의</span>'
     +'</div>';
 
+  var byEnergyDesc = palaceDetailRows.slice().sort(function(a,b){ return b.energyScore - a.energyScore; });
+  var strongest3 = byEnergyDesc.slice(0,3);
+  var weakest3 = byEnergyDesc.slice(-3).reverse();
+  var dominantSihua = (function(){
+    var cnt = { '화록':0, '화권':0, '화과':0, '화기':0 };
+    palaceDetailRows.forEach(function(r){ if(r.sihuaType && cnt.hasOwnProperty(r.sihuaType)) cnt[r.sihuaType] += 1; });
+    return Object.keys(cnt).sort(function(a,b){ return cnt[b]-cnt[a]; })[0] || '화록';
+  })();
+  var dominantLine = SIHUA_RULE[dominantSihua] || SIHUA_RULE['화록'];
+  var bureauKey = String((palace && (palace.juInfo || palace.fiveElementBureau)) || '').trim();
+  var bureauLine = BUREAU_MEANINGS[bureauKey] || '국수 정보는 고정 운명이 아니라, 에너지를 운영하는 기본 성향 지표로 참고하세요.';
+  var dahanHead = (Array.isArray(palace && palace.daHanList) ? palace.daHanList[0] : null) || null;
+  var dahanLabel = dahanHead ? String((dahanHead.startAge || '') + '~' + (dahanHead.endAge || '')).replace(/^~|~$/g,'') : '';
+  var dahanLine = (weakest3[0] && weakest3[0].energyScore < 50) ? DAHAN_INTERPRET_RULES.weak : DAHAN_INTERPRET_RULES.strong;
+
+  var overallSummaryHtml = ''
+    + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px">'
+    + '  <div style="background:rgba(30,41,59,0.5);border:1px solid rgba(99,102,241,0.35);border-radius:10px;padding:10px">'
+    + '    <div style="font-size:0.82rem;color:#c4b5fd;font-weight:800">1) 가장 강하게 살아 있는 영역</div>'
+    + '    <div style="margin-top:5px;font-size:0.8rem;color:#e2e8f0;line-height:1.6">'+escText(strongest3.map(function(r){ return r.pNameDisplay; }).join(' · ') || '데이터 없음')+' 중심으로 운의 체감이 빠르게 나타납니다.</div>'
+    + '  </div>'
+    + '  <div style="background:rgba(30,41,59,0.5);border:1px solid rgba(244,114,182,0.35);border-radius:10px;padding:10px">'
+    + '    <div style="font-size:0.82rem;color:#f9a8d4;font-weight:800">2) 관리가 필요한 영역</div>'
+    + '    <div style="margin-top:5px;font-size:0.8rem;color:#e2e8f0;line-height:1.6">'+escText(weakest3.map(function(r){ return r.pNameDisplay; }).join(' · ') || '데이터 없음')+'은 속도보다 운영 설계가 먼저 필요합니다.</div>'
+    + '  </div>'
+    + '  <div style="background:rgba(30,41,59,0.5);border:1px solid rgba(56,189,248,0.35);border-radius:10px;padding:10px">'
+    + '    <div style="font-size:0.82rem;color:#7dd3fc;font-weight:800">3) 반복되는 패턴</div>'
+    + '    <div style="margin-top:5px;font-size:0.8rem;color:#e2e8f0;line-height:1.6">강한 궁에서는 빠르게 확장하고, 약한 궁에서는 감정·관계 비용이 뒤늦게 나타나는 패턴이 보입니다.</div>'
+    + '  </div>'
+    + '  <div style="background:rgba(30,41,59,0.5);border:1px solid rgba(74,222,128,0.35);border-radius:10px;padding:10px">'
+    + '    <div style="font-size:0.82rem;color:#86efac;font-weight:800">4) 성공이 열리는 방향</div>'
+    + '    <div style="margin-top:5px;font-size:0.8rem;color:#e2e8f0;line-height:1.6">'+escText(strongest3[0] ? (strongest3[0].pNameDisplay + '의 강점을 기준으로 다른 궁의 의사결정을 정렬할 때 성과가 커집니다.') : '핵심 강점을 기준점으로 잡아 정렬하세요.')+'</div>'
+    + '  </div>'
+    + '  <div style="background:rgba(30,41,59,0.5);border:1px solid rgba(251,146,60,0.35);border-radius:10px;padding:10px">'
+    + '    <div style="font-size:0.82rem;color:#fdba74;font-weight:800">5) 관계에서 주의할 점</div>'
+    + '    <div style="margin-top:5px;font-size:0.8rem;color:#e2e8f0;line-height:1.6">설명되지 않은 기대치가 갈등을 키우기 쉽습니다. 중요한 관계일수록 역할·시간·돈의 경계를 먼저 합의하세요.</div>'
+    + '  </div>'
+    + '  <div style="background:rgba(30,41,59,0.5);border:1px solid rgba(196,181,253,0.35);border-radius:10px;padding:10px">'
+    + '    <div style="font-size:0.82rem;color:#ddd6fe;font-weight:800">6) 지금 먼저 정리할 부분</div>'
+    + '    <div style="margin-top:5px;font-size:0.8rem;color:#e2e8f0;line-height:1.6">'+escText((weakest3[0] ? weakest3[0].pNameDisplay : '관리 궁') + '의 리스크를 줄이는 한 가지 습관을 이번 주에 고정하면 전체 운의 안정도가 상승합니다.')+'</div>'
+    + '  </div>'
+    + '  <div style="background:rgba(30,41,59,0.5);border:1px solid rgba(125,211,252,0.35);border-radius:10px;padding:10px">'
+    + '    <div style="font-size:0.82rem;color:#a5f3fc;font-weight:800">7) 오행국(局) 작동 힌트</div>'
+    + '    <div style="margin-top:5px;font-size:0.8rem;color:#e2e8f0;line-height:1.6">'+escText((bureauKey ? (bureauKey + ' · ') : '') + bureauLine)+'</div>'
+    + '  </div>'
+    + '  <div style="background:rgba(30,41,59,0.5);border:1px solid rgba(253,224,71,0.35);border-radius:10px;padding:10px">'
+    + '    <div style="font-size:0.82rem;color:#fde68a;font-weight:800">8) 대운 운영 포인트</div>'
+    + '    <div style="margin-top:5px;font-size:0.8rem;color:#e2e8f0;line-height:1.6">'+escText((dahanLabel ? ('현재 체크 구간 ' + dahanLabel + ' · ') : '') + dahanLine + ' ' + DAHAN_INTERPRET_RULES.bridge)+'</div>'
+    + '  </div>'
+    + '</div>';
+
+  var topStrongHtml = strongest3.map(function(r, i){
+    var lead = r.mainEntries[0] ? r.mainEntries[0].name : '공궁';
+    return '<div style="padding:7px 0;border-bottom:1px solid rgba(125,211,252,0.16)"><b style="color:#7dd3fc">TOP '+(i+1)+' · '+escText(r.pNameDisplay)+'</b> <span style="color:#fef3c7">'+r.energyScore+'/100</span><br><span style="color:#cbd5e1">주축: '+escText(lead)+' · '+escText(strengthTag(r.energyScore))+'</span></div>';
+  }).join('');
+  var topWeakHtml = weakest3.map(function(r, i){
+    var lead = r.mainEntries[0] ? r.mainEntries[0].name : '공궁';
+    return '<div style="padding:7px 0;border-bottom:1px solid rgba(248,113,113,0.18)"><b style="color:#fda4af">관리 '+(i+1)+' · '+escText(r.pNameDisplay)+'</b> <span style="color:#fecaca">'+r.energyScore+'/100</span><br><span style="color:#cbd5e1">주축: '+escText(lead)+' · '+escText(strengthTag(r.energyScore))+'</span></div>';
+  }).join('');
+
+  function buildDetailCard(row){
+    var ctx = PALACE_CONTEXT[row.pName] || { key:'핵심 영역', reality:'현실 패턴', bonus:'강점', caution:'주의점', advice:'실전 조언', one:'기준을 지키면 운이 열린다.' };
+    var palaceMeaning = PALACE_MEANINGS[row.pName] || (row.pNameDisplay + ' 해석 궁');
+    var keywordPool = [];
+    row.mainEntries.forEach(function(m){
+      var sm = getStarMeaning(m.name);
+      keywordPool.push(sm.essence);
+    });
+    if(!keywordPool.length) keywordPool.push('환경 적응','관계 조율');
+    var keywordText = uniqList(keywordPool).slice(0,3).join(' · ');
+    var starFlow = row.mainEntries.length
+      ? row.mainEntries.map(function(m){
+          var sm = getStarMeaning(m.name);
+          return m.name + m.symbol + '는 ' + sm.essence + '을(를) 밀며, ' + (BRIGHTNESS_RULE[m.brightness] || BRIGHTNESS_RULE['평']);
+        }).join(' ')
+      : '공궁 구조라 별의 직접 발현보다 환경·관계 변수에 따라 체감이 크게 달라집니다.';
+    var auxFlow = row.beneficAux.length
+      ? ('길성 보정은 ' + row.beneficAux.slice(0,3).join(' · ') + '로 들어와 약점을 실무·귀인·문서의 형태로 보완합니다.')
+      : '길성 보정은 크지 않아 스스로 구조를 세우는 습관이 중요합니다.';
+    var auxMeaningFlow = row.beneficAux.length
+      ? row.beneficAux.slice(0,3).map(function(s){
+          var m = AUX_STAR_MEANINGS[s] || getStarMeaning(s);
+          return s + '는 ' + (m && m.strength ? m.strength : '보정 작용');
+        }).join(' ')
+      : '길성 보조가 약한 구간이라 문서·기록·루틴을 직접 세워야 안정됩니다.';
+    var volatileFlow = row.volatilityStars.length
+      ? ('변동성 신호 ' + row.volatilityStars.slice(0,3).join(' · ') + '는 사건성을 키우므로 속도보다 순서 관리가 핵심입니다.')
+      : '강한 변동성 신호는 약한 편이라 기본 루틴을 유지할수록 안정적입니다.';
+    var malMeaningFlow = row.volatilityStars.length
+      ? row.volatilityStars.slice(0,3).map(function(s){
+          var m = MAL_STAR_MEANINGS[s] || getStarMeaning(s);
+          return s + '는 ' + (m && m.shadow ? m.shadow : '관리 포인트') + '을 남길 수 있어 체크리스트 관리가 필요합니다.';
+        }).join(' ')
+      : '살성 자극이 상대적으로 약해 과속만 피하면 안정적 운영이 가능합니다.';
+    var sihuaFlow = row.sihuaType ? (SIHUA_RULE[row.sihuaType] || '') : '직접 사화가 약한 궁이라 작은 습관 차이가 결과를 크게 만듭니다.';
+    var borrowedFlow = row.borrowedMainNames.length
+      ? ('차성 보정: ' + row.borrowedMainNames.join(' · ') + '은(는) 직접보다 간접 작동이 강합니다. ' + BORROWED_STAR_RULES.base + ' ' + BORROWED_STAR_RULES.guide + ' ' + BORROWED_STAR_RULES.caution)
+      : '원성 중심 구조라 해석의 일관성이 비교적 높습니다.';
+
+    var realityLine = ctx.reality + ' 영역에서 ' + (row.mainEntries[0] ? (row.mainEntries[0].name + '의 성향') : '공궁의 적응성') + '이 생활 패턴으로 드러납니다.';
+    var bonusLine = ctx.bonus + '이 핵심입니다. 특히 에너지 지표 ' + row.energyScore + '/100 구간에서는 강점을 의식적으로 확장할수록 체감이 빨라집니다.';
+    var cautionLine = ctx.caution + '을 관리해야 합니다. ' + (row.sihuaType === '화기' ? '화기 신호가 있어 작은 오해도 비용이 커질 수 있습니다.' : '감정 과속보다 운영 리듬을 우선하세요.');
+    var adviceLine = ctx.advice + ' ' + auxFlow + ' ' + volatileFlow;
+
+    var palaceSpecial = '';
+    if(row.pName === '질액궁'){
+      palaceSpecial = '<div style="margin-top:6px;color:#bae6fd;font-size:0.78rem;line-height:1.62">체질 해석: 질병 단정이 아니라 에너지 소모 패턴을 보는 궁입니다. 수면·식사·운동 리듬이 무너지면 컨디션 변동폭이 커지므로 생활 관리 루틴을 우선하세요.</div>';
+    } else if(row.pName === '부처궁'){
+      var spouseLead = row.mainEntries[0] ? row.mainEntries[0].name : '공궁';
+      palaceSpecial = '<div style="margin-top:6px;color:#fbcfe8;font-size:0.78rem;line-height:1.62">관계 확장 해석: 끌리는 상대 유형은 '+escText(spouseLead)+' 성향과 맞닿아 나타납니다. 반복 패턴은 기대치 미합의에서 시작되기 쉬우며, 갈등 원인은 말보다 기준 불일치에서 커집니다. 회복 방식은 감정 진정 이후 역할·시간·돈의 경계를 문장으로 합의하는 것입니다. 좋은 관계 조건은 정서 교감과 생활 규칙을 동시에 지키는 파트너십입니다.</div>';
+    } else if(row.pName === '재백궁'){
+      palaceSpecial = '<div style="margin-top:6px;color:#fde68a;font-size:0.78rem;line-height:1.62">재물 분리 해석: 돈을 버는 방식은 '+escText((strongest3[0] ? strongest3[0].pNameDisplay : '강점 궁'))+'과 연결해 파이프를 늘릴 때 유리합니다. 돈을 지키는 방식은 충동 지출·계약 누락·현금흐름 불균형을 먼저 차단하고, 고정 지출 상한과 계약 체크리스트를 분리 운영할 때 안정됩니다.</div>';
+    } else if(row.pName === '관록궁'){
+      palaceSpecial = '<div style="margin-top:6px;color:#bfdbfe;font-size:0.78rem;line-height:1.62">커리어 해석: 직업명 나열보다 일하는 방식의 궁합이 핵심입니다. 독립형/조직형, 리더형/참모형, 집중형/병행형 중 어떤 구조에서 성과가 재현되는지 기록으로 확인하고 그 방식에 커리어를 맞추세요.</div>';
+    } else if(row.pName === '노복궁'){
+      palaceSpecial = '<div style="margin-top:6px;color:#bbf7d0;font-size:0.78rem;line-height:1.62">현대 노복궁 해석: 협력자·팀원·고객·팬·커뮤니티 운까지 포함해 읽습니다. 도움을 주고받는 구조를 설계하면 사람운이 실질 성과로 연결됩니다.</div>';
+    } else if(row.pName === '자녀궁'){
+      palaceSpecial = '<div style="margin-top:6px;color:#d9f99d;font-size:0.78rem;line-height:1.62">확장 자녀궁 해석: 실제 자녀뿐 아니라 창작물·프로젝트·후배·결과물의 궁입니다. 완성 이후의 배포·운영까지 설계할 때 이 궁의 장점이 크게 살아납니다.</div>';
+    } else if(row.pName === '복덕궁'){
+      palaceSpecial = '<div style="margin-top:6px;color:#ddd6fe;font-size:0.78rem;line-height:1.62">복덕궁 핵심: 내면 안정, 행복감, 번아웃, 쉬는 방식, 삶의 만족도를 다룹니다. 쉬는 시간도 일정에 넣어야 복덕의 회복력이 실제로 작동합니다.</div>';
+    }
+
+    return ''
+      + '<div style="background:rgba(15,23,42,0.58);border:1px solid rgba(148,163,184,0.28);border-left:4px solid '+row.borderColor+';border-radius:11px;padding:11px 12px;line-height:1.65">'
+      + '  <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">'
+      + '    <div style="color:#f5d0fe;font-weight:900;font-size:0.9rem">'+row.icon+' '+escText(row.pNameDisplay)+' 상세 상담</div>'
+      + '    <div style="color:#fef3c7;font-size:0.75rem">에너지 '+row.energyScore+'/100 · '+escText(strengthTag(row.energyScore))+'</div>'
+      + '  </div>'
+      + '  <div style="margin-top:4px;color:#94a3b8;font-size:0.74rem">정의: '+escText(row.defn)+' · 주제: '+escText(ctx.key)+'</div>'
+      + '  <div style="margin-top:4px;color:#a5b4fc;font-size:0.74rem">궁의 의미: '+escText(palaceMeaning)+'</div>'
+      + '  <div style="margin-top:8px;color:#fcd34d;font-size:0.79rem"><b>핵심 키워드</b>: '+escText(keywordText)+'</div>'
+      + '  <div style="margin-top:6px;color:#e2e8f0;font-size:0.79rem"><b>별의 작동 방식</b>: '+escText(starFlow)+' '+escText(sihuaFlow)+' '+escText(borrowedFlow)+'</div>'
+      + '  <div style="margin-top:6px;color:#bfdbfe;font-size:0.79rem"><b>보조성/살성 보정</b>: '+escText(auxMeaningFlow)+' '+escText(malMeaningFlow)+'</div>'
+      + '  <div style="margin-top:6px;color:#e2e8f0;font-size:0.79rem"><b>현실에서 나타나는 모습</b>: '+escText(realityLine)+'</div>'
+      + '  <div style="margin-top:6px;color:#bbf7d0;font-size:0.79rem"><b>장점</b>: '+escText(bonusLine)+'</div>'
+      + '  <div style="margin-top:6px;color:#fecaca;font-size:0.79rem"><b>주의점</b>: '+escText(cautionLine)+'</div>'
+      + '  <div style="margin-top:6px;color:#dbeafe;font-size:0.79rem"><b>실전 조언</b>: '+escText(adviceLine)+'</div>'
+      + '  <div style="margin-top:7px;color:#e9d5ff;font-size:0.8rem"><b>한줄 처방</b>: '+escText(ctx.one)+'</div>'
+      +      palaceSpecial
+      + '</div>';
+  }
+
+  function findRowByName(name){
+    for(var i=0;i<palaceDetailRows.length;i++) if(palaceDetailRows[i].pName === name) return palaceDetailRows[i];
+    return null;
+  }
+  function linkSentence(aName, bName){
+    var a = findRowByName(aName);
+    var b = findRowByName(bName);
+    if(!a || !b) return '';
+    var aLead = a.mainEntries[0] ? a.mainEntries[0].name : '공궁';
+    var bLead = b.mainEntries[0] ? b.mainEntries[0].name : '공궁';
+    var diff = a.energyScore - b.energyScore;
+    var flow = '';
+    if(Math.abs(diff) <= 8) flow = '두 궁의 에너지가 균형이라 상호 보완이 잘 작동합니다.';
+    else if(diff > 8) flow = a.pNameDisplay + '의 추진력이 ' + b.pNameDisplay + '을 이끌며, 속도 조절만 되면 성과 전환이 빠릅니다.';
+    else flow = b.pNameDisplay + '의 요구가 더 강해 ' + a.pNameDisplay + '의 선택 기준을 재정렬할 필요가 있습니다.';
+    return '<div style="padding:7px 0;border-bottom:1px solid rgba(148,163,184,0.16)"><b style="color:#c4b5fd">'+escText(a.pNameDisplay)+' ↔ '+escText(b.pNameDisplay)+'</b><br><span style="color:#e2e8f0">주축 별: '+escText(aLead)+' ↔ '+escText(bLead)+' · '+escText(flow)+'</span></div>';
+  }
+
+  var sihuaRows = palaceDetailRows.filter(function(r){ return !!r.sihuaType; }).map(function(r){
+    return '<div style="padding:7px 0;border-bottom:1px solid rgba(148,163,184,0.16)"><b style="color:'+ (ZW_SIHUA_COLOR[r.sihuaType] || '#a78bfa') +'">'+escText(r.pNameDisplay)+' · '+escText(r.sihuaType)+'</b><br><span style="color:#e2e8f0">'+escText(SIHUA_RULE[r.sihuaType] || '')+'</span></div>';
+  }).join('');
+  var borrowedRows = palaceDetailRows.filter(function(r){ return r.borrowedMainNames.length; }).map(function(r){
+    return '<div style="padding:7px 0;border-bottom:1px solid rgba(148,163,184,0.16)"><b style="color:#fde68a">'+escText(r.pNameDisplay)+'</b> · 차성 '+escText(r.borrowedMainNames.join(' · '))+'<br><span style="color:#e2e8f0">차성은 힘이 약하다는 뜻이 아니라, 환경·관계·타이밍을 맞출 때 장점이 크게 살아나는 간접 작동 구조입니다.</span></div>';
+  }).join('');
+
+  var adviceLines = [
+    (strongest3[0] ? strongest3[0].pNameDisplay : '강점 궁') + '을 주축으로 이번 달 핵심 목표를 1개만 고정하세요.',
+    (weakest3[0] ? weakest3[0].pNameDisplay : '관리 궁') + '은 속도를 늦추고 체크리스트를 먼저 세우세요.',
+    '관계 의사결정은 감정 직후가 아니라 1회 숙성 후 문장으로 합의하세요.',
+    '돈과 시간은 같은 규칙으로 관리해 누수를 줄이세요.',
+    '회복 루틴(수면·운동·정리)을 먼저 지키면 전체 궁의 체감 점수가 함께 올라갑니다.'
+  ];
+  var lifePrescriptionLines = [
+    '1. 운명의 첫 문장: 나는 ' + (strongest3[0] ? strongest3[0].pNameDisplay : '강점 궁') + '을 중심축으로 인생 의사결정을 정렬한다.',
+    '2. 강점 사용법: 잘되는 궁은 더 크게, 빠르게, 공개적으로 확장한다.',
+    '3. 약점 관리법: 약한 궁은 속도를 줄이고 구조를 먼저 만든다.',
+    '4. 관계 규칙: 중요한 관계는 감정 이전에 역할과 경계를 합의한다.',
+    '5. 돈의 원칙: 버는 파이프와 지키는 규칙을 분리해 동시에 운영한다.',
+    '6. 일의 방식: 직업명보다 성과가 재현되는 일 처리 방식을 우선 선택한다.',
+    '7. 회복 전략: 복덕·질액 리듬을 일정표에 고정해 번아웃을 선제 차단한다.',
+    '8. 이동 전략: 천이궁 신호가 올 때는 확장 전에 계약·문서 기준을 먼저 점검한다.',
+    '9. 대운 활용: 대운은 운명 판결이 아니라 우선순위를 알려주는 운영 지도다.',
+    '10. 생애 총론 한줄 처방: 강한 궁 하나로 길을 열고, 약한 궁 하나를 매일 보정하면 운은 반드시 누적된다.'
+  ];
+
+  var enhancedHtml = ''
+    + '<div class="zw-advanced-counsel" style="padding:12px 12px 14px;border-top:1px solid rgba(196,181,253,0.25);background:linear-gradient(180deg,rgba(10,14,28,0.35),rgba(8,12,22,0.7))">'
+    + '  <div style="font-size:0.92rem;color:#e9d5ff;font-weight:900;margin-bottom:9px">📌 전체 명반 종합 요약</div>'
+    +      overallSummaryHtml
+    + '  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:12px">'
+    + '    <div style="background:rgba(8,47,73,0.35);border:1px solid rgba(56,189,248,0.35);border-radius:10px;padding:10px">'
+    + '      <div style="font-size:0.84rem;color:#7dd3fc;font-weight:900">🏆 강한 궁 TOP 3</div>'
+    + '      <div style="margin-top:5px;font-size:0.79rem">'+(topStrongHtml || '데이터 없음')+'</div>'
+    + '    </div>'
+    + '    <div style="background:rgba(76,5,25,0.35);border:1px solid rgba(251,113,133,0.35);border-radius:10px;padding:10px">'
+    + '      <div style="font-size:0.84rem;color:#fda4af;font-weight:900">🛠 관리가 필요한 궁 TOP 3</div>'
+    + '      <div style="margin-top:5px;font-size:0.79rem">'+(topWeakHtml || '데이터 없음')+'</div>'
+    + '    </div>'
+    + '  </div>'
+    + '  <div style="margin-top:12px;font-size:0.92rem;color:#ddd6fe;font-weight:900">🔮 각 궁별 상세 상담 해석</div>'
+    + '  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:8px">'+palaceDetailRows.map(buildDetailCard).join('')+'</div>'
+    + '  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin-top:12px">'
+    + '    <div style="background:rgba(30,41,59,0.5);border:1px solid rgba(165,180,252,0.35);border-radius:10px;padding:10px">'
+    + '      <div style="font-size:0.84rem;color:#c4b5fd;font-weight:900">🔗 궁간 연결 해석</div>'
+    + '      <div style="margin-top:5px;font-size:0.79rem;line-height:1.62">'
+    +          linkSentence('명궁','관록궁')
+    +         +linkSentence('명궁','부처궁')
+    +         +linkSentence('재백궁','관록궁')
+    +         +linkSentence('부처궁','복덕궁')
+    +         +linkSentence('전택궁','재백궁')
+    +         +linkSentence('노복궁','관록궁')
+    + '      </div>'
+    + '    </div>'
+    + '    <div style="background:rgba(30,41,59,0.5);border:1px solid rgba(192,132,252,0.35);border-radius:10px;padding:10px">'
+    + '      <div style="font-size:0.84rem;color:#d8b4fe;font-weight:900">⚡ 사화 해석</div>'
+    + '      <div style="margin-top:5px;font-size:0.79rem;color:#e2e8f0;line-height:1.62">현재 주축 사화는 <b style="color:#fef3c7">'+escText(dominantSihua)+'</b>입니다. '+escText(dominantLine)+'</div>'
+    + '      <div style="margin-top:6px;font-size:0.79rem;line-height:1.62">'+(sihuaRows || '<span style="color:#94a3b8">직접 사화가 약한 구간이 많아 기본 루틴 운영이 핵심입니다.</span>')+'</div>'
+    + '    </div>'
+    + '    <div style="background:rgba(30,41,59,0.5);border:1px solid rgba(250,204,21,0.35);border-radius:10px;padding:10px">'
+    + '      <div style="font-size:0.84rem;color:#fde68a;font-weight:900">🪐 차성 보정 해석</div>'
+    + '      <div style="margin-top:5px;font-size:0.79rem;color:#e2e8f0;line-height:1.62">차성은 약함이 아니라 간접 발현 구조입니다. 주변 궁·사람·환경을 맞출수록 후반 체감이 커집니다.</div>'
+    + '      <div style="margin-top:6px;font-size:0.79rem;line-height:1.62">'+(borrowedRows || '<span style="color:#94a3b8">원성 중심 배치가 우세해 일관성 있게 운용하기 좋은 구조입니다.</span>')+'</div>'
+    + '    </div>'
+    + '    <div style="background:rgba(30,41,59,0.5);border:1px solid rgba(74,222,128,0.35);border-radius:10px;padding:10px">'
+    + '      <div style="font-size:0.84rem;color:#86efac;font-weight:900">🧭 현실 조언</div>'
+    + '      <ul style="margin:6px 0 0;padding-left:18px;color:#e2e8f0;font-size:0.79rem;line-height:1.65">'
+    +          adviceLines.map(function(t){ return '<li>'+escText(t)+'</li>'; }).join('')
+    + '      </ul>'
+    + '      <div style="margin-top:8px;color:#dcfce7;font-size:0.79rem;line-height:1.62">'+lifePrescriptionLines.map(function(t){ return '<div>'+escText(t)+'</div>'; }).join('')+'</div>'
+    + '      <div style="margin-top:8px;color:#f5d0fe;font-size:0.8rem"><b>오늘부터 적용할 운명 활용법</b>: 강한 궁 1개를 실행축으로, 약한 궁 1개를 리스크 축으로 정해 하루 10분 점검 루틴을 시작하세요.</div>'
+    + '    </div>'
+    + '  </div>'
+    + '</div>';
   if (isCompactView) {
     var cardsHtml = cardRows.map(function(it) {
       return '<div class="zw-summary-card" style="background:'+it.rowBg+';border:1px solid rgba(255,255,255,0.1);border-left:4px solid '+it.borderColor+';border-radius:10px;padding:10px 12px">'
@@ -10632,7 +11068,8 @@ function buildZwSummaryTableHtml(palace) {
     }).join('');
 
     return legendHtml
-      +'<div class="zw-summary-cards" style="padding:10px 10px 12px;display:grid;grid-template-columns:1fr;gap:10px">'+cardsHtml+'</div>';
+      +'<div class="zw-summary-cards" style="padding:10px 10px 12px;display:grid;grid-template-columns:1fr;gap:10px">'+cardsHtml+'</div>'
+      + enhancedHtml;
   }
 
   return legendHtml
@@ -10644,7 +11081,8 @@ function buildZwSummaryTableHtml(palace) {
     +'<th style="padding:8px 10px;text-align:left;color:#c084fc;font-size:0.74rem">한줄 해석</th>'
     +'</tr></thead>'
     +'<tbody>'+rows+'</tbody>'
-    +'</table></div>';
+    +'</table></div>'
+    + enhancedHtml;
 }
 
 function renderZiwei(p, natal, targetId) {
@@ -17231,80 +17669,346 @@ function renderZiwei(p, natal, targetId) {
           '</div>' +
         '</div>';
 
-        // ── 생애 총론 ──
-        var STAR_DAHAN_KW = {
-          '자미':'제왕의 기상으로 명예를 향해 나아가는 구조',
-          '천기':'두뇌와 기획으로 쉼없이 진화하는 구조',
-          '태양':'빛을 발하며 대중과 함께 성장하는 구조',
-          '무곡':'강인한 실행력으로 재물을 구축하는 구조',
-          '천동':'여유와 포용으로 안정 속에 행복을 쌓는 구조',
-          '염정':'열정과 감각으로 화려한 무대를 지배하는 구조',
-          '천부':'안정과 보수로 자산을 지키며 성장하는 구조',
-          '태음':'섬세한 심미안으로 은밀히 부를 쌓는 구조',
-          '탐랑':'다재다능과 사교력으로 기회를 창출하는 구조',
-          '거문':'날카로운 통찰로 지식 자본을 쌓는 구조',
-          '천상':'공정과 조화로 조직을 이끄는 구조',
-          '천량':'포용과 解難으로 귀인 복덕을 쌓는 구조',
-          '칠살':'독립과 돌파력으로 경계를 부수는 구조',
-          '파군':'혁신과 변환으로 전혀 새로운 판을 여는 구조'
+        // ── 생애 총론 (상담형 동적 생성) ──
+        var MAIN_STAR_MEANINGS = {
+          '자미': { essence:'기준을 세우고 판을 정리하는 중심성', strength:'큰 흐름을 보고 결정을 붙잡는 힘', shadow:'체면과 완벽 기준이 높아 고집으로 보일 수 있음', relationshipStyle:'신뢰가 쌓이면 깊게 책임지는 관계형', careerStyle:'리더십/총괄/의사결정 포지션에서 강함', moneyStyle:'지키면서 키우는 보수-확장 병행형', innerPattern:'혼란일수록 중심 규칙을 찾으면 안정됨' },
+          '천기': { essence:'관찰과 설계로 길을 여는 지성형', strength:'정보를 빠르게 구조화하는 기획력', shadow:'생각이 많아 결정이 늦어질 수 있음', relationshipStyle:'대화 밀도와 지적 교감이 중요한 타입', careerStyle:'기획/분석/전략/연구형 업무에 강함', moneyStyle:'지식·기술·정보 기반 수익에 강함', innerPattern:'정리된 메모와 루틴이 불안을 낮춤' },
+          '태양': { essence:'밖으로 빛을 내며 영향력을 키우는 발산형', strength:'표현력과 동기부여로 사람을 모으는 힘', shadow:'과한 책임감과 소모성 헌신이 누적되기 쉬움', relationshipStyle:'솔직하고 따뜻하되 인정 욕구가 큼', careerStyle:'대외활동/브랜딩/리딩 역할에 강함', moneyStyle:'명성과 성과가 함께 움직일 때 상승', innerPattern:'휴식 없는 확장은 번아웃으로 이어지기 쉬움' },
+          '무곡': { essence:'현실 감각으로 성과를 만드는 실행형', strength:'결정 이후 밀어붙이는 추진력', shadow:'감정 표현이 단단해 차갑게 보일 수 있음', relationshipStyle:'말보다 행동으로 신뢰를 증명하는 타입', careerStyle:'성과·운영·관리·재무 축에서 강함', moneyStyle:'현금흐름 통제와 자산 관리 능력이 강함', innerPattern:'숫자로 정리할수록 마음이 안정됨' },
+          '천동': { essence:'유연함과 공감으로 흐름을 완화하는 평화형', strength:'사람과 분위기를 부드럽게 묶는 힘', shadow:'결정 시점에 미루거나 회피하기 쉬움', relationshipStyle:'정서적 안정과 배려를 중시함', careerStyle:'서비스/케어/협업형 업무에 강함', moneyStyle:'무리한 확장보다 안정적 반복 수익에 유리', innerPattern:'안정 루틴이 무너지면 의욕이 쉽게 떨어짐' },
+          '염정': { essence:'강한 매력과 집중력으로 판을 쥐는 감각형', strength:'상황 장악력과 몰입 에너지', shadow:'감정 과열 시 대인 마찰이 커질 수 있음', relationshipStyle:'강하게 끌리고 강하게 실망하기 쉬움', careerStyle:'브랜딩/기획/창작/협상 무대에 강함', moneyStyle:'성과는 크지만 변동성도 큰 편', innerPattern:'경계선과 휴식 규칙이 필요함' },
+          '천부': { essence:'기반을 다지고 지키며 키우는 수호형', strength:'안정적 판단과 관리력', shadow:'새 시도에 보수적으로 굳어질 수 있음', relationshipStyle:'오래 가는 의리형 관계', careerStyle:'관리/운영/자산/지원 역할에 강함', moneyStyle:'리스크 관리와 축적형 자산에 유리', innerPattern:'예측 가능한 구조에서 컨디션이 좋아짐' },
+          '태음': { essence:'섬세한 감각으로 내실을 만드는 정밀형', strength:'디테일과 감수성, 은근한 지속력', shadow:'마음속 기준이 높아 자책이 늘 수 있음', relationshipStyle:'안정감과 세심한 배려를 중시', careerStyle:'디자인/콘텐츠/분석/케어형 업무에 강함', moneyStyle:'조용히 모아 크게 만드는 누적형', innerPattern:'혼자 정리하는 시간이 회복에 중요함' },
+          '탐랑': { essence:'기회를 포착하고 연결하는 개척형', strength:'사교성·감각·확장 속도', shadow:'분산 투자처럼 에너지가 흩어질 수 있음', relationshipStyle:'흥미와 활력이 관계의 핵심', careerStyle:'영업/콘텐츠/네트워크 기반에 강함', moneyStyle:'유입은 빠르나 관리 원칙이 필수', innerPattern:'즐거움과 절제를 함께 설계해야 오래 감' },
+          '거문': { essence:'검증과 언어로 본질을 짚는 분석형', strength:'문제 발견·리스크 감지 능력', shadow:'비판성이 높아 관계 피로를 만들 수 있음', relationshipStyle:'진심이 깊지만 표현 온도 조절이 필요', careerStyle:'법/기획/분석/컨설팅에 강함', moneyStyle:'검토형 투자와 보수적 판단에 유리', innerPattern:'의심을 기록으로 바꾸면 강점이 됨' },
+          '천상': { essence:'균형과 공정으로 조화를 만드는 조율형', strength:'관계 정리·중재·협업 운영력', shadow:'좋은 사람 역할이 과해질 수 있음', relationshipStyle:'상호 존중의 균형형', careerStyle:'조직 운영/지원/매니지먼트에 강함', moneyStyle:'신뢰 기반의 안정 수익형', innerPattern:'거절 경계를 세워야 기운이 보존됨' },
+          '천량': { essence:'보호와 원칙으로 사람을 살리는 멘토형', strength:'위기 대응·신뢰 회복·장기전 힘', shadow:'훈수형 태도로 오해받을 수 있음', relationshipStyle:'책임감이 깊은 보호형', careerStyle:'교육/상담/의료/공익 축에 강함', moneyStyle:'명성과 신뢰가 돈으로 연결되는 구조', innerPattern:'완벽한 책임보다 적절한 분담이 중요함' },
+          '칠살': { essence:'독립성과 결단으로 판을 뚫는 돌파형', strength:'고난 구간에서 강한 실행력', shadow:'강도가 과하면 충돌이 늘 수 있음', relationshipStyle:'직진형이지만 감정 완충이 필요', careerStyle:'개척/전환/고압 환경에서 강함', moneyStyle:'단기 기복이 커서 방어 규칙 필수', innerPattern:'속도를 늦추는 습관이 실수를 줄임' },
+          '파군': { essence:'낡은 틀을 부수고 새 판을 여는 혁신형', strength:'변화 적응·리빌딩 능력', shadow:'극단적 선택과 소모가 반복될 수 있음', relationshipStyle:'강렬하지만 파도형', careerStyle:'변화산업/리빌딩/신규 프로젝트에 강함', moneyStyle:'고수익·고변동 구조, 리스크 관리가 핵심', innerPattern:'재시작 능력은 강점, 회복 루틴은 필수' }
         };
-        var mengStars = extractMains(getPStars('명궁'));
-        var mengStarMain = mengStars[0] || '';
-        var dirText = (pd.direction === 1) ? '순행(順行)' : '역행(逆行)';
-        var juVal = pd.ju || 4;
-        var lifeSentence = STAR_DAHAN_KW[mengStarMain] || '고유의 운명 패턴이 온화하게 전개되는 구조';
+
+        var PALACE_MEANINGS = {
+          '명궁': { lifeArea:'자기 정체성과 기본 태도', adviceFocus:'내 기준을 분명히 하되 유연함을 남겨두기' },
+          '형제궁': { lifeArea:'형제·동료·가까운 협업', adviceFocus:'관계 경계와 역할 분담 명확화' },
+          '부처궁': { lifeArea:'연애·배우자·핵심 파트너십', adviceFocus:'감정과 현실의 합의 구조 만들기' },
+          '부부궁': { lifeArea:'연애·배우자·핵심 파트너십', adviceFocus:'감정과 현실의 합의 구조 만들기' },
+          '자녀궁': { lifeArea:'결과물·창작·후배·확장', adviceFocus:'장기 프로젝트를 작은 단위로 완성하기' },
+          '재백궁': { lifeArea:'돈·수익·자산 운용', adviceFocus:'유입보다 관리 규칙을 먼저 세우기' },
+          '질액궁': { lifeArea:'컨디션·회복력·생활 건강', adviceFocus:'과열 시 즉시 회복 루틴 가동하기' },
+          '천이궁': { lifeArea:'이동·외부 활동·사회 접점', adviceFocus:'밖으로 나갈수록 기준과 일정 관리 강화' },
+          '노복궁': { lifeArea:'팀·네트워크·협력 구조', adviceFocus:'사람의 질과 운영 규칙을 함께 점검' },
+          '관록궁': { lifeArea:'직업·성과·사회적 역할', adviceFocus:'역할 우선순위와 책임 범위 선명화' },
+          '전택궁': { lifeArea:'주거·기반·고정자산', adviceFocus:'생활 안정 장치를 먼저 구축하기' },
+          '복덕궁': { lifeArea:'내면 만족·정신 에너지', adviceFocus:'정리된 휴식과 몰입 리듬 설계' },
+          '부모궁': { lifeArea:'윗사람·제도·문서·보호망', adviceFocus:'도움 요청과 협의의 타이밍 맞추기' }
+        };
+
+        var BUREAU_MEANINGS = {
+          '목3국': { growthStyle:'배움과 관계를 통해 가지를 뻗는 성장형', lifePace:'초반 탐색, 중후반 확장', strength:'사람·환경을 연결해 기회를 키우는 힘', caution:'방향을 너무 많이 벌리면 집중력이 흐트러짐', recommendedStrategy:'핵심 축 1~2개를 정해 누적하기' },
+          '화6국': { growthStyle:'점화와 추진으로 성과를 당겨오는 가속형', lifePace:'초반 빠른 전개, 중반 조율 필요', strength:'결단과 실행 속도', caution:'과열·소모·대인 마찰', recommendedStrategy:'속도보다 지속 가능성 점검하기' },
+          '토5국': { growthStyle:'기반을 다져 복리로 키우는 축적형', lifePace:'천천히 단단해지는 흐름', strength:'안정·지속·관리력', caution:'변화 대응 지연', recommendedStrategy:'정기 점검으로 작은 혁신 병행하기' },
+          '금4국': { growthStyle:'정밀함과 선택으로 완성도를 높이는 정제형', lifePace:'신중하게 고도화', strength:'판단·품질·실행 완성도', caution:'완벽주의로 타이밍을 놓칠 수 있음', recommendedStrategy:'80%에서 먼저 실행 후 보완하기' },
+          '수2국': { growthStyle:'흐름을 읽고 유연하게 전환하는 적응형', lifePace:'완만하지만 멀리 가는 흐름', strength:'변화 감지·생존력·재정렬', caution:'우선순위 모호 시 표류 가능', recommendedStrategy:'기준 문장을 고정해 선택 비용 줄이기' }
+        };
+
+        var SIHUA_MEANINGS = {
+          '화록': { title:'기회와 유입이 생기는 자리', base:'새로운 제안, 인연, 자원이 들어오는 통로' },
+          '화권': { title:'힘과 책임이 생기는 자리', base:'주도권과 부담이 함께 커지는 자리' },
+          '화과': { title:'인정과 보호가 따르는 자리', base:'평판, 신뢰, 학습의 결실이 모이는 자리' },
+          '화기': { title:'반복해서 주의하고 관리해야 할 자리', base:'오해·지연·소모를 관리해야 안정되는 자리' }
+        };
+
+        var BRIGHTNESS_MEANINGS = {
+          '묘': '별의 본성이 맑게 살아 있어 장점이 자연스럽게 드러납니다.',
+          '득': '안정적인 힘이 유지되어 실전에서 성과로 연결되기 쉽습니다.',
+          '리': '현실 대응력은 충분하며 환경에 따라 힘이 크게 살아납니다.',
+          '평': '과하지도 약하지도 않은 중간값으로, 운영 방식이 결과를 좌우합니다.',
+          '함': '에너지가 안으로 잠기기 쉬워 준비·보완 루틴이 특히 중요합니다.',
+          '실': '무리하면 소모가 빨라질 수 있어 속도 조절과 관리가 핵심입니다.'
+        };
+
+        var AUX_STAR_MEANINGS = {
+          '좌보': '좋은 사람과 기회를 연결해 주는 조력 운',
+          '우필': '중요 순간에 손을 보태는 실무 지원 운',
+          '문창': '문서·학습·표현을 정교하게 다듬는 힘',
+          '문곡': '감성·언어·평판을 부드럽게 살리는 힘',
+          '록존': '현실 자원을 모으고 지키는 보존력'
+        };
+
+        var MAL_STAR_MEANINGS = {
+          '경양': '결정이 급해지기 쉬운 압박 신호',
+          '타라': '지연·반복 마찰이 생기기 쉬운 신호',
+          '지공': '기대와 현실의 간극을 점검하라는 신호',
+          '지겁': '손실보다 관리 미흡을 먼저 보완하라는 신호'
+        };
+
+        var BORROWED_STAR_RULES = {
+          active: '차성(借星) 영향이 보일 때는 감정의 즉시 반응보다 상황 맥락을 한 번 더 확인하면 해석 정확도가 크게 올라갑니다.',
+          stable: '원성 중심 배치가 강해 기본 성향이 비교적 안정적으로 드러나는 명반입니다.'
+        };
+
+        var DAHAN_INTERPRET_RULES = {
+          direction: {
+            forward: '순행은 앞에서부터 삶의 테마를 단계적으로 넓혀 가는 흐름입니다.',
+            backward: '역행은 안쪽 과제를 먼저 다듬고 나중에 밖으로 확장하는 흐름입니다.'
+          },
+          phase: {
+            early: '초년에는 기초 리듬을 정하고 자신에게 맞는 속도를 찾는 것이 핵심입니다.',
+            mid: '중년에는 누적된 역량을 성과 구조로 전환하는 힘이 중요합니다.',
+            late: '후년에는 지킨 것과 남길 것을 정리해 삶의 밀도를 높이는 흐름이 강해집니다.'
+          }
+        };
+
         var sihuaColors = {'화록':'#4ade80','화권':'#60a5fa','화과':'#c084fc','화기':'#f87171'};
-        var sihuaSummary = [];
+        var brightnessScoreMap = {'묘':5,'득':4,'리':3,'평':2,'함':1,'실':1};
+
+        var getSihuaListByPalaceIdx = function(idx) {
+          var out = [];
+          if (!pd.sihuaData) return out;
+          for (var sKey in pd.sihuaData) {
+            var sInfo = pd.sihuaData[sKey];
+            if (!sInfo || sInfo.palaceIdx !== idx) continue;
+            out.push({ star: sKey, info: sInfo });
+          }
+          return out;
+        };
+
+        var getPalaceSnapshot = function(idx, palaceName) {
+          var pStars = pd.stars[idx] || { main: [], aux: [], bad: [], borrowedMain: [] };
+          var mainMeta = extractMainMeta(pStars);
+          var mainStars = mainMeta.map(function(m){ return m.name; });
+          var auxStars = uniqueList(extractAux(pStars));
+          var badStars = uniqueList(extractBad(pStars));
+          var branch = ZHI_LIST[idx] || '';
+          var sihuaList = getSihuaListByPalaceIdx(idx);
+          var brightnessLevels = mainMeta.map(function(m){
+            return zwComputeStarStrength(m.name, branch, !!m.isBorrowed) || '평';
+          });
+          var brightnessAvg = 0;
+          if (brightnessLevels.length) {
+            var sum = 0;
+            brightnessLevels.forEach(function(lv){ sum += (brightnessScoreMap[lv] || 2); });
+            brightnessAvg = sum / brightnessLevels.length;
+          }
+          var auxBonus = auxStars.reduce(function(acc, st){
+            return acc + (AUX_STAR_MEANINGS[st] ? 1 : 0);
+          }, 0);
+          var malPressure = badStars.length;
+          var borrowedCnt = mainMeta.filter(function(m){ return !!m.isBorrowed; }).length;
+          var sihuaBonus = sihuaList.reduce(function(acc, item){
+            var t = item.info && item.info.type;
+            if (t === '화록') return acc + 8;
+            if (t === '화권') return acc + 6;
+            if (t === '화과') return acc + 5;
+            if (t === '화기') return acc - 10;
+            return acc;
+          }, 0);
+          var score = Math.round(mainStars.length * 16 + auxBonus * 4 - malPressure * 9 + brightnessAvg * 5 + sihuaBonus - borrowedCnt * 3);
+          var riskScore = Math.round(malPressure * 11 + borrowedCnt * 4 + (sihuaList.some(function(s){ return s.info.type === '화기'; }) ? 10 : 0) + (brightnessAvg <= 2 ? 4 : 0));
+          return {
+            idx: idx,
+            palace: palaceName,
+            branch: branch,
+            mainMeta: mainMeta,
+            mainStars: mainStars,
+            auxStars: auxStars,
+            badStars: badStars,
+            brightnessLevels: brightnessLevels,
+            brightnessAvg: brightnessAvg,
+            sihuaList: sihuaList,
+            score: score,
+            riskScore: riskScore,
+            hasBorrowed: borrowedCnt > 0
+          };
+        };
+
+        var palaceSnapshots = [];
+        (pd.palacesByIndex || []).forEach(function(name, idx){
+          palaceSnapshots.push(getPalaceSnapshot(idx, name));
+        });
+
+        var sortedStrong = palaceSnapshots.slice().sort(function(a, b){ return b.score - a.score; });
+        var sortedRisk = palaceSnapshots.slice().sort(function(a, b){ return b.riskScore - a.riskScore; });
+        var strongestTop3 = sortedStrong.slice(0, 3);
+        var weakestTop3 = sortedRisk.slice(0, 3);
+
+        var axisDefs = [
+          { name:'자아·정체성 축', palaces:['명궁','복덕궁'], theme:'내 기준과 내면 에너지' },
+          { name:'관계·인연 축', palaces:['부처궁','부부궁','형제궁','노복궁'], theme:'사람과 연결의 질' },
+          { name:'현실·재물 축', palaces:['재백궁','전택궁'], theme:'현실 안정과 자산 기반' },
+          { name:'직업·성취 축', palaces:['관록궁','천이궁'], theme:'일의 무대와 성취 확장' },
+          { name:'보호·기반 축', palaces:['부모궁','질액궁'], theme:'보호망과 회복력' },
+          { name:'창작·생산 축', palaces:['자녀궁'], theme:'결과물과 생산성' }
+        ];
+
+        var axisScores = axisDefs.map(function(axis){
+          var sum = 0;
+          axis.palaces.forEach(function(pNameAxis){
+            var hit = palaceSnapshots.find(function(p){ return p.palace === pNameAxis; });
+            if (hit) sum += hit.score;
+          });
+          return { name: axis.name, theme: axis.theme, score: sum };
+        }).sort(function(a, b){ return b.score - a.score; });
+        var dominantAxis = axisScores[0] || { name: '균형 축', theme: '전반 밸런스', score: 0 };
+
+        var mengSnap = palaceSnapshots.find(function(p){ return p.palace === '명궁'; }) || getPalaceSnapshot(0, '명궁');
+        var mengStarMain = (mengSnap.mainStars && mengSnap.mainStars[0]) || '';
+        var mengMeaning = MAIN_STAR_MEANINGS[mengStarMain] || {
+          essence: '고유한 결로 삶을 이끄는 기본 성향', strength: '상황에 맞춰 길을 찾는 유연성', shadow: '기준이 흔들릴 때 에너지 소모가 커질 수 있음', relationshipStyle: '관계에서 진심과 신뢰를 중시', careerStyle: '자신의 속도에 맞을수록 성과가 커짐', moneyStyle: '관리 원칙을 세울수록 안정됨', innerPattern: '리듬이 정리되면 운도 안정됨'
+        };
+
+        var bodyIdx = ZHI_LIST.indexOf(pd.shen);
+        var bodyPalaceName = (bodyIdx >= 0 && pd.palacesByIndex && pd.palacesByIndex[bodyIdx]) ? pd.palacesByIndex[bodyIdx] : '';
+        var bodyPalaceMeaning = PALACE_MEANINGS[bodyPalaceName] || { lifeArea: '후천적 선택과 행동', adviceFocus: '경험 속에서 나에게 맞는 방식 찾기' };
+
+        var dirText = (pd.direction === 1) ? '순행(順行)' : '역행(逆行)';
+        var dirNarrative = (pd.direction === 1) ? DAHAN_INTERPRET_RULES.direction.forward : DAHAN_INTERPRET_RULES.direction.backward;
+        var juVal = pd.ju || 4;
+        var bureau = BUREAU_MEANINGS[pd.juInfo] || {
+          growthStyle: '자신의 속도를 찾으며 성장하는 흐름', lifePace: '초반 탐색, 중반 확장, 후반 정리', strength: '경험을 자산으로 바꾸는 힘', caution: '속도와 방향이 엇갈리면 소모가 커짐', recommendedStrategy: '우선순위를 선명히 정하고 반복 실행'
+        };
+
+        var sihuaByType = { '화록': null, '화권': null, '화과': null, '화기': null };
+        var sihuaTypeCnt = { '화록':0, '화권':0, '화과':0, '화기':0 };
         if (pd.sihuaData) {
           for (var shStar in pd.sihuaData) {
             var shInfo = pd.sihuaData[shStar];
-            var sc = sihuaColors[shInfo.type] || '#fff';
-            sihuaSummary.push('<span style="color:'+sc+';font-weight:700;">'+shInfo.type+'</span> '+shStar+' ('+shInfo.palaceName+')');
+            if (!shInfo || !sihuaByType.hasOwnProperty(shInfo.type)) continue;
+            if (!sihuaByType[shInfo.type]) sihuaByType[shInfo.type] = { star: shStar, info: shInfo };
+            sihuaTypeCnt[shInfo.type] += 1;
           }
         }
-        var sihuaTypeCnt = { '화록':0, '화권':0, '화과':0, '화기':0 };
-        if (pd.sihuaData) {
-          for (var shStar2 in pd.sihuaData) {
-            var t = pd.sihuaData[shStar2] && pd.sihuaData[shStar2].type;
-            if (sihuaTypeCnt.hasOwnProperty(t)) sihuaTypeCnt[t] += 1;
-          }
-        }
-        var dominantSihuaType = '중립';
-        var sihuaMax = 0;
+
+        var dominantSihuaType = '화록';
+        var sihuaMax = -1;
         for (var siT in sihuaTypeCnt) {
           if (sihuaTypeCnt[siT] > sihuaMax) {
             sihuaMax = sihuaTypeCnt[siT];
             dominantSihuaType = siT;
           }
         }
-        var destinyAxis = dominantSihuaType === '화록'
-          ? '확장·회수 축(기회 포착형)'
-          : (dominantSihuaType === '화권'
-            ? '권한·주도 축(결정 실행형)'
-            : (dominantSihuaType === '화과'
-              ? '평판·정제 축(품질 수호형)'
-              : (dominantSihuaType === '화기'
-                ? '거문 봉인 축(보수 운행형)'
-                : '균형·적응 축(상황 대응형)')));
-        var destinyOps = dominantSihuaType === '화기'
-          ? '핵심 의사결정은 지연 승인, 계약·자금은 다중 검증, 인간관계는 기록 중심으로 운행할수록 손실 방어력이 높아집니다.'
-          : (dominantSihuaType === '화록' || dominantSihuaType === '화권' || dominantSihuaType === '화과'
-            ? '강점 축 하나를 명확히 선정해 90일 단위 실행 계획으로 누적하면, 운세 파동이 실질 성과로 전환되는 속도가 빨라집니다.'
-            : '변동성은 크지 않으므로 루틴·기본기·반복의 질을 높이는 운행이 장기 복리 효과를 만듭니다.');
+
+        var currentAgeVal = Number(CURRENT_AGE);
+        var currentDecade = null;
+        var nextDecade = null;
+        if (Number.isFinite(currentAgeVal) && Array.isArray(pd.daHanList)) {
+          for (var di = 0; di < pd.daHanList.length; di += 1) {
+            var dObj = pd.daHanList[di];
+            if (!dObj) continue;
+            if (currentAgeVal >= dObj.startAge && currentAgeVal <= dObj.endAge) {
+              currentDecade = dObj;
+              nextDecade = pd.daHanList[di + 1] || null;
+              break;
+            }
+          }
+        }
+
+        var openingSentence = '당신의 명반은 ' + (mengStarMain || '명궁의 기본 기질') + '의 결을 바탕으로, '
+          + (bureau.growthStyle || '시간을 들여 성장하는 흐름')
+          + '을 따라 인생을 키워 가는 구조입니다. '
+          + '특히 ' + dominantAxis.name + '이 반복해서 중요한 선택 기준이 되며, '
+          + ((sihuaByType['화록'] && sihuaByType['화록'].info && sihuaByType['화록'].info.palaceName)
+            ? (sihuaByType['화록'].info.palaceName + '에서 기회의 문이 먼저 열리는 편입니다.')
+            : '기회의 문은 준비된 자리에서 천천히 열립니다.');
+
+        var mingBrightness = mengSnap.brightnessLevels && mengSnap.brightnessLevels.length ? mengSnap.brightnessLevels[0] : '평';
+        var mingBrightnessText = BRIGHTNESS_MEANINGS[mingBrightness] || BRIGHTNESS_MEANINGS['평'];
+
+        var mingAuxHint = '';
+        var mingAuxHit = (mengSnap.auxStars || []).find(function(s){ return !!AUX_STAR_MEANINGS[s]; });
+        if (mingAuxHit) mingAuxHint = '보조성 ' + mingAuxHit + '는 ' + AUX_STAR_MEANINGS[mingAuxHit] + '으로 작동합니다. ';
+        var mingMalHint = '';
+        var mingMalHit = (mengSnap.badStars || []).find(function(s){ return !!MAL_STAR_MEANINGS[s]; });
+        if (mingMalHit) mingMalHint = '살성 ' + mingMalHit + '는 ' + MAL_STAR_MEANINGS[mingMalHit] + '이므로, 감정이 올라올수록 속도를 늦추는 관리가 중요합니다. ';
+
+        var bodyCompareText = bodyPalaceName === '명궁'
+          ? '명궁과 신궁이 같은 결에 있어, 타고난 성향과 실제 선택이 비교적 한 방향으로 맞물리기 쉽습니다.'
+          : '명궁과 신궁의 결이 달라, 타고난 성향과 현실 선택 사이에서 조율 능력이 중요한 명반입니다.';
+
+        var buildSihuaLine = function(type) {
+          var seed = SIHUA_MEANINGS[type];
+          var entry = sihuaByType[type];
+          if (!entry || !entry.info) {
+            return '<div><b style="color:'+(sihuaColors[type] || '#e2e8f0')+';">'+type+'</b> — '+seed.title+': 이번 명반에서는 직접 작동 신호가 약해, 관련 영역은 기본기 관리가 우선입니다.</div>';
+          }
+          var pName = entry.info.palaceName || '해당 궁';
+          var pMeaning = PALACE_MEANINGS[pName] || { lifeArea: '해당 영역', adviceFocus: '리듬 조율' };
+          var starMeaning = MAIN_STAR_MEANINGS[entry.star] || { essence: '고유한 성향' };
+          var pSnap = palaceSnapshots.find(function(p){ return p.idx === entry.info.palaceIdx; });
+          var bright = (pSnap && pSnap.brightnessLevels && pSnap.brightnessLevels[0]) ? pSnap.brightnessLevels[0] : '평';
+          var brightText = BRIGHTNESS_MEANINGS[bright] || BRIGHTNESS_MEANINGS['평'];
+          var helperCnt = pSnap ? pSnap.auxStars.length : 0;
+          var malCnt = pSnap ? pSnap.badStars.length : 0;
+          var sideTone = helperCnt > malCnt
+            ? '보조성의 도움을 받기 쉬운 자리라, 계획을 문서화하면 안정적으로 성과가 쌓입니다.'
+            : (malCnt > 0 ? '살성 압박이 함께 보이므로 조급한 결정 대신 검토·기록·재확인이 필요합니다.' : '중립 배치이므로 꾸준함이 결과를 만듭니다.');
+          return '<div><b style="color:'+(sihuaColors[type] || '#e2e8f0')+';">'+type+'</b> — '+seed.title+': '+pName+'('+pMeaning.lifeArea+')에서 '+entry.star+'의 '+starMeaning.essence+'이 작동합니다. '
+            + brightText + ' ' + sideTone + '</div>';
+        };
+
+        var sihuaSectionHtml = ['화록','화권','화과','화기'].map(buildSihuaLine).join('');
+
+        var strongestText = strongestTop3.map(function(p){
+          return p.palace + ' (' + p.score + '점)';
+        }).join(' · ');
+        var weakestText = weakestTop3.map(function(p){
+          return p.palace + ' (관리 '+p.riskScore+'점)';
+        }).join(' · ');
+
+        var cautionSentence = weakestTop3.map(function(p){
+          var pMean = PALACE_MEANINGS[p.palace] || { adviceFocus: '리듬 조율' };
+          return p.palace + '은(는) ' + pMean.adviceFocus;
+        }).join(' / ');
+
+        var successMode = '균형형';
+        var careerSnap = palaceSnapshots.find(function(p){ return p.palace === '관록궁'; });
+        var wealthSnap = palaceSnapshots.find(function(p){ return p.palace === '재백궁'; });
+        var travelSnap = palaceSnapshots.find(function(p){ return p.palace === '천이궁'; });
+        var friendsSnap = palaceSnapshots.find(function(p){ return p.palace === '노복궁'; });
+        var modeScore = {
+          person: (friendsSnap ? friendsSnap.score : 0) + (sihuaByType['화록'] && sihuaByType['화록'].info && sihuaByType['화록'].info.palaceName === '노복궁' ? 8 : 0),
+          skill: (careerSnap ? careerSnap.score : 0) + (sihuaByType['화과'] && sihuaByType['화과'].info && sihuaByType['화과'].info.palaceName === '관록궁' ? 6 : 0),
+          move: (travelSnap ? travelSnap.score : 0) + (sihuaByType['화록'] && sihuaByType['화록'].info && sihuaByType['화록'].info.palaceName === '천이궁' ? 8 : 0),
+          asset: (wealthSnap ? wealthSnap.score : 0) + (sihuaByType['화권'] && sihuaByType['화권'].info && sihuaByType['화권'].info.palaceName === '재백궁' ? 6 : 0)
+        };
+        var bestMode = Object.keys(modeScore).sort(function(a, b){ return modeScore[b] - modeScore[a]; })[0] || 'skill';
+        if (bestMode === 'person') successMode = '사람과 협업을 통해 열리는 구조';
+        else if (bestMode === 'move') successMode = '이동·외부 확장을 통해 열리는 구조';
+        else if (bestMode === 'asset') successMode = '재무·기반을 다져 열리는 구조';
+        else successMode = '실력과 결과물을 축적해 열리는 구조';
+
+        var oneLinePrescription = '당신의 운은 빠른 확답보다 '+bureau.recommendedStrategy+'를 지킬 때 가장 크게 열립니다.';
+
+        var decadeFlowText = '이 명반은 '+juVal+'세부터 대한이 시작되며, '+dirText+'으로 큰 흐름이 전개됩니다. '+dirNarrative;
+        if (currentDecade) {
+          decadeFlowText += ' 현재는 '+currentDecade.startAge+'~'+currentDecade.endAge+'세 구간('+currentDecade.palaceName+')의 영향권으로, '
+            + ((PALACE_MEANINGS[currentDecade.palaceName] && PALACE_MEANINGS[currentDecade.palaceName].adviceFocus) || '핵심 우선순위 정리') + '가 핵심 과제입니다.';
+          if (nextDecade) {
+            decadeFlowText += ' 다음 전환점은 '+nextDecade.startAge+'세 전후이며, '+nextDecade.palaceName+' 주제로 무게중심이 옮겨갈 가능성이 큽니다.';
+          }
+        } else {
+          decadeFlowText += ' 초년·중년·후년 모두 같은 방식으로 밀기보다, 시기별 주제를 나눠 누적할수록 운의 체감이 커집니다.';
+        }
+
         var sec_grand = '<div style="background:linear-gradient(135deg,rgba(88,28,220,0.15),rgba(20,10,50,0.8));padding:18px;border-radius:10px;margin-bottom:20px;border:1px solid rgba(139,92,246,0.3);">'
           +'<h2 style="color:#F9A8D4;font-size:1.2rem;margin-top:0;border-bottom:1px solid rgba(249,168,212,0.3);padding-bottom:8px;">🌟 생애 총론(生涯 總論)</h2>'
           +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.88rem;margin-bottom:12px;">'
             +'<div style="background:rgba(255,255,255,0.05);padding:8px;border-radius:6px;"><div style="color:#94a3b8;font-size:0.75rem;">⚡ 오행국</div><div style="color:#fbbf24;font-weight:700;">'+(pd.juInfo||'-')+'</div></div>'
             +'<div style="background:rgba(255,255,255,0.05);padding:8px;border-radius:6px;"><div style="color:#94a3b8;font-size:0.75rem;">🔄 대한 진행</div><div style="color:#a78bfa;font-weight:700;">'+dirText+'</div></div>'
             +'<div style="background:rgba(255,255,255,0.05);padding:8px;border-radius:6px;"><div style="color:#94a3b8;font-size:0.75rem;">🎭 명궁(命宮)</div><div style="color:#ffd700;font-weight:700;">'+(pd.meng||'-')+' · '+(mengStarMain||'공궁')+'</div></div>'
-            +'<div style="background:rgba(255,255,255,0.05);padding:8px;border-radius:6px;"><div style="color:#94a3b8;font-size:0.75rem;">✨ 신궁(身宮)</div><div style="color:#6ee7b7;font-weight:700;">'+(pd.shen||'-')+'</div></div>'
+            +'<div style="background:rgba(255,255,255,0.05);padding:8px;border-radius:6px;"><div style="color:#94a3b8;font-size:0.75rem;">✨ 신궁(身宮)</div><div style="color:#6ee7b7;font-weight:700;">'+(pd.shen||'-')+' · '+(bodyPalaceName||'미확정')+'</div></div>'
           +'</div>'
-          +'<div style="font-size:0.9rem;line-height:1.78;color:#e2e8f0;display:flex;flex-direction:column;gap:8px;">'
-            +'<div><b style="color:#f9a8d4;">타고난 운명의 기질:</b> 명궁 주성 '+(mengStarMain||'공궁')+'과 '+(pd.juInfo||'오행국')+'의 결합은 <b>'+lifeSentence+'</b>라는 장기 운행 패턴을 형성합니다.</div>'
-            +'<div><b style="color:#f9a8d4;">전개 메커니즘:</b> <span style="color:#fbbf24;">'+juVal+'세</span> 起運 이후 대한이 '+dirText+'으로 작동하며, 초기 단기 선택보다 중장기 누적 천기의 영향력이 크게 작용합니다.</div>'
-            +'<div><b style="color:#f9a8d4;">사화(四化) 구조 해석:</b> '+(sihuaSummary.length>0 ? sihuaSummary.join(' &nbsp;·&nbsp; ') : '직접 작동 강도가 약한 중립 배치')+'</div>'
-            +'<div><b style="color:#f9a8d4;">운명 축 진단:</b> 현재 명식의 우세 축은 <b>'+destinyAxis+'</b>입니다. 이는 동일한 사건이라도 어떤 방식으로 성과/손실이 분기되는지를 결정하는 핵심 운행 변수입니다.</div>'
-            +'<div><b style="color:#f9a8d4;">천기적 운용 원칙:</b> '+destinyOps+'</div>'
+          +'<div style="font-size:0.9rem;line-height:1.82;color:#e2e8f0;display:flex;flex-direction:column;gap:10px;">'
+            +'<div><b style="color:#f9a8d4;">1. 운명의 첫 문장</b><br>'+openingSentence+'</div>'
+            +'<div><b style="color:#f9a8d4;">2. 오행국이 말하는 인생의 성장 방식</b><br>'+bureau.growthStyle+' · '+bureau.lifePace+' · '+bureau.strength+'입니다. 다만 '+bureau.caution+' 경향이 있으니, '+bureau.recommendedStrategy+'이 성과 보존의 핵심입니다.</div>'
+            +'<div><b style="color:#f9a8d4;">3. 대한 진행이 보여주는 인생의 큰 흐름</b><br>'+decadeFlowText+'<br>'+DAHAN_INTERPRET_RULES.phase.early+' '+DAHAN_INTERPRET_RULES.phase.mid+' '+DAHAN_INTERPRET_RULES.phase.late+'</div>'
+            +'<div><b style="color:#f9a8d4;">4. 명궁이 말하는 타고난 나</b><br>명궁의 '+(mengStarMain || '기본성')+'은 '+mengMeaning.essence+'을 드러냅니다. 첫인상과 기본 태도는 '+mengMeaning.relationshipStyle+'에 가깝고, 위기 때는 '+mengMeaning.strength+'이 먼저 나타납니다. 다만 '+mengMeaning.shadow+' 흐름을 경계하면 훨씬 안정적입니다. 밝기 '+mingBrightness+' 신호는 '+mingBrightnessText+' '+mingAuxHint+mingMalHint+(mengSnap.hasBorrowed ? BORROWED_STAR_RULES.active : BORROWED_STAR_RULES.stable)+'</div>'
+            +'<div><b style="color:#f9a8d4;">5. 신궁이 말하는 후천적 삶의 방향</b><br>신궁은 '+(bodyPalaceName||'해당 궁')+'('+bodyPalaceMeaning.lifeArea+')에 놓여, 나이가 들수록 '+bodyPalaceMeaning.adviceFocus+' 방향이 강해집니다. '+bodyCompareText+'</div>'
+            +'<div><b style="color:#f9a8d4;">6. 사화로 보는 인생의 네 개의 문</b><br>'+sihuaSectionHtml+'</div>'
+            +'<div><b style="color:#f9a8d4;">7. 가장 강하게 살아나는 인생 축</b><br>가장 강한 축은 <b>'+dominantAxis.name+'</b>('+dominantAxis.theme+')입니다. 궁 점수 기준 상위는 '+strongestText+'로 나타나며, 이 영역을 중심으로 선택할수록 체감 성과가 빨라집니다.</div>'
+            +'<div><b style="color:#f9a8d4;">8. 반복해서 조심해야 할 과제</b><br>관리 우선 구간은 '+weakestText+'입니다. '+cautionSentence+'를 반복 점검하세요. 이는 나쁨의 단정이 아니라, 같은 실수를 줄이면 운이 안정된다는 신호입니다.</div>'
+            +'<div><b style="color:#f9a8d4;">9. 성공을 여는 방식</b><br>이 명반은 <b>'+successMode+'</b>으로 성과가 열립니다. '+mengMeaning.careerStyle+'과 '+mengMeaning.moneyStyle+'을 동시에 살리고, 관계에서는 '+mengMeaning.relationshipStyle+' 원칙을 지키면 장기 상승 곡선이 만들어집니다.</div>'
+            +'<div><b style="color:#f9a8d4;">10. 생애 총론 한줄 처방</b><br><b style="color:#fde68a;">'+oneLinePrescription+'</b></div>'
           +'</div>'
         +'</div>';
 

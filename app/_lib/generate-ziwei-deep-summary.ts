@@ -38,14 +38,14 @@ export function generateZiweiDeepSummary(chart: Omit<ZiweiDeepChart, "summary">)
     });
 
   const strengthHints = [
-    "기준을 세워 꾸준히 실행할 때 성과가 복리로 누적됩니다.",
-    "관계와 성과를 동시에 챙기는 조정 능력이 강점입니다.",
-    "복잡한 문제를 구조화해 해결하는 집중력이 좋습니다.",
+    "당신은 마음이 흔들려도 결국 기준을 다시 세우는 힘이 있습니다.",
+    "사람과 일 사이에서 균형을 잡으며 분위기를 정리하는 감각이 살아 있습니다.",
+    "복잡한 상황을 한 번에 다루기보다, 핵심부터 차근차근 풀어내는 힘이 좋습니다.",
   ];
   const weaknessHints = [
-    "중요 결정을 급하게 내리면 반복 손실이 생길 수 있습니다.",
-    "과책임 패턴이 누적되면 건강과 관계 피로가 함께 올라갑니다.",
-    "확장 속도 대비 회복 루틴이 부족하면 리듬이 무너질 수 있습니다.",
+    "급한 마음으로 답을 정하면 나중에 같은 문제를 다시 마주하기 쉽습니다.",
+    "남의 기대를 오래 떠안으면 몸보다 먼저 마음이 지칩니다.",
+    "잘 되는 시기일수록 쉬는 법을 함께 붙잡아야 흐름이 오래 갑니다.",
   ];
 
   const matrix = ZIWEI_PALACE_ORDER.map((id) => {
@@ -64,13 +64,13 @@ export function generateZiweiDeepSummary(chart: Omit<ZiweiDeepChart, "summary">)
     strongestPalaceId: strongest.palace.id,
     weakestPalaceId: weakest.palace.id,
     direction:
-      "이 명반은 단기 승부보다 기준 중심의 장기 설계에서 운이 열립니다. 속도보다 구조를 먼저 세울수록 인생 전반의 변동성이 줄어듭니다.",
+      "이 명반은 급하게 밀어붙일수록 흔들리고, 마음의 기준을 세워 천천히 쌓을수록 빛이 커집니다. 사람, 일, 돈, 회복을 한 줄로 묶어 바라볼 때 당신의 길이 가장 선명해집니다.",
     strengths: strengthHints,
     weaknesses: weaknessHints,
     openingCondition:
-      "핵심 목표를 3개 이하로 유지하고, 주간 점검 루틴을 지키면 막혔던 흐름이 다시 열립니다.",
+      "지금은 모든 것을 바꾸려 하기보다 정말 중요한 것 셋만 남기고, 그 셋을 조용히 지키는 쪽이 맞습니다.",
     decisionRule:
-      "감정이 고조된 날에는 결정하지 않고, 하루 뒤 기록을 근거로 최종 판단하세요.",
+      "마음이 흔들리는 날에는 결론을 미루고, 하루 뒤의 기분과 몸 상태를 함께 본 뒤 움직이세요.",
     palaceMatrix: matrix,
   };
 }

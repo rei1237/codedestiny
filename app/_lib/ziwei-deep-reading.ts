@@ -42,6 +42,12 @@ const FORBIDDEN_ZIWEI_PHRASES = [
   "fallback 보강",
   "자동 복구 생성",
   "fallback",
+  "계산",
+  "데이터",
+  "시스템",
+  "알고리즘",
+  "JSON",
+  "json",
   "데이터 부족",
   "payload",
   "debug",
@@ -166,7 +172,7 @@ const PALACE_CATEGORY_SPECS: Record<ZiweiPalaceId, PalaceCategorySpec[]> = {
     { title: "제도권·문서 운", question: "기관·문서·규정과의 궁합은 어떠한가?" },
     { title: "보호받는 방식", question: "도움을 받을 때는 어떤 태도와 구조가 통하는가?" },
     { title: "권위와의 관계", question: "권위자와는 어떻게 거리를 잡는 것이 좋은가?" },
-    { title: "가족 패턴과 리스크", question: "가족 시스템 안에서 반복되는 패턴은 무엇인가?" },
+    { title: "가족 패턴과 리스크", question: "가족 안에서 반복되는 긴장과 충돌 패턴은 무엇인가?" },
     { title: "대운과 보호·독립 전략", question: "보호와 독립의 균형을 맞추려면 무엇을 기준 삼아야 하는가?" },
   ],
 };
@@ -410,12 +416,12 @@ function buildSignalPack(chart: ZiweiDeepChart, palace: ZiweiPalace) {
 }
 
 function normalizeStrengthWord(symbol: string): string {
-  if (symbol === "◎") return "강한 주도"
-  if (symbol === "O") return "안정된 실행"
-  if (symbol === "▲") return "성과 가속"
-  if (symbol === "△") return "기복 관리"
-  if (symbol === "X") return "리스크 통제"
-  return "상황 대응";
+  if (symbol === "◎") return "별의 힘이 가장 찬란하게 살아나는 상태";
+  if (symbol === "O") return "별의 본성이 안정적으로 발휘되는 흐름";
+  if (symbol === "▲") return "상황에 따라 힘이 달라지는 별의 상태";
+  if (symbol === "△") return "무난하지만 방향에 따라 달라지는 흐름";
+  if (symbol === "X") return "별의 에너지가 눌리거나 왜곡되기 쉬운 상태";
+  return "상황에 따라 읽어야 하는 흐름";
 }
 
 function summarizeTransformation(star: ZiweiStarMeta): string {
@@ -436,12 +442,12 @@ function pickGroupForStar(palace: ZiweiPalace, starName: string): "main" | "assi
 function starBaseMeaning(star: ZiweiStarMeta, group: "main" | "assistant" | "malefic"): string {
   if (group === "main") {
     const info = STAR_INTERPRETATIONS[star.name];
-    return info ? `${info.basic} ${info.strengths}` : `${star.name}은(는) 핵심 기준을 세우는 성향`;
+    return info ? `${info.basic} ${info.strengths}` : `${star.name}은(는) 삶의 중심축을 세우는 힘`;
   }
   if (group === "assistant") {
-    return AUXILIARY_STAR_INTERPRETATIONS[star.name] || `${star.name}은(는) 연결과 완충 역할`;
+    return AUXILIARY_STAR_INTERPRETATIONS[star.name] || `${star.name}은(는) 관계를 부드럽게 이어 주는 힘`;
   }
-  return MALEFIC_STAR_INTERPRETATIONS[star.name] || `${star.name}은(는) 과속과 충돌을 경고하는 신호`;
+  return MALEFIC_STAR_INTERPRETATIONS[star.name] || `${star.name}은(는) 과속과 충돌을 경고하며 경계를 세우게 하는 신호`;
 }
 
 function palaceContextTail(palaceId: ZiweiPalaceId): string {
@@ -461,16 +467,16 @@ function palaceContextTail(palaceId: ZiweiPalaceId): string {
 
 function starNameContext(star: ZiweiStarMeta, palace: ZiweiPalace): string {
   if (star.name === "거문") {
-    if (palace.id === "ming") return "말과 생각이 빠르게 돌아가며 스스로를 검증하려는 힘";
+    if (palace.id === "ming") return "말과 생각이 빠르게 돌아가며 스스로를 자꾸 확인하는 힘";
     if (palace.id === "spouse") return "말의 온도 차이로 오해와 확인 욕구가 커지는 패턴";
-    if (palace.id === "wealth") return "정보·말·콘텐츠를 수익으로 연결하는 능력";
-    if (palace.id === "career") return "분석·기획·문서·상담 직무에서 인정받는 역량";
+    if (palace.id === "wealth") return "정보·말·콘텐츠를 수익으로 바꾸는 능력";
+    if (palace.id === "career") return "분석·기획·문서·상담에서 인정받는 역량";
     if (palace.id === "fortune") return "머릿속 질문이 멈추지 않아 불안을 키우거나 통찰로 바꾸는 흐름";
   }
   if (star.name === "천동" && palace.id === "spouse") return "다정함과 불안이 함께 움직여 상대 반응을 예민하게 읽는 흐름";
   if (star.name === "태음" && palace.id === "fortune") return "내면 감수성이 깊어 혼자 정리하는 시간이 회복력으로 연결되는 흐름";
-  if (star.name === "무곡" && palace.id === "wealth") return "현금 흐름을 현실적으로 계산하고 손익 기준을 분명히 세우는 힘";
-  if (star.name === "천기" && palace.id === "career") return "기획·문제해결·시스템 사고로 직무 가치를 만드는 능력";
+  if (star.name === "무곡" && palace.id === "wealth") return "현금 흐름을 현실적으로 읽고 손익 기준을 분명히 세우는 힘";
+  if (star.name === "천기" && palace.id === "career") return "기획과 문제 해결의 힘으로 직무 가치를 만드는 능력";
   return `${star.name}의 기질이 ${palaceContextTail(palace.id)} 실전 판단에 직접 관여하는 흐름`;
 }
 
@@ -554,9 +560,9 @@ function buildCategoryCounselingParagraph(
     : `${category.title}은 내가 먼저 기준을 잡을수록 주변 조건이 따라오는 편입니다.`;
 
   const palaceSpecificLine = palace.id === "spouse"
-    ? "부부궁에서는 감정 자체보다 대화의 순서와 신뢰 확인 방식이 관계의 수명을 좌우합니다. 상대를 바꾸기보다 갈등이 생길 때 어떤 말부터 꺼낼지 합의하는 것이 장기 안정에 가장 효과적입니다."
+    ? "부부궁에서는 감정의 크기보다 대화의 순서와 신뢰 확인 방식이 관계의 수명을 좌우합니다. 상대를 바꾸기보다 갈등이 생길 때 어떤 말부터 꺼낼지 합의하는 것이 장기 안정에 가장 효과적입니다."
     : palace.id === "career"
-      ? "관록궁에서는 능력보다 역할 정의가 먼저입니다. 조직에서 무엇을 책임지고 어디까지 결정권을 가질지 명확히 할수록 평판이 안정되고, 이직이나 독립 판단도 훨씬 정확해집니다."
+      ? "관록궁에서는 능력보다 역할 정의가 먼저입니다. 조직에서 무엇을 책임지고 어디까지 결정권을 가질지 명확해질수록 평판이 안정되고, 이직이나 독립 판단도 훨씬 정확해집니다."
       : palace.id === "fortune"
         ? "복덕궁에서는 바깥 성과보다 내면 회복 속도가 핵심 변수입니다. 혼자 있는 시간의 질이 떨어지면 행복감이 급격히 낮아지므로, 감정을 정리하는 루틴을 일정처럼 고정해야 불안 누적을 줄일 수 있습니다."
         : "";
@@ -565,10 +571,10 @@ function buildCategoryCounselingParagraph(
     removeRepeatedZiweiDeepPhrases([
       `${category.question}`,
       starLine,
-      `성향으로 보면 ${personalityAnchor}을 중심으로 움직이며, ${mainNames}의 조합이 선택 속도와 확신을 좌우합니다.`,
-      `사람들과의 관계에서는 ${relationshipAnchor}이 핵심이며, 가까운 사람일수록 기대치와 경계선을 먼저 맞춰야 충돌이 줄어듭니다.`,
+      `당신은 ${personalityAnchor}이 중심이 되는 사람처럼 보입니다. ${mainNames}의 조합은 선택 속도와 확신을 좌우하고, 그래서 같은 상황도 누구보다 빠르게 결론을 내리거나 반대로 오래 붙잡고 있을 수 있습니다.`,
+      `사람들과의 관계에서는 ${relationshipAnchor}이 핵심입니다. 가까운 사람일수록 기대치와 경계선을 먼저 맞춰야 마음이 덜 다치고, 오래 가는 인연도 그때부터 시작됩니다.`,
       `현실에서는 ${palace.name}의 ${category.title}이 업무·연애·돈·가족 중 지금 에너지가 몰린 장면에서 먼저 결과로 나타납니다. ${transformationLine}`,
-      `${category.title}의 주의할 점은 ${cautionAnchor}입니다. ${category.title} 국면에서 살성 약세나 화기 흐름이 겹치면 사소한 오해도 크게 번질 수 있어 속도 조절이 필요합니다.`,
+      `${category.title}의 주의할 점은 ${cautionAnchor}입니다. 살성의 압박이나 화기 흐름이 겹치면 작은 말 한마디도 크게 번질 수 있어 속도 조절이 필요합니다.`,
       `${category.title}의 조언은 ${adviceAnchor}을 바로 실행하는 것입니다. 오늘부터 ${category.title} 기준표와 선택 조건을 문장으로 정리하면 흔들림이 줄어듭니다.`,
       palaceSpecificLine,
       emptyPalaceLine,

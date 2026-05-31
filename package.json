@@ -58,6 +58,8 @@
     "smoke:oauth:prod": "node scripts/smoke-oauth-callbacks.mjs --base https://code-destiny.com",
     "smoke:oauth:worker": "node scripts/smoke-oauth-callbacks.mjs --base https://code-destiny-web.bulegyung.workers.dev",
     "smoke:ziwei:premium-e2e": "node scripts/smoke-ziwei-premium-e2e.mjs",
+    "smoke:ziwei:retry-recovery:prod": "node scripts/smoke-ziwei-paid-retry-recovery.mjs --base https://code-destiny.com",
+    "smoke:ziwei:retry-recovery:worker": "node scripts/smoke-ziwei-paid-retry-recovery.mjs --base https://code-destiny-web.bulegyung.workers.dev",
     "test:auth-session": "node scripts/auth-wrong-password-smoke.mjs",
     "smoke:premium:timeout-rate": "node scripts/smoke-premium-timeout-rate-limit.mjs",
     "test:signup": "node scripts/test-signup.mjs",
