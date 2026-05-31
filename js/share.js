@@ -1439,6 +1439,9 @@ async function subscribeEmail() {
   const apiBase = getSubscriptionApiBaseUrl();
   const endpoint = (apiBase ? apiBase : '') + '/api/subscriptions/daily-fortune';
 
+  const birthDateEl = document.getElementById('birthDate');
+  const birthYearVal = birthDateEl && birthDateEl.value ? parseInt(birthDateEl.value.split('-')[0], 10) || null : null;
+
   try {
     const resp = await fetch(endpoint, {
       method: 'POST',
@@ -1449,6 +1452,7 @@ async function subscribeEmail() {
         email: emailVal,
         subDaily: !!subDaily,
         subMonthly: !!subMonthly,
+        birthYear: birthYearVal || undefined,
       }),
     });
 
@@ -1491,6 +1495,9 @@ async function subscribeEmailHome() {
   const apiBase = getSubscriptionApiBaseUrl();
   const endpoint = (apiBase ? apiBase : '') + '/api/subscriptions/daily-fortune';
 
+  const birthDateElHome = document.getElementById('birthDate');
+  const birthYearHome = birthDateElHome && birthDateElHome.value ? parseInt(birthDateElHome.value.split('-')[0], 10) || null : null;
+
   try {
     const resp = await fetch(endpoint, {
       method: 'POST',
@@ -1500,6 +1507,7 @@ async function subscribeEmailHome() {
         subDaily: !!subDaily,
         subMonthly: !!subMonthly,
         source: 'home-page',
+        birthYear: birthYearHome || undefined,
       }),
     });
 

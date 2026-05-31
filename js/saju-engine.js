@@ -3964,6 +3964,73 @@ function _setSajuAIPromptStatus(node, message, tone) {
   }
 }
 
+var SAJU_PROMPT_BLOCKING_MODAL_IDS = [
+  'loveSecretModal',
+  'lifeBookModal',
+  'sajuNewYearModal',
+  'ziweiBookModal',
+  'vedicBookModal',
+  'sukuyoBookModal',
+  'soulOriginModal'
+];
+
+function _isElementVisiblyOpen(el) {
+  if (!el) return false;
+  if (el.hidden) return false;
+  var style = null;
+  try { style = window.getComputedStyle ? window.getComputedStyle(el) : null; } catch (_) {}
+  if (style) {
+    if (style.display === 'none') return false;
+    if (style.visibility === 'hidden') return false;
+    if (Number(style.opacity) === 0) return false;
+  }
+  return true;
+}
+
+function _isAnySajuPromptBlockingModalOpen() {
+  for (var i = 0; i < SAJU_PROMPT_BLOCKING_MODAL_IDS.length; i += 1) {
+    var modal = document.getElementById(SAJU_PROMPT_BLOCKING_MODAL_IDS[i]);
+    if (_isElementVisiblyOpen(modal)) return true;
+  }
+  return false;
+}
+
+function _syncSajuPromptInterferenceState() {
+  var host = document.getElementById('sajuQuestionPromptGeneratorCard');
+  if (!host) return;
+  host.style.display = _isAnySajuPromptBlockingModalOpen() ? 'none' : '';
+}
+
+function _bindSajuPromptInterferenceGuard() {
+  if (window.__cdSajuPromptInterferenceGuardBound) return;
+  window.__cdSajuPromptInterferenceGuardBound = true;
+
+  var observer = new MutationObserver(function() {
+    _syncSajuPromptInterferenceState();
+  });
+
+  SAJU_PROMPT_BLOCKING_MODAL_IDS.forEach(function(id) {
+    var node = document.getElementById(id);
+    if (!node) return;
+    observer.observe(node, { attributes: true, attributeFilter: ['style', 'class', 'hidden', 'aria-hidden'] });
+  });
+
+  var root = document.body || document.documentElement;
+  if (root) {
+    observer.observe(root, { childList: true, subtree: true });
+  }
+
+  document.addEventListener('click', function() {
+    setTimeout(_syncSajuPromptInterferenceState, 0);
+  }, true);
+
+  document.addEventListener('keyup', function(ev) {
+    if (ev && ev.key === 'Escape') {
+      setTimeout(_syncSajuPromptInterferenceState, 0);
+    }
+  }, true);
+}
+
 function _mountSajuAIPromptQuestionBox(aiCard) {
   if (!aiCard || document.getElementById('sajuAiPromptQuestionBox')) return;
 
@@ -3978,6 +4045,8 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
   box.style.boxShadow = '0 24px 54px rgba(180,83,9,0.12), inset 0 1px 0 rgba(255,255,255,0.92)';
   box.style.borderRadius = '22px';
   box.style.marginBottom = '12px';
+  box.style.zIndex = '0';
+  box.style.transform = 'translateZ(0)';
 
   var exampleQuestions = [
     { label: '재물운', text: '올해 금전운과 투자 타이밍은 언제가 가장 좋을까요?' },
@@ -3987,13 +4056,17 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
 
   box.innerHTML = ''
     + '<div aria-hidden="true" style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,0.32),transparent 35%),radial-gradient(circle at top right, rgba(251,191,36,0.18), transparent 28%),radial-gradient(circle at bottom left, rgba(244,114,182,0.08), transparent 25%);"></div>'
-    + '<div style="position:relative;display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:10px;">'
+    + '<div id="sajuAiPromptHeader" style="position:relative;display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:10px;">'
     + '  <div style="min-width:0;flex:1 1 280px;">'
     + '    <div class="prem-title" style="color:#6b2a0f;font-size:1.02rem;letter-spacing:0.2px;line-height:1.35;">사주 질문 프롬프트 만들기</div>'
     + '    <p style="margin:6px 0 0;font-size:0.82rem;color:#8a4b22;line-height:1.72;">현재 사주 분석 결과를 바탕으로, AI에게 더 깊고 정확한 질문을 던질 수 있게 문장을 정리해드립니다.</p>'
     + '  </div>'
-    + '  <span style="align-self:flex-start;font-size:0.71rem;font-weight:700;letter-spacing:0.08em;color:#9a3412;border:1px solid rgba(180,83,9,0.22);background:rgba(251,191,36,0.16);padding:5px 10px;border-radius:999px;white-space:nowrap;">결과 기반 고품질 질문</span>'
+    + '  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">'
+    + '    <span style="align-self:flex-start;font-size:0.71rem;font-weight:700;letter-spacing:0.08em;color:#9a3412;border:1px solid rgba(180,83,9,0.22);background:rgba(251,191,36,0.16);padding:5px 10px;border-radius:999px;white-space:nowrap;">결과 기반 고품질 질문</span>'
+    + '    <button id="sajuAiPromptToggleBtn" type="button" aria-expanded="false" style="appearance:none;border:1px solid rgba(180,83,9,0.26);background:linear-gradient(180deg,rgba(255,255,255,0.92),rgba(255,245,225,0.9));color:#7c2d12;border-radius:999px;padding:6px 12px;font-size:0.72rem;font-weight:800;letter-spacing:0.02em;cursor:pointer;box-shadow:0 8px 20px rgba(180,83,9,0.12);">열기</button>'
+    + '  </div>'
     + '</div>'
+    + '<div id="sajuAiPromptBody" style="display:none;">'
     + '<div style="position:relative;display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">'
     + exampleQuestions.map(function(item) {
       return '<button type="button" data-saju-example-question="' + item.text.replace(/"/g, '&quot;') + '" style="appearance:none;border:1px solid rgba(180,83,9,0.18);background:rgba(255,252,244,0.95);color:#7c2d12;border-radius:999px;padding:8px 11px;font-size:0.77rem;font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(180,83,9,0.08);transition:transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;">' + item.label + '</button>';
@@ -4019,6 +4092,7 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
     + '  </div>'
     + '  <textarea id="sajuAiPromptOutput" readonly style="display:none;width:100%;min-height:220px;border:1px solid rgba(59,130,246,0.18);border-radius:16px;padding:14px 15px;font-size:0.84rem;line-height:1.72;color:#111827;background:linear-gradient(180deg,#fcfeff,#f4f8ff);resize:vertical;box-sizing:border-box;box-shadow:inset 0 1px 2px rgba(15,23,42,0.06);"></textarea>'
     + '</div>'
+    + '</div>'
     + '<div id="sajuAiPromptStatus" style="position:relative;margin-top:10px;font-size:0.78rem;color:#7c2d12;line-height:1.6;"></div>';
 
   aiCard.insertBefore(box, aiCard.firstChild);
@@ -4029,10 +4103,32 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
   var copyBtn = document.getElementById('sajuAiPromptCopyBtn');
   var outputEl = document.getElementById('sajuAiPromptOutput');
   var statusEl = document.getElementById('sajuAiPromptStatus');
+  var panelBody = document.getElementById('sajuAiPromptBody');
+  var toggleBtn = document.getElementById('sajuAiPromptToggleBtn');
 
   if (!inputEl || !countEl || !generateBtn || !copyBtn || !outputEl || !statusEl) return;
 
   var inFlight = false;
+  var isExpanded = false;
+
+  function setExpanded(nextExpanded) {
+    isExpanded = !!nextExpanded;
+    if (panelBody) panelBody.style.display = isExpanded ? 'block' : 'none';
+    if (toggleBtn) {
+      toggleBtn.textContent = isExpanded ? '접기' : '열기';
+      toggleBtn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+    }
+  }
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', function() {
+      setExpanded(!isExpanded);
+    });
+  }
+
+  setExpanded(true);
+  _bindSajuPromptInterferenceGuard();
+  _syncSajuPromptInterferenceState();
 
   function applyExampleQuestion(text) {
     inputEl.value = String(text || '').trim();
@@ -4100,6 +4196,8 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
 
   generateBtn.addEventListener('click', function() {
     if (inFlight) return;
+
+    setExpanded(true);
 
     var question = String(inputEl.value || '').trim();
     if (!question || question.length < SAJU_AI_PROMPT_MIN_LENGTH) {
@@ -4434,7 +4532,7 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
         }
 
         // 질문 프롬프트 생성은 기존 프롬프트를 대체하지 않는 별도 카드로, 연이의 편지 바로 위에 고정 주입
-        var questionHostHtml = '<div id="sajuQuestionPromptGeneratorCard" style="margin-top:12px;margin-bottom:12px;"></div>';
+        var questionHostHtml = '<div id="sajuQuestionPromptGeneratorCard" style="margin-top:12px;margin-bottom:12px;position:relative;z-index:0;clear:both;isolation:isolate;"></div>';
         var qMount = document.getElementById('sajuAiPromptQuestionMount');
         if (qMount) {
           qMount.innerHTML = questionHostHtml;
@@ -18297,6 +18395,18 @@ function _buildMonthCommandFromEngine(p, natal, pw) {
 }
 
 function renderSummary(p,johu,natal){
+  function isNeoSajuModeActive() {
+    try {
+      if (typeof NEO_MODE !== 'undefined' && !!NEO_MODE) return true;
+      if (typeof window !== 'undefined' && window.__INITIAL_THEME_NEO__ === true) return true;
+      if (document && document.body && document.body.classList.contains('neo-mode')) return true;
+      if (typeof localStorage !== 'undefined') {
+        return localStorage.getItem('fortuneThemeModeStateV1') === 'neo';
+      }
+    } catch (_e) {}
+    return false;
+  }
+
   var dg=p.d.g,dayMaster=p.d.gE||'earth';
   var health=HEALTH_DATA[dayMaster]||HEALTH_DATA.earth;
   var domE=natal.dominant;
@@ -18824,7 +18934,7 @@ function renderSummary(p,johu,natal){
   /* ───────────────────────────────
      13. 연이의 현실 조언 / 네오의 현실적 팩폭 (NEO_MODE 분기)
   ─────────────────────────────── */
-  var _isNeoSaju = (typeof NEO_MODE !== 'undefined' && NEO_MODE) || document.body.classList.contains('neo-mode');
+  var _isNeoSaju = isNeoSajuModeActive();
   if (_isNeoSaju) {
     html+='<div class="prem-box" style="background:linear-gradient(135deg,rgba(30,5,5,.9),rgba(60,10,10,.85));border-color:#e53935">'+
       '<span class="prem-title" style="border-color:#e53935;color:#FF6B6B">🦁 네오의 현실적 팩폭 — '+(USER_NAME||'당신')+'님을 향한 직격탄</span>'+

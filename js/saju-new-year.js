@@ -652,11 +652,35 @@
   };
 
   window.downloadSajuNewYearPdf = function () {
-    if (!_resultPayload || !_resultPayload.pdfReady || !_resultPayload.pdfReady.html) {
+    var result = _resultPayload || {};
+    var ready = result.pdfReady && typeof result.pdfReady === 'object' ? result.pdfReady : {};
+    var reportId = _clean(result.reportId || ready.reportId || '');
+    var resolvedUrl = _clean(
+      result.downloadUrl
+      || result.pdfUrl
+      || result.htmlUrl
+      || ready.downloadUrl
+      || ready.pdfUrl
+      || ready.htmlUrl
+      || (reportId ? ('/api/premium/pdf-archive/' + encodeURIComponent(reportId)) : '')
+    );
+
+    if (resolvedUrl) {
+      var openWin = window.open(resolvedUrl, '_blank', 'noopener,noreferrer');
+      if (!openWin) {
+        window.alert('팝업이 차단되어 출력 창을 열 수 없습니다. 팝업 허용 후 다시 시도해 주세요.');
+        return;
+      }
+      openWin.focus();
+      return;
+    }
+
+    if (!ready || !ready.html) {
       window.alert('신년운세 리포트가 아직 준비되지 않았습니다. 먼저 생성해 주세요.');
       return;
     }
-    var html = String(_resultPayload.pdfReady.html || '');
+
+    var html = String(ready.html || '');
     var htmlBlob = new Blob([html], { type: 'text/html;charset=utf-8' });
     var htmlUrl = URL.createObjectURL(htmlBlob);
     var win = window.open(htmlUrl, '_blank', 'width=980,height=760');

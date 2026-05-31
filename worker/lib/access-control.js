@@ -338,6 +338,24 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
         windowMinutes: 120,
       },
       {
+        featureKey: "soulOriginKarma",
+        reason: "운명의 기원서 생성",
+        minCost: 690,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "soul_origin_karma",
+        reason: "운명의 기원서 생성",
+        minCost: 690,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "soul-origin",
+        reason: "운명의 기원서 생성",
+        minCost: 690,
+        windowMinutes: 120,
+      },
+      {
         featureKey: "premium-soul-origin-report",
         reason: "운명의 기원서 생성",
         minCost: 690,

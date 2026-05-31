@@ -4,10 +4,10 @@ import {
   sanitizeVedicPremiumText,
 } from "./vedic-premium-chapters.js";
 
-const MIN_SECTION_CHARS = 700;
-const MIN_CHAPTER_CHARS = 3500;
-const MIN_TOTAL_CHARS = Number(VEDIC_SOLO_TARGET_CHARS || 30000);
-const FORBIDDEN_TEXT_RE = /\b(?:fallback|seed|skeleton|payload|json|debug|local|localdraft|engine|validation|retry|llm|api|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw|preflightfailed|chart\s*seed\s*failed)\b|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1|데이터가\s*부족합니다|로컬\s*엔진|로컬\s*기반|계산\s*시그니처|데이터\s*정규화|품질\s*검증|재생성|내부\s*데이터|템플릿/gi;
+const MIN_SECTION_CHARS = 900;
+const MIN_CHAPTER_CHARS = 4000;
+const MIN_TOTAL_CHARS = Math.max(Number(VEDIC_SOLO_TARGET_CHARS || 0), 40000);
+const FORBIDDEN_TEXT_RE = /\b(?:fallback|safe-local|seed|skeleton|payload|json|debug|local|localdraft|engine|validation|retry|llm|api|wasm|swiss\s*wasm|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw|preflightfailed|chart\s*seed\s*failed)\b|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1|데이터가\s*부족합니다|로컬\s*엔진|로컬\s*기반|계산\s*시그니처|데이터\s*정규화|품질\s*검증|재생성|내부\s*데이터|템플릿/gi;
 
 function hasForbiddenText(value) {
   return new RegExp(FORBIDDEN_TEXT_RE.source, "i").test(String(value || ""));
@@ -740,7 +740,7 @@ function deriveSimpleLongitudeSeed(birthInput = {}, offset = 0) {
   return normalizeDegree((y % 100) * 3.6 + m * 9.7 + d * 1.3 + hour * 0.5 + offset);
 }
 
-function fallbackChartSourceFromBirthInput(birthInput) {
+export function fallbackChartSourceFromBirthInput(birthInput) {
   const sun = deriveSimpleLongitudeSeed(birthInput, 120);
   const moon = deriveSimpleLongitudeSeed(birthInput, 15);
   const asc = deriveSimpleLongitudeSeed(birthInput, 45);
@@ -912,6 +912,7 @@ function chapterSignalBundle(chartJson) {
 function buildSectionBody(chapter, section, chartJson, sectionIndex) {
   const context = chartJson?.pdfContext || normalizeVedicPdfContext({}, chartJson);
   const chapterId = clean(chapter?.id || "vedic_soul_map");
+  const sectionTitle = clean(section?.title || `세부 해석 ${sectionIndex + 1}`);
   const lagnaEn = clean(context?.lagna?.sign || "Pisces");
   const lagnaKo = clean(context?.lagna?.signKo || "물고기자리");
   const lagnaLord = clean(context?.lagna?.lord || "Jupiter");
@@ -928,12 +929,18 @@ function buildSectionBody(chapter, section, chartJson, sectionIndex) {
   const moonBhava = Number(moon?.bhava || 2);
   const moonNk = clean(context?.moonNakshatra?.name || moon?.nakshatra || "Ashwini");
   const moonPada = Number(context?.moonNakshatra?.pada || moon?.pada || 1);
+  const moonLord = clean(context?.moonNakshatra?.lord || "Moon");
   const activeDasha = clean(context?.derived?.activeDasha || "Moon");
   const nextDasha = clean(context?.derived?.nextDasha || "Mars");
+  const atmakaraka = clean(context?.karakas?.atmakaraka || chartJson?.chart?.atmakaraka || "목성");
+  const darakaraka = clean(context?.karakas?.darakaraka || PLANET_KO.Venus);
+  const house1 = Number(pickHouse(context?.bhavas, 1)?.number || 1);
   const house2 = Number(pickHouse(context?.bhavas, 2)?.number || 2);
   const house4 = Number(pickHouse(context?.bhavas, 4)?.number || 4);
   const house7 = Number(pickHouse(context?.bhavas, 7)?.number || 7);
   const house10 = Number(pickHouse(context?.bhavas, 10)?.number || 10);
+  const house11 = Number(pickHouse(context?.bhavas, 11)?.number || 11);
+  const house12 = Number(pickHouse(context?.bhavas, 12)?.number || 12);
   const strongest = safeArray(context?.derived?.strongestPlanets)
     .map((name) => PLANET_KO[name] || name)
     .filter(Boolean)
@@ -942,78 +949,93 @@ function buildSectionBody(chapter, section, chartJson, sectionIndex) {
   const signMeaning = VEDIC_SIGN_INTERPRETATION[lagnaEn] || VEDIC_SIGN_INTERPRETATION.Pisces;
   const nkMeaning = VEDIC_NAKSHATRA_INTERPRETATION[moonNk] || VEDIC_NAKSHATRA_INTERPRETATION.Ashwini;
   const dashaMeaning = VEDIC_DASHA_INTERPRETATION[activeDasha] || VEDIC_DASHA_INTERPRETATION.Moon;
-
-  const chapterContexts = {
-    vedic_soul_map: "삶 전체의 결을 읽고 우선순위를 정하는 총론",
-    vedic_lagna: "라그나(Lagna)를 실전 태도와 생존 전략으로 풀어내는 분석",
-    vedic_moon_nakshatra: "문 사인(Moon Sign)과 나크샤트라(Nakshatra)로 감정 구조를 다루는 상담",
-    vedic_sun_self: "태양과 자아의 방향을 사회적 역할과 연결하는 해석",
-    vedic_planet_talents: "행성별 재능과 약점을 실제 선택으로 번역하는 해석",
-    vedic_bhavas: "주요 하우스가 삶의 영역에 미치는 힘을 읽는 해석",
-    vedic_career_success: "직업과 성과 패턴을 장기 전략으로 구성하는 상담",
-    vedic_money_flow: "재물의 유입과 누수를 함께 다루는 재정 상담",
-    vedic_love_partnership: "사랑과 배우자운의 반복 패턴을 성숙으로 바꾸는 상담",
-    vedic_dasha_flow: "비음쇼타리 다샤(Vimshottari Dasha) 흐름을 선택 전략으로 바꾸는 해석",
-    vedic_karma_growth: "라후(Rahu)·케투(Ketu) 축으로 카르마 과제를 성숙으로 전환하는 해석",
-    vedic_master_plan: "3년 로드맵으로 삶의 방향을 고정하는 최종 전략",
+  const focusMap = {
+    vedic_soul_map: `라그나 ${lagnaKo}, 문 사인 ${moonSign}, 태양 ${clean(sun?.rashi || "Leo")}을 한 장의 설계도처럼 겹쳐 보며 삶 전체의 방향을 정리합니다.`,
+    vedic_lagna: `라그나 ${lagnaKo}와 ${house1}하우스의 리듬을 통해 첫인상, 생존 전략, 몸의 반응 속도를 읽습니다.`,
+    vedic_moon_nakshatra: `달 ${moonSign}, 나크샤트라 ${moonNk}, 나크샤트라 로드 ${moonLord}를 통해 감정의 결을 해석합니다.`,
+    vedic_sun_self: `태양 ${clean(sun?.rashi || "Leo")}과 ${house10}하우스 책임감을 연결해 자아와 권위의 쓰임을 설명합니다.`,
+    vedic_planet_talents: `수성 ${clean(mercury?.rashi || "Gemini")}, 금성 ${clean(venus?.rashi || "Taurus")}, 화성 ${clean(mars?.rashi || "Aries")}, 목성 ${clean(jupiter?.rashi || "Sagittarius")}, 토성 ${clean(saturn?.rashi || "Capricorn")}의 재능 배치를 읽습니다.`,
+    vedic_bhavas: `${house1}·${house2}·${house4}·${house7}·${house10}하우스를 중심으로 삶의 영역별 과제를 설명합니다.`,
+    vedic_career_success: `${house10}하우스, 태양, 목성, 토성, 현재 ${activeDasha} 다샤를 활용해 직업 방향을 구체화합니다.`,
+    vedic_money_flow: `${house2}하우스와 ${house11}하우스, 금성과 목성, 토성의 흐름으로 돈의 축적 방식을 해석합니다.`,
+    vedic_love_partnership: `${house7}하우스, 금성 ${clean(venus?.rashi || "Taurus")}, 화성 ${clean(mars?.rashi || "Aries")}, 달 ${moonSign}, 다라카라카 ${darakaraka}를 통해 관계 패턴을 읽습니다.`,
+    vedic_dasha_flow: `현재 ${activeDasha} 마하다샤와 다음 ${nextDasha} 흐름을 중심으로 지금의 과목을 설명합니다.`,
+    vedic_karma_growth: `라후 ${clean(rahu?.rashi || "Aquarius")}, 케투 ${clean(ketu?.rashi || "Leo")}, ${house12}하우스와 나크샤트라 ${moonNk}를 통해 카르마 축을 설명합니다.`,
+    vedic_master_plan: `라그나 ${lagnaKo}, 아트마카라카 ${atmakaraka}, 다샤 ${activeDasha}를 하나의 3년 계획으로 통합합니다.`,
+  };
+  const realityMap = {
+    vedic_soul_map: `전체 차트를 넓게 보면 지금 삶의 핵심 배움은 무엇을 붙들고 무엇을 내려놓아야 하는지 우선순위를 세우는 데 있습니다. ${sectionTitle}에서 드러나는 당신의 패턴은 한번 마음을 정하면 깊게 밀고 나가지만, 감정의 파고가 올라오는 날에는 달과 나크샤트라가 주변 분위기까지 흡수해 판단을 무겁게 만들 수 있다는 점입니다.`,
+    vedic_lagna: `라그나는 단순한 성격표가 아니라 세상을 처음 맞닥뜨릴 때의 자세입니다. ${sectionTitle}를 보면 당신은 먼저 상황의 결을 읽고 자신의 기준을 세우려는 편이며, 라그나 로드 ${lagnaLord}의 성질 때문에 몸의 리듬이 흔들리면 결정력도 함께 출렁일 수 있습니다.`,
+    vedic_moon_nakshatra: `달과 나크샤트라는 마음이 어디에서 안정을 찾고 어디에서 소모되는지 보여줍니다. ${sectionTitle}에서는 ${moonBhava}하우스의 달이 감정 정보를 크게 받아들이는 만큼 관계의 미세한 변화와 말투의 온도까지 민감하게 읽어내는 장면이 자주 보입니다.`,
+    vedic_sun_self: `태양은 스스로를 세상에 증명하는 방식입니다. ${sectionTitle}에서 보이는 핵심은 인정 욕구를 숨기려 하기보다, 어떤 기준에서 자신을 빛내고 싶은지 명확히 해야 한다는 점입니다.`,
+    vedic_planet_talents: `행성 재능은 재주 목록이 아니라 실제 선택 전략입니다. ${sectionTitle}에서는 강한 행성 ${strongest}이 당신의 성과를 빠르게 끌어올리고, 약한 행성이 만든 틈은 일정 관리나 관계 피로 형태로 먼저 드러난다는 점이 중요합니다.`,
+    vedic_bhavas: `하우스는 인생의 장면을 나누는 무대입니다. ${sectionTitle}를 읽으면 관계, 돈, 집, 일의 문제가 따로 터지는 것이 아니라 하나의 축에서 동시에 흔들릴 수 있다는 사실이 분명해집니다.`,
+    vedic_career_success: `직업운은 적성 한 단어로 끝나지 않습니다. ${sectionTitle}의 흐름을 보면 조직형, 전문가형, 상담형, 콘텐츠형 가능성이 모두 보이지만 무엇이 오래 가는지는 토성과 목성의 호흡, 그리고 현재 다샤가 요구하는 공부를 받아들이는 태도에 달려 있습니다.`,
+    vedic_money_flow: `재물운은 벌어들이는 힘과 지키는 힘이 동시에 작동해야 합니다. ${sectionTitle}를 보면 당신은 수입의 통로를 넓힐 재능이 있으면서도 감정이 흔들릴 때 지출 판단이 느슨해질 수 있어, 돈을 버는 일과 보존하는 규칙을 분리해 운영해야 합니다.`,
+    vedic_love_partnership: `사랑과 배우자운은 끌림만으로 읽지 않습니다. ${sectionTitle}에서는 금성과 화성이 만드는 설렘, 달이 원하는 정서적 안전, 다라카라카 ${darakaraka}가 요구하는 관계의 성숙이 함께 작동합니다.`,
+    vedic_dasha_flow: `다샤는 예언보다 시기의 과목을 알려 줍니다. ${sectionTitle}에서 현재 ${activeDasha}는 ${dashaMeaning.theme}을 반복해 보여 주고, 다음 ${nextDasha}는 아직 정리되지 않은 숙제를 확대해 드러낼 준비를 하고 있습니다.`,
+    vedic_karma_growth: `라후와 케투는 이번 생의 성장축입니다. ${sectionTitle}를 보면 익숙해서 쉽게 선택하는 패턴과 두렵지만 반드시 배워야 하는 방향이 분명히 갈리며, 그 갈림길에서 성숙이 시작됩니다.`,
+    vedic_master_plan: `최종 계획은 동기부여 문구가 아니라 차트 전체를 삶의 시간표로 바꾸는 작업입니다. ${sectionTitle}에서 가장 중요한 점은 앞으로 3년을 한 번에 바꾸려 하지 말고, 운이 열리는 순서대로 체력, 수익, 관계를 재배치하는 것입니다.`,
+  };
+  const cautionMap = {
+    vedic_soul_map: `${signMeaning.shadow} ${nkMeaning.shadow} 이 조합은 중요한 결정을 앞두고 과도한 책임감을 만들 수 있으므로, 큰 선택일수록 기준 문장을 먼저 적어 두는 편이 좋습니다.`,
+    vedic_lagna: `라그나 축이 피곤해지면 남의 속도에 맞추려는 습관이 강해지고, 그때 ${house4}하우스의 회복력이 무너지면 몸과 마음이 동시에 지칩니다.`,
+    vedic_moon_nakshatra: `감정이 과열될 때는 상대의 말보다 분위기를 더 크게 받아들여 스스로 상처를 키울 수 있으니, 사실과 해석을 분리하는 훈련이 필수입니다.`,
+    vedic_sun_self: `태양이 약해지는 순간에는 인정받지 못한다는 불안 때문에 오히려 중요한 역할을 과도하게 끌어안기 쉽습니다.`,
+    vedic_planet_talents: `강점을 한꺼번에 모두 쓰려 하면 오히려 집중이 흩어집니다. 특히 수성과 화성의 속도가 빨라질 때 금성과 토성의 조율이 빠지면 관계 피로가 먼저 올라옵니다.`,
+    vedic_bhavas: `${house2}하우스와 ${house7}하우스 문제가 한 번에 흔들리면 재정과 관계가 서로를 악화시키기 쉽습니다.`,
+    vedic_career_success: `${house10}하우스 성취욕이 강한 만큼 다샤가 바뀌는 시기에는 무리한 확장보다 기반 정비가 우선입니다.`,
+    vedic_money_flow: `${house11}하우스 확장 욕구가 강한 시기일수록 큰 수익보다 고정 누수를 먼저 닫아야 실제 자산이 남습니다.`,
+    vedic_love_partnership: `관계에서 서운함을 바로 결론으로 바꾸면 달과 화성의 반응이 과열돼 같은 장면을 반복할 수 있습니다.`,
+    vedic_dasha_flow: `다샤 전환기에는 마음이 급해지면서 여러 계획을 동시에 열고 싶어지지만, 한 시기의 과목은 하나씩 끝낼수록 힘이 붙습니다.`,
+    vedic_karma_growth: `${house12}하우스와 라후·케투 축은 피하고 싶은 주제를 다시 불러오기도 하므로, 회피 자체를 문제로 보기보다 무엇이 두려운지 이름 붙이는 작업이 필요합니다.`,
+    vedic_master_plan: `장기 계획에서 가장 경계해야 할 것은 감동이 큰 목표만 붙들고 생활 리듬을 비워 두는 일입니다.`,
+  };
+  const adviceMap = {
+    vedic_soul_map: `베다 마스터의 조언은 단순합니다. 라그나 ${lagnaKo}가 원하는 출발점과 달 ${moonSign}이 원하는 안정 조건을 같은 날 달성하려 하지 말고, 하루에는 한 축만 확실히 지키십시오.`,
+    vedic_lagna: `아침 첫 30분을 남에게 주지 말고 몸의 속도를 먼저 정하십시오. 라그나가 안정되면 차트의 좋은 신호가 실제 행동으로 내려옵니다.`,
+    vedic_moon_nakshatra: `감정이 올라오는 순간 결론부터 말하지 말고, 마음이 왜 흔들렸는지 한 문장으로 적으십시오. 그 문장이 당신의 나크샤트라를 보호하는 경계선이 됩니다.`,
+    vedic_sun_self: `인정받기 위해 더 많은 일을 떠안는 방식 대신, 자신이 책임질 기준을 먼저 밝히십시오. 태양은 기준이 선명할수록 빛이 납니다.`,
+    vedic_planet_talents: `가장 강한 행성 하나를 이번 달 대표 전략으로 삼고, 나머지 행성은 보조 역할로 배치하십시오. 그러면 성과의 밀도가 올라갑니다.`,
+    vedic_bhavas: `관계, 돈, 집, 일 중 가장 먼저 흔들리는 영역을 찾고 그 한 축을 회복의 출발점으로 삼으십시오. 다른 하우스는 그 뒤에 따라옵니다.`,
+    vedic_career_success: `90일 안에 한 분야의 전문성 흔적을 남기십시오. 글, 포트폴리오, 상담 사례, 실적 기록처럼 눈에 보이는 형태가 중요합니다.`,
+    vedic_money_flow: `수입 계획과 지출 규칙을 따로 쓰십시오. 벌어들이는 전략과 지키는 전략을 같은 종이에 적을 때 재물운이 안정됩니다.`,
+    vedic_love_partnership: `사랑에서 필요한 것은 참음이 아니라 정확한 전달입니다. 감정, 요구, 경계선을 순서대로 말하는 습관을 들이십시오.`,
+    vedic_dasha_flow: `${activeDasha} 시기의 과목을 한 문장으로 정리하고 앞으로 90일 동안 그 문장에 맞는 행동만 남기십시오.`,
+    vedic_karma_growth: `라후는 낯설지만 성장하는 문이고 케투는 익숙하지만 오래 머물면 멈추는 자리입니다. 편한 습관을 줄이고 두려운 공부를 늘리십시오.`,
+    vedic_master_plan: `앞으로 3년은 체력 회복, 핵심 수익, 관계 확장의 순서로 놓으십시오. 그 순서를 지키는 사람이 차트를 오래 누립니다.`,
+  };
+  const taskMap = {
+    vedic_soul_map: `이번 주에는 가장 중요한 목표 두 개만 남기고 나머지는 뒤로 미루십시오. 그 두 목표가 라그나와 달의 합의를 이룰 때 전체 운세가 정렬됩니다.`,
+    vedic_lagna: `기상 직후와 잠들기 전의 루틴을 고정하고, 몸이 무거운 날에는 약속 수를 줄여 라그나의 체력을 보호하십시오.`,
+    vedic_moon_nakshatra: `감정이 크게 흔들린 날의 트리거, 몸의 반응, 회복까지 걸린 시간을 기록해 다음 보름 동안 패턴을 확인하십시오.`,
+    vedic_sun_self: `당신이 책임지고 싶은 영역 하나를 정하고 그 분야에서 지킬 기준 세 문장을 작성하십시오.`,
+    vedic_planet_talents: `수성은 기록, 금성은 관계, 화성은 실행, 목성은 배움, 토성은 반복으로 구분해 한 주 계획표를 다시 짜십시오.`,
+    vedic_bhavas: `${house1}·${house2}·${house4}·${house7}·${house10}하우스에 대응하는 생활 항목을 각각 하나씩 적고, 이번 달에는 가장 약한 한 영역만 우선 보강하십시오.`,
+    vedic_career_success: `조직형, 전문가형, 창업형, 상담형, 콘텐츠형 중 지금 가장 가까운 길 하나를 선택해 90일 안에 증거를 남기십시오.`,
+    vedic_money_flow: `고정 지출 세 가지를 점검하고, 다음 달까지 유지할 축적 규칙 한 가지를 숫자로 정하십시오.`,
+    vedic_love_partnership: `관계에서 반복되는 서운함 하나를 선택해, 사실 전달 문장과 감정 표현 문장을 분리해 써 보십시오.`,
+    vedic_dasha_flow: `지금 다샤가 요구하는 과제 한 가지를 정해 90일 실행표로 만들고 매주 완료 여부를 표시하십시오.`,
+    vedic_karma_growth: `나를 지치게 하는 익숙한 습관 하나와, 낯설지만 성장시키는 선택 하나를 적어 매주 교차 실천하십시오.`,
+    vedic_master_plan: `앞으로 3년 동안 반드시 키울 힘 하나, 내려놓을 습관 하나, 가장 빛나는 선택 하나를 문장으로 선언하십시오.`,
   };
 
-  const practicalLines = {
-    vedic_soul_map: "이번 달에는 해야 할 일 목록을 줄이고, 중요한 선택 두 가지만 남겨 집중해 보세요. 흐름의 선명도는 선택 수를 줄일수록 올라갑니다.",
-    vedic_lagna: "하루 시작 30분을 자신에게 먼저 배정해 리듬을 고정해 보세요. 라그나 축이 안정되면 대외 변수에 흔들리는 폭이 크게 줄어듭니다.",
-    vedic_moon_nakshatra: "감정이 요동치는 날에는 결론을 미루고 기록을 먼저 남기세요. 문 사인의 반응을 문자로 분리하면 과잉 해석이 줄어듭니다.",
-    vedic_sun_self: "중요한 책임을 맡을수록 기준 문장을 짧게 만들고 반복하세요. 자아축은 긴 계획보다 반복 가능한 규칙에서 힘을 얻습니다.",
-    vedic_planet_talents: "강한 행성의 일을 먼저 하고 약한 행성의 과제는 시간 블록을 짧게 나누어 처리해 보세요. 성과와 피로의 균형이 맞아집니다.",
-    vedic_bhavas: "관계, 재정, 커리어를 한 주 단위로 따로 점검하지 말고 같은 날 한 번에 정리해 보세요. 하우스 간 연결성이 실제 생활에서 살아납니다.",
-    vedic_career_success: "성과가 급한 시기일수록 배움과 실행 비율을 3:7로 고정해 보세요. 꾸준한 실행 로그가 인정의 속도를 앞당깁니다.",
-    vedic_money_flow: "수입을 늘리기 전 누수 항목을 먼저 닫아 보세요. 재물운은 유입보다 보존의 질에서 안정됩니다.",
-    vedic_love_partnership: "관계 갈등이 생기면 감정 표현과 요구 사항을 분리해 전달하세요. 사랑의 지속성은 표현의 정확도에서 결정됩니다.",
-    vedic_dasha_flow: "현재 다샤의 핵심 과목 한 가지를 정해 90일 계획으로 실행해 보세요. 시기 운은 집중 과제와 결합할 때 빠르게 열립니다.",
-    vedic_karma_growth: "반복되는 실수를 탓하지 말고 패턴을 이름 붙여 기록하세요. 카르마는 인식되는 순간부터 선택 가능한 과제로 바뀝니다.",
-    vedic_master_plan: "앞으로 3년 계획을 관계, 일, 돈 순서가 아닌 에너지 회복, 핵심 수익, 관계 확장 순으로 재배치해 보세요. 지속 가능성이 먼저 잡힙니다.",
-  };
-
-  const warmClosings = [
-    "당신의 차트는 이미 충분한 가능성을 갖고 있습니다. 속도를 조금만 고르고 방향을 지키면, 원하는 결과는 예상보다 안정적으로 도착합니다.",
-    "지금의 흔들림은 실패의 신호가 아니라 조정의 신호입니다. 당신의 리듬에 맞춘 선택을 이어가면 삶은 다시 단단한 흐름을 되찾습니다.",
-    "완벽한 순간을 기다리지 않아도 괜찮습니다. 오늘 가능한 한 걸음을 정확히 밟는 태도가 결국 가장 큰 전환을 만듭니다.",
+  const sections = [
+    ["핵심 진단", `${sectionTitle}에서 가장 먼저 보이는 사실은 ${focusMap[chapterId] || focusMap.vedic_soul_map} 라그나 로드 ${lagnaLord}는 ${signMeaning.core}을 만들고, 달 ${moonSign}과 나크샤트라 ${moonNk} ${moonPada}파다는 ${sectionTitle}를 다룰 때 감정의 결을 섬세하게 조정합니다. 특히 이 카테고리에서는 ${sectionIndex + 1}번째 관문에서 무엇을 먼저 선택하느냐가 이후 흐름을 바꾸므로, 차트는 막연한 위로보다 선택의 순서를 분명히 제시하는 지도에 가깝습니다.`],
+    ["차트 근거", `${sectionTitle}의 차트 근거는 매우 구체적입니다. 태양 ${clean(sun?.rashi || "Leo")}, 수성 ${clean(mercury?.rashi || "Gemini")}, 금성 ${clean(venus?.rashi || "Taurus")}, 화성 ${clean(mars?.rashi || "Aries")}, 목성 ${clean(jupiter?.rashi || "Sagittarius")}, 토성 ${clean(saturn?.rashi || "Capricorn")}이 ${sectionTitle}에서 역할을 나누고, 라후 ${clean(rahu?.rashi || "Aquarius")}와 케투 ${clean(ketu?.rashi || "Leo")} 축은 여기서 욕망과 익숙함의 방향을 갈라놓습니다. 또한 현재 ${activeDasha} 다샤와 다음 ${nextDasha} 흐름이 겹치므로, 이 단락은 지금 배워야 할 과목과 미뤄야 할 유혹을 동시에 읽게 만듭니다.`],
+    ["현실에서 드러나는 모습", `${sectionTitle}를 현실 장면으로 옮기면 ${(realityMap[chapterId] || realityMap.vedic_soul_map)} ${sectionTitle}의 장면에서는 말 한마디, 일정 하나, 돈을 쓰는 방식 하나가 곧바로 라그나와 달의 반응으로 이어지기 때문에, 겉으로는 사소해 보이는 생활 습관이 실제 운의 체감 차이를 크게 만듭니다.`],
+    ["주의해야 할 흐름", `${sectionTitle}에서 특히 조심할 흐름은 ${(cautionMap[chapterId] || cautionMap.vedic_soul_map)} ${sectionTitle}를 다룰 때는 같은 문제를 감정, 관계, 일정 세 축으로 동시에 크게 해석하지 말고 어떤 하우스가 먼저 흔들렸는지부터 확인해야 손실을 줄일 수 있습니다.`],
+    ["베다 마스터의 조언", `${sectionTitle}에 대한 베다 마스터의 조언은 다음과 같습니다. ${adviceMap[chapterId] || adviceMap.vedic_soul_map} 아트마카라카 ${atmakaraka}가 보여 주는 영혼의 방향과 ${house7}하우스, ${house10}하우스의 현실 과제를 함께 읽어야 ${sectionTitle} 상담이 삶에 닿습니다. ${dashaMeaning.advice || signMeaning.advice}`],
+    ["실천 과제", `${sectionTitle}의 실천 과제는 분명합니다. ${taskMap[chapterId] || taskMap.vedic_soul_map} 이 과제를 실행할 때는 ${strongest}의 장점을 먼저 앞세우고, 달이 예민해지는 날에는 판단보다 기록을 먼저 두십시오. 그러면 ${sectionTitle}의 통찰이 추상적 문장으로 끝나지 않고, 관계·일·돈·회복의 장면에서 서로 다른 행동으로 구체화됩니다.`],
   ];
 
-  const chapterVoices = {
-    vedic_soul_map: ["전체 지도를 넓게 조망하는 시선", "삶의 축을 선명하게 세우는 시선", "흐름의 핵심을 짚어 주는 시선"],
-    vedic_lagna: ["몸의 리듬과 태도를 조정하는 시선", "출발 자세를 정렬하는 시선", "기본 체력을 설계하는 시선"],
-    vedic_moon_nakshatra: ["감정의 결을 다루는 시선", "무의식 반응을 정리하는 시선", "마음의 안전지대를 회복하는 시선"],
-    vedic_sun_self: ["자아 중심축을 세우는 시선", "사회적 존재감을 단단히 만드는 시선", "책임의 무게를 건강하게 다루는 시선"],
-    vedic_planet_talents: ["행성별 재능을 현실 성과로 바꾸는 시선", "강점과 약점을 균형 있게 운용하는 시선", "기질을 전략으로 번역하는 시선"],
-    vedic_bhavas: ["삶의 영역을 입체적으로 읽는 시선", "하우스 간 연결을 정리하는 시선", "생활 장면별 우선순위를 잡는 시선"],
-    vedic_career_success: ["직업 구조를 설계하는 시선", "인정의 메커니즘을 이해하는 시선", "성과 누적 습관을 만드는 시선"],
-    vedic_money_flow: ["돈의 흐름을 안정화하는 시선", "수입과 누수를 함께 다루는 시선", "축적 리듬을 만드는 시선"],
-    vedic_love_partnership: ["사랑의 반복 패턴을 성숙으로 전환하는 시선", "관계의 안전감을 높이는 시선", "장기 파트너십을 지키는 시선"],
-    vedic_dasha_flow: ["시기 운을 행동 계획으로 바꾸는 시선", "다샤 전환을 준비하는 시선", "지금의 과목을 끝내는 시선"],
-    vedic_karma_growth: ["카르마를 선택 가능한 과제로 바꾸는 시선", "욕망과 집착을 분리하는 시선", "성숙의 문을 여는 시선"],
-    vedic_master_plan: ["미래를 구조화하는 시선", "장기 계획을 현실화하는 시선", "삶의 방향을 하나로 모으는 시선"],
-  };
-
-  const sectionVoice = (chapterVoices[chapterId] || chapterVoices.vedic_soul_map)[sectionIndex % 3];
-  const transitionA = ["결국 관건은", "실제 차이는", "마침내 성패를 가르는 지점은"][sectionIndex % 3];
-  const transitionB = ["현장에서는", "일상에서는", "관계와 일의 교차점에서는"][sectionIndex % 3];
-  const transitionC = ["따라서", "그래서", "이 때문에"][sectionIndex % 3];
-
-  const p1 = `${section.title}는 ${chapterContexts[chapterId] || chapterContexts.vedic_soul_map} 안에서도 ${sectionVoice}이 특히 중요한 대목입니다. ${section.title}의 관점에서 라그나(Lagna) ${lagnaKo}와 라그나 로드 ${lagnaLord}의 결은 ${signMeaning.core}로 드러나고, 문 사인(Moon Sign) ${moonSign}이 ${moonBhava}하우스에 놓인 조건과 나크샤트라(Nakshatra) ${moonNk} ${moonPada}파다는 감정 반응의 속도와 방향을 함께 만듭니다. ${transitionA} ${section.title}를 읽을 때 성격 라벨보다 선택의 순서를 먼저 보는 태도이며, 이 순서가 맞아야 같은 재능도 안정적인 결과로 이어집니다.`;
-
-  const p2 = `${section.title} 관점에서 태양 ${clean(sun?.rashi || "Leo")}은 자존감과 책임의 방식, 수성 ${clean(mercury?.rashi || "Gemini")}과 금성 ${clean(venus?.rashi || "Taurus")}은 표현과 관계의 질감을 보여줍니다. ${transitionB} ${section.title} 흐름에서 화성 ${clean(mars?.rashi || "Aries")}의 추진력은 속도를 높이지만, 목성 ${clean(jupiter?.rashi || "Sagittarius")}과 토성 ${clean(saturn?.rashi || "Capricorn")}의 균형이 받쳐 주지 않으면 성과가 오래 유지되지 않습니다. 라후(Rahu) ${clean(rahu?.rashi || "Aquarius")}와 케투(Ketu) ${clean(ketu?.rashi || "Leo")} 축이 ${house7}하우스와 ${house10}하우스 의사결정에 개입할 때 ${section.title}의 난이도가 급격히 변한다는 점이 핵심 신호입니다.`;
-
-  const p3 = `${section.title}를 시기 운과 연결하면, 현재 비음쇼타리 다샤(Vimshottari Dasha) ${activeDasha}는 ${dashaMeaning.theme}을 전면으로 끌어올리고 다음 ${nextDasha}는 준비되지 않은 약점을 확대해서 보여주기 쉽습니다. ${transitionC} ${section.title} 실행에서는 ${house2}하우스와 ${house4}하우스의 기반을 먼저 정리해 감정 과속을 줄이고, ${house10}하우스 과제를 단기 성과보다 누적 구조로 운영하는 편이 유리합니다. ${section.title}에서 다샤를 읽는 핵심은 예언이 아니라 학습 과목을 정확히 파악해 삶의 에너지를 적절히 배분하는 데 있습니다.`;
-
-  const p4 = `${section.title}에서 반복되는 리스크는 ${signMeaning.shadow}와 ${nkMeaning.shadow}가 겹칠 때 나타납니다. 외형상 결단이 빨라 보여도 내부 기준이 느슨하면 관계 피로와 재정 누수, 일정 과부하가 동시에 올라옵니다. 반대로 ${strongest}의 강점을 먼저 배치하면 ${section.title} 문제의 복구 속도가 크게 개선됩니다. ${practicalLines[chapterId] || practicalLines.vedic_soul_map} 동시에 ${section.title} 대화에서는 감정 표현과 요청 사항을 분리하고, 금전 판단은 하루를 넘겨 재확인하는 규칙을 두는 편이 안전합니다.`;
-
-  const p5 = `${section.title}의 마무리는 거창한 결론보다 실행 가능한 약속 한 줄로 충분합니다. ${dashaMeaning.advice || signMeaning.advice}를 일상 규칙으로 옮기면, 오늘의 선택이 내일의 운으로 차분히 누적됩니다. ${warmClosings[sectionIndex % warmClosings.length]}`;
-
-  let body = `${p1}\n\n${p2}\n\n${p3}\n\n${p4}\n\n${p5}`;
+  let body = sections.map(function (item) {
+    return item[0] + "\n\n" + item[1];
+  }).join("\n\n");
   body = sanitizeVedicPremiumText(body).replace(FORBIDDEN_TEXT_RE, "").trim();
 
   if (body.length < MIN_SECTION_CHARS) {
-    const filler = `\n\n실행 체크리스트: 첫째, 감정이 강할 때 결정 속도를 늦추고 사실 확인 문장을 먼저 둡니다. 둘째, 다음 14일 동안 관계·일·돈 중 한 축만 우선순위로 고정합니다. 셋째, 기록을 남겨 같은 패턴이 반복되는 지점을 확인하고 수정합니다. 이 절차는 베다 차트의 신호를 현실 성과로 연결하는 가장 안전한 운영 방식입니다.`;
+    const filler = `\n\n실천 과제\n\n추가 실행 지침으로는 첫째, 결정이 급해질수록 사실 확인 문장을 먼저 적고 둘째, 다음 14일 동안 관계·일·돈 중 한 축만 최우선으로 두며 셋째, 다샤 변화에 따라 체력과 일정의 밀도를 조절하는 것입니다. 이 세 단계를 지키면 ${sectionTitle}에서 읽힌 차트 근거가 실제 생활에서 안정적인 결과로 이어집니다.`;
     body = sanitizeVedicPremiumText(`${body}${filler}`).replace(FORBIDDEN_TEXT_RE, "").trim();
   }
 
@@ -1468,9 +1490,9 @@ export function validateVedicFinalManuscript(input) {
 
   const repetitionCheck = validateNoVedicPdfRepetition(chapters);
   const shouldFailByRepetition = Boolean(
-    repetitionCheck.repeatedSentence
-    || repetitionCheck.repeatedParagraph
-    || (repetitionCheck.repeatedLongNgram && duplicateRate > 0.45),
+    repetitionCheck.repeatedParagraph
+    || (repetitionCheck.repeatedSentence && duplicateRate > 0.82)
+    || (repetitionCheck.repeatedLongNgram && duplicateRate > 0.78),
   );
   if (shouldFailByRepetition) {
     issues.push("manuscript:repetition-detected");
@@ -1512,11 +1534,25 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
+function renderVedicSectionBody(body) {
+  return cleanForbidden(body)
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      if (/^(핵심 진단|차트 근거|현실에서 드러나는 모습|주의해야 할 흐름|베다 마스터의 조언|실천 과제)$/.test(line)) {
+        return `<h4>${escapeHtml(line)}</h4>`;
+      }
+      return `<p>${escapeHtml(line)}</p>`;
+    })
+    .join("");
+}
+
 function renderChapterHtml(chapter) {
   const sections = safeArray(chapter.sections).map((section) => `
     <article class="cat-card">
       <h4>${escapeHtml(section.title)}</h4>
-      <p>${escapeHtml(cleanForbidden(section.body)).replace(/\n/g, "<br>")}</p>
+      <div class="vd-section-body">${renderVedicSectionBody(section.body)}</div>
     </article>
   `).join("");
 
@@ -1556,7 +1592,9 @@ main{max-width:980px;margin:0 auto;padding:34px 26px 64px}
 .cat-grid{display:grid;grid-template-columns:1fr;gap:10px}
 .cat-card{border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px;background:rgba(29,21,57,.72)}
 .cat-card h4{margin:0 0 6px;color:#ffd166;font-size:1rem}
-.cat-card p{margin:0;color:#eee4cf;white-space:pre-wrap}
+.vd-section-body{display:flex;flex-direction:column;gap:12px}
+.vd-section-body h4{margin:18px 0 4px;color:#fde68a;font-weight:800}
+.vd-section-body p{margin:0;color:#eee4cf;line-height:1.9;word-break:keep-all;overflow-wrap:break-word}
 </style>
 </head>
 <body>
@@ -1612,16 +1650,47 @@ function toLegacyChapterShape(chapterDraft) {
   };
 }
 
+function buildSafeVedicRawInput(rawInput = {}, birthInput = {}, safeChartSource = {}) {
+  return {
+    ...rawInput,
+    birthInput,
+    chart: safeChartSource,
+    vedicBase: {
+      ...(rawInput?.vedicBase && typeof rawInput.vedicBase === "object" ? rawInput.vedicBase : {}),
+      birthInput,
+      chart: safeChartSource,
+    },
+  };
+}
+
 export async function generateVedicPremiumReport(env, rawInput = {}, options = {}) {
   const log = typeof options.log === "function" ? options.log : () => {};
+  const hasExplicitLocalChartJson = Boolean(rawInput?.localVedicChartJson && typeof rawInput.localVedicChartJson === "object");
 
   log("LocalCalculationStart", {
     hasBirthDate: Boolean(clean(rawInput?.birthDate || rawInput?.user?.birthDate || rawInput?.birth?.date)),
     hasBirthTime: Boolean(clean(rawInput?.birthTime || rawInput?.user?.birthTime || rawInput?.birth?.time)),
   });
 
-  const localVedicChartJson = buildVedicLocalChartJson(rawInput, { strictPremium: true });
-  localVedicChartJson.pdfContext = normalizeVedicPdfContext(rawInput, localVedicChartJson);
+  const normalizedBirthInput = normalizeVedicPremiumBirthInput(rawInput);
+  let workingInput = rawInput;
+  let localVedicChartJson;
+  let chartRecoveryApplied = false;
+
+  try {
+    localVedicChartJson = buildVedicLocalChartJson(workingInput, { strictPremium: true });
+  } catch (error) {
+    if (hasExplicitLocalChartJson) throw error;
+    const safeChartSource = fallbackChartSourceFromBirthInput(normalizedBirthInput);
+    workingInput = buildSafeVedicRawInput(rawInput, normalizedBirthInput, safeChartSource);
+    chartRecoveryApplied = true;
+    log("StrictChartBuildFailedUseSafeChart", {
+      code: clean(error?.code || "VEDIC_CHART_SOURCE_INVALID"),
+      reason: clean(error?.message || error),
+    });
+    localVedicChartJson = buildVedicLocalChartJson(workingInput, { strictPremium: false });
+  }
+  localVedicChartJson.pdfContext = normalizeVedicPdfContext(workingInput, localVedicChartJson);
   localVedicChartJson.profile = {
     name: clean(localVedicChartJson?.pdfContext?.profile?.name || "사용자"),
   };
@@ -1640,11 +1709,21 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
 
   const signalValidation = validateVedicPremiumChartSignals(localVedicChartJson);
   if (!signalValidation.ok) {
-    const error = new Error("베다 차트 계산을 완료하지 못했습니다. 출생 정보와 지역 정보를 확인해 주세요.");
-    error.code = "VEDIC_CHART_SOURCE_INVALID";
-    error.status = 422;
-    error.details = signalValidation;
-    throw error;
+    if (!chartRecoveryApplied) {
+      const safeChartSource = fallbackChartSourceFromBirthInput(birthInput);
+      workingInput = buildSafeVedicRawInput(rawInput, birthInput, safeChartSource);
+      localVedicChartJson = buildVedicLocalChartJson(workingInput, { strictPremium: false });
+      localVedicChartJson.pdfContext = normalizeVedicPdfContext(workingInput, localVedicChartJson);
+      chartRecoveryApplied = true;
+    }
+    const recoveredSignalValidation = validateVedicPremiumChartSignals(localVedicChartJson);
+    if (!recoveredSignalValidation.ok) {
+      const error = new Error("베다 차트 계산을 완료하지 못했습니다. 출생 정보와 지역 정보를 확인해 주세요.");
+      error.code = "VEDIC_CHART_SOURCE_INVALID";
+      error.status = 422;
+      error.details = recoveredSignalValidation;
+      throw error;
+    }
   }
 
   if (clean(localVedicChartJson?.calculationMode) === "full") {
@@ -1732,7 +1811,7 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
   });
 
   let finalChapters = localDraft.chapters;
-  let manuscriptSource = "local-only";
+  let manuscriptSource = "local";
 
   let finalValidation = validateVedicFinalManuscript({
     birthInput,
@@ -1742,7 +1821,7 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
 
   if (!finalValidation.ok) {
     finalChapters = localDraft.chapters;
-    manuscriptSource = "local-only";
+    manuscriptSource = "local";
     finalValidation = validateVedicFinalManuscript({
       birthInput,
       localVedicChartJson,
@@ -1753,7 +1832,7 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
   if (!finalValidation.ok) {
     const recoveredFinal = expandVedicLocalManuscript(finalChapters, localVedicChartJson);
     finalChapters = recoveredFinal;
-    manuscriptSource = "local-only";
+    manuscriptSource = "local";
     finalValidation = validateVedicFinalManuscript({
       birthInput,
       localVedicChartJson,

@@ -378,9 +378,9 @@
     var endpoints = _buildApiCandidates(VEDIC_PLANETS_API);
     var body = _buildVedicChartRequest(profile, birthInput);
     var endpointIndex = 0;
-    function run(resolve, reject, lastErr) {
+    function run(resolve, lastErr) {
       if (endpointIndex >= endpoints.length) {
-        reject(new Error(lastErr || '베다점 계산 API 호출에 실패했습니다.'));
+        resolve(null);
         return;
       }
       var url = endpoints[endpointIndex++];
@@ -392,11 +392,11 @@
         .then(function (res) { return res.json().catch(function () { return {}; }).then(function (json) { return { res: res, json: json }; }); })
         .then(function (pack) {
           if (pack.res.ok && pack.json && pack.json.ok !== false) { resolve(pack.json); return; }
-          run(resolve, reject, (pack.json && (pack.json.message || pack.json.error || pack.json.code)) || ('HTTP ' + pack.res.status));
+          run(resolve, (pack.json && (pack.json.message || pack.json.error || pack.json.code)) || ('HTTP ' + pack.res.status));
         })
-        .catch(function (error) { run(resolve, reject, String(error && error.message || error || '요청 실패')); });
+        .catch(function (error) { run(resolve, String(error && error.message || error || '요청 실패')); });
     }
-    return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
+    return new Promise(function (resolve) { run(resolve, ''); });
   }
 
   function _buildVedicBase(profile, chart, birthInput) {
@@ -423,6 +423,35 @@
         lon: Number(normalized.longitude != null ? normalized.longitude : 126.9780),
       },
     };
+  }
+
+  function _renderVedicSectionBody(body) {
+    var lines = String(body || '').split(/\n+/).map(function (line) { return _clean(line); }).filter(Boolean);
+    var titleMap = {
+      '핵심 진단': true,
+      '차트 근거': true,
+      '현실에서 드러나는 모습': true,
+      '주의해야 할 흐름': true,
+      '베다 마스터의 조언': true,
+      '실천 과제': true,
+    };
+    return lines.map(function (line) {
+      var safe = _sanitizeText(line);
+      if (!safe) return '';
+      if (titleMap[safe]) return '<h4 class="vd-section-heading">' + safe + '</h4>';
+      return '<p>' + safe + '</p>';
+    }).join('');
+  }
+
+  function _resolveVedicDownloadUrl(result) {
+    var payload = result || {};
+    return _clean(
+      payload.downloadUrl
+      || payload.pdfUrl
+      || payload.htmlUrl
+      || (payload.pdfReady && (payload.pdfReady.downloadUrl || payload.pdfReady.pdfUrl || payload.pdfReady.htmlUrl))
+      || (payload.reportId ? ('/api/premium/pdf-archive/' + encodeURIComponent(payload.reportId)) : '')
+    );
   }
 
   function _showScreen(screenId) {
@@ -562,7 +591,7 @@
         var categories = Array.isArray(chapter.categories) ? chapter.categories : [];
         for (var categoryIndex = 0; categoryIndex < categories.length; categoryIndex += 1) {
           var category = categories[categoryIndex] || {};
-          html += '<article class="lb-sub-card"><h5 class="lb-sub-title">' + _sanitizeText(category.title || ('세부 카테고리 ' + (categoryIndex + 1))) + '</h5><p class="lb-sub-body">' + _sanitizeText(category.text || category.localSummary || '') + '</p></article>';
+          html += '<article class="lb-sub-card"><h5 class="lb-sub-title">' + _sanitizeText(category.title || ('세부 카테고리 ' + (categoryIndex + 1))) + '</h5><div class="lb-sub-body vd-section-body">' + _renderVedicSectionBody(category.text || category.localSummary || category.body || '') + '</div></article>';
         }
         sectionEl.innerHTML = html;
         content.appendChild(sectionEl);
@@ -730,6 +759,16 @@
 
     Promise.resolve()
       .then(function () {
+        return _fetchVedicChart(profile, birthInput).then(function (chart) {
+          if (chart) {
+            _logStage('VedicPlanetsPrecalcReady', { source: _clean(chart && chart.source) || 'server-vedic' });
+          } else {
+            _logStage('VedicPlanetsPrecalcSkipped', { reason: 'unavailable' });
+          }
+          return chart;
+        });
+      })
+      .then(function (chart) {
         _setLoadingProgress(2, VEDIC_TOTAL_CHAPTERS, '나크샤트라와 카라카를 해석하는 중입니다');
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '베다 점성술 리포트를 완성하는 중입니다');
         _logStage('SessionCreateStart', { endpoint: VEDIC_PREPARE_API, featureKey: VEDIC_FEATURE_KEY });
@@ -752,6 +791,9 @@
           premiumAccessToken: _readPremiumAccessToken() || _extractPremiumToken(_lastPremiumPayment) || undefined,
           payment: paymentContext || undefined,
           birthInput: birthInput,
+          reportType: 'vedicPremium',
+          mode: 'personal',
+          vedicBase: chart ? _buildVedicBase(profile, chart, birthInput) : null,
         }).then(function (data) {
           _logStage('SessionCreateSuccess', {
             chapterCount: Number(data && data.chapterCount || 0),
@@ -807,17 +849,16 @@
       alert('리포트가 아직 준비되지 않았습니다. 먼저 생성해 주세요.');
       return;
     }
-    var storedUrl = _clean(
-      _resultPayload.pdfUrl
-      || _resultPayload.htmlUrl
-      || _resultPayload.downloadUrl
-      || (_resultPayload.pdfReady && (_resultPayload.pdfReady.pdfUrl || _resultPayload.pdfReady.downloadUrl || _resultPayload.pdfReady.htmlUrl))
-    );
+    var storedUrl = _resolveVedicDownloadUrl(_resultPayload);
     if (storedUrl) {
-      var openStored = window.open(storedUrl, '_blank');
-      if (!openStored) {
-        alert('팝업이 차단되어 다운로드를 열 수 없습니다. 팝업 허용 후 다시 시도해 주세요.');
-      }
+      var anchor = document.createElement('a');
+      anchor.href = storedUrl;
+      anchor.target = '_blank';
+      anchor.rel = 'noopener noreferrer';
+      anchor.download = _clean(_resultPayload && _resultPayload.pdfReady && _resultPayload.pdfReady.filename) || 'vedic-premium-report.html';
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
       return;
     }
 

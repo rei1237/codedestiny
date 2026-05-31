@@ -88,11 +88,43 @@
   function _sanitizeText(v) {
     return String(v || '')
       .replace(/\b(undefined|null|nan)\b/gi, '')
-      .replace(/\b(payload|json|localdraft|fallback|llm)\b/gi, '')
+      .replace(/\b(payload|json|localdraft|fallback|llm|api|debug|object|recovered|calculationmode|swiss_required|astro_chart_seed_failed)\b/gi, '')
       .replace(/chapter\s*1/gi, '')
       .replace(/자동\s*복구\s*생성/gi, '')
+      .replace(/internal\s*server\s*error/gi, '')
+      .replace(/데이터\s*부족/gi, '')
       .replace(/\s{2,}/g, ' ')
       .trim();
+  }
+
+  function _escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function _renderAstroSectionBody(text) {
+    var headingRe = /^(핵심 진단|차트 근거|현실에서 드러나는 모습|장점|주의점|상담사의 조언|실천 과제)$/;
+    var src = String(text || '')
+      .replace(/\r/g, '')
+      .replace(/\b(undefined|null|nan)\b/gi, '')
+      .replace(/\b(payload|json|localdraft|fallback|llm|api|debug|object|recovered|calculationmode|swiss_required|astro_chart_seed_failed)\b/gi, '')
+      .replace(/internal\s*server\s*error/gi, '')
+      .replace(/데이터\s*부족/gi, '')
+      .replace(/자동\s*복구\s*생성/gi, '')
+      .trim();
+    return src
+      .split(/\n+/)
+      .map(function (line) { return line.trim(); })
+      .filter(Boolean)
+      .map(function (line) {
+        if (headingRe.test(line)) return '<h4 class="lb-sub-head">' + _escapeHtml(line) + '</h4>';
+        return '<p class="lb-sub-paragraph">' + _escapeHtml(line) + '</p>';
+      })
+      .join('');
   }
 
   function _readPremiumAccessToken() {
@@ -225,13 +257,15 @@
   function _resolveAstroStoredUrl(payload) {
     var p = payload || {};
     var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
+    var fallbackArchive = p.reportId ? ('/api/premium/pdf-archive/' + encodeURIComponent(String(p.reportId))) : '';
     return _clean(
-      p.pdfUrl
+      p.downloadUrl
+      || p.pdfUrl
       || p.htmlUrl
-      || p.downloadUrl
+      || ready.downloadUrl
       || ready.pdfUrl
       || ready.htmlUrl
-      || ready.downloadUrl
+      || fallbackArchive
     );
   }
 
@@ -728,7 +762,7 @@
           var c = cats[i] || {};
           html += '<article class="lb-sub-card">'
             + '<h5 class="lb-sub-title">' + _sanitizeText(c.title || ('세부 카테고리 ' + (i + 1))) + '</h5>'
-            + '<p class="lb-sub-body">' + _sanitizeText(c.text || c.localSummary || '') + '</p>'
+            + '<div class="lb-sub-body">' + _renderAstroSectionBody(c.text || c.localSummary || '') + '</div>'
             + '</article>';
         }
         section.innerHTML = html;
@@ -1010,7 +1044,14 @@
     var url = _resolveAstroStoredUrl(_resultPayload);
 
     if (url) {
-      window.open(url, '_blank');
+      var a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.download = (_resultPayload && _resultPayload.pdfReady && _resultPayload.pdfReady.filename) || 'astro-premium-report.html';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
       return;
     }
 

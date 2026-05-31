@@ -875,6 +875,94 @@ const CHAPTER_TOPIC_GUIDE = Object.freeze({
   15: ["최종 진단", "핵심 강점", "즉시 실행 전략", "관계 유지 결론"],
 });
 
+const RELATION_MASTER_GUIDE = Object.freeze({
+  안괴: {
+    diagnosis: "강한 끌림과 불안이 함께 작동해 보호와 파괴가 빠르게 교차합니다.",
+    caution: "감정이 과열된 상태에서 결론을 내리면 상처가 누적됩니다.",
+    prescription: "감정 폭발 이후 30분 이상 쿨다운 후 대화를 재개하는 회복 규칙이 필수입니다.",
+  },
+  영친: {
+    diagnosis: "안정감과 친밀감이 크고 장기 관계 기반을 만들기 유리합니다.",
+    caution: "편안함에만 머무르면 핵심 갈등을 미루게 됩니다.",
+    prescription: "주 1회 관계 점검 대화를 통해 성장 과제를 함께 확인하세요.",
+  },
+  업태: {
+    diagnosis: "카르마적 과제와 성장 압력이 반복되는 관계입니다.",
+    caution: "같은 숙제를 감정으로만 처리하면 피로가 급격히 커집니다.",
+    prescription: "갈등 주제를 감정과 과제로 분리해 기록하고 재합의 주기를 고정하세요.",
+  },
+  우쇠: {
+    diagnosis: "정서 교류가 섬세해 따뜻하지만 누적 피로에 민감합니다.",
+    caution: "사소한 서운함이 쌓이면 갑작스러운 거리감으로 체감됩니다.",
+    prescription: "짧은 확인 대화를 자주 두어 오해를 당일 정리하는 습관이 중요합니다.",
+  },
+  위성: {
+    diagnosis: "목표 지향성이 높아 현실 성과를 만들기 좋지만 긴장이 쉽게 올라갑니다.",
+    caution: "성과 중심 대화만 반복되면 감정 결핍이 쌓입니다.",
+    prescription: "성과 회의 전에 감정 상태를 먼저 공유하는 순서를 고정하세요.",
+  },
+  명: {
+    diagnosis: "거울처럼 닮은 패턴이 강해 동질감과 반복 패턴이 동시에 나타납니다.",
+    caution: "서로의 약한 지점을 비슷한 방식으로 건드리면 갈등이 장기화됩니다.",
+    prescription: "같은 약점을 다르게 다루는 역할 규칙을 명시해 반복 고리를 끊으세요.",
+  },
+  기본: {
+    diagnosis: "서로의 감정 리듬이 다르므로 운영 규칙이 관계의 품질을 결정합니다.",
+    caution: "해석 차이를 방치하면 작은 오해가 큰 거리감으로 증폭됩니다.",
+    prescription: "연락-갈등-화해의 순서를 합의해 감정 회복 속도를 높이세요.",
+  },
+});
+
+const DISTANCE_MASTER_GUIDE = Object.freeze({
+  near: {
+    diagnosis: "근거리에서는 빠르게 가까워지고 빠르게 상처받는 특성이 강합니다.",
+    prescription: "감정이 과열되기 전 멈춤 신호와 재대화 시점을 미리 정하세요.",
+  },
+  middle: {
+    diagnosis: "중거리는 조율의 질이 관계 안정성을 결정합니다.",
+    prescription: "주간 점검 루틴으로 기대치와 감정 체온을 맞추는 것이 핵심입니다.",
+  },
+  far: {
+    diagnosis: "원거리는 자율성과 공백 관리가 핵심 과제입니다.",
+    prescription: "연락 리듬과 공백 허용 범위를 합의해 해석 오차를 줄이세요.",
+  },
+  unknown: {
+    diagnosis: "거리 기준이 불명확하면 기대치 충돌이 잦아질 수 있습니다.",
+    prescription: "초기 2주간 기본 연락 규칙을 먼저 합의해 기준을 세우세요.",
+  },
+});
+
+function selectRelationMasterGuide(relationType) {
+  const token = text(relationType);
+  if (token.includes("안괴")) return RELATION_MASTER_GUIDE.안괴;
+  if (token.includes("영친")) return RELATION_MASTER_GUIDE.영친;
+  if (token.includes("업태")) return RELATION_MASTER_GUIDE.업태;
+  if (token.includes("우쇠")) return RELATION_MASTER_GUIDE.우쇠;
+  if (token.includes("위성")) return RELATION_MASTER_GUIDE.위성;
+  if (token.includes("명")) return RELATION_MASTER_GUIDE.명;
+  return RELATION_MASTER_GUIDE.기본;
+}
+
+function buildStructuredSectionBody(blocks = {}) {
+  const core = sanitizeSukyoPremiumText(blocks.coreDiagnosis || "");
+  const manifestation = sanitizeSukyoPremiumText(blocks.manifestation || "");
+  const caution = sanitizeSukyoPremiumText(blocks.caution || "");
+  const prescription = sanitizeSukyoPremiumText(blocks.prescription || "");
+  return [
+    "[핵심 진단]",
+    core,
+    "",
+    "[관계에서 실제로 드러나는 모습]",
+    manifestation,
+    "",
+    "[주의해야 할 흐름]",
+    caution,
+    "",
+    "[실전 처방]",
+    prescription,
+  ].join("\n");
+}
+
 function buildSectionBody(localJson, chapter, sectionHeading, sectionIndex) {
   const chapterNo = safeNumber(chapter?.order || chapter?.chapterNo, 0);
   const sectionTag = `${chapterNo}장 ${sectionHeading}`;
@@ -885,6 +973,8 @@ function buildSectionBody(localJson, chapter, sectionHeading, sectionIndex) {
   const relationType = text(localJson?.relation?.typeKo || localJson?.relation?.type, "관계");
   const relationTheme = text(localJson?.relation?.relationTheme, "강한 끌림과 조율 과제가 공존하는 결");
   const distanceLabel = text(localJson?.relation?.distanceLabel, "중거리");
+  const selfProfile = localJson?.self?.profile || { love: `${selfName}은 상대의 감정 신호를 세심하게 읽으며 애정을 표현합니다.` };
+  const partnerProfile = localJson?.partner?.profile || { love: `${partnerName}은 안정감을 확인한 뒤 애정 표현을 넓혀 가는 경향이 있습니다.` };
   const chemistry = localJson?.relation?.chemistry || {};
   const emotional = safeNumber(chemistry?.emotional, 58);
   const communication = safeNumber(chemistry?.communication, 55);
@@ -902,43 +992,30 @@ function buildSectionBody(localJson, chapter, sectionHeading, sectionIndex) {
   const pastLifeTitle = text(localJson?.relation?.pastLife?.title, "오래된 약속의 인연");
   const pastLifeTask = text(localJson?.relation?.pastLife?.currentTask, "서로의 불안을 탓하지 않고 책임 있는 약속으로 바꾸는 일");
   const guide = CHAPTER_TOPIC_GUIDE[chapterNo] || ["관계 핵심", "감정 조율", "갈등 완화", "실행 습관"];
+  const relationMaster = selectRelationMasterGuide(relationType);
+  const distanceMaster = DISTANCE_MASTER_GUIDE[toDistanceTier(distanceLabel)] || DISTANCE_MASTER_GUIDE.unknown;
 
-  const moodOpeners = [
-    `${selfName}과 ${partnerName}의 인연을 ${sectionHeading} 관점에서 바라보면, 단순한 호감의 크기보다 감정이 움직이는 순서가 먼저 보입니다. ${selfStar}과 ${partnerStar} 조합은 처음 가까워질 때 마음의 문이 빠르게 열리지만, 그만큼 상처의 체감도도 진해지는 편입니다.`,
-    `${sectionHeading}을 깊게 보면 이 관계의 결은 명확합니다. ${relationType} 흐름의 중심에는 ${relationTheme}이 놓여 있고, ${distanceLabel} 거리는 둘의 마음을 자주 붙게도 하지만 때로는 같은 말을 다르게 받아들이게 만듭니다.`,
-    `${sectionHeading}에서 중요한 것은 누가 더 옳은지가 아닙니다. ${selfStar} 기질의 ${selfName}과 ${partnerStar} 기질의 ${partnerName}이 사랑을 확인하는 방식이 다르기 때문에, 같은 하루를 보내도 만족과 서운함이 엇갈릴 수 있다는 사실을 먼저 받아들이는 태도입니다.`,
-  ];
-  const variationIndex = Math.abs((chapterNo * 5 + sectionIndex * 3) % moodOpeners.length);
-
-  const paragraph1 = `${moodOpeners[variationIndex]} 관계 점수는 ${relationScore} 수준으로 읽히며, 이는 결과를 단정하는 숫자가 아니라 두 사람이 얼마나 의식적으로 관계를 다뤄야 하는지 알려 주는 신호에 가깝습니다. 서로를 향한 관심이 깊을수록 작은 오해도 크게 느껴질 수 있으니, 감정이 커질 때일수록 말의 속도를 늦추고 상대의 진짜 의도를 먼저 묻는 습관이 필요합니다. 특히 ${sectionTag} 장면에서는 첫 반응보다 확인 질문이 먼저입니다.`;
-
-  const paragraph2 = `감정 흐름을 세부적으로 보면 정서 밀도는 ${emotional}, 소통 민감도는 ${communication}, 충돌 위험도는 ${conflictRisk}, 회복 가능성은 ${recoveryPotential}, 장기 지속 가능성은 ${longTermPotential}의 결로 나타납니다. 이 조합은 뜨거움과 안정이 번갈아 나타나는 패턴이 강해, 좋은 날에는 단단히 붙고 힘든 날에는 갑자기 멀어진 듯 느껴질 수 있습니다. 그래서 ${sectionHeading}에서는 즉각적인 반응보다 확인의 리듬을 맞추는 것이 핵심이며, ${chapter.title} 흐름 안에서 이 규칙이 관계 체력을 좌우합니다.`;
-
-  const paragraph3 = `${selfName} 쪽 강점인 ${meStrength}은 관계를 따뜻하게 지키는 힘이지만, 그림자인 ${meShadow}으로 기울면 마음이 지친 뒤에야 감정을 꺼내는 문제가 생깁니다. ${partnerName} 쪽 강점인 ${otherStrength}은 현실 조율에 유리하지만, ${otherShadow}이 커지면 침묵이 길어져 상대를 불안하게 만들 수 있습니다. 두 사람 모두 잘못을 고치려 하기 전에 서로의 보호 본능을 이해하면, 공격과 방어의 반복이 크게 줄어듭니다. ${sectionHeading} 국면에서는 비난보다 맥락 설명이 먼저여야 갈등이 짧아집니다.`;
-
-  const paragraph4 = `이 관계가 쉽게 흔들리지 않으려면 대화의 순서를 정해 두는 것이 중요합니다. ${selfName}은 ${meAction} 원칙을 지키고, ${partnerName}은 ${otherAction} 원칙을 지키면 감정의 폭을 줄이지 않으면서도 상처의 깊이를 줄일 수 있습니다. 충돌이 벌어진 날에는 승패를 가르는 대화를 멈추고 ${resetLine} 같은 회복 문장을 사용해 관계의 안전선을 먼저 복원하세요. ${sectionTag}에서 이 한 가지 습관을 반복하면 신뢰의 체력이 누적됩니다.`;
-
-  const paragraph5 = `${guide[0]}과 ${guide[1]}을 현실에 옮길 때는 거창한 약속보다 작은 반복이 효과적입니다. 예를 들어 주 1회는 서로의 감정 속도를 점검하고, 갈등이 있었던 주에는 반드시 그 주 안에 화해 대화를 끝내는 식의 구체적 규칙을 두면 좋습니다. ${sectionHeading}의 핵심은 상대를 바꾸는 기술이 아니라, 두 사람이 함께 지킬 수 있는 관계 규칙을 만드는 용기입니다. ${chapter.title}에서 ${sectionHeading}은 감정의 크기보다 회복 속도를 우선하라는 메시지를 남깁니다.`;
-
+  const chapter10Boost = chapterNo === 10
+    ? `${selfName}과 ${partnerName}의 이별 원인은 주로 감정 과열 이후 설명 없는 침묵에서 시작됩니다. 마음이 남는 이유는 ${selfStar}宿과 ${partnerStar}宿의 미해결 애착이 반복되기 때문이며, 재회 가능 조건은 과거 충돌 패턴을 문장으로 합의하는 것입니다. 다시 만나도 반복될 문제는 연락 공백 해석과 상처 표현 방식이며, 재회 직후 절대 하지 말아야 할 행동은 지난 다툼의 승패를 즉시 판정하려는 태도입니다.`
+    : "";
+  const chapter11Boost = chapterNo === 11
+    ? `결혼 이후에는 생활 리듬, 돈, 가사, 가족 경계가 핵심 변수입니다. 장기 관계에서 강해지는 점은 ${selfName}의 ${meStrength}과 ${partnerName}의 ${otherStrength}이 상호 보완되는 구조이며, 지치게 되는 점은 ${meShadow}과 ${otherShadow}가 누적될 때입니다. 결혼 전에는 생활비 원칙, 가사 분담, 부모 개입 범위, 갈등 후 화해 규칙을 반드시 합의해야 합니다.`
+    : "";
   const chapter14Boost = chapterNo === 14
-    ? `${pastLifeTitle} 같은 상징은 두 사람의 끌림을 과장하기 위한 장치가 아니라, 왜 반복해서 같은 감정에 부딪히는지 이해하게 해 주는 거울입니다. ${pastLifeTask}라는 과제를 현실에서 풀어낼 때 비로소 인연은 집착이 아니라 성숙으로 이동합니다.`
-    : "";
-  const chapter15Boost = chapterNo === 15
-    ? `마지막 선택의 기준은 단순합니다. 서로의 약점을 찌르는 말보다 서로의 회복을 돕는 행동이 더 많아졌는지 확인하세요. 그 비율이 높아질수록 이 인연은 미래를 견딜 힘을 갖게 됩니다.`
+    ? `${pastLifeTitle}로 느껴지는 이유는 낯선 사람인데도 감정 반응이 익숙하게 반복되기 때문입니다. 전생 인연의 정체는 미완의 감정 과제가 현재 관계에서 다시 떠오르는 구조이며, 이번 생의 성장 과제는 ${pastLifeTask}입니다. 헤어져도 남는 감각은 미련보다 미해결 감정의 잔향에 가깝고, 이어갈지 놓아줄지의 기준은 서로가 성장 합의를 실제 행동으로 지키는지 여부입니다.`
     : "";
 
-  let out = sanitizeSukyoPremiumText([
-    paragraph1,
-    paragraph2,
-    paragraph3,
-    paragraph4,
-    paragraph5,
-    chapter14Boost,
-    chapter15Boost,
-  ].filter(Boolean).join("\n\n"));
+  const blocks = {
+    coreDiagnosis: `${sectionTag}의 핵심 진단은 ${selfName} ${selfStar}宿과 ${partnerName} ${partnerStar}宿의 감정 운영 방식이 다르게 반응한다는 점입니다. 관계 유형 ${relationType}은 ${relationMaster.diagnosis} ${distanceLabel} 흐름에서는 ${distanceMaster.diagnosis} 관계 점수 ${relationScore}, 정서 밀도 ${emotional}, 소통 민감도 ${communication}는 끌림의 강도보다 운영 규칙의 중요성을 보여줍니다. ${guide[0]}과 ${guide[1]}은 이 장에서 가장 먼저 고정해야 할 관계 축입니다.`,
+    manifestation: `${selfName}은 ${selfProfile.love} 경향으로 애정을 표현할 때 ${meStrength}이 강하게 드러나고, 불안이 커지면 ${meShadow}로 기울 수 있습니다. ${partnerName}은 ${partnerProfile.love} 흐름으로 반응하면서 ${otherStrength}으로 관계를 지지하지만 압박을 받으면 ${otherShadow} 패턴이 나타납니다. 두 사람이 함께 있을 때 감정 온도는 ${distanceLabel} 체감 안에서 빠르게 올라갔다가 급격히 식을 수 있으므로, ${sectionHeading} 장면에서는 말의 내용보다 말이 오가는 순서가 관계 체력에 더 큰 영향을 줍니다.`,
+    caution: `${relationType} 관계의 취약 지점은 ${relationMaster.caution}이라는 구조입니다. 특히 ${sectionTag}에서는 충돌 위험도 ${conflictRisk}, 장기 지속 가능성 ${longTermPotential}, 회복 가능성 ${recoveryPotential}의 균형이 무너지면 같은 주제가 반복됩니다. ${distanceMaster.diagnosis} 특성상 상대의 침묵을 거절로 해석하거나 연락 공백을 단정하면 상처가 누적되기 쉽습니다. ${guide[2]}와 ${guide[3]}을 합의 없이 넘기면 관계 피로가 커질 수 있습니다. ${chapter10Boost} ${chapter11Boost} ${chapter14Boost}`,
+    prescription: `실전 처방의 핵심은 연락 빈도보다 갈등 후 다시 대화하는 방식을 먼저 정하는 것입니다. ${selfName}은 ${meAction} 원칙을 유지하고 ${partnerName}은 ${otherAction} 원칙을 지키며, 감정이 올라온 순간에는 즉시 결론 대신 ${resetLine} 규칙을 적용하세요. ${relationMaster.prescription} 또한 ${distanceMaster.prescription}을 병행하면 재회와 장기 관계 모두에서 반복 상처를 줄일 수 있습니다. ${sectionTag}에서는 ${guide[0]}을 먼저 확인하고 ${guide[3]}으로 마무리하는 순서를 두 사람이 같은 문장으로 합의해야 관계 체력이 안정적으로 누적됩니다.`,
+  };
 
+  let out = buildStructuredSectionBody(blocks);
   while (out.length < (MIN_SECTION_LENGTH + 120)) {
-    out = sanitizeSukyoPremiumText(`${out}\n\n${sectionHeading}을 실전에서 지키려면 감정 표현, 생활 조율, 갈등 회복의 순서를 고정해야 합니다. ${sectionTag} 맥락에서 다음 다툼이 오기 전에 두 사람이 함께 지킬 한 줄 약속을 적고, 그 약속을 지키는 경험을 누적해 관계의 기반을 단단하게 만드세요.`);
+    blocks.prescription = `${blocks.prescription} ${sectionTag} 실전 운영에서는 주 1회 관계 점검, 갈등 당일 감정 기록, 24시간 내 화해 시도, 생활 합의문 업데이트를 반복하세요. ${chapterNo}장 ${sectionIndex + 1}번째 흐름에서 이 네 가지 루틴을 지키면 ${selfStar}宿과 ${partnerStar}宿 조합의 충돌을 줄이고 신뢰를 장기적으로 회복시키는 기반이 됩니다.`;
+    out = buildStructuredSectionBody(blocks);
   }
   return out;
 }
@@ -1061,6 +1138,9 @@ function validateRenderedManuscript(seed, chapters) {
 
   const relationTypeOk = Boolean(text(source?.relation?.typeKo || source?.compatibility?.relationType || compatibilityJson?.relation?.typeKo));
   if (!relationTypeOk) issues.push("relation.type");
+  const relationToken = text(source?.relation?.typeKo || source?.compatibility?.relationType || compatibilityJson?.relation?.typeKo).toLowerCase();
+  const selfStarToken = text(source?.self?.sukuyoStar || source?.userSukyo?.nameKo).toLowerCase();
+  const partnerStarToken = text(source?.partner?.sukuyoStar || source?.partnerSukyo?.nameKo).toLowerCase();
 
   if (!Array.isArray(chapters) || chapters.length !== SUKYO_PDF_CHAPTER_COUNT) issues.push("chapter.count");
 
@@ -1094,6 +1174,15 @@ function validateRenderedManuscript(seed, chapters) {
     for (const section of chapterSections) {
       const body = text(section.body);
       if (!body || body.length < MIN_SECTION_LENGTH) issues.push(`section.length.${chapterNo}`);
+      const normalizedBody = body.toLowerCase();
+      const hasRequiredDomainToken = Boolean(
+        (relationToken && normalizedBody.includes(relationToken))
+        || (selfStarToken && normalizedBody.includes(selfStarToken))
+        || (partnerStarToken && normalizedBody.includes(partnerStarToken)),
+      );
+      if (!hasRequiredDomainToken) {
+        issues.push(`section.domain_token.${chapterNo}`);
+      }
       const sectionForbiddenCount = countForbiddenTerms(body);
       forbiddenTermsCount += sectionForbiddenCount;
       if (sectionForbiddenCount > 0) {
@@ -1211,6 +1300,70 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
+function renderParagraphs(body) {
+  return sanitizeSukyoPremiumText(body)
+    .split(/\n{2,}|(?<=다\.)\s+(?=[가-힣])/g)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0)
+    .map((p) => `<p>${escapeHtml(p)}</p>`)
+    .join("");
+}
+
+function extractStructuredBlocks(body) {
+  const source = sanitizeSukyoPremiumText(body);
+  const re = /\[(핵심 진단|관계에서 실제로 드러나는 모습|주의해야 할 흐름|실전 처방)\]/g;
+  const hits = [];
+  let match;
+  while ((match = re.exec(source)) !== null) {
+    hits.push({ title: match[1], index: match.index, length: match[0].length });
+  }
+  if (!hits.length) return [];
+
+  const blocks = [];
+  for (let i = 0; i < hits.length; i += 1) {
+    const current = hits[i];
+    const next = hits[i + 1];
+    const start = current.index + current.length;
+    const end = next ? next.index : source.length;
+    const content = source.slice(start, end).trim();
+    if (!content) continue;
+    blocks.push({ title: current.title, body: content });
+  }
+  return blocks;
+}
+
+function renderSectionBody(body) {
+  const blocks = extractStructuredBlocks(body);
+  if (!blocks.length) return `<div class="section-body">${renderParagraphs(body)}</div>`;
+  return blocks.map((block) => `
+    <div class="section-block">
+      <h4 class="section-subtitle">${escapeHtml(block.title)}</h4>
+      <div class="section-body">${renderParagraphs(block.body)}</div>
+    </div>
+  `).join("");
+}
+
+function extractChapterSummary(chapter = {}, rel = "관계") {
+  const sections = Array.isArray(chapter.sections) ? chapter.sections : [];
+  const firstBody = text(sections[0]?.body);
+  const firstSentence = splitMeaningfulSentences(firstBody)[0] || "";
+  return firstSentence || `${rel} 흐름에서 ${text(chapter.title)}의 핵심 지점을 정리한 장입니다.`;
+}
+
+function extractChapterPrescription(chapter = {}) {
+  const sections = Array.isArray(chapter.sections) ? chapter.sections : [];
+  for (const section of sections) {
+    const body = text(section?.body);
+    const marker = body.indexOf("[실전 처방]");
+    if (marker >= 0) {
+      const picked = body.slice(marker + "[실전 처방]".length).trim();
+      const sentence = splitMeaningfulSentences(picked)[0] || "";
+      if (sentence) return sentence;
+    }
+  }
+  return "갈등 이후 재대화 시점과 생활 합의 문장을 먼저 정해 관계 회복 속도를 높이세요.";
+}
+
 export function renderSukyoPremiumPdf(chapters, seed) {
   const safeName = sanitizeSukyoPremiumText(seed?.userProfile?.name) || "사용자";
   const partnerName = sanitizeSukyoPremiumText(seed?.partnerProfile?.name) || "상대방";
@@ -1219,21 +1372,38 @@ export function renderSukyoPremiumPdf(chapters, seed) {
   const userHost = `${sanitizeSukyoPremiumText(seed?.userSukyo?.nameKo) || "?"}宿`;
   const partnerHost = `${sanitizeSukyoPremiumText(seed?.partnerSukyo?.nameKo) || "?"}宿`;
 
+  const relationSummary = sanitizeSukyoPremiumText(seed?.localSukuyoCompatibilityJson?.relation?.relationTheme)
+    || `${escapeHtml(rel)} 관계는 강한 끌림과 운영 규칙의 균형이 핵심입니다.`;
+  const distanceSummary = sanitizeSukyoPremiumText(seed?.localSukuyoCompatibilityJson?.relation?.distanceInterpretation?.theme)
+    || `${escapeHtml(distance)} 흐름에서는 감정 체온과 거리 조절이 동시에 중요합니다.`;
+  const strengthSummary = sanitizeSukyoPremiumText(seed?.localSukuyoCompatibilityJson?.relation?.strengthShadowMap?.complementSummary)
+    || `${escapeHtml(userHost)}과 ${escapeHtml(partnerHost)}의 강점은 상호 보완적이며 회복 규칙이 안정성을 높입니다.`;
+
   const toc = chapters.map((chapter) => `<li><span>제${chapter.order}장</span>${escapeHtml(chapter.title)}</li>`).join("");
   const chapterHtml = chapters.map((chapter) => {
+    const chapterSummary = extractChapterSummary(chapter, rel);
+    const chapterPrescription = extractChapterPrescription(chapter);
     const sections = chapter.sections.map((section) => `
-      <article class="section-card">
+      <section class="section-card">
         <h3>${escapeHtml(section.heading)}</h3>
-        <p>${escapeHtml(sanitizeSukyoPremiumText(section.body)).replace(/\n/g, "<br>")}</p>
-      </article>`).join("");
+        ${renderSectionBody(section.body)}
+      </section>`).join("");
 
     return `
       <section class="chapter">
         <p class="chapter-kicker">제${chapter.order}장</p>
         <h2>${escapeHtml(chapter.title)}</h2>
+        <p class="chapter-summary">${escapeHtml(chapterSummary)}</p>
         <div class="section-grid">${sections}</div>
+        <aside class="chapter-prescription">
+          <h4>이 장의 핵심 처방</h4>
+          <p>${escapeHtml(chapterPrescription)}</p>
+        </aside>
       </section>`;
   }).join("");
+
+  const finalPrescription = sanitizeSukyoPremiumText(seed?.localSukuyoCompatibilityJson?.relation?.roleActionGuide?.resetLine)
+    || "갈등 직후 감정-사실-합의 순서로 대화를 재개하는 규칙을 유지하세요.";
 
   const html = `<!DOCTYPE html>
 <html lang="ko">
@@ -1241,7 +1411,7 @@ export function renderSukyoPremiumPdf(chapters, seed) {
 <meta charset="UTF-8">
 <title>${escapeHtml(safeName)} x ${escapeHtml(partnerName)} 숙요점 프리미엄 궁합 PDF</title>
 <style>
-@page{margin:18mm 14mm}*{box-sizing:border-box}body{margin:0;background:#070817;color:#f7eefc;font-family:'Noto Serif KR','Gowun Dodum',serif;line-height:1.78}main{max-width:980px;margin:0 auto;padding:34px 24px 72px}.cover{min-height:720px;border:1px solid rgba(216,180,254,.34);border-radius:18px;padding:34px;background:radial-gradient(circle at 18% 8%,rgba(244,194,255,.25),transparent 32%),linear-gradient(145deg,#0a1029 0%,#251044 50%,#070817 100%);page-break-after:always}.cover img{width:min(420px,92%);display:block;margin:22px auto;border-radius:16px;border:1px solid rgba(255,255,255,.18);background:#15122a}.eyebrow{letter-spacing:.18em;text-transform:uppercase;color:#f7c7ff;font-size:12px}.cover h1{margin:10px 0 8px;font-size:38px;color:#fff7fb}.cover .subtitle{font-size:18px;color:#ffd7ef;margin:0 0 18px}.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:24px 0}.summary div{border:1px solid rgba(255,255,255,.13);border-radius:10px;padding:12px;background:rgba(14,20,45,.72)}.summary strong{display:block;color:#ffe8a3}.intro,.toc,.chapter{border:1px solid rgba(216,180,254,.22);border-radius:14px;background:rgba(13,18,40,.88);padding:20px;margin:22px 0;page-break-inside:avoid}.toc ol{columns:2;gap:28px}.toc li{break-inside:avoid;margin:0 0 8px;color:#eee1ff}.toc li span{color:#f9c6ff;margin-right:8px}.chapter{page-break-before:always}.chapter-kicker{margin:0 0 6px;color:#f8c8ff;letter-spacing:.12em;text-transform:uppercase}.chapter h2{margin:0 0 16px;color:#fff4c2;font-size:24px}.section-grid{display:grid;grid-template-columns:1fr;gap:12px}.section-card{border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:14px;background:linear-gradient(180deg,rgba(64,38,92,.72),rgba(18,24,48,.86))}.section-card h3{margin:0 0 8px;color:#ffd6f6;font-size:17px}.section-card p{margin:0;color:#f4edf7;white-space:normal}.notice{color:#d8c8ed;font-size:13px}@media print{body{background:#070817}.cover,.chapter{break-after:page}.toc ol{columns:1}}
+@page{margin:18mm 14mm}*{box-sizing:border-box}body{margin:0;background:#070817;color:#f7eefc;font-family:'Noto Serif KR','Gowun Dodum',serif;line-height:1.78}main{max-width:980px;margin:0 auto;padding:34px 24px 72px}.cover{min-height:720px;border:1px solid rgba(216,180,254,.34);border-radius:18px;padding:34px;background:radial-gradient(circle at 18% 8%,rgba(244,194,255,.25),transparent 32%),linear-gradient(145deg,#0a1029 0%,#251044 50%,#070817 100%);page-break-after:always}.cover img{width:min(420px,92%);display:block;margin:22px auto;border-radius:16px;border:1px solid rgba(255,255,255,.18);background:#15122a}.eyebrow{letter-spacing:.18em;text-transform:uppercase;color:#f7c7ff;font-size:12px}.cover h1{margin:10px 0 8px;font-size:38px;color:#fff7fb}.cover .subtitle{font-size:18px;color:#ffd7ef;margin:0 0 18px}.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:24px 0}.summary div{border:1px solid rgba(255,255,255,.13);border-radius:10px;padding:12px;background:rgba(14,20,45,.72)}.summary strong{display:block;color:#ffe8a3}.intro,.toc,.chapter,.bridge-card{border:1px solid rgba(216,180,254,.22);border-radius:14px;background:rgba(13,18,40,.88);padding:20px;margin:22px 0;page-break-inside:avoid}.toc ol{columns:2;gap:28px}.toc li{break-inside:avoid;margin:0 0 8px;color:#eee1ff}.toc li span{color:#f9c6ff;margin-right:8px}.chapter{page-break-before:always}.chapter-kicker{margin:0 0 6px;color:#f8c8ff;letter-spacing:.12em;text-transform:uppercase}.chapter h2{margin:0;color:#fff4c2;font-size:24px}.chapter-summary{margin:12px 0 16px;padding:12px 14px;border-radius:10px;border:1px solid rgba(245,208,254,.25);background:rgba(40,18,68,.56);color:#f6ecfb}.section-grid{display:grid;grid-template-columns:1fr;gap:12px}.section-card{border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:14px;background:linear-gradient(180deg,rgba(64,38,92,.72),rgba(18,24,48,.86));max-height:none;overflow:visible}.section-card h3{margin:0 0 8px;color:#ffd6f6;font-size:17px}.section-block{margin-top:10px}.section-block:first-of-type{margin-top:0}.section-subtitle{margin:0 0 8px;font-size:14px;color:#fde68a;letter-spacing:.02em}.section-body{display:flex;flex-direction:column;gap:12px}.section-body p{margin:0;color:#f4edf7;line-height:1.9;word-break:keep-all;overflow-wrap:break-word}.chapter-prescription{margin-top:14px;padding:14px;border-radius:12px;border:1px solid rgba(196,181,253,.32);background:linear-gradient(145deg,rgba(72,36,126,.55),rgba(22,22,48,.72))}.chapter-prescription h4{margin:0 0 8px;color:#fef3c7}.chapter-prescription p{margin:0;color:#f4edf7;line-height:1.84}.bridge-card h2{margin:0 0 8px;color:#fff4c2}.bridge-card p{margin:0;color:#f4edf7;line-height:1.86}.notice{color:#d8c8ed;font-size:13px}.final-prescription{page-break-before:always}@media print{body{background:#070817}.cover,.chapter,.final-prescription{break-after:page}.toc ol{columns:1}}
 </style>
 </head>
 <body>
@@ -1260,8 +1430,14 @@ export function renderSukyoPremiumPdf(chapters, seed) {
     <p class="notice">이 문서는 두 사람의 숙요 계산 결과를 기반으로 한 관계 운영 상담 리포트입니다.</p>
   </section>
   <section class="intro"><h2>해석 원칙</h2><p>본 리포트는 두 사람의 생년월일을 바탕으로 산출된 27숙 궁합 흐름을 관계 상담의 언어로 풀어낸 문서입니다. 모든 문장은 실제 관계에서 적용 가능한 선택과 행동을 중심으로 구성했습니다.</p></section>
+  <section class="bridge-card"><h2>관계 유형 요약</h2><p>${escapeHtml(relationSummary)}</p></section>
+  <section class="bridge-card"><h2>거리와 인연 강도 요약</h2><p>${escapeHtml(distanceSummary)} ${escapeHtml(strengthSummary)}</p></section>
   <section class="toc"><h2>15챕터 목차</h2><ol>${toc}</ol></section>
   ${chapterHtml}
+  <section class="bridge-card final-prescription">
+    <h2>최종 관계 처방 카드</h2>
+    <p>${escapeHtml(finalPrescription)}</p>
+  </section>
 </main>
 </body>
 </html>`;

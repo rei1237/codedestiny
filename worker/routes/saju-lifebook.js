@@ -268,6 +268,10 @@ const LIFEBOOK_FEATURE_KEY_ALIASES = new Set([
 const LIFEBOOK_MIN_CATEGORY_CHARS = 700;
 const LIFEBOOK_MIN_CHAPTER_CHARS = 4300;
 const LIFEBOOK_MIN_TOTAL_CHARS = 45000;
+const LIFEBOOK_BLOCKING_MIN_CATEGORY_CHARS = 250;
+const LIFEBOOK_BLOCKING_MIN_CHAPTER_CHARS = 1800;
+const LIFEBOOK_BLOCKING_MIN_TOTAL_CHARS = 25000;
+const LIFEBOOK_QUALITY_REPAIR_MAX_ROUNDS = 3;
 
 const LIFEBOOK_SESSION_LOCKS = globalThis.__LIFEBOOK_SESSION_LOCKS || new Map();
 if (!globalThis.__LIFEBOOK_SESSION_LOCKS) {
@@ -975,6 +979,341 @@ function countForbiddenTerms(chapters = []) {
   return count;
 }
 
+function sanitizeCategoryText(text = "", chapterId = "", categoryTitle = "", categoryIndex = 0, minLength = LIFEBOOK_BLOCKING_MIN_CATEGORY_CHARS) {
+  const baseText = dedupeParagraphs(stripForbiddenTokens(text));
+  const ensured = ensureCategoryLength(baseText, chapterId, categoryTitle, categoryIndex, Math.max(minLength, LIFEBOOK_BLOCKING_MIN_CATEGORY_CHARS));
+  return dedupeParagraphs(stripForbiddenTokens(ensured));
+}
+
+function sanitizeLifeBookChapters(profile, signals, chapters = []) {
+  const normalized = ensureCompleteLifeBookChapters(profile, signals, Array.isArray(chapters) ? chapters : []);
+  return normalized.map((chapter, chapterIndex) => {
+    const blueprint = CHAPTER_BLUEPRINTS[chapterIndex] || chapter;
+    const categories = (Array.isArray(chapter?.categories) ? chapter.categories : []).map((category, categoryIndex) => {
+      const expectedTitle = blueprint?.categories?.[categoryIndex] || category?.title || `카테고리 ${categoryIndex + 1}`;
+      const fallbackText = buildCategoryText(profile, signals, blueprint, expectedTitle, categoryIndex);
+      const rawText = clean(category?.finalText || category?.text || category?.localSummary || fallbackText);
+      const sanitized = sanitizeCategoryText(rawText || fallbackText, blueprint?.id || chapter?.id || "", expectedTitle, categoryIndex);
+      return {
+        ...category,
+        id: String(category?.id || `${categoryIndex + 1}`),
+        title: expectedTitle,
+        localSummary: sanitized,
+        finalText: sanitized,
+        order: categoryIndex + 1,
+      };
+    });
+
+    const chapterText = dedupeParagraphs(stripForbiddenTokens(buildChapterBody(blueprint?.title || chapter?.title || "", categories)));
+    return {
+      ...chapter,
+      id: blueprint?.id || chapter?.id,
+      roman: blueprint?.roman || chapter?.roman,
+      title: blueprint?.title || chapter?.title,
+      subtitle: blueprint?.subtitle || chapter?.subtitle,
+      categories,
+      localDraft: chapterText,
+      finalText: chapterText,
+      text: chapterText,
+      source: "local-only",
+    };
+  });
+}
+
+function validateLifeBookStructure(chapters = []) {
+  const blockingErrors = [];
+  const chapterMetrics = [];
+  const list = Array.isArray(chapters) ? chapters : [];
+  if (!Array.isArray(chapters) || !list.length) blockingErrors.push("chapter_array_missing");
+  if (list.length !== CHAPTER_BLUEPRINTS.length) blockingErrors.push("chapter_count");
+
+  let nonEmptyCategoryCount = 0;
+
+  CHAPTER_BLUEPRINTS.forEach((blueprint, idx) => {
+    const chapter = list[idx];
+    if (!chapter) {
+      blockingErrors.push(`chapter_${idx + 1}_missing`);
+      chapterMetrics.push({ chapterNo: idx + 1, title: clean(blueprint?.title), categoryCount: 0, chars: 0 });
+      return;
+    }
+
+    if (clean(chapter?.title) !== clean(blueprint?.title)) {
+      blockingErrors.push(`chapter_${idx + 1}_title_mismatch`);
+    }
+
+    const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
+    if (categories.length !== blueprint.categories.length) {
+      blockingErrors.push(`chapter_${idx + 1}_category_count`);
+    }
+
+    blueprint.categories.forEach((expectedTitle, cidx) => {
+      const category = categories[cidx];
+      if (!category) {
+        blockingErrors.push(`chapter_${idx + 1}_category_${cidx + 1}_missing`);
+        return;
+      }
+      if (clean(category?.title) !== clean(expectedTitle)) {
+        blockingErrors.push(`chapter_${idx + 1}_category_${cidx + 1}_title_mismatch`);
+      }
+      const body = clean(category?.finalText || category?.text || category?.localSummary || "");
+      if (body.length > 0) nonEmptyCategoryCount += 1;
+    });
+
+    chapterMetrics.push({
+      chapterNo: idx + 1,
+      title: clean(chapter?.title),
+      categoryCount: categories.length,
+      chars: chapterTextLength(chapter),
+    });
+  });
+
+  if (nonEmptyCategoryCount === 0) {
+    blockingErrors.push("all_category_text_empty");
+  }
+
+  return {
+    ok: blockingErrors.length === 0,
+    blockingErrors,
+    chapterMetrics,
+    chapterCount: list.length,
+    nonEmptyCategoryCount,
+  };
+}
+
+function evaluateLifeBookQuality(chapters = []) {
+  const list = Array.isArray(chapters) ? chapters : [];
+  const softWarnings = [];
+  const warningItems = [];
+
+  list.forEach((chapter, cidx) => {
+    const chapterChars = chapterTextLength(chapter);
+    if (chapterChars < LIFEBOOK_MIN_CHAPTER_CHARS) {
+      const code = `chapter_${cidx + 1}_too_short_recommended`;
+      softWarnings.push(code);
+      warningItems.push({ code, chapterIndex: cidx, categoryIndex: -1, severity: "medium" });
+    }
+    if (chapterChars < LIFEBOOK_BLOCKING_MIN_CHAPTER_CHARS) {
+      const code = `chapter_${cidx + 1}_too_short_critical`;
+      softWarnings.push(code);
+      warningItems.push({ code, chapterIndex: cidx, categoryIndex: -1, severity: "high" });
+    }
+
+    const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
+    categories.forEach((category, kidx) => {
+      const body = clean(category?.finalText || category?.text || category?.localSummary || "");
+
+      if (body.length < LIFEBOOK_MIN_CATEGORY_CHARS) {
+        const code = `chapter_${cidx + 1}_category_${kidx + 1}_too_short_recommended`;
+        softWarnings.push(code);
+        warningItems.push({ code, chapterIndex: cidx, categoryIndex: kidx, severity: "medium" });
+      }
+      if (body.length < LIFEBOOK_BLOCKING_MIN_CATEGORY_CHARS) {
+        const code = `chapter_${cidx + 1}_category_${kidx + 1}_too_short_critical`;
+        softWarnings.push(code);
+        warningItems.push({ code, chapterIndex: cidx, categoryIndex: kidx, severity: "high" });
+      }
+      if (hasForbiddenText(body)) {
+        const code = `chapter_${cidx + 1}_category_${kidx + 1}_forbidden_text`;
+        softWarnings.push(code);
+        warningItems.push({ code, chapterIndex: cidx, categoryIndex: kidx, severity: "high" });
+      }
+
+      const quality = evaluateCounselingQuality(body);
+      if (!quality.hasPracticalAdvice) {
+        const code = `chapter_${cidx + 1}_category_${kidx + 1}_practical_missing`;
+        softWarnings.push(code);
+        warningItems.push({ code, chapterIndex: cidx, categoryIndex: kidx, severity: "medium" });
+      }
+      if (!quality.hasPracticalAction) {
+        const code = `chapter_${cidx + 1}_category_${kidx + 1}_practical_action_missing`;
+        softWarnings.push(code);
+        warningItems.push({ code, chapterIndex: cidx, categoryIndex: kidx, severity: "medium" });
+      }
+      if (!quality.hasCounselorGrounding) {
+        const code = `chapter_${cidx + 1}_category_${kidx + 1}_counselor_grounding_missing`;
+        softWarnings.push(code);
+        warningItems.push({ code, chapterIndex: cidx, categoryIndex: kidx, severity: "medium" });
+      }
+      if (!quality.hasDirectCounselingTone) {
+        const code = `chapter_${cidx + 1}_category_${kidx + 1}_direct_tone_missing`;
+        softWarnings.push(code);
+        warningItems.push({ code, chapterIndex: cidx, categoryIndex: kidx, severity: "low" });
+      }
+      if (!quality.hasWarmEnding) {
+        const code = `chapter_${cidx + 1}_category_${kidx + 1}_warm_ending_missing`;
+        softWarnings.push(code);
+        warningItems.push({ code, chapterIndex: cidx, categoryIndex: kidx, severity: "low" });
+      }
+      if (quality.sentenceCount < 14) {
+        const code = `chapter_${cidx + 1}_category_${kidx + 1}_sentence_too_few`;
+        softWarnings.push(code);
+        warningItems.push({ code, chapterIndex: cidx, categoryIndex: kidx, severity: "medium" });
+      }
+    });
+
+    if (!validateChapterTopicCoverage(chapter)) {
+      const code = `chapter_${cidx + 1}_topic_coverage`;
+      softWarnings.push(code);
+      warningItems.push({ code, chapterIndex: cidx, categoryIndex: -1, severity: "medium" });
+    }
+  });
+
+  const totalLength = totalManuscriptLength(list);
+  if (totalLength < LIFEBOOK_MIN_TOTAL_CHARS) {
+    softWarnings.push("total_too_short_recommended");
+    warningItems.push({ code: "total_too_short_recommended", chapterIndex: -1, categoryIndex: -1, severity: "medium" });
+  }
+  if (totalLength < LIFEBOOK_BLOCKING_MIN_TOTAL_CHARS) {
+    softWarnings.push("total_too_short_critical");
+    warningItems.push({ code: "total_too_short_critical", chapterIndex: -1, categoryIndex: -1, severity: "high" });
+  }
+
+  const forbiddenHits = countForbiddenTerms(list);
+  if (forbiddenHits > 0) {
+    softWarnings.push("forbidden_terms_detected");
+    warningItems.push({ code: "forbidden_terms_detected", chapterIndex: -1, categoryIndex: -1, severity: "high" });
+  }
+
+  const repScore = repetitionScore(list);
+  const repetitionLimit = allowedLifeBookRepetitionScore(list);
+  if (repScore > repetitionLimit) {
+    softWarnings.push("repetition_detected");
+    warningItems.push({ code: "repetition_detected", chapterIndex: -1, categoryIndex: -1, severity: "medium" });
+  }
+
+  const uniqueWarnings = Array.from(new Set(softWarnings));
+  const highCount = warningItems.filter((item) => item.severity === "high").length;
+  const mediumCount = warningItems.filter((item) => item.severity === "medium").length;
+  const lowCount = warningItems.filter((item) => item.severity === "low").length;
+  const qualityScore = clamp(100 - ((highCount * 4) + (mediumCount * 2) + (lowCount * 1)), 35, 100);
+
+  return {
+    ok: true,
+    totalLength,
+    forbiddenHits,
+    repetitionScore: repScore,
+    repetition: {
+      ok: repScore <= repetitionLimit,
+      score: repScore,
+      limit: repetitionLimit,
+    },
+    chapterMetrics: list.map((chapter, idx) => ({
+      chapterNo: idx + 1,
+      title: clean(chapter?.title),
+      categoryCount: Array.isArray(chapter?.categories) ? chapter.categories.length : 0,
+      chars: chapterTextLength(chapter),
+    })),
+    softWarnings: uniqueWarnings,
+    warningItems,
+    qualityScore,
+  };
+}
+
+function repairLifeBookStructure(profile, signals, chapters = []) {
+  return sanitizeLifeBookChapters(profile, signals, ensureCompleteLifeBookChapters(profile, signals, chapters));
+}
+
+function repairLifeBookQualityIssues(profile, signals, chapters = [], qualityReport = {}) {
+  const list = sanitizeLifeBookChapters(profile, signals, chapters);
+  const items = Array.isArray(qualityReport?.warningItems) ? qualityReport.warningItems : [];
+  const targetSet = new Set();
+
+  items.forEach((item) => {
+    const chapterIndex = Number(item?.chapterIndex);
+    const categoryIndex = Number(item?.categoryIndex);
+    if (!Number.isFinite(chapterIndex) || !Number.isFinite(categoryIndex)) return;
+    if (chapterIndex < 0 || categoryIndex < 0) return;
+    targetSet.add(`${chapterIndex}:${categoryIndex}`);
+  });
+
+  if (!targetSet.size) {
+    return { chapters: list, repairedCategoryCount: 0 };
+  }
+
+  let repairedCategoryCount = 0;
+  const repaired = list.map((chapter, chapterIndex) => {
+    const blueprint = CHAPTER_BLUEPRINTS[chapterIndex] || chapter;
+    const categories = (Array.isArray(chapter?.categories) ? chapter.categories : []).map((category, categoryIndex) => {
+      const key = `${chapterIndex}:${categoryIndex}`;
+      if (!targetSet.has(key)) return category;
+      const categoryTitle = blueprint?.categories?.[categoryIndex] || category?.title || `카테고리 ${categoryIndex + 1}`;
+      const regenerated = buildCategoryText(profile, signals, blueprint, categoryTitle, categoryIndex);
+      const finalText = sanitizeCategoryText(regenerated, blueprint?.id || chapter?.id || "", categoryTitle, categoryIndex, LIFEBOOK_MIN_CATEGORY_CHARS);
+      repairedCategoryCount += 1;
+      return {
+        ...category,
+        id: String(category?.id || `${categoryIndex + 1}`),
+        title: categoryTitle,
+        localSummary: finalText,
+        finalText,
+        order: categoryIndex + 1,
+      };
+    });
+    const chapterText = dedupeParagraphs(stripForbiddenTokens(buildChapterBody(blueprint?.title || chapter?.title || "", categories)));
+    return {
+      ...chapter,
+      id: blueprint?.id || chapter?.id,
+      roman: blueprint?.roman || chapter?.roman,
+      title: blueprint?.title || chapter?.title,
+      subtitle: blueprint?.subtitle || chapter?.subtitle,
+      categories,
+      localDraft: chapterText,
+      finalText: chapterText,
+      text: chapterText,
+      source: "local-only",
+    };
+  });
+
+  return {
+    chapters: sanitizeLifeBookChapters(profile, signals, repaired),
+    repairedCategoryCount,
+  };
+}
+
+function finalizeLifeBookManuscript(profile, signals, chapters = [], options = {}) {
+  const maxRounds = clamp(Number(options?.maxRounds || LIFEBOOK_QUALITY_REPAIR_MAX_ROUNDS), 1, 4);
+  let repairedCategoryCount = 0;
+
+  let working = sanitizeLifeBookChapters(profile, signals, chapters);
+  let structureReport = validateLifeBookStructure(working);
+  if (!structureReport.ok) {
+    working = repairLifeBookStructure(profile, signals, working);
+    structureReport = validateLifeBookStructure(working);
+  }
+
+  let qualityReport = evaluateLifeBookQuality(working);
+  let rounds = 0;
+  while (qualityReport.softWarnings.length > 0 && rounds < maxRounds) {
+    const repaired = repairLifeBookQualityIssues(profile, signals, working, qualityReport);
+    if (!repaired.repairedCategoryCount) break;
+    repairedCategoryCount += repaired.repairedCategoryCount;
+    working = sanitizeLifeBookChapters(profile, signals, repaired.chapters);
+    qualityReport = evaluateLifeBookQuality(working);
+    rounds += 1;
+  }
+
+  if (qualityReport.softWarnings.length > 0) {
+    const deterministic = repairLifeBookQualityIssues(profile, signals, working, qualityReport);
+    if (deterministic.repairedCategoryCount > 0) {
+      repairedCategoryCount += deterministic.repairedCategoryCount;
+      working = sanitizeLifeBookChapters(profile, signals, deterministic.chapters);
+      qualityReport = evaluateLifeBookQuality(working);
+    }
+  }
+
+  structureReport = validateLifeBookStructure(working);
+
+  return {
+    chapters: working,
+    structureReport,
+    qualityReport,
+    repairedCategoryCount,
+    qualityWarnings: qualityReport.softWarnings,
+    qualityScore: qualityReport.qualityScore,
+    rounds,
+  };
+}
+
 function allowedLifeBookRepetitionScore(chapters = []) {
   const list = Array.isArray(chapters) ? chapters : [];
   const categoryCount = list.reduce((sum, chapter) => sum + (Array.isArray(chapter?.categories) ? chapter.categories.length : 0), 0);
@@ -1007,83 +1346,18 @@ function evaluateCounselingQuality(text = "") {
 }
 
 function validateLifeBookFinalManuscript(chapters = []) {
-  const errors = [];
-  const chapterMetrics = [];
-  const list = Array.isArray(chapters) ? chapters : [];
-  if (list.length !== CHAPTER_BLUEPRINTS.length) errors.push("chapter_count");
-  list.forEach((chapter, idx) => {
-    const blueprint = CHAPTER_BLUEPRINTS[idx] || { categories: [] };
-    const bodyLength = chapterTextLength(chapter);
-    if (!chapter) errors.push(`chapter_${idx + 1}_missing`);
-    if (clean(chapter?.title) !== clean(blueprint.title)) errors.push(`chapter_${idx + 1}_title_mismatch`);
-    if (bodyLength < LIFEBOOK_MIN_CHAPTER_CHARS) errors.push(`chapter_${idx + 1}_too_short`);
-    const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
-    if (categories.length !== blueprint.categories.length) errors.push(`chapter_${idx + 1}_category_count`);
-    categories.forEach((category, cidx) => {
-      const expectedTitle = blueprint.categories[cidx] || "";
-      const body = clean(category?.finalText || category?.text || category?.localSummary || "");
-      if (clean(category?.title) !== clean(expectedTitle)) {
-        errors.push(`chapter_${idx + 1}_category_${cidx + 1}_title_mismatch`);
-      }
-      if (body.length < LIFEBOOK_MIN_CATEGORY_CHARS) {
-        errors.push(`chapter_${idx + 1}_category_${cidx + 1}_too_short`);
-      }
-      if (hasForbiddenText(body)) {
-        errors.push(`chapter_${idx + 1}_category_${cidx + 1}_forbidden_text`);
-      }
-      const quality = evaluateCounselingQuality(body);
-      if (!quality.hasPracticalAdvice) {
-        errors.push(`chapter_${idx + 1}_category_${cidx + 1}_practical_missing`);
-      }
-      if (!quality.hasPracticalAction) {
-        errors.push(`chapter_${idx + 1}_category_${cidx + 1}_practical_action_missing`);
-      }
-      if (!quality.hasCounselorGrounding) {
-        errors.push(`chapter_${idx + 1}_category_${cidx + 1}_counselor_grounding_missing`);
-      }
-      if (!quality.hasDirectCounselingTone) {
-        errors.push(`chapter_${idx + 1}_category_${cidx + 1}_direct_tone_missing`);
-      }
-      if (!quality.hasWarmEnding) {
-        errors.push(`chapter_${idx + 1}_category_${cidx + 1}_warm_ending_missing`);
-      }
-      if (quality.sentenceCount < 14) {
-        errors.push(`chapter_${idx + 1}_category_${cidx + 1}_sentence_too_few`);
-      }
-    });
-
-    chapterMetrics.push({
-      chapterNo: idx + 1,
-      title: clean(chapter?.title),
-      categoryCount: categories.length,
-      chars: bodyLength,
-    });
-  });
-  const totalLength = totalManuscriptLength(list);
-  if (totalLength < LIFEBOOK_MIN_TOTAL_CHARS) errors.push("total_too_short");
-  const forbiddenHits = countForbiddenTerms(list);
-  if (forbiddenHits > 0) errors.push("forbidden_terms_detected");
-  const repScore = repetitionScore(list);
-  const repetitionLimit = allowedLifeBookRepetitionScore(list);
-  if (repScore > repetitionLimit) errors.push("repetition_detected");
-  list.forEach((chapter, index) => {
-    if (!validateChapterTopicCoverage(chapter)) errors.push(`chapter_${index + 1}_topic_coverage`);
-  });
-
-  const repetition = {
-    ok: repScore <= repetitionLimit,
-    score: repScore,
-    limit: repetitionLimit,
-  };
-
+  const structure = validateLifeBookStructure(chapters);
+  const quality = evaluateLifeBookQuality(chapters);
   return {
-    ok: errors.length === 0,
-    errors,
-    totalLength,
-    chapterMetrics,
-    forbiddenHits,
-    repetition,
-    repetitionScore: repScore,
+    ok: structure.ok,
+    errors: structure.blockingErrors,
+    softWarnings: quality.softWarnings,
+    totalLength: quality.totalLength,
+    chapterMetrics: quality.chapterMetrics,
+    forbiddenHits: quality.forbiddenHits,
+    repetition: quality.repetition,
+    repetitionScore: quality.repetitionScore,
+    qualityScore: quality.qualityScore,
   };
 }
 
@@ -1866,37 +2140,15 @@ function ensureCompleteLifeBookChapters(profile, signals, chapters = []) {
 }
 
 function validateLifeBookChapters(chapters = []) {
-  const errors = [];
-  if (!Array.isArray(chapters) || chapters.length !== CHAPTER_BLUEPRINTS.length) {
-    errors.push("chapter_count");
-  }
-
-  (chapters || []).forEach((chapter, index) => {
-    const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
-    const expectedCategoryCount = Array.isArray(CHAPTER_BLUEPRINTS[index]?.categories)
-      ? CHAPTER_BLUEPRINTS[index].categories.length
-      : 6;
-    if (categories.length !== expectedCategoryCount) {
-      errors.push(`chapter_${index + 1}_category_count`);
-    }
-    const chapterBody = stripForbiddenTokens(chapter?.finalText || chapter?.text);
-    if (!stripForbiddenTokens(chapter?.title) || chapterBody.length < LIFEBOOK_MIN_CHAPTER_CHARS) {
-      errors.push(`chapter_${index + 1}_body`);
-    }
-    if (!validateChapterTopicCoverage(chapter)) {
-      errors.push(`chapter_${index + 1}_topic`);
-    }
-    categories.forEach((category, categoryIndex) => {
-      if (!stripForbiddenTokens(category?.title)) {
-        errors.push(`chapter_${index + 1}_category_${categoryIndex + 1}_title`);
-      }
-      if (stripForbiddenTokens(category?.finalText).length < LIFEBOOK_MIN_CATEGORY_CHARS) {
-        errors.push(`chapter_${index + 1}_category_${categoryIndex + 1}_text`);
-      }
-    });
-  });
-
-  return { ok: errors.length === 0, errors };
+  const structure = validateLifeBookStructure(chapters);
+  const quality = evaluateLifeBookQuality(chapters);
+  return {
+    ok: structure.ok,
+    errors: structure.blockingErrors,
+    warnings: quality.softWarnings,
+    qualityScore: quality.qualityScore,
+    chapterMetrics: quality.chapterMetrics,
+  };
 }
 
 function parseFailedLifeBookChapterIndexes(errors = []) {
@@ -1927,45 +2179,10 @@ function reinforceFailedLifeBookChapters(profile, signals, chapters = [], errors
 }
 
 function repairLifeBookChaptersUntilValid(profile, signals, chapters = [], errors = []) {
-  let repaired = ensureCompleteLifeBookChapters(profile, signals, reinforceFailedLifeBookChapters(profile, signals, chapters, errors)).map((chapter, index) => {
-    const blueprint = CHAPTER_BLUEPRINTS[index] || chapter;
-    const categories = (Array.isArray(chapter?.categories) ? chapter.categories : []).map((category, categoryIndex) => {
-      const fallbackText = buildCategoryText(profile, signals, blueprint, blueprint.categories[categoryIndex] || category?.title || "핵심 해석", categoryIndex);
-      const cleaned = dedupeParagraphs(stripForbiddenTokens(category?.finalText || category?.localSummary || fallbackText));
-      const nextText = hasForbiddenText(cleaned) || cleaned.length < LIFEBOOK_MIN_CATEGORY_CHARS
-        ? fallbackText
-        : ensureCategoryLength(cleaned, blueprint.id, blueprint.categories[categoryIndex] || category?.title || "핵심 해석", categoryIndex);
-      return {
-        ...category,
-        id: String(category?.id || `${categoryIndex + 1}`),
-        title: blueprint.categories[categoryIndex] || category?.title || `카테고리 ${categoryIndex + 1}`,
-        finalText: nextText,
-        localSummary: stripForbiddenTokens(nextText),
-      };
-    });
-    const chapterText = buildChapterBody(blueprint.title, categories);
-    return {
-      ...chapter,
-      id: blueprint.id,
-      roman: blueprint.roman,
-      title: blueprint.title,
-      subtitle: blueprint.subtitle,
-      categories,
-      localDraft: chapterText,
-      finalText: dedupeParagraphs(chapterText),
-      text: dedupeParagraphs(chapterText),
-      source: "local-only",
-    };
-  });
-
-  repaired = ensureCompleteLifeBookChapters(profile, signals, repaired).map((chapter) => ({
-    ...chapter,
-    finalText: dedupeParagraphs(stripForbiddenTokens(chapter.finalText || chapter.text || buildChapterBody(chapter.title, chapter.categories))),
-    text: dedupeParagraphs(stripForbiddenTokens(chapter.text || chapter.finalText || buildChapterBody(chapter.title, chapter.categories))),
-    source: "local-only",
-  }));
-
-  return repaired;
+  const base = sanitizeLifeBookChapters(profile, signals, reinforceFailedLifeBookChapters(profile, signals, chapters, errors));
+  const quality = evaluateLifeBookQuality(base);
+  const repaired = repairLifeBookQualityIssues(profile, signals, base, quality);
+  return sanitizeLifeBookChapters(profile, signals, repaired.chapters);
 }
 
 function renderLifeBookPdf({ profile, signals, chapters, generatedAt }) {
@@ -2076,6 +2293,30 @@ function renderLifeBookPdf({ profile, signals, chapters, generatedAt }) {
 function buildLifeBookDocument(input) {
   return renderLifeBookPdf(input);
 }
+
+export const __lifeBookTestUtils = {
+  CHAPTER_BLUEPRINTS,
+  LIFEBOOK_MIN_CATEGORY_CHARS,
+  LIFEBOOK_MIN_CHAPTER_CHARS,
+  LIFEBOOK_MIN_TOTAL_CHARS,
+  LIFEBOOK_BLOCKING_MIN_CATEGORY_CHARS,
+  LIFEBOOK_BLOCKING_MIN_CHAPTER_CHARS,
+  LIFEBOOK_BLOCKING_MIN_TOTAL_CHARS,
+  stripForbiddenTokens,
+  ensureCategoryLength,
+  buildCategoryText,
+  buildLifeBookChapters,
+  buildLifeBookFallbackChapters,
+  ensureCompleteLifeBookChapters,
+  validateLifeBookStructure,
+  evaluateLifeBookQuality,
+  repairLifeBookQualityIssues,
+  finalizeLifeBookManuscript,
+  validateLifeBookFinalManuscript,
+  validateLifeBookChapters,
+  buildLifeBookDocument,
+  buildPdfReadyPayload,
+};
 
 function buildPdfReadyPayload(profile, chapters, metadata = {}) {
   return {
@@ -2190,7 +2431,7 @@ async function handlePrepare(request, env) {
       ok: false,
       serviceKey: LIFEBOOK_SERVICE_KEY,
       message,
-      code: paymentConfirmedButMissing ? "PAYMENT_CONFIRMED_BUT_ACCESS_MISSING" : (access?.code || "PAYMENT_REQUIRED"),
+      code: paymentConfirmedButMissing ? "PAYMENT_CONFIRMED_BUT_ACCESS_MISSING" : "LIFEBOOK_ACCESS_DENIED",
       debugSafe: {
         featureKey,
         hasSessionId,
@@ -2253,51 +2494,144 @@ async function handlePrepare(request, env) {
   });
   logLifeBookServer("LocalDraftBuildSuccess", { chapterCount: localChapters.length, sessionId });
 
-  let localValidation = validateLifeBookFinalManuscript(localChapters);
+  const localQuality = evaluateLifeBookQuality(localChapters);
   logLifeBookServer("LocalQualityValidated", {
     sessionId,
-    ok: localValidation.ok,
-    totalLength: localValidation.totalLength,
-    forbiddenTermsCount: localValidation.forbiddenHits,
-    repetitionScore: localValidation.repetitionScore,
-    errors: localValidation.ok ? [] : localValidation.errors,
+    reportId,
+    chapterCount: localChapters.length,
+    totalLength: localQuality.totalLength,
+    softWarnings: localQuality.softWarnings,
+    finalQualityScore: localQuality.qualityScore,
   });
 
-  let completedChapters = ensureCompleteLifeBookChapters(profile, signals, localChapters).map((chapter) => ({
+  let completedChapters = sanitizeLifeBookChapters(profile, signals, ensureCompleteLifeBookChapters(profile, signals, localChapters)).map((chapter) => ({
     ...chapter,
     source: "local-only",
   }));
 
-  let finalValidation = validateLifeBookFinalManuscript(completedChapters);
-  if (!finalValidation.ok) {
-    logLifeBookServer("FinalValidationFailed", {
+  let structureValidation = validateLifeBookStructure(completedChapters);
+  logLifeBookServer("LifeBookStructureValidation", {
+    sessionId,
+    reportId,
+    chapterCount: completedChapters.length,
+    totalLength: totalManuscriptLength(completedChapters),
+    blockingErrors: structureValidation.blockingErrors,
+  });
+
+  if (!structureValidation.ok) {
+    logLifeBookServer("LifeBookQualityRepairStart", {
       sessionId,
-      errors: finalValidation.errors,
-      totalLength: finalValidation.totalLength,
-      chapterMetrics: finalValidation.chapterMetrics,
-      repetition: finalValidation.repetition,
+      reportId,
+      chapterCount: completedChapters.length,
+      blockingErrors: structureValidation.blockingErrors,
+      softWarnings: [],
+      repairedCategoryCount: 0,
+      finalQualityScore: 0,
+      reason: "structure_repair",
     });
-    completedChapters = repairLifeBookChaptersUntilValid(profile, signals, completedChapters, finalValidation.errors).map((chapter) => ({
+    completedChapters = repairLifeBookStructure(profile, signals, completedChapters).map((chapter) => ({
       ...chapter,
       source: "local-only",
     }));
-    finalValidation = validateLifeBookFinalManuscript(completedChapters);
-    if (!finalValidation.ok) {
-      throw Object.assign(new Error("인생의 책 원고를 완성하지 못했습니다."), {
-        code: "FINAL_MANUSCRIPT_INVALID",
-        status: 422,
-        details: finalValidation,
-      });
-    }
+    structureValidation = validateLifeBookStructure(completedChapters);
+    logLifeBookServer("LifeBookQualityRepairDone", {
+      sessionId,
+      reportId,
+      chapterCount: completedChapters.length,
+      totalLength: totalManuscriptLength(completedChapters),
+      blockingErrors: structureValidation.blockingErrors,
+      softWarnings: [],
+      repairedCategoryCount: 0,
+      finalQualityScore: 0,
+      reason: "structure_repair",
+    });
   }
-  logLifeBookServer("FinalManuscriptValidated", {
+
+  if (!structureValidation.ok) {
+    throw Object.assign(new Error("인생의 책 원고의 필수 구조를 완성하지 못했습니다."), {
+      code: "LIFEBOOK_STRUCTURE_INVALID",
+      status: 422,
+      details: structureValidation,
+    });
+  }
+
+  let qualityEvaluation = evaluateLifeBookQuality(completedChapters);
+  logLifeBookServer("LifeBookQualityEvaluation", {
     sessionId,
-    ok: finalValidation.ok,
+    reportId,
     chapterCount: completedChapters.length,
-    totalLength: finalValidation.totalLength,
-    forbiddenTermsCount: finalValidation.forbiddenHits,
-    repetitionScore: finalValidation.repetitionScore,
-    manuscriptSource: "local-only",
+    totalLength: qualityEvaluation.totalLength,
+    blockingErrors: [],
+    softWarnings: qualityEvaluation.softWarnings,
+    repairedCategoryCount: 0,
+    finalQualityScore: qualityEvaluation.qualityScore,
+  });
+
+  let finalization = {
+    chapters: completedChapters,
+    structureReport: structureValidation,
+    qualityReport: qualityEvaluation,
+    repairedCategoryCount: 0,
+    qualityWarnings: qualityEvaluation.softWarnings,
+    qualityScore: qualityEvaluation.qualityScore,
+    rounds: 0,
+  };
+
+  if (qualityEvaluation.softWarnings.length > 0) {
+    logLifeBookServer("LifeBookQualityRepairStart", {
+      sessionId,
+      reportId,
+      chapterCount: completedChapters.length,
+      totalLength: qualityEvaluation.totalLength,
+      blockingErrors: [],
+      softWarnings: qualityEvaluation.softWarnings,
+      repairedCategoryCount: 0,
+      finalQualityScore: qualityEvaluation.qualityScore,
+      reason: "soft_quality_repair",
+    });
+    finalization = finalizeLifeBookManuscript(profile, signals, completedChapters, {
+      maxRounds: LIFEBOOK_QUALITY_REPAIR_MAX_ROUNDS,
+    });
+    completedChapters = finalization.chapters.map((chapter) => ({
+      ...chapter,
+      source: "local-only",
+    }));
+    qualityEvaluation = finalization.qualityReport;
+    structureValidation = finalization.structureReport;
+    logLifeBookServer("LifeBookQualityRepairDone", {
+      sessionId,
+      reportId,
+      chapterCount: completedChapters.length,
+      totalLength: qualityEvaluation.totalLength,
+      blockingErrors: structureValidation.blockingErrors,
+      softWarnings: qualityEvaluation.softWarnings,
+      repairedCategoryCount: finalization.repairedCategoryCount,
+      finalQualityScore: qualityEvaluation.qualityScore,
+      reason: "soft_quality_repair",
+    });
+  }
+
+  if (!structureValidation.ok) {
+    throw Object.assign(new Error("인생의 책 원고의 필수 구조를 완성하지 못했습니다."), {
+      code: "LIFEBOOK_STRUCTURE_INVALID",
+      status: 422,
+      details: structureValidation,
+    });
+  }
+
+  const finalQualityWarnings = Array.isArray(qualityEvaluation.softWarnings) ? qualityEvaluation.softWarnings : [];
+  const finalQualityScore = Number(qualityEvaluation.qualityScore || 0);
+  const repairedCategoryCount = Number(finalization.repairedCategoryCount || 0);
+
+  logLifeBookServer("LifeBookFinalizeReady", {
+    sessionId,
+    reportId,
+    chapterCount: completedChapters.length,
+    totalLength: qualityEvaluation.totalLength,
+    blockingErrors: structureValidation.blockingErrors,
+    softWarnings: finalQualityWarnings,
+    repairedCategoryCount,
+    finalQualityScore,
   });
 
   const lifebookPayload = buildLifeBookPayload(profile, signals, completedChapters, {
@@ -2336,6 +2670,9 @@ async function handlePrepare(request, env) {
   await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
     manuscriptSource,
     chapterCount: completedChapters.length,
+    qualityWarnings: finalQualityWarnings,
+    qualityScore: finalQualityScore,
+    repairedCategoryCount,
     archive: {
       reportId,
       reportType: "life_book",
@@ -2357,6 +2694,19 @@ async function handlePrepare(request, env) {
       canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)),
     },
   });
+
+  logLifeBookServer("LifeBookArchiveSaved", {
+    sessionId,
+    reportId,
+    chapterCount: completedChapters.length,
+    totalLength: qualityEvaluation.totalLength,
+    blockingErrors: [],
+    softWarnings: finalQualityWarnings,
+    repairedCategoryCount,
+    finalQualityScore,
+    archiveUrlExists: Boolean(storedUrl),
+  });
+
   const responseData = {
     reportId,
     featureKey,
@@ -2381,7 +2731,7 @@ async function handlePrepare(request, env) {
   const result = {
     status: "completed",
     serverStatus: "completed",
-    qualityStatus: "passed",
+    qualityStatus: finalQualityWarnings.length ? "passed_with_warnings" : "passed",
     ok: true,
     serviceKey: LIFEBOOK_SERVICE_KEY,
     featureKey,

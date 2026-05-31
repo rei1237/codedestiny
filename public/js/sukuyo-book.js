@@ -21,6 +21,7 @@
   var _resultPayload = null;
   var _generating = false;
   var _activeSessionId = '';
+  var _activeChapterIndex = 0;
   var _premiumAccessVerifiedUntil = 0;
   var _premiumPaidUntil = 0;
   var SUKYO_GENERATION_STATE_KEY = 'cd:sukuyo:compat:generation:v2';
@@ -468,13 +469,156 @@
     var p = payload || {};
     var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
     return _clean(
-      p.pdfUrl
-      || p.downloadUrl
-      || p.htmlUrl
-      || ready.pdfUrl
+      p.downloadUrl
+      || p.pdfUrl
       || ready.downloadUrl
+      || ready.pdfUrl
+      || p.htmlUrl
       || ready.htmlUrl
     );
+  }
+
+  function _splitParagraphs(body) {
+    return String(body || '')
+      .split(/\n{2,}/)
+      .map(function (p) { return _clean(_sanitizeText(p)); })
+      .filter(function (p) { return p.length > 0; });
+  }
+
+  function _extractStructuredBlocks(body) {
+    var source = String(body || '');
+    var re = /\[(핵심 진단|관계에서 실제로 드러나는 모습|주의해야 할 흐름|실전 처방)\]/g;
+    var marks = [];
+    var match;
+    while ((match = re.exec(source)) !== null) {
+      marks.push({ title: match[1], index: match.index, len: match[0].length });
+    }
+    if (!marks.length) {
+      return [{ title: '', body: source }];
+    }
+
+    var out = [];
+    for (var i = 0; i < marks.length; i += 1) {
+      var start = marks[i].index + marks[i].len;
+      var end = i + 1 < marks.length ? marks[i + 1].index : source.length;
+      var content = _clean(source.slice(start, end));
+      if (!content) continue;
+      out.push({ title: marks[i].title, body: content });
+    }
+    return out.length ? out : [{ title: '', body: source }];
+  }
+
+  function _showSukuyoToast(message) {
+    var text = _clean(message);
+    if (!text) return;
+    var toast = document.createElement('div');
+    toast.textContent = text;
+    toast.style.position = 'fixed';
+    toast.style.left = '50%';
+    toast.style.bottom = '18px';
+    toast.style.transform = 'translateX(-50%)';
+    toast.style.zIndex = '999999';
+    toast.style.padding = '10px 14px';
+    toast.style.borderRadius = '10px';
+    toast.style.border = '1px solid rgba(196,181,253,0.45)';
+    toast.style.background = 'rgba(18,10,38,0.94)';
+    toast.style.color = '#f5eefe';
+    toast.style.fontSize = '12px';
+    toast.style.maxWidth = '92vw';
+    toast.style.boxShadow = '0 12px 30px rgba(6,4,14,0.45)';
+    document.body.appendChild(toast);
+    setTimeout(function () {
+      if (toast && toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 2600);
+  }
+
+  function _applyResultLayout() {
+    var panel = document.querySelector('#sukuyoBookModal .lb-modal__panel');
+    var resultScreen = _qs('skResultScreen');
+    var toc = _qs('skToc');
+    var content = _qs('skChapterContent');
+    var actions = document.querySelector('#skResultScreen .lb-result__actions');
+
+    if (panel) {
+      panel.style.maxHeight = '88vh';
+      panel.style.overflow = 'hidden';
+      panel.style.display = 'flex';
+      panel.style.flexDirection = 'column';
+    }
+    if (resultScreen) {
+      resultScreen.style.maxHeight = '88vh';
+      resultScreen.style.overflow = 'hidden';
+      resultScreen.style.display = 'flex';
+      resultScreen.style.flexDirection = 'column';
+    }
+    if (toc) {
+      toc.style.display = 'flex';
+      toc.style.flexWrap = 'nowrap';
+      toc.style.overflowX = 'auto';
+      toc.style.overflowY = 'hidden';
+      toc.style.whiteSpace = 'nowrap';
+      toc.style.WebkitOverflowScrolling = 'touch';
+    }
+    if (content) {
+      content.style.flex = '1';
+      content.style.maxHeight = '58vh';
+      content.style.overflowY = 'auto';
+      content.style.padding = '16px 18px 20px';
+      content.style.display = 'block';
+    }
+    if (actions) {
+      actions.style.position = 'sticky';
+      actions.style.bottom = '0';
+      actions.style.padding = '12px 14px calc(12px + env(safe-area-inset-bottom, 0px))';
+      actions.style.background = 'linear-gradient(180deg, rgba(12,10,22,0.82), rgba(12,10,22,0.97))';
+      actions.style.backdropFilter = 'blur(8px)';
+      actions.style.borderTop = '1px solid rgba(167,139,250,0.24)';
+      actions.style.zIndex = '8';
+    }
+  }
+
+  function _renderActiveChapterContent(chapter) {
+    var content = _qs('skChapterContent');
+    if (!content || !chapter) return;
+    var sections = Array.isArray(chapter.sections) ? chapter.sections : [];
+
+    var html = '';
+    html += '<section class="lb-chapter-card" style="border:1px solid rgba(167,139,250,0.28);border-radius:18px;background:rgba(10,5,22,0.75);padding:16px;">';
+    html += '<h4 class="lb-chapter-title" style="margin:0 0 12px;font-size:1.03rem;color:#fde68a;">제' + Number(chapter.order || 0) + '장. ' + _sanitizeText(chapter.title) + '</h4>';
+
+    sections.forEach(function (section) {
+      var blocks = _extractStructuredBlocks(section.body || '');
+      html += '<section class="lb-sub-card" style="margin:0 0 14px;padding:14px;border:1px solid rgba(196,181,253,0.22);border-radius:14px;background:rgba(255,255,255,0.04);">';
+      html += '<h5 class="lb-sub-title" style="margin:0 0 10px;font-size:0.98rem;font-weight:800;color:#fef3c7;">' + _sanitizeText(section.heading || '') + '</h5>';
+
+      blocks.forEach(function (block) {
+        if (_clean(block.title)) {
+          html += '<h6 style="margin:8px 0 6px;font-size:0.84rem;letter-spacing:0.02em;color:#fcd34d;">' + _sanitizeText(block.title) + '</h6>';
+        }
+        _splitParagraphs(block.body || '').forEach(function (p, i) {
+          var weight = i === 0 ? '600' : '500';
+          html += '<p class="lb-sub-body" style="margin:0 0 12px;line-height:1.95;word-break:keep-all;overflow-wrap:break-word;color:#f3ecff;font-size:15px;font-weight:' + weight + ';">' + _sanitizeText(p) + '</p>';
+        });
+      });
+
+      html += '<aside style="margin-top:8px;padding:10px;border-radius:10px;border:1px solid rgba(251,191,36,0.35);background:rgba(251,191,36,0.08);">';
+      html += '<strong style="display:block;margin-bottom:6px;color:#fde68a;font-size:0.8rem;">실전 조언</strong>';
+      html += '<p style="margin:0;color:#f9f4ff;line-height:1.8;font-size:14px;">갈등 직후 결론보다 감정 확인을 먼저 하고, 30분 이상 간격 후 다시 대화하는 규칙을 지키세요.</p>';
+      html += '</aside>';
+      html += '</section>';
+    });
+
+    html += '</section>';
+    content.innerHTML = html;
+  }
+
+  function _setActiveChapter(index) {
+    if (!_chapters.length) return;
+    _activeChapterIndex = Math.max(0, Math.min(_chapters.length - 1, Number(index) || 0));
+    Array.prototype.forEach.call(document.querySelectorAll('#skToc .lb-toc-item'), function (btn, idx) {
+      btn.classList.toggle('active', idx === _activeChapterIndex);
+    });
+    _renderActiveChapterContent(_chapters[_activeChapterIndex]);
   }
 
   function _isSukyoReportReady(payload) {
@@ -586,6 +730,7 @@
       var element = _qs(id);
       if (element) element.style.display = id === screenId ? '' : 'none';
     });
+    if (screenId === 'skResultScreen') _applyResultLayout();
   }
 
   function _setError(message) {
@@ -810,6 +955,7 @@
 
     if (toc) toc.innerHTML = '';
     if (content) content.innerHTML = '';
+    _applyResultLayout();
 
     if (name) name.textContent = '💫 ' + _sanitizeText(seed.userProfile && seed.userProfile.name || '사용자') + ' x ' + _sanitizeText(seed.partnerProfile && seed.partnerProfile.name || '상대방');
     if (date) date.textContent = [_sanitizeText(seed.userSukyo && seed.userSukyo.nameKo || ''), _sanitizeText(seed.partnerSukyo && seed.partnerSukyo.nameKo || ''), _sanitizeText(seed.compatibility && seed.compatibility.relationType || '')].filter(Boolean).join(' · ');
@@ -819,27 +965,15 @@
         var button = document.createElement('button');
         button.type = 'button';
         button.className = 'lb-toc-item loaded';
-        button.textContent = '제' + chapter.order + '장. ' + _sanitizeText(chapter.title);
+        button.innerHTML = '<span>CHAPTER ' + Number(chapter.order || index + 1) + '</span><strong>' + _sanitizeText(chapter.title) + '</strong>';
         button.addEventListener('click', function () {
-          var section = document.getElementById('skChapter-' + (index + 1));
-          if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          _setActiveChapter(index);
         });
         toc.appendChild(button);
       }
-
-      if (content) {
-        var sectionEl = document.createElement('section');
-        sectionEl.id = 'skChapter-' + (index + 1);
-        sectionEl.className = 'lb-chapter-card';
-        var html = '<h4 class="lb-chapter-title">제' + chapter.order + '장. ' + _sanitizeText(chapter.title) + '</h4>';
-        var sections = Array.isArray(chapter.sections) ? chapter.sections : [];
-        sections.forEach(function (section) {
-          html += '<article class="lb-sub-card"><h5 class="lb-sub-title">' + _sanitizeText(section.heading || '') + '</h5><p class="lb-sub-body">' + _sanitizeText(section.body || '') + '</p></article>';
-        });
-        sectionEl.innerHTML = html;
-        content.appendChild(sectionEl);
-      }
     });
+
+    _setActiveChapter(0);
   }
 
   function _syncDotsByChapters(chapters) {
@@ -862,6 +996,7 @@
     _detachModalFromResultPage(modal);
     _populateTimeSelects();
     _forceCompatibilityMode();
+    _applyResultLayout();
 
     var profile = _getActiveBirthProfile();
     if (!profile || !profile.birth || !profile.birth.year) {
@@ -1073,9 +1208,67 @@
       return;
     }
 
-    var storedUrl = _resolveSukuyoStoredUrl(_resultPayload);
-    if (storedUrl) {
-      window.open(storedUrl, '_blank', 'noopener,noreferrer');
+    var reportId = _clean(_resultPayload && _resultPayload.reportId);
+    var ready = _resultPayload && _resultPayload.pdfReady && typeof _resultPayload.pdfReady === 'object' ? _resultPayload.pdfReady : {};
+    var archiveUrl = reportId ? ('/api/premium/pdf-archive/' + encodeURIComponent(reportId)) : '';
+    var downloadUrl = _clean(
+      _resultPayload && _resultPayload.downloadUrl
+      || _resultPayload && _resultPayload.pdfUrl
+      || ready.downloadUrl
+      || ready.pdfUrl
+      || archiveUrl
+    );
+    var pdfUrl = _clean(_resultPayload && _resultPayload.pdfUrl || ready.pdfUrl);
+    var htmlUrl = _clean(_resultPayload && _resultPayload.htmlUrl || ready.htmlUrl || archiveUrl);
+    var canDownload = Boolean(_resultPayload && _resultPayload.canDownload);
+
+    console.log('[SukuyoPremiumPDF][DownloadClick]', {
+      reportId: reportId,
+      pdfUrl: pdfUrl,
+      downloadUrl: downloadUrl,
+      htmlUrl: htmlUrl,
+      canDownload: canDownload,
+    });
+
+    if (downloadUrl) {
+      var filename = _clean(ready.filename) || (reportId ? ('sukyo-premium-' + reportId + '.html') : 'sukyo-premium-report.html');
+      var anchor = document.createElement('a');
+      anchor.href = downloadUrl;
+      anchor.target = '_blank';
+      anchor.rel = 'noopener noreferrer';
+      if (/\.html?(?:$|[?#])/i.test(downloadUrl) || /text\/html/i.test(_clean(ready.mimeType)) || downloadUrl === htmlUrl) {
+        anchor.download = filename;
+      }
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+
+      fetch(downloadUrl, { method: 'HEAD', credentials: 'include' })
+        .then(function (res) {
+          if (!res.ok) {
+            _showSukuyoToast('저장 링크 상태: HTTP ' + res.status + ' (' + downloadUrl + ')');
+          }
+        })
+        .catch(function () {
+          _showSukuyoToast('저장 링크 확인 실패: ' + downloadUrl);
+        });
+      return;
+    }
+
+    var inlineHtml = _clean(ready.html);
+    if (inlineHtml) {
+      var blob = new Blob([ready.html], { type: 'text/html;charset=utf-8' });
+      var blobUrl = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = blobUrl;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.download = (reportId ? ('sukyo-premium-' + reportId + '.html') : 'sukyo-premium-report.html');
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () { URL.revokeObjectURL(blobUrl); }, 1500);
+      _showSukuyoToast('저장 링크를 생성해 새 탭에서 열었습니다.');
       return;
     }
 

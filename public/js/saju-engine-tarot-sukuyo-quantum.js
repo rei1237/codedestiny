@@ -1859,10 +1859,21 @@ function analyzeFortuneGZ(gz, p, label){
   return{grade:grade,icon:icon,gz:gz,gGod:gGod,jGod:jGod,gEl:gEl,jEl:jEl,
     adviceItems:adviceItems,lt:lt,lb:lb,luckyEl:luckyEl,label:label,batteryPercent:batteryPercent};
 }
+function isNeoSajuModeActive() {
+  try {
+    if (typeof NEO_MODE !== 'undefined' && !!NEO_MODE) return true;
+    if (typeof window !== 'undefined' && window.__INITIAL_THEME_NEO__ === true) return true;
+    if (document && document.body && document.body.classList.contains('neo-mode')) return true;
+    if (typeof localStorage !== 'undefined') {
+      return localStorage.getItem('fortuneThemeModeStateV1') === 'neo';
+    }
+  } catch (_e) {}
+  return false;
+}
 
 function buildFortuneHTML(res, p){
   if(!res)return '<p class="fr-row-body">데이터를 불러올 수 없습니다.</p>';
-  var isNeoSaju = (typeof NEO_MODE !== 'undefined' && NEO_MODE) || (document.body && document.body.classList.contains('neo-mode'));
+  var isNeoSaju = isNeoSajuModeActive();
   var TSADVICE=isNeoSaju?{
     '비견':'독립 판단력 MAX. 타인 의견 묻지 말고 직접 결정해서 직접 책임져라.',
     '겁재':'경쟁심 과열 경보. 충동 지출·투기 베팅은 지금 즉시 금지.',
@@ -2010,7 +2021,7 @@ async function renderDailyMonthlyFortune(p){
 }
 
 function renderLetter(p){
-  var isNeoSaju = (typeof NEO_MODE !== 'undefined' && NEO_MODE) || (document.body && document.body.classList.contains('neo-mode'));
+  var isNeoSaju = isNeoSajuModeActive();
   var pw=G_POWER,jg=G_JONG;
   var dayEl=(GAN[p.d.g]&&GAN[p.d.g].e)||'earth';
   var dg=p.d.g;

@@ -115,20 +115,23 @@ describe('Astro premium generator local-only pipeline', () => {
     expect(generated.validation.ok).toBe(true);
   });
 
-  test('Swiss 차트가 없으면 strict source 검증으로 실패해야 한다', async () => {
-    await expect(
-      astro.generateAstroPremiumReport({}, makeInput({
-        swissChart: null,
-      }), {
-        llmChapterGenerator: async ({ chapterSpec }) => ({
-          title: chapterSpec.title,
-          sections: chapterSpec.sections.map((section) => ({
-            title: section.title,
-            body: buildBody(chapterSpec, section.title, astroTokensForChapter(chapterSpec.chapterNo)),
-          })),
-        }),
+  test('Swiss 차트가 없어도 safe chart로 생성이 완료되어야 한다', async () => {
+    const generated = await astro.generateAstroPremiumReport({}, makeInput({
+      swissChart: null,
+    }), {
+      llmChapterGenerator: async ({ chapterSpec }) => ({
+        title: chapterSpec.title,
+        sections: chapterSpec.sections.map((section) => ({
+          title: section.title,
+          body: buildBody(chapterSpec, section.title, astroTokensForChapter(chapterSpec.chapterNo)),
+        })),
       }),
-    ).rejects.toMatchObject({ code: 'ASTRO_SWISS_CHART_FAILED' });
+    });
+
+    expect(generated.chapterCount).toBe(12);
+    expect(generated.chapters).toHaveLength(12);
+    expect(generated.pdfReady && generated.pdfReady.html).toBeTruthy();
+    expect(generated.validationWarning).toBe(true);
   });
 
   test('birth input 정규화가 한국어 시간/별칭 필드를 처리해야 한다', () => {

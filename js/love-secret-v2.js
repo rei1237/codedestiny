@@ -20,106 +20,118 @@
         '끌림의 공식',
         '연애 패턴 분석',
         '표현과 소통',
+        '연애에서의 불안과 집착',
         '결혼운과 배우자운',
         '이별과 재회 패턴',
-        '나에게 맞는 연애 전략',
-        '대운·세운으로 보는 연애 시기',
-        '사랑의 약점과 반전 전략',
-        '최종 연애 비책'
+        '조후로 보는 친밀감과 속궁합',
+        '좋은 인연을 만나는 시기와 조건',
+        '나를 위한 연애 마스터플랜'
       ],
       subtitles: [
         '나는 어떤 방식으로 사랑하는가',
         '내가 끌리는 사람과 나를 끌어당기는 사람',
         '반복되는 사랑의 흐름',
         '말, 침묵, 감정 전달법',
+        '사랑받고 싶은 마음과 안정감의 리듬',
         '오래 함께할 사람의 조건',
         '멀어지는 이유와 다시 이어지는 조건',
-        '사랑을 오래 지키는 법',
-        '시기별 만남과 관계 심화의 흐름',
-        '약점을 관계 자산으로 바꾸는 전략',
-        '이 명식의 사랑 사용법'
+        '관계의 온도와 정서적 밀착 리듬',
+        '대운·세운으로 보는 만남의 창',
+        '앞으로의 사랑을 위한 실전 전략'
       ],
       loading: [
         '사랑의 원국을 정리하는 중입니다',
         '일지와 배우자궁의 흐름을 해석하는 중입니다',
         '연애 패턴과 표현 방식을 정리하는 중입니다',
-        '결혼운과 관계 전략을 구성하는 중입니다',
-        '대운과 세운의 연애 흐름을 반영하는 중입니다',
-        '사주 연애 비책을 완성하는 중입니다',
-        '사랑의 원국을 정리하는 중입니다',
-        '일지와 배우자궁의 흐름을 해석하는 중입니다',
-        '연애 패턴과 표현 방식을 정리하는 중입니다',
-        '사주 연애 비책을 완성하는 중입니다'
+        '감정 표현과 소통 방식을 집필하는 중입니다',
+        '연애의 불안과 집착 패턴을 진단하는 중입니다',
+        '결혼운과 배우자궁을 해석하는 중입니다',
+        '이별과 재회 패턴을 분석하는 중입니다',
+        '조후와 친밀감 속궁합을 집필하는 중입니다',
+        '인연의 시기와 조건을 계산하는 중입니다',
+        '연애 마스터플랜을 완성하는 중입니다'
       ],
       structured: {
         1: ['일간으로 보는 사랑의 기본 태도', '일지로 보는 마음의 방어선', '월지가 만드는 연애 욕구', '천간에 드러난 표현 방식', '지지에 숨어 있는 관계 본능', '이 명식의 사랑 한 줄 해석'],
         2: ['배우자성으로 보는 이상형', '나를 흔드는 상대의 특징', '겉으로 끌리는 사람과 실제로 맞는 사람', '관계 초반에 강하게 작동하는 패턴', '피해야 할 매력의 함정', '오래 갈 수 있는 사람의 조건'],
         3: ['사랑이 시작되는 방식', '마음을 여는 속도', '가까워질수록 드러나는 모습', '자존심이 개입되는 순간', '반복되는 오해와 거리감', '관계를 안정시키는 핵심 습관'],
         4: ['식상으로 보는 표현 방식', '말이 강해지는 순간', '침묵으로 마음을 숨기는 패턴', '상대가 오해하기 쉬운 표현', '갈등을 풀어내는 대화법', '사랑을 지키는 말의 온도'],
-        5: ['일지로 보는 배우자궁', '배우자성과 현실 조건', '결혼에 유리한 관계 구조', '결혼 후 반복될 수 있는 갈등', '결혼운을 살리는 생활 방식', '오래 가는 파트너십의 조건'],
-        6: ['관계가 흔들리는 첫 신호', '이별을 부르는 말과 태도', '미련이 남는 구조', '다시 이어질 수 있는 조건', '재회가 독이 되는 경우', '관계를 회복시키는 현실 전략'],
-        7: ['연애에서 반드시 지켜야 할 기준', '내려놓아야 할 방어기제', '상대에게 보여줘야 할 진짜 매력', '사랑과 일의 균형', '안정적인 관계를 만드는 루틴', '나에게 맞는 연애 운영법'],
-        8: ['현재 연애운의 큰 흐름', '가까운 시기의 만남 가능성', '관계가 깊어지기 쉬운 시기', '조심해야 할 감정 기복의 시기', '결혼을 준비하기 좋은 흐름', '운의 흐름을 사랑에 활용하는 법'],
-        9: ['연애에서 가장 약해지는 순간', '반복되는 선택 실수', '자존심과 불안의 충돌', '관계를 망치는 무의식적 습관', '약점을 매력으로 바꾸는 법', '다시 사랑할 힘을 회복하는 법'],
-        10: ['이 명식의 가장 큰 연애 무기', '반드시 조심해야 할 관계 패턴', '좋은 사람을 알아보는 기준', '사랑을 현실로 지키는 방법', '결혼까지 이어지는 전략', '최종 연애 조언']
+        5: ['사랑받고 있는지 확인하고 싶어지는 순간', '불안이 커지는 관계 조건', '집착처럼 보일 수 있는 행동', '마음이 식어 보이는 이유', '안정감을 회복하는 방법'],
+        6: ['일지로 보는 배우자궁', '배우자성과 현실 조건', '결혼에 유리한 관계 구조', '결혼 후 반복될 수 있는 갈등', '오래 가는 파트너십의 조건'],
+        7: ['관계가 멀어지는 이유', '이별 후 마음이 남는 구조', '미련이 남는 이유', '다시 이어질 수 있는 조건', '관계를 회복시키는 현실 전략'],
+        8: ['내 명식의 온도와 친밀감 방식', '마음이 가까워질 때 반응하는 방식', '따뜻함이 필요한 사람인지 거리가 필요한 사람인지', '속궁합에서 중요하게 느끼는 안정감', '건강한 친밀감을 유지하는 법'],
+        9: ['인연운이 열리는 흐름', '대운에서 사랑이 들어오는 방식', '세운에서 조심해야 할 관계', '좋은 사람을 알아보는 기준', '사랑운을 살리는 현실 전략'],
+        10: ['내 연애의 최종 핵심 메시지', '반드시 버려야 할 연애 습관', '반드시 키워야 할 사랑의 태도', '나에게 맞는 사람을 선택하는 법', '앞으로의 사랑을 위한 실전 조언']
       }
     },
     compatibility: {
       titles: [
-        '두 사람의 기본 명식 요약',
-        '나의 사랑 방식',
-        '상대의 사랑 방식',
-        '두 사람의 끌림 구조',
-        '감정 속도와 표현 방식',
-        '갈등이 생기는 지점',
-        '성격 차이와 현실 조율법',
-        '결혼 가능성과 생활 궁합',
-        '돈·일·관계의 현실 궁합',
-        '이별 위험과 재회 가능성',
-        '대운·세운으로 보는 관계 흐름',
-        '최종 궁합 전략'
+        '두 사람의 사랑 구조 총론',
+        '나의 연애 성향 요약',
+        '상대의 연애 성향 요약',
+        '일간 궁합과 기본 기질',
+        '일지 궁합과 관계의 뿌리',
+        '배우자성으로 보는 사랑의 기대치',
+        '오행 균형으로 보는 감정 궁합',
+        '조후로 보는 속궁합과 친밀감',
+        '대화와 표현 궁합',
+        '갈등과 화해 패턴',
+        '이별과 재회 가능성',
+        '결혼과 장기 관계 궁합',
+        '현실 문제와 관계 유지 전략',
+        '두 사람의 운 흐름과 타이밍',
+        '두 사람을 위한 최종 사랑 전략'
       ],
       subtitles: [
-        '각자의 원국 축과 관계 기조',
-        '내가 관계에서 여는 방식과 방어선',
-        '상대가 사랑을 받아들이고 표현하는 구조',
-        '끌림의 근거와 오래 가는 접점',
-        '감정 리듬과 소통 온도 조율',
-        '충돌 촉발 요인과 완충 설계',
-        '생활 리듬과 역할 조정 전략',
-        '장기 파트너십의 현실 점검',
-        '현실 운영에서의 협업 적합도',
-        '거리감 신호와 회복 조건',
-        '시기별 관계 변화와 기회',
-        '두 사람이 오래 가기 위한 실행 로드맵'
+        '궁합의 핵심 결을 한눈에 정리',
+        '관계를 읽는 나의 기본 렌즈',
+        '상대를 이해하는 핵심 포인트',
+        '두 사람 기질의 상호작용',
+        '생활 밀착 영역의 궁합 진단',
+        '서로가 관계에서 바라는 기준',
+        '감정 온도와 안정감의 균형',
+        '정서적 밀착과 몸의 편안함',
+        '말의 결이 맞는 지점과 엇갈림',
+        '충돌의 구조와 회복의 방식',
+        '관계 지속의 조건과 한계',
+        '현실 생활로 이어질 가능성',
+        '돈·일·가족·생활의 실제 조율',
+        '대운·세운으로 보는 전환점',
+        '관계를 이어가거나 정리할 기준'
       ],
       loading: [
-        '두 사람의 원국 구조를 비교하는 중...',
-        '끌림의 핵심 신호를 해석하는 중...',
-        '감정 온도차를 분석하는 중...',
-        '대화와 오해 패턴을 정리하는 중...',
-        '현실 생활 궁합을 점검하는 중...',
-        '장기 안정 조건을 계산하는 중...',
-        '갈등 패턴을 진단하는 중...',
-        '재회·이별 시그널을 해석하는 중...',
-        '관계 성장 포인트를 정리하는 중...',
-        '타이밍 전략을 계산하는 중...',
-        '90일 실행 플랜을 작성하는 중...',
-        '최종 궁합 로드맵을 완성하는 중...'
+        '두 사람의 사랑 구조를 총론하는 중입니다',
+        '나의 연애 성향을 정리하는 중입니다',
+        '상대의 연애 성향을 분석하는 중입니다',
+        '두 일간 기질의 상호작용을 해석하는 중입니다',
+        '일지 궁합과 관계의 뿌리를 진단하는 중입니다',
+        '배우자성으로 보는 기대치를 비교하는 중입니다',
+        '오행 균형과 감정 궁합을 분석하는 중입니다',
+        '조후로 보는 속궁합을 집필하는 중입니다',
+        '대화와 표현 궁합을 정리하는 중입니다',
+        '갈등과 화해 패턴을 진단하는 중입니다',
+        '이별과 재회 가능성을 분석하는 중입니다',
+        '결혼과 장기 관계 궁합을 점검하는 중입니다',
+        '현실 문제와 관계 전략을 구성하는 중입니다',
+        '대운·세운의 운 흐름을 계산하는 중입니다',
+        '두 사람의 최종 사랑 전략을 완성하는 중입니다'
       ],
       structured: {
-        1: ['나의 원국 요약', '상대의 원국 요약', '두 사람 일간 관계', '두 사람 일지 관계', '끌림의 시작점', '관계 기본축'],
-        2: ['나의 사랑 태도', '나의 표현 습관', '나의 방어기제', '내가 바라는 관계', '내가 약해지는 순간', '내가 지켜야 할 기준'],
-        3: ['상대의 사랑 태도', '상대의 표현 습관', '상대의 방어기제', '상대가 바라는 관계', '상대가 약해지는 순간', '상대가 지켜야 할 기준'],
-        4: ['배우자성 관점의 끌림', '오행 보완성', '초기 케미 포인트', '관계 심화 조건', '환상과 현실의 간극', '오래 가는 접점'],
-        5: ['감정 속도 차이', '말의 온도 차이', '침묵 패턴', '오해 누적 구간', '화해가 쉬운 방식', '표현 조율 규칙'],
-        6: ['충돌 촉발 요인', '자존심 충돌', '반복되는 말실수', '합충형해파 관점의 갈등', '갈등 완충 장치', '재발 방지 실행'],
-        7: ['생활 리듬 차이', '역할 분담', '경계선 설정', '일과 사랑의 균형', '피로 누적 신호', '현실 조율 프로토콜'],
-        8: ['결혼 가능성의 조건', '배우자궁 상호작용', '결혼 후 갈등 포인트', '책임과 안정성', '생활 궁합 점검', '장기 파트너십 설계'],
-        9: ['돈 감각 차이', '일 우선순위 차이', '소비와 저축 관성', '현실 목표의 합치', '위기 대응 방식', '현실 협업 전략'],
-        10: ['이별 위험 시그널', '거리감이 커지는 패턴', '미련 구조', '재회 가능 조건', '재회가 독이 되는 경우', '관계 정리 기준'],
-        11: ['현재 관계 흐름', '대운 관점의 전환점', '세운 관점의 기회', '주의 시기', '관계 심화 타이밍', '시기 활용 전략'],
-        12: ['관계의 핵심 무기', '반드시 피해야 할 패턴', '합의 문장 만들기', '일상 유지 루틴', '결혼으로 이어지는 전략', '최종 궁합 조언']
+        1: ['두 사람의 일간 관계', '일지가 만드는 기본 분위기', '오행 균형과 에너지 흐름', '이 관계의 핵심 강점', '이 관계에서 가장 조심해야 할 점'],
+        2: ['나의 사랑 태도', '내가 원하는 관계의 조건', '불안할 때 보이는 반응', '나의 방어기제', '나를 더 사랑스럽게 만드는 태도'],
+        3: ['상대의 사랑 태도', '상대가 원하는 관계의 조건', '상대가 멀어질 때 보이는 신호', '상대를 이해하는 핵심 포인트', '상대를 존중하는 방법'],
+        4: ['두 일간이 만드는 분위기', '서로에게 자극이 되는 부분', '서로를 어렵게 느끼는 부분', '기질 차이를 조화시키는 법', '일간 궁합의 실전 적용'],
+        5: ['두 사람의 일지 관계', '편안함을 느끼는 부분', '반복되는 감정 충돌', '가까워질수록 드러나는 문제', '관계의 뿌리를 안정시키는 방법'],
+        6: ['내가 원하는 사랑의 기준', '상대가 원하는 사랑의 기준', '기대가 맞는 부분', '기대가 어긋나는 부분', '기대 차이를 줄이는 방법'],
+        7: ['두 사람의 오행 구성', '부족한 기운을 채워주는 부분', '과한 기운이 충돌하는 부분', '감정이 뜨거워지는 순간', '감정 균형을 맞추는 방법'],
+        8: ['두 사람의 명식 온도 차이', '서로에게 따뜻함을 주는 방식', '긴장과 이완이 생기는 지점', '몸과 마음의 친밀감이 맞는 부분', '속궁합을 건강하게 유지하는 법'],
+        9: ['말이 잘 통하는 부분', '말이 엇갈리는 부분', '서운함을 표현하는 방식', '침묵이 생기는 이유', '관계를 살리는 대화법'],
+        10: ['가장 자주 부딪히는 문제', '서로를 오해하는 지점', '감정이 폭발하는 순간', '화해가 어려워지는 이유', '갈등을 줄이는 현실적인 방법'],
+        11: ['이 관계가 멀어지는 이유', '이별 후에도 마음이 남는 이유', '다시 이어질 수 있는 조건', '재회 후 반복될 수 있는 문제', '재회를 원할 때 가장 중요한 태도'],
+        12: ['오래 만날수록 안정되는 부분', '결혼 후 드러날 수 있는 차이', '생활 리듬의 궁합', '책임과 역할 분담의 문제', '장기 관계로 가기 위한 조건'],
+        13: ['돈과 현실 감각의 차이', '일과 사랑의 우선순위', '가족과 주변 사람의 영향', '생활 습관에서 생기는 문제', '현실 문제를 함께 해결하는 법'],
+        14: ['지금 두 사람의 관계 운', '가까워지기 좋은 시기', '조심해야 할 시기', '관계가 바뀌는 전환점', '타이밍을 잘 쓰는 방법'],
+        15: ['이 관계의 최종 핵심 메시지', '관계를 망치는 행동', '관계를 살리는 행동', '서로에게 꼭 필요한 태도', '앞으로의 선택을 위한 조언']
       }
     }
   };
@@ -186,7 +198,7 @@
   }
 
   function _toRoman(value) {
-    var numerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+    var numerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV'];
     return numerals[Number(value || 0) - 1] || String(value || '');
   }
 
@@ -244,6 +256,7 @@
   var _cancelGeneration = false;
   var _lsCurrentReportId = '';
   var _lsAccessGrant = null;
+  var _lsGatePurchaseId = '';
   var _lsResultPayload = null;
   var _lsFetchChapterForPartialRegenerate = null;
   var _lsJobStateKey = 'cd:premium-job:love-secret';
@@ -464,21 +477,44 @@
         },
       });
       var accessGrant = purchase && purchase.accessGrant ? purchase.accessGrant : null;
+      var _issuedPremiumToken = String(purchase.premiumAccessToken || '').trim();
+      var _rawPurchaseId = String(purchase.purchaseId || '').trim();
       console.info('[LoveBook] payment access', {
         featureKey: featureKey,
         hasAccessGrant: Boolean(accessGrant),
+        hasPremiumToken: Boolean(_issuedPremiumToken),
+        hasPurchaseId: Boolean(_rawPurchaseId),
       });
-      if (!purchase || !purchase.ok || !accessGrant) {
+      if (!purchase || !purchase.ok) {
         return {
           ok: false,
           status: Number((purchase && purchase.status) || 500),
           message: String((purchase && purchase.message) || '결제 확인에 실패했습니다.'),
           accessGrant: null,
           purchaseId: '',
-          premiumAccessToken: String((purchase && purchase.premiumAccessToken) || '').trim(),
+          premiumAccessToken: _issuedPremiumToken,
         };
       }
-      var _issuedPremiumToken = String(purchase.premiumAccessToken || '').trim();
+      // 결제 성공이지만 accessGrant가 없는 경우: purchaseId 또는 premiumAccessToken으로 최소 accessGrant 구성
+      if (!accessGrant && (_issuedPremiumToken || _rawPurchaseId)) {
+        accessGrant = {
+          ok: true,
+          purchaseId: _rawPurchaseId,
+          sessionId: 'love-book:' + String(reportId || '').trim(),
+          featureKey: featureKey,
+          paidAt: new Date().toISOString(),
+        };
+      }
+      if (!accessGrant) {
+        return {
+          ok: false,
+          status: Number((purchase && purchase.status) || 402),
+          message: String((purchase && purchase.message) || '결제 확인에 실패했습니다.'),
+          accessGrant: null,
+          purchaseId: '',
+          premiumAccessToken: _issuedPremiumToken,
+        };
+      }
       if (_issuedPremiumToken) {
         try { window.__cdPremiumAccessToken = _issuedPremiumToken; } catch (_) {}
         try { sessionStorage.setItem('cd_premium_access_token', _issuedPremiumToken); } catch (_) {}
@@ -490,7 +526,7 @@
         status: Number(purchase.status || 200),
         message: String(purchase.message || ''),
         accessGrant: accessGrant,
-        purchaseId: String(accessGrant.purchaseId || '').trim(),
+        purchaseId: String(accessGrant.purchaseId || _rawPurchaseId).trim(),
         premiumAccessToken: _issuedPremiumToken,
       };
     } catch (error) {
@@ -1895,11 +1931,11 @@
       }
     }
 
-    function _startWithPartnerData(accessGrant) {
+    function _startWithPartnerData(paymentContext) {
       _restorePartnerStartBtn();
       var partnerBirthInput = _collectPartnerBirthInput();
       _logLoveSecretFlow('PartnerInputResolved', { hasPartnerInput: !!partnerBirthInput });
-      _startGeneration(partnerBirthInput, accessGrant, reportId);
+      _startGeneration(partnerBirthInput, paymentContext, reportId);
     }
 
     try {
@@ -1910,7 +1946,7 @@
         return;
       }
       _logLoveSecretFlow('PaymentGateSuccess', { mode: 'compatibility', reportId: reportId, purchaseId: gateResult.purchaseId || '' });
-      _startWithPartnerData(gateResult.accessGrant || null);
+      _startWithPartnerData(gateResult);
     } finally {
       _restorePartnerStartBtn();
     }
@@ -1929,14 +1965,15 @@
     }
     _logLoveSecretFlow('BirthInputNormalized', { mode: 'solo', hasSelfBirth: true, hasPartnerBirth: false });
     if (_premiumTokenMatches('loveSecret', _getLoveSecretRequiredCoins('solo'))) {
-      _startGeneration(null, {
+      var _tokenAccessGrant = {
         ok: true,
         featureKey: _soloFeatureKey,
         sessionId: 'love-book:' + reportId,
         purchaseId: 'token:' + reportId,
         reportId: reportId,
         paidAt: new Date().toISOString()
-      }, reportId);
+      };
+      _startGeneration(null, { ok: true, accessGrant: _tokenAccessGrant, purchaseId: 'token:' + reportId, premiumAccessToken: '' }, reportId);
       return;
     }
     _logLoveSecretFlow('PaymentGateStart', { mode: 'solo', reportId: reportId });
@@ -1946,7 +1983,7 @@
       return;
     }
     _logLoveSecretFlow('PaymentGateSuccess', { mode: 'solo', reportId: reportId, purchaseId: gateResult.purchaseId || '' });
-    _startGeneration(null, gateResult.accessGrant || null, reportId);
+    _startGeneration(null, gateResult, reportId);
   };
 
   window.lsStartWithPartner = function () {
@@ -1957,11 +1994,20 @@
     return window.handleStartSoloLoveBook();
   };
 
-  function _startGeneration(partnerBirthInput, accessGrant, reportId) {
+  function _startGeneration(partnerBirthInput, paymentContext, reportId) {
     _generating = true;
     _cancelGeneration = false;
     _lsLastStateKey = '';
-    _lsAccessGrant = accessGrant || null;
+    var _paymentCtx = paymentContext && typeof paymentContext === 'object' ? paymentContext : {};
+    // paymentContext가 gate result 형태({accessGrant, purchaseId, ...})인지 직접 accessGrant 형태인지 판별
+    if ('accessGrant' in _paymentCtx) {
+      _lsAccessGrant = _paymentCtx.accessGrant || null;
+      _lsGatePurchaseId = String(_paymentCtx.purchaseId || (_paymentCtx.accessGrant && _paymentCtx.accessGrant.purchaseId) || '').trim();
+    } else {
+      // 레거시: 직접 accessGrant 객체를 전달한 경우
+      _lsAccessGrant = Object.keys(_paymentCtx).length > 0 ? _paymentCtx : null;
+      _lsGatePurchaseId = String((_paymentCtx && _paymentCtx.purchaseId) || '').trim();
+    }
     _lsResultPayload = null;
     _currentChapterMode = partnerBirthInput ? 'compatibility' : 'solo';
     _logLoveSecretFlow('ModeResolved', { mode: _currentChapterMode });
@@ -2166,7 +2212,7 @@
 
           var _chapterRequestId = 'love-secret-' + _lsReportId + '-ch' + (idx + 1) + '-a' + _plan.retry;
           var _gateRequestId = String((_lsAccessGrant && _lsAccessGrant.requestId) || '').trim();
-          var _purchaseId = String((_lsAccessGrant && _lsAccessGrant.purchaseId) || '').trim();
+          var _purchaseId = String((_lsAccessGrant && _lsAccessGrant.purchaseId) || _lsGatePurchaseId || '').trim();
 
           fetch(_plan.url, {
             method: 'POST',
@@ -2464,18 +2510,18 @@
         reportSessionId: _lsSessionId,
         mode: _currentChapterMode,
         featureKey: _lsFeatureKey,
-        purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || '').trim() || undefined,
+        purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || _lsGatePurchaseId || '').trim() || undefined,
         accessGrant: _lsAccessGrant || undefined,
         premiumAccessToken: _lsPremiumToken || undefined,
         payment: {
           requestId: String((_lsAccessGrant && _lsAccessGrant.requestId) || '').trim() || undefined,
-          purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || '').trim() || undefined,
+          purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || _lsGatePurchaseId || '').trim() || undefined,
           sessionId: _lsSessionId,
           reportSessionId: _lsSessionId,
         },
         _paymentContext: {
           requestId: String((_lsAccessGrant && _lsAccessGrant.requestId) || '').trim() || undefined,
-          purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || '').trim() || undefined,
+          purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || _lsGatePurchaseId || '').trim() || undefined,
           sessionId: _lsSessionId,
           reportSessionId: _lsSessionId,
         },

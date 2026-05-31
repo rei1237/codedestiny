@@ -738,7 +738,7 @@
       setDisplay('zbResultScreen','none');
       setDisplay('zbErrorScreen','none');
       setDisplay('zbLoadingScreen','block');
-      updateProgress(8, '프로필 정보 확인 중');
+      updateProgress(8, '1/9 생년월일시 확인 중');
       markChapter(-1);
       var resolved = await resolveBirthInput();
       logFlow('ProfileResolved', {
@@ -760,20 +760,20 @@
         hasBirthTime: true,
         birthHour: resolved.birthInput.birthHour
       });
-      updateProgress(18, '자미두수 명반 계산 중');
+      updateProgress(18, '2/9 자미두수 명반 계산 중');
       updateZiweiGenerationState({ status: 'calculating' });
       var profile = resolved.profileForEngine;
       var seed = await buildZiweiSeed(profile);
-      updateProgress(35, '13챕터 로컬 원고 생성 중');
-      updateZiweiGenerationState({ status: 'drafting' });
       logFlow('PaymentGateStart', { featureKey: FEATURE_KEY, coinCost: COIN_COST });
-      updateProgress(46, '결제/코인 접근 확인 중');
+      updateProgress(30, '3/9 결제/이용권 확인 중');
       updateZiweiGenerationState({ status: 'paymentChecking' });
       var payment = await ensurePayment();
       logFlow('PaymentGateSuccess', {
         hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken || payment.token))
       });
-      updateProgress(58, '13챕터 로컬 원고 생성 중');
+      updateProgress(40, '4/9 해석 규칙 로딩 중');
+      updateProgress(52, '5/9 13챕터 원고 작성 중');
+      updateZiweiGenerationState({ status: 'drafting' });
       var sessionId = 'ziwei-premium:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
       updateZiweiGenerationState({ status: 'generating', sessionId: sessionId, currentChapterNo: 1 });
       logFlow('SessionCreateStart', { endpoint: PREPARE_API, hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken)) });
@@ -784,24 +784,25 @@
       }
       logFlow('SessionCreateSuccess', {
         chapterCount: Array.isArray(data && data.chapters) ? data.chapters.length : 0,
-        fallbackUsed: Boolean(data && data.fallbackUsed)
+        qualityStatus: text(data && data.qualityStatus)
       });
       var localDraftCount = Number((data && data.localDraftChapterCount) || 0);
       var chapterProgressCount = Math.max(0, Math.min(TOTAL_CHAPTERS, localDraftCount || Number((data && data.chapterCount) || 0)));
+      updateProgress(66, '6/9 근거/중복 검증 중');
       for(var i=0; i<chapterProgressCount; i++){
         markChapter(i);
-        updateProgress(62 + Math.round(((i + 1) / TOTAL_CHAPTERS) * 16), CHAPTERS[i] || '챕터를 완성하고 있습니다.');
+        updateProgress(68 + Math.round(((i + 1) / TOTAL_CHAPTERS) * 12), '7/9 ' + (CHAPTERS[i] || '챕터 정교화 중'));
         logFlow('LocalDraftProgress', { chapterDone: i + 1, chapterTotal: TOTAL_CHAPTERS });
       }
-      updateProgress(82, '최종 운명 전략을 구성하는 중');
+      updateProgress(84, '8/9 PDF 렌더링 중');
       updateZiweiGenerationState({ status: 'enhancing' });
-      updateProgress(95, '프리미엄 명반서를 완성하는 중입니다');
+      updateProgress(95, '9/9 리포트 저장 중');
       updateZiweiGenerationState({ status: 'savingPdf' });
       RESULT = data;
       logFlow('PdfRequestSuccess', {
         chapterCount: Array.isArray(data && data.chapters) ? data.chapters.length : 0,
         localDraftChapterCount: localDraftCount,
-        fallbackUsed: Boolean(data && data.fallbackUsed)
+        qualityStatus: text(data && data.qualityStatus)
       });
       updateProgress(100, '완료');
       updateZiweiGenerationState({ status: 'completed', reportId: text(data && data.reportId), currentChapterNo: TOTAL_CHAPTERS });

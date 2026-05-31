@@ -5,7 +5,7 @@ import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
-import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import { connectDb } from "../lib/db.js";
 import { ServiceExecutionTransaction } from "../lib/models.js";
@@ -21,9 +21,22 @@ const SOUL_ORIGIN_SERVICE_KEY = "soul-origin";
 const SOUL_ORIGIN_DISPLAY_NAME = "운명의 업";
 const SOUL_ORIGIN_TITLE = "운명의 업 프리미엄 상담서";
 const SOUL_ORIGIN_REPORT_TYPE = "soul_origin_karma";
+const SOUL_ORIGIN_REPORT_TYPE_ALIASES = [
+  "premium_pdf_soul_origin",
+  "soul_origin_karma",
+  "soul-origin",
+  "premium-soul-origin-report",
+];
+const SOUL_ORIGIN_FEATURE_ALIASES = [
+  "soulOriginKarma",
+  "soul_origin_karma",
+  "soul-origin",
+  "premium-soul-origin-report",
+];
 
-const MIN_CATEGORY_CHARS = 700;
-const MIN_TOTAL_CHARS = 42000;
+const MIN_CATEGORY_CHARS = 900;
+const MIN_CHAPTER_CHARS = 4000;
+const MIN_TOTAL_CHARS = 45000;
 
 const BIRTH_TIME_REQUIRED_MESSAGE = "운명의 업 PDF는 시주와 운의 흐름을 정밀하게 읽기 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 먼저 입력해 주세요.";
 
@@ -204,6 +217,7 @@ const FORBIDDEN_TOKENS = [
   "json", "payload", "seed", "fallback", "skeleton", "local", "llm", "api", "engine", "validation", "retry", "debug",
   "calculation signature", "데이터 부족", "자동 생성", "템플릿", "계산 시그니처", "내부 데이터", "로컬 기반", "생성 로직", "챕터 생성기", "카테고리 렌더러",
   "이 장에서는", "이 카테고리에서는", "구조이", "기준 세 가지를", "전생의 죄", "업보 때문에 어쩔 수", "반드시 불행", "무조건 성공",
+  "운명이 정해져 있다", "운명은 정해져 있다",
   "internal server error", "about:blank",
 ];
 
@@ -224,6 +238,126 @@ const TOPIC_KEYWORDS = {
   "10": ["신살", "십이운성", "리듬", "반복", "선택", "활용"],
   "11": ["패턴", "알아차림", "훈련", "행동", "전략", "해방"],
   "12": ["사명", "회복", "습관", "3년", "전환", "조언"],
+};
+
+const SECTION_TITLES = [
+  "핵심 진단",
+  "명식에서 보이는 근거",
+  "현실에서 반복되는 모습",
+  "무너지는 지점",
+  "해방 전략",
+  "오늘부터 할 수 있는 작은 실천",
+];
+
+const CHAPTER_TONE = {
+  "01": {
+    lens: "원국, 대운, 세운, 오행 균형",
+    diagnosis: "인생 전체 흐름에서 되풀이되는 장면을 조망하는 마스터 관점",
+    reality: "중요한 결정의 순간마다 익숙한 방식으로 반응하는 패턴",
+    collapse: "시기 판단보다 감정 반응이 앞설 때 선택이 급격히 좁아짐",
+    strategy: "패턴의 시작 신호를 먼저 감지하고 결정 순서를 재배치",
+  },
+  "02": {
+    lens: "일간, 월지, 오행 강약, 용신·희신·기신",
+    diagnosis: "타고난 기질을 숙명론이 아닌 훈련 가능한 과제로 해석",
+    reality: "강점이 과속으로, 결핍이 회피로 나타나는 장면의 반복",
+    collapse: "내 기질을 방어적으로만 쓸 때 관계와 일의 균형이 무너짐",
+    strategy: "강점은 방향으로, 약점은 보완 루틴으로 전환",
+  },
+  "03": {
+    lens: "십성, 합충형파해, 비겁·관성·재성·인성",
+    diagnosis: "관계의 상처를 성격 문제가 아닌 구조 신호로 읽는 관점",
+    reality: "비슷한 유형에게 반복적으로 끌리고 같은 갈등으로 소모됨",
+    collapse: "경계가 무너지거나 과잉 통제가 시작될 때 소진이 빨라짐",
+    strategy: "관계의 기대치와 경계 문장을 먼저 세우는 방식",
+  },
+  "04": {
+    lens: "일지, 배우자궁, 도화, 홍염, 대운·세운",
+    diagnosis: "사랑과 이별에서 남는 감정의 뿌리를 깊이 해석하는 관점",
+    reality: "재회 욕망과 미련이 같은 관계 패턴을 다시 호출함",
+    collapse: "상대 확인 욕구가 커질수록 자기 기준이 흐려짐",
+    strategy: "감정의 핵심 요구를 언어화하고 관계 기준을 재설정",
+  },
+  "05": {
+    lens: "재성, 식상, 비겁, 관성, 오행 균형",
+    diagnosis: "돈의 흐름을 심리와 습관의 결과로 읽는 현실 관점",
+    reality: "불안이 클수록 지출 구조가 흐려지고 책임이 미뤄짐",
+    collapse: "수입보다 지출 통제가 늦어질 때 회복 시간이 길어짐",
+    strategy: "새는 지점을 먼저 막고 의사결정 기준을 수치화",
+  },
+  "06": {
+    lens: "격국, 용신, 관성, 식상, 인성",
+    diagnosis: "직업적 막힘을 능력 부족이 아닌 방향 불일치로 해석",
+    reality: "성과를 내도 공허함이 남거나 같은 벽에서 멈춤",
+    collapse: "역할과 사명이 분리되면 집중력이 급격히 흔들림",
+    strategy: "일의 우선순위를 사명 축으로 다시 배열",
+  },
+  "07": {
+    lens: "년주, 월주, 인성, 부모궁적 해석",
+    diagnosis: "가족에게서 온 감정 패턴을 분리해 재정렬하는 관점",
+    reality: "가까운 관계에서 어린 시절 반응이 자동으로 재생됨",
+    collapse: "죄책감과 의무감이 경계를 압도할 때 정서 소진이 깊어짐",
+    strategy: "관계의 책임과 감정을 분리해 건강한 거리 확보",
+  },
+  "08": {
+    lens: "오행 결핍, 관성·인성·상관, 십이운성",
+    diagnosis: "불안과 방어를 결함이 아닌 회복 신호로 읽는 관점",
+    reality: "자기비난이 커질수록 판단이 극단으로 흔들림",
+    collapse: "감정 피로가 누적될 때 회피와 과잉 통제가 번갈아 나타남",
+    strategy: "내면 안정 루틴과 현실 행동 루틴을 함께 설계",
+  },
+  "09": {
+    lens: "현재 대운, 다음 대운, 올해 세운",
+    diagnosis: "시기 흐름을 전환 기회로 읽는 관점",
+    reality: "같은 패턴이 특정 시기에 급격히 강해지거나 약해짐",
+    collapse: "시기 변화 신호를 놓치면 대응 타이밍이 늦어짐",
+    strategy: "전환기 행동계획을 미리 세워 리스크를 분산",
+  },
+  "10": {
+    lens: "도화, 역마, 화개, 십이운성",
+    diagnosis: "신살과 운성 신호를 공포가 아닌 활용 지도로 해석",
+    reality: "특정 장면에서 감정과 선택이 빠르게 증폭됨",
+    collapse: "매력과 위험을 구분하지 못하면 반복 소모가 커짐",
+    strategy: "신호별 대응 원칙을 정해 강점은 확장, 위험은 완충",
+  },
+  "11": {
+    lens: "관계·돈·일·감정별 실행 전략",
+    diagnosis: "반복을 끊는 선택을 행동 설계로 전환하는 관점",
+    reality: "알고도 못 바꾸는 장면은 실행 순서의 문제로 남음",
+    collapse: "의지에만 기대면 피로 누적으로 다시 원점 회귀",
+    strategy: "작동 가능한 루틴과 점검 주기를 고정",
+  },
+  "12": {
+    lens: "3년 전환 전략, 회복할 힘, 내려놓을 습관",
+    diagnosis: "반복을 사명으로 전환하는 최종 통합 관점",
+    reality: "장기 흐름에서 선택의 누적이 운의 체감을 바꿈",
+    collapse: "우선순위가 흔들릴 때 오래된 습관이 재가동됨",
+    strategy: "3년 로드맵으로 기준을 고정하고 실행력을 유지",
+  },
+};
+
+const DEFAULT_FILLERS = [
+  "감정의 파도가 높아지는 날일수록 결정을 늦추고 사실을 먼저 정리하면 손실을 크게 줄일 수 있습니다. 기준이 흔들릴 때는 오늘 지킬 원칙 한 가지를 정하고, 그 원칙이 지켜졌는지만 점검해도 회복 속도가 달라집니다.",
+  "반복을 바꾸는 힘은 거창한 결심보다 일관된 점검에서 나옵니다. 주 1회 복기 시간을 고정하고, 내가 지킨 기준과 놓친 기준을 분리해 보면 다음 선택의 정확도가 눈에 띄게 높아집니다.",
+];
+
+const CHAPTER_FILLERS = {
+  "03": [
+    "관계의 반복을 바꾸려면 먼저 내가 상대에게 무엇을 기대하는지 선명하게 알아야 합니다. 기대가 불분명하면 실망은 커지고, 기대를 명료하게 하면 대화의 방향이 또렷해집니다.",
+    "상대의 반응을 해석하기 전에 내 안에서 먼저 올라온 두려움을 확인하면 같은 오해를 크게 줄일 수 있습니다. 감정의 이름을 정확히 붙이는 순간 관계 선택의 질이 달라집니다.",
+  ],
+  "05": [
+    "돈의 흐름을 바꾸려면 수입 확대보다 먼저 새는 지점을 확인해야 합니다. 새는 지점이 정리되면 불안이 줄고 판단의 여유가 회복됩니다.",
+    "현실 압박이 커질수록 큰 결정보다 고정비와 반복 지출부터 정리하는 편이 안정적입니다. 구조가 정리되면 기회 판단도 훨씬 정확해집니다.",
+  ],
+  "09": [
+    "대운과 세운이 교차하는 시기에는 좋은 선택도 타이밍이 맞지 않으면 효과가 줄어듭니다. 전환기에는 속도보다 순서가 성과를 결정합니다.",
+    "시기가 바뀌는 경계에서는 성급한 확장보다 기준 점검이 우선입니다. 기준이 고정되면 변화의 폭이 커져도 중심을 잃지 않습니다.",
+  ],
+  "12": [
+    "3년 계획은 완벽한 예측이 아니라 흔들릴 때 돌아올 기준을 만드는 작업입니다. 분기마다 우선순위를 재정렬하면 장기 흐름이 안정됩니다.",
+    "내려놓을 습관을 명확히 정하고 유지하면 에너지 누수가 줄어듭니다. 그 여유가 곧 사명을 실행하는 집중력으로 전환됩니다.",
+  ],
 };
 
 const BRANCH_RELATION = Object.freeze({
@@ -798,13 +932,9 @@ function sentenceShuffle(list = [], seed = 0) {
   return arr;
 }
 
-function ensureCategoryLength(text, minLength = MIN_CATEGORY_CHARS + 80) {
+function ensureCategoryLength(text, chapterId, minLength = MIN_CATEGORY_CHARS + 80) {
   let result = stripForbiddenTokens(text);
-  const fillers = [
-    "이 흐름을 바꾸는 핵심은 거대한 결심이 아니라 작고 반복 가능한 선택입니다. 하루를 마칠 때 오늘의 선택 한 줄과 내일의 우선순위 한 줄을 기록해 보세요. 그 짧은 기록이 운의 방향을 실제 생활로 연결하는 가장 빠른 다리가 됩니다.",
-    "마음이 흔들리는 순간에는 판단을 즉시 확정하지 말고, 감정과 사실을 분리해 짧게 적어 두는 습관이 도움이 됩니다. 같은 장면이 반복될수록 기록의 힘이 커지고, 선택의 정확도가 눈에 띄게 올라갑니다.",
-    "운의 전환점은 대체로 불안이 커지는 시점에 먼저 신호를 보냅니다. 이때 속도를 높이기보다 기준을 정리하면 손실을 줄이고 회복 속도를 빠르게 만들 수 있습니다. 오늘의 작은 조정이 다음 계절의 큰 안정으로 이어집니다.",
-  ];
+  const fillers = CHAPTER_FILLERS[String(chapterId || "")] || DEFAULT_FILLERS;
   let idx = 0;
   while (result.length < minLength) {
     result = `${result}\n\n${fillers[idx % fillers.length]}`;
@@ -813,10 +943,34 @@ function ensureCategoryLength(text, minLength = MIN_CATEGORY_CHARS + 80) {
   return stripForbiddenTokens(result);
 }
 
+function buildTopicAnchor(chapterId, categoryTitle = "") {
+  const keywords = TOPIC_KEYWORDS[String(chapterId || "")] || [];
+  const picks = keywords.slice(0, 4);
+  if (!picks.length) return clean(categoryTitle || "");
+  return `${clean(categoryTitle || "")} · ${picks.join(" · ")}`;
+}
+
+function joinParagraphs(lines = []) {
+  return (Array.isArray(lines) ? lines : [])
+    .map((line) => stripForbiddenTokens(line))
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join("\n\n");
+}
+
 function buildCategoryText(localSeed, chapter, categoryTitle, categoryIndex) {
   const profileName = clean(localSeed?.birthInput?.name || "의뢰인");
   const signals = localSeed?.signals || {};
   const chapterNo = Number(chapter?.id || 0);
+  const chapterId = String(chapter?.id || "");
+  const tone = CHAPTER_TONE[chapterId] || {
+    lens: "원국과 운의 흐름",
+    diagnosis: "반복을 이해하는 통합 관점",
+    reality: "현실 장면에서 되풀이되는 반응",
+    collapse: "감정 피로가 누적될 때 판단이 좁아지는 흐름",
+    strategy: "행동 순서를 재설계하는 접근",
+  };
+  const topicAnchor = buildTopicAnchor(chapterId, categoryTitle);
 
   const corePillars = Array.isArray(signals.pillars) && signals.pillars.length
     ? signals.pillars.map((ganji) => {
@@ -826,39 +980,28 @@ function buildCategoryText(localSeed, chapter, categoryTitle, categoryIndex) {
     }).filter(Boolean).join(" · ")
     : "사주 원국";
 
-  const openers = [
-    `${profileName}님 삶의 반복은 우연한 사고가 아니라, 원국의 결이 여러 시기에서 같은 방식으로 반응한 결과에 가깝습니다. ${corePillars}의 흐름을 함께 보면, 비슷한 문제를 다시 만나는 이유가 성격 탓이나 운의 벌이 아니라 오랜 생존 방식의 관성이라는 점이 또렷해집니다.`,
-    `삶이 막힌다고 느껴지는 순간에도 명식은 늘 단서를 남깁니다. 일간 ${clean(signals.dayMaster)}과 월지 ${clean(signals.monthBranch)}가 만드는 기본 리듬, 그리고 오행의 강약은 어떤 선택에서 힘이 살아나고 어떤 선택에서 소모가 커지는지를 분명히 드러냅니다.`,
-    `같은 장면이 반복될 때 필요한 것은 자기비난이 아니라 구조를 읽는 눈입니다. ${clean(signals.tenGod)}의 작동, ${clean(signals.relation)}의 배치, ${clean(signals.stars)}의 반복 신호를 함께 읽으면 왜 특정 감정과 행동이 되풀이되는지 훨씬 현실적으로 이해할 수 있습니다.`,
+  const openers = sentenceShuffle([
+    `${profileName}님 명식의 핵심은 ${tone.diagnosis}입니다. ${topicAnchor} 주제는 반복의 표면을 설명하는 수준을 넘어, 왜 같은 장면이 다시 열리는지를 삶의 시간축에서 확인하게 합니다.`,
+    `반복되는 일은 사람을 지치게 만들지만, 명식에서 반복은 벌이 아니라 아직 다른 방식으로 다루지 못한 과제에 가깝습니다. ${topicAnchor}을 ${tone.lens} 관점으로 읽으면, 소모를 줄이고 회복을 앞당길 실마리가 드러납니다.`,
+    `${profileName}님이 겪는 반복에는 분명한 결이 있습니다. ${corePillars} 흐름과 ${clean(signals.tenGod || "십성")}의 작동을 함께 보면, 문제의 원인이 의지 부족이 아니라 오래된 반응 경로에 있다는 점이 선명해집니다.`,
+  ], chapterNo + categoryIndex);
+
+  const evidence = joinParagraphs([
+    `${SECTION_TITLES[1]}는 ${tone.lens} 축으로 정리됩니다. 핵심 키워드는 ${topicAnchor}이며, 특히 일간 ${clean(signals.dayMaster || "중심 일간")}, 월지 ${clean(signals.monthBranch || "중심 월지")}, 대운 ${clean(signals.daewun || "현재 대운")}, 세운 ${clean(signals.sewoon || "현재 세운")}의 결합이 이번 주제의 방향을 결정합니다.`,
+    `오행에서는 ${clean(signals.dominantElement || "강한 기운")}의 과밀과 ${clean(signals.deficientElement || "보완 기운")}의 공백이 동시에 보입니다. 여기에 ${clean(signals.yongshin || "용신")}, ${clean(signals.heesin || "희신")}, ${clean(signals.gisin || "기신")} 흐름을 겹쳐 보면 어떤 환경에서 힘이 붙고 어떤 장면에서 소모가 커지는지 판단 기준이 분명해집니다.`,
+    `${clean(signals.relation || "합충형파해 배치")}와 ${clean(signals.stars || "신살 신호")}, ${clean(signals.growth || "십이운성 흐름")}은 감정 반응의 타이밍을 보여 줍니다. 같은 사건이라도 시기와 관계 구도에 따라 체감 난도가 달라지는 이유가 이 지점에서 설명됩니다.`,
+  ]);
+
+  const body = [
+    `${SECTION_TITLES[0]}\n${openers[0]}\n\n${openers[1]}`,
+    `${SECTION_TITLES[1]}\n${evidence}`,
+    `${SECTION_TITLES[2]}\n${tone.reality}이 ${categoryTitle} 장면에서 자주 관찰됩니다. 표면적으로는 우연처럼 보이지만, 실제로는 비슷한 관계 구조와 결정 습관이 결합되면서 같은 결과가 재현되는 경우가 많습니다. ${profileName}님은 특히 ${clean(signals.astro || "태양·달·상승궁 흐름")}과 ${clean(signals.vedic || "라그나·다샤 흐름")}이 겹치는 시기에 체감 변동이 커질 가능성이 높습니다.`,
+    `${SECTION_TITLES[3]}\n${tone.collapse} 핵심 원인은 문제를 늦게 인식하는 것이 아니라, 이미 익숙한 반응을 안전하다고 착각하는 순간에 있습니다. 이 구간에서 판단 피로가 누적되면 관계, 돈, 일 중 한 축이 먼저 흔들리고 나머지 축까지 연쇄적으로 압박을 받기 쉽습니다.`,
+    `${SECTION_TITLES[4]}\n${tone.strategy} 먼저 선택 기준을 문장으로 고정하고, 다음으로 실행 순서를 고정해야 합니다. 이번 주제에서는 ${TOPIC_KEYWORDS[chapterId]?.slice(0, 3).join(" · ")} 축을 우선 기준으로 삼아 의사결정 순서를 재배치하는 것이 유효합니다. 이때 상대 반응보다 내 기준 유지율을 먼저 점검하면 반복의 강도를 안정적으로 낮출 수 있습니다.`,
+    `${SECTION_TITLES[5]}\n오늘부터 2주 동안 ${categoryTitle} 관련 장면에서 행동 전에 90초 멈춤을 적용해 보세요. 멈춤 동안 지금의 선택이 장기 기준과 일치하는지만 확인하고 진행하면, 감정 파동이 큰 날에도 결과 편차가 줄어듭니다. 주말에는 한 번만 복기해서 유지할 행동과 멈출 행동을 각각 하나씩 고르면 다음 주 전개가 더 선명해집니다.`,
   ];
 
-  const middleA = [
-    `현재 대운 ${clean(signals.daewun || "전환기")}과 세운 ${clean(signals.sewoon || "당해 흐름")}은 이 패턴을 증폭시키는 시기 조건을 보여 줍니다. 운이 강해지는 때에는 장점이 더 크게 드러나고, 약점이 건드려지는 때에는 같은 실수가 빠르게 반복됩니다. 그래서 중요한 것은 좋은 운을 기다리는 일이 아니라, 반복이 시작되는 징후를 먼저 알아차리고 행동 순서를 조정하는 일입니다.`,
-    `오행 분포에서 ${clean(signals.dominantElement)}의 과잉과 ${clean(signals.deficientElement)}의 결핍은 마음의 방어와 현실 판단의 균형에 직접 영향을 줍니다. 강한 기운은 추진력과 생존력을 주지만, 피로가 쌓인 시기에는 고집이나 과속으로 나타날 수 있습니다. 반대로 부족한 기운은 불안을 키우지만, 의식적으로 보완하면 오히려 관계 감수성과 판단의 깊이를 키우는 통로가 됩니다.`,
-    `${clean(signals.yongshin || "용신")}과 ${clean(signals.heesin || "희신")}의 방향은 회복 루트이며, ${clean(signals.gisin || "기신")}의 자극은 소모 루트입니다. 이 구분을 기억하면 선택 기준이 단순해집니다. 힘이 붙는 환경은 더 자주 만들고, 소모가 커지는 환경은 시간을 줄이는 것만으로도 반복의 강도가 눈에 띄게 약해집니다.`,
-  ];
-
-  const middleB = [
-    `자미두수의 명궁 ${clean(signals.mingGong || "명궁")}과 신궁 ${clean(signals.shenGong || "신궁")}은 삶에서 책임을 떠안는 방식과 스스로를 지키는 방식을 보여 줍니다. 점성술의 ${clean(signals.astro || "태양·달·상승궁")} 신호, 베다의 ${clean(signals.vedic || "라그나 흐름")} 신호, 숙요의 ${clean(signals.sukyo || "본명숙")} 결을 함께 보면 같은 관계와 선택이 반복되는 이유가 더 입체적으로 연결됩니다.`,
-    `${clean(signals.growth || "십이운성 흐름")}은 감정의 오르내림과 회복 타이밍을 알려 주고, ${clean(signals.stars || "신살") }은 특정 상황에서 마음의 반응이 빨라지는 지점을 알려 줍니다. 이는 두려워할 표식이 아니라 대비해야 할 리듬입니다. 리듬을 알면 반응이 선택으로 바뀌고, 선택이 누적되면 운의 체감 자체가 달라집니다.`,
-    `합충형파해 ${clean(signals.relation || "배치") }가 강하게 작동하는 사람은 관계와 일에서 밀고 당기는 장면을 자주 겪습니다. 이 구조를 불안의 근거로 쓰면 피로가 커지고, 경계와 협력의 기준으로 쓰면 오히려 사람을 보는 눈과 타이밍 감각이 빠르게 성장합니다. 반복은 족쇄가 아니라 숙련을 요구하는 교재에 가깝습니다.`,
-  ];
-
-  const endings = [
-    `이 항목에서 가장 먼저 실천할 행동은 단순합니다. 오늘부터 7일 동안 같은 갈등 장면이 시작될 때의 감정, 몸의 반응, 선택 결과를 세 줄로 기록해 보세요. 패턴이 눈으로 보이기 시작하면 반복은 더 이상 운명의 형벌이 아니라 다룰 수 있는 과제가 됩니다.`,
-    `실행 조언은 작고 분명해야 효과가 큽니다. 이번 주에는 한 가지 패턴만 정해 멈춤 신호를 만들고, 그 신호가 뜰 때마다 10분만 행동을 늦춰 사실 확인을 먼저 해 보세요. 이 작은 지연이 관계와 돈, 일의 손실을 동시에 줄이는 전환점이 됩니다.`,
-    `마지막으로 기억할 점은 스스로를 몰아붙이지 않는 것입니다. ${profileName}님에게 필요한 변화는 완벽한 결심이 아니라 반복 가능한 리듬입니다. 하루 한 번 기준을 점검하고, 주 1회 복기 시간을 고정하면 운명의 패턴은 점차 해방 전략으로 바뀝니다.`,
-  ];
-
-  const sequence = [
-    openers[(chapterNo + categoryIndex) % openers.length],
-    sentenceShuffle(middleA, chapterNo + categoryIndex)[0],
-    sentenceShuffle(middleB, chapterNo * 3 + categoryIndex)[0],
-    `현재 주제인 \"${categoryTitle}\"은 ${TOPIC_KEYWORDS[chapter.id]?.slice(0, 3).join(" · ")} 축을 함께 다룰 때 해석이 정확해집니다. 핵심은 반복의 원인을 단정하는 것이 아니라, 어떤 상황에서 같은 반응이 켜지는지 알아차리고 대응 순서를 새로 설계하는 데 있습니다.`,
-    endings[(chapterNo * 2 + categoryIndex) % endings.length],
-  ];
-
-  return ensureCategoryLength(stripForbiddenTokens(sequence.join("\n\n")));
+  return ensureCategoryLength(stripForbiddenTokens(body.join("\n\n")), chapterId);
 }
 
 function buildSoulOriginChapters(localSeed) {
@@ -906,7 +1049,22 @@ function validateTopicCoverage(chapter) {
     .map((section) => stripForbiddenTokens(section?.body || ""))
     .join("\n");
   const hit = req.filter((keyword) => source.includes(keyword)).length;
-  return hit >= 2;
+  return hit >= 3;
+}
+
+function countRepeatedSectionOpenings(chapters = []) {
+  const openings = (Array.isArray(chapters) ? chapters : [])
+    .flatMap((chapter) => Array.isArray(chapter?.sections) ? chapter.sections : [])
+    .map((section) => String(section?.body || "").split(/\n+/).map((line) => line.trim()).filter(Boolean))
+    .map((lines) => {
+      const firstText = lines.find((line) => !SECTION_TITLES.includes(line));
+      return stripForbiddenTokens(firstText || "").replace(/\s+/g, " ").trim();
+    })
+    .filter((line) => line.length >= 20);
+
+  const map = new Map();
+  openings.forEach((line) => map.set(line, Number(map.get(line) || 0) + 1));
+  return Array.from(map.values()).filter((count) => count >= 3).length;
 }
 
 function validateFinalManuscript(chapters = []) {
@@ -920,6 +1078,7 @@ function validateFinalManuscript(chapters = []) {
   let totalChars = 0;
   list.forEach((chapter, chapterIndex) => {
     const blueprint = CHAPTER_BLUEPRINTS[chapterIndex] || { categories: [] };
+    let chapterChars = 0;
     if (clean(chapter?.title) !== clean(blueprint.title)) {
       errors.push(`chapter_${chapterIndex + 1}_title`);
     }
@@ -943,9 +1102,22 @@ function validateFinalManuscript(chapters = []) {
       if (hasForbiddenText(body)) {
         errors.push(`chapter_${chapterIndex + 1}_section_${sectionIndex + 1}_forbidden`);
       }
+      SECTION_TITLES.forEach((heading) => {
+        if (!body.includes(heading)) {
+          errors.push(`chapter_${chapterIndex + 1}_section_${sectionIndex + 1}_heading_missing`);
+        }
+      });
+      if (body.includes("기록해 보세요")) {
+        errors.push(`chapter_${chapterIndex + 1}_section_${sectionIndex + 1}_phrase_repeat`);
+      }
 
+      chapterChars += body.length;
       totalChars += body.length;
     });
+
+    if (chapterChars < MIN_CHAPTER_CHARS) {
+      errors.push(`chapter_${chapterIndex + 1}_total_short`);
+    }
 
     if (!validateTopicCoverage(chapter)) {
       errors.push(`chapter_${chapterIndex + 1}_topic`);
@@ -957,8 +1129,13 @@ function validateFinalManuscript(chapters = []) {
   }
 
   const repetition = countRepeatedSentences(list);
-  if (repetition > 10) {
+  if (repetition > 8) {
     errors.push("repetition_high");
+  }
+
+  const repeatedOpenings = countRepeatedSectionOpenings(list);
+  if (repeatedOpenings > 6) {
+    errors.push("section_opening_repetition_high");
   }
 
   return {
@@ -966,6 +1143,7 @@ function validateFinalManuscript(chapters = []) {
     errors,
     totalChars,
     repetition,
+    repeatedOpenings,
   };
 }
 
@@ -985,40 +1163,63 @@ function summarizeSignal(localSeed) {
   return "사주 원국과 운의 흐름을 바탕으로 반복 패턴의 원인과 해방 전략을 통합했습니다.";
 }
 
+function escapeHtml(value = "") {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function renderSoulOriginSectionBody(body = "") {
+  return stripForbiddenTokens(body)
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      if (SECTION_TITLES.includes(line)) {
+        return `<h5>${escapeHtml(line)}</h5>`;
+      }
+      return `<p>${escapeHtml(line)}</p>`;
+    })
+    .join("");
+}
+
 function renderSoulOriginPdf({ birthInput, localSeed, chapters, generatedAt }) {
   const summary = summarizeSignal(localSeed);
   const signals = localSeed?.signals || {};
 
   const toc = (Array.isArray(chapters) ? chapters : [])
-    .map((chapter) => `<li><strong>${stripForbiddenTokens(chapter.title)}</strong></li>`)
+    .map((chapter) => `<li><strong>${escapeHtml(stripForbiddenTokens(chapter.title))}</strong></li>`)
     .join("\n");
 
   const chapterHtml = (Array.isArray(chapters) ? chapters : []).map((chapter) => {
     const sections = Array.isArray(chapter?.sections) ? chapter.sections : [];
     const sectionHtml = sections.map((section) => `
       <section class="chapter-section">
-        <h4>${stripForbiddenTokens(section.title)}</h4>
-        <p>${stripForbiddenTokens(section.body)}</p>
+        <h4>${escapeHtml(stripForbiddenTokens(section.title))}</h4>
+        <div class="section-body">${renderSoulOriginSectionBody(section.body)}</div>
       </section>
     `).join("\n");
 
     return `
       <article class="chapter">
-        <h2>${stripForbiddenTokens(chapter.title)}</h2>
-        <p class="chapter-subtitle">${stripForbiddenTokens(chapter.subtitle || "")}</p>
+        <h2>${escapeHtml(stripForbiddenTokens(chapter.title))}</h2>
+        <p class="chapter-subtitle">${escapeHtml(stripForbiddenTokens(chapter.subtitle || ""))}</p>
         ${sectionHtml}
       </article>
     `;
   }).join("\n");
 
-  const safeName = stripForbiddenTokens(birthInput?.name || "사용자");
-  const safeBirth = stripForbiddenTokens(`${birthInput?.birthDate || ""} ${birthInput?.birthTime || ""}`.trim());
-  const safeSignal = stripForbiddenTokens([
+  const safeName = escapeHtml(stripForbiddenTokens(birthInput?.name || "사용자"));
+  const safeBirth = escapeHtml(stripForbiddenTokens(`${birthInput?.birthDate || ""} ${birthInput?.birthTime || ""}`.trim()));
+  const safeSignal = escapeHtml(stripForbiddenTokens([
     clean(signals.dayMaster) && `일간 ${clean(signals.dayMaster)}`,
     clean(signals.monthBranch) && `월지 ${clean(signals.monthBranch)}`,
     clean(signals.daewun) && `대운 ${clean(signals.daewun)}`,
     clean(signals.sewoon) && `세운 ${clean(signals.sewoon)}`,
-  ].filter(Boolean).join(" · "));
+  ].filter(Boolean).join(" · ")));
 
   return `<!doctype html>
   <html lang="ko">
@@ -1045,7 +1246,9 @@ function renderSoulOriginPdf({ birthInput, localSeed, chapters, generatedAt }) {
       .chapter-subtitle{margin:0 0 10px;color:#6a4a2f}
       .chapter-section{padding:12px 14px;border:1px solid #e9dbc8;border-radius:12px;background:#fcf7ef;margin:10px 0}
       .chapter-section h4{margin:0 0 8px;color:#5d3d24}
-      .chapter-section p{margin:0;white-space:pre-wrap}
+      .section-body{display:flex;flex-direction:column;gap:12px}
+      .section-body h5{margin:18px 0 2px;color:#8a5a32;font-size:15px;font-weight:800}
+      .section-body p{margin:0;white-space:normal;line-height:1.9;word-break:keep-all;overflow-wrap:break-word}
       .footer{margin-top:18px;padding:14px 16px;text-align:center;font-size:13px;color:#6b4a31}
       @page{size:A4;margin:16mm 14mm 18mm}
       @media print{body{background:#fff}.page{padding:0}.chapter{break-before:page;page-break-before:always}.chapter:first-of-type{break-before:auto;page-break-before:auto}}
@@ -1065,9 +1268,9 @@ function renderSoulOriginPdf({ birthInput, localSeed, chapters, generatedAt }) {
 
       <section class="meta">
         <div class="meta-grid">
-          <div class="meta-item"><b>생성일</b>${stripForbiddenTokens(new Date(generatedAt).toLocaleString("ko-KR"))}</div>
+          <div class="meta-item"><b>생성일</b>${escapeHtml(stripForbiddenTokens(new Date(generatedAt).toLocaleString("ko-KR")))}</div>
           <div class="meta-item"><b>구성</b>12챕터 운명의 업 상담 구조</div>
-          <div class="meta-item"><b>핵심 요약</b>${stripForbiddenTokens(summary)}</div>
+          <div class="meta-item"><b>핵심 요약</b>${escapeHtml(stripForbiddenTokens(summary))}</div>
         </div>
       </section>
 
@@ -1096,8 +1299,16 @@ function makeReportId() {
 function getPremiumAccessToken(request, body = {}) {
   return clean(
     request.headers.get("x-premium-access-token")
-    || body.premiumAccessToken
-    || body._premiumAccessToken
+    || body?.premiumAccessToken
+    || body?._premiumAccessToken
+    || body?.accessToken
+    || body?.token
+    || body?.accessGrant?.premiumAccessToken
+    || body?.accessGrant?.accessToken
+    || body?.payment?.premiumAccessToken
+    || body?._paymentContext?.premiumAccessToken
+    || cookieValue(request, "cd_premium_access")
+    || cookieValue(request, "cd_premium_access_token")
     || "",
   );
 }
@@ -1162,25 +1373,32 @@ async function handlePrepare(request, env) {
     const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "soulOriginKarma", {
       ...body,
       reportType: "soulOriginKarma",
+      reportTypeAliases: SOUL_ORIGIN_REPORT_TYPE_ALIASES,
       featureKey,
+      featureAliases: SOUL_ORIGIN_FEATURE_ALIASES,
       premiumAccessToken: premiumAccessToken || undefined,
       _accessRoute: "/api/soul-origin",
     });
 
     if (!access?.ok) {
+      SESSION_LOCKS.delete(sessionId);
       const status = Number(access?.status || 402);
       const hasSessionId = Boolean(clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId));
       const hasPurchaseId = Boolean(clean(body?.purchaseId || body?.accessGrant?.purchaseId || body?.payment?.purchaseId));
       const hasRequestId = Boolean(clean(body?.requestId || body?.accessGrant?.requestId || body?.payment?.requestId || body?._paymentContext?.requestId));
       const hasPaymentToken = Boolean(premiumAccessToken);
       const paymentConfirmedButMissing = status === 402 && (hasSessionId || hasPurchaseId || hasRequestId || hasPaymentToken);
+      const accessCode = clean(access?.code || "PAYMENT_REQUIRED").toUpperCase();
+      const isCoinShortage = status === 402 && /(INSUFFICIENT|SHORTAGE|POINT|COIN)/.test(accessCode);
 
       const message = status === 401
         ? "로그인 후 운명의 업 PDF를 생성할 수 있습니다."
         : paymentConfirmedButMissing
           ? "결제는 확인되었지만 생성 권한 연결이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요."
-          : status === 402
-            ? "프리미엄 PDF 생성 권한이 필요합니다."
+          : isCoinShortage
+            ? "운명의 업 PDF 생성을 위해 코인이 필요합니다."
+            : status === 402
+              ? "프리미엄 PDF 생성 권한이 필요합니다."
             : "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
 
       return json({
@@ -1269,16 +1487,13 @@ async function handlePrepare(request, env) {
       title: SOUL_ORIGIN_TITLE,
       summary,
       birthInput,
-      localSeed,
-      manuscriptSource: "local-only",
       chapters,
       pdfReady,
+      downloadUrl: clean(pdfReady.downloadUrl || pdfReady.pdfUrl || pdfReady.htmlUrl),
       pdfUrl: clean(pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl),
       htmlUrl: clean(pdfReady.htmlUrl || pdfReady.pdfUrl || pdfReady.downloadUrl),
       canReopen: true,
       canDownload: true,
-      fallbackUsed: false,
-      llmUsed: false,
       createdAt: generatedAt,
     };
 
@@ -1296,10 +1511,11 @@ async function handlePrepare(request, env) {
         chapters,
         localSeed,
         pdfReady,
+        downloadUrl: clean(pdfReady.downloadUrl || pdfReady.pdfUrl || pdfReady.htmlUrl),
         pdfUrl: clean(pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl),
         htmlUrl: clean(pdfReady.htmlUrl || pdfReady.pdfUrl || pdfReady.downloadUrl),
         canReopen: true,
-        canDownload: Boolean(clean(pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl)),
+        canDownload: true,
       },
     });
 
@@ -1368,7 +1584,7 @@ async function handlePrepare(request, env) {
       ? "생년월일시 정보를 확인할 수 없습니다. 정확한 생년월일시를 입력해 주세요."
       : rawMessage.includes("품질") || rawMessage.includes("원고")
         ? "생성된 상담서가 품질 기준에 맞지 않아 완료하지 못했습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요."
-        : "운명의 업 PDF 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+        : "운명의 업 상담서 생성 중 문제가 발생했습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요.";
 
     return json({
       ok: false,
@@ -1426,8 +1642,8 @@ async function handleReadReport(request, env) {
     title: clean(archive.title || SOUL_ORIGIN_TITLE) || SOUL_ORIGIN_TITLE,
     summary: clean(archive.summary || ""),
     chapters: Array.isArray(archive.chapters) ? archive.chapters : [],
-    localSeed: archive.localSeed && typeof archive.localSeed === "object" ? archive.localSeed : undefined,
     pdfReady,
+    downloadUrl: clean(archive.downloadUrl || pdfReady.downloadUrl || pdfReady.pdfUrl || pdfReady.htmlUrl),
     pdfUrl: clean(archive.pdfUrl || pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl),
     htmlUrl: clean(archive.htmlUrl || pdfReady.htmlUrl || pdfReady.pdfUrl || pdfReady.downloadUrl),
     canReopen: true,

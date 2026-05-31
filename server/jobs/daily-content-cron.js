@@ -3,7 +3,6 @@ require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
 
 const fs   = require('fs');
 const cron = require('node-cron');
-const nodemailer = require('nodemailer');
 const connectDB = require('../config/db');
 const DailyFortuneSubscription = require('../models/DailyFortuneSubscription');
 const { buildUnsubscribeUrl } = require('../utils/subscription-link');
@@ -41,28 +40,28 @@ function loadLatestFortuneData() {
 }
 
 async function sendEmail({ to, subject, html, text }) {
-  const host = process.env.ADMIN_SMTP_HOST;
-  const port = Number(process.env.ADMIN_SMTP_PORT || 587);
-  const user = process.env.ADMIN_SMTP_USER;
-  const pass = process.env.ADMIN_SMTP_PASS;
-  const from = process.env.ADMIN_SMTP_FROM || user;
-  if (!host || !user || !pass || !from) {
-    throw new Error('SMTP 환경변수가 비어 있습니다. ADMIN_SMTP_* 값을 확인하세요.');
+  const apiKey = process.env.EMAILAPI_KEY;
+  if (!apiKey) {
+    throw new Error('Resend API 키(EMAILAPI_KEY)가 설정되지 않았습니다.');
   }
-  const transport = nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
-    auth: { user, pass },
+  const payload = {
+    from: 'Code Destiny <noreply@code-destiny.com>',
+    to: Array.isArray(to) ? to : [to],
+    subject,
+    html: html || '<pre>' + (text || '') + '</pre>',
+  };
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + apiKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
   });
-  const opts = { from, to, subject };
-  if (html) {
-    opts.html = html;
-    opts.text = text || 'CODE DESTINY 운세 뉴스레터 — code-destiny.com';
-  } else {
-    opts.text = text || '';
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error('[Resend] ' + (data.message || JSON.stringify(data)));
   }
-  await transport.sendMail(opts);
 }
 
 async function getDailyRecipients() {

@@ -14,6 +14,7 @@ async function handleDailyFortunePost(request, env) {
     const body = await readJson(request);
     const email = normalizeEmail(body?.email);
     const subDaily = body?.subDaily !== false;
+    const subMonthly = body?.subMonthly === true;
     const rawBirthYear = body?.birthYear;
     const birthYear = rawBirthYear ? parseInt(rawBirthYear, 10) : null;
     const source = body?.source || "saju-analysis";
@@ -22,8 +23,13 @@ async function handleDailyFortunePost(request, env) {
       return json({ message: "유효한 이메일 주소를 입력해 주세요." }, { status: 400 });
     }
 
+    if (!subDaily && !subMonthly) {
+      return json({ message: "일일 운세 또는 월별 운세 중 하나 이상을 선택해 주세요." }, { status: 400 });
+    }
+
     const updateFields = {
       subDaily,
+      subMonthly,
       isActive: true,
       unsubscribedAt: null,
       source,
@@ -57,6 +63,7 @@ async function handleDailyFortunePost(request, env) {
       subscription: {
         email: saved.email,
         subDaily: !!saved.subDaily,
+        subMonthly: !!saved.subMonthly,
         isActive: !!saved.isActive,
       },
     });

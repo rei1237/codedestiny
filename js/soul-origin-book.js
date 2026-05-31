@@ -390,6 +390,29 @@
       || code.indexOf('PREMIUM') >= 0;
   }
 
+  function mapSoulOriginUserMessage(error) {
+    var status = Number(error && error.status || 0);
+    var code = clean(error && error.code).toUpperCase();
+    var raw = clean(error && error.message);
+
+    if (status === 401 || code.indexOf('UNAUTHORIZED') >= 0 || code.indexOf('AUTH') >= 0) {
+      return '로그인 후 운명의 업 PDF를 생성할 수 있습니다.';
+    }
+    if (code.indexOf('PAYMENT_CONFIRMED_BUT_ACCESS_MISSING') >= 0) {
+      return '결제는 완료되었지만 생성 권한 연결이 지연되었습니다. 다시 시도해 주세요.';
+    }
+    if (status === 402 || code.indexOf('PAYMENT_REQUIRED') >= 0 || code.indexOf('INSUFFICIENT') >= 0 || code.indexOf('COIN') >= 0 || code.indexOf('POINT') >= 0) {
+      return '운명의 업 PDF 생성을 위해 코인이 필요합니다.';
+    }
+    if (code.indexOf('BIRTH_') >= 0 || raw.indexOf('태어난 시간') >= 0 || raw.indexOf('생년월일') >= 0) {
+      return '생년월일시 정보를 확인한 뒤 다시 시도해 주세요.';
+    }
+    if (code.indexOf('SOUL_ORIGIN_GENERATION_FAILED') >= 0 || code.indexOf('SOUL_ORIGIN_MANUSCRIPT_INVALID') >= 0) {
+      return '운명의 업 상담서 생성 중 문제가 발생했습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요.';
+    }
+    return raw || '운명의 업 상담서를 여는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+  }
+
   function normalizeAccessGrant(raw, reportId, requestId, sessionId) {
     var data = raw && typeof raw === 'object' ? raw : {};
     var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
@@ -465,7 +488,10 @@
           }
 
           if (isAuthOrPaymentFailure(pack.status, payload)) {
-            reject(new Error(clean(payload.message || payload.error || payload.code) || '코인 결제 확인이 필요합니다.'));
+            var accessErr = new Error(clean(payload.message || payload.error || payload.code) || '결제는 완료되었지만 생성 권한 연결이 지연되었습니다. 다시 시도해 주세요.');
+            accessErr.status = Number(pack.status || 0);
+            accessErr.code = clean(payload.code || payload.error || 'PAYMENT_REQUIRED');
+            reject(accessErr);
             return;
           }
 
@@ -503,7 +529,7 @@
           runServerCoinGate('soul-origin:' + Date.now().toString(36), requestId, sessionId)
             .then(resolve)
             .catch(function () {
-              reject(new Error(clean(payload.message) || '코인 결제 확인이 필요합니다.'));
+              reject(new Error(clean(payload.message) || '결제는 완료되었지만 생성 권한 연결이 지연되었습니다. 다시 시도해 주세요.'));
             });
           return;
         }
@@ -587,7 +613,10 @@
             if (isAuthOrPaymentFailure(pack.status, pack.data || {}) || (pack.status >= 400 && pack.status < 500 && !isRetryableStatus(pack.status))) {
               var message = clean(pack.data && (pack.data.message || pack.data.error || pack.data.code));
               lastClientError = message || '입력값 또는 결제 상태를 확인해 주세요.';
-              reject(new Error(lastClientError));
+              var reqError = new Error(lastClientError);
+              reqError.status = Number(pack.status || 0);
+              reqError.code = clean(pack.data && (pack.data.code || pack.data.error || 'REQUEST_FAILED'));
+              reject(reqError);
               return;
             }
 
@@ -648,6 +677,18 @@
         featureKey: FEATURE_KEY,
         productKey: FEATURE_KEY,
         reportType: REPORT_TYPE,
+        reportTypeAliases: [
+          'premium_pdf_soul_origin',
+          'soul_origin_karma',
+          'soul-origin',
+          'premium-soul-origin-report'
+        ],
+        featureAliases: [
+          'soulOriginKarma',
+          'soul_origin_karma',
+          'soul-origin',
+          'premium-soul-origin-report'
+        ],
         requestId: paymentRequestId || requestId,
         sessionId: paymentSessionId || sessionId,
         reportSessionId: paymentSessionId || sessionId,
@@ -655,14 +696,17 @@
         input: input,
         birthInput: input,
         premiumAccessToken: token || undefined,
+        _premiumAccessToken: token || undefined,
         accessGrant: accessGrant || undefined,
         payment: accessGrant ? {
+          premiumAccessToken: token || undefined,
           requestId: clean(accessGrant.requestId || paymentRequestId || requestId) || undefined,
           purchaseId: clean(accessGrant.purchaseId || '') || undefined,
           sessionId: clean(accessGrant.sessionId || paymentSessionId || sessionId) || undefined,
           reportSessionId: clean(accessGrant.reportSessionId || accessGrant.sessionId || paymentSessionId || sessionId) || undefined,
         } : undefined,
         _paymentContext: accessGrant ? {
+          premiumAccessToken: token || undefined,
           requestId: clean(accessGrant.requestId || paymentRequestId || requestId) || undefined,
           purchaseId: clean(accessGrant.purchaseId || '') || undefined,
           sessionId: clean(accessGrant.sessionId || paymentSessionId || sessionId) || undefined,
@@ -688,7 +732,7 @@
         sessionId: sessionId,
         errorCode: clean(error && error.code) || 'DESTINY_PRAYER_BOOK_FAILED',
       });
-      var msg = clean(error && error.message) || '운명의 업 리포트를 여는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+      var msg = mapSoulOriginUserMessage(error);
       var errEl = $('soErrorMsg');
       if (errEl) errEl.textContent = msg;
       showScreen('error');

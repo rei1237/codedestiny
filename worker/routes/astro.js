@@ -5,11 +5,13 @@ import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { ASTRO_PREMIUM_CHAPTERS, ASTRO_PREMIUM_FEATURE_KEY } from "../lib/astro-premium-chapters.js";
 import {
   generateAstroPremiumReport,
+  hasUsableSwissAstroChart,
   normalizeAstroPremiumBirthInput,
   validateAstroPayloadForApi,
 } from "../lib/astro-premium-generator.js";
 import { VEDIC_PREMIUM_CHAPTERS, VEDIC_PREMIUM_FEATURE_KEY } from "../lib/vedic-premium-chapters.js";
 import {
+  fallbackChartSourceFromBirthInput,
   generateVedicPremiumReport,
   normalizeVedicError,
   normalizeVedicPremiumBirthInput,
@@ -81,6 +83,25 @@ function toAstroErrorMeta(error) {
     code: String(error?.code || "").trim() || null,
     status: Number(error?.status || 0) || null,
     message: String(error?.message || error || "unknown").trim(),
+  };
+}
+
+function toAstroFailureTrace(error, body = {}, birthInput = {}) {
+  const details = error?.details && typeof error.details === "object" ? error.details : {};
+  const providedSwissChart = body?.swissChart || body?.chart;
+  const providedAstroBase = body?.astroBase || body?.payload?.localAstroChartJson?.chart || body?.payload?.localAstroChartJson;
+  return {
+    stage: clean(error?.stage || details?.stage || "local-only-generation") || "local-only-generation",
+    code: clean(error?.code) || null,
+    message: clean(error?.message || "unknown"),
+    hasBirthInput: Boolean(clean(birthInput?.birthDate)),
+    hasProvidedSwissChart: Boolean(providedSwissChart),
+    hasProvidedAstroBase: Boolean(providedAstroBase),
+    hasUsableChart: hasUsableSwissAstroChart(providedSwissChart || providedAstroBase),
+    hasPlanets: Boolean(details?.hasPlanets || details?.hasCorePlanets || details?.premiumSignal?.planets),
+    hasHouses: Boolean(details?.hasHouses || details?.premiumSignal?.houses),
+    hasAspects: Boolean(details?.hasAspects || details?.premiumSignal?.aspects),
+    source: clean(details?.source || details?.calculationMode || body?.source || ""),
   };
 }
 
@@ -233,10 +254,23 @@ async function resolveVedicChartForPremiumPdf(rawInput, birthInput, env, request
     };
   }
 
-  const calculated = await getSwissVedicPlanets(env, toSwissVedicInputFromBirthInput(birthInput), { requestUrl });
+  try {
+    const calculated = await getSwissVedicPlanets(env, toSwissVedicInputFromBirthInput(birthInput), { requestUrl });
+    if (hasUsableVedicChartSource(calculated)) {
+      return {
+        source: "server-local",
+        chartSource: normalizeVedicChartSourceForPdf(calculated),
+      };
+    }
+  } catch (error) {
+    console.warn("[VedicPremiumPDF][SwissChartUnavailableUseSafeChart]", {
+      reason: clean(error?.message || error),
+    });
+  }
+
   return {
-    source: "server-local",
-    chartSource: normalizeVedicChartSourceForPdf(calculated),
+    source: "safe-local",
+    chartSource: normalizeVedicChartSourceForPdf(fallbackChartSourceFromBirthInput(birthInput)),
   };
 }
 
@@ -386,22 +420,19 @@ async function handleAstroPremiumPrepare(request, env) {
         console.info(tag, payload || {});
       },
     });
-    if (!generated?.validation?.ok) {
-      const error = new Error("점성술 프리미엄 원고 검증에 실패했습니다.");
-      error.code = "ASTRO_MANUSCRIPT_INVALID";
-      error.status = 422;
-      throw error;
-    }
     const requestOrigin = new URL(request.url).origin;
     const archiveUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
     const pdfReady = {
       ...(generated?.pdfReady || {}),
+      html: clean(generated?.pdfReady?.html || generated?.html || ""),
+      filename: clean(generated?.pdfReady?.filename || `astro-premium-${reportId}.html`),
       pdfUrl: clean(generated?.pdfReady?.pdfUrl || generated?.pdfReady?.downloadUrl || archiveUrl),
       htmlUrl: clean(generated?.pdfReady?.htmlUrl || archiveUrl),
       downloadUrl: clean(generated?.pdfReady?.downloadUrl || generated?.pdfReady?.pdfUrl || generated?.pdfReady?.htmlUrl || archiveUrl),
       storageKey: clean(generated?.pdfReady?.storageKey || `premium-archive:astro:${reportId}`),
       mimeType: clean(generated?.pdfReady?.mimeType || "text/html"),
     };
+    const storedUrl = clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl);
 
     await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
       chapterCount: generated.chapterCount,
@@ -416,13 +447,14 @@ async function handleAstroPremiumPrepare(request, env) {
         summary: clean(generated?.finalManuscript?.[0]?.sections?.[0]?.body || generated?.chapters?.[0]?.categories?.[0]?.text || "", 1000),
         pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
         htmlUrl: clean(pdfReady?.htmlUrl),
+        downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
         chapters: generated.chapters,
         chapterDrafts: generated.finalManuscript,
         payload: generated.payload,
         localAstroChartJson: generated.localAstroChartJson,
         pdfReady,
         canReopen: true,
-        canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)),
+        canDownload: Boolean(storedUrl),
       },
     });
 
@@ -441,10 +473,12 @@ async function handleAstroPremiumPrepare(request, env) {
       pdfReady,
       pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
       htmlUrl: clean(pdfReady?.htmlUrl),
+      downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
       canReopen: true,
-      canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)),
+      canDownload: Boolean(storedUrl),
       localAstroChartJson: generated.localAstroChartJson,
       validation: generated.validation,
+      validationWarning: Boolean(generated?.validationWarning),
       manuscriptSource: "local-only",
       quality: generated.quality,
       finalManuscript: generated.finalManuscript,
@@ -497,6 +531,7 @@ async function handleAstroPremiumPrepare(request, env) {
         stage: "error",
       });
     }
+    console.error("[AstroPremiumPDF][FailureTrace]", toAstroFailureTrace(error, body, normalizeAstroPremiumBirthInput(body)));
     console.error("[AstroPremiumPDF][Error]", {
       ...toAstroErrorMeta(error),
       details: normalizeAstroError(error),
@@ -674,6 +709,8 @@ async function handleVedicPremiumPrepare(request, env) {
     const archiveUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
     const pdfReady = {
       ...(generated?.pdfReady || {}),
+      html: clean(generated?.pdfReady?.html || generated?.html || "") || String(generated?.pdfReady?.html || generated?.html || ""),
+      filename: clean(generated?.pdfReady?.filename || `vedic-premium-${reportId}.html`) || `vedic-premium-${reportId}.html`,
       pdfUrl: clean(generated?.pdfReady?.pdfUrl || generated?.pdfReady?.downloadUrl || archiveUrl),
       htmlUrl: clean(generated?.pdfReady?.htmlUrl || archiveUrl),
       downloadUrl: clean(generated?.pdfReady?.downloadUrl || generated?.pdfReady?.pdfUrl || generated?.pdfReady?.htmlUrl || archiveUrl),
@@ -694,13 +731,14 @@ async function handleVedicPremiumPrepare(request, env) {
         summary: clean(generated?.chapterDrafts?.[0]?.sections?.[0]?.body || generated?.chapters?.[0]?.categories?.[0]?.body || "", 1000),
         pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
         htmlUrl: clean(pdfReady?.htmlUrl),
+        downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
         chapters: generated.chapters,
         chapterDrafts: generated.chapterDrafts,
         payload: generated.payload,
         localVedicChartJson: generated.localVedicChartJson,
         pdfReady,
         canReopen: true,
-        canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)),
+        canDownload: true,
       },
     });
 
@@ -720,8 +758,9 @@ async function handleVedicPremiumPrepare(request, env) {
       pdfReady,
       pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
       htmlUrl: clean(pdfReady?.htmlUrl),
+      downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
       canReopen: true,
-      canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)),
+      canDownload: true,
       quality: generated.quality,
       manuscriptSource: "local-only",
       localDraftChapterCount: Array.isArray(generated?.localDraft?.chapters) ? generated.localDraft.chapters.length : 0,

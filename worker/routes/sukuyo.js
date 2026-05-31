@@ -499,9 +499,11 @@ async function handleSukuyoPremiumPrepare(request, env) {
     const archiveUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
     const pdfReady = {
       ...(generated?.pdfReady || {}),
+      html: generated?.pdfReady?.html || generated?.html || "",
+      filename: generated?.pdfReady?.filename || generated?.filename || `sukyo-premium-${reportId}.html`,
       htmlUrl: clean(generated?.pdfReady?.htmlUrl || archiveUrl),
-      pdfUrl: clean(generated?.pdfReady?.pdfUrl || generated?.pdfReady?.downloadUrl || generated?.pdfReady?.htmlUrl || archiveUrl),
-      downloadUrl: clean(generated?.pdfReady?.downloadUrl || generated?.pdfReady?.pdfUrl || generated?.pdfReady?.htmlUrl || archiveUrl),
+      pdfUrl: clean(generated?.pdfReady?.pdfUrl || generated?.pdfReady?.downloadUrl || archiveUrl),
+      downloadUrl: clean(generated?.pdfReady?.downloadUrl || generated?.pdfReady?.pdfUrl || archiveUrl),
       storageKey: clean(generated?.pdfReady?.storageKey || `premium-archive:sukyo:${reportId}`),
       mimeType: clean(generated?.pdfReady?.mimeType || "text/html"),
     };
@@ -526,15 +528,15 @@ async function handleSukuyoPremiumPrepare(request, env) {
         birthName: clean(input?.self?.name),
         targetName: clean(input?.partner?.name),
         summary: clean(generated?.chapters?.[0]?.sections?.[0]?.body || "", 1000),
-        pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
-        htmlUrl: clean(pdfReady?.htmlUrl),
-        downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
+        pdfUrl: pdfReady.pdfUrl,
+        htmlUrl: pdfReady.htmlUrl,
+        downloadUrl: pdfReady.downloadUrl,
         chapters: generated.chapters,
         payload: generated.payload,
         localSukuyoCompatibilityJson: generated?.payload?.localSukuyoCompatibilityJson || generated?.payload,
         pdfReady,
         canReopen: true,
-        canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)),
+        canDownload: true,
       },
     });
 
@@ -560,11 +562,11 @@ async function handleSukuyoPremiumPrepare(request, env) {
       chapters: generated.chapters,
       payload: generated.payload,
       pdfReady,
-      pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
-      htmlUrl: clean(pdfReady?.htmlUrl),
-      downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
+      pdfUrl: pdfReady.pdfUrl,
+      htmlUrl: pdfReady.htmlUrl,
+      downloadUrl: pdfReady.downloadUrl,
       canReopen: true,
-      canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)),
+      canDownload: true,
     };
 
     sukuyoPdfGenerationLocks.set(sessionId, {
