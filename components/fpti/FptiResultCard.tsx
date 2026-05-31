@@ -49,7 +49,34 @@ const QUALITY_LABELS = {
 
 const STORAGE_KEY = "fpti_deep_report_state_v2";
 const FPTI_PREMIUM_UNLOCK_KEYS = ["premium-fpti-report", "premium_fpti_report", "generatefptideepreport", "openfptideepreport"];
-const DISALLOWED_RENDER_TEXT = ["섹션 로딩 중입니다.", "내용 준비 중입니다.", "fallback", "skeleton", "undefined", "null", "[object Object]", "데이터가 없습니다"];
+const DISALLOWED_RENDER_TEXT = [
+  "섹션 로딩 중입니다.",
+  "내용 준비 중입니다.",
+  "fallback",
+  "skeleton",
+  "undefined",
+  "null",
+  "[object Object]",
+  "데이터가 없습니다",
+  "code",
+  "typeName",
+  "axisScores",
+  "usedSignals",
+  "evidence",
+  "source",
+  "growthTips",
+  "weaknesses",
+  "calculationNotes",
+  "percentageElements",
+  "tenGodGroupScores",
+  "핵심 카테고리입니다",
+  "해석하는 핵심 카테고리",
+  "데이터를 사용",
+  "점수 분포",
+  "기반으로 계산",
+  "반영된 신호",
+  "이 유형에게 필요한 한 문장는",
+];
 const PLACEHOLDER_TITLE_PATTERN = /\b(섹션|section|카테고리|category|챕터|chapter)\s*\d+\b/i;
 const CHAPTER_TITLE_SCHEMA = [
   "FPTI 유형 총론 - 나의 운명 성향 코드",
@@ -83,7 +110,7 @@ function toRoman(order: number): string {
 }
 
 function sanitizeUserText(value: unknown, fallbackText: string): string {
-  const text = String(value || "").trim();
+  const text = String(value || "").trim().replace(/이 유형에게 필요한 한 문장는/g, "이 유형에게 필요한 한 문장은");
   if (!text) return fallbackText;
   const lowered = text.toLowerCase();
   if (DISALLOWED_RENDER_TEXT.some((token) => lowered.includes(token.toLowerCase()))) return fallbackText;
@@ -148,13 +175,12 @@ function normalizeDeepReport(report: FptiDeepReport, unlocked: boolean): FptiDee
       sections: unlocked
         ? (normalizedSections.length ? normalizedSections : [{
           title: "핵심 해석",
-          usedSignals: ["성향 축", "십성 기반 해석", "실행 기준"],
-          interpretation: "현재 데이터 변동이 있어도 읽을 수 있도록 기준형 본문을 보강했습니다. 이 장은 강점이 발휘되는 조건, 무너지는 조건, 복귀 전략을 함께 설명합니다.",
-          body: "현재 데이터 변동이 있어도 읽을 수 있도록 기준형 본문을 보강했습니다. 이 장은 강점이 발휘되는 조건, 무너지는 조건, 복귀 전략을 함께 설명합니다.",
-          strength: "상황 판단 기준이 선명해집니다.",
-          risk: "피로가 누적되면 결정 품질이 낮아질 수 있습니다.",
-          action: "작은 기준을 매일 반복해 복귀 속도를 높이세요.",
-          advice: "작은 기준을 매일 반복해 복귀 속도를 높이세요.",
+          interpretation: "일부 정보가 완벽하지 않아도 지금 드러난 성향의 흐름은 충분히 읽을 수 있습니다. 이 장에서는 당신이 반복해서 선택하는 방식이 관계와 일, 돈에서 어떤 결과를 만드는지 차분히 짚고, 오늘 바로 적용할 기준 문장을 제안합니다.",
+          body: "일부 정보가 완벽하지 않아도 지금 드러난 성향의 흐름은 충분히 읽을 수 있습니다. 이 장에서는 당신이 반복해서 선택하는 방식이 관계와 일, 돈에서 어떤 결과를 만드는지 차분히 짚고, 오늘 바로 적용할 기준 문장을 제안합니다.",
+          strength: "기준을 세우고 책임을 지는 힘이 분명해 위기 상황에서도 중심을 잡을 수 있습니다.",
+          risk: "피로 신호를 놓치면 혼자 버티는 습관이 커져 판단이 느려질 수 있습니다.",
+          action: "기준 한 줄과 중단 한 줄을 적고, 하루가 끝날 때 실제 적용 여부를 점검하세요.",
+          advice: "무너지지 않는 사람이 되기보다, 무너져도 돌아오는 구조를 먼저 만드세요.",
         }])
         : (idx === 0 ? normalizedSections.slice(0, 1) : []),
     };
@@ -192,9 +218,6 @@ function mapServerDeepReport(result: FptiAnalysisResult, serverRaw: unknown): Fp
       const body = sanitizeUserText(section.body || section.interpretation, `${idx + 1}장 ${sectionIdx + 1}절은 현재 성향 축을 기준으로 관계, 일, 돈, 감정 패턴을 현실적으로 정리한 해석입니다.`);
       return {
         title: sanitizeUserText(resolveSectionTitle(section.title, idx, sectionIdx), CATEGORY_SCHEMA[idx]?.[sectionIdx] || `핵심 항목 ${sectionIdx + 1}`),
-        usedSignals: Array.isArray(section.usedSignals)
-          ? (section.usedSignals as unknown[]).map((v) => sanitizeUserText(v, "핵심 성향 신호")).filter(Boolean)
-          : ["십성 기반 성향", "축 해석 요약", "실행 기준"],
         interpretation: body,
         body,
         strength: sanitizeUserText(section.strength, "강점이 살아나는 환경을 구분하면 성과의 안정성이 높아집니다."),
@@ -750,12 +773,34 @@ export default function FptiResultCard({ result }: Props) {
         <h4 className={`${styles.neonTextCyan} mt-1 text-lg font-semibold`}>{deepReport?.typeName || "리포트"} ({deepReport?.userTypeCode || ""})</h4>
         <p className="mt-2 text-sm text-slate-200">{deepReport?.summary?.preview || ""}</p>
 
+        <div className="mt-3 flex items-center justify-between rounded-xl border border-white/12 bg-black/20 px-3 py-2 text-xs text-slate-200">
+          <span>읽는 순서: 총론 → 내면 → 관계 → 일/재능 → 돈 → 스트레스 → 성장</span>
+          <span className="font-semibold text-cyan-100">현재 {activeChapter + 1}/{Array.isArray(deepReport?.chapters) ? deepReport.chapters.length : 7}장</span>
+        </div>
+
         <div className="mt-3 flex flex-wrap gap-2">
           {Array.isArray(deepReport?.summary?.highlights) && deepReport.summary.highlights.map((item) => (
             <span key={item} className="rounded-full border border-cyan-200/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-100">
               {item}
             </span>
           ))}
+        </div>
+
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+          {Array.isArray(deepReport?.chapters) && deepReport.chapters.map((chapter, idx) => {
+            const chapterLocked = !accessState.isUnlocked && idx > 0;
+            const chapterActive = idx === activeChapter;
+            return (
+              <button
+                key={`chapter-nav-${chapter?.roman}-${idx}`}
+                type="button"
+                onClick={() => setActiveChapter(idx)}
+                className={`shrink-0 rounded-full border px-3 py-1.5 text-xs transition ${chapterActive ? "border-cyan-200/55 bg-cyan-500/20 text-cyan-50" : chapterLocked ? "border-amber-300/35 bg-amber-500/10 text-amber-100" : "border-white/15 bg-white/5 text-slate-200 hover:bg-white/10"}`}
+              >
+                {toRoman(Number(chapter?.order || idx + 1))} {chapterLocked ? "잠금" : stripRomanPrefix(chapter?.title).split(" ")[0]}
+              </button>
+            );
+          })}
         </div>
 
         <div className="mt-4 rounded-2xl border border-cyan-200/20 bg-[#07142c]/70 p-3">
@@ -793,8 +838,11 @@ export default function FptiResultCard({ result }: Props) {
                     {!lockedChapter && <div className="space-y-3">
                       {chapter.sections && Array.isArray(chapter.sections) && chapter.sections.map((section) => (
                         <article key={`${chapter.roman}-${section?.title}`} className="rounded-2xl border border-cyan-300/20 bg-cyan-500/5 p-3 transition hover:shadow-[0_0_20px_rgba(56,189,248,0.22)]">
-                          <h6 className="text-sm font-semibold text-cyan-100">{section?.title || "제목 없음"}</h6>
-                          <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-100">{sanitizeUserText((section as Record<string, unknown>)?.body || section?.interpretation, "이 섹션은 현재 성향 축과 십성 분포를 바탕으로 행동 패턴, 관계 반응, 현실 선택 전략을 균형 있게 해석한 안내입니다.")}</p>
+                          <div className="flex items-start justify-between gap-3">
+                            <h6 className="text-sm font-semibold text-cyan-100">{section?.title || "제목 없음"}</h6>
+                            <span className="rounded-full border border-white/15 bg-white/10 px-2 py-0.5 text-[10px] text-slate-200">상담 섹션</span>
+                          </div>
+                          <p className="mt-2 whitespace-pre-wrap text-[14px] leading-8 text-slate-100">{sanitizeUserText((section as Record<string, unknown>)?.body || section?.interpretation, "이 섹션은 현재 성향 축과 십성 분포를 바탕으로 행동 패턴, 관계 반응, 현실 선택 전략을 균형 있게 해석한 안내입니다.")}</p>
                           {accessState.isUnlocked && (
                             <div className="mt-3 grid gap-2 md:grid-cols-3">
                               <p className="rounded-lg border border-emerald-200/25 bg-emerald-500/10 p-2 text-xs text-emerald-100">강점: {section?.strength || "-"}</p>
@@ -802,14 +850,6 @@ export default function FptiResultCard({ result }: Props) {
                               <p className="rounded-lg border border-sky-200/25 bg-sky-500/10 p-2 text-xs text-sky-100">실행: {sanitizeUserText((section as Record<string, unknown>)?.advice || section?.action, "핵심 행동 1개를 먼저 완료하고 주간 점검을 고정하세요.")}</p>
                             </div>
                           )}
-                          <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-2">
-                            <p className="text-xs font-semibold tracking-[0.14em] text-slate-300">해석 근거 신호</p>
-                            <ul className="mt-2 space-y-1 text-xs text-slate-200">
-                              {Array.isArray(section?.usedSignals) && section.usedSignals.map((signal) => (
-                                <li key={`${section?.title}-${signal}`}>- {signal}</li>
-                              ))}
-                            </ul>
-                          </div>
                         </article>
                       ))}
                     </div>}

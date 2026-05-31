@@ -555,7 +555,7 @@ export default function TarotPromptMakerPage() {
             </div>
 
             <div className="mt-3 flex flex-wrap gap-2">
-              {["all", 3, 5, 7, 10, 12, 14].map((count) => (
+              {(["all", 3, 5, 7, 10, 12, 14] as const).map((count) => (
                 <button
                   key={String(count)}
                   type="button"

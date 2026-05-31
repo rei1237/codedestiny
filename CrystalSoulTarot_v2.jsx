@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { LazyMotion, domAnimation, m, useReducedMotion } from "framer-motion";
 
 const CRYSTAL_COST = 50;
 
@@ -36,153 +35,182 @@ const GEMSTONES = [
     color: "#e8b830",
     glow: "#ffd700",
     keywords: ["풍요", "활력", "매출"],
+    meaning: "창의성과 실행력을 현실 성과로 연결하는 원석",
+  },
+  {
+    id: "lapis",
+    name: "라피스 라줄리",
+    color: "#2856b0",
+    glow: "#4169e1",
+    keywords: ["전략", "판단력", "진실"],
     meaning: "보이지 않는 구조를 읽고 장기 전략을 세우게 하는 원석",
   },
   {
-        color: "#d98aa9",
-        glow: "#f3adc7",
-        keywords: ["다정함", "안심", "마음 열기"],
-        meaning: "굳어 있던 마음을 부드럽게 풀어 내며 사랑받을 자격을 다시 느끼게 하는 원석",
+    id: "black-tourmaline",
+    name: "블랙 토르말린",
+    color: "#5a6070",
+    glow: "#708090",
     keywords: ["보호", "경계", "정리"],
     meaning: "소모적 자극을 차단하고 관계 에너지의 경계를 세우는 원석",
   },
-        name: "자수정",
-        color: "#8263c7",
-        glow: "#b99bff",
-        keywords: ["직관", "정화", "고요"],
-        meaning: "복잡한 생각을 잠재우고 진짜 마음의 목소리에 귀 기울이게 하는 원석",
-      },
-      {
-        id: "obsidian",
-        name: "흑요석",
-        color: "#2f3340",
-        glow: "#7b879c",
-        keywords: ["보호", "경계", "회복"],
-        meaning: "흔들리는 감정을 감싸 안고 불필요한 상처의 파동을 차분히 막아 주는 원석",
+  {
+    id: "green-fluorite",
+    name: "그린 플로라이트",
+    color: "#2e9e5e",
+    glow: "#3cb371",
     keywords: ["정리", "균형", "회복"],
     meaning: "흩어진 선택지를 정돈해 우선순위를 세우는 원석",
   },
-        name: "시트린",
-        color: "#d7a52d",
-        glow: "#f2ce6b",
-        keywords: ["희망", "활력", "풍요"],
-        meaning: "지친 마음에 따뜻한 햇살 같은 기운을 더해 다시 움직일 힘을 건네는 원석",
-      },
-      {
-        id: "moonstone",
-        name: "문스톤",
-        color: "#a7b8d4",
-        glow: "#d5e7ff",
-        keywords: ["감수성", "직감", "달빛 치유"],
-        meaning: "불안으로 거칠어진 감정을 잔잔한 달빛처럼 감싸며 내면의 리듬을 회복시키는 원석",
-      },
-      {
-        id: "tigers-eye",
-        name: "호안석",
-        color: "#b7862f",
-        glow: "#e7bb63",
-        keywords: ["결단", "용기", "집중"],
-        meaning: "흔들리는 선택의 순간에 발을 단단히 디디고 현실 감각을 붙잡게 하는 원석",
+];
+
+const TOPICS = [
+  {
     id: "overall",
     title: "전체 흐름 · 오늘의 메시지",
     subtitle: "오늘의 핵심, 우선순위, 마지막 조언을 한 번에 정리합니다.",
     icon: "☉",
-        color: "#355da8",
-        glow: "#7ba2ee",
-        keywords: ["진실", "정돈", "방향"],
-        meaning: "흐릿한 감정을 맑게 정리해 앞으로 나아갈 방향을 또렷하게 비춰 주는 원석",
+    themeCrystal: "애머지스트",
+    themeKeywords: ["정리", "우선순위", "방향성"],
+    spread: [
+      { order: 1, title: "오늘의 핵심 기운", question: "오늘 가장 먼저 느껴야 할 흐름은 무엇인가?" },
+      { order: 2, title: "지금 눈앞의 주제", question: "지금 즉시 다뤄야 할 중심 문제는 무엇인가?" },
+      { order: 3, title: "흐름을 막는 요소", question: "에너지 흐름을 흔드는 변수는 무엇인가?" },
+      { order: 4, title: "오늘의 선택", question: "오늘 어떤 태도와 선택이 도움이 되는가?" },
+      { order: 5, title: "마무리 메시지", question: "오늘의 흐름이 남기는 최종 메시지는 무엇인가?" },
+    ],
+  },
+  {
+    id: "wealth",
+    title: "재물 · 사업",
+    subtitle: "돈의 흐름, 사업의 기회, 현실적 결단을 비춰봅니다.",
+    icon: "◆",
+    themeCrystal: "호안석",
+    themeKeywords: ["수익 흐름", "리스크", "실행"],
+    spread: [
+      { order: 1, title: "현재 재물운", question: "지금 돈과 사업의 흐름은 어떤 상태인가?" },
+      { order: 2, title: "기회·가능성", question: "어디에서 수익과 성장의 기회가 열리는가?" },
       { order: 3, title: "방해 요소", question: "돈의 흐름을 막는 습관이나 외부 변수는 무엇인가?" },
       { order: 4, title: "조언의 방향", question: "현실적으로 어떤 선택을 해야 하는가?" },
       { order: 5, title: "최종 결과", question: "이 흐름이 어떤 재물·사업 결과로 이어질 가능성이 큰가?" },
     ],
   },
-        id: "heart-flow",
-        title: "지금 마음의 흐름",
-        subtitle: "현재 감정, 숨겨진 마음, 외로움과 불안의 결을 천천히 읽어냅니다.",
-        icon: "◐",
-        themeCrystal: "문스톤",
-        themeKeywords: ["감정 상태", "숨은 마음", "감정 피로"],
+  {
+    id: "love",
+    title: "연애 · 감정",
+    subtitle: "마음의 온도, 끌림, 관계의 감정선을 읽습니다.",
+    icon: "♡",
+    themeCrystal: "로즈 쿼츠",
     themeKeywords: ["감정 온도", "표현", "균형"],
-          { order: 1, title: "겉으로 보이는 마음", question: "요즘 내가 가장 자주 느끼는 감정은 무엇인가?" },
-          { order: 2, title: "숨겨 둔 마음", question: "아무에게도 쉽게 말하지 못한 감정은 무엇인가?" },
-          { order: 3, title: "외로움의 결", question: "나를 지치게 하는 외로움은 어떤 모습인가?" },
-          { order: 4, title: "불안의 뿌리", question: "마음을 무겁게 만드는 근원은 어디에서 오는가?" },
-          { order: 5, title: "오늘의 안정점", question: "지금 이 마음을 안전하게 지켜 줄 선택은 무엇인가?" },
+    spread: [
+      { order: 1, title: "현재 감정 상태", question: "내 마음 또는 관계의 감정 온도는 어떤가?" },
+      { order: 2, title: "상대 또는 인연의 기류", question: "상대나 인연의 에너지는 어떻게 흐르는가?" },
+      { order: 3, title: "감정의 방해 요소", question: "사랑을 어렵게 만드는 내면의 패턴은 무엇인가?" },
+      { order: 4, title: "마음의 조언", question: "지금 어떤 태도로 사랑을 바라봐야 하는가?" },
       { order: 5, title: "관계의 가능성", question: "앞으로 감정 흐름은 어디로 향하는가?" },
     ],
   },
-        id: "relationships",
-        title: "관계와 인간관계",
-        subtitle: "사람에게 상처받는 패턴과 회복 흐름, 가까워지는 방식을 들여다봅니다.",
-        icon: "◍",
-        themeCrystal: "흑요석",
-        themeKeywords: ["상처 패턴", "경계", "회복 흐름"],
+  {
+    id: "reunion",
+    title: "재회 · 인연",
+    subtitle: "끊어진 듯 남아 있는 인연의 실과 가능성을 봅니다.",
+    icon: "∞",
+    themeCrystal: "애머지스트",
     themeKeywords: ["미련", "재접근", "회복 조건"],
-          { order: 1, title: "관계의 현재 온도", question: "지금 주변 사람들과의 분위기는 어떤가?" },
-          { order: 2, title: "반복되는 상처", question: "자꾸 같은 방식으로 아프게 되는 지점은 어디인가?" },
-          { order: 3, title: "가까워지는 방식", question: "내가 사람과 가까워질 때 보이는 패턴은 무엇인가?" },
-          { order: 4, title: "관계 피로의 원인", question: "요즘 관계에서 유난히 소모되는 이유는 무엇인가?" },
-          { order: 5, title: "회복을 여는 말", question: "지금 관계를 다시 부드럽게 잇기 위한 첫 문장은 무엇인가?" },
+    spread: [
+      { order: 1, title: "남아 있는 인연의 온도", question: "두 사람 사이에 아직 남은 감정은 무엇인가?" },
+      { order: 2, title: "상대의 숨은 마음", question: "상대가 겉으로 드러내지 않는 속마음은 무엇인가?" },
+      { order: 3, title: "재회를 막는 이유", question: "다시 이어지기 어려운 핵심 원인은 무엇인가?" },
+      { order: 4, title: "다가갈 방법", question: "지금 내가 취해야 할 태도는 무엇인가?" },
       { order: 5, title: "재회 가능성", question: "이 인연은 다시 연결될 가능성이 있는가?" },
     ],
   },
-        id: "love-flow",
-        title: "연애 흐름",
-        subtitle: "현재 사랑의 에너지와 감정 표현 방식, 반복되는 연애 흐름을 읽습니다.",
+  {
+    id: "move",
+    title: "이동수 · 변화",
     subtitle: "이사, 여행, 환경 변화, 새로운 흐름의 징조를 읽습니다.",
     icon: "➤",
-        themeKeywords: ["사랑 에너지", "표현 방식", "반복 패턴"],
+    themeCrystal: "라피스 라줄리",
     themeKeywords: ["타이밍", "환경 변화", "새 출발"],
-          { order: 1, title: "지금의 사랑 에너지", question: "현재 내 사랑의 온도는 어떤 상태인가?" },
-          { order: 2, title: "감정 표현의 방식", question: "나는 사랑을 어떤 말과 행동으로 전하는가?" },
-          { order: 3, title: "끌리는 사람의 결", question: "내가 자주 끌리는 사람의 특징은 무엇인가?" },
-          { order: 4, title: "반복되는 연애 패턴", question: "연애에서 다시 돌아오는 감정의 고리는 무엇인가?" },
-          { order: 5, title: "관계 회복의 가능성", question: "지금 사랑이 회복되기 위해 필요한 장면은 무엇인가?" },
+    spread: [
+      { order: 1, title: "현재 변화의 기운", question: "지금 내 삶은 움직일 준비가 되어 있는가?" },
+      { order: 2, title: "이동의 기회", question: "이사, 여행, 환경 변화의 좋은 흐름은 어디에 있는가?" },
+      { order: 3, title: "변화를 막는 요소", question: "움직임을 지연시키는 현실적·심리적 이유는 무엇인가?" },
+      { order: 4, title: "움직임의 조언", question: "지금은 기다려야 하는가, 움직여야 하는가?" },
+      { order: 5, title: "변화 이후의 흐름", question: "움직인 뒤 삶은 어떤 방향으로 바뀌는가?" },
+    ],
+  },
+  {
+    id: "career",
+    title: "직업 · 진로",
+    subtitle: "직업운, 진로 선택, 성장 방향을 비춰봅니다.",
+    icon: "✦",
+    themeCrystal: "그린 플로라이트",
+    themeKeywords: ["진로 선택", "성장", "평가"],
+    spread: [
+      { order: 1, title: "현재 직업운", question: "현재 일과 진로의 에너지는 어떤가?" },
+      { order: 2, title: "성장 가능성", question: "어떤 방향에서 커리어 기회가 열리는가?" },
+      { order: 3, title: "진로의 장애물", question: "내 직업 흐름을 막는 가장 큰 요인은 무엇인가?" },
+      { order: 4, title: "선택의 조언", question: "지금 어떤 선택과 준비가 필요한가?" },
+      { order: 5, title: "진로의 결과", question: "이 흐름은 어떤 커리어 결과로 이어지는가?" },
+    ],
+  },
+  {
+    id: "health",
+    title: "건강 · 에너지",
+    subtitle: "몸과 마음의 에너지 상태, 회복의 방향을 살핍니다.",
+    icon: "✿",
+    themeCrystal: "시트린",
+    themeKeywords: ["생활 리듬", "회복", "감정 피로"],
+    spread: [
+      { order: 1, title: "현재 에너지 상태", question: "몸과 마음의 에너지는 어떤 상태인가?" },
+      { order: 2, title: "회복 가능성", question: "어디에서 회복의 힘이 생기는가?" },
+      { order: 3, title: "에너지 소모 원인", question: "나를 지치게 만드는 핵심 원인은 무엇인가?" },
+      { order: 4, title: "몸과 마음의 조언", question: "지금 어떤 회복 방식이 필요한가?" },
+      { order: 5, title: "회복의 흐름", question: "앞으로 에너지는 어떻게 회복될 가능성이 큰가?" },
+    ],
+  },
+  {
+    id: "relation",
+    title: "대인관계",
+    subtitle: "주변 사람들과의 기류, 갈등, 신뢰의 흐름을 읽습니다.",
+    icon: "⊙",
+    themeCrystal: "블랙 토르말린",
+    themeKeywords: ["신뢰", "경계", "갈등 조율"],
+    spread: [
+      { order: 1, title: "현재 관계의 기류", question: "주변 인간관계의 에너지는 어떤가?" },
+      { order: 2, title: "도움이 되는 인연", question: "나에게 힘이 되는 사람이나 관계는 무엇인가?" },
+      { order: 3, title: "갈등의 씨앗", question: "관계를 어렵게 만드는 말, 태도, 오해는 무엇인가?" },
+      { order: 4, title: "관계 조율의 조언", question: "어떻게 말하고 행동해야 관계가 정리되는가?" },
       { order: 5, title: "관계의 최종 흐름", question: "이 인간관계는 어떤 방향으로 흘러갈 가능성이 큰가?" },
     ],
   },
-        id: "reality-money",
-        title: "현실과 돈의 흐름",
-        subtitle: "현실 압박과 금전 불안, 회복 타이밍을 감정의 결까지 함께 살펴봅니다.",
-        icon: "◇",
-        themeCrystal: "시트린",
-        themeKeywords: ["현실 압박", "돈 불안", "회복 타이밍"],
-        spread: [
-          { order: 1, title: "현실 압박의 강도", question: "지금 무엇이 가장 크게 숨을 막히게 하는가?" },
-          { order: 2, title: "돈에 대한 불안", question: "요즘 금전 문제에서 가장 두려운 장면은 무엇인가?" },
-          { order: 3, title: "소비의 감정", question: "지출 뒤에 숨어 있는 감정 습관은 무엇인가?" },
-          { order: 4, title: "현실을 지키는 선택", question: "당장 무너지지 않기 위해 필요한 선택은 무엇인가?" },
-          { order: 5, title: "회복의 시작 시점", question: "현실의 숨통이 트이는 시그널은 어떻게 나타나는가?" },
-        ],
-      },
-      {
-        id: "healing",
-        title: "마음 회복과 치유",
-        subtitle: "지친 감정을 돌보고 다시 살아나는 흐름을 부드럽게 안내합니다.",
-        icon: "✧",
+];
+
+const TAROT_CARDS = [
+  "The Fool", "The Magician", "The High Priestess", "The Empress", "The Emperor",
   "The Hierophant", "The Lovers", "The Chariot", "Strength", "The Hermit",
-        themeKeywords: ["자기 돌봄", "회복 포인트", "감정 재생"],
+  "Wheel of Fortune", "Justice", "The Hanged Man", "Death", "Temperance",
   "The Devil", "The Tower", "The Star", "The Moon", "The Sun",
-          { order: 1, title: "지쳐 있는 감정", question: "내 마음이 가장 닳아 있는 지점은 어디인가?" },
-          { order: 2, title: "스스로를 돌보는 법", question: "지금 나에게 실제로 필요한 돌봄은 무엇인가?" },
-          { order: 3, title: "회복을 막는 습관", question: "치유를 늦추는 내 습관은 무엇인가?" },
-          { order: 4, title: "회복 포인트", question: "감정이 살아나는 결정적 포인트는 어디에 있는가?" },
-          { order: 5, title: "다시 살아나는 흐름", question: "앞으로 마음은 어떤 리듬으로 되살아나는가?" },
+  "Judgement", "The World", "Ace of Wands", "Two of Wands", "Three of Wands",
+  "Five of Wands", "Seven of Wands", "Nine of Wands", "King of Wands",
+  "Ace of Cups", "Three of Cups", "Five of Cups", "Seven of Cups", "Nine of Cups",
+  "Page of Cups", "Knight of Cups", "Queen of Cups", "King of Cups",
+  "Ace of Swords", "Three of Swords", "Five of Swords", "Seven of Swords",
   "Nine of Swords", "Page of Swords", "Queen of Swords", "King of Swords",
   "Ace of Pentacles", "Three of Pentacles", "Five of Pentacles", "Seven of Pentacles",
   "Nine of Pentacles", "Page of Pentacles", "Queen of Pentacles", "King of Pentacles",
-        id: "future-flow",
-        title: "앞으로의 흐름",
-        subtitle: "가까운 미래와 변화 시점, 지금 가장 중요한 선택의 방향을 짚습니다.",
-        icon: "☾",
-        themeCrystal: "자수정",
-        themeKeywords: ["가까운 미래", "변화 시점", "선택 방향"],
+];
+
+const CARD_KR = {
+  "The Fool": "광대",
+  "The Magician": "마법사",
+  "The High Priestess": "여사제",
   "The Empress": "여황제",
-          { order: 1, title: "가까운 미래의 기류", question: "바로 앞에 다가온 흐름은 어떤 얼굴을 하고 있는가?" },
-          { order: 2, title: "변화의 시점", question: "전환점은 언제, 어떤 장면으로 나타나는가?" },
-          { order: 3, title: "운명의 방향성", question: "지금 흐름이 자연스럽게 향하는 방향은 어디인가?" },
-          { order: 4, title: "놓치기 쉬운 신호", question: "지금 반드시 알아차려야 할 조용한 신호는 무엇인가?" },
-          { order: 5, title: "가장 중요한 선택", question: "지금 이 시기에 가장 먼저 선택해야 할 것은 무엇인가?" },
+  "The Emperor": "황제",
+  "The Hierophant": "교황",
+  "The Lovers": "연인",
+  "The Chariot": "전차",
+  Strength: "힘",
   "The Hermit": "은자",
   "Wheel of Fortune": "운명의 수레바퀴",
   Justice: "정의",
@@ -329,244 +357,26 @@ function buildAssignments(coreGemId, cardsLength) {
   return assignments;
 }
 
-const FORBIDDEN_TERMS = [
-  "구조상",
-  "패턴 분석",
-  "데이터 기반",
-  "시스템",
-  "알고리즘",
-  "일반적으로",
-  "가능성이 있습니다",
-  "해석 결과",
-  "논리적으로",
-  "AI",
-  "분석 데이터",
-];
-
-function sanitizeCounselingText(input) {
-  const text = String(input || "").trim();
-  if (!text) return "";
-  let normalized = text;
-  FORBIDDEN_TERMS.forEach((term) => {
-    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    normalized = normalized.replace(new RegExp(escaped, "gi"), "");
-  });
-  normalized = normalized
-    .replace(/\s{2,}/g, " ")
-    .replace(/\.\s*\./g, ".")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-  return normalized;
-}
-
-function pickSectionValue(section, keys) {
-  if (!section) return "";
-  for (const key of keys) {
-    const value = sanitizeCounselingText(section?.[key]);
-    if (value) return value;
-  }
-  return "";
-}
-
-function buildCounselingCategories(payload, topic, gem) {
-  const summary = payload?.summary || {};
-  const sections = Array.isArray(payload?.sections) ? payload.sections : [];
-  const s0 = sections[0] || null;
-  const s1 = sections[1] || null;
-  const s2 = sections[2] || null;
-  const s3 = sections[3] || null;
-  const s4 = sections[4] || null;
-
-  const emotionalLead = sanitizeCounselingText(summary.oracleMessage) || "오늘의 카드는 당신이 오래 숨겨 둔 감정을 조용히 비추고 있어요.";
-  const overallFlow = sanitizeCounselingText(summary.overallFlow);
-  const strongestSignal = sanitizeCounselingText(summary.strongestSignal);
-  const risk = sanitizeCounselingText(summary.risk);
-  const timingAdvice = sanitizeCounselingText(summary.timingAdvice);
-
-  const blocks = [
-    {
-      title: "지금 마음의 흐름",
-      intro: emotionalLead,
-      points: [
-        pickSectionValue(s0, ["currentPulse", "categoryReading", "oneLineSummary"]),
-        pickSectionValue(s1, ["categoryReading", "cardFlow", "currentPulse"]),
-        overallFlow || "마음의 파도는 크지만, 당신 안에는 이미 버텨낼 힘이 남아 있습니다.",
-      ].filter(Boolean),
-    },
-    {
-      title: "관계와 인간관계",
-      intro: "사람 사이에서 지치는 이유를 찾는 순간, 관계는 천천히 회복되기 시작합니다.",
-      points: [
-        pickSectionValue(s1, ["caution", "categoryReading", "cardFlow"]),
-        pickSectionValue(s2, ["currentPulse", "caution", "categoryReading"]),
-        strongestSignal || "지금은 모든 관계를 붙잡기보다, 당신을 지켜 주는 관계를 먼저 선택해도 괜찮아요.",
-      ].filter(Boolean),
-    },
-    {
-      title: "연애 흐름",
-      intro: "사랑은 정답보다 리듬에 가깝습니다. 지금 당신의 리듬을 먼저 읽어 볼게요.",
-      points: [
-        pickSectionValue(s2, ["categoryReading", "cardFlow", "currentPulse"]),
-        pickSectionValue(s3, ["oneLineSummary", "caution", "uplift"]),
-        sanitizeCounselingText(summary.opportunity) || "억지로 서두르지 않아도, 진심은 천천히 제자리를 찾아옵니다.",
-      ].filter(Boolean),
-    },
-    {
-      title: "현실과 돈의 흐름",
-      intro: "현실의 무게를 견디는 마음에도 따뜻한 숨구멍이 필요합니다.",
-      points: [
-        pickSectionValue(s3, ["caution", "categoryReading", "cardFlow"]),
-        pickSectionValue(s4, ["action", "uplift", "currentPulse"]),
-        risk || "지출과 불안을 같은 날에 다루지 말고, 하루에 하나씩 차분히 정리해 보세요.",
-      ].filter(Boolean),
-    },
-    {
-      title: "마음 회복과 치유",
-      intro: `${gem?.name || "원석"}의 기운은 오늘 당신에게 '다시 숨 쉬어도 된다'고 말해 줍니다.`,
-      points: [
-        pickSectionValue(s4, ["uplift", "crystalEnergy", "categoryReading"]),
-        pickSectionValue(s0, ["uplift", "action", "oneLineSummary"]),
-        "조용한 밤에 내 마음을 탓하지 않고 안아 주는 시간부터 시작해 보세요.",
-      ].filter(Boolean),
-    },
-    {
-      title: "앞으로의 흐름",
-      intro: "앞으로의 길은 큰 도약보다, 작지만 선명한 선택에서 열립니다.",
-      points: [
-        timingAdvice || "가까운 시기에 작은 전환점이 열리고, 그 순간의 선택이 흐름을 바꿉니다.",
-        pickSectionValue(s4, ["cardFlow", "oneLineSummary", "categoryReading"]),
-        `${topic?.title || "이번 리딩"}의 핵심은 마음을 놓치지 않은 선택입니다.`,
-      ].filter(Boolean),
-    },
-  ];
-
-  return blocks;
-}
-
 function buildLocalFallback(topic, coreGem, cards) {
-  const cardNames = cards.map((card) => CARD_KR[card] || card).join(", ");
-  const lines = [
-    "CRYSTAL SOUL TAROT",
-    `${topic.title}`,
-    `${coreGem.name} · ${coreGem.keywords.join(" · ")}`,
-    "",
-    "당신의 마음은 지금 무너지려는 것이 아니라, 오래 참아 온 감정을 정직하게 꺼내려는 순간에 와 있습니다.",
-    "겉으로 단단해 보이던 부분 안에서도 누군가에게 기대고 싶다는 마음이 조용히 자라나고 있었어요.",
-    "",
-    "오늘 펼쳐진 카드는 당신이 무엇을 포기해야 하는지가 아니라, 무엇을 먼저 지켜야 하는지를 말해 줍니다.",
-    `이번 리딩에 등장한 카드: ${cardNames}`,
-    "",
-    "관계에서는 억지로 밝아지려 애쓰기보다, 나를 지치게 하는 말과 상황에서 한 걸음 물러나는 용기가 필요합니다.",
-    "연애에서는 정답 같은 문장보다 진심이 담긴 한 문장이 흐름을 바꿉니다.",
-    "현실과 돈의 문제는 불안을 크게 키우기 전에 작은 정리 하나를 끝내는 순간부터 숨통이 트이기 시작합니다.",
-    "",
-    `${coreGem.name}은 당신에게 '${coreGem.meaning}'의 메시지를 전하고 있습니다.`,
-    "오늘 밤에는 나를 몰아붙이는 대신, 지금 버티고 있는 나를 먼저 따뜻하게 인정해 주세요.",
-    "그 다정함이 내일의 선택을 더 단단하고 선명하게 만들어 줄 거예요.",
-  ];
+  const lines = [];
+  lines.push(`${topic.title} 크리스탈 소울 리딩`);
+  lines.push(`핵심 원석: ${coreGem.name}`);
+  lines.push("");
+  cards.forEach((card, idx) => {
+    const spread = topic.spread[idx];
+    const cardLabel = CARD_KR[card] || card;
+    lines.push(`${idx + 1}. ${spread.title}`);
+    lines.push(`카드: ${cardLabel}`);
+    lines.push(`질문: ${spread.question}`);
+    lines.push(`${coreGem.name}의 기운은 ${topic.title} 안에서 ${coreGem.keywords.slice(0, 2).join("과 ")} 중심을 다시 잡도록 돕습니다.`);
+    lines.push(`${cardLabel}은(는) 지금의 질문에 ${topic.title} 특유의 현실적인 선택 기준을 더해 줍니다.`);
+    lines.push("오늘은 결론을 서두르기보다, 확인 가능한 기준 1개와 실행 1개를 분리해 적어 보세요.");
+    lines.push(`실전 조언: ${spread.title}와 연결된 행동을 오늘 안에 한 가지만 끝내고, 끝낸 뒤의 감각을 메모로 남기세요.`);
+    lines.push("");
+  });
+  lines.push("종합 조언");
+  lines.push(`지금의 흐름은 막힘이 아니라 재정렬의 신호입니다. ${coreGem.name}가 보여 주는 핵심은 '${coreGem.meaning}'이며, ${topic.title}에서는 추상적 기대보다 오늘 바로 확인할 수 있는 행동을 하나 남기는 쪽이 더 강하게 작동합니다.`);
   return lines.join("\n");
-}
-
-function CrystalGemVisual({ gem, size = 220, immersive = false, showCaption = true }) {
-  const reduceMotion = useReducedMotion();
-  const [active, setActive] = useState(false);
-  const gemId = gem?.id || "rose-quartz";
-
-  const palette = {
-    rose: { mid: "#f3c2d5", deep: "#d37aa4", edge: "#fce4ee" },
-    amethyst: { mid: "#b9a2ff", deep: "#6f57b3", edge: "#ddd4ff" },
-    obsidian: { mid: "#9ba7bd", deep: "#1f2430", edge: "#d5dde8" },
-    citrine: { mid: "#f4d37c", deep: "#b98722", edge: "#fff0bc" },
-    moon: { mid: "#dde7ff", deep: "#90a5d8", edge: "#ffffff" },
-    default: { mid: "#d7c7aa", deep: "#7e6750", edge: "#f5eada" },
-  };
-
-  const tone = gemId === "rose-quartz"
-    ? palette.rose
-    : gemId === "amethyst"
-      ? palette.amethyst
-      : gemId === "obsidian"
-        ? palette.obsidian
-        : gemId === "citrine"
-          ? palette.citrine
-          : gemId === "moonstone"
-            ? palette.moon
-            : palette.default;
-
-  const polygonPoints = gemId === "obsidian"
-    ? "56,14 114,22 140,74 124,136 66,150 26,104"
-    : gemId === "moonstone"
-      ? "80,12 126,40 142,92 106,142 50,142 18,86 36,36"
-      : gemId === "citrine"
-        ? "74,10 128,32 142,82 110,146 52,136 16,80 38,30"
-        : gemId === "amethyst"
-          ? "78,10 126,24 146,80 116,142 48,148 18,82 34,30"
-          : "70,14 130,24 144,78 118,142 58,148 16,92 32,38";
-
-  return (
-    <m.div
-      onHoverStart={() => setActive(true)}
-      onHoverEnd={() => setActive(false)}
-      onTapStart={() => setActive(true)}
-      onTapCancel={() => setActive(false)}
-      onTap={() => setActive((prev) => !prev)}
-      animate={reduceMotion ? { opacity: 1 } : { y: [0, -5, 0], rotate: [0, 0.7, 0] }}
-      transition={reduceMotion ? { duration: 0.2 } : { duration: immersive ? 5.5 : 7, repeat: Infinity, ease: "easeInOut" }}
-      style={{
-        width: size,
-        height: size,
-        position: "relative",
-        display: "grid",
-        placeItems: "center",
-        filter: `drop-shadow(0 0 ${immersive ? 34 : 22}px ${gem?.glow || "#d9b886"})`,
-      }}
-    >
-      <m.div
-        animate={reduceMotion ? { opacity: 0.66 } : { scale: active ? 1.08 : 1, opacity: active ? 0.92 : 0.66 }}
-        transition={{ duration: 0.48, ease: "easeOut" }}
-        style={{
-          position: "absolute",
-          inset: immersive ? 4 : 8,
-          borderRadius: "50%",
-          background: `radial-gradient(circle, ${gem?.glow || tone.mid}66 0%, transparent 70%)`,
-        }}
-      />
-      <svg width={Math.round(size * 0.78)} height={Math.round(size * 0.78)} viewBox="0 0 160 160" aria-label={gem?.name || "원석"} role="img" style={{ overflow: "visible" }}>
-        <defs>
-          <radialGradient id={`cd-gem-core-${gemId}`} cx="50%" cy="36%" r="74%">
-            <stop offset="0%" stopColor={tone.edge} stopOpacity="0.95" />
-            <stop offset="58%" stopColor={tone.mid} stopOpacity="0.9" />
-            <stop offset="100%" stopColor={tone.deep} stopOpacity="0.98" />
-          </radialGradient>
-          <linearGradient id={`cd-gem-shimmer-${gemId}`} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.66" />
-            <stop offset="38%" stopColor="#ffffff" stopOpacity="0.12" />
-            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <polygon points={polygonPoints} fill={`url(#cd-gem-core-${gemId})`} stroke={tone.edge} strokeOpacity="0.42" strokeWidth="1.4" />
-        <path d="M40 56 C66 38, 90 36, 126 56" fill="none" stroke={`url(#cd-gem-shimmer-${gemId})`} strokeWidth="5" strokeLinecap="round" />
-        <path d="M56 84 C76 94, 96 94, 118 84" fill="none" stroke="#ffffff" strokeOpacity="0.2" strokeWidth="2.2" strokeLinecap="round" />
-      </svg>
-      {showCaption && (
-        <m.div
-          animate={reduceMotion ? { opacity: 1 } : { opacity: active ? 1 : 0.78, y: active ? 0 : 4 }}
-          transition={{ duration: 0.34, ease: "easeOut" }}
-          style={{
-            position: "absolute",
-            bottom: immersive ? -4 : -10,
-            textAlign: "center",
-            maxWidth: size + 40,
-            pointerEvents: "none",
-          }}
-        >
-          <div style={{ fontFamily: "Noto Serif KR,serif", fontSize: immersive ? 15 : 13, color: "#f4e7d7", marginBottom: 3 }}>{gem?.name}</div>
-          <div style={{ fontSize: 11, color: "#dcc8aa", lineHeight: 1.6 }}>{(gem?.keywords || []).slice(0, 3).join(" · ")}</div>
-          {active ? <div style={{ fontSize: 11, color: "#f6ddbc", marginTop: 6, lineHeight: 1.7 }}>{gem?.meaning}</div> : null}
-        </m.div>
-      )}
-    </m.div>
-  );
 }
 
 function useBodyLock(active) {
@@ -689,7 +499,6 @@ function GemCard({ gem, selected, recommended, onSelect }) {
 }
 
 function ResultFlipCard({ section }) {
-  const safeKeywordVisual = sanitizeCounselingText(section.keywordVisual);
   return (
     <div
       className="cd-crystal-flip"
@@ -727,7 +536,7 @@ function ResultFlipCard({ section }) {
           <div style={{ fontSize: 10, color: "#ceb89a" }}>{section.positionTitle}</div>
           <div style={{ fontSize: 12, color: "#f1e5d2" }}>{section.cardNameKo}</div>
           <div style={{ fontSize: 10, color: "#b9a689", lineHeight: 1.45 }}>
-            {safeKeywordVisual || `타로: ${(section.tarotKeywords || []).slice(0, 2).join(", ")}`}
+            {section.keywordVisual || `타로: ${(section.tarotKeywords || []).slice(0, 2).join(", ")}`}
           </div>
         </div>
 
@@ -779,15 +588,6 @@ function ReadingAccordion({ section, expanded, onToggle }) {
         .map((item) => item.trim())
         .filter(Boolean);
 
-  const safeCategoryReading = sanitizeCounselingText(section.categoryReading);
-  const safeKeywordVisual = sanitizeCounselingText(section.keywordVisual);
-  const safeOneLineSummary = sanitizeCounselingText(section.oneLineSummary);
-  const safeCrystalEnergy = sanitizeCounselingText(section.crystalEnergy);
-  const safeCardFlow = sanitizeCounselingText(section.cardFlow);
-  const safeCurrentPulse = sanitizeCounselingText(section.currentPulse);
-  const safeCaution = sanitizeCounselingText(section.caution);
-  const safeUplift = sanitizeCounselingText(section.uplift);
-
   return (
     <article style={{ border: "1px solid rgba(255,255,255,.12)", borderRadius: 18, background: "rgba(11,11,18,.82)", overflow: "hidden", boxShadow: "0 12px 28px rgba(0,0,0,.22)" }}>
       <button
@@ -831,35 +631,35 @@ function ReadingAccordion({ section, expanded, onToggle }) {
 
       {expanded && (
         <div style={{ padding: 14 }}>
-          {safeKeywordVisual ? (
-            <p style={{ color: "#d9c6a9", fontSize: 12, lineHeight: 1.75, margin: "0 0 8px" }}>{safeKeywordVisual}</p>
+          {section.keywordVisual ? (
+            <p style={{ color: "#d9c6a9", fontSize: 12, lineHeight: 1.75, margin: "0 0 8px" }}>{section.keywordVisual}</p>
           ) : null}
-          <p style={{ color: "#efe2d0", fontSize: 13, lineHeight: 1.9, margin: "0 0 12px" }}>{safeCategoryReading}</p>
+          <p style={{ color: "#efe2d0", fontSize: 13, lineHeight: 1.9, margin: "0 0 12px" }}>{section.categoryReading}</p>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10, marginBottom: 12 }}>
             <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
               <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>한 줄 핵심</div>
-              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{safeOneLineSummary}</div>
+              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{section.oneLineSummary}</div>
             </div>
             <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
               <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>원석 에너지</div>
-              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{safeCrystalEnergy}</div>
+              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{section.crystalEnergy}</div>
             </div>
             <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
               <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>카드가 보여주는 흐름</div>
-              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{safeCardFlow}</div>
+              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{section.cardFlow}</div>
             </div>
             <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
               <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>지금의 심리</div>
-              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{safeCurrentPulse}</div>
+              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{section.currentPulse}</div>
             </div>
             <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
               <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>조심할 점</div>
-              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{safeCaution}</div>
+              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{section.caution}</div>
             </div>
             <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
               <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>좋게 살리는 방법</div>
-              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{safeUplift}</div>
+              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{section.uplift}</div>
             </div>
           </div>
 
@@ -872,10 +672,14 @@ function ReadingAccordion({ section, expanded, onToggle }) {
             </ol>
           </div>
 
-          <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02))", padding: 12 }}>
-            <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>감정 통합 메시지</div>
-            <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.9 }}>
-              {sanitizeCounselingText(section.neoLine || "") || sanitizeCounselingText(section.younLine || "") || sanitizeCounselingText(section.oracleMessage || "") || "지금 필요한 건 완벽한 답보다, 내 마음의 속도를 존중하는 선택입니다."}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10 }}>
+            <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
+              <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>네오 한마디</div>
+              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{section.neoLine}</div>
+            </div>
+            <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
+              <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>연이 한마디</div>
+              <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>{section.younLine}</div>
             </div>
           </div>
         </div>
@@ -885,7 +689,6 @@ function ReadingAccordion({ section, expanded, onToggle }) {
 }
 
 export default function CrystalSoulTarot() {
-  const reduceMotion = useReducedMotion();
   const [stage, setStage] = useState("topic");
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [selectedGem, setSelectedGem] = useState(null);
@@ -907,7 +710,6 @@ export default function CrystalSoulTarot() {
   const chargeAreaRef = useRef(null);
   const lastPointRef = useRef(null);
   const particleIdRef = useRef(0);
-  const lastParticleAtRef = useRef(0);
 
   useBodyLock(true);
 
@@ -1029,7 +831,7 @@ export default function CrystalSoulTarot() {
   }, [paidTxId]);
 
   const playTypewriter = useCallback((text) => {
-    const fullText = sanitizeCounselingText(String(text || "").trim());
+    const fullText = String(text || "").trim();
     if (!fullText) {
       setLoading(false);
       return;
@@ -1086,7 +888,7 @@ export default function CrystalSoulTarot() {
 
       const data = await res.json().catch(() => ({}));
       const payload = data?.readingData && Array.isArray(data.readingData?.sections) ? data.readingData : null;
-      const text = sanitizeCounselingText(String(data?.reading || "").trim()) || buildLocalFallback(selectedTopic, coreGem, selectedCards);
+      const text = String(data?.reading || "").trim() || buildLocalFallback(selectedTopic, coreGem, selectedCards);
 
       if (payload) {
         setReadingPayload(payload);
@@ -1210,19 +1012,15 @@ export default function CrystalSoulTarot() {
     const delta = Math.min(100 - syncEnergy, Math.max(1.5, (dx + dy) * 0.42));
     if (delta <= 0) return;
 
-    const now = Date.now();
-    if (now - lastParticleAtRef.current > 44) {
-      lastParticleAtRef.current = now;
-      const particleId = ++particleIdRef.current;
-      const px = current.x - rect.left;
-      const py = current.y - rect.top;
-      const tx = (Math.random() - 0.5) * 70;
-      const ty = -(Math.random() * 54 + 16);
-      setSyncParticles((prev) => [...prev.slice(-16), { id: particleId, x: px, y: py, tx, ty }]);
-      window.setTimeout(() => {
-        setSyncParticles((prev) => prev.filter((p) => p.id !== particleId));
-      }, 820);
-    }
+    const particleId = ++particleIdRef.current;
+    const px = current.x - rect.left;
+    const py = current.y - rect.top;
+    const tx = (Math.random() - 0.5) * 80;
+    const ty = -(Math.random() * 60 + 18);
+    setSyncParticles((prev) => [...prev.slice(-24), { id: particleId, x: px, y: py, tx, ty }]);
+    window.setTimeout(() => {
+      setSyncParticles((prev) => prev.filter((p) => p.id !== particleId));
+    }, 920);
 
     setSyncEnergy((prev) => Math.min(100, prev + delta));
     if (syncEnergy + delta >= 99) {
@@ -1257,16 +1055,10 @@ export default function CrystalSoulTarot() {
   const summaryLine = useMemo(() => {
     if (!readingPayload?.summary) return "";
     const summary = readingPayload.summary;
-    return sanitizeCounselingText(summary.oracleMessage || summary.opportunity || summary.risk || summary.overallFlow || "");
+    return summary.oracleMessage || summary.opportunity || summary.risk || summary.overallFlow || "";
   }, [readingPayload]);
 
-  const counselingBlocks = useMemo(
-    () => buildCounselingCategories(readingPayload, selectedTopic, selectedGemSource),
-    [readingPayload, selectedTopic, selectedGemSource]
-  );
-
   return (
-    <LazyMotion features={domAnimation}>
     <section
       style={{
         position: "fixed",
@@ -1284,9 +1076,6 @@ export default function CrystalSoulTarot() {
         @keyframes cdFadeUp { from { opacity: 0; transform: translateY(18px);} to { opacity: 1; transform: translateY(0);} }
         @keyframes cdRippleOut { 0% { transform: scale(.3); opacity: .9; } 100% { transform: scale(4.6); opacity: 0; } }
         @keyframes cdParticleUp { 0% { opacity: 1; transform: translate(0,0) scale(1); } 100% { opacity: 0; transform: translate(var(--tx),var(--ty)) scale(0); } }
-        @keyframes cdNebulaFloat { 0%,100% { transform: translate3d(0,0,0) scale(1); opacity: .58; } 50% { transform: translate3d(0,-16px,0) scale(1.08); opacity: .84; } }
-        @keyframes cdLetterReveal { from { opacity: 0; letter-spacing: .18em; } to { opacity: 1; letter-spacing: .04em; } }
-        @keyframes cdCardLeak { 0%,100% { opacity: .1; } 50% { opacity: .42; } }
         .cd-scroll-surface { scrollbar-width: thin; scrollbar-color: rgba(214,174,96,.62) rgba(255,255,255,.08); }
         .cd-scroll-surface::-webkit-scrollbar { width: 8px; height: 8px; }
         .cd-scroll-surface::-webkit-scrollbar-track { background: rgba(255,255,255,.08); border-radius: 999px; }
@@ -1298,26 +1087,21 @@ export default function CrystalSoulTarot() {
         .cd-crystal-flip:hover .cd-crystal-flip__inner,
         .cd-crystal-flip:focus-within .cd-crystal-flip__inner { transform: rotateY(180deg); }
         .cd-result-enter { animation: cdFadeUp .75s cubic-bezier(.16,1,.3,1) both; }
-        .cd-hero-emotional { animation: cdLetterReveal .72s ease-out both; }
-        .cd-card-light-leak { animation: cdCardLeak 2.8s ease-in-out infinite; }
         @media (max-width: 920px) {
           .cd-result-header-grid { grid-template-columns: minmax(0,1fr) !important; }
           .cd-sync-grid { grid-template-columns: minmax(0,1fr) !important; }
         }
-        @media (max-width: 680px) {
-          .cd-mobile-readable { font-size: 14px !important; line-height: 1.95 !important; }
-        }
       `}</style>
       <StarField />
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }}>
-        <div style={{ position: "absolute", top: -120, left: "14%", width: 360, height: 360, borderRadius: "50%", background: "radial-gradient(circle, rgba(130,93,196,.18), transparent 68%)", animation: "cdNebulaFloat 11s ease-in-out infinite" }} />
-        <div style={{ position: "absolute", top: "22%", right: "8%", width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, rgba(218,165,32,.14), transparent 70%)", animation: "cdNebulaFloat 13s 1.2s ease-in-out infinite" }} />
+        <div style={{ position: "absolute", top: -120, left: "14%", width: 360, height: 360, borderRadius: "50%", background: "radial-gradient(circle, rgba(130,93,196,.18), transparent 68%)" }} />
+        <div style={{ position: "absolute", top: "22%", right: "8%", width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, rgba(218,165,32,.14), transparent 70%)" }} />
       </div>
       <div
         style={{
           maxWidth: 1180,
           margin: "0 auto",
-          padding: "calc(16px + env(safe-area-inset-top)) 16px calc(56px + env(safe-area-inset-bottom))",
+          padding: "18px 16px calc(56px + env(safe-area-inset-bottom))",
           minHeight: "100dvh",
           position: "relative",
           zIndex: 1,
@@ -1437,11 +1221,27 @@ export default function CrystalSoulTarot() {
                 <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at 50% 30%, ${(selectedGemSource?.glow || "#daa520")}18, transparent 48%)`, pointerEvents: "none" }} />
                 <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 280, gap: 12 }}>
                   <div style={{ color: "#ead8c1", fontSize: 11, letterSpacing: ".18em" }}>원석 이미지를 문질러 빛을 깨우세요</div>
-                  <div style={{ position: "relative", width: 280, height: 280, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ position: "relative", width: 240, height: 240, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: `1px solid ${(selectedGemSource?.glow || "#daa520")}22`, boxShadow: `0 0 30px ${(selectedGemSource?.glow || "#daa520")}22`, background: "radial-gradient(circle, rgba(255,255,255,.05), rgba(0,0,0,.1))" }} />
                     <div style={{ position: "absolute", inset: 18, borderRadius: "50%", border: `1px solid ${(selectedGemSource?.glow || "#daa520")}18` }} />
                     <div style={{ position: "absolute", inset: 40, borderRadius: "50%", border: `1px dashed ${(selectedGemSource?.glow || "#daa520")}24` }} />
-                    <CrystalGemVisual gem={selectedGemSource} size={210} immersive />
+                    <div style={{ position: "relative", width: 148, height: 148, borderRadius: 40, border: `1px solid ${(selectedGemSource?.color || "#c8960c")}88`, overflow: "hidden", boxShadow: `0 0 26px ${(selectedGemSource?.glow || "#daa520")}44, inset 0 1px 0 rgba(255,255,255,.12)` }}>
+                      <img
+                        src="/fuctionassets/stonetaro.webp"
+                        alt={selectedGemSource?.name || "원석 이미지"}
+                        draggable={false}
+                        style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.92, userSelect: "none", pointerEvents: "none" }}
+                        onError={(event) => {
+                          event.currentTarget.style.display = "none";
+                        }}
+                      />
+                      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, ${selectedGemSource?.color || "#c8960c"}22, rgba(8,8,14,.78))` }} />
+                      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, textAlign: "center" }}>
+                        <div style={{ fontSize: 19, color: selectedGemSource?.glow || "#daa520" }}>✦</div>
+                        <div style={{ fontFamily: "Noto Serif KR,serif", fontSize: 20 }}>{selectedGemSource?.name}</div>
+                        <div style={{ fontSize: 11, color: "#ddccb7", lineHeight: 1.55, padding: "0 12px" }}>{selectedGemSource?.keywords?.slice(0, 3).join(" · ")}</div>
+                      </div>
+                    </div>
 
                     {syncParticles.map((particle) => (
                       <div
@@ -1565,11 +1365,7 @@ export default function CrystalSoulTarot() {
         )}
 
         {selectedTopic && stage === "result" && (
-          <m.div
-            initial={reduceMotion ? false : { opacity: 0, y: 22 }}
-            animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-            transition={{ duration: 0.52, ease: "easeOut" }}
-          >
+          <div>
             <header style={{ border: `1px solid ${(selectedGemSource?.color || "#c8960c")}66`, borderRadius: 24, background: "rgba(8,8,14,.56)", backdropFilter: "blur(14px)", padding: 18, marginBottom: 16, boxShadow: `0 0 48px ${(selectedGemSource?.glow || "#daa520")}24` }}>
               <div className="cd-result-header-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0,1.15fr) minmax(280px,.85fr)", gap: 16, alignItems: "stretch" }}>
                 <div>
@@ -1581,7 +1377,7 @@ export default function CrystalSoulTarot() {
                       <span key={keyword} style={{ fontSize: 11, color: "#e4d4bf", borderRadius: 999, border: "1px solid rgba(255,255,255,.2)", padding: "3px 9px" }}>{keyword}</span>
                     ))}
                   </div>
-                  <div className="cd-hero-emotional cd-mobile-readable" style={{ color: "#f2e2c6", fontSize: 13, lineHeight: 1.85, borderRadius: 16, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 14 }}>
+                  <div style={{ color: "#f2e2c6", fontSize: 13, lineHeight: 1.85, borderRadius: 16, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 14 }}>
                     {summaryLine || "원석과 카드가 함께 정리한 전체 흐름이 아래 상세 상담으로 이어집니다."}
                   </div>
                 </div>
@@ -1591,25 +1387,6 @@ export default function CrystalSoulTarot() {
                     <div style={{ fontFamily: "Noto Serif KR,serif", fontSize: 24, marginBottom: 8 }}>{selectedGemSource?.name}</div>
                     <div style={{ color: "#d0c0ab", fontSize: 12, lineHeight: 1.75 }}>{selectedGemSource?.meaning}</div>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "center", margin: "8px 0 12px" }}>
-                    <CrystalGemVisual gem={selectedGemSource} size={164} />
-                  </div>
-                  <m.p
-                    initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-                    animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-                    transition={{ duration: 0.52, ease: "easeOut" }}
-                    style={{
-                      margin: "0 0 14px",
-                      color: "#f6e9d3",
-                      textAlign: "center",
-                      fontFamily: "Noto Serif KR,serif",
-                      letterSpacing: ".02em",
-                      lineHeight: 1.8,
-                      textShadow: `0 0 16px ${selectedGemSource?.glow || "#d9b886"}77`,
-                    }}
-                  >
-                    당신의 오늘은, 약해진 마음이 아니라 깊어진 마음으로 읽히고 있어요.
-                  </m.p>
                   <div style={{ marginTop: 16, borderRadius: 16, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
                     <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>원석 키워드</div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -1621,25 +1398,12 @@ export default function CrystalSoulTarot() {
                 </div>
               </div>
 
-              <div style={{ marginTop: 14, marginBottom: 6, height: 18, position: "relative" }}>
-                <div style={{ position: "absolute", left: "50%", top: 0, transform: "translateX(-50%)", width: 2, height: 18, background: `linear-gradient(180deg, ${(selectedGemSource?.glow || "#daa520")}cc, transparent)` }} />
-                <div style={{ position: "absolute", left: "50%", top: 8, transform: "translateX(-50%)", width: "82%", height: 1, background: `linear-gradient(90deg, transparent, ${(selectedGemSource?.glow || "#daa520")}88 14%, ${(selectedGemSource?.glow || "#daa520")}88 86%, transparent)` }} />
-              </div>
-
               <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 10 }}>
                 {selectedCards.map((card, idx) => (
-                  <m.div
-                    key={`${card}-${idx}`}
-                    initial={reduceMotion ? false : { opacity: 0, y: 16, scale: 0.96 }}
-                    animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 0.42, delay: idx * 0.08, ease: "easeOut" }}
-                    style={{ borderRadius: 14, position: "relative" }}
-                  >
-                    <div style={{ position: "absolute", inset: -3, borderRadius: 16, background: `radial-gradient(circle at 50% 36%, ${(selectedGemSource?.glow || "#daa520")}33, transparent 70%)`, pointerEvents: "none" }} />
+                  <div key={`${card}-${idx}`} style={{ borderRadius: 14 }}>
                     <div className="cd-crystal-flip" style={{ borderRadius: 14, perspective: 900 }}>
                       <div className="cd-crystal-flip__inner" style={{ position: "relative", minHeight: 124, transformStyle: "preserve-3d", transition: "transform .72s cubic-bezier(.4,0,.2,1)" }}>
                         <div style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden", borderRadius: 14, border: "1px solid rgba(255,255,255,.12)", background: "linear-gradient(148deg,#140e18 0%,#1e1228 50%,#140e18 100%)", padding: 10 }}>
-                          <div className="cd-card-light-leak" style={{ position: "absolute", inset: 0, borderRadius: 14, background: `linear-gradient(122deg, transparent 10%, ${(selectedGemSource?.glow || "#daa520")}22 44%, transparent 78%)`, pointerEvents: "none" }} />
                           <div style={{ fontSize: 10, color: "#c8b28f", marginBottom: 6 }}>{selectedTopic.spread[idx]?.title}</div>
                           <div style={{ fontSize: 12, color: "#f1e5d2", marginBottom: 4 }}>{CARD_KR[card] || card}</div>
                           <div style={{ fontSize: 10, color: "#c0ac8d" }}>{GEMSTONES.find((gem) => gem.id === assignments[idx])?.name || selectedGemSource?.name}</div>
@@ -1647,11 +1411,11 @@ export default function CrystalSoulTarot() {
                         <div style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden", transform: "rotateY(180deg)", borderRadius: 14, border: "1px solid rgba(255,255,255,.16)", background: "rgba(255,255,255,.08)", padding: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#dfcaa7", lineHeight: 1.6, textAlign: "center" }}>
                           선택된 카드의 상징을
                           <br />
-                          원석의 숨결과 맞추는 중
+                          원석 파동과 결합 중
                         </div>
                       </div>
                     </div>
-                  </m.div>
+                  </div>
                 ))}
               </div>
             </header>
@@ -1695,9 +1459,9 @@ export default function CrystalSoulTarot() {
                         <article key={chapter.no || chapter.title} style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
                           <div style={{ fontSize: 11, color: "#d8c5a9", marginBottom: 5 }}>{chapter.title}</div>
                           {chapter.keywordVisual ? (
-                            <div style={{ fontSize: 12, color: "#e2cfad", marginBottom: 7 }}>{sanitizeCounselingText(chapter.keywordVisual)}</div>
+                            <div style={{ fontSize: 12, color: "#e2cfad", marginBottom: 7 }}>{chapter.keywordVisual}</div>
                           ) : null}
-                          <div style={{ fontSize: 13, color: "#f3e6d2", lineHeight: 1.88, whiteSpace: "pre-wrap" }}>{sanitizeCounselingText(chapter.content)}</div>
+                          <div style={{ fontSize: 13, color: "#f3e6d2", lineHeight: 1.88, whiteSpace: "pre-wrap" }}>{chapter.content}</div>
                         </article>
                       ))}
                     </div>
@@ -1708,41 +1472,45 @@ export default function CrystalSoulTarot() {
 
             {!readingPayload && !!readingText && (
               <div className="cd-scroll-surface" style={{ border: "1px solid rgba(255,255,255,.12)", borderRadius: 18, background: "rgba(8,8,14,.72)", padding: 16, marginBottom: 14, maxHeight: "56vh", overflowY: "auto" }}>
-                <pre className="cd-mobile-readable" style={{ margin: 0, whiteSpace: "pre-wrap", fontFamily: "Noto Serif KR,serif", lineHeight: 1.95, color: "#e8dbc8", fontSize: 13 }}>{readingText}</pre>
+                <pre style={{ margin: 0, whiteSpace: "pre-wrap", fontFamily: "Noto Serif KR,serif", lineHeight: 1.95, color: "#e8dbc8", fontSize: 13 }}>{readingText}</pre>
               </div>
             )}
 
             {readingPayload?.summary && (
               <footer style={{ border: "1px solid rgba(255,255,255,.14)", borderRadius: 20, background: "rgba(8,8,14,.82)", padding: 16, marginBottom: 16 }}>
-                <h3 style={{ margin: 0, marginBottom: 6, fontFamily: "Noto Serif KR,serif", fontSize: 20 }}>오늘 당신에게 건네는 여섯 장의 상담</h3>
-                <p style={{ margin: "0 0 14px", color: "#dcc8aa", lineHeight: 1.8, fontSize: 13 }}>
-                  차가운 설명 대신, 지금 당신의 마음에 직접 닿는 흐름으로 정리해 두었습니다.
-                </p>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 10 }}>
-                  {counselingBlocks.map((block, idx) => (
-                    <m.article
-                      key={block.title}
-                      initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-                      animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-                      transition={{ duration: 0.36, delay: idx * 0.06, ease: "easeOut" }}
-                      style={{
-                        borderRadius: 14,
-                        border: "1px solid rgba(255,255,255,.1)",
-                        background: "linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02))",
-                        padding: 12,
-                      }}
-                    >
-                      <div style={{ fontSize: 12, color: "#f3dcc0", marginBottom: 8, fontFamily: "Noto Serif KR,serif" }}>{block.title}</div>
-                      <div style={{ color: "#efe1cd", fontSize: 13, lineHeight: 1.85, marginBottom: 8 }}>{sanitizeCounselingText(block.intro)}</div>
-                      <div style={{ display: "grid", gap: 7 }}>
-                        {block.points.map((point, pointIdx) => (
-                          <div key={`${block.title}-${pointIdx}`} style={{ color: "#eadcc8", fontSize: 12, lineHeight: 1.78 }}>
-                            {sanitizeCounselingText(point)}
-                          </div>
-                        ))}
-                      </div>
-                    </m.article>
+                <h3 style={{ margin: 0, marginBottom: 12, fontFamily: "Noto Serif KR,serif", fontSize: 20 }}>카테고리 종합 리딩</h3>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10, marginBottom: 12 }}>
+                  {[
+                    ["전체 흐름", readingPayload.summary.overallFlow],
+                    ["가장 강한 신호", readingPayload.summary.strongestSignal],
+                    ["기회", readingPayload.summary.opportunity],
+                    ["주의할 점", readingPayload.summary.risk],
+                    ["타이밍 조언", readingPayload.summary.timingAdvice],
+                  ].map(([label, value]) => (
+                    <div key={String(label)} style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
+                      <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>{label}</div>
+                      <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.85 }}>{value}</div>
+                    </div>
                   ))}
+                </div>
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{ fontSize: 13, color: "#f2e5d1", marginBottom: 6 }}><strong>실행 체크리스트</strong></div>
+                  <ol style={{ margin: 0, paddingLeft: 18, color: "#e9dcc8", fontSize: 13, lineHeight: 1.8 }}>
+                    {(readingPayload.summary.practicalActions || []).map((item, idx) => (
+                      <li key={`${idx}-${item}`}>{item}</li>
+                    ))}
+                  </ol>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10, marginBottom: 12 }}>
+                  <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
+                    <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>네오 & 연이</div>
+                    <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.85 }}>{readingPayload.summary.neoLine}</div>
+                    <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.85, marginTop: 8 }}>{readingPayload.summary.younLine}</div>
+                  </div>
+                  <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
+                    <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>크리스탈 오라클 메시지</div>
+                    <div style={{ color: "#f5ebdc", fontSize: 13, lineHeight: 1.85 }}>{readingPayload.summary.oracleMessage}</div>
+                  </div>
                 </div>
               </footer>
             )}
@@ -1780,10 +1548,9 @@ export default function CrystalSoulTarot() {
                 다른 카테고리 보기
               </button>
             </div>
-          </m.div>
+          </div>
         )}
       </div>
     </section>
-    </LazyMotion>
   );
 }
