@@ -126,7 +126,7 @@ export const FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "tarot-celestial-harmony": { cost: 100, reason: "셀레스티얼 하모니 타로 리딩" },
   "tarot-crystal-soul-reading": { cost: 50, reason: "크리스탈 소울 타로 리딩" },
   "tarot-numerology-reading": { cost: 30, reason: "수비학 타로 리딩" },
-  "tarot-prompt-maker": { cost: 50, reason: "AI 타로 스프레드 메이커" },
+  "tarot-prompt-maker": { cost: 50, reason: "타로 프롬프트 라이브러리" },
   "tarot-ijik": { cost: 50, reason: "이직 타로 리딩" },
   "fortune-fish-gacha": { cost: 5, reason: "포춘텔러 피쉬 행운 가챠" },
   "royal-tea-oracle": { cost: 30, reason: "영국 홍차점 리딩" },

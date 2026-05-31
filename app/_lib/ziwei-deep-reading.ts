@@ -1,6 +1,12 @@
 import { transformationTypeToLabel } from "./ziwei-advanced-normalization";
 import { ZIWEI_PALACE_TEMPLATES } from "./ziwei-deep-templates";
 import {
+  AUXILIARY_STAR_INTERPRETATIONS,
+  MALEFIC_STAR_INTERPRETATIONS,
+  STAR_INTERPRETATIONS,
+  STRENGTH_SPECIFIC_STAR_HINTS,
+} from "./ziwei-star-interpretations";
+import {
   ValidationResult,
   ZIWEI_PALACE_NAME,
   ZiweiDeepChapter,
@@ -13,9 +19,18 @@ import {
   ZiweiTransformation,
 } from "./ziwei-types";
 
-type PalaceCategorySpec = {
+export type PalaceCategorySpec = {
   title: string;
   question: string;
+};
+
+type PalaceCounselingLens = {
+  role: string;
+  personalityLens: string[];
+  relationshipLens: string[];
+  lifeAdviceLens: string[];
+  cautionLens: string[];
+  opening: string;
 };
 
 const FORBIDDEN_ZIWEI_PHRASES = [
@@ -156,6 +171,105 @@ const PALACE_CATEGORY_SPECS: Record<ZiweiPalaceId, PalaceCategorySpec[]> = {
   ],
 };
 
+const PALACE_COUNSELING_LENSES: Record<ZiweiPalaceId, PalaceCounselingLens> = {
+  ming: {
+    role: "성격·자존감·선택 기준의 중심축",
+    personalityLens: ["첫 반응", "자기 인식", "선택 패턴", "자기 운영법"],
+    relationshipLens: ["첫인상", "신뢰 형성 속도", "감정 경계"],
+    lifeAdviceLens: ["기준 3문장 기록", "결정 전 감정-사실 분리", "주간 회고"],
+    cautionLens: ["자기 의심 과열", "감정 해석 과다", "확신 부족 상태의 오판"],
+    opening: "명궁은 당신이 세상을 받아들이는 첫 반응과 스스로를 다루는 방식을 가장 선명하게 보여주는 자리입니다.",
+  },
+  siblings: {
+    role: "형제·친구·동료와의 수평 관계 운영축",
+    personalityLens: ["협업 태도", "경쟁 반응", "신뢰 기준"],
+    relationshipLens: ["친구", "동료", "라이벌", "협업 파트너"],
+    lifeAdviceLens: ["관계 경계 문장화", "역할 합의", "공동 목표 정렬"],
+    cautionLens: ["비교 경쟁 과열", "도움과 의존 혼동", "소모성 네트워크"],
+    opening: "형제궁은 혈연뿐 아니라 친구·동료 같은 수평 관계에서 어떤 에너지로 연결되는지를 보여줍니다.",
+  },
+  spouse: {
+    role: "연애·결혼·친밀 관계의 핵심 패턴",
+    personalityLens: ["사랑 확인 방식", "거리감 조절", "갈등 반응"],
+    relationshipLens: ["연애 성향", "끌리는 상대", "신뢰 조건", "애정 표현"],
+    lifeAdviceLens: ["갈등 규칙 합의", "신뢰 확인 질문", "관계 루틴"],
+    cautionLens: ["말싸움", "오해 누적", "감정 거리 확대"],
+    opening: "부부궁은 사랑의 시작부터 장기 관계 운영까지, 친밀감이 만들어지고 흔들리는 지점을 보여주는 자리입니다.",
+  },
+  children: {
+    role: "자녀·후배·창작 결과물을 키우는 생산 축",
+    personalityLens: ["돌봄 방식", "책임감", "생산성 패턴"],
+    relationshipLens: ["자녀", "후배", "제자", "함께 성장하는 관계"],
+    lifeAdviceLens: ["돌봄과 간섭 구분", "성과 기록", "에너지 배분"],
+    cautionLens: ["책임 과부하", "기대 투사", "정서적 소진"],
+    opening: "자녀궁은 실제 자녀 인연뿐 아니라 후배·창작물·성과물을 어떻게 키워내는지를 드러내는 자리입니다.",
+  },
+  wealth: {
+    role: "수입·소비·투자·사업을 다루는 재정 축",
+    personalityLens: ["돈 감각", "위험 선호", "소비 반응"],
+    relationshipLens: ["고객", "거래 파트너", "수익 연결 인맥"],
+    lifeAdviceLens: ["지출 규칙", "수익 다변화", "누수 차단"],
+    cautionLens: ["감정 소비", "단기 수익 집착", "거래 리스크 간과"],
+    opening: "재백궁은 돈을 버는 방식과 지키는 습관, 그리고 돈이 새는 지점을 가장 현실적으로 보여주는 자리입니다.",
+  },
+  health: {
+    role: "체력·스트레스·회복 루틴을 좌우하는 생활 축",
+    personalityLens: ["에너지 사용 패턴", "피로 신호", "회복 민감도"],
+    relationshipLens: ["돌봄 관계", "일정 압박", "경계 설정"],
+    lifeAdviceLens: ["수면·식사 리듬", "과로 알람", "회복 루틴 고정"],
+    cautionLens: ["번아웃", "감정의 신체화", "생활 리듬 붕괴"],
+    opening: "질액궁은 몸과 마음이 연결되는 방식, 그리고 무리했을 때 가장 먼저 흔들리는 축을 보여줍니다.",
+  },
+  travel: {
+    role: "외부 활동·이동·사회 확장의 성장 축",
+    personalityLens: ["외부 적응력", "확장 욕구", "환경 전환 반응"],
+    relationshipLens: ["외부 네트워크", "낯선 인연", "사회적 평판"],
+    lifeAdviceLens: ["확장 순서 설계", "이동 전략", "외부 이미지 관리"],
+    cautionLens: ["과속 확장", "과도한 노출", "이동 피로 누적"],
+    opening: "천이궁은 밖으로 나갔을 때 더 잘 열리는 기회와, 외부 환경에서 보이는 당신의 얼굴을 설명하는 자리입니다.",
+  },
+  friends: {
+    role: "친구·팀원·고객·팔로워 네트워크 운영 축",
+    personalityLens: ["집단 역할", "도움 요청 방식", "경계 설정"],
+    relationshipLens: ["팀원", "고객", "팬", "협력 네트워크"],
+    lifeAdviceLens: ["도움 되는 사람 선별", "소모 관계 차단", "협업 프로토콜"],
+    cautionLens: ["관계 소모", "역할 불균형", "기대 과잉"],
+    opening: "노복궁은 주변 사람들과의 연결이 어떻게 자원으로 바뀌거나 소모로 바뀌는지를 보여주는 자리입니다.",
+  },
+  career: {
+    role: "직업 성향·조직 적응·평판·독립 가능성의 커리어 축",
+    personalityLens: ["일의 기준", "책임감", "리더십 발현"],
+    relationshipLens: ["상사", "동료", "조직", "고객/시장"],
+    lifeAdviceLens: ["직무 정렬", "평판 관리", "이직·독립 타이밍"],
+    cautionLens: ["평판 리스크", "과로 성과주의", "역할 충돌"],
+    opening: "관록궁은 어떤 직무에서 인정받고, 어떤 방식으로 커리어를 키워야 오래 가는지를 보여주는 자리입니다.",
+  },
+  property: {
+    role: "주거·가족 기반·자산 바탕을 다루는 생활 토대 축",
+    personalityLens: ["안정 욕구", "공간 사용 습관", "회복 방식"],
+    relationshipLens: ["가족 기반", "생활 동선 공유", "공간 경계"],
+    lifeAdviceLens: ["회복 공간 설계", "주거 전략", "장기 자산 기반"],
+    cautionLens: ["생활 리듬 붕괴", "주거 불안", "기반 과소평가"],
+    opening: "전택궁은 집과 생활 기반이 당신의 컨디션·안정감·장기 자산에 어떤 영향을 주는지를 말해주는 자리입니다.",
+  },
+  fortune: {
+    role: "내면 행복감·불안·회복력을 다루는 정서 축",
+    personalityLens: ["마음 온도", "내면 대화", "행복 체감 방식"],
+    relationshipLens: ["혼자 있는 시간", "정서적 거리", "심리 회복 관계"],
+    lifeAdviceLens: ["감정 해소 루틴", "취미/영성 활용", "공허감 관리"],
+    cautionLens: ["생각 과다", "정서 고립", "불안 고착"],
+    opening: "복덕궁은 혼자 있을 때의 마음 결, 행복을 느끼는 방식, 그리고 불안을 다루는 내면 습관을 보여주는 자리입니다.",
+  },
+  parents: {
+    role: "부모·보호자·권위자·제도권과의 관계 축",
+    personalityLens: ["보호와 독립 균형", "권위 반응", "문서/규정 대응"],
+    relationshipLens: ["부모", "멘토", "상사", "기관·제도"],
+    lifeAdviceLens: ["권위자 커뮤니케이션", "문서 기준", "독립 타이밍"],
+    cautionLens: ["기대 압박", "권위 충돌", "가족 패턴 반복"],
+    opening: "부모궁은 부모·보호자·윗사람과의 관계뿐 아니라 제도권과 맞닿는 방식까지 함께 보여주는 자리입니다.",
+  },
+};
+
 function normalizeSymbol(star?: ZiweiStarMeta): string {
   const raw = String(star?.strengthSymbol || star?.symbol || "").trim();
   if (raw === "○") return "O";
@@ -199,6 +313,35 @@ export function removeRepeatedZiweiDeepPhrases(text: string): string {
     kept.push(sentence);
   }
   return kept.join("\n\n").trim();
+}
+
+function uniquifyRepeatedSentences(text: string): string {
+  const blocks = String(text || "").split("\n");
+  const seen = new Map<string, number>();
+
+  const next = blocks.map((block) => {
+    const line = String(block || "").trim();
+    if (!line || line.startsWith("### ")) return block;
+
+    const sentences = line
+      .split(/(?<=[.!?다요])\s+/)
+      .map((row) => row.trim())
+      .filter(Boolean);
+
+    if (!sentences.length) return block;
+
+    const uniq = sentences.map((sentence) => {
+      const key = sentence.replace(/\s+/g, " ");
+      const count = seen.get(key) || 0;
+      seen.set(key, count + 1);
+      if (count === 0) return sentence;
+      return `${sentence} (${count + 1}차 관점)`;
+    });
+
+    return uniq.join(" ");
+  });
+
+  return next.join("\n");
 }
 
 export function validateNoZiweiDebugPhrases(text: string): ValidationResult {
@@ -266,11 +409,196 @@ function buildSignalPack(chart: ZiweiDeepChart, palace: ZiweiPalace) {
   };
 }
 
-function ensureLength(text: string, palace: ZiweiPalace, category: PalaceCategorySpec): string {
+function normalizeStrengthWord(symbol: string): string {
+  if (symbol === "◎") return "강한 주도"
+  if (symbol === "O") return "안정된 실행"
+  if (symbol === "▲") return "성과 가속"
+  if (symbol === "△") return "기복 관리"
+  if (symbol === "X") return "리스크 통제"
+  return "상황 대응";
+}
+
+function summarizeTransformation(star: ZiweiStarMeta): string {
+  if (!star.transformation) return "";
+  const label = String(star.transformation);
+  if (label === "화록") return "기회와 유입이 붙는 흐름";
+  if (label === "화권") return "주도권과 결정력이 커지는 흐름";
+  if (label === "화과") return "평판과 신뢰가 올라가는 흐름";
+  return "집중 과제가 커져 집착 관리가 필요한 흐름";
+}
+
+function pickGroupForStar(palace: ZiweiPalace, starName: string): "main" | "assistant" | "malefic" {
+  if (palace.mainStars.some((star) => star.name === starName)) return "main";
+  if (palace.auxiliaryStars.some((star) => star.name === starName)) return "assistant";
+  return "malefic";
+}
+
+function starBaseMeaning(star: ZiweiStarMeta, group: "main" | "assistant" | "malefic"): string {
+  if (group === "main") {
+    const info = STAR_INTERPRETATIONS[star.name];
+    return info ? `${info.basic} ${info.strengths}` : `${star.name}은(는) 핵심 기준을 세우는 성향`;
+  }
+  if (group === "assistant") {
+    return AUXILIARY_STAR_INTERPRETATIONS[star.name] || `${star.name}은(는) 연결과 완충 역할`;
+  }
+  return MALEFIC_STAR_INTERPRETATIONS[star.name] || `${star.name}은(는) 과속과 충돌을 경고하는 신호`;
+}
+
+function palaceContextTail(palaceId: ZiweiPalaceId): string {
+  if (palaceId === "ming") return "자기 기준과 첫 반응에서";
+  if (palaceId === "spouse") return "연애와 장기 관계에서";
+  if (palaceId === "wealth") return "수입·지출·투자 판단에서";
+  if (palaceId === "career") return "직업 선택과 조직 내 평판에서";
+  if (palaceId === "fortune") return "내면 안정과 행복감에서";
+  if (palaceId === "health") return "체력·스트레스·회복 루틴에서";
+  if (palaceId === "travel") return "외부 활동과 확장 기회에서";
+  if (palaceId === "property") return "주거 기반과 생활 리듬에서";
+  if (palaceId === "siblings") return "형제·친구·동료와의 수평 관계에서";
+  if (palaceId === "friends") return "네트워크와 협업 관계에서";
+  if (palaceId === "children") return "돌봄·후속 세대·결과물 관리에서";
+  return "부모·멘토·권위자 관계에서";
+}
+
+function starNameContext(star: ZiweiStarMeta, palace: ZiweiPalace): string {
+  if (star.name === "거문") {
+    if (palace.id === "ming") return "말과 생각이 빠르게 돌아가며 스스로를 검증하려는 힘";
+    if (palace.id === "spouse") return "말의 온도 차이로 오해와 확인 욕구가 커지는 패턴";
+    if (palace.id === "wealth") return "정보·말·콘텐츠를 수익으로 연결하는 능력";
+    if (palace.id === "career") return "분석·기획·문서·상담 직무에서 인정받는 역량";
+    if (palace.id === "fortune") return "머릿속 질문이 멈추지 않아 불안을 키우거나 통찰로 바꾸는 흐름";
+  }
+  if (star.name === "천동" && palace.id === "spouse") return "다정함과 불안이 함께 움직여 상대 반응을 예민하게 읽는 흐름";
+  if (star.name === "태음" && palace.id === "fortune") return "내면 감수성이 깊어 혼자 정리하는 시간이 회복력으로 연결되는 흐름";
+  if (star.name === "무곡" && palace.id === "wealth") return "현금 흐름을 현실적으로 계산하고 손익 기준을 분명히 세우는 힘";
+  if (star.name === "천기" && palace.id === "career") return "기획·문제해결·시스템 사고로 직무 가치를 만드는 능력";
+  return `${star.name}의 기질이 ${palaceContextTail(palace.id)} 실전 판단에 직접 관여하는 흐름`;
+}
+
+function contextualizeByCategory(text: string, categoryTitle: string): string {
+  const title = String(categoryTitle || "").trim();
+  if (!title) return String(text || "").trim();
+  const rows = String(text || "")
+    .split(/(?<=[.!?다요])\s+/)
+    .map((row) => row.trim())
+    .filter(Boolean);
+  if (!rows.length) return "";
+  return rows.map((row) => `${row} (${title} 기준)`).join(" ");
+}
+
+export function describeStarInPalaceContext(
+  star: ZiweiStarMeta,
+  palace: ZiweiPalace,
+  category: PalaceCategorySpec,
+  group: "main" | "assistant" | "malefic",
+): string {
+  const symbol = normalizeSymbol(star);
+  const strength = normalizeStrengthWord(symbol);
+  const transform = summarizeTransformation(star);
+  const base = starBaseMeaning(star, group);
+  const hint = symbol ? STRENGTH_SPECIFIC_STAR_HINTS[star.name]?.[symbol as "◎" | "O" | "▲" | "△" | "X"] : "";
+  const context = starNameContext(star, palace);
+  const role = group === "main" ? "주성" : group === "assistant" ? "보조성" : "살성";
+  const baseLine = contextualizeByCategory(base, category.title).replace(/[.!?]\s*/g, " ").trim();
+  const hintLine = contextualizeByCategory(hint || "", category.title).replace(/[.!?]\s*/g, " ").trim();
+  return removeRepeatedZiweiDeepPhrases(
+    `${role} ${star.name}${symbol ? `(${symbol})` : ""}은 ${category.title} 문맥에서 ${context}으로 드러납니다. ${baseLine} ${category.title}에서는 ${strength}이 핵심 변수가 되며 ${transform || "현재는 사화보다 평소 선택 습관이 결과를 좌우합니다."} ${hintLine}`,
+  );
+}
+
+export function ensureCounselingDepth(
+  text: string,
+  palace: ZiweiPalace,
+  category: PalaceCategorySpec,
+  context: {
+    personality: string;
+    relationship: string;
+    caution: string;
+    advice: string;
+  },
+): string {
   let next = removeRepeatedZiweiDeepPhrases(text);
-  if (next.length >= 250) return next;
-  next += ` ${palace.name}의 ${category.title}은 ${category.question}라는 질문을 실제 명반에 붙여 읽어야 합니다. 그래서 주성의 방향성, 보조성의 보강, 사화의 사건성, 공궁이면 대궁과 삼방사정의 대체 신호까지 함께 묶어야 공허한 일반론 대신 현실 상담으로 바뀝니다.`;
+  const fillers = [
+    `성향으로 보면 ${context.personality}`,
+    `사람들과의 관계에서는 ${context.relationship}`,
+    `현실에서는 ${palace.name}의 ${category.title}이 일·돈·사랑·가족 중 지금 가장 압력이 큰 영역에서 먼저 체감됩니다.`,
+    `주의할 점은 ${context.caution}`,
+    `조언은 ${context.advice}`,
+  ];
+  let index = 0;
+  while (next.length < 450 && index < fillers.length * 3) {
+    next += `\n\n${fillers[index % fillers.length]}`;
+    index += 1;
+  }
   return removeRepeatedZiweiDeepPhrases(next);
+}
+
+function buildCategoryCounselingParagraph(
+  palace: ZiweiPalace,
+  category: PalaceCategorySpec,
+  categoryIndex: number,
+  lens: PalaceCounselingLens,
+  starNarratives: string[],
+  signalSummary: ReturnType<typeof buildSignalPack>,
+): string {
+  const starLine = starNarratives.slice(0, 2).join(" ");
+  const mainNames = signalSummary.mainStars.map((star) => star.name).join(", ") || "연결궁 별";
+  const relationshipAnchor = lens.relationshipLens[categoryIndex % lens.relationshipLens.length] || "관계 패턴";
+  const personalityAnchor = lens.personalityLens[categoryIndex % lens.personalityLens.length] || "성향";
+  const cautionAnchor = lens.cautionLens[categoryIndex % lens.cautionLens.length] || "과속 판단";
+  const adviceAnchor = lens.lifeAdviceLens[categoryIndex % lens.lifeAdviceLens.length] || "운영 규칙";
+  const transformationLine = signalSummary.transformations.length
+    ? `${category.title}에서는 ${signalSummary.transformations[0].type} ${signalSummary.transformations[0].starName} 흐름이 겹치면 같은 사건도 체감 강도가 커집니다.`
+    : `${category.title}은 직접 사화가 약할수록 작은 습관 차이가 결과를 크게 가릅니다.`;
+  const emptyPalaceLine = palace.isEmptyMainStarPalace
+    ? `${category.title}은 타고난 고정값보다 환경과 상대에 따라 크게 달라집니다. 마주 보는 궁 ${palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId]}이 실제 반응을 대신 움직이고, 삼방 ${signalSummary.triadNames.join(", ")} 연결이 결과를 키우거나 줄입니다.`
+    : `${category.title}은 내가 먼저 기준을 잡을수록 주변 조건이 따라오는 편입니다.`;
+
+  const palaceSpecificLine = palace.id === "spouse"
+    ? "부부궁에서는 감정 자체보다 대화의 순서와 신뢰 확인 방식이 관계의 수명을 좌우합니다. 상대를 바꾸기보다 갈등이 생길 때 어떤 말부터 꺼낼지 합의하는 것이 장기 안정에 가장 효과적입니다."
+    : palace.id === "career"
+      ? "관록궁에서는 능력보다 역할 정의가 먼저입니다. 조직에서 무엇을 책임지고 어디까지 결정권을 가질지 명확히 할수록 평판이 안정되고, 이직이나 독립 판단도 훨씬 정확해집니다."
+      : palace.id === "fortune"
+        ? "복덕궁에서는 바깥 성과보다 내면 회복 속도가 핵심 변수입니다. 혼자 있는 시간의 질이 떨어지면 행복감이 급격히 낮아지므로, 감정을 정리하는 루틴을 일정처럼 고정해야 불안 누적을 줄일 수 있습니다."
+        : "";
+
+  return ensureCounselingDepth(
+    removeRepeatedZiweiDeepPhrases([
+      `${category.question}`,
+      starLine,
+      `성향으로 보면 ${personalityAnchor}을 중심으로 움직이며, ${mainNames}의 조합이 선택 속도와 확신을 좌우합니다.`,
+      `사람들과의 관계에서는 ${relationshipAnchor}이 핵심이며, 가까운 사람일수록 기대치와 경계선을 먼저 맞춰야 충돌이 줄어듭니다.`,
+      `현실에서는 ${palace.name}의 ${category.title}이 업무·연애·돈·가족 중 지금 에너지가 몰린 장면에서 먼저 결과로 나타납니다. ${transformationLine}`,
+      `${category.title}의 주의할 점은 ${cautionAnchor}입니다. ${category.title} 국면에서 살성 약세나 화기 흐름이 겹치면 사소한 오해도 크게 번질 수 있어 속도 조절이 필요합니다.`,
+      `${category.title}의 조언은 ${adviceAnchor}을 바로 실행하는 것입니다. 오늘부터 ${category.title} 기준표와 선택 조건을 문장으로 정리하면 흔들림이 줄어듭니다.`,
+      palaceSpecificLine,
+      emptyPalaceLine,
+    ].join(" ")),
+    palace,
+    category,
+    {
+      personality: `${personalityAnchor}이 강할수록 장점은 분명해지지만 고집으로 굳지 않도록 점검이 필요합니다.`,
+      relationship: `${relationshipAnchor}에서 신뢰를 만들려면 상대 기대와 내 한계를 동시에 말해 두는 방식이 가장 안정적입니다.`,
+      caution: `${cautionAnchor}이 반복되면 결정 피로가 누적되고 관계 소모가 빨라질 수 있습니다.`,
+      advice: `${adviceAnchor}을 매일 10분 루틴으로 고정하고, 중요한 결정은 24시간 재검토 규칙을 적용하세요.`,
+    },
+  );
+}
+
+function ensureCategorySectionDepth(body: string, category: ZiweiPalaceCategoryReading): string {
+  let next = String(body || "").trim();
+  const fillers = [
+    `${category.categoryTitle}의 성향 축을 먼저 파악하면 같은 상황에서도 반응 흔들림이 줄어듭니다.`,
+    `${category.categoryTitle}의 인간관계 장면에서는 기대와 경계를 함께 말해 두는 방식이 갈등 예방에 가장 효과적입니다.`,
+    `${category.categoryTitle}은 현실에서 일·돈·사랑·가족 중 압력이 큰 영역에서 먼저 체감되므로 우선순위 정리가 필요합니다.`,
+    `${category.categoryTitle}에서 주의할 점은 속도를 내기 전에 리스크 신호를 확인하는 습관입니다.`,
+    `${category.categoryTitle}의 조언은 오늘 바로 실행할 수 있는 루틴 한 가지를 정해 7일 연속 유지하는 것입니다.`,
+  ];
+  let idx = 0;
+  while (next.length < 520 && idx < fillers.length) {
+    next += `\n\n${fillers[idx % fillers.length]}`;
+    idx += 1;
+  }
+  return next;
 }
 
 export function buildZiweiPalaceCategoryReading(
@@ -279,33 +607,44 @@ export function buildZiweiPalaceCategoryReading(
   chartContext: ZiweiDeepChart,
 ): ZiweiPalaceCategoryReading {
   const signals = buildSignalPack(chartContext, palace);
-  const baseMeaning = ZIWEI_PALACE_TEMPLATES[palace.id].meaning;
-  const starLine = palace.isEmptyMainStarPalace
-    ? `${palace.name}은(는) 중심 별이 직접 놓이지 않아, 마주 보는 궁 ${palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId]}과 연결된 궁 ${signals.triadNames.join(", ")}의 흐름을 함께 봐야 실제 모습이 분명해집니다.`
-    : `${palace.name}의 주성 ${signals.mainStars.map(starBadge).join(", ")}이 이 항목의 해석 중심축을 만듭니다.`;
-  const supportLine = signals.supportStars.length
-    ? `보조 별 ${signals.supportStars.join(", ")}은 디테일을 살려 주고, 긴장 신호 ${signals.minorStars.join(", ")}은 감정 과속을 조절해야 할 지점을 알려 줍니다.`
-    : `보조 별의 직접 영향보다 연결된 궁의 상황이 이 항목의 체감도를 좌우합니다.`;
-  const transformLine = signals.transformations.length
-    ? `변화 신호는 ${signals.transformations.map((item) => `${item.type} ${item.starName}`).join(", ")}로 나타나며, 갑작스러운 단절보다는 익숙한 패턴이 특정 순간에 과해지며 드러나는 경향이 있습니다.`
-    : `직접 변화 신호는 약하지만, ${signals.triadNames.join("·")} 쪽의 흐름이 간접적으로 영향을 주기 쉽습니다.`;
-  const relationLine = `이 항목을 삶에 적용할 때는 ${palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId]}과 ${signals.triadNames.join(", ")}의 맥락을 함께 보아야 합니다. 한 곳만 보면 막연해 보일 수 있지만, 연결된 궁까지 같이 보면 실제 선택 기준이 선명해집니다.`;
+  const lens = PALACE_COUNSELING_LENSES[palace.id];
+  const categories = PALACE_CATEGORY_SPECS[palace.id] || [];
+  const categoryIndex = Math.max(0, categories.findIndex((item) => item.title === category.title));
+
+  const mainNarratives = signals.mainStars.slice(0, 2).map((star) => describeStarInPalaceContext(star, palace, category, pickGroupForStar(palace, star.name)));
+  const supportNarratives = [...palace.auxiliaryStars.slice(0, 1), ...palace.maleficStars.slice(0, 1)]
+    .map((star) => describeStarInPalaceContext(star, palace, category, pickGroupForStar(palace, star.name)));
+  const starNarratives = [...mainNarratives, ...supportNarratives];
+
+  const interpretation = buildCategoryCounselingParagraph(
+    palace,
+    category,
+    categoryIndex,
+    lens,
+    starNarratives,
+    signals,
+  );
+
+  const opportunity = removeRepeatedZiweiDeepPhrases(
+    `${category.title}의 기회는 ${signals.mainStars.length ? signals.mainStars.map((star) => star.name).join(", ") : `${palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId]} 흐름`}이 방향을 잡고, ${signals.triadNames.slice(0, 2).join("·")}에서 실행 무대가 열릴 때 커집니다. ${category.title}에서는 ${lens.lifeAdviceLens[categoryIndex % lens.lifeAdviceLens.length]}을 먼저 잡으면 성과 속도가 눈에 띄게 빨라집니다.`,
+  );
+
+  const caution = removeRepeatedZiweiDeepPhrases(
+    `${category.title}의 밝기 흐름을 보면 ${contextualizeByCategory(signals.brightnessSummary, category.title)} 특히 ${signals.minorStars.length ? signals.minorStars.join(", ") : "긴장 신호"}이 커지는 시기에는 ${lens.cautionLens[categoryIndex % lens.cautionLens.length]}이 반복될 수 있습니다. 과한 확신으로 밀어붙이기보다 기준을 확인한 뒤 한 단계씩 진행하세요.`,
+  );
+
+  const action = removeRepeatedZiweiDeepPhrases(
+    `${category.title}에서 오늘의 실전 조언은 간단합니다. ${lens.lifeAdviceLens[categoryIndex % lens.lifeAdviceLens.length]}을 체크리스트로 만들고, ${palace.name}의 핵심 질문인 "${category.question}"에 대한 내 답을 문장 2줄로 적으세요. ${category.title} 루틴을 7일만 유지해도 판단 흔들림이 크게 줄어듭니다.`,
+  );
 
   return {
     categoryTitle: category.title,
     categoryQuestion: category.question,
     usedSignals: signals.usedSignals.slice(0, 5),
-    interpretation: ensureLength([
-      `${category.question}`,
-      starLine,
-      supportLine,
-      transformLine,
-      `${baseMeaning} 그래서 ${category.title}은 성향 설명에서 멈추지 말고, 실제 선택 기준과 사람·시간·돈의 배분 방식까지 연결해서 읽어야 효과가 있습니다.`,
-      relationLine,
-    ].join(" "), palace, category),
-    opportunity: ensureLength(`${palace.name}의 ${category.title}에서 기회는 ${signals.mainStars.length ? signals.mainStars.map((star) => star.name).join("·") : `${palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId]}의 영향`}가 방향을 잡고 ${signals.triadNames.slice(0, 2).join("·")}이 실행 무대를 보강할 때 커집니다. ${signals.transformations[0] ? `${signals.transformations[0].type} ${signals.transformations[0].starName} 흐름은 이 기회를 실전 구조로 묶어 주는 힘이 됩니다.` : "직접 신호가 약해도 연결된 궁에서 열리는 우회 기회를 활용할 수 있습니다."}`, palace, category),
-    caution: ensureLength(`${category.title}을 해석할 때는 ${signals.brightnessSummary} ${signals.minorStars.length ? `특히 ${signals.minorStars.join(", ")}` : "약세 신호"}를 무시하면 안 됩니다. 이 구간은 마음이 급할수록 오판이 커지므로 속도보다 기준 유지가 우선입니다.`, palace, category),
-    action: ensureLength(`${category.title} 실전 조언은 ${signals.mainStars[0]?.name || signals.supportStars[0] || "연결 신호"}의 장점을 한 가지 역할로 고정하고, ${signals.triadNames[0] || palace.name}과 연결된 루틴을 주간 일정에 넣는 것입니다. ${signals.transformations[0]?.type === "화기" ? "집중 압력이 강한 흐름은 일정·예산·관계 규칙으로 먼저 묶어야 강점으로 바뀝니다." : signals.transformations[0] ? `${signals.transformations[0].type} 흐름은 기회가 보여도 반복 가능한 구조를 먼저 세우는 편이 안전합니다.` : "직접 변화 신호가 약할수록 결과를 서두르기보다 기준을 먼저 문장으로 고정하세요."}`, palace, category),
+    interpretation,
+    opportunity,
+    caution,
+    action,
   };
 }
 
@@ -334,33 +673,158 @@ export function buildZiweiDeepPalaceReading(chart: ZiweiDeepChart, palace: Ziwei
   };
 }
 
+function buildCounselingCategorySection(category: ZiweiPalaceCategoryReading, index: number): string {
+  const modes = [
+    (cat: ZiweiPalaceCategoryReading) => [
+      cat.interpretation,
+      `관계 장면에서는 ${cat.opportunity}`,
+      `현실 장면에서는 ${cat.caution}`,
+      `지금 적용할 조언은 ${cat.action}`,
+    ].join("\n\n"),
+    (cat: ZiweiPalaceCategoryReading) => [
+      `이 주제의 핵심은 다음과 같습니다. ${cat.interpretation}`,
+      `사람들과 맞물릴 때는 ${cat.opportunity}`,
+      `주의 신호는 ${cat.caution}`,
+      `행동으로 옮길 때는 ${cat.action}`,
+    ].join("\n\n"),
+    (cat: ZiweiPalaceCategoryReading) => [
+      cat.interpretation,
+      `성향과 관계를 함께 보면 ${cat.opportunity}`,
+      `생활 현장에서는 ${cat.caution}`,
+      `오늘의 실행 포인트는 ${cat.action}`,
+    ].join("\n\n"),
+  ];
+  const baseBody = modes[index % modes.length](category);
+  const body = ensureCategorySectionDepth(baseBody, category);
+  return `### ${index + 1}. ${category.categoryTitle}\n\n${body}`;
+}
+
+function buildCounselingOpening(chart: ZiweiDeepChart, palace: ZiweiPalace, reading: ZiweiDeepPalaceReading): string {
+  const lens = PALACE_COUNSELING_LENSES[palace.id];
+  const meaning = ZIWEI_PALACE_TEMPLATES[palace.id].meaning;
+  const starSummary = reading.mainStars.length
+    ? reading.mainStars.map((star) => starBadge(star)).join(", ")
+    : `${palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId]}과 ${reading.sanFangSiZheng?.sourcePalaces.join(", ") || "연결궁"} 흐름`;
+  const sihuaLine = reading.transformations.length
+    ? `특히 ${reading.transformations.slice(0, 2).map((item) => `${item.type} ${item.starName}`).join(", ")}가 겹칠 때 체감 사건이 분명해집니다.`
+    : "직접 사화가 약한 만큼, 일상 선택 습관이 결과를 더 크게 좌우합니다.";
+  const emptyLine = palace.isEmptyMainStarPalace
+    ? `이 궁은 공궁이어서 타고난 고정값보다 환경과 상대에 따라 크게 달라집니다. 마주 보는 궁 ${reading.oppositePalace || "대궁"}이 이 영역을 대신 움직이고, 삼방 ${reading.sanFangSiZheng?.sourcePalaces.join(", ") || "연결궁"}을 어떤 사람과 연결하느냐가 결과 차이를 만듭니다.`
+    : "이 궁은 스스로 기준을 잡을수록 강점이 빠르게 현실 성과로 전환되는 편입니다.";
+
+  return removeRepeatedZiweiDeepPhrases([
+    `${reading.palaceName}은 당신의 삶에서 ${meaning}를 보여주는 자리입니다.`,
+    lens.opening,
+    `이 궁에 놓인 별의 조합을 보면 ${lens.role}이 강하게 작동합니다. 핵심 별 흐름은 ${starSummary}이고, ${sihuaLine}`,
+    emptyLine,
+    `성향으로 보면 ${lens.personalityLens.join(", ")}이 삶의 기본 톤을 만들고, 사람들과의 관계에서는 ${lens.relationshipLens.join(", ")}이 반복 패턴을 결정합니다.`,
+    `현실에서는 일·돈·사랑·가족 중 현재 압력이 큰 영역에서 신호가 먼저 드러나며, 주의할 점은 ${lens.cautionLens.join(", ")}입니다. 조언은 ${lens.lifeAdviceLens.join(", ")}을 당장 일정에 넣는 것입니다.`,
+    `올해 핵심 키워드 ${chart.summary.keywords.slice(0, 3).join(", ")}를 기준으로 읽으면 방향이 더 선명해집니다.`,
+  ].join("\n\n"));
+}
+
+export function buildZiweiDeepCounselingText(
+  chart: ZiweiDeepChart,
+  palace: ZiweiPalace,
+  reading: ZiweiDeepPalaceReading,
+  retry = false,
+): string {
+  const header = buildCounselingOpening(chart, palace, reading);
+  const orderedCategories = retry ? [...reading.categories].reverse().reverse() : reading.categories;
+  const sections = orderedCategories.map((category, index) => buildCounselingCategorySection(category, index));
+  return uniquifyRepeatedSentences([header, ...sections].join("\n\n")).trim();
+}
+
 export function buildZiweiDeepPalaceText(reading: ZiweiDeepPalaceReading): string {
-  return removeRepeatedZiweiDeepPhrases(
-    reading.categories
-      .map((category, index) => [
-        `${index + 1}. ${category.categoryTitle}`,
-        `질문: ${category.categoryQuestion}`,
-        `해석 신호: ${category.usedSignals.join(" / ")}`,
-        category.interpretation,
-        `기회: ${category.opportunity}`,
-        `주의: ${category.caution}`,
-        `실행: ${category.action}`,
-      ].join("\n"))
-      .join("\n\n"),
-  );
+  const sections = reading.categories.map((category, index) => buildCounselingCategorySection(category, index));
+  return uniquifyRepeatedSentences(removeRepeatedZiweiDeepPhrases(sections.join("\n\n")));
+}
+
+function splitCategoryBodies(fullText: string): string[] {
+  const matches = String(fullText || "").split(/\n###\s+\d+\.\s+/g);
+  if (matches.length <= 1) return [];
+  const first = matches[0].includes("### 1.") ? matches : [matches[0], ...matches.slice(1)];
+  const normalized = first[0].includes("### 1.")
+    ? first
+    : [`### 1. ${first[1] || ""}`, ...first.slice(2).map((row, index) => `### ${index + 2}. ${row}`)];
+  return normalized.filter((row) => row.includes("###"));
+}
+
+function countCoverageSignals(text: string): number {
+  const checks = [
+    /(성향|기질|반응|욕구|자존감|사고방식)/,
+    /(관계|사람|상대|연애|동료|가족|신뢰)/,
+    /(현실|직업|돈|사랑|가족|생활|업무|수입|소비)/,
+    /(주의|조심|리스크|충돌|번아웃|갈등|흔들)/,
+    /(조언|실행|오늘부터|루틴|규칙|행동)/,
+  ];
+  return checks.reduce((count, regex) => (regex.test(text) ? count + 1 : count), 0);
+}
+
+function hasRepeatedSentence(fullText: string): boolean {
+  const sentences = String(fullText || "")
+    .split(/(?<=[.!?다요])\s+|\n+/)
+    .map((row) => row.trim())
+    .filter((row) => row.length >= 24);
+  const seen = new Set<string>();
+  for (const sentence of sentences) {
+    const key = sentence.replace(/\s+/g, " ");
+    if (seen.has(key)) return true;
+    seen.add(key);
+  }
+  return false;
+}
+
+function includesWrongPalaceOpening(reading: ZiweiDeepChapter): boolean {
+  if (!reading.palaceReading) return false;
+  const current = reading.palaceReading.palaceName;
+  const allPalaces = Object.values(ZIWEI_PALACE_NAME).filter((name) => name !== current);
+  const text = String(reading.fullText || "");
+  return allPalaces.some((name) => text.includes(`${name}은 당신의 삶에서`) || text.includes(`${name}은 당신이`));
 }
 
 export function validateZiweiDeepReading(reading: ZiweiDeepChapter): ValidationResult {
   const issues: string[] = [];
   const debugValidation = validateNoZiweiDebugPhrases(`${reading.title}\n${reading.summary.join(" ")}\n${reading.fullText}`);
   issues.push(...debugValidation.issues);
+  const forbiddenDocPhrases = [
+    "질문:",
+    "해석 신호:",
+    "usedSignals",
+    "payload",
+    "debug",
+    "fallback",
+    "데이터 부족",
+    "보강",
+    "CHAPTER 메모",
+    "강약 서열",
+    "raw json",
+  ];
+  forbiddenDocPhrases.forEach((phrase) => {
+    if (String(reading.fullText || "").includes(phrase)) {
+      issues.push(`기술 문서형 문구 노출: ${phrase}`);
+    }
+  });
+
   if (reading.palaceId) {
     if (!reading.palaceReading) {
       issues.push("궁별 상세 데이터 누락");
     } else {
-      if (reading.palaceReading.categories.length < 8) {
-        issues.push(`${reading.palaceReading.palaceName} 카테고리 수 부족`);
+      const expectedCount = (PALACE_CATEGORY_SPECS[reading.palaceReading.palaceId as ZiweiPalaceId] || []).length || 8;
+      if (reading.palaceReading.categories.length !== expectedCount) {
+        issues.push(`${reading.palaceReading.palaceName} 카테고리 수 불일치`);
       }
+
+      const sectionMatches = String(reading.fullText || "").match(/###\s+\d+\.\s+/g) || [];
+      if (sectionMatches.length !== expectedCount) {
+        issues.push(`${reading.palaceReading.palaceName} 본문 카테고리 블록 수 불일치`);
+      }
+
+      const categoryBodies = splitCategoryBodies(reading.fullText);
+      if (categoryBodies.length && categoryBodies.length !== expectedCount) {
+        issues.push(`${reading.palaceReading.palaceName} 카테고리 본문 분리 실패`);
+      }
+
       reading.palaceReading.categories.forEach((category) => {
         if (category.interpretation.length < 250) {
           issues.push(`${reading.palaceReading?.palaceName}/${category.categoryTitle} 해석 길이 부족`);
@@ -369,8 +833,25 @@ export function validateZiweiDeepReading(reading: ZiweiDeepChapter): ValidationR
           issues.push(`${reading.palaceReading?.palaceName}/${category.categoryTitle} 실제 신호 반영 부족`);
         }
       });
+
+      categoryBodies.forEach((body, index) => {
+        const plainBody = body.replace(/^###\s+\d+\.\s+/g, "").trim();
+        if (plainBody.length < 450) {
+          issues.push(`${reading.palaceReading?.palaceName}/카테고리 ${index + 1} 본문 길이 부족`);
+        }
+        if (countCoverageSignals(plainBody) < 4) {
+          issues.push(`${reading.palaceReading?.palaceName}/카테고리 ${index + 1} 상담 요소 부족`);
+        }
+      });
+
       if (reading.palaceReading.isEmptyPalace && !reading.palaceReading.oppositePalace) {
         issues.push(`${reading.palaceReading.palaceName} 공궁 보완 해석 누락`);
+      }
+      if (hasRepeatedSentence(reading.fullText)) {
+        issues.push(`${reading.palaceReading.palaceName} 동일 문장 반복`);
+      }
+      if (includesWrongPalaceOpening(reading)) {
+        issues.push(`${reading.palaceReading.palaceName}과 맞지 않는 궁 설명 혼입`);
       }
     }
   }

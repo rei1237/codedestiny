@@ -155,20 +155,12 @@ export default function ZiweiDeepChapterView({ chapter }: ZiweiDeepChapterViewPr
                   <div>
                     <p className="text-[11px] font-bold tracking-[0.18em] text-cyan-200/80">CATEGORY {String(index + 1).padStart(2, "0")}</p>
                     <h3 className="mt-1 text-lg font-black text-slate-100">{category.categoryTitle}</h3>
-                    <p className="mt-1 text-sm text-slate-300">{category.categoryQuestion}</p>
                   </div>
                   <span className="shrink-0 rounded-full border border-white/15 px-3 py-1 text-xs text-slate-200">{open ? "접기" : "펼치기"}</span>
                 </button>
                 {open ? (
                   <div className="border-t border-white/10 px-4 py-4">
-                    <div className="flex flex-wrap gap-2">
-                      {category.usedSignals.map((signal) => (
-                        <span key={signal} className="rounded-full border border-cyan-300/30 bg-cyan-200/10 px-2.5 py-1 text-[11px] text-cyan-100">
-                          {signal}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="mt-4 space-y-4 text-sm leading-7 text-slate-100">
+                    <div className="space-y-4 text-sm leading-7 text-slate-100">
                       <div>
                         <p className="text-xs font-bold text-slate-400">상세 해석</p>
                         <p className="mt-1 whitespace-pre-wrap">{category.interpretation}</p>

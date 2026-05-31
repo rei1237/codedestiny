@@ -68,7 +68,7 @@ const SEO_LINK_GROUPS = [
     ],
   },
   {
-    title: "타로 컬렉션",
+    title: "타로 프롬프트 & 리딩",
     links: [
       { href: "/tarot", text: "AI 타로 리딩 시작하기" },
       { href: "/physiognomy", text: "동물관상 분석하기" },
@@ -77,6 +77,7 @@ const SEO_LINK_GROUPS = [
       { href: "/tarot/healing", text: "따뜻한 태양 회복 타로" },
       { href: "/tarot/self-esteem", text: "자존감 레벨업 타로" },
       { href: "/tarot/reunion", text: "재회운 타로" },
+      { href: "/tarot/prompt-maker", text: "타로 프롬프트 라이브러리" },
       { href: "/tarot/year", text: "십이지신 천운 타로" },
     ],
   },

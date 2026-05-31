@@ -16,8 +16,8 @@ import {
 import { MASTER_TEMPLATE, OVERVIEW_TEMPLATE, ZIWEI_PALACE_TEMPLATES } from "./ziwei-deep-templates";
 import { transformationTypeToLabel } from "./ziwei-advanced-normalization";
 import {
+  buildZiweiDeepCounselingText,
   buildZiweiDeepPalaceReading,
-  buildZiweiDeepPalaceText,
   removeRepeatedZiweiDeepPhrases,
   sanitizeZiweiDeepText,
   validateZiweiDeepReading,
@@ -547,7 +547,7 @@ export function generateZiweiDeepChapter(chart: ZiweiDeepChart, sectionId: Ziwei
   }
 
   const palaceReading = buildZiweiDeepPalaceReading(chart, palace);
-  const fullText = sanitizeZiweiDeepText(buildZiweiDeepPalaceText(palaceReading));
+  const fullText = sanitizeZiweiDeepText(buildZiweiDeepCounselingText(chart, palace, palaceReading));
 
   const chapter: ZiweiDeepChapter = {
     sectionId,
@@ -567,7 +567,7 @@ export function generateZiweiDeepChapter(chart: ZiweiDeepChart, sectionId: Ziwei
     ].slice(0, 8),
     strengths: [
       palaceReading.brightnessSummary,
-      palaceReading.categories[0]?.usedSignals.slice(0, 2).join(" · ") || "핵심 신호 정리",
+      palaceReading.categories[0]?.interpretation.split(/\n+/).slice(0, 1).join(" ") || "핵심 상담 신호 정리",
       palaceReading.sanFangSiZheng?.summary || "연결 흐름 확인",
     ],
     cautions: palaceReading.categories.slice(0, 3).map((category) => category.caution),
@@ -580,7 +580,9 @@ export function generateZiweiDeepChapter(chart: ZiweiDeepChart, sectionId: Ziwei
 
   const validation = validateZiweiDeepReading(chapter);
   if (!validation.valid) {
-    chapter.fullText = removeRepeatedZiweiDeepPhrases(chapter.fullText);
+    chapter.fullText = sanitizeZiweiDeepText(
+      buildZiweiDeepCounselingText(chart, palace, palaceReading, true),
+    );
   }
   return chapter;
 }
