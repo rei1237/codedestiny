@@ -324,195 +324,155 @@ export default function TarotPromptMakerPage() {
     : (billingLoading ? "정책 확인 중" : "정책 미연동");
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#040716] text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(244,114,182,0.18),transparent_34%),radial-gradient(circle_at_18%_22%,rgba(251,191,36,0.16),transparent_24%),radial-gradient(circle_at_82%_18%,rgba(96,165,250,0.14),transparent_22%),linear-gradient(160deg,#02030c_0%,#081124_34%,#180a22_66%,#04050e_100%)]" />
-      <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:36px_36px]" />
-      <div className="absolute left-[-8rem] top-20 h-72 w-72 rounded-full bg-rose-300/20 blur-3xl" />
-      <div className="absolute right-[-6rem] top-32 h-72 w-72 rounded-full bg-sky-300/10 blur-3xl" />
-      {[0, 1, 2, 3, 4, 5].map((star) => (
+    <main className="relative min-h-screen overflow-hidden bg-[#07041a] text-white">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_8%,rgba(255,190,95,0.22),transparent_24%),radial-gradient(circle_at_88%_12%,rgba(119,138,255,0.2),transparent_26%),radial-gradient(circle_at_50%_110%,rgba(202,117,255,0.16),transparent_28%),linear-gradient(170deg,#050316_0%,#0b0e2d_44%,#170c2e_100%)]" />
+      <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:34px_34px]" />
+      {[0, 1, 2, 3, 4, 5, 6].map((star) => (
         <motion.span
           key={`tarot-star-${star}`}
           className="pointer-events-none absolute inline-block rounded-full bg-white/80"
           style={{
             width: star % 2 === 0 ? 3 : 2,
             height: star % 2 === 0 ? 3 : 2,
-            left: `${12 + star * 14}%`,
-            top: `${16 + (star % 3) * 18}%`,
-            boxShadow: "0 0 16px rgba(255,255,255,0.7)",
+            left: `${8 + star * 13}%`,
+            top: `${7 + (star % 4) * 14}%`,
+            boxShadow: "0 0 18px rgba(255,255,255,0.7)",
           }}
-          animate={{ opacity: [0.15, 0.95, 0.2], scale: [1, 1.35, 1] }}
-          transition={{ duration: 2.8 + star * 0.4, repeat: Infinity, ease: "easeInOut" }}
+          animate={{ opacity: [0.2, 1, 0.25], scale: [1, 1.3, 1] }}
+          transition={{ duration: 2.6 + star * 0.45, repeat: Infinity, ease: "easeInOut" }}
         />
       ))}
-      {[0, 1, 2].map((petal) => (
-        <motion.div
-          key={`tarot-petal-${petal}`}
-          className="pointer-events-none absolute h-24 w-24 rounded-full border border-rose-100/20 bg-gradient-to-br from-rose-200/14 to-fuchsia-300/8 blur-sm"
-          style={{ left: `${8 + petal * 30}%`, top: `${28 + petal * 16}%` }}
-          animate={{ y: [0, -18, 0], x: [0, 10, 0], rotate: [0, 8, -6, 0], opacity: [0.22, 0.38, 0.2] }}
-          transition={{ duration: 8 + petal * 1.6, repeat: Infinity, ease: "easeInOut" }}
-        />
-      ))}
-      <div className="relative mx-auto flex min-h-screen w-full max-w-[1600px] flex-col px-4 pb-20 pt-6 sm:px-6 lg:px-10">
-        <section className="grid gap-6 rounded-[32px] border border-white/10 bg-white/[0.05] px-5 py-6 shadow-[0_30px_120px_rgba(0,0,0,0.35)] backdrop-blur-xl lg:grid-cols-[1.2fr_0.8fr] lg:px-8 lg:py-8">
-          <div className="space-y-5">
-            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-amber-200/30 bg-amber-100/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-amber-100">
-              Moonlit Tarot Library
-            </div>
+
+      <div className="relative mx-auto w-full max-w-[1680px] px-3 pb-16 pt-4 sm:px-5 lg:px-8">
+        <section className="rounded-[30px] border border-[#f8d38f]/25 bg-[linear-gradient(120deg,rgba(12,16,42,0.92),rgba(25,14,55,0.86))] px-5 py-6 shadow-[0_30px_120px_rgba(4,6,22,0.65)] backdrop-blur-xl lg:px-8">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-3">
-              <h1 className="max-w-4xl font-serif text-4xl leading-tight text-white sm:text-5xl lg:text-6xl">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#f8d38f]/35 bg-[#f8d38f]/12 px-3 py-1 text-[11px] font-semibold tracking-[0.22em] text-[#ffe4a8]">
+                Moon Archive
+              </div>
+              <h1 className="font-serif text-3xl leading-tight text-[#fff7e7] sm:text-4xl lg:text-[56px]">
                 타로 프롬프트 라이브러리
               </h1>
-              <p className="max-w-3xl text-sm leading-7 text-white/74 sm:text-base">
-                스프레드를 고르고, 카드 수만큼 직접 뽑고, 포지션 의미와 카드 방향을 합친 Oracle Prompt를 바로 완성합니다.
-                마인드 스캔처럼 몰입형으로 설계했지만 결과는 프롬프트 생성에 집중했습니다.
+              <p className="max-w-3xl text-sm leading-7 text-white/75 sm:text-base">
+                질문에 가장 맞는 스프레드를 고르고 카드 포지션 구조를 확인한 뒤 바로 프롬프트를 완성하세요.
               </p>
             </div>
-            <div className="grid gap-4 lg:grid-cols-[1fr_auto]">
-              <label className="block rounded-[28px] border border-white/10 bg-black/20 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
-                <div className="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-white/60">Question</div>
-                <textarea
-                  value={question}
-                  onChange={(event) => setQuestion(event.target.value)}
-                  placeholder="예: 이 관계는 앞으로 진전될까? 또는 요즘 내 마음을 가장 흔드는 감정은 무엇일까?"
-                  className="min-h-[112px] w-full resize-none bg-transparent text-sm leading-7 text-white outline-none placeholder:text-white/35"
-                />
-              </label>
-              <div className="flex flex-col gap-3">
-                <button
-                  type="button"
-                  onClick={scrollToLibrary}
-                  className="rounded-full border border-amber-200/30 bg-amber-200/15 px-5 py-3 text-sm font-semibold text-amber-50 transition hover:bg-amber-200/22"
-                >
-                  라이브러리 열기
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setQuestion(DEFAULT_QUESTION_BY_CATEGORY[detectedCategory])}
-                  className="rounded-full border border-white/15 bg-white/8 px-5 py-3 text-sm font-semibold text-white/86 transition hover:bg-white/14"
-                >
-                  질문 없이 기본 질문 적용
-                </button>
-              </div>
+            <div className="grid gap-2 text-sm text-white/70 sm:grid-cols-2 lg:w-[520px]">
+              {["스프레드 선택", "질문 입력", "포지션 확인", "프롬프트 생성"].map((step, index) => (
+                <div key={step} className="flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-3 py-2">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full border border-[#f8d38f]/45 bg-[#f8d38f]/10 text-xs font-bold text-[#ffe4a8]">
+                    {index + 1}
+                  </span>
+                  <span>{step}</span>
+                </div>
+              ))}
             </div>
-            <div className="flex flex-wrap gap-2">
+          </div>
+        </section>
+
+        <section ref={libraryRef} id="spread-library" className="mt-5 grid gap-4 xl:grid-cols-[1.03fr_1fr_1.03fr]">
+          <div className="rounded-[26px] border border-[#8b78d5]/35 bg-[linear-gradient(180deg,rgba(18,20,54,0.94),rgba(10,11,34,0.94))] p-4 shadow-[0_18px_60px_rgba(7,8,28,0.55)]">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <div className="text-[11px] uppercase tracking-[0.2em] text-white/45">질문 입력</div>
+                <h2 className="mt-1 text-2xl font-semibold text-[#fff6e2]">프롬프트 시작점</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setQuestion(DEFAULT_QUESTION_BY_CATEGORY[detectedCategory])}
+                className="rounded-full border border-[#f8d38f]/35 bg-[#f8d38f]/12 px-3 py-1.5 text-xs font-semibold text-[#ffe4a8] transition hover:bg-[#f8d38f]/18"
+              >
+                추천 질문
+              </button>
+            </div>
+
+            <label className="block rounded-[20px] border border-white/12 bg-black/25 p-3">
+              <div className="mb-2 text-[11px] uppercase tracking-[0.18em] text-white/45">나의 질문</div>
+              <textarea
+                value={question}
+                onChange={(event) => setQuestion(event.target.value)}
+                placeholder="예: 이 관계가 앞으로 어떻게 변할지 알고 싶어요"
+                className="min-h-[110px] w-full resize-none bg-transparent text-sm leading-7 text-white outline-none placeholder:text-white/32"
+              />
+            </label>
+
+            <div className="mt-3 flex flex-wrap gap-2">
               {QUESTION_CHIPS.map((chip) => (
                 <button
                   key={chip.label}
                   type="button"
                   onClick={() => setQuestion(chip.text)}
-                  className="rounded-full border border-white/12 bg-white/7 px-3 py-2 text-left text-xs text-white/82 transition hover:border-amber-200/30 hover:bg-white/12"
+                  className="rounded-full border border-white/12 bg-white/8 px-3 py-1.5 text-xs text-white/80 transition hover:border-[#f8d38f]/35 hover:bg-white/14"
                 >
-                  <span className="mr-2">{chip.icon}</span>
+                  <span className="mr-1.5">{chip.icon}</span>
                   {chip.label}
                 </button>
               ))}
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-[24px] border border-white/10 bg-white/6 p-4">
-                <div className="text-[11px] uppercase tracking-[0.25em] text-white/48">Detected Theme</div>
-                <div className="mt-2 text-lg font-semibold text-white">{CATEGORY_LABEL[detectedCategory]}</div>
+
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <div className="rounded-[16px] border border-white/10 bg-white/[0.04] p-3">
+                <div className="text-[10px] uppercase tracking-[0.2em] text-white/42">질문 테마</div>
+                <div className="mt-1 text-sm font-semibold text-white">{CATEGORY_LABEL[detectedCategory]}</div>
               </div>
-              <div className="rounded-[24px] border border-white/10 bg-white/6 p-4">
-                <div className="text-[11px] uppercase tracking-[0.25em] text-white/48">Spread Library</div>
-                <div className="mt-2 text-lg font-semibold text-white">{SPREAD_LIBRARY.length} Spreads</div>
-              </div>
-              <div className="rounded-[24px] border border-white/10 bg-white/6 p-4">
-                <div className="text-[11px] uppercase tracking-[0.25em] text-white/48">Billing</div>
-                <div className="mt-2 text-lg font-semibold text-white">{billingCoinLabel}</div>
-                <div className="mt-1 text-xs text-emerald-100/80">{billingStateLabel}</div>
+              <div className="rounded-[16px] border border-white/10 bg-white/[0.04] p-3">
+                <div className="text-[10px] uppercase tracking-[0.2em] text-white/42">요금</div>
+                <div className="mt-1 text-sm font-semibold text-white">{billingCoinLabel}</div>
+                <div className="text-xs text-emerald-200/85">{billingStateLabel}</div>
               </div>
             </div>
+
+            <div className="mt-4 rounded-[20px] border border-[#f8d38f]/22 bg-[linear-gradient(140deg,rgba(255,186,107,0.12),rgba(255,186,107,0.03))] p-3 text-sm leading-6 text-white/75">
+              {effectiveQuestion}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => beginDraw(selectedSpread.id)}
+              className="mt-4 w-full rounded-[16px] bg-[linear-gradient(90deg,#f4b04f,#d883ff)] px-4 py-3 text-sm font-semibold text-[#190b2f] shadow-[0_12px_30px_rgba(216,131,255,0.33)] transition hover:brightness-110"
+            >
+              선택 스프레드로 시작하기
+            </button>
           </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, ease: "easeOut" }}
-            className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.04))] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.35)]"
-          >
-            <div className="rounded-[28px] border border-white/10 bg-black/20 p-4">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <div className="text-[11px] uppercase tracking-[0.25em] text-white/48">Featured Spread</div>
-                  <h2 className="mt-2 text-2xl font-semibold text-white">{selectedSpread.title}</h2>
-                </div>
-                <span className="rounded-full border border-amber-200/30 bg-amber-200/14 px-3 py-1 text-xs font-semibold text-amber-50">
-                  {DIFFICULTY_LABEL[selectedSpread.difficulty]}
-                </span>
-              </div>
-              <p className="mt-3 text-sm leading-7 text-white/72">{selectedSpread.purpose}</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {selectedSpread.tags.map((tag) => (
-                  <span key={tag} className="rounded-full border border-white/10 bg-white/8 px-2.5 py-1 text-[11px] text-white/70">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-              <div className="mt-5 rounded-[24px] border border-white/10 bg-[#070c1a] p-4">
-                <div className="relative mx-auto aspect-square w-full max-w-[360px] rounded-[28px] border border-dashed border-white/12 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_42%),linear-gradient(180deg,rgba(8,15,30,0.95),rgba(7,10,18,0.88))]">
-                  {selectedSpread.positions.map((position) => (
-                    <div
-                      key={`${selectedSpread.id}-${position.index}`}
-                      className="absolute h-[78px] w-[54px] -translate-x-1/2 -translate-y-1/2 rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.04))] p-2 text-center shadow-[0_18px_40px_rgba(0,0,0,0.25)]"
-                      style={{ left: `${position.x}%`, top: `${position.y}%`, transform: `translate(-50%, -50%) rotate(${position.rotate}deg)` }}
-                    >
-                      <div className="text-[10px] font-semibold text-amber-100">{position.index}</div>
-                      <div className="mt-1 line-clamp-3 text-[10px] leading-4 text-white/72">{position.label}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="mt-4 rounded-[22px] border border-white/10 bg-white/[0.04] p-4 text-sm leading-7 text-white/72">
-                <div className="text-[11px] uppercase tracking-[0.25em] text-white/48">Reading Mood</div>
-                <div className="mt-2">{selectedSpread.mood}</div>
-                <div className="mt-3 text-white/58">{selectedSpread.ritual}</div>
+          <div className="rounded-[26px] border border-[#8b78d5]/35 bg-[linear-gradient(180deg,rgba(16,19,50,0.94),rgba(8,10,30,0.94))] p-4 shadow-[0_18px_60px_rgba(7,8,28,0.55)]">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <div className="text-[11px] uppercase tracking-[0.2em] text-white/45">스프레드 라이브러리</div>
+                <h2 className="mt-1 text-2xl font-semibold text-[#fff6e2]">질문에 맞는 전개 선택</h2>
               </div>
               <button
                 type="button"
-                onClick={() => beginDraw(selectedSpread.id)}
-                className="mt-5 w-full rounded-full bg-[linear-gradient(90deg,#f59e0b,#fb7185,#60a5fa)] px-5 py-3 text-sm font-semibold text-slate-950 shadow-[0_16px_40px_rgba(244,114,182,0.28)] transition hover:scale-[1.01]"
+                onClick={scrollToLibrary}
+                className="rounded-full border border-white/12 bg-white/7 px-3 py-1.5 text-xs text-white/80 transition hover:bg-white/12"
               >
-                이 스프레드로 카드 뽑기 시작
+                새로 보기
               </button>
             </div>
-          </motion.div>
-        </section>
 
-        <section ref={libraryRef} id="spread-library" className="relative mt-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="pointer-events-none absolute -left-16 -top-10 h-40 w-40 rounded-full bg-rose-300/20 blur-3xl" />
-          <div className="pointer-events-none absolute -right-10 top-20 h-44 w-44 rounded-full bg-cyan-300/12 blur-3xl" />
-          <div className="rounded-[34px] border border-rose-100/15 bg-[linear-gradient(160deg,rgba(255,255,255,0.1),rgba(255,255,255,0.03))] p-4 shadow-[0_40px_120px_rgba(5,8,28,0.45)] backdrop-blur-2xl sm:p-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <div className="text-[11px] uppercase tracking-[0.25em] text-rose-100/60">Celestial Spread Atelier</div>
-                <h2 className="mt-2 text-2xl font-semibold text-white sm:text-[2rem]">질문에 맞는 스프레드를 가장 아름다운 흐름으로 고르세요</h2>
-                <p className="mt-2 text-sm text-white/65">카드 수, 무드, 난이도까지 한 번에 비교해 당신의 질문과 가장 결이 맞는 전개를 선택할 수 있어요.</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {["all", 3, 5, 7, 10, 12, 14].map((count) => (
-                  <button
-                    key={String(count)}
-                    type="button"
-                    onClick={() => setCardCountFilter(count === "all" ? "all" : count)}
-                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${cardCountFilter === count ? "border-rose-200/50 bg-rose-100/20 text-rose-50 shadow-[0_8px_24px_rgba(251,113,133,0.25)]" : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10"}`}
-                  >
-                    {count === "all" ? "All" : `${count} Cards`}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-4 rounded-[22px] border border-white/10 bg-black/25 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
+            <div className="mt-3 rounded-[16px] border border-white/12 bg-black/25 px-3 py-2.5">
               <input
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="스프레드 이름, 목적, 태그 검색"
+                placeholder="스프레드 검색"
                 className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/34"
               />
             </div>
 
-            <div className="mt-5 grid gap-3 lg:max-h-[960px] lg:overflow-auto lg:pr-1">
+            <div className="mt-3 flex flex-wrap gap-2">
+              {["all", 3, 5, 7, 10, 12, 14].map((count) => (
+                <button
+                  key={String(count)}
+                  type="button"
+                  onClick={() => setCardCountFilter(count === "all" ? "all" : count)}
+                  className={`rounded-full border px-2.5 py-1 text-xs font-semibold transition ${cardCountFilter === count ? "border-[#f8d38f]/45 bg-[#f8d38f]/14 text-[#ffe4a8]" : "border-white/10 bg-white/6 text-white/70 hover:bg-white/10"}`}
+                >
+                  {count === "all" ? "전체" : `${count}장`}
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-4 grid max-h-[760px] gap-2 overflow-auto pr-1">
               {filteredSpreads.map((spread) => {
                 const active = spread.id === selectedSpread.id;
                 const recommendedBadge = recommended.some((item) => item.id === spread.id);
@@ -521,37 +481,22 @@ export default function TarotPromptMakerPage() {
                     key={spread.id}
                     type="button"
                     onClick={() => selectSpread(spread.id)}
-                    whileHover={{ y: -4, scale: 1.01 }}
-                    whileTap={{ scale: 0.995 }}
-                    className={`group relative overflow-hidden rounded-[30px] border p-4 text-left transition ${active ? "border-rose-200/45 bg-white/14 shadow-[0_24px_80px_rgba(244,114,182,0.24)]" : "border-white/10 bg-white/[0.04] hover:border-rose-100/30 hover:bg-white/[0.09]"}`}
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.99 }}
+                    className={`rounded-[16px] border p-3 text-left transition ${active ? "border-[#f8d38f]/45 bg-white/[0.13]" : "border-white/10 bg-white/[0.04] hover:border-white/25 hover:bg-white/[0.09]"}`}
                   >
-                    <div className="pointer-events-none absolute -right-8 -top-8 h-20 w-20 rounded-full bg-rose-200/20 blur-2xl" />
-                    <div className="pointer-events-none absolute -left-6 bottom-4 h-16 w-16 rounded-full bg-cyan-200/10 blur-2xl" />
-                    <div className={`relative rounded-[22px] bg-gradient-to-br p-4 ${difficultyTone(spread)}`}>
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="text-[11px] uppercase tracking-[0.25em] text-white/46">{CATEGORY_LABEL[spread.category]}</div>
-                          <h3 className="mt-2 text-lg font-semibold text-white sm:text-xl">{spread.title}</h3>
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                          {recommendedBadge && (
-                            <span className="rounded-full border border-rose-100/35 bg-rose-100/18 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-50">
-                              For You
-                            </span>
-                          )}
-                          <span className="rounded-full border border-white/12 bg-black/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/72">
-                            {DIFFICULTY_LABEL[spread.difficulty]}
-                          </span>
+                    <div className={`rounded-[12px] bg-gradient-to-r px-3 py-2 ${difficultyTone(spread)}`}>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-[10px] uppercase tracking-[0.18em] text-white/70">{CATEGORY_LABEL[spread.category]}</div>
+                        <div className="flex items-center gap-1.5">
+                          {recommendedBadge && <span className="rounded-full bg-[#f8d38f]/24 px-2 py-0.5 text-[10px] font-semibold text-[#ffe4a8]">추천</span>}
+                          <span className="rounded-full bg-black/25 px-2 py-0.5 text-[10px] text-white/75">{DIFFICULTY_LABEL[spread.difficulty]}</span>
                         </div>
                       </div>
-                      <p className="mt-3 text-sm leading-7 text-white/76">{spread.purpose}</p>
-                      <div className="mt-4 flex flex-wrap gap-2 text-[11px] text-white/68">
-                        <span className="rounded-full border border-white/10 bg-white/10 px-2.5 py-1">{spread.cardCount} cards</span>
-                        {spread.tags.slice(0, 2).map((tag) => (
-                          <span key={tag} className="rounded-full border border-white/10 bg-white/10 px-2.5 py-1">{tag}</span>
-                        ))}
-                      </div>
+                      <div className="mt-2 text-base font-semibold text-white">{spread.title}</div>
+                      <div className="mt-1 text-xs text-white/75">{spread.cardCount} cards • {spread.tags.slice(0, 2).join(" / ")}</div>
                     </div>
+                    <p className="mt-2 text-xs leading-6 text-white/72">{spread.purpose}</p>
                   </motion.button>
                 );
               })}
@@ -561,48 +506,60 @@ export default function TarotPromptMakerPage() {
           <AnimatePresence mode="wait">
             <motion.aside
               key={selectedSpread.id}
-              initial={{ opacity: 0, y: 18 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.28, ease: "easeOut" }}
-              className="relative overflow-hidden rounded-[32px] border border-fuchsia-100/20 bg-[linear-gradient(160deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 shadow-[0_30px_90px_rgba(9,12,38,0.42)] backdrop-blur-2xl"
+              transition={{ duration: 0.24, ease: "easeOut" }}
+              className="rounded-[26px] border border-[#8b78d5]/35 bg-[linear-gradient(180deg,rgba(16,19,50,0.94),rgba(8,10,30,0.94))] p-4 shadow-[0_18px_60px_rgba(7,8,28,0.55)]"
             >
-              <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-fuchsia-200/20 blur-3xl" />
-              <div className="pointer-events-none absolute -left-12 bottom-8 h-28 w-28 rounded-full bg-cyan-200/12 blur-3xl" />
-              <div className="sticky top-4 space-y-5">
+              <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-[11px] uppercase tracking-[0.25em] text-white/48">Selected Spread</div>
-                  <h2 className="mt-2 text-3xl font-semibold text-white">{selectedSpread.title}</h2>
-                  <p className="mt-3 text-sm leading-7 text-white/72">{selectedSpread.purpose}</p>
+                  <div className="text-[11px] uppercase tracking-[0.2em] text-white/45">선택한 스프레드</div>
+                  <h2 className="mt-1 text-2xl font-semibold text-[#fff6e2]">{selectedSpread.title}</h2>
                 </div>
-                <div className="rounded-[24px] border border-white/10 bg-black/20 p-4 text-sm leading-7 text-white/70">
-                  <div className="text-[11px] uppercase tracking-[0.25em] text-white/48">Recommended Question</div>
-                  <div className="mt-2">{effectiveQuestion}</div>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {selectedSpread.interpretationGuide.map((item) => (
-                    <div key={item} className="rounded-[20px] border border-white/10 bg-white/[0.04] p-3 text-sm leading-6 text-white/68">
-                      {item}
+                <span className="rounded-full border border-[#f8d38f]/35 bg-[#f8d38f]/10 px-2.5 py-1 text-xs text-[#ffe4a8]">
+                  {selectedSpread.cardCount} cards
+                </span>
+              </div>
+
+              <p className="mt-3 text-sm leading-7 text-white/72">{selectedSpread.purpose}</p>
+
+              <div className="mt-4 rounded-[20px] border border-[#f8d38f]/20 bg-[#090f2a] p-3">
+                <div className="relative mx-auto aspect-square max-w-[360px] rounded-[20px] border border-[#f8d38f]/24 bg-[radial-gradient(circle_at_50%_100%,rgba(248,211,143,0.24),transparent_32%),linear-gradient(180deg,rgba(14,18,46,0.94),rgba(8,10,30,0.94))]">
+                  {selectedSpread.positions.map((position) => (
+                    <div
+                      key={`${selectedSpread.id}-${position.index}`}
+                      className="absolute h-[84px] w-[58px] -translate-x-1/2 -translate-y-1/2 rounded-[14px] border border-white/16 bg-white/[0.05] p-1.5 text-center"
+                      style={{ left: `${position.x}%`, top: `${position.y}%`, transform: `translate(-50%, -50%) rotate(${position.rotate}deg)` }}
+                    >
+                      <div className="text-[10px] font-bold text-[#ffe4a8]">{position.index}</div>
+                      <div className="mt-1 line-clamp-3 text-[10px] leading-4 text-white/75">{position.label}</div>
                     </div>
                   ))}
                 </div>
-                <div className="rounded-[24px] border border-white/10 bg-[#070c1a] p-4">
-                  <div className="text-[11px] uppercase tracking-[0.25em] text-white/48">Position Flow</div>
-                  <div className="mt-3 grid gap-2">
-                    {selectedSpread.positions.map((position) => (
-                      <div key={`${selectedSpread.id}-${position.index}`} className="flex items-start gap-3 rounded-[18px] border border-white/8 bg-white/[0.04] px-3 py-2.5">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-200/20 bg-amber-200/10 text-xs font-semibold text-amber-50">
-                          {position.index}
-                        </span>
-                        <div>
-                          <div className="text-sm font-semibold text-white">{position.label}</div>
-                          <div className="text-xs leading-5 text-white/58">{position.description}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
+
+              <div className="mt-3 grid gap-2">
+                {selectedSpread.positions.map((position) => (
+                  <div key={`${selectedSpread.id}-flow-${position.index}`} className="flex items-start gap-2 rounded-[14px] border border-white/10 bg-white/[0.04] px-3 py-2">
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#f8d38f]/28 bg-[#f8d38f]/10 text-[10px] font-semibold text-[#ffe4a8]">
+                      {position.index}
+                    </span>
+                    <div>
+                      <div className="text-sm font-semibold text-white">{position.label}</div>
+                      <div className="text-xs text-white/62">{position.description}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => beginDraw(selectedSpread.id)}
+                className="mt-4 w-full rounded-[16px] bg-[linear-gradient(90deg,#f4b04f,#d883ff)] px-4 py-3 text-sm font-semibold text-[#190b2f] shadow-[0_12px_30px_rgba(216,131,255,0.33)] transition hover:brightness-110"
+              >
+                이 스프레드로 카드 뽑기
+              </button>
             </motion.aside>
           </AnimatePresence>
         </section>
