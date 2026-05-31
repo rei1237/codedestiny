@@ -71,6 +71,9 @@ function mapApiError(status, payload) {
   if (status === 403 || code.includes("CHECK") || code.includes("VERIFY")) {
     return "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
   }
+  if (/seed|llm/i.test(message)) {
+    return "인생의 책 생성 중 내부 해석 흐름이 끊겼습니다. 입력 정보를 다시 확인한 뒤 재시도해 주세요.";
+  }
   if (message) return message;
   return "PDF 생성 중 문제가 발생했습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요.";
 }

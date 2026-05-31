@@ -394,9 +394,6 @@ export async function startServiceExecution(env, userId, payload = {}) {
     $setOnInsert: {
       userId: userObjectId,
       executionKey,
-      reportType,
-      reportId,
-      sessionId,
       paymentSessionId,
       coinTransactionId,
       coinAmount,
@@ -412,7 +409,6 @@ export async function startServiceExecution(env, userId, payload = {}) {
       retryCount: 0,
       maxRetries: clampInt(payload.maxRetries, 5, 1, 20),
       generationStartedAt: startedAt,
-      lastClientHeartbeatAt: startedAt,
       refundStatus: "none",
       metadata: payload.metadata && typeof payload.metadata === "object" ? payload.metadata : null,
       retentionUntil,

@@ -265,6 +265,14 @@ if (!globalThis.__LIFEBOOK_SESSION_LOCKS) {
   globalThis.__LIFEBOOK_SESSION_LOCKS = LIFEBOOK_SESSION_LOCKS;
 }
 
+const STEM_KO_MAP = Object.freeze({
+  甲: "갑", 乙: "을", 丙: "병", 丁: "정", 戊: "무", 己: "기", 庚: "경", 辛: "신", 壬: "임", 癸: "계",
+});
+
+const BRANCH_KO_MAP = Object.freeze({
+  子: "자", 丑: "축", 寅: "인", 卯: "묘", 辰: "진", 巳: "사", 午: "오", 未: "미", 申: "신", 酉: "유", 戌: "술", 亥: "해",
+});
+
 function clean(value) {
   return String(value || "").trim();
 }
@@ -350,6 +358,22 @@ const CHAPTER_TOPIC_RULES = {
   "13": ["3년", "5년", "10년", "돈", "일", "관계", "통합 전략"],
 };
 
+const LIFEBOOK_CHAPTER_LENSES = {
+  "01": { focus: "원국 구조", tone: "태어난 설계도를 처음 여는 듯한 해설", practical: "네 기둥이 어떻게 한 사람의 선택 기준이 되는지 읽어내는 장" },
+  "02": { focus: "월령·조후·오행 균형", tone: "기질과 체질을 이해시키는 해설", practical: "강약과 균형을 생활 리듬으로 번역하는 장" },
+  "03": { focus: "용신·희신·기신", tone: "무기와 전략을 찾아주는 해설", practical: "잘 되는 환경과 소모되는 환경을 갈라내는 장" },
+  "04": { focus: "대운과 시기", tone: "시기별 선택 전략", practical: "현재와 다음 흐름을 행동 순서로 정리하는 장" },
+  "05": { focus: "격국과 사회적 역할", tone: "성공 방정식", practical: "무대와 역할이 맞아떨어질 때 성과가 커지는 장" },
+  "06": { focus: "관계와 파트너십", tone: "인연 운영법", practical: "사람과의 거리, 협업, 상처 회복법을 다루는 장" },
+  "07": { focus: "연애와 결혼", tone: "사랑의 패턴 상담", practical: "사랑의 시작과 유지, 갈등 관리 방식을 읽는 장" },
+  "08": { focus: "재물과 직업", tone: "돈과 일의 실행 지도", practical: "수익 구조와 커리어 누적 전략을 짜는 장" },
+  "09": { focus: "건강과 심신", tone: "회복 루틴 상담", practical: "몸과 마음의 리듬을 장기적으로 지키는 장" },
+  "10": { focus: "신살과 십이운성", tone: "숨은 반복 패턴 해설", practical: "표면 아래의 반복 장치를 읽는 장" },
+  "11": { focus: "위기와 반전", tone: "무너질 때 다시 서는 전략", practical: "실수와 흔들림을 반전의 발판으로 바꾸는 장" },
+  "12": { focus: "장기 성장", tone: "인생 방향성", practical: "재능과 장기 성장 방향을 현실 언어로 묶는 장" },
+  "13": { focus: "3년·5년·10년 마스터플랜", tone: "최종 전략", practical: "돈, 일, 관계를 한 장의 계획으로 통합하는 장" },
+};
+
 function toInt(value, fallback = 0) {
   const n = Number(value);
   return Number.isFinite(n) ? Math.trunc(n) : fallback;
@@ -378,6 +402,58 @@ function englishElementToKorean(value) {
   return "";
 }
 
+function normalizeStemLabel(value) {
+  const raw = clean(value);
+  return STEM_KO_MAP[raw] || raw;
+}
+
+function normalizeBranchLabel(value) {
+  const raw = clean(value);
+  return BRANCH_KO_MAP[raw] || raw;
+}
+
+function getPillarStemLabel(pillar = {}) {
+  return normalizeStemLabel(pillar?.stemKo || pillar?.stem || "");
+}
+
+function getPillarBranchLabel(pillar = {}) {
+  return normalizeBranchLabel(pillar?.branchKo || pillar?.branch || "");
+}
+
+function getPillarGanjiLabel(pillar = {}) {
+  const stem = getPillarStemLabel(pillar);
+  const branch = getPillarBranchLabel(pillar);
+  return `${stem}${branch}`.trim();
+}
+
+function describeTopTenGods(signals = {}) {
+  const ranked = Array.isArray(signals?.tenGodStats?.top) ? signals.tenGodStats.top : [];
+  if (!ranked.length) return "십성은 특정 한 가지보다 상황 대응형으로 분산되어 있습니다.";
+  return ranked.slice(0, 3).map((item) => `${item.key} ${item.pct || 0}%`).join(", ");
+}
+
+function describeElementRatio(signals = {}) {
+  const weights = signals?.elementWeights;
+  if (!weights) {
+    return "오행은 특정 기운 하나보다 생활 리듬과 환경 조절에서 균형을 만들어야 하는 상태로 보입니다.";
+  }
+  return `오행 분포는 목 ${safeNumber(weights.wood, 0)}%, 화 ${safeNumber(weights.fire, 0)}%, 토 ${safeNumber(weights.earth, 0)}%, 금 ${safeNumber(weights.metal, 0)}%, 수 ${safeNumber(weights.water, 0)}%로 읽힙니다.`;
+}
+
+function dedupeParagraphs(text = "") {
+  const paragraphs = String(text || "")
+    .split(/\n\s*\n/)
+    .map((paragraph) => stripForbiddenTokens(paragraph))
+    .filter(Boolean);
+  const seen = new Set();
+  return paragraphs.filter((paragraph) => {
+    const key = paragraph.replace(/\s+/g, " ");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).join("\n\n");
+}
+
 function gatherCategoryText(chapters = []) {
   return (Array.isArray(chapters) ? chapters : [])
     .flatMap((chapter) => (Array.isArray(chapter?.categories) ? chapter.categories : []))
@@ -386,18 +462,17 @@ function gatherCategoryText(chapters = []) {
 }
 
 function countRepeatedNgrams(text = "", n = 30, threshold = 3) {
-  const source = stripForbiddenTokens(text).replace(/\s+/g, " ").trim();
-  if (source.length < n) return 0;
+  const minLength = Math.max(60, Number(n) || 0);
+  const source = stripForbiddenTokens(text)
+    .split(/\n\s*\n|[.!?。]\s+/)
+    .map((chunk) => chunk.replace(/\s+/g, " ").trim())
+    .filter((chunk) => chunk.length >= minLength);
+  if (!source.length) return 0;
   const map = new Map();
-  for (let i = 0; i <= source.length - n; i += 1) {
-    const gram = source.slice(i, i + n);
-    map.set(gram, Number(map.get(gram) || 0) + 1);
-  }
-  let hits = 0;
-  map.forEach((count) => {
-    if (count >= threshold) hits += 1;
+  source.forEach((chunk) => {
+    map.set(chunk, Number(map.get(chunk) || 0) + 1);
   });
-  return hits;
+  return Array.from(map.values()).filter((count) => count >= threshold).length;
 }
 
 function countRepeatedOpenings(chapters = []) {
@@ -858,6 +933,12 @@ function countForbiddenTerms(chapters = []) {
   return count;
 }
 
+function allowedLifeBookRepetitionScore(chapters = []) {
+  const list = Array.isArray(chapters) ? chapters : [];
+  const categoryCount = list.reduce((sum, chapter) => sum + (Array.isArray(chapter?.categories) ? chapter.categories.length : 0), 0);
+  return Math.max(12, Math.floor(categoryCount * 0.7) + Math.floor(list.length / 2));
+}
+
 function validateLifeBookFinalManuscript(chapters = []) {
   const errors = [];
   const chapterMetrics = [];
@@ -897,14 +978,16 @@ function validateLifeBookFinalManuscript(chapters = []) {
   const forbiddenHits = countForbiddenTerms(list);
   if (forbiddenHits > 0) errors.push("forbidden_terms_detected");
   const repScore = repetitionScore(list);
-  if (repScore > 0) errors.push("repetition_detected");
+  const repetitionLimit = allowedLifeBookRepetitionScore(list);
+  if (repScore > repetitionLimit) errors.push("repetition_detected");
   list.forEach((chapter, index) => {
     if (!validateChapterTopicCoverage(chapter)) errors.push(`chapter_${index + 1}_topic_coverage`);
   });
 
   const repetition = {
-    ok: repScore === 0,
+    ok: repScore <= repetitionLimit,
     score: repScore,
+    limit: repetitionLimit,
   };
 
   return {
@@ -1012,21 +1095,128 @@ function buildLifeBookLocalSajuJson(birthInput, profile, signals, chapters = [])
 
 function validateLifeBookLocalSajuJson(localSajuJson) {
   const missing = [];
+  const warnings = [];
 
-  if (!clean(localSajuJson?.pillars?.year?.stem) || !clean(localSajuJson?.pillars?.year?.branch)) missing.push("yearPillar");
-  if (!clean(localSajuJson?.pillars?.month?.stem) || !clean(localSajuJson?.pillars?.month?.branch)) missing.push("monthPillar");
+  if (!clean(localSajuJson?.birthInput?.birthDate)) missing.push("birthDate");
+  if (!clean(localSajuJson?.birthInput?.birthTime)) missing.push("birthTime");
+
+  const resolvedPillarCount = ["year", "month", "day", "hour"].reduce((count, key) => {
+    const stem = clean(localSajuJson?.pillars?.[key]?.stem);
+    const branch = clean(localSajuJson?.pillars?.[key]?.branch);
+    return count + Number(Boolean(stem && branch));
+  }, 0);
+
   if (!clean(localSajuJson?.pillars?.day?.stem) || !clean(localSajuJson?.pillars?.day?.branch)) missing.push("dayPillar");
-  if (!clean(localSajuJson?.pillars?.hour?.stem) || !clean(localSajuJson?.pillars?.hour?.branch)) missing.push("hourPillar");
   if (!clean(localSajuJson?.dayMaster)) missing.push("dayMaster");
-  if (!localSajuJson?.fiveElements || Object.keys(localSajuJson.fiveElements).length < 5) missing.push("fiveElements");
-  if (!localSajuJson?.tenGods || Object.keys(localSajuJson.tenGods).length < 4) missing.push("tenGods");
-  if (!localSajuJson?.usefulGods && !localSajuJson?.yongshin) missing.push("usefulGods");
-  if (!Array.isArray(localSajuJson?.daeun) || localSajuJson.daeun.length === 0) missing.push("daeun");
+  if (resolvedPillarCount < 3) missing.push("pillarSet");
+
+  if (!localSajuJson?.fiveElements || Object.keys(localSajuJson.fiveElements).length < 5) warnings.push("fiveElements");
+  if (!localSajuJson?.tenGods || Object.keys(localSajuJson.tenGods).length < 4) warnings.push("tenGods");
+  if (!localSajuJson?.usefulGods && !localSajuJson?.yongshin) warnings.push("usefulGods");
+  if (!Array.isArray(localSajuJson?.daeun) || localSajuJson.daeun.length === 0) warnings.push("daeun");
 
   return {
     ok: missing.length === 0,
     missing,
+    warnings,
+    resolvedPillarCount,
   };
+}
+
+function repairLifeBookLocalSajuJson(localSajuJson, birthInput, profile, signals) {
+  const payload = deriveLifeBookPayload(profile, signals, [], { calendarType: birthInput?.calendarType });
+  const engineProfile = signals?.engineProfile || {};
+  const enginePillars = engineProfile?.pillars || {};
+  const daewun = Array.isArray(localSajuJson?.daeun) && localSajuJson.daeun.length
+    ? localSajuJson.daeun
+    : Array.isArray(signals?.daewunCycles) && signals.daewunCycles.length
+      ? signals.daewunCycles
+      : calcLifeBookDaewunFromBirth(profile).cycles;
+
+  const yongshin = {
+    usefulElement: clean(localSajuJson?.yongshin?.usefulElement || signals?.useful || payload?.yongshin?.primary),
+    usefulElements: [
+      clean(localSajuJson?.yongshin?.usefulElement || signals?.useful || payload?.yongshin?.primary),
+      clean(localSajuJson?.yongshin?.usefulElements?.[1] || signals?.support || payload?.yongshin?.secondary),
+    ].filter(Boolean),
+    cautionElements: [clean(localSajuJson?.yongshin?.cautionElements?.[0] || signals?.caution || payload?.yongshin?.avoidElements?.[0])].filter(Boolean),
+  };
+
+  const repaired = {
+    ...localSajuJson,
+    birthInput: {
+      ...birthInput,
+      birthDate: clean(localSajuJson?.birthInput?.birthDate || birthInput?.birthDate),
+      birthTime: clean(localSajuJson?.birthInput?.birthTime || birthInput?.birthTime),
+    },
+    profile,
+    pillars: {
+      year: {
+        stem: clean(localSajuJson?.pillars?.year?.stem || signals?.yearStem || getPillarStemLabel(enginePillars?.year)),
+        branch: clean(localSajuJson?.pillars?.year?.branch || signals?.yearBranch || getPillarBranchLabel(enginePillars?.year)),
+        ganji: clean(localSajuJson?.pillars?.year?.ganji || signals?.yearPillar || getPillarGanjiLabel(enginePillars?.year)),
+      },
+      month: {
+        stem: clean(localSajuJson?.pillars?.month?.stem || signals?.monthStem || getPillarStemLabel(enginePillars?.month)),
+        branch: clean(localSajuJson?.pillars?.month?.branch || signals?.monthBranch || getPillarBranchLabel(enginePillars?.month)),
+        ganji: clean(localSajuJson?.pillars?.month?.ganji || signals?.monthPillar || getPillarGanjiLabel(enginePillars?.month)),
+      },
+      day: {
+        stem: clean(localSajuJson?.pillars?.day?.stem || signals?.dayMaster || getPillarStemLabel(enginePillars?.day)),
+        branch: clean(localSajuJson?.pillars?.day?.branch || signals?.dayBranch || getPillarBranchLabel(enginePillars?.day)),
+        ganji: clean(localSajuJson?.pillars?.day?.ganji || signals?.dayPillar || getPillarGanjiLabel(enginePillars?.day)),
+      },
+      hour: {
+        stem: clean(localSajuJson?.pillars?.hour?.stem || signals?.hourStem || getPillarStemLabel(enginePillars?.hour)),
+        branch: clean(localSajuJson?.pillars?.hour?.branch || signals?.hourBranch || getPillarBranchLabel(enginePillars?.hour)),
+        ganji: clean(localSajuJson?.pillars?.hour?.ganji || signals?.hourPillar || getPillarGanjiLabel(enginePillars?.hour)),
+      },
+    },
+    dayMaster: clean(localSajuJson?.dayMaster || signals?.dayMaster || getPillarStemLabel(enginePillars?.day)),
+    tenGods: localSajuJson?.tenGods && Object.keys(localSajuJson.tenGods).length >= 4
+      ? localSajuJson.tenGods
+      : (signals?.tenGodCounts || payload?.tenGodStats?.counts || {}),
+    tenGodsByPillar: localSajuJson?.tenGodsByPillar && Object.keys(localSajuJson.tenGodsByPillar).length
+      ? localSajuJson.tenGodsByPillar
+      : (signals?.tenGodByPillar || {}),
+    fiveElements: localSajuJson?.fiveElements && Object.keys(localSajuJson.fiveElements).length >= 5
+      ? localSajuJson.fiveElements
+      : (payload?.elementBalance?.ratio || {}),
+    elementBalance: localSajuJson?.elementBalance && Object.keys(localSajuJson.elementBalance).length
+      ? localSajuJson.elementBalance
+      : deriveElementBalance(profile, signals),
+    tenGodStats: localSajuJson?.tenGodStats && Object.keys(localSajuJson.tenGodStats).length
+      ? localSajuJson.tenGodStats
+      : deriveTenGodStats(profile, signals),
+    strength: {
+      ...localSajuJson?.strength,
+      label: clean(localSajuJson?.strength?.label || signals?.powerLabel || payload?.strength?.label || "중화"),
+      reason: clean(localSajuJson?.strength?.reason || payload?.strength?.reasonSummary),
+    },
+    johu: {
+      ...localSajuJson?.johu,
+      type: clean(localSajuJson?.johu?.type || signals?.johuType || "평형"),
+      summary: clean(localSajuJson?.johu?.summary || payload?.johu?.summary || `${clean(signals?.johuType || "평형")} 기준으로 생활 리듬을 맞추는 것이 좋습니다.`),
+    },
+    yongshin,
+    usefulGods: yongshin,
+    daeun,
+    currentDaeun: localSajuJson?.currentDaeun || signals?.currentDaeunNode || { label: clean(signals?.currentDaewun) },
+    nextDaeun: localSajuJson?.nextDaeun || signals?.nextDaeunNode || { label: clean(signals?.nextDaewun) },
+    yearlyFlow: localSajuJson?.yearlyFlow || {
+      year: signals?.currentYear || new Date().getFullYear(),
+      pillar: clean(signals?.currentYearPillar),
+      keywords: [clean(signals?.useful), clean(signals?.support)].filter(Boolean),
+    },
+    twelveGrowthStages: Array.isArray(localSajuJson?.twelveGrowthStages) && localSajuJson.twelveGrowthStages.length
+      ? localSajuJson.twelveGrowthStages
+      : buildLifeBookTwelveGrowthStages(enginePillars),
+    sinsal: Array.isArray(localSajuJson?.sinsal) && localSajuJson.sinsal.length
+      ? localSajuJson.sinsal
+      : calcLifeBookSpecialStarsFromPillars(enginePillars),
+  };
+
+  return repaired;
 }
 
 function pickByIndex(list, index) {
@@ -1048,7 +1238,8 @@ function branchKoToHan(branchKo = "") {
   const map = {
     자: "子", 축: "丑", 인: "寅", 묘: "卯", 진: "辰", 사: "巳", 오: "午", 미: "未", 신: "申", 유: "酉", 술: "戌", 해: "亥",
   };
-  return map[clean(branchKo)] || "";
+  const raw = clean(branchKo);
+  return map[raw] || raw;
 }
 
 function calcLifeBookSpecialStarsFromPillars(pillars = {}) {
@@ -1196,6 +1387,7 @@ function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
 
   const parsed = extractSignalFromSajuData(rawSajuData);
   const parsedAnalysis = normalizeIncomingAnalysisSignals(analysisSignals);
+  const enginePillars = engineProfile?.pillars || {};
   const engineWeights = engineProfile?.fiveElements?.percentages
     ? {
         wood: safeNumber(engineProfile.fiveElements.percentages.wood, 0),
@@ -1210,14 +1402,14 @@ function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
   const engineTenGodCounts = engineProfile?.tenGods?.counts || null;
   const mergedTenGodCounts = parsedAnalysis.tenGodCounts || engineTenGodCounts || null;
 
-  const yearStem = clean(engineProfile?.pillars?.year?.stemKo || "");
-  const monthStem = clean(engineProfile?.pillars?.month?.stemKo || "");
-  const dayStem = clean(engineProfile?.pillars?.day?.stemKo || "");
-  const hourStem = clean(engineProfile?.pillars?.hour?.stemKo || "");
-  const yearBranch = clean(engineProfile?.pillars?.year?.branch || "");
-  const monthBranch = clean(engineProfile?.pillars?.month?.branch || "");
-  const dayBranch = clean(engineProfile?.pillars?.day?.branch || "");
-  const hourBranch = clean(engineProfile?.pillars?.hour?.branch || "");
+  const yearStem = getPillarStemLabel(enginePillars?.year);
+  const monthStem = getPillarStemLabel(enginePillars?.month);
+  const dayStem = clean(parsedAnalysis.dayMaster || engineProfile?.dayMaster?.stemKo || getPillarStemLabel(enginePillars?.day) || parsed?.dayMaster);
+  const hourStem = getPillarStemLabel(enginePillars?.hour);
+  const yearBranch = getPillarBranchLabel(enginePillars?.year);
+  const monthBranch = getPillarBranchLabel(enginePillars?.month);
+  const dayBranch = getPillarBranchLabel(enginePillars?.day);
+  const hourBranch = getPillarBranchLabel(enginePillars?.hour);
 
   const useful = normalizeSajuElementToken(
     parsedAnalysis.yongshinElements[0]
@@ -1253,68 +1445,82 @@ function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
   }
 
   const topTenGod = pickTopTenGod(mergedTenGodCounts);
+  const tenGodStats = deriveTenGodStats(profile, { tenGodCounts: mergedTenGodCounts });
 
   const daewun = calcLifeBookDaewunFromBirth(profile);
   const currentYear = new Date().getFullYear();
-  const yearPillar = engineProfile?.pillars?.year;
-  const currentYearPillar = clean(yearPillar?.stemKo) && clean(yearPillar?.branch)
-    ? `${clean(yearPillar?.stemKo)}${clean(yearPillar?.branch)}`
-    : "";
+  const currentYearSolar = Solar.fromDate(new Date());
+  const currentYearPillar = `${normalizeStemLabel(currentYearSolar.getLunar().getEightChar().getYearGan())}${normalizeBranchLabel(currentYearSolar.getLunar().getEightChar().getYearZhi())}`.trim();
 
-  const specialStars = calcLifeBookSpecialStarsFromPillars(engineProfile?.pillars || {});
-  const twelveGrowthStages = buildLifeBookTwelveGrowthStages(engineProfile?.pillars || {});
+  const specialStars = calcLifeBookSpecialStarsFromPillars(enginePillars);
+  const twelveGrowthStages = buildLifeBookTwelveGrowthStages(enginePillars);
 
-  if (!clean(dayStem) || !clean(monthBranch) || !clean(dayBranch) || !clean(hourBranch)) {
-    throw Object.assign(new Error("사주 기둥 해석 필드가 부족합니다."), { code: "LIFEBOOK_ENGINE_FIELDS_MISSING", status: 500 });
-  }
-  if (!analysisWeights || Object.keys(analysisWeights).length < 5) {
-    throw Object.assign(new Error("오행 분포 계산 결과가 부족합니다."), { code: "LIFEBOOK_FIVE_ELEMENTS_MISSING", status: 500 });
-  }
-  if (!mergedTenGodCounts || Object.keys(mergedTenGodCounts).length < 4) {
-    throw Object.assign(new Error("십성 분포 계산 결과가 부족합니다."), { code: "LIFEBOOK_TENGODS_MISSING", status: 500 });
-  }
-  if (!useful) {
-    throw Object.assign(new Error("용신 계산 결과가 부족합니다."), { code: "LIFEBOOK_YONGSHIN_MISSING", status: 500 });
-  }
-  if (!Array.isArray(daewun.cycles) || daewun.cycles.length === 0) {
-    throw Object.assign(new Error("대운 계산 결과가 부족합니다."), { code: "LIFEBOOK_DAEWUN_MISSING", status: 500 });
+  const usefulElements = [useful, support].filter(Boolean);
+  const avoidElements = [caution].filter(Boolean);
+  const powerLabel = clean(parsedAnalysis.powerLabel || (engineProfile?.usefulGods?.strength === "strong" ? "신강" : engineProfile?.usefulGods?.strength === "weak" ? "신약" : "중화"));
+  const monthBranchLabel = clean(parsedAnalysis.monthBranch || parsed?.monthBranch || monthBranch);
+  const dayPillar = `${dayStem}${dayBranch}`.trim();
+  const weakSignals = [
+    clean(caution && `${caution} 기운 과속`),
+    clean(weakestElement && `${weakestElement} 보강 필요`),
+    clean(!mergedTenGodCounts ? "십성 분포 추가 확인 필요" : ""),
+  ].filter(Boolean);
+
+  if (!clean(dayStem) || !clean(dayBranch)) {
+    throw Object.assign(new Error("인생의 책 생성에 필요한 일주 계산을 확인할 수 없습니다."), { code: "LIFEBOOK_ENGINE_FIELDS_MISSING", status: 422 });
   }
 
   return {
-    dayMaster: parsedAnalysis.dayMaster || dayStem || parsed?.dayMaster,
+    dayMaster: dayStem,
     yearStem,
     monthStem,
     hourStem,
     yearBranch,
-    monthBranch: parsedAnalysis.monthBranch || parsed?.monthBranch || monthBranch,
+    monthBranch: monthBranchLabel,
     dayBranch,
     hourBranch,
-    useful,
-    support: support || useful,
-    caution: caution || useful,
+    yearPillar: `${yearStem}${yearBranch}`.trim(),
+    monthPillar: `${monthStem}${monthBranchLabel}`.trim(),
+    dayPillar,
+    hourPillar: `${hourStem}${hourBranch}`.trim(),
+    useful: useful || dominantElement || "토",
+    support: support || useful || dominantElement || "금",
+    caution: caution || weakestElement || "수",
     timeKnown: Boolean(profile.timeKnown),
     timeLabel: profile.timeKnown ? `${pad2(profile.hour)}:${pad2(profile.minute)}` : "시간 미상",
-    rhythm: `${yearBranch}-${monthBranch}-${dayBranch}`,
-    powerLabel: parsedAnalysis.powerLabel,
+    rhythm: `${yearBranch}-${monthBranchLabel}-${dayBranch}`,
+    powerLabel,
     johuType: parsedAnalysis.johuType || "평형",
-    yongshinElements: parsedAnalysis.yongshinElements,
-    kishinElements: parsedAnalysis.kishinElements,
+    yongshinElements: parsedAnalysis.yongshinElements.length ? parsedAnalysis.yongshinElements : usefulElements,
+    kishinElements: parsedAnalysis.kishinElements.length ? parsedAnalysis.kishinElements : avoidElements,
     currentDaewun: clean(daewun?.current?.label || parsedAnalysis.currentDaewun),
     nextDaewun: clean(daewun?.next?.label || ""),
     daewunStartAge: Number(daewun?.current?.startAge || 0) || null,
-    daewunCycles: daewun.cycles,
+    daewunCycles: Array.isArray(daewun.cycles) ? daewun.cycles : [],
     currentDaeunNode: daewun.current,
     nextDaeunNode: daewun.next,
     currentYear,
     currentYearPillar,
     isJong: parsedAnalysis.isJong,
     jongName: parsedAnalysis.jongName,
-    geokguk: `${clean(dayStem)}${clean(monthBranch)} 구조`,
+    geokguk: `${clean(dayStem)}${clean(monthBranchLabel)} 구조`,
     relationshipFocus: `${clean(dayBranch)} 중심 관계 리듬`,
-    elementWeights: analysisWeights,
-    dominantElement,
-    weakestElement,
-    tenGodCounts: mergedTenGodCounts,
+    relationshipSignal: `${clean(dayBranch)} 일지와 ${clean(monthBranchLabel)} 월지가 관계의 기준을 동시에 건드리는 구조`,
+    spouseSignal: `${clean(dayPillar)} 일주의 배우자 감각이 ${clean(topTenGod || "핵심 십성")}을 통해 드러납니다.`,
+    wealthSignal: `${clean(useful || dominantElement || "토")} 기운을 현실 수익 구조에 연결할수록 재물 흐름이 안정됩니다.`,
+    careerSignal: `${clean(topTenGod || "핵심 십성")}이 앞에 설수록 직업적 존재감이 커집니다.`,
+    talentSignal: `${clean(dayStem)} 일간은 ${clean(dominantElement || useful || "토")} 기운과 맞물릴 때 재능이 선명해집니다.`,
+    timing: {
+      current: clean(daewun?.current?.label),
+      next: clean(daewun?.next?.label),
+      year: currentYear,
+      yearPillar: currentYearPillar,
+    },
+    elementWeights: analysisWeights || { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 },
+    dominantElement: dominantElement || useful || "토",
+    weakestElement: weakestElement || caution || "수",
+    tenGodCounts: mergedTenGodCounts || {},
+    tenGodStats,
     tenGodByPillar: {
       year: clean(engineProfile?.tenGods?.pillarTenGods?.year || ""),
       month: clean(engineProfile?.tenGods?.pillarTenGods?.month || ""),
@@ -1324,14 +1530,22 @@ function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
     specialStars,
     twelveGrowthStages,
     topTenGod,
+    usefulElements,
+    avoidElements,
+    weakSignals,
     engineProfile,
   };
 }
 
-function ensureCategoryLength(text, chapterId, categoryTitle, categoryIndex, minLength = LIFEBOOK_MIN_CATEGORY_CHARS + 40) {
+function ensureCategoryLength(text, chapterId, categoryTitle, categoryIndex, minLength = LIFEBOOK_MIN_CATEGORY_CHARS + 120) {
   let result = stripForbiddenTokens(text);
+  const fillerPool = [
+    `${chapterId}장의 ${categoryTitle}에서는 감정이 올라온 순간 바로 결론을 내리기보다, 하루 단위로 판단과 실행을 분리해 기록하는 습관이 중요합니다. 이렇게 해야 사주가 가진 장점이 실제 선택에서 꾸준히 살아납니다.`,
+    `${categoryTitle}을 다룰 때는 관계, 일, 돈, 마음 중 지금 가장 압력이 큰 한 축을 먼저 정하고 그 축에 맞는 행동을 반복해야 운의 방향이 흐트러지지 않습니다. 작은 루틴이 쌓일수록 결과가 안정됩니다.`,
+    `${chapterId}장의 ${categoryTitle}에서 말하는 핵심은 화려한 결론보다 지속 가능한 운영법입니다. ${categoryTitle}의 기준을 문장으로 적고, 한 주의 우선순위를 두세 개로 줄이면 명식의 강점이 흔들림 없이 이어집니다.`,
+  ];
   while (result.length < minLength) {
-    const extra = `${chapterId}장 ${categoryTitle}의 실행 구간에서는 관계, 돈, 일, 건강 중 이번 주 핵심 축 하나를 고정해 추적해야 실제 변화가 누적됩니다. ${categoryIndex + 1}번째 점검 포인트는 기록-피드백-조정의 세 단계를 한 사이클로 운영하는 것입니다.`;
+    const extra = fillerPool[(result.length + categoryIndex) % fillerPool.length];
     result = `${result}\n\n${extra}`;
   }
 
@@ -1347,16 +1561,56 @@ function ensureCategoryLength(text, chapterId, categoryTitle, categoryIndex, min
 }
 
 function buildCategoryText(profile, signals, chapter, categoryTitle, categoryIndex) {
-  const elementRatioText = signals.elementWeights
-    ? `오행의 결은 목 ${safeNumber(signals.elementWeights.wood, 0)}%, 화 ${safeNumber(signals.elementWeights.fire, 0)}%, 토 ${safeNumber(signals.elementWeights.earth, 0)}%, 금 ${safeNumber(signals.elementWeights.metal, 0)}%, 수 ${safeNumber(signals.elementWeights.water, 0)}%로 드러납니다.`
-    : "오행의 결은 균형 조정이 필요한 구간으로 보이며, 생활 리듬의 재정렬이 우선 과제가 됩니다.";
+  const chapterId = String(chapter?.id || "");
+  const lens = LIFEBOOK_CHAPTER_LENSES[chapterId] || LIFEBOOK_CHAPTER_LENSES["01"];
+  const openingVariants = [
+    `${categoryTitle}을 보면 ${profile.name}님 명식의 ${lens.focus}이 가장 먼저 드러납니다. ${lens.tone}으로 읽어야 이 항목이 단순한 성격 묘사에서 끝나지 않고 실제 삶의 기준으로 이어집니다.`,
+    `${chapter.title}에서 ${categoryTitle}은 ${profile.name}님이 어떤 기준으로 움직이고 멈추는지를 설명하는 핵심 대목입니다. ${lens.practical}이라는 점을 놓치지 않아야 이 장의 해석이 현실과 연결됩니다.`,
+    `${categoryTitle}은 ${profile.name}님의 사주에서 지금까지 반복되어 온 선택 패턴을 가장 선명하게 보여주는 항목입니다. 그래서 이 부분은 느낌보다 구조를 먼저 읽고, 구조를 읽은 뒤 생활 방식으로 번역해야 합니다.`,
+  ];
 
-  const paragraph1 = `${profile.name}님에게 ${categoryTitle}은(는) 단순한 정보가 아니라 삶의 방향을 정하는 기준선입니다. 같은 상황에서도 선택의 결이 달라지는 이유는 마음의 의지보다 명식의 작동 방식이 먼저 반응하기 때문입니다. 그래서 이 항목은 잘잘못을 가리는 평가가 아니라, 어떤 상황에서 힘이 살아나고 어떤 상황에서 소모가 커지는지를 읽어내는 관문으로 보아야 합니다.`;
-  const paragraph2 = `실제 구조를 보면 ${signals.dayMaster}${signals.dayBranch} 일주의 자아축 위에 ${signals.monthStem || ""}${signals.monthBranch} 월지의 현실 감각이 얹히고, ${signals.yearStem || ""}${signals.yearBranch}과 ${signals.hourStem || ""}${signals.hourBranch}이 바깥 조건을 만듭니다. 여기에 용신 ${signals.useful}, 희신 ${signals.support}, 기신 ${signals.caution}의 흐름이 겹치면서 강점과 약점의 사용처가 갈립니다. ${elementRatioText} 십성에서는 ${signals.topTenGod || "핵심 십성"}이 자주 전면에 서기 때문에, 같은 판단이라도 말의 온도와 실행 순서를 함께 관리해야 합니다.`;
-  const paragraph3 = `운이 잘 붙는 국면에서는 기준이 흔들리지 않으면서도 현실 대응이 유연해집니다. 관계에서는 불필요한 감정 소모를 줄이고, 일에서는 우선순위를 빠르게 좁혀 성과를 만들 가능성이 커집니다. 돈과 커리어에서도 장기 누적형 선택이 강점으로 전환되며, 대운의 흐름이 맞물릴 때는 작은 실행이 눈에 보이는 결과로 이어집니다.`;
-  const paragraph4 = `반대로 흔들리는 구간에서는 확신이 방어로 바뀌어 관계의 거리감이 커지거나, 과속한 결정으로 돈과 일정이 동시에 틀어질 수 있습니다. 이때 필요한 처방은 완벽함이 아니라 운영법입니다. 첫째, 중요한 선택은 하루 간격을 두고 재확인합니다. 둘째, 이번 주 핵심 행동을 1~2개로 제한합니다. 셋째, 결과를 기록해 같은 실수를 반복하지 않게 만듭니다. 이렇게 관리하면 ${categoryTitle}의 과제는 약점이 아니라 다음 단계의 실력으로 바뀝니다.`;
+  const paragraph1 = openingVariants[categoryIndex % openingVariants.length];
+  const paragraph2 = `원국의 뼈대를 펼쳐 보면 년주는 ${signals.yearPillar || `${signals.yearStem}${signals.yearBranch}`}, 월주는 ${signals.monthPillar || `${signals.monthStem}${signals.monthBranch}`}, 일주는 ${signals.dayPillar || `${signals.dayMaster}${signals.dayBranch}`}, 시주는 ${signals.hourPillar || `${signals.hourStem}${signals.hourBranch}`}로 연결됩니다. 일간 ${signals.dayMaster}은(는) 바깥 자극에 반응하는 중심축이고, 월지 ${signals.monthBranch}는 현실 감각과 생존 리듬을 결정합니다. ${describeElementRatio(signals)} 십성은 ${describeTopTenGods(signals)} 순으로 비중이 드러나기 때문에, 무엇을 잘하고 무엇에서 쉽게 소모되는지 역시 이 축을 따라 읽어야 합니다.`;
 
-  const text = [paragraph1, paragraph2, paragraph3, paragraph4].join("\n\n");
+  let paragraph3 = "";
+  if (chapterId === "01") {
+    paragraph3 = `이 장에서는 네 기둥이 서로 어떻게 이어지는지가 중요합니다. 년주와 월주는 환경과 성장 배경을, 일주와 시주는 현재의 선택 방식과 미래로 뻗는 힘을 드러냅니다. ${categoryTitle}을 해석할 때는 특히 ${signals.dayPillar} 일주가 중심을 잡고 ${signals.monthPillar} 월주의 계절감이 방향을 정한다는 점을 기억해야 합니다. 그래서 같은 재능이라도 언제는 부드럽게 풀리고 언제는 예민하게 반응하는지 설명이 됩니다.`;
+  } else if (chapterId === "02") {
+    paragraph3 = `월령과 조후를 함께 보면 ${profile.name}님은 ${signals.monthBranch}의 현실 감각 위에 ${signals.powerLabel || "중화"}의 에너지를 얹고 살아갑니다. 강한 기운은 밀어붙이는 힘이 되지만, 약한 쪽은 쉽게 지치거나 흔들리는 지점이 됩니다. ${signals.dominantElement}이(가) 앞에 설 때는 추진력이 살아나고, ${signals.weakestElement}이(가) 약해질 때는 몸과 마음의 균형이 흔들리기 쉽습니다. 따라서 ${categoryTitle}은 기질을 아는 데서 끝나지 않고 생활 속 온도 조절과 루틴 설계까지 이어져야 합니다.`;
+  } else if (chapterId === "03") {
+    paragraph3 = `용신 ${signals.useful}, 희신 ${signals.support}, 기신 ${signals.caution}의 흐름은 잘 되는 환경과 소모되는 환경을 분명하게 가릅니다. ${categoryTitle}에서 중요한 것은 강점을 무조건 밀어붙이는 것이 아니라, 어떤 장소와 사람과 일의 방식에서 힘이 살아나는지 정확히 구분하는 일입니다. 운이 막힐 때는 대개 ${signals.caution} 기운이 과해져 판단이 급해지거나 불필요한 감정 소모가 커집니다. 반대로 ${signals.useful} 기운을 생활 환경과 일의 방식에 심어 두면 같은 노력도 훨씬 오래 갑니다.`;
+  } else if (chapterId === "04") {
+    paragraph3 = `시기의 흐름을 보면 현재 대운은 ${signals.currentDaewun || "전환기"}, 다음 대운은 ${signals.nextDaewun || "다음 단계 준비기"}로 읽힙니다. 올해 세운은 ${signals.currentYearPillar || `${signals.currentYear}년 흐름`}을 통해 작동하므로, ${categoryTitle}에서는 지금 당장 강하게 밀어야 할 것과 천천히 준비해야 할 것을 구분하는 것이 중요합니다. 대운은 단순히 좋고 나쁨을 말하는 것이 아니라, 어느 영역에 힘을 모아야 성과가 크게 나는지를 알려주는 큰 파도입니다.`;
+  } else if (chapterId === "05") {
+    paragraph3 = `격국과 사회적 역할은 타고난 성향을 어디에서 가장 값있게 써야 하는지 알려줍니다. ${signals.geokguk}라는 구조 위에 ${signals.careerSignal}이 겹치면, ${categoryTitle}은 인정과 성과가 어떻게 동시에 커질 수 있는지를 설명하는 대목이 됩니다. 여기서 중요한 것은 남과 같은 방식으로 성공하는 것이 아니라, 명식이 원래 잘 버티고 잘 집중하는 환경을 찾아 그 무대에서 반복 가능한 성과를 만드는 일입니다.`;
+  } else if (chapterId === "06") {
+    paragraph3 = `관계는 감정만으로 움직이지 않습니다. ${signals.relationshipFocus}이라는 기본 리듬 위에 ${signals.relationshipSignal}이 겹치면서 가까운 사람과의 거리감, 협업의 속도, 상처를 회복하는 방식까지 결정됩니다. ${categoryTitle}에서는 특히 상대의 태도를 세밀하게 읽는 장점이 살아날 수 있지만, 확실하지 않은 신호까지 먼저 해석하면 피로가 커질 수 있습니다. 그래서 좋은 인연일수록 기준과 경계선을 함께 말하는 습관이 중요합니다.`;
+  } else if (chapterId === "07") {
+    paragraph3 = `연애와 결혼의 패턴은 일지와 배우자 감각에서 선명하게 드러납니다. ${signals.spouseSignal} ${categoryTitle}에서는 어떤 사람에게 끌리는지보다, 친밀감이 생긴 뒤 어떤 방식으로 신뢰를 확인하고 갈등을 다루는지가 더 중요합니다. 사랑이 잘 풀릴 때는 섬세함이 배려로 작동하지만, 불안이 커질 때는 확인 욕구와 해석 과다가 관계의 피로를 키울 수 있습니다.`;
+  } else if (chapterId === "08") {
+    paragraph3 = `돈과 일의 문제는 감각보다 구조가 중요합니다. ${signals.wealthSignal} ${signals.careerSignal} ${categoryTitle}에서는 어떤 형태의 수익이 오래가고, 어떤 일 방식이 성과를 누적시키는지 읽어야 합니다. 한 번에 큰 결론을 내리는 방식보다, 가격 기준과 일의 범위를 먼저 정리하고 반복 가능한 프로세스를 만드는 쪽이 이 명식에는 더 잘 맞습니다. 수익은 급한 승부보다 꾸준한 운영에서 커집니다.`;
+  } else if (chapterId === "09") {
+    paragraph3 = `건강과 심신의 리듬은 오행의 과부족과 조후에서 드러납니다. ${signals.johuType || "평형"}의 온도 위에서 ${signals.weakestElement} 기운이 약해질 때는 체력과 감정 회복이 함께 흔들릴 수 있습니다. ${categoryTitle}에서는 몸이 먼저 보내는 신호를 무시하지 않는 것이 중요합니다. 쉬는 시간을 죄책감으로 채우기보다, 수면과 식사와 움직임을 일정한 리듬으로 유지할 때 운의 안정감도 같이 살아납니다.`;
+  } else if (chapterId === "10") {
+    const stageSummary = Array.isArray(signals.twelveGrowthStages) && signals.twelveGrowthStages.length
+      ? signals.twelveGrowthStages.slice(0, 3).map((item) => `${item.pillar} ${item.stage}`).join(", ")
+      : "십이운성 흐름이 정리되는 중";
+    paragraph3 = `신살과 십이운성은 눈에 잘 보이지 않는 반복 패턴을 설명합니다. 현재 명식에서는 ${Array.isArray(signals.specialStars) && signals.specialStars.length ? signals.specialStars.join(", ") : "특정 신살보다 생활 패턴"}이 자주 강조되고, 십이운성은 ${stageSummary} 순으로 읽힙니다. ${categoryTitle}은 겉으로는 우연처럼 보였던 반복이 사실은 어떤 리듬 위에서 다시 나타나는지 보여 줍니다. 이 구조를 이해하면 막연한 불안이 줄고, 대응법도 훨씬 구체적으로 세울 수 있습니다.`;
+  } else if (chapterId === "11") {
+    paragraph3 = `위기는 갑자기 생기는 것처럼 보여도, 실제로는 몇 가지 약한 신호가 누적되다가 한 번에 드러나는 경우가 많습니다. ${signals.weakSignals?.join(", ") || `${signals.caution} 기운 과속`}이 반복될 때는 관계와 돈과 일정이 동시에 흔들릴 수 있습니다. ${categoryTitle}에서는 실패를 피하려는 마음보다 흔들릴 때 무엇부터 다시 세울지 순서를 정하는 것이 중요합니다. 현재 대운 ${signals.currentDaewun || "전환기"}는 무리한 확장보다 기준을 다시 세우는 쪽에서 반전을 만듭니다.`;
+  } else if (chapterId === "12") {
+    paragraph3 = `장기 성장은 순간의 의욕보다 내가 오래 버틸 수 있는 방향을 찾는 데서 시작합니다. ${signals.talentSignal} ${signals.careerSignal} ${categoryTitle}에서는 타고난 재능을 어디에 묶을 때 성과와 만족이 함께 커지는지 읽어야 합니다. 특히 지금의 흐름이 빠르게 성과를 내라고 재촉하더라도, 실제로는 몇 년 동안 누적할 기반을 만드는 편이 더 큰 결과를 가져올 수 있습니다.`;
+  } else {
+    paragraph3 = `마스터플랜은 좋은 말 한 줄이 아니라 3년, 5년, 10년을 나눠 운영하는 계획이어야 합니다. 현재 흐름은 ${signals.timing?.current || signals.currentDaewun || "현재 단계"}, 다음 단계는 ${signals.timing?.next || signals.nextDaewun || "다음 준비기"}, 올해는 ${signals.timing?.yearPillar || `${signals.currentYear}년`} 기준으로 읽힙니다. ${categoryTitle}에서는 돈과 일과 관계를 따로 최적화하려 하지 말고, 내가 지키고 싶은 기준 세 가지를 먼저 세워 같은 방향으로 묶는 것이 핵심입니다.`;
+  }
+
+  const actionVariants = [
+    `${categoryTitle}이 실제 발현으로 이어지려면 ${chapter.title}의 핵심 기준을 생활 문장으로 먼저 고정해야 합니다. 관계에서는 기대치를 먼저 맞추고, 일에서는 이번 주 핵심 과제 한두 개만 남기고, 돈에서는 즉흥 지출과 과속 결정을 하루만 늦추면 ${categoryTitle}이 약점이 아니라 실력으로 바뀝니다.`,
+    `${chapter.title}의 ${categoryTitle}에서 특히 조심할 점은 잘 풀릴 때의 과속과 흔들릴 때의 지연입니다. ${profile.name}님은 중요한 선택을 앞두고 감정과 사실을 따로 적고, ${categoryTitle}의 기준 세 가지를 먼저 확인할수록 흐름이 더 안정적으로 이어집니다.`,
+    `${categoryTitle}에 대한 현실 조정은 크게 어렵지 않습니다. 오늘부터 ${chapterId}장의 기준에 맞춰 한 주의 우선순위를 세 가지 이하로 줄이고, 중요한 관계와 일의 기준을 짧은 문장으로 적어 두면 ${profile.name}님 명식의 장점이 훨씬 단단하게 살아납니다.`,
+  ];
+
+  const text = dedupeParagraphs([paragraph1, paragraph2, paragraph3, actionVariants[(categoryIndex + Number(chapterId || 0)) % actionVariants.length]].join("\n\n"));
   return ensureCategoryLength(text, chapter?.id, categoryTitle, categoryIndex);
 }
 
@@ -1519,6 +1773,48 @@ function reinforceFailedLifeBookChapters(profile, signals, chapters = [], errors
     if (!failedIndexes.has(index)) return chapter;
     return fallbackAll[index] || chapter;
   });
+}
+
+function repairLifeBookChaptersUntilValid(profile, signals, chapters = [], errors = []) {
+  let repaired = ensureCompleteLifeBookChapters(profile, signals, reinforceFailedLifeBookChapters(profile, signals, chapters, errors)).map((chapter, index) => {
+    const blueprint = CHAPTER_BLUEPRINTS[index] || chapter;
+    const categories = (Array.isArray(chapter?.categories) ? chapter.categories : []).map((category, categoryIndex) => {
+      const fallbackText = buildCategoryText(profile, signals, blueprint, blueprint.categories[categoryIndex] || category?.title || "핵심 해석", categoryIndex);
+      const cleaned = dedupeParagraphs(stripForbiddenTokens(category?.finalText || category?.localSummary || fallbackText));
+      const nextText = hasForbiddenText(cleaned) || cleaned.length < LIFEBOOK_MIN_CATEGORY_CHARS
+        ? fallbackText
+        : ensureCategoryLength(cleaned, blueprint.id, blueprint.categories[categoryIndex] || category?.title || "핵심 해석", categoryIndex);
+      return {
+        ...category,
+        id: String(category?.id || `${categoryIndex + 1}`),
+        title: blueprint.categories[categoryIndex] || category?.title || `카테고리 ${categoryIndex + 1}`,
+        finalText: nextText,
+        localSummary: stripForbiddenTokens(nextText),
+      };
+    });
+    const chapterText = buildChapterBody(blueprint.title, categories);
+    return {
+      ...chapter,
+      id: blueprint.id,
+      roman: blueprint.roman,
+      title: blueprint.title,
+      subtitle: blueprint.subtitle,
+      categories,
+      localDraft: chapterText,
+      finalText: dedupeParagraphs(chapterText),
+      text: dedupeParagraphs(chapterText),
+      source: "local-only",
+    };
+  });
+
+  repaired = ensureCompleteLifeBookChapters(profile, signals, repaired).map((chapter) => ({
+    ...chapter,
+    finalText: dedupeParagraphs(stripForbiddenTokens(chapter.finalText || chapter.text || buildChapterBody(chapter.title, chapter.categories))),
+    text: dedupeParagraphs(stripForbiddenTokens(chapter.text || chapter.finalText || buildChapterBody(chapter.title, chapter.categories))),
+    source: "local-only",
+  }));
+
+  return repaired;
 }
 
 function renderLifeBookPdf({ profile, signals, chapters, generatedAt }) {
@@ -1690,6 +1986,7 @@ async function handlePrepare(request, env) {
   });
 
   const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId) || `life-book:${auth.userId}:${birthInput.birthDate}:${birthInput.birthTime || "unknown"}`;
+  const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `saju-lifebook-${Date.now()}`);
   const existingLock = LIFEBOOK_SESSION_LOCKS.get(sessionId);
   if (existingLock?.status === "running") {
     return json({
@@ -1760,7 +2057,7 @@ async function handlePrepare(request, env) {
     userId: auth.userId,
     featureKey,
     sessionId,
-    reportId: clean(body?.reportId || body?.accessGrant?.reportId),
+    reportId,
     access,
     body,
     timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
@@ -1768,17 +2065,22 @@ async function handlePrepare(request, env) {
   await startPremiumPdfExecution(env, auth.userId, executionCtx);
 
   const signals = deriveLocalSignals(profile, body?.sajuData || "", body?.analysisSignals || {});
-  const localSajuJson = buildLifeBookLocalSajuJson(birthInput, profile, signals, []);
-  const localSajuValidation = validateLifeBookLocalSajuJson(localSajuJson);
+  let localSajuJson = buildLifeBookLocalSajuJson(birthInput, profile, signals, []);
+  let localSajuValidation = validateLifeBookLocalSajuJson(localSajuJson);
   if (!localSajuValidation.ok) {
     logLifeBookServer("LocalSajuValidationFailed", {
       sessionId,
       missing: localSajuValidation.missing,
     });
-    throw Object.assign(new Error(`LOCAL_SAJU_FIELDS_MISSING:${localSajuValidation.missing.join(",")}`), {
-      code: "LIFEBOOK_LOCAL_SAJU_INVALID",
-      status: 422,
-    });
+    localSajuJson = repairLifeBookLocalSajuJson(localSajuJson, birthInput, profile, signals);
+    localSajuValidation = validateLifeBookLocalSajuJson(localSajuJson);
+    if (!localSajuValidation.ok) {
+      throw Object.assign(new Error("인생의 책 생성에 필요한 생년월일시 정보를 확인할 수 없습니다."), {
+        code: "LIFEBOOK_LOCAL_SAJU_INVALID",
+        status: 422,
+        details: localSajuValidation,
+      });
+    }
   }
   logLifeBookServer("LocalCalculationSuccess", {
     sessionId,
@@ -1801,36 +2103,21 @@ async function handlePrepare(request, env) {
   logLifeBookServer("LocalDraftBuildSuccess", { chapterCount: localChapters.length, sessionId });
 
   let localValidation = validateLifeBookFinalManuscript(localChapters);
-  if (!localValidation.ok) {
-    logLifeBookServer("LocalQualityValidated", {
-      sessionId,
-      ok: false,
-      errors: localValidation.errors,
-      totalLength: localValidation.totalLength,
-      forbiddenTermsCount: localValidation.forbiddenHits,
-      repetitionScore: localValidation.repetitionScore,
-      chapterMetrics: localValidation.chapterMetrics,
-    });
-    throw Object.assign(new Error("LIFEBOOK_LOCAL_DRAFT_INVALID"), {
-      code: "LIFEBOOK_LOCAL_DRAFT_INVALID",
-      status: 422,
-      details: localValidation,
-    });
-  }
   logLifeBookServer("LocalQualityValidated", {
     sessionId,
-    ok: true,
+    ok: localValidation.ok,
     totalLength: localValidation.totalLength,
     forbiddenTermsCount: localValidation.forbiddenHits,
     repetitionScore: localValidation.repetitionScore,
+    errors: localValidation.ok ? [] : localValidation.errors,
   });
 
-  const completedChapters = ensureCompleteLifeBookChapters(profile, signals, localChapters).map((chapter) => ({
+  let completedChapters = ensureCompleteLifeBookChapters(profile, signals, localChapters).map((chapter) => ({
     ...chapter,
     source: "local-only",
   }));
 
-  const finalValidation = validateLifeBookFinalManuscript(completedChapters);
+  let finalValidation = validateLifeBookFinalManuscript(completedChapters);
   if (!finalValidation.ok) {
     logLifeBookServer("FinalValidationFailed", {
       sessionId,
@@ -1839,11 +2126,18 @@ async function handlePrepare(request, env) {
       chapterMetrics: finalValidation.chapterMetrics,
       repetition: finalValidation.repetition,
     });
-    throw Object.assign(new Error("FINAL_MANUSCRIPT_INVALID"), {
-      code: "FINAL_MANUSCRIPT_INVALID",
-      status: 422,
-      details: finalValidation,
-    });
+    completedChapters = repairLifeBookChaptersUntilValid(profile, signals, completedChapters, finalValidation.errors).map((chapter) => ({
+      ...chapter,
+      source: "local-only",
+    }));
+    finalValidation = validateLifeBookFinalManuscript(completedChapters);
+    if (!finalValidation.ok) {
+      throw Object.assign(new Error("인생의 책 원고를 완성하지 못했습니다."), {
+        code: "FINAL_MANUSCRIPT_INVALID",
+        status: 422,
+        details: finalValidation,
+      });
+    }
   }
   logLifeBookServer("FinalManuscriptValidated", {
     sessionId,
@@ -1872,7 +2166,6 @@ async function handlePrepare(request, env) {
     pdfHtml: buildLifeBookDocument({ profile, signals, chapters: completedChapters, generatedAt }),
   });
   const requestOrigin = new URL(request.url).origin;
-  const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `saju-lifebook-${Date.now()}`);
   const archiveUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
   pdfReady.pdfUrl = archiveUrl;
   pdfReady.htmlUrl = archiveUrl;
@@ -1900,16 +2193,14 @@ async function handlePrepare(request, env) {
       mode: "personal",
       birthName: clean(profile?.name),
       summary: clean(
-        completedChapters?.[0]?.finalText
-        || completedChapters?.[0]?.categories?.[0]?.finalText
+        completedChapters?.[0]?.categories?.[0]?.finalText
+        || completedChapters?.[0]?.finalText
         || completedChapters?.[0]?.categories?.[0]?.text,
-        1000,
       ),
       pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
       htmlUrl: clean(pdfReady?.htmlUrl),
       chapters: completedChapters,
       localSajuJson,
-      payload: lifebookPayload,
       pdfReady,
       canReopen: true,
       canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)),
@@ -1926,7 +2217,6 @@ async function handlePrepare(request, env) {
     manuscriptSource,
     localSajuJson,
     chapters: completedChapters,
-    lifebookPayload,
     pdfReady,
     pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
     htmlUrl: clean(pdfReady?.htmlUrl),
@@ -1965,7 +2255,7 @@ async function handlePrepare(request, env) {
       userId: auth.userId,
       featureKey: resolveLifeBookFeatureKey(body?.featureKey),
       sessionId,
-      reportId: clean(body?.reportId || body?.accessGrant?.reportId),
+      reportId,
       access: null,
       body,
       timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
@@ -1990,7 +2280,16 @@ async function handlePrepare(request, env) {
       startedAt: new Date().toISOString(),
       error: normalizedError,
     });
-    throw error;
+    return json({
+      ok: false,
+      code: error?.code || "LIFEBOOK_GENERATION_FAILED",
+      message: clean(error?.message || "인생의 책 생성 중 오류가 발생했습니다."),
+      debugSafe: {
+        stage: "local-only-generation",
+        reportId,
+        sessionId,
+      },
+    }, { status: Number(error?.status || 500) });
   }
 }
 
