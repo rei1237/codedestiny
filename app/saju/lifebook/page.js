@@ -198,17 +198,16 @@ export default function SajuLifebookPage() {
 
     setLoading(true);
     setStepIndex(0);
-    startTicker();
+    // DO NOT start ticker yet - wait for billing gate confirmation first
     console.info("[LifeBook][ProfileResolved]", {
       hasBirthDate: Boolean(form.birthDate),
       hasBirthTime: Boolean(form.birthTimeKnown),
       gender: form.gender,
     });
-    console.info("[LifeBook][BirthInputNormalized]");
-    console.info("[LifeBook][ValidationBeforePayment]");
+    console.info("[LifeBook][BillingGateStart]");
 
     try {
-      console.info("[LifeBook][SessionCreateStart]");
+      console.info("[LifeBook][BillingGateCalling]");
       const requestId = makeRequestId("lifebook");
       const reportId = `saju-lifebook-${Date.now().toString(36)}`;
       const reportSessionId = `life-book:${reportId}`;
@@ -228,6 +227,11 @@ export default function SajuLifebookPage() {
       if (!gate?.ok) {
         throw new Error(gate?.error?.message || gate?.message || "프리미엄 PDF 생성 권한이 필요합니다.");
       }
+
+      console.info("[LifeBook][BillingGateSuccess]", { hasAccessGrant: Boolean(gate?.data?.accessGrant) });
+      
+      // NOW start the ticker after billing confirmation
+      startTicker();
 
       const gateRaw = gate?.raw && typeof gate.raw === "object" ? gate.raw : {};
       const gateData = gate?.data && typeof gate.data === "object" ? gate.data : {};

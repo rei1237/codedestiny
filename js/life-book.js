@@ -1861,7 +1861,7 @@
 
       _generating = false;
       _showScreen('lbStartScreen');
-      alert('인생의 책 생성 중 오류가 발생했습니다. 사주 seed 기반 LLM 해석이 완료되지 않아 생성을 중단했습니다. 잠시 후 다시 시도해 주세요.');
+      alert('인생의 책 생성 중 오류가 발생했습니다.\n\n' + errMsg + '\n\n잠시 후 다시 시도해 주세요.');
     }).finally(function () {
       if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
       if (_activeRequestController) _activeRequestController = null;

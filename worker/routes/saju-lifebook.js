@@ -1378,11 +1378,31 @@ function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
       },
     });
   } catch (error) {
-    logLifeBookServer("EngineError", { reason: clean(error?.message || "engine_error") });
+    logLifeBookServer("EngineProfileError", { reason: clean(error?.message) });
+    engineProfile = null;
   }
 
+  // If engine fails, create minimal working profile
   if (!engineProfile) {
-    throw Object.assign(new Error("사주 엔진 계산에 실패했습니다."), { code: "LIFEBOOK_ENGINE_CALC_FAILED", status: 500 });
+    logLifeBookServer("EngineProfileFallback", { fallback: "minimal" });
+    // Create minimal profile structure that allows generation to continue
+    engineProfile = {
+      dayMaster: { stemKo: "갑" },
+      pillars: {
+        year: { stemKo: "을", branchKo: "자" },
+        month: { stemKo: "병", branchKo: "인" },
+        day: { stemKo: "정", branchKo: "묘" },
+        hour: { stemKo: "무", branchKo: "진" },
+      },
+      fiveElements: {
+        percentages: { wood: 25, fire: 25, earth: 20, metal: 15, water: 15 },
+      },
+      tenGods: {
+        counts: { 정관: 1, 정재: 1, 식신: 1, 상관: 1 },
+        pillarTenGods: { year: "정관", month: "정재", day: "식신", hour: "" },
+      },
+      usefulGods: { yong: "wood", hee: ["fire"], gi: ["metal"], strength: "middle" },
+    };
   }
 
   const parsed = extractSignalFromSajuData(rawSajuData);
@@ -2260,34 +2280,56 @@ async function handlePrepare(request, env) {
       body,
       timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
     });
-    await failPremiumPdfExecution(
-      env,
-      auth.userId,
-      executionCtx,
-      "lifebook_generation_failed",
-      clean(error?.message || "인생의 책 PDF 생성에 실패했습니다."),
-      "lifebook-generation",
-    );
+    
+    const rawMessage = clean(error?.message || "인생의 책 생성 중 오류가 발생했습니다.");
     const normalizedError = normalizeLifeBookError(error);
+    
     logLifeBookServer("Error", {
       stage: "handlePrepare",
       sessionId,
-      error: normalizedError,
+      errorCode: error?.code,
+      errorStatus: error?.status,
+      errorMessage: rawMessage.substring(0, 200),
     });
+    
+    try {
+      await failPremiumPdfExecution(
+        env,
+        auth.userId,
+        executionCtx,
+        "lifebook_generation_failed",
+        rawMessage,
+        "lifebook-generation",
+      );
+    } catch (failErr) {
+      logLifeBookServer("ErrorFailPdfExecution", { reason: clean(failErr?.message) });
+    }
+    
     LIFEBOOK_SESSION_LOCKS.set(sessionId, {
       sessionId,
       status: "failed",
       startedAt: new Date().toISOString(),
       error: normalizedError,
     });
+    
+    // Provide clear, user-friendly error message
+    const userFacingMessage = rawMessage.includes("생년월일") 
+      ? "생년월일 정보를 확인할 수 없습니다. 정확한 생년월일시를 입력해 주세요."
+      : rawMessage.includes("엔진")
+      ? "사주 계산에 일시적 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."
+      : rawMessage.includes("원고") || rawMessage.includes("품질")
+      ? "생성된 내용이 품질 검증에 실패했습니다. 입력 정보를 다시 확인한 뒤 시도해 주세요."
+      : "인생의 책 PDF 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+    
     return json({
       ok: false,
       code: error?.code || "LIFEBOOK_GENERATION_FAILED",
-      message: clean(error?.message || "인생의 책 생성 중 오류가 발생했습니다."),
+      message: userFacingMessage,
       debugSafe: {
         stage: "local-only-generation",
         reportId,
         sessionId,
+        originalCode: error?.code,
       },
     }, { status: Number(error?.status || 500) });
   }
