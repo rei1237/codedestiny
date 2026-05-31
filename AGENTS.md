@@ -4,6 +4,24 @@
 - Always modify deploy-target source files first.
 - Never patch legacy mirror files directly unless explicitly requested.
 
+## 1.1 Response Output Policy
+- Do not add greetings or extra explanation around code.
+- When showing changes, output only the modified code blocks.
+- Add comments only in complex saju logic engine sections; omit comments elsewhere.
+
+## 1.2 Vibe Coding Rules (Must Follow)
+- Act as an expert full-stack developer assisting a user who prefers Vibe Coding.
+- Explanations must be extremely concise and focus purely on functional results.
+- Never explain why unless explicitly asked.
+- Skip pleasantries entirely.
+- Never rewrite the whole file when modifying code; output only the exact blocks that changed.
+- When showing partial edits, use comments like `// ... existing code ...` to represent unchanged sections.
+- Read and analyze only the files explicitly mentioned by the user or the currently active file.
+- If a request requires changing more than 3 files, stop and ask a clarifying question before writing code.
+- If the user's prompt is too vague, stop and ask a clarifying question before writing code.
+- Ensure every code snippet is copy-paste ready with enough local context for placement.
+- Do not write paragraphs of text before or after code blocks; output the code block immediately.
+
 ## 2) Source of Truth (Edit These)
 - Worker runtime API: `worker/**`
 - Next.js app/runtime UI: `app/**`, `components/**`, top-level runtime modules imported by app routes (for example `StonehengeRune.jsx`)

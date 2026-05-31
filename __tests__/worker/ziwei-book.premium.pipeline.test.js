@@ -146,7 +146,7 @@ describe("ziwei premium local manuscript", () => {
     expect(Array.isArray(seed.ziweiPdfSeed.strengths)).toBe(true);
   });
 
-  test("Ziwei LLM 프롬프트는 groundTruth JSON과 JSON-only 제약을 포함해야 한다", () => {
+  test("Ziwei 로컬 챕터 가이드는 6개 세부 항목의 상담문을 만들어야 한다", () => {
     const profile = {
       name: "테스터",
       gender: "male",
@@ -172,22 +172,24 @@ describe("ziwei premium local manuscript", () => {
       },
     });
 
-    const prompt = utils.buildZiweiLlmPrompt({
+    const guide = utils.buildZiweiLocalChapterGuide({
       seed,
-      chapterSpec: utils.CHAPTER_BLUEPRINTS[0],
-      previousChapterSummaries: [{ title: "이전 장" }],
-      attempt: 2,
-      previousFailureReason: "category_min_chars",
+      blueprint: utils.CHAPTER_BLUEPRINTS[0],
+      chapterIndex: 0,
+      categoryIndex: 0,
+      pass: 1,
+      categoryTitle: utils.CHAPTER_BLUEPRINTS[0].categories[0],
     });
 
-    expect(prompt).toContain("SYSTEM:");
-    expect(prompt).toContain("GROUND TRUTH JSON:");
-    expect(prompt).toContain("반드시 아래 groundTruth JSON에만 근거해 해석하고");
-    expect(prompt).toContain(utils.CHAPTER_BLUEPRINTS[0].title);
-    expect(prompt).toContain("RESPONSE SCHEMA:");
+    expect(guide.title).toBe(utils.CHAPTER_BLUEPRINTS[0].categories[0]);
+    expect(Array.isArray(guide.paragraphs)).toBe(true);
+    expect(guide.paragraphs.length).toBe(4);
+    expect(guide.body.length).toBeGreaterThanOrEqual(500);
+    expect(guide.body).toContain("명궁");
+    expect(guide.body).toContain("신궁");
   });
 
-  test("LLM 해석 품질 검증은 13챕터/5섹션 구조를 통과시켜야 한다", () => {
+  test("로컬 챕터 품질 검증은 13챕터/6섹션 구조를 통과시켜야 한다", () => {
     const profile = {
       name: "테스터",
       gender: "male",
@@ -225,16 +227,17 @@ describe("ziwei premium local manuscript", () => {
       source: "llm-original",
     }));
 
-    // Chapter 13 키워드 요건(3년/5년/10년) 보강
-    chapters[12].categories[3].finalText += " 앞으로 3년·5년·10년 전략을 분리해 실행 우선순위를 제시합니다.";
+    // Chapter 13 키워드 요건(1년/3년/10년) 보강
+    chapters[12].categories[5].finalText += " 앞으로 1년·3년·10년 전략을 분리해 실행 우선순위를 제시합니다.";
 
-    const quality = utils.validateZiweiPdfLLMInterpretationQuality({
+    const quality = utils.validateZiweiPdfChapterQuality({
       chapters,
       expectedChapters: utils.CHAPTER_BLUEPRINTS,
       seed,
     });
 
     expect(quality.ok).toBe(true);
-    expect(quality.totalChars).toBeGreaterThanOrEqual(39000);
+    expect(quality.totalChars).toBeGreaterThanOrEqual(45000);
+    expect(utils.validateNoZiweiPdfRepetition(chapters).ok).toBe(true);
   });
 });

@@ -1,5 +1,6 @@
 import { Solar } from "lunar-javascript";
-import { getSwissVedicPlanets, getSwissWesternChart } from "../lib/swiss-ephemeris.js";
+import { buildAstroLocalChartJson } from "../lib/astro-premium-generator.js";
+import { buildVedicLocalChartJson } from "../lib/vedic-premium-generator.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
@@ -17,9 +18,10 @@ import {
 
 const SOUL_ORIGIN_FEATURE_KEY = "premium_pdf_soul_origin";
 const SOUL_ORIGIN_SERVICE_KEY = "soul-origin";
-const CORE_INPUT_ERROR_MESSAGE = "태어난 시간과 장소 정보를 다시 확인해야 기원서를 열 수 있습니다. 입력값을 확인한 뒤 다시 시도해주세요.";
-const MIN_LOCAL_TOTAL_CHARS = 35000;
-const TARGET_TOTAL_CHARS_AFTER_ENHANCEMENT = 60000;
+const CORE_INPUT_ERROR_MESSAGE = "태어난 시간과 장소 정보를 다시 확인해야 운명의 업 리포트를 열 수 있습니다. 입력값을 확인한 뒤 다시 시도해주세요.";
+const MIN_LOCAL_TOTAL_CHARS = 50000;
+const TARGET_TOTAL_CHARS_AFTER_ENHANCEMENT = 56000;
+const MIN_SECTION_CHARS = 500;
 
 const FORBIDDEN_TERMS = [
   "payload",
@@ -27,156 +29,225 @@ const FORBIDDEN_TERMS = [
   "debug",
   "engine",
   "fallback",
+  "llm",
+  "api",
+  "schema",
+  "raw",
+  "gemini",
+  "openai",
+  "claude",
+  "preflightfailed",
+  "chart seed failed",
+  "swiss required",
+  "데이터가 부족합니다",
+  "계산 실패",
+  "엔진 호출 실패",
+  "내부 데이터",
+  "로컬 엔진",
+  "계산 시그니처",
+  "데이터 정규화",
+  "품질 검증",
+  "재생성",
   "internal server error",
   "undefined",
   "null",
-  "local",
   "sourceavailability",
 ];
 
 const CHAPTER_BLUEPRINTS = [
   {
     chapterNo: 1,
-    title: "태어난 순간의 문 — 영혼이 들어온 시간과 장소",
-    subtitle: "당신의 첫 장면",
+    title: "Chapter I. 운명의 업 총론 — 이번 생이 반복해서 묻는 질문",
+    subtitle: "통합 주제와 반복 패턴",
     sections: [
-      "출생 순간이 여는 상징적 문",
-      "시간과 장소가 만든 첫 번째 운명 코드",
-      "동양과 서양 운명 체계에서 공통으로 드러나는 첫 인상",
-      "이번 생의 기원에 대한 서문",
+      "다섯 흐름이 공통으로 가리키는 핵심 주제",
+      "이번 생의 반복 패턴",
+      "타고난 재능과 업의 방향",
+      "가장 먼저 풀어야 할 인생 과제",
+      "운명의 업이 강하게 드러나는 영역",
+      "전체 리포트 핵심 한 줄 조언",
     ],
   },
   {
     chapterNo: 2,
-    title: "나의 기원 코드 — 다섯 운명 체계의 공통 신호",
-    subtitle: "영혼 원형의 윤곽",
+    title: "Chapter II. 사주로 보는 업의 뿌리 — 원국에 새겨진 반복 구조",
+    subtitle: "일간·월지·십성·오행",
     sections: [
-      "사주가 말하는 현실적 기원",
-      "점성술이 말하는 심리적 기원",
-      "숙요점이 말하는 관계적 기원",
-      "자미두수가 말하는 숙명적 무대",
-      "베다점이 말하는 카르마적 출발점",
-      "다섯 체계가 겹쳐서 만든 하나의 영혼 원형",
+      "일간과 월지가 말하는 본질적 과제",
+      "십성이 보여주는 반복되는 선택",
+      "오행 과다·부족이 만드는 인생 습관",
+      "용신·희신이 열어주는 회복 방향",
+      "신살과 십이운성의 숨은 패턴",
+      "사주가 말하는 업의 사용법",
     ],
   },
   {
     chapterNo: 3,
-    title: "반복되는 업의 패턴 — 왜 같은 상처가 되풀이되는가",
-    subtitle: "반복의 메커니즘",
+    title: "Chapter III. 자미두수로 보는 영혼의 설계 — 명궁·신궁·12궁의 압력",
+    subtitle: "명궁·신궁·삼방사정·사화",
     sections: [
-      "반복되는 감정의 구조",
-      "인간관계에서 되풀이되는 장면",
-      "스스로를 증명하려는 압박",
-      "운명이 같은 방식으로 시험을 거는 이유",
-      "반복을 멈추기 위해 알아야 할 핵심",
+      "명궁이 말하는 타고난 운명 기질",
+      "신궁이 보여주는 현실 행동 패턴",
+      "삼방사정으로 보는 인생의 핵심 축",
+      "사화가 드러내는 업의 사건화 방식",
+      "약한 궁과 강한 궁의 균형",
+      "자미두수가 말하는 업의 돌파구",
     ],
   },
   {
     chapterNo: 4,
-    title: "오래된 감정의 기억 — 무의식과 고독의 근원",
-    subtitle: "내면의 저장소",
+    title: "Chapter IV. 점성술로 보는 무의식 — 태양·달·상승궁의 심리 카르마",
+    subtitle: "태양·달·상승궁·MC·어스펙트",
     sections: [
-      "달과 마음의 기억",
-      "복덕궁과 내면의 안식처",
-      "케투와 과거로부터 이어진 감각",
-      "혼자 있을 때 강해지는 생각의 패턴",
-      "고독을 자기파괴가 아니라 집중력으로 바꾸는 법",
+      "태양이 말하는 삶의 목적",
+      "달이 말하는 감정의 반복 패턴",
+      "상승궁이 만드는 세상과의 접점",
+      "MC가 보여주는 사회적 방향",
+      "주요 어스펙트가 만드는 내면 긴장",
+      "점성술이 말하는 심리적 업의 해소법",
     ],
   },
   {
     chapterNo: 5,
-    title: "관계의 업 — 사랑, 집착, 이별, 끌림의 이유",
-    subtitle: "관계의 인력",
+    title: "Chapter V. 베다점으로 보는 카르마 — 라그나·다샤·요가의 시간표",
+    subtitle: "라그나·나크샤트라·카라카·다샤",
     sections: [
-      "왜 특정한 사람에게 강하게 끌리는가",
-      "사랑에서 반복되는 기대와 실망",
-      "상처받기 전에 먼저 방어하는 패턴",
-      "인연이 업이 되는 순간",
-      "사랑을 해방으로 바꾸기 위한 조건",
+      "라그나가 말하는 이번 생의 출발점",
+      "달과 나크샤트라가 보여주는 마음의 본능",
+      "카라카가 말하는 영혼·직업·관계 과제",
+      "현재 다샤가 열어주는 시기적 숙제",
+      "요가와 라후·케투가 만드는 카르마 패턴",
+      "베다점이 말하는 업의 수행법",
     ],
   },
   {
     chapterNo: 6,
-    title: "가족과 혈통의 과제 — 내가 물려받은 운명의 구조",
-    subtitle: "뿌리의 압력",
+    title: "Chapter VI. 숙요점으로 보는 인연 카르마 — 별이 맺어주는 관계의 숙제",
+    subtitle: "본명숙·관계 역할·인연 흐름",
     sections: [
-      "가족 안에서 만들어진 생존 방식",
-      "인정받고 싶었던 마음의 근원",
-      "부모·가문·환경으로부터 이어진 압력",
-      "나에게서 끊어야 할 반복",
-      "내가 새롭게 세워야 할 삶의 질서",
+      "본명숙이 말하는 관계 기질",
+      "숙요점이 보여주는 감정적 역할",
+      "사람들에게 반복해서 맡게 되는 관계 위치",
+      "끌리는 인연과 소모되는 인연의 차이",
+      "관계 속에서 풀어야 할 카르마",
+      "인연 카르마를 성숙하게 쓰는 법",
     ],
   },
   {
     chapterNo: 7,
-    title: "고통이 재능으로 바뀌는 지점",
-    subtitle: "변환의 기술",
+    title: "Chapter VII. 관계와 사랑의 업 — 반복되는 애착·거리감·재회 패턴",
+    subtitle: "사랑·애착·회복 전략",
     sections: [
-      "결핍이 만든 감각",
-      "상처가 예민함으로 변한 과정",
-      "예민함이 통찰력으로 바뀌는 방식",
-      "운명이 숨겨둔 무기",
-      "나만의 재능을 현실에서 사용하는 법",
+      "사랑에서 반복되는 핵심 패턴",
+      "가까워질수록 드러나는 그림자",
+      "끌리는 사람의 공통 구조",
+      "관계가 무너지는 순간의 신호",
+      "다시 이어질 수 있는 조건",
+      "사랑의 업을 풀기 위한 현실 전략",
     ],
   },
   {
     chapterNo: 8,
-    title: "이번 생의 시험 — 토성, 기신, 사화, 대운의 압력",
-    subtitle: "압력의 해석",
+    title: "Chapter VIII. 돈과 생존의 업 — 재물·가치감·생활 구조",
+    subtitle: "재물·가치감·수익 구조",
     sections: [
-      "피할 수 없는 인생의 시험",
-      "나를 반복해서 압박하는 주제",
-      "무너지는 시기에 드러나는 진짜 과제",
-      "견뎌야 하는 것과 버려야 하는 것",
-      "시험을 통과한 뒤 열리는 운명의 문",
+      "돈을 대하는 기본 감각",
+      "재물운이 열리는 방식",
+      "돈이 막히는 반복 패턴",
+      "자존감과 재물의 연결",
+      "수익 구조로 바꿔야 할 재능",
+      "돈의 업을 풀기 위한 생활 전략",
     ],
   },
   {
     chapterNo: 9,
-    title: "운명의 반복 주기 — 대운, 다샤, 별의 흐름",
-    subtitle: "시간의 파동",
+    title: "Chapter IX. 직업과 사명의 업 — 무엇을 세상에 남길 것인가",
+    subtitle: "직업·브랜드·사회적 사명",
     sections: [
-      "인생이 크게 바뀌는 주기",
-      "대운이 여는 현실적 변화",
-      "다샤가 드러내는 카르마의 시간표",
-      "별의 흐름이 건드리는 심리적 전환점",
-      "앞으로 주의 깊게 봐야 할 시기",
+      "다섯 흐름이 공통으로 지목하는 직업 방향",
+      "사회적으로 인정받는 방식",
+      "반복해서 실패하는 직업 패턴",
+      "사명이 살아나는 일의 형태",
+      "독립형·조직형·브랜드형 가능성",
+      "직업의 업을 성공 구조로 바꾸는 법",
     ],
   },
   {
     chapterNo: 10,
-    title: "풀어야 할 업보 — 멈춰야 할 습관과 선택",
-    subtitle: "선택의 정화",
+    title: "Chapter X. 가족·뿌리·무의식의 업 — 오래된 감정의 저장소",
+    subtitle: "가족·뿌리·무의식",
     sections: [
-      "업보를 벌이 아니라 반복 패턴으로 해석하기",
-      "내가 계속 붙잡는 감정",
-      "내려놓아야 할 오래된 역할",
-      "같은 선택을 반복하지 않기 위한 기준",
-      "이번 생에서 반드시 풀어야 할 핵심 과제",
+      "가족과 뿌리에서 시작된 감정 패턴",
+      "무의식적으로 반복되는 방어기제",
+      "집·기반·안정감에 대한 욕구",
+      "혼자 있을 때 드러나는 진짜 과제",
+      "오래된 감정을 정리하는 방법",
+      "뿌리의 업을 회복력으로 바꾸는 법",
     ],
   },
   {
     chapterNo: 11,
-    title: "해방의 방향 — 용신, 노드, 라후와 케투, 명궁의 통합 조언",
-    subtitle: "회복의 축",
+    title: "Chapter XI. 위기와 전환의 업 — 무너질 때 드러나는 진짜 숙제",
+    subtitle: "위기·전환·반전",
     sections: [
-      "사주가 말하는 회복의 방향",
-      "점성술이 말하는 성장의 방향",
-      "자미두수가 말하는 삶의 무대",
-      "베다점이 말하는 욕망과 해방의 균형",
-      "내가 앞으로 선택해야 할 삶의 태도",
+      "인생이 흔들리는 반복 시점",
+      "위기 때 나오는 자동 반응",
+      "피해야 할 선택 패턴",
+      "위기가 기회로 바뀌는 조건",
+      "다시 일어서는 데 필요한 힘",
+      "전환기의 업을 성장으로 바꾸는 법",
     ],
   },
   {
     chapterNo: 12,
-    title: "나의 신화 — 이번 생을 완성하는 철학적 선언문",
-    subtitle: "마지막 선언",
+    title: "Chapter XII. 현재 시기와 업의 타이밍 — 대운·다샤·타임로드·트랜싯",
+    subtitle: "대운·세운·다샤·트랜싯·90일",
     sections: [
-      "내 삶을 하나의 신화로 읽기",
-      "과거의 상처가 남긴 의미",
-      "미래의 나는 어떤 사람으로 완성되는가",
-      "나의 운명을 여는 문장",
-      "마지막 선언문",
+      "사주의 현재 대운·세운 흐름",
+      "베다점의 현재 다샤 흐름",
+      "점성술 타임로드와 트랜싯 흐름",
+      "자미두수 운세 흐름이 주는 압력",
+      "지금 잡아야 할 선택과 버려야 할 선택",
+      "앞으로 90일 실행 우선순위",
+    ],
+  },
+  {
+    chapterNo: 13,
+    title: "Chapter XIII. 업을 푸는 실전 루틴 — 몸·마음·관계·돈의 정렬",
+    subtitle: "몸·마음·관계·돈 루틴",
+    sections: [
+      "매일 해야 할 마음 정리 루틴",
+      "관계에서 반복을 끊는 말의 습관",
+      "돈과 일의 구조를 세우는 루틴",
+      "몸과 생활 리듬을 안정시키는 방법",
+      "운을 흐트러뜨리는 행동 줄이기",
+      "2주·6주·90일 실천 플랜",
+    ],
+  },
+  {
+    chapterNo: 14,
+    title: "Chapter XIV. 운명의 업 통합 판정 — 반복을 사명으로 바꾸는 법",
+    subtitle: "강점·그림자·원칙",
+    sections: [
+      "가장 강한 업의 축",
+      "가장 큰 재능의 축",
+      "가장 조심해야 할 그림자",
+      "관계·돈·일에서 반복되는 공통 패턴",
+      "반드시 지켜야 할 인생 원칙",
+      "통합 운명 판정",
+    ],
+  },
+  {
+    chapterNo: 15,
+    title: "Chapter XV. 최종 마스터플랜 — 1년·3년·10년 운명 전략",
+    subtitle: "1년·3년·10년 전략",
+    sections: [
+      "지금 가장 먼저 해야 할 선택",
+      "1년 전략",
+      "3년 전략",
+      "10년 전략",
+      "사랑·돈·일·마음의 통합 전략",
+      "최종 운명 조언",
     ],
   },
 ];
@@ -432,26 +503,30 @@ function normalizeZiweiSnapshot(raw = {}) {
   };
 }
 
-async function calculateWestern(input, env, requestUrl) {
-  const chart = await getSwissWesternChart(env, {
-    year: input.year,
-    month: input.month,
-    day: input.day,
-    hour: input.hour,
-    minute: input.minute,
-    timezone: input.timezoneOffset,
-    lat: input.latitude,
-    lon: input.longitude,
-  }, { requestUrl });
-
-  const planets = chart?.planets && typeof chart.planets === "object" ? chart.planets : {};
-  const keys = ["sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto"];
-  const highlights = keys
-    .map((key) => {
-      const item = planets[key] || planets[key.toUpperCase()] || null;
-      if (!item) return "";
-      const sign = clean(item.sign || item.signName || item.zodiacSign || "");
-      return sign ? `${key.toUpperCase()} ${sign}` : "";
+function calculateWestern(input) {
+  const birthInput = {
+    birthDate: input.birthDate,
+    birthYear: input.year,
+    birthMonth: input.month,
+    birthDay: input.day,
+    birthTime: input.birthTime,
+    birthHour: input.hour,
+    birthMinute: input.minute,
+    timezone: input.timezone,
+    latitude: input.latitude,
+    longitude: input.longitude,
+    gender: input.gender,
+    name: input.name,
+  };
+  const local = buildAstroLocalChartJson(birthInput, {}, null);
+  const chart = local?.chart || {};
+  const placements = Array.isArray(chart.planets) ? chart.planets : [];
+  const highlights = placements
+    .slice(0, 10)
+    .map((planet) => {
+      const name = clean(planet?.name || "").toUpperCase();
+      const sign = clean(planet?.sign || "");
+      return name && sign ? `${name} ${sign}` : "";
     })
     .filter(Boolean)
     .slice(0, 8);
@@ -460,31 +535,38 @@ async function calculateWestern(input, env, requestUrl) {
     ok: highlights.length >= 3,
     highlights,
     timing: {
-      ascendant: clean(chart?.ascendant || ""),
-      midheaven: clean(chart?.midheaven || ""),
+      ascendant: clean(chart?.ascendantSign || ""),
+      midheaven: clean(chart?.midheavenSign || ""),
+      transit: clean(chart?.currentTransitFocus || ""),
     },
+    raw: local,
   };
 }
 
-async function calculateVedic(input, env, requestUrl) {
-  const chart = await getSwissVedicPlanets(env, {
-    year: input.year,
-    month: input.month,
-    day: input.day,
-    hour: input.hour,
-    minute: input.minute,
-    timezone: input.timezoneOffset,
-    lat: input.latitude,
-    lon: input.longitude,
-  }, { requestUrl });
-
-  const planets = chart?.planets && typeof chart.planets === "object" ? chart.planets : {};
-  const ordered = ["lagna", "moon", "rahu", "ketu", "saturn", "jupiter", "venus", "mars"];
-  const highlights = ordered
-    .map((key) => {
-      const value = planets[key] || chart?.[key] || null;
-      const sign = clean(value?.sign || value?.rasi || value?.zodiac || value?.name || "");
-      return sign ? `${key.toUpperCase()} ${sign}` : "";
+function calculateVedic(input) {
+  const birthInput = {
+    birthDate: input.birthDate,
+    birthTime: input.birthTime,
+    birthYear: input.year,
+    birthMonth: input.month,
+    birthDay: input.day,
+    birthHour: input.hour,
+    birthMinute: input.minute,
+    timezone: input.timezone,
+    latitude: input.latitude,
+    longitude: input.longitude,
+    gender: input.gender,
+    name: input.name,
+  };
+  const local = buildVedicLocalChartJson(birthInput);
+  const chart = local?.chart || {};
+  const planets = Array.isArray(chart.planets) ? chart.planets : [];
+  const highlights = planets
+    .slice(0, 10)
+    .map((planet) => {
+      const name = clean(planet?.name || "");
+      const sign = clean(planet?.sign || "");
+      return name && sign ? `${name} ${sign}` : "";
     })
     .filter(Boolean)
     .slice(0, 8);
@@ -493,8 +575,10 @@ async function calculateVedic(input, env, requestUrl) {
     ok: highlights.length >= 3,
     highlights,
     timing: {
-      dasha: clean(chart?.dasha?.current || chart?.currentDasha || ""),
+      dasha: clean(chart?.dashas?.currentMahaDasha || ""),
+      nextDasha: clean(chart?.dashas?.nextMahaDasha || ""),
     },
+    raw: local,
   };
 }
 
@@ -570,8 +654,8 @@ function buildSoulOriginSeed({ input, saju, western, sukuyo, ziwei, vedic }) {
       vedic: vedic.ok,
     },
     originSignature: {
-      title: "운명의 기원서",
-      summary: "다섯 운명 체계의 상징이 한 사람의 반복과 해방의 흐름으로 수렴되는 장면",
+      title: "운명의 업 프리미엄 리포트",
+      summary: "다섯 운세 흐름이 반복 패턴·사명·회복 전략으로 수렴되는 장면",
       archetypeKeywords,
     },
     karmicThemes: {
@@ -669,7 +753,11 @@ function buildSectionBody(seed, chapter, sectionTitle, chapterIndex, sectionInde
     `정리하면 ${sanitizeText(chapter.subtitle)}의 축에서 ${sanitizeText(sectionTitle)}는 ${t1}으로 연결됩니다. 이 흐름은 벌이나 운명 고정이 아니라, 패턴을 인식하고 관계·시간·에너지 배분을 재설계할 때 분명히 완화됩니다. 따라서 ${name}님에게 필요한 것은 완벽한 예측이 아니라, 반복 신호를 빠르게 포착해 선택의 방향을 조정하는 실행력입니다.`,
   ].map((line) => sanitizeText(line)).filter(Boolean);
 
-  return paragraphs.join("\n\n");
+  let body = paragraphs.join("\n\n");
+  while (sanitizeText(body).length < MIN_SECTION_CHARS) {
+    body = sanitizeText(`${body}\n\n이 항목의 실행 원칙은 감정·관계·시간·돈의 우선순위를 동시에 정렬하는 데 있습니다. 반복되는 신호를 조기에 인식하고 주간 점검표에 반영하면 같은 실수를 줄이고 재능이 성과로 연결되는 속도를 높일 수 있습니다.`);
+  }
+  return body;
 }
 
 function buildLocalChapters(seed) {
@@ -731,7 +819,72 @@ function appendUniquenessTag(chapters) {
 
 function buildSummary(chapters) {
   const first = chapters?.[0]?.sections?.[0]?.body || "";
-  return sanitizeText(first).slice(0, 300) || "당신의 기원은 반복을 해석하는 순간 해방의 방향으로 열립니다.";
+  return sanitizeText(first).slice(0, 300) || "운명의 업은 반복을 인식하고 실행 구조를 바꿀 때 사명으로 전환됩니다.";
+}
+
+const CHAPTER_TOPIC_KEYWORDS = {
+  1: ["통합", "반복", "업", "사명", "핵심"],
+  2: ["일간", "월지", "십성", "오행", "용신", "대운"],
+  3: ["명궁", "신궁", "삼방사정", "사화", "궁"],
+  4: ["태양", "달", "상승궁", "MC", "어스펙트"],
+  5: ["라그나", "달", "나크샤트라", "카라카", "다샤"],
+  6: ["본명숙", "인연", "카르마", "관계", "역할"],
+  7: ["사랑", "애착", "거리", "반복", "회복"],
+  8: ["재물", "수익", "가치", "가격", "생활"],
+  9: ["사명", "직업", "브랜드", "사회", "성공"],
+  10: ["가족", "뿌리", "감정", "무의식", "회복"],
+  11: ["위기", "전환", "선택", "반전", "회복"],
+  12: ["대운", "세운", "다샤", "트랜싯", "90일"],
+  13: ["몸", "마음", "관계", "돈", "실천"],
+  14: ["강점", "그림자", "반복", "원칙", "통합"],
+  15: ["1년", "3년", "10년", "전략", "최종"],
+};
+
+function collectReportText(chapters = []) {
+  return chapters
+    .flatMap((chapter) => {
+      const sections = Array.isArray(chapter?.sections) ? chapter.sections : [];
+      return [sanitizeText(chapter?.title || ""), sanitizeText(chapter?.subtitle || ""), ...sections.map((section) => sanitizeText(section?.body || ""))];
+    })
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+function validateNoRepetition(chapters = []) {
+  const text = collectReportText(chapters);
+  const sentences = text
+    .split(/[.!?\n]/)
+    .map((line) => sanitizeText(line).replace(/\s+/g, " "))
+    .filter((line) => line.length >= 30);
+  const sentenceMap = new Map();
+  for (const sentence of sentences) {
+    sentenceMap.set(sentence, (sentenceMap.get(sentence) || 0) + 1);
+    if ((sentenceMap.get(sentence) || 0) >= 2) return { ok: false, reason: "duplicate_sentence" };
+  }
+
+  const openingMap = new Map();
+  for (const chapter of chapters) {
+    const sections = Array.isArray(chapter?.sections) ? chapter.sections : [];
+    for (const section of sections) {
+      const firstLine = sanitizeText((section?.body || "").split(/\n+/)[0] || "").slice(0, 45);
+      if (!firstLine) continue;
+      openingMap.set(firstLine, (openingMap.get(firstLine) || 0) + 1);
+      if ((openingMap.get(firstLine) || 0) >= 3) return { ok: false, reason: "repeated_opening" };
+    }
+  }
+  return { ok: true };
+}
+
+function validateChapterTopics(chapters = []) {
+  for (const chapter of chapters) {
+    const chapterNo = Number(chapter?.chapterNo || 0);
+    const required = CHAPTER_TOPIC_KEYWORDS[chapterNo] || [];
+    if (!required.length) continue;
+    const text = sanitizeText(`${chapter?.title || ""} ${chapter?.subtitle || ""} ${(Array.isArray(chapter?.sections) ? chapter.sections.map((s) => s?.body || "").join(" ") : "")}`).toLowerCase();
+    const hits = required.filter((keyword) => text.includes(String(keyword).toLowerCase())).length;
+    if (hits < 2) return { ok: false, reason: `chapter_${chapterNo}_topic_weak` };
+  }
+  return { ok: true };
 }
 
 function makeReportId() {
@@ -790,7 +943,7 @@ async function handlePrepare(request, env) {
     return json({
       ok: false,
       code: access?.code || "UNAUTHORIZED",
-      message: access?.message || "운명의 기원서 생성 권한을 확인할 수 없습니다.",
+      message: access?.message || "운명의 업 리포트 생성 권한을 확인할 수 없습니다.",
     }, { status: Number(access?.status) || 403 });
   }
   logFlow("CoinGateSuccess", {
@@ -828,13 +981,13 @@ async function handlePrepare(request, env) {
   let sukuyo = { ok: false, highlights: [] };
 
   try {
-    western = await calculateWestern(input, env, request.url);
+    western = calculateWestern(input);
   } catch (error) {
     console.warn("[SoulOrigin][WesternFailed]", normalizeError(error));
   }
 
   try {
-    vedic = await calculateVedic(input, env, request.url);
+    vedic = calculateVedic(input);
   } catch (error) {
     console.warn("[SoulOrigin][VedicFailed]", normalizeError(error));
   }
@@ -900,12 +1053,24 @@ async function handlePrepare(request, env) {
       chapters = appendUniquenessTag(chapters);
     }
 
+    const repetition = validateNoRepetition(chapters);
+    if (!repetition.ok) {
+      chapters = enrichSectionsUntilLength(chapters, seed, TARGET_TOTAL_CHARS_AFTER_ENHANCEMENT + 3000, 5);
+      chapters = appendUniquenessTag(chapters);
+    }
+
+    const topicValidation = validateChapterTopics(chapters);
+    if (!topicValidation.ok) {
+      chapters = enrichSectionsUntilLength(chapters, seed, TARGET_TOTAL_CHARS_AFTER_ENHANCEMENT + 2000, 6);
+      chapters = appendUniquenessTag(chapters);
+    }
+
     const createdAt = new Date().toISOString();
 
     const responseBody = {
       ok: true,
       reportId,
-      title: "운명의 기원서",
+      title: "운명의 업 프리미엄 리포트",
       chapters,
       summary: buildSummary(chapters),
       createdAt,
@@ -933,8 +1098,8 @@ async function handlePrepare(request, env) {
       archive: {
         reportId,
         reportType: "soul_origin_book",
-        displayName: "운명의 기원서",
-        title: "운명의 기원서",
+        displayName: "운명의 업",
+        title: "운명의 업 프리미엄 리포트",
         mode: "personal",
         birthName: clean(input?.name),
         summary: clean(responseBody?.summary, 1000),
@@ -971,7 +1136,7 @@ async function handlePrepare(request, env) {
       auth.userId,
       executionCtx,
       "soul_origin_generation_failed",
-      clean(error?.message || "운명의 기원서 생성에 실패했습니다."),
+      clean(error?.message || "운명의 업 리포트 생성에 실패했습니다."),
       "soul-origin-generation",
     );
     throw error;
@@ -1003,13 +1168,13 @@ async function handleReadReport(request, env) {
       : null;
 
     if (!archive) {
-      return json({ ok: false, code: "REPORT_NOT_FOUND", message: "요청한 기원서를 찾을 수 없습니다." }, { status: 404 });
+      return json({ ok: false, code: "REPORT_NOT_FOUND", message: "요청한 운명의 업 리포트를 찾을 수 없습니다." }, { status: 404 });
     }
 
     const payload = {
       ok: true,
       reportId: clean(archive.reportId || reportId),
-      title: clean(archive.title || "운명의 기원서") || "운명의 기원서",
+      title: clean(archive.title || "운명의 업 프리미엄 리포트") || "운명의 업 프리미엄 리포트",
       chapters: Array.isArray(archive.chapters) ? archive.chapters : [],
       summary: clean(archive.summary || ""),
       createdAt: archived?.createdAt instanceof Date ? archived.createdAt.toISOString() : new Date().toISOString(),

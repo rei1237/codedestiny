@@ -911,13 +911,13 @@
     _showScreen('skLoadingScreen');
     _setLoadingProgress(0, SUKYO_TOTAL_CHAPTERS, '숙요점 궁합 리포트를 준비하고 있습니다.');
     _setLoadingStage('숙요점 궁합 PDF 생성 중');
-    _setLoadingNotice('두 사람의 본명숙과 인연 유형을 확인하는 중입니다.');
+    _setLoadingNotice('두 사람의 본명숙을 정리하는 중입니다');
 
     _runPreflight(normalizedInput)
       .then(function (preflight) {
         _setLoadingProgress(0, SUKYO_TOTAL_CHAPTERS, '입력 정보를 확인했습니다. 결제 확인을 진행합니다.');
         _setLoadingStage('숙요점 궁합 PDF 생성 중');
-        _setLoadingNotice('결제 확인 후 제1장부터 순서대로 작성합니다.');
+        _setLoadingNotice('관계 유형과 거리를 해석하는 중입니다');
 
         if (!preflight || !preflight.ok) {
           throw new Error('결제 전 입력 검증에 실패했습니다.');
@@ -932,7 +932,7 @@
       .then(function () {
         _setLoadingProgress(1, SUKYO_TOTAL_CHAPTERS, '제1장 작성 준비 중...');
         _setLoadingStage('숙요점 궁합 PDF 생성 중');
-        _setLoadingNotice('제1장부터 15장까지 순서대로 생성합니다.');
+        _setLoadingNotice('감정 온도와 갈등 패턴을 구성하는 중입니다');
 
         _log('[SukuyoBook][LocalCalculationStart]', { sessionId: _activeSessionId });
 
@@ -961,8 +961,8 @@
 
         return _playChapterProgress(_chapters).then(function () {
           _syncDotsByChapters(_chapters);
-          _setLoadingProgress(SUKYO_TOTAL_CHAPTERS, SUKYO_TOTAL_CHAPTERS, '최종 검증 및 PDF 저장 중...');
-          _setLoadingNotice('모든 챕터 작성을 완료했습니다. 결과를 준비하고 있습니다.');
+          _setLoadingProgress(SUKYO_TOTAL_CHAPTERS, SUKYO_TOTAL_CHAPTERS, '숙요점 프리미엄 궁합 PDF를 완성하는 중입니다');
+          _setLoadingNotice('회복 루틴과 최종 궁합 전략을 완성하는 중입니다');
           _renderResult(_chapters, response);
 
           _log('[SukuyoBook][PdfRequestSuccess]', {
@@ -987,7 +987,7 @@
             updatedAt: Date.now(),
           });
 
-          _setLoadingNotice('완료');
+          _setLoadingNotice('숙요점 프리미엄 궁합 PDF를 완성하는 중입니다');
           _showScreen('skResultScreen');
         });
       })

@@ -16,10 +16,12 @@
   var _isGenerating = false;
 
   var LOADING_TEXTS = [
-    '당신이 태어난 순간의 시간과 별을 펼치는 중입니다.',
-    '다섯 운명 체계가 하나의 기원 서사로 연결되고 있습니다.',
-    '반복되던 삶의 장면 속에서 숨은 의미를 찾고 있습니다.',
-    '당신의 업을 벌이 아닌 방향으로 다시 해석하고 있습니다.',
+    '다섯 운세 흐름의 핵심 주제를 정리하는 중입니다.',
+    '사주 원국과 대운의 반복 패턴을 해석하는 중입니다.',
+    '자미두수 명궁과 신궁의 운명 구조를 정리하는 중입니다.',
+    '점성술과 베다점의 시기 흐름을 반영하는 중입니다.',
+    '숙요점 인연 카르마를 통합하는 중입니다.',
+    '운명의 업 프리미엄 리포트를 완성하는 중입니다.',
   ];
 
   function $(id) { return document.getElementById(id); }
@@ -326,8 +328,8 @@
     var summaryEl = $('soResultSummary');
     var listEl = $('soResultContent');
 
-    if (titleEl) titleEl.textContent = clean(payload && payload.title) || '운명의 기원서';
-    if (summaryEl) summaryEl.textContent = clean(payload && payload.summary) || '당신의 기원서가 열렸습니다.';
+    if (titleEl) titleEl.textContent = clean(payload && payload.title) || '운명의 업 프리미엄 리포트';
+    if (summaryEl) summaryEl.textContent = clean(payload && payload.summary) || '운명의 업 리포트가 열렸습니다.';
 
     if (listEl) {
       listEl.innerHTML = '';
@@ -499,7 +501,7 @@
         body: JSON.stringify({
           categoryKey: 'premium-report',
           featureKey: FEATURE_KEY,
-          reason: '운명의 기원서 생성',
+          reason: '운명의 업 리포트 생성',
           reportType: REPORT_TYPE,
           mode: 'soul-origin',
           reportId: reportId,
@@ -586,7 +588,7 @@
         logStage('CoinGateStart');
         var immediate = window._cdCoinGatePerUse(
           COIN_COST,
-          '운명의 기원서 생성',
+          '운명의 업 리포트 생성',
           function (transactionId, data) {
             logStage('CoinGateSuccess', {
               sessionId: clean((data && (data.sessionId || data.reportSessionId)) || readSessionValue(SESSION_ID_KEY)),
@@ -680,7 +682,7 @@
       var profileRaw = readActiveProfile();
       var input = normalizeInput(profileRaw || {});
       if (!input) {
-        throw new Error('태어난 날짜 정보를 확인해야 기원서를 열 수 있습니다. 생년월일을 확인한 뒤 다시 시도해주세요.');
+        throw new Error('태어난 날짜 정보를 확인해야 운명의 업 리포트를 열 수 있습니다. 생년월일을 확인한 뒤 다시 시도해주세요.');
       }
 
       showScreen('loading');
@@ -744,8 +746,6 @@
       logStage('LocalCalcStart', { requestId: requestId, sessionId: sessionId });
       var data = await callApi(PREPARE_API, payload, token);
       logStage('LocalCalcSuccess', { requestId: requestId, sessionId: clean(data && data.sessionId) || sessionId });
-      logStage('LLMStart', { requestId: requestId, sessionId: clean(data && data.sessionId) || sessionId });
-      logStage('LLMSuccess', { requestId: requestId, sessionId: clean(data && data.sessionId) || sessionId });
       logStage('PDFCreateStart', { requestId: requestId, sessionId: clean(data && data.sessionId) || sessionId });
       logStage('PDFCreateSuccess', { requestId: requestId, sessionId: clean(data && data.sessionId) || sessionId });
       persistResult(data);
@@ -757,7 +757,7 @@
         sessionId: sessionId,
         errorCode: clean(error && error.code) || 'DESTINY_PRAYER_BOOK_FAILED',
       });
-      var msg = clean(error && error.message) || '기원서를 여는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+      var msg = clean(error && error.message) || '운명의 업 리포트를 여는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
       var errEl = $('soErrorMsg');
       if (errEl) errEl.textContent = msg;
       showScreen('error');
@@ -815,7 +815,7 @@
     var idx = 0;
     function run() {
       if (idx >= endpoints.length) {
-        alert('요청한 기원서를 찾지 못했습니다.');
+        alert('요청한 운명의 업 리포트를 찾지 못했습니다.');
         return;
       }
       var headers = {};

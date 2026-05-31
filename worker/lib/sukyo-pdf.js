@@ -1,3 +1,5 @@
+import { SUKUYO_MANSIONS } from "./sukuyo-premium.js";
+
 export const SUKYO_PDF_FEATURE_KEY = "premium-sukuyo-report-compat";
 export const SUKYO_PDF_ALIAS_FEATURE_KEY = "premium_pdf_sukyo_compat";
 export const SUKYO_PDF_CHAPTER_COUNT = 15;
@@ -39,6 +41,23 @@ const FORBIDDEN_BODY_PHRASES = [
   "사실과 감정의 순서를 분리해 대화",
   "합의 문장을 고정해 두면",
   "payload",
+  "raw",
+  "schema",
+  "internal data",
+  "내부 데이터",
+  "계산 시그니처",
+  "데이터 정규화",
+  "품질 검증",
+  "재생성",
+  "compatibilityResult",
+  "relationVariant",
+  "enhanced.signature",
+  "SIG-",
+  "R4-NEAR",
+  "myIdx",
+  "partnerIdx",
+  "distanceMetrics",
+  "roleActionGuide",
   "JSON",
   "debug",
   "about:blank",
@@ -73,6 +92,92 @@ const CHAPTER_REQUIRED_KEYWORDS = Object.freeze({
   13: ["전생", "반복", "집착", "성장"],
   15: ["강점", "위험", "원칙", "최종"],
 });
+
+const SUKYO_COMPAT_RELATION_INTERPRETATION = Object.freeze({
+  "安壞": {
+    userLabel: "안괴",
+    theme: "강한 끌림과 불안, 보호와 파괴, 빠른 감정 상승",
+    strength: "서로의 정체된 감정을 깨우고 관계의 변화를 빠르게 만든다.",
+    risk: "감정 강도에 비해 대화 순서가 맞지 않으면 상처가 빠르게 누적된다.",
+    advice: "감정 강도보다 회복 규칙과 경계선 합의를 먼저 세운다.",
+  },
+  "榮親": {
+    userLabel: "영친",
+    theme: "따뜻한 친밀감과 상호 지지",
+    strength: "서로의 안정감을 키우며 장기 관계 기반을 만들기 좋다.",
+    risk: "편안함만 유지하려 하면 성장 과제를 미룰 수 있다.",
+    advice: "주기적 점검 대화로 관계의 발전 축을 함께 만든다.",
+  },
+  "業胎": {
+    userLabel: "업태",
+    theme: "강한 숙제와 성장 압력",
+    strength: "깊은 성찰과 변화 계기를 만든다.",
+    risk: "감정 소모가 커지면 관계 피로가 누적될 수 있다.",
+    advice: "과제와 감정을 분리해 운영하고 휴식 규칙을 고정한다.",
+  },
+  "友衰": {
+    userLabel: "우쇠",
+    theme: "정서적 교류와 민감한 피로 축",
+    strength: "배려가 잘 맞으면 안정감이 빠르게 높아진다.",
+    risk: "작은 오해가 누적되면 피로감이 커질 수 있다.",
+    advice: "짧은 확인 대화를 자주 두어 오해를 조기에 해소한다.",
+  },
+  "危成": {
+    userLabel: "위성",
+    theme: "성과 지향과 긴장 공존",
+    strength: "목표를 함께 설정하면 추진력이 강하다.",
+    risk: "감정 점검이 늦으면 관계가 성과 중심으로 치우친다.",
+    advice: "성과 대화 전에 감정 상태를 먼저 확인한다.",
+  },
+  "命": {
+    userLabel: "명",
+    theme: "동질감과 거울 관계",
+    strength: "서로를 빠르게 이해하고 공감하기 쉽다.",
+    risk: "같은 패턴이 부딪히면 반복 갈등이 생기기 쉽다.",
+    advice: "같은 약점을 다르게 대응하는 규칙을 만든다.",
+  },
+});
+
+const SUKYO_DISTANCE_INTERPRETATION = Object.freeze({
+  near: {
+    theme: "가까운 거리, 빠른 반응, 높은 체감도",
+    strength: "감정 변화가 즉각 전달되어 친밀감이 빨리 깊어진다.",
+    risk: "사소한 말과 행동도 크게 느껴져 예민함이 커질 수 있다.",
+    advice: "속도보다 쿨다운과 재접속 규칙을 먼저 합의한다.",
+  },
+  middle: {
+    theme: "완충 거리, 조율 중심",
+    strength: "감정과 현실을 균형 있게 점검하기 좋다.",
+    risk: "확인 빈도가 낮으면 오해가 누적될 수 있다.",
+    advice: "주간 점검 루틴으로 연결 감각을 유지한다.",
+  },
+  far: {
+    theme: "원거리, 해석 차이 확대",
+    strength: "개별 자율성을 지키며 성장하기 좋다.",
+    risk: "연락 공백이 길어지면 거리감이 급격히 커질 수 있다.",
+    advice: "연락 리듬과 핵심 확인 문장을 사전에 고정한다.",
+  },
+  unknown: {
+    theme: "거리 정보 미확정",
+    strength: "유연한 운영 설계가 가능하다.",
+    risk: "기준 부재로 기대치 충돌이 생길 수 있다.",
+    advice: "초기 2주 동안 최소 합의를 먼저 만든다.",
+  },
+});
+
+const SUKYO_MANSION_RELATION_PROFILE = Object.freeze(
+  SUKUYO_MANSIONS.reduce((acc, item) => {
+    const label = `${text(item.nameKo)}(${text(item.nameHan)})`;
+    acc[label] = {
+      relationCore: safeArray(item.keywords).slice(0, 4).join(", "),
+      shadow: safeArray(item.shadows).slice(0, 2).join(", "),
+      love: `${text(item.nameKo)}숙은 ${safeArray(item.strengths).slice(0, 2).join(" · ")} 중심의 사랑 리듬을 보입니다.`,
+      risk: safeArray(item.shadows).slice(0, 2).join(" · ") || "감정 과열",
+      advice: `${text(item.nameKo)}숙은 감정 확인과 경계선 합의를 함께 지킬 때 안정적입니다.`,
+    };
+    return acc;
+  }, {}),
+);
 
 function text(value, fallback = "") {
   const out = String(value == null ? "" : value).trim();
@@ -217,7 +322,48 @@ function normalizePersonInput(raw = {}, fallbackName) {
 function normalizeMode(raw) {
   const mode = text(raw).toLowerCase();
   if (["compatibility", "compat", "couple"].some((token) => mode.includes(token))) return "compatibility";
+  if (["personal", "solo", "single"].some((token) => mode.includes(token))) return "personal";
   return "compatibility";
+}
+
+function levelByScore(value, axis = "default") {
+  const n = safeNumber(value, null);
+  if (n == null) return "middle";
+  if (axis === "risk") {
+    if (n >= 68) return "high";
+    if (n >= 45) return "middle";
+    return "low";
+  }
+  if (n >= 72) return "high";
+  if (n >= 45) return "middle";
+  return "low";
+}
+
+function resolveMansionProfile(starLike = {}, fallbackIdx = null) {
+  const nameKo = text(starLike?.nameKo || starLike?.mansion || "");
+  const nameHan = text(starLike?.nameHan || "");
+  const keyWithHan = nameKo && nameHan ? `${nameKo}(${nameHan})` : "";
+  const byKey = keyWithHan ? SUKYO_MANSION_RELATION_PROFILE[keyWithHan] : null;
+  if (byKey) return byKey;
+
+  const idx = safeNumber(starLike?.index ?? starLike?.mansionIdx ?? fallbackIdx, null);
+  const ref = Number.isFinite(idx) ? SUKUYO_MANSIONS[idx] : null;
+  if (!ref) {
+    return {
+      relationCore: "배려, 조율, 감정 확인",
+      shadow: "과해석, 피로 누적",
+      love: "상대의 반응 리듬을 확인하며 관계를 안정시키려는 성향",
+      risk: "확인 순서가 어긋나면 오해가 누적될 수 있음",
+      advice: "감정-사실-합의 순서의 대화 루틴을 유지",
+    };
+  }
+  return {
+    relationCore: safeArray(ref.keywords).slice(0, 4).join(", "),
+    shadow: safeArray(ref.shadows).slice(0, 2).join(", "),
+    love: `${text(ref.nameKo)}숙은 ${safeArray(ref.strengths).slice(0, 2).join(" · ")} 중심의 애정 흐름을 보입니다.`,
+    risk: safeArray(ref.shadows).slice(0, 2).join(" · ") || "피로 누적",
+    advice: `${text(ref.nameKo)}숙은 경계선과 회복 규칙을 함께 지킬 때 안정됩니다.`,
+  };
 }
 
 function normalizeLegacyResult(raw = {}) {
@@ -521,8 +667,90 @@ function buildLocalCompatibilityJson(seed = {}) {
   const relation = seed.compatibility || {};
   const selfKeywords = pickKeywordList(seed.userSukyo || {});
   const partnerKeywords = pickKeywordList(seed.partnerSukyo || {});
+  const selfProfile = resolveMansionProfile(seed.userSukyo || {}, seed.userSukyo?.index);
+  const partnerProfile = resolveMansionProfile(seed.partnerSukyo || {}, seed.partnerSukyo?.index);
+
+  const relationTypeHan = text(relation.relationTypeHan || relation.relationType);
+  const relationInterp = SUKYO_COMPAT_RELATION_INTERPRETATION[relationTypeHan] || SUKYO_COMPAT_RELATION_INTERPRETATION["命"];
+  const distanceTier = toDistanceTier(relation.distanceLabel || relation.distance);
+  const distanceInterp = SUKYO_DISTANCE_INTERPRETATION[distanceTier] || SUKYO_DISTANCE_INTERPRETATION.unknown;
+
+  const chemistryRaw = relation?.enhanced?.chemistry || relation?.chemistry || {};
+  const chemistry = {
+    emotional: safeNumber(chemistryRaw.emotional, safeNumber(relation.chemistryScore, 58)),
+    communication: safeNumber(chemistryRaw.communication, safeNumber(relation.communicationScore, 55)),
+    dailyLife: safeNumber(chemistryRaw.dailyLife, safeNumber(relation.stabilityScore, 53)),
+    physical: safeNumber(chemistryRaw.physical, 56),
+    conflictRisk: safeNumber(chemistryRaw.conflictRisk, safeNumber(relation.conflictScore, 52)),
+    recoveryPotential: safeNumber(chemistryRaw.recoveryPotential, safeNumber(relation.growthScore, 51)),
+    longTermPotential: safeNumber(chemistryRaw.longTermPotential, safeNumber(relation.compatibilityIndex, 50)),
+  };
+
+  const roleActionGuide = {
+    meAction: text(relation?.roleActionGuide?.meAction, "핵심 감정을 먼저 문장으로 공유합니다."),
+    otherAction: text(relation?.roleActionGuide?.otherAction, "상대 반응을 요약 확인한 뒤 결론을 정합니다."),
+    resetLine: text(relation?.roleActionGuide?.resetLine, "갈등 직후 24시간 내 감정-사실-합의 순서로 재접속합니다."),
+  };
+
+  const elementHarmony = {
+    meElement: text(relation?.elementHarmony?.aElement || relation?.elementHarmony?.meElement || seed?.userSukyo?.element, "토"),
+    otherElement: text(relation?.elementHarmony?.bElement || relation?.elementHarmony?.otherElement || seed?.partnerSukyo?.element, "토"),
+    relation: text(relation?.elementHarmony?.relation, "보완"),
+    harmonyScore: safeNumber(relation?.elementHarmony?.harmonyScore, 64),
+    summary: text(relation?.elementHarmony?.summary, "두 사람의 기질은 다르지만 조율 규칙을 세울수록 상호 보완성이 커집니다."),
+  };
+
+  const strengthShadowMap = {
+    me: {
+      strength: text(relation?.strengthShadowMap?.me?.strength || relation?.strengthShadowMap?.a?.strength, safeArray(seed?.userSukyo?.strengths)[0] || "보호력"),
+      shadow: text(relation?.strengthShadowMap?.me?.shadow || relation?.strengthShadowMap?.a?.shadow, safeArray(seed?.userSukyo?.shadows)[0] || "과보호"),
+    },
+    other: {
+      strength: text(relation?.strengthShadowMap?.other?.strength || relation?.strengthShadowMap?.b?.strength, safeArray(seed?.partnerSukyo?.strengths)[0] || "혁신력"),
+      shadow: text(relation?.strengthShadowMap?.other?.shadow || relation?.strengthShadowMap?.b?.shadow, safeArray(seed?.partnerSukyo?.shadows)[0] || "소진"),
+    },
+    complementSummary: text(
+      relation?.strengthShadowMap?.complementSummary,
+      "서로의 강점이 상대의 그림자를 완충할 수 있어 대화 순서를 정하면 관계 회복력이 높아집니다.",
+    ),
+  };
+
+  const pastLife = {
+    type: text(relation?.enhanced?.pastLife?.type, relationTypeHan === "安壞" ? "monk_and_princess" : "soul_companions"),
+    title: text(relation?.enhanced?.pastLife?.title, relationTypeHan === "安壞" ? "승려와 공주의 약속" : "달빛 아래의 동행"),
+    subtitle: text(relation?.enhanced?.pastLife?.subtitle, "강한 끌림과 조율 과제"),
+    presentLifePattern: text(
+      relation?.enhanced?.pastLife?.presentLifePattern,
+      `${text(relation.relationType)} 관계는 감정 온도가 빠르게 올라가지만 합의 규칙이 없으면 오해가 반복되기 쉽습니다.`,
+    ),
+    currentTask: text(
+      relation?.enhanced?.pastLife?.currentTask,
+      "연락 빈도, 갈등 직후 쿨다운 시간, 화해 시작 문장을 미리 합의합니다.",
+    ),
+    healingKey: text(
+      relation?.enhanced?.pastLife?.healingKey,
+      "파괴 대신 창조를 선택하는 작은 합의를 반복해 신뢰를 복원합니다.",
+    ),
+  };
+
+  const score = safeNumber(relation.score, safeNumber(relation.compatibilityIndex, 52));
+  const temperature = safeNumber(relation.temperature, safeNumber(relation.chemistryScore, 68));
+  const magnetism = safeNumber(relation.magnetism, safeNumber(relation.growthScore, 49));
+  const shortestDistance = safeNumber(relation?.distanceMetrics?.shortestDistance, null);
+  const requiredAgreements = [
+    "연락 빈도 합의",
+    "갈등 직후 쿨다운 시간",
+    "화해 시작 문장",
+  ];
+  const recoveryRoutine = [
+    "감정 확인",
+    "사실 정리",
+    "합의 문장 확정",
+  ];
 
   return {
+    fortuneType: "sukyo",
+    mode: "compatibility",
     input: {
       mode: "compatibility",
       self: normalizePersonInput(seed.userProfile || {}, "사용자"),
@@ -534,6 +762,7 @@ function buildLocalCompatibilityJson(seed = {}) {
       group: text(seed.userSukyo?.category),
       element: text(seed.userSukyo?.element),
       keywords: selfKeywords,
+      profile: selfProfile,
     },
     partner: {
       sukuyoStar: text(seed.partnerSukyo?.nameKo),
@@ -541,19 +770,48 @@ function buildLocalCompatibilityJson(seed = {}) {
       group: text(seed.partnerSukyo?.category),
       element: text(seed.partnerSukyo?.element),
       keywords: partnerKeywords,
+      profile: partnerProfile,
+      gender: text(seed.partnerProfile?.gender, "unknown"),
     },
     relation: {
       type: text(relation.relationType),
-      typeKo: text(relation.relationType),
-      distance: toDistanceTier(relation.distanceLabel || relation.distance),
+      typeHan: relationTypeHan,
+      typeKo: text(relationInterp.userLabel || relation.relationType),
+      relationTheme: relationInterp.theme,
+      distance: distanceTier,
       distanceLabel: text(relation.distanceLabel || relation.distance),
-      compatibilityScore: safeNumber(relation.compatibilityIndex),
-      chemistryKeywords: safeArray([relation.elementHarmony?.relation, relation.relationVariant, relation.roleActionGuide?.meAction]),
-      conflictKeywords: safeArray([relation.strengthShadowMap?.a?.shadow, relation.strengthShadowMap?.b?.shadow]),
-      karmicKeywords: safeArray([relation.relationType, relation.relationVariant, relation.roleActionGuide?.resetLine]),
-      dailyLifeKeywords: safeArray([relation.roleActionGuide?.meAction, relation.roleActionGuide?.otherAction]),
-      loveKeywords: safeArray([relation.relationType, relation.distanceLabel]),
-      marriageKeywords: safeArray([relation.elementHarmony?.summary, relation.distanceMetrics?.tensionBand]),
+      score,
+      compatibilityScore: safeNumber(relation.compatibilityIndex, score),
+      temperature,
+      magnetism,
+      stamp: text(relation.stamp || relation.relationVariant || ""),
+      shortestDistance,
+      chemistry,
+      chemistryKeywords: safeArray([relation.elementHarmony?.relation, relation.relationType, distanceInterp.theme]),
+      conflictKeywords: safeArray([strengthShadowMap.me.shadow, strengthShadowMap.other.shadow, relationInterp.risk]),
+      karmicKeywords: safeArray([pastLife.title, pastLife.subtitle, relationInterp.theme]),
+      dailyLifeKeywords: safeArray([roleActionGuide.meAction, roleActionGuide.otherAction]),
+      loveKeywords: safeArray([selfProfile.love, partnerProfile.love]),
+      marriageKeywords: safeArray([elementHarmony.summary, relationInterp.advice]),
+      roleActionGuide,
+      elementHarmony,
+      strengthShadowMap,
+      pastLife,
+      distanceInterpretation: distanceInterp,
+      relationInterpretation: relationInterp,
+    },
+    derived: {
+      isCompatibility: true,
+      relationFamily: text(relationInterp.userLabel || relation.relationType),
+      distanceTier,
+      emotionalBand: temperature >= 85 ? "veryHigh" : (temperature >= 70 ? "high" : (temperature >= 45 ? "middle" : "low")),
+      conflictBand: levelByScore(chemistry.conflictRisk, "risk"),
+      longTermBand: levelByScore(chemistry.longTermPotential),
+      recoveryBand: levelByScore(chemistry.recoveryPotential),
+      mainStrengths: [strengthShadowMap.me.strength, strengthShadowMap.other.strength].filter(Boolean),
+      mainRisks: [strengthShadowMap.me.shadow, strengthShadowMap.other.shadow].filter(Boolean),
+      requiredAgreements,
+      recoveryRoutine,
     },
     interpretationSeeds: createInterpretationSeeds(seed),
   };
@@ -595,25 +853,94 @@ function buildSectionBody(localJson, chapter, sectionHeading, sectionIndex) {
   const chapterNo = safeNumber(chapter?.order || chapter?.chapterNo, 0);
   const selfStar = text(localJson?.self?.sukuyoStar, "본인");
   const partnerStar = text(localJson?.partner?.sukuyoStar, "상대");
-  const relationType = text(localJson?.relation?.typeKo, "관계");
+  const relationType = text(localJson?.relation?.typeKo || localJson?.relation?.type, "관계");
+  const relationTheme = text(localJson?.relation?.relationTheme, "강한 끌림과 조율 과제가 함께 작동하는 구조");
   const distanceLabel = text(localJson?.relation?.distanceLabel, "중거리");
-  const relationScore = safeNumber(localJson?.relation?.compatibilityScore, null);
-  const chemistry = safeArray(localJson?.relation?.chemistryKeywords).slice(0, 2).join(" · ") || "정서 공명";
-  const conflict = safeArray(localJson?.relation?.conflictKeywords).slice(0, 2).join(" · ") || "긴장 신호";
-  const karmic = safeArray(localJson?.relation?.karmicKeywords).slice(0, 2).join(" · ") || "인연 과제";
-  const daily = safeArray(localJson?.relation?.dailyLifeKeywords).slice(0, 2).join(" · ") || "생활 합의";
+  const shortestDistance = safeNumber(localJson?.relation?.shortestDistance, null);
+  const relationScore = safeNumber(localJson?.relation?.score, safeNumber(localJson?.relation?.compatibilityScore, null));
+  const temperature = safeNumber(localJson?.relation?.temperature, null);
+  const magnetism = safeNumber(localJson?.relation?.magnetism, null);
+  const chemistry = localJson?.relation?.chemistry || {};
+  const emotional = safeNumber(chemistry?.emotional, null);
+  const communication = safeNumber(chemistry?.communication, null);
+  const dailyLife = safeNumber(chemistry?.dailyLife, null);
+  const conflictRisk = safeNumber(chemistry?.conflictRisk, null);
+  const recoveryPotential = safeNumber(chemistry?.recoveryPotential, null);
+  const longTermPotential = safeNumber(chemistry?.longTermPotential, null);
+  const elementHarmony = localJson?.relation?.elementHarmony || {};
+  const strengthShadowMap = localJson?.relation?.strengthShadowMap || {};
+  const meStrength = text(strengthShadowMap?.me?.strength, "보호력");
+  const meShadow = text(strengthShadowMap?.me?.shadow, "과보호");
+  const otherStrength = text(strengthShadowMap?.other?.strength, "혁신력");
+  const otherShadow = text(strengthShadowMap?.other?.shadow, "소진");
+  const complementSummary = text(strengthShadowMap?.complementSummary, "서로의 강점을 살릴 때 갈등 소모를 줄일 수 있습니다.");
+  const pastLife = localJson?.relation?.pastLife || {};
+  const pastLifeTitle = text(pastLife?.title, "달빛 아래의 동행");
+  const pastLifePattern = text(pastLife?.presentLifePattern, "감정 반응은 빠르지만 회복 타이밍 합의가 없으면 오해가 반복됩니다.");
+  const pastLifeTask = text(pastLife?.currentTask, "연락 빈도, 쿨다운 시간, 화해 시작 문장을 먼저 합의합니다.");
+  const pastLifeHealing = text(pastLife?.healingKey, "작은 합의를 반복해 신뢰를 복원합니다.");
+  const roleGuide = localJson?.relation?.roleActionGuide || {};
+  const meAction = text(roleGuide?.meAction, "핵심 감정을 먼저 문장으로 공유합니다.");
+  const otherAction = text(roleGuide?.otherAction, "상대 반응을 요약 확인한 뒤 결론을 정합니다.");
+  const resetLine = text(roleGuide?.resetLine, "갈등 직후 24시간 내 감정-사실-합의 순서로 재접속합니다.");
+  const selfCore = text(localJson?.self?.profile?.relationCore, "보살핌과 정서적 포용");
+  const partnerCore = text(localJson?.partner?.profile?.relationCore, "변화와 자극을 만드는 추진력");
+  const selfLove = text(localJson?.self?.profile?.love, "상대를 감싸며 안정감을 만드는 사랑 방식");
+  const partnerLove = text(localJson?.partner?.profile?.love, "자율성과 생동감을 중시하는 사랑 방식");
   const guide = CHAPTER_TOPIC_GUIDE[chapterNo] || ["관계 핵심", "감정 반응", "주의 지점", "실행 전략"];
 
   const sectionFocus = `${chapterNo}-${sectionIndex + 1}`;
+  const openers = [
+    "이 구간은 관계의 감정 구조를 표면이 아니라 작동 방식으로 읽어내는 데 초점을 둡니다.",
+    "이 대목에서는 사건 자체보다 두 사람이 사건을 해석하는 순서 차이를 먼저 확인해야 합니다.",
+    "이 분석은 좋고 나쁨의 판정이 아니라 같은 순간을 다르게 체감하는 이유를 설명합니다.",
+    "여기서 핵심은 감정의 강도보다 관계를 안정시키는 운영 기준을 세우는 일입니다.",
+  ];
+  const middleVariations = [
+    "관계는 감정이 충분해서 유지되는 것이 아니라, 감정이 흔들릴 때도 다시 연결되는 구조가 있을 때 지속됩니다.",
+    "강한 끌림은 출발점일 뿐이며, 말의 순서와 타이밍이 맞을 때 신뢰가 실제로 축적됩니다.",
+    "같은 갈등도 확인 질문을 먼저 두면 상처의 크기를 줄이고 회복 속도를 높일 수 있습니다.",
+    "두 사람의 속도 차이를 결핍이 아니라 리듬 차이로 해석하면 소모를 크게 줄일 수 있습니다.",
+  ];
+  const closingVariations = [
+    "결국 중요한 것은 상대를 바꾸는 능력이 아니라, 관계가 무너지지 않도록 운영하는 습관입니다.",
+    "이 구간의 결론은 감정의 증명이 아니라 합의의 반복이 장기 안정성을 만든다는 점입니다.",
+    "같은 패턴이 다시 와도 덜 다치고 빨리 회복하는 구조를 만드는 것이 핵심 목표입니다.",
+    "두 사람의 차이를 없애려 하기보다 차이를 다루는 규칙을 선명하게 두는 것이 더 효과적입니다.",
+  ];
+  const variantIdx = Math.abs((chapterNo * 7 + sectionIndex * 11) % 4);
+  const openerLine = openers[variantIdx];
+  const middleLine = middleVariations[(variantIdx + 1) % 4];
+  const closingLine = closingVariations[(variantIdx + 2) % 4];
+
+  const pastLifeInject = chapterNo === 8
+    ? `전생 서사 관점에서는 ${pastLifeTitle}의 상징이 특히 유효합니다. 이 서사는 사실 단정이 아니라 관계 패턴을 비추는 은유이며, ${pastLifePattern}을 현실 조율 과제로 번역할 때 상담문이 실제 도움을 줍니다.`
+    : "";
+  const recoveryInject = chapterNo === 14 || chapterNo === 15
+    ? `회복 전략은 반드시 문장 단위로 고정해야 합니다. 특히 갈등 직후에는 감정-사실-합의 순서를 지켜 ${resetLine}을 실행 규칙으로 사용하면 재충돌 확률을 낮출 수 있습니다.`
+    : "";
+  const chapter6Inject = chapterNo === 6
+    ? "이 장에서는 말투, 침묵, 연락의 해석 규칙을 짧은 대화 스크립트로 합의하는 것이 핵심입니다."
+    : "";
+
   const paragraphs = [
-    `${chapter.title}의 ${sectionHeading}은 ${selfStar}숙과 ${partnerStar}숙 조합에서 나타나는 실제 관계 반응을 세밀하게 분해하는 구간입니다. ${relationType} 관계에서는 감정의 온도가 빠르게 올라가더라도 상대가 무엇을 불안해하는지 해석하는 속도가 다르면 체감이 크게 어긋납니다. 특히 ${distanceLabel} 흐름에서는 같은 사건을 두고도 한 사람은 "관계의 의미"를, 다른 사람은 "지금의 안전"을 먼저 확인하려는 경향이 있어 초반 소통이 뒤틀리기 쉽습니다. 이 섹션에서는 그 차이를 오해가 아닌 합의의 출발점으로 다루는 것이 핵심입니다.`,
-    `관계 강점은 ${chemistry} 같은 공명 포인트에서 드러나고, 취약 지점은 ${conflict} 신호가 겹칠 때 선명해집니다. 점수가 ${relationScore == null ? "미제공" : relationScore}라고 해서 결과가 고정되는 것은 아니며, 실제 체감은 어떤 문장을 먼저 꺼내고 어떤 순서로 반응을 정리하는지에 의해 달라집니다. ${guide[0]}과 ${guide[1]}을 분리해 보면, 감정이 큰 날에도 관계를 지키는 선택이 가능해집니다. 서로의 속도를 바꾸려 하기보다 반응의 맥락을 먼저 확인하는 방식이 이 조합에 특히 효과적입니다.`,
-    `${sectionHeading} 관점에서 반드시 지켜야 할 원칙은 사실과 감정을 같은 문장에 뒤섞지 않는 것입니다. ${karmic}처럼 과거의 패턴이 자극되면 현재의 사건보다 오래된 기억이 먼저 튀어나와 갈등을 키우기 쉽습니다. 그래서 "지금 불편한 행동"과 "내가 느낀 감정"을 분리해 표현해야 하고, 해석이 어긋났을 때는 책임 공방보다 재확인 질문을 먼저 두는 편이 관계 회복률이 높습니다. 이때 ${guide[2]}을 기준으로 대화를 재정렬하면 반복 충돌을 줄일 수 있습니다.`,
-    `실행 단계에서는 추상적인 다짐보다 생활 문장으로 합의해야 유지됩니다. ${daily} 같은 생활 축을 중심으로 "연락 공백이 길어질 때 남길 최소 문장", "감정이 큰 날 결론을 미루는 기준", "주간 점검에서 확인할 질문"을 미리 정하면 감정 소모를 크게 줄일 수 있습니다. ${guide[3]}은 특별한 이벤트가 아니라 반복 가능한 루틴이어야 하며, 매주 같은 시간에 짧게 점검할수록 안정감이 빨라집니다.`,
-    `마지막으로 ${sectionHeading}은 이론 요약이 아니라 실제 행동 설계여야 합니다. 제안 문장을 예시로 들면 "나는 지금 결론보다 감정 정리가 먼저 필요해"처럼 상태를 말하고, 이어서 "오늘은 20분 뒤에 다시 이야기하자"처럼 시간 경계를 제시하는 구조가 좋습니다. 이 조합에서는 강한 끌림만으로 관계를 유지하기 어렵기 때문에, 작은 합의를 지키는 빈도가 신뢰의 핵심 지표가 됩니다. ${sectionFocus} 구간의 목표는 서로를 바꾸는 것이 아니라, 같은 상황에서도 덜 다치고 더 빨리 회복하는 운영 체계를 만드는 것입니다.`,
+    `섹션 ${sectionFocus}(${sectionHeading})의 핵심은 ${selfStar}숙과 ${partnerStar}숙이 관계 안에서 어떤 속도로 반응하고 어떻게 오해를 줄여야 하는지를 구체화하는 일입니다. 이 조합의 핵심 주제는 ${relationTheme}이며, ${relationType} 흐름에서는 강한 끌림과 불안이 같은 시기에 올라오기 쉽습니다. ${distanceLabel}${shortestDistance == null ? "" : `(${shortestDistance}칸)`} 거리감은 좋은 순간을 빠르게 깊게 만들지만 작은 어긋남도 크게 체감되게 만듭니다. ${openerLine}`,
+    `${selfStar}숙의 관계 기질은 ${selfCore}이고 ${partnerStar}숙의 관계 기질은 ${partnerCore}로 읽힙니다. 사랑 방식도 ${selfLove}과 ${partnerLove}처럼 결이 다르기 때문에, 감정이 있어도 소통 순서가 맞지 않으면 피로가 누적될 수 있습니다. 점수 축을 보면 관계 점수 ${relationScore == null ? "중간대" : relationScore}, 감정 온도 ${temperature == null ? "중간대" : temperature}, 자력 ${magnetism == null ? "중간대" : magnetism}으로 나타나며, 이 수치는 관계의 우열을 뜻하기보다 조율 난이도를 보여 줍니다. 끌림의 강도만 믿기보다 ${guide[0]}과 ${guide[1]}를 분리해 운영하면 같은 갈등도 훨씬 덜 소모적으로 지나갑니다.`,
+    `구체 신호를 보면 감정 ${emotional == null ? "중간" : emotional}, 소통 ${communication == null ? "중간" : communication}, 일상 ${dailyLife == null ? "중간" : dailyLife}, 갈등 위험 ${conflictRisk == null ? "중간" : conflictRisk}, 회복 가능성 ${recoveryPotential == null ? "중간" : recoveryPotential}, 장기 가능성 ${longTermPotential == null ? "중간" : longTermPotential}으로 읽힙니다. 또한 오행 흐름은 나의 ${text(elementHarmony?.meElement, "화")}와 상대의 ${text(elementHarmony?.otherElement, "수")}가 ${text(elementHarmony?.relation, "보완")} 구조를 이루며, 핵심은 서로의 속도 차이를 인정하는 대화입니다. 나의 강점 ${meStrength}과 그림자 ${meShadow}, 상대의 강점 ${otherStrength}과 그림자 ${otherShadow}가 교차할 때 ${complementSummary}가 실제로 작동합니다. ${middleLine}`,
+    `이 구간의 실행 축은 관계 서사와 회복 문장을 함께 고정하는 것입니다. 전생 서사로 비유하면 ${pastLifeTitle}의 패턴처럼 좋을 때는 빠르게 깊어지고 어긋나면 회복 타이밍이 엇갈리기 쉽습니다. 그래서 ${pastLifePattern}을 전제로 ${pastLifeTask}를 미리 합의해야 합니다. 실전에서는 ${meAction} 그리고 ${otherAction}의 순서를 지키고, 갈등 직후에는 ${resetLine}을 기본 규칙으로 씁니다. 마지막으로 ${pastLifeHealing}를 반복해 작은 신뢰를 쌓으면, ${sectionFocus} 구간의 목표인 ${guide[3]}이 현실에서 지속 가능한 관계 운영법으로 자리잡습니다. ${chapter6Inject} ${pastLifeInject} ${recoveryInject} ${closingLine}`,
+    `${sectionHeading} 실행 체크리스트는 세 단계로 마무리합니다. 첫째, 이번 주 대화에서 감정 신호가 올라오는 장면을 각각 한 번 기록합니다. 둘째, 기록한 장면을 사실 문장으로 바꿔 상대에게 전달하고 해석 차이를 확인합니다. 셋째, 확인된 차이를 다음 갈등 전 미리 사용할 합의 문장으로 고정합니다. 이 과정을 한 주만 유지해도 관계의 소모가 줄고 회복 속도가 달라집니다.`,
+    `${chapter.title}의 실전 운영 포인트는 화려한 기술이 아니라 반복 가능한 루틴입니다. 같은 문제를 다시 겪더라도 시작 문장과 종료 문장을 고정하면 감정 소실을 막고, 관계의 방향을 책임과 배려 중심으로 되돌릴 수 있습니다. 이 절에서는 특히 ${guide[2]}와 ${guide[3]}을 함께 적용해, 끌림의 강도보다 운영의 안정성을 우선하는 전략을 권장합니다.`,
   ];
 
-  return repeatToLength(paragraphs, MIN_SECTION_LENGTH + 40);
+  let out = sanitizeSukyoPremiumText(paragraphs.join("\n\n"));
+  let appendixNo = 1;
+  while (out.length < (MIN_SECTION_LENGTH + 60)) {
+    const appendix = `${sectionHeading} 보강 문장 ${appendixNo}: ${selfStar}숙과 ${partnerStar}숙의 관계에서는 ${guide[appendixNo % guide.length]}을 실행 단위로 쪼개 확인해야 하며, 합의된 루틴을 주간 점검표에 남겨야 장기 안정성이 유지됩니다.`;
+    out = sanitizeSukyoPremiumText(`${out}\n\n${appendix}`);
+    appendixNo += 1;
+    if (appendixNo > 8) break;
+  }
+  return out;
 }
 
 function buildSukuyoCompatibilityLocalManuscript(localJson) {
@@ -970,8 +1297,18 @@ export function buildSukyoPdfSeed(input = {}) {
       relationType: text(compatibility.relationType),
       relationTypeHan: text(compatibility.relationTypeHan),
       distanceLabel: text(compatibility.distanceLabel || compatibility.distance),
+      score: safeNumber(compatibility.score),
+      temperature: safeNumber(compatibility.temperature),
+      magnetism: safeNumber(compatibility.magnetism),
       compatibilityIndex: safeNumber(compatibility.compatibilityIndex),
+      stamp: text(compatibility.stamp),
       relationVariant: text(compatibility.relationVariant),
+      chemistryScore: safeNumber(compatibility.chemistryScore),
+      stabilityScore: safeNumber(compatibility.stabilityScore),
+      growthScore: safeNumber(compatibility.growthScore),
+      conflictScore: safeNumber(compatibility.conflictScore),
+      communicationScore: safeNumber(compatibility.communicationScore),
+      enhanced: compatibility.enhanced || null,
       roleActionGuide: compatibility.roleActionGuide || null,
       elementHarmony: compatibility.elementHarmony || null,
       strengthShadowMap: compatibility.strengthShadowMap || null,

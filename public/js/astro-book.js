@@ -10,7 +10,7 @@
   var ASTRO_PREPARE_API = '/api/astro/premium/prepare';
   var ASTRO_CHAPTERS_API = '/api/astro/premium/chapters';
   var ASTRO_WESTERN_CHART_API = '/api/astro/western-chart';
-  var ASTRO_TOTAL_CHAPTERS = 10;
+  var ASTRO_TOTAL_CHAPTERS = 12;
   var ASTRO_COIN_COST = 390;
   var ASTRO_SIGN_NAMES = ['양자리', '황소자리', '쌍둥이자리', '게자리', '사자자리', '처녀자리', '천칭자리', '전갈자리', '사수자리', '염소자리', '물병자리', '물고기자리'];
 
@@ -615,7 +615,7 @@
     if (bar) bar.style.width = pct + '%';
     if (txt) txt.textContent = step + ' / ' + total + ' 챕터 완성';
     if (num) num.textContent = 'Chapter ' + step;
-    if (ch) ch.textContent = _sanitizeText(title || '점성술 챕터를 생성하는 중...');
+    if (ch) ch.textContent = _sanitizeText(title || '점성술 코즈믹 차트 PDF를 완성하는 중입니다');
 
     var dots = document.querySelectorAll('.ab-ch-dot');
     Array.prototype.forEach.call(dots, function (dot) {
@@ -647,11 +647,12 @@
       : [];
     if (!titles.length) {
       titles = [
-        '출생 차트 총론을 분석하는 중...',
-        '태양·달·상승궁을 정밀 해석하는 중...',
-        '행성/하우스 패턴을 정리하는 중...',
-        '관계·일·재정 전략을 설계하는 중...',
-        '최종 우주 로드맵을 완성하는 중...',
+        '태양·달·상승궁을 정리하는 중입니다',
+        '행성과 하우스의 흐름을 해석하는 중입니다',
+        '주요 어스펙트와 인생 과제를 구성하는 중입니다',
+        '사랑·직업·재물의 방향을 정리하는 중입니다',
+        '현재 시기와 회복 전략을 반영하는 중입니다',
+        '점성술 코즈믹 차트 PDF를 완성하는 중입니다',
       ];
     }
     var total = _getTotalChapters();
@@ -909,7 +910,7 @@
 
     _buildAstroBaseAsync(profile)
       .then(function (astroBase) {
-        _setLoadingProgress(total, total, '10챕터 로컬 원고 생성 중');
+        _setLoadingProgress(total, total, '12챕터 로컬 원고 생성 중');
         _logStage('LocalDraftProgress', { completed: total, total: total });
         return _ensurePremiumPaymentAsync().then(function (payment) {
           var paymentGrant = payment && payment.data && payment.data.accessGrant ? payment.data.accessGrant : (_lastPremiumPayment && _lastPremiumPayment.accessGrant ? _lastPremiumPayment.accessGrant : null);
@@ -927,7 +928,7 @@
           });
           var sessionId = 'astro-premium:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
           _logStage('SessionCreateSuccess', { sessionId: sessionId });
-          _setLoadingProgress(total, total, 'AI 상담문 보강 중');
+          _setLoadingProgress(total, total, '점성술 코즈믹 차트 PDF를 완성하는 중입니다');
           _logStage('LLMEnhanceStart', { sessionId: sessionId });
           _logStage('PdfRequestStart', { featureKey: ASTRO_FEATURE_KEY, sessionId: sessionId });
           return _postPrepare({
@@ -968,10 +969,10 @@
         if (!_chapters.length) throw new Error('점성술 챕터 데이터가 비어 있습니다.');
         ASTRO_TOTAL_CHAPTERS = _chapters.length;
         total = _getTotalChapters();
-        _setLoadingProgress(total, total, 'AI 상담문 보강 중');
+        _setLoadingProgress(total, total, '점성술 코즈믹 차트 PDF를 완성하는 중입니다');
         if (response && response.fallbackUsed && _isCompletedReportReady(response)) {
           _logStage('LLMEnhanceFailedUseLocal', { chapterCount: total });
-          _setLoadingProgress(total, total, 'AI 문장 보강이 지연되어 로컬 점성술 차트 기반 프리미엄 원고로 PDF를 완성합니다.');
+          _setLoadingProgress(total, total, '로컬 점성술 차트 해석을 반영해 PDF를 완성하고 있습니다.');
         }
         _logStage('PdfRenderStart', { chapterCount: total });
         _setLoadingProgress(total, total, 'PDF 편집/렌더링 중');

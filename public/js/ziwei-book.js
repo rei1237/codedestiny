@@ -22,19 +22,19 @@
   };
 
   var CHAPTERS = [
-    '제1장 명궁 완전 해석 — 나라는 사람의 첫 번째 별빛',
-    '제2장 신궁 심층 분석 — 인생 후반부와 실제 행동 패턴',
-    '제3장 복덕궁 — 마음의 깊이와 행복을 회복하는 방식',
-    '제4장 부모궁·형제궁 — 뿌리, 가족, 성장 환경의 흔적',
-    '제5장 부부궁 — 사랑, 결혼, 배우자 인연의 방향',
-    '제6장 자녀궁·노복궁 — 후배, 동료, 사람을 얻는 방식',
-    '제7장 재백궁 — 돈의 흐름과 재물 전략',
-    '제8장 관록궁 — 직업, 성공 방식, 사회적 역할',
-    '제9장 전택궁 — 집, 자산, 안정 기반',
-    '제10장 질액궁 — 건강 리듬과 생활 관리',
-    '제11장 천이궁 — 이동, 외부 기회, 귀인운',
-    '제12장 사화와 별의 강약 — 운명을 움직이는 핵심 신호',
-    '제13장 대운·세운 종합 전략 — 앞으로의 흐름과 실행 조언'
+    'Chapter 1. 명반 전체 요약 — 이 사람의 운명 구조',
+    'Chapter 2. 명궁 — 타고난 성격과 삶의 태도',
+    'Chapter 3. 형제궁·노복궁 — 가까운 사람과 인맥의 운',
+    'Chapter 4. 부부궁 — 연애와 결혼의 구조',
+    'Chapter 5. 자녀궁 — 창작물, 후배, 결과물의 운',
+    'Chapter 6. 재백궁 — 돈과 수익 구조',
+    'Chapter 7. 관록궁 — 직업, 성공, 사회적 역할',
+    'Chapter 8. 천이궁 — 외부 활동, 이동, 세상과의 접점',
+    'Chapter 9. 전택궁 — 집, 기반, 자산, 안정성',
+    'Chapter 10. 질액궁·복덕궁 — 건강, 마음, 회복력',
+    'Chapter 11. 부모궁 — 부모, 윗사람, 권위자와의 관계',
+    'Chapter 12. 대운·세운 — 시기별 인생 흐름',
+    'Chapter 13. 최종 운명 전략 — 이 명반을 가장 잘 쓰는 법'
   ];
 
   var PALACE_KEY_BY_NAME = {
@@ -638,7 +638,7 @@
     var box = $('zbResultContent');
     if(!box) return;
     var chapters = Array.isArray(data.chapters) ? data.chapters : [];
-    var cover = '<div class="zb-result-cover"><img src="' + esc(COVER_IMAGE) + '" alt="자미두수 프리미엄 PDF 표지"><div><p>ZIWEI PREMIUM</p><h3>자미두수 프리미엄 PDF</h3><span>' + esc(chapters.length) + '챕터 생성 완료</span></div></div>';
+    var cover = '<div class="zb-result-cover"><img src="' + esc(COVER_IMAGE) + '" alt="자미두수 프리미엄 명반서 표지"><div><p>ZIWEI PREMIUM</p><h3>자미두수 프리미엄 명반서</h3><span>' + esc(chapters.length) + '챕터 생성 완료</span></div></div>';
     var html = chapters.map(function(chapter, index){
       var categories = Array.isArray(chapter.categories) ? chapter.categories : [];
       var catHtml = categories.map(function(cat){
@@ -793,14 +793,11 @@
         updateProgress(62 + Math.round(((i + 1) / TOTAL_CHAPTERS) * 16), CHAPTERS[i] || '챕터를 완성하고 있습니다.');
         logFlow('LocalDraftProgress', { chapterDone: i + 1, chapterTotal: TOTAL_CHAPTERS });
       }
-      updateProgress(82, 'AI 상담문 보강 중');
+      updateProgress(82, '최종 운명 전략을 구성하는 중');
       updateZiweiGenerationState({ status: 'enhancing' });
-      updateProgress(95, 'PDF 편집/렌더링 중');
+      updateProgress(95, '프리미엄 명반서를 완성하는 중입니다');
       updateZiweiGenerationState({ status: 'savingPdf' });
       RESULT = data;
-      if(data && data.fallbackUsed && isZiweiReportReady(data) && window.showToast){
-        window.showToast('AI 문장 보강이 지연되어 로컬 자미두수 명반 기반 프리미엄 원고로 PDF를 완성합니다.', 'info');
-      }
       logFlow('PdfRequestSuccess', {
         chapterCount: Array.isArray(data && data.chapters) ? data.chapters.length : 0,
         localDraftChapterCount: localDraftCount,
@@ -818,21 +815,16 @@
     }
   };
 
-  function buildFallbackPrintHtml(){
-    if(!RESULT) return '';
-    var chapters = Array.isArray(RESULT.chapters) ? RESULT.chapters : [];
-    return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>자미두수 프리미엄 PDF</title><style>body{font-family:Malgun Gothic,serif;line-height:1.8;padding:28px;color:#241333}img{max-width:300px;border-radius:16px}h1{color:#3b0764}article{page-break-before:always;border-top:2px solid #7c3aed;padding-top:18px}.cat{border:1px solid #e9d5ff;border-radius:12px;padding:12px;margin:12px 0}p{white-space:pre-wrap}</style></head><body><h1>자미두수 프리미엄 PDF</h1><img src="' + esc(COVER_IMAGE) + '" alt="표지"><p>명궁과 12궁으로 읽는 운명의 별자리</p>' + chapters.map(function(chapter){
-      var cats = Array.isArray(chapter.categories) ? chapter.categories : [];
-      return '<article><h2>' + esc(chapter.title) + '</h2>' + cats.map(function(cat){ return '<div class="cat"><h3>' + esc(cat.title) + '</h3><p>' + esc(cat.finalText || cat.text || '') + '</p></div>'; }).join('') + '</article>';
-    }).join('') + '</body></html>';
-  }
-
   window.downloadZiweiBookPdf = function(){
     if(!RESULT){
       showError('먼저 자미두수 PDF를 생성해 주세요.');
       return;
     }
-    var html = RESULT.pdfReady && RESULT.pdfReady.html ? RESULT.pdfReady.html : buildFallbackPrintHtml();
+    var html = RESULT.pdfReady && RESULT.pdfReady.html ? RESULT.pdfReady.html : '';
+    if(!html){
+      showError('PDF 파일을 아직 준비하지 못했습니다. 다시 생성해 주세요.');
+      return;
+    }
     var win = window.open('', '_blank', 'noopener,noreferrer');
     if(!win){
       showError('팝업이 차단되었습니다. 브라우저 팝업 허용 후 다시 시도해 주세요.');

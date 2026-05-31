@@ -504,14 +504,22 @@
 
   function _startProgressAnimation() {
     _stopProgressAnimation();
-    var titles = ['프로필 정보 확인 중', '베다 차트 계산 중', '12챕터 로컬 원고 생성 중'];
+    var titles = [
+      '라그나와 달의 흐름을 정리하는 중입니다',
+      '나크샤트라와 카라카를 해석하는 중입니다',
+      '행성 강약과 바바의 의미를 정리하는 중입니다',
+      'Moon 다샤와 다음 시기를 구성하는 중입니다',
+      '사랑·직업·재물의 흐름을 정리하는 중입니다',
+      '차크라와 레메디 조언을 구성하는 중입니다',
+      '베다 점성술 리포트를 완성하는 중입니다'
+    ];
     var index = 1;
     _setLoadingProgress(1, VEDIC_TOTAL_CHAPTERS, titles[0]);
     _progressTimer = setInterval(function () {
       if (!_generating) { _stopProgressAnimation(); return; }
       index += 1;
       if (index > VEDIC_TOTAL_CHAPTERS) index = VEDIC_TOTAL_CHAPTERS;
-      var titleIndex = index <= 1 ? 0 : (index <= 2 ? 1 : 2);
+      var titleIndex = Math.min(titles.length - 1, Math.max(0, index - 1));
       _setLoadingProgress(index, VEDIC_TOTAL_CHAPTERS, titles[titleIndex]);
       if (index >= VEDIC_TOTAL_CHAPTERS) _stopProgressAnimation();
     }, 850);
@@ -717,8 +725,8 @@
     _fetchVedicChart(profile, birthInput)
       .then(function (chart) {
         var vedicBase = _buildVedicBase(profile, chart, birthInput);
-        _setLoadingProgress(2, VEDIC_TOTAL_CHAPTERS, '베다 차트 계산 중');
-        _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '12챕터 로컬 원고 생성 중');
+        _setLoadingProgress(2, VEDIC_TOTAL_CHAPTERS, '나크샤트라와 카라카를 해석하는 중입니다');
+        _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '베다 점성술 리포트를 완성하는 중입니다');
         _logStage('SessionCreateStart', { endpoint: VEDIC_PREPARE_API, featureKey: VEDIC_FEATURE_KEY });
         var paymentGrant = _lastPremiumPayment && _lastPremiumPayment.accessGrant ? _lastPremiumPayment.accessGrant : null;
         var paymentContext = paymentGrant ? {
@@ -774,15 +782,11 @@
         _chapters = Array.isArray(response.chapters) ? response.chapters : [];
         if (!_chapters.length) throw new Error('베다점 챕터 데이터가 비어 있습니다.');
 
-        _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, 'AI 상담문 보강 중');
+        _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '사랑·직업·재물의 흐름을 정리하는 중입니다');
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, 'PDF 편집/렌더링 중');
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '완료');
         _renderResult(_chapters, response.payload || vedicBase);
         _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, fallbackUsed: !!response.fallbackUsed });
-
-        if (response && response.fallbackUsed && _isCompletedReportReady(response) && typeof window.showToast === 'function') {
-          window.showToast('AI 문장 보강이 지연되어 로컬 베다점 계산 기반 프리미엄 원고로 PDF를 완성합니다.', 'info');
-        }
 
         _showScreen('vdResultScreen');
       })

@@ -156,6 +156,13 @@ function normalizeCalendarType(raw) {
   return "unknown";
 }
 
+function normalizeRequestedMode(raw) {
+  const token = clean(raw).toLowerCase();
+  if (["compatibility", "compat", "couple", "궁합"].some((v) => token.includes(v))) return "compatibility";
+  if (["personal", "solo", "single", "개인", "나만"].some((v) => token.includes(v))) return "personal";
+  return "compatibility";
+}
+
 function normalizePersonInput(raw = {}, fallbackName = "사용자") {
   const profile = raw.profile && typeof raw.profile === "object" ? raw.profile : raw;
   const birthDate = clean(
@@ -238,7 +245,7 @@ function buildPersonSukuyo(person) {
 }
 
 function normalizeCompatibilityInput(body = {}) {
-  const mode = "compatibility";
+  const mode = normalizeRequestedMode(body?.mode || body?.reportMode || body?.questionType);
   const self = normalizePersonInput(body.self || body.user || body.userProfile || body.birthInput || {}, "사용자");
   const partner = normalizePersonInput(body.partner || body.partnerProfile || body.partnerInput || {}, "상대방");
   return { mode, self, partner };
@@ -300,8 +307,18 @@ async function handleSukuyoPremiumPreflight(request) {
   const body = await readJson(request);
   const input = normalizeCompatibilityInput(body);
 
+  if (input.mode !== "compatibility") {
+    return json({
+      ok: false,
+      code: "SUKUYO_COMPATIBILITY_ONLY",
+      message: "숙요점 프리미엄 PDF는 궁합 전용입니다. 본인과 상대 숙 정보가 모두 필요합니다.",
+      mode: input.mode,
+      requiredMode: "compatibility",
+    }, { status: 400 });
+  }
+
   const validation = validateSukyoPdfInput({
-    mode: "compatibility",
+    mode: input.mode,
     self: input.self,
     partner: input.partner,
     sukuyoResult: { relationshipType: "preflight" },
@@ -343,8 +360,18 @@ async function handleSukuyoPremiumPrepare(request, env) {
   const featureKey = clean(body?.featureKey) || SUKYO_PDF_FEATURE_KEY;
 
   const input = normalizeCompatibilityInput(body);
+  if (input.mode !== "compatibility") {
+    return json({
+      ok: false,
+      code: "SUKUYO_COMPATIBILITY_ONLY",
+      message: "숙요점 프리미엄 PDF는 궁합 전용입니다. 본인과 상대 숙 정보를 모두 입력해 주세요.",
+      mode: input.mode,
+      requiredMode: "compatibility",
+    }, { status: 400 });
+  }
+
   const validation = validateSukyoPdfInput({
-    mode: "compatibility",
+    mode: input.mode,
     self: input.self,
     partner: input.partner,
     sukuyoResult: { relationshipType: "pre-validated" },
