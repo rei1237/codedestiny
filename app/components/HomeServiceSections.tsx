@@ -32,6 +32,7 @@ const MAIN_ACTION_ROUTE_MAP: Record<string, string> = {
   "/tarot/healing": "/index.html?action=openTarotHealingModal",
   "/tarot/self-esteem": "/index.html?action=openTarotSelfEsteemModal",
   "/tarot/reunion": "/index.html?action=openTarotReunionModal",
+  "/tarot/prompt-maker": "/tarot/prompt-maker",
   "/tarot/year": "/index.html?action=openTarotYearFortuneModal",
   "/tarot/crystal-soul/": "/index.html?action=startCrystalSoulTarot",
   "/tarot/mindscan/": "/index.html?action=startMindScanTarot",
@@ -134,13 +135,30 @@ export default function HomeServiceSections({ variant = "default" }: Props) {
                 <Link
                   key={item.href}
                   href={toMainActionHref(item.href)}
-                  className="rounded-2xl border border-violet-300/20 bg-[linear-gradient(160deg,rgba(39,26,67,0.72),rgba(25,34,64,0.72))] p-4 transition hover:-translate-y-0.5 hover:border-cyan-300/45 hover:shadow-[0_10px_24px_rgba(34,211,238,0.15)]"
+                  className="group overflow-hidden rounded-2xl border border-violet-300/20 bg-[linear-gradient(160deg,rgba(39,26,67,0.72),rgba(25,34,64,0.72))] transition hover:-translate-y-0.5 hover:border-cyan-300/45 hover:shadow-[0_10px_24px_rgba(34,211,238,0.15)]"
                 >
-                  <div className="flex items-center gap-1.5 text-sm font-semibold text-violet-50">
-                    <FeatureSymbol route={item.href} size={15} className="text-violet-100" variant="soft" />
-                    {cleanTitle(item.title)}
+                  {item.image ? (
+                    <div className="relative h-36 border-b border-white/10">
+                      <img
+                        src={item.image}
+                        alt={item.alt || item.title}
+                        loading="lazy"
+                        decoding="async"
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
+                      />
+                      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,10,26,0.08),rgba(9,10,26,0.72))]" />
+                      <span className="absolute left-3 top-3 inline-flex rounded-full border border-cyan-200/30 bg-cyan-400/15 px-2.5 py-1 text-[10px] font-bold tracking-[0.18em] text-cyan-100 backdrop-blur">
+                        NEW
+                      </span>
+                    </div>
+                  ) : null}
+                  <div className="p-4">
+                    <div className="flex items-center gap-1.5 text-sm font-semibold text-violet-50">
+                      <FeatureSymbol route={item.href} size={15} className="text-violet-100" variant="soft" />
+                      {cleanTitle(item.title)}
+                    </div>
+                    <div className="mt-1 text-xs text-violet-100/75">{item.desc}</div>
                   </div>
-                  <div className="mt-1 text-xs text-violet-100/75">{item.desc}</div>
                 </Link>
               ))}
             </div>

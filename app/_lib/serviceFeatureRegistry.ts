@@ -259,6 +259,37 @@ const FEATURES: ServiceFeature[] = ([
     },
   },
   {
+    slug: "tarot-prompt-maker",
+    title: "AI 타로 스프레드 메이커",
+    subtitle: "질문 하나로 스프레드 추천부터 AI 리딩 프롬프트까지 자동 생성",
+    description:
+      "사용자의 질문을 카테고리로 분석하고, 상황에 맞는 스프레드를 추천한 뒤 카드 포지션/해석 지침/출력 형식을 포함한 프롬프트를 자동 생성합니다.",
+    category: "tarot",
+    image: "/fuctionassets/연애 재회 타로 프롬프트 메이커.webp",
+    heroImageAlt: "AI 타로 스프레드 메이커 대표 이미지",
+    detailRoute: "/services/tarot-prompt-maker",
+    launchRoute: "/tarot/prompt-maker",
+    accessType: "paid",
+    featureKey: "tarot-prompt-maker",
+    tags: ["타로", "프롬프트", "스프레드", "AI 리딩"],
+    highlights: ["질문 자동 분류", "50+ 스프레드 추천", "1회 50코인"],
+    howItWorks: [
+      { title: "질문 입력", description: "지금 궁금한 상황을 자연어로 입력합니다." },
+      { title: "스프레드 추천", description: "질문 의도에 맞는 스프레드 3개를 추천합니다." },
+      { title: "프롬프트 생성", description: "카드 포지션/해석 규칙/출력 형식이 포함된 프롬프트를 완성합니다." },
+    ],
+    resultExamples: [
+      { title: "질문 분석", description: "질문의 핵심 의도와 카테고리 요약" },
+      { title: "추천 스프레드", description: "질문 맞춤 3개 스프레드와 카드 수 제안" },
+      { title: "완성 프롬프트", description: "AI에 바로 붙여넣을 수 있는 구조형 프롬프트" },
+    ],
+    seo: {
+      title: "AI 타로 스프레드 메이커 소개 | Code Destiny",
+      description: "질문 기반으로 타로 스프레드와 해석 프롬프트를 자동 생성하는 AI 타로 스프레드 메이커 소개 페이지입니다.",
+      keywords: ["타로 프롬프트", "AI 타로", "스프레드 메이커", "타로 질문 생성기"],
+    },
+  },
+  {
     slug: "palm-reading",
     title: "AI 손금 분석",
     subtitle: "생명선, 감정선, 두뇌선, 운명선 기반 이미지 리딩",

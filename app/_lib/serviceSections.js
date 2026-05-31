@@ -28,6 +28,13 @@ export const SERVICE_SECTIONS = [
     items: [
       { href: "/tarot/mingri", title: "명리학 타로", desc: "78장 유니버설 덱 리딩 · 무료" },
       { href: "/tarot/love", title: "우리는 무슨 사이?", desc: "6카드 연애 관계 리딩 · 50코인" },
+      {
+        href: "/tarot/prompt-maker",
+        title: "AI 타로 스프레드 메이커",
+        desc: "질문 기반 프롬프트 자동 생성 · 1회 50코인 · 50+ 스프레드",
+        image: "/fuctionassets/연애 재회 타로 프롬프트 메이커.webp",
+        alt: "연애 재회 타로 프롬프트 메이커",
+      },
       { href: "/tarot/healing", title: "따뜻한 태양 회복 타로", desc: "4카드 회복 스프레드 · 무료" },
       { href: "/tarot/self-esteem", title: "자존감 레벨업", desc: "5카드 RPG 퀘스트 · 무료" },
       { href: "/tarot/reunion", title: "재회운 타로", desc: "5카드 등대 스프레드 · 50코인" },
