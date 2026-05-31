@@ -5,8 +5,12 @@ import { connectDb } from "../lib/db.js";
 import { ServiceExecutionTransaction } from "../lib/models.js";
 
 const CHAPTER_MIN = 1400;
+const SECTION_MIN = 350;
+const CHAPTER_SUMMARY_MIN = 180;
 const FPTI_REPORT_TYPE = "fptiPremium";
 const FPTI_FEATURE_KEY = "premium-fpti-report";
+const FPTI_DEEP_SCHEMA_VERSION = "fpti-deep-v3.0.0";
+const PLACEHOLDER_TITLE_PATTERN = /\b(섹션|section|카테고리|category|챕터|chapter)\s*\d+\b/i;
 const CHAPTERS = [
   {
     id: "overview",
@@ -98,6 +102,17 @@ function clean(value) {
   return String(value || "").trim();
 }
 
+function stripRomanPrefix(value) {
+  return String(value || "")
+    .replace(/^\s*[IVXLCDM]+\.\s*/gi, "")
+    .replace(/^\s*[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ]+\.\s*/g, "")
+    .trim();
+}
+
+function isPlaceholderTitle(value) {
+  return PLACEHOLDER_TITLE_PATTERN.test(clean(value));
+}
+
 function toIso(value) {
   const d = value instanceof Date ? value : new Date(value || Date.now());
   if (Number.isNaN(d.getTime())) return new Date().toISOString();
@@ -155,6 +170,57 @@ function chapterTone(chapterId) {
   return "성장 실행";
 }
 
+function chapterDetailFrame(chapterId, categoryTitle, ten, elements, axis) {
+  if (chapterId === "overview") {
+    return {
+      diagnosis: `${categoryTitle}은 성향 코드의 본체를 읽는 핵심 지점입니다. ${ten.primary} 주도 반응과 ${ten.secondary} 보조 반응이 어떤 순서로 작동하는지 파악하면 반복되는 선택 편향의 원인을 정확히 짚을 수 있습니다.`,
+      trigger: `강화 트리거는 ${elements.strong} 에너지 구간에서 발생하고, 흔들림 트리거는 ${elements.weak} 피로 구간에서 먼저 나타납니다. 축 점수(${axis})를 함께 보면 강점 과신 구간과 판단 지연 구간을 분리해 읽을 수 있습니다.`,
+      execution: `실행 기준은 "강화 조건 1개 + 중단 조건 1개 + 복귀 조건 1개"를 문장으로 고정하는 방식이 가장 안정적입니다. 이 구조를 주간 점검표로 운영하면 운세 해석이 실제 행동 전략으로 전환됩니다.`,
+    };
+  }
+  if (chapterId === "inner") {
+    return {
+      diagnosis: `${categoryTitle}은 감정 자체보다 감정 이후의 운영 순서를 다루는 항목입니다. ${ten.primary} 반응이 강할수록 기준 회복은 빠르지만, ${ten.tertiary} 표현 축이 과열되면 자기비판이 먼저 올라올 수 있습니다.`,
+      trigger: `내면 변동은 ${elements.weak} 구간에서 집중력 저하와 반응 속도 급등으로 먼저 나타나며, ${elements.strong} 구간에서는 회복 탄력이 높게 유지됩니다.`,
+      execution: `실행은 "사실 확인 1줄 → 감정 명명 1줄 → 다음 행동 1개" 순서를 매일 고정하세요. 감정 파도를 분석 대상으로 바꾸면 과잉 반응 빈도가 빠르게 감소합니다.`,
+    };
+  }
+  if (chapterId === "relationship") {
+    return {
+      diagnosis: `${categoryTitle}에서는 끌림보다 조율 메커니즘을 보는 것이 중요합니다. ${ten.primary}는 관계의 중심축을 세우고 ${ten.secondary}는 경계 설정 속도를 결정합니다.`,
+      trigger: `관계 리스크는 ${elements.weak} 피로 구간에서 기대치 불일치로 커집니다. 축 점수(${axis})의 편차가 큰 날일수록 말의 강도보다 합의 문장의 명확성이 더 중요합니다.`,
+      execution: `실행 기준은 "요청-기한-확인" 3문장으로 대화를 닫는 것입니다. 갈등 후 24시간 내 합의 문장을 남기면 재발 확률을 체감 수준으로 줄일 수 있습니다.`,
+    };
+  }
+  if (chapterId === "career") {
+    return {
+      diagnosis: `${categoryTitle}은 재능이 아니라 성과 재현성을 점검하는 항목입니다. ${ten.primary}가 착수 속도를, ${ten.secondary}가 마감 완성도를 담당하므로 두 축의 순서를 분리해야 누락이 줄어듭니다.`,
+      trigger: `업무 흔들림은 ${elements.weak} 구간에서 우선순위 충돌로 시작됩니다. 축 점수(${axis})를 기준으로 작업 강도를 조정하면 산출물 편차를 줄일 수 있습니다.`,
+      execution: `실행은 모든 업무를 "착수 기준/완료 기준/중단 기준" 3요소로 정의하는 방식이 유효합니다. 회의 직후 20분 정리 루틴을 고정하면 성과 누적 속도가 빨라집니다.`,
+    };
+  }
+  if (chapterId === "wealth") {
+    return {
+      diagnosis: `${categoryTitle}은 재무 성향의 원인을 해석하는 항목입니다. ${ten.primary}는 보수/관리 성향을, ${ten.secondary}는 확장/기회 성향을 강화하므로 두 반응의 균형이 수익 안정성을 좌우합니다.`,
+      trigger: `재정 리스크는 ${elements.weak} 구간에서 보상 소비 혹은 과도한 회피로 나타납니다. 축 점수(${axis})와 함께 보면 손실 회피와 기회 포착의 균형 지점을 찾기 쉬워집니다.`,
+      execution: `실행 기준은 지출을 생존/성장/만족 3계정으로 분리하고 성장계정 비율을 고정하는 것입니다. 월간 점검에서 비계획 지출 횟수를 수치로 추적하세요.`,
+    };
+  }
+  if (chapterId === "stress") {
+    return {
+      diagnosis: `${categoryTitle}은 스트레스 반응의 전조를 조기 식별하는 항목입니다. ${ten.primary}가 과열되면 버티기 전략이 강해지고, ${ten.secondary}가 과열되면 통제 강도가 높아질 수 있습니다.`,
+      trigger: `${elements.weak} 구간에서는 수면 붕괴-결정 지연-관계 예민도가 연쇄적으로 나타납니다. 축 점수(${axis})를 매일 점검하면 임계점 이전에 속도를 낮출 수 있습니다.`,
+      execution: `실행은 "전조 신호 3개"를 수치화해 2개 이상 발생 시 일정 강도를 30% 줄이는 규칙으로 운영하세요. 회복을 의지 문제가 아니라 시스템 문제로 다뤄야 재발이 감소합니다.`,
+    };
+  }
+
+  return {
+    diagnosis: `${categoryTitle}은 성장 방향을 행동 설계로 바꾸는 핵심 항목입니다. ${ten.primary}의 강점 축과 ${ten.secondary}의 보조 축을 함께 쓰되, 과열 시 감속 규칙을 먼저 설계해야 장기 성과가 유지됩니다.`,
+    trigger: `성장 정체는 ${elements.weak} 구간에서 복귀 지연으로 발생합니다. 축 점수(${axis})를 기준으로 주간 난이도를 조정하면 실행 지속성이 높아집니다.`,
+    execution: `실행은 30일 루틴과 90일 로드맵을 분리해 관리하세요. 하루 핵심 행동 1개, 주간 점검 1회, 월간 리셋 1회를 고정하면 변화가 누적됩니다.`,
+  };
+}
+
 function buildCategoryBody(input, chapter, categoryTitle, index) {
   const ten = takeTenGods(input);
   const elements = takeElements(input);
@@ -163,6 +229,8 @@ function buildCategoryBody(input, chapter, categoryTitle, index) {
   const axisF = Number(input?.axisScores?.F || 50);
   const axisR = Number(input?.axisScores?.R || 50);
   const mood = chapterTone(chapter.id);
+  const axisCompact = `A ${axisA} / H ${axisH} / F ${axisF} / R ${axisR}`;
+  const frame = chapterDetailFrame(chapter.id, categoryTitle, ten, elements, axisCompact);
 
   const lines = [
     `${chapter.title}에서 ${categoryTitle}은 ${input.typeName}(${input.code})의 선택 리듬을 가장 구체적으로 보여주는 지점입니다.`,
@@ -170,11 +238,14 @@ function buildCategoryBody(input, chapter, categoryTitle, index) {
     `${ten.primary}이 강하게 작동하는 시기에는 자기 기준이 선명해지고, ${ten.tertiary} 축이 열리면 문제를 다루는 말과 실행력이 동시에 살아납니다.`,
     `오행은 ${elements.strong}가 추진력을 만들고 ${elements.weak}가 흔들리는 구간에서 피로 신호를 먼저 보여 주므로, ${mood} 관점의 운영 규칙이 중요합니다.`,
     `축 점수는 에너지 ${axisA}, 판단 ${axisH}, 실행 ${axisF}, 전망 ${axisR}로 읽을 수 있으며, 이 차이를 인지할수록 관계·일·돈 장면에서 선택의 품질이 안정됩니다.`,
+    frame.diagnosis,
+    frame.trigger,
+    frame.execution,
   ];
 
-  const strength = `${ten.primary} 성향이 살아 있을 때 기준을 빠르게 세우고 꾸준히 밀어 가는 힘이 선명합니다.`;
-  const risk = `${ten.secondary} 반응이 과열되면 상대의 속도를 통제하려는 마음이 커져 피로가 누적될 수 있습니다.`;
-  const action = `${index + 1}번째 실천으로 이번 주에 지킬 판단 기준 문장 1개와 멈춤 기준 문장 1개를 먼저 적고, 하루 종료 전에 실제 적용 여부를 점검하세요.`;
+  const strength = `${ten.primary} 성향이 살아 있을 때 ${categoryTitle} 장면에서 기준 설정 속도와 실행 일관성이 함께 올라갑니다.`;
+  const risk = `${ten.secondary} 반응이 과열되면 ${categoryTitle}에서 통제 강도가 높아져 관계 피로와 판단 지연이 동시에 누적될 수 있습니다.`;
+  const action = `${index + 1}번째 실천으로 ${categoryTitle}에 대한 기준 문장 1개, 금지 문장 1개, 복귀 문장 1개를 작성하고 주간 점검표에 실제 적용 횟수를 기록하세요.`;
 
   return {
     id: `${chapter.id}-cat-${index + 1}`,
@@ -207,7 +278,7 @@ function toDeepChapters(input) {
 function toDeepPayload(local, reportSignature, persisted = {}, input = {}) {
   const chapters = toDeepChapters(input);
   return {
-    reportType: "fpti-deep",
+    reportType: "FPTI_DEEP_REPORT",
     productKey: FPTI_FEATURE_KEY,
     reportSignature,
     reportId: clean(persisted.reportId || `fpti-deep-${reportSignature}`),
@@ -217,7 +288,73 @@ function toDeepPayload(local, reportSignature, persisted = {}, input = {}) {
     source: clean(local?.source || "local") || "local",
     generatedAt: toIso(local?.generatedAt),
     chapters,
+    meta: {
+      schemaVersion: FPTI_DEEP_SCHEMA_VERSION,
+      chapterCount: CHAPTERS.length,
+    },
   };
+}
+
+function reportNeedsUpgrade(archive) {
+  const version = clean(archive?.meta?.schemaVersion);
+  return version !== FPTI_DEEP_SCHEMA_VERSION;
+}
+
+function isArchivedReportUsable(archive) {
+  if (!archive || typeof archive !== "object") {
+    return { ok: false, reason: "archive_missing" };
+  }
+
+  if (reportNeedsUpgrade(archive)) {
+    return { ok: false, reason: "schema_version_mismatch" };
+  }
+
+  const chapters = Array.isArray(archive.chapters) ? archive.chapters : [];
+  if (chapters.length !== CHAPTERS.length) {
+    return { ok: false, reason: "chapter_count_mismatch" };
+  }
+
+  for (let i = 0; i < CHAPTERS.length; i += 1) {
+    const expectedChapter = CHAPTERS[i];
+    const chapter = chapters[i] && typeof chapters[i] === "object" ? chapters[i] : null;
+    const chapterTitle = stripRomanPrefix(chapter?.title);
+    if (chapterTitle !== expectedChapter.title || isPlaceholderTitle(chapterTitle)) {
+      return { ok: false, reason: `chapter_title_mismatch_${i + 1}` };
+    }
+
+    const sectionList = Array.isArray(chapter?.sections)
+      ? chapter.sections
+      : (Array.isArray(chapter?.categories) ? chapter.categories : []);
+    if (sectionList.length < expectedChapter.categories.length) {
+      return { ok: false, reason: `section_count_mismatch_${i + 1}` };
+    }
+
+    for (let j = 0; j < expectedChapter.categories.length; j += 1) {
+      const section = sectionList[j] && typeof sectionList[j] === "object" ? sectionList[j] : null;
+      const sectionTitle = stripRomanPrefix(section?.title);
+      if (sectionTitle !== expectedChapter.categories[j] || isPlaceholderTitle(sectionTitle)) {
+        return { ok: false, reason: `section_title_mismatch_${i + 1}_${j + 1}` };
+      }
+      const body = clean(section?.body || section?.interpretation);
+      if (body.length < SECTION_MIN) {
+        return { ok: false, reason: `section_body_too_short_${i + 1}_${j + 1}` };
+      }
+    }
+
+    const chapterSummary = clean(chapter?.chapterSummary);
+    if (chapterSummary.length < CHAPTER_SUMMARY_MIN) {
+      return { ok: false, reason: `chapter_summary_too_short_${i + 1}` };
+    }
+  }
+
+  return { ok: true, reason: "ok" };
+}
+
+async function createAndArchiveDeepReport(env, userId, reportSignature, input, access = {}) {
+  const local = buildLocalReport(input);
+  const report = toDeepPayload(local, reportSignature, {}, input);
+  await writeArchivedReport(env, userId, reportSignature, report, access || {});
+  return report;
 }
 
 async function readArchivedReport(env, userId, reportSignature) {
@@ -554,18 +691,29 @@ async function handleDeepReport(request, env) {
 
   const archived = await readArchivedReport(env, auth.userId, reportSignature);
   if (archived?.chapters?.length) {
+    const archivedQuality = isArchivedReportUsable(archived);
+    if (archivedQuality.ok) {
+      return json({
+        ok: true,
+        data: {
+          source: archived.source || "archive",
+          report: archived,
+        },
+      });
+    }
+
+    const regenerated = await createAndArchiveDeepReport(env, auth.userId, reportSignature, input, access || {});
     return json({
       ok: true,
       data: {
-        source: archived.source || "archive",
-        report: archived,
+        source: "regenerated",
+        reason: archivedQuality.reason,
+        report: regenerated,
       },
     });
   }
 
-  const local = buildLocalReport(input);
-  const report = toDeepPayload(local, reportSignature, {}, input);
-  await writeArchivedReport(env, auth.userId, reportSignature, report, access || {});
+  const report = await createAndArchiveDeepReport(env, auth.userId, reportSignature, input, access || {});
 
   return json({
     ok: true,
@@ -602,6 +750,11 @@ async function handleReadDeepReport(request, env) {
   const archived = await readArchivedReport(env, auth.userId, reportSignature);
   if (!archived) {
     return json({ ok: false, code: "REPORT_NOT_FOUND", message: "저장된 리포트를 찾을 수 없습니다." }, { status: 404 });
+  }
+
+  const archivedQuality = isArchivedReportUsable(archived);
+  if (!archivedQuality.ok) {
+    return json({ ok: false, code: "REPORT_NEEDS_REFRESH", message: "리포트 갱신이 필요합니다. POST /api/fpti/deep-report로 재생성해 주세요." }, { status: 409 });
   }
 
   return json({

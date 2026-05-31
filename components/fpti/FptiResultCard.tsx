@@ -50,6 +50,16 @@ const QUALITY_LABELS = {
 const STORAGE_KEY = "fpti_deep_report_state_v2";
 const FPTI_PREMIUM_UNLOCK_KEYS = ["premium-fpti-report", "premium_fpti_report", "generatefptideepreport", "openfptideepreport"];
 const DISALLOWED_RENDER_TEXT = ["섹션 로딩 중입니다.", "내용 준비 중입니다.", "fallback", "skeleton", "undefined", "null", "[object Object]", "데이터가 없습니다"];
+const PLACEHOLDER_TITLE_PATTERN = /\b(섹션|section|카테고리|category|챕터|chapter)\s*\d+\b/i;
+const CHAPTER_TITLE_SCHEMA = [
+  "FPTI 유형 총론 - 나의 운명 성향 코드",
+  "내면 성격과 감정 패턴",
+  "관계와 연애 패턴",
+  "일과 재능의 사용 방식",
+  "돈과 현실 감각",
+  "스트레스와 그림자 성향",
+  "성장 전략과 실행 로드맵",
+];
 const CATEGORY_SCHEMA: string[][] = [
   ["FPTI 코드가 말해주는 기본 기질", "대표 십성이 만드는 성격의 중심축", "겉모습과 실제 내면의 차이", "반복되는 선택 패턴", "이 유형이 강해지는 조건", "이 유형이 흔들리는 조건"],
   ["감정을 받아들이는 기본 방식", "무의식적으로 자신을 지키는 방식", "가까운 사람 앞에서 드러나는 진짜 모습", "혼자 있을 때 회복되는 리듬", "감정이 쌓였을 때 나타나는 신호", "마음을 안정시키는 현실적 기준"],
@@ -80,6 +90,24 @@ function sanitizeUserText(value: unknown, fallbackText: string): string {
   return text;
 }
 
+function isPlaceholderTitle(value: unknown): boolean {
+  return PLACEHOLDER_TITLE_PATTERN.test(String(value || "").trim());
+}
+
+function resolveChapterTitle(value: unknown, idx: number): string {
+  const schemaTitle = CHAPTER_TITLE_SCHEMA[idx] || `챕터 ${idx + 1}`;
+  const cleaned = stripRomanPrefix(value);
+  if (!cleaned || isPlaceholderTitle(cleaned)) return schemaTitle;
+  return cleaned;
+}
+
+function resolveSectionTitle(value: unknown, chapterIdx: number, sectionIdx: number): string {
+  const schemaTitle = CATEGORY_SCHEMA[chapterIdx]?.[sectionIdx] || `핵심 항목 ${sectionIdx + 1}`;
+  const cleaned = stripRomanPrefix(value);
+  if (!cleaned || isPlaceholderTitle(cleaned)) return schemaTitle;
+  return cleaned;
+}
+
 function buildUnlockRequestId(scope: string, signature: string): string {
   const base = `${scope}|${signature}`.toLowerCase();
   let hash = 0;
@@ -99,7 +127,7 @@ function normalizeDeepReport(report: FptiDeepReport, unlocked: boolean): FptiDee
       );
       return {
         ...section,
-        title: sanitizeUserText(stripRomanPrefix(section?.title), CATEGORY_SCHEMA[idx]?.[sectionIdx] || `핵심 항목 ${sectionIdx + 1}`),
+        title: sanitizeUserText(resolveSectionTitle(section?.title, idx, sectionIdx), CATEGORY_SCHEMA[idx]?.[sectionIdx] || `핵심 항목 ${sectionIdx + 1}`),
         interpretation: safeBody,
         body: safeBody,
         strength: sanitizeUserText(section?.strength, "강점이 발휘되는 장면을 정확히 읽으면 선택의 일관성이 높아집니다."),
@@ -112,7 +140,7 @@ function normalizeDeepReport(report: FptiDeepReport, unlocked: boolean): FptiDee
     return {
       ...chapter,
       id: String((chapter as Record<string, unknown>)?.id || chapter?.order || idx + 1),
-      title: sanitizeUserText(stripRomanPrefix(chapter?.title), `챕터 ${idx + 1}`),
+      title: sanitizeUserText(resolveChapterTitle(chapter?.title, idx), CHAPTER_TITLE_SCHEMA[idx] || `챕터 ${idx + 1}`),
       chapterSummary: sanitizeUserText(
         chapter?.chapterSummary,
         `${idx + 1}장은 현재 성향 축의 강점과 취약 구간을 생활 장면에 맞춰 해석한 실행형 요약입니다.`,
@@ -156,12 +184,14 @@ function mapServerDeepReport(result: FptiAnalysisResult, serverRaw: unknown): Fp
   const base = resolveUnlockReport(result);
   const mappedChapters = rawChapters.slice(0, 7).map((chapterRaw, idx) => {
     const chapter = chapterRaw && typeof chapterRaw === "object" ? (chapterRaw as Record<string, unknown>) : {};
-    const rawSections = Array.isArray(chapter.sections) ? chapter.sections : [];
+    const rawSections = Array.isArray(chapter.sections)
+      ? chapter.sections
+      : (Array.isArray(chapter.categories) ? chapter.categories : []);
     const sections = rawSections.map((sectionRaw, sectionIdx) => {
       const section = sectionRaw && typeof sectionRaw === "object" ? (sectionRaw as Record<string, unknown>) : {};
       const body = sanitizeUserText(section.body || section.interpretation, `${idx + 1}장 ${sectionIdx + 1}절은 현재 성향 축을 기준으로 관계, 일, 돈, 감정 패턴을 현실적으로 정리한 해석입니다.`);
       return {
-        title: sanitizeUserText(stripRomanPrefix(section.title), CATEGORY_SCHEMA[idx]?.[sectionIdx] || `핵심 항목 ${sectionIdx + 1}`),
+        title: sanitizeUserText(resolveSectionTitle(section.title, idx, sectionIdx), CATEGORY_SCHEMA[idx]?.[sectionIdx] || `핵심 항목 ${sectionIdx + 1}`),
         usedSignals: Array.isArray(section.usedSignals)
           ? (section.usedSignals as unknown[]).map((v) => sanitizeUserText(v, "핵심 성향 신호")).filter(Boolean)
           : ["십성 기반 성향", "축 해석 요약", "실행 기준"],
@@ -179,7 +209,7 @@ function mapServerDeepReport(result: FptiAnalysisResult, serverRaw: unknown): Fp
       ...baseChapter,
       id: sanitizeUserText(chapter.id, String(baseChapter?.order || idx + 1)),
       order: Number(chapter.order || baseChapter?.order || idx + 1),
-      title: sanitizeUserText(stripRomanPrefix(chapter.title), baseChapter?.title || `챕터 ${idx + 1}`),
+      title: sanitizeUserText(resolveChapterTitle(chapter.title, idx), baseChapter?.title || CHAPTER_TITLE_SCHEMA[idx] || `챕터 ${idx + 1}`),
       subtitle: sanitizeUserText(chapter.subtitle, "사주 십성 기반 심층 해석"),
       preview: sanitizeUserText(chapter.preview, sections[0]?.interpretation || ""),
       locked: false,

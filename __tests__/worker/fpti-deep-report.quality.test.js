@@ -40,5 +40,17 @@ describe("fpti deep report quality", () => {
     expect(source.includes("buildFptiPremiumPdfText")).toBe(false);
     expect(source.includes("심층 리포트 잠금 해제")).toBe(true);
     expect(source.includes("해석 근거 신호")).toBe(true);
+    expect(source.includes("const PLACEHOLDER_TITLE_PATTERN")).toBe(true);
+    expect(source.includes("function resolveChapterTitle")).toBe(true);
+    expect(source.includes("function resolveSectionTitle")).toBe(true);
+  });
+
+  test("워커 deep-report 라우트에 스키마 버전/구아카이브 재생성 가드가 있어야 한다", () => {
+    const source = read("worker/routes/fpti.js");
+    expect(source.includes('const FPTI_DEEP_SCHEMA_VERSION = "fpti-deep-v3.0.0"')).toBe(true);
+    expect(source.includes('reportType: "FPTI_DEEP_REPORT"')).toBe(true);
+    expect(source.includes("function isArchivedReportUsable")).toBe(true);
+    expect(source.includes("schema_version_mismatch")).toBe(true);
+    expect(source.includes('source: "regenerated"')).toBe(true);
   });
 });
