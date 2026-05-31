@@ -343,8 +343,40 @@ export default function TarotPromptMakerPage() {
         />
       ))}
 
-      <div className="relative mx-auto w-full max-w-[1680px] px-3 pb-16 pt-4 sm:px-5 lg:px-8">
-        <section className="rounded-[30px] border border-[#f8d38f]/25 bg-[linear-gradient(120deg,rgba(12,16,42,0.92),rgba(25,14,55,0.86))] px-5 py-6 shadow-[0_30px_120px_rgba(4,6,22,0.65)] backdrop-blur-xl lg:px-8">
+      <div className="relative mx-auto w-full max-w-[1760px] px-3 pb-16 pt-4 sm:px-5 lg:px-8">
+        <div className="grid gap-4 xl:grid-cols-[84px_minmax(0,1fr)]">
+          <aside className="hidden xl:block">
+            <div className="sticky top-5 rounded-[22px] border border-[#f8d38f]/22 bg-[linear-gradient(180deg,rgba(13,16,43,0.95),rgba(8,10,30,0.95))] p-2.5 shadow-[0_20px_55px_rgba(6,8,30,0.58)]">
+              <div className="mb-2 rounded-[14px] border border-[#f8d38f]/30 bg-[#f8d38f]/10 px-2 py-2 text-center text-[11px] font-semibold tracking-[0.2em] text-[#ffe4a8]">
+                CD
+              </div>
+              <div className="space-y-1.5">
+                {[
+                  { key: "home", icon: "☾", label: "홈" },
+                  { key: "library", icon: "✦", label: "라이브러리" },
+                  { key: "question", icon: "✎", label: "질문" },
+                  { key: "result", icon: "☽", label: "결과" },
+                ].map((item) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={item.key === "library" ? scrollToLibrary : undefined}
+                    className="group w-full rounded-[12px] border border-white/8 bg-white/[0.03] px-1 py-2 text-center transition hover:border-[#f8d38f]/35 hover:bg-white/[0.08]"
+                  >
+                    <div className="text-sm text-white/90">{item.icon}</div>
+                    <div className="mt-1 text-[10px] text-white/55 group-hover:text-[#ffe4a8]">{item.label}</div>
+                  </button>
+                ))}
+              </div>
+              <div className="mt-3 rounded-[12px] border border-white/10 bg-white/[0.04] px-1 py-2 text-center">
+                <div className="text-[10px] text-white/55">Moonlit</div>
+                <div className="text-[10px] font-semibold text-white/82">Premium</div>
+              </div>
+            </div>
+          </aside>
+
+          <div>
+            <section className="rounded-[30px] border border-[#f8d38f]/25 bg-[linear-gradient(120deg,rgba(12,16,42,0.92),rgba(25,14,55,0.86))] px-5 py-6 shadow-[0_30px_120px_rgba(4,6,22,0.65)] backdrop-blur-xl lg:px-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-3">
               <div className="inline-flex items-center gap-2 rounded-full border border-[#f8d38f]/35 bg-[#f8d38f]/12 px-3 py-1 text-[11px] font-semibold tracking-[0.22em] text-[#ffe4a8]">
@@ -368,9 +400,9 @@ export default function TarotPromptMakerPage() {
               ))}
             </div>
           </div>
-        </section>
+          </section>
 
-        <section ref={libraryRef} id="spread-library" className="mt-5 grid gap-4 xl:grid-cols-[1.03fr_1fr_1.03fr]">
+          <section ref={libraryRef} id="spread-library" className="mt-5 grid gap-4 xl:grid-cols-[1.03fr_1fr_1.03fr]">
           <div className="rounded-[26px] border border-[#8b78d5]/35 bg-[linear-gradient(180deg,rgba(18,20,54,0.94),rgba(10,11,34,0.94))] p-4 shadow-[0_18px_60px_rgba(7,8,28,0.55)]">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
@@ -562,19 +594,95 @@ export default function TarotPromptMakerPage() {
               </button>
             </motion.aside>
           </AnimatePresence>
-        </section>
+            </section>
 
-        <AnimatePresence>
-          {stage !== "library" && (
-            <motion.section
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 24 }}
-              transition={{ duration: 0.35, ease: "easeOut" }}
-              className="relative mt-8 overflow-hidden rounded-[36px] border border-rose-100/20 bg-[linear-gradient(160deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 shadow-[0_36px_120px_rgba(6,8,28,0.5)] backdrop-blur-2xl sm:p-6"
-            >
+            <AnimatePresence mode="wait">
+              <motion.section
+                key={stage}
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 24 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+                className="relative mt-6 overflow-hidden rounded-[30px] border border-[#f8d38f]/20 bg-[linear-gradient(160deg,rgba(15,17,46,0.92),rgba(10,12,35,0.92))] p-5 shadow-[0_36px_120px_rgba(6,8,28,0.5)] backdrop-blur-2xl sm:p-6"
+              >
               <div className="pointer-events-none absolute -right-12 top-6 h-32 w-32 rounded-full bg-rose-200/20 blur-3xl" />
               <div className="pointer-events-none absolute -left-10 bottom-0 h-36 w-36 rounded-full bg-indigo-200/12 blur-3xl" />
+              {stage === "library" && (
+                <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+                  <div className="rounded-[22px] border border-[#f8d38f]/22 bg-[#080d28]/90 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-[11px] uppercase tracking-[0.2em] text-white/48">Spread Detail</div>
+                        <h3 className="mt-1 text-2xl font-semibold text-[#fff6e2]">{selectedSpread.title}</h3>
+                      </div>
+                      <span className="rounded-full border border-[#f8d38f]/35 bg-[#f8d38f]/10 px-2.5 py-1 text-xs text-[#ffe4a8]">{DIFFICULTY_LABEL[selectedSpread.difficulty]}</span>
+                    </div>
+                    <p className="mt-2 text-sm leading-7 text-white/72">{selectedSpread.purpose}</p>
+
+                    <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_0.94fr]">
+                      <div className="rounded-[18px] border border-[#f8d38f]/20 bg-[radial-gradient(circle_at_50%_100%,rgba(248,211,143,0.18),transparent_32%),linear-gradient(180deg,rgba(14,18,46,0.94),rgba(8,10,30,0.94))] p-3">
+                        <div className="relative aspect-square rounded-[16px] border border-[#f8d38f]/22">
+                          {selectedSpread.positions.map((position) => (
+                            <div
+                              key={`${selectedSpread.id}-preview-${position.index}`}
+                              className="absolute h-[80px] w-[56px] -translate-x-1/2 -translate-y-1/2 rounded-[12px] border border-white/14 bg-white/[0.05] p-1 text-center"
+                              style={{ left: `${position.x}%`, top: `${position.y}%`, transform: `translate(-50%, -50%) rotate(${position.rotate}deg)` }}
+                            >
+                              <div className="text-[10px] font-bold text-[#ffe4a8]">{position.index}</div>
+                              <div className="mt-1 line-clamp-3 text-[10px] text-white/70">{position.label}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        {selectedSpread.interpretationGuide.slice(0, 4).map((item) => (
+                          <div key={item} className="rounded-[14px] border border-white/10 bg-white/[0.05] px-3 py-2 text-xs leading-6 text-white/72">{item}</div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => beginDraw(selectedSpread.id)}
+                      className="mt-4 w-full rounded-[16px] bg-[linear-gradient(90deg,#f4b04f,#d883ff)] px-4 py-3 text-sm font-semibold text-[#190b2f] shadow-[0_12px_30px_rgba(216,131,255,0.33)] transition hover:brightness-110"
+                    >
+                      이 스프레드로 프롬프트 생성하기
+                    </button>
+                  </div>
+
+                  <div className="rounded-[22px] border border-[#f8d38f]/22 bg-[#070c22]/92 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-[11px] uppercase tracking-[0.2em] text-white/48">Result / Prompt</div>
+                        <h3 className="mt-1 text-2xl font-semibold text-[#fff6e2]">생성될 타로 프롬프트</h3>
+                      </div>
+                      <span className="rounded-full border border-white/12 bg-white/[0.06] px-2.5 py-1 text-xs text-white/70">Preview</span>
+                    </div>
+                    <div className="mt-3 rounded-[16px] border border-[#f8d38f]/20 bg-[#060a1a] p-3 text-sm leading-7 text-white/72">
+                      질문에 맞는 카드 구성을 완성하면 여기에 Oracle Prompt가 표시됩니다. 지금은 스프레드 선택과 질문 정제를 먼저 진행해 주세요.
+                    </div>
+                    <div className="mt-3 grid gap-2">
+                      {selectedSpread.positions.slice(0, 5).map((position) => (
+                        <div key={`${selectedSpread.id}-prompt-line-${position.index}`} className="rounded-[12px] border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-white/68">
+                          {position.index}. {position.label} 포지션을 중심으로 해석됩니다.
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <button type="button" className="rounded-full border border-white/12 bg-white/6 px-3 py-2 text-xs text-white/80">
+                        복사 대기
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => beginDraw(selectedSpread.id)}
+                        className="rounded-full bg-[linear-gradient(90deg,#f4b04f,#d883ff)] px-4 py-2 text-xs font-semibold text-[#190b2f]"
+                      >
+                        카드 뽑기 시작
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
               {stage === "draw" && (
                 <div className="grid gap-6 xl:grid-cols-[0.75fr_1.05fr]">
                   <div className="space-y-5">
@@ -823,9 +931,10 @@ export default function TarotPromptMakerPage() {
                   </div>
                 </div>
               )}
-            </motion.section>
-          )}
-        </AnimatePresence>
+              </motion.section>
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
     </main>
   );
