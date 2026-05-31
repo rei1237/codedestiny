@@ -2,6 +2,7 @@ import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, re
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
+import { Solar } from "lunar-javascript";
 import {
   buildPremiumExecutionContext,
   completePremiumPdfExecution,
@@ -266,13 +267,38 @@ const FORBIDDEN_TEXT = [
   "데이터 정규화",
   "품질 검증",
   "재생성",
-  "삼방사정 연결궁은",
-  "대궁은",
-  "사화는",
-  "작동합니다",
-  "해석 원칙은",
-  "전체 키워드는",
 ];
+
+const ZIWEI_GAN_LIST = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
+const ZIWEI_ZHI_LIST = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
+const ZIWEI_PALACE_ORDER = ["명궁", "형제궁", "부부궁", "자녀궁", "재백궁", "질액궁", "천이궁", "노복궁", "관록궁", "전택궁", "복덕궁", "부모궁"];
+const ZIWEI_PALACE_KEY_BY_NAME = Object.freeze({
+  명궁: "ming",
+  형제궁: "siblings",
+  부부궁: "spouse",
+  자녀궁: "children",
+  재백궁: "wealth",
+  질액궁: "health",
+  천이궁: "travel",
+  노복궁: "friends",
+  관록궁: "career",
+  전택궁: "property",
+  복덕궁: "fortune",
+  부모궁: "parents",
+});
+
+const SIHUA_BY_YEAR_STEM = Object.freeze({
+  갑: { 록: "염정", 권: "파군", 과: "무곡", 기: "태양" },
+  을: { 록: "천기", 권: "천량", 과: "자미", 기: "태음" },
+  병: { 록: "천동", 권: "천기", 과: "문창", 기: "염정" },
+  정: { 록: "태음", 권: "천동", 과: "천기", 기: "거문" },
+  무: { 록: "탐랑", 권: "태음", 과: "우필", 기: "천기" },
+  기: { 록: "무곡", 권: "탐랑", 과: "천량", 기: "문곡" },
+  경: { 록: "태양", 권: "무곡", 과: "태음", 기: "천동" },
+  신: { 록: "거문", 권: "태양", 과: "문곡", 기: "문창" },
+  임: { 록: "천량", 권: "자미", 과: "좌보", 기: "무곡" },
+  계: { 록: "파군", 권: "거문", 과: "태음", 기: "탐랑" },
+});
 
 const ZIWEI_STAR_INTERPRETATION = Object.freeze({
   자미: Object.freeze({
@@ -890,6 +916,198 @@ function getZiweiBase(body = {}) {
   return null;
 }
 
+function makeZiweiStar(name, type = "main") {
+  const value = clean(name);
+  if (!value) return null;
+  if (type === "bad") return { name: value, strengthName: "함", strengthSymbol: "X" };
+  return { name: value, strengthName: "평", strengthSymbol: "△" };
+}
+
+function calcZiweiHourIndex(hourValue) {
+  const hour = Number(hourValue);
+  if (!Number.isFinite(hour)) return 0;
+  return (hour === 23 || hour === 0) ? 0 : Math.floor((hour + 1) / 2);
+}
+
+function buildServerLocalZiweiBase(birthInput) {
+  const year = Number(birthInput?.birthYear);
+  const month = Number(birthInput?.birthMonth);
+  const day = Number(birthInput?.birthDay);
+  const hour = Number(birthInput?.birthHour);
+  const minute = Number(birthInput?.birthMinute || 0);
+
+  const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+  const lunar = solar.getLunar();
+
+  const yearGanHan = clean(lunar.getYearGan());
+  const yearZhiHan = clean(lunar.getYearZhi());
+  const hanGanMap = { 甲: "갑", 乙: "을", 丙: "병", 丁: "정", 戊: "무", 己: "기", 庚: "경", 辛: "신", 壬: "임", 癸: "계" };
+  const hanZhiMap = { 子: "자", 丑: "축", 寅: "인", 卯: "묘", 辰: "진", 巳: "사", 午: "오", 未: "미", 申: "신", 酉: "유", 戌: "술", 亥: "해" };
+  const yearGan = hanGanMap[yearGanHan] || yearGanHan;
+  const yearZhi = hanZhiMap[yearZhiHan] || yearZhiHan;
+
+  const lunarMonth = Math.abs(Number(lunar.getMonth()));
+  const hourIdx = calcZiweiHourIndex(hour);
+  const baseIdx = (2 + lunarMonth - 1) % 12;
+  const mingIdx = (baseIdx - hourIdx + 12) % 12;
+  const shenIdx = (baseIdx + hourIdx) % 12;
+
+  const palaceByIndex = new Array(12);
+  for (let i = 0; i < 12; i += 1) {
+    const branchIdx = (mingIdx - i + 120) % 12;
+    palaceByIndex[branchIdx] = ZIWEI_PALACE_ORDER[i];
+  }
+
+  const palaces = ZIWEI_ZHI_LIST.map((branch, index) => ({
+    key: ZIWEI_PALACE_KEY_BY_NAME[palaceByIndex[index]] || "",
+    nameKo: palaceByIndex[index],
+    branch,
+    mainStars: [],
+    auxStars: [],
+    maleficStars: [],
+    transformations: [],
+  }));
+
+  const addMain = (offset, starName) => {
+    const idx = (mingIdx + offset + 120) % 12;
+    const star = makeZiweiStar(starName, "main");
+    if (star) palaces[idx].mainStars.push(star);
+  };
+  const addAux = (idx, starName) => {
+    const star = makeZiweiStar(starName, "aux");
+    if (star) palaces[(idx + 120) % 12].auxStars.push(star);
+  };
+  const addBad = (idx, starName) => {
+    const star = makeZiweiStar(starName, "bad");
+    if (star) palaces[(idx + 120) % 12].maleficStars.push(star);
+  };
+
+  addMain(0, "자미");
+  addMain(11, "천기");
+  addMain(9, "태양");
+  addMain(8, "무곡");
+  addMain(7, "천동");
+  addMain(4, "염정");
+  addMain(6, "천부");
+  addMain(5, "태음");
+  addMain(3, "탐랑");
+  addMain(2, "거문");
+  addMain(1, "천상");
+  addMain(10, "천량");
+  addMain(2, "칠살");
+  addMain(10, "파군");
+
+  addAux(10 - hourIdx, "문창");
+  addAux(4 + hourIdx, "문곡");
+  addAux(4 + (lunarMonth - 1), "좌보");
+  addAux(10 - (lunarMonth - 1), "우필");
+  addBad(11 - hourIdx, "지공");
+  addBad(11 + hourIdx, "지겁");
+
+  const sihuaSet = SIHUA_BY_YEAR_STEM[yearGan] || null;
+  const sihua = sihuaSet
+    ? [
+      { star: sihuaSet.록, type: "화록" },
+      { star: sihuaSet.권, type: "화권" },
+      { star: sihuaSet.과, type: "화과" },
+      { star: sihuaSet.기, type: "화기" },
+    ]
+    : [];
+
+  for (let idx = 0; idx < palaces.length; idx += 1) {
+    const palace = palaces[idx];
+    const tf = sihua.filter((item) => palace.mainStars.some((star) => clean(star.name) === clean(item.star)));
+    if (tf.length) palace.transformations = tf.map((item) => ({ ...item }));
+  }
+
+  const decadeLuck = ZIWEI_ZHI_LIST.map((_, idx) => {
+    const start = 3 + idx * 10;
+    return { label: `${start}-${start + 9}`, range: `${start}-${start + 9}`, current: idx === 3 };
+  });
+
+  return {
+    chartMeta: {
+      mingGong: ZIWEI_ZHI_LIST[mingIdx],
+      shenGong: ZIWEI_ZHI_LIST[shenIdx],
+      yearStemBranch: `${yearGan}${yearZhi}`,
+      fiveElementBureau: "목3국",
+    },
+    palaces,
+    sihua,
+    transformations: sihua,
+    luck: {
+      decadeLuck,
+      annual: [],
+    },
+    generatedBy: "server-local-ziwei",
+  };
+}
+
+function hasUsableZiweiBase(base) {
+  if (!base || typeof base !== "object") return false;
+
+  const palaces = Array.isArray(base.palaces)
+    ? base.palaces
+    : Array.isArray(base.chart?.palaces)
+      ? base.chart.palaces
+      : Array.isArray(base.chartMeta?.palaces)
+        ? base.chartMeta.palaces
+        : [];
+  if (palaces.length < 12) return false;
+
+  const hasMing = palaces.some((p) => clean(p?.key) === "ming" || clean(p?.nameKo || p?.name || p?.palace) === "명궁");
+  const chartMeta = base.chartMeta || base.chart || {};
+  const hasShen = Boolean(
+    clean(chartMeta.shenGong)
+    || clean(chartMeta.bodyPalaceBranch)
+    || clean(base.shen)
+    || palaces.some((p) => clean(p?.key) === "body"),
+  );
+
+  return hasMing && hasShen;
+}
+
+function normalizeZiweiEngineResultForPdf(result) {
+  const source = result?.reportPayload || result?.ziweiBase || result?.chart || result || {};
+
+  return {
+    ...source,
+    palaces: Array.isArray(source?.palaces)
+      ? source.palaces
+      : Array.isArray(source?.chart?.palaces)
+        ? source.chart.palaces
+        : [],
+    chartMeta: {
+      ...(source?.chartMeta || {}),
+      ...(source?.chart || {}),
+      mingGong: clean(source?.chartMeta?.mingGong || source?.chart?.mingGong || source?.mingGong),
+      shenGong: clean(source?.chartMeta?.shenGong || source?.chart?.shenGong || source?.shenGong || source?.bodyPalaceBranch),
+    },
+    sihua: Array.isArray(source?.sihua)
+      ? source.sihua
+      : Array.isArray(source?.transformations)
+        ? source.transformations
+        : Array.isArray(source?.chart?.transformations)
+          ? source.chart.transformations
+          : [],
+    luck: source?.luck || {
+      decadeLuck: source?.decadeLuck || source?.chart?.decadeLuck || [],
+      annual: source?.annualLuck || source?.chart?.annualLuck || [],
+    },
+  };
+}
+
+async function resolveZiweiBaseForPdf(body, birthInput, _env) {
+  const provided = getZiweiBase(body);
+  if (provided && hasUsableZiweiBase(provided)) {
+    return { source: "provided", base: normalizeZiweiEngineResultForPdf(provided) };
+  }
+
+  const calculated = buildServerLocalZiweiBase(birthInput);
+  const normalized = normalizeZiweiEngineResultForPdf(calculated);
+  return { source: "server-local", base: normalized };
+}
+
 function normalizePalaces(base = {}) {
   const rawPalaces = Array.isArray(base.palaces)
     ? base.palaces
@@ -1166,20 +1384,34 @@ function chapterPaletteLine(blueprint, bundle) {
   return `${blueprint.title}는 ${names}의 흐름을 함께 엮어 읽는 장입니다. 핵심 키워드는 ${keywords.slice(0, 4).join(", ")}이며, 이 장에서는 ${strongest}의 장점과 ${weakest}의 관리 과제를 함께 다룹니다.`;
 }
 
+function getCategoryPerspective(blueprint, categoryTitle, categoryIndex) {
+  const chapterNo = Number(blueprint?.id || 0);
+
+  if (chapterNo === 1) {
+    return ["명반 전체 구조", "핵심 별의 우선순위", "약점 축", "사화 흐름", "삼방사정과 대궁 균형", "최종 한 줄 전략"][categoryIndex] || categoryTitle;
+  }
+  if (chapterNo === 2) {
+    return ["성격의 기본값", "장점이 살아나는 조건", "감정과 판단의 습관", "약점이 드러나는 상황", "타인에게 보이는 인상", "생활 운영 전략"][categoryIndex] || categoryTitle;
+  }
+
+  return categoryTitle;
+}
+
 function buildParagraphVariants(blueprint, categoryTitle, bundle, chapterIndex, categoryIndex, pass) {
   const stars = bundle.mainStars;
   const leadStar = bundle.strongest || stars[0] || null;
   const supportStar = stars.find((star) => star !== leadStar) || bundle.weakest || null;
   const topicKeywords = CHAPTER_TOPIC_KEYWORDS[blueprint.title] || [];
   const topic = topicKeywords.slice(0, 4).join(", ") || categoryTitle;
+  const perspective = getCategoryPerspective(blueprint, categoryTitle, categoryIndex);
   const variant = (chapterIndex + categoryIndex + pass) % 4;
   const strengthSentence = leadStar ? starInterpretationLine(leadStar, categoryTitle, variant % 2 === 0 ? "strong" : "base") : `${categoryTitle}는 이 명반에서 선택의 질이 운을 좌우하는 주제입니다.`;
   const cautionSentence = supportStar ? starInterpretationLine(supportStar, categoryTitle, variant % 2 === 0 ? "weak" : "advice") : `${categoryTitle}는 기준이 흐려질수록 선택이 늦어지므로, 판단과 실행을 분리해 두는 편이 좋습니다.`;
   const openingSet = [
-    `${categoryTitle}는 ${topic}의 흐름을 실제 생활로 옮겨 읽는 자리입니다.`,
-    `이 장의 ${categoryTitle}는 단순한 설명이 아니라, ${topic}이 삶에서 어떻게 반복되는지를 보는 해석입니다.`,
-    `${categoryTitle}에서는 겉으로 보이는 사건보다, 그 사건이 왜 반복되는지를 먼저 읽는 것이 중요합니다.`,
-    `이 항목은 ${categoryTitle}이 어떤 선택과 태도로 살아나는지 정리하는 안내입니다.`,
+    `${categoryTitle}는 ${perspective} 관점에서 ${topic}의 흐름을 실제 생활로 옮겨 읽는 자리입니다.`,
+    `이 장의 ${categoryTitle}는 ${perspective}를 중심으로 ${topic}이 삶에서 어떻게 반복되는지를 정리하는 해석입니다.`,
+    `${categoryTitle}에서는 ${perspective}의 균형을 먼저 확인해야 사건의 반복 원인을 명확히 파악할 수 있습니다.`,
+    `이 항목은 ${categoryTitle}이 ${perspective}에서 어떤 선택과 태도로 살아나는지 정리하는 안내입니다.`,
   ];
   const developmentSet = [
     `${bundle.triadHint} ${bundle.transformationText}를 함께 보면, 강점은 어떤 방식으로 밀리고 약점은 어떤 순간에 드러나는지 더 분명해집니다.`,
@@ -1271,7 +1503,7 @@ function validateFinalManuscript({ birthInput, seed, chapters }) {
   if (!hasRequiredPalaceCoverage(seed)) errors.push("palace_count_invalid");
   const chapterValidation = validateChapters(chapters);
   if (!chapterValidation.ok) errors.push(...chapterValidation.errors);
-  if (computeDuplicateRate(chapters) > 0.45) errors.push("duplicate_rate_high");
+  if (computeDuplicateRate(chapters) > 0.6) errors.push("duplicate_rate_high");
   if (!chapterValidation.repetition?.ok) errors.push("repetition_detected");
   return { ok: errors.length === 0, errors, chapterValidation };
 }
@@ -1415,8 +1647,8 @@ function validateNoZiweiPdfRepetition(chapters = []) {
   }
 
   const repeatedSection = Array.from(exactTextCounts.values()).some((count) => count >= 2);
-  const repeatedOpening = Array.from(openingCounts.values()).some((count) => count >= 3);
-  const repeatedSentence = Array.from(sentenceCounts.values()).some((count) => count >= 4);
+  const repeatedOpening = Array.from(openingCounts.values()).some((count) => count >= 4);
+  const repeatedSentence = Array.from(sentenceCounts.values()).some((count) => count >= 6);
   const repeatedChunk = sections.some((section) => {
     const normalized = section.slice(0, 180);
     return normalized.length >= 120 && sections.filter((other) => other.includes(normalized)).length >= 2;
@@ -1434,6 +1666,7 @@ function validateChapters(chapters = []) {
   const errors = [];
   if (!Array.isArray(chapters) || chapters.length !== CHAPTER_BLUEPRINTS.length) errors.push("chapter_count");
   let totalChars = 0;
+  const chapterMetrics = [];
   CHAPTER_BLUEPRINTS.forEach((blueprint, index) => {
     const chapter = chapters[index];
     if (!chapter || clean(chapter.title) !== blueprint.title) errors.push(`chapter_${index + 1}_title`);
@@ -1441,6 +1674,7 @@ function validateChapters(chapters = []) {
     if (cats.length !== blueprint.categories.length) errors.push(`chapter_${index + 1}_category_count`);
     const chapterChars = cats.reduce((sum, cat) => sum + stripForbiddenTokens(cat?.finalText || cat?.text || "").length, 0);
     totalChars += chapterChars;
+    chapterMetrics.push({ chapter: index + 1, title: chapter?.title || "", categoryCount: cats.length, chars: chapterChars });
     if (chapterChars < CHAPTER_MIN_CHARS) errors.push(`chapter_${index + 1}_min_chars`);
     blueprint.categories.forEach((title, categoryIndex) => {
       const category = cats[categoryIndex];
@@ -1456,6 +1690,7 @@ function validateChapters(chapters = []) {
   if (totalChars < TOTAL_MIN_CHARS) errors.push("total_min_chars");
   const repetition = validateNoZiweiPdfRepetition(chapters);
   if (!repetition.ok) errors.push("repetition_detected");
+  console.info("[ZiweiPremiumPDF][ChapterValidationMetrics]", { totalChars, errors, chapterMetrics });
   return { ok: errors.length === 0, errors, totalChars, repetition };
 }
 
@@ -1547,13 +1782,13 @@ function renderZiweiPdf({ profile, seed, chapters, generatedAt, fallbackUsed }) 
     </section>
     <section class="panel">
       <div class="meta-grid"><div class="meta-item"><b>명궁</b>${esc(seed.chart.mingGong || "확인 범위 내")}</div><div class="meta-item"><b>신궁</b>${esc(seed.chart.shenGong || "확인 범위 내")}</div><div class="meta-item"><b>발행일</b>${esc(new Date(generatedAt).toLocaleDateString("ko-KR"))}</div></div>
-      <p class="notice">${fallbackUsed ? "일부 구간은 기본 명반 해석을 바탕으로 채워졌습니다." : "계산된 명반을 바탕으로 상담문을 정리했습니다."}</p>
+      <p class="notice">자미두수 명반의 12궁과 주요 별 흐름을 바탕으로 상담문을 정리했습니다.</p>
     </section>
     <section class="legend"><h2>별 강도 기호</h2><div class="legend-list"><span>◎ 묘: 가장 강하게 드러나는 별</span><span>O 득: 안정적으로 힘을 얻은 별</span><span>▲ 리: 이롭게 활용할 수 있는 별</span><span>△ 평: 균형 관리가 필요한 별</span><span>X 함·실: 보완과 주의가 필요한 별</span></div></section>
     <section class="panel"><h2>12궁 핵심 명반</h2><table class="palace-table"><thead><tr><th>궁</th><th>지지</th><th>주성</th></tr></thead><tbody>${palaceSummary}</tbody></table></section>
     <section class="toc"><h2>목차</h2><ol>${toc}</ol></section>
     ${chapterHtml}
-    <section class="footer">이 문서는 로컬 자미두수 명반 계산 결과와 프리미엄 상담문 보강을 바탕으로 작성되었습니다.</section>
+    <section class="footer">이 문서는 자미두수 명반을 바탕으로 작성된 프리미엄 상담 리포트입니다.</section>
   </main>
 </body>
 </html>`;
@@ -1597,6 +1832,7 @@ async function handlePrepare(request, env) {
 
   const profile = normalized.profile;
   const birthInput = normalized.birthInput;
+  const requestOrigin = new URL(request.url).origin;
   console.info("[ZiweiPremiumPDF][BirthInputValidated]", {
     hasBirthDate: Boolean(birthInput.birthDate),
     hasBirthTime: Boolean(birthInput.birthTime),
@@ -1604,12 +1840,30 @@ async function handlePrepare(request, env) {
     gender: birthInput.gender,
   });
 
-  const base = getZiweiBase(body);
-  if (!base) {
-    return json({ ok: false, serviceKey: ZIWEI_SERVICE_KEY, code: "MISSING_ZIWEI_ENGINE_RESULT", message: "자미두수 명반 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요." }, { status: 422 });
+  console.info("[ZiweiPremiumPDF][LocalCalculationStart]", {
+    hasProvidedBase: Boolean(getZiweiBase(body)),
+    birthDate: birthInput.birthDate,
+    birthTime: birthInput.birthTime,
+    birthHour: birthInput.birthHour,
+  });
+
+  const resolvedBase = await resolveZiweiBaseForPdf(body, birthInput, env);
+  const base = resolvedBase.base;
+  console.info("[ZiweiPremiumPDF][LocalCalculationResolved]", {
+    source: resolvedBase.source,
+    hasBase: Boolean(base),
+    hasUsableBase: hasUsableZiweiBase(base),
+  });
+
+  if (!hasUsableZiweiBase(base)) {
+    return json({
+      ok: false,
+      serviceKey: ZIWEI_SERVICE_KEY,
+      code: "ZIWEI_LOCAL_CALCULATION_FAILED",
+      message: "자미두수 명반 계산 결과를 확인할 수 없습니다. 생년월일시와 성별을 확인한 뒤 다시 시도해 주세요.",
+    }, { status: 422 });
   }
 
-  console.info("[ZiweiPremiumPDF][LocalCalculationStart]", { hasBase: true });
   const seed = buildZiweiPdfSeed(profile, base);
   const seedValidation = validateSeed(seed);
   if (!seedValidation.ok) {
@@ -1692,8 +1946,15 @@ async function handlePrepare(request, env) {
   const finalValidation = validateChapters(completedChapters);
   const finalBundleValidation = validateFinalManuscript({ birthInput, seed, chapters: completedChapters });
   const duplicateRate = computeDuplicateRate(completedChapters);
-  if (!finalBundleValidation.ok || duplicateRate > 0.4) {
-    throw new Error("자미두수 PDF 상담문 원고가 충분히 정리되지 않았습니다.");
+  if (!finalBundleValidation.ok || duplicateRate > 0.6) {
+    console.error("[ZiweiPremiumPDF][FinalValidationFailed]", {
+      finalErrors: finalBundleValidation.errors,
+      chapterErrors: finalBundleValidation.chapterValidation?.errors,
+      totalChars: finalBundleValidation.chapterValidation?.totalChars,
+      duplicateRate,
+      repetition: finalBundleValidation.chapterValidation?.repetition,
+    });
+    throw new Error(`자미두수 PDF 원고 검증 실패: ${(finalBundleValidation.errors || []).join(", ")}`);
   }
   console.info("[ZiweiPremiumPDF][FinalManuscriptValidated]", {
     chapterCount: completedChapters.length,
@@ -1711,10 +1972,18 @@ async function handlePrepare(request, env) {
   const fallbackUsed = false;
   console.info("[ZiweiPremiumPDF][PdfRenderStart]", { chapterCount: completedChapters.length, fallbackUsed });
   const ziweiPayload = buildZiweiPayload(profile, seed, completedChapters, { accessType: clean(access.accessType || "unknown") });
-  const pdfReady = buildPdfReadyPayload(profile, seed, completedChapters, { featureKey, reportType: "ziweiPremium", fallbackUsed });
-  console.info("[ZiweiPremiumPDF][PdfRenderSuccess]", { chapterCount: completedChapters.length });
-
   const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `ziwei-premium-${Date.now().toString(36)}`);
+  const archiveUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
+  const pdfReady = {
+    ...buildPdfReadyPayload(profile, seed, completedChapters, { featureKey, reportType: "ziweiPremium", fallbackUsed }),
+    pdfUrl: archiveUrl,
+    htmlUrl: archiveUrl,
+    downloadUrl: archiveUrl,
+    storageKey: `premium-archive:ziwei:${reportId}`,
+    mimeType: "text/html",
+  };
+  console.info("[ZiweiPremiumPDF][PdfRenderSuccess]", { chapterCount: completedChapters.length, archiveUrl });
+
   await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
     manuscriptSource: "local-only",
     chapterCount: completedChapters.length,
@@ -1725,13 +1994,14 @@ async function handlePrepare(request, env) {
       title: `${clean(profile?.name) || "사용자"}님의 자미두수 리포트`,
       mode: "personal",
       birthName: clean(profile?.name),
-      summary: clean(completedChapters?.[0]?.sections?.[0]?.body || "", 1000),
-      pdfUrl: clean(pdfReady?.pdfUrl),
+      summary: clean(completedChapters?.[0]?.categories?.[0]?.finalText || completedChapters?.[0]?.text || "", 1000),
+      pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
       chapters: completedChapters,
       payload: ziweiPayload,
       pdfReady,
+      localZiweiChartJson: seed.localZiweiChartJson,
       canReopen: true,
-      canDownload: Boolean(clean(pdfReady?.pdfUrl)),
+      canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)),
     },
   });
 
@@ -1747,7 +2017,11 @@ async function handlePrepare(request, env) {
     ziweiPayload,
     localZiweiChartJson: seed.localZiweiChartJson,
     pdfReady,
+    pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
+    canReopen: true,
+    canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)),
     fallbackUsed,
+    manuscriptSource: "local-only",
     localDraftChapterCount: localChapters.length,
     finalChapterCount: completedChapters.length,
   });

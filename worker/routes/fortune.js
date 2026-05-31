@@ -35,7 +35,6 @@ import {
   ASTROLOGY_AI_PROMPT_FEATURE_KEY,
   ASTROLOGY_AI_PROMPT_PRICE,
 } from "../lib/astrology-ai-prompt.js";
-import { getSwissWesternChart } from "../lib/swiss-ephemeris.js";
 import {
   buildVedicAIPrompt,
   VEDIC_AI_PROMPT_FEATURE_KEY,
@@ -49,6 +48,15 @@ import {
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
 const PIG_COIN_MAX_COST = 100000;
+
+let __swissWesternChartLoader = null;
+
+async function loadSwissWesternChart() {
+  if (!__swissWesternChartLoader) {
+    __swissWesternChartLoader = import("../lib/swiss-ephemeris.js").then((mod) => mod.getSwissWesternChart);
+  }
+  return __swissWesternChartLoader;
+}
 
 const PIG_COIN_PACKAGES = {
   sample: { name: "Sample Pack", coins: 30, bonus: 0 },
@@ -1855,6 +1863,7 @@ async function enrichAstrologyPromptResultWithSwiss(astrologyResult, env, reques
   if (!swissInput) return astrologyResult;
 
   try {
+    const getSwissWesternChart = await loadSwissWesternChart();
     const swissChart = await getSwissWesternChart(env, swissInput, { requestUrl });
     const enriched = { ...astrologyResult };
 
