@@ -763,6 +763,21 @@
 
   function normalizeSelfEsteemReadingPayload(reading, cards) {
     var src = reading || {};
+    if (Array.isArray(src.positionReadings) && src.positionReadings.length) {
+      return Object.assign({}, src, {
+        positionReadings: src.positionReadings.map(function (item, idx) {
+          return Object.assign({}, item, {
+            positionIndex: Number(item && item.positionIndex ? item.positionIndex : idx + 1),
+            positionKey: String(item && item.positionKey || (cards[idx] && cards[idx].position) || "").trim(),
+            positionTitle: String(item && item.positionTitle || POSITION_LABELS[(cards[idx] && cards[idx].position) || ""] || "").trim(),
+          });
+        }),
+        topSummary: src.topSummary && typeof src.topSummary === "object" ? src.topSummary : {},
+        levelupGuide: src.levelupGuide && typeof src.levelupGuide === "object" ? src.levelupGuide : {},
+        levelupQuests: Array.isArray(src.levelupQuests) ? src.levelupQuests : [],
+        opening: String(src.opening || "").trim(),
+      });
+    }
     if (
       src.pastDebuff ||
       src.innerMonster ||
@@ -831,6 +846,62 @@
     if (!out.actionPlan.length) {
       out.actionPlan = ["오늘 하루 한 가지, 나를 위한 선택을 하기", "타인의 기대보다 내 감정을 먼저 확인하기"];
     }
+    out.topSummary = {
+      flowLine: String(out.levelupGuidance || out.opening || "자존감 레벨업 여정입니다."),
+      corePattern: String(out.pastDebuff || "상대 반응을 먼저 읽는 습관이 반복됩니다."),
+      rootCause: String(out.opening || "관계 분위기를 내 책임처럼 느껴 온 경험이 시작점입니다."),
+      mainDamage: String(out.currentDamage || "과잉 해석과 자기검열이 에너지를 소모시킵니다."),
+      recoveryKey: "감정 분리 · 짧은 거절 · 기준 기록",
+      automaticThought: String(out.innerMonster || "거절하면 관계가 끊길까 봐 두려워합니다."),
+      todayAction: String(out.actionPlan[0] || "거절하기 전 내가 감당 가능한지 먼저 확인하세요."),
+    };
+    out.levelupGuide = {
+      flow: String(out.levelupGuidance || out.opening || "5장의 카드가 자존감 회복 흐름을 안내합니다."),
+      rootPattern: String(out.pastDebuff || "눈치 보기의 뿌리를 확인합니다."),
+      woundStory: String(out.currentDamage || "눈치가 피로와 자기검열로 이어졌습니다."),
+      recoveryPath: String(out.mindShield || "경계를 짧게 말하고 유지하는 연습이 필요합니다."),
+      boundaryPractice: String(out.levelupMastery || "내 마음을 먼저 확인하는 습관을 만듭니다."),
+      sevenDayQuest: [
+        "1일차: 내 감정과 시간을 먼저 확인하기",
+        "2일차: 거절 문장 1개 소리 내어 읽기",
+        "3일차: 사실과 추측 분리하기",
+        "4일차: 지킨 기준 1개 기록하기",
+        "5일차: 실망과 책임 분리하기",
+        "6일차: 하나의 경계 실제로 지키기",
+        "7일차: 이번 주 변화를 한 문단으로 정리하기",
+      ],
+      practiceSentence: "오늘은 내가 감당 가능한지 먼저 확인하고 짧게 답하겠습니다.",
+    };
+    out.positionReadings = (Array.isArray(out.positionInsights) ? out.positionInsights : []).map(function (item, idx) {
+      return {
+        positionIndex: idx + 1,
+        positionKey: String(item.position || item.key || POSITION_ORDER[idx] || `position_${idx + 1}`),
+        positionTitle: String(item.title || item.subtitle || POSITION_LABELS[item.position] || `포지션 ${idx + 1}`),
+        question: String(item.question || ""),
+        cardName: String(item.cardLabel || ""),
+        cardNameEn: String(item.cardLabel || ""),
+        cardCode: "",
+        orientation: /\(역\)|역방향/.test(String(item.cardLabel || "")) ? "reversed" : "upright",
+        orientationLabel: /\(역\)|역방향/.test(String(item.cardLabel || "")) ? "역방향" : "정방향",
+        keywords: Array.isArray(item.keywords) ? item.keywords.slice(0, 5) : [],
+        easyAnswer: String(item.message || ""),
+        whyThisHappens: String(item.message || ""),
+        realLifeExample: String(item.message || ""),
+        woundPattern: String(item.message || ""),
+        selfEsteemImpact: String(item.message || ""),
+        recoveryReframe: String(item.message || ""),
+        actionPractice: String(item.message || ""),
+        caution: String(item.message || ""),
+        innerSentence: String(item.message || ""),
+        healingSentence: String(item.message || ""),
+        cardMeaning: String(item.message || ""),
+        patternAnalysis: String(item.message || ""),
+        recoveryAdvice: String(item.message || ""),
+        interpretation: String(item.message || ""),
+        advice: String(item.message || ""),
+        todayAction: String(item.message || ""),
+      };
+    });
     return out;
   }
 
@@ -998,27 +1069,55 @@
     if (!container || !state.reading) return;
     var r = state.reading;
 
-    if (!r.opening && !r.pastDebuff && (!Array.isArray(r.positionInsights) || !r.positionInsights.length)) {
+    if (!r.opening && !r.topSummary && !r.levelupGuide && (!Array.isArray(r.positionReadings) || !r.positionReadings.length) && (!Array.isArray(r.positionInsights) || !r.positionInsights.length)) {
       state.reading = buildFallbackReading();
       r = state.reading;
     }
 
     container.innerHTML = "";
 
-    var insightMap = Object.create(null);
-    if (Array.isArray(r.positionInsights)) {
-      r.positionInsights.forEach(function (item) {
-        if (item && item.position) insightMap[item.position] = item;
+    var positionItems = Array.isArray(r.positionReadings) && r.positionReadings.length ? r.positionReadings : [];
+    if (!positionItems.length && Array.isArray(r.positionInsights) && r.positionInsights.length) {
+      positionItems = r.positionInsights.map(function (item, idx) {
+        return {
+          positionIndex: idx + 1,
+          positionKey: String(item.position || POSITION_ORDER[idx] || `position_${idx + 1}`),
+          positionTitle: String(item.title || item.subtitle || POSITION_LABELS[item.position] || `포지션 ${idx + 1}`),
+          question: String(item.question || ""),
+          cardName: String(item.cardLabel || ""),
+          cardNameEn: String(item.cardLabel || ""),
+          cardCode: "",
+          orientation: /\(역\)|역방향/.test(String(item.cardLabel || "")) ? "reversed" : "upright",
+          orientationLabel: /\(역\)|역방향/.test(String(item.cardLabel || "")) ? "역방향" : "정방향",
+          keywords: Array.isArray(item.keywords) ? item.keywords.slice(0, 5) : [],
+          easyAnswer: String(item.message || ""),
+          whyThisHappens: String(item.message || ""),
+          realLifeExample: String(item.message || ""),
+          woundPattern: String(item.message || ""),
+          selfEsteemImpact: String(item.message || ""),
+          recoveryReframe: String(item.message || ""),
+          actionPractice: String(item.message || ""),
+          caution: String(item.message || ""),
+          innerSentence: String(item.message || ""),
+          healingSentence: String(item.message || ""),
+        };
       });
     }
 
-    var ICONS = {
-      past_debuff: "🌑",
-      inner_monster: "👁",
-      current_damage: "⚡",
-      mind_shield: "🛡",
-      levelup_mastery: "✨"
-    };
+    function addField(section, title, value, className) {
+      if (!String(value || "").trim()) return;
+      var wrap = document.createElement("div");
+      wrap.className = "tse-self-esteem-field" + (className ? " " + className : "");
+      var h = document.createElement("p");
+      h.className = "tse-self-esteem-field-title";
+      h.textContent = title;
+      var p = document.createElement("p");
+      p.className = "tse-self-esteem-field-text";
+      p.textContent = String(value);
+      wrap.appendChild(h);
+      wrap.appendChild(p);
+      section.appendChild(wrap);
+    }
 
     // Opening banner
     if (r.opening) {
@@ -1041,47 +1140,27 @@
       summaryCard.className = "tse-levelup-card";
       summaryCard.innerHTML =
         '<p class="tse-levelup-title">🧭 상단 요약</p>' +
-        '<p class="tse-levelup-body"><strong>5장 흐름:</strong> ' + escapeHtml(String(ts.flow || "")) + '</p>' +
+        '<p class="tse-levelup-body"><strong>5장 흐름:</strong> ' + escapeHtml(String(ts.flowLine || ts.flow || "")) + '</p>' +
         '<ul class="tse-levelup-list">' +
         '  <li class="tse-levelup-item"><strong>핵심 패턴:</strong> ' + escapeHtml(String(ts.corePattern || "")) + '</li>' +
-        '  <li class="tse-levelup-item"><strong>회복 키워드:</strong> ' + escapeHtml(Array.isArray(ts.recoveryKeywords) ? ts.recoveryKeywords.join(" | ") : "") + '</li>' +
-        '  <li class="tse-levelup-item"><strong>주의할 자동 사고:</strong> ' + escapeHtml(String(ts.cognitiveTrap || "")) + '</li>' +
-        '  <li class="tse-levelup-item"><strong>오늘의 대표 회복 액션:</strong> ' + escapeHtml(String(ts.representativeAction || "")) + '</li>' +
+        '  <li class="tse-levelup-item"><strong>상처의 뿌리:</strong> ' + escapeHtml(String(ts.rootCause || "")) + '</li>' +
+        '  <li class="tse-levelup-item"><strong>가장 크게 소모되는 지점:</strong> ' + escapeHtml(String(ts.mainDamage || "")) + '</li>' +
+        '  <li class="tse-levelup-item"><strong>회복 키워드:</strong> ' + escapeHtml(String(ts.recoveryKey || "")) + '</li>' +
+        '  <li class="tse-levelup-item"><strong>자동 사고:</strong> ' + escapeHtml(String(ts.automaticThought || "")) + '</li>' +
+        '  <li class="tse-levelup-item"><strong>오늘의 대표 회복 액션:</strong> ' + escapeHtml(String(ts.todayAction || "")) + '</li>' +
         '</ul>';
       container.appendChild(summaryCard);
     }
 
-    // Per-position insight cards
-    var positions = [
-      { pos: "past_debuff",     num: "1", text: r.pastDebuff,     label: POSITION_LABELS.past_debuff },
-      { pos: "inner_monster",   num: "2", text: r.innerMonster,   label: POSITION_LABELS.inner_monster },
-      { pos: "current_damage",  num: "3", text: r.currentDamage,  label: POSITION_LABELS.current_damage },
-      { pos: "mind_shield",     num: "4", text: r.mindShield,     label: POSITION_LABELS.mind_shield },
-      { pos: "levelup_mastery", num: "5", text: r.levelupMastery, label: POSITION_LABELS.levelup_mastery }
-    ];
 
-    positions.forEach(function (item, idx) {
-      if (!item.text) return;
+    positionItems.forEach(function (item, idx) {
+      if (!item) return;
       var card = null;
-      (state.cards || []).forEach(function (c) { if (c.position === item.pos) card = c; });
-      var cardName = card ? ((card.nameKr || card.name) + (card.orientation === "reversed" ? " (역)" : "")) : "";
-      var extra = insightMap[item.pos] || {};
-      var keywords = Array.isArray(extra.keywords) ? extra.keywords.slice(0, 3) : [];
-      var actionStep = String(extra.actionStep || "").trim();
-      var todayAction = String(extra.todayAction || actionStep || "").trim();
-      var orientationText = String(extra.orientation === "reversed" ? "역방향" : (extra.orientation === "upright" ? "정방향" : "")).trim();
-      var cardMeaning = String(extra.cardMeaning || item.text || "").trim();
-      var patternAnalysis = String(extra.patternAnalysis || "").trim();
-      var selfEsteemImpact = String(extra.selfEsteemImpact || "").trim();
-      var recoveryAdvice = String(extra.recoveryAdvice || "").trim();
-      var caution = String(extra.caution || "").trim();
-      var question = String(extra.question || "").trim();
-      var cardNameKo = String(extra.cardNameKo || cardName || "").trim();
-      var cardNameEn = String(extra.cardNameEn || "").trim();
-
+      (state.cards || []).forEach(function (c) { if (c.position === item.positionKey) card = c; });
+      var cardName = card ? ((card.nameKr || card.name) + (card.orientation === "reversed" ? " (역)" : "")) : String(item.cardName || "");
       var insightCard = document.createElement("div");
       insightCard.className = "tse-insight-card";
-      insightCard.setAttribute("data-pos", item.pos);
+      insightCard.setAttribute("data-pos", item.positionKey || `pos_${idx + 1}`);
       insightCard.style.animationDelay = (idx * 0.08) + "s";
 
       var header = document.createElement("div");
@@ -1089,18 +1168,18 @@
 
       var badge = document.createElement("span");
       badge.className = "tse-card-badge";
-      badge.textContent = item.num;
+      badge.textContent = String(item.positionIndex || (idx + 1));
 
       var icon = document.createElement("span");
       icon.className = "tse-card-icon";
-      icon.textContent = String(extra.icon || ICONS[item.pos] || "✦");
+      icon.textContent = String(item.icon || "✦");
 
       var meta = document.createElement("div");
       meta.className = "tse-card-meta";
 
       var posLabel = document.createElement("span");
       posLabel.className = "tse-card-position";
-      posLabel.textContent = item.label;
+      posLabel.textContent = String(item.positionTitle || POSITION_LABELS[item.positionKey] || `포지션 ${idx + 1}`);
       meta.appendChild(posLabel);
 
       if (cardName) {
@@ -1118,33 +1197,31 @@
       var intro = document.createElement("p");
       intro.className = "tse-card-body";
       intro.innerHTML =
-        (question ? "<strong>질문:</strong> " + escapeHtml(question) + "<br>" : "") +
-        ((cardNameKo || cardNameEn) ? "<strong>카드:</strong> " + escapeHtml(cardNameKo + (cardNameEn ? (" (" + cardNameEn + ")") : "")) + "<br>" : "") +
-        (orientationText ? "<strong>방향:</strong> " + escapeHtml(orientationText) : "");
+        (String(item.question || "").trim() ? "<strong>질문:</strong> " + escapeHtml(String(item.question)) + "<br>" : "") +
+        (cardName ? "<strong>카드:</strong> " + escapeHtml(cardName) + "<br>" : "") +
+        (String(item.orientationLabel || "").trim() ? "<strong>방향:</strong> " + escapeHtml(String(item.orientationLabel)) : "");
       if (intro.innerHTML) insightCard.appendChild(intro);
 
-      var meaning = document.createElement("p");
-      meaning.className = "tse-card-body";
-      meaning.innerHTML = "<strong>카드 의미:</strong> " + escapeHtml(cardMeaning);
-      insightCard.appendChild(meaning);
-
       [
-        { label: "상처의 패턴", value: patternAnalysis },
-        { label: "무너지는 지점", value: selfEsteemImpact },
-        { label: "회복 처방", value: recoveryAdvice },
-        { label: "자동 사고 경보", value: caution },
+        { title: "한눈에 보는 답", value: item.easyAnswer },
+        { title: "왜 이런 패턴이 생겼을까", value: item.whyThisHappens },
+        { title: "실제 생활에서는 이렇게 나타나요", value: item.realLifeExample },
+        { title: "이 카드가 보여주는 상처의 패턴", value: item.woundPattern },
+        { title: "자존감에 주는 영향", value: item.selfEsteemImpact },
+        { title: "회복 관점", value: item.recoveryReframe },
+        { title: "오늘의 연습", value: item.actionPractice },
+        { title: "조심할 자동 사고", value: item.caution },
+        { title: "내면 문장", value: item.innerSentence },
+        { title: "회복 문장", value: item.healingSentence },
       ].forEach(function (field) {
-        if (!field.value) return;
-        var p = document.createElement("p");
-        p.className = "tse-card-body";
-        p.innerHTML = "<strong>" + escapeHtml(field.label) + ":</strong> " + escapeHtml(field.value);
-        insightCard.appendChild(p);
+        addField(insightCard, field.title, field.value);
       });
 
-      if (keywords.length) {
+      var keywordValues = Array.isArray(item.keywords) ? item.keywords.slice(0, 5) : [];
+      if (keywordValues.length) {
         var keywordWrap = document.createElement("div");
         keywordWrap.className = "tse-card-keywords";
-        keywords.forEach(function (kw) {
+        keywordValues.forEach(function (kw) {
           var chip = document.createElement("span");
           chip.className = "tse-keyword";
           chip.textContent = "#" + kw;
@@ -1153,59 +1230,44 @@
         insightCard.appendChild(keywordWrap);
       }
 
-      if (todayAction) {
+      if (String(item.todayAction || item.actionPractice || "").trim()) {
         var action = document.createElement("p");
         action.className = "tse-card-action";
-        action.textContent = "오늘의 회복 실천: " + todayAction;
+        action.textContent = "오늘의 회복 실천: " + String(item.todayAction || item.actionPractice);
         insightCard.appendChild(action);
       }
 
       container.appendChild(insightCard);
     });
 
-    // Level Up Guidance
-    if (r.levelupGuidance) {
+    if (r.levelupGuide && typeof r.levelupGuide === "object") {
       var lvCard = document.createElement("div");
       lvCard.className = "tse-levelup-card";
-      var lvTitle = document.createElement("p");
-      lvTitle.className = "tse-levelup-title";
-      lvTitle.textContent = "🎮 Level Up 가이드";
-      var lvBody = document.createElement("p");
-      lvBody.className = "tse-levelup-body";
-      lvBody.textContent = r.levelupGuidance;
-      lvCard.appendChild(lvTitle);
-      lvCard.appendChild(lvBody);
-
-      var guide = r.levelupGuide || {};
-      var guideLines = [];
-      if (guide.summaryPattern) guideLines.push("반복 패턴: " + guide.summaryPattern);
-      if (guide.rootCause) guideLines.push("상처의 뿌리: " + guide.rootCause);
-      if (guide.drainArea) guideLines.push("소모되는 지점: " + guide.drainArea);
-      if (guide.recoveryPoint) guideLines.push("핵심 회복 포인트: " + guide.recoveryPoint);
-      if (guide.longTermStandard) guideLines.push("세워야 할 기준: " + guide.longTermStandard);
-      if (guide.caution) guideLines.push("자동 사고 경보: " + guide.caution);
-      if (guide.practice) guideLines.push("오늘의 연습 문장: " + guide.practice);
-      if (Array.isArray(guide.mission) && guide.mission.length) {
-        guide.mission.forEach(function (line) {
-          guideLines.push(line);
-        });
-      }
-      if (guideLines.length) {
-        var guideList = document.createElement("ul");
-        guideList.className = "tse-levelup-list";
-        guideLines.forEach(function (line) {
+      lvCard.innerHTML = '<p class="tse-levelup-title">🎮 Level Up 가이드</p>';
+      addField(lvCard, "5장 흐름", r.levelupGuide.flow);
+      addField(lvCard, "상처의 뿌리", r.levelupGuide.rootPattern);
+      addField(lvCard, "반복 상처 이야기", r.levelupGuide.woundStory);
+      addField(lvCard, "회복 경로", r.levelupGuide.recoveryPath);
+      addField(lvCard, "경계선 연습", r.levelupGuide.boundaryPractice);
+      if (Array.isArray(r.levelupGuide.sevenDayQuest) && r.levelupGuide.sevenDayQuest.length) {
+        var questTitle = document.createElement("p");
+        questTitle.className = "tse-self-esteem-field-title";
+        questTitle.textContent = "7일 퀘스트";
+        lvCard.appendChild(questTitle);
+        var questList = document.createElement("ul");
+        questList.className = "tse-levelup-list";
+        r.levelupGuide.sevenDayQuest.forEach(function (line) {
           var li = document.createElement("li");
           li.className = "tse-levelup-item";
           li.textContent = line;
-          guideList.appendChild(li);
+          questList.appendChild(li);
         });
-        lvCard.appendChild(guideList);
+        lvCard.appendChild(questList);
       }
-
+      addField(lvCard, "오늘의 연습 문장", r.levelupGuide.practiceSentence);
       container.appendChild(lvCard);
     }
 
-    // Action Quest Plan
     if (Array.isArray(r.levelupQuests) && r.levelupQuests.length) {
       var questCard = document.createElement("div");
       questCard.className = "tse-action-card";
@@ -1229,7 +1291,9 @@
       questCard.appendChild(questTitle);
       questCard.appendChild(questUl);
       container.appendChild(questCard);
-    } else if (Array.isArray(r.actionPlan) && r.actionPlan.length) {
+    }
+
+    if (Array.isArray(r.actionPlan) && r.actionPlan.length) {
       var actionCard = document.createElement("div");
       actionCard.className = "tse-action-card";
       var actionTitle = document.createElement("p");

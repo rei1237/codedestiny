@@ -478,46 +478,76 @@ async function handleSukuyoPremiumPrepare(request, env) {
 
     const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `sukyo-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
     const generated = await generateSukyoPremiumReport(env, dryRunSeed);
+    const requestOrigin = new URL(request.url).origin;
+    const archiveUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
+    const pdfReady = {
+      ...(generated?.pdfReady || {}),
+      htmlUrl: clean(generated?.pdfReady?.htmlUrl || archiveUrl),
+      pdfUrl: clean(generated?.pdfReady?.pdfUrl || generated?.pdfReady?.downloadUrl || generated?.pdfReady?.htmlUrl || archiveUrl),
+      downloadUrl: clean(generated?.pdfReady?.downloadUrl || generated?.pdfReady?.pdfUrl || generated?.pdfReady?.htmlUrl || archiveUrl),
+      storageKey: clean(generated?.pdfReady?.storageKey || `premium-archive:sukyo:${reportId}`),
+      mimeType: clean(generated?.pdfReady?.mimeType || "text/html"),
+    };
+
+    if (!clean(pdfReady?.html) || !clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)) {
+      throw Object.assign(new Error("숙요점 PDF 저장 URL 생성에 실패했습니다."), {
+        status: 500,
+        code: "SUKUYO_REPORT_URL_MISSING",
+      });
+    }
 
     await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
       chapterCount: generated.chapterCount,
-      manuscriptSource: generated.manuscriptSource,
+      manuscriptSource: generated.manuscriptSource || "local-only",
       archive: {
         reportId,
         reportType: "sukyo_book",
+        reportTypeAliases: ["sookyoPremium", "sukyoPremium", "sukyo_book"],
         displayName: "숙요점",
         title: `${clean(input?.self?.name || "사용자")} · ${clean(input?.partner?.name || "상대")} 궁합 리포트`,
         mode: "compatibility",
         birthName: clean(input?.self?.name),
         targetName: clean(input?.partner?.name),
         summary: clean(generated?.chapters?.[0]?.sections?.[0]?.body || "", 1000),
-        pdfUrl: clean(generated?.pdfReady?.pdfUrl),
+        pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
+        htmlUrl: clean(pdfReady?.htmlUrl),
+        downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
         chapters: generated.chapters,
         payload: generated.payload,
-        pdfReady: generated.pdfReady,
+        localSukuyoCompatibilityJson: generated?.payload?.localSukuyoCompatibilityJson || generated?.payload,
+        pdfReady,
         canReopen: true,
-        canDownload: Boolean(clean(generated?.pdfReady?.pdfUrl)),
+        canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)),
       },
     });
 
     const responseBody = {
       ok: true,
+      serviceKey: "sukuyo-premium",
       reportType: "sookyoPremium",
       mode: "compatibility",
-      serverStatus: generated.serverStatus || "completed",
-      qualityStatus: generated.qualityStatus || "passed",
+      status: "completed",
+      serverStatus: "completed",
+      qualityStatus: "passed",
       sessionId,
       featureKey,
       canonicalFeatureKey: SUKYO_PDF_FEATURE_KEY,
       aliasFeatureKey: SUKYO_PDF_ALIAS_FEATURE_KEY,
+      canonicalReportType: "sookyoPremium",
+      aliasReportTypes: ["sukyoPremium", "sukyo_book"],
       chapterCount: generated.chapterCount,
       localDraftChapterCount: generated.localDraftChapterCount,
       fallbackUsed: Boolean(generated.fallbackUsed),
-      manuscriptSource: generated.manuscriptSource || "local",
+      manuscriptSource: generated.manuscriptSource || "local-only",
       reportId,
       chapters: generated.chapters,
       payload: generated.payload,
-      pdfReady: generated.pdfReady,
+      pdfReady,
+      pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
+      htmlUrl: clean(pdfReady?.htmlUrl),
+      downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
+      canReopen: true,
+      canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)),
     };
 
     sukuyoPdfGenerationLocks.set(sessionId, {

@@ -21,44 +21,42 @@ const CARD_COUNT = 6;
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
 
 const POSITION_LABELS: Record<string, string> = {
-  position_1: "내가 보는 상대",
-  position_2: "상대가 관계를 보는 것",
-  position_3: "상대가 나를 보는 것",
-  position_4: "연애하고픈 마음",
-  position_5: "관계를 막는 것",
-  position_6: "예상되는 결과",
+  self_view_of_other: "내가 바라보는 상대",
+  other_view_of_relationship: "상대가 관계 전체를 보는 시각",
+  other_feeling_toward_me: "상대가 나를 바라보는 마음",
+  other_romantic_will: "상대의 연애 의지와 열망",
+  core_block: "관계를 가로막는 핵심 요인",
+  short_term_outcome: "앞으로 펼쳐질 단기적 결말",
+  position_1: "내가 바라보는 상대",
+  position_2: "상대가 관계 전체를 보는 시각",
+  position_3: "상대가 나를 바라보는 마음",
+  position_4: "상대의 연애 의지와 열망",
+  position_5: "관계를 가로막는 핵심 요인",
+  position_6: "앞으로 펼쳐질 단기적 결말",
 };
-
-const READING_LABELS: Record<string, string> = {
-  overallVibe: "전체 관계 흐름",
-  deepReading: "심층 감정 해석",
-  realityAndFuture: "현실 변수와 단기 전망",
-  positionBreakdown: "포지션별 정밀 해석",
-  advice: "실전 행동 가이드",
-  opening: "리딩 오프닝",
-  pastBond: "과거 인연",
-  theirNow: "상대의 현재",
-  outsideFactor: "외부 변수",
-  theirHeart: "상대의 속마음",
-  reunionOutcome: "재회 가능성",
-  lighthouseGuidance: "등대의 조언",
-  actionPlan: "실행 계획",
-};
-
-function sectionTitle(key: string) {
-  return READING_LABELS[key] || key;
-}
 
 function isPositionBreakdownItem(value: unknown): value is {
   positionTitle?: string;
+  positionKey?: string;
+  positionOrder?: number;
   cardName?: string;
+  cardNameEn?: string;
+  cardId?: string;
+  suit?: string;
+  rank?: string;
+  isMajor?: boolean;
+  isCourt?: boolean;
+  orientation?: string;
   orientationLabel?: string;
+  keywords?: string[];
   headline?: string;
   summary?: string;
   detail?: string;
   relationshipInsight?: string;
   advice?: string;
   caution?: string;
+  rawCardMeaning?: string;
+  orderConnection?: string;
   title?: string;
   card?: string;
 } {
@@ -71,6 +69,7 @@ function isFinalAdvice(value: unknown): value is {
   conversationTip?: string;
   relationshipBoundary?: string;
   nextSevenDays?: string;
+  checklist?: string[];
 } {
   if (!value || typeof value !== "object") return false;
   return "instantMission" in value || "conversationTip" in value || "relationshipBoundary" in value || "nextSevenDays" in value;
@@ -344,58 +343,85 @@ export default function LoveRelationshipTarot() {
           <section className="rounded-2xl border border-emerald-600/35 bg-emerald-950/20 p-5">
             <h2 className="mb-3 text-lg font-semibold">연애 관계 리딩 결과</h2>
             <div className="space-y-3 text-sm leading-7 text-slate-100">
-              {Object.entries(readingRaw).map(([key, value]) => {
-                if (!value) return null;
-                const title = sectionTitle(key);
+              <article className="rounded-lg border border-emerald-800/50 bg-slate-900/40 p-3">
+                <h3 className="mb-2 text-sm font-semibold text-emerald-300">🌙 타로 마스터의 시선</h3>
+                {readingRaw?.overallVibe ? <p className="text-sm text-slate-100">{String(readingRaw.overallVibe)}</p> : null}
+                {readingRaw?.relationshipMatrix?.sequenceFlow ? (
+                  <p className="mt-2 text-sm text-slate-100"><strong>6장 흐름:</strong> {String(readingRaw.relationshipMatrix.sequenceFlow)}</p>
+                ) : null}
+                {Array.isArray(readingRaw?.positionBreakdown) && readingRaw.positionBreakdown.length >= 2 ? (
+                  <p className="mt-2 text-sm text-slate-100">
+                    <strong>첫 카드 → 마지막 카드:</strong> {String(readingRaw.positionBreakdown[0]?.cardName || "")} {String(readingRaw.positionBreakdown[0]?.orientationLabel || "")} → {String(readingRaw.positionBreakdown[readingRaw.positionBreakdown.length - 1]?.cardName || "")} {String(readingRaw.positionBreakdown[readingRaw.positionBreakdown.length - 1]?.orientationLabel || "")}
+                  </p>
+                ) : null}
+              </article>
 
-                if (Array.isArray(value) && key === "positionBreakdown") {
-                  const rows = value.filter(isPositionBreakdownItem);
-                  if (!rows.length) return null;
-                  return (
-                    <article key={key} className="rounded-lg border border-emerald-800/50 bg-slate-900/40 p-3">
-                      <h3 className="mb-2 text-sm font-semibold text-emerald-300">{title}</h3>
-                      <div className="space-y-2">
-                        {rows.map((row, idx) => (
-                          <div key={`${key}-${idx}`} className="rounded-md border border-emerald-900/70 bg-slate-900/50 p-2">
-                            <p className="text-xs font-semibold text-emerald-200">{row.positionTitle || row.title || `포지션 ${idx + 1}`}</p>
-                            <p className="text-xs text-slate-300">{(row.cardName || row.card || "") + (row.orientationLabel ? ` · ${row.orientationLabel}` : "")}</p>
-                            {(row.headline || row.summary) ? <p className="mt-1 text-sm text-slate-100"><strong>한 줄 핵심:</strong> {row.headline || row.summary}</p> : null}
-                            {row.detail ? <p className="mt-1 text-sm text-slate-100"><strong>상세 해석:</strong> {row.detail}</p> : null}
-                            {row.relationshipInsight ? <p className="mt-1 text-sm text-slate-100"><strong>상대/관계 심리:</strong> {row.relationshipInsight}</p> : null}
-                            {row.advice ? <p className="mt-1 text-sm text-slate-100"><strong>조언:</strong> {row.advice}</p> : null}
-                            {row.caution ? <p className="mt-1 text-sm text-slate-100"><strong>주의할 점:</strong> {row.caution}</p> : null}
-                          </div>
-                        ))}
+              <article className="rounded-lg border border-emerald-800/50 bg-slate-900/40 p-3">
+                <h3 className="mb-2 text-sm font-semibold text-emerald-300">🔍 마음의 해부학</h3>
+                {readingRaw?.deepReading ? <p className="text-sm text-slate-100">{String(readingRaw.deepReading)}</p> : null}
+                {readingRaw?.relationshipMatrix?.projectionGap ? (
+                  <p className="mt-2 text-sm text-slate-100"><strong>Projection Gap:</strong> {String(readingRaw.relationshipMatrix.projectionGap)}</p>
+                ) : null}
+                {readingRaw?.relationshipMatrix?.relationshipFrame ? (
+                  <p className="mt-2 text-sm text-slate-100"><strong>Relationship Frame:</strong> {String(readingRaw.relationshipMatrix.relationshipFrame)}</p>
+                ) : null}
+              </article>
+
+              <article className="rounded-lg border border-emerald-800/50 bg-slate-900/40 p-3">
+                <h3 className="mb-2 text-sm font-semibold text-emerald-300">🚧 현실과 다가올 내일</h3>
+                {readingRaw?.realityAndFuture ? <p className="text-sm text-slate-100">{String(readingRaw.realityAndFuture)}</p> : null}
+                {readingRaw?.relationshipMatrix?.blockToOutcome ? (
+                  <p className="mt-2 text-sm text-slate-100"><strong>Block → Outcome:</strong> {String(readingRaw.relationshipMatrix.blockToOutcome)}</p>
+                ) : null}
+                {readingRaw?.finalAdvice?.nextSevenDays ? (
+                  <p className="mt-2 text-sm text-slate-100"><strong>Next 7 Days:</strong> {String(readingRaw.finalAdvice.nextSevenDays)}</p>
+                ) : null}
+              </article>
+
+              {Array.isArray(readingRaw?.positionBreakdown) ? (
+                <article className="rounded-lg border border-emerald-800/50 bg-slate-900/40 p-3">
+                  <h3 className="mb-2 text-sm font-semibold text-emerald-300">🃏 포지션별 관계 해석</h3>
+                  <div className="space-y-2">
+                    {readingRaw.positionBreakdown.filter(isPositionBreakdownItem).map((row, idx) => (
+                      <div key={`position-${idx}`} className="rounded-md border border-emerald-900/70 bg-slate-900/50 p-2">
+                        <p className="text-xs font-semibold text-emerald-200">{row.positionOrder ? `${row.positionOrder}. ` : ""}{row.positionTitle || row.title || `포지션 ${idx + 1}`}</p>
+                        <p className="text-xs text-slate-300">{(row.cardName || row.card || "") + (row.orientationLabel ? ` · ${row.orientationLabel}` : "")}</p>
+                        {Array.isArray(row.keywords) && row.keywords.length ? (
+                          <p className="mt-1 text-xs text-slate-300"><strong>핵심 키워드:</strong> {row.keywords.join(" · ")}</p>
+                        ) : null}
+                        {(row.headline || row.summary) ? <p className="mt-1 text-sm text-slate-100"><strong>한 줄 핵심:</strong> {row.headline || row.summary}</p> : null}
+                        {row.detail ? <p className="mt-1 text-sm text-slate-100"><strong>상세 해석:</strong> {row.detail}</p> : null}
+                        {row.relationshipInsight ? <p className="mt-1 text-sm text-slate-100"><strong>상대/관계 심리:</strong> {row.relationshipInsight}</p> : null}
+                        {row.advice ? <p className="mt-1 text-sm text-slate-100"><strong>조언:</strong> {row.advice}</p> : null}
+                        {row.caution ? <p className="mt-1 text-sm text-slate-100"><strong>주의할 점:</strong> {row.caution}</p> : null}
+                        {row.orderConnection ? <p className="mt-1 text-sm text-slate-100"><strong>흐름 연결:</strong> {row.orderConnection}</p> : null}
                       </div>
-                    </article>
-                  );
-                }
+                    ))}
+                  </div>
+                </article>
+              ) : null}
 
-                if (isFinalAdvice(value)) {
-                  return (
-                    <article key={key} className="rounded-lg border border-emerald-800/50 bg-slate-900/40 p-3">
-                      <h3 className="mb-2 text-sm font-semibold text-emerald-300">{title}</h3>
-                      <div className="space-y-2 text-sm text-slate-100">
-                        {value.instantMission ? <p><strong>⚡ 지금 당장 할 1가지:</strong> {value.instantMission}</p> : null}
-                        {value.conversationTip ? <p><strong>💬 대화 팁:</strong> {value.conversationTip}</p> : null}
-                        {value.relationshipBoundary ? <p><strong>🛡️ 내가 지킬 선:</strong> {value.relationshipBoundary}</p> : null}
-                        {value.nextSevenDays ? <p><strong>🌙 앞으로 7일:</strong> {value.nextSevenDays}</p> : null}
+              {isFinalAdvice(readingRaw?.finalAdvice) ? (
+                <article className="rounded-lg border border-emerald-800/50 bg-slate-900/40 p-3">
+                  <h3 className="mb-2 text-sm font-semibold text-emerald-300">🧭 마지막 조언</h3>
+                  <div className="space-y-2 text-sm text-slate-100">
+                    {readingRaw.finalAdvice.instantMission ? <p><strong>⚡ 지금 당장 할 1가지:</strong> {readingRaw.finalAdvice.instantMission}</p> : null}
+                    {readingRaw.finalAdvice.conversationTip ? <p><strong>💬 대화 팁:</strong> {readingRaw.finalAdvice.conversationTip}</p> : null}
+                    {readingRaw.finalAdvice.relationshipBoundary ? <p><strong>🛡️ 내가 지킬 선:</strong> {readingRaw.finalAdvice.relationshipBoundary}</p> : null}
+                    {readingRaw.finalAdvice.nextSevenDays ? <p><strong>🌙 앞으로 7일:</strong> {readingRaw.finalAdvice.nextSevenDays}</p> : null}
+                    {Array.isArray(readingRaw.finalAdvice.checklist) && readingRaw.finalAdvice.checklist.length ? (
+                      <div>
+                        <p><strong>✅ 실전 체크리스트:</strong></p>
+                        <ul className="ml-4 list-disc">
+                          {readingRaw.finalAdvice.checklist.map((line, idx) => (
+                            <li key={`check-${idx}`}>{String(line)}</li>
+                          ))}
+                        </ul>
                       </div>
-                    </article>
-                  );
-                }
-
-                const text = Array.isArray(value)
-                  ? value.map((item) => `• ${String(item)}`).join("\n")
-                  : String(value);
-                if (!text.trim()) return null;
-                return (
-                  <article key={key} className="rounded-lg border border-emerald-800/50 bg-slate-900/40 p-3">
-                    <h3 className="mb-1 text-sm font-semibold text-emerald-300">{title}</h3>
-                    <pre className="whitespace-pre-wrap font-sans text-sm">{text}</pre>
-                  </article>
-                );
-              })}
+                    ) : null}
+                  </div>
+                </article>
+              ) : null}
             </div>
           </section>
         ) : null}

@@ -5,6 +5,9 @@
 (function () {
   'use strict';
 
+  if (window.__cdSukuyoBookInitialized) return;
+  window.__cdSukuyoBookInitialized = true;
+
   var SUKYO_FEATURE_KEY = 'premium-sukuyo-report-compat';
   var SUKYO_ALIAS_FEATURE_KEY = 'premium_pdf_sukyo_compat';
   var SUKYO_PREFLIGHT_API = '/api/sukuyo/premium/preflight';
@@ -50,15 +53,29 @@
     };
   }
 
+  function _isDebugEnabled() {
+    try {
+      if (window.__cdDebugSukuyoBook === true) return true;
+      if (String(window.__CD_ENV || '').toLowerCase() === 'development') return true;
+      var host = String(window.location && window.location.hostname || '');
+      return host === 'localhost' || host === '127.0.0.1';
+    } catch (_) {
+      return false;
+    }
+  }
+
   function _log(label, payload) {
+    if (!_isDebugEnabled()) return;
     try { console.info(label, payload || {}); } catch (_) {}
   }
 
   function _logError(error, stage) {
+    var normalized = normalizeSukuyoError(error);
     try {
       console.error('[SukuyoBook][Error]', {
         stage: _clean(stage),
-        error: normalizeSukuyoError(error),
+        name: _clean(normalized && normalized.name) || 'Error',
+        message: _clean(normalized && normalized.message) || 'unknown',
       });
     } catch (_) {}
   }
@@ -173,10 +190,12 @@
       var month = _num(parts[1], NaN);
       var day = _num(parts[2], NaN);
       if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+      var rawHour = hourEl && _clean(hourEl.value) !== '' ? _num(hourEl.value, NaN) : NaN;
+      var rawMinute = minuteEl && _clean(minuteEl.value) !== '' ? _num(minuteEl.value, 0) : 0;
       return {
         name: _clean(nameEl && nameEl.value) || '사용자',
         gender: femaleEl && femaleEl.checked ? 'F' : 'M',
-        birth: { year: year, month: month, day: day, hour: hourEl ? _num(hourEl.value, 12) : 12, minute: minuteEl ? _num(minuteEl.value, 0) : 0 },
+        birth: { year: year, month: month, day: day, hour: Number.isFinite(rawHour) ? rawHour : null, minute: Number.isFinite(rawHour) ? rawMinute : null },
         calendarType: 'solar',
       };
     } catch (_) {
@@ -276,8 +295,11 @@
 
   function _formatProfile(profile) {
     var birth = profile && profile.birth || {};
+    var birthHour = _num(birth.hour, NaN);
+    var birthMinute = _num(birth.minute, 0);
+    var hasKnownTime = Number.isFinite(birthHour);
     var birthDate = [String(_num(birth.year, 0)).padStart(4, '0'), String(_num(birth.month, 0)).padStart(2, '0'), String(_num(birth.day, 0)).padStart(2, '0')].join('-');
-    var birthTime = [String(_num(birth.hour, 12)).padStart(2, '0'), String(_num(birth.minute, 0)).padStart(2, '0')].join(':');
+    var birthTime = hasKnownTime ? [String(birthHour).padStart(2, '0'), String(birthMinute).padStart(2, '0')].join(':') : '';
     return {
       name: _clean(profile && profile.name) || '사용자',
       gender: _normalizeGender(_clean(profile && profile.gender)),
@@ -287,10 +309,10 @@
       birthMonth: _num(birth.month, null),
       birthDay: _num(birth.day, null),
       birthTime: birthTime,
-      birthHour: _num(birth.hour, null),
-      birthMinute: _num(birth.minute, null),
+      birthHour: hasKnownTime ? birthHour : null,
+      birthMinute: hasKnownTime ? birthMinute : null,
       timezone: 'Asia/Seoul',
-      isTimeUnknown: false,
+      isTimeUnknown: !hasKnownTime,
     };
   }
 
@@ -325,7 +347,10 @@
     var freeText = _clean(birthTimeTextEl && birthTimeTextEl.value);
     var selectTime = '';
     if (hourEl && _clean(hourEl.value) !== '') {
-      selectTime = String(_num(hourEl.value, 12)).padStart(2, '0') + ':' + String(_num(minuteEl && minuteEl.value, 0)).padStart(2, '0');
+      var selectedHour = _num(hourEl.value, NaN);
+      if (Number.isFinite(selectedHour)) {
+        selectTime = String(selectedHour).padStart(2, '0') + ':' + String(_num(minuteEl && minuteEl.value, 0)).padStart(2, '0');
+      }
     }
 
     var rawTime = isTimeUnknownChecked ? '시간 모름' : (freeText || selectTime);
@@ -386,13 +411,6 @@
       fieldErrors.skPartnerBirthDate = '상대방 생년월일을 정확히 입력해 주세요.';
     }
 
-    if (partnerDate && input && input.partner && input.partner.isTimeUnknown !== true) {
-      var hasPartnerTime = _clean(input.partner.birthTime) || Number.isFinite(input.partner.birthHour);
-      if (!hasPartnerTime) {
-        fieldErrors.skPartnerBirthTimeText = '태어난 시간을 모르시면 체크박스를 선택해 주세요.';
-      }
-    }
-
     return {
       ok: errors.length === 0,
       errors: errors,
@@ -430,7 +448,10 @@
       return;
     }
     var birth = profile.birth || {};
-    var time = [String(_num(birth.hour, 12)).padStart(2, '0'), String(_num(birth.minute, 0)).padStart(2, '0')].join(':');
+    var hasKnownTime = Number.isFinite(_num(birth.hour, NaN));
+    var time = hasKnownTime
+      ? [String(_num(birth.hour, 0)).padStart(2, '0'), String(_num(birth.minute, 0)).padStart(2, '0')].join(':')
+      : '시간 미상';
     element.textContent = [(_clean(profile.name) || '사용자'), [birth.year, birth.month, birth.day].filter(Boolean).join('-') + ' ' + time, _clean(profile.gender)].filter(Boolean).join(' · ');
 
     var selfName = _qs('skSelfNameValue');
@@ -439,8 +460,33 @@
     var selfGender = _qs('skSelfGenderValue');
     if (selfName) selfName.textContent = _clean(profile.name) || '사용자';
     if (selfBirth) selfBirth.textContent = [birth.year, birth.month, birth.day].filter(Boolean).join('-') || '-';
-    if (selfTime) selfTime.textContent = time;
+    if (selfTime) selfTime.textContent = time || '시간 미상';
     if (selfGender) selfGender.textContent = _clean(profile.gender) || '미지정';
+  }
+
+  function _resolveSukuyoStoredUrl(payload) {
+    var p = payload || {};
+    var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
+    return _clean(
+      p.pdfUrl
+      || p.downloadUrl
+      || p.htmlUrl
+      || ready.pdfUrl
+      || ready.downloadUrl
+      || ready.htmlUrl
+    );
+  }
+
+  function _isSukyoReportReady(payload) {
+    var p = payload || {};
+    var chapters = Array.isArray(p.chapters) ? p.chapters : [];
+    var hasReportId = !!_clean(p.reportId);
+    var hasStoredUrl = !!_resolveSukuyoStoredUrl(p);
+    return hasReportId
+      && hasStoredUrl
+      && chapters.length >= SUKYO_TOTAL_CHAPTERS
+      && _clean(p.serverStatus) === 'completed'
+      && _clean(p.qualityStatus) === 'passed';
   }
 
   function _forceCompatibilityMode() {
@@ -955,7 +1001,7 @@
         if (!_chapters.length || Number(response.chapterCount) !== 15 || Number(_chapters.length) !== 15) {
           throw new Error('15챕터 리포트 데이터가 비어 있습니다.');
         }
-        if (_clean(response.serverStatus) !== 'completed' || _clean(response.qualityStatus) !== 'passed' || !_clean(response.reportId)) {
+        if (!_isSukyoReportReady(response)) {
           throw new Error('일부 챕터의 내용을 더 정밀하게 다듬고 있습니다.');
         }
 
@@ -1022,29 +1068,18 @@
   };
 
   window.downloadSukuyoBookPdf = function () {
-    if (!_chapters.length || !_resultPayload || !_resultPayload.pdfReady || !_resultPayload.pdfReady.html) {
+    if (!_chapters.length || !_resultPayload) {
       alert('리포트가 아직 준비되지 않았습니다. 먼저 생성해 주세요.');
       return;
     }
 
-    var html = String(_resultPayload.pdfReady.html || '');
-    var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    var blobUrl = URL.createObjectURL(blob);
-    var popup = window.open(blobUrl, '_blank', 'width=980,height=760');
-    if (!popup) {
-      alert('팝업이 차단되어 출력 창을 열 수 없습니다. 팝업 허용 후 다시 시도해 주세요.');
-      var link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = 'sukuyo-premium-compat-report.html';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(function () { try { URL.revokeObjectURL(blobUrl); } catch (_) {} }, 1500);
+    var storedUrl = _resolveSukuyoStoredUrl(_resultPayload);
+    if (storedUrl) {
+      window.open(storedUrl, '_blank', 'noopener,noreferrer');
       return;
     }
-    popup.focus();
-    setTimeout(function () { try { popup.print(); } catch (_) {} }, 900);
-    setTimeout(function () { try { URL.revokeObjectURL(blobUrl); } catch (_) {} }, 120000);
+
+    alert('리포트 저장 URL이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
   };
 
   document.addEventListener('click', function (event) {

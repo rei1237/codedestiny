@@ -371,18 +371,18 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 30px;
+  bottom: 22px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  padding: 0 18px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  padding: 0 14px;
 }
 
 .previewCard {
   border-radius: 12px;
   border: 1px solid rgba(225, 191, 121, 0.48);
   background: linear-gradient(180deg, rgba(24, 20, 84, 0.82), rgba(5, 5, 24, 0.95));
-  min-height: 150px;
+  min-height: 136px;
   padding: 10px;
   position: relative;
   cursor: pointer;
@@ -538,15 +538,15 @@
 
 .miniCardStack {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 4px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 3px;
   margin-bottom: 10px;
 }
 
 .miniCard {
   border: 1px solid rgba(235, 205, 143, 0.4);
   border-radius: 8px;
-  min-height: 72px;
+  min-height: 62px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -574,6 +574,117 @@
   border-radius: 18px;
   background: var(--nt-card-strong);
   padding: 16px;
+}
+
+.resultStack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.resultSection {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  background: rgba(6, 8, 28, 0.72);
+  padding: 14px;
+}
+
+.resultSection h4 {
+  margin: 0 0 10px;
+  font-size: 18px;
+  color: #f3dca6;
+  font-family: "Noto Serif KR", serif;
+}
+
+.resultLead {
+  margin: 0;
+  color: rgba(247, 241, 225, 0.92);
+  line-height: 1.75;
+  white-space: pre-line;
+}
+
+.resultCoreMessage {
+  margin: 10px 0 0;
+  color: #f4dca5;
+  line-height: 1.6;
+}
+
+.qualityNote {
+  margin: 10px 0 0;
+  color: #f8c9a5;
+  font-size: 12px;
+}
+
+.cardReadingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 10px;
+}
+
+.cardReadingBox {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  background: rgba(5, 7, 27, 0.76);
+  padding: 12px;
+}
+
+.cardReadingHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.cardReadingOrder {
+  margin: 0;
+  color: rgba(244, 220, 165, 0.72);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+}
+
+.cardReadingHeader h5,
+.cardReadingBox h5 {
+  margin: 2px 0 0;
+  font-size: 16px;
+  color: #f7e8bf;
+}
+
+.cardReadingMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--nt-text-dim);
+  white-space: nowrap;
+}
+
+.cardReadingBox p {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.cautionText {
+  color: rgba(255, 210, 183, 0.88);
+}
+
+.planList {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+  color: rgba(247, 241, 225, 0.9);
+  line-height: 1.65;
+}
+
+.finalWord {
+  margin: 10px 0 0;
+  color: #f4dca5;
+  line-height: 1.7;
+  font-style: italic;
 }
 
 .freeProfileCard {
@@ -629,7 +740,7 @@
 
 .resultGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 10px;
   margin-top: 10px;
 }
@@ -768,12 +879,21 @@
     grid-template-columns: 1fr;
   }
 
+  .previewSpread {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .userFlowRow,
   .keyList,
   .resultGrid,
   .infoRail,
   .freeProfileGrid {
     grid-template-columns: 1fr;
+  }
+
+  .cardReadingGrid,
+  .miniCardStack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .infoItem {

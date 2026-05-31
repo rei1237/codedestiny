@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useMemo, useRef, useState } from "react";
+import { runBillingCoinGate } from "@/app/_lib/billing-client";
 
 const SERVICE_KEY = "saju-lifebook";
 const FEATURE_KEY = "saju_life_book_pdf";
@@ -51,6 +52,10 @@ function parseBirthDate(dateText) {
 function compactPreview(text) {
   const raw = String(text || "").replace(/\s+/g, " ").trim();
   return raw.length > 180 ? `${raw.slice(0, 180)}...` : raw;
+}
+
+function makeRequestId(prefix = "lifebook") {
+  return `${prefix}:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 9)}`;
 }
 
 function mapApiError(status, payload) {
@@ -119,7 +124,6 @@ export default function SajuLifebookPage() {
   const [loading, setLoading] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [error, setError] = useState("");
-  const [infoNote, setInfoNote] = useState("");
   const [result, setResult] = useState(null);
   const [selectedChapter, setSelectedChapter] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState(0);
@@ -159,7 +163,6 @@ export default function SajuLifebookPage() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
-    setInfoNote("");
     setResult(null);
     setSelectedChapter(0);
     setSelectedCategory(0);
@@ -178,13 +181,16 @@ export default function SajuLifebookPage() {
       return;
     }
 
-    if (form.birthTimeKnown) {
-      const hour = Number(form.hour);
-      const minute = Number(form.minute);
-      if (!Number.isFinite(hour) || !Number.isFinite(minute) || hour < 0 || hour > 23 || minute < 0 || minute > 59) {
-        setError("태어난 시간을 정확히 입력해 주세요.");
-        return;
-      }
+    if (!form.birthTimeKnown) {
+      setError("인생의 책 PDF는 시주와 대운 흐름까지 정밀하게 보기 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 입력해 주세요.");
+      return;
+    }
+
+    const hour = Number(form.hour);
+    const minute = Number(form.minute);
+    if (!Number.isFinite(hour) || !Number.isFinite(minute) || hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+      setError("태어난 시간을 정확히 입력해 주세요.");
+      return;
     }
 
     setLoading(true);
@@ -200,39 +206,100 @@ export default function SajuLifebookPage() {
 
     try {
       console.info("[LifeBook][SessionCreateStart]");
-      const response = await fetch("/api/lifebook/prepare", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          serviceKey: SERVICE_KEY,
-          productKey: FEATURE_KEY,
-          featureKey: FEATURE_KEY,
-          name,
-          gender: form.gender,
-          calendarType: form.calendarType,
-          birthDate: form.birthDate,
-          birthTimeKnown: form.birthTimeKnown,
-          hour: form.birthTimeKnown ? Number(form.hour) : null,
-          minute: form.birthTimeKnown ? Number(form.minute) : null,
-          birthplace: String(form.birthplace || "").trim(),
-        }),
+      const requestId = makeRequestId("lifebook");
+      const reportId = `saju-lifebook-${Date.now().toString(36)}`;
+      const reportSessionId = `life-book:${reportId}`;
+
+      const gate = await runBillingCoinGate({
+        categoryKey: "premium-report",
+        featureKey: FEATURE_KEY,
+        subFeatureKey: FEATURE_KEY,
+        reason: "인생의 책 생성 (13챕터)",
+        requestId,
+        reportId,
+        sessionId: reportSessionId,
+        reportSessionId,
+        forceDeduct: true,
       });
 
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok || !payload?.ok) {
-        throw new Error(mapApiError(response.status, payload));
+      if (!gate?.ok) {
+        throw new Error(gate?.error?.message || gate?.message || "프리미엄 PDF 생성 권한이 필요합니다.");
+      }
+
+      const gateRaw = gate?.raw && typeof gate.raw === "object" ? gate.raw : {};
+      const gateData = gate?.data && typeof gate.data === "object" ? gate.data : {};
+      const gatePayloadData = gateRaw?.data && typeof gateRaw.data === "object" ? gateRaw.data : {};
+
+      const premiumAccessToken = String(
+        gateData?.premiumAccessToken
+        || gatePayloadData?.premiumAccessToken
+        || gateRaw?.premiumAccessToken
+        || "",
+      ).trim();
+
+      const accessGrant = (gateData?.accessGrant && typeof gateData.accessGrant === "object")
+        ? gateData.accessGrant
+        : (gatePayloadData?.accessGrant && typeof gatePayloadData.accessGrant === "object")
+          ? gatePayloadData.accessGrant
+          : (gateRaw?.accessGrant && typeof gateRaw.accessGrant === "object")
+            ? gateRaw.accessGrant
+            : null;
+
+      const payment = (gateData?.consume && typeof gateData.consume === "object")
+        ? gateData.consume
+        : (gatePayloadData?.consume && typeof gatePayloadData.consume === "object")
+          ? gatePayloadData.consume
+          : (gateRaw?.consume && typeof gateRaw.consume === "object")
+            ? gateRaw.consume
+            : null;
+
+      const payload = {
+        serviceKey: SERVICE_KEY,
+        productKey: FEATURE_KEY,
+        featureKey: FEATURE_KEY,
+        reportType: "lifeBook",
+        sessionId: String(accessGrant?.sessionId || reportSessionId || "").trim(),
+        reportSessionId: String(accessGrant?.sessionId || reportSessionId || "").trim(),
+        reportId: String(accessGrant?.reportId || reportId || "").trim(),
+        premiumAccessToken: premiumAccessToken || undefined,
+        accessGrant: accessGrant || undefined,
+        payment: payment || undefined,
+        purchaseId: String(accessGrant?.purchaseId || payment?.transactionId || "").trim() || undefined,
+        requestId,
+        name,
+        gender: form.gender,
+        calendarType: form.calendarType,
+        birthDate: form.birthDate,
+        birthTime: `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
+        birthHour: hour,
+        birthMinute: minute,
+        hour,
+        minute,
+        birthTimeKnown: true,
+        birthplace: String(form.birthplace || "").trim(),
+        timezone: "Asia/Seoul",
+      };
+
+      const headers = { "Content-Type": "application/json" };
+      if (premiumAccessToken) headers["x-premium-access-token"] = premiumAccessToken;
+
+      const response = await fetch("/api/premium/saju-lifebook/prepare", {
+        method: "POST",
+        headers,
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+
+      const responsePayload = await response.json().catch(() => ({}));
+      if (!response.ok || !responsePayload?.ok) {
+        throw new Error(mapApiError(response.status, responsePayload));
       }
 
       setStepIndex(STEP_LABELS.length - 1);
-      setResult(payload.data || null);
+      setResult(responsePayload.data || responsePayload || null);
       setShowDetail(true);
       console.info("[LifeBook][SessionCreateSuccess]");
       console.info("[LifeBook][PdfRequestSuccess]");
-      if (payload?.data?.fallbackUsed) {
-        setInfoNote("일부 보조 데이터가 부족해도 사주 원국 중심으로 리포트를 완성했습니다.");
-        console.info("[LifeBook][LLMEnhanceFailedUseLocal]");
-      }
     } catch (submitError) {
       console.info("[LifeBook][Error]", { message: String(submitError?.message || "") });
       setError(String(submitError?.message || "PDF 생성 중 문제가 발생했습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요."));
@@ -243,9 +310,24 @@ export default function SajuLifebookPage() {
   };
 
   const handlePrint = () => {
+    const url = String(
+      result?.pdfUrl
+      || result?.downloadUrl
+      || result?.htmlUrl
+      || result?.pdfReady?.pdfUrl
+      || result?.pdfReady?.downloadUrl
+      || result?.pdfReady?.htmlUrl
+      || "",
+    ).trim();
+
+    if (url) {
+      window.open(url, "_blank", "noopener,noreferrer");
+      return;
+    }
+
     const html = String(result?.pdfReady?.html || "").trim();
     if (!html) {
-      setError("PDF 렌더 데이터가 비어 있습니다. 다시 시도해 주세요.");
+      setError("리포트 열람 데이터가 비어 있습니다. 다시 시도해 주세요.");
       return;
     }
 
@@ -353,7 +435,7 @@ export default function SajuLifebookPage() {
             <button type="submit" disabled={loading} style={{ borderRadius: 999, border: "1px solid #e4c38a", background: loading ? "#7d6540" : "#e5c792", color: "#2e1d11", fontWeight: 800, padding: "10px 18px", cursor: loading ? "wait" : "pointer", touchAction: "manipulation" }}>
               {loading ? "인생의 책 생성 중..." : "인생의 책 작성 시작"}
             </button>
-            {result?.pdfReady?.html ? (
+            {(result?.pdfUrl || result?.downloadUrl || result?.htmlUrl || result?.pdfReady?.pdfUrl || result?.pdfReady?.downloadUrl || result?.pdfReady?.htmlUrl || result?.pdfReady?.html) ? (
               <button type="button" onClick={handlePrint} style={{ borderRadius: 999, border: "1px solid rgba(228,195,138,.7)", background: "transparent", color: "#f7e8cf", fontWeight: 700, padding: "10px 16px", cursor: "pointer", touchAction: "manipulation" }}>
                 PDF 출력/다운로드
               </button>
@@ -375,11 +457,6 @@ export default function SajuLifebookPage() {
             </div>
           ) : null}
 
-          {infoNote ? (
-            <div style={{ marginTop: 12, borderRadius: 10, border: "1px solid #8aa95c", background: "rgba(138,169,92,.15)", color: "#e5f4cc", padding: "10px 12px" }}>
-              {infoNote}
-            </div>
-          ) : null}
         </form>
 
         {chapters.length ? (

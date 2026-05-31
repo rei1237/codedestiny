@@ -176,8 +176,8 @@
           year: y,
           month: m,
           day: d,
-          hour: hourEl ? Number(hourEl.value || 12) : 12,
-          minute: minEl ? Number(minEl.value || 0) : 0,
+          hour: hourEl && String(hourEl.value || '').trim() !== '' ? Number(hourEl.value) : null,
+          minute: minEl && String(minEl.value || '').trim() !== '' ? Number(minEl.value) : 0,
         },
         location: locationData,
       };
@@ -222,15 +222,28 @@
     _showScreen('abErrorScreen');
   }
 
+  function _resolveAstroStoredUrl(payload) {
+    var p = payload || {};
+    var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
+    return _clean(
+      p.pdfUrl
+      || p.htmlUrl
+      || p.downloadUrl
+      || ready.pdfUrl
+      || ready.htmlUrl
+      || ready.downloadUrl
+    );
+  }
+
   function _isCompletedReportReady(response) {
     var payload = response || {};
     var chapters = Array.isArray(payload.chapters) ? payload.chapters : [];
     var total = _getTotalChapters();
     var hasReportId = !!_clean(payload.reportId);
-    var hasPdfHtml = !!_clean(payload && payload.pdfReady && payload.pdfReady.html);
+    var hasStoredUrl = !!_resolveAstroStoredUrl(payload);
     var completed = _clean(payload.status || '').toLowerCase();
     var chapterComplete = chapters.length >= total;
-    return hasReportId && hasPdfHtml && chapterComplete && (!completed || completed === 'completed');
+    return hasReportId && hasStoredUrl && chapterComplete && (!completed || completed === 'completed');
   }
 
   function _setStartBusy(isBusy) {
@@ -292,9 +305,12 @@
     var y = Number(birth.year || 0);
     var m = Number(birth.month || 0);
     var d = Number(birth.day || 0);
+    var h = Number(birth.hour);
+    var mm = Number(birth.minute || 0);
+    var hasTime = Number.isFinite(h);
     return {
       birthDate: [String(y).padStart(4, '0'), String(m).padStart(2, '0'), String(d).padStart(2, '0')].join('-'),
-      birthTime: [String(Number(birth.hour || 12)).padStart(2, '0'), String(Number(birth.minute || 0)).padStart(2, '0')].join(':'),
+      birthTime: hasTime ? [String(h).padStart(2, '0'), String(Number.isFinite(mm) ? mm : 0).padStart(2, '0')].join(':') : '',
     };
   }
 
@@ -395,7 +411,9 @@
     try {
       var birth = profile.birth || {};
       var location = profile.location || {};
-      var localHour = Number(birth.hour || 12) + Number(birth.minute || 0) / 60;
+      var hour = Number(birth.hour);
+      if (!Number.isFinite(hour)) return null;
+      var localHour = hour + Number(birth.minute || 0) / 60;
       var lat = Number(location.lat || 37.5665);
       var lon = Number(location.lon || 126.9780);
       var tz = Number(location.tzOffset || 9);
@@ -518,12 +536,14 @@
   function _buildWesternChartRequest(profile) {
     var birth = (profile && profile.birth) || {};
     var location = (profile && profile.location) || {};
+    var hour = Number(birth.hour);
+    var minute = Number(birth.minute || 0);
     return {
       year: Number(birth.year),
       month: Number(birth.month),
       day: Number(birth.day),
-      hour: Number(birth.hour || 12),
-      minute: Number(birth.minute || 0),
+      hour: Number.isFinite(hour) ? hour : null,
+      minute: Number.isFinite(minute) ? minute : 0,
       timezone: Number(location.tzOffset || location.timezone || 9),
       lat: Number(location.lat || 37.5665),
       lon: Number(location.lon || location.lng || 126.9780),
@@ -598,7 +618,11 @@
     }
     var birth = profile.birth || {};
     var place = (profile.location && profile.location.label) || '대한민국 (서울)';
-    var time = [String(Number(birth.hour || 12)).padStart(2, '0'), String(Number(birth.minute || 0)).padStart(2, '0')].join(':');
+    var hour = Number(birth.hour);
+    var minute = Number(birth.minute || 0);
+    var time = Number.isFinite(hour)
+      ? [String(hour).padStart(2, '0'), String(Number.isFinite(minute) ? minute : 0).padStart(2, '0')].join(':')
+      : '시간 미입력';
     el.textContent = [
       (profile.name || '사용자') + ' · ' + (profile.gender === 'F' ? '여성' : profile.gender === 'M' ? '남성' : ''),
       [birth.year, birth.month, birth.day].filter(Boolean).join('년 ') + '일 ' + time,
@@ -905,61 +929,51 @@
     var total = _getTotalChapters();
     _setLoadingProgress(1, total, '프로필 정보 확인 중');
     _startProgressAnimation();
-    _setLoadingProgress(2, total, '출생 차트 계산 중');
-    _logStage('LocalCalculationStart', { totalChapters: total });
+    _setLoadingProgress(2, total, '결제 및 세션 준비 중');
+    _logStage('PaymentAndSessionStart', { totalChapters: total });
 
-    _buildAstroBaseAsync(profile)
-      .then(function (astroBase) {
-        _setLoadingProgress(total, total, '12챕터 로컬 원고 생성 중');
-        _logStage('LocalDraftProgress', { completed: total, total: total });
-        return _ensurePremiumPaymentAsync().then(function (payment) {
-          var paymentGrant = payment && payment.data && payment.data.accessGrant ? payment.data.accessGrant : (_lastPremiumPayment && _lastPremiumPayment.accessGrant ? _lastPremiumPayment.accessGrant : null);
-          var paymentContext = paymentGrant ? {
+    _ensurePremiumPaymentAsync()
+      .then(function (payment) {
+        var paymentGrant = payment && payment.data && payment.data.accessGrant ? payment.data.accessGrant : (_lastPremiumPayment && _lastPremiumPayment.accessGrant ? _lastPremiumPayment.accessGrant : null);
+        var paymentContext = paymentGrant ? {
+          featureKey: ASTRO_BILLING_FEATURE_KEY,
+          requestId: paymentGrant.requestId || paymentGrant.transactionId || '',
+          purchaseId: paymentGrant.purchaseId || '',
+          sessionId: paymentGrant.sessionId || paymentGrant.reportSessionId || '',
+          reportSessionId: paymentGrant.reportSessionId || paymentGrant.sessionId || '',
+          reportId: paymentGrant.reportId || '',
+        } : undefined;
+        _logStage('SessionCreateStart', {
+          hasBirthDate: !!_clean(birthInput.birthDate),
+          hasBirthTime: Number.isFinite(Number(birthInput.birthHour)),
+        });
+        var sessionId = 'astro-premium:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
+        _logStage('SessionCreateSuccess', { sessionId: sessionId });
+        _setLoadingProgress(total, total, '점성술 코즈믹 차트 PDF를 완성하는 중입니다');
+        _logStage('PdfRequestStart', { featureKey: ASTRO_FEATURE_KEY, sessionId: sessionId });
+        return _postPrepare({
+          featureKey: ASTRO_FEATURE_KEY,
+          reportType: 'westernAstrologyPremium',
+          premiumAccessToken: _readPremiumAccessToken() || _extractPremiumToken(payment && payment.data) || undefined,
+          sessionId: sessionId,
+          reportSessionId: paymentGrant && (paymentGrant.reportSessionId || paymentGrant.sessionId) || sessionId,
+          purchaseId: paymentGrant && paymentGrant.purchaseId || undefined,
+          requestId: paymentGrant && (paymentGrant.requestId || paymentGrant.transactionId) || undefined,
+          accessGrant: paymentGrant || undefined,
+          payment: paymentContext ? {
             featureKey: ASTRO_BILLING_FEATURE_KEY,
-            requestId: paymentGrant.requestId || paymentGrant.transactionId || '',
-            purchaseId: paymentGrant.purchaseId || '',
-            sessionId: paymentGrant.sessionId || paymentGrant.reportSessionId || '',
-            reportSessionId: paymentGrant.reportSessionId || paymentGrant.sessionId || '',
-            reportId: paymentGrant.reportId || '',
-          } : undefined;
-          _logStage('SessionCreateStart', {
-            hasBirthDate: !!_clean(birthInput.birthDate),
-            hasBirthTime: Number.isFinite(Number(birthInput.birthHour)),
-          });
-          var sessionId = 'astro-premium:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
-          _logStage('SessionCreateSuccess', { sessionId: sessionId });
-          _setLoadingProgress(total, total, '점성술 코즈믹 차트 PDF를 완성하는 중입니다');
-          _logStage('LLMEnhanceStart', { sessionId: sessionId });
-          _logStage('PdfRequestStart', { featureKey: ASTRO_FEATURE_KEY, sessionId: sessionId });
-          return _postPrepare({
-            featureKey: ASTRO_FEATURE_KEY,
-            premiumAccessToken: _readPremiumAccessToken() || _extractPremiumToken(payment && payment.data) || undefined,
-            sessionId: sessionId,
-            reportSessionId: paymentGrant && (paymentGrant.reportSessionId || paymentGrant.sessionId) || sessionId,
-            purchaseId: paymentGrant && paymentGrant.purchaseId || undefined,
-            requestId: paymentGrant && (paymentGrant.requestId || paymentGrant.transactionId) || undefined,
-            accessGrant: paymentGrant || undefined,
-            payment: paymentContext ? {
-              featureKey: ASTRO_BILLING_FEATURE_KEY,
-              requestId: paymentContext.requestId,
-              purchaseId: paymentContext.purchaseId,
-              sessionId: paymentContext.sessionId,
-              reportSessionId: paymentContext.reportSessionId,
-              reportId: paymentContext.reportId,
-            } : undefined,
-            _paymentContext: paymentContext,
-            birthInput: birthInput,
-            profile: profile,
-            astroBase: astroBase,
-          }).then(function (data) {
-            return { data: data, astroBase: astroBase };
-          });
+            requestId: paymentContext.requestId,
+            purchaseId: paymentContext.purchaseId,
+            sessionId: paymentContext.sessionId,
+            reportSessionId: paymentContext.reportSessionId,
+            reportId: paymentContext.reportId,
+          } : undefined,
+          _paymentContext: paymentContext,
+          birthInput: birthInput,
+          profile: profile,
         });
       })
-      .then(function (data) {
-        var pack = data || {};
-        var response = pack.data || {};
-        var astroBase = pack.astroBase || null;
+      .then(function (response) {
         if (!_isCompletedReportReady(response)) {
           throw new Error('점성술 PDF 결과가 아직 완전히 저장되지 않았습니다. 잠시 후 다시 시도해 주세요.');
         }
@@ -976,7 +990,7 @@
         }
         _logStage('PdfRenderStart', { chapterCount: total });
         _setLoadingProgress(total, total, 'PDF 편집/렌더링 중');
-        _renderResult(_chapters, response.payload || astroBase);
+        _renderResult(_chapters, response.payload || {});
         _setLoadingProgress(total, total, '완료');
         _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, fallbackUsed: !!response.fallbackUsed });
         _showScreen('abResultScreen');
@@ -993,41 +1007,14 @@
   };
 
   window.downloadAstroBookPdf = function () {
-    if (!_chapters || !_chapters.length || !_resultPayload || !_resultPayload.pdfReady || !_resultPayload.pdfReady.html) {
-      alert('리포트가 아직 준비되지 않았습니다. 먼저 생성해 주세요.');
+    var url = _resolveAstroStoredUrl(_resultPayload);
+
+    if (url) {
+      window.open(url, '_blank');
       return;
     }
 
-    var html = String(_resultPayload.pdfReady.html || '');
-    if (!html) {
-      alert('PDF 본문을 생성하지 못했습니다. 다시 시도해 주세요.');
-      return;
-    }
-
-    var blob = null;
-    var url = '';
-    try {
-      blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-      url = URL.createObjectURL(blob);
-    } catch (_) {
-      url = '';
-    }
-
-    var win = window.open(url || '', '_blank', 'width=980,height=760');
-    if (!win) {
-      alert('팝업이 차단되어 출력 창을 열 수 없습니다. 팝업 허용 후 다시 시도해 주세요.');
-      return;
-    }
-    if (!url) {
-      win.document.open();
-      win.document.write(html);
-      win.document.close();
-      win.focus();
-      return;
-    }
-    setTimeout(function () {
-      try { URL.revokeObjectURL(url); } catch (_) {}
-    }, 15000);
+    alert('리포트 저장 URL이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
   };
 
   document.addEventListener('click', function (e) {

@@ -32,6 +32,28 @@ function astroTokensForChapter(chapterNo) {
   }
 }
 
+function makeSwissChart() {
+  return {
+    source: 'swiss-wasm-local',
+    planets: {
+      Sun: { signKo: '사자자리', longitude: 120.5, house: 10, degree: 0.5 },
+      Moon: { signKo: '천칭자리', longitude: 180.2, house: 7, degree: 0.2 },
+      Mercury: { signKo: '처녀자리', longitude: 150.1, house: 9, degree: 0.1 },
+      Venus: { signKo: '황소자리', longitude: 60.3, house: 4, degree: 0.3 },
+      Mars: { signKo: '양자리', longitude: 20.4, house: 1, degree: 0.4 },
+      Jupiter: { signKo: '궁수자리', longitude: 270.1, house: 12, degree: 0.1 },
+      Saturn: { signKo: '물고기자리', longitude: 330.2, house: 2, degree: 0.2 },
+    },
+    ascendant: { signKo: '천칭자리', longitude: 180.0, degree: 0, house: 1 },
+    midheaven: { signKo: '염소자리', longitude: 270.0, degree: 0, house: 10 },
+    houseCusps: Array.from({ length: 12 }, (_, index) => (index * 30) + 15),
+    aspects: [
+      { p1: 'Sun', p2: 'Moon', type: 'trine', orb: 2.3 },
+      { p1: 'Sun', p2: 'Saturn', type: 'square', orb: 5.1 },
+    ],
+  };
+}
+
 describe('Astro premium generator local-only pipeline', () => {
   let astro;
 
@@ -56,7 +78,7 @@ describe('Astro premium generator local-only pipeline', () => {
         latitude: 37.5665,
         longitude: 126.978,
       },
-      chart: {},
+      swissChart: makeSwissChart(),
       ...overrides,
     };
   }
@@ -75,7 +97,7 @@ describe('Astro premium generator local-only pipeline', () => {
     expect(generated.chapterCount).toBe(12);
     expect(generated.chapters).toHaveLength(12);
     expect(generated.fallbackUsed).toBe(false);
-    expect(generated.manuscriptSource).toBe('local');
+    expect(generated.manuscriptSource).toBe('local-only');
     expect(generated.validation.ok).toBe(true);
     expect(generated.pdfReady && generated.pdfReady.html).toBeTruthy();
     expect(generated.totalLength).toBeGreaterThanOrEqual(40000);
@@ -88,22 +110,15 @@ describe('Astro premium generator local-only pipeline', () => {
       },
     });
 
-    expect(generated.manuscriptSource).toBe('local');
+    expect(generated.manuscriptSource).toBe('local-only');
     expect(generated.chapters).toHaveLength(12);
     expect(generated.validation.ok).toBe(true);
   });
 
-  test('seed JSON 핵심 계산값이 누락되면 ASTRO_PDF_SEED_INVALID로 실패해야 한다', async () => {
+  test('Swiss 차트가 없으면 strict source 검증으로 실패해야 한다', async () => {
     await expect(
       astro.generateAstroPremiumReport({}, makeInput({
-        localAstroChartJson: {
-          input: { birthDate: '1991-02-20' },
-          chartMeta: {},
-          planets: [],
-          houses: [],
-          aspects: [],
-          derivedSignals: {},
-        },
+        swissChart: null,
       }), {
         llmChapterGenerator: async ({ chapterSpec }) => ({
           title: chapterSpec.title,
@@ -113,7 +128,7 @@ describe('Astro premium generator local-only pipeline', () => {
           })),
         }),
       }),
-    ).rejects.toMatchObject({ code: 'ASTRO_LOCAL_MANUSCRIPT_INVALID' });
+    ).rejects.toMatchObject({ code: 'ASTRO_SWISS_CHART_FAILED' });
   });
 
   test('birth input 정규화가 한국어 시간/별칭 필드를 처리해야 한다', () => {

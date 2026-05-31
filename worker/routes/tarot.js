@@ -14,6 +14,7 @@ import {
   normalizeTopic,
   parseJsonCandidate,
   selectCards,
+  validateNumerologyTarotQuality,
 } from "../../lib/tarot/numerology-tarot.mjs";
 import {
   TarotInterpretationError,
@@ -27,6 +28,41 @@ import {
 
 function asText(value) {
   return String(value || "").trim();
+}
+
+function reinforceNumerologyInterpretation(interpretation, fallback) {
+  const fallbackCards = Array.isArray(fallback?.cardReadings) ? fallback.cardReadings : [];
+  const currentCards = Array.isArray(interpretation?.cardReadings) ? interpretation.cardReadings : [];
+
+  return {
+    ...interpretation,
+    numerologyReading: `${fallback?.numerologyReading || ""} ${interpretation?.numerologyReading || ""}`.trim(),
+    coreMessage: `${fallback?.coreMessage || ""} ${interpretation?.coreMessage || ""}`.trim(),
+    topicReading: {
+      ...(interpretation?.topicReading || {}),
+      ...(fallback?.topicReading || {}),
+    },
+    categoryDeepDive: {
+      ...(interpretation?.categoryDeepDive || {}),
+      ...(fallback?.categoryDeepDive || {}),
+    },
+    cardReadings: currentCards.map((card, idx) => ({
+      ...(fallbackCards[idx] || {}),
+      ...card,
+      cardMeaning: (fallbackCards[idx]?.cardMeaning || card?.cardMeaning || "").trim(),
+      numerologyBridge: (fallbackCards[idx]?.numerologyBridge || card?.numerologyBridge || "").trim(),
+      topicInterpretation: (fallbackCards[idx]?.topicInterpretation || card?.topicInterpretation || "").trim(),
+      hiddenPattern: (fallbackCards[idx]?.hiddenPattern || card?.hiddenPattern || "").trim(),
+      actionTip: (fallbackCards[idx]?.actionTip || card?.actionTip || "").trim(),
+      caution: (fallbackCards[idx]?.caution || card?.caution || "").trim(),
+    })),
+    conclusion: {
+      ...(interpretation?.conclusion || {}),
+      ...(fallback?.conclusion || {}),
+      summary: `${fallback?.conclusion?.summary || ""} ${interpretation?.conclusion?.summary || ""}`.trim(),
+      finalWord: `${fallback?.conclusion?.finalWord || ""} ${interpretation?.conclusion?.finalWord || ""}`.trim(),
+    },
+  };
 }
 
 const CRYSTAL_MEANINGS = {
@@ -1099,15 +1135,21 @@ async function buildNumerologyReadingPayload(body = {}, env = {}) {
   });
 
   let cards = normalizeCardInput(body?.cards, topic);
-  if (cards.length < 3) {
-    cards = selectCards({
+  if (cards.length < 5) {
+    const generatedCards = selectCards({
       birthDate,
       topic,
       name: asText(body?.name),
       numerology,
     });
+    const mergedCards = [...cards];
+    for (const drawn of generatedCards) {
+      if (mergedCards.length >= 5) break;
+      mergedCards.push(drawn);
+    }
+    cards = mergedCards;
   }
-  cards = normalizeCardInput(cards, topic).slice(0, 3);
+  cards = normalizeCardInput(cards, topic).slice(0, 5);
 
   const fallback = buildFallbackInterpretation({
     numerology,
@@ -1127,9 +1169,9 @@ async function buildNumerologyReadingPayload(body = {}, env = {}) {
 
   const aiResult = await callGeminiText(env, prompt, {
     modelEnvKeys: ["NUMEROLOGY_TAROT_GEMINI_MODEL", "TAROT_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"],
-    maxOutputTokens: 2048,
-    timeoutMs: 12000,
-    totalTimeoutMs: 22000,
+    maxOutputTokens: 4096,
+    timeoutMs: 16000,
+    totalTimeoutMs: 30000,
   });
 
   if (!aiResult?.ok || !asText(aiResult?.text)) {
@@ -1146,7 +1188,24 @@ async function buildNumerologyReadingPayload(body = {}, env = {}) {
   }
 
   const parsed = parseJsonCandidate(aiResult.text);
-  const normalizedInterpretation = normalizeInterpretation(parsed, fallback, cards, topic, question);
+  let normalizedInterpretation = normalizeInterpretation(parsed, fallback, cards, topic, question);
+  const quality = validateNumerologyTarotQuality(normalizedInterpretation, topic);
+
+  if (!quality.ok) {
+    console.warn("[NumerologyTarot][QualityFail]", JSON.stringify({
+      topic: normalizeTopic(topic),
+      warnings: quality.warnings,
+      model: asText(aiResult.model),
+    }));
+    normalizedInterpretation = reinforceNumerologyInterpretation(normalizedInterpretation, fallback);
+    normalizedInterpretation.quality = {
+      ...(normalizedInterpretation.quality || {}),
+      source: parsed ? "gemini_reinforced" : "fallback_reinforced",
+      topicReflected: true,
+      cardCount: Array.isArray(normalizedInterpretation.cardReadings) ? normalizedInterpretation.cardReadings.length : 0,
+      warnings: quality.warnings,
+    };
+  }
 
   return {
     ok: true,

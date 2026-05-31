@@ -1,6 +1,13 @@
 (function () {
   'use strict';
 
+  if (typeof window !== 'undefined' && window.__cdSoulOriginBookInitialized) {
+    return;
+  }
+  if (typeof window !== 'undefined') {
+    window.__cdSoulOriginBookInitialized = true;
+  }
+
   var FEATURE_KEY = 'premium_pdf_soul_origin';
   var REPORT_TYPE = 'soulOriginKarma';
   var COIN_COST = 690;
@@ -138,10 +145,11 @@
     var profile = window.__cdActiveBirthProfile || {};
     var birth = profile.birth || {};
     if (birth.year && birth.month && birth.day) {
-      var hour = Number.isFinite(Number(birth.hour)) ? Number(birth.hour) : 12;
+      var hasHour = Number.isFinite(Number(birth.hour));
+      var hour = hasHour ? Number(birth.hour) : null;
       var minute = Number.isFinite(Number(birth.minute)) ? Number(birth.minute) : 0;
       var date = [String(birth.year).padStart(4, '0'), String(birth.month).padStart(2, '0'), String(birth.day).padStart(2, '0')].join('-');
-      var time = [String(hour).padStart(2, '0'), String(minute).padStart(2, '0')].join(':');
+      var time = hasHour ? [String(hour).padStart(2, '0'), String(minute).padStart(2, '0')].join(':') : '';
       return {
         name: clean(profile.name || '사용자') || '사용자',
         gender: clean(profile.gender || 'unknown') || 'unknown',
@@ -155,23 +163,6 @@
     }
 
     return readStorageProfile();
-  }
-
-  function readPrayerIntent() {
-    function readValue(id) {
-      var el = $(id);
-      if (!el) return '';
-      return clean(el.value || el.textContent || '');
-    }
-
-    return {
-      prayerTopic: readValue('soPrayerTopic') || clean(window.__cdSoulOriginPrayerTopic || ''),
-      currentConcern: readValue('soCurrentConcern') || clean(window.__cdSoulOriginCurrentConcern || ''),
-      desiredOutcome: readValue('soDesiredOutcome') || clean(window.__cdSoulOriginDesiredOutcome || ''),
-      partnerInfo: readValue('soPartnerInfo') || clean(window.__cdSoulOriginPartnerInfo || ''),
-      partnerBirthDate: readValue('soPartnerBirthDate') || clean(window.__cdSoulOriginPartnerBirthDate || ''),
-      partnerBirthTime: readValue('soPartnerBirthTime') || clean(window.__cdSoulOriginPartnerBirthTime || ''),
-    };
   }
 
   function normalizeInput(raw) {
@@ -189,10 +180,7 @@
       };
     }
 
-    if (!time || !Number.isFinite(time.hour)) {
-      // 시간 미상인 경우 정오 기준으로 로컬 계산을 진행해 생성 파이프라인을 유지한다.
-      time = { hour: 12, minute: 0 };
-    }
+    if (!time || !Number.isFinite(time.hour)) return null;
 
     var lat = Number(src.latitude);
     var lon = Number(src.longitude);
@@ -205,7 +193,7 @@
       name: clean(src.name || '사용자') || '사용자',
       gender: clean(src.gender || 'unknown') || 'unknown',
       birthDate: src.birthDate,
-      birthTime: clean(src.birthTime) || [String(time.hour).padStart(2, '0'), String(time.minute).padStart(2, '0')].join(':'),
+      birthTime: [String(time.hour).padStart(2, '0'), String(time.minute).padStart(2, '0')].join(':'),
       birthPlace: clean(src.birthPlace || '출생지 미상') || '출생지 미상',
       timezone: timezone,
       timezoneOffset: inferTimezoneOffsetHours(timezone),
@@ -214,92 +202,38 @@
     };
   }
 
-  function buildSajuSnapshot() {
-    var snap = window.__destinyFlowerSajuSnapshot || {};
-    var analysis = snap.analysis || snap.saju || {};
-    var daewoon = [];
+  function resolveReportUrl(payload) {
+    var pdfReady = payload && payload.pdfReady && typeof payload.pdfReady === 'object' ? payload.pdfReady : {};
+    return clean(
+      (payload && payload.pdfUrl)
+      || (payload && payload.htmlUrl)
+      || pdfReady.pdfUrl
+      || pdfReady.htmlUrl
+      || pdfReady.downloadUrl
+    );
+  }
 
-    if (Array.isArray(window.G_DAEWOON)) {
-      daewoon = window.G_DAEWOON.slice(0, 8).map(function (row) {
-        if (!row || typeof row !== 'object') return null;
-        return {
-          label: clean(row.label || row.name || row.ganji || ''),
-          period: clean(row.period || row.range || ''),
-        };
-      }).filter(Boolean);
+  function isSoulOriginReportReady(payload) {
+    var data = payload && typeof payload === 'object' ? payload : {};
+    var chapters = Array.isArray(data.chapters) ? data.chapters : [];
+    var hasReportId = !!clean(data.reportId);
+    var hasStoredUrl = !!resolveReportUrl(data);
+    return hasReportId && hasStoredUrl && chapters.length > 0;
+  }
+
+  function renderResultActions(payload) {
+    var reportUrl = resolveReportUrl(payload);
+    var openBtn = $('soOpenReportBtn');
+    var downloadBtn = $('soDownloadReportBtn');
+
+    if (openBtn) {
+      openBtn.style.display = reportUrl ? '' : 'none';
+      openBtn.onclick = reportUrl ? function () { window.open(reportUrl, '_blank', 'noopener'); } : null;
     }
 
-    return {
-      dayMaster: clean((window.G_PILLARS && window.G_PILLARS.d && window.G_PILLARS.d.g) || analysis.dayMaster || ''),
-      analysis: {
-        power_label: clean(analysis.power_label || ((window.G_POWER && window.G_POWER.isStrong) ? '신강' : (window.G_POWER ? '신약' : ''))),
-        yongshin_elements: Array.isArray(analysis.yongshin_elements)
-          ? analysis.yongshin_elements.slice(0, 5)
-          : (window.G_POWER && Array.isArray(window.G_POWER.yongshin) ? window.G_POWER.yongshin.slice(0, 5) : []),
-        elementWeights: analysis.elementWeights || {},
-      },
-      daewoon: daewoon,
-    };
-  }
-
-  function normalizeZiweiStars(list) {
-    if (!Array.isArray(list)) return [];
-    return list.slice(0, 4).map(function (row) {
-      var item = row || {};
-      return {
-        name: {
-          ko: clean((item.name && item.name.ko) || item.nameKo || item.name || ''),
-        },
-        strengthName: clean(item.strengthName || item.strength || ''),
-      };
-    }).filter(function (item) { return clean(item.name.ko); });
-  }
-
-  function normalizeZiweiPalaces(raw) {
-    var source = [];
-    if (Array.isArray(raw && raw.palaceStarData)) source = raw.palaceStarData;
-    else if (Array.isArray(raw && raw.palaces)) source = raw.palaces;
-    return source.slice(0, 12).map(function (row, index) {
-      var p = row || {};
-      return {
-        key: clean(p.key || p.id || ''),
-        nameKo: clean(p.nameKo || p.name || p.palace || ''),
-        mainStars: normalizeZiweiStars(p.mainStars || p.stars || []),
-        index: index,
-      };
-    }).filter(function (item) { return clean(item.nameKo); });
-  }
-
-  async function ensureZiweiEngineReady() {
-    if (typeof window.calcZiweiPalaces === 'function') return true;
-    if (typeof window.__cdEnsureSajuCoreLoaded === 'function') {
-      try {
-        await window.__cdEnsureSajuCoreLoaded();
-      } catch (_) {}
-    }
-    return typeof window.calcZiweiPalaces === 'function';
-  }
-
-  async function buildZiweiSnapshot(input) {
-    try {
-      var hasZiweiEngine = await ensureZiweiEngineReady();
-      if (!hasZiweiEngine) return null;
-      var gender = input.gender === 'male' ? 'M' : (input.gender === 'female' ? 'F' : 'OTHER');
-      var date = parseDateParts(input.birthDate);
-      var time = parseTimeParts(input.birthTime);
-      if (!date || !time) return null;
-      var raw = window.calcZiweiPalaces(date.year, date.month, date.day, time.hour, time.minute);
-      if (!raw || (!raw.palaceStarData && !raw.palaces)) return null;
-
-      return {
-        chartMeta: {
-          mingGong: clean(raw.meng || ''),
-          shenGong: clean(raw.shen || ''),
-        },
-        palaces: normalizeZiweiPalaces(raw),
-      };
-    } catch (_) {
-      return null;
+    if (downloadBtn) {
+      downloadBtn.style.display = reportUrl ? '' : 'none';
+      downloadBtn.onclick = reportUrl ? function () { window.open(reportUrl, '_blank', 'noopener'); } : null;
     }
   }
 
@@ -372,6 +306,7 @@
       }
     }
 
+    renderResultActions(payload || {});
     showScreen('result');
   }
 
@@ -682,7 +617,7 @@
       var profileRaw = readActiveProfile();
       var input = normalizeInput(profileRaw || {});
       if (!input) {
-        throw new Error('태어난 날짜 정보를 확인해야 운명의 업 리포트를 열 수 있습니다. 생년월일을 확인한 뒤 다시 시도해주세요.');
+        throw new Error('운명의 업 PDF는 자미두수·베다점·점성술 계산을 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 먼저 입력해주세요.');
       }
 
       showScreen('loading');
@@ -707,13 +642,6 @@
       writeSessionValue(REQUEST_ID_KEY, paymentRequestId || requestId);
       writeSessionValue(SESSION_ID_KEY, paymentSessionId || sessionId);
 
-      var snapshots = {
-        saju: buildSajuSnapshot(),
-      };
-
-      var ziwei = await buildZiweiSnapshot(input);
-      if (ziwei) snapshots.ziwei = ziwei;
-
       var reportId = 'soul-origin:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
       var payload = {
         mode: 'personal',
@@ -724,7 +652,8 @@
         sessionId: paymentSessionId || sessionId,
         reportSessionId: paymentSessionId || sessionId,
         reportId: reportId,
-        input: Object.assign({}, input, readPrayerIntent()),
+        input: input,
+        birthInput: input,
         premiumAccessToken: token || undefined,
         accessGrant: accessGrant || undefined,
         payment: accessGrant ? {
@@ -739,12 +668,14 @@
           sessionId: clean(accessGrant.sessionId || paymentSessionId || sessionId) || undefined,
           reportSessionId: clean(accessGrant.reportSessionId || accessGrant.sessionId || paymentSessionId || sessionId) || undefined,
         } : undefined,
-        engineSnapshots: snapshots,
       };
 
       logStage('SessionCreateStart', { requestId: requestId, sessionId: sessionId });
       logStage('LocalCalcStart', { requestId: requestId, sessionId: sessionId });
       var data = await callApi(PREPARE_API, payload, token);
+      if (!isSoulOriginReportReady(data)) {
+        throw new Error('리포트 저장 URL이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+      }
       logStage('LocalCalcSuccess', { requestId: requestId, sessionId: clean(data && data.sessionId) || sessionId });
       logStage('PDFCreateStart', { requestId: requestId, sessionId: clean(data && data.sessionId) || sessionId });
       logStage('PDFCreateSuccess', { requestId: requestId, sessionId: clean(data && data.sessionId) || sessionId });
@@ -791,18 +722,19 @@
       showScreen('start');
     }
 
-    var profile = normalizeInput(readActiveProfile() || {});
+    var rawProfile = readActiveProfile() || {};
     var summaryEl = $('soProfileSummary');
     if (summaryEl) {
-      if (profile) {
+      if (rawProfile && clean(rawProfile.birthDate)) {
+        var birthTimeText = clean(rawProfile.birthTime) || '태어난 시간 미입력';
         summaryEl.textContent = [
-          clean(profile.name || '사용자'),
-          clean(profile.birthDate),
-          clean(profile.birthTime),
-          clean(profile.birthPlace),
+          clean(rawProfile.name || '사용자'),
+          clean(rawProfile.birthDate),
+          birthTimeText,
+          clean(rawProfile.birthPlace || '출생지 미상'),
         ].filter(Boolean).join(' · ');
       } else {
-        summaryEl.textContent = '생년월일시와 출생지를 확인해주세요.';
+        summaryEl.textContent = '프로필 카드의 생년월일시를 확인해주세요.';
       }
     }
   }
@@ -823,7 +755,7 @@
       if (authToken) headers.Authorization = 'Bearer ' + authToken;
       fetchJsonWithTimeout(endpoints[idx], { method: 'GET', headers: headers }, 15000)
         .then(function (pack) {
-          if (pack.ok && pack.data && pack.data.ok) {
+          if (pack.ok && pack.data && pack.data.ok && isSoulOriginReportReady(pack.data)) {
             persistResult(pack.data);
             renderResult(pack.data);
             return;

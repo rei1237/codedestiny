@@ -450,7 +450,13 @@
     var completed = _clean(payload.status || '').toLowerCase();
     var hasReportId = !!_clean(payload.reportId);
     var hasPdfHtml = !!_clean(payload && payload.pdfReady && payload.pdfReady.html);
-    return hasReportId && hasPdfHtml && chapters.length >= total && (!completed || completed === 'completed');
+    var hasStoredUrl = !!_clean(
+      payload.pdfUrl
+      || payload.htmlUrl
+      || payload.downloadUrl
+      || (payload.pdfReady && (payload.pdfReady.pdfUrl || payload.pdfReady.htmlUrl || payload.pdfReady.downloadUrl))
+    );
+    return hasReportId && hasPdfHtml && hasStoredUrl && chapters.length >= total && (!completed || completed === 'completed');
   }
 
   function _setStartBusy(isBusy) {
@@ -722,9 +728,8 @@
     _setLoadingProgress(1, VEDIC_TOTAL_CHAPTERS, '프로필 정보 확인 중');
     _startProgressAnimation();
 
-    _fetchVedicChart(profile, birthInput)
-      .then(function (chart) {
-        var vedicBase = _buildVedicBase(profile, chart, birthInput);
+    Promise.resolve()
+      .then(function () {
         _setLoadingProgress(2, VEDIC_TOTAL_CHAPTERS, '나크샤트라와 카라카를 해석하는 중입니다');
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '베다 점성술 리포트를 완성하는 중입니다');
         _logStage('SessionCreateStart', { endpoint: VEDIC_PREPARE_API, featureKey: VEDIC_FEATURE_KEY });
@@ -745,16 +750,8 @@
           requestId: paymentGrant && (paymentGrant.requestId || paymentGrant.transactionId) || undefined,
           accessGrant: paymentGrant || undefined,
           premiumAccessToken: _readPremiumAccessToken() || _extractPremiumToken(_lastPremiumPayment) || undefined,
-          payment: paymentContext ? {
-            featureKey: VEDIC_FEATURE_KEY,
-            requestId: paymentContext.requestId,
-            purchaseId: paymentContext.purchaseId,
-            sessionId: paymentContext.sessionId,
-            reportSessionId: paymentContext.reportSessionId,
-            reportId: paymentContext.reportId,
-          } : undefined,
-          _paymentContext: paymentContext,
-          vedicBase: vedicBase,
+          payment: paymentContext || undefined,
+          birthInput: birthInput,
         }).then(function (data) {
           _logStage('SessionCreateSuccess', {
             chapterCount: Number(data && data.chapterCount || 0),
@@ -763,12 +760,11 @@
           _logStage('PdfRequestStart', {
             chapterCount: Number(data && data.chapterCount || 0),
           });
-          return { data: data, vedicBase: vedicBase };
+          return data;
         });
       })
-      .then(function (pack) {
-        var response = (pack && pack.data) || {};
-        var vedicBase = (pack && pack.vedicBase) || null;
+      .then(function (response) {
+        response = response || {};
 
         if (response && response.status === 'running') {
           throw new Error('이미 같은 세션의 베다점 PDF 생성이 진행 중입니다. 잠시 후 다시 확인해주세요.');
@@ -785,7 +781,7 @@
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '사랑·직업·재물의 흐름을 정리하는 중입니다');
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, 'PDF 편집/렌더링 중');
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '완료');
-        _renderResult(_chapters, response.payload || vedicBase);
+  _renderResult(_chapters, response.payload || {});
         _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, fallbackUsed: !!response.fallbackUsed });
 
         _showScreen('vdResultScreen');
@@ -807,7 +803,25 @@
   };
 
   window.downloadVedicBookPdf = function () {
-    if (!_chapters || !_chapters.length || !_resultPayload || !_resultPayload.pdfReady || !_resultPayload.pdfReady.html) {
+    if (!_chapters || !_chapters.length || !_resultPayload) {
+      alert('리포트가 아직 준비되지 않았습니다. 먼저 생성해 주세요.');
+      return;
+    }
+    var storedUrl = _clean(
+      _resultPayload.pdfUrl
+      || _resultPayload.htmlUrl
+      || _resultPayload.downloadUrl
+      || (_resultPayload.pdfReady && (_resultPayload.pdfReady.pdfUrl || _resultPayload.pdfReady.downloadUrl || _resultPayload.pdfReady.htmlUrl))
+    );
+    if (storedUrl) {
+      var openStored = window.open(storedUrl, '_blank');
+      if (!openStored) {
+        alert('팝업이 차단되어 다운로드를 열 수 없습니다. 팝업 허용 후 다시 시도해 주세요.');
+      }
+      return;
+    }
+
+    if (!_resultPayload.pdfReady || !_resultPayload.pdfReady.html) {
       alert('리포트가 아직 준비되지 않았습니다. 먼저 생성해 주세요.');
       return;
     }

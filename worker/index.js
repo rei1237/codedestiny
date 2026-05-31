@@ -611,8 +611,8 @@ export default {
         return jsonResponse(request, env, {
           ok: false,
           error: "removed_feature",
-          message: "프리미엄 통합 PDF 엔드포인트는 제거되었습니다. 인생의 책은 /api/lifebook/* 경로를 사용하세요.",
-          supported: ["/api/lifebook", "/api/lifebook/prepare"],
+          message: "프리미엄 통합 PDF 엔드포인트는 제거되었습니다. 인생의 책은 /api/premium/saju-lifebook/prepare 경로를 사용하세요.",
+          supported: ["/api/premium/saju-lifebook", "/api/premium/saju-lifebook/prepare", "/api/lifebook", "/api/lifebook/prepare"],
         }, { status: 410 });
       }
 
@@ -620,8 +620,8 @@ export default {
         return jsonResponse(request, env, {
           ok: false,
           error: "removed_feature",
-          message: "premium-report 엔드포인트는 제거되었습니다. 인생의 책은 /api/lifebook/* 경로를 사용하세요.",
-          supported: ["/api/lifebook", "/api/lifebook/prepare"],
+          message: "premium-report 엔드포인트는 제거되었습니다. 인생의 책은 /api/premium/saju-lifebook/prepare 경로를 사용하세요.",
+          supported: ["/api/premium/saju-lifebook", "/api/premium/saju-lifebook/prepare", "/api/lifebook", "/api/lifebook/prepare"],
         }, { status: 410 });
       }
 

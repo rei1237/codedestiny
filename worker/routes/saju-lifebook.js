@@ -2,6 +2,7 @@ import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, no
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
+import { Solar } from "lunar-javascript";
 import {
   buildPremiumExecutionContext,
   completePremiumPdfExecution,
@@ -245,6 +246,8 @@ const FORBIDDEN_TEXT = [
   "재생성",
 ];
 
+const LIFEBOOK_FORBIDDEN_RE = /\b(?:fallback|payload|json|schema|debug|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw|llm|api|prompt)\b|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1|데이터가\s*부족합니다|로컬\s*엔진|계산\s*시그니처|내부\s*데이터|엔진\s*결과|데이터\s*정규화|품질\s*검증|재생성/gi;
+
 const LIFEBOOK_SERVICE_KEY = "saju-lifebook";
 const LIFEBOOK_FEATURE_KEY = "saju_life_book_pdf";
 const LIFEBOOK_FEATURE_KEY_ALIASES = new Set([
@@ -347,13 +350,6 @@ const CHAPTER_TOPIC_RULES = {
   "13": ["3년", "5년", "10년", "돈", "일", "관계", "통합 전략"],
 };
 
-const PARAGRAPH_VARIATIONS = [
-  "실제 삶에서는 같은 사주라도 환경과 선택 방식에 따라 결과 편차가 크게 벌어집니다. 그래서 기준을 세우는 일과 실행을 반복하는 루틴을 함께 가져가야 운의 힘이 체감됩니다.",
-  "핵심은 장점을 키우는 동시에 약점을 숨기지 않고 관리 체계로 바꾸는 데 있습니다. 그렇게 해야 강한 기운이 과속으로 흐르지 않고, 부족한 기운도 생활 속에서 안정적으로 보완됩니다.",
-  "중요한 판단일수록 감정 반응을 바로 결정으로 연결하지 말고, 하루 정도 간격을 둔 뒤 다시 확인하는 습관이 필요합니다. 이 방식이 관계와 돈, 일에서 반복 손실을 줄이는 가장 현실적인 안전장치가 됩니다.",
-  "결국 운은 한 번의 결심보다 반복 가능한 구조에서 커집니다. 해야 할 일을 줄이고 집중도를 높이는 방식이 길게 보면 성과를 더 크게 만듭니다.",
-];
-
 function toInt(value, fallback = 0) {
   const n = Number(value);
   return Number.isFinite(n) ? Math.trunc(n) : fallback;
@@ -411,7 +407,7 @@ function countRepeatedOpenings(chapters = []) {
     .filter((line) => line.length >= 10);
   const map = new Map();
   openings.forEach((opening) => map.set(opening, Number(map.get(opening) || 0) + 1));
-  return Array.from(map.values()).filter((count) => count >= 3).length;
+  return Array.from(map.values()).filter((count) => count >= 4).length;
 }
 
 function countOverusedPhrases(text = "") {
@@ -508,27 +504,13 @@ function deriveElementBalance(profile, signals) {
     return { counts, ratio, dominant, deficient, balanceScore };
   }
 
-  const seed = (profile.year * 31) + (profile.month * 17) + (profile.day * 13) + (Number(profile.hour || 12) * 7);
-  const dayEl = STEM_TO_ELEMENT[String(signals.dayMaster || "")] || "earth";
-  const counts = { wood: 1, fire: 1, earth: 1, metal: 1, water: 1 };
-  ELEMENT_KEYS.forEach((key, idx) => {
-    counts[key] += ((seed + idx * 3) % 3);
-  });
-  counts[dayEl] += 2;
-
-  const total = ELEMENT_KEYS.reduce((acc, key) => acc + Number(counts[key] || 0), 0) || 1;
-  const ratio = {};
-  ELEMENT_KEYS.forEach((key) => {
-    ratio[key] = round((Number(counts[key] || 0) / total) * 100);
-  });
-
-  const sorted = ELEMENT_KEYS.slice().sort((a, b) => Number(ratio[b] || 0) - Number(ratio[a] || 0));
-  const dominant = sorted[0] || "earth";
-  const deficient = sorted[sorted.length - 1] || "earth";
-  const gap = Math.abs(Number(ratio[dominant] || 0) - Number(ratio[deficient] || 0));
-  const balanceScore = clamp(100 - round(gap * 1.5), 35, 97);
-
-  return { counts, ratio, dominant, deficient, balanceScore };
+  return {
+    counts: { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 },
+    ratio: { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 },
+    dominant: "earth",
+    deficient: "earth",
+    balanceScore: 50,
+  };
 }
 
 function deriveTenGodStats(profile, signals = {}) {
@@ -564,18 +546,17 @@ function deriveTenGodStats(profile, signals = {}) {
     };
   }
 
-  const seed = (profile.year * 19) + (profile.month * 11) + (profile.day * 7) + Number(profile.hour || 12);
   const base = {
-    비견: 1 + (seed % 2),
-    겁재: 1 + ((seed + 1) % 2),
-    식신: 1 + ((seed + 2) % 3),
-    상관: 1 + ((seed + 3) % 2),
-    정재: 1 + ((seed + 4) % 3),
-    편재: 1 + ((seed + 5) % 2),
-    정관: 1 + ((seed + 6) % 2),
-    편관: 1 + ((seed + 7) % 2),
-    정인: 1 + ((seed + 8) % 2),
-    편인: 1 + ((seed + 9) % 2),
+    비견: 0,
+    겁재: 0,
+    식신: 0,
+    상관: 0,
+    정재: 0,
+    편재: 0,
+    정관: 0,
+    편관: 0,
+    정인: 0,
+    편인: 0,
   };
   const total = Object.values(base).reduce((acc, value) => acc + Number(value || 0), 0) || 1;
   const top = Object.keys(base)
@@ -788,6 +769,13 @@ function normalizeInput(body = {}) {
   if (timeKnown && (hour < 0 || hour > 23 || minute < 0 || minute > 59)) {
     return { ok: false, message: "출생 시간 형식이 올바르지 않습니다." };
   }
+  if (!timeKnown) {
+    return {
+      ok: false,
+      code: "BIRTH_TIME_REQUIRED",
+      message: "인생의 책 PDF는 시주와 대운 흐름까지 정밀하게 보기 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 입력해 주세요.",
+    };
+  }
 
   return {
     ok: true,
@@ -845,104 +833,199 @@ function repetitionScore(chapters = []) {
   paragraphs.forEach((paragraph) => {
     paragraphMap.set(paragraph, Number(paragraphMap.get(paragraph) || 0) + 1);
   });
-  const repeatedSentences = Array.from(sentenceMap.values()).filter((count) => count > 2).length;
-  const repeatedParagraphs = Array.from(paragraphMap.values()).filter((count) => count > 2).length;
-  const ngramHits = countRepeatedNgrams(source, 30, 3);
+  const repeatedSentences = Array.from(sentenceMap.values()).filter((count) => count >= 4).length;
+  const repeatedParagraphs = Array.from(paragraphMap.values()).filter((count) => count >= 3).length;
+  const ngramHits = countRepeatedNgrams(source, 30, 5);
   const openingHits = countRepeatedOpenings(chapters);
   const phraseHits = countOverusedPhrases(source);
   return repeatedSentences + (repeatedParagraphs * 2) + ngramHits + openingHits + phraseHits;
 }
 
+function hasForbiddenText(value = "") {
+  return new RegExp(LIFEBOOK_FORBIDDEN_RE.source, "i").test(String(value || ""));
+}
+
 function countForbiddenTerms(chapters = []) {
-  const text = (Array.isArray(chapters) ? chapters : [])
-    .map((chapter) => stripForbiddenTokens(chapter?.finalText || chapter?.text || ""))
-    .join("\n").toLowerCase();
   let count = 0;
-  FORBIDDEN_TEXT.forEach((term) => {
-    if (text.includes(String(term || "").toLowerCase())) count += 1;
-  });
+  for (const chapter of Array.isArray(chapters) ? chapters : []) {
+    const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
+    for (const category of categories) {
+      if (hasForbiddenText(category?.finalText || category?.text || category?.localSummary || "")) {
+        count += 1;
+      }
+    }
+  }
   return count;
 }
 
 function validateLifeBookFinalManuscript(chapters = []) {
-  const issues = [];
+  const errors = [];
+  const chapterMetrics = [];
   const list = Array.isArray(chapters) ? chapters : [];
-  if (list.length !== CHAPTER_BLUEPRINTS.length) issues.push("chapter_count");
+  if (list.length !== CHAPTER_BLUEPRINTS.length) errors.push("chapter_count");
   list.forEach((chapter, idx) => {
+    const blueprint = CHAPTER_BLUEPRINTS[idx] || { categories: [] };
     const bodyLength = chapterTextLength(chapter);
-    if (bodyLength < LIFEBOOK_MIN_CHAPTER_CHARS) issues.push(`chapter_${idx + 1}_min_length`);
+    if (!chapter) errors.push(`chapter_${idx + 1}_missing`);
+    if (clean(chapter?.title) !== clean(blueprint.title)) errors.push(`chapter_${idx + 1}_title_mismatch`);
+    if (bodyLength < LIFEBOOK_MIN_CHAPTER_CHARS) errors.push(`chapter_${idx + 1}_too_short`);
     const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
-    if (categories.length !== CHAPTER_BLUEPRINTS[idx].categories.length) issues.push(`chapter_${idx + 1}_category_count`);
+    if (categories.length !== blueprint.categories.length) errors.push(`chapter_${idx + 1}_category_count`);
     categories.forEach((category, cidx) => {
-      if (stripForbiddenTokens(category?.finalText || "").length < LIFEBOOK_MIN_CATEGORY_CHARS) {
-        issues.push(`chapter_${idx + 1}_category_${cidx + 1}_min_length`);
+      const expectedTitle = blueprint.categories[cidx] || "";
+      const body = clean(category?.finalText || category?.text || category?.localSummary || "");
+      if (clean(category?.title) !== clean(expectedTitle)) {
+        errors.push(`chapter_${idx + 1}_category_${cidx + 1}_title_mismatch`);
       }
+      if (body.length < LIFEBOOK_MIN_CATEGORY_CHARS) {
+        errors.push(`chapter_${idx + 1}_category_${cidx + 1}_too_short`);
+      }
+      if (hasForbiddenText(body)) {
+        errors.push(`chapter_${idx + 1}_category_${cidx + 1}_forbidden_text`);
+      }
+    });
+
+    chapterMetrics.push({
+      chapterNo: idx + 1,
+      title: clean(chapter?.title),
+      categoryCount: categories.length,
+      chars: bodyLength,
     });
   });
   const totalLength = totalManuscriptLength(list);
-  if (totalLength < LIFEBOOK_MIN_TOTAL_CHARS) issues.push("total_length");
+  if (totalLength < LIFEBOOK_MIN_TOTAL_CHARS) errors.push("total_too_short");
   const forbiddenHits = countForbiddenTerms(list);
-  if (forbiddenHits > 0) issues.push("forbidden_terms");
+  if (forbiddenHits > 0) errors.push("forbidden_terms_detected");
   const repScore = repetitionScore(list);
-  if (repScore > 0) issues.push("repetition");
+  if (repScore > 0) errors.push("repetition_detected");
   list.forEach((chapter, index) => {
-    if (!validateChapterTopicCoverage(chapter)) issues.push(`chapter_${index + 1}_topic_coverage`);
+    if (!validateChapterTopicCoverage(chapter)) errors.push(`chapter_${index + 1}_topic_coverage`);
   });
+
+  const repetition = {
+    ok: repScore === 0,
+    score: repScore,
+  };
+
   return {
-    ok: issues.length === 0,
-    issues,
+    ok: errors.length === 0,
+    errors,
     totalLength,
+    chapterMetrics,
     forbiddenHits,
+    repetition,
     repetitionScore: repScore,
   };
 }
 
 function buildLifeBookLocalSajuJson(birthInput, profile, signals, chapters = []) {
-  const payload = deriveLifeBookPayload(profile, signals, chapters, {
-    calendarType: birthInput.calendarType,
-  });
+  const payload = deriveLifeBookPayload(profile, signals, chapters, { calendarType: birthInput.calendarType });
+  const pillars = {
+    year: {
+      stem: clean(signals?.yearStem),
+      branch: clean(signals?.yearBranch),
+      ganji: `${clean(signals?.yearStem)}${clean(signals?.yearBranch)}`,
+    },
+    month: {
+      stem: clean(signals?.monthStem),
+      branch: clean(signals?.monthBranch),
+      ganji: `${clean(signals?.monthStem)}${clean(signals?.monthBranch)}`,
+    },
+    day: {
+      stem: clean(signals?.dayMaster),
+      branch: clean(signals?.dayBranch),
+      ganji: `${clean(signals?.dayMaster)}${clean(signals?.dayBranch)}`,
+    },
+    hour: {
+      stem: clean(signals?.hourStem),
+      branch: clean(signals?.hourBranch),
+      ganji: `${clean(signals?.hourStem)}${clean(signals?.hourBranch)}`,
+    },
+  };
+
+  const yongshin = {
+    usefulElement: clean(signals?.useful),
+    usefulElements: [clean(signals?.useful), clean(signals?.support)].filter(Boolean),
+    cautionElements: [clean(signals?.caution)].filter(Boolean),
+  };
+
   return {
     birthInput,
-    chart: {
-      yearPillar: `${signals.yearStem || ""}${signals.yearBranch || ""}`.trim(),
-      monthPillar: `${signals.monthStem || ""}${signals.monthBranch || ""}`.trim(),
-      dayPillar: `${signals.dayMaster || ""}${signals.dayBranch || ""}`.trim(),
-      hourPillar: profile.timeKnown ? `${signals.hourStem || ""}${signals.hourBranch || ""}`.trim() : "",
-      dayMaster: signals.dayMaster,
-      monthBranch: signals.monthBranch,
-      fiveElements: payload?.elementBalance?.ratio || {},
-      tenGods: {
-        dominant: payload?.tenGodStats?.top?.map((row) => row?.key).filter(Boolean) || [],
-        byPillar: signals.tenGodByPillar || {},
-      },
-      yongshin: [signals.useful, signals.support].filter(Boolean),
-      heeshin: [signals.support].filter(Boolean),
-      guks: [signals.jongName || `${signals.dayMaster} 중심 구조`].filter(Boolean),
-      twelveStages: signals.twelveStages || {},
-      sinsal: signals.specialStars || payload?.specialStars?.list || [],
-      daewoon: {
-        current: signals.currentDaewun || signals.rhythm,
-        next: signals.nextDaewun || "",
-        startAge: signals.daewunStartAge,
-        cycles: signals.daewunCycles || [],
-      },
-      yearlyLuck: {
-        year: signals.currentYear || new Date().getFullYear(),
-        pillar: signals.currentYearPillar || signals.rhythm,
-        keywords: [signals.useful, signals.support].filter(Boolean),
-      },
+    profile,
+    pillars,
+    dayMaster: clean(signals?.dayMaster),
+    monthBranch: clean(signals?.monthBranch),
+    dayBranch: clean(signals?.dayBranch),
+    hourBranch: clean(signals?.hourBranch),
+    tenGods: signals?.tenGodCounts || {},
+    tenGodsByPillar: signals?.tenGodByPillar || {},
+    fiveElements: payload?.elementBalance?.ratio || {},
+    elementBalance: payload?.elementBalance || {},
+    strength: {
+      isStrong: String(clean(signals?.powerLabel)).toLowerCase() === "신강" || String(clean(signals?.powerLabel)).toLowerCase() === "strong",
+      label: clean(signals?.powerLabel) || (payload?.strength?.label || "중화"),
+      reason: clean(payload?.strength?.reasonSummary || ""),
     },
-    interpretationSeeds: {
-      personalityKeywords: [signals.dayMaster, signals.monthBranch].filter(Boolean),
-      careerKeywords: [signals.useful, "커리어", "성장"],
-      moneyKeywords: ["재성", signals.support, "현금흐름"],
-      relationshipKeywords: ["인연", "관계", signals.caution],
-      healthKeywords: [signals.weakestElement || signals.caution, "리듬", "회복"],
-      familyKeywords: ["가족", "경계", "소통"],
-      crisisKeywords: [signals.caution, "위기", "반전"],
-      growthKeywords: [signals.useful, "실행", "확장"],
-      timingKeywords: [signals.currentDaewun || signals.rhythm, "대운", "세운"],
+    johu: {
+      type: clean(signals?.johuType || "평형"),
+      summary: clean(payload?.johu?.summary || ""),
     },
+    yongshin,
+    usefulGods: yongshin,
+    geokguk: {
+      title: clean(signals?.geokguk || `${clean(signals?.dayMaster)} 중심 구조`),
+      summary: clean(payload?.structure?.socialMission || ""),
+    },
+    daeun: Array.isArray(signals?.daewunCycles) ? signals.daewunCycles : [],
+    currentDaeun: signals?.currentDaeunNode || null,
+    nextDaeun: signals?.nextDaeunNode || null,
+    yearlyFlow: {
+      year: signals?.currentYear,
+      pillar: clean(signals?.currentYearPillar),
+      keywords: [clean(signals?.useful), clean(signals?.support)].filter(Boolean),
+    },
+    twelveGrowthStages: signals?.twelveGrowthStages || [],
+    sinsal: Array.isArray(signals?.specialStars) ? signals.specialStars : [],
+    relationshipSignals: {
+      focus: clean(signals?.relationshipFocus),
+      caution: clean(signals?.caution),
+    },
+    careerSignals: {
+      usefulElement: clean(signals?.useful),
+      geokguk: clean(signals?.geokguk),
+    },
+    moneySignals: {
+      supportElement: clean(signals?.support),
+      cautionElement: clean(signals?.caution),
+    },
+    healthSignals: {
+      weakestElement: clean(signals?.weakestElement),
+      johuType: clean(signals?.johuType),
+    },
+    crisisSignals: {
+      riskElement: clean(signals?.caution),
+      phase: clean(signals?.currentDaewun),
+    },
+    derivedAt: new Date().toISOString(),
+  };
+}
+
+function validateLifeBookLocalSajuJson(localSajuJson) {
+  const missing = [];
+
+  if (!clean(localSajuJson?.pillars?.year?.stem) || !clean(localSajuJson?.pillars?.year?.branch)) missing.push("yearPillar");
+  if (!clean(localSajuJson?.pillars?.month?.stem) || !clean(localSajuJson?.pillars?.month?.branch)) missing.push("monthPillar");
+  if (!clean(localSajuJson?.pillars?.day?.stem) || !clean(localSajuJson?.pillars?.day?.branch)) missing.push("dayPillar");
+  if (!clean(localSajuJson?.pillars?.hour?.stem) || !clean(localSajuJson?.pillars?.hour?.branch)) missing.push("hourPillar");
+  if (!clean(localSajuJson?.dayMaster)) missing.push("dayMaster");
+  if (!localSajuJson?.fiveElements || Object.keys(localSajuJson.fiveElements).length < 5) missing.push("fiveElements");
+  if (!localSajuJson?.tenGods || Object.keys(localSajuJson.tenGods).length < 4) missing.push("tenGods");
+  if (!localSajuJson?.usefulGods && !localSajuJson?.yongshin) missing.push("usefulGods");
+  if (!Array.isArray(localSajuJson?.daeun) || localSajuJson.daeun.length === 0) missing.push("daeun");
+
+  return {
+    ok: missing.length === 0,
+    missing,
   };
 }
 
@@ -959,6 +1042,111 @@ function normalizeSajuElementToken(value, fallback = "토") {
   if (/금|metal/i.test(raw)) return "금";
   if (/수|water/i.test(raw)) return "수";
   return fallback;
+}
+
+function branchKoToHan(branchKo = "") {
+  const map = {
+    자: "子", 축: "丑", 인: "寅", 묘: "卯", 진: "辰", 사: "巳", 오: "午", 미: "未", 신: "申", 유: "酉", 술: "戌", 해: "亥",
+  };
+  return map[clean(branchKo)] || "";
+}
+
+function calcLifeBookSpecialStarsFromPillars(pillars = {}) {
+  const dayBranch = clean(pillars?.day?.branch);
+  const monthBranch = clean(pillars?.month?.branch);
+  const hourBranch = clean(pillars?.hour?.branch);
+  const branches = [dayBranch, monthBranch, hourBranch].filter(Boolean);
+  const dayHan = branchKoToHan(dayBranch);
+
+  const taoByDay = {
+    子: ["酉"], 午: ["卯"], 卯: ["子"], 酉: ["午"],
+    寅: ["卯"], 戌: ["卯"], 亥: ["子"], 未: ["子"], 申: ["酉"], 辰: ["酉"], 巳: ["午"], 丑: ["午"],
+  };
+  const yeokmaByDay = {
+    寅: ["申"], 午: ["申"], 戌: ["申"], 申: ["寅"], 子: ["寅"], 辰: ["寅"],
+    亥: ["巳"], 卯: ["巳"], 未: ["巳"], 巳: ["亥"], 酉: ["亥"], 丑: ["亥"],
+  };
+  const hwaByDay = {
+    寅: ["戌"], 午: ["戌"], 戌: ["戌"], 亥: ["未"], 卯: ["未"], 未: ["未"],
+    申: ["辰"], 子: ["辰"], 辰: ["辰"], 巳: ["丑"], 酉: ["丑"], 丑: ["丑"],
+  };
+
+  const hanBranches = branches.map((v) => branchKoToHan(v)).filter(Boolean);
+  const stars = [];
+  if ((taoByDay[dayHan] || []).some((v) => hanBranches.includes(v))) stars.push("도화");
+  if ((yeokmaByDay[dayHan] || []).some((v) => hanBranches.includes(v))) stars.push("역마");
+  if ((hwaByDay[dayHan] || []).some((v) => hanBranches.includes(v))) stars.push("화개");
+  return stars;
+}
+
+function calcLifeBookDaewunFromBirth(profile) {
+  try {
+    const solar = Solar.fromYmdHms(
+      Number(profile.year),
+      Number(profile.month),
+      Number(profile.day),
+      Number(profile.hour),
+      Number(profile.minute),
+      0,
+    );
+    const eightChar = solar.getLunar().getEightChar();
+    const genderNum = profile.gender === "male" ? 1 : 0;
+    const yun = eightChar.getYun(genderNum);
+    const rawList = yun.getDaYun();
+    const cycles = [];
+    for (let i = 1; i < rawList.length; i += 1) {
+      const item = rawList[i];
+      const label = clean(item?.getGanZhi?.());
+      const startAge = Number(item?.getStartAge?.() || 0);
+      if (!label || !Number.isFinite(startAge) || startAge <= 0) continue;
+      cycles.push({
+        order: i,
+        label,
+        startAge,
+      });
+    }
+
+    const currentAge = new Date().getFullYear() - Number(profile.year) + 1;
+    let current = null;
+    let next = null;
+    for (let i = 0; i < cycles.length; i += 1) {
+      const node = cycles[i];
+      const nextNode = cycles[i + 1] || null;
+      const start = Number(node.startAge || 0);
+      const end = nextNode ? Number(nextNode.startAge || 120) - 1 : 120;
+      if (currentAge >= start && currentAge <= end) {
+        current = { ...node, endAge: end };
+        next = nextNode ? { ...nextNode, endAge: i + 2 < cycles.length ? Number(cycles[i + 2].startAge || 120) - 1 : 120 } : null;
+        break;
+      }
+    }
+
+    if (!current && cycles.length) {
+      current = { ...cycles[0], endAge: cycles[1] ? Number(cycles[1].startAge || 120) - 1 : 120 };
+      next = cycles[1] ? { ...cycles[1], endAge: cycles[2] ? Number(cycles[2].startAge || 120) - 1 : 120 } : null;
+    }
+
+    return { cycles, current, next };
+  } catch (_) {
+    return { cycles: [], current: null, next: null };
+  }
+}
+
+function buildLifeBookTwelveGrowthStages(pillars = {}) {
+  const stageByBranch = {
+    자: "태", 축: "양", 인: "장생", 묘: "목욕", 진: "관대", 사: "건록", 오: "제왕", 미: "쇠", 신: "병", 유: "사", 술: "묘", 해: "절",
+  };
+  const items = [
+    { key: "year", branch: clean(pillars?.year?.branch) },
+    { key: "month", branch: clean(pillars?.month?.branch) },
+    { key: "day", branch: clean(pillars?.day?.branch) },
+    { key: "hour", branch: clean(pillars?.hour?.branch) },
+  ];
+  return items.map((item) => ({
+    pillar: item.key,
+    branch: item.branch,
+    stage: stageByBranch[item.branch] || "평",
+  }));
 }
 
 function extractSignalFromSajuData(rawSajuData = "") {
@@ -983,27 +1171,6 @@ function extractSignalFromSajuData(rawSajuData = "") {
 }
 
 function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
-  const stems = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
-  const branches = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
-  const elements = ["목", "화", "토", "금", "수"];
-
-  const seed = (
-    profile.year * 37
-    + profile.month * 19
-    + profile.day * 13
-    + (Number.isFinite(profile.hour) ? profile.hour * 7 : 12 * 7)
-    + (Number.isFinite(profile.minute) ? profile.minute : 0)
-  );
-
-  const dayMasterFallback = pickByIndex(stems, seed);
-  const yearBranchFallback = pickByIndex(branches, profile.year + profile.month);
-  const monthBranchFallback = pickByIndex(branches, profile.month + profile.day);
-  const dayBranchFallback = pickByIndex(branches, profile.day + profile.month + 2);
-  const hourBranchFallback = pickByIndex(branches, seed + 5);
-  const usefulFallback = pickByIndex(elements, seed + 2);
-  const supportFallback = pickByIndex(elements, seed + 4);
-  const cautionFallback = pickByIndex(elements, seed + 1);
-
   let engineProfile = null;
   try {
     engineProfile = buildSajuProfile({
@@ -1016,11 +1183,15 @@ function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
         day: profile.day,
         hour: Number.isFinite(profile.hour) ? profile.hour : 12,
         minute: Number.isFinite(profile.minute) ? profile.minute : 0,
-        unknownTime: !profile.timeKnown,
+        unknownTime: false,
       },
     });
   } catch (error) {
-    logLifeBookServer("EngineFallback", { reason: clean(error?.message || "engine_error") });
+    logLifeBookServer("EngineError", { reason: clean(error?.message || "engine_error") });
+  }
+
+  if (!engineProfile) {
+    throw Object.assign(new Error("사주 엔진 계산에 실패했습니다."), { code: "LIFEBOOK_ENGINE_CALC_FAILED", status: 500 });
   }
 
   const parsed = extractSignalFromSajuData(rawSajuData);
@@ -1034,37 +1205,37 @@ function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
         water: safeNumber(engineProfile.fiveElements.percentages.water, 0),
       }
     : null;
-  const analysisWeights = parsedAnalysis.elementWeights || engineWeights;
+  const analysisWeights = parsedAnalysis.elementWeights || engineWeights || null;
 
   const engineTenGodCounts = engineProfile?.tenGods?.counts || null;
-  const mergedTenGodCounts = parsedAnalysis.tenGodCounts || engineTenGodCounts;
+  const mergedTenGodCounts = parsedAnalysis.tenGodCounts || engineTenGodCounts || null;
 
   const yearStem = clean(engineProfile?.pillars?.year?.stemKo || "");
   const monthStem = clean(engineProfile?.pillars?.month?.stemKo || "");
   const dayStem = clean(engineProfile?.pillars?.day?.stemKo || "");
   const hourStem = clean(engineProfile?.pillars?.hour?.stemKo || "");
-  const yearBranch = clean(engineProfile?.pillars?.year?.branch || "") || yearBranchFallback;
-  const monthBranch = clean(engineProfile?.pillars?.month?.branch || "") || monthBranchFallback;
-  const dayBranch = clean(engineProfile?.pillars?.day?.branch || "") || dayBranchFallback;
-  const hourBranch = clean(engineProfile?.pillars?.hour?.branch || "") || hourBranchFallback;
+  const yearBranch = clean(engineProfile?.pillars?.year?.branch || "");
+  const monthBranch = clean(engineProfile?.pillars?.month?.branch || "");
+  const dayBranch = clean(engineProfile?.pillars?.day?.branch || "");
+  const hourBranch = clean(engineProfile?.pillars?.hour?.branch || "");
 
   const useful = normalizeSajuElementToken(
     parsedAnalysis.yongshinElements[0]
       || englishElementToKorean(engineProfile?.usefulGods?.yong)
       || parsed?.useful,
-    usefulFallback,
+    "",
   );
   const support = normalizeSajuElementToken(
     parsedAnalysis.yongshinElements[1]
       || englishElementToKorean(engineProfile?.usefulGods?.hee?.[0])
       || parsed?.support,
-    supportFallback,
+    "",
   );
   const caution = normalizeSajuElementToken(
     parsedAnalysis.kishinElements[0]
       || englishElementToKorean(engineProfile?.usefulGods?.gi?.[0])
       || parsed?.caution,
-    cautionFallback,
+    "",
   );
 
   let dominantElement = "";
@@ -1083,48 +1254,63 @@ function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
 
   const topTenGod = pickTopTenGod(mergedTenGodCounts);
 
-  const daewunCycles = [];
-  if (parsedAnalysis.currentDaewun) {
-    daewunCycles.push({ label: parsedAnalysis.currentDaewun, phase: "current" });
-  }
+  const daewun = calcLifeBookDaewunFromBirth(profile);
   const currentYear = new Date().getFullYear();
-  const currentYearPillar = `${pickByIndex(stems, currentYear)}${pickByIndex(branches, currentYear)}`;
+  const yearPillar = engineProfile?.pillars?.year;
+  const currentYearPillar = clean(yearPillar?.stemKo) && clean(yearPillar?.branch)
+    ? `${clean(yearPillar?.stemKo)}${clean(yearPillar?.branch)}`
+    : "";
 
-  const specialStars = ["도화", "역마", "화개"];
-  const twelveStages = {
-    year: "관대",
-    month: "건록",
-    day: "제왕",
-    hour: "쇠",
-  };
+  const specialStars = calcLifeBookSpecialStarsFromPillars(engineProfile?.pillars || {});
+  const twelveGrowthStages = buildLifeBookTwelveGrowthStages(engineProfile?.pillars || {});
+
+  if (!clean(dayStem) || !clean(monthBranch) || !clean(dayBranch) || !clean(hourBranch)) {
+    throw Object.assign(new Error("사주 기둥 해석 필드가 부족합니다."), { code: "LIFEBOOK_ENGINE_FIELDS_MISSING", status: 500 });
+  }
+  if (!analysisWeights || Object.keys(analysisWeights).length < 5) {
+    throw Object.assign(new Error("오행 분포 계산 결과가 부족합니다."), { code: "LIFEBOOK_FIVE_ELEMENTS_MISSING", status: 500 });
+  }
+  if (!mergedTenGodCounts || Object.keys(mergedTenGodCounts).length < 4) {
+    throw Object.assign(new Error("십성 분포 계산 결과가 부족합니다."), { code: "LIFEBOOK_TENGODS_MISSING", status: 500 });
+  }
+  if (!useful) {
+    throw Object.assign(new Error("용신 계산 결과가 부족합니다."), { code: "LIFEBOOK_YONGSHIN_MISSING", status: 500 });
+  }
+  if (!Array.isArray(daewun.cycles) || daewun.cycles.length === 0) {
+    throw Object.assign(new Error("대운 계산 결과가 부족합니다."), { code: "LIFEBOOK_DAEWUN_MISSING", status: 500 });
+  }
 
   return {
-    dayMaster: parsedAnalysis.dayMaster || dayStem || parsed?.dayMaster || dayMasterFallback,
-    yearStem: yearStem || pickByIndex(stems, seed + 1),
-    monthStem: monthStem || pickByIndex(stems, seed + 3),
-    hourStem: hourStem || pickByIndex(stems, seed + 7),
+    dayMaster: parsedAnalysis.dayMaster || dayStem || parsed?.dayMaster,
+    yearStem,
+    monthStem,
+    hourStem,
     yearBranch,
     monthBranch: parsedAnalysis.monthBranch || parsed?.monthBranch || monthBranch,
     dayBranch,
     hourBranch,
     useful,
-    support,
-    caution,
+    support: support || useful,
+    caution: caution || useful,
     timeKnown: Boolean(profile.timeKnown),
     timeLabel: profile.timeKnown ? `${pad2(profile.hour)}:${pad2(profile.minute)}` : "시간 미상",
-    rhythm: `${pickByIndex(branches, seed)}-${pickByIndex(branches, seed + 3)}-${pickByIndex(branches, seed + 6)}`,
+    rhythm: `${yearBranch}-${monthBranch}-${dayBranch}`,
     powerLabel: parsedAnalysis.powerLabel,
-    johuType: parsedAnalysis.johuType,
+    johuType: parsedAnalysis.johuType || "평형",
     yongshinElements: parsedAnalysis.yongshinElements,
     kishinElements: parsedAnalysis.kishinElements,
-    currentDaewun: parsedAnalysis.currentDaewun,
-    nextDaewun: "다음 대운 전환 준비기",
-    daewunStartAge: null,
-    daewunCycles,
+    currentDaewun: clean(daewun?.current?.label || parsedAnalysis.currentDaewun),
+    nextDaewun: clean(daewun?.next?.label || ""),
+    daewunStartAge: Number(daewun?.current?.startAge || 0) || null,
+    daewunCycles: daewun.cycles,
+    currentDaeunNode: daewun.current,
+    nextDaeunNode: daewun.next,
     currentYear,
     currentYearPillar,
     isJong: parsedAnalysis.isJong,
     jongName: parsedAnalysis.jongName,
+    geokguk: `${clean(dayStem)}${clean(monthBranch)} 구조`,
+    relationshipFocus: `${clean(dayBranch)} 중심 관계 리듬`,
     elementWeights: analysisWeights,
     dominantElement,
     weakestElement,
@@ -1132,21 +1318,21 @@ function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
     tenGodByPillar: {
       year: clean(engineProfile?.tenGods?.pillarTenGods?.year || ""),
       month: clean(engineProfile?.tenGods?.pillarTenGods?.month || ""),
+      day: clean(engineProfile?.tenGods?.pillarTenGods?.day || ""),
       hour: clean(engineProfile?.tenGods?.pillarTenGods?.hour || ""),
     },
     specialStars,
-    twelveStages,
+    twelveGrowthStages,
     topTenGod,
+    engineProfile,
   };
 }
 
 function ensureCategoryLength(text, chapterId, categoryTitle, categoryIndex, minLength = LIFEBOOK_MIN_CATEGORY_CHARS + 40) {
   let result = stripForbiddenTokens(text);
-  let cursor = 0;
   while (result.length < minLength) {
-    const extra = PARAGRAPH_VARIATIONS[(categoryIndex + cursor) % PARAGRAPH_VARIATIONS.length];
+    const extra = `${chapterId}장 ${categoryTitle}의 실행 구간에서는 관계, 돈, 일, 건강 중 이번 주 핵심 축 하나를 고정해 추적해야 실제 변화가 누적됩니다. ${categoryIndex + 1}번째 점검 포인트는 기록-피드백-조정의 세 단계를 한 사이클로 운영하는 것입니다.`;
     result = `${result}\n\n${extra}`;
-    cursor += 1;
   }
 
   const topicKeywords = CHAPTER_TOPIC_RULES[String(chapterId || "")] || [];
@@ -1188,7 +1374,6 @@ function buildChapterLocalText(profile, signals, chapter) {
         "이번 달 실행 항목을 1~2개로 제한하기",
         "관계·돈·건강 점검 루틴을 주간 단위로 고정하기",
       ],
-      llmEnhancedText: "",
       finalText: stripForbiddenTokens(text),
     };
   });
@@ -1205,10 +1390,9 @@ function buildLifeBookChapters(profile, signals) {
       subtitle: chapter.subtitle,
       categories,
       localDraft,
-      llmEnhancedText: "",
       finalText: localDraft,
       text: localDraft,
-      source: "local",
+      source: "local-only",
     };
   });
 }
@@ -1228,10 +1412,9 @@ function createLifeBookFallbackText(profile, signals, chapter, categoryTitle, or
 function buildLifeBookFallbackChapters(profile, signals, chapters = []) {
   return ensureCompleteLifeBookChapters(profile, signals, chapters).map((chapter) => ({
     ...chapter,
-    llmEnhancedText: "",
     finalText: buildChapterBody(chapter.title, chapter.categories),
     text: buildChapterBody(chapter.title, chapter.categories),
-    source: "local-fallback",
+    source: "local-only",
   }));
 }
 
@@ -1249,14 +1432,13 @@ function ensureCompleteLifeBookChapters(profile, signals, chapters = []) {
 
     const categories = fallbackCategories.map((fallbackCategory, index) => {
       const existing = categoryMap.get(String(fallbackCategory.title)) || categoryMap.get(String(fallbackCategory.id));
-      const nextText = stripForbiddenTokens(existing?.finalText || existing?.llmEnhancedText || existing?.localSummary || fallbackCategory.localSummary);
+      const nextText = stripForbiddenTokens(existing?.finalText || existing?.localSummary || fallbackCategory.localSummary);
       return {
         id: fallbackCategory.id,
         title: fallbackCategory.title,
         localSummary: fallbackCategory.localSummary,
         evidenceTags: Array.isArray(existing?.evidenceTags) && existing.evidenceTags.length ? existing.evidenceTags : fallbackCategory.evidenceTags,
         advicePoints: Array.isArray(existing?.advicePoints) && existing.advicePoints.length ? existing.advicePoints : fallbackCategory.advicePoints,
-        llmEnhancedText: stripForbiddenTokens(existing?.llmEnhancedText || ""),
         finalText: nextText || createLifeBookFallbackText(profile, signals, blueprint, fallbackCategory.title, fallbackCategory.localSummary),
         order: index + 1,
       };
@@ -1271,10 +1453,9 @@ function ensureCompleteLifeBookChapters(profile, signals, chapters = []) {
       subtitle: blueprint.subtitle,
       categories,
       localDraft: chapterText,
-      llmEnhancedText: stripForbiddenTokens(chapter?.llmEnhancedText || ""),
       finalText: stripForbiddenTokens(chapter?.finalText || chapterText),
       text: stripForbiddenTokens(chapter?.finalText || chapterText),
-      source: chapter?.source || "local",
+      source: "local-only",
     };
   });
 }
@@ -1463,13 +1644,13 @@ function buildPdfReadyPayload(profile, chapters, metadata = {}) {
       title: chapter.title,
       categories: chapter.categories,
       text: chapter.text,
-      source: chapter.source || "local",
+      source: chapter.source || "local-only",
     })),
   };
 }
 
 async function handlePrepare(request, env) {
-  logLifeBookServer("RequestReceived", { route: "/api/lifebook/prepare" });
+  logLifeBookServer("RequestReceived", { route: "/api/premium/saju-lifebook/prepare" });
   let auth;
   try {
     auth = await requireAuth(request, env);
@@ -1495,7 +1676,7 @@ async function handlePrepare(request, env) {
 
   const normalized = normalizeInput(body);
   if (!normalized.ok) {
-    return json({ ok: false, message: normalized.message }, { status: 400 });
+    return json({ ok: false, code: clean(normalized.code || "INVALID_INPUT"), message: normalized.message }, { status: normalized.code === "BIRTH_TIME_REQUIRED" ? 422 : 400 });
   }
 
   const profile = normalized.profile;
@@ -1539,7 +1720,7 @@ async function handlePrepare(request, env) {
     featureKey: billingFeatureKey,
     reportType: "lifeBook",
     premiumAccessToken: premiumAccessToken || undefined,
-    _accessRoute: "/api/premium/saju-lifebook",
+    _accessRoute: "/api/premium/saju-lifebook/prepare",
   });
 
   if (!access?.ok) {
@@ -1588,12 +1769,23 @@ async function handlePrepare(request, env) {
 
   const signals = deriveLocalSignals(profile, body?.sajuData || "", body?.analysisSignals || {});
   const localSajuJson = buildLifeBookLocalSajuJson(birthInput, profile, signals, []);
+  const localSajuValidation = validateLifeBookLocalSajuJson(localSajuJson);
+  if (!localSajuValidation.ok) {
+    logLifeBookServer("LocalSajuValidationFailed", {
+      sessionId,
+      missing: localSajuValidation.missing,
+    });
+    throw Object.assign(new Error(`LOCAL_SAJU_FIELDS_MISSING:${localSajuValidation.missing.join(",")}`), {
+      code: "LIFEBOOK_LOCAL_SAJU_INVALID",
+      status: 422,
+    });
+  }
   logLifeBookServer("LocalCalculationSuccess", {
     sessionId,
-    dayMasterResolved: Boolean(localSajuJson?.chart?.dayMaster),
-    pillarCount: Number(Boolean(localSajuJson?.chart?.yearPillar)) + Number(Boolean(localSajuJson?.chart?.monthPillar)) + Number(Boolean(localSajuJson?.chart?.dayPillar)) + Number(Boolean(localSajuJson?.chart?.hourPillar)),
-    daewoonResolved: Boolean(localSajuJson?.chart?.daewoon?.current),
-    yearlyLuckResolved: Boolean(localSajuJson?.chart?.yearlyLuck?.year),
+    dayMasterResolved: Boolean(localSajuJson?.dayMaster),
+    pillarCount: Number(Boolean(localSajuJson?.pillars?.year?.ganji)) + Number(Boolean(localSajuJson?.pillars?.month?.ganji)) + Number(Boolean(localSajuJson?.pillars?.day?.ganji)) + Number(Boolean(localSajuJson?.pillars?.hour?.ganji)),
+    daewoonResolved: Boolean(localSajuJson?.currentDaeun?.label),
+    yearlyLuckResolved: Boolean(localSajuJson?.yearlyFlow?.year),
   });
 
   logLifeBookServer("LocalDraftBuildStart", { chapterCount: CHAPTER_BLUEPRINTS.length, sessionId });
@@ -1613,52 +1805,46 @@ async function handlePrepare(request, env) {
     logLifeBookServer("LocalQualityValidated", {
       sessionId,
       ok: false,
-      issues: localValidation.issues,
+      errors: localValidation.errors,
       totalLength: localValidation.totalLength,
       forbiddenTermsCount: localValidation.forbiddenHits,
       repetitionScore: localValidation.repetitionScore,
+      chapterMetrics: localValidation.chapterMetrics,
     });
-  } else {
-    logLifeBookServer("LocalQualityValidated", {
-      sessionId,
-      ok: true,
-      totalLength: localValidation.totalLength,
-      forbiddenTermsCount: localValidation.forbiddenHits,
-      repetitionScore: localValidation.repetitionScore,
+    throw Object.assign(new Error("LIFEBOOK_LOCAL_DRAFT_INVALID"), {
+      code: "LIFEBOOK_LOCAL_DRAFT_INVALID",
+      status: 422,
+      details: localValidation,
     });
   }
+  logLifeBookServer("LocalQualityValidated", {
+    sessionId,
+    ok: true,
+    totalLength: localValidation.totalLength,
+    forbiddenTermsCount: localValidation.forbiddenHits,
+    repetitionScore: localValidation.repetitionScore,
+  });
 
-  let completedChapters = ensureCompleteLifeBookChapters(profile, signals, localChapters);
-  let fallbackUsed = false;
-  let chapterValidation = validateLifeBookChapters(completedChapters);
-
-  if (!chapterValidation.ok) {
-    logLifeBookServer("LocalFinalizeFallback", {
-      sessionId,
-      reason: "chapter_validation_failed",
-      failedChapters: chapterValidation.errors?.length || 0,
-    });
-    fallbackUsed = true;
-    completedChapters = buildLifeBookFallbackChapters(profile, signals, completedChapters);
-    chapterValidation = validateLifeBookChapters(completedChapters);
-  }
-
-  if (!chapterValidation.ok) {
-    logLifeBookServer("LocalFinalizeFallback", {
-      sessionId,
-      reason: "fallback_validation_failed_use_pure_local",
-      failedChapters: chapterValidation.errors?.length || 0,
-    });
-    fallbackUsed = true;
-    completedChapters = localChapters.map((chapter) => ({
-      ...chapter,
-      source: "pure-local-skeleton",
-      finalText: buildChapterBody(chapter.title, chapter.categories),
-      llmEnhancedText: "",
-    }));
-  }
+  const completedChapters = ensureCompleteLifeBookChapters(profile, signals, localChapters).map((chapter) => ({
+    ...chapter,
+    source: "local-only",
+  }));
 
   const finalValidation = validateLifeBookFinalManuscript(completedChapters);
+  if (!finalValidation.ok) {
+    logLifeBookServer("FinalValidationFailed", {
+      sessionId,
+      errors: finalValidation.errors,
+      totalLength: finalValidation.totalLength,
+      chapterMetrics: finalValidation.chapterMetrics,
+      repetition: finalValidation.repetition,
+    });
+    throw Object.assign(new Error("FINAL_MANUSCRIPT_INVALID"), {
+      code: "FINAL_MANUSCRIPT_INVALID",
+      status: 422,
+      details: finalValidation,
+    });
+  }
   logLifeBookServer("FinalManuscriptValidated", {
     sessionId,
     ok: finalValidation.ok,
@@ -1685,9 +1871,24 @@ async function handlePrepare(request, env) {
     manuscriptSource,
     pdfHtml: buildLifeBookDocument({ profile, signals, chapters: completedChapters, generatedAt }),
   });
+  const requestOrigin = new URL(request.url).origin;
+  const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `saju-lifebook-${Date.now()}`);
+  const archiveUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
+  pdfReady.pdfUrl = archiveUrl;
+  pdfReady.htmlUrl = archiveUrl;
+  pdfReady.downloadUrl = archiveUrl;
+  pdfReady.storageKey = `premium-archive:life-book:${reportId}`;
+  pdfReady.mimeType = "text/html";
+
+  const storedUrl = clean(pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl);
+  if (!storedUrl) {
+    throw Object.assign(new Error("인생의 책 PDF 저장 URL 생성에 실패했습니다."), {
+      code: "LIFEBOOK_PDF_URL_MISSING",
+      status: 500,
+    });
+  }
   logLifeBookServer("PdfRenderSuccess", { sessionId, chapterCount: completedChapters.length });
 
-  const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `saju-lifebook-${Date.now()}`);
   await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
     manuscriptSource,
     chapterCount: completedChapters.length,
@@ -1704,34 +1905,49 @@ async function handlePrepare(request, env) {
         || completedChapters?.[0]?.categories?.[0]?.text,
         1000,
       ),
-      pdfUrl: clean(pdfReady?.pdfUrl),
+      pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
+      htmlUrl: clean(pdfReady?.htmlUrl),
       chapters: completedChapters,
+      localSajuJson,
       payload: lifebookPayload,
       pdfReady,
       canReopen: true,
-      canDownload: Boolean(clean(pdfReady?.pdfUrl)),
+      canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)),
     },
   });
+  const responseData = {
+    reportId,
+    featureKey,
+    sessionId,
+    reportType: "lifeBook",
+    serviceKey: LIFEBOOK_SERVICE_KEY,
+    profile,
+    birthInput,
+    manuscriptSource,
+    localSajuJson,
+    chapters: completedChapters,
+    lifebookPayload,
+    pdfReady,
+    pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
+    htmlUrl: clean(pdfReady?.htmlUrl),
+    canReopen: true,
+    canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)),
+    fallbackUsed: false,
+    llmUsed: false,
+  };
+
 
   const result = {
+    status: "completed",
+    serverStatus: "completed",
+    qualityStatus: "passed",
     ok: true,
+    serviceKey: LIFEBOOK_SERVICE_KEY,
     featureKey,
     chapterCount: CHAPTER_BLUEPRINTS.length,
-    serviceKey: LIFEBOOK_SERVICE_KEY,
-    data: {
-      reportId,
-      featureKey,
-      sessionId,
-      reportType: "lifeBook",
-      profile,
-      birthInput,
-      manuscriptSource,
-      localSajuJson,
-      chapters: completedChapters,
-      lifebookPayload,
-      pdfReady,
-      fallbackUsed,
-    },
+    reportType: "lifeBook",
+    data: responseData,
+    ...responseData,
   };
 
   LIFEBOOK_SESSION_LOCKS.set(sessionId, {
@@ -1781,7 +1997,10 @@ async function handlePrepare(request, env) {
 export async function handleSajuLifebookRoutes(request, env = {}) {
   try {
     const method = request.method.toUpperCase();
-    const path = getRoutePath(request, "/api/premium/saju-lifebook");
+    let path = getRoutePath(request, "/api/premium/saju-lifebook");
+    if (path === null || path === undefined) {
+      path = getRoutePath(request, "/api/lifebook");
+    }
 
     if (method === "POST" && (path === "" || path === "/" || path === "/prepare")) {
       return await handlePrepare(request, env);

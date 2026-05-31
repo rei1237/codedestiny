@@ -75,11 +75,11 @@ const SHARE_TEXT_PREFIX = "태양 회복 타로 결과를 공유합니다.\n\n";
 
 const READING_SECTIONS: ReadingSection[] = [
   { key: "consultingHighlights", title: "핵심 상담 하이라이트", tone: "focus", icon: Sparkles },
-  { key: "opening", title: "상담 시작 안내", tone: "neutral", icon: Sparkles },
+  { key: "opening", title: "오늘의 상담 프롤로그", tone: "neutral", icon: Sparkles },
   { key: "hiddenTruth", title: "1. 마음 깊은 원인", tone: "focus", icon: Telescope },
-  { key: "embracePain", title: "2. 감정 수용", tone: "warm", icon: HeartHandshake },
+  { key: "embracePain", title: "2. 감정 안아주기", tone: "warm", icon: HeartHandshake },
   { key: "silverLining", title: "3. 회복의 단서", tone: "focus", icon: Lightbulb },
-  { key: "stepForward", title: "4. 다음 행동", tone: "warm", icon: Footprints },
+  { key: "stepForward", title: "4. 오늘의 한 걸음", tone: "warm", icon: Footprints },
   { key: "integrationMessage", title: "🌟 종합 풀이: 회복의 흐름", tone: "neutral", icon: Sparkles },
   { key: "actionPlan", title: "🌱 오늘 바로 해볼 수 있는 작은 실천", tone: "focus", icon: Sparkles },
 ];
@@ -97,6 +97,14 @@ function safeCardTitle(card?: TarotCardDto, idx?: number) {
   if (!base) return `카드 ${typeof idx === "number" ? idx + 1 : ""}`.trim();
   const isRev = String(card?.orientation || "").toLowerCase() === "reversed";
   return isRev ? `${base} (역방향)` : `${base} (정방향)`;
+}
+
+function readingFingerprint(text: string) {
+  return String(text || "")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[.,!?~`'"()\[\]{}:;\-_/\\]/g, "")
+    .slice(0, 120);
 }
 
 const TAROT_IMAGE_MAP: Record<string, string> = {
@@ -277,7 +285,7 @@ export default function SunHealingTarot() {
   const [reading, setReading] = useState<HealingReadingDto | null>(null);
   const [consultingHighlights, setConsultingHighlights] = useState<string[]>([]);
   const [engineMeta, setEngineMeta] = useState<EngineMetaDto | null>(null);
-  const [tapToReveal, setTapToReveal] = useState(true);
+  const [tapToReveal, setTapToReveal] = useState(false);
   const [typed, setTyped] = useState<Record<string, string>>({});
   const [typingSection, setTypingSection] = useState<string | null>(null);
   const [glowingCard, setGlowingCard] = useState<number | null>(null);
@@ -295,7 +303,7 @@ export default function SunHealingTarot() {
     setReading(null);
     setConsultingHighlights([]);
     setEngineMeta(null);
-    setTapToReveal(true);
+    setTapToReveal(false);
     setTyped({});
     setTypingSection(null);
     setRevealedCount(0);
@@ -357,7 +365,7 @@ export default function SunHealingTarot() {
       setConsultingHighlights(highlights);
       setEngineMeta(data?.engineMeta && typeof data.engineMeta === "object" ? (data.engineMeta as EngineMetaDto) : null);
       setStage("result");
-      setTapToReveal(true);
+      setTapToReveal(false);
       setTyped({});
       setTypingSection(null);
     } catch (error) {
@@ -392,6 +400,7 @@ export default function SunHealingTarot() {
   useEffect(() => {
     if (!reading || tapToReveal || stage !== "result") return;
     let cancelled = false;
+    const seen = new Set<string>();
     async function typeInto(key: string, title: string, text: string) {
       setTypingSection(title);
       const initial = text.slice(0, INITIAL_TEXT_BURST_CHARS);
@@ -410,6 +419,9 @@ export default function SunHealingTarot() {
         const raw = reading[section.key];
         const text = Array.isArray(raw) ? raw.map((v) => `• ${v}`).join("\n") : String(raw || "").trim();
         if (!text) continue;
+        const fp = readingFingerprint(text);
+        if (fp.length > 18 && seen.has(fp)) continue;
+        if (fp.length > 18) seen.add(fp);
         await typeInto(String(section.key), section.title, text);
         if (i < READING_SECTIONS.length - 1) await sleep(SECTION_GAP_MS);
       }
@@ -422,17 +434,17 @@ export default function SunHealingTarot() {
 
   return (
     <main
-      className="min-h-[100dvh] overflow-x-hidden px-4 py-8 text-stone-900"
+      className="min-h-[100dvh] overflow-x-hidden px-0 py-0 text-stone-900"
       style={{ background: "linear-gradient(180deg, #FFFBF0 0%, #FFF8E1 40%, #FFFDE7 100%)" }}
     >
       <div className="pointer-events-none fixed inset-0" style={{ background: "radial-gradient(ellipse 75% 28% at 50% 0%, #FDE68A55 0%, transparent 70%)", zIndex: 0 }} />
       <div className="pointer-events-none fixed bottom-0 left-1/2 -translate-x-1/2 blur-[70px] opacity-25" style={{ width: 320, height: 180, background: "#FCD34D", borderRadius: "50%", zIndex: 0 }} />
-      <div className="relative z-10 mx-auto w-full max-w-[600px]">
+      <div className="relative z-10 mx-auto w-full max-w-[1100px] px-4 py-6 md:px-8 md:py-8">
         <header className="mb-8 flex items-start justify-between gap-3">
           <div>
             <p className="text-[10px] font-semibold tracking-[0.24em] text-amber-500 uppercase">Healing Tarot Session</p>
-            <h1 className="mt-1.5 font-serif text-[26px] font-semibold leading-tight text-amber-900">태양 회복 타로</h1>
-            <p className="mt-1.5 text-sm leading-6 text-stone-600">심리상담가의 시선으로 마음의 패턴을 읽고, 오늘 실행 가능한 회복 행동까지 안내합니다.</p>
+            <h1 className="mt-1.5 font-serif text-[28px] font-semibold leading-tight text-amber-900 md:text-[34px]">태양 회복 타로</h1>
+            <p className="mt-1.5 text-sm leading-6 text-stone-600">심리상담사와 타로 마스터의 시선으로, 감정을 읽고 오늘의 회복 행동까지 바로 안내합니다.</p>
           </div>
           <button type="button" onClick={goHome} className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-amber-200 bg-white/70 px-3 py-2 text-xs font-medium text-stone-600 shadow-sm hover:bg-amber-50 hover:text-amber-800 transition-colors">
             <RotateCcw className="h-3.5 w-3.5" />홈
@@ -440,11 +452,11 @@ export default function SunHealingTarot() {
         </header>
         <AnimatePresence mode="wait">
           {stage === "intro" ? (
-            <motion.section key="intro" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="space-y-7">
+            <motion.section key="intro" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="space-y-7 min-h-[calc(100dvh-180px)] content-center">
               <div className="flex justify-center py-4"><SunHero /></div>
-              <div className="rounded-2xl border border-amber-200 bg-white/75 p-6 shadow-sm backdrop-blur-sm">
+              <div className="rounded-2xl border border-amber-200 bg-white/75 p-6 shadow-sm backdrop-blur-sm md:p-8">
                 <h2 className="font-serif text-xl font-semibold text-amber-900">마음을 열어볼 준비가 되셨나요?</h2>
-                <p className="mt-3 text-sm leading-7 text-stone-700">4장의 카드를 순서대로 열면, 원인 파악부터 실행 계획까지<br className="hidden sm:block" />태양의 따스한 빛으로 당신의 내면을 비춥니다.</p>
+                <p className="mt-3 text-sm leading-7 text-stone-700">4장의 카드를 순서대로 열면, 원인 파악부터 실행 계획까지<br className="hidden sm:block" />상담실처럼 안전한 흐름으로 마음을 비춰 드립니다.</p>
                 <div className="mt-4 flex flex-wrap gap-2">{["원인 파악", "감정 수용", "회복 단서", "실행 계획"].map((label, i) => (<span key={i} className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">{label}</span>))}</div>
               </div>
               <button type="button" onClick={start} disabled={loading} className="group relative w-full overflow-hidden rounded-2xl py-4 text-sm font-bold text-white shadow-lg shadow-amber-200 disabled:opacity-50 transition-all active:scale-[0.98]" style={{ background: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)" }}>
@@ -454,7 +466,7 @@ export default function SunHealingTarot() {
             </motion.section>
           ) : null}
           {stage === "spread" ? (
-            <motion.section key="spread" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="space-y-5">
+            <motion.section key="spread" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="space-y-5 min-h-[calc(100dvh-180px)]">
               <div className="rounded-2xl border border-amber-200 bg-white/75 p-4 shadow-sm backdrop-blur-sm">
                 <div className="flex items-center justify-between">
                   <h2 className="font-serif text-base font-semibold text-amber-900">순서대로 카드를 열어보세요</h2>
@@ -464,7 +476,7 @@ export default function SunHealingTarot() {
                   <motion.div className="h-full rounded-full" style={{ background: "linear-gradient(90deg, #F59E0B 0%, #D97706 100%)" }} initial={{ width: 0 }} animate={{ width: `${progressPct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 {Array.from({ length: SPREAD_CARD_COUNT }).map((_, idx) => {
                   const card = cards[idx];
                   const isFlipped = idx < revealedCount;
@@ -496,9 +508,9 @@ export default function SunHealingTarot() {
             </motion.section>
           ) : null}
           {stage === "result" ? (
-            <motion.section key="result" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="space-y-5">
+            <motion.section key="result" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="space-y-5 min-h-[calc(100dvh-180px)]">
               <div className="flex items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-white/80 p-5 shadow-sm backdrop-blur-sm">
-                <div><h2 className="font-serif text-lg font-semibold text-amber-900">상담 리딩 결과</h2><p className="mt-1 text-xs text-stone-500">천천히 읽고, 한 가지 행동부터 실행해 보세요.</p></div>
+                <div><h2 className="font-serif text-lg font-semibold text-amber-900">상담 리딩 결과</h2><p className="mt-1 text-xs text-stone-500">지금 화면에서 바로, 차분하게 끝까지 읽어 보세요.</p></div>
                 <button type="button" onClick={share} className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700 hover:bg-amber-100 transition-colors"><Share2 className="h-3.5 w-3.5" />공유</button>
               </div>
               {cards.length > 0 && (
@@ -511,26 +523,18 @@ export default function SunHealingTarot() {
                   ))}
                 </div>
               )}
-              {tapToReveal ? (
-                <motion.button type="button" onClick={() => setTapToReveal(false)} whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.98 }} className="w-full rounded-2xl border border-amber-200 bg-white/80 p-8 text-center shadow-sm backdrop-blur-sm">
-                  <div className="flex justify-center mb-3"><motion.div animate={{ scale: [1, 1.1, 1], opacity: [0.65, 1, 0.65] }} transition={{ duration: 2.6, repeat: Infinity }}><Sparkles className="h-7 w-7 text-amber-500" /></motion.div></div>
-                  <p className="font-serif text-lg font-semibold text-amber-900">화면을 눌러 리딩 열기</p>
-                  <p className="mt-2 text-sm text-stone-500">태양의 메시지가 순서대로 펼쳐집니다.</p>
-                </motion.button>
-              ) : (
-                <div className="space-y-3">
-                  {READING_SECTIONS.map((section) => {
-                    const value = typed[String(section.key)] || "";
-                    if (!value) return null;
-                    return (<ReadingCard key={String(section.key)} title={section.title} tone={section.tone} icon={section.icon} text={value} isTyping={typingSection === section.title} />);
-                  })}
-                  {engineMeta?.qualityEnhanced && (<p className="rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2 text-xs text-amber-700">엔진 품질 강화 상담 모드가 적용되었습니다.</p>)}
-                  <div className="pt-4 flex flex-col gap-3">
-                    <button type="button" onClick={start} className="w-full rounded-2xl border border-amber-200 bg-white/70 py-4 text-sm font-bold text-amber-900 shadow-sm hover:bg-amber-50 transition-all active:scale-[0.98]">다시 복채 던지기</button>
-                    <button type="button" onClick={goHome} className="w-full rounded-2xl bg-stone-800 py-4 text-sm font-bold text-white shadow-md hover:bg-stone-900 transition-all active:scale-[0.98]">다른 운세 보러가기</button>
-                  </div>
+              <div className="space-y-3">
+                {READING_SECTIONS.map((section) => {
+                  const value = typed[String(section.key)] || "";
+                  if (!value) return null;
+                  return (<ReadingCard key={String(section.key)} title={section.title} tone={section.tone} icon={section.icon} text={value} isTyping={typingSection === section.title} />);
+                })}
+                {engineMeta?.qualityEnhanced && (<p className="rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2 text-xs text-amber-700">엔진 품질 강화 상담 모드가 적용되었습니다.</p>)}
+                <div className="pt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <button type="button" onClick={start} className="w-full rounded-2xl border border-amber-200 bg-white/70 py-4 text-sm font-bold text-amber-900 shadow-sm hover:bg-amber-50 transition-all active:scale-[0.98]">다시 복채 던지기</button>
+                  <button type="button" onClick={goHome} className="w-full rounded-2xl bg-stone-800 py-4 text-sm font-bold text-white shadow-md hover:bg-stone-900 transition-all active:scale-[0.98]">다른 운세 보러가기</button>
                 </div>
-              )}
+              </div>
             </motion.section>
           ) : null}
         </AnimatePresence>

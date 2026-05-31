@@ -2,6 +2,8 @@ import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJ
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { connectDb } from "../lib/db.js";
+import { ServiceExecutionTransaction } from "../lib/models.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import {
   buildCelestialMelodyReading,
@@ -12,6 +14,9 @@ import {
 
 const SESSION_CACHE = new Map();
 const CELESTIAL_FEATURE_KEY = "tarot-celestial-harmony";
+const CELESTIAL_REPORT_TYPE = "celestialHarmony";
+const CELESTIAL_COST = 100;
+const CELESTIAL_RESULT_VERSION = "20260531-worker-v3";
 
 function text(value) {
   return String(value || "").trim();
@@ -50,10 +55,233 @@ function extractPaymentEvidence(body = {}) {
       payload.transactionId
       || payload.purchaseId
       || accessGrant.purchaseId
+      || accessGrant.transactionId
       || consume.transactionId
+      || consume.sourceTransactionId
       || payment.transactionId,
     ),
+    requestId: text(payload.requestId || accessGrant.requestId || consume.requestId || payment.requestId),
+    sessionId: text(payload.sessionId || payload.reportSessionId || accessGrant.sessionId || payment.sessionId || payment.reportSessionId),
+    purchaseId: text(payload.purchaseId || accessGrant.purchaseId || accessGrant.transactionId || consume.purchaseId || consume.transactionId || payment.purchaseId),
   };
+}
+
+function toStringArray(value, fallback = []) {
+  if (!Array.isArray(value)) return fallback.slice();
+  return value.map((item) => text(item)).filter(Boolean);
+}
+
+function toIso(value) {
+  const d = value instanceof Date ? value : new Date(value || Date.now());
+  if (Number.isNaN(d.getTime())) return new Date().toISOString();
+  return d.toISOString();
+}
+
+function normalizeCardEntry(card = {}, fallback = {}) {
+  const source = card && typeof card === "object" ? card : {};
+  const base = fallback && typeof fallback === "object" ? fallback : {};
+  const orientation = text(source.orientation || base.orientation || "upright").toLowerCase() === "reversed" ? "reversed" : "upright";
+  return {
+    planetKo: text(source.planetKo || base.planetKo || "태양"),
+    planetEn: text(source.planetEn || base.planetEn || "Sun"),
+    planetSymbol: text(source.planetSymbol || base.planetSymbol || "☉"),
+    planetTitle: text(source.planetTitle || base.planetTitle || "의식의 중심"),
+    planetId: text(source.planetId || base.planetId || "sun"),
+    layer: text(source.layer || base.layer || "conscious"),
+    orientation,
+    cardNameKo: text(source.cardNameKo || base.cardNameKo || "바보"),
+    cardNameEn: text(source.cardNameEn || base.cardNameEn || "The Fool"),
+    tarotKeywords: toStringArray(source.tarotKeywords, toStringArray(base.tarotKeywords, ["새로운 시작"])),
+    planetKeywords: toStringArray(source.planetKeywords, toStringArray(base.planetKeywords, ["자아"])),
+    cardMeaning: text(source.cardMeaning || base.cardMeaning || "카드 상징이 현재 상황의 핵심 과제를 비춥니다."),
+    planetMeaning: text(source.planetMeaning || base.planetMeaning || "행성 원형은 감정과 선택의 구조를 드러냅니다."),
+    archetypeReading: text(source.archetypeReading || base.archetypeReading || "원형 해석을 통해 반복 패턴과 전환 지점을 읽어야 합니다."),
+    consciousMessage: text(source.consciousMessage || base.consciousMessage || "의식 메시지는 기준을 먼저 세우고 실행 순서를 명확히 하라는 요청입니다."),
+    unconsciousPattern: text(source.unconsciousPattern || base.unconsciousPattern || "무의식 패턴은 과거의 반응 습관이 현재 선택을 왜곡하는 방식으로 나타납니다."),
+    shadowWarning: text(source.shadowWarning || base.shadowWarning || "그림자 경고는 과잉 반응과 자기 단정을 멈추라는 안전 신호입니다."),
+    soulLesson: text(source.soulLesson || base.soulLesson || "영혼 과제는 상처를 언어화하고 자기 신뢰 행동으로 전환하는 데 있습니다."),
+    integrationPractice: text(source.integrationPractice || base.integrationPractice || "통합 실천은 오늘 가능한 최소 행동을 끝까지 완료하는 것입니다."),
+  };
+}
+
+function normalizeSummary(summary = {}, fallback = {}) {
+  const src = summary && typeof summary === "object" ? summary : {};
+  const base = fallback && typeof fallback === "object" ? fallback : {};
+  const srcMatrix = src.insightMatrix && typeof src.insightMatrix === "object" ? src.insightMatrix : {};
+  const baseMatrix = base.insightMatrix && typeof base.insightMatrix === "object" ? base.insightMatrix : {};
+  return {
+    overallTheme: text(src.overallTheme || base.overallTheme || "11행성 신호는 의식과 무의식의 재정렬이 필요한 전환기임을 말합니다."),
+    strongestPlanetSignal: text(src.strongestPlanetSignal || base.strongestPlanetSignal || "핵심 행성 신호가 전체 리딩의 중심 주제를 형성합니다."),
+    deepestShadow: text(src.deepestShadow || base.deepestShadow || "그림자 패턴을 인식하고 반응 속도를 조절해야 합니다."),
+    soulLesson: text(src.soulLesson || base.soulLesson || "영혼 과제는 자기 기준을 행동으로 증명하는 것입니다."),
+    integrationPath: text(src.integrationPath || base.integrationPath || "작은 실행을 반복해 해석을 현실에 정착시키세요."),
+    dominantLayer: text(src.dominantLayer || base.dominantLayer || "integration"),
+    dominantSuit: text(src.dominantSuit || base.dominantSuit || "major"),
+    majorArcanaRatio: text(src.majorArcanaRatio || base.majorArcanaRatio || "11/11"),
+    planetHighlights: toStringArray(src.planetHighlights, toStringArray(base.planetHighlights, [])),
+    insightMatrix: {
+      love: text(srcMatrix.love || baseMatrix.love || "관계에서는 감정 추측보다 사실 확인 질문이 필요합니다."),
+      work: text(srcMatrix.work || baseMatrix.work || "업무에서는 우선순위와 실행 리듬을 재정렬해야 합니다."),
+      money: text(srcMatrix.money || baseMatrix.money || "재정 판단은 기대수익보다 리스크 문장화가 우선입니다."),
+      health: text(srcMatrix.health || baseMatrix.health || "수면과 호흡 루틴이 회복의 핵심 축입니다."),
+    },
+    practices: toStringArray(src.practices, toStringArray(base.practices, [])),
+    ritualPlan: toStringArray(src.ritualPlan, toStringArray(base.ritualPlan, [])),
+    finalOracle: text(src.finalOracle || base.finalOracle || "작은 실천이 반복될 때 우주의 선율은 현실 변화로 완성됩니다."),
+  };
+}
+
+function normalizePayment(payment = {}, fallback = {}) {
+  const src = payment && typeof payment === "object" ? payment : {};
+  const base = fallback && typeof fallback === "object" ? fallback : {};
+  return {
+    reportId: text(src.reportId || base.reportId),
+    transactionId: text(src.transactionId || base.transactionId),
+    requestId: text(src.requestId || base.requestId),
+    sessionId: text(src.sessionId || src.reportSessionId || base.sessionId || base.reportSessionId),
+    reportSessionId: text(src.reportSessionId || src.sessionId || base.reportSessionId || base.sessionId),
+    purchaseId: text(src.purchaseId || base.purchaseId || src.transactionId || base.transactionId),
+    featureKey: text(src.featureKey || base.featureKey || CELESTIAL_FEATURE_KEY),
+    reportType: text(src.reportType || base.reportType || CELESTIAL_REPORT_TYPE),
+    cost: Number(src.cost || base.cost || CELESTIAL_COST),
+    accessType: text(src.accessType || base.accessType || ""),
+  };
+}
+
+function normalizeResultSchema(result = {}, options = {}) {
+  const seedCards = Array.isArray(options.seedCards) ? options.seedCards : [];
+  const paymentSeed = options.payment && typeof options.payment === "object" ? options.payment : {};
+  const built = buildCelestialMelodyReading({
+    cards: seedCards.length ? seedCards : (Array.isArray(result?.cards) ? result.cards : []),
+    payment: {
+      reportId: paymentSeed.reportId,
+      transactionId: paymentSeed.transactionId,
+      coinCharged: true,
+      apiUsed: Boolean(result?.meta?.apiUsed),
+    },
+    version: CELESTIAL_RESULT_VERSION,
+  }).reading;
+
+  const sourceCards = Array.isArray(result?.cards) && result.cards.length === 11
+    ? result.cards
+    : built.cards;
+
+  const cards = built.cards.map((fallbackCard, idx) => normalizeCardEntry(sourceCards[idx], fallbackCard));
+  const summary = normalizeSummary(result?.summary, built.summary);
+  const payment = normalizePayment(result?.payment, {
+    ...built.payment,
+    ...paymentSeed,
+  });
+
+  return {
+    ...result,
+    generatedAt: text(result?.generatedAt || built.generatedAt || toIso(Date.now())),
+    cards,
+    summary,
+    payment,
+    meta: {
+      ...(result?.meta && typeof result.meta === "object" ? result.meta : {}),
+      cardCount: cards.length,
+      version: text(result?.meta?.version || CELESTIAL_RESULT_VERSION),
+    },
+  };
+}
+
+async function writeCelestialArchive(env, userId, bindings, result) {
+  const reportId = text(bindings?.reportId);
+  const transactionId = text(bindings?.transactionId);
+  const requestId = text(bindings?.requestId);
+  const sessionId = text(bindings?.sessionId || bindings?.reportSessionId);
+  const purchaseId = text(bindings?.purchaseId);
+  const executionKey = text(`celestial-harmony:${reportId || requestId || transactionId || sessionId || Date.now().toString(36)}`);
+  const now = new Date();
+  await connectDb(env);
+
+  await ServiceExecutionTransaction.findOneAndUpdate(
+    { userId, executionKey },
+    {
+      $set: {
+        reportType: CELESTIAL_REPORT_TYPE,
+        reportId,
+        sessionId,
+        paymentSessionId: sessionId,
+        coinTransactionId: transactionId,
+        idempotencyKey: requestId,
+        featureKey: CELESTIAL_FEATURE_KEY,
+        cost: CELESTIAL_COST,
+        sourceTransactionId: transactionId || purchaseId,
+        status: "success",
+        premiumStatus: "completed",
+        reasonCode: "",
+        reasonMessage: "",
+        completedAt: now,
+        generationCompletedAt: now,
+        timeoutAt: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 90),
+        nextRetryAt: now,
+        metadata: {
+          source: "celestial-harmony.report",
+          bindings: {
+            reportId,
+            transactionId,
+            requestId,
+            sessionId,
+            purchaseId,
+          },
+          result,
+          archive: result,
+        },
+      },
+      $setOnInsert: {
+        coinAmount: CELESTIAL_COST,
+        maxRetries: 1,
+        retryCount: 0,
+        retentionUntil: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 90),
+      },
+    },
+    { upsert: true, returnDocument: "after" },
+  ).lean();
+}
+
+async function readCelestialArchive(env, userId, bindings = {}) {
+  const reportId = text(bindings.reportId);
+  const transactionId = text(bindings.transactionId);
+  const requestId = text(bindings.requestId);
+  const sessionId = text(bindings.sessionId || bindings.reportSessionId);
+  const ors = [];
+  if (reportId) ors.push({ reportId });
+  if (transactionId) ors.push({ sourceTransactionId: transactionId }, { coinTransactionId: transactionId });
+  if (requestId) ors.push({ idempotencyKey: requestId });
+  if (sessionId) ors.push({ sessionId });
+  if (!ors.length) return null;
+
+  await connectDb(env);
+  const doc = await ServiceExecutionTransaction.findOne({
+    userId,
+    reportType: CELESTIAL_REPORT_TYPE,
+    status: "success",
+    premiumStatus: "completed",
+    $or: ors,
+  })
+    .sort({ completedAt: -1, updatedAt: -1, createdAt: -1 })
+    .lean();
+
+  if (!doc) return null;
+  const archived = doc?.metadata?.result || doc?.metadata?.archive || null;
+  if (!archived || typeof archived !== "object") return null;
+
+  return normalizeResultSchema(archived, {
+    payment: {
+      reportId: text(archived?.payment?.reportId || doc.reportId || reportId),
+      transactionId: text(archived?.payment?.transactionId || doc.sourceTransactionId || doc.coinTransactionId || transactionId),
+      requestId: text(archived?.payment?.requestId || doc.idempotencyKey || requestId),
+      sessionId: text(archived?.payment?.sessionId || doc.sessionId || sessionId),
+      reportSessionId: text(archived?.payment?.reportSessionId || doc.sessionId || sessionId),
+      featureKey: CELESTIAL_FEATURE_KEY,
+      reportType: CELESTIAL_REPORT_TYPE,
+      cost: CELESTIAL_COST,
+      accessType: text(archived?.payment?.accessType || ""),
+    },
+  });
 }
 
 async function verifyCelestialAccess({ request, env, auth, body, reportId = "", transactionId = "", premiumAccessToken = "" }) {
@@ -61,19 +289,25 @@ async function verifyCelestialAccess({ request, env, auth, body, reportId = "", 
   const accessPayload = {
     ...(body && typeof body === "object" ? body : {}),
     featureKey: CELESTIAL_FEATURE_KEY,
-    reportType: "celestialHarmony",
+    reportType: CELESTIAL_REPORT_TYPE,
     reportId: text(reportId || evidence.reportId),
     transactionId: text(transactionId || evidence.transactionId),
-    purchaseId: text((body && body.purchaseId) || evidence.accessGrant.purchaseId || evidence.consume.transactionId),
-    sessionId: text((body && body.sessionId) || (body && body.reportSessionId) || evidence.accessGrant.sessionId),
-    reportSessionId: text((body && body.reportSessionId) || evidence.accessGrant.sessionId),
+    requestId: text((body && body.requestId) || evidence.requestId),
+    purchaseId: text((body && body.purchaseId) || evidence.purchaseId || evidence.accessGrant.purchaseId || evidence.consume.transactionId),
+    sessionId: text((body && body.sessionId) || (body && body.reportSessionId) || evidence.sessionId || evidence.accessGrant.sessionId),
+    reportSessionId: text((body && body.reportSessionId) || evidence.sessionId || evidence.accessGrant.sessionId),
     accessGrant: evidence.accessGrant,
     consume: evidence.consume,
     payment: {
       ...evidence.payment,
       featureKey: text(evidence.payment.featureKey || CELESTIAL_FEATURE_KEY),
+      reportType: CELESTIAL_REPORT_TYPE,
       reportId: text(evidence.payment.reportId || reportId || evidence.reportId),
       transactionId: text(evidence.payment.transactionId || transactionId || evidence.transactionId),
+      requestId: text(evidence.payment.requestId || evidence.requestId || (body && body.requestId)),
+      sessionId: text(evidence.payment.sessionId || evidence.payment.reportSessionId || evidence.sessionId || (body && body.sessionId) || (body && body.reportSessionId)),
+      reportSessionId: text(evidence.payment.reportSessionId || evidence.payment.sessionId || evidence.sessionId || (body && body.reportSessionId) || (body && body.sessionId)),
+      cost: Number(evidence.payment.cost || CELESTIAL_COST),
     },
     premiumAccessToken: text(
       premiumAccessToken
@@ -84,7 +318,7 @@ async function verifyCelestialAccess({ request, env, auth, body, reportId = "", 
     _accessRoute: "/api/celestial-harmony",
   };
 
-  return requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "celestialHarmony", accessPayload);
+  return requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, CELESTIAL_REPORT_TYPE, accessPayload);
 }
 
 async function enrichFinalOracle(env, reading) {
@@ -129,6 +363,8 @@ async function handleGenerate(request, env) {
   const paymentEvidence = extractPaymentEvidence(body);
   const reportId = paymentEvidence.reportId;
   const transactionId = paymentEvidence.transactionId;
+  const requestId = paymentEvidence.requestId || text(body?.requestId || body?.payment?.requestId);
+  const sessionId = paymentEvidence.sessionId || text(body?.sessionId || body?.reportSessionId || body?.payment?.sessionId || body?.payment?.reportSessionId);
   const restoredFromPaidSession = Boolean(body?.restoredFromPaidSession || body?.payment?.restoredFromPaidSession);
   const premiumAccessToken = text(
     request.headers.get("x-premium-access-token")
@@ -152,14 +388,19 @@ async function handleGenerate(request, env) {
     return json({
       ok: false,
       code: access?.code || (status === 401 ? "UNAUTHORIZED" : "PAYMENT_REQUIRED"),
-      message: status === 401
-        ? "로그인 후 천체의 선율 타로를 이용해 주세요."
-        : "결제 확인이 필요합니다. 메인 화면에서 100코인 결제를 먼저 진행해 주세요.",
+      message: status === 401 ? "로그인 후 천체의 선율 타로를 이용해 주세요." : "결제 확인이 필요합니다.",
+      detail: {
+        reason: text(access?.reason || access?.code || ""),
+        accessType: text(access?.accessType || ""),
+        requiredFeatureKey: CELESTIAL_FEATURE_KEY,
+        reportType: CELESTIAL_REPORT_TYPE,
+      },
     }, { status });
   }
 
   if (!cards.length) {
-    const restored = restorePaidCelestialSession(reportId || transactionId);
+    const fromDb = await readCelestialArchive(env, auth.userId, { reportId, transactionId, requestId, sessionId });
+    const restored = fromDb || restorePaidCelestialSession(reportId || transactionId || requestId || sessionId);
     if (restored) {
       return json({ ok: true, source: "restored", result: restored });
     }
@@ -172,11 +413,18 @@ async function handleGenerate(request, env) {
       coinCharged: Boolean(body?.coinCharged !== false || access?.accessType),
       transactionId,
       reportId,
+      requestId,
+      sessionId,
+      reportSessionId: sessionId,
+      featureKey: CELESTIAL_FEATURE_KEY,
+      reportType: CELESTIAL_REPORT_TYPE,
+      cost: CELESTIAL_COST,
+      purchaseId: text(body?.purchaseId || paymentEvidence.purchaseId || transactionId),
       restoredFromPaidSession,
       accessType: text(access?.accessType),
       apiUsed: false,
     },
-    version: "20260530-worker-v2",
+    version: CELESTIAL_RESULT_VERSION,
   });
 
   const reading = local.reading;
@@ -186,17 +434,62 @@ async function handleGenerate(request, env) {
     reading.meta.apiUsed = true;
   }
 
-  if (reportId) cacheSet(`report:${reportId}`, reading);
-  if (transactionId) cacheSet(`tx:${transactionId}`, reading);
+  const normalized = normalizeResultSchema(reading, {
+    seedCards: cards,
+    payment: {
+      reportId,
+      transactionId,
+      requestId,
+      sessionId,
+      reportSessionId: sessionId,
+      featureKey: CELESTIAL_FEATURE_KEY,
+      reportType: CELESTIAL_REPORT_TYPE,
+      cost: CELESTIAL_COST,
+      accessType: text(access?.accessType || ""),
+      purchaseId: text(body?.purchaseId || paymentEvidence.purchaseId || transactionId),
+    },
+  });
+
+  if (!Array.isArray(normalized.cards) || normalized.cards.length !== 11) {
+    return json({
+      ok: false,
+      code: "RESULT_SCHEMA_INVALID",
+      message: "리딩 결과 형식이 올바르지 않습니다. 관리자 확인이 필요합니다.",
+      detail: { reason: "cards-length" },
+    }, { status: 500 });
+  }
+
+  if (reportId) cacheSet(`report:${reportId}`, normalized);
+  if (transactionId) cacheSet(`tx:${transactionId}`, normalized);
+  if (requestId) cacheSet(`req:${requestId}`, normalized);
+  if (sessionId) cacheSet(`session:${sessionId}`, normalized);
 
   // Browser local restore helper (no-op on worker runtime).
-  persistCelestialSession(reading);
+  persistCelestialSession(normalized);
+
+  let archiveSaved = true;
+  let archiveWarning = "";
+  try {
+    await writeCelestialArchive(env, auth.userId, {
+      reportId,
+      transactionId,
+      requestId,
+      sessionId,
+      reportSessionId: sessionId,
+      purchaseId: text(body?.purchaseId || paymentEvidence.purchaseId || transactionId),
+    }, normalized);
+  } catch (archiveError) {
+    archiveSaved = false;
+    archiveWarning = text(archiveError?.message || "archive-save-failed");
+  }
 
   return json({
     ok: true,
     source: ai.used ? "local+gemini" : "local",
     quality: local.quality,
-    result: reading,
+    archiveSaved,
+    archiveWarning: archiveSaved ? "" : archiveWarning,
+    result: normalized,
   });
 }
 
@@ -204,6 +497,8 @@ async function handleRestore(request, env) {
   const url = new URL(request.url);
   const reportId = text(url.searchParams.get("reportId"));
   const transactionId = text(url.searchParams.get("transactionId"));
+  const requestId = text(url.searchParams.get("requestId"));
+  const sessionId = text(url.searchParams.get("sessionId"));
 
   let auth;
   try {
@@ -215,7 +510,33 @@ async function handleRestore(request, env) {
     throw error;
   }
 
-  const access = await verifyCelestialAccess({ request, env, auth, body: { reportId, transactionId }, reportId, transactionId });
+  const access = await verifyCelestialAccess({
+    request,
+    env,
+    auth,
+    body: {
+      featureKey: CELESTIAL_FEATURE_KEY,
+      reportType: CELESTIAL_REPORT_TYPE,
+      reportId,
+      transactionId,
+      requestId,
+      sessionId,
+      reportSessionId: sessionId,
+      payment: {
+        featureKey: CELESTIAL_FEATURE_KEY,
+        reportType: CELESTIAL_REPORT_TYPE,
+        reportId,
+        transactionId,
+        requestId,
+        sessionId,
+        reportSessionId: sessionId,
+        cost: CELESTIAL_COST,
+      },
+    },
+    reportId,
+    transactionId,
+    premiumAccessToken: text(request.headers.get("x-premium-access-token") || cookieValue(request, "cd_premium_access") || ""),
+  });
   if (!access?.ok) {
     const status = Number(access?.status || 402);
     return json({
@@ -223,19 +544,43 @@ async function handleRestore(request, env) {
       code: access?.code || "PAYMENT_REQUIRED",
       message: status === 401
         ? "로그인 후 결과 복구가 가능합니다."
-        : "결제 확인 후 결과 복구가 가능합니다.",
+        : "결제 확인이 필요합니다.",
+      detail: {
+        reason: text(access?.reason || access?.code || ""),
+        accessType: text(access?.accessType || ""),
+        requiredFeatureKey: CELESTIAL_FEATURE_KEY,
+        reportType: CELESTIAL_REPORT_TYPE,
+      },
     }, { status });
   }
 
   const byReport = reportId ? cacheGet(`report:${reportId}`) : null;
   const byTx = !byReport && transactionId ? cacheGet(`tx:${transactionId}`) : null;
-  const restored = byReport || byTx || restorePaidCelestialSession(reportId || transactionId);
+  const byRequest = !byReport && !byTx && requestId ? cacheGet(`req:${requestId}`) : null;
+  const bySession = !byReport && !byTx && !byRequest && sessionId ? cacheGet(`session:${sessionId}`) : null;
+  const byDb = !byReport && !byTx && !byRequest && !bySession
+    ? await readCelestialArchive(env, auth.userId, { reportId, transactionId, requestId, sessionId })
+    : null;
+  const restored = byReport || byTx || byRequest || bySession || byDb || restorePaidCelestialSession(reportId || transactionId || requestId || sessionId);
 
   if (!restored) {
     return json({ ok: false, code: "REPORT_NOT_FOUND", message: "복구 가능한 리딩이 없습니다." }, { status: 404 });
   }
 
-  return json({ ok: true, source: "restore", result: restored });
+  const normalized = normalizeResultSchema(restored, {
+    payment: {
+      reportId,
+      transactionId,
+      requestId,
+      sessionId,
+      reportSessionId: sessionId,
+      featureKey: CELESTIAL_FEATURE_KEY,
+      reportType: CELESTIAL_REPORT_TYPE,
+      cost: CELESTIAL_COST,
+      accessType: text(access?.accessType || ""),
+    },
+  });
+  return json({ ok: true, source: "restore", result: normalized });
 }
 
 export async function handleCelestialHarmonyRoutes(request, env = {}) {

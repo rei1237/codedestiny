@@ -8,8 +8,8 @@
   var LIFEBOOK_TOTAL_CHAPTERS = 13;
   var LIFE_BOOK_FEATURE_KEY = 'saju_life_book_pdf';
   var LIFE_BOOK_REASON = '인생의 책 생성 (13챕터)';
-  var LIFEBOOK_API_PREPARE_PATH = '/api/lifebook/prepare';
-  var LIFEBOOK_API_STATUS_PATH = '/api/lifebook/status';
+  var LIFEBOOK_API_PREPARE_PATH = '/api/premium/saju-lifebook/prepare';
+  var LIFEBOOK_API_STATUS_PATH = '/api/premium/saju-lifebook/status';
 
   /* ─────────────── 상수 ─────────────── */
   var CHAPTER_TITLES = [
@@ -112,6 +112,19 @@
     } catch (_) {}
   }
 
+  function _resolveLifeBookStoredUrl(payload) {
+    var p = payload || {};
+    var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
+    return _clean(
+      p.pdfUrl
+      || p.htmlUrl
+      || p.downloadUrl
+      || ready.pdfUrl
+      || ready.htmlUrl
+      || ready.downloadUrl
+    );
+  }
+
   var _generating = false;
   var _currentChapter = 1;
   var _mysticTimer = null;
@@ -121,6 +134,7 @@
   var _premiumAccessVerifiedUntil = 0;
   var _lbPendingSavedResult = null;
   var _lbPendingPdfHtml = '';
+  var _lbPendingReportUrl = '';
   var _lbJobStateKey = 'cd:premium-job:life-book';
   var _lbCurrentReportId = '';
   var _lbCurrentAccessGrant = null;
@@ -1753,7 +1767,8 @@
       var _json = _prepare.json;
 
       var _data = (_json && _json.data && typeof _json.data === 'object') ? _json.data : _json;
-        _lbPendingPdfHtml = String((_data && _data.pdfReady && _data.pdfReady.html) || '');
+      _lbPendingPdfHtml = String((_data && _data.pdfReady && _data.pdfReady.html) || '');
+      _lbPendingReportUrl = _resolveLifeBookStoredUrl(_data);
       var _manuscriptSource = String((_data && _data.manuscriptSource) || '').trim();
       if (_manuscriptSource !== 'llm-only-interpretation') {
         throw new Error('LIFE_BOOK_LLM_ONLY_REQUIRED');
@@ -1870,35 +1885,18 @@
 
   /* ─────────────── PDF 다운로드 ─────────────── */
   window.downloadLifeBookPdf = function () {
-    var fullHtml = String(_lbPendingPdfHtml || '').trim();
-    if (!fullHtml) {
-      alert('PDF 본문이 준비되지 않았습니다. 다시 생성해 주세요.');
+    var storedUrl = _clean(_lbPendingReportUrl || '');
+    if (storedUrl) {
+      window.open(storedUrl, '_blank', 'noopener,noreferrer');
       return;
     }
 
-    _flowLog('PDF_RENDER_START', { message: 'download-requested' });
-
-    var blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
-    var blobUrl = URL.createObjectURL(blob);
-
-    // 새 창 열어서 print
-    var win = window.open(blobUrl, '_blank', 'noopener,noreferrer,width=900,height=700');
-    if (!win) {
-      alert('팝업이 차단되어 PDF 생성 창을 열 수 없습니다.\n브라우저 팝업 허용 후 다시 시도해 주세요.');
-      URL.revokeObjectURL(blobUrl);
+    if (!_chapters.length) {
+      alert('리포트가 아직 준비되지 않았습니다. 먼저 생성해 주세요.');
       return;
     }
-    setTimeout(function () {
-      try {
-        win.focus();
-        win.print();
-        _flowLog('PDF_RENDER_SUCCESS', { message: 'print-opened' });
-        _lifeBookLog('PdfRenderStart', { mode: 'print', source: 'server-html' });
-      } catch (_) {}
-      setTimeout(function () {
-        URL.revokeObjectURL(blobUrl);
-      }, 1200);
-    }, 1200);
+
+    alert('리포트 저장 URL이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
   };
 
   /* ─────────────── 이벤트 위임 바인딩 ─────────────── */

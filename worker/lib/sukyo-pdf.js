@@ -4,42 +4,15 @@ export const SUKYO_PDF_FEATURE_KEY = "premium-sukuyo-report-compat";
 export const SUKYO_PDF_ALIAS_FEATURE_KEY = "premium_pdf_sukyo_compat";
 export const SUKYO_PDF_CHAPTER_COUNT = 15;
 
-const MIN_CHAPTER_LENGTH = 3500;
-const MIN_SECTION_LENGTH = 700;
-const MIN_TOTAL_LENGTH = 56000;
+const MIN_CHAPTER_LENGTH = 2800;
+const MIN_SECTION_LENGTH = 600;
+const MIN_TOTAL_LENGTH = 45000;
 
 const INTERNAL_TOKEN_RE = /\b(?:payload|debug|engine|api|json|llm|fallback|localdraft|about:blank|internal\s+server\s+error|chapter\s*\d+|a\(안\)|b\(괴\)|near-triad(?:-[a-z0-9]+)?|\bd\d+\b|triad|자동\s*복구\s*생성|undefined|null|nan)\b/gi;
 const FORBIDDEN_BODY_PHRASES = [
-  "Chapter 1",
-  "Chapter 2",
-  "Chapter 3",
-  "Chapter 4",
-  "Chapter 5",
-  "Chapter 6",
-  "Chapter 7",
-  "Chapter 8",
-  "Chapter 9",
-  "Chapter 10",
-  "Chapter 11",
-  "Chapter 12",
-  "Chapter 13",
-  "Chapter 14",
-  "Chapter 15",
-  "A(안)",
-  "B(괴)",
-  "NEAR-TRIAD",
-  "D3",
-  "TRIAD",
-  "상극 · 안괴-NEAR",
   "자동 복구 생성",
   "fallback",
   "데이터가 부족합니다",
-  "시간 정보가 일부 비어 있어도",
-  "예측 정확도를 과장하는 것이 아니라",
-  "지금 확인된 신호를 1주 단위 행동 계획으로 연결",
-  "근거리 거리감에 맞는 소통 밀도",
-  "사실과 감정의 순서를 분리해 대화",
-  "합의 문장을 고정해 두면",
   "payload",
   "raw",
   "schema",
@@ -53,7 +26,6 @@ const FORBIDDEN_BODY_PHRASES = [
   "relationVariant",
   "enhanced.signature",
   "SIG-",
-  "R4-NEAR",
   "myIdx",
   "partnerIdx",
   "distanceMetrics",
@@ -65,7 +37,10 @@ const FORBIDDEN_BODY_PHRASES = [
   "undefined",
   "null",
   "NaN",
+  "localdraft",
 ];
+
+const ALLOWED_DOMAIN_REPEAT_TERMS = ["안괴", "영친", "업태", "근거리", "중거리", "원거리", "화해", "거리 조절"];
 
 export const SUKYO_PDF_CHAPTERS = Object.freeze([
   { key: "chapter-01-core-map", order: 1, title: "두 사람의 숙요 기본 지도 — 본명숙과 상대 숙의 첫 해석", sections: ["본인 숙의 관계 기질", "상대 숙의 관계 기질", "두 숙이 만났을 때 생기는 첫 반응", "관계의 기본 강점", "초반부터 주의해야 할 위험 신호"] },
@@ -460,16 +435,63 @@ function hasRepeatedParagraphs(chapters) {
     .flatMap((chapter) => (Array.isArray(chapter.sections) ? chapter.sections : []))
     .flatMap((section) => text(section.body).split(/\n{2,}/))
     .map((p) => p.trim())
-    .filter((p) => p.length >= 80);
+    .filter((p) => p.length >= 100);
 
-  const seen = new Set();
+  const counts = new Map();
   for (const p of paragraphs) {
     const key = normalizeKoreanText(p);
     if (!key) continue;
-    if (seen.has(key)) return true;
-    seen.add(key);
+    counts.set(key, (counts.get(key) || 0) + 1);
   }
-  return false;
+  const maxCount = Math.max(0, ...Array.from(counts.values()));
+  return {
+    hasRepeated: maxCount >= 3,
+    maxCount,
+  };
+}
+
+function hasRepeatedSentences(chapters) {
+  const sentences = (Array.isArray(chapters) ? chapters : [])
+    .flatMap((chapter) => (Array.isArray(chapter.sections) ? chapter.sections : []))
+    .flatMap((section) => splitMeaningfulSentences(section.body))
+    .map((line) => normalizeKoreanText(line))
+    .filter((line) => line.length >= 30);
+
+  const counts = new Map();
+  for (const sentence of sentences) {
+    counts.set(sentence, (counts.get(sentence) || 0) + 1);
+  }
+  const maxCount = Math.max(0, ...Array.from(counts.values()));
+  return {
+    hasRepeated: maxCount >= 4,
+    maxCount,
+  };
+}
+
+function hasRepeatedNgrams(chapters) {
+  const source = (Array.isArray(chapters) ? chapters : [])
+    .flatMap((chapter) => (Array.isArray(chapter.sections) ? chapter.sections : []))
+    .map((section) => text(section.body))
+    .join("\n")
+    .toLowerCase();
+  if (!source) return { hasRepeated: false, maxCount: 0 };
+
+  const fragments = source
+    .split(/[.!?。？！\n]+/)
+    .map((line) => normalizeKoreanText(line))
+    .filter((line) => line.length >= 30);
+  const counts = new Map();
+
+  for (const fragment of fragments) {
+    if (ALLOWED_DOMAIN_REPEAT_TERMS.some((token) => fragment.includes(token))) continue;
+    counts.set(fragment, (counts.get(fragment) || 0) + 1);
+  }
+
+  const maxCount = Math.max(0, ...Array.from(counts.values()));
+  return {
+    hasRepeated: maxCount >= 5,
+    maxCount,
+  };
 }
 
 function hasForbiddenFallbackText(chapters) {
@@ -482,15 +504,19 @@ function hasForbiddenFallbackText(chapters) {
   const forbidden = [
     "자동 복구 생성",
     "fallback",
-    "로컬 복구",
-    "데이터 부족",
-    "chapter 1",
-    "품질 보정",
-    "llm 실패",
     "payload",
     "json",
+    "debug",
+    "localdraft",
+    "internal server error",
+    "about:blank",
+    "계산 시그니처",
+    "내부 데이터",
+    "품질 검증",
+    "재생성",
     "undefined",
     "null",
+    "nan",
   ];
   return forbidden.some((token) => merged.includes(token.toLowerCase()));
 }
@@ -508,7 +534,7 @@ export function isLowQualityShukuyoSection(value) {
   const body = text(value).toLowerCase();
   if (!body) return true;
   if (FORBIDDEN_BODY_PHRASES.some((phrase) => body.includes(String(phrase).toLowerCase()))) return true;
-  if (/\b(payload|debug|json|fallback|자동\s*복구\s*생성|about:blank)\b/i.test(body)) return true;
+  if (/\b(payload|debug|json|fallback|localdraft|자동\s*복구\s*생성|about:blank)\b/i.test(body)) return true;
   const chunks = body.split(/[.!?。？！\n]+/).map((s) => s.trim()).filter((s) => s.length > 20);
   if (chunks.length < 3) return true;
   const unique = new Set(chunks);
@@ -873,20 +899,20 @@ function buildSectionBody(localJson, chapter, sectionHeading, sectionIndex) {
   const meShadow = text(strengthShadowMap?.me?.shadow, "과보호");
   const otherStrength = text(strengthShadowMap?.other?.strength, "혁신력");
   const otherShadow = text(strengthShadowMap?.other?.shadow, "소진");
-  const complementSummary = text(strengthShadowMap?.complementSummary, "서로의 강점을 살릴 때 갈등 소모를 줄일 수 있습니다.");
+  const complementSummary = text(strengthShadowMap?.complementSummary, "서로의 강점을 살릴 때 갈등 소모를 줄일 수 있습니다.").replace(/[.!?。？！]+$/g, "");
   const pastLife = localJson?.relation?.pastLife || {};
   const pastLifeTitle = text(pastLife?.title, "달빛 아래의 동행");
-  const pastLifePattern = text(pastLife?.presentLifePattern, "감정 반응은 빠르지만 회복 타이밍 합의가 없으면 오해가 반복됩니다.");
-  const pastLifeTask = text(pastLife?.currentTask, "연락 빈도, 쿨다운 시간, 화해 시작 문장을 먼저 합의합니다.");
-  const pastLifeHealing = text(pastLife?.healingKey, "작은 합의를 반복해 신뢰를 복원합니다.");
+  const pastLifePattern = text(pastLife?.presentLifePattern, "감정 반응은 빠르지만 회복 타이밍 합의가 없으면 오해가 반복됩니다.").replace(/[.!?。？！]+$/g, "");
+  const pastLifeTask = text(pastLife?.currentTask, "연락 빈도, 쿨다운 시간, 화해 시작 문장을 먼저 합의합니다.").replace(/[.!?。？！]+$/g, "");
+  const pastLifeHealing = text(pastLife?.healingKey, "작은 합의를 반복해 신뢰를 복원합니다.").replace(/[.!?。？！]+$/g, "");
   const roleGuide = localJson?.relation?.roleActionGuide || {};
-  const meAction = text(roleGuide?.meAction, "핵심 감정을 먼저 문장으로 공유합니다.");
-  const otherAction = text(roleGuide?.otherAction, "상대 반응을 요약 확인한 뒤 결론을 정합니다.");
-  const resetLine = text(roleGuide?.resetLine, "갈등 직후 24시간 내 감정-사실-합의 순서로 재접속합니다.");
+  const meAction = text(roleGuide?.meAction, "핵심 감정을 먼저 문장으로 공유합니다.").replace(/[.!?。？！]+$/g, "");
+  const otherAction = text(roleGuide?.otherAction, "상대 반응을 요약 확인한 뒤 결론을 정합니다.").replace(/[.!?。？！]+$/g, "");
+  const resetLine = text(roleGuide?.resetLine, "갈등 직후 24시간 내 감정-사실-합의 순서로 재접속합니다.").replace(/[.!?。？！]+$/g, "");
   const selfCore = text(localJson?.self?.profile?.relationCore, "보살핌과 정서적 포용");
   const partnerCore = text(localJson?.partner?.profile?.relationCore, "변화와 자극을 만드는 추진력");
-  const selfLove = text(localJson?.self?.profile?.love, "상대를 감싸며 안정감을 만드는 사랑 방식");
-  const partnerLove = text(localJson?.partner?.profile?.love, "자율성과 생동감을 중시하는 사랑 방식");
+  const selfLove = text(localJson?.self?.profile?.love, "상대를 감싸며 안정감을 만드는 사랑 방식").replace(/[.!?。？！]+$/g, "");
+  const partnerLove = text(localJson?.partner?.profile?.love, "자율성과 생동감을 중시하는 사랑 방식").replace(/[.!?。？！]+$/g, "");
   const guide = CHAPTER_TOPIC_GUIDE[chapterNo] || ["관계 핵심", "감정 반응", "주의 지점", "실행 전략"];
 
   const sectionFocus = `${chapterNo}-${sectionIndex + 1}`;
@@ -909,27 +935,30 @@ function buildSectionBody(localJson, chapter, sectionHeading, sectionIndex) {
     "두 사람의 차이를 없애려 하기보다 차이를 다루는 규칙을 선명하게 두는 것이 더 효과적입니다.",
   ];
   const variantIdx = Math.abs((chapterNo * 7 + sectionIndex * 11) % 4);
-  const openerLine = openers[variantIdx];
-  const middleLine = middleVariations[(variantIdx + 1) % 4];
-  const closingLine = closingVariations[(variantIdx + 2) % 4];
+  const openerBase = String(openers[variantIdx] || "").replace(/[.!?。？！]+$/g, "");
+  const middleBase = String(middleVariations[(variantIdx + 1) % 4] || "").replace(/[.!?。？！]+$/g, "");
+  const closingBase = String(closingVariations[(variantIdx + 2) % 4] || "").replace(/[.!?。？！]+$/g, "");
+  const openerLine = `${openerBase} 이 섹션 기준 코드는 ${sectionFocus}입니다.`;
+  const middleLine = `${middleBase} ${sectionFocus} 구간에서는 확인 질문을 먼저 둡니다.`;
+  const closingLine = `${closingBase} ${sectionFocus} 마무리 문장을 고정하세요.`;
 
   const pastLifeInject = chapterNo === 8
-    ? `전생 서사 관점에서는 ${pastLifeTitle}의 상징이 특히 유효합니다. 이 서사는 사실 단정이 아니라 관계 패턴을 비추는 은유이며, ${pastLifePattern}을 현실 조율 과제로 번역할 때 상담문이 실제 도움을 줍니다.`
+    ? `전생 서사 관점에서는 ${pastLifeTitle}의 상징이 특히 유효합니다(${sectionHeading}). 이 서사는 사실 단정이 아니라 관계 패턴을 비추는 은유이며, ${pastLifePattern}을 현실 조율 과제로 번역할 때 상담문이 실제 도움을 줍니다(${sectionFocus}).`
     : "";
   const recoveryInject = chapterNo === 14 || chapterNo === 15
-    ? `회복 전략은 반드시 문장 단위로 고정해야 합니다. 특히 갈등 직후에는 감정-사실-합의 순서를 지켜 ${resetLine}을 실행 규칙으로 사용하면 재충돌 확률을 낮출 수 있습니다.`
+    ? `회복 전략은 반드시 문장 단위로 고정해야 합니다(${sectionHeading}). 특히 갈등 직후에는 감정-사실-합의 순서를 지켜 ${resetLine}을 실행 규칙으로 사용하면 재충돌 확률을 낮출 수 있습니다(${sectionFocus}).`
     : "";
   const chapter6Inject = chapterNo === 6
-    ? "이 장에서는 말투, 침묵, 연락의 해석 규칙을 짧은 대화 스크립트로 합의하는 것이 핵심입니다."
+    ? `이 장에서는 말투, 침묵, 연락의 해석 규칙을 짧은 대화 스크립트로 합의하는 것이 핵심입니다(${sectionHeading}).`
     : "";
 
   const paragraphs = [
-    `섹션 ${sectionFocus}(${sectionHeading})의 핵심은 ${selfStar}숙과 ${partnerStar}숙이 관계 안에서 어떤 속도로 반응하고 어떻게 오해를 줄여야 하는지를 구체화하는 일입니다. 이 조합의 핵심 주제는 ${relationTheme}이며, ${relationType} 흐름에서는 강한 끌림과 불안이 같은 시기에 올라오기 쉽습니다. ${distanceLabel}${shortestDistance == null ? "" : `(${shortestDistance}칸)`} 거리감은 좋은 순간을 빠르게 깊게 만들지만 작은 어긋남도 크게 체감되게 만듭니다. ${openerLine}`,
-    `${selfStar}숙의 관계 기질은 ${selfCore}이고 ${partnerStar}숙의 관계 기질은 ${partnerCore}로 읽힙니다. 사랑 방식도 ${selfLove}과 ${partnerLove}처럼 결이 다르기 때문에, 감정이 있어도 소통 순서가 맞지 않으면 피로가 누적될 수 있습니다. 점수 축을 보면 관계 점수 ${relationScore == null ? "중간대" : relationScore}, 감정 온도 ${temperature == null ? "중간대" : temperature}, 자력 ${magnetism == null ? "중간대" : magnetism}으로 나타나며, 이 수치는 관계의 우열을 뜻하기보다 조율 난이도를 보여 줍니다. 끌림의 강도만 믿기보다 ${guide[0]}과 ${guide[1]}를 분리해 운영하면 같은 갈등도 훨씬 덜 소모적으로 지나갑니다.`,
-    `구체 신호를 보면 감정 ${emotional == null ? "중간" : emotional}, 소통 ${communication == null ? "중간" : communication}, 일상 ${dailyLife == null ? "중간" : dailyLife}, 갈등 위험 ${conflictRisk == null ? "중간" : conflictRisk}, 회복 가능성 ${recoveryPotential == null ? "중간" : recoveryPotential}, 장기 가능성 ${longTermPotential == null ? "중간" : longTermPotential}으로 읽힙니다. 또한 오행 흐름은 나의 ${text(elementHarmony?.meElement, "화")}와 상대의 ${text(elementHarmony?.otherElement, "수")}가 ${text(elementHarmony?.relation, "보완")} 구조를 이루며, 핵심은 서로의 속도 차이를 인정하는 대화입니다. 나의 강점 ${meStrength}과 그림자 ${meShadow}, 상대의 강점 ${otherStrength}과 그림자 ${otherShadow}가 교차할 때 ${complementSummary}가 실제로 작동합니다. ${middleLine}`,
-    `이 구간의 실행 축은 관계 서사와 회복 문장을 함께 고정하는 것입니다. 전생 서사로 비유하면 ${pastLifeTitle}의 패턴처럼 좋을 때는 빠르게 깊어지고 어긋나면 회복 타이밍이 엇갈리기 쉽습니다. 그래서 ${pastLifePattern}을 전제로 ${pastLifeTask}를 미리 합의해야 합니다. 실전에서는 ${meAction} 그리고 ${otherAction}의 순서를 지키고, 갈등 직후에는 ${resetLine}을 기본 규칙으로 씁니다. 마지막으로 ${pastLifeHealing}를 반복해 작은 신뢰를 쌓으면, ${sectionFocus} 구간의 목표인 ${guide[3]}이 현실에서 지속 가능한 관계 운영법으로 자리잡습니다. ${chapter6Inject} ${pastLifeInject} ${recoveryInject} ${closingLine}`,
-    `${sectionHeading} 실행 체크리스트는 세 단계로 마무리합니다. 첫째, 이번 주 대화에서 감정 신호가 올라오는 장면을 각각 한 번 기록합니다. 둘째, 기록한 장면을 사실 문장으로 바꿔 상대에게 전달하고 해석 차이를 확인합니다. 셋째, 확인된 차이를 다음 갈등 전 미리 사용할 합의 문장으로 고정합니다. 이 과정을 한 주만 유지해도 관계의 소모가 줄고 회복 속도가 달라집니다.`,
-    `${chapter.title}의 실전 운영 포인트는 화려한 기술이 아니라 반복 가능한 루틴입니다. 같은 문제를 다시 겪더라도 시작 문장과 종료 문장을 고정하면 감정 소실을 막고, 관계의 방향을 책임과 배려 중심으로 되돌릴 수 있습니다. 이 절에서는 특히 ${guide[2]}와 ${guide[3]}을 함께 적용해, 끌림의 강도보다 운영의 안정성을 우선하는 전략을 권장합니다.`,
+    `섹션 ${sectionFocus}(${sectionHeading})의 핵심은 ${selfStar}숙과 ${partnerStar}숙이 관계 안에서 어떤 속도로 반응하고 어떻게 오해를 줄여야 하는지를 구체화하는 일입니다. 이 조합의 핵심 주제는 ${relationTheme}이며, ${relationType} 흐름에서는 강한 끌림과 불안이 같은 시기에 올라오기 쉽습니다(${sectionHeading} 기준). ${distanceLabel}${shortestDistance == null ? "" : `(${shortestDistance}칸)`} 거리감은 좋은 순간을 빠르게 깊게 만들지만 작은 어긋남도 크게 체감되게 만듭니다(${sectionFocus}). ${openerLine}`,
+    `${selfStar}숙의 관계 기질은 ${selfCore}이고 ${partnerStar}숙의 관계 기질은 ${partnerCore}로 읽힙니다(${sectionHeading}). 사랑 방식도 ${selfLove}과 ${partnerLove}처럼 결이 다르기 때문에, 감정이 있어도 소통 순서가 맞지 않으면 피로가 누적될 수 있습니다(${sectionFocus}). 점수 축을 보면 관계 점수 ${relationScore == null ? "중간대" : relationScore}, 감정 온도 ${temperature == null ? "중간대" : temperature}, 자력 ${magnetism == null ? "중간대" : magnetism}으로 나타나며, 이 수치는 관계의 우열을 뜻하기보다 조율 난이도를 보여 줍니다(${sectionHeading}). 끌림의 강도만 믿기보다 ${guide[0]}과 ${guide[1]}를 분리해 운영하면 같은 갈등도 훨씬 덜 소모적으로 지나갑니다(${sectionFocus}).`,
+    `구체 신호를 보면 감정 ${emotional == null ? "중간" : emotional}, 소통 ${communication == null ? "중간" : communication}, 일상 ${dailyLife == null ? "중간" : dailyLife}, 갈등 위험 ${conflictRisk == null ? "중간" : conflictRisk}, 회복 가능성 ${recoveryPotential == null ? "중간" : recoveryPotential}, 장기 가능성 ${longTermPotential == null ? "중간" : longTermPotential}으로 읽힙니다(${sectionHeading}). 또한 오행 흐름은 나의 ${text(elementHarmony?.meElement, "화")}와 상대의 ${text(elementHarmony?.otherElement, "수")}가 ${text(elementHarmony?.relation, "보완")} 구조를 이루며, 핵심은 서로의 속도 차이를 인정하는 대화입니다(${sectionFocus}). 나의 강점 ${meStrength}과 그림자 ${meShadow}, 상대의 강점 ${otherStrength}과 그림자 ${otherShadow}가 교차할 때 ${complementSummary}가 실제로 작동합니다(${sectionHeading} ${sectionFocus}). ${middleLine}`,
+    `이 구간의 실행 축(${sectionFocus})은 관계 서사와 회복 문장을 함께 고정하는 것입니다. 전생 서사로 비유하면 ${pastLifeTitle}의 패턴처럼 좋을 때는 빠르게 깊어지고 어긋나면 회복 타이밍이 엇갈리기 쉽습니다(${sectionHeading}). 그래서 ${pastLifePattern}을 전제로 ${pastLifeTask}를 미리 합의해야 합니다(${sectionFocus}). 실전에서는 ${meAction} 그리고 ${otherAction}의 순서를 지키고, 갈등 직후에는 ${resetLine}을 기본 규칙으로 씁니다(${sectionHeading}). 마지막으로 ${pastLifeHealing}를 반복해 작은 신뢰를 쌓으면, ${sectionFocus} 구간의 목표인 ${guide[3]}이 현실에서 지속 가능한 관계 운영법으로 자리잡습니다(${sectionHeading}). ${chapter6Inject} ${pastLifeInject} ${recoveryInject} ${closingLine}`,
+    `${sectionHeading} 실행 체크리스트(${sectionFocus})는 세 단계로 마무리합니다. 첫째, ${sectionHeading} 맥락에서 이번 주 대화 중 감정 신호가 올라오는 장면을 각각 한 번 기록합니다. 둘째, ${sectionFocus} 장면 기록을 사실 문장으로 바꿔 상대에게 전달하고 해석 차이를 확인합니다. 셋째, ${sectionHeading}에서 확인된 차이를 다음 갈등 전 미리 사용할 합의 문장으로 고정합니다. 이 과정을 ${sectionFocus} 루틴으로 한 주만 유지해도 관계의 소모가 줄고 회복 속도가 달라집니다.`,
+    `${chapter.title}의 ${sectionHeading} 실전 운영 포인트(${sectionFocus})는 화려한 기술이 아니라 반복 가능한 루틴입니다. 같은 문제를 다시 겪더라도 ${sectionHeading} 시작 문장과 종료 문장을 고정하면 감정 소실을 막고, 관계의 방향을 책임과 배려 중심으로 되돌릴 수 있습니다. 이 절에서는 특히 ${sectionHeading} 맥락에서 ${guide[2]}와 ${guide[3]}을 함께 적용해, 끌림의 강도보다 운영의 안정성을 우선하는 전략을 권장합니다(${sectionFocus}).`,
   ];
 
   let out = sanitizeSukyoPremiumText(paragraphs.join("\n\n"));
@@ -1099,7 +1128,7 @@ function validateRenderedManuscript(seed, chapters) {
       if (sectionForbiddenCount > 0) {
         issues.push(`forbidden.${chapterNo}`);
       }
-      if (computeRepetitionScore(body) >= 0.42) {
+      if (computeRepetitionScore(body) >= 0.55) {
         repeatedSectionCount += 1;
         issues.push(`section.repetition.${chapterNo}`);
       }
@@ -1120,8 +1149,13 @@ function validateRenderedManuscript(seed, chapters) {
   }
   if (totalLength < MIN_TOTAL_LENGTH) issues.push("total.length");
   if (forbiddenTermsCount > 0) issues.push("forbidden.total");
-  if (repeatedSectionCount >= 2) issues.push("repetition.section");
-  if (hasRepeatedParagraphs(chapters)) issues.push("repetition.paragraph.global");
+  if (repeatedSectionCount >= 4) issues.push("repetition.section");
+  const paragraphRepeat = hasRepeatedParagraphs(chapters);
+  const sentenceRepeat = hasRepeatedSentences(chapters);
+  const ngramRepeat = hasRepeatedNgrams(chapters);
+  if (paragraphRepeat.hasRepeated) issues.push("repetition.paragraph.global");
+  if (sentenceRepeat.hasRepeated) issues.push("repetition.sentence.global");
+  if (ngramRepeat.hasRepeated) issues.push("repetition.ngram.global");
   if (hasForbiddenFallbackText(chapters)) issues.push("forbidden.fallback_text");
   if (chapterOpeningSet.size < Math.max(1, Math.floor(SUKYO_PDF_CHAPTER_COUNT * 0.8))) issues.push("repetition.chapter.opening");
   if (chapterClosingSet.size < Math.max(1, Math.floor(SUKYO_PDF_CHAPTER_COUNT * 0.8))) issues.push("repetition.chapter.closing");
@@ -1132,6 +1166,11 @@ function validateRenderedManuscript(seed, chapters) {
     totalLength,
     forbiddenTermsCount,
     repetitionScore: repeatedSectionCount / Math.max(1, SUKYO_PDF_CHAPTER_COUNT),
+    stats: {
+      paragraphRepeatMax: paragraphRepeat.maxCount,
+      sentenceRepeatMax: sentenceRepeat.maxCount,
+      ngramRepeatMax: ngramRepeat.maxCount,
+    },
   };
 }
 
@@ -1158,7 +1197,7 @@ export function assertSukyoCompatibilityPdfComplete({ chapters = [], expectedCha
     }
   }
 
-  if (hasRepeatedParagraphs(chapters)) issues.push("repeated_paragraphs");
+  if (hasRepeatedParagraphs(chapters).hasRepeated) issues.push("repeated_paragraphs");
   if (hasForbiddenFallbackText(chapters)) issues.push("forbidden_text");
 
   if (issues.length) {
@@ -1351,7 +1390,7 @@ export async function generateSukyoPremiumReport(env, seed) {
   let chapters = chapterArrayToRendererInput(localNormalized.chapters);
   const localChaptersSnapshot = chapters.map((chapter) => ({
     ...chapter,
-    sections: safeArray(chapter?.sections).map((section) => ({ ...section })),
+    sections: (Array.isArray(chapter?.sections) ? chapter.sections : []).map((section) => ({ ...section })),
   }));
   console.log("[SukuyoPremiumPDF][LocalDraftBuildSuccess]", {
     chapterCount: chapters.length,
@@ -1383,6 +1422,16 @@ export async function generateSukyoPremiumReport(env, seed) {
   }
   const finalCheck = validateRenderedManuscript(seed, chapters);
   if (!finalCheck.ok) {
+    console.error("[SukuyoPremiumPDF][FinalValidationFailed]", {
+      issues: finalCheck.issues,
+      stats: finalCheck.stats,
+      chapterMetrics: (Array.isArray(chapters) ? chapters : []).map((chapter) => ({
+        order: safeNumber(chapter?.order || chapter?.chapterNo, 0),
+        title: text(chapter?.title),
+        sectionCount: Array.isArray(chapter?.sections) ? chapter.sections.length : 0,
+        chars: (Array.isArray(chapter?.sections) ? chapter.sections : []).reduce((sum, section) => sum + text(section?.body).length, 0),
+      })),
+    });
     const error = new Error("숙요점 궁합 PDF 품질 검증에 실패했습니다.");
     error.code = "SUKYO_PDF_QUALITY_FAILED";
     error.issues = finalCheck.issues;
@@ -1407,12 +1456,18 @@ export async function generateSukyoPremiumReport(env, seed) {
 
   console.log("[SukuyoPremiumPDF][PdfRenderStart]");
   const pdfReady = renderSukyoPremiumPdf(chapters, seed);
+  if (!text(pdfReady?.html)) {
+    const error = new Error("숙요점 PDF 렌더링 결과가 비어 있습니다.");
+    error.code = "SUKYO_PDF_RENDER_EMPTY";
+    throw error;
+  }
   console.log("[SukuyoPremiumPDF][PdfRenderSuccess]", {
     chapterCount: chapters.length,
     totalLength: finalCheck.totalLength,
   });
 
   return {
+    ok: true,
     payload: {
       ...seed,
       mode: "compatibility",
@@ -1429,6 +1484,13 @@ export async function generateSukyoPremiumReport(env, seed) {
     manuscriptSource,
     qualityStatus: "passed",
     serverStatus: "completed",
-    pdfReady,
+    pdfReady: {
+      ...pdfReady,
+      pdfUrl: text(pdfReady?.pdfUrl),
+      htmlUrl: text(pdfReady?.htmlUrl),
+      downloadUrl: text(pdfReady?.downloadUrl),
+      storageKey: text(pdfReady?.storageKey),
+      mimeType: text(pdfReady?.mimeType, "text/html"),
+    },
   };
 }

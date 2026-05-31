@@ -115,12 +115,41 @@ export async function completePremiumPdfExecution(env, userId, ctx, reportId, ex
       ...(extraMetadata && typeof extraMetadata === "object" ? extraMetadata : {}),
       reportId: clean(reportId || ctx.reportId, 120),
     };
-    return await completeServiceExecution(env, userId, {
+    let completed = await completeServiceExecution(env, userId, {
       executionKey: ctx.executionKey,
       sessionId: ctx.sessionId,
       reportId: clean(reportId || ctx.reportId, 120),
       metadata,
     });
+
+    // If start step was missed/transiently failed, bootstrap once and complete again.
+    if (!completed?.ok && Number(completed?.status) === 404) {
+      await startServiceExecution(env, userId, {
+        executionKey: ctx.executionKey,
+        reportType: ctx.reportType,
+        featureKey: ctx.featureKey,
+        reportId: clean(reportId || ctx.reportId, 120),
+        sessionId: ctx.sessionId,
+        paymentSessionId: ctx.paymentSessionId,
+        coinTransactionId: ctx.coinTransactionId,
+        sourceTransactionId: ctx.sourceTransactionId,
+        coinAmount: ctx.coinAmount,
+        cost: ctx.cost,
+        timeoutSeconds: ctx.timeoutSeconds,
+        maxRetries: ctx.maxRetries,
+        idempotencyKey: ctx.idempotencyKey,
+        metadata,
+      });
+
+      completed = await completeServiceExecution(env, userId, {
+        executionKey: ctx.executionKey,
+        sessionId: ctx.sessionId,
+        reportId: clean(reportId || ctx.reportId, 120),
+        metadata,
+      });
+    }
+
+    return completed;
   } catch (_) {
     return null;
   }

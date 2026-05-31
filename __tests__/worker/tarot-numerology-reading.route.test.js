@@ -73,7 +73,10 @@ describe("worker /api/tarot/numerology-reading", () => {
     expect(payload.ok).toBe(true);
     expect(["fallback", "gemini", "gemini_text_fallback"]).toContain(String(payload.source || ""));
     expect(typeof payload?.interpretation?.numerologyReading).toBe("string");
+    expect(typeof payload?.interpretation?.topicReading?.topicLabel).toBe("string");
     expect(Array.isArray(payload?.interpretation?.cardReadings)).toBe(true);
-    expect(payload?.interpretation?.cardReadings).toHaveLength(3);
+    expect(payload?.interpretation?.cardReadings).toHaveLength(5);
+    expect(Array.isArray(payload?.interpretation?.conclusion?.sevenDayPlan)).toBe(true);
+    expect(payload?.interpretation?.conclusion?.sevenDayPlan).toHaveLength(7);
   });
 });

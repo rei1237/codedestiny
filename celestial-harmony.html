@@ -491,7 +491,10 @@
     var currentAccessGrant=null;
     var currentConsume=null;
     var currentRequestId='';
+    var currentSessionId='';
     var hasAccess=false;
+    var hasCompletedResult=false;
+    var recoverablePaymentSession=false;
     var canDraw=false;
     var paymentInFlight=false;
     var selectedCardIdx=-1;
@@ -510,6 +513,30 @@
 
     function readAuthToken(){
       try{return clean(localStorage.getItem('fortune_auth_token')||'');}catch(_){return '';}
+    }
+
+    function maskToken(token){
+      var t = clean(token);
+      if(!t) return '';
+      if(t.length <= 10) return t.slice(0,2) + '***' + t.slice(-2);
+      return t.slice(0,6) + '***' + t.slice(-4);
+    }
+
+    function getPathValue(obj, path){
+      var cur = obj;
+      for(var i=0;i<path.length;i++){
+        if(!cur || typeof cur!=='object') return '';
+        cur = cur[path[i]];
+      }
+      return clean(cur);
+    }
+
+    function pickFirstText(candidates){
+      for(var i=0;i<candidates.length;i++){
+        var v = clean(candidates[i]);
+        if(v) return v;
+      }
+      return '';
     }
 
     function readPremiumToken(){
@@ -531,6 +558,135 @@
       try{ window.__cdPremiumAccessToken=value; }catch(_){ }
       try{ localStorage.setItem('celestialHarmonyPremiumToken', value); }catch(_){ }
       try{ sessionStorage.setItem('celestialHarmonyPremiumToken', value); }catch(_){ }
+    }
+
+    function buildAuthHeaders(extraHeaders){
+      var headers = { 'Content-Type': 'application/json' };
+      var token = readAuthToken();
+      var premiumToken = clean(currentPremiumToken || readPremiumToken());
+      if(token) headers.Authorization = 'Bearer ' + token;
+      if(premiumToken) headers['x-premium-access-token'] = premiumToken;
+      var extra = extraHeaders && typeof extraHeaders==='object' ? extraHeaders : {};
+      for(var k in extra){
+        if(Object.prototype.hasOwnProperty.call(extra, k)) headers[k] = extra[k];
+      }
+      return headers;
+    }
+
+    function validateReadingSchema(result){
+      var r = result && typeof result==='object' ? result : {};
+      var cards = Array.isArray(r.cards) ? r.cards : [];
+      if(cards.length !== 11) return { ok:false, reason:'cards-length' };
+      var requiredCardFields = [
+        'planetKo','planetEn','planetSymbol','planetTitle','planetId','layer','orientation',
+        'cardNameKo','cardNameEn','cardMeaning','planetMeaning','archetypeReading',
+        'consciousMessage','unconsciousPattern','shadowWarning','soulLesson','integrationPractice'
+      ];
+      for(var i=0;i<cards.length;i++){
+        var card = cards[i] || {};
+        for(var j=0;j<requiredCardFields.length;j++){
+          if(!clean(card[requiredCardFields[j]])) return { ok:false, reason:'card-field:'+requiredCardFields[j] };
+        }
+        if(!Array.isArray(card.tarotKeywords) || !Array.isArray(card.planetKeywords)) return { ok:false, reason:'card-keywords-array' };
+      }
+      var s = r.summary && typeof r.summary==='object' ? r.summary : {};
+      var requiredSummaryFields = [
+        'overallTheme','strongestPlanetSignal','deepestShadow','soulLesson','integrationPath',
+        'dominantLayer','dominantSuit','majorArcanaRatio','finalOracle'
+      ];
+      for(var x=0;x<requiredSummaryFields.length;x++){
+        if(!clean(s[requiredSummaryFields[x]])) return { ok:false, reason:'summary-field:'+requiredSummaryFields[x] };
+      }
+      if(!Array.isArray(s.planetHighlights) || !Array.isArray(s.practices) || !Array.isArray(s.ritualPlan)) return { ok:false, reason:'summary-array' };
+      var matrix = s.insightMatrix && typeof s.insightMatrix==='object' ? s.insightMatrix : {};
+      if(!clean(matrix.love) || !clean(matrix.work) || !clean(matrix.money) || !clean(matrix.health)) return { ok:false, reason:'summary-insightMatrix' };
+      return { ok:true };
+    }
+
+    function updateReadButtonLabel(){
+      if(!$read) return;
+      if(hasCompletedResult){
+        $read.textContent='🔁 결과 복구/다시 보기';
+        return;
+      }
+      if(hasAccess){
+        $read.textContent='🔮 리딩 생성/복구';
+        return;
+      }
+      $read.textContent='🔮 심층 리딩 받기';
+    }
+
+    function updateReadButtonState(){
+      var enabled = Boolean(spread.length) && !paymentInFlight;
+      if(!spread.length) enabled = false;
+      if(paymentInFlight) enabled = false;
+      if(spread.length && hasAccess && !hasCompletedResult && !paymentInFlight) enabled = true;
+      if(spread.length && hasCompletedResult && !paymentInFlight) enabled = true;
+      readBtnOn(enabled);
+      updateReadButtonLabel();
+    }
+
+    function extractCoinGateResult(payload, requestBody){
+      var p = payload && typeof payload==='object' ? payload : {};
+      var d = p.data && typeof p.data==='object' ? p.data : {};
+      var accessGrant = (d.accessGrant && typeof d.accessGrant==='object') ? d.accessGrant : ((p.accessGrant && typeof p.accessGrant==='object') ? p.accessGrant : {});
+      var consume = (d.consume && typeof d.consume==='object') ? d.consume : ((p.consume && typeof p.consume==='object') ? p.consume : {});
+
+      var premiumAccessToken = pickFirstText([
+        p.premiumAccessToken,
+        p.accessToken,
+        p.token,
+        getPathValue(p, ['data','premiumAccessToken']),
+        getPathValue(p, ['data','accessToken']),
+        getPathValue(p, ['data','token']),
+        getPathValue(p, ['data','payment','premiumAccessToken']),
+        getPathValue(p, ['data','accessGrant','premiumAccessToken']),
+        getPathValue(p, ['data','consume','premiumAccessToken']),
+        getPathValue(p, ['accessGrant','premiumAccessToken']),
+        getPathValue(p, ['consume','premiumAccessToken'])
+      ]);
+
+      var transactionId = pickFirstText([
+        getPathValue(p, ['accessGrant','purchaseId']),
+        getPathValue(p, ['accessGrant','transactionId']),
+        getPathValue(p, ['accessGrant','sourceTransactionId']),
+        getPathValue(p, ['consume','transactionId']),
+        getPathValue(p, ['consume','sourceTransactionId']),
+        getPathValue(p, ['consume','paymentId']),
+        getPathValue(p, ['data','transactionId']),
+        getPathValue(p, ['data','paymentId']),
+        getPathValue(p, ['data','purchaseId']),
+        p.transactionId,
+        p.paymentId,
+        p.purchaseId
+      ]);
+
+      var requestId = pickFirstText([
+        getPathValue(p, ['accessGrant','requestId']),
+        getPathValue(p, ['consume','requestId']),
+        getPathValue(p, ['data','requestId']),
+        p.requestId,
+        requestBody && requestBody.requestId
+      ]);
+
+      var purchaseId = pickFirstText([
+        getPathValue(p, ['accessGrant','purchaseId']),
+        getPathValue(p, ['accessGrant','transactionId']),
+        getPathValue(p, ['data','purchaseId']),
+        getPathValue(p, ['data','transactionId']),
+        getPathValue(p, ['consume','purchaseId']),
+        getPathValue(p, ['consume','transactionId'])
+      ]);
+
+      return {
+        premiumAccessToken: premiumAccessToken,
+        transactionId: transactionId,
+        requestId: requestId,
+        purchaseId: purchaseId,
+        reportId: clean(getPathValue(p, ['accessGrant','reportId']) || getPathValue(p, ['data','reportId']) || (requestBody && requestBody.reportId) || ''),
+        accessGrant: accessGrant,
+        consume: consume,
+      };
     }
 
     function setStepState(step, state){
@@ -731,38 +887,65 @@
     }
 
     async function callCoinGate(reportId){
-      var token = readAuthToken();
-      var headers={ 'Content-Type':'application/json' };
-      if(token) headers.Authorization='Bearer '+token;
+      var requestId = currentRequestId || ('celestial:'+reportId);
+      var sessionId = 'celestial-harmony:'+reportId;
+      var headers = buildAuthHeaders();
       var body={
         categoryKey:'premium-report',
         featureKey:FEATURE_KEY,
-        reason:'천체의 선율 코즈믹 리딩',
-        requestId:'celestial:'+reportId,
+        reportType:'celestialHarmony',
+        reason:'셀레스티얼 하모니 타로 리딩',
+        requestId:requestId,
         reportId:reportId,
-        sessionId:'celestial-harmony:'+reportId,
-        reportSessionId:'celestial-harmony:'+reportId,
+        sessionId:sessionId,
+        reportSessionId:sessionId,
+        idempotencyKey:requestId,
         cost: COIN_COST,
-        forceDeduct:true,
       };
+      console.log('[CelestialHarmony][Access] token/report/session state', {
+        reportId: reportId,
+        requestId: requestId,
+        sessionId: sessionId,
+        hasAuthToken: Boolean(readAuthToken()),
+        premiumTokenMasked: maskToken(currentPremiumToken || readPremiumToken())
+      });
+      console.log('[CelestialHarmony][CoinGate] request', {
+        url:'/api/billing/coin-gate',
+        body:{
+          categoryKey: body.categoryKey,
+          featureKey: body.featureKey,
+          reportType: body.reportType,
+          reason: body.reason,
+          cost: body.cost,
+          requestId: body.requestId,
+          reportId: body.reportId,
+          sessionId: body.sessionId,
+          reportSessionId: body.reportSessionId,
+          idempotencyKey: body.idempotencyKey
+        },
+        authTokenMasked: maskToken(readAuthToken()),
+        premiumTokenMasked: maskToken(currentPremiumToken || readPremiumToken())
+      });
       var res=await fetch('/api/billing/coin-gate',{method:'POST',headers:headers,credentials:'include',body:JSON.stringify(body)});
       var payload={};
       try{payload=await res.json();}catch(_){payload={};}
+      console.log('[CelestialHarmony][CoinGate] response', { status: res.status, payload: payload });
       if(!res.ok || payload.ok===false){
-        throw new Error((payload&&payload.error&&payload.error.message)||payload.message||'코인 결제 실패');
+        var gateErr = new Error((payload&&payload.error&&payload.error.message)||payload.message||'코인 결제가 완료되지 않았습니다.');
+        gateErr.status = res.status;
+        gateErr.payload = payload;
+        throw gateErr;
       }
-      var data=payload.data||{};
-      var consume=data.consume||{};
-      var accessGrant=data.accessGrant||{};
-      var premiumToken = clean(payload.premiumAccessToken || accessGrant.premiumAccessToken || payload.accessToken || payload.token || '');
-      if(premiumToken) persistPremiumToken(premiumToken);
+      var normalized = extractCoinGateResult(payload, body);
+      if(normalized.premiumAccessToken) persistPremiumToken(normalized.premiumAccessToken);
       return {
-        transactionId: clean(accessGrant.purchaseId || consume.transactionId || ''),
-        reportId: clean(accessGrant.reportId || reportId),
-        accessGrant: accessGrant,
-        consume: consume,
-        premiumAccessToken: premiumToken,
-        requestId: clean(accessGrant.requestId || consume.requestId || body.requestId),
+        transactionId: clean(normalized.transactionId),
+        purchaseId: clean(normalized.purchaseId),
+        reportId: clean(normalized.reportId || reportId),
+        accessGrant: normalized.accessGrant,
+        consume: normalized.consume,
+        premiumAccessToken: normalized.premiumAccessToken,
+        requestId: clean(normalized.requestId || body.requestId),
       };
     }
 
@@ -807,56 +990,119 @@
       var cards=buildCardsPayload();
       var premiumToken = clean((paymentInfo && paymentInfo.premiumAccessToken) || currentPremiumToken || readPremiumToken());
       if(premiumToken) persistPremiumToken(premiumToken);
-      var headers={'Content-Type':'application/json'};
-      if(premiumToken) headers['x-premium-access-token']=premiumToken;
+      var requestId = clean((paymentInfo && paymentInfo.requestId) || currentRequestId || ('celestial:'+reportId));
+      var sessionId = clean((paymentInfo && paymentInfo.sessionId) || currentSessionId || ('celestial-harmony:'+reportId));
+      var headers = buildAuthHeaders();
+      var requestPayload = {
+        cards:cards,
+        goldenCard: goldenCard || null,
+        spreadOrder: SPREAD_ORDER.slice(),
+        generatedAt: new Date().toISOString(),
+        featureKey: FEATURE_KEY,
+        reportType: 'celestialHarmony',
+        reportId:reportId,
+        transactionId:transactionId,
+        requestId: requestId,
+        sessionId: sessionId,
+        reportSessionId: sessionId,
+        purchaseId: clean((paymentInfo && paymentInfo.purchaseId) || (paymentInfo && paymentInfo.accessGrant && paymentInfo.accessGrant.purchaseId) || transactionId),
+        premiumAccessToken: premiumToken || undefined,
+        accessGrant: paymentInfo && paymentInfo.accessGrant ? paymentInfo.accessGrant : currentAccessGrant,
+        consume: paymentInfo && paymentInfo.consume ? paymentInfo.consume : currentConsume,
+        payment: {
+          featureKey: FEATURE_KEY,
+          reportType: 'celestialHarmony',
+          reportId: reportId,
+          transactionId: transactionId,
+          requestId: requestId,
+          sessionId: sessionId,
+          reportSessionId: sessionId,
+          purchaseId: clean((paymentInfo && paymentInfo.purchaseId) || transactionId),
+          cost: COIN_COST,
+          accessGrant: paymentInfo && paymentInfo.accessGrant ? paymentInfo.accessGrant : currentAccessGrant,
+          consume: paymentInfo && paymentInfo.consume ? paymentInfo.consume : currentConsume,
+          premiumAccessToken: premiumToken || undefined,
+        },
+        restoredFromPaidSession:!!restored,
+        coinCharged:true,
+      };
+      console.log('[CelestialHarmony][Generate] request', {
+        url:'/api/celestial-harmony',
+        body:{
+          reportId: requestPayload.reportId,
+          transactionId: requestPayload.transactionId,
+          requestId: requestPayload.requestId,
+          sessionId: requestPayload.sessionId,
+          reportSessionId: requestPayload.reportSessionId,
+          purchaseId: requestPayload.purchaseId,
+          featureKey: requestPayload.featureKey,
+          reportType: requestPayload.reportType,
+          cardCount: requestPayload.cards.length,
+          hasGoldenCard: Boolean(requestPayload.goldenCard)
+        },
+        authTokenMasked: maskToken(readAuthToken()),
+        premiumTokenMasked: maskToken(premiumToken)
+      });
       var res=await fetch('/api/celestial-harmony',{
         method:'POST',
         headers:headers,
         credentials:'include',
-        body:JSON.stringify({
-          cards:cards,
-          featureKey: FEATURE_KEY,
-          reportType: 'celestialHarmony',
-          reportId:reportId,
-          transactionId:transactionId,
-          requestId: clean((paymentInfo && paymentInfo.requestId) || currentRequestId || ('celestial:'+reportId)),
-          sessionId: 'celestial-harmony:'+reportId,
-          reportSessionId: 'celestial-harmony:'+reportId,
-          purchaseId: clean((paymentInfo && paymentInfo.accessGrant && paymentInfo.accessGrant.purchaseId) || transactionId),
-          premiumAccessToken: premiumToken || undefined,
-          accessGrant: paymentInfo && paymentInfo.accessGrant ? paymentInfo.accessGrant : currentAccessGrant,
-          consume: paymentInfo && paymentInfo.consume ? paymentInfo.consume : currentConsume,
-          payment: {
-            featureKey: FEATURE_KEY,
-            reportId: reportId,
-            transactionId: transactionId,
-            requestId: clean((paymentInfo && paymentInfo.requestId) || currentRequestId || ('celestial:'+reportId)),
-            accessGrant: paymentInfo && paymentInfo.accessGrant ? paymentInfo.accessGrant : currentAccessGrant,
-            consume: paymentInfo && paymentInfo.consume ? paymentInfo.consume : currentConsume,
-            premiumAccessToken: premiumToken || undefined,
-          },
-          restoredFromPaidSession:!!restored,
-          coinCharged:true,
-        })
+        body:JSON.stringify(requestPayload)
       });
       var payload={};
       try{payload=await res.json();}catch(_){payload={};}
+      console.log('[CelestialHarmony][Generate] response', { status: res.status, payload: payload });
       if(!res.ok || !payload || payload.ok===false || !payload.result){
-        throw new Error((payload&&payload.message)||'결과 생성 실패');
+        var genErr = new Error((payload&&payload.message)||'리딩 생성 실패');
+        genErr.status = res.status;
+        genErr.payload = payload;
+        throw genErr;
+      }
+      var schema = validateReadingSchema(payload.result);
+      if(!schema.ok){
+        var schemaErr = new Error('리딩 결과 형식이 올바르지 않습니다. 관리자 확인이 필요합니다.');
+        schemaErr.status = 500;
+        schemaErr.code = 'SCHEMA_INVALID';
+        schemaErr.reason = schema.reason;
+        console.error('[CelestialHarmony][Generate] error', { message: schemaErr.message, reason: schema.reason, result: payload.result });
+        throw schemaErr;
       }
       return payload.result;
     }
 
     async function restoreFromApi(reportId, transactionId){
-      var q='';
-      if(reportId) q='reportId='+encodeURIComponent(reportId);
-      else if(transactionId) q='transactionId='+encodeURIComponent(transactionId);
-      else return null;
+      var requestId = clean(currentRequestId || (reportId ? 'celestial:'+reportId : ''));
+      var sessionId = clean(currentSessionId || (reportId ? 'celestial-harmony:'+reportId : ''));
+      var parts=[];
+      if(reportId) parts.push('reportId='+encodeURIComponent(reportId));
+      if(transactionId) parts.push('transactionId='+encodeURIComponent(transactionId));
+      if(requestId) parts.push('requestId='+encodeURIComponent(requestId));
+      if(sessionId) parts.push('sessionId='+encodeURIComponent(sessionId));
+      var q=parts.join('&');
+      if(!q) return null;
+      var headers = buildAuthHeaders();
+      console.log('[CelestialHarmony][Restore] request', {
+        url:'/api/celestial-harmony?'+q,
+        reportId: reportId,
+        transactionId: transactionId,
+        requestId: requestId,
+        sessionId: sessionId,
+        authTokenMasked: maskToken(readAuthToken()),
+        premiumTokenMasked: maskToken(currentPremiumToken || readPremiumToken())
+      });
       try{
-        var res=await fetch('/api/celestial-harmony?'+q,{method:'GET',credentials:'include'});
+        var res=await fetch('/api/celestial-harmony?'+q,{method:'GET',headers:headers,credentials:'include'});
         if(!res.ok) return null;
         var payload=await res.json();
-        if(payload&&payload.ok&&payload.result) return payload.result;
+        console.log('[CelestialHarmony][Restore] response', { status: res.status, payload: payload });
+        if(payload&&payload.ok&&payload.result){
+          var schema = validateReadingSchema(payload.result);
+          if(!schema.ok){
+            console.error('[CelestialHarmony][Generate] error', { message:'restore schema invalid', reason:schema.reason, result:payload.result });
+            return null;
+          }
+          return payload.result;
+        }
       }catch(_){ }
       return null;
     }
@@ -864,41 +1110,96 @@
     async function runReadingFlow(){
       if(!spread.length || $read.disabled || paymentInFlight) return;
       paymentInFlight = true;
-      readBtnOn(false);
+      updateReadButtonState();
+      if(!currentSessionId && currentReportId) currentSessionId='celestial-harmony:'+currentReportId;
+      console.log('[CelestialHarmony][Access] token/report/session state', {
+        reportId: currentReportId,
+        transactionId: currentTransactionId,
+        requestId: currentRequestId,
+        sessionId: currentSessionId,
+        hasAccess: hasAccess,
+        paidRecoverable: recoverablePaymentSession,
+        hasAuthToken: Boolean(readAuthToken()),
+        premiumTokenMasked: maskToken(currentPremiumToken || readPremiumToken())
+      });
       updatePremiumStatus('premium active','결제 및 리딩 플로우를 시작합니다.','payment',['draw']);
       setLoading(true,'코인 결제 및 리딩 세션을 확인하는 중입니다...');
 
       try{
         if(!currentReportId) currentReportId = buildReportId();
+        if(!currentRequestId) currentRequestId = 'celestial:'+currentReportId;
+        if(!currentSessionId) currentSessionId = 'celestial-harmony:'+currentReportId;
 
         if(!hasAccess){
           var gate = await callCoinGate(currentReportId);
           currentTransactionId = gate.transactionId || currentTransactionId;
+          if(gate.purchaseId && !currentTransactionId) currentTransactionId = gate.purchaseId;
           currentReportId = gate.reportId || currentReportId;
           currentAccessGrant = gate.accessGrant || currentAccessGrant;
           currentConsume = gate.consume || currentConsume;
           currentRequestId = gate.requestId || currentRequestId || ('celestial:'+currentReportId);
+          currentSessionId = 'celestial-harmony:'+currentReportId;
           if(gate.premiumAccessToken) persistPremiumToken(gate.premiumAccessToken);
           activateAccessState(gate);
+          recoverablePaymentSession = true;
           updatePremiumStatus('premium paid','결제 확인이 완료되었습니다. 리딩 생성을 진행합니다.','generate',['draw','payment']);
-          persistSession({ reportId:currentReportId, transactionId:currentTransactionId, paid:true, cards:buildCardsPayload(), spread:spread, goldenCard:goldenCard });
+          persistSession({
+            reportId:currentReportId,
+            transactionId:currentTransactionId,
+            requestId:currentRequestId,
+            sessionId:currentSessionId,
+            premiumAccessToken:currentPremiumToken,
+            accessGrant:currentAccessGrant,
+            consume:currentConsume,
+            paid:true,
+            cards:buildCardsPayload(),
+            spread:spread,
+            goldenCard:goldenCard
+          });
         }
 
         setLoading(true,'11행성 원형과 카드 의미를 결합해 심층 리딩을 생성 중입니다...');
         var reading = await callGenerate(currentReportId, currentTransactionId, false, {
           accessGrant: currentAccessGrant,
           consume: currentConsume,
+          purchaseId: clean((currentAccessGrant&&currentAccessGrant.purchaseId) || (currentConsume&&currentConsume.transactionId) || currentTransactionId),
           premiumAccessToken: currentPremiumToken || readPremiumToken(),
+          sessionId: currentSessionId,
           requestId: currentRequestId || ('celestial:'+currentReportId),
         });
         renderResults(reading);
         renderSummary(reading);
+        hasCompletedResult = true;
+        recoverablePaymentSession = false;
         updatePremiumStatus('premium complete','결제 검증 및 리딩 생성이 완료되었습니다.','complete',['draw','payment','generate','complete']);
-        persistSession({ reportId:currentReportId, transactionId:currentTransactionId, paid:true, reading:reading, cards:buildCardsPayload(), spread:spread, goldenCard:goldenCard });
+        persistSession({
+          reportId:currentReportId,
+          transactionId:currentTransactionId,
+          requestId:currentRequestId,
+          sessionId:currentSessionId,
+          premiumAccessToken:currentPremiumToken,
+          accessGrant:currentAccessGrant,
+          consume:currentConsume,
+          paid:true,
+          reading:reading,
+          cards:buildCardsPayload(),
+          spread:spread,
+          goldenCard:goldenCard
+        });
         setLoading(false,'');
         setTimeout(function(){$resSec.scrollIntoView({behavior:'smooth'});},100);
       }catch(err){
+        console.error('[CelestialHarmony][Generate] error', err && err.payload ? { status:err.status, error:err.message, payload:err.payload } : err);
+        var status = Number(err && err.status || 0);
+        var code = clean((err && err.code) || (err && err.payload && err.payload.code) || '');
         var recoverable = hasAccess && (currentReportId || currentTransactionId);
+        if(status===401 || code==='UNAUTHORIZED'){
+          updatePremiumStatus('premium issue','로그인이 만료되었습니다. 다시 로그인 후 시도해 주세요.','payment',['draw']);
+        } else if(!hasAccess){
+          updatePremiumStatus('premium issue','코인 결제가 완료되지 않았습니다.','payment',['draw']);
+        } else {
+          updatePremiumStatus('premium recover','결제는 확인되었습니다. 같은 결제 세션으로 리딩을 다시 생성합니다.','generate',['draw','payment']);
+        }
         if(recoverable){
           try {
             updatePremiumStatus('premium recover','결제는 완료되어 복구 가능한 결과를 조회합니다.','generate',['draw','payment']);
@@ -906,19 +1207,38 @@
             if(restored){
               renderResults(restored);
               renderSummary(restored);
+              hasCompletedResult = true;
+              recoverablePaymentSession = false;
               updatePremiumStatus('premium complete','결제된 세션에서 결과를 복구했습니다.','complete',['draw','payment','generate','complete']);
-              persistSession({ reportId:currentReportId, transactionId:currentTransactionId, paid:true, reading:restored, cards:buildCardsPayload(), spread:spread, goldenCard:goldenCard });
+              persistSession({
+                reportId:currentReportId,
+                transactionId:currentTransactionId,
+                requestId:currentRequestId,
+                sessionId:currentSessionId,
+                premiumAccessToken:currentPremiumToken,
+                accessGrant:currentAccessGrant,
+                consume:currentConsume,
+                paid:true,
+                reading:restored,
+                cards:buildCardsPayload(),
+                spread:spread,
+                goldenCard:goldenCard
+              });
               setLoading(false,'');
               return;
             }
           } catch (_) { }
         }
+        recoverablePaymentSession = Boolean(hasAccess);
         setLoading(false,'');
-        updatePremiumStatus('premium issue','결제 또는 리딩 단계에서 오류가 발생했습니다. 다시 시도해 주세요.','payment',['draw']);
-        window.alert('리딩 처리 중 오류가 발생했습니다: '+((err&&err.message)||'unknown'));
+        if(code==='SCHEMA_INVALID'){
+          updatePremiumStatus('premium issue','리딩 결과 형식이 올바르지 않습니다. 관리자 확인이 필요합니다.','generate',['draw','payment']);
+        } else if(recoverablePaymentSession){
+          updatePremiumStatus('premium recover','결제 세션은 유지되었습니다. 결과 복구/다시 보기를 시도해 주세요.','generate',['draw','payment']);
+        }
       }finally{
         paymentInFlight = false;
-        readBtnOn(true);
+        updateReadButtonState();
       }
     }
 
@@ -934,11 +1254,14 @@
       currentAccessGrant = null;
       currentConsume = null;
       currentRequestId = 'celestial:'+currentReportId;
+      currentSessionId = 'celestial-harmony:'+currentReportId;
       hasAccess = false;
+      hasCompletedResult = false;
+      recoverablePaymentSession = false;
       canDraw = false;
       selectedCardIdx = -1;
       renderBoard();
-      readBtnOn(true);
+      updateReadButtonState();
       updatePremiumStatus('premium ready','카드 배치가 완료되었습니다. 결제 확인 후 심층 리딩을 시작할 수 있습니다.','payment',['draw']);
       $resSec.style.display='none';$resCon.innerHTML='';
       $goldSec.style.display='none';$goldCon.innerHTML='';
@@ -992,7 +1315,10 @@
       currentAccessGrant=null;
       currentConsume=null;
       currentRequestId='';
+      currentSessionId='';
       hasAccess=false;
+      hasCompletedResult=false;
+      recoverablePaymentSession=false;
       canDraw=false;
       paymentInFlight=false;
       selectedCardIdx=-1;
@@ -1015,13 +1341,19 @@
         goldenCard=saved.goldenCard||null;
         currentReportId=clean(saved.reportId||'');
         currentTransactionId=clean(saved.transactionId||'');
+        currentRequestId=clean(saved.requestId || ('celestial:' + (currentReportId || buildReportId())));
+        currentSessionId=clean(saved.sessionId || (currentReportId ? 'celestial-harmony:'+currentReportId : ''));
         currentPremiumToken=readPremiumToken();
-        currentRequestId='celestial:'+(currentReportId || buildReportId());
+        if(saved.premiumAccessToken) persistPremiumToken(saved.premiumAccessToken);
+        currentAccessGrant = saved.accessGrant || null;
+        currentConsume = saved.consume || null;
         hasAccess=!!saved.paid;
+        hasCompletedResult=Boolean(saved.reading);
+        recoverablePaymentSession=Boolean(saved.paid && !saved.reading);
         canDraw=hasAccess;
         selectedCardIdx=-1;
         renderBoard();
-        readBtnOn(true);
+        updateReadButtonState();
         updatePremiumStatus(
           hasAccess ? 'premium paid' : 'premium ready',
           hasAccess ? '저장된 결제 세션이 감지되었습니다. 결과 복구를 시도합니다.' : '저장된 카드 세션을 복원했습니다. 결제 후 리딩 가능합니다.',
@@ -1031,6 +1363,8 @@
         if(saved.reading){
           renderResults(saved.reading);
           renderSummary(saved.reading);
+          hasCompletedResult = true;
+          recoverablePaymentSession = false;
           updatePremiumStatus('premium complete','저장된 결과를 복원했습니다.','complete',['draw','payment','generate','complete']);
         }
       }
@@ -1041,14 +1375,33 @@
         renderSummary(remote);
         currentReportId = clean((remote.payment&&remote.payment.reportId)||qReport||currentReportId);
         currentTransactionId = clean((remote.payment&&remote.payment.transactionId)||qTx||currentTransactionId);
+        currentRequestId = clean((remote.payment&&remote.payment.requestId)||currentRequestId||('celestial:'+currentReportId));
+        currentSessionId = clean((remote.payment&&remote.payment.sessionId)||currentSessionId||(currentReportId?'celestial-harmony:'+currentReportId:''));
         hasAccess = true;
+        hasCompletedResult = true;
+        recoverablePaymentSession = false;
         canDraw = true;
         updatePremiumStatus('premium complete','서버에서 결제된 리딩 결과를 복구했습니다.','complete',['draw','payment','generate','complete']);
-        persistSession({ reportId:currentReportId, transactionId:currentTransactionId, paid:true, reading:remote, cards:buildCardsPayload(), spread:spread, goldenCard:goldenCard });
+        persistSession({
+          reportId:currentReportId,
+          transactionId:currentTransactionId,
+          requestId:currentRequestId,
+          sessionId:currentSessionId,
+          premiumAccessToken:currentPremiumToken,
+          accessGrant:currentAccessGrant,
+          consume:currentConsume,
+          paid:true,
+          reading:remote,
+          cards:buildCardsPayload(),
+          spread:spread,
+          goldenCard:goldenCard
+        });
+        updateReadButtonState();
       } else if(saved && saved.paid && !saved.reading && spread.length===11){
         // 결제는 완료됐으나 결과가 없는 경우 자동 재생성
         try {
           hasAccess = true;
+          recoverablePaymentSession = true;
           canDraw = true;
           updatePremiumStatus('premium recover','결제된 세션 재생성을 시도합니다.','generate',['draw','payment']);
           await runReadingFlow();
@@ -1057,6 +1410,7 @@
       if(!saved && !remote){
         updatePremiumStatus('premium idle','카드를 배치하면 결제 및 리딩 단계가 순서대로 진행됩니다.','draw',[]);
       }
+      updateReadButtonState();
     }());
   }());
   </script>

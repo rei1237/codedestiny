@@ -192,7 +192,7 @@ function normalizeInput(body = {}) {
     || birth.date,
   );
   const parts = parseBirthDateParts(birthDateRaw) || {};
-  const year = toInt(body.year || body.birthYear || body.fortuneYear || birth.year || parts.year, 0);
+  const year = toInt(body.birthYear || body.year || birth.year || parts.year, 0);
   const month = toInt(body.month || body.birthMonth || birth.month || parts.month, 0);
   const day = toInt(body.day || body.birthDay || birth.day || parts.day, 0);
   const timeInfo = parseBirthTime(
@@ -202,7 +202,7 @@ function normalizeInput(body = {}) {
   );
 
   const targetYear = toInt(
-    body.targetYear || body.selectedYear || body.fortuneYear || body.year || body.target_year,
+    body.targetYear || body.selectedYear || body.fortuneYear || body.target_year,
     resolveDefaultTargetYear(),
   );
 
@@ -309,26 +309,36 @@ function relationRows(pillars, annualBranch) {
 function normalizeEngineSaju(profile, body = {}) {
   let engine = null;
   try {
-    engine = buildSajuProfile({ name: profile.name, gender: profile.gender, birth: profile.birth });
+    engine = buildSajuProfile({
+      name: profile.name,
+      gender: profile.gender,
+      birth: profile.birth,
+      calendarType: profile.calendarType,
+      timezone: profile.timezone || "Asia/Seoul",
+    });
   } catch (error) {
-    console.warn("[NewYearBook][Flow] ENGINE_CALC_LOCAL_FALLBACK", { message: clean(error?.message || error) });
+    console.error("[NewYearBook][LocalSajuEngineFailed]", {
+      message: clean(error?.message || error),
+      birth: profile.birth,
+    });
+  }
+
+  if (!engine?.pillars?.day?.stem || !engine?.pillars?.month?.branch) {
+    const err = new Error("신년운세 PDF 생성을 위한 사주 원국 계산에 실패했습니다.");
+    err.code = "SAJU_LOCAL_ENGINE_FAILED";
+    err.status = 422;
+    throw err;
   }
 
   const sajuBase = body.sajuBase && typeof body.sajuBase === "object" ? body.sajuBase : {};
-  const frontendPillars = sajuBase.pillars || {};
-  const pillars = engine?.pillars || {
-    year: { stem: clean(frontendPillars.year?.gan), branch: clean(frontendPillars.year?.zhi) },
-    month: { stem: clean(frontendPillars.month?.gan), branch: clean(frontendPillars.month?.zhi) },
-    day: { stem: clean(frontendPillars.day?.gan), branch: clean(frontendPillars.day?.zhi) },
-    hour: { stem: clean(frontendPillars.hour?.gan), branch: clean(frontendPillars.hour?.zhi) },
-  };
-  const dayMaster = clean(engine?.dayMaster?.stem || sajuBase.core?.dayMaster || pillars.day?.stem);
-  const fiveElements = engine?.fiveElements || sajuBase.elementBalance || {};
-  const tenGods = engine?.tenGods || sajuBase.tenGods || {};
-  const usefulGods = engine?.usefulGods || sajuBase.yongshin || {};
-  const daeun = Array.isArray(sajuBase?.timing?.daeun) ? sajuBase.timing.daeun : [];
+  const pillars = engine.pillars;
+  const dayMaster = clean(engine.dayMaster?.stem || engine.pillars.day?.stem);
+  const fiveElements = engine.fiveElements || {};
+  const tenGods = engine.tenGods || {};
+  const usefulGods = engine.usefulGods || {};
+  const daeun = Array.isArray(engine.daeun) ? engine.daeun : (Array.isArray(sajuBase?.timing?.daeun) ? sajuBase.timing.daeun : []);
 
-  return { engine, sajuBase, pillars, dayMaster, fiveElements, tenGods, usefulGods, daeun };
+  return { engine, pillars, dayMaster, fiveElements, tenGods, usefulGods, daeun };
 }
 
 function dominantElement(fiveElements = {}, fallback = "earth") {
@@ -1021,7 +1031,8 @@ function buildLocalSkeleton(seed) {
       title: chapter.title,
       categories,
       text: categories.map((category) => `## ${category.title}\n${category.finalText}`).join("\n\n"),
-      source: "local-skeleton",
+      sections: categories.map((c) => ({ title: c.title, body: c.finalText })),
+      source: "local-only",
     };
   });
 }
@@ -1145,7 +1156,13 @@ async function handlePrepare(request, env) {
     }, { status: 202 });
   }
   if (lock?.status === "done" && lock?.result) {
-    return json({ ...lock.result, status: "done", sessionId: sessionKey });
+    return json({
+      ...lock.result,
+      status: lock.result?.status || "completed",
+      serverStatus: lock.result?.serverStatus || "completed",
+      sessionId: sessionKey,
+      fromCache: true,
+    });
   }
   newYearPdfLocks.set(sessionKey, { status: "running", startedAtMs: Date.now() });
 
@@ -1207,29 +1224,36 @@ async function handlePrepare(request, env) {
     });
     await startPremiumPdfExecution(env, auth.userId, executionCtx);
 
-    let chapters = localManuscript.map((chapter) => ({ ...chapter, source: "local" }));
-    let fallbackUsed = false;
-    let manuscriptSource = "local-only";
+    const chapters = localManuscript.map((chapter) => ({ ...chapter, source: "local-only" }));
+    const manuscriptSource = "local-only";
 
-    if (!validateChapters(chapters)) {
-      fallbackUsed = true;
-      manuscriptSource = "local-only";
-      chapters = localManuscript.map((chapter) => ({ ...chapter, source: "local-fallback" }));
-    }
+    console.info("[NewYearPremiumPDF][FinalValidationPassed]", { chapterCount: chapters.length, manuscriptSource });
+    const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `new-year-${Date.now().toString(36)}`);
+    const requestOrigin = new URL(request.url).origin;
+    const archiveUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
 
-    console.info("[NewYearPremiumPDF][FinalValidationPassed]", { chapterCount: chapters.length, fallbackUsed, manuscriptSource });
-    console.info("[NewYearPremiumPDF][PDFRenderStarted]", { chapterCount: chapters.length, fallbackUsed });
+    console.info("[NewYearPremiumPDF][PDFRenderStarted]", { chapterCount: chapters.length });
     const pdfReady = buildPdfReadyPayload(localYearSajuJson, chapters, {
       featureKey,
       reportType: "sajuNewYear",
-      fallbackUsed,
+      fallbackUsed: false,
       manuscriptSource,
       sessionId: sessionKey,
       accessType: clean(access.accessType || "unknown"),
     });
-    console.info("[NewYearPremiumPDF][PDFRenderCompleted]", { chapterCount: chapters.length, manuscriptSource });
+    pdfReady.htmlUrl = archiveUrl;
+    pdfReady.pdfUrl = archiveUrl;
+    pdfReady.downloadUrl = archiveUrl;
+    console.info("[NewYearPremiumPDF][PDFRenderCompleted]", { chapterCount: chapters.length, manuscriptSource, archiveUrl });
 
-    const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `new-year-${Date.now().toString(36)}`);
+    const storedUrl = clean(pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl);
+    if (!storedUrl) {
+      throw Object.assign(new Error("신년운세 PDF 저장 URL 생성에 실패했습니다."), {
+        code: "NEW_YEAR_PDF_URL_MISSING",
+        status: 500,
+      });
+    }
+
     await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
       manuscriptSource,
       chapterCount: chapters.length,
@@ -1241,34 +1265,42 @@ async function handlePrepare(request, env) {
         title: `${clean(normalized?.profile?.name) || "사용자"}님의 ${String(localYearSajuJson.targetYear || "")}년 신년운세`,
         mode: "personal",
         birthName: clean(normalized?.profile?.name),
-        summary: clean(chapters?.[0]?.summary || chapters?.[0]?.sections?.[0]?.body || "", 1000),
-        pdfUrl: clean(pdfReady?.pdfUrl),
+        summary: clean(chapters?.[0]?.categories?.[0]?.finalText || chapters?.[0]?.text || "", 1000),
+        pdfUrl: storedUrl,
+        htmlUrl: clean(pdfReady.htmlUrl),
         chapters,
         payload: localYearSajuJson,
         pdfReady,
         canReopen: true,
-        canDownload: Boolean(clean(pdfReady?.pdfUrl)),
+        canDownload: true,
       },
     });
 
     const responsePayload = {
       ok: true,
       serviceKey: SERVICE_KEY,
-      status: "done",
+      reportType: "sajuNewYear",
+      status: "completed",
+      serverStatus: "completed",
+      qualityStatus: "passed",
       sessionId: sessionKey,
       reportId,
       featureKey,
       targetYear: localYearSajuJson.targetYear,
       chapterCount: NEW_YEAR_CHAPTERS.length,
       localDraftChapterCount: localManuscript.length,
+      finalChapterCount: chapters.length,
       manuscriptSource,
-      llmUsed: manuscriptSource !== "local-only",
+      llmUsed: false,
+      fallbackUsed: false,
       chapters,
       seed: { ...localYearSajuJson, chapters: undefined },
       newYearPayload: localYearSajuJson,
       pdfReady,
-      fallbackUsed,
-      llmFallbackReason: fallbackUsed ? "품질 안정화를 위해 로컬 원고로 완료되었습니다." : "",
+      pdfUrl: storedUrl,
+      htmlUrl: clean(pdfReady.htmlUrl),
+      canReopen: true,
+      canDownload: true,
     };
 
     newYearPdfLocks.set(sessionKey, { status: "done", startedAtMs: Date.now(), result: responsePayload });

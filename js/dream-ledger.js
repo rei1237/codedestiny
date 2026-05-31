@@ -57,7 +57,7 @@
     htmlOverflow: ''
   };
 
-  var DREAM_TAROT_API_TIMEOUT_MS = 9000;
+  var DREAM_TAROT_API_TIMEOUT_MS = 22000;
   var dreamAiLoadPromise = null;
 
   function $(id) {
@@ -650,6 +650,15 @@
     return false;
   }
 
+  function isAcceptableApiPayload(data) {
+    if (!data || typeof data !== 'object') return false;
+    if (data.ok === true || data.success === true) return true;
+    if (Array.isArray(data.cards)) return true;
+    if (data.reading && typeof data.reading === 'object') return true;
+    if (data.record && typeof data.record === 'object') return true;
+    return false;
+  }
+
   function fetchJsonWithTimeout(url, payload) {
     var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
     var timer = setTimeout(function () {
@@ -683,7 +692,7 @@
           httpErr.responseBody = body || '';
           throw httpErr;
         }
-        if (!data || data.ok !== true) {
+        if (!isAcceptableApiPayload(data)) {
           throw new Error('Invalid tarot API response payload');
         }
         return data;
@@ -748,6 +757,18 @@
     }
 
     return Promise.resolve().then(tryNext);
+  }
+
+  function buildDreamLibraryContext(dreamText) {
+    var text = String(dreamText || '').trim();
+    if (!text) return [];
+    try {
+      var utils = window.DreamMeaningLibraryUtils;
+      if (utils && typeof utils.findMatches === 'function') {
+        return utils.findMatches(text, 6);
+      }
+    } catch (_) {}
+    return [];
   }
 
   function loadScriptOnce(src) {
@@ -1665,22 +1686,41 @@
       }
     }
 
-    // 타로 카드 해석(내러티브)을 각 단계 텍스트 앞에 추가
+    // 타로 카드 해석을 각 단계 서사로 자연스럽게 합친다.
+    function cardOrientLabel(card) {
+      if (!card) return '';
+      return card.orientation === 'reversed' ? '역방향' : '정방향';
+    }
+
     function cardLabel(idx) {
       var ac = apiCards[idx];
       return ac && (ac.nameKr || ac.name) ? (ac.nameKr || ac.name) : (idx + 1) + '번째 카드';
     }
+
+    function buildStageText(baseText, idx) {
+      var base = String(baseText || '').trim();
+      var narrative = cardNarratives[idx] && cardNarratives[idx].interpretation
+        ? String(cardNarratives[idx].interpretation || '').trim()
+        : '';
+      if (!narrative) return base;
+      var ac = apiCards[idx] || {};
+      var cardName = cardLabel(idx);
+      var orient = cardOrientLabel(ac);
+      var keywords = Array.isArray(ac.keywords) ? ac.keywords.slice(0, 3).join(' · ') : '';
+      var header = '타로 ' + cardName + (orient ? ' (' + orient + ')' : '')
+        + (keywords ? '의 핵심 키워드는 ' + keywords + ' 입니다.' : '의 흐름이 선명합니다.');
+      if (!base) return header + '\n' + narrative;
+      return header + '\n' + narrative + '\n\n' + base;
+    }
+
     if (cardNarratives[0] && cardNarratives[0].interpretation) {
-      localReading.scene = '【타로 카드: ' + cardLabel(0) + '】\n'
-        + cardNarratives[0].interpretation + '\n\n' + localReading.scene;
+      localReading.scene = buildStageText(localReading.scene, 0);
     }
     if (cardNarratives[1] && cardNarratives[1].interpretation) {
-      localReading.symbol = '【타로 카드: ' + cardLabel(1) + '】\n'
-        + cardNarratives[1].interpretation + '\n\n' + localReading.symbol;
+      localReading.symbol = buildStageText(localReading.symbol, 1);
     }
     if (cardNarratives[2] && cardNarratives[2].interpretation) {
-      localReading.echo = '【타로 카드: ' + cardLabel(2) + '】\n'
-        + cardNarratives[2].interpretation + '\n\n' + localReading.echo;
+      localReading.echo = buildStageText(localReading.echo, 2);
     }
 
     // 타로 종합 조언을 황금 카드 조언에 통합
@@ -1702,7 +1742,9 @@
         return {
           name: name,
           orientation: orientation,
-          keywords: keywords
+          keywords: keywords,
+          imageUrl: String(card.localImageUrl || card.imageUrl || card.proxyImageUrl || '').trim(),
+          symbol: String(card.symbol || '').trim()
         };
       });
     }
@@ -1717,7 +1759,9 @@
       return {
         name: String(card.card_name || ('카드 ' + (idx + 1))).trim(),
         orientation: 'upright',
-        keywords: keywords
+        keywords: keywords,
+        imageUrl: String(card.tarot_image_url || '').trim(),
+        symbol: String(card.symbol || '').trim()
       };
     });
   }
@@ -1742,6 +1786,25 @@
     }
     if (consultRecord.model) {
       merged.aiModel = String(consultRecord.model || '').trim();
+    }
+
+    var stageReadings = consultRecord.stageReadings && typeof consultRecord.stageReadings === 'object'
+      ? consultRecord.stageReadings
+      : null;
+    if (stageReadings) {
+      if (stageReadings.scene) merged.scene = String(stageReadings.scene || '').trim() || merged.scene;
+      if (stageReadings.symbol) merged.symbol = String(stageReadings.symbol || '').trim() || merged.symbol;
+      if (stageReadings.echo) merged.echo = String(stageReadings.echo || '').trim() || merged.echo;
+    }
+
+    if (consultRecord.usedDreamText) {
+      merged.usedDreamText = String(consultRecord.usedDreamText || '').trim();
+    }
+    if (Array.isArray(consultRecord.usedTarotCards)) {
+      merged.usedTarotCards = consultRecord.usedTarotCards.slice(0, 3);
+    }
+    if (Array.isArray(consultRecord.keywords)) {
+      merged.keywords = consultRecord.keywords.slice(0, 12);
     }
 
     return merged;
@@ -1806,6 +1869,14 @@
       }
 
       function finalizeReading(enhancedReading) {
+        if (Array.isArray(enhancedReading._pipelineFallbacks) && enhancedReading._pipelineFallbacks.length) {
+          enhancedReading.fallbackReason = enhancedReading._pipelineFallbacks.join(' | ');
+          console.warn('[DreamTarot] partial-fallback', {
+            reasons: enhancedReading._pipelineFallbacks,
+            fallbackReason: enhancedReading.fallbackReason
+          });
+          setWizardLine('일부 카드 상담이 지연되어 로컬 해몽과 병합해 마법책을 완성했습니다.');
+        }
         hydrateReading(enhancedReading);
         setInteractionLocked(false);
         var resultWrap = $('dreamResultWrap');
@@ -1816,49 +1887,93 @@
         }
       }
 
-      // 타로 API로 실제 카드 뽑기 → 리딩 강화 → Gemini 상담 병합 → 최종화
+      // 타로 API로 실제 카드 뽑기 → 리딩 강화 → dream 상담 병합 → 최종화
+      var pipelineFallbacks = [];
+      var dreamLibraryContext = buildDreamLibraryContext(text);
+
       setLoaderText('타로 카드가 꿈의 언어를 읽는 중입니다...');
       callDreamTarotApi('draw', { spreadType: 'three_card_past_present_future' })
         .then(function (drawData) {
           if (!drawData || !Array.isArray(drawData.cards) || drawData.cards.length < 3) {
+            pipelineFallbacks.push('draw:cards-missing');
             return null;
           }
           return callDreamTarotApi('reading', {
-            category: 'general',
+            category: 'dream_tarot',
             spreadType: 'three_card_past_present_future',
-            cards: drawData.cards
+            cards: drawData.cards,
+            dreamText: text,
+            userQuestion: '이 꿈의 핵심 상징을 타로 3장으로 구체 해석해줘: ' + text,
+            userContext: {
+              dreamText: text,
+              localSummary: String(reading.summary || '').trim(),
+              localStageReadings: {
+                scene: String(reading.scene || '').trim(),
+                symbol: String(reading.symbol || '').trim(),
+                echo: String(reading.echo || '').trim()
+              },
+              dreamLibraryContext: dreamLibraryContext,
+              tone: state.goldenTone
+            }
           })
           .then(function (readingData) {
             return { drawData: drawData, readingData: readingData };
           })
-          .catch(function () {
+          .catch(function (error) {
+            pipelineFallbacks.push('reading:' + String(error && error.message || 'failed'));
+            console.warn('[DreamTarot] reading-fallback', error);
             return { drawData: drawData, readingData: null };
           });
         })
         .then(function (apiResult) {
-          var consultCards = buildConsultCardsPayload(reading, apiResult && apiResult.drawData ? apiResult.drawData : null);
+          var drawData = apiResult && apiResult.drawData ? apiResult.drawData : null;
+          var readingData = apiResult && apiResult.readingData ? apiResult.readingData : null;
+          var consultCards = buildConsultCardsPayload(reading, drawData);
+
           if (apiResult && apiResult.drawData) {
-            reading = mergeTarotApiIntoReading(reading, apiResult.drawData, apiResult.readingData);
+            reading = mergeTarotApiIntoReading(reading, drawData, readingData);
+          } else {
+            pipelineFallbacks.push('draw:skipped');
           }
 
           setLoaderText('카드 조합으로 상담 메시지를 정리하는 중...');
           return callDreamApi('tarot-consult', {
             dreamText: text,
+            spreadType: 'three_card_past_present_future',
             tone: state.goldenTone,
             cards: consultCards,
-            summary: reading.summary
+            summary: reading.summary,
+            localReading: {
+              title: String(reading.title || '').trim(),
+              summary: String(reading.summary || '').trim(),
+              scene: String(reading.scene || '').trim(),
+              symbol: String(reading.symbol || '').trim(),
+              echo: String(reading.echo || '').trim(),
+              keywords: Array.isArray(reading.keywords) ? reading.keywords.slice(0, 8) : []
+            },
+            tarotNarratives: readingData && readingData.reading && Array.isArray(readingData.reading.cardNarratives)
+              ? readingData.reading.cardNarratives.slice(0, 3)
+              : [],
+            dreamLibraryContext: dreamLibraryContext
           })
           .then(function (consultData) {
             if (consultData && consultData.record) {
               reading = mergeDreamConsultIntoReading(reading, consultData.record);
             }
+            reading._pipelineFallbacks = pipelineFallbacks.slice();
             finalizeReading(reading);
           })
-          .catch(function () {
+          .catch(function (error) {
+            pipelineFallbacks.push('consult:' + String(error && error.message || 'failed'));
+            console.warn('[DreamTarot] consult-fallback', error);
+            reading._pipelineFallbacks = pipelineFallbacks.slice();
             finalizeReading(reading);
           });
         })
-        .catch(function () {
+        .catch(function (error) {
+          pipelineFallbacks.push('pipeline:' + String(error && error.message || 'failed'));
+          console.warn('[DreamTarot] pipeline-fallback', error);
+          reading._pipelineFallbacks = pipelineFallbacks.slice();
           finalizeReading(reading);
         });
     }, 1450);

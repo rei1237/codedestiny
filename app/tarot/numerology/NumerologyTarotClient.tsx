@@ -20,9 +20,8 @@ type TopicKey = keyof typeof TOPIC_LABELS;
 type DrawnCard = {
   card: {
     id: number;
-    nameKr: string;
-    name: string;
-    emoji?: string;
+    nameKr?: string;
+    name?: string;
     upright?: string;
     reversed?: string;
   };
@@ -31,22 +30,63 @@ type DrawnCard = {
   positionLabel: string;
 };
 
+type NumerologyTarotInterpretationCard = {
+  order: number;
+  title: string;
+  question: string;
+  keywordFocus: string;
+  cardNameKr: string;
+  cardNameEn: string;
+  orientation: "upright" | "reversed";
+  orientationLabel: string;
+  cardMeaning: string;
+  numerologyBridge: string;
+  topicInterpretation: string;
+  hiddenPattern: string;
+  actionTip: string;
+  caution: string;
+  interpretation?: string;
+};
+
+type NumerologyTarotInterpretation = {
+  numerologyReading: string;
+  coreMessage: string;
+  topicReading: {
+    topic: string;
+    topicLabel: string;
+    topicOverview: string;
+    whyThisTopicMatters: string;
+    numerologyTopicBridge: string;
+  };
+  cardReadings: NumerologyTarotInterpretationCard[];
+  categoryDeepDive: {
+    currentFlow: string;
+    hiddenIssue: string;
+    opportunity: string;
+    risk: string;
+    timing: string;
+  };
+  conclusion: {
+    summary: string;
+    doThis: string[];
+    avoidThis: string[];
+    sevenDayPlan: string[];
+    finalWord: string;
+  };
+  quality?: {
+    source: string;
+    topicReflected: boolean;
+    cardCount: number;
+    warnings: string[];
+  };
+};
+
 type ReadingResponse = {
   ok: boolean;
   source?: string;
   topic?: string;
   model?: string;
-  interpretation?: {
-    numerologyReading: string;
-    coreMessage: string;
-    cardReadings: Array<{ title: string; keywordFocus?: string; interpretation: string; actionTip?: string }>;
-    conclusion: {
-      summary: string;
-      doThis: string[];
-      avoidThis: string[];
-      finalWord: string;
-    };
-  };
+  interpretation?: NumerologyTarotInterpretation;
   message?: string;
 };
 
@@ -72,7 +112,7 @@ type FreeProfile = {
 
 const TOPIC_OPTIONS: Array<{ value: TopicKey; label: string }> = Object.entries(TOPIC_LABELS).map(([value, label]) => ({
   value: value as TopicKey,
-  label,
+  label: String(label),
 }));
 
 const STEP_LABELS = ["정보 입력", "타로 뽑기", "해석 준비", "결과 확인"];
@@ -80,6 +120,8 @@ const STEP_LABELS = ["정보 입력", "타로 뽑기", "해석 준비", "결과 
 const PREVIEW_PLACEHOLDERS = [
   { title: "과거", icon: "✶" },
   { title: "현재", icon: "☽" },
+  { title: "전환", icon: "✦" },
+  { title: "조율", icon: "◆" },
   { title: "미래", icon: "☀" },
 ];
 
@@ -380,6 +422,9 @@ export default function NumerologyTarotClient() {
       feelings: "상대의 표면과 내면이 얼마나 다른지까지 함께 봅니다.",
       career: "역할, 성장, 성과 흐름이 어디에 모이는지 중심으로 읽습니다.",
       money: "수입, 지출, 기회 포착의 리듬을 기준으로 풀어냅니다.",
+      relationship: "대인관계의 경계와 신뢰, 협력의 온도를 함께 봅니다.",
+      health: "컨디션, 회복, 에너지 소모를 생활 리듬 기준으로 읽습니다.",
+      move: "이동과 변화의 타이밍, 준비도, 정착 가능성을 함께 점검합니다.",
       general: "지금 전체 운의 방향과 실행 우선순위를 함께 보는 기준입니다.",
     };
 
@@ -413,7 +458,7 @@ export default function NumerologyTarotClient() {
     return 0;
   }, [cards.length, reading, revealed.length]);
 
-  const revealProgress = `${Math.min(revealed.length, 3)}/3`;
+  const revealProgress = `${Math.min(revealed.length, cards.length || 5)}/${cards.length || 5}`;
 
   const readingEnabled = cards.length > 0 && revealed.length === cards.length;
 
@@ -497,6 +542,7 @@ export default function NumerologyTarotClient() {
         name: toText(name),
         birthDate,
         topic,
+        topicLabel: numerology?.topicLabel,
         question: toText(question),
         questionKeywords,
         numerology,
@@ -521,7 +567,7 @@ export default function NumerologyTarotClient() {
       return;
     }
     if (revealed.length < cards.length) {
-      setError("카드 3장을 모두 열어야 해석을 볼 수 있습니다.");
+      setError(`카드 ${cards.length || 5}장을 모두 열어야 해석을 볼 수 있습니다.`);
       return;
     }
 
@@ -786,35 +832,99 @@ export default function NumerologyTarotClient() {
             {reading ? (
               <section className={styles.resultCard}>
                 <h3>수비학 타로 해석</h3>
-                <p style={{ color: "rgba(247, 241, 225, 0.9)", lineHeight: 1.7 }}>{reading.numerologyReading}</p>
-                <p style={{ marginTop: 8, color: "#f4dca5" }}>핵심 메시지: {reading.coreMessage}</p>
-                {questionKeywords.length ? (
-                  <p className={styles.keywordLine}>질문 키워드 초점: {questionKeywords.join(" · ")}</p>
-                ) : null}
-
-                <div className={styles.resultGrid}>
-                  {reading.cardReadings.map((item, idx) => (
-                    <article key={`${item.title}-${idx}`} className={styles.resultBox}>
-                      <h4>{item.title}</h4>
-                      {item.keywordFocus ? <p className={styles.keywordChip}>키워드: {item.keywordFocus}</p> : null}
-                      <p>{item.interpretation}</p>
-                      {item.actionTip ? <p className={styles.actionTip}>실행 팁: {item.actionTip}</p> : null}
-                    </article>
-                  ))}
-                </div>
-
-                <div className={styles.resultGrid} style={{ marginTop: 10 }}>
-                  <article className={styles.resultBox}>
-                    <h4>흐름 요약</h4>
-                    <p>{reading.conclusion.summary}</p>
+                <div className={styles.resultStack}>
+                  <article className={styles.resultSection}>
+                    <h4>1. 수비학 타로 해석</h4>
+                    <p className={styles.resultLead}>{reading.numerologyReading}</p>
+                    <p className={styles.resultCoreMessage}>핵심 메시지: {reading.coreMessage}</p>
+                    {reading.quality?.warnings?.length ? (
+                      <p className={styles.qualityNote}>품질 보강: {reading.quality.warnings.join(" / ")}</p>
+                    ) : null}
                   </article>
-                  <article className={styles.resultBox}>
-                    <h4>지금 실행할 것</h4>
-                    <p>{reading.conclusion.doThis.join(" / ")}</p>
+
+                  <article className={styles.resultSection}>
+                    <h4>2. 선택한 주제의 핵심 흐름</h4>
+                    <div className={styles.resultGrid}>
+                      <article className={styles.resultBox}>
+                        <h5>{reading.topicReading.topicLabel}</h5>
+                        <p>{reading.topicReading.topicOverview}</p>
+                      </article>
+                      <article className={styles.resultBox}>
+                        <h5>왜 지금 중요한가</h5>
+                        <p>{reading.topicReading.whyThisTopicMatters}</p>
+                      </article>
+                      <article className={styles.resultBox}>
+                        <h5>수비학 연결</h5>
+                        <p>{reading.topicReading.numerologyTopicBridge}</p>
+                      </article>
+                    </div>
                   </article>
-                  <article className={styles.resultBox}>
-                    <h4>피할 것</h4>
-                    <p>{reading.conclusion.avoidThis.join(" / ")}</p>
+
+                  <article className={styles.resultSection}>
+                    <h4>3. 카드별 심층 해석</h4>
+                    <div className={styles.cardReadingGrid}>
+                      {reading.cardReadings.map((item) => (
+                        <article key={`${item.order}-${item.cardNameEn}-${item.title}`} className={styles.cardReadingBox}>
+                          <div className={styles.cardReadingHeader}>
+                            <div>
+                              <p className={styles.cardReadingOrder}>{String(item.order).padStart(2, "0")}</p>
+                              <h5>{item.title}</h5>
+                            </div>
+                            <div className={styles.cardReadingMeta}>
+                              <span>{item.cardNameKr}</span>
+                              <span>{item.orientationLabel}</span>
+                            </div>
+                          </div>
+                          <p className={styles.keywordChip}>질문: {item.question}</p>
+                          <p className={styles.keywordChip}>키워드: {item.keywordFocus}</p>
+                          <p><strong>카드 기본 의미</strong><br />{item.cardMeaning}</p>
+                          <p><strong>수비학 연결</strong><br />{item.numerologyBridge}</p>
+                          <p><strong>선택 카테고리별 해석</strong><br />{item.topicInterpretation}</p>
+                          <p><strong>숨은 패턴</strong><br />{item.hiddenPattern}</p>
+                          <p className={styles.actionTip}><strong>실행 팁</strong><br />{item.actionTip}</p>
+                          <p className={styles.cautionText}><strong>주의점</strong><br />{item.caution}</p>
+                        </article>
+                      ))}
+                    </div>
+                  </article>
+
+                  <article className={styles.resultSection}>
+                    <h4>4. 카테고리 심층 분석</h4>
+                    <div className={styles.resultGrid}>
+                      <article className={styles.resultBox}><h5>현재 흐름</h5><p>{reading.categoryDeepDive.currentFlow}</p></article>
+                      <article className={styles.resultBox}><h5>숨은 문제</h5><p>{reading.categoryDeepDive.hiddenIssue}</p></article>
+                      <article className={styles.resultBox}><h5>기회</h5><p>{reading.categoryDeepDive.opportunity}</p></article>
+                      <article className={styles.resultBox}><h5>위험</h5><p>{reading.categoryDeepDive.risk}</p></article>
+                      <article className={styles.resultBox}><h5>타이밍</h5><p>{reading.categoryDeepDive.timing}</p></article>
+                    </div>
+                  </article>
+
+                  <article className={styles.resultSection}>
+                    <h4>5. 앞으로 7일 실행 플랜</h4>
+                    <ol className={styles.planList}>
+                      {reading.conclusion.sevenDayPlan.map((item, idx) => (
+                        <li key={`${idx}-${item}`}>{item}</li>
+                      ))}
+                    </ol>
+                  </article>
+
+                  <article className={styles.resultSection}>
+                    <h4>6. 지금 실행할 것 / 피할 것</h4>
+                    <div className={styles.resultGrid}>
+                      <article className={styles.resultBox}>
+                        <h5>지금 실행할 것</h5>
+                        <p>{reading.conclusion.doThis.join(" / ")}</p>
+                      </article>
+                      <article className={styles.resultBox}>
+                        <h5>피할 것</h5>
+                        <p>{reading.conclusion.avoidThis.join(" / ")}</p>
+                      </article>
+                      <article className={styles.resultBox}>
+                        <h5>결론</h5>
+                        <p>{reading.conclusion.summary}</p>
+                      </article>
+                    </div>
+                    <p className={styles.finalWord}>{reading.conclusion.finalWord}</p>
                   </article>
                 </div>
               </section>
@@ -839,7 +949,7 @@ export default function NumerologyTarotClient() {
               <article className={styles.phone}>
                 <h4>2. 타로 뽑기</h4>
                 <div className={styles.miniCardStack}>
-                  {[0, 1, 2].map((idx) => {
+                  {[0, 1, 2, 3, 4].map((idx) => {
                     const picked = cards[idx];
                     const open = revealed.includes(idx);
                     return (

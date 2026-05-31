@@ -541,6 +541,68 @@
     ]
   }));
 
+  function toLowerSafe(value) {
+    return String(value || '').toLowerCase();
+  }
+
+  function findMatchesFromDreamText(dreamText, limit) {
+    var text = toLowerSafe(dreamText).trim();
+    var max = Math.max(1, Number(limit) || 6);
+    if (!text) return [];
+
+    var scored = [];
+    for (var i = 0; i < entries.length; i += 1) {
+      var item = entries[i] || {};
+      var keyword = toLowerSafe(item.keyword || '');
+      if (!keyword) continue;
+
+      var score = 0;
+      if (text.indexOf(keyword) === 0) score += 10;
+      else if (text.indexOf(keyword) >= 0) score += 7;
+
+      var tags = Array.isArray(item.tags) ? item.tags : [];
+      for (var t = 0; t < tags.length; t += 1) {
+        var tag = toLowerSafe(tags[t]);
+        if (!tag) continue;
+        if (text.indexOf(tag) >= 0) score += 2;
+      }
+
+      if (score > 0) {
+        scored.push({
+          score: score,
+          item: {
+            keyword: String(item.keyword || '').trim(),
+            category: String(item.category || '').trim(),
+            title: String(item.title || '').trim(),
+            meaning: String(item.meaning || '').trim(),
+            fortune: String(item.fortune || '').trim(),
+            tip: String(item.tip || '').trim(),
+            tags: tags.slice(0, 6)
+          }
+        });
+      }
+    }
+
+    scored.sort(function (a, b) {
+      if (a.score !== b.score) return b.score - a.score;
+      return String(a.item.keyword || '').localeCompare(String(b.item.keyword || ''), 'ko');
+    });
+
+    var out = [];
+    var seen = {};
+    for (var j = 0; j < scored.length && out.length < max; j += 1) {
+      var row = scored[j];
+      var dedupeKey = (row.item.keyword + '|' + row.item.category).toLowerCase();
+      if (seen[dedupeKey]) continue;
+      seen[dedupeKey] = true;
+      out.push(row.item);
+    }
+    return out;
+  }
+
   window.DREAM_MEANING_LIBRARY = entries;
   window.DREAM_MEANING_LIBRARY_META = CATEGORY_META;
+  window.DreamMeaningLibraryUtils = {
+    findMatches: findMatchesFromDreamText
+  };
 })();
