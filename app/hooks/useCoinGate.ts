@@ -54,8 +54,12 @@ function toNumber(value: unknown, fallback = 0): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function normalizeCode(value: unknown): string {
+  return String(value || "").trim().toUpperCase();
+}
+
 function resolveLoginRequired(code: string, status: number) {
-  const normalized = String(code || "").toUpperCase();
+  const normalized = normalizeCode(code);
   return (
     status === 401
     || status === 403
@@ -156,7 +160,7 @@ export function useCoinGate() {
       });
 
       if (!chargeResult.ok || !chargeResult.data) {
-        const code = toText(chargeResult.error?.code || "SERVER_ERROR") || "SERVER_ERROR";
+        const code = normalizeCode(chargeResult.error?.code || "SERVER_ERROR") || "SERVER_ERROR";
         const message = toText(chargeResult.error?.message || chargeResult.message || "코인 결제에 실패했습니다.") || "코인 결제에 실패했습니다.";
 
         if (resolveLoginRequired(code, chargeResult.status)) {
@@ -172,7 +176,12 @@ export function useCoinGate() {
           };
         }
 
-        if (chargeResult.status === 402 || code === "INSUFFICIENT_COINS" || code === "INSUFFICIENT_BALANCE") {
+        if (
+          chargeResult.status === 402
+          || code === "INSUFFICIENT_COINS"
+          || code === "INSUFFICIENT_BALANCE"
+          || code === "INSUFFICIENT_POINTS"
+        ) {
           return {
             ok: false,
             code: "INSUFFICIENT_COINS",

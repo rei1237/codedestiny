@@ -30,6 +30,14 @@ type TarotCardSource = {
 
 type PromptResult = ReturnType<typeof buildOraclePrompt>;
 
+type BillingSnapshot = {
+  requiredCoins: number;
+  canAccess: boolean;
+  freeBySubscription: boolean;
+  subscriptionTier: string;
+  accessReason: string;
+};
+
 const CARD_POOL = (TAROT_CARDS as TarotCardSource[])
   .map((card) => ({
     cardCode: String(card?.code || ""),
@@ -76,6 +84,8 @@ export default function TarotPromptMakerPage() {
   const [drawnCards, setDrawnCards] = useState<DrawnTarotCard[]>([]);
   const [promptResult, setPromptResult] = useState<PromptResult | null>(null);
   const [feedback, setFeedback] = useState("");
+  const [billingSnapshot, setBillingSnapshot] = useState<BillingSnapshot | null>(null);
+  const [billingLoading, setBillingLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [promptOpen, setPromptOpen] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -110,6 +120,50 @@ export default function TarotPromptMakerPage() {
     const timer = window.setTimeout(() => setCopied(false), 1800);
     return () => window.clearTimeout(timer);
   }, [copied]);
+
+  useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+
+    async function loadBillingSnapshot() {
+      setBillingLoading(true);
+      try {
+        const query = new URLSearchParams({
+          featureKey: "tarot-prompt-maker",
+          reason: "타로 프롬프트 라이브러리",
+        });
+        const response = await fetch(`/api/billing/unlock-status?${query.toString()}`, {
+          method: "GET",
+          credentials: "include",
+          signal: controller.signal,
+        });
+        const payload = await response.json().catch(() => ({}));
+        const data = payload?.ok && payload?.data && typeof payload.data === "object"
+          ? payload.data
+          : null;
+        if (!active || !data) return;
+
+        setBillingSnapshot({
+          requiredCoins: Number(data.requiredCoins || 0),
+          canAccess: Boolean(data.canAccess),
+          freeBySubscription: Boolean(data.freeBySubscription),
+          subscriptionTier: String(data.subscriptionTier || "free"),
+          accessReason: String(data.accessReason || "").trim().toLowerCase(),
+        });
+      } catch (_error) {
+        if (!active) return;
+        setBillingSnapshot(null);
+      } finally {
+        if (active) setBillingLoading(false);
+      }
+    }
+
+    loadBillingSnapshot();
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, []);
 
   function scrollToLibrary() {
     libraryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -184,7 +238,7 @@ export default function TarotPromptMakerPage() {
       const paymentResult = await ensurePaidAccess({
         featureKey: "tarot-prompt-maker",
         reason: "타로 프롬프트 라이브러리",
-        forceDeduct: true,
+        forceDeduct: !Boolean(billingSnapshot?.canAccess),
         requestId: `tarot-prompt-library:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         onPaid: ({ chargedCoins, requiredCoins, balanceAfter }) => {
           generate();
@@ -214,6 +268,14 @@ export default function TarotPromptMakerPage() {
         }
         if (paymentResult.code === "INSUFFICIENT_COINS") {
           setFeedback(`코인이 부족합니다. ${paymentResult.requiredCoins}코인이 필요합니다.`);
+          return;
+        }
+        if (paymentResult.code === "PRICE_NOT_FOUND") {
+          setFeedback("현재 서비스 가격 정책을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
+          return;
+        }
+        if (paymentResult.code === "SERVER_CONFIG_ERROR") {
+          setFeedback("결제 서버 설정을 확인 중입니다. 잠시 후 다시 시도해 주세요.");
           return;
         }
         if (paymentResult.code === "FEATURE_EXECUTION_FAILED" && paymentResult.refunded) {
@@ -250,6 +312,16 @@ export default function TarotPromptMakerPage() {
 
   const effectiveQuestion = normalizeText(question) || DEFAULT_QUESTION_BY_CATEGORY[selectedSpread.category];
   const localFlow = describeLocalFlow(drawnCards);
+  const billingCoinLabel = billingSnapshot
+    ? (billingSnapshot.requiredCoins > 0 ? `${billingSnapshot.requiredCoins}코인` : "무료")
+    : "1회 50코인";
+  const billingStateLabel = billingSnapshot
+    ? (billingSnapshot.freeBySubscription
+      ? "구독 포함"
+      : billingSnapshot.canAccess
+        ? "즉시 접근 가능"
+        : "결제 필요")
+    : (billingLoading ? "정책 확인 중" : "정책 미연동");
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#040716] text-white">
@@ -257,6 +329,30 @@ export default function TarotPromptMakerPage() {
       <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:36px_36px]" />
       <div className="absolute left-[-8rem] top-20 h-72 w-72 rounded-full bg-rose-300/20 blur-3xl" />
       <div className="absolute right-[-6rem] top-32 h-72 w-72 rounded-full bg-sky-300/10 blur-3xl" />
+      {[0, 1, 2, 3, 4, 5].map((star) => (
+        <motion.span
+          key={`tarot-star-${star}`}
+          className="pointer-events-none absolute inline-block rounded-full bg-white/80"
+          style={{
+            width: star % 2 === 0 ? 3 : 2,
+            height: star % 2 === 0 ? 3 : 2,
+            left: `${12 + star * 14}%`,
+            top: `${16 + (star % 3) * 18}%`,
+            boxShadow: "0 0 16px rgba(255,255,255,0.7)",
+          }}
+          animate={{ opacity: [0.15, 0.95, 0.2], scale: [1, 1.35, 1] }}
+          transition={{ duration: 2.8 + star * 0.4, repeat: Infinity, ease: "easeInOut" }}
+        />
+      ))}
+      {[0, 1, 2].map((petal) => (
+        <motion.div
+          key={`tarot-petal-${petal}`}
+          className="pointer-events-none absolute h-24 w-24 rounded-full border border-rose-100/20 bg-gradient-to-br from-rose-200/14 to-fuchsia-300/8 blur-sm"
+          style={{ left: `${8 + petal * 30}%`, top: `${28 + petal * 16}%` }}
+          animate={{ y: [0, -18, 0], x: [0, 10, 0], rotate: [0, 8, -6, 0], opacity: [0.22, 0.38, 0.2] }}
+          transition={{ duration: 8 + petal * 1.6, repeat: Infinity, ease: "easeInOut" }}
+        />
+      ))}
       <div className="relative mx-auto flex min-h-screen w-full max-w-[1600px] flex-col px-4 pb-20 pt-6 sm:px-6 lg:px-10">
         <section className="grid gap-6 rounded-[32px] border border-white/10 bg-white/[0.05] px-5 py-6 shadow-[0_30px_120px_rgba(0,0,0,0.35)] backdrop-blur-xl lg:grid-cols-[1.2fr_0.8fr] lg:px-8 lg:py-8">
           <div className="space-y-5">
@@ -323,7 +419,8 @@ export default function TarotPromptMakerPage() {
               </div>
               <div className="rounded-[24px] border border-white/10 bg-white/6 p-4">
                 <div className="text-[11px] uppercase tracking-[0.25em] text-white/48">Billing</div>
-                <div className="mt-2 text-lg font-semibold text-white">1회 50코인</div>
+                <div className="mt-2 text-lg font-semibold text-white">{billingCoinLabel}</div>
+                <div className="mt-1 text-xs text-emerald-100/80">{billingStateLabel}</div>
               </div>
             </div>
           </div>
@@ -382,12 +479,15 @@ export default function TarotPromptMakerPage() {
           </motion.div>
         </section>
 
-        <section ref={libraryRef} id="spread-library" className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-[32px] border border-white/10 bg-white/[0.05] p-4 backdrop-blur-xl sm:p-5">
+        <section ref={libraryRef} id="spread-library" className="relative mt-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="pointer-events-none absolute -left-16 -top-10 h-40 w-40 rounded-full bg-rose-300/20 blur-3xl" />
+          <div className="pointer-events-none absolute -right-10 top-20 h-44 w-44 rounded-full bg-cyan-300/12 blur-3xl" />
+          <div className="rounded-[34px] border border-rose-100/15 bg-[linear-gradient(160deg,rgba(255,255,255,0.1),rgba(255,255,255,0.03))] p-4 shadow-[0_40px_120px_rgba(5,8,28,0.45)] backdrop-blur-2xl sm:p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <div className="text-[11px] uppercase tracking-[0.25em] text-white/48">Spread Library</div>
-                <h2 className="mt-2 text-2xl font-semibold text-white">질문에 맞는 스프레드를 직접 선택하세요</h2>
+                <div className="text-[11px] uppercase tracking-[0.25em] text-rose-100/60">Celestial Spread Atelier</div>
+                <h2 className="mt-2 text-2xl font-semibold text-white sm:text-[2rem]">질문에 맞는 스프레드를 가장 아름다운 흐름으로 고르세요</h2>
+                <p className="mt-2 text-sm text-white/65">카드 수, 무드, 난이도까지 한 번에 비교해 당신의 질문과 가장 결이 맞는 전개를 선택할 수 있어요.</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 {["all", 3, 5, 7, 10, 12, 14].map((count) => (
@@ -395,7 +495,7 @@ export default function TarotPromptMakerPage() {
                     key={String(count)}
                     type="button"
                     onClick={() => setCardCountFilter(count === "all" ? "all" : count)}
-                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${cardCountFilter === count ? "border-amber-200/40 bg-amber-100/14 text-amber-50" : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10"}`}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${cardCountFilter === count ? "border-rose-200/50 bg-rose-100/20 text-rose-50 shadow-[0_8px_24px_rgba(251,113,133,0.25)]" : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10"}`}
                   >
                     {count === "all" ? "All" : `${count} Cards`}
                   </button>
@@ -403,7 +503,7 @@ export default function TarotPromptMakerPage() {
               </div>
             </div>
 
-            <div className="mt-4 rounded-[22px] border border-white/10 bg-black/20 px-4 py-3">
+            <div className="mt-4 rounded-[22px] border border-white/10 bg-black/25 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
               <input
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
@@ -417,21 +517,25 @@ export default function TarotPromptMakerPage() {
                 const active = spread.id === selectedSpread.id;
                 const recommendedBadge = recommended.some((item) => item.id === spread.id);
                 return (
-                  <button
+                  <motion.button
                     key={spread.id}
                     type="button"
                     onClick={() => selectSpread(spread.id)}
-                    className={`group rounded-[28px] border p-4 text-left transition ${active ? "border-amber-200/40 bg-white/12 shadow-[0_24px_60px_rgba(0,0,0,0.24)]" : "border-white/10 bg-white/[0.04] hover:border-white/18 hover:bg-white/[0.08]"}`}
+                    whileHover={{ y: -4, scale: 1.01 }}
+                    whileTap={{ scale: 0.995 }}
+                    className={`group relative overflow-hidden rounded-[30px] border p-4 text-left transition ${active ? "border-rose-200/45 bg-white/14 shadow-[0_24px_80px_rgba(244,114,182,0.24)]" : "border-white/10 bg-white/[0.04] hover:border-rose-100/30 hover:bg-white/[0.09]"}`}
                   >
-                    <div className={`rounded-[22px] bg-gradient-to-br p-4 ${difficultyTone(spread)}`}>
+                    <div className="pointer-events-none absolute -right-8 -top-8 h-20 w-20 rounded-full bg-rose-200/20 blur-2xl" />
+                    <div className="pointer-events-none absolute -left-6 bottom-4 h-16 w-16 rounded-full bg-cyan-200/10 blur-2xl" />
+                    <div className={`relative rounded-[22px] bg-gradient-to-br p-4 ${difficultyTone(spread)}`}>
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <div className="text-[11px] uppercase tracking-[0.25em] text-white/46">{CATEGORY_LABEL[spread.category]}</div>
-                          <h3 className="mt-2 text-lg font-semibold text-white">{spread.title}</h3>
+                          <h3 className="mt-2 text-lg font-semibold text-white sm:text-xl">{spread.title}</h3>
                         </div>
                         <div className="flex flex-col items-end gap-2">
                           {recommendedBadge && (
-                            <span className="rounded-full border border-sky-200/30 bg-sky-200/14 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-100">
+                            <span className="rounded-full border border-rose-100/35 bg-rose-100/18 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-50">
                               For You
                             </span>
                           )}
@@ -448,7 +552,7 @@ export default function TarotPromptMakerPage() {
                         ))}
                       </div>
                     </div>
-                  </button>
+                  </motion.button>
                 );
               })}
             </div>
@@ -461,8 +565,10 @@ export default function TarotPromptMakerPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.28, ease: "easeOut" }}
-              className="rounded-[32px] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl"
+              className="relative overflow-hidden rounded-[32px] border border-fuchsia-100/20 bg-[linear-gradient(160deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 shadow-[0_30px_90px_rgba(9,12,38,0.42)] backdrop-blur-2xl"
             >
+              <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-fuchsia-200/20 blur-3xl" />
+              <div className="pointer-events-none absolute -left-12 bottom-8 h-28 w-28 rounded-full bg-cyan-200/12 blur-3xl" />
               <div className="sticky top-4 space-y-5">
                 <div>
                   <div className="text-[11px] uppercase tracking-[0.25em] text-white/48">Selected Spread</div>
@@ -508,8 +614,10 @@ export default function TarotPromptMakerPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 24 }}
               transition={{ duration: 0.35, ease: "easeOut" }}
-              className="mt-8 rounded-[36px] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl sm:p-6"
+              className="relative mt-8 overflow-hidden rounded-[36px] border border-rose-100/20 bg-[linear-gradient(160deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-5 shadow-[0_36px_120px_rgba(6,8,28,0.5)] backdrop-blur-2xl sm:p-6"
             >
+              <div className="pointer-events-none absolute -right-12 top-6 h-32 w-32 rounded-full bg-rose-200/20 blur-3xl" />
+              <div className="pointer-events-none absolute -left-10 bottom-0 h-36 w-36 rounded-full bg-indigo-200/12 blur-3xl" />
               {stage === "draw" && (
                 <div className="grid gap-6 xl:grid-cols-[0.75fr_1.05fr]">
                   <div className="space-y-5">
@@ -526,7 +634,7 @@ export default function TarotPromptMakerPage() {
                         라이브러리로 돌아가기
                       </button>
                     </div>
-                    <div className="rounded-[24px] border border-white/10 bg-black/20 p-4">
+                    <div className="rounded-[24px] border border-rose-100/20 bg-black/25 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
                       <div className="flex items-center justify-between gap-4">
                         <div>
                           <div className="text-[11px] uppercase tracking-[0.25em] text-white/48">Question</div>
@@ -544,7 +652,7 @@ export default function TarotPromptMakerPage() {
                       </div>
                     </div>
 
-                    <div className="rounded-[24px] border border-white/10 bg-[#070c1a] p-4">
+                    <div className="rounded-[24px] border border-fuchsia-100/20 bg-[#070c1a]/90 p-4">
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <div className="text-[11px] uppercase tracking-[0.25em] text-white/48">Spread Board</div>
@@ -554,13 +662,13 @@ export default function TarotPromptMakerPage() {
                           {selectedSpread.cardCount} Cards
                         </div>
                       </div>
-                      <div className="relative mt-4 aspect-square rounded-[28px] border border-dashed border-white/10 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_44%),linear-gradient(180deg,rgba(10,15,28,0.96),rgba(7,9,18,0.9))]">
+                      <div className="relative mt-4 aspect-square rounded-[28px] border border-dashed border-rose-100/25 bg-[radial-gradient(circle_at_top,rgba(251,191,36,0.12),transparent_42%),radial-gradient(circle_at_80%_20%,rgba(244,114,182,0.16),transparent_36%),linear-gradient(180deg,rgba(10,15,28,0.96),rgba(7,9,18,0.9))]">
                         {selectedSpread.positions.map((position) => {
                           const drawn = drawnCards.find((card) => card.slotIndex === position.index);
                           return (
                             <div
                               key={`${selectedSpread.id}-${position.index}`}
-                              className="absolute h-[96px] w-[68px] -translate-x-1/2 -translate-y-1/2 rounded-[20px] border border-white/12 bg-white/[0.04] p-2 text-center shadow-[0_18px_50px_rgba(0,0,0,0.35)]"
+                              className="absolute h-[96px] w-[68px] -translate-x-1/2 -translate-y-1/2 rounded-[20px] border border-rose-100/20 bg-white/[0.05] p-2 text-center shadow-[0_18px_50px_rgba(0,0,0,0.35)]"
                               style={{ left: `${position.x}%`, top: `${position.y}%`, transform: `translate(-50%, -50%) rotate(${position.rotate}deg)` }}
                             >
                               {drawn ? (
@@ -583,7 +691,7 @@ export default function TarotPromptMakerPage() {
                       </div>
                     </div>
 
-                    <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4 text-sm leading-7 text-white/70">
+                    <div className="rounded-[24px] border border-rose-100/20 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-4 text-sm leading-7 text-white/75">
                       {localFlow}
                     </div>
 
@@ -599,7 +707,7 @@ export default function TarotPromptMakerPage() {
                   </div>
 
                   <div className="space-y-5">
-                    <div className="rounded-[24px] border border-white/10 bg-black/20 p-4">
+                    <div className="rounded-[24px] border border-fuchsia-100/20 bg-black/25 p-4">
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <div className="text-[11px] uppercase tracking-[0.25em] text-white/48">Moon Deck</div>
@@ -618,7 +726,7 @@ export default function TarotPromptMakerPage() {
                               type="button"
                               disabled={disabled}
                               onClick={() => drawCardFromDeck(deckSlot)}
-                              className={`group aspect-[0.72] rounded-[16px] border text-[10px] font-semibold transition ${disabled ? "border-white/6 bg-black/20 text-white/24" : "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.03))] text-amber-50 hover:-translate-y-1 hover:border-amber-200/30 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.22),rgba(255,255,255,0.08))]"}`}
+                              className={`group aspect-[0.72] rounded-[16px] border text-[10px] font-semibold transition ${disabled ? "border-white/6 bg-black/20 text-white/24" : "border-rose-100/22 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.03))] text-amber-50 hover:-translate-y-1 hover:border-rose-200/40 hover:shadow-[0_10px_22px_rgba(251,113,133,0.22)] hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.22),rgba(255,255,255,0.08))]"}`}
                             >
                               <div className="flex h-full flex-col items-center justify-center rounded-[14px] bg-[radial-gradient(circle_at_top,rgba(251,191,36,0.12),transparent_34%),linear-gradient(180deg,rgba(6,10,18,0.96),rgba(11,17,32,0.96))]">
                                 <div className="text-[11px] tracking-[0.2em]">MOON</div>
@@ -630,13 +738,13 @@ export default function TarotPromptMakerPage() {
                       </div>
                     </div>
 
-                    <div className="rounded-[24px] border border-white/10 bg-[#070c1a] p-4">
+                    <div className="rounded-[24px] border border-rose-100/20 bg-[#070c1a]/90 p-4">
                       <div className="text-[11px] uppercase tracking-[0.25em] text-white/48">Selected Cards</div>
                       <div className="mt-4 grid gap-3 sm:grid-cols-2">
                         {selectedSpread.positions.map((position, index) => {
                           const drawn = drawnCards[index];
                           return (
-                            <div key={`${selectedSpread.id}-selected-${position.index}`} className="rounded-[20px] border border-white/10 bg-white/[0.04] p-3">
+                            <div key={`${selectedSpread.id}-selected-${position.index}`} className="rounded-[20px] border border-rose-100/20 bg-white/[0.05] p-3">
                               <div className="text-[11px] uppercase tracking-[0.2em] text-white/42">Position {position.index}</div>
                               <div className="mt-2 text-sm font-semibold text-white">{position.label}</div>
                               {drawn ? (
@@ -669,16 +777,16 @@ export default function TarotPromptMakerPage() {
                       <p className="mt-3 text-sm leading-7 text-white/74">{promptResult.summary}</p>
                     </div>
 
-                    <div className="rounded-[24px] border border-white/10 bg-black/20 p-4">
+                    <div className="rounded-[24px] border border-fuchsia-100/20 bg-black/25 p-4">
                       <div className="text-[11px] uppercase tracking-[0.25em] text-white/48">Effective Question</div>
                       <div className="mt-2 text-sm leading-7 text-white/78">{promptResult.effectiveQuestion}</div>
                     </div>
 
-                    <div className="rounded-[24px] border border-white/10 bg-[#070c1a] p-4">
+                    <div className="rounded-[24px] border border-rose-100/20 bg-[#070c1a]/90 p-4">
                       <div className="text-[11px] uppercase tracking-[0.25em] text-white/48">Card Digest</div>
                       <div className="mt-4 grid gap-3">
                         {promptResult.cardDigest.map((line) => (
-                          <div key={line} className="rounded-[18px] border border-white/8 bg-white/[0.04] px-3 py-2.5 text-sm leading-7 text-white/70">
+                          <div key={line} className="rounded-[18px] border border-rose-100/20 bg-white/[0.05] px-3 py-2.5 text-sm leading-7 text-white/74">
                             {line}
                           </div>
                         ))}
@@ -687,14 +795,14 @@ export default function TarotPromptMakerPage() {
 
                     <div className="grid gap-3 sm:grid-cols-2">
                       {promptResult.guidance.map((item) => (
-                        <div key={item} className="rounded-[20px] border border-white/10 bg-white/[0.04] p-3 text-sm leading-7 text-white/68">
+                        <div key={item} className="rounded-[20px] border border-fuchsia-100/20 bg-white/[0.05] p-3 text-sm leading-7 text-white/72">
                           {item}
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  <div className="rounded-[28px] border border-white/10 bg-white/[0.05] p-4">
+                  <div className="rounded-[28px] border border-rose-100/20 bg-[linear-gradient(160deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <div className="text-[11px] uppercase tracking-[0.25em] text-white/48">Prompt Panel</div>
@@ -726,7 +834,7 @@ export default function TarotPromptMakerPage() {
                     </div>
 
                     {promptOpen && (
-                      <div className="mt-4 rounded-[24px] border border-white/10 bg-[#050912] p-3">
+                      <div className="mt-4 rounded-[24px] border border-rose-100/20 bg-[#050912]/95 p-3">
                         <textarea
                           readOnly
                           value={promptResult.prompt}
@@ -752,7 +860,7 @@ export default function TarotPromptMakerPage() {
                       </button>
                     </div>
 
-                    <div className="mt-4 rounded-[22px] border border-white/10 bg-white/[0.04] p-4 text-sm leading-7 text-white/64">
+                    <div className="mt-4 rounded-[22px] border border-fuchsia-100/20 bg-white/[0.05] p-4 text-sm leading-7 text-white/70">
                       AI 상담 API 연결은 다음 단계에서 붙일 예정입니다. 지금은 카드 선택 결과를 바탕으로 고품질 Oracle Prompt를 복사해 바로 사용할 수 있습니다.
                     </div>
                   </div>
