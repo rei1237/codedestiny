@@ -1,11 +1,14 @@
 import { ASTRO_PREMIUM_CHAPTERS, sanitizeAstroPremiumText } from "./astro-premium-chapters.js";
+import { buildLocalAstrologyPdfReport } from "./astro-local-interpreter.js";
 
 const MIN_SECTION_LENGTH = 500;
-const MIN_CHAPTER_LENGTH = 2000;
-const MIN_TOTAL_LENGTH_FLOOR = 25000;
+const MIN_CHAPTER_LENGTH = 3500;
+const MIN_TOTAL_LENGTH_FLOOR = 40000;
 const FORBIDDEN_PATTERNS = [
   /자동\s*복구\s*생성/gi,
   /fallback/gi,
+  /\bapi\b/gi,
+  /\bllm\b/gi,
   /chapter\s*1\s*chapter\s*1/gi,
   /데이터가\s*부족합니다/gi,
   /\bpayload\b/gi,
@@ -673,14 +676,28 @@ function validateFinalManuscript(localAstroChartJson, chapters) {
 }
 
 function toLegacyPayload(localAstroChartJson) {
+  const name = clean(localAstroChartJson?.birthInput?.name) || "사용자";
+  const birthDate = clean(localAstroChartJson?.birthInput?.birthDate);
+  const birthTime = clean(localAstroChartJson?.birthInput?.birthTime);
+  const birthPlace = clean(localAstroChartJson?.birthInput?.birthPlace);
+  const timezone = clean(localAstroChartJson?.birthInput?.timezone);
+  const gender = clean(localAstroChartJson?.birthInput?.gender);
   return {
     user: {
-      name: clean(localAstroChartJson?.birthInput?.name) || "사용자",
-      birthDate: clean(localAstroChartJson?.birthInput?.birthDate),
-      birthTime: clean(localAstroChartJson?.birthInput?.birthTime),
-      birthPlace: clean(localAstroChartJson?.birthInput?.birthPlace),
-      timezone: clean(localAstroChartJson?.birthInput?.timezone),
-      gender: clean(localAstroChartJson?.birthInput?.gender),
+      name,
+      birthDate,
+      birthTime,
+      birthPlace,
+      timezone,
+      gender,
+    },
+    profile: {
+      name,
+      birthDate,
+      birthTime,
+      birthPlace,
+      timezone,
+      gender,
     },
     chart: {
       sunSign: clean(localAstroChartJson?.chart?.sunSign),
@@ -776,7 +793,11 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
     houseSystemUsed: true,
   });
 
-  const localDrafts = buildAstroLocalPremiumManuscript(localAstroChartJson);
+  const localReport = buildLocalAstrologyPdfReport(rawInput, localAstroChartJson);
+  const localDrafts = safeArray(localReport?.chapters).map((chapter) => ({
+    ...chapter,
+    source: "local",
+  }));
   for (let i = 0; i < localDrafts.length; i += 1) {
     emit("LocalDraftChapterDone", {
       chapterNo: Number(localDrafts[i]?.chapterNo || i + 1),
@@ -785,7 +806,7 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
   }
   emit("LocalDraftBuildSuccess", {
     chapterCount: localDrafts.length,
-    totalLength: totalLength(localDrafts),
+    totalLength: Number(localReport?.totalLength || totalLength(localDrafts)),
     calculationMode: clean(localAstroChartJson?.calculationMode) || "recovered",
   });
 
@@ -804,7 +825,7 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
     throw error;
   }
 
-  let finalDrafts = reinforceManuscriptLength(localDrafts.map((chapter) => ({ ...chapter, source: "local" })));
+  let finalDrafts = reinforceManuscriptLength(localDrafts);
 
   let validated = validateFinalManuscript(localAstroChartJson, finalDrafts);
   if (!validated.ok) {

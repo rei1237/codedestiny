@@ -72,13 +72,13 @@ describe('Astro premium generator local-only pipeline', () => {
       }),
     });
 
-    expect(generated.chapterCount).toBe(10);
-    expect(generated.chapters).toHaveLength(10);
+    expect(generated.chapterCount).toBe(12);
+    expect(generated.chapters).toHaveLength(12);
     expect(generated.fallbackUsed).toBe(false);
     expect(generated.manuscriptSource).toBe('local');
     expect(generated.validation.ok).toBe(true);
     expect(generated.pdfReady && generated.pdfReady.html).toBeTruthy();
-    expect(generated.totalLength).toBeGreaterThanOrEqual(32000);
+    expect(generated.totalLength).toBeGreaterThanOrEqual(40000);
   });
 
   test('LLM 생성기 실패와 무관하게 로컬 생성은 완료되어야 한다', async () => {
@@ -89,7 +89,7 @@ describe('Astro premium generator local-only pipeline', () => {
     });
 
     expect(generated.manuscriptSource).toBe('local');
-    expect(generated.chapters).toHaveLength(10);
+    expect(generated.chapters).toHaveLength(12);
     expect(generated.validation.ok).toBe(true);
   });
 
