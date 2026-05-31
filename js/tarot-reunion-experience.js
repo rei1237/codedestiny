@@ -15,11 +15,11 @@
   ];
 
   var GUIDE_LABELS = [
-    "첫 번째 카드: 아직 남아 있는 감정의 온도를 확인하세요.",
-    "두 번째 카드: 겉태도 뒤에 있는 속마음의 결을 읽으세요.",
-    "세 번째 카드: 연락을 막는 심리·현실 장벽을 구분하세요.",
-    "네 번째 카드: 실제 연락 가능성과 타이밍을 점검하세요.",
-    "다섯 번째 카드: 재회 현실성과 회복 전략을 종합하세요.",
+    "첫 번째 카드: 두 사람 사이에 아직 남아 있는 감정의 온도를 차분히 확인해요.",
+    "두 번째 카드: 말보다 깊은 곳에 있는 상대의 진짜 마음을 읽어볼게요.",
+    "세 번째 카드: 연락이 막힌 이유를 감정과 현실로 나눠서 이해해봐요.",
+    "네 번째 카드: 다시 닿을 가능성과 가장 부드러운 타이밍을 살펴봐요.",
+    "다섯 번째 카드: 재회 가능성과 관계 회복을 위한 현실 전략을 정리해요.",
   ];
 
   var state = {
@@ -41,25 +41,25 @@
   var REUNION_FEATURE_KEY = "tarot-reunion-reading";
   var TAROT_API_TIMEOUT_MS = 12000;
   var MEDITATION_INTRO_TEXTS = [
-    "🌊 밤바다로 떠나볼까요? 준비되면 호흡을 따라가 주세요.",
-    "🌙 별이 반짝이는 밤바다. 천천히 호흡을 따라가 주세요.",
-    "🕯️ 등대의 불빛을 따라, 마음을 잡아 주세요.",
+    "🌊 밤바다로 떠나볼까요? 괜찮아요, 지금 이 순간은 당신 마음부터 챙겨도 돼요.",
+    "🌙 별이 반짝이는 밤바다예요. 천천히 숨 쉬며 마음의 떨림을 가라앉혀봐요.",
+    "🕯️ 등대의 불빛을 따라와요. 불안보다 당신을 먼저 안아주는 시간이에요.",
   ];
   var MEDITATION_PHASE_TEXTS = {
     in: [
-      "눈을 감고... 밤바다의 파도에 귀 기울여 보세요. 숨을 천천히 들이쉬세요.",
-      "저 멀리 등대의 빛이 보이나요? 그 빛을 향해 숨을 들이쉬세요.",
-      "별이 반짝이는 밤바다... 그 고요함을 들이마시세요.",
+      "눈을 감고 밤바다의 파도 소리를 들어봐요. 천천히 들이쉬며 마음에 여유를 주세요.",
+      "저 멀리 등대의 빛이 보여요. 그 빛을 향해, 괜찮다는 마음으로 숨을 들이쉬어요.",
+      "별이 반짝이는 밤바다의 고요함을 들이마셔요. 당신은 지금 충분히 잘하고 있어요.",
     ],
     hold: [
-      "별빛이 고요히 머무는 동안 잠시 참으세요. 그리움도 이 순간만은 잔잔합니다.",
-      "파도가 잠잠해진 순간. 그 침묵을 온몸으로 느껴 보세요.",
-      "등대의 불이 한 번 깜빡일 때까지... 숨을 가만히 유지하세요.",
+      "별빛이 머무는 잠깐의 순간, 그리움을 탓하지 말고 가만히 품어줘요.",
+      "파도가 잠잠해진 틈에 마음을 쉬게 해요. 답이 늦어도 당신의 가치가 줄어들진 않아요.",
+      "등대의 불이 한 번 깜빡일 때까지, 내 감정을 안전하게 붙들고 있어봐요.",
     ],
     out: [
-      "등대의 빛처럼 마음을 비우며 천천히 내쉬세요. 파도가 당신을 위로할 거예요.",
-      "모든 생각을 파도에 실어 보내세요. 바닷바람이 당신을 감쌀 거예요.",
-      "별빛이 스며드는 밤바다... 천천히 내쉬며 마음을 비워 보세요.",
+      "등대의 빛을 따라 천천히 내쉬어요. 걱정은 잠시 내려놓고, 당신을 먼저 위로해줘요.",
+      "붙잡고 있던 생각을 파도에 살짝 보내요. 오늘의 당신은 충분히 사랑받을 자격이 있어요.",
+      "별빛이 스며드는 밤바다에 마음을 맡기고 내쉬어요. 천천히, 더 편안해져도 괜찮아요.",
     ],
   };
   var MEDITATION_PHASES = [
@@ -1183,11 +1183,11 @@
   }
 
   var REUNION_POSITION_TITLES = [
-    "현재 관계의 에너지",
+    "지금 두 사람 사이의 감정 온도",
     "상대방의 현재 속마음",
-    "상대가 연락하지 못하는 이유",
-    "앞으로 연락이 올 가능성",
-    "재회 가능성의 현실성과 회복 전략",
+    "상대가 연락을 망설이는 이유",
+    "앞으로 연락이 이어질 가능성",
+    "재회 가능성과 관계 회복 전략",
   ];
 
   function normalizeReunionResultData(reading, cards) {
@@ -1203,18 +1203,18 @@
     var summary = {
       reunionChanceLabel: label,
       reunionChanceScore: score,
-      partnerState: cleanReunionText(summarySrc.partnerState || "관망 중"),
-      bestContactTiming: cleanReunionText(summarySrc.bestContactTiming || "자연스러운 계기 필요"),
-      mainObstacle: cleanReunionText(summarySrc.mainObstacle || "오해"),
-      oneLineAdvice: cleanReunionText(summarySrc.oneLineAdvice || "긴 고백보다 짧은 안부 메시지가 유리합니다."),
+      partnerState: cleanReunionText(summarySrc.partnerState || "마음을 정리하며 당신의 신호를 조심스럽게 기다리는 흐름"),
+      bestContactTiming: cleanReunionText(summarySrc.bestContactTiming || "감정이 잔잔한 타이밍에 짧은 안부로 시작하기 좋은 흐름"),
+      mainObstacle: cleanReunionText(summarySrc.mainObstacle || "오해와 타이밍 엇갈림"),
+      oneLineAdvice: cleanReunionText(summarySrc.oneLineAdvice || "길게 설득하기보다, 부담 없는 짧은 안부로 따뜻하게 문을 열어보세요."),
       comprehensive: {
         reunionChanceVerdict: cleanReunionText(summarySrc?.comprehensive?.reunionChanceVerdict || label),
-        partnerEmotionTemperature: cleanReunionText(summarySrc?.comprehensive?.partnerEmotionTemperature || summarySrc.partnerState || "중립"),
-        contactPossibility: cleanReunionText(summarySrc?.comprehensive?.contactPossibility || "중간"),
-        shouldYouMoveFirst: cleanReunionText(summarySrc?.comprehensive?.shouldYouMoveFirst || "조건부 가능"),
-        biggestVariable: cleanReunionText(summarySrc?.comprehensive?.biggestVariable || summarySrc.mainObstacle || "관계 패턴 재발"),
-        avoidNow: cleanReunionText(summarySrc?.comprehensive?.avoidNow || "답을 강요하는 질문과 장문 메시지"),
-        finalOneLineAdvice: cleanReunionText(summarySrc?.comprehensive?.finalOneLineAdvice || summarySrc.oneLineAdvice || "짧고 현실적인 접촉부터 시작하세요."),
+        partnerEmotionTemperature: cleanReunionText(summarySrc?.comprehensive?.partnerEmotionTemperature || summarySrc.partnerState || "조심스럽지만 감정은 남아 있는 상태"),
+        contactPossibility: cleanReunionText(summarySrc?.comprehensive?.contactPossibility || "조건이 맞으면 충분히 닿을 수 있는 흐름"),
+        shouldYouMoveFirst: cleanReunionText(summarySrc?.comprehensive?.shouldYouMoveFirst || "부담 없는 방식이라면 먼저 가볍게 다가가도 괜찮음"),
+        biggestVariable: cleanReunionText(summarySrc?.comprehensive?.biggestVariable || summarySrc.mainObstacle || "같은 갈등 패턴의 반복 여부"),
+        avoidNow: cleanReunionText(summarySrc?.comprehensive?.avoidNow || "답을 재촉하는 질문, 감정을 몰아붙이는 긴 메시지"),
+        finalOneLineAdvice: cleanReunionText(summarySrc?.comprehensive?.finalOneLineAdvice || summarySrc.oneLineAdvice || "서두르지 말고, 짧고 따뜻한 접촉으로 신뢰를 다시 쌓아가세요."),
       },
     };
 
@@ -1234,10 +1234,10 @@
 
     var finalSrc = src.finalGuide && typeof src.finalGuide === "object" ? src.finalGuide : {};
     var finalGuide = {
-      shouldContactNow: cleanReunionText(finalSrc.shouldContactNow || "지금은 긴 감정 고백보다 짧은 안부가 적합합니다."),
-      messageExample: cleanReunionText(finalSrc.messageExample || "요즘 문득 생각나서 짧게 안부 전하고 싶었어. 부담 갖지 않아도 괜찮아."),
-      avoidThis: cleanReunionText(finalSrc.avoidThis || "답을 강요하는 질문은 피하고, 상대의 반응 속도를 존중하세요."),
-      nextSevenDays: cleanReunionText(finalSrc.nextSevenDays || "앞으로 7일은 예전 갈등을 한 문장으로 정리하고 대화 준비를 하세요."),
+      shouldContactNow: cleanReunionText(finalSrc.shouldContactNow || "지금은 감정을 길게 쏟기보다, 편안한 안부 한 줄로 문을 여는 게 더 좋아요."),
+      messageExample: cleanReunionText(finalSrc.messageExample || "갑자기 생각나서 안부 남겨. 부담 없이 편할 때 답해줘도 괜찮아 :)"),
+      avoidThis: cleanReunionText(finalSrc.avoidThis || "왜 답이 없냐는 압박, 관계 결론을 서두르는 질문은 잠시 미뤄두세요."),
+      nextSevenDays: cleanReunionText(finalSrc.nextSevenDays || "앞으로 7일은 감정을 정리하고, 내 생활 리듬을 안정시키며 짧은 대화 준비를 해보세요."),
     };
 
     var actionPlan = Array.isArray(src.actionPlan) ? src.actionPlan.map(cleanReunionText).filter(Boolean) : [];
@@ -1262,22 +1262,28 @@
 
     if (positive.test(text)) {
       return [
-        "✨ 밤바다의 별들이 당신의 길을 비추고 있어요. 그 빛을 따라 걸어가세요.",
-        "🌊 파도는 언제나 해안으로 돌아옵니다. 당신의 인연도 그렇게 흐를 거예요.",
-        "⭐ 별이 많은 밤은 어둡지 않아요. 당신의 마음에도 그 빛이 있답니다.",
+        "✨ 밤바다의 별빛이 지금 당신의 길을 비추고 있어요. 천천히 가도 괜찮아요.",
+        "🌊 파도는 결국 해안으로 돌아오듯, 좋은 인연도 다시 닿을 기회를 만들어요.",
+        "⭐ 별이 많은 밤은 어둡지 않아요. 당신의 마음에도 이미 충분한 빛이 있어요.",
+        "🕯️ 조급함보다 따뜻함이 더 멀리 닿아요. 당신의 진심은 분명 전달될 거예요.",
+        "🌙 사랑은 속도가 아니라 방향이에요. 당신은 지금 좋은 방향으로 가고 있어요.",
       ];
     }
     if (challenging.test(text)) {
       return [
-        "🌌 끝은 새로운 시작의 문이에요. 당신의 마음이 준비된 순간, 아름다운 새 아침이 올 거예요.",
-        "🕯️ 등대의 불은 언제나 당신을 기다리고 있어요. 어떤 길을 선택하든, 당신은 혼자가 아니에요.",
-        "✨ 별 바다 위에서 잃어버린 것처럼 느껴져도, 그 안에서 더 나은 자신을 찾을 수 있어요.",
+        "🌌 끝처럼 느껴지는 순간도, 마음을 다시 세우는 새로운 시작이 될 수 있어요.",
+        "🕯️ 등대의 불은 늘 같은 자리에서 당신을 기다려요. 당신은 결코 혼자가 아니에요.",
+        "✨ 잃어버린 것만 보이는 밤에도, 당신 안의 단단함은 조금씩 자라고 있어요.",
+        "🌊 오늘은 버티는 것만으로도 충분히 잘한 하루예요. 스스로를 꼭 다정하게 대해주세요.",
+        "⭐ 재회가 아니어도 당신의 사랑은 실패가 아니에요. 진심은 당신을 더 빛나게 해요.",
       ];
     }
     return [
-      "🌊 밤바다처럼 깊은 당신의 마음. 그 안에 답이 있고, 당신은 이미 그걸 알고 있답니다.",
-      "⭐ 별을 헤아리듯 천천히 걸어가세요. 모든 것이 제자리를 찾을 때가 올 거예요.",
-      "🕯️ 등대의 불은 멀리서도 보여요. 당신의 마음에도 그런 빛이 있으니, 믿고 나아가세요.",
+      "🌊 밤바다처럼 깊은 당신의 마음 안에는 이미 답을 향한 감각이 살아 있어요.",
+      "⭐ 별을 헤아리듯 천천히 걸어가요. 서두르지 않아도 인연의 시간은 다시 맞춰져요.",
+      "🕯️ 등대의 불은 멀리서도 보여요. 당신의 마음도 그만큼 분명하게 빛날 수 있어요.",
+      "🌙 오늘의 위로 한 줄이 내일의 용기가 됩니다. 당신은 충분히 다시 사랑할 수 있어요.",
+      "✨ 결과보다 중요한 건 당신의 평온이에요. 그 평온이 결국 좋은 선택을 만들어요.",
     ];
   }
 
@@ -1376,22 +1382,22 @@
       ? r.summary.comprehensive
       : {};
     summarySection.innerHTML =
-      '<h4 class="tarot-reunion-section-title">🌙 재회운 핵심 요약</h4>' +
+      '<h4 class="tarot-reunion-section-title">🌙 당신 마음을 먼저 안아주는 재회 이야기</h4>' +
       '<div class="tarot-reunion-summary-grid">' +
-      '  <article class="tarot-reunion-summary-item"><h5>🌙 재회 가능성</h5><p>' + escapeHtml(r.summary.reunionChanceLabel + ' ' + r.summary.reunionChanceScore + '%') + '</p></article>' +
-      '  <article class="tarot-reunion-summary-item"><h5>💭 상대의 상태</h5><p>' + escapeHtml(r.summary.partnerState) + '</p></article>' +
-      '  <article class="tarot-reunion-summary-item"><h5>⏳ 연락 타이밍</h5><p>' + escapeHtml(r.summary.bestContactTiming) + '</p></article>' +
-      '  <article class="tarot-reunion-summary-item"><h5>🚧 핵심 장애물</h5><p>' + escapeHtml(r.summary.mainObstacle) + '</p></article>' +
-      '  <article class="tarot-reunion-summary-item"><h5>🕯️ 지금 할 일</h5><p>' + escapeHtml(r.summary.oneLineAdvice) + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>🌙 다시 이어질 가능성</h5><p>' + escapeHtml(r.summary.reunionChanceLabel + ' ' + r.summary.reunionChanceScore + '%') + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>💭 지금 그 사람이 머무는 마음</h5><p>' + escapeHtml(r.summary.partnerState) + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>⏳ 다시 닿기 좋은 타이밍</h5><p>' + escapeHtml(r.summary.bestContactTiming) + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>🚧 두 사람 사이의 현실 장벽</h5><p>' + escapeHtml(r.summary.mainObstacle) + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>🕯️ 오늘의 따뜻한 행동 가이드</h5><p>' + escapeHtml(r.summary.oneLineAdvice) + '</p></article>' +
       '</div>' +
       '<div class="tarot-reunion-summary-grid" style="margin-top:10px">' +
-      '  <article class="tarot-reunion-summary-item"><h5>1) 재회 종합 판단</h5><p>' + escapeHtml(comprehensive.reunionChanceVerdict || r.summary.reunionChanceLabel) + '</p></article>' +
-      '  <article class="tarot-reunion-summary-item"><h5>2) 감정 온도</h5><p>' + escapeHtml(comprehensive.partnerEmotionTemperature || "중립") + '</p></article>' +
-      '  <article class="tarot-reunion-summary-item"><h5>3) 연락 가능성</h5><p>' + escapeHtml(comprehensive.contactPossibility || "중간") + '</p></article>' +
-      '  <article class="tarot-reunion-summary-item"><h5>4) 먼저 움직여도 되는지</h5><p>' + escapeHtml(comprehensive.shouldYouMoveFirst || "조건부 가능") + '</p></article>' +
-      '  <article class="tarot-reunion-summary-item"><h5>5) 가장 큰 변수</h5><p>' + escapeHtml(comprehensive.biggestVariable || "재발 방지 합의") + '</p></article>' +
-      '  <article class="tarot-reunion-summary-item"><h5>6) 지금 피할 행동</h5><p>' + escapeHtml(comprehensive.avoidNow || "감정 추궁") + '</p></article>' +
-      '  <article class="tarot-reunion-summary-item"><h5>7) 최종 한 줄 조언</h5><p>' + escapeHtml(comprehensive.finalOneLineAdvice || r.summary.oneLineAdvice) + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>1) 재회의 흐름</h5><p>' + escapeHtml(comprehensive.reunionChanceVerdict || r.summary.reunionChanceLabel) + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>2) 마음의 온도</h5><p>' + escapeHtml(comprehensive.partnerEmotionTemperature || "중립") + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>3) 지금 닿을 수 있는 거리</h5><p>' + escapeHtml(comprehensive.contactPossibility || "중간") + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>4) 먼저 건네도 되는지</h5><p>' + escapeHtml(comprehensive.shouldYouMoveFirst || "조건부 가능") + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>5) 흐름을 바꾸는 핵심</h5><p>' + escapeHtml(comprehensive.biggestVariable || "재발 방지 합의") + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>6) 지금은 잠시 내려둘 것</h5><p>' + escapeHtml(comprehensive.avoidNow || "감정 추궁") + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>7) 마지막으로 남기는 말</h5><p>' + escapeHtml(comprehensive.finalOneLineAdvice || r.summary.oneLineAdvice) + '</p></article>' +
       '</div>';
     container.appendChild(summarySection);
 
@@ -1490,12 +1496,12 @@
     var finalGuide = document.createElement("section");
     finalGuide.className = "tarot-reunion-section tarot-reunion-section--guidance tarot-reunion-final-guide";
     finalGuide.innerHTML =
-      '<h4 class="tarot-reunion-section-title">🕯️ 재회운 최종 가이드</h4>' +
+      '<h4 class="tarot-reunion-section-title">🕯️ 부담 없이 다시 닿는 방법</h4>' +
       '<div class="tarot-reunion-final-grid">' +
-      '  <article class="tarot-reunion-final-item"><h5>지금 연락해도 될까?</h5><p>' + escapeHtml(r.finalGuide.shouldContactNow || "") + '</p></article>' +
-      '  <article class="tarot-reunion-final-item"><h5>추천 메시지</h5><p class="tarot-reunion-message-example">' + escapeHtml(r.finalGuide.messageExample || "") + '</p></article>' +
-      '  <article class="tarot-reunion-final-item"><h5>피해야 할 말</h5><p>' + escapeHtml(r.finalGuide.avoidThis || "") + '</p></article>' +
-      '  <article class="tarot-reunion-final-item"><h5>앞으로 7일</h5><p>' + escapeHtml(r.finalGuide.nextSevenDays || "") + '</p></article>' +
+      '  <article class="tarot-reunion-final-item"><h5>지금 손을 내밀어도 될까?</h5><p>' + escapeHtml(r.finalGuide.shouldContactNow || "") + '</p></article>' +
+      '  <article class="tarot-reunion-final-item"><h5>부담 없이 건넬 첫 문장</h5><p class="tarot-reunion-message-example">' + escapeHtml(r.finalGuide.messageExample || "") + '</p></article>' +
+      '  <article class="tarot-reunion-final-item"><h5>지금은 잠시 아껴둘 표현</h5><p>' + escapeHtml(r.finalGuide.avoidThis || "") + '</p></article>' +
+      '  <article class="tarot-reunion-final-item"><h5>앞으로 7일, 마음 회복 루틴</h5><p>' + escapeHtml(r.finalGuide.nextSevenDays || "") + '</p></article>' +
       '</div>';
     container.appendChild(finalGuide);
 
