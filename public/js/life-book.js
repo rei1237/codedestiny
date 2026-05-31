@@ -341,6 +341,7 @@
 
   /* ─────────────── 유틸 ─────────────── */
   function _qs(id) { return document.getElementById(id); }
+  function _clean(value) { return String(value || '').trim(); }
 
   function _buildApiCandidates(pathname) {
     var _path = String(pathname || '');
