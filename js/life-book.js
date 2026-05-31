@@ -399,10 +399,15 @@
         resolve(out);
       }
 
-      function doneFail(message) {
+      function doneFail(message, meta) {
         if (settled) return;
         settled = true;
-        reject(new Error(message || '인생의 책 엔드포인트 호출에 실패했습니다.'));
+        var err = new Error(message || '인생의 책 엔드포인트 호출에 실패했습니다.');
+        if (meta && typeof meta === 'object') {
+          err.status = Number(meta.status || 0);
+          err.code = String(meta.code || '').trim();
+        }
+        reject(err);
       }
 
       function runNext() {
@@ -439,11 +444,12 @@
             }
 
             if (pack && pack.res && _isAuthOrPaymentFailure(Number(pack.res.status || 0), pack.json || {})) {
+              var hardCode = String((pack.json && (pack.json.code || (pack.json.error && pack.json.error.code))) || '').trim();
               var hardMessage = String(
                 (pack.json && (pack.json.message || pack.json.reason || pack.json.code))
                 || (pack.res.status === 401 ? '로그인이 필요합니다.' : '프리미엄 결제 확인이 필요합니다.')
               );
-              doneFail(hardMessage);
+              doneFail(hardMessage, { status: Number(pack.res.status || 0), code: hardCode });
               return;
             }
 
@@ -1422,7 +1428,7 @@
     var inputAccessGrant = (opts.accessGrant && typeof opts.accessGrant === 'object') ? opts.accessGrant : null;
     var inputPremiumToken = String(opts.premiumAccessToken || '').trim();
 
-    if (!_hasPremiumAccessForGeneration() && !inputAccessGrant) {
+    if (!inputAccessGrant) {
       var gateReportId = inputReportId || ('lifebook_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8));
       _flowLog('COIN_GATE_START', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: gateReportId, message: 'lifebook-gate-start' });
       _lifeBookLog('PaymentGateStart', { reportId: gateReportId });
@@ -1760,6 +1766,25 @@
       var _prepare;
       try {
         _prepare = await _postLifeBookPrepare(_payload, _headers);
+      } catch (_prepareErr) {
+        var _prepareStatus = Number(_prepareErr && _prepareErr.status || 0);
+        var _prepareCode = String(_prepareErr && _prepareErr.code || '').toUpperCase();
+        var _prepareMsg = String(_prepareErr && _prepareErr.message || '');
+        var _isPaymentAccessFail = _prepareStatus === 401 || _prepareStatus === 402 || _prepareStatus === 403
+          || _prepareCode.indexOf('PAYMENT') >= 0
+          || _prepareCode.indexOf('PREMIUM') >= 0
+          || /결제|프리미엄|권한/.test(_prepareMsg);
+        if (!_isPaymentAccessFail || !_accessGrant) throw _prepareErr;
+
+        _flowLog('PAYMENT_ACCESS_RETRY', {
+          featureKey: LIFE_BOOK_FEATURE_KEY,
+          reportId: _lbReportId,
+          status: _prepareStatus,
+          code: _prepareCode,
+          message: _prepareMsg,
+        });
+        await new Promise(function (r) { setTimeout(r, 600); });
+        _prepare = await _postLifeBookPrepare(_payload, _headers);
       } finally {
         _statusPollingStop = true;
         await _statusPollingPromise.catch(function () {});
@@ -1771,7 +1796,7 @@
       _lbPendingPdfHtml = String((_data && _data.pdfReady && _data.pdfReady.html) || '');
       _lbPendingReportUrl = _resolveLifeBookStoredUrl(_data);
       var _manuscriptSource = String((_data && _data.manuscriptSource) || '').trim();
-      if (_manuscriptSource !== 'llm-only-interpretation') {
+      if (_manuscriptSource !== 'llm-only-interpretation' && _manuscriptSource !== 'local-only') {
         throw new Error('LIFE_BOOK_LLM_ONLY_REQUIRED');
       }
       var _serverChapters = Array.isArray(_data.chapters) ? _data.chapters : [];
