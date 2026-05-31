@@ -14,7 +14,7 @@ import {
   QUESTION_CHIPS,
   SPREAD_LIBRARY,
 } from "./data/tarotSpreadLibrary";
-import type { DrawnTarotCard, TarotCardOrientation, TarotSpread } from "./types";
+import type { DrawnTarotCard, TarotCardOrientation, TarotSpread, TarotSpreadCategory } from "./types";
 import { detectTarotCategory, recommendSpreads } from "./utils/classifyTarotQuestion";
 import { buildOraclePrompt } from "./utils/buildOraclePrompt";
 
@@ -51,6 +51,22 @@ const CARD_POOL = (TAROT_CARDS as TarotCardSource[])
 
 const DECK_SLOTS = Array.from({ length: 78 }, (_, index) => index);
 
+const STAGE_STEPS: Array<{ id: Stage; title: string; description: string }> = [
+  { id: "library", title: "스프레드 선택", description: "질문에 맞는 스프레드를 탐색해요" },
+  { id: "library", title: "질문 입력", description: "나의 상황과 질문을 입력해요" },
+  { id: "draw", title: "카드 포지션 확인", description: "스프레드 구조와 포지션 의미를 살펴봐요" },
+  { id: "oracle", title: "프롬프트 생성", description: "오라클 타로 프롬프트를 완성해요" },
+];
+
+const CATEGORY_FILTER_OPTIONS: Array<{ id: "all" | TarotSpreadCategory; label: string }> = [
+  { id: "all", label: "전체" },
+  { id: "love", label: "연애/상대방" },
+  { id: "daily", label: "오늘의 운세" },
+  { id: "career", label: "진로/직업" },
+  { id: "money", label: "금전/재물" },
+  { id: "self", label: "성장/마음" },
+];
+
 function normalizeText(value: string) {
   return String(value || "").trim().replace(/\s+/g, " ");
 }
@@ -78,6 +94,7 @@ export default function TarotPromptMakerPage() {
   const [question, setQuestion] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [cardCountFilter, setCardCountFilter] = useState<number | "all">("all");
+  const [categoryFilter, setCategoryFilter] = useState<"all" | TarotSpreadCategory>("all");
   const [selectedSpreadId, setSelectedSpreadId] = useState(SPREAD_LIBRARY[0]?.id || "");
   const [allowReversed, setAllowReversed] = useState(true);
   const [usedDeckSlots, setUsedDeckSlots] = useState<number[]>([]);
@@ -92,6 +109,7 @@ export default function TarotPromptMakerPage() {
 
   const selectedSpread = findSpreadById(selectedSpreadId);
   const detectedCategory = detectTarotCategory(question);
+  const stageStepIndex = stage === "library" ? (drawnCards.length ? 2 : 1) : (stage === "draw" ? 2 : 3);
   const recommended = recommendSpreads(question, cardCountFilter).slice(0, 6);
   const filteredSpreads = SPREAD_LIBRARY.filter((spread) => {
     const normalizedQuery = normalizeText(searchQuery).toLowerCase();
@@ -99,8 +117,9 @@ export default function TarotPromptMakerPage() {
       || normalizeText(spread.title).toLowerCase().includes(normalizedQuery)
       || normalizeText(spread.purpose).toLowerCase().includes(normalizedQuery)
       || spread.tags.some((tag) => normalizeText(tag).toLowerCase().includes(normalizedQuery));
+    const matchesCategory = categoryFilter === "all" || spread.category === categoryFilter;
     const matchesCount = cardCountFilter === "all" || spread.cardCount === cardCountFilter;
-    return matchesSearch && matchesCount;
+    return matchesSearch && matchesCount && matchesCategory;
   }).sort((left, right) => {
     const leftRecommended = recommended.some((spread) => spread.id === left.id) ? 1 : 0;
     const rightRecommended = recommended.some((spread) => spread.id === right.id) ? 1 : 0;
@@ -324,9 +343,10 @@ export default function TarotPromptMakerPage() {
     : (billingLoading ? "정책 확인 중" : "정책 미연동");
 
   return (
-    <main className="relative min-h-[100dvh] w-screen overflow-x-hidden overflow-y-auto bg-[#07041a] text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_8%,rgba(255,190,95,0.22),transparent_24%),radial-gradient(circle_at_88%_12%,rgba(119,138,255,0.2),transparent_26%),radial-gradient(circle_at_50%_110%,rgba(202,117,255,0.16),transparent_28%),linear-gradient(170deg,#050316_0%,#0b0e2d_44%,#170c2e_100%)]" />
-      <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:34px_34px]" />
+    <main className="relative min-h-[100dvh] w-full overflow-x-hidden overflow-y-auto bg-[#07041a] text-white">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_8%_4%,rgba(255,198,112,0.2),transparent_23%),radial-gradient(circle_at_90%_7%,rgba(129,150,255,0.24),transparent_26%),radial-gradient(circle_at_52%_92%,rgba(203,117,255,0.2),transparent_34%),linear-gradient(168deg,#050316_0%,#0b0e2d_43%,#170c2e_100%)]" />
+      <div className="pointer-events-none absolute right-8 top-6 h-24 w-24 rounded-full border border-indigo-100/25 bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,0.75),rgba(181,171,255,0.18)_42%,rgba(130,114,218,0.08)_72%,transparent)] shadow-[0_0_55px_rgba(166,153,255,0.45)] sm:h-32 sm:w-32" />
+      <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(rgba(255,255,255,0.22)_1px,transparent_1px),radial-gradient(rgba(255,255,255,0.1)_1px,transparent_1px)] [background-size:32px_32px,42px_42px] [background-position:0_0,20px_18px]" />
       {[0, 1, 2, 3, 4, 5, 6].map((star) => (
         <motion.span
           key={`tarot-star-${star}`}
@@ -386,18 +406,29 @@ export default function TarotPromptMakerPage() {
                 타로 프롬프트 라이브러리
               </h1>
               <p className="max-w-3xl text-sm leading-7 text-white/75 sm:text-base">
-                질문에 가장 맞는 스프레드를 고르고 카드 포지션 구조를 확인한 뒤 바로 프롬프트를 완성하세요.
+                나의 질문에 가장 아름다운 통찰을 주는 스프레드를 선택하고, 의미 있는 타로 프롬프트를 완성하세요.
               </p>
             </div>
-            <div className="grid gap-2 text-sm text-white/70 sm:grid-cols-2 lg:w-[520px]">
-              {["스프레드 선택", "질문 입력", "포지션 확인", "프롬프트 생성"].map((step, index) => (
-                <div key={step} className="flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-3 py-2">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full border border-[#f8d38f]/45 bg-[#f8d38f]/10 text-xs font-bold text-[#ffe4a8]">
-                    {index + 1}
-                  </span>
-                  <span>{step}</span>
-                </div>
-              ))}
+            <div className="grid gap-2 text-sm text-white/70 sm:grid-cols-2 lg:w-[560px]">
+              {STAGE_STEPS.map((step, index) => {
+                const active = stageStepIndex === index;
+                return (
+                  <div key={`${step.title}-${index}`} className={`relative rounded-[18px] border px-3 py-2.5 ${active ? "border-[#f8d38f]/45 bg-[linear-gradient(120deg,rgba(248,211,143,0.18),rgba(216,131,255,0.12))] shadow-[0_0_28px_rgba(216,131,255,0.25)]" : "border-white/12 bg-white/[0.06]"}`}>
+                    <div className="flex items-center gap-2.5">
+                      <span className={`flex h-6 w-6 items-center justify-center rounded-full border text-xs font-bold ${active ? "border-[#f8d38f]/60 bg-[#f8d38f]/16 text-[#ffe4a8]" : "border-white/25 bg-white/8 text-white/80"}`}>
+                        {index + 1}
+                      </span>
+                      <div>
+                        <div className={`text-sm font-semibold ${active ? "text-[#fff3d0]" : "text-white/88"}`}>{step.title}</div>
+                        <div className="text-[11px] text-white/58">{step.description}</div>
+                      </div>
+                    </div>
+                    {index !== STAGE_STEPS.length - 1 && (
+                      <span className="pointer-events-none absolute -right-2 top-1/2 hidden h-px w-4 -translate-y-1/2 bg-[#f8d38f]/40 lg:block" />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
           </section>
@@ -440,6 +471,25 @@ export default function TarotPromptMakerPage() {
                   {chip.label}
                 </button>
               ))}
+            </div>
+
+            <div className="mt-3 rounded-[18px] border border-white/12 bg-black/25 p-3">
+              <div className="mb-2 text-[11px] uppercase tracking-[0.18em] text-white/45">질문 테마 (선택)</div>
+              <div className="flex flex-wrap gap-2">
+                {CATEGORY_FILTER_OPTIONS.filter((item) => item.id !== "all").map((item) => (
+                  <button
+                    key={`question-theme-${item.id}`}
+                    type="button"
+                    onClick={() => {
+                      setCategoryFilter(item.id);
+                      setQuestion(DEFAULT_QUESTION_BY_CATEGORY[item.id]);
+                    }}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${detectedCategory === item.id ? "border-[#f8d38f]/45 bg-[#f8d38f]/14 text-[#ffe4a8]" : "border-white/12 bg-white/8 text-white/80 hover:border-[#f8d38f]/35 hover:bg-white/14"}`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
@@ -492,6 +542,19 @@ export default function TarotPromptMakerPage() {
             </div>
 
             <div className="mt-3 flex flex-wrap gap-2">
+              {CATEGORY_FILTER_OPTIONS.map((item) => (
+                <button
+                  key={`spread-category-${item.id}`}
+                  type="button"
+                  onClick={() => setCategoryFilter(item.id)}
+                  className={`rounded-full border px-2.5 py-1 text-xs font-semibold transition ${categoryFilter === item.id ? "border-[#f8d38f]/45 bg-[#f8d38f]/14 text-[#ffe4a8]" : "border-white/10 bg-white/6 text-white/70 hover:bg-white/10"}`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-3 flex flex-wrap gap-2">
               {["all", 3, 5, 7, 10, 12, 14].map((count) => (
                 <button
                   key={String(count)}
@@ -513,9 +576,11 @@ export default function TarotPromptMakerPage() {
                     key={spread.id}
                     type="button"
                     onClick={() => selectSpread(spread.id)}
+                    aria-selected={active}
+                    aria-label={`${spread.title} 선택${active ? "됨" : ""}`}
                     whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.99 }}
-                    className={`rounded-[16px] border p-3 text-left transition ${active ? "border-[#f8d38f]/45 bg-white/[0.13]" : "border-white/10 bg-white/[0.04] hover:border-white/25 hover:bg-white/[0.09]"}`}
+                    className={`rounded-[16px] border p-3 text-left transition ${active ? "border-[#f8d38f]/50 bg-[linear-gradient(160deg,rgba(216,131,255,0.26),rgba(248,211,143,0.14))] shadow-[0_0_30px_rgba(216,131,255,0.28)]" : "border-white/10 bg-white/[0.04] hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/[0.09]"}`}
                   >
                     <div className={`rounded-[12px] bg-gradient-to-r px-3 py-2 ${difficultyTone(spread)}`}>
                       <div className="flex items-center justify-between gap-2">
@@ -532,6 +597,11 @@ export default function TarotPromptMakerPage() {
                   </motion.button>
                 );
               })}
+              {!filteredSpreads.length && (
+                <div className="rounded-[16px] border border-dashed border-white/20 bg-white/[0.04] px-4 py-6 text-center text-sm text-white/62">
+                  조건에 맞는 스프레드가 없습니다. 검색어나 필터를 조정해 주세요.
+                </div>
+              )}
             </div>
           </div>
 
@@ -557,18 +627,24 @@ export default function TarotPromptMakerPage() {
               <p className="mt-3 text-sm leading-7 text-white/72">{selectedSpread.purpose}</p>
 
               <div className="mt-4 rounded-[20px] border border-[#f8d38f]/20 bg-[#090f2a] p-3">
-                <div className="relative mx-auto aspect-square max-w-[360px] rounded-[20px] border border-[#f8d38f]/24 bg-[radial-gradient(circle_at_50%_100%,rgba(248,211,143,0.24),transparent_32%),linear-gradient(180deg,rgba(14,18,46,0.94),rgba(8,10,30,0.94))]">
-                  {selectedSpread.positions.map((position) => (
-                    <div
-                      key={`${selectedSpread.id}-${position.index}`}
-                      className="absolute h-[84px] w-[58px] -translate-x-1/2 -translate-y-1/2 rounded-[14px] border border-white/16 bg-white/[0.05] p-1.5 text-center"
-                      style={{ left: `${position.x}%`, top: `${position.y}%`, transform: `translate(-50%, -50%) rotate(${position.rotate}deg)` }}
-                    >
-                      <div className="text-[10px] font-bold text-[#ffe4a8]">{position.index}</div>
-                      <div className="mt-1 line-clamp-3 text-[10px] leading-4 text-white/75">{position.label}</div>
-                    </div>
-                  ))}
-                </div>
+                {selectedSpread.positions.length ? (
+                  <div className="relative mx-auto aspect-square max-w-[360px] rounded-[20px] border border-[#f8d38f]/24 bg-[radial-gradient(circle_at_50%_100%,rgba(248,211,143,0.24),transparent_32%),linear-gradient(180deg,rgba(14,18,46,0.94),rgba(8,10,30,0.94))]">
+                    {selectedSpread.positions.map((position) => (
+                      <div
+                        key={`${selectedSpread.id}-${position.index}`}
+                        className="absolute h-[84px] w-[58px] -translate-x-1/2 -translate-y-1/2 rounded-[14px] border border-white/16 bg-white/[0.05] p-1.5 text-center"
+                        style={{ left: `${position.x}%`, top: `${position.y}%`, transform: `translate(-50%, -50%) rotate(${position.rotate}deg)` }}
+                      >
+                        <div className="text-[10px] font-bold text-[#ffe4a8]">{position.index}</div>
+                        <div className="mt-1 line-clamp-3 text-[10px] leading-4 text-white/75">{position.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-[16px] border border-dashed border-white/20 bg-white/[0.04] p-5 text-center text-sm text-white/65">
+                    포지션 정보 없음
+                  </div>
+                )}
               </div>
 
               <div className="mt-3 grid gap-2">
@@ -585,12 +661,28 @@ export default function TarotPromptMakerPage() {
                 ))}
               </div>
 
+              <div className="mt-3 rounded-[16px] border border-white/10 bg-white/[0.04] p-3">
+                <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">추천 질문 예시</div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {QUESTION_CHIPS.slice(0, 3).map((chip) => (
+                    <button
+                      key={`side-chip-${chip.label}`}
+                      type="button"
+                      onClick={() => setQuestion(chip.text)}
+                      className="rounded-full border border-white/12 bg-white/8 px-2.5 py-1.5 text-[11px] text-white/80 transition hover:border-[#f8d38f]/35 hover:bg-white/14"
+                    >
+                      {chip.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <button
                 type="button"
                 onClick={() => beginDraw(selectedSpread.id)}
                 className="mt-4 w-full rounded-[16px] bg-[linear-gradient(90deg,#f4b04f,#d883ff)] px-4 py-3 text-sm font-semibold text-[#190b2f] shadow-[0_12px_30px_rgba(216,131,255,0.33)] transition hover:brightness-110"
               >
-                이 스프레드로 카드 뽑기
+                이 스프레드로 프롬프트 만들기
               </button>
             </motion.aside>
           </AnimatePresence>
@@ -871,7 +963,7 @@ export default function TarotPromptMakerPage() {
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <div className="text-[11px] uppercase tracking-[0.25em] text-white/48">Prompt Panel</div>
-                        <div className="mt-2 text-lg font-semibold text-white">Oracle Prompt</div>
+                        <div className="mt-2 text-lg font-semibold text-white">완성된 오라클 타로 프롬프트</div>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <button
@@ -899,12 +991,12 @@ export default function TarotPromptMakerPage() {
                     </div>
 
                     {promptOpen && (
-                      <div className="mt-4 rounded-[24px] border border-rose-100/20 bg-[#050912]/95 p-3">
-                        <textarea
-                          readOnly
-                          value={promptResult.prompt}
-                          className="min-h-[520px] w-full resize-none bg-transparent text-sm leading-7 text-white/76 outline-none"
-                        />
+                      <div className="mt-4 rounded-[24px] border border-[#f8d38f]/25 bg-[linear-gradient(165deg,rgba(255,248,226,0.08),rgba(132,88,199,0.08))] p-4">
+                        <div className="rounded-[18px] border border-white/15 bg-[#050912]/88 p-4">
+                          <pre className="max-h-[620px] overflow-auto whitespace-pre-wrap text-sm leading-7 text-white/80">
+                            {promptResult.prompt}
+                          </pre>
+                        </div>
                       </div>
                     )}
 
@@ -934,6 +1026,18 @@ export default function TarotPromptMakerPage() {
               </motion.section>
             </AnimatePresence>
           </div>
+        </div>
+      </div>
+
+      <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-40 p-3 xl:hidden">
+        <div className="pointer-events-auto rounded-[18px] border border-[#f8d38f]/25 bg-[linear-gradient(120deg,rgba(13,16,43,0.95),rgba(25,14,55,0.9))] p-2 backdrop-blur-xl shadow-[0_16px_40px_rgba(8,10,30,0.55)]">
+          <button
+            type="button"
+            onClick={() => beginDraw(selectedSpread.id)}
+            className="w-full rounded-[14px] bg-[linear-gradient(90deg,#f4b04f,#d883ff)] px-4 py-3 text-sm font-semibold text-[#190b2f]"
+          >
+            이 스프레드로 프롬프트 만들기
+          </button>
         </div>
       </div>
     </main>
