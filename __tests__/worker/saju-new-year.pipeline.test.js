@@ -3,9 +3,11 @@
  */
 
 let route;
+let constants;
 
 beforeAll(async () => {
   route = await import("../../worker/routes/saju-new-year.js");
+  constants = await import("../../worker/lib/saju-new-year-constants.js");
 });
 
 function makePayload(overrides = {}) {
@@ -310,5 +312,17 @@ describe("saju new year LLM-only pipeline", () => {
     expect(chapter.sections).toHaveLength(chapterSpec.categories.length);
     expect(chapter.source).toBe("llm-reinforced");
     expect(chapter.sections.every((section) => typeof section.body === "string" && section.body.length >= 600)).toBe(true);
+  });
+
+  test("분리된 상수 모듈과 /chapters 응답은 동일한 챕터 스펙을 유지해야 한다", async () => {
+    const request = new Request("https://example.test/api/saju-new-year/chapters", { method: "GET" });
+    const response = await route.handleSajuNewYearRoutes(request, {});
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.ok).toBe(true);
+    expect(body.serviceKey).toBe(constants.SERVICE_KEY);
+    expect(body.chapterCount).toBe(constants.NEW_YEAR_CHAPTERS.length);
+    expect(body.chapters).toEqual(constants.NEW_YEAR_CHAPTERS);
   });
 });

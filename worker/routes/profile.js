@@ -2,12 +2,7 @@ import { connectDb } from "../lib/db.js";
 import { requireUserFromRequest } from "../lib/auth.js";
 import { ProfileCard, User } from "../lib/models.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-
-const PROFILE_LIMIT_BY_TIER = Object.freeze({
-  standard: 3,
-  premium: 7,
-  vvip: 15,
-});
+import { PROFILE_LIMIT_BY_TIER } from "../lib/profile-limits.js";
 
 const MAX_PROFILE_ID_LEN = 80;
 const MAX_NAME_LEN = 80;
