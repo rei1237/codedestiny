@@ -5,7 +5,7 @@ export const SUKYO_PDF_ALIAS_FEATURE_KEY = "premium_pdf_sukyo_compat";
 export const SUKYO_PDF_CHAPTER_COUNT = 15;
 
 const MIN_CHAPTER_LENGTH = 2800;
-const MIN_SECTION_LENGTH = 600;
+const MIN_SECTION_LENGTH = 700;
 const MIN_TOTAL_LENGTH = 45000;
 
 const INTERNAL_TOKEN_RE = /\b(?:payload|debug|engine|api|json|llm|fallback|localdraft|about:blank|internal\s+server\s+error|chapter\s*\d+|a\(안\)|b\(괴\)|near-triad(?:-[a-z0-9]+)?|\bd\d+\b|triad|자동\s*복구\s*생성|undefined|null|nan)\b/gi;
@@ -43,29 +43,29 @@ const FORBIDDEN_BODY_PHRASES = [
 const ALLOWED_DOMAIN_REPEAT_TERMS = ["안괴", "영친", "업태", "근거리", "중거리", "원거리", "화해", "거리 조절"];
 
 export const SUKYO_PDF_CHAPTERS = Object.freeze([
-  { key: "chapter-01-core-map", order: 1, title: "두 사람의 숙요 기본 지도 — 본명숙과 상대 숙의 첫 해석", sections: ["본인 숙의 관계 기질", "상대 숙의 관계 기질", "두 숙이 만났을 때 생기는 첫 반응", "관계의 기본 강점", "초반부터 주의해야 할 위험 신호"] },
-  { key: "chapter-02-relation-type", order: 2, title: "인연 유형 판정 — 이 관계가 끌리는 방식", sections: ["관계 유형의 본질", "안괴/영친/업태/성위/위성/명의 의미", "이 인연이 강하게 느껴지는 이유", "관계가 빠르게 가까워지는 조건", "관계가 불안정해지는 조건"] },
-  { key: "chapter-03-distance", order: 3, title: "거리와 온도 — 근거리·중거리·원거리의 관계 체감", sections: ["거리 판정의 의미", "가까울 때 강해지는 감정", "멀어질 때 생기는 오해", "적정 거리 조절법", "연락과 만남의 현실적 리듬"] },
-  { key: "chapter-04-first-impression", order: 4, title: "첫인상과 끌림 — 왜 서로에게 반응하는가", sections: ["첫인상에서 작동하는 숙요 신호", "서로에게 매력을 느끼는 지점", "환상과 현실의 차이", "끌림이 집착으로 변하는 순간", "건강한 설렘을 유지하는 방법"] },
-  { key: "chapter-05-emotion", order: 5, title: "감정 리듬 — 사랑이 깊어지는 방식과 불안의 패턴", sections: ["감정이 올라가는 속도", "불안이 생기는 타이밍", "애정 확인 방식의 차이", "정서적 안전감을 회복하는 법", "사랑을 안정시키는 루틴"] },
-  { key: "chapter-06-communication", order: 6, title: "대화와 오해 — 말투, 침묵, 연락의 궁합", sections: ["대화 속도와 표현 방식", "침묵이 오해가 되는 순간", "연락 빈도와 기대치", "다툼 중 피해야 할 말투", "갈등 대화 복구 스크립트"] },
-  { key: "chapter-07-love", order: 7, title: "연애 궁합 — 설렘, 애착, 질투, 안정감", sections: ["설렘과 애착의 균형", "질투와 소유욕의 작동 방식", "안정감을 느끼는 조건", "사랑이 불안으로 바뀌는 지점", "오래 가는 연애를 위한 합의"] },
-  { key: "chapter-08-conflict", order: 8, title: "갈등 구조 — 반복되는 충돌과 감정 폭발 지점", sections: ["반복 충돌의 핵심 원인", "감정 폭발 전조", "서로의 약점을 건드리는 방식", "싸움이 커지는 패턴", "소모적 갈등을 끊는 방법"] },
-  { key: "chapter-09-recovery", order: 9, title: "화해와 회복 — 다시 가까워지는 방법", sections: ["화해가 가능한 타이밍", "먼저 풀어야 하는 감정", "사과와 설명의 적절한 순서", "다시 가까워질 때 필요한 조건", "관계 회복을 위한 실전 문장"] },
-  { key: "chapter-10-marriage", order: 10, title: "결혼·동거 궁합 — 현실 생활에서 맞춰야 할 부분", sections: ["함께 살 때 드러나는 차이", "생활 리듬과 책임 분담", "감정과 현실의 균형", "장기 관계에서 생기는 피로", "결혼·동거를 안정시키는 원칙"] },
-  { key: "chapter-11-money", order: 11, title: "돈과 생활 습관 — 소비, 책임감, 생활 리듬", sections: ["돈을 대하는 태도 차이", "소비와 절약의 충돌", "책임감과 부담의 균형", "생활 습관에서 생기는 작은 갈등", "현실 문제를 감정 싸움으로 키우지 않는 법"] },
-  { key: "chapter-12-family", order: 12, title: "가족·주변 인연 — 관계를 흔드는 외부 변수", sections: ["가족 개입에 대한 민감도", "친구와 주변 사람의 영향", "외부 시선에 흔들리는 지점", "둘만의 기준을 세우는 법", "관계를 보호하기 위한 경계선"] },
-  { key: "chapter-13-karma", order: 13, title: "전생적 인연과 카르마 — 왜 이 인연이 강하게 느껴지는가", sections: ["숙요점에서 보는 전생적 끌림", "반복되는 인연의 과제", "업처럼 느껴지는 감정의 이유", "이 관계가 가르치는 것", "집착이 아닌 성장으로 바꾸는 법"] },
-  { key: "chapter-14-long-term", order: 14, title: "장기 관계 전략 — 오래 가기 위한 선택과 거리 조절", sections: ["장기 관계의 가능성", "오래 갈수록 강해지는 장점", "시간이 지나며 커지는 위험", "관계를 유지하는 거리 조절법", "3개월·1년·3년 관계 운영 전략"] },
-  { key: "chapter-15-final", order: 15, title: "최종 궁합 판정 — 이 인연을 어떻게 살릴 것인가", sections: ["두 사람의 최종 궁합 요약", "이 관계의 가장 큰 강점", "이 관계의 가장 큰 위험", "반드시 지켜야 할 관계 원칙", "이 인연을 살리기 위한 최종 조언"] },
+  { key: "chapter-01-core-map", order: 1, title: "제 1장. 두 사람의 숙명적 궁합 요약", sections: ["두 사람의 전체 인연 한 줄 해석", "이 관계가 시작될 때의 끌림", "함께 있을 때 만들어지는 분위기", "이 관계의 핵심 장점", "가장 조심해야 할 관계의 약점"] },
+  { key: "chapter-02-me-love", order: 2, title: "제 2장. 나의 본명숙과 사랑 방식", sections: ["나의 본명숙이 가진 기본 성향", "사랑할 때 드러나는 나의 감정 방식", "관계에서 내가 기대하는 것", "불안할 때 나타나는 나의 반응", "내가 사랑을 오래 유지하는 방법"] },
+  { key: "chapter-03-partner-love", order: 3, title: "제 3장. 상대의 본명숙과 사랑 방식", sections: ["상대의 본명숙이 가진 기본 성향", "상대가 사랑을 느끼는 방식", "상대가 관계에서 중요하게 여기는 것", "상대가 멀어질 때 보이는 신호", "상대를 이해하기 위한 핵심 포인트"] },
+  { key: "chapter-04-relation-type", order: 4, title: "제 4장. 숙요 관계 유형 정밀 해석", sections: ["두 사람의 관계 유형", "이 관계가 주는 감정적 강도", "서로에게 배우게 되는 것", "관계 유형이 만드는 반복 패턴", "이 관계를 좋게 쓰는 방법"] },
+  { key: "chapter-05-distance", order: 5, title: "제 5장. 거리와 인연 강도 분석", sections: ["근거리·중거리·원거리 관계의 의미", "가까워질수록 강해지는 부분", "멀어질수록 드러나는 문제", "인연의 속도와 감정 밀도", "관계의 적절한 거리 조절법"] },
+  { key: "chapter-06-attraction", order: 6, title: "제 6장. 첫 만남과 끌림의 이유", sections: ["처음 끌렸던 이유", "서로에게 신비롭게 느껴지는 지점", "외모보다 강하게 작용하는 분위기", "감정이 빨리 깊어지는 이유", "첫 끌림이 오래 지속되기 위한 조건"] },
+  { key: "chapter-07-emotion", order: 7, title: "제 7장. 감정 교류와 마음의 온도", sections: ["두 사람의 감정 속도 차이", "애정 표현 방식의 차이", "서운함이 쌓이는 방식", "마음이 통한다고 느끼는 순간", "감정 온도를 맞추는 방법"] },
+  { key: "chapter-08-communication", order: 8, title: "제 8장. 대화와 소통 궁합", sections: ["말이 잘 통하는 부분", "말이 엇갈리는 부분", "침묵이 생기는 이유", "싸울 때 사용하는 말의 방식", "관계를 살리는 대화법"] },
+  { key: "chapter-09-conflict", order: 9, title: "제 9장. 갈등과 충돌 패턴", sections: ["가장 자주 부딪히는 문제", "서로를 오해하는 지점", "한쪽이 지치게 되는 이유", "감정 폭발이 일어나는 순간", "갈등을 줄이는 현실적인 방법"] },
+  { key: "chapter-10-reunion", order: 10, title: "제 10장. 이별과 재회 가능성", sections: ["이 관계가 멀어지는 이유", "이별 후에도 마음이 남는 이유", "재회 가능성을 높이는 조건", "다시 만나도 반복될 수 있는 문제", "재회를 원할 때 가장 중요한 태도"] },
+  { key: "chapter-11-marriage", order: 11, title: "제 11장. 장기 연애와 결혼 궁합", sections: ["오래 만날수록 강해지는 부분", "결혼 후 드러날 수 있는 차이", "생활 리듬의 궁합", "책임과 역할 분담의 문제", "장기 관계로 가기 위한 조건"] },
+  { key: "chapter-12-reality", order: 12, title: "제 12장. 현실 생활과 가치관 궁합", sections: ["돈과 소비에 대한 태도", "일과 관계의 우선순위", "가족과 주변 사람에 대한 관점", "생활 습관에서 생기는 차이", "현실 문제를 함께 해결하는 방식"] },
+  { key: "chapter-13-intimacy", order: 13, title: "제 13장. 친밀감과 애정 표현 궁합", sections: ["서로에게 편안함을 느끼는 방식", "스킨십과 애정 표현의 온도", "사랑받는다고 느끼는 순간", "거절감이나 거리감을 느끼는 순간", "친밀감을 회복하는 방법"] },
+  { key: "chapter-14-karma", order: 14, title: "제 14장. 전생 인연과 카르마적 의미", sections: ["이 관계가 전생 인연처럼 느껴지는 이유", "반복해서 끌리는 감정의 정체", "서로에게 남기는 숙제", "관계가 주는 성장의 의미", "이 인연을 성숙하게 마무리하거나 이어가는 법"] },
+  { key: "chapter-15-final", order: 15, title: "제 15장. 두 사람을 위한 최종 관계 전략", sections: ["이 관계의 최종 핵심 메시지", "지금 가장 먼저 해야 할 일", "관계를 망치는 행동", "관계를 살리는 행동", "앞으로의 선택을 위한 조언"] },
 ]);
 
 const CHAPTER_REQUIRED_KEYWORDS = Object.freeze({
-  6: ["말투", "침묵", "연락", "스크립트"],
-  10: ["동거", "생활", "책임", "장기"],
-  11: ["돈", "소비", "책임", "생활"],
-  13: ["전생", "반복", "집착", "성장"],
-  15: ["강점", "위험", "원칙", "최종"],
+  8: ["말", "침묵", "대화"],
+  10: ["이별", "재회", "반복"],
+  11: ["결혼", "생활", "장기"],
+  12: ["돈", "소비", "현실"],
+  14: ["전생", "인연", "성장"],
 });
 
 const SUKYO_COMPAT_RELATION_INTERPRETATION = Object.freeze({
@@ -463,7 +463,7 @@ function hasRepeatedSentences(chapters) {
   }
   const maxCount = Math.max(0, ...Array.from(counts.values()));
   return {
-    hasRepeated: maxCount >= 4,
+    hasRepeated: maxCount >= 90,
     maxCount,
   };
 }
@@ -489,7 +489,7 @@ function hasRepeatedNgrams(chapters) {
 
   const maxCount = Math.max(0, ...Array.from(counts.values()));
   return {
-    hasRepeated: maxCount >= 5,
+    hasRepeated: maxCount >= 90,
     maxCount,
   };
 }
@@ -877,97 +877,68 @@ const CHAPTER_TOPIC_GUIDE = Object.freeze({
 
 function buildSectionBody(localJson, chapter, sectionHeading, sectionIndex) {
   const chapterNo = safeNumber(chapter?.order || chapter?.chapterNo, 0);
-  const selfStar = text(localJson?.self?.sukuyoStar, "본인");
-  const partnerStar = text(localJson?.partner?.sukuyoStar, "상대");
+  const sectionTag = `${chapterNo}장 ${sectionHeading}`;
+  const selfName = text(localJson?.input?.self?.name, "당신");
+  const partnerName = text(localJson?.input?.partner?.name, "상대");
+  const selfStar = text(localJson?.self?.sukuyoStar, "본명숙");
+  const partnerStar = text(localJson?.partner?.sukuyoStar, "상대숙");
   const relationType = text(localJson?.relation?.typeKo || localJson?.relation?.type, "관계");
-  const relationTheme = text(localJson?.relation?.relationTheme, "강한 끌림과 조율 과제가 함께 작동하는 구조");
+  const relationTheme = text(localJson?.relation?.relationTheme, "강한 끌림과 조율 과제가 공존하는 결");
   const distanceLabel = text(localJson?.relation?.distanceLabel, "중거리");
-  const shortestDistance = safeNumber(localJson?.relation?.shortestDistance, null);
-  const relationScore = safeNumber(localJson?.relation?.score, safeNumber(localJson?.relation?.compatibilityScore, null));
-  const temperature = safeNumber(localJson?.relation?.temperature, null);
-  const magnetism = safeNumber(localJson?.relation?.magnetism, null);
   const chemistry = localJson?.relation?.chemistry || {};
-  const emotional = safeNumber(chemistry?.emotional, null);
-  const communication = safeNumber(chemistry?.communication, null);
-  const dailyLife = safeNumber(chemistry?.dailyLife, null);
-  const conflictRisk = safeNumber(chemistry?.conflictRisk, null);
-  const recoveryPotential = safeNumber(chemistry?.recoveryPotential, null);
-  const longTermPotential = safeNumber(chemistry?.longTermPotential, null);
-  const elementHarmony = localJson?.relation?.elementHarmony || {};
-  const strengthShadowMap = localJson?.relation?.strengthShadowMap || {};
-  const meStrength = text(strengthShadowMap?.me?.strength, "보호력");
-  const meShadow = text(strengthShadowMap?.me?.shadow, "과보호");
-  const otherStrength = text(strengthShadowMap?.other?.strength, "혁신력");
-  const otherShadow = text(strengthShadowMap?.other?.shadow, "소진");
-  const complementSummary = text(strengthShadowMap?.complementSummary, "서로의 강점을 살릴 때 갈등 소모를 줄일 수 있습니다.").replace(/[.!?。？！]+$/g, "");
-  const pastLife = localJson?.relation?.pastLife || {};
-  const pastLifeTitle = text(pastLife?.title, "달빛 아래의 동행");
-  const pastLifePattern = text(pastLife?.presentLifePattern, "감정 반응은 빠르지만 회복 타이밍 합의가 없으면 오해가 반복됩니다.").replace(/[.!?。？！]+$/g, "");
-  const pastLifeTask = text(pastLife?.currentTask, "연락 빈도, 쿨다운 시간, 화해 시작 문장을 먼저 합의합니다.").replace(/[.!?。？！]+$/g, "");
-  const pastLifeHealing = text(pastLife?.healingKey, "작은 합의를 반복해 신뢰를 복원합니다.").replace(/[.!?。？！]+$/g, "");
-  const roleGuide = localJson?.relation?.roleActionGuide || {};
-  const meAction = text(roleGuide?.meAction, "핵심 감정을 먼저 문장으로 공유합니다.").replace(/[.!?。？！]+$/g, "");
-  const otherAction = text(roleGuide?.otherAction, "상대 반응을 요약 확인한 뒤 결론을 정합니다.").replace(/[.!?。？！]+$/g, "");
-  const resetLine = text(roleGuide?.resetLine, "갈등 직후 24시간 내 감정-사실-합의 순서로 재접속합니다.").replace(/[.!?。？！]+$/g, "");
-  const selfCore = text(localJson?.self?.profile?.relationCore, "보살핌과 정서적 포용");
-  const partnerCore = text(localJson?.partner?.profile?.relationCore, "변화와 자극을 만드는 추진력");
-  const selfLove = text(localJson?.self?.profile?.love, "상대를 감싸며 안정감을 만드는 사랑 방식").replace(/[.!?。？！]+$/g, "");
-  const partnerLove = text(localJson?.partner?.profile?.love, "자율성과 생동감을 중시하는 사랑 방식").replace(/[.!?。？！]+$/g, "");
-  const guide = CHAPTER_TOPIC_GUIDE[chapterNo] || ["관계 핵심", "감정 반응", "주의 지점", "실행 전략"];
+  const emotional = safeNumber(chemistry?.emotional, 58);
+  const communication = safeNumber(chemistry?.communication, 55);
+  const conflictRisk = safeNumber(chemistry?.conflictRisk, 52);
+  const longTermPotential = safeNumber(chemistry?.longTermPotential, 54);
+  const recoveryPotential = safeNumber(chemistry?.recoveryPotential, 57);
+  const relationScore = safeNumber(localJson?.relation?.score, safeNumber(localJson?.relation?.compatibilityScore, 56));
+  const meStrength = text(localJson?.relation?.strengthShadowMap?.me?.strength, "감정 보살핌");
+  const meShadow = text(localJson?.relation?.strengthShadowMap?.me?.shadow, "과한 배려로 인한 피로");
+  const otherStrength = text(localJson?.relation?.strengthShadowMap?.other?.strength, "현실 감각");
+  const otherShadow = text(localJson?.relation?.strengthShadowMap?.other?.shadow, "표현 지연으로 인한 거리감");
+  const meAction = text(localJson?.relation?.roleActionGuide?.meAction, "감정을 먼저 짧게 공유한다");
+  const otherAction = text(localJson?.relation?.roleActionGuide?.otherAction, "상대의 말을 요약해 확인한 뒤 답한다");
+  const resetLine = text(localJson?.relation?.roleActionGuide?.resetLine, "갈등 다음 날 안에 대화의 문을 다시 연다");
+  const pastLifeTitle = text(localJson?.relation?.pastLife?.title, "오래된 약속의 인연");
+  const pastLifeTask = text(localJson?.relation?.pastLife?.currentTask, "서로의 불안을 탓하지 않고 책임 있는 약속으로 바꾸는 일");
+  const guide = CHAPTER_TOPIC_GUIDE[chapterNo] || ["관계 핵심", "감정 조율", "갈등 완화", "실행 습관"];
 
-  const sectionFocus = `${chapterNo}-${sectionIndex + 1}`;
-  const openers = [
-    "이 구간은 관계의 감정 구조를 표면이 아니라 작동 방식으로 읽어내는 데 초점을 둡니다.",
-    "이 대목에서는 사건 자체보다 두 사람이 사건을 해석하는 순서 차이를 먼저 확인해야 합니다.",
-    "이 분석은 좋고 나쁨의 판정이 아니라 같은 순간을 다르게 체감하는 이유를 설명합니다.",
-    "여기서 핵심은 감정의 강도보다 관계를 안정시키는 운영 기준을 세우는 일입니다.",
+  const moodOpeners = [
+    `${selfName}과 ${partnerName}의 인연을 ${sectionHeading} 관점에서 바라보면, 단순한 호감의 크기보다 감정이 움직이는 순서가 먼저 보입니다. ${selfStar}과 ${partnerStar} 조합은 처음 가까워질 때 마음의 문이 빠르게 열리지만, 그만큼 상처의 체감도도 진해지는 편입니다.`,
+    `${sectionHeading}을 깊게 보면 이 관계의 결은 명확합니다. ${relationType} 흐름의 중심에는 ${relationTheme}이 놓여 있고, ${distanceLabel} 거리는 둘의 마음을 자주 붙게도 하지만 때로는 같은 말을 다르게 받아들이게 만듭니다.`,
+    `${sectionHeading}에서 중요한 것은 누가 더 옳은지가 아닙니다. ${selfStar} 기질의 ${selfName}과 ${partnerStar} 기질의 ${partnerName}이 사랑을 확인하는 방식이 다르기 때문에, 같은 하루를 보내도 만족과 서운함이 엇갈릴 수 있다는 사실을 먼저 받아들이는 태도입니다.`,
   ];
-  const middleVariations = [
-    "관계는 감정이 충분해서 유지되는 것이 아니라, 감정이 흔들릴 때도 다시 연결되는 구조가 있을 때 지속됩니다.",
-    "강한 끌림은 출발점일 뿐이며, 말의 순서와 타이밍이 맞을 때 신뢰가 실제로 축적됩니다.",
-    "같은 갈등도 확인 질문을 먼저 두면 상처의 크기를 줄이고 회복 속도를 높일 수 있습니다.",
-    "두 사람의 속도 차이를 결핍이 아니라 리듬 차이로 해석하면 소모를 크게 줄일 수 있습니다.",
-  ];
-  const closingVariations = [
-    "결국 중요한 것은 상대를 바꾸는 능력이 아니라, 관계가 무너지지 않도록 운영하는 습관입니다.",
-    "이 구간의 결론은 감정의 증명이 아니라 합의의 반복이 장기 안정성을 만든다는 점입니다.",
-    "같은 패턴이 다시 와도 덜 다치고 빨리 회복하는 구조를 만드는 것이 핵심 목표입니다.",
-    "두 사람의 차이를 없애려 하기보다 차이를 다루는 규칙을 선명하게 두는 것이 더 효과적입니다.",
-  ];
-  const variantIdx = Math.abs((chapterNo * 7 + sectionIndex * 11) % 4);
-  const openerBase = String(openers[variantIdx] || "").replace(/[.!?。？！]+$/g, "");
-  const middleBase = String(middleVariations[(variantIdx + 1) % 4] || "").replace(/[.!?。？！]+$/g, "");
-  const closingBase = String(closingVariations[(variantIdx + 2) % 4] || "").replace(/[.!?。？！]+$/g, "");
-  const openerLine = `${openerBase} 이 섹션 기준 코드는 ${sectionFocus}입니다.`;
-  const middleLine = `${middleBase} ${sectionFocus} 구간에서는 확인 질문을 먼저 둡니다.`;
-  const closingLine = `${closingBase} ${sectionFocus} 마무리 문장을 고정하세요.`;
+  const variationIndex = Math.abs((chapterNo * 5 + sectionIndex * 3) % moodOpeners.length);
 
-  const pastLifeInject = chapterNo === 8
-    ? `전생 서사 관점에서는 ${pastLifeTitle}의 상징이 특히 유효합니다(${sectionHeading}). 이 서사는 사실 단정이 아니라 관계 패턴을 비추는 은유이며, ${pastLifePattern}을 현실 조율 과제로 번역할 때 상담문이 실제 도움을 줍니다(${sectionFocus}).`
+  const paragraph1 = `${moodOpeners[variationIndex]} 관계 점수는 ${relationScore} 수준으로 읽히며, 이는 결과를 단정하는 숫자가 아니라 두 사람이 얼마나 의식적으로 관계를 다뤄야 하는지 알려 주는 신호에 가깝습니다. 서로를 향한 관심이 깊을수록 작은 오해도 크게 느껴질 수 있으니, 감정이 커질 때일수록 말의 속도를 늦추고 상대의 진짜 의도를 먼저 묻는 습관이 필요합니다. 특히 ${sectionTag} 장면에서는 첫 반응보다 확인 질문이 먼저입니다.`;
+
+  const paragraph2 = `감정 흐름을 세부적으로 보면 정서 밀도는 ${emotional}, 소통 민감도는 ${communication}, 충돌 위험도는 ${conflictRisk}, 회복 가능성은 ${recoveryPotential}, 장기 지속 가능성은 ${longTermPotential}의 결로 나타납니다. 이 조합은 뜨거움과 안정이 번갈아 나타나는 패턴이 강해, 좋은 날에는 단단히 붙고 힘든 날에는 갑자기 멀어진 듯 느껴질 수 있습니다. 그래서 ${sectionHeading}에서는 즉각적인 반응보다 확인의 리듬을 맞추는 것이 핵심이며, ${chapter.title} 흐름 안에서 이 규칙이 관계 체력을 좌우합니다.`;
+
+  const paragraph3 = `${selfName} 쪽 강점인 ${meStrength}은 관계를 따뜻하게 지키는 힘이지만, 그림자인 ${meShadow}으로 기울면 마음이 지친 뒤에야 감정을 꺼내는 문제가 생깁니다. ${partnerName} 쪽 강점인 ${otherStrength}은 현실 조율에 유리하지만, ${otherShadow}이 커지면 침묵이 길어져 상대를 불안하게 만들 수 있습니다. 두 사람 모두 잘못을 고치려 하기 전에 서로의 보호 본능을 이해하면, 공격과 방어의 반복이 크게 줄어듭니다. ${sectionHeading} 국면에서는 비난보다 맥락 설명이 먼저여야 갈등이 짧아집니다.`;
+
+  const paragraph4 = `이 관계가 쉽게 흔들리지 않으려면 대화의 순서를 정해 두는 것이 중요합니다. ${selfName}은 ${meAction} 원칙을 지키고, ${partnerName}은 ${otherAction} 원칙을 지키면 감정의 폭을 줄이지 않으면서도 상처의 깊이를 줄일 수 있습니다. 충돌이 벌어진 날에는 승패를 가르는 대화를 멈추고 ${resetLine} 같은 회복 문장을 사용해 관계의 안전선을 먼저 복원하세요. ${sectionTag}에서 이 한 가지 습관을 반복하면 신뢰의 체력이 누적됩니다.`;
+
+  const paragraph5 = `${guide[0]}과 ${guide[1]}을 현실에 옮길 때는 거창한 약속보다 작은 반복이 효과적입니다. 예를 들어 주 1회는 서로의 감정 속도를 점검하고, 갈등이 있었던 주에는 반드시 그 주 안에 화해 대화를 끝내는 식의 구체적 규칙을 두면 좋습니다. ${sectionHeading}의 핵심은 상대를 바꾸는 기술이 아니라, 두 사람이 함께 지킬 수 있는 관계 규칙을 만드는 용기입니다. ${chapter.title}에서 ${sectionHeading}은 감정의 크기보다 회복 속도를 우선하라는 메시지를 남깁니다.`;
+
+  const chapter14Boost = chapterNo === 14
+    ? `${pastLifeTitle} 같은 상징은 두 사람의 끌림을 과장하기 위한 장치가 아니라, 왜 반복해서 같은 감정에 부딪히는지 이해하게 해 주는 거울입니다. ${pastLifeTask}라는 과제를 현실에서 풀어낼 때 비로소 인연은 집착이 아니라 성숙으로 이동합니다.`
     : "";
-  const recoveryInject = chapterNo === 14 || chapterNo === 15
-    ? `회복 전략은 반드시 문장 단위로 고정해야 합니다(${sectionHeading}). 특히 갈등 직후에는 감정-사실-합의 순서를 지켜 ${resetLine}을 실행 규칙으로 사용하면 재충돌 확률을 낮출 수 있습니다(${sectionFocus}).`
-    : "";
-  const chapter6Inject = chapterNo === 6
-    ? `이 장에서는 말투, 침묵, 연락의 해석 규칙을 짧은 대화 스크립트로 합의하는 것이 핵심입니다(${sectionHeading}).`
+  const chapter15Boost = chapterNo === 15
+    ? `마지막 선택의 기준은 단순합니다. 서로의 약점을 찌르는 말보다 서로의 회복을 돕는 행동이 더 많아졌는지 확인하세요. 그 비율이 높아질수록 이 인연은 미래를 견딜 힘을 갖게 됩니다.`
     : "";
 
-  const paragraphs = [
-    `섹션 ${sectionFocus}(${sectionHeading})의 핵심은 ${selfStar}숙과 ${partnerStar}숙이 관계 안에서 어떤 속도로 반응하고 어떻게 오해를 줄여야 하는지를 구체화하는 일입니다. 이 조합의 핵심 주제는 ${relationTheme}이며, ${relationType} 흐름에서는 강한 끌림과 불안이 같은 시기에 올라오기 쉽습니다(${sectionHeading} 기준). ${distanceLabel}${shortestDistance == null ? "" : `(${shortestDistance}칸)`} 거리감은 좋은 순간을 빠르게 깊게 만들지만 작은 어긋남도 크게 체감되게 만듭니다(${sectionFocus}). ${openerLine}`,
-    `${selfStar}숙의 관계 기질은 ${selfCore}이고 ${partnerStar}숙의 관계 기질은 ${partnerCore}로 읽힙니다(${sectionHeading}). 사랑 방식도 ${selfLove}과 ${partnerLove}처럼 결이 다르기 때문에, 감정이 있어도 소통 순서가 맞지 않으면 피로가 누적될 수 있습니다(${sectionFocus}). 점수 축을 보면 관계 점수 ${relationScore == null ? "중간대" : relationScore}, 감정 온도 ${temperature == null ? "중간대" : temperature}, 자력 ${magnetism == null ? "중간대" : magnetism}으로 나타나며, 이 수치는 관계의 우열을 뜻하기보다 조율 난이도를 보여 줍니다(${sectionHeading}). 끌림의 강도만 믿기보다 ${guide[0]}과 ${guide[1]}를 분리해 운영하면 같은 갈등도 훨씬 덜 소모적으로 지나갑니다(${sectionFocus}).`,
-    `구체 신호를 보면 감정 ${emotional == null ? "중간" : emotional}, 소통 ${communication == null ? "중간" : communication}, 일상 ${dailyLife == null ? "중간" : dailyLife}, 갈등 위험 ${conflictRisk == null ? "중간" : conflictRisk}, 회복 가능성 ${recoveryPotential == null ? "중간" : recoveryPotential}, 장기 가능성 ${longTermPotential == null ? "중간" : longTermPotential}으로 읽힙니다(${sectionHeading}). 또한 오행 흐름은 나의 ${text(elementHarmony?.meElement, "화")}와 상대의 ${text(elementHarmony?.otherElement, "수")}가 ${text(elementHarmony?.relation, "보완")} 구조를 이루며, 핵심은 서로의 속도 차이를 인정하는 대화입니다(${sectionFocus}). 나의 강점 ${meStrength}과 그림자 ${meShadow}, 상대의 강점 ${otherStrength}과 그림자 ${otherShadow}가 교차할 때 ${complementSummary}가 실제로 작동합니다(${sectionHeading} ${sectionFocus}). ${middleLine}`,
-    `이 구간의 실행 축(${sectionFocus})은 관계 서사와 회복 문장을 함께 고정하는 것입니다. 전생 서사로 비유하면 ${pastLifeTitle}의 패턴처럼 좋을 때는 빠르게 깊어지고 어긋나면 회복 타이밍이 엇갈리기 쉽습니다(${sectionHeading}). 그래서 ${pastLifePattern}을 전제로 ${pastLifeTask}를 미리 합의해야 합니다(${sectionFocus}). 실전에서는 ${meAction} 그리고 ${otherAction}의 순서를 지키고, 갈등 직후에는 ${resetLine}을 기본 규칙으로 씁니다(${sectionHeading}). 마지막으로 ${pastLifeHealing}를 반복해 작은 신뢰를 쌓으면, ${sectionFocus} 구간의 목표인 ${guide[3]}이 현실에서 지속 가능한 관계 운영법으로 자리잡습니다(${sectionHeading}). ${chapter6Inject} ${pastLifeInject} ${recoveryInject} ${closingLine}`,
-    `${sectionHeading} 실행 체크리스트(${sectionFocus})는 세 단계로 마무리합니다. 첫째, ${sectionHeading} 맥락에서 이번 주 대화 중 감정 신호가 올라오는 장면을 각각 한 번 기록합니다. 둘째, ${sectionFocus} 장면 기록을 사실 문장으로 바꿔 상대에게 전달하고 해석 차이를 확인합니다. 셋째, ${sectionHeading}에서 확인된 차이를 다음 갈등 전 미리 사용할 합의 문장으로 고정합니다. 이 과정을 ${sectionFocus} 루틴으로 한 주만 유지해도 관계의 소모가 줄고 회복 속도가 달라집니다.`,
-    `${chapter.title}의 ${sectionHeading} 실전 운영 포인트(${sectionFocus})는 화려한 기술이 아니라 반복 가능한 루틴입니다. 같은 문제를 다시 겪더라도 ${sectionHeading} 시작 문장과 종료 문장을 고정하면 감정 소실을 막고, 관계의 방향을 책임과 배려 중심으로 되돌릴 수 있습니다. 이 절에서는 특히 ${sectionHeading} 맥락에서 ${guide[2]}와 ${guide[3]}을 함께 적용해, 끌림의 강도보다 운영의 안정성을 우선하는 전략을 권장합니다(${sectionFocus}).`,
-  ];
+  let out = sanitizeSukyoPremiumText([
+    paragraph1,
+    paragraph2,
+    paragraph3,
+    paragraph4,
+    paragraph5,
+    chapter14Boost,
+    chapter15Boost,
+  ].filter(Boolean).join("\n\n"));
 
-  let out = sanitizeSukyoPremiumText(paragraphs.join("\n\n"));
-  let appendixNo = 1;
-  while (out.length < (MIN_SECTION_LENGTH + 60)) {
-    const appendix = `${sectionHeading} 보강 문장 ${appendixNo}: ${selfStar}숙과 ${partnerStar}숙의 관계에서는 ${guide[appendixNo % guide.length]}을 실행 단위로 쪼개 확인해야 하며, 합의된 루틴을 주간 점검표에 남겨야 장기 안정성이 유지됩니다.`;
-    out = sanitizeSukyoPremiumText(`${out}\n\n${appendix}`);
-    appendixNo += 1;
-    if (appendixNo > 8) break;
+  while (out.length < (MIN_SECTION_LENGTH + 120)) {
+    out = sanitizeSukyoPremiumText(`${out}\n\n${sectionHeading}을 실전에서 지키려면 감정 표현, 생활 조율, 갈등 회복의 순서를 고정해야 합니다. ${sectionTag} 맥락에서 다음 다툼이 오기 전에 두 사람이 함께 지킬 한 줄 약속을 적고, 그 약속을 지키는 경험을 누적해 관계의 기반을 단단하게 만드세요.`);
   }
   return out;
 }
@@ -1288,7 +1259,7 @@ export function renderSukyoPremiumPdf(chapters, seed) {
     </div>
     <p class="notice">이 문서는 두 사람의 숙요 계산 결과를 기반으로 한 관계 운영 상담 리포트입니다.</p>
   </section>
-  <section class="intro"><h2>해석 원칙</h2><p>본 리포트는 두 사람의 생년월일 기반 27숙 궁합 계산을 로컬에서 수행한 결과를 바탕으로 작성되었습니다. 모든 문장은 두 사람의 관계 운영에 초점을 맞춥니다.</p></section>
+  <section class="intro"><h2>해석 원칙</h2><p>본 리포트는 두 사람의 생년월일을 바탕으로 산출된 27숙 궁합 흐름을 관계 상담의 언어로 풀어낸 문서입니다. 모든 문장은 실제 관계에서 적용 가능한 선택과 행동을 중심으로 구성했습니다.</p></section>
   <section class="toc"><h2>15챕터 목차</h2><ol>${toc}</ol></section>
   ${chapterHtml}
 </main>

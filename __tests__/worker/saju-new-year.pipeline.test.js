@@ -102,7 +102,7 @@ function makePayload(overrides = {}) {
   };
 }
 
-function makeBody(text, minimumLength = 700, scopeKey = "0-0") {
+function makeBody(text, minimumLength = 920, scopeKey = "0-0") {
   const sentence = String(text).trim();
   let body = `${sentence} [${scopeKey}]`;
   let step = 1;
@@ -131,17 +131,19 @@ function makeSectionBodies(seed, chapterSpec) {
   return chapterSpec.categories.map((category, idx) => {
     const scopeKey = `${chapterSpec.no}-${idx + 1}`;
     if (chapterSpec.no === 8) {
-      const start = idx * 2;
-      const months = seed.luckCycles.monthlyFortunes.slice(start, start + 2);
-      const monthNames = months.map((m) => `${m.month}월`).join("와 ");
-      return makeBody(`${category}: ${monthNames} 구간은 ${yearSignal} 흐름으로 분석합니다. 1월부터 12월까지 모든 달의 점수와 조언을 실행 일정과 연결합니다.`, 760, scopeKey);
+      if (idx === 0) return makeBody(`${category}: 1월부터 6월까지의 흐름을 ${yearSignal} 기준으로 읽고 상반기 실행 타이밍을 정리합니다.`, 920, scopeKey);
+      if (idx === 1) return makeBody(`${category}: 7월부터 12월까지의 흐름을 ${monthlySignal}과 연결해 하반기 성과 및 정리 포인트를 제안합니다.`, 920, scopeKey);
+      if (idx === 2) return makeBody(`${category}: 점수가 낮은 달을 골라 ${crisisSignal}와 함께 조심 포인트를 설명합니다.`, 920, scopeKey);
+      if (idx === 3) return makeBody(`${category}: 점수가 높은 달을 골라 ${opportunitySignal}과 함께 기회 활용법을 제안합니다.`, 920, scopeKey);
+      return makeBody(`${category}: 1월부터 12월까지 월별 점수를 실제 일정 운영 기준으로 바꾸는 방법을 설명합니다.`, 920, scopeKey);
     }
 
     if (chapterSpec.no === 10) {
-      if (idx === 1) return makeBody(`${category}: 1분기(1~3월)는 ${yearSignal}를 바탕으로 기반을 고정하는 구간입니다. 1분기 전략은 일정, 관계, 지출을 먼저 정리하는 데 초점을 둡니다.`, 760, scopeKey);
-      if (idx === 2) return makeBody(`${category}: 2분기(4~6월) 전략은 ${careerSignal}와 ${moneySignal} 신호를 연결해 실행 효율을 높이는 단계입니다. 2분기 동안 반복 가능한 수익 구조를 만듭니다.`, 760, scopeKey);
-      if (idx === 3) return makeBody(`${category}: 3분기(7~9월) 전략은 ${loveSignal}와 ${relationSignal} 신호까지 포함해 성과를 가시화하는 구간입니다. 3분기 완성을 위해 목표를 점검합니다.`, 760, scopeKey);
-      if (idx === 4) return makeBody(`${category}: 4분기(10~12월) 전략은 ${healthSignal}와 ${crisisSignal}를 의식한 현실적 마무리를 강조합니다. 4분기에 올해를 완성하는 핵심 선언을 정리합니다.`, 760, scopeKey);
+      if (idx === 0) return makeBody(`${category}: 올해 전체를 관통하는 메시지는 ${yearSignal}이며, ${annualTenGod} 기운을 실제 선택 기준으로 바꾸는 데 초점을 둡니다.`, 920, scopeKey);
+      if (idx === 1) return makeBody(`${category}: ${careerSignal}와 ${moneySignal}를 기준으로 지금 가장 먼저 덜어내야 할 문제를 정리합니다.`, 920, scopeKey);
+      if (idx === 2) return makeBody(`${category}: ${opportunitySignal}과 ${careerSignal}을 연결해 올해 반드시 밀어붙여야 할 핵심 과제를 제안합니다.`, 920, scopeKey);
+      if (idx === 3) return makeBody(`${category}: ${crisisSignal}와 ${healthSignal}을 함께 고려해 올해 과감히 내려놓아야 할 습관과 관계를 정리합니다.`, 920, scopeKey);
+      if (idx === 4) return makeBody(`${category}: ${monthlySignal}을 활용해 1년 전체를 운영하는 실전 전략을 조언합니다.`, 920, scopeKey);
     }
 
     const base = [
@@ -149,7 +151,7 @@ function makeSectionBodies(seed, chapterSpec) {
       `핵심 신호는 ${yearSignal || careerSignal || moneySignal || relationSignal || healthSignal}.`,
       `실행 관점에서는 ${seed.structure.geokguk || "격국 정보"}, ${seed.structure.usefulGodKeywords.join(" / ") || "용신 키워드"}, ${seed.twelveGrowthStages[0].stage} 등의 계산 신호를 현실 행동으로 바꾸는 것이 중요합니다.`,
     ].join(" ");
-    return makeBody(base, 720, scopeKey);
+    return makeBody(base, 920, scopeKey);
   });
 }
 
@@ -193,8 +195,8 @@ describe("saju new year LLM-only pipeline", () => {
     expect(seed.fiveElements.strongest.length).toBeGreaterThan(0);
     expect(seed.luckCycles.monthlyFortunes).toHaveLength(12);
     expect(seed.chapterSpecs).toHaveLength(10);
-    expect(chapterSpecs[0].title).toContain("Chapter I");
-    expect(chapterSpecs[9].title).toContain("Chapter X");
+    expect(chapterSpecs[0].title).toContain("제 1장");
+    expect(chapterSpecs[9].title).toContain("제 10장");
   });
 
   test("핵심 seed JSON이 비면 SAJU_NEW_YEAR_SEED_INVALID 검증에 걸려야 한다", () => {
@@ -219,7 +221,7 @@ describe("saju new year LLM-only pipeline", () => {
 
     expect(prompt).toContain("JSON seed");
     expect(prompt).toContain("챕터 구조");
-    expect(prompt).toContain("각 세부 카테고리 본문은 최소 600자 이상");
+    expect(prompt).toContain("각 세부 카테고리 본문은 최소 700자 이상");
     expect(prompt).not.toMatch(/localSummary|manuscript|rewrite/i);
   });
 
@@ -233,18 +235,18 @@ describe("saju new year LLM-only pipeline", () => {
     const quality = utils.validateSajuNewYearPdfLLMInterpretationQuality({
       chapters,
       expectedChapters: chapterSpecs,
-      minChapterLength: 3000,
-      minSectionLength: 600,
+      minChapterLength: 4200,
+      minSectionLength: 700,
       seed,
     });
 
     expect(quality.ok).toBe(true);
     expect(quality.errors).toHaveLength(0);
     expect(chapters).toHaveLength(10);
-    expect(chapters[7].text).toContain("1월");
-    expect(chapters[7].text).toContain("12월");
-    expect(chapters[9].text).toContain("1분기");
-    expect(chapters[9].text).toContain("2분기");
+    expect(chapters[7].text).toContain("상반기");
+    expect(chapters[7].text).toContain("하반기");
+    expect(chapters[9].text).toContain("핵심 메시지");
+    expect(chapters[9].text).toContain("실전 전략");
   });
 
   test("정규화된 챕터는 섹션 제목과 본문을 보존한다", () => {
@@ -255,13 +257,13 @@ describe("saju new year LLM-only pipeline", () => {
     const parsed = {
       sections: chapterSpec.categories.map((title, idx) => ({
         title,
-        body: makeBody(`${chapterSpec.title} ${title} ${idx}번 섹션은 ${seed.input.targetYear}년 흐름을 읽는 상담문입니다.`, 650),
+        body: makeBody(`${chapterSpec.title} ${title} ${idx}번 섹션은 ${seed.input.targetYear}년 흐름을 읽는 상담문입니다.`, 920),
       })),
     };
 
     const normalizedChapter = utils.normalizeGeneratedChapter(chapterSpec, parsed);
     expect(normalizedChapter).not.toBeNull();
-    expect(normalizedChapter.sections).toHaveLength(6);
+    expect(normalizedChapter.sections).toHaveLength(5);
     expect(normalizedChapter.sections[0].title).toBe(chapterSpec.categories[0]);
   });
 
@@ -295,8 +297,8 @@ describe("saju new year LLM-only pipeline", () => {
     const quality = utils.validateSajuNewYearPdfLLMInterpretationQuality({
       chapters,
       expectedChapters: chapterSpecs,
-      minChapterLength: 3000,
-      minSectionLength: 600,
+      minChapterLength: 4200,
+      minSectionLength: 700,
       seed,
     });
     expect(quality.ok).toBe(true);
@@ -311,7 +313,7 @@ describe("saju new year LLM-only pipeline", () => {
 
     expect(chapter.sections).toHaveLength(chapterSpec.categories.length);
     expect(chapter.source).toBe("llm-reinforced");
-    expect(chapter.sections.every((section) => typeof section.body === "string" && section.body.length >= 600)).toBe(true);
+    expect(chapter.sections.every((section) => typeof section.body === "string" && section.body.length >= 700)).toBe(true);
   });
 
   test("분리된 상수 모듈과 /chapters 응답은 동일한 챕터 스펙을 유지해야 한다", async () => {

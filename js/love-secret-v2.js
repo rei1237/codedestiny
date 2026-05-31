@@ -2104,7 +2104,7 @@
     }
     var lsTitle = _qs('lsLoadingTitle');
     if (lsTitle) {
-      lsTitle.textContent = partnerData
+      lsTitle.textContent = partnerBirthInput
         ? '두 사람의 궁합과 연애 비책을 집필하는 중입니다'
         : '연애 비책을 집필하는 중입니다';
     }
@@ -2458,38 +2458,64 @@
       var submitHeaders = { 'Content-Type': 'application/json' };
       if (_lsPremiumToken) submitHeaders['x-premium-access-token'] = _lsPremiumToken;
 
+      var preparePayload = {
+        reportId: _lsReportId,
+        sessionId: _lsSessionId,
+        reportSessionId: _lsSessionId,
+        mode: _currentChapterMode,
+        featureKey: _lsFeatureKey,
+        purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || '').trim() || undefined,
+        accessGrant: _lsAccessGrant || undefined,
+        premiumAccessToken: _lsPremiumToken || undefined,
+        payment: {
+          requestId: String((_lsAccessGrant && _lsAccessGrant.requestId) || '').trim() || undefined,
+          purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || '').trim() || undefined,
+          sessionId: _lsSessionId,
+          reportSessionId: _lsSessionId,
+        },
+        _paymentContext: {
+          requestId: String((_lsAccessGrant && _lsAccessGrant.requestId) || '').trim() || undefined,
+          purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || '').trim() || undefined,
+          sessionId: _lsSessionId,
+          reportSessionId: _lsSessionId,
+        },
+        birthInput: birthInput,
+        profile: window.__cdActiveBirthProfile || {},
+        partnerBirthInput: partnerBirthInput || undefined,
+        partnerData: partnerBirthInput ? _collectPartnerScreenData() : '',
+      };
+
+      _setLoveBookGenerationState('building_chapters');
+      _logLoveSecretFlow('SessionCreateStart', { mode: _currentChapterMode, reportId: _lsReportId, sessionId: _lsSessionId, flow: 'sync-prepare' });
+      var syncPrepareRes = await fetch('/api/love-secret/prepare', {
+        method: 'POST',
+        credentials: 'include',
+        headers: submitHeaders,
+        body: JSON.stringify(preparePayload),
+      });
+      var syncPrepareBody = await syncPrepareRes.json().catch(function () { return {}; });
+      if (syncPrepareRes.ok && syncPrepareBody && syncPrepareBody.ok && Array.isArray(syncPrepareBody.chapters) && _hasLoveSecretStoredUrl(syncPrepareBody)) {
+        _logLoveSecretFlow('SessionCreateSuccess', {
+          mode: _currentChapterMode,
+          reportId: _lsReportId,
+          sessionId: _lsSessionId,
+          flow: 'sync-prepare',
+        });
+        _applyCompletedResult(syncPrepareBody);
+        if (_cancelGeneration) return;
+        _setLoveBookGenerationState('completed');
+        _finalizeGenerationSuccess();
+        _logLoveSecretFlow('PdfRequestSuccess', { mode: _currentChapterMode, reportId: _lsReportId, flow: 'sync-prepare' });
+        return;
+      }
+
       _setLoveBookGenerationState('building_chapters');
       _logLoveSecretFlow('SessionCreateStart', { mode: _currentChapterMode, reportId: _lsReportId, sessionId: _lsSessionId });
       var submitRes = await fetch('/api/love-secret/prepare-async', {
         method: 'POST',
         credentials: 'include',
         headers: submitHeaders,
-        body: JSON.stringify({
-          reportId: _lsReportId,
-          sessionId: _lsSessionId,
-          reportSessionId: _lsSessionId,
-          mode: _currentChapterMode,
-          featureKey: _lsFeatureKey,
-          purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || '').trim() || undefined,
-          accessGrant: _lsAccessGrant || undefined,
-          premiumAccessToken: _lsPremiumToken || undefined,
-          payment: {
-            requestId: String((_lsAccessGrant && _lsAccessGrant.requestId) || '').trim() || undefined,
-            purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || '').trim() || undefined,
-            sessionId: _lsSessionId,
-            reportSessionId: _lsSessionId,
-          },
-          _paymentContext: {
-            requestId: String((_lsAccessGrant && _lsAccessGrant.requestId) || '').trim() || undefined,
-            purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || '').trim() || undefined,
-            sessionId: _lsSessionId,
-            reportSessionId: _lsSessionId,
-          },
-          birthInput: birthInput,
-          profile: window.__cdActiveBirthProfile || {},
-          partnerBirthInput: partnerBirthInput || undefined,
-          partnerData: partnerBirthInput ? _collectPartnerScreenData() : '',
-        }),
+        body: JSON.stringify(preparePayload),
       });
 
       var submitBody = await submitRes.json().catch(function () { return {}; });

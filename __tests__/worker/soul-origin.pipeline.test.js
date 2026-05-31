@@ -53,12 +53,14 @@ describe("soul-origin pipeline source contracts", () => {
     expect(source.includes("localSeed,")).toBe(true);
   });
 
-  test("운명의 업 챕터는 고정 8개 구조를 유지해야 한다", () => {
+  test("운명의 업 챕터는 고정 12개 구조를 유지해야 한다", () => {
     const source = read("worker/routes/soul-origin.js");
-    const chapterIdMatches = source.match(/id:\s*"[a-z_]+"/g) || [];
-    const chapterTitleMatches = source.match(/title:\s*"Chapter\s+[0-9]+\./g) || [];
-    expect(chapterIdMatches.length).toBeGreaterThanOrEqual(8);
-    expect(chapterTitleMatches.length).toBeGreaterThanOrEqual(8);
+    const chapterIdMatches = source.match(/id:\s*"\d{2}"/g) || [];
+    const chapterTitleMatches = source.match(/title:\s*"제\s*\d+장\./g) || [];
+    const categoryKeyMatches = source.match(/categories:\s*\[/g) || [];
+    expect(chapterIdMatches.length).toBeGreaterThanOrEqual(12);
+    expect(chapterTitleMatches.length).toBeGreaterThanOrEqual(12);
+    expect(categoryKeyMatches.length).toBeGreaterThanOrEqual(12);
     expect(source.includes("질문하신 내용은")).toBe(false);
     expect(source.includes("상대방은")).toBe(false);
     expect(source.includes("상대의 생년월일")).toBe(false);

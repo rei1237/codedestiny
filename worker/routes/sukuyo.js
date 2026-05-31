@@ -1,5 +1,5 @@
 import { Solar } from "lunar-javascript";
-import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import {
@@ -300,7 +300,24 @@ function buildSukuyoSeedFromCompatibility(input = {}) {
 function readPremiumAccessToken(request, body = {}) {
   const headerToken = clean(request.headers.get("x-premium-access-token"));
   if (headerToken) return headerToken;
-  return clean(body?.premiumAccessToken || body?._premiumAccessToken || body?.accessToken);
+  return clean(
+    body?.premiumAccessToken
+    || body?._premiumAccessToken
+    || body?.accessToken
+    || body?.accessGrant?.premiumAccessToken
+    || cookieValue(request, "cd_premium_access")
+    || cookieValue(request, "cd_premium_access_token"),
+  );
+}
+
+function resolveSukuyoReportId(body = {}, sessionId = "") {
+  return clean(
+    body?.reportId
+    || body?.accessGrant?.reportId
+    || body?.reportSessionId
+    || sessionId
+    || `sukyo-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+  );
 }
 
 async function handleSukuyoPremiumPreflight(request) {
@@ -476,7 +493,7 @@ async function handleSukuyoPremiumPrepare(request, env) {
       progress: { stage: "payment-verified" },
     });
 
-    const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `sukyo-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
+    const reportId = resolveSukuyoReportId(body, sessionId);
     const generated = await generateSukyoPremiumReport(env, dryRunSeed);
     const requestOrigin = new URL(request.url).origin;
     const archiveUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;

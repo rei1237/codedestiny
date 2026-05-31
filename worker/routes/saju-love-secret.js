@@ -37,30 +37,33 @@ const LOVE_SECRET_FAST_DB_ENV_OVERRIDES = Object.freeze({
 
 const DEFAULT_CATEGORY_BY_MODE = {
   solo: {
-    1: ["일간으로 보는 사랑의 기본 태도", "일지로 보는 마음의 방어선", "월지가 만드는 연애 욕구", "천간에 드러난 표현 방식", "지지에 숨어 있는 관계 본능", "이 명식의 사랑 한 줄 해석"],
-    2: ["배우자성으로 보는 이상형", "나를 흔드는 상대의 특징", "겉으로 끌리는 사람과 실제로 맞는 사람", "관계 초반에 강하게 작동하는 패턴", "피해야 할 매력의 함정", "오래 갈 수 있는 사람의 조건"],
-    3: ["사랑이 시작되는 방식", "마음을 여는 속도", "가까워질수록 드러나는 모습", "자존심이 개입되는 순간", "반복되는 오해와 거리감", "관계를 안정시키는 핵심 습관"],
-    4: ["식상으로 보는 표현 방식", "말이 강해지는 순간", "침묵으로 마음을 숨기는 패턴", "상대가 오해하기 쉬운 표현", "갈등을 풀어내는 대화법", "사랑을 지키는 말의 온도"],
-    5: ["일지로 보는 배우자궁", "배우자성과 현실 조건", "결혼에 유리한 관계 구조", "결혼 후 반복될 수 있는 갈등", "결혼운을 살리는 생활 방식", "오래 가는 파트너십의 조건"],
-    6: ["관계가 흔들리는 첫 신호", "이별을 부르는 말과 태도", "미련이 남는 구조", "다시 이어질 수 있는 조건", "재회가 독이 되는 경우", "관계를 회복시키는 현실 전략"],
-    7: ["연애에서 반드시 지켜야 할 기준", "내려놓아야 할 방어기제", "상대에게 보여줘야 할 진짜 매력", "사랑과 일의 균형", "안정적인 관계를 만드는 루틴", "나에게 맞는 연애 운영법"],
-    8: ["현재 연애운의 큰 흐름", "가까운 시기의 만남 가능성", "관계가 깊어지기 쉬운 시기", "조심해야 할 감정 기복의 시기", "결혼을 준비하기 좋은 흐름", "운의 흐름을 사랑에 활용하는 법"],
-    9: ["연애에서 가장 약해지는 순간", "반복되는 선택 실수", "자존심과 불안의 충돌", "관계를 망치는 무의식적 습관", "약점을 매력으로 바꾸는 법", "다시 사랑할 힘을 회복하는 법"],
-    10: ["이 명식의 가장 큰 연애 무기", "반드시 조심해야 할 관계 패턴", "좋은 사람을 알아보는 기준", "사랑을 현실로 지키는 방법", "결혼까지 이어지는 전략", "최종 연애 조언"],
+    1: ["내가 사랑을 시작하는 방식", "마음이 열리는 순간", "사랑 앞에서 강해지는 부분", "사랑 앞에서 약해지는 부분", "내 연애의 핵심 한 줄"],
+    2: ["내가 본능적으로 끌리는 사람", "나를 강하게 끌어당기는 분위기", "처음엔 매력적이지만 오래 가면 힘든 사람", "안정감을 주는 사람의 조건", "피해야 할 연애 패턴"],
+    3: ["반복되는 연애 흐름", "관계 초반의 나", "관계가 깊어진 뒤의 나", "상처받을 때 반복되는 반응", "같은 실수를 끊는 방법"],
+    4: ["애정을 표현하는 방식", "서운함을 말하는 방식", "침묵하거나 참는 이유", "말 때문에 생기는 오해", "관계를 살리는 대화법"],
+    5: ["사랑받고 있는지 확인하고 싶어지는 순간", "불안이 커지는 관계 조건", "집착처럼 보일 수 있는 행동", "마음이 식어 보이는 이유", "안정적인 사랑을 만드는 법"],
+    6: ["나에게 맞는 배우자상", "결혼으로 안정되는 부분", "결혼 후 조심해야 할 문제", "늦게 안정되는 인연인지 빠르게 이어지는 인연인지", "장기 관계를 위한 조건"],
+    7: ["관계가 멀어지는 이유", "이별 후 마음이 오래 남는 이유", "재회를 원할 때 반복되는 실수", "다시 이어질 수 있는 조건", "재회보다 먼저 회복해야 할 것"],
+    8: ["내 명식의 온도와 친밀감 방식", "마음이 가까워질 때 몸과 감정이 반응하는 방식", "따뜻함이 필요한 사람인지, 거리가 필요한 사람인지", "속궁합에서 중요하게 느끼는 안정감", "건강한 친밀감을 유지하는 법"],
+    9: ["인연운이 열리는 흐름", "대운에서 사랑이 들어오는 방식", "세운에서 조심해야 할 관계", "좋은 사람을 알아보는 기준", "사랑운을 살리는 현실 전략"],
+    10: ["내 연애의 최종 핵심 메시지", "반드시 버려야 할 연애 습관", "반드시 키워야 할 사랑의 태도", "나에게 맞는 사람을 선택하는 법", "앞으로의 사랑을 위한 실전 조언"],
   },
   compatibility: {
-    1: ["나의 원국 요약", "상대의 원국 요약", "두 사람 일간 관계", "두 사람 일지 관계", "끌림의 시작점", "관계 기본축"],
-    2: ["나의 사랑 태도", "나의 표현 습관", "나의 방어기제", "내가 바라는 관계", "내가 약해지는 순간", "내가 지켜야 할 기준"],
-    3: ["상대의 사랑 태도", "상대의 표현 습관", "상대의 방어기제", "상대가 바라는 관계", "상대가 약해지는 순간", "상대가 지켜야 할 기준"],
-    4: ["배우자성 관점의 끌림", "오행 보완성", "초기 케미 포인트", "관계 심화 조건", "환상과 현실의 간극", "오래 가는 접점"],
-    5: ["감정 속도 차이", "말의 온도 차이", "침묵 패턴", "오해 누적 구간", "화해가 쉬운 방식", "표현 조율 규칙"],
-    6: ["충돌 촉발 요인", "자존심 충돌", "반복되는 말실수", "합충형해파 관점의 갈등", "갈등 완충 장치", "재발 방지 실행"],
-    7: ["생활 리듬 차이", "역할 분담", "경계선 설정", "일과 사랑의 균형", "피로 누적 신호", "현실 조율 프로토콜"],
-    8: ["결혼 가능성의 조건", "배우자궁 상호작용", "결혼 후 갈등 포인트", "책임과 안정성", "생활 궁합 점검", "장기 파트너십 설계"],
-    9: ["돈 감각 차이", "일 우선순위 차이", "소비와 저축 관성", "현실 목표의 합치", "위기 대응 방식", "현실 협업 전략"],
-    10: ["이별 위험 시그널", "거리감이 커지는 패턴", "미련 구조", "재회 가능 조건", "재회가 독이 되는 경우", "관계 정리 기준"],
-    11: ["현재 관계 흐름", "대운 관점의 전환점", "세운 관점의 기회", "주의 시기", "관계 심화 타이밍", "시기 활용 전략"],
-    12: ["관계의 핵심 무기", "반드시 피해야 할 패턴", "합의 문장 만들기", "일상 유지 루틴", "결혼으로 이어지는 전략", "최종 궁합 조언"],
+    1: ["두 사람의 전체 궁합 한 줄 해석", "처음 끌리는 이유", "함께 있을 때 만들어지는 분위기", "관계의 가장 큰 장점", "가장 조심해야 할 약점"],
+    2: ["내가 사랑을 시작하는 방식", "내가 관계에서 원하는 것", "불안할 때 보이는 반응", "내가 오래 사랑하기 위해 필요한 조건", "궁합에서 내 성향이 작동하는 핵심"],
+    3: ["상대가 사랑을 시작하는 방식", "상대가 관계에서 원하는 것", "상대가 멀어질 때 보이는 신호", "상대를 이해하기 위한 핵심 포인트", "관계에서 상대 성향이 드러나는 장면"],
+    4: ["두 일간이 만났을 때의 분위기", "서로에게 자극이 되는 부분", "서로를 어렵게 느끼는 부분", "기질 차이를 조화시키는 법", "일간 궁합의 실전 적용"],
+    5: ["두 사람의 일지가 만드는 관계 분위기", "편안함을 느끼는 부분", "반복되는 감정 충돌", "가까워질수록 드러나는 문제", "관계의 뿌리를 안정시키는 방법"],
+    6: ["내가 원하는 사랑의 조건", "상대가 원하는 사랑의 조건", "서로의 기대가 맞는 부분", "서로의 기대가 어긋나는 부분", "기대 차이를 줄이는 방법"],
+    7: ["두 사람의 오행이 만나 만드는 분위기", "부족한 기운을 채워주는 부분", "과한 기운이 부딪히는 부분", "감정이 뜨거워지는 순간", "감정 균형을 맞추는 방법"],
+    8: ["두 사람의 명식 온도 차이", "서로에게 따뜻함을 주는 방식", "긴장과 이완이 생기는 지점", "몸과 마음의 친밀감이 맞는 부분", "속궁합을 건강하게 유지하는 법"],
+    9: ["말이 잘 통하는 부분", "말이 엇갈리는 부분", "서운함을 표현하는 방식", "침묵이 생기는 이유", "관계를 살리는 대화법"],
+    10: ["가장 자주 부딪히는 문제", "서로를 오해하는 지점", "감정이 폭발하는 순간", "화해가 어려워지는 이유", "갈등을 줄이는 현실적인 방법"],
+    11: ["이 관계가 멀어지는 이유", "이별 후에도 마음이 남는 이유", "다시 이어질 수 있는 조건", "재회 후 반복될 수 있는 문제", "재회를 원할 때 가장 중요한 태도"],
+    12: ["오래 만날수록 안정되는 부분", "결혼 후 드러날 수 있는 차이", "생활 리듬의 궁합", "책임과 역할 분담의 문제", "장기 관계로 가기 위한 조건"],
+    13: ["돈과 현실 감각의 차이", "일과 사랑의 우선순위", "가족과 주변 사람의 영향", "생활 습관에서 생기는 문제", "현실 문제를 함께 해결하는 법"],
+    14: ["지금 두 사람의 관계 운", "가까워지기 좋은 시기", "조심해야 할 시기", "관계가 바뀌는 전환점", "타이밍을 잘 쓰는 방법"],
+    15: ["이 관계의 최종 핵심 메시지", "관계를 망치는 행동", "관계를 살리는 행동", "서로에게 꼭 필요한 태도", "앞으로의 선택을 위한 조언"],
   },
 };
 
@@ -267,12 +270,12 @@ function validateLoveSecretManuscript({ mode, chapters, config, minChapterChars 
   const lowSectionCount = [];
   for (const chapter of list) {
     const sectionList = Array.isArray(chapter?.sections) ? chapter.sections : [];
-    if (sectionList.length < 6) {
+    if (sectionList.length < 5) {
       lowSectionCount.push(Number(chapter?.chapter || 0));
     }
     for (const section of sectionList) {
       const sectionLen = String(clean(section?.body || section?.text || "")).replace(/\s+/g, "").length;
-      if (sectionLen < 420) {
+      if (sectionLen < 700) {
         shortSections.push({ chapter: Number(chapter?.chapter || 0), section: clean(section?.title) || "(무제)", len: sectionLen });
       }
     }
@@ -915,9 +918,40 @@ function safeModeChapterConfig(mode) {
 function getChapterSpecificSections(body, chapterNo, mode) {
   const input = Array.isArray(body?.chapterSpecificSections) ? body.chapterSpecificSections : [];
   const cleanedInput = input.map((v) => stripUnsafeText(v)).filter(Boolean);
-  if (cleanedInput.length) return cleanedInput.slice(0, 8);
+  if (cleanedInput.length) return cleanedInput.slice(0, 5);
   const defaults = DEFAULT_CATEGORY_BY_MODE[mode] || DEFAULT_CATEGORY_BY_MODE.solo;
-  return (defaults[chapterNo] || defaults[1] || ["핵심 성향", "관계 패턴", "주의점", "실전 전략", "행동 가이드"]).slice(0, 8);
+  return (defaults[chapterNo] || defaults[1] || ["핵심 성향", "관계 패턴", "주의점", "실전 전략", "행동 가이드"]).slice(0, 5);
+}
+
+function resolveSpouseStarLabel(gender) {
+  const g = normalizeLoveSecretGender(gender);
+  if (g === "M") return "재성(정재·편재)";
+  if (g === "F") return "관성(정관·편관)";
+  return "배우자성";
+}
+
+function buildDaeunHint(base) {
+  const cycles = Array.isArray(base?.timing?.daeun) ? base.timing.daeun : [];
+  const picks = cycles.slice(0, 2).map((row) => clean(row?.ganji || row?.label || row?.name));
+  const lines = picks.filter(Boolean);
+  if (!lines.length) return "";
+  return `대운 흐름은 ${lines.join(", ")} 구간이 먼저 작동하며, 관계의 진전은 속도보다 방향을 맞출 때 안정됩니다.`;
+}
+
+function buildDayBranchRelationHint(dayBranch, partnerDayBranch) {
+  const a = clean(dayBranch);
+  const b = clean(partnerDayBranch);
+  if (!a || !b) return "";
+  const pair = `${a}${b}`;
+  const rev = `${b}${a}`;
+  const has = (list = []) => list.includes(pair) || list.includes(rev);
+  const yukhab = ["자축", "인해", "묘술", "진유", "사신", "오미"];
+  const chong = ["자오", "축미", "인신", "묘유", "진술", "사해"];
+  const hyeong = ["인사", "사신", "신인", "축술", "술미", "미축", "자묘", "묘자", "진진", "오오", "유유", "해해"];
+  if (has(yukhab)) return `두 사람 일지(${a}-${b})는 합의 결이 있어 마음이 맞물릴 때 친밀감이 빠르게 깊어지는 구조입니다.`;
+  if (has(chong)) return `두 사람 일지(${a}-${b})는 충의 긴장이 있어 감정이 빠르게 오르내릴 수 있으므로 말의 순서를 먼저 합의해야 합니다.`;
+  if (has(hyeong)) return `두 사람 일지(${a}-${b})는 형의 자극이 있어 사소한 생활 습관 차이도 크게 체감되기 쉬운 구조입니다.`;
+  return `두 사람 일지(${a}-${b})는 극단 충돌보다 생활 리듬 조율에서 궁합의 성패가 갈리는 유형입니다.`;
 }
 
 function localCategoryDraft(base, chapterTitle, sectionTitle, mode, chapterNo) {
@@ -930,6 +964,9 @@ function localCategoryDraft(base, chapterTitle, sectionTitle, mode, chapterNo) {
   const tenGod = clean(base?.tenGods?.dominantTenGod) || "비견";
   const strengthLabel = clean(base?.strength?.label) || (base?.strength?.isStrong === true ? "신강" : base?.strength?.isStrong === false ? "신약" : "중화");
   const hasHour = Boolean(clean(base?.pillars?.hour?.gan) && clean(base?.pillars?.hour?.zhi));
+  const spouseStarLabel = resolveSpouseStarLabel(base?.user?.gender);
+  const johuHint = clean(base?.johu?.summary || base?.johu?.type || base?.johu?.temperature || base?.johu?.label);
+  const daeunHint = buildDaeunHint(base);
   const hourNote = hasHour
     ? "시주 정보가 있어 친밀감 세부 반응까지 비교적 선명하게 판단했습니다."
     : "출생 시간이 없는 경우에는 시주 영역의 세부 판단을 보수적으로 해석하며, 일주와 월지를 중심으로 연애 성향을 판단합니다.";
@@ -937,6 +974,7 @@ function localCategoryDraft(base, chapterTitle, sectionTitle, mode, chapterNo) {
   const partner = base?.partner && typeof base.partner === "object" ? base.partner : null;
   const partnerDm = clean(partner?.core?.dayMaster);
   const partnerDb = clean(partner?.core?.dayBranch);
+  const dayBranchRelationHint = buildDayBranchRelationHint(db, partnerDb);
   const identity = ref?.identity || null;
   const primaryRisk = Array.isArray(ref?.risks) && ref.risks.length ? ref.risks[0] : null;
   const bestMonths = Array.isArray(ref?.monthlyWindows?.best) ? ref.monthlyWindows.best.slice(0, 2).map((row) => `${row.month} ${row.score}점`).join(", ") : "";
@@ -983,8 +1021,8 @@ function localCategoryDraft(base, chapterTitle, sectionTitle, mode, chapterNo) {
   }
 
   const paragraph1 = `${opening}\n\n${chapterNo}장의 ${sectionTitle}에서 중요한 것은 한 번의 강한 감정이 아니라 반복되는 선택의 방향입니다. 이 항목은 마음이 움직이는 순간, 표현이 오해로 번지는 순간, 그리고 관계를 다시 안정으로 돌리는 순간을 분리해 설명합니다. 따라서 관계가 좋을 때는 무엇을 유지해야 하는지, 흔들릴 때는 무엇을 먼저 멈춰야 하는지를 동시에 제시합니다.`;
-  const paragraph2 = `${pillarNotes.join(" ")} ${chapterNo}장 ${sectionTitle} 구간에서는 ${strengthLabel} 흐름에 따라 ${tenGodPack.attraction} 경향이 자주 나타나며, ${tenGodPack.caution}이 겹칠 때 갈등이 커지기 쉽습니다. ${hourNote}`;
-  const paragraph3 = `${sectionTitle}가 건강하게 작동하면 ${tenGodPack.strength}이 선명해지고, 관계의 중심이 흔들려도 다시 균형을 회복하는 속도가 빨라집니다. ${tenGodPack.marriage}으로 이어지는 장점이 살아나면 사랑은 감정 소비가 아니라 성장의 협업으로 바뀝니다. ${profileLines.join(" ")}`;
+  const paragraph2 = `${pillarNotes.join(" ")} ${chapterNo}장 ${sectionTitle} 구간에서는 ${strengthLabel} 흐름에 따라 ${tenGodPack.attraction} 경향이 자주 나타나며, ${tenGodPack.caution}이 겹칠 때 갈등이 커지기 쉽습니다. ${spouseStarLabel} 관점에서는 기대 수준을 선명하게 말할수록 관계 오해가 줄어듭니다. ${johuHint ? `조후의 결은 ${johuHint}로 읽히며, 친밀감은 감정 속도와 몸의 편안함을 같이 맞출 때 안정됩니다.` : "조후 균형은 관계의 온도 조절과 직결되므로 과열·과냉 구간에서 표현 강도를 조절해야 합니다."} ${hourNote}`;
+  const paragraph3 = `${sectionTitle}가 건강하게 작동하면 ${tenGodPack.strength}이 선명해지고, 관계의 중심이 흔들려도 다시 균형을 회복하는 속도가 빨라집니다. ${tenGodPack.marriage}으로 이어지는 장점이 살아나면 사랑은 감정 소비가 아니라 성장의 협업으로 바뀝니다. ${mode === "compatibility" ? dayBranchRelationHint : "일지의 생활 감각을 지키면 가까워질수록 생기는 오해를 미리 줄일 수 있습니다."} ${daeunHint} ${profileLines.join(" ")}`;
   const paragraph4 = `${sectionTitle}에서 신뢰가 어긋날 때는 ${tenGodPack.breakup} 패턴이 먼저 나타날 수 있으므로, 감정이 커진 날일수록 결론을 서두르기보다 대화 순서와 말의 온도를 먼저 조정해야 합니다. ${tenGodPack.advice}를 실전 규칙으로 삼고, ${chapterNo}장에서 바로 실행할 한 문장을 정해 반복하면 관계의 회복력이 확실히 올라갑니다.`;
 
   const text = [paragraph1, paragraph2, paragraph3, paragraph4].join("\n\n");
@@ -998,6 +1036,16 @@ function buildLocalChapter(base, chapterTitle, chapterSubtitle, sectionTitles, m
     title: stripUnsafeText(sectionTitle) || `세부 항목 ${idx + 1}`,
     body: localCategoryDraft(base, chapterTitle, sectionTitle, mode, chapterNo, idx),
   }));
+  for (let i = 0; i < sections.length; i += 1) {
+    let body = clean(sections[i]?.body);
+    let pass = 1;
+    while (body.replace(/\s+/g, "").length < 760 && pass <= 3) {
+      const addon = buildLoveSecretReinforcementText(base, mode, chapterNo, clean(sections[i]?.title || `세부 항목 ${i + 1}`), pass);
+      body = stripUnsafeText(`${body}\n\n${addon}`);
+      pass += 1;
+    }
+    sections[i].body = body;
+  }
   const text = sections.map((s) => `## ${s.title}\n\n${s.body}`).join("\n\n");
   return {
     chapterTitle,

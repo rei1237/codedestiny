@@ -24,9 +24,9 @@
   var LOADING_MESSAGES = [
     '사주 원국과 대상 연도를 검증하는 중입니다',
     '결제 및 접근 권한을 확인하는 중입니다',
-    '로컬 엔진으로 신년운세를 계산하는 중입니다',
-    '10챕터 로컬 원고를 완성하는 중입니다',
-    'AI 상담문을 보강하고 최종 PDF를 렌더링하는 중입니다'
+    '원국, 대운, 세운, 월운 흐름을 계산하는 중입니다',
+    '10챕터 상담 원고를 정리하는 중입니다',
+    '최종 PDF를 렌더링하고 저장하는 중입니다'
   ];
 
   function _qs(id) { return document.getElementById(id); }
@@ -563,8 +563,9 @@
 
       _postPrepare({
         serviceKey: SERVICE_KEY,
-        productKey: API_FEATURE_KEY,
-        featureKey: API_FEATURE_KEY,
+        productKey: BILLING_FEATURE_KEY,
+        featureKey: BILLING_FEATURE_KEY,
+        apiFeatureKey: API_FEATURE_KEY,
         billingFeatureKey: BILLING_FEATURE_KEY,
         reason: REASON,
         reportId: reportId,
@@ -604,22 +605,21 @@
         birthInput: normalizedBirth,
         sajuBase: sajuBase
       }).then(function (data) {
+        var payload = data && data.data && typeof data.data === 'object' ? data.data : data;
         if (String(data && data.status || '') === 'running') {
           _setProgress(TOTAL_CHAPTERS, '동일 세션 생성이 진행 중입니다. 잠시 후 결과를 확인합니다.');
           return;
         }
         _markPremiumVerified(25 * 60 * 1000);
-        _log('LocalChapterDraftCompleted', { chapterCount: Number(data.localDraftChapterCount || TOTAL_CHAPTERS) });
-        _log('LocalQualityValidationPassed', { chapterCount: Number(data.localDraftChapterCount || TOTAL_CHAPTERS) });
-        _log('LLMEnhancementStarted', { llmUsed: !!(data && data.llmUsed) });
-        _log('LLMEnhancementCompleted', { manuscriptSource: _clean(data && data.manuscriptSource), fallbackUsed: !!(data && data.fallbackUsed) });
-        _log('FinalValidationPassed', { chapterCount: data.chapterCount || TOTAL_CHAPTERS });
-        _log('PDFRenderStarted', { chapterCount: data.chapterCount || TOTAL_CHAPTERS });
+        _log('LocalChapterDraftCompleted', { chapterCount: Number(payload && payload.localDraftChapterCount || TOTAL_CHAPTERS) });
+        _log('LocalQualityValidationPassed', { chapterCount: Number(payload && payload.localDraftChapterCount || TOTAL_CHAPTERS) });
+        _log('FinalValidationPassed', { chapterCount: payload && payload.chapterCount || TOTAL_CHAPTERS });
+        _log('PDFRenderStarted', { chapterCount: payload && payload.chapterCount || TOTAL_CHAPTERS });
         _setProgress(TOTAL_CHAPTERS, '신년운세 프리미엄 PDF를 완성하는 중입니다');
-        _renderResult(data, profile, targetYear);
-        _log('PDFRenderCompleted', { chapterCount: _chapters.length, source: _clean(data && data.manuscriptSource) });
-        if (data && data.fallbackUsed && data.llmFallbackReason) {
-          _setProgress(TOTAL_CHAPTERS, 'AI 보강 일부가 지연되어 로컬 원고로 안전하게 완료했습니다');
+        _renderResult(payload, profile, targetYear);
+        _log('PDFRenderCompleted', { chapterCount: _chapters.length, source: _clean(payload && payload.manuscriptSource) });
+        if (payload && payload.fallbackUsed && payload.llmFallbackReason) {
+          _setProgress(TOTAL_CHAPTERS, '일부 상담문 보강이 지연되어 기본 원고로 안전하게 완료했습니다');
         }
         _showScreen('nyResultScreen');
       }).catch(function (error) {

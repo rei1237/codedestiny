@@ -730,16 +730,20 @@ function buildSajuNewYearChapterPrompt(seed, chapterSpec) {
     "당신은 사주 명리학 기반 신년운세 프리미엄 PDF를 작성하는 전문 상담가입니다.",
     "JSON seed를 바탕으로 챕터 구조에 맞게 원고를 새로 작성하세요.",
     "챕터 구조와 세부 카테고리를 절대 누락하지 마세요.",
-    "각 세부 카테고리 본문은 최소 600자 이상 작성하세요.",
+    "각 세부 카테고리 본문은 최소 700자 이상, 가능하면 900자 이상 작성하세요.",
     `챕터 구조: ${JSON.stringify(chapterSpec || {})}`,
     `JSON seed: ${JSON.stringify({ input: seed?.input, natalChart: seed?.natalChart, luckCycles: seed?.luckCycles })}`,
   ].join("\n");
 }
 
+function desiredSectionLength() {
+  return Math.max(MIN_SECTION_CHARS + 220, 920);
+}
+
 function normalizeGeneratedChapter(chapterSpec, parsed = {}) {
   const sections = (chapterSpec?.categories || []).map((title, index) => {
     const source = (Array.isArray(parsed.sections) ? parsed.sections[index] : null) || {};
-    const body = ensureMinLength(stripForbiddenText(source.body || source.text || ""), 600, {
+    const body = ensureMinLength(stripForbiddenText(source.body || source.text || ""), MIN_SECTION_CHARS, {
       targetYear: toInt(chapterSpec?.title?.match(/(\d{4})년/)?.[1], resolveDefaultTargetYear()),
       saju: { annualLuck: { label: "세운" } },
     }, title);
@@ -773,7 +777,7 @@ function buildDeterministicChapterFromSpec(seed, chapterSpec, reason = "") {
   };
   const sections = (chapterSpec?.categories || []).map((categoryTitle, idx) => ({
     title: categoryTitle,
-    body: ensureMinLength(localParagraph(seed, chapter, categoryTitle, idx) + (reason ? `\n\n실행 메모: ${reason}` : ""), 600, seed, categoryTitle),
+    body: ensureMinLength(localParagraph(seed, chapter, categoryTitle, idx), desiredSectionLength(), seed, categoryTitle),
   }));
   return {
     no: chapter.no,
@@ -790,13 +794,13 @@ function reinforceChapterFromSpec({ seed, chapterSpec, chapter, reason = "" } = 
   const sections = (chapterSpec?.categories || []).map((title, idx) => {
     const src = srcSections[idx] || {};
     const body = stripForbiddenText(src.body || src.finalText || src.text || "");
-    if (clean(src.title) === clean(title) && body.length >= 600 && !hasForbiddenText(body)) {
+    if (clean(src.title) === clean(title) && body.length >= MIN_SECTION_CHARS && !hasForbiddenText(body)) {
       return { title, body };
     }
     reinforced = true;
     return {
       title,
-      body: ensureMinLength(localParagraph(seed, { no: chapterSpec.no, title: chapterSpec.title, categories: chapterSpec.categories }, title, idx), 600, seed, title),
+      body: ensureMinLength(localParagraph(seed, { no: chapterSpec.no, title: chapterSpec.title, categories: chapterSpec.categories }, title, idx), desiredSectionLength(), seed, title),
     };
   });
   return {
@@ -811,7 +815,7 @@ function reinforceChapterFromSpec({ seed, chapterSpec, chapter, reason = "" } = 
   };
 }
 
-function validateSajuNewYearPdfLLMInterpretationQuality({ chapters = [], expectedChapters = buildSajuNewYearChapterSpecs(resolveDefaultTargetYear()), minChapterLength = 3000, minSectionLength = 600 } = {}) {
+function validateSajuNewYearPdfLLMInterpretationQuality({ chapters = [], expectedChapters = buildSajuNewYearChapterSpecs(resolveDefaultTargetYear()), minChapterLength = MIN_CHAPTER_CHARS, minSectionLength = MIN_SECTION_CHARS } = {}) {
   const errors = [];
   if (!Array.isArray(chapters) || chapters.length !== expectedChapters.length) {
     errors.push("chapter_count");
@@ -838,8 +842,6 @@ function validateSajuNewYearPdfLLMInterpretationQuality({ chapters = [], expecte
       if (body.length < minSectionLength) errors.push(`chapter_${chapterIndex + 1}_section_${secIndex + 1}_min_chars`);
     });
     if (chapterChars < minChapterLength) errors.push(`chapter_${chapterIndex + 1}_min_chars`);
-    if (spec.no === 8 && !/1월[\s\S]*12월/.test(chapter.text || "")) errors.push("chapter_8_month_range_missing");
-    if (spec.no === 10 && !/(1분기|2분기|3분기|4분기)/.test(chapter.text || "")) errors.push("chapter_10_plan_missing");
     totalChars += chapterChars;
   });
   return {
@@ -870,12 +872,23 @@ function localParagraph(seed, chapter, category, idx) {
 
   // Chapter 8 — 월별 운세
   if (chapter.no === 8) {
-    const start = idx * 2;
-    const months = seed.saju.monthlyLuck.slice(start, start + 2);
-    return describeMonthlyGroup(months, seed) +
-      `\n\n이 두 달을 이용하는 방법은 점수가 높은 달에 실행하고 낮은 달에 점검하는 사이클을 반복하는 것입니다. ` +
-      `${annual.label} 세운 전체 흐름 안에서 이 구간은 ${months.some((m) => m.score >= 75) ? "기회를 잡기 좋은 시기이므로 중요한 계획을 실행으로 옮기기에 적합합니다" : months.every((m) => m.score < 60) ? "신중한 판단이 필요한 시기이므로 새로운 시작보다 현재 상황을 점검하는 데 집중하는 것이 유리합니다" : "기회와 주의가 교차하는 시기이므로 상황에 따라 유연하게 대응하는 것이 필요합니다"}. ` +
-      `올해 전체 월별 흐름에서 이 구간이 어떤 위치에 있는지를 파악하고, 앞뒤 달의 에너지와 연결해 장기 계획을 조율하는 것이 가장 효과적인 월별 운세 활용법입니다.`;
+    if (idx === 0) {
+      const firstHalf = seed.saju.monthlyLuck.slice(0, 6);
+      return describeMonthlyGroup(firstHalf, seed) + `\n\n상반기는 올해 전체 방향을 실제 행동으로 바꾸는 구간입니다. ${annual.label} 세운이 초반에 던지는 신호를 흘려보내지 말고, 1월부터 6월까지의 흐름을 연결해서 보면 어디에서 속도를 내고 어디에서 균형을 잡아야 하는지가 선명해집니다. 상반기에 무리하게 모든 것을 끝내려 하기보다, 6월까지 기반을 단단히 세우고 관계와 일의 우선순위를 정리해 두면 하반기의 성과가 훨씬 안정적으로 이어집니다.`;
+    }
+    if (idx === 1) {
+      const secondHalf = seed.saju.monthlyLuck.slice(6, 12);
+      return describeMonthlyGroup(secondHalf, seed) + `\n\n하반기는 상반기에 만들어 둔 흐름을 수확과 재배치로 연결하는 구간입니다. 7월부터 12월까지는 운의 강약이 더 분명하게 체감되기 쉬우므로, 기회가 오는 달에는 과감히 밀어붙이고 부담이 커지는 달에는 무리한 결정을 늦추는 식의 운영이 필요합니다. 하반기를 잘 쓰는 사람은 연말에 성과만 남기는 것이 아니라, 다음 해로 이어질 기반까지 함께 남깁니다.`;
+    }
+    if (idx === 2) {
+      const careMonths = seed.saju.monthlyLuck.filter((m) => m.score < 60);
+      return `${careMonths.length ? careMonths.map((m) => `${m.month}월`).join("·") : "올해는 특정 한 달보다 상황별 대응이 더 중요합니다."}에는 특히 조심해야 할 흐름이 드러납니다. ${careMonths.length ? `${careMonths.map((m) => `${m.month}월`).join("·")}에는 세운과 월운이 원국에 부담으로 겹치면서 일정 변경, 감정 소모, 지출 증가, 관계 오해가 함께 움직일 가능성이 큽니다.` : "점수가 급격히 무너지는 달이 적더라도, 무리한 투자나 감정적 결정을 반복하면 충분히 흐름이 흔들릴 수 있습니다."} 이런 시기에는 새로운 시작보다 이미 잡아 놓은 계획을 점검하고, 사람과 돈, 일정의 균형을 다시 맞추는 것이 더 중요합니다. 조심해야 할 달의 핵심은 겁을 먹는 것이 아니라, 속도를 조절하고 방어선을 세우는 데 있습니다. 중요한 계약이나 큰 지출은 하루 이틀이라도 더 시간을 두고 검토하고, 관계에서는 말의 결론보다 말의 온도를 먼저 관리해야 손실을 줄일 수 있습니다. 결국 조심해야 할 달을 잘 보내는 사람이 한 해 전체의 안정감을 지킬 수 있습니다.`;
+    }
+    if (idx === 3) {
+      const opportunityMonths = seed.saju.monthlyLuck.filter((m) => m.score >= 75);
+      return `${opportunityMonths.length ? opportunityMonths.map((m) => `${m.month}월`).join("·") : "올해의 기회는 특정 한 달에 몰리기보다 준비된 순간에 열립니다."}에는 기회를 잡기 좋은 흐름이 강하게 작동합니다. ${opportunityMonths.length ? `${opportunityMonths.map((m) => `${m.month}월`).join("·")}은 세운의 힘이 월운과 맞물리면서 일, 재물, 관계에서 성과를 현실로 끌어오기 좋은 달입니다.` : "기회가 한 달에 몰리지 않더라도, 준비된 사람에게는 언제든 흐름이 열릴 수 있습니다."} 이 시기에는 준비만 하다가 타이밍을 놓치지 않도록 제안, 발표, 계약, 전환 같은 핵심 행동을 미리 배치해 두는 것이 좋습니다. 기회를 잡기 좋은 달에는 완벽한 조건을 기다리기보다 이미 준비한 것을 시장과 관계 속에 내놓는 용기가 필요합니다. 올해의 좋은 달을 잘 쓰는 사람은 단순히 운이 좋았던 것이 아니라, 좋은 달이 왔을 때 바로 움직일 수 있도록 미리 정리해 둔 사람입니다.`;
+    }
+    return `월별 운세는 달마다 점수가 다르다는 사실을 보는 데서 끝나면 큰 의미가 없습니다. 중요한 것은 그 달의 기운을 실제 계획에 어떻게 배치하느냐입니다. 점수가 높은 달에는 사람을 만나고, 제안을 하고, 중요한 결정을 내리는 쪽으로 일정을 설계하고, 점수가 낮은 달에는 점검과 정리, 관계 조율, 비용 관리에 무게를 두는 방식이 가장 현실적입니다. 또한 올해의 월운은 원국과 대운, 세운이 함께 만든 리듬이므로 한 달만 떼어 보지 말고 앞뒤 달의 연결까지 함께 봐야 흐름이 읽힙니다. 월별 운세 활용법의 핵심은 달의 좋고 나쁨을 따지는 것이 아니라, 달마다 해야 할 행동의 성격을 다르게 가져가는 데 있습니다. 그 기준만 잡혀 있으면 한 해 전체가 훨씬 덜 흔들리고, 운을 생활 속 선택으로 바꾸는 힘이 생깁니다.`;
   }
 
   const chapterNo = chapter.no;
@@ -932,28 +945,26 @@ function localParagraph(seed, chapter, category, idx) {
     return texts[idx] || texts[0];
   }
 
-  // Chapter 5 — 연애·결혼
+  // Chapter 5 — 인간관계
   if (chapterNo === 5) {
     const texts = [
-      `${tenGodLib.relationship} 올해의 연애운은 세운 ${annual.label}이 원국의 관계 자리에 어떻게 들어오느냐에 따라 크게 달라집니다. ${annual.tenGod === "정관" || annual.tenGod === "정재" ? "올해는 안정적이고 진지한 관계가 진전되거나 새로운 진지한 만남이 열리는 흐름이 강합니다." : annual.tenGod === "편관" || annual.tenGod === "편재" ? "올해는 새롭고 다양한 만남의 기회가 열리는 흐름이 있으나, 지나치게 빠른 결정은 신중하게 고려해야 합니다." : "올해 연애는 감정의 크기보다 상대와의 방향과 리듬이 맞는지를 먼저 확인하는 것이 중요합니다."} 사랑은 올해 어떤 형태로 당신에게 찾아오는지를 먼저 이해하는 것이 출발점입니다.`,
-      `새로운 만남의 가능성은 ${monthlyStrong.length > 0 ? monthlyStrong.slice(0, 3).map((m) => `${m.month}월`).join("·") + "에 더 자연스럽게 열립니다." : "연간 전반에 걸쳐 고르게 분포되어 있습니다."} ${combos.length > 0 ? "합의 에너지가 작동하는 만큼 인연이 빠르게 연결되는 흐름이 있으며, 새로운 사람과 자연스럽게 가까워지는 경험이 생길 수 있습니다." : "새로운 만남은 화려한 자리보다 공통의 관심사나 일상의 연결에서 더 자연스럽게 시작됩니다."} 만남을 억지로 만들기보다 내가 자연스럽게 있는 자리에서 열린 태도를 유지하는 것이 인연을 끌어들이는 방법입니다.`,
-      `기존 관계에서는 ${clashes.find((c) => c.label === "일지") ? "일지와 세운의 충 신호가 있어 관계에서 변화와 갈등의 압력이 생길 수 있습니다. 이것을 관계의 끝으로 해석하기보다 더 솔직한 대화를 나눌 기회로 활용하는 것이 현명합니다." : combos.find((c) => c.label === "일지") ? "일지와 세운의 합 신호가 있어 기존 관계가 더 깊어지거나 공식화될 수 있습니다." : "기존 관계는 큰 변화보다 일상의 방식과 습관을 점검하고 서로의 기대치를 재확인하는 것이 중요한 시기입니다."} 관계에서 가장 중요한 것은 상대에게 내가 원하는 것을 솔직하게 표현하는 것입니다.`,
-      `결혼이나 진지한 관계 전환은 ${annual.tenGod === "정관" ? "올해 정관의 에너지가 공식적인 관계 형성에 유리하게 작동합니다. 결혼을 고려하고 있다면 이 해가 자연스러운 흐름의 시기일 수 있습니다." : annual.tenGod === "정재" ? "올해 정재의 에너지가 안정적인 관계 구조 형성에 유리합니다. 현실적인 조건과 생활 방식에 대한 대화가 관계를 진전시키는 핵심 열쇠입니다." : "서두르기보다 서로의 현실 조건, 생활 리듬, 장기적인 방향이 맞는지를 충분히 확인한 다음 결정하는 것이 후회 없는 선택을 만들어줍니다."} 감정만으로 결정하는 것보다 현실적인 조건을 함께 점검하는 과정이 관계를 더 견고하게 만듭니다.`,
-      `갈등이 생기기 쉬운 지점은 ${tenGodLib.caution} ${annual.tenGod === "상관" ? "말과 표현이 날카로워지는 순간에 상대가 거리를 둘 수 있으므로, 정확한 말보다 상대가 받아들일 수 있는 온도로 전달하는 것이 필요합니다." : annual.tenGod === "비견" || annual.tenGod === "겁재" ? "자존심과 비교 심리가 관계 안으로 들어오지 않도록 역할과 공간을 명확히 하는 것이 갈등을 줄이는 방법입니다." : "기대치의 차이에서 갈등이 시작되는 경우가 많으므로, 서로의 기대를 먼저 말로 확인하는 습관이 필요합니다."} 갈등이 생겼을 때 침묵보다 솔직한 대화가 더 빠른 해결로 이어집니다.`,
-      `${tenGodLib.advice} 올해 사랑을 지키는 가장 중요한 방법은 내가 먼저 내 감정과 기대를 정확하게 아는 것입니다. 상대에게 무엇을 원하는지를 알고 그것을 솔직하고 따뜻하게 표현할 때 관계는 더 깊어집니다. 감정의 파도에 휩쓸리지 않고 관계의 방향을 함께 잡아가는 것이 올해 연애운을 가장 잘 쓰는 방법입니다.`,
+      `${tenGodLib.yearlyTheme} 올해 가까워지는 사람은 단순히 성향이 맞는 사람보다, 지금 당신이 풀어야 하는 과제와 연결되는 사람일 가능성이 큽니다. ${annual.tenGod === "비견" || annual.tenGod === "겁재" ? "같은 분야에서 경쟁과 협력을 동시에 경험하는 사람들, 혹은 비슷한 위치에서 서로를 자극하는 관계가 가까워질 수 있습니다." : annual.tenGod === "정관" || annual.tenGod === "편관" ? "책임감이 강하고 현실 감각이 분명한 사람이 올해의 인간관계에서 중요한 축이 되기 쉽습니다." : "생각을 넓혀 주고 감정의 밀도를 바꿔 주는 사람이 올해는 더 큰 의미로 들어올 가능성이 높습니다."} 가까워지는 사람을 무조건 오래 붙잡는 것이 중요한 것이 아니라, 그 사람이 내 삶에 어떤 방향을 열어 주는지를 읽어내는 것이 더 중요합니다. 관계의 초반에는 편안함보다 배울 점이 있는지, 긴장되더라도 성장의 계기를 주는지를 함께 보세요. 그런 기준으로 사람을 보면 올해 인간관계의 질이 훨씬 선명해집니다.`,
+      `${combos.length > 0 ? "합의 기운이 강하게 들어오면 귀인운은 의외로 자연스럽게 작동합니다. 억지로 도움을 요청하기보다, 이미 연결된 사람 안에서 다음 단계로 이어 줄 다리가 나타나는 경우가 많습니다." : "귀인운은 화려한 인맥보다 적절한 순간에 현실적인 도움을 주는 관계에서 드러납니다."} 올해 도움을 받을 수 있는 관계는 감정적으로만 편한 사람보다, 당신의 결정을 더 정확하게 만들고 시야를 넓혀 주는 사람입니다. 일에서는 방향을 정리해 주는 조언자, 돈 문제에서는 손익 감각을 잡아 주는 현실적인 사람, 감정에서는 과열된 마음을 가라앉혀 주는 차분한 사람이 귀인의 역할을 합니다. 중요한 것은 도움을 받을 때 막연히 기대는 것이 아니라, 내가 어떤 도움을 필요로 하는지 먼저 분명히 알고 다가가는 태도입니다. 그래야 관계가 일방적인 기대가 아니라 서로에게 의미 있는 연결로 남습니다.`,
+      `${clashes.length > 0 ? `올해는 ${clashes.map((c) => c.branch).join("·")} 자리의 충 신호가 관계 재편으로 드러날 가능성이 있습니다. 그래서 멀어질 수 있는 인연은 갑작스러운 사건 때문이라기보다, 이미 맞지 않던 방식이 더 이상 유지되지 않는 방향으로 정리되기 쉽습니다.` : "멀어질 수 있는 인연은 크게 싸워서 끊어지는 경우보다, 결이 맞지 않던 관계가 자연스럽게 소원해지는 방식으로 드러날 가능성이 높습니다."} 여기서 중요한 것은 관계가 멀어진다는 사실 자체를 실패로 해석하지 않는 것입니다. 지금의 삶과 방향에 맞지 않는 관계를 억지로 붙들면 오히려 에너지가 오래 소모됩니다. 올해는 모두를 만족시키려 하기보다, 내 시간을 쓰고 싶은 사람과 그렇지 않은 사람을 더 분명히 나누는 훈련이 필요합니다. 그 과정이 차갑게 느껴질 수 있어도, 결국 건강한 관계 구조를 만드는 데는 반드시 필요한 정리입니다.`,
+      `갈등이 생기는 이유는 표면적인 사건보다 기대와 역할의 차이에서 더 자주 시작됩니다. ${annual.tenGod === "상관" ? "특히 말이 빠르고 판단이 선명해지는 해에는 내가 한 말의 논리가 맞더라도 상대가 상처를 받는 경우가 생깁니다." : annual.tenGod === "비견" || annual.tenGod === "겁재" ? "비교와 자존심이 관계 안으로 들어오면 작은 일도 힘겨루기로 변할 수 있습니다." : "상대가 당연히 알아줄 것이라고 기대하는 부분이 실제로는 가장 큰 오해의 출발점이 되기 쉽습니다."} 갈등을 줄이려면 문제를 키운 뒤에 설명하는 것이 아니라, 불편함이 생긴 초기에 말의 온도를 낮춰서 꺼내는 습관이 필요합니다. 누가 옳은지를 가리기보다 지금 무엇이 어긋났는지를 확인하는 방식으로 대화를 열어야 관계가 덜 소모됩니다. 올해의 인간관계는 감정의 크기보다 조율의 기술이 결과를 좌우합니다.`,
+      `${tenGodLib.advice} 좋은 인연을 붙잡는 태도는 결국 분별력과 지속성에 달려 있습니다. 처음의 강한 호감만으로 관계를 판단하지 말고, 시간이 지나도 약속을 지키는지, 말과 행동이 일치하는지, 내가 약해졌을 때도 관계의 균형이 유지되는지를 보세요. 그런 사람에게는 조금 더 시간을 쓰고, 먼저 마음을 열고, 작게라도 신뢰를 쌓는 행동을 반복하는 것이 좋습니다. 올해 인연운은 많은 사람을 만나는 데서 완성되지 않습니다. 정말 남겨야 할 사람을 알아보고 그 관계를 오래 가는 구조로 만드는 데서 비로소 빛이 납니다.`,
     ];
     return texts[idx] || texts[0];
   }
 
-  // Chapter 6 — 인간관계
+  // Chapter 6 — 연애와 결혼운
   if (chapterNo === 6) {
     const texts = [
-      `${tenGodLib.yearlyTheme} 올해 가까워지는 사람들의 특성은 ${annual.tenGod === "비견" || annual.tenGod === "겁재" ? "나와 비슷한 역량이나 포지션을 가진 사람들, 또는 같은 분야에서 경쟁하거나 협력하는 사람들" : annual.tenGod === "식신" || annual.tenGod === "상관" ? "창의적이고 표현력이 강한 사람들, 또는 아이디어와 기획을 함께 나눌 수 있는 사람들" : annual.tenGod === "정관" || annual.tenGod === "편관" ? "책임감 있고 신뢰할 수 있는 사람들, 또는 조직이나 사회적 역할을 공유하는 사람들" : "다양한 배경을 가진 사람들"}입니다. 이 해에 만나는 사람들은 올해 이후의 방향에도 영향을 줄 가능성이 있으므로, 관계의 질에 주의를 기울이는 것이 필요합니다.`,
-      `귀인이 들어오는 방식은 ${combos.length > 0 ? "합의 에너지가 작동하는 만큼 자연스러운 연결을 통해 귀인이 가까워집니다." : monthlyStrong.length > 0 ? monthlyStrong.slice(0, 2).map((m) => `${m.month}월`).join("·") + "에 귀인과의 만남이 집중될 가능성이 높습니다." : "올해는 화려한 자리보다 일상의 연결에서 귀인이 나타납니다."} 귀인은 반드시 유명하거나 권력 있는 사람이 아닙니다. 지금 당신에게 필요한 정보, 방향, 연결을 가져다주는 사람이 귀인입니다. 귀인을 알아보려면 먼저 내가 지금 무엇이 필요한지를 명확히 알고 있어야 합니다.`,
-      `피해야 할 사람과 관계 패턴은 ${tenGodLib.caution} ${annual.tenGod === "겁재" ? "경쟁 심리를 부추기거나 나를 과도하게 비교 대상으로 삼는 사람들과의 관계에서는 에너지를 소모하기 쉽습니다." : annual.tenGod === "편관" ? "압박과 통제를 통해 관계를 유지하려는 사람들과의 관계에서는 거리를 두는 것이 필요합니다." : "내 에너지를 일방적으로 소모시키거나 기대만 높이는 관계는 올해 정리하는 것이 좋습니다."} 관계를 정리하는 것이 나쁜 것이 아니라 건강한 관계 구조를 만드는 과정임을 기억하세요.`,
-      `협업과 팀워크에서는 ${annual.tenGod} 에너지가 어떻게 작동하는지가 중요합니다. ${tenGodLib.career} 협업에서 가장 중요한 것은 역할과 기여 범위를 처음부터 명확하게 정의하는 것입니다. 역할이 모호하면 나중에 보상과 공로 배분에서 갈등이 생기므로, 시작 단계에서 조건을 명확히 하는 것이 팀워크를 오래 유지하는 방법입니다.`,
-      `말과 오해로 생기는 문제는 ${annual.tenGod === "상관" ? "상관의 에너지가 강해지면 말이 정확하고 날카로워지는 만큼 상대에게 차갑게 전달될 수 있습니다." : "의도와 다르게 해석되는 상황이 생기기 쉬운 시기입니다."} 중요한 대화에서는 결론부터 말하기보다 상대가 편안하게 받아들일 수 있는 순서로 이야기를 시작하는 것이 오해를 줄이는 방법입니다. 문자나 메시지보다 직접 대화하는 것이 오해를 빠르게 풀어줍니다.`,
-      `${tenGodLib.advice} 올해 인맥을 기회로 바꾸는 방법은 상대에게 먼저 가치를 제공하는 것입니다. 내가 무엇을 원하는지를 먼저 요청하기보다, 상대에게 어떤 도움이 될 수 있는지를 먼저 생각하면 관계가 더 자연스럽게 기회로 이어집니다. 작은 도움이 쌓이면 그것이 결국 귀인 관계로 발전합니다.`,
+      `${tenGodLib.relationship} 올해 연애 기운의 강도는 세운 ${annual.label}이 원국의 배우자성, 일지, 관계 관련 십성과 만나는 방식에서 드러납니다. ${annual.tenGod === "정관" || annual.tenGod === "정재" ? "올해는 관계를 안정적으로 정리하고 한 사람과의 깊이를 키우는 방향으로 기운이 모이기 쉽습니다." : annual.tenGod === "편재" || annual.tenGod === "편관" ? "새로운 자극과 만남의 가능성이 커지는 대신, 선택을 서두르면 관계의 소모도 커질 수 있습니다." : "연애 기운이 아예 약하다기보다, 감정의 파도보다 관계의 방향을 먼저 확인해야 하는 해에 가깝습니다."} 그래서 올해 사랑운은 강한 끌림 하나로 판단하기보다, 그 인연이 내 삶의 구조와 얼마나 잘 맞는지까지 함께 보아야 정확합니다. 감정이 올라오는 순간과 관계가 오래 가는 조건은 다를 수 있다는 점을 먼저 기억하세요.`,
+      `${monthlyStrong.length > 0 ? monthlyStrong.slice(0, 3).map((m) => `${m.month}월`).join("·") + "에는 새로운 인연이 들어올 가능성이 높습니다." : "새로운 인연은 한 달에 몰리기보다 준비된 시기에 자연스럽게 들어올 수 있습니다."} 새로운 인연이 들어오는 방식은 ${combos.length > 0 ? "합의 기운을 타고 지인의 소개, 일 연결, 자연스러운 협업 속에서 가까워지는 흐름" : "억지로 만남을 만들기보다, 내가 꾸준히 드러나는 공간에서 천천히 연결되는 흐름"}에 더 가깝습니다. 올해는 화려한 첫인상보다 관계의 리듬이 맞는지를 더 중요하게 봐야 합니다. 처음엔 강하게 느껴지지 않아도 대화가 편안하고 약속이 안정적인 사람이 오히려 오래 갈 가능성이 큽니다. 인연을 찾는 과정에서 기준을 낮추기보다, 내가 반복해서 상처받는 패턴이 무엇인지 먼저 아는 것이 더 중요합니다.`,
+      `${clashes.find((c) => c.label === "일지") ? "일지에 충 신호가 들어오면 기존 관계에서 숨겨 두었던 문제들이 더 이상 미뤄지지 않고 드러날 수 있습니다." : "기존 관계의 문제는 갑자기 생긴다기보다, 오래 묵어 있던 감정과 생활 습관의 차이가 더 선명해지는 방식으로 드러날 가능성이 큽니다."} 올해 기존 관계에서 드러나는 문제는 대개 사랑이 식어서라기보다, 기대와 역할을 다루는 방식이 어긋나기 때문입니다. 상대가 알아서 맞춰 주길 기다리거나, 반대로 내가 모두 참아 주는 구조가 오래 지속되면 관계는 겉으로는 조용해도 안쪽에서 빠르게 마릅니다. 올해는 불편함을 참는 능력보다, 불편함을 상처로 만들기 전에 대화로 조율하는 능력이 더 중요합니다. 문제를 피하지 않고 언어로 다루기 시작할 때 관계는 무너지는 대신 다시 설계될 수 있습니다.`,
+      `${annual.tenGod === "정관" || annual.tenGod === "정재" ? "결혼이나 장기 관계 가능성은 올해 비교적 분명하게 열릴 수 있습니다. 특히 현실 조건과 미래 계획을 함께 맞춰 갈 수 있는 상대라면 관계의 공식화가 자연스럽게 논의될 수 있습니다." : "결혼이나 장기 관계 가능성은 감정의 속도보다 생활 구조와 책임을 함께 감당할 수 있는지에서 결정됩니다."} 사랑이 깊어진다고 해서 곧바로 오래 가는 관계가 되는 것은 아닙니다. 올해 장기 관계를 판단할 때는 감정 표현의 빈도보다 갈등이 생겼을 때 어떻게 해결하는지, 돈과 시간의 우선순위를 어떻게 맞추는지, 각자의 삶을 존중하면서도 함께 갈 수 있는지를 보아야 합니다. 그 조건이 갖춰진 관계라면 올해는 충분히 다음 단계로 넘어갈 수 있습니다. 반대로 그 기준이 불분명하다면, 서두르지 않는 것이 오히려 관계를 지키는 선택입니다.`,
+      `${tenGodLib.caution} 사랑에서 조심해야 할 태도는 내가 불안할수록 더 뚜렷해집니다. ${annual.tenGod === "상관" ? "말로 상대를 시험하거나, 상처받기 전에 먼저 거리를 두는 태도" : annual.tenGod === "비견" || annual.tenGod === "겁재" ? "자존심 때문에 원하는 것을 말하지 않거나, 비교심으로 관계를 흔드는 태도" : "상대에게 맞춰 주는 척하면서 실제 감정은 쌓아 두는 태도"}는 올해 특히 관계를 어렵게 만들 수 있습니다. 사랑에서 중요한 것은 멋지게 보이는 대응이 아니라, 내가 무엇을 원하는지 솔직히 말하고 상대의 반응을 있는 그대로 보는 용기입니다. 서운함을 돌려 말하거나 기대를 숨기면, 관계는 더 오래 꼬입니다. 올해 사랑을 지키려면 감정을 미화하지 말고, 다정하지만 분명한 태도로 관계의 기준을 세우는 연습이 필요합니다.`,
     ];
     return texts[idx] || texts[0];
   }
@@ -961,12 +972,11 @@ function localParagraph(seed, chapter, category, idx) {
   // Chapter 7 — 건강
   if (chapterNo === 7) {
     const texts = [
-      `${tenGodLib.health} 올해 체력의 흐름은 세운 ${annual.label}의 ${annual.elementKo} 기운이 원국의 오행과 만나는 방식에서 결정됩니다. ${annual.dayMasterRelation === "압박과 책임" ? "압박과 책임이 커지는 해인 만큼 몸과 마음의 부담이 동시에 커질 수 있습니다." : annual.dayMasterRelation === "표현과 생산" ? "표현과 생산의 에너지가 강해지는 해인 만큼 활동량이 많아지고 그에 따른 피로가 쌓일 수 있습니다." : "올해의 체력은 균형 있게 관리하는 것이 핵심입니다."} 건강을 지키는 가장 기본적인 방법은 수면, 식사, 운동의 기본 루틴을 작고 일관되게 유지하는 것입니다.`,
-      `스트레스가 쌓이는 방식은 이 명식의 특성에 따라 다릅니다. ${annual.tenGod === "비견" || annual.tenGod === "겁재" ? "경쟁 압박과 자기 비교에서 스트레스가 쌓이기 쉬운 구조입니다." : annual.tenGod === "상관" ? "머릿속에서 생각이 멈추지 않고 과부하가 걸리는 방식으로 스트레스가 쌓입니다." : annual.tenGod === "편관" ? "외부에서 오는 압박과 요구를 과도하게 수용하면서 스트레스가 누적됩니다." : "일상의 작은 불편함들이 해결되지 않고 쌓이면서 스트레스가 커지는 패턴이 있습니다."} 스트레스를 조기에 발견하고 해소하는 루틴을 만들어두는 것이 번아웃을 예방하는 방법입니다.`,
-      `마음이 흔들리는 지점은 ${tenGodLib.caution} ${monthlyCare.length > 0 ? monthlyCare.slice(0, 2).map((m) => `${m.month}월`).join("·") + "에 심리적 부담이 더 커질 수 있으므로 이 구간에는 감정 소모를 줄이고 회복에 집중하는 것이 좋습니다." : "전반적으로 마음의 균형을 일정하게 유지하는 것이 중요합니다."} 마음이 흔들릴 때는 크게 결정하는 것을 미루고, 신뢰할 수 있는 사람과 대화하거나 혼자만의 시간을 갖는 것이 빠른 회복으로 이어집니다.`,
-      `수면과 식사, 일상 루틴의 질이 올해 건강운을 크게 좌우합니다. 수면이 부족하면 판단력이 떨어지고 감정 조절이 어려워지며, 이것이 다시 일과 관계에 부정적인 영향을 줍니다. 식사는 규칙적인 시간에 적정량을 유지하는 것이 기본이며, ${annual.elementKo === "화" ? "자극적이고 열성 음식의 과다 섭취를 주의하세요." : annual.elementKo === "금" ? "건조한 날씨와 피부 관리, 호흡기 건강에 특별히 신경 쓰세요." : annual.elementKo === "목" ? "근육 긴장과 과도한 활동으로 인한 근골격계 부담을 줄이세요." : annual.elementKo === "수" ? "체내 수분 관리와 냉증에 주의하세요." : "소화기 관리와 과식 패턴을 점검하세요."} 작은 루틴이 쌓이면 몸의 리듬이 안정되고 전반적인 건강운이 살아납니다.`,
-      `과로와 번아웃의 징후를 미리 알고 예방하는 것이 올해 건강 전략의 핵심입니다. 과로는 갑자기 찾아오지 않습니다. ${annual.tenGod === "편관" || annual.tenGod === "정관" ? "책임감 있게 일을 처리하는 성향상 스스로 한계를 늦게 알아차리는 경우가 많습니다." : annual.tenGod === "상관" || annual.tenGod === "식신" ? "창의적인 일에 몰두하다 보면 시간과 체력 소모를 인식하지 못하는 경향이 있습니다." : "성취 지향적인 에너지가 강할수록 쉬어야 할 신호를 무시하기 쉽습니다."} 한 달에 한 번 이상 자신의 에너지 수준을 점검하고, 70%가 넘었다고 느껴질 때 미리 회복 시간을 확보하는 것이 번아웃을 예방하는 가장 효과적인 방법입니다.`,
-      `${tenGodLib.advice} 올해 건강운을 지키는 습관의 핵심은 거창한 계획이 아니라 작고 지속 가능한 루틴입니다. 수면 7시간, 하루 30분 이상의 움직임, 주 1회 이상의 마음 비우는 시간, 월 1회 이상의 건강 점검이라는 기본 틀을 유지하면 올 한 해 몸과 마음을 안정적으로 관리할 수 있습니다.`,
+      `${tenGodLib.health} 올해 몸이 예민해지는 부분은 세운 ${annual.label}의 ${annual.elementKo} 기운이 원국의 약한 오행이나 이미 과도한 오행을 건드리는 지점에서 먼저 드러납니다. ${annual.elementKo === "목" ? "근육의 긴장, 눈의 피로, 간담 계열의 답답함처럼 몸의 긴장이 먼저 느껴질 수 있습니다." : annual.elementKo === "화" ? "열감, 심장 두근거림, 혈압성 피로, 과열된 신경 반응처럼 몸과 마음이 동시에 들뜨는 양상이 나타날 수 있습니다." : annual.elementKo === "토" ? "소화기 부담, 체중 기복, 몸이 무거워지는 느낌처럼 정체감이 두드러질 수 있습니다." : annual.elementKo === "금" ? "호흡기, 피부, 건조감, 예민한 신경 반응처럼 외부 자극에 민감해지는 흐름이 생길 수 있습니다." : "냉증, 부종, 수면의 질 저하처럼 체내 순환과 회복 리듬에서 불편함이 먼저 드러날 수 있습니다."} 올해는 몸이 보내는 작은 신호를 무시하지 않는 태도가 중요합니다. 병명을 단정하기보다, 반복해서 예민해지는 부분을 생활 리듬과 연결해 살피는 것이 훨씬 현실적인 관리 방법입니다.`,
+      `${monthlyCare.length > 0 ? monthlyCare.slice(0, 2).map((m) => `${m.month}월`).join("·") + "에는 마음이 흔들리는 시기가 더 선명하게 드러날 수 있습니다." : "올해는 특정 시기보다 피로가 누적된 순간에 마음의 흔들림이 더 크게 느껴질 수 있습니다."} 감정이 흔들릴 때 그것을 성격 문제로 몰아가지 말고, 몸의 피로와 일정의 밀도를 함께 보아야 합니다. ${annual.tenGod === "상관" ? "생각이 많아질수록 잠이 얕아지고, 잠이 얕아질수록 감정 기복이 더 커지는 흐름이 반복되기 쉽습니다." : annual.tenGod === "편관" ? "외부 압박을 오래 견디다 보면 멀쩡한 척하다가 한 번에 무너지는 방식으로 드러날 수 있습니다." : "참고 넘긴 감정이 쌓일수록 사소한 일에도 예민하게 반응하게 될 수 있습니다."} 올해 심리 리듬을 지키려면 감정을 통제하는 데만 집중하지 말고, 감정이 요동치기 전 몸의 신호를 먼저 읽어내는 연습이 필요합니다.`,
+      `스트레스가 쌓이는 방식은 사람마다 다르지만, 당신의 경우에는 운의 흐름이 강해질수록 더 분명한 패턴이 드러납니다. ${annual.tenGod === "비견" || annual.tenGod === "겁재" ? "경쟁과 비교, 자존심을 지키려는 압박이 스트레스를 키우기 쉽습니다." : annual.tenGod === "정관" || annual.tenGod === "편관" ? "책임을 놓치면 안 된다는 긴장감이 몸을 먼저 굳게 만들 수 있습니다." : annual.tenGod === "식신" || annual.tenGod === "상관" ? "생각과 표현이 많아질수록 정리되지 않은 자극이 피로로 쌓일 수 있습니다." : "겉으로는 조용해 보여도 감정과 걱정을 오래 안으로 묻어 두는 방식이 누적 피로를 만들 수 있습니다."} 스트레스를 줄이려면 큰 결심보다 배출 통로를 만드는 것이 먼저입니다. 하루에 짧게라도 걷기, 기록하기, 사람과 말하기 같은 방식으로 마음속 에너지가 멈춰 서지 않게 흘려보내야 올해의 건강운이 무너지지 않습니다.`,
+      `회복력을 높이는 생활 리듬은 특별한 비법보다 반복 가능한 기본에서 나옵니다. 수면 시간을 일정하게 맞추고, 식사 간격을 크게 무너뜨리지 않고, 몸을 지나치게 몰아붙인 날에는 반드시 회복 시간을 다음 일정 안에 포함시키는 식의 운영이 필요합니다. 특히 올해는 "버틸 수 있으니 더 한다"는 방식이 누적 손상을 만들기 쉽습니다. ${annual.elementKo === "화" ? "열을 식히는 휴식과 자극을 줄이는 밤 루틴" : annual.elementKo === "금" ? "건조함을 막는 습도 관리와 호흡을 길게 만드는 습관" : annual.elementKo === "수" ? "몸을 따뜻하게 하고 수면 깊이를 회복하는 습관" : annual.elementKo === "목" ? "몸을 풀어 주는 스트레칭과 긴장 완화 루틴" : "소화 부담을 줄이는 식사 리듬과 걷기"}이 올해 회복력을 높이는 데 특히 유효합니다. 회복력은 여유가 생긴 뒤 챙기는 것이 아니라, 일정이 많을수록 먼저 넣어 두어야 하는 필수 항목입니다.`,
+      `${tenGodLib.advice} 건강운을 지키는 조언을 한 가지로 압축하면, 무너지기 전에 조절하는 습관을 만드는 것입니다. 올해는 참아 내는 힘보다 조절하는 힘이 더 중요합니다. 몸이 보내는 예민함을 무시하지 말고, 마음이 흔들릴 때 큰 결정을 잠시 미루고, 일정이 빽빽할수록 일부러 빈 시간을 만들어 두세요. 그렇게 하면 올해의 건강운은 단순히 아프지 않은 수준을 넘어, 중요한 순간에 필요한 에너지를 안정적으로 유지하는 방향으로 바뀝니다. 결국 몸과 마음의 리듬을 지키는 사람만이 올해의 기회도 오래 붙잡을 수 있습니다.`,
     ];
     return texts[idx] || texts[0];
   }
@@ -974,33 +984,23 @@ function localParagraph(seed, chapter, category, idx) {
   // Chapter 9 — 위기와 반전
   if (chapterNo === 9) {
     const texts = [
-      `올해 가장 흔들리기 쉬운 순간은 ${clashes.length > 0 ? `원국과 세운의 충 신호가 활성화되는 ${monthlyCare.map((m) => `${m.month}월`).slice(0, 2).join("·") || "점수가 낮은 달"}입니다. 이 시기에는 외부 변화가 가속되면서 판단과 결정을 서두르는 압박이 강해집니다.` : `${monthlyCare.length > 0 ? monthlyCare.slice(0, 2).map((m) => `${m.month}월`).join("·") + "처럼 월별 에너지가 낮아지는 구간에서 자신도 모르게 작은 결정들이 흔들립니다." : "외부 상황이 갑자기 바뀌는 순간, 또는 기대가 빠르게 어긋나는 순간입니다."}`} 이 순간을 미리 알고 준비하면, 실제 위기가 왔을 때 흔들리는 폭이 훨씬 작아집니다.`,
-      `반복될 수 있는 선택 실수는 ${tenGodLib.caution} ${annual.tenGod === "겁재" ? "지고 싶지 않은 마음이 급한 결정을 만들어내는 패턴이 반복될 수 있습니다." : annual.tenGod === "상관" ? "아이디어가 많아 방향을 자주 바꾸다 보면 정작 중요한 것을 완성하지 못하는 패턴이 생깁니다." : annual.tenGod === "편관" ? "외부의 압박에 반응적으로 결정하다 보면 나중에 후회하는 선택이 쌓입니다." : "감정적인 상태에서 중요한 결정을 내리는 패턴이 반복됩니다."} 이 패턴을 인식하는 것만으로도 절반은 예방됩니다. 중요한 결정 앞에서는 "지금 이 결정이 감정에서 나온 것인가, 판단에서 나온 것인가"를 먼저 물어보는 습관이 필요합니다.`,
-      `돈과 일에서 조심할 장면은 ${monthlyCare.length > 0 ? monthlyCare.slice(0, 2).map((m) => `${m.month}월`).join("·") + "에 집중됩니다." : "월별 에너지가 낮아지는 구간에 집중됩니다."} ${tenGodLib.money} 이 시기에는 새로운 계약, 큰 투자, 갑작스러운 지출 결정을 최대한 늦추는 것이 안전합니다. 이미 진행 중인 계약이나 합의는 조항을 재확인하고, 수치와 일정이 맞는지 점검하는 것이 손실을 줄이는 방법입니다.`,
-      `관계에서 생길 수 있는 위기는 ${clashes.length > 0 ? "충 신호가 있는 관계에서 갑작스러운 갈등이나 이별이 발생할 수 있습니다." : "오해가 쌓이거나 기대가 어긋나는 방식으로 관계 위기가 찾아올 수 있습니다."} ${tenGodLib.relationship} 관계의 위기는 보통 작은 신호를 무시했을 때 더 크게 터집니다. 불편함이 생겼을 때 방치하지 말고 초기에 대화로 해결하는 것이 관계를 지키는 가장 효과적인 방법입니다.`,
-      `위기를 기회로 바꾸는 조건은 두 가지입니다. 첫째, 위기를 빨리 인식하는 것입니다. 둘째, 위기의 원인을 정확하게 파악하는 것입니다. ${clashes.length > 0 ? "충의 에너지가 작동하는 시기에는 변화 자체를 두려워하기보다, 어떤 방향으로 변화를 설계할지에 에너지를 집중하는 것이 위기를 기회로 전환하는 방법입니다." : "작은 문제를 방치하면 큰 위기가 되고, 큰 위기를 정면으로 받아내면 반전의 기회가 됩니다."} 위기 앞에서 도망가지 않고 기준을 잡고 서는 것이 반전을 만드는 핵심 조건입니다.`,
-      `올해 반드시 피해야 할 태도는 ${tenGodLib.caution} 특히 ${annual.tenGod === "겁재" || annual.tenGod === "비견" ? "남과 비교하며 자기 가치를 낮추는 태도와, 반대로 자존심만 앞세우며 협력을 거부하는 태도" : annual.tenGod === "상관" ? "정확한 말이 틀리지 않더라도 상대를 이기려는 방식으로 대화하는 태도" : annual.tenGod === "편관" ? "압박에 쫓겨 충동적으로 결정하는 태도와, 두려움에서 나온 회피 태도" : "결정을 무한히 미루는 태도와 감정적 충동에서 나오는 결정"}입니다. 이 태도를 의식적으로 피하는 것만으로도 올해 많은 위기를 예방할 수 있습니다.`,
+      `올해 가장 흔들리기 쉬운 문제는 ${clashes.length > 0 ? `원국과 세운의 충이 작동하는 ${monthlyCare.map((m) => `${m.month}월`).slice(0, 2).join("·") || "점수가 낮은 시기"}에 더 뚜렷하게 드러날 가능성이 있습니다.` : `${monthlyCare.length > 0 ? monthlyCare.slice(0, 2).map((m) => `${m.month}월`).join("·") + " 같은 구간에서" : "운의 강약이 엇갈리는 순간에"} 작게 시작한 문제가 빠르게 커질 수 있습니다.`} 흔들리기 쉬운 문제의 본질은 외부 사건 그 자체보다, 이미 쌓여 있던 피로와 미뤄 둔 결정이 한꺼번에 표면으로 올라오는 데 있습니다. 그래서 올해의 위기는 예상 밖 재난처럼 오기보다, 조금씩 무시해 온 신호가 어느 순간 더는 미룰 수 없게 되는 방식으로 나타날 가능성이 큽니다. 이 점을 이해하면 위기를 두려워하기보다, 신호를 먼저 읽고 구조를 정리하는 방향으로 대응할 수 있습니다.`,
+      `반복될 수 있는 실수는 대체로 익숙한 방식으로 다시 반응하는 데서 시작됩니다. ${annual.tenGod === "겁재" ? "이기고 싶다는 마음이 앞서 판단을 서두르는 실수" : annual.tenGod === "상관" ? "생각이 앞서 방향을 자주 바꾸고 끝맺음을 늦추는 실수" : annual.tenGod === "편관" ? "압박을 견디기 위해 무리하게 버티다가 뒤늦게 무너지는 실수" : "감정 상태를 점검하지 않은 채 중요한 선택을 내려 후회하는 실수"}가 올해 반복될 가능성이 높습니다. 실수를 줄이는 가장 좋은 방법은 완벽해지는 것이 아니라, 내가 어떤 순간에 같은 패턴으로 무너지는지를 정확히 아는 것입니다. 결정 앞에서 한 번 더 멈추고, 지금 내 상태가 과열인지 피곤한지부터 확인하는 습관만 생겨도 반복 실수의 절반은 줄어듭니다. 올해는 능력보다 자기 패턴을 읽는 힘이 더 큰 보호막이 됩니다.`,
+      `${clashes.length > 0 ? "위기가 기회로 바뀌는 조건은 변화 자체를 피하지 않는 데 있습니다. 충의 기운이 작동하면 기존 구조가 흔들릴 수밖에 없는데, 그때 무엇을 지키고 무엇을 바꿀지 스스로 선택하면 위기는 전환점이 됩니다." : "위기가 기회로 바뀌는 조건은 문제를 빠르게 인정하고, 감정 반응보다 구조 조정에 먼저 들어가는 데 있습니다."} 올해는 감정적으로만 버티는 방식으로는 반전이 잘 일어나지 않습니다. 일과 돈, 관계, 생활 리듬 중 어디가 먼저 무너졌는지 확인하고 그 지점을 다시 설계해야 합니다. 위기를 기회로 만드는 사람은 특별히 강한 사람이 아니라, 흔들릴 때 원인을 명확히 보고 작은 조정을 빠르게 반복하는 사람입니다. 올해 반전의 계기는 한 번의 큰 승부보다, 무너지는 흐름을 끊어 내는 작은 기준에서 시작될 가능성이 큽니다.`,
+      `피해야 할 선택은 겉으로는 쉬워 보이지만, 뒤로 갈수록 더 큰 비용을 남기는 선택입니다. 예를 들어 불안하다고 해서 무조건 확장하는 선택, 외롭다고 해서 맞지 않는 관계를 붙잡는 선택, 손실이 두려워 확인도 없이 결정을 미루는 선택은 모두 올해의 흐름을 더 꼬이게 만들 수 있습니다. ${tenGodLib.caution} 특히 ${annual.tenGod === "비견" || annual.tenGod === "겁재" ? "자존심 때문에 협력 기회를 놓치는 선택" : annual.tenGod === "상관" ? "말로 이기려다 관계 기반을 잃는 선택" : annual.tenGod === "편관" ? "압박을 버티기 위해 몸과 마음을 소진시키는 선택" : "겉으로는 무난해 보여도 본심과 다른 방향으로 끌려가는 선택"}은 오래 갈수록 손실이 커질 가능성이 높습니다. 올해는 순간의 편안함보다 장기적인 균형을 남기는 선택인지 스스로에게 계속 물어야 합니다.`,
+      `${tenGodLib.advice} 반전을 만드는 행동은 의외로 단순합니다. 미뤄 둔 문제를 작은 단위로 정리하고, 관계에서 불편한 부분을 초기에 말로 다루고, 돈과 일정에서 새는 구멍을 먼저 막고, 기회가 오는 달에는 망설이기보다 준비한 것을 꺼내는 것입니다. 반전은 갑자기 뒤집는 극적인 장면에서 나오지 않습니다. 흔들리는 흐름을 정확히 읽고, 그 흐름을 더 나빠지지 않게 끊는 행동에서 시작됩니다. 올해는 무섭게 예언을 듣는 해가 아니라, 위험 신호를 현실적인 선택으로 바꾸는 해여야 합니다. 그렇게 해야 비로소 위기가 지나간 자리에서 더 단단한 방향이 남습니다.`,
     ];
     return texts[idx] || texts[0];
   }
 
   // Chapter 10 — 마스터플랜
   if (chapterNo === 10) {
-    const q1Months = seed.saju.monthlyLuck.slice(0, 3);
-    const q2Months = seed.saju.monthlyLuck.slice(3, 6);
-    const q3Months = seed.saju.monthlyLuck.slice(6, 9);
-    const q4Months = seed.saju.monthlyLuck.slice(9, 12);
-    const q1Tone = q1Months.reduce((s, m) => s + m.score, 0) / 3;
-    const q2Tone = q2Months.reduce((s, m) => s + m.score, 0) / 3;
-    const q3Tone = q3Months.reduce((s, m) => s + m.score, 0) / 3;
-    const q4Tone = q4Months.reduce((s, m) => s + m.score, 0) / 3;
     const texts = [
-      `올해 가장 먼저 해야 할 선택은 이 해의 방향을 결정하는 것입니다. ${tenGodLib.yearlyTheme} 세운 ${annual.label}의 ${annual.tenGod} 에너지가 올해 당신에게 요구하는 것은 ${annual.tenGod === "식신" || annual.tenGod === "상관" ? "생각과 아이디어를 현실 결과물로 만드는 실행" : annual.tenGod === "편재" || annual.tenGod === "정재" ? "성과 구조를 명확히 정의하고 관리하는 능력" : annual.tenGod === "편관" || annual.tenGod === "정관" ? "책임과 역할을 명확히 하고 신뢰를 쌓는 태도" : annual.tenGod === "편인" || annual.tenGod === "정인" ? "배움과 내면 성장에 투자하는 결정" : "자기 기준을 세우고 독립적으로 움직이는 용기"}입니다. 이 선택을 가장 먼저 하고 나머지 계획을 세우는 것이 올해를 성공으로 이끄는 첫 걸음입니다.`,
-      `1분기(1~3월)는 ${q1Tone >= 68 ? "활발하게 시작하기 좋은 구간입니다. 올해의 방향을 빠르게 정리하고 핵심 관계와 업무를 먼저 세팅하는 데 집중하세요." : "차분하게 기반을 다지는 구간입니다. 서두르기보다 방향을 명확히 하고 실행 준비를 철저히 하는 것이 이 분기의 전략입니다."} ${q1Months.map((m) => `${m.month}월(${m.tone})`).join("·")} 흐름으로 전개되므로, ${q1Months.filter((m) => m.score >= 72).map((m) => `${m.month}월`).join("·") || "점수가 가장 높은 달"}에 새로운 시작이나 제안을 집중시키는 것이 유리합니다.`,
-      `2분기(4~6월)는 ${q2Tone >= 68 ? "상반기의 씨앗이 싹을 틔우는 구간입니다. 새로운 기회가 들어오기 시작하는 시기이므로 실행 속도를 높이고 확장을 준비하세요." : "점검과 조정이 필요한 구간입니다. 상반기에 시작한 것들을 점검하고 방향을 재조정하는 것이 이 분기의 핵심입니다."} ${q2Months.map((m) => `${m.month}월(${m.tone})`).join("·")} 흐름으로 전개되며, 이 시기에 중요한 계약이나 협상이 있다면 ${q2Months.filter((m) => m.score >= 72).map((m) => `${m.month}월`).join("·") || "에너지가 높은 달"}을 활용하는 것이 좋습니다.`,
-      `3분기(7~9월)는 ${q3Tone >= 68 ? "올해의 성과가 가시화되는 구간입니다. 하반기의 도약을 준비하는 동시에, 상반기의 결실을 수확하는 시기입니다." : "에너지를 재충전하고 하반기를 위한 준비를 하는 구간입니다. 과도한 확장보다 내실을 다지는 것이 이 분기의 전략입니다."} ${q3Months.map((m) => `${m.month}월(${m.tone})`).join("·")} 흐름이므로, 이 시기에는 ${q3Months.filter((m) => m.score < 60).length > 0 ? "피로 누적과 번아웃 징후를 주기적으로 점검하고 회복 루틴을 유지하는 것이 중요합니다." : "성과를 안정적으로 유지하면서 새로운 방향을 탐색하는 시기입니다."}`,
-      `4분기(10~12월)는 ${q4Tone >= 68 ? "올해를 마무리하면서 다음 해를 준비하는 구간입니다. 이 분기에 강한 에너지가 있다면 마지막 스퍼트로 올해 목표를 완성하는 것이 가능합니다." : "한 해를 정리하고 다음 해의 기반을 다지는 구간입니다. 서두르기보다 올해 이룬 것과 아직 남은 것을 정확하게 정리하는 것이 중요합니다."} ${q4Months.map((m) => `${m.month}월(${m.tone})`).join("·")} 흐름으로 마무리되므로, 연말에는 올해의 성과를 기록하고 다음 해의 방향을 미리 설정하는 것이 다음 해를 여는 가장 좋은 준비입니다.`,
-      `${tenGodLib.advice} 올해의 마지막 조언은 세운을 예언이 아닌 나침반으로 쓰는 것입니다. 운이 좋은 달에는 실행하고, 운이 조심스러운 달에는 점검하고, 위기가 왔을 때는 도망가지 말고 기준을 잡고 서는 것. 이 세 가지 원칙으로 ${seed.targetYear}년 한 해를 운영한다면, 세운 ${annual.label}의 에너지를 최대한 내 편으로 쓸 수 있습니다.`,
+      `올해의 핵심 메시지는 세운 ${annual.label}을 막연한 분위기로 받아들이지 말고, 실제 선택의 기준으로 쓰라는 것입니다. ${tenGodLib.yearlyTheme} 이 해는 좋고 나쁨을 단정하는 해가 아니라, 무엇에 에너지를 써야 하고 무엇을 줄여야 하는지를 빨리 알아차리는 사람이 훨씬 유리한 해입니다. 그래서 올해의 핵심 메시지는 "운을 기다리지 말고 흐름에 맞게 움직이라"는 말로 정리할 수 있습니다. 기회가 오는 달에는 바로 움직일 수 있도록 미리 준비하고, 부담이 커지는 달에는 과감하게 속도를 줄이며 구조를 다시 세우는 태도가 필요합니다. 이 기준만 분명하면 한 해 전체가 훨씬 덜 흔들립니다.`,
+      `가장 먼저 정리해야 할 것은 마음속 불안보다 실제로 에너지를 빼앗는 요소들입니다. 사람 문제인지, 돈 문제인지, 생활 리듬인지, 미뤄 둔 결정인지부터 나눠 보아야 올해의 흐름이 선명해집니다. ${monthlyStrong.length > 0 ? `${monthlyStrong[0].month}월 전후로 흐름이 강해지기 전에 우선순위를 정리해 두면` : "초반 흐름을 정리해 두면"} 좋은 운이 들어와도 허공으로 새지 않습니다. 쌓인 피로와 미정 상태를 그대로 둔 채 새 계획을 올리면 좋은 운도 오래 못 갑니다. 올해는 큰 목표부터 잡는 것보다, 먼저 치워야 할 문제를 정리하고 에너지 누수를 막는 것이 진짜 출발선입니다.`,
+      `반드시 밀어붙여야 할 것은 지금까지 준비해 왔지만 망설임 때문에 밖으로 꺼내지 못했던 일입니다. ${annual.tenGod === "식신" || annual.tenGod === "상관" ? "표현하고 제안하고 결과물로 만드는 일" : annual.tenGod === "편재" || annual.tenGod === "정재" ? "수익 구조와 계약, 성과를 명확하게 만드는 일" : annual.tenGod === "편관" || annual.tenGod === "정관" ? "책임을 맡고 자리의 무게를 받아내는 일" : "내 기준을 세우고 방향을 결정하는 일"}은 올해 미루면 아쉬움이 더 크게 남을 가능성이 있습니다. ${monthlyStrong.length > 0 ? monthlyStrong.slice(0, 3).map((m) => `${m.month}월`).join("·") + "처럼 흐름이 강한 달에는" : "흐름이 열리는 순간에는"} 완벽해진 뒤 움직이겠다는 생각보다, 준비한 것을 실제로 세상과 관계 속에 놓는 쪽이 훨씬 큰 성과로 이어집니다. 올해는 주저하는 시간보다 실행의 리듬이 더 중요합니다.`,
+      `내려놓아야 할 것은 늘 해 오던 방식인데도 이미 효율이 떨어진 습관들입니다. ${annual.tenGod === "비견" || annual.tenGod === "겁재" ? "혼자 다 해내려는 태도와 필요 이상으로 버티는 습관" : annual.tenGod === "상관" ? "말과 생각만 많고 끝맺음이 늦어지는 패턴" : annual.tenGod === "편관" ? "압박을 견디는 것 자체를 성실함으로 착각하는 태도" : "상황이 바뀌었는데도 익숙하다는 이유로 붙들고 있는 방식"}은 올해의 흐름을 무겁게 만들 수 있습니다. 내려놓는다는 것은 포기하는 것이 아니라, 지금의 삶에 맞지 않는 방식에 더 이상 에너지를 주지 않는다는 뜻입니다. 그래야 정말 밀어붙여야 할 것에 힘이 모입니다. 올해는 덜어 내는 결단이 오히려 전진의 속도를 높여 줄 수 있습니다.`,
+      `${tenGodLib.advice} 1년을 잘 보내기 위한 실전 전략은 복잡하지 않습니다. 좋은 달에는 실행, 어려운 달에는 조정, 흔들리는 순간에는 기준 확인이라는 세 가지 원칙을 계속 반복하면 됩니다. 이 원칙을 지키기 위해 분기마다 한 번씩 현재 흐름을 점검하고, 월별로는 중요한 일정과 지출, 관계 에너지를 짧게라도 기록해 두세요. 기록이 쌓이면 운은 더 이상 막연한 느낌이 아니라, 실제 선택을 돕는 데이터가 됩니다. 결국 올해를 잘 보내는 사람은 운이 좋은 사람보다, 자신의 흐름을 읽고 거기에 맞게 움직일 줄 아는 사람입니다. ${seed.targetYear}년은 바로 그 감각을 길러 주는 한 해가 되어야 합니다.`,
     ];
     return texts[idx] || texts[0];
   }
@@ -1018,7 +1018,7 @@ function buildLocalSkeleton(seed) {
   return NEW_YEAR_CHAPTERS.map((chapter) => {
     const categories = chapter.categories.map((category, idx) => {
       const base = localParagraph(seed, chapter, category, idx);
-      const expanded = ensureMinLength(base, MIN_SECTION_CHARS, seed, category);
+      const expanded = ensureMinLength(base, desiredSectionLength(), seed, category);
       const sanitized = stripForbiddenText(expanded);
       return {
         title: category,
@@ -1143,7 +1143,8 @@ async function handlePrepare(request, env) {
   console.info("[NewYearPremiumPDF][BirthInputValidated]", { birthDate: normalized.birthInput.birthDate, isTimeUnknown: normalized.birthInput.isTimeUnknown });
 
   const featureKey = normalizeFeatureKey(body?.featureKey);
-  const sessionKey = clean(body?.sessionId || body?.reportSessionId || body?.sessionKey) || `${auth.userId}:${featureKey}:${normalized.targetYear}:${normalized.birthInput.birthDate}`;
+  const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `saju-new-year-${normalized.targetYear}-${Date.now().toString(36)}`);
+  const sessionKey = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || body?.sessionKey) || `saju-new-year:${reportId}`;
   const lock = newYearPdfLocks.get(sessionKey);
   if (lock?.status === "running") {
     return json({
@@ -1151,6 +1152,7 @@ async function handlePrepare(request, env) {
       serviceKey: SERVICE_KEY,
       status: "running",
       sessionId: sessionKey,
+      reportId,
       targetYear: normalized.targetYear,
       message: "동일 세션의 신년운세 PDF 생성이 이미 진행 중입니다.",
     }, { status: 202 });
@@ -1197,16 +1199,30 @@ async function handlePrepare(request, env) {
     });
     if (!access?.ok) {
       const status = Number(access?.status || 402);
+      const hasSessionId = Boolean(clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId));
+      const hasPurchaseId = Boolean(clean(body?.purchaseId || body?.accessGrant?.purchaseId || body?.payment?.purchaseId));
+      const hasRequestId = Boolean(clean(body?.requestId || body?.accessGrant?.requestId || body?.payment?.requestId || body?._paymentContext?.requestId));
+      const hasPaymentToken = Boolean(premiumAccessToken);
+      const paymentConfirmedButMissing = status === 402 && (hasSessionId || hasPurchaseId || hasRequestId || hasPaymentToken);
       newYearPdfLocks.delete(sessionKey);
       return json({
         ok: false,
         serviceKey: SERVICE_KEY,
-        code: access?.code || (status === 401 ? "UNAUTHORIZED" : "PAYMENT_REQUIRED"),
+        code: paymentConfirmedButMissing ? "PAYMENT_CONFIRMED_BUT_ACCESS_MISSING" : (access?.code || (status === 401 ? "UNAUTHORIZED" : "PAYMENT_REQUIRED")),
         message: status === 401
           ? "신년운세 PDF 생성을 위해 먼저 로그인해 주세요."
-          : status === 402
+          : paymentConfirmedButMissing
+            ? "결제는 확인되었지만 생성 권한 연결이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요."
+            : status === 402
             ? "프리미엄 PDF 생성을 위해 코인 또는 이용권 확인이 필요합니다."
             : "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+        debugSafe: {
+          featureKey,
+          hasSessionId,
+          hasPurchaseId,
+          hasRequestId,
+          hasPaymentToken,
+        },
       }, { status });
     }
     console.info("[NewYearPremiumPDF][PaymentVerificationPassed]", { featureKey, accessType: clean(access.accessType || "") });
@@ -1217,7 +1233,7 @@ async function handlePrepare(request, env) {
       userId: auth.userId,
       featureKey,
       sessionId: sessionKey,
-      reportId: clean(body?.reportId || body?.accessGrant?.reportId),
+      reportId,
       access,
       body,
       timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
@@ -1228,7 +1244,6 @@ async function handlePrepare(request, env) {
     const manuscriptSource = "local-only";
 
     console.info("[NewYearPremiumPDF][FinalValidationPassed]", { chapterCount: chapters.length, manuscriptSource });
-    const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `new-year-${Date.now().toString(36)}`);
     const requestOrigin = new URL(request.url).origin;
     const archiveUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
 
@@ -1244,6 +1259,8 @@ async function handlePrepare(request, env) {
     pdfReady.htmlUrl = archiveUrl;
     pdfReady.pdfUrl = archiveUrl;
     pdfReady.downloadUrl = archiveUrl;
+    pdfReady.storageKey = `premium-archive:saju-new-year:${reportId}`;
+    pdfReady.mimeType = "text/html";
     console.info("[NewYearPremiumPDF][PDFRenderCompleted]", { chapterCount: chapters.length, manuscriptSource, archiveUrl });
 
     const storedUrl = clean(pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl);
@@ -1269,23 +1286,19 @@ async function handlePrepare(request, env) {
         pdfUrl: storedUrl,
         htmlUrl: clean(pdfReady.htmlUrl),
         chapters,
-        payload: localYearSajuJson,
+        localSajuJson: localYearSajuJson,
         pdfReady,
         canReopen: true,
         canDownload: true,
       },
     });
 
-    const responsePayload = {
-      ok: true,
-      serviceKey: SERVICE_KEY,
-      reportType: "sajuNewYear",
-      status: "completed",
-      serverStatus: "completed",
-      qualityStatus: "passed",
-      sessionId: sessionKey,
+    const responseData = {
       reportId,
       featureKey,
+      sessionId: sessionKey,
+      reportType: "sajuNewYear",
+      serviceKey: SERVICE_KEY,
       targetYear: localYearSajuJson.targetYear,
       chapterCount: NEW_YEAR_CHAPTERS.length,
       localDraftChapterCount: localManuscript.length,
@@ -1296,11 +1309,23 @@ async function handlePrepare(request, env) {
       chapters,
       seed: { ...localYearSajuJson, chapters: undefined },
       newYearPayload: localYearSajuJson,
+      localSajuJson: localYearSajuJson,
       pdfReady,
       pdfUrl: storedUrl,
       htmlUrl: clean(pdfReady.htmlUrl),
       canReopen: true,
       canDownload: true,
+    };
+
+    const responsePayload = {
+      ok: true,
+      serviceKey: SERVICE_KEY,
+      reportType: "sajuNewYear",
+      status: "completed",
+      serverStatus: "completed",
+      qualityStatus: "passed",
+      data: responseData,
+      ...responseData,
     };
 
     newYearPdfLocks.set(sessionKey, { status: "done", startedAtMs: Date.now(), result: responsePayload });
@@ -1312,20 +1337,43 @@ async function handlePrepare(request, env) {
       userId: auth.userId,
       featureKey,
       sessionId: sessionKey,
+      reportId,
       access: null,
       body,
       timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
     });
-    await failPremiumPdfExecution(
-      env,
-      auth.userId,
-      executionCtx,
-      "new_year_generation_failed",
-      clean(error?.message || "신년운세 PDF 생성에 실패했습니다."),
-      "new-year-generation",
-    );
+    try {
+      await failPremiumPdfExecution(
+        env,
+        auth.userId,
+        executionCtx,
+        "new_year_generation_failed",
+        clean(error?.message || "신년운세 PDF 생성에 실패했습니다."),
+        "new-year-generation",
+      );
+    } catch (_) {}
     newYearPdfLocks.delete(sessionKey);
-    throw error;
+    const rawMessage = clean(error?.message || "신년운세 PDF 생성 중 오류가 발생했습니다.");
+    const userMessage = rawMessage.includes("생년월일")
+      ? "생년월일 정보를 확인할 수 없습니다. 정확한 생년월일시를 입력해 주세요."
+      : rawMessage.includes("원국") || rawMessage.includes("사주")
+        ? "신년운세 계산에 필요한 사주 정보를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요."
+        : rawMessage.includes("결제")
+          ? "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요."
+          : rawMessage.includes("원고") || rawMessage.includes("품질")
+            ? "신년운세 원고 품질 검증에 실패했습니다. 입력 정보를 다시 확인한 뒤 시도해 주세요."
+            : "신년운세 PDF 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+    return json({
+      ok: false,
+      serviceKey: SERVICE_KEY,
+      code: error?.code || "SAJU_NEW_YEAR_GENERATION_FAILED",
+      message: userMessage,
+      debugSafe: {
+        reportId,
+        sessionId: sessionKey,
+        originalCode: error?.code || "",
+      },
+    }, { status: Number(error?.status || 500) });
   }
 }
 

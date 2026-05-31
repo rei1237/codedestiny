@@ -1,6 +1,6 @@
 import { ASTRO_PREMIUM_CHAPTERS, sanitizeAstroPremiumText } from "./astro-premium-chapters.js";
 
-const MIN_SECTION_LENGTH = 500;
+const MIN_SECTION_LENGTH = 700;
 const MIN_CHAPTER_LENGTH = 3500;
 const MIN_TOTAL_LENGTH_FLOOR = 40000;
 const FORBIDDEN_PATTERNS = [
@@ -22,6 +22,15 @@ const FORBIDDEN_PATTERNS = [
   /about:blank/gi,
   /internal\s*server\s*error/gi,
   /미확인/gi,
+  /이\s*장에서는/gi,
+  /이\s*카테고리에서는/gi,
+  /생성\s*로직/gi,
+  /챕터\s*생성기/gi,
+  /카테고리\s*렌더러/gi,
+  /데이터\s*부족/gi,
+  /자동\s*생성/gi,
+  /SWISS_REQUIRED/gi,
+  /ASTRO_CHART_SEED_FAILED/gi,
 ];
 
 const PREMIUM_REQUIRED_PLANETS = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn"];
@@ -29,6 +38,49 @@ const PREMIUM_SWISS_LOCAL_SOURCES = new Set(["swiss-wasm-local"]);
 const REPETITION_EXCLUDED_TERMS = ["태양", "달", "상승궁", "하우스", "행성", "어스펙트", "차트", "점성술", "MC"];
 
 const SIGN_NAMES = ["양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리", "처녀자리", "천칭자리", "전갈자리", "사수자리", "염소자리", "물병자리", "물고기자리"];
+const DEFAULT_LAT = 37.5665;
+const DEFAULT_LON = 126.978;
+
+const SIGN_META = {
+  "양자리": { element: "fire", mode: "cardinal", ruler: "Mars" },
+  "황소자리": { element: "earth", mode: "fixed", ruler: "Venus" },
+  "쌍둥이자리": { element: "air", mode: "mutable", ruler: "Mercury" },
+  "게자리": { element: "water", mode: "cardinal", ruler: "Moon" },
+  "사자자리": { element: "fire", mode: "fixed", ruler: "Sun" },
+  "처녀자리": { element: "earth", mode: "mutable", ruler: "Mercury" },
+  "천칭자리": { element: "air", mode: "cardinal", ruler: "Venus" },
+  "전갈자리": { element: "water", mode: "fixed", ruler: "Pluto" },
+  "사수자리": { element: "fire", mode: "mutable", ruler: "Jupiter" },
+  "염소자리": { element: "earth", mode: "cardinal", ruler: "Saturn" },
+  "물병자리": { element: "air", mode: "fixed", ruler: "Uranus" },
+  "물고기자리": { element: "water", mode: "mutable", ruler: "Neptune" },
+};
+
+const ELEMENT_KO = {
+  fire: "화",
+  earth: "토",
+  air: "풍",
+  water: "수",
+};
+
+const MODE_KO = {
+  cardinal: "카디널",
+  fixed: "픽스드",
+  mutable: "뮤터블",
+};
+
+const PLANET_KO = {
+  Sun: "태양(Sun)",
+  Moon: "달(Moon)",
+  Mercury: "수성(Mercury)",
+  Venus: "금성(Venus)",
+  Mars: "화성(Mars)",
+  Jupiter: "목성(Jupiter)",
+  Saturn: "토성(Saturn)",
+  Uranus: "천왕성(Uranus)",
+  Neptune: "해왕성(Neptune)",
+  Pluto: "명왕성(Pluto)",
+};
 
 function clean(value) {
   return String(value || "").trim();
@@ -168,9 +220,9 @@ export function normalizeAstroPremiumBirthInput(rawInput = {}) {
   );
 
   const timezone = clean(pickFirst(body.timezone, body.tz, location.timezone, location.tz, user.timezone)) || "Asia/Seoul";
-  const birthPlace = clean(pickFirst(body.birthPlace, body.place, body.locationName, body.location, location.label, location.name, user.birthPlace, user.location));
-  const latitude = parseNum(pickFirst(body.latitude, body.lat, location.lat, location.latitude), null);
-  const longitude = parseNum(pickFirst(body.longitude, body.lng, body.lon, location.lon, location.longitude), null);
+  const birthPlace = clean(pickFirst(body.birthPlace, body.place, body.locationName, body.location, location.label, location.name, user.birthPlace, user.location)) || "대한민국 서울";
+  const latitude = parseNum(pickFirst(body.latitude, body.lat, location.lat, location.latitude), DEFAULT_LAT);
+  const longitude = parseNum(pickFirst(body.longitude, body.lng, body.lon, location.lon, location.longitude), DEFAULT_LON);
 
   const out = {
     name: clean(pickFirst(body.name, profile.name, user.name)) || undefined,
@@ -213,8 +265,8 @@ export function toSwissChartInputFromBirthInput(input = {}) {
     hour: Number(input.birthHour),
     minute: Number(input.birthMinute || 0),
     timezone: Number.isFinite(tzNumeric) ? tzNumeric : 9,
-    lat: Number.isFinite(Number(input.latitude)) ? Number(input.latitude) : 37.5665,
-    lon: Number.isFinite(Number(input.longitude)) ? Number(input.longitude) : 126.978,
+    lat: Number.isFinite(Number(input.latitude)) ? Number(input.latitude) : DEFAULT_LAT,
+    lon: Number.isFinite(Number(input.longitude)) ? Number(input.longitude) : DEFAULT_LON,
   };
 }
 
@@ -247,7 +299,7 @@ export function hasUsableSwissAstroChart(chart) {
     : Boolean(source.houses && Object.keys(source.houses || {}).length >= 12);
   const hasAspects = Array.isArray(source.aspects) ? source.aspects.length > 0 : false;
 
-  return planetKeys.length >= 7 && hasCorePlanets && hasAsc && hasMc && hasHouses && hasAspects;
+  return planetKeys.length >= PREMIUM_REQUIRED_PLANETS.length && hasCorePlanets && hasAsc && hasMc && hasHouses && hasAspects;
 }
 
 function extractProvidedAstroBase(rawInput = {}) {
@@ -295,8 +347,8 @@ export async function resolveAstroChartForPremiumPdf(rawInput = {}, birthInput =
   }
 
   if (!hasUsableSwissAstroChart(calculated) || !isSwissLocalSource(calculated)) {
-    const err = new Error("점성술 프리미엄 PDF는 서버 내부 로컬 Swiss 계산 결과가 필요합니다.");
-    err.code = "ASTRO_CHART_SOURCE_INVALID";
+    const err = new Error("점성술 프리미엄 PDF에 필요한 Swiss 차트 계산에 실패했습니다.");
+    err.code = "ASTRO_SWISS_CHART_FAILED";
     err.status = 422;
     err.details = {
       hasUsableSwiss: hasUsableSwissAstroChart(calculated),
@@ -329,6 +381,65 @@ function signFromLongitude(value) {
   if (!Number.isFinite(n)) return "";
   const normalized = ((n % 360) + 360) % 360;
   return SIGN_NAMES[Math.floor(normalized / 30)] || "";
+}
+
+function axisOppositeSign(sign = "") {
+  const idx = SIGN_NAMES.indexOf(clean(sign));
+  if (idx < 0) return "";
+  return SIGN_NAMES[(idx + 6) % 12] || "";
+}
+
+function countElementBalance(planets = []) {
+  const counts = { fire: 0, earth: 0, air: 0, water: 0 };
+  safeArray(planets).forEach((planet) => {
+    const sign = clean(planet?.sign);
+    const key = SIGN_META[sign]?.element;
+    if (key && counts[key] !== undefined) counts[key] += 1;
+  });
+  const total = Object.values(counts).reduce((sum, n) => sum + Number(n || 0), 0) || 1;
+  return {
+    counts,
+    ratio: {
+      fire: Math.round((counts.fire / total) * 100),
+      earth: Math.round((counts.earth / total) * 100),
+      air: Math.round((counts.air / total) * 100),
+      water: Math.round((counts.water / total) * 100),
+    },
+    summary: Object.keys(counts)
+      .map((key) => `${ELEMENT_KO[key]} ${Math.round((counts[key] / total) * 100)}%`)
+      .join(", "),
+  };
+}
+
+function countModeBalance(planets = []) {
+  const counts = { cardinal: 0, fixed: 0, mutable: 0 };
+  safeArray(planets).forEach((planet) => {
+    const sign = clean(planet?.sign);
+    const key = SIGN_META[sign]?.mode;
+    if (key && counts[key] !== undefined) counts[key] += 1;
+  });
+  const total = Object.values(counts).reduce((sum, n) => sum + Number(n || 0), 0) || 1;
+  return {
+    counts,
+    ratio: {
+      cardinal: Math.round((counts.cardinal / total) * 100),
+      fixed: Math.round((counts.fixed / total) * 100),
+      mutable: Math.round((counts.mutable / total) * 100),
+    },
+    summary: Object.keys(counts)
+      .map((key) => `${MODE_KO[key]} ${Math.round((counts[key] / total) * 100)}%`)
+      .join(", "),
+  };
+}
+
+function deriveChartRuler(ascSign = "") {
+  const sign = clean(ascSign);
+  const ruler = SIGN_META[sign]?.ruler || "";
+  return {
+    sign,
+    ruler,
+    label: ruler ? `${PLANET_KO[ruler] || ruler}` : "",
+  };
 }
 
 function deriveSunSignFromDate(birthInput = {}) {
@@ -478,6 +589,11 @@ function toAstroChartModel(birthInput, swissChart = {}, fallbackAstroBase = null
 
   const ascendantSign = ascFromSwiss || ascFromBase || clean(sun?.sign) || "미확인";
   const midheavenSign = mcFromSwiss || mcFromBase || clean(planets.find((planet) => planet.name === "Saturn")?.sign) || "미확인";
+  const descendantSign = axisOppositeSign(ascendantSign) || clean(houses.find((house) => Number(house?.house) === 7)?.sign);
+  const icSign = axisOppositeSign(midheavenSign) || clean(houses.find((house) => Number(house?.house) === 4)?.sign);
+  const elementBalance = countElementBalance(planets);
+  const modalityBalance = countModeBalance(planets);
+  const chartRuler = deriveChartRuler(ascendantSign);
 
   return {
     calculationMode,
@@ -486,6 +602,17 @@ function toAstroChartModel(birthInput, swissChart = {}, fallbackAstroBase = null
       moonSign: clean(moon?.sign) || deriveMoonSeedSign(birthInput) || "미확인",
       ascendantSign,
       midheavenSign,
+      descendantSign,
+      icSign,
+      chartRuler,
+      elementBalance,
+      modalityBalance,
+      angles: {
+        asc: ascendantSign,
+        dsc: descendantSign,
+        mc: midheavenSign,
+        ic: icSign,
+      },
       planets,
       houses,
       aspects,
@@ -555,15 +682,18 @@ export function validateAstroChartForPremium(localAstroChartJson = {}) {
   if (!clean(birthInput.birthDate)) missing.push("birthDate");
   if (!clean(birthInput.birthTime)) missing.push("birthTime");
   if (!clean(birthInput.timezone)) missing.push("timezone");
-  if (!Number.isFinite(Number(birthInput.latitude))) missing.push("latitude");
-  if (!Number.isFinite(Number(birthInput.longitude))) missing.push("longitude");
+  if (!clean(birthInput.birthPlace)) missing.push("birthPlace");
 
   if (!clean(chart.sunSign)) missing.push("sunSign");
   if (!clean(chart.moonSign)) missing.push("moonSign");
   if (!clean(chart.ascendantSign)) missing.push("ascendantSign");
   if (!clean(chart.midheavenSign)) missing.push("midheavenSign");
 
-  if (planets.length < 7) missing.push("planets");
+  if (planets.length < PREMIUM_REQUIRED_PLANETS.length) missing.push("planets");
+  const presentPlanetNames = new Set(planets.map((planet) => clean(planet?.name)));
+  if (!PREMIUM_REQUIRED_PLANETS.every((name) => presentPlanetNames.has(name))) {
+    missing.push("requiredPlanets");
+  }
   if (houses.length < 12) missing.push("houses");
   if (aspects.length < 1) missing.push("aspects");
 
@@ -585,6 +715,8 @@ function buildInterpretationSeeds(ctx) {
   const mc = clean(ctx.mcSign) || "중립";
   const aspectNames = safeArray(ctx.aspects).slice(0, 4).map((aspect) => `${aspect.planetA}-${aspect.planetB} ${aspect.type}`);
   const houseNames = safeArray(ctx.houses).slice(0, 4).map((house) => `${house.house}하우스 ${clean(house.sign) || "미확인"}`);
+  const elementSummary = countElementBalance(safeArray(ctx.planets)).summary;
+  const modeSummary = countModeBalance(safeArray(ctx.planets)).summary;
   return {
     personalityKeywords: [clean(ctx.sun?.sign) || dominantSign, clean(ctx.moon?.sign) || dominantSign, asc, "자기표현", "핵심기질"],
     careerKeywords: [mc, "목표정렬", "성과관리", "실행력", "포지셔닝"],
@@ -593,6 +725,8 @@ function buildInterpretationSeeds(ctx) {
     healingKeywords: ["회복루틴", "정서조절", "에너지관리", "수면", "리듬"],
     timingKeywords: [aspectNames[0] || "전환신호", aspectNames[1] || "관찰신호", "시기판단", "우선순위", "점검체계"],
     cautionKeywords: ["과속주의", "경계설정", "감정완충", "확인루틴", "리스크관리"],
+    elementSummary,
+    modeSummary,
   };
 }
 
@@ -613,6 +747,7 @@ function buildSignals(localAstroChartJson, chapter, section, sectionIndex) {
   const planets = safeArray(chart.planets);
   const houses = safeArray(chart.houses);
   const aspects = safeArray(chart.aspects);
+  const angles = asObject(chart.angles);
   const pickPlanets = planets.slice(sectionIndex, sectionIndex + 4).map((planet) => `${planet.name} ${planet.sign}`).filter(Boolean);
   const pickHouses = houses.slice(sectionIndex, sectionIndex + 3).map((house) => `${house.house}하우스 ${house.sign || "핵심"}`).filter(Boolean);
   const pickAspects = aspects.slice(sectionIndex, sectionIndex + 3).map((aspect) => `${aspect.planetA}-${aspect.planetB} ${aspect.type}`).filter(Boolean);
@@ -621,6 +756,13 @@ function buildSignals(localAstroChartJson, chapter, section, sectionIndex) {
     `${clean(chart.moonSign) || "달"}`,
     `${clean(chart.ascendantSign) || "상승궁"}`,
     `${clean(chart.midheavenSign) || "MC"}`,
+    `${clean(angles.asc) || clean(chart.ascendantSign)} ASC`,
+    `${clean(angles.dsc) || clean(chart.descendantSign)} DSC`,
+    `${clean(angles.mc) || clean(chart.midheavenSign)} MC`,
+    `${clean(angles.ic) || clean(chart.icSign)} IC`,
+    `${clean(chart?.chartRuler?.label || PLANET_KO[chart?.chartRuler?.ruler]) || "차트 룰러"}`,
+    `${clean(chart?.elementBalance?.summary || "원소 균형")}`,
+    `${clean(chart?.modalityBalance?.summary || "모드 균형")}`,
     ...pickPlanets,
     ...pickHouses,
     ...pickAspects,
@@ -665,11 +807,16 @@ function buildAstroExpansionParagraph(chapter, section, ctx, pass = 1) {
 }
 
 function buildConsultingParagraph(signalText, chapterTitle, sectionTitle, index) {
-  const p1 = `${chapterTitle}의 ${sectionTitle}에서는 ${signalText}를 중심 축으로 읽어야 합니다. 이 조합은 단일 사건 예측보다 선택의 방식과 감정 반응 패턴을 선명하게 보여 줍니다. 특히 반복적으로 나타나는 신호를 먼저 정리하면, 순간적인 기분이나 외부 압력에 휘둘리지 않고 본인에게 맞는 결정 기준을 세울 수 있습니다.`;
-  const p2 = `실전에서는 좋은 흐름과 주의 구간을 동시에 관리해야 합니다. 강점 구간에서는 관계, 일, 돈의 우선순위를 한 번에 넓히기보다 검증 가능한 단위로 쪼개 실행하는 편이 결과가 안정적입니다. 반대로 긴장 신호가 올라오는 구간에서는 약속, 계약, 커뮤니케이션 속도를 낮추고 확인 루틴을 강화해야 손실을 줄일 수 있습니다.`;
-  const p3 = `행동 전략은 단순해야 오래 유지됩니다. 첫째, 이번 주 핵심 목표를 하나만 정하고 성과 기준을 문장으로 기록합니다. 둘째, 중요한 대화나 협상 전에는 감정 상태를 점검해 불필요한 과잉 반응을 줄입니다. 셋째, 매주 같은 시간에 실행 결과를 되짚어 조정합니다. 이 세 가지를 반복하면 차트 신호가 말하는 성장 방향과 실제 생활이 일치하기 시작합니다.`;
-  const p4 = `관계 관점에서는 경계와 온도를 함께 조절하는 것이 핵심입니다. 지나친 단정이나 감정적 확신은 오해를 키울 수 있으므로, 상대의 반응 속도와 맥락을 확인하며 협력의 폭을 조절해야 합니다. 직업과 재무에서는 확장과 보수의 스위치를 명확히 분리해 운영하는 것이 좋습니다. 같은 노력으로 더 큰 성과를 얻으려면 타이밍보다 구조를 먼저 정비해야 합니다.`;
-  const p5 = `마지막으로 ${index + 1}번째 실행 포인트는 회복력 유지입니다. 일정이 흔들리는 주간에는 무리한 보완보다 리듬 복구를 우선하고, 수면과 이동 동선, 집중 시간을 재정렬해 에너지를 누수 없이 묶어야 합니다. 이렇게 운영하면 불확실성이 커지는 구간에서도 판단력이 유지되고, 장기 목표를 현실적으로 이어갈 수 있습니다.`;
+  const openings = [
+    `삶의 큰 선택이 앞에 놓일수록 ${sectionTitle}에서 드러나는 신호는 방향을 선명하게 만들어 줍니다.`,
+    `${sectionTitle}의 결을 제대로 읽으면 감정과 현실 사이에서 흔들리던 판단이 훨씬 또렷해집니다.`,
+    `${chapterTitle}에서 확인되는 핵심은 운세 단정이 아니라 반복되는 반응 구조를 이해하는 데 있습니다.`,
+  ];
+  const p1 = `${openings[index % openings.length]} 태양(Sun), 달(Moon), 상승궁(Ascendant), 그리고 하우스 축을 함께 놓고 보면 ${signalText} 같은 신호가 하나의 생활 패턴으로 연결됩니다. 이 패턴은 잘 맞는 환경에서 강한 추진력과 집중력을 만들어 주지만, 긴장각이 겹치는 구간에서는 과도한 확신이나 감정 소모로 이어질 수 있습니다. 그래서 무엇을 밀고 무엇을 늦출지, 속도의 기준을 미리 정해 두는 것이 안정적인 성과로 이어집니다.`;
+  const p2 = `실전 상담에서는 성향 설명만으로 끝내지 않습니다. 수성(Mercury)·금성(Venus)·화성(Mars)의 조합은 사고, 관계, 행동의 템포를 동시에 결정하고, 목성(Jupiter)·토성(Saturn)은 확장과 책임의 경계를 정합니다. 여기에 천왕성(Uranus), 해왕성(Neptune), 명왕성(Pluto)이 장기 변화의 압력을 더하면, 인생의 전환점에서 왜 같은 갈등이 반복되는지 원인이 드러납니다. 그 원인을 파악하면 감정 반응에 끌려가기보다 스스로 선택의 질을 높일 수 있습니다.`;
+  const p3 = `관계에서는 달(Moon)과 7하우스, 커리어에서는 MC(Midheaven)와 10하우스, 재정에서는 2하우스와 8하우스의 연결을 함께 보는 방식이 효과적입니다. 어스펙트(Aspect)의 조화각은 재능을, 긴장각은 과제를 보여 주기 때문에 한쪽만 강조하면 현실 적용력이 떨어집니다. 원소 균형과 모드 균형까지 더해 해석하면, 왜 특정 시기에 과로·오해·지출 과속이 반복되는지 맥락이 분명해지고 대응 전략을 현실적으로 세울 수 있습니다.`;
+  const p4 = `실행은 크게 시작할 필요가 없습니다. 이번 주에는 목표를 하나만 정하고, 그 목표를 방해하는 감정 패턴을 하루 한 줄로 기록해 보세요. 중요한 대화 전에는 확인할 질문 세 가지를 미리 준비하고, 계약이나 금전 결정은 하루를 두고 재점검하는 습관을 권합니다. 리듬이 무너진 구간에서는 확장보다 회복을 우선해 수면, 집중 시간, 이동 동선을 정리하면 판단력이 빠르게 되살아납니다.`;
+  const p5 = `마지막 조언은 단순합니다. 앞으로 ${index + 1}주 동안은 선택의 속도보다 정확도를 우선하고, 매주 같은 시간에 관계·일·재정 결과를 짧게 복기해 다음 행동을 조정해 주세요. 이 루틴을 지키면 차트가 가진 장점은 더 선명해지고 긴장 신호는 관리 가능한 범위로 줄어들며, 장기 목표를 안정적으로 완성할 수 있습니다.`;
   return [p1, p2, p3, p4, p5].join("\n\n");
 }
 

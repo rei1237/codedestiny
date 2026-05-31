@@ -983,14 +983,26 @@ function allowedLifeBookRepetitionScore(chapters = []) {
 
 function evaluateCounselingQuality(text = "") {
   const source = stripForbiddenTokens(text);
-  const practicalRe = /(오늘|이번\s*주|먼저|우선|정리|기록|점검|줄이|지출|수면|식사|대화|경계|루틴|실행)/;
-  const warmRe = /(괜찮습니다|충분히|응원|믿습니다|당신의\s*속도|천천히|잘\s*해낼|따뜻하게|함께)/;
+  const practicalRe = /(오늘|이번\s*주|먼저|우선|정리|기록|점검|줄이|지출|수면|식사|대화|경계|루틴|실행|계획|우선순위|복기|회복)/;
+  const practicalActionRe = /(해보세요|권합니다|실행하세요|적어\s*보세요|고정해\s*보세요|줄여\s*보세요|시도해\s*보세요|점검해\s*보세요|정리해\s*보세요)/g;
+  const warmRe = /(괜찮습니다|충분히|응원|믿습니다|당신의\s*속도|천천히|잘\s*해낼|따뜻하게|함께|무리하지\s*말고|스스로를\s*다그치지\s*말고|충분히\s*가능)/;
+  const counselorRe = /(명식|원국|일간|월지|대운|세운|오행|십성|용신|희신|기신|일주|시주|조후)/g;
+  const secondPersonRe = /(의뢰인님|님은|당신은|당신의)/g;
   const sentenceCount = source.split(/[.!?\n]+/).map((s) => s.trim()).filter((s) => s.length >= 10).length;
+  const practicalActionHits = (source.match(practicalActionRe) || []).length;
+  const counselorHits = (source.match(counselorRe) || []).length;
+  const secondPersonHits = (source.match(secondPersonRe) || []).length;
   const tail = source.slice(-220);
   return {
     hasPracticalAdvice: practicalRe.test(source),
+    hasPracticalAction: practicalActionHits >= 2,
+    hasCounselorGrounding: counselorHits >= 4,
+    hasDirectCounselingTone: secondPersonHits >= 2,
     hasWarmEnding: warmRe.test(tail),
     sentenceCount,
+    practicalActionHits,
+    counselorHits,
+    secondPersonHits,
   };
 }
 
@@ -1023,10 +1035,19 @@ function validateLifeBookFinalManuscript(chapters = []) {
       if (!quality.hasPracticalAdvice) {
         errors.push(`chapter_${idx + 1}_category_${cidx + 1}_practical_missing`);
       }
+      if (!quality.hasPracticalAction) {
+        errors.push(`chapter_${idx + 1}_category_${cidx + 1}_practical_action_missing`);
+      }
+      if (!quality.hasCounselorGrounding) {
+        errors.push(`chapter_${idx + 1}_category_${cidx + 1}_counselor_grounding_missing`);
+      }
+      if (!quality.hasDirectCounselingTone) {
+        errors.push(`chapter_${idx + 1}_category_${cidx + 1}_direct_tone_missing`);
+      }
       if (!quality.hasWarmEnding) {
         errors.push(`chapter_${idx + 1}_category_${cidx + 1}_warm_ending_missing`);
       }
-      if (quality.sentenceCount < 12) {
+      if (quality.sentenceCount < 14) {
         errors.push(`chapter_${idx + 1}_category_${cidx + 1}_sentence_too_few`);
       }
     });

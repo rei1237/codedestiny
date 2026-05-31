@@ -21,6 +21,7 @@
 - If the user's prompt is too vague, stop and ask a clarifying question before writing code.
 - Ensure every code snippet is copy-paste ready with enough local context for placement.
 - Do not write paragraphs of text before or after code blocks; output the code block immediately.
+- All fortune-related writing must read as professional and mystical, and must never sound like developer documentation, technical specs, or implementation notes.
 
 ## 2) Source of Truth (Edit These)
 - Worker runtime API: `worker/**`

@@ -2,18 +2,18 @@ export const VEDIC_PREMIUM_FEATURE_KEY = "premium_pdf_vedic";
 export const VEDIC_SOLO_TARGET_CHARS = 40000;
 
 const rows = [
-  ["vedic_soul_map", "I", "Chapter I. Vedic Soul Map — 베다 차트 전체 요약", "차트 전체 흐름을 종합해 삶의 방향을 읽는 장", "lotus", [["soul_1", "라그나로 보는 삶의 출발점"], ["soul_2", "달 별자리와 나크샤트라가 말하는 마음"], ["soul_3", "태양과 아트마카라카가 말하는 영혼의 방향"], ["soul_4", "가장 강하게 작동하는 행성"], ["soul_5", "현재 다샤가 열어주는 인생 주제"], ["soul_6", "이 차트의 핵심 한 줄 조언"]]],
-  ["vedic_lagna", "II", "Chapter II. Lagna — 라그나와 인생의 기본 설계", "라그나와 1바바를 중심으로 기본 구조를 읽는 장", "sun", [["lagna_1", "라그나 사인의 기본 성향"], ["lagna_2", "라그나 로드의 위치와 의미"], ["lagna_3", "1바바에 놓인 행성이 만드는 인상"], ["lagna_4", "몸과 태도에 드러나는 기질"], ["lagna_5", "라그나가 직업·관계·재물에 주는 영향"], ["lagna_6", "라그나를 강점으로 쓰는 법"]]],
-  ["vedic_moon_nakshatra", "III", "Chapter III. Moon & Nakshatra — 마음, 감정, 본능의 리듬", "달과 나크샤트라를 중심으로 정서 흐름을 다루는 장", "moon", [["moon_1", "달 사인으로 보는 감정 패턴"], ["moon_2", "달 바바로 보는 마음의 안식처"], ["moon_3", "달 나크샤트라의 본능"], ["moon_4", "나크샤트라 파다가 만드는 세부 기질"], ["moon_5", "감정적으로 흔들리는 순간"], ["moon_6", "마음을 안정시키는 현실 루틴"]]],
-  ["vedic_karakas", "IV", "Chapter IV. Karakas — 아트마카라카·아마티야카라카·다라카라카", "세 카라카를 통해 영혼, 일, 관계 축을 읽는 장", "star", [["karaka_1", "아트마카라카가 말하는 영혼의 숙제"], ["karaka_2", "아마티야카라카가 말하는 직업적 재능"], ["karaka_3", "다라카라카가 말하는 관계와 배우자상"], ["karaka_4", "세 카라카가 만드는 인생의 균형"], ["karaka_5", "카라카가 흔들릴 때 나타나는 문제"], ["karaka_6", "카라카를 현실 전략으로 쓰는 법"]]],
-  ["vedic_planetary_strength", "V", "Chapter V. Planetary Strength — 행성의 강약과 운명의 무기", "행성 강약과 라후·케투 축을 전략으로 바꾸는 장", "karma", [["planet_1", "강한 행성이 주는 재능"], ["planet_2", "약하거나 관리가 필요한 행성"], ["planet_3", "Exalted·Own·Neutral 상태의 해석"], ["planet_4", "라후와 케투가 만드는 욕망과 해방의 축"], ["planet_5", "역행 행성이 만드는 내면화된 힘"], ["planet_6", "행성 강약을 인생 전략으로 바꾸는 법"]]],
-  ["vedic_bhavas", "VI", "Chapter VI. Bhavas — 12바바로 보는 삶의 영역", "12바바의 의미를 실제 삶 영역과 연결하는 장", "heart", [["bhava_1", "1·2바바: 자기 자신과 재물"], ["bhava_2", "3·4바바: 용기, 표현, 가족, 마음의 기반"], ["bhava_3", "5·6바바: 지성, 창작, 자녀, 일상 과제"], ["bhava_4", "7·8바바: 결혼, 계약, 깊은 변화"], ["bhava_5", "9·10바바: 다르마, 직업, 사회적 성취"], ["bhava_6", "11·12바바: 이익, 네트워크, 해방, 무의식"]]],
-  ["vedic_love_partnership", "VII", "Chapter VII. Love, Marriage & Partnership — 사랑과 결혼의 카르마", "7바바와 금성, 다라카라카를 중심으로 관계를 읽는 장", "dharma", [["love_1", "7바바로 보는 배우자운"], ["love_2", "다라카라카와 금성으로 보는 사랑의 방식"], ["love_3", "목성이 관계에 주는 신뢰와 확장"], ["love_4", "결혼에서 반복될 수 있는 패턴"], ["love_5", "관계에서 조심해야 할 카르마 과제"], ["love_6", "오래 가는 파트너십의 조건"]]],
-  ["vedic_career_money", "VIII", "Chapter VIII. Career, Karma & Money — 직업과 재물의 카르마", "직업 구조와 재물 흐름을 장기 전략으로 정리하는 장", "coin", [["career_1", "10바바로 보는 직업 방향"], ["career_2", "2바바와 11바바로 보는 재물운"], ["career_3", "아마티야카라카와 직업 재능"], ["career_4", "Lakshmi Yoga와 재물 확장성"], ["career_5", "D-10이 말하는 직업 구조"], ["career_6", "장기적 성공 전략"]]],
-  ["vedic_dasha_flow", "IX", "Chapter IX. Dasha Flow — 다샤로 보는 인생의 시기", "현재와 다음 시기의 핵심 과제를 읽는 장", "home", [["dasha_1", "현재 마하 다샤의 핵심 주제"], ["dasha_2", "현재 다샤가 돈과 일에 주는 영향"], ["dasha_3", "현재 다샤가 사랑과 관계에 주는 영향"], ["dasha_4", "현재 다샤가 마음과 건강에 주는 영향"], ["dasha_5", "다음 다샤를 준비하는 법"], ["dasha_6", "다샤를 내 편으로 쓰는 선택 전략"]]],
-  ["vedic_yogas_karma", "X", "Chapter X. Yogas & Karmic Signatures — 요가와 카르마 패턴", "요가와 하우스 집중 신호를 현실 전략으로 번역하는 장", "karma", [["yoga_1", "Lakshmi Yoga가 말하는 재물의 문"], ["yoga_2", "직업 요가가 말하는 성공 방식"], ["yoga_3", "라후·케투 축이 만드는 반복 패턴"], ["yoga_4", "행성 집중 하우스가 여는 인생 주제"], ["yoga_5", "보호받는 영역과 시험받는 영역"], ["yoga_6", "요가를 현실 전략으로 바꾸는 법"]]],
-  ["vedic_chakra_remedy", "XI", "Chapter XI. Chakra, Remedies & Healing — 차크라·레메디·치유 전략", "차크라 균형과 생활 보완 루틴을 다루는 장", "time", [["chakra_1", "전체 차크라 균형"], ["chakra_2", "과활성 차크라가 만드는 재능과 부담"], ["chakra_3", "저활성 차크라가 말하는 관리 과제"], ["chakra_4", "만트라와 보석 처방의 의미"], ["chakra_5", "도샤 관리와 생활 루틴"], ["chakra_6", "내면의 균형을 되찾는 실천법"]]],
-  ["vedic_master_plan", "XII", "Chapter XII. Vedic Master Plan — 나의 베다 운명 전략", "전체 해석을 사랑·일·돈·마음의 실행 계획으로 통합하는 장", "compass", [["master_1", "이 차트의 가장 큰 무기"], ["master_2", "반드시 관리해야 할 카르마 과제"], ["master_3", "사랑과 결혼 전략"], ["master_4", "직업과 재물 전략"], ["master_5", "마음과 건강 전략"], ["master_6", "1년·3년·10년 실행 방향"]]],
+  ["vedic_soul_map", "I", "제 1장. 베다 차트 전체 총론", "라그나와 문 사인, 행성 배치로 인생 구조를 여는 장", "lotus", [["soul_1", "내 베다 차트의 핵심 한 줄"], ["soul_2", "라그나가 보여주는 삶의 출발점"], ["soul_3", "문 사인이 보여주는 마음의 결"], ["soul_4", "전체 행성 배치가 만드는 인생 분위기"], ["soul_5", "이번 생에서 가장 중요한 배움"]]],
+  ["vedic_lagna", "II", "제 2장. 라그나와 타고난 인생 설계", "라그나를 삶의 태도와 생존 전략으로 풀어내는 장", "sun", [["lagna_1", "라그나가 만드는 첫인상과 삶의 태도"], ["lagna_2", "내가 세상을 대하는 방식"], ["lagna_3", "타고난 생존 전략"], ["lagna_4", "몸과 마음의 기본 리듬"], ["lagna_5", "라그나를 잘 쓰는 방법"]]],
+  ["vedic_moon_nakshatra", "III", "제 3장. 문 사인과 나크샤트라 심층 해석", "감정과 무의식의 결을 현실 조언으로 연결하는 장", "moon", [["moon_1", "문 사인이 보여주는 감정 구조"], ["moon_2", "나크샤트라가 드러내는 영혼의 결"], ["moon_3", "불안할 때 나타나는 마음의 반응"], ["moon_4", "마음이 편안해지는 조건"], ["moon_5", "감정의 힘을 잘 쓰는 방법"]]],
+  ["vedic_sun_self", "IV", "제 4장. 태양과 자아의 방향성", "자존감과 사회적 존재감을 회복하는 장", "star", [["sun_1", "태양이 보여주는 자존감의 방식"], ["sun_2", "사회적으로 인정받고 싶은 모습"], ["sun_3", "권위와 책임을 대하는 태도"], ["sun_4", "나의 중심이 흔들리는 순간"], ["sun_5", "자아의 빛을 회복하는 법"]]],
+  ["vedic_planet_talents", "V", "제 5장. 행성들이 말하는 재능과 성향", "수성·금성·화성·목성·토성의 작동을 삶으로 번역하는 장", "karma", [["planet_1", "수성이 보여주는 사고와 말의 방식"], ["planet_2", "금성이 보여주는 사랑과 취향"], ["planet_3", "화성이 보여주는 추진력과 욕망"], ["planet_4", "목성이 보여주는 확장과 복"], ["planet_5", "토성이 보여주는 과제와 성숙"]]],
+  ["vedic_bhavas", "VI", "제 6장. 하우스로 보는 인생 영역", "주요 하우스의 실제 작동을 해석하는 장", "heart", [["bhava_1", "1하우스와 자기 자신"], ["bhava_2", "2하우스와 돈·말·가족"], ["bhava_3", "4하우스와 집·마음의 안식처"], ["bhava_4", "7하우스와 관계·배우자"], ["bhava_5", "10하우스와 직업·사회적 역할"]]],
+  ["vedic_career_success", "VII", "제 7장. 직업과 사회적 성공운", "일의 구조와 성과 패턴을 구체화하는 장", "dharma", [["career_1", "내 차트가 말하는 직업적 방향"], ["career_2", "사회에서 인정받는 방식"], ["career_3", "돈보다 먼저 쌓아야 할 힘"], ["career_4", "직업적으로 피해야 할 패턴"], ["career_5", "성공을 키우는 현실 전략"]]],
+  ["vedic_money_flow", "VIII", "제 8장. 재물과 풍요의 흐름", "수익과 축적의 리듬을 안정시키는 장", "coin", [["money_1", "돈이 들어오는 방식"], ["money_2", "돈이 새기 쉬운 지점"], ["money_3", "축적과 확장의 리듬"], ["money_4", "재물운을 키우는 태도"], ["money_5", "풍요를 안정시키는 방법"]]],
+  ["vedic_love_partnership", "IX", "제 9장. 사랑과 배우자운", "관계 패턴과 장기 파트너십을 다루는 장", "home", [["love_1", "사랑할 때 드러나는 나의 모습"], ["love_2", "내가 끌리는 사람의 분위기"], ["love_3", "관계에서 반복되는 과제"], ["love_4", "배우자운과 장기 관계의 조건"], ["love_5", "사랑을 성숙하게 유지하는 법"]]],
+  ["vedic_dasha_flow", "X", "제 10장. 다샤로 보는 운의 흐름", "현재와 다음 시기의 과제를 읽는 장", "time", [["dasha_1", "현재 다샤가 여는 인생 주제"], ["dasha_2", "지금 강해지는 기회"], ["dasha_3", "지금 감당해야 할 과제"], ["dasha_4", "다음 흐름을 준비하는 법"], ["dasha_5", "다샤를 현실에서 활용하는 전략"]]],
+  ["vedic_karma_growth", "XI", "제 11장. 카르마와 영적 성장의 방향", "라후·케투와 8/9/12하우스 신호를 성숙으로 바꾸는 장", "karma", [["karma_1", "라후가 보여주는 이번 생의 욕망"], ["karma_2", "케투가 보여주는 익숙한 과거의 습관"], ["karma_3", "반복되는 인생의 숙제"], ["karma_4", "관계와 일에서 드러나는 카르마"], ["karma_5", "성숙해질수록 열리는 길"]]],
+  ["vedic_master_plan", "XII", "제 12장. 인생을 위한 최종 베다 마스터플랜", "전체 상담을 삶의 실행 계획으로 통합하는 장", "compass", [["master_1", "내 차트의 최종 핵심 메시지"], ["master_2", "반드시 키워야 할 힘"], ["master_3", "내려놓아야 할 삶의 습관"], ["master_4", "앞으로 3년의 방향"], ["master_5", "나를 가장 빛나게 하는 선택"]]],
 ];
 
 export const VEDIC_PDF_CHAPTERS = Object.freeze(rows.map((row, index) => Object.freeze({
@@ -59,10 +59,16 @@ export function getVedicPdfSectionTitles(key) {
 export function sanitizeVedicPremiumText(value) {
   return String(value || "")
     .replace(/\b(undefined|null|nan)\b/gi, "")
-    .replace(/\b(payload|json|localdraft|fallback|llm|api|debug)\b/gi, "")
+    .replace(/\b(payload|json|localdraft|fallback|seed|skeleton|local|engine|validation|retry|llm|api|debug)\b/gi, "")
     .replace(/chapter\s*1\s*chapter\s*1/gi, "")
     .replace(/데이터가\s*부족합니다/gi, "")
     .replace(/자동\s*복구\s*생성/gi, "")
+    .replace(/내부\s*데이터/gi, "")
+    .replace(/계산\s*시그니처/gi, "")
+    .replace(/생성\s*로직/gi, "")
+    .replace(/챕터\s*생성기/gi, "")
+    .replace(/카테고리\s*렌더러/gi, "")
+    .replace(/PreflightFailed/gi, "")
     .replace(/\s{2,}/g, " ")
     .trim();
 }
