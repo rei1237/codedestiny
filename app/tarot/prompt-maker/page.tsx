@@ -324,7 +324,7 @@ export default function TarotPromptMakerPage() {
     : (billingLoading ? "정책 확인 중" : "정책 미연동");
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#07041a] text-white">
+    <main className="relative min-h-[100dvh] w-screen overflow-x-hidden overflow-y-auto bg-[#07041a] text-white">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_8%,rgba(255,190,95,0.22),transparent_24%),radial-gradient(circle_at_88%_12%,rgba(119,138,255,0.2),transparent_26%),radial-gradient(circle_at_50%_110%,rgba(202,117,255,0.16),transparent_28%),linear-gradient(170deg,#050316_0%,#0b0e2d_44%,#170c2e_100%)]" />
       <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:34px_34px]" />
       {[0, 1, 2, 3, 4, 5, 6].map((star) => (
@@ -343,7 +343,7 @@ export default function TarotPromptMakerPage() {
         />
       ))}
 
-      <div className="relative mx-auto w-full max-w-[1760px] px-3 pb-16 pt-4 sm:px-5 lg:px-8">
+      <div className="relative w-full px-3 pb-16 pt-4 sm:px-5 lg:px-8">
         <div className="grid gap-4 xl:grid-cols-[84px_minmax(0,1fr)]">
           <aside className="hidden xl:block">
             <div className="sticky top-5 rounded-[22px] border border-[#f8d38f]/22 bg-[linear-gradient(180deg,rgba(13,16,43,0.95),rgba(8,10,30,0.95))] p-2.5 shadow-[0_20px_55px_rgba(6,8,30,0.58)]">
