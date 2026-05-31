@@ -6,11 +6,15 @@ import { ASTRO_PREMIUM_CHAPTERS, ASTRO_PREMIUM_FEATURE_KEY } from "../lib/astro-
 import {
   generateAstroPremiumReport,
   normalizeAstroPremiumBirthInput,
-  toSwissChartInputFromBirthInput,
   validateAstroPayloadForApi,
 } from "../lib/astro-premium-generator.js";
 import { VEDIC_PREMIUM_CHAPTERS, VEDIC_PREMIUM_FEATURE_KEY } from "../lib/vedic-premium-chapters.js";
-import { generateVedicPremiumReport, normalizeVedicError, validateVedicPayloadForApi } from "../lib/vedic-premium-generator.js";
+import {
+  generateVedicPremiumReport,
+  normalizeVedicError,
+  normalizeVedicPremiumBirthInput,
+  validateVedicBirthInput,
+} from "../lib/vedic-premium-generator.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import {
   buildPremiumExecutionContext,
@@ -141,6 +145,84 @@ function toSafeVedicChartLog(localVedicChartJson = {}) {
   };
 }
 
+function toVedicTimezoneOffset(timezoneValue) {
+  const raw = clean(timezoneValue);
+  if (!raw) return 9;
+  const direct = Number(raw);
+  if (Number.isFinite(direct)) return direct;
+  const token = raw.toLowerCase();
+  if (token === "asia/seoul" || token === "asia/tokyo") return 9;
+  if (token === "utc" || token === "etc/utc" || token === "gmt") return 0;
+  return 9;
+}
+
+function normalizeVedicChartSourceForPdf(chartSource = {}) {
+  return {
+    planets: chartSource?.planets && typeof chartSource.planets === "object" ? chartSource.planets : {},
+    retrograde: chartSource?.retrograde && typeof chartSource.retrograde === "object" ? chartSource.retrograde : {},
+    ayanamsaName: clean(chartSource?.ayanamsaName || chartSource?.ayanamsaType || "Lahiri") || "Lahiri",
+    ayanamsa: Number.isFinite(Number(chartSource?.ayanamsa)) ? Number(chartSource.ayanamsa) : undefined,
+    ascendantSidereal: Number.isFinite(Number(chartSource?.ascendantSidereal ?? chartSource?.ascendant ?? chartSource?.lagnaLongitude))
+      ? Number(chartSource?.ascendantSidereal ?? chartSource?.ascendant ?? chartSource?.lagnaLongitude)
+      : null,
+    source: clean(chartSource?.source || "server-local"),
+  };
+}
+
+function hasUsableVedicChartSource(chartSource = {}) {
+  const source = normalizeVedicChartSourceForPdf(chartSource);
+  const requiredPlanets = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Rahu", "Ketu"];
+  const hasAllPlanets = requiredPlanets.every((planet) => Number.isFinite(Number(source?.planets?.[planet])));
+  const hasAsc = Number.isFinite(Number(source?.ascendantSidereal));
+  return hasAllPlanets && hasAsc;
+}
+
+function extractProvidedVedicBase(rawInput = {}) {
+  const candidates = [
+    rawInput?.vedicBase?.chart,
+    rawInput?.vedicBase,
+    rawInput?.chart,
+    rawInput?.localVedicChartJson,
+  ];
+  for (const candidate of candidates) {
+    if (candidate && typeof candidate === "object") {
+      if (candidate?.planets || candidate?.ascendantSidereal || candidate?.lagnaLongitude || candidate?.ascendant) {
+        return candidate;
+      }
+    }
+  }
+  return null;
+}
+
+function toSwissVedicInputFromBirthInput(birthInput = {}) {
+  return {
+    year: Number(birthInput?.birthYear),
+    month: Number(birthInput?.birthMonth),
+    day: Number(birthInput?.birthDay),
+    hour: Number(birthInput?.birthHour),
+    minute: Number.isFinite(Number(birthInput?.birthMinute)) ? Number(birthInput.birthMinute) : 0,
+    timezone: toVedicTimezoneOffset(birthInput?.timezone),
+    lat: Number.isFinite(Number(birthInput?.latitude)) ? Number(birthInput.latitude) : 37.5665,
+    lon: Number.isFinite(Number(birthInput?.longitude)) ? Number(birthInput.longitude) : 126.978,
+  };
+}
+
+async function resolveVedicChartForPremiumPdf(rawInput, birthInput, env, requestUrl) {
+  const provided = extractProvidedVedicBase(rawInput);
+  if (provided && hasUsableVedicChartSource(provided)) {
+    return {
+      source: "provided",
+      chartSource: normalizeVedicChartSourceForPdf(provided),
+    };
+  }
+
+  const calculated = await getSwissVedicPlanets(env, toSwissVedicInputFromBirthInput(birthInput), { requestUrl });
+  return {
+    source: "server-local",
+    chartSource: normalizeVedicChartSourceForPdf(calculated),
+  };
+}
+
 async function handleAstroPremiumPrepare(request, env) {
   let auth = null;
   let body = {};
@@ -211,24 +293,6 @@ async function handleAstroPremiumPrepare(request, env) {
     console.info("[AstroPremiumPDF][BirthInputValidated]", toSafeBirthLog(birthInput, ASTRO_PREMIUM_CHAPTERS.length));
     console.info("[AstroPremiumPDF][LocalCalculationStart]", toSafeBirthLog(birthInput));
 
-    const swissInput = toSwissChartInputFromBirthInput(birthInput);
-    let swissChart = {};
-    try {
-      swissChart = await getSwissWesternChart(env, swissInput, { requestUrl: request.url });
-      console.info("[AstroPremiumPDF][LocalCalculationSuccess]", {
-        planetCount: Object.keys(swissChart?.planets || {}).length,
-        hasAscendant: Boolean(swissChart?.ascendant),
-        hasMidheaven: Boolean(swissChart?.midheaven),
-        ...toSafeBirthLog(birthInput, ASTRO_PREMIUM_CHAPTERS.length),
-      });
-    } catch (error) {
-      swissChart = {};
-      console.warn("[AstroPremiumPDF][LocalCalculationRecovered]", {
-        ...toSafeBirthLog(birthInput, ASTRO_PREMIUM_CHAPTERS.length),
-        error: toAstroErrorMeta(error),
-      });
-    }
-
     const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "westernAstrologyPremium", {
       reportType: "westernAstrologyPremium",
       featureKey,
@@ -268,9 +332,8 @@ async function handleAstroPremiumPrepare(request, env) {
       ...body,
       sessionId,
       birthInput,
-      swissChart,
-      chart: swissChart,
     }, {
+      requestUrl: request.url,
       log: (stage, payload) => {
         const tag = `[AstroPremiumPDF][${stage}]`;
         if (stage === "LLMEnhanceFailedUseLocal") {
@@ -287,41 +350,61 @@ async function handleAstroPremiumPrepare(request, env) {
       throw error;
     }
     const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `astro-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
+    const requestOrigin = new URL(request.url).origin;
+    const archiveUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
+    const pdfReady = {
+      ...(generated?.pdfReady || {}),
+      pdfUrl: clean(generated?.pdfReady?.pdfUrl || generated?.pdfReady?.downloadUrl || archiveUrl),
+      htmlUrl: clean(generated?.pdfReady?.htmlUrl || archiveUrl),
+      downloadUrl: clean(generated?.pdfReady?.downloadUrl || generated?.pdfReady?.pdfUrl || generated?.pdfReady?.htmlUrl || archiveUrl),
+      storageKey: clean(generated?.pdfReady?.storageKey || `premium-archive:astro:${reportId}`),
+      mimeType: clean(generated?.pdfReady?.mimeType || "text/html"),
+    };
+
     await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
       chapterCount: generated.chapterCount,
       manuscriptSource: generated.manuscriptSource,
       archive: {
         reportId,
-        reportType: "western_astro_book",
+        reportType: "western_astrology_book",
         displayName: "점성술",
-        title: `${clean(generated?.payload?.profile?.name || body?.name || "사용자")}님의 점성술 리포트`,
+        title: `${clean(generated?.payload?.profile?.name || body?.name || "사용자")}님의 점성술 코즈믹 차트`,
         mode: clean(body?.mode || body?.reportMode || "personal"),
         birthName: clean(generated?.payload?.profile?.name || body?.name),
-        summary: clean(generated?.chapters?.[0]?.sections?.[0]?.body || "", 1000),
-        pdfUrl: clean(generated?.pdfReady?.pdfUrl),
+        summary: clean(generated?.finalManuscript?.[0]?.sections?.[0]?.body || generated?.chapters?.[0]?.categories?.[0]?.text || "", 1000),
+        pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
+        htmlUrl: clean(pdfReady?.htmlUrl),
         chapters: generated.chapters,
+        chapterDrafts: generated.finalManuscript,
         payload: generated.payload,
-        pdfReady: generated.pdfReady,
+        localAstroChartJson: generated.localAstroChartJson,
+        pdfReady,
         canReopen: true,
-        canDownload: Boolean(clean(generated?.pdfReady?.pdfUrl)),
+        canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)),
       },
     });
 
     const responsePayload = {
       ok: true,
+      serviceKey: "astro-premium",
       featureKey,
       sessionId,
       status: "completed",
       chapterCount: generated.chapterCount,
-      fallbackUsed: Boolean(generated.fallbackUsed),
-      pdfUrl: "",
+      fallbackUsed: false,
       reportId,
       chapters: generated.chapters,
+      chapterDrafts: generated.finalManuscript,
       payload: generated.payload,
-      pdfReady: generated.pdfReady,
+      pdfReady,
+      pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
+      htmlUrl: clean(pdfReady?.htmlUrl),
+      canReopen: true,
+      canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)),
       localAstroChartJson: generated.localAstroChartJson,
       validation: generated.validation,
-      manuscriptSource: generated.manuscriptSource,
+      manuscriptSource: "local-only",
+      quality: generated.quality,
       finalManuscript: generated.finalManuscript,
       totalLength: generated.totalLength,
       localDraftChapterCount: Array.isArray(generated?.finalManuscript) ? generated.finalManuscript.length : 0,
@@ -377,11 +460,14 @@ async function handleAstroPremiumPrepare(request, env) {
 async function handleVedicPremiumPrepare(request, env) {
   let auth = null;
   let body = {};
+  let birthInput = {};
+  let executionCtx = null;
   try {
     auth = await requireAuth(request, env);
     body = await readJson(request);
     const premiumAccessToken = readPremiumAccessToken(request, body);
     const featureKey = String(body?.featureKey || VEDIC_PREMIUM_FEATURE_KEY);
+    birthInput = normalizeVedicPremiumBirthInput(body);
 
     console.info("[VedicPremiumPDF][RequestReceived]", {
       userId: auth.userId,
@@ -389,25 +475,22 @@ async function handleVedicPremiumPrepare(request, env) {
       hasPremiumAccessToken: Boolean(premiumAccessToken),
     });
 
-    const validation = validateVedicPayloadForApi(body?.vedicBase || body);
-    if (!validation.ok) {
+    const birthValidation = validateVedicBirthInput(birthInput);
+    if (!birthValidation.ok) {
       console.error("[VedicPremiumPDF][Error]", {
-        code: String(validation?.code || "MISSING_VEDIC_DATA"),
-        message: String(validation?.message || "베다점 계산 데이터가 부족합니다."),
-        ...toSafeVedicBirthLog(validation?.birthInput, VEDIC_PREMIUM_CHAPTERS.length),
+        code: "BIRTH_INPUT_INVALID",
+        message: String(birthValidation?.message || "출생 정보가 올바르지 않습니다."),
+        ...toSafeVedicBirthLog(birthInput, VEDIC_PREMIUM_CHAPTERS.length),
       });
       return json({
         ok: false,
-        code: validation?.code || "MISSING_VEDIC_DATA",
-        message: validation?.message || "베다점 계산 데이터가 부족합니다. 라그나와 달 나크샤트라 계산을 먼저 완료해 주세요.",
-        missing: validation?.missing || [],
+        code: "BIRTH_INPUT_INVALID",
+        message: birthValidation?.message || "베다 차트 계산을 완료하지 못했습니다. 출생 정보와 지역 정보를 확인해 주세요.",
+        missing: birthValidation?.hardFail || [],
       }, { status: 422 });
     }
 
-    console.info("[VedicPremiumPDF][BirthInputValidated]", {
-      ...toSafeVedicBirthLog(validation?.birthInput, VEDIC_PREMIUM_CHAPTERS.length),
-      ...toSafeVedicChartLog(validation?.localVedicChartJson),
-    });
+    console.info("[VedicPremiumPDF][BirthInputValidated]", toSafeVedicBirthLog(birthInput, VEDIC_PREMIUM_CHAPTERS.length));
 
     const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "vedicPremium", {
       reportType: "vedicPremium",
@@ -420,7 +503,7 @@ async function handleVedicPremiumPrepare(request, env) {
       console.error("[VedicPremiumPDF][Error]", {
         code: String(access?.code || "UNAUTHORIZED"),
         message: String(access?.message || "베다점 프리미엄 PDF 접근 권한이 필요합니다."),
-        ...toSafeVedicBirthLog(validation?.birthInput, VEDIC_PREMIUM_CHAPTERS.length),
+        ...toSafeVedicBirthLog(birthInput, VEDIC_PREMIUM_CHAPTERS.length),
       });
       return json({
         ok: false,
@@ -429,7 +512,7 @@ async function handleVedicPremiumPrepare(request, env) {
       }, { status: Number(access?.status) || 403 });
     }
 
-    const executionCtx = buildPremiumExecutionContext({
+    executionCtx = buildPremiumExecutionContext({
       serviceKey: "vedic-premium",
       reportType: "vedicPremium",
       userId: auth.userId,
@@ -442,7 +525,25 @@ async function handleVedicPremiumPrepare(request, env) {
     });
     await startPremiumPdfExecution(env, auth.userId, executionCtx);
 
-    const generated = await generateVedicPremiumReport(env, body?.vedicBase || body, {
+    const resolved = await resolveVedicChartForPremiumPdf(body, birthInput, env, request.url);
+    if (!hasUsableVedicChartSource(resolved?.chartSource)) {
+      const error = new Error("베다 차트 계산을 완료하지 못했습니다. 출생 정보와 지역 정보를 확인해 주세요.");
+      error.code = "VEDIC_CHART_SOURCE_INVALID";
+      error.status = 422;
+      throw error;
+    }
+
+    const preparedPayload = {
+      ...body,
+      birthInput,
+      vedicBase: {
+        ...(body?.vedicBase && typeof body.vedicBase === "object" ? body.vedicBase : {}),
+        birthInput,
+        chart: resolved.chartSource,
+      },
+    };
+
+    const generated = await generateVedicPremiumReport(env, preparedPayload, {
       log: (stage, payload) => {
         const tag = `[VedicPremiumPDF][${stage}]`;
         if (stage === "LLMEnhanceFailedUseLocal") {
@@ -460,6 +561,17 @@ async function handleVedicPremiumPrepare(request, env) {
     }
     const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `vedic-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
     const vedicSessionId = clean(body?.sessionId || body?.reportSessionId || body?.generationId) || `vedic-premium:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`;
+    const requestOrigin = new URL(request.url).origin;
+    const archiveUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
+    const pdfReady = {
+      ...(generated?.pdfReady || {}),
+      pdfUrl: clean(generated?.pdfReady?.pdfUrl || generated?.pdfReady?.downloadUrl || archiveUrl),
+      htmlUrl: clean(generated?.pdfReady?.htmlUrl || archiveUrl),
+      downloadUrl: clean(generated?.pdfReady?.downloadUrl || generated?.pdfReady?.pdfUrl || generated?.pdfReady?.htmlUrl || archiveUrl),
+      storageKey: clean(generated?.pdfReady?.storageKey || `premium-archive:vedic:${reportId}`),
+      mimeType: clean(generated?.pdfReady?.mimeType || "text/html"),
+    };
+
     await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
       chapterCount: generated.chapterCount,
       manuscriptSource: generated.manuscriptSource,
@@ -467,33 +579,42 @@ async function handleVedicPremiumPrepare(request, env) {
         reportId,
         reportType: "vedic_book",
         displayName: "베다점",
-        title: `${clean(generated?.payload?.profile?.name || body?.name || "사용자")}님의 베다점 리포트`,
+        title: `${clean(birthInput?.name || generated?.payload?.profile?.name || body?.name || "사용자")}님의 베다점 리포트`,
         mode: clean(body?.mode || body?.reportMode || "personal"),
-        birthName: clean(generated?.payload?.profile?.name || body?.name),
-        summary: clean(generated?.chapters?.[0]?.sections?.[0]?.body || "", 1000),
-        pdfUrl: clean(generated?.pdfReady?.pdfUrl),
+        birthName: clean(birthInput?.name || generated?.payload?.profile?.name || body?.name),
+        summary: clean(generated?.chapterDrafts?.[0]?.sections?.[0]?.body || generated?.chapters?.[0]?.categories?.[0]?.body || "", 1000),
+        pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
+        htmlUrl: clean(pdfReady?.htmlUrl),
         chapters: generated.chapters,
+        chapterDrafts: generated.chapterDrafts,
         payload: generated.payload,
-        pdfReady: generated.pdfReady,
+        localVedicChartJson: generated.localVedicChartJson,
+        pdfReady,
         canReopen: true,
-        canDownload: Boolean(clean(generated?.pdfReady?.pdfUrl)),
+        canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)),
       },
     });
 
     return json({
       ok: true,
+      serviceKey: "vedic-premium",
       featureKey,
       status: "completed",
       sessionId: vedicSessionId,
       chapterCount: generated.chapterCount,
-      fallbackUsed: Boolean(generated.fallbackUsed),
-      pdfUrl: "",
+      fallbackUsed: false,
       reportId,
       chapters: generated.chapters,
+      chapterDrafts: generated.chapterDrafts,
       payload: generated.payload,
-      pdfReady: generated.pdfReady,
+      localVedicChartJson: generated.localVedicChartJson,
+      pdfReady,
+      pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
+      htmlUrl: clean(pdfReady?.htmlUrl),
+      canReopen: true,
+      canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)),
       quality: generated.quality,
-      manuscriptSource: generated.manuscriptSource,
+      manuscriptSource: "local-only",
       localDraftChapterCount: Array.isArray(generated?.localDraft?.chapters) ? generated.localDraft.chapters.length : 0,
       finalChapterCount: Array.isArray(generated?.chapters) ? generated.chapters.length : 0,
     });
@@ -501,7 +622,7 @@ async function handleVedicPremiumPrepare(request, env) {
     await failPremiumPdfExecution(
       env,
       auth?.userId,
-      buildPremiumExecutionContext({
+      executionCtx || buildPremiumExecutionContext({
         serviceKey: "vedic-premium",
         reportType: "vedicPremium",
         userId: auth?.userId,

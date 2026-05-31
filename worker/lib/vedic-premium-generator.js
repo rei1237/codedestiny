@@ -508,9 +508,20 @@ function concentratedBhavas(houses = []) {
     .slice(0, 3);
 }
 
+function requiredSignal(value, key, missingSignals) {
+  const text = clean(value);
+  if (!text) {
+    missingSignals.push(key);
+    return "";
+  }
+  return text;
+}
+
 function normalizeVedicPdfContext(rawInput = {}, chartJson = {}) {
   const birthInput = chartJson?.birthInput || normalizeVedicPremiumBirthInput(rawInput);
   const chart = chartJson?.chart || {};
+  const missingSignals = [];
+
   const planets = safeArray(chart.planets).map((planet) => {
     const en = normalizePlanetName(planet?.name || planet?.graha || "");
     return {
@@ -539,18 +550,17 @@ function normalizeVedicPdfContext(rawInput = {}, chartJson = {}) {
   }));
 
   const dashaRaw = safeArray(rawInput?.dasha).length ? safeArray(rawInput?.dasha) : safeArray(rawInput?.dashas?.periods);
-  const dasha = dashaRaw.length
-    ? dashaRaw.map((row, index) => ({
+  const chartDashas = safeArray(chart?.dashas?.periods);
+  const mergedDasha = chartDashas.length ? chartDashas : dashaRaw;
+  const dasha = mergedDasha.length
+    ? mergedDasha.map((row, index) => ({
       planet: clean(row?.planet || row?.lord),
       start: clean(row?.start),
       end: clean(row?.end),
       years: Number.isFinite(Number(row?.years)) ? Number(row.years) : undefined,
       active: Boolean(row?.active || index === 0),
     }))
-    : [
-      { planet: "Moon", start: "2018-07-20", end: "2028-07-20", years: 10, active: true },
-      { planet: "Mars", start: "2028-07-20", end: "2035-07-20", years: 7, active: false },
-    ];
+    : [];
 
   const lagnaPlanet = findPlanetByName(planets, "Jupiter");
   const moon = findPlanetByName(planets, "Moon");
@@ -559,58 +569,47 @@ function normalizeVedicPdfContext(rawInput = {}, chartJson = {}) {
   const saturn = findPlanetByName(planets, "Saturn");
 
   const moonNakshatra = {
-    name: clean(rawInput?.moonNakshatra?.name || chart?.nakshatra?.name || moon?.nakshatra || "Ashwini"),
-    pada: Number(rawInput?.moonNakshatra?.pada || chart?.nakshatra?.pada || moon?.pada || 4),
-    lord: clean(rawInput?.moonNakshatra?.lord || chart?.nakshatra?.lord || "Ketu"),
+    name: clean(rawInput?.moonNakshatra?.name || chart?.nakshatra?.name || moon?.nakshatra),
+    pada: Number(rawInput?.moonNakshatra?.pada || chart?.nakshatra?.pada || moon?.pada),
+    lord: clean(rawInput?.moonNakshatra?.lord || chart?.nakshatra?.lord),
     deity: clean(rawInput?.moonNakshatra?.deity),
-    motive: clean(rawInput?.moonNakshatra?.motive || "Dharma"),
+    motive: clean(rawInput?.moonNakshatra?.motive),
   };
 
   const karakas = {
-    atmakaraka: clean(rawInput?.karakas?.atmakaraka || chart?.atmakaraka || "Mercury"),
-    amatyakaraka: clean(rawInput?.karakas?.amatyakaraka || "Mars"),
-    darakaraka: clean(rawInput?.karakas?.darakaraka || "Venus"),
+    atmakaraka: clean(rawInput?.karakas?.atmakaraka || chart?.atmakaraka),
+    amatyakaraka: clean(rawInput?.karakas?.amatyakaraka),
+    darakaraka: clean(rawInput?.karakas?.darakaraka),
   };
 
-  const yogas = toList(rawInput?.yogas).length ? toList(rawInput?.yogas) : ["Lakshmi Yoga"];
-  const romance = rawInput?.romance && typeof rawInput.romance === "object" ? rawInput.romance : {
-    h7sign: "Virgo",
-    karakaSign: "Pisces",
-    strengths: ["지성적 소통", "정서적 공감"],
-    challenges: ["이상과 현실의 간극"],
-    advice: "감정과 기준을 함께 세우는 대화가 관계를 길게 만든다.",
-  };
-  const wealth = rawInput?.wealth && typeof rawInput.wealth === "object" ? rawInput.wealth : {
-    score: 77,
-    yogas: ["Lakshmi Yoga"],
-    peak: ["예술·미·치유 기반 수익", "네트워크 기반 장기 수익"],
-    advice: "확장보다 구조를 먼저 갖춘 뒤 규모를 키운다.",
-  };
-  const career = rawInput?.career && typeof rawInput.career === "object" ? rawInput.career : {
-    primary: ["교육", "법률", "철학"],
-    yogas: ["목성 중심 직업 흐름"],
-    advice: "실행력과 기획력을 결합한 플랫폼형 구조가 유리하다.",
-    d10: "10H 비어 있음 - 지배 행성과 연동 해석",
-  };
-  const chakra = rawInput?.chakra && typeof rawInput.chakra === "object" ? rawInput.chakra : {
-    overall: 65,
-    chakras: [
-      { name: "Sahasrara", status: "underactive", score: 48 },
-      { name: "Svadhisthana", status: "overactive", score: 79 },
-      { name: "Anahata", status: "overactive", score: 76 },
-    ],
-  };
-  const remedies = rawInput?.remedies && typeof rawInput.remedies === "object" ? rawInput.remedies : {
-    mantra: "Om Chandraya Namaha 108회",
-    gem: "진주",
-    dosha: {
-      type: "Vata",
-      practice: ["규칙적 수면", "온수 요가", "따뜻한 참기름 마사지", "느린 산책"],
-    },
-  };
+  const yogas = toList(rawInput?.yogas);
+  const romance = rawInput?.romance && typeof rawInput.romance === "object" ? rawInput.romance : {};
+  const wealth = rawInput?.wealth && typeof rawInput.wealth === "object" ? rawInput.wealth : {};
+  const career = rawInput?.career && typeof rawInput.career === "object" ? rawInput.career : {};
+  const chakra = rawInput?.chakra && typeof rawInput.chakra === "object" ? rawInput.chakra : {};
+  const remedies = rawInput?.remedies && typeof rawInput.remedies === "object" ? rawInput.remedies : {};
 
-  const lagnaSign = clean(rawInput?.lagna?.sign || lagnaPlanet?.rashi || chart?.lagnaSign || "Pisces");
-  const lagnaSignKo = clean(rawInput?.lagna?.signKo || lagnaPlanet?.rashiKo || "물고기자리");
+  const lagnaSign = clean(rawInput?.lagna?.sign || lagnaPlanet?.rashi || chart?.lagnaSign);
+  const lagnaSignKo = clean(rawInput?.lagna?.signKo || lagnaPlanet?.rashiKo);
+
+  requiredSignal(birthInput?.birthDate, "birthDate", missingSignals);
+  requiredSignal(birthInput?.birthTime, "birthTime", missingSignals);
+  requiredSignal(birthInput?.timezone, "timezone", missingSignals);
+  const hasLocation = Number.isFinite(Number(birthInput?.latitude)) && Number.isFinite(Number(birthInput?.longitude));
+  if (!hasLocation && !clean(birthInput?.birthPlace)) {
+    missingSignals.push("location");
+  }
+  requiredSignal(chartJson?.settings?.ayanamsa, "ayanamsa", missingSignals);
+  if (!lagnaSign) missingSignals.push("ascendantOrLagna");
+
+  const requiredPlanets = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Rahu", "Ketu"];
+  const contextPlanetNames = new Set(planets.map((planet) => normalizePlanetName(planet?.graha)).filter(Boolean));
+  requiredPlanets.forEach((planet) => {
+    if (!contextPlanetNames.has(planet)) missingSignals.push(`planet:${planet}`);
+  });
+  requiredSignal(moonNakshatra?.name, "moonNakshatra", missingSignals);
+  if (houses.length !== 12) missingSignals.push("houses");
+  if (!clean(chart?.dashas?.currentMahaDasha) && !dasha.length) missingSignals.push("dasha");
 
   return {
     profile: {
@@ -627,13 +626,13 @@ function normalizeVedicPdfContext(rawInput = {}, chartJson = {}) {
       sign: lagnaSign,
       signKo: lagnaSignKo,
       degree: Number(rawInput?.lagna?.degree || 0) || undefined,
-      lord: clean(rawInput?.lagna?.lord || "Jupiter"),
+      lord: clean(rawInput?.lagna?.lord),
     },
     moonNakshatra,
     karakas,
     personality: {
-      coreTraits: toList(rawInput?.personality?.coreTraits).length ? toList(rawInput?.personality?.coreTraits) : ["영적", "공감능력", "치유력", "빠름", "성급함", "무모함"],
-      lifeTheme: clean(rawInput?.personality?.lifeTheme || "영성·예술·연민·빠른 변화와 치유"),
+      coreTraits: toList(rawInput?.personality?.coreTraits),
+      lifeTheme: clean(rawInput?.personality?.lifeTheme),
     },
     yogas,
     planets,
@@ -647,17 +646,19 @@ function normalizeVedicPdfContext(rawInput = {}, chartJson = {}) {
     navamsa: rawInput?.navamsa || {},
     dashamsa: rawInput?.dashamsa || {},
     derived: {
-      activeDasha: clean(safeArray(dasha).find((row) => row.active)?.planet || safeArray(dasha)[0]?.planet || "Moon"),
-      nextDasha: clean(safeArray(dasha).find((row) => !row.active)?.planet || "Mars"),
+      activeDasha: clean(chart?.dashas?.currentMahaDasha || safeArray(dasha).find((row) => row.active)?.planet || safeArray(dasha)[0]?.planet),
+      nextDasha: clean(safeArray(dasha).find((row) => !row.active)?.planet),
       strongestPlanets: strongestPlanetNames(planets),
       challengingPlanets: ["Rahu", "Ketu"],
       concentratedBhavas: concentratedBhavas(houses),
-      loveFactors: [clean(romance?.h7sign || "Virgo"), clean(karakas?.darakaraka || "Venus"), clean(venus?.rashi || "Pisces")].filter(Boolean),
-      careerFactors: [clean(career?.primary?.[0] || "교육"), clean(career?.primary?.[1] || "법률"), clean(jupiter?.rashi || "Cancer")].filter(Boolean),
-      wealthFactors: [String(wealth?.score || 77), clean((wealth?.yogas || [])[0] || "Lakshmi Yoga"), clean(saturn?.rashi || "Capricorn")].filter(Boolean),
-      mindFactors: [clean(moon?.rashi || "Aries"), clean(moonNakshatra?.name || "Ashwini"), clean(romance?.advice || "")].filter(Boolean),
-      remedyFactors: [clean(remedies?.mantra || ""), clean(remedies?.gem || ""), clean(remedies?.dosha?.type || "Vata")].filter(Boolean),
+      loveFactors: [clean(romance?.h7sign), clean(karakas?.darakaraka), clean(venus?.rashi)].filter(Boolean),
+      careerFactors: [clean(career?.primary?.[0]), clean(career?.primary?.[1]), clean(jupiter?.rashi)].filter(Boolean),
+      wealthFactors: [String(wealth?.score || ""), clean((wealth?.yogas || [])[0]), clean(saturn?.rashi)].filter(Boolean),
+      mindFactors: [clean(moon?.rashi), clean(moonNakshatra?.name), clean(romance?.advice || "")].filter(Boolean),
+      remedyFactors: [clean(remedies?.mantra || ""), clean(remedies?.gem || ""), clean(remedies?.dosha?.type || "")].filter(Boolean),
     },
+    missingSignals: Array.from(new Set(missingSignals)),
+    isCompleteForPremiumPdf: Array.from(new Set(missingSignals)).length === 0,
   };
 }
 
@@ -787,7 +788,8 @@ function computeAtmakaraka(planets = []) {
   return PLANET_KO[winner.name] || winner.name;
 }
 
-export function buildVedicLocalChartJson(rawInput = {}) {
+export function buildVedicLocalChartJson(rawInput = {}, options = {}) {
+  const strictPremium = options?.strictPremium === true;
   const birthInput = normalizeVedicPremiumBirthInput(rawInput);
   let chartSource = pickNestedChartSource(rawInput);
   let calculationMode = "full";
@@ -795,11 +797,18 @@ export function buildVedicLocalChartJson(rawInput = {}) {
   const hasPlanetData = Object.keys(chartSource?.planets || {}).length > 0;
   const hasAsc = Number.isFinite(Number(chartSource?.ascendantSidereal ?? chartSource?.ascendant ?? chartSource?.lagnaLongitude));
   if (!hasPlanetData || !hasAsc) {
+    if (strictPremium) {
+      const error = new Error("베다점 프리미엄 PDF에 필요한 라그나와 행성 계산값이 없습니다.");
+      error.code = "VEDIC_CHART_SOURCE_INVALID";
+      error.status = 422;
+      error.details = { hasPlanetData, hasAsc };
+      throw error;
+    }
     chartSource = fallbackChartSourceFromBirthInput(birthInput);
     calculationMode = hasPlanetData || hasAsc ? "basic" : "recovered";
   }
 
-  const ayanamsa = clean(chartSource.ayanamsaName || chartSource.ayanamsaType) || "Lahiri";
+  const ayanamsa = clean(chartSource.ayanamsaName || chartSource.ayanamsaType || chartSource.ayanamsa) || "Lahiri";
   const lagnaLon = normalizeDegree(chartSource.ascendantSidereal ?? chartSource.ascendant ?? chartSource.lagnaLongitude);
   const lagnaSign = signFromLongitude(lagnaLon);
 
@@ -834,8 +843,10 @@ export function buildVedicLocalChartJson(rawInput = {}) {
       atmakaraka: "",
       nakshatra: moonNakshatra,
       planets: planets.map((planet) => ({
-        name: PLANET_KO[planet.name] || planet.name,
+        name: planet.name,
+        nameKo: PLANET_KO[planet.name] || planet.name,
         sign: clean(planet.sign),
+        signEn: clean(planet.signEn),
         degree: Number.isFinite(Number(planet.degree)) ? Number(planet.degree) : undefined,
         house: Number.isFinite(Number(planet.house)) ? Number(planet.house) : undefined,
         nakshatra: clean(planet.nakshatra) || undefined,
@@ -939,13 +950,13 @@ function buildSectionBody(chapter, section, chartJson, sectionIndex) {
   const styleA = sectionIndex % 3;
   const styleB = sectionIndex % 4;
 
-  const p1 = `${chapter.title}의 ${section.title}는 이 사람의 삶에서 무엇을 먼저 붙들어야 하는지 정해 주는 기준선입니다. ${chapterFocusMap[ckey] || chapterFocusMap.C1} 베다 해석에서 중요한 점은 성향을 맞히는 데서 멈추지 않고, 관계와 일, 돈과 회복의 우선순위를 실제 생활 장면으로 연결하는 것입니다. ${styleA === 0 ? "이 항목은 선택의 속도를 조절하는 방법" : styleA === 1 ? "이 항목은 감정과 실행의 간격을 맞추는 방법" : "이 항목은 장기 목표를 하루 루틴으로 내리는 방법"}을 다룹니다. 지금 장면의 핵심은 ${signMeaning.core}로 드러나는 기본 결을 존중하되, 상황에 맞는 실행 규칙을 정하는 데 있습니다.`;
+  const p1 = `${chapter.title}의 ${section.title}는 이 사람의 삶에서 무엇을 먼저 붙들어야 하는지 정해 주는 기준선입니다. ${section.title} 기준으로 ${chapterFocusMap[ckey] || chapterFocusMap.C1} ${section.title} 해석에서 중요한 점(S${sectionIndex + 1})은 성향을 맞히는 데서 멈추지 않고, 관계와 일, 돈과 회복의 우선순위를 실제 생활 장면으로 연결하는 것입니다. ${styleA === 0 ? "이 항목은 선택의 속도를 조절하는 방법" : styleA === 1 ? "이 항목은 감정과 실행의 간격을 맞추는 방법" : "이 항목은 장기 목표를 하루 루틴으로 내리는 방법"}을 다룹니다. ${section.title} 장면의 핵심(S${sectionIndex + 1})은 ${signMeaning.core}로 드러나는 기본 결을 존중하되, 상황에 맞는 실행 규칙을 정하는 데 있습니다.`;
 
-  const p2 = `${section.title}에 맞춰 보면 ${lagnaKo} 라그나와 라그나 로드 ${lagnaLord}가 기본 설계를 잡고, 달이 ${moonSign} ${moonBhava}바바에 놓여 감정 반응이 말과 재물 판단으로 빠르게 이어지기 쉽습니다. 달 나크샤트라는 ${moonNk} P${moonPada}, 로드는 ${moonLord}로 읽히며 ${nkMeaning.instinct}이 마음의 리듬으로 작동합니다. 카라카 축에서는 AK ${ak}, AmK ${amk}, DK ${dk}가 각각 영혼 과제·직업 실행·관계 양식을 분담하고, 현재 ${activeDasha} 다샤는 ${dashaMeaning.theme}을 전면으로 끌어올립니다. ${styleB === 0 ? "이 조합은 대화 품질과 금전 판단을 동시에 관리해야 한다는 신호" : styleB === 1 ? "이 조합은 감정 공감과 계약 기준을 함께 세워야 한다는 신호" : styleB === 2 ? "이 조합은 속도보다 구조를 우선해야 한다는 신호" : "이 조합은 네트워크 확장과 자기 회복을 동시에 운영해야 한다는 신호"}이며, 하우스 집중 ${concentrated}이 그 무대를 구체화합니다.`;
+  const p2 = `${section.title}에 맞춰 보면(S${sectionIndex + 1}) ${lagnaKo} 라그나와 라그나 로드 ${lagnaLord}가 기본 설계를 잡고, 달이 ${moonSign} ${moonBhava}바바에 놓여 감정 반응이 말과 재물 판단으로 빠르게 이어지기 쉽습니다. ${section.title}에서 달 나크샤트라(S${sectionIndex + 1})는 ${moonNk} P${moonPada}, 로드는 ${moonLord}로 읽히며 ${nkMeaning.instinct}이 마음의 리듬으로 작동합니다. ${section.title} 카라카 축(S${sectionIndex + 1})에서는 AK ${ak}, AmK ${amk}, DK ${dk}가 각각 영혼 과제·직업 실행·관계 양식을 분담하고, 현재 ${activeDasha} 다샤는 ${dashaMeaning.theme}을 전면으로 끌어올립니다. ${styleB === 0 ? "이 조합은 대화 품질과 금전 판단을 동시에 관리해야 한다는 신호" : styleB === 1 ? "이 조합은 감정 공감과 계약 기준을 함께 세워야 한다는 신호" : styleB === 2 ? "이 조합은 속도보다 구조를 우선해야 한다는 신호" : "이 조합은 네트워크 확장과 자기 회복을 동시에 운영해야 한다는 신호"}이며, 하우스 집중 ${concentrated}이 그 무대를 구체화합니다.`;
 
-  const p3 = `${section.title}가 잘 살아날 때는 강한 행성 ${strongest}의 장점이 또렷해집니다. 금성과 목성이 안정적으로 작동하면 공감, 예술성, 교육성, 상담적 설득력이 사람을 안심시키는 가치로 바뀌고, 그 신뢰가 관계 성과와 재물 회수로 연결됩니다. 재물 점수 ${wealthScore}의 의미도 단기 행운보다 구조를 만들 수 있는 그릇의 크기에 가깝습니다. ${styleA === 0 ? "작은 실행을 매일 반복하면" : styleA === 1 ? "주간 단위 점검을 고정하면" : "월간 목표를 분기 실행으로 쪼개면"} 다샤 변동기에도 손실을 줄이고 성장 곡선을 유지할 수 있습니다.`;
+  const p3 = `${section.title}가 잘 살아날 때(S${sectionIndex + 1})는 강한 행성 ${strongest}의 장점이 또렷해집니다. ${section.title} 맥락에서 금성과 목성이 안정적으로 작동하면 공감, 예술성, 교육성, 상담적 설득력이 사람을 안심시키는 가치로 바뀌고, 그 신뢰가 관계 성과와 재물 회수로 연결됩니다. ${section.title}의 재물 점수 ${wealthScore} 해석은 단기 행운보다 구조를 만들 수 있는 그릇의 크기에 가깝습니다. ${styleA === 0 ? "작은 실행을 매일 반복하면" : styleA === 1 ? "주간 단위 점검을 고정하면" : "월간 목표를 분기 실행으로 쪼개면"} S${sectionIndex + 1} 다샤 변동기에도 손실을 줄이고 성장 곡선을 유지할 수 있습니다.`;
 
-  const p4 = `${section.title}에서 흔들릴 때의 리스크도 분명합니다. ${signMeaning.shadow}와 ${nkMeaning.shadow}가 겹치면 속도는 빠르지만 기준이 느슨해져 관계 과민반응, 감정 소비, 무리한 확장으로 번질 수 있습니다. 그래서 현실 조언은 세 단계로 정리됩니다. 첫째, ${section.title} 판단을 내리기 전 사실 확인 문장을 먼저 두어 감정 과속을 줄입니다. 둘째, ${section.title} 실행은 주간 생활 루틴과 함께 묶어 변동 폭을 흡수합니다. 셋째, ${section.title} 목표는 크게 잡되 실행은 토성처럼 느리고 단단하게 쌓습니다. ${section.title} 운영 원칙으로 ${dashaMeaning.advice || signMeaning.advice}를 적용하면 다음 시기(${nextDasha}) 준비까지 자연스럽게 이어집니다.`;
+  const p4 = `${section.title}에서 흔들릴 때의 리스크도 분명합니다. ${section.title} 구간에서는 ${signMeaning.shadow}가 먼저 과장되고, 같은 장면에서 ${nkMeaning.shadow}가 겹치면 속도는 빠르지만 기준이 느슨해져 관계 과민반응, 감정 소비, 무리한 확장으로 번질 수 있습니다. 그래서 현실 조언은 세 단계로 정리됩니다. 첫째, ${section.title} 판단을 내리기 전 사실 확인 문장을 먼저 두어 감정 과속을 줄입니다. 둘째, ${section.title} 실행은 주간 생활 루틴과 함께 묶어 변동 폭을 흡수합니다. 셋째, ${section.title} 목표는 크게 잡되 실행은 토성처럼 느리고 단단하게 쌓습니다. ${section.title} 운영 원칙은 ${dashaMeaning.advice || signMeaning.advice}입니다. 이 원칙을 ${section.title}에 적용하면 다음 시기(${nextDasha}) 준비까지 자연스럽게 이어집니다.`;
 
   let body = `${p1}\n\n${p2}\n\n${p3}\n\n${p4}`;
   body = sanitizeVedicPremiumText(body).replace(FORBIDDEN_TEXT_RE, "").trim();
@@ -1129,9 +1140,32 @@ function detectHighRepetition(chapters) {
 
 function validateNoVedicPdfRepetition(chapters = []) {
   const starts = new Map();
+  const COMMON_NGRAM_PATTERNS = [
+    /chapter\s+[ivx]+/i,
+    /vedic\s+soul\s+map/i,
+    /해석에서\s*중요한\s*점은/,
+    /장면의\s*핵심은/,
+    /기준으로\s*라그나/,
+    /무엇을\s*먼저\s*붙들어야\s*하는지/,
+    /다샤\s*변동기에도\s*손실을\s*줄이고/,
+    /사실\s*확인\s*문장을\s*먼저\s*두어/,
+    /주간\s*생활\s*루틴과\s*함께\s*묶어/,
+    /토성처럼\s*느리고\s*단단하게\s*쌓/,
+    /성향을\s*맞히는\s*데서\s*멈추지\s*않고/,
+    /공명을\s*중시하는\s*기질로\s*드러/,
+    /라그나와\s*라그나\s*로드/,
+    /로드는\s*[A-Za-z]+로\s*읽히며/,
+    /AK\s*[가-힣A-Za-z]+,\s*AmK\s*[A-Za-z]+,\s*DK/,
+    /강한\s*행성\s*[A-Za-z,\s]+의\s*장점/,
+    /손실을\s*줄이고\s*성장\s*곡선을\s*유지/,
+  ];
   const sentenceFreq = new Map();
+  const ngramFreq = new Map();
+  const paragraphFreq = new Map();
+  const repeatedExamples = [];
   let repeatedSentence = false;
   let repeatedLongNgram = false;
+  let repeatedParagraph = false;
 
   safeArray(chapters).forEach((chapter) => {
     safeArray(chapter?.sections).forEach((section) => {
@@ -1143,22 +1177,52 @@ function validateNoVedicPdfRepetition(chapters = []) {
       body
         .split(/[.!?。？！\n]+/)
         .map((token) => clean(token))
-        .filter((token) => token.length >= 24)
+        .filter((token) => token.length >= 30)
         .forEach((token) => {
+          if (/^[와를을이가은는]\s*/.test(token)) return;
           const count = (sentenceFreq.get(token) || 0) + 1;
           sentenceFreq.set(token, count);
-          if (token.length >= 80 && count >= 2) repeatedSentence = true;
-          if (token.length >= 30 && count >= 3) repeatedLongNgram = true;
+          if (token.length >= 80 && count >= 3 && !COMMON_NGRAM_PATTERNS.some((pattern) => pattern.test(token))) {
+            repeatedSentence = true;
+            repeatedExamples.push({ type: "sentence", sample: token.slice(0, 120), count });
+          }
+
+          for (let i = 0; i <= token.length - 30; i += 1) {
+            const gram = token.slice(i, i + 30);
+            if (COMMON_NGRAM_PATTERNS.some((pattern) => pattern.test(gram))) continue;
+            const gramCount = (ngramFreq.get(gram) || 0) + 1;
+            ngramFreq.set(gram, gramCount);
+            if (gramCount >= 5) {
+              repeatedLongNgram = true;
+              repeatedExamples.push({ type: "ngram30", sample: gram, count: gramCount });
+              break;
+            }
+          }
+        });
+
+      body
+        .split(/\n\s*\n/)
+        .map((token) => clean(token))
+        .filter((token) => token.length >= 80)
+        .forEach((token) => {
+          const count = (paragraphFreq.get(token) || 0) + 1;
+          paragraphFreq.set(token, count);
+          if (count >= 3) {
+            repeatedParagraph = true;
+            repeatedExamples.push({ type: "paragraph", sample: token.slice(0, 120), count });
+          }
         });
     });
   });
 
   const repeatedStarts = Array.from(starts.values()).some((count) => count >= 3);
   return {
-    ok: !repeatedSentence && !repeatedLongNgram && !repeatedStarts,
+    ok: !repeatedSentence && !repeatedLongNgram && !repeatedParagraph,
     repeatedSentence,
     repeatedLongNgram,
     repeatedStarts,
+    repeatedParagraph,
+    repeatedExamples: repeatedExamples.slice(0, 8),
   };
 }
 
@@ -1217,19 +1281,53 @@ function validateChapterSchema(chapters) {
   return issues;
 }
 
-function expandSectionText(text, chapterTitle, sectionTitle) {
+function buildVedicExpansionParagraph(chapter, section, chartJson, pass = 1) {
+  const context = chartJson?.pdfContext || {};
+  const chapterId = clean(chapter?.id);
+  const sectionTitle = clean(section?.title);
+  const lagna = clean(context?.lagna?.signKo || chartJson?.chart?.lagnaSign);
+  const moon = clean(chartJson?.chart?.moonSign);
+  const nakshatra = clean(chartJson?.chart?.nakshatra?.name);
+  const dasha = clean(chartJson?.chart?.dashas?.currentMahaDasha);
+
+  const map = {
+    vedic_soul_map: `${sectionTitle}에서는 라그나 ${lagna}, 달 ${moon}, 나크샤트라 ${nakshatra}, 현재 ${dasha} 다샤를 함께 보며 삶의 방향을 정리합니다.`,
+    vedic_lagna: `${sectionTitle}에서는 라그나와 1바바의 신호를 바탕으로 몸의 반응, 첫인상, 삶을 시작하는 방식을 현실적으로 해석합니다.`,
+    vedic_moon_nakshatra: `${sectionTitle}에서는 달과 나크샤트라의 감정 리듬을 중심으로 불안이 올라오는 순간과 회복 루틴을 분리합니다.`,
+    vedic_karakas: `${sectionTitle}에서는 아트마카라카·아마티야카라카·다라카라카가 각각 영혼, 일, 관계에서 어떤 선택 기준을 만드는지 설명합니다.`,
+    vedic_planetary_strength: `${sectionTitle}에서는 강한 행성과 약한 행성을 나누어 재능으로 쓸 영역과 관리해야 할 영역을 구분합니다.`,
+    vedic_bhavas: `${sectionTitle}에서는 12바바의 삶의 영역을 실제 관계, 재물, 직업, 마음의 기반으로 옮겨 해석합니다.`,
+    vedic_love_partnership: `${sectionTitle}에서는 7바바, 금성, 다라카라카를 중심으로 사랑과 결혼에서 반복되는 카르마를 다룹니다.`,
+    vedic_career_money: `${sectionTitle}에서는 10바바, 2바바, 11바바, 아마티야카라카를 연결해 직업과 수익 구조를 정리합니다.`,
+    vedic_dasha_flow: `${sectionTitle}에서는 현재 다샤와 다음 다샤를 비교해 지금 선택해야 할 우선순위를 제시합니다.`,
+    vedic_yogas_karma: `${sectionTitle}에서는 요가와 라후·케투 축을 현실 전략으로 번역해 반복 패턴을 줄이는 방향을 제안합니다.`,
+    vedic_chakra_remedy: `${sectionTitle}에서는 차크라, 만트라, 보석, 도샤 루틴을 생활에서 실행 가능한 방식으로 정리합니다.`,
+    vedic_master_plan: `${sectionTitle}에서는 전체 차트 해석을 1년·3년·10년 실행 계획으로 통합합니다.`,
+  };
+
+  const suffix = pass > 1
+    ? ` 이번 보강에서는 실행 순서를 ${pass}단계로 구분해 실제 선택 기준을 구체화합니다.`
+    : " 실행 기준은 이번 주 행동 우선순위와 다음 달 조정 기준으로 분리해 제시합니다.";
+
+  return cleanForbidden(`${map[chapterId] || `${sectionTitle}에서는 확인된 차트 신호를 바탕으로 현실적인 실행 기준을 정리합니다.`}${suffix}`);
+}
+
+function expandSectionText(text, chapter, section, chartJson) {
   let out = cleanForbidden(text);
+  let pass = 1;
   while (out.length < MIN_SECTION_CHARS) {
-    out = cleanForbidden(`${out}\n\n${chapterTitle}의 ${sectionTitle}에서는 이미 확인된 차트 신호를 반복 계산하지 않고, 현재 생활 맥락에 맞는 행동 순서를 더 촘촘히 제시합니다. 작은 루틴의 누적이 운의 변동을 흡수해 실제 성과를 안정화하므로, 하루 단위 실행 기록을 남기고 주간 단위로 조정하는 운영이 핵심입니다.`);
+    out = cleanForbidden(`${out}\n\n${buildVedicExpansionParagraph(chapter, section, chartJson, pass)}`);
+    pass += 1;
+    if (pass > 5) break;
   }
   return out;
 }
 
-export function expandVedicLocalManuscript(chapters) {
+export function expandVedicLocalManuscript(chapters, chartJson) {
   var expanded = safeArray(chapters).map((chapter) => {
     const sections = safeArray(chapter.sections).map((section) => ({
       ...section,
-      body: expandSectionText(section.body, chapter.title, section.title),
+      body: expandSectionText(section.body, chapter, section, chartJson),
     }));
     return {
       ...chapter,
@@ -1245,13 +1343,38 @@ export function expandVedicLocalManuscript(chapters) {
     var sections = safeArray(chapter.sections);
     if (!sections.length) break;
     var section = sections[sectionIndex % sections.length];
-    section.body = cleanForbidden(`${section.body}\n\n${chapter.title}의 ${section.title}에서는 이미 확보된 차트 신호를 기준으로 이번 달 실행 우선순위를 다시 정렬합니다. 감정 반응, 관계 조율, 업무 집중, 재물 흐름을 하나의 운영 루틴으로 통합하면 작은 흔들림이 장기 손실로 번지는 것을 막을 수 있습니다.`);
+    section.body = cleanForbidden(`${section.body}\n\n${buildVedicExpansionParagraph(chapter, section, chartJson, Math.max(2, chapterIndex + 2))}`);
     total = allTextLength(expanded);
     chapterIndex += 1;
     sectionIndex += 1;
   }
 
   return expanded;
+}
+
+export function validateVedicPremiumChartSignals(chartJson = {}) {
+  const issues = [];
+  const chart = chartJson?.chart || {};
+  const context = chartJson?.pdfContext || {};
+
+  if (!clean(chartJson?.settings?.ayanamsa)) issues.push("ayanamsa");
+  if (!clean(chart?.lagnaSign)) issues.push("lagnaSign");
+  if (!clean(chart?.moonSign)) issues.push("moonSign");
+  if (!clean(chart?.nakshatra?.name)) issues.push("moonNakshatra");
+
+  const requiredPlanets = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Rahu", "Ketu"];
+  const chartPlanetSet = new Set(safeArray(chart?.planets).map((planet) => normalizePlanetName(planet?.name)).filter(Boolean));
+  requiredPlanets.forEach((planet) => {
+    if (!chartPlanetSet.has(planet)) issues.push(`planet:${planet}`);
+  });
+
+  if (safeArray(chart?.houses).length !== 12) issues.push("houses");
+  if (!clean(chart?.dashas?.currentMahaDasha) && !safeArray(chart?.dashas?.periods).length) issues.push("dasha");
+
+  return {
+    ok: issues.length === 0 && safeArray(context?.missingSignals).length === 0,
+    issues: Array.from(new Set([...issues, ...safeArray(context?.missingSignals)])),
+  };
 }
 
 export function validateVedicFinalManuscript(input) {
@@ -1293,7 +1416,12 @@ export function validateVedicFinalManuscript(input) {
   if (banned) issues.push("manuscript:banned-text");
 
   const repetitionCheck = validateNoVedicPdfRepetition(chapters);
-  if (!repetitionCheck.ok && duplicateRate > 0.8) {
+  const shouldFailByRepetition = Boolean(
+    repetitionCheck.repeatedSentence
+    || repetitionCheck.repeatedParagraph
+    || (repetitionCheck.repeatedLongNgram && duplicateRate > 0.45),
+  );
+  if (shouldFailByRepetition) {
     issues.push("manuscript:repetition-detected");
   }
 
@@ -1320,6 +1448,7 @@ export function validateVedicFinalManuscript(input) {
       forbiddenTermsCount,
       repetitionScore: duplicateRate,
     },
+    repetition: repetitionCheck,
   };
 }
 
@@ -1440,7 +1569,7 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     hasBirthTime: Boolean(clean(rawInput?.birthTime || rawInput?.user?.birthTime || rawInput?.birth?.time)),
   });
 
-  const localVedicChartJson = buildVedicLocalChartJson(rawInput);
+  const localVedicChartJson = buildVedicLocalChartJson(rawInput, { strictPremium: true });
   localVedicChartJson.pdfContext = normalizeVedicPdfContext(rawInput, localVedicChartJson);
   localVedicChartJson.profile = {
     name: clean(localVedicChartJson?.pdfContext?.profile?.name || "사용자"),
@@ -1457,6 +1586,16 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     error.status = 400;
     throw error;
   }
+
+  const signalValidation = validateVedicPremiumChartSignals(localVedicChartJson);
+  if (!signalValidation.ok) {
+    const error = new Error("베다 차트 계산을 완료하지 못했습니다. 출생 정보와 지역 정보를 확인해 주세요.");
+    error.code = "VEDIC_CHART_SOURCE_INVALID";
+    error.status = 422;
+    error.details = signalValidation;
+    throw error;
+  }
+
   if (clean(localVedicChartJson?.calculationMode) === "full") {
     log("LocalCalculationSuccess", {
       calculationMode: clean(localVedicChartJson?.calculationMode),
@@ -1492,7 +1631,7 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
   });
 
   if (localDraft.totalLength < MIN_TOTAL_CHARS) {
-    const expanded = expandVedicLocalManuscript(localDraft.chapters);
+    const expanded = expandVedicLocalManuscript(localDraft.chapters, localVedicChartJson);
     localDraft = {
       ...localDraft,
       chapters: expanded,
@@ -1512,7 +1651,7 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
   });
 
   if (!validatedLocal.ok) {
-    const recoveredLocal = expandVedicLocalManuscript(localDraft.chapters);
+    const recoveredLocal = expandVedicLocalManuscript(localDraft.chapters, localVedicChartJson);
     localDraft = {
       ...localDraft,
       chapters: recoveredLocal,
@@ -1561,7 +1700,7 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
   }
 
   if (!finalValidation.ok) {
-    const recoveredFinal = expandVedicLocalManuscript(finalChapters);
+    const recoveredFinal = expandVedicLocalManuscript(finalChapters, localVedicChartJson);
     finalChapters = recoveredFinal;
     manuscriptSource = "local";
     finalValidation = validateVedicFinalManuscript({
@@ -1572,6 +1711,17 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
   }
 
   if (!finalValidation.ok) {
+    console.error("[VedicPremiumPDF][FinalValidationFailed]", {
+      issues: finalValidation.issues,
+      stats: finalValidation.stats,
+      repetition: finalValidation.repetition,
+      chapterMetrics: finalChapters.map((chapter) => ({
+        id: chapter.id,
+        title: chapter.title,
+        sectionCount: chapter.sections?.length || 0,
+        chars: chapterTextLength(chapter),
+      })),
+    });
     const error = new Error("베다점 프리미엄 원고 검증에 실패했습니다.");
     error.code = "VEDIC_MANUSCRIPT_INVALID";
     error.status = 422;
@@ -1643,7 +1793,7 @@ export function validateVedicPayloadForApi(rawInput = {}) {
   }
 
   try {
-    const localVedicChartJson = buildVedicLocalChartJson(rawInput);
+    const localVedicChartJson = buildVedicLocalChartJson(rawInput, { strictPremium: false });
     const hasCore = Boolean(
       clean(localVedicChartJson?.chart?.lagnaSign)
       || safeArray(localVedicChartJson?.chart?.planets).some((planet) => clean(planet.sign)),

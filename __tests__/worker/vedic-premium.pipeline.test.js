@@ -88,6 +88,16 @@ describe('Vedic premium generator local-only pipeline', () => {
     expect(generated.chapters).toHaveLength(12);
     expect(generated.fallbackUsed).toBe(false);
     expect(generated.manuscriptSource).toBe('local');
+    expect(generated.localVedicChartJson && generated.localVedicChartJson.calculationMode).toBe('full');
+    expect(generated.localVedicChartJson && generated.localVedicChartJson.settings && generated.localVedicChartJson.settings.ayanamsa).toBeTruthy();
+    expect(generated.localVedicChartJson && generated.localVedicChartJson.chart && generated.localVedicChartJson.chart.lagnaSign).toBeTruthy();
+    expect(generated.localVedicChartJson && generated.localVedicChartJson.chart && generated.localVedicChartJson.chart.moonSign).toBeTruthy();
+    expect(generated.localVedicChartJson && generated.localVedicChartJson.chart && generated.localVedicChartJson.chart.nakshatra && generated.localVedicChartJson.chart.nakshatra.name).toBeTruthy();
+    expect(Array.isArray(generated.localVedicChartJson && generated.localVedicChartJson.chart && generated.localVedicChartJson.chart.planets)).toBe(true);
+    expect((generated.localVedicChartJson && generated.localVedicChartJson.chart && generated.localVedicChartJson.chart.planets || []).length).toBeGreaterThanOrEqual(9);
+    expect(Array.isArray(generated.localVedicChartJson && generated.localVedicChartJson.chart && generated.localVedicChartJson.chart.houses)).toBe(true);
+    expect((generated.localVedicChartJson && generated.localVedicChartJson.chart && generated.localVedicChartJson.chart.houses || []).length).toBe(12);
+    expect(generated.localVedicChartJson && generated.localVedicChartJson.chart && generated.localVedicChartJson.chart.dashas && generated.localVedicChartJson.chart.dashas.currentMahaDasha).toBeTruthy();
     expect(generated.pdfReady && generated.pdfReady.html).toBeTruthy();
   });
 
@@ -103,8 +113,9 @@ describe('Vedic premium generator local-only pipeline', () => {
     expect(generated.pdfReady && generated.pdfReady.html).toBeTruthy();
   });
 
-  test('seed가 일부 누락되어도 로컬 생성 파이프라인은 정상 완료되어야 한다', async () => {
-    const generated = await vedic.generateVedicPremiumReport({}, makeInput({
+  test('seed가 일부 누락되면 strict premium 생성은 실패해야 한다', async () => {
+    await expect(vedic.generateVedicPremiumReport({}, makeInput({
+      chart: {},
       localVedicChartJson: {
         birthInput: {
           birthDate: '1991-02-20',
@@ -118,10 +129,23 @@ describe('Vedic premium generator local-only pipeline', () => {
         interpretationSeeds: {},
         chartMeta: {},
       },
-    }));
+    }))).rejects.toMatchObject({
+      code: 'VEDIC_CHART_SOURCE_INVALID',
+    });
+  });
 
-    expect(generated.manuscriptSource).toBe('local');
-    expect(generated.chapters).toHaveLength(12);
+  test('buildVedicLocalChartJson strictPremium은 fallback을 허용하지 않는다', () => {
+    expect(() => vedic.buildVedicLocalChartJson({
+      birthDate: '1991-02-20',
+      birthTime: '07:00',
+      birthHour: 7,
+      birthMinute: 0,
+      timezone: 'Asia/Seoul',
+      birthPlace: '서울',
+      latitude: 37.5665,
+      longitude: 126.978,
+      chart: {},
+    }, { strictPremium: true })).toThrow();
   });
 
   test('birthInput 정규화가 표준 스키마를 충족한다', () => {
