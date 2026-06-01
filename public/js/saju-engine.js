@@ -15573,7 +15573,7 @@ function renderZiwei(p, natal, targetId) {
 
       var pd = window._currentZiweiData;
       var pName = pd.palacesByIndex[idx];
-      var stars = pd.stars[idx];
+      var stars = window._normalizeZwStarBucket(pd.stars && pd.stars[idx]);
 
       if(typeof Chart === 'undefined') {
         var s = document.createElement('script');
@@ -15687,6 +15687,23 @@ function renderZiwei(p, natal, targetId) {
       }
     };
 
+    if (!window._normalizeZwStarBucket) {
+      window._normalizeZwStarBucket = function(raw) {
+        if (!raw) return { main: [], borrowedMain: [], aux: [], bad: [] };
+        if (Array.isArray(raw)) {
+          return { main: raw, borrowedMain: [], aux: [], bad: [] };
+        }
+        if (typeof raw !== 'object') {
+          return { main: [], borrowedMain: [], aux: [], bad: [] };
+        }
+        var main = Array.isArray(raw.main) ? raw.main : (Array.isArray(raw.stars) ? raw.stars : []);
+        var borrowedMain = Array.isArray(raw.borrowedMain) ? raw.borrowedMain : [];
+        var aux = Array.isArray(raw.aux) ? raw.aux : (Array.isArray(raw.auxStars) ? raw.auxStars : []);
+        var bad = Array.isArray(raw.bad) ? raw.bad : (Array.isArray(raw.badStars) ? raw.badStars : []);
+        return { main: main, borrowedMain: borrowedMain, aux: aux, bad: bad };
+      };
+    }
+
     if (!window._resolveZwComprehensiveSeed) {
       window._resolveZwComprehensiveSeed = function(pd) {
         if (!pd || typeof pd !== 'object') return null;
@@ -15695,31 +15712,21 @@ function renderZiwei(p, natal, targetId) {
         if (idx < 0) idx = 0;
 
         var starsSource = (pd.stars && typeof pd.stars === 'object') ? pd.stars : null;
-        var picked = starsSource ? starsSource[idx] : null;
+        var picked = starsSource ? window._normalizeZwStarBucket(starsSource[idx]) : null;
 
-        if (!picked && Array.isArray(pd.palaceStarData) && pd.palaceStarData[idx]) {
+        if ((!picked || (!picked.main.length && !picked.aux.length && !picked.bad.length)) && Array.isArray(pd.palaceStarData) && pd.palaceStarData[idx]) {
           var row = pd.palaceStarData[idx] || {};
-          picked = {
-            main: Array.isArray(row.stars) ? row.stars : [],
-            borrowedMain: [],
-            aux: Array.isArray(row.auxStars) ? row.auxStars : [],
-            bad: Array.isArray(row.badStars) ? row.badStars : []
-          };
+          picked = window._normalizeZwStarBucket(row);
         }
 
-        if (!picked && Array.isArray(pd.palaceStarData)) {
+        if ((!picked || (!picked.main.length && !picked.aux.length && !picked.bad.length)) && Array.isArray(pd.palaceStarData)) {
           for (var pi = 0; pi < pd.palaceStarData.length; pi++) {
             var probe = pd.palaceStarData[pi] || {};
             if ((Array.isArray(probe.stars) && probe.stars.length)
               || (Array.isArray(probe.auxStars) && probe.auxStars.length)
               || (Array.isArray(probe.badStars) && probe.badStars.length)) {
               idx = pi;
-              picked = {
-                main: Array.isArray(probe.stars) ? probe.stars : [],
-                borrowedMain: [],
-                aux: Array.isArray(probe.auxStars) ? probe.auxStars : [],
-                bad: Array.isArray(probe.badStars) ? probe.badStars : []
-              };
+              picked = window._normalizeZwStarBucket(probe);
               break;
             }
           }
@@ -16791,7 +16798,7 @@ function renderZiwei(p, natal, targetId) {
         };
         var getPStars = function(name) {
             var i = pd.palacesByIndex.indexOf(name);
-            return i < 0 ? null : pd.stars[i];
+          return i < 0 ? null : window._normalizeZwStarBucket(pd.stars && pd.stars[i]);
         };
 
         var msRef = {

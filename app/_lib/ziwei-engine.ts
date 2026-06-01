@@ -70,6 +70,10 @@ export interface ZiweiChartData {
   sihua: { luk: string; quan: string; ke: string; ji: string };
 }
 
+function normalizePalaceIndex(index: number): number {
+  return ((index % 12) + 12) % 12;
+}
+
 function normalizeStrengthLabel(raw: string | undefined): string {
   return normalizeZiweiClassicStrength(raw);
 }
@@ -176,8 +180,9 @@ export function calcZiweiPalaces(
   const tianfuPos = (16 - ziweiPos) % 12;
 
   const addStar = (pIdx: number, name: string, type: "main" | "aux" | "bad") => {
-    const target = palaceStarData[pIdx % 12];
-    const profile = getBrightness(name, pIdx % 12, type);
+    const normalizedIndex = normalizePalaceIndex(pIdx);
+    const target = palaceStarData[normalizedIndex];
+    const profile = getBrightness(name, normalizedIndex, type);
     const normalized = normalizeStarStrength(profile.strength, profile.symbol);
     const star = { name, symbol: normalized.symbol, strength: normalized.strength };
     if (type === "main") target.stars.push(star);
@@ -713,6 +718,21 @@ export function validateAdvancedZiweiResult(result: ZiweiDeepChart): { valid: bo
     if (!palace?.name) missingFields.push(`palaces[${index}].name`);
     if (!palace?.branch) missingFields.push(`palaces[${index}].branch`);
     if (!Array.isArray(palace?.mainStars)) missingFields.push(`palaces[${index}].mainStars`);
+    if (Array.isArray(palace?.mainStars) && !palace.mainStars.length && !palace?.isEmptyMainStarPalace) {
+      missingFields.push(`palaces[${index}].mainStars.emptyUnexpected`);
+      console.warn(`[Ziwei] Unexpected empty mainStars at ${palace?.name || index}`);
+    }
+    if (
+      Array.isArray(palace?.mainStars)
+      && Array.isArray(palace?.auxiliaryStars)
+      && Array.isArray(palace?.maleficStars)
+      && !palace.mainStars.length
+      && !palace.auxiliaryStars.length
+      && !palace.maleficStars.length
+    ) {
+      missingFields.push(`palaces[${index}].allStars.empty`);
+      console.warn(`[Ziwei] Palace has no star data at all: ${palace?.name || index}`);
+    }
     if (!Array.isArray(palace?.fourTransformations)) missingFields.push(`palaces[${index}].fourTransformations`);
     if (!palace?.sanFangSiZheng) missingFields.push(`palaces[${index}].sanFangSiZheng`);
   });
@@ -789,6 +809,30 @@ export function normalizeZiweiForAdvancedReport(baseResult: ZiweiDeepChart): Ziw
     normalizedChart.debugWarnings = [
       ...(normalizedChart.debugWarnings || []),
       `명반 데이터 보정 중 오류: ${validation.missingFields.join(", ")}`,
+    ];
+  }
+
+  const starlessPalaces = normalizedChart.palaces.filter((palace) => {
+    const mainLen = Array.isArray(palace.mainStars) ? palace.mainStars.length : 0;
+    const auxLen = Array.isArray(palace.auxiliaryStars) ? palace.auxiliaryStars.length : 0;
+    const maleficLen = Array.isArray(palace.maleficStars) ? palace.maleficStars.length : 0;
+    return mainLen + auxLen + maleficLen === 0;
+  });
+
+  if (starlessPalaces.length) {
+    const names = starlessPalaces.map((palace) => palace.name).join(", ");
+    console.warn(`[Ziwei] Star extraction anomaly: empty star arrays in ${names}`);
+    normalizedChart.debugWarnings = [
+      ...(normalizedChart.debugWarnings || []),
+      `일부 궁에서 별 데이터가 비어 있어 재계산이 필요할 수 있습니다: ${names}`,
+    ];
+  }
+
+  if ((normalizedChart.palaces || []).length !== 12) {
+    console.warn(`[Ziwei] Palace count mismatch. expected=12 actual=${(normalizedChart.palaces || []).length}`);
+    normalizedChart.debugWarnings = [
+      ...(normalizedChart.debugWarnings || []),
+      `궁 개수 불일치(12궁 기준): ${(normalizedChart.palaces || []).length}`,
     ];
   }
 

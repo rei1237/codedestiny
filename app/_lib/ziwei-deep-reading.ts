@@ -567,13 +567,74 @@ function buildCategoryCounselingParagraph(
         ? "복덕궁에서는 바깥 성과보다 내면 회복 속도가 핵심 변수입니다. 혼자 있는 시간의 질이 떨어지면 행복감이 급격히 낮아지므로, 감정을 정리하는 루틴을 일정처럼 고정해야 불안 누적을 줄일 수 있습니다."
         : "";
 
+  const lifeSceneLine = (() => {
+    const topMain = signalSummary.mainStars[0]?.name || "핵심 별";
+    const topSupport = signalSummary.supportStars[0] || "보조 별";
+    const topMinor = signalSummary.minorStars[0] || "긴장 별";
+
+    if (palace.id === "ming") {
+      return `명궁에서는 ${topMain}의 기질이 당신의 첫 반응과 자기 주도권을 결정합니다. ${topSupport}이 받쳐주면 중심이 단단해지고, ${topMinor}이 과열되면 자기 의심이 커질 수 있어 기준 문장을 먼저 잡는 것이 좋습니다.`;
+    }
+    if (palace.id === "spouse") {
+      return `부부궁에서는 ${topMain} 성향이 애정 표현 방식과 갈등 회복 속도를 좌우합니다. ${topSupport}이 살아 있으면 신뢰 회복이 빠르고, ${topMinor}이 강하면 말의 온도 차이가 커지기 쉬워 대화 순서를 합의하는 것이 중요합니다.`;
+    }
+    if (palace.id === "career") {
+      return `관록궁에서는 ${topMain}이 직무 적합성과 사회적 성취의 축을 만듭니다. ${topSupport}이 붙으면 평판과 협업 효율이 올라가고, ${topMinor}이 흔들리면 과로·역할 충돌이 먼저 나타나므로 역할 경계 설정이 핵심입니다.`;
+    }
+    if (palace.id === "wealth") {
+      return `재백궁에서는 ${topMain}이 수입 구조와 돈의 운용 습관을 만듭니다. ${topSupport}은 수익 회수력을 높이고, ${topMinor}이 자극되면 충동 소비나 과속 거래가 생기기 쉬워 지출 규칙과 손실 상한선이 필요합니다.`;
+    }
+    if (palace.id === "fortune") {
+      return `복덕궁에서는 ${topMain}이 마음의 온도와 행복감 유지 방식을 정합니다. ${topSupport}이 회복을 돕고, ${topMinor}이 커지면 생각이 과열되어 쉬어도 쉬지 못하는 흐름이 생기므로 회복 루틴을 생활의 중심에 놓아야 합니다.`;
+    }
+    if (palace.id === "parents") {
+      return `부모궁에서는 ${topMain}이 권위자와의 거리 감각을 만들고, ${topSupport}은 후원 연결을 돕습니다. ${topMinor}이 강하면 기대 압박이나 문서 실수가 커질 수 있어 기록 중심 소통이 안전합니다.`;
+    }
+    if (palace.id === "friends") {
+      return `노복궁에서는 ${topMain}이 협력자 선택 기준을 만들고, ${topSupport}은 네트워크 확장에 힘을 보탭니다. ${topMinor}이 과열되면 관계 소모가 빨라질 수 있어 역할·기여·보상 구조를 분명히 해야 합니다.`;
+    }
+    if (palace.id === "health") {
+      return `질액궁에서는 ${topMain}이 체력 소모 패턴을 드러내고, ${topSupport}은 회복 속도를 올립니다. ${topMinor}이 과하게 움직이면 번아웃이 앞당겨질 수 있어 수면·식사·운동의 최소 루틴을 고정해야 합니다.`;
+    }
+    if (palace.id === "travel") {
+      return `천이궁에서는 ${topMain}이 외부 확장 방식과 적응력을 결정합니다. ${topSupport}이 붙으면 기회 유입이 빨라지고, ${topMinor}이 커지면 과속 확장으로 피로가 누적되기 쉬워 일정 간격 조절이 필요합니다.`;
+    }
+    if (palace.id === "property") {
+      return `전택궁에서는 ${topMain}이 생활 기반 안정 방식에 영향을 주고, ${topSupport}은 자산 축적의 지속성을 높입니다. ${topMinor}이 흔들리면 주거 불안과 리듬 붕괴가 겹치기 쉬워 공간·생활 루틴을 먼저 정비해야 합니다.`;
+    }
+    if (palace.id === "siblings") {
+      return `형제궁에서는 ${topMain}이 수평 관계의 말투와 기대치를 만들고, ${topSupport}은 협업 신뢰를 보강합니다. ${topMinor}이 자극되면 비교 심리가 커지기 쉬워 역할 합의를 먼저 세우는 편이 안정적입니다.`;
+    }
+    return `자녀궁에서는 ${topMain}이 돌봄과 결과물 생산 흐름을 만들고, ${topSupport}은 완성도를 높입니다. ${topMinor}이 과열되면 책임 과부하가 생기기 쉬워 기대치 조정이 필요합니다.`;
+  })();
+
+  const crossPalaceLine = (() => {
+    const opposite = palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId];
+    const triad = signalSummary.triadNames.slice(0, 2).join("·");
+    if (palace.id === "spouse") {
+      return `관계 흐름은 ${opposite}과 ${triad}의 신호를 함께 볼 때 정확해집니다. 사랑은 감정만으로 유지되지 않으며, 일과 돈의 리듬이 맞아야 오래 갑니다.`;
+    }
+    if (palace.id === "career") {
+      return `커리어 흐름은 ${opposite}과 ${triad}의 균형에서 성패가 갈립니다. 실력뿐 아니라 관계와 회복 리듬을 같이 맞춰야 성취가 오래갑니다.`;
+    }
+    if (palace.id === "wealth") {
+      return `재물 흐름은 ${opposite}과 ${triad}의 결합에서 크게 달라집니다. 돈은 일의 구조와 사람의 흐름이 동시에 맞물릴 때 안정적으로 남습니다.`;
+    }
+    if (palace.id === "ming") {
+      return `자기 운영은 ${opposite}과 ${triad}의 반응으로 검증됩니다. 마음의 기준이 현실 성과와 이어지도록 주간 루틴으로 고정해야 흔들림이 줄어듭니다.`;
+    }
+    return `${palace.name}의 결과는 ${opposite}과 ${triad} 연결 흐름에서 확대되거나 축소됩니다. 한 궁만 보지 말고 연결궁을 함께 읽을 때 실제 장면이 선명해집니다.`;
+  })();
+
   return ensureCounselingDepth(
     removeRepeatedZiweiDeepPhrases([
       `${category.question}`,
       starLine,
+      lifeSceneLine,
       `당신은 ${personalityAnchor}이 중심이 되는 사람처럼 보입니다. ${mainNames}의 조합은 선택 속도와 확신을 좌우하고, 그래서 같은 상황도 누구보다 빠르게 결론을 내리거나 반대로 오래 붙잡고 있을 수 있습니다.`,
       `사람들과의 관계에서는 ${relationshipAnchor}이 핵심입니다. 가까운 사람일수록 기대치와 경계선을 먼저 맞춰야 마음이 덜 다치고, 오래 가는 인연도 그때부터 시작됩니다.`,
       `현실에서는 ${palace.name}의 ${category.title}이 업무·연애·돈·가족 중 지금 에너지가 몰린 장면에서 먼저 결과로 나타납니다. ${transformationLine}`,
+      crossPalaceLine,
       `${category.title}의 주의할 점은 ${cautionAnchor}입니다. 살성의 압박이나 화기 흐름이 겹치면 작은 말 한마디도 크게 번질 수 있어 속도 조절이 필요합니다.`,
       `${category.title}의 조언은 ${adviceAnchor}을 바로 실행하는 것입니다. 오늘부터 ${category.title} 기준표와 선택 조건을 문장으로 정리하면 흔들림이 줄어듭니다.`,
       palaceSpecificLine,
