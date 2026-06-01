@@ -125,42 +125,60 @@ async function seedMembershipCreditForExistingPassIfNeeded(authUserId) {
   const sub = user?.profileSubscription || {};
   const tier = String(sub?.tier || "free").trim().toLowerCase();
   const legacyPoints = Number(user?.points || 0);
-  const currentCredit = Number(sub?.membershipCreditBalance || 0);
   const grantedCredit = Number(sub?.membershipCreditGranted || 0);
-  if (!user?._id || !isActiveMembership(sub) || currentCredit > 0 || grantedCredit > 0) return null;
+  if (!user?._id) return null;
 
   const passCredit = Number(MEMBERSHIP_CREDIT_GRANT_BY_TIER[tier] || 0);
-  const legacyCredit = Math.floor(legacyPoints * MEMBERSHIP_CREDIT_PER_COIN);
-  const seededCredit = Math.max(passCredit, legacyCredit);
-  if (seededCredit <= 0) return null;
+  const legacyCredit = !sub?.legacyCoinCreditSeeded && legacyPoints > 0
+    ? Math.floor(legacyPoints * MEMBERSHIP_CREDIT_PER_COIN)
+    : 0;
+  const shouldSeedPassCredit = isActiveMembership(sub) && grantedCredit <= 0 && passCredit > 0;
+  let updatedUser = null;
 
-  return User.findOneAndUpdate(
-    {
-      _id: authUserId,
-      $or: [
-        { "profileSubscription.membershipCreditGranted": { $exists: false } },
-        { "profileSubscription.membershipCreditGranted": { $lte: 0 } },
-      ],
-      $and: [
-        {
-          $or: [
-            { "profileSubscription.membershipCreditBalance": { $exists: false } },
-            { "profileSubscription.membershipCreditBalance": { $lte: 0 } },
-          ],
-        },
-      ],
-    },
-    {
-      $inc: {
-        "profileSubscription.membershipCreditBalance": seededCredit,
-        "profileSubscription.membershipCreditGranted": seededCredit,
+  if (legacyCredit > 0) {
+    updatedUser = await User.findOneAndUpdate(
+      {
+        _id: authUserId,
+        "profileSubscription.legacyCoinCreditSeeded": { $ne: true },
       },
-    },
-    {
-      returnDocument: "after",
-      projection: { points: 1, profileSubscription: 1 },
-    },
-  ).lean();
+      {
+        $inc: {
+          "profileSubscription.membershipCreditBalance": legacyCredit,
+          "profileSubscription.membershipCreditGranted": legacyCredit,
+        },
+        $set: {
+          "profileSubscription.legacyCoinCreditSeeded": true,
+          "profileSubscription.legacyCoinCreditSeededAt": new Date(),
+          "profileSubscription.legacyCoinCreditSeededPoints": Math.floor(legacyPoints),
+        },
+      },
+      {
+        returnDocument: "after",
+        projection: { points: 1, profileSubscription: 1 },
+      },
+    ).lean();
+  }
+
+  if (shouldSeedPassCredit) {
+    updatedUser = await User.findOneAndUpdate(
+      {
+        _id: authUserId,
+        "profileSubscription.membershipCreditGranted": { $lte: legacyCredit > 0 ? legacyCredit : 0 },
+      },
+      {
+        $inc: {
+          "profileSubscription.membershipCreditBalance": passCredit,
+          "profileSubscription.membershipCreditGranted": passCredit,
+        },
+      },
+      {
+        returnDocument: "after",
+        projection: { points: 1, profileSubscription: 1 },
+      },
+    ).lean() || updatedUser;
+  }
+
+  return updatedUser;
 }
 
 async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requestId, body = {}) {
@@ -171,12 +189,9 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
   await connectDb(env);
   await seedMembershipCreditForExistingPassIfNeeded(authUserId);
 
-  const now = new Date();
   const updatedUser = await User.findOneAndUpdate(
     {
       _id: authUserId,
-      "profileSubscription.tier": { $ne: "free" },
-      "profileSubscription.expiresAt": { $gt: now },
       "profileSubscription.membershipCreditBalance": { $gte: requiredCredit },
     },
     {
@@ -1043,6 +1058,8 @@ async function handleBalance(request, env) {
         membershipCreditBalance,
         membershipCreditGranted: Number(sub?.membershipCreditGranted || 0),
         membershipCreditUsed: Number(sub?.membershipCreditUsed || 0),
+        legacyCoinCreditSeeded: Boolean(sub?.legacyCoinCreditSeeded),
+        legacyCoinCreditSeededPoints: Number(sub?.legacyCoinCreditSeededPoints || 0),
         legacyCoinBalance: Number(user?.points || 0),
       };
     }

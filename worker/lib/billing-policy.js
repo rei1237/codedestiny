@@ -1,5 +1,6 @@
 export const KRW_PER_COIN = 100;
 export const MEMBERSHIP_CREDIT_PER_COIN = 10;
+export const SINGLE_PURCHASE_DISCOUNT_RATE = 0.25;
 
 export function normalizeCoinPrice(value) {
   const coinPrice = Number(value);
@@ -9,7 +10,9 @@ export function normalizeCoinPrice(value) {
 
 export function calculateKrwAmountFromCoins(value) {
   const coinPrice = normalizeCoinPrice(value);
-  return coinPrice > 0 ? coinPrice * KRW_PER_COIN : 0;
+  if (coinPrice <= 0) return 0;
+  const discounted = coinPrice * KRW_PER_COIN * (1 - SINGLE_PURCHASE_DISCOUNT_RATE);
+  return Math.max(0, Math.round(discounted / 100) * 100);
 }
 
 export function calculateMembershipCreditCost(value) {

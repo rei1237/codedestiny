@@ -35,6 +35,7 @@ import {
   ASTROLOGY_AI_PROMPT_FEATURE_KEY,
   ASTROLOGY_AI_PROMPT_PRICE,
 } from "../lib/astrology-ai-prompt.js";
+import { calculateMembershipCreditCost, MEMBERSHIP_CREDIT_PER_COIN } from "../lib/billing-policy.js";
 import {
   buildVedicAIPrompt,
   VEDIC_AI_PROMPT_FEATURE_KEY,
@@ -360,6 +361,34 @@ const SUBSCRIPTION_TIER_RANK = Object.freeze({
   premium: 2,
   vvip: 3,
 });
+
+async function seedLegacyCoinMonthlyCredit(authUserId) {
+  const user = await User.findById(authUserId).select("points profileSubscription").lean();
+  const legacyPoints = Math.floor(Number(user?.points || 0));
+  if (!user?._id || legacyPoints <= 0 || user?.profileSubscription?.legacyCoinCreditSeeded === true) return null;
+  const legacyCredit = legacyPoints * MEMBERSHIP_CREDIT_PER_COIN;
+  return User.findOneAndUpdate(
+    {
+      _id: authUserId,
+      "profileSubscription.legacyCoinCreditSeeded": { $ne: true },
+    },
+    {
+      $inc: {
+        "profileSubscription.membershipCreditBalance": legacyCredit,
+        "profileSubscription.membershipCreditGranted": legacyCredit,
+      },
+      $set: {
+        "profileSubscription.legacyCoinCreditSeeded": true,
+        "profileSubscription.legacyCoinCreditSeededAt": new Date(),
+        "profileSubscription.legacyCoinCreditSeededPoints": legacyPoints,
+      },
+    },
+    {
+      returnDocument: "after",
+      projection: { points: 1, profileSubscription: 1 },
+    },
+  ).lean();
+}
 
 function getSubscriptionTierRank(tierRaw) {
   const tier = String(tierRaw || "free").trim().toLowerCase();
@@ -1021,21 +1050,6 @@ async function handlePigCoinConsume(request, auth, options = {}) {
 
   const reason = String(pricing.reason || requestReason || "Paid feature unlock").trim().slice(0, 120);
   const reportTypeForPremiumAccess = resolvePremiumAccessReportType(featureKey, reason);
-
-  return json({
-    ok: false,
-    message: "상품별 원화 단건 결제가 필요합니다.",
-    code: "PAYMENT_REQUIRED",
-    featureKey,
-    reason,
-    pricing: {
-      featureKey,
-      reason,
-      coinPrice: cost,
-      displayUnit: "coin",
-    },
-  }, { status: 402 });
-
   const categoryKey = String(body?.categoryKey || "").trim().slice(0, 60);
   const subFeatureKey = String(body?.subFeatureKey || "").trim().slice(0, 60);
   const payloadHash = String(body?.payloadHash || "").trim().slice(0, 120);
@@ -1046,6 +1060,125 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       || request.headers.get("x-idempotency-key")
       || "",
   ).trim().slice(0, 120);
+
+  const monthlyCreditCost = calculateMembershipCreditCost(cost);
+  await seedLegacyCoinMonthlyCredit(auth.userId);
+  const monthlyUpdate = {
+    $inc: {
+      "profileSubscription.membershipCreditBalance": -monthlyCreditCost,
+      "profileSubscription.membershipCreditUsed": monthlyCreditCost,
+    },
+  };
+  if (requestId) {
+    monthlyUpdate.$push = {
+      recentConsumeRequestIds: {
+        $each: [requestId],
+        $slice: -200,
+      },
+    };
+  }
+  if (unlockKeysToPersist.length) {
+    monthlyUpdate.$addToSet = { unlockedFeatures: { $each: unlockKeysToPersist } };
+  }
+
+  const monthlyUser = await User.findOneAndUpdate(
+    {
+      _id: auth.userId,
+      "profileSubscription.membershipCreditBalance": { $gte: monthlyCreditCost },
+      ...(requestId ? { recentConsumeRequestIds: { $ne: requestId } } : {}),
+    },
+    monthlyUpdate,
+    { returnDocument: "after", projection: { points: 1, profileSubscription: 1, unlockedFeatures: 1 } },
+  ).lean();
+
+  if (monthlyUser) {
+    const unlockedFeatures = normalizePersistentUnlockKeys(
+      (monthlyUser && monthlyUser.unlockedFeatures) || unlockKeysToPersist,
+    );
+    let history = null;
+    try {
+      history = await PointHistory.create({
+        userId: auth.userId,
+        kind: "deduct",
+        delta: -cost,
+        balanceAfter: Number(monthlyUser.points || 0),
+        reason,
+        featureKey,
+        metadata: {
+          source: "fortune.pig-coin.consume",
+          accessType: "membership_credit",
+          membershipCreditCost: monthlyCreditCost,
+          remainingMembershipCredit: Number(monthlyUser?.profileSubscription?.membershipCreditBalance || 0),
+          ...(requestId ? { requestId } : {}),
+          ...(categoryKey ? { categoryKey } : {}),
+          ...(subFeatureKey ? { subFeatureKey } : {}),
+          ...(payloadHash ? { payloadHash } : {}),
+          ...(requestedFeatureKey !== featureKey ? { requestedFeatureKey } : {}),
+        },
+      });
+    } catch (error) {
+      await User.updateOne(
+        { _id: auth.userId },
+        {
+          $inc: {
+            "profileSubscription.membershipCreditBalance": monthlyCreditCost,
+            "profileSubscription.membershipCreditUsed": -monthlyCreditCost,
+          },
+          ...(requestId || unlockKeysToPersist.length ? {
+            $pull: {
+              ...(requestId ? { recentConsumeRequestIds: requestId } : {}),
+              ...(unlockKeysToPersist.length ? { unlockedFeatures: { $in: unlockKeysToPersist } } : {}),
+            },
+          } : {}),
+        },
+      ).catch(() => {});
+      throw error;
+    }
+    const premiumAccessToken = await createPremiumAccessToken(env, {
+      userId: String(auth.userId || ""),
+      reportType: reportTypeForPremiumAccess,
+      featureKey,
+      reason,
+      transactionId: String(history?._id || requestId || ""),
+      chargedCoins: cost,
+      freeBySubscription: false,
+    }) || "";
+
+    return buildJsonWithPremiumAccessCookie({
+      message: "월정석 달빛으로 결제되었습니다.",
+      code: "OK",
+      productId: productId || null,
+      requiredCoins: cost,
+      chargedCoins: cost,
+      membershipCreditCost: monthlyCreditCost,
+      membershipCreditBalance: Number(monthlyUser?.profileSubscription?.membershipCreditBalance || 0),
+      accessType: "membership_credit",
+      freeBySubscription: false,
+      forceDeductApplied: true,
+      subscriptionTier: String(monthlyUser?.profileSubscription?.tier || "free"),
+      transactionId: String(history?._id || ""),
+      premiumAccessToken: premiumAccessToken || "",
+      user: userPayload(auth, Number(monthlyUser.points || 0), unlockedFeatures),
+      unlockedFeatures,
+      unlockMap: toUnlockMap(unlockedFeatures),
+    }, {}, premiumAccessToken, env);
+  }
+
+  return json({
+    ok: false,
+    message: "월정석 달빛 또는 상품별 원화 단건 결제가 필요합니다.",
+    code: "PAYMENT_REQUIRED",
+    featureKey,
+    reason,
+    pricing: {
+      featureKey,
+      reason,
+      coinPrice: cost,
+      membershipCreditCost: monthlyCreditCost,
+      displayUnit: "membership_credit",
+    },
+  }, { status: 402 });
+
   const forceDeductRaw = productSpec ? productSpec.forceDeduct : body?.forceDeduct;
   const forceDeduct = forceDeductRaw === true || String(forceDeductRaw || "").toLowerCase() === "true";
   const isPromptGeneratorFeature = /_ai_prompt_generator$/i.test(String(featureKey || ""));

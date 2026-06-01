@@ -282,17 +282,17 @@ function getSubscriptionTierRank(tier: SubscriptionTier | string | null | undefi
 }
 
 const POINT_PACKAGES: PointPackage[] = [
-  { id: "saju_unlock_3", title: "사주 잠금 서비스 3개 해제권", amount: 15000, points: 150, featureKey: "usage-pass-saju-unlock-3", description: "사주 잠금 콘텐츠 3개를 필요한 순간에 해제", productType: "usage_pass" },
-  { id: "saju_unlock_5", title: "사주 잠금 서비스 5개 해제권", amount: 25000, points: 250, featureKey: "usage-pass-saju-unlock-5", description: "사주 잠금 콘텐츠 5개를 필요한 순간에 해제", productType: "usage_pass" },
-  { id: "fortune_30_3", title: "30코인 이하 운세 3회 이용권", amount: 9000, points: 90, featureKey: "usage-pass-fortune-30-3", description: "30코인 이하 운세 서비스를 3회 이용", productType: "usage_pass" },
-  { id: "fortune_30_10", title: "30코인 이하 운세 10회 이용권", amount: 30000, points: 300, featureKey: "usage-pass-fortune-30-10", description: "30코인 이하 운세 서비스를 10회 이용", productType: "usage_pass" },
-  { id: "fortune_30_30", title: "30코인 이하 운세 30회 이용권", amount: 90000, points: 900, featureKey: "usage-pass-fortune-30-30", description: "30코인 이하 운세 서비스를 30회 이용", productType: "usage_pass" },
-  { id: "fortune_50_3", title: "50코인 이하 운세 3회 이용권", amount: 15000, points: 150, featureKey: "usage-pass-fortune-50-3", description: "50코인 이하 운세 서비스를 3회 이용", productType: "usage_pass" },
-  { id: "fortune_50_10", title: "50코인 이하 운세 10회 이용권", amount: 50000, points: 500, featureKey: "usage-pass-fortune-50-10", description: "50코인 이하 운세 서비스를 10회 이용", productType: "usage_pass" },
-  { id: "fortune_50_30", title: "50코인 이하 운세 30회 이용권", amount: 150000, points: 1500, featureKey: "usage-pass-fortune-50-30", description: "50코인 이하 운세 서비스를 30회 이용", productType: "usage_pass" },
-  { id: "compat_3", title: "운세 서비스 궁합 3회 이용권", amount: 15000, points: 150, featureKey: "usage-pass-compat-3", description: "궁합 계열 운세 서비스를 3회 이용", productType: "usage_pass" },
-  { id: "compat_10", title: "운세 서비스 궁합 10회 이용권", amount: 50000, points: 500, featureKey: "usage-pass-compat-10", description: "궁합 계열 운세 서비스를 10회 이용", productType: "usage_pass" },
-  { id: "compat_30", title: "운세 서비스 궁합 30회 이용권", amount: 150000, points: 1500, featureKey: "usage-pass-compat-30", description: "궁합 계열 운세 서비스를 30회 이용", productType: "usage_pass" },
+  { id: "saju_unlock_3", title: "사주 잠금 서비스 3개 해제권", amount: 12000, points: 150, featureKey: "usage-pass-saju-unlock-3", description: "사주 잠금 콘텐츠 3개를 필요한 순간에 해제", productType: "usage_pass" },
+  { id: "saju_unlock_5", title: "사주 잠금 서비스 5개 해제권", amount: 19000, points: 250, featureKey: "usage-pass-saju-unlock-5", description: "사주 잠금 콘텐츠 5개를 필요한 순간에 해제", productType: "usage_pass" },
+  { id: "fortune_30_3", title: "30코인 이하 운세 3회 이용권", amount: 6900, points: 90, featureKey: "usage-pass-fortune-30-3", description: "30코인 이하 운세 서비스를 3회 이용", productType: "usage_pass" },
+  { id: "fortune_30_10", title: "30코인 이하 운세 10회 이용권", amount: 22500, points: 300, featureKey: "usage-pass-fortune-30-10", description: "30코인 이하 운세 서비스를 10회 이용", productType: "usage_pass" },
+  { id: "fortune_30_30", title: "30코인 이하 운세 30회 이용권", amount: 63000, points: 900, featureKey: "usage-pass-fortune-30-30", description: "30코인 이하 운세 서비스를 30회 이용", productType: "usage_pass" },
+  { id: "fortune_50_3", title: "50코인 이하 운세 3회 이용권", amount: 11500, points: 150, featureKey: "usage-pass-fortune-50-3", description: "50코인 이하 운세 서비스를 3회 이용", productType: "usage_pass" },
+  { id: "fortune_50_10", title: "50코인 이하 운세 10회 이용권", amount: 37500, points: 500, featureKey: "usage-pass-fortune-50-10", description: "50코인 이하 운세 서비스를 10회 이용", productType: "usage_pass" },
+  { id: "fortune_50_30", title: "50코인 이하 운세 30회 이용권", amount: 105000, points: 1500, featureKey: "usage-pass-fortune-50-30", description: "50코인 이하 운세 서비스를 30회 이용", productType: "usage_pass" },
+  { id: "compat_3", title: "운세 서비스 궁합 3회 이용권", amount: 11500, points: 150, featureKey: "usage-pass-compat-3", description: "궁합 계열 운세 서비스를 3회 이용", productType: "usage_pass" },
+  { id: "compat_10", title: "운세 서비스 궁합 10회 이용권", amount: 37500, points: 500, featureKey: "usage-pass-compat-10", description: "궁합 계열 운세 서비스를 10회 이용", productType: "usage_pass" },
+  { id: "compat_30", title: "운세 서비스 궁합 30회 이용권", amount: 105000, points: 1500, featureKey: "usage-pass-compat-30", description: "궁합 계열 운세 서비스를 30회 이용", productType: "usage_pass" },
 ];
 
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
@@ -1070,7 +1070,7 @@ function WalletCard({ name, points }: { name: string; points: number }) {
             </div>
             <div>
               <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-800">
-                황금 돼지 결제 상점
+                황금 꽃돼지상점
               </p>
               <p className="mt-0.5 text-[15px] font-bold text-[#5C3A1E]">{name} 님의 결제/이용권 관리</p>
             </div>
@@ -1113,6 +1113,8 @@ function PackageCard({
   onSelect: (pkg: PointPackage) => void;
 }) {
   const isBest = pkg.id === "fortune_50_10";
+  const listPrice = pkg.points * 100;
+  const discountRate = listPrice > 0 ? Math.max(0, Math.round((1 - pkg.amount / listPrice) * 100)) : 0;
 
   return (
     <button
@@ -1145,13 +1147,16 @@ function PackageCard({
 
       {/* 하단 행: 원화 금액 + 정책 */}
       <div className="mt-1.5 flex items-center justify-between gap-2">
-        <span className="text-sm font-semibold text-[#7A5230]">{formatWon(pkg.amount)}</span>
+        <span className="flex items-center gap-1.5 text-sm font-semibold text-[#7A5230]">
+          <span className="text-[11px] text-[#9A7A50] line-through">{formatWon(listPrice)}</span>
+          {formatWon(pkg.amount)}
+        </span>
         <span className="text-sm font-bold text-[#5C3A1E]">
-          회차형 이용권
+          {discountRate}% 할인
         </span>
       </div>
       <span className="mt-2.5 inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-[#9A6A14] to-[#C9A84C] px-2.5 py-1 text-[12px] font-black text-white shadow-[0_3px_10px_rgba(160,110,20,0.30)]">
-        단건 결제 후 회차 적립
+        단건 결제 · 월정석 병행 가능
       </span>
 
       {/* 선택 체크마크 */}
@@ -2234,7 +2239,7 @@ export default function PointsPage() {
       >
         <div className="text-center">
           <div className="mb-3 text-5xl animate-bounce">🐷</div>
-          <p className="font-semibold">황금 돼지 저금통을 불러오는 중...</p>
+          <p className="font-semibold">황금 꽃돼지상점을 불러오는 중...</p>
         </div>
       </main>
     );
@@ -2299,7 +2304,7 @@ export default function PointsPage() {
                   sizes="72px"
                   width={72}
                   height={72}
-                  alt="황금 돼지"
+                  alt="황금 꽃돼지"
                   className="rounded-2xl shadow-[0_6px_20px_rgba(150,76,11,0.26)]"
                   priority
                 />
@@ -2308,7 +2313,7 @@ export default function PointsPage() {
                     Golden Pig Payment Store
                   </p>
                   <h1 className="mt-0.5 text-[22px] font-black text-[#5C3A1E] sm:text-3xl leading-tight">
-                    🐷✨ 황금 돼지 결제 상점
+                    황금 꽃돼지상점
                   </h1>
                   <p className="mt-1 text-sm text-[#7A5230]">
                     필요한 콘텐츠를 코인 기준 가격으로 확인하고 원화로 바로 결제하세요.

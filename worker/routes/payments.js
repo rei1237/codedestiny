@@ -49,17 +49,17 @@ function isDigitalContentPaymentRequest(body = {}) {
 }
 
 const USAGE_PASS_PRODUCT_CATALOG = Object.freeze({
-  saju_unlock_3: Object.freeze({ id: "saju_unlock_3", category: "saju_unlock", uses: 3, paymentAmount: 15000, coinPrice: 150, title: "사주 잠금 서비스 3개 해제권" }),
-  saju_unlock_5: Object.freeze({ id: "saju_unlock_5", category: "saju_unlock", uses: 5, paymentAmount: 25000, coinPrice: 250, title: "사주 잠금 서비스 5개 해제권" }),
-  fortune_30_3: Object.freeze({ id: "fortune_30_3", category: "fortune_30", uses: 3, paymentAmount: 9000, coinPrice: 90, title: "30코인 이하 운세 3회 이용권" }),
-  fortune_30_10: Object.freeze({ id: "fortune_30_10", category: "fortune_30", uses: 10, paymentAmount: 30000, coinPrice: 300, title: "30코인 이하 운세 10회 이용권" }),
-  fortune_30_30: Object.freeze({ id: "fortune_30_30", category: "fortune_30", uses: 30, paymentAmount: 90000, coinPrice: 900, title: "30코인 이하 운세 30회 이용권" }),
-  fortune_50_3: Object.freeze({ id: "fortune_50_3", category: "fortune_50", uses: 3, paymentAmount: 15000, coinPrice: 150, title: "50코인 이하 운세 3회 이용권" }),
-  fortune_50_10: Object.freeze({ id: "fortune_50_10", category: "fortune_50", uses: 10, paymentAmount: 50000, coinPrice: 500, title: "50코인 이하 운세 10회 이용권" }),
-  fortune_50_30: Object.freeze({ id: "fortune_50_30", category: "fortune_50", uses: 30, paymentAmount: 150000, coinPrice: 1500, title: "50코인 이하 운세 30회 이용권" }),
-  compat_3: Object.freeze({ id: "compat_3", category: "compat", uses: 3, paymentAmount: 15000, coinPrice: 150, title: "운세 서비스 궁합 3회 이용권" }),
-  compat_10: Object.freeze({ id: "compat_10", category: "compat", uses: 10, paymentAmount: 50000, coinPrice: 500, title: "운세 서비스 궁합 10회 이용권" }),
-  compat_30: Object.freeze({ id: "compat_30", category: "compat", uses: 30, paymentAmount: 150000, coinPrice: 1500, title: "운세 서비스 궁합 30회 이용권" }),
+  saju_unlock_3: Object.freeze({ id: "saju_unlock_3", category: "saju_unlock", uses: 3, paymentAmount: 12000, coinPrice: 150, title: "사주 잠금 서비스 3개 해제권" }),
+  saju_unlock_5: Object.freeze({ id: "saju_unlock_5", category: "saju_unlock", uses: 5, paymentAmount: 19000, coinPrice: 250, title: "사주 잠금 서비스 5개 해제권" }),
+  fortune_30_3: Object.freeze({ id: "fortune_30_3", category: "fortune_30", uses: 3, paymentAmount: 6900, coinPrice: 90, title: "30코인 이하 운세 3회 이용권" }),
+  fortune_30_10: Object.freeze({ id: "fortune_30_10", category: "fortune_30", uses: 10, paymentAmount: 22500, coinPrice: 300, title: "30코인 이하 운세 10회 이용권" }),
+  fortune_30_30: Object.freeze({ id: "fortune_30_30", category: "fortune_30", uses: 30, paymentAmount: 63000, coinPrice: 900, title: "30코인 이하 운세 30회 이용권" }),
+  fortune_50_3: Object.freeze({ id: "fortune_50_3", category: "fortune_50", uses: 3, paymentAmount: 11500, coinPrice: 150, title: "50코인 이하 운세 3회 이용권" }),
+  fortune_50_10: Object.freeze({ id: "fortune_50_10", category: "fortune_50", uses: 10, paymentAmount: 37500, coinPrice: 500, title: "50코인 이하 운세 10회 이용권" }),
+  fortune_50_30: Object.freeze({ id: "fortune_50_30", category: "fortune_50", uses: 30, paymentAmount: 105000, coinPrice: 1500, title: "50코인 이하 운세 30회 이용권" }),
+  compat_3: Object.freeze({ id: "compat_3", category: "compat", uses: 3, paymentAmount: 11500, coinPrice: 150, title: "운세 서비스 궁합 3회 이용권" }),
+  compat_10: Object.freeze({ id: "compat_10", category: "compat", uses: 10, paymentAmount: 37500, coinPrice: 500, title: "운세 서비스 궁합 10회 이용권" }),
+  compat_30: Object.freeze({ id: "compat_30", category: "compat", uses: 30, paymentAmount: 105000, coinPrice: 1500, title: "운세 서비스 궁합 30회 이용권" }),
 });
 
 function resolveUsagePassProductFromBody(body = {}) {
