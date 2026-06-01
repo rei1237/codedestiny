@@ -3,6 +3,7 @@
  * 사주 엔진은 js/saju-engine.js + tarot-sukuyo-quantum + core/saju/reportDashboard + continuation 순서로 index.html에 로드됨.
  */
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync, statSync, readdirSync, rmSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { resolve, join } from "node:path";
 
 const rootDir = process.cwd();
@@ -143,6 +144,55 @@ function stripLeadingBom(buffer) {
     offset += 3;
   }
   return offset > 0 ? buffer.subarray(offset) : buffer;
+}
+
+const CACHE_BUST_QUERY_RE = /\?v=[a-zA-Z0-9_-]+/g;
+const CACHE_KEY_SOURCE_FILES = [
+  "index.html",
+  "js/core/index-inline-runtime.js",
+  "js/core/uiBindings.js",
+  "js/mobile-interaction-patch.js",
+  "js/saju-engine.js",
+  "js/saju-engine-tarot-sukuyo-quantum.js",
+];
+
+function normalizeForCacheKey(content) {
+  return String(content || "")
+    .replace(CACHE_BUST_QUERY_RE, "?v=__CACHE_KEY__")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n");
+}
+
+function normalizeCacheKeySeed(seed) {
+  const sanitized = String(seed || "").trim().replace(/[^a-zA-Z0-9_-]/g, "-");
+  return sanitized ? `build-${sanitized}` : "";
+}
+
+function resolveDeterministicCacheKey() {
+  const explicitKey = normalizeCacheKeySeed(process.env.CACHE_BUST_KEY || process.env.BUILD_CACHE_KEY);
+  if (explicitKey) return explicitKey;
+
+  const gitSha = String(process.env.CF_PAGES_COMMIT_SHA || process.env.GITHUB_SHA || "").trim();
+  if (gitSha) {
+    return `build-${gitSha.slice(0, 12)}`;
+  }
+
+  const hash = createHash("sha1");
+  let hasSource = false;
+  for (const rel of CACHE_KEY_SOURCE_FILES) {
+    const abs = resolve(rootDir, rel);
+    if (!existsSync(abs)) continue;
+    hasSource = true;
+    const raw = stripLeadingBom(readFileSync(abs)).toString("utf8");
+    const normalized = normalizeForCacheKey(raw);
+    hash.update(rel);
+    hash.update("\n");
+    hash.update(normalized);
+    hash.update("\n---\n");
+  }
+
+  if (!hasSource) return "build-static";
+  return `build-${hash.digest("hex").slice(0, 12)}`;
 }
 
 function hasSevereMojibake(html) {
@@ -423,7 +473,7 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
   }
 
   // Auto cache-bust all static asset query strings (?v=...)
-  const buildTimestamp = "build-" + Date.now();
+  const buildTimestamp = resolveDeterministicCacheKey();
   const cacheBustedIndexHtml = baseIndexHtml.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=" + buildTimestamp);
   if (cacheBustedIndexHtml !== baseIndexHtml) {
     baseIndexHtml = cacheBustedIndexHtml;

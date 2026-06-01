@@ -59,34 +59,76 @@ const ZIWEI_COUNSELING_TRACKS = [
     note: "명궁과 신궁이 만드는 삶의 기본 온도, 감정 반응, 자존감의 결을 먼저 읽습니다.",
   },
   {
-    key: "relationships",
-    title: "인간관계와 인연",
+    key: "ming",
+    title: "명궁",
+    sectionId: "ming" as ZiweiSectionId,
+    note: "당신의 기본 성향, 삶의 중심축, 선택의 기준이 어디에서 시작되는지 봅니다.",
+  },
+  {
+    key: "siblings",
+    title: "형제궁",
     sectionId: "siblings" as ZiweiSectionId,
-    note: "형제궁·노복궁·교우궁을 묶어 사람을 고르는 눈, 피로가 쌓이는 관계, 손절의 기준을 봅니다.",
+    note: "가까운 사람과의 거리감, 협업 결, 신뢰가 깨지기 쉬운 패턴을 확인합니다.",
   },
   {
-    key: "love",
-    title: "연애와 결혼",
+    key: "spouse",
+    title: "부부궁",
     sectionId: "spouse" as ZiweiSectionId,
-    note: "부부궁과 복덕궁의 흐름으로 사랑의 방식, 집착 패턴, 오래 가는 관계의 비밀을 읽습니다.",
+    note: "연애와 결혼에서 반복되는 감정 패턴, 갈등 회복력, 오래 가는 관계 조건을 읽습니다.",
   },
   {
-    key: "career",
-    title: "진로와 직업",
-    sectionId: "career" as ZiweiSectionId,
-    note: "관록궁과 천이궁을 묶어 성공 방식, 리더십, 브랜딩 감각, 바깥 무대에서의 힘을 확인합니다.",
+    key: "children",
+    title: "자녀궁",
+    sectionId: "children" as ZiweiSectionId,
+    note: "자녀 인연뿐 아니라 창작물, 프로젝트, 결과물을 세상에 내보내는 생산력을 봅니다.",
   },
   {
     key: "wealth",
-    title: "재물과 부동산",
+    title: "재백궁",
     sectionId: "wealth" as ZiweiSectionId,
-    note: "재백궁과 전택궁으로 돈이 모이고 흩어지는 구조, 부동산과 자산 축적 흐름을 입체적으로 봅니다.",
+    note: "돈이 들어오고 나가는 구조, 수입화 방식, 누수를 막는 재무 습관을 확인합니다.",
   },
   {
     key: "health",
-    title: "건강과 회복력",
+    title: "질액궁",
     sectionId: "health" as ZiweiSectionId,
-    note: "질액궁과 복덕궁을 함께 읽어 번아웃, 회복 속도, 불면과 과로의 리듬을 살핍니다.",
+    note: "체력 소모 패턴, 번아웃 신호, 회복 루틴의 핵심 포인트를 살핍니다.",
+  },
+  {
+    key: "travel",
+    title: "천이궁",
+    sectionId: "travel" as ZiweiSectionId,
+    note: "바깥 무대에서 기회가 열리는 방식, 이동과 환경 변화에 대한 적응력을 확인합니다.",
+  },
+  {
+    key: "friends",
+    title: "노복궁",
+    sectionId: "friends" as ZiweiSectionId,
+    note: "동료, 고객, 협력자, 커뮤니티 인연에서 도움과 소모가 갈리는 기준을 봅니다.",
+  },
+  {
+    key: "career",
+    title: "관록궁",
+    sectionId: "career" as ZiweiSectionId,
+    note: "직업명보다 일하는 방식, 성과가 나는 포지션, 커리어 성장 곡선을 읽습니다.",
+  },
+  {
+    key: "property",
+    title: "전택궁",
+    sectionId: "property" as ZiweiSectionId,
+    note: "주거 안정, 공간 운, 장기 자산 기반을 쌓는 흐름과 타이밍을 확인합니다.",
+  },
+  {
+    key: "fortune",
+    title: "복덕궁",
+    sectionId: "fortune" as ZiweiSectionId,
+    note: "내면의 안정감, 만족도, 회복 탄성을 어떻게 지켜야 하는지 상담합니다.",
+  },
+  {
+    key: "parents",
+    title: "부모궁",
+    sectionId: "parents" as ZiweiSectionId,
+    note: "부모·상사·스승·문서 인연에서 도움과 마찰이 생기는 구조를 정리합니다.",
   },
   {
     key: "turning",
@@ -108,6 +150,23 @@ const ZIWEI_STRENGTH_COPY: Record<string, string> = {
   "▲": "상황에 따라 힘이 달라지는 별의 상태",
   "△": "무난하지만 방향에 따라 달라지는 흐름",
   X: "별의 에너지가 눌리거나 왜곡되기 쉬운 상태",
+};
+
+const TRACK_ICON_MAP: Partial<Record<ZiweiSectionId, string>> = {
+  overview: "🌌",
+  ming: "👤",
+  siblings: "🤝",
+  spouse: "💞",
+  children: "🌱",
+  wealth: "💰",
+  health: "🫀",
+  travel: "🧭",
+  friends: "🫱🏻‍🫲🏻",
+  career: "🏛️",
+  property: "🏡",
+  fortune: "✨",
+  parents: "🕊️",
+  master: "🪐",
 };
 
 const PALACE_DEFINITION_MAP: Record<ZiweiPalaceId, { name: string; definition: string; focus: string }> = {
@@ -350,7 +409,7 @@ function zPatternStrengthDescription(symbol: string): string {
 
 function StagePanel({ className, children }: { className?: string; children: ReactNode }) {
   return (
-    <div className={`relative overflow-hidden rounded-[1.75rem] border border-white/12 bg-white/6 shadow-[0_20px_70px_rgba(2,6,23,0.45)] backdrop-blur-2xl ${className || ""}`}>
+    <div className={`relative overflow-hidden rounded-[1.75rem] border border-white/12 bg-white/6 shadow-[0_20px_70px_rgba(2,6,23,0.45)] backdrop-blur-2xl before:pointer-events-none before:absolute before:inset-[1px] before:rounded-[1.6rem] before:border before:border-white/10 before:opacity-40 ${className || ""}`}>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.08),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(56,189,248,0.08),transparent_28%)]" />
       <div className="relative z-10">{children}</div>
     </div>
@@ -1122,7 +1181,7 @@ export default function AdvancedZiweiSectionV2({
               <p className="text-[11px] font-semibold tracking-[0.32em] text-cyan-100/80">COSMIC ZIWEI REPORT</p>
               <h1 className="max-w-3xl text-3xl font-black leading-tight text-white md:text-5xl">{chart.user.name || "당신"}님의 운명 궁전이 천천히 열립니다</h1>
               <p className="max-w-3xl text-sm leading-7 text-slate-200/90 md:text-base">
-                명궁, 부부궁, 관록궁, 재백궁은 따로 노는 장면이 아니라 서로를 밀어주고 흔드는 흐름으로 읽힙니다. 지금 필요한 것은 예언이 아니라, 삶의 문제를 어디서부터 풀지 아는 순서입니다.
+                별은 미래를 고정하지 않고, 지금의 선택을 더 정교하게 안내합니다. 명궁에서 시작된 결이 부부궁과 관록궁, 재백궁으로 번질 때 어떤 순서로 삶을 정리해야 하는지 상담하듯 풀어드립니다.
               </p>
 
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -1202,14 +1261,15 @@ export default function AdvancedZiweiSectionV2({
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               {ZIWEI_COUNSELING_TRACKS.map((track) => {
                 const active = track.sectionId === activeSection;
+                const icon = TRACK_ICON_MAP[track.sectionId] || "✦";
                 return (
                   <button
                     key={track.key}
                     type="button"
                     onClick={() => loadSection(track.sectionId)}
-                    className={`rounded-2xl border p-4 text-left transition ${active ? "border-cyan-200/50 bg-cyan-200/12 shadow-[0_0_28px_rgba(56,189,248,0.18)]" : "border-white/10 bg-black/20 hover:border-white/20 hover:bg-black/30"}`}
+                    className={`rounded-2xl border p-4 text-left transition ${active ? "border-cyan-200/60 bg-gradient-to-br from-cyan-200/16 to-sky-200/10 shadow-[0_0_32px_rgba(56,189,248,0.22)]" : "border-white/10 bg-black/20 hover:border-cyan-200/25 hover:bg-black/30"}`}
                   >
-                    <p className="text-sm font-semibold text-white">{track.title}</p>
+                    <p className="text-sm font-semibold text-white">{icon} {track.title}</p>
                     <p className="mt-2 text-xs leading-6 text-slate-300">{track.note}</p>
                   </button>
                 );
@@ -1393,7 +1453,7 @@ export default function AdvancedZiweiSectionV2({
           <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">4. 각 궁별 상세 상담 해석</p>
           <div className="mt-4 grid gap-4 xl:grid-cols-2">
             {palaceCounseling.map((item) => (
-              <article key={`detail-${item.palace.id}`} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <article key={`detail-${item.palace.id}`} className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a1427]/90 via-[#0b1224]/85 to-[#130b25]/88 p-4 shadow-[0_14px_40px_rgba(5,10,30,0.35)]">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h3 className="text-lg font-black text-white">{item.palace.name}</h3>
                   <span className="rounded-full border border-cyan-300/30 bg-cyan-200/10 px-3 py-1 text-xs font-semibold text-cyan-100">에너지 {item.energy}/100</span>
@@ -1477,7 +1537,7 @@ export default function AdvancedZiweiSectionV2({
             {activeParagraphs.map((paragraph, index) => (
               <motion.p
                 key={`${activeSection}-${index}`}
-                className={`text-sm leading-8 md:text-[15px] ${index === 0 ? "text-amber-50 [text-shadow:0_0_16px_rgba(251,191,36,0.18)]" : "text-slate-200/92"}`}
+                className={`rounded-2xl border px-4 py-3 text-sm leading-8 md:text-[15px] ${index === 0 ? "border-amber-200/25 bg-amber-200/10 text-amber-50 [text-shadow:0_0_16px_rgba(251,191,36,0.18)]" : "border-white/10 bg-black/20 text-slate-200/92"}`}
                 initial={{ opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.4 }}

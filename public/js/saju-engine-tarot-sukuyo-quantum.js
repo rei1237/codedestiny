@@ -4007,6 +4007,24 @@ function syReadingTextKey(text) {
     .trim();
 }
 
+function syPickUniqueReadingText(currentText, candidates, fallbackText, usedMap) {
+  var pool = [currentText].concat(Array.isArray(candidates) ? candidates : []);
+  for (var i = 0; i < pool.length; i += 1) {
+    var raw = String(pool[i] == null ? '' : pool[i]).replace(/\s+/g, ' ').trim();
+    if (!raw) continue;
+    var sentence = syEnsureSentenceEnding(raw);
+    var key = syReadingTextKey(sentence);
+    if (!key) continue;
+    if (usedMap && usedMap[key]) continue;
+    if (usedMap) usedMap[key] = true;
+    return sentence;
+  }
+  var fallback = syEnsureSentenceEnding(fallbackText || '정보 없음');
+  var fallbackKey = syReadingTextKey(fallback);
+  if (usedMap && fallbackKey) usedMap[fallbackKey] = true;
+  return fallback;
+}
+
 function syBuildLoveAttractionType(traits, loveTokens, karmaTokens, mansionIdx) {
   var override = syReadingOverrideByIndex(mansionIdx, 'attractionType');
   if (override) return override;
@@ -4088,20 +4106,108 @@ function syBuildCollaborationTipText(traits, workTokens, careerTokens, mansionId
   );
 }
 
-function syDedupeReadingTexts(reading) {
+function syDedupeReadingTexts(reading, seed) {
   if (!reading) return reading;
   var loveProfile = reading.loveProfile || {};
   var workMoney = reading.workMoney || {};
+  var traits = seed && seed.traits ? seed.traits : {};
+  var usedMap = {};
 
-  if (syReadingTextKey(loveProfile.attractionType) && syReadingTextKey(loveProfile.attractionType) === syReadingTextKey(loveProfile.loveStyle)) {
-    loveProfile.loveStyle = '상대의 마음을 세심하게 살피며 관계를 안정적으로 키워가는 경향이 있습니다.';
-  }
-  if (syReadingTextKey(loveProfile.anxietyPoint) && syReadingTextKey(loveProfile.anxietyPoint) === syReadingTextKey(workMoney.workCaution)) {
-    workMoney.workCaution = '업무에서는 감정 소모를 줄이기 위해 회복 시간과 우선순위를 먼저 고정하세요.';
-  }
-  if (syReadingTextKey(loveProfile.longTermAdvice) && syReadingTextKey(loveProfile.longTermAdvice) === syReadingTextKey(workMoney.collaborationTip)) {
-    workMoney.collaborationTip = '협업에서는 조율 역할을 분담하고 합의된 기준을 문서화할 때 성과가 안정됩니다.';
-  }
+  loveProfile.attractionType = syPickUniqueReadingText(
+    loveProfile.attractionType,
+    [
+      syComposeFromTokens(seed && seed.loveTokens, ''),
+      syComposeFromTokens(syCanonicalTokenize((traits.love || '') + '. 신뢰와 안정감을 주는 사람에게 끌림이 커집니다.', ''), ''),
+      syComposeFromTokens(seed && seed.karmaTokens, '')
+    ],
+    '신뢰감이 선명한 사람에게 자연스럽게 마음이 기웁니다.',
+    usedMap
+  );
+
+  loveProfile.loveStyle = syPickUniqueReadingText(
+    loveProfile.loveStyle,
+    [
+      syComposeFromTokens(syCanonicalTokenize((traits.love || '') + '. 감정을 행동으로 보여줄 때 관계가 안정됩니다.', ''), ''),
+      syComposeFromTokens(syCanonicalTokenize((traits.hidden || '') + '. 돌봄과 경계를 함께 유지할수록 사랑이 길게 이어집니다.', ''), '')
+    ],
+    '표현과 배려의 균형을 지킬수록 사랑의 결이 단단해집니다.',
+    usedMap
+  );
+
+  loveProfile.deepeningMoment = syPickUniqueReadingText(
+    loveProfile.deepeningMoment,
+    [
+      syComposeFromTokens(syCanonicalTokenize((traits.karma || '') + '. 기대와 경계를 솔직하게 합의하는 순간 관계가 깊어집니다.', ''), ''),
+      syComposeFromTokens(syCanonicalTokenize((traits.love || '') + '. 서로의 속도를 존중하면 신뢰가 빠르게 쌓입니다.', ''), '')
+    ],
+    '기대와 경계를 솔직하게 맞추는 순간 관계의 깊이가 커집니다.',
+    usedMap
+  );
+
+  loveProfile.anxietyPoint = syPickUniqueReadingText(
+    loveProfile.anxietyPoint,
+    [
+      syComposeFromTokens(syCanonicalTokenize((traits.hidden || '') + '. 혼자 버티기보다 먼저 감정을 공유하세요.', ''), ''),
+      syComposeFromTokens(syCanonicalTokenize((traits.hidden || '') + '. 불안을 해석보다 대화로 풀면 오해가 줄어듭니다.', ''), '')
+    ],
+    '불안을 혼자 정리하려고 할수록 오해가 커질 수 있으니 먼저 감정을 공유하세요.',
+    usedMap
+  );
+
+  loveProfile.longTermAdvice = syPickUniqueReadingText(
+    loveProfile.longTermAdvice,
+    [
+      syComposeFromTokens(seed && seed.karmaTokens, ''),
+      syComposeFromTokens(syCanonicalTokenize((traits.karma || '') + '. 서로의 리듬을 맞추는 대화 루틴이 장기 안정의 핵심입니다.', ''), '')
+    ],
+    '장기적으로는 조언보다 경청의 비율을 높여 신뢰를 축적하세요.',
+    usedMap
+  );
+
+  loveProfile.avoidPattern = syPickUniqueReadingText(
+    loveProfile.avoidPattern,
+    [
+      syFirstToken(syCanonicalTokenize((traits.hidden || '') + '. 감정이 격해진 직후 결론 내리기', ''), ''),
+      '감정이 흔들릴 때 상대의 의도를 단정하기'
+    ],
+    '감정이 격해진 직후 결론 내리기',
+    usedMap
+  );
+
+  workMoney.spendingHabit = syPickUniqueReadingText(
+    workMoney.spendingHabit,
+    [
+      syComposeFromTokens(seed && seed.wealthTokens, ''),
+      syComposeFromTokens(syCanonicalTokenize((traits.wealth || '') + '. 기준 없는 보상 지출을 줄이면 흐름이 안정됩니다.', ''), '')
+    ],
+    '지출 기준을 먼저 정해두면 소비 리듬이 안정됩니다.',
+    usedMap
+  );
+
+  workMoney.workCaution = syPickUniqueReadingText(
+    workMoney.workCaution,
+    [
+      syComposeFromTokens(seed && seed.workTokens, ''),
+      syComposeFromTokens(syCanonicalTokenize((traits.work || '') + '. 과부하 신호를 초기에 끊어야 번아웃을 피할 수 있습니다.', ''), ''),
+      syComposeFromTokens(syCanonicalTokenize((traits.hidden || '') + '. 완벽주의 압박을 내려놓아야 판단력이 유지됩니다.', ''), '')
+    ],
+    '역할 과부하를 방치하지 말고 휴식 구간을 먼저 고정하세요.',
+    usedMap
+  );
+
+  workMoney.collaborationTip = syPickUniqueReadingText(
+    workMoney.collaborationTip,
+    [
+      syComposeFromTokens(seed && seed.careerTokens, ''),
+      syComposeFromTokens(syCanonicalTokenize((traits.work || '') + '. 역할과 마감 기준을 문서로 맞추면 협업 품질이 높아집니다.', ''), ''),
+      syComposeFromTokens(syCanonicalTokenize((traits.karma || '') + '. 조율 역할을 분담하면 성과와 관계가 함께 안정됩니다.', ''), '')
+    ],
+    '협업에서는 역할 분담과 기준 합의를 먼저 맞추는 것이 가장 중요합니다.',
+    usedMap
+  );
+
+  reading.loveProfile = loveProfile;
+  reading.workMoney = workMoney;
 
   return reading;
 }
@@ -4327,7 +4433,14 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
     }
   };
 
-  return syDedupeReadingTexts(reading);
+  return syDedupeReadingTexts(reading, {
+    traits: traits,
+    loveTokens: loveTokens,
+    karmaTokens: karmaTokens,
+    workTokens: workTokens,
+    wealthTokens: wealthTokens,
+    careerTokens: careerTokens
+  });
 }
 
 function syRenderCanonicalDashboard(canonicalPayload, reading) {

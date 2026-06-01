@@ -15335,7 +15335,7 @@ function renderZiwei(p, natal, targetId) {
   <div class="zw-detail-panel ziwei-report-container report-container" id="zwComprehensiveReport" style="margin-top:16px;">
     <div class="zw-empty-state">
       <div class="zw-empty-icon">📜</div>
-      자미두수 천명 종합 리포트를 불러오는 중입니다.
+      잠시만요. 당신의 자미두수 상담 리포트를 정성껏 정리하고 있습니다.
     </div>
   </div>`;
 
@@ -15652,15 +15652,88 @@ function renderZiwei(p, natal, targetId) {
       window._zwMuteEvent(evt);
       window._zwReportToggleLockUntil = Date.now() + 420;
       var seed = window._zwComprehensiveSeed;
-      if (!seed || !seed.pd || !seed.stars) return;
-      window._renderZwPanel(seed.idx, seed.pName, seed.stars, seed.pd, {
-        clickOnly: false,
-        targetId: 'zwComprehensiveReport',
-        showClose: true,
-        showRadar: false,
-        scroll: false
-      });
+      if ((!seed || !seed.pd || !seed.stars) && typeof window._resolveZwComprehensiveSeed === 'function') {
+        seed = window._resolveZwComprehensiveSeed(window._currentZiweiData);
+      }
+      if (!seed || !seed.pd || !seed.stars || typeof window._renderZwPanel !== 'function') {
+        var panel = document.getElementById('zwComprehensiveReport');
+        if (panel) {
+          panel.innerHTML = '<div class="zw-empty-state">'
+            + '<div class="zw-empty-icon">📜</div>'
+            + '명반 데이터를 다시 확인하고 있어요.<br>잠시 후 다시 열어주세요.'
+            + '</div>';
+        }
+        return;
+      }
+      window._zwComprehensiveSeed = seed;
+      try {
+        window._renderZwPanel(seed.idx, seed.pName, seed.stars, seed.pd, {
+          clickOnly: false,
+          targetId: 'zwComprehensiveReport',
+          showClose: true,
+          showRadar: false,
+          scroll: false
+        });
+      } catch (err) {
+        console.error('[Ziwei] open comprehensive report failed:', err);
+        var panel2 = document.getElementById('zwComprehensiveReport');
+        if (panel2) {
+          panel2.innerHTML = '<div class="zw-empty-state">'
+            + '<div class="zw-empty-icon">📜</div>'
+            + '리포트를 불러오는 중 잠시 흔들림이 있었어요.<br>'
+            + '<button type="button" class="zw-report-close-btn" style="margin-top:10px;" onclick="window._openZwComprehensiveReport()">다시 불러오기</button>'
+            + '</div>';
+        }
+      }
     };
+
+    if (!window._resolveZwComprehensiveSeed) {
+      window._resolveZwComprehensiveSeed = function(pd) {
+        if (!pd || typeof pd !== 'object') return null;
+        var names = Array.isArray(pd.palacesByIndex) ? pd.palacesByIndex : [];
+        var idx = names.indexOf('명궁');
+        if (idx < 0) idx = 0;
+
+        var starsSource = (pd.stars && typeof pd.stars === 'object') ? pd.stars : null;
+        var picked = starsSource ? starsSource[idx] : null;
+
+        if (!picked && Array.isArray(pd.palaceStarData) && pd.palaceStarData[idx]) {
+          var row = pd.palaceStarData[idx] || {};
+          picked = {
+            main: Array.isArray(row.stars) ? row.stars : [],
+            borrowedMain: [],
+            aux: Array.isArray(row.auxStars) ? row.auxStars : [],
+            bad: Array.isArray(row.badStars) ? row.badStars : []
+          };
+        }
+
+        if (!picked && Array.isArray(pd.palaceStarData)) {
+          for (var pi = 0; pi < pd.palaceStarData.length; pi++) {
+            var probe = pd.palaceStarData[pi] || {};
+            if ((Array.isArray(probe.stars) && probe.stars.length)
+              || (Array.isArray(probe.auxStars) && probe.auxStars.length)
+              || (Array.isArray(probe.badStars) && probe.badStars.length)) {
+              idx = pi;
+              picked = {
+                main: Array.isArray(probe.stars) ? probe.stars : [],
+                borrowedMain: [],
+                aux: Array.isArray(probe.auxStars) ? probe.auxStars : [],
+                bad: Array.isArray(probe.badStars) ? probe.badStars : []
+              };
+              break;
+            }
+          }
+        }
+
+        if (!picked) return null;
+        return {
+          idx: idx,
+          pName: names[idx] || ('제' + (idx + 1) + '궁'),
+          stars: picked,
+          pd: pd
+        };
+      };
+    }
 
     window._runZwCompatibility = function() {
       if (typeof window._cdCoinGatePerUse === 'function') {
@@ -16662,6 +16735,19 @@ function renderZiwei(p, natal, targetId) {
       var showClose = opts.showClose !== false;
       var showRadar = opts.showRadar !== false;
       var shouldScroll = !!opts.scroll;
+        var normalizeStarRawText = function(raw) {
+            if (typeof _zwToStarRawText === 'function') {
+              return _zwToStarRawText(raw);
+            }
+            if (typeof raw === 'string') return raw;
+            if (raw && typeof raw === 'object') {
+              var baseName = String(raw.nameKo || raw.name || '').trim();
+              var sihua = String(raw.sihua || '').trim();
+              var suffix = raw.borrowed ? ' (차성)' : '';
+              return (baseName + (sihua ? (' ' + sihua) : '') + suffix).trim();
+            }
+            return String(raw || '');
+        };
         var extractMainMeta = function(sList) {
             if(!sList) return [];
             var hasMain = !!(sList.main && sList.main.length);
@@ -16669,7 +16755,7 @@ function renderZiwei(p, natal, targetId) {
             var src = hasMain ? sList.main : (sList.borrowedMain || []);
             if(!src || !src.length) return [];
             return src.map(function(m){
-              var plain=(m||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+              var plain = normalizeStarRawText(m).replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
               var isBorrowed=usingBorrowedSource || /\(차성\)|\b차성\b/.test(plain);
               var name=plain
                 .replace(/\(차성\)/g,'')
@@ -16685,11 +16771,15 @@ function renderZiwei(p, natal, targetId) {
             };
         var extractAux = function(sList) {
             if(!sList||!sList.aux) return [];
-            return sList.aux.map(m=>m.replace(/<[^>]+>/g,'').trim().split(' ')[0]);
+            return sList.aux.map(function(m){
+              return normalizeStarRawText(m).replace(/<[^>]+>/g,'').trim().split(' ')[0];
+            }).filter(function(v){ return !!v; });
         };
         var extractBad = function(sList) {
             if(!sList||!sList.bad) return [];
-            return sList.bad.map(m=>m.replace(/<[^>]+>/g,'').trim().split(' ')[0]);
+            return sList.bad.map(function(m){
+              return normalizeStarRawText(m).replace(/<[^>]+>/g,'').trim().split(' ')[0];
+            }).filter(function(v){ return !!v; });
         };
         var fmtStrength = function(starName, zhi, isBorrowed){
           var lv = zwComputeStarStrength(starName, zhi, !!isBorrowed);
@@ -18898,24 +18988,30 @@ function renderZiwei(p, natal, targetId) {
   }
 
   // 종합 리포트는 매 렌더 사이클마다 갱신해야 모바일 재진입 시 로딩 문구에 멈추지 않는다.
-  var defaultIdx = (window._currentZiweiData && window._currentZiweiData.palacesByIndex)
-    ? window._currentZiweiData.palacesByIndex.indexOf('명궁')
-    : -1;
-  if (defaultIdx < 0) defaultIdx = 0;
-  if (typeof window._renderZwPanel === 'function' && window._currentZiweiData && window._currentZiweiData.stars && window._currentZiweiData.stars[defaultIdx]) {
-    window._zwComprehensiveSeed = {
-      idx: defaultIdx,
-      pName: window._currentZiweiData.palacesByIndex[defaultIdx],
-      stars: window._currentZiweiData.stars[defaultIdx],
-      pd: window._currentZiweiData
-    };
-    window._renderZwPanel(
-      defaultIdx,
-      window._currentZiweiData.palacesByIndex[defaultIdx],
-      window._currentZiweiData.stars[defaultIdx],
-      window._currentZiweiData,
-      { clickOnly: false, targetId: 'zwComprehensiveReport', showClose: true, showRadar: false, scroll: false }
-    );
+  var initialSeed = (typeof window._resolveZwComprehensiveSeed === 'function')
+    ? window._resolveZwComprehensiveSeed(window._currentZiweiData)
+    : null;
+  if (typeof window._renderZwPanel === 'function' && initialSeed && initialSeed.pd && initialSeed.stars) {
+    window._zwComprehensiveSeed = initialSeed;
+    try {
+      window._renderZwPanel(
+        initialSeed.idx,
+        initialSeed.pName,
+        initialSeed.stars,
+        initialSeed.pd,
+        { clickOnly: false, targetId: 'zwComprehensiveReport', showClose: true, showRadar: false, scroll: false }
+      );
+    } catch (err) {
+      console.error('[Ziwei] initial comprehensive render failed:', err);
+      var initialPanel = document.getElementById('zwComprehensiveReport');
+      if (initialPanel) {
+        initialPanel.innerHTML = '<div class="zw-empty-state">'
+          + '<div class="zw-empty-icon">📜</div>'
+          + '명반 해석을 차분히 정리하는 중입니다.<br>'
+          + '<button type="button" class="zw-report-close-btn" style="margin-top:10px;" onclick="window._openZwComprehensiveReport()">다시 불러오기</button>'
+          + '</div>';
+      }
+    }
   }
 }
 
