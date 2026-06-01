@@ -277,6 +277,24 @@ function buildReactionTail(profile: LoveCodePartnerProfile, delta: number): stri
   return "";
 }
 
+function buildScenarioStoryPrompt(
+  profile: LoveCodePartnerProfile,
+  scenario: Scenario,
+  personaName: string,
+  sceneOrder: number,
+  totalScenes: number,
+): string {
+  const sceneHeader = `장면 ${sceneOrder}/${totalScenes} · ${scenario.type} ${scenario.backgroundEmoji}`;
+  const storyBase = String(scenario.narrative || scenario.situationDescription || "").trim();
+
+  const profileLine = `${personaName}의 현재 모드: ${profile.loveStyle}, ${profile.communicationTone}.`;
+  const tensionLine = `관계 니즈: ${profile.relationshipNeed} / 갈등 패턴: ${profile.conflictPattern}.`;
+  const fearLine = `숨은 불안: ${profile.hiddenFear}.`;
+  const questionLine = scenario.npcDialogue(personaName);
+
+  return `${sceneHeader}\n\n${storyBase}\n${profileLine}\n${tensionLine}\n${fearLine}\n\n${questionLine}`;
+}
+
 export function useSimulation() {
   const [state, setState] = useState<SimulationState>({
     currentPersona: null,
@@ -291,6 +309,7 @@ export function useSimulation() {
   const startSimulation = useCallback((persona: Persona) => {
     const profile = buildPartnerProfile(persona);
     const selected = selectScenariosForProfile(profile);
+    const firstScenario = selected[0];
 
     setActiveScenarios(selected);
     setState({
@@ -305,7 +324,7 @@ export function useSimulation() {
         },
         {
           speaker: "npc",
-          text: selected[0].npcDialogue(persona.name),
+          text: buildScenarioStoryPrompt(profile, firstScenario, persona.name, 1, selected.length),
         },
       ],
     });
@@ -344,9 +363,16 @@ export function useSimulation() {
 
       // If there's a next scenario, add its intro
       if (!isLastStep) {
+        const nextScenario = activeScenarios[nextStepIndex];
         newHistory.push({
           speaker: "npc",
-          text: activeScenarios[nextStepIndex].npcDialogue(prev.currentPersona.name),
+          text: buildScenarioStoryPrompt(
+            profile,
+            nextScenario,
+            prev.currentPersona.name,
+            nextStepIndex + 1,
+            activeScenarios.length,
+          ),
         });
       }
 
