@@ -35,7 +35,7 @@ import type { DestinyBiasResultViewModel, PersonInputState } from "./lib/types";
 import { analyzeDestinyBias } from "./engine/destinyBiasEngine";
 import { normalizeBirthDateInput } from "./engine/birthEnergy";
 import { downloadSvg } from "./utils/downloadSvg";
-import { downloadPngFromSvg } from "./utils/downloadPngFromSvg";
+import { buildPngBlobFromDestinyBiasCard, downloadPngFromSvg } from "./utils/downloadPngFromSvg";
 
 const DEFAULT_ANALYZE_COST = 50;
 const PROFILE_NS = "FORTUNE_APP_USER_PROFILES";
@@ -848,6 +848,86 @@ export default function DestinyBiasClient() {
     }
   }, [resultVm]);
 
+  const getShareBaseText = useCallback(() => {
+    if (!resultVm) return "";
+    return `${resultVm.biasName}와의 궁합 ${resultVm.totalScore}점 · ${resultVm.destinyGrade}\n${resultVm.oneLineDestinyMessage}`;
+  }, [resultVm]);
+
+  const buildShareFile = useCallback(async () => {
+    if (!resultVm) return null;
+    const blob = await buildPngBlobFromDestinyBiasCard(resultVm.cardSvg);
+    return new File([blob], `my-destiny-bias-${resultVm.destinyId}.png`, { type: "image/png" });
+  }, [resultVm]);
+
+  const shareWithNativeSheet = useCallback(async (platformLabel: string) => {
+    if (!resultVm || typeof navigator === "undefined") return false;
+    if (!navigator.share) return false;
+
+    const text = getShareBaseText();
+    const url = typeof window !== "undefined" ? window.location.href : "";
+
+    try {
+      const file = await buildShareFile();
+      if (!file) return false;
+      const payload: ShareData = {
+        title: "My Destiny Bias",
+        text,
+        url,
+        files: [file],
+      };
+
+      if (navigator.canShare && !navigator.canShare({ files: [file] })) {
+        return false;
+      }
+
+      await navigator.share(payload);
+      setToast(`${platformLabel} 공유 창을 열었어요.`);
+      return true;
+    } catch {
+      return false;
+    }
+  }, [buildShareFile, getShareBaseText, resultVm]);
+
+  const handleShareToX = useCallback(() => {
+    if (!resultVm || typeof window === "undefined") return;
+    const text = getShareBaseText();
+    const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`;
+    window.open(shareUrl, "_blank", "noopener,noreferrer,width=620,height=720");
+    setToast("X(트위터) 공유 창을 열었어요.");
+  }, [getShareBaseText, resultVm]);
+
+  const handleShareToInstagram = useCallback(async () => {
+    if (!resultVm) return;
+
+    const nativeShared = await shareWithNativeSheet("인스타그램");
+    if (nativeShared) return;
+
+    try {
+      await downloadPngFromSvg(resultVm.cardSvg, `my-destiny-bias-${resultVm.destinyId}.png`);
+      setToast("인스타 공유용 카드 이미지를 저장했어요. 인스타 앱에서 업로드해 주세요.");
+    } catch {
+      setError("인스타 공유용 이미지 저장에 실패했습니다.");
+    }
+  }, [resultVm, shareWithNativeSheet]);
+
+  const handleShareToKakao = useCallback(async () => {
+    if (!resultVm || typeof window === "undefined") return;
+
+    const nativeShared = await shareWithNativeSheet("카카오");
+    if (nativeShared) return;
+
+    const text = getShareBaseText();
+    const fallback = `${text}\n${window.location.href}`;
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(fallback);
+      }
+      setToast("카카오 공유용 문구를 복사했어요. 카카오톡에 붙여넣어 공유해 주세요.");
+    } catch {
+      setError("카카오 공유 문구 복사에 실패했습니다.");
+    }
+  }, [getShareBaseText, resultVm, shareWithNativeSheet]);
+
   const handleRetry = useCallback(() => {
     setUiStep(1);
     setResultVm(null);
@@ -1353,6 +1433,13 @@ export default function DestinyBiasClient() {
                   }}
                   onShare={() => {
                     handleShareResult().catch(() => null);
+                  }}
+                  onShareToX={handleShareToX}
+                  onShareToInstagram={() => {
+                    handleShareToInstagram().catch(() => null);
+                  }}
+                  onShareToKakao={() => {
+                    handleShareToKakao().catch(() => null);
                   }}
                   onCopy={() => {
                     handleCopyResult().catch(() => null);

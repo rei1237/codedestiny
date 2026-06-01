@@ -11,38 +11,25 @@ async function triggerBlobDownload(blob: Blob, fileName: string) {
   }
 }
 
-export async function downloadPngFromSvg(svgText: string, fileName: string) {
-  const previewElement = typeof document !== "undefined"
-    ? document.getElementById("destiny-bias-card-preview") as HTMLElement | null
-    : null;
+async function createPngBlobFromPreviewElement(previewElement: HTMLElement) {
+  const [{ toBlob }] = await Promise.all([
+    import("html-to-image"),
+    document.fonts?.ready ?? Promise.resolve(),
+  ]);
 
-  if (previewElement) {
-    try {
-      const [{ toBlob }] = await Promise.all([
-        import("html-to-image"),
-        document.fonts?.ready ?? Promise.resolve(),
-      ]);
+  const rect = previewElement.getBoundingClientRect();
+  const pixelRatio = Math.min(3, Math.max(2, typeof window !== "undefined" ? window.devicePixelRatio || 2 : 2));
 
-      const rect = previewElement.getBoundingClientRect();
-      const pixelRatio = Math.min(3, Math.max(2, typeof window !== "undefined" ? window.devicePixelRatio || 2 : 2));
+  return toBlob(previewElement, {
+    cacheBust: true,
+    pixelRatio,
+    backgroundColor: "transparent",
+    canvasWidth: Math.max(1, Math.round(rect.width * pixelRatio)),
+    canvasHeight: Math.max(1, Math.round(rect.height * pixelRatio)),
+  });
+}
 
-      const domBlob = await toBlob(previewElement, {
-        cacheBust: true,
-        pixelRatio,
-        backgroundColor: "transparent",
-        canvasWidth: Math.max(1, Math.round(rect.width * pixelRatio)),
-        canvasHeight: Math.max(1, Math.round(rect.height * pixelRatio)),
-      });
-
-      if (domBlob) {
-        await triggerBlobDownload(domBlob, fileName);
-        return;
-      }
-    } catch (e) {
-      // DOM 캡처가 실패하면 기존 SVG->Canvas 방식으로 자동 폴백
-    }
-  }
-
+async function createPngBlobFromSvg(svgText: string) {
   const blob = new Blob([svgText], { type: "image/svg+xml;charset=utf-8" });
   const blobUrl = URL.createObjectURL(blob);
 
@@ -83,8 +70,30 @@ export async function downloadPngFromSvg(svgText: string, fileName: string) {
       throw new Error("PNG 변환에 실패했습니다.");
     }
 
-    await triggerBlobDownload(pngBlob, fileName);
+    return pngBlob;
   } finally {
     setTimeout(() => URL.revokeObjectURL(blobUrl), 300);
   }
+}
+
+export async function buildPngBlobFromDestinyBiasCard(svgText: string) {
+  const previewElement = typeof document !== "undefined"
+    ? document.getElementById("destiny-bias-card-preview") as HTMLElement | null
+    : null;
+
+  if (previewElement) {
+    try {
+      const domBlob = await createPngBlobFromPreviewElement(previewElement);
+      if (domBlob) return domBlob;
+    } catch {
+      // DOM 캡처가 실패하면 SVG->Canvas 방식으로 폴백
+    }
+  }
+
+  return createPngBlobFromSvg(svgText);
+}
+
+export async function downloadPngFromSvg(svgText: string, fileName: string) {
+  const pngBlob = await buildPngBlobFromDestinyBiasCard(svgText);
+  await triggerBlobDownload(pngBlob, fileName);
 }

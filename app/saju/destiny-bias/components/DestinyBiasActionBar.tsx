@@ -4,6 +4,9 @@ type Props = {
   onDownloadSvg: () => void;
   onDownloadPng: () => void;
   onShare: () => void;
+  onShareToX: () => void;
+  onShareToInstagram: () => void;
+  onShareToKakao: () => void;
   onCopy: () => void;
   onRetry: () => void;
   onTryAnother: () => void;
@@ -13,6 +16,9 @@ export default function DestinyBiasActionBar({
   onDownloadSvg,
   onDownloadPng,
   onShare,
+  onShareToX,
+  onShareToInstagram,
+  onShareToKakao,
   onCopy,
   onRetry,
   onTryAnother,
@@ -40,6 +46,30 @@ export default function DestinyBiasActionBar({
           className="min-h-12 rounded-full bg-[linear-gradient(92deg,#ec4899,#8b5cf6,#22d3ee)] px-4 text-sm font-extrabold text-white shadow-[0_12px_28px_rgba(236,72,153,0.36)] transition hover:-translate-y-0.5"
         >
           공유하기
+        </button>
+      </div>
+
+      <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
+        <button
+          type="button"
+          onClick={onShareToX}
+          className="min-h-11 rounded-full border border-white/22 bg-white/6 px-3 text-sm font-semibold text-white/90 transition hover:border-cyan-200/65 hover:bg-cyan-300/10"
+        >
+          X(트위터) 공유
+        </button>
+        <button
+          type="button"
+          onClick={onShareToInstagram}
+          className="min-h-11 rounded-full border border-white/22 bg-white/6 px-3 text-sm font-semibold text-white/90 transition hover:border-cyan-200/65 hover:bg-cyan-300/10"
+        >
+          인스타 공유
+        </button>
+        <button
+          type="button"
+          onClick={onShareToKakao}
+          className="min-h-11 rounded-full border border-white/22 bg-white/6 px-3 text-sm font-semibold text-white/90 transition hover:border-cyan-200/65 hover:bg-cyan-300/10"
+        >
+          카카오 공유
         </button>
       </div>
 
