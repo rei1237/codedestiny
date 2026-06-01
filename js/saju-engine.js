@@ -15416,7 +15416,7 @@ function renderZiwei(p, natal, targetId) {
       cellTags += '<span class="zw-tag ' + sihuaClass + '">' + sihuaCell + '</span>';
     }
 
-    html += '<div class="zw-cell zw-cell-'+i+'" role="button" tabindex="0" data-zw-idx="'+i+'" aria-label="'+dName+' 상세 해석 보기" style="'+highlight+'; animation-delay: '+(i*0.06)+'s;">';
+    html += '<div class="zw-cell zw-cell-'+i+'" role="button" tabindex="0" aria-label="'+dName+' 상세 해석 보기" style="'+highlight+'; animation-delay: '+(i*0.06)+'s;" onclick="window._handleZwClick('+i+', this)">';
     html += '<div class="zw-palace-name">' + dName + '</div>';
     if (cellTags) html += '<div class="zw-tag-layer">' + cellTags + '</div>';
     html += '<div class="zw-stars-wrap star-list">';
@@ -15481,49 +15481,8 @@ function renderZiwei(p, natal, targetId) {
   </div>`;
 
   var sec = document.getElementById(targetId || 'ziweiSection');
-  if(sec) {
+  if (sec) {
     sec.innerHTML = html;
-  }
-  if (!window._bindZwPalaceGridEvents) {
-    window._bindZwPalaceGridEvents = function(rootEl) {
-      if (!rootEl || typeof rootEl.querySelector !== 'function') return;
-      var grid = rootEl.querySelector('#zwPalaceGrid');
-      if (!grid || grid._zwCellEventBound) return;
-
-      var invokeCell = function(cell) {
-        if (!cell) return;
-        var idx = parseInt(cell.getAttribute('data-zw-idx'), 10);
-        if (!Number.isFinite(idx) || idx < 0) return;
-        if (typeof window._handleZwClick === 'function') {
-          window._handleZwClick(idx, cell);
-        }
-      };
-
-      grid.addEventListener('click', function(event) {
-        var t = event && event.target;
-        if (!t || typeof t.closest !== 'function') return;
-        var cell = t.closest('.zw-cell[data-zw-idx]');
-        if (!cell || !grid.contains(cell)) return;
-        invokeCell(cell);
-      });
-
-      grid.addEventListener('keydown', function(event) {
-        if (!event) return;
-        var key = event.key;
-        if (key !== 'Enter' && key !== ' ') return;
-        var t = event.target;
-        if (!t || typeof t.closest !== 'function') return;
-        var cell = t.closest('.zw-cell[data-zw-idx]');
-        if (!cell || !grid.contains(cell)) return;
-        event.preventDefault();
-        invokeCell(cell);
-      });
-
-      grid._zwCellEventBound = true;
-    };
-  }
-  if (sec && typeof window._bindZwPalaceGridEvents === 'function') {
-    window._bindZwPalaceGridEvents(sec);
   }
   if (!window._zwToggleAnimalCodex) {
     window._zwToggleAnimalCodex = function(detailsId) {
@@ -15540,11 +15499,7 @@ function renderZiwei(p, natal, targetId) {
       }
     };
   }
-  try {
-    _zwInitDeepAiPromptPanel('zwDeepAiPromptPanel', palace);
-  } catch (e) {
-    console.error('[Ziwei] deep ai prompt panel init failed:', e);
-  }
+  _zwInitDeepAiPromptPanel('zwDeepAiPromptPanel', palace);
 
   if (!window._renderZwDestinyPortfolio) {
     window._zwPortfolioStore = window._zwPortfolioStore || {};
@@ -15753,94 +15708,25 @@ function renderZiwei(p, natal, targetId) {
   }
 
   if(!window._handleZwClick) {
-    if (!window._loadZwChartJs) {
-      window._loadZwChartJs = function() {
-        if (typeof Chart !== 'undefined') return Promise.resolve(true);
-        if (window._zwChartJsPromise) return window._zwChartJsPromise;
-
-        window._zwChartJsPromise = new Promise(function(resolve) {
-          var done = false;
-          var finalize = function(ok) {
-            if (done) return;
-            done = true;
-            if (!ok) window._zwChartJsPromise = null;
-            resolve(!!ok);
-          };
-
-          var existing = document.querySelector('script[data-zw-chartjs="1"]');
-          if (existing) {
-            existing.addEventListener('load', function(){ finalize(true); }, { once: true });
-            existing.addEventListener('error', function(){ finalize(false); }, { once: true });
-            return;
-          }
-
-          var s = document.createElement('script');
-          s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-          s.async = true;
-          s.defer = true;
-          s.setAttribute('data-zw-chartjs', '1');
-          s.onload = function() { finalize(true); };
-          s.onerror = function() { finalize(false); };
-          document.head.appendChild(s);
-        });
-
-        return window._zwChartJsPromise;
-      };
-    }
-
     window._handleZwClick = function(idx, el) {
-      var normalizedIdx = parseInt(idx, 10);
-      if (!Number.isFinite(normalizedIdx) || normalizedIdx < 0) return;
-
-      var allCells = document.querySelectorAll('#zwPalaceGrid .zw-cell');
-      allCells.forEach(function(c){ c.classList.remove('active'); });
-      if(el) el.classList.add('active');
+      document.querySelectorAll('.zw-cell').forEach(function(c) { c.classList.remove('active'); });
+      if (el) el.classList.add('active');
 
       var pd = window._currentZiweiData;
-      if (!pd || !Array.isArray(pd.palacesByIndex)) return;
+      var pName = pd.palacesByIndex[idx];
+      var stars = pd.stars[idx];
 
-      var pName = pd.palacesByIndex[normalizedIdx] || ('제' + (normalizedIdx + 1) + '궁');
-      var stars = window._normalizeZwStarBucket(pd.stars && pd.stars[normalizedIdx]);
-      var renderPanel = function(enableRadar) {
-        if (typeof window._renderZwPanel !== 'function') return;
-        window._renderZwPanel(normalizedIdx, pName, stars, pd, {
-          clickOnly: true,
-          targetId: 'zwDetailPanel',
-          showClose: true,
-          showRadar: !!enableRadar,
-          scroll: true
-        });
-      };
-
-      if (typeof Chart !== 'undefined') {
-        renderPanel(true);
+      if (typeof Chart === 'undefined') {
+        var s = document.createElement('script');
+        s.src = "https://cdn.jsdelivr.net/npm/chart.js";
+        s.onload = function() {
+          window._renderZwPanel(idx, pName, stars, pd, { clickOnly: true, targetId: 'zwDetailPanel', showClose: true, showRadar: true, scroll: true });
+          window._zwScrollToDetail();
+        };
+        document.head.appendChild(s);
+      } else {
+        window._renderZwPanel(idx, pName, stars, pd, { clickOnly: true, targetId: 'zwDetailPanel', showClose: true, showRadar: true, scroll: true });
         window._zwScrollToDetail();
-        return;
-      }
-
-      // Chart.js 로딩 전에도 텍스트 해석은 즉시 표시해 클릭 체감과 안정성을 확보한다.
-      renderPanel(false);
-      window._zwScrollToDetail();
-
-      if (typeof window._loadZwChartJs === 'function') {
-        window._loadZwChartJs().then(function(ok) {
-          if (!ok || typeof Chart === 'undefined') return;
-          var activeCell = document.querySelector('#zwPalaceGrid .zw-cell.active[data-zw-idx="' + normalizedIdx + '"]');
-          if (!activeCell) return;
-          var freshPd = window._currentZiweiData;
-          if (!freshPd || !Array.isArray(freshPd.palacesByIndex)) return;
-          var freshName = freshPd.palacesByIndex[normalizedIdx] || pName;
-          var freshStars = window._normalizeZwStarBucket(freshPd.stars && freshPd.stars[normalizedIdx]);
-          if (typeof window._renderZwPanel === 'function') {
-            window._renderZwPanel(normalizedIdx, freshName, freshStars, freshPd, {
-              clickOnly: true,
-              targetId: 'zwDetailPanel',
-              showClose: true,
-              showRadar: true,
-              scroll: false
-            });
-          }
-        });
       }
     };
 
@@ -15883,7 +15769,7 @@ function renderZiwei(p, natal, targetId) {
       var panel = document.getElementById('zwDetailPanel');
       if (!panel) return;
 
-      document.querySelectorAll('#zwPalaceGrid .zw-cell.active').forEach(function(cell) {
+      document.querySelectorAll('.zw-cell.active').forEach(function(cell) {
         cell.classList.remove('active');
       });
 
@@ -15915,8 +15801,7 @@ function renderZiwei(p, natal, targetId) {
       if (!panel) return;
       panel.innerHTML = '<div class="zw-empty-state">'
         + '<div class="zw-empty-icon">📜</div>'
-        + '종합 리포트가 닫혔습니다.<br>'
-        + '<button type="button" class="zw-report-close-btn" style="margin-top:10px;" onclick="window._openZwComprehensiveReport()">다시 열기</button>'
+        + '잠시만요. 당신의 자미두수 상담 리포트를 정성껏 정리하고 있습니다.'
         + '</div>';
     };
 
@@ -15924,40 +15809,14 @@ function renderZiwei(p, natal, targetId) {
       window._zwMuteEvent(evt);
       window._zwReportToggleLockUntil = Date.now() + 420;
       var seed = window._zwComprehensiveSeed;
-      if ((!seed || !seed.pd || !seed.stars) && typeof window._resolveZwComprehensiveSeed === 'function') {
-        seed = window._resolveZwComprehensiveSeed(window._currentZiweiData);
-      }
-      if (!seed || !seed.pd || typeof window._renderZwPanel !== 'function') {
-        var panel = document.getElementById('zwComprehensiveReport');
-        if (panel) {
-          panel.innerHTML = '<div class="zw-empty-state">'
-            + '<div class="zw-empty-icon">📜</div>'
-            + '리포트 시드가 잠시 비어 있습니다.<br>기본 명반을 먼저 확인한 뒤 다시 열어주세요.'
-            + '<br><button type="button" class="zw-report-close-btn" style="margin-top:10px;" onclick="window._openZwComprehensiveReport()">다시 열기</button>'
-            + '</div>';
-        }
-        return;
-      }
-      window._zwComprehensiveSeed = seed;
-      try {
-        window._renderZwPanel(seed.idx, seed.pName, seed.stars, seed.pd, {
-          clickOnly: false,
-          targetId: 'zwComprehensiveReport',
-          showClose: true,
-          showRadar: false,
-          scroll: false
-        });
-      } catch (err) {
-        console.error('[Ziwei] open comprehensive report failed:', err);
-        var panel2 = document.getElementById('zwComprehensiveReport');
-        if (panel2) {
-          panel2.innerHTML = '<div class="zw-empty-state">'
-            + '<div class="zw-empty-icon">📜</div>'
-            + '리포트를 불러오는 중 잠시 흔들림이 있었어요.<br>'
-            + '<button type="button" class="zw-report-close-btn" style="margin-top:10px;" onclick="window._openZwComprehensiveReport()">다시 불러오기</button>'
-            + '</div>';
-        }
-      }
+      if (!seed || !seed.pd || !seed.stars) return;
+      window._renderZwPanel(seed.idx, seed.pName, seed.stars, seed.pd, {
+        clickOnly: false,
+        targetId: 'zwComprehensiveReport',
+        showClose: true,
+        showRadar: false,
+        scroll: false
+      });
     };
 
     if (!window._normalizeZwStarBucket) {
