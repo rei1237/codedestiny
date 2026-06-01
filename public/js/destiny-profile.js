@@ -742,20 +742,36 @@
     pending: null
   };
 
+  function _dpGetSessionVerifyTtlMs(state) {
+    var isOk = !!(state && state.ok);
+    return isOk ? 30000 : 2000;
+  }
+
   function _dpGetSessionHintSignature() {
     var scope = '';
     var hasRoleCookie = false;
+    var roleCookieValue = '';
     var hasToken = false;
+    var tokenHint = '';
+    var userHint = '';
     try {
       scope = _dpGetProfileScope();
     } catch (e) {}
     try {
-      hasRoleCookie = document.cookie.indexOf('fortune_auth_role=') >= 0;
+      var roleMatch = String(document.cookie || '').match(/(?:^|;\s*)fortune_auth_role=([^;]*)/);
+      hasRoleCookie = !!(roleMatch && roleMatch[1]);
+      roleCookieValue = hasRoleCookie ? String(decodeURIComponent(roleMatch[1] || '')).trim().toLowerCase() : '';
     } catch (e2) {}
     try {
-      hasToken = !!_dpReadStoredAuthToken();
+      var token = String(_dpReadStoredAuthToken() || '').trim();
+      hasToken = !!token;
+      tokenHint = token ? token.slice(-16) : '';
     } catch (e3) {}
-    return [scope, hasRoleCookie ? '1' : '0', hasToken ? '1' : '0'].join('|');
+    try {
+      var user = _dpReadAuthUser();
+      userHint = String((user && (user.id || user.userId || user._id || user.uid)) || '').trim().toLowerCase();
+    } catch (e4) {}
+    return [scope, hasRoleCookie ? '1' : '0', roleCookieValue, hasToken ? '1' : '0', tokenHint, userHint].join('|');
   }
 
   function _dpPersistSessionUser(user) {
@@ -786,10 +802,11 @@
     var force = !!forceRefresh;
     var now = Date.now();
     var signature = _dpGetSessionHintSignature();
+    var ttlMs = _dpGetSessionVerifyTtlMs(_dpSessionVerify);
     if (!force
       && _dpSessionVerify.checkedAt
       && _dpSessionVerify.signature === signature
-      && (now - _dpSessionVerify.checkedAt < 30000)) {
+      && (now - _dpSessionVerify.checkedAt < ttlMs)) {
       return Promise.resolve(!!_dpSessionVerify.ok);
     }
     if (_dpSessionVerify.pending) return _dpSessionVerify.pending;
@@ -840,10 +857,11 @@
 
   function _dpHasLoginSession() {
     var now = Date.now();
+    var ttlMs = _dpGetSessionVerifyTtlMs(_dpSessionVerify);
     if (_dpSessionVerify.ok
       && _dpSessionVerify.checkedAt
       && _dpSessionVerify.signature === _dpGetSessionHintSignature()
-      && (now - _dpSessionVerify.checkedAt < 30000)) {
+      && (now - _dpSessionVerify.checkedAt < ttlMs)) {
       return true;
     }
     return _dpHasSessionHint();
@@ -2847,7 +2865,7 @@
       btn.style.cursor = 'not-allowed';
     }
 
-    _dpVerifyLoginSession(false).then(function(ok) {
+    _dpVerifyLoginSession(true).then(function(ok) {
       if (!ok) {
         throw new Error('AUTH_REQUIRED');
       }
