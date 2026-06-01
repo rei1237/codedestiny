@@ -548,6 +548,8 @@ export default function KkulkkulManseryukMain() {
     loveSimulation: 0,
   });
 
+  const unlockingRef = useRef(false);
+
   async function fetchJsonWithTimeout(url: string, init: RequestInit, timeoutMs = 15000) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -566,7 +568,8 @@ export default function KkulkkulManseryukMain() {
 
   const unlockByCoins = async (key: UnlockKey, cost: number, alsoUnlock?: UnlockKey[]) => {
     if (unlockedFeatures[key]) return;
-    if (isPaymentLoading) return;
+    if (isPaymentLoading || unlockingRef.current) return;
+    unlockingRef.current = true;
 
     startPayment("잠금 해제 중입니다...");
     try {
@@ -619,6 +622,7 @@ export default function KkulkkulManseryukMain() {
       console.error('[unlockByCoins]', e);
       alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     } finally {
+      unlockingRef.current = false;
       endPayment();
     }
   };
@@ -629,7 +633,8 @@ export default function KkulkkulManseryukMain() {
       return;
     }
 
-    if (isPaymentLoading) return;
+    if (isPaymentLoading || unlockingRef.current) return;
+    unlockingRef.current = true;
 
     startPayment("운명 콘텐츠를 여는 중입니다...");
     try {
@@ -670,6 +675,7 @@ export default function KkulkkulManseryukMain() {
       console.error('[runPaidFeatureOnce]', e);
       alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     } finally {
+      unlockingRef.current = false;
       endPayment();
     }
   };
