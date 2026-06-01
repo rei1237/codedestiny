@@ -11186,19 +11186,21 @@ function buildZwSummaryTableHtml(palace) {
     var a = findRowByName(aName);
     var b = findRowByName(bName);
     if(!a || !b) return '';
-    var aLead = a.mainEntries[0] ? a.mainEntries[0].name : '공궁';
-    var bLead = b.mainEntries[0] ? b.mainEntries[0].name : '공궁';
+    var aLead = (Array.isArray(a.mainEntries) && a.mainEntries[0] && a.mainEntries[0].name) ? a.mainEntries[0].name : '공궁';
+    var bLead = (Array.isArray(b.mainEntries) && b.mainEntries[0] && b.mainEntries[0].name) ? b.mainEntries[0].name : '공궁';
     var aEnergy = Number(a.energyScore);
     var bEnergy = Number(b.energyScore);
     if(!Number.isFinite(aEnergy)) aEnergy = 50;
     if(!Number.isFinite(bEnergy)) bEnergy = 50;
     var diff = aEnergy - bEnergy;
     var flow = '';
+    var aTitle = a.pNameDisplay || aName || '첫 번째 궁';
+    var bTitle = b.pNameDisplay || bName || '두 번째 궁';
     if(Math.abs(diff) <= 8) flow = '두 궁의 에너지가 균형이라 상호 보완이 잘 작동합니다.';
-    else if(diff > 8) flow = a.pNameDisplay + '의 추진력이 ' + b.pNameDisplay + '을 이끌며, 속도 조절만 되면 성과 전환이 빠릅니다.';
-    else flow = b.pNameDisplay + '의 요구가 더 강해 ' + a.pNameDisplay + '의 선택 기준을 재정렬할 필요가 있습니다.';
-    var specific = linkSpecificFlow(a.pName, b.pName, aLead, bLead, diff);
-    return '<div style="padding:7px 0;border-bottom:1px solid rgba(148,163,184,0.16)"><b style="color:#c4b5fd">'+escText(a.pNameDisplay)+' ↔ '+escText(b.pNameDisplay)+'</b><br><span style="color:#e2e8f0">주축 별: '+escText(aLead)+' ↔ '+escText(bLead)+' · '+escText(flow)+'</span><br><span style="display:block;margin-top:3px;color:#bfdbfe">'+escText(specific.axis)+'</span><span style="display:block;margin-top:2px;color:#c7d2fe">'+escText(specific.point)+'</span></div>';
+    else if(diff > 8) flow = aTitle + '의 추진력이 ' + bTitle + '을 이끌며, 속도 조절만 되면 성과 전환이 빠릅니다.';
+    else flow = bTitle + '의 요구가 더 강해 ' + aTitle + '의 선택 기준을 재정렬할 필요가 있습니다.';
+    var specific = linkSpecificFlow(a.pName || aName, b.pName || bName, aLead, bLead, diff);
+    return '<div style="padding:7px 0;border-bottom:1px solid rgba(148,163,184,0.16)"><b style="color:#c4b5fd">'+escText(aTitle)+' ↔ '+escText(bTitle)+'</b><br><span style="color:#e2e8f0">주축 별: '+escText(aLead)+' ↔ '+escText(bLead)+' · '+escText(flow)+'</span><br><span style="display:block;margin-top:3px;color:#bfdbfe">'+escText(specific.axis)+'</span><span style="display:block;margin-top:2px;color:#c7d2fe">'+escText(specific.point)+'</span></div>';
   }
 
   var sihuaRows = palaceDetailRows.filter(function(r){ return !!r.sihuaType; }).map(function(r){
