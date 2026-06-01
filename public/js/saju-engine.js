@@ -15378,7 +15378,7 @@ function renderZiwei(p, natal, targetId) {
       cellTags += '<span class="zw-tag ' + sihuaClass + '">' + sihuaCell + '</span>';
     }
 
-    html += '<div class="zw-cell zw-cell-'+i+'" role="button" tabindex="0" aria-label="'+dName+' 상세 해석 보기" style="'+highlight+'; animation-delay: '+(i*0.06)+'s;" onclick="window._handleZwClick('+i+', this)">';
+    html += '<div class="zw-cell zw-cell-'+i+'" role="button" tabindex="0" data-zw-idx="'+i+'" aria-label="'+dName+' 상세 해석 보기" style="'+highlight+'; animation-delay: '+(i*0.06)+'s;">';
     html += '<div class="zw-palace-name">' + dName + '</div>';
     if (cellTags) html += '<div class="zw-tag-layer">' + cellTags + '</div>';
     html += '<div class="zw-stars-wrap star-list">';
@@ -15445,6 +15445,47 @@ function renderZiwei(p, natal, targetId) {
   var sec = document.getElementById(targetId || 'ziweiSection');
   if(sec) {
     sec.innerHTML = html;
+  }
+  if (!window._bindZwPalaceGridEvents) {
+    window._bindZwPalaceGridEvents = function(rootEl) {
+      if (!rootEl || typeof rootEl.querySelector !== 'function') return;
+      var grid = rootEl.querySelector('#zwPalaceGrid');
+      if (!grid || grid._zwCellEventBound) return;
+
+      var invokeCell = function(cell) {
+        if (!cell) return;
+        var idx = parseInt(cell.getAttribute('data-zw-idx'), 10);
+        if (!Number.isFinite(idx) || idx < 0) return;
+        if (typeof window._handleZwClick === 'function') {
+          window._handleZwClick(idx, cell);
+        }
+      };
+
+      grid.addEventListener('click', function(event) {
+        var t = event && event.target;
+        if (!t || typeof t.closest !== 'function') return;
+        var cell = t.closest('.zw-cell[data-zw-idx]');
+        if (!cell || !grid.contains(cell)) return;
+        invokeCell(cell);
+      });
+
+      grid.addEventListener('keydown', function(event) {
+        if (!event) return;
+        var key = event.key;
+        if (key !== 'Enter' && key !== ' ') return;
+        var t = event.target;
+        if (!t || typeof t.closest !== 'function') return;
+        var cell = t.closest('.zw-cell[data-zw-idx]');
+        if (!cell || !grid.contains(cell)) return;
+        event.preventDefault();
+        invokeCell(cell);
+      });
+
+      grid._zwCellEventBound = true;
+    };
+  }
+  if (sec && typeof window._bindZwPalaceGridEvents === 'function') {
+    window._bindZwPalaceGridEvents(sec);
   }
   if (!window._zwToggleAnimalCodex) {
     window._zwToggleAnimalCodex = function(detailsId) {
@@ -15670,43 +15711,129 @@ function renderZiwei(p, natal, targetId) {
   }
 
   if(!window._handleZwClick) {
+    if (!window._loadZwChartJs) {
+      window._loadZwChartJs = function() {
+        if (typeof Chart !== 'undefined') return Promise.resolve(true);
+        if (window._zwChartJsPromise) return window._zwChartJsPromise;
+
+        window._zwChartJsPromise = new Promise(function(resolve) {
+          var done = false;
+          var finalize = function(ok) {
+            if (done) return;
+            done = true;
+            if (!ok) window._zwChartJsPromise = null;
+            resolve(!!ok);
+          };
+
+          var existing = document.querySelector('script[data-zw-chartjs="1"]');
+          if (existing) {
+            existing.addEventListener('load', function(){ finalize(true); }, { once: true });
+            existing.addEventListener('error', function(){ finalize(false); }, { once: true });
+            return;
+          }
+
+          var s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+          s.async = true;
+          s.defer = true;
+          s.setAttribute('data-zw-chartjs', '1');
+          s.onload = function() { finalize(true); };
+          s.onerror = function() { finalize(false); };
+          document.head.appendChild(s);
+        });
+
+        return window._zwChartJsPromise;
+      };
+    }
+
     window._handleZwClick = function(idx, el) {
-      document.querySelectorAll('.zw-cell').forEach(c => c.classList.remove('active'));
+      var normalizedIdx = parseInt(idx, 10);
+      if (!Number.isFinite(normalizedIdx) || normalizedIdx < 0) return;
+
+      var allCells = document.querySelectorAll('#zwPalaceGrid .zw-cell');
+      allCells.forEach(function(c){ c.classList.remove('active'); });
       if(el) el.classList.add('active');
 
       var pd = window._currentZiweiData;
-      var pName = pd.palacesByIndex[idx];
-      var stars = window._normalizeZwStarBucket(pd.stars && pd.stars[idx]);
+      if (!pd || !Array.isArray(pd.palacesByIndex)) return;
 
-      if(typeof Chart === 'undefined') {
-        var s = document.createElement('script');
-        s.src = "https://cdn.jsdelivr.net/npm/chart.js";
-        s.onload = function() {
-          window._renderZwPanel(idx, pName, stars, pd, { clickOnly: true, targetId: 'zwDetailPanel', showClose: true, showRadar: true, scroll: true });
-          window._zwScrollToDetail();
-        };
-        document.head.appendChild(s);
-      } else {
-        window._renderZwPanel(idx, pName, stars, pd, { clickOnly: true, targetId: 'zwDetailPanel', showClose: true, showRadar: true, scroll: true });
+      var pName = pd.palacesByIndex[normalizedIdx] || ('제' + (normalizedIdx + 1) + '궁');
+      var stars = window._normalizeZwStarBucket(pd.stars && pd.stars[normalizedIdx]);
+      var renderPanel = function(enableRadar) {
+        if (typeof window._renderZwPanel !== 'function') return;
+        window._renderZwPanel(normalizedIdx, pName, stars, pd, {
+          clickOnly: true,
+          targetId: 'zwDetailPanel',
+          showClose: true,
+          showRadar: !!enableRadar,
+          scroll: true
+        });
+      };
+
+      if (typeof Chart !== 'undefined') {
+        renderPanel(true);
         window._zwScrollToDetail();
+        return;
+      }
+
+      // Chart.js 로딩 전에도 텍스트 해석은 즉시 표시해 클릭 체감과 안정성을 확보한다.
+      renderPanel(false);
+      window._zwScrollToDetail();
+
+      if (typeof window._loadZwChartJs === 'function') {
+        window._loadZwChartJs().then(function(ok) {
+          if (!ok || typeof Chart === 'undefined') return;
+          var activeCell = document.querySelector('#zwPalaceGrid .zw-cell.active[data-zw-idx="' + normalizedIdx + '"]');
+          if (!activeCell) return;
+          var freshPd = window._currentZiweiData;
+          if (!freshPd || !Array.isArray(freshPd.palacesByIndex)) return;
+          var freshName = freshPd.palacesByIndex[normalizedIdx] || pName;
+          var freshStars = window._normalizeZwStarBucket(freshPd.stars && freshPd.stars[normalizedIdx]);
+          if (typeof window._renderZwPanel === 'function') {
+            window._renderZwPanel(normalizedIdx, freshName, freshStars, freshPd, {
+              clickOnly: true,
+              targetId: 'zwDetailPanel',
+              showClose: true,
+              showRadar: true,
+              scroll: false
+            });
+          }
+        });
       }
     };
 
     window._zwScrollToDetail = function() {
       var dp = document.getElementById('zwDetailPanel');
-      if (dp) {
-        requestAnimationFrame(function() {
-          setTimeout(function() {
-            var isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
-            if (isMobile) {
-              var rect = dp.getBoundingClientRect();
-              var top = window.pageYOffset + rect.top - 10;
-              window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
-            } else {
-              dp.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-          }, 80);
-        });
+      if (!dp) return;
+
+      if (window._zwDetailScrollRaf && typeof cancelAnimationFrame === 'function') {
+        cancelAnimationFrame(window._zwDetailScrollRaf);
+      }
+      if (window._zwDetailScrollTimer) {
+        clearTimeout(window._zwDetailScrollTimer);
+        window._zwDetailScrollTimer = null;
+      }
+
+      var doScroll = function() {
+        window._zwDetailScrollTimer = setTimeout(function() {
+          window._zwDetailScrollTimer = null;
+          var isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+          if (isMobile) {
+            var rect = dp.getBoundingClientRect();
+            var top = window.pageYOffset + rect.top - 10;
+            var safeTop = Math.max(0, top);
+            if (Math.abs((window.pageYOffset || 0) - safeTop) < 6) return;
+            window.scrollTo({ top: safeTop, behavior: 'smooth' });
+          } else {
+            dp.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 80);
+      };
+
+      if (typeof requestAnimationFrame === 'function') {
+        window._zwDetailScrollRaf = requestAnimationFrame(doScroll);
+      } else {
+        doScroll();
       }
     };
 
@@ -15714,7 +15841,7 @@ function renderZiwei(p, natal, targetId) {
       var panel = document.getElementById('zwDetailPanel');
       if (!panel) return;
 
-      document.querySelectorAll('.zw-cell.active').forEach(function(cell) {
+      document.querySelectorAll('#zwPalaceGrid .zw-cell.active').forEach(function(cell) {
         cell.classList.remove('active');
       });
 
@@ -15829,7 +15956,7 @@ function renderZiwei(p, natal, targetId) {
           }
 
           var bucket = window._normalizeZwStarBucket(raw);
-          if ((!bucket.main.length && !bucket.aux.length && !bucket.bad.length) && rows[i]) {
+          if ((!bucket.main.length && !bucket.borrowedMain.length && !bucket.aux.length && !bucket.bad.length) && rows[i]) {
             bucket = window._normalizeZwStarBucket(rows[i]);
           }
           normalized[i] = bucket;
@@ -15896,6 +16023,16 @@ function renderZiwei(p, natal, targetId) {
 
     if (!window._resolveZwComprehensiveSeed) {
       window._resolveZwComprehensiveSeed = function(pd) {
+        var hasAnyStars = function(bucket) {
+          if (!bucket) return false;
+          return !!(
+            (bucket.main && bucket.main.length)
+            || (bucket.borrowedMain && bucket.borrowedMain.length)
+            || (bucket.aux && bucket.aux.length)
+            || (bucket.bad && bucket.bad.length)
+          );
+        };
+
         if (!pd || typeof pd !== 'object') return null;
         if (typeof window._ensureZwStarBuckets === 'function') {
           pd = window._ensureZwStarBuckets(pd) || pd;
@@ -15907,15 +16044,16 @@ function renderZiwei(p, natal, targetId) {
         var starsSource = (pd.stars && typeof pd.stars === 'object') ? pd.stars : null;
         var picked = starsSource ? window._normalizeZwStarBucket(starsSource[idx]) : null;
 
-        if ((!picked || (!picked.main.length && !picked.aux.length && !picked.bad.length)) && Array.isArray(pd.palaceStarData) && pd.palaceStarData[idx]) {
+        if (!hasAnyStars(picked) && Array.isArray(pd.palaceStarData) && pd.palaceStarData[idx]) {
           var row = pd.palaceStarData[idx] || {};
           picked = window._normalizeZwStarBucket(row);
         }
 
-        if ((!picked || (!picked.main.length && !picked.aux.length && !picked.bad.length)) && Array.isArray(pd.palaceStarData)) {
+        if (!hasAnyStars(picked) && Array.isArray(pd.palaceStarData)) {
           for (var pi = 0; pi < pd.palaceStarData.length; pi++) {
             var probe = pd.palaceStarData[pi] || {};
             if ((Array.isArray(probe.stars) && probe.stars.length)
+              || (Array.isArray(probe.borrowedMain) && probe.borrowedMain.length)
               || (Array.isArray(probe.auxStars) && probe.auxStars.length)
               || (Array.isArray(probe.badStars) && probe.badStars.length)) {
               idx = pi;
@@ -15925,7 +16063,7 @@ function renderZiwei(p, natal, targetId) {
           }
         }
 
-        if (!picked) return null;
+        if (!hasAnyStars(picked)) return null;
         return {
           idx: idx,
           pName: names[idx] || ('제' + (idx + 1) + '궁'),
