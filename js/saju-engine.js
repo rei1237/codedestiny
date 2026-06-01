@@ -15538,7 +15538,11 @@ function renderZiwei(p, natal, targetId) {
       }
     };
   }
-  _zwInitDeepAiPromptPanel('zwDeepAiPromptPanel', palace);
+  try {
+    _zwInitDeepAiPromptPanel('zwDeepAiPromptPanel', palace);
+  } catch (e) {
+    console.error('[Ziwei] deep ai prompt panel init failed:', e);
+  }
 
   if (!window._renderZwDestinyPortfolio) {
     window._zwPortfolioStore = window._zwPortfolioStore || {};
@@ -15742,9 +15746,14 @@ function renderZiwei(p, natal, targetId) {
     };
   }
 
-  if (typeof window._renderZwDestinyPortfolio === 'function') {
-    window._renderZwDestinyPortfolio('zwDestinyPortfolioMount', window._currentZiweiData);
-  }
+  var _zwDeferredPortfolioRender = function() {
+    if (typeof window._renderZwDestinyPortfolio !== 'function') return;
+    try {
+      window._renderZwDestinyPortfolio('zwDestinyPortfolioMount', window._currentZiweiData);
+    } catch (e) {
+      console.error('[Ziwei] destiny portfolio render failed:', e);
+    }
+  };
 
   if(!window._handleZwClick) {
     if (!window._loadZwChartJs) {
@@ -15948,12 +15957,38 @@ function renderZiwei(p, natal, targetId) {
           }
         }
       }
+      if ((!seed || !seed.pd || !hasSeedStars(seed.stars))
+        && (!window._currentZiweiData || typeof window._currentZiweiData !== 'object')
+        && window._ziweiBirth
+        && typeof calcZiweiPalaces === 'function') {
+        try {
+          var rb = window._ziweiBirth;
+          var recoveredPd = calcZiweiPalaces(
+            Number(rb.year),
+            Number(rb.month),
+            Number(rb.day),
+            Number(rb.hour),
+            Number(rb.minute)
+          );
+          if (recoveredPd && typeof recoveredPd === 'object') {
+            window._currentZiweiData = (typeof window._ensureZwStarBuckets === 'function')
+              ? (window._ensureZwStarBuckets(recoveredPd) || recoveredPd)
+              : recoveredPd;
+            if (typeof window._resolveZwComprehensiveSeed === 'function') {
+              seed = window._resolveZwComprehensiveSeed(window._currentZiweiData);
+            }
+          }
+        } catch (recoverErr) {
+          console.error('[Ziwei] comprehensive seed recovery failed:', recoverErr);
+        }
+      }
       if (!seed || !seed.pd || typeof window._renderZwPanel !== 'function') {
         var panel = document.getElementById('zwComprehensiveReport');
         if (panel) {
           panel.innerHTML = '<div class="zw-empty-state">'
             + '<div class="zw-empty-icon">📜</div>'
-            + '명반 데이터를 다시 확인하고 있어요.<br>잠시 후 다시 열어주세요.'
+            + '명반 데이터를 다시 확인하고 있어요.<br>잠시 후 다시 시도해 주세요.'
+            + '<br><button type="button" class="zw-report-close-btn" style="margin-top:10px;" onclick="window._openZwComprehensiveReport()">다시 불러오기</button>'
             + '</div>';
         }
         return;
@@ -19429,6 +19464,27 @@ function renderZiwei(p, natal, targetId) {
   }
 
   // 종합 리포트는 매 렌더 사이클마다 갱신해야 모바일 재진입 시 로딩 문구에 멈추지 않는다.
+  if ((!window._currentZiweiData || typeof window._currentZiweiData !== 'object')
+    && window._ziweiBirth
+    && typeof calcZiweiPalaces === 'function') {
+    try {
+      var ib = window._ziweiBirth;
+      var initialPd = calcZiweiPalaces(
+        Number(ib.year),
+        Number(ib.month),
+        Number(ib.day),
+        Number(ib.hour),
+        Number(ib.minute)
+      );
+      if (initialPd && typeof initialPd === 'object') {
+        window._currentZiweiData = (typeof window._ensureZwStarBuckets === 'function')
+          ? (window._ensureZwStarBuckets(initialPd) || initialPd)
+          : initialPd;
+      }
+    } catch (initialRecoverErr) {
+      console.error('[Ziwei] initial ziwei data recovery failed:', initialRecoverErr);
+    }
+  }
   var initialSeed = (typeof window._resolveZwComprehensiveSeed === 'function')
     ? window._resolveZwComprehensiveSeed(window._currentZiweiData)
     : null;
@@ -19476,6 +19532,8 @@ function renderZiwei(p, natal, targetId) {
       }
     }
   }
+
+  _zwDeferredPortfolioRender();
 }
 
 /* ─── 사주 요약 박스 접기/펼치기 헬퍼 ─── */
