@@ -16735,6 +16735,19 @@ function renderZiwei(p, natal, targetId) {
       var showClose = opts.showClose !== false;
       var showRadar = opts.showRadar !== false;
       var shouldScroll = !!opts.scroll;
+        var normalizeStarRawText = function(raw) {
+            if (typeof _zwToStarRawText === 'function') {
+              return _zwToStarRawText(raw);
+            }
+            if (typeof raw === 'string') return raw;
+            if (raw && typeof raw === 'object') {
+              var baseName = String(raw.nameKo || raw.name || '').trim();
+              var sihua = String(raw.sihua || '').trim();
+              var suffix = raw.borrowed ? ' (차성)' : '';
+              return (baseName + (sihua ? (' ' + sihua) : '') + suffix).trim();
+            }
+            return String(raw || '');
+        };
         var extractMainMeta = function(sList) {
             if(!sList) return [];
             var hasMain = !!(sList.main && sList.main.length);
@@ -16742,7 +16755,7 @@ function renderZiwei(p, natal, targetId) {
             var src = hasMain ? sList.main : (sList.borrowedMain || []);
             if(!src || !src.length) return [];
             return src.map(function(m){
-              var plain=(m||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+              var plain = normalizeStarRawText(m).replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
               var isBorrowed=usingBorrowedSource || /\(차성\)|\b차성\b/.test(plain);
               var name=plain
                 .replace(/\(차성\)/g,'')
@@ -16758,11 +16771,15 @@ function renderZiwei(p, natal, targetId) {
             };
         var extractAux = function(sList) {
             if(!sList||!sList.aux) return [];
-            return sList.aux.map(m=>m.replace(/<[^>]+>/g,'').trim().split(' ')[0]);
+            return sList.aux.map(function(m){
+              return normalizeStarRawText(m).replace(/<[^>]+>/g,'').trim().split(' ')[0];
+            }).filter(function(v){ return !!v; });
         };
         var extractBad = function(sList) {
             if(!sList||!sList.bad) return [];
-            return sList.bad.map(m=>m.replace(/<[^>]+>/g,'').trim().split(' ')[0]);
+            return sList.bad.map(function(m){
+              return normalizeStarRawText(m).replace(/<[^>]+>/g,'').trim().split(' ')[0];
+            }).filter(function(v){ return !!v; });
         };
         var fmtStrength = function(starName, zhi, isBorrowed){
           var lv = zwComputeStarStrength(starName, zhi, !!isBorrowed);
