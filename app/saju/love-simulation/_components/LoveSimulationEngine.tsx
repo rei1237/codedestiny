@@ -11,7 +11,7 @@ import { ArrowLeft, Sparkles, RefreshCw, PlusCircle } from "lucide-react";
 import { CustomSajuForm } from "./CustomSajuForm";
 
 export const LoveSimulationEngine: React.FC = () => {
-  const { state, startSimulation, handleChoice, reset, currentScenario } = useSimulation();
+  const { state, startSimulation, handleChoice, reset, resolveChoicesForCurrentScenario } = useSimulation();
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [isCustomFormOpen, setIsCustomFormOpen] = useState(false);
 
@@ -87,54 +87,55 @@ export const LoveSimulationEngine: React.FC = () => {
             ))}
           </div>
 
-          <AnimatePresence>
-            {isCustomFormOpen && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                <CustomSajuForm 
-                  onClose={() => setIsCustomFormOpen(false)} 
-                  onPersonaCreated={(persona) => {
-                    setIsCustomFormOpen(false);
-                    startSimulation(persona);
-                  }}
-                />
-              </div>
-            )}
-          </AnimatePresence>
-
-          <AnimatePresence>
-            {selectedPersona && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm"
-              >
-                <motion.div
-                  initial={{ scale: 0.9, y: 20 }}
-                  animate={{ scale: 1, y: 0 }}
-                  className="bg-zinc-900 border border-white/10 p-8 rounded-3xl max-w-md w-full shadow-2xl"
-                >
-                  <h2 className="text-2xl font-bold mb-4">{selectedPersona.name}님과 시작할까요?</h2>
-                  <p className="text-gray-400 mb-8">사주 기질에 따라 대화의 흐름과 호감도가 달라집니다.</p>
-                  <div className="flex gap-4">
-                    <button
-                      onClick={() => setSelectedPersona(null)}
-                      className="flex-1 py-4 bg-white/5 rounded-2xl font-bold hover:bg-white/10 transition-colors"
-                    >
-                      취소
-                    </button>
-                    <button
-                      onClick={() => startSimulation(selectedPersona)}
-                      className="flex-1 py-4 bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl font-bold shadow-lg shadow-pink-500/20 hover:brightness-110 transition-all"
-                    >
-                      대화 시작
-                    </button>
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </motion.div>
+
+        <AnimatePresence>
+          {isCustomFormOpen && (
+            <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+              <CustomSajuForm
+                onClose={() => setIsCustomFormOpen(false)}
+                onPersonaCreated={(persona) => {
+                  setIsCustomFormOpen(false);
+                  startSimulation(persona);
+                }}
+              />
+            </div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {selectedPersona && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[70] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm"
+            >
+              <motion.div
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                className="bg-zinc-900 border border-white/10 p-8 rounded-3xl max-w-md w-full shadow-2xl"
+              >
+                <h2 className="text-2xl font-bold mb-4">{selectedPersona.name}님과 시작할까요?</h2>
+                <p className="text-gray-400 mb-8">사주 기질과 취향 기반으로 대화 선택지가 개인화됩니다.</p>
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => setSelectedPersona(null)}
+                    className="flex-1 py-4 bg-white/5 rounded-2xl font-bold hover:bg-white/10 transition-colors"
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={() => startSimulation(selectedPersona)}
+                    className="flex-1 py-4 bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl font-bold shadow-lg shadow-pink-500/20 hover:brightness-110 transition-all"
+                  >
+                    대화 시작
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     );
   }
@@ -179,6 +180,7 @@ export const LoveSimulationEngine: React.FC = () => {
   }
 
   const currentStep = state.history[state.history.length - 1];
+  const personalizedChoices = currentStep.speaker === "npc" ? resolveChoicesForCurrentScenario() : undefined;
 
   return (
     <div className="fixed inset-0 z-50 bg-[#0a0a0c] overflow-hidden flex flex-col">
@@ -225,7 +227,7 @@ export const LoveSimulationEngine: React.FC = () => {
           personaName={state.currentPersona.name}
           step={{
             ...currentStep,
-            choices: currentStep.speaker === "npc" ? currentScenario?.choices : undefined
+            choices: personalizedChoices
           }}
           onChoiceSelect={handleChoice}
         />

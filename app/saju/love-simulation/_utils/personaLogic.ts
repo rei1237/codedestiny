@@ -31,11 +31,16 @@ export function derivePersonaFromSaju(saju: SajuAnalysis): PersonaTraits {
     attractionPoints.push("솔직한 대화", "서로를 존중하는 마음");
   }
 
+  const dominantElement = Object.entries(saju.elements || {})
+    .sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0))[0]?.[0] as SajuElement | undefined;
+
   // 3. 갈등 패턴 (Conflict Style)
   let conflictStyle = "대화로 풀어나가려는 편";
   if (dm === "금" || dm === "화") conflictStyle = "문제를 즉시 해결하고 싶어 하는 편";
   if (dm === "수" || dm === "토") conflictStyle = "시간을 두고 감정을 정리한 뒤 대화하는 편";
   if (isStrong) conflictStyle += " (자기 주관이 뚜렷함)";
+  if (dominantElement === "수") conflictStyle += " / 감정 소모가 크면 잠시 침묵";
+  if (dominantElement === "화") conflictStyle += " / 감정 온도 변화가 빠름";
 
   // 4. 이상형 (Ideal Type)
   let idealType = "나와 가치관이 비슷한 사람";
@@ -47,6 +52,9 @@ export function derivePersonaFromSaju(saju: SajuAnalysis): PersonaTraits {
   if (weakElement === "목") idealType = "생동감 넘치고 꿈이 있는 사람";
   if (weakElement === "금") idealType = "결단력 있고 기준이 명확한 사람";
   if (weakElement === "토") idealType = "포용력 있고 나를 지지해주는 사람";
+
+  if (saju.kishin.includes("수")) idealType += " · 감정 회피 없이 대화하는 사람";
+  if (saju.kishin.includes("화")) idealType += " · 감정 기복을 존중해주는 사람";
 
   return {
     tone,
