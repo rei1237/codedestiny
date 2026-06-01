@@ -1578,7 +1578,7 @@
     var pendingLabel = String(reason || '').trim() || '유료 서비스';
     _dpSetPaymentPending(true, pendingLabel + ' 결제를 확인하는 중입니다...');
     _dpWaitForPaymentOverlayPaint().then(function() {
-      return _dpFetchJsonWithFallback('/api/fortune/pig-coin/consume', {
+      return _dpFetchJsonWithFallback('/api/billing/coin-gate', {
         method: 'POST',
         headers: consumeHeaders,
         credentials: 'include',
@@ -1606,7 +1606,7 @@
       if (res.status === 402 || !res.ok) {
         var msg = (res.data && res.data.message) || '코인 차감에 실패했습니다.';
         if (typeof window.__cdOpenChargeModal === 'function') { window.alert(msg); window.__cdOpenChargeModal(); }
-        else if (window.confirm(msg + '\n충전 페이지로 이동하시겠습니까?')) window.location.href = '/points';
+        else if (window.confirm(msg + '\n결제 관리 페이지로 이동하시겠습니까?')) window.location.href = '/points';
         if (typeof onCancel === 'function') onCancel();
         return;
       }
@@ -1751,7 +1751,7 @@
       inFlight = true;
       var productId = _DP_UNLOCK_PRODUCT_BY_FEATURE_KEY[info.key] || '';
       var requestId = 'unlock-' + (productId || info.key) + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
-      var endpoint = productId ? '/api/fortune/pig-coin/unlock' : '/api/fortune/pig-coin/consume';
+      var endpoint = productId ? '/api/fortune/pig-coin/unlock' : '/api/billing/coin-gate';
       var payload = productId
         ? { productId: productId, requestId: requestId }
         : {
@@ -1792,9 +1792,9 @@
         }
         if (res.status === 402) {
           if (typeof window.__cdOpenChargeModal === 'function') {
-            window.alert('꽃돼지 코인이 부족해요. 충전 창을 열겠습니다.');
+            window.alert('단건 결제가 필요합니다. 결제 상점을 열겠습니다.');
             window.__cdOpenChargeModal();
-          } else if (window.confirm('꽃돼지 코인이 부족해요. 충전 페이지로 이동하시겠습니까?')) {
+          } else if (window.confirm('단건 결제가 필요합니다. 결제 관리 페이지로 이동하시겠습니까?')) {
             window.location.href = '/points';
           }
           return;

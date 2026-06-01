@@ -723,6 +723,8 @@ async function ensureActiveSubscriptionByAutoRenew(userId, user, projection) {
     return { user, effectiveTier: tier, autoRenewed: false };
   }
 
+  return { user, effectiveTier: null, autoRenewed: false, autoRenewDisabled: true };
+
   if (source === "card") {
     return { user, effectiveTier: null, autoRenewed: false };
   }
@@ -880,6 +882,12 @@ function handleGuestBalance() {
 }
 
 async function handleChargeSimulate(request, env, auth) {
+  return json({
+    ok: false,
+    message: "선불형 잔액 상품은 더 이상 판매하지 않습니다. 상품별 원화 단건 결제를 이용해 주세요.",
+    code: "POINT_CHARGE_DISABLED",
+  }, { status: 410 });
+
   if (String(env.PIG_COIN_PAYMENT_API_READY || "") !== "true") {
     return json({
       message: "Coin charge simulation is disabled because the payment API is not ready.",
@@ -1013,6 +1021,21 @@ async function handlePigCoinConsume(request, auth, options = {}) {
 
   const reason = String(pricing.reason || requestReason || "Paid feature unlock").trim().slice(0, 120);
   const reportTypeForPremiumAccess = resolvePremiumAccessReportType(featureKey, reason);
+
+  return json({
+    ok: false,
+    message: "상품별 원화 단건 결제가 필요합니다.",
+    code: "PAYMENT_REQUIRED",
+    featureKey,
+    reason,
+    pricing: {
+      featureKey,
+      reason,
+      coinPrice: cost,
+      displayUnit: "coin",
+    },
+  }, { status: 402 });
+
   const categoryKey = String(body?.categoryKey || "").trim().slice(0, 60);
   const subFeatureKey = String(body?.subFeatureKey || "").trim().slice(0, 60);
   const payloadHash = String(body?.payloadHash || "").trim().slice(0, 120);
@@ -1558,8 +1581,8 @@ function mapZiweiConsumeFailure(response, payload) {
 
   if (status === 402 || code === "INSUFFICIENT_BALANCE" || code === "INSUFFICIENT_COINS" || code === "PAYMENT_REQUIRED") {
     return buildZiweiAIPromptError(
-      "INSUFFICIENT_COINS",
-      `코인이 부족합니다. ${ZIWEI_AI_PROMPT_PRICE}코인이 필요합니다.`,
+      "PAYMENT_REQUIRED",
+      `단건 결제가 필요합니다. ${ZIWEI_AI_PROMPT_PRICE}코인 가치의 상품입니다.`,
       402,
     );
   }
@@ -1574,7 +1597,7 @@ function mapZiweiConsumeFailure(response, payload) {
 
   return buildZiweiAIPromptError(
     "PROMPT_GENERATION_FAILED",
-    message || "코인 차감 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+    message || "결제 확인 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
     status >= 400 && status < 600 ? status : 500,
   );
 }
@@ -1594,15 +1617,15 @@ function mapSajuConsumeFailure(response, payload) {
 
   if (status === 402 || code === "INSUFFICIENT_BALANCE") {
     return buildSajuAIPromptError(
-      "INSUFFICIENT_COINS",
-      `코인이 부족합니다. ${SAJU_AI_PROMPT_PRICE}코인이 필요합니다.`,
+      "PAYMENT_REQUIRED",
+      `단건 결제가 필요합니다. ${SAJU_AI_PROMPT_PRICE}코인 가치의 상품입니다.`,
       402,
     );
   }
 
   return buildSajuAIPromptError(
     "PROMPT_GENERATION_FAILED",
-    message || "코인 차감 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+    message || "결제 확인 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
     status >= 400 && status < 600 ? status : 500,
   );
 }
@@ -1626,15 +1649,15 @@ function mapAstrologyConsumeFailure(response, payload) {
 
   if (status === 402 || code === "INSUFFICIENT_BALANCE") {
     return buildAstrologyAIPromptError(
-      "INSUFFICIENT_COINS",
-      `코인이 부족합니다. ${ASTROLOGY_AI_PROMPT_PRICE}코인이 필요합니다.`,
+      "PAYMENT_REQUIRED",
+      `단건 결제가 필요합니다. ${ASTROLOGY_AI_PROMPT_PRICE}코인 가치의 상품입니다.`,
       402,
     );
   }
 
   return buildAstrologyAIPromptError(
     "PROMPT_GENERATION_FAILED",
-    message || "코인 차감 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+    message || "결제 확인 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
     status >= 400 && status < 600 ? status : 500,
   );
 }
@@ -1650,15 +1673,15 @@ function mapVedicConsumeFailure(response, payload) {
 
   if (status === 402 || code === "INSUFFICIENT_BALANCE") {
     return buildVedicAIPromptError(
-      "INSUFFICIENT_COINS",
-      `코인이 부족합니다. ${VEDIC_AI_PROMPT_PRICE}코인이 필요합니다.`,
+      "PAYMENT_REQUIRED",
+      `단건 결제가 필요합니다. ${VEDIC_AI_PROMPT_PRICE}코인 가치의 상품입니다.`,
       402,
     );
   }
 
   return buildVedicAIPromptError(
     "PROMPT_GENERATION_FAILED",
-    message || "코인 차감 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+    message || "결제 확인 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
     status >= 400 && status < 600 ? status : 500,
   );
 }
@@ -2411,15 +2434,15 @@ function mapSukuyoConsumeFailure(response, payload) {
 
   if (status === 402 || code === "INSUFFICIENT_BALANCE") {
     return buildSukuyoAIPromptError(
-      "INSUFFICIENT_COINS",
-      `코인이 부족합니다. ${SUKUYO_AI_PROMPT_PRICE}코인이 필요합니다.`,
+      "PAYMENT_REQUIRED",
+      `단건 결제가 필요합니다. ${SUKUYO_AI_PROMPT_PRICE}코인 가치의 상품입니다.`,
       402,
     );
   }
 
   return buildSukuyoAIPromptError(
     "PROMPT_GENERATION_FAILED",
-    message || "코인 차감 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+    message || "결제 확인 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
     status >= 400 && status < 600 ? status : 500,
   );
 }
@@ -2946,6 +2969,12 @@ async function handleShareReward(request, auth) {
 }
 
 async function handleSubscribe(request, auth) {
+  return json({
+    ok: false,
+    message: "이전 구독 신청 방식은 종료되었습니다. 30일 멤버십 이용권 단건 결제를 이용해 주세요.",
+    code: "COIN_SUBSCRIPTION_DISABLED",
+  }, { status: 410 });
+
   const body = await readJson(request);
   const reqTier = String(body?.tier || "").trim();
   const plan = PROFILE_SUB_PLANS[reqTier];
@@ -2977,7 +3006,7 @@ async function handleSubscribe(request, auth) {
 
   if (existingSource === "card" && hasActiveSubscription && requestedTierRank <= activeTierRank) {
     return json({
-      message: "카드 정기결제가 활성화되어 있어 코인 구독을 동시에 신청할 수 없습니다.",
+      message: "카드 결제 멤버십이 활성화되어 있어 다른 멤버십을 동시에 신청할 수 없습니다.",
       code: "SUBSCRIPTION_CONFLICT",
     }, { status: 409 });
   }

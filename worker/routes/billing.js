@@ -378,8 +378,8 @@ function mapCoinGateFailure(responseStatus, payload) {
   ) {
     return {
       status: 402,
-      code: "INSUFFICIENT_COINS",
-      message: "코인이 부족합니다.",
+      code: "PAYMENT_REQUIRED",
+      message: "상품별 원화 단건 결제가 필요합니다.",
       debugMessage: message,
     };
   }
@@ -469,14 +469,6 @@ function buildAccessDecision({
     };
   }
 
-  if (!Number.isFinite(currentBalance) || currentBalance < cost) {
-    return {
-      allowed: false,
-      reason: ACCESS_DECISION_REASONS.INSUFFICIENT_COINS,
-      requiredCoins: cost,
-    };
-  }
-
   return {
     allowed: false,
     reason: ACCESS_DECISION_REASONS.REQUIRES_PURCHASE,
@@ -531,6 +523,27 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
 
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const reportSessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || (reportId ? `love-book:${reportId}` : requestId)).trim();
+
+  return failure(402, "PAYMENT_REQUIRED", "상품별 원화 단건 결제가 필요합니다.", undefined, {
+    pricing,
+    accessGrant: null,
+    balance: null,
+    checkout: {
+      endpoint: "/api/billing/checkout",
+      payload: {
+        paymentType: "digital_content",
+        featureKey: String(pricing.featureKey || ""),
+        reason: String(pricing.reason || ""),
+        categoryKey: pricing.categoryKey,
+        subFeatureKey: pricing.subFeatureKey,
+        paymentAmount: Number(pricing.amountKRW || pricing.cashPrice || 0),
+        coinPrice: Number(pricing.coinPrice || pricing.cost || 0),
+        requestId,
+        reportId: reportId || undefined,
+        sessionId: reportSessionId || undefined,
+      },
+    },
+  });
 
   const delegatedBody = {
     cost: Number(pricing.cost),

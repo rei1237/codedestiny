@@ -6,6 +6,7 @@ import { resolveChargePointsByAmount, validatePointChargePayload } from "../lib/
 import { getEnv } from "../lib/env.js";
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
+import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 
 function toDateFromUnixSeconds(value) {
   const unixSeconds = Number(value);
@@ -37,6 +38,52 @@ function buildMerchantUid(userId) {
   const userTag = String(userId || "guest").replace(/[^a-zA-Z0-9]/g, "").slice(-8) || "guest";
   const randomTag = Math.random().toString(36).slice(2, 8);
   return `md_${Date.now()}_${userTag}_${randomTag}`;
+}
+
+function isDigitalContentPaymentRequest(body = {}) {
+  const paymentType = String(body?.paymentType || body?.type || "").trim().toLowerCase();
+  return paymentType === "digital_content"
+    || paymentType === "single_purchase"
+    || Boolean(body?.featureKey || body?.reason || body?.categoryKey || body?.subFeatureKey || body?.productId);
+}
+
+function resolveDigitalContentPricing(body = {}) {
+  const resolved = getBillingFeaturePricing({
+    categoryKey: body?.categoryKey,
+    subFeatureKey: body?.subFeatureKey,
+    featureKey: body?.featureKey,
+    reason: body?.reason,
+    mode: body?.mode,
+    reportMode: body?.reportMode,
+  });
+
+  if (!resolved?.ok || !resolved.pricing) {
+    return {
+      ok: false,
+      status: 400,
+      message: resolved?.message || "결제 상품 정보를 확인할 수 없습니다.",
+      code: "PRICE_NOT_FOUND",
+    };
+  }
+
+  const pricing = resolved.pricing;
+  const paymentAmount = Number(pricing.amountKRW || pricing.cashPrice || 0);
+  const coinPrice = Number(pricing.coinPrice || pricing.cost || 0);
+  if (!Number.isInteger(paymentAmount) || paymentAmount <= 0 || !Number.isInteger(coinPrice) || coinPrice <= 0) {
+    return {
+      ok: false,
+      status: 400,
+      message: "결제 상품 가격표가 올바르지 않습니다.",
+      code: "INVALID_PRODUCT_PRICE",
+    };
+  }
+
+  return { ok: true, pricing, paymentAmount, coinPrice, source: resolved.source || "pricing" };
+}
+
+function buildDigitalProductName(body = {}, pricing = {}) {
+  const label = String(body?.productName || pricing.reason || pricing.featureKey || "디지털 운세 콘텐츠").trim();
+  return label.slice(0, 80) || "디지털 운세 콘텐츠";
 }
 
 const SUBSCRIPTION_PAYMENT_PLANS = {
@@ -390,6 +437,26 @@ async function settlePaymentByImpUid({
     source,
   });
 
+  const paymentType = String(paymentRecord?.paymentType || "point_charge").trim();
+  const isDigitalContentPayment = paymentType === "digital_content";
+
+  if (paymentType === "point_charge" && paymentRecord.status !== "success") {
+    await markPaymentFailure(paymentRecord, {
+      status: "failed",
+      paymentMethod,
+      rawPortOne: portOnePayment,
+      failureCode: "point_charge_disabled",
+      failureMessage: "Point charge settlement is disabled.",
+      failureStage: "policy_validate",
+      incrementAttempt: true,
+    });
+    return {
+      ok: false,
+      status: 410,
+      message: "선불형 잔액 결제는 더 이상 처리하지 않습니다. 상품별 원화 단건 결제를 이용해 주세요.",
+    };
+  }
+
   if (paymentRecord.status === "success") {
     return {
       ok: true,
@@ -399,6 +466,12 @@ async function settlePaymentByImpUid({
         points: await getUserPoints(ownerUserId),
       },
       payment: formatPaymentResponse(paymentRecord),
+      accessGrant: isDigitalContentPayment ? {
+        ok: true,
+        purchaseId: String(paymentRecord._id || ""),
+        merchantUid: String(paymentRecord.merchantUid || ""),
+        paidAt: paymentRecord.paidAt ? new Date(paymentRecord.paidAt).toISOString() : null,
+      } : null,
     };
   }
 
@@ -546,8 +619,12 @@ async function settlePaymentByImpUid({
 
   let chargedPoints;
   try {
-    const pointsForPolicy = expectedChargedPoints > 0 ? expectedChargedPoints : undefined;
-    chargedPoints = resolveChargePointsByAmount(env, portOneAmount, pointsForPolicy);
+    if (isDigitalContentPayment) {
+      chargedPoints = 0;
+    } else {
+      const pointsForPolicy = expectedChargedPoints > 0 ? expectedChargedPoints : undefined;
+      chargedPoints = resolveChargePointsByAmount(env, portOneAmount, pointsForPolicy);
+    }
   } catch (error) {
     await markPaymentFailure(paymentRecord, {
       status: "failed",
@@ -585,7 +662,7 @@ async function settlePaymentByImpUid({
       paymentMethod,
       rawPortOne: portOnePayment,
       failureCode: "user_not_found",
-      failureMessage: "User not found for point charge.",
+      failureMessage: isDigitalContentPayment ? "User not found for product payment." : "User not found for point charge.",
       failureStage: "user_lookup",
       incrementAttempt: true,
     });
@@ -598,13 +675,13 @@ async function settlePaymentByImpUid({
       source,
       stage: "user_lookup",
       code: "user_not_found",
-      message: "User not found for point charge.",
+      message: isDigitalContentPayment ? "User not found for product payment." : "User not found for point charge.",
       status: 404,
       payload: body,
       rawPortOne: portOnePayment,
     });
 
-    return { ok: false, status: 404, message: "User not found for point charge." };
+    return { ok: false, status: 404, message: isDigitalContentPayment ? "User not found for product payment." : "User not found for point charge." };
   }
 
   const paidAt = toDateFromUnixSeconds(portOnePayment.paid_at);
@@ -618,7 +695,7 @@ async function settlePaymentByImpUid({
           impUid,
           merchantUid: merchantUid || paymentRecord.merchantUid || undefined,
           paymentAmount: portOneAmount,
-          expectedChargedPoints: chargedPoints,
+          expectedChargedPoints: isDigitalContentPayment ? expectedChargedPoints : chargedPoints,
           chargedPoints,
           paymentMethod,
           status: "success",
@@ -641,6 +718,21 @@ async function settlePaymentByImpUid({
         idempotent: true,
         user: { id: ownerUserId, points: await getUserPoints(ownerUserId) },
         payment: formatPaymentResponse(latestPayment),
+      };
+    }
+
+    if (isDigitalContentPayment) {
+      return {
+        ok: true,
+        idempotent: false,
+        user: { id: ownerUserId, points: await getUserPoints(ownerUserId) },
+        payment: formatPaymentResponse(finalizedPayment),
+        accessGrant: {
+          ok: true,
+          purchaseId: String(finalizedPayment._id || ""),
+          merchantUid: String(finalizedPayment.merchantUid || ""),
+          paidAt: paidAt.toISOString(),
+        },
       };
     }
 
@@ -698,7 +790,7 @@ async function settlePaymentByImpUid({
               impUid,
               merchantUid: merchantUid || paymentRecord.merchantUid || undefined,
               paymentAmount: portOneAmount,
-              expectedChargedPoints: chargedPoints,
+              expectedChargedPoints: isDigitalContentPayment ? expectedChargedPoints : chargedPoints,
               chargedPoints,
               paymentMethod,
               status: "success",
@@ -721,6 +813,22 @@ async function settlePaymentByImpUid({
             idempotent: true,
             user: { id: ownerUserId, points: await getUserPoints(ownerUserId) },
             payment: formatPaymentResponse(latestPayment),
+          };
+          return;
+        }
+
+        if (isDigitalContentPayment) {
+          txResult = {
+            ok: true,
+            idempotent: false,
+            user: { id: ownerUserId, points: await getUserPoints(ownerUserId) },
+            payment: formatPaymentResponse(finalizedPayment),
+            accessGrant: {
+              ok: true,
+              purchaseId: String(finalizedPayment._id || ""),
+              merchantUid: String(finalizedPayment.merchantUid || ""),
+              paidAt: paidAt.toISOString(),
+            },
           };
           return;
         }
@@ -855,8 +963,108 @@ async function handleWebhook(request, env) {
   });
 }
 
+async function handleDigitalContentPrepare(request, auth, body) {
+  const resolved = resolveDigitalContentPricing(body);
+  if (!resolved.ok) {
+    await writeFailureLog({
+      request,
+      userId: auth.userId,
+      source: "prepare",
+      stage: "digital_product_price",
+      code: resolved.code || "PRICE_NOT_FOUND",
+      message: resolved.message,
+      status: resolved.status || 400,
+      payload: body,
+    });
+    return json({ message: resolved.message, code: resolved.code || "PRICE_NOT_FOUND" }, { status: resolved.status || 400 });
+  }
+
+  const clientAmount = body?.paymentAmount ?? body?.amount;
+  if (clientAmount !== undefined && clientAmount !== null && Number(clientAmount) !== resolved.paymentAmount) {
+    return json({
+      message: "Client amount does not match server product price.",
+      code: "CLIENT_AMOUNT_MISMATCH",
+      expectedAmount: resolved.paymentAmount,
+      clientAmount: Number(clientAmount),
+    }, { status: 400 });
+  }
+
+  const paymentMethod = normalizePaymentMethod(body?.paymentMethod || "single_purchase");
+  const productName = buildDigitalProductName(body, resolved.pricing);
+  const idempotencyKey = resolveIdempotencyKey(request, body);
+
+  if (idempotencyKey) {
+    const existing = await Payment.findOne({
+      userId: auth.userId,
+      idempotencyKey,
+      paymentType: "digital_content",
+    }).sort({ createdAt: -1 }).lean();
+
+    if (existing) {
+      const existingAmount = Number(existing.paymentAmount || 0);
+      const existingCoins = Number(existing.expectedChargedPoints || 0);
+      if (existingAmount !== resolved.paymentAmount || existingCoins !== resolved.coinPrice) {
+        return json({
+          message: "Idempotency key conflict. Request payload does not match existing product payment preparation.",
+          code: "IDEMPOTENCY_CONFLICT",
+        }, { status: 409 });
+      }
+
+      return json({
+        message: "Product payment preparation already completed.",
+        idempotent: true,
+        order: {
+          merchantUid: String(existing.merchantUid || ""),
+          paymentAmount: existingAmount,
+          amountKRW: existingAmount,
+          coinPrice: existingCoins,
+          productName,
+          pricing: resolved.pricing,
+        },
+      });
+    }
+  }
+
+  const merchantUid = buildMerchantUid(auth.userId);
+  await Payment.create({
+    userId: auth.userId,
+    merchantUid,
+    idempotencyKey,
+    paymentAmount: resolved.paymentAmount,
+    expectedChargedPoints: resolved.coinPrice,
+    chargedPoints: 0,
+    paymentMethod,
+    status: "pending",
+    source: "prepare",
+    paymentType: "digital_content",
+    subscriptionTier: "",
+  });
+
+  return json({
+    message: "Product payment preparation completed.",
+    idempotent: false,
+    order: {
+      merchantUid,
+      paymentAmount: resolved.paymentAmount,
+      amountKRW: resolved.paymentAmount,
+      coinPrice: resolved.coinPrice,
+      productName,
+      pricing: resolved.pricing,
+    },
+  }, { status: 201 });
+}
+
 async function handlePrepare(request, env, auth) {
   const body = await readJson(request);
+  if (isDigitalContentPaymentRequest(body)) {
+    return handleDigitalContentPrepare(request, auth, body);
+  }
+
+  return json({
+    message: "선불형 잔액 상품은 더 이상 판매하지 않습니다. 상품별 원화 단건 결제를 이용해 주세요.",
+    code: "POINT_CHARGE_DISABLED",
+  }, { status: 410 });
+
   const paymentAmount = Number(body?.paymentAmount ?? body?.amount);
   const requestedChargePoints = body?.chargePoints === undefined || body?.chargePoints === null
     ? undefined
@@ -1016,7 +1224,7 @@ async function handleSubscriptionPrepare(request, auth) {
     const existing = await Payment.findOne({
       userId: auth.userId,
       idempotencyKey,
-      paymentType: "subscription_initial",
+      paymentType: "membership_pass",
     }).sort({ createdAt: -1 }).lean();
 
     if (existing) {
@@ -1030,16 +1238,17 @@ async function handleSubscriptionPrepare(request, auth) {
       }
 
       return json({
-        message: "Subscription payment preparation already completed.",
+        message: "Membership pass payment preparation already completed.",
         idempotent: true,
         order: {
           merchantUid: String(existing.merchantUid || ""),
           customerUid: buildSubscriptionCustomerUid(auth.userId),
           tier,
           paymentAmount: existingAmount,
-          productName: `${plan.name} 정기결제`,
+          productName: `${plan.name} 30일 멤버십 이용권`,
           profileLimit: plan.profileLimit,
           durationDays: plan.durationDays,
+          recurring: false,
         },
       });
     }
@@ -1059,7 +1268,7 @@ async function handleSubscriptionPrepare(request, auth) {
       paymentMethod,
       status: "pending",
       source: "prepare",
-      paymentType: "subscription_initial",
+      paymentType: "membership_pass",
       subscriptionTier: tier,
     });
   } catch (error) {
@@ -1068,7 +1277,7 @@ async function handleSubscriptionPrepare(request, auth) {
     const existing = await Payment.findOne({
       userId: auth.userId,
       idempotencyKey,
-      paymentType: "subscription_initial",
+      paymentType: "membership_pass",
     }).sort({ createdAt: -1 }).lean();
 
     if (!existing) throw error;
@@ -1083,31 +1292,33 @@ async function handleSubscriptionPrepare(request, auth) {
     }
 
     return json({
-      message: "Subscription payment preparation already completed.",
+      message: "Membership pass payment preparation already completed.",
       idempotent: true,
       order: {
         merchantUid: String(existing.merchantUid || ""),
         customerUid,
         tier,
         paymentAmount: existingAmount,
-        productName: `${plan.name} 정기결제`,
+        productName: `${plan.name} 30일 멤버십 이용권`,
         profileLimit: plan.profileLimit,
         durationDays: plan.durationDays,
+        recurring: false,
       },
     });
   }
 
   return json({
-    message: "Subscription payment preparation completed.",
+    message: "Membership pass payment preparation completed.",
     idempotent: false,
     order: {
       merchantUid,
       customerUid,
       tier,
       paymentAmount: plan.wonPrice,
-      productName: `${plan.name} 정기결제`,
+      productName: `${plan.name} 30일 멤버십 이용권`,
       profileLimit: plan.profileLimit,
       durationDays: plan.durationDays,
+      recurring: false,
     },
   }, { status: 201 });
 }
@@ -1166,12 +1377,12 @@ async function handleSubscriptionConfirm(request, env, auth) {
     const currentUser = await User.findById(auth.userId).select("profileSubscription").lean();
     const sub = currentUser?.profileSubscription || {};
     return json({
-      message: "Subscription payment already processed.",
+      message: "Membership pass payment already processed.",
       idempotent: true,
       payment: formatPaymentResponse(paymentRecord),
       subscription: {
         tier: sub?.tier || "free",
-        source: sub?.source || "coin",
+        source: sub?.source || "pass",
         isActive: hasActiveSubscriptionConflict(sub),
         expiresAt: toIsoOrNull(sub?.expiresAt),
         profileLimit: plan.profileLimit,
@@ -1200,11 +1411,11 @@ async function handleSubscriptionConfirm(request, env, auth) {
       paymentMethod: resolvedPaymentMethod,
       rawPortOne: portOnePayment,
       failureCode: "subscription_amount_mismatch",
-      failureMessage: "Subscription payment amount mismatch.",
+      failureMessage: "Membership pass payment amount mismatch.",
       failureStage: "subscription_amount_validate",
       incrementAttempt: true,
     });
-    return json({ message: "Subscription payment amount mismatch." }, { status: 400 });
+    return json({ message: "Membership pass payment amount mismatch." }, { status: 400 });
   }
 
   const now = new Date();
@@ -1235,7 +1446,7 @@ async function handleSubscriptionConfirm(request, env, auth) {
       status: "success",
       paidAt,
       source: "confirm",
-      paymentType: "subscription_initial",
+      paymentType: "membership_pass",
       subscriptionTier: tier,
       rawPortOne: portOnePayment,
       failureCode: null,
@@ -1250,14 +1461,14 @@ async function handleSubscriptionConfirm(request, env, auth) {
     {
       $set: {
         "profileSubscription.tier": tier,
-        "profileSubscription.source": "card",
+        "profileSubscription.source": "pass",
         "profileSubscription.startedAt": paidAt,
         "profileSubscription.expiresAt": expiresAt,
         "profileSubscription.cancelAtPeriodEnd": false,
         "profileSubscription.cancelRequestedAt": null,
         "profileSubscription.customerUid": customerUid,
         "profileSubscription.paymentMethod": resolvedPaymentMethod,
-        "profileSubscription.nextBillingAt": expiresAt,
+        "profileSubscription.nextBillingAt": null,
         "profileSubscription.lastBillingAt": paidAt,
         "profileSubscription.lastBillingStatus": "success",
         "profileSubscription.lastBillingError": "",
@@ -1268,12 +1479,12 @@ async function handleSubscriptionConfirm(request, env, auth) {
   ).lean();
 
   return json({
-    message: "Card subscription has been activated.",
+    message: "30-day membership pass has been activated.",
     idempotent: false,
     payment: formatPaymentResponse(await Payment.findById(paymentRecord._id).lean()),
     subscription: {
       tier,
-      source: "card",
+      source: "pass",
       isActive: true,
       expiresAt: expiresAt.toISOString(),
       profileLimit: plan.profileLimit,
@@ -1281,7 +1492,7 @@ async function handleSubscriptionConfirm(request, env, auth) {
       cancelRequestedAt: null,
       customerUid,
       paymentMethod: resolvedPaymentMethod,
-      nextBillingAt: expiresAt.toISOString(),
+      nextBillingAt: null,
       lastBillingStatus: "success",
     },
     user: {
@@ -1298,16 +1509,19 @@ async function handleConfirm(request, env, auth) {
       && (body?.merchantUid || body?.merchant_uid)
       && (body?.paymentAmount === undefined && body?.amount === undefined),
   );
+  const hasDigitalContentPayload = isDigitalContentPaymentRequest(body);
 
   let isValid = false;
   let errors = [];
   let sanitized = null;
 
-  if (hasMinimalRedirectPayload) {
+  if (hasMinimalRedirectPayload || hasDigitalContentPayload) {
     sanitized = {
       impUid: String(body?.impUid || body?.paymentId || "").trim(),
       merchantUid: String(body?.merchantUid || body?.merchant_uid || "").trim() || undefined,
-      paymentAmount: undefined,
+      paymentAmount: hasDigitalContentPayload && (body?.paymentAmount !== undefined || body?.amount !== undefined)
+        ? Number(body?.paymentAmount ?? body?.amount)
+        : undefined,
       chargePoints: undefined,
       paymentMethod: String(body?.paymentMethod || "").trim() || undefined,
     };
@@ -1362,10 +1576,11 @@ async function handleConfirm(request, env, auth) {
   }
 
   return json({
-    message: settled.idempotent ? "Payment was already processed." : "Point charge completed.",
+    message: settled.idempotent ? "Payment was already processed." : "Payment completed.",
     idempotent: Boolean(settled.idempotent),
     user: settled.user,
     payment: settled.payment,
+    accessGrant: settled.accessGrant || null,
   });
 }
 

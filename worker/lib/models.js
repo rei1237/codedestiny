@@ -48,7 +48,7 @@ const userSchema = new mongoose.Schema({
   adminLastActivityAt: { type: Date, default: null },
   profileSubscription: {
     tier: { type: String, enum: ["free", "standard", "premium", "vvip"], default: "free" },
-    source: { type: String, enum: ["coin", "card"], default: "coin" },
+    source: { type: String, enum: ["coin", "card", "pass"], default: "coin" },
     startedAt: { type: Date, default: null },
     expiresAt: { type: Date, default: null },
     firstSubAt: { type: Date, default: null },
@@ -129,7 +129,7 @@ const paymentSchema = new mongoose.Schema({
   expectedChargedPoints: { type: Number, min: 0, default: 0 },
   chargedPoints: { type: Number, required: true, min: 0, default: 0 },
   paymentMethod: { type: String, trim: true, default: "unknown" },
-  status: { type: String, enum: ["pending", "success", "failed", "cancelled"], default: "pending", index: true },
+  status: { type: String, enum: ["pending", "paid", "processing", "success", "fulfilled", "retryable", "failed", "cancelled", "refunded"], default: "pending", index: true },
   failureCode: { type: String, trim: true, maxlength: 80 },
   failureMessage: { type: String, trim: true, maxlength: 500 },
   failureStage: { type: String, trim: true, maxlength: 80 },
@@ -139,7 +139,7 @@ const paymentSchema = new mongoose.Schema({
   source: { type: String, enum: ["prepare", "confirm", "webhook", "system"], default: "confirm" },
   paymentType: {
     type: String,
-    enum: ["point_charge", "subscription_initial", "subscription_recurring"],
+    enum: ["point_charge", "digital_content", "membership_pass", "subscription_initial", "subscription_recurring"],
     default: "point_charge",
     index: true,
   },

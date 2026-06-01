@@ -297,8 +297,8 @@ async function consumeAnalyzeCoins(request, env) {
   const payload = await consumeResponse.clone().json().catch(() => ({}));
 
   if (!consumeResponse.ok) {
-    throw createHttpError(Number(consumeResponse.status || 402), String(payload?.message || "코인 차감에 실패했습니다."), {
-      code: String(payload?.code || "COIN_CONSUME_FAILED"),
+    throw createHttpError(Number(consumeResponse.status || 402), String(payload?.message || "결제 확인에 실패했습니다."), {
+      code: String(payload?.code || "PAYMENT_CONFIRM_FAILED"),
       featureKey: FEATURE_KEYS.analyze,
       requiredCoins: DESTINY_BIAS_ANALYZE_COST,
       consume: payload,

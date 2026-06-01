@@ -2,7 +2,7 @@
 
 /**
  * SubscriptionStatusCard.tsx
- * 구독 상태를 시각적으로 표시하는 카드 컴포넌트
+ * 멤버십 이용권 상태를 시각적으로 표시하는 카드 컴포넌트
  */
 
 type SubscriptionTier = "free" | "standard" | "premium" | "vvip";
@@ -115,7 +115,7 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
 
   return (
     <section
-      aria-label="현재 구독 상태"
+      aria-label="현재 멤버십 상태"
       className={`rounded-[24px] border ${meta.border} bg-gradient-to-br ${meta.bg} overflow-hidden shadow-[0_6px_24px_rgba(0,0,0,0.07)]`}
     >
       {/* 상태 바 */}
@@ -138,7 +138,7 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
           <div className="flex items-center gap-2.5">
             <span className="text-2xl leading-none">{meta.icon}</span>
             <div>
-              <p className="text-[10.5px] font-extrabold uppercase tracking-widest text-gray-500">현재 구독</p>
+              <p className="text-[10.5px] font-extrabold uppercase tracking-widest text-gray-500">현재 멤버십</p>
               <p className="text-[16px] font-black text-gray-800 leading-tight">{meta.label}</p>
             </div>
           </div>
@@ -153,7 +153,7 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
             {/* 활성 상태 표시 */}
             <div className="flex items-center gap-2">
               <span className={`h-2 w-2 rounded-full ${meta.dot} animate-pulse`} />
-              <span className="text-[12.5px] font-bold text-emerald-700">구독 활성화됨</span>
+              <span className="text-[12.5px] font-bold text-emerald-700">30일 이용권 활성화됨</span>
             </div>
 
             {/* 만료일 / 잔여일 */}
@@ -202,7 +202,7 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
               <div className="rounded-[12px] border border-orange-300 bg-orange-50 px-3.5 py-2.5 flex items-start gap-2">
                 <span className="text-orange-500 flex-shrink-0 mt-0.5">🔔</span>
                 <p className="text-[11.5px] text-orange-800">
-                  코인 잔액이 부족합니다. 구독 기간은 유지되지만 추가 콘텐츠 이용을 위해 충전을 추천드립니다.
+                  이용권 기간은 유지됩니다. 추가 유료 콘텐츠는 상품별 단건 결제로 이용할 수 있습니다.
                 </p>
               </div>
             )}
@@ -212,7 +212,7 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
               <div className="rounded-[12px] border border-orange-300 bg-orange-50 px-3.5 py-2.5 flex items-start gap-2">
                 <span className="text-orange-500 flex-shrink-0 mt-0.5">⏰</span>
                 <p className="text-[11.5px] text-orange-800">
-                  구독이 <strong>{daysLeft}일 후</strong> 만료됩니다. 만료 전 하단에서 갱신하세요.
+                  이용권이 <strong>{daysLeft}일 후</strong> 만료됩니다. 계속 이용하려면 새 30일 이용권을 결제해 주세요.
                 </p>
               </div>
             )}
@@ -221,7 +221,7 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
               <div className="rounded-[12px] border border-violet-300 bg-violet-50 px-3.5 py-2.5 flex items-start gap-2">
                 <span className="text-violet-500 flex-shrink-0 mt-0.5">🧭</span>
                 <p className="text-[11.5px] text-violet-800">
-                  해지 예약 상태입니다. 현재 혜택은 유지되며 만료 후 자동 갱신되지 않습니다.
+                  현재 혜택은 만료일까지 유지됩니다. 이 이용권은 반복 결제되지 않습니다.
                 </p>
               </div>
             )}
@@ -231,7 +231,7 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
             {isExpired ? (
               <div className="rounded-[12px] border border-rose-300 bg-rose-50 px-3.5 py-2.5 flex items-center gap-2">
                 <span className="text-rose-500">⚠️</span>
-                <p className="text-[12px] text-rose-800 font-bold">구독이 만료되었습니다. 하단에서 갱신하세요.</p>
+                <p className="text-[12px] text-rose-800 font-bold">이용권이 만료되었습니다. 새 30일 이용권을 결제해 주세요.</p>
               </div>
             ) : (
               <p className="text-[12.5px] text-gray-500">{meta.desc}</p>

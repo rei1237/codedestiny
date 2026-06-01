@@ -29,9 +29,15 @@ type BillingFeaturePricing = {
   subFeatureKey: string;
   featureKey: string;
   cost: number;
+  coinPrice?: number;
+  displayUnit?: string;
+  displayPrice?: string;
   reason: string;
   currency?: string;
   cashPrice?: number | null;
+  amountKRW?: number | null;
+  paymentMode?: string;
+  coinDisplayOnly?: boolean;
 };
 
 type RuntimeApiWindow = Window & {
@@ -223,7 +229,7 @@ export async function runBillingCoinGate(input: {
     markPaidAttemptPaymentSucceeded();
     markPaidAttemptCallbackReturned();
   } else {
-    markPaidAttemptFailed(parsed.error?.code || "coin_gate_failed");
+    markPaidAttemptFailed(parsed.error?.code || "single_purchase_required");
   }
 
   return parsed;

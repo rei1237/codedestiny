@@ -346,12 +346,12 @@
   function showCoinShortage(cost, reason) {
     try {
       if (typeof window.__cdOpenChargeModal === "function") {
-        window.alert("🪙 " + reason + "\n\n" + cost + "코인이 필요합니다.\n코인 충전 창을 엽니다.");
+        window.alert("🪙 " + reason + "\n\n" + cost + "코인 가치의 단건 결제가 필요합니다.\n결제 상점을 엽니다.");
         window.__cdOpenChargeModal();
         return;
       }
     } catch (e) {}
-    if (window.confirm("🪙 " + reason + "\n\n" + cost + "코인이 필요합니다.\n충전 페이지로 이동할까요?")) {
+    if (window.confirm("🪙 " + reason + "\n\n" + cost + "코인 가치의 단건 결제가 필요합니다.\n결제 관리 페이지로 이동할까요?")) {
       window.location.href = "/points";
     }
   }
@@ -364,7 +364,7 @@
     };
     if (token) consumeHeaders.Authorization = "Bearer " + token;
     if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, '결제를 확인 중입니다...');
-    return fetch("/api/fortune/pig-coin/consume", {
+    return fetch("/api/billing/coin-gate", {
       method: "POST",
       headers: consumeHeaders,
       credentials: "include",

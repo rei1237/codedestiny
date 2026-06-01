@@ -18,6 +18,7 @@ type CoinGateContext = {
   transactionId: string;
   chargedCoins: number;
   requiredCoins: number;
+  amountKRW?: number;
   balanceAfter: number;
   featureKey: string;
 };
@@ -147,7 +148,10 @@ export function useCoinGate() {
 
       requiredCoins = toNumber(pricingResult.data.pricing.cost, 0);
 
-      setPaymentMessage(`결제를 진행 중입니다... (${requiredCoins}코인)`);
+      const amountKRW = toNumber(pricingResult.data.pricing.amountKRW || pricingResult.data.pricing.cashPrice, 0);
+      setPaymentMessage(amountKRW > 0
+        ? `단건 결제를 준비하고 있습니다... (${amountKRW.toLocaleString("ko-KR")}원)`
+        : `단건 결제를 준비하고 있습니다... (${requiredCoins}코인 가치)`);
 
       const chargeResult = await runBillingCoinGate({
         categoryKey: input.categoryKey,
@@ -161,7 +165,7 @@ export function useCoinGate() {
 
       if (!chargeResult.ok || !chargeResult.data) {
         const code = normalizeCode(chargeResult.error?.code || "SERVER_ERROR") || "SERVER_ERROR";
-        const message = toText(chargeResult.error?.message || chargeResult.message || "코인 결제에 실패했습니다.") || "코인 결제에 실패했습니다.";
+        const message = toText(chargeResult.error?.message || chargeResult.message || "단건 결제가 필요합니다.") || "단건 결제가 필요합니다.";
 
         if (resolveLoginRequired(code, chargeResult.status)) {
           return {
@@ -176,15 +180,10 @@ export function useCoinGate() {
           };
         }
 
-        if (
-          chargeResult.status === 402
-          || code === "INSUFFICIENT_COINS"
-          || code === "INSUFFICIENT_BALANCE"
-          || code === "INSUFFICIENT_POINTS"
-        ) {
+        if (chargeResult.status === 402 || code === "PAYMENT_REQUIRED") {
           return {
             ok: false,
-            code: "INSUFFICIENT_COINS",
+            code: "PAYMENT_REQUIRED",
             message,
             requiredCoins,
             chargedCoins: 0,
@@ -220,6 +219,7 @@ export function useCoinGate() {
             transactionId,
             chargedCoins,
             requiredCoins,
+            amountKRW,
             balanceAfter,
             featureKey: resolvedFeatureKey,
           });

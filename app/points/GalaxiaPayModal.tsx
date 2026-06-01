@@ -263,7 +263,7 @@ export default function GalaxiaPayModal({
               <p className="text-[10.5px] font-extrabold uppercase tracking-widest text-amber-700">결제하실 금액</p>
               <h3 className="mt-0.5 text-[18px] font-black text-gray-800">{pkg.title}</h3>
               <p className="text-[22px] font-black text-amber-700 leading-tight">{fmtWon(pkg.amount)}</p>
-              <p className="text-[11.5px] text-gray-500 mt-0.5">{pkg.points.toLocaleString("ko-KR")}코인 충전</p>
+              <p className="text-[11.5px] text-gray-500 mt-0.5">{pkg.points.toLocaleString("ko-KR")}코인 기준 가격 · 단건 결제</p>
             </div>
             <button
               type="button"

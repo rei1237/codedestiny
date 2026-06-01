@@ -179,9 +179,9 @@ export default function SiteFooterHub() {
             </div>
 
             <div className={styles.sfhBusinessDivider}>
-              <p className={styles.sfhRefundTitle}>코인 충전형 디지털 운세 서비스 환불 기준</p>
+              <p className={styles.sfhRefundTitle}>디지털 운세 단건 결제 서비스 환불 기준</p>
               <p className={styles.sfhBusinessEmphasis}>
-                코인은 서비스 이용권 성격의 선결제 포인트이며, 전자상거래 관련 법령 및 약관에 따라 미사용 유상 코인 범위에서만 환불이 가능합니다.
+                유료 콘텐츠는 상품별 원화 단건 결제로 제공되며, 전자상거래 관련 법령 및 약관에 따라 미제공 또는 실패 처리된 주문 범위에서 환불이 가능합니다.
               </p>
               <ul className={styles.sfhRefundList}>
                 {REFUND_POLICY_ROWS.map((rule) => (

@@ -54,6 +54,8 @@ async function markRecurringFailure(user, reason, now) {
 }
 
 export async function runCardSubscriptionBillingTask(env) {
+  return { ok: true, processed: 0, disabled: true, reason: "membership_pass_non_recurring" };
+
   await connectDb(env);
 
   const now = new Date();
@@ -83,7 +85,7 @@ export async function runCardSubscriptionBillingTask(env) {
         customerUid,
         merchantUid,
         amount: plan.wonPrice,
-        name: `${plan.name} 정기결제 갱신`,
+        name: `${plan.name} 30일 멤버십 이용권 처리`,
         buyerName: String(user?.name || "회원").trim(),
         buyerEmail: String(user?.email || "").trim(),
         customData: {

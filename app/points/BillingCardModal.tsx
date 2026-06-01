@@ -2,7 +2,7 @@
 
 /**
  * BillingCardModal.tsx
- * 정기결제(자동결제)용 카드 등록 모달
+ * 30일 멤버십 이용권 결제용 카드 입력 모달
  * 이미지 참조: 토스페이먼츠 카드 번호 입력 → 본인인증 → 결제 정보 확인
  */
 
@@ -169,7 +169,7 @@ export default function BillingCardModal({ buyerName, buyerPhone = "", onSuccess
             ) : <span />}
             <div className="flex-1 text-center">
               <p className="text-[11.5px] text-gray-400 font-semibold">
-                {step === "input" ? "등록할 카드를 입력해주세요" : step === "auth" ? "본인 정보를 입력해주세요" : step === "confirm" ? "결제 정보를 확인해주세요" : "카드 등록 완료"}
+                {step === "input" ? "결제할 카드를 입력해주세요" : step === "auth" ? "본인 정보를 입력해주세요" : step === "confirm" ? "결제 정보를 확인해주세요" : "결제 카드 확인 완료"}
               </p>
               <p className="text-[12px] text-gray-300">아임포트테스트</p>
             </div>
@@ -384,7 +384,7 @@ export default function BillingCardModal({ buyerName, buyerPhone = "", onSuccess
                 <div className="px-4 py-3 space-y-2">
                   <div className="flex justify-between text-[13px]">
                     <span className="text-gray-500">상품명</span>
-                    <span className="font-semibold text-gray-800">정기결제 카드 등록</span>
+                    <span className="font-semibold text-gray-800">30일 멤버십 이용권</span>
                   </div>
                   <div className="flex justify-between text-[13px]">
                     <span className="text-gray-500">결제대상</span>
@@ -410,14 +410,14 @@ export default function BillingCardModal({ buyerName, buyerPhone = "", onSuccess
                   </div>
                   <div className="border-t border-gray-200 pt-2 flex justify-between">
                     <span className="text-[13px] text-gray-500">총 결제금액</span>
-                    <span className="text-[15px] font-black text-amber-700">카드 등록만 (결제 없음)</span>
+                    <span className="text-[15px] font-black text-amber-700">선택한 이용권 금액</span>
                   </div>
                 </div>
               </div>
 
               <div className="rounded-[14px] bg-sky-50 border border-sky-200 px-4 py-3">
                 <p className="text-[11.5px] text-sky-700 leading-relaxed">
-                  ℹ️ 구독 카드 등록 시 즉시 결제가 발생하지 않습니다. 등록된 카드는 향후 구독 갱신 시 사용됩니다.
+                  이 결제는 30일 이용권 단건 결제이며 반복 결제가 설정되지 않습니다.
                 </p>
               </div>
 
@@ -427,7 +427,7 @@ export default function BillingCardModal({ buyerName, buyerPhone = "", onSuccess
                 disabled={isLoading}
                 className="w-full rounded-[14px] bg-amber-500 py-4 text-[14px] font-black text-white shadow-[0_6px_20px_rgba(180,130,20,0.4)] hover:bg-amber-600 active:scale-[0.97] transition-all disabled:opacity-60"
               >
-                {isLoading ? "등록 중..." : "카드 등록하기"}
+                {isLoading ? "확인 중..." : "결제 카드 확인"}
               </button>
             </div>
           )}
@@ -437,11 +437,11 @@ export default function BillingCardModal({ buyerName, buyerPhone = "", onSuccess
             <div className="space-y-4 text-center">
               <div className="flex flex-col items-center gap-3 py-4">
                 <span className="text-5xl">✅</span>
-                <p className="text-[17px] font-black text-gray-800">카드 등록 완료!</p>
+                <p className="text-[17px] font-black text-gray-800">결제 카드 확인 완료</p>
                 <p className="text-[13px] text-gray-500">{registeredCard.cardName} · {registeredCard.cardNumber}</p>
               </div>
               <div className="rounded-[14px] bg-emerald-50 border border-emerald-200 px-4 py-3">
-                <p className="text-[12px] text-emerald-700">이 카드로 구독 자동 갱신이 설정되었습니다.</p>
+                <p className="text-[12px] text-emerald-700">이용권 결제 확인 후 30일 혜택이 활성화됩니다.</p>
               </div>
               <button
                 type="button"

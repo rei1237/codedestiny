@@ -122,11 +122,11 @@
 
   function openInsufficientCoinsUi() {
     if (typeof global.__cdOpenChargeModal === "function") {
-      global.alert("코인이 부족합니다. 코인 충전 창을 열겠습니다.");
+      global.alert("단건 결제가 필요합니다. 결제 상점을 열겠습니다.");
       global.__cdOpenChargeModal();
       return;
     }
-    global.alert("코인이 부족합니다. 코인을 충전한 뒤 다시 시도해 주세요.");
+    global.alert("단건 결제가 필요합니다. 결제 후 다시 시도해 주세요.");
   }
 
   async function consumeAnimalTotemViaCommonGate(spec) {

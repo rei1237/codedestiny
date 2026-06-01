@@ -6,7 +6,7 @@ const shortcuts = [
   { label: "자미두수", href: "/ziwei/chart" },
   { label: "오라클", href: "/oracle/rune" },
   { label: "인사이트", href: "/insights" },
-  { label: "포인트", href: "/points" },
+  { label: "결제", href: "/points" },
   { label: "내 정보", href: "/me" },
 ];
 

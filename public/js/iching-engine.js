@@ -274,7 +274,7 @@
       var requestId = 'juyuk:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
       if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, '결제를 확인 중입니다...');
 
-      fetch('/api/fortune/pig-coin/consume', {
+      fetch('/api/billing/coin-gate', {
         method: 'POST',
         headers: consumeHeaders,
         credentials: 'include',

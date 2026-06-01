@@ -65,6 +65,14 @@ const LEGACY_FEATURE_ALIAS_MAP = Object.freeze({
   openanimaltotem: Object.freeze({ categoryKey: "animal-totem", subFeatureKey: "basic" }),
 });
 
+const COIN_DISPLAY_UNIT_KRW = 110;
+
+function toSinglePurchaseAmountKRW(cost) {
+  const coinPrice = Number(cost);
+  if (!Number.isFinite(coinPrice) || coinPrice <= 0) return 0;
+  return Math.max(100, Math.ceil((coinPrice * COIN_DISPLAY_UNIT_KRW) / 100) * 100);
+}
+
 function normalizeKey(value) {
   return String(value || "").trim().toLowerCase();
 }
@@ -104,15 +112,23 @@ const UNLOCK_REASON_PRICING_MAP = buildReasonPricingMap(
 );
 
 function toPricingShape({ categoryKey, categoryLabel, subFeatureKey, featureKey, cost, reason }) {
+  const coinPrice = Number(cost);
+  const amountKRW = toSinglePurchaseAmountKRW(coinPrice);
   return {
     categoryKey,
     categoryLabel,
     subFeatureKey,
     featureKey,
-    cost: Number(cost),
+    cost: coinPrice,
+    coinPrice,
+    displayUnit: "coin",
+    displayPrice: `${coinPrice.toLocaleString("ko-KR")}코인`,
     reason: String(reason || "").trim(),
     currency: "KRW",
-    cashPrice: null,
+    amountKRW,
+    cashPrice: amountKRW,
+    paymentMode: "single_purchase",
+    coinDisplayOnly: true,
   };
 }
 

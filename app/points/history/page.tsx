@@ -121,7 +121,7 @@ function resolveFeatureName(featureKey?: string) {
   if (!key) return "";
 
   const map: Record<string, string> = {
-    "pig-coin-charge": "포인트 충전",
+    "pig-coin-charge": "이전 결제 기록",
     "pig-coin-unlock": "유료 콘텐츠 잠금 해제",
     "tarot-year-fortune": "십이지신 천운 타로",
     "tarot-love-relationship": "우리는 무슨 사이? 타로",
@@ -157,8 +157,8 @@ function resolveFeatureName(featureKey?: string) {
     ziwei_ai_prompt_generator: "자미두수 AI 질문 프롬프트 생성",
     "premium-love-secret-solo": "사주 프리미엄 연애운 리포트",
     "premium-love-secret-couple": "사주 프리미엄 궁합 리포트",
-    "profile-subscription": "프로필 구독 결제",
-    "profile-subscription-auto-renew": "프로필 구독 자동 갱신",
+    "profile-subscription": "멤버십 이용권 결제",
+    "profile-subscription-auto-renew": "이전 멤버십 갱신 기록",
     "profile-subscription-service-start": "멤버십 서비스 시작",
     "share-reward": "카카오톡 공유 보상",
   };
@@ -447,18 +447,18 @@ export default function PointHistoryPage() {
           >
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-[11px] font-extrabold tracking-[0.22em] text-amber-800 uppercase">Point Management</p>
+                <p className="text-[11px] font-extrabold tracking-[0.22em] text-amber-800 uppercase">Payment Management</p>
                 <h1 className="mt-0.5 text-[22px] font-black text-[#5C3A1E] leading-tight">
-                  🐷 포인트 관리
+                  🐷 결제/멤버십 관리
                 </h1>
-                <p className="mt-1 text-sm text-[#7A5230]">충전·차감 내역 및 잔여 포인트를 확인하세요.</p>
+                <p className="mt-1 text-sm text-[#7A5230]">결제 내역과 멤버십 상태를 확인하세요.</p>
               </div>
               <div className="flex flex-col gap-2 self-start sm:items-end">
                 <Link
                   href="/points"
                   className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#EDDBA3] bg-white/90 px-4 py-2.5 text-sm font-bold text-[#7A5230] shadow-[0_2px_10px_rgba(180,130,30,0.14)] transition-all hover:bg-[#FFF8E0] hover:-translate-y-0.5"
                 >
-                  ← 코인 충전소
+                  ← 결제 상점
                 </Link>
                 <Link
                   href="/"
@@ -472,9 +472,9 @@ export default function PointHistoryPage() {
           </div>
         </header>
 
-        {/* 현재 잔여 포인트 */}
+        {/* 이벤트 코인 안내 */}
         <section
-          aria-label="현재 잔여 포인트"
+          aria-label="이벤트 코인 안내"
           className="rounded-[24px] overflow-hidden shadow-[0_10px_36px_rgba(180,130,30,0.22)]"
         >
           <div
@@ -486,38 +486,38 @@ export default function PointHistoryPage() {
             className="border border-t-0 border-amber-200 rounded-b-[24px] p-5"
             style={{ background: "linear-gradient(135deg, #FFFAE8 0%, #FFF3CC 50%, #FFE89C 100%)" }}
           >
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-800 mb-1">현재 잔여 포인트</p>
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-800 mb-1">이벤트 코인</p>
             <div className="flex items-center gap-3">
               <CoinIcon size="lg" />
               <span className="text-[28px] font-black text-[#7A4A00] leading-none">
                 {pointsError && !hasLoadedPoints ? "-" : currentPoints.toLocaleString("ko-KR")}
-                <span className="ml-1.5 text-base font-bold text-amber-800">원</span>
+                <span className="ml-1.5 text-base font-bold text-amber-800">코인</span>
               </span>
             </div>
             {pointsError ? (
               <div className="mt-2 rounded-[10px] border border-rose-200 bg-rose-50 px-2.5 py-2">
-                <p className="text-[11px] font-bold text-rose-700">잔액 조회 실패: {pointsError}</p>
+                <p className="text-[11px] font-bold text-rose-700">이벤트 코인 조회 실패: {pointsError}</p>
                 <button
                   type="button"
                   onClick={() => { fetchPointsSection(); }}
                   className="mt-1 text-[11px] font-bold text-rose-600 underline"
                 >
-                  잔액 다시 조회
+                  다시 조회
                 </button>
               </div>
             ) : (
               <p className="mt-2 text-[11px] text-amber-800 font-semibold">
-                {userName} 님의 실시간 잔여 포인트입니다.
+                {userName} 님의 이벤트 코인입니다.
               </p>
             )}
             <p className="mt-1 text-[11px] text-[#9B7040]">
-              ⏳ 포인트 충전 소진 기한은 결제한 시점부터 1년 이내까지이며, 미사용한 포인트는 소멸됩니다.
+              코인은 콘텐츠 가치 단위이며, 유료 상품은 원화 단건 결제로 이용합니다.
             </p>
           </div>
         </section>
 
         <section className="rounded-[20px] border border-[#EDDBA3]/70 bg-[rgba(255,252,243,0.95)] px-4 py-3">
-          <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-800">구독 상태</p>
+          <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-800">현재 멤버십</p>
           <p className="mt-1 text-sm font-semibold text-[#7A5230]">{subscriptionSummary}</p>
           {subscriptionError && (
             <button
@@ -667,12 +667,12 @@ export default function PointHistoryPage() {
           </div>
         </section>
 
-        {/* 충전 내역 (결제 성공 건) */}
+        {/* 결제 내역 (결제 성공 건) */}
         <section
-          aria-label="충전 결제 내역"
+          aria-label="결제 내역"
           className="rounded-[24px] border border-[#EDDBA3]/70 bg-[rgba(255,252,243,0.95)] p-5 shadow-[0_8px_28px_rgba(120,80,10,0.09)]"
         >
-          <h2 className="text-[15px] font-bold text-[#5C3A1E] mb-3">충전 결제 내역</h2>
+          <h2 className="text-[15px] font-bold text-[#5C3A1E] mb-3">결제 내역</h2>
           {paymentsError ? (
             <div className="rounded-[14px] border border-rose-200 bg-rose-50 px-4 py-4">
               <p className="text-sm font-semibold text-rose-700">⚠️ {paymentsError}</p>
@@ -695,7 +695,7 @@ export default function PointHistoryPage() {
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="text-sm font-bold text-[#5C3A1E]">
-                      포인트 {formatWon(p.paymentAmount)} 충전 · +{formatWon(p.chargedPoints)}
+                      결제 금액 {formatWon(p.paymentAmount)} · {p.chargedPoints > 0 ? `${p.chargedPoints.toLocaleString("ko-KR")}코인 기준` : "상품 결제"}
                     </p>
                     <span className="rounded-full border px-2 py-0.5 text-[11px] font-bold bg-emerald-100 text-emerald-800 border-emerald-300">
                       결제완료
@@ -714,13 +714,15 @@ export default function PointHistoryPage() {
 
         {/* 안내 */}
         <section className="rounded-[20px] border border-[#EDDBA3]/60 bg-[rgba(255,248,228,0.55)] p-5">
-          <h3 className="font-bold text-[#5C3A1E] mb-2">포인트 이용 안내</h3>
+          <h3 className="font-bold text-[#5C3A1E] mb-2">결제/멤버십 이용 안내</h3>
           <ul className="space-y-1.5 text-sm text-[#7A5230]">
-            <li>• 포인트 충전 소진 기한은 <strong>결제한 시점부터 1년 이내</strong>까지이며, 미사용한 포인트는 소멸됩니다.</li>
-            <li>• 차감 내역은 서비스 이용 시 자동으로 기록됩니다.</li>
-            <li>• 예시: 9/1 포인트 10,000원 충전 → 9/5 포인트 1,000원 사용(상품명 표기) → 잔여포인트 9,000원으로 계산·표시됩니다.</li>
+            <li>• 코인은 가격 표시 단위이며, 현재 신규 선불 충전은 제공하지 않습니다.</li>
+            <li>• 유료 상품은 원화 단건 결제로 결제되며, 결제 완료 후 해당 상품 이용 또는 결과 생성이 진행됩니다.</li>
+            <li>• 시스템 오류, 중복 결제, 결과 미제공 건은 재생성 또는 환불 처리됩니다.</li>
             <li>• 환불 처리는 <strong>결제 수단(카드)으로만</strong> 가능합니다.</li>
-            <li>• 미사용 유상 포인트는 전자상거래 관련 법령에 따라 <strong>&#39;7일이내청약철회 가능&#39;</strong> 기준으로 환불 접수할 수 있습니다.</li>
+            <li>• 콘텐츠 생성이 시작되기 전에는 취소/환불 요청이 가능합니다.</li>
+            <li>• 콘텐츠 생성이 시작되었거나 결과가 정상 제공된 경우 디지털 콘텐츠 특성상 환불이 제한될 수 있습니다.</li>
+            <li>• 멤버십 30일 이용권은 자동결제 상품이 아니며, 기간 종료 후 무료 플랜으로 전환됩니다.</li>
             <li>• 내역 조회는 최근 20건까지 표시됩니다. 더 오래된 내역이 필요하면 고객센터로 문의해 주세요.</li>
             <li>• 민원담당자: 박병하 (050-6664-7398) · seongbae555@gmail.com</li>
           </ul>
