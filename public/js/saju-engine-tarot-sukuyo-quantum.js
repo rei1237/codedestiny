@@ -4015,93 +4015,197 @@ function syPickUniqueReadingText(currentText, candidates, fallbackText, usedMap)
     var sentence = syEnsureSentenceEnding(raw);
     var key = syReadingTextKey(sentence);
     if (!key) continue;
-    if (usedMap && usedMap[key]) continue;
-    if (usedMap) usedMap[key] = true;
+    var tokenKeys = syCanonicalTokenize(sentence, '').map(function(part) {
+      return syReadingTextKey(part);
+    }).filter(function(partKey) {
+      return !!partKey;
+    });
+    var hasConflict = false;
+    if (usedMap) {
+      if (usedMap[key]) hasConflict = true;
+      for (var t = 0; t < tokenKeys.length; t += 1) {
+        if (usedMap[tokenKeys[t]]) {
+          hasConflict = true;
+          break;
+        }
+      }
+    }
+    if (hasConflict) continue;
+    if (usedMap) {
+      usedMap[key] = true;
+      for (var m = 0; m < tokenKeys.length; m += 1) {
+        usedMap[tokenKeys[m]] = true;
+      }
+    }
     return sentence;
   }
   var fallback = syEnsureSentenceEnding(fallbackText || '정보 없음');
   var fallbackKey = syReadingTextKey(fallback);
-  if (usedMap && fallbackKey) usedMap[fallbackKey] = true;
+  if (usedMap && fallbackKey) {
+    usedMap[fallbackKey] = true;
+    var fallbackTokenKeys = syCanonicalTokenize(fallback, '').map(function(part) {
+      return syReadingTextKey(part);
+    }).filter(function(partKey) {
+      return !!partKey;
+    });
+    for (var k = 0; k < fallbackTokenKeys.length; k += 1) {
+      usedMap[fallbackTokenKeys[k]] = true;
+    }
+  }
   return fallback;
 }
 
-function syBuildLoveAttractionType(traits, loveTokens, karmaTokens, mansionIdx) {
+function syReadingBand(score) {
+  var n = Number(score);
+  if (!Number.isFinite(n)) return '보통';
+  if (n >= 80) return '강함';
+  if (n >= 68) return '안정';
+  if (n >= 56) return '보통';
+  return '주의';
+}
+
+function syReadingMetricClamp(score) {
+  var n = Number(score);
+  if (!Number.isFinite(n)) return 50;
+  return Math.max(0, Math.min(100, Math.round(n)));
+}
+
+function syComputeReadingMetrics(daily) {
+  var overall = Number(daily && daily.overall);
+  var relations = Number(daily && daily.relations);
+  var love = Number(daily && daily.love);
+  var wealth = Number(daily && daily.wealth);
+
+  var emotionalStability = syReadingMetricClamp((overall * 0.45) + (relations * 0.3) + (love * 0.25));
+  var relationalInitiative = syReadingMetricClamp((love * 0.55) + (relations * 0.35) + (overall * 0.1));
+  var cautionLoad = syReadingMetricClamp(((100 - overall) * 0.45) + ((100 - relations) * 0.25) + ((100 - love) * 0.3));
+  var financialDiscipline = syReadingMetricClamp((wealth * 0.65) + (overall * 0.2) + ((100 - love) * 0.15));
+  var collaborationPower = syReadingMetricClamp((relations * 0.5) + (overall * 0.3) + (wealth * 0.2));
+  var burnoutRisk = syReadingMetricClamp(((100 - overall) * 0.4) + ((100 - wealth) * 0.2) + ((100 - love) * 0.2) + ((100 - relations) * 0.2));
+
+  return {
+    overall: syReadingMetricClamp(overall),
+    relations: syReadingMetricClamp(relations),
+    love: syReadingMetricClamp(love),
+    wealth: syReadingMetricClamp(wealth),
+    emotionalStability: emotionalStability,
+    relationalInitiative: relationalInitiative,
+    cautionLoad: cautionLoad,
+    financialDiscipline: financialDiscipline,
+    collaborationPower: collaborationPower,
+    burnoutRisk: burnoutRisk,
+    loveBand: syReadingBand(love),
+    relationBand: syReadingBand(relations),
+    wealthBand: syReadingBand(wealth)
+  };
+}
+
+function syBuildLoveAttractionType(traits, loveTokens, karmaTokens, mansionIdx, metrics) {
   var override = syReadingOverrideByIndex(mansionIdx, 'attractionType');
   if (override) return override;
+  var calculated = metrics && metrics.relationalInitiative >= 72
+    ? '관계 신호를 빠르게 읽고 감정적으로 일관된 사람에게 끌림이 강하게 형성됩니다.'
+    : (metrics && metrics.relationalInitiative <= 55
+      ? '속도보다 안정성을 지키는 사람, 약속을 천천히 지켜가는 사람에게 마음이 깊어집니다.'
+      : '신뢰와 책임감이 분명한 사람에게 자연스럽게 끌리는 흐름입니다.');
   return syComposeFromTokens(
-    syCanonicalTokenize((traits.love || '') + '. ' + (traits.karma || '') + '. 신뢰감이 선명한 사람에게 끌림이 커집니다.', '신뢰감이 선명한 사람에게 끌림이 커집니다.'),
+    syCanonicalTokenize((traits.love || '') + '. ' + (traits.karma || '') + '. ' + calculated, '신뢰감이 선명한 사람에게 끌림이 커집니다.'),
     '신뢰감이 선명한 사람에게 끌림이 커집니다.'
   );
 }
 
-function syBuildLoveStyleText(traits, loveTokens, hiddenTokens, mansionIdx) {
+function syBuildLoveStyleText(traits, loveTokens, hiddenTokens, mansionIdx, metrics) {
   var override = syReadingOverrideByIndex(mansionIdx, 'loveStyle');
   if (override) return override;
+  var calculated = metrics && metrics.emotionalStability >= 70
+    ? '감정 기복을 스스로 관리하며 따뜻한 표현을 유지하는 방식이 관계 만족도를 높입니다.'
+    : '감정이 흔들릴 때 침묵으로 버티기보다 짧은 공유 대화를 넣을수록 관계가 안정됩니다.';
   return syComposeFromTokens(
-    syCanonicalTokenize((traits.love || '') + '. ' + (traits.hidden || '') + '. 표현보다 돌봄으로 애정을 전하는 타입입니다.', '표현보다 돌봄으로 애정을 전하는 타입입니다.'),
+    syCanonicalTokenize((traits.love || '') + '. ' + (traits.hidden || '') + '. ' + calculated, '표현보다 돌봄으로 애정을 전하는 타입입니다.'),
     '표현보다 돌봄으로 애정을 전하는 타입입니다.'
   );
 }
 
-function syBuildDeepeningMomentText(traits, karmaTokens, relationTokens, mansionIdx) {
+function syBuildDeepeningMomentText(traits, karmaTokens, relationTokens, mansionIdx, metrics) {
   var override = syReadingOverrideByIndex(mansionIdx, 'deepeningMoment');
   if (override) return override;
+  var calculated = metrics && metrics.relations >= 72
+    ? '합의와 실행이 같은 날에 연결될 때 신뢰 심화 속도가 빨라집니다.'
+    : '기대치와 경계선을 대화로 명확히 맞추는 순간 관계의 깊이가 올라갑니다.';
   return syComposeFromTokens(
-    syCanonicalTokenize((traits.karma || '') + '. ' + (traits.love || '') + '. 기대와 경계를 솔직히 확인할 때 관계가 깊어집니다.', '기대와 경계를 솔직히 확인할 때 관계가 깊어집니다.'),
+    syCanonicalTokenize((traits.karma || '') + '. ' + (traits.love || '') + '. ' + calculated, '기대와 경계를 솔직히 확인할 때 관계가 깊어집니다.'),
     '기대와 경계를 솔직히 확인할 때 관계가 깊어집니다.'
   );
 }
 
-function syBuildLoveAnxietyPointText(traits, hiddenTokens, mansionIdx) {
+function syBuildLoveAnxietyPointText(traits, hiddenTokens, mansionIdx, metrics) {
   var override = syReadingOverrideByIndex(mansionIdx, 'anxietyPoint');
   if (override) return override;
+  var calculated = metrics && metrics.cautionLoad >= 64
+    ? '현재 지표상 감정 과부하 구간이 겹치므로 즉시 해석보다 감정 안정 루틴을 먼저 두는 편이 안전합니다.'
+    : '불안 신호가 낮은 편이라도 오해를 줄이기 위해 의도 확인 질문을 짧게 넣는 것이 효과적입니다.';
   return syComposeFromTokens(
-    syCanonicalTokenize((traits.hidden || '') + '. 감정을 혼자 정리하려고 버틸수록 오해가 커질 수 있습니다.', '감정을 혼자 정리하려고 버티면 오해가 커질 수 있습니다.'),
+    syCanonicalTokenize((traits.hidden || '') + '. ' + calculated, '감정을 혼자 정리하려고 버티면 오해가 커질 수 있습니다.'),
     '감정을 혼자 정리하려고 버티면 오해가 커질 수 있습니다.'
   );
 }
 
-function syBuildLoveLongTermAdviceText(traits, karmaTokens, mansionIdx) {
+function syBuildLoveLongTermAdviceText(traits, karmaTokens, mansionIdx, metrics) {
   var override = syReadingOverrideByIndex(mansionIdx, 'longTermAdvice');
   if (override) return override;
+  var calculated = metrics && metrics.relations >= 70
+    ? '장기적으로는 공감과 실행 균형을 유지하면 관계의 회복 탄력이 커집니다.'
+    : '장기적으로는 주간 대화 루틴을 고정해 관계 해석 비용을 낮추는 전략이 유효합니다.';
   return syComposeFromTokens(
-    syCanonicalTokenize((traits.karma || '') + '. 상대의 속도를 존중하는 대화 루틴이 관계 수명을 늘립니다.', '상대의 속도를 존중하는 대화 루틴이 관계 수명을 늘립니다.'),
+    syCanonicalTokenize((traits.karma || '') + '. ' + calculated, '상대의 속도를 존중하는 대화 루틴이 관계 수명을 늘립니다.'),
     '상대의 속도를 존중하는 대화 루틴이 관계 수명을 늘립니다.'
   );
 }
 
-function syBuildLoveAvoidPatternText(traits, hiddenTokens, mansionIdx) {
+function syBuildLoveAvoidPatternText(traits, hiddenTokens, mansionIdx, metrics) {
   var override = syReadingOverrideByIndex(mansionIdx, 'avoidPattern');
   if (override) return override;
+  var calculated = metrics && metrics.cautionLoad >= 64
+    ? '감정 피크 구간에서 즉시 결론 내리기'
+    : '상대 의도를 단정하고 대화를 생략하기';
   return syFirstToken(
-    syCanonicalTokenize((traits.hidden || '') + '. 감정이 격할 때 즉시 결론 내리기', '감정이 격할 때 즉시 결론 내리기'),
+    syCanonicalTokenize((traits.hidden || '') + '. ' + calculated, '감정이 격할 때 즉시 결론 내리기'),
     '감정이 격할 때 즉시 결론 내리기'
   );
 }
 
-function syBuildSpendingHabitText(traits, wealthTokens, mansionIdx) {
+function syBuildSpendingHabitText(traits, wealthTokens, mansionIdx, metrics) {
   var override = syReadingOverrideByIndex(mansionIdx, 'spendingHabit');
   if (override) return override;
+  var calculated = metrics && metrics.financialDiscipline >= 70
+    ? '재물 지표가 안정권이라 가치 지출은 유지하되 변동 지출만 상한을 두면 효율이 올라갑니다.'
+    : '재물 지표 변동성이 있어 보상성 지출 한도를 선제 설정해야 현금흐름이 안정됩니다.';
   return syComposeFromTokens(
-    syCanonicalTokenize((traits.wealth || '') + '. 기준이 분명할수록 지출 효율이 높아집니다.', '기준이 분명할수록 지출 효율이 높아집니다.'),
+    syCanonicalTokenize((traits.wealth || '') + '. ' + calculated, '기준이 분명할수록 지출 효율이 높아집니다.'),
     '기준이 분명할수록 지출 효율이 높아집니다.'
   );
 }
 
-function syBuildWorkCautionText(traits, workTokens, careerTokens, mansionIdx) {
+function syBuildWorkCautionText(traits, workTokens, careerTokens, mansionIdx, metrics) {
   var override = syReadingOverrideByIndex(mansionIdx, 'workCaution');
   if (override) return override;
+  var calculated = metrics && metrics.burnoutRisk >= 62
+    ? '현재 번아웃 위험 지표가 높아 업무량 자체보다 전환 휴식 타이밍 관리가 우선 과제입니다.'
+    : '리스크 지표는 보통 수준이지만 역할 과부하가 누적되면 판단 품질이 빠르게 떨어질 수 있습니다.';
   return syComposeFromTokens(
-    syCanonicalTokenize((traits.work || '') + '. 역할 과부하를 방치하면 집중력과 판단력이 함께 떨어질 수 있습니다.', '역할 과부하를 방치하면 집중력과 판단력이 떨어질 수 있습니다.'),
+    syCanonicalTokenize((traits.work || '') + '. ' + calculated, '역할 과부하를 방치하면 집중력과 판단력이 떨어질 수 있습니다.'),
     '역할 과부하를 방치하면 집중력과 판단력이 떨어질 수 있습니다.'
   );
 }
 
-function syBuildCollaborationTipText(traits, workTokens, careerTokens, mansionIdx) {
+function syBuildCollaborationTipText(traits, workTokens, careerTokens, mansionIdx, metrics) {
   var override = syReadingOverrideByIndex(mansionIdx, 'collaborationTip');
   if (override) return override;
+  var calculated = metrics && metrics.collaborationPower >= 72
+    ? '협업 강점이 높은 날이라 초기 기준만 맞추면 속도와 품질을 동시에 확보하기 쉽습니다.'
+    : '협업 지표가 흔들리는 날에는 역할·마감·승인 기준을 문서화해 해석 비용을 줄여야 합니다.';
   return syComposeFromTokens(
-    syCanonicalTokenize((traits.work || '') + '. ' + syComposeFromTokens(careerTokens, '') + '. 역할과 마감 기준을 먼저 합의할수록 협업 품질이 높아집니다.', '역할과 마감 기준을 먼저 합의할수록 협업 품질이 높아집니다.'),
+    syCanonicalTokenize((traits.work || '') + '. ' + syComposeFromTokens(careerTokens, '') + '. ' + calculated, '역할과 마감 기준을 먼저 합의할수록 협업 품질이 높아집니다.'),
     '역할과 마감 기준을 먼저 합의할수록 협업 품질이 높아집니다.'
   );
 }
@@ -4264,6 +4368,7 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
   var careerTokens = syCanonicalList(canonicalData && canonicalData.sukuyoAttributes && canonicalData.sukuyoAttributes.careerStyle, []);
   var wealthStyleTokens = syCanonicalList(canonicalData && canonicalData.sukuyoAttributes && canonicalData.sukuyoAttributes.wealthStyle, []);
   var emotionTokens = syCanonicalTokenize((traits.hidden || '') + '. ' + (daily.insight || ''), '감정 파도를 미리 알아차리면 하루가 부드러워집니다.');
+  var readingMetrics = syComputeReadingMetrics(daily);
   var mansionIndex = Number.isFinite(Number(sData.mansionIdx))
     ? Number(sData.mansionIdx)
     : (Number.isFinite(Number(natal.index)) ? Number(natal.index) : null);
@@ -4311,15 +4416,15 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
   var miniAnkwe = syClampScore((daily.love * 0.86) + ((100 - daily.relations) * 0.1));
   var miniMyeongsoe = syClampScore((daily.overall * 0.52) + (daily.relations * 0.3) + ((100 - daily.wealth) * 0.12));
 
-  var attractionTypeText = syBuildLoveAttractionType(traits, loveTokens, karmaTokens, mansionIndex);
-  var loveStyleText = syBuildLoveStyleText(traits, loveTokens, hiddenTokens, mansionIndex);
-  var deepeningMomentText = syBuildDeepeningMomentText(traits, karmaTokens, relationTokens, mansionIndex);
-  var anxietyPointText = syBuildLoveAnxietyPointText(traits, hiddenTokens, mansionIndex);
-  var longTermAdviceText = syBuildLoveLongTermAdviceText(traits, karmaTokens, mansionIndex);
-  var avoidPatternText = syBuildLoveAvoidPatternText(traits, hiddenTokens, mansionIndex);
-  var spendingHabitText = syBuildSpendingHabitText(traits, wealthTokens, mansionIndex);
-  var workCautionText = syBuildWorkCautionText(traits, workTokens, careerTokens, mansionIndex);
-  var collaborationTipText = syBuildCollaborationTipText(traits, workTokens, careerTokens, mansionIndex);
+  var attractionTypeText = syBuildLoveAttractionType(traits, loveTokens, karmaTokens, mansionIndex, readingMetrics);
+  var loveStyleText = syBuildLoveStyleText(traits, loveTokens, hiddenTokens, mansionIndex, readingMetrics);
+  var deepeningMomentText = syBuildDeepeningMomentText(traits, karmaTokens, relationTokens, mansionIndex, readingMetrics);
+  var anxietyPointText = syBuildLoveAnxietyPointText(traits, hiddenTokens, mansionIndex, readingMetrics);
+  var longTermAdviceText = syBuildLoveLongTermAdviceText(traits, karmaTokens, mansionIndex, readingMetrics);
+  var avoidPatternText = syBuildLoveAvoidPatternText(traits, hiddenTokens, mansionIndex, readingMetrics);
+  var spendingHabitText = syBuildSpendingHabitText(traits, wealthTokens, mansionIndex, readingMetrics);
+  var workCautionText = syBuildWorkCautionText(traits, workTokens, careerTokens, mansionIndex, readingMetrics);
+  var collaborationTipText = syBuildCollaborationTipText(traits, workTokens, careerTokens, mansionIndex, readingMetrics);
 
   var reading = {
     hero: {
