@@ -15927,12 +15927,30 @@ function renderZiwei(p, natal, targetId) {
         }
       } catch (ctxErr) {
         console.warn('[ZiweiCompat] KASI context fallback:', ctxErr);
-        if (typeof window._renderZwComprehensiveFallback === 'function') {
-          window._renderZwComprehensiveFallback(seed, err);
-        }
-      var correctedTotal = ((ph * 60 + pmin - cityLngOffset) % 1440 + 1440) % 1440;
-      correctedHour = Math.floor(correctedTotal / 60);
-      correctedMinute = correctedTotal % 60;
+      }
+
+      var tzResolved = resolveBirthTimezoneOffset(py, pm, pdm, ph, pmin, cityTz, isNaN(cityTzOff) ? 9 : cityTzOff);
+      var stdLong = tzResolved.tzOffsetHours * 15;
+      var correction = _applyTrueSolarTimeCorrection({
+        year: py,
+        month: pm,
+        day: pdm,
+        hour: ph,
+        minute: pmin,
+        longitude: cityLong,
+        standardMeridian: stdLong
+      });
+      if (!correction) {
+        outEl.innerHTML = '<div style="color:#fda4af;font-size:0.9rem;">진태양시 보정 계산에 실패했습니다. 입력값을 확인해 주세요.</div>';
+        return;
+      }
+
+      var correctedYear = correction.correctedYear;
+      var correctedMonth = correction.correctedMonth;
+      var correctedDay = correction.correctedDay;
+      var correctedHour = correction.correctedHour;
+      var correctedMinute = correction.correctedMinute;
+      var cityLngOffset = Math.round(correction.longitudeCorrectionMinutes * 1000) / 1000;
       var correctionMsg = '진태양시 보정 적용: '
         + z2(ph) + ':' + z2(pmin)
         + ' → ' + z2(correctedHour) + ':' + z2(correctedMinute)
@@ -15955,7 +15973,7 @@ function renderZiwei(p, natal, targetId) {
 
       var partnerData = null;
       try {
-        partnerData = calcZiweiPalaces(py, pm, pdm, correctedHour, correctedMinute);
+        partnerData = calcZiweiPalaces(correctedYear, correctedMonth, correctedDay, correctedHour, correctedMinute);
       } catch (e) {
         outEl.innerHTML = '<div style="color:#fda4af;font-size:0.9rem;">상대 정보 계산 중 오류가 발생했습니다. 입력값을 확인해 주세요.</div>';
         return;
