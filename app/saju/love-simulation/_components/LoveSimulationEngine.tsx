@@ -7,11 +7,13 @@ import { DialogueBox } from "./DialogueBox";
 import { AffinityMeter } from "./AffinityMeter";
 import { MALE_PRESETS } from "../_data/presets";
 import { Persona } from "../_types";
-import { ArrowLeft, Sparkles, RefreshCw } from "lucide-react";
+import { ArrowLeft, Sparkles, RefreshCw, PlusCircle } from "lucide-react";
+import { CustomSajuForm } from "./CustomSajuForm";
 
 export const LoveSimulationEngine: React.FC = () => {
   const { state, startSimulation, handleChoice, reset, currentScenario } = useSimulation();
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
+  const [isCustomFormOpen, setIsCustomFormOpen] = useState(false);
 
   if (!state.currentPersona) {
     return (
@@ -31,6 +33,32 @@ export const LoveSimulationEngine: React.FC = () => {
           <p className="text-gray-400 mb-12 text-lg">
             사주 분석을 통해 당신과 가장 잘 어울리는 상대를 선택하거나, 직접 정보를 입력하여 가상 연애를 시작해보세요.
           </p>
+
+          <motion.div 
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setIsCustomFormOpen(true)}
+            className="mb-10 p-6 bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/30 rounded-3xl cursor-pointer hover:border-pink-500/60 hover:shadow-[0_0_30px_rgba(219,39,119,0.2)] transition-all flex items-center justify-between group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-gradient-to-tr from-pink-500 to-rose-400 rounded-2xl flex items-center justify-center shadow-lg shadow-pink-500/20 group-hover:scale-110 transition-transform">
+                <PlusCircle className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white mb-1">상대방 사주 직접 입력하기</h3>
+                <p className="text-pink-300/80 text-sm">생년월일시를 입력하면 맞춤형 페르소나가 생성됩니다.</p>
+              </div>
+            </div>
+            <div className="hidden sm:block px-4 py-2 bg-pink-500/20 text-pink-300 rounded-full text-sm font-bold border border-pink-500/20">
+              시작하기 →
+            </div>
+          </motion.div>
+
+          <div className="flex items-center gap-4 mb-6">
+            <div className="h-px bg-white/10 flex-1" />
+            <span className="text-gray-500 text-sm font-bold tracking-widest uppercase">또는 프리셋 선택</span>
+            <div className="h-px bg-white/10 flex-1" />
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {MALE_PRESETS.map((p, idx) => (
@@ -58,6 +86,20 @@ export const LoveSimulationEngine: React.FC = () => {
               </motion.div>
             ))}
           </div>
+
+          <AnimatePresence>
+            {isCustomFormOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                <CustomSajuForm 
+                  onClose={() => setIsCustomFormOpen(false)} 
+                  onPersonaCreated={(persona) => {
+                    setIsCustomFormOpen(false);
+                    startSimulation(persona);
+                  }}
+                />
+              </div>
+            )}
+          </AnimatePresence>
 
           <AnimatePresence>
             {selectedPersona && (
