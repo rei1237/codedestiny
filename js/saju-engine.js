@@ -10969,20 +10969,56 @@ function buildZwSummaryTableHtml(palace) {
   var dahanHead = (Array.isArray(palace && palace.daHanList) ? palace.daHanList[0] : null) || null;
   var dahanLabel = dahanHead ? String((dahanHead.startAge || '') + '~' + (dahanHead.endAge || '')).replace(/^~|~$/g,'') : '';
   var dahanLine = (weakest3[0] && weakest3[0].energyScore < 50) ? DAHAN_INTERPRET_RULES.weak : DAHAN_INTERPRET_RULES.strong;
+  var strongestLeadText = strongest3.map(function(r){ return r.mainEntries[0] ? r.mainEntries[0].name : '공궁'; }).join(' · ');
+  var weakestLeadText = weakest3.map(function(r){ return r.mainEntries[0] ? r.mainEntries[0].name : '공궁'; }).join(' · ');
+  var strongestLeadRow = strongest3[0] || null;
+  var weakestLeadRow = weakest3[0] || null;
+  var energyGap = (strongestLeadRow && weakestLeadRow)
+    ? Math.max(0, Number(strongestLeadRow.energyScore || 0) - Number(weakestLeadRow.energyScore || 0))
+    : 0;
+  var repeatPatternLine = (function(){
+    if (!strongestLeadRow || !weakestLeadRow) {
+      return '강한 궁 확장과 약한 궁 보정의 리듬을 분리하면 운의 안정도가 빠르게 올라갑니다.';
+    }
+    var sLead = strongestLeadRow.mainEntries[0] ? strongestLeadRow.mainEntries[0].name : '공궁';
+    var wLead = weakestLeadRow.mainEntries[0] ? weakestLeadRow.mainEntries[0].name : '공궁';
+    var tone = energyGap >= 20
+      ? '확장과 보정의 우선순위가 뚜렷한 명반입니다.'
+      : '확장과 보정이 동시에 필요한 균형형 명반입니다.';
+    return strongestLeadRow.pNameDisplay + '의 ' + sLead + ' 성향이 기회를 빠르게 당기고, '
+      + weakestLeadRow.pNameDisplay + '의 ' + wLead + ' 성향은 운영 검증을 늦추면 비용 누수로 이어지기 쉽습니다. '
+      + tone;
+  })();
+  var relationLeadRow = findRowByName('부처궁') || findRowByName('복덕궁') || null;
+  var relationRiskLine = (function(){
+    if (!relationLeadRow) {
+      return '관계는 감정보다 규칙이 오래 갑니다. 역할·시간·돈의 경계를 먼저 합의할수록 갈등 비용이 낮아집니다.';
+    }
+    var lead = relationLeadRow.mainEntries[0] ? relationLeadRow.mainEntries[0].name : '공궁';
+    var signals = [];
+    if (relationLeadRow.sihuaType) signals.push('사화 ' + relationLeadRow.sihuaType);
+    if (relationLeadRow.badStars.length) signals.push('흉성 ' + relationLeadRow.badStars.slice(0,2).join(' · '));
+    if (relationLeadRow.borrowedMainNames.length) signals.push('차성 ' + relationLeadRow.borrowedMainNames.join(' · '));
+    var signalText = signals.length ? ('신호: ' + signals.join(' / ') + '.') : '직접 충돌 신호는 약한 편입니다.';
+    var actionText = relationLeadRow.sihuaType === '화기' || relationLeadRow.badStars.length >= 2
+      ? '감정이 올라온 직후 결론을 미루고 24시간 후 재합의 규칙을 두면 관계 비용을 크게 줄일 수 있습니다.'
+      : '정기 대화 루틴과 기대치 문장 합의를 병행하면 인연운이 실질 협력으로 연결됩니다.';
+    return relationLeadRow.pNameDisplay + '의 ' + lead + ' 결이 관계 기준을 만듭니다. ' + signalText + ' ' + actionText;
+  })();
 
   var overallSummaryHtml = ''
     + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px">'
     + '  <div style="background:rgba(30,41,59,0.5);border:1px solid rgba(99,102,241,0.35);border-radius:10px;padding:10px">'
     + '    <div style="font-size:0.82rem;color:#c4b5fd;font-weight:800">1) 가장 강하게 살아 있는 영역</div>'
-    + '    <div style="margin-top:5px;font-size:0.8rem;color:#e2e8f0;line-height:1.6">'+escText(strongest3.map(function(r){ return r.pNameDisplay; }).join(' · ') || '데이터 없음')+' 중심으로 운의 체감이 빠르게 나타납니다.</div>'
+    + '    <div style="margin-top:5px;font-size:0.8rem;color:#e2e8f0;line-height:1.6">'+escText(strongest3.map(function(r){ return r.pNameDisplay; }).join(' · ') || '데이터 없음')+' 중심으로 운의 체감이 빠르게 나타납니다. 주축 성향은 '+escText(strongestLeadText || '데이터 없음')+'입니다.</div>'
     + '  </div>'
     + '  <div style="background:rgba(30,41,59,0.5);border:1px solid rgba(244,114,182,0.35);border-radius:10px;padding:10px">'
     + '    <div style="font-size:0.82rem;color:#f9a8d4;font-weight:800">2) 관리가 필요한 영역</div>'
-    + '    <div style="margin-top:5px;font-size:0.8rem;color:#e2e8f0;line-height:1.6">'+escText(weakest3.map(function(r){ return r.pNameDisplay; }).join(' · ') || '데이터 없음')+'은 속도보다 운영 설계가 먼저 필요합니다.</div>'
+    + '    <div style="margin-top:5px;font-size:0.8rem;color:#e2e8f0;line-height:1.6">'+escText(weakest3.map(function(r){ return r.pNameDisplay; }).join(' · ') || '데이터 없음')+'은 속도보다 운영 설계가 먼저 필요합니다. 보정이 필요한 주성은 '+escText(weakestLeadText || '데이터 없음')+'입니다.</div>'
     + '  </div>'
     + '  <div style="background:rgba(30,41,59,0.5);border:1px solid rgba(56,189,248,0.35);border-radius:10px;padding:10px">'
     + '    <div style="font-size:0.82rem;color:#7dd3fc;font-weight:800">3) 반복되는 패턴</div>'
-    + '    <div style="margin-top:5px;font-size:0.8rem;color:#e2e8f0;line-height:1.6">강한 궁에서는 빠르게 확장하고, 약한 궁에서는 감정·관계 비용이 뒤늦게 나타나는 패턴이 보입니다.</div>'
+    + '    <div style="margin-top:5px;font-size:0.8rem;color:#e2e8f0;line-height:1.6">'+escText(repeatPatternLine)+'</div>'
     + '  </div>'
     + '  <div style="background:rgba(30,41,59,0.5);border:1px solid rgba(74,222,128,0.35);border-radius:10px;padding:10px">'
     + '    <div style="font-size:0.82rem;color:#86efac;font-weight:800">4) 성공이 열리는 방향</div>'
@@ -10990,7 +11026,7 @@ function buildZwSummaryTableHtml(palace) {
     + '  </div>'
     + '  <div style="background:rgba(30,41,59,0.5);border:1px solid rgba(251,146,60,0.35);border-radius:10px;padding:10px">'
     + '    <div style="font-size:0.82rem;color:#fdba74;font-weight:800">5) 관계에서 주의할 점</div>'
-    + '    <div style="margin-top:5px;font-size:0.8rem;color:#e2e8f0;line-height:1.6">설명되지 않은 기대치가 갈등을 키우기 쉽습니다. 중요한 관계일수록 역할·시간·돈의 경계를 먼저 합의하세요.</div>'
+    + '    <div style="margin-top:5px;font-size:0.8rem;color:#e2e8f0;line-height:1.6">'+escText(relationRiskLine)+'</div>'
     + '  </div>'
     + '  <div style="background:rgba(30,41,59,0.5);border:1px solid rgba(196,181,253,0.35);border-radius:10px;padding:10px">'
     + '    <div style="font-size:0.82rem;color:#ddd6fe;font-weight:800">6) 지금 먼저 정리할 부분</div>'
@@ -11194,7 +11230,7 @@ function buildZwSummaryTableHtml(palace) {
 
   var enhancedHtml = ''
     + '<div class="zw-advanced-counsel" style="padding:12px 12px 14px;border-top:1px solid rgba(196,181,253,0.25);background:linear-gradient(180deg,rgba(10,14,28,0.35),rgba(8,12,22,0.7))">'
-    + '  <div style="font-size:0.92rem;color:#e9d5ff;font-weight:900;margin-bottom:9px">📌 전체 명반 종합 요약</div>'
+    + '  <div style="font-size:0.92rem;color:#e9d5ff;font-weight:900;margin-bottom:9px">🌟 생애 총론</div>'
     +      overallSummaryHtml
     + '  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:12px">'
     + '    <div style="background:rgba(8,47,73,0.35);border:1px solid rgba(56,189,248,0.35);border-radius:10px;padding:10px">'
@@ -15882,10 +15918,37 @@ function renderZiwei(p, natal, targetId) {
       window._zwMuteEvent(evt);
       window._zwReportToggleLockUntil = Date.now() + 420;
       var seed = window._zwComprehensiveSeed;
-      if ((!seed || !seed.pd || !seed.stars) && typeof window._resolveZwComprehensiveSeed === 'function') {
+      var hasSeedStars = function(stars) {
+        if (!stars || typeof stars !== 'object') return false;
+        return !!(
+          (Array.isArray(stars.main) && stars.main.length)
+          || (Array.isArray(stars.borrowedMain) && stars.borrowedMain.length)
+          || (Array.isArray(stars.aux) && stars.aux.length)
+          || (Array.isArray(stars.bad) && stars.bad.length)
+        );
+      };
+      if ((!seed || !seed.pd || !hasSeedStars(seed.stars)) && typeof window._resolveZwComprehensiveSeed === 'function') {
         seed = window._resolveZwComprehensiveSeed(window._currentZiweiData);
       }
-      if (!seed || !seed.pd || !seed.stars || typeof window._renderZwPanel !== 'function') {
+      if ((!seed || !seed.pd || !hasSeedStars(seed.stars)) && window._currentZiweiData) {
+        var fallbackPd = (typeof window._ensureZwStarBuckets === 'function')
+          ? (window._ensureZwStarBuckets(window._currentZiweiData) || window._currentZiweiData)
+          : window._currentZiweiData;
+        if (fallbackPd && Array.isArray(fallbackPd.palacesByIndex)) {
+          var fallbackIdx = fallbackPd.palacesByIndex.indexOf('명궁');
+          if (fallbackIdx < 0) fallbackIdx = 0;
+          var fallbackStars = window._normalizeZwStarBucket(fallbackPd.stars && fallbackPd.stars[fallbackIdx]);
+          if (hasSeedStars(fallbackStars)) {
+            seed = {
+              idx: fallbackIdx,
+              pName: fallbackPd.palacesByIndex[fallbackIdx] || ('제' + (fallbackIdx + 1) + '궁'),
+              stars: fallbackStars,
+              pd: fallbackPd
+            };
+          }
+        }
+      }
+      if (!seed || !seed.pd || typeof window._renderZwPanel !== 'function') {
         var panel = document.getElementById('zwComprehensiveReport');
         if (panel) {
           panel.innerHTML = '<div class="zw-empty-state">'
@@ -15926,8 +15989,14 @@ function renderZiwei(p, natal, targetId) {
         if (typeof raw !== 'object') {
           return { main: [], borrowedMain: [], aux: [], bad: [] };
         }
-        var main = Array.isArray(raw.main) ? raw.main : (Array.isArray(raw.stars) ? raw.stars : []);
-        var borrowedMain = Array.isArray(raw.borrowedMain) ? raw.borrowedMain : [];
+        var main = Array.isArray(raw.main)
+          ? raw.main
+          : (Array.isArray(raw.stars)
+            ? raw.stars
+            : (Array.isArray(raw.mainStars) ? raw.mainStars : []));
+        var borrowedMain = Array.isArray(raw.borrowedMain)
+          ? raw.borrowedMain
+          : (Array.isArray(raw.borrowedMainStars) ? raw.borrowedMainStars : []);
         var aux = Array.isArray(raw.aux) ? raw.aux : (Array.isArray(raw.auxStars) ? raw.auxStars : []);
         var bad = Array.isArray(raw.bad) ? raw.bad : (Array.isArray(raw.badStars) ? raw.badStars : []);
         return { main: main, borrowedMain: borrowedMain, aux: aux, bad: bad };
@@ -16053,7 +16122,9 @@ function renderZiwei(p, natal, targetId) {
           for (var pi = 0; pi < pd.palaceStarData.length; pi++) {
             var probe = pd.palaceStarData[pi] || {};
             if ((Array.isArray(probe.stars) && probe.stars.length)
+              || (Array.isArray(probe.mainStars) && probe.mainStars.length)
               || (Array.isArray(probe.borrowedMain) && probe.borrowedMain.length)
+              || (Array.isArray(probe.borrowedMainStars) && probe.borrowedMainStars.length)
               || (Array.isArray(probe.auxStars) && probe.auxStars.length)
               || (Array.isArray(probe.badStars) && probe.badStars.length)) {
               idx = pi;
@@ -19361,7 +19432,34 @@ function renderZiwei(p, natal, targetId) {
   var initialSeed = (typeof window._resolveZwComprehensiveSeed === 'function')
     ? window._resolveZwComprehensiveSeed(window._currentZiweiData)
     : null;
-  if (typeof window._renderZwPanel === 'function' && initialSeed && initialSeed.pd && initialSeed.stars) {
+  var hasInitialStars = function(stars) {
+    if (!stars || typeof stars !== 'object') return false;
+    return !!(
+      (Array.isArray(stars.main) && stars.main.length)
+      || (Array.isArray(stars.borrowedMain) && stars.borrowedMain.length)
+      || (Array.isArray(stars.aux) && stars.aux.length)
+      || (Array.isArray(stars.bad) && stars.bad.length)
+    );
+  };
+  if ((!initialSeed || !initialSeed.pd || !hasInitialStars(initialSeed.stars)) && window._currentZiweiData) {
+    var basePd = (typeof window._ensureZwStarBuckets === 'function')
+      ? (window._ensureZwStarBuckets(window._currentZiweiData) || window._currentZiweiData)
+      : window._currentZiweiData;
+    if (basePd && Array.isArray(basePd.palacesByIndex)) {
+      var baseIdx = basePd.palacesByIndex.indexOf('명궁');
+      if (baseIdx < 0) baseIdx = 0;
+      var baseStars = window._normalizeZwStarBucket(basePd.stars && basePd.stars[baseIdx]);
+      if (hasInitialStars(baseStars)) {
+        initialSeed = {
+          idx: baseIdx,
+          pName: basePd.palacesByIndex[baseIdx] || ('제' + (baseIdx + 1) + '궁'),
+          stars: baseStars,
+          pd: basePd
+        };
+      }
+    }
+  }
+  if (typeof window._renderZwPanel === 'function' && initialSeed && initialSeed.pd) {
     window._zwComprehensiveSeed = initialSeed;
     try {
       window._renderZwPanel(

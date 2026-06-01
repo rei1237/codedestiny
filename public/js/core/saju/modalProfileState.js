@@ -93,9 +93,6 @@ function _cdModalHardResetTop(overlayId, sheetId, anchorId) {
   if (anchor) {
     try {
       anchor.scrollTop = 0;
-      if (typeof anchor.scrollIntoView === 'function') {
-        anchor.scrollIntoView({ behavior: 'auto', block: 'start', inline: 'nearest' });
-      }
     } catch (e2) {}
   }
 }
@@ -222,17 +219,14 @@ function _renderZiweiSection() {
             } else {
               showZiweiFallback('필수 스크립트를 불러오지 못했습니다. 브라우저 캐시를 새로고침해 주세요.');
             }
-            _cdModalHardResetTop('ziweiModalOverlay', 'ziweiModalSheet', 'ziweiModalSection');
           })
           .catch(function (err) {
             console.warn('[Ziwei] 의존성 재시도 실패:', err);
             showZiweiFallback('필수 스크립트 로딩에 실패했습니다. 잠시 후 다시 시도해 주세요.');
-            _cdModalHardResetTop('ziweiModalOverlay', 'ziweiModalSheet', 'ziweiModalSection');
           });
         return;
       }
       showZiweiFallback('필수 스크립트 초기화에 실패했습니다. 새로고침 후 다시 시도해 주세요.');
-      _cdModalHardResetTop('ziweiModalOverlay', 'ziweiModalSheet', 'ziweiModalSection');
       return;
     }
 
@@ -242,7 +236,6 @@ function _renderZiweiSection() {
       console.warn('[Ziwei] 렌더 오류:', e);
       showZiweiFallback('렌더링 중 오류가 발생했습니다. 새로고침 후 다시 시도해 주세요.');
     }
-    _cdModalHardResetTop('ziweiModalOverlay', 'ziweiModalSheet', 'ziweiModalSection');
   }, 0);
 }
 
