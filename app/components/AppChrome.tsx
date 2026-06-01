@@ -10,6 +10,7 @@ const CHROMELESS_ROUTES = [
   "/yeon-star-hug",
   "/saju-fpti",
   "/tarot/numerology",
+  "/tarot/prompt-maker",
   "/tarot/crystal-soul",
   "/saju/animal-destiny",
   "/saju/animal-test",
