@@ -235,8 +235,19 @@ function normalizeDayChangePolicy(value) {
 }
 
 function normalizeCalendarType(value) {
-  const text = String(value || "solar").trim().toLowerCase();
-  if (text === "lunar" || text === "lunar_leap") return text;
+  const textRaw = String(value || "solar").trim();
+  const text = textRaw.toLowerCase();
+  if (
+    text === "lunar_leap"
+    || text === "leap"
+    || text === "leap_lunar"
+    || text === "leaplunar"
+    || textRaw === "윤달"
+    || textRaw === "음력윤달"
+  ) {
+    return "lunar_leap";
+  }
+  if (text === "lunar" || textRaw === "음력") return "lunar";
   return "solar";
 }
 
@@ -356,7 +367,14 @@ function createSolarFromNormalizedBirth(birth) {
 export function normalizeBirthPayload(rawBirth = {}, rawPerson = {}) {
   const dateParts = parseBirthDateParts(rawBirth.birthDate || rawBirth.date || rawBirth.solarDate || rawBirth.birthday || "");
   const timeParts = parseBirthTimeParts(rawBirth.birthTime || rawBirth.time || "");
-  const calendarType = normalizeCalendarType(rawBirth.calendarType || rawBirth.calendar || rawBirth.type || rawPerson.calendarType);
+  let calendarType = normalizeCalendarType(rawBirth.calendarType || rawBirth.calendar || rawBirth.type || rawPerson.calendarType);
+  const isLeapMonthInput = rawBirth.isLeapMonth ?? rawBirth.leapMonth ?? rawBirth.isLeap;
+  const isLeapMonth = isLeapMonthInput === true
+    || String(isLeapMonthInput || "").trim().toLowerCase() === "true"
+    || String(isLeapMonthInput || "").trim() === "1";
+  if (calendarType === "lunar" && isLeapMonth) {
+    calendarType = "lunar_leap";
+  }
 
   const hasNumericHour = Number.isFinite(Number(rawBirth.hour));
   const hasNumericMinute = Number.isFinite(Number(rawBirth.minute));
