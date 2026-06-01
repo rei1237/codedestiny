@@ -779,6 +779,7 @@ function normalizeGender(raw) {
 
 function normalizeCalendarType(raw) {
   const value = clean(raw).toLowerCase();
+  if (value.includes("윤") || value.includes("leap") || value === "lunar_leap") return "lunar_leap";
   if (["solar", "양력", "yang", "sun"].includes(value)) return "solar";
   if (["lunar", "음력", "moon"].includes(value)) return "lunar";
   return "unknown";
@@ -880,6 +881,9 @@ function normalizeInput(body = {}) {
   const hour = timeKnown ? birthTime.birthHour : null;
   const minute = timeKnown ? birthTime.birthMinute : 0;
   const birthplace = clean(body.birthplace) || "대한민국";
+  const latitude = safeNumber(body.latitude ?? body.lat, 37.5665);
+  const longitude = safeNumber(body.longitude ?? body.lng, 126.978);
+  const timezone = clean(body.timezone) || "Asia/Seoul";
 
   if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
     return { ok: false, message: "생년월일은 필수입니다." };
@@ -911,7 +915,10 @@ function normalizeInput(body = {}) {
       birthTime: timeKnown ? `${pad2(hour)}:${pad2(minute)}` : "",
       birthHour: timeKnown ? hour : null,
       birthMinute: timeKnown ? minute : 0,
-      timezone: clean(body.timezone) || "Asia/Seoul",
+      timezone,
+      latitude,
+      longitude,
+      birthplace,
       isTimeUnknown: !timeKnown,
     },
     profile: {
@@ -924,6 +931,9 @@ function normalizeInput(body = {}) {
       hour,
       minute,
       timeKnown,
+      timezone,
+      latitude,
+      longitude,
       birthplace,
       birthIso: timeKnown ? `${year}-${pad2(month)}-${pad2(day)} ${pad2(hour)}:${pad2(minute)}` : `${year}-${pad2(month)}-${pad2(day)} 시간 미상`,
     },
@@ -1724,16 +1734,32 @@ function extractSignalFromSajuData(rawSajuData = "") {
 function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
   let engineProfile = null;
   try {
+    const calendarType = profile.calendarType === "lunar_leap"
+      ? "lunar_leap"
+      : (profile.calendarType === "lunar" ? "lunar" : "solar");
     engineProfile = buildSajuProfile({
       name: profile.name,
       gender: profile.gender === "male" ? "M" : profile.gender === "female" ? "F" : "OTHER",
+      timezone: clean(profile.timezone) || "Asia/Seoul",
+      location: {
+        name: clean(profile.birthplace) || "대한민국",
+        latitude: safeNumber(profile.latitude, 37.5665),
+        longitude: safeNumber(profile.longitude, 126.978),
+        timezone: clean(profile.timezone) || "Asia/Seoul",
+      },
+      hourPillarTimePolicy: "TRUE_SOLAR_TIME",
+      dayChangePolicy: "MIDNIGHT",
       birth: {
-        calendarType: profile.calendarType === "lunar" ? "lunar" : "solar",
+        calendarType,
         year: profile.year,
         month: profile.month,
         day: profile.day,
         hour: Number.isFinite(profile.hour) ? profile.hour : 12,
         minute: Number.isFinite(profile.minute) ? profile.minute : 0,
+        timezone: clean(profile.timezone) || "Asia/Seoul",
+        birthPlace: clean(profile.birthplace) || "대한민국",
+        latitude: safeNumber(profile.latitude, 37.5665),
+        longitude: safeNumber(profile.longitude, 126.978),
         unknownTime: false,
       },
     });
@@ -1784,7 +1810,7 @@ function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
 
   const yearStem = getPillarStemLabel(enginePillars?.year);
   const monthStem = getPillarStemLabel(enginePillars?.month);
-  const dayStem = clean(parsedAnalysis.dayMaster || engineProfile?.dayMaster?.stemKo || getPillarStemLabel(enginePillars?.day) || parsed?.dayMaster);
+  const dayStem = clean(engineProfile?.dayMaster?.stemKo || getPillarStemLabel(enginePillars?.day) || parsedAnalysis.dayMaster || parsed?.dayMaster);
   const hourStem = getPillarStemLabel(enginePillars?.hour);
   const yearBranch = getPillarBranchLabel(enginePillars?.year);
   const monthBranch = getPillarBranchLabel(enginePillars?.month);
@@ -1838,7 +1864,7 @@ function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
   const usefulElements = [useful, support].filter(Boolean);
   const avoidElements = [caution].filter(Boolean);
   const powerLabel = clean(parsedAnalysis.powerLabel || (engineProfile?.usefulGods?.strength === "strong" ? "신강" : engineProfile?.usefulGods?.strength === "weak" ? "신약" : "중화"));
-  const monthBranchLabel = clean(parsedAnalysis.monthBranch || parsed?.monthBranch || monthBranch);
+  const monthBranchLabel = clean(monthBranch || parsedAnalysis.monthBranch || parsed?.monthBranch);
   const dayPillar = `${dayStem}${dayBranch}`.trim();
   const weakSignals = [
     clean(caution && `${caution} 기운 과속`),

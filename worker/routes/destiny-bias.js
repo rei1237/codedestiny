@@ -38,6 +38,11 @@ function normalizeText(value, maxLen = 1200) {
   return String(value || "").trim().slice(0, maxLen);
 }
 
+function normalizeNumber(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
 function parsePositiveInt(value, fallback, min, max) {
   const n = Number(value);
   if (!Number.isFinite(n)) return fallback;
@@ -121,10 +126,44 @@ function buildGateState(auth, user) {
 
 function normalizePersonInput(rawValue, fallbackName) {
   const source = (rawValue && typeof rawValue === "object") ? rawValue : {};
+  const rawBirth = source.birth && typeof source.birth === "object" ? source.birth : {};
+  const latitude = normalizeNumber(source.latitude ?? source.lat ?? rawBirth.latitude ?? rawBirth.lat);
+  const longitude = normalizeNumber(source.longitude ?? source.lng ?? rawBirth.longitude ?? rawBirth.lng);
+  const locationName = normalizeText(source.birthPlace || source.place || rawBirth.birthPlace || rawBirth.place, 64);
+  const timezone = normalizeText(source.timezone || rawBirth.timezone, 40);
+
+  const birth = {
+    ...rawBirth,
+    calendarType: normalizeText(rawBirth.calendarType || rawBirth.calendar || source.calendarType || source.calendar, 24),
+    year: rawBirth.year ?? source.year,
+    month: rawBirth.month ?? source.month,
+    day: rawBirth.day ?? source.day,
+    hour: rawBirth.hour ?? source.hour,
+    minute: rawBirth.minute ?? source.minute,
+    birthDate: normalizeText(rawBirth.birthDate || source.birthDate || source.date || source.birthday, 32),
+    birthTime: normalizeText(rawBirth.birthTime || source.birthTime || source.time, 16),
+    unknownTime: rawBirth.unknownTime ?? source.unknownTime,
+    timezone: timezone || rawBirth.timezone,
+    birthPlace: locationName || rawBirth.birthPlace,
+    latitude,
+    longitude,
+  };
+
   return {
     name: normalizeText(source.name, 24) || fallbackName,
     gender: normalizeText(source.gender, 12),
-    birth: source.birth || {},
+    timezone,
+    location: locationName || latitude !== null || longitude !== null
+      ? {
+          name: locationName || "출생지 미상",
+          latitude,
+          longitude,
+          timezone,
+        }
+      : null,
+    hourPillarTimePolicy: normalizeText(source.hourPillarTimePolicy || source.timeCorrectionPolicy, 32),
+    dayChangePolicy: normalizeText(source.dayChangePolicy, 32),
+    birth,
   };
 }
 

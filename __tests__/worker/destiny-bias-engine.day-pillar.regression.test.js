@@ -37,4 +37,27 @@ describe("destiny-bias-engine day pillar regression", () => {
 
     expect(profile?.pillars?.day?.ganji).toBe("庚寅");
   });
+
+  test("solar 1990-03-18 07:20 Seoul female resolves to 경오년 기묘월 임오일 계묘시", () => {
+    const profile = buildSajuProfile({
+      name: "테스트",
+      gender: "female",
+      hourPillarTimePolicy: "TRUE_SOLAR_TIME",
+      birth: {
+        calendarType: "solar",
+        birthDate: "1990-03-18",
+        birthTime: "07:20",
+        birthPlace: "서울",
+        timezone: "Asia/Seoul",
+        longitude: 126.978,
+        latitude: 37.5665,
+      },
+    });
+
+    expect(profile?.pillars?.year?.ganji).toBe("庚午");
+    expect(profile?.pillars?.month?.ganji).toBe("己卯");
+    expect(profile?.pillars?.day?.ganji).toBe("壬午");
+    expect(profile?.pillars?.hour?.ganji).toBe("癸卯");
+    expect(profile?.sajuCoreResult?.daewoon?.direction).toBe("BACKWARD");
+  });
 });

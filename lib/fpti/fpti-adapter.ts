@@ -239,9 +239,17 @@ export function calculateSajuSourceFromBirth(input: FptiFormInput): FptiSourceDa
   const parsedTime = parseBirthTime(input);
   let legacy: LegacySajuProfile;
   try {
+    const birthRegion = String(input?.birthRegion || "").trim() || "대한민국";
     legacy = buildSajuProfile({
       name: String(input?.name || "사용자").trim() || "사용자",
       gender: input?.gender || "OTHER",
+      timezone: "Asia/Seoul",
+      location: {
+        name: birthRegion,
+        timezone: "Asia/Seoul",
+      },
+      hourPillarTimePolicy: "TRUE_SOLAR_TIME",
+      dayChangePolicy: "MIDNIGHT",
       birth: {
         calendarType,
         year: parsedDate.year,
@@ -249,6 +257,8 @@ export function calculateSajuSourceFromBirth(input: FptiFormInput): FptiSourceDa
         day: parsedDate.day,
         hour: parsedTime.hour,
         minute: parsedTime.minute,
+        timezone: "Asia/Seoul",
+        birthPlace: birthRegion,
         unknownTime: parsedTime.unknownTime,
       },
     }) as LegacySajuProfile;

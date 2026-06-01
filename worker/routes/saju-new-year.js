@@ -215,7 +215,16 @@ function normalizeInput(body = {}) {
   const genderRaw = clean(body.gender || body.sex || profile.gender || profile.sex || "").toLowerCase();
   const gender = genderRaw === "f" || genderRaw.includes("female") || genderRaw.includes("여") ? "female" : genderRaw === "m" || genderRaw.includes("male") || genderRaw.includes("남") ? "male" : "unknown";
   const calendarRaw = clean(body.calendarType || body.calendar || birth.calendarType || birth.calType || profile.calendarType || "solar").toLowerCase();
-  const calendarType = calendarRaw.includes("lunar") || calendarRaw.includes("음") ? "lunar" : calendarRaw.includes("solar") || calendarRaw.includes("양") ? "solar" : "unknown";
+  const calendarType = calendarRaw.includes("lunar") || calendarRaw.includes("음")
+    ? (calendarRaw.includes("leap") || calendarRaw.includes("윤") ? "lunar_leap" : "lunar")
+    : calendarRaw.includes("solar") || calendarRaw.includes("양")
+      ? "solar"
+      : "unknown";
+  const latitudeRaw = Number(body.latitude ?? profile.latitude ?? birth.latitude ?? 37.5665);
+  const longitudeRaw = Number(body.longitude ?? body.lng ?? profile.longitude ?? profile.lng ?? birth.longitude ?? birth.lng ?? 126.978);
+  const latitude = clamp(latitudeRaw, -90, 90);
+  const longitude = clamp(longitudeRaw, -180, 180);
+  const birthPlace = clean(body.birthPlace || body.place || profile.birthPlace || profile.place || birth.birthPlace || birth.place || "대한민국") || "대한민국";
   const birthInput = {
     name,
     gender,
@@ -228,6 +237,9 @@ function normalizeInput(body = {}) {
     birthHour: timeInfo.birthHour,
     birthMinute: timeInfo.birthMinute,
     timezone: clean(body.timezone || profile.timezone || birth.timezone || "Asia/Seoul") || "Asia/Seoul",
+    latitude,
+    longitude,
+    birthPlace,
     isTimeUnknown: Boolean(timeInfo.isTimeUnknown),
   };
 
@@ -243,10 +255,21 @@ function normalizeInput(body = {}) {
         day: birthInput.birthDay,
         hour: birthInput.birthHour === null ? 12 : clamp(birthInput.birthHour, 0, 23),
         minute: birthInput.birthMinute === null ? 0 : clamp(birthInput.birthMinute, 0, 59),
+        calendarType,
+        timezone: birthInput.timezone,
+        birthPlace,
+        latitude,
+        longitude,
         unknownTime: birthInput.isTimeUnknown,
       },
       calendarType,
-      location: profile.location || body.location || null,
+      timezone: birthInput.timezone,
+      location: {
+        name: birthPlace,
+        latitude,
+        longitude,
+        timezone: birthInput.timezone,
+      },
     },
     targetYear,
   };
@@ -309,12 +332,22 @@ function relationRows(pillars, annualBranch) {
 function normalizeEngineSaju(profile, body = {}) {
   let engine = null;
   try {
+    const baseLocation = profile?.location && typeof profile.location === "object" ? profile.location : {};
+    const location = {
+      name: clean(baseLocation.name || profile?.birth?.birthPlace || "대한민국") || "대한민국",
+      latitude: Number.isFinite(Number(baseLocation.latitude)) ? Number(baseLocation.latitude) : Number(profile?.birth?.latitude || 37.5665),
+      longitude: Number.isFinite(Number(baseLocation.longitude)) ? Number(baseLocation.longitude) : Number(profile?.birth?.longitude || 126.978),
+      timezone: clean(profile.timezone || profile?.birth?.timezone || "Asia/Seoul") || "Asia/Seoul",
+    };
     engine = buildSajuProfile({
       name: profile.name,
       gender: profile.gender,
       birth: profile.birth,
       calendarType: profile.calendarType,
       timezone: profile.timezone || "Asia/Seoul",
+      location,
+      hourPillarTimePolicy: clean(body?.hourPillarTimePolicy || profile?.hourPillarTimePolicy || "TRUE_SOLAR_TIME") || "TRUE_SOLAR_TIME",
+      dayChangePolicy: clean(body?.dayChangePolicy || profile?.dayChangePolicy || "MIDNIGHT") || "MIDNIGHT",
     });
   } catch (error) {
     console.error("[NewYearBook][LocalSajuEngineFailed]", {
@@ -336,7 +369,9 @@ function normalizeEngineSaju(profile, body = {}) {
   const fiveElements = engine.fiveElements || {};
   const tenGods = engine.tenGods || {};
   const usefulGods = engine.usefulGods || {};
-  const daeun = Array.isArray(engine.daeun) ? engine.daeun : (Array.isArray(sajuBase?.timing?.daeun) ? sajuBase.timing.daeun : []);
+  const daeun = Array.isArray(engine.daeun)
+    ? engine.daeun
+    : (Array.isArray(sajuBase?.timing?.daeun) ? sajuBase.timing.daeun : []);
 
   return { engine, pillars, dayMaster, fiveElements, tenGods, usefulGods, daeun };
 }

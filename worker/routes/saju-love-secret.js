@@ -643,19 +643,34 @@ function toLoveSecretPillar(node = {}) {
 function buildLoveSecretBaseFromBirthInput(birthInput) {
   let engine = null;
   try {
+    const normalizedCalendarType = birthInput.calendarType === "lunar_leap"
+      ? "lunar_leap"
+      : (birthInput.calendarType === "lunar" ? "lunar" : "solar");
     engine = buildSajuProfile({
       name: birthInput.name,
       gender: birthInput.gender,
+      timezone: birthInput.timezone || "Asia/Seoul",
+      location: {
+        name: birthInput.birthPlace || "대한민국",
+        latitude: birthInput.latitude,
+        longitude: birthInput.longitude,
+        timezone: birthInput.timezone || "Asia/Seoul",
+      },
+      hourPillarTimePolicy: "TRUE_SOLAR_TIME",
+      dayChangePolicy: "MIDNIGHT",
       birth: {
-        calendarType: birthInput.calendarType === "lunar" ? "lunar" : "solar",
+        calendarType: normalizedCalendarType,
         year: birthInput.year,
         month: birthInput.month,
         day: birthInput.day,
         hour: birthInput.hour,
         minute: birthInput.minute,
+        timezone: birthInput.timezone || "Asia/Seoul",
+        birthPlace: birthInput.birthPlace || "대한민국",
+        latitude: birthInput.latitude,
+        longitude: birthInput.longitude,
         unknownTime: false,
       },
-      timezone: birthInput.timezone || "Asia/Seoul",
     });
   } catch (error) {
     const nextError = new Error(clean(error?.message || error) || "LOVE_SECRET_LOCAL_ENGINE_FAILED");

@@ -67,6 +67,74 @@ const TEN_GOD_LABELS = Object.freeze({
   정인: "정인",
 });
 
+const STEMS = Object.freeze(["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]);
+const BRANCHES = Object.freeze(["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]);
+const SEXAGENARY_CYCLE = Object.freeze(Array.from({ length: 60 }, (_, i) => `${STEMS[i % 10]}${BRANCHES[i % 12]}`));
+const YANG_STEMS = Object.freeze(new Set(["甲", "丙", "戊", "庚", "壬"]));
+
+const DAY_STEM_TO_ZI_HOUR_STEM_INDEX = Object.freeze({
+  甲: 0,
+  己: 0,
+  乙: 2,
+  庚: 2,
+  丙: 4,
+  辛: 4,
+  丁: 6,
+  壬: 6,
+  戊: 8,
+  癸: 8,
+});
+
+const HOUR_PILLAR_TIME_POLICIES = Object.freeze({
+  KST_CLOCK_TIME: "KST_CLOCK_TIME",
+  LOCAL_MEAN_TIME: "LOCAL_MEAN_TIME",
+  TRUE_SOLAR_TIME: "TRUE_SOLAR_TIME",
+});
+
+const DAY_CHANGE_POLICIES = Object.freeze({
+  MIDNIGHT: "MIDNIGHT",
+  LATE_ZI_NEXT_DAY: "LATE_ZI_NEXT_DAY",
+  TRUE_SOLAR_ZI_NEXT_DAY: "TRUE_SOLAR_ZI_NEXT_DAY",
+});
+
+const MAJOR_SOLAR_TERMS = Object.freeze([
+  "立春",
+  "惊蛰",
+  "清明",
+  "立夏",
+  "芒种",
+  "小暑",
+  "立秋",
+  "白露",
+  "寒露",
+  "立冬",
+  "大雪",
+  "小寒",
+]);
+
+const SOLAR_TERM_NAME_MAP = Object.freeze({
+  LI_CHUN: "立春",
+  JING_ZHE: "惊蛰",
+  QING_MING: "清明",
+  LI_XIA: "立夏",
+  MANG_ZHONG: "芒种",
+  XIAO_SHU: "小暑",
+  LI_QIU: "立秋",
+  BAI_LU: "白露",
+  HAN_LU: "寒露",
+  LI_DONG: "立冬",
+  DA_XUE: "大雪",
+  XIAO_HAN: "小寒",
+});
+
+const DEFAULT_LOCATION = Object.freeze({
+  name: "서울",
+  latitude: 37.5665,
+  longitude: 126.978,
+  standardMeridian: 135,
+  timezone: "Asia/Seoul",
+});
+
 export const DESTINY_BIAS_THEME_PRESETS = Object.freeze({
   moonlight_neon: {
     key: "moonlight_neon",
@@ -147,8 +215,23 @@ function normalizeName(value, fallback) {
 
 function normalizeGender(value) {
   const text = String(value || "OTHER").trim().toUpperCase();
-  if (text === "M" || text === "F") return text;
+  if (["M", "MALE", "MAN", "남", "남자", "남성"].includes(text)) return "M";
+  if (["F", "FEMALE", "WOMAN", "여", "여자", "여성"].includes(text)) return "F";
   return "OTHER";
+}
+
+function normalizeHourPillarTimePolicy(value) {
+  const text = String(value || "").trim().toUpperCase();
+  if (text === HOUR_PILLAR_TIME_POLICIES.KST_CLOCK_TIME) return HOUR_PILLAR_TIME_POLICIES.KST_CLOCK_TIME;
+  if (text === HOUR_PILLAR_TIME_POLICIES.LOCAL_MEAN_TIME) return HOUR_PILLAR_TIME_POLICIES.LOCAL_MEAN_TIME;
+  return HOUR_PILLAR_TIME_POLICIES.TRUE_SOLAR_TIME;
+}
+
+function normalizeDayChangePolicy(value) {
+  const text = String(value || "").trim().toUpperCase();
+  if (text === DAY_CHANGE_POLICIES.LATE_ZI_NEXT_DAY) return DAY_CHANGE_POLICIES.LATE_ZI_NEXT_DAY;
+  if (text === DAY_CHANGE_POLICIES.TRUE_SOLAR_ZI_NEXT_DAY) return DAY_CHANGE_POLICIES.TRUE_SOLAR_ZI_NEXT_DAY;
+  return DAY_CHANGE_POLICIES.MIDNIGHT;
 }
 
 function normalizeCalendarType(value) {
@@ -186,10 +269,101 @@ function parseBirthTimeParts(rawTime) {
   return { hour, minute };
 }
 
-export function normalizeBirthPayload(rawBirth = {}) {
+function parseTimezoneOffsetHours(timezone) {
+  const text = String(timezone || "").trim();
+  const m = text.match(/(?:GMT|UTC)\s*([+-])(\d{1,2})(?::?(\d{2}))?/i);
+  if (!m) return null;
+  const sign = m[1] === "-" ? -1 : 1;
+  const hour = Number(m[2] || 0);
+  const minute = Number(m[3] || 0);
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
+  return sign * (hour + minute / 60);
+}
+
+function resolveBirthLocation(rawBirth = {}, rawPerson = {}) {
+  const rawLocation = rawPerson?.location && typeof rawPerson.location === "object"
+    ? rawPerson.location
+    : (rawBirth?.location && typeof rawBirth.location === "object" ? rawBirth.location : {});
+
+  const longitude = num(
+    rawBirth?.longitude
+    ?? rawBirth?.lon
+    ?? rawLocation?.longitude
+    ?? rawLocation?.lon
+    ?? rawPerson?.longitude
+    ?? rawPerson?.lon,
+    DEFAULT_LOCATION.longitude,
+  );
+  const latitude = num(
+    rawBirth?.latitude
+    ?? rawBirth?.lat
+    ?? rawLocation?.latitude
+    ?? rawLocation?.lat
+    ?? rawPerson?.latitude
+    ?? rawPerson?.lat,
+    DEFAULT_LOCATION.latitude,
+  );
+
+  const timezone = String(
+    rawBirth?.timezone
+    || rawLocation?.timezone
+    || rawPerson?.timezone
+    || DEFAULT_LOCATION.timezone,
+  ).trim() || DEFAULT_LOCATION.timezone;
+
+  const timezoneOffsetHours = parseTimezoneOffsetHours(timezone);
+  const standardMeridian = Number.isFinite(timezoneOffsetHours)
+    ? timezoneOffsetHours * 15
+    : DEFAULT_LOCATION.standardMeridian;
+
+  const name = normalizeName(
+    rawBirth?.birthPlace
+    || rawBirth?.place
+    || rawLocation?.name
+    || rawPerson?.birthPlace
+    || rawPerson?.place
+    || DEFAULT_LOCATION.name,
+    DEFAULT_LOCATION.name,
+  );
+
+  return {
+    name,
+    latitude,
+    longitude,
+    timezone,
+    standardMeridian,
+  };
+}
+
+function createSolarFromNormalizedBirth(birth) {
+  if (birth.calendarType === "solar") {
+    return Solar.fromYmdHms(birth.year, birth.month, birth.day, birth.hour, birth.minute, 0);
+  }
+
+  const lunarMonth = birth.calendarType === "lunar_leap" ? -birth.month : birth.month;
+  const lunar = Lunar.fromYmd(birth.year, lunarMonth, birth.day);
+  const solar = lunar.getSolar();
+  return Solar.fromYmdHms(
+    solar.getYear(),
+    solar.getMonth(),
+    solar.getDay(),
+    birth.hour,
+    birth.minute,
+    0,
+  );
+}
+
+export function normalizeBirthPayload(rawBirth = {}, rawPerson = {}) {
   const dateParts = parseBirthDateParts(rawBirth.birthDate || rawBirth.date || rawBirth.solarDate || rawBirth.birthday || "");
   const timeParts = parseBirthTimeParts(rawBirth.birthTime || rawBirth.time || "");
-  const calendarType = normalizeCalendarType(rawBirth.calendarType || rawBirth.calendar || rawBirth.type);
+  const calendarType = normalizeCalendarType(rawBirth.calendarType || rawBirth.calendar || rawBirth.type || rawPerson.calendarType);
+
+  const hasNumericHour = Number.isFinite(Number(rawBirth.hour));
+  const hasNumericMinute = Number.isFinite(Number(rawBirth.minute));
+  const hasTimeInput = Boolean(timeParts) || hasNumericHour || hasNumericMinute;
+  const birthTimeKnown = rawBirth.birthTimeKnown !== false;
+  const unknownTime = Boolean(rawBirth.unknownTime) || !birthTimeKnown || !hasTimeInput;
+
   const normalized = {
     calendarType,
     year: clampInt(rawBirth.year ?? dateParts?.year, 1900, 2100),
@@ -197,7 +371,12 @@ export function normalizeBirthPayload(rawBirth = {}) {
     day: clampInt(rawBirth.day ?? dateParts?.day, 1, 31),
     hour: clampInt(rawBirth.hour ?? timeParts?.hour, 0, 23),
     minute: clampInt(rawBirth.minute ?? timeParts?.minute, 0, 59),
-    unknownTime: Boolean(rawBirth.unknownTime),
+    unknownTime,
+    birthTimeKnown: !unknownTime,
+    gender: normalizeGender(rawPerson?.gender ?? rawBirth?.gender),
+    birthPlace: normalizeName(rawBirth?.birthPlace || rawBirth?.place || rawPerson?.birthPlace || DEFAULT_LOCATION.name, DEFAULT_LOCATION.name),
+    timezone: String(rawBirth?.timezone || rawPerson?.timezone || DEFAULT_LOCATION.timezone).trim() || DEFAULT_LOCATION.timezone,
+    isLeapMonth: calendarType === "lunar_leap",
   };
 
   if (normalized.unknownTime) {
@@ -208,22 +387,7 @@ export function normalizeBirthPayload(rawBirth = {}) {
 }
 
 function createSolarFromBirth(birth) {
-  const safeBirth = normalizeBirthPayload(birth);
-  if (safeBirth.calendarType === "solar") {
-    return Solar.fromYmdHms(safeBirth.year, safeBirth.month, safeBirth.day, safeBirth.hour, safeBirth.minute, 0);
-  }
-
-  const lunarMonth = safeBirth.calendarType === "lunar_leap" ? -safeBirth.month : safeBirth.month;
-  const lunar = Lunar.fromYmd(safeBirth.year, lunarMonth, safeBirth.day);
-  const solar = lunar.getSolar();
-  return Solar.fromYmdHms(
-    solar.getYear(),
-    solar.getMonth(),
-    solar.getDay(),
-    safeBirth.hour,
-    safeBirth.minute,
-    0,
-  );
+  return createSolarFromNormalizedBirth(normalizeBirthPayload(birth));
 }
 
 function stemElement(stem) {
@@ -426,21 +590,292 @@ function resolveIsLeapMonth(lunar) {
   return Number.isFinite(month) ? month < 0 : false;
 }
 
+function solarToDateTimeKstString(solar) {
+  if (!solar || typeof solar !== "object") return "";
+  const y = Number(solar.getYear?.() ?? solar.year ?? 0);
+  const m = Number(solar.getMonth?.() ?? solar.month ?? 1);
+  const d = Number(solar.getDay?.() ?? solar.day ?? 1);
+  const h = Number(solar.getHour?.() ?? solar.hour ?? 0);
+  const min = Number(solar.getMinute?.() ?? solar.minute ?? 0);
+  const sec = Number(solar.getSecond?.() ?? solar.second ?? 0);
+  return `${String(y).padStart(4, "0")}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")} ${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+}
+
+function solarToUtcMs(solar) {
+  if (!solar || typeof solar !== "object") return NaN;
+  const y = Number(solar.getYear?.() ?? solar.year ?? 0);
+  const m = Number(solar.getMonth?.() ?? solar.month ?? 1);
+  const d = Number(solar.getDay?.() ?? solar.day ?? 1);
+  const h = Number(solar.getHour?.() ?? solar.hour ?? 0);
+  const min = Number(solar.getMinute?.() ?? solar.minute ?? 0);
+  const sec = Number(solar.getSecond?.() ?? solar.second ?? 0);
+  return Date.UTC(y, m - 1, d, h, min, sec);
+}
+
+function shiftYmdByDays(year, month, day, dayOffset) {
+  const base = Date.UTC(year, month - 1, day, 0, 0, 0);
+  const shifted = new Date(base + dayOffset * 86400000);
+  return {
+    year: shifted.getUTCFullYear(),
+    month: shifted.getUTCMonth() + 1,
+    day: shifted.getUTCDate(),
+  };
+}
+
+function getDayOfYear(year, month, day) {
+  const current = Date.UTC(year, month - 1, day, 0, 0, 0);
+  const start = Date.UTC(year, 0, 1, 0, 0, 0);
+  return Math.floor((current - start) / 86400000) + 1;
+}
+
+function calculateEquationOfTimeMinutes(year, month, day) {
+  const n = getDayOfYear(year, month, day);
+  const b = (2 * Math.PI * (n - 81)) / 364;
+  return 9.87 * Math.sin(2 * b) - 7.53 * Math.cos(b) - 1.5 * Math.sin(b);
+}
+
+function applyHourPillarTimeCorrection(birth, location, policy) {
+  const clockTotalMinutes = birth.hour * 60 + birth.minute;
+  const longitudeCorrectionMinutes = (location.longitude - location.standardMeridian) * 4;
+  const equationOfTimeMinutes = calculateEquationOfTimeMinutes(birth.year, birth.month, birth.day);
+
+  let correctedTotal = clockTotalMinutes;
+  if (policy === HOUR_PILLAR_TIME_POLICIES.LOCAL_MEAN_TIME) {
+    correctedTotal = clockTotalMinutes + longitudeCorrectionMinutes;
+  } else if (policy === HOUR_PILLAR_TIME_POLICIES.TRUE_SOLAR_TIME) {
+    correctedTotal = clockTotalMinutes + longitudeCorrectionMinutes + equationOfTimeMinutes;
+  }
+
+  const roundedTotal = Math.round(correctedTotal);
+  const dayOffset = Math.floor(roundedTotal / 1440);
+  const minuteOfDay = ((roundedTotal % 1440) + 1440) % 1440;
+  const correctedHour = Math.floor(minuteOfDay / 60);
+  const correctedMinute = minuteOfDay % 60;
+  const shiftedDate = shiftYmdByDays(birth.year, birth.month, birth.day, dayOffset);
+
+  return {
+    clockTotalMinutes,
+    correctedTotal,
+    longitudeCorrectionMinutes,
+    equationOfTimeMinutes,
+    dayOffset,
+    correctedYear: shiftedDate.year,
+    correctedMonth: shiftedDate.month,
+    correctedDay: shiftedDate.day,
+    correctedHour,
+    correctedMinute,
+  };
+}
+
+function buildEightCharForDayPolicy(lunar, dayPolicy) {
+  const eightChar = lunar.getEightChar();
+  if (typeof eightChar.setSect === "function") {
+    if (dayPolicy === DAY_CHANGE_POLICIES.LATE_ZI_NEXT_DAY || dayPolicy === DAY_CHANGE_POLICIES.TRUE_SOLAR_ZI_NEXT_DAY) {
+      eightChar.setSect(1);
+    } else {
+      eightChar.setSect(2);
+    }
+  }
+  return eightChar;
+}
+
+function getHourBranchByClock(hour) {
+  const idx = Math.floor((hour + 1) / 2) % 12;
+  return BRANCHES[idx < 0 ? idx + 12 : idx];
+}
+
+function getHourStemByDayStem(dayStem, hourBranch) {
+  const baseStemIndex = DAY_STEM_TO_ZI_HOUR_STEM_INDEX[dayStem];
+  if (!Number.isFinite(baseStemIndex)) return "";
+  const hourBranchIndex = BRANCHES.indexOf(hourBranch);
+  if (hourBranchIndex < 0) return "";
+  return STEMS[(baseStemIndex + hourBranchIndex) % 10];
+}
+
+function normalizeSolarTermName(name) {
+  const raw = String(name || "").trim();
+  if (!raw) return "";
+  if (SOLAR_TERM_NAME_MAP[raw]) return SOLAR_TERM_NAME_MAP[raw];
+  for (const [alias, canonical] of Object.entries(SOLAR_TERM_NAME_MAP)) {
+    if (raw.toUpperCase() === alias) return canonical;
+  }
+  return raw;
+}
+
+function getSolarTermFromTable(table, canonicalName) {
+  if (!table || typeof table !== "object") return null;
+  if (table[canonicalName]) return table[canonicalName];
+  for (const [key, value] of Object.entries(table)) {
+    if (normalizeSolarTermName(key) === canonicalName) {
+      return value;
+    }
+  }
+  return null;
+}
+
+function toSolarTermSummary(jieQi) {
+  if (!jieQi || typeof jieQi !== "object") return null;
+  const name = normalizeSolarTermName(jieQi.getName?.() || jieQi.name || "");
+  const solar = jieQi.getSolar?.() || jieQi.solar || null;
+  if (!solar) return null;
+  return {
+    name,
+    dateTimeKst: solarToDateTimeKstString(solar),
+    solar,
+  };
+}
+
+function fallbackDaewoonList(monthGanji, direction, startAgeYearsDecimal, birthYear) {
+  const monthIndex = SEXAGENARY_CYCLE.indexOf(monthGanji);
+  if (monthIndex < 0) return [];
+  const step = direction === "BACKWARD" ? -1 : 1;
+  return Array.from({ length: 10 }, (_, idx) => {
+    const cycleIndex = (monthIndex + step * (idx + 1) + 6000) % 60;
+    const startAgeDecimal = Math.max(0, startAgeYearsDecimal + idx * 10);
+    const endAgeDecimal = startAgeDecimal + 9.999;
+    return {
+      index: idx + 1,
+      pillar: SEXAGENARY_CYCLE[cycleIndex],
+      startAgeDecimal,
+      endAgeDecimal,
+      startAgeDisplay: `${Math.floor(startAgeDecimal)}세`,
+      endAgeDisplay: `${Math.floor(endAgeDecimal)}세`,
+      estimatedStartYear: Number.isFinite(birthYear) ? birthYear + Math.floor(startAgeDecimal) : undefined,
+      estimatedEndYear: Number.isFinite(birthYear) ? birthYear + Math.floor(endAgeDecimal) : undefined,
+    };
+  });
+}
+
+function buildDaewoonFromEightChar(eightChar, yearStem, gender, lunar, birthSolar, monthPillarGanji, startAgeYearsDecimal) {
+  const isMale = gender === "M";
+  const isFemale = gender === "F";
+  const yearIsYang = YANG_STEMS.has(yearStem);
+
+  let direction = "FORWARD";
+  if (isMale || isFemale) {
+    const forward = (isMale && yearIsYang) || (isFemale && !yearIsYang);
+    direction = forward ? "FORWARD" : "BACKWARD";
+  }
+
+  const prevJie = toSolarTermSummary(lunar.getPrevJie?.(true));
+  const nextJie = toSolarTermSummary(lunar.getNextJie?.(true));
+  const referenceTerm = direction === "FORWARD" ? nextJie : prevJie;
+
+  const diffMinutes = referenceTerm?.solar
+    ? Math.abs(Math.round((solarToUtcMs(referenceTerm.solar) - solarToUtcMs(birthSolar)) / 60000))
+    : Math.max(0, Math.round(startAgeYearsDecimal * 365 * 24 * 60 / 3));
+
+  const startAgeYearsDecimalByDiff = diffMinutes / (60 * 24 * 3);
+  const years = Math.floor(startAgeYearsDecimalByDiff);
+  const monthsFloat = (startAgeYearsDecimalByDiff - years) * 12;
+  const months = Math.floor(monthsFloat);
+  const days = Math.max(0, Math.round((monthsFloat - months) * 30));
+
+  const yunGender = isMale ? 1 : (isFemale ? 0 : null);
+  let list = [];
+  if (yunGender !== null && typeof eightChar.getYun === "function") {
+    try {
+      const yun = eightChar.getYun(yunGender);
+      const daYunRows = Array.isArray(yun?.getDaYun?.()) ? yun.getDaYun() : [];
+      list = daYunRows
+        .map((row) => {
+          const pillar = String(row?.getGanZhi?.() || "").trim();
+          if (!pillar) return null;
+          const startAge = Number(row?.getStartAge?.());
+          const endAge = Number(row?.getEndAge?.());
+          return {
+            index: Number(row?.getIndex?.()) + 1,
+            pillar,
+            startAgeDecimal: Number.isFinite(startAge) ? startAge : 0,
+            endAgeDecimal: Number.isFinite(endAge) ? endAge + 0.999 : 9.999,
+            startAgeDisplay: Number.isFinite(startAge) ? `${Math.floor(startAge)}세` : "0세",
+            endAgeDisplay: Number.isFinite(endAge) ? `${Math.floor(endAge)}세` : "9세",
+            estimatedStartYear: Number(row?.getStartYear?.()),
+            estimatedEndYear: Number(row?.getEndYear?.()),
+          };
+        })
+        .filter(Boolean)
+        .slice(0, 10);
+    } catch (_error) {
+      list = [];
+    }
+  }
+
+  if (!list.length) {
+    list = fallbackDaewoonList(monthPillarGanji, direction, startAgeYearsDecimalByDiff, birthSolar.getYear());
+  }
+
+  return {
+    direction,
+    directionLabel: direction === "FORWARD" ? "순행" : "역행",
+    basis: {
+      yearStem,
+      yearStemYinYang: yearIsYang ? "YANG" : "YIN",
+      gender: isMale ? "male" : (isFemale ? "female" : "unknown"),
+      rule: "연간 음양 + 성별",
+    },
+    referenceTerm: {
+      type: direction === "FORWARD" ? "NEXT_MAJOR_TERM" : "PREVIOUS_MAJOR_TERM",
+      name: referenceTerm?.name || "",
+      dateTimeKst: referenceTerm?.dateTimeKst || "",
+    },
+    diffMinutes,
+    startAgeYearsDecimal: Math.round(startAgeYearsDecimalByDiff * 10000) / 10000,
+    startAgeYears: years,
+    startAgeMonths: months,
+    startAgeDays: days,
+    displayText: `${years}세 ${months}개월경`,
+    list,
+  };
+}
+
 export function buildSajuProfile(rawPerson) {
   const name = normalizeName(rawPerson?.name, "사용자");
   const gender = normalizeGender(rawPerson?.gender);
-  const birth = normalizeBirthPayload(rawPerson?.birth || {});
-  const solar = createSolarFromBirth(birth);
-  const lunar = solar.getLunar();
-  const lunarMonth = resolveLunarMonthValue(lunar);
-  const eightChar = lunar.getEightChar();
+  const birth = normalizeBirthPayload(rawPerson?.birth || {}, rawPerson || {});
+  const location = resolveBirthLocation(rawPerson?.birth || {}, rawPerson || {});
+  const hourPillarTimePolicy = normalizeHourPillarTimePolicy(
+    rawPerson?.hourPillarTimePolicy
+    || rawPerson?.timeCorrectionPolicy
+    || rawPerson?.birth?.hourPillarTimePolicy,
+  );
+  const dayChangePolicy = normalizeDayChangePolicy(rawPerson?.dayChangePolicy || rawPerson?.birth?.dayChangePolicy);
+
+  const solarClock = createSolarFromNormalizedBirth(birth);
+  const lunarClock = solarClock.getLunar();
+  const lunarMonth = resolveLunarMonthValue(lunarClock);
+
+  const correctedClock = applyHourPillarTimeCorrection(birth, location, hourPillarTimePolicy);
+  const correctedSolar = Solar.fromYmdHms(
+    correctedClock.correctedYear,
+    correctedClock.correctedMonth,
+    correctedClock.correctedDay,
+    correctedClock.correctedHour,
+    correctedClock.correctedMinute,
+    0,
+  );
+  const correctedLunar = correctedSolar.getLunar();
+
+  const eightCharClock = buildEightCharForDayPolicy(lunarClock, DAY_CHANGE_POLICIES.MIDNIGHT);
+  const dayPillarLunar = dayChangePolicy === DAY_CHANGE_POLICIES.TRUE_SOLAR_ZI_NEXT_DAY ? correctedLunar : lunarClock;
+  const dayPillarEightChar = buildEightCharForDayPolicy(dayPillarLunar, dayChangePolicy);
 
   const includeHour = !birth.unknownTime;
+  const dayStem = String(dayPillarEightChar.getDayGan() || "");
+  const dayBranch = String(dayPillarEightChar.getDayZhi() || "");
+
+  let hourStem = "";
+  let hourBranch = "";
+  if (includeHour) {
+    hourBranch = getHourBranchByClock(correctedClock.correctedHour);
+    hourStem = getHourStemByDayStem(dayStem, hourBranch);
+  }
+
   const pillars = {
-    year: normalizePillar(eightChar.getYearGan(), eightChar.getYearZhi()),
-    month: normalizePillar(eightChar.getMonthGan(), eightChar.getMonthZhi()),
-    day: normalizePillar(eightChar.getDayGan(), eightChar.getDayZhi()),
-    hour: normalizePillar(eightChar.getTimeGan(), eightChar.getTimeZhi()),
+    year: normalizePillar(eightCharClock.getYearGan(), eightCharClock.getYearZhi()),
+    month: normalizePillar(eightCharClock.getMonthGan(), eightCharClock.getMonthZhi()),
+    day: normalizePillar(dayStem, dayBranch),
+    hour: normalizePillar(hourStem, hourBranch),
   };
 
   const dayMasterStem = pillars.day.stem;
@@ -450,14 +885,117 @@ export function buildSajuProfile(rawPerson) {
   const tenGodProfile = buildTenGodProfile(dayMasterStem, pillars, includeHour);
   const usefulGods = buildUsefulGods(dayMasterElement, elementProfile);
 
+  const prevMajorTerm = toSolarTermSummary(lunarClock.getPrevJie?.(true));
+  const nextMajorTerm = toSolarTermSummary(lunarClock.getNextJie?.(true));
+  const monthBoundaryTerm = prevMajorTerm;
+  const currentJieQiTable = lunarClock.getJieQiTable?.() || {};
+  let ipchunSolar = getSolarTermFromTable(currentJieQiTable, "立春");
+  if (ipchunSolar && solarToUtcMs(ipchunSolar) > solarToUtcMs(solarClock) && typeof solarClock.next === "function") {
+    const prevYearSolar = solarClock.next(-200);
+    const prevYearTable = prevYearSolar.getLunar().getJieQiTable?.() || {};
+    ipchunSolar = getSolarTermFromTable(prevYearTable, "立春") || ipchunSolar;
+  }
+
+  const daewoon = buildDaewoonFromEightChar(
+    dayPillarEightChar,
+    pillars.year.stem,
+    gender,
+    lunarClock,
+    solarClock,
+    pillars.month.ganji,
+    0,
+  );
+
+  const verificationSource = "LOCAL_FALLBACK";
+  const coreResult = {
+    input: {
+      calendarType: birth.calendarType === "lunar_leap" ? "lunar" : birth.calendarType,
+      birthDate: formatDateLabel(birth.year, birth.month, birth.day),
+      birthTime: birth.unknownTime ? undefined : `${String(birth.hour).padStart(2, "0")}:${String(birth.minute).padStart(2, "0")}`,
+      birthTimeKnown: !birth.unknownTime,
+      gender: gender === "M" ? "male" : (gender === "F" ? "female" : "unknown"),
+      birthPlace: location.name,
+      timezone: birth.timezone || location.timezone || DEFAULT_LOCATION.timezone,
+      isLeapMonth: birth.isLeapMonth,
+    },
+    normalized: {
+      solarDateTimeKst: solarToDateTimeKstString(solarClock),
+      lunarDate: formatDateLabel(lunarClock.getYear(), lunarMonth, lunarClock.getDay()),
+      isLeapMonth: resolveIsLeapMonth(lunarClock),
+      julianDay: Number(lunarClock.getSolar()?.getJulianDay?.() || solarClock.getJulianDay?.() || NaN),
+    },
+    location: {
+      name: location.name,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      standardMeridian: location.standardMeridian,
+    },
+    timeCorrection: {
+      policy: hourPillarTimePolicy,
+      clockTimeKst: solarToDateTimeKstString(solarClock),
+      longitudeCorrectionMinutes: Math.round(correctedClock.longitudeCorrectionMinutes * 1000) / 1000,
+      equationOfTimeMinutes: Math.round(correctedClock.equationOfTimeMinutes * 1000) / 1000,
+      correctedDateTime: solarToDateTimeKstString(correctedSolar),
+    },
+    policies: {
+      dayChangePolicy,
+    },
+    pillars: {
+      year: pillars.year.ganji,
+      month: pillars.month.ganji,
+      day: pillars.day.ganji,
+      hour: includeHour ? pillars.hour.ganji : undefined,
+    },
+    solarTerms: {
+      previousMajorTerm: {
+        name: prevMajorTerm?.name || "",
+        dateTimeKst: prevMajorTerm?.dateTimeKst || "",
+      },
+      nextMajorTerm: {
+        name: nextMajorTerm?.name || "",
+        dateTimeKst: nextMajorTerm?.dateTimeKst || "",
+      },
+      monthBoundaryTerm: {
+        name: monthBoundaryTerm?.name || "",
+        dateTimeKst: monthBoundaryTerm?.dateTimeKst || "",
+      },
+      ipchun: {
+        dateTimeKst: solarToDateTimeKstString(ipchunSolar),
+      },
+    },
+    daewoon,
+    verification: {
+      source: verificationSource,
+      kasiCalendarStatus: "SKIPPED",
+      kasiIljinStatus: "SKIPPED",
+      solarTermStatus: "LOCAL_ONLY",
+      calculationPolicyVersion: "saju-core-v2.0.0",
+    },
+  };
+
+  const legacyDaewoon = Array.isArray(daewoon.list)
+    ? daewoon.list.map((item) => ({
+      index: item.index,
+      ganji: item.pillar,
+      startAge: Math.floor(item.startAgeDecimal),
+      endAge: Math.floor(item.endAgeDecimal),
+      startYear: item.estimatedStartYear,
+      endYear: item.estimatedEndYear,
+    }))
+    : [];
+
   return {
     name,
     gender,
     birth,
+    location,
+    hourPillarTimePolicy,
+    dayChangePolicy,
+    timeCorrection: coreResult.timeCorrection,
     calendar: {
-      solarDate: formatDateLabel(solar.getYear(), solar.getMonth(), solar.getDay()),
-      lunarDate: formatDateLabel(lunar.getYear(), lunarMonth, lunar.getDay()),
-      isLeapMonth: resolveIsLeapMonth(lunar),
+      solarDate: formatDateLabel(solarClock.getYear(), solarClock.getMonth(), solarClock.getDay()),
+      lunarDate: formatDateLabel(lunarClock.getYear(), lunarMonth, lunarClock.getDay()),
+      isLeapMonth: resolveIsLeapMonth(lunarClock),
       includeHour,
     },
     pillars,
@@ -471,6 +1009,11 @@ export function buildSajuProfile(rawPerson) {
     fiveElements: elementProfile,
     tenGods: tenGodProfile,
     usefulGods,
+    solarTerms: coreResult.solarTerms,
+    daewoon: legacyDaewoon,
+    daeun: legacyDaewoon,
+    sajuCoreResult: coreResult,
+    verification: coreResult.verification,
   };
 }
 

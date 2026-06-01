@@ -504,6 +504,10 @@ function normalizeBirthInput(raw = {}) {
 
   const latitude = safeNumber(src.latitude, 37.5665);
   const longitude = safeNumber(src.longitude ?? src.lng, 126.978);
+  const calendarRaw = clean(src.calendarType || src.calendar || src.calType || "solar").toLowerCase();
+  const calendarType = calendarRaw.includes("lunar")
+    ? (calendarRaw.includes("leap") || calendarRaw.includes("윤") ? "lunar_leap" : "lunar")
+    : "solar";
 
   return {
     ok: true,
@@ -513,6 +517,7 @@ function normalizeBirthInput(raw = {}) {
       birthDate,
       birthTime,
       birthPlace: clean(src.birthPlace || src.place || "대한민국") || "대한민국",
+      calendarType,
       timezone: clean(src.timezone || "Asia/Seoul") || "Asia/Seoul",
       timezoneOffset: safeNumber(src.timezoneOffset, 9),
       latitude,
@@ -609,13 +614,26 @@ function calculateSajuLocal(birthInput) {
   const profile = buildSajuProfile({
     name: birthInput.name,
     gender: birthInput.gender,
+    timezone: birthInput.timezone || "Asia/Seoul",
+    location: {
+      name: birthInput.birthPlace || "대한민국",
+      latitude: birthInput.latitude,
+      longitude: birthInput.longitude,
+      timezone: birthInput.timezone || "Asia/Seoul",
+    },
+    hourPillarTimePolicy: "TRUE_SOLAR_TIME",
+    dayChangePolicy: "MIDNIGHT",
     birth: {
       year: birthInput.year,
       month: birthInput.month,
       day: birthInput.day,
       hour: birthInput.hour,
       minute: birthInput.minute,
-      calendarType: "solar",
+      calendarType: birthInput.calendarType || "solar",
+      timezone: birthInput.timezone || "Asia/Seoul",
+      birthPlace: birthInput.birthPlace || "대한민국",
+      latitude: birthInput.latitude,
+      longitude: birthInput.longitude,
       unknownTime: false,
     },
   });
