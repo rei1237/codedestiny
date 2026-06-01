@@ -10103,25 +10103,35 @@ function buildZwSummaryTableHtml(palace) {
     return '함';
   }
   function genSummary(gungName,mainMeta,zhi,sh,auxStars){
-    if(!mainMeta.length) return '공궁(空宮)입니다. 주변 환경의 영향이 큰 구간이니, 기준을 먼저 정하고 속도를 조절하세요.';
+    var gungDef = ZW_GUNG_DEF[gungName] || gungName;
+    var goodAux=['천괴','천월','좌보','우필','문창','문곡','녹존','천마'];
+    var supportAux=[];
+    (auxStars || []).forEach(function(a){
+      if (goodAux.indexOf(a) >= 0 && supportAux.indexOf(a) < 0) supportAux.push(a);
+    });
+    if(!mainMeta.length) {
+      return '공궁(空宮)입니다. '+gungDef+' 축은 바깥 조건의 영향을 더 크게 받으니, 기준을 먼저 세우고 속도보다 정렬을 우선하세요.';
+    }
     var star=mainMeta[0].name;
     var kw=ZW_STAR_KW[star]||star;
     var tier=calcStrengthTier(mainMeta,zhi);
+    var tierText={묘:'매우 강하게 작동',득:'안정적으로 힘을 얻음',리:'이롭게 활용 가능',평:'균형 관리 필요',함:'제약이 큰 상태'}[tier]||'작동';
     var isDual=(mainMeta.length>1);
-    var brightPart={묘:'매우 강하게 작동',득:'안정적으로 힘을 얻음',리:'이롭게 활용 가능',평:'균형 관리 필요',함:'제약이 큰 상태'}[tier]||'작동';
-    var dualNote=isDual?' + '+(ZW_STAR_KW[mainMeta[1].name]||mainMeta[1].name):'';
-    var advPart='';
-    if(sh==='화기') advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' 영역에서 실수 비용이 커집니다. 계약·말·과속 결정을 특히 조심하세요.';
-    else if(sh==='화록') advPart=(tier==='묘'||tier==='득')?' ☛ '+ZW_GUNG_DEF[gungName]+' 영역에서 성과와 인연 유입이 빠른 시기입니다.':' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 천천히 쌓으면 이익 회수 가능성이 큽니다.';
-    else if(sh==='화권') advPart=(tier==='묘'||tier==='득')?' ☛ '+ZW_GUNG_DEF[gungName]+' 영역에서 주도권을 잡기 좋은 구간입니다.':' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 실력은 인정받지만 독단은 손해가 됩니다.';
-    else if(sh==='화과') advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 평판·시험·평가에 유리합니다.';
-    else if(tier==='묘'||tier==='득') advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 추진력이 잘 붙는 구간입니다. 중요한 일은 직접 리드하세요.';
-    else if(tier==='평' || tier==='함') advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 에너지 소모가 크니 무리한 확장보다 복구·정리가 우선입니다.';
-    else advPart=' ☛ '+ZW_GUNG_DEF[gungName]+' 영역은 현재 흐름을 안정적으로 유지하는 것이 효율적입니다.';
-    var goodAux=['천괴','천월','좌보','우필','문창','문곡','녹존','천마'];
-    var auxNote='';
-    if(auxStars.length){var ga=auxStars.filter(function(a){return goodAux.indexOf(a)>=0;});if(ga.length)auxNote=' ['+ga.slice(0,2).join('·')+' 후원]';}
-    return kw+(isDual?dualNote:'')+' <b>'+brightPart+'</b>'+auxNote+advPart;
+    var secondary=isDual ? (ZW_STAR_KW[mainMeta[1].name]||mainMeta[1].name) : '';
+    var mainLine = kw + (isDual ? (' · ' + secondary) : '') + '가 중심축이 되어, ' + tierText + '합니다.';
+    var supportLine = supportAux.length
+      ? ('보조성 ' + supportAux.slice(0, 2).join(' · ') + '가 완충막이 되어 흐름을 매끈하게 받쳐 줍니다.')
+      : '보조성 직접 후원은 약하지만, 주성의 방향을 분명히 세우면 결과가 흔들리지 않습니다.';
+    var contextText;
+    if (sh === '화기') contextText = '말·계약·속도에서 오차를 줄이는 쪽이 손실 방지에 유리합니다.';
+    else if (sh === '화록') contextText = '회수와 연결이 빠르게 붙는 시기라, 작은 기회도 기록해 두는 편이 좋습니다.';
+    else if (sh === '화권') contextText = '주도권과 실행력이 살아나지만, 독주보다 역할 분담이 더 큰 성과를 만듭니다.';
+    else if (sh === '화과') contextText = '평판·평가·정돈된 결과물에서 강점이 드러납니다.';
+    else if (tier === '묘' || tier === '득') contextText = '추진력이 잘 붙는 구간이라, 중요한 일은 직접 밀어붙이는 편이 유리합니다.';
+    else if (tier === '평' || tier === '함') contextText = '에너지 소모가 큰 편이므로, 확장보다 복구와 정리를 먼저 두는 편이 안전합니다.';
+    else contextText = '현재 흐름을 안정적으로 유지하면서 다음 타이밍을 준비하는 것이 효율적입니다.';
+    var contextLine = '이 궁은 ' + gungDef + '의 규칙을 따르므로, ' + contextText;
+    return mainLine + ' ' + supportLine + ' ' + contextLine;
   }
 
   var rows='';
