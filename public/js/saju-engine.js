@@ -11048,18 +11048,68 @@ function buildZwSummaryTableHtml(palace) {
     for(var i=0;i<palaceDetailRows.length;i++) if(palaceDetailRows[i].pName === name) return palaceDetailRows[i];
     return null;
   }
+  function linkSpecificFlow(aName, bName, aLead, bLead, diff){
+    var pair = aName + '>' + bName;
+    if(pair === '명궁>관록궁'){
+      return {
+        axis: '자기 기준(명궁)과 일의 방식(관록궁)이 만나는 축입니다. 정체성에 맞는 업무 구조를 선택할수록 성과 재현성이 높아집니다.',
+        point: '실전 포인트: 목표를 세울 때 직업명보다 일 처리 방식(집중형/협업형/리더형/참모형)을 먼저 고정하세요.'
+      };
+    }
+    if(pair === '명궁>부처궁'){
+      return {
+        axis: '자기 성향(명궁)과 관계 운영(부처궁)이 연결되는 축입니다. 사랑의 안정도는 감정보다 관계 규칙의 합의에서 올라갑니다.',
+        point: '실전 포인트: 갈등 직후 결론을 미루고, 진정 후 역할·시간·돈의 경계를 한 문장으로 합의하세요.'
+      };
+    }
+    if(pair === '재백궁>관록궁'){
+      return {
+        axis: '돈의 흐름(재백궁)과 커리어 성과(관록궁)가 직결되는 축입니다. 수익 구조와 업무 구조를 함께 설계할 때 누수가 줄어듭니다.',
+        point: '실전 포인트: 수입 파이프와 정산 규칙을 분리하고, 월 1회 고정 점검 루틴을 두세요.'
+      };
+    }
+    if(pair === '부처궁>복덕궁'){
+      return {
+        axis: '관계의 온도(부처궁)와 내면 회복(복덕궁)이 맞물리는 축입니다. 회복력이 떨어지면 관계 만족도도 함께 하락합니다.',
+        point: '실전 포인트: 대화 루틴과 휴식 루틴을 동시에 관리해 감정 소모를 선제 차단하세요.'
+      };
+    }
+    if(pair === '전택궁>재백궁'){
+      return {
+        axis: '생활 기반(전택궁)과 자산 운용(재백궁)의 연결 축입니다. 기반 비용 관리가 자산 안정도를 직접 좌우합니다.',
+        point: '실전 포인트: 고정비 상한과 비상 예산 비율을 먼저 정해 변동 리스크를 줄이세요.'
+      };
+    }
+    if(pair === '노복궁>관록궁'){
+      return {
+        axis: '협력자 구조(노복궁)와 성과 구조(관록궁)의 연결 축입니다. 사람 운을 시스템으로 묶을수록 성과 변동폭이 줄어듭니다.',
+        point: '실전 포인트: 협업은 역할·기여·보상 기준을 명확히 문서화할 때 가장 안정적으로 확장됩니다.'
+      };
+    }
+    return {
+      axis: aLead + '과 ' + bLead + '의 결이 연결되어 두 궁의 과제가 함께 움직입니다.',
+      point: diff > 0
+        ? '실전 포인트: ' + aName + '의 강점을 기준축으로 잡고 ' + bName + '의 운영 리듬을 맞추세요.'
+        : '실전 포인트: ' + bName + '의 요구를 먼저 정리하고 ' + aName + '의 실행 속도를 조절하세요.'
+    };
+  }
   function linkSentence(aName, bName){
     var a = findRowByName(aName);
     var b = findRowByName(bName);
     if(!a || !b) return '';
     var aLead = a.mainEntries[0] ? a.mainEntries[0].name : '공궁';
     var bLead = b.mainEntries[0] ? b.mainEntries[0].name : '공궁';
-    var diff = a.energyScore - b.energyScore;
+    var aEnergy = Number(a.energyScore);
+    var bEnergy = Number(b.energyScore);
+    if(!Number.isFinite(aEnergy)) aEnergy = 50;
+    if(!Number.isFinite(bEnergy)) bEnergy = 50;
+    var diff = aEnergy - bEnergy;
     var flow = '';
     if(Math.abs(diff) <= 8) flow = '두 궁의 에너지가 균형이라 상호 보완이 잘 작동합니다.';
     else if(diff > 8) flow = a.pNameDisplay + '의 추진력이 ' + b.pNameDisplay + '을 이끌며, 속도 조절만 되면 성과 전환이 빠릅니다.';
     else flow = b.pNameDisplay + '의 요구가 더 강해 ' + a.pNameDisplay + '의 선택 기준을 재정렬할 필요가 있습니다.';
-    return '<div style="padding:7px 0;border-bottom:1px solid rgba(148,163,184,0.16)"><b style="color:#c4b5fd">'+escText(a.pNameDisplay)+' ↔ '+escText(b.pNameDisplay)+'</b><br><span style="color:#e2e8f0">주축 별: '+escText(aLead)+' ↔ '+escText(bLead)+' · '+escText(flow)+'</span></div>';
+    var specific = linkSpecificFlow(a.pName, b.pName, aLead, bLead, diff);
+    return '<div style="padding:7px 0;border-bottom:1px solid rgba(148,163,184,0.16)"><b style="color:#c4b5fd">'+escText(a.pNameDisplay)+' ↔ '+escText(b.pNameDisplay)+'</b><br><span style="color:#e2e8f0">주축 별: '+escText(aLead)+' ↔ '+escText(bLead)+' · '+escText(flow)+'</span><br><span style="display:block;margin-top:3px;color:#bfdbfe">'+escText(specific.axis)+'</span><span style="display:block;margin-top:2px;color:#c7d2fe">'+escText(specific.point)+'</span></div>';
   }
 
   var sihuaRows = palaceDetailRows.filter(function(r){ return !!r.sihuaType; }).map(function(r){
@@ -16039,6 +16089,18 @@ function renderZiwei(p, natal, targetId) {
           - (meP.borrowedCount + youP.borrowedCount) * (cfg.borrowedW || 1.5);
         return Math.max(20, Math.min(96, Math.round(s)));
       };
+      var safeRoundScore = function(v, fallback) {
+        var n = Number(v);
+        if (!Number.isFinite(n)) return fallback;
+        return Math.round(n);
+      };
+      var safeClampScore = function(v, min, max, fallback) {
+        var n = Number(v);
+        if (!Number.isFinite(n)) return fallback;
+        if (n < min) return min;
+        if (n > max) return max;
+        return Math.round(n);
+      };
 
       var mePal = {
         meng: getPalSnapshot(meData, '명궁'),
@@ -16061,40 +16123,40 @@ function renderZiwei(p, natal, targetId) {
         job: getPalSnapshot(partnerData, '관록궁')
       };
 
-      var loveScore = Math.round((
+      var loveScore = safeRoundScore((
         pairScore(mePal.spouse, youPal.spouse, { base: 52, mainW: 12, auxW: 4.5, badW: 2.2 }) * 0.5 +
         pairScore(mePal.meng, youPal.meng, { base: 50, mainW: 10, auxW: 3.8, badW: 2.0 }) * 0.3 +
         pairScore(mePal.bok, youPal.bok, { base: 48, mainW: 9.5, auxW: 4.2, badW: 1.8 }) * 0.2
-      ));
-      var marriageScore = Math.round((
+      ), 60);
+      var marriageScore = safeRoundScore((
         pairScore(mePal.spouse, youPal.spouse, { base: 53, mainW: 11.5, auxW: 4.0, badW: 2.3 }) * 0.45 +
         pairScore(mePal.home, youPal.home, { base: 51, mainW: 10.0, auxW: 4.0, badW: 1.8 }) * 0.35 +
         pairScore(mePal.bok, youPal.bok, { base: 49, mainW: 9.5, auxW: 4.2, badW: 1.7 }) * 0.2
-      ));
-      var friendScore = Math.round((
+      ), 60);
+      var friendScore = safeRoundScore((
         pairScore(mePal.meng, youPal.meng, { base: 50, mainW: 9.5, auxW: 4.5, badW: 1.7 }) * 0.5 +
         pairScore(mePal.bok, youPal.bok, { base: 50, mainW: 9.0, auxW: 5.0, badW: 1.5 }) * 0.5
-      ));
-      var workScore = Math.round((
+      ), 58);
+      var workScore = safeRoundScore((
         pairScore(mePal.job, youPal.job, { base: 50, mainW: 11.5, auxW: 4.2, badW: 2.2 }) * 0.55 +
         pairScore(mePal.meng, youPal.meng, { base: 49, mainW: 9.0, auxW: 3.5, badW: 2.0 }) * 0.45
-      ));
-      var businessScore = Math.round((
+      ), 58);
+      var businessScore = safeRoundScore((
         pairScore(mePal.wealth, youPal.wealth, { base: 50, mainW: 12.0, auxW: 4.5, badW: 2.3 }) * 0.45 +
         pairScore(mePal.job, youPal.job, { base: 49, mainW: 10.5, auxW: 4.0, badW: 2.0 }) * 0.35 +
         pairScore(mePal.home, youPal.home, { base: 48, mainW: 9.0, auxW: 3.8, badW: 1.8 }) * 0.2
-      ));
+      ), 58);
       var pastAxisMeng = pairScore(mePal.meng, youPal.meng, { base: 49, mainW: 10.0, auxW: 3.9, badW: 1.8 });
       var pastAxisBok = pairScore(mePal.bok, youPal.bok, { base: 52, mainW: 10.5, auxW: 4.4, badW: 1.5 });
       var pastAxisSpouse = pairScore(mePal.spouse, youPal.spouse, { base: 51, mainW: 11.0, auxW: 4.1, badW: 1.8 });
       var pastAxisMove = pairScore(mePal.move, youPal.move, { base: 48, mainW: 9.8, auxW: 3.8, badW: 1.7 });
       var pastAxisIllness = pairScore(mePal.illness, youPal.illness, { base: 47, mainW: 10.0, auxW: 3.6, badW: 1.6 });
-      var pastLifeScore = Math.round((
+      var pastLifeScore = safeRoundScore((
         (pastAxisBok * 3) +
         (pastAxisSpouse * 2) +
         (pastAxisMove * 1.5) +
         (pastAxisIllness * 2)
-      ) / 8.5);
+      ) / 8.5, 55);
 
       var coreMainMe = mePal.spouse.main[0] || mePal.meng.main[0] || '공궁';
       var coreMainYou = youPal.spouse.main[0] || youPal.meng.main[0] || '공궁';
@@ -16420,11 +16482,11 @@ function renderZiwei(p, natal, targetId) {
       };
 
       var rawCatRows = [
-        { key: '연애 궁합', rawVal: loveScore, w: 0.26 },
-        { key: '결혼 궁합', rawVal: marriageScore, w: 0.22 },
-        { key: '친구 궁합', rawVal: friendScore, w: 0.12 },
-        { key: '직장 궁합', rawVal: workScore, w: 0.18 },
-        { key: '사업 궁합', rawVal: businessScore, w: 0.17 }
+        { key: '연애 궁합', rawVal: safeClampScore(loveScore, 20, 96, 60), w: 0.26 },
+        { key: '결혼 궁합', rawVal: safeClampScore(marriageScore, 20, 96, 60), w: 0.22 },
+        { key: '친구 궁합', rawVal: safeClampScore(friendScore, 20, 96, 58), w: 0.12 },
+        { key: '직장 궁합', rawVal: safeClampScore(workScore, 20, 96, 58), w: 0.18 },
+        { key: '사업 궁합', rawVal: safeClampScore(businessScore, 20, 96, 58), w: 0.17 }
       ];
 
       var funDetailByTag = function(tag, key) {
@@ -16572,20 +16634,22 @@ function renderZiwei(p, natal, targetId) {
         goldenTime = '대운 핵심 구간의 직접 중첩은 약하지만, 준비된 합의가 있으면 후반 동기화 가능성이 높습니다.';
       }
 
-      var baseWeighted = Math.round(
-        loveScore * 0.30 + marriageScore * 0.25 + friendScore * 0.14 + workScore * 0.18 + businessScore * 0.13
+      var baseWeighted = safeRoundScore(
+        rawCatRows[0].rawVal * 0.30 + rawCatRows[1].rawVal * 0.25 + rawCatRows[2].rawVal * 0.14 + rawCatRows[3].rawVal * 0.18 + rawCatRows[4].rawVal * 0.13,
+        58
       );
       var layeredBonus = layer1Bonus + layer2Bonus + layer3Bonus + layer4Bonus;
-      var overallScore = Math.max(40, Math.min(95, baseWeighted + layeredBonus));
+      var overallScore = safeClampScore(baseWeighted + layeredBonus, 40, 95, 60);
 
-      var rawAvg = Math.round(rawCatRows.reduce(function(sum, r) { return sum + r.rawVal; }, 0) / rawCatRows.length);
+      var rawAvg = safeRoundScore(rawCatRows.reduce(function(sum, r) {
+        return sum + safeClampScore(r.rawVal, 20, 96, 58);
+      }, 0) / rawCatRows.length, 58);
       var syncGap = overallScore - rawAvg;
       var catRows = rawCatRows.map(function(r) {
         // 세부 점수를 종합점수 스케일에 맞추되, 카테고리 간 상대 순위는 유지한다.
         var upliftByGap = syncGap * 0.72;
         var upliftByLayer = layeredBonus * r.w * 0.55;
-        var val = Math.round(r.rawVal + upliftByGap + upliftByLayer);
-        val = Math.max(30, Math.min(95, val));
+        var val = safeClampScore(r.rawVal + upliftByGap + upliftByLayer, 30, 95, 60);
         return {
           key: r.key,
           val: val,
@@ -16601,6 +16665,7 @@ function renderZiwei(p, natal, targetId) {
       var relationAlias = overallScore >= 80 ? '완벽한 파트너십' : (overallScore <= 70 ? '성장형 커플' : '고밀도 동반자');
 
       var scoreBadge = function(v) {
+        v = safeClampScore(v, 30, 95, 60);
         var bg = v >= 80 ? 'rgba(74,222,128,0.2)' : (v >= 70 ? 'rgba(96,165,250,0.2)' : 'rgba(245,158,11,0.2)');
         var bd = v >= 80 ? 'rgba(74,222,128,0.6)' : (v >= 70 ? 'rgba(96,165,250,0.6)' : 'rgba(245,158,11,0.6)');
         return '<span style="padding:2px 8px;border-radius:999px;border:1px solid '+bd+';background:'+bg+';font-size:0.78rem;color:#fdf2f8;font-weight:800;">'+v+'점</span>';
