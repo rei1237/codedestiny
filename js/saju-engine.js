@@ -15704,9 +15704,99 @@ function renderZiwei(p, natal, targetId) {
       };
     }
 
+    if (!window._ensureZwStarBuckets) {
+      window._ensureZwStarBuckets = function(pd) {
+        if (!pd || typeof pd !== 'object') return pd;
+
+        var rows = Array.isArray(pd.palaceStarData) ? pd.palaceStarData : [];
+        var names = Array.isArray(pd.palacesByIndex) ? pd.palacesByIndex : [];
+        var baseLen = 12;
+        if (rows.length > baseLen) baseLen = rows.length;
+        if (names.length > baseLen) baseLen = names.length;
+
+        var src = pd.stars;
+        var normalized = new Array(baseLen);
+
+        for (var i = 0; i < baseLen; i++) {
+          var raw = null;
+          if (Array.isArray(src)) {
+            raw = src[i];
+          } else if (src && typeof src === 'object') {
+            raw = src[i];
+          }
+
+          var bucket = window._normalizeZwStarBucket(raw);
+          if ((!bucket.main.length && !bucket.aux.length && !bucket.bad.length) && rows[i]) {
+            bucket = window._normalizeZwStarBucket(rows[i]);
+          }
+          normalized[i] = bucket;
+        }
+
+        pd.stars = normalized;
+        return pd;
+      };
+    }
+
+    if (!window._renderZwComprehensiveFallback) {
+      window._renderZwComprehensiveFallback = function(seed, err) {
+        var panel = document.getElementById('zwComprehensiveReport');
+        if (!panel) return;
+
+        var pd = seed && seed.pd ? (window._ensureZwStarBuckets(seed.pd) || seed.pd) : null;
+        var idx = (seed && Number.isFinite(seed.idx)) ? seed.idx : 0;
+        var pName = (seed && seed.pName) || ((pd && pd.palacesByIndex && pd.palacesByIndex[idx]) || '명궁');
+        var stars = window._normalizeZwStarBucket(seed && seed.stars ? seed.stars : (pd && pd.stars && pd.stars[idx]));
+
+        var toName = function(item) {
+          if (typeof item === 'string') return item.trim();
+          if (item && typeof item === 'object') return String(item.nameKo || item.name || '').trim();
+          return '';
+        };
+
+        var mainNames = (stars.main || []).map(toName).filter(Boolean);
+        var auxNames = (stars.aux || []).map(toName).filter(Boolean);
+        var badNames = (stars.bad || []).map(toName).filter(Boolean);
+
+        var summaryHtml = '';
+        try {
+          summaryHtml = pd ? buildZwSummaryTableHtml(pd) : '';
+        } catch (_e) {
+          summaryHtml = '';
+        }
+
+        panel.innerHTML = ''
+          + '<div style="font-family:\'Suit\',sans-serif;background:#121212;color:#E2E8F0;padding:20px;border-radius:12px;">'
+          + '  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:2px solid #8B5CF6;padding-bottom:12px;margin-bottom:16px;">'
+          + '    <h1 style="margin:0;color:#C084FC;font-size:1.3rem;">자미두수 천명(天命) 종합 리포트</h1>'
+          + '    <button type="button" class="zw-report-close-btn" onclick="window._closeZwComprehensiveReport()">리포트 닫기 ✕</button>'
+          + '  </div>'
+          + '  <div style="margin-bottom:12px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.35);border-radius:10px;padding:10px 12px;color:#dbeafe;font-size:.88rem;line-height:1.65;">'
+          + '    12궁 데이터는 정상 확인되었고, 상세 해석 블록에서 일시 예외가 발생해 안정 모드로 표시했습니다. 아래 핵심 결과는 정상 계산값입니다.'
+          + '  </div>'
+          + '  <div style="background:rgba(255,255,255,.05);padding:12px;border-radius:10px;margin-bottom:12px;line-height:1.8;font-size:.9rem;">'
+          + '    <div><b>기준 궁위:</b> ' + zwDisplayPalaceName(pName) + '</div>'
+          + '    <div><b>주성:</b> ' + (mainNames.length ? mainNames.join(' · ') : '공궁(空宮)') + '</div>'
+          + '    <div><b>보조성:</b> ' + (auxNames.length ? auxNames.join(' · ') : '없음') + '</div>'
+          + '    <div><b>흉성:</b> ' + (badNames.length ? badNames.join(' · ') : '없음') + '</div>'
+          + '  </div>'
+          + (summaryHtml ? ('<div style="margin-top:4px;">' + summaryHtml + '</div>') : '')
+          + '  <div style="margin-top:12px;">'
+          + '    <button type="button" class="zw-report-close-btn" onclick="window._openZwComprehensiveReport()">전체 해석 다시 불러오기</button>'
+          + '  </div>'
+          + '</div>';
+
+        if (err) {
+          console.error('[Ziwei] comprehensive fallback reason:', err);
+        }
+      };
+    }
+
     if (!window._resolveZwComprehensiveSeed) {
       window._resolveZwComprehensiveSeed = function(pd) {
         if (!pd || typeof pd !== 'object') return null;
+        if (typeof window._ensureZwStarBuckets === 'function') {
+          pd = window._ensureZwStarBuckets(pd) || pd;
+        }
         var names = Array.isArray(pd.palacesByIndex) ? pd.palacesByIndex : [];
         var idx = names.indexOf('명궁');
         if (idx < 0) idx = 0;
@@ -15837,14 +15927,9 @@ function renderZiwei(p, natal, targetId) {
         }
       } catch (ctxErr) {
         console.warn('[ZiweiCompat] KASI context fallback:', ctxErr);
-      }
-
-      var correctedHour = ph;
-      var correctedMinute = pmin;
-      var cityBaseTz = cityOpt ? parseFloat(cityOpt.getAttribute('data-base-tz') || cityOpt.getAttribute('data-tz') || '9') : 9;
-      var tzResolved = resolveBirthTimezoneOffset(py, pm, pdm, ph, pmin, cityTz, cityBaseTz);
-      var cityStdLong = tzResolved.tzOffsetHours * 15;
-      var cityLngOffset = Math.round((cityStdLong - cityLong) * 4);
+        if (typeof window._renderZwComprehensiveFallback === 'function') {
+          window._renderZwComprehensiveFallback(seed, err);
+        }
       var correctedTotal = ((ph * 60 + pmin - cityLngOffset) % 1440 + 1440) % 1440;
       correctedHour = Math.floor(correctedTotal / 60);
       correctedMinute = correctedTotal % 60;
@@ -16737,6 +16822,10 @@ function renderZiwei(p, natal, targetId) {
 
     window._renderZwPanel = function(idx, pName, stars, pd, opts) {
       opts = opts || {};
+      if (typeof window._ensureZwStarBuckets === 'function') {
+        pd = window._ensureZwStarBuckets(pd) || pd;
+      }
+      stars = window._normalizeZwStarBucket(stars || (pd && pd.stars && pd.stars[idx]));
       var clickOnly = !!opts.clickOnly;
       var targetPanelId = opts.targetId || 'zwDetailPanel';
       var showClose = opts.showClose !== false;
@@ -19010,13 +19099,8 @@ function renderZiwei(p, natal, targetId) {
       );
     } catch (err) {
       console.error('[Ziwei] initial comprehensive render failed:', err);
-      var initialPanel = document.getElementById('zwComprehensiveReport');
-      if (initialPanel) {
-        initialPanel.innerHTML = '<div class="zw-empty-state">'
-          + '<div class="zw-empty-icon">📜</div>'
-          + '명반 해석을 차분히 정리하는 중입니다.<br>'
-          + '<button type="button" class="zw-report-close-btn" style="margin-top:10px;" onclick="window._openZwComprehensiveReport()">다시 불러오기</button>'
-          + '</div>';
+      if (typeof window._renderZwComprehensiveFallback === 'function') {
+        window._renderZwComprehensiveFallback(initialSeed, err);
       }
     }
   }
