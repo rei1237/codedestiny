@@ -77,7 +77,7 @@ describe("Billing access decision", () => {
     expect(decision.reason).toBe(utils.ACCESS_DECISION_REASONS.SUBSCRIPTION_ACTIVE);
   });
 
-  test("잔액 부족은 insufficient_coins 이어야 한다", () => {
+  test("인증된 유료 기능은 잔액과 무관하게 requires_purchase 이어야 한다", () => {
     const decision = utils.buildAccessDecision({
       pricing: { featureKey: "premium_pdf_ziwei", cost: 590 },
       authenticated: true,
@@ -87,7 +87,7 @@ describe("Billing access decision", () => {
     });
 
     expect(decision.allowed).toBe(false);
-    expect(decision.reason).toBe(utils.ACCESS_DECISION_REASONS.INSUFFICIENT_COINS);
+    expect(decision.reason).toBe(utils.ACCESS_DECISION_REASONS.REQUIRES_PURCHASE);
   });
 
   test("잔액 충분한 유료 기능은 requires_purchase 이어야 한다", () => {

@@ -37,7 +37,7 @@ type PointPackage = {
   points: number;
   featureKey: string;
   description: string;
-  productType: "paid_content" | "pdf_report";
+  productType: "paid_content" | "pdf_report" | "usage_pass";
 };
 
 type PaymentMethodOption = {
@@ -113,7 +113,7 @@ type PaymentHistoryItem = {
   cancelledAt?: string | null;
 };
 
-/* ── 프로필 구독 타입 ───────────────────────────────────────── */
+/* ── 프로필 이용권 타입 ───────────────────────────────────────── */
 type SubscriptionTier = "free" | "standard" | "premium" | "vvip";
 type AdminTestTier = "off" | "standard" | "premium" | "vvip";
 
@@ -163,6 +163,7 @@ type PendingOrder = {
   paymentAmount: number;
   chargePoints?: number;
   coinPrice?: number;
+  productId?: string;
   featureKey?: string;
   productName?: string;
   paymentMethod: string;
@@ -214,7 +215,7 @@ const PORTONE_CHANNEL_KEY = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY || "";
 const PORTONE_NOTICE_URL = process.env.NEXT_PUBLIC_PORTONE_NOTICE_URL || "";
 const PORTONE_MOBILE_REDIRECT_PATH = process.env.NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH || "/points";
 
-/* Honey 멤버십 30일 이용권 플랜 정의 */
+/* Honey 30일 이용권 플랜 정의 */
 const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   {
     id:           "standard",
@@ -229,7 +230,7 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       "30코인 이하 서비스 무료 이용",
       "모든 프로필에서 해금 콘텐츠 동일 적용",
       "30일간 유효 (기간 기반)",
-      "자동결제 없는 30일 멤버십 이용권",
+      "자동결제 없는 30일 이용권",
     ],
   },
   {
@@ -245,7 +246,7 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       "50코인 이하 서비스 무료 이용",
       "모든 프로필에서 해금 콘텐츠 동일 적용",
       "30일간 유효 (기간 기반)",
-      "자동결제 없는 30일 멤버십 이용권",
+      "자동결제 없는 30일 이용권",
     ],
     badge:        "추천",
   },
@@ -262,7 +263,7 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       "100코인 이하 서비스 무료 이용",
       "모든 프로필에서 해금 콘텐츠 동일 적용",
       "30일간 유효 (기간 기반)",
-      "자동결제 없는 30일 멤버십 이용권",
+      "자동결제 없는 30일 이용권",
     ],
     badge:        "VVIP",
   },
@@ -281,15 +282,17 @@ function getSubscriptionTierRank(tier: SubscriptionTier | string | null | undefi
 }
 
 const POINT_PACKAGES: PointPackage[] = [
-  { id: "saju_life_book_pdf", title: "사주 인생의 책 PDF", amount: 55000, points: 500, featureKey: "premium_pdf_saju_life_book", description: "13챕터 인생 흐름 PDF 리포트", productType: "pdf_report" },
-  { id: "saju_love_secret_pdf", title: "사주 연애 비책 PDF", amount: 33000, points: 300, featureKey: "premium_pdf_saju_love_secret", description: "연애운 전략 PDF 리포트", productType: "pdf_report" },
-  { id: "saju_new_year_pdf", title: "사주 신년운세 PDF", amount: 33000, points: 300, featureKey: "premium_pdf_saju_new_year", description: "신년 흐름 PDF 리포트", productType: "pdf_report" },
-  { id: "premium_ziwei_pdf", title: "자미두수 심층 PDF", amount: 64900, points: 590, featureKey: "premium_pdf_ziwei", description: "자미두수 프리미엄 PDF 리포트", productType: "pdf_report" },
-  { id: "premium_astrology_pdf", title: "점성술 PDF", amount: 42900, points: 390, featureKey: "premium_pdf_western_astrology", description: "서양 점성술 프리미엄 PDF 리포트", productType: "pdf_report" },
-  { id: "premium_sukuyo_pdf", title: "숙요점 PDF", amount: 42900, points: 390, featureKey: "premium_pdf_sukyo", description: "숙요점 프리미엄 PDF 리포트", productType: "pdf_report" },
-  { id: "premium_vedic_pdf", title: "베다점 PDF", amount: 42900, points: 390, featureKey: "premium_pdf_vedic", description: "베다 점성술 프리미엄 PDF 리포트", productType: "pdf_report" },
-  { id: "premium_soul_origin_pdf", title: "운명의 업 PDF", amount: 75900, points: 690, featureKey: "premium_pdf_soul_origin", description: "운명의 기원서 PDF 리포트", productType: "pdf_report" },
-  { id: "premium_fpti_report", title: "FPTI 심층 리포트", amount: 22000, points: 200, featureKey: "premium-fpti-report", description: "FPTI 프리미엄 심층 리포트", productType: "paid_content" },
+  { id: "saju_unlock_3", title: "사주 잠금 서비스 3개 해제권", amount: 15000, points: 150, featureKey: "usage-pass-saju-unlock-3", description: "사주 잠금 콘텐츠 3개를 필요한 순간에 해제", productType: "usage_pass" },
+  { id: "saju_unlock_5", title: "사주 잠금 서비스 5개 해제권", amount: 25000, points: 250, featureKey: "usage-pass-saju-unlock-5", description: "사주 잠금 콘텐츠 5개를 필요한 순간에 해제", productType: "usage_pass" },
+  { id: "fortune_30_3", title: "30코인 이하 운세 3회 이용권", amount: 9000, points: 90, featureKey: "usage-pass-fortune-30-3", description: "30코인 이하 운세 서비스를 3회 이용", productType: "usage_pass" },
+  { id: "fortune_30_10", title: "30코인 이하 운세 10회 이용권", amount: 30000, points: 300, featureKey: "usage-pass-fortune-30-10", description: "30코인 이하 운세 서비스를 10회 이용", productType: "usage_pass" },
+  { id: "fortune_30_30", title: "30코인 이하 운세 30회 이용권", amount: 90000, points: 900, featureKey: "usage-pass-fortune-30-30", description: "30코인 이하 운세 서비스를 30회 이용", productType: "usage_pass" },
+  { id: "fortune_50_3", title: "50코인 이하 운세 3회 이용권", amount: 15000, points: 150, featureKey: "usage-pass-fortune-50-3", description: "50코인 이하 운세 서비스를 3회 이용", productType: "usage_pass" },
+  { id: "fortune_50_10", title: "50코인 이하 운세 10회 이용권", amount: 50000, points: 500, featureKey: "usage-pass-fortune-50-10", description: "50코인 이하 운세 서비스를 10회 이용", productType: "usage_pass" },
+  { id: "fortune_50_30", title: "50코인 이하 운세 30회 이용권", amount: 150000, points: 1500, featureKey: "usage-pass-fortune-50-30", description: "50코인 이하 운세 서비스를 30회 이용", productType: "usage_pass" },
+  { id: "compat_3", title: "운세 서비스 궁합 3회 이용권", amount: 15000, points: 150, featureKey: "usage-pass-compat-3", description: "궁합 계열 운세 서비스를 3회 이용", productType: "usage_pass" },
+  { id: "compat_10", title: "운세 서비스 궁합 10회 이용권", amount: 50000, points: 500, featureKey: "usage-pass-compat-10", description: "궁합 계열 운세 서비스를 10회 이용", productType: "usage_pass" },
+  { id: "compat_30", title: "운세 서비스 궁합 30회 이용권", amount: 150000, points: 1500, featureKey: "usage-pass-compat-30", description: "궁합 계열 운세 서비스를 30회 이용", productType: "usage_pass" },
 ];
 
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
@@ -540,7 +543,7 @@ function clearPendingSubscriptionOrder() {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   서브 컴포넌트: 프로필 구독 섹션
+   서브 컴포넌트: 프로필 이용권 섹션
 ══════════════════════════════════════════════════════════════════ */
 
 function SubscriptionSection({
@@ -603,7 +606,7 @@ function SubscriptionSection({
 
   return (
     <section
-      aria-label="Honey 멤버십 30일 이용권"
+      aria-label="Honey 이용권 30일 이용권"
       className="rounded-[24px] border border-[#EDDBA3] bg-white/90 overflow-hidden shadow-[0_8px_32px_rgba(120,80,10,0.10)]"
     >
       {/* 섹션 헤더 */}
@@ -613,21 +616,21 @@ function SubscriptionSection({
       >
         {/* 제목 */}
         <div className="mb-4">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-[#A0700A]">Honey Membership Pass</p>
-          <h2 className="mt-0.5 text-xl font-bold text-[#5C3A1E]">🍯 Honey 멤버십 30일 이용권</h2>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-[#A0700A]">Honey 이용권 Pass</p>
+          <h2 className="mt-0.5 text-xl font-bold text-[#5C3A1E]">🍯 Honey 이용권 30일 이용권</h2>
           <p className="mt-1 text-sm text-[#7A5230]">
-            기존 혜택은 유지하고, 자동결제 없이 30일 동안 멤버십을 이용하세요.
+            기존 혜택은 유지하고, 자동결제 없이 30일 동안 이용권을 이용하세요.
           </p>
         </div>
 
         {/* 핵심 혜택 callout */}
         <div className="mb-4 rounded-[14px] border border-amber-300 bg-gradient-to-br from-amber-50 to-yellow-50 px-4 py-3 shadow-[inset_0_1px_3px_rgba(180,130,0,0.08)]">
           <p className="mb-1.5 flex items-center gap-1.5 text-[11.5px] font-extrabold uppercase tracking-wide text-amber-800">
-            <span aria-hidden="true">🍯</span> Honey 멤버십 이용권의 특별한 이유
+            <span aria-hidden="true">🍯</span> Honey 이용권의 특별한 이유
           </p>
           <p className="text-[12.5px] leading-relaxed text-[#6B4410]">
             <span className="font-bold text-[#8B5E0A]">가족·연인·자녀 등 다른 생년월일</span>로 프로필을 추가해도,
-            30일 이용권 하나로 <span className="font-bold text-[#8B5E0A]">모든 프로필에서 멤버십 혜택을 그대로 이용</span>할 수 있습니다.
+            30일 이용권 하나로 <span className="font-bold text-[#8B5E0A]">모든 프로필에서 이용권 혜택을 그대로 이용</span>할 수 있습니다.
           </p>
           <p className="mt-1 text-[11.5px] text-[#8B6020]">
             이 상품은 자동결제 상품이 아니며, 기간 종료 후 무료 플랜으로 전환됩니다.
@@ -650,14 +653,14 @@ function SubscriptionSection({
         {/* 공통 운영 정책 안내 */}
         <div className="mb-4 rounded-[14px] border border-sky-200 bg-sky-50/60 px-4 py-3">
           <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-sky-700">
-            <span aria-hidden="true">ℹ️</span> 멤버십 운영 정책
+            <span aria-hidden="true">ℹ️</span> 이용권 운영 정책
           </p>
           <ul className="mt-1.5 space-y-1 text-[11.5px] text-sky-800">
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>모든 이용권은 <strong>결제일로부터 30일간 유효</strong>합니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>결제 즉시 30일 동안 멤버십 혜택이 활성화됩니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>결제 즉시 30일 동안 이용권 혜택이 활성화됩니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>기간 종료 후 추가 결제 없이 무료 플랜으로 전환됩니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>계속 이용하려면 사용자가 직접 새 30일 이용권을 구매해야 합니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>멤버십 전용 콘텐츠 열람 시 서비스 이용이 시작되며, 7일 이내라도 이용 기록이 있으면 전액 환불이 제한될 수 있습니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>이용권 전용 콘텐츠 열람 시 서비스 이용이 시작되며, 7일 이내라도 이용 기록이 있으면 전액 환불이 제한될 수 있습니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>콘텐츠 진입 전 안내 팝업에서 <strong>[확인]</strong>을 누르면 서비스 개시 및 환불 제한 조건에 동의한 것으로 처리됩니다.</li>
             <li className="flex items-start gap-1.5 font-bold text-rose-600"><span className="mt-0.5 flex-shrink-0">·</span><strong>자동결제 없는 30일 이용권</strong>이며, 결제/환불 기준은 이용약관(환불정책) 조항을 따릅니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>콘텐츠 생성이 시작되었거나 결과가 정상 제공된 경우 디지털 콘텐츠 특성상 환불이 제한될 수 있습니다.</li>
@@ -667,10 +670,10 @@ function SubscriptionSection({
         {isFlowerAdminMode && (
           <div className="mb-4 rounded-[14px] border border-violet-300 bg-violet-50 px-4 py-3">
             <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-violet-800">
-              <span aria-hidden="true">🧪</span> 관리자 구독 티어 테스트 모드
+              <span aria-hidden="true">🧪</span> 관리자 이용권 티어 테스트 모드
             </p>
             <p className="mt-1 text-[11.5px] text-violet-700">
-              관리자 모드는 항상 프리패스로 동작하며, 아래 티어를 선택하면 구독 상품 기준(프로필 한도/무료 한도/기준 코인)이 해당 티어로 시뮬레이션됩니다.
+              관리자 모드는 항상 프리패스로 동작하며, 아래 티어를 선택하면 이용권 상품 기준(프로필 한도/무료 한도/기준 코인)이 해당 티어로 시뮬레이션됩니다.
             </p>
             <div className="mt-2.5 flex flex-wrap gap-2">
               {([
@@ -724,7 +727,7 @@ function SubscriptionSection({
       </div>
 
       {/* ────────────────────────────────────────────────── */}
-      {/* 무료 플랜 안내 + 구독 훅                          */}
+      {/* 무료 플랜 안내 + 이용권 훅                          */}
       {/* ────────────────────────────────────────────────── */}
       <div className="mx-5 mb-4 rounded-[20px] border border-neutral-200/80 bg-gradient-to-b from-neutral-50/70 to-white p-4 shadow-[0_2px_14px_rgba(0,0,0,0.06)]">
         {/* 제목 행 */}
@@ -761,9 +764,9 @@ function SubscriptionSection({
           </ul>
         </div>
 
-        {/* 잠긴 콘텐츠 — 구독 훅 */}
+        {/* 잠긴 콘텐츠 — 이용권 훅 */}
         <div className="mb-3 rounded-[14px] border border-neutral-200 bg-neutral-50/80 px-3.5 py-3">
-          <p className="mb-2 text-[11px] font-extrabold text-neutral-400">🔒 구독하면 잠금이 해제돼요</p>
+          <p className="mb-2 text-[11px] font-extrabold text-neutral-400">🔒 이용권 구매 시 잠금이 해제돼요</p>
           <ul className="space-y-1.5">
             {[
               "상세 사주 분석 — 연애·재물·직업·건강 심층 리포트",
@@ -784,11 +787,11 @@ function SubscriptionSection({
         <div className="rounded-[14px] border border-amber-300 bg-gradient-to-br from-amber-50 to-yellow-50/70 px-4 py-3.5">
           <p className="text-[12.5px] font-black text-[#7A4A00] leading-snug mb-1.5">
             맛보기만으로도 이 정도인데,<br />
-            <span className="text-[#C07B00]">30일 멤버십으로 얼마나 깊이 볼 수 있을까요?</span> 🍯
+            <span className="text-[#C07B00]">30일 이용권으로 얼마나 깊이 볼 수 있을까요?</span> 🍯
           </p>
           <p className="text-[11.5px] text-[#8B6020] leading-relaxed mb-2.5">
             오늘 운세가 마음에 걸렸다면, 그건 당신의 직감이 맞는 거예요.
-            <br />Honey 멤버십 하나로 <strong>사주·타로·점성술의 진짜 깊이</strong>를 경험해 보세요.
+            <br />Honey 이용권 하나로 <strong>사주·타로·점성술의 진짜 깊이</strong>를 경험해 보세요.
             가족과 연인의 운명까지, <strong>30일 동안 모든 프로필</strong>에 혜택이 적용됩니다.
           </p>
           <div className="flex items-center gap-2 flex-wrap">
@@ -832,7 +835,7 @@ function SubscriptionSection({
               )}
               {isCurrentActive && (
                 <span className="absolute top-3 right-3 rounded-full bg-emerald-500 px-2 py-0.5 text-[11px] font-black text-white shadow">
-                  ✓ 구독 중
+                  ✓ 이용권 이용 중
                 </span>
               )}
 
@@ -911,7 +914,7 @@ function SubscriptionSection({
 
               {lowerTierBlocked && (
                 <p className="mt-2 text-[11px] font-semibold text-violet-700">
-                  현재 상위 티어 구독이 활성화되어 하위 플랜은 선택할 수 없습니다.
+                  현재 상위 티어 이용권이 활성화되어 하위 플랜은 선택할 수 없습니다.
                 </p>
               )}
             </div>
@@ -923,7 +926,7 @@ function SubscriptionSection({
         <div className="mx-5 mb-5 rounded-[14px] border border-violet-200 bg-violet-50/60 px-4 py-3">
           <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-violet-800">
             <span aria-hidden="true">🧭</span>
-            30일 멤버십 이용권 활성화
+            30일 이용권 활성화
           </p>
           <p className="mt-1 text-[11.5px] text-violet-700">
             {`${expires || "만료일"}까지 혜택이 유지됩니다. 이 상품은 자동결제 상품이 아니며 기간 종료 후 무료 플랜으로 전환됩니다.`}
@@ -948,7 +951,7 @@ function SubscriptionSection({
       )}
 
       <div className="px-5 pb-5 space-y-1">
-        <p className="text-[11px] text-[#9B7040]">✅ 결제 즉시 멤버십 혜택이 활성화되며 <strong>30일간 유효</strong>합니다.</p>
+        <p className="text-[11px] text-[#9B7040]">✅ 결제 즉시 이용권 혜택이 활성화되며 <strong>30일간 유효</strong>합니다.</p>
         <p className="text-[11px] text-rose-600 font-bold">이 상품은 자동결제 상품이 아니며 기간 종료 후 무료 플랜으로 전환됩니다.</p>
         <p className="text-[11px] text-[#9B7040]">계속 이용하려면 사용자가 직접 새 30일 이용권을 구매해야 합니다.</p>
       </div>
@@ -1069,7 +1072,7 @@ function WalletCard({ name, points }: { name: string; points: number }) {
               <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-800">
                 황금 돼지 결제 상점
               </p>
-              <p className="mt-0.5 text-[15px] font-bold text-[#5C3A1E]">{name} 님의 결제/멤버십 관리</p>
+              <p className="mt-0.5 text-[15px] font-bold text-[#5C3A1E]">{name} 님의 결제/이용권 관리</p>
             </div>
           </div>
 
@@ -1109,7 +1112,7 @@ function PackageCard({
   selected: boolean;
   onSelect: (pkg: PointPackage) => void;
 }) {
-  const isBest = pkg.id === "premium_ziwei_pdf";
+  const isBest = pkg.id === "fortune_50_10";
 
   return (
     <button
@@ -1126,7 +1129,7 @@ function PackageCard({
       {/* BEST 뱃지 */}
       {isBest && (
         <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#FF5F45] to-[#FF9A3C] px-2.5 py-1 text-[11px] font-black text-white shadow-[0_4px_12px_rgba(214,91,33,0.40)]">
-          추천 리포트
+          추천 이용권
         </span>
       )}
 
@@ -1135,7 +1138,7 @@ function PackageCard({
         <span className="text-[15px] font-bold text-[#5C3A1E]">{pkg.title}</span>
         <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[15px] font-black text-[#9A6800]">
           <CoinIcon size="md" />
-          {pkg.points.toLocaleString("ko-KR")}코인
+          {pkg.points.toLocaleString("ko-KR")}코인 가치
         </span>
       </div>
       <p className="mt-1 text-[11.5px] font-semibold text-[#7A5230]">{pkg.description}</p>
@@ -1144,11 +1147,11 @@ function PackageCard({
       <div className="mt-1.5 flex items-center justify-between gap-2">
         <span className="text-sm font-semibold text-[#7A5230]">{formatWon(pkg.amount)}</span>
         <span className="text-sm font-bold text-[#5C3A1E]">
-          단건 결제
+          회차형 이용권
         </span>
       </div>
       <span className="mt-2.5 inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-[#9A6A14] to-[#C9A84C] px-2.5 py-1 text-[12px] font-black text-white shadow-[0_3px_10px_rgba(160,110,20,0.30)]">
-        원화 결제 후 바로 이용
+        단건 결제 후 회차 적립
       </span>
 
       {/* 선택 체크마크 */}
@@ -1179,7 +1182,7 @@ export default function PointsPage() {
   /* ── 상태 ──────────────────────────────────────────────────────── */
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [currentPoints, setCurrentPoints] = useState(0);
-  const [selectedPackage, setSelectedPackage] = useState<PointPackage>(POINT_PACKAGES[1]);
+  const [selectedPackage, setSelectedPackage] = useState<PointPackage>(POINT_PACKAGES[0]);
   const [selectedMethod, setSelectedMethod] = useState<string>("kakao");
 
   const [isBooting, setIsBooting] = useState(true);
@@ -1223,6 +1226,9 @@ export default function PointsPage() {
     if (raw === "standard" || raw === "premium" || raw === "vvip") {
       setLandingPlanPreset(raw);
     }
+    const packageId = String(query.get("package") || "").trim();
+    const packagePreset = POINT_PACKAGES.find((pkg) => pkg.id === packageId);
+    if (packagePreset) setSelectedPackage(packagePreset);
   }, []);
 
   /* ── Toast 헬퍼 ───────────────────────────────────────────────── */
@@ -1273,7 +1279,7 @@ export default function PointsPage() {
     } catch { /* noop */ }
   }, []);
 
-  /** 구독 성공 후 legacy destiny-profile.js가 읽는 localStorage 캐시를 갱신합니다. */
+  /** 이용권 성공 후 legacy destiny-profile.js가 읽는 localStorage 캐시를 갱신합니다. */
   const persistSubscriptionCache = useCallback((sub: SubscriptionStatus) => {
     try {
       const user = readSanitizedAuthUser();
@@ -1397,7 +1403,7 @@ export default function PointsPage() {
     });
   }, [fetchMyPointState, isBooting, pushToast]);
 
-  /* ── 구독 상태 로드 ─────────────────────────────────────────────── */
+  /* ── 이용권 상태 로드 ─────────────────────────────────────────────── */
   useEffect(() => {
     if (isBooting) return;
     const isAdminSession = authUser?.role === "admin" && isFlowerAdminSessionClient();
@@ -1446,6 +1452,7 @@ export default function PointsPage() {
       paymentAmount?: number;
       chargePoints?: number;
       paymentType?: "digital_content";
+      productId?: string;
       featureKey?: string;
       productName?: string;
       paymentMethod?: string;
@@ -1458,6 +1465,7 @@ export default function PointsPage() {
       if (Number.isInteger(params.paymentAmount)) body.paymentAmount = params.paymentAmount;
       if (Number.isInteger(params.chargePoints)) body.chargePoints = params.chargePoints;
       if (params.paymentType) body.paymentType = params.paymentType;
+      if (params.productId) body.productId = params.productId;
       if (params.featureKey) body.featureKey = params.featureKey;
       if (params.productName) body.productName = params.productName;
 
@@ -1620,7 +1628,7 @@ export default function PointsPage() {
     setIsProcessing(true);
     setProcessingText(
       isSubscriptionRedirect
-        ? "모바일 구독 결제 복귀 신호를 확인하고 있습니다..."
+        ? "모바일 이용권 결제 복귀 신호를 확인하고 있습니다..."
         : "모바일 결제 복귀 신호를 확인하고 있습니다...",
     );
 
@@ -1630,7 +1638,7 @@ export default function PointsPage() {
 
       if (!pendingSub || !merchantUid) {
         clearPendingSubscriptionOrder();
-        pushToast("error", "구독 결제 복귀 정보를 찾지 못했습니다. 다시 시도해 주세요.");
+        pushToast("error", "이용권 결제 복귀 정보를 찾지 못했습니다. 다시 시도해 주세요.");
         if (window.location.search) {
           window.history.replaceState({}, "", window.location.pathname);
         }
@@ -1658,7 +1666,7 @@ export default function PointsPage() {
         .then(async (response) => {
           const data = await safeParseJson<ConfirmSubscriptionResponse>(response);
           if (!response.ok) {
-            throw new Error(data.message || "모바일 구독 결제 검증에 실패했습니다.");
+            throw new Error(data.message || "모바일 이용권 결제 검증에 실패했습니다.");
           }
 
           if (data.user?.points !== undefined) {
@@ -1684,7 +1692,7 @@ export default function PointsPage() {
           }
 
           clearPendingSubscriptionOrder();
-          pushToast("success", data.message || "구독 결제가 완료되어 멤버십이 활성화되었습니다.");
+          pushToast("success", data.message || "이용권 결제가 완료되어 이용권이 활성화되었습니다.");
           setShowStarBurst(true);
           setTimeout(() => setShowStarBurst(false), 1200);
           if (window.location.search) {
@@ -1696,10 +1704,10 @@ export default function PointsPage() {
             merchantUid,
             impUid,
             reasonCode: "subscription_redirect_confirm_failed",
-            reasonMessage: getErrorMessage(error, "모바일 구독 결제 검증에 실패했습니다."),
+            reasonMessage: getErrorMessage(error, "모바일 이용권 결제 검증에 실패했습니다."),
             paymentMethod: pendingSub.paymentMethod,
           });
-          pushToast("error", getErrorMessage(error, "모바일 구독 결제 검증에 실패했습니다."));
+          pushToast("error", getErrorMessage(error, "모바일 이용권 결제 검증에 실패했습니다."));
           if (window.location.search) {
             window.history.replaceState({}, "", window.location.pathname);
           }
@@ -1715,6 +1723,7 @@ export default function PointsPage() {
       paymentAmount: pending?.paymentAmount,
       chargePoints: pending?.chargePoints,
       paymentType: "digital_content",
+      productId: pending?.productId,
       featureKey: pending?.featureKey,
       productName: pending?.productName,
       paymentMethod: pending?.paymentMethod,
@@ -1771,6 +1780,7 @@ export default function PointsPage() {
         body: JSON.stringify({
           paymentAmount: selectedPackage.amount,
           paymentType: "digital_content",
+          productId: selectedPackage.id,
           featureKey: selectedPackage.featureKey,
           coinPrice: selectedPackage.points,
           paymentMethod: selectedMethod,
@@ -1795,6 +1805,7 @@ export default function PointsPage() {
         paymentAmount: order.paymentAmount,
         chargePoints: order.chargePoints ?? order.coinPrice ?? selectedPackage.points,
         coinPrice: order.coinPrice ?? selectedPackage.points,
+        productId: selectedPackage.id,
         featureKey: selectedPackage.featureKey,
         productName: order.productName || selectedPackage.title,
         paymentMethod: selectedMethod,
@@ -1889,6 +1900,7 @@ export default function PointsPage() {
               paymentAmount: order.paymentAmount,
               chargePoints: order.chargePoints ?? order.coinPrice ?? selectedPackage.points,
               paymentType: "digital_content",
+              productId: selectedPackage.id,
               featureKey: selectedPackage.featureKey,
               productName: order.productName || selectedPackage.title,
               paymentMethod: selectedMethod,
@@ -1936,6 +1948,7 @@ export default function PointsPage() {
           paymentAmount: pending?.paymentAmount,
           chargePoints: pending?.chargePoints,
           paymentType: "digital_content",
+          productId: pending?.productId,
           featureKey: pending?.featureKey,
           productName: pending?.productName,
           paymentMethod: galaxiaFlowMethod,
@@ -1970,7 +1983,7 @@ export default function PointsPage() {
     }
 
     if (!isFlowerAdmin && activeTierRank > requestedTierRank) {
-      pushToast("info", "현재 상위 티어 구독이 활성화되어 하위 플랜은 신청할 수 없습니다.");
+      pushToast("info", "현재 상위 티어 이용권이 활성화되어 하위 플랜은 신청할 수 없습니다.");
       return;
     }
 
@@ -1992,17 +2005,17 @@ export default function PointsPage() {
       });
 
       if (prepareRes.status === 404 || prepareRes.status === 405 || prepareRes.status === 501) {
-        pushToast("error", "멤버십 이용권 결제 API를 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.");
+        pushToast("error", "이용권 결제 API를 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.");
         return;
       }
 
       const prepareData = await safeParseJson<PrepareSubscriptionOrderResponse>(prepareRes);
       if (!prepareRes.ok || !prepareData.order) {
         if (prepareRes.status === 409) {
-          pushToast("error", prepareData.message || "이미 활성 멤버십이 있어 중복 구매를 신청할 수 없습니다.");
+          pushToast("error", prepareData.message || "이미 활성 이용권이 있어 중복 구매를 신청할 수 없습니다.");
           return;
         }
-        pushToast("error", prepareData.message || "멤버십 이용권 결제 준비에 실패했습니다.");
+        pushToast("error", prepareData.message || "이용권 결제 준비에 실패했습니다.");
         return;
       }
 
@@ -2055,7 +2068,7 @@ export default function PointsPage() {
           if (!rsp || !rsp.success || !rsp.imp_uid) {
             clearPendingSubscriptionOrder();
             const message = mapPaymentErrorMessage(
-              rsp?.error_msg || rsp?.errorMsg || "멤버십 이용권 결제가 취소되었습니다.",
+              rsp?.error_msg || rsp?.errorMsg || "이용권 결제가 취소되었습니다.",
             );
             reportPaymentFailureToServer({
               merchantUid: order.merchantUid,
@@ -2070,7 +2083,7 @@ export default function PointsPage() {
           }
 
           try {
-            setProcessingText("멤버십 이용권 결제 검증 및 활성화를 진행하고 있습니다...");
+            setProcessingText("이용권 결제 검증 및 활성화를 진행하고 있습니다...");
             const confirmRes = await authFetch(`${apiBase}/api/payments/subscription/confirm`, {
               method: "POST",
               headers: {
@@ -2092,7 +2105,7 @@ export default function PointsPage() {
             const confirmData = await safeParseJson<ConfirmSubscriptionResponse>(confirmRes);
             if (!confirmRes.ok) {
               clearPendingSubscriptionOrder();
-              pushToast("error", confirmData.message || "멤버십 이용권 결제 확인에 실패했습니다.");
+              pushToast("error", confirmData.message || "이용권 결제 확인에 실패했습니다.");
               resolve();
               return;
             }
@@ -2127,20 +2140,20 @@ export default function PointsPage() {
               merchantUid: order.merchantUid,
               impUid: rsp.imp_uid,
               reasonCode: "subscription_confirm_failed",
-              reasonMessage: getErrorMessage(error, "멤버십 이용권 결제 확인에 실패했습니다."),
+              reasonMessage: getErrorMessage(error, "이용권 결제 확인에 실패했습니다."),
               paymentMethod: selectedMethod || "card_general",
             });
-            pushToast("error", getErrorMessage(error, "멤버십 이용권 결제 확인에 실패했습니다."));
+            pushToast("error", getErrorMessage(error, "이용권 결제 확인에 실패했습니다."));
           } finally {
             resolve();
           }
         });
       });
     } catch (error: unknown) {
-      const message = getErrorMessage(error, "멤버십 이용권 처리 중 오류가 발생했습니다.");
+      const message = getErrorMessage(error, "이용권 처리 중 오류가 발생했습니다.");
       clearPendingSubscriptionOrder();
-      if (message.includes("SUBSCRIPTION_CONFLICT") || message.includes("중복 구독") || message.includes("중복 구매")) {
-        pushToast("error", "이미 활성 멤버십이 있어 중복 구매를 신청할 수 없습니다.");
+      if (message.includes("SUBSCRIPTION_CONFLICT") || message.includes("중복 이용권") || message.includes("중복 구매")) {
+        pushToast("error", "이미 활성 이용권이 있어 중복 구매를 신청할 수 없습니다.");
         return;
       }
       pushToast("error", message);
@@ -2158,12 +2171,12 @@ export default function PointsPage() {
     }
 
     const confirmText = resume
-      ? "멤버십 이용권 상태를 다시 확인할까요?"
-      : "멤버십 이용권 상태를 확인할까요? 만료일까지는 모든 혜택을 유지합니다.";
+      ? "이용권 상태를 다시 확인할까요?"
+      : "이용권 상태를 확인할까요? 만료일까지는 모든 혜택을 유지합니다.";
     if (!window.confirm(confirmText)) return;
 
     setIsProcessing(true);
-    setProcessingText("멤버십 이용권 상태를 확인하는 중입니다...");
+    setProcessingText("이용권 상태를 확인하는 중입니다...");
     try {
       const res = await authFetch(`${apiBase}/api/fortune/pig-coin/profile-subscription/cancel`, {
         method: "POST",
@@ -2180,7 +2193,7 @@ export default function PointsPage() {
       });
       const data = await safeParseJson<{ message?: string; subscription?: SubscriptionStatus }>(res);
       if (!res.ok) {
-        pushToast("error", data.message || "구독 상태 변경에 실패했습니다.");
+        pushToast("error", data.message || "이용권 상태 변경에 실패했습니다.");
         return;
       }
       if (data.subscription) {
@@ -2198,9 +2211,9 @@ export default function PointsPage() {
         setSubscription((prev) => ({ ...newSub, lowBalanceWarning: prev.lowBalanceWarning, freeLimit: prev.freeLimit || 0 }));
         persistSubscriptionCache(newSub);
       }
-      pushToast("success", data.message || "구독 상태가 변경되었습니다.");
+      pushToast("success", data.message || "이용권 상태가 변경되었습니다.");
     } catch (error: unknown) {
-      pushToast("error", getErrorMessage(error, "구독 상태 변경 중 오류가 발생했습니다."));
+      pushToast("error", getErrorMessage(error, "이용권 상태 변경 중 오류가 발생했습니다."));
     } finally {
       setIsProcessing(false);
     }
@@ -2310,7 +2323,7 @@ export default function PointsPage() {
                   href="/points/history"
                   className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-bold text-amber-800 shadow-[0_2px_10px_rgba(180,130,30,0.14)] transition-all hover:bg-amber-100 hover:-translate-y-0.5 active:scale-[0.97]"
                 >
-                  📋 결제/멤버십 관리
+                  📋 결제/이용권 관리
                 </Link>
                 <Link
                   href="/"
@@ -2327,19 +2340,19 @@ export default function PointsPage() {
         {/* ② 잔액 카드 */}
         <WalletCard name={authUser?.name || "사용자"} points={currentPoints} />
 
-        {/* ②-1 구독 상태 카드 */}
+        {/* ②-1 이용권 상태 카드 */}
         <SubscriptionStatusCard subscription={subscription} />
 
-        {/* ②-2 구독 섹션 구분선 */}
+        {/* ②-2 이용권 섹션 구분선 */}
         <div className="flex items-center gap-3 px-1">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-50" />
           <span className="text-[11px] font-extrabold uppercase tracking-widest text-amber-700">
-            Honey 멤버십 30일 이용권
+            Honey 이용권 30일 이용권
           </span>
           <div className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-400 to-transparent opacity-50" />
         </div>
 
-        {/* ②-3 구독 상품 카드 */}
+        {/* ②-3 이용권 상품 카드 */}
         <SubscriptionSection
           subscription={subscription}
           onSubscribe={handleSubscribe}
@@ -2355,14 +2368,14 @@ export default function PointsPage() {
         <div className="flex items-center gap-3 px-1">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-50" />
           <span className="text-[11px] font-extrabold uppercase tracking-widest text-amber-700">
-            유료 콘텐츠 단건 결제 상품
+            단건 결제 회차형 이용권
           </span>
           <div className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-400 to-transparent opacity-50" />
         </div>
 
         {/* ④ 패키지 카드 목록 */}
         <section
-          aria-label="유료 콘텐츠 단건 결제 상품"
+          aria-label="단건 결제 회차형 이용권"
           className="cd-card-light rounded-[24px] overflow-hidden shadow-[0_8px_32px_rgba(120,80,10,0.10)]"
         >
           <div
@@ -2371,7 +2384,7 @@ export default function PointsPage() {
           >
             <p className="mb-3 flex items-center gap-2 text-[12px] font-bold text-[#8A6020]">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-500" />
-              상품을 선택한 뒤 결제 수단을 고르세요.
+              필요한 이용권을 선택한 뒤 결제 수단을 고르세요.
             </p>
             <div className="flex flex-col gap-3">
               {POINT_PACKAGES.map((pkg) => (
@@ -2388,7 +2401,7 @@ export default function PointsPage() {
               <p className="text-[11px] text-amber-800 leading-relaxed">
                 결제 완료 후 해당 상품 이용 또는 결과 생성이 진행됩니다.
                 <span className="mx-1">·</span>
-                결제 성공 후 코인 지갑에 잔액을 적립하지 않습니다.
+                결제 성공 후 코인 지갑에 잔액을 적립하지 않고, 선택한 이용권 회차만 즉시 지급합니다.
               </p>
             </div>
             <div className="mt-3 flex items-start gap-2 rounded-[14px] border border-rose-100 bg-rose-50/70 px-3.5 py-3">
@@ -2517,7 +2530,7 @@ export default function PointsPage() {
                 </p>
               </div>
               <div className="rounded-[14px] border border-slate-100 bg-slate-50/80 px-4 py-3">
-                <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">현재 멤버십</p>
+                <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">현재 이용권</p>
                 <p className="text-sm font-semibold text-slate-700">
                   {subscription.tier === "free" ? "🆓 무료 플랜"
                    : subscription.tier === "standard" ? "🍯 스탠다드 꿀"
@@ -2549,7 +2562,7 @@ export default function PointsPage() {
               <div className="p-4 space-y-3">
                 {/* 경고 안내 */}
                 <div className="text-[12px] text-red-700 leading-relaxed space-y-1">
-                  <p>• 탈퇴 시 이벤트 코인·멤버십·운세 프로필 등 <strong>모든 데이터가 즉시 영구 삭제</strong>됩니다.</p>
+                  <p>• 탈퇴 시 이벤트 코인·이용권·운세 프로필 등 <strong>모든 데이터가 즉시 영구 삭제</strong>됩니다.</p>
                   <p>• 탈퇴 후 <strong>동일 이메일로 재가입해도 이전 데이터는 복구되지 않습니다.</strong></p>
                   <p>• 법적 보존 의무에 따라 결제 거래 금액·일시는 5년간 익명화 보관됩니다.</p>
                 </div>

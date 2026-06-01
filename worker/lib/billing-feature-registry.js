@@ -4,6 +4,12 @@ import {
   UNLOCK_PRODUCT_BY_FEATURE_KEY,
   normalizePaidFeatureKey,
 } from "./paid-feature-registry.js";
+import {
+  calculateKrwAmountFromCoins,
+  calculateMembershipCreditCost,
+  KRW_PER_COIN,
+  MEMBERSHIP_CREDIT_PER_COIN,
+} from "./billing-policy.js";
 
 const BILLING_FEATURE_CATEGORIES = Object.freeze({
   "palm-reading": Object.freeze({
@@ -65,12 +71,10 @@ const LEGACY_FEATURE_ALIAS_MAP = Object.freeze({
   openanimaltotem: Object.freeze({ categoryKey: "animal-totem", subFeatureKey: "basic" }),
 });
 
-const COIN_DISPLAY_UNIT_KRW = 110;
-
 function toSinglePurchaseAmountKRW(cost) {
   const coinPrice = Number(cost);
   if (!Number.isFinite(coinPrice) || coinPrice <= 0) return 0;
-  return Math.max(100, Math.ceil((coinPrice * COIN_DISPLAY_UNIT_KRW) / 100) * 100);
+  return calculateKrwAmountFromCoins(coinPrice);
 }
 
 function normalizeKey(value) {
@@ -114,6 +118,7 @@ const UNLOCK_REASON_PRICING_MAP = buildReasonPricingMap(
 function toPricingShape({ categoryKey, categoryLabel, subFeatureKey, featureKey, cost, reason }) {
   const coinPrice = Number(cost);
   const amountKRW = toSinglePurchaseAmountKRW(coinPrice);
+  const membershipCreditCost = calculateMembershipCreditCost(coinPrice);
   return {
     categoryKey,
     categoryLabel,
@@ -127,6 +132,12 @@ function toPricingShape({ categoryKey, categoryLabel, subFeatureKey, featureKey,
     currency: "KRW",
     amountKRW,
     cashPrice: amountKRW,
+    krwAmount: amountKRW,
+    membershipCreditCost,
+    pricingPolicy: {
+      krwPerCoin: KRW_PER_COIN,
+      membershipCreditPerCoin: MEMBERSHIP_CREDIT_PER_COIN,
+    },
     paymentMode: "single_purchase",
     coinDisplayOnly: true,
   };

@@ -7,6 +7,7 @@ import { getEnv } from "../lib/env.js";
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
+import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 
 function toDateFromUnixSeconds(value) {
   const unixSeconds = Number(value);
@@ -47,7 +48,64 @@ function isDigitalContentPaymentRequest(body = {}) {
     || Boolean(body?.featureKey || body?.reason || body?.categoryKey || body?.subFeatureKey || body?.productId);
 }
 
+const USAGE_PASS_PRODUCT_CATALOG = Object.freeze({
+  saju_unlock_3: Object.freeze({ id: "saju_unlock_3", category: "saju_unlock", uses: 3, paymentAmount: 15000, coinPrice: 150, title: "사주 잠금 서비스 3개 해제권" }),
+  saju_unlock_5: Object.freeze({ id: "saju_unlock_5", category: "saju_unlock", uses: 5, paymentAmount: 25000, coinPrice: 250, title: "사주 잠금 서비스 5개 해제권" }),
+  fortune_30_3: Object.freeze({ id: "fortune_30_3", category: "fortune_30", uses: 3, paymentAmount: 9000, coinPrice: 90, title: "30코인 이하 운세 3회 이용권" }),
+  fortune_30_10: Object.freeze({ id: "fortune_30_10", category: "fortune_30", uses: 10, paymentAmount: 30000, coinPrice: 300, title: "30코인 이하 운세 10회 이용권" }),
+  fortune_30_30: Object.freeze({ id: "fortune_30_30", category: "fortune_30", uses: 30, paymentAmount: 90000, coinPrice: 900, title: "30코인 이하 운세 30회 이용권" }),
+  fortune_50_3: Object.freeze({ id: "fortune_50_3", category: "fortune_50", uses: 3, paymentAmount: 15000, coinPrice: 150, title: "50코인 이하 운세 3회 이용권" }),
+  fortune_50_10: Object.freeze({ id: "fortune_50_10", category: "fortune_50", uses: 10, paymentAmount: 50000, coinPrice: 500, title: "50코인 이하 운세 10회 이용권" }),
+  fortune_50_30: Object.freeze({ id: "fortune_50_30", category: "fortune_50", uses: 30, paymentAmount: 150000, coinPrice: 1500, title: "50코인 이하 운세 30회 이용권" }),
+  compat_3: Object.freeze({ id: "compat_3", category: "compat", uses: 3, paymentAmount: 15000, coinPrice: 150, title: "운세 서비스 궁합 3회 이용권" }),
+  compat_10: Object.freeze({ id: "compat_10", category: "compat", uses: 10, paymentAmount: 50000, coinPrice: 500, title: "운세 서비스 궁합 10회 이용권" }),
+  compat_30: Object.freeze({ id: "compat_30", category: "compat", uses: 30, paymentAmount: 150000, coinPrice: 1500, title: "운세 서비스 궁합 30회 이용권" }),
+});
+
+function resolveUsagePassProductFromBody(body = {}) {
+  const productId = String(body?.productId || "").trim().toLowerCase();
+  if (!productId) return null;
+  return USAGE_PASS_PRODUCT_CATALOG[productId] || null;
+}
+
+function buildUsagePassPricing(product) {
+  return {
+    categoryKey: `${product.category}-usage-pass`,
+    categoryLabel: `${product.category} 이용권`,
+    subFeatureKey: String(product.id),
+    featureKey: `usage-pass-${product.category}-${product.uses}`,
+    cost: Number(product.coinPrice || 0),
+    coinPrice: Number(product.coinPrice || 0),
+    displayUnit: "coin",
+    displayPrice: `${Number(product.coinPrice || 0).toLocaleString("ko-KR")}코인`,
+    reason: String(product.title || "횟수형 이용권"),
+    currency: "KRW",
+    amountKRW: Number(product.paymentAmount || 0),
+    cashPrice: Number(product.paymentAmount || 0),
+    paymentMode: "single_purchase",
+    coinDisplayOnly: true,
+    usagePass: {
+      category: String(product.category),
+      uses: Number(product.uses || 0),
+      productId: String(product.id || ""),
+    },
+  };
+}
+
 function resolveDigitalContentPricing(body = {}) {
+  const usagePassProduct = resolveUsagePassProductFromBody(body);
+  if (usagePassProduct) {
+    const pricing = buildUsagePassPricing(usagePassProduct);
+    return {
+      ok: true,
+      pricing,
+      paymentAmount: Number(pricing.amountKRW || 0),
+      coinPrice: Number(pricing.coinPrice || 0),
+      source: "usage-pass-product",
+      usagePass: pricing.usagePass,
+    };
+  }
+
   const resolved = getBillingFeaturePricing({
     categoryKey: body?.categoryKey,
     subFeatureKey: body?.subFeatureKey,
@@ -86,10 +144,72 @@ function buildDigitalProductName(body = {}, pricing = {}) {
   return label.slice(0, 80) || "디지털 운세 콘텐츠";
 }
 
+async function grantUsagePassToUser({ userId, product, paymentId, paidAt, session = null }) {
+  if (!userId || !product) return null;
+
+  const findQuery = User.findById(userId).select("usagePasses points");
+  if (session) findQuery.session(session);
+  const currentUser = await findQuery.lean();
+  if (!currentUser) return null;
+
+  const nextUsagePasses = Array.isArray(currentUser.usagePasses)
+    ? currentUser.usagePasses.map((entry) => ({ ...entry }))
+    : [];
+
+  const category = String(product.category || "").trim();
+  const addedUses = Number(product.uses || 0);
+  if (!category || !Number.isInteger(addedUses) || addedUses <= 0) return null;
+
+  const now = paidAt instanceof Date ? paidAt : new Date();
+  const index = nextUsagePasses.findIndex((entry) => String(entry?.category || "") === category);
+  if (index >= 0) {
+    const prevRemaining = Number(nextUsagePasses[index]?.remainingUses || 0);
+    const prevPurchased = Number(nextUsagePasses[index]?.purchasedUses || 0);
+    nextUsagePasses[index] = {
+      ...nextUsagePasses[index],
+      category,
+      remainingUses: Math.max(0, prevRemaining) + addedUses,
+      purchasedUses: Math.max(0, prevPurchased) + addedUses,
+      productId: String(product.id || ""),
+      lastPaymentId: String(paymentId || ""),
+      lastGrantedAt: now,
+      updatedAt: now,
+    };
+  } else {
+    nextUsagePasses.push({
+      category,
+      remainingUses: addedUses,
+      purchasedUses: addedUses,
+      productId: String(product.id || ""),
+      lastPaymentId: String(paymentId || ""),
+      lastGrantedAt: now,
+      updatedAt: now,
+    });
+  }
+
+  const updateQuery = User.findByIdAndUpdate(
+    userId,
+    { $set: { usagePasses: nextUsagePasses } },
+    { returnDocument: "after", projection: { usagePasses: 1, points: 1 } },
+  );
+  if (session) updateQuery.session(session);
+  const updatedUser = await updateQuery.lean();
+  const updatedPasses = Array.isArray(updatedUser?.usagePasses) ? updatedUser.usagePasses : [];
+  const resolved = updatedPasses.find((entry) => String(entry?.category || "") === category);
+
+  return {
+    category,
+    productId: String(product.id || ""),
+    addedUses,
+    remainingUses: Number(resolved?.remainingUses || 0),
+    points: Number(updatedUser?.points || 0),
+  };
+}
+
 const SUBSCRIPTION_PAYMENT_PLANS = {
-  standard: { tier: "standard", name: "스탠다드 꿀", wonPrice: 9900, durationDays: 30, profileLimit: 3 },
-  premium: { tier: "premium", name: "프리미엄 꿀", wonPrice: 29900, durationDays: 30, profileLimit: 7 },
-  vvip: { tier: "vvip", name: "VVIP 꿀단지", wonPrice: 59000, durationDays: 30, profileLimit: 15 },
+  standard: { tier: "standard", name: "스탠다드 꿀", wonPrice: 9900, durationDays: 30, profileLimit: 3, membershipCreditGrant: 990 },
+  premium: { tier: "premium", name: "프리미엄 꿀", wonPrice: 29900, durationDays: 30, profileLimit: 7, membershipCreditGrant: 2990 },
+  vvip: { tier: "vvip", name: "VVIP 꿀단지", wonPrice: 59000, durationDays: 30, profileLimit: 15, membershipCreditGrant: 5900 },
 };
 
 const SUBSCRIPTION_TIER_RANK = Object.freeze({
@@ -204,7 +324,15 @@ function formatPaymentResponse(payment) {
     impUid: payment.impUid,
     merchantUid: payment.merchantUid,
     paymentAmount: Number(payment.paymentAmount || 0),
+    coinPrice: Number(payment.coinPrice || payment.expectedChargedPoints || 0),
+    membershipCreditCost: Number(payment.membershipCreditCost || 0),
     chargedPoints: Number(payment.chargedPoints || 0),
+    featureKey: String(payment.featureKey || ""),
+    productId: String(payment.productId || ""),
+    accessType: String(payment.accessType || ""),
+    requestId: String(payment.requestId || ""),
+    reportId: String(payment.reportId || ""),
+    sessionId: String(payment.sessionId || ""),
     paymentMethod: payment.paymentMethod,
     paymentType: payment.paymentType || "point_charge",
     subscriptionTier: payment.subscriptionTier || "",
@@ -270,6 +398,66 @@ async function writeFailureLog(params = {}) {
 async function getUserPoints(userId) {
   const user = await User.findById(userId).select("points").lean();
   return Number(user?.points || 0);
+}
+
+async function createDigitalContentAccessEvidence({ userId, payment, body = {}, source, paidAt, session = null }) {
+  const featureKey = String(payment?.featureKey || body?.featureKey || body?.subFeatureKey || "").trim();
+  const paymentId = String(payment?._id || "").trim();
+  if (!featureKey || !paymentId) return null;
+
+  const existingQuery = PointHistory.findOne({
+    userId,
+    kind: "deduct",
+    featureKey,
+    $or: [
+      { paymentId: payment._id },
+      { "metadata.paymentId": paymentId },
+      { "metadata.purchaseId": paymentId },
+    ],
+  }).select("_id createdAt delta featureKey reason metadata");
+  if (session) existingQuery.session(session);
+  const existing = await existingQuery.lean();
+  if (existing) return existing;
+
+  const userQuery = User.findById(userId).select("points");
+  if (session) userQuery.session(session);
+  const user = await userQuery.lean();
+  const currentPoints = Number(user?.points || 0);
+  const coinPrice = Number(payment?.coinPrice || payment?.expectedChargedPoints || body?.coinPrice || 0);
+  const requestId = String(payment?.requestId || body?.requestId || "").trim();
+  const reportId = String(payment?.reportId || body?.reportId || "").trim();
+  const sessionId = String(payment?.sessionId || body?.sessionId || body?.reportSessionId || "").trim();
+
+  const docs = [{
+    userId,
+    kind: "deduct",
+    delta: -Math.max(0, coinPrice),
+    balanceAfter: currentPoints,
+    reason: String(payment?.pricingSnapshot?.reason || body?.reason || "single_purchase_access"),
+    featureKey,
+    paymentId: payment._id,
+    impUid: String(payment?.impUid || body?.impUid || body?.paymentId || ""),
+    merchantUid: String(payment?.merchantUid || body?.merchantUid || body?.merchant_uid || ""),
+    metadata: {
+      accessType: "single_purchase",
+      source,
+      paymentId,
+      purchaseId: paymentId,
+      requestId,
+      reportId,
+      sessionId,
+      reportSessionId: sessionId,
+      featureKey,
+      coinPrice,
+      paidAmount: Number(payment?.paymentAmount || 0),
+      paidAt: paidAt ? paidAt.toISOString() : null,
+    },
+  }];
+
+  const created = session
+    ? await PointHistory.create(docs, { session })
+    : await PointHistory.create(docs);
+  return Array.isArray(created) ? created[0] : created;
 }
 
 async function markPaymentFailure(paymentRecord, patch = {}) {
@@ -439,6 +627,7 @@ async function settlePaymentByImpUid({
 
   const paymentType = String(paymentRecord?.paymentType || "point_charge").trim();
   const isDigitalContentPayment = paymentType === "digital_content";
+  const usagePassProduct = isDigitalContentPayment ? resolveUsagePassProductFromBody(body) : null;
 
   if (paymentType === "point_charge" && paymentRecord.status !== "success") {
     await markPaymentFailure(paymentRecord, {
@@ -458,6 +647,16 @@ async function settlePaymentByImpUid({
   }
 
   if (paymentRecord.status === "success") {
+    const paidAt = paymentRecord.paidAt ? new Date(paymentRecord.paidAt) : null;
+    if (isDigitalContentPayment) {
+      await createDigitalContentAccessEvidence({
+        userId: ownerUserId,
+        payment: paymentRecord,
+        body,
+        source,
+        paidAt,
+      }).catch(() => null);
+    }
     return {
       ok: true,
       idempotent: true,
@@ -468,8 +667,13 @@ async function settlePaymentByImpUid({
       payment: formatPaymentResponse(paymentRecord),
       accessGrant: isDigitalContentPayment ? {
         ok: true,
+        accessType: "single_purchase",
         purchaseId: String(paymentRecord._id || ""),
         merchantUid: String(paymentRecord.merchantUid || ""),
+        featureKey: String(paymentRecord.featureKey || body?.featureKey || ""),
+        requestId: String(paymentRecord.requestId || body?.requestId || ""),
+        reportId: String(paymentRecord.reportId || body?.reportId || ""),
+        sessionId: String(paymentRecord.sessionId || body?.sessionId || body?.reportSessionId || ""),
         paidAt: paymentRecord.paidAt ? new Date(paymentRecord.paidAt).toISOString() : null,
       } : null,
     };
@@ -697,6 +901,14 @@ async function settlePaymentByImpUid({
           paymentAmount: portOneAmount,
           expectedChargedPoints: isDigitalContentPayment ? expectedChargedPoints : chargedPoints,
           chargedPoints,
+          featureKey: String(paymentRecord.featureKey || body?.featureKey || body?.subFeatureKey || ""),
+          productId: String(paymentRecord.productId || body?.productId || "").trim().toLowerCase(),
+          coinPrice: isDigitalContentPayment ? expectedChargedPoints : 0,
+          membershipCreditCost: isDigitalContentPayment ? calculateMembershipCreditCost(expectedChargedPoints) : 0,
+          accessType: isDigitalContentPayment ? "single_purchase" : "",
+          requestId: String(paymentRecord.requestId || body?.requestId || "").trim().slice(0, 120),
+          reportId: String(paymentRecord.reportId || body?.reportId || "").trim().slice(0, 120),
+          sessionId: String(paymentRecord.sessionId || body?.sessionId || body?.reportSessionId || "").trim().slice(0, 120),
           paymentMethod,
           status: "success",
           paidAt,
@@ -722,15 +934,38 @@ async function settlePaymentByImpUid({
     }
 
     if (isDigitalContentPayment) {
+      let usagePass = null;
+      if (usagePassProduct) {
+        usagePass = await grantUsagePassToUser({
+          userId: ownerUserId,
+          product: usagePassProduct,
+          paymentId: String(finalizedPayment._id || ""),
+          paidAt,
+        });
+      }
+      const accessEvidence = await createDigitalContentAccessEvidence({
+        userId: ownerUserId,
+        payment: finalizedPayment,
+        body,
+        source,
+        paidAt,
+      });
       return {
         ok: true,
         idempotent: false,
-        user: { id: ownerUserId, points: await getUserPoints(ownerUserId) },
+        user: { id: ownerUserId, points: usagePass ? Number(usagePass.points || 0) : await getUserPoints(ownerUserId) },
         payment: formatPaymentResponse(finalizedPayment),
+        usagePass,
         accessGrant: {
           ok: true,
+          accessType: "single_purchase",
           purchaseId: String(finalizedPayment._id || ""),
           merchantUid: String(finalizedPayment.merchantUid || ""),
+          featureKey: String(finalizedPayment.featureKey || body?.featureKey || ""),
+          requestId: String(finalizedPayment.requestId || body?.requestId || ""),
+          reportId: String(finalizedPayment.reportId || body?.reportId || ""),
+          sessionId: String(finalizedPayment.sessionId || body?.sessionId || body?.reportSessionId || ""),
+          evidenceId: String(accessEvidence?._id || ""),
           paidAt: paidAt.toISOString(),
         },
       };
@@ -792,6 +1027,14 @@ async function settlePaymentByImpUid({
               paymentAmount: portOneAmount,
               expectedChargedPoints: isDigitalContentPayment ? expectedChargedPoints : chargedPoints,
               chargedPoints,
+              featureKey: String(paymentRecord.featureKey || body?.featureKey || body?.subFeatureKey || ""),
+              productId: String(paymentRecord.productId || body?.productId || "").trim().toLowerCase(),
+              coinPrice: isDigitalContentPayment ? expectedChargedPoints : 0,
+              membershipCreditCost: isDigitalContentPayment ? calculateMembershipCreditCost(expectedChargedPoints) : 0,
+              accessType: isDigitalContentPayment ? "single_purchase" : "",
+              requestId: String(paymentRecord.requestId || body?.requestId || "").trim().slice(0, 120),
+              reportId: String(paymentRecord.reportId || body?.reportId || "").trim().slice(0, 120),
+              sessionId: String(paymentRecord.sessionId || body?.sessionId || body?.reportSessionId || "").trim().slice(0, 120),
               paymentMethod,
               status: "success",
               paidAt,
@@ -818,15 +1061,40 @@ async function settlePaymentByImpUid({
         }
 
         if (isDigitalContentPayment) {
+          let usagePass = null;
+          if (usagePassProduct) {
+            usagePass = await grantUsagePassToUser({
+              userId: ownerUserId,
+              product: usagePassProduct,
+              paymentId: String(finalizedPayment._id || ""),
+              paidAt,
+              session,
+            });
+          }
+          const accessEvidence = await createDigitalContentAccessEvidence({
+            userId: ownerUserId,
+            payment: finalizedPayment,
+            body,
+            source,
+            paidAt,
+            session,
+          });
           txResult = {
             ok: true,
             idempotent: false,
-            user: { id: ownerUserId, points: await getUserPoints(ownerUserId) },
+            user: { id: ownerUserId, points: usagePass ? Number(usagePass.points || 0) : await getUserPoints(ownerUserId) },
             payment: formatPaymentResponse(finalizedPayment),
+            usagePass,
             accessGrant: {
               ok: true,
+              accessType: "single_purchase",
               purchaseId: String(finalizedPayment._id || ""),
               merchantUid: String(finalizedPayment.merchantUid || ""),
+              featureKey: String(finalizedPayment.featureKey || body?.featureKey || ""),
+              requestId: String(finalizedPayment.requestId || body?.requestId || ""),
+              reportId: String(finalizedPayment.reportId || body?.reportId || ""),
+              sessionId: String(finalizedPayment.sessionId || body?.sessionId || body?.reportSessionId || ""),
+              evidenceId: String(accessEvidence?._id || ""),
               paidAt: paidAt.toISOString(),
             },
           };
@@ -992,6 +1260,12 @@ async function handleDigitalContentPrepare(request, auth, body) {
   const paymentMethod = normalizePaymentMethod(body?.paymentMethod || "single_purchase");
   const productName = buildDigitalProductName(body, resolved.pricing);
   const idempotencyKey = resolveIdempotencyKey(request, body);
+  const featureKey = String(resolved.pricing?.featureKey || body?.featureKey || "").trim();
+  const productId = String(body?.productId || resolved.pricing?.usagePass?.productId || "").trim().toLowerCase();
+  const requestId = String(body?.requestId || "").trim().slice(0, 120);
+  const reportId = String(body?.reportId || "").trim().slice(0, 120);
+  const sessionId = String(body?.sessionId || body?.reportSessionId || "").trim().slice(0, 120);
+  const membershipCreditCost = Number(resolved.pricing?.membershipCreditCost || calculateMembershipCreditCost(resolved.coinPrice));
 
   if (idempotencyKey) {
     const existing = await Payment.findOne({
@@ -1003,7 +1277,8 @@ async function handleDigitalContentPrepare(request, auth, body) {
     if (existing) {
       const existingAmount = Number(existing.paymentAmount || 0);
       const existingCoins = Number(existing.expectedChargedPoints || 0);
-      if (existingAmount !== resolved.paymentAmount || existingCoins !== resolved.coinPrice) {
+      const existingFeatureKey = String(existing.featureKey || "");
+      if (existingAmount !== resolved.paymentAmount || existingCoins !== resolved.coinPrice || (featureKey && existingFeatureKey && existingFeatureKey !== featureKey)) {
         return json({
           message: "Idempotency key conflict. Request payload does not match existing product payment preparation.",
           code: "IDEMPOTENCY_CONFLICT",
@@ -1018,6 +1293,9 @@ async function handleDigitalContentPrepare(request, auth, body) {
           paymentAmount: existingAmount,
           amountKRW: existingAmount,
           coinPrice: existingCoins,
+          membershipCreditCost: Number(existing.membershipCreditCost || calculateMembershipCreditCost(existingCoins)),
+          featureKey: String(existing.featureKey || featureKey || ""),
+          accessType: String(existing.accessType || "single_purchase"),
           productName,
           pricing: resolved.pricing,
         },
@@ -1033,6 +1311,15 @@ async function handleDigitalContentPrepare(request, auth, body) {
     paymentAmount: resolved.paymentAmount,
     expectedChargedPoints: resolved.coinPrice,
     chargedPoints: 0,
+    featureKey,
+    productId,
+    coinPrice: resolved.coinPrice,
+    membershipCreditCost,
+    accessType: "single_purchase",
+    requestId,
+    reportId,
+    sessionId,
+    pricingSnapshot: resolved.pricing,
     paymentMethod,
     status: "pending",
     source: "prepare",
@@ -1048,6 +1335,9 @@ async function handleDigitalContentPrepare(request, auth, body) {
       paymentAmount: resolved.paymentAmount,
       amountKRW: resolved.paymentAmount,
       coinPrice: resolved.coinPrice,
+      membershipCreditCost,
+      featureKey,
+      accessType: "single_purchase",
       productName,
       pricing: resolved.pricing,
     },
@@ -1245,9 +1535,10 @@ async function handleSubscriptionPrepare(request, auth) {
           customerUid: buildSubscriptionCustomerUid(auth.userId),
           tier,
           paymentAmount: existingAmount,
-          productName: `${plan.name} 30일 멤버십 이용권`,
+          productName: `${plan.name} 30일 이용권`,
           profileLimit: plan.profileLimit,
           durationDays: plan.durationDays,
+          membershipCreditGrant: plan.membershipCreditGrant,
           recurring: false,
         },
       });
@@ -1299,9 +1590,10 @@ async function handleSubscriptionPrepare(request, auth) {
         customerUid,
         tier,
         paymentAmount: existingAmount,
-        productName: `${plan.name} 30일 멤버십 이용권`,
+        productName: `${plan.name} 30일 이용권`,
         profileLimit: plan.profileLimit,
         durationDays: plan.durationDays,
+        membershipCreditGrant: plan.membershipCreditGrant,
         recurring: false,
       },
     });
@@ -1315,9 +1607,10 @@ async function handleSubscriptionPrepare(request, auth) {
       customerUid,
       tier,
       paymentAmount: plan.wonPrice,
-      productName: `${plan.name} 30일 멤버십 이용권`,
+      productName: `${plan.name} 30일 이용권`,
       profileLimit: plan.profileLimit,
       durationDays: plan.durationDays,
+      membershipCreditGrant: plan.membershipCreditGrant,
       recurring: false,
     },
   }, { status: 201 });
@@ -1386,6 +1679,9 @@ async function handleSubscriptionConfirm(request, env, auth) {
         isActive: hasActiveSubscriptionConflict(sub),
         expiresAt: toIsoOrNull(sub?.expiresAt),
         profileLimit: plan.profileLimit,
+        membershipCreditBalance: Number(sub?.membershipCreditBalance || 0),
+        membershipCreditGranted: Number(sub?.membershipCreditGranted || 0),
+        membershipCreditUsed: Number(sub?.membershipCreditUsed || 0),
         cancelAtPeriodEnd: Boolean(sub?.cancelAtPeriodEnd),
         cancelRequestedAt: toIsoOrNull(sub?.cancelRequestedAt),
       },
@@ -1474,6 +1770,10 @@ async function handleSubscriptionConfirm(request, env, auth) {
         "profileSubscription.lastBillingError": "",
         "profileSubscription.firstSubAt": existingUser?.profileSubscription?.firstSubAt || paidAt,
       },
+      $inc: {
+        "profileSubscription.membershipCreditBalance": plan.membershipCreditGrant,
+        "profileSubscription.membershipCreditGranted": plan.membershipCreditGrant,
+      },
     },
     { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
   ).lean();
@@ -1488,6 +1788,10 @@ async function handleSubscriptionConfirm(request, env, auth) {
       isActive: true,
       expiresAt: expiresAt.toISOString(),
       profileLimit: plan.profileLimit,
+      membershipCreditBalance: Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0),
+      membershipCreditGranted: Number(updatedUser?.profileSubscription?.membershipCreditGranted || 0),
+      membershipCreditUsed: Number(updatedUser?.profileSubscription?.membershipCreditUsed || 0),
+      membershipCreditGrant: plan.membershipCreditGrant,
       cancelAtPeriodEnd: false,
       cancelRequestedAt: null,
       customerUid,
@@ -1580,6 +1884,7 @@ async function handleConfirm(request, env, auth) {
     idempotent: Boolean(settled.idempotent),
     user: settled.user,
     payment: settled.payment,
+    usagePass: settled.usagePass || null,
     accessGrant: settled.accessGrant || null,
   });
 }
@@ -1874,6 +2179,9 @@ function buildSubscriptionSummary(profileSubscription) {
     source: String(sub.source || "coin"),
     isActive,
     expiresAt: validExpiresAt,
+    membershipCreditBalance: Number(sub.membershipCreditBalance || 0),
+    membershipCreditGranted: Number(sub.membershipCreditGranted || 0),
+    membershipCreditUsed: Number(sub.membershipCreditUsed || 0),
     cancelAtPeriodEnd: Boolean(sub.cancelAtPeriodEnd),
     cancelRequestedAt: toIsoOrNull(sub.cancelRequestedAt),
   }];
@@ -1882,6 +2190,15 @@ function buildSubscriptionSummary(profileSubscription) {
 function buildMeResponseBody(auth, user, recentPayments, pointHistories) {
   const safeUser = user || {};
   const unlockedFeatures = Array.isArray(safeUser.unlockedFeatures) ? safeUser.unlockedFeatures : [];
+  const usagePasses = Array.isArray(safeUser.usagePasses)
+    ? safeUser.usagePasses.map((entry) => ({
+      category: String(entry?.category || ""),
+      remainingUses: Number(entry?.remainingUses || 0),
+      purchasedUses: Number(entry?.purchasedUses || 0),
+      productId: String(entry?.productId || ""),
+      updatedAt: entry?.updatedAt || null,
+    }))
+    : [];
   const unlockMap = Object.create(null);
   for (let i = 0; i < unlockedFeatures.length; i += 1) {
     const key = String(unlockedFeatures[i] || "").trim();
@@ -1905,6 +2222,7 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories) {
       transactions: mappedTransactions,
       payments: mappedPayments,
       subscriptions,
+      usagePasses,
     },
     user: {
       id: String(auth.userId),
@@ -1912,8 +2230,10 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories) {
       email: safeUser.email || "",
       points: balance,
       unlockedFeatures,
+      usagePasses,
     },
     unlockedFeatures,
+    usagePasses,
     unlockMap,
     payments: mappedPayments,
     pointHistories: mappedTransactions,
@@ -1934,6 +2254,7 @@ function buildTokenFallbackPaymentsMe(auth, message) {
       transactions: [],
       payments: [],
       subscriptions: [],
+      usagePasses: [],
     },
     user: {
       id: String(auth?.userId || ""),
@@ -1941,8 +2262,10 @@ function buildTokenFallbackPaymentsMe(auth, message) {
       email: String(auth?.email || ""),
       points: balance,
       unlockedFeatures: [],
+      usagePasses: [],
     },
     unlockedFeatures: [],
+    usagePasses: [],
     unlockMap: {},
     payments: [],
     pointHistories: [],
@@ -1957,6 +2280,7 @@ async function handleMe(auth) {
       email: 1,
       points: 1,
       unlockedFeatures: 1,
+      usagePasses: 1,
       profileSubscription: 1,
     });
 

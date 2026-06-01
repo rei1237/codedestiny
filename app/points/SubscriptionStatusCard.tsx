@@ -2,7 +2,7 @@
 
 /**
  * SubscriptionStatusCard.tsx
- * 멤버십 이용권 상태를 시각적으로 표시하는 카드 컴포넌트
+ * 이용권 이용권 상태를 시각적으로 표시하는 카드 컴포넌트
  */
 
 type SubscriptionTier = "free" | "standard" | "premium" | "vvip";
@@ -115,7 +115,7 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
 
   return (
     <section
-      aria-label="현재 멤버십 상태"
+      aria-label="현재 이용권 상태"
       className={`rounded-[24px] border ${meta.border} bg-gradient-to-br ${meta.bg} overflow-hidden shadow-[0_6px_24px_rgba(0,0,0,0.07)]`}
     >
       {/* 상태 바 */}
@@ -138,7 +138,7 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
           <div className="flex items-center gap-2.5">
             <span className="text-2xl leading-none">{meta.icon}</span>
             <div>
-              <p className="text-[10.5px] font-extrabold uppercase tracking-widest text-gray-500">현재 멤버십</p>
+              <p className="text-[10.5px] font-extrabold uppercase tracking-widest text-gray-500">현재 이용권</p>
               <p className="text-[16px] font-black text-gray-800 leading-tight">{meta.label}</p>
             </div>
           </div>

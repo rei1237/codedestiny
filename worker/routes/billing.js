@@ -16,16 +16,231 @@ import {
   startServiceExecution,
 } from "../lib/service-execution-task.js";
 import { connectDb } from "../lib/db.js";
-import { ServiceExecutionTransaction } from "../lib/models.js";
+import { PointHistory, ServiceExecutionTransaction, User } from "../lib/models.js";
+import { calculateMembershipCreditCost, MEMBERSHIP_CREDIT_PER_COIN } from "../lib/billing-policy.js";
+
+const MEMBERSHIP_CREDIT_GRANT_BY_TIER = Object.freeze({
+  standard: 990,
+  premium: 2990,
+  vvip: 5900,
+});
 
 const ACCESS_DECISION_REASONS = Object.freeze({
   FREE: "free",
   AUTH_REQUIRED: "auth_required",
   ALREADY_UNLOCKED: "already_unlocked",
   SUBSCRIPTION_ACTIVE: "subscription_active",
+  USAGE_PASS_ACTIVE: "usage_pass_active",
   INSUFFICIENT_COINS: "insufficient_coins",
   REQUIRES_PURCHASE: "requires_purchase",
 });
+
+function resolveUsagePassCategories(pricing = {}) {
+  const featureKey = String(pricing?.featureKey || "").trim().toLowerCase();
+  const cost = Number(pricing?.coinPrice || pricing?.cost || 0);
+  const categories = [];
+  if (!featureKey) return categories;
+
+  const isCompat = featureKey.includes("compat")
+    || featureKey.includes("relationship")
+    || featureKey === "section_compat"
+    || featureKey === "vedic-compatibility-per-use"
+    || featureKey === "premium-love-secret-couple"
+    || featureKey === "premium_pdf_saju_love_secret_compat";
+  const isSajuUnlock = featureKey === "section_daewun"
+    || featureKey === "section_summary"
+    || featureKey === "section_compat"
+    || featureKey.startsWith("rpt_")
+    || featureKey === "rpgcharacter"
+    || featureKey === "traveldestiny"
+    || featureKey === "healthreport"
+    || featureKey === "sajudiary"
+    || featureKey === "secrethouseepisodes";
+
+  if (isCompat) categories.push("compat");
+  if (isSajuUnlock) categories.push("saju_unlock");
+  if (Number.isFinite(cost) && cost > 0 && cost <= 30) categories.push("fortune_30");
+  if (Number.isFinite(cost) && cost > 0 && cost <= 50) categories.push("fortune_50");
+
+  return Array.from(new Set(categories));
+}
+
+async function consumeUsagePassIfAvailable(env, authUserId, pricing, requestId) {
+  const categories = resolveUsagePassCategories(pricing);
+  if (!categories.length) return null;
+
+  await connectDb(env);
+
+  let updatedUser = null;
+  let category = "";
+  for (let i = 0; i < categories.length; i += 1) {
+    category = categories[i];
+    updatedUser = await User.findOneAndUpdate(
+      {
+        _id: authUserId,
+        usagePasses: {
+          $elemMatch: {
+            category,
+            remainingUses: { $gt: 0 },
+          },
+        },
+      },
+      {
+        $inc: { "usagePasses.$.remainingUses": -1 },
+        $set: { "usagePasses.$.updatedAt": new Date() },
+      },
+      {
+        returnDocument: "after",
+        projection: { points: 1, usagePasses: 1 },
+      },
+    ).lean();
+    if (updatedUser) break;
+  }
+
+  if (!updatedUser) return null;
+
+  const usagePasses = Array.isArray(updatedUser.usagePasses) ? updatedUser.usagePasses : [];
+  const activePass = usagePasses.find((entry) => String(entry?.category || "") === category);
+
+  return {
+    category,
+    remainingUses: Number(activePass?.remainingUses || 0),
+    requestId: String(requestId || ""),
+    transactionType: "usage_pass",
+    user: {
+      id: String(authUserId || ""),
+      points: Number(updatedUser?.points || 0),
+    },
+  };
+}
+
+function isActiveMembership(profileSubscription = {}) {
+  const tier = String(profileSubscription?.tier || "free").trim().toLowerCase();
+  const expiresAt = profileSubscription?.expiresAt ? new Date(profileSubscription.expiresAt) : null;
+  return tier !== "free" && expiresAt && Number.isFinite(expiresAt.getTime()) && expiresAt.getTime() > Date.now();
+}
+
+async function seedMembershipCreditForExistingPassIfNeeded(authUserId) {
+  const user = await User.findById(authUserId).select("points profileSubscription").lean();
+  const sub = user?.profileSubscription || {};
+  const tier = String(sub?.tier || "free").trim().toLowerCase();
+  const legacyPoints = Number(user?.points || 0);
+  const currentCredit = Number(sub?.membershipCreditBalance || 0);
+  const grantedCredit = Number(sub?.membershipCreditGranted || 0);
+  if (!user?._id || !isActiveMembership(sub) || currentCredit > 0 || grantedCredit > 0) return null;
+
+  const passCredit = Number(MEMBERSHIP_CREDIT_GRANT_BY_TIER[tier] || 0);
+  const legacyCredit = Math.floor(legacyPoints * MEMBERSHIP_CREDIT_PER_COIN);
+  const seededCredit = Math.max(passCredit, legacyCredit);
+  if (seededCredit <= 0) return null;
+
+  return User.findOneAndUpdate(
+    {
+      _id: authUserId,
+      $or: [
+        { "profileSubscription.membershipCreditGranted": { $exists: false } },
+        { "profileSubscription.membershipCreditGranted": { $lte: 0 } },
+      ],
+      $and: [
+        {
+          $or: [
+            { "profileSubscription.membershipCreditBalance": { $exists: false } },
+            { "profileSubscription.membershipCreditBalance": { $lte: 0 } },
+          ],
+        },
+      ],
+    },
+    {
+      $inc: {
+        "profileSubscription.membershipCreditBalance": seededCredit,
+        "profileSubscription.membershipCreditGranted": seededCredit,
+      },
+    },
+    {
+      returnDocument: "after",
+      projection: { points: 1, profileSubscription: 1 },
+    },
+  ).lean();
+}
+
+async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requestId, body = {}) {
+  const coinPrice = Number(pricing?.coinPrice || pricing?.cost || 0);
+  const requiredCredit = Number(pricing?.membershipCreditCost || calculateMembershipCreditCost(coinPrice));
+  if (!Number.isInteger(requiredCredit) || requiredCredit <= 0) return null;
+
+  await connectDb(env);
+  await seedMembershipCreditForExistingPassIfNeeded(authUserId);
+
+  const now = new Date();
+  const updatedUser = await User.findOneAndUpdate(
+    {
+      _id: authUserId,
+      "profileSubscription.tier": { $ne: "free" },
+      "profileSubscription.expiresAt": { $gt: now },
+      "profileSubscription.membershipCreditBalance": { $gte: requiredCredit },
+    },
+    {
+      $inc: {
+        "profileSubscription.membershipCreditBalance": -requiredCredit,
+        "profileSubscription.membershipCreditUsed": requiredCredit,
+      },
+    },
+    {
+      returnDocument: "after",
+      projection: { points: 1, profileSubscription: 1 },
+    },
+  ).lean();
+
+  if (!updatedUser) return null;
+
+  const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
+  const sessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || "").trim();
+  const featureKey = String(pricing?.featureKey || body?.featureKey || "").trim();
+  const history = await PointHistory.create({
+    userId: authUserId,
+    kind: "deduct",
+    delta: -Math.max(0, coinPrice),
+    balanceAfter: Number(updatedUser?.points || 0),
+    reason: String(pricing?.reason || "membership_credit_access"),
+    featureKey,
+    metadata: {
+      accessType: "membership_credit",
+      requestId: String(requestId || ""),
+      purchaseId: String(requestId || ""),
+      reportId,
+      sessionId,
+      reportSessionId: sessionId,
+      featureKey,
+      coinPrice,
+      membershipCreditCost: requiredCredit,
+      remainingMembershipCredit: Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0),
+    },
+  }).catch(async (error) => {
+    await User.findByIdAndUpdate(authUserId, {
+      $inc: {
+        "profileSubscription.membershipCreditBalance": requiredCredit,
+        "profileSubscription.membershipCreditUsed": -requiredCredit,
+      },
+    }).catch(() => {});
+    throw error;
+  });
+
+  return {
+    transactionId: String(history?._id || ""),
+    requestId: String(requestId || ""),
+    transactionType: "membership_credit",
+    accessType: "membership_credit",
+    featureKey,
+    coinPrice,
+    membershipCreditCost: requiredCredit,
+    remainingMembershipCredit: Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0),
+    user: {
+      id: String(authUserId || ""),
+      points: Number(updatedUser?.points || 0),
+      profileSubscription: updatedUser?.profileSubscription || null,
+    },
+  };
+}
 
 function buildBillingErrorDetails(stage, error, extras = {}) {
   return {
@@ -429,11 +644,13 @@ function buildAccessDecision({
   balance,
   unlockMap,
   subscription,
+  usagePassMap,
 } = {}) {
   const cost = Number(pricing?.cost || 0);
   const featureKey = String(pricing?.featureKey || "").trim();
   const currentBalance = Number(balance || 0);
   const unlocked = Boolean(featureKey && unlockMap && typeof unlockMap === "object" && unlockMap[featureKey]);
+  const hasUsagePass = Boolean(featureKey && usagePassMap && typeof usagePassMap === "object" && usagePassMap[featureKey]);
   const subActive = Boolean(subscription?.isActive);
   const subFreeLimit = Number(subscription?.freeLimit || 0);
 
@@ -457,6 +674,14 @@ function buildAccessDecision({
     return {
       allowed: true,
       reason: ACCESS_DECISION_REASONS.ALREADY_UNLOCKED,
+      requiredCoins: cost,
+    };
+  }
+
+  if (hasUsagePass) {
+    return {
+      allowed: true,
+      reason: ACCESS_DECISION_REASONS.USAGE_PASS_ACTIVE,
       requiredCoins: cost,
     };
   }
@@ -524,6 +749,84 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const reportSessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || (reportId ? `love-book:${reportId}` : requestId)).trim();
 
+  if (authCheck?.auth?.userId) {
+    try {
+      const membershipConsume = await consumeMembershipCreditIfAvailable(env, authCheck.auth.userId, pricing, requestId, {
+        ...body,
+        reportId,
+        sessionId: reportSessionId,
+        reportSessionId,
+      });
+      if (membershipConsume) {
+        return success({
+          pricing,
+          consume: {
+            ok: true,
+            transactionType: "membership_credit",
+            accessType: "membership_credit",
+            requestId,
+            featureKey: String(pricing.featureKey || ""),
+            coinPrice: membershipConsume.coinPrice,
+            membershipCreditCost: membershipConsume.membershipCreditCost,
+            remainingMembershipCredit: membershipConsume.remainingMembershipCredit,
+          },
+          premiumAccessToken: null,
+          accessGrant: {
+            ok: true,
+            accessType: "membership_credit",
+            featureKey: String(pricing.featureKey || ""),
+            sessionId: reportSessionId || undefined,
+            requestId,
+            purchaseId: requestId,
+            evidenceId: membershipConsume.transactionId || "",
+            reportId: reportId || undefined,
+            paidAt: new Date().toISOString(),
+          },
+          balance: Number(membershipConsume?.user?.points || 0),
+          membershipCreditBalance: membershipConsume.remainingMembershipCredit,
+          user: membershipConsume.user,
+        }, "월정석 크레딧으로 콘텐츠 이용 권한을 발급했습니다.");
+      }
+    } catch (error) {
+      logBillingRouteError("membership-credit-consume", error, request, {
+        featureKey: String(pricing?.featureKey || ""),
+        requestId,
+      });
+      return failure(
+        500,
+        "MEMBERSHIP_CREDIT_CONSUME_FAILED",
+        "월정석 크레딧 처리 중 오류가 발생했습니다.",
+        String(error?.message || ""),
+      );
+    }
+
+    const usagePassConsume = await consumeUsagePassIfAvailable(env, authCheck.auth.userId, pricing, requestId);
+    if (usagePassConsume) {
+      return success({
+        pricing,
+        consume: {
+          ok: true,
+          transactionType: "usage_pass",
+          requestId,
+          featureKey: String(pricing.featureKey || ""),
+          category: usagePassConsume.category,
+          remainingUses: usagePassConsume.remainingUses,
+        },
+        premiumAccessToken: null,
+        accessGrant: {
+          ok: true,
+          featureKey: String(pricing.featureKey || ""),
+          sessionId: reportSessionId || undefined,
+          requestId,
+          reportId: reportId || undefined,
+          paidAt: new Date().toISOString(),
+        },
+        balance: Number(usagePassConsume?.user?.points || 0),
+        user: usagePassConsume.user,
+      }, "이용권 회차를 사용해 서비스를 열었습니다.");
+    }
+  }
+
   return failure(402, "PAYMENT_REQUIRED", "상품별 원화 단건 결제가 필요합니다.", undefined, {
     pricing,
     accessGrant: null,
@@ -538,6 +841,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         subFeatureKey: pricing.subFeatureKey,
         paymentAmount: Number(pricing.amountKRW || pricing.cashPrice || 0),
         coinPrice: Number(pricing.coinPrice || pricing.cost || 0),
+        membershipCreditCost: Number(pricing.membershipCreditCost || calculateMembershipCreditCost(pricing.coinPrice || pricing.cost || 0)),
         requestId,
         reportId: reportId || undefined,
         sessionId: reportSessionId || undefined,
@@ -722,9 +1026,36 @@ async function handleBalance(request, env) {
   }
 
   const balance = Number(payload?.user?.points ?? payload?.balance ?? 0);
+  let membershipCreditBalance = 0;
+  let membership = null;
+  try {
+    const auth = await getOptionalUserFromRequest(request, env);
+    if (auth?.userId) {
+      await connectDb(env);
+      await seedMembershipCreditForExistingPassIfNeeded(auth.userId);
+      const user = await User.findById(auth.userId).select("profileSubscription points").lean();
+      const sub = user?.profileSubscription || {};
+      membershipCreditBalance = Number(sub?.membershipCreditBalance || 0);
+      membership = {
+        tier: String(sub?.tier || "free"),
+        isActive: isActiveMembership(sub),
+        expiresAt: sub?.expiresAt || null,
+        membershipCreditBalance,
+        membershipCreditGranted: Number(sub?.membershipCreditGranted || 0),
+        membershipCreditUsed: Number(sub?.membershipCreditUsed || 0),
+        legacyCoinBalance: Number(user?.points || 0),
+      };
+    }
+  } catch (_) {
+    membership = null;
+  }
+
   return success({
     authenticated: Boolean(payload?.authenticated),
     balance: Number.isFinite(balance) ? balance : 0,
+    legacyCoinBalance: Number.isFinite(balance) ? balance : 0,
+    membershipCreditBalance,
+    membership,
     user: payload?.user || null,
     unlockedFeatures: Array.isArray(payload?.unlockedFeatures) ? payload.unlockedFeatures : [],
     unlockMap: payload?.unlockMap && typeof payload.unlockMap === "object" ? payload.unlockMap : {},
