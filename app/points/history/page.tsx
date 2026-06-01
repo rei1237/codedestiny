@@ -253,21 +253,22 @@ export default function PointHistoryPage() {
         retryOn401: true,
         apiBase,
       });
-      if (!res.ok && res.status !== 401 && res.status !== 403) {
-        console.warn("[points-history] API error", { path: "/api/points/me", status: res.status });
-      }
       if (res.status === 401 || res.status === 403) {
         clearClientAuthState();
         router.replace("/login?next=%2Fpoints%2Fhistory");
         return;
       }
       const ct = res.headers.get("content-type") ?? "";
-      if (!ct.includes("application/json")) {
-        throw new Error(`서버 점검 중입니다. (HTTP ${res.status})`);
+      const isJson = ct.includes("application/json") || ct.includes("/json");
+      if (!isJson) {
+        if (!res.ok) throw new Error(`잠시 후 다시 시도해 주세요. (HTTP ${res.status})`);
+        throw new Error("포인트 서버 응답 오류입니다.");
       }
       const data: MeResponse = await res.json();
-      if (!res.ok) throw new Error((data as { message?: string }).message || "포인트 내역을 불러오지 못했습니다.");
-
+      if (!res.ok) {
+        const msg = (data as { message?: string }).message || "";
+        throw new Error(msg || "포인트 내역을 불러오지 못했습니다.");
+      }
       const normalized = normalizePointPayload(data);
       setUserName(normalized.userName);
       setCurrentPoints(normalized.balance);
@@ -293,21 +294,22 @@ export default function PointHistoryPage() {
         retryOn401: true,
         apiBase,
       });
-      if (!res.ok && res.status !== 401 && res.status !== 403) {
-        console.warn("[points-history] API error", { path: "/api/payments/me", status: res.status });
-      }
       if (res.status === 401 || res.status === 403) {
         clearClientAuthState();
         router.replace("/login?next=%2Fpoints%2Fhistory");
         return;
       }
       const ct = res.headers.get("content-type") ?? "";
-      if (!ct.includes("application/json")) {
-        throw new Error(`서버 점검 중입니다. (HTTP ${res.status})`);
+      const isJson = ct.includes("application/json") || ct.includes("/json");
+      if (!isJson) {
+        if (!res.ok) throw new Error(`잠시 후 다시 시도해 주세요. (HTTP ${res.status})`);
+        throw new Error("결제 서버 응답 오류입니다.");
       }
       const data: MeResponse = await res.json();
-      if (!res.ok) throw new Error((data as { message?: string }).message || "결제 내역을 불러오지 못했습니다.");
-
+      if (!res.ok) {
+        const msg = (data as { message?: string }).message || "";
+        throw new Error(msg || "결제 내역을 불러오지 못했습니다.");
+      }
       const normalized = normalizePaymentPayload(data);
       setPayments(
         Array.isArray(normalized.payments)
@@ -330,20 +332,29 @@ export default function PointHistoryPage() {
         retryOn401: true,
         apiBase,
       });
-      if (!res.ok && res.status !== 401 && res.status !== 403) {
-        console.warn("[points-history] API error", { path: "/api/subscription/status", status: res.status });
-      }
       if (res.status === 401 || res.status === 403) {
         setSubscriptionSummary("로그인 필요");
         return;
       }
       const ct = res.headers.get("content-type") ?? "";
-      if (!ct.includes("application/json")) {
-        throw new Error(`구독 상태 조회 실패 (HTTP ${res.status})`);
+      const isJson = ct.includes("application/json") || ct.includes("/json");
+      // JSON 응답이 아닌 경우: 상태 조회 실패로 처리하되 전체 페이지를 막지 않음
+      if (!isJson) {
+        setSubscriptionSummary("구독 상태 조회 불가 (서버 일시 오류)");
+        setSubscriptionError("잠시 후 다시 시도해 주세요.");
+        return;
       }
-      const data: SubscriptionStatusResponse = await res.json();
-      if (!res.ok) throw new Error(data.message || "구독 상태를 불러오지 못했습니다.");
-
+      const data: SubscriptionStatusResponse & { degraded?: boolean; source?: string } = await res.json();
+      // degraded 응답(DB 연결 일시 장애)은 실패로 처리하지 않고 안내 표시
+      if ((data as { degraded?: boolean }).degraded) {
+        setSubscriptionSummary("구독 정보 임시 조회 중 (서버 일시 불안정)");
+        setSubscriptionError(null);
+        return;
+      }
+      if (!res.ok) {
+        const msg = data.message || "구독 상태를 불러오지 못했습니다.";
+        throw new Error(msg);
+      }
       const tier = String(data?.tier || "free").toLowerCase();
       const isActive = !!data?.isActive;
       const expiresAt = data?.expiresAt ? formatDateTime(data.expiresAt) : "-";
