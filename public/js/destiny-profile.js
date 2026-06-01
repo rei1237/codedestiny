@@ -810,7 +810,7 @@
       return Promise.resolve(!!_dpSessionVerify.ok);
     }
     if (_dpSessionVerify.pending) return _dpSessionVerify.pending;
-    if (!_dpHasSessionHint()) {
+    if (!_dpHasSessionHint() && !force) {
       _dpMarkSessionVerify(false, '');
       return Promise.resolve(false);
     }
@@ -1962,20 +1962,11 @@
     var btn = document.getElementById('dpSaveBtn');
     if (!btn) return;
 
-    if (!_dpHasLoginSession()) {
-      btn.disabled = true;
-      btn.textContent = '✦ 로그인 후 프로필 저장';
-      btn.style.opacity = '0.65';
-      btn.style.cursor = 'not-allowed';
-      btn.title = '프로필 카드는 로그인 후에만 생성할 수 있습니다.';
-      return;
-    }
-
     btn.disabled = false;
     btn.textContent = '✦ 프로필 저장';
     btn.style.opacity = '';
     btn.style.cursor = '';
-    btn.title = '프로필 생성 가능 여부는 서버 구독 정책 기준으로 최종 확인됩니다.';
+    btn.title = '저장 시 로그인/구독 상태를 서버에서 최종 확인합니다.';
   }
 
   function _resolveEventElement(target) {
@@ -2813,13 +2804,6 @@
      8. 공개 API (window.dp*)
   ────────────────────────────────────────── */
   window.dpSaveProfile = function() {
-    if (!_dpHasLoginSession()) {
-      if (window.confirm('🔒 프로필 카드는 로그인 후에만 생성할 수 있습니다.\n로그인 페이지로 이동할까요?')) {
-        window.location.href = '/login?next=%2F';
-      }
-      return;
-    }
-
     var data = readFormData();
     if (!data) {
       alert('이름과 생년월일을 입력해주세요.');
@@ -2908,6 +2892,10 @@
     }).catch(function(err) {
       var msg = String((err && err.message) || '프로필 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
       if (msg === 'AUTH_REQUIRED') {
+        if (window.confirm('🔒 프로필 카드는 로그인 후에만 생성할 수 있습니다.\n로그인 페이지로 이동할까요?')) {
+          window.location.href = '/login?next=%2F';
+          return;
+        }
         msg = '로그인 상태를 확인한 뒤 다시 시도해 주세요.';
       }
       window.alert(msg);
