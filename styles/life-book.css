@@ -2126,6 +2126,13 @@ body.lb-modal-open {
   box-shadow: 0 14px 36px rgba(124,58,237,0.6), inset 0 1px 0 rgba(255,255,255,0.12);
 }
 
+.lb-start__cta.is-busy {
+  opacity: 0.7;
+  cursor: wait;
+  transform: none;
+  box-shadow: 0 8px 24px rgba(124,58,237,0.3);
+}
+
 @media (max-width: 768px) {
   .sk-partner-field .row2 {
     grid-template-columns: 1fr;
@@ -3264,6 +3271,31 @@ body.theme-pig .lb-ch-dot--pending {
   padding: 4px 0 34px;
 }
 
+#ziweiBookModal .lb-modal__panel {
+  background:
+    radial-gradient(130% 105% at 8% 0%, rgba(250, 204, 21, 0.18), transparent 56%),
+    radial-gradient(120% 96% at 92% 0%, rgba(196, 181, 253, 0.2), transparent 52%),
+    linear-gradient(165deg, rgba(24, 15, 54, 0.98), rgba(21, 17, 61, 0.96) 48%, rgba(12, 20, 44, 0.97));
+}
+
+#ziweiBookModal .lb-result__header {
+  padding: 20px 16px 14px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.52), rgba(15, 23, 42, 0));
+}
+
+#ziweiBookModal .lb-result__title {
+  color: #fff6d9;
+  text-shadow: 0 2px 20px rgba(250, 204, 21, 0.24);
+}
+
+#ziweiBookModal .lb-result__top-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
 #ziweiBookModal .lb-result-article {
   margin: 16px 16px 20px;
   padding: 24px 22px;
@@ -3294,6 +3326,12 @@ body.theme-pig .lb-ch-dot--pending {
 #ziweiBookModal .lb-result-article__title {
   font-size: 1.14rem;
   line-height: 1.48;
+}
+
+#ziweiBookModal .lb-result-article__head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 #ziweiBookModal .lb-result-article__subtitle {
@@ -3330,6 +3368,53 @@ body.theme-pig .lb-ch-dot--pending {
   color: #edf4ff;
 }
 
+#ziweiBookModal .zb-result-cover {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 12px;
+  margin: 14px 16px 10px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(250, 204, 21, 0.26);
+  background: linear-gradient(148deg, rgba(36, 20, 76, 0.84), rgba(19, 24, 52, 0.8));
+}
+
+#ziweiBookModal .zb-result-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid rgba(196, 181, 253, 0.35);
+}
+
+#ziweiBookModal .zb-result-cover p {
+  margin: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  color: #fcd34d;
+  text-transform: uppercase;
+}
+
+#ziweiBookModal .zb-result-cover h3 {
+  margin: 4px 0 0;
+  color: #f8fafc;
+  font-size: 1.05rem;
+}
+
+#ziweiBookModal .zb-result-cover span {
+  display: inline-block;
+  margin-top: 6px;
+  color: #dbeafe;
+  font-size: 0.8rem;
+}
+
+#ziweiBookModal .zb-result-bottom-download {
+  margin: 0 16px 8px;
+  padding: 8px 0 2px;
+  display: flex;
+  justify-content: center;
+}
+
 @media (max-width: 640px) {
   #ziweiBookModal .lb-result-article {
     margin: 12px 10px 16px;
@@ -3345,6 +3430,21 @@ body.theme-pig .lb-ch-dot--pending {
   #ziweiBookModal .lb-result-article__section,
   #ziweiBookModal .lb-result-article__list {
     padding: 12px;
+  }
+
+  #ziweiBookModal .zb-result-cover {
+    grid-template-columns: 88px minmax(0, 1fr);
+    margin: 10px 10px 8px;
+    padding: 10px;
+  }
+
+  #ziweiBookModal .lb-result__top-actions {
+    justify-content: stretch;
+  }
+
+  #ziweiBookModal .lb-result__top-actions .lb-result__pdf-btn,
+  #ziweiBookModal .lb-result__top-actions .lb-result__rerun-btn {
+    flex: 1 1 calc(50% - 6px);
   }
 }
 
@@ -3377,6 +3477,25 @@ body.theme-pig .lb-ch-dot--pending {
   background: linear-gradient(135deg, rgba(124,58,237,0.9), rgba(99,102,241,0.9));
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(124,58,237,0.35);
+}
+
+.lb-result__rerun-btn {
+  padding: 11px 20px;
+  background: rgba(251,191,36,0.1);
+  border: 1px solid rgba(250,204,21,0.38);
+  border-radius: 10px;
+  color: #fde68a;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  touch-action: manipulation;
+}
+
+.lb-result__rerun-btn:hover {
+  background: rgba(251,191,36,0.2);
+  transform: translateY(-1px);
 }
 
 .lb-result__close-btn {

@@ -189,7 +189,60 @@ describe("ziwei premium local manuscript", () => {
     expect(guide.body).toContain("신궁");
   });
 
-  test("로컬 챕터 품질 검증은 13챕터/4카테고리 구조를 통과시켜야 한다", () => {
+  test("로컬 상담문에는 개발/프롬프트 문구가 노출되면 안 된다", () => {
+    const profile = {
+      name: "테스터",
+      gender: "male",
+      year: 1991,
+      month: 2,
+      day: 20,
+      hour: 7,
+      minute: 0,
+      calendarType: "solar",
+      birthplace: "대한민국",
+    };
+
+    const seed = utils.buildZiweiPdfSeed(profile, {
+      chartMeta: {
+        mingGong: "자",
+        shenGong: "오",
+      },
+      palaces: makeBasePalaces(),
+      transformations: [{ star: "자미", type: "화록" }],
+      luck: {
+        decadeLuck: [{ label: "31-40", current: true }],
+        annual: [{ year: 2026, palace: "ming" }],
+      },
+    });
+
+    const guide = utils.buildZiweiLocalChapterGuide({
+      seed,
+      blueprint: utils.CHAPTER_BLUEPRINTS[0],
+      chapterIndex: 0,
+      categoryIndex: 0,
+      pass: 1,
+      categoryTitle: utils.CHAPTER_BLUEPRINTS[0].categories[0],
+    });
+
+    const banned = [
+      "기본 상담 어조",
+      "기본 질문 패턴",
+      "기본 톤 규칙",
+      "프롬프트",
+      "fallback",
+      "skeleton",
+      "JSON",
+      "LLM",
+      "작성됩니다",
+      "데이터 근거 중심",
+      "career 축",
+    ];
+    for (const token of banned) {
+      expect(guide.body.includes(token)).toBe(false);
+    }
+  });
+
+  test("로컬 챕터 품질 검증은 13챕터/5카테고리 구조를 통과시켜야 한다", () => {
     const profile = {
       name: "테스터",
       gender: "male",
@@ -241,11 +294,11 @@ describe("ziwei premium local manuscript", () => {
     expect(utils.validateNoZiweiPdfRepetition(chapters).ok).toBe(true);
   });
 
-  test("blueprint는 13챕터이며 각 챕터는 최소 4개 카테고리를 가져야 한다", () => {
+  test("blueprint는 13챕터이며 각 챕터는 5개 카테고리를 가져야 한다", () => {
     expect(utils.CHAPTER_BLUEPRINTS.length).toBe(13);
     utils.CHAPTER_BLUEPRINTS.forEach((chapter) => {
       expect(Array.isArray(chapter.categories)).toBe(true);
-      expect(chapter.categories.length).toBeGreaterThanOrEqual(4);
+      expect(chapter.categories.length).toBe(5);
     });
   });
 

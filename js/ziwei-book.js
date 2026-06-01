@@ -6,10 +6,12 @@
   var COIN_COST = 590;
   var PREPARE_API = '/api/ziwei-book/prepare';
   var RESULT_API = '/api/ziwei-book/result';
+  var DOWNLOAD_API = '/api/ziwei-book/download';
   var PAID_SESSION_STORAGE_KEY = 'premium:ziwei:paid-session:v1';
   var COVER_IMAGE = '/fuctionassets/jamipremiun.webp';
   var RESULT = null;
   var GENERATING = false;
+  var DOWNLOADING = false;
   var LAST_SEED = null;
   var ZIWEI_GENERATION_STATE = {
     isOpen: false,
@@ -24,19 +26,40 @@
   };
 
   var CHAPTERS = [
-    'Chapter 1. 명반 전체 요약 — 이 사람의 운명 구조',
-    'Chapter 2. 명궁 — 타고난 성격과 삶의 태도',
-    'Chapter 3. 형제궁·노복궁 — 가까운 사람과 인맥의 운',
-    'Chapter 4. 부부궁 — 연애와 결혼의 구조',
-    'Chapter 5. 자녀궁 — 창작물, 후배, 결과물의 운',
-    'Chapter 6. 재백궁 — 돈과 수익 구조',
-    'Chapter 7. 관록궁 — 직업, 성공, 사회적 역할',
-    'Chapter 8. 천이궁 — 외부 활동, 이동, 세상과의 접점',
-    'Chapter 9. 전택궁 — 집, 기반, 자산, 안정성',
-    'Chapter 10. 질액궁·복덕궁 — 건강, 마음, 회복력',
-    'Chapter 11. 부모궁 — 부모, 윗사람, 권위자와의 관계',
-    'Chapter 12. 대운·세운 — 시기별 인생 흐름',
-    'Chapter 13. 최종 운명 전략 — 이 명반을 가장 잘 쓰는 법'
+    'Chapter 1. 명반 전체 요약',
+    'Chapter 2. 타고난 성향',
+    'Chapter 3. 재능과 적성',
+    'Chapter 4. 직업과 사업운',
+    'Chapter 5. 재물운',
+    'Chapter 6. 연애운',
+    'Chapter 7. 결혼운과 배우자운',
+    'Chapter 8. 인간관계와 귀인운',
+    'Chapter 9. 가족운과 뿌리',
+    'Chapter 10. 건강과 심신운',
+    'Chapter 11. 부동산과 거처운',
+    'Chapter 12. 대운과 전환점',
+    'Chapter 13. 최종 운명 조언'
+  ];
+
+  var CHAPTER_PROGRESS_LINES = [
+    '명궁의 중심 흐름을 정리하는 중입니다.',
+    '타고난 성향의 결을 정리하는 중입니다.',
+    '재능과 적성의 핵심 축을 읽는 중입니다.',
+    '관록궁과 사회 흐름을 엮는 중입니다.',
+    '재백궁의 돈 흐름을 정리하는 중입니다.',
+    '연애 흐름의 끌림 구조를 읽는 중입니다.',
+    '배우자운과 결혼 리듬을 정리하는 중입니다.',
+    '귀인운과 인간관계 지도를 엮는 중입니다.',
+    '가족운과 뿌리의 결을 읽는 중입니다.',
+    '건강과 심신 리듬을 정리하는 중입니다.',
+    '전택궁과 거처운을 점검하는 중입니다.',
+    '대운 전환점의 방향을 읽는 중입니다.',
+    '13챕터 운명 상담서를 엮는 중입니다.'
+  ];
+
+  var FINALIZE_PROGRESS_LINES = [
+    '명반 기반 13챕터를 최종 점검하는 중입니다.',
+    'PDF 문서로 정리하는 중입니다.'
   ];
 
   var PALACE_KEY_BY_NAME = {
@@ -92,6 +115,38 @@
   function pad2(value){ return String(Number(value) || 0).padStart(2, '0'); }
   function setText(id, value){ var el = $(id); if(el) el.textContent = value; }
   function setDisplay(id, value){ var el = $(id); if(el) el.style.display = value; }
+
+  function formatDateStamp(dateLike){
+    var date = dateLike ? new Date(dateLike) : new Date();
+    if(Number.isNaN(date.getTime())) date = new Date();
+    var y = date.getFullYear();
+    var m = String(date.getMonth() + 1).padStart(2, '0');
+    var d = String(date.getDate()).padStart(2, '0');
+    return '' + y + m + d;
+  }
+
+  function buildZiweiPdfFilename(dateLike){
+    return '자미두수_프리미엄_리포트_' + formatDateStamp(dateLike) + '.pdf';
+  }
+
+  function getChapterProgressLine(index){
+    var safe = Math.max(0, Math.min(TOTAL_CHAPTERS - 1, Number(index) || 0));
+    return CHAPTER_PROGRESS_LINES[safe] || '자미두수 명반을 정리하는 중입니다.';
+  }
+
+  function setGeneratingUiLock(isBusy){
+    var btn = $('zbStartBtn');
+    if(!btn) return;
+    btn.disabled = !!isBusy;
+    btn.setAttribute('aria-busy', isBusy ? 'true' : 'false');
+    if(isBusy){
+      btn.classList.add('is-busy');
+      btn.textContent = '생성 진행 중...';
+      return;
+    }
+    btn.classList.remove('is-busy');
+    btn.textContent = '프리미엄 PDF 생성하기';
+  }
 
   function toHexHash(input){
     var src = text(input);
@@ -317,25 +372,32 @@
   function updateProgress(percent, label){
     var fill = $('zbProgressBar');
     if(fill) fill.style.width = Math.max(0, Math.min(100, percent)) + '%';
-    setText('zbLoadingChapter', label || '자미두수 명반을 준비하고 있습니다.');
+    setText('zbLoadingChapter', label || '자미두수 명반을 준비하는 중입니다.');
     updateZiweiGenerationState({ message: text(label || ''), totalChapters: TOTAL_CHAPTERS });
   }
 
   function markChapter(index){
+    var safeIndex = Math.max(-1, Math.min(TOTAL_CHAPTERS - 1, Number(index) || -1));
+    var chapterNo = Math.max(1, safeIndex + 1);
     for(var i=0; i<TOTAL_CHAPTERS; i++){
       var dot = $('zbChDot' + i);
       if(!dot) continue;
-      dot.classList.toggle('lb-ch-dot--done', i < index);
-      dot.classList.toggle('lb-ch-dot--active', i === index);
+      dot.classList.toggle('lb-ch-dot--done', i < chapterNo - 1);
+      dot.classList.toggle('lb-ch-dot--active', i === chapterNo - 1);
+      dot.classList.toggle('lb-ch-dot--pending', i > chapterNo - 1);
+      dot.setAttribute('aria-current', i === chapterNo - 1 ? 'step' : 'false');
     }
-    var countText = Math.max(0, Math.min(TOTAL_CHAPTERS, index + 1)) + ' / ' + TOTAL_CHAPTERS + ' 챕터 완성';
+    var currentLine = getChapterProgressLine(chapterNo - 1);
+    var countText = chapterNo + ' / ' + TOTAL_CHAPTERS;
+    setText('zbLoadingChapterNum', '진행률 ' + countText);
+    setText('zbLoadingChapter', currentLine);
+    setText('zbMysticQuote', currentLine);
     if($('zbChapterCount')) setText('zbChapterCount', countText);
     else setText('zbProgressText', countText);
-    var safeIndex = Math.max(-1, Math.min(TOTAL_CHAPTERS - 1, Number(index) || -1));
     var completed = [];
-    for(var c = 1; c <= safeIndex + 1; c++) completed.push(c);
+    for(var c = 1; c <= chapterNo - 1; c++) completed.push(c);
     updateZiweiGenerationState({
-      currentChapterNo: Math.max(1, safeIndex + 1),
+      currentChapterNo: chapterNo,
       completedChapters: completed
     });
   }
@@ -966,22 +1028,97 @@
     return json;
   }
 
+  function scrollResultToChapter(chapterNo){
+    var target = $('zbChapterSection-' + Number(chapterNo || 0));
+    if(!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function bindResultToc(){
+    var toc = $('zbToc');
+    if(!toc) return;
+    toc.onclick = function(event){
+      var target = event.target;
+      if(!(target instanceof Element)) return;
+      var item = target.closest('.lb-toc-item');
+      if(!item) return;
+      var chapter = Number(item.getAttribute('data-zb-chapter') || 0);
+      if(chapter <= 0) return;
+      Array.prototype.forEach.call(toc.querySelectorAll('.lb-toc-item'), function(btn){
+        btn.classList.toggle('active', btn === item);
+      });
+      scrollResultToChapter(chapter);
+    };
+  }
+
   function renderResult(data){
     var box = $('zbResultContent');
     if(!box) return;
     var chapters = Array.isArray(data.chapters) ? data.chapters : [];
-    var cover = '<div class="zb-result-cover"><img src="' + esc(COVER_IMAGE) + '" alt="자미두수 프리미엄 명반서 표지"><div><p>ZIWEI PREMIUM</p><h3>자미두수 프리미엄 명반서</h3><span>' + esc(chapters.length) + '챕터 생성 완료</span></div></div>';
+    var toc = $('zbToc');
+    if(toc){
+      toc.innerHTML = chapters.map(function(chapter, index){
+        var title = text(chapter && chapter.title) || CHAPTERS[index] || ('Chapter ' + (index + 1));
+        return '<button type="button" class="lb-toc-item loaded' + (index === 0 ? ' active' : '') + '" data-zb-chapter="' + (index + 1) + '"><span>CHAPTER ' + (index + 1) + '</span><strong>' + esc(title.replace(/^Chapter\s*\d+\.?\s*/i, '')) + '</strong></button>';
+      }).join('');
+    }
+
+    var profile = (data && data.payload && data.payload.profile) || {};
+    var issuedAt = text((data && data.pdfReady && data.pdfReady.generatedAt) || data.generatedAt || new Date().toISOString());
+    var summaryName = text(profile.name || (window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.name) || '사용자');
+    setText('zbResultName', summaryName + ' 님');
+    setText('zbResultDate', new Date(issuedAt).toLocaleDateString('ko-KR') + ' 생성');
+
+    var header = $('zbResultScreen') ? $('zbResultScreen').querySelector('.lb-result__header') : null;
+    if(header && !header.querySelector('.lb-result__top-actions')){
+      var topActions = document.createElement('div');
+      topActions.className = 'lb-result__top-actions';
+      topActions.innerHTML = ''
+        + '<button type="button" class="lb-result__pdf-btn" id="zbTopPdfBtn">PDF 다운로드</button>'
+        + '<button type="button" class="lb-result__rerun-btn" id="zbTopRegenBtn">다시 생성</button>';
+      header.appendChild(topActions);
+    }
+
+    var cover = '<div class="zb-result-cover"><img src="' + esc(COVER_IMAGE) + '" alt="자미두수 프리미엄 명반서 표지"><div><p>PURPLE STAR ARCHIVE</p><h3>자미두수 프리미엄 PDF</h3><span>' + esc(chapters.length) + '챕터 생성 완료</span></div></div>';
     var html = chapters.map(function(chapter, index){
       var categories = Array.isArray(chapter.categories) ? chapter.categories : [];
       var catHtml = categories.map(function(cat){
-        return '<div class="zb-result-cat"><strong>' + esc(cat.title) + '</strong><p>' + esc(cat.finalText || cat.text || '') + '</p></div>';
+        return '<section class="lb-result-article__section"><h4 class="lb-result-article__section-title">' + esc(cat.title) + '</h4><p class="lb-result-article__section-body">' + esc(cat.finalText || cat.text || '') + '</p></section>';
       }).join('');
-      return '<article class="zb-result-chapter"><small>' + (index + 1) + ' / ' + TOTAL_CHAPTERS + '</small><h4>' + esc(chapter.title || CHAPTERS[index] || '') + '</h4>' + catHtml + '</article>';
+      var chapterTitle = text(chapter.title || CHAPTERS[index] || '');
+      var summary = text(chapter.summary || '해당 챕터의 핵심 흐름을 정리했습니다.');
+      var advice = text(chapter.practicalAdvice || '실전 조언은 기준을 줄이고 반복 루틴을 고정하는 것입니다.');
+      var caution = text(chapter.cautionFlow || '주의 흐름은 속도 과열과 감정 과부하입니다.');
+      return ''
+        + '<article class="lb-result-article" id="zbChapterSection-' + (index + 1) + '">' 
+        + '<header class="lb-result-article__head"><span class="lb-result-article__chapter">Chapter ' + (index + 1) + '</span><h3 class="lb-result-article__title">' + esc(chapterTitle) + '</h3></header>'
+        + '<p class="lb-result-article__summary">' + esc(summary) + '</p>'
+        + catHtml
+        + '<section class="lb-result-article__section"><h4 class="lb-result-article__section-title">실전 조언</h4><p class="lb-result-article__section-body">' + esc(advice) + '</p></section>'
+        + '<section class="lb-result-article__section"><h4 class="lb-result-article__section-title">주의 흐름</h4><p class="lb-result-article__section-body">' + esc(caution) + '</p></section>'
+        + '</article>';
     }).join('');
-    box.innerHTML = cover + html;
+    box.innerHTML = cover + html + '<div class="zb-result-bottom-download"><button type="button" class="lb-result__pdf-btn" id="zbBottomPdfBtn">PDF 다운로드</button></div>';
+
+    var bottomActions = $('zbResultScreen') ? $('zbResultScreen').querySelector('.lb-result__actions') : null;
+    if(bottomActions){
+      bottomActions.innerHTML = ''
+        + '<button class="lb-result__pdf-btn" id="zbPdfBtn" onclick="downloadZiweiBookPdf()">📥 PDF 다운로드</button>'
+        + '<button class="lb-result__rerun-btn" id="zbRegenBtn" onclick="generateZiweiBook(true)">다시 생성</button>'
+        + '<button class="lb-result__close-btn" data-action="closeZiweiBookModal">닫기</button>';
+    }
+
+    var topPdfBtn = $('zbTopPdfBtn');
+    if(topPdfBtn) topPdfBtn.onclick = function(){ window.downloadZiweiBookPdf(); };
+    var topRegenBtn = $('zbTopRegenBtn');
+    if(topRegenBtn) topRegenBtn.onclick = function(){ window.generateZiweiBook(true); };
+    var bottomPdfBtn = $('zbBottomPdfBtn');
+    if(bottomPdfBtn) bottomPdfBtn.onclick = function(){ window.downloadZiweiBookPdf(); };
+
     setDisplay('zbStartScreen','none');
     setDisplay('zbLoadingScreen','none');
     setDisplay('zbResultScreen','block');
+    bindResultToc();
     ensureErrorActions();
   }
 
@@ -1131,8 +1268,12 @@
   };
 
   window.generateZiweiBook = async function(usePaidSessionOnly){
-    if(GENERATING) return;
+    if(GENERATING){
+      if(window.showToast) window.showToast('이미 생성 중입니다. 잠시만 기다려 주세요.', 'warning');
+      return;
+    }
     GENERATING = true;
+    setGeneratingUiLock(true);
     RESULT = null;
     resetZiweiGenerationState();
     try {
@@ -1140,7 +1281,7 @@
       setDisplay('zbResultScreen','none');
       setDisplay('zbErrorScreen','none');
       setDisplay('zbLoadingScreen','block');
-      updateProgress(8, '1/9 생년월일시 확인 중');
+      updateProgress(10, '명궁 12궁 계산을 위한 출생 정보를 정리하는 중입니다.');
       markChapter(-1);
       var resolved = await resolveBirthInput();
       logFlow('ProfileResolved', {
@@ -1162,12 +1303,12 @@
         hasBirthTime: true,
         birthHour: resolved.birthInput.birthHour
       });
-      updateProgress(18, '2/9 자미두수 명반 계산 중');
+      updateProgress(18, '명궁의 중심 흐름을 정리하는 중입니다.');
       updateZiweiGenerationState({ status: 'calculating' });
       var profile = resolved.profileForEngine;
       var seed = await buildZiweiSeed(profile);
       logFlow('PaymentGateStart', { featureKey: FEATURE_KEY, coinCost: COIN_COST });
-      updateProgress(30, '3/9 결제/이용권 확인 중');
+      updateProgress(30, '프리미엄 이용권을 확인하는 중입니다.');
       updateZiweiGenerationState({ status: 'paymentChecking' });
       var payment = await ensurePaymentOrRestore(resolved.birthInput);
       if(usePaidSessionOnly === true && !payment.reused){
@@ -1186,8 +1327,8 @@
       logFlow('PaymentGateSuccess', {
         hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken || payment.token))
       });
-      updateProgress(40, '4/9 해석 규칙 로딩 중');
-      updateProgress(52, '5/9 13챕터 원고 작성 중');
+      updateProgress(40, getChapterProgressLine(0));
+      updateProgress(52, getChapterProgressLine(1));
       updateZiweiGenerationState({ status: 'drafting' });
       var sessionId = text(payment && payment.sessionId) || buildSessionId(text(payment && payment.birthHash));
       updateZiweiGenerationState({ status: 'generating', sessionId: sessionId, currentChapterNo: 1 });
@@ -1218,10 +1359,10 @@
       });
       var localDraftCount = Number((data && data.localDraftChapterCount) || 0);
       var chapterProgressCount = Math.max(0, Math.min(TOTAL_CHAPTERS, localDraftCount || Number((data && data.chapterCount) || 0)));
-      updateProgress(66, '6/9 근거/중복 검증 중');
+      updateProgress(66, FINALIZE_PROGRESS_LINES[0]);
       for(var i=0; i<chapterProgressCount; i++){
         markChapter(i);
-        updateProgress(68 + Math.round(((i + 1) / TOTAL_CHAPTERS) * 12), '7/9 ' + (CHAPTERS[i] || '챕터 정교화 중'));
+        updateProgress(68 + Math.round(((i + 1) / TOTAL_CHAPTERS) * 12), getChapterProgressLine(i));
         logFlow('LocalDraftProgress', { chapterDone: i + 1, chapterTotal: TOTAL_CHAPTERS });
         logFlow('ChapterGenerated', {
           birthHash: text(payment && payment.birthHash),
@@ -1229,9 +1370,9 @@
           hasToken: Boolean(text(payment && (payment.premiumAccessToken || payment.accessToken || payment.token)))
         });
       }
-      updateProgress(84, '8/9 PDF 렌더링 중');
+      updateProgress(84, FINALIZE_PROGRESS_LINES[1]);
       updateZiweiGenerationState({ status: 'enhancing' });
-      updateProgress(95, '9/9 리포트 저장 중');
+      updateProgress(95, '생성된 리포트를 보관하는 중입니다.');
       updateZiweiGenerationState({ status: 'savingPdf' });
       RESULT = data;
       logFlow('PdfRequestSuccess', {
@@ -1239,7 +1380,8 @@
         localDraftChapterCount: localDraftCount,
         qualityStatus: text(data && data.qualityStatus)
       });
-      updateProgress(100, '완료');
+      markChapter(TOTAL_CHAPTERS - 1);
+      updateProgress(100, '자미두수 프리미엄 리포트가 완성되었습니다.');
       updateZiweiGenerationState({ status: 'completed', reportId: text(data && data.reportId), currentChapterNo: TOTAL_CHAPTERS });
       writePaidSession({
         featureKey: FEATURE_KEY,
@@ -1275,10 +1417,23 @@
       showError(mapErrorMessage(error), error);
     } finally {
       GENERATING = false;
+      setGeneratingUiLock(false);
     }
   };
 
-  window.downloadZiweiBookPdf = function(){
+  function parseFilenameFromDisposition(disposition){
+    var src = text(disposition);
+    if(!src) return '';
+    var utf = src.match(/filename\*=UTF-8''([^;]+)/i);
+    if(utf && utf[1]){
+      try { return decodeURIComponent(utf[1]); } catch(_) { return utf[1]; }
+    }
+    var basic = src.match(/filename="?([^";]+)"?/i);
+    return basic && basic[1] ? basic[1] : '';
+  }
+
+  window.downloadZiweiBookPdf = async function(){
+    if(DOWNLOADING) return;
     if(!RESULT){
       showError('먼저 자미두수 PDF를 생성해 주세요.');
       return;
@@ -1288,20 +1443,51 @@
       showError('아직 13챕터가 모두 준비되지 않았습니다. 결제 내역으로 다시 생성 버튼을 눌러 복구해 주세요.');
       return;
     }
-    var html = RESULT.pdfReady && RESULT.pdfReady.html ? RESULT.pdfReady.html : '';
-    if(!html){
-      showError('PDF 파일을 아직 준비하지 못했습니다. 다시 생성해 주세요.');
+    var reportId = text(RESULT && RESULT.reportId);
+    if(!reportId){
+      var paid = readPaidSession();
+      reportId = text(paid && paid.reportId);
+    }
+    if(!reportId){
+      showError('PDF 파일을 준비하지 못했습니다. 잠시 후 다시 시도해 주세요.');
       return;
     }
-    var win = window.open('', '_blank', 'noopener,noreferrer');
-    if(!win){
-      showError('팝업이 차단되었습니다. 브라우저 팝업 허용 후 다시 시도해 주세요.');
-      return;
+
+    DOWNLOADING = true;
+    var failMessage = 'PDF 파일을 준비하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+    try {
+      var res = await fetch(DOWNLOAD_API + '?reportId=' + encodeURIComponent(reportId), {
+        method: 'GET',
+        credentials: 'include'
+      });
+      if(!res.ok){
+        throw new Error('download_http_' + res.status);
+      }
+      var contentType = text(res.headers.get('content-type'));
+      if(contentType.toLowerCase().indexOf('application/pdf') === -1){
+        throw new Error('download_invalid_content_type:' + contentType);
+      }
+      var blob = await res.blob();
+      var fileName = parseFilenameFromDisposition(res.headers.get('content-disposition')) || buildZiweiPdfFilename((RESULT.pdfReady && RESULT.pdfReady.generatedAt) || new Date());
+      var blobUrl = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(blobUrl); }, 3000);
+      if(window.showToast) window.showToast('PDF 다운로드를 시작했습니다.', 'success');
+    } catch(error){
+      console.error('[ZiweiPremiumPDF][DownloadFailed]', {
+        reportId: reportId,
+        reason: normalizeZiweiError(error)
+      });
+      if(window.showToast) window.showToast(failMessage, 'error');
+      else alert(failMessage);
+    } finally {
+      DOWNLOADING = false;
     }
-    win.document.open();
-    win.document.write(html);
-    win.document.close();
-    setTimeout(function(){ try { win.focus(); win.print(); } catch(e) {} }, 450);
   };
 
   window.__ziweiBookState = function(){ return { result: RESULT, seed: LAST_SEED, generating: GENERATING }; };

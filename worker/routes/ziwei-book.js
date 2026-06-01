@@ -10,7 +10,6 @@ import {
   failPremiumPdfExecution,
   startPremiumPdfExecution,
 } from "../lib/premium-pdf-execution.js";
-import { buildZiweiCounselingToneProfile } from "../lib/ziwei-ai-prompt.js";
 
 const ZIWEI_SERVICE_KEY = "ziwei-book";
 const ZIWEI_FEATURE_KEY = "premium_pdf_ziwei";
@@ -73,91 +72,169 @@ const CHAPTER_BLUEPRINTS = [
     roman: "I",
     palaceKey: "ming",
     title: "Chapter 1. 명반 전체 요약 — 이 사람의 운명 구조",
-    categories: ["운명 구조 핵심축", "명궁·신궁 상호작용", "사화와 별 세기 요약", "13챕터 실행 프레임"],
+    categories: [
+      "명궁과 신궁으로 보는 삶의 기본 방향",
+      "주성 조합이 만드는 성격의 첫인상",
+      "사화와 주요 별이 만드는 운명의 핵심 흐름",
+      "이 명반에서 가장 먼저 보아야 할 강점과 약점",
+      "인생 전체를 관통하는 한 문장 조언",
+    ],
   },
   {
     id: "02",
     roman: "II",
     palaceKey: "ming",
-    title: "Chapter 2. 명궁 — 타고난 성격과 삶의 태도",
-    categories: ["기질의 중심 별", "강점 발현 시나리오", "약점 보완 루틴", "관계에서 드러나는 태도"],
+    title: "Chapter 2. 타고난 성향 — 마음의 결, 기질, 반응 방식",
+    categories: [
+      "감정 처리 방식",
+      "대인관계에서 보이는 첫 반응",
+      "스트레스 상황에서 드러나는 패턴",
+      "혼자 있을 때 회복되는 방식",
+      "스스로를 망치는 습관과 살리는 습관",
+    ],
   },
   {
     id: "03",
     roman: "III",
-    palaceKey: "friends",
-    title: "Chapter 3. 형제궁·노복궁 — 가까운 사람과 인맥의 운",
-    categories: ["형제궁 관계 패턴", "노복궁 인맥 구조", "협업 갈등과 완충", "귀인 연결 전략"],
+    palaceKey: "career",
+    title: "Chapter 3. 재능과 적성 — 무엇으로 빛나는 사람인가",
+    categories: [
+      "명궁·관록궁으로 보는 핵심 재능",
+      "잘 맞는 일의 방식",
+      "반복할수록 실력이 쌓이는 분야",
+      "피해야 할 역할과 환경",
+      "재능을 현실 성과로 바꾸는 방법",
+    ],
   },
   {
     id: "04",
     roman: "IV",
-    palaceKey: "spouse",
-    title: "Chapter 4. 부부궁 — 연애와 결혼의 구조",
-    categories: ["연애 선택 기준", "결혼 안정성 신호", "복덕궁 연동 감정선", "천이궁 변수 대응"],
+    palaceKey: "career",
+    title: "Chapter 4. 직업과 사업운 — 사회에서 자리 잡는 방식",
+    categories: [
+      "관록궁 중심의 직업 흐름",
+      "조직형인지 독립형인지",
+      "사업과 프리랜서 가능성",
+      "상사·고객·동료와의 궁합",
+      "3년 단위 커리어 전략",
+    ],
   },
   {
     id: "05",
     roman: "V",
-    palaceKey: "children",
-    title: "Chapter 5. 자녀궁 — 창작물, 후배, 결과물의 운",
-    categories: ["결과물 생산 엔진", "후배·후속 세대 운", "창작과 성취 리듬", "성과 확장 전략"],
+    palaceKey: "wealth",
+    title: "Chapter 5. 재물운 — 돈이 들어오고 나가는 구조",
+    categories: [
+      "재백궁으로 보는 돈의 그릇",
+      "돈을 버는 방식",
+      "돈이 새는 패턴",
+      "투자·저축·사업자금 운용 성향",
+      "재물운을 키우는 현실 습관",
+    ],
   },
   {
     id: "06",
     roman: "VI",
-    palaceKey: "wealth",
-    title: "Chapter 6. 재백궁 — 돈과 수익 구조",
-    categories: ["재백궁 수익 패턴", "관록궁 연계 소득", "전택궁 연계 자산", "명궁 기준 지출 통제"],
+    palaceKey: "spouse",
+    title: "Chapter 6. 연애운 — 끌림과 관계의 시작",
+    categories: [
+      "연애에서 끌리는 사람",
+      "내가 사랑을 표현하는 방식",
+      "썸과 시작 단계에서 반복되는 흐름",
+      "관계가 어긋나는 지점",
+      "좋은 인연을 알아보는 기준",
+    ],
   },
   {
     id: "07",
     roman: "VII",
-    palaceKey: "career",
-    title: "Chapter 7. 관록궁 — 직업, 성공, 사회적 역할",
-    categories: ["관록궁 커리어 축", "명궁 연동 직업 성향", "재백궁 연동 보상", "천이궁 연동 확장"],
+    palaceKey: "spouse",
+    title: "Chapter 7. 결혼운과 배우자운 — 오래 함께할 사람의 조건",
+    categories: [
+      "부처궁으로 보는 배우자상",
+      "결혼 후 관계의 리듬",
+      "갈등이 생기는 원인",
+      "안정적인 결혼을 위한 조건",
+      "늦게 좋아지는 결혼운 또는 조심해야 할 시기",
+    ],
   },
   {
     id: "08",
     roman: "VIII",
-    palaceKey: "travel",
-    title: "Chapter 8. 천이궁 — 외부 활동, 이동, 세상과의 접점",
-    categories: ["외부 기회 포착력", "이동/변화 리스크", "귀인 접속 포인트", "확장 타이밍 운영"],
+    palaceKey: "friends",
+    title: "Chapter 8. 인간관계와 귀인운 — 누구와 함께 운이 열리는가",
+    categories: [
+      "친구·동료 인연",
+      "귀인과 조력자",
+      "나를 소모시키는 관계",
+      "관계에서 지켜야 할 경계선",
+      "인맥이 운으로 바뀌는 방식",
+    ],
   },
   {
     id: "09",
     roman: "IX",
-    palaceKey: "property",
-    title: "Chapter 9. 전택궁 — 집, 기반, 자산, 안정성",
-    categories: ["주거·기반 안정도", "자산 방어 전략", "관록·재백궁 연결", "가족 기반 운영"],
+    palaceKey: "parents",
+    title: "Chapter 9. 가족운과 뿌리 — 부모, 형제, 집안의 영향",
+    categories: [
+      "부모궁으로 보는 성장 배경",
+      "형제·가족과의 거리감",
+      "집안 분위기가 성격에 남긴 흔적",
+      "가족 문제를 다루는 방식",
+      "독립과 화해의 균형",
+    ],
   },
   {
     id: "10",
     roman: "X",
     palaceKey: "health",
-    title: "Chapter 10. 질액궁·복덕궁 — 건강, 마음, 회복력",
-    categories: ["체력 리듬 분석", "정서 회복 루프", "명궁 연동 생활 습관", "장기 번아웃 예방"],
+    title: "Chapter 10. 건강과 심신운 — 몸과 마음의 취약점",
+    categories: [
+      "명반에서 보이는 체력 리듬",
+      "스트레스가 몸으로 나타나는 방식",
+      "주의해야 할 생활 습관",
+      "마음이 무너질 때의 신호",
+      "건강운을 안정시키는 루틴",
+    ],
   },
   {
     id: "11",
     roman: "XI",
-    palaceKey: "parents",
-    title: "Chapter 11. 부모궁 — 부모, 윗사람, 권위자와의 관계",
-    categories: ["부모궁 관계 구조", "권위자와 협상법", "세대 갈등 조율", "지지망 재구성"],
+    palaceKey: "property",
+    title: "Chapter 11. 부동산과 거처운 — 머무는 곳에서 열리는 운",
+    categories: [
+      "전택궁으로 보는 집과 부동산 인연",
+      "이사와 거주지 변화 운",
+      "내게 맞는 공간의 조건",
+      "부동산 선택에서 주의할 점",
+      "안정적인 기반을 만드는 방법",
+    ],
   },
   {
     id: "12",
     roman: "XII",
     palaceKey: "timing",
-    title: "Chapter 12. 대운·세운 — 시기별 인생 흐름",
-    categories: ["현재 대운 핵심", "세운 변동 포인트", "시기별 우선순위", "리스크 완충 계획"],
+    title: "Chapter 12. 대운과 전환점 — 인생의 큰 흐름",
+    categories: [
+      "현재 대한의 핵심 주제",
+      "지나온 대운에서 반복된 패턴",
+      "앞으로 강해질 운의 방향",
+      "조심해야 할 전환기",
+      "기회를 잡기 위한 준비",
+    ],
   },
   {
     id: "13",
     roman: "XIII",
     palaceKey: "timing",
-    title: "Chapter 13. 최종 운명 전략 — 이 명반을 가장 잘 쓰는 법",
-    categories: ["인생 운영 원칙", "관계·일·재정 통합", "1·3·10년 실행 지도", "위기 대응 매뉴얼"],
+    title: "Chapter 13. 최종 운명 조언 — 이 명반을 잘 쓰는 법",
+    categories: [
+      "이 사람의 인생 키워드",
+      "반드시 살려야 할 장점",
+      "반복해서 조심해야 할 약점",
+      "앞으로 1년·3년·10년 조언",
+      "자미두수 관점의 최종 상담 메시지",
+    ],
   },
 ];
 
@@ -178,6 +255,22 @@ const PALACE_LABELS = Object.freeze({
   timing: "대운·유년",
 });
 
+const PALACE_MEANINGS = Object.freeze({
+  명궁: "삶의 기본 성향과 운명의 중심축",
+  신궁: "후천적으로 강해지는 삶의 방식",
+  관록궁: "직업, 사회적 역할, 성취 방식",
+  재백궁: "돈의 흐름과 재물 관리 방식",
+  부부궁: "연애, 결혼, 배우자 인연",
+  복덕궁: "마음의 안정과 내면 만족",
+  전택궁: "집, 부동산, 거처, 생활 기반",
+  질액궁: "건강과 몸의 취약점",
+  노복궁: "친구, 동료, 사회적 네트워크",
+  교우궁: "친구, 동료, 사회적 네트워크",
+  부모궁: "부모, 윗사람, 성장 배경",
+  형제궁: "형제, 가까운 주변 관계",
+  천이궁: "외부 활동, 이동, 사회 확장",
+});
+
 const FORBIDDEN_TEXT = [
   "payload",
   "계산 근거",
@@ -195,7 +288,46 @@ const FORBIDDEN_TEXT = [
   "internal server error",
   "about:blank",
   "calculationmode",
+  "프롬프트",
+  "기본 상담 어조",
+  "기본 질문 패턴",
+  "기본 톤 규칙",
+  "경계 문장",
+  "career 축",
+  "데이터 근거 중심",
+  "상담 해석 관점에서",
+  "작성됩니다",
+  "정렬한 프로필",
+  "llm",
+  "json",
+  "seed",
+  "skeleton",
+  "template",
+  "로컬",
+  "검증 규칙",
+  "메타",
+  "내부",
+  "규칙은",
+  "질문 주제의 연결성",
+  "사용자 질문의 표면 요청",
+  "숨은 의도와 실행 전략을 데이터 근거 중심으로 해석",
 ];
+
+const FORBIDDEN_STYLE_PATTERNS = Object.freeze([
+  /기본\s*(상담\s*어조|질문\s*패턴|톤\s*규칙)/i,
+  /프롬프트(의|를|를\s*기반|\s*규칙)?/i,
+  /경계\s*문장/i,
+  /career\s*축/i,
+  /데이터\s*근거\s*중심/i,
+  /상담\s*해석\s*관점에서/i,
+  /정렬한\s*프로필/i,
+  /검증\s*규칙/i,
+  /질문\s*주제의\s*연결성/i,
+  /사용자\s*질문의\s*표면\s*요청/i,
+  /숨은\s*의도와\s*실행\s*전략/i,
+  /(json|payload|seed|fallback|skeleton|template|llm|debug|engine|meta|internal)/i,
+  /(작성됩니다|규칙입니다|프로필입니다)/i,
+]);
 
 const STAR_RULES = Object.freeze({
   자미: {
@@ -364,61 +496,6 @@ const SIHUA_RULES = Object.freeze({
   화기: "막힘과 집착이 드러나 반복 숙제가 커지는 흐름",
 });
 
-const CHAPTER_TONES = Object.freeze({
-  ming: "정체성 해석",
-  body: "행동 패턴 해석",
-  fortune: "심리 상담 해석",
-  parents: "가족 시스템 해석",
-  spouse: "연애·관계 해석",
-  children: "관계 확장 해석",
-  wealth: "재무 컨설팅 해석",
-  career: "커리어 코칭 해석",
-  property: "생활 기반 해석",
-  health: "생활 관리 해석",
-  travel: "외부 기회 해석",
-  signals: "사화 핵심 해석",
-  timing: "전략 보고서 해석",
-});
-
-const TONE_DOMAIN_BY_BLUEPRINT = Object.freeze({
-  ming: "life_direction",
-  body: "life_direction",
-  fortune: "health",
-  parents: "relationship",
-  spouse: "love",
-  children: "relationship",
-  wealth: "money",
-  career: "career",
-  property: "life_direction",
-  health: "health",
-  travel: "life_direction",
-  signals: "life_direction",
-  timing: "life_direction",
-});
-
-const TONE_QUESTION_BY_DOMAIN = Object.freeze({
-  life_direction: "이 자미두수 명반을 가장 정확하고 신비한 톤으로 상담해 주세요.",
-  love: "이 자미두수 명반의 연애와 결혼 흐름을 가장 정확하고 신비한 톤으로 상담해 주세요.",
-  money: "이 자미두수 명반의 돈과 재물 흐름을 가장 정확하고 신비한 톤으로 상담해 주세요.",
-  career: "이 자미두수 명반의 직업과 커리어 흐름을 가장 정확하고 신비한 톤으로 상담해 주세요.",
-  relationship: "이 자미두수 명반의 인간관계 흐름을 가장 정확하고 신비한 톤으로 상담해 주세요.",
-  health: "이 자미두수 명반의 건강과 회복 흐름을 가장 정확하고 신비한 톤으로 상담해 주세요.",
-});
-
-function getToneDomainForBlueprint(blueprint) {
-  return TONE_DOMAIN_BY_BLUEPRINT[blueprint?.palaceKey] || "life_direction";
-}
-
-function buildChapterToneProfile(profile, seed, blueprint) {
-  const domain = getToneDomainForBlueprint(blueprint);
-  const question = TONE_QUESTION_BY_DOMAIN[domain] || TONE_QUESTION_BY_DOMAIN.life_direction;
-  return buildZiweiCounselingToneProfile({
-    question: `${question} (${clean(profile?.name || "사용자")})`,
-    chartResult: seed?.chart,
-    domain,
-  });
-}
-
 const DUPLICATE_BANNED_OPENERS = Object.freeze([
   "이 절은",
   "이번 장에서는",
@@ -481,11 +558,53 @@ function stripForbiddenTokens(value) {
     .replace(/debug/gi, "")
     .replace(/raw\s*json/gi, "")
     .replace(/\bjson\b/gi, "")
+    .replace(/\bseed\b/gi, "")
+    .replace(/\bskeleton\b/gi, "")
+    .replace(/\btemplate\b/gi, "")
+    .replace(/\bllm\b/gi, "")
+    .replace(/\bmeta\b/gi, "")
+    .replace(/\binternal\b/gi, "")
+    .replace(/프롬프트/gi, "")
+    .replace(/기본\s*상담\s*어조/gi, "")
+    .replace(/기본\s*질문\s*패턴/gi, "")
+    .replace(/기본\s*톤\s*규칙/gi, "")
+    .replace(/경계\s*문장/gi, "")
+    .replace(/career\s*축/gi, "")
+    .replace(/데이터\s*근거\s*중심/gi, "")
+    .replace(/상담\s*해석\s*관점에서/gi, "")
+    .replace(/정렬한\s*프로필/gi, "")
+    .replace(/검증\s*규칙/gi, "")
+    .replace(/질문\s*주제의\s*연결성/gi, "")
+    .replace(/사용자\s*질문의\s*표면\s*요청/gi, "")
+    .replace(/숨은\s*의도와\s*실행\s*전략을\s*데이터\s*근거\s*중심으로\s*해석/gi, "")
     .replace(/\bengine\b/gi, "")
     .replace(/\s{2,}/g, " ")
     .trim();
   if (/^Chapter\s*\d+\s*$/i.test(text)) text = "";
   return text;
+}
+
+function containsForbiddenNarrative(value = "") {
+  const text = clean(value);
+  if (!text) return false;
+  const lowered = text.toLowerCase();
+  if (FORBIDDEN_TEXT.some((token) => lowered.includes(String(token).toLowerCase()))) return true;
+  return FORBIDDEN_STYLE_PATTERNS.some((pattern) => pattern.test(text));
+}
+
+function sanitizeCounselingText(value = "") {
+  const stripped = stripForbiddenTokens(value)
+    .split(/\n+/)
+    .map((line) => clean(line))
+    .filter(Boolean)
+    .filter((line) => !containsForbiddenNarrative(line))
+    .join("\n\n");
+  return clean(stripped);
+}
+
+function safeObject(value) {
+  if (value && typeof value === "object" && !Array.isArray(value)) return value;
+  return {};
 }
 
 function normalizeFeatureKey(raw) {
@@ -938,6 +1057,18 @@ function buildZiweiPdfSeed(profile, base) {
       fiveElementBureau: clean(chartMeta.fiveElementBureau || base.juInfo || ""),
       yearStemBranch: clean(chartMeta.yearStemBranch || chartMeta.yearGan || base.yearGan || ""),
       palaces,
+      lifePalace,
+      bodyPalace,
+      careerPalace: findPalace({ chart: { palaces } }, "career"),
+      wealthPalace: findPalace({ chart: { palaces } }, "wealth"),
+      spousePalace: findPalace({ chart: { palaces } }, "spouse"),
+      friendsPalace: findPalace({ chart: { palaces } }, "friends"),
+      parentsPalace: findPalace({ chart: { palaces } }, "parents"),
+      siblingsPalace: findPalace({ chart: { palaces } }, "siblings"),
+      healthPalace: findPalace({ chart: { palaces } }, "health"),
+      propertyPalace: findPalace({ chart: { palaces } }, "property"),
+      travelPalace: findPalace({ chart: { palaces } }, "travel"),
+      fortunePalace: findPalace({ chart: { palaces } }, "fortune"),
       transformations: sihua,
       decadeLuck,
       annualLuck,
@@ -1027,40 +1158,6 @@ function buildZiweiPdfSeed(profile, base) {
   return seed;
 }
 
-function buildZiweiInterpretationSpecForDebug({ seed, chapterSpec, previousChapterSummaries = [], attempt = 1, previousFailureReason = "" } = {}) {
-  const groundTruth = seed?.ziweiPdfSeed?.groundTruth || {
-    palaces: seed?.chart?.palaces || [],
-    transformations: seed?.chart?.transformations || [],
-  };
-  return [
-    "SYSTEM:",
-    "반드시 아래 groundTruth JSON에만 근거해 해석하고, 추측하지 말 것.",
-    "GROUND TRUTH JSON:",
-    JSON.stringify(groundTruth),
-    "RESPONSE SCHEMA:",
-    '{"chapter":{"title":string,"categories":[{"title":string,"finalText":string}]}}',
-    `TARGET CHAPTER: ${clean(chapterSpec?.title)}`,
-    `ATTEMPT: ${Number(attempt) || 1}`,
-    `PREV FAILURE: ${clean(previousFailureReason || "none")}`,
-    `PREVIOUS SUMMARY COUNT: ${Array.isArray(previousChapterSummaries) ? previousChapterSummaries.length : 0}`,
-  ].join("\n");
-}
-
-function buildZiweiLlmPrompt(args = {}) {
-  return buildZiweiInterpretationSpecForDebug(args);
-}
-
-function validateZiweiPdfLLMInterpretationQuality({ chapters = [], expectedChapters = CHAPTER_BLUEPRINTS } = {}) {
-  const base = validateChapters(chapters);
-  const chapterCountOk = Array.isArray(chapters) && chapters.length === expectedChapters.length;
-  const totalChars = Number(base.totalChars || 0);
-  return {
-    ok: Boolean(base.ok && chapterCountOk),
-    errors: [...(base.errors || []), ...(chapterCountOk ? [] : ["chapter_count_mismatch"])],
-    totalChars,
-  };
-}
-
 function validateZiweiPdfChapterQuality({ chapters = [], expectedChapters = CHAPTER_BLUEPRINTS } = {}) {
   const errors = [];
   const chapterCountOk = Array.isArray(chapters) && chapters.length === expectedChapters.length;
@@ -1135,8 +1232,54 @@ function validateFinalManuscript({ birthInput, seed, chapters }) {
   if (!hasRequiredPalaceCoverage(seed)) errors.push("palace_count_invalid");
   const chapterValidation = validateChapters(chapters);
   if (!chapterValidation.ok) errors.push(...chapterValidation.errors);
+  if (!Array.isArray(chapters) || chapters.length !== CHAPTER_BLUEPRINTS.length) {
+    errors.push("chapter_sequence_count_invalid");
+  } else {
+    chapters.forEach((chapter, index) => {
+      if (Number(chapter?.chapterNo) !== index + 1) errors.push(`chapter_${index + 1}_sequence`);
+      if (!clean(chapter?.title)) errors.push(`chapter_${index + 1}_title_missing`);
+      const summary = clean(chapter?.summary || "");
+      if (summary.length < 20) errors.push(`chapter_${index + 1}_summary_missing`);
+      const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
+      if (categories.length < 3 || categories.length > 5) errors.push(`chapter_${index + 1}_category_range`);
+      categories.forEach((category, catIndex) => {
+        const text = sanitizeCounselingText(category?.finalText || category?.text || "");
+        if (!text) errors.push(`chapter_${index + 1}_category_${catIndex + 1}_empty_after_sanitize`);
+        if (containsForbiddenNarrative(text)) errors.push(`chapter_${index + 1}_category_${catIndex + 1}_forbidden_style`);
+      });
+      if (containsForbiddenNarrative(chapter?.practicalAdvice || "")) errors.push(`chapter_${index + 1}_advice_forbidden_style`);
+      if (containsForbiddenNarrative(chapter?.cautionFlow || "")) errors.push(`chapter_${index + 1}_caution_forbidden_style`);
+      if (containsForbiddenNarrative(chapter?.transitionLine || "")) errors.push(`chapter_${index + 1}_transition_forbidden_style`);
+    });
+  }
   if (computeDuplicateRate(chapters) > 0.25) errors.push("duplicate_rate_high");
   return { ok: errors.length === 0, errors, chapterValidation };
+}
+
+function buildChapterSummaryFromCategories(categories = [], chapterTitle = "") {
+  const first = sanitizeCounselingText(categories?.[0]?.finalText || categories?.[0]?.text || "");
+  const sentence = clean(first.split(/[.!?。！？]\s*/)[0] || "");
+  if (sentence.length >= 28) return sentence;
+  const title = String(chapterTitle || "").replace(/^Chapter\s*\d+\.?\s*/i, "").trim();
+  return `${title}에서는 명궁, 신궁, 12궁과 사화의 결을 현실 선택으로 풀어내며 실행 가능한 방향을 정리합니다.`;
+}
+
+function composeChapterText(chapter) {
+  const summary = clean(chapter?.summary || "");
+  const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
+  const categoryBlock = categories
+    .map((category) => `### ${category.title}\n\n${sanitizeCounselingText(category.finalText || category.text || "")}`)
+    .join("\n\n");
+  const advice = sanitizeCounselingText(chapter?.practicalAdvice || "");
+  const caution = sanitizeCounselingText(chapter?.cautionFlow || "");
+  const transition = sanitizeCounselingText(chapter?.transitionLine || "");
+  return [
+    summary ? `요약: ${summary}` : "",
+    categoryBlock,
+    advice ? `실전 조언\n\n${advice}` : "",
+    caution ? `주의할 흐름\n\n${caution}` : "",
+    transition ? `다음 흐름\n\n${transition}` : "",
+  ].filter(Boolean).join("\n\n");
 }
 
 function palaceEvidenceText(seed, palace) {
@@ -1249,24 +1392,15 @@ function buildAdviceSentences(stars = [], categoryTitle, profileName = "사용�
   return pool.slice(0, 4).map((line, idx) => `${idx + 1}. ${line}`).join("\n");
 }
 
-function buildCategoryText(profile, seed, blueprint, categoryTitle, categoryIndex, toneProfile, pass = 1) {
+function buildCategoryText(profile, seed, blueprint, categoryTitle, categoryIndex, pass = 1) {
   const palace = findPalace(seed, blueprint.palaceKey);
   const evidence = blueprint.palaceKey === "timing" ? timingEvidenceText(seed) : palaceEvidenceText(seed, palace);
   const label = blueprint.palaceKey === "timing" ? "대운·유년" : (palace?.nameKo || PALACE_LABELS[blueprint.palaceKey] || "해당 궁");
+  const palaceMeaning = PALACE_MEANINGS[label] || "삶의 핵심 선택과 흐름을 비추는 기준축";
   const mainStars = normalizeStarList(palace?.mainStars || []);
   const auxStars = normalizeStarList([...(palace?.auxStars || []), ...(palace?.maleficStars || [])]);
   const signalPack = collectSignals(seed, palace);
   const focusedSignal = signalPack.usedSignals.slice(0, 8).join(", ") || "궁간 상호작용";
-  const toneAngles = Array.isArray(toneProfile?.analysisAngles) ? toneProfile.analysisAngles : [];
-  const toneQuestions = Array.isArray(toneProfile?.recommendedFollowUpQuestions) ? toneProfile.recommendedFollowUpQuestions : [];
-  const toneRules = Array.isArray(toneProfile?.toneRules) ? toneProfile.toneRules : [];
-  const toneAngle = toneAngles.length ? toneAngles[categoryIndex % toneAngles.length] : "";
-  const toneQuestion = toneQuestions.length ? toneQuestions[categoryIndex % toneQuestions.length] : "";
-  const toneDomainLabel = clean(toneProfile?.domainLabel || "");
-  const toneQuestionType = clean(toneProfile?.questionTypeLabel || "");
-  const toneSummary = clean(toneProfile?.summaryIntent || "");
-  const toneCaution = clean(toneProfile?.caution || "");
-  const toneLead = clean(toneProfile?.toneLead || "");
   const primaryLines = (mainStars.length ? mainStars : [{ name: "핵심궁", strengthSymbol: "△" }])
     .slice(0, 4)
     .map((star) => buildStarRuleSentence(star, categoryTitle))
@@ -1281,35 +1415,37 @@ function buildCategoryText(profile, seed, blueprint, categoryTitle, categoryInde
   const passBonus = pass > 1
     ? `${categoryTitle}의 핵심 별 신호를 월 단위 운영 계획으로 내려서 관리하면, 대운·세운의 변동 구간에서도 시행착오를 크게 줄일 수 있습니다. 중요한 것은 거창한 결단이 아니라 작은 원칙을 반복해 구조적 우위를 만드는 것입니다.`
     : "";
-  const draft = stripForbiddenTokens([
-    `${categoryTitle}은 ${CHAPTER_TONES[blueprint.id] || "상담 해석"} 관점에서 ${label}의 별 배치를 근거로 작성됩니다.`,
-    toneLead,
-    toneSummary ? `기본 상담 어조는 ${toneDomainLabel || "자미두수"} ${toneQuestionType || "상담"} 결을 따르며, 초점은 ${toneSummary}입니다.` : "",
+  const strengthHelp = mainStars.length
+    ? `이 구간의 별 강도는 ${mainStars.slice(0, 2).map((star) => `${star.name}${star.strengthSymbol}`).join(", ")} 중심으로 작동합니다. 묘(◎)와 득(O)은 비교적 안정적으로 힘이 살아나고, 리(▲)는 조건이 맞을 때 힘이 커지며, 평(△)은 평균적으로 작동하고, 함/실(X)은 왜곡되기 쉬우므로 관리가 필요합니다.`
+    : "핵심 별 강도 신호가 약한 구간이라도 행동 루틴을 고정하면 결과를 안정적으로 만들 수 있습니다.";
+  const categoryFocus = `이 카테고리의 핵심은 ${label}의 의미( ${palaceMeaning} )를 실제 선택으로 연결하는 것입니다.`;
+  const draft = sanitizeCounselingText([
+    `${categoryTitle}에서는 ${label}의 별 배치를 바탕으로 삶의 흐름을 상담하듯 풀어갑니다.`,
+    categoryFocus,
     evidence,
+    strengthHelp,
     strengthGuide,
-    toneAngle ? `기본 프롬프트의 상담 시선은 ${toneAngle}에 맞춰 좁혀 읽습니다.` : "",
-    toneQuestion ? `기본 질문 패턴은 "${toneQuestion}"이며, 이 챕터에서도 같은 방식으로 실제 선택으로 좁혀서 읽습니다.` : "",
     primaryLines,
     supportLines,
     sihuaLines,
     `${profile.name || "사용자"}님에게 필요한 실행 핵심은 "기준 고정 → 선택 압축 → 복기" 순환을 유지하는 것입니다. 별 조합이 좋아도 순서가 무너지면 성과가 흩어지고, 별 조합이 거칠어도 순서가 유지되면 결과는 안정됩니다.`,
     `${categoryTitle}에서는 단기 감정 반응보다 주간 루틴을 우선시해야 합니다. 특히 ${label}에서 강한 별은 추진력으로 사용하고 약한 별은 복구 규칙으로 관리하면, 변동성 구간에서도 결정의 품질이 유지됩니다.`,
     focus,
-    toneRules.length ? `기본 톤 규칙은 ${toneRules.join(" / ")}로 정리됩니다.` : "",
-    toneCaution ? `경계 문장은 ${toneCaution}을 우선 참고합니다.` : "",
     "실전 조언",
     advice,
+    `주의할 흐름은 성급한 확장과 관계 피로 누적입니다. 별 신호가 좋을수록 속도를 늦춰 기준을 확인해야 오히려 결과가 안정됩니다.`,
+    `이 흐름을 바탕으로 다음 주제에서는 ${categoryTitle}에서 확인한 강점과 약점을 더 구체적인 실행 전략으로 연결해 보겠습니다.`,
     passBonus,
   ].filter(Boolean).join("\n\n"));
   return expandToMinLength(draft, SECTION_MIN_CHARS, profile.name || "사용자");
 }
 
-function buildZiweiLocalChapterGuide({ profile = {}, seed, blueprint, chapterIndex = 0, categoryIndex = 0, pass = 1, categoryTitle = "핵심 명반 신호", toneProfile = null } = {}) {
+function buildZiweiLocalChapterGuide({ profile = {}, seed, blueprint, chapterIndex = 0, categoryIndex = 0, pass = 1, categoryTitle = "핵심 명반 신호" } = {}) {
   const normalizedProfile = {
     ...profile,
     name: clean(profile?.name || seed?.birthProfile?.name || "사용자") || "사용자",
   };
-  const body = buildCategoryText(normalizedProfile, seed, blueprint, categoryTitle, categoryIndex, toneProfile, pass);
+  const body = buildCategoryText(normalizedProfile, seed, blueprint, categoryTitle, categoryIndex, pass);
   const paragraphs = body
     .split(/\n\s*\n+/)
     .map((line) => clean(line))
@@ -1329,7 +1465,6 @@ function buildZiweiLocalChapterGuide({ profile = {}, seed, blueprint, chapterInd
 }
 
 function buildZiweiLocalPremiumManuscript(profile, seed, pass = 1) {
-  const toneProfiles = CHAPTER_BLUEPRINTS.map((blueprint) => buildChapterToneProfile(profile, seed, blueprint));
   return CHAPTER_BLUEPRINTS.map((blueprint, chapterIndex) => {
     const palace = findPalace(seed, blueprint.palaceKey);
     const signals = collectSignals(seed, palace);
@@ -1342,7 +1477,6 @@ function buildZiweiLocalPremiumManuscript(profile, seed, pass = 1) {
         categoryIndex: index,
         pass,
         categoryTitle,
-        toneProfile: toneProfiles[chapterIndex],
       });
       const body = guide.body;
       return {
@@ -1375,25 +1509,139 @@ function draftToChapter(draft, blueprint, source = "local") {
     id: `${blueprint.id}-${String(index + 1).padStart(2, "0")}`,
     title: section.title,
     localSummary: section.body,
-    finalText: section.body,
+    finalText: sanitizeCounselingText(section.body),
     order: index + 1,
   }));
-  return {
+  const summary = buildChapterSummaryFromCategories(categories, draft.title);
+  const practicalAdvice = sanitizeCounselingText(`이번 장의 실행 포인트는 우선순위를 줄이고 루틴을 고정하는 것입니다. 빠른 결정보다 반복 가능한 기준을 세우면 운의 변동이 와도 성과를 지킬 수 있습니다.`);
+  const cautionFlow = sanitizeCounselingText(`주의할 흐름은 감정 과열과 과속입니다. 별의 힘이 강할수록 완급 조절을 먼저 적용하고, 관계와 재정의 경계선을 선명하게 유지하세요.`);
+  const transitionLine = sanitizeCounselingText(`이 장에서 확인한 흐름을 바탕으로 다음 장에서는 실제 관계와 일의 선택을 더 구체적으로 연결해 살펴보겠습니다.`);
+  const chapterNo = Number(blueprint?.id || 0) || 0;
+  const chapter = {
     id: blueprint.id,
     roman: blueprint.roman,
+    chapterNo,
     title: draft.title,
+    summary,
+    practicalAdvice,
+    cautionFlow,
+    transitionLine,
     categories,
-    finalText: categories.map((c) => `### ${c.title}\n\n${c.finalText}`).join("\n\n"),
-    text: categories.map((c) => `### ${c.title}\n\n${c.finalText}`).join("\n\n"),
     source,
     localQuality: draft.localQuality,
+  };
+  const merged = composeChapterText(chapter);
+  return {
+    ...chapter,
+    finalText: merged,
+    text: merged,
   };
 }
 
 function buildLocalChapters(profile, seed, pass = 1) {
   const drafts = buildZiweiLocalPremiumManuscript(profile, seed, pass);
-  const chapters = drafts.map((draft, index) => draftToChapter(draft, CHAPTER_BLUEPRINTS[index], pass > 1 ? "local-reinforced" : "local-skeleton"));
+  const chapters = drafts.map((draft, index) => draftToChapter(draft, CHAPTER_BLUEPRINTS[index], pass > 1 ? "local-counseling-reinforced" : "local-counseling-core"));
   return { drafts, chapters };
+}
+
+function buildFallbackChapter(blueprint, profile = {}, seed = {}) {
+  const categories = blueprint.categories.map((categoryTitle, categoryIndex) => {
+    const guide = buildZiweiLocalChapterGuide({
+      profile,
+      seed,
+      blueprint,
+      chapterIndex: Math.max(0, Number(blueprint?.id || 1) - 1),
+      categoryIndex,
+      pass: 3,
+      categoryTitle,
+    });
+    return {
+      id: `${blueprint.id}-${String(categoryIndex + 1).padStart(2, "0")}`,
+      title: categoryTitle,
+      localSummary: sanitizeCounselingText(guide.body),
+      finalText: expandToMinLength(sanitizeCounselingText(guide.body), SECTION_MIN_CHARS, clean(profile?.name || "사용자")),
+      order: categoryIndex + 1,
+    };
+  });
+  const chapter = {
+    id: blueprint.id,
+    roman: blueprint.roman,
+    chapterNo: Number(blueprint?.id || 0) || 0,
+    title: blueprint.title,
+    summary: buildChapterSummaryFromCategories(categories, blueprint.title),
+    practicalAdvice: "실전 조언은 한 번에 모든 영역을 바꾸지 말고 주간 기준 3개를 고정해 꾸준히 실행하는 것입니다.",
+    cautionFlow: "주의할 흐름은 성급한 확장과 감정 과열입니다. 결정 전 하루의 간격을 두고 기준을 다시 확인하세요.",
+    transitionLine: "이 흐름을 기반으로 다음 장에서는 실제 선택의 우선순위를 더 구체화해 보겠습니다.",
+    categories,
+    source: "local-counseling-safe",
+  };
+  const merged = composeChapterText(chapter);
+  return {
+    ...chapter,
+    finalText: merged,
+    text: merged,
+  };
+}
+
+function normalizeChapterShape(chapter = {}, blueprint, profile = {}, seed = {}) {
+  const fallback = buildFallbackChapter(blueprint, profile, seed);
+  const sourceCategories = Array.isArray(chapter?.categories) ? chapter.categories : [];
+  const categories = blueprint.categories.map((title, categoryIndex) => {
+    const hit = sourceCategories[categoryIndex];
+    const baseText = sanitizeCounselingText(hit?.finalText || hit?.text || hit?.localSummary || "");
+    if (!baseText || containsForbiddenNarrative(baseText)) {
+      return fallback.categories[categoryIndex];
+    }
+    return {
+      id: `${blueprint.id}-${String(categoryIndex + 1).padStart(2, "0")}`,
+      title,
+      localSummary: baseText,
+      finalText: expandToMinLength(baseText, SECTION_MIN_CHARS, clean(profile?.name || "사용자")),
+      order: categoryIndex + 1,
+    };
+  });
+  const normalized = {
+    ...fallback,
+    ...chapter,
+    id: blueprint.id,
+    roman: blueprint.roman,
+    chapterNo: Number(blueprint?.id || 0) || 0,
+    title: blueprint.title,
+    categories,
+    summary: sanitizeCounselingText(chapter?.summary || fallback.summary),
+    practicalAdvice: sanitizeCounselingText(chapter?.practicalAdvice || fallback.practicalAdvice),
+    cautionFlow: sanitizeCounselingText(chapter?.cautionFlow || fallback.cautionFlow),
+    transitionLine: sanitizeCounselingText(chapter?.transitionLine || fallback.transitionLine),
+    source: clean(chapter?.source || fallback.source || "local-counseling-safe"),
+  };
+  const merged = composeChapterText(normalized);
+  return {
+    ...normalized,
+    finalText: merged,
+    text: merged,
+  };
+}
+
+function sanitizeFinalManuscript({ chapters = [], profile = {}, seed = {} } = {}) {
+  const source = Array.isArray(chapters) ? chapters : [];
+  const byId = new Map(source.map((chapter) => [clean(chapter?.id), chapter]));
+  const byTitle = new Map(source.map((chapter) => [clean(chapter?.title), chapter]));
+  const sanitized = CHAPTER_BLUEPRINTS.map((blueprint) => {
+    const found = byId.get(clean(blueprint.id)) || byTitle.get(clean(blueprint.title));
+    return found
+      ? normalizeChapterShape(found, blueprint, profile, seed)
+      : buildFallbackChapter(blueprint, profile, seed);
+  });
+  return sanitized.map((chapter, index) => {
+    const chapterNo = index + 1;
+    return {
+      ...chapter,
+      chapterNo,
+      id: CHAPTER_BLUEPRINTS[index].id,
+      roman: CHAPTER_BLUEPRINTS[index].roman,
+      title: CHAPTER_BLUEPRINTS[index].title,
+    };
+  });
 }
 
 function ensureChapterLength(chapter, minChars) {
@@ -1503,7 +1751,7 @@ async function enhanceChaptersLocally(_env, profile, seed, localChapters, pass =
     : buildHighQualityLocalZiweiChapters(profile, seed, pass).chapters;
   const chapterPolished = seeded.map((chapter) => ensureChapterLength(chapter, CHAPTER_MIN_CHARS));
   return {
-    chapters: chapterPolished.map((chapter) => ({ ...chapter, source: "local-rule-engine" })),
+    chapters: chapterPolished.map((chapter) => ({ ...chapter, source: "local-counseling-engine" })),
     fallbackUsed: false,
   };
 }
@@ -1552,8 +1800,12 @@ function renderZiweiPdf({ profile, seed, chapters, generatedAt }) {
     .map((item) => `<tr><td>${esc(item?.star || "-")}</td><td>${esc(item?.type || item?.label || "-")}</td><td>${esc(SIHUA_RULES[clean(item?.type || item?.label)] || "운의 강조점 이동")}</td></tr>`)
     .join("\n");
   const chapterHtml = chapters.map((chapter, index) => {
+    const summaryHtml = clean(chapter.summary) ? `<p class="zb-summary">${esc(chapter.summary)}</p>` : "";
     const categoryHtml = chapter.categories.map((category) => `<section class="zb-category"><h3>${esc(category.title)}</h3><p>${esc(category.finalText)}</p></section>`).join("\n");
-    return `<article class="zb-chapter"><div class="zb-eyebrow">${esc(chapter.roman)} · 제 ${index + 1}장</div><h2>${esc(toKoreanChapterTitle(chapter.title, index))}</h2>${categoryHtml}</article>`;
+    const adviceHtml = clean(chapter.practicalAdvice) ? `<section class="zb-chapter-tail"><h3>실전 조언</h3><p>${esc(chapter.practicalAdvice)}</p></section>` : "";
+    const cautionHtml = clean(chapter.cautionFlow) ? `<section class="zb-chapter-tail"><h3>주의할 흐름</h3><p>${esc(chapter.cautionFlow)}</p></section>` : "";
+    const transitionHtml = clean(chapter.transitionLine) ? `<section class="zb-chapter-tail"><h3>다음 흐름</h3><p>${esc(chapter.transitionLine)}</p></section>` : "";
+    return `<article class="zb-chapter"><div class="zb-eyebrow">${esc(chapter.roman)} · 제 ${index + 1}장</div><h2>${esc(toKoreanChapterTitle(chapter.title, index))}</h2>${summaryHtml}${categoryHtml}${adviceHtml}${cautionHtml}${transitionHtml}</article>`;
   }).join("\n");
   return `<!doctype html>
 <html lang="ko">
@@ -1562,7 +1814,7 @@ function renderZiweiPdf({ profile, seed, chapters, generatedAt }) {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>자미두수 프리미엄 리포트</title>
   <style>
-    :root{color-scheme:light}*{box-sizing:border-box}body{margin:0;font-family:"Noto Serif KR","Malgun Gothic",serif;background:#100821;color:#f8f4ff;line-height:1.82}.page{max-width:980px;margin:0 auto;padding:28px 20px 64px}.cover{position:relative;overflow:hidden;min-height:92vh;padding:42px 34px;border-radius:24px;background:radial-gradient(circle at 72% 12%,rgba(250,204,21,.25),transparent 26%),linear-gradient(145deg,#160729 0%,#30125f 48%,#091b3a 100%);box-shadow:0 24px 60px rgba(0,0,0,.32);display:flex;flex-direction:column;justify-content:center}.cover::after{content:"";position:absolute;inset:24px;border:1px solid rgba(250,204,21,.28);border-radius:20px;pointer-events:none}.cover img{position:relative;z-index:1;width:min(320px,82%);border-radius:18px;margin:24px 0 0;box-shadow:0 18px 42px rgba(0,0,0,.34);background:#271146}.cover h1{position:relative;z-index:1;margin:8px 0 8px;font-size:44px;line-height:1.12;color:#fff7d6}.cover p{position:relative;z-index:1;margin:4px 0;color:#d8ccff}.badge{letter-spacing:.22em;text-transform:uppercase;color:#facc15;font-size:12px}.panel,.toc,.zb-chapter,.legend{margin-top:20px;padding:20px;border:1px solid rgba(216,180,254,.28);border-radius:18px;background:rgba(255,255,255,.08);box-shadow:0 14px 30px rgba(0,0,0,.16)}.panel h2,.toc h2,.legend h2{margin:0 0 12px;color:#fde68a}.meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.meta-item{padding:12px;border-radius:14px;background:rgba(16,8,33,.52);border:1px solid rgba(250,204,21,.2)}.meta-item b{display:block;color:#facc15}.legend-list{display:flex;flex-wrap:wrap;gap:8px}.legend-list span{padding:6px 10px;border-radius:999px;background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.26)}.signal-tags{display:flex;flex-wrap:wrap;gap:8px}.signal-tags span{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:rgba(16,8,33,.52);border:1px solid rgba(216,180,254,.34);font-size:13px}.palace-table{width:100%;border-collapse:collapse;font-size:13px}.palace-table td,.palace-table th{border-bottom:1px solid rgba(255,255,255,.12);padding:8px;text-align:left;vertical-align:top}.toc ol{margin:0;padding-left:20px}.toc li{margin:8px 0}.toc span{display:inline-block;min-width:44px;color:#facc15}.zb-chapter{break-inside:avoid-page;page-break-inside:avoid;background:#fbf7ff;color:#241333}.zb-eyebrow{letter-spacing:.18em;text-transform:uppercase;color:#7c3aed;font-size:12px}.zb-chapter h2{margin:8px 0 18px;color:#2e1065;font-size:26px}.zb-category{padding:14px 16px;margin:12px 0;border-radius:14px;background:#fff;border:1px solid #e9d5ff}.zb-category h3{margin:0 0 8px;color:#5b21b6;font-size:18px}.zb-category p{margin:0;white-space:pre-wrap;color:#2f2440}.footer{margin-top:22px;text-align:center;color:#c4b5fd;font-size:13px}@page{size:A4;margin:16mm 14mm 18mm}@media print{body{background:#fff}.page{padding:0}.cover,.panel,.toc,.legend,.zb-chapter{box-shadow:none}.cover{border-radius:0}.zb-chapter{break-before:page;page-break-before:always}.zb-chapter:first-of-type{break-before:auto;page-break-before:auto}}@media(max-width:720px){.cover h1{font-size:32px}.meta-grid{grid-template-columns:1fr}.page{padding:14px 10px 40px}}
+    :root{color-scheme:light}*{box-sizing:border-box}body{margin:0;font-family:"Noto Serif KR","Malgun Gothic",serif;background:#100821;color:#f8f4ff;line-height:1.82}.page{max-width:980px;margin:0 auto;padding:28px 20px 64px}.cover{position:relative;overflow:hidden;min-height:92vh;padding:42px 34px;border-radius:24px;background:radial-gradient(circle at 72% 12%,rgba(250,204,21,.25),transparent 26%),linear-gradient(145deg,#160729 0%,#30125f 48%,#091b3a 100%);box-shadow:0 24px 60px rgba(0,0,0,.32);display:flex;flex-direction:column;justify-content:center}.cover::after{content:"";position:absolute;inset:24px;border:1px solid rgba(250,204,21,.28);border-radius:20px;pointer-events:none}.cover img{position:relative;z-index:1;width:min(320px,82%);border-radius:18px;margin:24px 0 0;box-shadow:0 18px 42px rgba(0,0,0,.34);background:#271146}.cover h1{position:relative;z-index:1;margin:8px 0 8px;font-size:44px;line-height:1.12;color:#fff7d6}.cover p{position:relative;z-index:1;margin:4px 0;color:#d8ccff}.badge{letter-spacing:.22em;text-transform:uppercase;color:#facc15;font-size:12px}.panel,.toc,.zb-chapter,.legend{margin-top:20px;padding:20px;border:1px solid rgba(216,180,254,.28);border-radius:18px;background:rgba(255,255,255,.08);box-shadow:0 14px 30px rgba(0,0,0,.16)}.panel h2,.toc h2,.legend h2{margin:0 0 12px;color:#fde68a}.meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.meta-item{padding:12px;border-radius:14px;background:rgba(16,8,33,.52);border:1px solid rgba(250,204,21,.2)}.meta-item b{display:block;color:#facc15}.legend-list{display:flex;flex-wrap:wrap;gap:8px}.legend-list span{padding:6px 10px;border-radius:999px;background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.26)}.signal-tags{display:flex;flex-wrap:wrap;gap:8px}.signal-tags span{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:rgba(16,8,33,.52);border:1px solid rgba(216,180,254,.34);font-size:13px}.palace-table{width:100%;border-collapse:collapse;font-size:13px}.palace-table td,.palace-table th{border-bottom:1px solid rgba(255,255,255,.12);padding:8px;text-align:left;vertical-align:top}.toc ol{margin:0;padding-left:20px}.toc li{margin:8px 0}.toc span{display:inline-block;min-width:44px;color:#facc15}.zb-chapter{break-inside:avoid-page;page-break-inside:avoid;background:#fbf7ff;color:#241333}.zb-eyebrow{letter-spacing:.18em;text-transform:uppercase;color:#7c3aed;font-size:12px}.zb-chapter h2{margin:8px 0 18px;color:#2e1065;font-size:26px}.zb-summary{margin:0 0 12px;padding:10px 12px;border-radius:12px;background:#f5edff;color:#432178;font-weight:600}.zb-category{padding:14px 16px;margin:12px 0;border-radius:14px;background:#fff;border:1px solid #e9d5ff}.zb-category h3{margin:0 0 8px;color:#5b21b6;font-size:18px}.zb-category p{margin:0;white-space:pre-wrap;color:#2f2440}.zb-chapter-tail{margin-top:10px;padding:12px;border-radius:12px;background:#f7f3ff;border:1px solid #ddd6fe}.zb-chapter-tail h3{margin:0 0 6px;color:#4c1d95;font-size:15px}.zb-chapter-tail p{margin:0;white-space:pre-wrap;color:#2f2440}.footer{margin-top:22px;text-align:center;color:#c4b5fd;font-size:13px}@page{size:A4;margin:16mm 14mm 18mm}@media print{body{background:#fff}.page{padding:0}.cover,.panel,.toc,.legend,.zb-chapter{box-shadow:none}.cover{border-radius:0}.zb-chapter{break-before:page;page-break-before:always}.zb-chapter:first-of-type{break-before:auto;page-break-before:auto}}@media(max-width:720px){.cover h1{font-size:32px}.meta-grid{grid-template-columns:1fr}.page{padding:14px 10px 40px}}
   </style>
 </head>
 <body>
@@ -1595,7 +1847,7 @@ function buildPdfReadyPayload(profile, seed, chapters, metadata = {}) {
   const html = renderZiweiPdf({ profile, seed, chapters, generatedAt: new Date().toISOString() });
   return {
     title: `${stripForbiddenTokens(profile.name)} 자미두수 프리미엄 리포트`,
-    filename: `ziwei-premium-${String(profile.name || "user").replace(/\s+/g, "-").toLowerCase()}.html`,
+    filename: `자미두수_프리미엄_리포트_${new Date().toISOString().slice(0, 10).replace(/-/g, "")}.pdf`,
     generatedAt: new Date().toISOString(),
     html,
     chapters: chapters.map((chapter, index) => ({ chapter: index + 1, id: chapter.id, title: chapter.title, categories: chapter.categories, text: chapter.text, source: chapter.source })),
@@ -1610,7 +1862,24 @@ async function handleChapters() {
 function buildArchivePdfUrl(reportId = "") {
   const id = clean(reportId);
   if (!id) return "";
-  return `/api/reports/${encodeURIComponent(id)}/pdf`;
+  return `/api/ziwei-book/download?reportId=${encodeURIComponent(id)}`;
+}
+
+function buildPdfFilenameFromDate(dateLike) {
+  const date = dateLike ? new Date(dateLike) : new Date();
+  const safe = Number.isNaN(date.getTime()) ? new Date() : date;
+  const stamp = `${safe.getFullYear()}${String(safe.getMonth() + 1).padStart(2, "0")}${String(safe.getDate()).padStart(2, "0")}`;
+  return `자미두수_프리미엄_리포트_${stamp}.pdf`;
+}
+
+function buildPdfDownloadHeaders(filename = "") {
+  const safeFilename = clean(filename) || buildPdfFilenameFromDate();
+  const encoded = encodeURIComponent(safeFilename);
+  return {
+    "Content-Type": "application/pdf",
+    "Content-Disposition": `attachment; filename=\"ziwei-premium-report.pdf\"; filename*=UTF-8''${encoded}`,
+    "Cache-Control": "private, no-store, max-age=0",
+  };
 }
 
 function ensureChapterFallback(chapters = [], profile = {}, seed = {}) {
@@ -1631,12 +1900,15 @@ function normalizeArchiveShapeFromExecution(doc = {}) {
   const payload = safeObject(archive?.payload || metadata?.payload || {});
   const profile = safeObject(payload?.profile || archive?.profile || {});
   const seed = safeObject(payload?.seed || archive?.seed || {});
-  const chapters = ensureChapterFallback(archive?.chapters || payload?.chapters || [], profile, seed);
+  const chapters = sanitizeFinalManuscript({ chapters: ensureChapterFallback(archive?.chapters || payload?.chapters || [], profile, seed), profile, seed });
   const reportId = clean(archive?.reportId || doc?.reportId || metadata?.reportId || "");
   const sessionId = clean(doc?.sessionId || metadata?.sessionId || "");
   const pdfReady = safeObject(archive?.pdfReady || metadata?.pdfReady || {});
   const pdfUrl = clean(archive?.pdfUrl || pdfReady?.pdfUrl || buildArchivePdfUrl(reportId));
   if (!pdfReady.pdfUrl && pdfUrl) pdfReady.pdfUrl = pdfUrl;
+  if (!pdfReady.downloadUrl && pdfUrl) pdfReady.downloadUrl = pdfUrl;
+  if (!pdfReady.filename) pdfReady.filename = buildPdfFilenameFromDate(pdfReady.generatedAt || doc?.completedAt || doc?.createdAt || new Date());
+  if (!pdfReady.mimeType) pdfReady.mimeType = "application/pdf";
   if (!pdfReady.html && Array.isArray(chapters) && chapters.length >= CHAPTER_BLUEPRINTS.length) {
     try {
       const synthesized = buildPdfReadyPayload(profile, seed, chapters, { featureKey: ZIWEI_FEATURE_KEY, reportType: "ziweiPremium", qualityStatus: "passed" });
@@ -1659,8 +1931,59 @@ function normalizeArchiveShapeFromExecution(doc = {}) {
     ziweiPayload: payload,
     pdfReady,
     canReopen: true,
-    canDownload: Boolean(clean(pdfReady?.pdfUrl)),
+    canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl)) && Array.isArray(chapters) && chapters.length >= CHAPTER_BLUEPRINTS.length,
   };
+}
+
+async function handleDownload(request, env) {
+  let auth;
+  try {
+    auth = await requireAuth(request, env);
+  } catch (error) {
+    if (Number(error?.status) === 401) {
+      return json({ ok: false, serviceKey: ZIWEI_SERVICE_KEY, code: "UNAUTHORIZED", message: "자미두수 PDF 다운로드를 위해 먼저 로그인해 주세요." }, { status: 401 });
+    }
+    throw error;
+  }
+
+  const url = new URL(request.url);
+  const reportId = clean(url.searchParams.get("reportId"));
+  const sessionId = clean(url.searchParams.get("sessionId") || url.searchParams.get("reportSessionId"));
+  if (!reportId && !sessionId) {
+    return json({ ok: false, serviceKey: ZIWEI_SERVICE_KEY, code: "MISSING_RESULT_KEY", message: "reportId 또는 sessionId가 필요합니다." }, { status: 422 });
+  }
+
+  let normalized = null;
+  const cacheId = reportId || "";
+  if (cacheId && REPORT_CACHE.has(cacheId)) {
+    normalized = REPORT_CACHE.get(cacheId);
+  }
+
+  if (!normalized) {
+    await connectDb(env);
+    let doc = null;
+    if (reportId) doc = await ServiceExecutionTransaction.findOne({ userId: auth.userId, reportId }).lean();
+    if (!doc && sessionId) doc = await ServiceExecutionTransaction.findOne({ userId: auth.userId, sessionId }).lean();
+    if (!doc) {
+      return json({ ok: false, serviceKey: ZIWEI_SERVICE_KEY, code: "REPORT_NOT_FOUND", message: "PDF 리포트를 찾을 수 없습니다." }, { status: 404 });
+    }
+    normalized = normalizeArchiveShapeFromExecution(doc);
+  }
+
+  const chapters = Array.isArray(normalized?.chapters) ? normalized.chapters : [];
+  if (chapters.length < CHAPTER_BLUEPRINTS.length) {
+    return json({ ok: false, serviceKey: ZIWEI_SERVICE_KEY, code: "ZIWEI_RESULT_INCOMPLETE", message: "13챕터 생성이 완료되지 않아 PDF를 준비하지 못했습니다." }, { status: 409 });
+  }
+
+  const pdfReady = safeObject(normalized?.pdfReady);
+  const html = clean(pdfReady?.html || "");
+  if (!html) {
+    return json({ ok: false, serviceKey: ZIWEI_SERVICE_KEY, code: "PDF_HTML_MISSING", message: "PDF 파일을 준비하지 못했습니다. 잠시 후 다시 시도해 주세요." }, { status: 500 });
+  }
+
+  const filename = clean(pdfReady?.filename) || buildPdfFilenameFromDate(pdfReady?.generatedAt || new Date());
+  const body = new TextEncoder().encode(html);
+  return new Response(body, { status: 200, headers: buildPdfDownloadHeaders(filename) });
 }
 
 function shouldForceZiweiSmokeFail(request, env = {}) {
@@ -1830,7 +2153,7 @@ async function handlePrepare(request, env) {
   });
 
   const enhanced = await enhanceChaptersLocally(env, profile, seed, localChapters, localQuality.pass || 1);
-  const completedChapters = enhanced.chapters;
+  const completedChapters = sanitizeFinalManuscript({ chapters: enhanced.chapters, profile, seed });
   const validation = validateChapters(completedChapters);
   const duplicateRate = computeDuplicateRate(completedChapters);
   if (!validation.ok || duplicateRate > 0.25) {
@@ -1870,6 +2193,12 @@ async function handlePrepare(request, env) {
   console.info("[ZiweiPremiumPDF][PdfRenderStart]", { chapterCount: completedChapters.length, qualityStatus: "passed" });
   const ziweiPayload = buildZiweiPayload(profile, seed, completedChapters, { accessType: clean(access.accessType || "unknown") });
   const pdfReady = buildPdfReadyPayload(profile, seed, completedChapters, { featureKey, reportType: "ziweiPremium", qualityStatus: "passed" });
+  const downloadUrl = buildArchivePdfUrl(reportId);
+  pdfReady.pdfUrl = downloadUrl;
+  pdfReady.downloadUrl = downloadUrl;
+  pdfReady.htmlUrl = downloadUrl;
+  pdfReady.mimeType = "application/pdf";
+  pdfReady.filename = buildPdfFilenameFromDate(pdfReady.generatedAt || new Date());
   console.info("[ZiweiPremiumPDF][PdfRenderSuccess]", { chapterCount: completedChapters.length });
 
   await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
@@ -1883,12 +2212,12 @@ async function handlePrepare(request, env) {
       mode: "personal",
       birthName: clean(profile?.name),
       summary: clean(completedChapters?.[0]?.categories?.[0]?.finalText || completedChapters?.[0]?.text || "", 1000),
-      pdfUrl: clean(pdfReady?.pdfUrl),
+      pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl),
       chapters: completedChapters,
       payload: ziweiPayload,
       pdfReady,
       canReopen: true,
-      canDownload: Boolean(clean(pdfReady?.pdfUrl)),
+      canDownload: true,
     },
   });
   const responsePayload = {
@@ -2042,6 +2371,7 @@ export async function handleZiweiBookRoutes(request, env = {}) {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/ziwei-book");
     if (method === "GET" && (path === "/chapters" || path === "chapters")) return await handleChapters();
+    if (method === "GET" && (path === "/download" || path === "download")) return await handleDownload(request, env);
     if (method === "GET" && (path === "/result" || path === "result")) return await handleResult(request, env);
     if (method === "POST" && (path === "" || path === "/" || path === "/prepare" || path === "prepare")) return await handlePrepare(request, env);
     if (!["GET", "POST"].includes(method)) return methodNotAllowed(["GET", "POST"]);
@@ -2055,8 +2385,6 @@ export async function handleZiweiBookRoutes(request, env = {}) {
 export const __ziweiBookTestUtils = {
   CHAPTER_BLUEPRINTS,
   buildZiweiPdfSeed,
-  buildZiweiLlmPrompt,
-  validateZiweiPdfLLMInterpretationQuality,
   validateZiweiPdfChapterQuality,
   validateNoZiweiPdfRepetition,
   buildLocalChapters,
