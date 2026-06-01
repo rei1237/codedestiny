@@ -251,7 +251,7 @@ async function handleCreateProfile(request, auth) {
   });
 
   const profile = toClientProfile(created.toObject());
-  const nextCurrentId = String(user.destinyProfilesCurrentId || "") || profile.id;
+  const nextCurrentId = String(profile.id || "");
 
   if (nextCurrentId !== String(user.destinyProfilesCurrentId || "")) {
     await User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } });
