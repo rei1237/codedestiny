@@ -13,6 +13,7 @@ export type TarotSpreadCategory =
   | "spiritual"
   | "family"
   | "power"
+  | "legal"
   | "special";
 
 export type TarotDifficulty = "easy" | "normal" | "deep" | "premium";

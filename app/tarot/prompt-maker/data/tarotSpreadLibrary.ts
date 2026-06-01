@@ -26,6 +26,7 @@ export const CATEGORY_LABEL: Record<TarotSpreadCategory, string> = {
   spiritual: "영적 조언/운명적 메시지",
   family: "가족/가문/뿌리",
   power: "권력/성공/야망",
+  legal: "법률/송사/분쟁",
   special: "특별 상황",
 };
 
@@ -51,6 +52,7 @@ export const CATEGORY_KEYWORD_MAP: Record<TarotSpreadCategory, string[]> = {
   spiritual: ["영혼", "직관", "신호", "수호", "운명"],
   family: ["가족", "가문", "뿌리", "부모", "조상"],
   power: ["권력", "리더", "야망", "조직", "성공"],
+  legal: ["소송", "재판", "법률", "변호사", "고소", "합의", "분쟁", "법적", "송사", "계약", "위약금", "판결"],
   special: ["포모", "잠수", "막다른", "특별", "돌발"],
 };
 
@@ -80,6 +82,7 @@ export const DEFAULT_QUESTION_BY_CATEGORY: Record<TarotSpreadCategory, string> =
   spiritual: "지금 내게 들어오는 직관의 메시지는 무엇일까?",
   family: "가족과 뿌리의 흐름 안에서 내가 이해해야 할 과제는 무엇일까?",
   power: "성공과 영향력을 다루는 방식에서 내가 놓치지 말아야 할 균형은 무엇일까?",
+  legal: "이 법적 상황에서 내가 놓치고 있는 핵심 흐름과 최선의 대응은 무엇일까?",
   special: "이 특별한 상황에서 가장 먼저 읽어야 할 핵심 신호는 무엇일까?",
 };
 
@@ -172,6 +175,15 @@ const BLUEPRINTS: SpreadBlueprint[] = [
   { id: "success-crown", title: "성공의 왕관 스프레드", category: "power", cardCount: 7, difficulty: "deep", purpose: "성공 자질과 리더십 그림자를 함께 보는 스프레드." },
   { id: "power-shadow", title: "권력의 그림자 스프레드", category: "power", cardCount: 5, difficulty: "normal", purpose: "힘을 가질 때 조심해야 할 균형을 보는 스프레드." },
   { id: "leader-path", title: "리더의 길 스프레드", category: "power", cardCount: 8, difficulty: "deep", purpose: "조직 리더십 운영 전략을 점검하는 스프레드." },
+  { id: "lawsuit-verdict", title: "송사의 저울 스프레드", category: "legal", cardCount: 7, difficulty: "deep", purpose: "소송의 유불리와 결과 흐름을 가늠하는 스프레드.", positions: ["현재 분쟁의 핵심 쟁점", "나의 입장에서 유리한 흐름", "상대 측의 숨은 의도", "법적 절차에서 예상되는 변수", "판결 또는 합의에 영향을 줄 외부 요인", "내가 놓치고 있는 약점", "최종 방향과 현실 조언"] },
+  { id: "legal-settlement", title: "합의의 실마리 스프레드", category: "legal", cardCount: 6, difficulty: "normal", purpose: "합의 가능성과 협상에서 풀어야 할 매듭을 보는 스프레드.", positions: ["현재 분쟁의 온도", "내가 먼저 놓아야 할 감정", "상대가 절대 놓치지 않으려는 것", "합의의 열쇠가 되는 조건", "서로가 양보할 수 있는 지점", "현실적인 마무리 조언"] },
+  { id: "evidence-check", title: "증거와 진술 스프레드", category: "legal", cardCount: 5, difficulty: "normal", purpose: "사실관계와 증거의 힘, 그리고 진술의 설득력을 점검하는 스프레드.", positions: ["현재 확보된 사실의 힘", "보강이 필요한 증거", "내 진술의 강점", "상대 주장에 대한 취약점", "말보다 먼저 챙길 현실 포인트"] },
+  { id: "case-timeline", title: "송사 타임라인 스프레드", category: "legal", cardCount: 8, difficulty: "deep", purpose: "법적 절차의 흐름과 시간대별 변수, 기다림과 대응의 리듬을 읽는 스프레드.", positions: ["사건이 시작된 지점", "지금 단계의 핵심 이슈", "가까운 시일 안의 변수", "상대의 반응 시점", "기다리면 유리해지는 지점", "움직여야 하는 타이밍", "장기적으로 남을 영향", "최종 행동 원칙"] },
+  { id: "defense-line", title: "방어선 점검 스프레드", category: "legal", cardCount: 7, difficulty: "deep", purpose: "방어 논리와 리스크 관리, 대응 우선순위를 짚는 스프레드.", positions: ["내 입장의 핵심 방어 논리", "상대가 파고들 지점", "지금 보강해야 할 부분", "감정적으로 흔들리는 지점", "외부 도움의 가능성", "피해야 할 대응 방식", "최종 방어 전략"] },
+  { id: "contract-trap", title: "계약의 함정 스프레드", category: "legal", cardCount: 6, difficulty: "normal", purpose: "계약서나 합의서에 숨은 리스크를 점검하는 스프레드.", positions: ["계약의 표면적 조건", "숨겨진 불리한 조항", "상대의 진짜 의도", "장기적으로 나에게 미칠 영향", "지금 수정해야 할 포인트", "서명 전 최종 조언"] },
+  { id: "dispute-resolve", title: "분쟁 해결의 실마리 스프레드", category: "legal", cardCount: 8, difficulty: "deep", purpose: "분쟁 상황에서 합의점과 돌파구를 찾는 스프레드.", positions: ["분쟁의 근본 원인", "나의 감정적 블라인드 스팟", "상대가 실제로 원하는 것", "협상에서 내가 쓸 수 있는 카드", "양측이 받아들일 수 있는 접점", "합의를 막는 가장 큰 장벽", "시간이 흐를수록 유리해지는 쪽", "현실적 해결 전략"] },
+  { id: "legal-timing", title: "법적 타이밍 스프레드", category: "legal", cardCount: 5, difficulty: "normal", purpose: "고소·신고·법적 행동의 타이밍을 판단하는 스프레드.", positions: ["지금 행동했을 때의 흐름", "기다렸을 때의 흐름", "상대의 현재 방어 태세", "법적 행동 후 나에게 돌아올 파장", "최적의 행동 시점 조언"] },
+  { id: "justice-mirror", title: "정의의 거울 스프레드", category: "legal", cardCount: 10, difficulty: "premium", purpose: "복잡한 법적 분쟁의 전체 판세를 입체적으로 조망하는 프리미엄 스프레드.", positions: ["사건의 기원과 씨앗", "현재 법적 상황의 온도", "나의 진짜 목적", "상대의 진짜 목적", "증거와 사실관계의 균형", "제3자(판사·중재자)의 시선", "감정이 판단을 흐리는 지점", "승패를 가를 핵심 변수", "최종 판결·합의의 방향", "이 과정이 내 인생에 남길 교훈"] },
   { id: "fomo-relief", title: "포모 해소 스프레드", category: "special", cardCount: 4, difficulty: "easy", purpose: "불안과 비교 심리에서 벗어나기 위한 스프레드." },
   { id: "ghosting", title: "잠수 탄 사람 스프레드", category: "special", cardCount: 5, difficulty: "normal", purpose: "갑작스럽게 연락이 끊긴 상황을 읽는 스프레드." },
   { id: "dead-end", title: "막다른 길 스프레드", category: "special", cardCount: 5, difficulty: "normal", purpose: "해결책이 보이지 않을 때 유연한 길을 찾는 스프레드." },
@@ -217,6 +229,7 @@ function categoryMood(category: TarotSpreadCategory) {
     spiritual: "직관과 운명의 신호를 통역하는 라인",
     family: "가족과 뿌리에서 올라오는 과제를 다루는 라인",
     power: "성공, 책임, 영향력의 균형을 점검하는 라인",
+    legal: "법적 분쟁의 판세와 타이밍을 냉정하게 읽는 라인",
     special: "특수 상황을 빠르게 해석하는 실전 라인",
   }[category];
 }
@@ -237,6 +250,7 @@ function categoryRitual(category: TarotSpreadCategory) {
     spiritual: "강한 소원보다 요즘 반복되는 신호를 먼저 떠올려 보세요.",
     family: "내 문제가 아니라 오래된 패턴인지 먼저 질문에 포함해 보세요.",
     power: "결과가 아니라 영향력을 어떻게 쓰고 싶은지 적어 보세요.",
+    legal: "감정과 법적 사실을 분리해서 적고, 내가 진짜 원하는 결과를 한 줄로 써보세요.",
     special: "특수 상황일수록 질문을 짧고 차갑게 쓰는 편이 해석이 또렷합니다.",
   }[category];
 }
