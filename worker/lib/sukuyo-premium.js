@@ -719,7 +719,7 @@ function buildCanonicalSukuyoNatal(params) {
     sukuyoAttributes: {
       temperament: keywords.slice(0, 3),
       relationshipStyle: strengths.slice(0, 3),
-      careerStyle: strengths.slice(0, 3),
+      careerStyle: strengths.slice(1, 3).concat(cautions.slice(0, 1)),
       wealthStyle: strengths.slice(0, 2).concat(cautions.slice(0, 1)),
       learningStyle: ["관찰", "축적", "반복 개선"],
       stressPattern: cautions.slice(0, 3),
