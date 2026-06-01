@@ -10808,18 +10808,71 @@ function buildZwSummaryTableHtml(palace) {
   var rows='';
   var cardRows=[];
   var palaceDetailRows=[];
+  var findPalaceRowData = function(palaceName) {
+    var src = Array.isArray(palace && palace.palaceStarData) ? palace.palaceStarData : [];
+    for (var i = 0; i < src.length; i += 1) {
+      var r = src[i] || {};
+      var rp = String(r.palace || '').trim();
+      if (rp === palaceName) return r;
+      if (palaceName === '부처궁' && rp === '부부궁') return r;
+      if (palaceName === '부부궁' && rp === '부처궁') return r;
+    }
+    return null;
+  };
   for(var pi=0;pi<ZW_PALACE_ORDER.length;pi++){
     var pName=ZW_PALACE_ORDER[pi];
-    var zhi=palace.palaces[pName]; if(!zhi) continue;
+    var rowData = findPalaceRowData(pName);
+    var zhi=(rowData && rowData.branch) ? rowData.branch : palace.palaces[pName];
+    if(!zhi) continue;
     var zhiIdx=ZHI_ORD.indexOf(zhi);
     var stObj=palace.stars[zhiIdx]||{main:[],aux:[],bad:[],borrowedMain:[]};
-    var mainList = (stObj.main && stObj.main.length) ? stObj.main : (stObj.borrowedMain || []);
-    var mainMeta=mainList.map(parseMainStar).filter(function(m){return !!m.name;});
+    var mainMeta=[];
+    var auxClean=[];
+    var badClean=[];
+
+    if (rowData && Array.isArray(rowData.stars)) {
+      mainMeta = rowData.stars.map(function(s) {
+        var nm = String((s && s.name) || '').trim();
+        var lv = zwNormalizeStrength(String((s && s.strength) || '').trim() || '평');
+        return {
+          name: nm,
+          isBorrowed: !!(s && s.borrowed),
+          sihua: String((s && s.sihua) || '').trim() || null,
+          brHint: lv,
+          symbol: String((s && s.symbol) || '').trim() || zwStrengthToSymbol(lv)
+        };
+      }).filter(function(m){ return !!m.name; });
+
+      auxClean = uniqList((rowData.auxStars || []).map(function(s){
+        return String((s && s.name) || '').trim();
+      }).filter(function(v){ return !!v; }));
+
+      badClean = uniqList((rowData.badStars || []).map(function(s){
+        return String((s && s.name) || '').trim();
+      }).filter(function(v){ return !!v; }));
+    } else {
+      var mainList = (stObj.main && stObj.main.length) ? stObj.main : (stObj.borrowedMain || []);
+      mainMeta=mainList.map(parseMainStar).filter(function(m){return !!m.name;});
+      auxClean=uniqList(stObj.aux.map(getCleanStarName).filter(function(s){return !!s;}));
+      badClean=uniqList(stObj.bad.map(getCleanStarName).filter(function(s){return !!s;}));
+    }
+
     var mainSihua=null;
     for(var k=0;k<mainMeta.length;k++){if(mainMeta[k].sihua){mainSihua=mainMeta[k].sihua;break;}}
-    for(var k=0;k<stObj.aux.length;k++){var sh2=getSihua(stObj.aux[k]);if(sh2&&!mainSihua){mainSihua=sh2;break;}}
-    var auxClean=uniqList(stObj.aux.map(getCleanStarName).filter(function(s){return !!s;}));
-    var badClean=uniqList(stObj.bad.map(getCleanStarName).filter(function(s){return !!s;}));
+    if(!mainSihua){
+      if (rowData && Array.isArray(rowData.auxStars)) {
+        for(var k=0;k<rowData.auxStars.length;k++){
+          var sh2 = String((rowData.auxStars[k] && rowData.auxStars[k].sihua) || '').trim();
+          if(sh2){ mainSihua = sh2; break; }
+        }
+      } else {
+        for(var k=0;k<stObj.aux.length;k++){
+          var sh2raw = getSihua(stObj.aux[k]);
+          if(sh2raw){ mainSihua = sh2raw; break; }
+        }
+      }
+    }
+
     var enrichedMain = mainMeta.map(function(m){
       var b2 = getEffectiveBr(m.name, zhi, m.isBorrowed, m.brHint);
       return {
@@ -10827,7 +10880,7 @@ function buildZwSummaryTableHtml(palace) {
         isBorrowed: !!m.isBorrowed,
         sihua: m.sihua || null,
         brightness: b2,
-        symbol: zwStrengthToSymbol(b2)
+        symbol: m.symbol || zwStrengthToSymbol(b2)
       };
     });
     var beneficAux = auxClean.filter(function(s){ return BENEFIC_AUX.indexOf(s) >= 0; });
@@ -10835,9 +10888,9 @@ function buildZwSummaryTableHtml(palace) {
     var borrowedMainNames = enrichedMain.filter(function(m){ return m.isBorrowed; }).map(function(m){ return m.name; });
 
     var starsDisp='';
-    if(mainMeta.length){
-      starsDisp=mainMeta.map(function(m){
-        var b2=getEffectiveBr(m.name,zhi,m.isBorrowed,m.brHint);
+    if(enrichedMain.length){
+      starsDisp=enrichedMain.map(function(m){
+        var b2 = zwNormalizeStrength(m.brightness || '평');
         var text=m.name+getBrTag(b2,m.isBorrowed);
         if(m.isBorrowed) text+='<span style="color:#facc15;font-weight:800;font-size:0.67rem;margin-left:3px">차성</span>';
         var sh3=m.sihua;
@@ -11030,7 +11083,7 @@ function buildZwSummaryTableHtml(palace) {
       + '    <div style="color:#f5d0fe;font-weight:900;font-size:0.9rem">'+row.icon+' '+escText(row.pNameDisplay)+' 상세 상담</div>'
       + '    <div style="color:#fef3c7;font-size:0.75rem">에너지 '+row.energyScore+'/100 · '+escText(strengthTag(row.energyScore))+'</div>'
       + '  </div>'
-      + '  <div style="margin-top:4px;color:#94a3b8;font-size:0.74rem">정의: '+escText(row.defn)+' · 주제: '+escText(ctx.key)+'</div>'
+      + '  <div style="margin-top:4px;color:#94a3b8;font-size:0.74rem">정의: '+escText(row.defn)+' · 주제: '+escText(ctx.key)+' · 위치(지지): '+escText(row.zhi || '-')+'</div>'
       + '  <div style="margin-top:4px;color:#a5b4fc;font-size:0.74rem">궁의 의미: '+escText(palaceMeaning)+'</div>'
       + '  <div style="margin-top:8px;color:#fcd34d;font-size:0.79rem"><b>핵심 키워드</b>: '+escText(keywordText)+'</div>'
       + '  <div style="margin-top:6px;color:#e2e8f0;font-size:0.79rem"><b>별의 작동 방식</b>: '+escText(starFlow)+' '+escText(sihuaFlow)+' '+escText(borrowedFlow)+'</div>'
