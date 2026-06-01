@@ -1025,7 +1025,8 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   ).trim().slice(0, 120);
   const forceDeductRaw = productSpec ? productSpec.forceDeduct : body?.forceDeduct;
   const forceDeduct = forceDeductRaw === true || String(forceDeductRaw || "").toLowerCase() === "true";
-  const forceDeductRequested = Boolean(forceDeduct && unlockKeysToPersist.length > 0);
+  const isPromptGeneratorFeature = /_ai_prompt_generator$/i.test(String(featureKey || ""));
+  const forceDeductRequested = Boolean(forceDeduct && (unlockKeysToPersist.length > 0 || isPromptGeneratorFeature));
   const authEmail = String(auth?.email || "").trim().toLowerCase();
   const forcePaidEmails = getForcePaidTestAccountEmails(env);
   const forcePaidMode = Boolean(authEmail && forcePaidEmails.has(authEmail));
