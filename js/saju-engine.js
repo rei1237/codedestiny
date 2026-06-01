@@ -20522,28 +20522,26 @@ async function runCompatCore(compatRunBtn, name, bd, type){
     var kasiYearPair = pairCtx && pairCtx.partner && pairCtx.partner.ganji ? parseKasiGanjiPair(pairCtx.partner.ganji.year) : null;
     var kasiMonthPair = pairCtx && pairCtx.partner && pairCtx.partner.ganji ? parseKasiGanjiPair(pairCtx.partner.ganji.month) : null;
     var kasiDayPair = pairCtx && pairCtx.partner && pairCtx.partner.ganji ? parseKasiGanjiPair(pairCtx.partner.ganji.day) : null;
-    var kasiApplied = !!(kasiYearPair && kasiMonthPair && kasiDayPair);
-    
-    if (kasiApplied) {
-      bazi.getYearGan = function() { return kasiYearPair.g; };
-      bazi.getYearZhi = function() { return kasiYearPair.j; };
-      bazi.getMonthGan = function() { return kasiMonthPair.g; };
-      bazi.getMonthZhi = function() { return kasiMonthPair.j; };
-      bazi.getDayGan = function() { return kasiDayPair.g; };
-      bazi.getDayZhi = function() { return kasiDayPair.j; };
-    } else {
+    if (kasiYearPair && kasiMonthPair && kasiDayPair) {
       try {
-        var _d = new Date(year, month-1, day, hour, minute);
-        var _gj = KasiEngine.getGanji(_d);
-        if (_gj && _gj.secha && _gj.weolgeon && _gj.iljin) {
-            bazi.getYearGan = function() { return _gj.secha[0]; };
-            bazi.getYearZhi = function() { return _gj.secha[1]; };
-            bazi.getMonthGan = function() { return _gj.weolgeon[0]; };
-            bazi.getMonthZhi = function() { return _gj.weolgeon[1]; };
-            bazi.getDayGan = function() { return _gj.iljin[0]; };
-            bazi.getDayZhi = function() { return _gj.iljin[1]; };
+        var localYear = String(bazi.getYearGan() || '') + String(bazi.getYearZhi() || '');
+        var localMonth = String(bazi.getMonthGan() || '') + String(bazi.getMonthZhi() || '');
+        var localDay = String(bazi.getDayGan() || '') + String(bazi.getDayZhi() || '');
+        var kasiYear = kasiYearPair.g + kasiYearPair.j;
+        var kasiMonth = kasiMonthPair.g + kasiMonthPair.j;
+        var kasiDay = kasiDayPair.g + kasiDayPair.j;
+        if (localYear !== kasiYear || localMonth !== kasiMonth || localDay !== kasiDay) {
+          console.warn('[saju-verify][compat] local pillar differs from KASI context', {
+            localYear: localYear,
+            localMonth: localMonth,
+            localDay: localDay,
+            kasiYear: kasiYear,
+            kasiMonth: kasiMonth,
+            kasiDay: kasiDay,
+            source: pairCtx && pairCtx.partner && pairCtx.partner.source ? pairCtx.partner.source : 'unknown'
+          });
         }
-      } catch(e) {}
+      } catch (_kasiCompatVerifyErr) {}
     }
     
     var yg=bazi.getYearGan(),yz=bazi.getYearZhi();
