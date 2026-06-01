@@ -18768,7 +18768,7 @@ function renderZiwei(p, natal, targetId) {
             + '<h1 style="margin:0;color:#C084FC;font-size:1.5rem;">자미두수 천명(天命) 종합 리포트</h1>'
             + (showClose ? '<button type="button" class="zw-report-close-btn" onclick="window._closeZwComprehensiveReport()">리포트 닫기 ✕</button>' : '')
             + '</div>'
-            + sec_persona + sec_ability + sec_hidden_power + sec_love_compat_spread + sec_love + sec_compat + sec_grand + sec2 + sec_dahan + sec_pivot
+            + sec2 + sec_love_compat_spread + sec_love + sec_compat + sec_grand + sec_persona + sec_ability + sec_hidden_power + sec_dahan + sec_pivot
             + '</div>';
         }
 
