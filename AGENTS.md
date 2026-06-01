@@ -23,6 +23,15 @@
 - Do not write paragraphs of text before or after code blocks; output the code block immediately.
 - All fortune-related writing must read as professional and mystical, and must never sound like developer documentation, technical specs, or implementation notes.
 
+## 1.3 AI 개발 작업 기본 원칙 (Must Follow)
+- 관련 파일만 먼저 검색하고, 해당 기능과 직접 관련 없는 파일은 수정하지 마라.
+- 한 번에 전체 리팩토링하지 말고, 반드시 `원인 분석 → 최소 수정 → 빌드 검증` 순서로 진행해라.
+- 수정 전에는 현재 기능의 실제 파일 구조, 호출 흐름, 상태 관리, API/Worker 연결을 먼저 확인해라.
+- 존재하지 않는 파일명, 함수명, 라우트, 데이터 구조를 상상해서 만들지 마라.
+- 사용자가 요청한 범위 밖의 기능을 임의로 추가하거나 삭제하지 마라.
+- 결제, 코인, 구독, PDF, 로컬 계산 엔진처럼 민감한 기능은 요청 범위에 직접 포함된 경우에만 수정해라.
+- 기능 수정 후에는 가능한 범위에서 TypeScript 체크, lint, build 검증을 수행하고 결과를 보고해라.
+
 ## 2) Source of Truth (Edit These)
 - Worker runtime API: `worker/**`
 - Next.js app/runtime UI: `app/**`, `components/**`, top-level runtime modules imported by app routes (for example `StonehengeRune.jsx`)
