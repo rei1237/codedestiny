@@ -57,7 +57,7 @@ export default function FlowerUnlockGate({
       }
 
       if (response.status === 402) {
-        setMessage("코인이 부족합니다. 충전 페이지로 이동합니다.");
+        setMessage("이 콘텐츠는 유료 결제가 필요합니다. 결제 페이지로 이동합니다.");
         router.push("/points");
         return;
       }
@@ -97,7 +97,7 @@ export default function FlowerUnlockGate({
         <p style={{ margin: 0, lineHeight: 1.8, color: "#dbe5ff" }}>
           이 페이지는 로그인 사용자 중 해당 콘텐츠를 해금한 경우에만 열립니다.
           <br />
-          200코인을 사용해 운명의 꽃 아틀리에 전체 기능을 해금할 수 있습니다.
+          코인은 콘텐츠 가치 표시 단위이며, 결제 페이지에서 원화 단건 결제로 해금할 수 있습니다.
         </p>
 
         <div
@@ -114,7 +114,7 @@ export default function FlowerUnlockGate({
         >
           <div>현재 보유 코인: <strong>{Number(currentPoints || 0).toLocaleString("ko-KR")}</strong></div>
           <div>필요 코인: <strong>{Number(requiredCoins || 0).toLocaleString("ko-KR")}</strong></div>
-          {shortfall > 0 ? <div style={{ color: "#fda4af" }}>부족 코인: {shortfall.toLocaleString("ko-KR")}</div> : null}
+            {shortfall > 0 ? <div style={{ color: "#fda4af" }}>부족 코인 기준치: {shortfall.toLocaleString("ko-KR")}</div> : null}
         </div>
 
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "16px" }}>
@@ -135,7 +135,7 @@ export default function FlowerUnlockGate({
           >
             {isSubmitting
               ? "해금 처리 중..."
-              : "200코인으로 운명의 꽃 아틀리에 전체를 해금하시겠습니까?"}
+              : "결제 후 운명의 꽃 아틀리에 전체를 해금하시겠습니까?"}
           </button>
 
           <button
@@ -151,7 +151,7 @@ export default function FlowerUnlockGate({
               color: "#fde68a",
             }}
           >
-            코인 충전하기
+            결제 페이지 이동
           </button>
         </div>
 

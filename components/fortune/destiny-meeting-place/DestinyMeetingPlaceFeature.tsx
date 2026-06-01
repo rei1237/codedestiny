@@ -63,14 +63,14 @@ export default function DestinyMeetingPlaceFeature({ sajuResult }: Props) {
       if (!gate.ok) {
         const code = String(gate.error?.code || "").toUpperCase();
         if (code === "INSUFFICIENT_COINS") {
-          toast.error("코인이 부족합니다. 100코인 충전 후 다시 시도해 주세요.");
+          toast.error("유료 결제가 필요합니다. 결제 페이지에서 상품을 선택해 주세요.");
           return;
         }
         if (code === "AUTH_REQUIRED") {
           toast.error("로그인 세션이 만료되었습니다. 다시 로그인해 주세요.");
           return;
         }
-        toast.error(gate.error?.message || "코인 결제 확인에 실패했습니다.");
+        toast.error(gate.error?.message || "결제 확인에 실패했습니다.");
         return;
       }
 

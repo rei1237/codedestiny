@@ -318,13 +318,13 @@
         }
         var code = String((res && res.code) || '').toUpperCase();
         if (payload.status === 402 || code === 'INSUFFICIENT_POINTS') {
-          alert('코인이 부족합니다. 코인을 충전한 뒤 다시 시도해 주세요.');
+          alert('유료 결제가 필요합니다. 결제 페이지에서 상품을 선택한 뒤 다시 시도해 주세요.');
         } else {
-          alert((res && (res.message || res.error)) || '코인 차감에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+          alert((res && (res.message || res.error)) || '결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.');
         }
         resolve(false);
       }).catch(function() {
-        alert('코인 차감 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+        alert('결제 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
         resolve(false);
       }).finally(function() {
         if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(false);

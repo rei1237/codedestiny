@@ -731,8 +731,8 @@ export default function DestinyBiasClient() {
 
         if (code === "INSUFFICIENT_COINS") {
           openCoinNotice({
-            title: "코인이 부족해요",
-            message: "최애운명 분석에는 코인이 필요합니다. 충전 후 다시 실행해 주세요.",
+            title: "유료 결제가 필요해요",
+            message: "최애운명 분석은 결제 후 이용할 수 있습니다. 결제 페이지에서 상품을 선택해 주세요.",
             requiredCoins: DEFAULT_ANALYZE_COST,
           });
           throw new Error("코인이 부족합니다.");

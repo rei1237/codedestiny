@@ -88,7 +88,7 @@ function formatWon(n: number) {
 }
 
 function kindLabel(kind: PointHistoryEntry["kind"]) {
-  if (kind === "charge")  return { text: "충전",  cls: "bg-emerald-100 text-emerald-800 border-emerald-300" };
+  if (kind === "charge")  return { text: "결제",  cls: "bg-emerald-100 text-emerald-800 border-emerald-300" };
   if (kind === "deduct")  return { text: "차감",  cls: "bg-rose-100 text-rose-700 border-rose-300" };
   if (kind === "refund")  return { text: "환불",  cls: "bg-sky-100 text-sky-700 border-sky-300" };
   if (kind === "share_reward") return { text: "보상", cls: "bg-cyan-100 text-cyan-700 border-cyan-300" };
@@ -121,7 +121,7 @@ function resolveFeatureName(featureKey?: string) {
   if (!key) return "";
 
   const map: Record<string, string> = {
-    "pig-coin-charge": "이전 결제 기록",
+    "pig-coin-charge": "상품 결제 기록",
     "pig-coin-unlock": "유료 콘텐츠 잠금 해제",
     "tarot-year-fortune": "십이지신 천운 타로",
     "tarot-love-relationship": "우리는 무슨 사이? 타로",
@@ -536,7 +536,7 @@ export default function PointHistoryPage() {
           className="grid grid-cols-2 gap-3"
         >
           {[
-            { label: "총 충전·환불", value: totalCharged, icon: "⬆️", cls: "border-emerald-200 bg-emerald-50/80", valcls: "text-emerald-700" },
+            { label: "총 결제·환불", value: totalCharged, icon: "⬆️", cls: "border-emerald-200 bg-emerald-50/80", valcls: "text-emerald-700" },
             { label: "총 차감 사용", value: totalDeducted, icon: "⬇️", cls: "border-rose-200 bg-rose-50/80", valcls: "text-rose-700" },
           ].map((item) => (
             <div
@@ -568,7 +568,7 @@ export default function PointHistoryPage() {
             <div className="flex gap-2 mb-4">
               {([
                 { id: "all",    label: "전체" },
-                { id: "charge", label: "충전·환불" },
+                { id: "charge", label: "결제·환불" },
                 { id: "deduct", label: "차감·사용" },
               ] as Array<{ id: TabId; label: string }>).map((tab) => (
                 <button

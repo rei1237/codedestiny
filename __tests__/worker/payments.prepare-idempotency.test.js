@@ -51,7 +51,7 @@ afterEach(() => {
 describe("Payments prepare idempotency", () => {
   const auth = { userId: "64f0a1b2c3d4e5f678901234" };
 
-  test("point prepare: 동일 idempotency key + 동일 payload는 idempotent=true를 반환해야 한다", async () => {
+  test("point prepare: 선불 충전 비활성 정책으로 410 POINT_CHARGE_DISABLED를 반환해야 한다", async () => {
     mockPaymentFindOne({
       merchantUid: "md_existing_001",
       paymentAmount: 3300,
@@ -71,15 +71,12 @@ describe("Payments prepare idempotency", () => {
     const response = await testUtils.handlePrepare(req, {}, auth);
     const { status, payload } = await readResponse(response);
 
-    expect(status).toBe(200);
-    expect(payload.idempotent).toBe(true);
-    expect(payload.order.merchantUid).toBe("md_existing_001");
-    expect(payload.order.paymentAmount).toBe(3300);
-    expect(payload.order.chargePoints).toBe(30);
+    expect(status).toBe(410);
+    expect(payload.code).toBe("POINT_CHARGE_DISABLED");
     expect(Payment.create).not.toHaveBeenCalled();
   });
 
-  test("point prepare: 동일 idempotency key + 상이 payload는 409 IDEMPOTENCY_CONFLICT여야 한다", async () => {
+  test("point prepare: 상이 payload 요청도 선불 충전 비활성 정책으로 410을 반환해야 한다", async () => {
     mockPaymentFindOne({
       merchantUid: "md_existing_002",
       paymentAmount: 3300,
@@ -99,12 +96,12 @@ describe("Payments prepare idempotency", () => {
     const response = await testUtils.handlePrepare(req, {}, auth);
     const { status, payload } = await readResponse(response);
 
-    expect(status).toBe(409);
-    expect(payload.code).toBe("IDEMPOTENCY_CONFLICT");
+    expect(status).toBe(410);
+    expect(payload.code).toBe("POINT_CHARGE_DISABLED");
     expect(Payment.create).not.toHaveBeenCalled();
   });
 
-  test("point prepare: create race duplicate key(11000)에서도 동일 payload면 idempotent=true여야 한다", async () => {
+  test("point prepare: create race 시나리오도 선불 충전 비활성 정책으로 410을 반환해야 한다", async () => {
     const lean = jest
       .fn()
       .mockResolvedValueOnce(null)
@@ -129,11 +126,9 @@ describe("Payments prepare idempotency", () => {
     const response = await testUtils.handlePrepare(req, {}, auth);
     const { status, payload } = await readResponse(response);
 
-    expect(status).toBe(200);
-    expect(payload.idempotent).toBe(true);
-    expect(payload.order.merchantUid).toBe("md_existing_003");
-    expect(Payment.create).toHaveBeenCalledTimes(1);
-    expect(Payment.findOne).toHaveBeenCalledTimes(2);
+    expect(status).toBe(410);
+    expect(payload.code).toBe("POINT_CHARGE_DISABLED");
+    expect(Payment.create).not.toHaveBeenCalled();
   });
 
   test("subscription prepare: 동일 idempotency key + 동일 plan이면 idempotent=true를 반환해야 한다", async () => {

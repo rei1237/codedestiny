@@ -130,7 +130,7 @@ export default function AuthWidget() {
         <Link
           href="/points"
           className="rounded-lg border border-fuchsia-400/30 bg-fuchsia-500/10 px-2.5 py-1 text-xs font-semibold text-fuchsia-200 transition hover:bg-fuchsia-500/25"
-          title="포인트 충전/내역"
+          title="결제/내역"
         >
           {displayPoints.toLocaleString()}P
         </Link>

@@ -390,8 +390,8 @@ export default function GalaxiaPayModal({
               <span className="font-black text-amber-700 text-[15px]">{fmtWon(pkg.amount)}</span>
             </div>
             <div className="flex justify-between text-[13px]">
-              <span className="text-gray-500">충전 코인</span>
-              <span className="font-bold text-gray-800">{pkg.points.toLocaleString("ko-KR")}코인</span>
+              <span className="text-gray-500">코인 가치 단위</span>
+              <span className="font-bold text-gray-800">{pkg.points.toLocaleString("ko-KR")}코인 기준</span>
             </div>
             {payType === "card" && installment !== "00" && (
               <div className="flex justify-between text-[13px]">
@@ -412,7 +412,7 @@ export default function GalaxiaPayModal({
           </button>
 
           <p className="mt-3 text-center text-[11px] text-gray-400">
-            결제 완료 후 즉시 코인이 충전됩니다. · 포트원(PortOne) 보안 결제
+            결제 완료 시 상품 이용 권한이 즉시 반영됩니다. · 포트원(PortOne) 보안 결제
           </p>
         </div>
       </div>

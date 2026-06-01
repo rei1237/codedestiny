@@ -14225,7 +14225,7 @@ function renderZiwei(p, natal, targetId) {
           return;
         }
         if (code === 'INSUFFICIENT_COINS' || result.status === 402) {
-          setStatus(message || '코인이 부족합니다. 충전 후 다시 시도해 주세요.', 'error');
+          setStatus(message || '유료 결제가 필요합니다. 결제 페이지에서 상품을 선택해 주세요.', 'error');
           try {
             if (typeof window.openChargeModal === 'function') window.openChargeModal();
           } catch (_) {}

@@ -20,7 +20,7 @@ export default function DestinyBiasCoinModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/65 p-4 md:items-center" role="dialog" aria-modal="true" aria-label="코인 안내 모달">
+    <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/65 p-4 md:items-center" role="dialog" aria-modal="true" aria-label="결제 안내 모달">
       <div className="w-full max-w-md rounded-3xl border border-white/20 bg-[linear-gradient(145deg,rgba(24,10,46,0.96),rgba(9,8,32,0.94))] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.5)] backdrop-blur-xl">
         <p className="text-xs font-semibold tracking-[0.12em] text-cyan-200/90">DESTINY NOTICE</p>
         <h3 className="mt-2 text-xl font-black text-white">{title}</h3>
@@ -42,7 +42,7 @@ export default function DestinyBiasCoinModal({
               href="/points"
               className="inline-flex min-h-11 items-center justify-center rounded-full border border-fuchsia-200/70 bg-fuchsia-400/25 px-4 text-sm font-bold text-white"
             >
-              코인 충전하러 가기
+              결제 페이지로 이동
             </Link>
           )}
 
