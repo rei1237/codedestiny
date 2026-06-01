@@ -82,6 +82,72 @@ function sanitizeCalType(value) {
   return "solar";
 }
 
+function isValidBirthDateParts(year, month, day) {
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) return false;
+  if (year < 1000 || year > 9999) return false;
+  if (month < 1 || month > 12) return false;
+  if (day < 1 || day > 31) return false;
+  const dt = new Date(Date.UTC(year, month - 1, day));
+  return dt.getUTCFullYear() === year && (dt.getUTCMonth() + 1) === month && dt.getUTCDate() === day;
+}
+
+function validateRequiredBirth(rawProfile) {
+  const source = rawProfile && typeof rawProfile === "object" ? rawProfile : {};
+  const birth = source.birth && typeof source.birth === "object" ? source.birth : {};
+
+  const parsedDate = parseBirthDateText(
+    source.birthDate
+    || source.birthIso
+    || source.solarDate
+    || birth.birthDate
+    || birth.solarDate
+    || birth.lunarDate
+    || source.date,
+  );
+  const parsedTime = parseBirthTimeText(
+    source.birthTime
+    || birth.birthTime
+    || birth.time
+    || source.time,
+  );
+
+  const hasDateParts = birth.year !== undefined && birth.month !== undefined && birth.day !== undefined;
+  const hasTimeParts = birth.hour !== undefined && birth.minute !== undefined;
+
+  if (!hasDateParts && !parsedDate) {
+    return { ok: false, message: "생년월일은 필수입니다. (YYYY-MM-DD)" };
+  }
+  if (!hasTimeParts && !parsedTime) {
+    return { ok: false, message: "태어난 시간은 필수입니다. (HH:mm)" };
+  }
+
+  const year = Number(hasDateParts ? birth.year : parsedDate?.year);
+  const month = Number(hasDateParts ? birth.month : parsedDate?.month);
+  const day = Number(hasDateParts ? birth.day : parsedDate?.day);
+
+  if (!isValidBirthDateParts(year, month, day)) {
+    return { ok: false, message: "생년월일 형식이 올바르지 않습니다. (YYYY-MM-DD)" };
+  }
+
+  const hour = Number(hasTimeParts ? birth.hour : parsedTime?.hour);
+  const minute = Number(hasTimeParts ? birth.minute : parsedTime?.minute);
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59) {
+    return { ok: false, message: "태어난 시간 형식이 올바르지 않습니다. (HH:mm)" };
+  }
+
+  return {
+    ok: true,
+    birth: {
+      year,
+      month,
+      day,
+      hour,
+      minute,
+      calType: sanitizeCalType(birth.calType),
+    },
+  };
+}
+
 function buildProfileId(rawProfileId, fallbackIndex) {
   const profileId = sanitizeProfileId(rawProfileId);
   if (profileId) return profileId;
@@ -145,6 +211,14 @@ function resolveSubscriptionPolicy(user) {
 }
 
 function toClientProfile(doc) {
+  const year = Number(doc?.birth?.year || 1900);
+  const month = Number(doc?.birth?.month || 1);
+  const day = Number(doc?.birth?.day || 1);
+  const hour = Number(doc?.birth?.hour || 0);
+  const minute = Number(doc?.birth?.minute || 0);
+  const birthDate = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  const birthTime = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+
   return {
     id: String(doc.profileId || ""),
     profileId: String(doc.profileId || ""),
@@ -213,57 +287,105 @@ async function handleGetProfiles(auth) {
 }
 
 async function handleCreateProfile(request, auth) {
-  const user = await User.findById(auth.userId)
-    .select("profileSubscription destinyProfilesCurrentId")
-    .lean();
+  try {
+    const user = await User.findById(auth.userId)
+      .select("profileSubscription destinyProfilesCurrentId")
+      .lean();
 
-  if (!user) {
-    return json({ ok: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
-  }
+    if (!user) {
+      return json({ ok: false, success: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
+    }
 
-  const subscription = resolveSubscriptionPolicy(user);
-  const count = await ProfileCard.countDocuments({ userId: auth.userId });
+    const subscription = resolveSubscriptionPolicy(user);
+    const count = await ProfileCard.countDocuments({ userId: auth.userId });
+    const profileLimit = Number(subscription.profileLimit);
+    const hasLimit = Number.isFinite(profileLimit) && profileLimit > 0;
 
-  if (count >= subscription.profileLimit) {
+    if (hasLimit && count >= profileLimit) {
+      const exceededMessage = subscription.tier === "free" ? "LIMIT_EXCEEDED_FREE" : "LIMIT_EXCEEDED_PREMIUM";
+      return json({
+        ok: false,
+        success: false,
+        message: exceededMessage,
+        subscription,
+      }, { status: 403 });
+    }
+
+    const body = await readJson(request);
+    const rawProfile = body?.profile || body;
+    const birthValidation = validateRequiredBirth(rawProfile);
+    if (!birthValidation.ok) {
+      return json({
+        ok: false,
+        success: false,
+        message: birthValidation.message,
+      }, { status: 400 });
+    }
+
+    const normalized = normalizeIncomingProfile(rawProfile, count);
+    normalized.birth = birthValidation.birth;
+
+    const duplicated = await ProfileCard.findOne({ userId: auth.userId, profileId: normalized.profileId }).lean();
+    if (duplicated) {
+      return json({ ok: false, success: false, message: "이미 존재하는 프로필 ID입니다." }, { status: 409 });
+    }
+
+    const created = await ProfileCard.create({
+      userId: auth.userId,
+      profileId: normalized.profileId,
+      name: normalized.name,
+      gender: normalized.gender,
+      birth: normalized.birth,
+      location: normalized.location,
+    });
+
+    const profile = toClientProfile(created.toObject());
+    const nextCurrentId = String(profile.id || "");
+
+    if (nextCurrentId !== String(user.destinyProfilesCurrentId || "")) {
+      await User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } });
+    }
+
+    return json({
+      success: true,
+      message: "PROFILE_CREATED_SUCCESSFULLY",
+      data: profile,
+      ok: true,
+      profile,
+      currentId: nextCurrentId,
+      subscription,
+      canCreateMore: hasLimit ? (count + 1 < profileLimit) : true,
+    }, { status: 201 });
+  } catch (error) {
+    const status = Number(error?.status || 0);
+    if (status >= 400 && status < 500) {
+      return json({
+        ok: false,
+        success: false,
+        message: String(error?.message || "BAD_REQUEST"),
+      }, { status });
+    }
+
+    if (Number(error?.code) === 11000) {
+      return json({
+        ok: false,
+        success: false,
+        message: "이미 존재하는 프로필 ID입니다.",
+      }, { status: 409 });
+    }
+
+    console.error("[profile-create-error]", {
+      userId: String(auth?.userId || ""),
+      message: String(error?.message || error),
+      stack: error?.stack || null,
+    });
+
     return json({
       ok: false,
-      code: "PROFILE_LIMIT_EXCEEDED",
-      message: "무료 계정은 프로필 카드를 1개만 생성할 수 있습니다. 구독 후 추가 생성이 가능합니다.",
-      subscription,
-    }, { status: 403 });
+      success: false,
+      message: "PROFILE_CREATE_INTERNAL_ERROR",
+    }, { status: 500 });
   }
-
-  const body = await readJson(request);
-  const normalized = normalizeIncomingProfile(body?.profile || body, count);
-  const duplicated = await ProfileCard.findOne({ userId: auth.userId, profileId: normalized.profileId }).lean();
-
-  if (duplicated) {
-    return json({ ok: false, code: "PROFILE_ID_CONFLICT", message: "이미 존재하는 프로필 ID입니다." }, { status: 409 });
-  }
-
-  const created = await ProfileCard.create({
-    userId: auth.userId,
-    profileId: normalized.profileId,
-    name: normalized.name,
-    gender: normalized.gender,
-    birth: normalized.birth,
-    location: normalized.location,
-  });
-
-  const profile = toClientProfile(created.toObject());
-  const nextCurrentId = String(profile.id || "");
-
-  if (nextCurrentId !== String(user.destinyProfilesCurrentId || "")) {
-    await User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } });
-  }
-
-  return json({
-    ok: true,
-    profile,
-    currentId: nextCurrentId,
-    subscription,
-    canCreateMore: count + 1 < subscription.profileLimit,
-  }, { status: 201 });
 }
 
 async function handleUpdateCurrent(request, auth) {
