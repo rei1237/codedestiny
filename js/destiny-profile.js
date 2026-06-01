@@ -1971,30 +1971,11 @@
       return;
     }
 
-    var count = DPStorage.list().length;
-    var max   = _dpGetMaxProfiles();
-    if (count < max) {
-      btn.disabled       = false;
-      btn.textContent    = '✦ 프로필 저장';
-      btn.style.opacity  = '';
-      btn.style.cursor   = '';
-      btn.removeAttribute('title');
-    } else {
-      btn.disabled       = true;
-      btn.style.opacity  = '0.45';
-      btn.style.cursor   = 'not-allowed';
-      var activeTier = _dpSubIsActive ? _dpSubTier : _dpNormalizeTier(_dpGetUserPlan());
-      var nextTier = _dpGetNextTier(activeTier);
-      var limitLabel = _dpFormatLimitLabel(max);
-      if (nextTier) {
-        var nextLimit = _dpFormatLimitLabel(_dpGetTierProfileLimit(nextTier));
-        btn.textContent = '✦ ' + _dpGetTierLabel(activeTier) + ' 한도 (' + limitLabel + ') — ' + _dpGetTierLabel(nextTier) + ' 업그레이드';
-        btn.title = '/points 페이지에서 ' + _dpGetTierLabel(nextTier) + ' 구독 후 프로필 ' + nextLimit + '까지 등록 가능합니다.';
-      } else {
-        btn.textContent = '✦ 현재 플랜 한도 (' + limitLabel + ') 도달';
-        btn.title = '프로필 저장 한도에 도달했습니다.';
-      }
-    }
+    btn.disabled = false;
+    btn.textContent = '✦ 프로필 저장';
+    btn.style.opacity = '';
+    btn.style.cursor = '';
+    btn.title = '프로필 생성 가능 여부는 서버 구독 정책 기준으로 최종 확인됩니다.';
   }
 
   function _resolveEventElement(target) {
@@ -2844,19 +2825,6 @@
       alert('이름과 생년월일을 입력해주세요.');
       return;
     }
-    /* ★ 구독 플랜에 따른 프로필 수 제한 */
-    var _cnt = DPStorage.list().length;
-    var _max = _dpGetMaxProfiles();
-    if (_cnt >= _max) {
-      var _tier = _dpSubIsActive ? _dpSubTier : _dpNormalizeTier(_dpGetUserPlan());
-      var _nextTier = _dpGetNextTier(_tier);
-      if (_nextTier) {
-        alert(_dpGetTierLabel(_tier) + ' 플랜은 프로필 ' + _dpFormatLimitLabel(_max) + '까지 저장할 수 있습니다.\n더 많은 생년월일 프로필이 필요하면 /points 페이지에서 ' + _dpGetTierLabel(_nextTier) + ' 구독으로 업그레이드하세요.');
-      } else {
-        alert('현재 플랜 한도(' + _dpFormatLimitLabel(_max) + ')에 도달했습니다.');
-      }
-      return;
-    }
     if (!confirm('새 프로필 카드를 생성할까요?\n한 번 생성된 프로필 카드는 수정 및 삭제가 불가능합니다.\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.')) return;
     var btn = document.getElementById('dpSaveBtn');
     if (btn) {
@@ -2882,7 +2850,16 @@
         var code = String((payload && payload.code) || '').trim().toUpperCase();
         var msg = String((payload && payload.message) || '').trim();
         if (result && result.status === 403 && code === 'PROFILE_LIMIT_EXCEEDED') {
-          window.alert(msg || '무료 계정은 프로필 카드를 1개만 생성할 수 있습니다. /points 페이지에서 구독 후 추가 생성해 주세요.');
+          var sub = payload && payload.subscription ? payload.subscription : null;
+          var tier = _dpNormalizeTier(sub && sub.tier);
+          var limit = Number(sub && sub.profileLimit);
+          var limitLabel = _dpFormatLimitLabel(limit);
+          var tierLabel = _dpGetTierLabel(tier);
+          var nextTier = _dpGetNextTier(tier);
+          var guide = nextTier
+            ? ('\n/points 페이지에서 ' + _dpGetTierLabel(nextTier) + '로 업그레이드하면 더 많은 프로필을 추가할 수 있습니다.')
+            : '';
+          window.alert(msg || (tierLabel + ' 플랜 한도(' + limitLabel + ')에 도달했습니다.' + guide));
           return null;
         }
         throw new Error(msg || '프로필 저장 중 오류가 발생했습니다.');
