@@ -15746,14 +15746,9 @@ function renderZiwei(p, natal, targetId) {
     };
   }
 
-  var _zwDeferredPortfolioRender = function() {
-    if (typeof window._renderZwDestinyPortfolio !== 'function') return;
-    try {
-      window._renderZwDestinyPortfolio('zwDestinyPortfolioMount', window._currentZiweiData);
-    } catch (e) {
-      console.error('[Ziwei] destiny portfolio render failed:', e);
-    }
-  };
+  if (typeof window._renderZwDestinyPortfolio === 'function') {
+    window._renderZwDestinyPortfolio('zwDestinyPortfolioMount', window._currentZiweiData);
+  }
 
   if(!window._handleZwClick) {
     if (!window._loadZwChartJs) {
@@ -15927,68 +15922,16 @@ function renderZiwei(p, natal, targetId) {
       window._zwMuteEvent(evt);
       window._zwReportToggleLockUntil = Date.now() + 420;
       var seed = window._zwComprehensiveSeed;
-      var hasSeedStars = function(stars) {
-        if (!stars || typeof stars !== 'object') return false;
-        return !!(
-          (Array.isArray(stars.main) && stars.main.length)
-          || (Array.isArray(stars.borrowedMain) && stars.borrowedMain.length)
-          || (Array.isArray(stars.aux) && stars.aux.length)
-          || (Array.isArray(stars.bad) && stars.bad.length)
-        );
-      };
-      if ((!seed || !seed.pd || !hasSeedStars(seed.stars)) && typeof window._resolveZwComprehensiveSeed === 'function') {
+      if ((!seed || !seed.pd || !seed.stars) && typeof window._resolveZwComprehensiveSeed === 'function') {
         seed = window._resolveZwComprehensiveSeed(window._currentZiweiData);
-      }
-      if ((!seed || !seed.pd || !hasSeedStars(seed.stars)) && window._currentZiweiData) {
-        var fallbackPd = (typeof window._ensureZwStarBuckets === 'function')
-          ? (window._ensureZwStarBuckets(window._currentZiweiData) || window._currentZiweiData)
-          : window._currentZiweiData;
-        if (fallbackPd && Array.isArray(fallbackPd.palacesByIndex)) {
-          var fallbackIdx = fallbackPd.palacesByIndex.indexOf('명궁');
-          if (fallbackIdx < 0) fallbackIdx = 0;
-          var fallbackStars = window._normalizeZwStarBucket(fallbackPd.stars && fallbackPd.stars[fallbackIdx]);
-          if (hasSeedStars(fallbackStars)) {
-            seed = {
-              idx: fallbackIdx,
-              pName: fallbackPd.palacesByIndex[fallbackIdx] || ('제' + (fallbackIdx + 1) + '궁'),
-              stars: fallbackStars,
-              pd: fallbackPd
-            };
-          }
-        }
-      }
-      if ((!seed || !seed.pd || !hasSeedStars(seed.stars))
-        && (!window._currentZiweiData || typeof window._currentZiweiData !== 'object')
-        && window._ziweiBirth
-        && typeof calcZiweiPalaces === 'function') {
-        try {
-          var rb = window._ziweiBirth;
-          var recoveredPd = calcZiweiPalaces(
-            Number(rb.year),
-            Number(rb.month),
-            Number(rb.day),
-            Number(rb.hour),
-            Number(rb.minute)
-          );
-          if (recoveredPd && typeof recoveredPd === 'object') {
-            window._currentZiweiData = (typeof window._ensureZwStarBuckets === 'function')
-              ? (window._ensureZwStarBuckets(recoveredPd) || recoveredPd)
-              : recoveredPd;
-            if (typeof window._resolveZwComprehensiveSeed === 'function') {
-              seed = window._resolveZwComprehensiveSeed(window._currentZiweiData);
-            }
-          }
-        } catch (recoverErr) {
-          console.error('[Ziwei] comprehensive seed recovery failed:', recoverErr);
-        }
       }
       if (!seed || !seed.pd || typeof window._renderZwPanel !== 'function') {
         var panel = document.getElementById('zwComprehensiveReport');
         if (panel) {
           panel.innerHTML = '<div class="zw-empty-state">'
             + '<div class="zw-empty-icon">📜</div>'
-            + '명반 데이터를 다시 확인하고 있어요.<br>잠시 후 다시 시도해 주세요.'
-            + '<br><button type="button" class="zw-report-close-btn" style="margin-top:10px;" onclick="window._openZwComprehensiveReport()">다시 불러오기</button>'
+            + '리포트 시드가 잠시 비어 있습니다.<br>기본 명반을 먼저 확인한 뒤 다시 열어주세요.'
+            + '<br><button type="button" class="zw-report-close-btn" style="margin-top:10px;" onclick="window._openZwComprehensiveReport()">다시 열기</button>'
             + '</div>';
         }
         return;
@@ -17747,6 +17690,20 @@ function renderZiwei(p, natal, targetId) {
           ? ('관록궁 주성 '+careerMainStars.join(' · ')+' 중심으로, '+careerSkill+'을 핵심 역량으로 쓰는 역할이 천직 축에 가깝습니다.')
           : '관록궁 공궁 구조이므로 고정 직함보다 환경 적응형 포지션에서 역량이 빠르게 개화합니다.';
 
+        var _zwFmtAgeRange = function(startAge, endAge, withSuffix) {
+          var s = parseInt(startAge, 10);
+          var e = parseInt(endAge, 10);
+          var validS = Number.isFinite(s);
+          var validE = Number.isFinite(e);
+          var base = '';
+          if (validS && validE) base = String(s) + '~' + String(e);
+          else if (validS) base = String(s) + '~';
+          else if (validE) base = '~' + String(e);
+          else base = '시기 보정 중';
+          if (withSuffix && base !== '시기 보정 중') return base + '세';
+          return base;
+        };
+
         var bestWealth = null;
         var bestWealthEarly = null;
         if (pd.daHanList && pd.daHanList.length) {
@@ -17774,20 +17731,20 @@ function renderZiwei(p, natal, targetId) {
             score += dMain.filter(function(s){ return ['무곡','탐랑','자미','천부','태음'].indexOf(s)>=0; }).length * 5;
             var startAgeNum = parseInt(dh.startAge, 10);
             if (!bestWealth || score > bestWealth.score) {
-              bestWealth = { score: score, age: dh.startAge+'~'+dh.endAge, palace: dh.palaceName, startAge: isNaN(startAgeNum) ? 0 : startAgeNum };
+              bestWealth = { score: score, ageLabel: _zwFmtAgeRange(dh.startAge, dh.endAge, true), palace: dh.palaceName, startAge: isNaN(startAgeNum) ? 0 : startAgeNum };
             }
             if ((isNaN(startAgeNum) || startAgeNum < 70) && (!bestWealthEarly || score > bestWealthEarly.score)) {
-              bestWealthEarly = { score: score, age: dh.startAge+'~'+dh.endAge, palace: dh.palaceName, startAge: isNaN(startAgeNum) ? 0 : startAgeNum };
+              bestWealthEarly = { score: score, ageLabel: _zwFmtAgeRange(dh.startAge, dh.endAge, true), palace: dh.palaceName, startAge: isNaN(startAgeNum) ? 0 : startAgeNum };
             }
           });
         }
         var wealthPeakText = '';
         var wealthComfortText = '';
         if (bestWealth) {
-          wealthPeakText = bestWealth.age+'세 ('+bestWealth.palace+') 대한이 재물운 피크 구간으로 해석됩니다. 이 시기는 확장보다 수익 회수·자산 고정화 천기를 병행할 때 성과가 극대화됩니다.';
+          wealthPeakText = bestWealth.ageLabel+' ('+bestWealth.palace+') 대한이 재물운 피크 구간으로 해석됩니다. 이 시기는 확장보다 수익 회수·자산 고정화 천기를 병행할 때 성과가 극대화됩니다.';
           if (bestWealth.startAge >= 70 && bestWealthEarly) {
             wealthComfortText = '<div style="margin-top:10px;background:rgba(250,204,21,0.10);border:1px solid rgba(250,204,21,0.35);border-radius:9px;padding:9px 10px;">'
-              +'<b style="color:#fde68a;">☀️ 차선책(조기 수익 구간) 추천:</b> 피크가 늦게 잡히더라도 <b>'+bestWealthEarly.age+'세 ('+bestWealthEarly.palace+')</b> 구간에서 선행 수익화를 설계할 수 있습니다.'
+              +'<b style="color:#fde68a;">☀️ 차선책(조기 수익 구간) 추천:</b> 피크가 늦게 잡히더라도 <b>'+bestWealthEarly.ageLabel+' ('+bestWealthEarly.palace+')</b> 구간에서 선행 수익화를 설계할 수 있습니다.'
               +'<br><span style="color:#e2e8f0;">빠른 현금흐름을 위해 1) 고정비 축소 + 월 단위 현금흐름 영험 지표, 2) 본업 기반 부수익(강의/자문/디지털 자산), 3) 고위험 확장보다 회수형 포트폴리오를 우선 적용하세요.</span>'
               +'<br><span style="color:#bbf7d0;">지금의 속도가 느려 보여도 운은 축적형으로 작동합니다. 조기 구간에서 작은 승리를 반복하면 후반 피크의 크기가 커집니다.</span>'
             +'</div>';
@@ -18070,12 +18027,12 @@ function renderZiwei(p, natal, targetId) {
             mScore += dAux2.filter(function(s){ return helperGoodStars.indexOf(s) >= 0; }).length * 2;
             mScore -= dBad2.length * 3;
             if (!marriageBest || mScore > marriageBest.score) {
-              marriageBest = { age: dh.startAge+'~'+dh.endAge, palace: dh.palaceName, score: mScore };
+              marriageBest = { ageLabel: _zwFmtAgeRange(dh.startAge, dh.endAge, true), palace: dh.palaceName, score: mScore };
             }
           });
         }
         var marriageLuckText = marriageBest
-          ? ('결혼운 피크는 <b>'+marriageBest.age+'세 ('+zwDisplayPalaceName(marriageBest.palace)+')</b> 구간으로 해석됩니다. 이 시기는 관계의 제도화(동거·혼인·공동 자산 설계)에 유리합니다.')
+          ? ('결혼운 피크는 <b>'+marriageBest.ageLabel+' ('+zwDisplayPalaceName(marriageBest.palace)+')</b> 구간으로 해석됩니다. 이 시기는 관계의 제도화(동거·혼인·공동 자산 설계)에 유리합니다.')
           : '대한 데이터가 제한되어 결혼운 피크는 명확히 특정하기 어렵지만, 부처궁/명궁 활성 시기에 관계 진전이 유리합니다.';
 
         var flirtVerdict = '';
@@ -18715,7 +18672,7 @@ function renderZiwei(p, natal, targetId) {
             dahanTimelineHtml +=
               '<div style="padding:9px 12px;border-left:3px solid '+borderCol+';background:'+bgCol+';border-radius:0 6px 6px 0;margin-bottom:5px;">'
                 +'<div style="display:flex;justify-content:space-between;align-items:center;">'
-                  +'<div><span style="color:#fbbf24;font-size:0.82rem;font-weight:700;">'+dh.startAge+'~'+dh.endAge+'세</span>'
+                  +'<div><span style="color:#fbbf24;font-size:0.82rem;font-weight:700;">'+_zwFmtAgeRange(dh.startAge, dh.endAge, true)+'</span>'
                   +'<span style="color:#a78bfa;font-size:0.82rem;margin-left:8px;">│ '+dhTheme.icon+' '+dh.palaceName+'</span>'+badges+'</div>'
                   +'<span style="color:#94a3b8;font-size:0.73rem;">'+dh.zhi+'</span>'
                 +'</div>'
@@ -18847,7 +18804,7 @@ function renderZiwei(p, natal, targetId) {
                 ? '"감정이 아니라 수호 의식이 당신의 자산을 지킨다."'
                 : '"전환기의 승자는 빠른 사람이 아니라 구조를 먼저 고친 사람이다."');
 
-            var title = dh.startAge+'~'+dh.endAge+'세 대한: '+dh.palaceName+' 변곡점';
+            var title = _zwFmtAgeRange(dh.startAge, dh.endAge, true)+' 대한: '+dh.palaceName+' 변곡점';
 
             // 라이프스테이지 맥락 계산
             var _lsAge = dh.startAge;
@@ -18869,8 +18826,8 @@ function renderZiwei(p, natal, targetId) {
               key: String(dh.idx)+'_'+String(dhOrderIdx),
               type: pivotType,
               icon: icon,
-              age: dh.startAge+'~'+dh.endAge,
-              period: dh.startAge+'-'+dh.endAge,
+              age: _zwFmtAgeRange(dh.startAge, dh.endAge, true),
+              period: _zwFmtAgeRange(dh.startAge, dh.endAge, false),
               title: title,
               coreStars: mainLabel,
               borrowedLabel: borrowedLabel,
@@ -19464,76 +19421,25 @@ function renderZiwei(p, natal, targetId) {
   }
 
   // 종합 리포트는 매 렌더 사이클마다 갱신해야 모바일 재진입 시 로딩 문구에 멈추지 않는다.
-  if ((!window._currentZiweiData || typeof window._currentZiweiData !== 'object')
-    && window._ziweiBirth
-    && typeof calcZiweiPalaces === 'function') {
-    try {
-      var ib = window._ziweiBirth;
-      var initialPd = calcZiweiPalaces(
-        Number(ib.year),
-        Number(ib.month),
-        Number(ib.day),
-        Number(ib.hour),
-        Number(ib.minute)
-      );
-      if (initialPd && typeof initialPd === 'object') {
-        window._currentZiweiData = (typeof window._ensureZwStarBuckets === 'function')
-          ? (window._ensureZwStarBuckets(initialPd) || initialPd)
-          : initialPd;
-      }
-    } catch (initialRecoverErr) {
-      console.error('[Ziwei] initial ziwei data recovery failed:', initialRecoverErr);
-    }
-  }
-  var initialSeed = (typeof window._resolveZwComprehensiveSeed === 'function')
-    ? window._resolveZwComprehensiveSeed(window._currentZiweiData)
-    : null;
-  var hasInitialStars = function(stars) {
-    if (!stars || typeof stars !== 'object') return false;
-    return !!(
-      (Array.isArray(stars.main) && stars.main.length)
-      || (Array.isArray(stars.borrowedMain) && stars.borrowedMain.length)
-      || (Array.isArray(stars.aux) && stars.aux.length)
-      || (Array.isArray(stars.bad) && stars.bad.length)
+  var defaultIdx = (window._currentZiweiData && window._currentZiweiData.palacesByIndex)
+    ? window._currentZiweiData.palacesByIndex.indexOf('명궁')
+    : -1;
+  if (defaultIdx < 0) defaultIdx = 0;
+  if (typeof window._renderZwPanel === 'function' && window._currentZiweiData && window._currentZiweiData.stars && window._currentZiweiData.stars[defaultIdx]) {
+    window._zwComprehensiveSeed = {
+      idx: defaultIdx,
+      pName: window._currentZiweiData.palacesByIndex[defaultIdx],
+      stars: window._currentZiweiData.stars[defaultIdx],
+      pd: window._currentZiweiData
+    };
+    window._renderZwPanel(
+      defaultIdx,
+      window._currentZiweiData.palacesByIndex[defaultIdx],
+      window._currentZiweiData.stars[defaultIdx],
+      window._currentZiweiData,
+      { clickOnly: false, targetId: 'zwComprehensiveReport', showClose: true, showRadar: false, scroll: false }
     );
-  };
-  if ((!initialSeed || !initialSeed.pd || !hasInitialStars(initialSeed.stars)) && window._currentZiweiData) {
-    var basePd = (typeof window._ensureZwStarBuckets === 'function')
-      ? (window._ensureZwStarBuckets(window._currentZiweiData) || window._currentZiweiData)
-      : window._currentZiweiData;
-    if (basePd && Array.isArray(basePd.palacesByIndex)) {
-      var baseIdx = basePd.palacesByIndex.indexOf('명궁');
-      if (baseIdx < 0) baseIdx = 0;
-      var baseStars = window._normalizeZwStarBucket(basePd.stars && basePd.stars[baseIdx]);
-      if (hasInitialStars(baseStars)) {
-        initialSeed = {
-          idx: baseIdx,
-          pName: basePd.palacesByIndex[baseIdx] || ('제' + (baseIdx + 1) + '궁'),
-          stars: baseStars,
-          pd: basePd
-        };
-      }
-    }
   }
-  if (typeof window._renderZwPanel === 'function' && initialSeed && initialSeed.pd) {
-    window._zwComprehensiveSeed = initialSeed;
-    try {
-      window._renderZwPanel(
-        initialSeed.idx,
-        initialSeed.pName,
-        initialSeed.stars,
-        initialSeed.pd,
-        { clickOnly: false, targetId: 'zwComprehensiveReport', showClose: true, showRadar: false, scroll: false }
-      );
-    } catch (err) {
-      console.error('[Ziwei] initial comprehensive render failed:', err);
-      if (typeof window._renderZwComprehensiveFallback === 'function') {
-        window._renderZwComprehensiveFallback(initialSeed, err);
-      }
-    }
-  }
-
-  _zwDeferredPortfolioRender();
 }
 
 /* ─── 사주 요약 박스 접기/펼치기 헬퍼 ─── */
