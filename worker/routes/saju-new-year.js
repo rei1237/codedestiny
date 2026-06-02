@@ -39,7 +39,7 @@ import {
 const newYearPdfLocks = new Map();
 export { NEW_YEAR_CHAPTERS };
 
-const NEW_YEAR_LOCAL_FORBIDDEN_RE = /\b(?:json|payload|debug|schema|engine|prompt|llm|api|seed|evidence|undefined|null|nan|object|todo|fixme|placeholder)\b|\[object Object\]/gi;
+const NEW_YEAR_LOCAL_FORBIDDEN_RE = /\b(?:json|payload|debug|schema|engine|prompt|llm|api|undefined|null|nan|object|todo|fixme|placeholder)\b|\[object Object\]/gi;
 
 const LOCAL_STEMS = Object.freeze(["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]);
 const LOCAL_BRANCHES = Object.freeze(["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]);
@@ -107,7 +107,15 @@ function normalizeFeatureKey(raw) {
 
 function normalizeNewYearBookError(error) {
   if (error instanceof Error) {
-    return { name: error.name, message: error.message, stack: error.stack };
+    return {
+      name: error.name,
+      code: clean(error.code || ""),
+      status: Number(error.status || 0) || undefined,
+      stage: clean(error.stage || ""),
+      message: error.message,
+      causeMessage: clean(error.cause?.message || error.cause || ""),
+      stack: error.stack,
+    };
   }
   if (typeof error === "object" && error !== null) {
     try {
@@ -880,14 +888,13 @@ function buildPdfSeed(profile, targetYear, body = {}) {
   return seed;
 }
 
-function buildSajuNewYearChapterPrompt(seed, chapterSpec) {
+function buildNewYearChapterLocalGuide(seed, chapterSpec) {
   return [
-    "당신은 사주 명리학 기반 신년운세 프리미엄 PDF를 작성하는 전문 상담가입니다.",
-    "JSON seed를 바탕으로 챕터 구조에 맞게 원고를 새로 작성하세요.",
-    "챕터 구조와 세부 카테고리를 절대 누락하지 마세요.",
-    "각 세부 카테고리 본문은 최소 700자 이상, 가능하면 900자 이상 작성하세요.",
+    "사주 명리학 기반 신년운세 프리미엄 PDF의 챕터 구조를 따라 원고를 작성합니다.",
+    "챕터 구조와 세부 카테고리를 누락하지 않습니다.",
+    "각 세부 카테고리 본문은 최소 700자 이상, 가능하면 900자 이상으로 확장합니다.",
     `챕터 구조: ${JSON.stringify(chapterSpec || {})}`,
-    `JSON seed: ${JSON.stringify({ input: seed?.input, natalChart: seed?.natalChart, luckCycles: seed?.luckCycles })}`,
+    `로컬 계산 입력: ${JSON.stringify({ input: seed?.input, natalChart: seed?.natalChart, luckCycles: seed?.luckCycles })}`,
   ].join("\n");
 }
 
@@ -970,7 +977,7 @@ function reinforceChapterFromSpec({ seed, chapterSpec, chapter, reason = "" } = 
   };
 }
 
-function validateSajuNewYearPdfLLMInterpretationQuality({ chapters = [], expectedChapters = buildSajuNewYearChapterSpecs(resolveDefaultTargetYear()), minChapterLength = MIN_CHAPTER_CHARS, minSectionLength = MIN_SECTION_CHARS } = {}) {
+function validateSajuNewYearPdfQuality({ chapters = [], expectedChapters = buildSajuNewYearChapterSpecs(resolveDefaultTargetYear()), minChapterLength = MIN_CHAPTER_CHARS, minSectionLength = MIN_SECTION_CHARS } = {}) {
   const errors = [];
   if (!Array.isArray(chapters) || chapters.length !== expectedChapters.length) {
     errors.push("chapter_count");
@@ -1406,7 +1413,7 @@ function buildReportHtml(seed, chapters) {
   </style></head><body><main class="page">
     <section class="cover"><div><span class="badge">CODE DESTINY · NEW YEAR SAJU</span><h1>${seed.targetYear} 신년운세 프리미엄 리포트</h1><p>사주 원국과 세운으로 읽는 올해의 운명 지도</p><p class="meta">${escHtml(profile.name || "사용자")} · ${escHtml(profile.birthDate)} ${escHtml(profile.birthTime || "시간 미상")}</p></div><img src="${COVER_IMAGE}" alt="신년운세 표지 이미지" onerror="this.style.display='none'"><p>${seed.targetYear}년 나의 운의 흐름과 선택 전략</p></section>
     <section class="content"><h2>올해의 핵심 요약</h2><div class="summary"><div><strong>세운</strong><br>${escHtml(seed.saju.annualLuck.label)} · ${escHtml(seed.saju.annualLuck.elementKo)}</div><div><strong>일간 관계</strong><br>${escHtml(seed.saju.annualLuck.tenGod)} · ${escHtml(seed.saju.annualLuck.dayMasterRelation)}</div><div><strong>월별 운영</strong><br>강한 달과 보수 달을 분리해 실행</div></div><table class="monthly"><thead><tr><th>월</th><th>월운</th><th>흐름</th><th>점수</th><th>전략</th></tr></thead><tbody>${monthlyRows}</tbody></table></section>
-    <section class="toc"><h2>10챕터 목차</h2><ol>${toc}</ol></section>${body}
+    <section class="toc"><h2>${chapters.length}챕터 목차</h2><ol>${toc}</ol></section>${body}
   </main></body></html>`;
 }
 
@@ -1488,7 +1495,7 @@ async function handlePrepare(request, env) {
       errors: ["initial_repair"],
     });
 
-    let validation = validateSajuNewYearPdfLLMInterpretationQuality({
+    let validation = validateSajuNewYearPdfQuality({
       chapters,
       expectedChapters,
       minChapterLength: Math.max(MIN_CHAPTER_CHARS, 4000),
@@ -1502,7 +1509,7 @@ async function handlePrepare(request, env) {
         expectedChapters,
         errors: validation.errors,
       });
-      validation = validateSajuNewYearPdfLLMInterpretationQuality({
+      validation = validateSajuNewYearPdfQuality({
         chapters,
         expectedChapters,
         minChapterLength: Math.max(MIN_CHAPTER_CHARS, 4000),
@@ -1638,11 +1645,11 @@ async function handlePrepare(request, env) {
       reportType: "sajuNewYear",
       serviceKey: SERVICE_KEY,
       targetYear: localYearSajuJson.targetYear,
-      chapterCount: NEW_YEAR_CHAPTERS.length,
+      chapterCount: chapters.length,
       localDraftChapterCount: localManuscript.length,
       finalChapterCount: chapters.length,
       manuscriptSource,
-      llmUsed: false,
+      localEngineUsed: true,
       fallbackUsed: false,
       chapters,
       seed: { ...localYearSajuJson, chapters: undefined },
@@ -1693,6 +1700,7 @@ async function handlePrepare(request, env) {
     } catch (_) {}
     newYearPdfLocks.delete(sessionKey);
     const rawMessage = clean(error?.message || "신년운세 PDF 생성 중 오류가 발생했습니다.");
+    console.error("[NewYearPremiumPDF][Error][prepare]", normalizeNewYearBookError(error));
     const userMessage = rawMessage.includes("생년월일")
       ? "생년월일 정보를 확인할 수 없습니다. 정확한 생년월일시를 입력해 주세요."
       : rawMessage.includes("원국") || rawMessage.includes("사주")
@@ -1711,13 +1719,18 @@ async function handlePrepare(request, env) {
         reportId,
         sessionId: sessionKey,
         originalCode: error?.code || "",
+        stage: clean(error?.stage || "prepare"),
+        status: Number(error?.status || 500),
+        causeMessage: clean(error?.cause?.message || error?.cause || error?.message || ""),
       },
     }, { status: Number(error?.status || 500) });
   }
 }
 
 async function handleChapters() {
-  return json({ ok: true, serviceKey: SERVICE_KEY, chapterCount: NEW_YEAR_CHAPTERS.length, chapters: NEW_YEAR_CHAPTERS });
+  const targetYear = resolveDefaultTargetYear();
+  const chapters = buildSajuNewYearChapterSpecs(targetYear);
+  return json({ ok: true, serviceKey: SERVICE_KEY, targetYear, chapterCount: chapters.length, chapters });
 }
 
 export async function handleSajuNewYearRoutes(request, env = {}) {
@@ -1742,13 +1755,13 @@ export const __sajuNewYearTestUtils = {
   validateChapters,
   buildSajuNewYearChapterSpecs,
   validateSajuNewYearSeed,
-  buildSajuNewYearChapterPrompt,
+  buildNewYearChapterLocalGuide,
   normalizeGeneratedChapter,
   buildDeterministicChapterFromSpec,
   buildHighQualityNewYearSection,
   repairSajuNewYearChapters,
   reinforceChapterFromSpec,
-  validateSajuNewYearPdfLLMInterpretationQuality,
+  validateSajuNewYearPdfQuality,
   stripForbiddenText,
   buildPdfReadyPayload,
 };

@@ -10,7 +10,7 @@
   var API_FEATURE_KEY = 'premium_pdf_saju_new_year';
   var REASON = '사주 신년운세 PDF 리포트 생성';
   var PREPARE_API = '/api/saju-new-year/prepare';
-  var TOTAL_CHAPTERS = 10;
+  var TOTAL_CHAPTERS = 12;
   var COIN_COST = 300;
   var COVER_IMAGE = '/fuctionassets/신년운세.webp';
 
@@ -25,7 +25,7 @@
     '사주 원국과 대상 연도를 검증하는 중입니다',
     '결제 및 접근 권한을 확인하는 중입니다',
     '원국, 대운, 세운, 월운 흐름을 계산하는 중입니다',
-    '10챕터 상담 원고를 정리하는 중입니다',
+    '12챕터 상담 원고를 정리하는 중입니다',
     '최종 PDF를 렌더링하고 저장하는 중입니다'
   ];
 
@@ -43,11 +43,26 @@
   }
   function _logError(error, meta) {
     try {
-      var msg = String(error && error.message ? error.message : error || 'unknown');
-      var stage = meta && meta.stage ? String(meta.stage) : '';
-      var label = '[NewYearPremiumPDF][Error]' + (stage ? '[' + stage + ']' : '') + ' ' + msg;
-      console.error(label, { message: msg, stage: stage, error: error });
+      var safe = {
+        stage: _clean(meta && meta.stage) || _clean(error && error.stage) || 'unknown',
+        code: _clean(error && (error.code || error.name)) || _clean(meta && meta.code) || 'SAJU_NEW_YEAR_CLIENT_ERROR',
+        message: _clean(error && error.message ? error.message : error) || 'unknown',
+        status: Number(error && error.status || meta && meta.status || 0) || undefined,
+        reportId: _clean(error && error.reportId || meta && meta.reportId || _resultPayload && _resultPayload.reportId) || undefined,
+        sessionId: _clean(error && error.sessionId || meta && meta.sessionId || '') || undefined,
+        causeMessage: _clean(error && error.causeMessage || error && error.cause && (error.cause.message || error.cause) || meta && meta.causeMessage) || undefined
+      };
+      if (error && error.debugSafe && typeof error.debugSafe === 'object') safe.debugSafe = error.debugSafe;
+      console.error('[NewYearPremiumPDF][Error][' + safe.stage + ']', safe);
     } catch (_) {}
+  }
+
+  function _publicErrorMessage(error, fallback) {
+    var message = _clean(error && error.message ? error.message : error);
+    if (!message || message === '[object Object]' || /^HTTP\s*5\d\d/i.test(message)) {
+      return fallback || '신년운세 PDF 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    return message;
   }
 
   function _resolveDefaultTargetYear() {
@@ -327,10 +342,10 @@
     _progressTimer = setInterval(function () {
       if (step < TOTAL_CHAPTERS) {
         step += 1;
-        _setProgress(step, '10챕터 로컬 원고 생성 중 (' + step + '/' + TOTAL_CHAPTERS + ')');
+        _setProgress(step, '12챕터 로컬 원고 생성 중 (' + step + '/' + TOTAL_CHAPTERS + ')');
         return;
       }
-      _setProgress(TOTAL_CHAPTERS, 'AI 상담문 보강 중');
+      _setProgress(TOTAL_CHAPTERS, '로컬 상담문 최종 검증 중');
     }, 900);
   }
 
@@ -427,7 +442,15 @@
     if (!response.ok || !body || body.ok === false) {
       var msg = _clean(body && body.message) || ('HTTP ' + response.status);
       _log('RequestFailed', { status: response.status, code: _clean(body && body.code), message: msg });
-      throw new Error(msg);
+      var requestError = new Error(msg);
+      requestError.status = response.status;
+      requestError.code = _clean(body && body.code) || 'SAJU_NEW_YEAR_REQUEST_FAILED';
+      requestError.stage = _clean(body && body.debugSafe && body.debugSafe.stage) || 'prepare';
+      requestError.reportId = _clean(body && body.debugSafe && body.debugSafe.reportId);
+      requestError.sessionId = _clean(body && body.debugSafe && body.debugSafe.sessionId);
+      requestError.causeMessage = _clean(body && body.debugSafe && body.debugSafe.causeMessage);
+      requestError.debugSafe = body && body.debugSafe;
+      throw requestError;
     }
     return body;
   }
@@ -448,6 +471,21 @@
       var ch = Number(item.getAttribute('data-ny-chapter') || 0);
       item.classList.toggle('active', ch === _activeChapter);
     });
+  }
+
+  function _roman(number) {
+    return ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'][Number(number || 1) - 1] || String(number || '');
+  }
+
+  function _syncTocItems() {
+    var toc = document.querySelector('#nyResultScreen .lb-toc');
+    if (!toc || !_chapters.length) return;
+    var items = document.querySelectorAll('#nyResultScreen .ny-toc-item');
+    if (items.length === _chapters.length) return;
+    toc.innerHTML = _chapters.map(function (chapter, index) {
+      var no = Number(chapter && chapter.no || index + 1);
+      return '<button type="button" class="lb-toc-item ny-toc-item' + (index === 0 ? ' active' : '') + '" data-ny-chapter="' + no + '">' + _esc(_roman(no)) + '</button>';
+    }).join('');
   }
 
   function _renderChapter(chapterNo) {
@@ -492,6 +530,7 @@
       dateEl.textContent = (profile.name || '사용자') + ' · ' + profile.birth.year + '. ' + profile.birth.month + '. ' + profile.birth.day + ' 생 · ' + new Date().toLocaleDateString('ko-KR') + ' 발행';
     }
     _activeChapter = 1;
+    _syncTocItems();
     _bindToc();
     _renderChapter(1);
   }
@@ -624,7 +663,7 @@
         _showScreen('nyResultScreen');
       }).catch(function (error) {
         _logError(error, { stage: 'generate' });
-        _setError(String(error && error.message ? error.message : error || 'PDF 생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.'));
+        _setError(_publicErrorMessage(error, '신년운세 PDF 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'));
       }).finally(function () {
         _generating = false;
         _setBusy(false);
@@ -659,9 +698,17 @@
       result.downloadUrl
       || result.pdfUrl
       || result.htmlUrl
+      || result.storedUrl
+      || result.reportUrl
+      || result.fileUrl
+      || result.storageUrl
       || ready.downloadUrl
       || ready.pdfUrl
       || ready.htmlUrl
+      || ready.storedUrl
+      || ready.reportUrl
+      || ready.fileUrl
+      || ready.storageUrl
       || (reportId ? ('/api/premium/pdf-archive/' + encodeURIComponent(reportId)) : '')
     );
 
