@@ -325,6 +325,20 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
   if (premiumAccessToken) {
     responseHeaders.append("Set-Cookie", buildPremiumAccessCookie(premiumAccessToken, isProductionRuntime(env)));
   }
+  let unlockedFeatures = Array.isArray(data?.unlockedFeatures) ? [...data.unlockedFeatures] : [];
+  let unlockMap = data?.unlockMap && typeof data.unlockMap === "object" ? { ...data.unlockMap } : {};
+  const isPermanentUnlock = pricing?.categoryKey === "unlock-feature"
+    || /^section_(daewun|summary|compat)$/.test(featureKey);
+  if (authUserId && featureKey && isPermanentUnlock) {
+    await connectDb(env);
+    const updatedUser = await User.findByIdAndUpdate(
+      authUserId,
+      { $addToSet: { unlockedFeatures: featureKey } },
+      { returnDocument: "after", projection: { unlockedFeatures: 1 } },
+    ).lean();
+    unlockedFeatures = Array.isArray(updatedUser?.unlockedFeatures) ? updatedUser.unlockedFeatures : unlockedFeatures;
+    unlockMap = { ...unlockMap, [featureKey]: true };
+  }
   return success({
     ...data,
     featureKey,
@@ -332,6 +346,8 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
     transactionId,
     freeBySubscription: data?.freeBySubscription === true || consume?.accessType === "membership_pass",
     premiumAccessToken: premiumAccessToken || data?.premiumAccessToken || null,
+    unlockedFeatures,
+    unlockMap,
   }, message, premiumAccessToken ? { headers: responseHeaders } : {});
 }
 
