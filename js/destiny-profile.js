@@ -2382,6 +2382,51 @@
     + '</div>';
   }
 
+  function _dpEnsureSavingCardStyles() {
+    if (document.getElementById('dpSavingCardStyles')) return;
+    var style = document.createElement('style');
+    style.id = 'dpSavingCardStyles';
+    style.textContent = ''
+      + '.dp-master-card--saving{position:relative;overflow:hidden;min-height:238px;background:radial-gradient(circle at 50% 0%,rgba(186,230,253,.28),rgba(79,70,229,.2) 34%,rgba(8,6,32,.98) 100%);border:1px solid rgba(224,231,255,.46);box-shadow:0 22px 58px rgba(15,23,42,.58),0 0 46px rgba(125,211,252,.22),inset 0 1px 0 rgba(255,255,255,.18);}'
+      + '.dp-saving-sky{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 18% 24%,rgba(255,255,255,.75) 0 1px,transparent 2px),radial-gradient(circle at 72% 18%,rgba(253,224,71,.9) 0 1px,transparent 2px),radial-gradient(circle at 84% 62%,rgba(186,230,253,.8) 0 1px,transparent 2px),radial-gradient(circle at 28% 76%,rgba(255,255,255,.7) 0 1px,transparent 2px);animation:dpSavingTwinkle 2.8s ease-in-out infinite;}'
+      + '.dp-saving-inner{position:relative;z-index:1;min-height:238px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#f8fafc;}'
+      + '.dp-saving-orbit{position:relative;width:104px;height:104px;margin-bottom:16px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,rgba(255,255,255,.12),rgba(14,165,233,.08) 52%,transparent 70%);}'
+      + '.dp-saving-orbit::before{content:"";position:absolute;inset:6px;border-radius:50%;border:1px solid rgba(191,219,254,.36);border-top-color:rgba(250,204,21,.95);animation:dpSavingOrbit 1.9s linear infinite;}'
+      + '.dp-saving-moon{width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 34% 30%,#fff7c2 0%,#fde68a 40%,#f59e0b 100%);box-shadow:0 0 28px rgba(253,224,71,.55),inset -13px 4px 0 rgba(67,56,202,.34);}'
+      + '.dp-saving-star{position:absolute;width:9px;height:9px;background:#fff7ed;clip-path:polygon(50% 0,62% 36%,100% 50%,62% 64%,50% 100%,38% 64%,0 50%,38% 36%);box-shadow:0 0 14px rgba(255,255,255,.9);animation:dpSavingPulse 1.6s ease-in-out infinite;}'
+      + '.dp-saving-star--a{left:18px;top:21px;}.dp-saving-star--b{right:16px;top:36px;animation-delay:.35s;}.dp-saving-star--c{left:55px;bottom:12px;animation-delay:.7s;}'
+      + '.dp-saving-title{font-size:1.05rem;font-weight:900;letter-spacing:.02em;color:#fff7ed;text-shadow:0 0 18px rgba(255,255,255,.36);}'
+      + '.dp-saving-desc{margin-top:7px;font-size:.82rem;font-weight:700;line-height:1.55;color:rgba(224,242,254,.9);}'
+      + '.dp-saving-bar{width:min(210px,74%);height:6px;margin-top:17px;border-radius:999px;overflow:hidden;background:rgba(15,23,42,.54);border:1px solid rgba(191,219,254,.25);}'
+      + '.dp-saving-bar::before{content:"";display:block;width:44%;height:100%;border-radius:inherit;background:linear-gradient(90deg,#fef3c7,#bae6fd,#c4b5fd);animation:dpSavingBar 1.45s ease-in-out infinite;}'
+      + '@keyframes dpSavingOrbit{to{transform:rotate(360deg);}}'
+      + '@keyframes dpSavingPulse{0%,100%{transform:scale(.85);opacity:.55;}50%{transform:scale(1.22);opacity:1;}}'
+      + '@keyframes dpSavingTwinkle{0%,100%{opacity:.68;}50%{opacity:1;}}'
+      + '@keyframes dpSavingBar{0%{transform:translateX(-80%);}100%{transform:translateX(230%);}}';
+    document.head.appendChild(style);
+  }
+
+  function renderProfileSavingCard(profile) {
+    var el = document.getElementById('dpMasterCard');
+    if (!el) return;
+    _dpEnsureSavingCardStyles();
+    var safeName = profile && profile.name ? _esc(profile.name) : '새 프로필';
+    el.className = 'dp-master-card dp-master-card--saving';
+    el.innerHTML =
+      '<div class="dp-saving-sky" aria-hidden="true"></div>'
+      + '<div class="dp-saving-inner" role="status" aria-live="polite">'
+        + '<div class="dp-saving-orbit" aria-hidden="true">'
+          + '<div class="dp-saving-moon"></div>'
+          + '<span class="dp-saving-star dp-saving-star--a"></span>'
+          + '<span class="dp-saving-star dp-saving-star--b"></span>'
+          + '<span class="dp-saving-star dp-saving-star--c"></span>'
+        + '</div>'
+        + '<div class="dp-saving-title">' + safeName + '님의 운명 카드를 새기는 중</div>'
+        + '<div class="dp-saving-desc">달빛 아래 별의 좌표를 맞추고 있습니다.</div>'
+        + '<div class="dp-saving-bar" aria-hidden="true"></div>'
+      + '</div>';
+  }
+
   function _zodiacEmoji(year) {
     var animals = ['🐀','🐂','🐅','🐇','🐉','🐍','🐎','🐑','🐒','🐓','🐕','🐖'];
     return animals[(year - 4 + 120) % 12];
@@ -2855,11 +2900,19 @@
     }
     if (!confirm('새 프로필 카드를 생성할까요?\n한 번 생성된 프로필 카드는 수정 및 삭제가 불가능합니다.\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.')) return;
     var btn = document.getElementById('dpSaveBtn');
+    var savingCardVisible = false;
+    function restoreCardAfterSaveAttempt() {
+      if (!savingCardVisible) return;
+      savingCardVisible = false;
+      renderMasterCard(DPStorage.current());
+    }
     if (btn) {
       btn.disabled = true;
       btn.style.opacity = '0.65';
       btn.style.cursor = 'not-allowed';
     }
+    renderProfileSavingCard(data);
+    savingCardVisible = true;
 
     _dpVerifyLoginSession(true).then(function(ok) {
       if (!ok) {
@@ -2888,6 +2941,7 @@
             ? ('\n/points 페이지에서 ' + _dpGetTierLabel(nextTier) + '로 업그레이드하면 더 많은 프로필을 추가할 수 있습니다.')
             : '';
           window.alert(msg || (tierLabel + ' 플랜 한도(' + limitLabel + ')에 도달했습니다.' + guide));
+          restoreCardAfterSaveAttempt();
           return null;
         }
         throw new Error(msg || '프로필 저장 중 오류가 발생했습니다.');
@@ -2914,6 +2968,7 @@
 
       // 저장 성공 직후에는 로컬 상태를 즉시 렌더링해 체감 반응 속도를 우선한다.
       var curr = DPStorage.current();
+      savingCardVisible = false;
       spawnStardust(document.getElementById('dpSaveBtn'));
       renderMasterCard(curr);
       renderProfileList();
@@ -2935,6 +2990,7 @@
       return null;
     }).catch(function(err) {
       var msg = String((err && err.message) || '프로필 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      restoreCardAfterSaveAttempt();
       if (msg === 'AUTH_REQUIRED') {
         if (window.confirm('🔒 프로필 카드는 로그인 후에만 생성할 수 있습니다.\n로그인 페이지로 이동할까요?')) {
           window.location.href = '/login?next=%2F';

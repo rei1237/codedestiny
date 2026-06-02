@@ -324,35 +324,8 @@ const KasiEngine = {
         registerCalendarReference: function(reference) {
           return rememberKasiCalendarReference(reference);
         },
-    getGanji: function(date, options = { yaja: true, leapMonthOption: 'prev' }) {
-        if (!date) return null;
-        var tDate = new Date(date.getTime());
-        var h = tDate.getHours();
-        var min = tDate.getMinutes();
-
-        if (h === 23 && min >= 30) {
-            if (options.yaja) {
-                tDate.setDate(tDate.getDate() + 1);
-            }
-        } else if (h === 23 && options.yaja) {
-            tDate.setDate(tDate.getDate() + 1);
-        }
-
-        var solar = Solar.fromYmdHms(tDate.getFullYear(), tDate.getMonth() + 1, tDate.getDate(), tDate.getHours(), tDate.getMinutes(), tDate.getSeconds());
-        var lunar = solar.getLunar();
-        var baZi = lunar.getEightChar();
-        
-        let secha = baZi.getYear();
-        let weolgeon = baZi.getMonth();
-        let iljin = baZi.getDay();
-
-        if (lunar.getMonth() < 0 && options.leapMonthOption === 'next') {
-            let nextLunar = Lunar.fromYmd(lunar.getYear(), Math.abs(lunar.getMonth()) + 1, lunar.getDay());
-            if(nextLunar) {
-                weolgeon = nextLunar.getEightChar().getMonth();
-            }
-        }
-        return { secha: secha, weolgeon: weolgeon, iljin: iljin };
+    getGanji: function() {
+        return null;
     }
 };
 
@@ -591,26 +564,6 @@ function buildFallbackDateContext(input, reason) {
         gj = KasiEngine.getGanji(solarDate);
       }
     } catch (_e) {}
-    if (!gj || !gj.secha || !gj.weolgeon || !gj.iljin) {
-      try {
-        if (hasSolarLib) {
-          var _solar = Solar.fromYmdHms(
-            solarDate.getFullYear(),
-            solarDate.getMonth() + 1,
-            solarDate.getDate(),
-            solarDate.getHours(),
-            solarDate.getMinutes(),
-            solarDate.getSeconds()
-          );
-          var _lunar = _solar && _solar.getLunar ? _solar.getLunar() : null;
-          var _bazi = _lunar && _lunar.getEightChar ? _lunar.getEightChar() : null;
-          if (_bazi) {
-            gj = { secha: _bazi.getYear(), weolgeon: _bazi.getMonth(), iljin: _bazi.getDay() };
-          }
-        }
-      } catch (_e4) {}
-    }
-
     return {
       source: 'fallback',
       input: {
@@ -3781,33 +3734,23 @@ async function calculate(){
       } catch (_correctedCtxErr) {}
     }
 
-    var solar=Solar.fromYmdHms(correctedYear,correctedMonth,correctedDay,correctedHour,correctedMinute,0);
-    var bazi=solar.getLunar().getEightChar();
-
     var kasiYearPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.year) : null;
     var kasiMonthPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.month) : null;
     var kasiDayPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.day) : null;
-    if (kasiYearPair && kasiMonthPair && kasiDayPair) {
-      bazi.getYearGan = function() { return kasiYearPair.g; };
-      bazi.getYearZhi = function() { return kasiYearPair.j; };
-      bazi.getMonthGan = function() { return kasiMonthPair.g; };
-      bazi.getMonthZhi = function() { return kasiMonthPair.j; };
-      bazi.getDayGan = function() { return kasiDayPair.g; };
-      bazi.getDayZhi = function() { return kasiDayPair.j; };
-    } else {
-      try {
-        var _d = new Date(correctedYear, correctedMonth-1, correctedDay, correctedHour, correctedMinute);
-        var _gj = KasiEngine.getGanji(_d);
-        if (_gj && _gj.secha && _gj.weolgeon && _gj.iljin) {
-            bazi.getYearGan = function() { return _gj.secha[0]; };
-            bazi.getYearZhi = function() { return _gj.secha[1]; };
-            bazi.getMonthGan = function() { return _gj.weolgeon[0]; };
-            bazi.getMonthZhi = function() { return _gj.weolgeon[1]; };
-            bazi.getDayGan = function() { return _gj.iljin[0]; };
-            bazi.getDayZhi = function() { return _gj.iljin[1]; };
-        }
-      } catch(e) {}
+    var kasiHourPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.hour) : null;
+    if (!kasiYearPair || !kasiMonthPair || !kasiDayPair || !kasiHourPair) {
+      throw new Error('KASI 기준 사주 원국 간지 계산값을 확인할 수 없습니다.');
     }
+    var bazi = {
+      getYearGan: function() { return kasiYearPair.g; },
+      getYearZhi: function() { return kasiYearPair.j; },
+      getMonthGan: function() { return kasiMonthPair.g; },
+      getMonthZhi: function() { return kasiMonthPair.j; },
+      getDayGan: function() { return kasiDayPair.g; },
+      getDayZhi: function() { return kasiDayPair.j; },
+      getTimeGan: function() { return kasiHourPair.g; },
+      getTimeZhi: function() { return kasiHourPair.j; }
+    };
     
     var yg=bazi.getYearGan(),yz=bazi.getYearZhi();
     var mg=bazi.getMonthGan(),mz=bazi.getMonthZhi();

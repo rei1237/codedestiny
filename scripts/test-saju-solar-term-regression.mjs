@@ -1,7 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
+import Module from "node:module";
 import { fileURLToPath } from "node:url";
+import ts from "typescript";
 import { Solar, Lunar } from "lunar-javascript";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -71,6 +73,24 @@ function loadKasiCalendarService() {
   return sandbox.window.KasiCalendarService;
 }
 
+function loadTsModule(relativePath) {
+  const fullPath = path.join(root, relativePath);
+  const source = fs.readFileSync(fullPath, "utf8");
+  const compiled = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2020,
+      esModuleInterop: true,
+    },
+    fileName: fullPath,
+  }).outputText;
+  const mod = new Module(fullPath);
+  mod.filename = fullPath;
+  mod.paths = Module._nodeModulePaths(path.dirname(fullPath));
+  mod._compile(compiled, fullPath);
+  return mod.exports;
+}
+
 function shiftDatePartsByDays(year, month, day, dayOffset) {
   const shifted = new Date(Date.UTC(year, month - 1, day) + dayOffset * 86400000);
   return { year: shifted.getUTCFullYear(), month: shifted.getUTCMonth() + 1, day: shifted.getUTCDate() };
@@ -99,16 +119,6 @@ function applyTrueSolarTimeCorrection({ year, month, day, hour, minute, longitud
   };
 }
 
-function pillarAt(year, month, day, hour, minute) {
-  const eight = Solar.fromYmdHms(year, month, day, hour, minute, 0).getLunar().getEightChar();
-  return {
-    year: eight.getYear(),
-    month: eight.getMonth(),
-    day: eight.getDay(),
-    hour: eight.getTime(),
-  };
-}
-
 const service = loadKasiCalendarService();
 const testApi = service.__test;
 const terms1990 = testApi.readValidatedSolarTerms(1990);
@@ -124,12 +134,21 @@ const corrected = applyTrueSolarTimeCorrection({
   standardMeridian: 135,
 });
 
-const p = pillarAt(corrected.year, corrected.month, corrected.day, corrected.hour, corrected.minute);
-p.month = testApi.computeMonthGanjiFromTerms(
-  terms1990,
-  new Date("1990-03-18T07:20:00+09:00"),
-  yearGan,
-) || p.month;
+const ctx1990 = await service.resolveDateContext({
+  calendarType: "solar",
+  year: corrected.year,
+  month: corrected.month,
+  day: corrected.day,
+  hour: corrected.hour,
+  minute: corrected.minute,
+  second: 0,
+}, { localOnly: true });
+const p = {
+  year: ctx1990.ganji.year,
+  month: testApi.computeMonthGanjiFromTerms(terms1990, new Date("1990-03-18T07:20:00+09:00"), yearGan) || ctx1990.ganji.month,
+  day: ctx1990.ganji.day,
+  hour: ctx1990.ganji.hour,
+};
 
 assertEqual(`${p.year} ${p.month} ${p.day} ${p.hour}`, "庚午 己卯 壬午 癸卯", "1990-03-18 Seoul female pillars");
 assertNotEqual(p.month, "戊寅", "month pillar regression guard");
@@ -164,5 +183,21 @@ const seed = {
 };
 assertEqual(seed.premiumReportSeed.pillars.month, seed.pillars.month, "premium seed month consistency");
 assertEqual(seed.pdfSeed.pillars.month, seed.pillars.month, "PDF seed month consistency");
+
+const { calculateLocalSaju } = loadTsModule("app/saju/animal-destiny/engine/localSajuCalculator.ts");
+const local = calculateLocalSaju({
+  year: 1990,
+  month: 3,
+  day: 18,
+  hour: 7,
+  minute: 20,
+  hasTime: true,
+  calendarType: "solar",
+});
+
+assertEqual(local.pillars.year.ganji, "경오", "local calculator year pillar");
+assertEqual(local.pillars.month.ganji, "기묘", "local calculator month pillar");
+assertEqual(local.pillars.day.ganji, "임오", "local calculator day pillar");
+assertEqual(local.pillars.hour.ganji, "계묘", "local calculator true-solar hour pillar");
 
 console.log("PASS saju solar-term regression");

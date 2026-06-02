@@ -1,4 +1,5 @@
 import { SajuAnalysis } from "../_types";
+import { calculateLocalSaju } from "../../animal-destiny/engine/localSajuCalculator";
 
 export interface SajuPillarRequest {
   name: string;
@@ -8,9 +9,6 @@ export interface SajuPillarRequest {
   day: number;
   hour: number;
 }
-
-const GAN = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"] as const;
-const ZHI = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"] as const;
 
 const GAN_ELEMENT: Record<string, "목" | "화" | "토" | "금" | "수"> = {
   갑: "목",
@@ -40,24 +38,9 @@ const ZHI_ELEMENT: Record<string, "목" | "화" | "토" | "금" | "수"> = {
   해: "수",
 };
 
-function floorMod(value: number, base: number): number {
-  return ((value % base) + base) % base;
-}
-
 function normalizeHour(rawHour: number): number {
   if (!Number.isFinite(rawHour) || rawHour < 0) return 12;
   return Math.max(0, Math.min(23, Math.floor(rawHour)));
-}
-
-function safeDateSerial(year: number, month: number, day: number): number {
-  const d = new Date(Date.UTC(year, month - 1, day));
-  return Math.floor(d.getTime() / 86400000);
-}
-
-function buildPillarFromIndex(index: number): string {
-  const gan = GAN[floorMod(index, 10)];
-  const zhi = ZHI[floorMod(index, 12)];
-  return `${gan}${zhi}`;
 }
 
 function fallbackSajuAnalysis(params: SajuPillarRequest): SajuAnalysis {
@@ -66,17 +49,19 @@ function fallbackSajuAnalysis(params: SajuPillarRequest): SajuAnalysis {
   const day = Number(params.day) || 1;
   const hour = normalizeHour(Number(params.hour));
 
-  // 1984년을 갑자년 기준점으로 사용
-  const yearIndex = floorMod(year - 1984, 60);
-  const monthIndex = floorMod((yearIndex * 12) + (month - 1) + 14, 60);
-  const dayIndex = floorMod(safeDateSerial(year, month, day) + 40, 60);
-  const hourBranchIndex = floorMod(Math.floor((hour + 1) / 2), 12);
-  const hourIndex = floorMod((dayIndex * 12) + hourBranchIndex, 60);
-
-  const yearPillar = buildPillarFromIndex(yearIndex);
-  const monthPillar = buildPillarFromIndex(monthIndex);
-  const dayPillar = buildPillarFromIndex(dayIndex);
-  const hourPillar = buildPillarFromIndex(hourIndex);
+  const local = calculateLocalSaju({
+    year,
+    month,
+    day,
+    hour,
+    minute: 0,
+    hasTime: true,
+    calendarType: "solar",
+  });
+  const yearPillar = local.pillars.year.ganji;
+  const monthPillar = local.pillars.month.ganji;
+  const dayPillar = local.pillars.day.ganji;
+  const hourPillar = local.pillars.hour?.ganji || "";
 
   const dayMasterGan = dayPillar.charAt(0) || "갑";
   const dayMasterElement = GAN_ELEMENT[dayMasterGan] || "목";
