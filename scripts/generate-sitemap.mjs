@@ -7,6 +7,7 @@ const sitemapPublicPath = resolve(rootDir, "public", "sitemap.xml");
 const insightsSourcePath = resolve(rootDir, "app", "insights", "articles.js");
 const insightsSeoGrowthSourcePath = resolve(rootDir, "app", "insights", "seo-growth-articles.js");
 const highValueSourcePath = resolve(rootDir, "app", "high-value", "content.js");
+const famousSajuSourcePath = resolve(rootDir, "lib", "famous-saju", "celebrity-data.ts");
 const siteBaseUrl = (process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const insightsApiBase = (process.env.INSIGHTS_API_BASE_URL || process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const useInsightsApi = String(process.env.SITEMAP_USE_INSIGHTS_API || "").toLowerCase() === "1";
@@ -71,6 +72,7 @@ const coreRoutes = [
   { path: "/insights/vedic", changefreq: "weekly", priority: 0.83 },
   { path: "/insights/dream", changefreq: "weekly", priority: 0.82 },
   { path: "/insights/compatibility", changefreq: "weekly", priority: 0.82 },
+  { path: "/famous-saju", changefreq: "weekly", priority: 0.88 },
   { path: "/high-value", changefreq: "weekly", priority: 0.84 },
   { path: "/rss.xml", changefreq: "daily", priority: 0.2 },
   { path: "/insights/rss.xml", changefreq: "daily", priority: 0.2 },
@@ -124,6 +126,49 @@ function extractInsightRoutes() {
   }
 
   return routes;
+}
+
+function famousCategorySlug(value) {
+  const table = {
+    "역사 위인": "history",
+    "왕족·정치인": "politics",
+    "K-스타": "k-star",
+    "배우": "actor",
+    "가수": "singer",
+    "스포츠": "sports",
+    "기업인": "business",
+    "감독·작가": "director-writer",
+    "JP 일본": "jp",
+    "CN 중국": "cn",
+    "US 미국": "us",
+    "사상가·예술가": "thinker-artist",
+  };
+  return table[value] || String(value || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+function extractFamousSajuRoutes() {
+  const source = readFileSync(famousSajuSourcePath, "utf8");
+  const itemRegex = /\[\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"[^"]+"\s*,\s*"([0-9]{4}-[0-9]{2}-[0-9]{2})"/g;
+  const routes = [];
+  const categoryRoutes = new Set();
+  const seen = new Set();
+
+  let match;
+  while ((match = itemRegex.exec(source)) !== null) {
+    const slug = String(match[1] || "").trim();
+    const category = String(match[3] || "").trim();
+    if (!slug || seen.has(slug)) continue;
+    seen.add(slug);
+    routes.push({ path: `/famous-saju/${slug}`, changefreq: "monthly", priority: 0.76, lastmod: today });
+
+    const cSlug = famousCategorySlug(category);
+    if (cSlug) categoryRoutes.add(cSlug);
+  }
+
+  return [
+    ...routes,
+    ...Array.from(categoryRoutes).map((slug) => ({ path: `/famous-saju/category/${slug}`, changefreq: "weekly", priority: 0.72, lastmod: today })),
+  ];
 }
 
 function extractHighValueRoutes() {
@@ -236,6 +281,7 @@ async function main() {
     ...coreRoutes,
     ...localInsights,
     ...dynamicInsights,
+    ...extractFamousSajuRoutes(),
     ...extractHighValueRoutes(),
   ];
 

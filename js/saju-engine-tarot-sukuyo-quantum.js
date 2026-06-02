@@ -1109,14 +1109,16 @@ function combineTarotAndTenGod(card, tenGod, category, orientation) {
   var combinedReading = cardName + '의 상징과 ' + mainTenGod + '의 작용이 만나는 지점은 ' + catKo + ' 영역의 우선순위를 다시 세우는 데 있습니다. ' +
     (bridge || ('지금은 ' + suitTheme + '의 주제를 ' + tenMeta.label + '의 방식으로 정교하게 다루면 해석의 밀도가 살아납니다.'));
 
-  var shadowWarning = tenMeta.shadow + ' 특히 ' + catKo + ' 질문에서는 성급한 결론보다 맥락 정리가 먼저입니다.';
+  var shadowWarning = dir === 'reversed'
+    ? cardName + '의 그늘은 아직 정리되지 않은 마음의 결에 남아 있습니다. ' + mainTenGod + '의 흐름을 다독이며 한 템포 늦추면, 흐린 기운이 먼저 옅어집니다.'
+    : cardName + '의 기운은 이미 문턱을 넘어섰습니다. ' + mainTenGod + '의 장점을 조용히 살리면 오늘의 흐름이 현실의 결실로 이어집니다.';
   var practicalAdvice = dir === 'reversed'
-    ? '오늘은 결론을 강요하지 말고, 20분짜리 회복 루틴 하나를 정해 실제로 실행하세요.'
-    : '오늘은 카드가 가리킨 주제를 1개의 행동으로 압축해 24시간 안에 실행하고 기록하세요.';
+    ? '오늘은 결론을 밀어붙이지 말고, 20분 정도 숨을 고르는 회복 의식을 먼저 해보세요.'
+    : '오늘은 카드가 가리킨 주제를 하나의 행동으로 좁혀 24시간 안에 실행하고 기록해보세요.';
 
   var oracleMessage = dir === 'reversed'
-    ? cardName + '의 빛은 아직 안쪽에서 켜지고 있습니다. 서두르지 말고 ' + mainTenGod + '의 리듬으로 숨을 고르면 길이 다시 보입니다.'
-    : cardName + '의 신호는 이미 문턱에 도착했습니다. ' + mainTenGod + '의 강점을 조용히 실행하면 오늘의 운은 현실이 됩니다.';
+    ? cardName + '의 기운은 아직 여물어 가는 중입니다. ' + mainTenGod + '의 리듬을 따라 천천히 정돈하면 길이 또렷해집니다.'
+    : cardName + '의 신호는 이미 문턱에 닿아 있습니다. ' + mainTenGod + '의 강점을 조용히 실천하면 오늘의 운이 결실로 맺힙니다.';
 
   var reading = {
     category: catKo,
@@ -1165,7 +1167,6 @@ function buildMyeongriTarotReadingHtml(reading, slotLabel) {
       '<div style="margin-top:8px;line-height:1.85;"><b style="color:#86efac;">카드 + 십성 결합 해석:</b> ' + escapeTarotHtml(reading.combinedReading) + '</div>' +
       '<div style="margin-top:8px;line-height:1.85;"><b style="color:#fca5a5;">그림자 경고:</b> ' + escapeTarotHtml(reading.shadowWarning) + '</div>' +
       '<div style="margin-top:8px;line-height:1.85;"><b style="color:#fcd34d;">현실 조언:</b> ' + escapeTarotHtml(reading.practicalAdvice) + '</div>' +
-      '<div style="margin-top:8px;line-height:1.85;color:#d1fae5;"><b>오늘의 오라클 메시지:</b> "' + escapeTarotHtml(reading.oracleMessage) + '"</div>' +
       qualityTag +
     '</div>';
 }

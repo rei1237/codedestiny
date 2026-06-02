@@ -324,7 +324,27 @@ const KasiEngine = {
         registerCalendarReference: function(reference) {
           return rememberKasiCalendarReference(reference);
         },
-    getGanji: function() {
+    getGanji: function(date, options) {
+        options = options || { yaja: true };
+        if (!date || isNaN(date.getTime())) return null;
+        var tDate = new Date(date.getTime());
+        var h = tDate.getHours();
+        var min = tDate.getMinutes();
+        if ((h === 23 && min >= 30 && options.yaja) || (h === 23 && options.yaja)) {
+          tDate.setDate(tDate.getDate() + 1);
+        }
+        if (window.KasiCalendarService && typeof window.KasiCalendarService.computeGanjiFromDate === 'function') {
+          var computed = window.KasiCalendarService.computeGanjiFromDate(tDate);
+          if (computed && computed.year && computed.month && computed.day) {
+            return {
+              secha: computed.year,
+              weolgeon: computed.month,
+              iljin: computed.day,
+              sigan: computed.hour || null,
+              source: computed.source || 'validated-cache'
+            };
+          }
+        }
         return null;
     }
 };

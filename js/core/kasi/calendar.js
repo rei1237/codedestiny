@@ -278,6 +278,18 @@ const KasiEngine = {
   getGanji: function(date, options) {
     options = options || { yaja: true, leapMonthOption: 'prev' };
     if (!date) return null;
+    if (typeof window !== 'undefined' && window.KasiCalendarService && typeof window.KasiCalendarService.computeGanjiFromDate === 'function') {
+      var computed = window.KasiCalendarService.computeGanjiFromDate(date);
+      if (computed && computed.year && computed.month && computed.day) {
+        return {
+          secha: computed.year,
+          weolgeon: computed.month,
+          iljin: computed.day,
+          sigan: computed.hour || null,
+          source: computed.source || 'validated-cache'
+        };
+      }
+    }
     
     if (typeof Solar === 'undefined' || typeof Solar.fromYmdHms === 'undefined') {
       return null;

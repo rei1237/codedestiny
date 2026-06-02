@@ -41,12 +41,12 @@ function splitTags(value) {
 function inferCategoryLabel(item) {
   const bag = `${normalizeText(item?.categoryLabel, 120)} ${normalizeText(item?.categoryName, 120)} ${normalizeText(item?.categorySlug, 120)} ${normalizeText(item?.category, 120)} ${normalizeText(item?.type, 80)} ${normalizeText(item?.kind, 80)} ${normalizeText(item?.title, 240)} ${splitTags(item?.tags).join(" ")}`;
 
-  if (/자미|ziwei|명궁|궁위/i.test(bag)) return "자미두수";
-  if (/숙요|27숙|영친|업태|안괴/i.test(bag)) return "숙요점";
-  if (/타로|arcan|카드|스프레드/i.test(bag)) return "타로";
+  if (/자미두수|ziwei|명궁|궁위|관록궁/i.test(bag)) return "자미두수";
+  if (/숙요|27숙|영친|안괴|업태/i.test(bag)) return "숙요점";
+  if (/타로|tarot|arcana|카드|스프레드/i.test(bag)) return "타로";
   if (/베다|vedic|라그나|나크샤트라|다샤/i.test(bag)) return "베다점";
-  if (/점성|astrology|태양궁|상승궁|하우스/i.test(bag)) return "점성술";
-  if (/궁합|compatibility|연애/i.test(bag)) return "궁합";
+  if (/점성술|astrology|출생차트|상승궁|하우스/i.test(bag)) return "점성술";
+  if (/궁합|compatibility|인연|관계/i.test(bag)) return "궁합";
   if (/오늘|daily/i.test(bag)) return "오늘의 운세";
   if (/신년|new\s*year|yearly/i.test(bag)) return "신년운세";
   if (/룬|rune/i.test(bag)) return "룬";
@@ -94,7 +94,7 @@ function normalizePost(raw) {
     categoryLabel,
     tags,
     coverImage: normalizeText(raw?.coverImage || raw?.featuredImage?.url || raw?.thumbnailUrl, 1200),
-    coverImageAlt: normalizeText(raw?.featuredImage?.alt || title || "인사이트 대표 이미지", 280),
+    coverImageAlt: normalizeText(raw?.featuredImage?.alt || title || "운세 인사이트 이미지", 280),
     serviceLink,
     ctaLabel: normalizeText(raw?.ctaLabel || raw?.cta?.title || "관련 운세 서비스로 이동", 100),
     seoTitle: normalizeText(raw?.seoTitle || raw?.metaTitle || raw?.seo?.metaTitle || title, 240),

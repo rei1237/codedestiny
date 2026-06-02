@@ -22,7 +22,18 @@ const VALIDATED_SOLAR_TERMS_1990 = [
   { month: 2, day: 4, hour: 11, minute: 14 },
   { month: 3, day: 6, hour: 5, minute: 19 },
   { month: 4, day: 5, hour: 10, minute: 12 },
+  { month: 5, day: 6, hour: 3, minute: 35 },
+  { month: 6, day: 6, hour: 7, minute: 46 },
+  { month: 7, day: 7, hour: 18, minute: 0 },
+  { month: 8, day: 8, hour: 3, minute: 46 },
+  { month: 9, day: 8, hour: 6, minute: 38 },
+  { month: 10, day: 8, hour: 22, minute: 14 },
+  { month: 11, day: 8, hour: 1, minute: 23 },
+  { month: 12, day: 7, hour: 18, minute: 14 },
 ] as const;
+const VALIDATED_SOLAR_TERMS_BY_YEAR: Record<number, readonly { month: number; day: number; hour: number; minute: number }[]> = {
+  1990: VALIDATED_SOLAR_TERMS_1990,
+};
 
 type StemKr = (typeof STEMS)[number];
 type BranchKr = (typeof BRANCHES)[number];
@@ -184,9 +195,8 @@ function boundaryMs(year: number, boundary: { month: number; day: number; hour: 
 }
 
 function getSolarTermBoundaries(year: number) {
-  if (year === 1990) {
-    return MONTH_BOUNDARIES.map((row, index) => VALIDATED_SOLAR_TERMS_1990[index] || row);
-  }
+  const verified = VALIDATED_SOLAR_TERMS_BY_YEAR[year];
+  if (verified && verified.length >= 12) return verified;
   return MONTH_BOUNDARIES;
 }
 

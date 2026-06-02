@@ -1,6 +1,7 @@
 /** Shared with app/sitemap.ts — single source for public indexable URLs. */
 
 import { PSYCHOTESTS } from "./psychotest-catalog";
+import { categoryToSlug, publishedCelebritySajuSeeds } from "./famous-saju/celebrity-data";
 
 export const BASE_URL = "https://code-destiny.com";
 
@@ -30,6 +31,24 @@ const PSYCHOTEST_ROUTE_ENTRIES: SitemapRouteEntry[] = [
     changeFrequency: "weekly" as const,
     priority: 0.84,
   })),
+];
+
+const FAMOUS_SAJU_CATEGORY_ROUTE_ENTRIES: SitemapRouteEntry[] = Array.from(
+  new Set(publishedCelebritySajuSeeds.map((item) => categoryToSlug(item.category))),
+).map((slug) => ({
+  path: `/famous-saju/category/${slug}`,
+  changeFrequency: "weekly" as const,
+  priority: 0.72,
+}));
+
+const FAMOUS_SAJU_ROUTE_ENTRIES: SitemapRouteEntry[] = [
+  { path: "/famous-saju", changeFrequency: "weekly", priority: 0.88 },
+  ...publishedCelebritySajuSeeds.map((item) => ({
+    path: `/famous-saju/${item.slug}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.76,
+  })),
+  ...FAMOUS_SAJU_CATEGORY_ROUTE_ENTRIES,
 ];
 
 export const ROUTES: SitemapRouteEntry[] = [
@@ -79,6 +98,7 @@ export const ROUTES: SitemapRouteEntry[] = [
   { path: "/insights/vedic", changeFrequency: "weekly", priority: 0.85 },
   { path: "/insights/dream", changeFrequency: "weekly", priority: 0.84 },
   { path: "/insights/compatibility", changeFrequency: "weekly", priority: 0.84 },
+  ...FAMOUS_SAJU_ROUTE_ENTRIES,
   { path: "/high-value",  changeFrequency: "weekly", priority: 0.88 },
 
   // ── High-Value 개별 문서 ──────────────────────────────────────

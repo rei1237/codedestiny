@@ -1,36 +1,44 @@
 import Link from "next/link";
+import { INSIGHT_ARTICLES, getArticlesByTopic } from "./articles";
 
 function topicMatcher(topic) {
   const normalized = String(topic || "all").toLowerCase();
 
   if (normalized === "all") return () => true;
-  if (normalized === "compatibility") {
-    return (item) => /궁합|compatibility|연애/.test(`${item.title} ${item.category} ${(item.tags || []).join(" ")}`.toLowerCase());
-  }
 
   return (item) => {
-    const bag = `${item.title} ${item.category} ${(item.tags || []).join(" ")}`.toLowerCase();
-    if (normalized === "saju") return /사주|만세력|일간|십성|오행/.test(bag);
-    if (normalized === "ziwei") return /자미두수|ziwei|12궁|명궁|재백궁|관록궁/.test(bag);
-    if (normalized === "sukuyo") return /숙요|27숙|영친|업태|안괴/.test(bag);
-    if (normalized === "tarot") return /타로|arcana|card|스프레드/.test(bag);
-    if (normalized === "astrology") return /점성술|astrology|출생차트|상승궁|하우스/.test(bag);
-    if (normalized === "vedic") return /베다|vedic|라그나|나크샤트라|다샤/.test(bag);
-    if (normalized === "dream") return /꿈|해몽/.test(bag);
+    const bag = `${item.title || ""} ${item.category || ""} ${(item.tags || []).join(" ")} ${(item.keywords || []).join(" ")}`.toLowerCase();
+    if (normalized === "saju") return /사주|명리|만세력|오행|일간/.test(bag);
+    if (normalized === "ziwei") return /자미두수|명궁|관록궁|궁위/.test(bag);
+    if (normalized === "sukuyo") return /숙요|27숙|영친|안괴|업태/.test(bag);
+    if (normalized === "tarot") return /타로|아르카나|카드|스프레드/.test(bag);
+    if (normalized === "astrology") return /점성술|출생차트|상승궁|하우스/.test(bag);
+    if (normalized === "vedic") return /베다|라그나|나크샤트라|다샤/.test(bag);
+    if (normalized === "compatibility") return /궁합|인연|관계|compatibility/.test(bag);
+    if (normalized === "dream") return /꿈|해몽|태몽/.test(bag);
     return false;
   };
 }
 
+function formatDate(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+}
+
 export default function InsightTopicArchive({ topic, title, intro, serviceCtaPath }) {
-  const topicLabel = String(topic || "all").toLowerCase();
-  const items = [
-    { slug: `${topicLabel}-guide-1`, category: title, title: `${title} 핵심 가이드`, excerpt: intro },
-    { slug: `${topicLabel}-guide-2`, category: title, title: `${title} 실전 해석`, excerpt: "질문 설계와 활용 루틴을 함께 확인하세요." },
-    { slug: `${topicLabel}-guide-3`, category: title, title: `${title} 초보자 체크리스트`, excerpt: "처음 볼 때 놓치기 쉬운 포인트를 정리합니다." },
-  ];
-  const representativeTags = [title, topicLabel].filter(Boolean).slice(0, 12);
-  const beginnerGuides = items.slice(0, 2);
-  const practicalGuides = items.slice(1, 3);
+  const matcher = topicMatcher(topic);
+  const topicItems = getArticlesByTopic(topic);
+  const matched = topicItems.length > 0 ? topicItems : INSIGHT_ARTICLES.filter(matcher);
+  const items = matched.length > 0 ? matched : INSIGHT_ARTICLES.slice(0, 12);
+  const representativeTags = Array.from(new Set(items.flatMap((item) => item.tags || item.keywords || []).filter(Boolean))).slice(0, 12);
+  const beginnerGuides = items.filter((item) => /기초|입문|처음|보는 법|란\?/.test(`${item.title} ${item.excerpt || item.description}`)).slice(0, 6);
+  const practicalGuides = items.filter((item) => /해석|실전|흐름|관계|재물|사랑|직업/.test(`${item.title} ${item.excerpt || item.description}`)).slice(0, 6);
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 text-slate-100 md:px-6 md:py-10">
@@ -63,9 +71,12 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
               href={`/insights/${article.slug}`}
               className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 hover:bg-white/10"
             >
-              <p className="text-xs text-slate-400">{article.category}</p>
+              <p className="text-xs text-slate-400">
+                {article.category}
+                {formatDate(article.publishedAt) ? ` · ${formatDate(article.publishedAt)}` : ""}
+              </p>
               <h3 className="mt-1 text-sm font-semibold leading-6 text-slate-100">{article.title}</h3>
-              <p className="mt-2 text-xs leading-6 text-slate-300 line-clamp-3">{article.excerpt}</p>
+              <p className="mt-2 text-xs leading-6 text-slate-300 line-clamp-3">{article.excerpt || article.description}</p>
             </Link>
           ))}
         </div>
@@ -74,7 +85,7 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
       <section className="mt-6 rounded-3xl border border-white/10 bg-[#0f1525] px-5 py-6 md:px-8 md:py-8">
         <h2 className="text-xl font-semibold text-amber-100">최신 글</h2>
         <ul className="mt-4 space-y-2">
-          {items.map((article) => (
+          {items.slice(0, 10).map((article) => (
             <li key={`latest-${article.slug}`} className="rounded-lg border border-white/10 bg-white/5 px-4 py-3">
               <Link href={`/insights/${article.slug}`} className="text-sm leading-6 text-slate-100 hover:text-amber-100">
                 {article.title}
@@ -87,7 +98,7 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
       <section className="mt-6 rounded-3xl border border-white/10 bg-[#11182b] px-5 py-6 md:px-8 md:py-8">
         <h2 className="text-xl font-semibold text-amber-100">초보자 가이드</h2>
         <ul className="mt-4 space-y-2">
-          {beginnerGuides.map((article) => (
+          {(beginnerGuides.length > 0 ? beginnerGuides : items.slice(0, 6)).map((article) => (
             <li key={`beginner-${article.slug}`} className="rounded-lg border border-white/10 bg-white/5 px-4 py-3">
               <Link href={`/insights/${article.slug}`} className="text-sm leading-6 text-slate-100 hover:text-amber-100">
                 {article.title}
@@ -100,7 +111,7 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
       <section className="mt-6 rounded-3xl border border-white/10 bg-[#11182b] px-5 py-6 md:px-8 md:py-8">
         <h2 className="text-xl font-semibold text-amber-100">실전 해석 글</h2>
         <ul className="mt-4 space-y-2">
-          {practicalGuides.map((article) => (
+          {(practicalGuides.length > 0 ? practicalGuides : items.slice(0, 6)).map((article) => (
             <li key={`practical-${article.slug}`} className="rounded-lg border border-white/10 bg-white/5 px-4 py-3">
               <Link href={`/insights/${article.slug}`} className="text-sm leading-6 text-slate-100 hover:text-amber-100">
                 {article.title}

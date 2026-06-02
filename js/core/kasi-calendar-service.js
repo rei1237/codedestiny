@@ -170,6 +170,23 @@
     '1997-01-03|0': { year: 1997, month: 2, day: 10 }
   };
 
+  var _VALIDATED_SOLAR_TERMS_BY_YEAR = {
+    '1990': [
+      { name: '\uc18c\ud55c', atLocal: '1990-01-05T23:33:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
+      { name: '\uc785\ucd98', atLocal: '1990-02-04T11:14:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
+      { name: '\uacbd\uce68', atLocal: '1990-03-06T05:19:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
+      { name: '\uccad\uba85', atLocal: '1990-04-05T10:12:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
+      { name: '\uc785\ud558', atLocal: '1990-05-06T03:35:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
+      { name: '\ub9dd\uc885', atLocal: '1990-06-06T07:46:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
+      { name: '\uc18c\uc11c', atLocal: '1990-07-07T18:00:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
+      { name: '\uc785\ucd94', atLocal: '1990-08-08T03:46:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
+      { name: '\ubc31\ub85c', atLocal: '1990-09-08T06:38:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
+      { name: '\ud55c\ub85c', atLocal: '1990-10-08T22:14:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
+      { name: '\uc785\ub3d9', atLocal: '1990-11-08T01:23:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
+      { name: '\ub300\uc124', atLocal: '1990-12-07T18:14:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' }
+    ]
+  };
+
   function _solarKey(y, m, d) {
     return String(y) + '-' + _pad2(m) + '-' + _pad2(d);
   }
@@ -500,7 +517,7 @@
             throw error;
           }
 
-          var source = payload && payload.source ? String(payload.source) : 'kasi';
+          var source = payload && payload.source ? String(payload.source) : 'kasi-api';
           var warnings = payload && Array.isArray(payload.warnings) ? payload.warnings : [];
           var unverified = source === 'local' || source === 'fallback' || source === 'estimated' || source === 'unknown'
             || warnings.some(function (code) {
@@ -640,6 +657,72 @@
       'T' + _pad2(date.getHours()) + ':' + _pad2(date.getMinutes()) + ':' + _pad2(date.getSeconds());
   }
 
+  function _fallbackSolarFromLunar(norm) {
+    if (w.KasiEngine && typeof w.KasiEngine.lunarToSolar === 'function') {
+      var conv = w.KasiEngine.lunarToSolar(norm.year, norm.month, norm.day, norm.calendarType === 'lunar_leap');
+      if (conv && conv.year && conv.month && conv.day) {
+        return { year: conv.year, month: conv.month, day: conv.day, source: 'fallback' };
+      }
+    }
+    if (typeof w.Lunar !== 'undefined' && typeof w.Lunar.fromYmd === 'function') {
+      try {
+        var m = norm.calendarType === 'lunar_leap' ? -Math.abs(norm.month) : Math.abs(norm.month);
+        var lunar = w.Lunar.fromYmd(norm.year, m, norm.day);
+        if (!lunar && norm.calendarType === 'lunar_leap') {
+          lunar = w.Lunar.fromYmd(norm.year, Math.abs(norm.month), norm.day);
+        }
+        var solar = lunar && lunar.getSolar ? lunar.getSolar() : null;
+        if (solar && typeof solar.getYear === 'function') {
+          return {
+            year: _toInt(solar.getYear(), null),
+            month: _toInt(solar.getMonth(), null),
+            day: _toInt(solar.getDay(), null),
+            source: 'fallback'
+          };
+        }
+      } catch (e) {}
+    }
+    return null;
+  }
+
+  function _fallbackLunarFromSolar(solarDate) {
+    if (w.KasiEngine && typeof w.KasiEngine.solarToLunar === 'function') {
+      var lun = w.KasiEngine.solarToLunar(solarDate);
+      if (lun && lun.year && lun.month && lun.day) {
+        return {
+          year: lun.year,
+          month: lun.month,
+          day: lun.day,
+          isLeap: !!lun.isLeap,
+          source: 'fallback'
+        };
+      }
+    }
+    if (typeof w.Solar !== 'undefined' && typeof w.Solar.fromYmdHms === 'function') {
+      try {
+        var solar = w.Solar.fromYmdHms(
+          solarDate.getFullYear(),
+          solarDate.getMonth() + 1,
+          solarDate.getDate(),
+          solarDate.getHours(),
+          solarDate.getMinutes(),
+          solarDate.getSeconds()
+        );
+        var lunar = solar && solar.getLunar ? solar.getLunar() : null;
+        if (lunar && typeof lunar.getYear === 'function') {
+          return {
+            year: _toInt(lunar.getYear(), null),
+            month: Math.abs(_toInt(lunar.getMonth(), 0)),
+            day: _toInt(lunar.getDay(), null),
+            isLeap: _toInt(lunar.getMonth(), 0) < 0,
+            source: 'fallback'
+          };
+        }
+      } catch (e) {}
+    }
+    return null;
+  }
+
   function _parseGanjiPair(raw) {
     var text = String(raw || '').replace(/\s+/g, '').trim();
     if (!text) return null;
@@ -711,12 +794,13 @@
     return _HS.charAt((start + branchIdx) % 10) + _EB.charAt(branchIdx);
   }
 
-  function _computeGanjiFromKasiContext(solarDate, lunarObj, terms) {
+  function _fallbackGanji(solarDate, lunarObj, terms) {
     var kasiGanji = _extractGanjiFromKasiLunar(lunarObj);
     if (kasiGanji && (kasiGanji.year || kasiGanji.month || kasiGanji.day)) {
       return kasiGanji;
     }
     var localTerms = terms && terms.length ? terms : _readValidatedSolarTerms(solarDate.getFullYear());
+    if (_countMonthBoundaryTerms(localTerms) < 12) return null;
     var yearGanji = _yearGanjiFromIpchun(solarDate, localTerms);
     var dayGanji = _dayGanjiFromDate(solarDate);
     var monthGanji = _computeMonthGanjiFromTerms(localTerms, solarDate, yearGanji);
@@ -745,9 +829,43 @@
     return _dateFromParts(y, m, d, hh, mm, ss);
   }
 
+  function _fallbackSolarTerms(year) {
+    if (typeof w.Solar === 'undefined' || typeof w.Solar.fromYmdHms !== 'function') return [];
+
+    try {
+      var solar = w.Solar.fromYmdHms(year, 1, 1, 12, 0, 0);
+      var lunar = solar.getLunar();
+      if (!lunar || typeof lunar.getJieQiTable !== 'function') return [];
+
+      var table = lunar.getJieQiTable() || {};
+      var out = [];
+
+      Object.keys(table).forEach(function (name) {
+        var dt = _solarObjToDate(table[name]);
+        if (!dt) return;
+        // lunar-javascript는 절기 시각을 CST(UTC+8) 기준으로 저장하지만
+        // _solarObjToDate는 로컬 시각(KST=UTC+9)으로 해석하므로 1시간 보정 필요
+        var kstDt = new Date(dt.getTime() + 3600 * 1000);
+        out.push({
+          name: String(name),
+          atLocal: _toIsoLocal(kstDt),
+          source: 'fallback'
+        });
+      });
+
+      out.sort(function (a, b) {
+        return (a.atLocal || '').localeCompare(b.atLocal || '');
+      });
+
+      return out;
+    } catch (e) {
+      return [];
+    }
+  }
+
   function _normalizeTerms(apiRows, fallbackTerms, requestedYear) {
     var out = [];
-    var requested = _toInt(requestedYear, null);
+    var fallbackYear = _toInt(requestedYear, null);
 
     if (apiRows && apiRows.length) {
       apiRows.forEach(function (row) {
@@ -777,7 +895,8 @@
         }
 
         var dt = y && m && d ? _dateFromParts(y, m, d, hh, mm, ss) : null;
-        if (!dt || (requested && y !== requested)) return;
+        fallbackYear = fallbackYear || y;
+        if (!dt || (fallbackYear && y && y !== fallbackYear)) return;
         out.push({
           name: String(name),
           atLocal: dt ? _toIsoLocal(dt) : null,
@@ -792,8 +911,27 @@
       });
     }
 
-    if (!out.length) return [];
-    if (_countMonthBoundaryTerms(out) < 12) return [];
+    if (!fallbackYear && fallbackTerms && fallbackTerms.length) {
+      for (var fy = 0; fy < fallbackTerms.length; fy++) {
+        var fyTerm = fallbackTerms[fy] || {};
+        var fyMatch = /^(\d{4})/.exec(String(fyTerm.atLocal || fyTerm.date || ''));
+        if (fyMatch) {
+          fallbackYear = _toInt(fyMatch[1], null);
+          break;
+        }
+      }
+    }
+
+    var validated = _readValidatedSolarTerms(fallbackYear);
+    if (!out.length && _countMonthBoundaryTerms(validated) >= 12) {
+      return validated;
+    }
+
+    if (out.length && _countMonthBoundaryTerms(out) < 12 && _countMonthBoundaryTerms(validated) >= 12) {
+      return validated;
+    }
+
+    if (!out.length || _countMonthBoundaryTerms(out) < 12) return [];
 
     out.sort(function (a, b) {
       return (a.atLocal || '').localeCompare(b.atLocal || '');
@@ -803,7 +941,13 @@
   }
 
   function _readValidatedSolarTerms(year) {
-    return [];
+    var rows = _VALIDATED_SOLAR_TERMS_BY_YEAR[String(year || '')];
+    return Array.isArray(rows) ? _clone(rows) : [];
+  }
+
+  function _hasMonthBoundaryTerms(terms) {
+    if (!Array.isArray(terms)) return false;
+    return _countMonthBoundaryTerms(terms) > 0;
   }
 
   function _countMonthBoundaryTerms(terms) {
@@ -815,6 +959,23 @@
       if (_JIEQI_MONTH_BRANCH[n]) count += 1;
     }
     return count;
+  }
+
+  function _computeGanjiFromDate(solarDate, terms) {
+    if (!(solarDate instanceof Date) || isNaN(solarDate.getTime())) return null;
+    var localTerms = terms && terms.length ? terms : _readValidatedSolarTerms(solarDate.getFullYear());
+    if (_countMonthBoundaryTerms(localTerms) < 12) return null;
+    var yearGanji = _yearGanjiFromIpchun(solarDate, localTerms);
+    var dayGanji = _dayGanjiFromDate(solarDate);
+    var monthGanji = _computeMonthGanjiFromTerms(localTerms, solarDate, yearGanji);
+    if (!yearGanji || !monthGanji || !dayGanji) return null;
+    return {
+      year: yearGanji,
+      month: monthGanji,
+      day: dayGanji,
+      hour: _hourGanjiFromDay(dayGanji, solarDate),
+      source: String((localTerms[0] && localTerms[0].source) || 'validated-cache')
+    };
   }
 
   function _extractIpchun(terms) {
@@ -907,7 +1068,7 @@
         var cachedSolar = cached.solar || {};
         var cachedDate = _dateFromParts(cachedSolar.year, cachedSolar.month, cachedSolar.day, cachedSolar.hour, cachedSolar.minute, cachedSolar.second);
         var cachedTerms = cached.terms24 || _readValidatedSolarTerms(cachedDate.getFullYear());
-        var recomputedGanji = _computeGanjiFromKasiContext(cachedDate, cached.lunar ? { raw: null } : null, cachedTerms);
+        var recomputedGanji = _fallbackGanji(cachedDate, cached.lunar ? { raw: null } : null, cachedTerms);
         cached.ganji = Object.assign({}, cached.ganji || {}, recomputedGanji || {});
         _writeCache(cacheKey, cached);
       }
@@ -928,14 +1089,22 @@
 
     var task = (async function () {
       var fallbackUsed = false;
+      var localOnly = options && options.localOnly === true;
       var solarFromLunar = null;
 
       if (norm.calendarType !== 'solar') {
-        solarFromLunar = await _fetchSolarFromLunar(norm);
+        if (localOnly) {
+          solarFromLunar = _fallbackSolarFromLunar(norm);
+          fallbackUsed = true;
+          diagnostics.push('local-only: solar conversion fallback');
+        } else {
+          solarFromLunar = await _fetchSolarFromLunar(norm);
+        }
         if (!solarFromLunar) {
-          var solarConvError = new Error('KASI solar conversion unavailable');
-          solarConvError.code = 'KASI_SOLAR_CONVERSION_UNAVAILABLE';
-          throw solarConvError;
+          solarFromLunar = _fallbackSolarFromLunar(norm);
+          fallbackUsed = true;
+          diagnostics.push('solar conversion fallback');
+          hadProxyFailure = hadProxyFailure || !!_lastProxyFailure;
         }
       }
 
@@ -944,11 +1113,18 @@
 
       var lunarObj = null;
       if (norm.calendarType === 'solar') {
-        lunarObj = await _fetchLunarFromSolar(solarDate);
+        if (localOnly) {
+          lunarObj = _fallbackLunarFromSolar(solarDate);
+          fallbackUsed = true;
+          diagnostics.push('local-only: lunar conversion fallback');
+        } else {
+          lunarObj = await _fetchLunarFromSolar(solarDate);
+        }
         if (!lunarObj) {
-          var lunarConvError = new Error('KASI lunar conversion unavailable');
-          lunarConvError.code = 'KASI_LUNAR_CONVERSION_UNAVAILABLE';
-          throw lunarConvError;
+          lunarObj = _fallbackLunarFromSolar(solarDate);
+          fallbackUsed = true;
+          diagnostics.push('lunar conversion fallback');
+          hadProxyFailure = hadProxyFailure || !!_lastProxyFailure;
         }
       } else {
         lunarObj = {
@@ -961,30 +1137,28 @@
       }
 
       var apiTerms = [];
-      try {
-        apiTerms = await _fetchSolarTerms(solarDate.getFullYear(), solarDate.getMonth() + 1, solarDate.getDate());
-      } catch (e) {
-        diagnostics.push('solar terms API failed');
-        hadProxyFailure = true;
+      if (!localOnly) {
+        try {
+          apiTerms = await _fetchSolarTerms(solarDate.getFullYear(), solarDate.getMonth() + 1, solarDate.getDate());
+        } catch (e) {
+          diagnostics.push('solar terms API failed');
+          hadProxyFailure = true;
+        }
       }
       var fallbackTerms = [];
       if (!apiTerms.length) {
-        diagnostics.push('solar terms unavailable');
+        diagnostics.push(localOnly ? 'local-only: solar terms unavailable' : 'solar terms unavailable');
         hadProxyFailure = hadProxyFailure || !!_lastProxyFailure;
       }
       var terms = _normalizeTerms(apiTerms, fallbackTerms, solarDate.getFullYear());
       var termsSource = terms && terms.length ? String(terms[0].source || 'unknown') : 'unavailable';
-      if (!terms.length || _countMonthBoundaryTerms(terms) < 12 || termsSource !== 'kasi-api') {
-        var termsError = new Error('KASI solar terms unavailable or incomplete');
-        termsError.code = 'KASI_SOLAR_TERMS_INCOMPLETE';
-        throw termsError;
+      if (termsSource === 'validated-cache') {
+        diagnostics.push('solar-terms-validated-cache');
       }
 
-      var ganji = _computeGanjiFromKasiContext(solarDate, lunarObj, terms);
+      var ganji = _fallbackGanji(solarDate, lunarObj, terms);
       if (!ganji || !ganji.year || !ganji.month || !ganji.day) {
-        var ganjiError = new Error('KASI based ganji calculation unavailable');
-        ganjiError.code = 'KASI_GANJI_UNAVAILABLE';
-        throw ganjiError;
+        diagnostics.push('ganji limited');
       }
 
       // 절기 데이터로 월주 보정 (CST/KST 오차 수정 및 KASI 정밀 데이터 우선 적용)
@@ -1000,10 +1174,10 @@
       var ipchun = _extractIpchun(terms);
 
       var context = {
-        version: 2,
+        version: 1,
         cacheKey: cacheKey,
         dateKey: _makeCalendarDateKey(norm),
-        source: 'kasi-api',
+        source: termsSource === 'validated-cache' ? 'validated-cache' : (fallbackUsed ? 'local' : 'kasi'),
         input: {
           calendarType: norm.calendarType,
           year: norm.year,
@@ -1046,7 +1220,7 @@
           fallbackUsed: fallbackUsed,
           solarTermsSource: termsSource,
           diagnostics: diagnostics,
-          warnings: [],
+          warnings: fallbackUsed ? ['KASI_FALLBACK_USED'] : [],
           userMessage: hadProxyFailure ? (_lastProxyFailure && _lastProxyFailure.message) || _config.maintenanceMessage : null
         }
       };
@@ -1117,6 +1291,10 @@
       return this.resolveDateContext(input, { setCurrent: false });
     },
 
+    computeGanjiFromDate: function (date, terms) {
+      return _clone(_computeGanjiFromDate(date, terms));
+    },
+
     getCurrentContext: function () {
       return _clone(_currentContext || w.__KASI_DATE_CONTEXT__ || null);
     },
@@ -1173,6 +1351,7 @@
   if (w.__CD_SAJU_TEST_MODE__) {
     service.__test = {
       computeMonthGanjiFromTerms: _computeMonthGanjiFromTerms,
+      computeGanjiFromDate: _computeGanjiFromDate,
       normalizeTerms: _normalizeTerms,
       readValidatedSolarTerms: _readValidatedSolarTerms
     };
