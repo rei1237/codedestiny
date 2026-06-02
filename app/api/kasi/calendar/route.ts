@@ -22,33 +22,6 @@ const breakerState = {
   openUntil: 0,
 };
 
-const APPROX_SOLAR_TERMS: Array<[string, number, number]> = [
-  ["소한", 1, 6],
-  ["대한", 1, 20],
-  ["입춘", 2, 4],
-  ["우수", 2, 19],
-  ["경칩", 3, 6],
-  ["춘분", 3, 21],
-  ["청명", 4, 5],
-  ["곡우", 4, 20],
-  ["입하", 5, 6],
-  ["소만", 5, 21],
-  ["망종", 6, 6],
-  ["하지", 6, 21],
-  ["소서", 7, 7],
-  ["대서", 7, 23],
-  ["입추", 8, 8],
-  ["처서", 8, 23],
-  ["백로", 9, 8],
-  ["추분", 9, 23],
-  ["한로", 10, 8],
-  ["상강", 10, 23],
-  ["입동", 11, 7],
-  ["소설", 11, 22],
-  ["대설", 12, 7],
-  ["동지", 12, 22],
-];
-
 function pad2(value: number | string) {
   return String(value).padStart(2, "0");
 }
@@ -147,26 +120,8 @@ function noteKasiFailure() {
   }
 }
 
-function buildApproxSolarTerms(year: number) {
-  return APPROX_SOLAR_TERMS.map(([name, month, day], idx) => ({
-    name,
-    date: `${year}-${pad2(month)}-${pad2(day)}`,
-    julianDay: idx + 1,
-  }));
-}
-
-function buildApproxSolarTermRows(year: number) {
-  return APPROX_SOLAR_TERMS.map(([name, month, day]) => ({
-    dateName: name,
-    solYear: String(year),
-    solMonth: pad2(month),
-    solDay: pad2(day),
-    time: "00:00",
-  }));
-}
-
 function normalizeSolarTermRows(rows: any[], fallbackYear: number) {
-  if (!Array.isArray(rows) || !rows.length) return buildApproxSolarTerms(fallbackYear);
+  if (!Array.isArray(rows) || !rows.length) return [];
 
   const normalized = rows
     .map((row, idx) => {
@@ -183,23 +138,7 @@ function normalizeSolarTermRows(rows: any[], fallbackYear: number) {
     })
     .filter(Boolean);
 
-  return normalized.length ? normalized : buildApproxSolarTerms(fallbackYear);
-}
-
-function buildLegacyLocalFallback(method: string, params: Record<string, unknown>, warningCode = "KASI_FALLBACK_USED") {
-  const now = new Date();
-  const yearCandidate = toInt(params?.solYear ?? params?.year, now.getUTCFullYear()) || now.getUTCFullYear();
-  const rows = method === "get24DivisionsInfo" ? buildApproxSolarTermRows(yearCandidate) : [];
-  return {
-    ok: true,
-    method,
-    rows,
-    cache: "miss",
-    source: "local",
-    maintenance: false,
-    fallbackRecommended: false,
-    warnings: [warningCode],
-  };
+  return normalized;
 }
 
 function normalizeCalendarInput(body: any) {
@@ -228,34 +167,6 @@ function normalizeCalendarInput(body: any) {
     minute: toInt(body?.minute, 0) || 0,
     calendarType: normalizeCalendarType(body?.calendarType),
   };
-}
-
-function calculateCalendarLocally(input: { year: number; month: number; day: number; calendarType: string }, warningCode: string | null = null) {
-  const out: any = {
-    ok: true,
-    source: "local",
-    dateKey: buildCalendarDateKey(input),
-    solar: {
-      year: input.year,
-      month: input.month,
-      day: input.day,
-    },
-    solarTerms: buildApproxSolarTerms(input.year),
-    warnings: [],
-  };
-
-  if (input.calendarType !== "solar") {
-    out.lunar = {
-      year: input.year,
-      month: input.month,
-      day: input.day,
-      isLeapMonth: input.calendarType === "lunar_leap",
-    };
-    out.warnings.push("LOCAL_LUNAR_APPROX_USED");
-  }
-
-  if (warningCode) out.warnings.push(warningCode);
-  return out;
 }
 
 async function fetchKasiUpstream(method: string, params: Record<string, string>) {
@@ -367,30 +278,25 @@ async function requestLegacyMethod(methodRaw: unknown, paramsRaw: unknown) {
 
   const task = (async () => {
     if (isCircuitOpen()) {
-      const fallback = buildLegacyLocalFallback(method, params, "KASI_CIRCUIT_OPEN");
-      writeCache(LEGACY_METHOD_CACHE, key, fallback, LEGACY_CACHE_TTL_MS);
-      return fallback;
+      const err = new Error("KASI circuit is open") as Error & { status?: number; code?: string };
+      err.status = 503;
+      err.code = "KASI_CIRCUIT_OPEN";
+      throw err;
     }
 
-    try {
-      const result = await fetchKasiUpstream(method, params as Record<string, string>);
-      const payload = {
-        ok: true,
-        method,
-        rows: result?.rows || [],
-        cache: result?.cache || "miss",
-        source: "kasi",
-        maintenance: false,
-        fallbackRecommended: false,
-        warnings: [] as string[],
-      };
-      writeCache(LEGACY_METHOD_CACHE, key, payload, LEGACY_CACHE_TTL_MS);
-      return payload;
-    } catch (e) {
-      const fallback = buildLegacyLocalFallback(method, params, "KASI_FALLBACK_USED");
-      writeCache(LEGACY_METHOD_CACHE, key, fallback, LEGACY_CACHE_TTL_MS);
-      return fallback;
-    }
+    const result = await fetchKasiUpstream(method, params as Record<string, string>);
+    const payload = {
+      ok: true,
+      method,
+      rows: result?.rows || [],
+      cache: result?.cache || "miss",
+      source: "kasi",
+      maintenance: false,
+      fallbackRecommended: false,
+      warnings: [] as string[],
+    };
+    writeCache(LEGACY_METHOD_CACHE, key, payload, LEGACY_CACHE_TTL_MS);
+    return payload;
   })();
 
   LEGACY_METHOD_INFLIGHT.set(key, task);
@@ -415,36 +321,38 @@ async function requestCalendarSummary(inputRaw: any) {
   if (inflight) return inflight;
 
   const task = (async () => {
-    const local = calculateCalendarLocally(input);
     if (isCircuitOpen()) {
-      const fromCircuit = {
-        ...local,
-        warnings: Array.from(new Set([...(local.warnings || []), "KASI_CIRCUIT_OPEN"])),
-      };
-      writeCache(CALENDAR_RESULT_CACHE, dateKey, fromCircuit, CALENDAR_CACHE_TTL_MS);
-      return fromCircuit;
+      const err = new Error("KASI circuit is open") as Error & { status?: number; code?: string };
+      err.status = 503;
+      err.code = "KASI_CIRCUIT_OPEN";
+      throw err;
     }
 
-    try {
-      const upstream = await fetchKasiUpstream("get24DivisionsInfo", {
-        solYear: String(input.year),
-        numOfRows: "30",
-      });
-      const merged = {
-        ...local,
-        source: "kasi",
-        solarTerms: normalizeSolarTermRows(upstream?.rows || [], input.year),
-      };
-      writeCache(CALENDAR_RESULT_CACHE, dateKey, merged, CALENDAR_CACHE_TTL_MS);
-      return merged;
-    } catch (e) {
-      const fallback = {
-        ...local,
-        warnings: Array.from(new Set([...(local.warnings || []), "KASI_FALLBACK_USED"])),
-      };
-      writeCache(CALENDAR_RESULT_CACHE, dateKey, fallback, CALENDAR_CACHE_TTL_MS);
-      return fallback;
+    const upstream = await fetchKasiUpstream("get24DivisionsInfo", {
+      solYear: String(input.year),
+      numOfRows: "30",
+    });
+    const solarTerms = normalizeSolarTermRows(upstream?.rows || [], input.year);
+    if (!solarTerms.length) {
+      const err = new Error("KASI solar terms unavailable") as Error & { status?: number; code?: string };
+      err.status = 503;
+      err.code = "KASI_SOLAR_TERMS_UNAVAILABLE";
+      throw err;
     }
+    const merged = {
+      ok: true,
+      source: "kasi",
+      dateKey,
+      solar: {
+        year: input.year,
+        month: input.month,
+        day: input.day,
+      },
+      solarTerms,
+      warnings: [] as string[],
+    };
+    writeCache(CALENDAR_RESULT_CACHE, dateKey, merged, CALENDAR_CACHE_TTL_MS);
+    return merged;
   })();
 
   CALENDAR_RESULT_INFLIGHT.set(dateKey, task);
@@ -480,16 +388,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const now = new Date();
-    const emergency = calculateCalendarLocally(
+    return NextResponse.json(
       {
-        year: now.getUTCFullYear(),
-        month: now.getUTCMonth() + 1,
-        day: now.getUTCDate(),
-        calendarType: "solar",
+        ok: false,
+        code: error?.code || "KASI_UNAVAILABLE",
+        message: error?.message || "KASI 기준 음양력/절기 데이터를 확인할 수 없습니다.",
+        fallbackRecommended: false,
       },
-      "LOCAL_EMERGENCY_FALLBACK_USED"
+      { status: Number(error?.status || 503) || 503 }
     );
-    return NextResponse.json(emergency);
   }
 }

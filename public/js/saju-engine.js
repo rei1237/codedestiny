@@ -617,21 +617,6 @@ async function resolvePrimaryCalendarContext(input, options) {
     return !!(ctx && ctx.solar && ctx.lunar && ctx.solar.year && ctx.solar.month && ctx.solar.day && ctx.lunar.year && ctx.lunar.month && ctx.lunar.day);
   };
 
-  var localOnly = (options.localOnly === true);
-
-  // KASI 회로 차단기: KasiCalendarService가 이미 유지보수 모드이면 로컬 전용으로 즉시 전환
-  if (!localOnly && window.KasiCalendarService && typeof window.KasiCalendarService._isMaintenanceCircuitOpen === 'function') {
-    if (window.KasiCalendarService._isMaintenanceCircuitOpen()) {
-      localOnly = true;
-    }
-  }
-
-  var localCtx = buildFallbackDateContext(norm, localOnly ? 'local-only mode' : 'kasi fallback');
-
-  if (localOnly && hasCompleteCalendar(localCtx)) {
-    return localCtx;
-  }
-
   var ctx = await resolveKasiDateContextSafe(norm, options || {});
   var isValid = hasCompleteCalendar(ctx);
   if (isValid) {
@@ -658,20 +643,9 @@ async function resolvePrimaryCalendarContext(input, options) {
     return ctx;
   }
 
-  if (hasCompleteCalendar(localCtx)) {
-    try {
-      if (ctx && ctx.meta && Array.isArray(ctx.meta.diagnostics)) {
-        localCtx.meta = localCtx.meta || {};
-        localCtx.meta.diagnostics = (localCtx.meta.diagnostics || []).concat(['kasi-invalid-fallback']);
-      }
-    } catch (_e5) {}
-    return localCtx;
-  }
-
-  var fallbackReason = ctx ? 'kasi response invalid' : 'kasi unavailable';
-  var fallback = buildFallbackDateContext(norm, fallbackReason);
-  if (fallback) return fallback;
-  return ctx;
+  var err = new Error('KASI 기준 음양력/절기 데이터를 확인할 수 없습니다.');
+  err.code = ctx ? 'KASI_CONTEXT_INVALID' : 'KASI_CONTEXT_UNAVAILABLE';
+  throw err;
 }
 
 async function getActualSolarDateWithContext(dateStr, typeStr, options) {
