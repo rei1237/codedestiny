@@ -2,7 +2,7 @@ import { connectDb } from "../lib/db.js";
 import { requireUserFromRequest } from "../lib/auth.js";
 import { ProfileCard, User } from "../lib/models.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { PROFILE_LIMIT_BY_TIER } from "../lib/profile-limits.js";
+import { normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 
 const MAX_PROFILE_ID_LEN = 80;
 const MAX_NAME_LEN = 80;
@@ -191,22 +191,16 @@ function normalizeIncomingProfile(raw, index) {
 }
 
 function resolveSubscriptionPolicy(user) {
-  const tierRaw = String(user?.profileSubscription?.tier || "").trim().toLowerCase();
-  const expiresAtRaw = user?.profileSubscription?.expiresAt;
-  const expiresAt = expiresAtRaw ? new Date(expiresAtRaw) : null;
-  const hasPlan = Object.prototype.hasOwnProperty.call(PROFILE_LIMIT_BY_TIER, tierRaw);
-  const isActive = Boolean(
-    hasPlan
-      && expiresAt
-      && Number.isFinite(expiresAt.getTime())
-      && expiresAt.getTime() > Date.now(),
-  );
+  const entitlement = normalizeHoneyPassEntitlement(user || {});
 
   return {
-    tier: isActive ? tierRaw : "free",
-    isActive,
-    profileLimit: isActive ? PROFILE_LIMIT_BY_TIER[tierRaw] : 1,
-    expiresAt: isActive && expiresAt ? expiresAt.toISOString() : null,
+    tier: entitlement.isActive ? entitlement.tier : "free",
+    label: entitlement.label,
+    isActive: entitlement.isActive,
+    freeLimit: entitlement.maxCoveredCoin,
+    profileLimit: entitlement.maxProfiles,
+    source: entitlement.source,
+    expiresAt: entitlement.expiresAt,
   };
 }
 
@@ -262,7 +256,7 @@ async function listUserProfiles(userId) {
 
 async function handleGetProfiles(auth) {
   const user = await User.findById(auth.userId)
-    .select("profileSubscription destinyProfilesCurrentId")
+    .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId")
     .lean();
 
   if (!user) {
@@ -289,7 +283,7 @@ async function handleGetProfiles(auth) {
 async function handleCreateProfile(request, auth) {
   try {
     const user = await User.findById(auth.userId)
-      .select("profileSubscription destinyProfilesCurrentId")
+      .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId")
       .lean();
 
     if (!user) {

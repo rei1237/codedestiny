@@ -1,7 +1,7 @@
 import { connectDb, mongoose } from "../lib/db.js";
 import { Payment, PaymentFailureLog, PointHistory, User } from "../lib/models.js";
 import { requireAuth } from "../lib/auth.js";
-import { cancelPortOnePayment, fetchPortOnePayment } from "../lib/portone.js";
+import { cancelPortOnePayment, fetchPortOnePayment, getPortOnePublicConfig } from "../lib/portone.js";
 import { resolveChargePointsByAmount, validatePointChargePayload } from "../lib/validation.js";
 import { getEnv } from "../lib/env.js";
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
@@ -18,6 +18,15 @@ function toDateFromUnixSeconds(value) {
 function normalizePaymentMethod(value) {
   const method = String(value || "unknown").trim();
   return method ? method.slice(0, 32) : "unknown";
+}
+
+function normalizePortOneCurrency(value) {
+  return String(value || "").trim().toUpperCase();
+}
+
+function isPortOneKrwCurrency(value) {
+  const currency = normalizePortOneCurrency(value);
+  return currency === "KRW" || currency === "CURRENCY_KRW";
 }
 
 function normalizeIdempotencyKey(value) {
@@ -562,6 +571,7 @@ async function settlePaymentByImpUid({
 
   const portOneStatus = String(portOnePayment.status || "").toLowerCase();
   const portOneAmount = Number(portOnePayment.amount);
+  const portOneCurrency = normalizePortOneCurrency(portOnePayment.currency);
   const merchantUid = String(portOnePayment.merchant_uid || merchantUidHint || "").trim();
   const paymentMethod = normalizePaymentMethod(portOnePayment.pay_method || requestedPaymentMethod);
 
@@ -707,6 +717,36 @@ async function settlePaymentByImpUid({
     });
 
     return { ok: false, status: 400, message: "PortOne payment amount is invalid." };
+  }
+
+  if (!isPortOneKrwCurrency(portOneCurrency)) {
+    await markPaymentFailure(paymentRecord, {
+      status: "failed",
+      paymentMethod,
+      rawPortOne: portOnePayment,
+      failureCode: "currency_mismatch",
+      failureMessage: "PortOne payment currency must be KRW.",
+      failureStage: "currency_validate",
+      incrementAttempt: true,
+    });
+
+    await writeFailureLog({
+      request,
+      userId: ownerUserId,
+      impUid,
+      merchantUid,
+      source,
+      stage: "currency_validate",
+      code: "currency_mismatch",
+      message: "PortOne payment currency must be KRW.",
+      status: 400,
+      expectedCurrency: "KRW",
+      portOneCurrency,
+      payload: body,
+      rawPortOne: portOnePayment,
+    });
+
+    return { ok: false, status: 400, message: "PortOne payment currency must be KRW." };
   }
 
   if (
@@ -1650,6 +1690,7 @@ async function handleSubscriptionConfirm(request, env, auth) {
 
   const portOneStatus = String(portOnePayment?.status || "").toLowerCase();
   const portOneAmount = Number(portOnePayment?.amount || 0);
+  const portOneCurrency = normalizePortOneCurrency(portOnePayment?.currency);
   const merchantUid = String(portOnePayment?.merchant_uid || merchantUidHint || "").trim();
   const resolvedPaymentMethod = normalizePaymentMethod(portOnePayment?.pay_method || paymentMethodHint);
 
@@ -1712,6 +1753,19 @@ async function handleSubscriptionConfirm(request, env, auth) {
       incrementAttempt: true,
     });
     return json({ message: "Membership pass payment amount mismatch." }, { status: 400 });
+  }
+
+  if (!isPortOneKrwCurrency(portOneCurrency)) {
+    await markPaymentFailure(paymentRecord, {
+      status: "failed",
+      paymentMethod: resolvedPaymentMethod,
+      rawPortOne: portOnePayment,
+      failureCode: "subscription_currency_mismatch",
+      failureMessage: "Membership pass payment currency must be KRW.",
+      failureStage: "subscription_currency_validate",
+      incrementAttempt: true,
+    });
+    return json({ message: "Membership pass payment currency must be KRW." }, { status: 400 });
   }
 
   const now = new Date();
@@ -2363,6 +2417,31 @@ async function handlePointsMe(auth) {
   }
 }
 
+function handlePaymentConfig(env) {
+  const config = getPortOnePublicConfig(env);
+  if (!config.storeId || !config.channelKey) {
+    return json({
+      message: "PortOne V2 KG Inicis public payment config is missing.",
+      code: "PORTONE_V2_PUBLIC_CONFIG_MISSING",
+      missing: {
+        storeId: !config.storeId,
+        channelKey: !config.channelKey,
+      },
+    }, { status: 503 });
+  }
+
+  return json({
+    ok: true,
+    provider: config.provider,
+    pg: config.pg,
+    storeId: config.storeId,
+    channelKey: config.channelKey,
+    noticeUrl: config.noticeUrl || "",
+    currency: config.currency,
+    payMethod: config.payMethod,
+  });
+}
+
 export async function handlePaymentRoutes(request, env) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/payments");
@@ -2379,13 +2458,16 @@ export async function handlePaymentRoutes(request, env) {
       mongoUriConfigured: Boolean(getEnv(env, "MONGO_URI") || getEnv(env, "MONGODB_URI")),
       jwtSecretConfigured: Boolean(getEnv(env, "JWT_SECRET") || getEnv(env, "AUTH_SECRET")),
       portoneApiKeyConfigured: Boolean(getEnv(env, "PORTONE_API_KEY") || getEnv(env, "PORTONE_REST_API_KEY")),
-      portoneApiSecretConfigured: Boolean(getEnv(env, "PORTONE_API_SECRET") || getEnv(env, "PORTONE_REST_API_SECRET")),
+      portoneApiSecretConfigured: Boolean(getEnv(env, "PORTONE_V2_API_SECRET") || getEnv(env, "PORTONE_API_SECRET") || getEnv(env, "PORTONE_REST_API_SECRET")),
+      portoneStoreIdConfigured: Boolean(getEnv(env, "PORTONE_STORE_ID") || getEnv(env, "NEXT_PUBLIC_PORTONE_STORE_ID")),
+      portoneChannelKeyConfigured: Boolean(getEnv(env, "PORTONE_CHANNEL_KEY") || getEnv(env, "NEXT_PUBLIC_PORTONE_CHANNEL_KEY")),
     },
   };
 
   try {
-    const readOnlyEndpoints = method === "GET" && (path === "/me" || path === "/points/me");
-    const keyFeature = readOnlyEndpoints ? "auth-basic" : "payments-core";
+    if (method === "GET" && path === "/config") return handlePaymentConfig(env);
+
+    const keyFeature = "auth-basic";
     const keyHealth = evaluateFeatureKeyHealth(env, keyFeature);
     if (!keyHealth.ok) {
       return json(buildConfigErrorBody(keyFeature, keyHealth), { status: 503 });

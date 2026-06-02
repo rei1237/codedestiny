@@ -49,7 +49,7 @@ const TIER_META: Record<SubscriptionTier, {
   },
   standard: {
     icon: "🌔",
-    label: "스탠다드 꿀",
+    label: "스탠다드 달빛 이용권",
     coinValue: 115,
     bg: "from-[#111936]/95 via-[#27305d]/92 to-[#4a3a72]/90",
     border: "border-[#e9d18a]/45",
@@ -62,7 +62,7 @@ const TIER_META: Record<SubscriptionTier, {
   },
   premium: {
     icon: "🌕",
-    label: "프리미엄 꿀",
+    label: "프리미엄 달빛 이용권",
     coinValue: 360,
     bg: "from-[#101832]/95 via-[#352553]/92 to-[#604f88]/90",
     border: "border-[#cab8ff]/45",
@@ -75,7 +75,7 @@ const TIER_META: Record<SubscriptionTier, {
   },
   vvip: {
     icon: "🌌",
-    label: "VVIP 꿀단지",
+    label: "VVIP 달빛 이용권",
     coinValue: 700,
     bg: "from-[#091126]/95 via-[#24164d]/92 to-[#42306f]/90",
     border: "border-[#f3dd9a]/55",
@@ -140,7 +140,7 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
           <div className="flex items-center gap-2.5">
             <span className="text-2xl leading-none">{meta.icon}</span>
             <div>
-              <p className="text-[10.5px] font-extrabold uppercase tracking-widest text-[#cab8ff]/80">나의 월정석 혜택</p>
+              <p className="text-[10.5px] font-extrabold uppercase tracking-widest text-[#cab8ff]/80">나의 달빛 이용권 혜택</p>
               <p className="text-[16px] font-black text-white leading-tight">{meta.label}</p>
             </div>
           </div>
@@ -163,7 +163,7 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
                 {meta.label} · {meta.coinValue.toLocaleString("ko-KR")}코인 / 30일 · {wonValue.toLocaleString("ko-KR")}원 상당
               </p>
               <p className="mt-1 text-[11.5px] text-slate-200">
-                코인은 충전 재화가 아니라 콘텐츠 가치 표시 단위입니다.
+                코인은 콘텐츠 가치 표시 단위이며 실제 결제는 원화로 진행됩니다.
               </p>
             </div>
 
@@ -213,7 +213,7 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
               <p className="text-[12px] font-black text-white">플랜 범위 밖 서비스는 원화 단건 결제로 이용 가능</p>
             </div>
 
-            {/* 월정석 혜택 범위 안내 */}
+            {/* 이용권 혜택 범위 안내 */}
             {subscription.lowBalanceWarning && (
               <div className="rounded-[12px] border border-orange-300/50 bg-orange-400/12 px-3.5 py-2.5 flex items-start gap-2">
                 <span className="text-orange-500 flex-shrink-0 mt-0.5">🔔</span>

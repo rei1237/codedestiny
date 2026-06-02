@@ -1,9 +1,28 @@
 import { getEnv } from "./env.js";
 
-const DEFAULT_PORTONE_BASE_URL = "https://api.iamport.kr";
+const DEFAULT_PORTONE_BASE_URL = "https://api.portone.io";
 
 function getPortOneBaseUrl(env) {
   return getEnv(env, "PORTONE_API_BASE_URL", DEFAULT_PORTONE_BASE_URL).replace(/\/+$/, "");
+}
+
+function getPortOneApiSecret(env) {
+  return (
+    getEnv(env, "PORTONE_V2_API_SECRET")
+    || getEnv(env, "PORTONE_API_SECRET")
+    || getEnv(env, "PORTONE_REST_API_SECRET")
+  );
+}
+
+function getPortOneHeaders(env) {
+  const apiSecret = getPortOneApiSecret(env);
+  if (!apiSecret) {
+    throw new Error("PORTONE_V2_API_SECRET is required.");
+  }
+  return {
+    "Content-Type": "application/json",
+    Authorization: `PortOne ${apiSecret}`,
+  };
 }
 
 async function requestJson(url, options, errorPrefix) {
@@ -18,48 +37,92 @@ async function requestJson(url, options, errorPrefix) {
   return payload;
 }
 
-async function getPortOneAccessToken(env) {
-  const apiKey = getEnv(env, "PORTONE_API_KEY");
-  const apiSecret = getEnv(env, "PORTONE_API_SECRET");
-  if (!apiKey || !apiSecret) {
-    throw new Error("PORTONE_API_KEY and PORTONE_API_SECRET are required.");
+function firstFiniteNumber(...values) {
+  for (const value of values) {
+    const number = Number(value);
+    if (Number.isFinite(number)) return number;
   }
-
-  const payload = await requestJson(
-    `${getPortOneBaseUrl(env)}/users/getToken`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        imp_key: apiKey,
-        imp_secret: apiSecret,
-      }),
-    },
-    "PortOne token request failed",
-  );
-
-  const token = payload?.response?.access_token;
-  if (!token) {
-    throw new Error("PortOne token response did not include access_token.");
-  }
-
-  return token;
+  return 0;
 }
 
-export async function fetchPortOnePayment(env, impUid) {
-  if (!impUid) throw new Error("impUid is required.");
+function toUnixSeconds(value) {
+  if (!value) return undefined;
+  const date = value instanceof Date ? value : new Date(value);
+  const time = date.getTime();
+  if (!Number.isFinite(time)) return undefined;
+  return Math.floor(time / 1000);
+}
 
-  const token = await getPortOneAccessToken(env);
+function normalizePortOneStatus(status) {
+  const normalized = String(status || "").trim().toUpperCase();
+  if (normalized === "PAID" || normalized === "DONE" || normalized === "COMPLETED") return "paid";
+  if (normalized === "CANCELLED" || normalized === "CANCELED" || normalized === "PARTIAL_CANCELLED") return "cancelled";
+  if (normalized === "FAILED") return "failed";
+  if (normalized === "READY" || normalized === "VIRTUAL_ACCOUNT_ISSUED") return "ready";
+  return String(status || "").trim().toLowerCase();
+}
+
+function normalizePortOnePayment(payload, paymentIdHint = "") {
+  const payment = payload?.payment || payload?.response || payload;
+  if (!payment || typeof payment !== "object") return null;
+
+  const paymentId = String(payment?.paymentId || payment?.id || paymentIdHint || "").trim();
+  const amountNode = payment?.amount && typeof payment.amount === "object" ? payment.amount : {};
+  const paidAt = payment?.paidAt || payment?.transaction?.paidAt || payment?.statusChangedAt;
+  const methodNode = payment?.method && typeof payment.method === "object" ? payment.method : {};
+  const receiptUrl = payment?.receiptUrl || payment?.receipt?.url || payment?.transaction?.receiptUrl || null;
+
+  return {
+    ...payment,
+    id: paymentId,
+    paymentId,
+    imp_uid: paymentId,
+    merchant_uid: paymentId,
+    status: normalizePortOneStatus(payment?.status),
+    amount: firstFiniteNumber(
+      amountNode?.paid,
+      amountNode?.total,
+      payment?.totalAmount,
+      payment?.amount,
+    ),
+    currency: String(payment?.currency || amountNode?.currency || "").trim(),
+    paid_at: toUnixSeconds(paidAt),
+    pay_method: String(payment?.payMethod || methodNode?.type || methodNode?.provider || "card").trim().toLowerCase(),
+    receipt_url: receiptUrl,
+    custom_data: payment?.customData ?? payment?.custom_data,
+    rawV2: payment,
+  };
+}
+
+export function getPortOnePublicConfig(env) {
+  const storeId = getEnv(env, "PORTONE_STORE_ID") || getEnv(env, "NEXT_PUBLIC_PORTONE_STORE_ID");
+  const channelKey = getEnv(env, "PORTONE_CHANNEL_KEY") || getEnv(env, "NEXT_PUBLIC_PORTONE_CHANNEL_KEY");
+  const noticeUrl = getEnv(env, "PORTONE_NOTICE_URL") || getEnv(env, "NEXT_PUBLIC_PORTONE_NOTICE_URL");
+  return {
+    provider: "portone-v2",
+    pg: "kg-inicis",
+    storeId,
+    channelKey,
+    noticeUrl,
+    currency: "CURRENCY_KRW",
+    payMethod: "CARD",
+    configured: Boolean(storeId && channelKey && getPortOneApiSecret(env)),
+  };
+}
+
+export async function fetchPortOnePayment(env, paymentId) {
+  if (!paymentId) throw new Error("paymentId is required.");
+
   const payload = await requestJson(
-    `${getPortOneBaseUrl(env)}/payments/${encodeURIComponent(impUid)}`,
+    `${getPortOneBaseUrl(env)}/payments/${encodeURIComponent(paymentId)}`,
     {
       method: "GET",
-      headers: { Authorization: token },
+      headers: getPortOneHeaders(env),
     },
     "PortOne payment lookup failed",
   );
 
-  const payment = payload?.response;
+  const payment = normalizePortOnePayment(payload, paymentId);
   if (!payment) throw new Error("PortOne payment response was empty.");
   return payment;
 }
@@ -70,98 +133,40 @@ export async function cancelPortOnePayment(env, params = {}) {
     merchantUid,
     reason,
     amount,
-    checksum,
     refundHolder,
     refundBank,
     refundAccount,
   } = params;
 
-  if (!impUid && !merchantUid) {
-    throw new Error("impUid or merchantUid is required.");
+  const paymentId = String(impUid || merchantUid || "").trim();
+  if (!paymentId) {
+    throw new Error("paymentId is required.");
   }
 
   const body = {
     reason: String(reason || "Customer refund request").slice(0, 120),
   };
 
-  if (impUid) body.imp_uid = String(impUid).trim();
-  if (merchantUid) body.merchant_uid = String(merchantUid).trim();
   if (Number.isFinite(Number(amount)) && Number(amount) > 0) body.amount = Number(amount);
-  if (Number.isFinite(Number(checksum)) && Number(checksum) > 0) body.checksum = Number(checksum);
   if (refundHolder) body.refund_holder = String(refundHolder).trim();
   if (refundBank) body.refund_bank = String(refundBank).trim();
   if (refundAccount) body.refund_account = String(refundAccount).trim();
 
-  const token = await getPortOneAccessToken(env);
   const payload = await requestJson(
-    `${getPortOneBaseUrl(env)}/payments/cancel`,
+    `${getPortOneBaseUrl(env)}/payments/${encodeURIComponent(paymentId)}/cancel`,
     {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: token,
-      },
+      headers: getPortOneHeaders(env),
       body: JSON.stringify(body),
     },
     "PortOne payment cancel failed",
   );
 
-  const canceled = payload?.response;
+  const canceled = normalizePortOnePayment(payload, paymentId) || payload;
   if (!canceled) throw new Error("PortOne cancel response was empty.");
   return canceled;
 }
 
-export async function chargePortOneBilling(env, params = {}) {
-  const {
-    customerUid,
-    merchantUid,
-    amount,
-    name,
-    buyerName,
-    buyerEmail,
-    customData,
-  } = params;
-
-  const normalizedCustomerUid = String(customerUid || "").trim();
-  const normalizedMerchantUid = String(merchantUid || "").trim();
-  const normalizedAmount = Number(amount);
-
-  if (!normalizedCustomerUid) {
-    throw new Error("customerUid is required.");
-  }
-  if (!normalizedMerchantUid) {
-    throw new Error("merchantUid is required.");
-  }
-  if (!Number.isFinite(normalizedAmount) || normalizedAmount <= 0) {
-    throw new Error("amount must be a positive number.");
-  }
-
-  const body = {
-    customer_uid: normalizedCustomerUid,
-    merchant_uid: normalizedMerchantUid,
-    amount: normalizedAmount,
-    name: String(name || "Subscription renewal").trim().slice(0, 120),
-  };
-
-  if (buyerName) body.buyer_name = String(buyerName).trim().slice(0, 80);
-  if (buyerEmail) body.buyer_email = String(buyerEmail).trim().slice(0, 120);
-  if (customData !== undefined) body.custom_data = customData;
-
-  const token = await getPortOneAccessToken(env);
-  const payload = await requestJson(
-    `${getPortOneBaseUrl(env)}/subscribe/payments/again`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: token,
-      },
-      body: JSON.stringify(body),
-    },
-    "PortOne billing charge failed",
-  );
-
-  const billed = payload?.response;
-  if (!billed) throw new Error("PortOne billing response was empty.");
-  return billed;
+export async function chargePortOneBilling() {
+  throw new Error("PortOne V2 recurring billing is not configured for membership passes.");
 }

@@ -104,10 +104,16 @@ function formatProfileBirth(profile: DestinyProfile) {
 }
 
 function planLabel(tier: ProfileSubscription["tier"]) {
-  if (tier === "standard") return "스탠다드";
-  if (tier === "premium") return "프리미엄";
-  if (tier === "vvip") return "VVIP";
-  return "무료";
+  if (tier === "standard") return "스탠다드 달빛 이용권";
+  if (tier === "premium") return "프리미엄 달빛 이용권";
+  if (tier === "vvip") return "VVIP 달빛 이용권";
+  return "이용권 없음";
+}
+
+function formatMonthlyStoneBalance(points?: number) {
+  const value = Number(points || 0);
+  const safeValue = Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
+  return `${safeValue.toLocaleString("ko-KR")} 월정석 잔량`;
 }
 
 function fallbackSubscription(): ProfileSubscription {
@@ -169,6 +175,7 @@ export default function MePage() {
   const currentProfile = profiles.find((profile) => profile.id === currentId) || profiles[0] || null;
   const profileLimit = subscription.profileLimit > 0 ? subscription.profileLimit : 1;
   const slotPercent = Math.min(100, Math.round((profiles.length / profileLimit) * 100));
+  const monthlyStoneBalance = formatMonthlyStoneBalance(user?.points);
 
   const applyProfilePayload = useCallback((payload: ProfileStatePayload | null) => {
     if (!payload || payload.ok !== true) return;
@@ -436,8 +443,9 @@ export default function MePage() {
             <p className="mt-1 truncate text-xs text-slate-400">{user?.email || "-"}</p>
           </div>
           <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
-            <p className="text-xs text-slate-400">콘텐츠 가치 단위</p>
-            <p className="mt-1 text-xl font-bold text-amber-200">1코인 = 100원 상당</p>
+            <p className="text-xs text-slate-400">이벤트 월정석 잔량</p>
+            <p className="mt-1 text-xl font-bold text-amber-200">{monthlyStoneBalance}</p>
+            <p className="mt-2 text-xs text-slate-400">판매/충전 재화가 아닌 이벤트 지급 잔량입니다.</p>
           </div>
           <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
             <p className="text-xs text-slate-400">프로필 슬롯</p>
@@ -445,7 +453,7 @@ export default function MePage() {
             <div className="mt-3 h-2 rounded-full bg-slate-800">
               <div className="h-2 rounded-full bg-amber-300" style={{ width: `${slotPercent}%` }} />
             </div>
-            <p className="mt-2 text-xs text-slate-400">{planLabel(subscription.tier)} 플랜</p>
+            <p className="mt-2 text-xs text-slate-400">{planLabel(subscription.tier)}</p>
           </div>
         </section>
 
@@ -632,7 +640,7 @@ export default function MePage() {
           <div className="w-full max-w-md rounded-xl border border-amber-300/35 bg-[#171a34] p-5 shadow-2xl shadow-black/40">
             <h3 className="text-lg font-bold text-amber-100">프로필 카드 한도에 도달했습니다</h3>
             <p className="mt-3 text-sm leading-6 text-slate-200">
-              무료 계정은 프로필 카드를 1개까지만 생성할 수 있습니다. 여러 카드를 관리하려면 구독 플랜으로 업그레이드해 주세요.
+              달빛 이용권이 없는 계정은 프로필 카드를 1개까지만 생성할 수 있습니다. 여러 카드를 관리하려면 달빛 이용권을 등록해 주세요.
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <button
@@ -647,7 +655,7 @@ export default function MePage() {
                 className="rounded-md bg-amber-300 px-3 py-2 text-sm font-bold text-slate-900"
                 onClick={() => setShowUpgradeModal(false)}
               >
-                구독하러 가기
+                이용권 등록하기
               </Link>
             </div>
           </div>

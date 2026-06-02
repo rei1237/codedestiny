@@ -18,18 +18,10 @@ import {
 import { connectDb } from "../lib/db.js";
 import { PointHistory, ServiceExecutionTransaction, User } from "../lib/models.js";
 import { calculateMembershipCreditCost, MEMBERSHIP_CREDIT_PER_COIN } from "../lib/billing-policy.js";
-
-const MEMBERSHIP_CREDIT_GRANT_BY_TIER = Object.freeze({
-  standard: 990,
-  premium: 2990,
-  vvip: 5900,
-});
-
-const MEMBERSHIP_FREE_LIMIT_BY_TIER = Object.freeze({
-  standard: 30,
-  premium: 50,
-  vvip: 100,
-});
+import {
+  canBypassCoinGate,
+  normalizeHoneyPassEntitlement,
+} from "../lib/profile-limits.js";
 
 const ACCESS_DECISION_REASONS = Object.freeze({
   FREE: "free",
@@ -121,38 +113,35 @@ async function consumeUsagePassIfAvailable(env, authUserId, pricing, requestId) 
 }
 
 function isActiveMembership(profileSubscription = {}) {
-  const tier = String(profileSubscription?.tier || "free").trim().toLowerCase();
-  const expiresAt = profileSubscription?.expiresAt ? new Date(profileSubscription.expiresAt) : null;
-  return tier !== "free" && expiresAt && Number.isFinite(expiresAt.getTime()) && expiresAt.getTime() > Date.now();
+  return normalizeHoneyPassEntitlement({ profileSubscription }).isActive;
 }
 
 async function getActiveMembershipPassForUser(env, authUserId) {
   await connectDb(env);
-  const user = await User.findById(authUserId).select("profileSubscription").lean();
-  const sub = user?.profileSubscription || {};
-  const tier = String(sub?.tier || "free").trim().toLowerCase();
-  const isActive = isActiveMembership(sub);
+  const user = await User.findById(authUserId)
+    .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
+    .lean();
+  const entitlement = normalizeHoneyPassEntitlement(user || {});
   return {
-    isActive,
-    tier: isActive ? tier : "free",
-    freeLimit: isActive ? Number(MEMBERSHIP_FREE_LIMIT_BY_TIER[tier] || 0) : 0,
-    profileSubscription: sub,
+    isActive: entitlement.isActive,
+    tier: entitlement.isActive ? entitlement.tier : "free",
+    freeLimit: entitlement.isActive ? Number(entitlement.maxCoveredCoin || 0) : 0,
+    profileSubscription: user?.profileSubscription || null,
+    entitlement,
   };
 }
 
 async function seedMembershipCreditForExistingPassIfNeeded(authUserId) {
-  const user = await User.findById(authUserId).select("points profileSubscription").lean();
+  const user = await User.findById(authUserId)
+    .select("points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
+    .lean();
   const sub = user?.profileSubscription || {};
-  const tier = String(sub?.tier || "free").trim().toLowerCase();
   const legacyPoints = Number(user?.points || 0);
-  const grantedCredit = Number(sub?.membershipCreditGranted || 0);
   if (!user?._id) return null;
 
-  const passCredit = Number(MEMBERSHIP_CREDIT_GRANT_BY_TIER[tier] || 0);
   const legacyCredit = !sub?.legacyCoinCreditSeeded && legacyPoints > 0
     ? Math.floor(legacyPoints * MEMBERSHIP_CREDIT_PER_COIN)
     : 0;
-  const shouldSeedPassCredit = isActiveMembership(sub) && grantedCredit <= 0 && passCredit > 0;
   let updatedUser = null;
 
   if (legacyCredit > 0) {
@@ -177,25 +166,6 @@ async function seedMembershipCreditForExistingPassIfNeeded(authUserId) {
         projection: { points: 1, profileSubscription: 1 },
       },
     ).lean();
-  }
-
-  if (shouldSeedPassCredit) {
-    updatedUser = await User.findOneAndUpdate(
-      {
-        _id: authUserId,
-        "profileSubscription.membershipCreditGranted": { $lte: legacyCredit > 0 ? legacyCredit : 0 },
-      },
-      {
-        $inc: {
-          "profileSubscription.membershipCreditBalance": passCredit,
-          "profileSubscription.membershipCreditGranted": passCredit,
-        },
-      },
-      {
-        returnDocument: "after",
-        projection: { points: 1, profileSubscription: 1 },
-      },
-    ).lean() || updatedUser;
   }
 
   return updatedUser;
@@ -787,7 +757,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   if (authCheck?.auth?.userId) {
     const subscriptionPass = await getActiveMembershipPassForUser(env, authCheck.auth.userId);
     const coinPrice = Number(pricing?.coinPrice || pricing?.cost || 0);
-    if (subscriptionPass.isActive && Number.isFinite(coinPrice) && coinPrice > 0 && coinPrice <= subscriptionPass.freeLimit) {
+    if (canBypassCoinGate(subscriptionPass.entitlement, coinPrice)) {
       return success({
         pricing,
         consume: {
@@ -1107,13 +1077,20 @@ async function handleBalance(request, env) {
     if (auth?.userId) {
       await connectDb(env);
       await seedMembershipCreditForExistingPassIfNeeded(auth.userId);
-      const user = await User.findById(auth.userId).select("profileSubscription points").lean();
+      const user = await User.findById(auth.userId)
+        .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt points")
+        .lean();
       const sub = user?.profileSubscription || {};
+      const entitlement = normalizeHoneyPassEntitlement(user || {});
       membershipCreditBalance = Number(sub?.membershipCreditBalance || 0);
       membership = {
-        tier: String(sub?.tier || "free"),
-        isActive: isActiveMembership(sub),
-        expiresAt: sub?.expiresAt || null,
+        tier: entitlement.isActive ? entitlement.tier : String(sub?.tier || "free"),
+        label: entitlement.label,
+        isActive: entitlement.isActive,
+        freeLimit: entitlement.maxCoveredCoin,
+        profileLimit: entitlement.maxProfiles,
+        source: entitlement.source,
+        expiresAt: entitlement.expiresAt || sub?.expiresAt || null,
         membershipCreditBalance,
         membershipCreditGranted: Number(sub?.membershipCreditGranted || 0),
         membershipCreditUsed: Number(sub?.membershipCreditUsed || 0),
@@ -1141,6 +1118,23 @@ async function handleBalance(request, env) {
 
 async function readSubscriptionStatusSnapshot(request, env) {
   try {
+    const auth = await getOptionalUserFromRequest(request, env);
+    if (auth?.userId) {
+      await connectDb(env);
+      const user = await User.findById(auth.userId)
+        .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
+        .lean();
+      const entitlement = normalizeHoneyPassEntitlement(user || {});
+      if (entitlement.isActive) {
+        return {
+          isActive: true,
+          tier: entitlement.tier,
+          freeLimit: Number(entitlement.maxCoveredCoin || 0),
+          entitlement,
+        };
+      }
+    }
+
     const delegatedRequest = buildRoutedRequest(request, "/api/fortune/pig-coin/profile-subscription/status", "GET");
     const delegatedResponse = await handleFortuneRoutes(delegatedRequest, env);
     if (!delegatedResponse.ok) {

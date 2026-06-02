@@ -2,18 +2,14 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import WithdrawModal from "../components/WithdrawModal";
-import type { GalaxiaPayResult } from "./GalaxiaPayModal";
 import { usePaymentProcessing } from "../components/PaymentProcessingContext";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
 import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { persistSanitizedAuthUser, readSanitizedAuthUser, resolveAuthScopeFromUser } from "../_lib/auth-storage";
-
-const GalaxiaPayModal = dynamic(() => import("./GalaxiaPayModal"), { ssr: false });
 
 /* ══════════════════════════════════════════════════════════════════
    타입 정의
@@ -185,10 +181,24 @@ type PaymentFailureReportPayload = {
 };
 
 type PortOnePaymentResponse = {
-  success?: boolean;
-  imp_uid?: string;
+  paymentId?: string;
+  transactionType?: string;
+  code?: string;
+  message?: string;
   error_msg?: string;
   errorMsg?: string;
+};
+
+type PortOnePaymentConfig = {
+  ok?: boolean;
+  provider?: string;
+  pg?: string;
+  storeId?: string;
+  channelKey?: string;
+  noticeUrl?: string;
+  currency?: "CURRENCY_KRW" | "KRW" | string;
+  payMethod?: "CARD" | string;
+  message?: string;
 };
 
 /** Toast 알림 하나의 데이터 구조 */
@@ -201,6 +211,9 @@ type ToastItem = {
 declare global {
   interface Window {
     CODE_DESTINY_API_BASE_URL?: string;
+    PortOne?: {
+      requestPayment: (request: Record<string, unknown>) => Promise<PortOnePaymentResponse>;
+    };
   }
 }
 
@@ -208,8 +221,6 @@ declare global {
    상수 정의
 ══════════════════════════════════════════════════════════════════ */
 
-const PORTONE_IMP_CODE = process.env.NEXT_PUBLIC_PORTONE_IMP_CODE || "imp00000000";
-// PortOne 관리자 콘솔의 상점/채널 값입니다. V1(IMP.request_pay) 구조를 유지하면서 V2 전환 대비용으로 함께 관리합니다.
 const PORTONE_STORE_ID = process.env.NEXT_PUBLIC_PORTONE_STORE_ID || "";
 const PORTONE_CHANNEL_KEY = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY || "";
 const PORTONE_NOTICE_URL = process.env.NEXT_PUBLIC_PORTONE_NOTICE_URL || "";
@@ -219,7 +230,7 @@ const PORTONE_MOBILE_REDIRECT_PATH = process.env.NEXT_PUBLIC_PORTONE_MOBILE_REDI
 const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   {
     id:           "standard",
-    title:        "스탠다드 꿀 30일 이용권",
+    title:        "스탠다드 달빛 이용권",
     wonPrice:     9900,
     coins:        115,
     profileLimit: 3,
@@ -235,7 +246,7 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   },
   {
     id:           "premium",
-    title:        "프리미엄 꿀 30일 이용권",
+    title:        "프리미엄 달빛 이용권",
     wonPrice:     29900,
     coins:        360,
     profileLimit: 7,
@@ -252,7 +263,7 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   },
   {
     id:           "vvip",
-    title:        "VVIP 꿀단지 30일 이용권",
+    title:        "VVIP 달빛 이용권",
     wonPrice:     59000,
     coins:        700,
     profileLimit: 15,
@@ -349,14 +360,7 @@ function saveAdminTestTierClient(tier: AdminTestTier) {
 }
 
 const PAYMENT_METHODS: PaymentMethodOption[] = [
-  { id: "kakao",            label: "카카오페이",                    logo: "🟨", desc: "간편 결제",                          group: "domestic" },
-  { id: "galaxia",          label: "갤럭시아 일반결제",              logo: "💳", desc: "카드사 선택 결제",                    group: "domestic" },
-  { id: "galaxia_artmoney", label: "갤럭시아 아트머니",              logo: "🟣", desc: "카드사 선택 + 카카오페이/네이버페이", group: "domestic" },
-  { id: "naverpay",         label: "네이버페이",                    logo: "🟩", desc: "네이버 간편 결제",                    group: "domestic" },
-  { id: "card_general",     label: "일반 신용카드",                 logo: "🔵", desc: "국내 카드 결제",                       group: "domestic" },
-  { id: "paypal",           label: "PayPal",                        logo: "🅿️", desc: "해외 결제",                           group: "global"   },
-  { id: "applepay",         label: "Apple Pay",                     logo: "🍎", desc: "포트원 지원 PG 기준",                  group: "global"   },
-  { id: "googlepay",        label: "Google Pay",                    logo: "🟢", desc: "포트원 지원 PG 기준",                  group: "global"   },
+  { id: "card_general", label: "KG이니시스 카드", logo: "CARD", desc: "포트원 V2 인증 결제", group: "domestic" },
 ];
 
 /* ══════════════════════════════════════════════════════════════════
@@ -454,11 +458,14 @@ function ensurePortoneSdk() {
       reject(new Error("브라우저 환경에서만 결제를 진행할 수 있습니다."));
       return;
     }
-    if (window.IMP) { resolve(); return; }
-    const scriptId = "portone-iamport-sdk";
+    if (window.PortOne?.requestPayment) { resolve(); return; }
+    const scriptId = "portone-v2-sdk";
     const existingScript = document.getElementById(scriptId) as HTMLScriptElement | null;
     if (existingScript) {
-      existingScript.addEventListener("load", () => resolve(), { once: true });
+      existingScript.addEventListener("load", () => {
+        if (window.PortOne?.requestPayment) resolve();
+        else reject(new Error("포트원 V2 SDK가 초기화되지 않았습니다."));
+      }, { once: true });
       existingScript.addEventListener(
         "error",
         () => reject(new Error("결제 SDK를 불러오지 못했습니다.")),
@@ -468,38 +475,37 @@ function ensurePortoneSdk() {
     }
     const script = document.createElement("script");
     script.id = scriptId;
-    script.src = "https://cdn.iamport.kr/v1/iamport.js";
+    script.src = "https://cdn.portone.io/v2/browser-sdk.js";
     script.async = true;
-    script.onload = () => resolve();
+    script.onload = () => {
+      if (window.PortOne?.requestPayment) resolve();
+      else reject(new Error("포트원 V2 SDK가 초기화되지 않았습니다."));
+    };
     script.onerror = () => reject(new Error("결제 SDK를 불러오지 못했습니다."));
     document.body.appendChild(script);
   });
 }
 
-function resolvePgConfig(methodId: string) {
-  const overrides = {
-    kakao:         process.env.NEXT_PUBLIC_PORTONE_PG_KAKAO,
-    galaxia:       process.env.NEXT_PUBLIC_PORTONE_PG_GALAXIA,
-    galaxia_artmoney: process.env.NEXT_PUBLIC_PORTONE_PG_GALAXIA_ARTMONEY,
-    naverpay:      process.env.NEXT_PUBLIC_PORTONE_PG_NAVERPAY,
-    card_general:  process.env.NEXT_PUBLIC_PORTONE_PG_CARD,
-    paypal:        process.env.NEXT_PUBLIC_PORTONE_PG_PAYPAL,
-    applepay:      process.env.NEXT_PUBLIC_PORTONE_PG_APPLEPAY,
-    googlepay:     process.env.NEXT_PUBLIC_PORTONE_PG_GOOGLEPAY,
-  } as Record<string, string | undefined>;
-
-  const galaxiaMid = process.env.NEXT_PUBLIC_GALAXIA_MID || "";
-  const defaults: Record<string, { pg: string; payMethod: string }> = {
-    kakao:         { pg: overrides.kakao         || "kakaopay.TC0ONETIME",                payMethod: "card"   },
-    galaxia:       { pg: overrides.galaxia || (galaxiaMid ? `galaxia.${galaxiaMid}` : "galaxia"), payMethod: "card"   },
-    galaxia_artmoney: { pg: overrides.galaxia_artmoney || overrides.galaxia || (galaxiaMid ? `galaxia.${galaxiaMid}` : "galaxia"), payMethod: "card" },
-    naverpay:      { pg: overrides.naverpay       || "naverpay",                          payMethod: "card"   },
-    card_general:  { pg: overrides.card_general   || overrides.galaxia || (galaxiaMid ? `galaxia.${galaxiaMid}` : "galaxia"), payMethod: "card"   },
-    paypal:        { pg: overrides.paypal         || "paypal",                            payMethod: "paypal" },
-    applepay:      { pg: overrides.applepay       || overrides.galaxia || (galaxiaMid ? `galaxia.${galaxiaMid}` : "galaxia"), payMethod: "card"   },
-    googlepay:     { pg: overrides.googlepay      || overrides.galaxia || (galaxiaMid ? `galaxia.${galaxiaMid}` : "galaxia"), payMethod: "card"   },
+async function fetchPortOnePaymentConfig(apiBase: string): Promise<PortOnePaymentConfig> {
+  const response = await authFetch(`${apiBase}/api/payments/config`, {
+    method: "GET",
+    credentials: "include",
+  }, {
+    retryOn401: false,
+    apiBase,
+  });
+  const payload = await safeParseJson<PortOnePaymentConfig>(response);
+  if (!response.ok || !payload.storeId || !payload.channelKey) {
+    throw new Error(payload.message || "포트원 V2 결제 설정을 확인할 수 없습니다.");
+  }
+  return {
+    ...payload,
+    storeId: payload.storeId || PORTONE_STORE_ID,
+    channelKey: payload.channelKey || PORTONE_CHANNEL_KEY,
+    noticeUrl: payload.noticeUrl || PORTONE_NOTICE_URL,
+    currency: payload.currency || "CURRENCY_KRW",
+    payMethod: payload.payMethod || "CARD",
   };
-  return defaults[methodId] || defaults.galaxia;
 }
 
 function readPendingOrder() {
@@ -637,11 +643,11 @@ function SubscriptionSection({
           </p>
         </div>
 
-        {/* 월정석 혜택 사전 안내 */}
+        {/* 달빛 이용권 혜택 사전 안내 */}
         {subscription.lowBalanceWarning && (
           <div className="mb-4 rounded-[14px] border border-orange-300/50 bg-orange-400/12 px-4 py-3">
             <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-orange-100">
-              <span aria-hidden="true">🔔</span> 월정석 혜택 범위를 확인해 주세요
+              <span aria-hidden="true">🔔</span> 달빛 이용권 혜택 범위를 확인해 주세요
             </p>
             <p className="mt-1 text-[11.5px] text-orange-100/90">
               이용권 기간({expires}까지)은 유지되며,
@@ -719,7 +725,7 @@ function SubscriptionSection({
           <div className="mb-4 rounded-[14px] border border-rose-300 bg-rose-50/70 px-4 py-3">
             <p className="text-[11.5px] font-extrabold text-rose-800">🎯 메인 화면에서 선택한 플랜으로 안내 중</p>
             <p className="mt-1 text-[11.5px] text-rose-700">
-              선택 플랜: <strong>{highlightedPlan === "standard" ? "스탠다드 꿀 30일 이용권" : highlightedPlan === "premium" ? "프리미엄 꿀 30일 이용권" : "VVIP 꿀단지 30일 이용권"}</strong>
+              선택 플랜: <strong>{highlightedPlan === "standard" ? "스탠다드 달빛 이용권" : highlightedPlan === "premium" ? "프리미엄 달빛 이용권" : "VVIP 달빛 이용권"}</strong>
             </p>
           </div>
         )}
@@ -1040,7 +1046,9 @@ function CoinIcon({ size = "md", className = "" }: { size?: "sm" | "md" | "lg" |
   코인은 콘텐츠 가치 단위로만 안내합니다.
 ══════════════════════════════════════════════════════════════════ */
 
-function WalletCard({ name }: { name: string; points: number }) {
+function WalletCard({ name, points }: { name: string; points: number }) {
+  const monthlyStoneBalance = Math.max(0, Math.floor(Number(points || 0)));
+
   return (
     <section
       aria-label="콘텐츠 가치 단위 안내"
@@ -1071,23 +1079,22 @@ function WalletCard({ name }: { name: string; points: number }) {
               <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#cab8ff]">
                 Moonlight Pass Desk
               </p>
-              <p className="mt-0.5 text-[15px] font-bold text-white">{name} 님의 운세 이용권 관리</p>
+              <p className="mt-0.5 text-[15px] font-bold text-white">{name} 님의 달빛 이용권 관리</p>
             </div>
           </div>
 
           <div className="flex flex-col items-start gap-1 sm:items-end">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-[#f3dd9a]">
-              콘텐츠 가치 단위
+              이벤트 월정석 잔량
             </p>
             <div className="flex flex-wrap items-center gap-2">
-              <CoinIcon size="xl" />
               <span className="text-[22px] font-black leading-none text-white">
-                1코인
-                <span className="ml-1 text-base font-bold text-[#f3dd9a]">= 100원 상당</span>
+                {monthlyStoneBalance.toLocaleString("ko-KR")}
+                <span className="ml-1 text-base font-bold text-[#f3dd9a]">월정석 잔량</span>
               </span>
             </div>
             <p className="max-w-[280px] text-[11px] text-slate-200 sm:text-right">
-              코인은 충전 재화가 아니라 월정석 혜택과 단건 결제 서비스 가치를 표시하는 단위입니다.
+              월정석은 판매하지 않는 이벤트 지급 재화입니다. 서비스 가격은 코인 가치로 표시되고 결제는 원화로 진행됩니다.
             </p>
           </div>
         </div>
@@ -1186,7 +1193,7 @@ export default function PointsPage() {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [currentPoints, setCurrentPoints] = useState(0);
   const [selectedPackage, setSelectedPackage] = useState<PointPackage>(POINT_PACKAGES[0]);
-  const [selectedMethod, setSelectedMethod] = useState<string>("kakao");
+  const [selectedMethod, setSelectedMethod] = useState<string>("card_general");
 
   const [isBooting, setIsBooting] = useState(true);
   const [isMethodModalOpen, setIsMethodModalOpen] = useState(false);
@@ -1201,11 +1208,6 @@ export default function PointsPage() {
   const [showStarBurst, setShowStarBurst] = useState(false);
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryItem[]>([]);
   const [cancelingPaymentId, setCancelingPaymentId] = useState<string | null>(null);
-  const [isGalaxiaModalOpen, setIsGalaxiaModalOpen] = useState(false);
-  const [galaxiaMerchantUid, setGalaxiaMerchantUid] = useState("");
-  const [galaxiaFlowMethod, setGalaxiaFlowMethod] = useState<"galaxia" | "galaxia_artmoney">("galaxia");
-  const [galaxiaInitialPayType, setGalaxiaInitialPayType] = useState<"card" | "simple">("card");
-  const [galaxiaInitialCardId, setGalaxiaInitialCardId] = useState("");
   const [adminTestTier, setAdminTestTier] = useState<AdminTestTier>("off");
   const [landingPlanPreset, setLandingPlanPreset] = useState<"standard" | "premium" | "vvip" | null>(null);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
@@ -1229,9 +1231,6 @@ export default function PointsPage() {
     if (raw === "standard" || raw === "premium" || raw === "vvip") {
       setLandingPlanPreset(raw);
     }
-    const packageId = String(query.get("package") || "").trim();
-    const packagePreset = POINT_PACKAGES.find((pkg) => pkg.id === packageId);
-    if (packagePreset) setSelectedPackage(packagePreset);
   }, []);
 
   /* ── Toast 헬퍼 ───────────────────────────────────────────────── */
@@ -1593,14 +1592,14 @@ export default function PointsPage() {
     const query = new URLSearchParams(window.location.search);
     const redirectMarked = query.get("portone_redirect");
     const subscriptionRedirectMarked = query.get("portone_subscription_redirect");
-    const impSuccess = String(query.get("imp_success") || "").toLowerCase();
-    const impUid = query.get("imp_uid");
+    const impSuccess = String(query.get("imp_success") || query.get("code") || "").toLowerCase();
+    const impUid = query.get("paymentId") || query.get("payment_id") || query.get("imp_uid");
 
     if (!impUid && impSuccess !== "false" && !redirectMarked && !subscriptionRedirectMarked) return;
 
     redirectHandledRef.current = true;
 
-    const merchantUidFromQuery = query.get("merchant_uid") || undefined;
+    const merchantUidFromQuery = query.get("paymentId") || query.get("payment_id") || query.get("merchant_uid") || undefined;
     const pending = readPendingOrder();
     const pendingSubscription = readPendingSubscriptionOrder();
     const isSubscriptionRedirect = !!subscriptionRedirectMarked;
@@ -1814,29 +1813,14 @@ export default function PointsPage() {
         paymentMethod: selectedMethod,
       });
 
-      /* ── 갤럭시아 선택 시 GalaxiaPayModal로 분기 ── */
-      if (selectedMethod === "galaxia" || selectedMethod === "galaxia_artmoney") {
-        const isArtMoneyFlow = selectedMethod === "galaxia_artmoney";
-        setGalaxiaFlowMethod(isArtMoneyFlow ? "galaxia_artmoney" : "galaxia");
-        setGalaxiaInitialPayType("card");
-        setGalaxiaInitialCardId(isArtMoneyFlow ? "artmoney" : "");
-        setGalaxiaMerchantUid(order.merchantUid);
-        setIsMethodModalOpen(false);
-        setIsProcessing(false);
-        setIsGalaxiaModalOpen(true);
-        return;
-      }
-
       await ensurePortoneSdk();
 
-      if (!window.IMP) {
-        throw new Error("포트원 결제 SDK가 초기화되지 않았습니다.");
+      if (!window.PortOne?.requestPayment) {
+        throw new Error("포트원 V2 결제 SDK가 초기화되지 않았습니다.");
       }
 
-      const pgConfig = resolvePgConfig(selectedMethod);
-      window.IMP.init(PORTONE_IMP_CODE);
+      const paymentConfig = await fetchPortOnePaymentConfig(apiBase);
 
-      // 포트원 콘솔에 등록된 복귀 도메인과 일치해야 모바일 결제 후 복귀 검증이 정상 동작합니다.
       const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
       redirectUrl.searchParams.set("portone_redirect", "1");
 
@@ -1844,18 +1828,19 @@ export default function PointsPage() {
       const buyerEmail = authUser.email || "";
 
       const requestData: Record<string, unknown> = {
-        pg: pgConfig.pg,
-        pay_method: pgConfig.payMethod,
-        merchant_uid: order.merchantUid,
-        name: order.productName,
-        amount: order.paymentAmount,
-        buyer_name: buyerName,
-        buyer_email: buyerEmail,
-        // 토스페이먼츠 권장 고객 식별 파라미터(PortOne V2에서도 동일 의미로 사용)
-        customerName: buyerName,
-        customerEmail: buyerEmail,
-        m_redirect_url: redirectUrl.toString(),
-        custom_data: {
+        storeId: paymentConfig.storeId,
+        channelKey: paymentConfig.channelKey,
+        paymentId: order.merchantUid,
+        orderName: order.productName,
+        totalAmount: order.paymentAmount,
+        currency: paymentConfig.currency || "CURRENCY_KRW",
+        payMethod: paymentConfig.payMethod || "CARD",
+        redirectUrl: redirectUrl.toString(),
+        customer: {
+          fullName: buyerName,
+          email: buyerEmail,
+        },
+        customData: {
           userId: authUser.id,
           packageId: selectedPackage.id,
           coinPrice: order.coinPrice ?? selectedPackage.points,
@@ -1864,68 +1849,57 @@ export default function PointsPage() {
         },
       };
 
-      if (PORTONE_STORE_ID) {
-        requestData.storeId = PORTONE_STORE_ID;
+      if (paymentConfig.noticeUrl) {
+        requestData.noticeUrls = [paymentConfig.noticeUrl];
       }
 
-      if (PORTONE_CHANNEL_KEY) {
-        requestData.channelKey = PORTONE_CHANNEL_KEY;
-      }
+      const rsp = await window.PortOne.requestPayment(requestData);
+      const paymentId = String(rsp?.paymentId || order.merchantUid || "").trim();
 
-      if (PORTONE_NOTICE_URL) {
-        requestData.notice_url = PORTONE_NOTICE_URL;
-      }
-
-      await new Promise<void>((resolve) => {
-        window.IMP!.request_pay(requestData, async (rsp: PortOnePaymentResponse) => {
-          if (!rsp || !rsp.success) {
-            const message = mapPaymentErrorMessage(
-              rsp?.error_msg || rsp?.errorMsg || "결제가 취소되었습니다.",
-            );
-            reportPaymentFailureToServer({
-              merchantUid: order.merchantUid,
-              impUid: rsp?.imp_uid,
-              reasonCode: "client_cancel_or_fail",
-              reasonMessage: message,
-              paymentMethod: selectedMethod,
-            });
-            pushToast("error", message);
-            setIsProcessing(false);
-            resolve();
-            return;
-          }
-
-          try {
-            setProcessingText("결제 검증을 진행하고 있습니다...");
-            const result = await confirmPaymentWithServer({
-              impUid: rsp.imp_uid,
-              merchantUid: order.merchantUid,
-              paymentAmount: order.paymentAmount,
-              chargePoints: order.chargePoints ?? order.coinPrice ?? selectedPackage.points,
-              paymentType: "digital_content",
-              productId: selectedPackage.id,
-              featureKey: selectedPackage.featureKey,
-              productName: order.productName || selectedPackage.title,
-              paymentMethod: selectedMethod,
-            });
-            clearPendingOrder();
-            await handleConfirmSuccess(result);
-            setIsMethodModalOpen(false);
-          } catch (error: unknown) {
-            reportPaymentFailureToServer({
-              merchantUid: order.merchantUid,
-              impUid: rsp.imp_uid,
-              reasonCode: "confirm_failed",
-              reasonMessage: getErrorMessage(error, "결제 검증에 실패했습니다."),
-              paymentMethod: selectedMethod,
-            });
-            pushToast("error", getErrorMessage(error, "결제 검증에 실패했습니다."));
-          } finally {
-            setIsProcessing(false);
-            resolve();
-          }
+      if (!rsp || rsp.code || !paymentId) {
+        const message = mapPaymentErrorMessage(
+          rsp?.message || rsp?.error_msg || rsp?.errorMsg || "결제가 취소되었습니다.",
+        );
+        reportPaymentFailureToServer({
+          merchantUid: order.merchantUid,
+          impUid: paymentId || undefined,
+          reasonCode: "client_cancel_or_fail",
+          reasonMessage: message,
+          paymentMethod: selectedMethod,
         });
-      });
+        pushToast("error", message);
+        setIsProcessing(false);
+        return;
+      }
+
+      try {
+        setProcessingText("결제 검증을 진행하고 있습니다...");
+        const result = await confirmPaymentWithServer({
+          impUid: paymentId,
+          merchantUid: order.merchantUid,
+          paymentAmount: order.paymentAmount,
+          chargePoints: order.chargePoints ?? order.coinPrice ?? selectedPackage.points,
+          paymentType: "digital_content",
+          productId: selectedPackage.id,
+          featureKey: selectedPackage.featureKey,
+          productName: order.productName || selectedPackage.title,
+          paymentMethod: selectedMethod,
+        });
+        clearPendingOrder();
+        await handleConfirmSuccess(result);
+        setIsMethodModalOpen(false);
+      } catch (error: unknown) {
+        reportPaymentFailureToServer({
+          merchantUid: order.merchantUid,
+          impUid: paymentId,
+          reasonCode: "confirm_failed",
+          reasonMessage: getErrorMessage(error, "결제 검증에 실패했습니다."),
+          paymentMethod: selectedMethod,
+        });
+        pushToast("error", getErrorMessage(error, "결제 검증에 실패했습니다."));
+      } finally {
+        setIsProcessing(false);
+      }
     } catch (error: unknown) {
       reportPaymentFailureToServer({
         reasonCode: "prepare_or_sdk_failed",
@@ -1938,42 +1912,6 @@ export default function PointsPage() {
   };
 
   /* ── 갤럭시아 결제 성공 핸들러 ─────────────────────────────────── */
-  const handleGalaxiaSuccess = useCallback(
-    async (res: GalaxiaPayResult) => {
-      setIsGalaxiaModalOpen(false);
-      setIsProcessing(true);
-      setProcessingText("결제 검증을 진행하고 있습니다...");
-      try {
-        const pending = readPendingOrder();
-        const result = await confirmPaymentWithServer({
-          impUid: res.imp_uid!,
-          merchantUid: res.orderId || pending?.merchantUid,
-          paymentAmount: pending?.paymentAmount,
-          chargePoints: pending?.chargePoints,
-          paymentType: "digital_content",
-          productId: pending?.productId,
-          featureKey: pending?.featureKey,
-          productName: pending?.productName,
-          paymentMethod: galaxiaFlowMethod,
-        });
-        clearPendingOrder();
-        await handleConfirmSuccess(result);
-      } catch (error: unknown) {
-        reportPaymentFailureToServer({
-          merchantUid: res.orderId,
-          impUid: res.imp_uid,
-          reasonCode: "galaxia_confirm_failed",
-          reasonMessage: getErrorMessage(error, "갤럭시아 결제 검증에 실패했습니다."),
-          paymentMethod: galaxiaFlowMethod,
-        });
-        pushToast("error", getErrorMessage(error, "결제 검증에 실패했습니다."));
-      } finally {
-        setIsProcessing(false);
-      }
-    },
-    [confirmPaymentWithServer, galaxiaFlowMethod, handleConfirmSuccess, pushToast, reportPaymentFailureToServer],
-  );
-
   const handleSubscribe = async (plan: SubscriptionPlan) => {
     const isFlowerAdmin = authUser?.role === "admin" && isFlowerAdminSessionClient();
     const flowerAdminToken = getFlowerAdminTokenClient();
@@ -2023,11 +1961,10 @@ export default function PointsPage() {
       }
 
       await ensurePortoneSdk();
-      if (!window.IMP) throw new Error("포트원 결제 SDK가 초기화되지 않았습니다.");
+      if (!window.PortOne?.requestPayment) throw new Error("포트원 V2 결제 SDK가 초기화되지 않았습니다.");
 
       const order = prepareData.order;
-      const pgConfig = resolvePgConfig(selectedMethod || "card_general");
-      window.IMP.init(PORTONE_IMP_CODE);
+      const paymentConfig = await fetchPortOnePaymentConfig(apiBase);
 
       const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
       redirectUrl.searchParams.set("portone_subscription_redirect", "1");
@@ -2036,18 +1973,19 @@ export default function PointsPage() {
       const buyerEmail = authUser.email || "";
 
       const requestData: Record<string, unknown> = {
-        pg: pgConfig.pg,
-        pay_method: pgConfig.payMethod,
-        merchant_uid: order.merchantUid,
-        name: order.productName,
-        amount: order.paymentAmount,
-        buyer_name: buyerName,
-        buyer_email: buyerEmail,
-        customer_uid: order.customerUid,
-        customerName: buyerName,
-        customerEmail: buyerEmail,
-        m_redirect_url: redirectUrl.toString(),
-        custom_data: {
+        storeId: paymentConfig.storeId,
+        channelKey: paymentConfig.channelKey,
+        paymentId: order.merchantUid,
+        orderName: order.productName,
+        totalAmount: order.paymentAmount,
+        currency: paymentConfig.currency || "CURRENCY_KRW",
+        payMethod: paymentConfig.payMethod || "CARD",
+        redirectUrl: redirectUrl.toString(),
+        customer: {
+          fullName: buyerName,
+          email: buyerEmail,
+        },
+        customData: {
           userId: authUser.id,
           subscriptionTier: plan.id,
           subscriptionSource: "pass",
@@ -2055,9 +1993,7 @@ export default function PointsPage() {
         },
       };
 
-      if (PORTONE_STORE_ID) requestData.storeId = PORTONE_STORE_ID;
-      if (PORTONE_CHANNEL_KEY) requestData.channelKey = PORTONE_CHANNEL_KEY;
-      if (PORTONE_NOTICE_URL) requestData.notice_url = PORTONE_NOTICE_URL;
+      if (paymentConfig.noticeUrl) requestData.noticeUrls = [paymentConfig.noticeUrl];
 
       savePendingSubscriptionOrder({
         merchantUid: order.merchantUid,
@@ -2066,92 +2002,87 @@ export default function PointsPage() {
         paymentMethod: selectedMethod || "card_general",
       });
 
-      await new Promise<void>((resolve) => {
-        window.IMP!.request_pay(requestData, async (rsp: PortOnePaymentResponse) => {
-          if (!rsp || !rsp.success || !rsp.imp_uid) {
-            clearPendingSubscriptionOrder();
-            const message = mapPaymentErrorMessage(
-              rsp?.error_msg || rsp?.errorMsg || "이용권 결제가 취소되었습니다.",
-            );
-            reportPaymentFailureToServer({
-              merchantUid: order.merchantUid,
-              impUid: rsp?.imp_uid,
-              reasonCode: "subscription_client_cancel_or_fail",
-              reasonMessage: message,
-              paymentMethod: selectedMethod || "card_general",
-            });
-            pushToast("error", message);
-            resolve();
-            return;
-          }
+      const rsp = await window.PortOne.requestPayment(requestData);
+      const paymentId = String(rsp?.paymentId || order.merchantUid || "").trim();
 
-          try {
-            setProcessingText("이용권 결제 검증 및 활성화를 진행하고 있습니다...");
-            const confirmRes = await authFetch(`${apiBase}/api/payments/subscription/confirm`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              credentials: "include",
-              body: JSON.stringify({
-                impUid: rsp.imp_uid,
-                merchantUid: order.merchantUid,
-                tier: plan.id,
-                customerUid: order.customerUid,
-                paymentMethod: selectedMethod || "card_general",
-              }),
-            }, {
-              retryOn401: true,
-              apiBase,
-            });
-
-            const confirmData = await safeParseJson<ConfirmSubscriptionResponse>(confirmRes);
-            if (!confirmRes.ok) {
-              clearPendingSubscriptionOrder();
-              pushToast("error", confirmData.message || "이용권 결제 확인에 실패했습니다.");
-              resolve();
-              return;
-            }
-
-            if (confirmData.user?.points !== undefined) persistUserPoints(Number(confirmData.user.points));
-
-            if (confirmData.subscription) {
-              const newSub: SubscriptionStatus = {
-                tier: confirmData.subscription?.tier || "free",
-                source: confirmData.subscription?.source || "pass",
-                isActive: !!confirmData.subscription?.isActive,
-                expiresAt: confirmData.subscription?.expiresAt || null,
-                profileLimit: typeof confirmData.subscription?.profileLimit === "number"
-                  ? confirmData.subscription.profileLimit
-                  : 1,
-                lowBalanceWarning: false,
-                cancelAtPeriodEnd: !!confirmData.subscription?.cancelAtPeriodEnd,
-                cancelRequestedAt: confirmData.subscription?.cancelRequestedAt || null,
-                freeLimit: 0,
-              };
-              setSubscription((prev) => ({ ...newSub, freeLimit: prev.freeLimit || 0 }));
-              persistSubscriptionCache(newSub);
-            }
-
-            clearPendingSubscriptionOrder();
-            pushToast("success", confirmData.message || `${plan.title}이 활성화되었습니다.`);
-            setShowStarBurst(true);
-            setTimeout(() => setShowStarBurst(false), 1200);
-          } catch (error: unknown) {
-            clearPendingSubscriptionOrder();
-            reportPaymentFailureToServer({
-              merchantUid: order.merchantUid,
-              impUid: rsp.imp_uid,
-              reasonCode: "subscription_confirm_failed",
-              reasonMessage: getErrorMessage(error, "이용권 결제 확인에 실패했습니다."),
-              paymentMethod: selectedMethod || "card_general",
-            });
-            pushToast("error", getErrorMessage(error, "이용권 결제 확인에 실패했습니다."));
-          } finally {
-            resolve();
-          }
+      if (!rsp || rsp.code || !paymentId) {
+        clearPendingSubscriptionOrder();
+        const message = mapPaymentErrorMessage(
+          rsp?.message || rsp?.error_msg || rsp?.errorMsg || "이용권 결제가 취소되었습니다.",
+        );
+        reportPaymentFailureToServer({
+          merchantUid: order.merchantUid,
+          impUid: paymentId || undefined,
+          reasonCode: "subscription_client_cancel_or_fail",
+          reasonMessage: message,
+          paymentMethod: selectedMethod || "card_general",
         });
-      });
+        pushToast("error", message);
+        return;
+      }
+
+      try {
+        setProcessingText("이용권 결제 검증 및 활성화를 진행하고 있습니다...");
+        const confirmRes = await authFetch(`${apiBase}/api/payments/subscription/confirm`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            impUid: paymentId,
+            merchantUid: order.merchantUid,
+            tier: plan.id,
+            customerUid: order.customerUid,
+            paymentMethod: selectedMethod || "card_general",
+          }),
+        }, {
+          retryOn401: true,
+          apiBase,
+        });
+
+        const confirmData = await safeParseJson<ConfirmSubscriptionResponse>(confirmRes);
+        if (!confirmRes.ok) {
+          clearPendingSubscriptionOrder();
+          pushToast("error", confirmData.message || "이용권 결제 확인에 실패했습니다.");
+          return;
+        }
+
+        if (confirmData.user?.points !== undefined) persistUserPoints(Number(confirmData.user.points));
+
+        if (confirmData.subscription) {
+          const newSub: SubscriptionStatus = {
+            tier: confirmData.subscription?.tier || "free",
+            source: confirmData.subscription?.source || "pass",
+            isActive: !!confirmData.subscription?.isActive,
+            expiresAt: confirmData.subscription?.expiresAt || null,
+            profileLimit: typeof confirmData.subscription?.profileLimit === "number"
+              ? confirmData.subscription.profileLimit
+              : 1,
+            lowBalanceWarning: false,
+            cancelAtPeriodEnd: !!confirmData.subscription?.cancelAtPeriodEnd,
+            cancelRequestedAt: confirmData.subscription?.cancelRequestedAt || null,
+            freeLimit: 0,
+          };
+          setSubscription((prev) => ({ ...newSub, freeLimit: prev.freeLimit || 0 }));
+          persistSubscriptionCache(newSub);
+        }
+
+        clearPendingSubscriptionOrder();
+        pushToast("success", confirmData.message || `${plan.title}이 활성화되었습니다.`);
+        setShowStarBurst(true);
+        setTimeout(() => setShowStarBurst(false), 1200);
+      } catch (error: unknown) {
+        clearPendingSubscriptionOrder();
+        reportPaymentFailureToServer({
+          merchantUid: order.merchantUid,
+          impUid: paymentId,
+          reasonCode: "subscription_confirm_failed",
+          reasonMessage: getErrorMessage(error, "이용권 결제 확인에 실패했습니다."),
+          paymentMethod: selectedMethod || "card_general",
+        });
+        pushToast("error", getErrorMessage(error, "이용권 결제 확인에 실패했습니다."));
+      }
     } catch (error: unknown) {
       const message = getErrorMessage(error, "이용권 처리 중 오류가 발생했습니다.");
       clearPendingSubscriptionOrder();
@@ -2314,10 +2245,10 @@ export default function PointsPage() {
                     달빛 이용권 관리
                   </h1>
                   <p className="mt-1 text-sm text-slate-200">
-                    월정석 혜택과 원화 단건 결제를 한 화면에서 확인하세요.
+                    달빛 이용권과 원화 단건 결제 기준을 한 화면에서 확인하세요.
                   </p>
                   <p className="mt-1 text-[12px] text-[#f3dd9a]">
-                    코인은 충전 재화가 아니라 콘텐츠 가치 표시 단위입니다.
+                    코인은 콘텐츠 가치 표시 단위이며 실제 결제는 원화로 진행됩니다.
                   </p>
                 </div>
               </div>
@@ -2350,7 +2281,7 @@ export default function PointsPage() {
         <div className="flex items-center gap-3 px-1">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-50" />
           <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#f3dd9a]">
-            월정석 & 이용권 관리
+            달빛 이용권 관리
           </span>
           <div className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-400 to-transparent opacity-50" />
         </div>
@@ -2368,52 +2299,11 @@ export default function PointsPage() {
         />
 
         {/* ③ 섹션 구분선 */}
-        <div className="flex items-center gap-3 px-1">
-          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-50" />
-          <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#f3dd9a]">
-            단건 결제 서비스
-          </span>
-          <div className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-400 to-transparent opacity-50" />
-        </div>
-
-        {/* ④ 패키지 카드 목록 */}
         <section
-          aria-label="단건 결제 회차형 이용권"
-          className="overflow-hidden rounded-[24px] border border-white/12 bg-white/[0.08] shadow-[0_18px_46px_rgba(7,10,28,0.32)] backdrop-blur"
+          aria-label="원화 단건 결제 안내"
+          className="rounded-[20px] border border-white/12 bg-white/[0.06] px-5 py-4 text-sm leading-6 text-slate-200"
         >
-          <div
-            className="rounded-[24px] p-5"
-            style={{ background: "linear-gradient(135deg, rgba(13,19,43,0.90) 0%, rgba(39,34,82,0.78) 100%)" }}
-          >
-            <p className="mb-3 flex items-center gap-2 text-[12px] font-bold text-slate-200">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#f3dd9a]" />
-              필요한 이용권을 선택한 뒤 결제 수단을 고르세요.
-            </p>
-            <div className="flex flex-col gap-3">
-              {POINT_PACKAGES.map((pkg) => (
-                <PackageCard
-                  key={pkg.id}
-                  pkg={pkg}
-                  selected={selectedPackage.id === pkg.id}
-                  onSelect={handlePackageSelect}
-                />
-              ))}
-            </div>
-            <div className="mt-4 flex items-start gap-2 rounded-[14px] border border-[#f3dd9a]/30 bg-[#f3dd9a]/10 px-3.5 py-3">
-              <span className="text-[#f3dd9a] flex-shrink-0 mt-0.5">✔️</span>
-              <p className="text-[11px] text-slate-200 leading-relaxed">
-                결제 완료 후 해당 상품 이용 또는 결과 생성이 진행됩니다.
-                <span className="mx-1">·</span>
-                결제 성공 후 선택한 이용권 회차만 즉시 지급합니다.
-              </p>
-            </div>
-            <div className="mt-3 flex items-start gap-2 rounded-[14px] border border-rose-100 bg-rose-50/70 px-3.5 py-3">
-              <span className="text-rose-500 flex-shrink-0 mt-0.5">⏳</span>
-              <p className="text-[11px] text-rose-800 leading-relaxed font-semibold">
-                시스템 오류, 중복 결제, 결과 미제공 건은 재생성 또는 환불 처리됩니다.
-              </p>
-            </div>
-          </div>
+          각 서비스의 코인 가치는 가격 기준으로만 표시됩니다. 이용권 범위와 이벤트 월정석 잔량으로 열리지 않는 서비스는 실행 시 원화 단건 결제로 진행됩니다.
         </section>
 
         <section className="rounded-[20px] border border-white/12 bg-white/[0.08] p-5">
@@ -2535,10 +2425,10 @@ export default function PointsPage() {
               <div className="rounded-[14px] border border-slate-100 bg-slate-50/80 px-4 py-3">
                 <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">현재 이용권</p>
                 <p className="text-sm font-semibold text-slate-700">
-                  {!subscription.isActive || subscription.tier === "free" ? "무료 플랜"
-                   : subscription.tier === "standard" ? "스탠다드 꿀 30일 이용권"
-                   : subscription.tier === "premium" ? "프리미엄 꿀 30일 이용권"
-                   : subscription.tier === "vvip" ? "VVIP 꿀단지 30일 이용권"
+                  {!subscription.isActive || subscription.tier === "free" ? "이용권 없음"
+                   : subscription.tier === "standard" ? "스탠다드 달빛 이용권"
+                   : subscription.tier === "premium" ? "프리미엄 달빛 이용권"
+                   : subscription.tier === "vvip" ? "VVIP 달빛 이용권"
                    : "—"}
                 </p>
               </div>
@@ -2680,39 +2570,6 @@ export default function PointsPage() {
         hasLocalAuth={true}
       />
 
-      {/* ══ 갤럭시아 카드 선택 모달 ══════════════════════════════════ */}
-      {isGalaxiaModalOpen && authUser && (
-        <GalaxiaPayModal
-          pkg={selectedPackage}
-          buyerName={authUser.name || "회원"}
-          buyerEmail={authUser.email || ""}
-          orderId={galaxiaMerchantUid}
-          flowMethod={galaxiaFlowMethod}
-          initialPayType={galaxiaInitialPayType}
-          initialCardId={galaxiaInitialCardId}
-          onSuccess={handleGalaxiaSuccess}
-          onFail={(res) => {
-            setIsGalaxiaModalOpen(false);
-            clearPendingOrder();
-            reportPaymentFailureToServer({
-              merchantUid: galaxiaMerchantUid,
-              impUid: res.imp_uid,
-              reasonCode: res.errorCode || "galaxia_client_cancel_or_fail",
-              reasonMessage: res.errorMsg || "갤럭시아 결제가 취소되었거나 실패했습니다.",
-              paymentMethod: galaxiaFlowMethod,
-            });
-            const msg = res.errorMsg
-              ? mapPaymentErrorMessage(res.errorMsg)
-              : "결제가 취소되었습니다. 원하실 때 다시 시도하실 수 있어요.";
-            pushToast("error", msg);
-          }}
-          onClose={() => {
-            setIsGalaxiaModalOpen(false);
-            clearPendingOrder();
-          }}
-          isProcessing={isProcessing}
-        />
-      )}
     </main>
   );
 }
