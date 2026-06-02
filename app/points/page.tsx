@@ -1130,7 +1130,6 @@ function WalletCard({ name, points }: { name: string; points: number }) {
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-[22px] font-black leading-none text-white">
                 {monthlyStoneBalance.toLocaleString("ko-KR")}
-                <span className="ml-1 text-base font-bold text-[#f3dd9a]">월정석 기준</span>
               </span>
             </div>
             <p className="max-w-[280px] text-[11px] text-slate-200 sm:text-right">
