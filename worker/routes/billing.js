@@ -25,6 +25,12 @@ const MEMBERSHIP_CREDIT_GRANT_BY_TIER = Object.freeze({
   vvip: 5900,
 });
 
+const MEMBERSHIP_FREE_LIMIT_BY_TIER = Object.freeze({
+  standard: 30,
+  premium: 50,
+  vvip: 100,
+});
+
 const ACCESS_DECISION_REASONS = Object.freeze({
   FREE: "free",
   AUTH_REQUIRED: "auth_required",
@@ -118,6 +124,20 @@ function isActiveMembership(profileSubscription = {}) {
   const tier = String(profileSubscription?.tier || "free").trim().toLowerCase();
   const expiresAt = profileSubscription?.expiresAt ? new Date(profileSubscription.expiresAt) : null;
   return tier !== "free" && expiresAt && Number.isFinite(expiresAt.getTime()) && expiresAt.getTime() > Date.now();
+}
+
+async function getActiveMembershipPassForUser(env, authUserId) {
+  await connectDb(env);
+  const user = await User.findById(authUserId).select("profileSubscription").lean();
+  const sub = user?.profileSubscription || {};
+  const tier = String(sub?.tier || "free").trim().toLowerCase();
+  const isActive = isActiveMembership(sub);
+  return {
+    isActive,
+    tier: isActive ? tier : "free",
+    freeLimit: isActive ? Number(MEMBERSHIP_FREE_LIMIT_BY_TIER[tier] || 0) : 0,
+    profileSubscription: sub,
+  };
 }
 
 async function seedMembershipCreditForExistingPassIfNeeded(authUserId) {
@@ -765,6 +785,45 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   const reportSessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || (reportId ? `love-book:${reportId}` : requestId)).trim();
 
   if (authCheck?.auth?.userId) {
+    const subscriptionPass = await getActiveMembershipPassForUser(env, authCheck.auth.userId);
+    const coinPrice = Number(pricing?.coinPrice || pricing?.cost || 0);
+    if (subscriptionPass.isActive && Number.isFinite(coinPrice) && coinPrice > 0 && coinPrice <= subscriptionPass.freeLimit) {
+      return success({
+        pricing,
+        consume: {
+          ok: true,
+          transactionType: "membership_pass",
+          accessType: "membership_pass",
+          requestId,
+          featureKey: String(pricing.featureKey || ""),
+          coinPrice,
+          chargedCoins: 0,
+          membershipCreditCost: 0,
+        },
+        premiumAccessToken: null,
+        accessGrant: {
+          ok: true,
+          accessType: "membership_pass",
+          featureKey: String(pricing.featureKey || ""),
+          sessionId: reportSessionId || undefined,
+          requestId,
+          purchaseId: requestId,
+          evidenceId: `membership:${subscriptionPass.tier}:${requestId}`,
+          reportId: reportId || undefined,
+          paidAt: new Date().toISOString(),
+        },
+        balance: null,
+        membershipPass: {
+          tier: subscriptionPass.tier,
+          freeLimit: subscriptionPass.freeLimit,
+        },
+        user: {
+          id: String(authCheck.auth.userId || ""),
+          profileSubscription: subscriptionPass.profileSubscription || null,
+        },
+      }, "이용권 무료 한도 조건으로 서비스를 열었습니다.");
+    }
+
     try {
       const membershipConsume = await consumeMembershipCreditIfAvailable(env, authCheck.auth.userId, pricing, requestId, {
         ...body,

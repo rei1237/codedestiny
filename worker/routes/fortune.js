@@ -1061,6 +1061,47 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       || "",
   ).trim().slice(0, 120);
 
+  const subscriptionUser = await User.findById(auth.userId)
+    .select("points profileSubscription unlockedFeatures")
+    .lean();
+  if (!subscriptionUser) {
+    return json({ message: "User not found.", code: "USER_NOT_FOUND" }, { status: 404 });
+  }
+  const activeTierForPass = resolveEffectiveActiveTier(subscriptionUser);
+  const activePolicyForPass = getPlanPolicy(activeTierForPass);
+  if (activeTierForPass && cost <= activePolicyForPass.freeLimit) {
+    const unlockedFeatures = normalizePersistentUnlockKeys(subscriptionUser.unlockedFeatures);
+    const premiumAccessToken = await createPremiumAccessToken(env, {
+      userId: String(auth.userId || ""),
+      reportType: reportTypeForPremiumAccess,
+      featureKey,
+      reason,
+      transactionId: requestId || `membership:${activeTierForPass}:${Date.now().toString(36)}`,
+      chargedCoins: 0,
+      freeBySubscription: true,
+    }) || "";
+
+    return buildJsonWithPremiumAccessCookie({
+      message: "이용권 무료 한도 조건으로 서비스를 열었습니다.",
+      code: "SUBSCRIPTION_INCLUDED",
+      productId: productId || null,
+      requiredCoins: cost,
+      chargedCoins: 0,
+      membershipCreditCost: 0,
+      accessType: "membership_pass",
+      freeBySubscription: true,
+      forceDeductApplied: false,
+      subscriptionTier: activeTierForPass,
+      freeLimit: activePolicyForPass.freeLimit,
+      profileLimit: activePolicyForPass.profileLimit,
+      recommendedCoins: activePolicyForPass.recommendedCoins,
+      premiumAccessToken: premiumAccessToken || "",
+      user: userPayload(auth, Number(subscriptionUser.points || 0), unlockedFeatures),
+      unlockedFeatures,
+      unlockMap: toUnlockMap(unlockedFeatures),
+    }, {}, premiumAccessToken, env);
+  }
+
   const monthlyCreditCost = calculateMembershipCreditCost(cost);
   await seedLegacyCoinMonthlyCredit(auth.userId);
   const monthlyUpdate = {
