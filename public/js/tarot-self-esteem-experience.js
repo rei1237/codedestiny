@@ -761,10 +761,185 @@
     return r;
   }
 
+  function cleanReadingText(value) {
+    return String(value || "").replace(/\s+/g, " ").trim();
+  }
+
+  function findCardForPosition(cards, pos, idx) {
+    var list = Array.isArray(cards) ? cards : [];
+    for (var i = 0; i < list.length; i += 1) {
+      if (list[i] && list[i].position === pos) return list[i];
+    }
+    return list[idx] || {};
+  }
+
+  function getPositionCardLabel(card, item) {
+    var raw = cleanReadingText((card && (card.nameKr || card.name)) || (item && (item.cardName || item.cardLabel || item.cardNameEn)) || "");
+    if (!raw) raw = "선택한 카드";
+    var reversed = (card && card.orientation === "reversed") || /\(역\)|역방향/.test(cleanReadingText(item && (item.orientationLabel || item.cardName || item.cardLabel)));
+    return raw + (reversed ? " (역)" : "");
+  }
+
+  function buildPositionFields(pos, card, item, idx) {
+    var source = cleanReadingText(
+      (item && (item.easyAnswer || item.whyThisHappens || item.recoveryReframe || item.selfEsteemImpact || item.message || item.interpretation)) || ""
+    );
+    var base = buildProfessionalPositionMessage(pos, card, source);
+    var cardLabel = getPositionCardLabel(card, item);
+    var orientation = (card && card.orientation === "reversed") || /\(역\)|역방향/.test(cardLabel) ? "reversed" : "upright";
+    var label = POSITION_LABELS[pos] || cleanReadingText(item && item.positionTitle) || ("포지션 " + (idx + 1));
+    var templates = {
+      past_debuff: {
+        easyAnswer: base,
+        whyThisHappens: "예전에는 상대의 표정과 분위기를 먼저 읽는 것이 관계를 지키는 방법처럼 느껴졌을 수 있습니다. " + cardLabel + "는 그 습관이 약점이 아니라 오래된 보호 전략이었음을 보여줍니다.",
+        realLifeExample: "말을 꺼내기 전에 상대가 불편해할지 먼저 계산하고, 내 의견보다 분위기를 부드럽게 만드는 쪽을 선택하기 쉽습니다.",
+        woundPattern: "거절당하거나 차가운 반응을 받을까 봐 내 감정을 뒤로 미루는 패턴입니다.",
+        selfEsteemImpact: "이 패턴이 길어지면 내 기준보다 타인의 반응이 우선순위가 되어 자기 확신이 약해집니다.",
+        recoveryReframe: "눈치는 섬세함의 증거입니다. 다만 이제는 타인을 읽는 힘을 나를 지키는 힘으로 돌려야 합니다.",
+        actionPractice: "오늘은 누군가의 표정을 해석하기 전에 내 감정과 원하는 것을 한 문장으로 먼저 적어보세요.",
+        caution: "상대가 불편해 보인다는 추측만으로 내 선택을 접지 마세요.",
+        innerSentence: "나는 분위기를 읽을 수 있지만, 내 감정도 똑같이 중요하다.",
+        healingSentence: "타인의 표정은 정보일 뿐, 내 가치를 정하는 판결이 아니다.",
+      },
+      inner_monster: {
+        easyAnswer: base,
+        whyThisHappens: "거절이 관계의 단절처럼 느껴졌던 경험이 마음 안에 남아 있을 수 있습니다. " + cardLabel + "는 거절 불안 뒤에 인정받고 싶은 마음이 숨어 있음을 비춥니다.",
+        realLifeExample: "부탁을 받으면 피곤해도 바로 답하거나, 어렵다는 말을 길게 설명하다가 결국 떠안게 됩니다.",
+        woundPattern: "싫다고 말하면 사랑받지 못할 것이라는 조건부 인정의 패턴입니다.",
+        selfEsteemImpact: "내 한계를 지키지 못할수록 자존감은 '얼마나 맞춰주었는가'에 묶이게 됩니다.",
+        recoveryReframe: "거절은 관계를 끊는 말이 아니라 내가 감당 가능한 범위를 알려주는 말입니다.",
+        actionPractice: "작은 부탁 하나에 '지금은 어렵지만 가능한 시간을 다시 알려줄게'라고 짧게 답해보세요.",
+        caution: "미안함을 줄이기 위해 과도한 보상이나 긴 해명을 붙이지 마세요.",
+        innerSentence: "내가 거절해도 관계를 존중할 수 있다.",
+        healingSentence: "나는 모두를 만족시키지 않아도 충분히 소중한 사람이다.",
+      },
+      current_damage: {
+        easyAnswer: base,
+        whyThisHappens: "눈치 보는 습관은 몸과 마음을 계속 대기 상태로 만듭니다. " + cardLabel + "는 과잉 해석이 피로와 자기검열로 이어지는 지점을 보여줍니다.",
+        realLifeExample: "메시지를 보내기 전 여러 번 고치거나, 상대의 답장 속도와 말투를 오래 곱씹게 됩니다.",
+        woundPattern: "확인되지 않은 신호를 내 책임으로 끌어와 스스로를 압박하는 패턴입니다.",
+        selfEsteemImpact: "겉으로는 조심스러워 보여도 안에서는 분노, 피로, 무력감이 쌓일 수 있습니다.",
+        recoveryReframe: "모든 분위기를 해결해야 한다는 책임을 내려놓을수록 내 중심이 돌아옵니다.",
+        actionPractice: "오늘 한 번은 사실과 추측을 분리해서 적고, 확인된 사실에만 반응해보세요.",
+        caution: "상대의 침묵을 곧바로 거절이나 비난으로 해석하지 마세요.",
+        innerSentence: "나는 반응을 예측하는 사람이 아니라 내 감정을 확인하는 사람이다.",
+        healingSentence: "불확실함 속에서도 나는 나를 지킬 수 있다.",
+      },
+      mind_shield: {
+        easyAnswer: base,
+        whyThisHappens: "타인의 실망을 견디는 힘은 감정과 책임을 분리할 때 생깁니다. " + cardLabel + "는 부드럽지만 단단한 경계가 필요하다고 말합니다.",
+        realLifeExample: "상대가 서운해해도 바로 달래기보다, 내가 할 수 있는 범위와 할 수 없는 범위를 나눠 말하는 장면입니다.",
+        woundPattern: "상대의 불편함을 내 잘못으로 떠안는 패턴입니다.",
+        selfEsteemImpact: "경계를 지키면 처음에는 불편해도, 시간이 지나며 내 선택을 믿는 힘이 쌓입니다.",
+        recoveryReframe: "실망은 상대의 감정이고, 선택은 나의 책임입니다. 두 영역을 분리하면 관계가 더 건강해집니다.",
+        actionPractice: "'이해하지만 이번에는 어렵다'처럼 짧고 분명한 문장을 준비해두세요.",
+        caution: "경계를 설명하느라 나를 변호하는 대화로 빠지지 마세요.",
+        innerSentence: "상대의 감정은 존중하지만 내가 모두 책임질 필요는 없다.",
+        healingSentence: "내 경계는 차가움이 아니라 나를 지키는 품위다.",
+      },
+      levelup_mastery: {
+        easyAnswer: base,
+        whyThisHappens: "자존감은 거창한 선언보다 반복 가능한 작은 선택에서 회복됩니다. " + cardLabel + "는 내 마음을 먼저 확인하는 루틴이 핵심임을 보여줍니다.",
+        realLifeExample: "하루를 시작할 때 오늘 지킬 기준 하나를 정하고, 밤에는 지킨 순간을 짧게 기록합니다.",
+        woundPattern: "내 마음을 나중으로 미루는 습관이 자존감 회복을 늦춥니다.",
+        selfEsteemImpact: "작은 기준을 지킬수록 '나는 나를 버리지 않는다'는 감각이 선명해집니다.",
+        recoveryReframe: "나를 1순위로 둔다는 것은 이기적인 선택이 아니라 관계에 더 건강하게 머무는 방식입니다.",
+        actionPractice: "오늘의 기준 하나를 정하고, 그 기준을 지킨 순간을 자기 전에 기록하세요.",
+        caution: "완벽하게 바뀌어야 한다는 압박으로 시작하지 마세요.",
+        innerSentence: "나는 작은 선택으로도 나를 회복시킬 수 있다.",
+        healingSentence: "나는 나를 뒤로 미루지 않는 연습을 오늘부터 시작한다.",
+      },
+    };
+    var t = templates[pos] || templates.levelup_mastery;
+    return {
+      positionIndex: Number(item && item.positionIndex ? item.positionIndex : idx + 1),
+      positionKey: pos,
+      positionTitle: label,
+      icon: cleanReadingText(item && item.icon) || "✦",
+      question: cleanReadingText(item && item.question) || label,
+      cardName: cleanReadingText(item && item.cardName) || cardLabel,
+      cardNameEn: cleanReadingText(item && item.cardNameEn) || cleanReadingText(card && card.name) || cardLabel,
+      cardCode: cleanReadingText(item && item.cardCode) || cleanReadingText(card && (card.cardId || card.id)),
+      orientation: cleanReadingText(item && item.orientation) || orientation,
+      orientationLabel: cleanReadingText(item && item.orientationLabel) || (orientation === "reversed" ? "역방향" : "정방향"),
+      keywords: Array.isArray(item && item.keywords) && item.keywords.length ? item.keywords.slice(0, 5) : label.split(/\s+/).slice(0, 5),
+      easyAnswer: cleanReadingText(item && item.easyAnswer) || t.easyAnswer,
+      whyThisHappens: cleanReadingText(item && item.whyThisHappens) || t.whyThisHappens,
+      realLifeExample: cleanReadingText(item && item.realLifeExample) || t.realLifeExample,
+      woundPattern: cleanReadingText(item && item.woundPattern) || t.woundPattern,
+      selfEsteemImpact: cleanReadingText(item && item.selfEsteemImpact) || t.selfEsteemImpact,
+      recoveryReframe: cleanReadingText(item && item.recoveryReframe) || t.recoveryReframe,
+      actionPractice: cleanReadingText(item && item.actionPractice) || t.actionPractice,
+      caution: cleanReadingText(item && item.caution) || t.caution,
+      innerSentence: cleanReadingText(item && item.innerSentence) || t.innerSentence,
+      healingSentence: cleanReadingText(item && item.healingSentence) || t.healingSentence,
+      todayAction: cleanReadingText(item && item.todayAction) || t.actionPractice,
+    };
+  }
+
+  function completeSelfEsteemReadingPayload(reading, cards) {
+    var src = reading || {};
+    var byPos = Object.create(null);
+    (Array.isArray(src.positionReadings) ? src.positionReadings : []).forEach(function (item, idx) {
+      var pos = cleanReadingText(item && (item.positionKey || item.position)) || POSITION_ORDER[idx];
+      if (pos) byPos[pos] = item;
+    });
+    var positionReadings = POSITION_ORDER.map(function (pos, idx) {
+      return buildPositionFields(pos, findCardForPosition(cards, pos, idx), byPos[pos], idx);
+    });
+    var byKey = Object.create(null);
+    positionReadings.forEach(function (item) { byKey[item.positionKey] = item; });
+    var opening = cleanReadingText(src.opening || src.story) || "5장의 카드는 당신이 타인의 시선 속에서 잃어버린 중심을 다시 회복하는 길을 보여줍니다. 오늘의 리딩은 상처의 뿌리, 현재의 소모, 회복의 문장, 그리고 실제 행동까지 차분히 정돈합니다.";
+    var topSummary = src.topSummary && typeof src.topSummary === "object" ? src.topSummary : {};
+    var levelupGuide = src.levelupGuide && typeof src.levelupGuide === "object" ? src.levelupGuide : {};
+    return Object.assign({}, src, {
+      opening: opening,
+      pastDebuff: cleanReadingText(src.pastDebuff) || byKey.past_debuff.easyAnswer,
+      innerMonster: cleanReadingText(src.innerMonster) || byKey.inner_monster.easyAnswer,
+      currentDamage: cleanReadingText(src.currentDamage) || byKey.current_damage.easyAnswer,
+      mindShield: cleanReadingText(src.mindShield) || byKey.mind_shield.easyAnswer,
+      levelupMastery: cleanReadingText(src.levelupMastery) || byKey.levelup_mastery.easyAnswer,
+      levelupGuidance: cleanReadingText(src.levelupGuidance || src.advice) || "이 리딩의 핵심은 타인의 반응을 먼저 살피던 힘을 이제 나를 보호하는 감각으로 바꾸는 것입니다. 오늘부터 짧은 경계, 감정 기록, 작은 선택을 반복하면 자존감은 안정적으로 회복됩니다.",
+      topSummary: {
+        flowLine: cleanReadingText(topSummary.flowLine || topSummary.flow) || "상처 인식 → 거절 불안 확인 → 소모 지점 정리 → 경계 회복 → 자기 우선 루틴",
+        corePattern: cleanReadingText(topSummary.corePattern) || byKey.past_debuff.easyAnswer,
+        rootCause: cleanReadingText(topSummary.rootCause) || byKey.inner_monster.whyThisHappens,
+        mainDamage: cleanReadingText(topSummary.mainDamage) || byKey.current_damage.selfEsteemImpact,
+        recoveryKey: cleanReadingText(topSummary.recoveryKey) || "감정 분리 · 짧은 거절 · 기준 기록",
+        automaticThought: cleanReadingText(topSummary.automaticThought) || byKey.inner_monster.caution,
+        todayAction: cleanReadingText(topSummary.todayAction) || byKey.levelup_mastery.actionPractice,
+      },
+      levelupGuide: {
+        flow: cleanReadingText(levelupGuide.flow) || "5장의 카드는 남의 눈치를 보던 습관을 비난하지 않고, 그것을 더 성숙한 자기 보호 능력으로 바꾸는 흐름을 보여줍니다.",
+        rootPattern: cleanReadingText(levelupGuide.rootPattern) || byKey.past_debuff.woundPattern,
+        woundStory: cleanReadingText(levelupGuide.woundStory) || byKey.current_damage.woundPattern,
+        recoveryPath: cleanReadingText(levelupGuide.recoveryPath) || byKey.mind_shield.recoveryReframe,
+        boundaryPractice: cleanReadingText(levelupGuide.boundaryPractice) || byKey.mind_shield.actionPractice,
+        sevenDayQuest: Array.isArray(levelupGuide.sevenDayQuest) && levelupGuide.sevenDayQuest.length ? levelupGuide.sevenDayQuest : [
+          "1일차: 내 감정과 시간을 먼저 확인하기",
+          "2일차: 거절 문장 1개 소리 내어 읽기",
+          "3일차: 사실과 추측 분리하기",
+          "4일차: 지킨 기준 1개 기록하기",
+          "5일차: 실망과 책임 분리하기",
+          "6일차: 하나의 경계 실제로 지키기",
+          "7일차: 이번 주 변화를 한 문단으로 정리하기",
+        ],
+        practiceSentence: cleanReadingText(levelupGuide.practiceSentence) || "오늘은 내가 감당 가능한지 먼저 확인하고 짧게 답하겠습니다.",
+      },
+      levelupQuests: Array.isArray(src.levelupQuests) ? src.levelupQuests : [],
+      actionPlan: Array.isArray(src.actionPlan) && src.actionPlan.length ? src.actionPlan : [
+        byKey.levelup_mastery.actionPractice,
+        "타인의 기대보다 내 감정을 먼저 확인하고 한 문장으로 적기",
+        "상대의 반응을 해석하기 전에 확인된 사실만 분리하기",
+      ],
+      positionReadings: positionReadings,
+    });
+  }
+
   function normalizeSelfEsteemReadingPayload(reading, cards) {
     var src = reading || {};
     if (Array.isArray(src.positionReadings) && src.positionReadings.length) {
-      return Object.assign({}, src, {
+      return completeSelfEsteemReadingPayload(Object.assign({}, src, {
         positionReadings: src.positionReadings.map(function (item, idx) {
           return Object.assign({}, item, {
             positionIndex: Number(item && item.positionIndex ? item.positionIndex : idx + 1),
@@ -776,7 +951,7 @@
         levelupGuide: src.levelupGuide && typeof src.levelupGuide === "object" ? src.levelupGuide : {},
         levelupQuests: Array.isArray(src.levelupQuests) ? src.levelupQuests : [],
         opening: String(src.opening || "").trim(),
-      });
+      }), cards);
     }
     if (
       src.pastDebuff ||
@@ -786,7 +961,7 @@
       src.levelupMastery ||
       (Array.isArray(src.positionInsights) && src.positionInsights.length)
     ) {
-      return src;
+      return completeSelfEsteemReadingPayload(src, cards);
     }
 
     var byPos = Object.create(null);
@@ -902,7 +1077,7 @@
         todayAction: String(item.message || ""),
       };
     });
-    return out;
+    return completeSelfEsteemReadingPayload(out, cards);
   }
 
   function showTarotSelfEsteemFinalReading() {
@@ -1105,7 +1280,7 @@
     }
 
     function addField(section, title, value, className) {
-      if (!String(value || "").trim()) return;
+      if (!String(value || "").trim()) return false;
       var wrap = document.createElement("div");
       wrap.className = "tse-self-esteem-field" + (className ? " " + className : "");
       var h = document.createElement("p");
@@ -1117,6 +1292,7 @@
       wrap.appendChild(h);
       wrap.appendChild(p);
       section.appendChild(wrap);
+      return true;
     }
 
     // Opening banner
@@ -1136,20 +1312,26 @@
 
     if (r.topSummary && typeof r.topSummary === "object") {
       var ts = r.topSummary;
-      var summaryCard = document.createElement("div");
-      summaryCard.className = "tse-levelup-card";
-      summaryCard.innerHTML =
-        '<p class="tse-levelup-title">🧭 상단 요약</p>' +
-        '<p class="tse-levelup-body"><strong>5장 흐름:</strong> ' + escapeHtml(String(ts.flowLine || ts.flow || "")) + '</p>' +
-        '<ul class="tse-levelup-list">' +
-        '  <li class="tse-levelup-item"><strong>핵심 패턴:</strong> ' + escapeHtml(String(ts.corePattern || "")) + '</li>' +
-        '  <li class="tse-levelup-item"><strong>상처의 뿌리:</strong> ' + escapeHtml(String(ts.rootCause || "")) + '</li>' +
-        '  <li class="tse-levelup-item"><strong>가장 크게 소모되는 지점:</strong> ' + escapeHtml(String(ts.mainDamage || "")) + '</li>' +
-        '  <li class="tse-levelup-item"><strong>회복 키워드:</strong> ' + escapeHtml(String(ts.recoveryKey || "")) + '</li>' +
-        '  <li class="tse-levelup-item"><strong>자동 사고:</strong> ' + escapeHtml(String(ts.automaticThought || "")) + '</li>' +
-        '  <li class="tse-levelup-item"><strong>오늘의 대표 회복 액션:</strong> ' + escapeHtml(String(ts.todayAction || "")) + '</li>' +
-        '</ul>';
-      container.appendChild(summaryCard);
+      var summaryFlow = cleanReadingText(ts.flowLine || ts.flow);
+      var summaryItems = [
+        ["핵심 패턴", ts.corePattern],
+        ["상처의 뿌리", ts.rootCause],
+        ["가장 크게 소모되는 지점", ts.mainDamage],
+        ["회복 키워드", ts.recoveryKey],
+        ["자동 사고", ts.automaticThought],
+        ["오늘의 대표 회복 액션", ts.todayAction],
+      ].filter(function (row) { return cleanReadingText(row[1]); });
+      if (summaryFlow || summaryItems.length) {
+        var summaryCard = document.createElement("div");
+        summaryCard.className = "tse-levelup-card tse-levelup-card--summary";
+        summaryCard.innerHTML =
+          '<p class="tse-levelup-title">상단 요약</p>' +
+          (summaryFlow ? '<p class="tse-levelup-body"><strong>5장 흐름:</strong> ' + escapeHtml(summaryFlow) + '</p>' : '') +
+          (summaryItems.length ? '<ul class="tse-levelup-list">' + summaryItems.map(function (row) {
+            return '<li class="tse-levelup-item"><strong>' + escapeHtml(row[0]) + ':</strong> ' + escapeHtml(cleanReadingText(row[1])) + '</li>';
+          }).join("") + '</ul>' : '');
+        container.appendChild(summaryCard);
+      }
     }
 
 
@@ -1244,11 +1426,12 @@
       var lvCard = document.createElement("div");
       lvCard.className = "tse-levelup-card";
       lvCard.innerHTML = '<p class="tse-levelup-title">🎮 Level Up 가이드</p>';
-      addField(lvCard, "5장 흐름", r.levelupGuide.flow);
-      addField(lvCard, "상처의 뿌리", r.levelupGuide.rootPattern);
-      addField(lvCard, "반복 상처 이야기", r.levelupGuide.woundStory);
-      addField(lvCard, "회복 경로", r.levelupGuide.recoveryPath);
-      addField(lvCard, "경계선 연습", r.levelupGuide.boundaryPractice);
+      var guideFieldCount = 0;
+      if (addField(lvCard, "5장 흐름", r.levelupGuide.flow)) guideFieldCount += 1;
+      if (addField(lvCard, "상처의 뿌리", r.levelupGuide.rootPattern)) guideFieldCount += 1;
+      if (addField(lvCard, "반복 상처 이야기", r.levelupGuide.woundStory)) guideFieldCount += 1;
+      if (addField(lvCard, "회복 경로", r.levelupGuide.recoveryPath)) guideFieldCount += 1;
+      if (addField(lvCard, "경계선 연습", r.levelupGuide.boundaryPractice)) guideFieldCount += 1;
       if (Array.isArray(r.levelupGuide.sevenDayQuest) && r.levelupGuide.sevenDayQuest.length) {
         var questTitle = document.createElement("p");
         questTitle.className = "tse-self-esteem-field-title";
@@ -1263,9 +1446,10 @@
           questList.appendChild(li);
         });
         lvCard.appendChild(questList);
+        guideFieldCount += 1;
       }
-      addField(lvCard, "오늘의 연습 문장", r.levelupGuide.practiceSentence);
-      container.appendChild(lvCard);
+      if (addField(lvCard, "오늘의 연습 문장", r.levelupGuide.practiceSentence)) guideFieldCount += 1;
+      if (guideFieldCount) container.appendChild(lvCard);
     }
 
     if (Array.isArray(r.levelupQuests) && r.levelupQuests.length) {
