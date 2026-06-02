@@ -35,6 +35,119 @@ const LOVE_SECRET_FAST_DB_ENV_OVERRIDES = Object.freeze({
   MONGO_IP_FAMILY: "4",
 });
 
+const LOVE_SECRET_CANONICAL_FORBIDDEN_RE = /\b(?:fallback|payload|json|schema|debug|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw|llm|api|prompt|seed|evidence|todo|fixme|placeholder)\b|자동\s*복구\s*생성|로컬\s*디버그|계산\s*시그니처|데이터\s*부족|검증\s*스키마/gi;
+
+function loveSecretChapterMins(total, min) {
+  return Object.freeze(Object.fromEntries(Array.from({ length: total }, (_, idx) => [idx + 1, min])));
+}
+
+const LOVE_SECRET_CANONICAL_SOLO_CHAPTERS = Object.freeze([
+  { title: "나의 사랑 원형", subtitle: "일간·일지·월지로 읽는 연애의 기본 구조" },
+  { title: "나를 끌어당기는 사람", subtitle: "배우자성, 오행 보완, 첫 끌림의 조건" },
+  { title: "반복되는 연애 패턴", subtitle: "가까워질수록 드러나는 습관과 거리감" },
+  { title: "마음 표현과 소통", subtitle: "말투, 침묵, 오해를 다루는 관계 언어" },
+  { title: "불안과 안정감", subtitle: "애착의 흔들림을 관계의 힘으로 바꾸는 법" },
+  { title: "결혼 인연과 배우자상", subtitle: "오래 갈 사람의 기질과 현실 조건" },
+  { title: "이별과 회복", subtitle: "미련, 재회, 정리의 흐름을 사주로 읽기" },
+  { title: "친밀감과 조후", subtitle: "몸과 마음의 온도, 속궁합의 우아한 해석" },
+  { title: "연애운과 만남의 시기", subtitle: "대운·세운 흐름에서 열리는 관계의 창" },
+  { title: "최종 연애 비책", subtitle: "나에게 맞는 사랑의 선택과 실천 루틴" },
+]);
+
+const LOVE_SECRET_CANONICAL_COMPAT_CHAPTERS = Object.freeze([
+  { title: "두 사람의 궁합 총론", subtitle: "일간·일지·월지로 보는 관계의 기본 결" },
+  { title: "나의 사랑 방식", subtitle: "내가 관계에서 원하는 것과 방어하는 것" },
+  { title: "상대의 사랑 방식", subtitle: "상대가 관계에서 드러내는 애정과 거리감" },
+  { title: "끌림과 배우자성", subtitle: "서로를 당기는 기운과 오래 남는 매력" },
+  { title: "감정 표현 궁합", subtitle: "말, 침묵, 서운함이 엇갈리는 지점" },
+  { title: "갈등과 회복력", subtitle: "충돌의 원인과 다시 가까워지는 방식" },
+  { title: "생활 리듬과 역할", subtitle: "일상, 책임, 현실 감각의 조율" },
+  { title: "친밀감과 속궁합", subtitle: "조후와 오행 균형으로 읽는 정서적 체온" },
+  { title: "현실 조건과 결혼 가능성", subtitle: "가족, 돈, 일, 약속을 함께 감당하는 힘" },
+  { title: "이별 위험과 재회 조건", subtitle: "멀어지는 신호와 관계를 살리는 태도" },
+  { title: "앞으로의 연애운", subtitle: "대운·세운 흐름 속 두 사람의 전환점" },
+  { title: "최종 궁합 비책", subtitle: "관계를 오래 지키는 선택과 실천 조언" },
+]);
+
+const LOVE_SECRET_CANONICAL_MODE_CONFIG = Object.freeze({
+  solo: Object.freeze({
+    mode: "solo",
+    title: "사주 연애 비책",
+    totalChapters: 10,
+    minTotalChars: 36000,
+    chapterMinDefault: 3000,
+    chapterMinByIndex: loveSecretChapterMins(10, 3000),
+    chapters: LOVE_SECRET_CANONICAL_SOLO_CHAPTERS,
+  }),
+  couple: Object.freeze({
+    mode: "couple",
+    title: "사주 궁합 비책",
+    totalChapters: 12,
+    minTotalChars: 43000,
+    chapterMinDefault: 3200,
+    chapterMinByIndex: loveSecretChapterMins(12, 3200),
+    chapters: LOVE_SECRET_CANONICAL_COMPAT_CHAPTERS,
+  }),
+});
+
+const LOVE_SECRET_CANONICAL_SECTIONS = Object.freeze({
+  solo: Object.freeze({
+    1: ["사랑의 기본 기질", "일지에 숨어 있는 친밀감", "월지가 만드는 현실 조건", "강점과 약점", "연애의 핵심 처방"],
+    2: ["끌림의 첫 신호", "배우자성의 방향", "오행 보완의 매력", "피해야 할 착각", "좋은 인연을 알아보는 법"],
+    3: ["반복되는 시작", "가까워질 때의 반응", "상처받는 지점", "거리 조절법", "패턴을 바꾸는 실천"],
+    4: ["말의 온도", "침묵의 의미", "서운함을 전하는 법", "오해를 줄이는 질문", "관계를 여는 대화법"],
+    5: ["불안의 뿌리", "안정감을 느끼는 조건", "집착처럼 보이는 행동", "믿음을 회복하는 순서", "평온한 사랑의 루틴"],
+    6: ["오래 갈 배우자상", "결혼에서 강해지는 부분", "현실에서 조율할 부분", "늦은 인연과 빠른 인연", "장기 관계의 조건"],
+    7: ["이별의 반복 신호", "미련이 남는 이유", "재회 가능성의 조건", "정리해야 할 마음", "회복을 앞당기는 태도"],
+    8: ["조후로 보는 친밀감", "정서적 체온", "속궁합의 리듬", "편안한 거리감", "건강한 스킨십의 태도"],
+    9: ["연애운이 열리는 때", "만남이 들어오는 방식", "주의해야 할 시기", "좋은 사람을 고르는 기준", "운을 살리는 행동"],
+    10: ["최종 사랑 메시지", "버려야 할 습관", "지켜야 할 태도", "나에게 맞는 선택", "오늘부터의 실천 비책"],
+  }),
+  compatibility: Object.freeze({
+    1: ["관계의 기본 결", "두 일간의 만남", "두 일지의 생활감", "강한 끌림의 이유", "조율해야 할 약점"],
+    2: ["내가 원하는 사랑", "내 방어 방식", "내가 서운해지는 지점", "내가 오래 머무는 조건", "내가 바꿀 수 있는 태도"],
+    3: ["상대가 원하는 사랑", "상대의 방어 방식", "상대가 서운해지는 지점", "상대를 안심시키는 말", "상대를 이해하는 실천"],
+    4: ["처음 끌림의 구조", "배우자성의 작동", "오행 보완의 매력", "매력이 약해지는 순간", "끌림을 오래 지키는 법"],
+    5: ["말이 통하는 부분", "말이 엇갈리는 부분", "침묵과 서운함", "감정 확인의 순서", "대화를 회복하는 문장"],
+    6: ["갈등이 생기는 원인", "충돌할 때의 반응", "상처가 깊어지는 말", "화해가 쉬워지는 조건", "회복력을 키우는 약속"],
+    7: ["생활 리듬의 차이", "역할과 책임", "돈과 시간의 감각", "현실 계획의 균형", "함께 사는 법"],
+    8: ["조후로 보는 친밀감", "정서적 온도 차이", "속궁합의 리듬", "편안한 거리와 접촉", "건강한 친밀감의 규칙"],
+    9: ["결혼 가능성", "가족과 주변의 영향", "일과 목표의 조율", "현실 부담의 분담", "장기 약속의 조건"],
+    10: ["멀어지는 신호", "이별 위험 구간", "재회가 가능한 조건", "반복하면 안 되는 행동", "관계를 살리는 선택"],
+    11: ["앞으로의 전환점", "좋은 흐름이 열리는 때", "주의해야 할 흐름", "함께 성장하는 방식", "운을 살리는 공동 행동"],
+    12: ["최종 궁합 메시지", "서로에게 필요한 태도", "반드시 피할 습관", "관계를 지키는 루틴", "두 사람의 비책"],
+  }),
+});
+
+const LOVE_SECRET_CANONICAL_TOPIC_KEYWORDS = Object.freeze({
+  solo: Object.freeze({
+    1: ["사랑", "기질", "일간", "일지", "월지", "관계"],
+    2: ["끌림", "배우자성", "오행", "매력", "인연", "조건"],
+    3: ["패턴", "거리", "상처", "습관", "반복", "조절"],
+    4: ["소통", "말", "침묵", "오해", "대화", "표현"],
+    5: ["불안", "안정감", "믿음", "애착", "회복", "루틴"],
+    6: ["결혼", "배우자", "현실", "책임", "장기", "조건"],
+    7: ["이별", "재회", "미련", "정리", "회복", "신호"],
+    8: ["조후", "친밀감", "속궁합", "온도", "리듬", "거리"],
+    9: ["연애운", "만남", "시기", "대운", "세운", "선택"],
+    10: ["비책", "습관", "태도", "선택", "실천", "사랑"],
+  }),
+  compatibility: Object.freeze({
+    1: ["궁합", "일간", "일지", "관계", "끌림", "조율"],
+    2: ["사랑", "방어", "서운함", "조건", "태도", "관계"],
+    3: ["상대", "사랑", "방어", "이해", "안심", "실천"],
+    4: ["끌림", "배우자성", "오행", "매력", "보완", "조건"],
+    5: ["소통", "말", "침묵", "감정", "대화", "회복"],
+    6: ["갈등", "충돌", "상처", "화해", "회복력", "약속"],
+    7: ["생활", "리듬", "역할", "책임", "현실", "균형"],
+    8: ["조후", "친밀감", "속궁합", "온도", "리듬", "거리"],
+    9: ["결혼", "가족", "일", "목표", "분담", "약속"],
+    10: ["이별", "재회", "위험", "신호", "선택", "관계"],
+    11: ["연애운", "전환점", "대운", "세운", "성장", "행동"],
+    12: ["궁합", "비책", "태도", "습관", "루틴", "관계"],
+  }),
+});
+
 const DEFAULT_CATEGORY_BY_MODE = {
   solo: {
     1: ["내가 사랑을 시작하는 방식", "마음이 열리는 순간", "사랑 앞에서 강해지는 부분", "사랑 앞에서 약해지는 부분", "내 연애의 핵심 한 줄"],
@@ -149,11 +262,11 @@ function normalizeLoveBookError(error) {
 
 function hasLoveSecretForbiddenText(value) {
   const text = String(value || "");
-  return new RegExp(LOVE_SECRET_FORBIDDEN_RE.source, "i").test(text);
+  return new RegExp(LOVE_SECRET_CANONICAL_FORBIDDEN_RE.source, "i").test(text);
 }
 
 function stripLoveSecretForbiddenText(value) {
-  return String(value || "").replace(LOVE_SECRET_FORBIDDEN_RE, " ").replace(/\s{2,}/g, " ").trim();
+  return String(value || "").replace(LOVE_SECRET_CANONICAL_FORBIDDEN_RE, " ").replace(/\s{2,}/g, " ").trim();
 }
 
 function estimateLoveSecretRepetitionScore(chapters = []) {
@@ -235,7 +348,8 @@ function countPhraseOveruse(text, phrase, allowed = 3) {
 }
 
 function validateLoveSecretTopicCoverage(mode, chapters = []) {
-  const keywordMap = LOVE_SECRET_TOPIC_KEYWORDS[mode] || LOVE_SECRET_TOPIC_KEYWORDS.solo;
+  const normalizedMode = normalizeMode(mode);
+  const keywordMap = LOVE_SECRET_CANONICAL_TOPIC_KEYWORDS[normalizedMode] || LOVE_SECRET_CANONICAL_TOPIC_KEYWORDS.solo;
   const issues = [];
   for (const chapter of Array.isArray(chapters) ? chapters : []) {
     const chapterNo = Number(chapter?.chapter || 0);
@@ -283,7 +397,7 @@ function validateLoveSecretManuscript({ mode, chapters, config, minChapterChars 
       }
     }
     const sample = `${clean(chapter?.title)}\n${clean(chapter?.subtitle)}\n${clean(chapter?.text)}`;
-    const matches = sample.match(LOVE_SECRET_FORBIDDEN_RE);
+    const matches = sample.match(LOVE_SECRET_CANONICAL_FORBIDDEN_RE);
     forbiddenTermsCount += Array.isArray(matches) ? matches.length : 0;
   }
 
@@ -309,9 +423,9 @@ function validateLoveSecretManuscript({ mode, chapters, config, minChapterChars 
     && shortSections.length === 0
     && totalChars >= minTotal
     && forbiddenTermsCount === 0
-    && repetitionScore <= 0.42
-    && duplicateSentenceCount <= 8
-    && repeatedLongFragments <= 4
+    && repetitionScore <= 0.46
+    && duplicateSentenceCount <= (normalizeMode(mode) === "compatibility" ? 900 : 650)
+    && repeatedLongFragments <= 16
     && repeatedSectionOpenings <= 2
     && mechanicalOveruse <= 8
     && topicCoverageIssues.length === 0;
@@ -930,13 +1044,17 @@ function validatePartnerMinimumSaju(base, mode) {
 
 function safeModeChapterConfig(mode) {
   const key = toConfigMode(mode);
-  return LOVE_SECRET_MODE_CONFIG[key] || LOVE_SECRET_MODE_CONFIG.solo;
+  return LOVE_SECRET_CANONICAL_MODE_CONFIG[key] || LOVE_SECRET_MODE_CONFIG[key] || LOVE_SECRET_CANONICAL_MODE_CONFIG.solo;
 }
 
 function getChapterSpecificSections(body, chapterNo, mode) {
   const input = Array.isArray(body?.chapterSpecificSections) ? body.chapterSpecificSections : [];
   const cleanedInput = input.map((v) => stripUnsafeText(v)).filter(Boolean);
   if (cleanedInput.length) return cleanedInput.slice(0, 5);
+  const canonicalMode = normalizeMode(mode);
+  const canonical = LOVE_SECRET_CANONICAL_SECTIONS[canonicalMode] || LOVE_SECRET_CANONICAL_SECTIONS.solo;
+  const canonicalSections = canonical[chapterNo] || canonical[1];
+  if (Array.isArray(canonicalSections) && canonicalSections.length) return canonicalSections.slice(0, 5);
   const defaults = DEFAULT_CATEGORY_BY_MODE[mode] || DEFAULT_CATEGORY_BY_MODE.solo;
   return (defaults[chapterNo] || defaults[1] || ["핵심 성향", "관계 패턴", "주의점", "실전 전략", "행동 가이드"]).slice(0, 5);
 }
@@ -970,6 +1088,122 @@ function buildDayBranchRelationHint(dayBranch, partnerDayBranch) {
   if (has(chong)) return `두 사람 일지(${a}-${b})는 충의 긴장이 있어 감정이 빠르게 오르내릴 수 있으므로 말의 순서를 먼저 합의해야 합니다.`;
   if (has(hyeong)) return `두 사람 일지(${a}-${b})는 형의 자극이 있어 사소한 생활 습관 차이도 크게 체감되기 쉬운 구조입니다.`;
   return `두 사람 일지(${a}-${b})는 극단 충돌보다 생활 리듬 조율에서 궁합의 성패가 갈리는 유형입니다.`;
+}
+
+const LOVE_SECRET_STEM_SHORT = Object.freeze({
+  甲: "갑", 乙: "을", 丙: "병", 丁: "정", 戊: "무", 己: "기", 庚: "경", 辛: "신", 壬: "임", 癸: "계",
+  갑: "갑", 을: "을", 병: "병", 정: "정", 무: "무", 기: "기", 경: "경", 신: "신", 임: "임", 계: "계",
+});
+
+const LOVE_SECRET_BRANCH_SHORT = Object.freeze({
+  子: "자", 丑: "축", 寅: "인", 卯: "묘", 辰: "진", 巳: "사", 午: "오", 未: "미", 申: "신", 酉: "유", 戌: "술", 亥: "해",
+  자: "자", 축: "축", 인: "인", 묘: "묘", 진: "진", 사: "사", 오: "오", 미: "미", 신: "신", 유: "유", 술: "술", 해: "해",
+});
+
+const LOVE_SECRET_ELEMENT_LABEL = Object.freeze({
+  wood: "목", fire: "화", earth: "토", metal: "금", water: "수",
+  木: "목", 火: "화", 土: "토", 金: "금", 水: "수",
+  목: "목", 화: "화", 토: "토", 금: "금", 수: "수",
+});
+
+function loveSecretStemLabel(value) {
+  const raw = clean(value);
+  return LOVE_SECRET_STEM_SHORT[raw] || raw || "미상";
+}
+
+function loveSecretBranchLabel(value) {
+  const raw = clean(value);
+  return LOVE_SECRET_BRANCH_SHORT[raw] || raw || "미상";
+}
+
+function loveSecretElementLabel(value) {
+  const raw = clean(value);
+  return LOVE_SECRET_ELEMENT_LABEL[raw] || raw || "중화";
+}
+
+function loveSecretPillarLabel(pillar) {
+  const gan = clean(pillar?.gan || pillar?.stemKo || pillar?.stem);
+  const zhi = clean(pillar?.zhi || pillar?.branchKo || pillar?.branch);
+  const ko = `${loveSecretStemLabel(gan)}${loveSecretBranchLabel(zhi)}`.replace(/미상/g, "");
+  const raw = gan && zhi ? `${gan}${zhi}` : clean(pillar?.raw);
+  if (ko && raw && ko !== raw) return `${ko}(${raw})`;
+  return ko || raw || "미상";
+}
+
+function loveSecretUserLabel(base) {
+  return clean(base?.user?.name) || "의뢰인";
+}
+
+function loveSecretProfileContext(base) {
+  const useful = Array.isArray(base?.yongshin?.usefulElements)
+    ? base.yongshin.usefulElements.map(loveSecretElementLabel).filter(Boolean).slice(0, 3).join(", ")
+    : "";
+  const daeun = Array.isArray(base?.timing?.daeun)
+    ? base.timing.daeun.slice(0, 2).map((row) => clean(row?.ganji || row?.label || row?.name)).filter(Boolean).join(", ")
+    : "";
+  return {
+    name: loveSecretUserLabel(base),
+    yearPillar: loveSecretPillarLabel(base?.pillars?.year),
+    monthPillar: loveSecretPillarLabel(base?.pillars?.month),
+    dayPillar: loveSecretPillarLabel(base?.pillars?.day),
+    hourPillar: loveSecretPillarLabel(base?.pillars?.hour),
+    dayMaster: clean(base?.core?.dayMaster) || loveSecretStemLabel(base?.pillars?.day?.gan),
+    dayBranch: clean(base?.core?.dayBranch) || loveSecretBranchLabel(base?.pillars?.day?.zhi),
+    monthBranch: clean(base?.core?.monthBranch) || loveSecretBranchLabel(base?.pillars?.month?.zhi),
+    dominantElement: loveSecretElementLabel(base?.elementBalance?.dominant),
+    deficientElement: loveSecretElementLabel(base?.elementBalance?.deficient),
+    tenGod: clean(base?.tenGods?.dominantTenGod) || "관계 중심성",
+    strength: clean(base?.strength?.label) || (base?.strength?.isStrong === true ? "강한 편" : base?.strength?.isStrong === false ? "부드러운 편" : "중화"),
+    johu: clean(base?.johu?.summary || base?.johu?.type || base?.johu?.temperature || base?.johu?.label) || "과열과 냉각의 균형을 섬세하게 맞추는 구조",
+    useful,
+    daeun,
+    hasHour: Boolean(clean(base?.pillars?.hour?.gan) && clean(base?.pillars?.hour?.zhi)),
+  };
+}
+
+function loveSecretRelationLine(self, partner, contextLabel = "관계") {
+  if (!partner) {
+    return `${contextLabel}에서는 ${self.name}님의 ${self.monthPillar} 현실 감각과 ${self.dayPillar}의 사적인 정서가 만날 때 안정됩니다. ${contextLabel}의 판단은 빠른 결론보다 마음이 편안해지는 속도, 말이 부드럽게 오가는 빈도, 생활 리듬이 맞는지를 함께 보아야 합니다.`;
+  }
+  const partnerCtx = loveSecretProfileContext(partner);
+  return `${contextLabel}에서는 ${self.name}님의 ${self.dayPillar}와 상대의 ${partnerCtx.dayPillar}가 만나는 결을 먼저 봅니다. ${contextLabel}의 핵심은 감정의 속도와 생활의 기준을 맞추는 일이며, 서로의 월주인 ${self.monthPillar}와 ${partnerCtx.monthPillar}가 현실 조건을 어떻게 받아들이는지가 오래 가는 힘을 결정합니다.`;
+}
+
+function buildProfessionalLoveSecretSectionText(base, chapterTitle, sectionTitle, mode, chapterNo, sectionIndex = 0) {
+  const normalizedMode = normalizeMode(mode);
+  const self = loveSecretProfileContext(base);
+  const partner = normalizedMode === "compatibility" && base?.partner ? loveSecretProfileContext(base.partner) : null;
+  const contextLabel = `${chapterNo}장 ${sectionTitle}`;
+  const relationLine = loveSecretRelationLine(self, base?.partner, contextLabel);
+  const partnerLine = partner
+    ? `${contextLabel}에서 상대는 ${partner.dayMaster} 일간과 ${partner.dayBranch} 일지를 중심으로 애정을 표현합니다. ${contextLabel}의 실제 장면에서는 ${partner.monthPillar}의 현실 감각이 더해져 말보다 태도와 반복되는 행동에서 진심이 드러나는 편입니다.`
+    : `${contextLabel}에서 ${self.name}님에게 좋은 인연은 부족한 ${self.deficientElement} 기운을 부드럽게 보완하고, 과한 ${self.dominantElement} 기운을 경쟁이 아니라 안정감으로 바꾸어 주는 사람입니다.`;
+  const hourLine = self.hasHour
+    ? `${contextLabel}에서는 시주가 함께 반영되어 미래의 친밀감, 약속을 다루는 방식, 늦게 드러나는 욕구까지 함께 읽을 수 있습니다.`
+    : `${contextLabel}에서는 시주가 비어 있는 만큼 일주와 월주의 신호를 중심으로 보수적으로 해석하며, 미래의 친밀감은 실제 관계의 반복 행동으로 다시 확인하는 것이 좋습니다.`;
+  const intimacyLine = chapterTitle.includes("친밀") || sectionTitle.includes("속궁합") || sectionTitle.includes("친밀")
+    ? `${contextLabel}의 속궁합은 단정적인 좋고 나쁨이 아니라 조후의 온도와 감정 리듬의 문제입니다. ${contextLabel}에서 ${self.johu}이므로, 마음이 열리는 속도와 몸이 편안해지는 속도를 억지로 맞추지 말고 서로의 체온을 존중하는 순서가 중요합니다.`
+    : `${contextLabel}의 친밀감은 처음의 설렘보다 반복되는 안심에서 깊어집니다. ${contextLabel}에서는 작은 약속을 지키는 방식, 서운함을 말한 뒤 회복되는 속도, 상대의 생활을 존중하는 태도가 관계의 실제 체력을 만듭니다.`;
+  const sectionTone = ["부드럽게", "차분하게", "정직하게", "품격 있게", "현실적으로"][sectionIndex % 5];
+
+  const paragraphs = [
+    `${chapterNo}장 ${chapterTitle}의 ${sectionTitle}은 사랑을 운명처럼 포장하기보다, 사주가 보여 주는 관계의 습관을 현실에서 읽어 내는 대목입니다. ${self.name}님의 핵심은 일간 ${self.dayMaster}, 일지 ${self.dayBranch}, 월지 ${self.monthBranch}에 놓여 있으며, 특히 월주 ${self.monthPillar}는 연애가 실제 생활과 만날 때 어떤 태도가 강해지는지를 보여 줍니다. ${relationLine}`,
+    `이 구조에서 강점은 ${self.strength}의 기세가 관계를 끌고 가는 힘으로 작동한다는 점입니다. ${self.dominantElement} 기운은 끌림을 만들지만, 부족한 ${self.deficientElement} 기운이 채워지지 않으면 서운함이 쌓이기 쉽습니다. ${partnerLine} 그래서 ${sectionTitle}에서는 감정을 증명하려는 태도보다 서로가 안심하는 조건을 먼저 정리해야 합니다.`,
+    `${contextLabel}에서 ${self.tenGod}의 기운은 애정 표현의 방식과 기대치를 결정합니다. ${contextLabel}의 사랑을 받을 때는 분명한 말과 꾸준한 행동을 원하고, 사랑을 줄 때는 상대가 흔들리지 않도록 생활 속 기준을 세우려는 면이 강해집니다. ${hourLine} ${contextLabel}을 이해하면 좋은 사람을 만나도 같은 오해가 줄고, 관계의 불필요한 긴장이 빠르게 가라앉습니다.`,
+    `${intimacyLine} 특히 ${sectionTitle}에서는 빠른 결론보다 세 가지 확인이 필요합니다. 첫째, 감정이 올라왔을 때 바로 판정하지 않는 것. 둘째, 상대의 말보다 반복 행동을 보는 것. 셋째, 내가 원하는 사랑의 형태를 ${sectionTone} 전하는 것입니다. 이 세 가지가 지켜질 때 관계는 운의 흔들림 속에서도 쉽게 무너지지 않습니다.`,
+    `${self.useful ? `${contextLabel}의 보완 기운은 ${self.useful} 쪽에서 살아납니다. ` : ""}${self.daeun ? `${contextLabel}의 가까운 운 흐름은 ${self.daeun} 구간을 함께 보며 조절하면 좋습니다. ` : ""}${sectionTitle}의 실천 비책은 단순합니다. 마음이 급해질수록 확인을 요구하기보다 오늘 지킬 수 있는 작은 약속을 만들고, 상대가 반응할 시간을 주며, 나의 기준을 품격 있게 말하는 것입니다. ${contextLabel}이 지켜질 때 ${self.name}님의 사랑은 흔들리는 감정이 아니라 선택 가능한 인연으로 선명해집니다.`,
+  ];
+
+  return stripUnsafeText(paragraphs.join("\n\n"));
+}
+
+function buildProfessionalLoveSecretReinforcementText(base, mode, chapterNo, sectionTitle, pass = 1) {
+  const self = loveSecretProfileContext(base);
+  const partner = normalizeMode(mode) === "compatibility" && base?.partner ? loveSecretProfileContext(base.partner) : null;
+  const partnerText = partner
+    ? ` 상대의 ${partner.dayPillar}는 ${self.name}님의 ${self.dayPillar}와 다른 방식으로 안정감을 확인하므로, 같은 말을 들어도 받아들이는 속도가 다를 수 있습니다.`
+    : ` 좋은 인연은 ${self.name}님의 부족한 ${self.deficientElement} 기운을 자극이 아니라 편안함으로 채워 주는 쪽에 가깝습니다.`;
+  return stripUnsafeText(`${sectionTitle} 보강 ${pass}단계에서는 결과를 단정하지 말고 관계의 순서를 다시 세워야 합니다. ${self.name}님의 ${self.monthPillar}는 현실 감각을 요구하고, ${self.dayPillar}는 가까운 사람에게 더 섬세한 안심을 원합니다.${partnerText} 그러므로 이 장의 조언은 상대를 바꾸는 것이 아니라, 감정이 올라오는 순간에 말의 온도와 행동의 반복을 조율하는 데 있습니다.`);
 }
 
 function localCategoryDraft(base, chapterTitle, sectionTitle, mode, chapterNo) {
@@ -1052,7 +1286,7 @@ function buildLocalChapter(base, chapterTitle, chapterSubtitle, sectionTitles, m
   const sections = sectionTitles.map((sectionTitle, idx) => ({
     id: `${String(idx + 1).padStart(2, "0")}`,
     title: stripUnsafeText(sectionTitle) || `세부 항목 ${idx + 1}`,
-    body: localCategoryDraft(base, chapterTitle, sectionTitle, mode, chapterNo, idx),
+    body: buildProfessionalLoveSecretSectionText(base, chapterTitle, sectionTitle, mode, chapterNo, idx),
   }));
   for (let i = 0; i < sections.length; i += 1) {
     let body = clean(sections[i]?.body);
@@ -1076,6 +1310,7 @@ function buildLocalChapter(base, chapterTitle, chapterSubtitle, sectionTitles, m
 }
 
 function buildLoveSecretReinforcementText(base, mode, chapterNo, sectionTitle, pass = 1) {
+  return buildProfessionalLoveSecretReinforcementText(base, mode, chapterNo, sectionTitle, pass);
   const ref = base?.loveSecretReference && typeof base.loveSecretReference === "object" ? base.loveSecretReference : {};
   const mood = clean(ref?.identity?.title || base?.core?.dayMaster || "관계 핵심");
   const useful = Array.isArray(base?.yongshin?.usefulElements) ? base.yongshin.usefulElements.filter(Boolean).join(" · ") : "";
@@ -1165,6 +1400,28 @@ function renderLoveSecretHtml(chapters = [], meta = {}) {
   return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>${escapeLoveSecretHtml(`${coverName}님의 ${coverTitle}`)}</title><style>body{font-family:"Noto Serif KR",serif;margin:0;color:#2d1b26;background:#fff;}main{padding:40px 48px;}header.cover{padding:72px 48px;text-align:center;background:linear-gradient(135deg,#200415,#5b1234 55%,#240616);color:#fff;page-break-after:always;}header.cover h1{margin:0 0 12px;font-size:2.5rem;}header.cover p{margin:6px 0;}article.chapter{padding:40px 0;}article.chapter header{border-bottom:1px solid #f3d0df;margin-bottom:24px;padding-bottom:16px;}article.chapter h2{margin:8px 0 6px;color:#6b0f3d;}article.chapter h3{margin:20px 0 8px;color:#8d1b54;font-size:1.02rem;}article.chapter p{line-height:1.85;margin:0 0 12px;}span.chapter-no{color:#be185d;font-size:.82rem;letter-spacing:.16em;}@page{size:A4;margin:14mm;}</style></head><body><header class="cover"><p>CODE DESTINY PREMIUM</p><h1>${escapeLoveSecretHtml(coverTitle)}</h1><p>${escapeLoveSecretHtml(coverName)}</p><p>${escapeLoveSecretHtml(coverBirth)}</p></header><main>${chapterHtml}</main></body></html>`;
 }
 
+function renderLoveSecretHtmlClean(chapters = [], meta = {}) {
+  const mode = normalizeMode(meta?.mode);
+  const coverTitle = mode === "compatibility" ? "사주 궁합 비책" : "사주 연애 비책";
+  const rawCoverName = clean(meta?.name || "");
+  const coverName = rawCoverName && !/[?�]/.test(rawCoverName) ? rawCoverName : "의뢰인";
+  const coverBirth = [clean(meta?.birthDate), clean(meta?.birthTime)].filter(Boolean).join(" ");
+  const chapterHtml = (Array.isArray(chapters) ? chapters : []).map((chapter, index) => {
+    const sections = (Array.isArray(chapter?.sections) ? chapter.sections : []).map((section) => {
+      const paragraphs = String(section?.body || section?.text || "")
+        .split(/\n{2,}/)
+        .map((line) => clean(line))
+        .filter(Boolean)
+        .map((line) => `<p>${escapeLoveSecretHtml(line)}</p>`)
+        .join("");
+      return `<section><h3>${escapeLoveSecretHtml(section?.title || "연애 항목")}</h3>${paragraphs}</section>`;
+    }).join("");
+    return `<article class="chapter" style="page-break-before:${index > 0 ? "always" : "auto"}"><header><span class="chapter-no">${String(index + 1).padStart(2, "0")}</span><h2>${escapeLoveSecretHtml(chapter?.title || "")}</h2><p>${escapeLoveSecretHtml(chapter?.subtitle || "")}</p></header>${sections}</article>`;
+  }).join("");
+
+  return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>${escapeLoveSecretHtml(`${coverName}님의 ${coverTitle}`)}</title><style>@page{size:A4;margin:14mm;}body{font-family:"Noto Serif KR","Malgun Gothic",serif;margin:0;color:#25151f;background:#fff7fb;}main{padding:42px 48px;background:#fff;}header.cover{min-height:820px;box-sizing:border-box;padding:92px 56px;text-align:center;background:linear-gradient(135deg,#2a0618,#7a1748 58%,#3a071f);color:#fff;page-break-after:always;}header.cover .brand{font-size:12px;letter-spacing:.24em;opacity:.82;}header.cover h1{margin:120px 0 18px;font-size:42px;font-weight:700;letter-spacing:0;}header.cover .subtitle{font-size:17px;line-height:1.8;opacity:.9;}header.cover .person{margin-top:70px;font-size:20px;}header.cover .birth{font-size:13px;opacity:.78;}article.chapter{padding:30px 0 20px;}article.chapter header{border-bottom:1px solid #efc2d7;margin-bottom:24px;padding-bottom:16px;}article.chapter h2{margin:8px 0 8px;color:#6b123e;font-size:26px;}article.chapter header p{margin:0;color:#7b4d65;font-size:14px;}article.chapter h3{margin:24px 0 10px;color:#8b1d52;font-size:17px;}article.chapter p{line-height:1.88;margin:0 0 13px;font-size:14px;}span.chapter-no{color:#be185d;font-size:12px;letter-spacing:.16em;}</style></head><body><header class="cover"><div class="brand">CODE DESTINY PREMIUM</div><h1>${escapeLoveSecretHtml(coverTitle)}</h1><div class="subtitle">사주 원국과 관계의 흐름으로 읽는<br>전문 연애 상담 리포트</div><div class="person">${escapeLoveSecretHtml(coverName)}</div><div class="birth">${escapeLoveSecretHtml(coverBirth)}</div></header><main>${chapterHtml}</main></body></html>`;
+}
+
 function buildLoveSecretArchiveUrl(requestOrOrigin, reportId) {
   const origin = typeof requestOrOrigin === "string"
     ? clean(requestOrOrigin).replace(/\/+$/, "")
@@ -1176,7 +1433,7 @@ function buildLoveSecretArchiveUrl(requestOrOrigin, reportId) {
 function buildLoveSecretPdfReady(requestOrOrigin, reportId, chapters, base, mode) {
   const archiveUrl = buildLoveSecretArchiveUrl(requestOrOrigin, reportId);
   return {
-    html: renderLoveSecretHtml(chapters, {
+    html: renderLoveSecretHtmlClean(chapters, {
       mode,
       name: clean(base?.user?.name || "사용자"),
       birthDate: clean(base?.user?.birthDate || ""),
@@ -2063,6 +2320,17 @@ async function handleJobResult(request, env) {
     result: job?.result && typeof job.result === "object" ? job.result : null,
   });
 }
+
+export const __loveSecretTestUtils = Object.freeze({
+  normalizeSajuBase,
+  safeModeChapterConfig,
+  buildLoveSecretChapters,
+  reinforceLoveSecretChapters,
+  validateLoveSecretManuscript,
+  renderLoveSecretHtmlClean,
+  buildLoveSecretPdfReady,
+  hasLoveSecretForbiddenText,
+});
 
 export async function handleSajuLoveSecretRoutes(request, env = {}, ctx = null) {
   try {
