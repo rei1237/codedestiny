@@ -659,9 +659,9 @@ function SubscriptionSection({
         {/* 제목 */}
         <div className="mb-4">
           <p className="text-[11px] font-bold uppercase tracking-widest text-[#cab8ff]">Moonlight Pass</p>
-          <h2 className="mt-0.5 text-xl font-bold text-white">달빛 이용권 관리</h2>
+          <h2 className="mt-0.5 text-xl font-bold text-white">결제 수단 관리</h2>
           <p className="mt-1 text-sm text-slate-200">
-            자동결제 없이 30일 동안 플랜별 운세 혜택을 이용하세요.
+            카드/간편결제 수단과 이벤트 월정석 잔량을 함께 확인하세요.
           </p>
         </div>
 
@@ -701,7 +701,7 @@ function SubscriptionSection({
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>모든 이용권은 <strong>결제일로부터 30일간 유효</strong>합니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>결제 즉시 30일 동안 이용권 혜택이 활성화됩니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>기간 종료 후 추가 결제 없이 무료 플랜으로 전환됩니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>계속 이용하려면 사용자가 직접 새 30일 이용권을 구매해야 합니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>월정석 잔량은 신규 가입·이벤트로만 지급되며 구매하거나 충전할 수 없습니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>이용권 전용 콘텐츠 열람 시 서비스 이용이 시작되며, 7일 이내라도 이용 기록이 있으면 전액 환불이 제한될 수 있습니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>콘텐츠 진입 전 안내 팝업에서 <strong>[확인]</strong>을 누르면 서비스 개시 및 환불 제한 조건에 동의한 것으로 처리됩니다.</li>
             <li className="flex items-start gap-1.5 font-bold text-rose-600"><span className="mt-0.5 flex-shrink-0">·</span><strong>자동결제 없는 30일 이용권</strong>이며, 결제/환불 기준은 이용약관(환불정책) 조항을 따릅니다.</li>
@@ -809,7 +809,7 @@ function SubscriptionSection({
 
         {/* 잠긴 콘텐츠 — 이용권 훅 */}
         <div className="mb-3 rounded-[14px] border border-white/12 bg-white/[0.06] px-3.5 py-3">
-          <p className="mb-2 text-[11px] font-extrabold text-slate-300">🔒 이용권 구매 시 잠금이 해제돼요</p>
+          <p className="mb-2 text-[11px] font-extrabold text-slate-300">🔒 결제 수단 등록 후 잠금이 해제돼요</p>
           <ul className="space-y-1.5">
             {[
               "상세 사주 분석 — 연애·재물·직업·건강 심층 리포트",
@@ -954,8 +954,8 @@ function SubscriptionSection({
                   : lowerTierBlocked
                     ? "상위 티어 사용 중 (구매 불가)"
                   : isHighlighted
-                    ? `${theme.icon} 이 이용권 구매`
-                    : `${theme.icon} ${plan.durationMonths === 12 ? "1년" : `${plan.durationMonths}개월`} 이용권 구매`}
+                    ? `${theme.icon} 결제 수단 등록`
+                    : `${theme.icon} ${plan.durationMonths === 12 ? "1년" : `${plan.durationMonths}개월`} 결제 기준 확인`}
               </button>
 
               {lowerTierBlocked && (
@@ -999,7 +999,7 @@ function SubscriptionSection({
       <div className="px-5 pb-5 space-y-1">
         <p className="text-[11px] text-[#9B7040]">✅ 결제 즉시 이용권 혜택이 활성화되며 <strong>30일간 유효</strong>합니다.</p>
         <p className="text-[11px] text-rose-600 font-bold">이 상품은 자동결제 상품이 아니며 기간 종료 후 무료 플랜으로 전환됩니다.</p>
-        <p className="text-[11px] text-[#9B7040]">계속 이용하려면 사용자가 직접 새 30일 이용권을 구매해야 합니다.</p>
+        <p className="text-[11px] text-[#9B7040]">월정석 잔량은 이벤트 보너스이며 구매·충전할 수 없습니다.</p>
       </div>
     </section>
   );
@@ -1118,13 +1118,13 @@ function WalletCard({ name, points }: { name: string; points: number }) {
               <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#cab8ff]">
                 Moonlight Pass Desk
               </p>
-              <p className="mt-0.5 text-[15px] font-bold text-white">{name} 님의 달빛 이용권 관리</p>
+              <p className="mt-0.5 text-[15px] font-bold text-white">{name} 님의 결제 수단 관리</p>
             </div>
           </div>
 
           <div className="flex flex-col items-start gap-1 sm:items-end">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-[#f3dd9a]">
-              달빛 잔여 포인트
+              보너스 월정석 잔량
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-[22px] font-black leading-none text-white">
@@ -1133,7 +1133,7 @@ function WalletCard({ name, points }: { name: string; points: number }) {
               </span>
             </div>
             <p className="max-w-[280px] text-[11px] text-slate-200 sm:text-right">
-              월정석 기준 잔여 혜택입니다. 이용권 범위 밖 서비스만 원화 단건 결제로 진행됩니다.
+              신규 가입·이벤트로 지급된 보너스 결제 잔량입니다. 부족분은 카드 원화 단건 결제로 진행됩니다.
             </p>
           </div>
         </div>
@@ -1175,7 +1175,7 @@ function PackageCard({
       {/* BEST 뱃지 */}
       {isBest && (
         <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#cab8ff] to-[#f3dd9a] px-2.5 py-1 text-[11px] font-black text-[#151832] shadow-[0_4px_12px_rgba(202,184,255,0.32)]">
-          추천 이용권
+          추천 결제 기준
         </span>
       )}
 
@@ -1200,7 +1200,7 @@ function PackageCard({
         </span>
       </div>
       <span className="mt-2.5 inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-[#cab8ff] to-[#f3dd9a] px-2.5 py-1 text-[12px] font-black text-[#151832] shadow-[0_3px_10px_rgba(202,184,255,0.24)]">
-        단건 결제 · 월정석 병행 가능
+        카드 단건 결제 · 월정석 보너스 병행
       </span>
 
       {/* 선택 체크마크 */}
@@ -2237,7 +2237,7 @@ export default function PointsPage() {
       >
         <div className="text-center">
           <div className="mb-3 text-5xl animate-pulse">🌙</div>
-          <p className="font-semibold">달빛 이용권 관리를 불러오는 중...</p>
+          <p className="font-semibold">결제 수단 관리를 불러오는 중...</p>
         </div>
       </main>
     );
@@ -2311,13 +2311,13 @@ export default function PointsPage() {
                     Moonlight Pass Desk
                   </p>
                   <h1 className="mt-0.5 text-[22px] font-black text-white sm:text-3xl leading-tight">
-                    달빛 이용권 관리
+                    결제 수단 관리
                   </h1>
                   <p className="mt-1 text-sm text-slate-200">
-                    달빛 이용권과 원화 단건 결제 기준을 한 화면에서 확인하세요.
+                    카드/간편결제와 보너스 월정석 잔량을 한 화면에서 확인하세요.
                   </p>
                   <p className="mt-1 text-[12px] text-[#f3dd9a]">
-                    코인은 콘텐츠 가치 표시 단위이며 실제 결제는 원화로 진행됩니다.
+                    코인은 콘텐츠 가치 표시 단위이며 1코인 = 100원으로 계산됩니다.
                   </p>
                 </div>
               </div>
@@ -2350,7 +2350,7 @@ export default function PointsPage() {
         <div className="flex items-center gap-3 px-1">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-50" />
           <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#f3dd9a]">
-            달빛 이용권 관리
+            결제 수단 관리
           </span>
           <div className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-400 to-transparent opacity-50" />
         </div>

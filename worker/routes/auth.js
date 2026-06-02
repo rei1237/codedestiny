@@ -31,7 +31,21 @@ const REFRESH_COOKIE_LEGACY_PATH = "/api/auth/refresh";
 const CSRF_TOKEN_TTL_MS = 2 * 60 * 60 * 1000;
 const WITHDRAW_RATE_LIMIT_MAX = 3;
 const WITHDRAW_RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const SIGNUP_MONTHLY_CREDIT_GRANT = 500;
 const withdrawRateLimitMap = new Map();
+
+function buildSignupProfileSubscription(now = new Date()) {
+  return {
+    tier: "free",
+    source: "event",
+    membershipCreditBalance: SIGNUP_MONTHLY_CREDIT_GRANT,
+    membershipCreditGranted: SIGNUP_MONTHLY_CREDIT_GRANT,
+    membershipCreditUsed: 0,
+    signupMembershipCreditGrantedAt: now,
+    legacyCoinCreditSeeded: true,
+    legacyCoinCreditSeededPoints: 0,
+  };
+}
 
 function parseDurationToSeconds(rawValue, fallbackSeconds) {
   const raw = String(rawValue || "").trim();
@@ -599,6 +613,7 @@ async function findOrCreateSocialUser(provider, profile) {
   }
 
   const fallbackEmail = `${provider}_${profile.providerId}@social.code-destiny.local`;
+  const joinedAt = new Date();
   return User.create({
     name: profile.name || `${provider} user`,
     email: profile.email || fallbackEmail,
@@ -608,8 +623,9 @@ async function findOrCreateSocialUser(provider, profile) {
     birthTime: "00:00",
     gender: "OTHER",
     role: "user",
-    points: 50,
-    joinedAt: new Date(),
+    points: 0,
+    profileSubscription: buildSignupProfileSubscription(joinedAt),
+    joinedAt,
     localAuth: {
       enabled: false,
       activatedAt: null,
@@ -1028,7 +1044,8 @@ async function handleRegister(request, env) {
         birthTime,
         gender,
         role: "user",
-        points: Number(getEnv(env, "AUTH_SIGNUP_BONUS_POINTS", "50")) || 0,
+        points: 0,
+        profileSubscription: buildSignupProfileSubscription(),
         joinedAt: new Date(),
         localAuth: {
           enabled: true,
