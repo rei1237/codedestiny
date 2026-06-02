@@ -56,7 +56,6 @@ const buildTime = firstNonEmpty([
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
-  distDir: 'dist',
   compress: true,
   env: {
     NEXT_PUBLIC_APP_VERSION: buildAppVersion,

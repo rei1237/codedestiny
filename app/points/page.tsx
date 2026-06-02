@@ -231,9 +231,6 @@ declare global {
    상수 정의
 ══════════════════════════════════════════════════════════════════ */
 
-const PORTONE_STORE_ID = process.env.NEXT_PUBLIC_PORTONE_STORE_ID || "";
-const PORTONE_CHANNEL_KEY = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY || "";
-const PORTONE_NOTICE_URL = process.env.NEXT_PUBLIC_PORTONE_NOTICE_URL || "";
 const PORTONE_MOBILE_REDIRECT_PATH = process.env.NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH || "/points";
 
 const SUBSCRIPTION_DURATION_OPTIONS = [
@@ -537,9 +534,9 @@ async function fetchPortOnePaymentConfig(apiBase: string): Promise<PortOnePaymen
   }
   return {
     ...payload,
-    storeId: payload.storeId || PORTONE_STORE_ID,
-    channelKey: payload.channelKey || PORTONE_CHANNEL_KEY,
-    noticeUrl: payload.noticeUrl || PORTONE_NOTICE_URL,
+    storeId: payload.storeId,
+    channelKey: payload.channelKey,
+    noticeUrl: payload.noticeUrl,
     currency: payload.currency || "CURRENCY_KRW",
     payMethod: payload.payMethod || "CARD",
   };

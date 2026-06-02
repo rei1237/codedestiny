@@ -1,7 +1,8 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
 const rootDir = process.cwd();
+const publicDir = resolve(rootDir, "public");
 const publicIndexPath = resolve(rootDir, "public", "index.html");
 const publicStaticIndexPath = resolve(rootDir, "public", "static", "index.html");
 const distIndexPath = resolve(rootDir, "dist", "index.html");
@@ -56,6 +57,11 @@ function writeHtml(sourcePath, destinationPath, label, options = {}) {
 
 if (!existsSync(resolve(rootDir, "dist"))) {
   throw new Error("[promote-static-shell] dist/ does not exist. Run this after next build.");
+}
+
+if (existsSync(publicDir)) {
+  cpSync(publicDir, resolve(rootDir, "dist"), { recursive: true, force: true });
+  console.log(`[promote-static-shell] public assets: ${publicDir} -> ${resolve(rootDir, "dist")}`);
 }
 
 writeHtml(publicIndexPath, distIndexPath, "root");

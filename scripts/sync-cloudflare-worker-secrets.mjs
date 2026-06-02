@@ -7,6 +7,7 @@ const rootDir = process.cwd();
 const args = new Set(process.argv.slice(2));
 const isDryRun = args.has("--dry-run");
 const skipEmpty = args.has("--skip-empty") || args.has("--allow-empty");
+const onlyPortone = args.has("--only-portone");
 
 const envFiles = [
   ".env.local",
@@ -162,9 +163,11 @@ const SECRET_KEYS = [
   "MONGO_NAME",
   "MONGO_DB_NAME",
   "PORTONE_API_BASE_URL",
-  "PORTONE_API_KEY",
-  "PORTONE_API_SECRET",
-  "PORTONE_WEBHOOK_TOKEN",
+  "PORTONE_API_Secret",
+  "PORTONE_webhook_URL",
+  "PORTONE_webhook_Secret",
+  "PORTONE_channel",
+  "PORTONE_Store",
   "GEMINIF_API_KEY1",
   "GEMINIF_API_KEY2",
   "GEMINIF_API_KEY3",
@@ -230,8 +233,6 @@ const SECRET_KEYS = [
 ];
 
 const SECRET_KEY_ALIASES = {
-  PORTONE_API_KEY: ["PORTONE_REST_API_KEY", "PORTONE_APIKEY", "PORTONE API Key"],
-  PORTONE_API_SECRET: ["PORTONE_REST_API_SECRET", "PORTONE_APISECRET", "PORTONE API Secret"],
   AUTH_SECRET: ["NEXTAUTH_SECRET"],
   JWT_SECRET: ["AUTH_SECRET", "NEXTAUTH_SECRET"],
   AUTH_URL: ["NEXTAUTH_URL"],
@@ -329,7 +330,11 @@ function putWorkerSecret(key, value) {
   return Number.isInteger(finalResult.status) ? finalResult.status : 1;
 }
 
-const available = SECRET_KEYS.filter((key) => getSecretValue(key));
+const activeSecretKeys = onlyPortone
+  ? ["PORTONE_API_Secret", "PORTONE_webhook_URL", "PORTONE_webhook_Secret", "PORTONE_channel", "PORTONE_Store"]
+  : SECRET_KEYS;
+
+const available = activeSecretKeys.filter((key) => getSecretValue(key));
 if (available.length === 0) {
   const message = "[worker-secrets] No usable secret values found in env files.";
   if (skipEmpty) {

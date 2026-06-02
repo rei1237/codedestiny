@@ -6,18 +6,40 @@ function getPortOneBaseUrl(env) {
   return getEnv(env, "PORTONE_API_BASE_URL", DEFAULT_PORTONE_BASE_URL).replace(/\/+$/, "");
 }
 
+function getExactEnv(env, key, fallback = "") {
+  const direct = env?.[key];
+  if (direct !== undefined && direct !== null) {
+    const trimmed = String(direct).trim();
+    if (trimmed) return trimmed;
+  }
+
+  if (typeof globalThis?.process !== "undefined") {
+    const fromProcess = globalThis.process?.env?.[key];
+    if (fromProcess !== undefined && fromProcess !== null) {
+      const trimmed = String(fromProcess).trim();
+      if (trimmed) return trimmed;
+    }
+  }
+
+  return fallback;
+}
+
 function getPortOneApiSecret(env) {
-  return (
-    getEnv(env, "PORTONE_V2_API_SECRET")
-    || getEnv(env, "PORTONE_API_SECRET")
-    || getEnv(env, "PORTONE_REST_API_SECRET")
-  );
+  return getExactEnv(env, "PORTONE_API_Secret");
+}
+
+export function getPortOneWebhookSecret(env) {
+  return getExactEnv(env, "PORTONE_webhook_Secret");
+}
+
+export function getPortOneWebhookUrl(env) {
+  return getExactEnv(env, "PORTONE_webhook_URL");
 }
 
 function getPortOneHeaders(env) {
   const apiSecret = getPortOneApiSecret(env);
   if (!apiSecret) {
-    throw new Error("PORTONE_V2_API_SECRET is required.");
+    throw new Error("PORTONE_API_Secret is required.");
   }
   return {
     "Content-Type": "application/json",
@@ -95,9 +117,9 @@ function normalizePortOnePayment(payload, paymentIdHint = "") {
 }
 
 export function getPortOnePublicConfig(env) {
-  const storeId = getEnv(env, "PORTONE_STORE_ID") || getEnv(env, "NEXT_PUBLIC_PORTONE_STORE_ID");
-  const channelKey = getEnv(env, "PORTONE_CHANNEL_KEY") || getEnv(env, "NEXT_PUBLIC_PORTONE_CHANNEL_KEY");
-  const noticeUrl = getEnv(env, "PORTONE_NOTICE_URL") || getEnv(env, "NEXT_PUBLIC_PORTONE_NOTICE_URL");
+  const storeId = getExactEnv(env, "PORTONE_Store");
+  const channelKey = getExactEnv(env, "PORTONE_channel");
+  const noticeUrl = getPortOneWebhookUrl(env);
   return {
     provider: "portone-v2",
     pg: "kg-inicis",
@@ -106,7 +128,7 @@ export function getPortOnePublicConfig(env) {
     noticeUrl,
     currency: "CURRENCY_KRW",
     payMethod: "CARD",
-    configured: Boolean(storeId && channelKey && getPortOneApiSecret(env)),
+    configured: Boolean(storeId && channelKey && noticeUrl && getPortOneApiSecret(env)),
   };
 }
 

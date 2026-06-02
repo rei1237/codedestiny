@@ -1,7 +1,7 @@
 import { connectDb, mongoose } from "../lib/db.js";
 import { Payment, PaymentFailureLog, PointHistory, User } from "../lib/models.js";
 import { requireAuth } from "../lib/auth.js";
-import { cancelPortOnePayment, fetchPortOnePayment, getPortOnePublicConfig } from "../lib/portone.js";
+import { cancelPortOnePayment, fetchPortOnePayment, getPortOnePublicConfig, getPortOneWebhookSecret } from "../lib/portone.js";
 import { resolveChargePointsByAmount, validatePointChargePayload } from "../lib/validation.js";
 import { getEnv } from "../lib/env.js";
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
@@ -33,6 +33,73 @@ function normalizeIdempotencyKey(value) {
   const normalized = String(value || "").trim();
   if (!normalized) return "";
   return normalized.slice(0, 120);
+}
+
+function base64ToBytes(value) {
+  const normalized = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
+  const binary = atob(padded);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+function bytesToBase64(bytes) {
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
+function timingSafeEqualText(left, right) {
+  const a = String(left || "");
+  const b = String(right || "");
+  if (!a || !b || a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i += 1) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+function parseStandardWebhookSignatures(headerValue) {
+  return String(headerValue || "")
+    .split(",")
+    .map((part) => part.trim())
+    .filter((part) => part && part.startsWith("v1,") === false)
+    .map((part) => part.replace(/^v1[=:]?/i, "").trim())
+    .filter(Boolean);
+}
+
+function getWebhookSecretBytes(secret) {
+  const value = String(secret || "").trim();
+  if (value.startsWith("whsec_")) {
+    try {
+      return base64ToBytes(value.slice("whsec_".length));
+    } catch (_) {}
+  }
+  return new TextEncoder().encode(value);
+}
+
+async function signStandardWebhookPayload(secret, webhookId, timestamp, rawBody) {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    getWebhookSecretBytes(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signedContent = `${webhookId}.${timestamp}.${rawBody}`;
+  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(signedContent));
+  return bytesToBase64(new Uint8Array(signature));
+}
+
+async function verifyPortOneWebhookSignature(secret, rawBody, headers) {
+  const webhookId = String(headers.get("webhook-id") || headers.get("x-webhook-id") || "").trim();
+  const timestamp = String(headers.get("webhook-timestamp") || headers.get("x-webhook-timestamp") || "").trim();
+  const signatureHeader = String(headers.get("webhook-signature") || headers.get("x-webhook-signature") || "").trim();
+  if (!webhookId || !timestamp || !signatureHeader) return false;
+
+  const expected = await signStandardWebhookPayload(secret, webhookId, timestamp, rawBody);
+  const signatures = parseStandardWebhookSignatures(signatureHeader);
+  return signatures.some((signature) => timingSafeEqualText(signature, expected));
 }
 
 function resolveIdempotencyKey(request, body) {
@@ -1224,26 +1291,55 @@ async function settlePaymentByImpUid({
 }
 
 async function handleWebhook(request, env) {
-  const body = await readJson(request);
-  const expectedWebhookToken = getEnv(env, "PORTONE_WEBHOOK_TOKEN");
-  if (expectedWebhookToken) {
-    const suppliedWebhookToken = String(request.headers.get("x-cd-webhook-token") || "").trim();
-    if (suppliedWebhookToken !== expectedWebhookToken) {
-      await writeFailureLog({
-        request,
-        source: "webhook",
-        stage: "webhook_auth",
-        code: "invalid_webhook_token",
-        message: "Webhook token mismatch.",
-        status: 401,
-        payload: body,
-      });
-      return json({ message: "Invalid webhook request." }, { status: 401 });
-    }
+  const rawBody = await request.text();
+  let body = {};
+  try {
+    body = rawBody.trim() ? JSON.parse(rawBody) : {};
+  } catch (error) {
+    await writeFailureLog({
+      request,
+      source: "webhook",
+      stage: "payload_parse",
+      code: "invalid_webhook_json",
+      message: "Webhook body must be valid JSON.",
+      status: 400,
+      payload: { parseError: String(error?.message || error) },
+    });
+    return json({ message: "Webhook body must be valid JSON." }, { status: 400 });
+  }
+
+  const webhookSecret = getPortOneWebhookSecret(env);
+  if (!webhookSecret) {
+    await writeFailureLog({
+      request,
+      source: "webhook",
+      stage: "webhook_auth",
+      code: "missing_webhook_secret",
+      message: "PORTONE_webhook_Secret is required.",
+      status: 503,
+      payload: body,
+    });
+    return json({ message: "Webhook verification is not configured." }, { status: 503 });
+  }
+
+  const verifiedWebhook = await verifyPortOneWebhookSignature(webhookSecret, rawBody, request.headers);
+  if (!verifiedWebhook) {
+    await writeFailureLog({
+      request,
+      source: "webhook",
+      stage: "webhook_auth",
+      code: "invalid_webhook_signature",
+      message: "Webhook signature mismatch.",
+      status: 401,
+      payload: body,
+    });
+    return json({ message: "Invalid webhook request." }, { status: 401 });
   }
 
   const impUid = String(
-    body?.imp_uid
+    body?.data?.paymentId
+      || body?.paymentId
+      || body?.imp_uid
       || body?.impUid
       || body?.data?.imp_uid
       || "",
@@ -1252,6 +1348,7 @@ async function handleWebhook(request, env) {
   const merchantUid = String(
     body?.merchant_uid
       || body?.merchantUid
+      || body?.data?.paymentId
       || body?.data?.merchant_uid
       || "",
   ).trim();
@@ -1261,12 +1358,12 @@ async function handleWebhook(request, env) {
       request,
       source: "webhook",
       stage: "payload_validate",
-      code: "missing_imp_uid",
-      message: "Webhook body must include imp_uid.",
+      code: "missing_payment_id",
+      message: "Webhook body must include paymentId.",
       status: 400,
       payload: body,
     });
-    return json({ message: "Webhook body must include imp_uid." }, { status: 400 });
+    return json({ message: "Webhook body must include paymentId." }, { status: 400 });
   }
 
   const settled = await settlePaymentByImpUid({
@@ -2503,13 +2600,14 @@ async function handlePointsMe(auth, env) {
 
 function handlePaymentConfig(env) {
   const config = getPortOnePublicConfig(env);
-  if (!config.storeId || !config.channelKey) {
+  if (!config.storeId || !config.channelKey || !config.noticeUrl) {
     return json({
       message: "PortOne V2 KG Inicis public payment config is missing.",
       code: "PORTONE_V2_PUBLIC_CONFIG_MISSING",
       missing: {
         storeId: !config.storeId,
         channelKey: !config.channelKey,
+        noticeUrl: !config.noticeUrl,
       },
     }, { status: 503 });
   }
@@ -2541,10 +2639,11 @@ export async function handlePaymentRoutes(request, env) {
     env: {
       mongoUriConfigured: Boolean(getEnv(env, "MONGO_URI") || getEnv(env, "MONGODB_URI")),
       jwtSecretConfigured: Boolean(getEnv(env, "JWT_SECRET") || getEnv(env, "AUTH_SECRET")),
-      portoneApiKeyConfigured: Boolean(getEnv(env, "PORTONE_API_KEY") || getEnv(env, "PORTONE_REST_API_KEY")),
-      portoneApiSecretConfigured: Boolean(getEnv(env, "PORTONE_V2_API_SECRET") || getEnv(env, "PORTONE_API_SECRET") || getEnv(env, "PORTONE_REST_API_SECRET")),
-      portoneStoreIdConfigured: Boolean(getEnv(env, "PORTONE_STORE_ID") || getEnv(env, "NEXT_PUBLIC_PORTONE_STORE_ID")),
-      portoneChannelKeyConfigured: Boolean(getEnv(env, "PORTONE_CHANNEL_KEY") || getEnv(env, "NEXT_PUBLIC_PORTONE_CHANNEL_KEY")),
+      portoneApiSecretConfigured: Boolean(env?.PORTONE_API_Secret || globalThis.process?.env?.PORTONE_API_Secret),
+      portoneStoreIdConfigured: Boolean(env?.PORTONE_Store || globalThis.process?.env?.PORTONE_Store),
+      portoneChannelKeyConfigured: Boolean(env?.PORTONE_channel || globalThis.process?.env?.PORTONE_channel),
+      portoneWebhookUrlConfigured: Boolean(env?.PORTONE_webhook_URL || globalThis.process?.env?.PORTONE_webhook_URL),
+      portoneWebhookSecretConfigured: Boolean(env?.PORTONE_webhook_Secret || globalThis.process?.env?.PORTONE_webhook_Secret),
     },
   };
 

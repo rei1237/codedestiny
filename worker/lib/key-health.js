@@ -26,8 +26,11 @@ const FEATURE_KEY_GROUPS = {
   "payments-core": [
     ["JWT_SECRET", "AUTH_SECRET"],
     ["MONGO_URI", "MONGODB_URI", "MONGO_URL", "DATABASE_URL"],
-    ["PORTONE_API_KEY", "PORTONE_REST_API_KEY", "PORTONE API Key"],
-    ["PORTONE_API_SECRET", "PORTONE_REST_API_SECRET", "PORTONE API Secret"],
+    ["PORTONE_API_Secret"],
+    ["PORTONE_Store"],
+    ["PORTONE_channel"],
+    ["PORTONE_webhook_URL"],
+    ["PORTONE_webhook_Secret"],
   ],
   "admin-gate": [
     ["FLOWER_ADMIN_SECRET"],
@@ -62,10 +65,28 @@ function isPlaceholderValue(value) {
 
 function firstResolvedKey(env, keyGroup = []) {
   for (const key of keyGroup) {
-    const value = getEnv(env, key);
+    const value = key.startsWith("PORTONE_") ? readExactEnv(env, key) : getEnv(env, key);
     if (value) return { key, value };
   }
   return null;
+}
+
+function readExactEnv(env, key) {
+  const direct = env?.[key];
+  if (direct !== undefined && direct !== null) {
+    const trimmed = String(direct).trim();
+    if (trimmed) return trimmed;
+  }
+
+  if (typeof globalThis?.process !== "undefined") {
+    const fromProcess = globalThis.process?.env?.[key];
+    if (fromProcess !== undefined && fromProcess !== null) {
+      const trimmed = String(fromProcess).trim();
+      if (trimmed) return trimmed;
+    }
+  }
+
+  return "";
 }
 
 export function evaluateFeatureKeyHealth(env, feature) {

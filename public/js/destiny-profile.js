@@ -1552,6 +1552,164 @@
    * @param {string} reason 기능명 (알림 문구용)
    * @param {Function} cb   성공 시 호출할 콜백
    */
+  function _dpNormalizeBillingFetchResult(result) {
+    var payload = {};
+    if (result && result.payload && typeof result.payload === 'object') payload = result.payload;
+    else if (result && result.data && typeof result.data === 'object') payload = result.data;
+    return {
+      ok: !!(result && result.ok),
+      status: Number((result && result.status) || 0),
+      payload: payload,
+    };
+  }
+
+  function _dpPaymentFetchJson(pathname, init, options) {
+    var requestInit = Object.assign({}, init || {});
+    requestInit.headers = _dpBuildAuthHeaders(Object.assign(
+      { 'Content-Type': 'application/json' },
+      requestInit.headers || {}
+    ));
+    if (typeof window.fetchJsonWithAuth === 'function') {
+      return window.fetchJsonWithAuth(pathname, requestInit).then(_dpNormalizeBillingFetchResult);
+    }
+    return _dpFetchJsonWithFallback(pathname, requestInit, Object.assign({
+      retryOn401: true,
+      timeoutMs: 20000,
+    }, options || {})).then(_dpNormalizeBillingFetchResult);
+  }
+
+  function _dpExtractBillingData(payload) {
+    if (!payload || typeof payload !== 'object') return {};
+    return (payload.data && typeof payload.data === 'object') ? payload.data : payload;
+  }
+
+  function _dpReadBillingMessage(payload, fallback) {
+    if (payload && typeof payload === 'object') {
+      if (payload.message) return String(payload.message);
+      if (payload.error && payload.error.message) return String(payload.error.message);
+    }
+    return String(fallback || '결제 처리에 실패했습니다.');
+  }
+
+  function _dpLoadPortOneV2Sdk() {
+    if (window.PortOne && typeof window.PortOne.requestPayment === 'function') return Promise.resolve();
+    return new Promise(function(resolve, reject) {
+      var settled = false;
+      function finish(ok) {
+        if (settled) return;
+        settled = true;
+        if (ok && window.PortOne && typeof window.PortOne.requestPayment === 'function') resolve();
+        else reject(new Error('포트원 V2 결제 SDK가 초기화되지 않았습니다.'));
+      }
+
+      var existing = document.getElementById('portone-v2-sdk');
+      if (!existing) {
+        existing = document.createElement('script');
+        existing.id = 'portone-v2-sdk';
+        existing.src = 'https://cdn.portone.io/v2/browser-sdk.js';
+        existing.async = true;
+        document.head.appendChild(existing);
+      }
+
+      existing.addEventListener('load', function() { finish(true); }, { once: true });
+      existing.addEventListener('error', function() { finish(false); }, { once: true });
+      setTimeout(function() { finish(!!(window.PortOne && typeof window.PortOne.requestPayment === 'function')); }, 8000);
+    });
+  }
+
+  if (typeof window._cdRunDirectKrwCheckout !== 'function') {
+    window._cdRunDirectKrwCheckout = async function(options) {
+      var opts = options || {};
+      var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
+      var amountKrw = Math.max(0, Math.floor(Number(opts.amountKrw || (coinPrice * 100))));
+      var checkoutPayload = Object.assign({
+        paymentType: 'digital_content',
+        paymentMode: 'DIRECT_KRW',
+        provider: 'PORTONE_V2',
+        pg: 'KG_INICIS',
+        featureKey: String(opts.featureKey || '').trim(),
+        reason: String(opts.reason || opts.title || '유료 서비스').trim(),
+        paymentAmount: amountKrw,
+        amountKrw: amountKrw,
+        coinPriceBasis: coinPrice,
+        paymentMethod: 'card_general',
+        requestId: String(opts.requestId || '').trim(),
+      }, opts.checkoutPayload || {});
+
+      checkoutPayload.idempotencyKey = String(checkoutPayload.idempotencyKey || checkoutPayload.requestId || '').trim();
+      if (opts.categoryKey) checkoutPayload.categoryKey = opts.categoryKey;
+      if (opts.subFeatureKey) checkoutPayload.subFeatureKey = opts.subFeatureKey;
+      if (opts.productId) checkoutPayload.productId = opts.productId;
+
+      var checkoutRes = await _dpPaymentFetchJson('/api/billing/checkout', {
+        method: 'POST',
+        headers: checkoutPayload.idempotencyKey ? { 'Idempotency-Key': checkoutPayload.idempotencyKey } : undefined,
+        body: JSON.stringify(checkoutPayload),
+      });
+      if (!checkoutRes.ok) throw new Error(_dpReadBillingMessage(checkoutRes.payload, '결제 준비에 실패했습니다.'));
+
+      var checkoutData = _dpExtractBillingData(checkoutRes.payload);
+      var order = checkoutData.order || {};
+      var merchantUid = String(order.merchantUid || order.paymentId || order.orderId || '').trim();
+      var orderAmount = Number(order.paymentAmount || order.amount || 0);
+      if (!merchantUid || !Number.isFinite(orderAmount) || orderAmount <= 0) {
+        throw new Error('결제 주문 정보를 확인할 수 없습니다.');
+      }
+
+      await _dpLoadPortOneV2Sdk();
+      var configRes = await _dpPaymentFetchJson('/api/payments/config', { method: 'GET' });
+      if (!configRes.ok) throw new Error(_dpReadBillingMessage(configRes.payload, '결제 환경 설정을 확인할 수 없습니다.'));
+      var config = _dpExtractBillingData(configRes.payload);
+      if (!config.storeId || !config.channelKey) {
+        throw new Error('포트원 V2 결제 설정이 없습니다.');
+      }
+
+      var redirectUrl = new URL(window.location.href);
+      redirectUrl.searchParams.set('portone_redirect', '1');
+      var requestData = {
+        storeId: config.storeId,
+        channelKey: config.channelKey,
+        paymentId: merchantUid,
+        orderName: String(order.productName || checkoutPayload.reason || '디지털 운세 콘텐츠').slice(0, 80),
+        totalAmount: orderAmount,
+        currency: config.currency || 'CURRENCY_KRW',
+        payMethod: config.payMethod || 'CARD',
+        redirectUrl: redirectUrl.toString(),
+        customData: {
+          paymentType: 'digital_content',
+          featureKey: String(order.featureKey || checkoutPayload.featureKey || ''),
+          requestId: String(checkoutPayload.requestId || ''),
+        },
+      };
+      if (config.noticeUrl) requestData.noticeUrls = [config.noticeUrl];
+
+      var rsp = await window.PortOne.requestPayment(requestData);
+      var paymentId = String((rsp && rsp.paymentId) || merchantUid || '').trim();
+      if (!rsp || rsp.code || !paymentId) {
+        throw new Error(String((rsp && (rsp.message || rsp.code)) || '결제가 완료되지 않았습니다.'));
+      }
+
+      var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', {
+        method: 'POST',
+        body: JSON.stringify(Object.assign({}, checkoutPayload, {
+          impUid: paymentId,
+          paymentId: paymentId,
+          merchantUid: merchantUid,
+          amount: orderAmount,
+          paymentAmount: orderAmount,
+          coinPrice: Number(order.coinPrice || coinPrice),
+          paymentType: 'digital_content',
+          paymentMode: 'DIRECT_KRW',
+          provider: 'PORTONE_V2',
+          pg: 'KG_INICIS',
+          paymentMethod: 'card_general',
+        })),
+      });
+      if (!confirmRes.ok) throw new Error(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 실패했습니다.'));
+      return confirmRes.payload;
+    };
+  }
+
   window._cdCoinGatePerUse = function(cost, reason, cb, onCancel, options) {
     if (!options && onCancel && typeof onCancel === 'object' && typeof cb === 'function') {
       options = onCancel;
