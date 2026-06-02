@@ -249,6 +249,68 @@ function resolveCurrentId(rawCurrentId, profiles) {
   return "";
 }
 
+function resolveSingleProfileAccess(user, profiles, subscription) {
+  const profileLimit = Number(subscription?.profileLimit || 1);
+  const isSingleMode = !subscription?.isActive || !Number.isFinite(profileLimit) || profileLimit <= 1;
+  const savedCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profiles[0]?.id || "";
+
+  if (!isSingleMode) {
+    return {
+      profiles,
+      currentId: savedCurrentId,
+      profileAccess: {
+        mode: "subscription",
+        selectionRequired: false,
+        locked: false,
+        lockedProfileId: "",
+        profileLimit,
+      },
+    };
+  }
+
+  if (profiles.length <= 1) {
+    const onlyId = profiles[0]?.id || "";
+    return {
+      profiles,
+      currentId: onlyId,
+      profileAccess: {
+        mode: "single",
+        selectionRequired: false,
+        locked: Boolean(onlyId),
+        lockedProfileId: onlyId,
+        profileLimit: 1,
+      },
+    };
+  }
+
+  const lockedId = resolveCurrentId(user?.destinyProfilesLockedCurrentId, profiles);
+  if (lockedId) {
+    return {
+      profiles: profiles.filter((profile) => String(profile?.id || "") === lockedId),
+      currentId: lockedId,
+      profileAccess: {
+        mode: "single",
+        selectionRequired: false,
+        locked: true,
+        lockedProfileId: lockedId,
+        profileLimit: 1,
+      },
+    };
+  }
+
+  return {
+    profiles,
+    currentId: savedCurrentId,
+    profileAccess: {
+      mode: "single",
+      selectionRequired: true,
+      locked: false,
+      lockedProfileId: "",
+      profileLimit: 1,
+    },
+  };
+}
+
 async function listUserProfiles(userId) {
   const docs = await ProfileCard.find({ userId }).sort({ createdAt: 1 }).lean();
   return docs.map(toClientProfile);
@@ -256,7 +318,7 @@ async function listUserProfiles(userId) {
 
 async function handleGetProfiles(auth) {
   const user = await User.findById(auth.userId)
-    .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId")
+    .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
     .lean();
 
   if (!user) {
@@ -265,25 +327,40 @@ async function handleGetProfiles(auth) {
 
   const subscription = resolveSubscriptionPolicy(user);
   const profiles = await listUserProfiles(auth.userId);
-  const currentId = resolveCurrentId(user.destinyProfilesCurrentId, profiles) || profiles[0]?.id || "";
+  const access = resolveSingleProfileAccess(user, profiles, subscription);
+  const currentId = access.currentId;
 
-  if (currentId && currentId !== String(user.destinyProfilesCurrentId || "")) {
-    await User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: currentId } });
+  if (subscription.isActive) {
+    const updateSet = {};
+    if (currentId && currentId !== String(user.destinyProfilesCurrentId || "")) updateSet.destinyProfilesCurrentId = currentId;
+    if (user.destinyProfilesLockedCurrentId || user.destinyProfilesLockedAt) {
+      updateSet.destinyProfilesLockedCurrentId = "";
+      updateSet.destinyProfilesLockedAt = null;
+    }
+    if (Object.keys(updateSet).length > 0) {
+      await User.updateOne({ _id: auth.userId }, { $set: updateSet });
+    }
+  } else if (profiles.length <= 1 && currentId && currentId !== String(user.destinyProfilesLockedCurrentId || "")) {
+    await User.updateOne(
+      { _id: auth.userId },
+      { $set: { destinyProfilesCurrentId: currentId, destinyProfilesLockedCurrentId: currentId, destinyProfilesLockedAt: new Date() } },
+    );
   }
 
   return json({
     ok: true,
-    profiles,
+    profiles: access.profiles,
     currentId,
     subscription,
-    canCreateMore: profiles.length < subscription.profileLimit,
+    profileAccess: access.profileAccess,
+    canCreateMore: profiles.length < subscription.profileLimit && !access.profileAccess.selectionRequired,
   });
 }
 
 async function handleCreateProfile(request, auth) {
   try {
     const user = await User.findById(auth.userId)
-      .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId")
+      .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
       .lean();
 
     if (!user) {
@@ -394,8 +471,57 @@ async function handleUpdateCurrent(request, auth) {
     return json({ ok: false, message: "선택한 프로필 카드를 찾을 수 없습니다." }, { status: 404 });
   }
 
-  await User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: requestedCurrentId } });
-  return json({ ok: true, currentId: requestedCurrentId });
+  const user = await User.findById(auth.userId)
+    .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
+    .lean();
+  if (!user) {
+    return json({ ok: false, message: "?ъ슜?먮? 李얠쓣 ???놁뒿?덈떎." }, { status: 404 });
+  }
+
+  const subscription = resolveSubscriptionPolicy(user);
+  const profiles = await listUserProfiles(auth.userId);
+  const profileLimit = Number(subscription.profileLimit || 1);
+  const isSingleMode = !subscription.isActive || !Number.isFinite(profileLimit) || profileLimit <= 1;
+  const lockedId = resolveCurrentId(user.destinyProfilesLockedCurrentId, profiles);
+
+  if (isSingleMode && lockedId && requestedCurrentId !== lockedId) {
+    return json({
+      ok: false,
+      code: "PROFILE_SINGLE_LOCKED",
+      message: "이용권 혜택 종료 후 확정한 프로필 카드만 사용할 수 있습니다.",
+      currentId: lockedId,
+      lockedProfileId: lockedId,
+      profileAccess: {
+        mode: "single",
+        selectionRequired: false,
+        locked: true,
+        lockedProfileId: lockedId,
+        profileLimit: 1,
+      },
+    }, { status: 403 });
+  }
+
+  const updateSet = { destinyProfilesCurrentId: requestedCurrentId };
+  if (isSingleMode) {
+    updateSet.destinyProfilesLockedCurrentId = requestedCurrentId;
+    updateSet.destinyProfilesLockedAt = new Date();
+  } else {
+    updateSet.destinyProfilesLockedCurrentId = "";
+    updateSet.destinyProfilesLockedAt = null;
+  }
+
+  await User.updateOne({ _id: auth.userId }, { $set: updateSet });
+  return json({
+    ok: true,
+    currentId: requestedCurrentId,
+    profileAccess: {
+      mode: isSingleMode ? "single" : "subscription",
+      selectionRequired: false,
+      locked: isSingleMode,
+      lockedProfileId: isSingleMode ? requestedCurrentId : "",
+      profileLimit: isSingleMode ? 1 : profileLimit,
+    },
+  });
 }
 
 async function handlePatchProfile(request, auth, profileIdRaw) {

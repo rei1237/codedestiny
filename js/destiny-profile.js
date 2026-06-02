@@ -882,6 +882,17 @@
         cache: 'no-store',
         headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ currentId: nextId })
+      }).then(function(res) {
+        var data = res && res.data ? res.data : null;
+        if (data && data.profileAccess) _dpApplyProfileAccess(data.profileAccess);
+        if (res && res.status === 403 && data && data.code === 'PROFILE_SINGLE_LOCKED') {
+          alert(data.message || '확정된 프로필 카드만 사용할 수 있습니다.');
+          _dpLoadFromServer(function(loaded) {
+            if (!loaded) return;
+            renderMasterCard(DPStorage.current());
+            renderProfileList();
+          });
+        }
       }).catch(function() {});
     }).catch(function() {});
   }
@@ -915,6 +926,10 @@
         if (!data || !data.ok || !Array.isArray(data.profiles)) { if (callback) callback(false); return; }
         var scope = _dpGetProfileScope();
         _dpWriteProfilesToLocal(scope, data.profiles, data.currentId || '');
+        _dpApplyProfileAccess(data.profileAccess);
+        if (data.profileAccess && data.profileAccess.selectionRequired) {
+          _toast('이용권 혜택이 종료되어 사용할 프로필 카드 1개를 선택해야 합니다.', 'warn');
+        }
         if (data.subscription && typeof data.subscription === 'object') {
           var s = data.subscription;
           var tier = _dpNormalizeTier(s.tier);
@@ -1886,6 +1901,7 @@
   var _dpSubIsActive     = false;
   var _dpSubProfileLimit = 1;        // 1 | 3 | 7 | 15
   var _dpSubScope        = '';
+  var _dpProfileAccess   = { mode: 'subscription', selectionRequired: false, locked: false, lockedProfileId: '', profileLimit: 1 };
 
   function _dpGetSubCacheKey() {
     return _DP_SUB_CACHE_PREFIX + _dpGetProfileScope();
@@ -1999,6 +2015,47 @@
     if (_dpSubScope !== scope || !_dpSubIsActive) _dpLoadSubCache();
     if (_dpSubIsActive) return _dpSubProfileLimit;
     return _dpGetTierProfileLimit(_dpGetUserPlan());
+  }
+
+  function _dpApplyProfileAccess(access) {
+    if (!access || typeof access !== 'object') return;
+    _dpProfileAccess = {
+      mode: String(access.mode || 'subscription'),
+      selectionRequired: !!access.selectionRequired,
+      locked: !!access.locked,
+      lockedProfileId: String(access.lockedProfileId || '').trim(),
+      profileLimit: Math.max(1, Math.floor(Number(access.profileLimit || 1)))
+    };
+  }
+
+  function _dpCommitSingleProfileSelection(profileId, callback) {
+    var nextId = String(profileId || '').trim();
+    if (!_dpHasSessionHint() || !nextId) {
+      if (callback) callback(false);
+      return;
+    }
+    _dpVerifyLoginSession(false).then(function(ok) {
+      if (!ok) { if (callback) callback(false); return; }
+      _dpFetchJsonWithFallback('/api/profile/current', {
+        method: 'PATCH',
+        credentials: 'include',
+        cache: 'no-store',
+        headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ currentId: nextId })
+      }).then(function(res) {
+        var data = res && res.data ? res.data : null;
+        if (!res || !res.ok || !data || data.ok === false) {
+          alert((data && data.message) || '프로필 선택을 확정할 수 없습니다. 다시 시도해 주세요.');
+          if (callback) callback(false);
+          return;
+        }
+        _dpApplyProfileAccess(data.profileAccess);
+        if (callback) callback(true);
+      }).catch(function() {
+        alert('프로필 선택 확정 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+        if (callback) callback(false);
+      });
+    }).catch(function() { if (callback) callback(false); });
   }
 
   /** 저장 버튼 상태를 구독 플랜에 맞게 업데이트 */
@@ -2806,9 +2863,14 @@
     requestAnimationFrame(function() {
       try {
         var isFreeUser = _dpGetMaxProfiles() <= 1;
-        var lockedNotice = isFreeUser
+        var access = _dpProfileAccess || {};
+        var selectionRequired = !!access.selectionRequired;
+        var lockedProfileId = String(access.lockedProfileId || '').trim();
+        var lockedNotice = selectionRequired
+          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">이용권 혜택이 종료되었습니다. 계속 사용할 프로필 카드 1개를 선택하면 다음 이용권 결제 전까지 해당 카드만 사용할 수 있습니다.</div>'
+          : (isFreeUser
           ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">🔒 프로필 카드는 한 번 생성하면 수정/삭제가 불가능합니다. 생성 전에 정보를 꼭 확인해 주세요.</div>'
-          : '';
+          : '');
 
     container.innerHTML = list.map(function(p, idx) {
           var safe = p || {};
@@ -2836,6 +2898,8 @@
           var pname = safe.name || '이름 없음';
           var locLabel = l.label || '출생지 미지정';
 
+          var isLockedOut = !!lockedProfileId && pid !== lockedProfileId;
+
           return '<div class="dp-list-item' + (isActive ? ' dp-list-item--active' : '') + '"'
             + ' data-profile-id="' + pid + '"'
             + ' role="button" tabindex="0"'
@@ -2846,8 +2910,11 @@
               + '<div class="dp-li-body">'
                 + '<div class="dp-li-name">' + _esc(pname)
                   + (isActive ? ' <span class="dp-li-current-badge">현재</span>' : '')
-                  + (isFreeUser && !isActive
+                  + (isFreeUser && isLockedOut
                     ? ' <span style="font-size:0.62rem;color:#f87171;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.3);padding:1px 6px;border-radius:10px;">사용불가</span>'
+                    : '')
+                  + (lockedProfileId && pid === lockedProfileId
+                    ? ' <span style="font-size:0.62rem;color:#34d399;background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.3);padding:1px 6px;border-radius:10px;">확정</span>'
                     : '')
                   + (safe.gender === 'M'
                     ? ' <span style="font-size:0.65rem;color:#93c5fd;background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.3);padding:1px 6px;border-radius:10px;">&#9794;</span>'
@@ -3061,6 +3128,46 @@
   };
 
   window.dpSelectProfile = function(id) {
+    var access = _dpProfileAccess || {};
+    var lockedId = String(access.lockedProfileId || '').trim();
+    var maxProfiles = _dpGetMaxProfiles();
+    var currentIdForPolicy = (DPStorage.current() || {}).id;
+    function activateSelectedProfile() {
+      DPStorage.setCurrent(id);
+      var p = DPStorage.current();
+      renderMasterCard(p);
+      broadcastProfileChange(p);
+      dpCloseList();
+      spawnStardust(document.getElementById('dpMasterCard'));
+      _toast('✨ ' + (p ? _esc(p.name) : '') + ' · 프로필 활성화', 'success');
+    }
+
+    if (maxProfiles <= 1 && lockedId && id !== lockedId) {
+      alert('이용권 혜택 종료 후 확정한 프로필 카드만 사용할 수 있습니다.\n/points 페이지에서 이용권을 결제하면 다시 여러 프로필을 이용할 수 있습니다.');
+      return;
+    }
+
+    if (maxProfiles <= 1 && access.selectionRequired) {
+      var selected = (DPStorage.list() || []).find(function(profile) { return profile && profile.id === id; });
+      var profileName = selected && selected.name ? selected.name : '선택한 프로필';
+      if (!confirm(profileName + ' 프로필 카드로 확정할까요?\n확정 후 추가 이용권 결제 전까지 이 카드만 사용할 수 있습니다.')) return;
+      _dpCommitSingleProfileSelection(id, function(ok) {
+        if (!ok) return;
+        _dpProfileAccess.selectionRequired = false;
+        _dpProfileAccess.locked = true;
+        _dpProfileAccess.lockedProfileId = id;
+        activateSelectedProfile();
+      });
+      return;
+    }
+
+    if (maxProfiles <= 1 && id !== currentIdForPolicy) {
+      alert('무료 플랜은 프로필 1개만 사용할 수 있습니다.\n/points 페이지에서 이용권을 결제하면 여러 프로필을 이용할 수 있습니다.');
+      return;
+    }
+
+    activateSelectedProfile();
+    return;
     /* ★ 무료 플랜: 다른 프로필 선택 불가 (프로필 1개 제한) */
     var _curId = (DPStorage.current() || {}).id;
     if (_dpGetMaxProfiles() <= 1 && id !== _curId) {
