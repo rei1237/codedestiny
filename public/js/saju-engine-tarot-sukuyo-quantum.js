@@ -4688,8 +4688,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-container::before { content:''; position:absolute; top:-60px; right:-60px; width:220px; height:220px; background:radial-gradient(circle, rgba(120,80,220,0.12) 0%, transparent 70%); pointer-events:none; }
         .sy-header { text-align: center; border-bottom: 1px solid rgba(180,160,255,0.2); padding-bottom: 16px; margin-bottom: 22px; }
         .sy-header h3 { margin: 0; background: linear-gradient(135deg, #e2c9ff, #ffd700, #e2c9ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-size: 1.6rem; text-shadow: none; }
-        .sy-card { background: rgba(30,32,55,0.85); border-radius: 12px; padding: 20px; margin-bottom: 16px; border-left: 3px solid #a78bfa; transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        @media (hover: hover) { .sy-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(120,80,220,0.15); } }
+        .sy-card { position:relative; overflow:hidden; background:radial-gradient(circle at 88% 0%, rgba(226,232,255,0.12), transparent 34%), linear-gradient(150deg, rgba(20,24,48,0.94), rgba(14,18,38,0.9) 56%, rgba(28,20,52,0.88)); border-radius: 14px; padding: 20px; margin-bottom: 16px; border:1px solid rgba(196,181,253,0.24); border-left: 3px solid #a78bfa; box-shadow:0 18px 44px rgba(2,6,23,0.36), inset 0 1px 0 rgba(255,255,255,0.07); transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease; }
+        .sy-card::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 12% 14%, rgba(125,211,252,0.08), transparent 32%), radial-gradient(circle at 90% 84%, rgba(196,181,253,0.1), transparent 38%); pointer-events:none; }
+        .sy-card > * { position:relative; z-index:1; }
+        @media (hover: hover) { .sy-card:hover { transform: translateY(-3px); border-color:rgba(221,214,254,0.42); box-shadow:0 20px 54px rgba(2,6,23,0.48), 0 0 24px rgba(167,139,250,0.16); } }
         .sy-gauge-bg { background: rgba(255,255,255,0.08); height: 9px; border-radius: 5px; margin-top: 6px; overflow: hidden; }
         .sy-gauge-fill { height: 100%; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 5px; }
         .sy-glow-text { color: #ffd700; font-weight: bold; text-shadow: 0 0 8px rgba(255,215,0,0.4); }
@@ -4846,6 +4848,13 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-dual-card { border:1px solid rgba(167,139,250,0.28); border-radius:10px; padding:11px; background:rgba(17,24,39,0.6); }
         .sy-dual-card h5 { margin:0 0 5px 0; color:#ddd6fe; font-size:0.78rem; letter-spacing:0.06em; text-transform:uppercase; }
         .sy-dual-card p { margin:0; color:#e2e8f0; font-size:0.87rem; line-height:1.78; }
+        .sy-compat-card { border-left-color:#f7b7d5!important; background:radial-gradient(circle at 86% 10%, rgba(238,242,255,0.14), transparent 30%), radial-gradient(circle at 12% 86%, rgba(125,211,252,0.1), transparent 34%), linear-gradient(145deg, rgba(18,22,48,0.96), rgba(28,22,56,0.92)); }
+        .sy-compat-title { margin:0 0 8px 0; color:#ffd7ec; font-weight:900; letter-spacing:0.01em; text-shadow:0 0 16px rgba(244,114,182,0.28); }
+        .sy-compat-lede { margin:0 0 14px 0; color:#eaf2ff; font-size:0.92rem; font-weight:600; line-height:1.72; letter-spacing:0.01em; text-shadow:0 1px 10px rgba(15,23,42,0.9), 0 0 14px rgba(191,219,254,0.2); opacity:0.96; word-break:keep-all; }
+        .sy-moon-field { box-shadow:inset 0 1px 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.02); transition:border-color .2s ease, box-shadow .2s ease, background .2s ease; }
+        .sy-moon-field:focus { outline:none; border-color:rgba(191,219,254,0.95)!important; box-shadow:0 0 0 3px rgba(191,219,254,0.18), 0 0 22px rgba(167,139,250,0.24); background:rgba(13,18,36,0.96)!important; }
+        .sy-moon-btn { background:linear-gradient(135deg,#fda4af,#c4b5fd 52%,#93c5fd)!important; color:#10172a!important; border:1px solid rgba(255,255,255,0.36)!important; border-radius:10px!important; box-shadow:0 12px 28px rgba(147,197,253,0.22), 0 0 18px rgba(244,114,182,0.18); letter-spacing:0.02em; }
+        .sy-moon-btn:focus-visible { outline:none; box-shadow:0 0 0 3px rgba(224,231,255,0.26), 0 14px 30px rgba(147,197,253,0.26); }
         .sy-filter-toggle { width:100%; margin:0 0 9px 0; border-radius:10px; border:1px solid rgba(147,197,253,0.35); background:rgba(30,58,138,0.16); color:#bfdbfe; font-size:0.8rem; font-weight:700; padding:9px 11px; cursor:pointer; min-height:40px; }
         .sy-filter-body.collapsed { display:none; }
         .sy-load-more-btn { margin-top:8px; width:100%; border-radius:10px; border:1px solid rgba(125,211,252,0.45); background:rgba(14,116,144,0.15); color:#bae6fd; font-size:0.8rem; font-weight:700; padding:8px 10px; cursor:pointer; min-height:38px; }
@@ -5187,44 +5196,44 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         }
     }
 
-    html += `<div class="sy-card" style="margin-top: 15px; border-left-color: #ff6b81;">
-        <h4 style="margin: 0 0 10px 0; color: #ff6b81;">인연의 끈 궁합</h4>
-        <p style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 10px;">상대 생년월일을 입력하면 두 사람의 인연 리듬과 관계 유형을 확인할 수 있습니다.</p>
+    html += `<div class="sy-card sy-compat-card" data-sy-compat-moonlight="20260603" style="margin-top: 15px;">
+        <h4 class="sy-compat-title">인연의 끈 궁합</h4>
+        <p class="sy-compat-lede">상대 생년월일을 입력하면 두 사람의 인연 리듬과 관계 유형을 확인할 수 있습니다.</p>
                               
 
           <div style="display: flex; flex-direction: column; gap: 10px;">
               <!-- 연도-월-일 분리 select (모바일 브라우저에서도 정확히 연도-월-일 순서로 표시) -->
               <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 6px;">
-                <select id="sy3BirthY" style="padding: 10px 4px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; font-size: 16px; text-align: center; min-height: 44px;">
+                <select id="sy3BirthY" class="sy-moon-field" style="padding: 10px 4px; border-radius: 9px; background: rgba(13,18,36,0.92); color: #f8fbff; border: 1px solid rgba(216,180,254,0.72); font-size: 16px; text-align: center; min-height: 44px;">
                   <option value="">연도</option>
                   ${(function(){ let o=''; for(let y=new Date().getFullYear(); y>=1920; y--) o+=`<option value="${y}">${y}년</option>`; return o; })()}
                 </select>
-                <select id="sy3BirthM" style="padding: 10px 4px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; font-size: 16px; text-align: center; min-height: 44px;">
+                <select id="sy3BirthM" class="sy-moon-field" style="padding: 10px 4px; border-radius: 9px; background: rgba(13,18,36,0.92); color: #f8fbff; border: 1px solid rgba(216,180,254,0.72); font-size: 16px; text-align: center; min-height: 44px;">
                   <option value="">월</option>
                   ${[1,2,3,4,5,6,7,8,9,10,11,12].map(m=>`<option value="${m}">${m}월</option>`).join('')}
                 </select>
-                <select id="sy3BirthD" style="padding: 10px 4px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; font-size: 16px; text-align: center; min-height: 44px;">
+                <select id="sy3BirthD" class="sy-moon-field" style="padding: 10px 4px; border-radius: 9px; background: rgba(13,18,36,0.92); color: #f8fbff; border: 1px solid rgba(216,180,254,0.72); font-size: 16px; text-align: center; min-height: 44px;">
                   <option value="">일</option>
                   ${Array.from({length:31},(_,i)=>`<option value="${i+1}">${i+1}일</option>`).join('')}
                 </select>
               </div>
               <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                  <select id="sy3CalType" style="flex: 0 0 auto; padding: 10px 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; font-size: 16px; min-height: 44px;">
+                  <select id="sy3CalType" class="sy-moon-field" style="flex: 0 0 auto; padding: 10px 8px; border-radius: 9px; background: rgba(13,18,36,0.92); color: #f8fbff; border: 1px solid rgba(216,180,254,0.72); font-size: 16px; min-height: 44px;">
                       <option value="solar">양력</option>
                       <option value="lunar">음력</option>
                       <option value="lunar_leap">음력(윤달)</option>
                   </select>
-                  <input type="time" id="sy3BirthTime" value="12:00" style="flex: 0 0 auto; padding: 10px 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; color-scheme: dark; font-size: 16px; min-height: 44px;">
-                  <label style="display:flex;align-items:center;gap:6px;color:#ffd9e0;font-size:0.82rem;">
+                  <input type="time" id="sy3BirthTime" class="sy-moon-field" value="12:00" style="flex: 0 0 auto; padding: 10px 8px; border-radius: 9px; background: rgba(13,18,36,0.92); color: #f8fbff; border: 1px solid rgba(216,180,254,0.72); color-scheme: dark; font-size: 16px; min-height: 44px;">
+                  <label style="display:flex;align-items:center;gap:6px;color:#f6d9ff;font-size:0.82rem;font-weight:700;text-shadow:0 1px 8px rgba(15,23,42,0.72);">
                     <span style="white-space:nowrap;">상대 성별</span>
-                    <select id="sy3PartnerGender" style="flex: 0 0 auto; padding: 10px 8px; border-radius: 5px; background: rgba(20,25,35,0.8); color: #fff; border: 1px solid #ff6b81; font-size: 16px; min-height: 44px;">
+                    <select id="sy3PartnerGender" class="sy-moon-field" style="flex: 0 0 auto; padding: 10px 8px; border-radius: 9px; background: rgba(13,18,36,0.92); color: #f8fbff; border: 1px solid rgba(216,180,254,0.72); font-size: 16px; min-height: 44px;">
                       <option value="F">여성</option>
                       <option value="M">남성</option>
                       <option value="OTHER">기타</option>
                     </select>
                   </label>
               </div>
-              <button id="sy3AnalyzeBtn" data-my-idx="${sData ? sData.mansionIdx : 0}" data-my-mansion="${(sData ? sData.mansion : '').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" style="background: #ff6b81; color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 44px;"> 카르마 인연 분석하기</button>
+              <button id="sy3AnalyzeBtn" class="sy-moon-btn" data-my-idx="${sData ? sData.mansionIdx : 0}" data-my-mansion="${(sData ? sData.mansion : '').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" style="padding: 11px; cursor: pointer; font-weight: 900; width: 100%; touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 46px;">카르마 인연 분석하기</button>
           </div>
         <div id="sy3Loading" class="sy-loader">우주의 먼지를 헤치며 카르마를 읽는 중...</div>
         <div id="sy3Result" style="margin-top: 15px; display: none;"></div>
@@ -7459,9 +7468,33 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             var n = Math.max(0, Math.min(10, Math.round(Number(v || 0) / 10)));
             return '█'.repeat(n) + '░'.repeat(10 - n);
           };
+          const syMetricNote = function(label, value) {
+            var n = Math.max(0, Math.min(100, Number(value || 0)));
+            if (label === 'karma') {
+              if (n >= 80) return '서로를 쉽게 지나치기 어려운 강한 인연입니다. 끌림이 빠른 만큼 관계 규칙을 빨리 세울수록 안정됩니다.';
+              if (n >= 62) return '인연감이 충분히 살아 있습니다. 호감과 현실 조건을 함께 확인할 때 관계가 선명해집니다.';
+              return '느린 속도로 확인해야 하는 인연입니다. 감정보다 생활 리듬을 먼저 맞추는 편이 좋습니다.';
+            }
+            if (label === 'temperature') {
+              if (n >= 78) return '감정 온도가 높아 가까워지는 속도가 빠릅니다. 과열될 때는 하루 안에 짧은 확인 대화를 두세요.';
+              if (n >= 58) return '따뜻하지만 무리하지 않는 온도입니다. 꾸준한 연락과 작은 약속이 온도를 안정시킵니다.';
+              return '천천히 데워지는 관계입니다. 확답을 재촉하기보다 반복되는 신뢰 행동을 확인하세요.';
+            }
+            if (label === 'magnetism') {
+              if (n >= 78) return '자력이 강해 서로에게 시선이 자주 돌아옵니다. 끌림을 신뢰하되 결정은 천천히 내리는 편이 안전합니다.';
+              if (n >= 58) return '끌림과 안정감이 균형을 이룹니다. 공통 취향을 만들수록 관계 밀도가 올라갑니다.';
+              return '자극보다 편안함을 통해 가까워지는 흐름입니다. 대화 빈도와 만남 리듬을 꾸준히 쌓으세요.';
+            }
+            return '숫자는 결과의 판정이 아니라 관계를 조율할 때 참고할 온도계입니다.';
+          };
+          const compatibilityIndexNote = Number(compatibilityIndex || 0) >= 78
+            ? '종합 지수는 높지만, 강한 끌림은 작은 오해도 크게 만들 수 있어 초반 합의가 중요합니다.'
+            : (Number(compatibilityIndex || 0) >= 58
+              ? '종합 지수는 안정권입니다. 감정 확인과 생활 규칙을 함께 만들면 체감 궁합이 더 좋아집니다.'
+              : '종합 지수는 조심스럽게 읽어야 합니다. 속도 조절과 경계선 합의가 관계 품질을 좌우합니다.');
 
           const enhancedSummarySection = `
-            <section style="background:rgba(2,6,23,0.5);border:1px solid rgba(196,181,253,0.35);border-radius:14px;padding:14px 14px 10px;margin-bottom:14px;">
+            <section style="background:radial-gradient(circle at 92% 0%,rgba(224,231,255,0.12),transparent 32%),rgba(2,6,23,0.58);border:1px solid rgba(196,181,253,0.42);border-radius:16px;padding:15px 15px 12px;margin-bottom:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.06);">
               <div style="font-size:0.74rem;color:#c4b5fd;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">Section 0 · 한눈에 보는 인연 요약</div>
               <div style="font-size:1.02rem;font-weight:900;color:#f8fafc;line-height:1.5;margin-bottom:8px;">${enhanced.oneLine}</div>
               <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px;">
@@ -7477,24 +7510,24 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
                 ${enhanced.keywords3.map(function(k){ return '<span style="background:rgba(59,130,246,0.18);border:1px solid rgba(59,130,246,0.4);padding:3px 8px;border-radius:999px;font-size:0.74rem;color:#bfdbfe;">#'+k+'</span>'; }).join('')}
               </div>
-              <div style="font-size:0.79rem;color:#e5e7eb;line-height:1.75;">한 줄 요약: <strong>"강하게 끌리고, 빠르게 뜨거워지고, 결국 조율이 승부를 가르는 관계"</strong>입니다. 잘 쓰면 서로를 크게 성장시키고, 방치하면 피로가 빨리 쌓입니다. 계산 시그니처: ${enhanced.signature}</div>
+              <div style="font-size:0.8rem;color:#eef2ff;line-height:1.8;">핵심은 <strong style="color:#fef3c7;">끌림의 속도와 생활 리듬을 같은 언어로 맞추는 것</strong>입니다. 호감은 빠르게 올라올 수 있지만, 관계가 오래 가려면 연락 빈도·갈등 후 회복 방식·약속 결정 순서를 명확히 정해야 합니다. 계산 시그니처: ${enhanced.signature}</div>
             </section>`;
 
           const enhancedFlowSection = `
-            <section style="background:rgba(15,23,42,0.48);border:1px solid rgba(125,211,252,0.28);border-radius:14px;padding:14px 14px 10px;margin-bottom:14px;">
+            <section style="background:rgba(15,23,42,0.56);border:1px solid rgba(125,211,252,0.34);border-radius:16px;padding:15px 15px 11px;margin-bottom:14px;">
               <div style="font-size:0.74rem;color:#7dd3fc;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">Section 4 · 첫 만남 → 썸 → 연애 → 장기 관계</div>
-              <article style="border:1px solid rgba(125,211,252,0.35);border-radius:10px;padding:9px 10px;margin-bottom:8px;background:rgba(2,6,23,0.42);"><strong style="color:#bae6fd;">1단계 · 첫 만남</strong><p style="margin:6px 0 0;color:#dbeafe;line-height:1.8;font-size:0.82rem;">처음에는 ${enhanced.distanceKo} 특성 때문에 반응 속도 체감이 분명하게 나타납니다. 상대가 나를 보는 방식은 호기심과 경계가 동시에 작동하는 패턴으로 들어오기 쉽습니다. 빠르게 가까워지더라도 의도 확인 문장을 먼저 쓰면 오해를 줄일 수 있습니다.</p></article>
-              <article style="border:1px solid rgba(196,181,253,0.35);border-radius:10px;padding:9px 10px;margin-bottom:8px;background:rgba(2,6,23,0.42);"><strong style="color:#ddd6fe;">2단계 · 썸 단계</strong><p style="margin:6px 0 0;color:#e9d5ff;line-height:1.8;font-size:0.82rem;">연락 패턴은 리듬 합의가 핵심입니다. 좋아질 때는 급격히 가까워지지만, 답장 속도·말투 강도 차이가 오해의 트리거가 되기 쉽습니다. 호감이 깊어지는 순간은 감정 확인과 사실 확인을 같이 해줄 때입니다.</p></article>
-              <article style="border:1px solid rgba(251,191,36,0.35);border-radius:10px;padding:9px 10px;margin-bottom:8px;background:rgba(2,6,23,0.42);"><strong style="color:#fde68a;">3단계 · 연애 단계</strong><p style="margin:6px 0 0;color:#fde68a;line-height:1.8;font-size:0.82rem;">애정 표현은 강도보다 빈도가 중요합니다. 다툼은 감정 과열보다 해석 차이에서 커지는 경우가 많고, 화해는 "요약-사과-합의" 순서가 가장 안정적입니다. 질투와 불안은 숨길수록 증폭되므로 짧고 정확한 언어가 유리합니다.</p></article>
-              <article style="border:1px solid rgba(74,222,128,0.35);border-radius:10px;padding:9px 10px;background:rgba(2,6,23,0.42);"><strong style="color:#bbf7d0;">4단계 · 장기 관계</strong><p style="margin:6px 0 0;color:#dcfce7;line-height:1.8;font-size:0.82rem;">오래 가려면 돈·생활·가족·일상 루틴의 규칙을 문장으로 고정해야 합니다. 결혼/동거 관점에서는 역할 고정이 아니라 주기적 재협상이 핵심입니다. 관계 유지 규칙을 분기마다 업데이트하면 장기성이 크게 올라갑니다.</p></article>
+              <article style="border:1px solid rgba(125,211,252,0.38);border-radius:12px;padding:10px 11px;margin-bottom:8px;background:rgba(2,6,23,0.46);"><strong style="color:#bae6fd;">1단계 · 첫 만남</strong><p style="margin:6px 0 0;color:#dbeafe;line-height:1.82;font-size:0.83rem;">처음에는 ${enhanced.distanceKo} 특유의 거리감 때문에 호기심과 조심스러움이 함께 올라옵니다. 서로의 말투를 빠르게 해석하려 들기보다, “내가 이렇게 느꼈는데 맞아?”처럼 의도를 확인하는 문장이 첫 인상을 안정시킵니다.</p></article>
+              <article style="border:1px solid rgba(196,181,253,0.38);border-radius:12px;padding:10px 11px;margin-bottom:8px;background:rgba(2,6,23,0.46);"><strong style="color:#ddd6fe;">2단계 · 썸 단계</strong><p style="margin:6px 0 0;color:#e9d5ff;line-height:1.82;font-size:0.83rem;">썸에서는 연락 속도와 표현 강도가 관계의 체감 온도를 결정합니다. 호감이 깊어지는 신호는 긴 대화보다 꾸준한 확인 행동이며, 답장이 늦을 때 의미를 단정하지 않는 것이 중요합니다.</p></article>
+              <article style="border:1px solid rgba(251,191,36,0.38);border-radius:12px;padding:10px 11px;margin-bottom:8px;background:rgba(2,6,23,0.46);"><strong style="color:#fde68a;">3단계 · 연애 단계</strong><p style="margin:6px 0 0;color:#fde68a;line-height:1.82;font-size:0.83rem;">연애가 시작되면 애정 표현의 크기보다 반복성이 더 중요해집니다. 다툼은 감정보다 해석 차이에서 커지기 쉬우므로, “요약 → 사과 → 다음 행동 합의” 순서로 풀면 회복 속도가 빨라집니다.</p></article>
+              <article style="border:1px solid rgba(74,222,128,0.38);border-radius:12px;padding:10px 11px;background:rgba(2,6,23,0.46);"><strong style="color:#bbf7d0;">4단계 · 장기 관계</strong><p style="margin:6px 0 0;color:#dcfce7;line-height:1.82;font-size:0.83rem;">장기 관계에서는 사랑의 강도보다 운영 방식이 관계를 지킵니다. 돈·생활·가족·일정 같은 현실 주제를 피하지 않고, 분기마다 규칙을 다시 맞추면 관계 체력이 오래 유지됩니다.</p></article>
             </section>`;
 
           const chemistrySection = `
             <section style="background:rgba(2,6,23,0.5);border:1px solid rgba(52,211,153,0.3);border-radius:14px;padding:14px 14px 10px;margin-bottom:14px;">
               <div style="font-size:0.74rem;color:#6ee7b7;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">Section 5 · 감정/대화/생활/끌림 세부 지표</div>
-              <div style="font-size:0.82rem;color:#d1fae5;line-height:1.8;margin-bottom:8px;">감정 궁합 ${enhanced.emotionalChemistry}점 · 대화 궁합 ${enhanced.communicationChemistry}점 · 생활 궁합 ${enhanced.dailyLifeChemistry}점 · 육체적 끌림 ${enhanced.physicalMagnetism}점 · 갈등 위험 ${enhanced.conflictRisk}점 · 회복 잠재력 ${enhanced.recoveryPotential}점 · 장기성 ${enhanced.longTermPotential}점</div>
+              <div style="font-size:0.82rem;color:#d1fae5;line-height:1.8;margin-bottom:8px;">감정 ${enhanced.emotionalChemistry}점은 마음이 움직이는 속도, 대화 ${enhanced.communicationChemistry}점은 오해를 줄이는 능력, 생활 ${enhanced.dailyLifeChemistry}점은 일상 리듬의 맞물림을 뜻합니다. 끌림 ${enhanced.physicalMagnetism}점이 높을수록 가까워지는 속도는 빠르지만, 갈등 위험 ${enhanced.conflictRisk}점이 함께 높다면 확인 대화가 필수입니다.</div>
               <div style="font-size:0.8rem;color:#dbeafe;line-height:1.85;background:rgba(15,23,42,0.52);border:1px solid rgba(148,163,184,0.25);border-radius:10px;padding:9px 10px;">
-                감정은 빨리 붙고 빨리 데워집니다. 그래서 좋을 때는 아주 강하지만, 오해가 생기면 감정도 급격히 흔들릴 수 있습니다. 이 조합은 "정확한 대화"와 "생활 루틴 합의"를 붙이는 순간 점수가 눈에 띄게 올라갑니다.
+                이 지표는 좋고 나쁨의 판정이 아니라 관계 운영 지도입니다. 감정 점수가 높으면 끌림을 믿되 표현을 부드럽게 조절하고, 대화 점수가 낮게 느껴질 때는 추측 대신 질문을 먼저 두세요. 생활 점수는 데이트보다 평일 루틴에서 더 잘 드러납니다.
               </div>
               <div style="font-family:monospace;font-size:0.78rem;color:#e2e8f0;line-height:1.9;margin-top:8px;">
                 끌림&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${syBar(enhanced.physicalMagnetism)} ${enhanced.physicalMagnetism}<br>
@@ -7508,26 +7541,32 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           const roleSection = `
             <section style="background:rgba(30,41,59,0.52);border:1px solid rgba(147,197,253,0.3);border-radius:14px;padding:14px 14px 10px;margin-bottom:14px;">
               <div style="font-size:0.74rem;color:#93c5fd;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">Section 6 · 역할 분석 강화</div>
-              <div style="font-size:0.82rem;color:#dbeafe;line-height:1.85;">나의 역할은 <strong>${enhanced.roleA}</strong>, 상대의 역할은 <strong>${enhanced.roleB}</strong>로 읽힙니다. 내 역할은 상대에게 안정/자극 중 어느 축을 먼저 제공하는지에 따라 달라지고, 상대 역할 역시 관계 깊이에 따라 역전될 수 있습니다. 역할을 운명처럼 고정하기보다, 상황별 포지션으로 조율할 때 관계 피로가 줄어듭니다.</div>
-              <div style="font-size:0.8rem;color:#e2e8f0;line-height:1.8;background:rgba(2,6,23,0.45);border:1px solid rgba(148,163,184,0.24);border-radius:10px;padding:9px 10px;margin-top:8px;">내가 지치기 쉬운 지점은 역할 과잉 수행, 상대가 숨기는 불안은 경계선 요청을 거절당할 때 나타납니다. 상대를 다룰 때 필요한 방식은 감정 확정 문장보다 행동 합의 문장을 먼저 쓰는 것입니다.</div>
+              <div style="font-size:0.82rem;color:#dbeafe;line-height:1.85;">나의 역할은 <strong>${enhanced.roleA}</strong>, 상대의 역할은 <strong>${enhanced.roleB}</strong>로 읽힙니다. 이는 고정된 운명이 아니라 관계 안에서 자주 맡게 되는 반응 방식에 가깝습니다. 가까워질수록 역할이 바뀌기도 하므로, “나는 지금 안정이 필요해 / 자극이 필요해”처럼 현재 상태를 말하는 편이 좋습니다.</div>
+              <div style="font-size:0.8rem;color:#e2e8f0;line-height:1.8;background:rgba(2,6,23,0.45);border:1px solid rgba(148,163,184,0.24);border-radius:10px;padding:9px 10px;margin-top:8px;">내가 지치기 쉬운 지점은 역할을 혼자 오래 떠맡는 순간입니다. 상대가 불안해지는 지점은 거절당했다는 느낌이 반복될 때입니다. 감정을 단정하기보다 다음 행동을 합의하면 관계가 덜 소모됩니다.</div>
             </section>`;
 
           const guideSection = `
             <section style="background:rgba(2,6,23,0.5);border:1px solid rgba(251,191,36,0.3);border-radius:14px;padding:14px 14px 10px;margin-bottom:14px;">
               <div style="font-size:0.74rem;color:#fde68a;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">관계 사용 설명서</div>
-              <div style="font-size:0.8rem;color:#fde68a;line-height:1.8;">금지어: "넌 원래 그래" 같은 단정형 문장 · 잘 먹히는 표현: "내가 원하는 건 OO야" 같은 요청형 문장 · 절대 금지 행동: 감정 과열 직후 결론 강요 · 추천 데이트: ${enhanced.distanceKo === '근거리' ? '짧고 자주 만나는 산책형 데이트' : (enhanced.distanceKo === '중거리' ? '주간 루틴형 데이트' : '긴 호흡의 목적형 데이트')} · 위기 패턴: 답장 해석 과열 · 회복법: 24시간 쿨다운 후 요약 대화</div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;font-size:0.8rem;color:#fde68a;line-height:1.75;">
+                <div style="background:rgba(15,23,42,0.55);border:1px solid rgba(251,191,36,0.22);border-radius:10px;padding:9px;">금지어<br><strong style="color:#fff7ed;">“넌 원래 그래”처럼 성격을 단정하는 말</strong></div>
+                <div style="background:rgba(15,23,42,0.55);border:1px solid rgba(251,191,36,0.22);border-radius:10px;padding:9px;">잘 먹히는 표현<br><strong style="color:#fff7ed;">“내가 원하는 건 OO야”처럼 구체적인 요청</strong></div>
+                <div style="background:rgba(15,23,42,0.55);border:1px solid rgba(251,191,36,0.22);border-radius:10px;padding:9px;">절대 금지 행동<br><strong style="color:#fff7ed;">감정 과열 직후 결론을 강요하는 것</strong></div>
+                <div style="background:rgba(15,23,42,0.55);border:1px solid rgba(251,191,36,0.22);border-radius:10px;padding:9px;">추천 데이트<br><strong style="color:#fff7ed;">${enhanced.distanceKo === '근거리' ? '짧고 자주 만나는 산책형 데이트' : (enhanced.distanceKo === '중거리' ? '주간 루틴형 데이트' : '긴 호흡의 목적형 데이트')}</strong></div>
+                <div style="background:rgba(15,23,42,0.55);border:1px solid rgba(251,191,36,0.22);border-radius:10px;padding:9px;">위기 패턴<br><strong style="color:#fff7ed;">답장 지연을 마음이 식은 신호로 해석하는 것</strong></div>
+                <div style="background:rgba(15,23,42,0.55);border:1px solid rgba(251,191,36,0.22);border-radius:10px;padding:9px;">회복법<br><strong style="color:#fff7ed;">24시간 안에 감정·사실·다음 행동을 짧게 정리하기</strong></div>
+              </div>
             </section>`;
 
           const detailCardsSection = `
             <section style="background:rgba(15,23,42,0.52);border:1px solid rgba(196,181,253,0.3);border-radius:14px;padding:14px 14px 10px;margin-bottom:14px;">
               <div style="font-size:0.74rem;color:#ddd6fe;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">숙요 궁합 확장 해석 카드</div>
-              <div style="font-size:0.8rem;color:#e2e8f0;line-height:1.85;">
-                첫눈에 끌리는 이유는 ${enhanced.relationTypeKo}의 공명 속도와 ${enhanced.distanceKo} 거리에서 오는 체감 반응이 맞물리기 때문입니다. 상대는 당신에게 익숙함과 긴장감을 동시에 느낄 가능성이 큽니다.<br>
-                말투와 연락 궁합은 정확성 중심으로 맞추는 것이 유리합니다. 감정 표현은 짧게, 요청은 구체적으로 말할수록 오해가 줄어듭니다.<br>
-                관계가 빨리 가까워지는 포인트는 공통 루틴을 만드는 순간이며, 틀어지는 트리거는 해석을 사실처럼 단정하는 태도입니다. 질투와 불안은 숨기지 말고 문장화해 공유해야 합니다.<br>
-                재회 가능성은 회복 규칙이 있느냐에 크게 좌우됩니다. 장기적으로는 돈·생활·가족 이슈를 회피하지 않고 합의 문서처럼 정리할 때 관계 체력이 올라갑니다.<br>
-                이 관계의 금지 행동은 침묵으로 상대를 시험하는 방식입니다. 회복 주문은 "지금 감정, 사실, 원하는 행동" 세 문장으로 대화를 재개하는 것입니다.<br>
-                상대에게 가장 잘 통하는 말은 비난이 아닌 요청형 문장이고, 나를 지키는 경계선은 관계 속도보다 회복 속도를 우선하는 기준입니다. 이 인연을 좋게 쓰는 법은 강한 끌림을 구조화된 조율로 전환하는 데 있습니다.
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;font-size:0.8rem;color:#e2e8f0;line-height:1.78;">
+                <div style="background:rgba(2,6,23,0.44);border:1px solid rgba(196,181,253,0.22);border-radius:10px;padding:9px;"><strong style="color:#f5d0fe;">끌림</strong><br>${enhanced.relationTypeKo}의 공명 속도와 ${enhanced.distanceKo} 거리감이 맞물려 익숙함과 긴장감이 함께 생깁니다.</div>
+                <div style="background:rgba(2,6,23,0.44);border:1px solid rgba(196,181,253,0.22);border-radius:10px;padding:9px;"><strong style="color:#bfdbfe;">소통</strong><br>감정 표현은 짧게, 요청은 구체적으로 말할수록 오해가 줄어듭니다. 추측보다 확인 질문이 유리합니다.</div>
+                <div style="background:rgba(2,6,23,0.44);border:1px solid rgba(196,181,253,0.22);border-radius:10px;padding:9px;"><strong style="color:#fecaca;">갈등</strong><br>관계가 틀어지는 순간은 해석을 사실처럼 단정할 때입니다. 침묵으로 시험하기보다 불안을 문장화해야 합니다.</div>
+                <div style="background:rgba(2,6,23,0.44);border:1px solid rgba(196,181,253,0.22);border-radius:10px;padding:9px;"><strong style="color:#bbf7d0;">장기성</strong><br>돈·생활·일정 같은 현실 주제를 회피하지 않고 정리할수록 관계 체력이 올라갑니다.</div>
+                <div style="grid-column:1/-1;background:rgba(2,6,23,0.44);border:1px solid rgba(196,181,253,0.22);border-radius:10px;padding:9px;"><strong style="color:#fde68a;">회복</strong><br>회복 주문은 “지금 감정, 확인된 사실, 원하는 다음 행동” 세 문장입니다. 강한 끌림을 오래 쓰려면 감정의 속도를 구조화된 대화로 바꿔야 합니다.</div>
               </div>
             </section>`;
 
@@ -7543,9 +7582,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           _styleEl.textContent = [
             '@keyframes fadeUpSy{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}',
             '@keyframes glowPulse{0%,100%{box-shadow:0 0 14px ' + th.glowColor + '44}50%{box-shadow:0 0 28px ' + th.glowColor + '88}}',
-            '.sy-report{animation:fadeUpSy 0.55s ease}',
-            '.sy-sec{margin-bottom:14px;padding:15px 16px;border-radius:12px;font-size:0.92rem;line-height:1.65}',
-            '.sy-sec-title{font-weight:800;font-size:0.82rem;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px}'
+            '.sy-report{animation:fadeUpSy 0.55s ease;position:relative}',
+            '.sy-report::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 88% 4%,rgba(255,255,255,.12),transparent 18%),radial-gradient(circle at 12% 18%,rgba(125,211,252,.08),transparent 24%)}',
+            '.sy-sec{margin-bottom:14px;padding:15px 16px;border-radius:14px;font-size:0.92rem;line-height:1.68;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}',
+            '.sy-sec-title{font-weight:900;font-size:0.82rem;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px;text-shadow:0 0 12px rgba(196,181,253,.2)}',
+            '@media(max-width:680px){.sy-report [style*="grid-template-columns:repeat(2"]{grid-template-columns:1fr!important}.sy-report [style*="grid-template-columns:1fr 1fr 1fr"]{grid-template-columns:1fr!important}}'
           ].join('');
 
           // ── 안·괴 포지션 배지 ──
@@ -7572,11 +7613,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             </div>`).join('');
 
           rd.innerHTML = `
-          <div class="sy-report" style="background:rgba(8,10,18,0.95); border-radius:18px; overflow:hidden; border:1px solid ${th.border}; box-shadow:0 10px 40px rgba(0,0,0,0.6); font-family:'Gowun Dodum',sans-serif;">
+          <div class="sy-report" data-sy-compat-moonlight="20260603" style="background:radial-gradient(circle at 88% 0%,rgba(255,255,255,0.12),transparent 24%),radial-gradient(circle at 12% 28%,rgba(125,211,252,0.08),transparent 30%),linear-gradient(155deg,rgba(6,9,24,0.98),rgba(17,20,48,0.96) 54%,rgba(30,23,62,0.94)); border-radius:20px; overflow:hidden; border:1px solid rgba(196,181,253,0.38); box-shadow:0 22px 60px rgba(0,0,0,0.64),0 0 36px rgba(147,197,253,0.12); font-family:'Gowun Dodum',sans-serif;">
 
             <!-- ══ HEADER ══ -->
-            <div style="background:${gradColor}; padding:22px 20px 20px; position:relative; overflow:hidden;">
-              <div style="position:absolute; right:-15px; top:-15px; font-size:7rem; opacity:0.1; line-height:1; pointer-events:none;">${rel.icon}</div>
+            <div style="background:radial-gradient(circle at 92% 8%,rgba(255,255,255,0.3),transparent 18%),${gradColor}; padding:22px 20px 20px; position:relative; overflow:hidden;">
+              <div style="position:absolute; right:-22px; top:-30px; width:130px; height:130px; border-radius:50%; background:radial-gradient(circle at 34% 30%,rgba(255,255,255,0.68),rgba(226,232,255,0.22) 42%,rgba(167,139,250,0.08) 70%,transparent 72%); opacity:0.72; pointer-events:none;"></div>
+              <div style="position:absolute; right:10px; top:10px; font-size:5.8rem; opacity:0.12; line-height:1; pointer-events:none;">${rel.icon}</div>
               <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:2.5px; color:rgba(255,255,255,0.65); margin-bottom:4px;">27宿 인연 深層 리포트</div>
               <div style="font-size:1.3rem; font-weight:900; color:#fff; margin-bottom:3px; line-height:1.2;">${rel.typeLabel || rel.type}</div>
               <div style="font-size:0.82rem; color:rgba(255,255,255,0.8); margin-bottom:10px;">인연의 낙인: <strong>${rel.stamp || rel.type}</strong></div>
@@ -7605,20 +7647,23 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
               <!-- ── 3종 수치 대시보드 ── -->
               <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px;">
-                <div style="background:rgba(255,255,255,0.04); border-radius:10px; padding:12px 8px; text-align:center; border:1px solid rgba(255,255,255,0.07);">
-                  <div style="font-size:0.65rem; color:#888; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;">카르마 점수</div>
+                <div style="background:rgba(15,23,42,0.62); border-radius:12px; padding:12px 9px; text-align:center; border:1px solid rgba(196,181,253,0.22);">
+                  <div style="font-size:0.68rem; color:#dbeafe; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;font-weight:800;">카르마 점수</div>
                   <div style="font-size:2.2rem; font-weight:900; color:${scoreColor}; line-height:1;">${rel.score}</div>
-                  <div style="font-size:0.62rem; color:#555; margin-top:2px;">/ 100</div>
+                  <div style="font-size:0.7rem; color:#cbd5e1; margin-top:2px;">/ 100</div>
+                  <p style="margin:7px 0 0;color:#e2e8f0;font-size:0.72rem;line-height:1.55;">${syMetricNote('karma', rel.score)}</p>
                 </div>
-                <div style="background:rgba(255,255,255,0.04); border-radius:10px; padding:12px 8px; text-align:center; border:1px solid rgba(255,255,255,0.07);">
-                  <div style="font-size:0.65rem; color:#888; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;">인연 온도</div>
+                <div style="background:rgba(15,23,42,0.62); border-radius:12px; padding:12px 9px; text-align:center; border:1px solid rgba(147,197,253,0.22);">
+                  <div style="font-size:0.68rem; color:#dbeafe; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;font-weight:800;">인연 온도</div>
                   <div style="font-size:2.2rem; font-weight:900; color:${tempInfo.color}; line-height:1;">${rel.temperature}</div>
-                  <div style="font-size:0.62rem; color:#555; margin-top:2px;">° / 100</div>
+                  <div style="font-size:0.7rem; color:#cbd5e1; margin-top:2px;">° / 100</div>
+                  <p style="margin:7px 0 0;color:#e2e8f0;font-size:0.72rem;line-height:1.55;">${syMetricNote('temperature', rel.temperature)}</p>
                 </div>
-                <div style="background:rgba(255,255,255,0.04); border-radius:10px; padding:12px 8px; text-align:center; border:1px solid rgba(255,255,255,0.07); animation: glowPulse 3s infinite;">
-                  <div style="font-size:0.65rem; color:#888; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;">자력(磁力)</div>
+                <div style="background:rgba(15,23,42,0.62); border-radius:12px; padding:12px 9px; text-align:center; border:1px solid rgba(244,114,182,0.22); animation: glowPulse 3s infinite;">
+                  <div style="font-size:0.68rem; color:#dbeafe; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;font-weight:800;">자력(磁力)</div>
                   <div style="font-size:2.2rem; font-weight:900; color:${th.color1}; line-height:1;">${mgVal}</div>
-                  <div style="font-size:0.62rem; color:#555; margin-top:2px;">Magnetism</div>
+                  <div style="font-size:0.7rem; color:#cbd5e1; margin-top:2px;">Magnetism</div>
+                  <p style="margin:7px 0 0;color:#e2e8f0;font-size:0.72rem;line-height:1.55;">${syMetricNote('magnetism', mgVal)}</p>
                 </div>
               </div>
 
@@ -7628,6 +7673,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                   <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;background:rgba(2,6,23,0.45);border:1px solid rgba(52,211,153,0.25);border-radius:10px;padding:8px 9px;">
                     <span style="font-size:0.79rem;color:#dbeafe;">궁합 지수</span>
                     <strong style="font-size:1.05rem;color:${compatIndexColor};">${compatibilityIndex}</strong>
+                  </div>
+                  <div style="background:rgba(2,6,23,0.45);border:1px solid rgba(52,211,153,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#d1fae5;line-height:1.6;">
+                    ${compatibilityIndexNote}
                   </div>
                   <div style="background:rgba(2,6,23,0.45);border:1px solid rgba(125,211,252,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#dbeafe;line-height:1.6;">
                     📏 거리 정밀값: A→B ${distanceMetrics.forwardDistance} / B→A ${distanceMetrics.reverseDistance} / 최단 ${distanceMetrics.shortestDistance} · ${distanceMetrics.tensionBand || ''} ${distanceMetrics.resonanceCode ? '(' + distanceMetrics.resonanceCode + ')' : ''}
@@ -7691,6 +7739,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                 <div style="background:rgba(0,0,0,0.2); border-radius:8px; padding:11px 13px; font-size:0.85rem; color:#b2bec3; line-height:1.65;">
                   <span style="color:#a29bfe; font-weight:700;">🌠 현생의 과제: </span>${enhanced.pastLife.currentTask}
                 </div>
+                <div style="margin-top:9px;background:rgba(15,23,42,0.48);border:1px solid rgba(196,181,253,0.2);border-radius:8px;padding:9px 11px;font-size:0.82rem;color:#e9d5ff;line-height:1.68;">
+                  이 해석은 두 사람의 반복되는 감정 패턴을 상징 언어로 읽은 것입니다. 현실에서는 같은 갈등을 반복하지 않기 위한 대화 순서와 경계선 합의로 활용하는 것이 가장 좋습니다.
+                </div>
               </div>
 
               <!-- ═══ 카르마의 그림자 ══ -->
@@ -7703,6 +7754,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               <div class="sy-sec" style="background:rgba(116,185,255,0.07); border:1px solid rgba(116,185,255,0.25);">
                 <div class="sy-sec-title" style="color:#74b9ff;">💊 Section 4 · 개운(開運)의 처방전 — 신의 한 수</div>
                 ${rxItems}
+                <div style="margin-top:8px;color:#dbeafe;font-size:0.84rem;line-height:1.7;background:rgba(2,6,23,0.38);border:1px solid rgba(147,197,253,0.18);border-radius:8px;padding:9px 11px;">처방전의 핵심은 운을 기다리는 것이 아니라 관계가 덜 흔들리는 환경을 만드는 것입니다. 오늘 바로 할 수 있는 작은 합의 하나가 두 사람의 흐름을 바꿉니다.</div>
               </div>
 
               <div class="sy-sec" id="syCompatAiPromptCard" style="background:radial-gradient(140% 135% at 8% 0%, rgba(196,181,253,0.2), transparent 44%), linear-gradient(145deg, rgba(22,28,64,0.9), rgba(15,23,42,0.94)); border:1px solid rgba(196,181,253,0.35); box-shadow:0 20px 44px rgba(76,29,149,0.34); border-radius:14px;">
