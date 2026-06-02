@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { stripLocalePrefix } from "../_lib/localePath";
 import DestinyIcon, { type DestinyIconName } from "./icons/DestinyIcon";
+import ShareWidget from "./ShareWidget";
 
 type ServiceLike = {
   title?: string;
@@ -710,6 +711,15 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
             관련 인사이트 보기
           </Link>
         </div>
+
+        <ShareWidget
+          title={title}
+          description={description}
+          path={basePath}
+          image={service?.ogImage}
+          contentType="software"
+          contentId={basePath}
+        />
 
         {isPaidFeature && (
           <p style={{

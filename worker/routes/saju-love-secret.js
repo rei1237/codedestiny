@@ -21,7 +21,7 @@ const LOVE_SECRET_JOB_COLLECTION = "premium_report_jobs";
 const LOVE_SECRET_JOB_POLL_AFTER_MS = 4000;
 const LOVE_SECRET_LOCK_TTL_MS = 1000 * 60 * 20;
 const LOVE_SECRET_GENERATION_LOCKS = new Map();
-const LOVE_SECRET_FORBIDDEN_RE = /\b(?:fallback|payload|json|schema|debug|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw|llm|api|prompt)\b|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1|데이터가\s*부족합니다|로컬\s*엔진|계산\s*시그니처|내부\s*데이터|엔진\s*결과|데이터\s*정규화|품질\s*검증|재생성/gi;
+const LOVE_SECRET_FORBIDDEN_RE = /\b(?:fallback|payload|json|schema|debug|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw)\b|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1|데이터가\s*부족합니다|로컬\s*엔진|계산\s*시그니처|내부\s*데이터|엔진\s*결과|데이터\s*정규화|품질\s*검증|재생성/gi;
 const LOVE_SECRET_MANUSCRIPT_SOURCE = Object.freeze({
   LOCAL: "local-only",
 });
@@ -35,7 +35,7 @@ const LOVE_SECRET_FAST_DB_ENV_OVERRIDES = Object.freeze({
   MONGO_IP_FAMILY: "4",
 });
 
-const LOVE_SECRET_CANONICAL_FORBIDDEN_RE = /\b(?:fallback|payload|json|schema|debug|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw|llm|api|prompt|seed|evidence|todo|fixme|placeholder)\b|자동\s*복구\s*생성|로컬\s*디버그|계산\s*시그니처|데이터\s*부족|검증\s*스키마/gi;
+const LOVE_SECRET_CANONICAL_FORBIDDEN_RE = /\b(?:fallback|payload|json|schema|debug|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw|todo|fixme|placeholder)\b|자동\s*복구\s*생성|로컬\s*디버그|계산\s*시그니처|데이터\s*부족|검증\s*스키마/gi;
 
 function loveSecretChapterMins(total, min) {
   return Object.freeze(Object.fromEntries(Array.from({ length: total }, (_, idx) => [idx + 1, min])));
@@ -598,7 +598,7 @@ async function buildLoveSecretChapters(env, { base, mode, config, onProgress = n
 function stripUnsafeText(value) {
   return clean(value)
     .replace(/\b(undefined|null|nan)\b/gi, "")
-    .replace(/\b(payload|json|schema|localdraft|fallback|llm|api|prompt|debug|raw|about:blank|internal\s*server\s*error|calculationmode|recovered)\b/gi, "")
+    .replace(/\b(payload|json|schema|localdraft|fallback|debug|raw|about:blank|internal\s*server\s*error|calculationmode|recovered)\b/gi, "")
     .replace(/chapter\s*1\s*chapter\s*1/gi, "")
     .replace(/자동\s*복구\s*생성/gi, "")
     .replace(/데이터가\s*부족합니다/gi, "")

@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { SEO_V2_SITE } from "../lib/seo.v2";
 
 export const dynamic = "force-static";
 
@@ -25,7 +26,7 @@ export default function robots(): MetadataRoute.Robots {
         "/*?auth=",
       ],
     },
-    sitemap: ["https://code-destiny.com/sitemap.xml"],
-    host: "https://code-destiny.com",
+    sitemap: [`${SEO_V2_SITE.siteUrl}/sitemap.xml`],
+    host: SEO_V2_SITE.siteUrl,
   };
 }

@@ -11,6 +11,26 @@ const siteBaseUrl = (process.env.SITE_URL || "https://code-destiny.com").replace
 const insightsApiBase = (process.env.INSIGHTS_API_BASE_URL || process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const useInsightsApi = String(process.env.SITEMAP_USE_INSIGHTS_API || "").toLowerCase() === "1";
 const today = new Date().toISOString().slice(0, 10);
+const privateRoutePatterns = [
+  /^\/api(?:\/|$)/,
+  /^\/admin(?:\/|$)/,
+  /^\/auth(?:\/|$)/,
+  /^\/login(?:\/|$)/,
+  /^\/signup(?:\/|$)/,
+  /^\/me(?:\/|$)/,
+  /^\/my(?:\/|$)/,
+  /^\/points(?:\/|$)/,
+  /^\/profile(?:\/|$)/,
+  /^\/payment(?:\/|$)/,
+  /^\/payments(?:\/|$)/,
+  /^\/checkout(?:\/|$)/,
+  /^\/premium-unlock(?:\/|$)/,
+  /^\/dev-status(?:\/|$)/,
+  /\/play(?:\/|$)/,
+  /\/stage(?:\/|$)/,
+  /\/start(?:\/|$)/,
+  /\/callback(?:\/|$)/,
+];
 const excludedInsightCategories = new Set([
   "상담 윤리",
   "콘텐츠 운영",
@@ -155,6 +175,19 @@ function toUrl(pathname) {
   return new URL(pathname, siteBaseUrl).toString();
 }
 
+function normalizeSitemapPath(pathname) {
+  const raw = String(pathname || "/").trim();
+  const noQuery = raw.split("?")[0].split("#")[0] || "/";
+  const leading = noQuery.startsWith("/") ? noQuery : `/${noQuery}`;
+  const compact = leading.replace(/\/{2,}/g, "/");
+  return compact === "/" ? "/" : compact.replace(/\/+$/, "");
+}
+
+function isPublicSitemapPath(pathname) {
+  const normalized = normalizeSitemapPath(pathname);
+  return !privateRoutePatterns.some((pattern) => pattern.test(normalized));
+}
+
 async function fetchPublishedInsightsFromApi() {
   const out = [];
   const seen = new Set();
@@ -209,7 +242,9 @@ async function main() {
   const entryMap = new Map();
 
   for (const route of routeEntries) {
-    const loc = toUrl(route.path);
+    if (!isPublicSitemapPath(route.path)) continue;
+
+    const loc = toUrl(normalizeSitemapPath(route.path));
     const next = {
       loc,
       lastmod: route.lastmod || today,

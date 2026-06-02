@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getApiBaseUrl } from "../../_lib/api-config";
+import ShareWidget from "../../components/ShareWidget";
 import { sanitizePublicInsightHtml, stripHtmlText } from "../_lib/sanitizePublicHtml";
 import { buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../../lib/structured-data";
 
@@ -629,6 +630,15 @@ export default function InsightArticleCosmicClient({
               </a>
               {shareMessage ? <span className="text-xs text-emerald-300">{shareMessage}</span> : null}
             </div>
+
+            <ShareWidget
+              title={seo.ogTitle || item.title}
+              description={seo.ogDescription || item.excerpt}
+              path={`/insights/${encodeURIComponent(String(item.slug || slug))}`}
+              image={seo.ogImage}
+              contentType="article"
+              contentId={String(item.slug || slug)}
+            />
           </div>
         </header>
 

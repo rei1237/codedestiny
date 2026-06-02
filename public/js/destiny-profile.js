@@ -4119,4 +4119,169 @@
 
   window.generateGuardianAvatar = window.dpGenerateGuardianAvatar;
 
+  window._cdCoinGatePerUse = function(cost, reason, cb, onCancel, options) {
+    if (!options && onCancel && typeof onCancel === 'object' && typeof cb === 'function') {
+      options = onCancel;
+      onCancel = undefined;
+    }
+
+    var optionBag = (options && typeof options === 'object') ? options : {};
+    var normalizedFeatureKey = String(optionBag.featureKey || '').trim() || 'coin-gate-per-use';
+    var token = '';
+    try { token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
+
+    if (_cdIsAdminLikeUser()) {
+      if (typeof cb === 'function') cb();
+      return;
+    }
+
+    var now = Date.now();
+    var lockAt = Number(window.__cdCoinGatePerUseLockAt || 0);
+    var lockAgeMs = lockAt > 0 ? (now - lockAt) : 0;
+    var isStaleLock = !lockAt || lockAgeMs > 45000;
+    if (window._cdCoinGatePerUseInFlight) {
+      if (isStaleLock) {
+        window._cdCoinGatePerUseInFlight = false;
+        window.__cdCoinGatePerUseLockAt = 0;
+        _dpSetPaymentPending(false);
+        window.alert('이전 결제 상태를 복구했습니다. 다시 시도해 주세요.');
+      } else {
+        window.alert('이전 결제 처리 중입니다. 잠시 후 다시 시도해 주세요.');
+      }
+      if (typeof onCancel === 'function') onCancel();
+      return;
+    }
+
+    var dedupeKey = normalizedFeatureKey + '|' + String(reason || '') + '|' + String(cost || 0);
+    var dedupeMap = window.__cdCoinGatePromptDedup || (window.__cdCoinGatePromptDedup = {});
+    if (dedupeMap[dedupeKey] && (now - dedupeMap[dedupeKey] < 2500)) {
+      if (typeof onCancel === 'function') onCancel();
+      return;
+    }
+    dedupeMap[dedupeKey] = now;
+
+    var requestId = String(optionBag.requestId || '').trim().slice(0, 120);
+    if (!requestId) {
+      requestId = 'coin-gate-per-use-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+    }
+
+    function runMonthlyCreditGate() {
+      var consumeHeaders = { 'Content-Type': 'application/json' };
+      if (token) consumeHeaders.Authorization = 'Bearer ' + token;
+      window._cdCoinGatePerUseInFlight = true;
+      window.__cdCoinGatePerUseLockAt = Date.now();
+      var pendingLabel = String(reason || '').trim() || '유료 서비스';
+      _dpSetPaymentPending(true, pendingLabel + ' 월정석 결제를 확인하는 중입니다...');
+      return _dpWaitForPaymentOverlayPaint().then(function() {
+        return _dpFetchJsonWithFallback('/api/billing/coin-gate', {
+          method: 'POST',
+          headers: consumeHeaders,
+          credentials: 'include',
+          cache: 'no-store',
+          body: JSON.stringify({
+            cost: cost,
+            reason: reason,
+            featureKey: normalizedFeatureKey,
+            paymentMode: 'MONTHLY_CREDIT',
+            forceDeduct: true,
+            requestId: requestId
+          })
+        }, {
+          retryOn401: true,
+          timeoutMs: _DP_FETCH_TIMEOUT_MS,
+        });
+      })
+      .then(function(res) {
+        window._cdCoinGatePerUseInFlight = false;
+        window.__cdCoinGatePerUseLockAt = 0;
+        _dpSetPaymentPending(false);
+        if (res.status === 401 || res.status === 403) {
+          if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+            window.__cdOpenLoginRequiredModal({
+              reason: '로그인이 필요한 기능입니다.',
+              redirectTo: window.location.pathname + window.location.search + window.location.hash,
+            });
+          }
+          if (typeof onCancel === 'function') onCancel();
+          return;
+        }
+
+        var rawData = (res && res.data && typeof res.data === 'object') ? res.data : {};
+        var data = (rawData.data && typeof rawData.data === 'object') ? rawData.data : rawData;
+        if (res.status === 402 || !res.ok || !data || data.ok === false) {
+          var failMessage = String((data && data.message) || rawData.message || '월정석이 부족합니다. 필요 월정석과 보유 월정석을 확인해 주세요.');
+          window.alert(failMessage);
+          if (typeof onCancel === 'function') onCancel();
+          return;
+        }
+
+        var consumeData = (data && data.consume && typeof data.consume === 'object') ? data.consume : {};
+        var accessGrant = (data && data.accessGrant && typeof data.accessGrant === 'object') ? data.accessGrant : {};
+        var transactionId = String(data.transactionId || consumeData.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || accessGrant.requestId || '');
+        if (typeof cb === 'function') cb(transactionId, data);
+        return data;
+      })
+      .catch(function(error) {
+        window._cdCoinGatePerUseInFlight = false;
+        window.__cdCoinGatePerUseLockAt = 0;
+        _dpSetPaymentPending(false);
+        console.error('[coin-gate-per-use]', error);
+        window.alert('결제를 처리하는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+        if (typeof onCancel === 'function') onCancel();
+      });
+    }
+
+    function runDirectCheckout() {
+      if (typeof window._cdRunDirectKrwCheckout !== 'function') {
+        window.alert('단건 결제 모듈을 찾을 수 없습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+        if (typeof onCancel === 'function') onCancel();
+        return Promise.resolve();
+      }
+      window._cdCoinGatePerUseInFlight = true;
+      window.__cdCoinGatePerUseLockAt = Date.now();
+      _dpSetPaymentPending(true, String(reason || '유료 서비스') + ' 단건 결제를 준비하는 중입니다...');
+      return window._cdRunDirectKrwCheckout({
+        coinPrice: cost,
+        cost: cost,
+        title: reason,
+        reason: reason,
+        featureKey: normalizedFeatureKey,
+        requestId: requestId,
+        checkoutPayload: {
+          reportType: optionBag.reportType,
+          serviceKey: optionBag.serviceKey,
+          paymentMode: 'DIRECT_KRW'
+        }
+      }).then(function(payload) {
+        window._cdCoinGatePerUseInFlight = false;
+        window.__cdCoinGatePerUseLockAt = 0;
+        _dpSetPaymentPending(false);
+        var txId = String((payload && (payload.transactionId || payload.paymentId || payload.purchaseId || payload.requestId)) || requestId);
+        if (typeof cb === 'function') cb(txId, payload || {});
+        return payload;
+      }).catch(function(error) {
+        window._cdCoinGatePerUseInFlight = false;
+        window.__cdCoinGatePerUseLockAt = 0;
+        _dpSetPaymentPending(false);
+        console.error('[direct-checkout]', error);
+        window.alert(String(error && error.message || '단건 결제를 완료하지 못했습니다. 결제 수단을 확인한 뒤 다시 시도해 주세요.'));
+        if (typeof onCancel === 'function') onCancel(error);
+      });
+    }
+
+    if (typeof window._cdChooseServicePaymentMode === 'function') {
+      return window._cdChooseServicePaymentMode({
+        title: reason,
+        coinPrice: cost,
+        cost: cost
+      }).then(function(choice) {
+        if (choice === 'direct') return runDirectCheckout();
+        if (choice === 'monthly') return runMonthlyCreditGate();
+        if (typeof onCancel === 'function') onCancel();
+      });
+    }
+
+    return runMonthlyCreditGate();
+  };
+
 })();

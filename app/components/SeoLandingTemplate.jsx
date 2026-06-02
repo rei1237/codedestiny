@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ShareWidget from "./ShareWidget";
 import {
   buildBreadcrumbJsonLd,
   buildFaqPageJsonLd,
@@ -229,6 +230,15 @@ export default function SeoLandingTemplate({ page }) {
           ))}
         </div>
       </section>
+
+      <ShareWidget
+        title={page.title}
+        description={page.description}
+        path={page.path}
+        image={page.ogImage}
+        contentType="software"
+        contentId={page.path}
+      />
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }} />

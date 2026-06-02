@@ -258,6 +258,7 @@
   var _lsAccessGrant = null;
   var _lsGatePurchaseId = '';
   var _lsResultPayload = null;
+  var _lsLocalDownloadUrl = '';
   var _lsFetchChapterForPartialRegenerate = null;
   var _lsJobStateKey = 'cd:premium-job:love-secret';
   var _lsLastStateKey = '';
@@ -1426,7 +1427,32 @@
 
   function _resolveLoveSecretStoredUrl(payload) {
     var data = payload && typeof payload === 'object' ? payload : {};
-    return String(data.downloadUrl || data.pdfUrl || data.htmlUrl || (((data.pdfReady || {}).downloadUrl) || ((data.pdfReady || {}).pdfUrl) || ((data.pdfReady || {}).htmlUrl) || '')).trim();
+    var pdfReady = data.pdfReady && typeof data.pdfReady === 'object' ? data.pdfReady : {};
+    var directUrl = String(
+      data.storedUrl ||
+      data.downloadUrl ||
+      data.pdfUrl ||
+      data.htmlUrl ||
+      data.reportUrl ||
+      data.fileUrl ||
+      data.storageUrl ||
+      pdfReady.storedUrl ||
+      pdfReady.downloadUrl ||
+      pdfReady.pdfUrl ||
+      pdfReady.htmlUrl ||
+      pdfReady.reportUrl ||
+      pdfReady.fileUrl ||
+      pdfReady.storageUrl ||
+      ''
+    ).trim();
+    if (directUrl) return directUrl;
+
+    var reportId = String(data.reportId || pdfReady.reportId || _lsCurrentReportId || '').trim();
+    var completed = String(data.status || data.serverStatus || '').toLowerCase() === 'completed';
+    if (reportId && (data.canDownload || data.canReopen || completed)) {
+      return '/api/premium/pdf-archive/' + encodeURIComponent(reportId);
+    }
+    return '';
   }
 
   function _hasLoveSecretStoredUrl(payload) {
@@ -1434,11 +1460,66 @@
   }
 
   function _ensureLoveSecretStoredUrlOrFail(payload) {
-    if (_hasLoveSecretStoredUrl(payload)) return true;
-    _generating = false;
-    _stopLoadingAnimation();
-    _setLoveBookGenerationState('failed');
-    _setError('리포트 저장 URL이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+    var data = payload && typeof payload === 'object' ? payload : {};
+    var storedUrl = _resolveLoveSecretStoredUrl(data);
+    if (storedUrl) {
+      _lsResultPayload = Object.assign({}, data, {
+        ok: data.ok !== false,
+        status: data.status || 'completed',
+        serverStatus: data.serverStatus || 'completed',
+        reportId: String(data.reportId || _lsCurrentReportId || '').trim(),
+        storedUrl: storedUrl,
+        downloadUrl: data.downloadUrl || storedUrl,
+        pdfUrl: data.pdfUrl || storedUrl,
+        htmlUrl: data.htmlUrl || storedUrl,
+        canDownload: true,
+        canReopen: true,
+      });
+      return true;
+    }
+
+    var hasChapters = _chapters.some(function (chapter) { return String(chapter || '').trim(); });
+    if (hasChapters && typeof Blob !== 'undefined' && window.URL && typeof window.URL.createObjectURL === 'function') {
+      try {
+        if (_lsLocalDownloadUrl) {
+          try { window.URL.revokeObjectURL(_lsLocalDownloadUrl); } catch (_) {}
+        }
+        var html = _buildLoveSecretPrintHtml();
+        var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        _lsLocalDownloadUrl = window.URL.createObjectURL(blob);
+        _lsResultPayload = Object.assign({}, data, {
+          ok: true,
+          status: 'completed',
+          serverStatus: 'completed',
+          reportId: String(data.reportId || _lsCurrentReportId || '').trim(),
+          storedUrl: _lsLocalDownloadUrl,
+          downloadUrl: _lsLocalDownloadUrl,
+          pdfUrl: _lsLocalDownloadUrl,
+          htmlUrl: _lsLocalDownloadUrl,
+          localDownload: true,
+          canDownload: true,
+          canReopen: true,
+        });
+        _logLoveSecretFlow('LocalDownloadUrlRecovered', {
+          mode: _currentChapterMode,
+          reportId: _lsCurrentReportId || '',
+          chapterCount: _chapters.filter(Boolean).length,
+        });
+        return true;
+      } catch (error) {
+        _logLoveSecretFlow('LocalDownloadUrlRecoveryFailed', {
+          mode: _currentChapterMode,
+          reportId: _lsCurrentReportId || '',
+          message: String(error && error.message ? error.message : error || ''),
+        });
+      }
+    }
+
+    _logLoveSecretFlow('StoredReportUrlMissing', {
+      mode: _currentChapterMode,
+      reportId: String(data.reportId || _lsCurrentReportId || '').trim(),
+      hasChapters: hasChapters,
+    });
     return false;
   }
 
@@ -2434,7 +2515,13 @@
 
     function _finalizeGenerationSuccess() {
       if (!_ensureLoveSecretStoredUrlOrFail(_lsResultPayload)) {
-        return;
+        _generating = false;
+        _stopLoadingAnimation();
+        _setLoveBookGenerationState('failed');
+        if (chapterMsg) {
+          chapterMsg.textContent = '연애 비책 PDF가 생성되었지만 다운로드 정보를 확인하지 못했습니다. 다시 불러오기를 시도해 주세요.';
+        }
+        return false;
       }
       _generating = false;
       _setLoveBookGenerationState('completed');
@@ -2448,6 +2535,7 @@
       var profile = window.__cdActiveBirthProfile || {};
       _saveResult(profile);
       _renderResultHeader(profile.name, profile.birth, profile.gender, new Date(), true);
+      return true;
     }
 
     async function _runDirectChapterGeneration(reason) {
@@ -2550,7 +2638,7 @@
         _applyCompletedResult(syncPrepareBody);
         if (_cancelGeneration) return;
         _setLoveBookGenerationState('completed');
-        _finalizeGenerationSuccess();
+        if (!_finalizeGenerationSuccess()) return;
         _logLoveSecretFlow('PdfRequestSuccess', { mode: _currentChapterMode, reportId: _lsReportId, flow: 'sync-prepare' });
         return;
       }
@@ -2568,7 +2656,7 @@
       if (submitRes.ok && submitBody && submitBody.ok && Array.isArray(submitBody.chapters) && !submitBody.jobId && _hasLoveSecretStoredUrl(submitBody)) {
         _applyCompletedResult(submitBody);
         if (_cancelGeneration) return;
-        _finalizeGenerationSuccess();
+        if (!_finalizeGenerationSuccess()) return;
         return;
       }
       if (!submitRes.ok || !submitBody || !submitBody.ok || !submitBody.jobId) {
@@ -2576,7 +2664,7 @@
         if (_isDbQueueFailure(submitMsg, submitRes.status, submitBody && submitBody.code)) {
           await _runDirectChapterGeneration(submitMsg);
           if (_cancelGeneration) return;
-          _finalizeGenerationSuccess();
+          if (!_finalizeGenerationSuccess()) return;
           return;
         }
         throw new Error(submitMsg);
@@ -2602,7 +2690,7 @@
         if (_isDbQueueFailure(pollMsg, 500, '')) {
           await _runDirectChapterGeneration(pollMsg);
           if (_cancelGeneration) return;
-          _finalizeGenerationSuccess();
+          if (!_finalizeGenerationSuccess()) return;
           return;
         }
         throw pollError;
@@ -2614,7 +2702,7 @@
         _pdfStartLogged = true;
         _logLoveSecretFlow('PdfRenderStart', { mode: _currentChapterMode, reportId: _lsReportId });
       }
-      _finalizeGenerationSuccess();
+      if (!_finalizeGenerationSuccess()) return;
       _logLoveSecretFlow('PdfRequestSuccess', { mode: _currentChapterMode, reportId: _lsReportId });
     })().catch(function (error) {
       var msg = String(error && error.message ? error.message : error || '챕터 생성 중 오류가 발생했습니다.');
@@ -2628,7 +2716,7 @@
       _fillLocalFallbackChapters(msg, partnerBirthInput ? _collectPartnerScreenData() : '', true);
       _setLoveBookGenerationState('llm_failed_use_local');
       _logLoveSecretFlow('LocalOnlyResultReady', { mode: _currentChapterMode, message: msg });
-      _finalizeGenerationSuccess();
+      if (!_finalizeGenerationSuccess()) return;
       _logLoveSecretFlow('PdfRequestSuccess', { mode: _currentChapterMode, reportId: _lsReportId, fallback: true });
     });
   }

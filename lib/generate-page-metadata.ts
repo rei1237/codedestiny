@@ -21,6 +21,7 @@
  */
 
 import { mergeKeywords, SEO_CORE_KEYWORDS, toAbsoluteUrl } from "./seo-metadata";
+import { buildOpenGraphImageUrl, getCanonicalUrl, isIndexableRoute, normalizePath } from "./seo.v2";
 
 const SITE_ORIGIN =
   (process.env.NEXT_PUBLIC_SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
@@ -125,20 +126,19 @@ export function generatePageMetadata(opts: FortunePageMeta) {
     hreflangPaths,
   } = opts;
 
-  const canonicalPath = normalizeCanonicalPath(path);
-  const canonicalUrl = `${SITE_ORIGIN}${canonicalPath === "/" ? "" : canonicalPath}`;
+  const canonicalPath = normalizePath(path);
+  const canonicalUrl = getCanonicalUrl(canonicalPath);
   const routeMetaCode = buildRouteMetaCode(canonicalPath, variantKey, inLanguage);
   const uniqueTitle = appendUniqueTitle(title, routeMetaCode);
   const uniqueDescription = appendUniqueDescription(description, routeMetaCode);
 
-  const ogImage = image || `${SITE_ORIGIN}/icons/꿀꿀 운세 로고.webp`;
+  const ogImage = buildOpenGraphImageUrl({ image: image || `${SITE_ORIGIN}/icons/꿀꿀 운세 로고.webp` });
 
   const languagesMap: Record<string, string> = {};
   if (hreflangPaths) {
     for (const [lang, localizedPath] of Object.entries(hreflangPaths)) {
       if (!localizedPath) continue;
-      const normalizedPath = normalizeCanonicalPath(String(localizedPath));
-      languagesMap[lang] = `${SITE_ORIGIN}${normalizedPath === "/" ? "" : normalizedPath}`;
+      languagesMap[lang] = getCanonicalUrl(String(localizedPath));
     }
   }
   const hasLanguages = Object.keys(languagesMap).length > 0;
@@ -169,9 +169,15 @@ export function generatePageMetadata(opts: FortunePageMeta) {
       images: [ogImage],
     },
     robots: {
-      index: true,
-      follow: true,
-      googleBot: { index: true, follow: true, "max-snippet": -1 },
+      index: isIndexableRoute(canonicalPath),
+      follow: isIndexableRoute(canonicalPath),
+      googleBot: {
+        index: isIndexableRoute(canonicalPath),
+        follow: isIndexableRoute(canonicalPath),
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
     },
   };
 }
@@ -192,12 +198,12 @@ export function buildFortuneJsonLd(opts: FortunePageMeta): string {
     variantKey,
   } = opts;
 
-  const canonicalPath = normalizeCanonicalPath(path);
-  const url = `${SITE_ORIGIN}${canonicalPath === "/" ? "" : canonicalPath}`;
+  const canonicalPath = normalizePath(path);
+  const url = getCanonicalUrl(canonicalPath);
   const routeMetaCode = buildRouteMetaCode(canonicalPath, variantKey, inLanguage);
   const uniqueTitle = appendUniqueTitle(title, routeMetaCode);
   const uniqueDescription = appendUniqueDescription(description, routeMetaCode);
-  const ogImage = image || `${SITE_ORIGIN}/icons/꿀꿀 운세 로고.webp`;
+  const ogImage = buildOpenGraphImageUrl({ image: image || `${SITE_ORIGIN}/icons/꿀꿀 운세 로고.webp` });
   const now = new Date().toISOString();
 
   const data = {

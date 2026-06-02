@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 import { ArticleJsonLd, BreadcrumbJsonLd, FaqJsonLd } from "../../components/SeoJsonLd";
+import ShareWidget from "../../components/ShareWidget";
 import { HIGH_VALUE_PAGES, getHighValuePageBySlug } from "../content";
 
 export const dynamicParams = false;
@@ -140,6 +141,14 @@ export default function HighValueDetailPage({ params }) {
           ))}
         </ul>
       </section>
+
+      <ShareWidget
+        title={page.title}
+        description={page.summary}
+        path={`/high-value/${page.slug}`}
+        contentType="article"
+        contentId={page.slug}
+      />
 
       <nav style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
         <Link href="/high-value" style={{ color: "#f8eecb" }}>High-Value Hub</Link>

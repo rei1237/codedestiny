@@ -1,5 +1,5 @@
 export const KRW_PER_COIN = 100;
-export const MEMBERSHIP_CREDIT_PER_COIN = 1;
+export const MEMBERSHIP_CREDIT_PER_COIN = 10;
 export const SINGLE_PURCHASE_DISCOUNT_RATE = 0;
 
 export function normalizeCoinPrice(value) {

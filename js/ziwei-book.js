@@ -2,7 +2,8 @@
   'use strict';
 
   var TOTAL_CHAPTERS = 13;
-  var FEATURE_KEY = 'premium_pdf_ziwei';
+  var FEATURE_KEY = 'premium-ziwei-report';
+  var FEATURE_KEY_ALIASES = ['premium-ziwei-report', 'premium_pdf_ziwei'];
   var COIN_COST = 590;
   var PREPARE_API = '/api/ziwei-book/prepare';
   var RESULT_API = '/api/ziwei-book/result';
@@ -204,9 +205,17 @@
     return s === 'paid' || s === 'generating' || s === 'failed_retryable';
   }
 
+  function isZiweiFeatureKey(value){
+    var key = text(value);
+    for(var i = 0; i < FEATURE_KEY_ALIASES.length; i += 1){
+      if(key === FEATURE_KEY_ALIASES[i]) return true;
+    }
+    return false;
+  }
+
   function isSamePaidSessionTarget(session, birthHash){
     var saved = session || {};
-    return text(saved.featureKey) === FEATURE_KEY
+    return isZiweiFeatureKey(saved.featureKey)
       && text(saved.reportType) === 'ziweiPremium'
       && text(saved.birthHash) === text(birthHash)
       && isReusablePaidStatus(saved.status)
@@ -256,10 +265,22 @@
 
   function getZiweiReportReadiness(data){
     var payload = data || {};
+    var ready = payload.pdfReady && typeof payload.pdfReady === 'object' ? payload.pdfReady : {};
     var chapters = Array.isArray(payload.chapters) ? payload.chapters : [];
     var hasSessionId = Boolean(text(payload.sessionId));
     var hasReportId = Boolean(text(payload.reportId));
-    var hasPdfHtml = Boolean(text(payload && payload.pdfReady && payload.pdfReady.html));
+    var hasPdfHtml = Boolean(text(ready.html));
+    var hasStoredUrl = Boolean(text(
+      payload.downloadUrl
+      || payload.pdfUrl
+      || payload.storedUrl
+      || payload.reportUrl
+      || ready.downloadUrl
+      || ready.pdfUrl
+      || ready.storedUrl
+      || ready.reportUrl
+      || ready.htmlUrl
+    ));
     var ok = payload.ok === true;
     var processing = text(payload.status) === 'processing' || text(payload.serverStatus) === 'processing';
     var successCandidate = ok && (hasReportId || hasSessionId);
@@ -267,8 +288,9 @@
       ok: ok,
       processing: processing,
       successCandidate: successCandidate,
-      completed: successCandidate && hasPdfHtml && chapters.length >= TOTAL_CHAPTERS,
+      completed: successCandidate && (hasPdfHtml || hasStoredUrl) && chapters.length >= TOTAL_CHAPTERS,
       hasPdfHtml: hasPdfHtml,
+      hasStoredUrl: hasStoredUrl,
       chapterCount: chapters.length,
       hasReportId: hasReportId,
       hasSessionId: hasSessionId

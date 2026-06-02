@@ -354,7 +354,6 @@ function stripForbiddenTokens(value) {
     .replace(/schema/gi, "")
     .replace(/raw/gi, "")
     .replace(/llm/gi, "")
-    .replace(/api/gi, "")
     .replace(/프롬프트/gi, "")
     .replace(/로컬\s*엔진/gi, "")
     .replace(/로컬\s*기반/gi, "")

@@ -72,11 +72,17 @@
 
   function _logError(error, stage) {
     var normalized = normalizeSukuyoError(error);
+    var original = error || {};
+    var cause = original && original.cause;
     try {
       console.error('[SukuyoBook][Error]', {
         stage: _clean(stage),
         name: _clean(normalized && normalized.name) || 'Error',
+        code: _clean(normalized && normalized.code || original.code || original.errorCode),
+        status: _clean(normalized && normalized.status || original.status || original.statusCode),
         message: _clean(normalized && normalized.message) || 'unknown',
+        reportId: _clean(original.reportId || original.executionId),
+        causeMessage: _clean(cause && cause.message),
       });
     } catch (_) {}
   }
@@ -468,13 +474,24 @@
   function _resolveSukuyoStoredUrl(payload) {
     var p = payload || {};
     var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
+    var reportId = _clean(p.reportId || ready.reportId);
+    var archiveUrl = reportId ? ('/api/premium/pdf-archive/' + encodeURIComponent(reportId)) : '';
     return _clean(
       p.downloadUrl
       || p.pdfUrl
+      || p.storedUrl
+      || p.reportUrl
+      || p.fileUrl
+      || p.storageUrl
       || ready.downloadUrl
       || ready.pdfUrl
+      || ready.storedUrl
+      || ready.reportUrl
+      || ready.fileUrl
+      || ready.storageUrl
       || p.htmlUrl
       || ready.htmlUrl
+      || archiveUrl
     );
   }
 
@@ -1214,12 +1231,28 @@
     var downloadUrl = _clean(
       _resultPayload && _resultPayload.downloadUrl
       || _resultPayload && _resultPayload.pdfUrl
+      || _resultPayload && _resultPayload.storedUrl
+      || _resultPayload && _resultPayload.reportUrl
+      || _resultPayload && _resultPayload.fileUrl
+      || _resultPayload && _resultPayload.storageUrl
       || ready.downloadUrl
       || ready.pdfUrl
+      || ready.storedUrl
+      || ready.reportUrl
+      || ready.fileUrl
+      || ready.storageUrl
+      || _resultPayload && _resultPayload.htmlUrl
+      || ready.htmlUrl
       || archiveUrl
     );
     var pdfUrl = _clean(_resultPayload && _resultPayload.pdfUrl || ready.pdfUrl);
-    var htmlUrl = _clean(_resultPayload && _resultPayload.htmlUrl || ready.htmlUrl || archiveUrl);
+    var htmlUrl = _clean(
+      _resultPayload && _resultPayload.htmlUrl
+      || ready.htmlUrl
+      || _resultPayload && _resultPayload.storedUrl
+      || ready.storedUrl
+      || archiveUrl
+    );
     var canDownload = Boolean(_resultPayload && _resultPayload.canDownload);
 
     console.log('[SukuyoPremiumPDF][DownloadClick]', {

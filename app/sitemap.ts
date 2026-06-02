@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
-import { BASE_URL, ROUTES } from "../lib/seo-site-urls";
+import { BASE_URL } from "../lib/seo-site-urls";
+import { buildSitemapEntriesV2 } from "../lib/seo.v2";
 import { LOCALES } from "../lib/i18n/locales";
 import { I18N_ROUTE_MAP } from "../lib/i18n/routes";
 
@@ -7,12 +8,7 @@ export const dynamic = "force-static";
 
 function buildBaseEntries(): MetadataRoute.Sitemap {
   const now = new Date();
-  return ROUTES.map((route) => ({
-    url: new URL(route.path, BASE_URL).toString(),
-    lastModified: now,
-    changeFrequency: route.changeFrequency || "weekly",
-    priority: route.priority ?? 0.7,
-  })).concat({
+  return buildSitemapEntriesV2(now).concat({
     url: `${BASE_URL}/insights/rss.xml`,
     lastModified: now,
     changeFrequency: "daily",

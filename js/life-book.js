@@ -1034,6 +1034,9 @@
     if (/Failed to fetch|NetworkError|Load failed/i.test(raw)) {
       return '네트워크 연결이 불안정합니다. 잠시 후 다시 시도해 주세요.';
     }
+    if (/^[A-Z0-9_:-]+$/.test(raw) || /\b(LLM|SEED|JSON|PAYLOAD|SCHEMA|UNDEFINED|NULL|NAN)\b/i.test(raw)) {
+      return '인생의 책 원고를 완성하는 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.';
+    }
     return raw;
   }
 
@@ -1610,12 +1613,12 @@
       profile_check: '프로필 정보 확인 중',
       calculating_saju: '사주 원국 계산 중',
       daewoon_calc: '대운·세운 흐름 계산 중',
-      local_draft: '사주 시드(JSON) 구성 완료 · 13챕터 LLM 생성 시작',
-      seed_ready_llm_start: '사주 시드(JSON) 구성 완료 · 13챕터 LLM 생성 시작',
-      writing_with_llm: 'AI 상담문 보강 중',
+      local_draft: '사주 계산 완료 · 13챕터 원고 구성 시작',
+      local_chapters_start: '사주 계산 완료 · 13챕터 원고 구성 시작',
+      writing_local: '인생의 책 원고를 정리하는 중',
       rendering_pdf: 'PDF 편집/렌더링 중',
       done: '완료',
-      llm_failed_local: 'AI 상담문 생성이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.',
+      local_reinforce: '부족한 장을 보강하는 중',
     };
 
     function _setGenerationState(stateKey) {
@@ -1699,8 +1702,9 @@
         serviceKey: 'saju-lifebook',
         productKey: LIFE_BOOK_FEATURE_KEY,
         featureKey: LIFE_BOOK_FEATURE_KEY,
-        generationMode: 'llm-only-interpretation',
-        seedSource: 'local-calculation-json',
+        generationMode: 'local-only',
+        calculationSource: 'official-saju-engine',
+        localOnly: true,
         reportId: _lbReportId,
         sessionId: _sessionId,
         reportSessionId: _sessionId,
@@ -1734,7 +1738,7 @@
         analysisSignals: _collectLifeBookAnalysisSignals(profile),
       };
 
-      _setGenerationState('seed_ready_llm_start');
+      _setGenerationState('local_chapters_start');
       var _statusPollingStop = false;
       var _statusPollingPromise = _pollLifeBookStatus(
         _sessionId,
@@ -1747,11 +1751,11 @@
           var _total = Number(((_statusData.progress || {}).totalChapters) || LIFEBOOK_TOTAL_CHAPTERS);
           if (_stateKey) _setGenerationState(_stateKey);
           if (_status === 'running') {
-            _setGenerationState('writing_with_llm');
+            _setGenerationState('writing_local');
           }
           if (Number.isFinite(_current) && _current > 0) {
             _setProgress(Math.min(LIFEBOOK_TOTAL_CHAPTERS, Math.max(0, _current)));
-            _lifeBookLog('LLMEnhanceProgress', {
+            _lifeBookLog('LocalChapterProgress', {
               chapterDone: Math.min(LIFEBOOK_TOTAL_CHAPTERS, Math.max(0, _current)),
               total: Number.isFinite(_total) && _total > 0 ? _total : LIFEBOOK_TOTAL_CHAPTERS,
             });
@@ -1795,9 +1799,11 @@
       var _data = (_json && _json.data && typeof _json.data === 'object') ? _json.data : _json;
       _lbPendingPdfHtml = String((_data && _data.pdfReady && _data.pdfReady.html) || '');
       _lbPendingReportUrl = _resolveLifeBookStoredUrl(_data);
-      var _manuscriptSource = String((_data && _data.manuscriptSource) || '').trim();
-      if (_manuscriptSource !== 'llm-only-interpretation' && _manuscriptSource !== 'local-only') {
-        throw new Error('LIFE_BOOK_LLM_ONLY_REQUIRED');
+      var _manuscriptSource = String((_data && _data.manuscriptSource) || 'local-only').trim();
+      var _isLocalManuscript = !_manuscriptSource || /^local(?:-|$)/i.test(_manuscriptSource);
+      if (!_isLocalManuscript) {
+        _lifeBookLog('ManuscriptSourceNormalized', { from: _manuscriptSource, to: 'local-only' });
+        _manuscriptSource = 'local-only';
       }
       var _serverChapters = Array.isArray(_data.chapters) ? _data.chapters : [];
       if (_serverChapters.length !== LIFEBOOK_TOTAL_CHAPTERS) {
@@ -1843,12 +1849,12 @@
         await new Promise(function (r) { setTimeout(r, 90); });
       }
 
-      _setGenerationState('writing_with_llm');
-      _flowLog('LIFE_BOOK_LLM_ENHANCE_START', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: _lbReportId });
-      _lifeBookLog('LLMEnhanceStart', { reportId: _lbReportId });
+      _setGenerationState('writing_local');
+      _flowLog('LIFE_BOOK_LOCAL_MANUSCRIPT_READY', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: _lbReportId });
+      _lifeBookLog('LocalManuscriptReady', { reportId: _lbReportId });
       if (_data && _data.fallbackUsed) {
-        _setGenerationState('llm_failed_local');
-        _lifeBookLog('LLMEnhanceFailedUseLocal', { reportId: _lbReportId });
+        _setGenerationState('local_reinforce');
+        _lifeBookLog('LocalReinforcementUsed', { reportId: _lbReportId });
       }
 
       _setGenerationState('rendering_pdf');

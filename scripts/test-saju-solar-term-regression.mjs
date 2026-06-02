@@ -172,6 +172,16 @@ const lunarMisuseSolar = new Date("1990-03-18T07:20:00+09:00");
 const lunarMisuseMonth = testApi.computeMonthGanjiFromTerms(terms1990, lunarMisuseSolar, yearGan);
 assertEqual(lunarMisuseMonth, "己卯", "lunar month must not drive month pillar");
 
+const partialApiTerms = testApi.normalizeTerms([
+  { dateName: "입춘", solYear: "1990", solMonth: "02", solDay: "04", time: "11:14:00" },
+], [], 1990);
+const partialApiMonth = testApi.computeMonthGanjiFromTerms(
+  partialApiTerms,
+  new Date("1990-03-18T07:20:00+09:00"),
+  yearGan,
+);
+assertEqual(partialApiMonth, "己卯", "partial solar-term rows must not freeze month at Ipchun");
+
 const utcSameInstant = new Date("1990-03-17T22:20:00.000Z");
 const kstMonth = testApi.computeMonthGanjiFromTerms(terms1990, utcSameInstant, yearGan);
 assertEqual(kstMonth, "己卯", "UTC instant converted to KST boundary-safe month");

@@ -1,3 +1,4 @@
+import { Solar } from "lunar-javascript";
 import { SUKUYO_MANSIONS } from "./sukuyo-premium.js";
 
 export const SUKYO_PDF_FEATURE_KEY = "premium-sukuyo-report-compat";
@@ -7,6 +8,7 @@ export const SUKYO_PDF_CHAPTER_COUNT = 15;
 const MIN_CHAPTER_LENGTH = 2800;
 const MIN_SECTION_LENGTH = 700;
 const MIN_TOTAL_LENGTH = 45000;
+const SUKYO_MONTH_START = [11, 13, 15, 17, 19, 21, 23, 25, 0, 2, 4, 7];
 
 const INTERNAL_TOKEN_RE = /\b(?:payload|debug|engine|api|json|llm|fallback|localdraft|about:blank|internal\s+server\s+error|chapter\s*\d+|a\(안\)|b\(괴\)|near-triad(?:-[a-z0-9]+)?|\bd\d+\b|triad|자동\s*복구\s*생성|undefined|null|nan)\b/gi;
 const FORBIDDEN_BODY_PHRASES = [
@@ -193,6 +195,71 @@ function parseDateParts(raw) {
   if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
   if (month < 1 || month > 12 || day < 1 || day > 31) return null;
   return { year, month, day };
+}
+
+function buildLocalSukuyoFromLunar(lunarMonthRaw, lunarDayRaw, options = {}) {
+  const lunarMonth = Math.max(1, Math.min(12, Math.abs(Number(lunarMonthRaw) || 1)));
+  const lunarDay = Math.max(1, Math.min(30, Math.abs(Number(lunarDayRaw) || 1)));
+  const start = SUKYO_MONTH_START[lunarMonth - 1] ?? 11;
+  const index = (start + lunarDay - 1) % 27;
+  const item = SUKUYO_MANSIONS[index];
+  if (!item) return null;
+  return {
+    index,
+    ...item,
+    lunarMonth,
+    lunarDay,
+    isLeapMonth: Boolean(options.isLeapMonth),
+    source: text(options.source, "sukyo-pdf-local"),
+  };
+}
+
+function buildLocalSukuyoFromPerson(person = {}) {
+  const parts = parseDateParts(person.birthDate);
+  if (!parts) return null;
+  const calendarType = normalizeCalendarType(person.calendarType);
+  if (calendarType === "lunar" || calendarType === "lunar_leap") {
+    return buildLocalSukuyoFromLunar(parts.month, parts.day, {
+      isLeapMonth: calendarType === "lunar_leap",
+      source: "user-lunar-input",
+    });
+  }
+  try {
+    const hour = Number.isFinite(Number(person.birthHour)) ? Number(person.birthHour) : 12;
+    const minute = Number.isFinite(Number(person.birthMinute)) ? Number(person.birthMinute) : 0;
+    const lunar = Solar.fromYmdHms(parts.year, parts.month, parts.day, hour, minute, 0).getLunar();
+    const lunarMonth = Number(lunar.getMonth());
+    return buildLocalSukuyoFromLunar(Math.abs(lunarMonth), Number(lunar.getDay()), {
+      isLeapMonth: lunarMonth < 0,
+      source: "lunar-javascript",
+    });
+  } catch (_) {
+    return null;
+  }
+}
+
+function normalizeSukuyoStar(star = {}, person = {}) {
+  const idx = safeNumber(star?.index ?? star?.mansionIndex ?? star?.mansionIdx, null);
+  const byIndex = idx == null ? null : SUKUYO_MANSIONS[idx] || null;
+  const calculated = text(star?.nameKo || star?.mansion) ? null : buildLocalSukuyoFromPerson(person);
+  const source = text(star?.nameKo || star?.mansion)
+    ? star
+    : calculated || byIndex || {};
+  return {
+    ...source,
+    index: safeNumber(source.index ?? idx, null),
+    nameKo: text(source.nameKo || source.mansion || byIndex?.nameKo),
+    nameHan: text(source.nameHan || byIndex?.nameHan),
+    category: text(source.category || byIndex?.category),
+    element: text(source.element || byIndex?.element),
+    keywords: safeArray(source.keywords || source.traits || byIndex?.keywords),
+    strengths: safeArray(source.strengths || byIndex?.strengths),
+    shadows: safeArray(source.shadows || byIndex?.shadows),
+    traits: safeArray(source.traits || source.keywords || byIndex?.keywords),
+    lunarMonth: safeNumber(source.lunarMonth, null),
+    lunarDay: safeNumber(source.lunarDay, null),
+    source: text(source.source || calculated?.source || "sukyo-pdf-seed"),
+  };
 }
 
 const KOREAN_HOUR_MAP = {
@@ -1125,19 +1192,20 @@ function chapterArrayToRendererInput(chapters = []) {
   }));
 }
 
-function validateRenderedManuscript(seed, chapters) {
+function validateRenderedManuscript(seed, chapters, options = {}) {
   const issues = [];
   if (text(seed?.mode) !== "compatibility") issues.push("mode.compatibility");
+  const requireSeedSignals = options.requireSeedSignals !== false;
 
   const compatibilityJson = seed?.localSukuyoCompatibilityJson || buildLocalCompatibilityJson(seed);
   const source = compatibilityJson || seed || {};
   const selfStarOk = Boolean(text(source?.self?.sukuyoStar || source?.userSukyo?.nameKo));
   const partnerStarOk = Boolean(text(source?.partner?.sukuyoStar || source?.partnerSukyo?.nameKo));
-  if (!selfStarOk) issues.push("self.sukuyo");
-  if (!partnerStarOk) issues.push("partner.sukuyo");
+  if (requireSeedSignals && !selfStarOk) issues.push("self.sukuyo");
+  if (requireSeedSignals && !partnerStarOk) issues.push("partner.sukuyo");
 
   const relationTypeOk = Boolean(text(source?.relation?.typeKo || source?.compatibility?.relationType || compatibilityJson?.relation?.typeKo));
-  if (!relationTypeOk) issues.push("relation.type");
+  if (requireSeedSignals && !relationTypeOk) issues.push("relation.type");
   const relationToken = text(source?.relation?.typeKo || source?.compatibility?.relationType || compatibilityJson?.relation?.typeKo).toLowerCase();
   const selfStarToken = text(source?.self?.sukuyoStar || source?.userSukyo?.nameKo).toLowerCase();
   const partnerStarToken = text(source?.partner?.sukuyoStar || source?.partnerSukyo?.nameKo).toLowerCase();
@@ -1175,7 +1243,7 @@ function validateRenderedManuscript(seed, chapters) {
       const body = text(section.body);
       if (!body || body.length < MIN_SECTION_LENGTH) issues.push(`section.length.${chapterNo}`);
       const normalizedBody = body.toLowerCase();
-      const hasRequiredDomainToken = Boolean(
+      const hasRequiredDomainToken = !requireSeedSignals || Boolean(
         (relationToken && normalizedBody.includes(relationToken))
         || (selfStarToken && normalizedBody.includes(selfStarToken))
         || (partnerStarToken && normalizedBody.includes(partnerStarToken)),
@@ -1234,8 +1302,13 @@ function validateRenderedManuscript(seed, chapters) {
   };
 }
 
-export function validateSukyoCompatibilityPdfQuality(chapters = []) {
-  return validateRenderedManuscript({ mode: "compatibility" }, chapters);
+export function validateSukyoCompatibilityPdfQuality(chapters = [], seed = {}) {
+  const strictSeed = seed && typeof seed === "object" && Object.keys(seed).length > 0;
+  return validateRenderedManuscript(
+    { mode: "compatibility", ...(strictSeed ? seed : {}) },
+    chapters,
+    { requireSeedSignals: strictSeed },
+  );
 }
 
 export function assertSukyoCompatibilityPdfComplete({ chapters = [], expectedChapterCount = SUKYO_PDF_CHAPTER_COUNT, expectedSectionsByChapter = SUKYO_PDF_CHAPTERS } = {}) {
@@ -1454,30 +1527,36 @@ export function buildSukyoPdfSeed(input = {}) {
   const personA = canonical.personA || {};
   const personB = canonical.personB || {};
   const compatibility = canonical.compatibility || input.compatibility || {};
+  const userProfile = normalizePersonInput(input.userProfile || input.user || input.self || personA || {}, "사용자");
+  const partnerProfile = normalizePersonInput(input.partnerProfile || input.partner || input.partnerInput || personB || {}, "상대방");
+  const userSukuyo = normalizeSukuyoStar(input.userSukyo || personA?.sukuyo || {}, userProfile);
+  const partnerSukuyo = normalizeSukuyoStar(input.partnerSukyo || personB?.sukuyo || {}, partnerProfile);
 
   const seed = {
     mode: "compatibility",
-    userProfile: normalizePersonInput(input.userProfile || input.user || personA || {}, "사용자"),
-    partnerProfile: normalizePersonInput(input.partnerProfile || input.partner || personB || {}, "상대방"),
+    userProfile,
+    partnerProfile,
     userSukyo: {
-      index: safeNumber(input.userSukyo?.index ?? personA?.sukuyo?.index),
-      nameKo: text(input.userSukyo?.nameKo || personA?.sukuyo?.nameKo),
-      nameHan: text(input.userSukyo?.nameHan || personA?.sukuyo?.nameHan),
-      category: text(input.userSukyo?.category || personA?.sukuyo?.category),
-      element: text(input.userSukyo?.element || personA?.sukuyo?.element),
-      keywords: safeArray(input.userSukyo?.keywords || personA?.sukuyo?.keywords),
-      strengths: safeArray(input.userSukyo?.strengths || personA?.sukuyo?.strengths),
-      traits: safeArray(input.userSukyo?.traits || personA?.sukuyo?.traits),
+      index: safeNumber(userSukuyo.index),
+      nameKo: text(userSukuyo.nameKo),
+      nameHan: text(userSukuyo.nameHan),
+      category: text(userSukuyo.category),
+      element: text(userSukuyo.element),
+      keywords: safeArray(userSukuyo.keywords),
+      strengths: safeArray(userSukuyo.strengths),
+      shadows: safeArray(userSukuyo.shadows),
+      traits: safeArray(userSukuyo.traits),
     },
     partnerSukyo: {
-      index: safeNumber(input.partnerSukyo?.index ?? personB?.sukuyo?.index),
-      nameKo: text(input.partnerSukyo?.nameKo || personB?.sukuyo?.nameKo),
-      nameHan: text(input.partnerSukyo?.nameHan || personB?.sukuyo?.nameHan),
-      category: text(input.partnerSukyo?.category || personB?.sukuyo?.category),
-      element: text(input.partnerSukyo?.element || personB?.sukuyo?.element),
-      keywords: safeArray(input.partnerSukyo?.keywords || personB?.sukuyo?.keywords),
-      strengths: safeArray(input.partnerSukyo?.strengths || personB?.sukuyo?.strengths),
-      traits: safeArray(input.partnerSukyo?.traits || personB?.sukuyo?.traits),
+      index: safeNumber(partnerSukuyo.index),
+      nameKo: text(partnerSukuyo.nameKo),
+      nameHan: text(partnerSukuyo.nameHan),
+      category: text(partnerSukuyo.category),
+      element: text(partnerSukuyo.element),
+      keywords: safeArray(partnerSukuyo.keywords),
+      strengths: safeArray(partnerSukuyo.strengths),
+      shadows: safeArray(partnerSukuyo.shadows),
+      traits: safeArray(partnerSukuyo.traits),
     },
     compatibility: {
       relationType: text(compatibility.relationType),

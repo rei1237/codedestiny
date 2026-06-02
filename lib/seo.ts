@@ -1,4 +1,10 @@
 import type { Metadata } from "next";
+import {
+  buildOpenGraphImageUrl,
+  getCanonicalUrl,
+  isIndexableRoute,
+  normalizePath,
+} from "./seo.v2";
 
 export const SEO_SITE_URL = "https://code-destiny.com";
 export const SEO_DEFAULT_OG_IMAGE = `${SEO_SITE_URL}/og/code-destiny-og.png`;
@@ -35,18 +41,7 @@ function cleanPath(path: string): string {
 }
 
 export function toAbsoluteUrl(pathOrUrl: string): string {
-  const value = String(pathOrUrl || "").trim();
-  if (!value) return SEO_SITE_URL;
-
-  if (value.startsWith("http://") || value.startsWith("https://")) {
-    try {
-      return new URL(value).toString();
-    } catch (e) {
-      return SEO_SITE_URL;
-    }
-  }
-
-  return `${SEO_SITE_URL}${cleanPath(value) === "/" ? "" : cleanPath(value)}`;
+  return getCanonicalUrl(pathOrUrl || "/");
 }
 
 export type BuildSeoMetadataOptions = {
@@ -63,11 +58,11 @@ export type BuildSeoMetadataOptions = {
 };
 
 export function buildSeoMetadata(options: BuildSeoMetadataOptions): Metadata {
-  const path = cleanPath(options.path);
-  const canonical = toAbsoluteUrl(path);
+  const path = normalizePath(options.path);
+  const canonical = getCanonicalUrl(path);
   const title = path === "/" ? SEO_HOME_TITLE : String(options.title || "코드 데스티니").trim();
   const description = String(options.description || "").trim();
-  const noindex = Boolean(options.noindex);
+  const indexable = isIndexableRoute(path, Boolean(options.noindex));
 
   const hasHreflang = Boolean(options.hreflang && Object.keys(options.hreflang).length > 0);
   const languages: Record<string, string> = {};
@@ -77,7 +72,10 @@ export function buildSeoMetadata(options: BuildSeoMetadataOptions): Metadata {
     }
   }
 
-  const ogImage = toAbsoluteUrl(options.ogImage || SEO_DEFAULT_OG_IMAGE);
+  const ogImage = buildOpenGraphImageUrl({
+    image: options.ogImage || SEO_DEFAULT_OG_IMAGE,
+    contentType: options.ogType === "article" ? "article" : "website",
+  });
   const mergedKeywords = mergeUniqueKeywords(options.keywords || []);
 
   return {
@@ -90,7 +88,7 @@ export function buildSeoMetadata(options: BuildSeoMetadataOptions): Metadata {
       canonical,
       ...(hasHreflang ? { languages } : {}),
     },
-    robots: noindex
+    robots: !indexable
       ? {
           index: false,
           follow: false,

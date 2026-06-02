@@ -2,11 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion, type Variants } from "framer-motion";
-import { Orbitron, Noto_Sans_KR } from "next/font/google";
 import { Gem, Heart, Orbit, Sparkles, Star } from "lucide-react";
 
-const orbitron = Orbitron({ subsets: ["latin"], weight: ["700", "900"] });
-const notoKr = Noto_Sans_KR({ subsets: ["latin"], weight: ["400", "500", "700", "900"] });
+const orbitronClassName = "[font-family:'Orbitron','Rajdhani','Arial_Narrow',system-ui,sans-serif]";
+const notoKrClassName = "[font-family:'Noto_Sans_KR','Apple_SD_Gothic_Neo','Malgun_Gothic',system-ui,sans-serif]";
 
 const shellVariants: Variants = {
   hidden: { opacity: 0 },
@@ -81,7 +80,7 @@ export default function DestinyBiasStagePage() {
   ];
 
   return (
-    <div className={`relative min-h-screen overflow-hidden bg-slate-950 text-white ${notoKr.className}`}>
+    <div className={`relative min-h-screen overflow-hidden bg-slate-950 text-white ${notoKrClassName}`}>
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-900/80 via-purple-900/75 to-fuchsia-900/80" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_12%,rgba(236,72,153,.34),transparent_35%),radial-gradient(circle_at_82%_16%,rgba(56,189,248,.28),transparent_38%),radial-gradient(circle_at_50%_84%,rgba(192,132,252,.25),transparent_42%)]" />
 
@@ -152,7 +151,7 @@ export default function DestinyBiasStagePage() {
 
           <div className="mt-7">
             <motion.p
-              className={`mb-2 text-[11px] tracking-[0.24em] text-fuchsia-200/90 ${orbitron.className}`}
+              className={`mb-2 text-[11px] tracking-[0.24em] text-fuchsia-200/90 ${orbitronClassName}`}
               animate={{ opacity: [0.42, 1, 0.5, 1] }}
               transition={{ duration: 1.9, repeat: Infinity }}
             >
@@ -235,7 +234,7 @@ export default function DestinyBiasStagePage() {
 
           <div className="mt-5">
             <motion.h1
-              className={`text-6xl font-black leading-none tracking-tight sm:text-7xl lg:text-8xl ${orbitron.className} bg-gradient-to-b from-pink-300 via-purple-400 to-indigo-500 bg-clip-text text-transparent drop-shadow-[0_0_28px_rgba(236,72,153,0.74)]`}
+              className={`text-6xl font-black leading-none tracking-tight sm:text-7xl lg:text-8xl ${orbitronClassName} bg-gradient-to-b from-pink-300 via-purple-400 to-indigo-500 bg-clip-text text-transparent drop-shadow-[0_0_28px_rgba(236,72,153,0.74)]`}
               animate={{ opacity: [1, 0.86, 1, 0.9, 1] }}
               transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
             >

@@ -1,5 +1,4 @@
 import "../styles/globals.css";
-import { Noto_Sans_KR } from "next/font/google";
 import AppVersionGuard from "./components/AppVersionGuard";
 import BuildInfoLogger from "./components/BuildInfoLogger";
 import { ToastProvider } from "./components/Toast";
@@ -9,13 +8,7 @@ import NavigationProvider from "./providers/NavigationProvider";
 import AppChrome from "./components/AppChrome";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 
-const notoSansKR = Noto_Sans_KR({
-  weight: ["300", "400", "500", "700"],
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-noto-sans-kr",
-  preload: true,
-});
+const notoSansKRVariable = "font-noto-sans-kr-offline";
 
 const CANONICAL_ORIGIN = "https://code-destiny.com";
 
@@ -207,7 +200,7 @@ const jsonLd = JSON.stringify({
 // Simplified layout for static export
 export default function RootLayout({ children }) {
   return (
-    <html lang="ko" dir="ltr" className={notoSansKR.variable}>
+    <html lang="ko" dir="ltr" className={notoSansKRVariable}>
       <head>
         <link rel="alternate" type="application/rss+xml" title="Code Destiny Insights RSS" href="https://code-destiny.com/rss.xml" />
         <link rel="alternate" hrefLang="ko" href="https://code-destiny.com/" />
@@ -223,7 +216,7 @@ export default function RootLayout({ children }) {
         <meta name="yandex-verification" content="98b1cd43eb1188de" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       </head>
-      <body className={notoSansKR.variable}>
+      <body className={notoSansKRVariable}>
         <PaymentProcessingProvider>
           <NavigationProvider>
             <DeferredAdsense />

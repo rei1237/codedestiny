@@ -899,8 +899,8 @@
       return validated;
     }
 
-    if (out.length && !_hasMonthBoundaryTerms(out) && validated.length) {
-      return validated;
+    if (out.length && _countMonthBoundaryTerms(out) < 3) {
+      return validated.length ? validated : [];
     }
 
     if (!out.length) return [];
@@ -917,14 +917,15 @@
     return Array.isArray(rows) ? _clone(rows) : [];
   }
 
-  function _hasMonthBoundaryTerms(terms) {
-    if (!Array.isArray(terms)) return false;
+  function _countMonthBoundaryTerms(terms) {
+    if (!Array.isArray(terms)) return 0;
+    var count = 0;
     for (var i = 0; i < terms.length; i++) {
       var t = terms[i] || {};
       var n = String(t.name || '').replace(/\([^)]*\)\s*$/, '').trim();
-      if (_JIEQI_MONTH_BRANCH[n]) return true;
+      if (_JIEQI_MONTH_BRANCH[n]) count += 1;
     }
-    return false;
+    return count;
   }
 
   function _extractIpchun(terms) {
