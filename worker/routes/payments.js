@@ -215,11 +215,18 @@ async function grantUsagePassToUser({ userId, product, paymentId, paidAt, sessio
   };
 }
 
-const SUBSCRIPTION_PAYMENT_PLANS = {
-  standard: { tier: "standard", name: "스탠다드 꿀", wonPrice: 9900, durationDays: 30, profileLimit: 3, membershipCreditGrant: 0 },
-  premium: { tier: "premium", name: "프리미엄 꿀", wonPrice: 29900, durationDays: 30, profileLimit: 7, membershipCreditGrant: 0 },
-  vvip: { tier: "vvip", name: "VVIP 꿀단지", wonPrice: 59000, durationDays: 30, profileLimit: 15, membershipCreditGrant: 0 },
+const SUBSCRIPTION_BASE_PLANS = {
+  standard: { tier: "standard", name: "스탠다드 달빛 이용권", monthlyWonPrice: 9900, profileLimit: 3, membershipCreditGrant: 0 },
+  premium: { tier: "premium", name: "프리미엄 달빛 이용권", monthlyWonPrice: 29900, profileLimit: 7, membershipCreditGrant: 0 },
+  vvip: { tier: "vvip", name: "VVIP 달빛 이용권", monthlyWonPrice: 59000, profileLimit: 15, membershipCreditGrant: 0 },
 };
+
+const SUBSCRIPTION_DURATION_DISCOUNTS = Object.freeze({
+  1: 0,
+  3: 0.05,
+  6: 0.10,
+  12: 0.30,
+});
 
 const SUBSCRIPTION_TIER_RANK = Object.freeze({
   free: 0,
@@ -228,15 +235,27 @@ const SUBSCRIPTION_TIER_RANK = Object.freeze({
   vvip: 3,
 });
 
-function resolveSubscriptionPlan(tierRaw) {
+function resolveSubscriptionPlan(tierRaw, durationMonthsRaw = 1) {
   const tier = String(tierRaw || "").trim().toLowerCase();
-  return SUBSCRIPTION_PAYMENT_PLANS[tier] || null;
+  const base = SUBSCRIPTION_BASE_PLANS[tier];
+  if (!base) return null;
+  const durationMonths = Number(durationMonthsRaw || 1);
+  const discount = SUBSCRIPTION_DURATION_DISCOUNTS[durationMonths];
+  if (discount === undefined) return null;
+  return {
+    ...base,
+    planId: `${tier}_${durationMonths}m`,
+    durationMonths,
+    durationDays: durationMonths * 30,
+    wonPrice: Math.round(base.monthlyWonPrice * durationMonths * (1 - discount)),
+    productType: "membership_pass",
+  };
 }
 
-function buildSubscriptionMerchantUid(userId, tier) {
+function buildSubscriptionMerchantUid(userId, tier, durationMonths = 1) {
   const userTag = String(userId || "guest").replace(/[^a-zA-Z0-9]/g, "").slice(-8) || "guest";
   const randomTag = Math.random().toString(36).slice(2, 6);
-  return `sub_${Date.now()}_${tier}_${userTag}_${randomTag}`;
+  return `sub_${Date.now()}_${tier}_${durationMonths}m_${userTag}_${randomTag}`;
 }
 
 function buildSubscriptionCustomerUid(userId) {
@@ -286,8 +305,8 @@ function evaluateSubscriptionTierTransition(currentSub, requestedTierRaw) {
   const activeTier = String(currentSub?.tier || "free").trim().toLowerCase();
   const activeRank = getTierRank(activeTier);
 
-  if (requestedRank > activeRank) {
-    return { allow: true, code: "UPGRADE_ALLOWED", isUpgrade: true, activeTier };
+  if (requestedRank >= activeRank) {
+    return { allow: true, code: requestedRank > activeRank ? "UPGRADE_ALLOWED" : "EXTENSION_ALLOWED", isUpgrade: requestedRank > activeRank, activeTier };
   }
 
   if (requestedRank < activeRank) {
@@ -1527,9 +1546,20 @@ async function handlePrepare(request, env, auth) {
 async function handleSubscriptionPrepare(request, auth) {
   const body = await readJson(request);
   const tier = String(body?.tier || "").trim().toLowerCase();
-  const plan = resolveSubscriptionPlan(tier);
+  const durationMonths = Number(body?.durationMonths || 1);
+  const planId = String(body?.planId || "").trim().toLowerCase();
+  const productType = String(body?.productType || "membership_pass").trim().toLowerCase();
+  const requestedAmount = body?.amount === undefined ? null : Number(body.amount);
+  const requestedCurrency = String(body?.currency || "KRW").trim().toUpperCase();
+  const plan = resolveSubscriptionPlan(tier, durationMonths);
   if (!plan) {
     return json({ message: "Unsupported subscription plan.", code: "INVALID_SUBSCRIPTION_TIER" }, { status: 400 });
+  }
+  if ((planId && planId !== plan.planId) || productType !== plan.productType) {
+    return json({ message: "Subscription plan payload mismatch.", code: "SUBSCRIPTION_PLAN_MISMATCH" }, { status: 400 });
+  }
+  if ((requestedAmount !== null && requestedAmount !== plan.wonPrice) || !["KRW", "CURRENCY_KRW"].includes(requestedCurrency)) {
+    return json({ message: "Subscription amount or currency mismatch.", code: "SUBSCRIPTION_PRICE_MISMATCH" }, { status: 400 });
   }
 
   const paymentMethod = normalizePaymentMethod(body?.paymentMethod || "card_general");
@@ -1574,8 +1604,11 @@ async function handleSubscriptionPrepare(request, auth) {
           merchantUid: String(existing.merchantUid || ""),
           customerUid: buildSubscriptionCustomerUid(auth.userId),
           tier,
+          planId: plan.planId,
+          durationMonths: plan.durationMonths,
           paymentAmount: existingAmount,
-          productName: `${plan.name} 30일 이용권`,
+          productName: `${plan.name} ${plan.durationMonths}개월`,
+          productType: plan.productType,
           profileLimit: plan.profileLimit,
           durationDays: plan.durationDays,
           membershipCreditGrant: plan.membershipCreditGrant,
@@ -1585,7 +1618,7 @@ async function handleSubscriptionPrepare(request, auth) {
     }
   }
 
-  const merchantUid = buildSubscriptionMerchantUid(auth.userId, tier);
+  const merchantUid = buildSubscriptionMerchantUid(auth.userId, tier, plan.durationMonths);
   const customerUid = buildSubscriptionCustomerUid(auth.userId);
 
   try {
@@ -1601,6 +1634,13 @@ async function handleSubscriptionPrepare(request, auth) {
       source: "prepare",
       paymentType: "membership_pass",
       subscriptionTier: tier,
+      productId: plan.planId,
+      metadata: {
+        planId: plan.planId,
+        durationMonths: plan.durationMonths,
+        productType: plan.productType,
+        currency: "KRW",
+      },
     });
   } catch (error) {
     if (Number(error?.code) !== 11000 || !idempotencyKey) throw error;
@@ -1629,8 +1669,11 @@ async function handleSubscriptionPrepare(request, auth) {
         merchantUid: String(existing.merchantUid || ""),
         customerUid,
         tier,
+        planId: plan.planId,
+        durationMonths: plan.durationMonths,
         paymentAmount: existingAmount,
-        productName: `${plan.name} 30일 이용권`,
+        productName: `${plan.name} ${plan.durationMonths}개월`,
+        productType: plan.productType,
         profileLimit: plan.profileLimit,
         durationDays: plan.durationDays,
         membershipCreditGrant: plan.membershipCreditGrant,
@@ -1646,8 +1689,11 @@ async function handleSubscriptionPrepare(request, auth) {
       merchantUid,
       customerUid,
       tier,
+      planId: plan.planId,
+      durationMonths: plan.durationMonths,
       paymentAmount: plan.wonPrice,
-      productName: `${plan.name} 30일 이용권`,
+      productName: `${plan.name} ${plan.durationMonths}개월`,
+      productType: plan.productType,
       profileLimit: plan.profileLimit,
       durationDays: plan.durationDays,
       membershipCreditGrant: plan.membershipCreditGrant,
@@ -1660,13 +1706,24 @@ async function handleSubscriptionConfirm(request, env, auth) {
   const body = await readJson(request);
   const impUid = String(body?.impUid || body?.paymentId || "").trim();
   const tier = String(body?.tier || "").trim().toLowerCase();
+  const durationMonths = Number(body?.durationMonths || 1);
+  const planId = String(body?.planId || "").trim().toLowerCase();
+  const productType = String(body?.productType || "membership_pass").trim().toLowerCase();
+  const requestedAmount = body?.amount === undefined ? null : Number(body.amount);
+  const requestedCurrency = String(body?.currency || "KRW").trim().toUpperCase();
   const customerUidFromClient = String(body?.customerUid || "").trim();
   const merchantUidHint = String(body?.merchantUid || body?.merchant_uid || "").trim();
   const paymentMethodHint = normalizePaymentMethod(body?.paymentMethod || "card");
-  const plan = resolveSubscriptionPlan(tier);
+  const plan = resolveSubscriptionPlan(tier, durationMonths);
 
   if (!impUid || !plan) {
     return json({ message: "impUid and valid tier are required." }, { status: 400 });
+  }
+  if ((planId && planId !== plan.planId) || productType !== plan.productType) {
+    return json({ message: "Subscription plan payload mismatch.", code: "SUBSCRIPTION_PLAN_MISMATCH" }, { status: 400 });
+  }
+  if ((requestedAmount !== null && requestedAmount !== plan.wonPrice) || !["KRW", "CURRENCY_KRW"].includes(requestedCurrency)) {
+    return json({ message: "Subscription amount or currency mismatch.", code: "SUBSCRIPTION_PRICE_MISMATCH" }, { status: 400 });
   }
 
   let portOnePayment;
@@ -1706,6 +1763,9 @@ async function handleSubscriptionConfirm(request, env, auth) {
   if (String(paymentRecord.userId) !== String(auth.userId)) {
     return json({ message: "Only your own payment can be processed." }, { status: 403 });
   }
+  if (String(paymentRecord.productId || paymentRecord.metadata?.planId || plan.planId) !== plan.planId) {
+    return json({ message: "Payment record plan mismatch.", code: "SUBSCRIPTION_PLAN_MISMATCH" }, { status: 400 });
+  }
 
   if (paymentRecord.status === "success") {
     const currentUser = await User.findById(auth.userId).select("profileSubscription").lean();
@@ -1720,6 +1780,8 @@ async function handleSubscriptionConfirm(request, env, auth) {
         isActive: hasActiveSubscriptionConflict(sub),
         expiresAt: toIsoOrNull(sub?.expiresAt),
         profileLimit: plan.profileLimit,
+        planId: String(sub?.planId || plan.planId),
+        durationMonths: Number(sub?.durationMonths || plan.durationMonths),
         membershipCreditBalance: Number(sub?.membershipCreditBalance || 0),
         membershipCreditGranted: Number(sub?.membershipCreditGranted || 0),
         membershipCreditUsed: Number(sub?.membershipCreditUsed || 0),
@@ -1770,7 +1832,6 @@ async function handleSubscriptionConfirm(request, env, auth) {
 
   const now = new Date();
   const paidAt = portOnePayment?.paid_at ? toDateFromUnixSeconds(portOnePayment.paid_at) : now;
-  const expiresAt = new Date(Math.max(now.getTime(), paidAt.getTime()) + plan.durationDays * 86400000);
   const customerUid = customerUidFromClient || buildSubscriptionCustomerUid(auth.userId);
 
   const existingUser = await User.findById(auth.userId).select("profileSubscription").lean();
@@ -1785,6 +1846,12 @@ async function handleSubscriptionConfirm(request, env, auth) {
     }, { status: 409 });
   }
 
+  const currentExpiresAt = toValidDate(existingUser?.profileSubscription?.expiresAt);
+  const extensionBaseTime = currentExpiresAt && currentExpiresAt.getTime() > paidAt.getTime()
+    ? currentExpiresAt.getTime()
+    : Math.max(now.getTime(), paidAt.getTime());
+  const expiresAt = new Date(extensionBaseTime + plan.durationDays * 86400000);
+
   await Payment.findByIdAndUpdate(paymentRecord._id, {
     $set: {
       impUid,
@@ -1798,6 +1865,15 @@ async function handleSubscriptionConfirm(request, env, auth) {
       source: "confirm",
       paymentType: "membership_pass",
       subscriptionTier: tier,
+      productId: plan.planId,
+      metadata: {
+        ...(paymentRecord.metadata || {}),
+        planId: plan.planId,
+        durationMonths: plan.durationMonths,
+        productType: plan.productType,
+        currency: "KRW",
+        verifiedAmount: plan.wonPrice,
+      },
       rawPortOne: portOnePayment,
       failureCode: null,
       failureMessage: null,
@@ -1811,6 +1887,9 @@ async function handleSubscriptionConfirm(request, env, auth) {
     {
       $set: {
         "profileSubscription.tier": tier,
+        "profileSubscription.planId": plan.planId,
+        "profileSubscription.durationMonths": plan.durationMonths,
+        "profileSubscription.productType": plan.productType,
         "profileSubscription.source": "pass",
         "profileSubscription.startedAt": paidAt,
         "profileSubscription.expiresAt": expiresAt,
@@ -1841,6 +1920,9 @@ async function handleSubscriptionConfirm(request, env, auth) {
       isActive: true,
       expiresAt: expiresAt.toISOString(),
       profileLimit: plan.profileLimit,
+      planId: plan.planId,
+      durationMonths: plan.durationMonths,
+      productType: plan.productType,
       membershipCreditBalance: Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0),
       membershipCreditGranted: Number(updatedUser?.profileSubscription?.membershipCreditGranted || 0),
       membershipCreditUsed: Number(updatedUser?.profileSubscription?.membershipCreditUsed || 0),
@@ -2326,8 +2408,9 @@ function buildTokenFallbackPaymentsMe(auth, message) {
   };
 }
 
-async function handleMe(auth) {
+async function handleMe(auth, env) {
   try {
+    await connectDb(env);
     const user = await findUserByIdRaw(auth.userId, {
       name: 1,
       email: 1,
@@ -2355,8 +2438,9 @@ async function handleMe(auth) {
   }
 }
 
-async function handlePointsMe(auth) {
+async function handlePointsMe(auth, env) {
   try {
+    await connectDb(env);
     const user = await findUserByIdRaw(auth.userId, {
       name: 1,
       email: 1,
@@ -2482,6 +2566,9 @@ export async function handlePaymentRoutes(request, env) {
     const auth = await requireAuth(request, env);
     trace.authVerified = true;
 
+    if (method === "GET" && path === "/me") return await handleMe(auth, env);
+    if (method === "GET" && path === "/points/me") return await handlePointsMe(auth, env);
+
     await connectDb(env);
     trace.dbConnected = true;
 
@@ -2491,9 +2578,6 @@ export async function handlePaymentRoutes(request, env) {
     if (method === "POST" && path === "/subscription/confirm") return await handleSubscriptionConfirm(request, env, auth);
     if (method === "POST" && path === "/cancel") return await handleCancel(request, env, auth);
     if (method === "POST" && path === "/report-failure") return await handleReportFailure(request, auth);
-    if (method === "GET" && path === "/me") return await handleMe(auth);
-    if (method === "GET" && path === "/points/me") return await handlePointsMe(auth);
-
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {

@@ -62,8 +62,11 @@ type PrepareSubscriptionOrderResponse = {
     merchantUid: string;
     customerUid: string;
     tier: "standard" | "premium" | "vvip";
+    planId: string;
+    durationMonths: number;
     paymentAmount: number;
     productName: string;
+    productType: "membership_pass";
     profileLimit: number;
     durationDays: number;
   };
@@ -126,9 +129,14 @@ type SubscriptionStatus = {
 };
 
 type SubscriptionPlan = {
-  id:           "standard" | "premium" | "vvip";
+  id:           string;
+  tier:         "standard" | "premium" | "vvip";
+  planId:       string;
   title:        string;
   wonPrice:     number;
+  baseWonPrice: number;
+  durationMonths: 1 | 3 | 6 | 12;
+  productType:  "membership_pass";
   coins:        number;
   profileLimit: number | null; // null = unlimited
   freeUpTo:     number | null; // null = 모든 서비스 무료, number = 해당 코인 이하 무료
@@ -169,6 +177,8 @@ type PendingSubscriptionOrder = {
   merchantUid: string;
   customerUid: string;
   tier: "standard" | "premium" | "vvip";
+  planId?: string;
+  durationMonths?: number;
   paymentMethod: string;
 };
 
@@ -226,12 +236,18 @@ const PORTONE_CHANNEL_KEY = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY || "";
 const PORTONE_NOTICE_URL = process.env.NEXT_PUBLIC_PORTONE_NOTICE_URL || "";
 const PORTONE_MOBILE_REDIRECT_PATH = process.env.NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH || "/points";
 
-/* Honey 30일 이용권 플랜 정의 */
-const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
+const SUBSCRIPTION_DURATION_OPTIONS = [
+  { months: 1, label: "1개월", discount: 0, badge: "" },
+  { months: 3, label: "3개월", discount: 0.05, badge: "5% 절약" },
+  { months: 6, label: "6개월", discount: 0.10, badge: "10% 절약" },
+  { months: 12, label: "1년", discount: 0.30, badge: "30% 절약" },
+] as const;
+
+const SUBSCRIPTION_BASE_PLANS = [
   {
-    id:           "standard",
+    tier:         "standard",
     title:        "스탠다드 달빛 이용권",
-    wonPrice:     9900,
+    baseWonPrice: 9900,
     coins:        115,
     profileLimit: 3,
     freeUpTo:     30,
@@ -245,9 +261,9 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     ],
   },
   {
-    id:           "premium",
+    tier:         "premium",
     title:        "프리미엄 달빛 이용권",
-    wonPrice:     29900,
+    baseWonPrice: 29900,
     coins:        360,
     profileLimit: 7,
     freeUpTo:     50,
@@ -262,9 +278,9 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     badge:        "추천",
   },
   {
-    id:           "vvip",
+    tier:         "vvip",
     title:        "VVIP 달빛 이용권",
-    wonPrice:     59000,
+    baseWonPrice: 59000,
     coins:        700,
     profileLimit: 15,
     freeUpTo:     100,
@@ -278,7 +294,27 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     ],
     badge:        "VVIP",
   },
-];
+] as const;
+
+const SUBSCRIPTION_PLANS: SubscriptionPlan[] = SUBSCRIPTION_BASE_PLANS.flatMap((base) =>
+  SUBSCRIPTION_DURATION_OPTIONS.map((duration) => ({
+    ...base,
+    id: `${base.tier}_${duration.months}m`,
+    planId: `${base.tier}_${duration.months}m`,
+    durationMonths: duration.months,
+    productType: "membership_pass",
+    title: `${base.title} · ${duration.label}`,
+    wonPrice: Math.round(base.baseWonPrice * duration.months * (1 - duration.discount)),
+    badge: duration.badge || base.badge,
+    features: base.features.map((feature) =>
+      feature.includes("30일간 유효")
+        ? `${duration.label} 동안 유효 (기간 기반)`
+        : feature.includes("자동결제 없는 30일 이용권")
+          ? `자동결제 없는 ${duration.label} 이용권`
+          : feature
+    ),
+  }))
+);
 
 const SUBSCRIPTION_TIER_RANK: Record<SubscriptionTier, number> = {
   free: 0,
@@ -606,7 +642,7 @@ function SubscriptionSection({
     : null;
 
   const adminTierPlan = adminTestTier !== "off"
-    ? SUBSCRIPTION_PLANS.find((plan) => plan.id === adminTestTier)
+    ? SUBSCRIPTION_PLANS.find((plan) => plan.tier === adminTestTier && plan.durationMonths === 1)
     : null;
   const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;
 
@@ -817,9 +853,9 @@ function SubscriptionSection({
       <div className="grid gap-3 p-5 pt-0 sm:grid-cols-3">
         {SUBSCRIPTION_PLANS.map((plan) => {
           const theme = planThemeMap[plan.theme];
-          const isCurrentActive = subscription.isActive && subscription.tier === plan.id;
-          const isHighlighted = highlightedPlan === plan.id;
-          const planTierRank = getSubscriptionTierRank(plan.id);
+          const isCurrentActive = subscription.isActive && subscription.tier === plan.tier;
+          const isHighlighted = highlightedPlan === plan.tier;
+          const planTierRank = getSubscriptionTierRank(plan.tier);
           const lowerTierBlocked = !isFlowerAdminMode && activeTierRank > 0 && planTierRank < activeTierRank;
           const ctaDisabled = isProcessing || lowerTierBlocked;
           return (
@@ -838,7 +874,7 @@ function SubscriptionSection({
               {/* 뱃지 */}
               {plan.badge && !isCurrentActive && (
                 <span className={`absolute top-3 right-3 rounded-full bg-gradient-to-r ${theme.badge} px-2 py-0.5 text-[11px] font-black text-[#151832] shadow`}>
-                  {plan.id === "vvip" ? "👑 VVIP" : `✨ ${plan.badge}`}
+                  {plan.tier === "vvip" ? "👑 VVIP" : `✨ ${plan.badge}`}
                 </span>
               )}
               {isCurrentActive && (
@@ -854,12 +890,15 @@ function SubscriptionSection({
               {/* 가격 */}
               <p className="mt-2 flex flex-wrap items-center gap-1 text-lg font-black text-white">
                 <CoinIcon size="md" />
-                {plan.coins.toLocaleString("ko-KR")}코인 / 30일
+                달빛 잔여 혜택 {plan.coins.toLocaleString("ko-KR")} 기준 / {plan.durationMonths === 12 ? "1년" : `${plan.durationMonths}개월`}
               </p>
-              <p className="text-[11px] text-slate-300">{formatWon(plan.coins * 100)} 상당 · 결제 금액 {formatWon(plan.wonPrice)}</p>
+              <p className="text-[11px] text-slate-300">
+                월 단가 {formatWon(Math.round(plan.wonPrice / plan.durationMonths))} · 결제 금액 {formatWon(plan.wonPrice)}
+                {plan.wonPrice < plan.baseWonPrice * plan.durationMonths ? ` · ${formatWon(plan.baseWonPrice * plan.durationMonths - plan.wonPrice)} 절약` : ""}
+              </p>
 
               {/* 커피 한 잔 뱃지 — freeUpTo 50 이하 플랜(스탠다드)에만 */}
-              {plan.freeUpTo !== null && plan.freeUpTo <= 50 && plan.id === "standard" && (
+              {plan.freeUpTo !== null && plan.freeUpTo <= 50 && plan.tier === "standard" && plan.durationMonths === 1 && (
                 <div className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-[#f3dd9a]/18 px-2.5 py-1 text-[11px] font-bold text-[#f3dd9a]">
                   ☕ 커피 2잔 값으로 30일
                 </div>
@@ -911,12 +950,12 @@ function SubscriptionSection({
                 ].join(" ")}
               >
                 {isCurrentActive
-                  ? "30일 이용권 다시 구매"
+                  ? `${plan.durationMonths === 12 ? "1년" : `${plan.durationMonths}개월`} 이용권 연장`
                   : lowerTierBlocked
                     ? "상위 티어 사용 중 (구매 불가)"
                   : isHighlighted
                     ? `${theme.icon} 이 이용권 구매`
-                    : `${theme.icon} 30일 이용권 구매`}
+                    : `${theme.icon} ${plan.durationMonths === 12 ? "1년" : `${plan.durationMonths}개월`} 이용권 구매`}
               </button>
 
               {lowerTierBlocked && (
@@ -1085,16 +1124,16 @@ function WalletCard({ name, points }: { name: string; points: number }) {
 
           <div className="flex flex-col items-start gap-1 sm:items-end">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-[#f3dd9a]">
-              이벤트 월정석 잔량
+              달빛 잔여 포인트
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-[22px] font-black leading-none text-white">
                 {monthlyStoneBalance.toLocaleString("ko-KR")}
-                <span className="ml-1 text-base font-bold text-[#f3dd9a]">월정석 잔량</span>
+                <span className="ml-1 text-base font-bold text-[#f3dd9a]">월정석 기준</span>
               </span>
             </div>
             <p className="max-w-[280px] text-[11px] text-slate-200 sm:text-right">
-              월정석은 판매하지 않는 이벤트 지급 재화입니다. 서비스 가격은 코인 가치로 표시되고 결제는 원화로 진행됩니다.
+              월정석 기준 잔여 혜택입니다. 이용권 범위 밖 서비스만 원화 단건 결제로 진행됩니다.
             </p>
           </div>
         </div>
@@ -1328,10 +1367,6 @@ export default function PointsPage() {
         retryOn401: true,
         apiBase,
       });
-      if (!response.ok && response.status !== 401 && response.status !== 403) {
-        console.warn("[points-page] API error", { path: "/api/payments/me", status: response.status });
-      }
-
       if (response.status === 401 || response.status === 403) {
         clearClientAuthState();
         router.replace("/login?next=%2Fpoints");
@@ -1341,6 +1376,14 @@ export default function PointsPage() {
       // Content-Type 검증 후 JSON 파싱 — HTML 에러 페이지 방어
       const payload = await safeParseJson<MeResponse>(response);
       const payloadCode = String((payload as { code?: string; error?: string })?.code || (payload as { code?: string; error?: string })?.error || "").toUpperCase();
+      if (!response.ok) {
+        console.warn("[points-page] API error", {
+          endpoint: "/api/payments/me",
+          status: response.status,
+          code: payloadCode || undefined,
+          message: payload.message || response.statusText || "Unknown API error",
+        });
+      }
 
       if (!response.ok) {
         if (payloadCode === "AUTH_REFRESH_TEMPORARY_FAILURE") {
@@ -1423,13 +1466,18 @@ export default function PointsPage() {
       retryOn401: true,
       apiBase,
     })
-      .then((r) => {
+      .then(async (r) => {
+        const data = await safeParseJson<Record<string, unknown>>(r);
         if (!r.ok && r.status !== 401 && r.status !== 403) {
-          console.warn("[points-page] API error", { path: "/api/subscription/status", status: r.status });
+          console.warn("[points-page] API error", {
+            endpoint: "/api/subscription/status",
+            status: r.status,
+            code: String(data?.code || data?.error || "") || undefined,
+            message: String(data?.message || r.statusText || "Unknown API error"),
+          });
         }
-        return r;
+        return r.ok ? data : null;
       })
-      .then((r) => r.ok ? r.json() : null)
       .then((d) => {
         if (!d) return;
         setSubscription({
@@ -1658,6 +1706,9 @@ export default function PointsPage() {
           impUid,
           merchantUid,
           tier: pendingSub.tier,
+          planId: pendingSub.planId,
+          durationMonths: pendingSub.durationMonths || 1,
+          productType: "membership_pass",
           customerUid: pendingSub.customerUid,
           paymentMethod: pendingSub.paymentMethod,
         }),
@@ -1916,7 +1967,7 @@ export default function PointsPage() {
     const isFlowerAdmin = authUser?.role === "admin" && isFlowerAdminSessionClient();
     const flowerAdminToken = getFlowerAdminTokenClient();
     const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;
-    const requestedTierRank = getSubscriptionTierRank(plan.id);
+    const requestedTierRank = getSubscriptionTierRank(plan.tier);
 
     if (!authUser) {
       router.replace("/login?next=%2Fpoints");
@@ -1939,7 +1990,15 @@ export default function PointsPage() {
           ...(flowerAdminToken ? { "x-admin-token": flowerAdminToken } : {}),
         },
         credentials: "include",
-        body: JSON.stringify({ tier: plan.id, paymentMethod: selectedMethod || "card_general" }),
+        body: JSON.stringify({
+          tier: plan.tier,
+          planId: plan.planId,
+          durationMonths: plan.durationMonths,
+          amount: plan.wonPrice,
+          currency: "KRW",
+          productType: plan.productType,
+          paymentMethod: selectedMethod || "card_general",
+        }),
       }, {
         retryOn401: true,
         apiBase,
@@ -1987,7 +2046,10 @@ export default function PointsPage() {
         },
         customData: {
           userId: authUser.id,
-          subscriptionTier: plan.id,
+          subscriptionTier: plan.tier,
+          planId: plan.planId,
+          durationMonths: plan.durationMonths,
+          productType: plan.productType,
           subscriptionSource: "pass",
           paymentMethod: selectedMethod || "card_general",
         },
@@ -1998,7 +2060,9 @@ export default function PointsPage() {
       savePendingSubscriptionOrder({
         merchantUid: order.merchantUid,
         customerUid: order.customerUid,
-        tier: plan.id,
+        tier: plan.tier,
+        planId: plan.planId,
+        durationMonths: plan.durationMonths,
         paymentMethod: selectedMethod || "card_general",
       });
 
@@ -2032,7 +2096,12 @@ export default function PointsPage() {
           body: JSON.stringify({
             impUid: paymentId,
             merchantUid: order.merchantUid,
-            tier: plan.id,
+            tier: plan.tier,
+            planId: plan.planId,
+            durationMonths: plan.durationMonths,
+            amount: order.paymentAmount,
+            currency: "KRW",
+            productType: plan.productType,
             customerUid: order.customerUid,
             paymentMethod: selectedMethod || "card_general",
           }),

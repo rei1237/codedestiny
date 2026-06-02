@@ -422,6 +422,65 @@ function normalizeCalendarTypeInput(typeVal) {
   return 'solar';
 }
 
+function _shiftDatePartsByDays(year, month, day, dayOffset) {
+  var baseUtc = Date.UTC(year, month - 1, day, 0, 0, 0);
+  var shifted = new Date(baseUtc + (dayOffset * 86400000));
+  return {
+    year: shifted.getUTCFullYear(),
+    month: shifted.getUTCMonth() + 1,
+    day: shifted.getUTCDate()
+  };
+}
+
+function _getDayOfYearUtc(year, month, day) {
+  var current = Date.UTC(year, month - 1, day, 0, 0, 0);
+  var start = Date.UTC(year, 0, 1, 0, 0, 0);
+  return Math.floor((current - start) / 86400000) + 1;
+}
+
+function _calculateEquationOfTimeMinutes(year, month, day) {
+  var n = _getDayOfYearUtc(year, month, day);
+  var b = (2 * Math.PI * (n - 81)) / 364;
+  return 9.87 * Math.sin(2 * b) - 7.53 * Math.cos(b) - 1.5 * Math.sin(b);
+}
+
+function _applyTrueSolarTimeCorrection(input) {
+  var year = Number(input && input.year);
+  var month = Number(input && input.month);
+  var day = Number(input && input.day);
+  var hour = Number(input && input.hour);
+  var minute = Number(input && input.minute);
+  var longitude = Number(input && input.longitude);
+  var standardMeridian = Number(input && input.standardMeridian);
+
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
+  if (!Number.isFinite(longitude) || !Number.isFinite(standardMeridian)) return null;
+
+  var clockTotalMinutes = hour * 60 + minute;
+  var longitudeCorrectionMinutes = (longitude - standardMeridian) * 4;
+  var equationOfTimeMinutes = _calculateEquationOfTimeMinutes(year, month, day);
+  var correctedTotal = clockTotalMinutes + longitudeCorrectionMinutes + equationOfTimeMinutes;
+  var roundedTotal = Math.round(correctedTotal);
+  var dayOffset = Math.floor(roundedTotal / 1440);
+  var minuteOfDay = ((roundedTotal % 1440) + 1440) % 1440;
+  var correctedHour = Math.floor(minuteOfDay / 60);
+  var correctedMinute = minuteOfDay % 60;
+  var shiftedDate = _shiftDatePartsByDays(year, month, day, dayOffset);
+
+  return {
+    correctedYear: shiftedDate.year,
+    correctedMonth: shiftedDate.month,
+    correctedDay: shiftedDate.day,
+    correctedHour: correctedHour,
+    correctedMinute: correctedMinute,
+    dayOffset: dayOffset,
+    longitudeCorrectionMinutes: longitudeCorrectionMinutes,
+    equationOfTimeMinutes: equationOfTimeMinutes,
+    totalCorrectionMinutes: longitudeCorrectionMinutes + equationOfTimeMinutes
+  };
+}
+
 function buildFallbackDateContext(input, reason) {
   try {
     var calType = normalizeCalendarTypeInput(input.calendarType || input.calType || 'solar');
@@ -1627,16 +1686,29 @@ window.computeProfileForModal = function(profile) {
     lat: lat, lon: lng, tz: tzOff
   };
 
-  /* 진태양시 보정 */
-  var corrH = hour, corrM = minute;
-  if (window.DestinyProfileManager && window.DestinyProfileManager.calcTrueSolarOffset) {
-    var offMin = window.DestinyProfileManager.calcTrueSolarOffset(lng, tzOff);
-    var total  = ((hour * 60 + minute - offMin) % 1440 + 1440) % 1440;
-    corrH = Math.floor(total / 60);
-    corrM = total % 60;
+  var corrYear = year;
+  var corrMonth = month;
+  var corrDay = day;
+  var corrH = hour;
+  var corrM = minute;
+  var correction = _applyTrueSolarTimeCorrection({
+    year: year,
+    month: month,
+    day: day,
+    hour: hour,
+    minute: minute,
+    longitude: lng,
+    standardMeridian: tzOff * 15
+  });
+  if (correction) {
+    corrYear = correction.correctedYear;
+    corrMonth = correction.correctedMonth;
+    corrDay = correction.correctedDay;
+    corrH = correction.correctedHour;
+    corrM = correction.correctedMinute;
   }
 
-  window._ziweiBirth = { year: year, month: month, day: day,
+  window._ziweiBirth = { year: corrYear, month: corrMonth, day: corrDay,
     hour: corrH, minute: corrM, lat: lat, lon: lng, tz: tzOff };
 
   if (typeof setGender === 'function') setGender(profile.gender || 'F');
@@ -1644,10 +1716,10 @@ window.computeProfileForModal = function(profile) {
 
   if (typeof Solar === 'undefined' || typeof Solar.fromYmdHms !== 'function') return false;
   try {
-    var solar = Solar.fromYmdHms(year, month, day, corrH, corrM, 0);
+    var solar = Solar.fromYmdHms(corrYear, corrMonth, corrDay, corrH, corrM, 0);
     var bazi  = solar.getLunar().getEightChar();
     try {
-      var _d  = new Date(year, month - 1, day, corrH, corrM);
+      var _d  = new Date(corrYear, corrMonth - 1, corrDay, corrH, corrM);
       var _gj = KasiEngine.getGanji(_d);
       if (_gj && _gj.secha && _gj.weolgeon && _gj.iljin) {
         bazi.getYearGan  = function() { return _gj.secha[0]; };
@@ -3589,43 +3661,59 @@ async function calculate(){
   var tzResolved = resolveBirthTimezoneOffset(year, month, day, hour, minute, bTz, bBaseTzOff);
   var bTzOff = tzResolved.tzOffsetHours;
   var stdLong = bTzOff * 15;
-  var lngOffsetMinutes = Math.round((stdLong - bLong) * 4);
+  var correction = _applyTrueSolarTimeCorrection({
+    year: year,
+    month: month,
+    day: day,
+    hour: hour,
+    minute: minute,
+    longitude: bLong,
+    standardMeridian: stdLong
+  });
+  if (!correction) {
+    alert('진태양시 보정 계산에 실패했습니다. 입력값을 확인해주세요.');
+    return;
+  }
 
-  var correctedHour = hour, correctedMinute = minute;
+  var correctedYear = correction.correctedYear;
+  var correctedMonth = correction.correctedMonth;
+  var correctedDay = correction.correctedDay;
+  var correctedHour = correction.correctedHour;
+  var correctedMinute = correction.correctedMinute;
   var correctionMsg = "";
   var resultObj = {
     finalAdjustedTime: '',
     offsetDetails: {
-      longitudeOffset: lngOffsetMinutes,
+      longitudeOffset: Math.round(correction.longitudeCorrectionMinutes * 1000) / 1000,
+      equationOfTimeOffset: Math.round(correction.equationOfTimeMinutes * 1000) / 1000,
       dstOffset: tzResolved.dstMinutes,
-      totalCorrection: lngOffsetMinutes,
+      totalCorrection: Math.round(correction.totalCorrectionMinutes * 1000) / 1000,
       isDstApplied: tzResolved.isDstApplied,
       baseOffsetHours: tzResolved.baseOffsetHours,
       effectiveOffsetHours: tzResolved.tzOffsetHours
     }
   };
-  var correctedTotal = ((hour * 60 + minute - lngOffsetMinutes) % 1440 + 1440) % 1440;
-  correctedHour = Math.floor(correctedTotal / 60);
-  correctedMinute = correctedTotal % 60;
   resultObj.finalAdjustedTime = String(correctedHour).padStart(2, '0') + ':' + String(correctedMinute).padStart(2, '0');
 
   correctionMsg = `<li><span class="hero-correction-label">시간 보정 내역</span> 입력시간: ${inputTimeStr} → 보정시간: ${resultObj.finalAdjustedTime}</li>`
                 + `<li>출생지: ${opt ? opt.text : bTz}</li>`
                 + `<li>시간대: UTC${bTzOff >= 0 ? '+' : ''}${bTzOff} (표준 UTC${tzResolved.baseOffsetHours >= 0 ? '+' : ''}${tzResolved.baseOffsetHours})</li>`
-                + `<li>경도 보정: ${lngOffsetMinutes}분 (기준경도 ${stdLong}° vs 실제경도 ${bLong}°)</li>`
+                + `<li>경도 보정: ${(Math.round(correction.longitudeCorrectionMinutes * 1000) / 1000)}분 (기준경도 ${stdLong}° vs 실제경도 ${bLong}°)</li>`
+                + `<li>균시차 보정: ${(Math.round(correction.equationOfTimeMinutes * 1000) / 1000)}분</li>`
                 + `<li>서머타임(DST) 적용: ${tzResolved.dstMinutes}분</li>`
-                + `<li>총 보정 시간: ${lngOffsetMinutes}분</li>`;
+                + `<li>총 보정 시간: ${(Math.round(correction.totalCorrectionMinutes * 1000) / 1000)}분</li>`
+                + `<li>보정 후 기준일: ${correctedYear}-${String(correctedMonth).padStart(2,'0')}-${String(correctedDay).padStart(2,'0')}</li>`;
 
   // 점성술 계산 전용 원본(표준시) 출생 데이터
   window._astroBirth={year:year,month:month,day:day,hour:hour,minute:minute,lat:bLat,lon:bLong,tz:bTzOff};
 
-  window._ziweiBirth={year:year,month:month,day:day,hour:correctedHour,minute:correctedMinute,lat:bLat,lon:bLong,tz:bTzOff};
+  window._ziweiBirth={year:correctedYear,month:correctedMonth,day:correctedDay,hour:correctedHour,minute:correctedMinute,lat:bLat,lon:bLong,tz:bTzOff};
   window._ziweiInputMeta={
     calType: calType,
     kasiSource: primaryDateCtx && primaryDateCtx.source ? primaryDateCtx.source : 'unknown',
     kasiDiagnostics: (primaryDateCtx && primaryDateCtx.meta && Array.isArray(primaryDateCtx.meta.diagnostics)) ? primaryDateCtx.meta.diagnostics.slice() : [],
     inputDate: { year: year, month: month, day: day, hour: hour, minute: minute },
-    correctedTime: { hour: correctedHour, minute: correctedMinute },
+    correctedTime: { year: correctedYear, month: correctedMonth, day: correctedDay, hour: correctedHour, minute: correctedMinute },
     placeLabel: opt ? opt.text : '',
     timezone: bTz,
     longitude: bLong,
@@ -3664,16 +3752,41 @@ async function calculate(){
   } catch (eDispatch) {
     console.warn('[saju] destinyProfileChanged dispatch skipped:', eDispatch);
   }
-  BIRTH_YEAR=year;
+  BIRTH_YEAR=correctedYear;
   CURRENT_AGE=new Date().getFullYear()-year+1;
 
   try{
-    var solar=Solar.fromYmdHms(year,month,day,correctedHour,correctedMinute,0);
+    var pillarDateCtx = primaryDateCtx;
+    if (
+      correctedYear !== year ||
+      correctedMonth !== month ||
+      correctedDay !== day ||
+      correctedHour !== hour ||
+      correctedMinute !== minute
+    ) {
+      try {
+        var correctedCtx = await resolvePrimaryCalendarContext({
+          calendarType: 'solar',
+          year: correctedYear,
+          month: correctedMonth,
+          day: correctedDay,
+          hour: correctedHour,
+          minute: correctedMinute,
+          second: 0,
+          latitude: bLat,
+          longitude: bLong,
+          tzOffsetHours: bTzOff
+        }, { setCurrent: true });
+        if (correctedCtx && correctedCtx.ganji) pillarDateCtx = correctedCtx;
+      } catch (_correctedCtxErr) {}
+    }
+
+    var solar=Solar.fromYmdHms(correctedYear,correctedMonth,correctedDay,correctedHour,correctedMinute,0);
     var bazi=solar.getLunar().getEightChar();
 
-    var kasiYearPair = primaryDateCtx && primaryDateCtx.ganji ? parseKasiGanjiPair(primaryDateCtx.ganji.year) : null;
-    var kasiMonthPair = primaryDateCtx && primaryDateCtx.ganji ? parseKasiGanjiPair(primaryDateCtx.ganji.month) : null;
-    var kasiDayPair = primaryDateCtx && primaryDateCtx.ganji ? parseKasiGanjiPair(primaryDateCtx.ganji.day) : null;
+    var kasiYearPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.year) : null;
+    var kasiMonthPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.month) : null;
+    var kasiDayPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.day) : null;
     if (kasiYearPair && kasiMonthPair && kasiDayPair) {
       bazi.getYearGan = function() { return kasiYearPair.g; };
       bazi.getYearZhi = function() { return kasiYearPair.j; };
@@ -3683,7 +3796,7 @@ async function calculate(){
       bazi.getDayZhi = function() { return kasiDayPair.j; };
     } else {
       try {
-        var _d = new Date(year, month-1, day, correctedHour, correctedMinute);
+        var _d = new Date(correctedYear, correctedMonth-1, correctedDay, correctedHour, correctedMinute);
         var _gj = KasiEngine.getGanji(_d);
         if (_gj && _gj.secha && _gj.weolgeon && _gj.iljin) {
             bazi.getYearGan = function() { return _gj.secha[0]; };
@@ -3712,7 +3825,7 @@ async function calculate(){
     var natal=calcNatalElement(p);
     var johu=analyzeJohu(p);
     G_PILLARS=p;
-    window.G_KASI_CONTEXT = primaryDateCtx || null;
+    window.G_KASI_CONTEXT = pillarDateCtx || primaryDateCtx || null;
     G_NATAL=natal;
     G_JOHU=johu; JOHU_TYPE=johu.type; JOHU_SCORE=johu.score;
     G_POWER=calcPower(p);

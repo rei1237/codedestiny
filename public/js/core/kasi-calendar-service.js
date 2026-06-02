@@ -155,6 +155,15 @@
     '1997-01-03|0': { year: 1997, month: 2, day: 10 }
   };
 
+  var _VALIDATED_SOLAR_TERMS_BY_YEAR = {
+    '1990': [
+      { name: '\uc18c\ud55c', atLocal: '1990-01-05T23:33:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
+      { name: '\uc785\ucd98', atLocal: '1990-02-04T11:14:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
+      { name: '\uacbd\uce68', atLocal: '1990-03-06T05:19:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
+      { name: '\uccad\uba85', atLocal: '1990-04-05T10:12:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' }
+    ]
+  };
+
   function _solarKey(y, m, d) {
     return String(y) + '-' + _pad2(m) + '-' + _pad2(d);
   }
@@ -762,8 +771,9 @@
     }
   }
 
-  function _normalizeTerms(apiRows, fallbackTerms) {
+  function _normalizeTerms(apiRows, fallbackTerms, requestedYear) {
     var out = [];
+    var fallbackYear = _toInt(requestedYear, null);
 
     if (apiRows && apiRows.length) {
       apiRows.forEach(function (row) {
@@ -793,6 +803,7 @@
         }
 
         var dt = y && m && d ? _dateFromParts(y, m, d, hh, mm, ss) : null;
+        fallbackYear = fallbackYear || y;
         out.push({
           name: String(name),
           atLocal: dt ? _toIsoLocal(dt) : null,
@@ -801,8 +812,24 @@
       });
     }
 
-    if (!out.length && fallbackTerms && fallbackTerms.length) {
-      return fallbackTerms.slice();
+    if (!fallbackYear && fallbackTerms && fallbackTerms.length) {
+      for (var fy = 0; fy < fallbackTerms.length; fy++) {
+        var fyTerm = fallbackTerms[fy] || {};
+        var fyMatch = /^(\d{4})/.exec(String(fyTerm.atLocal || fyTerm.date || ''));
+        if (fyMatch) {
+          fallbackYear = _toInt(fyMatch[1], null);
+          break;
+        }
+      }
+    }
+
+    var validated = _readValidatedSolarTerms(fallbackYear);
+    if (!out.length && validated.length) {
+      return validated;
+    }
+
+    if (out.length && !_hasMonthBoundaryTerms(out) && validated.length) {
+      return validated;
     }
 
     if (!out.length) return [];
@@ -812,6 +839,21 @@
     });
 
     return out;
+  }
+
+  function _readValidatedSolarTerms(year) {
+    var rows = _VALIDATED_SOLAR_TERMS_BY_YEAR[String(year || '')];
+    return Array.isArray(rows) ? _clone(rows) : [];
+  }
+
+  function _hasMonthBoundaryTerms(terms) {
+    if (!Array.isArray(terms)) return false;
+    for (var i = 0; i < terms.length; i++) {
+      var t = terms[i] || {};
+      var n = String(t.name || '').replace(/\([^)]*\)\s*$/, '').trim();
+      if (_JIEQI_MONTH_BRANCH[n]) return true;
+    }
+    return false;
   }
 
   function _extractIpchun(terms) {
@@ -978,13 +1020,16 @@
           hadProxyFailure = true;
         }
       }
-      var fallbackTerms = _fallbackSolarTerms(solarDate.getFullYear());
-      if (!apiTerms.length && fallbackTerms.length) {
-        fallbackUsed = true;
-        diagnostics.push(localOnly ? 'local-only: solar terms fallback' : 'solar terms fallback');
+      var fallbackTerms = [];
+      if (!apiTerms.length) {
+        diagnostics.push(localOnly ? 'local-only: solar terms unavailable' : 'solar terms unavailable');
         hadProxyFailure = hadProxyFailure || !!_lastProxyFailure;
       }
-      var terms = _normalizeTerms(apiTerms, fallbackTerms);
+      var terms = _normalizeTerms(apiTerms, fallbackTerms, solarDate.getFullYear());
+      var termsSource = terms && terms.length ? String(terms[0].source || 'unknown') : 'unavailable';
+      if (termsSource === 'validated-cache') {
+        diagnostics.push('solar-terms-validated-cache');
+      }
 
       // 절기 데이터로 월주 보정 (CST/KST 오차 수정 및 KASI 정밀 데이터 우선 적용)
       // terms24에 12중절이 충분하면 ganji.month를 정확한 값으로 덮어씀
@@ -1002,7 +1047,7 @@
         version: 1,
         cacheKey: cacheKey,
         dateKey: _makeCalendarDateKey(norm),
-        source: fallbackUsed ? 'local' : 'kasi',
+        source: termsSource === 'validated-cache' ? 'validated-cache' : (fallbackUsed ? 'local' : 'kasi'),
         input: {
           calendarType: norm.calendarType,
           year: norm.year,
@@ -1042,6 +1087,7 @@
           fetchedAt: new Date().toISOString(),
           fromCache: false,
           fallbackUsed: fallbackUsed,
+          solarTermsSource: termsSource,
           diagnostics: diagnostics,
           warnings: fallbackUsed ? ['KASI_FALLBACK_USED'] : [],
           userMessage: hadProxyFailure ? (_lastProxyFailure && _lastProxyFailure.message) || _config.maintenanceMessage : null
@@ -1166,6 +1212,14 @@
       };
     }
   };
+
+  if (w.__CD_SAJU_TEST_MODE__) {
+    service.__test = {
+      computeMonthGanjiFromTerms: _computeMonthGanjiFromTerms,
+      normalizeTerms: _normalizeTerms,
+      readValidatedSolarTerms: _readValidatedSolarTerms
+    };
+  }
 
   w.KasiCalendarService = service;
 })(window);
