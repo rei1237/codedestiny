@@ -458,7 +458,7 @@ export default function PointHistoryPage() {
                   href="/points"
                   className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#EDDBA3] bg-white/90 px-4 py-2.5 text-sm font-bold text-[#7A5230] shadow-[0_2px_10px_rgba(180,130,30,0.14)] transition-all hover:bg-[#FFF8E0] hover:-translate-y-0.5"
                 >
-                  ← 결제 상점
+                  ← 달빛 이용권 관리
                 </Link>
                 <Link
                   href="/"
@@ -472,9 +472,9 @@ export default function PointHistoryPage() {
           </div>
         </header>
 
-        {/* 이벤트 코인 안내 */}
+        {/* 콘텐츠 가치 단위 안내 */}
         <section
-          aria-label="이벤트 코인 안내"
+          aria-label="콘텐츠 가치 단위 안내"
           className="rounded-[24px] overflow-hidden shadow-[0_10px_36px_rgba(180,130,30,0.22)]"
         >
           <div
@@ -486,17 +486,17 @@ export default function PointHistoryPage() {
             className="border border-t-0 border-amber-200 rounded-b-[24px] p-5"
             style={{ background: "linear-gradient(135deg, #FFFAE8 0%, #FFF3CC 50%, #FFE89C 100%)" }}
           >
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-800 mb-1">이벤트 코인</p>
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-800 mb-1">콘텐츠 가치 단위</p>
             <div className="flex items-center gap-3">
               <CoinIcon size="lg" />
               <span className="text-[28px] font-black text-[#7A4A00] leading-none">
-                {pointsError && !hasLoadedPoints ? "-" : currentPoints.toLocaleString("ko-KR")}
-                <span className="ml-1.5 text-base font-bold text-amber-800">코인</span>
+                1코인
+                <span className="ml-1.5 text-base font-bold text-amber-800">= 100원 상당</span>
               </span>
             </div>
             {pointsError ? (
               <div className="mt-2 rounded-[10px] border border-rose-200 bg-rose-50 px-2.5 py-2">
-                <p className="text-[11px] font-bold text-rose-700">이벤트 코인 조회 실패: {pointsError}</p>
+                <p className="text-[11px] font-bold text-rose-700">이용권 정보 조회 실패: {pointsError}</p>
                 <button
                   type="button"
                   onClick={() => { fetchPointsSection(); }}
@@ -507,7 +507,7 @@ export default function PointHistoryPage() {
               </div>
             ) : (
               <p className="mt-2 text-[11px] text-amber-800 font-semibold">
-                {userName} 님의 이벤트 코인입니다.
+                {userName} 님의 결제 내역과 이용권 혜택을 확인하세요.
               </p>
             )}
             <p className="mt-1 text-[11px] text-[#9B7040]">

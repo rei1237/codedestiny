@@ -91,7 +91,7 @@ type ConfirmSubscriptionResponse = {
     points: number;
   };
   subscription?: SubscriptionStatus & {
-    source?: "coin" | "card";
+    source?: "card" | "pass";
     customerUid?: string;
     paymentMethod?: string;
     nextBillingAt?: string | null;
@@ -119,7 +119,7 @@ type AdminTestTier = "off" | "standard" | "premium" | "vvip";
 
 type SubscriptionStatus = {
   tier:               SubscriptionTier;
-  source?:            "coin" | "card" | "pass";
+  source?:            "card" | "pass";
   isActive:           boolean;
   expiresAt:          string | null;
   profileLimit:       number; // 0 = unlimited
@@ -570,28 +570,28 @@ function SubscriptionSection({
     card: string; label: string; badge: string; freeTag: string; btn: string; icon: string;
   }> = {
     amber: {
-      card:    "border-amber-300 bg-gradient-to-b from-amber-50/50 to-white",
-      label:   "text-amber-800",
-      badge:   "from-amber-500 to-yellow-400",
-      freeTag: "bg-amber-100 text-amber-800 ring-1 ring-amber-400/50",
-      btn:     "from-[#C9A84C] to-[#F0C830] shadow-[0_6px_16px_rgba(160,120,0,0.32)]",
-      icon:    "🍯",
+      card:    "border-[#e9d18a]/45 bg-white/[0.08]",
+      label:   "text-[#f3dd9a]",
+      badge:   "from-[#d8bd72] to-[#f5df9d]",
+      freeTag: "bg-[#f3dd9a]/15 text-[#f3dd9a] ring-1 ring-[#f3dd9a]/45",
+      btn:     "from-[#d8bd72] to-[#f5df9d] text-[#151832] shadow-[0_8px_18px_rgba(243,221,154,0.24)]",
+      icon:    "🌔",
     },
     rose: {
-      card:    "border-rose-300 bg-gradient-to-b from-rose-50/50 to-white",
-      label:   "text-rose-700",
-      badge:   "from-rose-500 to-amber-500",
-      freeTag: "bg-rose-100 text-rose-800 ring-1 ring-rose-400/50",
-      btn:     "from-rose-500 to-amber-400 shadow-[0_6px_16px_rgba(220,60,60,0.32)]",
-      icon:    "🌹",
+      card:    "border-[#cab8ff]/45 bg-white/[0.08]",
+      label:   "text-[#cab8ff]",
+      badge:   "from-[#cab8ff] to-[#f3dd9a]",
+      freeTag: "bg-[#cab8ff]/15 text-[#cab8ff] ring-1 ring-[#cab8ff]/45",
+      btn:     "from-[#cab8ff] to-[#f3dd9a] text-[#151832] shadow-[0_8px_18px_rgba(202,184,255,0.24)]",
+      icon:    "🌕",
     },
     purple: {
-      card:    "border-purple-300 bg-gradient-to-b from-purple-50/50 to-white",
-      label:   "text-purple-700",
-      badge:   "from-purple-600 to-violet-500",
-      freeTag: "bg-purple-100 text-purple-800 ring-1 ring-purple-400/50",
-      btn:     "from-purple-600 to-violet-600 shadow-[0_6px_16px_rgba(120,50,200,0.35)]",
-      icon:    "👑",
+      card:    "border-[#8cb8ff]/45 bg-white/[0.08]",
+      label:   "text-[#8cb8ff]",
+      badge:   "from-[#f3dd9a] via-[#cab8ff] to-[#8cb8ff]",
+      freeTag: "bg-[#8cb8ff]/15 text-[#dbe8ff] ring-1 ring-[#8cb8ff]/45",
+      btn:     "from-[#f3dd9a] via-[#cab8ff] to-[#8cb8ff] text-[#151832] shadow-[0_8px_18px_rgba(140,184,255,0.24)]",
+      icon:    "🌌",
     },
   };
 
@@ -606,56 +606,56 @@ function SubscriptionSection({
 
   return (
     <section
-      aria-label="Honey 이용권 30일 이용권"
-      className="rounded-[24px] border border-[#EDDBA3] bg-white/90 overflow-hidden shadow-[0_8px_32px_rgba(120,80,10,0.10)]"
+      aria-label="달빛 이용권 30일 이용권"
+      className="overflow-hidden rounded-[24px] border border-white/12 bg-white/[0.08] text-slate-100 shadow-[0_18px_46px_rgba(7,10,28,0.32)] backdrop-blur"
     >
       {/* 섹션 헤더 */}
       <div
         className="px-5 pt-5 pb-4"
-        style={{ background: "linear-gradient(135deg, #FFFDF7 0%, #FFF9EC 100%)" }}
+        style={{ background: "linear-gradient(135deg, rgba(13,19,43,0.94) 0%, rgba(39,34,82,0.86) 58%, rgba(92,78,137,0.72) 100%)" }}
       >
         {/* 제목 */}
         <div className="mb-4">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-[#A0700A]">Honey 이용권 Pass</p>
-          <h2 className="mt-0.5 text-xl font-bold text-[#5C3A1E]">🍯 Honey 이용권 30일 이용권</h2>
-          <p className="mt-1 text-sm text-[#7A5230]">
-            기존 혜택은 유지하고, 자동결제 없이 30일 동안 이용권을 이용하세요.
+          <p className="text-[11px] font-bold uppercase tracking-widest text-[#cab8ff]">Moonlight Pass</p>
+          <h2 className="mt-0.5 text-xl font-bold text-white">달빛 이용권 관리</h2>
+          <p className="mt-1 text-sm text-slate-200">
+            자동결제 없이 30일 동안 플랜별 운세 혜택을 이용하세요.
           </p>
         </div>
 
         {/* 핵심 혜택 callout */}
-        <div className="mb-4 rounded-[14px] border border-amber-300 bg-gradient-to-br from-amber-50 to-yellow-50 px-4 py-3 shadow-[inset_0_1px_3px_rgba(180,130,0,0.08)]">
-          <p className="mb-1.5 flex items-center gap-1.5 text-[11.5px] font-extrabold uppercase tracking-wide text-amber-800">
-            <span aria-hidden="true">🍯</span> Honey 이용권의 특별한 이유
+        <div className="mb-4 rounded-[14px] border border-[#cab8ff]/35 bg-white/[0.08] px-4 py-3 shadow-[inset_0_1px_3px_rgba(255,255,255,0.05)]">
+          <p className="mb-1.5 flex items-center gap-1.5 text-[11.5px] font-extrabold uppercase tracking-wide text-[#f3dd9a]">
+            <span aria-hidden="true">🌙</span> 달빛 이용권의 특별한 이유
           </p>
-          <p className="text-[12.5px] leading-relaxed text-[#6B4410]">
-            <span className="font-bold text-[#8B5E0A]">가족·연인·자녀 등 다른 생년월일</span>로 프로필을 추가해도,
-            30일 이용권 하나로 <span className="font-bold text-[#8B5E0A]">모든 프로필에서 이용권 혜택을 그대로 이용</span>할 수 있습니다.
+          <p className="text-[12.5px] leading-relaxed text-slate-200">
+            <span className="font-bold text-white">가족·연인·자녀 등 다른 생년월일</span>로 프로필을 추가해도,
+            30일 이용권 하나로 <span className="font-bold text-white">모든 프로필에서 이용권 혜택을 그대로 이용</span>할 수 있습니다.
           </p>
-          <p className="mt-1 text-[11.5px] text-[#8B6020]">
+          <p className="mt-1 text-[11.5px] text-[#cab8ff]">
             이 상품은 자동결제 상품이 아니며, 기간 종료 후 무료 플랜으로 전환됩니다.
           </p>
         </div>
 
-        {/* 잔액 부족 사전 경고 */}
+        {/* 월정석 혜택 사전 안내 */}
         {subscription.lowBalanceWarning && (
-          <div className="mb-4 rounded-[14px] border border-orange-300 bg-orange-50 px-4 py-3">
-            <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-orange-800">
-              <span aria-hidden="true">🔔</span> 코인 잔액이 부족합니다
+          <div className="mb-4 rounded-[14px] border border-orange-300/50 bg-orange-400/12 px-4 py-3">
+            <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-orange-100">
+              <span aria-hidden="true">🔔</span> 월정석 혜택 범위를 확인해 주세요
             </p>
-            <p className="mt-1 text-[11.5px] text-orange-700">
-              현재 이벤트 코인이 거의 소진되었습니다. 이용권 기간({expires}까지)은 유지되며,
+            <p className="mt-1 text-[11.5px] text-orange-100/90">
+              이용권 기간({expires}까지)은 유지되며,
               추가 유료 콘텐츠는 상품별 단건 결제로 이용할 수 있습니다.
             </p>
           </div>
         )}
 
         {/* 공통 운영 정책 안내 */}
-        <div className="mb-4 rounded-[14px] border border-sky-200 bg-sky-50/60 px-4 py-3">
-          <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-sky-700">
+        <div className="mb-4 rounded-[14px] border border-[#8cb8ff]/30 bg-[#8cb8ff]/10 px-4 py-3">
+          <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-[#dbe8ff]">
             <span aria-hidden="true">ℹ️</span> 이용권 운영 정책
           </p>
-          <ul className="mt-1.5 space-y-1 text-[11.5px] text-sky-800">
+          <ul className="mt-1.5 space-y-1 text-[11.5px] text-slate-200">
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>모든 이용권은 <strong>결제일로부터 30일간 유효</strong>합니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>결제 즉시 30일 동안 이용권 혜택이 활성화됩니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>기간 종료 후 추가 결제 없이 무료 플랜으로 전환됩니다.</li>
@@ -729,13 +729,14 @@ function SubscriptionSection({
       {/* ────────────────────────────────────────────────── */}
       {/* 무료 플랜 안내 + 이용권 훅                          */}
       {/* ────────────────────────────────────────────────── */}
-      <div className="mx-5 mb-4 rounded-[20px] border border-neutral-200/80 bg-gradient-to-b from-neutral-50/70 to-white p-4 shadow-[0_2px_14px_rgba(0,0,0,0.06)]">
+      {(!subscription.isActive || subscription.tier === "free") && (
+      <div className="mx-5 mb-4 rounded-[20px] border border-white/12 bg-white/[0.07] p-4 shadow-[0_12px_28px_rgba(7,10,28,0.22)]">
         {/* 제목 행 */}
         <div className="flex items-center gap-2 mb-3">
           <span className="text-2xl leading-none">🆓</span>
           <div className="flex-1 min-w-0">
-            <p className="text-[10.5px] font-black uppercase tracking-widest text-neutral-400">Free Plan</p>
-            <p className="text-[15px] font-black text-neutral-700 leading-tight">무료 플랜</p>
+            <p className="text-[10.5px] font-black uppercase tracking-widest text-slate-400">Free Plan</p>
+            <p className="text-[15px] font-black text-white leading-tight">무료 플랜</p>
           </div>
           {subscription.tier === "free" && (
             <span className="flex-shrink-0 rounded-full bg-neutral-200 px-2.5 py-0.5 text-[11px] font-bold text-neutral-600">현재 플랜</span>
@@ -743,8 +744,8 @@ function SubscriptionSection({
         </div>
 
         {/* 무료 제공 항목 */}
-        <div className="mb-3 rounded-[14px] border border-emerald-200 bg-emerald-50/60 px-3.5 py-3">
-          <p className="mb-2 text-[11px] font-extrabold text-emerald-700">✅ 무료로 지금 바로 즐길 수 있어요</p>
+        <div className="mb-3 rounded-[14px] border border-emerald-300/30 bg-emerald-300/10 px-3.5 py-3">
+          <p className="mb-2 text-[11px] font-extrabold text-emerald-100">✅ 무료로 지금 바로 즐길 수 있어요</p>
           <ul className="space-y-1.5">
             {[
               { icon: "☀️", text: "일일 운세 · 오늘/이달 운세 키워드", sub: "매일 갱신, 무제한 무료" },
@@ -755,9 +756,9 @@ function SubscriptionSection({
             ].map(({ icon, text, sub }) => (
               <li key={text} className="flex items-start gap-2">
                 <span className="flex-shrink-0 text-sm leading-4 mt-0.5">{icon}</span>
-                <span className="text-[11.5px] text-neutral-700">
+                <span className="text-[11.5px] text-slate-200">
                   <span className="font-semibold">{text}</span>
-                  <span className="ml-1 text-[10.5px] text-neutral-400">{sub}</span>
+                  <span className="ml-1 text-[10.5px] text-slate-400">{sub}</span>
                 </span>
               </li>
             ))}
@@ -765,8 +766,8 @@ function SubscriptionSection({
         </div>
 
         {/* 잠긴 콘텐츠 — 이용권 훅 */}
-        <div className="mb-3 rounded-[14px] border border-neutral-200 bg-neutral-50/80 px-3.5 py-3">
-          <p className="mb-2 text-[11px] font-extrabold text-neutral-400">🔒 이용권 구매 시 잠금이 해제돼요</p>
+        <div className="mb-3 rounded-[14px] border border-white/12 bg-white/[0.06] px-3.5 py-3">
+          <p className="mb-2 text-[11px] font-extrabold text-slate-300">🔒 이용권 구매 시 잠금이 해제돼요</p>
           <ul className="space-y-1.5">
             {[
               "상세 사주 분석 — 연애·재물·직업·건강 심층 리포트",
@@ -777,19 +778,19 @@ function SubscriptionSection({
             ].map((text) => (
               <li key={text} className="flex items-start gap-2 opacity-60 blur-[0.3px]">
                 <span className="flex-shrink-0 text-[11px] text-neutral-400 mt-0.5">🔒</span>
-                <span className="text-[11.5px] text-neutral-500 line-through decoration-neutral-300">{text}</span>
+                <span className="text-[11.5px] text-slate-400 line-through decoration-slate-500">{text}</span>
               </li>
             ))}
           </ul>
         </div>
 
         {/* 마케팅 훅 CTA 블록 */}
-        <div className="rounded-[14px] border border-amber-300 bg-gradient-to-br from-amber-50 to-yellow-50/70 px-4 py-3.5">
-          <p className="text-[12.5px] font-black text-[#7A4A00] leading-snug mb-1.5">
+        <div className="rounded-[14px] border border-[#f3dd9a]/40 bg-[#f3dd9a]/10 px-4 py-3.5">
+          <p className="text-[12.5px] font-black text-[#f3dd9a] leading-snug mb-1.5">
             맛보기만으로도 이 정도인데,<br />
-            <span className="text-[#C07B00]">30일 이용권으로 얼마나 깊이 볼 수 있을까요?</span> 🍯
+            <span className="text-white">30일 이용권으로 얼마나 깊이 볼 수 있을까요?</span> 🌙
           </p>
-          <p className="text-[11.5px] text-[#8B6020] leading-relaxed mb-2.5">
+          <p className="text-[11.5px] text-slate-200 leading-relaxed mb-2.5">
             오늘 운세가 마음에 걸렸다면, 그건 당신의 직감이 맞는 거예요.
             <br />Honey 이용권 하나로 <strong>사주·타로·점성술의 진짜 깊이</strong>를 경험해 보세요.
             가족과 연인의 운명까지, <strong>30일 동안 모든 프로필</strong>에 혜택이 적용됩니다.
@@ -804,6 +805,7 @@ function SubscriptionSection({
           </div>
         </div>
       </div>
+      )}
 
       {/* 플랜 카드 */}
       <div className="grid gap-3 p-5 pt-0 sm:grid-cols-3">
@@ -820,7 +822,7 @@ function SubscriptionSection({
               className={[
                 "relative flex flex-col rounded-[20px] border p-4 transition-shadow",
                 isCurrentActive
-                  ? "border-emerald-400 bg-gradient-to-b from-emerald-50/60 to-white shadow-[0_4px_20px_rgba(16,185,129,0.20)]"
+                  ? "border-emerald-300/60 bg-emerald-300/10 shadow-[0_4px_20px_rgba(16,185,129,0.20)]"
                   : isHighlighted
                     ? `${theme.card} ring-2 ring-rose-400/70 shadow-[0_10px_24px_rgba(244,63,94,0.22)]`
                     : `${theme.card} shadow-[0_4px_18px_rgba(120,80,10,0.09)]`,
@@ -829,7 +831,7 @@ function SubscriptionSection({
             >
               {/* 뱃지 */}
               {plan.badge && !isCurrentActive && (
-                <span className={`absolute top-3 right-3 rounded-full bg-gradient-to-r ${theme.badge} px-2 py-0.5 text-[11px] font-black text-white shadow`}>
+                <span className={`absolute top-3 right-3 rounded-full bg-gradient-to-r ${theme.badge} px-2 py-0.5 text-[11px] font-black text-[#151832] shadow`}>
                   {plan.id === "vvip" ? "👑 VVIP" : `✨ ${plan.badge}`}
                 </span>
               )}
@@ -844,16 +846,15 @@ function SubscriptionSection({
               <p className={`mt-2 text-[11px] font-black uppercase tracking-wider ${theme.label}`}>{plan.title}</p>
 
               {/* 가격 */}
-              <p className="mt-2 flex items-center gap-1 text-lg font-black text-[#5C3A1E]">
+              <p className="mt-2 flex flex-wrap items-center gap-1 text-lg font-black text-white">
                 <CoinIcon size="md" />
-                {plan.coins.toLocaleString("ko-KR")}코인
-                <span className="ml-0.5 text-xs font-semibold text-[#8A6020]">기준 가격</span>
+                {plan.coins.toLocaleString("ko-KR")}코인 / 30일
               </p>
-              <p className="text-[11px] text-[#7A5230]">원화 결제 금액 {formatWon(plan.wonPrice)}</p>
+              <p className="text-[11px] text-slate-300">{formatWon(plan.coins * 100)} 상당 · 결제 금액 {formatWon(plan.wonPrice)}</p>
 
               {/* 커피 한 잔 뱃지 — freeUpTo 50 이하 플랜(스탠다드)에만 */}
               {plan.freeUpTo !== null && plan.freeUpTo <= 50 && plan.id === "standard" && (
-                <div className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-amber-200/80 px-2.5 py-1 text-[11px] font-bold text-amber-900">
+                <div className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-[#f3dd9a]/18 px-2.5 py-1 text-[11px] font-bold text-[#f3dd9a]">
                   ☕ 커피 2잔 값으로 30일
                 </div>
               )}
@@ -876,7 +877,7 @@ function SubscriptionSection({
                         "flex items-start gap-1.5 text-[11.5px]",
                         isBonus ? "font-semibold text-emerald-700"
                           : isKey  ? `font-semibold ${theme.label}`
-                          : "text-[#7A5230]",
+                          : "text-slate-200",
                       ].join(" ")}
                     >
                       {!isBonus && (
@@ -896,7 +897,7 @@ function SubscriptionSection({
                 onClick={() => onSubscribe(plan)}
                 disabled={ctaDisabled}
                 className={[
-                  "mt-4 w-full rounded-[12px] px-3 py-2.5 text-[13px] font-black text-white shadow transition-all",
+                  "mt-4 w-full rounded-[12px] px-3 py-2.5 text-[13px] font-black shadow transition-all",
                   "hover:-translate-y-0.5 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50",
                   isCurrentActive
                     ? "bg-gradient-to-r from-emerald-500 to-teal-500 shadow-[0_5px_14px_rgba(16,185,129,0.35)]"
@@ -1035,61 +1036,58 @@ function CoinIcon({ size = "md", className = "" }: { size?: "sm" | "md" | "lg" |
 }
 
 /* ══════════════════════════════════════════════════════════════════
-  서브 컴포넌트: 이벤트 코인 카드
+  서브 컴포넌트: 콘텐츠 가치 단위 카드
   코인은 콘텐츠 가치 단위로만 안내합니다.
 ══════════════════════════════════════════════════════════════════ */
 
-function WalletCard({ name, points }: { name: string; points: number }) {
+function WalletCard({ name }: { name: string; points: number }) {
   return (
     <section
-      aria-label="이벤트 코인 안내"
-      className="rounded-[24px] overflow-hidden shadow-[0_10px_36px_rgba(180,130,30,0.22)]"
+      aria-label="콘텐츠 가치 단위 안내"
+      className="overflow-hidden rounded-[24px] border border-white/12 bg-white/[0.08] text-slate-100 shadow-[0_18px_46px_rgba(7,10,28,0.35)] backdrop-blur"
     >
-      {/* Premium gold shimmer bar */}
       <div
         className="h-[3px] w-full"
-        style={{ background: "linear-gradient(90deg, #C8860A 0%, #FFE070 30%, #FFFFFF 50%, #FFE070 70%, #C8860A 100%)" }}
+        style={{ background: "linear-gradient(90deg, rgba(255,255,255,0), #f3dd9a 26%, #cab8ff 52%, #8cb8ff 78%, rgba(255,255,255,0))" }}
         aria-hidden="true"
       />
       <div
-        className="border border-t-0 border-amber-200 rounded-b-[24px] p-5"
-        style={{ background: "linear-gradient(135deg, #FFFAE8 0%, #FFF3CC 50%, #FFE89C 100%)" }}
+        className="rounded-b-[24px] p-5"
+        style={{ background: "linear-gradient(135deg, rgba(13,19,43,0.94) 0%, rgba(39,34,82,0.86) 58%, rgba(92,78,137,0.72) 100%)" }}
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          {/* 왼쪽: 코인 아이콘 + 사용자 이름 */}
           <div className="flex items-center gap-3.5">
             <div
               className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl text-[26px]"
               style={{
-                background: "radial-gradient(circle at 35% 30%, #fff9ce 0%, #ffd14d 55%, #c8900a 100%)",
-                boxShadow: "inset 0 2px 8px rgba(255,255,255,0.65), 0 6px 16px rgba(140,80,10,0.32)",
+                background: "radial-gradient(circle at 35% 30%, #fff8d8 0%, #f3dd9a 48%, #cab8ff 100%)",
+                boxShadow: "0 0 24px rgba(243,221,154,0.32)",
               }}
               aria-hidden="true"
             >
-              🐷
+              🌙
             </div>
             <div>
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-800">
-                황금 꽃돼지상점
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#cab8ff]">
+                Moonlight Pass Desk
               </p>
-              <p className="mt-0.5 text-[15px] font-bold text-[#5C3A1E]">{name} 님의 결제/이용권 관리</p>
+              <p className="mt-0.5 text-[15px] font-bold text-white">{name} 님의 운세 이용권 관리</p>
             </div>
           </div>
 
-          {/* 오른쪽: 이벤트 코인 수 */}
           <div className="flex flex-col items-start gap-1 sm:items-end">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-800">
-              이벤트 코인
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-[#f3dd9a]">
+              콘텐츠 가치 단위
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <CoinIcon size="xl" />
-              <span className="text-[22px] font-black text-[#7A4A00] leading-none">
-                {Number(points).toLocaleString("ko-KR")}
-                <span className="ml-1 text-base font-bold text-amber-800">코인</span>
+              <span className="text-[22px] font-black leading-none text-white">
+                1코인
+                <span className="ml-1 text-base font-bold text-[#f3dd9a]">= 100원 상당</span>
               </span>
             </div>
-            <p className="max-w-[260px] text-[11px] text-amber-800 sm:text-right">
-              코인은 콘텐츠의 가치를 표현하는 단위이며, 신규 충전은 제공하지 않습니다.
+            <p className="max-w-[280px] text-[11px] text-slate-200 sm:text-right">
+              코인은 충전 재화가 아니라 월정석 혜택과 단건 결제 서비스 가치를 표시하는 단위입니다.
             </p>
           </div>
         </div>
@@ -1124,38 +1122,38 @@ function PackageCard({
         "relative w-full rounded-[20px] border p-4 text-left",
         "transition-all duration-200 active:scale-[0.97] active:shadow-none",
         selected
-          ? "border-amber-400 bg-gradient-to-r from-[#FFFBF0] to-[#FFF0CC] shadow-[0_12px_28px_rgba(180,130,30,0.28)] -translate-y-0.5 ring-2 ring-amber-300/50"
-          : "border-[#EDDBA3] bg-white/95 shadow-[0_4px_14px_rgba(180,130,30,0.09)] hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(180,130,30,0.20)] hover:border-amber-300",
+          ? "border-[#f3dd9a] bg-white/[0.14] shadow-[0_14px_34px_rgba(202,184,255,0.22)] -translate-y-0.5 ring-2 ring-[#cab8ff]/45"
+          : "border-white/12 bg-white/[0.08] shadow-[0_8px_22px_rgba(7,10,28,0.18)] hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(202,184,255,0.20)] hover:border-[#cab8ff]/60",
       ].join(" ")}
     >
       {/* BEST 뱃지 */}
       {isBest && (
-        <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#FF5F45] to-[#FF9A3C] px-2.5 py-1 text-[11px] font-black text-white shadow-[0_4px_12px_rgba(214,91,33,0.40)]">
+        <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#cab8ff] to-[#f3dd9a] px-2.5 py-1 text-[11px] font-black text-[#151832] shadow-[0_4px_12px_rgba(202,184,255,0.32)]">
           추천 이용권
         </span>
       )}
 
       {/* 상단 행: 상품명 + 코인 기준 가격 */}
       <div className={`flex items-center justify-between gap-2 ${isBest ? "pr-[90px]" : ""}`}>
-        <span className="text-[15px] font-bold text-[#5C3A1E]">{pkg.title}</span>
-        <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[15px] font-black text-[#9A6800]">
+        <span className="text-[15px] font-bold text-white">{pkg.title}</span>
+        <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[15px] font-black text-[#f3dd9a]">
           <CoinIcon size="md" />
           {pkg.points.toLocaleString("ko-KR")}코인 가치
         </span>
       </div>
-      <p className="mt-1 text-[11.5px] font-semibold text-[#7A5230]">{pkg.description}</p>
+      <p className="mt-1 text-[11.5px] font-semibold text-slate-200">{pkg.description}</p>
 
       {/* 하단 행: 원화 금액 + 정책 */}
       <div className="mt-1.5 flex items-center justify-between gap-2">
         <span className="flex items-center gap-1.5 text-sm font-semibold text-[#7A5230]">
-          <span className="text-[11px] text-[#9A7A50] line-through">{formatWon(listPrice)}</span>
+          <span className="text-[11px] text-slate-400 line-through">{formatWon(listPrice)}</span>
           {formatWon(pkg.amount)}
         </span>
-        <span className="text-sm font-bold text-[#5C3A1E]">
+        <span className="text-sm font-bold text-[#f3dd9a]">
           {discountRate}% 할인
         </span>
       </div>
-      <span className="mt-2.5 inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-[#9A6A14] to-[#C9A84C] px-2.5 py-1 text-[12px] font-black text-white shadow-[0_3px_10px_rgba(160,110,20,0.30)]">
+      <span className="mt-2.5 inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-[#cab8ff] to-[#f3dd9a] px-2.5 py-1 text-[12px] font-black text-[#151832] shadow-[0_3px_10px_rgba(202,184,255,0.24)]">
         단건 결제 · 월정석 병행 가능
       </span>
 
@@ -2234,12 +2232,12 @@ export default function PointsPage() {
   if (isBooting) {
     return (
       <main
-        className="flex min-h-screen items-center justify-center text-[#5C3A1E]"
-        style={{ background: "linear-gradient(160deg, #FDF8F0 0%, #FDF0D8 100%)" }}
+        className="flex min-h-screen items-center justify-center text-slate-100"
+        style={{ background: "linear-gradient(160deg, #071126 0%, #151a3d 46%, #332255 100%)" }}
       >
         <div className="text-center">
-          <div className="mb-3 text-5xl animate-bounce">🐷</div>
-          <p className="font-semibold">황금 꽃돼지상점을 불러오는 중...</p>
+          <div className="mb-3 text-5xl animate-pulse">🌙</div>
+          <p className="font-semibold">달빛 이용권 관리를 불러오는 중...</p>
         </div>
       </main>
     );
@@ -2250,22 +2248,22 @@ export default function PointsPage() {
   /* ── 메인 렌더 ─────────────────────────────────────────────────── */
   return (
     <main
-      className="relative min-h-screen overflow-hidden px-4 py-8 text-[#5C3A1E]"
-      style={{ background: "linear-gradient(160deg, #FDFAF4 0%, #FDF3E0 35%, #FAE9CC 65%, #F7DEB8 100%)" }}
+      className="relative min-h-screen overflow-hidden px-4 py-8 text-slate-100"
+      style={{ background: "linear-gradient(160deg, #071126 0%, #151a3d 38%, #261948 70%, #3e2d66 100%)" }}
     >
       {/* ── 배경 글로우 오브 ─────────────────────────────────────── */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
         <div
           className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full opacity-40"
-          style={{ background: "radial-gradient(circle, rgba(255,220,100,0.60) 0%, rgba(255,190,60,0.20) 50%, transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, rgba(202,184,255,0.46) 0%, rgba(140,184,255,0.18) 52%, transparent 70%)" }}
         />
         <div
           className="absolute top-1/3 -right-48 w-[450px] h-[450px] rounded-full opacity-25"
-          style={{ background: "radial-gradient(circle, rgba(255,175,60,0.60) 0%, transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, rgba(243,221,154,0.58) 0%, transparent 70%)" }}
         />
         <div
           className="absolute bottom-0 left-1/3 w-[300px] h-[300px] rounded-full opacity-20"
-          style={{ background: "radial-gradient(circle, rgba(255,200,80,0.55) 0%, transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, rgba(255,255,255,0.38) 0%, transparent 70%)" }}
         />
       </div>
 
@@ -2286,16 +2284,16 @@ export default function PointsPage() {
       <div className="relative mx-auto w-full max-w-2xl space-y-5">
 
         {/* ① 헤더 카드 */}
-        <header className="rounded-[24px] overflow-hidden shadow-[0_12px_40px_rgba(120,80,10,0.14)]">
+        <header className="overflow-hidden rounded-[24px] border border-white/12 bg-white/[0.08] shadow-[0_18px_46px_rgba(7,10,28,0.35)] backdrop-blur">
           {/* 헤더 탐색 프리리엄 바 */}
           <div
             className="h-[3px] w-full"
-            style={{ background: "linear-gradient(90deg, #A0680A 0%, #FFD060 25%, #FFFFFF 50%, #FFD060 75%, #A0680A 100%)" }}
+            style={{ background: "linear-gradient(90deg, rgba(255,255,255,0), #f3dd9a 24%, #cab8ff 52%, #8cb8ff 76%, rgba(255,255,255,0))" }}
             aria-hidden="true"
           />
           <div
-            className="border border-t-0 border-[#EDDBA3] rounded-b-[24px] p-6 backdrop-blur-sm"
-            style={{ background: "linear-gradient(135deg, rgba(255,253,247,0.97) 0%, rgba(255,249,238,0.95) 100%)" }}
+            className="rounded-b-[24px] p-6 backdrop-blur-sm"
+            style={{ background: "linear-gradient(135deg, rgba(13,19,43,0.94) 0%, rgba(39,34,82,0.86) 58%, rgba(92,78,137,0.72) 100%)" }}
           >
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
@@ -2304,36 +2302,36 @@ export default function PointsPage() {
                   sizes="72px"
                   width={72}
                   height={72}
-                  alt="황금 꽃돼지"
-                  className="rounded-2xl shadow-[0_6px_20px_rgba(150,76,11,0.26)]"
+                  alt="달빛 이용권"
+                  className="rounded-2xl shadow-[0_0_22px_rgba(243,221,154,0.24)]"
                   priority
                 />
                 <div>
-                  <p className="text-[11px] font-extrabold tracking-[0.22em] text-amber-800 uppercase">
-                    Golden Pig Payment Store
+                  <p className="text-[11px] font-extrabold tracking-[0.22em] text-[#cab8ff] uppercase">
+                    Moonlight Pass Desk
                   </p>
-                  <h1 className="mt-0.5 text-[22px] font-black text-[#5C3A1E] sm:text-3xl leading-tight">
-                    황금 꽃돼지상점
+                  <h1 className="mt-0.5 text-[22px] font-black text-white sm:text-3xl leading-tight">
+                    달빛 이용권 관리
                   </h1>
-                  <p className="mt-1 text-sm text-[#7A5230]">
-                    필요한 콘텐츠를 코인 기준 가격으로 확인하고 원화로 바로 결제하세요.
+                  <p className="mt-1 text-sm text-slate-200">
+                    월정석 혜택과 원화 단건 결제를 한 화면에서 확인하세요.
                   </p>
-                  <p className="mt-1 text-[12px] text-[#8A6020]">
-                    코인은 콘텐츠의 가치를 표현하는 단위이며, 현재 신규 선불 충전은 제공하지 않습니다.
+                  <p className="mt-1 text-[12px] text-[#f3dd9a]">
+                    코인은 충전 재화가 아니라 콘텐츠 가치 표시 단위입니다.
                   </p>
                 </div>
               </div>
               <div className="flex flex-col gap-2">
                 <Link
                   href="/points/history"
-                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-bold text-amber-800 shadow-[0_2px_10px_rgba(180,130,30,0.14)] transition-all hover:bg-amber-100 hover:-translate-y-0.5 active:scale-[0.97]"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#cab8ff]/45 bg-[#cab8ff]/12 px-4 py-2.5 text-sm font-bold text-[#f3dd9a] shadow-[0_2px_12px_rgba(202,184,255,0.16)] transition-all hover:bg-[#cab8ff]/18 hover:-translate-y-0.5 active:scale-[0.97]"
                 >
                   📋 결제/이용권 관리
                 </Link>
                 <Link
                   href="/"
                   prefetch={false}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#EDDBA3] bg-white/90 px-4 py-2.5 text-sm font-bold text-[#7A5230] shadow-[0_2px_10px_rgba(180,130,30,0.14)] transition-all hover:bg-[#FFF8E0] hover:shadow-[0_4px_14px_rgba(180,130,30,0.22)] hover:-translate-y-0.5 active:scale-[0.97]"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-bold text-slate-100 shadow-[0_2px_12px_rgba(7,10,28,0.18)] transition-all hover:bg-white/15 hover:-translate-y-0.5 active:scale-[0.97]"
                 >
                   ← 서비스 화면으로
                 </Link>
@@ -2351,8 +2349,8 @@ export default function PointsPage() {
         {/* ②-2 이용권 섹션 구분선 */}
         <div className="flex items-center gap-3 px-1">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-50" />
-          <span className="text-[11px] font-extrabold uppercase tracking-widest text-amber-700">
-            Honey 이용권 30일 이용권
+          <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#f3dd9a]">
+            월정석 & 이용권 관리
           </span>
           <div className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-400 to-transparent opacity-50" />
         </div>
@@ -2372,8 +2370,8 @@ export default function PointsPage() {
         {/* ③ 섹션 구분선 */}
         <div className="flex items-center gap-3 px-1">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-50" />
-          <span className="text-[11px] font-extrabold uppercase tracking-widest text-amber-700">
-            단건 결제 회차형 이용권
+          <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#f3dd9a]">
+            단건 결제 서비스
           </span>
           <div className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-400 to-transparent opacity-50" />
         </div>
@@ -2381,14 +2379,14 @@ export default function PointsPage() {
         {/* ④ 패키지 카드 목록 */}
         <section
           aria-label="단건 결제 회차형 이용권"
-          className="cd-card-light rounded-[24px] overflow-hidden shadow-[0_8px_32px_rgba(120,80,10,0.10)]"
+          className="overflow-hidden rounded-[24px] border border-white/12 bg-white/[0.08] shadow-[0_18px_46px_rgba(7,10,28,0.32)] backdrop-blur"
         >
           <div
-            className="border border-[#EDDBA3] rounded-[24px] p-5"
-            style={{ background: "linear-gradient(135deg, #FFFDF8 0%, #FEFBF0 100%)" }}
+            className="rounded-[24px] p-5"
+            style={{ background: "linear-gradient(135deg, rgba(13,19,43,0.90) 0%, rgba(39,34,82,0.78) 100%)" }}
           >
-            <p className="mb-3 flex items-center gap-2 text-[12px] font-bold text-[#8A6020]">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-500" />
+            <p className="mb-3 flex items-center gap-2 text-[12px] font-bold text-slate-200">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#f3dd9a]" />
               필요한 이용권을 선택한 뒤 결제 수단을 고르세요.
             </p>
             <div className="flex flex-col gap-3">
@@ -2401,12 +2399,12 @@ export default function PointsPage() {
                 />
               ))}
             </div>
-            <div className="mt-4 flex items-start gap-2 rounded-[14px] border border-amber-100 bg-amber-50/60 px-3.5 py-3">
-              <span className="text-amber-600 flex-shrink-0 mt-0.5">✔️</span>
-              <p className="text-[11px] text-amber-800 leading-relaxed">
+            <div className="mt-4 flex items-start gap-2 rounded-[14px] border border-[#f3dd9a]/30 bg-[#f3dd9a]/10 px-3.5 py-3">
+              <span className="text-[#f3dd9a] flex-shrink-0 mt-0.5">✔️</span>
+              <p className="text-[11px] text-slate-200 leading-relaxed">
                 결제 완료 후 해당 상품 이용 또는 결과 생성이 진행됩니다.
                 <span className="mx-1">·</span>
-                결제 성공 후 코인 지갑에 잔액을 적립하지 않고, 선택한 이용권 회차만 즉시 지급합니다.
+                결제 성공 후 선택한 이용권 회차만 즉시 지급합니다.
               </p>
             </div>
             <div className="mt-3 flex items-start gap-2 rounded-[14px] border border-rose-100 bg-rose-50/70 px-3.5 py-3">
@@ -2418,14 +2416,14 @@ export default function PointsPage() {
           </div>
         </section>
 
-        <section className="cd-card-light rounded-[20px] border border-[#EDDBA3]/70 bg-[rgba(255,252,243,0.88)] p-5">
+        <section className="rounded-[20px] border border-white/12 bg-white/[0.08] p-5">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="font-bold text-[#5C3A1E]">최근 결제 내역</h3>
-            <span className="text-[11px] font-semibold text-[#8A6020]">승인번호 / 주문번호 / 영수증</span>
+            <h3 className="font-bold text-white">최근 결제 내역</h3>
+            <span className="text-[11px] font-semibold text-slate-300">승인번호 / 주문번호 / 영수증</span>
           </div>
 
           {paymentHistory.length === 0 ? (
-            <p className="text-sm text-[#7A5230]">아직 결제 내역이 없습니다.</p>
+            <p className="text-sm text-slate-300">아직 결제 내역이 없습니다.</p>
           ) : (
             <div className="space-y-2.5">
               {paymentHistory.map((payment) => {
@@ -2486,7 +2484,7 @@ export default function PointsPage() {
         <section className="cd-card-light rounded-[20px] border border-[#EDDBA3]/60 bg-[rgba(255,248,228,0.55)] p-5">
           <h3 className="font-bold text-[#5C3A1E]">결제 실패 안내</h3>
           <ul className="mt-2 space-y-1.5 text-sm text-[#7A5230]">
-            <li>• 창 닫기/취소: 결제가 취소되어 코인이 차감되지 않습니다.</li>
+            <li>• 창 닫기/취소: 결제가 취소되어 이용권 권한이 생성되지 않습니다.</li>
             <li>• 한도 초과: 다른 카드/계좌이체 또는 금액을 낮춰 재시도해 주세요.</li>
             <li>• 카드사 점검: 잠시 후 다시 시도하거나 다른 결제수단을 선택해 주세요.</li>
           </ul>
@@ -2529,18 +2527,18 @@ export default function PointsPage() {
                 <p className="text-sm font-semibold text-slate-700 truncate">{authUser?.email || "—"}</p>
               </div>
               <div className="rounded-[14px] border border-slate-100 bg-slate-50/80 px-4 py-3">
-                <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">이벤트 코인</p>
+                <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">콘텐츠 가치 단위</p>
                 <p className="text-sm font-semibold text-amber-700">
-                  ✦ {currentPoints.toLocaleString("ko-KR")}코인
+                  1코인 = 100원 상당
                 </p>
               </div>
               <div className="rounded-[14px] border border-slate-100 bg-slate-50/80 px-4 py-3">
                 <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">현재 이용권</p>
                 <p className="text-sm font-semibold text-slate-700">
-                  {subscription.tier === "free" ? "🆓 무료 플랜"
-                   : subscription.tier === "standard" ? "🍯 스탠다드 꿀"
-                   : subscription.tier === "premium" ? "🌹 프리미엄 꿀"
-                   : subscription.tier === "vvip" ? "👑 VVIP 꿀단지"
+                  {!subscription.isActive || subscription.tier === "free" ? "무료 플랜"
+                   : subscription.tier === "standard" ? "스탠다드 꿀 30일 이용권"
+                   : subscription.tier === "premium" ? "프리미엄 꿀 30일 이용권"
+                   : subscription.tier === "vvip" ? "VVIP 꿀단지 30일 이용권"
                    : "—"}
                 </p>
               </div>
@@ -2567,7 +2565,7 @@ export default function PointsPage() {
               <div className="p-4 space-y-3">
                 {/* 경고 안내 */}
                 <div className="text-[12px] text-red-700 leading-relaxed space-y-1">
-                  <p>• 탈퇴 시 이벤트 코인·이용권·운세 프로필 등 <strong>모든 데이터가 즉시 영구 삭제</strong>됩니다.</p>
+                  <p>• 탈퇴 시 이용권·운세 프로필 등 <strong>모든 데이터가 즉시 영구 삭제</strong>됩니다.</p>
                   <p>• 탈퇴 후 <strong>동일 이메일로 재가입해도 이전 데이터는 복구되지 않습니다.</strong></p>
                   <p>• 법적 보존 의무에 따라 결제 거래 금액·일시는 5년간 익명화 보관됩니다.</p>
                 </div>

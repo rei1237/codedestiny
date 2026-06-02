@@ -594,7 +594,7 @@ async function consumeCoinWithRetry(request, env, delegatedBody) {
 
 function mapCoinGateFailure(responseStatus, payload) {
   const rawCode = String(toCode(payload) || "").trim().toUpperCase();
-  const message = toMessage(payload, "코인 결제 처리 중 오류가 발생했습니다.");
+  const message = toMessage(payload, "이용권 확인 중 오류가 발생했습니다.");
 
   if (rawCode === "SERVER_CONFIG_ERROR") {
     return {
@@ -668,7 +668,7 @@ function mapCoinGateFailure(responseStatus, payload) {
   return {
     status: 400,
     code: "SERVER_ERROR",
-    message: "코인 결제 요청이 거부되었습니다.",
+    message: "이용권 확인 요청이 거부되었습니다.",
     debugMessage: message,
   };
 }
@@ -955,7 +955,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     return failure(
       500,
       "SERVER_ERROR",
-      "코인 결제 처리 중 오류가 발생했습니다.",
+      "이용권 확인 중 오류가 발생했습니다.",
       String(error?.message || ""),
       {},
       buildBillingErrorDetails("coin-gate-consume", error, { featureKey: String(pricing?.featureKey || "") }),
@@ -1022,7 +1022,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     accessGrant,
     balance: Number.isFinite(balance) ? balance : null,
     user: payload?.user || null,
-  }, toMessage(payload, "코인 결제가 완료되었습니다."), {
+  }, toMessage(payload, "이용권 확인이 완료되었습니다."), {
     headers: responseHeaders,
   });
 }
@@ -1136,7 +1136,7 @@ async function handleBalance(request, env) {
     unlockedFeatures: Array.isArray(payload?.unlockedFeatures) ? payload.unlockedFeatures : [],
     unlockMap: payload?.unlockMap && typeof payload.unlockMap === "object" ? payload.unlockMap : {},
     raw: payload,
-  }, "코인 잔액을 조회했습니다.");
+  }, "이용 가능 혜택을 조회했습니다.");
 }
 
 async function readSubscriptionStatusSnapshot(request, env) {

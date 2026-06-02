@@ -24,6 +24,7 @@ type Props = {
 const TIER_META: Record<SubscriptionTier, {
   icon: string;
   label: string;
+  coinValue: number;
   bg: string;
   border: string;
   badge: string;
@@ -34,49 +35,53 @@ const TIER_META: Record<SubscriptionTier, {
   freeUpTo: string | null;
 }> = {
   free: {
-    icon: "🆓",
+    icon: "🌙",
     label: "무료 플랜",
-    bg: "from-gray-50 to-white",
-    border: "border-gray-200",
-    badge: "bg-gray-200 text-gray-600",
+    coinValue: 0,
+    bg: "from-slate-950/95 via-[#151a3d]/92 to-[#281a4d]/90",
+    border: "border-white/15",
+    badge: "bg-white/10 text-slate-100 ring-1 ring-white/15",
     badgeText: "FREE",
-    dot: "bg-gray-400",
-    desc: "기본 운세 서비스를 무료로 이용 중입니다.",
+    dot: "bg-slate-300",
+    desc: "기본 운세 서비스를 무료로 이용 중입니다. 단건 결제 서비스는 원화 결제로 이용할 수 있습니다.",
     profileMax: "1개",
     freeUpTo: null,
   },
   standard: {
-    icon: "🍯",
+    icon: "🌔",
     label: "스탠다드 꿀",
-    bg: "from-amber-50 to-yellow-50/60",
-    border: "border-amber-300",
-    badge: "bg-amber-500 text-white",
+    coinValue: 115,
+    bg: "from-[#111936]/95 via-[#27305d]/92 to-[#4a3a72]/90",
+    border: "border-[#e9d18a]/45",
+    badge: "bg-gradient-to-r from-[#d8bd72] to-[#f5df9d] text-[#1d1834]",
     badgeText: "STANDARD",
-    dot: "bg-amber-500",
+    dot: "bg-[#f5df9d]",
     desc: "30코인 이하 서비스 무료 · 최대 3개 프로필",
     profileMax: "3개",
     freeUpTo: "30코인 이하 무료",
   },
   premium: {
-    icon: "🌹",
+    icon: "🌕",
     label: "프리미엄 꿀",
-    bg: "from-rose-50 to-amber-50/60",
-    border: "border-rose-300",
-    badge: "bg-rose-500 text-white",
+    coinValue: 360,
+    bg: "from-[#101832]/95 via-[#352553]/92 to-[#604f88]/90",
+    border: "border-[#cab8ff]/45",
+    badge: "bg-gradient-to-r from-[#cab8ff] to-[#f2d48f] text-[#17142b]",
     badgeText: "PREMIUM",
-    dot: "bg-rose-500",
+    dot: "bg-[#cab8ff]",
     desc: "50코인 이하 서비스 무료 · 최대 7개 프로필",
     profileMax: "7개",
     freeUpTo: "50코인 이하 무료",
   },
   vvip: {
-    icon: "👑",
+    icon: "🌌",
     label: "VVIP 꿀단지",
-    bg: "from-purple-50 to-violet-50/60",
-    border: "border-purple-300",
-    badge: "bg-gradient-to-r from-purple-600 to-violet-500 text-white",
+    coinValue: 700,
+    bg: "from-[#091126]/95 via-[#24164d]/92 to-[#42306f]/90",
+    border: "border-[#f3dd9a]/55",
+    badge: "bg-gradient-to-r from-[#f3dd9a] via-[#cab8ff] to-[#8cb8ff] text-[#11142a]",
     badgeText: "VVIP",
-    dot: "bg-purple-500",
+    dot: "bg-[#f3dd9a]",
     desc: "100코인 이하 서비스 무료 · 최대 15개 프로필",
     profileMax: "15개",
     freeUpTo: "100코인 이하 무료",
@@ -84,7 +89,8 @@ const TIER_META: Record<SubscriptionTier, {
 };
 
 export default function SubscriptionStatusCard({ subscription }: Props) {
-  const meta = TIER_META[subscription.tier];
+  const effectiveTier: SubscriptionTier = subscription.isActive ? subscription.tier : "free";
+  const meta = TIER_META[effectiveTier];
 
   // Date validation: ensure expiresAt is a valid date string
   const toValidDate = (value: string | null | undefined): Date | null => {
@@ -112,23 +118,19 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
 
   const isExpiringSoon = daysLeft !== null && daysLeft <= 7 && daysLeft > 0;
   const isExpired = daysLeft === 0 && subscription.isActive === false;
+  const isActivePass = subscription.isActive && effectiveTier !== "free";
+  const wonValue = meta.coinValue * 100;
 
   return (
     <section
       aria-label="현재 이용권 상태"
-      className={`rounded-[24px] border ${meta.border} bg-gradient-to-br ${meta.bg} overflow-hidden shadow-[0_6px_24px_rgba(0,0,0,0.07)]`}
+      className={`rounded-[24px] border ${meta.border} bg-gradient-to-br ${meta.bg} overflow-hidden text-slate-100 shadow-[0_18px_46px_rgba(7,10,28,0.35)]`}
     >
       {/* 상태 바 */}
       <div
         className="h-[3px] w-full"
         style={{
-          background: subscription.tier === "free"
-            ? "linear-gradient(90deg,#d1d5db,#9ca3af,#d1d5db)"
-            : subscription.tier === "standard"
-              ? "linear-gradient(90deg,#C9A84C,#FFE070,#C9A84C)"
-              : subscription.tier === "premium"
-                ? "linear-gradient(90deg,#f43f5e,#fb923c,#f43f5e)"
-                : "linear-gradient(90deg,#7c3aed,#a78bfa,#7c3aed)",
+          background: "linear-gradient(90deg, rgba(255,255,255,0), #f3dd9a 24%, #cab8ff 52%, #8cb8ff 76%, rgba(255,255,255,0))",
         }}
       />
 
@@ -138,8 +140,8 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
           <div className="flex items-center gap-2.5">
             <span className="text-2xl leading-none">{meta.icon}</span>
             <div>
-              <p className="text-[10.5px] font-extrabold uppercase tracking-widest text-gray-500">현재 이용권</p>
-              <p className="text-[16px] font-black text-gray-800 leading-tight">{meta.label}</p>
+              <p className="text-[10.5px] font-extrabold uppercase tracking-widest text-[#cab8ff]/80">나의 월정석 혜택</p>
+              <p className="text-[16px] font-black text-white leading-tight">{meta.label}</p>
             </div>
           </div>
           <span className={`rounded-full px-3 py-1 text-[11.5px] font-black shadow-sm ${meta.badge}`}>
@@ -148,12 +150,21 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
         </div>
 
         {/* 상태 상세 */}
-        {subscription.isActive && subscription.tier !== "free" ? (
+        {isActivePass ? (
           <div className="space-y-2">
             {/* 활성 상태 표시 */}
             <div className="flex items-center gap-2">
               <span className={`h-2 w-2 rounded-full ${meta.dot} animate-pulse`} />
-              <span className="text-[12.5px] font-bold text-emerald-700">30일 이용권 활성화됨</span>
+              <span className="text-[12.5px] font-bold text-[#f3dd9a]">현재 {meta.label} 이용 중 · 다음 갱신 전까지 이용 가능</span>
+            </div>
+
+            <div className="rounded-[14px] border border-white/12 bg-white/8 px-3.5 py-3">
+              <p className="text-[13px] font-black text-white">
+                {meta.label} · {meta.coinValue.toLocaleString("ko-KR")}코인 / 30일 · {wonValue.toLocaleString("ko-KR")}원 상당
+              </p>
+              <p className="mt-1 text-[11.5px] text-slate-200">
+                코인은 충전 재화가 아니라 콘텐츠 가치 표시 단위입니다.
+              </p>
             </div>
 
             {/* 만료일 / 잔여일 */}
@@ -161,21 +172,21 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
               <div
                 className={`rounded-[12px] px-3.5 py-2.5 flex items-center justify-between gap-2 ${
                   isExpiringSoon
-                    ? "bg-orange-50 border border-orange-300"
-                    : "bg-white/70 border border-gray-200"
+                    ? "bg-orange-400/12 border border-orange-300/50"
+                    : "bg-white/8 border border-white/12"
                 }`}
               >
                 <div>
-                  <p className="text-[10.5px] font-bold text-gray-500">만료일</p>
-                  <p className={`text-[13px] font-black ${isExpiringSoon ? "text-orange-700" : "text-gray-700"}`}>
+                  <p className="text-[10.5px] font-bold text-slate-300">갱신/만료일</p>
+                  <p className={`text-[13px] font-black ${isExpiringSoon ? "text-orange-100" : "text-white"}`}>
                     {expiresDate}
                   </p>
                 </div>
                 <span
                   className={`rounded-full px-2.5 py-1 text-[12px] font-black ${
                     isExpiringSoon
-                      ? "bg-orange-100 text-orange-700"
-                      : "bg-emerald-100 text-emerald-700"
+                      ? "bg-orange-300/20 text-orange-100"
+                      : "bg-emerald-300/15 text-emerald-100"
                   }`}
                 >
                   {daysLeft}일 남음
@@ -185,23 +196,28 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
 
             {/* 혜택 요약 */}
             <div className="grid grid-cols-2 gap-2 mt-1">
-              <div className="rounded-[12px] bg-white/70 border border-gray-200 px-3 py-2">
-                <p className="text-[10px] text-gray-500 font-bold">프로필 최대</p>
-                <p className="text-[14px] font-black text-gray-800">{meta.profileMax}</p>
+              <div className="rounded-[12px] bg-white/8 border border-white/12 px-3 py-2">
+                <p className="text-[10px] text-slate-300 font-bold">프로필 최대</p>
+                <p className="text-[14px] font-black text-white">{meta.profileMax}</p>
               </div>
               {meta.freeUpTo && (
-                <div className="rounded-[12px] bg-white/70 border border-gray-200 px-3 py-2">
-                  <p className="text-[10px] text-gray-500 font-bold">무료 이용</p>
-                  <p className="text-[12px] font-black text-gray-800">{meta.freeUpTo}</p>
+                <div className="rounded-[12px] bg-white/8 border border-white/12 px-3 py-2">
+                  <p className="text-[10px] text-slate-300 font-bold">무료 이용 범위</p>
+                  <p className="text-[12px] font-black text-white">{meta.freeUpTo}</p>
                 </div>
               )}
             </div>
 
-            {/* 잔액 부족 경고 */}
+            <div className="rounded-[12px] bg-white/8 border border-white/12 px-3 py-2">
+              <p className="text-[10px] text-slate-300 font-bold">단건 결제</p>
+              <p className="text-[12px] font-black text-white">플랜 범위 밖 서비스는 원화 단건 결제로 이용 가능</p>
+            </div>
+
+            {/* 월정석 혜택 범위 안내 */}
             {subscription.lowBalanceWarning && (
-              <div className="rounded-[12px] border border-orange-300 bg-orange-50 px-3.5 py-2.5 flex items-start gap-2">
+              <div className="rounded-[12px] border border-orange-300/50 bg-orange-400/12 px-3.5 py-2.5 flex items-start gap-2">
                 <span className="text-orange-500 flex-shrink-0 mt-0.5">🔔</span>
-                <p className="text-[11.5px] text-orange-800">
+                <p className="text-[11.5px] text-orange-100">
                   이용권 기간은 유지됩니다. 추가 유료 콘텐츠는 상품별 단건 결제로 이용할 수 있습니다.
                 </p>
               </div>
@@ -209,18 +225,18 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
 
             {/* 곧 만료 경고 */}
             {isExpiringSoon && (
-              <div className="rounded-[12px] border border-orange-300 bg-orange-50 px-3.5 py-2.5 flex items-start gap-2">
+              <div className="rounded-[12px] border border-orange-300/50 bg-orange-400/12 px-3.5 py-2.5 flex items-start gap-2">
                 <span className="text-orange-500 flex-shrink-0 mt-0.5">⏰</span>
-                <p className="text-[11.5px] text-orange-800">
+                <p className="text-[11.5px] text-orange-100">
                   이용권이 <strong>{daysLeft}일 후</strong> 만료됩니다. 계속 이용하려면 새 30일 이용권을 결제해 주세요.
                 </p>
               </div>
             )}
 
             {subscription.cancelAtPeriodEnd && (
-              <div className="rounded-[12px] border border-violet-300 bg-violet-50 px-3.5 py-2.5 flex items-start gap-2">
+              <div className="rounded-[12px] border border-violet-300/50 bg-violet-400/12 px-3.5 py-2.5 flex items-start gap-2">
                 <span className="text-violet-500 flex-shrink-0 mt-0.5">🧭</span>
-                <p className="text-[11.5px] text-violet-800">
+                <p className="text-[11.5px] text-violet-100">
                   현재 혜택은 만료일까지 유지됩니다. 이 이용권은 반복 결제되지 않습니다.
                 </p>
               </div>
@@ -229,12 +245,15 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
         ) : (
           <div>
             {isExpired ? (
-              <div className="rounded-[12px] border border-rose-300 bg-rose-50 px-3.5 py-2.5 flex items-center gap-2">
+              <div className="rounded-[12px] border border-rose-300/50 bg-rose-400/12 px-3.5 py-2.5 flex items-center gap-2">
                 <span className="text-rose-500">⚠️</span>
-                <p className="text-[12px] text-rose-800 font-bold">이용권이 만료되었습니다. 새 30일 이용권을 결제해 주세요.</p>
+                <p className="text-[12px] text-rose-100 font-bold">이용권이 만료되었습니다. 새 30일 이용권을 결제해 주세요.</p>
               </div>
             ) : (
-              <p className="text-[12.5px] text-gray-500">{meta.desc}</p>
+              <div className="rounded-[14px] border border-white/12 bg-white/8 px-3.5 py-3">
+                <p className="text-[12.5px] text-slate-200">{meta.desc}</p>
+                <p className="mt-1 text-[11.5px] text-[#f3dd9a]">단건 결제 가능 · 콘텐츠 가치 단위 1코인 = 100원</p>
+              </div>
             )}
           </div>
         )}

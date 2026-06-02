@@ -404,7 +404,7 @@ export default function MePage() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Link href="/points" className="rounded-md border border-amber-300/35 bg-amber-400/10 px-3 py-2 text-sm font-semibold text-amber-100">
-              구독 및 코인
+              이용권 관리
             </Link>
             <button
               type="button"
@@ -436,8 +436,8 @@ export default function MePage() {
             <p className="mt-1 truncate text-xs text-slate-400">{user?.email || "-"}</p>
           </div>
           <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
-            <p className="text-xs text-slate-400">보유 코인</p>
-            <p className="mt-1 text-xl font-bold text-amber-200">{Number(user?.points || 0).toLocaleString("ko-KR")}P</p>
+            <p className="text-xs text-slate-400">콘텐츠 가치 단위</p>
+            <p className="mt-1 text-xl font-bold text-amber-200">1코인 = 100원 상당</p>
           </div>
           <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
             <p className="text-xs text-slate-400">프로필 슬롯</p>

@@ -26,7 +26,7 @@ function LockedSection({
   cost,
   isUnlocked,
   onUnlock,
-  buttonLabel = "꽃돼지 코인으로 운명 확인하기",
+  buttonLabel = "월정석 혜택으로 운명 확인하기",
   children,
 }: LockedSectionProps) {
   const [isScrolling, setIsScrolling] = useState(false);
@@ -96,7 +96,7 @@ function LockedSection({
       {/* 결제 전 유료 데이터는 렌더링하지 않고 미리보기 더미만 표시 */}
       <div className="mt-3 rounded-2xl border border-amber-100 bg-rose-50/80 p-4 text-neutral-500 blur-[10px] grayscale-[50%] select-none pointer-events-none">
         <p className="font-semibold">잠금된 프리미엄 운명 데이터</p>
-        <p className="mt-1 text-sm">코인 결제 후 상세 결과가 열립니다.</p>
+        <p className="mt-1 text-sm">월정석 혜택 또는 원화 단건 결제 후 상세 결과가 열립니다.</p>
       </div>
 
       <div className="absolute inset-0 grid place-items-center bg-white/20 backdrop-blur-[10px]">
@@ -496,7 +496,7 @@ function markZiweiPremiumUnlockedClient() {
 }
 
 function notifyCoinDeducted(cost: number, points: number, label: string) {
-  showToast(`🪙 ${label} 이용으로 ${cost}코인이 차감되었습니다. 남은 코인: ${Number(points).toLocaleString("ko-KR")}`, "info");
+  showToast(`${label} 이용권 확인이 완료되었습니다. ${cost}코인 · ${(cost * 100).toLocaleString("ko-KR")}원 상당`, "info");
 }
 
 function notifyCoinResult(data: any, fallbackCost: number, points: number, label: string) {
@@ -504,7 +504,7 @@ function notifyCoinResult(data: any, fallbackCost: number, points: number, label
   const chargedCoins = Number(normalized?.chargedCoins ?? fallbackCost);
   if (isSubscriptionIncludedResponse(normalized, chargedCoins)) {
     showSubscriptionIncludedNotice({
-      message: String(normalized?.message || data?.message || "구독 혜택이 적용되어 코인이 차감되지 않았습니다."),
+      message: String(normalized?.message || data?.message || "월정석 혜택 범위에 포함되어 바로 이용할 수 있습니다."),
       reason: label,
       tier: String(normalized?.subscriptionTier || ""),
     });
@@ -590,7 +590,7 @@ export default function KkulkkulManseryukMain() {
         return;
       }
       if (!purchaseResult.ok && purchaseResult.status === 402) { setShowRechargeModal(true); return; }
-      if (!purchaseResult.ok) { alert(purchaseResult.error?.message || purchaseResult.message || '코인 차감 실패'); return; }
+      if (!purchaseResult.ok) { alert(purchaseResult.error?.message || purchaseResult.message || '이용권 확인 실패'); return; }
 
       const normalized: Record<string, unknown> & {
         user: Record<string, unknown> | null;
@@ -650,7 +650,7 @@ export default function KkulkkulManseryukMain() {
         return;
       }
       if (!purchaseResult.ok && purchaseResult.status === 402) { setShowRechargeModal(true); return; }
-      if (!purchaseResult.ok) { alert(purchaseResult.error?.message || purchaseResult.message || '코인 차감 실패'); return; }
+      if (!purchaseResult.ok) { alert(purchaseResult.error?.message || purchaseResult.message || '이용권 확인 실패'); return; }
 
       const normalized: Record<string, unknown> & {
         user: Record<string, unknown> | null;
@@ -691,7 +691,7 @@ export default function KkulkkulManseryukMain() {
         return { ok: false, reason: 'login-required', message: '로그인이 필요합니다.' };
       }
       if (!res.ok) {
-        throw new Error(data?.message || '잔액 확인에 실패했습니다.');
+        throw new Error(data?.message || '이용권 확인에 실패했습니다.');
       }
 
       const normalized = unwrapBillingPayload(data);
@@ -699,15 +699,10 @@ export default function KkulkkulManseryukMain() {
       setCurrentCoins(points);
       saveUserPoints(points);
 
-      const required = PREMIUM_SERVICE_COST[service] ?? 0;
-      if (points < required) {
-        return { ok: false, reason: 'payment-required', message: '코인이 부족합니다.' };
-      }
-
       return { ok: true };
     } catch (error) {
       console.error('[runPremiumIntroGate]', error);
-      const message = '코인/권한 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+      const message = '이용권 권한 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
       setPremiumGateError(message);
       return { ok: false, reason: 'error', message };
     }
@@ -774,14 +769,14 @@ export default function KkulkkulManseryukMain() {
       if (gate.reason === 'payment-required') {
         if (service === 'veda') {
           setVedaFlowState('payment_required');
-          setVedaFlowError(gate.message || '코인이 부족합니다.');
+          setVedaFlowError(gate.message || '단건 결제가 필요합니다.');
         } else {
           setShowRechargeModal(true);
         }
       } else if (gate.reason === 'error') {
         if (service === 'veda') {
           setVedaFlowState('error');
-          setVedaFlowError(gate.message || '코인/권한 확인 중 오류가 발생했습니다.');
+          setVedaFlowError(gate.message || '이용권 권한 확인 중 오류가 발생했습니다.');
         }
       } else if (service === 'veda') {
         setVedaFlowState('idle');
@@ -815,14 +810,14 @@ export default function KkulkkulManseryukMain() {
       if (!purchaseResult.ok && purchaseResult.status === 402) {
         if (service === 'veda') {
           setVedaFlowState('payment_required');
-          setVedaFlowError(purchaseResult.error?.message || '코인이 부족합니다.');
+          setVedaFlowError(purchaseResult.error?.message || '단건 결제가 필요합니다.');
         } else {
           setShowRechargeModal(true);
         }
         return;
       }
       if (!purchaseResult.ok) {
-        const message = purchaseResult.error?.message || purchaseResult.message || '코인 차감 실패';
+        const message = purchaseResult.error?.message || purchaseResult.message || '이용권 확인 실패';
         setPremiumGateError(message);
         if (service === 'veda') {
           setVedaFlowState('error');
@@ -838,7 +833,7 @@ export default function KkulkkulManseryukMain() {
         && !!consumePayload
         && (consumePayload as Record<string, unknown>).ok !== false;
       if (!coinGateConfirmed) {
-        const message = '코인 결제 확인에 실패하여 생성을 시작하지 않았습니다. 다시 시도해 주세요.';
+        const message = '이용권 또는 단건 결제 확인에 실패하여 생성을 시작하지 않았습니다. 다시 시도해 주세요.';
         setPremiumGateError(message);
         if (service === 'veda') {
           setVedaFlowState('error');
@@ -1051,17 +1046,17 @@ export default function KkulkkulManseryukMain() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-rose-700">꿀꿀 만세력</p>
-              <h1 className="mt-2 text-3xl font-black leading-tight">꽃꽃돼지 코인 운명 상점</h1>
+              <h1 className="mt-2 text-3xl font-black leading-tight">달빛 운세 이용권</h1>
               <p className="mt-2 text-sm text-neutral-700">
-                무료는 즉시 노출, 유료는 코인으로 개별 해금합니다. 결제 전에는 데이터가 노출되지 않습니다.
+                무료는 즉시 노출, 유료는 월정석 혜택 또는 원화 단건 결제로 개별 해금합니다. 결제 전에는 데이터가 노출되지 않습니다.
               </p>
             </div>
 
             <div className="rounded-2xl border border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-100 px-4 py-3 shadow-sm">
-              <p className="text-xs font-semibold text-amber-800">현재 잔액</p>
+              <p className="text-xs font-semibold text-amber-800">콘텐츠 가치 단위</p>
               <p className="mt-1 flex items-center gap-2 text-xl font-extrabold text-amber-900">
-                <span aria-hidden="true">🐷</span>
-                <span>꽃꽃돼지 코인 {currentCoins}</span>
+                <span aria-hidden="true">🌙</span>
+                <span>1코인 = 100원 상당</span>
               </p>
             </div>
           </div>
@@ -1168,7 +1163,7 @@ export default function KkulkkulManseryukMain() {
         <section className="rounded-3xl border border-rose-200 bg-white/90 p-5 shadow-sm">
           <h2 className="text-xl font-black text-rose-800">회당 과금 점술 (서버 가격표 기준)</h2>
           <p className="mt-1 text-sm text-neutral-600">
-            주역·이집트·지오맨시는 이용할 때마다 차감되고, 스톤헨지 룬점은 배열 선택 후 1룬/3룬/5룬/12룬 단계별 코인이 차감됩니다.
+            주역·이집트·지오맨시는 이용할 때마다 권한을 확인하고, 스톤헨지 룬점은 배열 선택 후 1룬/3룬/5룬/12룬 단계별 가치 기준이 적용됩니다.
           </p>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
@@ -1194,7 +1189,7 @@ export default function KkulkkulManseryukMain() {
                   onClick={wrapClick(() => runPaidFeatureOnce(item.key, item.cost))}
                   className="mt-3 w-full rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 px-4 py-2 text-sm font-bold text-white transition-transform duration-200 hover:scale-105 active:scale-95"
                 >
-                  {item.key === "stonehengeRunes" ? "배열 고르고 코인 결제하기" : "꽃꽃돼지 코인으로 운명 확인하기"}
+                  {item.key === "stonehengeRunes" ? "배열 고르고 이용권으로 열기" : "월정석 혜택으로 운명 확인하기"}
                 </button>
 
                 {perUseCount[item.key] > 0 ? (
@@ -1389,7 +1384,7 @@ export default function KkulkkulManseryukMain() {
               <div>
                 <p className="text-xs text-rose-300/70">1회 이용 요금</p>
                 <p className="text-xl font-extrabold text-amber-300">
-                  🐷 꽃꽃돼지 코인 100
+                  100코인 · 10,000원 상당
                 </p>
               </div>
               <button

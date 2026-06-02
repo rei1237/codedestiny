@@ -207,9 +207,9 @@ async function grantUsagePassToUser({ userId, product, paymentId, paidAt, sessio
 }
 
 const SUBSCRIPTION_PAYMENT_PLANS = {
-  standard: { tier: "standard", name: "스탠다드 꿀", wonPrice: 9900, durationDays: 30, profileLimit: 3, membershipCreditGrant: 990 },
-  premium: { tier: "premium", name: "프리미엄 꿀", wonPrice: 29900, durationDays: 30, profileLimit: 7, membershipCreditGrant: 2990 },
-  vvip: { tier: "vvip", name: "VVIP 꿀단지", wonPrice: 59000, durationDays: 30, profileLimit: 15, membershipCreditGrant: 5900 },
+  standard: { tier: "standard", name: "스탠다드 꿀", wonPrice: 9900, durationDays: 30, profileLimit: 3, membershipCreditGrant: 0 },
+  premium: { tier: "premium", name: "프리미엄 꿀", wonPrice: 29900, durationDays: 30, profileLimit: 7, membershipCreditGrant: 0 },
+  vvip: { tier: "vvip", name: "VVIP 꿀단지", wonPrice: 59000, durationDays: 30, profileLimit: 15, membershipCreditGrant: 0 },
 };
 
 const SUBSCRIPTION_TIER_RANK = Object.freeze({
@@ -1769,10 +1769,9 @@ async function handleSubscriptionConfirm(request, env, auth) {
         "profileSubscription.lastBillingStatus": "success",
         "profileSubscription.lastBillingError": "",
         "profileSubscription.firstSubAt": existingUser?.profileSubscription?.firstSubAt || paidAt,
-      },
-      $inc: {
-        "profileSubscription.membershipCreditBalance": plan.membershipCreditGrant,
-        "profileSubscription.membershipCreditGranted": plan.membershipCreditGrant,
+        "profileSubscription.membershipCreditBalance": 0,
+        "profileSubscription.membershipCreditGranted": 0,
+        "profileSubscription.membershipCreditUsed": 0,
       },
     },
     { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },

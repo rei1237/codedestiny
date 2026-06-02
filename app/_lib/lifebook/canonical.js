@@ -19,6 +19,44 @@ const EN_TO_KOR_ELEMENT = {
   water: "수",
 };
 
+const BRANCH_SEASON_MAP = Object.freeze({
+  寅: "spring",
+  卯: "spring",
+  辰: "spring",
+  巳: "summer",
+  午: "summer",
+  未: "summer",
+  申: "autumn",
+  酉: "autumn",
+  戌: "autumn",
+  亥: "winter",
+  子: "winter",
+  丑: "winter",
+});
+
+const BRANCH_SEASON_LABELS = Object.freeze({
+  spring: "봄",
+  summer: "여름",
+  autumn: "가을",
+  winter: "겨울",
+  unknown: "계절 불명",
+});
+
+const BRANCH_OPPOSITE_MAP = Object.freeze({
+  子: "午",
+  午: "子",
+  丑: "未",
+  未: "丑",
+  寅: "申",
+  申: "寅",
+  卯: "酉",
+  酉: "卯",
+  辰: "戌",
+  戌: "辰",
+  巳: "亥",
+  亥: "巳",
+});
+
 const HIDDEN_STEMS_BY_BRANCH = {
   子: ["癸"],
   丑: ["己", "癸", "辛"],
@@ -164,6 +202,224 @@ function missingIf(condition, key, target) {
 
 function hasObject(value) {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function branchSeason(branch) {
+  return BRANCH_SEASON_MAP[toNonEmptyString(branch)] || "unknown";
+}
+
+function branchSeasonLabel(branch) {
+  return BRANCH_SEASON_LABELS[branchSeason(branch)] || "계절 불명";
+}
+
+function collectBranchRepeats(pillars = {}) {
+  const slots = ["year", "month", "day", "hour"];
+  const counts = {};
+  const positions = {};
+
+  for (let i = 0; i < slots.length; i += 1) {
+    const slot = slots[i];
+    const branch = toNonEmptyString(pillars?.[slot]?.branch || "");
+    if (!branch) continue;
+    counts[branch] = (counts[branch] || 0) + 1;
+    if (!positions[branch]) positions[branch] = [];
+    positions[branch].push({ slot, index: i });
+  }
+
+  const repeatedBranches = Object.entries(counts)
+    .filter(([, count]) => count >= 2)
+    .map(([branch, count]) => {
+      const branchPositions = positions[branch] || [];
+      const indexes = branchPositions.map((item) => item.index);
+      const hasAdjacentRepeat = indexes.some((index, idx) => idx > 0 && index - indexes[idx - 1] === 1);
+      return {
+        branch,
+        count,
+        oppositeBranch: BRANCH_OPPOSITE_MAP[branch] || "",
+        slots: branchPositions.map((item) => item.slot),
+        hasAdjacentRepeat,
+      };
+    })
+    .sort((a, b) => b.count - a.count || Number(b.hasAdjacentRepeat) - Number(a.hasAdjacentRepeat));
+
+  return {
+    counts,
+    repeatedBranches,
+  };
+}
+
+function buildJohuYongshinLayer({ monthBranch, fiveElements = {}, usefulGods = {} } = {}) {
+  const season = branchSeason(monthBranch);
+  const seasonLabel = branchSeasonLabel(monthBranch);
+  const dominant = toNonEmptyString(fiveElements?.dominant || "");
+  const weakest = toNonEmptyString(fiveElements?.weakest || "");
+  const explicit = hasObject(usefulGods?.johu) ? usefulGods.johu : {};
+  const temperatureBySeason = {
+    spring: "온난",
+    summer: "염열",
+    autumn: "건조",
+    winter: "한랭",
+    unknown: "중성",
+  };
+  const elementBySeason = {
+    spring: "금",
+    summer: "수",
+    autumn: "목",
+    winter: "화",
+    unknown: "",
+  };
+
+  const element = toNonEmptyString(explicit?.element || elementBySeason[season] || "");
+  const type = toNonEmptyString(explicit?.type || `${temperatureBySeason[season]} 조후`);
+  const summary = toNonEmptyString(explicit?.summary || (
+    `${seasonLabel} 기운을 바탕으로 ${element || "보완 오행"}로 한난조습을 맞추는 것이 핵심입니다. `
+    + `${dominant ? `오행의 중심은 ${dominant}에 있고,` : ""} `
+    + `${weakest ? `비어 있는 축은 ${weakest}이므로` : ""} `
+    + "실제 삶의 쾌적함과 건강감은 이 조정에서 크게 달라집니다."
+  ));
+
+  return {
+    type,
+    element,
+    season,
+    seasonLabel,
+    temperature: temperatureBySeason[season],
+    summary,
+  };
+}
+
+function buildGeokgukYongshinLayer({ monthBranch, tenGods = {}, usefulGods = {}, relations = {} } = {}) {
+  const explicit = hasObject(usefulGods?.geokguk) ? usefulGods.geokguk : {};
+  const dominantTenGod = Array.isArray(tenGods?.dominantTenGods) && tenGods.dominantTenGods.length
+    ? toNonEmptyString(tenGods.dominantTenGods[0])
+    : toNonEmptyString(tenGods?.dominant || "");
+  const seasonLabel = branchSeasonLabel(monthBranch);
+  const yong = toNonEmptyString(usefulGods?.yongsin?.element || "");
+  const support = toNonEmptyString(usefulGods?.huisin?.element || "");
+  const caution = toNonEmptyString(usefulGods?.gisin?.element || "");
+  const clashCount = ["heavenlyStemCombinations", "earthlyBranchCombinations", "clashes", "punishments", "harms", "breaks"]
+    .reduce((sum, key) => sum + (Array.isArray(relations?.[key]) ? relations[key].length : 0), 0);
+
+  const type = toNonEmptyString(explicit?.type || explicit?.title || (
+    dominantTenGod
+      ? `${dominantTenGod} 중심의 격국`
+      : `${seasonLabel} 월령 중심의 격국`
+  ));
+  const summary = toNonEmptyString(explicit?.summary || (
+    `${seasonLabel} 월령이 만들어내는 구조 속에서 ${yong || "억부 용신"}을 살리고 `
+    + `${support || "희신"}으로 격을 맑게 하는 방식이 핵심입니다. `
+    + `${caution ? `기신 ${caution}은 격을 흐리는 혼잡으로 다뤄야 하며, ` : ""}`
+    + `${clashCount > 0 ? `합충형파해 신호 ${clashCount}개가 구조를 흔들 수 있으므로 ` : ""}`
+    + "무엇이 이 사주를 쓰이게 하는지부터 먼저 읽어야 합니다."
+  ));
+
+  return {
+    type,
+    dominantTenGod,
+    support,
+    caution,
+    summary,
+  };
+}
+
+function buildQuantumYongshinLayer({ pillars = {}, usefulGods = {} } = {}) {
+  const explicit = hasObject(usefulGods?.quantumYongshin) ? usefulGods.quantumYongshin : {};
+  const branchRepeats = collectBranchRepeats(pillars);
+  const repeatedBranches = branchRepeats.repeatedBranches;
+  const topRepeat = repeatedBranches[0] || null;
+
+  if (!topRepeat) {
+    const summary = toNonEmptyString(explicit?.summary || (
+      "지지 반복이 두드러지지 않으므로 억부·조후·격국의 순서를 그대로 따르되, 표면과 잠재의 균형을 함께 읽는 방식이 안정적입니다."
+    ));
+    return {
+      type: toNonEmptyString(explicit?.type || "퀀텀 명리 용신법"),
+      summary,
+      branchCounts: branchRepeats.counts,
+      repeatedBranches: [],
+      oppositePotential: [],
+    };
+  }
+
+  const oppositeWeight = topRepeat.count >= 3 ? "강함" : "보통";
+  const summary = toNonEmptyString(explicit?.summary || (
+    `지지 ${topRepeat.branch}가 ${topRepeat.count}회 반복되어 표면상 강한 기운이 더 깊은 층에서 반대 축 ${topRepeat.oppositeBranch || "잠재 반대 기운"}를 불러옵니다. `
+    + `${topRepeat.slots.includes("month") || topRepeat.slots.includes("day")
+      ? "월지·일지가 반복에 포함되어 체감 반전력이 더 커집니다. "
+      : ""}`
+    + `${topRepeat.hasAdjacentRepeat ? "서로 붙은 반복이라면 반작용이 더 빨리 드러납니다. " : ""}`
+    + "그래서 억부 한 가지로 단정하지 않고 조후와 격국을 함께 보정해야 합니다."
+  ));
+
+  return {
+    type: toNonEmptyString(explicit?.type || "퀀텀 명리 용신법"),
+    summary,
+    branchCounts: branchRepeats.counts,
+    repeatedBranches: repeatedBranches.map((item) => ({
+      branch: item.branch,
+      count: item.count,
+      oppositeBranch: item.oppositeBranch,
+      slots: item.slots,
+      hasAdjacentRepeat: item.hasAdjacentRepeat,
+    })),
+    oppositePotential: [{
+      branch: topRepeat.oppositeBranch || "",
+      weight: oppositeWeight,
+      reason: topRepeat.count >= 3 ? "극단 반전성" : "잠재 반작용",
+    }],
+  };
+}
+
+function buildYongshinAnalysis({ pillars = {}, dayMaster = {}, fiveElements = {}, tenGods = {}, relations = {}, usefulGods = {} } = {}) {
+  const balancePrimary = toNonEmptyString(
+    usefulGods?.yongsin?.element
+    || usefulGods?.yong
+    || ""
+  );
+  const balanceSupport = Array.isArray(usefulGods?.huisin)
+    ? usefulGods.huisin.map((v) => toNonEmptyString(v)).filter(Boolean)
+    : [toNonEmptyString(usefulGods?.huisin?.element || usefulGods?.hee?.[0] || usefulGods?.hee || "")].filter(Boolean);
+  const balanceCaution = Array.isArray(usefulGods?.gisin)
+    ? usefulGods.gisin.map((v) => toNonEmptyString(v)).filter(Boolean)
+    : [toNonEmptyString(usefulGods?.gisin?.element || usefulGods?.gi?.[0] || usefulGods?.gi || "")].filter(Boolean);
+
+  const balanceYongshin = {
+    type: toNonEmptyString(usefulGods?.strength || usefulGods?.usefulGods?.strength || "balanced"),
+    primary: balancePrimary,
+    support: balanceSupport,
+    caution: balanceCaution,
+    summary: toNonEmptyString(usefulGods?.summary || (
+      `${toNonEmptyString(dayMaster?.element || "일간")}의 강약을 기준으로 ${balancePrimary || "용신"}을 세우고, `
+      + `${balanceSupport.length ? balanceSupport.join("·") : "희신"}으로 보좌하며 `
+      + `${balanceCaution.length ? balanceCaution.join("·") : "기신"}은 과열을 막는 경계로 읽습니다.`
+    )),
+  };
+
+  const johuYongshin = buildJohuYongshinLayer({
+    monthBranch: pillars?.month?.branch || "",
+    fiveElements,
+    usefulGods,
+  });
+
+  const geokgukYongshin = buildGeokgukYongshinLayer({
+    monthBranch: pillars?.month?.branch || "",
+    tenGods,
+    usefulGods,
+    relations,
+  });
+
+  const quantumYongshin = buildQuantumYongshinLayer({
+    pillars,
+    usefulGods,
+  });
+
+  return {
+    balanceYongshin,
+    johuYongshin,
+    geokgukYongshin,
+    quantumYongshin,
+    summary: `${balanceYongshin.primary || "억부 용신"}을 바탕으로 조후와 격국을 함께 보정하고, ${quantumYongshin.type || "퀀텀"}으로 반복 구조를 한 번 더 읽습니다.`,
+  };
 }
 
 export function validateCanonicalSajuChart(canonical) {
@@ -319,6 +575,58 @@ export function buildCanonicalSajuChart(input = {}) {
           family: {},
           socialMission: {},
         },
+    yongshinAnalysis: {
+      balanceYongshin: {
+        type: toNonEmptyString(source?.yongshinAnalysis?.balanceYongshin?.type || engine?.yongshinAnalysis?.balanceYongshin?.type || source?.usefulGods?.strength || engine?.usefulGods?.strength || "balanced"),
+        primary: toNonEmptyString(source?.yongshinAnalysis?.balanceYongshin?.primary || engine?.yongshinAnalysis?.balanceYongshin?.primary || source?.usefulGods?.yongsin?.element || engine?.usefulGods?.yongsin?.element || input?.yongsin || ""),
+        support: Array.isArray(source?.yongshinAnalysis?.balanceYongshin?.support)
+          ? source.yongshinAnalysis.balanceYongshin.support
+          : Array.isArray(engine?.yongshinAnalysis?.balanceYongshin?.support)
+            ? engine.yongshinAnalysis.balanceYongshin.support
+            : [toNonEmptyString(source?.usefulGods?.huisin?.element || engine?.usefulGods?.huisin?.element || "")].filter(Boolean),
+        caution: Array.isArray(source?.yongshinAnalysis?.balanceYongshin?.caution)
+          ? source.yongshinAnalysis.balanceYongshin.caution
+          : Array.isArray(engine?.yongshinAnalysis?.balanceYongshin?.caution)
+            ? engine.yongshinAnalysis.balanceYongshin.caution
+            : [toNonEmptyString(source?.usefulGods?.gisin?.element || engine?.usefulGods?.gisin?.element || "")].filter(Boolean),
+        summary: toNonEmptyString(source?.yongshinAnalysis?.balanceYongshin?.summary || engine?.yongshinAnalysis?.balanceYongshin?.summary || ""),
+      },
+      johuYongshin: {
+        type: toNonEmptyString(source?.yongshinAnalysis?.johuYongshin?.type || engine?.yongshinAnalysis?.johuYongshin?.type || ""),
+        element: toNonEmptyString(source?.yongshinAnalysis?.johuYongshin?.element || engine?.yongshinAnalysis?.johuYongshin?.element || ""),
+        season: toNonEmptyString(source?.yongshinAnalysis?.johuYongshin?.season || engine?.yongshinAnalysis?.johuYongshin?.season || ""),
+        seasonLabel: toNonEmptyString(source?.yongshinAnalysis?.johuYongshin?.seasonLabel || engine?.yongshinAnalysis?.johuYongshin?.seasonLabel || ""),
+        temperature: toNonEmptyString(source?.yongshinAnalysis?.johuYongshin?.temperature || engine?.yongshinAnalysis?.johuYongshin?.temperature || ""),
+        summary: toNonEmptyString(source?.yongshinAnalysis?.johuYongshin?.summary || engine?.yongshinAnalysis?.johuYongshin?.summary || ""),
+      },
+      geokgukYongshin: {
+        type: toNonEmptyString(source?.yongshinAnalysis?.geokgukYongshin?.type || engine?.yongshinAnalysis?.geokgukYongshin?.type || ""),
+        dominantTenGod: toNonEmptyString(source?.yongshinAnalysis?.geokgukYongshin?.dominantTenGod || engine?.yongshinAnalysis?.geokgukYongshin?.dominantTenGod || ""),
+        support: toNonEmptyString(source?.yongshinAnalysis?.geokgukYongshin?.support || engine?.yongshinAnalysis?.geokgukYongshin?.support || ""),
+        caution: toNonEmptyString(source?.yongshinAnalysis?.geokgukYongshin?.caution || engine?.yongshinAnalysis?.geokgukYongshin?.caution || ""),
+        summary: toNonEmptyString(source?.yongshinAnalysis?.geokgukYongshin?.summary || engine?.yongshinAnalysis?.geokgukYongshin?.summary || ""),
+      },
+      quantumYongshin: {
+        type: toNonEmptyString(source?.yongshinAnalysis?.quantumYongshin?.type || engine?.yongshinAnalysis?.quantumYongshin?.type || ""),
+        summary: toNonEmptyString(source?.yongshinAnalysis?.quantumYongshin?.summary || engine?.yongshinAnalysis?.quantumYongshin?.summary || ""),
+        branchCounts: hasObject(source?.yongshinAnalysis?.quantumYongshin?.branchCounts)
+          ? source.yongshinAnalysis.quantumYongshin.branchCounts
+          : hasObject(engine?.yongshinAnalysis?.quantumYongshin?.branchCounts)
+            ? engine.yongshinAnalysis.quantumYongshin.branchCounts
+            : {},
+        repeatedBranches: Array.isArray(source?.yongshinAnalysis?.quantumYongshin?.repeatedBranches)
+          ? source.yongshinAnalysis.quantumYongshin.repeatedBranches
+          : Array.isArray(engine?.yongshinAnalysis?.quantumYongshin?.repeatedBranches)
+            ? engine.yongshinAnalysis.quantumYongshin.repeatedBranches
+            : [],
+        oppositePotential: Array.isArray(source?.yongshinAnalysis?.quantumYongshin?.oppositePotential)
+          ? source.yongshinAnalysis.quantumYongshin.oppositePotential
+          : Array.isArray(engine?.yongshinAnalysis?.quantumYongshin?.oppositePotential)
+            ? engine.yongshinAnalysis.quantumYongshin.oppositePotential
+            : [],
+      },
+      summary: toNonEmptyString(source?.yongshinAnalysis?.summary || engine?.yongshinAnalysis?.summary || ""),
+    },
     validation: {
       hasFourPillars: false,
       hasDayMaster: false,
@@ -330,6 +638,15 @@ export function buildCanonicalSajuChart(input = {}) {
       missingFields: [],
     },
   };
+
+  canonical.yongshinAnalysis = buildYongshinAnalysis({
+    pillars: canonical.fourPillars,
+    dayMaster: canonical.dayMaster,
+    fiveElements: canonical.fiveElements,
+    tenGods: canonical.tenGods,
+    relations: canonical.relations,
+    usefulGods: canonical.usefulGods,
+  });
 
   const validation = validateCanonicalSajuChart(canonical);
   canonical.validation = {
@@ -350,9 +667,9 @@ function chapterRequiredDataPoints(chapterId) {
   const map = {
     1: ["fourPillars.year.ganji", "fourPillars.month.ganji", "fourPillars.day.ganji", "fourPillars.hour.ganji", "relations"],
     2: ["dayMaster.stem", "dayMaster.strength", "fourPillars.month.branch", "fiveElements", "tenGods.distribution"],
-    3: ["usefulGods.yongsin", "usefulGods.huisin", "usefulGods.gisin", "fiveElements", "tenGods.distribution"],
+    3: ["usefulGods.yongsin", "usefulGods.huisin", "usefulGods.gisin", "yongshinAnalysis.balanceYongshin", "yongshinAnalysis.johuYongshin", "yongshinAnalysis.geokgukYongshin", "yongshinAnalysis.quantumYongshin", "fiveElements", "tenGods.distribution"],
     4: ["luckCycles.direction", "luckCycles.startAge", "luckCycles.currentDaewoon", "luckCycles.daewoonList", "relations.clashes"],
-    5: ["fourPillars.month", "tenGods.distribution", "fiveElements", "usefulGods", "dayMaster"],
+    5: ["fourPillars.month", "tenGods.distribution", "fiveElements", "usefulGods", "yongshinAnalysis.geokgukYongshin", "dayMaster"],
     6: ["tenGods.distribution", "relations", "dayMaster", "fiveElements", "usefulGods"],
     7: ["fourPillars.day.branch", "tenGods.distribution", "relations", "usefulGods", "luckCycles.currentDaewoon"],
     8: ["tenGods.distribution", "fiveElements", "usefulGods", "luckCycles.currentDaewoon", "relations"],
@@ -438,6 +755,13 @@ export function buildChapterPromptPayload(chapterMeta, canonical, previousTexts 
     relevantTenGods: canonical?.tenGods || {},
     relevantElements: canonical?.fiveElements || {},
     relevantUsefulGods: canonical?.usefulGods || {},
+    relevantYongshinAnalysis: canonical?.yongshinAnalysis || null,
+    relevantYongshinLabels: {
+      balance: "억부용신",
+      johu: "조후용신",
+      geokguk: "격국용신",
+      quantum: "퀀텀 명리 보정",
+    },
     relevantLuck,
     relevantRelations: canonical?.relations || null,
     requiredDataPoints: chapterMeta.requiredDataPoints || [],
@@ -518,6 +842,10 @@ function dataEvidenceTokens(canonical) {
     canonical?.usefulGods?.yongsin?.element,
     canonical?.usefulGods?.huisin?.element,
     canonical?.usefulGods?.gisin?.element,
+    canonical?.yongshinAnalysis?.balanceYongshin?.primary,
+    canonical?.yongshinAnalysis?.johuYongshin?.element,
+    canonical?.yongshinAnalysis?.geokgukYongshin?.type,
+    canonical?.yongshinAnalysis?.quantumYongshin?.summary,
     canonical?.luckCycles?.currentDaewoon?.ganji,
     canonical?.annualLuck?.ganji,
   ].forEach((v) => {
@@ -554,7 +882,10 @@ function buildSummaryRows(canonical) {
       ? canonical.fiveElements.missing.join(", ")
       : toNonEmptyString(canonical?.fiveElements?.weakest || ""),
   ]);
-  rows.push(["용신", toNonEmptyString(canonical?.usefulGods?.yongsin?.element || "")]);
+  rows.push(["억부 용신", toNonEmptyString(canonical?.yongshinAnalysis?.balanceYongshin?.primary || canonical?.usefulGods?.yongsin?.element || "")]);
+  rows.push(["조후 용신", toNonEmptyString(canonical?.yongshinAnalysis?.johuYongshin?.type || canonical?.yongshinAnalysis?.johuYongshin?.element || "")]);
+  rows.push(["격국 용신", toNonEmptyString(canonical?.yongshinAnalysis?.geokgukYongshin?.type || canonical?.yongshinAnalysis?.geokgukYongshin?.summary || "")]);
+  rows.push(["퀀텀 보정", toNonEmptyString(canonical?.yongshinAnalysis?.quantumYongshin?.summary || "")]);
   rows.push([
     "현재 대운",
     toNonEmptyString(canonical?.luckCycles?.currentDaewoon?.ganji || "없음"),

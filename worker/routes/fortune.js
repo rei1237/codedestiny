@@ -35,7 +35,6 @@ import {
   ASTROLOGY_AI_PROMPT_FEATURE_KEY,
   ASTROLOGY_AI_PROMPT_PRICE,
 } from "../lib/astrology-ai-prompt.js";
-import { calculateMembershipCreditCost, MEMBERSHIP_CREDIT_PER_COIN } from "../lib/billing-policy.js";
 import {
   buildVedicAIPrompt,
   VEDIC_AI_PROMPT_FEATURE_KEY,
@@ -361,34 +360,6 @@ const SUBSCRIPTION_TIER_RANK = Object.freeze({
   premium: 2,
   vvip: 3,
 });
-
-async function seedLegacyCoinMonthlyCredit(authUserId) {
-  const user = await User.findById(authUserId).select("points profileSubscription").lean();
-  const legacyPoints = Math.floor(Number(user?.points || 0));
-  if (!user?._id || legacyPoints <= 0 || user?.profileSubscription?.legacyCoinCreditSeeded === true) return null;
-  const legacyCredit = legacyPoints * MEMBERSHIP_CREDIT_PER_COIN;
-  return User.findOneAndUpdate(
-    {
-      _id: authUserId,
-      "profileSubscription.legacyCoinCreditSeeded": { $ne: true },
-    },
-    {
-      $inc: {
-        "profileSubscription.membershipCreditBalance": legacyCredit,
-        "profileSubscription.membershipCreditGranted": legacyCredit,
-      },
-      $set: {
-        "profileSubscription.legacyCoinCreditSeeded": true,
-        "profileSubscription.legacyCoinCreditSeededAt": new Date(),
-        "profileSubscription.legacyCoinCreditSeededPoints": legacyPoints,
-      },
-    },
-    {
-      returnDocument: "after",
-      projection: { points: 1, profileSubscription: 1 },
-    },
-  ).lean();
-}
 
 function getSubscriptionTierRank(tierRaw) {
   const tier = String(tierRaw || "free").trim().toLowerCase();
@@ -1102,108 +1073,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     }, {}, premiumAccessToken, env);
   }
 
-  const monthlyCreditCost = calculateMembershipCreditCost(cost);
-  await seedLegacyCoinMonthlyCredit(auth.userId);
-  const monthlyUpdate = {
-    $inc: {
-      "profileSubscription.membershipCreditBalance": -monthlyCreditCost,
-      "profileSubscription.membershipCreditUsed": monthlyCreditCost,
-    },
-  };
-  if (requestId) {
-    monthlyUpdate.$push = {
-      recentConsumeRequestIds: {
-        $each: [requestId],
-        $slice: -200,
-      },
-    };
-  }
-  if (unlockKeysToPersist.length) {
-    monthlyUpdate.$addToSet = { unlockedFeatures: { $each: unlockKeysToPersist } };
-  }
-
-  const monthlyUser = await User.findOneAndUpdate(
-    {
-      _id: auth.userId,
-      "profileSubscription.membershipCreditBalance": { $gte: monthlyCreditCost },
-      ...(requestId ? { recentConsumeRequestIds: { $ne: requestId } } : {}),
-    },
-    monthlyUpdate,
-    { returnDocument: "after", projection: { points: 1, profileSubscription: 1, unlockedFeatures: 1 } },
-  ).lean();
-
-  if (monthlyUser) {
-    const unlockedFeatures = normalizePersistentUnlockKeys(
-      (monthlyUser && monthlyUser.unlockedFeatures) || unlockKeysToPersist,
-    );
-    let history = null;
-    try {
-      history = await PointHistory.create({
-        userId: auth.userId,
-        kind: "deduct",
-        delta: -cost,
-        balanceAfter: Number(monthlyUser.points || 0),
-        reason,
-        featureKey,
-        metadata: {
-          source: "fortune.pig-coin.consume",
-          accessType: "membership_credit",
-          membershipCreditCost: monthlyCreditCost,
-          remainingMembershipCredit: Number(monthlyUser?.profileSubscription?.membershipCreditBalance || 0),
-          ...(requestId ? { requestId } : {}),
-          ...(categoryKey ? { categoryKey } : {}),
-          ...(subFeatureKey ? { subFeatureKey } : {}),
-          ...(payloadHash ? { payloadHash } : {}),
-          ...(requestedFeatureKey !== featureKey ? { requestedFeatureKey } : {}),
-        },
-      });
-    } catch (error) {
-      await User.updateOne(
-        { _id: auth.userId },
-        {
-          $inc: {
-            "profileSubscription.membershipCreditBalance": monthlyCreditCost,
-            "profileSubscription.membershipCreditUsed": -monthlyCreditCost,
-          },
-          ...(requestId || unlockKeysToPersist.length ? {
-            $pull: {
-              ...(requestId ? { recentConsumeRequestIds: requestId } : {}),
-              ...(unlockKeysToPersist.length ? { unlockedFeatures: { $in: unlockKeysToPersist } } : {}),
-            },
-          } : {}),
-        },
-      ).catch(() => {});
-      throw error;
-    }
-    const premiumAccessToken = await createPremiumAccessToken(env, {
-      userId: String(auth.userId || ""),
-      reportType: reportTypeForPremiumAccess,
-      featureKey,
-      reason,
-      transactionId: String(history?._id || requestId || ""),
-      chargedCoins: cost,
-      freeBySubscription: false,
-    }) || "";
-
-    return buildJsonWithPremiumAccessCookie({
-      message: "월정석 달빛으로 결제되었습니다.",
-      code: "OK",
-      productId: productId || null,
-      requiredCoins: cost,
-      chargedCoins: cost,
-      membershipCreditCost: monthlyCreditCost,
-      membershipCreditBalance: Number(monthlyUser?.profileSubscription?.membershipCreditBalance || 0),
-      accessType: "membership_credit",
-      freeBySubscription: false,
-      forceDeductApplied: true,
-      subscriptionTier: String(monthlyUser?.profileSubscription?.tier || "free"),
-      transactionId: String(history?._id || ""),
-      premiumAccessToken: premiumAccessToken || "",
-      user: userPayload(auth, Number(monthlyUser.points || 0), unlockedFeatures),
-      unlockedFeatures,
-      unlockMap: toUnlockMap(unlockedFeatures),
-    }, {}, premiumAccessToken, env);
-  }
+  const krwEquivalent = cost * 100;
 
   return json({
     ok: false,
@@ -1215,335 +1085,11 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       featureKey,
       reason,
       coinPrice: cost,
-      membershipCreditCost: monthlyCreditCost,
-      displayUnit: "membership_credit",
+      membershipCreditCost: 0,
+      krwEquivalent,
+      displayUnit: "content_value",
     },
   }, { status: 402 });
-
-  const forceDeductRaw = productSpec ? productSpec.forceDeduct : body?.forceDeduct;
-  const forceDeduct = forceDeductRaw === true || String(forceDeductRaw || "").toLowerCase() === "true";
-  const isPromptGeneratorFeature = /_ai_prompt_generator$/i.test(String(featureKey || ""));
-  const forceDeductRequested = Boolean(forceDeduct && (unlockKeysToPersist.length > 0 || isPromptGeneratorFeature));
-  const authEmail = String(auth?.email || "").trim().toLowerCase();
-  const forcePaidEmails = getForcePaidTestAccountEmails(env);
-  const forcePaidMode = Boolean(authEmail && forcePaidEmails.has(authEmail));
-
-  if (adminMode && !forcePaidMode) {
-    const adminTestTier = normalizeSubscriptionTier(request.headers.get("x-admin-subscription-tier"));
-    const policy = getPlanPolicy(adminTestTier);
-    const adminIncludedBySubscription = Boolean(adminTestTier && cost <= policy.freeLimit);
-    const adminForceDeductApplied = Boolean(forceDeductRequested && !adminIncludedBySubscription);
-    let currentPoints = null;
-    let unlockedFeatures = [];
-    if (auth?.userId) {
-      const user = await User.findById(auth.userId).select("points unlockedFeatures").lean();
-      if (user) {
-        currentPoints = Number(user.points || 0);
-        unlockedFeatures = await resolvePersistedUnlockFeatures(auth.userId, user.unlockedFeatures);
-      }
-    }
-
-    return json({
-      message: "Admin bypass enabled. No coins were deducted.",
-      code: "ADMIN_BYPASS",
-      productId: productId || null,
-      requiredCoins: cost,
-      chargedCoins: 0,
-      simulatedChargeCoins: 0,
-      adminBypass: true,
-      adminMode: true,
-      simulated: true,
-      adminTestTier: adminTestTier || null,
-      freeLimit: policy.freeLimit,
-      profileLimit: policy.profileLimit,
-      recommendedCoins: policy.recommendedCoins,
-      freeBySubscription: adminIncludedBySubscription,
-      forceDeductApplied: adminForceDeductApplied,
-      user: auth?.userId
-        ? userPayload(auth, currentPoints == null ? 0 : currentPoints, unlockedFeatures)
-        : { id: "admin", points: null },
-      unlockedFeatures,
-      unlockMap: toUnlockMap(unlockedFeatures),
-    });
-  }
-
-  const user = await User.findById(auth.userId)
-    .select("points profileSubscription unlockedFeatures recentConsumeRequestIds")
-    .lean();
-
-  if (!user) {
-    return json({ message: "User not found.", code: "USER_NOT_FOUND" }, { status: 404 });
-  }
-
-  const renewState = await ensureActiveSubscriptionByAutoRenew(
-    auth.userId,
-    user,
-    {
-      points: 1,
-      profileSubscription: 1,
-      unlockedFeatures: 1,
-      recentConsumeRequestIds: 1,
-    },
-  );
-  const runtimeUser = renewState.user || user;
-  const effectiveTier = renewState.effectiveTier;
-  const policy = getPlanPolicy(effectiveTier);
-  const isCoveredBySubscription = Boolean(effectiveTier && cost <= policy.freeLimit);
-  const forceDeductApplied = Boolean(forceDeductRequested && !isCoveredBySubscription);
-  const isIncludedBySubscription = Boolean(isCoveredBySubscription && !forceDeductApplied);
-  const previousUnlockFeatures = normalizePersistentUnlockKeys(runtimeUser?.unlockedFeatures || []);
-  const newlyUnlockedFeatures = unlockKeysToPersist.filter((key) => !previousUnlockFeatures.includes(key));
-
-  if (isIncludedBySubscription) {
-    const premiumAccessToken = await createPremiumAccessToken(env, {
-      userId: String(auth.userId || ""),
-      reportType: reportTypeForPremiumAccess,
-      featureKey,
-      reason,
-      transactionId: requestId,
-      chargedCoins: 0,
-      freeBySubscription: true,
-    });
-
-    return buildJsonWithPremiumAccessCookie({
-      message: `${PROFILE_SUB_PLANS[effectiveTier]?.name || "구독"} 플랜 혜택으로 이번 리딩은 코인이 차감되지 않았어요. 연이가 별빛 방패로 안전하게 지켜드렸어요.`,
-      code: "SUBSCRIPTION_INCLUDED",
-      productId: productId || null,
-      requiredCoins: cost,
-      chargedCoins: 0,
-      freeBySubscription: true,
-      forceDeductApplied,
-      subscriptionTier: effectiveTier,
-      freeLimit: policy.freeLimit,
-      profileLimit: policy.profileLimit,
-      recommendedCoins: policy.recommendedCoins,
-      autoRenewed: Boolean(renewState.autoRenewed),
-      premiumAccessToken: premiumAccessToken || "",
-      user: userPayload(auth, Number(runtimeUser.points || 0), runtimeUser.unlockedFeatures),
-      unlockedFeatures: normalizePersistentUnlockKeys(runtimeUser.unlockedFeatures),
-      unlockMap: toUnlockMap(runtimeUser.unlockedFeatures),
-    }, {}, premiumAccessToken, env);
-  }
-
-  const updatePayload = {
-    $inc: { points: -cost },
-  };
-  if (requestId) {
-    updatePayload.$push = {
-      recentConsumeRequestIds: {
-        $each: [requestId],
-        $slice: -200,
-      },
-    };
-  }
-  if (unlockKeysToPersist.length) {
-    updatePayload.$addToSet = { unlockedFeatures: { $each: unlockKeysToPersist } };
-  }
-
-  const consumeFilter = {
-    _id: auth.userId,
-    points: { $gte: cost },
-    ...(requestId ? { recentConsumeRequestIds: { $ne: requestId } } : {}),
-  };
-  const consumeOptions = { returnDocument: "after", projection: { points: 1, unlockedFeatures: 1 } };
-
-  let updatedUser = null;
-  try {
-    updatedUser = await User.findOneAndUpdate(
-      consumeFilter,
-      updatePayload,
-      consumeOptions,
-    ).lean();
-  } catch (error) {
-    if (!isRepairableConsumeArrayShapeError(error)) throw error;
-
-    const repairSet = {};
-    if (requestId) {
-      repairSet.recentConsumeRequestIds = normalizeStringArray(runtimeUser?.recentConsumeRequestIds, 200);
-    }
-    if (unlockKeysToPersist.length) {
-      repairSet.unlockedFeatures = normalizeStringArray(runtimeUser?.unlockedFeatures, 500);
-    }
-    if (Object.keys(repairSet).length) {
-      await User.updateOne({ _id: auth.userId }, { $set: repairSet });
-    }
-
-    updatedUser = await User.findOneAndUpdate(
-      consumeFilter,
-      updatePayload,
-      consumeOptions,
-    ).lean();
-  }
-
-  if (!updatedUser) {
-    if (requestId) {
-      const replayUser = await User.findById(auth.userId)
-        .select("points unlockedFeatures recentConsumeRequestIds")
-        .lean();
-      const replayIds = Array.isArray(replayUser?.recentConsumeRequestIds)
-        ? replayUser.recentConsumeRequestIds.map((v) => String(v))
-        : [];
-      if (replayIds.includes(requestId)) {
-        const replayUnlocks = normalizePersistentUnlockKeys(replayUser?.unlockedFeatures || []);
-        const premiumAccessToken = await createPremiumAccessToken(env, {
-          userId: String(auth.userId || ""),
-          reportType: reportTypeForPremiumAccess,
-          featureKey,
-          reason,
-          transactionId: requestId,
-          chargedCoins: 0,
-          freeBySubscription: false,
-        });
-
-        return buildJsonWithPremiumAccessCookie({
-          message: "Already processed request.",
-          code: "IDEMPOTENT_REPLAY",
-          alreadyProcessed: true,
-          productId: productId || null,
-          requiredCoins: cost,
-          chargedCoins: 0,
-          freeBySubscription: false,
-          forceDeductApplied,
-          subscriptionTier: effectiveTier || "free",
-          freeLimit: policy.freeLimit,
-          profileLimit: policy.profileLimit,
-          recommendedCoins: policy.recommendedCoins,
-          premiumAccessToken: premiumAccessToken || "",
-          user: userPayload(auth, Number(replayUser?.points || 0), replayUnlocks),
-          unlockedFeatures: replayUnlocks,
-          unlockMap: toUnlockMap(replayUnlocks),
-        }, {}, premiumAccessToken, env);
-      }
-    }
-    return json({
-      message: "Not enough coins.",
-      requiredCoins: cost,
-      code: "INSUFFICIENT_BALANCE",
-      productId: productId || null,
-    }, { status: 402 });
-  }
-
-  const reportIdForAccess = String(body?.reportId || "").trim().slice(0, 120);
-  const reportSessionIdForAccess = String(body?.sessionId || body?.reportSessionId || "").trim().slice(0, 120);
-
-  let history = null;
-  try {
-    history = await PointHistory.create({
-      userId: auth.userId,
-      kind: "deduct",
-      delta: -cost,
-      balanceAfter: Number(updatedUser.points || 0),
-      reason,
-      featureKey,
-      metadata: {
-        source: "fortune.pig-coin.consume",
-        ...(requestId ? { requestId } : {}),
-        ...(reportIdForAccess ? { reportId: reportIdForAccess } : {}),
-        ...(reportSessionIdForAccess ? { sessionId: reportSessionIdForAccess, reportSessionId: reportSessionIdForAccess } : {}),
-        ...(categoryKey ? { categoryKey } : {}),
-        ...(subFeatureKey ? { subFeatureKey } : {}),
-        ...(payloadHash ? { payloadHash } : {}),
-        ...(requestedFeatureKey !== featureKey ? { requestedFeatureKey } : {}),
-        subscriptionTierAtConsume: effectiveTier || "free",
-      },
-    });
-  } catch (error) {
-    let rollbackApplied = false;
-    try {
-      const rollbackPayload = {
-        $inc: { points: cost },
-      };
-      if (requestId || newlyUnlockedFeatures.length) {
-        rollbackPayload.$pull = {
-          ...(requestId ? { recentConsumeRequestIds: requestId } : {}),
-          ...(newlyUnlockedFeatures.length ? { unlockedFeatures: { $in: newlyUnlockedFeatures } } : {}),
-        };
-      }
-      await User.updateOne({ _id: auth.userId }, rollbackPayload);
-      rollbackApplied = true;
-    } catch (rollbackError) {
-      try {
-        console.error("[fortune][pig-coin-consume] rollback failed", {
-          userId: String(auth.userId || ""),
-          requestId,
-          featureKey,
-          message: String(rollbackError?.message || "unknown"),
-        });
-      } catch (e) {
-        console.error("[fortune][pig-coin-consume] rollback failed", rollbackError);
-      }
-    }
-
-    try {
-      console.error("[fortune][pig-coin-consume] point history create failed", {
-        userId: String(auth.userId || ""),
-        requestId,
-        featureKey,
-        rollbackApplied,
-        message: String(error?.message || "unknown"),
-      });
-    } catch (e) {
-      console.error("[fortune][pig-coin-consume] point history create failed", error);
-    }
-
-    return json({
-      message: rollbackApplied
-        ? "결제 검증 중 오류가 발생해 코인을 자동 복구했습니다. 잠시 후 다시 시도해 주세요."
-        : "결제 검증 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
-      code: rollbackApplied ? "COIN_DEDUCT_ROLLED_BACK" : "COIN_DEDUCT_UNKNOWN",
-      productId: productId || null,
-      requiredCoins: cost,
-      chargedCoins: 0,
-      autoRefunded: rollbackApplied,
-    }, { status: 500 });
-  }
-
-  const unlockedFeatures = normalizePersistentUnlockKeys(
-    (updatedUser && updatedUser.unlockedFeatures) || unlockKeysToPersist,
-  );
-
-  let premiumAccessToken = "";
-  try {
-    premiumAccessToken = await createPremiumAccessToken(env, {
-      userId: String(auth.userId || ""),
-      reportType: reportTypeForPremiumAccess,
-      featureKey,
-      reason,
-      transactionId: String(history?._id || requestId || ""),
-      chargedCoins: cost,
-      freeBySubscription: false,
-    }) || "";
-  } catch (error) {
-    try {
-      console.warn("[fortune][pig-coin-consume] premium access token issue", {
-        userId: String(auth.userId || ""),
-        featureKey,
-        transactionId: String(history?._id || requestId || ""),
-        message: String(error?.message || "unknown"),
-      });
-    } catch (e) {
-      console.warn("[fortune][pig-coin-consume] premium access token issue", error);
-    }
-  }
-
-  return buildJsonWithPremiumAccessCookie({
-    message: `${cost.toLocaleString("ko-KR")} coins deducted.`,
-    code: "OK",
-    productId: productId || null,
-    requiredCoins: cost,
-    chargedCoins: cost,
-    freeBySubscription: false,
-    forceDeductApplied,
-    subscriptionTier: effectiveTier || "free",
-    freeLimit: policy.freeLimit,
-    profileLimit: policy.profileLimit,
-    recommendedCoins: policy.recommendedCoins,
-    transactionId: String(history?._id || ""),
-    premiumAccessToken: premiumAccessToken || "",
-    user: userPayload(auth, updatedUser.points, unlockedFeatures),
-    unlockedFeatures,
-    unlockMap: toUnlockMap(unlockedFeatures),
-  }, {}, premiumAccessToken, env);
 }
 
 async function handlePigCoinUnlock(request, auth, options = {}) {
@@ -2223,7 +1769,7 @@ async function handleAstrologyAIPrompt(request, auth, env) {
     console.error("[fortune][astrology-ai-prompt] request failed:", error);
     return buildAstrologyAIPromptError(
       "PROMPT_GENERATION_FAILED",
-      "프롬프트 생성 중 오류가 발생했습니다. 코인이 차감되었다면 자동 환불을 시도했습니다.",
+      "프롬프트 생성 중 오류가 발생했습니다. 결제 권한이 생성되었다면 자동 복구를 시도했습니다.",
       500,
     );
   }
@@ -2348,7 +1894,7 @@ async function handleVedicAIPrompt(request, auth, env) {
     console.error("[fortune][vedic-ai-prompt] request failed:", error);
     return buildVedicAIPromptError(
       "PROMPT_GENERATION_FAILED",
-      "프롬프트 생성 중 오류가 발생했습니다. 코인이 차감되었다면 자동 환불을 시도했습니다.",
+      "프롬프트 생성 중 오류가 발생했습니다. 결제 권한이 생성되었다면 자동 복구를 시도했습니다.",
       500,
     );
   }
@@ -2465,7 +2011,7 @@ async function handleSajuAIPrompt(request, auth, env) {
     console.error("[fortune][saju-ai-prompt] request failed:", error);
     return buildSajuAIPromptError(
       "PROMPT_GENERATION_FAILED",
-      "프롬프트 생성 중 오류가 발생했습니다. 코인이 차감되었다면 자동 환불을 시도했습니다.",
+      "프롬프트 생성 중 오류가 발생했습니다. 결제 권한이 생성되었다면 자동 복구를 시도했습니다.",
       500,
     );
   }
@@ -2587,7 +2133,7 @@ async function handleZiweiAIPrompt(request, auth, env) {
     console.error("[fortune][ziwei-ai-prompt] request failed:", error);
     return buildZiweiAIPromptError(
       "PROMPT_GENERATION_FAILED",
-      "프롬프트 생성 중 오류가 발생했습니다. 코인이 차감되었다면 자동 환불을 시도했습니다.",
+      "프롬프트 생성 중 오류가 발생했습니다. 결제 권한이 생성되었다면 자동 복구를 시도했습니다.",
       500,
     );
   }
@@ -2747,7 +2293,7 @@ async function handleSukuyoAIPrompt(request, auth, env) {
     console.error("[fortune][sukuyo-ai-prompt] request failed:", error);
     return buildSukuyoAIPromptError(
       "PROMPT_GENERATION_FAILED",
-      "프롬프트 생성 중 오류가 발생했습니다. 코인이 차감되었다면 자동 환불을 시도했습니다.",
+      "프롬프트 생성 중 오류가 발생했습니다. 결제 권한이 생성되었다면 자동 복구를 시도했습니다.",
       500,
     );
   }
@@ -3145,102 +2691,9 @@ async function handleShareReward(request, auth) {
 async function handleSubscribe(request, auth) {
   return json({
     ok: false,
-    message: "이전 구독 신청 방식은 종료되었습니다. 30일 멤버십 이용권 단건 결제를 이용해 주세요.",
+    message: "이전 코인 기반 월정석 신청 방식은 종료되었습니다. 30일 이용권 원화 단건 결제를 이용해 주세요.",
     code: "COIN_SUBSCRIPTION_DISABLED",
   }, { status: 410 });
-
-  const body = await readJson(request);
-  const reqTier = String(body?.tier || "").trim();
-  const plan = PROFILE_SUB_PLANS[reqTier];
-  if (!plan) return json({ message: "Unsupported subscription plan." }, { status: 400 });
-
-  const cost = plan.coins;
-  const now = new Date();
-  const existingUser = await User.findById(auth.userId)
-    .select("points profileSubscription")
-    .lean();
-
-  if (!existingUser) return json({ message: "User not found." }, { status: 404 });
-
-  const existingTier = String(existingUser?.profileSubscription?.tier || "free");
-  const existingSource = String(existingUser?.profileSubscription?.source || "coin").toLowerCase();
-  const existingExpAt = toValidDate(existingUser?.profileSubscription?.expiresAt);
-  const hasActiveSubscription = Boolean(existingExpAt && existingExpAt > now && existingTier !== "free");
-  const requestedTierRank = getSubscriptionTierRank(reqTier);
-  const activeTierRank = hasActiveSubscription ? getSubscriptionTierRank(existingTier) : 0;
-
-  if (hasActiveSubscription && requestedTierRank < activeTierRank) {
-    return json({
-      message: "상위 티어 구독 이용 중에는 하위 티어를 신청할 수 없습니다.",
-      code: "SUBSCRIPTION_DOWNGRADE_BLOCKED",
-      activeTier: existingTier,
-      requestedTier: reqTier,
-    }, { status: 409 });
-  }
-
-  if (existingSource === "card" && hasActiveSubscription && requestedTierRank <= activeTierRank) {
-    return json({
-      message: "카드 결제 멤버십이 활성화되어 있어 다른 멤버십을 동시에 신청할 수 없습니다.",
-      code: "SUBSCRIPTION_CONFLICT",
-    }, { status: 409 });
-  }
-
-  const prevExpAt = existingUser.profileSubscription?.expiresAt;
-  const baseTime = (prevExpAt && new Date(prevExpAt) > now)
-    ? new Date(prevExpAt).getTime()
-    : now.getTime();
-  const expiresAt = new Date(baseTime + plan.durationDays * 86400000);
-  const isFirstSub = !existingUser.profileSubscription?.firstSubAt;
-
-  const updatedUser = await User.findOneAndUpdate(
-    { _id: auth.userId, points: { $gte: cost } },
-    {
-      $inc: { points: -cost },
-      $set: {
-        "profileSubscription.tier": reqTier,
-        "profileSubscription.source": "coin",
-        "profileSubscription.startedAt": now,
-        "profileSubscription.expiresAt": expiresAt,
-        "profileSubscription.cancelAtPeriodEnd": false,
-        "profileSubscription.cancelRequestedAt": null,
-        "profileSubscription.customerUid": "",
-        "profileSubscription.paymentMethod": "",
-        "profileSubscription.nextBillingAt": null,
-        "profileSubscription.lastBillingStatus": "idle",
-        "profileSubscription.lastBillingError": "",
-        ...(isFirstSub && { "profileSubscription.firstSubAt": now }),
-      },
-    },
-    { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
-  ).lean();
-
-  if (!updatedUser) {
-    return json({ message: "Not enough coins.", requiredCoins: cost }, { status: 402 });
-  }
-
-  const balanceAfter = Number(updatedUser.points || 0);
-  await PointHistory.create({
-    userId: auth.userId,
-    kind: "deduct",
-    delta: -cost,
-    balanceAfter,
-    reason: `${plan.name} subscription`,
-    featureKey: "profile-subscription",
-    metadata: { tier: reqTier, expiresAt: expiresAt.toISOString() },
-  });
-
-  return json({
-    message: `${plan.name} subscription started for 30 days.`,
-    subscription: {
-      tier: reqTier,
-      isActive: true,
-      expiresAt: expiresAt.toISOString(),
-      profileLimit: plan.profileLimit,
-      cancelAtPeriodEnd: false,
-      cancelRequestedAt: null,
-    },
-    user: { points: balanceAfter },
-  });
 }
 
 async function handleSubscriptionCancel(request, auth) {
