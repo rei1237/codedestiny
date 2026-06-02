@@ -1505,6 +1505,32 @@
     return false;
   }
 
+  function _dpReadActiveMembershipCoverage(cost) {
+    try {
+      var user = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null');
+      var sub = user && user.profileSubscription;
+      if (!sub || typeof sub !== 'object') return null;
+      var tier = String(sub.tier || sub.plan || sub.planId || sub.productId || '').trim().toLowerCase();
+      if (tier.indexOf('vvip') >= 0) tier = 'vvip';
+      else if (tier.indexOf('premium') >= 0 || tier.indexOf('프리미엄') >= 0) tier = 'premium';
+      else if (tier.indexOf('standard') >= 0 || tier.indexOf('스탠다드') >= 0) tier = 'standard';
+      else return null;
+      var activeStatus = String(sub.status || sub.subscriptionStatus || '').trim().toLowerCase();
+      var active = sub.isActive === true || sub.isSubscribed === true || activeStatus === 'active' || activeStatus === 'paid' || activeStatus === 'current';
+      if (!active) return null;
+      if (sub.expiresAt) {
+        var expiresAt = new Date(sub.expiresAt);
+        if (!isFinite(expiresAt.getTime()) || expiresAt.getTime() <= Date.now()) return null;
+      }
+      var freeLimit = tier === 'vvip' ? 100 : (tier === 'premium' ? 50 : 30);
+      var requiredCoins = Number(cost || 0);
+      if (!(requiredCoins > 0) || requiredCoins > freeLimit) return null;
+      return { tier: tier, freeLimit: freeLimit };
+    } catch (_) {
+      return null;
+    }
+  }
+
   /**
    * 1회 코인 차감 게이트 — 영구 해금 없이 사용할 때마다 cost 코인 차감.
    * @param {number} cost   차감 코인 수
@@ -1563,9 +1589,18 @@
       }
     } catch(_) {}
     var balanceLabel = hasBalanceSnapshot ? (Number(balance).toLocaleString('ko-KR') + '코인') : '알 수 없음';
-    if (!window.confirm('🪙 ' + reason + '\n\n이용할 때마다 ' + cost + '코인이 차감됩니다.\n현재 보유: ' + balanceLabel + '\n\n진행하시겠습니까?')) {
-      if (typeof onCancel === 'function') onCancel();
-      return;
+    var membershipCoverage = _dpReadActiveMembershipCoverage(cost);
+    if (!membershipCoverage) {
+      var singlePurchaseWon = Number(cost || 0) * 100;
+      var confirmText = '🌙 ' + reason
+        + '\n\n단건 결제 기준: 50코인 = 5,000원'
+        + '\n이번 서비스: ' + cost + '코인 · ' + singlePurchaseWon.toLocaleString('ko-KR') + '원'
+        + '\n현재 보유: ' + balanceLabel
+        + '\n\n포트원 V2 KG이니시스 단건 결제로 진행하시겠습니까?';
+      if (!window.confirm(confirmText)) {
+        if (typeof onCancel === 'function') onCancel();
+        return;
+      }
     }
     var requestId = String(optionBag.requestId || '').trim().slice(0, 120);
     if (!requestId) {
@@ -1576,7 +1611,7 @@
     window._cdCoinGatePerUseInFlight = true;
     window.__cdCoinGatePerUseLockAt = Date.now();
     var pendingLabel = String(reason || '').trim() || '유료 서비스';
-    _dpSetPaymentPending(true, pendingLabel + ' 결제를 확인하는 중입니다...');
+    _dpSetPaymentPending(true, pendingLabel + (membershipCoverage ? ' 이용권 한도를 확인하는 중입니다...' : ' 단건 결제를 확인하는 중입니다...'));
     _dpWaitForPaymentOverlayPaint().then(function() {
       return _dpFetchJsonWithFallback('/api/billing/coin-gate', {
         method: 'POST',
@@ -1604,16 +1639,23 @@
         return;
       }
       if (res.status === 402 || !res.ok) {
-        var msg = (res.data && res.data.message) || '코인 차감에 실패했습니다.';
+        var rawFailData = (res && res.data && typeof res.data === 'object') ? res.data : {};
+        var failData = (rawFailData.data && typeof rawFailData.data === 'object') ? rawFailData.data : rawFailData;
+        var msg = rawFailData.message || failData.message || '단건 결제가 필요합니다.';
+        if (res.status === 402) msg = msg + '\n\n단건 결제 기준: 50코인 = 5,000원\n포트원 V2 KG이니시스 결제로 진행됩니다.';
         if (typeof window.__cdOpenChargeModal === 'function') { window.alert(msg); window.__cdOpenChargeModal(); }
         else if (window.confirm(msg + '\n결제 관리 페이지로 이동하시겠습니까?')) window.location.href = '/points';
         if (typeof onCancel === 'function') onCancel();
         return;
       }
-      var data = (res && res.data && typeof res.data === 'object') ? res.data : {};
-      var chargedCoins = Number((data && data.chargedCoins) || 0);
-      var freeBySubscription = Boolean(data && data.freeBySubscription === true);
-      var transactionId = data && data.transactionId ? String(data.transactionId) : '';
+      var rawData = (res && res.data && typeof res.data === 'object') ? res.data : {};
+      var data = (rawData.data && typeof rawData.data === 'object') ? rawData.data : rawData;
+      var consumeData = (data && data.consume && typeof data.consume === 'object') ? data.consume : {};
+      var accessGrant = (data && data.accessGrant && typeof data.accessGrant === 'object') ? data.accessGrant : {};
+      if (!data.message && rawData.message) data.message = rawData.message;
+      var chargedCoins = Number((data && data.chargedCoins) || consumeData.chargedCoins || 0);
+      var freeBySubscription = Boolean((data && data.freeBySubscription === true) || consumeData.accessType === 'membership_pass' || consumeData.transactionType === 'membership_pass');
+      var transactionId = data && data.transactionId ? String(data.transactionId) : String(consumeData.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || accessGrant.requestId || '');
       var requestedCost = Number(cost || 0);
       var coinGateConfirmed = Number(res.status || 0) === 200
         && data
@@ -1628,6 +1670,8 @@
       var nb = null;
       if (data && data.user && typeof data.user.points === 'number') nb = data.user.points;
       else if (data && typeof data.remainingPoints === 'number') nb = data.remainingPoints;
+      else if (data && typeof data.balance === 'number') nb = data.balance;
+      else if (freeBySubscription && hasBalanceSnapshot) nb = balance;
       else if (hasBalanceSnapshot) nb = Math.max(0, balance - cost);
       if (!Number.isFinite(Number(nb))) nb = _dpGetUserBalance();
       try { var _u3 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {}; _u3.points = nb; _dpWriteAuthUser(_u3); } catch(_) {}

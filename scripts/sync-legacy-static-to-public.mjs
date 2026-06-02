@@ -152,6 +152,7 @@ const CACHE_KEY_SOURCE_FILES = [
   "js/core/index-inline-runtime.js",
   "js/core/uiBindings.js",
   "js/mobile-interaction-patch.js",
+  "js/destiny-profile.js",
   "js/saju-engine.js",
   "js/saju-engine-tarot-sukuyo-quantum.js",
 ];

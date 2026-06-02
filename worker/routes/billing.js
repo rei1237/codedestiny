@@ -2,7 +2,11 @@ import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJ
 import { handleFortuneRoutes } from "./fortune.js";
 import { handlePaymentRoutes } from "./payments.js";
 import { getOptionalUserFromRequest } from "../lib/auth.js";
-import { buildPremiumAccessCookie } from "../lib/premium-access-token.js";
+import {
+  buildPremiumAccessCookie,
+  createPremiumAccessToken,
+  resolvePremiumAccessReportType,
+} from "../lib/premium-access-token.js";
 import {
   assertFeatureEnabled,
   getBillingFeaturePricing,
@@ -291,6 +295,44 @@ function toCode(payload) {
 
 function success(data, message = "요청이 성공했습니다.", init = {}) {
   return json({ ok: true, data, message }, init);
+}
+
+async function successWithPremiumAccess(env, authUserId, data, message = "요청이 성공했습니다.") {
+  const pricing = data?.pricing || {};
+  const consume = data?.consume || {};
+  const featureKey = String(pricing?.featureKey || consume?.featureKey || data?.accessGrant?.featureKey || "").trim();
+  const reason = String(pricing?.reason || "").trim();
+  const transactionId = String(
+    consume?.transactionId
+      || data?.accessGrant?.evidenceId
+      || data?.accessGrant?.purchaseId
+      || data?.accessGrant?.requestId
+      || "",
+  ).trim();
+  const reportType = resolvePremiumAccessReportType(featureKey, reason);
+  const premiumAccessToken = reportType
+    ? await createPremiumAccessToken(env, {
+      userId: String(authUserId || ""),
+      reportType,
+      featureKey,
+      reason,
+      transactionId,
+      chargedCoins: Number(consume?.chargedCoins || 0),
+      freeBySubscription: data?.freeBySubscription === true || consume?.accessType === "membership_pass",
+    })
+    : "";
+  const responseHeaders = new Headers();
+  if (premiumAccessToken) {
+    responseHeaders.append("Set-Cookie", buildPremiumAccessCookie(premiumAccessToken, isProductionRuntime(env)));
+  }
+  return success({
+    ...data,
+    featureKey,
+    chargedCoins: Number(consume?.chargedCoins || 0),
+    transactionId,
+    freeBySubscription: data?.freeBySubscription === true || consume?.accessType === "membership_pass",
+    premiumAccessToken: premiumAccessToken || data?.premiumAccessToken || null,
+  }, message, premiumAccessToken ? { headers: responseHeaders } : {});
 }
 
 function cleanText(value, max = 240) {
@@ -758,7 +800,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     const subscriptionPass = await getActiveMembershipPassForUser(env, authCheck.auth.userId);
     const coinPrice = Number(pricing?.coinPrice || pricing?.cost || 0);
     if (canBypassCoinGate(subscriptionPass.entitlement, coinPrice)) {
-      return success({
+      return await successWithPremiumAccess(env, authCheck.auth.userId, {
         pricing,
         consume: {
           ok: true,
@@ -791,6 +833,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           id: String(authCheck.auth.userId || ""),
           profileSubscription: subscriptionPass.profileSubscription || null,
         },
+        freeBySubscription: true,
       }, "이용권 무료 한도 조건으로 서비스를 열었습니다.");
     }
 
@@ -802,7 +845,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         reportSessionId,
       });
       if (membershipConsume) {
-        return success({
+        return await successWithPremiumAccess(env, authCheck.auth.userId, {
           pricing,
           consume: {
             ok: true,
@@ -846,7 +889,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
 
     const usagePassConsume = await consumeUsagePassIfAvailable(env, authCheck.auth.userId, pricing, requestId);
     if (usagePassConsume) {
-      return success({
+      return await successWithPremiumAccess(env, authCheck.auth.userId, {
         pricing,
         consume: {
           ok: true,
