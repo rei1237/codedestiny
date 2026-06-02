@@ -39,9 +39,39 @@ import {
 const newYearPdfLocks = new Map();
 export { NEW_YEAR_CHAPTERS };
 
+const NEW_YEAR_LOCAL_FORBIDDEN_RE = /\b(?:json|payload|debug|schema|engine|prompt|llm|api|seed|evidence|undefined|null|nan|object|todo|fixme|placeholder)\b|\[object Object\]/gi;
+
+const LOCAL_STEMS = Object.freeze(["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]);
+const LOCAL_BRANCHES = Object.freeze(["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]);
+const LOCAL_MONTH_BRANCHES = Object.freeze(["寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑"]);
+const LOCAL_STEM_ELEMENT = Object.freeze({ 甲: "wood", 乙: "wood", 丙: "fire", 丁: "fire", 戊: "earth", 己: "earth", 庚: "metal", 辛: "metal", 壬: "water", 癸: "water" });
+const LOCAL_BRANCH_ELEMENT = Object.freeze({ 子: "water", 丑: "earth", 寅: "wood", 卯: "wood", 辰: "earth", 巳: "fire", 午: "fire", 未: "earth", 申: "metal", 酉: "metal", 戌: "earth", 亥: "water" });
+const LOCAL_ELEMENT_KO = Object.freeze({ wood: "목", fire: "화", earth: "토", metal: "금", water: "수" });
+const LOCAL_GENERATES = Object.freeze({ wood: "fire", fire: "earth", earth: "metal", metal: "water", water: "wood" });
+const LOCAL_CONTROLS = Object.freeze({ wood: "earth", earth: "water", water: "fire", fire: "metal", metal: "wood" });
+const LOCAL_BRANCH_COMBOS = Object.freeze({ 子: "丑", 丑: "子", 寅: "亥", 亥: "寅", 卯: "戌", 戌: "卯", 辰: "酉", 酉: "辰", 巳: "申", 申: "巳", 午: "未", 未: "午" });
+const LOCAL_BRANCH_CLASHES = Object.freeze({ 子: "午", 午: "子", 丑: "未", 未: "丑", 寅: "申", 申: "寅", 卯: "酉", 酉: "卯", 辰: "戌", 戌: "辰", 巳: "亥", 亥: "巳" });
+const LOCAL_BRANCH_HARMS = Object.freeze({ 子: "未", 未: "子", 丑: "午", 午: "丑", 寅: "巳", 巳: "寅", 卯: "辰", 辰: "卯", 申: "亥", 亥: "申", 酉: "戌", 戌: "酉" });
+const LOCAL_BRANCH_BREAKS = Object.freeze({ 子: "酉", 酉: "子", 丑: "辰", 辰: "丑", 寅: "亥", 亥: "寅", 卯: "午", 午: "卯", 巳: "申", 申: "巳", 未: "戌", 戌: "未" });
+
+const LOCAL_NEW_YEAR_CHAPTERS = Object.freeze([
+  { no: 1, title: "{YEAR}년 올해의 총운", categories: ["올해의 핵심 기운", "원국과 세운의 만남", "현재 대운이 주는 영향", "가장 크게 바뀌는 영역", "올해 지켜야 할 기준"] },
+  { no: 2, title: "{YEAR}년 일과 커리어 흐름", categories: ["올해 일의 기본 방향", "직장과 조직운", "이직·전환·확장 가능성", "성과가 나는 방식", "커리어 실전 전략"] },
+  { no: 3, title: "{YEAR}년 재물운과 소비 전략", categories: ["돈이 들어오는 방식", "돈이 새는 패턴", "투자와 확장에 대한 주의", "지출 구조 정리", "재물운을 살리는 행동"] },
+  { no: 4, title: "{YEAR}년 인간관계와 귀인운", categories: ["올해 만나는 사람의 성격", "귀인이 들어오는 방식", "정리해야 할 관계", "갈등이 생기기 쉬운 관계", "관계 확장 전략"] },
+  { no: 5, title: "{YEAR}년 연애운과 결혼운", categories: ["올해의 연애 흐름", "새로운 인연 가능성", "기존 관계의 변화", "결혼을 생각할 때의 기준", "감정적으로 조절할 부분"] },
+  { no: 6, title: "{YEAR}년 가족과 가까운 사람의 흐름", categories: ["가족 관계의 이슈", "가까운 사람과의 책임", "의존과 거리감", "집안 문제를 다루는 방식", "감정 소모를 줄이는 기준"] },
+  { no: 7, title: "{YEAR}년 건강과 컨디션 관리", categories: ["몸의 리듬", "오행 균형에 따른 관리", "스트레스가 쌓이는 방식", "수면과 회복", "장기적으로 관리할 습관"] },
+  { no: 8, title: "{YEAR}년 마음의 흐름과 심리 변화", categories: ["감정의 기본 패턴", "불안과 압박이 생기는 구간", "자존감이 흔들리는 이유", "마음이 회복되는 방식", "멘탈 관리 전략"] },
+  { no: 9, title: "{YEAR}년 신살과 합충형파해", categories: ["올해 주목할 신살", "합이 만드는 기회", "충이 만드는 변화", "형파해가 주는 긴장", "사건을 다루는 현실적 태도"] },
+  { no: 10, title: "{YEAR}년 월별 운세 흐름", categories: ["1분기 흐름", "2분기 흐름", "3분기 흐름", "4분기 흐름", "중요한 달과 조절할 달"] },
+  { no: 11, title: "{YEAR}년 기회와 위기 관리", categories: ["올해의 가장 큰 기회", "주의해야 할 선택", "반복하면 안 되는 실수", "위기가 기회로 바뀌는 조건", "위험을 낮추는 운영법"] },
+  { no: 12, title: "{YEAR}년 최종 실천 로드맵", categories: ["올해의 최종 메시지", "먼저 정리해야 할 것", "반드시 밀어붙일 것", "내려놓아야 할 것", "월별 실행 루틴"] },
+]);
+
 function buildSajuNewYearChapterSpecs(targetYear) {
   const year = toInt(targetYear, resolveDefaultTargetYear());
-  return NEW_YEAR_CHAPTERS.map((chapter) => ({
+  return LOCAL_NEW_YEAR_CHAPTERS.map((chapter) => ({
     no: chapter.no,
     id: String(chapter.no),
     title: chapter.title.replace(/\{YEAR\}/g, String(year)),
@@ -93,6 +123,7 @@ function stripForbiddenText(value) {
   return clean(value)
     .replace(/```[a-z]*|```/gi, "")
     .replace(FORBIDDEN_TEXT_RE, "")
+    .replace(NEW_YEAR_LOCAL_FORBIDDEN_RE, "")
     .replace(/\s{3,}/g, " ")
     .trim();
 }
@@ -178,10 +209,31 @@ function parseBirthTime(rawTime, rawHour, rawMinute) {
 }
 
 function normalizeInput(body = {}) {
+  const directBirthInput = body.birthInput && typeof body.birthInput === "object" ? body.birthInput : {};
+  if (Object.keys(directBirthInput).length) {
+    body = {
+      ...body,
+      ...directBirthInput,
+      birthDate: directBirthInput.birthDate || directBirthInput.date || body.birthDate,
+      birthTime: directBirthInput.birthTime || directBirthInput.time || body.birthTime,
+      birthYear: directBirthInput.birthYear || directBirthInput.year || body.birthYear,
+      birthMonth: directBirthInput.birthMonth || directBirthInput.month || body.birthMonth,
+      birthDay: directBirthInput.birthDay || directBirthInput.day || body.birthDay,
+      birthHour: directBirthInput.birthHour ?? directBirthInput.hour ?? body.birthHour,
+      birthMinute: directBirthInput.birthMinute ?? directBirthInput.minute ?? body.birthMinute,
+      birthPlace: directBirthInput.birthPlace || directBirthInput.place || body.birthPlace,
+      calendarType: directBirthInput.calendarType || directBirthInput.calendar || body.calendarType,
+      timezone: directBirthInput.timezone || body.timezone,
+      latitude: directBirthInput.latitude ?? body.latitude,
+      longitude: directBirthInput.longitude ?? directBirthInput.lng ?? body.longitude,
+    };
+  }
   const profile = body.profile && typeof body.profile === "object" ? body.profile : {};
   const birth = profile.birth && typeof profile.birth === "object" ? profile.birth : {};
   const birthDateRaw = clean(
-    body.birthDate
+    directBirthInput.birthDate
+    || directBirthInput.date
+    || body.birthDate
     || body.birthday
     || body.solarDate
     || body.lunarDate
@@ -192,13 +244,13 @@ function normalizeInput(body = {}) {
     || birth.date,
   );
   const parts = parseBirthDateParts(birthDateRaw) || {};
-  const year = toInt(body.birthYear || body.year || birth.year || parts.year, 0);
-  const month = toInt(body.month || body.birthMonth || birth.month || parts.month, 0);
-  const day = toInt(body.day || body.birthDay || birth.day || parts.day, 0);
+  const year = toInt(directBirthInput.birthYear || directBirthInput.year || body.birthYear || body.year || birth.year || parts.year, 0);
+  const month = toInt(directBirthInput.birthMonth || directBirthInput.month || body.month || body.birthMonth || birth.month || parts.month, 0);
+  const day = toInt(directBirthInput.birthDay || directBirthInput.day || body.day || body.birthDay || birth.day || parts.day, 0);
   const timeInfo = parseBirthTime(
-    body.birthTime || body.time || body.timeText || body.hourText || profile.birthTime || birth.birthTime,
-    body.hour ?? body.birthHour ?? body.birth_hour ?? birth.hour,
-    body.minute ?? body.birthMinute ?? birth.minute,
+    directBirthInput.birthTime || directBirthInput.time || body.birthTime || body.time || body.timeText || body.hourText || profile.birthTime || birth.birthTime,
+    directBirthInput.hour ?? directBirthInput.birthHour ?? body.hour ?? body.birthHour ?? body.birth_hour ?? birth.hour,
+    directBirthInput.minute ?? directBirthInput.birthMinute ?? body.minute ?? body.birthMinute ?? birth.minute,
   );
 
   const targetYear = toInt(
@@ -645,21 +697,89 @@ function buildInterpretationSeeds(seed) {
 
 // (buildCategoryEvidence는 localParagraph 내부에서 직접 처리됩니다)
 
+function localSexagenaryYear(year) {
+  const index = ((toInt(year, 1984) - 1984) % 60 + 60) % 60;
+  const stem = LOCAL_STEMS[index % 10];
+  const branch = LOCAL_BRANCHES[index % 12];
+  return { stem, branch, label: `${stem}${branch}` };
+}
+
+function localMonthPillar(targetYear, month) {
+  const yearStemIndex = LOCAL_STEMS.indexOf(localSexagenaryYear(targetYear).stem);
+  const firstMonthStemIndex = ((yearStemIndex % 5) * 2 + 2) % 10;
+  const stem = LOCAL_STEMS[(firstMonthStemIndex + month - 1) % 10];
+  const branch = LOCAL_MONTH_BRANCHES[(month - 1) % 12];
+  return { month, stem, branch, label: `${stem}${branch}`, element: LOCAL_BRANCH_ELEMENT[branch] || LOCAL_STEM_ELEMENT[stem] || "earth" };
+}
+
+function localElementRelation(dayElement, otherElement) {
+  if (!dayElement || !otherElement) return "균형 조정";
+  if (dayElement === otherElement) return "자기 강화";
+  if (LOCAL_GENERATES[dayElement] === otherElement) return "표현과 생산";
+  if (LOCAL_GENERATES[otherElement] === dayElement) return "지원과 회복";
+  if (LOCAL_CONTROLS[dayElement] === otherElement) return "관리와 재물";
+  if (LOCAL_CONTROLS[otherElement] === dayElement) return "압박과 책임";
+  return "균형 조정";
+}
+
+function localTenGod(dayStem, otherStem) {
+  const dayElement = LOCAL_STEM_ELEMENT[dayStem];
+  const otherElement = LOCAL_STEM_ELEMENT[otherStem];
+  if (!dayElement || !otherElement) return "미정";
+  const samePolarity = LOCAL_STEMS.indexOf(dayStem) % 2 === LOCAL_STEMS.indexOf(otherStem) % 2;
+  if (dayElement === otherElement) return samePolarity ? "비견" : "겁재";
+  if (LOCAL_GENERATES[dayElement] === otherElement) return samePolarity ? "식신" : "상관";
+  if (LOCAL_CONTROLS[dayElement] === otherElement) return samePolarity ? "편재" : "정재";
+  if (LOCAL_CONTROLS[otherElement] === dayElement) return samePolarity ? "편관" : "정관";
+  if (LOCAL_GENERATES[otherElement] === dayElement) return samePolarity ? "편인" : "정인";
+  return "미정";
+}
+
+function localRelationRows(pillars, annualBranch) {
+  const natal = [
+    ["연지", pillars?.year?.branch],
+    ["월지", pillars?.month?.branch],
+    ["일지", pillars?.day?.branch],
+    ["시지", pillars?.hour?.branch],
+  ].filter(([, branch]) => branch);
+  const rows = [];
+  for (const [label, branch] of natal) {
+    if (LOCAL_BRANCH_COMBOS[annualBranch] === branch) rows.push({ type: "합", label, branch, message: `${label} ${branch}와 세운 ${annualBranch}가 합을 이루어 연결과 협력의 기운이 살아납니다.` });
+    if (LOCAL_BRANCH_CLASHES[annualBranch] === branch) rows.push({ type: "충", label, branch, message: `${label} ${branch}와 세운 ${annualBranch}가 충을 이루어 이동, 변화, 결정 압력이 커집니다.` });
+    if (LOCAL_BRANCH_HARMS[annualBranch] === branch) rows.push({ type: "해", label, branch, message: `${label} ${branch}와 세운 ${annualBranch} 사이에 미세한 오해와 관계 조율의 과제가 생깁니다.` });
+    if (LOCAL_BRANCH_BREAKS[annualBranch] === branch) rows.push({ type: "파", label, branch, message: `${label} ${branch}와 세운 ${annualBranch}가 파를 이루어 계획 변경과 약속 관리가 중요해집니다.` });
+  }
+  return rows;
+}
+
+function buildLocalMonthlyLuck(targetYear, dayStem) {
+  const dayElement = LOCAL_STEM_ELEMENT[dayStem] || "earth";
+  return Array.from({ length: 12 }, (_, idx) => {
+    const month = idx + 1;
+    const pillar = localMonthPillar(targetYear, month);
+    const relation = localElementRelation(dayElement, pillar.element);
+    const score = clamp(62 + (relation === "지원과 회복" ? 12 : relation === "표현과 생산" ? 8 : relation === "관리와 재물" ? 6 : relation === "압박과 책임" ? -7 : 2) + ((month * 7 + targetYear) % 9), 38, 92);
+    const tone = score >= 75 ? "확장" : score >= 60 ? "정비" : "보수";
+    return { month, pillar, relation, score: Math.round(score), tone, advice: `${month}월은 ${pillar.label} 월운과 ${LOCAL_ELEMENT_KO[pillar.element] || "오행"} 기운이 들어오므로 ${tone} 관점으로 일정과 선택을 조절하는 것이 좋습니다.` };
+  });
+}
+
 function buildPdfSeed(profile, targetYear, body = {}) {
   const computed = normalizeEngineSaju(profile, body);
-  const annual = sexagenaryYear(targetYear);
-  const annualElement = BRANCH_ELEMENT[annual.branch] || STEM_ELEMENT[annual.stem] || "earth";
+  const annual = localSexagenaryYear(targetYear);
+  const annualElement = LOCAL_BRANCH_ELEMENT[annual.branch] || LOCAL_STEM_ELEMENT[annual.stem] || "earth";
   const dayStem = computed.dayMaster || computed.pillars.day?.stem || "戊";
   const annualLuck = {
     year: targetYear,
     ...annual,
     element: annualElement,
     elementKo: ELEMENT_KO[annualElement] || "토",
-    tenGod: tenGod(dayStem, annual.stem),
-    dayMasterRelation: elementRelation(STEM_ELEMENT[dayStem] || "earth", annualElement),
+    tenGod: localTenGod(dayStem, annual.stem),
+    dayMasterRelation: localElementRelation(LOCAL_STEM_ELEMENT[dayStem] || "earth", annualElement),
   };
-  const monthlyLuck = buildMonthlyLuck(targetYear, dayStem);
-  const branchRelations = relationRows(computed.pillars, annual.branch);
+  annualLuck.elementKo = LOCAL_ELEMENT_KO[annualElement] || "오행";
+  const monthlyLuck = buildLocalMonthlyLuck(targetYear, dayStem);
+  const branchRelations = localRelationRows(computed.pillars, annual.branch);
   const seed = {
     mode: "single",
     targetYear,
@@ -792,7 +912,7 @@ function normalizeGeneratedChapter(chapterSpec, parsed = {}) {
     title: clean(chapterSpec?.title || ""),
     sections,
     text: sections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n"),
-    source: "llm",
+    source: "local-only",
   };
 }
 
@@ -819,7 +939,7 @@ function buildDeterministicChapterFromSpec(seed, chapterSpec, reason = "") {
     title: chapter.title,
     sections,
     text: sections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n"),
-    source: "llm-reinforced",
+    source: "local-reinforced",
   };
 }
 
@@ -845,7 +965,7 @@ function reinforceChapterFromSpec({ seed, chapterSpec, chapter, reason = "" } = 
       title: clean(chapterSpec?.title || ""),
       sections,
       text: sections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n"),
-      source: reinforced ? "llm-reinforced" : clean(chapter?.source || "llm"),
+      source: reinforced ? "local-reinforced" : clean(chapter?.source || "local-only"),
     },
   };
 }
@@ -1630,4 +1750,5 @@ export const __sajuNewYearTestUtils = {
   reinforceChapterFromSpec,
   validateSajuNewYearPdfLLMInterpretationQuality,
   stripForbiddenText,
+  buildPdfReadyPayload,
 };

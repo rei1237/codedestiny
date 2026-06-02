@@ -464,14 +464,15 @@ function buildMaster(chart: ZiweiDeepChart): ZiweiDeepChapter {
   const annualKey = chart.annualFlow?.yearLabel || "유년 데이터";
   const annualPalaces = (chart.annualFlow?.keyPalaces || []).map((id) => ZIWEI_PALACE_NAME[id]).join(", ");
 
-  const topStrength = chart.summary.palaceStrength
+  const topStrength = [...chart.summary.palaceMatrix]
+    .sort((a, b) => b.score - a.score)
     .slice(0, 3)
-    .map((item) => `${ZIWEI_PALACE_NAME[item.palaceId]}(${Math.round(item.score)})`)
+    .map((item) => `${item.palaceName}(${Math.round(item.score)})`)
     .join(", ");
-  const lowStrength = [...chart.summary.palaceStrength]
+  const lowStrength = [...chart.summary.palaceMatrix]
     .sort((a, b) => a.score - b.score)
     .slice(0, 2)
-    .map((item) => `${ZIWEI_PALACE_NAME[item.palaceId]}(${Math.round(item.score)})`)
+    .map((item) => `${item.palaceName}(${Math.round(item.score)})`)
     .join(", ");
   const currentPeriod = periodRows[0] || "데이터 확인 필요";
   const nextPeriod = periodRows[1] || "데이터 확인 필요";

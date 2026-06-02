@@ -252,6 +252,7 @@ const SUBSCRIPTION_BASE_PLANS = [
     profileLimit: 3,
     freeUpTo:     30,
     theme:        "amber",
+    badge:        "",
     features:     [
       "프로필 최대 3개 생성",
       "30코인 이하 서비스 무료 이용",
@@ -1480,14 +1481,19 @@ export default function PointsPage() {
       })
       .then((d) => {
         if (!d) return;
+        const tier = d.tier === "standard" || d.tier === "premium" || d.tier === "vvip" || d.tier === "free"
+          ? d.tier
+          : "free";
+        const expiresAt = typeof d.expiresAt === "string" ? d.expiresAt : null;
+        const cancelRequestedAt = typeof d.cancelRequestedAt === "string" ? d.cancelRequestedAt : null;
         setSubscription({
-          tier:              d.tier         || "free",
+          tier,
           isActive:          !!d.isActive,
-          expiresAt:         d.expiresAt    || null,
+          expiresAt,
           profileLimit:      typeof d.profileLimit === "number" ? d.profileLimit : 1,
           lowBalanceWarning: !!d.lowBalanceWarning,
           cancelAtPeriodEnd: !!d.cancelAtPeriodEnd,
-          cancelRequestedAt: d.cancelRequestedAt || null,
+          cancelRequestedAt,
           freeLimit: typeof d.freeLimit === "number" ? d.freeLimit : 0,
         });
       })
