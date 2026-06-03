@@ -14,7 +14,7 @@ const PREMIUM_UNLOCK_POLICY: Record<string, string[]> = {
   westernAstrologyPremium: ["premium-astrology", "premiumDivinationPack"],
   sookyoPremium: ["premium-sukuyo", "premiumDivinationPack"],
   vedicPremium: ["premium-veda", "premiumDivinationPack"],
-  lifeBook: ["premiumDivinationPack"],
+  lifeBook: [],
   loveSecret: ["premium-love-secret", "premiumDivinationPack", "premium-naming"],
   sajuNewYear: ["premiumDivinationPack"],
   soulOriginKarma: ["premiumDivinationPack"],

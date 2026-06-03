@@ -5,7 +5,7 @@ import { verifyPremiumAccessToken } from "./premium-access-token.js";
 
 export const PREMIUM_UNLOCK_POLICY = Object.freeze({
   sajuNewYear: ["premiumDivinationPack"],
-  lifeBook: ["premiumDivinationPack"],
+  lifeBook: [],
   loveSecret: ["premium-love-secret", "premiumDivinationPack", "premium-naming"],
   ziweiPremium: ["premium-ziwei", "premiumDivinationPack"],
   westernAstrologyPremium: ["premium-astrology", "premiumDivinationPack"],
