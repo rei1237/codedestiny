@@ -1623,6 +1623,39 @@ function applyRuntimeYongshinPolicy(power, jong, johu) {
   return power;
 }
 
+function attachKasiDaewunBridge(bazi, birth) {
+  if (!bazi || typeof bazi.getYun === 'function') return bazi;
+  try {
+    if (!birth || typeof Solar === 'undefined' || typeof Solar.fromYmdHms !== 'function') return bazi;
+    var solar = Solar.fromYmdHms(
+      birth.year,
+      birth.month,
+      birth.day,
+      birth.hour,
+      birth.minute || 0,
+      birth.second || 0
+    );
+    var lunar = solar && typeof solar.getLunar === 'function' ? solar.getLunar() : null;
+    var daewunBazi = lunar && typeof lunar.getEightChar === 'function' ? lunar.getEightChar() : null;
+    if (!daewunBazi || typeof daewunBazi.getYun !== 'function') return bazi;
+    bazi.getYun = function(genderFlag) {
+      return daewunBazi.getYun(genderFlag);
+    };
+    bazi.__daewunBridge = {
+      source: 'kasi-corrected-solar-daewun-bridge',
+      year: birth.year,
+      month: birth.month,
+      day: birth.day,
+      hour: birth.hour,
+      minute: birth.minute || 0
+    };
+    window.__cdDaewunBridge = bazi.__daewunBridge;
+  } catch (e) {
+    console.warn('[saju] KASI daewun bridge failed:', e && e.message ? e.message : e);
+  }
+  return bazi;
+}
+
 function _syncDestinyFlowerSajuSnapshot(reason) {
   try {
     if (!G_PILLARS || !G_NATAL) return null;
@@ -3913,6 +3946,14 @@ async function calculate(){
       getTimeGan: function() { return kasiHourPair.g; },
       getTimeZhi: function() { return kasiHourPair.j; }
     };
+    attachKasiDaewunBridge(bazi, {
+      year: correctedYear,
+      month: correctedMonth,
+      day: correctedDay,
+      hour: correctedHour,
+      minute: correctedMinute,
+      second: 0
+    });
     
     var yg=bazi.getYearGan(),yz=bazi.getYearZhi();
     var mg=bazi.getMonthGan(),mz=bazi.getMonthZhi();
@@ -20621,6 +20662,7 @@ function renderDaewun(bazi){
   document.getElementById('dwLegend').innerHTML=legendItems.join('');
 
   try{
+    if(!bazi || typeof bazi.getYun !== 'function') throw new Error('KASI 대운 브릿지 누락');
     var yun=bazi.getYun(GENDER==='M'?1:0);
     var list=yun.getDaYun();
     var h='';
@@ -20673,7 +20715,13 @@ function renderDaewun(bazi){
     window.__cdLastDaewunBazi=bazi;
     renderLifeGraph(bazi);
     requestAnimationFrame(function(){ setTimeout(function(){ renderLifeGraph(window.__cdLastDaewunBazi||bazi); }, 160); });
-  }catch(err){console.error('대운 오류',err);}
+  }catch(err){
+    console.error('대운 오류',err);
+    window.G_DAEWUN=[];
+    var grid=document.getElementById('dwGrid');
+    if(grid)grid.innerHTML='<p style="font-size:.83rem;color:#999">대운 데이터 연결을 다시 준비하고 있습니다.</p>';
+    renderLifeGraph(bazi);
+  }
 }
 
 function showDwDetail(age,gan,zhi,evaluation,score){
