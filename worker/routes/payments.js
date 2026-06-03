@@ -8,6 +8,7 @@ import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed,
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
+import { normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 
 function toDateFromUnixSeconds(value) {
   const unixSeconds = Number(value);
@@ -348,6 +349,18 @@ async function findUserByIdRaw(userId, projection = {}) {
     { _id: new mongoose.Types.ObjectId(normalizedId) },
     { projection },
   );
+}
+
+async function findRecentPaymentsForUser(userId, limit = 20) {
+  const normalizedId = String(userId || "").trim();
+  if (!mongoose.Types.ObjectId.isValid(normalizedId)) return [];
+
+  const objectId = new mongoose.Types.ObjectId(normalizedId);
+  return mongoose.connection.collection("payments")
+    .find({ userId: { $in: [objectId, normalizedId] } })
+    .sort({ createdAt: -1, paidAt: -1 })
+    .limit(limit)
+    .toArray();
 }
 
 function hasActiveSubscriptionConflict(sub) {
@@ -2397,20 +2410,21 @@ function formatPointHistoryEntry(entry) {
 
 function buildSubscriptionSummary(profileSubscription) {
   const sub = profileSubscription || {};
-  const tier = String(sub.tier || "free").trim() || "free";
-  const expiresAt = sub.expiresAt ? new Date(sub.expiresAt) : null;
-  const validExpiresAt = expiresAt && Number.isFinite(expiresAt.getTime())
-    ? expiresAt.toISOString()
-    : null;
-  const isActive = tier !== "free" && !!validExpiresAt && new Date(validExpiresAt).getTime() > Date.now();
+  const entitlement = normalizeHoneyPassEntitlement({ profileSubscription: sub });
+  const tier = entitlement.isActive ? entitlement.tier : String(sub.tier || "free").trim() || "free";
+  const validExpiresAt = entitlement.expiresAt || toIsoOrNull(sub.expiresAt);
+  const isActive = Boolean(entitlement.isActive);
 
   if (!isActive) return [];
 
   return [{
     tier,
-    source: String(sub.source || "coin"),
+    label: entitlement.label,
+    source: String(entitlement.source || sub.source || "pass"),
     isActive,
     expiresAt: validExpiresAt,
+    profileLimit: Number(entitlement.maxProfiles || 1),
+    freeLimit: Number(entitlement.maxCoveredCoin || 0),
     membershipCreditBalance: Number(sub.membershipCreditBalance || 0),
     membershipCreditGranted: Number(sub.membershipCreditGranted || 0),
     membershipCreditUsed: Number(sub.membershipCreditUsed || 0),
@@ -2517,12 +2531,16 @@ async function handleMe(auth, env) {
       profileSubscription: 1,
     });
 
-    const [recentPayments, pointHistories] = await Promise.all([
-      Payment.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(10).lean(),
+    const [recentPaymentsResult, pointHistoriesResult] = await Promise.allSettled([
+      findRecentPaymentsForUser(auth.userId, 20),
       PointHistory.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(20).lean(),
     ]);
+    const recentPayments = recentPaymentsResult.status === "fulfilled" ? recentPaymentsResult.value : [];
+    const pointHistories = pointHistoriesResult.status === "fulfilled" ? pointHistoriesResult.value : [];
 
     const body = buildMeResponseBody(auth, user, recentPayments, pointHistories);
+    body.data.degradedPayments = recentPaymentsResult.status === "rejected";
+    body.data.degradedTransactions = pointHistoriesResult.status === "rejected";
     if (!user) {
       body.message = "User profile is missing. Returned safe defaults.";
       body.userFound = false;

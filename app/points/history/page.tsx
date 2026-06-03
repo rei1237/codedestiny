@@ -25,7 +25,7 @@ type PaymentHistoryItem = {
   paymentAmount: number;
   chargedPoints: number;
   paymentMethod: string;
-  status: "pending" | "success" | "failed" | "cancelled";
+  status: "pending" | "success" | "failed" | "cancelled" | "refunded";
   paidAt?: string;
   approvalNumber?: string | null;
 };
@@ -37,6 +37,7 @@ type MeResponse = {
     balance?: number;
     transactions?: PointHistoryEntry[];
     payments?: PaymentHistoryItem[];
+    subscriptions?: SubscriptionStatusResponse[];
   };
   message?: string;
   user?: {
@@ -46,12 +47,17 @@ type MeResponse = {
   };
   payments?: PaymentHistoryItem[];
   pointHistories?: PointHistoryEntry[];
+  subscriptions?: SubscriptionStatusResponse[];
 };
 
 type SubscriptionStatusResponse = {
   tier?: string;
+  label?: string;
   isActive?: boolean;
   expiresAt?: string | null;
+  source?: string;
+  profileLimit?: number;
+  freeLimit?: number;
   message?: string;
 };
 
@@ -78,9 +84,11 @@ function formatDateTime(raw?: string | null) {
   });
 }
 
+const COIN_TO_WON = 100;
+
 function formatPoints(n: number) {
   const abs = Math.abs(n);
-  return `${abs.toLocaleString("ko-KR")}원`;
+  return `${abs.toLocaleString("ko-KR")}코인`;
 }
 
 function formatWon(n: number) {
@@ -113,6 +121,12 @@ function deltaPrefix(delta: number) {
   if (delta > 0) return "+";
   if (delta < 0) return "−";
   return "";
+}
+
+function paymentStatusView(status: PaymentHistoryItem["status"]) {
+  if (status === "refunded") return { label: "환불완료", cls: "bg-sky-100 text-sky-800 border-sky-300" };
+  if (status === "cancelled") return { label: "결제취소", cls: "bg-slate-100 text-slate-700 border-slate-300" };
+  return { label: "결제완료", cls: "bg-emerald-100 text-emerald-800 border-emerald-300" };
 }
 
 function resolveFeatureName(featureKey?: string) {
@@ -188,11 +202,24 @@ function normalizePaymentPayload(payload: MeResponse) {
   const payments = Array.isArray(dataNode.payments)
     ? dataNode.payments
     : (Array.isArray(payload?.payments) ? payload.payments : []);
+  const subscriptions = Array.isArray(dataNode.subscriptions)
+    ? dataNode.subscriptions
+    : (Array.isArray(payload?.subscriptions) ? payload.subscriptions : []);
 
   return {
     payments,
+    subscriptions,
     message: payload?.message || "",
   };
+}
+
+function buildSubscriptionSummaryText(data?: SubscriptionStatusResponse | null) {
+  const tier = String(data?.tier || "free").toLowerCase();
+  const isActive = !!data?.isActive;
+  const expiresAt = data?.expiresAt ? formatDateTime(data.expiresAt) : "-";
+  const tierLabel = tier === "free" ? "무료" : (data?.label || tier.toUpperCase());
+  const activeLabel = isActive ? "활성" : "비활성";
+  return `${tierLabel} · ${activeLabel} · 만료 ${expiresAt}`;
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -313,9 +340,16 @@ export default function PointHistoryPage() {
       const normalized = normalizePaymentPayload(data);
       setPayments(
         Array.isArray(normalized.payments)
-          ? normalized.payments.filter((p) => p?.status === "success")
+          ? normalized.payments.filter((p) => p?.status === "success" || p?.status === "refunded" || p?.status === "cancelled")
           : [],
       );
+      const activeSubscription = Array.isArray(normalized.subscriptions)
+        ? normalized.subscriptions.find((sub) => sub?.isActive) || normalized.subscriptions[0]
+        : null;
+      if (activeSubscription) {
+        setSubscriptionSummary(buildSubscriptionSummaryText(activeSubscription));
+        setSubscriptionError(null);
+      }
       setPaymentsError(null);
     } catch (e: unknown) {
       setPaymentsError(e instanceof Error ? e.message : "결제 내역을 불러오지 못했습니다.");
@@ -357,10 +391,8 @@ export default function PointHistoryPage() {
       }
       const tier = String(data?.tier || "free").toLowerCase();
       const isActive = !!data?.isActive;
-      const expiresAt = data?.expiresAt ? formatDateTime(data.expiresAt) : "-";
-      const tierLabel = tier === "free" ? "무료" : tier.toUpperCase();
-      const activeLabel = isActive ? "활성" : "비활성";
-      setSubscriptionSummary(`${tierLabel} · ${activeLabel} · 만료 ${expiresAt}`);
+      const nextSummary = buildSubscriptionSummaryText({ ...data, tier, isActive });
+      setSubscriptionSummary((prev) => (!isActive && prev.includes(" · 활성 · ") ? prev : nextSummary));
       setSubscriptionError(null);
     } catch (e: unknown) {
       setSubscriptionError(e instanceof Error ? e.message : "구독 상태를 불러오지 못했습니다.");
@@ -396,14 +428,14 @@ export default function PointHistoryPage() {
   }, [histories, activeTab]);
 
   /* 요약 통계 */
-  const totalCharged = useMemo(
+  const totalChargedWon = useMemo(
     () => histories.reduce((s, h) => {
       const delta = Number(h.delta || 0);
-      return delta > 0 ? s + delta : s;
+      return delta > 0 && (h.kind === "charge" || h.kind === "refund") ? s + (delta * COIN_TO_WON) : s;
     }, 0),
     [histories],
   );
-  const totalDeducted = useMemo(
+  const totalDeductedCoins = useMemo(
     () => histories.reduce((s, h) => {
       const delta = Number(h.delta || 0);
       return delta < 0 ? s + Math.abs(delta) : s;
@@ -536,8 +568,8 @@ export default function PointHistoryPage() {
           className="grid grid-cols-2 gap-3"
         >
           {[
-            { label: "총 결제·환불", value: totalCharged, icon: "⬆️", cls: "border-emerald-200 bg-emerald-50/80", valcls: "text-emerald-700" },
-            { label: "총 차감 사용", value: totalDeducted, icon: "⬇️", cls: "border-rose-200 bg-rose-50/80", valcls: "text-rose-700" },
+            { label: "총 결제·환불", value: totalChargedWon, unit: "원", icon: "⬆️", showCoin: false, cls: "border-emerald-200 bg-emerald-50/80", valcls: "text-emerald-700" },
+            { label: "총 차감 사용", value: totalDeductedCoins, unit: "코인", icon: "⬇️", showCoin: true, cls: "border-rose-200 bg-rose-50/80", valcls: "text-rose-700" },
           ].map((item) => (
             <div
               key={item.label}
@@ -545,10 +577,10 @@ export default function PointHistoryPage() {
             >
               <p className="text-[11px] font-bold text-neutral-500 mb-1">{item.icon} {item.label}</p>
               <div className="flex items-center gap-1.5">
-                <CoinIcon size="sm" />
+                {item.showCoin && <CoinIcon size="sm" />}
                 <span className={`text-[18px] font-black leading-none ${item.valcls}`}>
                   {item.value.toLocaleString("ko-KR")}
-                  <span className="ml-1 text-xs font-bold">원</span>
+                  <span className="ml-1 text-xs font-bold">{item.unit}</span>
                 </span>
               </div>
               <p className="mt-1 text-[10px] text-neutral-400">최근 20건 기준</p>
@@ -688,26 +720,29 @@ export default function PointHistoryPage() {
             <p className="text-sm text-[#7A5230]">완료된 결제 내역이 없습니다.</p>
           ) : (
             <div className="space-y-2.5">
-              {payments.map((p) => (
-                <div
-                  key={p.id}
-                  className="rounded-[16px] border border-[#EFDCA8] bg-white/95 p-3.5"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-sm font-bold text-[#5C3A1E]">
-                      결제 금액 {formatWon(p.paymentAmount)} · {p.chargedPoints > 0 ? `${p.chargedPoints.toLocaleString("ko-KR")}코인 기준` : "상품 결제"}
-                    </p>
-                    <span className="rounded-full border px-2 py-0.5 text-[11px] font-bold bg-emerald-100 text-emerald-800 border-emerald-300">
-                      결제완료
-                    </span>
+              {payments.map((p) => {
+                const status = paymentStatusView(p.status);
+                return (
+                  <div
+                    key={p.id}
+                    className="rounded-[16px] border border-[#EFDCA8] bg-white/95 p-3.5"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-sm font-bold text-[#5C3A1E]">
+                        결제 금액 {formatWon(p.paymentAmount)} · {p.chargedPoints > 0 ? `${p.chargedPoints.toLocaleString("ko-KR")}코인 기준` : "상품 결제"}
+                      </p>
+                      <span className={`rounded-full border px-2 py-0.5 text-[11px] font-bold ${status.cls}`}>
+                        {status.label}
+                      </span>
+                    </div>
+                    <div className="mt-1.5 grid gap-1 text-[11.5px] text-[#7A5230] sm:grid-cols-2">
+                      <p>결제시각: {formatDateTime(p.paidAt)}</p>
+                      <p>결제수단: {p.paymentMethod || "-"}</p>
+                      {p.approvalNumber && <p className="sm:col-span-2">승인번호: {p.approvalNumber}</p>}
+                    </div>
                   </div>
-                  <div className="mt-1.5 grid gap-1 text-[11.5px] text-[#7A5230] sm:grid-cols-2">
-                    <p>결제시각: {formatDateTime(p.paidAt)}</p>
-                    <p>결제수단: {p.paymentMethod || "-"}</p>
-                    {p.approvalNumber && <p className="sm:col-span-2">승인번호: {p.approvalNumber}</p>}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>
@@ -716,14 +751,14 @@ export default function PointHistoryPage() {
         <section className="rounded-[20px] border border-[#EDDBA3]/60 bg-[rgba(255,248,228,0.55)] p-5">
           <h3 className="font-bold text-[#5C3A1E] mb-2">결제/멤버십 이용 안내</h3>
           <ul className="space-y-1.5 text-sm text-[#7A5230]">
-            <li>• 코인은 가격 표시 단위이며, 현재 신규 선불 충전은 제공하지 않습니다.</li>
+            <li>• 코인은 콘텐츠 가치 단위이며, 1코인은 100원 상당으로 환산해 표시됩니다.</li>
             <li>• 유료 상품은 원화 단건 결제로 결제되며, 결제 완료 후 해당 상품 이용 또는 결과 생성이 진행됩니다.</li>
             <li>• 시스템 오류, 중복 결제, 결과 미제공 건은 재생성 또는 환불 처리됩니다.</li>
             <li>• 환불 처리는 <strong>결제 수단(카드)으로만</strong> 가능합니다.</li>
             <li>• 콘텐츠 생성이 시작되기 전에는 취소/환불 요청이 가능합니다.</li>
             <li>• 콘텐츠 생성이 시작되었거나 결과가 정상 제공된 경우 디지털 콘텐츠 특성상 환불이 제한될 수 있습니다.</li>
             <li>• 멤버십 30일 이용권은 자동결제 상품이 아니며, 기간 종료 후 무료 플랜으로 전환됩니다.</li>
-            <li>• 내역 조회는 최근 20건까지 표시됩니다. 더 오래된 내역이 필요하면 고객센터로 문의해 주세요.</li>
+            <li>• 포인트 흐름과 결제 내역은 최근 20건까지 표시됩니다. 더 오래된 내역이 필요하면 고객센터로 문의해 주세요.</li>
             <li>• 민원담당자: 박병하 (050-6664-7398) · seongbae555@gmail.com</li>
           </ul>
         </section>

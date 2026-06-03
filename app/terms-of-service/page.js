@@ -154,7 +154,7 @@ export default function TermsOfServicePage() {
       </section>
 
       <section id="refund-policy" style={{ ...sectionStyle, marginBottom: "14px", scrollMarginTop: "116px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>11. 교환/환불(청약철회) 및 구독형 디지털 콘텐츠 환불 제한 / Exchange, Refund and Subscription Withdrawal Limits</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>11. 교환/환불(청약철회) 및 멤버십 이용권 환불 제한 / Exchange, Refund and Membership Pass Withdrawal Limits</h2>
         <p style={{ lineHeight: 1.75 }}>
           본 서비스의 유료 상품과 멤버십은 주문 단위 원화 결제로 제공되며,
           멤버십은 30일 이용권 구매 방식으로 자동 갱신 없이 운영됩니다.
@@ -165,13 +165,13 @@ export default function TermsOfServicePage() {
           No automatic charge occurs after pass expiry; users may purchase a new pass when needed.
         </p>
         <p style={{ lineHeight: 1.75 }}>
-          구독 서비스 가입 후 멤버십 전용 콘텐츠(구독 혜택으로 제공되는 유료 콘텐츠 포함)를 1회라도 열람하면,
+          멤버십 이용권 결제 후 멤버십 전용 콘텐츠(이용권 혜택으로 제공되는 유료 콘텐츠 포함)를 1회라도 열람하면,
           전자상거래 등에서의 소비자보호에 관한 법률 제17조 제2항 제5호의
           디지털 콘텐츠 서비스 개시로 간주됩니다.
           In such cases, the digital content service is deemed to have started under applicable law.
         </p>
         <p style={{ lineHeight: 1.75 }}>
-          따라서 구독 후 7일 이내라 하더라도 해당 이용 기록이 확인되면 단순 변심에 의한 전액 환불은 제한되며,
+          따라서 이용권 결제 후 7일 이내라 하더라도 해당 이용 기록이 확인되면 단순 변심에 의한 전액 환불은 제한되며,
           이용 횟수, 이용 기간, 제공된 혜택, 결제대행 수수료 등 합리적 공제 기준을 반영한 잔여분만 환불됩니다.
           Full refund may be restricted once usage starts, and only the refundable remainder may be returned.
         </p>
@@ -181,7 +181,7 @@ export default function TermsOfServicePage() {
           Refund amount and timing may vary based on legal requirements and payment processor settlement rules.
         </p>
         <p style={{ lineHeight: 1.75 }}>
-          코인은 콘텐츠 가격을 안내하기 위한 가치 단위이며, 선불 충전/잔액 적립 상품은 제공하지 않습니다.
+          코인은 콘텐츠 가격을 안내하기 위한 가치 단위이며, 1코인은 100원 상당으로 환산됩니다. 현재 선불 충전/잔액 적립 상품은 제공하지 않습니다.
         </p>
         <p style={{ lineHeight: 1.75 }}>
           멤버십 전용 콘텐츠 진입 시 표시되는 안내 팝업에서 확인 버튼을 누르는 행위는,
@@ -195,11 +195,11 @@ export default function TermsOfServicePage() {
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>12. 무료 체험 및 유료 이용권 전환 / Free Trial and Paid Pass Conversion</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>12. 무료 체험 및 유료 이용권 이용 / Free Trial and Paid Pass Use</h2>
         <p style={{ lineHeight: 1.75 }}>
           무료 체험 기간 중이라도 멤버십 전용 콘텐츠를 열람하여 서비스 이용이 개시된 경우,
-          이후 유료 전환 직후에는 단순 변심에 의한 즉시 환불이 제한될 수 있습니다.
-          If service use starts during the free trial, immediate post-conversion refund may be restricted.
+          이후 동일 콘텐츠 또는 유료 이용권에 대한 단순 변심 환불은 제한될 수 있습니다.
+          If service use starts during the free trial, withdrawal for the same digital content or paid pass may be restricted.
         </p>
         <p style={{ lineHeight: 1.75 }}>
           이용권 종류, 이용 기간, 결제 금액, 만료일 등 핵심 조건은 결제/구독 화면에 고지되며,

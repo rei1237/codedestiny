@@ -42,11 +42,9 @@ type BillingFeaturePricing = {
 
 type RuntimeApiWindow = Window & {
   CODE_DESTINY_API_BASE_URL?: string;
+  _cdSetCoinGateOverlay?: (show: boolean, message?: string) => void;
   __cdPaidFeatureGate?: {
-    open?: (detail: PaidFeatureGateRuntimeDetail) => number;
-    update?: (detail: PaidFeatureGateRuntimeDetail) => void;
     close?: (requestId?: string) => void;
-    preload?: () => void;
   };
 };
 
@@ -227,22 +225,42 @@ function emitPaidFeatureGate(action: "open" | "update" | "close", detail: PaidFe
     featureKey: toText(detail.featureKey || featureId),
     startedAt: Number.isFinite(Number(detail.startedAt)) ? Number(detail.startedAt) : runtimeNow(),
   };
+  const status = String(payload.status || "checkingEntitlement");
+  const copyFromStatus: Record<PaidFeatureGateRuntimeStatus, string> = {
+    opening: "결제 상태를 확인하고 있습니다.",
+    checkingEntitlement: "결제 진행 중입니다. 잠시만 기다려 주세요.",
+    hasEntitlement: "이용권 이용 상태가 확인되어 계속 진행합니다.",
+    noEntitlement: "결제가 필요합니다. 결제 페이지로 이동해 주세요.",
+    loadingProducts: "결제 상품 정보를 확인하고 있습니다.",
+    readyToPay: "결제 수단을 확인해 주세요.",
+    paymentProcessing: "결제 처리 중입니다. 잠시만 기다려 주세요.",
+    paymentSuccess: "결제가 완료되었습니다.",
+    paymentFailed: "결제 처리에 실패했습니다.",
+    error: "결제 처리 중 오류가 발생했습니다.",
+  };
+  const overlayMessage = String(payload.message || copyFromStatus[status as PaidFeatureGateRuntimeStatus] || "결제 진행 중입니다.").trim();
   try {
     if (typeof performance !== "undefined" && typeof performance.mark === "function") {
       performance.mark(`cd-paid-feature-gate-${action}`);
     }
   } catch (_) {}
   const runtimeWindow = window as RuntimeApiWindow;
-  if (action === "open" && typeof runtimeWindow.__cdPaidFeatureGate?.open === "function") {
-    runtimeWindow.__cdPaidFeatureGate.open(payload);
-    return;
-  }
-  if (action === "update" && typeof runtimeWindow.__cdPaidFeatureGate?.update === "function") {
-    runtimeWindow.__cdPaidFeatureGate.update(payload);
-    return;
-  }
-  if (action === "close" && typeof runtimeWindow.__cdPaidFeatureGate?.close === "function") {
-    runtimeWindow.__cdPaidFeatureGate.close(payload.requestId);
+  if (action === "close") {
+    if (typeof runtimeWindow._cdSetCoinGateOverlay === "function") {
+      runtimeWindow._cdSetCoinGateOverlay(false);
+      return;
+    }
+    if (typeof runtimeWindow.__cdPaidFeatureGate?.close === "function") {
+      runtimeWindow.__cdPaidFeatureGate.close(payload.requestId);
+      return;
+    }
+  } else if (typeof runtimeWindow._cdSetCoinGateOverlay === "function") {
+    runtimeWindow._cdSetCoinGateOverlay(true, overlayMessage);
+    if (status === "hasEntitlement" || status === "paymentSuccess") {
+      window.setTimeout(() => {
+        runtimeWindow._cdSetCoinGateOverlay?.(false);
+      }, 900);
+    }
     return;
   }
   window.dispatchEvent(new CustomEvent("cd:paid-feature-gate", { detail: payload }));

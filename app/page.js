@@ -7,14 +7,14 @@ import styles from "./home-cosmic.module.css";
 export const metadata = createI18nMetadata({
   locale: "ko",
   routeByLocale: getAlternatesByRouteKey("home"),
-  title: "무료 사주팔자 · 오늘의 운세 · 꿀꿀 만세력 | 코드 데스티니",
+  title: "꿀꿀 운세 | 무료 사주팔자 · 오늘의 운세 · 코드 데스티니",
   description:
-    "Code Destiny(코드 데스티니)는 사주풀이, 오늘의 운세, 만세력, 궁합, 타로, 자미두수, 점성술을 한곳에서 볼 수 있는 무료 운세 플랫폼입니다.",
+    "꿀꿀 운세는 Code Destiny(코드 데스티니)가 제공하는 사주풀이, 오늘의 운세, 만세력, 궁합, 타로, 자미두수, 점성술을 한곳에서 볼 수 있는 무료 운세 플랫폼입니다.",
   keywords: [
     "Code Destiny",
     "코드 데스티니",
-    "꿀꿀 만세력",
     "꿀꿀 운세",
+    "꿀꿀 만세력",
     "꿀꿀 사주",
     "사주",
     "운세",
@@ -28,7 +28,7 @@ export const metadata = createI18nMetadata({
 const SERVICE_LINKS = [
   { href: "/index.html", label: "무료 사주풀이 보기" },
   { href: "/index.html", label: "오늘의 운세 확인하기" },
-  { href: "/index.html", label: "꿀꿀 만세력 확인하기" },
+  { href: "/index.html", label: "꿀꿀 운세 확인하기" },
   { href: "/index.html?action=runCompat", label: "사주 궁합 분석하기" },
   { href: "/index.html?action=openTarotModal", label: "AI 타로 리딩 시작하기" },
   { href: "/index.html?action=openZiweiModal", label: "자미두수 명반 보기" },
@@ -50,9 +50,9 @@ export default function HomePage() {
   const orgJsonLd = buildOrganizationJsonLd();
   const websiteJsonLd = buildWebsiteJsonLd();
   const webPageJsonLd = buildWebPageJsonLd({
-    title: "무료 사주팔자 · 오늘의 운세 · 꿀꿀 만세력 | 코드 데스티니",
+    title: "꿀꿀 운세 | 무료 사주팔자 · 오늘의 운세 · 코드 데스티니",
     description:
-      "Code Destiny(코드 데스티니)는 사주풀이, 오늘의 운세, 만세력, 궁합, 타로, 자미두수, 점성술을 한곳에서 볼 수 있는 무료 운세 플랫폼입니다.",
+      "꿀꿀 운세는 Code Destiny(코드 데스티니)가 제공하는 사주풀이, 오늘의 운세, 만세력, 궁합, 타로, 자미두수, 점성술을 한곳에서 볼 수 있는 무료 운세 플랫폼입니다.",
     path: "/",
   });
 
@@ -63,7 +63,7 @@ export default function HomePage() {
       <header className={`${styles.panel} ${styles.heroPanel}`}>
         <span className={styles.heroKicker}>COSMIC SERVICE HUB</span>
         <h1 className={styles.heroTitle}>
-          무료 사주팔자 · 오늘의 운세 · 꿀꿀 만세력 | 코드 데스티니
+          꿀꿀 운세 | 무료 사주팔자 · 오늘의 운세 · 코드 데스티니
         </h1>
         <p className={styles.heroLead}>
           Code Destiny는 사주·타로·자미두수·점성술·숙요점·베다점을 한곳에서 해석하는 무료 운세 플랫폼입니다.

@@ -9,7 +9,6 @@ import {
   useRef,
   useState,
 } from "react";
-import PaymentProcessingOverlay from "./PaymentProcessingOverlay";
 
 type PaymentProcessingContextValue = {
   isProcessing: boolean;
@@ -109,6 +108,12 @@ const PaymentProcessingContext = createContext<PaymentProcessingContextValue | u
   undefined,
 );
 
+function emitCoinGateOverlay(open: boolean, message?: string) {
+  if (typeof window === "undefined") return;
+  const overlayWindow = window as Window & { _cdSetCoinGateOverlay?: (show: boolean, overlayMessage?: string) => void };
+  overlayWindow._cdSetCoinGateOverlay?.(open, message);
+}
+
 function nowForPaidGate() {
   if (typeof performance !== "undefined" && typeof performance.now === "function") {
     return performance.now();
@@ -157,6 +162,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
       if (requestId && prev.requestId && requestId !== prev.requestId) return prev;
       return { ...prev, open: false, status: "idle", message: PAID_GATE_DEFAULT_MESSAGE };
     });
+    emitCoinGateOverlay(false);
   }, []);
 
   const open = useCallback((detail: PaidFeatureGateDetail) => {
@@ -207,6 +213,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
         } catch (_) {}
       });
     }
+    emitCoinGateOverlay(true, detail.message || copy.message);
     return seq;
   }, []);
 
@@ -225,6 +232,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
         cost: Number.isFinite(Number(detail.cost)) ? Number(detail.cost) : prev.cost,
       };
     });
+    emitCoinGateOverlay(true, detail.message || PAID_GATE_COPY[detail.status || "checkingEntitlement"]?.message || PAID_GATE_DEFAULT_MESSAGE);
   }, []);
 
   const preload = useCallback(() => {
@@ -296,7 +304,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
   return (
     <PaidFeatureGateContext.Provider value={contextValue}>
       {children}
-      {state.open ? (
+      {false && state.open ? (
         <div
           role="dialog"
           aria-modal="true"
@@ -358,7 +366,6 @@ export function PaymentProcessingProvider({
   const [processingMessage, setProcessingMessageState] = useState(
     DEFAULT_PROCESSING_MESSAGE,
   );
-  const overlayCopy = resolveProcessingCopy(processingMessage);
 
   const startProcessing = useCallback((message?: string) => {
     if (typeof message === "string" && message.trim()) {
@@ -381,21 +388,14 @@ export function PaymentProcessingProvider({
   }, []);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      (window as any)._cdSetCoinGateOverlay = (show: boolean, message?: string) => {
-        if (show) {
-          startProcessing(message);
-        } else {
-          stopProcessing();
-        }
-      };
+    if (typeof window === "undefined") return;
+    const overlayWindow = window as Window & { _cdSetCoinGateOverlay?: (show: boolean, message?: string) => void };
+    if (isProcessing) {
+      overlayWindow._cdSetCoinGateOverlay?.(true, processingMessage);
+    } else {
+      overlayWindow._cdSetCoinGateOverlay?.(false);
     }
-    return () => {
-      if (typeof window !== "undefined") {
-        delete (window as any)._cdSetCoinGateOverlay;
-      }
-    };
-  }, [startProcessing, stopProcessing]);
+  }, [isProcessing, processingMessage]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -462,15 +462,7 @@ export function PaymentProcessingProvider({
 
   return (
     <PaymentProcessingContext.Provider value={value}>
-      <PaidFeatureGateProvider>
-        {children}
-        <PaymentProcessingOverlay
-          open={isProcessing}
-          title={overlayCopy.title}
-          description={overlayCopy.description}
-          statusMessage={processingMessage}
-        />
-      </PaidFeatureGateProvider>
+      {children}
     </PaymentProcessingContext.Provider>
   );
 }

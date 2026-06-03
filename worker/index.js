@@ -85,6 +85,7 @@ function getAllowedOrigins(env) {
 
 function isAllowedOrigin(origin, env) {
   if (!origin) return true;
+  if (origin === "null") return false;
 
   const allowedOrigins = getAllowedOrigins(env);
   if (allowedOrigins.has(origin)) return true;
@@ -101,13 +102,24 @@ function isAllowedOrigin(origin, env) {
   return false;
 }
 
+function isLocalWorkerRequest(request) {
+  try {
+    const { hostname } = new URL(request.url);
+    return hostname === "localhost" || hostname === "127.0.0.1";
+  } catch (e) {
+    return false;
+  }
+}
+
 function getCorsHeaders(request, env) {
   const origin = request.headers.get("Origin") || "";
   const fallbackOrigin = normalizeOrigin(env.AUTH_FRONTEND_BASE_URL)
     || normalizeOrigin(env.SITE_BASE_URL)
     || normalizeOrigin(env.AUTH_URL)
     || "https://code-destiny.com";
-  const allowOrigin = origin && isAllowedOrigin(origin, env) ? origin : fallbackOrigin;
+  const allowOrigin = origin === "null" && isLocalWorkerRequest(request)
+    ? "null"
+    : (origin && isAllowedOrigin(origin, env) ? origin : fallbackOrigin);
 
   return {
     "Access-Control-Allow-Origin": allowOrigin,
