@@ -1,3 +1,33 @@
+export const PASS_TIERS = Object.freeze({
+  BRONZE: "BRONZE",
+  SILVER: "SILVER",
+  GOLD: "GOLD",
+});
+
+export const PASS_LIMITS = Object.freeze({
+  [PASS_TIERS.BRONZE]: 30,
+  [PASS_TIERS.SILVER]: 50,
+  [PASS_TIERS.GOLD]: 100,
+});
+
+export const PASS_TIER_UI = Object.freeze({
+  [PASS_TIERS.BRONZE]: { tone: "bronze", color: "warm_copper" },
+  [PASS_TIERS.SILVER]: { tone: "silver", color: "cold_moonlight_silver" },
+  [PASS_TIERS.GOLD]: { tone: "gold", color: "golden_moonlight" },
+});
+
+const LEGACY_TIER_TO_PASS_TIER = Object.freeze({
+  standard: PASS_TIERS.BRONZE,
+  premium: PASS_TIERS.SILVER,
+  vvip: PASS_TIERS.GOLD,
+});
+
+const PASS_TIER_TO_LEGACY_TIER = Object.freeze({
+  bronze: "standard",
+  silver: "premium",
+  gold: "vvip",
+});
+
 export const HONEY_PASS_POLICY = Object.freeze({
   none: {
     label: "이용권 없음",
@@ -5,18 +35,21 @@ export const HONEY_PASS_POLICY = Object.freeze({
     maxProfiles: 1,
   },
   standard: {
+    passTier: PASS_TIERS.BRONZE,
     label: "스탠다드 달빛 이용권",
-    maxCoveredCoin: 30,
+    maxCoveredCoin: PASS_LIMITS.BRONZE,
     maxProfiles: 3,
   },
   premium: {
+    passTier: PASS_TIERS.SILVER,
     label: "프리미엄 달빛 이용권",
-    maxCoveredCoin: 50,
+    maxCoveredCoin: PASS_LIMITS.SILVER,
     maxProfiles: 7,
   },
   vvip: {
+    passTier: PASS_TIERS.GOLD,
     label: "VVIP 달빛 이용권",
-    maxCoveredCoin: 100,
+    maxCoveredCoin: PASS_LIMITS.GOLD,
     maxProfiles: 15,
   },
 });
@@ -40,10 +73,18 @@ function toText(value) {
 function tierFromValue(value) {
   const text = toText(value).toLowerCase();
   if (!text || text === "free" || text === "none") return "";
+  if (PASS_TIER_TO_LEGACY_TIER[text]) return PASS_TIER_TO_LEGACY_TIER[text];
   if (text === "vvip" || text.includes("vvip") || text.includes("꿀단지")) return "vvip";
   if (text === "premium" || text.includes("premium") || text.includes("프리미엄")) return "premium";
   if (text === "standard" || text.includes("standard") || text.includes("스탠다드")) return "standard";
   return "";
+}
+
+export function normalizePassTier(value) {
+  const text = toText(value).toUpperCase();
+  if (PASS_LIMITS[text]) return text;
+  const legacyTier = tierFromValue(value);
+  return LEGACY_TIER_TO_PASS_TIER[legacyTier] || null;
 }
 
 function normalizeStatus(value) {
@@ -135,6 +176,9 @@ export function normalizeHoneyPassEntitlement(userOrSubscription = {}) {
 
     const candidate = {
       tier,
+      passTier: HONEY_PASS_POLICY[tier].passTier,
+      passLabel: HONEY_PASS_POLICY[tier].label,
+      passColorTone: PASS_TIER_UI[HONEY_PASS_POLICY[tier].passTier] || null,
       label: HONEY_PASS_POLICY[tier].label,
       isActive: true,
       maxCoveredCoin: HONEY_PASS_POLICY[tier].maxCoveredCoin,
@@ -148,6 +192,9 @@ export function normalizeHoneyPassEntitlement(userOrSubscription = {}) {
 
   return best || {
     tier: "none",
+    passTier: null,
+    passLabel: HONEY_PASS_POLICY.none.label,
+    passColorTone: null,
     label: HONEY_PASS_POLICY.none.label,
     isActive: false,
     maxCoveredCoin: 0,
@@ -158,11 +205,19 @@ export function normalizeHoneyPassEntitlement(userOrSubscription = {}) {
 }
 
 export function canBypassCoinGate(entitlement, serviceCoinPrice) {
-  const price = Number(serviceCoinPrice || 0);
+  return canUseByPass(entitlement, serviceCoinPrice);
+}
+
+export function canUseByPass(activePass, coinCost) {
+  const price = Number(coinCost || 0);
+  const expiresAt = activePass?.expiresAt ? new Date(activePass.expiresAt) : null;
+  if (!activePass || activePass.isActive !== true) return false;
+  if (expiresAt && Number.isFinite(expiresAt.getTime()) && expiresAt.getTime() < Date.now()) return false;
+  const passTier = normalizePassTier(activePass.passTier || activePass.tier);
+  const limit = PASS_LIMITS[passTier] || Number(activePass.maxCoveredCoin || 0);
   return Boolean(
-    entitlement?.isActive === true
-      && Number.isFinite(price)
+    Number.isFinite(price)
       && price > 0
-      && price <= Number(entitlement.maxCoveredCoin || 0),
+      && price <= Number(limit || 0),
   );
 }

@@ -2131,6 +2131,10 @@ async function handleConfirm(request, env, auth) {
     payment: settled.payment,
     usagePass: settled.usagePass || null,
     accessGrant: settled.accessGrant || null,
+    ...(settled.accessGrant?.accessType === "single_purchase" ? {
+      accessMethod: "CARD",
+      charged: Number(settled.payment?.paymentAmount || 0),
+    } : {}),
   });
 }
 
@@ -2419,6 +2423,9 @@ function buildSubscriptionSummary(profileSubscription) {
 
   return [{
     tier,
+    passTier: entitlement.passTier || null,
+    passLabel: entitlement.passLabel || entitlement.label,
+    passColorTone: entitlement.passColorTone || null,
     label: entitlement.label,
     source: String(entitlement.source || sub.source || "pass"),
     isActive,

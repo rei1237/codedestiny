@@ -40,6 +40,29 @@ type BillingFeaturePricing = {
   coinDisplayOnly?: boolean;
 };
 
+export type PaymentEligibility = {
+  loading?: boolean;
+  coinCost: number;
+  priceKRW: number;
+  pass: {
+    hasActivePass: boolean;
+    tier: "BRONZE" | "SILVER" | "GOLD" | null;
+    label: string | null;
+    limit: number | null;
+    canUse: boolean;
+  };
+  monthly: {
+    balance: number;
+    canUse: boolean;
+    afterBalance: number;
+  };
+  card: {
+    canUse: boolean;
+    provider: "PORTONE_V2_KG_INICIS";
+  };
+  raw: Record<string, unknown>;
+};
+
 type RuntimeApiWindow = Window & {
   CODE_DESTINY_API_BASE_URL?: string;
   _cdSetCoinGateOverlay?: (show: boolean, message?: string) => void;
@@ -353,6 +376,93 @@ export async function fetchBillingFeaturePricing(input: {
   return parsed;
 }
 
+function normalizePassTier(value: unknown): PaymentEligibility["pass"]["tier"] {
+  const tier = toText(value).toUpperCase();
+  if (tier === "BRONZE" || tier === "SILVER" || tier === "GOLD") return tier;
+  if (tier === "STANDARD") return "BRONZE";
+  if (tier === "PREMIUM") return "SILVER";
+  if (tier === "VVIP") return "GOLD";
+  return null;
+}
+
+function labelForPassTier(tier: PaymentEligibility["pass"]["tier"]) {
+  if (tier === "BRONZE") return "동색 이용권";
+  if (tier === "SILVER") return "은색 이용권";
+  if (tier === "GOLD") return "금색 이용권";
+  return null;
+}
+
+export async function fetchPaymentEligibility(input: {
+  productId?: string;
+  serviceType?: string;
+  categoryKey?: string;
+  subFeatureKey?: string;
+  featureKey?: string;
+  reason?: string;
+  coinCost?: number;
+  coinPrice?: number;
+  priceKRW?: number;
+  amountKRW?: number;
+}): Promise<BillingResult<PaymentEligibility>> {
+  const query = toQuery({
+    productId: input.productId,
+    serviceType: input.serviceType,
+    categoryKey: input.categoryKey,
+    subFeatureKey: input.subFeatureKey,
+    featureKey: input.featureKey,
+    reason: input.reason,
+  });
+  const response = await authFetchBilling(query ? `/api/billing/unlock-status?${query}` : "/api/billing/unlock-status", { method: "GET" });
+  const parsed = await parseBillingResponse<Record<string, unknown>>(response);
+
+  if (!parsed.ok || !parsed.data) {
+    return {
+      ...parsed,
+      data: null,
+    };
+  }
+
+  const data = parsed.data;
+  const options = data.paymentOptions && typeof data.paymentOptions === "object"
+    ? data.paymentOptions as Record<string, unknown>
+    : data;
+  const pricing = data.pricing && typeof data.pricing === "object"
+    ? data.pricing as Record<string, unknown>
+    : {};
+  const coinCost = Math.max(0, Math.floor(toNumber(options.coinCost ?? data.coinCost ?? pricing.coinPrice ?? pricing.cost ?? input.coinCost ?? input.coinPrice, 0)));
+  const priceKRW = Math.max(0, Math.floor(toNumber(pricing.amountKRW ?? pricing.cashPrice ?? input.priceKRW ?? input.amountKRW ?? coinCost * 100, 0)));
+  const monthlyBalance = Math.max(0, Math.floor(toNumber(options.monthlyBalance ?? data.monthlyBalance, 0)));
+  const passTier = normalizePassTier(options.passTier ?? data.passTier ?? data.subscriptionTier);
+  const passLimit = toNumber(options.passLimit ?? data.passLimit ?? data.freeLimit, NaN);
+  const eligibility: PaymentEligibility = {
+    loading: false,
+    coinCost,
+    priceKRW,
+    pass: {
+      hasActivePass: Boolean(options.hasActivePass ?? data.hasActivePass),
+      tier: passTier,
+      label: labelForPassTier(passTier),
+      limit: Number.isFinite(passLimit) && passLimit > 0 ? Math.floor(passLimit) : null,
+      canUse: Boolean(options.canUseByPass ?? data.canUseByPass),
+    },
+    monthly: {
+      balance: monthlyBalance,
+      canUse: Boolean(options.canUseByMonthly ?? data.canUseByMonthly),
+      afterBalance: Math.max(0, monthlyBalance - coinCost),
+    },
+    card: {
+      canUse: Boolean(options.canUseByCard ?? data.canUseByCard ?? true),
+      provider: "PORTONE_V2_KG_INICIS",
+    },
+    raw: data,
+  };
+
+  return {
+    ...parsed,
+    data: eligibility,
+  };
+}
+
 export async function runBillingCoinGate(input: {
   categoryKey?: string;
   subFeatureKey?: string;
@@ -398,6 +508,26 @@ export async function runBillingCoinGate(input: {
   });
 
   const requestPromise = (async () => {
+    const eligibilityResult = await fetchPaymentEligibility({
+      categoryKey: input.categoryKey,
+      subFeatureKey: input.subFeatureKey,
+      featureKey: input.featureKey,
+      reason: input.reason,
+    }).catch(() => null);
+    const eligibility = eligibilityResult?.ok ? eligibilityResult.data : null;
+    if (eligibility) {
+      emitPaidFeatureGate("update", {
+        featureId,
+        featureKey: featureId,
+        requestId: gateRequestId,
+        status: eligibility.pass.canUse ? "hasEntitlement" : "readyToPay",
+        message: eligibility.pass.canUse
+          ? `${eligibility.pass.label || "달빛 이용권"}으로 차감 없이 이용합니다.`
+          : "결제 가능한 수단을 확인했습니다.",
+        cost: eligibility.coinCost,
+      });
+    }
+
     markPaidAttemptPaymentRequested();
     emitPaidFeatureGate("update", {
       featureId,
