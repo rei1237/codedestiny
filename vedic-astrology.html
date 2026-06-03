@@ -1309,6 +1309,236 @@ const CHAKRA_EXTENDED={
   Ajna:{mantra:"OM",ele:"Light",color:"#7C3AED",planet:"Sun",yoga:"Child's Pose·Eagle Pose",crystal:"아메시스트·라피스라줄리",affirmation:"나는 내면의 직관을 신뢰하며 명확하게 봅니다",detail:"아즈나 차크라는 미간 사이 '제3의 눈' 위치에 있습니다. 2개의 큰 꽃잎(각각 48개의 작은 꽃잎)으로 상징됩니다. 직관, 통찰, 꿈, 상상력, 영적 인식의 중심입니다. Sun(태양)이 주관하며, 약화 시 판단력 저하·망상·현실 도피가 나타납니다."},
   Sahasrara:{mantra:"AH",ele:"Cosmic Consciousness",color:"#A21CAF",planet:"Moon",yoga:"Headstand·Meditation",crystal:"수정·자수정",affirmation:"나는 우주와 연결되어 있으며 신성한 인도를 받습니다",detail:"사하스라라 차크라는 두정부(정수리) 위에 위치합니다. 1000개의 꽃잎 연꽃으로 상징되며 '천 개의 꽃잎'을 의미합니다. 영적 연결, 우주 의식, 깨달음의 최고 에너지 센터입니다. Moon(달)이 주관하며, 차단 시 영적 단절·우울·삶의 의미 상실이 나타납니다."}};
 
+const DOSHA_KEYS=["Vata","Pitta","Kapha"];
+const CHAKRA_KEYS=["Muladhara","Svadhisthana","Manipura","Anahata","Vishuddha","Ajna","Sahasrara"];
+const DOSHA_DETAIL_META={
+  Vata:{
+    korean:"바타 (Vata)",
+    balancedFoods:[
+      "따뜻하고 푹 익힌 촉촉한 음식(스튜, 수프)",
+      "적당한 오일과 기(Ghee)가 포함된 식단",
+      "쌀, 찹쌀, 귀리 등 따뜻한 곡물",
+      "달콤하고 즙이 많은 과일(바나나, 아보카도, 망고)",
+      "익힌 뿌리채소(고구마, 당근, 비트)"
+    ],
+    avoidFoods:[
+      "차갑고 건조한 음식(냉동 식품, 건빵, 칩스)",
+      "날것 및 수분이 극도로 적은 음식",
+      "카페인 및 자극적인 탄산음료"
+    ],
+    practice:[
+      "따뜻한 물을 조금씩 자주 마시기",
+      "규칙적인 식사와 취침 시간을 유지하기",
+      "아비양가 마사지와 부드러운 스트레칭"
+    ],
+    dailyRhythm:"아침의 건조함과 저녁의 냉기를 피하고, 따뜻함과 리듬을 먼저 회복합니다.",
+    therapies:["온열 찜질","아비양가 마사지","깊은 호흡"],
+    mantra:"Om Vam"
+  },
+  Pitta:{
+    korean:"피타 (Pitta)",
+    balancedFoods:[
+      "시원하고 촉촉한 음식(코코넛, 오이, 멜론)",
+      "달고 쓴 맛이 있는 채소(잎채소, 브로콜리)",
+      "곡물과 콩류의 균형 잡힌 식사",
+      "과하지 않은 유제품과 허브티"
+    ],
+    avoidFoods:[
+      "과도하게 매운 음식과 튀김",
+      "알코올, 과열된 카페인 음료",
+      "야식과 과식"
+    ],
+    practice:["시원한 호흡","해질 무렵 산책","분노를 식히는 일지 쓰기"],
+    dailyRhythm:"열을 낮추고, 경쟁보다 회복과 순환을 우선합니다.",
+    therapies:["쿨링 명상","해먹 휴식","물과 달빛 접촉"],
+    mantra:"Om Ram"
+  },
+  Kapha:{
+    korean:"카파 (Kapha)",
+    balancedFoods:[
+      "가볍고 따뜻한 음식(스프, 채소 스튜)",
+      "향신료가 살짝 들어간 곡물과 콩",
+      "구운 채소와 산뜻한 샐러드",
+      "소량의 생강, 후추, 겨자씨"
+    ],
+    avoidFoods:[
+      "과도한 유제품과 기름진 음식",
+      "설탕이 많은 디저트와 밀가루",
+      "늦은 밤의 무거운 식사"
+    ],
+    practice:["아침 운동","짧고 강한 호흡","새로운 루틴을 시작하기"],
+    dailyRhythm:"무거움을 깨우고, 정체보다 움직임과 순환을 늘립니다.",
+    therapies:["활력 요가","사우나 또는 스팀","리듬 있는 걷기"],
+    mantra:"Om Hum"
+  }
+};
+const CHAKRA_DETAIL_META={
+  Muladhara:{
+    koreanName:"뿌리 차크라 (Muladhara)",
+    status:"활성화 집중 권장",
+    meaning:"안전, 생존, 신체적 뿌리, 현실적 기반을 세우는 에너지 중심",
+    imbalanceSymptoms:"불안, 과도한 경계심, 체력 저하, 재정에 대한 두려움, 몸의 무거움",
+    detailedPractices:["정적이 아닌 느린 걷기로 몸의 감각을 깨우기","따뜻한 붉은 계열 식사와 규칙적인 수면 유지","맨발 접지와 하체 스트레칭을 반복하기"],
+    seed:"LAM",
+    planet:"Saturn",
+    element:"Earth",
+    yoga:"Tadasana · Warrior I",
+    crystal:"가넷 · 레드 재스퍼",
+    affirmation:"나는 안전하고 안정된 뿌리를 내립니다"
+  },
+  Svadhisthana:{
+    koreanName:"성수 차크라 (Svadhisthana)",
+    status:"정서 순환 회복",
+    meaning:"감정, 즐거움, 창조성, 물의 흐름과 관계의 유연성을 다루는 중심",
+    imbalanceSymptoms:"감정 억압, 죄책감, 창작의 막힘, 관계 피로, 허리 아래의 긴장",
+    detailedPractices:["골반을 여는 부드러운 요가와 따뜻한 목욕","감정을 기록하는 저널링과 물 마시기","과한 통제보다 리듬과 감각을 회복하기"],
+    seed:"VAM",
+    planet:"Jupiter",
+    element:"Water",
+    yoga:"Goddess Pose · Pigeon Pose",
+    crystal:"카닐리언 · 주황 칼사이트",
+    affirmation:"나는 유연하고 창의적으로 흐릅니다"
+  },
+  Manipura:{
+    koreanName:"태양 신경총 차크라 (Manipura)",
+    status:"의지 정렬",
+    meaning:"의지, 소화, 결단, 개인적 힘과 자존의 불꽃을 다루는 중심",
+    imbalanceSymptoms:"분노 폭발, 소화 불편, 의사결정 지연, 자신감 저하, 과열감",
+    detailedPractices:["복부를 깨우는 코어 움직임과 규칙적인 식사","햇빛 아래 짧은 걷기와 호흡 리듬 맞추기","과도한 자극을 줄이고 목표를 한 번에 하나씩 정리하기"],
+    seed:"RAM",
+    planet:"Mars",
+    element:"Fire",
+    yoga:"Boat Pose · Plank",
+    crystal:"황수정 · 호박",
+    affirmation:"나는 강하고 자신감 있게 행동합니다"
+  },
+  Anahata:{
+    koreanName:"심장 차크라 (Anahata)",
+    status:"관계 치유",
+    meaning:"사랑, 공감, 용서, 균형, 관계의 다리를 놓는 에너지 중심",
+    imbalanceSymptoms:"외로움, 상처의 반복, 가슴 답답함, 집착, 타인과의 거리감",
+    detailedPractices:["가슴을 여는 자세와 깊은 호흡","용서와 감사의 문장을 매일 소리내어 읽기","초록빛 산책과 친절한 행동을 의식적으로 쌓기"],
+    seed:"YAM",
+    planet:"Venus",
+    element:"Air",
+    yoga:"Camel Pose · Fish Pose",
+    crystal:"로즈 쿼츠 · 말라카이트",
+    affirmation:"나는 사랑받을 자격이 있으며 무조건적 사랑을 줍니다"
+  },
+  Vishuddha:{
+    koreanName:"목 차크라 (Vishuddha)",
+    status:"표현 정화",
+    meaning:"진실한 표현, 목소리, 듣기, 정직한 언어의 통로를 여는 중심",
+    imbalanceSymptoms:"목의 답답함, 말문 막힘, 과한 침묵 또는 과잉 발화, 소통 불안",
+    detailedPractices:["허밍과 만트라로 목의 진동을 깨우기","짧은 문장으로 진실을 적고 부드럽게 말하기","어깨와 목을 풀어주는 스트레칭과 수분 섭취"],
+    seed:"HAM",
+    planet:"Mercury",
+    element:"Ether/Sound",
+    yoga:"Shoulder Stand · Plow Pose",
+    crystal:"청금석 · 터콰이즈",
+    affirmation:"나는 진실하게 표현하며 내 목소리를 존중합니다"
+  },
+  Ajna:{
+    koreanName:"제3의 눈 차크라 (Ajna)",
+    status:"통찰 활성화",
+    meaning:"직관, 통찰, 상징 해석, 내적 시야와 명료함을 담당하는 중심",
+    imbalanceSymptoms:"과도한 사고, 꿈의 혼란, 직관 둔화, 집중 장애, 두통 경향",
+    detailedPractices:["짧은 침묵 명상과 디지털 자극 줄이기","OM 만트라와 촛불 응시로 내면 집중하기","꿈 기록과 상징 해석으로 감각을 정리하기"],
+    seed:"OM",
+    planet:"Sun",
+    element:"Light",
+    yoga:"Child's Pose · Eagle Pose",
+    crystal:"아메시스트 · 라피스 라줄리",
+    affirmation:"나는 내면의 지혜를 신뢰하며 명확하게 봅니다"
+  },
+  Sahasrara:{
+    koreanName:"크라운 차크라 (Sahasrara)",
+    status:"활성화 집중 권장",
+    meaning:"영적 연결, 고차원 의식, 우주의 지혜와 통합되는 최고위 에너지 센터",
+    imbalanceSymptoms:"삶의 방향성 상실, 고립감, 만성 피로, 영적 정체기, 현실 도피 경향",
+    detailedPractices:["씨드 만트라 OM 또는 AH를 정수리에 의식하며 명상하기","화이트·바이올렛 라이트로 상위 자아와 연결 시각화하기","침묵 속에서 사고를 쉬게 하고 달빛 호흡을 실천하기"],
+    seed:"AH",
+    planet:"Moon",
+    element:"Cosmic Consciousness",
+    yoga:"Headstand · Meditation",
+    crystal:"수정 · 셀레나이트",
+    affirmation:"나는 우주와 연결되어 있으며 신성한 인도를 받습니다"
+  }
+};
+function normalizeDoshaKey(value){
+  if(!value)return"Vata";
+  if(typeof value==="object"){
+    value=value.type||value.name||value.korean||value.kr||value.key||value.dosha||"Vata";
+  }
+  const raw=String(value).trim().toLowerCase();
+  if(/pitta|피타/.test(raw))return"Pitta";
+  if(/kapha|카파/.test(raw))return"Kapha";
+  return"Vata";
+}
+function getDoshaData(value){
+  const key=normalizeDoshaKey(value);
+  const src=DOSHA_FOOD[key]||DOSHA_FOOD.Vata||{};
+  const meta=DOSHA_DETAIL_META[key]||DOSHA_DETAIL_META.Vata;
+  return{
+    key,
+    name:src.name||key,
+    korean:src.korean||meta.korean||key,
+    type:src.type||meta.korean||key,
+    desc:src.desc||"",
+    balancedFoods:src.balancedFoods||src.balance||meta.balancedFoods||[],
+    avoidFoods:src.avoidFoods||src.avoid||meta.avoidFoods||[],
+    practice:src.practice||meta.practice||[],
+    mantra:src.mantra||meta.mantra||"",
+    dailyRhythm:src.dailyRhythm||meta.dailyRhythm||"",
+    therapies:src.therapies||meta.therapies||[],
+    eat:src.eat||src.balance||meta.balancedFoods||[],
+    avoid:src.avoid||meta.avoidFoods||[],
+    bg:src.bg||"",
+    color:src.color||"",
+    icon:src.icon||""
+  };
+}
+function normalizeChakraKey(value){
+  if(!value)return"Muladhara";
+  if(typeof value==="object"){
+    value=value.key||value.name||value.kr||value.koreanName||value.blocked||value.focusKey||value.dosha||"Muladhara";
+  }
+  const raw=String(value).trim().toLowerCase();
+  if(raw.includes("sahas")||raw.includes("crown")||raw.includes("크라운"))return"Sahasrara";
+  if(raw.includes("ajna")||raw.includes("third")||raw.includes("eye")||raw.includes("제3"))return"Ajna";
+  if(raw.includes("vish")||raw.includes("throat")||raw.includes("목"))return"Vishuddha";
+  if(raw.includes("anah")||raw.includes("heart")||raw.includes("심장"))return"Anahata";
+  if(raw.includes("mani")||raw.includes("solar")||raw.includes("명치"))return"Manipura";
+  if(raw.includes("svadh")||raw.includes("sacral")||raw.includes("성수")||raw.includes("골반"))return"Svadhisthana";
+  return"Muladhara";
+}
+function getChakraData(value){
+  const key=normalizeChakraKey(value);
+  const src=CHAKRA_EXTENDED[key]||CHAKRA_EXTENDED.Muladhara||{};
+  const meta=CHAKRA_DETAIL_META[key]||CHAKRA_DETAIL_META.Muladhara;
+  const info=CHKINFO[key]||{};
+  return{
+    key,
+    name:src.name||key,
+    koreanName:info.kr||meta.koreanName||src.kr||src.name||key,
+    kr:info.kr||meta.koreanName||src.kr||src.name||key,
+    status:meta.status||"균형",
+    meaning:meta.meaning||src.detail||"",
+    imbalanceSymptoms:meta.imbalanceSymptoms||"",
+    detailedPractices:meta.detailedPractices||[],
+    seed:info.seed||src.mantra||meta.seed||"OM",
+    planet:info.planet||src.planet||meta.planet||"",
+    element:meta.element||src.ele||"",
+    yoga:src.yoga||meta.yoga||"",
+    crystal:src.crystal||meta.crystal||"",
+    affirmation:src.affirmation||meta.affirmation||"",
+    col:info.col||src.color||"#8B5CF6",
+    sym:info.sym||"🔮",
+    detail:src.detail||meta.meaning||"",
+    mantra:src.mantra||meta.seed||"OM",
+    statusLabel:meta.status||"균형"
+  };
+}
 const PFRIEND={
   Sun:{Moon:"Friend",Mars:"Friend",Mercury:"Enemy",Jupiter:"Friend",Venus:"Enemy",Saturn:"Enemy",Rahu:"Enemy",Ketu:"Enemy"},
   Moon:{Sun:"Friend",Mars:"Neutral",Mercury:"Friend",Jupiter:"Friend",Venus:"Neutral",Saturn:"Neutral",Rahu:"Enemy",Ketu:"Enemy"},

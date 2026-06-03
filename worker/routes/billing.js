@@ -808,6 +808,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   const forceDeduct = forceDeductRaw === undefined
     ? true
     : (forceDeductRaw === true || String(forceDeductRaw).toLowerCase() === "true");
+  const requestedPaymentMode = String(body?.paymentMode || body?.accessMode || "").trim().toLowerCase();
+  const membershipPassOnly = requestedPaymentMode === "membership_pass" || requestedPaymentMode === "membership";
 
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const reportSessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || (reportId ? `love-book:${reportId}` : requestId)).trim();
@@ -851,6 +853,18 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         },
         freeBySubscription: true,
       }, "이용권 무료 한도 조건으로 서비스를 열었습니다.");
+    }
+
+    if (membershipPassOnly) {
+      return failure(402, "MEMBERSHIP_PASS_NOT_COVERED", "현재 이용권 한도 밖 서비스입니다. 월정석 또는 단건 결제로 이용해 주세요.", undefined, {
+        pricing,
+        accessGrant: null,
+        balance: null,
+        membershipPass: {
+          tier: subscriptionPass.tier,
+          freeLimit: subscriptionPass.freeLimit,
+        },
+      });
     }
 
     try {
