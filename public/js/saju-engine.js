@@ -1564,6 +1564,65 @@ function _dfArrayCopy(v) {
   return Array.isArray(v) ? v.slice() : [];
 }
 
+var CD_SAJU_DAEWUN_YONGSHIN_FIX = 'daewun-yongshin-policy-v20260603';
+
+function _dfUniqueElements(list) {
+  var out = [];
+  (Array.isArray(list) ? list : []).forEach(function(el) {
+    if (el && out.indexOf(el) < 0) out.push(el);
+  });
+  return out;
+}
+
+function _dfJohuUsefulSet(johu) {
+  var useful = [];
+  var caution = [];
+  var type = johu && johu.type;
+  var moistType = johu && johu.moistType;
+  if (type === 'hot' || type === 'warm') {
+    useful.push('water', 'metal');
+    caution.push('fire', 'wood');
+  } else if (type === 'cold' || type === 'cool') {
+    useful.push('fire', 'wood');
+    caution.push('water', 'metal');
+  }
+  if (moistType === 'dry') {
+    useful.push('water', 'wood');
+    caution.push('fire');
+  } else if (moistType === 'wet') {
+    useful.push('fire', 'earth');
+    caution.push('water');
+  }
+  return {
+    useful: _dfUniqueElements(useful),
+    caution: _dfUniqueElements(caution)
+  };
+}
+
+function applyRuntimeYongshinPolicy(power, jong, johu) {
+  if (!power) return power;
+  var eokbuYongshin = _dfArrayCopy(power.yongshin);
+  var eokbuKijishin = _dfArrayCopy(power.kijishin);
+  var johuSet = _dfJohuUsefulSet(johu);
+  var finalYongshin = eokbuYongshin;
+  var finalKijishin = eokbuKijishin;
+  if (jong && jong.isJong) {
+    finalYongshin = _dfUniqueElements([jong.dominant, jong.parEl].concat(johuSet.useful));
+    finalKijishin = _dfUniqueElements([whoControls(jong.dominant)].concat(johuSet.caution));
+  } else if (johuSet.useful.length) {
+    finalYongshin = _dfUniqueElements(johuSet.useful.concat(eokbuYongshin));
+    finalKijishin = _dfUniqueElements(johuSet.caution.concat(eokbuKijishin));
+  }
+  power.eokbuYongshin = eokbuYongshin;
+  power.eokbuKijishin = eokbuKijishin;
+  power.johuYongshin = johuSet.useful;
+  power.johuKijishin = johuSet.caution;
+  power.yongshin = finalYongshin;
+  power.kijishin = finalKijishin;
+  power.yongshinPolicy = CD_SAJU_DAEWUN_YONGSHIN_FIX;
+  return power;
+}
+
 function _syncDestinyFlowerSajuSnapshot(reason) {
   try {
     if (!G_PILLARS || !G_NATAL) return null;
@@ -3882,6 +3941,7 @@ async function calculate(){
       _tj = await showJongVerificationModal(_tj, p);
     }
     G_JONG = _tj;
+    G_POWER = applyRuntimeYongshinPolicy(G_POWER, G_JONG, G_JOHU);
 
     G_BAZI=bazi;
     resetEvalDaewunMemo();
@@ -20610,7 +20670,9 @@ function renderDaewun(bazi){
     });
     document.getElementById('dwGrid').innerHTML=h||'<p style="font-size:.83rem;color:#999">대운 데이터 없음</p>';
     if(_dwGlobalArr.length>0)window.G_DAEWUN=_dwGlobalArr;
+    window.__cdLastDaewunBazi=bazi;
     renderLifeGraph(bazi);
+    requestAnimationFrame(function(){ setTimeout(function(){ renderLifeGraph(window.__cdLastDaewunBazi||bazi); }, 160); });
   }catch(err){console.error('대운 오류',err);}
 }
 
@@ -21030,9 +21092,10 @@ function renderLifeGraph(bazi){
   _dwStopLifeGraphRefreshWatch();
 
   var W=Math.max((rect.width||wrap.clientWidth||340)-20, 320);
-  canvas.width=W;canvas.height=180;
+  var CH=204;
+  canvas.width=W;canvas.height=CH;
   var ctx=canvas.getContext('2d');
-  ctx.clearRect(0,0,W,180);
+  ctx.clearRect(0,0,W,CH);
 
   var points=[];
   try{
@@ -21046,8 +21109,26 @@ function renderLifeGraph(bazi){
       var evData=evalDaewun(gz[0],gz[1]);
       points.push({age:age,score:evData.score,g:gz[0],j:gz[1],summary:evData.evalSummary});
     });
-  }catch(e){return;}
-  if(points.length<2)return;
+  }catch(e){}
+  if(points.length<2 && Array.isArray(window.G_DAEWUN)){
+    window.G_DAEWUN.forEach(function(dw){
+      if(!dw || !dw.age || !dw.g || !dw.j)return;
+      var evData=evalDaewun(dw.g,dw.j);
+      points.push({age:dw.age,score:evData.score,g:dw.g,j:dw.j,summary:evData.evalSummary});
+    });
+  }
+  if(points.length<2){
+    var emptyBg=ctx.createLinearGradient(0,0,0,CH);
+    emptyBg.addColorStop(0,'#fffdfa');
+    emptyBg.addColorStop(1,'#fff6f9');
+    ctx.fillStyle=emptyBg;
+    ctx.fillRect(0,0,W,CH);
+    ctx.fillStyle='#9a8f86';
+    ctx.font='12px sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText('대운 그래프 데이터를 준비하고 있습니다', W/2, CH/2);
+    return;
+  }
 
   var nowAge=CURRENT_AGE||30;
 
@@ -21057,9 +21138,9 @@ function renderLifeGraph(bazi){
     else if(diff < -40) points[i].score = points[i-1].score - 40;
   }
 
-  var PAD_L=36,PAD_R=16,PAD_T=18,PAD_B=32;
+  var PAD_L=40,PAD_R=18,PAD_T=24,PAD_B=36;
   var gW=W-PAD_L-PAD_R;
-  var gH=180-PAD_T-PAD_B;
+  var gH=CH-PAD_T-PAD_B;
   var maxAge=points[points.length-1].age+10;
   var minAge=0;
   var minScore=0,maxScore=100;
@@ -21067,10 +21148,31 @@ function renderLifeGraph(bazi){
   function xOf(age){return PAD_L+((age-minAge)/(maxAge-minAge))*gW;}
   function yOf(s){return PAD_T+((maxScore-s)/(maxScore-minScore))*gH;}
 
-  ctx.strokeStyle='rgba(0,0,0,.08)';ctx.lineWidth=1;
-  ctx.setLineDash([4,4]);
-  ctx.beginPath();ctx.moveTo(PAD_L,yOf(50));ctx.lineTo(W-PAD_R,yOf(50));ctx.stroke();
+  var bg=ctx.createLinearGradient(0,0,0,CH);
+  bg.addColorStop(0,'#fffdf8');
+  bg.addColorStop(.52,'#fff9fb');
+  bg.addColorStop(1,'#f8fbff');
+  ctx.fillStyle=bg;
+  ctx.fillRect(0,0,W,CH);
+  var glow=ctx.createRadialGradient(W*.2,22,0,W*.2,22,W*.62);
+  glow.addColorStop(0,'rgba(255,215,128,.23)');
+  glow.addColorStop(1,'rgba(255,215,128,0)');
+  ctx.fillStyle=glow;
+  ctx.fillRect(0,0,W,CH);
+
+  [20,50,80].forEach(function(score){
+    var yy=yOf(score);
+    ctx.strokeStyle=score===50?'rgba(132,104,64,.22)':'rgba(126,103,83,.1)';
+    ctx.lineWidth=score===50?1.2:1;
+    ctx.setLineDash(score===50?[5,5]:[2,7]);
+    ctx.beginPath();ctx.moveTo(PAD_L,yy);ctx.lineTo(W-PAD_R,yy);ctx.stroke();
+  });
   ctx.setLineDash([]);
+  points.forEach(function(pt){
+    ctx.strokeStyle='rgba(126,103,83,.08)';
+    ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(xOf(pt.age),PAD_T);ctx.lineTo(xOf(pt.age),PAD_T+gH);ctx.stroke();
+  });
 
   function catmullToBezier(pts){
     var segs=[];
@@ -21107,14 +21209,14 @@ function renderLifeGraph(bazi){
     ctx.lineTo(gPts[gPts.length-1].x,yOf(50));
     ctx.closePath();
     if(isPositive){
-      ctx.rect(PAD_L,PAD_T,gW,yOf(50)-PAD_T);// clip to top half
+      ctx.rect(PAD_L,PAD_T,gW,yOf(50)-PAD_T);
       var g=ctx.createLinearGradient(0,PAD_T,0,yOf(50));
-      g.addColorStop(0,'rgba(76,175,80,.45)');g.addColorStop(1,'rgba(76,175,80,.04)');
+      g.addColorStop(0,'rgba(49,163,107,.28)');g.addColorStop(1,'rgba(49,163,107,.02)');
       ctx.fillStyle=g;
     }else{
       ctx.rect(PAD_L,yOf(50),gW,gH-(yOf(50)-PAD_T));
       var g2=ctx.createLinearGradient(0,yOf(50),0,PAD_T+gH);
-      g2.addColorStop(0,'rgba(229,57,53,.04)');g2.addColorStop(1,'rgba(229,57,53,.38)');
+      g2.addColorStop(0,'rgba(197,83,92,.02)');g2.addColorStop(1,'rgba(197,83,92,.22)');
       ctx.fillStyle=g2;
     }
     ctx.fill();
@@ -21126,65 +21228,74 @@ function renderLifeGraph(bazi){
   points.forEach(function(pt,i){
     var r=i/(points.length-1);
     var s=pt.score;
-    // 종格: 더 명확한 길흉 색깔 구분
-    var col=s>=80?'#FFD700':s>=65?'#4CAF50':s>=50?'#8BC34A':s>=35?'#FF8BA7':'#E53935';
+    var col=s>=80?'#d8a62a':s>=65?'#2f9b72':s>=50?'#7aa95c':s>=35?'#c56d7d':'#bf3e4a';
     strokeG.addColorStop(r,col);
   });
   ctx.strokeStyle=strokeG;
-  ctx.lineWidth=2.5;
+  ctx.lineWidth=3.2;
   ctx.lineJoin='round';
+  ctx.lineCap='round';
+  ctx.shadowColor='rgba(93,64,43,.18)';
+  ctx.shadowBlur=10;
   ctx.beginPath();
   ctx.moveTo(gPts[0].x,gPts[0].y);
   segs.forEach(function(s){
     ctx.bezierCurveTo(s.x1,s.y1,s.x2,s.y2,s.ex,s.ey);
   });
   ctx.stroke();
+  ctx.shadowBlur=0;
 
-  // 종格/가종格은 용신 대운 시 색깔 강조
   var isJongActive = G_JONG && G_JONG.isJong;
-  points.forEach(function(pt,i){
+  points.forEach(function(pt){
     var s=pt.score;
-    // 길운: 금빛·초록 계열 / 흉운: 적색 계열
     var col, outerR=5;
-    if(s>=85){col='#FFD700';outerR=7;}       // 대길: 금빛
-    else if(s>=70){col='#4CAF50';outerR=6;}  // 길: 초록
-    else if(s>=55){col='#66BB6A';}           // 소길: 연초록
-    else if(s>=45){col='#BDBDBD';}           // 평: 회색
-    else if(s>=30){col='#FF7043';}           // 주의: 주황-적
-    else{col='#E53935';outerR=6;}            // 흉: 진적색
+    if(s>=85){col='#d8a62a';outerR=7;}
+    else if(s>=70){col='#2f9b72';outerR=6;}
+    else if(s>=55){col='#6eaa68';}
+    else if(s>=45){col='#a99f95';}
+    else if(s>=30){col='#c66b57';}
+    else{col='#bf3e4a';outerR=6;}
+    ctx.beginPath();
+    ctx.arc(xOf(pt.age),yOf(s),outerR+5,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,.72)';
+    ctx.fill();
     ctx.beginPath();
     ctx.arc(xOf(pt.age),yOf(s),outerR,0,Math.PI*2);
-    ctx.fillStyle='#fff';ctx.fill();
+    ctx.fillStyle='#fffaf3';ctx.fill();
     ctx.strokeStyle=col;ctx.lineWidth=s>=70||s<30?2.5:2;ctx.stroke();
-    // 종格 대길운에 후광 효과
     if(isJongActive && s>=80){
       ctx.beginPath();
       ctx.arc(xOf(pt.age),yOf(s),outerR+4,0,Math.PI*2);
-      ctx.strokeStyle='rgba(255,215,0,0.35)';ctx.lineWidth=3;ctx.stroke();
+      ctx.strokeStyle='rgba(216,166,42,.32)';ctx.lineWidth=3;ctx.stroke();
     }
   });
 
   if(nowAge>=minAge&&nowAge<=maxAge){
     var cx=xOf(nowAge);
     ctx.save();
-    ctx.strokeStyle='rgba(123,31,162,.7)';ctx.lineWidth=2;
-    ctx.setLineDash([3,3]);
+    ctx.strokeStyle='rgba(112,70,170,.72)';ctx.lineWidth=2;
+    ctx.setLineDash([4,5]);
     ctx.beginPath();ctx.moveTo(cx,PAD_T);ctx.lineTo(cx,PAD_T+gH);ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle='#7B1FA2';
+    ctx.fillStyle='rgba(112,70,170,.96)';
+    ctx.beginPath();
+    if(ctx.roundRect)ctx.roundRect(cx-17,PAD_T-18,34,15,7);
+    else ctx.rect(cx-17,PAD_T-18,34,15);
+    ctx.fill();
+    ctx.fillStyle='#fff';
     ctx.font='bold 10px sans-serif';ctx.textAlign='center';
-    ctx.fillText('현재',cx,PAD_T-5);
+    ctx.fillText('현재',cx,PAD_T-7);
     ctx.restore();
   }
 
-  ctx.fillStyle='#bbb';ctx.font='10px sans-serif';ctx.textAlign='center';
+  ctx.fillStyle='#9b9288';ctx.font='10px sans-serif';ctx.textAlign='center';
   points.forEach(function(pt){
     ctx.fillText(pt.age+'세',xOf(pt.age),PAD_T+gH+14);
   });
 
   ctx.textAlign='right';
-  ctx.fillText('길',PAD_L-4,yOf(80));
-  ctx.fillText('흉',PAD_L-4,yOf(20));
+  ctx.fillStyle='#5d8d68';ctx.fillText('길',PAD_L-6,yOf(80)+3);
+  ctx.fillStyle='#b64a56';ctx.fillText('흉',PAD_L-6,yOf(20)+3);
 
   canvas.onmousemove=canvas.ontouchmove=function(e){
     var rect=canvas.getBoundingClientRect();
@@ -21200,13 +21311,18 @@ function renderLifeGraph(bazi){
     if(closest&&minDist<30&&tip){
       var s=closest.score;
       var label=s>=80?'🌟 대길운':s>=60?'😊 길운':s>=40?'🙂 중립':s>=20?'⚠️ 주의':'🌧️ 역경';
+      var scaleY=rect.height/canvas.height;
+      var tipLeft=Math.max(10,Math.min(rect.width-150,xOf(closest.age)/scaleX-74));
+      var tipTop=Math.max(8,Math.min(rect.height-84,yOf(s)*scaleY-18));
       tip.style.display='block';
-      tip.style.left=(xOf(closest.age)/scaleX-70)+'px';
-      tip.style.top=(yOf(s)/180*130-10)+'px';
+      tip.style.left=tipLeft+'px';
+      tip.style.top=tipTop+'px';
       tip.style.whiteSpace='nowrap';
       tip.innerHTML='<div style="font-weight:bold;color:#fff;margin-bottom:4px;font-size:0.9rem;">'+closest.age+'세~ '+closest.g+closest.j+'</div>'+
                     '<div style="color:#FFD700;font-size:0.85rem;font-weight:600;">'+label+'</div>'+
                     '<div style="font-size:0.75rem;color:#ddd;margin-top:6px;line-height:1.3;border-top:1px solid rgba(255,255,255,0.2);padding-top:4px;">'+(closest.summary||'')+'</div>';
+    }else if(tip){
+      tip.style.display='none';
     }
   };
   canvas.onmouseleave=function(){

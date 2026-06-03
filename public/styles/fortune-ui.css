@@ -3452,33 +3452,40 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 /* ══════════════════════════════════════
    📈 인생 그래프 (Life Fortune Graph)
 ══════════════════════════════════════ */
-.life-graph-section{margin-top:20px;margin-bottom:4px}
+.life-graph-section{margin-top:22px;margin-bottom:8px}
 .life-graph-title{
-  font-size:.78rem;color:#888;font-weight:700;
-  letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;
+  font-size:.8rem;color:#7d746d;font-weight:800;
+  letter-spacing:.04em;margin-bottom:12px;
   display:flex;align-items:center;gap:8px;
 }
 .life-graph-title::before{content:'📈';font-size:1rem}
 .life-graph-wrap{
-  background:linear-gradient(180deg,#fafafa 0%,#fff6f9 100%);
-  border-radius:16px;border:1px solid #FFE0D6;
-  padding:14px 10px 10px;overflow:hidden;
-  position:relative;max-width:100%;box-sizing:border-box
+  background:linear-gradient(145deg,rgba(255,253,248,.96),rgba(255,246,249,.92) 54%,rgba(247,251,255,.96));
+  border-radius:18px;border:1px solid rgba(227,190,150,.45);
+  padding:14px 10px 12px;overflow:hidden;
+  position:relative;max-width:100%;box-sizing:border-box;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 14px 34px rgba(120,78,52,.08);
 }
-#lifeGraphCanvas{width:100%;max-width:100%;height:180px;display:block;cursor:pointer}
+.life-graph-wrap::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 18% 8%,rgba(255,218,140,.2),transparent 34%),radial-gradient(circle at 86% 12%,rgba(148,110,190,.12),transparent 32%);
+  pointer-events:none;
+}
+#lifeGraphCanvas{position:relative;z-index:1;width:100%;max-width:100%;height:204px;display:block;cursor:pointer}
 .life-graph-legend{
   display:flex;justify-content:center;gap:16px;
-  margin-top:8px;font-size:.7rem;color:#aaa;
+  margin-top:10px;font-size:.7rem;color:#9a8f86;
 }
 .lgl-item{display:flex;align-items:center;gap:4px}
 .lgl-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
 .graph-tooltip{
-  position:absolute;background:rgba(40,10,60,.9);
-  color:#fff;padding:8px 12px;border-radius:10px;
+  position:absolute;background:rgba(35,26,34,.92);
+  color:#fff;padding:9px 12px;border-radius:12px;
   font-size:.75rem;pointer-events:none;display:none;
-  box-shadow:0 4px 16px rgba(0,0,0,.3);
-  z-index:10;min-width:120px;line-height:1.5;
-  border:1px solid rgba(255,215,0,.3);
+  box-shadow:0 12px 30px rgba(44,29,34,.28);
+  z-index:10;min-width:132px;max-width:min(240px,calc(100% - 20px));line-height:1.5;
+  border:1px solid rgba(255,220,155,.38);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
 }
 
 /* ─── 공유하기 ─── */
@@ -4164,8 +4171,8 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
   .prem-box{padding:14px;margin-top:10px}
   .prem-title{font-size:.85rem}
   .prem-text{font-size:.85rem;line-height:1.7}
-  .life-graph-wrap{padding:12px 8px 8px}
-  #lifeGraphCanvas{height:160px}
+  .life-graph-wrap{padding:12px 8px 10px;border-radius:16px}
+  #lifeGraphCanvas{height:184px}
   .life-graph-legend{gap:12px;font-size:.65rem}
   .dw-detail{padding:16px}
   #juyukModalSheet .modal-content-inner-700{max-width:100%}
@@ -14622,5 +14629,3 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
     line-clamp: 3;
   }
 }
-
-
