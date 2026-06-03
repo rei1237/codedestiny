@@ -683,7 +683,7 @@
     openTarotReunionModal: ['js/tarot-reunion-experience.js?v=20260414-tarot-qualityfix2'],
     openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=20260414-tarot-qualityfix2'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-45e9c3ed3d68'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-f6a27a2c11b6'],
     openDreamModal: ['lib/ai-engine.js', 'js/dream-ledger.js'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js'],
@@ -1154,7 +1154,7 @@
           });
         }
       }
-    }, { passive: false, capture: true });
+    }, { passive: true, capture: true });
 
     /* pointer ?�벤???�백: ?��? 모바??브라?��??�서 touch ?�??pointer ?�용 */
     root.addEventListener('pointerdown', function (event) {
