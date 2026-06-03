@@ -304,7 +304,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
   return (
     <PaidFeatureGateContext.Provider value={contextValue}>
       {children}
-      {false && state.open ? (
+      {state.open ? (
         <div
           role="dialog"
           aria-modal="true"
