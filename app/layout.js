@@ -3,6 +3,7 @@ import AppVersionGuard from "./components/AppVersionGuard";
 import BuildInfoLogger from "./components/BuildInfoLogger";
 import { ToastProvider } from "./components/Toast";
 import { PaymentProcessingProvider } from "./components/PaymentProcessingContext";
+import { Suspense } from "react";
 import DeferredAdsense from "./components/DeferredAdsense";
 import NavigationProvider from "./providers/NavigationProvider";
 import AppChrome from "./components/AppChrome";
@@ -218,15 +219,17 @@ export default function RootLayout({ children }) {
       </head>
       <body className={notoSansKRVariable}>
         <PaymentProcessingProvider>
-          <NavigationProvider>
-            <DeferredAdsense />
-            <BuildInfoLogger />
-            <AppVersionGuard />
-            <ToastProvider />
-            <AppChrome>
-              {children}
-            </AppChrome>
-          </NavigationProvider>
+          <Suspense>
+            <NavigationProvider>
+              <DeferredAdsense />
+              <BuildInfoLogger />
+              <AppVersionGuard />
+              <ToastProvider />
+              <AppChrome>
+                {children}
+              </AppChrome>
+            </NavigationProvider>
+          </Suspense>
         </PaymentProcessingProvider>
       </body>
     </html>
