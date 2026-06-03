@@ -1943,13 +1943,13 @@ function __cdEnsureSajuCoreLoaded() {
 
   var chain = [
     'https://cdn.jsdelivr.net/npm/lunar-javascript@latest/lunar.js',
-    '/js/core/kasi-calendar-service.js?v=build-a3ab60c52d3d',
-    '/js/compat-llm-prompts.js?v=build-a3ab60c52d3d',
-    '/js/saju-engine.js?v=build-a3ab60c52d3d',
-    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-a3ab60c52d3d',
-    '/js/core/saju/modalProfileState.js?v=build-a3ab60c52d3d',
-    '/js/core/saju/reportDashboard.js?v=build-a3ab60c52d3d',
-    '/js/saju-engine-continuation.js?v=build-a3ab60c52d3d',
+    '/js/core/kasi-calendar-service.js?v=build-a3ab60c52d3d-zwei-v1',
+    '/js/compat-llm-prompts.js?v=build-a3ab60c52d3d-zwei-v1',
+    '/js/saju-engine.js?v=build-a3ab60c52d3d-zwei-v1',
+    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-a3ab60c52d3d-zwei-v1',
+    '/js/core/saju/modalProfileState.js?v=build-a3ab60c52d3d-zwei-v1',
+    '/js/core/saju/reportDashboard.js?v=build-a3ab60c52d3d-zwei-v1',
+    '/js/saju-engine-continuation.js?v=build-a3ab60c52d3d-zwei-v1',
     '/js/entertain-engine.js'
   ];
 
@@ -7050,9 +7050,9 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
   if (!needsCore) return Promise.resolve(true);
 
   var chain = [
-    '/js/compat-llm-prompts.js?v=build-a3ab60c52d3d',
-    '/js/saju-engine.js?v=build-a3ab60c52d3d',
-    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-a3ab60c52d3d'
+    '/js/compat-llm-prompts.js?v=build-a3ab60c52d3d-zwei-v1',
+    '/js/saju-engine.js?v=build-a3ab60c52d3d-zwei-v1',
+    '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-a3ab60c52d3d-zwei-v1'
   ];
 
   return __cdEnsureLunarLibReady().then(function() {
@@ -7072,7 +7072,7 @@ function __cdEnsureBirthModalDepsLoaded() {
     typeof _renderZiweiSection !== 'function' ||
     typeof _renderAstroSection !== 'function'
   ) {
-    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-a3ab60c52d3d'));
+    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-a3ab60c52d3d-zwei-v1'));
   }
   tasks.push(__cdEnsureSukuyoZiweiCoreLoaded());
   if (!tasks.length) return Promise.resolve(true);
