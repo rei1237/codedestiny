@@ -6,12 +6,15 @@ import SiteFooterHub from "./SiteFooterHub";
 import DisclaimerBanner from "./DisclaimerBanner";
 
 const CHROMELESS_ROUTES = [
+  "/saju/love-simulation",
   "/saju/destiny-bias",
+  "/saju/destiny-meeting-place",
   "/yeon-star-hug",
   "/saju-fpti",
   "/tarot/numerology",
   "/tarot/prompt-maker",
   "/tarot/crystal-soul",
+  "/tarot/healing",
   "/saju/animal-destiny",
   "/saju/animal-test",
 ];

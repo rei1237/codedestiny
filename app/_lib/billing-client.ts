@@ -42,7 +42,47 @@ type BillingFeaturePricing = {
 
 type RuntimeApiWindow = Window & {
   CODE_DESTINY_API_BASE_URL?: string;
+  __cdPaidFeatureGate?: {
+    open?: (detail: PaidFeatureGateRuntimeDetail) => number;
+    update?: (detail: PaidFeatureGateRuntimeDetail) => void;
+    close?: (requestId?: string) => void;
+    preload?: () => void;
+  };
 };
+
+type PaidFeatureGateRuntimeStatus =
+  | "opening"
+  | "checkingEntitlement"
+  | "hasEntitlement"
+  | "noEntitlement"
+  | "loadingProducts"
+  | "readyToPay"
+  | "paymentProcessing"
+  | "paymentSuccess"
+  | "paymentFailed"
+  | "error";
+
+type PaidFeatureGateRuntimeDetail = {
+  action?: "open" | "update" | "close";
+  featureId?: string;
+  featureKey?: string;
+  requestId?: string;
+  title?: string;
+  message?: string;
+  status?: PaidFeatureGateRuntimeStatus;
+  cost?: number;
+  startedAt?: number;
+};
+
+const billingCoinGateInFlight = new Map<string, {
+  requestId: string;
+  promise: Promise<BillingResult<{
+  pricing: BillingFeaturePricing;
+  consume: Record<string, unknown>;
+  balance: number | null;
+  user: Record<string, unknown> | null;
+}>>;
+}>();
 
 export type ServiceExecutionStatus = "pending" | "success" | "failed" | "refunded" | "cancelled";
 
@@ -170,16 +210,129 @@ function toQuery(input: Record<string, unknown>) {
   return params.toString();
 }
 
+function runtimeNow() {
+  if (typeof performance !== "undefined" && typeof performance.now === "function") {
+    return performance.now();
+  }
+  return Date.now();
+}
+
+function emitPaidFeatureGate(action: "open" | "update" | "close", detail: PaidFeatureGateRuntimeDetail) {
+  if (typeof window === "undefined") return;
+  const featureId = toText(detail.featureId || detail.featureKey) || "paid-feature";
+  const payload: PaidFeatureGateRuntimeDetail = {
+    ...detail,
+    action,
+    featureId,
+    featureKey: toText(detail.featureKey || featureId),
+    startedAt: Number.isFinite(Number(detail.startedAt)) ? Number(detail.startedAt) : runtimeNow(),
+  };
+  try {
+    if (typeof performance !== "undefined" && typeof performance.mark === "function") {
+      performance.mark(`cd-paid-feature-gate-${action}`);
+    }
+  } catch (_) {}
+  const runtimeWindow = window as RuntimeApiWindow;
+  if (action === "open" && typeof runtimeWindow.__cdPaidFeatureGate?.open === "function") {
+    runtimeWindow.__cdPaidFeatureGate.open(payload);
+    return;
+  }
+  if (action === "update" && typeof runtimeWindow.__cdPaidFeatureGate?.update === "function") {
+    runtimeWindow.__cdPaidFeatureGate.update(payload);
+    return;
+  }
+  if (action === "close" && typeof runtimeWindow.__cdPaidFeatureGate?.close === "function") {
+    runtimeWindow.__cdPaidFeatureGate.close(payload.requestId);
+    return;
+  }
+  window.dispatchEvent(new CustomEvent("cd:paid-feature-gate", { detail: payload }));
+}
+
+function resolvePaidFeatureInFlightKey(input: {
+  categoryKey?: string;
+  subFeatureKey?: string;
+  featureKey?: string;
+  requestId?: string;
+  reportId?: string;
+  sessionId?: string;
+  reportSessionId?: string;
+}) {
+  const featureId = toText(input.featureKey || input.subFeatureKey || input.categoryKey || "coin-gate");
+  return featureId;
+}
+
+export function openPaidFeatureGate(input: {
+  categoryKey?: string;
+  subFeatureKey?: string;
+  featureKey?: string;
+  reason?: string;
+  requestId?: string;
+  cost?: number;
+  title?: string;
+  message?: string;
+  status?: PaidFeatureGateRuntimeStatus;
+}) {
+  const featureId = toText(input.featureKey || input.subFeatureKey || input.categoryKey || "paid-feature");
+  const requestId = toText(input.requestId || `${featureId}:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
+  emitPaidFeatureGate("open", {
+    featureId,
+    featureKey: featureId,
+    requestId,
+    title: input.title,
+    message: input.message || "이용권 확인 중",
+    status: input.status || "checkingEntitlement",
+    cost: input.cost,
+  });
+  return requestId;
+}
+
+export function updatePaidFeatureGate(input: {
+  categoryKey?: string;
+  subFeatureKey?: string;
+  featureKey?: string;
+  requestId?: string;
+  cost?: number;
+  title?: string;
+  message?: string;
+  status?: PaidFeatureGateRuntimeStatus;
+}) {
+  const featureId = toText(input.featureKey || input.subFeatureKey || input.categoryKey || "paid-feature");
+  emitPaidFeatureGate("update", {
+    featureId,
+    featureKey: featureId,
+    requestId: input.requestId,
+    title: input.title,
+    message: input.message,
+    status: input.status,
+    cost: input.cost,
+  });
+}
+
 export async function fetchBillingFeaturePricing(input: {
   categoryKey?: string;
   subFeatureKey?: string;
   featureKey?: string;
   reason?: string;
 }): Promise<BillingResult<{ pricing: BillingFeaturePricing }>> {
+  const featureId = toText(input.featureKey || input.subFeatureKey || input.categoryKey || "billing-features");
+  emitPaidFeatureGate("open", {
+    featureId,
+    featureKey: featureId,
+    status: "loadingProducts",
+    message: "결제 가능한 상품을 불러오는 중",
+  });
   const query = toQuery(input as Record<string, unknown>);
   const path = query ? `/api/billing/features?${query}` : "/api/billing/features";
   const response = await authFetchBilling(path, { method: "GET" });
-  return parseBillingResponse<{ pricing: BillingFeaturePricing }>(response);
+  const parsed = await parseBillingResponse<{ pricing: BillingFeaturePricing }>(response);
+  emitPaidFeatureGate("update", {
+    featureId,
+    featureKey: featureId,
+    status: parsed.ok ? "readyToPay" : "error",
+    message: parsed.ok ? "결제 가능한 상품을 확인했습니다." : (parsed.error?.message || parsed.message || "상품 조회에 실패했습니다."),
+    cost: parsed.data?.pricing?.cost,
+  });
+  return parsed;
 }
 
 export async function runBillingCoinGate(input: {
@@ -199,40 +352,96 @@ export async function runBillingCoinGate(input: {
   balance: number | null;
   user: Record<string, unknown> | null;
 }>> {
-  const activeAttempt = beginPaidAttempt({
-    featureKey: toText(input.featureKey || input.subFeatureKey || input.categoryKey || "coin-gate"),
-    mode: toText(input.reason || ""),
-  });
-  markPaidAttemptPaymentRequested();
-
-  const response = await authFetchBilling("/api/billing/coin-gate", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      ...(input || {}),
-      attemptId: activeAttempt.attemptId,
-    }),
-  });
-
-  const parsed = await parseBillingResponse<{
-    pricing: BillingFeaturePricing;
-    consume: Record<string, unknown>;
-    balance: number | null;
-    user: Record<string, unknown> | null;
-  }>(response);
-
-  if (parsed.ok && parsed.data) {
-    const normalizedBalance = toNumber(parsed.data.balance, NaN);
-    parsed.data.balance = Number.isFinite(normalizedBalance) ? normalizedBalance : null;
-    markPaidAttemptPaymentSucceeded();
-    markPaidAttemptCallbackReturned();
-  } else {
-    markPaidAttemptFailed(parsed.error?.code || "single_purchase_required");
+  const featureId = toText(input.featureKey || input.subFeatureKey || input.categoryKey || "coin-gate");
+  const inFlightKey = resolvePaidFeatureInFlightKey(input);
+  const existing = billingCoinGateInFlight.get(inFlightKey);
+  if (existing) {
+    emitPaidFeatureGate("open", {
+      featureId,
+      featureKey: featureId,
+      requestId: existing.requestId,
+      status: "checkingEntitlement",
+      message: "이미 확인 중입니다.",
+    });
+    return existing.promise;
   }
 
-  return parsed;
+  const activeAttempt = beginPaidAttempt({
+    featureKey: featureId,
+    mode: toText(input.reason || ""),
+  });
+  const gateRequestId = toText(input.requestId || activeAttempt.attemptId || inFlightKey);
+  emitPaidFeatureGate("open", {
+    featureId,
+    featureKey: featureId,
+    requestId: gateRequestId,
+    status: "checkingEntitlement",
+    message: "이용권 확인 중",
+  });
+
+  const requestPromise = (async () => {
+    markPaidAttemptPaymentRequested();
+    emitPaidFeatureGate("update", {
+      featureId,
+      featureKey: featureId,
+      requestId: gateRequestId,
+      status: "paymentProcessing",
+      message: "결제와 이용권 반영을 확인 중입니다.",
+    });
+
+    const response = await authFetchBilling("/api/billing/coin-gate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...(input || {}),
+        attemptId: activeAttempt.attemptId,
+      }),
+    });
+
+    const parsed = await parseBillingResponse<{
+      pricing: BillingFeaturePricing;
+      consume: Record<string, unknown>;
+      balance: number | null;
+      user: Record<string, unknown> | null;
+    }>(response);
+
+    if (parsed.ok && parsed.data) {
+      const normalizedBalance = toNumber(parsed.data.balance, NaN);
+      parsed.data.balance = Number.isFinite(normalizedBalance) ? normalizedBalance : null;
+      markPaidAttemptPaymentSucceeded();
+      markPaidAttemptCallbackReturned();
+      emitPaidFeatureGate("update", {
+        featureId,
+        featureKey: featureId,
+        requestId: gateRequestId,
+        status: "paymentSuccess",
+        message: "이용권 확인이 완료되었습니다.",
+        cost: parsed.data.pricing?.cost,
+      });
+    } else {
+      const code = String(parsed.error?.code || "").toUpperCase();
+      const status = parsed.status === 402 || code === "INSUFFICIENT_COINS" ? "readyToPay" : "error";
+      markPaidAttemptFailed(parsed.error?.code || "single_purchase_required");
+      emitPaidFeatureGate("update", {
+        featureId,
+        featureKey: featureId,
+        requestId: gateRequestId,
+        status,
+        message: status === "readyToPay"
+          ? "결제 가능한 상품을 확인해 주세요."
+          : (parsed.error?.message || parsed.message || "이용권 확인에 실패했습니다."),
+      });
+    }
+
+    return parsed;
+  })().finally(() => {
+    billingCoinGateInFlight.delete(inFlightKey);
+  });
+
+  billingCoinGateInFlight.set(inFlightKey, { requestId: gateRequestId, promise: requestPromise });
+  return requestPromise;
 }
 
 export async function purchaseFeature(input: {

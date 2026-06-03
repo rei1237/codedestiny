@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Toaster, toast } from "sonner";
-import { fetchBillingBalance, runBillingCoinGate } from "@/app/_lib/billing-client";
+import { fetchBillingBalance, openPaidFeatureGate, runBillingCoinGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
 import { resolveAnimalTwelveResult } from "@/app/saju/animal-destiny/lib/sajuAdapter";
 import type { AnimalDestinyInput } from "@/app/saju/animal-destiny/lib/types";
 import DestinyMeetingPlaceLoading from "@/components/fortune/destiny-meeting-place/DestinyMeetingPlaceLoading";
@@ -109,23 +109,25 @@ export default function DestinyMeetingPlacePage() {
     setResult(null);
     setMeta(null);
 
+    const requestId = `destiny-meeting-place:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    openPaidFeatureGate({
+      featureKey: FEATURE_KEY,
+      requestId,
+      cost: 100,
+      message: "이용권 확인 중",
+    });
+
     setIsCharging(true);
     try {
       const resolved = await resolveAnimalTwelveResult(input);
       if (!resolved.ok || !resolved.sajuResult) {
         const message = resolved.error || "사주 계산에 실패했습니다. 입력값을 다시 확인해 주세요.";
+        updatePaidFeatureGate({ featureKey: FEATURE_KEY, requestId, status: "error", message });
         setError(message);
         toast.error(message);
         return;
       }
 
-      const balance = await fetchBillingBalance();
-      if (!balance.ok || !balance.data?.authenticated) {
-        toast.error("로그인이 필요합니다.");
-        return;
-      }
-
-      const requestId = `destiny-meeting-place:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
       const gate = await runBillingCoinGate({
         featureKey: FEATURE_KEY,
         reason: FEATURE_REASON,
@@ -188,7 +190,33 @@ export default function DestinyMeetingPlacePage() {
       <div className="pointer-events-none absolute -right-20 top-48 h-56 w-56 rounded-full bg-[#ff9be7]/18 blur-3xl motion-safe:animate-pulse" />
       <Toaster position="top-center" richColors />
 
-      <header className="sticky top-0 z-40 border-b border-[#92cbff]/30 bg-[#0a0a2b]/74 px-4 py-4 shadow-[0_10px_32px_rgba(3,6,20,0.45)] backdrop-blur-xl sm:px-6">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-40">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 pt-4 sm:px-6 sm:pt-6">
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="pointer-events-auto rounded-full border border-[#b7dbff]/35 bg-white/10 p-2 text-white transition-all hover:bg-white/20"
+            aria-label="Go back"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="pointer-events-auto rounded-full border border-[#b7dbff]/35 bg-white/10 p-2 text-white transition-all hover:bg-white/20"
+            aria-label="Reset form"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+              <path d="M3 3v5h5" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <header hidden className="sticky top-0 z-40 border-b border-[#92cbff]/30 bg-[#0a0a2b]/74 px-4 py-4 shadow-[0_10px_32px_rgba(3,6,20,0.45)] backdrop-blur-xl sm:px-6">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between">
           <button
             onClick={() => window.history.back()}

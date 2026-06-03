@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { toast } from "sonner";
-import { fetchBillingBalance, runBillingCoinGate } from "@/app/_lib/billing-client";
+import { openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
 import type { SajuEngineResult } from "@/app/saju/animal-destiny/lib/types";
 import DestinyMeetingPlaceHero from "./DestinyMeetingPlaceHero";
 import DestinyMeetingPlaceLoading from "./DestinyMeetingPlaceLoading";
@@ -45,13 +45,13 @@ export default function DestinyMeetingPlaceFeature({ sajuResult }: Props) {
 
     setIsCharging(true);
     try {
-      const balance = await fetchBillingBalance();
-      if (!balance.ok || !balance.data?.authenticated) {
-        toast.error("로그인이 필요합니다.");
-        return;
-      }
-
       const requestId = `destiny-meeting-place:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+      openPaidFeatureGate({
+        featureKey: FEATURE_KEY,
+        requestId,
+        cost: 100,
+        message: "이용권 확인 중",
+      });
 
       const gate = await runBillingCoinGate({
         featureKey: FEATURE_KEY,

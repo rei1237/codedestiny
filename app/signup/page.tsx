@@ -37,6 +37,13 @@ type SignupResult = {
 };
 
 type SocialProvider = "google" | "naver" | "kakao";
+type ReferralCapture = {
+  referralCode: string;
+  referralShareToken: string;
+  referralSource: string;
+};
+
+const REFERRAL_STORAGE_KEY = "cd_pending_referral_v1";
 
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
 const LOCAL_AUTH_TIMEOUT_MS = 20000;
@@ -134,6 +141,61 @@ function normalizeAuthApiError(payload: SignupResult & { errors?: string[] }, fa
   return payload.message || fallbackMessage;
 }
 
+function normalizeReferralCode(rawCode: string | null | undefined): string {
+  const code = String(rawCode || "").trim().toUpperCase();
+  if (!code || code.length < 6 || code.length > 24) return "";
+  if (!/^[A-Z0-9_-]+$/.test(code)) return "";
+  return code;
+}
+
+function normalizeReferralToken(rawToken: string | null | undefined): string {
+  const token = String(rawToken || "").trim();
+  if (!token || token.length < 24 || token.length > 1800) return "";
+  return token;
+}
+
+function readStoredReferralCapture(): ReferralCapture {
+  if (typeof window === "undefined") return { referralCode: "", referralShareToken: "", referralSource: "" };
+  try {
+    const parsed = JSON.parse(localStorage.getItem(REFERRAL_STORAGE_KEY) || "null") as Partial<ReferralCapture> | null;
+    if (!parsed) return { referralCode: "", referralShareToken: "", referralSource: "" };
+    return {
+      referralCode: normalizeReferralCode(parsed.referralCode),
+      referralShareToken: normalizeReferralToken(parsed.referralShareToken),
+      referralSource: String(parsed.referralSource || "").trim().toLowerCase(),
+    };
+  } catch (e) {
+    return { referralCode: "", referralShareToken: "", referralSource: "" };
+  }
+}
+
+function persistReferralCapture(capture: ReferralCapture) {
+  if (typeof window === "undefined" || !capture.referralCode) return;
+  try {
+    localStorage.setItem(REFERRAL_STORAGE_KEY, JSON.stringify({
+      ...capture,
+      capturedAt: new Date().toISOString(),
+    }));
+  } catch (e) {}
+  try {
+    document.cookie = `cd_ref=${encodeURIComponent(capture.referralCode)}; path=/; max-age=2592000; samesite=lax`;
+  } catch (e) {}
+}
+
+function resolveReferralCapture(params: URLSearchParams): ReferralCapture {
+  const fromUrl = {
+    referralCode: normalizeReferralCode(params.get("ref") || params.get("referralCode")),
+    referralShareToken: normalizeReferralToken(params.get("rs") || params.get("referralShareToken")),
+    referralSource: String(params.get("via") || params.get("referralSource") || "").trim().toLowerCase(),
+  };
+  const stored = readStoredReferralCapture();
+  return {
+    referralCode: fromUrl.referralCode || stored.referralCode,
+    referralShareToken: fromUrl.referralShareToken || stored.referralShareToken,
+    referralSource: fromUrl.referralSource || stored.referralSource,
+  };
+}
+
 export default function SignupPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -144,6 +206,9 @@ export default function SignupPage() {
   const [birthDate, setBirthDate] = useState("1990-01-01");
   const [birthTime, setBirthTime] = useState("09:00");
   const [gender, setGender] = useState<"M" | "F" | "OTHER">("OTHER");
+  const [referralCode, setReferralCode] = useState("");
+  const [referralShareToken, setReferralShareToken] = useState("");
+  const [referralSource, setReferralSource] = useState("");
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
@@ -156,6 +221,20 @@ export default function SignupPage() {
   const authApiBase = useMemo(() => getApiBaseUrl(), []);
 
   const socialCompleteEndpoint = `${authApiBase}/api/auth/oauth/complete`;
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const capture = resolveReferralCapture(params);
+    if (!capture.referralCode) return;
+    setReferralCode(capture.referralCode);
+    setReferralShareToken(capture.referralShareToken);
+    setReferralSource(capture.referralSource || "kakao_reward");
+    persistReferralCapture({
+      referralCode: capture.referralCode,
+      referralShareToken: capture.referralShareToken,
+      referralSource: capture.referralSource || "kakao_reward",
+    });
+  }, []);
 
   const abortBootstrapAuthCheck = useCallback(() => {
     const activeController = bootstrapAuthCheckControllerRef.current;
@@ -339,6 +418,12 @@ export default function SignupPage() {
     try {
       const params = new URLSearchParams(window.location.search);
       const nextPath = resolveNextPathFromQuery(params);
+      const referralCapture = {
+        referralCode: normalizeReferralCode(referralCode),
+        referralShareToken: normalizeReferralToken(referralShareToken),
+        referralSource: referralSource || "kakao_reward",
+      };
+      if (referralCapture.referralCode) persistReferralCapture(referralCapture);
 
       let response: Response | null = null;
       let lastFetchError: Error | null = null;
@@ -357,6 +442,9 @@ export default function SignupPage() {
               birthTime,
               gender,
               nextPath,
+              referralCode: referralCapture.referralCode,
+              referralShareToken: referralCapture.referralShareToken,
+              referralSource: referralCapture.referralSource,
             }),
           });
 
@@ -416,7 +504,20 @@ export default function SignupPage() {
 
     const params = new URLSearchParams(window.location.search);
     const nextPath = resolveNextPathFromQuery(params);
-    const startUrl = `${authApiBase}/api/auth/oauth/${provider}/start?flow=signup&next=${encodeURIComponent(nextPath)}`;
+    const referralCapture = {
+      referralCode: normalizeReferralCode(referralCode),
+      referralShareToken: normalizeReferralToken(referralShareToken),
+      referralSource: referralSource || "kakao_reward",
+    };
+    if (referralCapture.referralCode) persistReferralCapture(referralCapture);
+    const startParams = new URLSearchParams({
+      flow: "signup",
+      next: nextPath,
+    });
+    if (referralCapture.referralCode) startParams.set("referralCode", referralCapture.referralCode);
+    if (referralCapture.referralShareToken) startParams.set("referralShareToken", referralCapture.referralShareToken);
+    if (referralCapture.referralSource) startParams.set("referralSource", referralCapture.referralSource);
+    const startUrl = `${authApiBase}/api/auth/oauth/${provider}/start?${startParams.toString()}`;
     window.location.href = startUrl;
   };
 
@@ -572,6 +673,23 @@ export default function SignupPage() {
                     <option value="M">남성</option>
                     <option value="F">여성</option>
                   </select>
+                </div>
+
+                <div className="sm:col-span-2 rounded-xl border border-amber-200/25 bg-amber-100/10 p-3">
+                  <label htmlFor="signup-referral-code" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-amber-100/85">REFERRAL CODE</label>
+                  <input
+                    id="signup-referral-code"
+                    type="text"
+                    autoComplete="off"
+                    value={referralCode}
+                    onChange={(event) => setReferralCode(event.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, "").slice(0, 24))}
+                    disabled={loading || socialLoading !== null}
+                    placeholder="추천인 코드"
+                    className="h-12 w-full rounded-xl border border-amber-100/30 bg-slate-950/55 px-4 text-sm font-semibold uppercase tracking-[0.08em] text-amber-50 outline-none transition placeholder:tracking-normal placeholder:text-amber-100/38 focus:border-amber-200/70 focus:ring-2 focus:ring-amber-200/25 disabled:cursor-not-allowed disabled:opacity-60"
+                  />
+                  <p className="mt-2 text-[11px] leading-5 text-amber-50/78">
+                    보상은 프로필 저장 하단의 카카오 공유하기 이벤트 버튼으로 만든 링크를 통해 가입이 완료될 때만 지급됩니다. 친구 1명당 추천인에게 100 월정석, 하루 최대 500 월정석까지 적용됩니다.
+                  </p>
                 </div>
               </div>
 

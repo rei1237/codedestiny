@@ -2911,22 +2911,30 @@ function normalizeArticleMeta(article) {
   };
 }
 
-export const INSIGHT_ARTICLES = RAW_INSIGHT_ARTICLES.filter(
-  (article) => !NON_ESSENTIAL_CATEGORIES.has(article.category),
-).map(normalizeArticleMeta);
+export const INSIGHT_ARTICLES = Array.from(
+  RAW_INSIGHT_ARTICLES.filter((article) => !NON_ESSENTIAL_CATEGORIES.has(article.category))
+    .map(normalizeArticleMeta)
+    .reduce((map, article) => {
+      const slug = String(article?.slug || "").trim();
+      if (!slug || map.has(slug)) return map;
+      map.set(slug, article);
+      return map;
+    }, new Map())
+    .values(),
+);
 
 export function getArticleBySlug(slug) {
   return INSIGHT_ARTICLES.find((article) => article.slug === slug) || null;
 }
 
 export const INSIGHT_TOPICS = [
-  { key: "all", label: "전체", emoji: "✨" },
-  { key: "saju", label: "사주", emoji: "🌸" },
-  { key: "tarot", label: "타로", emoji: "🃏" },
-  { key: "sukuyo", label: "숙요점", emoji: "🌙" },
-  { key: "vedic", label: "베다점", emoji: "🪔" },
-  { key: "astrology", label: "점성술", emoji: "🪐" },
-  { key: "ziwei", label: "자미두수", emoji: "✨" },
+  { key: "all", label: "전체", emoji: "✦" },
+  { key: "saju", label: "사주", emoji: "四" },
+  { key: "tarot", label: "타로", emoji: "☾" },
+  { key: "sukuyo", label: "숙요점", emoji: "宿" },
+  { key: "vedic", label: "베다점성술", emoji: "ॐ" },
+  { key: "astrology", label: "점성술", emoji: "♈" },
+  { key: "ziwei", label: "자미두수", emoji: "紫" },
 ];
 
 function inferTopic(article) {
@@ -2937,7 +2945,7 @@ function inferTopic(article) {
 
   if (bag.includes("sukuyo") || bag.includes("숙요")) return "sukuyo";
   if (bag.includes("vedic") || bag.includes("베다")) return "vedic";
-  if (bag.includes("ziwei") || bag.includes("자미두수") || bag.includes("紫微")) return "ziwei";
+  if (bag.includes("ziwei") || bag.includes("자미두수")) return "ziwei";
   if (bag.includes("tarot") || bag.includes("타로")) return "tarot";
   if (bag.includes("astrology") || bag.includes("점성술")) return "astrology";
   return "saju";

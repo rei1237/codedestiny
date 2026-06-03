@@ -36,6 +36,7 @@ type TarotCardDto = {
 
 type HealingReadingDto = {
   opening?: string;
+  cardDeepDive?: string[];
   hiddenTruth?: string;
   embracePain?: string;
   silverLining?: string;
@@ -65,9 +66,9 @@ type ReadingSection = {
 
 const SPREAD_TYPE = "healing_rising_four_card" as const;
 const SPREAD_CARD_COUNT = 4 as const;
-const CHAR_DELAY_MS = 40;
-const SECTION_GAP_MS = 800;
-const INITIAL_TEXT_BURST_CHARS = 18;
+const CHAR_DELAY_MS = 12;
+const SECTION_GAP_MS = 320;
+const INITIAL_TEXT_BURST_CHARS = 72;
 
 const SHARE_FALLBACK_URL = "https://code-destiny.com";
 const SHARE_TITLE = "태양 회복 타로";
@@ -76,12 +77,13 @@ const SHARE_TEXT_PREFIX = "태양 회복 타로 결과를 공유합니다.\n\n";
 const READING_SECTIONS: ReadingSection[] = [
   { key: "consultingHighlights", title: "핵심 상담 하이라이트", tone: "focus", icon: Sparkles },
   { key: "opening", title: "오늘의 상담 프롤로그", tone: "neutral", icon: Sparkles },
+  { key: "cardDeepDive", title: "카드별 심층 해석", tone: "focus", icon: Telescope },
   { key: "hiddenTruth", title: "1. 마음 깊은 원인", tone: "focus", icon: Telescope },
   { key: "embracePain", title: "2. 감정 안아주기", tone: "warm", icon: HeartHandshake },
   { key: "silverLining", title: "3. 회복의 단서", tone: "focus", icon: Lightbulb },
   { key: "stepForward", title: "4. 오늘의 한 걸음", tone: "warm", icon: Footprints },
-  { key: "integrationMessage", title: "🌟 종합 풀이: 회복의 흐름", tone: "neutral", icon: Sparkles },
-  { key: "actionPlan", title: "🌱 오늘 바로 해볼 수 있는 작은 실천", tone: "focus", icon: Sparkles },
+  { key: "integrationMessage", title: "종합 풀이: 회복의 흐름", tone: "neutral", icon: Sparkles },
+  { key: "actionPlan", title: "오늘 바로 해볼 수 있는 작은 실천", tone: "focus", icon: Sparkles },
 ];
 
 function clamp(n: number, min: number, max: number) {
@@ -245,23 +247,31 @@ function ReadingCard({
   text: string;
   isTyping?: boolean;
 }) {
-  const borderC = tone === "warm" ? "border-orange-200" : tone === "focus" ? "border-amber-300" : "border-amber-100";
-  const bgC = tone === "warm" ? "bg-orange-50/80" : tone === "focus" ? "bg-amber-50/90" : "bg-white/80";
+  const toneClass = tone === "warm"
+    ? "border-rose-200/75 bg-rose-50/80"
+    : tone === "focus"
+      ? "border-amber-300/75 bg-amber-50/85"
+      : "border-teal-200/65 bg-white/85";
+  const iconClass = tone === "warm"
+    ? "border-rose-200 bg-rose-100 text-rose-700"
+    : tone === "focus"
+      ? "border-amber-300 bg-amber-100 text-amber-700"
+      : "border-teal-200 bg-teal-50 text-teal-700";
 
   return (
     <motion.section
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.38 }}
-      className={`rounded-2xl border p-5 shadow-sm backdrop-blur-sm ${borderC} ${bgC}`}
+      className={`rounded-2xl border p-5 shadow-[0_18px_52px_rgba(180,120,35,0.16)] backdrop-blur-xl ${toneClass}`}
     >
       <div className="flex items-start gap-3">
-        <div className="mt-0.5 inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl border border-amber-200 bg-amber-100">
-          <Icon className="h-4 w-4 text-amber-600" />
+        <div className={`mt-0.5 inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border ${iconClass}`}>
+          <Icon className="h-4 w-4" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="font-serif text-[15px] font-semibold tracking-tight text-amber-900">{title}</h3>
+            <h3 className="font-serif text-[16px] font-semibold tracking-tight text-amber-950">{title}</h3>
             {isTyping ? (
               <motion.span
                 className="h-1.5 w-1.5 rounded-full bg-amber-500"
@@ -270,7 +280,7 @@ function ReadingCard({
               />
             ) : null}
           </div>
-          <p className="mt-2 whitespace-pre-line text-sm leading-7 text-stone-700">{text}</p>
+          <p className="mt-3 whitespace-pre-line text-[15px] leading-8 text-stone-700">{text}</p>
         </div>
       </div>
     </motion.section>
@@ -311,7 +321,7 @@ export default function SunHealingTarot() {
     const ac = new AbortController();
     abortRef.current = ac;
     try {
-      const res = await fetch("/api/tarot/draw", {
+      const res = await fetch("/api/tarot/draw/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ spreadType: SPREAD_TYPE }),
@@ -350,7 +360,7 @@ export default function SunHealingTarot() {
     abortRef.current = ac;
     try {
       const payloadCards = cards.map((c) => ({ cardId: c.cardId, position: c.position, orientation: c.orientation }));
-      const res = await fetch("/api/tarot/reading", {
+      const res = await fetch("/api/tarot/reading/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ category: "healing", spreadType: SPREAD_TYPE, cards: payloadCards }),
@@ -434,112 +444,178 @@ export default function SunHealingTarot() {
 
   return (
     <main
-      className="min-h-[100dvh] overflow-x-hidden px-0 py-0 text-stone-900"
-      style={{ background: "linear-gradient(180deg, #FFFBF0 0%, #FFF8E1 40%, #FFFDE7 100%)" }}
+      className="relative min-h-[100dvh] overflow-x-hidden bg-[#fff7e6] px-0 py-0 text-stone-900"
     >
-      <div className="pointer-events-none fixed inset-0" style={{ background: "radial-gradient(ellipse 75% 28% at 50% 0%, #FDE68A55 0%, transparent 70%)", zIndex: 0 }} />
-      <div className="pointer-events-none fixed bottom-0 left-1/2 -translate-x-1/2 blur-[70px] opacity-25" style={{ width: 320, height: 180, background: "#FCD34D", borderRadius: "50%", zIndex: 0 }} />
-      <div className="relative z-10 mx-auto w-full max-w-[1100px] px-4 py-6 md:px-8 md:py-8">
-        <header className="mb-8 flex items-start justify-between gap-3">
+      <div
+        className="pointer-events-none fixed inset-0 opacity-95"
+        style={{
+          backgroundImage: "linear-gradient(115deg, rgba(255,252,239,0.9) 0%, rgba(255,245,216,0.82) 45%, rgba(255,225,168,0.66) 100%), url('/fuctionassets/healing.webp')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      />
+      <div
+        className="pointer-events-none fixed inset-0"
+        style={{
+          background: "radial-gradient(circle at 18% 12%, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0) 30%), radial-gradient(circle at 80% 8%, rgba(125,211,252,0.24) 0%, rgba(125,211,252,0) 28%), radial-gradient(circle at 52% 100%, rgba(251,191,36,0.32) 0%, rgba(251,191,36,0) 46%), linear-gradient(180deg, rgba(255,250,235,0.34) 0%, rgba(255,250,235,0.76) 100%)",
+        }}
+      />
+      <div
+        className="pointer-events-none fixed inset-0 opacity-[0.18] mix-blend-multiply"
+        style={{
+          backgroundImage: "repeating-linear-gradient(0deg, rgba(120,83,30,0.18) 0px, rgba(120,83,30,0.18) 1px, transparent 1px, transparent 5px), repeating-linear-gradient(90deg, rgba(255,255,255,0.36) 0px, rgba(255,255,255,0.36) 1px, transparent 1px, transparent 7px)",
+        }}
+      />
+      <div className="relative z-10 mx-auto flex min-h-[100dvh] w-full max-w-[1440px] flex-col px-4 py-5 md:px-8 md:py-7">
+        <header className="mb-5 flex items-center justify-between gap-3">
           <div>
-            <p className="text-[10px] font-semibold tracking-[0.24em] text-amber-500 uppercase">Healing Tarot Session</p>
-            <h1 className="mt-1.5 font-serif text-[28px] font-semibold leading-tight text-amber-900 md:text-[34px]">태양 회복 타로</h1>
-            <p className="mt-1.5 text-sm leading-6 text-stone-600">심리상담사와 타로 마스터의 시선으로, 감정을 읽고 오늘의 회복 행동까지 바로 안내합니다.</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-700/80">Sun Recovery Tarot</p>
+            <h1 className="mt-1 font-serif text-[24px] font-semibold leading-tight text-amber-950 md:text-[32px]">태양 회복 타로</h1>
           </div>
-          <button type="button" onClick={goHome} className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-amber-200 bg-white/70 px-3 py-2 text-xs font-medium text-stone-600 shadow-sm hover:bg-amber-50 hover:text-amber-800 transition-colors">
+          <button type="button" onClick={goHome} className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-amber-200/70 bg-white/70 px-4 text-xs font-semibold text-amber-950 shadow-[0_12px_34px_rgba(180,120,35,0.14)] backdrop-blur-xl transition-colors hover:bg-white">
             <RotateCcw className="h-3.5 w-3.5" />홈
           </button>
         </header>
         <AnimatePresence mode="wait">
           {stage === "intro" ? (
-            <motion.section key="intro" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="space-y-7 min-h-[calc(100dvh-180px)] content-center">
-              <div className="flex justify-center py-4"><SunHero /></div>
-              <div className="rounded-2xl border border-amber-200 bg-white/75 p-6 shadow-sm backdrop-blur-sm md:p-8">
-                <h2 className="font-serif text-xl font-semibold text-amber-900">마음을 열어볼 준비가 되셨나요?</h2>
-                <p className="mt-3 text-sm leading-7 text-stone-700">4장의 카드를 순서대로 열면, 원인 파악부터 실행 계획까지<br className="hidden sm:block" />상담실처럼 안전한 흐름으로 마음을 비춰 드립니다.</p>
-                <div className="mt-4 flex flex-wrap gap-2">{["원인 파악", "감정 수용", "회복 단서", "실행 계획"].map((label, i) => (<span key={i} className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">{label}</span>))}</div>
+            <motion.section key="intro" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="grid flex-1 items-center gap-8 py-8 lg:grid-cols-[minmax(0,1fr)_420px] lg:py-0">
+              <div className="max-w-[760px]">
+                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-teal-700/80">Therapeutic Tarot Room</p>
+                <h2 className="mt-4 max-w-[720px] font-serif text-[34px] font-semibold leading-[1.14] text-amber-950 drop-shadow-[0_10px_30px_rgba(255,255,255,0.64)] sm:text-[44px] md:text-[64px]">
+                  마음이 돌아올 자리를 <br className="hidden md:block" />조용히 밝혀드립니다
+                </h2>
+                <p className="mt-6 max-w-[640px] text-[16px] leading-8 text-stone-700 md:text-[18px]">
+                  네 장의 카드는 상처의 원인, 감정의 수용, 회복의 단서, 오늘 가능한 한 걸음을 차례로 비춥니다. 해석은 단정하지 않고, 마음이 스스로를 다시 믿을 수 있는 방향으로 안내합니다.
+                </p>
+                <div className="mt-7 grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap">
+                  {["원인", "수용", "회복", "행동"].map((label) => (
+                    <span key={label} className="rounded-full border border-amber-200/70 bg-white/65 px-4 py-2 text-center text-xs font-semibold text-amber-900 shadow-[0_8px_24px_rgba(180,120,35,0.1)] backdrop-blur-xl">{label}</span>
+                  ))}
+                </div>
+                <button type="button" onClick={start} disabled={loading} className="group relative mt-8 inline-flex min-h-14 w-full items-center justify-center overflow-hidden rounded-full border border-amber-200/70 px-8 text-sm font-bold text-[#2d1b08] shadow-[0_24px_70px_rgba(217,144,42,0.24)] transition-all active:scale-[0.98] disabled:opacity-50 sm:w-auto" style={{ background: "linear-gradient(135deg, #FFFFFF 0%, #FFF2BF 42%, #F7C35E 100%)" }}>
+                  <span className="absolute inset-0 translate-x-[-120%] bg-[linear-gradient(110deg,transparent,rgba(255,255,255,0.5),transparent)] transition-transform duration-700 group-hover:translate-x-[120%]" />
+                  <span className="relative flex items-center justify-center gap-2">{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}{loading ? "준비 중…" : "태양 리딩 시작"}</span>
+                </button>
               </div>
-              <button type="button" onClick={start} disabled={loading} className="group relative w-full overflow-hidden rounded-2xl py-4 text-sm font-bold text-white shadow-lg shadow-amber-200 disabled:opacity-50 transition-all active:scale-[0.98]" style={{ background: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)" }}>
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300" style={{ background: "radial-gradient(circle at 50% 50%, #fff, transparent 60%)" }} />
-                <span className="relative flex items-center justify-center gap-2">{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}{loading ? "준비 중…" : "리딩 시작하기"}</span>
-              </button>
+              <div className="relative mx-auto w-full max-w-[420px]">
+                <motion.div
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+                  className="rounded-[32px] border border-white/80 bg-white/64 p-5 shadow-[0_28px_90px_rgba(180,120,35,0.22)] backdrop-blur-2xl"
+                >
+                  <div className="flex justify-center"><SunHero /></div>
+                  <div className="mt-3 grid grid-cols-4 gap-2">
+                    {POSITION_LABELS_SHORT.map((label, idx) => (
+                      <div key={label} className="aspect-[3/4] rounded-2xl border border-amber-200/70 bg-[linear-gradient(160deg,rgba(255,255,255,0.82),rgba(255,236,186,0.58))] p-2 shadow-inner">
+                        <div className="flex h-full items-end justify-center rounded-xl border border-amber-100 bg-white/70 pb-2 text-[10px] font-semibold text-amber-900">{idx + 1}. {label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              </div>
             </motion.section>
           ) : null}
           {stage === "spread" ? (
-            <motion.section key="spread" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="space-y-5 min-h-[calc(100dvh-180px)]">
-              <div className="rounded-2xl border border-amber-200 bg-white/75 p-4 shadow-sm backdrop-blur-sm">
-                <div className="flex items-center justify-between">
-                  <h2 className="font-serif text-base font-semibold text-amber-900">순서대로 카드를 열어보세요</h2>
-                  <span className="text-xs font-semibold text-amber-600">{revealedCount}&thinsp;/&thinsp;{SPREAD_CARD_COUNT}</span>
+            <motion.section key="spread" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="grid flex-1 gap-5 pb-5 lg:grid-cols-[minmax(0,1fr)_330px]">
+              <div className="flex min-h-[calc(100dvh-132px)] flex-col justify-center rounded-[30px] border border-white/80 bg-white/70 p-4 shadow-[0_30px_90px_rgba(180,120,35,0.18)] backdrop-blur-2xl md:p-6">
+                <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-teal-700/75">Solar Spread</p>
+                    <h2 className="mt-1 font-serif text-[26px] font-semibold text-amber-950 md:text-[34px]">카드를 하나씩 열어보세요</h2>
+                  </div>
+                  <span className="rounded-full border border-amber-200/70 bg-amber-50/90 px-4 py-2 text-sm font-bold text-amber-800 shadow-sm">{revealedCount}&thinsp;/&thinsp;{SPREAD_CARD_COUNT}</span>
                 </div>
-                <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-amber-100">
-                  <motion.div className="h-full rounded-full" style={{ background: "linear-gradient(90deg, #F59E0B 0%, #D97706 100%)" }} initial={{ width: 0 }} animate={{ width: `${progressPct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
+                <div className="mb-6 h-2 w-full overflow-hidden rounded-full bg-amber-100">
+                  <motion.div className="h-full rounded-full shadow-[0_0_18px_rgba(245,158,11,0.38)]" style={{ background: "linear-gradient(90deg, #67e8f9 0%, #fde68a 45%, #f59e0b 100%)" }} initial={{ width: 0 }} animate={{ width: `${progressPct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                {Array.from({ length: SPREAD_CARD_COUNT }).map((_, idx) => {
-                  const card = cards[idx];
-                  const isFlipped = idx < revealedCount;
-                  const enabled = canFlip(idx);
-                  const isGlowing = glowingCard === idx;
-                  return (
-                    <div key={idx} style={{ perspective: "1200px" }} className="relative aspect-[3/4]">
-                      <AnimatePresence>{isGlowing && (<motion.div initial={{ opacity: 0.65, scale: 0.95 }} animate={{ opacity: 0, scale: 1.25 }} exit={{}} transition={{ duration: 0.85, ease: "easeOut" }} className="absolute inset-0 rounded-xl blur-2xl pointer-events-none" style={{ background: "#FCD34D", zIndex: 30 }} />)}</AnimatePresence>
-                      <motion.button type="button" onClick={() => flip(idx)} disabled={!enabled} whileHover={enabled ? { y: -7, filter: "drop-shadow(0 8px 24px rgba(245,158,11,0.45))" } : undefined} transition={{ type: "spring", stiffness: 300, damping: 22 }} className="relative w-full h-full rounded-xl" style={{ transformStyle: "preserve-3d" }}>
-                        <motion.div className="absolute inset-0" style={{ transformStyle: "preserve-3d" }} animate={{ rotateY: isFlipped ? 180 : 0 }} transition={{ duration: 0.72, ease: [0.35, 0, 0.15, 1] }}>
-                          <div className="absolute inset-0 rounded-xl shadow-md" style={{ backfaceVisibility: "hidden" }}><CardBackFace />{enabled && (<motion.div className="absolute inset-0 rounded-xl ring-2 ring-amber-300/70" animate={{ opacity: [0.45, 1, 0.45] }} transition={{ duration: 2.2, repeat: Infinity }} />)}</div>
-                          <div className="absolute inset-0 rounded-xl overflow-hidden shadow-md" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}>
-                            {card?.cardId ? (<Image src={cardImageUrl(card)} alt={safeCardTitle(card, idx)} fill sizes="(max-width: 768px) 45vw, 260px" className="object-cover" unoptimized priority />) : (<div className="absolute inset-0 bg-amber-50" />)}
-                            <div className="absolute inset-x-0 bottom-0 px-2 pt-10 pb-2" style={{ background: "linear-gradient(0deg, rgba(255,251,235,0.97) 0%, rgba(255,251,235,0.5) 50%, transparent 100%)" }}>
-                              <p className="text-[9px] font-semibold text-amber-600 tracking-widest uppercase">{POSITION_LABELS[idx]}</p>
-                              <p className="mt-0.5 text-[11px] font-semibold text-stone-800 leading-tight">{safeCardTitle(card, idx)}</p>
+                <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+                  {Array.from({ length: SPREAD_CARD_COUNT }).map((_, idx) => {
+                    const card = cards[idx];
+                    const isFlipped = idx < revealedCount;
+                    const enabled = canFlip(idx);
+                    const isGlowing = glowingCard === idx;
+                    return (
+                      <div key={idx} style={{ perspective: "1200px" }} className="relative aspect-[3/4] min-h-[210px]">
+                        <AnimatePresence>{isGlowing && (<motion.div initial={{ opacity: 0.7, scale: 0.95 }} animate={{ opacity: 0, scale: 1.28 }} exit={{}} transition={{ duration: 0.85, ease: "easeOut" }} className="pointer-events-none absolute inset-0 rounded-[24px] bg-amber-200 blur-2xl" style={{ zIndex: 30 }} />)}</AnimatePresence>
+                        <motion.button type="button" onClick={() => flip(idx)} disabled={!enabled} whileHover={enabled ? { y: -8, filter: "drop-shadow(0 22px 34px rgba(217,144,42,0.3))" } : undefined} transition={{ type: "spring", stiffness: 300, damping: 22 }} className="relative h-full w-full rounded-[24px]" style={{ transformStyle: "preserve-3d" }}>
+                          <motion.div className="absolute inset-0" style={{ transformStyle: "preserve-3d" }} animate={{ rotateY: isFlipped ? 180 : 0 }} transition={{ duration: 0.72, ease: [0.35, 0, 0.15, 1] }}>
+                            <div className="absolute inset-0 rounded-[24px] shadow-[0_20px_48px_rgba(180,120,35,0.18)]" style={{ backfaceVisibility: "hidden" }}><CardBackFace />{enabled && (<motion.div className="absolute inset-0 rounded-[24px] ring-2 ring-amber-300/80" animate={{ opacity: [0.42, 1, 0.42] }} transition={{ duration: 2.2, repeat: Infinity }} />)}</div>
+                            <div className="absolute inset-0 overflow-hidden rounded-[24px] shadow-[0_20px_56px_rgba(180,120,35,0.24)]" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}>
+                              {card?.cardId ? (<Image src={cardImageUrl(card)} alt={safeCardTitle(card, idx)} fill sizes="(max-width: 768px) 45vw, 260px" className="object-cover" unoptimized priority />) : (<div className="absolute inset-0 bg-amber-50" />)}
+                              <div className="absolute inset-x-0 bottom-0 px-3 pb-3 pt-16" style={{ background: "linear-gradient(0deg, rgba(255,251,235,0.97) 0%, rgba(255,251,235,0.72) 58%, transparent 100%)" }}>
+                                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-700">{POSITION_LABELS[idx]}</p>
+                                <p className="mt-1 text-[13px] font-semibold leading-tight text-stone-800">{safeCardTitle(card, idx)}</p>
+                              </div>
                             </div>
-                          </div>
-                        </motion.div>
-                      </motion.button>
-                    </div>
-                  );
-                })}
+                          </motion.div>
+                        </motion.button>
+                      </div>
+                    );
+                  })}
+                </div>
+                <button type="button" onClick={fetchReading} disabled={loading || revealedCount < SPREAD_CARD_COUNT} className="group relative mt-6 w-full overflow-hidden rounded-full border border-amber-200/70 py-4 text-sm font-bold text-[#2d1b08] shadow-[0_20px_60px_rgba(217,144,42,0.2)] transition-all active:scale-[0.98] disabled:opacity-35" style={{ background: "linear-gradient(135deg, #FFFFFF 0%, #FFF0B7 48%, #F4B84E 100%)" }}>
+                  <span className="absolute inset-0 translate-x-[-120%] bg-[linear-gradient(110deg,transparent,rgba(255,255,255,0.48),transparent)] transition-transform duration-700 group-hover:translate-x-[120%]" />
+                  <span className="relative flex items-center justify-center gap-2">{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}{loading ? "해석 중…" : "상담 리딩 열기"}</span>
+                </button>
               </div>
-              <button type="button" onClick={fetchReading} disabled={loading || revealedCount < SPREAD_CARD_COUNT} className="group relative w-full overflow-hidden rounded-2xl py-4 text-sm font-bold text-white shadow-md shadow-amber-200 disabled:opacity-35 transition-all active:scale-[0.98]" style={{ background: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)" }}>
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300" style={{ background: "radial-gradient(circle at 50% 50%, #fff, transparent 60%)" }} />
-                <span className="relative flex items-center justify-center gap-2">{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}{loading ? "해석 중…" : "카드 해석받기"}</span>
-              </button>
-            </motion.section>
-          ) : null}
-          {stage === "result" ? (
-            <motion.section key="result" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="space-y-5 min-h-[calc(100dvh-180px)]">
-              <div className="flex items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-white/80 p-5 shadow-sm backdrop-blur-sm">
-                <div><h2 className="font-serif text-lg font-semibold text-amber-900">상담 리딩 결과</h2><p className="mt-1 text-xs text-stone-500">지금 화면에서 바로, 차분하게 끝까지 읽어 보세요.</p></div>
-                <button type="button" onClick={share} className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700 hover:bg-amber-100 transition-colors"><Share2 className="h-3.5 w-3.5" />공유</button>
-              </div>
-              {cards.length > 0 && (
-                <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none">
-                  {cards.map((card, idx) => (
-                    <div key={idx} className="flex-shrink-0 w-[60px]">
-                      <div className="relative aspect-[3/4] w-full rounded-lg overflow-hidden border border-amber-200 shadow-sm">{card?.cardId ? (<Image src={cardImageUrl(card)} alt={safeCardTitle(card, idx)} fill sizes="60px" className="object-cover" unoptimized />) : (<div className="absolute inset-0 bg-amber-50" />)}</div>
-                      <p className="mt-1 text-center text-[9px] font-medium text-amber-600">{POSITION_LABELS_SHORT[idx]}</p>
+              <aside className="rounded-[30px] border border-white/80 bg-white/64 p-5 shadow-[0_24px_70px_rgba(180,120,35,0.16)] backdrop-blur-2xl lg:min-h-[calc(100dvh-132px)]">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-teal-700/75">Current Focus</p>
+                <h3 className="mt-3 font-serif text-2xl font-semibold text-amber-950">{revealedCount < SPREAD_CARD_COUNT ? POSITION_LABELS[revealedCount] : "상담 준비 완료"}</h3>
+                <p className="mt-4 text-sm leading-7 text-stone-700">
+                  카드를 여는 순서는 마음의 흐름과 같습니다. 급하게 결론으로 뛰어가지 않고, 지금 드러난 감정을 한 장씩 받아들이면 리딩이 더 선명해집니다.
+                </p>
+                <div className="mt-6 space-y-2">
+                  {POSITION_LABELS.map((label, idx) => (
+                    <div key={label} className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm shadow-sm ${idx < revealedCount ? "border-amber-300/70 bg-amber-50/90 text-amber-900" : idx === revealedCount ? "border-teal-200/80 bg-teal-50/80 text-teal-900" : "border-stone-200/70 bg-white/60 text-stone-500"}`}>
+                      <span>{idx + 1}. {label}</span>
+                      <span className="text-xs font-semibold">{idx < revealedCount ? "완료" : idx === revealedCount ? "진행" : "대기"}</span>
                     </div>
                   ))}
                 </div>
-              )}
-              <div className="space-y-3">
-                {READING_SECTIONS.map((section) => {
-                  const value = typed[String(section.key)] || "";
-                  if (!value) return null;
-                  return (<ReadingCard key={String(section.key)} title={section.title} tone={section.tone} icon={section.icon} text={value} isTyping={typingSection === section.title} />);
-                })}
-                {engineMeta?.qualityEnhanced && (<p className="rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2 text-xs text-amber-700">엔진 품질 강화 상담 모드가 적용되었습니다.</p>)}
-                <div className="pt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-                  <button type="button" onClick={start} className="w-full rounded-2xl border border-amber-200 bg-white/70 py-4 text-sm font-bold text-amber-900 shadow-sm hover:bg-amber-50 transition-all active:scale-[0.98]">다시 복채 던지기</button>
-                  <button type="button" onClick={goHome} className="w-full rounded-2xl bg-stone-800 py-4 text-sm font-bold text-white shadow-md hover:bg-stone-900 transition-all active:scale-[0.98]">다른 운세 보러가기</button>
+              </aside>
+            </motion.section>
+          ) : null}
+          {stage === "result" ? (
+            <motion.section key="result" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="grid flex-1 gap-5 pb-5 lg:grid-cols-[330px_minmax(0,1fr)]">
+              <aside className="rounded-[30px] border border-white/80 bg-white/68 p-5 shadow-[0_24px_70px_rgba(180,120,35,0.16)] backdrop-blur-2xl lg:sticky lg:top-6 lg:max-h-[calc(100dvh-48px)]">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-teal-700/75">Reading Result</p>
+                <h2 className="mt-3 font-serif text-3xl font-semibold leading-tight text-amber-950">상담 리딩 결과</h2>
+                <p className="mt-3 text-sm leading-7 text-stone-700">카드의 의미를 마음의 회복 언어로 다시 풀었습니다. 천천히 읽어도 괜찮습니다.</p>
+                {cards.length > 0 && (
+                  <div className="mt-6 grid grid-cols-4 gap-2 lg:grid-cols-2">
+                    {cards.map((card, idx) => (
+                      <div key={idx}>
+                        <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl border border-amber-200/70 shadow-[0_16px_34px_rgba(180,120,35,0.18)]">{card?.cardId ? (<Image src={cardImageUrl(card)} alt={safeCardTitle(card, idx)} fill sizes="120px" className="object-cover" unoptimized />) : (<div className="absolute inset-0 bg-amber-50" />)}</div>
+                        <p className="mt-1 text-center text-[10px] font-semibold text-amber-800">{POSITION_LABELS_SHORT[idx]}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="mt-6 grid gap-2">
+                  <button type="button" onClick={share} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-amber-200/80 bg-amber-50/90 px-4 text-sm font-bold text-amber-900 shadow-sm transition-colors hover:bg-white"><Share2 className="h-4 w-4" />공유</button>
+                  <button type="button" onClick={start} className="min-h-11 rounded-full border border-stone-200 bg-white/70 px-4 text-sm font-bold text-stone-800 shadow-sm transition-colors hover:bg-white">다시 리딩하기</button>
+                  <button type="button" onClick={goHome} className="min-h-11 rounded-full bg-stone-900 px-4 text-sm font-bold text-white shadow-[0_16px_34px_rgba(68,64,60,0.18)] transition-colors hover:bg-amber-950">다른 운세 보기</button>
+                </div>
+              </aside>
+              <div className="min-w-0 rounded-[30px] border border-white/80 bg-white/72 p-4 shadow-[0_30px_90px_rgba(180,120,35,0.18)] backdrop-blur-2xl md:p-6">
+                <div className="mb-5 rounded-3xl border border-amber-200/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.9),rgba(254,243,199,0.74),rgba(204,251,241,0.42))] p-5 shadow-inner">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-700/78">Healing Counsel</p>
+                  <h3 className="mt-2 font-serif text-2xl font-semibold text-amber-950">심리 상담사와 타로 마스터의 종합 해석</h3>
+                  <p className="mt-3 text-sm leading-7 text-stone-700">지금의 마음을 문제로 만들지 않고, 카드가 비춘 상징을 회복 가능한 언어로 정리합니다.</p>
+                </div>
+                <div className="space-y-3">
+                  {READING_SECTIONS.map((section) => {
+                    const value = typed[String(section.key)] || "";
+                    if (!value) return null;
+                    return (<ReadingCard key={String(section.key)} title={section.title} tone={section.tone} icon={section.icon} text={value} isTyping={typingSection === section.title} />);
+                  })}
+                  {engineMeta?.qualityEnhanced && (<p className="rounded-2xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-xs font-semibold text-amber-800">엔진 품질 강화 상담 모드가 적용되었습니다.</p>)}
                 </div>
               </div>
             </motion.section>
           ) : null}
         </AnimatePresence>
       </div>
-      <footer className="mt-12 text-center pb-8"><p className="text-[10px] text-stone-400 font-medium tracking-widest uppercase">© Code Destiny • Sun Recovery Tarot</p></footer>
     </main>
   );
 }

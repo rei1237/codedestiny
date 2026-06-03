@@ -16,6 +16,36 @@
   var lastTouchStart = null;
   var lastTouchHadMove = false;
   var lastActionInvoke = { action: '', at: 0 };
+  var cardScrollLockUntil = 0;
+  var cardScrollTouch = { active: false, moved: false };
+  var CARD_SCROLL_SELECTORS = [
+    '.feature-card-grid',
+    '.feat-collection',
+    '.tarot-collection',
+    '.feat-collection__grid',
+    '.tarot-collection__grid',
+    '.tarot-tile',
+    '.lifebook-tile',
+    '.lovebible-tile',
+    '.lovesim-tile',
+    '.sibyl-entry-tile',
+    '.prem-card',
+    '.fc-toggle-btn'
+  ].join(',');
+
+  function markCardScrollLock(durationMs) {
+    var until = Date.now() + (durationMs || 220);
+    if (until > cardScrollLockUntil) cardScrollLockUntil = until;
+    suppressClickUntil = Math.max(suppressClickUntil, until);
+  }
+
+  function isCardScrollTarget(node) {
+    return !!(node && node.closest && node.closest(CARD_SCROLL_SELECTORS));
+  }
+
+  function shouldBlockCardTap() {
+    return Date.now() < cardScrollLockUntil;
+  }
 
   function isDesktopNoTouch() {
     try {
@@ -653,7 +683,7 @@
     openTarotReunionModal: ['js/tarot-reunion-experience.js?v=20260414-tarot-qualityfix2'],
     openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=20260414-tarot-qualityfix2'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-6380bdc316b0'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-377600f6112d'],
     openDreamModal: ['lib/ai-engine.js', 'js/dream-ledger.js'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js'],
@@ -963,6 +993,9 @@
       '  -webkit-tap-highlight-color: transparent;',
       '  cursor: pointer;',
       '}',
+      '.feature-card-grid, .feat-collection, .tarot-collection, .feat-collection__grid, .tarot-collection__grid {',
+      '  touch-action: pan-y;',
+      '}',
       ':root {',
       '  --cd-safe-vh: 100vh;',
       '}',
@@ -1005,6 +1038,8 @@
       var rule = findRuleFromTarget(event.target);
       if (!rule) return;
       if (!pt) return;
+      cardScrollTouch.active = isCardScrollTarget(event.target);
+      cardScrollTouch.moved = false;
 
       touchCtx = {
         rule: rule,
@@ -1033,6 +1068,10 @@
       }
       if (dx > TAP_MAX_DX || dy > TAP_MAX_DY || (dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx)) {
         touchCtx.moved = true;
+        if (cardScrollTouch.active) {
+          cardScrollTouch.moved = true;
+          markCardScrollLock(240);
+        }
       }
     }, { passive: true, capture: true });
 
@@ -1055,7 +1094,8 @@
           || dy >= TAP_MAX_DY
           || verticalDominant
           || tapDuration > MAX_TAP_DURATION_MS
-          || (now - lastScrollAt) <= SCROLL_BLOCK_MS;
+          || (now - lastScrollAt) <= SCROLL_BLOCK_MS
+          || shouldBlockCardTap();
 
         if (!shouldBlockTap) {
           var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
@@ -1234,6 +1274,12 @@
       }
     }, { passive: false, capture: true });
 
+    root.addEventListener('touchcancel', function () {
+      cardScrollTouch.active = false;
+      cardScrollTouch.moved = false;
+      markCardScrollLock(180);
+    }, { passive: true, capture: true });
+
     root.addEventListener('click', function (event) {
       if (!event || !event.target || !event.target.closest) return;
       var rule = findRuleFromTarget(event.target);
@@ -1241,7 +1287,7 @@
 
       // Scroll/touch ghost click suppression must only apply to bridge-managed rules.
       var now = Date.now();
-      if (now < suppressClickUntil || (now - lastScrollAt < SCROLL_BLOCK_MS)) {
+      if (now < suppressClickUntil || (now - lastScrollAt < SCROLL_BLOCK_MS) || shouldBlockCardTap()) {
         event.preventDefault();
         event.stopPropagation();
         return;
@@ -1283,6 +1329,7 @@
     // 글로벌 ?�크�??�태 추적
     window.addEventListener('scroll', function() {
       lastScrollAt = Date.now();
+      markCardScrollLock(160);
     }, { passive: true });
 
     // 메인 화면 컬렉션 스크롤 감지 - 프리미엄, 동물&관상, 명상 컬렉션
@@ -1290,11 +1337,18 @@
       '#premiumVvipCollection',
       '#animalCollection',
       '#meditationCollection',
+      '#inputPage .feature-card-grid',
+      '#inputPage .feat-collection',
+      '#inputPage .tarot-collection',
+      '#inputPage .feat-collection__grid',
+      '#inputPage .tarot-collection__grid',
       '.feat-collection__grid',
       '.tarot-collection__grid',
       '.fg-group--animal',
       '.fg-group--lovebible',
-      '.fg-group--premium'
+      '.fg-group--premium',
+      '.fg-group--lovesim',
+      '.fg-group--sibyl'
     ];
 
     function setupCollectionScrollListeners() {
@@ -1305,18 +1359,20 @@
             container.__cdScrollBound = true;
             container.addEventListener('scroll', function() {
               lastScrollAt = Date.now();
+              markCardScrollLock(160);
             }, { passive: true });
           }
         });
       });
 
       // 메인 fg-group 섹션들의 스크롤 가능한 부모도 감지
-      var scrollableParents = document.querySelectorAll('.fg-group, .tarot-collection, .feat-collection');
+      var scrollableParents = document.querySelectorAll('.fg-group, .tarot-collection, .feat-collection, .feature-card-grid, .feat-collection__grid, .tarot-collection__grid');
       scrollableParents.forEach(function(parent) {
         if (parent && !parent.__cdScrollBound) {
           parent.__cdScrollBound = true;
           parent.addEventListener('scroll', function() {
             lastScrollAt = Date.now();
+            markCardScrollLock(160);
           }, { passive: true });
         }
       });

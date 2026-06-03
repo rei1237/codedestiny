@@ -15,7 +15,7 @@ import PalmLineOverlay, {
 } from "@/app/palm-reading/PalmLineOverlay";
 import palmUiState from "@/lib/palm/palm-ui-state";
 import { buildPalmInterpretationReport } from "@/lib/palm/interpretation-engine";
-import { fetchBillingFeaturePricing, runBillingCoinGate } from "@/app/_lib/billing-client";
+import { fetchBillingFeaturePricing, openPaidFeatureGate, runBillingCoinGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
 
 type HandSide = "left" | "right";
 type DominantHand = PalmDominantHand;
@@ -1176,6 +1176,15 @@ export default function PalmDestinyMain() {
 
     submitLockedRef.current = true;
     inFlightSignatureRef.current = requestSignature;
+    const initialPurpose = (analysisPurpose || "general") as AnalysisPurpose;
+    const initialSubFeatureKey = PALM_BILLING_SUB_FEATURE_BY_PURPOSE[initialPurpose] || "general";
+    const billingRequestId = `palm-reading:${initialSubFeatureKey}:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    openPaidFeatureGate({
+      categoryKey: "palm-reading",
+      subFeatureKey: initialSubFeatureKey,
+      requestId: billingRequestId,
+      message: "이용권 확인 중",
+    });
 
     cancelInFlightRequest();
     const controller = new AbortController();
@@ -1255,6 +1264,13 @@ export default function PalmDestinyMain() {
             : typeof data?.error === "string"
             ? data.error
             : "분석 중 오류가 발생했습니다.";
+        updatePaidFeatureGate({
+          categoryKey: "palm-reading",
+          subFeatureKey: initialSubFeatureKey,
+          requestId: billingRequestId,
+          status: "error",
+          message: mapPalmAnalyzeError({ status: response.status, code, reasonCode, message }),
+        });
         setSubmitMessage(mapPalmAnalyzeError({ status: response.status, code, reasonCode, message }));
         return;
       }
@@ -1336,6 +1352,13 @@ export default function PalmDestinyMain() {
 
       if (!shouldShowPalmResult(canonical)) {
         setAnalysisResult(null);
+        updatePaidFeatureGate({
+          categoryKey: "palm-reading",
+          subFeatureKey: initialSubFeatureKey,
+          requestId: billingRequestId,
+          status: "error",
+          message: "손바닥 전체가 화면에 들어오지 않았습니다.",
+        });
         setSubmitMessage("손바닥 전체가 화면에 들어오지 않았습니다. 손목부터 손가락 끝까지 보이게 다시 촬영해 주세요.");
         return;
       }
@@ -1350,9 +1373,23 @@ export default function PalmDestinyMain() {
       if (!pricingResult.ok || !pricingResult.data?.pricing) {
         const pricingCode = String(pricingResult.error?.code || "").toUpperCase();
         if (pricingCode === "PRICE_NOT_FOUND") {
+          updatePaidFeatureGate({
+            categoryKey: "palm-reading",
+            subFeatureKey,
+            requestId: billingRequestId,
+            status: "error",
+            message: "손금 분석 가격표를 찾을 수 없습니다.",
+          });
           setSubmitMessage("손금 분석 가격표를 찾을 수 없습니다. 잠시 후 다시 시도해 주세요.");
           return;
         }
+        updatePaidFeatureGate({
+          categoryKey: "palm-reading",
+          subFeatureKey,
+          requestId: billingRequestId,
+          status: "error",
+          message: pricingResult.error?.message || "결제 가격표 조회에 실패했습니다.",
+        });
         setSubmitMessage(pricingResult.error?.message || "결제 가격표 조회에 실패했습니다.");
         return;
       }
@@ -1363,7 +1400,7 @@ export default function PalmDestinyMain() {
       const coinGateResult = await runBillingCoinGate({
         categoryKey: "palm-reading",
         subFeatureKey,
-        requestId: `palm-reading:${subFeatureKey}:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`,
+        requestId: billingRequestId,
         forceDeduct: true,
       });
 
@@ -1451,15 +1488,36 @@ export default function PalmDestinyMain() {
       }
 
       if (error instanceof DOMException && error.name === "AbortError") {
+        updatePaidFeatureGate({
+          categoryKey: "palm-reading",
+          subFeatureKey: initialSubFeatureKey,
+          requestId: billingRequestId,
+          status: "error",
+          message: "요청이 취소되었습니다.",
+        });
         setSubmitMessage("요청이 취소되었습니다. 다시 분석을 시도해 주세요.");
         return;
       }
 
       if (error instanceof TypeError) {
+        updatePaidFeatureGate({
+          categoryKey: "palm-reading",
+          subFeatureKey: initialSubFeatureKey,
+          requestId: billingRequestId,
+          status: "error",
+          message: "네트워크/API 오류로 분석 요청에 실패했습니다.",
+        });
         setSubmitMessage("네트워크/API 오류로 분석 요청에 실패했습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요.");
         return;
       }
 
+      updatePaidFeatureGate({
+        categoryKey: "palm-reading",
+        subFeatureKey: initialSubFeatureKey,
+        requestId: billingRequestId,
+        status: "error",
+        message: `분석 중 오류가 발생했습니다: ${error instanceof Error ? error.message : "unknown"}`,
+      });
       setSubmitMessage(`분석 중 오류가 발생했습니다: ${error instanceof Error ? error.message : "unknown"}`);
     } finally {
       if (requestIdRef.current === requestId) {

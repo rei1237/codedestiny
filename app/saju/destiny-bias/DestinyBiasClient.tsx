@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from "react";
-import { fetchBillingBalance, runBillingCoinGate } from "@/app/_lib/billing-client";
+import { fetchBillingBalance, openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
 import { readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
 import { useBackNavigation } from "@/app/hooks/useBackNavigation";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
@@ -674,21 +674,14 @@ export default function DestinyBiasClient() {
     setUiStep(4);
 
     try {
-      const localResult = analyzeDestinyBias({
-        userName: meInput.name,
-        userBirthDateInput: meInput.birthDateInput,
-        userBirthTimeInput: meInput.birthTimeInput,
-        biasName: biasInput.name,
-        biasBirthDateInput: biasInput.birthDateInput,
-        biasBirthTimeInput: biasInput.birthTimeInput,
-        linkedArtistName: biasArtistInput,
-        biasMood,
-        relationMood,
-        themeKey: selectedTheme.key,
-        themeLabel: selectedTheme.name,
-      });
-
       const requestId = `destiny-bias:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+      openPaidFeatureGate({
+        categoryKey: "destiny-bias",
+        featureKey: "destiny-bias-analyze",
+        requestId,
+        cost: DEFAULT_ANALYZE_COST,
+        message: "이용권 확인 중",
+      });
 
       let coinGateResult = await runBillingCoinGate({
         categoryKey: "destiny-bias",
@@ -740,6 +733,20 @@ export default function DestinyBiasClient() {
 
         throw new Error(coinGateResult.error?.message || "코인 결제 확인에 실패했습니다.");
       }
+
+      const localResult = analyzeDestinyBias({
+        userName: meInput.name,
+        userBirthDateInput: meInput.birthDateInput,
+        userBirthTimeInput: meInput.birthTimeInput,
+        biasName: biasInput.name,
+        biasBirthDateInput: biasInput.birthDateInput,
+        biasBirthTimeInput: biasInput.birthTimeInput,
+        linkedArtistName: biasArtistInput,
+        biasMood,
+        relationMood,
+        themeKey: selectedTheme.key,
+        themeLabel: selectedTheme.name,
+      });
 
       await sleep(1100);
       setLoadingProgress(1);

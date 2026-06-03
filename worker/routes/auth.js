@@ -1,5 +1,5 @@
 import { connectDb, mongoose, resetMongooseConnection, resolveMongoDbName } from "../lib/db.js";
-import { RefreshTokenSession, User } from "../lib/models.js";
+import { PointHistory, RefreshTokenSession, User } from "../lib/models.js";
 import { getEnv } from "../lib/env.js";
 import {
   ACCESS_COOKIE_NAME,
@@ -32,6 +32,8 @@ const CSRF_TOKEN_TTL_MS = 2 * 60 * 60 * 1000;
 const WITHDRAW_RATE_LIMIT_MAX = 3;
 const WITHDRAW_RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const SIGNUP_MONTHLY_CREDIT_GRANT = 500;
+const REFERRAL_REWARD_MONTHLY_CREDIT = 100;
+const REFERRAL_DAILY_MONTHLY_CREDIT_CAP = 500;
 const withdrawRateLimitMap = new Map();
 
 function buildSignupProfileSubscription(now = new Date()) {
@@ -44,6 +46,316 @@ function buildSignupProfileSubscription(now = new Date()) {
     signupMembershipCreditGrantedAt: now,
     legacyCoinCreditSeeded: true,
     legacyCoinCreditSeededPoints: 0,
+  };
+}
+
+function normalizeReferralCode(rawCode) {
+  const code = String(rawCode || "").trim().toUpperCase();
+  if (!code || code.length < 6 || code.length > 24) return "";
+  if (!/^[A-Z0-9_-]+$/.test(code)) return "";
+  return code;
+}
+
+function normalizeReferralShareToken(rawToken) {
+  const token = String(rawToken || "").trim();
+  if (!token || token.length < 24 || token.length > 1800) return "";
+  return token;
+}
+
+function extractReferralCapture(source = {}) {
+  return {
+    referralCode: normalizeReferralCode(source.referralCode || source.ref || source.pendingReferralCode),
+    referralShareToken: normalizeReferralShareToken(
+      source.referralShareToken || source.rs || source.referralToken || source.pendingReferralShareToken,
+    ),
+    referralSource: String(source.referralSource || source.via || "").trim().toLowerCase(),
+  };
+}
+
+function generateReferralCode() {
+  return `CD${randomBytes(7).toString("hex").toUpperCase()}`;
+}
+
+function unwrapFindOneAndUpdateResult(result) {
+  if (result && Object.prototype.hasOwnProperty.call(result, "value")) return result.value;
+  return result;
+}
+
+async function createUniqueReferralCode(dbMaxTimeMs = 8000) {
+  for (let i = 0; i < 8; i += 1) {
+    const code = generateReferralCode();
+    const existing = await User.collection.findOne(
+      { referralCode: code },
+      { projection: { _id: 1 }, maxTimeMS: dbMaxTimeMs },
+    );
+    if (!existing) return code;
+  }
+  throw new Error("referral_code_generation_failed");
+}
+
+function resolveKakaoJavascriptKey(env) {
+  return String(
+    getEnv(env, "NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY")
+      || getEnv(env, "KAKAO_JAVASCRIPT_KEY")
+      || getEnv(env, "KAKAO_PLATFORM_KEY")
+      || "",
+  ).trim();
+}
+
+async function signReferralShareToken(referrerUserId, referralCode, env) {
+  return signJwt(
+    {
+      purpose: "kakao-referral-share",
+      referrerUserId: String(referrerUserId || ""),
+      referralCode,
+      channel: "kakao",
+      rewardMonthlyCredit: REFERRAL_REWARD_MONTHLY_CREDIT,
+    },
+    getAccessTokenSecret(env),
+    { expiresIn: "30d", issuer: JWT_ISSUER },
+  );
+}
+
+async function verifyReferralShareToken(referralCode, token, env) {
+  const payload = await verifyJwt(token, getAccessTokenSecret(env), { issuer: JWT_ISSUER });
+  if (!payload || payload.purpose !== "kakao-referral-share") return null;
+  if (String(payload.channel || "") !== "kakao") return null;
+  if (normalizeReferralCode(payload.referralCode) !== referralCode) return null;
+  if (!mongoose.Types.ObjectId.isValid(String(payload.referrerUserId || ""))) return null;
+  return {
+    referrerUserId: String(payload.referrerUserId),
+    referralCode,
+  };
+}
+
+async function ensureReferralCodeForUser(user, env, dbMaxTimeMs = 8000) {
+  const existingCode = normalizeReferralCode(user?.referralCode);
+  if (existingCode) return existingCode;
+
+  const userId = String(user?._id || "");
+  if (!mongoose.Types.ObjectId.isValid(userId)) throw new Error("invalid_user_id");
+  const objectId = new mongoose.Types.ObjectId(userId);
+  const now = new Date();
+
+  const code = await createUniqueReferralCode(dbMaxTimeMs);
+  const updatedResult = await User.collection.findOneAndUpdate(
+    {
+      _id: objectId,
+      $or: [
+        { referralCode: { $exists: false } },
+        { referralCode: "" },
+        { referralCode: null },
+      ],
+    },
+    {
+      $set: {
+        referralCode: code,
+        referralCodeCreatedAt: now,
+        "referralProgram.kakaoShareRewardEnabled": true,
+        "referralProgram.kakaoShareLastPreparedAt": now,
+      },
+    },
+    {
+      returnDocument: "after",
+      projection: { referralCode: 1 },
+      maxTimeMS: dbMaxTimeMs,
+    },
+  );
+  const updated = unwrapFindOneAndUpdateResult(updatedResult);
+
+  const updatedCode = normalizeReferralCode(updated?.referralCode);
+  if (updatedCode) return updatedCode;
+
+  const refreshed = await User.collection.findOne(
+    { _id: objectId },
+    { projection: { referralCode: 1 }, maxTimeMS: dbMaxTimeMs },
+  );
+  const refreshedCode = normalizeReferralCode(refreshed?.referralCode);
+  if (refreshedCode) return refreshedCode;
+  throw new Error("referral_code_generation_failed");
+}
+
+function buildReferralShareUrl(env, referralCode, referralShareToken) {
+  const base = String(getFrontendBaseUrl(env) || "https://code-destiny.com").replace(/\/+$/, "");
+  const url = new URL(base || "https://code-destiny.com");
+  url.searchParams.set("ref", referralCode);
+  url.searchParams.set("rs", referralShareToken);
+  url.searchParams.set("via", "kakao_reward");
+  return url.toString();
+}
+
+function getKstDayKey(date = new Date()) {
+  return new Date(date.getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+async function applyKakaoReferralReward(request, env, newUser, referralCapture = {}) {
+  const referralCode = normalizeReferralCode(referralCapture.referralCode);
+  const referralShareToken = normalizeReferralShareToken(referralCapture.referralShareToken);
+  if (!referralCode || !referralShareToken) return null;
+
+  let verified;
+  try {
+    verified = await verifyReferralShareToken(referralCode, referralShareToken, env);
+  } catch (error) {
+    verified = null;
+  }
+  if (!verified) {
+    return { status: "invalid_share_token", referralCode, rewardMonthlyCredit: 0 };
+  }
+
+  const newUserId = String(newUser?._id || "");
+  if (!mongoose.Types.ObjectId.isValid(newUserId)) return { status: "invalid_new_user", referralCode, rewardMonthlyCredit: 0 };
+  if (newUserId === verified.referrerUserId) return { status: "self_referral_blocked", referralCode, rewardMonthlyCredit: 0 };
+
+  const now = new Date();
+  const dayKey = getKstDayKey(now);
+  const users = User.collection;
+  const newUserObjectId = new mongoose.Types.ObjectId(newUserId);
+  const referrerObjectId = new mongoose.Types.ObjectId(verified.referrerUserId);
+
+  const refereeClaimResult = await users.findOneAndUpdate(
+    {
+      _id: newUserObjectId,
+      $or: [
+        { "referralReward.status": { $exists: false } },
+        { "referralReward.status": "" },
+        { "referralReward.status": null },
+      ],
+    },
+    {
+      $set: {
+        "referralReward.status": "pending",
+        "referralReward.channel": "kakao",
+        "referralReward.referralCode": referralCode,
+        "referralReward.inviterUserId": verified.referrerUserId,
+        "referralReward.capturedAt": now,
+      },
+    },
+    {
+      returnDocument: "after",
+      projection: { _id: 1, referralReward: 1 },
+    },
+  );
+  const refereeClaim = unwrapFindOneAndUpdateResult(refereeClaimResult);
+  if (!refereeClaim) return { status: "already_processed", referralCode, rewardMonthlyCredit: 0 };
+
+  const dailyCreditBase = {
+    $cond: [
+      { $eq: ["$referralProgram.rewardDayKey", dayKey] },
+      { $ifNull: ["$referralProgram.rewardedToday", 0] },
+      0,
+    ],
+  };
+  const referrerResult = await users.findOneAndUpdate(
+    {
+      _id: referrerObjectId,
+      referralCode,
+      "referralProgram.kakaoShareRewardEnabled": true,
+      $expr: {
+        $lte: [
+          dailyCreditBase,
+          REFERRAL_DAILY_MONTHLY_CREDIT_CAP - REFERRAL_REWARD_MONTHLY_CREDIT,
+        ],
+      },
+    },
+    [
+      { $set: { _referralRewardDailyBase: dailyCreditBase } },
+      {
+        $set: {
+          "profileSubscription.tier": { $ifNull: ["$profileSubscription.tier", "free"] },
+          "profileSubscription.source": { $ifNull: ["$profileSubscription.source", "event"] },
+          "profileSubscription.membershipCreditBalance": {
+            $add: [
+              { $ifNull: ["$profileSubscription.membershipCreditBalance", 0] },
+              REFERRAL_REWARD_MONTHLY_CREDIT,
+            ],
+          },
+          "profileSubscription.membershipCreditGranted": {
+            $add: [
+              { $ifNull: ["$profileSubscription.membershipCreditGranted", 0] },
+              REFERRAL_REWARD_MONTHLY_CREDIT,
+            ],
+          },
+          "referralProgram.rewardDayKey": dayKey,
+          "referralProgram.rewardedToday": {
+            $add: ["$_referralRewardDailyBase", REFERRAL_REWARD_MONTHLY_CREDIT],
+          },
+          "referralProgram.totalRewardCredit": {
+            $add: [
+              { $ifNull: ["$referralProgram.totalRewardCredit", 0] },
+              REFERRAL_REWARD_MONTHLY_CREDIT,
+            ],
+          },
+          "referralProgram.lastRewardedAt": now,
+        },
+      },
+      { $unset: "_referralRewardDailyBase" },
+    ],
+    {
+      returnDocument: "after",
+      projection: {
+        _id: 1,
+        profileSubscription: 1,
+        referralProgram: 1,
+      },
+    },
+  );
+  const referrer = unwrapFindOneAndUpdateResult(referrerResult);
+
+  if (!referrer) {
+    await users.updateOne(
+      { _id: newUserObjectId, "referralReward.status": "pending" },
+      {
+        $set: {
+          "referralReward.status": "daily_cap_or_referrer_invalid",
+          "referralReward.completedAt": now,
+          "referralReward.rewardMonthlyCredit": 0,
+        },
+      },
+    );
+    return { status: "daily_cap_or_referrer_invalid", referralCode, rewardMonthlyCredit: 0 };
+  }
+
+  const balanceAfter = Number(referrer?.profileSubscription?.membershipCreditBalance || 0);
+  await users.updateOne(
+    { _id: newUserObjectId, "referralReward.status": "pending" },
+    {
+      $set: {
+        "referralReward.status": "rewarded",
+        "referralReward.completedAt": now,
+        "referralReward.rewardMonthlyCredit": REFERRAL_REWARD_MONTHLY_CREDIT,
+      },
+    },
+  );
+
+  try {
+    await PointHistory.create({
+      userId: referrerObjectId,
+      kind: "share_reward",
+      delta: REFERRAL_REWARD_MONTHLY_CREDIT,
+      balanceAfter,
+      reason: "카카오 공유 추천 가입 보상",
+      featureKey: "referral_signup_kakao",
+      metadata: {
+        rewardType: "membership_credit",
+        channel: "kakao",
+        referralCode,
+        referredUserId: newUserId,
+        dailyCap: REFERRAL_DAILY_MONTHLY_CREDIT_CAP,
+        shareOnly: true,
+        requestMeta: getRequestMeta(request),
+      },
+    });
+  } catch (error) {
+    console.error("[auth/referral] point history insert failed:", error);
+  }
+
+  return {
+    status: "rewarded",
+    referralCode,
+    rewardMonthlyCredit: REFERRAL_REWARD_MONTHLY_CREDIT,
+    dailyCap: REFERRAL_DAILY_MONTHLY_CREDIT_CAP,
+    referrerBalanceAfter: balanceAfter,
   };
 }
 
@@ -597,7 +909,7 @@ async function findOrCreateSocialUser(provider, profile) {
   const socialField = `socialAccounts.${provider}.id`;
 
   let user = await User.findOne({ [socialField]: profile.providerId });
-  if (user) return user;
+  if (user) return { user, created: false };
 
   if (profile.email) {
     user = await User.findOne({ email: profile.email });
@@ -608,13 +920,13 @@ async function findOrCreateSocialUser(provider, profile) {
         user.set("profileImage", String(profile.image || "").trim());
       }
       await user.save();
-      return user;
+      return { user, created: false };
     }
   }
 
   const fallbackEmail = `${provider}_${profile.providerId}@social.code-destiny.local`;
   const joinedAt = new Date();
-  return User.create({
+  const createdUser = await User.create({
     name: profile.name || `${provider} user`,
     email: profile.email || fallbackEmail,
     profileImage: String(profile.image || ""),
@@ -637,6 +949,7 @@ async function findOrCreateSocialUser(provider, profile) {
       },
     },
   });
+  return { user: createdUser, created: true };
 }
 
 function isLocalAuthEnabled(user) {
@@ -840,7 +1153,7 @@ async function revokeAllUserRefreshSessions(userId) {
   ).catch(() => {});
 }
 
-async function createAuthSuccessResponse(request, env, user, status = 200, nextPath = "/") {
+async function createAuthSuccessResponse(request, env, user, status = 200, nextPath = "/", extra = {}) {
   const accessToken = await signAuthToken(user, env);
   const { refreshToken, tokenHash, expiresAt } = await issueRefreshTokenForUser(user._id, env);
   await createRefreshSession(request, env, user._id, tokenHash, expiresAt);
@@ -854,6 +1167,7 @@ async function createAuthSuccessResponse(request, env, user, status = 200, nextP
     accessToken,
     tokenType: "Bearer",
     accessTokenExpiresInSec: accessExpiresInSec,
+    ...extra,
   }, { status });
   appendAuthCookies(response, request, env, accessToken, refreshToken);
   return response;
@@ -1075,9 +1389,16 @@ async function handleRegister(request, env) {
     );
   }
 
+  const referralReward = await applyKakaoReferralReward(
+    request,
+    env,
+    user,
+    extractReferralCapture(body),
+  );
+
   try {
     return await withAuthOpTimeout(
-      createAuthSuccessResponse(request, env, user, 201, body?.nextPath),
+      createAuthSuccessResponse(request, env, user, 201, body?.nextPath, referralReward ? { referralReward } : {}),
       timeoutMs,
       "auth_register_issue_session",
     );
@@ -1603,6 +1924,47 @@ async function handleWithdraw(request, env) {
   return response;
 }
 
+async function handleKakaoReferralShare(request, env) {
+  const auth = await requireAuth(request, env);
+  if (!mongoose.Types.ObjectId.isValid(String(auth.userId || ""))) {
+    return json({ ok: false, message: "로그인이 필요합니다." }, { status: 401 });
+  }
+
+  await connectDb(env);
+  const objectId = new mongoose.Types.ObjectId(String(auth.userId));
+  const user = await User.collection.findOne(
+    { _id: objectId },
+    {
+      projection: {
+        _id: 1,
+        name: 1,
+        referralCode: 1,
+      },
+      maxTimeMS: 8000,
+    },
+  );
+  if (!user) return json({ ok: false, message: "사용자 정보를 찾을 수 없습니다." }, { status: 404 });
+
+  const referralCode = await ensureReferralCodeForUser(user, env);
+  const referralShareToken = await signReferralShareToken(user._id, referralCode, env);
+  const shareUrl = buildReferralShareUrl(env, referralCode, referralShareToken);
+
+  return json({
+    ok: true,
+    referralCode,
+    referralShareToken,
+    shareUrl,
+    kakaoJavascriptKey: resolveKakaoJavascriptKey(env),
+    rewardPolicy: {
+      channel: "kakao",
+      rewardMonthlyCredit: REFERRAL_REWARD_MONTHLY_CREDIT,
+      dailyMonthlyCreditCap: REFERRAL_DAILY_MONTHLY_CREDIT_CAP,
+      shareOnly: true,
+      message: "이 버튼으로 만든 카카오 공유 링크를 통해 친구가 회원가입을 완료한 경우에만 추천 보상이 지급됩니다.",
+    },
+  });
+}
+
 async function handleOAuthStart(request, env, provider) {
   if (!OAUTH_PROVIDERS.includes(provider)) {
     return json({ message: "Unsupported social login provider." }, { status: 400 });
@@ -1617,6 +1979,11 @@ async function handleOAuthStart(request, env, provider) {
     const url = new URL(request.url);
     const nextPath = sanitizeNextPath(url.searchParams.get("next") || "") || "/";
     const flow = sanitizeAuthFlow(url.searchParams.get("flow"));
+    const referralCapture = extractReferralCapture({
+      referralCode: url.searchParams.get("referralCode") || url.searchParams.get("ref"),
+      referralShareToken: url.searchParams.get("referralShareToken") || url.searchParams.get("rs"),
+      referralSource: url.searchParams.get("referralSource") || url.searchParams.get("via"),
+    });
     const requestOrigin = getRequestOrigin(request);
     const frontendBase = requestOrigin && !isWorkersDevOrigin(requestOrigin)
       ? requestOrigin
@@ -1627,6 +1994,9 @@ async function handleOAuthStart(request, env, provider) {
       frontendBase,
       flow,
       redirectUri: cfg.redirectUri,
+      referralCode: referralCapture.referralCode,
+      referralShareToken: referralCapture.referralShareToken,
+      referralSource: referralCapture.referralSource,
     }, env);
 
     const params = new URLSearchParams({
@@ -1682,11 +2052,17 @@ async function handleOAuthCallback(request, env, provider) {
       String(statePayload.redirectUri || ""),
     );
     const socialProfile = await fetchSocialProfile(provider, accessToken, request, env);
-    const user = await findOrCreateSocialUser(provider, socialProfile);
+    const socialUser = await findOrCreateSocialUser(provider, socialProfile);
+    const user = socialUser.user;
     const grant = await signSocialGrant({
       userId: String(user._id),
       provider,
       nextPath: sanitizeNextPath(statePayload.nextPath) || "/",
+      flow,
+      isNewUser: !!socialUser.created,
+      referralCode: normalizeReferralCode(statePayload.referralCode),
+      referralShareToken: normalizeReferralShareToken(statePayload.referralShareToken),
+      referralSource: String(statePayload.referralSource || "").trim().toLowerCase(),
     }, env);
 
     const redirectParams = new URLSearchParams({ social_grant: grant, flow });
@@ -1736,6 +2112,7 @@ async function handleOAuthComplete(request, env) {
                 role: 1,
                 points: 1,
                 joinedAt: 1,
+                profileSubscription: 1,
               },
               maxTimeMS: dbMaxTimeMs,
             },
@@ -1745,6 +2122,19 @@ async function handleOAuthComplete(request, env) {
         );
 
         if (!user) return json({ message: "User not found." }, { status: 404 });
+
+        const referralReward = payload.isNewUser && sanitizeAuthFlow(payload.flow) === "signup"
+          ? await applyKakaoReferralReward(
+            request,
+            env,
+            user,
+            {
+              referralCode: payload.referralCode || body?.referralCode,
+              referralShareToken: payload.referralShareToken || body?.referralShareToken,
+              referralSource: payload.referralSource || body?.referralSource,
+            },
+          )
+          : null;
 
         const accessToken = await signAuthToken(user, env);
         const nextRefresh = await issueRefreshTokenForUser(user._id, env);
@@ -1763,6 +2153,7 @@ async function handleOAuthComplete(request, env) {
           accessToken,
           tokenType: "Bearer",
           accessTokenExpiresInSec: parseDurationToSeconds(getAccessTokenExpiresIn(env), 30 * 60),
+          ...(referralReward ? { referralReward } : {}),
         });
         appendAuthCookies(response, request, env, accessToken, nextRefresh.refreshToken);
         return response;
@@ -1841,6 +2232,7 @@ export async function handleAuthRoutes(request, env) {
       || path === "/refresh"
       || path === "/withdraw"
       || path === "/oauth/complete"
+      || path === "/referral/kakao-share"
     ) {
       const configError = configMismatchResponse("auth-basic", env);
       if (configError) return configError;
@@ -1862,6 +2254,7 @@ export async function handleAuthRoutes(request, env) {
     if (method === "POST" && path === "/withdraw") return await handleWithdraw(request, env);
     if (method === "POST" && path === "/logout") return await handleLogout(request, env);
     if (method === "POST" && path === "/oauth/complete") return await handleOAuthComplete(request, env);
+    if (method === "POST" && path === "/referral/kakao-share") return await handleKakaoReferralShare(request, env);
 
     const startMatch = path.match(/^\/oauth\/([^/]+)\/start$/);
     if (method === "GET" && startMatch) {

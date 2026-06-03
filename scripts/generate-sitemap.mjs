@@ -109,22 +109,6 @@ function extractInsightRoutes() {
     });
   }
 
-  const growthSource = readFileSync(insightsSeoGrowthSourcePath, "utf8");
-  const growthSlugRegex = /slug:\s*"([^"]+)"/g;
-
-  while ((match = growthSlugRegex.exec(growthSource)) !== null) {
-    const slug = String(match[1] || "").trim();
-    if (!slug || seen.has(slug)) continue;
-
-    seen.add(slug);
-    routes.push({
-      path: `/insights/${slug}`,
-      changefreq: "monthly",
-      priority: 0.74,
-      lastmod: today,
-    });
-  }
-
   return routes;
 }
 

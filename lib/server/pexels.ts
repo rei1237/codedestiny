@@ -33,7 +33,7 @@ export async function getPexelsSectionImage(query: string, section: keyof typeof
     source: "fallback",
   };
 
-  const apiKey = process.env.PEXELS_APIKEY || process.env.PEXELS_API_KEY;
+  const apiKey = process.env.PEXES_APIKEY || process.env.PEXELS_APIKEY || process.env.PEXELS_API_KEY;
   if (!apiKey) return fallback;
 
   try {

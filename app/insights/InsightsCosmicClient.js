@@ -228,6 +228,11 @@ export default function InsightsCosmicClient({
     let cancelled = false;
 
     async function loadSeedFallback() {
+      if (seedPool.length > 0) {
+        if (!cancelled) setLazySeedPool([]);
+        return;
+      }
+
       try {
         const mod = await import("./seed-articles");
         const source = Array.isArray(mod?.INSIGHT_SEED_ARTICLES) ? mod.INSIGHT_SEED_ARTICLES : [];
@@ -242,7 +247,7 @@ export default function InsightsCosmicClient({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [seedPool.length]);
 
   const mergedSeedPool = useMemo(() => {
     if (lazySeedPool.length > 0) return lazySeedPool;

@@ -796,14 +796,22 @@
 
   function _fallbackGanji(solarDate, lunarObj, terms) {
     var kasiGanji = _extractGanjiFromKasiLunar(lunarObj);
-    if (kasiGanji && (kasiGanji.year || kasiGanji.month || kasiGanji.day)) {
-      return kasiGanji;
-    }
     var localTerms = terms && terms.length ? terms : _readValidatedSolarTerms(solarDate.getFullYear());
-    if (_countMonthBoundaryTerms(localTerms) < 12) return null;
-    var yearGanji = _yearGanjiFromIpchun(solarDate, localTerms);
+    var hasMonthTerms = _countMonthBoundaryTerms(localTerms) >= 12;
+    var yearGanji = hasMonthTerms ? _yearGanjiFromIpchun(solarDate, localTerms) : null;
     var dayGanji = _dayGanjiFromDate(solarDate);
-    var monthGanji = _computeMonthGanjiFromTerms(localTerms, solarDate, yearGanji);
+    var monthGanji = hasMonthTerms ? _computeMonthGanjiFromTerms(localTerms, solarDate, yearGanji) : null;
+    if (kasiGanji && (kasiGanji.year || kasiGanji.month || kasiGanji.day)) {
+      var mergedDayGanji = kasiGanji.day || dayGanji;
+      return {
+        year: kasiGanji.year || yearGanji,
+        month: kasiGanji.month || monthGanji,
+        day: mergedDayGanji,
+        hour: _hourGanjiFromDay(mergedDayGanji, solarDate),
+        source: (kasiGanji.source || 'kasi') + '+local-hour'
+      };
+    }
+    if (!hasMonthTerms) return null;
     return {
       year: yearGanji,
       month: monthGanji,

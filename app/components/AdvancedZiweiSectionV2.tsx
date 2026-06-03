@@ -46,6 +46,7 @@ interface FormState {
 }
 
 const RESULT_CACHE_KEY = "premium:ziwei:result:v8";
+const BASIC_ZIWEI_ENTRY_URL = "/?action=openZiweiModal";
 
 function sectionTitle(sectionId: ZiweiSectionId): string {
   return ZIWEI_SECTIONS.find((s) => s.id === sectionId)?.title || sectionId;
@@ -937,10 +938,10 @@ export default function AdvancedZiweiSectionV2({
       <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#020510] p-6 text-slate-100 md:p-8">
         <GalaxyBackdrop />
         <div className="relative z-10">
-          <p className="text-[11px] font-semibold tracking-[0.32em] text-cyan-100/80">COSMIC ZIWEI MASTER</p>
-          <h3 className="mt-3 text-2xl font-black leading-tight text-white md:text-3xl">은하수 속 운명의 궁전을 읽는 심화 자미두수 상담</h3>
+          <p className="text-[11px] font-semibold tracking-[0.32em] text-cyan-100/80">ZIWEI PREMIUM COUNSELING</p>
+          <h3 className="mt-3 text-2xl font-black leading-tight text-white md:text-3xl">심화 자미두수 프리미엄 상담</h3>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-200/90">
-            별의 결을 보는 데서 끝나지 않고, 관계와 돈과 일과 회복이 실제 삶에서 어떻게 얽히고 풀리는지까지 함께 짚습니다.
+            기본 명반 보기와 별개로, 주성·사화·삼방사정·대운을 한 판단으로 묶어 관계와 돈과 일의 실제 선택 흐름까지 읽습니다.
           </p>
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
             <button
@@ -954,10 +955,12 @@ export default function AdvancedZiweiSectionV2({
               운명의 문 열기
             </button>
             <button
-              onClick={() => setStep("form")}
+              onClick={() => {
+                window.location.href = BASIC_ZIWEI_ENTRY_URL;
+              }}
               className="rounded-2xl border border-white/12 bg-white/8 px-4 py-4 text-sm font-semibold text-slate-100"
             >
-              먼저 입력 준비하기
+              기본 무료 명반 보기
             </button>
           </div>
         </div>
@@ -973,19 +976,30 @@ export default function AdvancedZiweiSectionV2({
           <StagePanel className="relative z-10 w-full p-5 sm:p-7 lg:p-8">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p className="text-[11px] font-semibold tracking-[0.3em] text-cyan-100/80">COSMIC INPUT</p>
-                <h1 className="mt-3 text-3xl font-black text-white md:text-4xl">운명의 문 앞에서 명반의 맥을 맞춥니다</h1>
+                <p className="text-[11px] font-semibold tracking-[0.3em] text-cyan-100/80">ZIWEI PREMIUM INPUT</p>
+                <h1 className="mt-3 text-3xl font-black text-white md:text-4xl">심화 자미두수 상담 명반을 준비합니다</h1>
                 <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-200/85">
-                  생년월일과 출생 조건이 정리되면, 명반은 단순한 표가 아니라 당신의 삶이 어디서 흔들리고 어디서 빛나는지 보여주는 장면으로 바뀝니다.
+                  기본 무료 자미두수는 12궁 명반 확인용입니다. 이 화면은 같은 명반을 사화·삼방사정·대운·실행 조언까지 확장해 읽는 심화 상담용입니다.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => void toggleImmersiveMode()}
-                className="rounded-full border border-white/12 bg-white/8 px-4 py-2 text-xs font-semibold text-slate-100"
-              >
-                {isFullscreen ? "전체화면 나가기" : "전체화면 켜기"}
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.location.href = BASIC_ZIWEI_ENTRY_URL;
+                  }}
+                  className="rounded-full border border-amber-200/25 bg-amber-200/10 px-4 py-2 text-xs font-semibold text-amber-50"
+                >
+                  기본 명반으로 이동
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void toggleImmersiveMode()}
+                  className="rounded-full border border-white/12 bg-white/8 px-4 py-2 text-xs font-semibold text-slate-100"
+                >
+                  {isFullscreen ? "전체화면 나가기" : "전체화면 켜기"}
+                </button>
+              </div>
             </div>
 
             <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -1118,7 +1132,7 @@ export default function AdvancedZiweiSectionV2({
               onClick={handleCompute}
               className="mt-6 w-full rounded-2xl bg-gradient-to-r from-cyan-200 via-sky-300 to-amber-200 px-5 py-4 text-sm font-black text-slate-950"
             >
-              자미두수 상담 열기
+              심화 자미두수 상담 열기
             </button>
           </StagePanel>
         </div>
@@ -1178,10 +1192,10 @@ export default function AdvancedZiweiSectionV2({
         <StagePanel className="p-5 sm:p-7 lg:p-8">
           <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
             <div className="space-y-5">
-              <p className="text-[11px] font-semibold tracking-[0.32em] text-cyan-100/80">COSMIC ZIWEI REPORT</p>
-              <h1 className="max-w-3xl text-3xl font-black leading-tight text-white md:text-5xl">{chart.user.name || "당신"}님의 운명 궁전이 천천히 열립니다</h1>
+              <p className="text-[11px] font-semibold tracking-[0.32em] text-cyan-100/80">ZIWEI PREMIUM REPORT</p>
+              <h1 className="max-w-3xl text-3xl font-black leading-tight text-white md:text-5xl">{chart.user.name || "당신"}님의 심화 자미두수 상담 리포트</h1>
               <p className="max-w-3xl text-sm leading-7 text-slate-200/90 md:text-base">
-                별은 미래를 고정하지 않고, 지금의 선택을 더 정교하게 안내합니다. 명궁에서 시작된 결이 부부궁과 관록궁, 재백궁으로 번질 때 어떤 순서로 삶을 정리해야 하는지 상담하듯 풀어드립니다.
+                기본 명반의 12궁 배치에 머물지 않고, 명궁에서 시작된 결이 부부궁과 관록궁, 재백궁으로 번질 때 어떤 순서로 삶을 정리해야 하는지 상담하듯 풀어드립니다.
               </p>
 
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -1332,6 +1346,71 @@ export default function AdvancedZiweiSectionV2({
                 현재 궁 다시 읽기
               </button>
             </div>
+
+            {activePalace ? (
+              <div className="mt-5 overflow-hidden rounded-[1.5rem] border border-cyan-200/20 bg-[linear-gradient(135deg,rgba(8,18,38,0.96),rgba(18,11,39,0.92)_52%,rgba(7,20,31,0.96))] p-4 shadow-[0_18px_54px_rgba(8,47,73,0.28)]">
+                <div className="pointer-events-none absolute inset-x-8 h-px bg-gradient-to-r from-transparent via-cyan-100/45 to-transparent" />
+                <div className="grid gap-4 lg:grid-cols-[0.86fr_1.14fr] lg:items-center">
+                  <div className="relative aspect-square min-h-[13rem] overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/24">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(125,211,252,0.22),transparent_35%),radial-gradient(circle_at_28%_32%,rgba(251,191,36,0.22),transparent_18%),radial-gradient(circle_at_76%_70%,rgba(192,132,252,0.2),transparent_24%)]" />
+                    <div className="absolute inset-0 opacity-70 [background-image:radial-gradient(rgba(255,255,255,0.55)_1px,transparent_1px)] [background-size:42px_42px]" />
+                    <div className="absolute left-[18%] top-[26%] h-2.5 w-2.5 rounded-full bg-cyan-100 shadow-[0_0_18px_rgba(165,243,252,0.9)]" />
+                    <div className="absolute left-[42%] top-[18%] h-2 w-2 rounded-full bg-amber-100 shadow-[0_0_18px_rgba(254,243,199,0.9)]" />
+                    <div className="absolute left-[66%] top-[42%] h-2.5 w-2.5 rounded-full bg-fuchsia-100 shadow-[0_0_18px_rgba(245,208,254,0.9)]" />
+                    <div className="absolute left-[51%] top-[70%] h-2 w-2 rounded-full bg-sky-100 shadow-[0_0_18px_rgba(186,230,253,0.9)]" />
+                    <div className="absolute left-[21%] top-[30%] h-px w-[31%] rotate-[-10deg] bg-cyan-100/45" />
+                    <div className="absolute left-[43%] top-[25%] h-px w-[29%] rotate-[36deg] bg-amber-100/40" />
+                    <div className="absolute left-[54%] top-[57%] h-px w-[25%] rotate-[104deg] bg-fuchsia-100/40" />
+                    <div className="absolute inset-x-5 bottom-5 rounded-2xl border border-white/10 bg-black/42 px-4 py-3 backdrop-blur-xl">
+                      <p className="text-[10px] font-semibold tracking-[0.26em] text-cyan-100/80">PALACE CONSTELLATION</p>
+                      <p className="mt-1 text-sm font-black text-white">{activePalace.name} · {activePalace.earthlyBranch}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-semibold tracking-[0.28em] text-amber-100/80">{activePalace.name} 별자리 판독</p>
+                    <h3 className="mt-2 text-xl font-black text-white">
+                      {activePalace.id === "ming"
+                        ? "성향, 자기방어, 선택 습관을 먼저 읽습니다"
+                        : activePalace.id === "siblings"
+                          ? "수평 관계, 협업, 신뢰 흐름을 먼저 읽습니다"
+                          : "이 궁의 실제 작동 방식을 먼저 읽습니다"}
+                    </h3>
+                    <p className="mt-3 text-sm leading-7 text-slate-200">
+                      {activePalace.id === "ming"
+                        ? "명궁은 기본 성격 설명이 아니라, 위기 앞에서 어떤 얼굴이 먼저 나오고 어떤 기준으로 삶을 움직이는지 보여주는 중심 궁입니다."
+                        : activePalace.id === "siblings"
+                          ? "형제궁은 혈연을 넘어 친구, 동료, 라이벌, 협업 파트너와 어떤 거리로 연결되는지 보여주는 수평 관계의 별자리입니다."
+                          : `${activePalace.name}은 ${PALACE_DEFINITION_MAP[activePalace.id].definition}입니다.`}
+                    </p>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {["원국", "주성", "보조성", "살성", "사화", "대궁", "삼방사정", "차성", "대운", "유년", "실전 처방"].map((scope) => (
+                        <span key={`scope-${activePalace.id}-${scope}`} className="rounded-full border border-white/12 bg-white/8 px-3 py-1 text-[11px] font-semibold text-slate-100">
+                          {scope}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                      <div className="rounded-2xl border border-cyan-200/18 bg-cyan-200/8 px-3 py-3">
+                        <p className="text-[11px] font-semibold text-cyan-100">주성</p>
+                        <p className="mt-1 text-sm leading-6 text-white">{activePalace.mainStars.map((star) => `${star.name}${star.strengthSymbol || star.symbol || ""}`).join(" · ") || "대궁 차성 중심"}</p>
+                      </div>
+                      <div className="rounded-2xl border border-amber-200/18 bg-amber-200/8 px-3 py-3">
+                        <p className="text-[11px] font-semibold text-amber-100">사화</p>
+                        <p className="mt-1 text-sm leading-6 text-white">{activePalace.fourTransformations.map((item) => `${transformationTypeToLabel(item.type)} ${item.starName}`).join(" · ") || "직접 사화 약함"}</p>
+                      </div>
+                      <div className="rounded-2xl border border-fuchsia-200/18 bg-fuchsia-200/8 px-3 py-3">
+                        <p className="text-[11px] font-semibold text-fuchsia-100">대궁</p>
+                        <p className="mt-1 text-sm leading-6 text-white">{activePalace.oppositePalace?.name || "대궁 확인"} · {activePalace.oppositePalace?.mainStars.map((star) => star.name).join(" · ") || "차성 보정"}</p>
+                      </div>
+                      <div className="rounded-2xl border border-sky-200/18 bg-sky-200/8 px-3 py-3">
+                        <p className="text-[11px] font-semibold text-sky-100">삼방사정</p>
+                        <p className="mt-1 text-sm leading-6 text-white">{activePalace.sanFangSiZheng?.palaceNames?.join(" · ") || activePalace.triadPalaceIds.join(" · ")}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {chapterHighlights.map((item, index) => (

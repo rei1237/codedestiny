@@ -56,14 +56,14 @@ const FORBIDDEN_ZIWEI_PHRASES = [
 
 const PALACE_CATEGORY_SPECS: Record<ZiweiPalaceId, PalaceCategorySpec[]> = {
   ming: [
-    { title: "핵심 성향과 인생 기본값", question: "이 명궁은 삶의 기본 반응을 어떻게 만드는가?" },
-    { title: "사고방식과 판단 기준", question: "중요한 결정을 내릴 때 어떤 기준이 먼저 작동하는가?" },
-    { title: "자존감과 자기인식 구조", question: "자기평가가 흔들리거나 단단해지는 순간은 언제인가?" },
-    { title: "대인관계에서 보이는 첫인상", question: "타인은 이 사람을 어떤 결로 읽기 쉬운가?" },
-    { title: "반복되는 선택 패턴", question: "비슷한 선택이 반복될 때 명궁은 어디로 끌고 가는가?" },
-    { title: "장점이 강하게 발휘되는 상황", question: "명궁 강점은 어떤 현장에서 성과로 전환되는가?" },
-    { title: "약점이 드러나는 상황", question: "명궁의 그림자는 어떤 압박에서 문제를 만들기 쉬운가?" },
-    { title: "성공을 위한 자기 운영법", question: "명궁을 현실 성과로 연결하려면 무엇을 운영 규칙으로 삼아야 하는가?" },
+    { title: "타고난 기질의 첫 결", question: "명궁의 주성은 태도, 말투, 표정, 위기 반응의 첫 결을 어떻게 빚는가?" },
+    { title: "자기 인식과 자존감", question: "이 명궁은 스스로를 믿게 만드는 조건과 흔들리게 하는 조건을 어디에 두는가?" },
+    { title: "사고방식과 판단 기준", question: "중요한 결정을 내릴 때 감정, 명분, 실리, 관계 중 무엇이 먼저 움직이는가?" },
+    { title: "대인관계의 첫인상", question: "타인은 이 사람을 처음 만났을 때 어떤 온도와 거리감으로 받아들이는가?" },
+    { title: "자기방어와 위기 반응", question: "압박이 커질 때 명궁은 침묵, 설명, 통제, 회피 중 어떤 방식으로 자신을 지키는가?" },
+    { title: "반복되는 선택 습관", question: "비슷한 상황이 오면 이 사람은 어떤 선택을 반복하고, 그 선택은 어디서 강점과 손실을 동시에 만드는가?" },
+    { title: "강점이 성과가 되는 자리", question: "명궁의 좋은 별빛은 어떤 현장과 역할에서 실제 성취로 드러나며 신궁 행동 습관과 어떻게 이어지는가?" },
+    { title: "그림자와 명궁 운용법", question: "명궁의 약점은 어떤 압박에서 드러나고, 이 명궁을 아름답게 쓰려면 어떤 기준과 루틴을 붙잡아야 하는가?" },
   ],
   siblings: [
     { title: "형제·자매와의 기본 인연", question: "가까운 혈연과 수평관계의 기본 정서는 무엇인가?" },
@@ -179,12 +179,12 @@ const PALACE_CATEGORY_SPECS: Record<ZiweiPalaceId, PalaceCategorySpec[]> = {
 
 const PALACE_COUNSELING_LENSES: Record<ZiweiPalaceId, PalaceCounselingLens> = {
   ming: {
-    role: "성격·자존감·선택 기준의 중심축",
-    personalityLens: ["첫 반응", "자기 인식", "선택 패턴", "자기 운영법"],
-    relationshipLens: ["첫인상", "신뢰 형성 속도", "감정 경계"],
-    lifeAdviceLens: ["기준 3문장 기록", "결정 전 감정-사실 분리", "주간 회고"],
-    cautionLens: ["자기 의심 과열", "감정 해석 과다", "확신 부족 상태의 오판"],
-    opening: "명궁은 당신이 세상을 받아들이는 첫 반응과 스스로를 다루는 방식을 가장 선명하게 보여주는 자리입니다.",
+    role: "성격·자존감·선택 기준·자기방어 방식의 중심축",
+    personalityLens: ["첫 반응", "자기 인식", "판단 기준", "자기방어 방식", "선택 습관"],
+    relationshipLens: ["첫인상", "신뢰 형성 속도", "감정 경계", "말의 온도", "가까워지는 방식"],
+    lifeAdviceLens: ["기준 3문장 기록", "결정 전 감정-사실 분리", "자기방어 신호 기록", "주간 회고", "강점 역할 고정"],
+    cautionLens: ["자기 의심 과열", "감정 해석 과다", "확신 부족 상태의 오판", "관계 반응 과민", "좋은 별을 편안함으로만 쓰는 습관"],
+    opening: "명궁은 한 사람의 얼굴빛과 마음의 중심, 선택 앞에서 가장 먼저 올라오는 본능을 보여주는 자리입니다.",
   },
   siblings: {
     role: "형제·친구·동료와의 수평 관계 운영축",
@@ -397,7 +397,7 @@ function buildSignalPack(chart: ZiweiDeepChart, palace: ZiweiPalace) {
     : palace.triadPalaceIds.map((id) => palaceById(chart, id)?.name || ZIWEI_PALACE_NAME[id]);
   const usedSignals = unique([
     mainStars.length ? `핵심 별 흐름: ${mainStars.map(starBadge).join(", ")}` : "핵심 별은 주변 궁의 영향으로 읽습니다",
-    supportStars.length ? `보조 별 흐름: ${supportStars.join(", ")}` : "보조 별의 직접 보강은 약한 편입니다",
+    supportStars.length ? `보조 별 흐름: ${supportStars.join(", ")}` : "보조 별의 직접 지원은 약한 편입니다",
     minorStars.length ? `긴장 신호: ${minorStars.join(", ")}` : "긴장 신호는 비교적 약한 편입니다",
     transformations.length ? `변화 흐름: ${transformations.map((item) => `${item.type} ${item.starName}`).join(", ")}` : "변화 신호는 연결된 궁에서 간접적으로 들어옵니다",
     `마주보는 궁 영향: ${palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId]}`,
@@ -538,6 +538,241 @@ export function ensureCounselingDepth(
   return removeRepeatedZiweiDeepPhrases(next);
 }
 
+function buildMingCounselingExpansion(
+  category: PalaceCategorySpec,
+  signalSummary: ReturnType<typeof buildSignalPack>,
+): string {
+  const main = signalSummary.mainStars[0];
+  const second = signalSummary.mainStars[1];
+  const support = signalSummary.supportStars[0] || "보조 별";
+  const tension = signalSummary.minorStars[0] || "긴장 신호";
+  const transform = signalSummary.transformations[0];
+  const mainName = main?.name || "명궁의 중심 별";
+  const secondName = second?.name || "연결된 별";
+  const transformLine = transform
+    ? `${transform.type} ${transform.starName}이 함께 움직이면 이 성향은 단순한 기질을 넘어 사건을 선택하는 방식으로 강해집니다.`
+    : "직접 사화가 약할수록 이 성향은 큰 사건보다 매일의 말투와 선택 습관에서 더 또렷하게 드러납니다.";
+
+  if (category.title.includes("기질")) {
+    return `명궁의 첫 결은 ${mainName}이 앞에서 문을 열고 ${secondName}이 뒤에서 색을 더하는 방식으로 읽습니다. 겉으로 보이는 태도 하나만으로 단정하기 어렵고, 마음이 편할 때와 압박을 받을 때의 얼굴이 서로 다르게 나타납니다. ${support}은 이 기질을 부드럽게 살려 주지만, ${tension}이 커지면 본래 장점이 예민함이나 방어적 말투로 바뀔 수 있습니다. ${transformLine}`;
+  }
+  if (category.title.includes("자기 인식") || category.title.includes("자존감")) {
+    return `자존감은 칭찬을 많이 받는다고 바로 안정되는 구조가 아닙니다. ${mainName}은 스스로 납득한 기준이 있을 때 마음이 단단해지고, ${tension}이 건드려질 때는 작은 평가도 크게 받아들일 수 있습니다. 이 명궁은 남에게 어떻게 보이는가보다 내가 어떤 기준으로 움직였는가를 확인할 때 회복이 빠릅니다. ${transformLine}`;
+  }
+  if (category.title.includes("판단")) {
+    return `판단 기준은 ${mainName}의 본성에 따라 먼저 움직입니다. 이 별이 부드러운 별이면 사람의 마음과 분위기를 읽고, 단단한 별이면 손익과 책임을 먼저 가늠하며, 말의 별이면 표현과 해석의 정확도를 우선합니다. ${support}이 붙으면 판단이 세련되어지지만 ${tension}이 강하면 생각이 많아져 결론이 늦어질 수 있습니다. ${transformLine}`;
+  }
+  if (category.title.includes("첫인상")) {
+    return `첫인상은 명궁의 별빛이 얼굴과 말투로 새어 나오는 장면입니다. ${mainName}은 사람들에게 가장 먼저 보이는 분위기를 만들고, ${secondName}은 가까워진 뒤 드러나는 두 번째 결을 만듭니다. ${support}이 살아 있으면 신뢰가 빨리 열리고, ${tension}이 자극되면 방어적인 거리감이 먼저 느껴질 수 있습니다. ${transformLine}`;
+  }
+  if (category.title.includes("자기방어") || category.title.includes("위기")) {
+    return `위기 앞에서 이 명궁은 본능적으로 자신을 지키는 방식을 꺼냅니다. ${mainName}은 어떤 말로 버티는지, 어떤 침묵으로 물러나는지, 또는 어떤 기준을 세워 상황을 통제하는지 보여줍니다. ${tension}은 방어가 지나쳐 관계의 벽이 되는 지점을 알려 주고, ${support}은 다시 대화의 문을 여는 회복 통로가 됩니다. ${transformLine}`;
+  }
+  if (category.title.includes("선택")) {
+    return `반복되는 선택 습관은 운명의 방향을 조용히 바꿉니다. ${mainName}이 익숙한 길을 택하게 만들고, ${secondName}은 그 선택에 명분이나 감정을 덧입힙니다. 좋은 흐름에서는 빠른 판단과 자기 주도성이 되지만, ${tension}이 강한 시기에는 같은 문제를 다른 얼굴로 반복할 수 있습니다. ${transformLine}`;
+  }
+  if (category.title.includes("성과") || category.title.includes("강점")) {
+    return `명궁의 강점은 혼자 품고 있을 때보다 역할을 맡았을 때 빛납니다. ${mainName}은 이 사람이 어떤 자리에서 자연스럽게 중심을 잡는지 말해 주고, ${support}은 주변 사람과 도구를 붙여 성과를 현실화합니다. 다만 ${tension}을 무시하면 장점이 과속이나 피로로 바뀌므로, 가장 잘하는 일을 가장 오래 할 수 있는 리듬이 필요합니다. ${transformLine}`;
+  }
+  if (category.title.includes("그림자") || category.title.includes("압박")) {
+    return `명궁의 그림자는 나쁜 성격이 아니라 별빛이 눌렸을 때 나타나는 방어 반응입니다. ${mainName}이 힘을 잃으면 자신을 설명하려는 마음이 커지거나, 반대로 아무 말도 하지 않고 닫히는 식으로 나타날 수 있습니다. ${tension}은 이 압박이 어디에서 시작되는지 알려 주므로, 압박의 원인을 사람 탓으로만 돌리지 말고 말·일정·평가·관계 경계 중 어디가 무너졌는지 먼저 보아야 합니다. ${transformLine}`;
+  }
+  if (category.title.includes("신궁")) {
+    return `명궁이 타고난 마음의 얼굴이라면 신궁은 시간이 지나며 몸에 밴 행동 습관입니다. ${mainName}의 성향이 실제 생활에서는 선택의 속도, 사람을 대하는 거리, 일을 처리하는 순서로 바뀝니다. 명궁과 신궁의 결이 맞으면 삶이 자연스럽게 풀리고, 어긋나면 마음은 원하는데 행동이 따라가지 않는 피로가 생깁니다. ${transformLine}`;
+  }
+  return `명궁 운용의 핵심은 ${mainName}의 좋은 빛을 매일의 기준으로 쓰는 것입니다. ${support}이 도와주는 영역은 적극적으로 열고, ${tension}이 건드리는 장면은 결정을 늦추며 몸과 마음의 속도를 맞춰야 합니다. 이 명궁은 스스로를 몰아붙일수록 흐려지고, 자신의 별빛이 가장 편안하게 드러나는 역할을 찾을수록 선명해집니다. ${transformLine}`;
+}
+
+function buildSiblingCounselingExpansion(
+  category: PalaceCategorySpec,
+  signalSummary: ReturnType<typeof buildSignalPack>,
+): string {
+  const main = signalSummary.mainStars[0];
+  const second = signalSummary.mainStars[1];
+  const support = signalSummary.supportStars[0] || "보조 별";
+  const tension = signalSummary.minorStars[0] || "긴장 신호";
+  const transform = signalSummary.transformations[0];
+  const mainName = main?.name || "형제궁의 중심 별";
+  const secondName = second?.name || "연결된 별";
+  const transformLine = transform
+    ? `${transform.type} ${transform.starName}이 겹치면 이 관계 흐름은 평소 호감보다 실제 사건, 공동 책임, 말의 무게로 더 강하게 드러납니다.`
+    : "직접 사화가 약하면 큰 사건보다 평소 거리감, 약속 방식, 도움을 주고받는 태도에서 관계의 질이 갈립니다.";
+
+  if (category.title.includes("형제") || category.title.includes("기본 인연")) {
+    return `형제궁의 기본 인연은 혈연의 숫자보다 가까운 사람과 마음을 나누는 방식으로 읽습니다. ${mainName}은 수평 관계에서 먼저 드러나는 정서와 말투를 만들고, ${secondName}은 오래 지낼수록 보이는 숨은 기대치를 덧붙입니다. ${support}이 살아 있으면 가까운 사람에게 실제 도움을 받기 쉽지만, ${tension}이 커지면 사소한 비교와 서운함이 오래 남을 수 있습니다. ${transformLine}`;
+  }
+  if (category.title.includes("친구") || category.title.includes("동료")) {
+    return `친구와 동료 관계에서는 편안함과 역할의 균형이 중요합니다. ${mainName}이 강하면 내가 어떤 사람과 빨리 친해지고 누구와 거리를 두는지 선명해지며, ${support}은 그 관계를 협업 자원으로 바꾸는 힘을 줍니다. 다만 ${tension}이 자극되면 가까운 관계일수록 기대치가 말없이 쌓여 피로가 생길 수 있습니다. ${transformLine}`;
+  }
+  if (category.title.includes("경쟁") || category.title.includes("라이벌")) {
+    return `라이벌 구도는 적을 만드는 운이 아니라 나의 실력과 자존심이 시험대에 오르는 장면입니다. ${mainName}은 경쟁을 성장 자극으로 받아들이는지, 비교 피로로 받아들이는지 보여줍니다. ${secondName}이 함께 움직이면 겉으로는 담담해 보여도 속으로는 인정 욕구가 강해질 수 있고, ${tension}은 경쟁이 관계 손상으로 번지는 지점을 알려 줍니다. ${transformLine}`;
+  }
+  if (category.title.includes("협업")) {
+    return `협업에서는 좋은 마음보다 역할 배분이 먼저입니다. ${mainName}은 내가 자연스럽게 맡는 포지션을 만들고, ${support}은 부족한 부분을 메워 주는 사람과 도구를 끌어옵니다. 그러나 ${tension}이 강하면 책임 소재가 흐려지거나 말의 온도 차이로 신뢰가 흔들릴 수 있어, 시작 전에 역할·기한·결정권을 문장으로 남기는 편이 좋습니다. ${transformLine}`;
+  }
+  if (category.title.includes("도움") || category.title.includes("방해")) {
+    return `주변 도움과 방해는 사람의 선악보다 에너지 교환 방식에서 갈립니다. ${mainName}과 맞는 사람은 내 판단을 맑게 만들고 행동 속도를 올려 주지만, ${tension}을 건드리는 사람은 설명을 길게 만들고 마음을 지치게 할 수 있습니다. ${support}은 도움을 실제 결과로 연결하는 통로이므로, 도움을 받을 때도 감정적 의리보다 역할과 범위를 분명히 해야 합니다. ${transformLine}`;
+  }
+  if (category.title.includes("공동 프로젝트")) {
+    return `공동 프로젝트는 형제궁이 가장 현실적으로 드러나는 자리입니다. ${mainName}은 프로젝트 안에서 내가 중심을 잡는 방식, ${secondName}은 함께 움직이는 사람들의 속도 차이를 보여줍니다. ${support}이 살아 있으면 협력의 손발이 맞고, ${tension}이 커지면 중간 조율 비용이 늘어나므로 처음부터 기록, 분담, 검수 기준을 고정해야 합니다. ${transformLine}`;
+  }
+  if (category.title.includes("신뢰")) {
+    return `신뢰할 사람은 듣기 좋은 말을 많이 하는 사람이 아니라, ${mainName}의 결을 흐리지 않고 약속을 지키는 사람입니다. ${support}과 맞는 인연은 나를 과하게 흔들지 않으면서 필요한 순간에 실제 도움을 줍니다. 반대로 ${tension}이 반복해서 건드려지는 관계는 정이 있어도 오래 두면 판단력을 흐리게 하므로, 거리와 역할을 다시 정해야 합니다. ${transformLine}`;
+  }
+  return `형제궁의 인맥 전략은 사람을 많이 모으는 것이 아니라 나의 리듬을 맑게 하는 관계를 남기는 일입니다. ${mainName}은 어떤 네트워크에서 힘이 나는지 알려 주고, ${support}은 그 인맥을 결과로 바꾸는 통로가 됩니다. ${tension}이 강한 시기에는 새 인연 확장보다 기존 관계의 역할, 약속, 보상 구조를 먼저 정리하는 것이 운을 안정시킵니다. ${transformLine}`;
+}
+
+function buildRemainingPalaceCounselingExpansion(
+  palace: ZiweiPalace,
+  category: PalaceCategorySpec,
+  signalSummary: ReturnType<typeof buildSignalPack>,
+): string {
+  const main = signalSummary.mainStars[0];
+  const second = signalSummary.mainStars[1];
+  const support = signalSummary.supportStars[0] || "보조 별";
+  const tension = signalSummary.minorStars[0] || "긴장 신호";
+  const transform = signalSummary.transformations[0];
+  const mainName = main?.name || `${palace.name}의 중심 별`;
+  const secondName = second?.name || "연결된 별";
+  const transformLine = transform
+    ? `${transform.type} ${transform.starName}이 겹치면 이 주제는 마음속 성향을 넘어 실제 사건, 결정권, 책임의 무게로 선명해집니다.`
+    : "직접 사화가 약한 구간에서는 큰 사건보다 평소 습관, 말투, 기준표, 선택 순서가 결과를 가릅니다.";
+
+  if (palace.id === "spouse") {
+    if (category.title.includes("연애") || category.title.includes("끌리는")) {
+      return `부부궁의 연애 흐름은 설렘의 크기보다 내가 어떤 사람에게 마음을 열고 어떤 순간에 닫히는지를 보여줍니다. ${mainName}은 끌림의 첫 결을 만들고, ${secondName}은 관계가 깊어진 뒤 드러나는 기대와 불안을 더합니다. ${support}이 살아 있으면 신뢰 회복이 빠르지만, ${tension}이 강하면 말의 온도와 확인 욕구가 갈등의 시작점이 될 수 있습니다. ${transformLine}`;
+    }
+    if (category.title.includes("갈등") || category.title.includes("거리감") || category.title.includes("신뢰")) {
+      return `관계의 갈등은 사랑이 부족해서만 생기지 않습니다. ${mainName}은 갈등 앞에서 다가가는지, 설명하는지, 침묵하는지, 선을 긋는지 보여줍니다. ${tension}은 반복되는 오해의 발화점을 알려 주므로, 감정이 올라온 순간 바로 결론을 내리기보다 대화 순서와 확인 문장을 먼저 정해야 합니다. ${transformLine}`;
+    }
+    return `장기 관계에서 이 궁은 상대의 성격보다 둘 사이의 운영 방식을 더 중요하게 봅니다. ${mainName}은 함께 살 때 반복되는 리듬을 만들고, ${support}은 관계를 회복시키는 통로가 됩니다. 좋은 인연이라도 역할, 돈, 가족, 시간의 합의가 없으면 ${tension}이 쌓여 사랑을 피로로 바꿀 수 있습니다. ${transformLine}`;
+  }
+
+  if (palace.id === "children") {
+    if (category.title.includes("자녀") || category.title.includes("돌봄")) {
+      return `자녀궁은 실제 자녀뿐 아니라 후배, 제자, 돌봄을 맡은 사람과의 인연을 함께 봅니다. ${mainName}은 돌보는 방식과 기대의 온도를 만들고, ${secondName}은 애정과 책임의 균형을 흔들거나 단단하게 합니다. ${support}이 좋으면 키우고 기다리는 힘이 살아나지만, ${tension}이 강하면 사랑이 간섭이나 과부하로 바뀔 수 있습니다. ${transformLine}`;
+    }
+    if (category.title.includes("창작") || category.title.includes("생산") || category.title.includes("성과")) {
+      return `이 궁은 내가 세상에 내보내는 결과물의 운도 말합니다. ${mainName}은 아이디어가 작품, 프로젝트, 서비스로 자라는 방식을 만들고, ${support}은 완성도와 지속성을 올려 줍니다. ${tension}이 강할 때는 시작보다 마무리, 기대보다 검수, 애정보다 일정표가 중요합니다. ${transformLine}`;
+    }
+    return `자녀궁의 대운 전략은 키우는 대상과 나의 에너지를 분리하는 데서 시작됩니다. ${mainName}은 책임감을 만들지만, ${tension}이 누적되면 내가 감당할 몫과 상대가 배워야 할 몫을 혼동하기 쉽습니다. 이 궁은 애정을 오래 쓰려면 기대치와 지원 범위를 먼저 정해야 한다고 말합니다. ${transformLine}`;
+  }
+
+  if (palace.id === "wealth") {
+    if (category.title.includes("버는") || category.title.includes("수입") || category.title.includes("경로")) {
+      return `재백궁은 돈의 양보다 돈이 들어오는 문을 먼저 봅니다. ${mainName}은 수입을 만드는 방식, ${secondName}은 그 수입이 반복 가능한지 일시적인지의 결을 더합니다. ${support}이 살아 있으면 회수력과 거래 운이 좋아지지만, ${tension}이 강하면 벌어도 남지 않는 구조가 생길 수 있습니다. ${transformLine}`;
+    }
+    if (category.title.includes("소비") || category.title.includes("새는") || category.title.includes("거래")) {
+      return `돈이 새는 지점은 단순한 낭비보다 감정, 체면, 정보 부족, 계약 조건에서 시작됩니다. ${mainName}은 내가 돈 앞에서 무엇을 우선하는지 보여주고, ${tension}은 충동 구매나 과속 거래가 커지는 장면을 알려 줍니다. 이 궁은 수입 확장보다 먼저 가격표, 정산 기준, 손실 상한선을 세우라고 말합니다. ${transformLine}`;
+    }
+    return `자산 형성은 큰 운 한 번보다 반복되는 현금 흐름에서 만들어집니다. ${mainName}은 돈을 붙잡는 손의 모양을 만들고, ${support}은 저축, 투자, 사업, 계약의 안정성을 받쳐 줍니다. ${tension}이 강한 시기에는 확장보다 누수 차단이 먼저입니다. ${transformLine}`;
+  }
+
+  if (palace.id === "health") {
+    if (category.title.includes("체력") || category.title.includes("스트레스") || category.title.includes("신체")) {
+      return `질액궁은 병을 단정하는 자리가 아니라 몸과 마음이 어디서 먼저 피로를 드러내는지 읽는 자리입니다. ${mainName}은 체력 사용 방식과 긴장 반응을 만들고, ${secondName}은 회복 속도와 생활 리듬을 더합니다. ${support}이 좋으면 회복 습관이 빨리 자리 잡지만, ${tension}이 강하면 작은 피로가 감정과 일정 전체로 번질 수 있습니다. ${transformLine}`;
+    }
+    if (category.title.includes("회복") || category.title.includes("과로") || category.title.includes("생활")) {
+      return `회복은 쉬는 시간이 아니라 다시 균형을 되찾는 기술입니다. ${mainName}은 어떤 방식으로 에너지가 새는지 알려 주고, ${support}은 수면, 식사, 운동, 정리 루틴을 붙잡게 합니다. ${tension}이 커질수록 의지보다 환경 설계가 중요하므로 최소 루틴을 작고 단단하게 고정해야 합니다. ${transformLine}`;
+    }
+    return `질액궁의 대운 전략은 몸을 몰아붙여 성과를 내는 방식에서 벗어나는 것입니다. ${mainName}은 강하게 쓰면 성취가 빠르지만, ${tension}이 누적되면 번아웃 신호가 먼저 옵니다. 이 궁은 건강을 예언이 아니라 생활 운영표로 다루라고 말합니다. ${transformLine}`;
+  }
+
+  if (palace.id === "travel") {
+    if (category.title.includes("외부") || category.title.includes("이동") || category.title.includes("타지")) {
+      return `천이궁은 밖으로 나갔을 때 열리는 얼굴을 보여줍니다. ${mainName}은 외부 환경에서 내가 어떤 방식으로 기회를 잡는지 만들고, ${secondName}은 이동, 이사, 여행, 대외 활동의 결을 더합니다. ${support}이 좋으면 낯선 장소와 사람이 문을 열어 주지만, ${tension}이 강하면 과속 확장과 이동 피로가 먼저 쌓일 수 있습니다. ${transformLine}`;
+    }
+    if (category.title.includes("이미지") || category.title.includes("기회") || category.title.includes("확장")) {
+      return `바깥에서 보이는 이미지는 실제 실력만큼 중요합니다. ${mainName}은 사회가 나를 어떤 역할로 읽는지 알려 주고, ${support}은 외부 평판과 소개 흐름을 도와줍니다. ${tension}이 건드려지면 노출은 커지는데 체력과 일정이 따라가지 못할 수 있어 확장 속도를 조절해야 합니다. ${transformLine}`;
+    }
+    return `천이궁의 전략은 움직임을 무작정 늘리는 것이 아니라 맞는 무대를 고르는 것입니다. ${mainName}은 어디에서 힘이 나는지 말하고, ${support}은 그 무대에서 사람과 기회를 연결합니다. ${tension}이 강할 때는 이동보다 목적, 목적보다 회복 동선을 먼저 정해야 합니다. ${transformLine}`;
+  }
+
+  if (palace.id === "friends") {
+    if (category.title.includes("친구") || category.title.includes("팀원") || category.title.includes("도움")) {
+      return `노복궁은 나를 둘러싼 사람들의 질과 쓰임을 봅니다. ${mainName}은 어떤 팀원, 친구, 고객, 팔로워를 끌어들이는지 보여주고, ${support}은 그 연결을 실제 도움으로 바꿉니다. ${tension}이 강하면 사람은 많은데 에너지가 새거나 역할 불균형이 생길 수 있습니다. ${transformLine}`;
+    }
+    if (category.title.includes("소모") || category.title.includes("집단") || category.title.includes("리더십")) {
+      return `집단 안에서 이 궁은 내가 이끄는 사람인지, 돕는 사람인지, 조율하는 사람인지 보여줍니다. ${mainName}은 집단 속 역할을 만들고, ${tension}은 관계 소모와 기대 과잉의 지점을 알려 줍니다. 오래 가는 네트워크를 만들려면 친분보다 역할, 기여, 보상 구조가 먼저 정리되어야 합니다. ${transformLine}`;
+    }
+    return `노복궁의 네트워크 전략은 사람을 많이 아는 것이 아니라 나의 운을 흐리지 않는 사람을 곁에 두는 것입니다. ${mainName}은 맞는 집단의 성격을 알려 주고, ${support}은 실제 협력 자원을 붙입니다. ${tension}이 강한 시기에는 관계 확장보다 소모 관계 정리가 먼저입니다. ${transformLine}`;
+  }
+
+  if (palace.id === "career") {
+    if (category.title.includes("직업") || category.title.includes("역할") || category.title.includes("직무")) {
+      return `관록궁은 직업명보다 일하는 방식과 인정받는 구조를 봅니다. ${mainName}은 내가 어떤 역할에서 능력이 살아나는지 만들고, ${secondName}은 그 역할이 조직형인지 독립형인지의 결을 더합니다. ${support}이 좋으면 협업과 평판이 함께 붙지만, ${tension}이 강하면 역할 충돌과 과로가 먼저 나타날 수 있습니다. ${transformLine}`;
+    }
+    if (category.title.includes("조직") || category.title.includes("리더십") || category.title.includes("평판")) {
+      return `조직 안에서는 능력보다 책임 범위가 명확해야 오래 갑니다. ${mainName}은 내가 책임을 맡는 방식과 권한을 쓰는 태도를 보여주고, ${support}은 문서, 발표, 협업, 추천 흐름을 받쳐 줍니다. ${tension}이 강하면 성과가 있어도 평가가 흐려질 수 있으므로 결과를 보이는 형태로 남겨야 합니다. ${transformLine}`;
+    }
+    return `커리어 전환은 충동보다 명확한 증거가 필요합니다. ${mainName}은 앞으로 키워야 할 전문성을 말하고, ${support}은 그 전문성을 시장과 연결합니다. ${tension}이 강한 시기에는 퇴장보다 정리, 독립보다 포트폴리오, 확장보다 역할 재정의가 먼저입니다. ${transformLine}`;
+  }
+
+  if (palace.id === "property") {
+    if (category.title.includes("주거") || category.title.includes("집") || category.title.includes("공간")) {
+      return `전택궁은 집과 공간이 마음과 생활 리듬을 어떻게 받쳐 주는지 보여줍니다. ${mainName}은 안정감을 느끼는 방식과 공간 취향을 만들고, ${secondName}은 주거 변화와 가족 기반의 결을 더합니다. ${support}이 좋으면 공간이 회복의 그릇이 되지만, ${tension}이 강하면 주거 불안이나 생활 리듬 붕괴가 먼저 나타날 수 있습니다. ${transformLine}`;
+    }
+    if (category.title.includes("가족") || category.title.includes("재산") || category.title.includes("이사")) {
+      return `생활 기반은 감정만으로 결정하면 흔들리기 쉽습니다. ${mainName}은 가족과 터전의 기준을 만들고, ${support}은 장기 자산과 안정 구조를 돕습니다. ${tension}이 강한 시기에는 이사, 매매, 큰 지출을 서두르기보다 계약 조건과 생활 동선을 먼저 검토해야 합니다. ${transformLine}`;
+    }
+    return `전택궁의 전략은 내 몸과 마음이 회복되는 기반을 만드는 것입니다. ${mainName}은 어떤 터전에서 운이 안정되는지 알려 주고, ${support}은 그 기반을 오래 유지하게 합니다. ${tension}이 강하면 공간 정리, 고정비 점검, 가족 경계 설정이 먼저입니다. ${transformLine}`;
+  }
+
+  if (palace.id === "fortune") {
+    if (category.title.includes("마음") || category.title.includes("행복") || category.title.includes("내면")) {
+      return `복덕궁은 혼자 있을 때의 마음 온도와 행복을 느끼는 방식을 봅니다. ${mainName}은 내면의 기본 리듬을 만들고, ${secondName}은 취향, 휴식, 영성, 예술 감각의 결을 더합니다. ${support}이 좋으면 마음이 스스로 회복하는 힘이 강하지만, ${tension}이 커지면 쉬어도 쉬지 못하는 생각 과열이 생길 수 있습니다. ${transformLine}`;
+    }
+    if (category.title.includes("스트레스") || category.title.includes("불안") || category.title.includes("공허")) {
+      return `불안과 공허감은 약함이 아니라 마음의 에너지가 어디에서 새는지 알려 주는 신호입니다. ${mainName}은 만족감을 느끼는 조건을 만들고, ${tension}은 생각이 고착되는 지점을 알려 줍니다. 이 궁은 휴식도 계획해야 회복이 된다고 말하며, 혼자 있는 시간의 질을 반드시 관리해야 합니다. ${transformLine}`;
+    }
+    return `복덕궁의 행복 전략은 바깥 성과를 내면 안정으로 번역하는 일입니다. ${mainName}은 어떤 활동이 마음을 맑게 하는지 말하고, ${support}은 취미와 회복 루틴을 붙입니다. ${tension}이 강할 때는 사람을 더 만나기보다 생각을 비우는 구조를 먼저 만들어야 합니다. ${transformLine}`;
+  }
+
+  return (() => {
+    if (category.title.includes("부모") || category.title.includes("보호자") || category.title.includes("보호")) {
+      return `부모궁은 부모와 보호자뿐 아니라 윗사람, 멘토, 제도권과의 인연을 함께 봅니다. ${mainName}은 권위와 보호를 받아들이는 방식을 만들고, ${secondName}은 기대와 독립의 균형을 더합니다. ${support}이 좋으면 필요한 순간 도움을 받기 쉽지만, ${tension}이 강하면 기대 압박이나 문서 문제가 마음을 무겁게 할 수 있습니다. ${transformLine}`;
+    }
+    if (category.title.includes("권위") || category.title.includes("문서") || category.title.includes("제도")) {
+      return `권위자와 제도권 앞에서는 감정보다 기록과 기준이 힘을 냅니다. ${mainName}은 상사, 기관, 규정과 부딪히는 방식을 보여주고, ${support}은 문서 정리와 후원 연결을 돕습니다. ${tension}이 강한 시기에는 말로만 해결하려 하지 말고 증빙, 일정, 승인 절차를 남겨야 합니다. ${transformLine}`;
+    }
+    return `부모궁의 독립 전략은 보호를 거절하는 것이 아니라 도움과 간섭을 구분하는 데서 시작됩니다. ${mainName}은 어떤 어른과 맞는지 알려 주고, ${support}은 좋은 멘토 운을 현실로 연결합니다. ${tension}이 강할 때는 가족 패턴을 반복하지 않도록 경계와 책임 범위를 조용히 세워야 합니다. ${transformLine}`;
+  })();
+}
+
+function buildZiweiFullScopeConsultation(
+  chart: ZiweiDeepChart,
+  palace: ZiweiPalace,
+  category: PalaceCategorySpec,
+  signalSummary: ReturnType<typeof buildSignalPack>,
+): string {
+  const directSihua = palace.fourTransformations.map((item) => `${transformationTypeToLabel(item.type)} ${item.starName}`);
+  const incomingSihua = palace.incomingFourTransformations.map((item) => `${transformationTypeToLabel(item.type)} ${item.starName}`);
+  const period = chart.majorPeriods.find((item) => item.palaceId === palace.id) || chart.majorPeriods[0];
+  const annualHit = Boolean(chart.annualFlow?.keyPalaces?.includes(palace.id));
+  const annualLabel = chart.annualFlow?.yearLabel || `${chart.yearGan}${chart.yearZhi}`;
+  const opposite = palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId];
+  const triad = signalSummary.triadNames.join(", ");
+  const mainStars = signalSummary.mainStars.map((star) => star.name).join(", ") || `${opposite} 차성`;
+  const sihuaLine = directSihua.length
+    ? `직접 사화는 ${directSihua.join(", ")}로 이 주제의 사건성을 앞에서 끌고 갑니다.`
+    : incomingSihua.length
+      ? `직접 사화는 약하지만 ${incomingSihua.join(", ")}가 연결궁에서 들어와 이 주제에 간접 압력을 줍니다.`
+      : "사화가 강하게 꽂히지 않은 자리라 평소 별의 성정과 관계 운영 방식이 더 중요합니다.";
+  const emptyLine = palace.isEmptyMainStarPalace
+    ? `이 궁은 공궁 성향이 있어 ${opposite}의 별을 빌려 읽어야 하며, 그래서 환경과 상대 선택이 결과를 크게 바꿉니다.`
+    : `이 궁은 주성이 직접 자리를 잡아 ${mainStars}의 성정이 비교적 곧게 드러납니다.`;
+  const periodLine = period
+    ? `대운에서는 ${period.range} 구간의 ${ZIWEI_PALACE_NAME[period.palaceId]} 흐름과 맞물려, 지금의 선택이 장기 습관으로 굳어질 수 있습니다.`
+    : "대운 흐름은 현재 궁의 반복 습관을 기준으로 보수적으로 읽어야 합니다.";
+  const annualLine = annualHit
+    ? `${annualLabel} 유년에는 이 궁이 직접 건드려지므로 ${category.title}이 실제 사건으로 빨리 드러날 수 있습니다.`
+    : `${annualLabel} 유년에는 이 궁이 전면에 서기보다 연결궁과 대궁을 통해 간접적으로 움직입니다.`;
+
+  return removeRepeatedZiweiDeepPhrases(
+    `자미두수식으로 깊게 보면 ${category.title}은 원국, 대궁, 삼방사정, 사화, 대운과 유년을 함께 묶어 판단해야 합니다. 원국에서는 ${mainStars}이 핵심 성향을 만들고, 대궁 ${opposite}과 삼방 ${triad}이 현실 장면을 보정합니다. ${emptyLine} ${sihuaLine} ${periodLine} ${annualLine} 실전 상담에서는 이 모든 신호를 한 줄로 합쳐, 지금 당장 넓힐 부분과 조심스럽게 정리할 부분을 분리해 읽습니다.`,
+  );
+}
+
 function buildCategoryCounselingParagraph(
   palace: ZiweiPalace,
   category: PalaceCategorySpec,
@@ -545,6 +780,7 @@ function buildCategoryCounselingParagraph(
   lens: PalaceCounselingLens,
   starNarratives: string[],
   signalSummary: ReturnType<typeof buildSignalPack>,
+  chartContext: ZiweiDeepChart,
 ): string {
   const starLine = starNarratives.slice(0, 2).join(" ");
   const mainNames = signalSummary.mainStars.map((star) => star.name).join(", ") || "연결궁 별";
@@ -603,7 +839,7 @@ function buildCategoryCounselingParagraph(
       return `전택궁에서는 ${topMain}이 생활 기반 안정 방식에 영향을 주고, ${topSupport}은 자산 축적의 지속성을 높입니다. ${topMinor}이 흔들리면 주거 불안과 리듬 붕괴가 겹치기 쉬워 공간·생활 루틴을 먼저 정비해야 합니다.`;
     }
     if (palace.id === "siblings") {
-      return `형제궁에서는 ${topMain}이 수평 관계의 말투와 기대치를 만들고, ${topSupport}은 협업 신뢰를 보강합니다. ${topMinor}이 자극되면 비교 심리가 커지기 쉬워 역할 합의를 먼저 세우는 편이 안정적입니다.`;
+      return `형제궁에서는 ${topMain}이 수평 관계의 말투와 기대치를 만들고, ${topSupport}은 협업 신뢰를 받쳐 줍니다. ${topMinor}이 자극되면 비교 심리가 커지기 쉬워 역할 합의를 먼저 세우는 편이 안정적입니다.`;
     }
     return `자녀궁에서는 ${topMain}이 돌봄과 결과물 생산 흐름을 만들고, ${topSupport}은 완성도를 높입니다. ${topMinor}이 과열되면 책임 과부하가 생기기 쉬워 기대치 조정이 필요합니다.`;
   })();
@@ -625,12 +861,20 @@ function buildCategoryCounselingParagraph(
     }
     return `${palace.name}의 결과는 ${opposite}과 ${triad} 연결 흐름에서 확대되거나 축소됩니다. 한 궁만 보지 말고 연결궁을 함께 읽을 때 실제 장면이 선명해집니다.`;
   })();
+  const palaceDepthLine = palace.id === "ming"
+    ? buildMingCounselingExpansion(category, signalSummary)
+    : palace.id === "siblings"
+      ? buildSiblingCounselingExpansion(category, signalSummary)
+      : buildRemainingPalaceCounselingExpansion(palace, category, signalSummary);
+  const fullScopeLine = buildZiweiFullScopeConsultation(chartContext, palace, category, signalSummary);
 
   return ensureCounselingDepth(
     removeRepeatedZiweiDeepPhrases([
       `${category.question}`,
       starLine,
       lifeSceneLine,
+      palaceDepthLine,
+      fullScopeLine,
       `당신은 ${personalityAnchor}이 중심이 되는 사람처럼 보입니다. ${mainNames}의 조합은 선택 속도와 확신을 좌우하고, 그래서 같은 상황도 누구보다 빠르게 결론을 내리거나 반대로 오래 붙잡고 있을 수 있습니다.`,
       `사람들과의 관계에서는 ${relationshipAnchor}이 핵심입니다. 가까운 사람일수록 기대치와 경계선을 먼저 맞춰야 마음이 덜 다치고, 오래 가는 인연도 그때부터 시작됩니다.`,
       `현실에서는 ${palace.name}의 ${category.title}이 업무·연애·돈·가족 중 지금 에너지가 몰린 장면에서 먼저 결과로 나타납니다. ${transformationLine}`,
@@ -690,6 +934,7 @@ export function buildZiweiPalaceCategoryReading(
     lens,
     starNarratives,
     signals,
+    chartContext,
   );
 
   const opportunity = removeRepeatedZiweiDeepPhrases(

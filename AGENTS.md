@@ -22,6 +22,7 @@
 - Ensure every code snippet is copy-paste ready with enough local context for placement.
 - Do not write paragraphs of text before or after code blocks; output the code block immediately.
 - All fortune-related writing must read as professional and mystical, and must never sound like developer documentation, technical specs, or implementation notes.
+- New features should default to full-screen or header/footer-hidden layouts; do not introduce visible headers or footers unless explicitly requested.
 
 ## 1.3 AI 개발 작업 기본 원칙 (Must Follow)
 - 관련 파일만 먼저 검색하고, 해당 기능과 직접 관련 없는 파일은 수정하지 마라.

@@ -321,22 +321,51 @@ async function verifyCelestialAccess({ request, env, auth, body, reportId = "", 
   return requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, CELESTIAL_REPORT_TYPE, accessPayload);
 }
 
-async function enrichFinalOracle(env, reading) {
-  const modelPrompt = [
-    "당신은 프리미엄 타로 상담가입니다.",
-    "아래 요약을 바탕으로 한국어 최종 오라클 메시지 3~4문장만 생성하세요.",
-    "진단/단정 금지, 상징 기반의 자기성찰 문체 유지.",
-    `dominantLayer=${reading?.summary?.dominantLayer || ""}`,
-    `strongestPlanetSignal=${reading?.summary?.strongestPlanetSignal || ""}`,
-    `deepestShadow=${reading?.summary?.deepestShadow || ""}`,
-    `soulLesson=${reading?.summary?.soulLesson || ""}`,
-    `integrationPath=${reading?.summary?.integrationPath || ""}`,
-  ].join("\n");
+function buildCelestialHarmonyPrompt(reading = {}) {
+  const summary = reading?.summary || {};
+  const cards = Array.isArray(reading?.cards) ? reading.cards : [];
+  const cardLines = cards.map((card, index) => {
+    const cardIndex = index + 1;
+    return [
+      "[" + cardIndex + "] " + text(card?.cardNameKo || "카드 " + cardIndex) + " / " + text(card?.orientation || "upright"),
+      "행성=" + text(card?.planetKo || card?.planetName || ""),
+      "아크엔드=" + text(card?.planetEn || card?.planetSymbol || ""),
+      "의미=" + text(card?.cardMeaning || ""),
+      "의식 메시지=" + text(card?.consciousMessage || ""),
+      "무의식 패턴=" + text(card?.unconsciousPattern || ""),
+      "그림자 경고=" + text(card?.shadowWarning || ""),
+      "영혼 과제=" + text(card?.soulLesson || "")
+    ].join(" | ");
+  });
 
-  const ai = await callGeminiText(env, modelPrompt, {
-    modelEnvKeys: ["CELESTIAL_HARMONY_GEMINI_MODEL"],
-    temperature: 0.65,
-    maxOutputTokens: 420,
+  return [
+    "당신은 '천체의 선율 타로' 최종 오라클 작성 전문가입니다.",
+    "목표: 11장 해석의 흐름을 보존해 카드 하나씩의 메시지가 살아있는 고품질 상담문을 작성한다.",
+    "규칙:",
+    "1) 결과는 한국어 한글로 작성하고, 신비로운 분위기와 실천 가능한 방향을 함께 담는다.",
+    "2) 11장 각각의 cardMeaning, consciousMessage, unconsciousPattern, shadowWarning, soulLesson를 반영한다.",
+    "3) dominantLayer/strongestPlanetSignal/deepestShadow/soulLesson/integrationPath는 중심축으로 삼는다.",
+    "4) 카드 순서는 1~11장을 유지하고, 초반-전개-전환-통합 리듬으로 문단을 구성한다.",
+    "5) 과도한 단정, 불안 조장, 의료/투자/법률 판단처럼 실천 불가능한 단정 조언은 사용하지 않는다.",
+    "6) 카드 하나를 건너뛰지 말고 마지막에 짧은 통합 결실만 덧붙인다.",
+    "출력은 JSON이 아닌 최종 오라클 본문 텍스트 하나로만 응답한다.",
+    "dominantLayer=" + (summary?.dominantLayer || ""),
+    "strongestPlanetSignal=" + (summary?.strongestPlanetSignal || ""),
+    "deepestShadow=" + (summary?.deepestShadow || ""),
+    "soulLesson=" + (summary?.soulLesson || ""),
+    "integrationPath=" + (summary?.integrationPath || ""),
+    "cards=" + cardLines.join("\n")
+  ].join("\n");
+}
+async function enrichFinalOracle(env, reading) {
+  const prompt = buildCelestialHarmonyPrompt(reading);
+
+  const ai = await callGeminiText(env, prompt, {
+    modelEnvKeys: ["CELESTIAL_HARMONY_GEMINI_MODEL", "GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"],
+    temperature: 0.6,
+    topP: 0.95,
+    topK: 40,
+    maxOutputTokens: 1100,
     timeoutMs: Number(env.CELESTIAL_HARMONY_PROVIDER_TIMEOUT_MS || 12000),
   });
 
@@ -597,3 +626,4 @@ export async function handleCelestialHarmonyRoutes(request, env = {}) {
     return handleRouteError(error);
   }
 }
+
