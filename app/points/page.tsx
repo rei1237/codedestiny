@@ -22,6 +22,8 @@ type AuthUser = {
   uid?: string;
   name?: string;
   email?: string;
+  phone?: string;
+  phoneNumber?: string;
   role?: "user" | "admin";
   points?: number;
 };
@@ -203,12 +205,33 @@ type PortOnePaymentConfig = {
   ok?: boolean;
   provider?: string;
   pg?: string;
-  storeId?: string;
-  channelKey?: string;
+  storeId: string;
+  channelKey: string;
   noticeUrl?: string;
   currency?: "CURRENCY_KRW" | "KRW" | string;
   payMethod?: "CARD" | string;
   message?: string;
+};
+
+type PortOneCustomer = {
+  customerId: string;
+  fullName: string;
+  phoneNumber?: string;
+  email: string;
+};
+
+type PortOnePaymentRequest = {
+  storeId: string;
+  channelKey: string;
+  paymentId: string;
+  orderName: string;
+  amount: number;
+  currency: string;
+  payMethod: string;
+  redirectUrl: string;
+  customer: PortOneCustomer;
+  customData: Record<string, unknown>;
+  noticeUrls?: string[];
 };
 
 /** Toast 알림 하나의 데이터 구조 */
@@ -222,7 +245,7 @@ declare global {
   interface Window {
     CODE_DESTINY_API_BASE_URL?: string;
     PortOne?: {
-      requestPayment: (request: Record<string, unknown>) => Promise<PortOnePaymentResponse>;
+      requestPayment: (request: PortOnePaymentRequest) => Promise<PortOnePaymentResponse>;
     };
   }
 }
@@ -232,6 +255,40 @@ declare global {
 ══════════════════════════════════════════════════════════════════ */
 
 const PORTONE_MOBILE_REDIRECT_PATH = process.env.NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH || "/points";
+
+const EMAIL_REGEX = /^[^@\s]+@[^\s@]+\.[^\s@]+$/;
+
+function normalizePortoneEmail(input?: string): string {
+  return String(input || "").trim();
+}
+
+function isValidEmail(input: string): boolean {
+  return EMAIL_REGEX.test(normalizePortoneEmail(input));
+}
+
+function pickPhoneNumber(user: AuthUser | null): string | undefined {
+  const source = String(user?.phoneNumber || user?.phone || "").trim();
+  const cleaned = source ? source.replace(/\D+/g, "") : "";
+  return cleaned || undefined;
+}
+
+function buildPortOneCustomer(user: AuthUser | null, paymentId: string): PortOneCustomer {
+  const cachedUser = readSanitizedAuthUser() as AuthUser | null;
+  const merged = { ...(cachedUser || {}), ...(user || {}) } as AuthUser;
+  const fullName = String(merged.name || "회원").trim();
+  const email = normalizePortoneEmail(merged.email);
+
+  if (!isValidEmail(email)) {
+    throw new Error("구매자 이메일은 결제 창 호출 전 필수입니다. 계정 정보에서 확인해 주세요.");
+  }
+
+  return {
+    customerId: String(merged.id || merged.userId || merged.uid || merged._id || paymentId).trim(),
+    fullName,
+    email,
+    ...(pickPhoneNumber(merged) ? { phoneNumber: pickPhoneNumber(merged) } : {}),
+  };
+}
 
 const SUBSCRIPTION_DURATION_OPTIONS = [
   { months: 1, label: "1개월", discount: 0, badge: "" },
@@ -529,13 +586,19 @@ async function fetchPortOnePaymentConfig(apiBase: string): Promise<PortOnePaymen
     apiBase,
   });
   const payload = await safeParseJson<PortOnePaymentConfig>(response);
-  if (!response.ok || !payload.storeId || !payload.channelKey) {
+  if (!response.ok) {
+    throw new Error(payload.message || "포트원 V2 결제 설정을 확인할 수 없습니다.");
+  }
+  const storeId = String(payload.storeId || "").trim();
+  const channelKey = String(payload.channelKey || "").trim();
+
+  if (!storeId || !channelKey) {
     throw new Error(payload.message || "포트원 V2 결제 설정을 확인할 수 없습니다.");
   }
   return {
     ...payload,
-    storeId: payload.storeId,
-    channelKey: payload.channelKey,
+    storeId,
+    channelKey,
     noticeUrl: payload.noticeUrl,
     currency: payload.currency || "CURRENCY_KRW",
     payMethod: payload.payMethod || "CARD",
@@ -1877,22 +1940,18 @@ export default function PointsPage() {
       const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
       redirectUrl.searchParams.set("portone_redirect", "1");
 
-      const buyerName = authUser.name || "회원";
-      const buyerEmail = authUser.email || "";
+      const customer = buildPortOneCustomer(authUser, order.merchantUid);
 
-      const requestData: Record<string, unknown> = {
+      const requestData: PortOnePaymentRequest = {
         storeId: paymentConfig.storeId,
         channelKey: paymentConfig.channelKey,
         paymentId: order.merchantUid,
         orderName: order.productName,
-        totalAmount: order.paymentAmount,
+        amount: order.paymentAmount,
         currency: paymentConfig.currency || "CURRENCY_KRW",
         payMethod: paymentConfig.payMethod || "CARD",
         redirectUrl: redirectUrl.toString(),
-        customer: {
-          fullName: buyerName,
-          email: buyerEmail,
-        },
+        customer,
         customData: {
           userId: authUser.id,
           packageId: selectedPackage.id,
@@ -2030,22 +2089,18 @@ export default function PointsPage() {
       const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
       redirectUrl.searchParams.set("portone_subscription_redirect", "1");
 
-      const buyerName = authUser.name || "회원";
-      const buyerEmail = authUser.email || "";
+      const customer = buildPortOneCustomer(authUser, order.merchantUid);
 
-      const requestData: Record<string, unknown> = {
+      const requestData: PortOnePaymentRequest = {
         storeId: paymentConfig.storeId,
         channelKey: paymentConfig.channelKey,
         paymentId: order.merchantUid,
         orderName: order.productName,
-        totalAmount: order.paymentAmount,
+        amount: order.paymentAmount,
         currency: paymentConfig.currency || "CURRENCY_KRW",
         payMethod: paymentConfig.payMethod || "CARD",
         redirectUrl: redirectUrl.toString(),
-        customer: {
-          fullName: buyerName,
-          email: buyerEmail,
-        },
+        customer,
         customData: {
           userId: authUser.id,
           subscriptionTier: plan.tier,
