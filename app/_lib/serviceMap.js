@@ -559,7 +559,7 @@ export const SERVICE_MAP = {
       "상대방의 생년월일로 사주를 분석해 페르소나 캐릭터를 만들고, 데이트 코스·선택지를 통해 상대방의 취향과 성격을 미리 경험해보는 사주 연애 시뮬레이션.",
     seoText:
       "LOVE CODE는 명리학 기반 사주 분석으로 상대방의 오행·일간·MBTI를 파악한 뒤 데이트 시나리오 시뮬레이션을 제공합니다.",
-    ogImage: "https://code-destiny.com/fuctionassets/lovesimulation.webp",
+    ogImage: "https://code-destiny.com/fuctionassets/love%20code.webp",
     landingPoints: [
       "상대방 생년월일 사주 분석",
       "오행·일간 기반 페르소나 생성",

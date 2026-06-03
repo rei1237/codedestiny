@@ -388,7 +388,7 @@ const FEATURES: ServiceFeature[] = ([
     description:
       "상대의 생년월일 정보를 바탕으로 연애 페르소나를 구성하고, 시뮬레이션형으로 관계 흐름을 체험하는 기능입니다.",
     category: "love",
-    image: "/fuctionassets/lovesimulation.webp",
+    image: "/fuctionassets/love code.webp",
     heroImageAlt: "러브 코드 대표 이미지",
     detailRoute: "/services/love-code",
     launchRoute: "/index.html?action=openLoveSimulation",

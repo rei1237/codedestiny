@@ -7,7 +7,7 @@ import { isSubscriptionIncludedResponse, showSubscriptionIncludedNotice } from "
 import { usePayment } from "../hooks/usePayment";
 import { persistSanitizedAuthUser } from "../_lib/auth-storage";
 import { authFetch } from "../_lib/auth-client";
-import { purchaseFeature } from "../_lib/billing-client";
+import { openPaidFeatureGate, purchaseFeature } from "../_lib/billing-client";
 import EmailSubscriptionSection from "./EmailSubscriptionSection";
 
 type LockedSectionProps = {
@@ -764,6 +764,15 @@ export default function KkulkkulManseryukMain() {
       setVedaFlowError('');
       setVedaFlowState('checking_access');
     }
+    const cost = PREMIUM_SERVICE_COST[service];
+    const featureKey = PREMIUM_SERVICE_FEATURE_KEY[service];
+    const requestId = `premium:${featureKey || service}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9);
+    openPaidFeatureGate({
+      featureKey,
+      requestId,
+      cost,
+      message: "이용권 확인 중",
+    });
     const gate = await runPremiumIntroGate(service);
     if (!gate.ok) {
       if (gate.reason === 'payment-required') {
@@ -788,9 +797,6 @@ export default function KkulkkulManseryukMain() {
       setVedaFlowState('access_granted');
     }
 
-    const cost = PREMIUM_SERVICE_COST[service];
-    const featureKey = PREMIUM_SERVICE_FEATURE_KEY[service];
-    const requestId = `premium:${featureKey || service}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9);
     setPremiumGateLoading(service);
     try {
       const purchaseResult = await purchaseFeature({
@@ -1335,7 +1341,7 @@ export default function KkulkkulManseryukMain() {
           {/* 배너 이미지 */}
           <div className="relative w-full overflow-hidden" style={{ maxHeight: 320 }}>
             <img
-              src="/fuctionassets/lovesimulation.webp"
+              src="/fuctionassets/love code.webp"
               alt="LOVE CODE 사주 연애 시뮬레이션"
               width={1200}
               height={800}
