@@ -1764,15 +1764,45 @@
     var balanceLabel = hasBalanceSnapshot ? (Number(balance).toLocaleString('ko-KR') + '코인') : '알 수 없음';
     var membershipCoverage = _dpReadActiveMembershipCoverage(cost);
     if (!membershipCoverage) {
-      var singlePurchaseWon = Number(cost || 0) * 100;
-      var confirmText = '🌙 ' + reason
-        + '\n\n단건 결제 기준: 50코인 = 5,000원'
-        + '\n이번 서비스: ' + cost + '코인 · ' + singlePurchaseWon.toLocaleString('ko-KR') + '원'
-        + '\n현재 보유: ' + balanceLabel
-        + '\n\n포트원 V2 KG이니시스 단건 결제로 진행하시겠습니까?';
-      if (!window.confirm(confirmText)) {
-        if (typeof onCancel === 'function') onCancel();
-        return;
+      if (typeof window._cdChooseServicePaymentMode === 'function' && typeof window._cdRunDirectKrwCheckout === 'function') {
+        return window._cdChooseServicePaymentMode({
+          title: reason,
+          coinPrice: cost,
+          cost: cost,
+          amountKrw: Number(cost || 0) * 100,
+        }).then(function(choice) {
+          if (choice !== 'direct') {
+            if (typeof onCancel === 'function') onCancel();
+            return null;
+          }
+          window._cdCoinGatePerUseInFlight = true;
+          window.__cdCoinGatePerUseLockAt = Date.now();
+          _dpSetPaymentPending(true, String(reason || '유료 서비스') + ' 단건 결제를 준비하는 중입니다...');
+          return window._cdRunDirectKrwCheckout({
+            coinPrice: cost,
+            cost: cost,
+            title: reason,
+            reason: reason,
+            featureKey: normalizedFeatureKey,
+            requestId: String(optionBag.requestId || '').trim().slice(0, 120) || undefined,
+            checkoutPayload: {
+              paymentMode: 'DIRECT_KRW',
+            },
+          }).then(function(payload) {
+            window._cdCoinGatePerUseInFlight = false;
+            window.__cdCoinGatePerUseLockAt = 0;
+            _dpSetPaymentPending(false);
+            var txId = String((payload && (payload.transactionId || payload.paymentId || payload.purchaseId || payload.requestId)) || '');
+            if (typeof cb === 'function') cb(txId, payload || {});
+            return payload;
+          });
+        }).catch(function(error) {
+          window._cdCoinGatePerUseInFlight = false;
+          window.__cdCoinGatePerUseLockAt = 0;
+          _dpSetPaymentPending(false);
+          window.alert(String(error && error.message || '단건 결제를 완료하지 못했습니다. 결제 수단을 확인한 뒤 다시 시도해 주세요.'));
+          if (typeof onCancel === 'function') onCancel(error);
+        });
       }
     }
     var requestId = String(optionBag.requestId || '').trim().slice(0, 120);
@@ -1817,7 +1847,7 @@
         var msg = rawFailData.message || failData.message || '단건 결제가 필요합니다.';
         if (res.status === 402) msg = msg + '\n\n단건 결제 기준: 50코인 = 5,000원\n포트원 V2 KG이니시스 결제로 진행됩니다.';
         if (typeof window.__cdOpenChargeModal === 'function') { window.alert(msg); window.__cdOpenChargeModal(); }
-        else if (window.confirm(msg + '\n결제 관리 페이지로 이동하시겠습니까?')) window.location.href = '/points';
+        else window.location.href = '/points';
         if (typeof onCancel === 'function') onCancel();
         return;
       }
@@ -1954,15 +1984,52 @@
     } catch (_) {}
     var balanceLabel = hasBalanceSnapshot ? Number(balance).toLocaleString('ko-KR') : '알 수 없음';
 
-    if (!window.confirm(
-      '🪙 ' + info.name + ' 영구 해금\n\n' +
-      '한 번 결제로 영구적으로 이용할 수 있습니다.\n' +
-      '비용: ' + info.cost + '코인 (현재 표시 잔액: ' + balanceLabel + '코인)\n' +
-      '최종 차감/부족 판정은 서버 잔액 기준으로 처리됩니다.\n\n' +
-      '진행하시겠습니까?'
-    )) return;
+    var unlockProductId = _DP_UNLOCK_PRODUCT_BY_FEATURE_KEY[info.key] || '';
+    var unlockRequestId = 'unlock-' + (unlockProductId || info.key) + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+    if (typeof window._cdChooseServicePaymentMode === 'function') {
+      window._cdChooseServicePaymentMode({
+        title: info.name + ' 영구 해금',
+        coinPrice: info.cost,
+        cost: info.cost,
+        currentCoins: balance,
+        balanceLabel: balanceLabel
+      }).then(function(choice) {
+        if (choice === 'monthly') {
+          runFeatureUnlock();
+          return;
+        }
+        if (choice === 'direct' && typeof window._cdRunDirectKrwCheckout === 'function') {
+          _dpSetPaymentPending(true, info.name + ' 단건 결제를 준비하는 중입니다...');
+          window._cdRunDirectKrwCheckout({
+            coinPrice: info.cost,
+            cost: info.cost,
+            title: info.name + ' 영구 해금',
+            reason: info.name + ' 영구 해금',
+            featureKey: info.key,
+            productId: unlockProductId,
+            requestId: unlockRequestId,
+            checkoutPayload: {
+              productId: unlockProductId,
+              paymentMode: 'DIRECT_KRW'
+            }
+          }).then(function(payload) {
+            _dpSetPaymentPending(false);
+            _dpSaveFeatureUnlock(info.key);
+            if (info.extraUnlockKeys) { for (var _ekI = 0; _ekI < info.extraUnlockKeys.length; _ekI++) _dpSaveFeatureUnlock(info.extraUnlockKeys[_ekI]); }
+            cb(payload && (payload.transactionId || payload.paymentId || payload.purchaseId || unlockRequestId));
+          }).catch(function(error) {
+            _dpSetPaymentPending(false);
+            console.error('[dp-direct-unlock]', error);
+            window.alert(String(error && error.message || '단건 결제를 완료하지 못했습니다. 결제 수단을 확인한 뒤 다시 시도해 주세요.'));
+          });
+        }
+      });
+      return;
+    }
 
-    (function () {
+    runFeatureUnlock();
+
+    function runFeatureUnlock() {
       var inFlight = false;
       if (inFlight) return;
       inFlight = true;
@@ -2011,7 +2078,7 @@
           if (typeof window.__cdOpenChargeModal === 'function') {
             window.alert('단건 결제가 필요합니다. 결제 상점을 열겠습니다.');
             window.__cdOpenChargeModal();
-          } else if (window.confirm('단건 결제가 필요합니다. 결제 관리 페이지로 이동하시겠습니까?')) {
+          } else {
             window.location.href = '/points';
           }
           return;
@@ -2047,7 +2114,7 @@
         console.error('[dp-coin-gate]', e);
         window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
       });
-    })();
+    }
   }
 
   /* ── 프로필 구독 상태 (로드 후 갱신) ── */
@@ -4304,29 +4371,30 @@
       var style = document.createElement('style');
       style.id = 'cdDirectPaymentStyles';
       style.textContent = [
-        '.cd-direct-payment-modal{position:fixed;inset:0;z-index:100260;display:none;align-items:center;justify-content:center;padding:22px;background:radial-gradient(circle at 18% 12%,rgba(253,224,171,.18),transparent 26%),radial-gradient(circle at 84% 20%,rgba(125,211,252,.16),transparent 28%),linear-gradient(180deg,rgba(3,7,18,.80),rgba(10,15,33,.92));backdrop-filter:blur(14px)}',
+        '.cd-direct-payment-modal{position:fixed;inset:0;z-index:100260;display:none;align-items:center;justify-content:center;padding:22px;background:radial-gradient(circle at 72% 8%,rgba(180,206,255,.28),transparent 19%),radial-gradient(ellipse at 48% 106%,rgba(103,130,220,.28),transparent 45%),linear-gradient(145deg,#020817 0%,#071633 42%,#11103a 100%);backdrop-filter:blur(14px);overflow:hidden}',
         '.cd-direct-payment-modal.is-open{display:flex}',
-        '.cd-direct-payment-dialog{width:min(520px,100%);border:1px solid rgba(252,211,77,.28);border-radius:24px;background:linear-gradient(155deg,#08111f 0%,#1a1738 52%,#090b18 100%);color:#f8f3ff;box-shadow:0 30px 92px rgba(0,0,0,.58),inset 0 1px 0 rgba(255,255,255,.08);padding:22px;position:relative;overflow:hidden}',
-        '.cd-direct-payment-dialog::before{content:"";position:absolute;right:14px;top:12px;width:76px;height:76px;border-radius:50%;background:radial-gradient(circle at 34% 32%,#fff7d6 0 15%,#fde68a 16% 23%,rgba(250,204,21,.14) 24% 58%,transparent 60%);opacity:.95;pointer-events:none}',
-        '.cd-direct-payment-dialog::after{content:"✦";position:absolute;left:22px;top:18px;color:#ddd6fe;font-size:18px;text-shadow:74px 20px 0 rgba(250,204,21,.66),188px 66px 0 rgba(125,211,252,.46),270px 34px 0 rgba(221,214,254,.58);pointer-events:none}',
-        '.cd-direct-payment-title{position:relative;z-index:1;margin:0 88px 8px 0;font-size:20px;font-weight:900;line-height:1.35;color:#fff7df}',
-        '.cd-direct-payment-sub{position:relative;z-index:1;margin:0 82px 16px 0;color:#d8ccff;font-size:13px;line-height:1.65}',
-        '.cd-direct-payment-note{position:relative;z-index:1;margin:12px 0 14px;padding:13px 14px;border-radius:18px;background:linear-gradient(180deg,rgba(250,204,21,.08),rgba(125,211,252,.05));border:1px solid rgba(245,210,130,.18);color:#ead9b8;font-size:13px;line-height:1.65}',
-        '.cd-direct-payment-note strong{display:block;margin-bottom:4px;color:#fff1c8;font-size:15px}',
-        '.cd-direct-payment-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;position:relative;z-index:1}',
-        '.cd-direct-payment-option{width:100%;min-height:148px;margin:0;padding:14px;border:1px solid rgba(255,255,255,.15);border-radius:16px;background:rgba(255,255,255,.06);color:inherit;text-align:left;cursor:pointer;position:relative;overflow:hidden}',
-        '.cd-direct-payment-option::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.08),transparent 44%);pointer-events:none}',
-        '.cd-direct-payment-option[data-mode="direct"]{border-color:rgba(250,204,21,.36);background:linear-gradient(135deg,rgba(250,204,21,.14),rgba(14,165,233,.07))}',
-        '.cd-direct-payment-option[data-mode="monthly"]{border-color:rgba(196,181,253,.42);background:linear-gradient(135deg,rgba(139,92,246,.20),rgba(14,165,233,.10))}',
+        '.cd-direct-payment-dialog{width:min(490px,100%);border:1px solid rgba(237,229,198,.38);border-radius:22px;background:linear-gradient(145deg,rgba(9,18,42,.82),rgba(24,29,62,.76));color:#fff7e6;box-shadow:0 24px 78px rgba(0,0,0,.52),inset 0 1px 0 rgba(255,255,255,.18);padding:24px;position:relative;overflow:hidden}',
+        '.cd-direct-payment-dialog::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 18% 34%,rgba(255,255,255,.12),transparent 24%),radial-gradient(circle at 92% 84%,rgba(250,204,21,.12),transparent 20%);pointer-events:none}',
+        '.cd-direct-payment-dialog::after{content:"";position:absolute;right:18px;top:18px;width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 38% 35%,#fff7d8 0 13%,#d9e1ef 14% 34%,#68799b 48%,rgba(18,31,59,.08) 64%,transparent 72%);box-shadow:0 0 24px rgba(225,234,255,.32);pointer-events:none}',
+        '.cd-direct-payment-title{position:relative;z-index:1;margin:0 96px 10px 0;font-family:Georgia,"Times New Roman","Noto Serif KR",serif;font-size:23px;font-weight:800;line-height:1.35;color:#f4f0e7;text-shadow:0 2px 18px rgba(0,0,0,.62)}',
+        '.cd-direct-payment-sub{position:relative;z-index:1;margin:0 84px 16px 0;color:#eee8de;font-size:14px;line-height:1.65;text-shadow:0 1px 10px rgba(0,0,0,.56)}',
+        '.cd-direct-payment-note{position:relative;z-index:1;margin:0 0 14px;padding:15px 92px 15px 16px;border-radius:16px;background:linear-gradient(135deg,rgba(255,255,255,.20),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.30);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 12px 28px rgba(0,0,0,.24);color:#f8f1df;font-size:13px;line-height:1.55;backdrop-filter:blur(16px);overflow:hidden}',
+        '.cd-direct-payment-note::after{content:"";position:absolute;right:18px;top:18px;width:58px;height:72px;opacity:.22;background:linear-gradient(90deg,transparent 0 20%,rgba(255,255,255,.8) 21% 22%,transparent 23%),radial-gradient(circle at 48% 43%,transparent 0 28%,rgba(255,255,255,.95) 29% 31%,transparent 32%);border:1px solid rgba(255,255,255,.38);border-radius:10px;transform:rotate(5deg);pointer-events:none}',
+        '.cd-direct-payment-note strong{display:block;margin-bottom:5px;color:#fff8df;font-size:17px;line-height:1.35;text-shadow:0 1px 10px rgba(0,0,0,.52)}',
+        '.cd-direct-payment-options,.cd-direct-payment-choice-grid{display:grid;grid-template-columns:1fr;gap:12px;position:relative;z-index:1}',
+        '.cd-direct-payment-option{width:100%;min-height:auto;margin:0;padding:16px;border:1px solid rgba(255,255,255,.30);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(72,91,140,.24));color:inherit;text-align:left;cursor:pointer;position:relative;z-index:1;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 12px 28px rgba(0,0,0,.24);backdrop-filter:blur(16px)}',
+        '.cd-direct-payment-option::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(135deg,rgba(255,255,255,.18),transparent 38%,rgba(255,255,255,.06));pointer-events:none}',
+        '.cd-direct-payment-option[data-mode="direct"]{border-color:rgba(248,222,140,.62);background:linear-gradient(145deg,rgba(255,255,255,.18),rgba(34,45,88,.40))}',
+        '.cd-direct-payment-option[data-mode="monthly"]{border-color:rgba(198,190,255,.58);background:linear-gradient(145deg,rgba(212,219,255,.18),rgba(28,43,91,.46))}',
         '.cd-direct-payment-option.is-disabled{opacity:.58;cursor:not-allowed}',
-        '.cd-direct-payment-mode{position:relative;display:inline-flex;align-items:center;gap:6px;margin-bottom:10px;padding:5px 9px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.12);font-size:11px;font-weight:900;color:#fef3c7}',
-        '.cd-direct-payment-option strong{position:relative;display:block;margin-bottom:7px;font-size:15px;color:#ffe8a3}',
-        '.cd-direct-payment-option span{position:relative;display:block;font-size:12.5px;line-height:1.55;color:#e5ddff}',
-        '.cd-direct-payment-metric{position:relative;display:flex;justify-content:space-between;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.12);font-size:12px;color:#cbd5e1}',
+        '.cd-direct-payment-mode{position:relative;display:inline-flex;align-items:center;gap:6px;margin-bottom:10px;padding:5px 10px;border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,.25),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.30);font-size:11px;font-weight:900;color:#fff8df;box-shadow:inset 0 1px 0 rgba(255,255,255,.24)}',
+        '.cd-direct-payment-option strong{position:relative;display:block;margin-bottom:7px;font-size:16px;color:#fff9e8;text-shadow:0 1px 10px rgba(0,0,0,.54)}',
+        '.cd-direct-payment-option span{position:relative;display:block;font-size:12.5px;line-height:1.55;color:#f1ecdf}',
+        '.cd-direct-payment-metric{position:relative;display:flex;justify-content:space-between;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.12);font-size:12px;color:#d8deef}',
         '.cd-direct-payment-metric b{color:#fff7d1}',
         '.cd-direct-payment-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;position:relative;z-index:1}',
-        '.cd-direct-payment-cancel{border:1px solid rgba(255,255,255,.16);border-radius:999px;background:rgba(255,255,255,.04);color:#eee7ff;padding:10px 16px;cursor:pointer;font-weight:800}',
-        '@media(max-width:560px){.cd-direct-payment-dialog{padding:20px 16px;border-radius:22px}.cd-direct-payment-options{grid-template-columns:1fr}.cd-direct-payment-title,.cd-direct-payment-sub{margin-right:76px}.cd-direct-payment-option{min-height:0}}'
+        '.cd-direct-payment-cancel{border:1px solid rgba(255,255,255,.38);border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,.18),rgba(255,255,255,.05));color:#f6efe4;padding:10px 16px;cursor:pointer;font-weight:800}',
+        '@media(max-width:560px){.cd-direct-payment-dialog{padding:20px 16px;border-radius:22px}.cd-direct-payment-title{margin-right:78px;font-size:21px}.cd-direct-payment-sub{margin-right:74px}.cd-direct-payment-note{padding-right:76px}.cd-direct-payment-option{min-height:0}}'
       ].join('');
       document.head.appendChild(style);
     }
@@ -4337,7 +4405,7 @@
       var title = String(opts.title || '유료 서비스').trim();
       var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
       var amountKrw = Math.max(0, Math.floor(Number(opts.amountKrw || (coinPrice * 100))));
-      var requiredMonthlyCredits = Math.max(0, coinPrice * 10);
+      var requiredMonthlyCredits = Math.max(0, coinPrice);
       var monthlyBalance = _dpGetMonthlyCreditBalance();
       var canUseMonthly = monthlyBalance >= requiredMonthlyCredits && requiredMonthlyCredits > 0;
       var monthlyShortage = Math.max(0, requiredMonthlyCredits - monthlyBalance);

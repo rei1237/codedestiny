@@ -396,6 +396,49 @@ function parseKasiGanjiPair(raw) {
   return { g: g, j: j };
 }
 
+function hasCompleteGanjiContext(ctx) {
+  return !!(
+    ctx &&
+    ctx.ganji &&
+    parseKasiGanjiPair(ctx.ganji.year) &&
+    parseKasiGanjiPair(ctx.ganji.month) &&
+    parseKasiGanjiPair(ctx.ganji.day) &&
+    parseKasiGanjiPair(ctx.ganji.hour)
+  );
+}
+
+function repairGanjiContextFromLocal(ctx, input) {
+  if (!ctx || !ctx.solar) return ctx;
+  if (hasCompleteGanjiContext(ctx)) return ctx;
+  try {
+    if (!window.KasiCalendarService || typeof window.KasiCalendarService.computeGanjiFromDate !== 'function') return ctx;
+    var solar = ctx.solar || {};
+    var date = new Date(
+      parseInt(solar.year, 10),
+      parseInt(solar.month, 10) - 1,
+      parseInt(solar.day, 10),
+      parseInt(solar.hour != null ? solar.hour : input.hour, 10) || 12,
+      parseInt(solar.minute != null ? solar.minute : input.minute, 10) || 0,
+      parseInt(solar.second != null ? solar.second : input.second, 10) || 0
+    );
+    if (isNaN(date.getTime())) return ctx;
+    var computed = window.KasiCalendarService.computeGanjiFromDate(date, ctx.terms24);
+    if (!computed) return ctx;
+    ctx.ganji = Object.assign({}, ctx.ganji || {}, {
+      year: ctx.ganji && ctx.ganji.year ? ctx.ganji.year : computed.year,
+      month: computed.month || (ctx.ganji && ctx.ganji.month) || null,
+      day: ctx.ganji && ctx.ganji.day ? ctx.ganji.day : computed.day,
+      hour: ctx.ganji && ctx.ganji.hour ? ctx.ganji.hour : computed.hour
+    });
+    ctx.meta = ctx.meta || {};
+    if (!Array.isArray(ctx.meta.diagnostics)) ctx.meta.diagnostics = [];
+    if (ctx.meta.diagnostics.indexOf('ganji-local-repair') === -1) ctx.meta.diagnostics.push('ganji-local-repair');
+  } catch (e) {
+    console.warn('[KASI] ganji local repair failed:', e && e.message ? e.message : e);
+  }
+  return ctx;
+}
+
 async function resolveKasiDateContextSafe(input, options) {
   if (!window.KasiCalendarService || typeof window.KasiCalendarService.resolveDateContext !== 'function') return null;
   var safeOptions = Object.assign({}, options || {});
@@ -640,6 +683,7 @@ async function resolvePrimaryCalendarContext(input, options) {
   var ctx = await resolveKasiDateContextSafe(norm, options || {});
   var isValid = hasCompleteCalendar(ctx);
   if (isValid) {
+    ctx = repairGanjiContextFromLocal(ctx, norm);
     try {
       if (KasiEngine && typeof KasiEngine.registerCalendarReference === 'function') {
         KasiEngine.registerCalendarReference({
@@ -661,6 +705,11 @@ async function resolvePrimaryCalendarContext(input, options) {
       console.warn('[KASI] local engine sync failed:', e && e.message ? e.message : e);
     }
     return ctx;
+  }
+
+  var fallbackCtx = buildFallbackDateContext(norm, ctx ? 'KASI_CONTEXT_INVALID' : 'KASI_CONTEXT_UNAVAILABLE');
+  if (hasCompleteCalendar(fallbackCtx)) {
+    return repairGanjiContextFromLocal(fallbackCtx, norm);
   }
 
   var err = new Error('KASI 기준 음양력/절기 데이터를 확인할 수 없습니다.');
@@ -3465,6 +3514,7 @@ async function startSajuCalculationFlow() {
   } catch (calcErr) {
     console.error('[saju] calculate flow failed', calcErr);
     if (_spinner) _spinner.classList.remove('loading-spinner--visible');
+    alert('사주 원국 계산을 완료하지 못했습니다. 프로필 정보를 확인한 뒤 다시 시도해 주세요.');
     return;
   }
   if (_spinner) _spinner.classList.remove('loading-spinner--visible');
@@ -3728,11 +3778,70 @@ async function calculate(){
       } catch (_correctedCtxErr) {}
     }
 
+    pillarDateCtx = repairGanjiContextFromLocal(pillarDateCtx, {
+      year: correctedYear,
+      month: correctedMonth,
+      day: correctedDay,
+      hour: correctedHour,
+      minute: correctedMinute,
+      second: 0
+    });
     var kasiYearPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.year) : null;
     var kasiMonthPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.month) : null;
     var kasiDayPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.day) : null;
     var kasiHourPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.hour) : null;
     if (!kasiYearPair || !kasiMonthPair || !kasiDayPair || !kasiHourPair) {
+      try {
+        var localPillarCtx = await resolvePrimaryCalendarContext({
+          calendarType: 'solar',
+          year: correctedYear,
+          month: correctedMonth,
+          day: correctedDay,
+          hour: correctedHour,
+          minute: correctedMinute,
+          second: 0,
+          latitude: bLat,
+          longitude: bLong,
+          tzOffsetHours: bTzOff
+        }, { setCurrent: true, localOnly: true });
+        pillarDateCtx = repairGanjiContextFromLocal(localPillarCtx, {
+          year: correctedYear,
+          month: correctedMonth,
+          day: correctedDay,
+          hour: correctedHour,
+          minute: correctedMinute,
+          second: 0
+        });
+        kasiYearPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.year) : null;
+        kasiMonthPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.month) : null;
+        kasiDayPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.day) : null;
+        kasiHourPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.hour) : null;
+      } catch (localPillarErr) {
+        console.error('[saju] local pillar context failed', {
+          input: {
+            year: correctedYear,
+            month: correctedMonth,
+            day: correctedDay,
+            hour: correctedHour,
+            minute: correctedMinute,
+            timezone: bTz || 'Asia/Seoul'
+          },
+          reason: localPillarErr && localPillarErr.message ? localPillarErr.message : String(localPillarErr || '')
+        });
+      }
+    }
+    if (!kasiYearPair || !kasiMonthPair || !kasiDayPair || !kasiHourPair) {
+      console.error('[saju] missing pillar ganji', {
+        input: {
+          year: correctedYear,
+          month: correctedMonth,
+          day: correctedDay,
+          hour: correctedHour,
+          minute: correctedMinute,
+          timezone: bTz || 'Asia/Seoul'
+        },
+        ganji: pillarDateCtx && pillarDateCtx.ganji ? pillarDateCtx.ganji : null
+      });
       throw new Error('KASI 기준 사주 원국 간지 계산값을 확인할 수 없습니다.');
     }
     var bazi = {
@@ -3959,6 +4068,43 @@ var SAJU_AI_PROMPT_MAX_LENGTH = 1000;
 var ASTROLOGY_AI_PROMPT_COST = 100;
 var ASTROLOGY_AI_PROMPT_MIN_LENGTH = 5;
 var ASTROLOGY_AI_PROMPT_MAX_LENGTH = 1000;
+
+function _openSajuPaidPaymentMode(cost, reason, featureKey) {
+  var coinPrice = Math.max(0, Math.floor(Number(cost || 0)));
+  var requestId = String(featureKey || 'saju-paid') + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+  if (typeof window._cdChooseServicePaymentMode === 'function' && typeof window._cdRunDirectKrwCheckout === 'function') {
+    return window._cdChooseServicePaymentMode({
+      title: reason,
+      coinPrice: coinPrice,
+      cost: coinPrice
+    }).then(function(choice) {
+      if (choice === 'direct') {
+        return window._cdRunDirectKrwCheckout({
+          coinPrice: coinPrice,
+          cost: coinPrice,
+          title: reason,
+          reason: reason,
+          featureKey: featureKey,
+          requestId: requestId,
+          checkoutPayload: { paymentMode: 'DIRECT_KRW' }
+        });
+      }
+      if (choice === 'monthly' && typeof window.openChargeModal === 'function') window.openChargeModal();
+      return null;
+    }).catch(function(error) {
+      window.alert(String(error && error.message || '단건 결제를 완료하지 못했습니다. 결제 수단을 확인한 뒤 다시 시도해 주세요.'));
+      return null;
+    });
+  }
+  try {
+    if (typeof window.openChargeModal === 'function') {
+      window.openChargeModal();
+      return Promise.resolve(null);
+    }
+  } catch (_) {}
+  window.location.href = '/points?next=%2F';
+  return Promise.resolve(null);
+}
 
 function _sajuPromptClone(value) {
   try {
@@ -4209,15 +4355,7 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
 
       if (code === 'INSUFFICIENT_COINS' || result.status === 402) {
         _setSajuAIPromptStatus(statusEl, message, 'error');
-        try {
-          if (typeof window.openChargeModal === 'function') {
-            window.openChargeModal();
-            return;
-          }
-        } catch (_) {}
-        if (window.confirm('코인이 부족합니다. 포인트 페이지로 이동할까요?')) {
-          window.location.href = '/points?next=%2F';
-        }
+        _openSajuPaidPaymentMode(SAJU_AI_PROMPT_COST, '사주 질문 프롬프트', 'saju-ai-prompt');
         return;
       }
 
@@ -8623,15 +8761,7 @@ function renderAstroInsight() {
 
           if (code === 'INSUFFICIENT_COINS' || result.status === 402) {
             _astroSetPromptStatus(statusEl, message, 'error');
-            try {
-              if (typeof window.openChargeModal === 'function') {
-                window.openChargeModal();
-                return;
-              }
-            } catch (_) {}
-            if (window.confirm('코인이 부족합니다. 포인트 페이지로 이동할까요?')) {
-              window.location.href = '/points?next=%2F';
-            }
+            _openSajuPaidPaymentMode(ASTROLOGY_AI_PROMPT_COST, '점성술 질문 프롬프트', 'astrology-ai-prompt');
             return;
           }
 
@@ -14276,9 +14406,7 @@ function renderZiwei(p, natal, targetId) {
         }
         if (code === 'INSUFFICIENT_COINS' || result.status === 402) {
           setStatus(message || '유료 결제가 필요합니다. 결제 페이지에서 상품을 선택해 주세요.', 'error');
-          try {
-            if (typeof window.openChargeModal === 'function') window.openChargeModal();
-          } catch (_) {}
+          _openSajuPaidPaymentMode(100, '자미두수 질문 프롬프트', 'ziwei-ai-prompt');
           return;
         }
         setStatus(message, 'error');

@@ -351,13 +351,44 @@
         return;
       }
     } catch (e) {}
-    if (window.confirm("🪙 " + reason + "\n\n" + cost + "코인 가치의 단건 결제가 필요합니다.\n결제 관리 페이지로 이동할까요?")) {
-      window.location.href = "/points";
-    }
+    window.location.href = "/points";
   }
 
   function consumeCoinDirect(cost, reason, featureKey) {
     if (isReunionAdminLikeUser()) return Promise.resolve(true);
+    var requestId = "tarot-reunion:" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
+    if (typeof window._cdChooseServicePaymentMode === "function" && typeof window._cdRunDirectKrwCheckout === "function") {
+      return window._cdChooseServicePaymentMode({
+        title: reason,
+        coinPrice: cost,
+        cost: cost,
+      }).then(function(choice) {
+        if (choice === "direct") {
+          if (typeof window._cdSetCoinGateOverlay === "function") window._cdSetCoinGateOverlay(true, "단건 결제를 준비하는 중입니다...");
+          return window._cdRunDirectKrwCheckout({
+            coinPrice: cost,
+            cost: cost,
+            title: reason,
+            reason: reason,
+            featureKey: featureKey,
+            requestId: requestId,
+            checkoutPayload: { paymentMode: "DIRECT_KRW" },
+          }).then(function() { return true; });
+        }
+        if (choice !== "monthly") return false;
+        return consumeMonthlyCredit(cost, reason, featureKey, requestId);
+      }).catch(function(error) {
+        window.alert(String(error && error.message || "단건 결제를 완료하지 못했습니다. 결제 수단을 확인한 뒤 다시 시도해 주세요."));
+        return false;
+      }).finally(function() {
+        if (typeof window._cdSetCoinGateOverlay === "function") window._cdSetCoinGateOverlay(false);
+      });
+    }
+
+    return consumeMonthlyCredit(cost, reason, featureKey, requestId);
+  }
+
+  function consumeMonthlyCredit(cost, reason, featureKey, requestId) {
     var token = getAuthToken();
     var consumeHeaders = {
       "Content-Type": "application/json",
@@ -373,8 +404,9 @@
         cost: cost,
         reason: reason,
         featureKey: featureKey,
+        paymentMode: "MONTHLY_CREDIT",
         forceDeduct: true,
-        requestId: "tarot-reunion:" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9),
+        requestId: requestId,
       }),
     })
       .then(function (res) {
