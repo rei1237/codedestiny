@@ -20969,11 +20969,67 @@ function toggleYear(el, event){
 /* ══════════════════════════════════════════
    📈 인생 길흉 그래프
 ══════════════════════════════════════════ */
+var _dwLifeGraphResizeObserver = null;
+var _dwLifeGraphRetryTimer = 0;
+
+function _dwStopLifeGraphRefreshWatch() {
+  if (_dwLifeGraphResizeObserver) {
+    try { _dwLifeGraphResizeObserver.disconnect(); } catch (e) {}
+    _dwLifeGraphResizeObserver = null;
+  }
+  if (_dwLifeGraphRetryTimer) {
+    clearTimeout(_dwLifeGraphRetryTimer);
+    _dwLifeGraphRetryTimer = 0;
+  }
+}
+
+function _dwWatchLifeGraphRefresh(bazi) {
+  var wrap = document.getElementById('lifeGraphWrap');
+  if (!wrap) return;
+
+  _dwStopLifeGraphRefreshWatch();
+
+  var tries = 0;
+  var attemptRender = function() {
+    var rect = wrap.getBoundingClientRect ? wrap.getBoundingClientRect() : null;
+    var ready = !!(rect && rect.width > 120 && rect.height > 120 && wrap.offsetParent !== null);
+    if (ready) {
+      _dwStopLifeGraphRefreshWatch();
+      renderLifeGraph(bazi);
+      return;
+    }
+    if (tries >= 24) return;
+    tries += 1;
+    _dwLifeGraphRetryTimer = setTimeout(attemptRender, 120);
+  };
+
+  if (typeof ResizeObserver !== 'undefined') {
+    _dwLifeGraphResizeObserver = new ResizeObserver(function() {
+      var rect = wrap.getBoundingClientRect ? wrap.getBoundingClientRect() : null;
+      if (rect && rect.width > 120 && rect.height > 120 && wrap.offsetParent !== null) {
+        _dwStopLifeGraphRefreshWatch();
+        renderLifeGraph(bazi);
+      }
+    });
+    _dwLifeGraphResizeObserver.observe(wrap);
+  }
+
+  _dwLifeGraphRetryTimer = setTimeout(attemptRender, 120);
+}
+
 function renderLifeGraph(bazi){
   var canvas=document.getElementById('lifeGraphCanvas');
-  if(!canvas)return;
   var wrap=document.getElementById('lifeGraphWrap');
-  var W=wrap?Math.max(wrap.clientWidth-20, 320):340;
+  if(!canvas||!wrap)return;
+  var rect = wrap.getBoundingClientRect ? wrap.getBoundingClientRect() : null;
+  if(!rect||rect.width<120||rect.height<120||wrap.offsetParent===null){
+    _dwWatchLifeGraphRefresh(bazi);
+    return;
+  }
+
+  _dwStopLifeGraphRefreshWatch();
+
+  var W=Math.max((rect.width||wrap.clientWidth||340)-20, 320);
   canvas.width=W;canvas.height=180;
   var ctx=canvas.getContext('2d');
   ctx.clearRect(0,0,W,180);

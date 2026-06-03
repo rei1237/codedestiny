@@ -1334,20 +1334,144 @@ const DASHA_NARRATIVE={
   Ketu:"케투 대운은 물질의 집착에서 자유로워지고 영적 깊이가 깊어지는 고독한 탐구의 시기입니다. 과거 업보의 흔적을 정리하고, 이번 생에서 버려야 할 것들을 놓아주는 영혼의 대청소가 이루어집니다. 의학·연구·신비학·영적 수련 분야에서 독보적인 통찰이 생겨나며, 내면 여정을 통해 진정한 자유의 씨앗이 심어집니다. 결과보다 과정과 의미에 집중하는 것이 이 시기의 지혜입니다."
 };
 
-const BHAVA_INFO={
-  1:{sa:"Tanu",kr:"자아·신체",easy:"성격, 외형, 삶의 기본 방향"},
-  2:{sa:"Dhana",kr:"재물·가족",easy:"돈, 말, 가족 기반"},
-  3:{sa:"Sahaja",kr:"용기·형제",easy:"도전정신, 형제자매, 실전 능력"},
-  4:{sa:"Sukha",kr:"가정·정서",easy:"집, 어머니, 마음의 안정"},
-  5:{sa:"Putra",kr:"창조·자녀",easy:"지성, 창의성, 자녀, 학습"},
-  6:{sa:"Ari",kr:"문제·봉사",easy:"질병, 경쟁, 일상 노동, 극복"},
-  7:{sa:"Yuvati",kr:"배우자·관계",easy:"결혼, 파트너십, 계약"},
-  8:{sa:"Randhra",kr:"변화·심층",easy:"위기, 변형, 비밀, 장수"},
-  9:{sa:"Dharma",kr:"법·행운",easy:"스승, 신앙, 철학, 큰 운"},
-  10:{sa:"Karma",kr:"직업·명예",easy:"커리어, 사회적 역할, 성취"},
-  11:{sa:"Labha",kr:"수익·네트워크",easy:"수입, 목표 달성, 인맥"},
-  12:{sa:"Vyaya",kr:"지출·해탈",easy:"소모, 해외, 고독, 영적 해방"}
+const VEDA_BHAVA_DATA={
+  1:{
+    name:"Tanu",
+    korean:"자아와 신체",
+    tagline:"나라는 존재의 시작점과 외적 발현",
+    description:"본질적인 자아, 외모, 건강 상태, 체질, 성격의 기본 성향을 나타냅니다. 인생의 전반적인 방향성과 첫인상, 세상에 자신을 드러내는 방식을 결정하는 가장 중요한 하우스입니다."
+  },
+  2:{
+    name:"Dhana",
+    korean:"재물과 가족",
+    tagline:"축적되는 자산과 유년기의 환경",
+    description:"개인의 재정적 자산, 수입, 고정 자산을 의미합니다. 물리적인 재물뿐만 아니라 유년 시절의 가정환경, 언어 능력(말씨), 음식 취향, 그리고 개인이 부여하는 가치관을 상징합니다."
+  },
+  3:{
+    name:"Sahaja",
+    korean:"용기와 소통",
+    tagline:"형제자매, 의지력, 그리고 단거리 이동",
+    description:"개인의 용기와 의지력, 형제자매와의 관계를 나타냅니다. 커뮤니케이션 능력, 글쓰기, 정보 IT, 손재주를 상징하며, 일상적인 단거리 여행이나 마음의 결단력을 담당합니다."
+  },
+  4:{
+    name:"Sukha",
+    korean:"행복과 가정",
+    tagline:"내면의 평화, 어머니, 그리고 정착",
+    description:"정서적 안정감과 마음의 행복을 뜻합니다. 어머니와의 관계, 고향, 거주하는 집(부동산), 차량을 상징하며, 외부의 풍파로부터 나를 보호하는 감정적 뿌리이자 기반입니다."
+  },
+  5:{
+    name:"Putra",
+    korean:"창의성과 자녀",
+    tagline:"전생의 복덕과 지성, 그리고 연애",
+    description:"전생에 쌓은 복덕(Purva Punya)을 나타내어 현생의 행운과 직결됩니다. 자녀, 지성, 창의적 예술 활동, 로맨스(연애), 주식이나 투자 같은 투기적 이익을 관장합니다."
+  },
+  6:{
+    name:"Ari",
+    korean:"질병과 장애",
+    tagline:"적, 채무, 그리고 일상적인 노동",
+    description:"살아가면서 마주하는 장애물, 질병, 부채, 소송을 나타냅니다. 부정적으로 보이지만 이를 극복하기 위한 일상적인 노력, 서비스 정신, 경쟁심, 애완동물을 돌보는 루틴을 의미하기도 합니다."
+  },
+  7:{
+    name:"Yuvati",
+    korean:"파트너십",
+    tagline:"결혼, 배우자, 그리고 비즈니스 관계",
+    description:"나를 제외한 '타인'과의 관계를 총괄합니다. 합법적인 결혼과 배우자의 성향, 비즈니스 파트너십, 대인 관계의 조화도를 나타내며 대중 앞에 서는 공적인 에너지를 의미합니다."
+  },
+  8:{
+    name:"Randhra",
+    korean:"변형과 비밀",
+    tagline:"수명, 유산, 그리고 신비주의(오컬트)",
+    description:"급격한 변화, 위기, 수명과 죽음을 나타내는 신비로운 하우스입니다. 타인의 돈(상속, 유산, 배우자의 재산)을 뜻하며, 숨겨진 비밀, 오컬트/역학, 연구, 심층적인 탐구를 관장합니다."
+  },
+  9:{
+    name:"Dharma",
+    korean:"행운과 법도",
+    tagline:"영적 성장, 고등 교육, 그리고 아버지",
+    description:"인생의 더 높은 목적, 윤리, 행운을 상징하는 가장 길한 하우스입니다. 종교, 철학, 대학 이상의 고등 교육, 장거리 해외 여행을 뜻하며, 나에게 가르침을 주는 스승(멘토)과 아버지를 의미합니다."
+  },
+  10:{
+    name:"Karma",
+    korean:"직업과 명예",
+    tagline:"사회적 지위, 천직, 그리고 업적",
+    description:"세상에서 행하는 활동과 커리어를 뜻합니다. 사회적 신분, 직업적 성공, 명예, 권위, 정부나 거대 조직과의 연결성을 나타내며 세상에 남기는 나의 실질적인 족적입니다."
+  },
+  11:{
+    name:"Labha",
+    korean:"소망과 이익",
+    tagline:"수입의 극대화, 인맥, 그리고 목표 달성",
+    description:"커리어를 통해 얻는 실제적인 현금 흐름과 이익을 의미합니다. 오랜 소망의 성취, 광범위한 사회적 네트워크(인맥), 동호회, 나이 차이가 나는 형제를 상징하는 풍요의 하우스입니다."
+  },
+  12:{
+    name:"Vyaya",
+    korean:"손실과 해탈",
+    tagline:"지출, 영적 해탈(모크샤), 그리고 해외",
+    description:"에너지의 소모와 지출, 고립을 의미합니다. 병원, 감옥, 명상원처럼 세상과 격리된 공간이나 영적 해탈(Moksha)을 뜻하며, 완전히 낯선 먼 해외 땅이나 수면(꿈의 세계)을 관장합니다."
+  }
 };
+
+const BHAVA_INFO=Object.fromEntries(Object.entries(VEDA_BHAVA_DATA).map(function(entry){
+  var key=Number(entry[0]);
+  var item=entry[1];
+  return [key,{
+    sa:item.name,
+    kr:item.korean,
+    easy:item.tagline,
+    name:item.name,
+    korean:item.korean,
+    tagline:item.tagline,
+    description:item.description
+  }];
+}));
+
+var bhavaMeaningActive=1;
+var bhavaGlossaryRootId="bhava-glossary-root";
+
+function getBhavaMeaning(n){
+  return VEDA_BHAVA_DATA[Number(n)]||null;
+}
+
+function getBhavaEmblem(n){
+  return ["☉","☾","☿","♀","♂","♃","♄","☊","☸","✦","✧","✺"][Number(n)-1]||"✦";
+}
+
+function renderBhavaMeaningPanel(n){
+  var item=getBhavaMeaning(n);
+  if(!item) return "";
+  return '<div class="bhava-popup" role="dialog" aria-label="'+hEsc(String(n)+'. '+item.name)+'" style="position:relative;flex:1 1 100%;margin-top:10px;overflow:hidden;padding:16px 16px 18px;border-radius:18px;border:1px solid rgba(212,175,55,0.42);background:radial-gradient(circle at top left, rgba(139,92,246,0.22), transparent 38%), radial-gradient(circle at bottom right, rgba(212,175,55,0.18), transparent 34%), linear-gradient(180deg, rgba(26,19,49,0.96), rgba(13,11,26,0.96));box-shadow:0 20px 48px rgba(0,0,0,0.42), 0 0 0 1px rgba(255,255,255,0.03) inset;backdrop-filter:blur(14px);animation:bhavaPopupEnter 380ms cubic-bezier(0.22,1,0.36,1) both;">'+
+    '<button type="button" class="bhava-popup__close" onclick="closeBhavaMeaning()" aria-label="닫기" style="position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:999px;border:1px solid rgba(212,175,55,0.4);background:rgba(255,255,255,0.04);color:var(--gold);font-size:18px;line-height:1;cursor:pointer;box-shadow:0 0 18px rgba(212,175,55,0.12)">×</button>'+
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-right:48px">'+
+      '<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:999px;border:1px solid rgba(212,175,55,0.35);background:rgba(212,175,55,0.1);color:#F8E08A;font-size:17px;box-shadow:0 0 24px rgba(212,175,55,0.12)">'+getBhavaEmblem(n)+'</span>'+
+      '<div>'+
+        '<div style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(238,230,255,0.56);margin-bottom:4px">selected bhava</div>'+
+        '<div style="font-size:20px;font-weight:700;color:#FFF3C4;line-height:1.15">'+hEsc(String(n)+'. '+item.name)+'</div>'+
+      '</div>'+
+    '</div>'+
+    '<div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:10px;padding:5px 10px;border-radius:999px;border:1px solid rgba(212,175,55,0.28);background:rgba(212,175,55,0.08);color:#F3D98C;font-size:12px;font-weight:600;letter-spacing:0.02em">'+hEsc(item.korean)+'</div>'+
+    '<div style="font-size:14px;line-height:1.65;color:#EDE6FF;margin-bottom:10px">'+hEsc(item.tagline)+'</div>'+
+    '<div class="bhava-popup__desc" style="font-size:13px;line-height:1.8;color:rgba(236,229,255,0.88);padding-right:80px">'+hEsc(item.description)+'</div>'+
+    '<div aria-hidden="true" style="position:absolute;right:14px;bottom:10px;display:flex;align-items:center;gap:8px;color:rgba(248,224,138,0.55);font-size:28px;line-height:1">'+
+      '<span style="text-shadow:0 0 18px rgba(212,175,55,0.25)">☸</span>'+
+      '<span style="font-size:18px;opacity:0.9">✦</span>'+
+    '</div>'+
+  '</div>';
+}
+
+function refreshBhavaGlossary(){
+  var root=document.getElementById(bhavaGlossaryRootId);
+  if(root) root.outerHTML=renderBhavaGlossary();
+}
+
+function setBhavaMeaning(n){
+  var num=Number(n);
+  if(!VEDA_BHAVA_DATA[num]) return;
+  bhavaMeaningActive=num;
+  refreshBhavaGlossary();
+}
+
+function closeBhavaMeaning(){
+  bhavaMeaningActive=0;
+  refreshBhavaGlossary();
+}
 
 function bhavaLabel(n){
   var num=Number(n);
@@ -1357,10 +1481,7 @@ function bhavaLabel(n){
 }
 
 function openBhavaMeaning(n){
-  var num=Number(n);
-  var info=BHAVA_INFO[num];
-  if(!info) return;
-  window.alert(num+"바바(Bhava) · "+info.sa+"\n"+info.kr+"\n\n쉽게 이해: "+info.easy);
+  setBhavaMeaning(n);
 }
 
 function decorateBhavaTerms(html){
@@ -1373,10 +1494,36 @@ function decorateBhavaTerms(html){
 }
 
 function renderBhavaGlossary(){
-  return '<div class="reveal reveal-delay-1" style="margin-top:12px;background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.2);border-radius:12px;padding:12px"><div class="section-head" style="margin-bottom:8px">📚 12바바 전통명 (탭해서 의미 보기)</div><div style="display:flex;flex-wrap:wrap;gap:6px">'+Array.from({length:12},function(_,i){
-    var n=i+1;var b=BHAVA_INFO[n];
-    return '<button type="button" onclick="openBhavaMeaning('+n+')" style="padding:4px 8px;border-radius:999px;border:1px solid rgba(139,92,246,0.35);background:rgba(139,92,246,0.12);color:var(--text2);font-size:11px;cursor:pointer">'+n+'. '+(b?b.sa:'Bhava')+'</button>';
-  }).join('')+'</div></div>';
+  var active=bhavaMeaningActive&&VEDA_BHAVA_DATA[bhavaMeaningActive]?bhavaMeaningActive:0;
+  return '<style>'+
+    '@keyframes bhavaPopupEnter{0%{opacity:0;transform:translateY(-10px) scale(0.985)}100%{opacity:1;transform:translateY(0) scale(1)}}'+
+    '.bhava-glossary-shell{margin-top:12px;padding:14px;border-radius:16px;border:1px solid rgba(212,175,55,0.22);background:linear-gradient(180deg, rgba(12,10,24,0.94), rgba(26,20,46,0.82));box-shadow:0 18px 44px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.02) inset;backdrop-filter:blur(12px)}'+
+    '.bhava-glossary-shell__title{font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(233,223,255,0.56);margin-bottom:4px}'+
+    '.bhava-glossary-shell__heading{display:flex;align-items:center;gap:8px;color:#F6DC86;font-size:16px;font-weight:700;margin-bottom:10px}'+
+    '.bhava-glossary-shell__sub{font-size:12px;line-height:1.6;color:rgba(234,227,255,0.72);margin-bottom:12px}'+
+    '.bhava-glossary-shell__grid{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}'+
+    '.bhava-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:999px;border:1px solid rgba(139,92,246,0.34);background:rgba(139,92,246,0.12);color:rgba(237,231,255,0.92);font-size:12px;font-weight:600;cursor:pointer;transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease, color .2s ease}'+
+    '.bhava-pill:hover{transform:translateY(-1px);border-color:rgba(212,175,55,0.52)}'+
+    '.bhava-pill.is-active{border-color:rgba(244,208,63,0.95);background:linear-gradient(180deg, rgba(212,175,55,0.24), rgba(139,92,246,0.18));color:#FFF0BA;box-shadow:0 0 0 1px rgba(244,208,63,0.16), 0 0 18px rgba(244,208,63,0.22), 0 0 34px rgba(139,92,246,0.18);transform:translateY(-1px)}'+
+    '.bhava-pill__num{opacity:.78;font-size:11px}'+
+    '.bhava-pill__name{letter-spacing:.01em}'+
+    '.bhava-popup__close:hover{transform:scale(1.03);box-shadow:0 0 22px rgba(212,175,55,0.18)}'+
+    '@media (max-width: 640px){.bhava-popup{padding:14px}.bhava-popup__desc{padding-right:56px}.bhava-glossary-shell{padding:12px}.bhava-pill{font-size:11px;padding:6px 10px}}'+
+  '</style>'+
+  '<div id="'+bhavaGlossaryRootId+'" class="bhava-glossary-shell reveal reveal-delay-1">'+
+    '<div class="bhava-glossary-shell__title">12 Bhava</div>'+
+    '<div class="bhava-glossary-shell__heading">📚 12바바 전통명</div>'+
+    '<div class="bhava-glossary-shell__sub">탭하면 전통명, 결, 그리고 영적인 속뜻이 아래로 부드럽게 펼쳐집니다.</div>'+
+    '<div class="bhava-glossary-shell__grid">'+
+      Array.from({length:12},function(_,i){
+        var n=i+1;
+        var b=VEDA_BHAVA_DATA[n];
+        var isActive=n===active;
+        return '<button type="button" class="bhava-pill'+(isActive?' is-active':'')+'" aria-pressed="'+(isActive?'true':'false')+'" onclick="openBhavaMeaning('+n+')"><span class="bhava-pill__num">'+n+'.</span><span class="bhava-pill__name">'+hEsc(b?b.name:'Bhava')+'</span></button>';
+      }).join('')+
+      (active?renderBhavaMeaningPanel(active):'')+
+    '</div>'+
+  '</div>';
 }
 
 // ─── ASTRONOMY ENGINE ─────────────────────────────────────

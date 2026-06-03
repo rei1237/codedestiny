@@ -10212,6 +10212,127 @@ var ZW_SIHUA_COLOR={'화록':'#4ade80','화권':'#60a5fa','화과':'#c084fc','�
 var ZW_PALACE_ORDER=['명궁','형제궁','부처궁','자녀궁','재백궁','질액궁','천이궁','노복궁','관록궁','전택궁','복덕궁','부모궁'];
 var ZW_PALACE_ICON={'명궁':'👤','형제궁':'🤝','부처궁':'💑','자녀궁':'🌱','재백궁':'💰','질액궁':'❤️‍🩹','천이궁':'✈️','노복궁':'🌐','관록궁':'🏆','전택궁':'🏠','복덕궁':'✨','부모궁':'🙏'};
 
+var ZW_GUNG_CONTENT_RULES = {
+  palaces: {
+    '명궁': { inner: '나는 먼저 증명되어야 안전하다는 마음', outer: '표정·말투·결정 속도에 드러나 사람들의 신뢰와 기대를 만든다', shadow: '자기검열이 길어지면 우유부단이나 과한 방어로 보일 수 있다', gift: '기준이 선명해질수록 삶의 중심을 세우는 리더십이 된다' },
+    '형제궁': { inner: '비교와 연대의 감각이 함께 살아, 가까운 사람의 반응을 깊게 읽는다', outer: '동료·형제·친구와의 호흡, 협업 리듬, 도움 주고받는 방식으로 현실화된다', shadow: '비교심이 커지면 서운함을 오래 품게 된다', gift: '관계를 맺는 감각이 정확해질수록 든든한 지원망이 된다' },
+    '부부궁': { inner: '친밀함 속에서 사랑과 통제, 기대와 불안을 동시에 재는 자리', outer: '동반자의 말투·거리감·약속 이행으로 가장 선명하게 드러난다', shadow: '서로를 시험하는 습관은 애정이 아니라 피로를 만든다', gift: '관계를 현실적으로 조율할수록 오래 가는 결속이 생긴다' },
+    '자녀궁': { inner: '보호 본능과 창의 욕구가 함께 움직이며, 미래를 키우고 싶어 한다', outer: '자녀·후배·프로젝트·작품 같은 결과물의 성장 방식으로 나타난다', shadow: '기대치가 높아지면 사랑이 관리로 바뀔 수 있다', gift: '키워내는 힘이 살아날수록 결과가 스스로 자란다' },
+    '재백궁': { inner: '돈을 통해 안정감을 확인하려는 감각과 누수에 대한 예민함', outer: '수입 구조, 지출 습관, 회수력, 정산 리듬으로 드러난다', shadow: '불안한 마음이 충동 소비나 과속 투자로 번질 수 있다', gift: '관리와 반복이 정교해질수록 재물의 그릇이 커진다' },
+    '질액궁': { inner: '몸의 신호를 무시하지 못하는 예민한 감각이 깊다', outer: '피로, 수면, 소화, 스트레스 반응 같은 생활 신호로 현실화된다', shadow: '참는 습관이 누적되면 몸이 먼저 경고를 보낸다', gift: '리듬을 잘 맞추면 회복력과 체감 에너지가 빨라진다' },
+    '천이궁': { inner: '낯선 곳에서 더 넓어지고 싶어 하는 이동 본능', outer: '이직·출장·여행·대외활동처럼 환경이 바뀔 때 운이 움직인다', shadow: '익숙함에 오래 묶이면 기운이 답답해진다', gift: '밖으로 나가 맥락을 바꾸면 기회가 열린다' },
+    '교우궁': { inner: '사람을 통해 길이 열릴지 막힐지 본능적으로 가늠한다', outer: '인맥·팀워크·커뮤니티의 밀도와 신뢰도에서 드러난다', shadow: '관계의 온도를 잘못 읽으면 기대와 실망이 반복된다', gift: '맞는 사람을 정확히 고르면 협업이 큰 힘이 된다' },
+    '관록궁': { inner: '역할과 성취를 통해 존재를 증명하고 싶은 마음', outer: '직업, 직함, 책임 범위, 성과 기준으로 가장 잘 보인다', shadow: '성과 압박이 커지면 일에 자신을 너무 묶을 수 있다', gift: '기준과 권한이 맞아떨어질수록 영향력이 커진다' },
+    '전택궁': { inner: '기반과 소유를 통해 삶의 안정감을 확보하려는 감각', outer: '집, 부동산, 생활 반경, 거주 리듬, 자산 배치로 드러난다', shadow: '안정 욕구가 과하면 변화 타이밍을 놓칠 수 있다', gift: '기반을 잘 설계하면 장기 운의 버팀목이 된다' },
+    '복덕궁': { inner: '혼자 있을 때의 마음 상태가 운의 질을 좌우한다는 감각', outer: '휴식 방식, 취향, 회복력, 생각의 결로 드러난다', shadow: '머릿속이 과열되면 편안함이 아니라 고립이 된다', gift: '고요를 잘 쓰면 삶 전체의 리듬이 복원된다' },
+    '부모궁': { inner: '윗사람과 기준, 규칙, 배경의 힘을 의식하는 자리', outer: '부모·상사·문서·자격·제도와의 관계에서 현실화된다', shadow: '기준을 내면화하지 못하면 타인의 시선에 지나치게 흔들린다', gift: '기준을 내 편으로 만들면 보호와 신뢰를 동시에 얻는다' }
+  },
+  stars: {
+    '자미': { complex: '모두를 정렬하려다 스스로도 단단해야 한다는 압박', weapon: '사람과 일을 한 자리에 모아 질서를 세우는 통솔력', shadow: '권위가 과해지면 거리감이 생긴다', example: '조직의 기준을 세우거나 흐트러진 팀을 정비하는 장면' },
+    '천기': { complex: '생각이 너무 많아 확신이 늦어지는 불안', weapon: '변수를 읽고 우회로를 찾는 설계력', shadow: '계속 시뮬레이션만 하다가 실행이 늦어질 수 있다', example: '복잡한 조건 속에서 가장 안전한 경로를 먼저 찾는 장면' },
+    '태양': { complex: '보이고 인정받아야 힘이 난다는 내적 긴장', weapon: '대의와 공개성으로 사람을 밝히는 추진력', shadow: '과한 발산은 소진으로 이어질 수 있다', example: '공개 발표, 리딩, 대외 협상처럼 전면에 설 때' },
+    '무곡': { complex: '성과가 숫자로 증명되지 않으면 불안한 감각', weapon: '돈과 실적을 단단히 잡는 수금력과 실행력', shadow: '너무 딱딱해지면 관계가 마른다', example: '정산, 수익 관리, 성과 기준을 세우는 장면' },
+    '천동': { complex: '편안함이 깨질까 봐 스스로 속도를 낮추는 경향', weapon: '사람을 부드럽게 묶는 회복력과 친화력', shadow: '안주가 길어지면 흐름을 놓칠 수 있다', example: '갈등을 누그러뜨리고 분위기를 복원하는 장면' },
+    '염정': { complex: '통제하지 않으면 흔들릴 것 같은 긴장', weapon: '경계와 매력을 동시에 쓰는 주도력', shadow: '감정이 끓으면 관계가 급격히 과열될 수 있다', example: '선 긋기, 협상, 매력과 원칙을 함께 쓰는 상황' },
+    '천부': { complex: '모든 것을 품다 보니 속도가 느려지는 부담', weapon: '축적·저장·안정의 금고 역할', shadow: '쌓기만 하고 흐름을 못 돌리면 답답해진다', example: '자원과 정보를 모아 큰 판을 준비하는 장면' },
+    '태음': { complex: '감정을 오래 숙성시키는 내면의 무게', weapon: '감수성과 기억력을 자산으로 바꾸는 힘', shadow: '과거의 기분이 현재 판단을 흐릴 수 있다', example: '세심한 감정 읽기, 기록, 콘텐츠 감성 설계' },
+    '탐랑': { complex: '욕망이 많아 방향이 흐려질까 걱정하는 마음', weapon: '사람과 기회를 끌어당기는 매력과 확장성', shadow: '재미만 좇으면 산만해질 수 있다', example: '영업, 기획, 퍼포먼스, 만남의 판을 넓히는 장면' },
+    '거문': { complex: '오해받지 않기 위해 더 파고들고, 빈틈을 놓치지 않으려는 의심', weapon: '숨은 맥락을 읽어 진실을 언어와 문서로 꺼내는 통찰', shadow: '말이 날카로워지면 관계를 끊고 스스로를 고립시킬 수 있다', example: '회의, 계약, 상담, 조사처럼 말과 기록이 결과를 바꾸는 장면' },
+    '천상': { complex: '공정해야 한다는 기준 때문에 자신을 늦추는 긴장', weapon: '조율과 중재, 관계의 균형을 잡는 감각', shadow: '모두를 맞추다 보면 내 욕구가 밀릴 수 있다', example: '갈등 조정, 품질 관리, 역할 분담을 정돈하는 장면' },
+    '천량': { complex: '책임을 떠안아야 안심되는 무게', weapon: '보호·감리·기준 수립으로 길을 지키는 힘', shadow: '과보호나 과잉 책임은 숨을 막을 수 있다', example: '감사, 코칭, 관리, 기준 설정이 필요한 장면' },
+    '칠살': { complex: '멈추면 약해질 것 같은 긴장과 압박', weapon: '위기에서 결단하고 돌파하는 전투력', shadow: '속도가 과하면 충돌이 커진다', example: '위기 대응, 단기 승부, 과감한 전환이 필요한 장면' },
+    '파군': { complex: '낡은 구조를 못 견디는 불안', weapon: '깨고 다시 짓는 혁신과 재편의 힘', shadow: '무너뜨리기만 하고 수습이 늦을 수 있다', example: '재구성, 리셋, 새로운 판을 짜는 장면' }
+  }
+};
+
+function zwBuildPalaceBrief(pName) {
+  var rule = ZW_GUNG_CONTENT_RULES.palaces[pName];
+  var base = ZW_GUNG_BRIEF[pName] || ZW_GUNG_DEF[pName] || '해당 궁의 흐름을 확인하세요.';
+  if (!rule) return base;
+  return base + ' 무의식에서는 ' + rule.inner + '. 현실에서는 ' + rule.outer + '. 그림자는 ' + rule.shadow + '. 잘 쓰이면 ' + rule.gift + '.';
+}
+
+function zwBuildStarBrief(starName) {
+  if (!starName) return '주도 주성이 비어 있어, 이 궁은 사화와 대궁의 결을 함께 읽어야 합니다.';
+  var rule = ZW_GUNG_CONTENT_RULES.stars[starName];
+  var kw = ZW_STAR_KW[starName] || starName;
+  if (!rule) return '핵심 별 ' + kw + '는 ' + kw + '의 테마가 사건의 중심축이 됩니다.';
+  return '핵심 컴플렉스: ' + rule.complex + '. 최고의 무기: ' + rule.weapon + '. 현실 장면: ' + rule.example + '.';
+}
+
+function zwBuildSihuaBrief(curSihua, hasHwagi, hasHwarok, hasHwakwon, hasHwakwa) {
+  if (curSihua.length) {
+    var lines = curSihua.map(function(s){ return s.star + ' ' + s.type; }).join(' · ');
+    var pressureLine = hasHwagi
+      ? '화기가 닿는 순간은 일정이 빡빡해지고, 말과 기록의 작은 틈이 바로 압박으로 번지면서 마음이 조급해집니다.'
+      : '화록·화권·화과가 닿는 순간은 사람, 문서, 기회가 이 궁으로 모이게 하여 결과를 키웁니다.';
+    var outcomeLine = hasHwagi
+      ? '감정이 올라온 상태에서 결론을 내리면 수정 비용이 커집니다.'
+      : '준비된 자료와 명확한 역할이 있을수록 운이 현실 성과로 빨리 바뀝니다.';
+    return '<b>사화법:</b> ' + lines + '이 이 궁의 공기와 압력을 바꿉니다. ' + pressureLine + ' ' + outcomeLine;
+  }
+  return '<b>사화법:</b> 이 궁에는 강한 사화 직접 작용이 약해 보이지만, 실제로는 반복되는 말투·기록·루틴이 운의 표정을 바꿉니다. 외부 충격보다 내부 습관이 결과를 결정하므로, 흐름이 좋을수록 정리와 점검이 더 중요합니다.';
+}
+
+function zwBuildDahanCoreText(mainSt) {
+  if (!mainSt || !mainSt.length) {
+    return '<b>공궁법:</b> 공궁 대한은 대궁과 환경 변수의 영향이 크므로, 고정된 천기보다 상황 대응력이 성패를 가릅니다.';
+  }
+  var coreMain = mainSt.slice(0, 2).join(' · ');
+  var coreKw = ZW_STAR_KW[mainSt[0]] || mainSt[0];
+  return '<b>주성법:</b> ' + coreMain + ' 중심 대한은 이 궁의 무의식과 현실을 같은 방향으로 묶습니다. <b>' + coreKw + '</b> 테마가 사건의 표면에 드러나는 동시에, 그 별이 품은 긴장과 욕망까지 함께 움직여 선택의 속도를 바꿉니다.';
+}
+
+function zwBuildDahanOutcomeText(kind, mainStar, starRule, hasHwagi, hasHwarok, hasHwakwon, hasHwakwa, curGoodAux, badSt) {
+  var starName = mainStar || '';
+  if (kind === 'good') {
+    if (hasHwarok || hasHwakwa || curGoodAux.length > 0) {
+      if (starName === '거문') {
+        return '거문이 록·권·과를 만나면, 말을 잘하는 차원을 넘어 질문과 기록이 사람을 모으는 무기가 됩니다. 상담·강의·법무·에디팅·리서치처럼 "정리해서 설득하는 일"에서 실적이 가장 먼저 붙습니다.';
+      }
+      if (starRule) {
+        return starName + '이(가) 록·권·과를 받으면, ' + starRule.weapon + '가 단순한 재능이 아니라 실제 성과와 평판으로 이어집니다. ' + starRule.example + ' 같은 장면에서 운이 선명하게 체감됩니다.';
+      }
+      return '귀인·명예·성과 회수 흐름이 살아납니다. 문서, 평판, 추천 네트워크를 활용하면 실익 전환이 빠릅니다.';
+    }
+    if (hasHwakwon || starName) {
+      if (starName === '거문') {
+        return '거문 독좌는 혼자 파고드는 힘이 강해, 남들이 넘긴 빈칸과 모순을 찾아 결과물을 정교하게 만듭니다. 회의록 한 줄, 검토 메모 한 장이 관계와 계약을 살릴 수 있습니다.';
+      }
+      if (starRule) {
+        return starName + ' 독좌는 ' + starRule.complex + '이 안정적으로 다뤄질 때 강합니다. 주변이 흔들려도 ' + starRule.weapon + '를 현실 문제 해결로 연결하면 주도권이 생깁니다.';
+      }
+      return '주도권을 잡을수록 운이 열립니다. 우선순위를 한 축으로 모으면 결과가 빨라집니다.';
+    }
+    return '변화 적응력 자체가 장점입니다. 유연한 선택과 타이밍 조절이 복을 키웁니다.';
+  }
+  if (kind === 'caution') {
+    if (hasHwagi || badSt.length > 0) {
+      if (starName === '거문') {
+        return '거문의 그림자가 올라오면, 말 한마디가 너무 날카로워져 상대를 밀어내고 스스로도 고립되기 쉽습니다. 확인되지 않은 추측을 단정처럼 던지거나, 침묵으로 버티다 타이밍을 놓치는 패턴을 조심하세요.';
+      }
+      if (starRule) {
+        return starName + '의 그림자 ' + starRule.complex + '가 과열되면, 사람과 사건을 지나치게 경계하게 됩니다. 의심과 방어를 사실 확인보다 먼저 세우면, 기회보다 피로가 먼저 쌓입니다.';
+      }
+      return '화기/흉성 영향으로 말실수·계약 누락·과속 결정에서 손실이 나기 쉽습니다. 감정적 결단과 무리한 확장은 금물입니다.';
+    }
+    return '큰 흉의 압박은 약하지만, 방심으로 인한 루틴 붕괴가 기회를 놓치게 만듭니다. 꾸준함을 유지하세요.';
+  }
+  if (hasHwagi) {
+    return starName
+      ? '중요 계약은 2중 검토, 금전은 분할 집행, 인간관계는 "기록+확인" 원칙으로 운 손실을 줄이세요. 특히 ' + starName + '이 강한 궁은 말로 끝낸 합의보다 메모와 정리된 문장이 훨씬 오래 갑니다.'
+      : '중요 계약은 2중 검토, 금전은 분할 집행, 인간관계는 "기록+확인" 원칙으로 운 손실을 줄이세요.';
+  }
+  if (hasHwarok || hasHwakwon || hasHwakwa) {
+    return starName
+      ? '이번 대한에서는 ' + (starRule ? starRule.example : '핵심 장면') + ' 같은 현장을 의식적으로 잡아, 한 번 정리한 내용을 문서·발표·정산으로 끝까지 남기세요. 운은 움직이기보다 "형태를 남길 때" 더 크게 붙습니다.'
+      : '이번 대한의 키워드를 한 가지 목표로 수렴해 실행하면 체감 성과가 크게 납니다.';
+  }
+  return starName
+    ? '월 단위 체크포인트를 정해 작은 성취를 누적하면 후반 운세가 안정적으로 상승합니다. ' + starName + '은(는) 생각이 많아질수록 흔들리므로, 오늘 할 일 1개와 확인할 일 1개만 적어도 흐름이 좋아집니다.'
+    : '월 단위 체크포인트를 정해 작은 성취를 누적하면 후반 운세가 안정적으로 상승합니다.';
+}
+
 /* 12궁 요약 테이블 HTML 문자열 생성 (팝업·하단 패널 공용) */
 function buildZwSummaryTableHtml(palace) {
   if(!palace) return '';
@@ -16101,16 +16222,17 @@ function renderZiwei(p, natal, targetId) {
         var stHtml = mainCleanMeta.length
           ? '<span style="color:#FFD700;font-weight:900;">' + mainCleanMeta.map(function(m){ return fmtStrength(m.name, ZHI_LIST[idx], m.isBorrowed) + (m.isBorrowed ? ' <span style="color:#facc15;font-size:0.74rem">(차성)</span>' : ''); }).join(' · ') + '</span>'
           : '<span style="color:#888;font-style:italic">공궁(空宮)</span>';
+        var starBrief = zwBuildStarBrief(mainSt[0]);
         var auxJoin = auxClean.length ? fmtListWithStrength(auxClean, ZHI_LIST[idx], false) : '없음';
         var badJoin = badClean.length ? fmtListWithStrength(badClean, ZHI_LIST[idx], false) : '없음';
-        var palaceBrief = ZW_GUNG_BRIEF[pName] || ZW_GUNG_DEF[pName] || '해당 궁의 흐름을 확인하세요.';
+        var palaceBrief = zwBuildPalaceBrief(pName);
 
         var sec1 = '<div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 20px;">' +
           '<h2 style="color: #D8B4FE; font-size: 1.2rem; margin-top: 0;">🗺️ [당신을 비추는 별의 지도]</h2>' +
           '<ul style="line-height: 1.85; margin: 0; padding-left: 20px; font-size:0.9rem;">' +
             '<li><b>조회 궁위:</b> ' + dTitle + '</li>' +
             '<li><b>궁위 해석 초점:</b> ' + palaceBrief + '</li>' +
-            '<li><b>주도 주성:</b> ' + stHtml + '</li>' +
+            '<li><b>주도 주성:</b> ' + stHtml + '<div style="margin-top:6px;color:#dbe4ff;font-size:0.84rem;line-height:1.6;">' + starBrief + '</div></li>' +
             '<li><b>차성 적용 여부:</b> ' + (borrowedMain.length ? ('적용 ('+borrowedMain.join(' · ')+')') : '미적용 (원성 중심)') + '</li>' +
             '<li><b>길성/흉성 분포:</b> ' + auxJoin + ' / ' + badJoin + '</li>' +
           '</ul>' +
@@ -16139,42 +16261,35 @@ function renderZiwei(p, natal, targetId) {
         var goodAuxStars = ['천괴','천월','좌보','우필','문창','문곡','녹존','천마'];
         var curGoodAux = auxSt.filter(function(s){ return goodAuxStars.indexOf(s) >= 0; });
 
-        var coreLaw = '';
-        if (mainSt.length > 0) {
-          var coreMain = mainSt.slice(0, 2).join(' · ');
-          var coreKw = ZW_STAR_KW[mainSt[0]] || mainSt[0];
-          coreLaw = '<b>주성법:</b> ' + coreMain + ' 중심 대한으로, <b>' + coreKw + '</b> 테마가 사건의 중심축이 됩니다.';
-        } else {
-          coreLaw = '<b>공궁법:</b> 공궁 대한은 대궁/환경 변수의 영향이 크므로, 고정 천기보다 상황 대응력이 성패를 가릅니다.';
-        }
+        var mainStar = mainSt[0] || '';
+        var starRule = ZW_GUNG_CONTENT_RULES.stars[mainStar] || null;
+        var coreLaw = zwBuildDahanCoreText(mainSt);
 
-        var sihuaText = curSihua.length
-          ? '<b>사화법:</b> ' + curSihua.map(function(s){ return s.star + ' ' + s.type; }).join(' · ')
-          : '<b>사화법:</b> 이 궁에는 강한 사화 직접 작용이 약해 기본기와 루틴이 성과를 좌우합니다.';
+        var sihuaText = zwBuildSihuaBrief(curSihua, hasHwagi, hasHwarok, hasHwakwon, hasHwakwa);
 
         var goodPoint = '';
         if (hasHwarok || hasHwakwa || curGoodAux.length > 0) {
-          goodPoint = '귀인·명예·성과 회수 흐름이 살아납니다. 문서/평판/추천 네트워크를 활용하면 실익 전환이 빠릅니다.';
+          goodPoint = zwBuildDahanOutcomeText('good', mainStar, starRule, hasHwagi, hasHwarok, hasHwakwon, hasHwakwa, curGoodAux, badSt);
         } else if (hasHwakwon || mainSt.length > 0) {
-          goodPoint = '주도권을 잡을수록 운이 열립니다. 우선순위를 명확히 두고 한 축을 깊게 밀면 결과가 납니다.';
+          goodPoint = zwBuildDahanOutcomeText('good', mainStar, starRule, hasHwagi, hasHwarok, hasHwakwon, hasHwakwa, curGoodAux, badSt);
         } else {
-          goodPoint = '변화 적응력 자체가 장점입니다. 유연한 선택과 타이밍 조절이 복을 키웁니다.';
+          goodPoint = zwBuildDahanOutcomeText('good', mainStar, starRule, hasHwagi, hasHwarok, hasHwakwon, hasHwakwa, curGoodAux, badSt);
         }
 
         var cautionPoint = '';
         if (hasHwagi || badSt.length > 0) {
-          cautionPoint = '화기/흉성 영향으로 말실수·계약 누락·과속 결정에서 손실이 나기 쉽습니다. 감정적 결단과 무리한 확장은 금물입니다.';
+          cautionPoint = zwBuildDahanOutcomeText('caution', mainStar, starRule, hasHwagi, hasHwarok, hasHwakwon, hasHwakwa, curGoodAux, badSt);
         } else {
-          cautionPoint = '큰 흉의 압박은 약하지만, 방심으로 인한 루틴 붕괴가 기회를 놓치게 만듭니다. 꾸준함을 유지하세요.';
+          cautionPoint = zwBuildDahanOutcomeText('caution', mainStar, starRule, hasHwagi, hasHwarok, hasHwakwon, hasHwakwa, curGoodAux, badSt);
         }
 
         var actionTip = '';
         if (hasHwagi) {
-          actionTip = '중요 계약은 2중 검토, 금전은 분할 집행, 인간관계는 "기록+확인" 원칙으로 운 손실을 줄이세요.';
+          actionTip = zwBuildDahanOutcomeText('action', mainStar, starRule, hasHwagi, hasHwarok, hasHwakwon, hasHwakwa, curGoodAux, badSt);
         } else if (hasHwarok || hasHwakwon || hasHwakwa) {
-          actionTip = '이번 대한의 키워드(재물·권한·명예)를 한 가지 목표로 수렴해 실행하면 체감 성과가 크게 납니다.';
+          actionTip = zwBuildDahanOutcomeText('action', mainStar, starRule, hasHwagi, hasHwarok, hasHwakwon, hasHwakwa, curGoodAux, badSt);
         } else {
-          actionTip = '월 단위 체크포인트를 정해 작은 성취를 누적하면 후반 운세가 안정적으로 상승합니다.';
+          actionTip = zwBuildDahanOutcomeText('action', mainStar, starRule, hasHwagi, hasHwarok, hasHwakwon, hasHwakwa, curGoodAux, badSt);
         }
 
         // Persona는 클릭 궁이 아닌 명반 전체(12궁) 집계로 고정 산출한다.
@@ -20969,11 +21084,67 @@ function toggleYear(el, event){
 /* ══════════════════════════════════════════
    📈 인생 길흉 그래프
 ══════════════════════════════════════════ */
+var _dwLifeGraphResizeObserver = null;
+var _dwLifeGraphRetryTimer = 0;
+
+function _dwStopLifeGraphRefreshWatch() {
+  if (_dwLifeGraphResizeObserver) {
+    try { _dwLifeGraphResizeObserver.disconnect(); } catch (e) {}
+    _dwLifeGraphResizeObserver = null;
+  }
+  if (_dwLifeGraphRetryTimer) {
+    clearTimeout(_dwLifeGraphRetryTimer);
+    _dwLifeGraphRetryTimer = 0;
+  }
+}
+
+function _dwWatchLifeGraphRefresh(bazi) {
+  var wrap = document.getElementById('lifeGraphWrap');
+  if (!wrap) return;
+
+  _dwStopLifeGraphRefreshWatch();
+
+  var tries = 0;
+  var attemptRender = function() {
+    var rect = wrap.getBoundingClientRect ? wrap.getBoundingClientRect() : null;
+    var ready = !!(rect && rect.width > 120 && rect.height > 120 && wrap.offsetParent !== null);
+    if (ready) {
+      _dwStopLifeGraphRefreshWatch();
+      renderLifeGraph(bazi);
+      return;
+    }
+    if (tries >= 24) return;
+    tries += 1;
+    _dwLifeGraphRetryTimer = setTimeout(attemptRender, 120);
+  };
+
+  if (typeof ResizeObserver !== 'undefined') {
+    _dwLifeGraphResizeObserver = new ResizeObserver(function() {
+      var rect = wrap.getBoundingClientRect ? wrap.getBoundingClientRect() : null;
+      if (rect && rect.width > 120 && rect.height > 120 && wrap.offsetParent !== null) {
+        _dwStopLifeGraphRefreshWatch();
+        renderLifeGraph(bazi);
+      }
+    });
+    _dwLifeGraphResizeObserver.observe(wrap);
+  }
+
+  _dwLifeGraphRetryTimer = setTimeout(attemptRender, 120);
+}
+
 function renderLifeGraph(bazi){
   var canvas=document.getElementById('lifeGraphCanvas');
-  if(!canvas)return;
   var wrap=document.getElementById('lifeGraphWrap');
-  var W=wrap?Math.max(wrap.clientWidth-20, 320):340;
+  if(!canvas||!wrap)return;
+  var rect = wrap.getBoundingClientRect ? wrap.getBoundingClientRect() : null;
+  if(!rect||rect.width<120||rect.height<120||wrap.offsetParent===null){
+    _dwWatchLifeGraphRefresh(bazi);
+    return;
+  }
+
+  _dwStopLifeGraphRefreshWatch();
+
+  var W=Math.max((rect.width||wrap.clientWidth||340)-20, 320);
   canvas.width=W;canvas.height=180;
   var ctx=canvas.getContext('2d');
   ctx.clearRect(0,0,W,180);

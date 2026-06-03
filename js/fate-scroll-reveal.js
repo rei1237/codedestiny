@@ -76,6 +76,8 @@
   var resultPageObserver = null;
   var visibilityObserver = null;
   var loadingObserver = null;
+  var indicatorRefreshQueued = false;
+  var indicatorLayoutBound = false;
 
   function isResultVisible() {
     var rp = document.getElementById('resultPage');
@@ -120,6 +122,71 @@
     if (currentSection) {
       indicatorEl.classList.add('fate-scroll-next-visible');
     }
+  }
+
+  function resolveCurrentSection(allSections) {
+    var all = Array.isArray(allSections) ? allSections : getSections().filter(isDisplayed);
+    if (!all.length) return null;
+
+    var anchorY = Math.max(120, Math.round(window.innerHeight * 0.35));
+    var current = null;
+
+    for (var i = 0; i < all.length; i++) {
+      var sectionEl = all[i];
+      if (!sectionEl || !sectionEl.getBoundingClientRect) continue;
+      var rect = sectionEl.getBoundingClientRect();
+      if (!rect || rect.width <= 0 || rect.height <= 0) continue;
+      if (rect.bottom < 0 || rect.top > window.innerHeight) continue;
+      if (rect.top <= anchorY) {
+        current = sectionEl;
+        continue;
+      }
+      if (!current) current = sectionEl;
+      break;
+    }
+
+    return current || all[0] || null;
+  }
+
+  function updateIndicatorState() {
+    indicatorRefreshQueued = false;
+    if (!indicatorEl) return;
+    if (!shouldShowIndicator()) {
+      hideIndicator();
+      return;
+    }
+
+    var all = getSections().filter(isDisplayed);
+    var resolved = resolveCurrentSection(all);
+    currentSection = resolved;
+    if (!resolved) {
+      hideIndicator();
+      return;
+    }
+
+    var idx = all.indexOf(resolved);
+    if (idx === -1) {
+      hideIndicator();
+      return;
+    }
+
+    if (idx < all.length - 1) {
+      var nextEl = all[idx + 1];
+      if (!nextEl) return;
+      setIndicatorArrow(false);
+      setIndicatorText('\uB2E4\uC74C: ' + getSectionTitle(nextEl) + ' (' + (idx + 2) + '/' + all.length + ')');
+    } else {
+      setIndicatorArrow(true);
+      setIndicatorText('\uB9E8 \uC704\uB85C \uAC00\uAE30');
+    }
+
+    updateIndicatorVisibility();
+  }
+
+  function scheduleIndicatorUpdate() {
+    if (indicatorRefreshQueued) return;
+    indicatorRefreshQueued = true;
+    requestAnimationFrame(updateIndicatorState);
   }
 
   function setIndicatorArrow(isToTop) {
@@ -211,38 +278,23 @@
     if (!ENABLE_SCROLL_INDICATOR) return;
     if (!('IntersectionObserver' in window)) return;
     try {
-      sectionObserver = new IntersectionObserver(function (entries) {
-        if (!shouldShowIndicator()) {
-          hideIndicator();
-          return;
-        }
-        entries.forEach(function (entry) {
-          if (!entry.isIntersecting || !entry.target) return;
-          currentSection = entry.target;
-          var all = getSections().filter(isDisplayed);
-          var idx = all.indexOf(currentSection);
-          var hasNext = idx !== -1 && idx < all.length - 1;
-          if (!indicatorEl) return;
-          if (hasNext) {
-            var nextEl   = all[idx + 1];
-            if(!nextEl) return;
-            var titleTxt = getSectionTitle(nextEl);
-            setIndicatorArrow(false);
-            setIndicatorText('다음: ' + titleTxt + ' (' + (idx + 2) + '/' + all.length + ')');
-          } else {
-            setIndicatorArrow(true);
-            setIndicatorText('맨 위로 가기');
-          }
-          updateIndicatorVisibility();
-        });
+      sectionObserver = new IntersectionObserver(function () {
+        scheduleIndicatorUpdate();
       }, {
         rootMargin: '-22% 0px -22% 0px',
         threshold: 0
       });
 
+      if (!indicatorLayoutBound) {
+        indicatorLayoutBound = true;
+        window.addEventListener('scroll', scheduleIndicatorUpdate, { passive: true });
+        window.addEventListener('resize', scheduleIndicatorUpdate, { passive: true });
+      }
+
       getSections().filter(isDisplayed).forEach(function (el) {
         if(el) sectionObserver.observe(el);
       });
+      scheduleIndicatorUpdate();
     } catch(e) {
       console.error('[sectionObserver] fail:', e);
     }
@@ -274,6 +326,7 @@
             revealObserver.observe(sec);
           });
         }
+        scheduleIndicatorUpdate();
       });
     });
     lateRevealObserver.observe(rp, { subtree: true, childList: true, attributes: true, attributeFilter: ['style', 'class'] });
@@ -299,7 +352,7 @@
         initReveal();
         initSectionTracker();
         watchLateReveal();
-        updateIndicatorVisibility();
+        scheduleIndicatorUpdate();
       });
     });
   }
