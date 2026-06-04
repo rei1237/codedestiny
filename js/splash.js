@@ -3,6 +3,9 @@
   var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var MIN_VISIBLE_MS = isMobile ? (prefersReduced ? 180 : 360) : (prefersReduced ? 450 : 1800);
   var MAX_VISIBLE_MS = isMobile ? 2500 : 5000;
+  var STABLE_READY_TIMEOUT_MS = 4500;
+  var STABLE_FRAME_GUARD_COUNT = 3;
+  var MAIN_SPLASH_SESSION_KEY = '__cd_main_splash_seen';
 
   var splashTemplate = null;
   var splashParent = null;
@@ -17,6 +20,22 @@
   var msgIdx = 0;
   var splashStarted = false;
 
+  function hasMainSplashBeenSeenThisSession() {
+    if (typeof sessionStorage === 'undefined') return false;
+    try {
+      return sessionStorage.getItem(MAIN_SPLASH_SESSION_KEY) === '1';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function setMainSplashSeenThisSession() {
+    if (typeof sessionStorage === 'undefined') return;
+    try {
+      sessionStorage.setItem(MAIN_SPLASH_SESSION_KEY, '1');
+    } catch (_) {}
+  }
+
   var msgs = [
     '운명의 정렬을 계산 중입니다.',
     '별자리가 지금의 길을 정돈하고 있습니다.',
@@ -25,6 +44,70 @@
     '부드러운 전환으로 다음 화면으로 이동합니다.',
     '서비스 화면 진입 중입니다. 잠시만요...'
   ];
+
+  function isMainServiceLoadRoute() {
+    var path = (window.location && window.location.pathname ? window.location.pathname : '/').replace(/\/+$/, '');
+    if (!path || path === '/' || path === '') return true;
+    if (path === '/index.html') return true;
+    if (/^\/(?:en|ja|zh)(?:\/|\/index\.html)?$/.test(path)) return true;
+    return false;
+  }
+
+  function isHistoryRestoreNavigation() {
+    try {
+      if (window.performance && typeof window.performance.getEntriesByType === 'function') {
+        var navs = window.performance.getEntriesByType('navigation');
+        if (navs && navs.length && navs[0].type === 'back_forward') {
+          return true;
+        }
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  function waitAnimationFrames(count, callback) {
+    var current = 0;
+    (function tick() {
+      if (current >= count) {
+        callback();
+        return;
+      }
+      current += 1;
+      requestAnimationFrame(tick);
+    })();
+  }
+
+  function waitForStableDomAndCss(callback) {
+    var settled = false;
+    var done = function () {
+      if (settled) return;
+      settled = true;
+      callback();
+    };
+
+    var fallback = setTimeout(done, STABLE_READY_TIMEOUT_MS);
+
+    var loadPromise = new Promise(function (resolve) {
+      if (document.readyState === 'complete') {
+        resolve();
+        return;
+      }
+      window.addEventListener('load', resolve, { once: true });
+    });
+
+    var fontPromise = window.document && window.document.fonts && window.document.fonts.ready
+      ? window.document.fonts.ready.catch(function () { return null; })
+      : Promise.resolve();
+
+    Promise.all([loadPromise, fontPromise]).then(function () {
+      if (settled) return;
+      waitAnimationFrames(STABLE_FRAME_GUARD_COUNT, done);
+    }).catch(done);
+
+    return function () {
+      clearTimeout(fallback);
+    };
+  }
 
   var initSplash = document.getElementById('codeSplash');
   if (initSplash) {
@@ -235,7 +318,9 @@
 
     splash.style.display = 'flex';
     splash.removeAttribute('aria-hidden');
-    scheduleHideSplash(activeSession, options.minMs, options.maxMs);
+    if (options.autoHide !== false) {
+      scheduleHideSplash(activeSession, options.minMs, options.maxMs);
+    }
     return true;
   }
 
@@ -258,25 +343,28 @@
   window.__cdShowServiceSplash = showFeatureSplash;
   window.__cdHideServiceSplash = hideSplashNow;
 
-  if (isMobile) {
+  if (isMainServiceLoadRoute() && !isHistoryRestoreNavigation() && !hasMainSplashBeenSeenThisSession()) {
+    var shown = showSplash(msgs[0], {
+      forceMobile: true,
+      autoHide: false,
+      minMs: MIN_VISIBLE_MS,
+      maxMs: MAX_VISIBLE_MS
+    });
+    if (shown) {
+      setMainSplashSeenThisSession();
+      waitForStableDomAndCss(function () {
+        scheduleHideSplash(activeSession, MIN_VISIBLE_MS, MAX_VISIBLE_MS);
+      });
+    }
+  } else {
     var mobileSplash = getNodes().splash;
     if (mobileSplash) {
       mobileSplash.style.display = 'none';
     }
-  } else {
-    showSplash(msgs[0], { minMs: MIN_VISIBLE_MS, maxMs: MAX_VISIBLE_MS });
-
-    if (document.readyState === 'complete') {
-      scheduleHideSplash(activeSession, MIN_VISIBLE_MS, MAX_VISIBLE_MS);
-    } else {
-      window.addEventListener('load', function () {
-        scheduleHideSplash(activeSession, MIN_VISIBLE_MS, MAX_VISIBLE_MS);
-      }, { once: true });
-    }
   }
 
   window.addEventListener('pageshow', function () {
-    if (!isMobile) scheduleHideSplash(activeSession, MIN_VISIBLE_MS, MAX_VISIBLE_MS);
+    if (!splashStarted) return;
+    scheduleHideSplash(activeSession, MIN_VISIBLE_MS, MAX_VISIBLE_MS);
   }, { once: true });
 })();
-
