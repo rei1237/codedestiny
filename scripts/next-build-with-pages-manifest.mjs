@@ -71,6 +71,14 @@ function ensurePagesManifest() {
   }
 }
 
+function seedEmptyPagesManifest() {
+  if (existsSync(manifestPath)) return;
+  mkdirSync(dirname(manifestPath), { recursive: true });
+  writeFileSync(manifestPath, "{}\n", "utf8");
+}
+
+seedEmptyPagesManifest();
+
 const timer = setInterval(ensurePagesManifest, 100);
 const child = spawn(process.execPath, [nextCli, "build"], {
   cwd: rootDir,

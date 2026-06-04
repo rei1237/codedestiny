@@ -170,6 +170,7 @@ export function getPortOnePublicConfig(env) {
   const config = getPortOneConfig(env);
   const storeId = config.portoneStoreId;
   const channelKey = config.portoneChannelKey;
+  const serverVerificationConfigured = Boolean(config.portoneApiSecret);
   return {
     provider: "portone-v2",
     pg: "kg-inicis",
@@ -177,7 +178,8 @@ export function getPortOnePublicConfig(env) {
     channelKey,
     currency: "CURRENCY_KRW",
     payMethod: "CARD",
-    configured: config.configured,
+    configured: Boolean(storeId && channelKey && serverVerificationConfigured),
+    serverVerificationConfigured,
   };
 }
 
