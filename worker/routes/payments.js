@@ -13,7 +13,14 @@ import {
   User,
 } from "../lib/models.js";
 import { requireAuth } from "../lib/auth.js";
-import { cancelPortOnePayment, fetchPortOnePayment, getPortOnePublicConfig, getPortOneWebhookSecret } from "../lib/portone.js";
+import {
+  cancelPortOnePayment,
+  fetchPortOnePayment,
+  getPortOneConfig,
+  getPortOnePublicConfig,
+  getPortOneWebhookSecret,
+  getPortOneWebhookUrl,
+} from "../lib/portone.js";
 import { resolveChargePointsByAmount, validatePointChargePayload } from "../lib/validation.js";
 import { getEnv } from "../lib/env.js";
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
@@ -3224,12 +3231,15 @@ async function handleSubscriptionPrepare(request, auth) {
       },
     });
   } catch (error) {
-    if (Number(error?.code) !== 11000 || !idempotencyKey) throw error;
+    if (Number(error?.code) !== 11000) throw error;
 
     const existing = await Payment.findOne({
       userId: auth.userId,
-      idempotencyKey,
       paymentType: "membership_pass",
+      $or: [
+        { merchantUid },
+        ...(idempotencyKey ? [{ idempotencyKey }] : []),
+      ],
     }).sort({ createdAt: -1 }).lean();
 
     if (!existing) throw error;
@@ -4099,6 +4109,11 @@ async function handlePointsMe(auth, env) {
 function handlePaymentConfig(env) {
   const config = getPortOnePublicConfig(env);
   if (!config.configured) {
+    console.warn("[payments/config] PORTONE config is not ready", {
+      storeId: Boolean(config.storeId),
+      channelKey: Boolean(config.channelKey),
+      serverVerification: Boolean(config.configured),
+    });
     return json({
       message: "PortOne V2 KG Inicis public payment config is missing.",
       code: "PORTONE_V2_PUBLIC_CONFIG_MISSING",
@@ -4124,6 +4139,8 @@ function handlePaymentConfig(env) {
 export async function handlePaymentRoutes(request, env) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/payments");
+  const portoneEnvConfig = getPortOneConfig(env);
+  const portoneWebhookUrlConfigured = Boolean(getPortOneWebhookUrl(env));
   const trace = {
     route: "payments",
     requestPath: new URL(request.url).pathname,
@@ -4136,11 +4153,11 @@ export async function handlePaymentRoutes(request, env) {
     env: {
       mongoUriConfigured: Boolean(getEnv(env, "MONGO_URI") || getEnv(env, "MONGODB_URI")),
       jwtSecretConfigured: Boolean(getEnv(env, "JWT_SECRET") || getEnv(env, "AUTH_SECRET")),
-      portoneApiSecretConfigured: Boolean(env?.PORTONE_API_Secret || globalThis.process?.env?.PORTONE_API_Secret),
-      portoneStoreIdConfigured: Boolean(env?.PORTONE_Store || globalThis.process?.env?.PORTONE_Store),
-      portoneChannelKeyConfigured: Boolean(env?.PORTONE_channel || globalThis.process?.env?.PORTONE_channel),
-      portoneWebhookUrlConfigured: Boolean(env?.PORTONE_webhook_URL || globalThis.process?.env?.PORTONE_webhook_URL || env?.PORTONE_WEBHOOK_URL || globalThis.process?.env?.PORTONE_WEBHOOK_URL),
-      portoneWebhookSecretConfigured: Boolean(env?.PORTONE_webhook || globalThis.process?.env?.PORTONE_webhook),
+      portoneApiSecretConfigured: Boolean(portoneEnvConfig.portoneApiSecret),
+      portoneStoreIdConfigured: Boolean(portoneEnvConfig.portoneStoreId),
+      portoneChannelKeyConfigured: Boolean(portoneEnvConfig.portoneChannelKey),
+      portoneWebhookUrlConfigured: portoneWebhookUrlConfigured,
+      portoneWebhookSecretConfigured: Boolean(portoneEnvConfig.portoneWebhookSecret),
     },
   };
 

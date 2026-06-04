@@ -756,10 +756,10 @@ function SubscriptionSection({
       >
         {/* 제목 */}
         <div className="mb-4">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-[#cab8ff]">Moonlight Pass</p>
-          <h2 className="mt-0.5 text-xl font-bold text-white">결제 수단 관리</h2>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-[#cab8ff]">연이의 달빛 이용권 상점</p>
+          <h2 className="mt-0.5 text-xl font-bold text-white">연이의 달빛 이용권 상점</h2>
           <p className="mt-1 text-sm text-slate-200">
-            카드/간편결제 수단과 이벤트 월정석 잔량을 함께 확인하세요.
+            달빛 이용권 상품과 이벤트 월정석 잔량을 함께 확인하세요.
           </p>
         </div>
 
@@ -907,7 +907,7 @@ function SubscriptionSection({
 
         {/* 잠긴 콘텐츠 — 이용권 훅 */}
         <div className="mb-3 rounded-[14px] border border-white/12 bg-white/[0.06] px-3.5 py-3">
-          <p className="mb-2 text-[11px] font-extrabold text-slate-300">🔒 결제 수단 등록 후 잠금이 해제돼요</p>
+          <p className="mb-2 text-[11px] font-extrabold text-slate-300">🔒 이용권 선택 후 잠금이 해제돼요</p>
           <ul className="space-y-1.5">
             {[
               "상세 사주 분석 — 연애·재물·직업·건강 심층 리포트",
@@ -1052,7 +1052,7 @@ function SubscriptionSection({
                   : lowerTierBlocked
                     ? "상위 티어 사용 중 (구매 불가)"
                   : isHighlighted
-                    ? `${theme.icon} 결제 수단 등록`
+                    ? `${theme.icon} 이용권 선택`
                     : `${theme.icon} ${plan.durationMonths === 12 ? "1년" : `${plan.durationMonths}개월`} 결제 기준 확인`}
               </button>
 
@@ -1214,9 +1214,9 @@ function WalletCard({ name, points }: { name: string; points: number }) {
             </div>
             <div>
               <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#cab8ff]">
-                Moonlight Pass Desk
+                연이의 달빛 이용권 상점
               </p>
-              <p className="mt-0.5 text-[15px] font-bold text-white">{name} 님의 결제 수단 관리</p>
+              <p className="mt-0.5 text-[15px] font-bold text-white">{name} 님의 달빛 이용권 상점</p>
             </div>
           </div>
 
@@ -1241,7 +1241,7 @@ function WalletCard({ name, points }: { name: string; points: number }) {
 
 /* ══════════════════════════════════════════════════════════════════
   서브 컴포넌트: 단건 결제 상품 카드
-  클릭 시 결제 수단 선택 모달로 이동합니다.
+  클릭 시 이용권 구매 방법 모달로 이동합니다.
 ══════════════════════════════════════════════════════════════════ */
 
 function PackageCard({
@@ -1335,7 +1335,7 @@ export default function PointsPage() {
   const [isMethodModalOpen, setIsMethodModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingText, setProcessingText] = useState(
-    "신비로운 기운으로 결제를 연결 중입니다...",
+    "신비로운 기운으로 이용권 결제를 연결 중입니다...",
   );
   const {
     startProcessing: showProcessingOverlay,
@@ -1928,7 +1928,7 @@ export default function PointsPage() {
     reportPaymentFailureToServer,
   ]);
 
-  /* ── 결제 시작 ─────────────────────────────────────────────────── */
+  /* ── 이용권 결제 시작 ───────────────────────────────────────────── */
   const startPayment = async () => {
     if (!authUser) {
       router.replace("/login?next=%2Fpoints");
@@ -1936,7 +1936,7 @@ export default function PointsPage() {
     }
 
     setIsProcessing(true);
-    setProcessingText("신비로운 기운으로 결제를 연결 중입니다...");
+    setProcessingText("신비로운 기운으로 이용권 결제를 연결 중입니다...");
 
     try {
       const prepareResponse = await authFetch(`${apiBase}/api/payments/prepare`, {
@@ -2345,7 +2345,7 @@ export default function PointsPage() {
       >
         <div className="text-center">
           <div className="mb-3 text-5xl animate-pulse">🌙</div>
-          <p className="font-semibold">결제 수단 관리를 불러오는 중...</p>
+          <p className="font-semibold">이용권 상점을 불러오는 중...</p>
         </div>
       </main>
     );
@@ -2416,13 +2416,13 @@ export default function PointsPage() {
                 />
                 <div>
                   <p className="text-[11px] font-extrabold tracking-[0.22em] text-[#cab8ff] uppercase">
-                    Moonlight Pass Desk
+                    연이의 달빛 이용권 상점
                   </p>
                   <h1 className="mt-0.5 text-[22px] font-black text-white sm:text-3xl leading-tight">
-                    결제 수단 관리
+                    연이의 달빛 이용권 상점
                   </h1>
                   <p className="mt-1 text-sm text-slate-200">
-                    카드/간편결제와 보너스 월정석 잔량을 한 화면에서 확인하세요.
+                    달빛 이용권 상품과 보너스 월정석 잔량을 한 화면에서 확인하세요.
                   </p>
                   <p className="mt-1 text-[12px] text-[#f3dd9a]">
                     코인은 콘텐츠 가치 표시 단위이며 1코인 = 100원으로 계산됩니다.
@@ -2434,7 +2434,7 @@ export default function PointsPage() {
                   href="/points/history"
                   className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#cab8ff]/45 bg-[#cab8ff]/12 px-4 py-2.5 text-sm font-bold text-[#f3dd9a] shadow-[0_2px_12px_rgba(202,184,255,0.16)] transition-all hover:bg-[#cab8ff]/18 hover:-translate-y-0.5 active:scale-[0.97]"
                 >
-                  📋 결제/이용권 관리
+                  📋 이용권 주문 내역
                 </Link>
                 <Link
                   href="/"
@@ -2458,7 +2458,7 @@ export default function PointsPage() {
         <div className="flex items-center gap-3 px-1">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-50" />
           <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#f3dd9a]">
-            결제 수단 관리
+            이용권 상품
           </span>
           <div className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-400 to-transparent opacity-50" />
         </div>
@@ -2485,12 +2485,12 @@ export default function PointsPage() {
 
         <section className="rounded-[20px] border border-white/12 bg-white/[0.08] p-5">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="font-bold text-white">최근 결제 내역</h3>
+            <h3 className="font-bold text-white">최근 주문 내역</h3>
             <span className="text-[11px] font-semibold text-slate-300">승인번호 / 주문번호 / 영수증</span>
           </div>
 
           {paymentHistory.length === 0 ? (
-            <p className="text-sm text-slate-300">아직 결제 내역이 없습니다.</p>
+            <p className="text-sm text-slate-300">아직 주문 내역이 없습니다.</p>
           ) : (
             <div className="space-y-2.5">
               {paymentHistory.map((payment) => {
@@ -2656,7 +2656,7 @@ export default function PointsPage() {
         </section>
       </div>
 
-      {/* ══ 결제 수단 선택 모달 ══════════════════════════════════════ */}
+      {/* ══ 이용권 구매 방법 모달 ══════════════════════════════════════ */}
       {isMethodModalOpen && (
         <div
           className="fixed inset-0 z-[80] flex items-center justify-center bg-[rgba(20,10,5,0.65)] px-4 backdrop-blur-sm"
@@ -2680,7 +2680,7 @@ export default function PointsPage() {
             <div className="mb-5 flex items-start justify-between gap-3">
               <div>
                 <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-700">
-                  결제 수단 선택
+                  이용권 구매 방법 선택
                 </p>
                 <h4 className="mt-0.5 text-lg font-bold text-[#5C3A1E]">
                   {selectedPackage.title} · {selectedPackage.points.toLocaleString("ko-KR")}코인
@@ -2700,7 +2700,7 @@ export default function PointsPage() {
               </button>
             </div>
 
-            {/* 결제 수단 그리드 */}
+            {/* 이용권 구매 방법 그리드 */}
             <div className="grid gap-2 sm:grid-cols-2">
               {PAYMENT_METHODS.map((method) => {
                 const sel = method.id === selectedMethod;
@@ -2733,7 +2733,7 @@ export default function PointsPage() {
               disabled={isProcessing}
               className="mt-5 w-full rounded-[16px] bg-gradient-to-r from-[#C9A84C] via-[#DFB84C] to-[#E8C060] px-4 py-4 text-base font-black text-white shadow-[0_10px_28px_rgba(160,120,20,0.45)] transition-all hover:-translate-y-0.5 hover:from-[#D4B050] hover:to-[#F0CD6A] hover:shadow-[0_14px_32px_rgba(160,120,20,0.55)] active:scale-[0.97] active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isProcessing ? "🐷 연결 중..." : "결제를 진행합니다"}
+              {isProcessing ? "🐷 연결 중..." : "이용권 결제를 진행합니다"}
             </button>
             </div>
           </div>

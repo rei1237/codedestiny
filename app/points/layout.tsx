@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { withUniqueRouteMetadata } from "../../lib/generate-page-metadata";
 
 export const metadata: Metadata = withUniqueRouteMetadata("/points", {
-  title: "달빛 이용권 관리 · 월정석 & 단건 결제 | Code Destiny",
+  title: "연이의 달빛 이용권 상점 · 이용권 구매 & 주문 내역 | Code Destiny",
   description:
-    "코드 데스티니 유료 콘텐츠 원화 단건 결제, 결제 내역 조회, 달빛 월정석 30일 이용권 관리를 제공합니다.",
+    "연이의 달빛 이용권 상점에서 30일 이용권 상품, 구매 방법, 주문 내역과 이용 혜택을 한 번에 확인할 수 있습니다.",
 });
 
 export default function PointsLayout({ children }: { children: React.ReactNode }) {
@@ -23,7 +23,7 @@ export default function PointsLayout({ children }: { children: React.ReactNode }
           border: 0,
         }}
       >
-        코드 데스티니 달빛 이용권 관리
+        연이의 달빛 이용권 상점
       </h1>
       {children}
     </>
