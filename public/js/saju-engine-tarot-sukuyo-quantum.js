@@ -4491,7 +4491,7 @@ function syGuardianPlaceByIndex(index) {
  * @property {Array<{label:string,value:string,tone:string,note:string}>} summaryCards
  * @property {{firstImpression:string,innerRhythm:string,emotionalPattern:string,stressPattern:string,recoveryPattern:string}} moonProfile
  * @property {Array<{key:string,label:string,title:string,body:string}>} relationshipTabs
- * @property {Array<{label:string,value:number,trait:string,whenPositive:string,whenChallenged:string}>} relationMiniMap
+ * @property {Array<{label:string,han:string,essence:string,light:string,shadow:string,guide:string,tone:string}>} relationMiniMap
  * @property {{attractionType:string,loveStyle:string,deepeningMoment:string,anxietyPoint:string,longTermAdvice:string,avoidPattern:string}} loveProfile
  * @property {{moneyFlow:string,spendingHabit:string,savingPoint:string,workStrength:string,workCaution:string,collaborationTip:string,talent:number}} workMoney
  * @property {{morning:string,day:string,night:string,trigger:string,balance:string}} emotionRhythm
@@ -4565,12 +4565,6 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
     syComposeFromTokens(syCanonicalTokenize((traits.hidden || '') + '. ' + (daily.insight || ''), ''), ''),
     syComposeFromTokens(syCanonicalTokenize((traits.karma || '') + '. ' + (traits.hidden || ''), ''), '')
   ], '지친 날에는 결론보다 휴식을 먼저 선택하세요.', relationshipBodyUsed);
-  var miniYoungchin = syClampScore((daily.relations * 0.92) + scoreSeed);
-  var miniUptae = syClampScore((daily.overall * 0.9) + (daily.wealth * 0.06));
-  var miniSeongwi = syClampScore((daily.wealth * 0.55) + (daily.overall * 0.35) + 4);
-  var miniAnkwe = syClampScore((daily.love * 0.86) + ((100 - daily.relations) * 0.1));
-  var miniMyeongsoe = syClampScore((daily.overall * 0.52) + (daily.relations * 0.3) + ((100 - daily.wealth) * 0.12));
-
   var attractionTypeText = syBuildLoveAttractionType(traits, loveTokens, karmaTokens, mansionIndex, readingMetrics);
   var loveStyleText = syBuildLoveStyleText(traits, loveTokens, hiddenTokens, mansionIndex, readingMetrics);
   var deepeningMomentText = syBuildDeepeningMomentText(traits, karmaTokens, relationTokens, mansionIndex, readingMetrics);
@@ -4611,38 +4605,57 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
     relationMiniMap: [
       {
         label: '영친',
-        value: miniYoungchin,
-        trait: '정서 교감 속도와 심리적 친밀감 형성력을 보여주는 축입니다.',
-        whenPositive: miniYoungchin >= 78 ? '서로의 감정 신호를 빠르게 읽어 갈등을 짧게 끝냅니다.' : '작은 안부와 루틴 대화로 신뢰를 천천히 쌓으면 안정성이 커집니다.',
-        whenChallenged: miniYoungchin < 70 ? '표현이 늦어 오해가 쌓일 수 있으니 감정 상태를 먼저 언어화하세요.' : '과도한 공감으로 경계가 흐려질 수 있어 개인 시간을 분리해 두세요.'
+        han: '榮親',
+        essence: '서로를 살리고 돌보는 번영과 보호의 인연입니다.',
+        light: '응원, 신뢰, 생활의 안정감이 자연스럽게 자라납니다.',
+        shadow: '편안함이 의존으로 흐르면 경계가 흐려질 수 있습니다.',
+        guide: '고마움과 개인 시간을 함께 지키면 오래 빛납니다.',
+        tone: 'bloom'
       },
       {
         label: '업태',
-        value: miniUptae,
-        trait: '함께 풀어야 할 성장 과제와 책임 분담의 밀도를 보여줍니다.',
-        whenPositive: miniUptae >= 78 ? '공동 목표를 세우면 서로의 성장을 밀어주는 파트너십이 강화됩니다.' : '작은 과제부터 체크리스트로 나누면 부담 없이 함께 성장할 수 있습니다.',
-        whenChallenged: miniUptae < 70 ? '역할이 모호하면 피로가 누적되니 권한과 마감 기준을 분리하세요.' : '성과 압박이 높아지면 관계가 경직되기 쉬워 중간 점검 대화를 넣으세요.'
+        han: '業胎',
+        essence: '전생의 숙제처럼 반복되는 배움과 성장의 인연입니다.',
+        light: '같은 과제를 마주하며 서로의 성숙을 빠르게 깨웁니다.',
+        shadow: '책임을 떠넘기거나 구원하려 들면 피로가 누적됩니다.',
+        guide: '역할, 약속, 부담의 선을 분명히 나누어야 합니다.',
+        tone: 'karma'
+      },
+      {
+        label: '우쇠',
+        han: '友衰',
+        essence: '친구 같은 위로와 섬세한 정서 교감의 인연입니다.',
+        light: '취향, 대화, 쉼의 리듬이 맞아 마음을 부드럽게 풉니다.',
+        shadow: '불편한 말을 미루면 서운함이 조용히 깊어집니다.',
+        guide: '다정함 안에서도 현실 문제를 제때 말해야 합니다.',
+        tone: 'moon'
       },
       {
         label: '성위',
-        value: miniSeongwi,
-        trait: '실행력과 현실 감각이 실제 결과로 연결되는 정도를 보여줍니다.',
-        whenPositive: miniSeongwi >= 78 ? '아이디어를 실행 계획으로 빠르게 바꾸며 실무 성과가 안정됩니다.' : '우선순위 1개를 끝내는 방식으로도 충분히 성과를 만들 수 있습니다.',
-        whenChallenged: miniSeongwi < 70 ? '의욕 대비 실행량이 줄어들 수 있어 시작 시간을 고정하세요.' : '여러 일을 동시에 잡으면 집중이 분산되니 단일 프로젝트를 먼저 정리하세요.'
+        han: '成危',
+        essence: '역할과 목표가 맞물릴 때 성취를 만드는 인연입니다.',
+        light: '함께 방향을 잡으면 결과, 일, 현실 기반이 단단해집니다.',
+        shadow: '성과와 주도권에 치우치면 감정이 뒤로 밀립니다.',
+        guide: '목표 대화와 마음 대화를 따로 열어 균형을 잡으세요.',
+        tone: 'axis'
       },
       {
         label: '안괴',
-        value: miniAnkwe,
-        trait: '강한 끌림과 심리적 자극이 관계에 미치는 파장을 보여줍니다.',
-        whenPositive: miniAnkwe >= 80 ? '솔직한 대화와 경계 설정을 병행하면 깊은 친밀감으로 전환됩니다.' : '감정 파고를 기록하며 대화 시점을 맞추면 관계 피로가 줄어듭니다.',
-        whenChallenged: miniAnkwe < 70 ? '즉각 반응이 반복되면 상처가 누적되니 감정 냉각 시간을 확보하세요.' : '자극 중심 대화가 길어지면 소모가 커져 의도와 사실을 분리해 말해야 합니다.'
+        han: '安壞',
+        essence: '강한 끌림과 흔들림이 동시에 오는 각성의 인연입니다.',
+        light: '오래 묵은 패턴을 깨고 변화를 시작하게 만듭니다.',
+        shadow: '자극이 집착과 상처로 번지면 서로를 소모시킵니다.',
+        guide: '감정 냉각 시간과 경계선을 관계의 의식처럼 정하세요.',
+        tone: 'storm'
       },
       {
-        label: '명쇠',
-        value: miniMyeongsoe,
-        trait: '관계 흐름의 변동성, 회복 탄력, 결론 타이밍 감각을 보여줍니다.',
-        whenPositive: moon.label && moon.label.indexOf('보름') >= 0 ? '확장 에너지가 강해 중요한 결정을 실행으로 옮기기 좋습니다.' : '리듬 조율에 유리한 구간이라 관계와 일정 정리를 동시에 잡기 좋습니다.',
-        whenChallenged: miniMyeongsoe < 70 ? '감정 기복이 커지면 의사결정 품질이 흔들리니 체크리스트를 먼저 보세요.' : '과신으로 속도를 높이면 누락이 생길 수 있어 마감 전 검토 루틴을 유지하세요.'
+        label: '명',
+        han: '命',
+        essence: '서로를 거울처럼 비추는 동질감의 인연입니다.',
+        light: '말하지 않아도 비슷한 결을 알아보고 빠르게 편안해집니다.',
+        shadow: '같은 약점이 반복되면 관계가 제자리에서 맴돌 수 있습니다.',
+        guide: '닮은 점을 확인한 뒤 서로 다른 역할을 의식적으로 맡으세요.',
+        tone: 'mirror'
       }
     ],
     loveProfile: {
@@ -4994,11 +5007,22 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-rel-panel.active { display:block; }
         .sy-rel-panel h5 { margin:0 0 6px 0; color:#fecdd3; font-size:0.9rem; }
         .sy-rel-panel p { margin:0; color:#e2e8f0; font-size:0.88rem; line-height:1.8; }
-        .sy-mini-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; }
-        .sy-mini-node { border:1px solid rgba(148,163,184,0.25); border-radius:12px; background:rgba(15,23,42,0.6); padding:10px 8px; text-align:center; }
-        .sy-mini-node strong { display:block; color:#f8fafc; font-size:0.88rem; margin-bottom:4px; }
-        .sy-mini-node .v { color:#fef08a; font-weight:900; font-size:1.05rem; }
-        .sy-mini-node p { margin:4px 0 0; font-size:0.72rem; color:#cbd5e1; line-height:1.5; }
+        .sy-mini-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+        .sy-mini-node { border:1px solid rgba(148,163,184,0.25); border-radius:12px; background:rgba(15,23,42,0.6); padding:12px; text-align:left; }
+        .sy-mini-node[data-tone="bloom"] { border-color:rgba(110,231,183,0.34); background:linear-gradient(145deg,rgba(6,78,59,0.24),rgba(15,23,42,0.64)); }
+        .sy-mini-node[data-tone="karma"] { border-color:rgba(251,191,36,0.34); background:linear-gradient(145deg,rgba(113,63,18,0.22),rgba(15,23,42,0.64)); }
+        .sy-mini-node[data-tone="moon"] { border-color:rgba(125,211,252,0.34); background:linear-gradient(145deg,rgba(12,74,110,0.22),rgba(15,23,42,0.64)); }
+        .sy-mini-node[data-tone="axis"] { border-color:rgba(129,140,248,0.34); background:linear-gradient(145deg,rgba(49,46,129,0.24),rgba(15,23,42,0.64)); }
+        .sy-mini-node[data-tone="storm"] { border-color:rgba(251,113,133,0.36); background:linear-gradient(145deg,rgba(127,29,29,0.22),rgba(15,23,42,0.64)); }
+        .sy-mini-node[data-tone="mirror"] { border-color:rgba(203,213,225,0.34); background:linear-gradient(145deg,rgba(51,65,85,0.24),rgba(15,23,42,0.64)); }
+        .sy-mini-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:7px; }
+        .sy-mini-head strong { display:block; color:#f8fafc; font-size:0.92rem; }
+        .sy-mini-head span { color:#fef3c7; font-size:0.72rem; font-weight:800; letter-spacing:0.08em; }
+        .sy-mini-essence { margin:0 0 8px; color:#e0f2fe; font-size:0.78rem; font-weight:700; line-height:1.58; word-break:keep-all; }
+        .sy-mini-node dl { display:grid; gap:5px; margin:0; }
+        .sy-mini-node div { min-width:0; }
+        .sy-mini-node dt { color:#bfdbfe; font-size:0.68rem; font-weight:900; letter-spacing:0.04em; }
+        .sy-mini-node dd { margin:2px 0 0; color:#cbd5e1; font-size:0.72rem; line-height:1.5; word-break:keep-all; }
         .sy-dual-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
         .sy-dual-card { border:1px solid rgba(167,139,250,0.28); border-radius:10px; padding:11px; background:rgba(17,24,39,0.6); }
         .sy-dual-card h5 { margin:0 0 5px 0; color:#ddd6fe; font-size:0.78rem; letter-spacing:0.06em; text-transform:uppercase; }
@@ -5309,10 +5333,14 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             <h4 style="margin:0 0 8px 0; color:#93c5fd;">🧭 인연 미니맵</h4>
             <div class="sy-mini-grid">
               ${reading.relationMiniMap.map(function(node) {
-                return '<article class="sy-mini-node">'
-                  + '<strong>' + syCanonicalEsc(node.label) + '</strong>'
-                  + '<div class="v">' + syCanonicalEsc(node.value) + '</div>'
-                  + '<p>특징: ' + syCanonicalEsc(node.trait) + '<br>좋게 발현: ' + syCanonicalEsc(node.whenPositive) + '<br>어렵게 발현: ' + syCanonicalEsc(node.whenChallenged) + '</p>'
+                return '<article class="sy-mini-node" data-tone="' + syCanonicalEsc(node.tone) + '">'
+                  + '<div class="sy-mini-head"><strong>' + syCanonicalEsc(node.label) + '</strong><span>' + syCanonicalEsc(node.han) + '</span></div>'
+                  + '<p class="sy-mini-essence">' + syCanonicalEsc(node.essence) + '</p>'
+                  + '<dl>'
+                  + '<div><dt>빛으로 쓰일 때</dt><dd>' + syCanonicalEsc(node.light) + '</dd></div>'
+                  + '<div><dt>그림자로 흐를 때</dt><dd>' + syCanonicalEsc(node.shadow) + '</dd></div>'
+                  + '<div><dt>다루는 법</dt><dd>' + syCanonicalEsc(node.guide) + '</dd></div>'
+                  + '</dl>'
                   + '</article>';
               }).join('')}
             </div>
