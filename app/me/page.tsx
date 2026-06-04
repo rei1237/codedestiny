@@ -889,17 +889,7 @@ export default function MePage() {
           </div>
         ) : null}
 
-        <section className="grid gap-3 sm:grid-cols-3">
-          <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
-            <p className="text-xs text-slate-400">계정</p>
-            <p className="mt-1 truncate text-base font-semibold text-white">{user?.name || "사용자"}</p>
-            <p className="mt-1 truncate text-xs text-slate-400">{user?.email || "-"}</p>
-          </div>
-          <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
-            <p className="text-xs text-slate-400">이벤트 월정석 잔량</p>
-            <p className="mt-1 text-xl font-bold text-amber-200">{monthlyStoneBalance}</p>
-            <p className="mt-2 text-xs text-slate-400">판매/충전 재화가 아닌 이벤트 지급 잔량입니다.</p>
-          </div>
+        <section className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
             <p className="text-xs text-slate-400">프로필 슬롯</p>
             <p className="mt-1 text-xl font-bold text-white">{profiles.length}/{profileLimit}</p>
@@ -922,6 +912,24 @@ export default function MePage() {
               </span>
             </div>
 
+            <div className="mt-5 overflow-hidden rounded-3xl border border-sky-200/20 bg-[linear-gradient(135deg,rgba(7,17,38,0.96),rgba(34,56,99,0.9)_48%,rgba(44,27,75,0.96))] p-4 shadow-[0_10px_34px_rgba(0,0,0,0.44),0_0_24px_rgba(56,189,248,0.14)]">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="relative flex h-12 w-12 flex-none items-center justify-center rounded-2xl border border-sky-100/70 bg-[linear-gradient(145deg,#f8fafc_0%,#bae6fd_34%,#8b5cf6_74%,#172554_100%)] shadow-[0_0_18px_rgba(56,189,248,0.35),0_0_10px_rgba(196,181,253,0.22),inset_0_2px_6px_rgba(255,255,255,0.45)]">
+                    <span className="absolute inset-2 rounded-xl border border-white/60 bg-[linear-gradient(145deg,rgba(255,255,255,0.62),rgba(255,255,255,0.08))]" />
+                    <span className="absolute left-[30%] top-[30%] h-1.5 w-1.5 rounded-full bg-[#fef3c7]" />
+                    <span className="absolute left-[53%] top-[56%] h-1.5 w-1.5 rounded-full bg-[#e0f2fe] shadow-[8px_8px_0_rgba(224,242,254,0.88)]" />
+                    <span className="absolute right-[26%] top-[20%] h-1 w-1 rounded-full bg-[#ddd6fe]" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300">월정석 잔량</p>
+                    <p className="mt-0.5 text-xl font-black tracking-tight text-amber-100">{monthlyStoneBalance}</p>
+                    <p className="mt-1 text-[11px] leading-5 text-slate-300">이벤트 지급 잔량은 프로필 카드와 함께 관리돼요.</p>
+                  </div>
+                </div>
+                <Link href="/points" className="inline-flex min-h-11 items-center justify-center rounded-full bg-[linear-gradient(135deg,#8b5cf6,#ec4899)] px-4 py-2 text-sm font-black text-white shadow-[0_10px_24px_rgba(139,92,246,0.34)] transition-transform hover:-translate-y-0.5">이용권 결제</Link>
+              </div>
+            </div>
             {currentProfile ? (
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-lg border border-white/10 bg-black/18 p-4">
@@ -1001,7 +1009,7 @@ export default function MePage() {
                         </div>
                         {active ? <span className="rounded-full bg-amber-300 px-2 py-0.5 text-[11px] font-bold text-slate-950">활성</span> : null}
                       </div>
-                      <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
                         <button
                           type="button"
                           onClick={() => void activateProfile(profile.id)}
