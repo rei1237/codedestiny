@@ -380,6 +380,10 @@ async function runServerTests() {
 function runClientStaticTests() {
   assertContains(clientPaymentSource, "window._cdCoinGatePerUseInFlight", "duplicate click guard");
   assertContains(clientPaymentSource, "window.PortOne.requestPayment(requestData)", "PortOne payment window call");
+  assertContains(indexSource, "function _cdNormalizeKoreanPhoneNumber", "Inicis checkout phone normalizer");
+  assertContains(indexSource, "_cdPromptDirectCheckoutPhoneNumber", "Inicis checkout phone prompt");
+  assertContains(indexSource, "phoneNumber: customerPhone", "PortOne V2 customer phoneNumber");
+  assertContains(indexSource, "hasBuyerPhoneNumber: Boolean(customerPhone)", "direct checkout safe phone presence log");
   assertContains(clientPaymentSource, "if (!rsp || rsp.code || !paymentId)", "PortOne response.code failure handling");
   assertContains(clientPaymentSource, "paymentFailed", "failure UI state");
   assertContains(clientPaymentSource, "paymentSuccess", "success UI state");
