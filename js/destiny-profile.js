@@ -2495,14 +2495,25 @@
     var btn = document.getElementById('dpSaveBtn');
     if (!btn) return;
 
-    var hasProfiles = DPStorage.list().length > 0;
+    var profileCount = DPStorage.list().length;
+    var maxProfiles = Math.max(1, Math.floor(Number(_dpGetMaxProfiles() || 1)));
+    var hasProfiles = profileCount > 0;
+    var canUsePlanSlot = profileCount < maxProfiles;
+    var planLabel = _dpGetTierLabel(_dpSubIsActive ? _dpSubTier : _dpGetUserPlan());
+    var slotLabel = profileCount + '/' + maxProfiles;
     btn.disabled = false;
-    btn.textContent = hasProfiles ? ('✦ 프로필 카드 추가 생성 · ' + PROFILE_CARD_MANAGE_COST + '코인') : '✦ 이 정보를 나의 운명 카드에 저장';
+    if (!hasProfiles) {
+      btn.textContent = '✦ 이 정보를 나의 운명 카드에 저장 · ' + slotLabel;
+    } else if (canUsePlanSlot) {
+      btn.textContent = '✦ 프로필 카드 생성 · ' + slotLabel + ' 사용 중';
+    } else {
+      btn.textContent = '✦ 프로필 카드 추가 생성 · ' + PROFILE_CARD_MANAGE_COST + '코인';
+    }
     btn.style.opacity = '';
     btn.style.cursor = '';
-    btn.title = hasProfiles
-      ? '추가 생성 시 서버에서 50코인 또는 5,000원 결제를 확인합니다.'
-      : '저장 시 로그인/구독 상태를 서버에서 최종 확인합니다.';
+    btn.title = canUsePlanSlot
+      ? planLabel + ' 한도 ' + maxProfiles + '개 중 ' + profileCount + '개를 사용 중입니다.'
+      : '한도 초과 추가 생성은 서버에서 50코인 또는 5,000원 결제를 확인합니다.';
   }
 
   function _resolveEventElement(target) {
@@ -3739,22 +3750,40 @@
       alert('삭제할 프로필 카드를 찾을 수 없습니다.');
       return;
     }
+    if (window.__dpProfileDeleteInFlight === profileId) {
+      alert('프로필 카드 삭제가 이미 진행 중입니다.');
+      return;
+    }
     if (!confirm((profile.name || '선택한 프로필') + ' 프로필 카드를 삭제할까요?\n삭제 비용은 50코인이며, 삭제 후 복구가 어렵습니다.')) return;
 
     var requestId = _dpBuildProfileManageRequestId('delete', profileId);
-    _dpRunProfileManageGate('delete', profileId, requestId).then(function(paymentContext) {
-      if (!paymentContext) return null;
+    window.__dpProfileDeleteInFlight = profileId;
+
+    function requestDelete(paymentContext) {
       _dpSetPaymentPending(true, '프로필 카드를 삭제하는 중입니다...');
       return _dpFetchJsonWithFallback('/api/profile/' + encodeURIComponent(profileId), {
         method: 'DELETE',
         credentials: 'include',
         cache: 'no-store',
         headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify(paymentContext)
+        body: JSON.stringify(Object.assign({ requestId: requestId }, paymentContext || {}))
       }, {
         retryOn401: true,
         timeoutMs: _DP_FETCH_TIMEOUT_MS
       });
+    }
+
+    requestDelete().then(function(result) {
+      var payload = result && result.data ? result.data : null;
+      var code = String((payload && payload.code) || '').trim().toUpperCase();
+      if (result && result.status === 402 && code === 'PAYMENT_REQUIRED') {
+        _dpSetPaymentPending(false);
+        return _dpRunProfileManageGate('delete', profileId, requestId).then(function(paymentContext) {
+          if (!paymentContext) return null;
+          return requestDelete(paymentContext);
+        });
+      }
+      return result;
     }).then(function(result) {
       _dpSetPaymentPending(false);
       if (!result) return;
@@ -3778,6 +3807,8 @@
     }).catch(function(error) {
       _dpSetPaymentPending(false);
       alert(String(error && error.message || '프로필 카드 삭제 중 오류가 발생했습니다.'));
+    }).then(function() {
+      if (window.__dpProfileDeleteInFlight === profileId) window.__dpProfileDeleteInFlight = '';
     });
   };
 
