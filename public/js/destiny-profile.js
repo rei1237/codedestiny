@@ -1607,15 +1607,62 @@
   }
 
   function _dpFindCheckoutOrder(payload) {
-    if (!payload || typeof payload !== "object") return null;
-    if (payload.order && typeof payload.order === "object") return payload.order;
-    if (payload.payment && typeof payload.payment === "object") {
-      if (payload.payment.order && typeof payload.payment.order === "object") return payload.payment.order;
-      if (payload.payment.merchantUid || payload.payment.paymentId || payload.payment.orderId) return payload.payment;
+    function visit(node, depth, seen) {
+      if (!node || typeof node !== "object" || depth > 5) return null;
+      if (seen.indexOf(node) >= 0) return null;
+      seen.push(node);
+      var candidates = [
+        node,
+        node.order,
+        node.payment,
+        node.payment && node.payment.order,
+        node.checkout,
+        node.checkout && node.checkout.order,
+        node.result,
+        node.result && node.result.order,
+        node.data,
+        node.data && node.data.order,
+        node.payload,
+        node.payload && node.payload.order,
+      ];
+      for (var i = 0; i < candidates.length; i += 1) {
+        var candidate = candidates[i];
+        if (!candidate || typeof candidate !== "object") continue;
+        var merchantUid = String(candidate.merchantUid || candidate.paymentId || candidate.orderId || "").trim();
+        var paymentAmount = Number(candidate.paymentAmount || candidate.totalAmount || candidate.amountKRW || candidate.amountKrw || candidate.amount || 0);
+        if (merchantUid && Number.isFinite(paymentAmount) && paymentAmount > 0) {
+          if (!candidate.merchantUid) candidate.merchantUid = merchantUid;
+          if (!candidate.paymentAmount) candidate.paymentAmount = paymentAmount;
+          return candidate;
+        }
+      }
+      for (var j = 0; j < candidates.length; j += 1) {
+        var nested = candidates[j];
+        if (!nested || typeof nested !== "object" || nested === node) continue;
+        var found = visit(nested, depth + 1, seen);
+        if (found) return found;
+      }
+      return null;
     }
-    if (payload.data && typeof payload.data === "object") return _dpFindCheckoutOrder(payload.data);
-    if (payload.payload && typeof payload.payload === "object") return _dpFindCheckoutOrder(payload.payload);
-    return null;
+    return visit(payload, 0, []);
+  }
+
+  function _dpIsCheckoutAccessBypass(payload, featureKey) {
+    if (!payload || typeof payload !== "object") return false;
+    var requestedFeature = String(featureKey || "").trim();
+    var responseFeature = String(payload.featureKey || payload.contentId || (payload.accessGrant && payload.accessGrant.featureKey) || "").trim();
+    if (requestedFeature && responseFeature && requestedFeature !== responseFeature) return false;
+    var accessType = String(payload.accessType || payload.transactionType || (payload.accessGrant && payload.accessGrant.accessType) || "").trim().toLowerCase();
+    var accessMethod = String(payload.accessMethod || payload.paymentMethod || (payload.accessGrant && payload.accessGrant.accessMethod) || "").trim().toUpperCase();
+    return Boolean(
+      payload.alreadyUnlocked === true ||
+      payload.__cdPassGateResolved === true ||
+      payload.freeBySubscription === true ||
+      payload.freeBySubscription === "true" ||
+      accessType === "already_unlocked" ||
+      accessType === "membership_pass" ||
+      accessMethod === "PASS"
+    );
   }
 
   function _dpReadBillingMessage(payload, fallback) {
@@ -1714,7 +1761,7 @@
           checkoutPayload.requestId ||
           '',
         ).trim();
-        if (accessGrant || consume || checkoutData.freeBySubscription === true || checkoutData.freeBySubscription === 'true') {
+        if (accessGrant || consume || _dpIsCheckoutAccessBypass(checkoutData, checkoutPayload.featureKey || opts.featureKey || '')) {
           var freePaymentPayload = Object.assign({}, checkoutData, {
             transactionId: freeTxHint,
             paymentId: freeTxHint || checkoutPayload.requestId || undefined,

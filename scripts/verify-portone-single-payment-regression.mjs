@@ -385,11 +385,11 @@ function runClientStaticTests() {
   assertContains(indexSource, "checkingEntitlement: ['결제/이용권 확인'", "checking entitlement UI state");
   assertContains(indexSource, "readyToPay: ['결제 가능'", "ready-to-pay UI state");
   assertContains(indexSource, "paymentProcessing: ['결제 확인 중'", "payment processing UI state");
-  assertContains(indexSource, "savingUnlock: ['잠금 해제 저장 중'", "unlock saving UI state");
+  assertContains(indexSource, "savingUnlock: ['이용 권한 저장 중'", "unlock saving UI state");
   assertContains(indexSource, "redirectUrl.searchParams.set('portone_redirect', '1')", "mobile redirect marker");
   assertContains(paymentsRouteSource, 'redirectUrl.searchParams.set("payment_id", paymentId)', "redirectUrl carries paymentId");
   assertBefore(indexSource, "_cdHasVerifiedServerAccess(confirmRes.payload", "return confirmRes.payload", "server complete failure must block unlock success");
-  assertBefore(indexSource, "if (!order.merchantUid && checkoutData.accessGrant", "await _cdLoadPortOneV2Sdk()", "already unlocked/pass branch should not open payment modal");
+  assertBefore(indexSource, "if (!order.merchantUid && _cdIsCheckoutAccessBypass", "await _cdLoadPortOneV2Sdk()", "already unlocked/pass branch should not open payment modal");
   assertContains(indexSource, "alreadyUnlocked", "already unlocked branch");
 }
 
