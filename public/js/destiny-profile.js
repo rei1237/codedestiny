@@ -60,7 +60,13 @@
         expiresAt: user.profileSubscription.expiresAt || null,
       };
       var passLimit = Number(user.profileSubscription.passLimit || user.profileSubscription.freeLimit || user.profileSubscription.maxFreeCoinLimit || user.profileSubscription.maxCoveredCoin);
-      if (Number.isFinite(passLimit) && passLimit > 0) {
+      var tierKey = String(safe.profileSubscription.tier || '').toLowerCase();
+      var policyPassLimit = tierKey.indexOf('vvip') >= 0 ? 100 : (tierKey.indexOf('premium') >= 0 ? 50 : (tierKey.indexOf('standard') >= 0 ? 30 : 0));
+      if (policyPassLimit > 0) {
+        safe.profileSubscription.passLimit = policyPassLimit;
+        safe.profileSubscription.freeLimit = policyPassLimit;
+        safe.profileSubscription.maxCoveredCoin = policyPassLimit;
+      } else if (Number.isFinite(passLimit) && passLimit > 0) {
         safe.profileSubscription.passLimit = Math.floor(passLimit);
         safe.profileSubscription.freeLimit = Math.floor(passLimit);
         safe.profileSubscription.maxCoveredCoin = Math.floor(passLimit);
