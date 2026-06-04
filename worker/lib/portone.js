@@ -30,6 +30,15 @@ function getExactEnv(env, key, fallback = "") {
   return fallback;
 }
 
+function getExactEnvWithAlias(env, primaryKey, aliases = []) {
+  const candidates = [primaryKey, ...aliases];
+  for (const key of candidates) {
+    const value = getExactEnv(env, key);
+    if (value) return value;
+  }
+  return "";
+}
+
 function logMissingPortOneEnv(missingKeys) {
   if (!Array.isArray(missingKeys) || missingKeys.length === 0) return;
   console.error(`[portone-config] Missing required PortOne env: ${missingKeys.join(", ")}`);
@@ -37,10 +46,22 @@ function logMissingPortOneEnv(missingKeys) {
 
 export function getPortOneConfig(env) {
   const config = {
-    portoneApiSecret: getExactEnv(env, "PORTONE_API_Secret"),
-    portoneWebhookSecret: getExactEnv(env, "PORTONE_webhook"),
-    portoneChannelKey: getExactEnv(env, "PORTONE_channel"),
-    portoneStoreId: getExactEnv(env, "PORTONE_Store"),
+    portoneApiSecret: getExactEnvWithAlias(env, "PORTONE_API_Secret", [
+      "PORTONE_API_SECRET",
+    ]),
+    portoneWebhookSecret: getExactEnvWithAlias(env, "PORTONE_webhook", [
+      "PORTONE_WEBHOOK",
+      "PORTONE_WEBHOOK_SECRET",
+      "PORTONE_WEBHOOK_SECRET_KEY",
+    ]),
+    portoneChannelKey: getExactEnvWithAlias(env, "PORTONE_channel", [
+      "PORTONE_CHANNEL",
+      "PORTONE_CHANNEL_KEY",
+    ]),
+    portoneStoreId: getExactEnvWithAlias(env, "PORTONE_Store", [
+      "PORTONE_STORE",
+      "PORTONE_STORE_ID",
+    ]),
   };
   const missing = PORTONE_REQUIRED_ENV_KEYS.filter((key) => {
     if (key === "PORTONE_API_Secret") return !config.portoneApiSecret;
@@ -62,7 +83,7 @@ export function getPortOneWebhookSecret(env) {
 }
 
 export function getPortOneWebhookUrl(env) {
-  return getExactEnv(env, "PORTONE_webhook_URL", getExactEnv(env, "PORTONE_WEBHOOK_URL"));
+  return getExactEnvWithAlias(env, "PORTONE_webhook_URL", ["PORTONE_WEBHOOK_URL"]);
 }
 
 function getPortOneHeaders(env) {

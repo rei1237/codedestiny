@@ -26,11 +26,11 @@ const FEATURE_KEY_GROUPS = {
   "payments-core": [
     ["JWT_SECRET", "AUTH_SECRET"],
     ["MONGO_URI", "MONGODB_URI", "MONGO_URL", "DATABASE_URL"],
-    ["PORTONE_API_Secret"],
-    ["PORTONE_Store"],
-    ["PORTONE_channel"],
+    ["PORTONE_API_Secret", "PORTONE_API_SECRET"],
+    ["PORTONE_Store", "PORTONE_STORE", "PORTONE_STORE_ID"],
+    ["PORTONE_channel", "PORTONE_CHANNEL", "PORTONE_CHANNEL_KEY"],
     ["PORTONE_webhook_URL"],
-    ["PORTONE_webhook_Secret"],
+    ["PORTONE_webhook", "PORTONE_WEBHOOK", "PORTONE_WEBHOOK_SECRET", "PORTONE_WEBHOOK_SECRET_KEY", "PORTONE_webhook_Secret"],
   ],
   "admin-gate": [
     ["FLOWER_ADMIN_SECRET"],
