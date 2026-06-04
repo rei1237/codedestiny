@@ -20,8 +20,22 @@ import {
   startServiceExecution,
 } from "../lib/service-execution-task.js";
 import { connectDb } from "../lib/db.js";
-import { PointHistory, ServiceExecutionTransaction, User } from "../lib/models.js";
+import {
+  CONTENT_ENTITLEMENT_SCOPES,
+  CONTENT_ENTITLEMENT_SERVICE_KEYS,
+  CONTENT_ENTITLEMENT_SOURCES,
+  CONTENT_ENTITLEMENT_STATUSES,
+  ContentEntitlement,
+  PointHistory,
+  SAJU_LOCKED_CONTENT_KEYS,
+  ServiceExecutionTransaction,
+  User,
+} from "../lib/models.js";
 import { calculateMembershipCreditCost, MEMBERSHIP_CREDIT_PER_COIN } from "../lib/billing-policy.js";
+import {
+  findActivePaidContentUnlock,
+  upsertPaidContentUnlock,
+} from "../lib/content-unlocks.js";
 import {
   canUseByPass,
   normalizeHoneyPassEntitlement,
@@ -38,6 +52,87 @@ const ACCESS_DECISION_REASONS = Object.freeze({
   REQUIRES_PURCHASE: "requires_purchase",
 });
 
+const SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
+  section_daewun: SAJU_LOCKED_CONTENT_KEYS.DAEUN_ANALYSIS,
+  section_summary: SAJU_LOCKED_CONTENT_KEYS.FULL_READING,
+  section_compat: SAJU_LOCKED_CONTENT_KEYS.COMPATIBILITY,
+});
+
+const SAJU_PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY = Object.freeze(
+  Object.fromEntries(
+    Object.entries(SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY).map(([featureKey, contentKey]) => [contentKey, featureKey]),
+  ),
+);
+
+const ACCESS_METHOD_ORDER = Object.freeze(["pass", "one_time", "monthly"]);
+const LOTTO_RITUAL_REPORT_FEATURE_KEY = "fun.quantumLotto.ritualReport";
+const ADMIN_TEST_USER_ID = "flower-admin";
+const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
+const SAJU_PDF_GENERATION_FEATURE_KEYS = new Set([
+  "saju_life_book_pdf",
+  "premium-lifebook-report",
+  "premium_pdf_saju_life_book",
+  "saju_love_book_pdf",
+  "saju-love-book",
+  "premium-love-secret-solo",
+  "premium-love-secret-couple",
+  "premium_pdf_saju_love_secret",
+  "premium_pdf_saju_love_secret_compat",
+  "saju_new_year_pdf",
+  "premium-saju-newyear-report",
+  "premium_pdf_saju_new_year",
+  "premium_pdf_saju_yearly",
+]);
+
+function resolveSajuProfileUnlockContentKey(featureKey) {
+  return SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[String(featureKey || "").trim()] || "";
+}
+
+function createUnlockEntitlementSaveError(error) {
+  const wrapped = new Error(String(error?.message || "Unlock entitlement save failed."));
+  wrapped.code = String(error?.code || "UNLOCK_ENTITLEMENT_SAVE_FAILED");
+  wrapped.cause = error;
+  return wrapped;
+}
+
+async function findActiveSajuProfileUnlock(env, { userId, profileId, featureKey }) {
+  await connectDb(env);
+  return findActivePaidContentUnlock({ userId, profileId, featureKey });
+}
+
+async function upsertSajuProfileUnlockEntitlement(env, {
+  userId,
+  profileId,
+  featureKey,
+  source,
+  orderId = "",
+  paymentId = "",
+  passId = "",
+  coinAmount = 0,
+  unlockedAt = null,
+}) {
+  if (!userId) {
+    const error = new Error("Profile id is required for profile-scoped unlock entitlement.");
+    error.code = "INVALID_UNLOCK_TARGET";
+    throw error;
+  }
+
+  await connectDb(env);
+  return upsertPaidContentUnlock({
+    userId,
+    profileId,
+    featureKey,
+    source,
+    orderId,
+    paymentId,
+    passId,
+    coinAmount,
+    unlockedAt,
+  }).catch((error) => {
+    throw createUnlockEntitlementSaveError(error);
+  });
+}
+
 function resolveUsagePassCategories(pricing = {}) {
   const featureKey = String(pricing?.featureKey || "").trim().toLowerCase();
   const cost = Number(pricing?.coinPrice || pricing?.cost || 0);
@@ -53,6 +148,7 @@ function resolveUsagePassCategories(pricing = {}) {
   const isSajuUnlock = featureKey === "section_daewun"
     || featureKey === "section_summary"
     || featureKey === "section_compat"
+    || featureKey === LOTTO_RITUAL_REPORT_FEATURE_KEY.toLowerCase()
     || featureKey.startsWith("rpt_")
     || featureKey === "rpgcharacter"
     || featureKey === "traveldestiny"
@@ -143,6 +239,111 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     canUseByMonthly: coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost,
     canUseByCard: true,
   };
+}
+
+function buildPaidContentAccessDecision({
+  accessGranted = false,
+  reason = "payment_required",
+  shouldOpenPaymentSelector = false,
+  availableMethods = ACCESS_METHOD_ORDER,
+  unlockId = "",
+  priceCoin = 0,
+  paymentOptions = null,
+} = {}) {
+  return {
+    accessGranted: Boolean(accessGranted),
+    reason,
+    shouldOpenPaymentSelector: reason === "payment_required" ? Boolean(shouldOpenPaymentSelector) : false,
+    availableMethods: Array.isArray(availableMethods) ? availableMethods : [...ACCESS_METHOD_ORDER],
+    ...(unlockId ? { unlockId: String(unlockId) } : {}),
+    priceCoin: Math.max(0, Math.floor(Number(priceCoin || 0))),
+    ...(paymentOptions ? { paymentOptions } : {}),
+  };
+}
+
+async function resolvePaidContentAccess(env, {
+  userId,
+  profileId,
+  pricing,
+  requestId = "",
+  requestedPaymentMode = "",
+  allowPassAutoUnlock = true,
+  subscriptionPass = null,
+} = {}) {
+  const priceCoin = Math.max(0, Math.floor(Number(pricing?.coinPrice || pricing?.cost || 0)));
+  const featureKey = String(pricing?.featureKey || "").trim();
+
+  if (!userId) {
+    return buildPaidContentAccessDecision({
+      reason: "not_logged_in",
+      priceCoin,
+    });
+  }
+
+  if ((resolveSajuProfileUnlockContentKey(featureKey) || featureKey === LOTTO_RITUAL_REPORT_FEATURE_KEY) && !profileId) {
+    return buildPaidContentAccessDecision({
+      reason: "invalid_profile",
+      priceCoin,
+    });
+  }
+
+  try {
+    const existingUnlock = await findActiveSajuProfileUnlock(env, { userId, profileId, featureKey });
+    if (existingUnlock) {
+      return buildPaidContentAccessDecision({
+        accessGranted: true,
+        reason: "already_unlocked",
+        unlockId: existingUnlock._id,
+        priceCoin,
+      });
+    }
+
+    const activePass = subscriptionPass || await getActiveMembershipPassForUser(env, userId);
+    const paymentOptions = buildPassPaymentDecision(
+      activePass.entitlement,
+      pricing,
+      activePass.profileSubscription,
+    );
+    const normalizedPaymentMode = String(requestedPaymentMode || "").trim().toLowerCase();
+
+    if (normalizedPaymentMode.includes("monthly") && !paymentOptions.canUseByMonthly) {
+      return buildPaidContentAccessDecision({
+        reason: "monthly_balance_required",
+        priceCoin,
+        paymentOptions,
+      });
+    }
+
+    if (paymentOptions.canUseByPass && allowPassAutoUnlock) {
+      const unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
+        userId,
+        profileId,
+        featureKey,
+        source: CONTENT_ENTITLEMENT_SOURCES.PASS,
+        passId: `membership:${activePass.tier || "pass"}:${requestId || Date.now().toString(36)}`,
+        coinAmount: 0,
+      });
+      return buildPaidContentAccessDecision({
+        accessGranted: true,
+        reason: "pass_covered",
+        unlockId: unlockEntitlement?._id,
+        priceCoin,
+        paymentOptions,
+      });
+    }
+
+    return buildPaidContentAccessDecision({
+      reason: "payment_required",
+      shouldOpenPaymentSelector: true,
+      priceCoin,
+      paymentOptions,
+    });
+  } catch (error) {
+    return buildPaidContentAccessDecision({
+      reason: String(error?.code || "") === "MISSING_PROFILE_ID" ? "invalid_profile" : "error",
+      priceCoin,
+    });
+  }
 }
 
 async function getActiveMembershipPassForUser(env, authUserId) {
@@ -429,7 +630,9 @@ async function resolveBillingProfileId(authUserId, body = {}) {
 function isProfileScopedUnlockKey(featureKey) {
   const key = String(featureKey || "").trim();
   if (!key) return false;
-  return Boolean(UNLOCK_PRODUCT_BY_FEATURE_KEY[key]) || /^section_(daewun|summary|compat)$/.test(key);
+  return key === LOTTO_RITUAL_REPORT_FEATURE_KEY
+    || Boolean(UNLOCK_PRODUCT_BY_FEATURE_KEY[key])
+    || /^section_(daewun|summary|compat)$/.test(key);
 }
 
 async function resolveProfileScopedUnlocks(authUserId, profileId) {
@@ -443,9 +646,30 @@ async function resolveProfileScopedUnlocks(authUserId, profileId) {
       { "metadata.selectedProfileId": profileId },
     ],
   });
-  const unlockedFeatures = Array.from(new Set(
-    keys.map((key) => String(key || "").trim()).filter(isProfileScopedUnlockKey),
-  ));
+  const now = new Date();
+  const entitlementDocs = await ContentEntitlement.find({
+    userId: String(authUserId),
+    profileId: String(profileId),
+    serviceKey: CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
+    scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
+    status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
+    $or: [
+      { expiresAt: null },
+      { expiresAt: { $exists: false } },
+      { expiresAt: { $gt: now } },
+    ],
+  }).select("contentKey").lean();
+  const entitlementKeys = entitlementDocs
+    .map((doc) => {
+      const contentKey = String(doc?.contentKey || "").trim();
+      return SAJU_PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY[contentKey]
+        || (isProfileScopedUnlockKey(contentKey) ? contentKey : "");
+    })
+    .filter(Boolean);
+  const unlockedFeatures = Array.from(new Set([
+    ...keys.map((key) => String(key || "").trim()).filter(isProfileScopedUnlockKey),
+    ...entitlementKeys,
+  ]));
   const unlockMap = Object.create(null);
   for (const key of unlockedFeatures) unlockMap[key] = true;
   return { unlockedFeatures, unlockMap };
@@ -482,8 +706,10 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
   }
   let unlockedFeatures = Array.isArray(data?.unlockedFeatures) ? [...data.unlockedFeatures] : [];
   let unlockMap = data?.unlockMap && typeof data.unlockMap === "object" ? { ...data.unlockMap } : {};
-  const isPermanentUnlock = pricing?.categoryKey === "unlock-feature"
-    || /^section_(daewun|summary|compat)$/.test(featureKey);
+  const isAdminTestAccess = data?.adminBypass === true || data?.adminTestMode === true || consume?.adminBypass === true || consume?.adminTestMode === true;
+  const isPermanentUnlock = !isAdminTestAccess && (pricing?.categoryKey === "unlock-feature"
+    || featureKey === LOTTO_RITUAL_REPORT_FEATURE_KEY
+    || /^section_(daewun|summary|compat)$/.test(featureKey));
   if (authUserId && featureKey && isPermanentUnlock) {
     await connectDb(env);
     const updatedUser = await User.findByIdAndUpdate(
@@ -735,6 +961,123 @@ function isProductionRuntime(env) {
   return appEnv === "prod" || appEnv === "production";
 }
 
+function isTruthyFlag(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
+}
+
+function isAdminPaidServiceBypassEnabled() {
+  return true;
+}
+
+function isPaidServiceFeaturePricing(pricing = {}) {
+  const featureKey = String(pricing?.featureKey || "").trim();
+  const cost = Number(pricing?.coinPrice || pricing?.cost || 0);
+  return Boolean(featureKey) && Number.isFinite(cost) && cost > 0;
+}
+
+function isSajuPdfGenerationFeatureKey(featureKey) {
+  const key = String(featureKey || "").trim();
+  if (!key) return false;
+  return SAJU_PDF_GENERATION_FEATURE_KEYS.has(key) || SAJU_PDF_GENERATION_FEATURE_KEYS.has(key.toLowerCase());
+}
+
+function canGeneratePaidPdf(pricing = {}) {
+  return isSajuPdfGenerationFeatureKey(pricing?.featureKey);
+}
+
+function decodeCookieValue(rawValue) {
+  try {
+    return decodeURIComponent(String(rawValue || ""));
+  } catch (e) {
+    return String(rawValue || "");
+  }
+}
+
+function extractFlowerAdminToken(request) {
+  const headerToken = String(request.headers.get("x-admin-token") || "").trim();
+  if (FLOWER_ADMIN_TOKEN_RE.test(headerToken)) return headerToken;
+
+  const auth = String(request.headers.get("authorization") || "").trim();
+  if (auth.toLowerCase().startsWith("bearer ")) {
+    const bearer = auth.slice(7).trim();
+    if (FLOWER_ADMIN_TOKEN_RE.test(bearer)) return bearer;
+  }
+
+  const cookie = String(request.headers.get("cookie") || "");
+  const match = cookie.match(/(?:^|;\s*)flower_admin_token=([^;]+)/i);
+  if (!match) return "";
+  const token = decodeCookieValue(match[1]);
+  return FLOWER_ADMIN_TOKEN_RE.test(token) ? token : "";
+}
+
+function timingSafeEqualText(a, b) {
+  const lhs = String(a || "");
+  const rhs = String(b || "");
+  if (lhs.length !== rhs.length) return false;
+
+  let diff = 0;
+  for (let index = 0; index < lhs.length; index += 1) {
+    diff |= lhs.charCodeAt(index) ^ rhs.charCodeAt(index);
+  }
+  return diff === 0;
+}
+
+function bytesToHex(bytes) {
+  return Array.from(bytes)
+    .map((value) => value.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function base64urlDecode(value) {
+  const base64 = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
+  const pad = (4 - (base64.length % 4)) % 4;
+  return atob(base64 + "=".repeat(pad));
+}
+
+async function hmacSha256Hex(text, secret) {
+  const subtle = globalThis?.crypto?.subtle;
+  if (!subtle) return "";
+  const key = await subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await subtle.sign("HMAC", key, new TextEncoder().encode(text));
+  return bytesToHex(new Uint8Array(signature));
+}
+
+async function verifyFlowerAdminToken(request, env) {
+  const token = extractFlowerAdminToken(request);
+  if (!token) return false;
+
+  const dotIdx = token.lastIndexOf(".");
+  if (dotIdx < 1) return false;
+
+  const payloadB64 = token.slice(0, dotIdx);
+  const signatureHex = token.slice(dotIdx + 1);
+  if (!/^[a-f0-9]{64}$/i.test(signatureHex)) return false;
+
+  const expectedHex = await hmacSha256Hex(
+    payloadB64,
+    String(env?.FLOWER_ADMIN_SECRET || "flower-admin-dev-secret-placeholder-000000"),
+  );
+  if (!timingSafeEqualText(expectedHex, signatureHex.toLowerCase())) return false;
+
+  let payload = null;
+  try {
+    payload = JSON.parse(base64urlDecode(payloadB64));
+  } catch (e) {
+    return false;
+  }
+
+  const exp = Number(payload?.exp || 0);
+  const nowSec = Math.floor(Date.now() / 1000);
+  return payload?.v === 1 && Number.isFinite(exp) && nowSec <= exp;
+}
+
 function logCoinGateResult(payload) {
   try {
     console.log("[worker-billing-coin-gate]", JSON.stringify(payload));
@@ -927,9 +1270,24 @@ async function requireBillingAuth(request, env, pricing = {}) {
     return { ok: true, auth: null };
   }
 
+  const adminMode = isPaidServiceFeaturePricing(pricing) && isAdminPaidServiceBypassEnabled(env)
+    ? await verifyFlowerAdminToken(request, env)
+    : false;
   const auth = await getOptionalUserFromRequest(request, env);
   if (auth) {
-    return { ok: true, auth };
+    return { ok: true, auth, adminMode };
+  }
+
+  if (adminMode) {
+    return {
+      ok: true,
+      auth: {
+        userId: ADMIN_TEST_USER_ID,
+        role: "admin",
+        isAdmin: true,
+      },
+      adminMode: true,
+    };
   }
 
   return {
@@ -970,15 +1328,194 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   const membershipPassOnly = requestedPaymentMode === "membership_pass" || requestedPaymentMode === "membership";
   const monthlyBalanceRequested = requestedPaymentMode === "monthly_credit"
     || requestedPaymentMode === "monthly"
-    || requestedPaymentMode === "membership_credit"
-    || (!requestedPaymentMode && forceDeduct);
-  const singleOrMonthlyOnly = forceDeductRequested || pricing?.forceDeduct === true;
+    || requestedPaymentMode === "membership_credit";
+  const singleOrMonthlyOnly = monthlyBalanceRequested;
 
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const reportSessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || (reportId ? `love-book:${reportId}` : requestId)).trim();
+  const isPdfGenerationService = canGeneratePaidPdf(pricing);
+  if (authCheck.adminMode) {
+    const adminAuthUserId = String(authCheck?.auth?.userId || ADMIN_TEST_USER_ID);
+    const adminFeatureKey = String(pricing?.featureKey || "").trim();
+    const adminPurchaseId = String(requestId || `admin:${adminFeatureKey || "paid-service"}:${Date.now().toString(36)}`).trim();
+    const adminProfileId = cleanProfileId(body?.profileId || body?.selectedProfileId || body?.profile?.profileId || body?.profile?.id);
+    const adminPaymentDecision = buildPassPaymentDecision(null, pricing, null);
+    return await successWithPremiumAccess(env, adminAuthUserId, {
+      pricing,
+      ...adminPaymentDecision,
+      paymentOptions: adminPaymentDecision,
+      adminBypass: true,
+      adminTestMode: true,
+      paymentMode: "admin_bypass",
+      accessMethod: "ADMIN_TEST",
+      charged: 0,
+      consume: {
+        ok: true,
+        transactionId: adminPurchaseId,
+        transactionType: isPdfGenerationService ? "admin_pdf_generation" : "admin_paid_service",
+        accessType: "admin_test",
+        accessMethod: "ADMIN_TEST",
+        paymentMethod: "ADMIN_TEST",
+        requestId,
+        featureKey: adminFeatureKey,
+        coinPrice: Number(pricing.coinPrice || pricing.cost || 0),
+        chargedCoins: 0,
+        membershipCreditCost: 0,
+        adminBypass: true,
+        adminTestMode: true,
+        paymentMode: "admin_bypass",
+      },
+      accessGrant: {
+        ok: true,
+        accessType: "admin_test",
+        accessMethod: "ADMIN_TEST",
+        paymentMode: "admin_bypass",
+        adminTestMode: true,
+        adminBypass: true,
+        featureKey: adminFeatureKey,
+        sessionId: reportSessionId || undefined,
+        requestId,
+        purchaseId: adminPurchaseId,
+        evidenceId: adminPurchaseId,
+        reportId: reportId || undefined,
+        profileId: adminProfileId || undefined,
+        paidAt: new Date().toISOString(),
+      },
+      balance: null,
+      user: {
+        id: adminAuthUserId,
+        role: "admin",
+        adminMode: true,
+      },
+      unlockedFeatures: adminFeatureKey && !isPdfGenerationService ? [adminFeatureKey] : [],
+      unlockMap: adminFeatureKey && !isPdfGenerationService ? { [adminFeatureKey]: true } : {},
+      freeBySubscription: false,
+    }, "ADMIN_TEST_PAYMENT_BYPASS");
+  }
   const profileId = authCheck?.auth?.userId ? await resolveBillingProfileId(authCheck.auth.userId, body) : "";
   const scopedBody = profileId ? { ...body, profileId, selectedProfileId: profileId } : body;
+  const subscriptionPassForDecision = !isPdfGenerationService && authCheck?.auth?.userId
+    ? await getActiveMembershipPassForUser(env, authCheck.auth.userId)
+    : null;
   let paymentDecision = buildPassPaymentDecision(null, pricing, null);
+  let accessDecision = buildPaidContentAccessDecision({
+    reason: "payment_required",
+    shouldOpenPaymentSelector: true,
+    priceCoin: Number(pricing?.coinPrice || pricing?.cost || 0),
+    paymentOptions: paymentDecision,
+  });
+  if (!isPdfGenerationService) {
+    accessDecision = await resolvePaidContentAccess(env, {
+      userId: authCheck.auth.userId,
+      profileId,
+      pricing,
+      requestId,
+      requestedPaymentMode,
+      allowPassAutoUnlock: !singleOrMonthlyOnly,
+      subscriptionPass: subscriptionPassForDecision,
+    });
+  }
+
+  if (accessDecision.paymentOptions) paymentDecision = accessDecision.paymentOptions;
+  if (accessDecision.reason === "already_unlocked" || accessDecision.reason === "pass_covered") {
+    const accessType = accessDecision.reason === "already_unlocked" ? "already_unlocked" : "membership_pass";
+    return await successWithPremiumAccess(env, authCheck.auth.userId, {
+      pricing,
+      ...paymentDecision,
+      paymentOptions: paymentDecision,
+      alreadyUnlocked: accessDecision.reason === "already_unlocked",
+      accessMethod: accessDecision.reason === "pass_covered" ? "PASS" : undefined,
+      consume: {
+        ok: true,
+        transactionType: accessDecision.reason === "already_unlocked" ? "unlock_entitlement" : "membership_pass",
+        accessType,
+        accessMethod: accessDecision.reason === "pass_covered" ? "PASS" : undefined,
+        paymentMethod: accessDecision.reason === "pass_covered" ? "PASS" : undefined,
+        requestId,
+        featureKey: String(pricing.featureKey || ""),
+        profileId: profileId || undefined,
+        chargedCoins: 0,
+        membershipCreditCost: 0,
+      },
+      accessGrant: {
+        ok: true,
+        accessType,
+        accessMethod: accessDecision.reason === "pass_covered" ? "PASS" : undefined,
+        featureKey: String(pricing.featureKey || ""),
+        sessionId: reportSessionId || undefined,
+        requestId,
+        purchaseId: String(accessDecision.unlockId || requestId),
+        evidenceId: String(accessDecision.unlockId || ""),
+        reportId: reportId || undefined,
+        profileId: profileId || undefined,
+        paidAt: new Date().toISOString(),
+      },
+      accessDecision,
+      unlockedFeatures: [String(pricing.featureKey || "")],
+      unlockMap: { [String(pricing.featureKey || "")]: true },
+      balance: null,
+      membershipPass: accessDecision.reason === "pass_covered" && subscriptionPassForDecision ? {
+        tier: subscriptionPassForDecision.tier,
+        passTier: subscriptionPassForDecision.passTier,
+        freeLimit: subscriptionPassForDecision.freeLimit,
+      } : undefined,
+      user: {
+        id: String(authCheck.auth.userId || ""),
+        profileSubscription: subscriptionPassForDecision?.profileSubscription || null,
+      },
+      freeBySubscription: accessDecision.reason === "pass_covered",
+    }, accessDecision.reason === "already_unlocked" ? "ALREADY_UNLOCKED" : "PASS_FREE");
+  }
+  if (accessDecision.reason === "invalid_profile") {
+    return failure(403, "INVALID_PROFILE", "Profile access could not be verified.", undefined, {
+      pricing,
+      accessDecision,
+    });
+  }
+  if (accessDecision.reason === "error") {
+    return failure(500, "ACCESS_DECISION_ERROR", "Paid content access could not be verified.", undefined, {
+      pricing,
+      accessDecision,
+    });
+  }
+
+  if (!isPdfGenerationService) {
+    const existingProfileUnlock = await findActiveSajuProfileUnlock(env, {
+      userId: authCheck.auth.userId,
+      profileId,
+      featureKey: pricing?.featureKey,
+    });
+    if (existingProfileUnlock) {
+      return await successWithPremiumAccess(env, authCheck.auth.userId, {
+        pricing,
+        alreadyUnlocked: true,
+        consume: {
+          ok: true,
+          transactionType: "unlock_entitlement",
+          accessType: "already_unlocked",
+          requestId,
+          featureKey: String(pricing.featureKey || ""),
+          profileId: profileId || undefined,
+          chargedCoins: 0,
+        },
+        accessGrant: {
+          ok: true,
+          accessType: "already_unlocked",
+          featureKey: String(pricing.featureKey || ""),
+          sessionId: reportSessionId || undefined,
+          requestId,
+          purchaseId: String(existingProfileUnlock._id || ""),
+          evidenceId: String(existingProfileUnlock._id || ""),
+          reportId: reportId || undefined,
+          profileId: profileId || undefined,
+          paidAt: existingProfileUnlock.unlockedAt ? new Date(existingProfileUnlock.unlockedAt).toISOString() : new Date().toISOString(),
+        },
+        unlockedFeatures: [String(pricing.featureKey || "")],
+        unlockMap: { [String(pricing.featureKey || "")]: true },
+        balance: null,
+      }, "ALREADY_UNLOCKED");
+    }
+  }
 
   if (authCheck?.auth?.userId) {
     const subscriptionPass = await getActiveMembershipPassForUser(env, authCheck.auth.userId);
@@ -988,13 +1525,44 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       pricing,
       subscriptionPass.profileSubscription,
     );
-    if (paymentDecision.canUseByPass && !singleOrMonthlyOnly) {
+    if (paymentDecision.canUseByPass) {
+      if (!singleOrMonthlyOnly) {
       const passEvidence = await recordPassAccessIfNeeded(env, authCheck.auth.userId, pricing, requestId, {
         ...scopedBody,
         reportId,
         sessionId: reportSessionId,
         reportSessionId,
       }, subscriptionPass.entitlement);
+      let unlockEntitlement = null;
+      if (!isPdfGenerationService) {
+        try {
+          unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
+            userId: authCheck.auth.userId,
+            profileId,
+            featureKey: pricing.featureKey,
+            source: CONTENT_ENTITLEMENT_SOURCES.PASS,
+            passId: `membership:${subscriptionPass.tier}:${requestId}`,
+            coinAmount: 0,
+          });
+        } catch (error) {
+          return failure(
+            error?.code === "MISSING_PROFILE_ID" ? 403 : 500,
+            "UNLOCK_ENTITLEMENT_SAVE_FAILED",
+            "Unlock entitlement could not be saved.",
+            String(error?.message || ""),
+            {
+              pricing,
+              pendingUnlock: true,
+              accessGrant: {
+                featureKey: String(pricing.featureKey || ""),
+                requestId,
+                evidenceId: String(passEvidence?._id || ""),
+                profileId: profileId || undefined,
+              },
+            },
+          );
+        }
+      }
       return await successWithPremiumAccess(env, authCheck.auth.userId, {
         pricing,
         ...paymentDecision,
@@ -1021,7 +1589,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           sessionId: reportSessionId || undefined,
           requestId,
           purchaseId: requestId,
-          evidenceId: String(passEvidence?._id || `membership:${subscriptionPass.tier}:${requestId}`),
+          evidenceId: String(unlockEntitlement?._id || passEvidence?._id || `membership:${subscriptionPass.tier}:${requestId}`),
           reportId: reportId || undefined,
           profileId: profileId || undefined,
           paidAt: new Date().toISOString(),
@@ -1041,6 +1609,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       }, "이용권 무료 한도 조건으로 서비스를 열었습니다.");
     }
 
+      }
     if (membershipPassOnly) {
       return failure(402, "MEMBERSHIP_PASS_NOT_COVERED", "현재 이용권 한도 밖 서비스입니다. 월정석 또는 단건 결제로 이용해 주세요.", undefined, {
         pricing,
@@ -1065,6 +1634,37 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         reportSessionId,
       });
       if (membershipConsume) {
+        let unlockEntitlement = null;
+        if (!isPdfGenerationService) {
+          try {
+            unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
+              userId: authCheck.auth.userId,
+              profileId,
+              featureKey: pricing.featureKey,
+              source: CONTENT_ENTITLEMENT_SOURCES.COIN,
+              orderId: requestId,
+              paymentId: membershipConsume.transactionId || requestId,
+              coinAmount: Number(membershipConsume.coinPrice || 0),
+            });
+          } catch (error) {
+            return failure(
+              error?.code === "MISSING_PROFILE_ID" ? 403 : 500,
+              "UNLOCK_ENTITLEMENT_SAVE_FAILED",
+              "Unlock entitlement could not be saved after monthly credit consumption.",
+              String(error?.message || ""),
+              {
+                pricing,
+                pendingUnlock: true,
+                settlement: {
+                  source: "MONTHLY",
+                  transactionId: membershipConsume.transactionId || "",
+                  requestId,
+                  profileId: profileId || undefined,
+                },
+              },
+            );
+          }
+        }
         const updatedPaymentDecision = buildPassPaymentDecision(
           subscriptionPass.entitlement,
           pricing,
@@ -1099,7 +1699,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
             sessionId: reportSessionId || undefined,
             requestId,
             purchaseId: requestId,
-            evidenceId: membershipConsume.transactionId || "",
+            evidenceId: String(unlockEntitlement?._id || membershipConsume.transactionId || ""),
             reportId: reportId || undefined,
             profileId: profileId || undefined,
             paidAt: new Date().toISOString(),
@@ -1126,6 +1726,36 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
 
     const usagePassConsume = singleOrMonthlyOnly ? null : await consumeUsagePassIfAvailable(env, authCheck.auth.userId, pricing, requestId);
     if (usagePassConsume) {
+      let unlockEntitlement = null;
+      if (!isPdfGenerationService) {
+        try {
+          unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
+            userId: authCheck.auth.userId,
+            profileId,
+            featureKey: pricing.featureKey,
+            source: CONTENT_ENTITLEMENT_SOURCES.PASS,
+            passId: `${usagePassConsume.category}:${requestId}`,
+            coinAmount: 0,
+          });
+        } catch (error) {
+          return failure(
+            error?.code === "MISSING_PROFILE_ID" ? 403 : 500,
+            "UNLOCK_ENTITLEMENT_SAVE_FAILED",
+            "Unlock entitlement could not be saved after usage pass consumption.",
+            String(error?.message || ""),
+            {
+              pricing,
+              pendingUnlock: true,
+              settlement: {
+                source: "USAGE_PASS",
+                category: usagePassConsume.category,
+                requestId,
+                profileId: profileId || undefined,
+              },
+            },
+          );
+        }
+      }
       return await successWithPremiumAccess(env, authCheck.auth.userId, {
         pricing,
         ...paymentDecision,
@@ -1142,12 +1772,14 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         accessGrant: {
           ok: true,
           featureKey: String(pricing.featureKey || ""),
-        sessionId: reportSessionId || undefined,
-        requestId,
-        reportId: reportId || undefined,
-        profileId: profileId || undefined,
-        paidAt: new Date().toISOString(),
-      },
+          sessionId: reportSessionId || undefined,
+          requestId,
+          purchaseId: String(unlockEntitlement?._id || requestId),
+          evidenceId: String(unlockEntitlement?._id || ""),
+          reportId: reportId || undefined,
+          profileId: profileId || undefined,
+          paidAt: new Date().toISOString(),
+        },
         balance: Number(usagePassConsume?.user?.points || 0),
         user: usagePassConsume.user,
       }, "이용권 회차를 사용해 서비스를 열었습니다.");
@@ -1158,6 +1790,9 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     pricing,
     ...paymentDecision,
     paymentOptions: paymentDecision,
+    accessDecision,
+    shouldOpenPaymentSelector: accessDecision.shouldOpenPaymentSelector,
+    availableMethods: accessDecision.availableMethods,
     accessGrant: null,
     balance: null,
     checkout: {
@@ -1191,6 +1826,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     reportId: reportId || undefined,
     sessionId: reportSessionId || undefined,
     reportSessionId: reportSessionId || undefined,
+    profileId: profileId || undefined,
+    selectedProfileId: profileId || undefined,
   };
 
   if (body?.productId) {
@@ -1259,6 +1896,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
 
   const requestedFeatureKey = String(body?.featureKey || pricing?.featureKey || "").trim() || String(pricing?.featureKey || "").trim();
   const purchaseId = String(payload?.transactionId || payload?.data?.transactionId || "").trim();
+  const requestedFeatureIsPdfGeneration = canGeneratePaidPdf({ featureKey: requestedFeatureKey });
   const accessGrant = requestedFeatureKey && purchaseId
     ? {
       ok: true,
@@ -1267,9 +1905,45 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       purchaseId: purchaseId || undefined,
       requestId: requestId || undefined,
       reportId: reportId || undefined,
+      profileId: profileId || undefined,
       paidAt: new Date().toISOString(),
     }
     : null;
+
+  let unlockEntitlement = null;
+  if (!requestedFeatureIsPdfGeneration) {
+    try {
+      unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
+        userId: authCheck.auth.userId,
+        profileId,
+        featureKey: requestedFeatureKey,
+        source: CONTENT_ENTITLEMENT_SOURCES.COIN,
+        paymentId: purchaseId,
+        orderId: requestId,
+        coinAmount: Number(payload?.chargedCoins || payload?.delta || payload?.deductedAmount || pricing?.coinPrice || pricing?.cost || 0),
+      });
+    } catch (error) {
+      return failure(
+        error?.code === "MISSING_PROFILE_ID" ? 403 : 500,
+        "UNLOCK_ENTITLEMENT_SAVE_FAILED",
+        "Unlock entitlement could not be saved after coin consumption.",
+        String(error?.message || ""),
+        {
+          pricing,
+          pendingUnlock: true,
+          settlement: {
+            source: "COIN",
+            transactionId: purchaseId || "",
+            requestId,
+            profileId: profileId || undefined,
+          },
+        },
+      );
+    }
+  }
+  if (accessGrant && unlockEntitlement?._id) {
+    accessGrant.evidenceId = String(unlockEntitlement._id || "");
+  }
 
   return success({
     pricing,
@@ -1471,10 +2145,10 @@ async function handleUnlockStatus(request, env) {
   const data = balancePayload.data || {};
   const unlockMap = data.unlockMap && typeof data.unlockMap === "object" ? data.unlockMap : {};
   const pricing = pricingResult.pricing;
-  const unlocked = Boolean(unlockMap[pricing.featureKey]);
+  let unlocked = Boolean(unlockMap[pricing.featureKey]);
   const currentBalance = Number(data.balance || 0);
   const subscription = await readSubscriptionStatusSnapshot(request, env);
-  const paymentDecision = buildPassPaymentDecision({
+  let paymentDecision = buildPassPaymentDecision({
     isActive: subscription.isActive,
     tier: subscription.tier,
     passTier: subscription.passTier,
@@ -1484,7 +2158,20 @@ async function handleUnlockStatus(request, env) {
     membershipCreditBalance: Number(data.membershipCreditBalance ?? data.membership?.membershipCreditBalance ?? 0),
   });
 
-  const access = buildAccessDecision({
+  const auth = await getOptionalUserFromRequest(request, env);
+  const accessDecision = await resolvePaidContentAccess(env, {
+    userId: auth?.userId || "",
+    profileId: cleanProfileId(url.searchParams.get("profileId") || data.currentProfileId || ""),
+    pricing,
+    requestId: String(url.searchParams.get("requestId") || "").trim(),
+  });
+  if (accessDecision.paymentOptions) paymentDecision = accessDecision.paymentOptions;
+  if (accessDecision.accessGranted) {
+    unlocked = true;
+    if (pricing.featureKey) unlockMap[pricing.featureKey] = true;
+  }
+
+  const legacyAccess = buildAccessDecision({
     pricing,
     authenticated: Boolean(data.authenticated),
     balance: currentBalance,
@@ -1497,13 +2184,18 @@ async function handleUnlockStatus(request, env) {
     ...paymentDecision,
     paymentOptions: paymentDecision,
     unlocked,
-    accessReason: access.reason,
+    accessDecision,
+    accessReason: accessDecision.reason === "already_unlocked"
+      ? ACCESS_DECISION_REASONS.ALREADY_UNLOCKED
+      : (accessDecision.reason === "pass_covered" ? ACCESS_DECISION_REASONS.SUBSCRIPTION_ACTIVE : legacyAccess.reason),
     subscriptionTier: subscription.tier,
     freeLimit: Number(subscription.freeLimit || 0),
-    freeBySubscription: access.reason === ACCESS_DECISION_REASONS.SUBSCRIPTION_ACTIVE,
+    freeBySubscription: accessDecision.reason === "pass_covered",
     currentBalance,
-    requiredCoins: access.reason === ACCESS_DECISION_REASONS.SUBSCRIPTION_ACTIVE ? 0 : Number(pricing.cost || 0),
-    canAccess: Boolean(access.allowed),
+    requiredCoins: accessDecision.accessGranted ? 0 : Number(pricing.cost || 0),
+    shouldOpenPaymentSelector: accessDecision.shouldOpenPaymentSelector,
+    availableMethods: accessDecision.availableMethods,
+    canAccess: Boolean(accessDecision.accessGranted),
   }, "기능 접근 상태를 조회했습니다.");
 }
 
@@ -1568,7 +2260,7 @@ async function handleLegacyRefund(request, env) {
   return success(payload, toMessage(payload, "환불 요청이 처리되었습니다."));
 }
 
-async function delegateToPayments(request, env, targetPath, body) {
+async function delegateToPayments(request, env, targetPath, body, options = {}) {
   let delegatedResponse = null;
   let payload = {};
   try {
@@ -1597,6 +2289,42 @@ async function delegateToPayments(request, env, targetPath, body) {
     );
   }
 
+  if (options?.premiumAccess === true && options?.authUserId && options?.pricing) {
+    const pricing = options.pricing;
+    const accessGrant = payload?.accessGrant && typeof payload.accessGrant === "object" ? payload.accessGrant : null;
+    const payment = payload?.payment && typeof payload.payment === "object" ? payload.payment : null;
+    const transactionId = String(
+      accessGrant?.evidenceId
+        || accessGrant?.purchaseId
+        || payment?._id
+        || payment?.id
+        || payment?.merchantUid
+        || body?.merchantUid
+        || body?.merchant_uid
+        || body?.paymentId
+        || body?.impUid
+        || "",
+    ).trim();
+    return successWithPremiumAccess(env, options.authUserId, {
+      pricing,
+      ...payload,
+      consume: {
+        ok: true,
+        featureKey: String(pricing.featureKey || ""),
+        transactionId,
+        chargedCoins: Number(pricing.coinPrice || pricing.cost || body?.coinPrice || 0),
+        accessType: String(accessGrant?.accessType || "single_purchase"),
+      },
+      accessGrant: accessGrant || {
+        ok: true,
+        accessType: "single_purchase",
+        featureKey: String(pricing.featureKey || ""),
+        requestId: String(body?.requestId || ""),
+        evidenceId: transactionId || undefined,
+      },
+    }, toMessage(payload, "결제 확인이 완료되었습니다."));
+  }
+
   return success(payload, toMessage(payload, "결제 요청이 성공했습니다."));
 }
 
@@ -1608,11 +2336,111 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
   if (!authCheck.ok || !authCheck?.auth?.userId) return null;
 
   const pricing = pricingResult.pricing;
+  const isPdfGenerationService = canGeneratePaidPdf(pricing);
   const requestId = resolveRequestId(request, body);
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const reportSessionId = String(
     body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || (reportId ? `love-book:${reportId}` : requestId),
   ).trim();
+  if (authCheck.adminMode) {
+    const adminAuthUserId = String(authCheck?.auth?.userId || ADMIN_TEST_USER_ID);
+    const adminFeatureKey = String(pricing?.featureKey || "").trim();
+    const adminPurchaseId = String(requestId || `admin:${adminFeatureKey || "paid-service"}:${Date.now().toString(36)}`).trim();
+    const adminProfileId = cleanProfileId(body?.profileId || body?.selectedProfileId || body?.profile?.profileId || body?.profile?.id);
+    const adminPaymentDecision = buildPassPaymentDecision(null, pricing, null);
+    return successWithPremiumAccess(env, adminAuthUserId, {
+      pricing,
+      ...adminPaymentDecision,
+      paymentOptions: adminPaymentDecision,
+      adminBypass: true,
+      adminTestMode: true,
+      paymentMode: "admin_bypass",
+      accessMethod: "ADMIN_TEST",
+      charged: 0,
+      consume: {
+        ok: true,
+        transactionId: adminPurchaseId,
+        transactionType: isPdfGenerationService ? "admin_pdf_generation" : "admin_paid_service",
+        accessType: "admin_test",
+        accessMethod: "ADMIN_TEST",
+        paymentMethod: "ADMIN_TEST",
+        requestId,
+        featureKey: adminFeatureKey,
+        coinPrice: Number(pricing.coinPrice || pricing.cost || 0),
+        chargedCoins: 0,
+        membershipCreditCost: 0,
+        adminBypass: true,
+        adminTestMode: true,
+        paymentMode: "admin_bypass",
+      },
+      accessGrant: {
+        ok: true,
+        accessType: "admin_test",
+        accessMethod: "ADMIN_TEST",
+        paymentMode: "admin_bypass",
+        adminTestMode: true,
+        adminBypass: true,
+        featureKey: adminFeatureKey,
+        sessionId: reportSessionId || undefined,
+        requestId,
+        purchaseId: adminPurchaseId,
+        evidenceId: adminPurchaseId,
+        reportId: reportId || undefined,
+        profileId: adminProfileId || undefined,
+        paidAt: new Date().toISOString(),
+      },
+      balance: null,
+      user: {
+        id: adminAuthUserId,
+        role: "admin",
+        adminMode: true,
+      },
+      unlockedFeatures: adminFeatureKey && !isPdfGenerationService ? [adminFeatureKey] : [],
+      unlockMap: adminFeatureKey && !isPdfGenerationService ? { [adminFeatureKey]: true } : {},
+      freeBySubscription: false,
+    }, "ADMIN_TEST_PAYMENT_BYPASS");
+  }
+  const profileId = await resolveBillingProfileId(authCheck.auth.userId, body);
+  const scopedBody = profileId ? { ...body, profileId, selectedProfileId: profileId } : body;
+  if (!isPdfGenerationService) {
+    const existingProfileUnlock = await findActiveSajuProfileUnlock(env, {
+      userId: authCheck.auth.userId,
+      profileId,
+      featureKey: pricing?.featureKey,
+    });
+    if (existingProfileUnlock) {
+      return successWithPremiumAccess(env, authCheck.auth.userId, {
+        pricing,
+        alreadyUnlocked: true,
+        consume: {
+          ok: true,
+          transactionType: "unlock_entitlement",
+          accessType: "already_unlocked",
+          requestId,
+          featureKey: String(pricing.featureKey || ""),
+          profileId: profileId || undefined,
+          chargedCoins: 0,
+        },
+        premiumAccessToken: null,
+        accessGrant: {
+          ok: true,
+          accessType: "already_unlocked",
+          featureKey: String(pricing.featureKey || ""),
+          sessionId: reportSessionId || undefined,
+          requestId,
+          purchaseId: String(existingProfileUnlock._id || ""),
+          evidenceId: String(existingProfileUnlock._id || ""),
+          reportId: reportId || undefined,
+          profileId: profileId || undefined,
+          paidAt: existingProfileUnlock.unlockedAt ? new Date(existingProfileUnlock.unlockedAt).toISOString() : new Date().toISOString(),
+        },
+        unlockedFeatures: [String(pricing.featureKey || "")],
+        unlockMap: { [String(pricing.featureKey || "")]: true },
+        balance: null,
+      }, "ALREADY_UNLOCKED");
+    }
+  }
+
   const subscriptionPass = await getActiveMembershipPassForUser(env, authCheck.auth.userId);
   const paymentDecision = buildPassPaymentDecision(
     subscriptionPass.entitlement,
@@ -1622,11 +2450,41 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
   if (!paymentDecision.canUseByPass) return null;
 
   const passEvidence = await recordPassAccessIfNeeded(env, authCheck.auth.userId, pricing, requestId, {
-    ...body,
+    ...scopedBody,
     reportId,
     sessionId: reportSessionId,
     reportSessionId,
   }, subscriptionPass.entitlement);
+  let unlockEntitlement = null;
+  if (!isPdfGenerationService) {
+    try {
+      unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
+        userId: authCheck.auth.userId,
+        profileId,
+        featureKey: pricing.featureKey,
+        source: CONTENT_ENTITLEMENT_SOURCES.PASS,
+        passId: `membership:${subscriptionPass.tier}:${requestId}`,
+        coinAmount: 0,
+      });
+    } catch (error) {
+      return failure(
+        error?.code === "MISSING_PROFILE_ID" ? 403 : 500,
+        "UNLOCK_ENTITLEMENT_SAVE_FAILED",
+        "Unlock entitlement could not be saved.",
+        String(error?.message || ""),
+        {
+          pricing,
+          pendingUnlock: true,
+          accessGrant: {
+            featureKey: String(pricing.featureKey || ""),
+            requestId,
+            evidenceId: String(passEvidence?._id || ""),
+            profileId: profileId || undefined,
+          },
+        },
+      );
+    }
+  }
 
   return successWithPremiumAccess(env, authCheck.auth.userId, {
     pricing,
@@ -1655,8 +2513,9 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
       sessionId: reportSessionId || undefined,
       requestId,
       purchaseId: requestId,
-      evidenceId: String(passEvidence?._id || `membership:${subscriptionPass.tier}:${requestId}`),
+      evidenceId: String(unlockEntitlement?._id || passEvidence?._id || `membership:${subscriptionPass.tier}:${requestId}`),
       reportId: reportId || undefined,
+      profileId: profileId || undefined,
       paidAt: new Date().toISOString(),
     },
     balance: null,
@@ -1687,12 +2546,27 @@ async function handleCheckout(request, env) {
 async function handleConfirm(request, env) {
   const body = await readJson(request);
   const isSubscription = Boolean(body?.subscriptionTier) || String(body?.paymentType || "").toLowerCase() === "subscription";
-  if (!isSubscription) {
+  const hasPaymentVerificationPayload = Boolean(body?.impUid || body?.paymentId || body?.merchantUid || body?.merchant_uid);
+  const pricingResult = !isSubscription ? resolvePricingFromBody(body) : null;
+  if (!isSubscription && !hasPaymentVerificationPayload) {
     const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(request, env, body);
     if (passAccess) return passAccess;
   }
+  let premiumAccessOptions = null;
+  if (!isSubscription && hasPaymentVerificationPayload && pricingResult?.ok) {
+    const reportType = resolvePremiumAccessReportType(pricingResult.pricing?.featureKey, pricingResult.pricing?.reason);
+    if (reportType) {
+      const authCheck = await requireBillingAuth(request, env, pricingResult.pricing);
+      if (!authCheck.ok) return authCheck.response;
+      premiumAccessOptions = {
+        premiumAccess: true,
+        authUserId: authCheck.auth.userId,
+        pricing: pricingResult.pricing,
+      };
+    }
+  }
   const targetPath = isSubscription ? "/api/payments/subscription/confirm" : "/api/payments/confirm";
-  return delegateToPayments(request, env, targetPath, body);
+  return delegateToPayments(request, env, targetPath, body, premiumAccessOptions || undefined);
 }
 
 async function runServiceExecutionAction(request, env, action) {
@@ -1792,6 +2666,8 @@ export async function handleBillingRoutes(request, env) {
 export const __billingTestUtils = {
   ACCESS_DECISION_REASONS,
   buildAccessDecision,
+  buildPaidContentAccessDecision,
   buildPassPaymentDecision,
   requireBillingAuth,
+  resolvePaidContentAccess,
 };

@@ -26,6 +26,8 @@ import { handleContentRoutes } from "./routes/content.js";
 import { handlePalmRoutes } from "./routes/palm.js";
 import { handleDestinyBiasRoutes } from "./routes/destiny-bias.js";
 import { handleBillingRoutes } from "./routes/billing.js";
+import { handleAccessRoutes } from "./routes/access.js";
+import { handleRpgRoutes } from "./routes/rpg.js";
 import { handleFptiRoutes } from "./routes/fpti.js";
 import { buildRuntimeKeyMatrix } from "./lib/key-health.js";
 import { getEnv } from "./lib/env.js";
@@ -540,8 +542,21 @@ export default {
         return withCorsHeaders(request, env, await handlePaymentRoutes(request, env));
       }
 
+      if (url.pathname === "/api/webhooks/portone") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/payments/webhook");
+        return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env));
+      }
+
       if (url.pathname === "/api/billing" || url.pathname.startsWith("/api/billing/")) {
         return withCorsHeaders(request, env, await handleBillingRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/access" || url.pathname.startsWith("/api/access/")) {
+        return withCorsHeaders(request, env, await handleAccessRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/rpg" || url.pathname.startsWith("/api/rpg/")) {
+        return withCorsHeaders(request, env, await handleRpgRoutes(request, env));
       }
 
       // Legacy compatibility: singular payment namespace.

@@ -155,6 +155,45 @@ function toNumber(value: unknown, fallback = 0): number {
   return Number.isFinite(numberValue) ? numberValue : fallback;
 }
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
+}
+
+function hasVerifiedBillingAccess(data: unknown, expectedFeatureKey: unknown): boolean {
+  const record = asRecord(data);
+  if (!record) return false;
+  const expectedFeature = toText(expectedFeatureKey);
+  const accessGrant = asRecord(record.accessGrant);
+  if (accessGrant && accessGrant.ok !== false) {
+    const evidenceId = toText(
+      accessGrant.evidenceId
+      || accessGrant.purchaseId
+      || accessGrant.paymentId
+      || accessGrant.merchantUid
+      || accessGrant.requestId,
+    );
+    const grantFeature = toText(accessGrant.featureKey);
+    if (evidenceId && (!expectedFeature || !grantFeature || grantFeature === expectedFeature)) return true;
+  }
+  const consume = asRecord(record.consume);
+  if (consume && consume.ok !== false) {
+    const transactionId = toText(
+      consume.transactionId
+      || consume.receiptId
+      || consume.pointHistoryId
+      || consume._id
+      || consume.id,
+    );
+    const consumeFeature = toText(consume.featureKey);
+    if (transactionId && (!expectedFeature || !consumeFeature || consumeFeature === expectedFeature)) return true;
+    if ((consume.accessType === "membership_pass" || consume.accessType === "already_unlocked") && (!expectedFeature || !consumeFeature || consumeFeature === expectedFeature)) return true;
+  }
+  const unlockMap = asRecord(record.unlockMap);
+  if (expectedFeature && unlockMap && unlockMap[expectedFeature] === true) return true;
+  const unlockedFeatures = Array.isArray(record.unlockedFeatures) ? record.unlockedFeatures.map(toText) : [];
+  return Boolean(expectedFeature && unlockedFeatures.includes(expectedFeature));
+}
+
 function collectBillingFallbackBases(): string[] {
   const fromEnv = [
     process.env.NEXT_PUBLIC_AUTH_API_BASE_URL,
@@ -466,7 +505,7 @@ export async function fetchPaymentEligibility(input: {
     monthly: {
       balance: monthlyBalance,
       canUse: Boolean(options.canUseByMonthly ?? data.canUseByMonthly),
-      afterBalance: Math.max(0, monthlyBalance - coinCost),
+      afterBalance: Math.max(0, monthlyBalance - (coinCost * 10)),
     },
     card: {
       canUse: Boolean(options.canUseByCard ?? data.canUseByCard ?? true),
@@ -574,6 +613,27 @@ export async function runBillingCoinGate(input: {
     }>(response);
 
     if (parsed.ok && parsed.data) {
+      if (!hasVerifiedBillingAccess(parsed.data, input.featureKey || featureId)) {
+        markPaidAttemptFailed("server_access_grant_missing");
+        emitPaidFeatureGate("update", {
+          featureId,
+          featureKey: featureId,
+          requestId: gateRequestId,
+          status: "paymentFailed",
+          message: "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+        });
+        return {
+          ...parsed,
+          ok: false,
+          status: parsed.status || 500,
+          data: null,
+          message: "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+          error: {
+            code: "SERVER_ACCESS_GRANT_MISSING",
+            message: "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+          },
+        };
+      }
       const normalizedBalance = toNumber(parsed.data.balance, NaN);
       parsed.data.balance = Number.isFinite(normalizedBalance) ? normalizedBalance : null;
       markPaidAttemptPaymentSucceeded();

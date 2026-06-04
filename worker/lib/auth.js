@@ -8,6 +8,30 @@ import { RefreshTokenSession, User } from "./models.js";
 export const JWT_ISSUER = "code-destiny-api";
 export const ACCESS_COOKIE_NAME = "fortune_auth_token";
 export const REFRESH_COOKIE_NAME = "fortune_auth_refresh";
+const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
+const FLOWER_ADMIN_USER_ID = "flower-admin";
+const PAID_SERVICE_ADMIN_AUTH_PATHS = Object.freeze([
+  "/api/premium/saju-lifebook",
+  "/api/premium/saju/life-book",
+  "/api/lifebook",
+  "/api/love-secret",
+  "/api/saju-new-year",
+  "/api/ziwei-book",
+  "/api/sukuyo",
+  "/api/astro",
+  "/api/vedic",
+  "/api/soul-origin",
+  "/api/sibyl",
+  "/api/fpti",
+  "/api/celestial-harmony",
+  "/api/tarot",
+  "/api/fortune/ziwei/ai-prompt",
+  "/api/fortune/sukuyo/ai-prompt",
+  "/api/fortune/saju/ai-prompt",
+  "/api/fortune/saju/question-prompt",
+  "/api/fortune/astrology/ai-prompt",
+  "/api/fortune/vedic/ai-prompt",
+]);
 
 export function getJwtIssuer(env) {
   return getEnv(env, "JWT_ISSUER") || JWT_ISSUER;
@@ -93,6 +117,106 @@ function normalizeAuthResultFromUser(user) {
     gender: user?.gender ? String(user.gender) : "OTHER",
     points: Number.isFinite(Number(user?.points)) ? Number(user.points) : 0,
     joinedAt: user?.joinedAt || null,
+  };
+}
+
+function isPaidServiceAdminAuthPath(request) {
+  try {
+    const pathname = new URL(request.url).pathname;
+    return PAID_SERVICE_ADMIN_AUTH_PATHS.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+  } catch (e) {
+    return false;
+  }
+}
+
+function extractFlowerAdminToken(request) {
+  const headerToken = String(request.headers.get("x-admin-token") || "").trim();
+  if (FLOWER_ADMIN_TOKEN_RE.test(headerToken)) return headerToken;
+
+  const auth = String(request.headers.get("authorization") || "").trim();
+  if (auth.toLowerCase().startsWith("bearer ")) {
+    const bearer = auth.slice(7).trim();
+    if (FLOWER_ADMIN_TOKEN_RE.test(bearer)) return bearer;
+  }
+
+  const cookieToken = cookieValue(request, "flower_admin_token");
+  return FLOWER_ADMIN_TOKEN_RE.test(cookieToken) ? cookieToken : "";
+}
+
+function timingSafeEqualText(a, b) {
+  const lhs = String(a || "");
+  const rhs = String(b || "");
+  if (lhs.length !== rhs.length) return false;
+  let diff = 0;
+  for (let i = 0; i < lhs.length; i += 1) diff |= lhs.charCodeAt(i) ^ rhs.charCodeAt(i);
+  return diff === 0;
+}
+
+function bytesToHex(bytes) {
+  return Array.from(bytes).map((value) => value.toString(16).padStart(2, "0")).join("");
+}
+
+function base64urlDecode(value) {
+  const base64 = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
+  const pad = (4 - (base64.length % 4)) % 4;
+  return atob(base64 + "=".repeat(pad));
+}
+
+async function hmacSha256Hex(text, secret) {
+  const subtle = globalThis?.crypto?.subtle;
+  if (!subtle) return "";
+  const key = await subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await subtle.sign("HMAC", key, new TextEncoder().encode(text));
+  return bytesToHex(new Uint8Array(signature));
+}
+
+async function verifyFlowerAdminTokenForPaidService(request, env) {
+  if (!isPaidServiceAdminAuthPath(request)) return null;
+  const token = extractFlowerAdminToken(request);
+  if (!token) return null;
+
+  const dotIdx = token.lastIndexOf(".");
+  if (dotIdx < 1) return null;
+
+  const payloadB64 = token.slice(0, dotIdx);
+  const signatureHex = token.slice(dotIdx + 1).toLowerCase();
+  if (!/^[a-f0-9]{64}$/.test(signatureHex)) return null;
+
+  const expectedHex = await hmacSha256Hex(
+    payloadB64,
+    String(env?.FLOWER_ADMIN_SECRET || "flower-admin-dev-secret-placeholder-000000"),
+  );
+  if (!timingSafeEqualText(expectedHex, signatureHex)) return null;
+
+  let payload = null;
+  try {
+    payload = JSON.parse(base64urlDecode(payloadB64));
+  } catch (e) {
+    return null;
+  }
+
+  const exp = Number(payload?.exp || 0);
+  const nowSec = Math.floor(Date.now() / 1000);
+  if (payload?.v !== 1 || !Number.isFinite(exp) || nowSec > exp) return null;
+
+  return {
+    userId: FLOWER_ADMIN_USER_ID,
+    email: "",
+    role: "admin",
+    name: "ADMIN",
+    image: "",
+    birthDate: "",
+    birthTime: "",
+    gender: "OTHER",
+    points: 0,
+    joinedAt: null,
+    adminTestMode: true,
   };
 }
 
@@ -191,6 +315,9 @@ export async function getOptionalUserFromRequest(request, env) {
     const bearerToken = getHeaderBearerToken(request);
     const accessCookieToken = cookieValue(request, ACCESS_COOKIE_NAME);
     const refreshCookieToken = cookieValue(request, REFRESH_COOKIE_NAME);
+
+    const flowerAdminAuth = await verifyFlowerAdminTokenForPaidService(request, env);
+    if (flowerAdminAuth) return flowerAdminAuth;
 
     const bearerAuth = await verifyAccessTokenToAuth(bearerToken, env);
     if (bearerAuth) return bearerAuth;

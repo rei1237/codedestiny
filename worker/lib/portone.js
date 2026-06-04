@@ -1,6 +1,12 @@
 import { getEnv } from "./env.js";
 
 const DEFAULT_PORTONE_BASE_URL = "https://api.portone.io";
+const PORTONE_REQUIRED_ENV_KEYS = Object.freeze([
+  "PORTONE_API_Secret",
+  "PORTONE_webhook",
+  "PORTONE_channel",
+  "PORTONE_Store",
+]);
 
 function getPortOneBaseUrl(env) {
   return getEnv(env, "PORTONE_API_BASE_URL", DEFAULT_PORTONE_BASE_URL).replace(/\/+$/, "");
@@ -24,12 +30,35 @@ function getExactEnv(env, key, fallback = "") {
   return fallback;
 }
 
-function getPortOneApiSecret(env) {
-  return getExactEnv(env, "PORTONE_API_Secret");
+function logMissingPortOneEnv(missingKeys) {
+  if (!Array.isArray(missingKeys) || missingKeys.length === 0) return;
+  console.error(`[portone-config] Missing required PortOne env: ${missingKeys.join(", ")}`);
+}
+
+export function getPortOneConfig(env) {
+  const config = {
+    portoneApiSecret: getExactEnv(env, "PORTONE_API_Secret"),
+    portoneWebhookSecret: getExactEnv(env, "PORTONE_webhook"),
+    portoneChannelKey: getExactEnv(env, "PORTONE_channel"),
+    portoneStoreId: getExactEnv(env, "PORTONE_Store"),
+  };
+  const missing = PORTONE_REQUIRED_ENV_KEYS.filter((key) => {
+    if (key === "PORTONE_API_Secret") return !config.portoneApiSecret;
+    if (key === "PORTONE_webhook") return !config.portoneWebhookSecret;
+    if (key === "PORTONE_channel") return !config.portoneChannelKey;
+    if (key === "PORTONE_Store") return !config.portoneStoreId;
+    return false;
+  });
+  logMissingPortOneEnv(missing);
+  return {
+    ...config,
+    missing,
+    configured: missing.length === 0,
+  };
 }
 
 export function getPortOneWebhookSecret(env) {
-  return getExactEnv(env, "PORTONE_webhook_Secret", getExactEnv(env, "PORTONE_webhook"));
+  return getPortOneConfig(env).portoneWebhookSecret;
 }
 
 export function getPortOneWebhookUrl(env) {
@@ -37,7 +66,7 @@ export function getPortOneWebhookUrl(env) {
 }
 
 function getPortOneHeaders(env) {
-  const apiSecret = getPortOneApiSecret(env);
+  const apiSecret = getPortOneConfig(env).portoneApiSecret;
   if (!apiSecret) {
     throw new Error("PORTONE_API_Secret is required.");
   }
@@ -117,18 +146,17 @@ function normalizePortOnePayment(payload, paymentIdHint = "") {
 }
 
 export function getPortOnePublicConfig(env) {
-  const storeId = getExactEnv(env, "PORTONE_Store");
-  const channelKey = getExactEnv(env, "PORTONE_channel");
-  const noticeUrl = getPortOneWebhookUrl(env);
+  const config = getPortOneConfig(env);
+  const storeId = config.portoneStoreId;
+  const channelKey = config.portoneChannelKey;
   return {
     provider: "portone-v2",
     pg: "kg-inicis",
     storeId,
     channelKey,
-    noticeUrl,
     currency: "CURRENCY_KRW",
     payMethod: "CARD",
-    configured: Boolean(storeId && channelKey && getPortOneApiSecret(env)),
+    configured: config.configured,
   };
 }
 
@@ -155,6 +183,7 @@ export async function cancelPortOnePayment(env, params = {}) {
     merchantUid,
     reason,
     amount,
+    currentCancellableAmount,
     refundHolder,
     refundBank,
     refundAccount,
@@ -170,6 +199,9 @@ export async function cancelPortOnePayment(env, params = {}) {
   };
 
   if (Number.isFinite(Number(amount)) && Number(amount) > 0) body.amount = Number(amount);
+  if (Number.isFinite(Number(currentCancellableAmount)) && Number(currentCancellableAmount) > 0) {
+    body.currentCancellableAmount = Number(currentCancellableAmount);
+  }
   if (refundHolder) body.refund_holder = String(refundHolder).trim();
   if (refundBank) body.refund_bank = String(refundBank).trim();
   if (refundAccount) body.refund_account = String(refundAccount).trim();

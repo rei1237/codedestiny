@@ -4,12 +4,18 @@ import { PointHistory, ProfileCard, User } from "../lib/models.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
+import {
+  PROFILE_CARD_EDIT_DELETE_COST_COINS,
+  PROFILE_CARD_EDIT_DELETE_COST_KRW,
+  PROFILE_CARD_MUTATION_ACTIONS,
+  getProfileCardMutationPolicy,
+} from "../lib/profile-card-mutation-policy.js";
 
 const MAX_PROFILE_ID_LEN = 80;
 const MAX_NAME_LEN = 80;
 const PROFILE_CARD_MANAGE_FEATURE_KEY = "profile-card-manage";
-const PROFILE_CARD_MANAGE_COST = 50;
-const PROFILE_CARD_MANAGE_AMOUNT_KRW = 5000;
+const PROFILE_CARD_MANAGE_COST = PROFILE_CARD_EDIT_DELETE_COST_COINS;
+const PROFILE_CARD_MANAGE_AMOUNT_KRW = PROFILE_CARD_EDIT_DELETE_COST_KRW;
 const PROFILE_CARD_MANAGE_MEMBERSHIP_COST = calculateMembershipCreditCost(PROFILE_CARD_MANAGE_COST);
 
 function sanitizeString(value, maxLen) {
@@ -197,9 +203,11 @@ function normalizeIncomingProfile(raw, index) {
 
 function resolveSubscriptionPolicy(user) {
   const entitlement = normalizeHoneyPassEntitlement(user || {});
+  const rawTier = resolveStoredSubscriptionTier(user);
 
   return {
     tier: entitlement.isActive ? entitlement.tier : "free",
+    rawTier,
     label: entitlement.label,
     isActive: entitlement.isActive,
     freeLimit: entitlement.maxCoveredCoin,
@@ -207,6 +215,45 @@ function resolveSubscriptionPolicy(user) {
     source: entitlement.source,
     expiresAt: entitlement.expiresAt,
   };
+}
+
+function canCreateProfileWithinSubscriptionLimit(subscription, currentCount) {
+  const limit = Math.max(1, Math.floor(Number(subscription?.profileLimit || 1)));
+  const count = Math.max(0, Math.floor(Number(currentCount || 0)));
+  return count < limit;
+}
+
+function resolveStoredSubscriptionTier(user = {}) {
+  const sources = [
+    user?.profileSubscription,
+    user?.subscription,
+    user?.membership,
+    user?.pass,
+    user?.entitlement,
+    user,
+  ].filter((source) => source && typeof source === "object");
+
+  for (const source of sources) {
+    const values = [
+      source.tier,
+      source.plan,
+      source.planId,
+      source.productId,
+      source.subscriptionTier,
+      source.membershipTier,
+      source.passTier,
+      source.label,
+    ];
+    for (const value of values) {
+      const text = String(value || "").trim().toLowerCase();
+      if (!text || text === "free" || text === "none") continue;
+      if (text === "gold" || text === "vvip" || text.includes("vvip") || text.includes("꿀단지")) return "vvip";
+      if (text === "silver" || text === "premium" || text.includes("premium") || text.includes("프리미엄")) return "premium";
+      if (text === "bronze" || text === "standard" || text.includes("standard") || text.includes("스탠다드")) return "standard";
+    }
+  }
+
+  return "free";
 }
 
 function toClientProfile(doc) {
@@ -357,6 +404,402 @@ function profilePaymentRequiredResponse(action, requestId) {
   }, { status: 402 });
 }
 
+function resolveProfileMutationActionType(action) {
+  if (action === PROFILE_CARD_MUTATION_ACTIONS.EDIT) return "profile_card_edit";
+  if (action === PROFILE_CARD_MUTATION_ACTIONS.DELETE) return "profile_card_delete";
+  return "profile_card_create";
+}
+
+function resolveProfileMutationReason(action) {
+  if (action === PROFILE_CARD_MUTATION_ACTIONS.EDIT) return "프로필 카드 수정";
+  if (action === PROFILE_CARD_MUTATION_ACTIONS.DELETE) return "프로필 카드 삭제";
+  return "프로필 카드 추가";
+}
+
+function readProfileMutationRequestId(body, action, profileId) {
+  const explicitRequestId = sanitizeString(
+    body?.requestId
+      || body?.payment?.requestId
+      || body?.consume?.requestId
+      || body?.accessGrant?.requestId
+      || body?._paymentContext?.requestId
+      || "",
+    120,
+  );
+  if (explicitRequestId) return explicitRequestId;
+  if (action === PROFILE_CARD_MUTATION_ACTIONS.EDIT || action === PROFILE_CARD_MUTATION_ACTIONS.DELETE) {
+    return `profile-card:${action}:${sanitizeProfileId(profileId)}:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`.slice(0, 120);
+  }
+  return buildProfilePaymentRequestId(action, profileId);
+}
+
+function profileEditDeletePaymentRequiredResponse(action, requestId, profileId, policy = {}) {
+  const reason = resolveProfileMutationReason(action);
+  const actionType = resolveProfileMutationActionType(action);
+  return json({
+    ok: false,
+    success: false,
+    code: "PAYMENT_REQUIRED",
+    message: `${reason}은 50코인 또는 5,000원 결제 후 진행할 수 있습니다.`,
+    policy,
+    pricing: {
+      featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+      reason,
+      actionType,
+      cost: PROFILE_CARD_MANAGE_COST,
+      coinPrice: PROFILE_CARD_MANAGE_COST,
+      membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
+      amountKRW: PROFILE_CARD_MANAGE_AMOUNT_KRW,
+      cashPrice: PROFILE_CARD_MANAGE_AMOUNT_KRW,
+      forceDeduct: true,
+    },
+    checkout: {
+      endpoint: "/api/billing/checkout",
+      payload: {
+        paymentType: "digital_content",
+        featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+        reason,
+        paymentAmount: PROFILE_CARD_MANAGE_AMOUNT_KRW,
+        coinPrice: PROFILE_CARD_MANAGE_COST,
+        membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
+        requestId,
+        profileId,
+        selectedProfileId: profileId,
+        actionType,
+      },
+    },
+  }, { status: 402 });
+}
+
+function profileMutationConflictResponse(message, details = {}) {
+  return json({
+    ok: false,
+    success: false,
+    code: "PROFILE_MUTATION_PAYMENT_ALREADY_USED",
+    message,
+    ...details,
+  }, { status: 409 });
+}
+
+function buildProfileMutationEvidenceClauses({ requestId, body, profileId }) {
+  const accessGrant = body?.accessGrant && typeof body.accessGrant === "object" ? body.accessGrant : {};
+  const payment = body?.payment && typeof body.payment === "object" ? body.payment : {};
+  const candidates = [
+    requestId,
+    body?.purchaseId,
+    body?.paymentId,
+    body?.orderId,
+    body?.merchantUid,
+    body?.merchant_uid,
+    body?.impUid,
+    body?.imp_uid,
+    accessGrant.evidenceId,
+    accessGrant.purchaseId,
+    accessGrant.paymentId,
+    accessGrant.orderId,
+    accessGrant.merchantUid,
+    accessGrant.requestId,
+    payment.evidenceId,
+    payment.purchaseId,
+    payment.paymentId,
+    payment.orderId,
+    payment.merchantUid,
+    payment.merchant_uid,
+    payment.requestId,
+  ].map((value) => sanitizeString(value, 120)).filter(Boolean);
+
+  const unique = Array.from(new Set(candidates));
+  const clauses = [];
+  unique.forEach((value) => {
+    clauses.push({ "metadata.requestId": value });
+    clauses.push({ "metadata.profilePaymentKey": value });
+    clauses.push({ "metadata.paymentId": value });
+    clauses.push({ "metadata.purchaseId": value });
+    clauses.push({ "metadata.evidenceId": value });
+    clauses.push({ "metadata.orderId": value });
+    clauses.push({ "metadata.merchantUid": value });
+    clauses.push({ merchantUid: value });
+    clauses.push({ impUid: value });
+  });
+
+  if (profileId && requestId) {
+    clauses.push({ "metadata.profileId": profileId, "metadata.requestId": requestId });
+  }
+
+  return clauses.length > 0 ? clauses : [{ "metadata.requestId": requestId }];
+}
+
+function evidenceProfileMatches(evidence, profileId) {
+  const metadata = evidence?.metadata || {};
+  const evidenceProfileId = sanitizeProfileId(metadata.profileId || metadata.selectedProfileId);
+  return !evidenceProfileId || evidenceProfileId === profileId;
+}
+
+async function findProfileMutationPaymentEvidence(auth, { action, profileId, requestId, body }) {
+  const actionType = resolveProfileMutationActionType(action);
+  const clauses = buildProfileMutationEvidenceClauses({ requestId, body, profileId });
+  const baseQuery = {
+    userId: auth.userId,
+    kind: "deduct",
+    featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+    $or: clauses,
+  };
+
+  const used = await PointHistory.findOne({
+    userId: auth.userId,
+    kind: "deduct",
+    featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+    $and: [
+      { $or: clauses },
+      {
+        $or: [
+          { "metadata.profileMutationCompleted": true },
+          { "metadata.profileMutationInProgress": true },
+        ],
+      },
+    ],
+  }).lean();
+  if (used) {
+    return {
+      ok: false,
+      response: profileMutationConflictResponse("이미 사용 완료된 프로필 카드 결제 건입니다.", {
+        actionType: used?.metadata?.actionType || actionType,
+        requestId,
+      }),
+    };
+  }
+
+  const evidence = await PointHistory.findOne(baseQuery).sort({ createdAt: -1 }).lean();
+  if (!evidence) return { ok: true, evidence: null };
+  if (!evidenceProfileMatches(evidence, profileId)) {
+    return {
+      ok: false,
+      response: profileMutationConflictResponse("결제 대상 프로필 카드가 현재 요청과 일치하지 않습니다.", {
+        actionType,
+        requestId,
+      }),
+    };
+  }
+
+  return { ok: true, evidence };
+}
+
+function policyFailureStatus(reason) {
+  if (reason === "AUTH_REQUIRED") return 401;
+  if (reason === "INVALID_ACTION_TYPE" || reason === "PROFILE_CARD_ID_REQUIRED") return 400;
+  if (reason === "USER_NOT_FOUND" || reason === "PROFILE_CARD_NOT_FOUND_OR_NOT_OWNED") return 404;
+  return 403;
+}
+
+async function ensureProfileEditDeleteAuthorized(auth, { action, profileId, body }) {
+  const requestId = readProfileMutationRequestId(body, action, profileId);
+  const policy = await getProfileCardMutationPolicy(auth.userId, profileId, action);
+
+  if (policy.allowed && !policy.requiresPayment) {
+    return { ok: true, requestId, policy, evidence: null };
+  }
+
+  if (!policy.requiresPayment && !policy.allowed) {
+    return {
+      ok: false,
+      response: json({
+        ok: false,
+        success: false,
+        code: policy.reason,
+        message: policy.reason,
+        policy,
+      }, { status: policyFailureStatus(policy.reason) }),
+    };
+  }
+
+  const evidenceResult = await findProfileMutationPaymentEvidence(auth, { action, profileId, requestId, body });
+  if (!evidenceResult.ok) return evidenceResult;
+
+  let evidence = evidenceResult.evidence || null;
+  if (!evidence) {
+    const payment = await ensureProfileMutationPayment(auth, { action, profileId, requestId });
+    if (!payment.ok) {
+      return {
+        ok: false,
+        response: profileEditDeletePaymentRequiredResponse(action, requestId, profileId, policy),
+      };
+    }
+    evidence = payment.evidence || null;
+  }
+
+  const paidPolicy = await getProfileCardMutationPolicy(auth.userId, profileId, action, { paymentSettled: true });
+  if (!paidPolicy.allowed) {
+    return {
+      ok: false,
+      response: json({
+        ok: false,
+        success: false,
+        code: paidPolicy.reason,
+        message: paidPolicy.reason,
+        policy: paidPolicy,
+      }, { status: policyFailureStatus(paidPolicy.reason) }),
+    };
+  }
+
+  return { ok: true, requestId, policy: paidPolicy, evidence };
+}
+
+async function claimProfileMutationEvidence(auth, { action, profileId, requestId, evidence }) {
+  if (!evidence?._id) return { ok: true };
+
+  const result = await PointHistory.updateOne(
+    {
+      _id: evidence._id,
+      userId: auth.userId,
+      "metadata.profileMutationCompleted": { $ne: true },
+      "metadata.profileMutationInProgress": { $ne: true },
+    },
+    {
+      $set: {
+        "metadata.profileMutationInProgress": true,
+        "metadata.profileMutationInProgressAt": new Date(),
+        "metadata.actionType": resolveProfileMutationActionType(action),
+        "metadata.profileAction": action,
+        "metadata.profileId": profileId,
+        "metadata.selectedProfileId": profileId,
+        "metadata.profilePaymentKey": requestId,
+      },
+    },
+  );
+
+  if (Number(result?.modifiedCount || 0) > 0) return { ok: true };
+  return {
+    ok: false,
+    response: profileMutationConflictResponse("이미 처리 중이거나 사용 완료된 프로필 카드 결제 건입니다.", {
+      actionType: resolveProfileMutationActionType(action),
+      requestId,
+    }),
+  };
+}
+
+async function recordProfileMutationCompleted(auth, { action, profileId, requestId, policy, evidence }) {
+  const actionType = resolveProfileMutationActionType(action);
+  const now = new Date();
+
+  if (evidence?._id) {
+    await PointHistory.updateOne(
+      {
+        _id: evidence._id,
+        userId: auth.userId,
+        "metadata.profileMutationCompleted": { $ne: true },
+      },
+      {
+        $set: {
+          "metadata.profileMutationCompleted": true,
+          "metadata.profileMutationCompletedAt": now,
+          "metadata.profileMutationInProgress": false,
+          "metadata.actionType": actionType,
+          "metadata.profileAction": action,
+          "metadata.profileId": profileId,
+          "metadata.selectedProfileId": profileId,
+          "metadata.profilePaymentKey": requestId,
+          "metadata.policyReason": policy?.reason || "",
+        },
+      },
+    );
+    return;
+  }
+
+  const user = await User.findById(auth.userId).select("points").lean();
+  await PointHistory.create({
+    userId: auth.userId,
+    kind: "deduct",
+    delta: 0,
+    balanceAfter: Number(user?.points || 0),
+    reason: resolveProfileMutationReason(action),
+    featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+    metadata: {
+      accessType: "membership_pass",
+      accessMethod: "PASS",
+      paymentMethod: "PASS",
+      purpose: "profile_card_manage",
+      requestId,
+      profilePaymentKey: requestId,
+      profileMutationCompleted: true,
+      profileMutationCompletedAt: now,
+      actionType,
+      profileAction: action,
+      profileId,
+      selectedProfileId: profileId,
+      policyReason: policy?.reason || "VVIP_PROFILE_LIMIT_INCLUDED",
+      passType: policy?.passType || "",
+      limit: Number(policy?.limit || 0),
+      currentProfileCardCount: Number(policy?.currentProfileCardCount || 0),
+      coinPrice: 0,
+      paidAmount: 0,
+    },
+  });
+}
+
+async function refundProfileMutationCreditIfNeeded(auth, { action, profileId, requestId, evidence, reason }) {
+  const metadata = evidence?.metadata || {};
+  if (!evidence?._id || metadata.profileMutationCompleted === true) return;
+  if (metadata.accessType !== "membership_credit") {
+    await PointHistory.updateOne(
+      { _id: evidence._id, userId: auth.userId },
+      {
+        $set: {
+          "metadata.profileMutationInProgress": false,
+          "metadata.profileMutationReleasedAt": new Date(),
+        },
+      },
+    ).catch(() => {});
+    return;
+  }
+
+  const credit = Math.max(0, Math.floor(Number(metadata.membershipCreditCost || PROFILE_CARD_MANAGE_MEMBERSHIP_COST)));
+  const coins = Math.max(0, Math.floor(Math.abs(Number(evidence.delta || PROFILE_CARD_MANAGE_COST))));
+  if (credit <= 0) return;
+
+  const updatedUser = await User.findOneAndUpdate(
+    { _id: auth.userId },
+    {
+      $inc: {
+        "profileSubscription.membershipCreditBalance": credit,
+        "profileSubscription.membershipCreditUsed": -credit,
+      },
+    },
+    { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
+  ).lean();
+
+  await PointHistory.create({
+    userId: auth.userId,
+    kind: "refund",
+    delta: coins,
+    balanceAfter: Number(updatedUser?.points || 0),
+    reason: reason || `${resolveProfileMutationReason(action)} 실패 환불`,
+    featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+    metadata: {
+      source: "profile_mutation_failure",
+      refundedEvidenceId: String(evidence._id || ""),
+      requestId,
+      profilePaymentKey: requestId,
+      actionType: resolveProfileMutationActionType(action),
+      profileAction: action,
+      profileId,
+      selectedProfileId: profileId,
+      coinPrice: coins,
+      membershipCreditCost: credit,
+      remainingMembershipCredit: Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0),
+    },
+  }).catch(() => {});
+
+  await PointHistory.updateOne(
+    { _id: evidence._id, userId: auth.userId },
+    {
+      $set: {
+        "metadata.profileMutationInProgress": false,
+        "metadata.profileMutationReleasedAt": new Date(),
+      },
+    },
+  ).catch(() => {});
+}
+
 async function seedProfileLegacyCreditIfNeeded(authUserId) {
   const user = await User.findById(authUserId)
     .select("points profileSubscription")
@@ -396,7 +839,7 @@ async function ensureProfileMutationPayment(auth, { action, profileId, requestId
       { "metadata.profilePaymentKey": paymentRequestId },
     ],
   }).lean();
-  if (existing) return { ok: true, requestId: paymentRequestId, idempotent: true };
+  if (existing) return { ok: true, requestId: paymentRequestId, idempotent: true, evidence: existing };
 
   await seedProfileLegacyCreditIfNeeded(auth.userId);
 
@@ -417,7 +860,7 @@ async function ensureProfileMutationPayment(auth, { action, profileId, requestId
     return { ok: false, response: profilePaymentRequiredResponse(action, paymentRequestId) };
   }
 
-  await PointHistory.create({
+  const history = await PointHistory.create({
     userId: auth.userId,
     kind: "deduct",
     delta: -PROFILE_CARD_MANAGE_COST,
@@ -441,7 +884,7 @@ async function ensureProfileMutationPayment(auth, { action, profileId, requestId
     },
   });
 
-  return { ok: true, requestId: paymentRequestId, idempotent: false };
+  return { ok: true, requestId: paymentRequestId, idempotent: false, evidence: history };
 }
 
 async function handleGetProfiles(auth) {
@@ -481,7 +924,7 @@ async function handleGetProfiles(auth) {
     currentId,
     subscription,
     profileAccess: access.profileAccess,
-    canCreateMore: true,
+    canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length),
   });
 }
 
@@ -517,7 +960,7 @@ async function handleCreateProfile(request, auth) {
       return json({ ok: false, success: false, message: "이미 존재하는 프로필 ID입니다." }, { status: 409 });
     }
 
-    if (count > 0) {
+    if (!canCreateProfileWithinSubscriptionLimit(subscription, count)) {
       const payment = await ensureProfileMutationPayment(auth, {
         action: "create",
         profileId: normalized.profileId,
@@ -550,7 +993,7 @@ async function handleCreateProfile(request, auth) {
       profile,
       currentId: nextCurrentId,
       subscription,
-      canCreateMore: true,
+      canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, count + 1),
     }, { status: 201 });
   } catch (error) {
     const status = Number(error?.status || 0);
@@ -659,6 +1102,21 @@ async function handlePatchProfile(request, auth, profileIdRaw) {
     profileId,
   }, 0);
 
+  const authorization = await ensureProfileEditDeleteAuthorized(auth, {
+    action: PROFILE_CARD_MUTATION_ACTIONS.EDIT,
+    profileId,
+    body,
+  });
+  if (!authorization.ok) return authorization.response;
+
+  const claim = await claimProfileMutationEvidence(auth, {
+    action: PROFILE_CARD_MUTATION_ACTIONS.EDIT,
+    profileId,
+    requestId: authorization.requestId,
+    evidence: authorization.evidence,
+  });
+  if (!claim.ok) return claim.response;
+
   const updated = await ProfileCard.findOneAndUpdate(
     { userId: auth.userId, profileId },
     {
@@ -672,8 +1130,30 @@ async function handlePatchProfile(request, auth, profileIdRaw) {
     { returnDocument: "after" },
   ).lean();
 
-  if (!updated) return json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
-  return json({ ok: true, profile: toClientProfile(updated) });
+  if (!updated) {
+    await refundProfileMutationCreditIfNeeded(auth, {
+      action: PROFILE_CARD_MUTATION_ACTIONS.EDIT,
+      profileId,
+      requestId: authorization.requestId,
+      evidence: authorization.evidence,
+      reason: "프로필 카드 수정 실패 환불",
+    });
+    return json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
+  }
+  await recordProfileMutationCompleted(auth, {
+    action: PROFILE_CARD_MUTATION_ACTIONS.EDIT,
+    profileId,
+    requestId: authorization.requestId,
+    policy: authorization.policy,
+    evidence: authorization.evidence,
+  });
+
+  return json({
+    ok: true,
+    profile: toClientProfile(updated),
+    actionType: "profile_card_edit",
+    policy: authorization.policy,
+  });
 }
 
 async function handleDeleteProfile(request, auth, profileIdRaw) {
@@ -681,18 +1161,43 @@ async function handleDeleteProfile(request, auth, profileIdRaw) {
   if (!profileId) return json({ ok: false, message: "유효한 profileId가 필요합니다." }, { status: 400 });
 
   const existingProfile = await ProfileCard.findOne({ userId: auth.userId, profileId }).lean();
-  if (!existingProfile) return json({ ok: false, message: "?꾨줈??移대뱶瑜?李얠쓣 ???놁뒿?덈떎." }, { status: 404 });
+  if (!existingProfile) return json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
 
   const body = await readJson(request).catch(() => ({}));
-  const payment = await ensureProfileMutationPayment(auth, {
-    action: "delete",
+  const authorization = await ensureProfileEditDeleteAuthorized(auth, {
+    action: PROFILE_CARD_MUTATION_ACTIONS.DELETE,
     profileId,
-    requestId: body?.requestId || body?.payment?.requestId || body?.consume?.requestId || body?.accessGrant?.requestId,
+    body,
   });
-  if (!payment.ok) return payment.response;
+  if (!authorization.ok) return authorization.response;
+
+  const claim = await claimProfileMutationEvidence(auth, {
+    action: PROFILE_CARD_MUTATION_ACTIONS.DELETE,
+    profileId,
+    requestId: authorization.requestId,
+    evidence: authorization.evidence,
+  });
+  if (!claim.ok) return claim.response;
 
   const deleted = await ProfileCard.findOneAndDelete({ userId: auth.userId, profileId }).lean();
-  if (!deleted) return json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
+  if (!deleted) {
+    await refundProfileMutationCreditIfNeeded(auth, {
+      action: PROFILE_CARD_MUTATION_ACTIONS.DELETE,
+      profileId,
+      requestId: authorization.requestId,
+      evidence: authorization.evidence,
+      reason: "프로필 카드 삭제 실패 환불",
+    });
+    return json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
+  }
+
+  await recordProfileMutationCompleted(auth, {
+    action: PROFILE_CARD_MUTATION_ACTIONS.DELETE,
+    profileId,
+    requestId: authorization.requestId,
+    policy: authorization.policy,
+    evidence: authorization.evidence,
+  });
 
   const profiles = await listUserProfiles(auth.userId);
   const user = await User.findById(auth.userId).select("destinyProfilesCurrentId").lean();
@@ -700,7 +1205,16 @@ async function handleDeleteProfile(request, auth, profileIdRaw) {
 
   await User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } });
 
-  return json({ ok: true, deletedProfileId: profileId, profiles, currentId: nextCurrentId, canCreateMore: true });
+  return json({
+    ok: true,
+    deletedProfileId: profileId,
+    profiles,
+    currentId: nextCurrentId,
+    currentProfile: profiles.find((profile) => String(profile?.id || "") === nextCurrentId) || null,
+    canCreateMore: true,
+    actionType: "profile_card_delete",
+    policy: authorization.policy,
+  });
 }
 
 export async function handleProfileRoutes(request, env) {

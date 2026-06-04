@@ -1253,6 +1253,166 @@ var ENERGY_COORD_DB={
   }
 };
 
+function _energyCoordDestination(row){
+  var lat = Number(row.latitude);
+  var lng = Number(row.longitude);
+  var coord = Number.isFinite(lat) && Number.isFinite(lng)
+    ? Math.abs(lat).toFixed(4) + '°' + (lat >= 0 ? 'N' : 'S') + ' ' + Math.abs(lng).toFixed(4) + '°' + (lng >= 0 ? 'E' : 'W')
+    : '';
+  return Object.assign({}, row, {
+    icon: row.emoji,
+    coord: coord,
+    desc: row.description
+  });
+}
+
+var ENERGY_TRAVEL_DESTINATIONS=[
+  _energyCoordDestination({id:'wood-damyang-juknokwon',name:'담양 죽녹원',countryType:'domestic',element:'wood',emoji:'🎋',region:'전남 담양',latitude:35.3250,longitude:126.9864,terrainTags:['대나무숲','산책로','그늘'],energyKeywords:['성장','회복','창작'],recommendedFor:['정체감이 큰 사람','새 프로젝트를 시작하는 사람'],avoidFor:['습한 숲길에 약한 사람'],bestSeason:['봄','초여름','가을'],tripStyle:'slow_trip',description:'곧게 뻗은 대나무의 목(木) 진동이 흩어진 의지를 다시 세우고, 답답한 생각을 위로 끌어올려 창작과 회복의 리듬을 되살리는 숲입니다.',ritualTip:'입구에서 목표 한 문장을 정하고, 가장 곧은 대나무 앞에서 세 번 깊게 호흡하세요.'}),
+  _energyCoordDestination({id:'wood-suncheon-national-garden',name:'순천만 국가정원',countryType:'domestic',element:'wood',emoji:'🌷',region:'전남 순천',latitude:34.9298,longitude:127.5095,terrainTags:['정원','습지','초록 동선'],energyKeywords:['조화','재생','감각 회복'],recommendedFor:['번아웃 이후 감각을 회복하려는 사람','관계 리듬을 부드럽게 만들고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'정돈된 정원과 살아 있는 습지의 목(木)이 함께 흐르며, 굳은 마음을 부드럽게 열고 새로운 관계와 아이디어를 싹트게 하는 공간입니다.',ritualTip:'마음에 드는 정원 한 곳을 골라 앞으로 키우고 싶은 감정 이름을 적어보세요.'}),
+  _energyCoordDestination({id:'wood-jeju-bijarim',name:'제주 비자림',countryType:'domestic',element:'wood',emoji:'🌲',region:'제주 구좌',latitude:33.4925,longitude:126.8115,terrainTags:['원시림','숲길','화산토'],energyKeywords:['장기 회복','근원력','호흡 정화'],recommendedFor:['기력이 오래 빠진 사람','조용한 재충전이 필요한 사람'],bestSeason:['사계절'],tripStyle:'retreat',description:'오래된 비자나무의 깊은 목(木) 기운이 급한 성장보다 오래 버티는 생명력을 일깨워, 지친 호흡과 마음의 뿌리를 천천히 복원합니다.',ritualTip:'가장 천천히 걸을 구간을 정하고, 발바닥 감각을 느끼며 침묵 산책을 해보세요.'}),
+  _energyCoordDestination({id:'wood-odaesan-fir-road',name:'평창 오대산 전나무숲길',countryType:'domestic',element:'wood',emoji:'🌲',region:'강원 평창',latitude:37.7895,longitude:128.5937,terrainTags:['전나무숲','사찰길','계곡'],energyKeywords:['정화','집중','내면 성장'],recommendedFor:['결정 전 마음을 정리해야 하는 사람','말보다 침묵이 필요한 사람'],bestSeason:['봄','여름','가을'],tripStyle:'retreat',description:'전나무가 만든 수직의 목(木) 축이 산만한 생각을 한 줄로 정렬시키고, 사찰길의 고요함이 내면의 성장 방향을 선명하게 비춰줍니다.',ritualTip:'월정사로 향하는 길에서 해결하고 싶은 고민을 한 단어로 줄여보세요.'}),
+  _energyCoordDestination({id:'wood-namhae-cypress-forest',name:'남해 편백숲',countryType:'domestic',element:'wood',emoji:'🌳',region:'경남 남해',latitude:34.7810,longitude:127.9291,terrainTags:['편백숲','해풍','숲길'],energyKeywords:['면역 회복','안정 성장','정서 완충'],recommendedFor:['예민함이 높아진 사람','느린 치유가 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'retreat',description:'편백의 부드러운 목(木) 향과 남해의 바람이 만나 예민해진 신경을 감싸고, 급한 마음을 완만한 회복 곡선으로 돌려놓는 숲입니다.',ritualTip:'편백 향이 진한 곳에서 어깨 힘을 내려놓고 5분간 코로만 호흡하세요.'}),
+  _energyCoordDestination({id:'wood-pocheon-korea-arboretum',name:'포천 국립수목원',countryType:'domestic',element:'wood',emoji:'🌿',region:'경기 포천',latitude:37.7540,longitude:127.1706,terrainTags:['수목원','보존림','산책로'],energyKeywords:['질서 있는 성장','연구력','회복'],recommendedFor:['공부와 기획을 다시 시작하는 사람','복잡한 계획을 정리해야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'보존림의 안정된 목(木) 구조가 흩어진 계획을 차분히 되살리고, 성장 에너지를 감정이 아니라 실천 가능한 루틴으로 바꿔주는 장소입니다.',ritualTip:'보고 싶은 나무 이름 하나를 정하고, 그 나무처럼 키울 습관을 하나 적으세요.'}),
+  _energyCoordDestination({id:'wood-gapyeong-morning-calm',name:'가평 아침고요수목원',countryType:'domestic',element:'wood',emoji:'🌺',region:'경기 가평',latitude:37.7436,longitude:127.3527,terrainTags:['정원','꽃길','산자락'],energyKeywords:['감정 회복','아름다움','새 출발'],recommendedFor:['마음의 생기를 되찾고 싶은 사람','연애 감각을 부드럽게 열고 싶은 사람'],bestSeason:['봄','겨울 조명 시즌'],tripStyle:'romantic',description:'계절별 정원의 목(木) 기운이 감정의 마른 가지에 색을 입히며, 새로운 시작을 부담보다 설렘으로 체감하게 만드는 회복 정원입니다.',ritualTip:'가장 예쁜 색 하나를 골라 오늘의 마음 색으로 정하고 사진을 남기세요.'}),
+  _energyCoordDestination({id:'wood-jangseong-chukryeongsan',name:'장성 축령산 편백숲',countryType:'domestic',element:'wood',emoji:'🌲',region:'전남 장성',latitude:35.3016,longitude:126.7512,terrainTags:['편백숲','산림욕','능선'],energyKeywords:['심신 정화','체력 회복','장기 성장'],recommendedFor:['몸과 마음이 동시에 무거운 사람','일상 리듬을 재건해야 하는 사람'],bestSeason:['봄','여름','가을'],tripStyle:'slow_trip',description:'짙은 편백림의 목(木)이 몸의 긴장을 풀고, 느린 숲길의 반복이 무너진 생활 리듬을 다시 자라나게 하는 산림 치유 좌표입니다.',ritualTip:'걷는 동안 들숨에는 회복, 날숨에는 피로라는 단어를 붙여보세요.'}),
+  _energyCoordDestination({id:'wood-seoul-forest',name:'서울숲',countryType:'domestic',element:'wood',emoji:'🌳',region:'서울 성동',latitude:37.5444,longitude:127.0375,terrainTags:['도심숲','공원','산책로'],energyKeywords:['도시 회복','관계 환기','가벼운 재시작'],recommendedFor:['멀리 떠나기 어려운 사람','도심에서 에너지를 바꾸고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'도시 한가운데의 목(木) 완충지가 빠른 생활 속 과열을 낮추고, 짧은 산책만으로도 생각의 방향을 다시 초록빛으로 돌려주는 공간입니다.',ritualTip:'휴대폰을 10분만 가방에 넣고 나무 그림자를 따라 걸어보세요.'}),
+  _energyCoordDestination({id:'wood-yangpyeong-semiwon',name:'양평 세미원',countryType:'domestic',element:'wood',emoji:'🪷',region:'경기 양평',latitude:37.5389,longitude:127.3238,terrainTags:['연꽃정원','물길','정원'],energyKeywords:['감정 정화','부드러운 성장','관계 회복'],recommendedFor:['감정이 복잡한 사람','부드러운 대화가 필요한 사람'],bestSeason:['여름','초가을'],tripStyle:'romantic',description:'연꽃과 물길이 어우러진 목(木)의 부드러운 성장성이 감정의 탁함을 걷어내고, 관계 안의 닫힌 마음을 천천히 열어줍니다.',ritualTip:'연못 앞에서 미루던 사과나 감사의 말을 한 문장으로 정리하세요.'}),
+  _energyCoordDestination({id:'wood-ulsan-taehwagang-garden',name:'울산 태화강 국가정원',countryType:'domestic',element:'wood',emoji:'🌾',region:'울산 중구',latitude:35.5487,longitude:129.2961,terrainTags:['강변정원','대숲','산책로'],energyKeywords:['순환 성장','관계 확장','활력 회복'],recommendedFor:['새로운 사람과 접점이 필요한 사람','움직이며 생각해야 풀리는 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'강의 흐름과 대숲의 목(木)이 함께 움직여 막힌 기운을 순환시키고, 멈춘 계획을 다시 밖으로 펼치게 돕는 개방형 정원입니다.',ritualTip:'강변을 걸으며 올해 넓히고 싶은 관계나 활동 반경을 세 가지 떠올리세요.'}),
+  _energyCoordDestination({id:'wood-andong-wolyeonggyo-forest',name:'안동 월영교 숲길',countryType:'domestic',element:'wood',emoji:'🌙',region:'경북 안동',latitude:36.5762,longitude:128.7677,terrainTags:['호숫가 숲길','목교','야간 산책'],energyKeywords:['감성 회복','기억 정리','느린 성장'],recommendedFor:['과거 감정을 정리해야 하는 사람','혼자 걷는 시간이 필요한 사람'],bestSeason:['봄','가을','초겨울'],tripStyle:'romantic',description:'나무다리와 호숫가 숲의 목(木)이 기억의 결을 부드럽게 정리해, 오래 묵은 마음을 억지로 끊지 않고 자연스럽게 다음 장으로 넘기게 합니다.',ritualTip:'다리 위에서 놓아줄 기억 하나와 새로 품을 마음 하나를 조용히 정하세요.'}),
+  _energyCoordDestination({id:'wood-japan-arashiyama',name:'일본 아라시야마 대나무숲',countryType:'global',element:'wood',emoji:'🎋',region:'일본 교토',latitude:35.0170,longitude:135.6720,terrainTags:['대나무숲','고도','산책로'],energyKeywords:['수직 성장','정신 정렬','창작'],recommendedFor:['생각이 흐트러진 사람','새로운 작품을 준비하는 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'대나무가 만든 높은 목(木)의 통로가 머릿속 소음을 위로 뽑아내고, 고도의 정적이 창작 에너지를 선명한 한 줄로 정렬합니다.',ritualTip:'숲길 초입에서 오늘 떠올릴 질문 하나만 정하고 끝까지 그 질문만 품고 걸으세요.'}),
+  _energyCoordDestination({id:'wood-canada-banff-forest',name:'캐나다 밴프 숲길',countryType:'global',element:'wood',emoji:'🏔️',region:'캐나다 앨버타',latitude:51.1784,longitude:-115.5708,terrainTags:['침엽수림','호수','산악'],energyKeywords:['큰 회복','확장','자연 몰입'],recommendedFor:['시야를 크게 넓히고 싶은 사람','장기 전환점에 선 사람'],bestSeason:['여름','가을'],tripStyle:'adventure',description:'거대한 침엽수림과 산악의 목(木)이 작은 걱정을 큰 풍경 속에 풀어내며, 인생의 다음 확장 방향을 몸으로 체감하게 합니다.',ritualTip:'호수와 숲이 함께 보이는 곳에서 다음 1년의 큰 방향을 세 문장으로 적으세요.'}),
+  _energyCoordDestination({id:'wood-germany-black-forest',name:'독일 블랙 포레스트',countryType:'global',element:'wood',emoji:'🌲',region:'독일 바덴뷔르템베르크',latitude:48.2775,longitude:8.1850,terrainTags:['깊은 숲','전나무','산악마을'],energyKeywords:['내면 성장','침묵','장기 집중'],recommendedFor:['깊은 몰입이 필요한 사람','외부 자극을 줄여야 하는 사람'],bestSeason:['여름','가을'],tripStyle:'retreat',description:'짙고 깊은 숲의 목(木)이 빠른 성과보다 조용한 축적을 돕고, 마음속에 흩어진 가지들을 한 뿌리로 모아주는 공간입니다.',ritualTip:'숲속 마을에서 하루 한 번 말수를 줄이고 기록 시간을 길게 가져보세요.'}),
+  _energyCoordDestination({id:'wood-newzealand-rotorua-redwoods',name:'뉴질랜드 로토루아 레드우드 숲',countryType:'global',element:'wood',emoji:'🌲',region:'뉴질랜드 로토루아',latitude:-38.1568,longitude:176.2720,terrainTags:['레드우드','온천지대','숲길'],energyKeywords:['재생','활력 회복','큰 나무 기운'],recommendedFor:['기운이 낮아진 사람','몸을 움직이며 회복하고 싶은 사람'],bestSeason:['봄','여름','가을'],tripStyle:'adventure',description:'높은 레드우드의 목(木)과 지열의 생명력이 만나, 처진 몸의 리듬을 다시 깨우고 회복을 행동 에너지로 바꾸는 숲입니다.',ritualTip:'가장 큰 나무를 올려다보며 작게 시작해도 오래 키울 일을 하나 정하세요.'}),
+  _energyCoordDestination({id:'wood-usa-sequoia',name:'미국 세쿼이아 국립공원',countryType:'global',element:'wood',emoji:'🌳',region:'미국 캘리포니아',latitude:36.4864,longitude:-118.5658,terrainTags:['거목숲','국립공원','산악'],energyKeywords:['장수','근원력','압도적 성장'],recommendedFor:['자신감이 약해진 사람','큰 목표 앞에서 작아진 사람'],bestSeason:['여름','가을'],tripStyle:'adventure',description:'수천 년을 버틴 거목의 목(木)이 짧은 불안을 압도하며, 오래 살아남는 힘과 큰 목표를 향한 담대한 성장을 일깨웁니다.',ritualTip:'거목 앞에서 오래 버틴 내 장점 하나를 소리 내지 않고 인정하세요.'}),
+  _energyCoordDestination({id:'wood-switzerland-lauterbrunnen',name:'스위스 라우터브루넨 초원',countryType:'global',element:'wood',emoji:'🌿',region:'스위스 베른',latitude:46.5935,longitude:7.9091,terrainTags:['초원','계곡','폭포'],energyKeywords:['순수 회복','자유 성장','호흡 확장'],recommendedFor:['숨이 답답한 사람','삶의 여백이 필요한 사람'],bestSeason:['봄','여름'],tripStyle:'slow_trip',description:'초원과 계곡의 목(木)이 막힌 가슴을 넓히고, 폭포의 흐름이 성장 욕구를 부드럽게 깨워 자유로운 회복감을 줍니다.',ritualTip:'초원에서 목적 없이 걷는 시간을 30분 이상 확보하세요.'}),
+  _energyCoordDestination({id:'wood-france-giverny',name:'프랑스 지베르니 정원',countryType:'global',element:'wood',emoji:'🪷',region:'프랑스 노르망디',latitude:49.0754,longitude:1.5339,terrainTags:['정원','연못','예술가 마을'],energyKeywords:['창작','색채 회복','감성 성장'],recommendedFor:['예술적 감각을 되찾고 싶은 사람','마음의 색이 흐려진 사람'],bestSeason:['봄','여름'],tripStyle:'creative',description:'정원과 연못의 목(木)이 색채와 감각을 다시 피워 올리며, 굳어 있던 상상력을 부드러운 이미지와 문장으로 되살립니다.',ritualTip:'가장 끌리는 색을 하나 골라 그 색으로 떠오르는 단어 다섯 개를 적으세요.'}),
+  _energyCoordDestination({id:'wood-uk-cotswolds',name:'영국 코츠월드',countryType:'global',element:'wood',emoji:'🏡',region:'영국 잉글랜드',latitude:51.8330,longitude:-1.8433,terrainTags:['전원마을','정원','구릉'],energyKeywords:['느린 성장','생활 회복','관계 온기'],recommendedFor:['도시 피로가 큰 사람','일상 리듬을 아름답게 회복하고 싶은 사람'],bestSeason:['봄','여름','가을'],tripStyle:'slow_trip',description:'구릉과 정원의 목(木)이 생활 속 아름다움을 다시 느끼게 하며, 빠른 성취보다 꾸준히 자라는 삶의 감각을 회복시킵니다.',ritualTip:'마을 골목에서 마음에 드는 집 앞을 지나며 나의 이상적 일상 루틴을 상상하세요.'}),
+  _energyCoordDestination({id:'wood-indonesia-ubud',name:'인도네시아 우붓',countryType:'global',element:'wood',emoji:'🌴',region:'인도네시아 발리',latitude:-8.5069,longitude:115.2625,terrainTags:['열대숲','논길','요가'],energyKeywords:['영감','치유','창작 회복'],recommendedFor:['감각이 무뎌진 사람','몸과 마음을 함께 풀어야 하는 사람'],bestSeason:['건기'],tripStyle:'retreat',description:'열대의 짙은 목(木)과 논길의 생명력이 감각을 다시 열어, 몸의 긴장과 마음의 건조함을 창작적 회복으로 바꾸는 곳입니다.',ritualTip:'아침 산책 후 떠오른 꿈이나 이미지를 바로 기록하세요.'}),
+  _energyCoordDestination({id:'wood-finland-lapland-forest',name:'핀란드 라플란드 숲',countryType:'global',element:'wood',emoji:'🌌',region:'핀란드 라플란드',latitude:67.9222,longitude:26.5046,terrainTags:['북방숲','설원','침엽수'],energyKeywords:['고요한 회복','내면 집중','순수성'],recommendedFor:['소음에서 멀어지고 싶은 사람','감정의 원형을 보고 싶은 사람'],bestSeason:['겨울','초봄'],tripStyle:'retreat',description:'차가운 북방 숲의 목(木)이 과장된 감정을 걷어내고, 조용하지만 단단한 생명력으로 내면의 순수한 방향을 되찾게 합니다.',ritualTip:'밤하늘 아래에서 올해 지키고 싶은 조용한 약속 하나를 마음속으로 정하세요.'}),
+  _energyCoordDestination({id:'wood-taiwan-alishan',name:'대만 아리산',countryType:'global',element:'wood',emoji:'🌄',region:'대만 자이',latitude:23.5080,longitude:120.8050,terrainTags:['산림철도','운해','편백숲'],energyKeywords:['재시작','상승','정신 환기'],recommendedFor:['새벽 에너지가 필요한 사람','막힌 운을 깨우고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'adventure',description:'운해와 숲이 만나는 아리산의 목(木)은 낮게 가라앉은 마음을 위로 들어 올리고, 하루의 시작을 새롭게 여는 상승 기운을 줍니다.',ritualTip:'일출을 보며 오늘부터 끊을 습관 하나와 키울 습관 하나를 정하세요.'}),
+  _energyCoordDestination({id:'wood-singapore-botanic-gardens',name:'싱가포르 보타닉 가든',countryType:'global',element:'wood',emoji:'🌺',region:'싱가포르 탕린',latitude:1.3138,longitude:103.8159,terrainTags:['열대정원','도심숲','난초원'],energyKeywords:['도시 속 성장','감각 회복','세련된 생기'],recommendedFor:['짧은 일정으로 회복하고 싶은 사람','도시와 자연을 함께 원하는 사람'],bestSeason:['사계절'],tripStyle:'creative',description:'도시의 질서와 열대 정원의 목(木)이 균형을 이루어, 지친 감각을 세련되게 깨우고 생활 속 성장 루틴을 다시 설계하게 합니다.',ritualTip:'난초원에서 가장 마음에 드는 형태를 보고 지금 필요한 매력을 한 단어로 정하세요.'}),
+
+  _energyCoordDestination({id:'fire-gangneung-jeongdongjin',name:'강릉 정동진',countryType:'domestic',element:'fire',emoji:'🌅',region:'강원 강릉',latitude:37.6892,longitude:129.0336,terrainTags:['일출','해변','동해'],energyKeywords:['시작','활력','자신감'],recommendedFor:['새 출발이 필요한 사람','아침 에너지가 약한 사람'],bestSeason:['겨울','봄'],tripStyle:'day_trip',description:'동해의 수평선에서 올라오는 화(火)의 첫빛이 멈춰 있던 의지를 깨우고, 하루를 밀고 나갈 자신감의 불씨를 다시 붙입니다.',ritualTip:'일출 전 정한 목표를 해가 뜬 뒤 한 문장으로 다시 말해보세요.'}),
+  _energyCoordDestination({id:'fire-pohang-homigot',name:'포항 호미곶',countryType:'domestic',element:'fire',emoji:'🔥',region:'경북 포항',latitude:36.0772,longitude:129.5683,terrainTags:['일출광장','해안','상징 조형물'],energyKeywords:['돌파','표현','양기 충전'],recommendedFor:['주저함을 끊고 싶은 사람','발표나 도전 전 에너지가 필요한 사람'],bestSeason:['겨울','봄'],tripStyle:'day_trip',description:'가장 먼저 떠오르는 태양의 화(火)가 결심을 밖으로 밀어내며, 망설임을 줄이고 행동으로 옮기는 돌파 에너지를 강화합니다.',ritualTip:'상생의 손을 바라보며 지금 잡아야 할 기회 하나를 손바닥에 써보듯 떠올리세요.'}),
+  _energyCoordDestination({id:'fire-jeju-seongsan-ilchulbong',name:'제주 성산일출봉',countryType:'domestic',element:'fire',emoji:'🌋',region:'제주 성산',latitude:33.4581,longitude:126.9424,terrainTags:['화산지형','일출','오름'],energyKeywords:['재점화','활력','상승'],recommendedFor:['몸의 엔진이 꺼진 사람','강한 전환점이 필요한 사람'],bestSeason:['봄','가을','겨울'],tripStyle:'adventure',description:'화산의 기억과 일출의 화(火)가 겹쳐진 지형으로, 꺼진 의욕을 다시 점화하고 앞으로 치고 나갈 상승감을 몸에 새깁니다.',ritualTip:'오르막에서 숨이 찰 때 포기하지 않고 한 걸음 더 가며 지금의 도전명을 마음속으로 부르세요.'}),
+  _energyCoordDestination({id:'fire-busan-gwangalli-night',name:'부산 광안리 야경',countryType:'domestic',element:'fire',emoji:'🌉',region:'부산 수영',latitude:35.1532,longitude:129.1189,terrainTags:['야경','해변','대교'],energyKeywords:['표현','관계 활력','도시 열기'],recommendedFor:['사람 에너지가 필요한 사람','연애와 사교 감각을 깨우고 싶은 사람'],bestSeason:['여름','가을'],tripStyle:'romantic',description:'바다 위에 반사되는 도시의 화(火)가 감정 표현을 환하게 열어주고, 차갑게 식은 관계 감각에 생동감 있는 온기를 넣어줍니다.',ritualTip:'불빛이 가장 예쁜 순간에 고마운 사람에게 짧은 메시지를 보내세요.'}),
+  _energyCoordDestination({id:'fire-yeosu-night-sea',name:'여수 밤바다',countryType:'domestic',element:'fire',emoji:'🎆',region:'전남 여수',latitude:34.7392,longitude:127.7406,terrainTags:['야경','바다','낭만 거리'],energyKeywords:['감정 온도','설렘','표현력'],recommendedFor:['감정 표현이 굳은 사람','관계에 다시 온기를 넣고 싶은 사람'],bestSeason:['봄','여름','가을'],tripStyle:'romantic',description:'검은 바다 위의 불빛이 화(火)를 부드럽게 반사해, 과격한 열정보다 오래 남는 설렘과 감정 표현의 온도를 회복시킵니다.',ritualTip:'바다를 보며 지금 솔직하게 표현하고 싶은 마음을 한 문장으로 정리하세요.'}),
+  _energyCoordDestination({id:'fire-daegu-apsan-observatory',name:'대구 앞산 전망대',countryType:'domestic',element:'fire',emoji:'🌃',region:'대구 남구',latitude:35.8325,longitude:128.5811,terrainTags:['전망대','도시 야경','산길'],energyKeywords:['자신감','시야 확장','목표 점화'],recommendedFor:['목표가 흐려진 사람','내 위치를 다시 보고 싶은 사람'],bestSeason:['가을','겨울'],tripStyle:'day_trip',description:'도시를 내려다보는 높은 화(火)의 시야가 작아진 자신감을 되살리고, 앞으로 향할 목표를 밝은 점처럼 다시 보이게 합니다.',ritualTip:'전망대에서 가장 밝은 방향을 보고 다음 행동 하나를 바로 캘린더에 적으세요.'}),
+  _energyCoordDestination({id:'fire-gyeongju-cheomseongdae-night',name:'경주 첨성대 야경',countryType:'domestic',element:'fire',emoji:'🏮',region:'경북 경주',latitude:35.8347,longitude:129.2198,terrainTags:['야경','유적','초원'],energyKeywords:['영감','고요한 불빛','자기 표현'],recommendedFor:['차분한 방식으로 자신감을 얻고 싶은 사람','역사적 영감이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'오래된 별 관측의 상징에 밤빛이 더해져, 요란하지 않은 화(火)가 내면의 영감과 자기 표현의 불씨를 조용히 살립니다.',ritualTip:'첨성대 앞에서 나만의 별자리처럼 올해의 핵심 키워드 세 개를 정하세요.'}),
+  _energyCoordDestination({id:'fire-incheon-songdo-night',name:'인천 송도 센트럴파크 야경',countryType:'domestic',element:'fire',emoji:'🏙️',region:'인천 연수',latitude:37.3927,longitude:126.6376,terrainTags:['도시공원','야경','수변'],energyKeywords:['현대적 활력','표현','사회적 자신감'],recommendedFor:['커리어 자극이 필요한 사람','도시적 추진력을 얻고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'수변 위로 번지는 현대 도시의 화(火)가 사회적 존재감을 깨우고, 커리어와 자기표현을 세련된 추진력으로 연결합니다.',ritualTip:'물에 비친 불빛을 보며 지금 드러내야 할 내 강점 하나를 적으세요.'}),
+  _energyCoordDestination({id:'fire-seoul-namsan-tower',name:'서울 남산타워',countryType:'domestic',element:'fire',emoji:'🗼',region:'서울 중구',latitude:37.5512,longitude:126.9882,terrainTags:['전망대','도심','야경'],energyKeywords:['중심 회복','존재감','관계 온도'],recommendedFor:['사람 앞에 서야 하는 사람','내 중심을 다시 잡고 싶은 사람'],bestSeason:['사계절'],tripStyle:'romantic',description:'도심의 중심에서 빛나는 남산의 화(火)는 흩어진 시선을 한곳으로 모아, 존재감과 관계의 온도를 다시 밝히는 상징적 좌표입니다.',ritualTip:'전망을 보며 가장 먼저 연락하고 싶은 사람과 가장 먼저 해야 할 일을 구분해보세요.'}),
+  _energyCoordDestination({id:'fire-taean-kkotji-sunset',name:'태안 꽃지 해넘이',countryType:'domestic',element:'fire',emoji:'🌇',region:'충남 태안',latitude:36.5018,longitude:126.3376,terrainTags:['해넘이','해변','노을'],energyKeywords:['마무리','감정 정리','따뜻한 결단'],recommendedFor:['끝맺음이 필요한 사람','후회와 미련을 정리해야 하는 사람'],bestSeason:['가을','겨울'],tripStyle:'romantic',description:'바다로 내려앉는 노을의 화(火)가 과열된 감정을 부드럽게 식히며, 끝낼 것은 끝내고 남길 것은 따뜻하게 품는 결단을 돕습니다.',ritualTip:'해가 완전히 지기 전 놓아줄 감정 하나를 마음속으로 이름 붙이세요.'}),
+  _energyCoordDestination({id:'fire-ulsan-ganjeolgot',name:'울산 간절곶',countryType:'domestic',element:'fire',emoji:'🌅',region:'울산 울주',latitude:35.3607,longitude:129.3602,terrainTags:['일출','등대','해안'],energyKeywords:['희망','새벽 활력','결심'],recommendedFor:['의지가 약해진 사람','다시 시작할 신호가 필요한 사람'],bestSeason:['겨울','봄'],tripStyle:'day_trip',description:'간절곶의 새벽 화(火)는 이름처럼 간절한 마음에 빛을 넣어, 흐릿한 결심을 오늘 시작할 수 있는 행동 에너지로 바꿉니다.',ritualTip:'등대 근처에서 지금 가장 간절한 한 가지를 짧게 적고 바로 첫 행동을 정하세요.'}),
+  _energyCoordDestination({id:'fire-sokcho-yeonggeumjeong',name:'속초 영금정 일출',countryType:'domestic',element:'fire',emoji:'🌊',region:'강원 속초',latitude:38.2113,longitude:128.5996,terrainTags:['정자','일출','파도'],energyKeywords:['긴장 해소','새 아침','감정 점화'],recommendedFor:['답답한 감정을 풀고 싶은 사람','생각보다 몸을 먼저 깨워야 하는 사람'],bestSeason:['봄','겨울'],tripStyle:'day_trip',description:'파도 소리 위로 떠오르는 화(火)가 가슴의 답답함을 흔들어 깨우고, 무기력한 아침을 살아 있는 리듬으로 전환합니다.',ritualTip:'파도 세 번을 세고 난 뒤 오늘 반드시 움직일 일을 하나 정하세요.'}),
+  _energyCoordDestination({id:'fire-hawaii-waikiki',name:'하와이 와이키키',countryType:'global',element:'fire',emoji:'🌺',region:'미국 하와이',latitude:21.2767,longitude:-157.8263,terrainTags:['태양','해변','휴양도시'],energyKeywords:['자신감','표현','몸의 활력'],recommendedFor:['삶의 밝기를 되찾고 싶은 사람','자기 표현을 열고 싶은 사람'],bestSeason:['사계절'],tripStyle:'romantic',description:'강한 태양과 열린 해변의 화(火)가 몸의 리듬을 밝게 깨워, 위축된 자기표현과 즐거움을 다시 자연스럽게 끌어냅니다.',ritualTip:'해변에서 맨발로 걸으며 지금 더 당당하게 드러낼 나의 모습 하나를 떠올리세요.'}),
+  _energyCoordDestination({id:'fire-spain-barcelona',name:'스페인 바르셀로나',countryType:'global',element:'fire',emoji:'🎨',region:'스페인 카탈루냐',latitude:41.3851,longitude:2.1734,terrainTags:['예술도시','지중해','건축'],energyKeywords:['창조성','열정','표현력'],recommendedFor:['창작 불씨가 필요한 사람','자신의 색을 드러내야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'가우디의 곡선과 지중해 태양이 만드는 화(火)가 잠든 표현력을 깨워, 나만의 색과 리듬을 과감히 드러내게 합니다.',ritualTip:'가장 강렬한 건축 디테일을 하나 고르고 내 작업에 적용할 색감이나 형태를 메모하세요.'}),
+  _energyCoordDestination({id:'fire-greece-santorini',name:'그리스 산토리니',countryType:'global',element:'fire',emoji:'🌅',region:'그리스 키클라데스',latitude:36.3932,longitude:25.4615,terrainTags:['화산섬','석양','절벽마을'],energyKeywords:['낭만','감정 온도','자기 매력'],recommendedFor:['연애 감각을 회복하고 싶은 사람','삶의 장면미가 필요한 사람'],bestSeason:['봄','초여름','가을'],tripStyle:'romantic',description:'화산섬의 열기와 석양의 화(火)가 감정의 명도를 높여, 잊고 있던 낭만과 자기 매력을 다시 선명하게 느끼게 합니다.',ritualTip:'석양 앞에서 내 삶에서 다시 아름답게 만들고 싶은 장면 하나를 상상하세요.'}),
+  _energyCoordDestination({id:'fire-morocco-sahara',name:'모로코 사하라 사막',countryType:'global',element:'fire',emoji:'🏜️',region:'모로코 메르주가',latitude:31.0802,longitude:-4.0134,terrainTags:['사막','태양','모래언덕'],energyKeywords:['원초적 열기','결단','불순물 제거'],recommendedFor:['강한 결단이 필요한 사람','군더더기를 태워내고 싶은 사람'],avoidFor:['더위에 약한 사람'],bestSeason:['가을','겨울','봄'],tripStyle:'adventure',description:'사막의 강한 화(火)는 불필요한 생각을 말려내고, 남겨야 할 욕망과 결심만 선명하게 드러내는 원초적 정화의 장입니다.',ritualTip:'모래 위에 버릴 생각 하나를 적고 발로 지운 뒤 물을 충분히 마시세요.'}),
+  _energyCoordDestination({id:'fire-turkiye-cappadocia',name:'터키 카파도키아',countryType:'global',element:'fire',emoji:'🎈',region:'튀르키예 네브셰히르',latitude:38.6431,longitude:34.8289,terrainTags:['열기구','화산암','일출'],energyKeywords:['상승','모험심','시야 확장'],recommendedFor:['낯선 도전이 필요한 사람','높은 관점이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'adventure',description:'화산암 대지 위로 떠오르는 열기구의 화(火)가 낮은 시야를 들어 올려, 모험심과 더 큰 선택을 향한 용기를 깨웁니다.',ritualTip:'일출 시간에 지금보다 높은 관점에서 봐야 할 문제 하나를 적어보세요.'}),
+  _energyCoordDestination({id:'fire-australia-uluru',name:'호주 울루루',countryType:'global',element:'fire',emoji:'🟥',region:'호주 노던준주',latitude:-25.3444,longitude:131.0369,terrainTags:['붉은 암석','사막','성지'],energyKeywords:['태양력','근원 의지','존재감'],recommendedFor:['자존감이 낮아진 사람','삶의 중심을 회복해야 하는 사람'],avoidFor:['강한 일사에 민감한 사람'],bestSeason:['겨울','초봄'],tripStyle:'retreat',description:'붉은 대지와 태양의 화(火)가 존재의 중심을 강하게 깨워, 흔들린 자존감과 의지를 다시 땅 위에 세워줍니다.',ritualTip:'일몰빛이 바위에 닿을 때 나를 지탱하는 핵심 가치 하나를 떠올리세요.'}),
+  _energyCoordDestination({id:'fire-usa-las-vegas',name:'미국 라스베이거스',countryType:'global',element:'fire',emoji:'🎰',region:'미국 네바다',latitude:36.1699,longitude:-115.1398,terrainTags:['야경','사막도시','공연'],energyKeywords:['무대감','표현','즉각 활력'],recommendedFor:['무대 공포를 넘고 싶은 사람','강한 자극으로 분위기를 바꿔야 하는 사람'],avoidFor:['충동 소비에 약한 사람'],bestSeason:['가을','겨울','봄'],tripStyle:'creative',description:'사막 위 인공 불빛의 화(火)가 숨은 무대감을 자극해, 자신을 더 크고 선명하게 표현하도록 밀어주는 강렬한 도시입니다.',ritualTip:'쇼윈도 불빛 앞에서 과시가 아닌 표현으로 쓰고 싶은 내 강점을 하나 정하세요.'}),
+  _energyCoordDestination({id:'fire-dubai-desert',name:'두바이 사막',countryType:'global',element:'fire',emoji:'🐪',region:'아랍에미리트 두바이',latitude:25.2048,longitude:55.2708,terrainTags:['사막','태양','럭셔리 도시'],energyKeywords:['확장 욕구','결단','열기 조절'],recommendedFor:['사업적 확장감을 느끼고 싶은 사람','담대한 결정을 앞둔 사람'],avoidFor:['과열된 일정에 취약한 사람'],bestSeason:['겨울'],tripStyle:'adventure',description:'사막의 원초적 화(火)와 미래 도시의 불빛이 만나, 큰 스케일의 욕망을 깨우되 과열을 다스릴 때 확장 운으로 전환되는 장소입니다.',ritualTip:'사막에서는 욕망을 적고, 도시에서는 그 욕망을 현실로 만들 첫 비용과 시간을 계산하세요.'}),
+  _energyCoordDestination({id:'fire-italy-rome',name:'이탈리아 로마',countryType:'global',element:'fire',emoji:'🏛️',region:'이탈리아 라치오',latitude:41.9028,longitude:12.4964,terrainTags:['고대도시','광장','태양'],energyKeywords:['존재감','역사적 열기','표현'],recommendedFor:['자신의 이야기를 크게 보고 싶은 사람','무대감이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'광장과 유적에 남은 화(火)의 기억이 개인의 이야기를 더 큰 무대 위에 올려, 위축된 존재감을 당당한 서사로 바꿔줍니다.',ritualTip:'가장 오래 남은 유적 앞에서 내 삶에서 오래 남기고 싶은 업적 하나를 적으세요.'}),
+  _energyCoordDestination({id:'fire-mexico-cancun',name:'멕시코 칸쿤',countryType:'global',element:'fire',emoji:'🏖️',region:'멕시코 킨타나로오',latitude:21.1619,longitude:-86.8515,terrainTags:['태양','해변','휴양'],energyKeywords:['즐거움','몸의 활력','관계 온도'],recommendedFor:['삶의 재미가 줄어든 사람','몸을 깨우는 휴식이 필요한 사람'],bestSeason:['겨울','봄'],tripStyle:'romantic',description:'강한 햇살과 밝은 해변의 화(火)가 무뎌진 즐거움의 감각을 깨우고, 몸과 관계의 온도를 다시 따뜻하게 올려줍니다.',ritualTip:'하루 한 번은 계획 없는 즐거운 선택을 해보고 몸의 반응을 기록하세요.'}),
+  _energyCoordDestination({id:'fire-thailand-bangkok-night-market',name:'태국 방콕 야시장',countryType:'global',element:'fire',emoji:'🍜',region:'태국 방콕',latitude:13.7563,longitude:100.5018,terrainTags:['야시장','도시 열기','음식 거리'],energyKeywords:['사회성','표현력','즉흥 활력'],recommendedFor:['사람 속 에너지가 필요한 사람','대화와 감각을 깨우고 싶은 사람'],bestSeason:['건기'],tripStyle:'creative',description:'야시장의 조명과 음식 향이 만든 화(火)가 감각을 즉시 깨워, 움츠린 사회성과 표현력을 즐거운 리듬으로 열어줍니다.',ritualTip:'처음 보는 음식을 하나 고르며 낯선 선택을 받아들이는 연습을 해보세요.'}),
+  _energyCoordDestination({id:'fire-france-nice',name:'프랑스 니스',countryType:'global',element:'fire',emoji:'☀️',region:'프랑스 코트다쥐르',latitude:43.7102,longitude:7.2620,terrainTags:['지중해','햇살','해변 산책'],energyKeywords:['밝기','자기 매력','감정 온도'],recommendedFor:['우울감이 짙어진 사람','밝은 자기 감각이 필요한 사람'],bestSeason:['봄','초여름','가을'],tripStyle:'slow_trip',description:'지중해 햇살의 화(火)가 감정의 채도를 높이고, 자신을 조금 더 밝고 우아하게 드러내는 감각을 회복시켜 줍니다.',ritualTip:'해변 산책 중 가장 밝게 느껴지는 순간을 사진 대신 문장으로 남겨보세요.'}),
+
+  _energyCoordDestination({id:'earth-gyeongju-historic-area',name:'경주 역사유적지구',countryType:'domestic',element:'earth',emoji:'🏯',region:'경북 경주',latitude:35.8347,longitude:129.2242,terrainTags:['유적','고도','왕릉'],energyKeywords:['안정','시간의 축적','현실감'],recommendedFor:['삶의 기준을 다시 세우려는 사람','루틴이 무너진 사람'],bestSeason:['봄','가을'],tripStyle:'slow_trip',description:'천년 고도의 토(土)가 흩어진 일상을 긴 시간의 질서 안에 놓아주며, 흔들린 중심과 현실 감각을 차분히 회복시킵니다.',ritualTip:'가장 오래된 유적 앞에서 오래 유지할 생활 규칙 하나를 정하세요.'}),
+  _energyCoordDestination({id:'earth-buyeo-baekje-cultural-land',name:'부여 백제문화단지',countryType:'domestic',element:'earth',emoji:'🏛️',region:'충남 부여',latitude:36.3058,longitude:126.9149,terrainTags:['역사단지','궁궐','평야'],energyKeywords:['품격','기반 회복','차분함'],recommendedFor:['마음이 산만한 사람','현실적 선택 기준이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'백제의 부드러운 토(土) 기운이 급한 판단을 가라앉히고, 품격 있는 안정감으로 현실의 선택 기준을 다시 세워줍니다.',ritualTip:'궁궐 동선에서 지금 내 삶에 필요한 질서 세 가지를 적어보세요.'}),
+  _energyCoordDestination({id:'earth-andong-hahoe',name:'안동 하회마을',countryType:'domestic',element:'earth',emoji:'🛖',region:'경북 안동',latitude:36.5388,longitude:128.5183,terrainTags:['전통마을','흙길','강마을'],energyKeywords:['뿌리','가족성','생활 안정'],recommendedFor:['소속감이 약해진 사람','가족과 생활 기반을 정리해야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'slow_trip',description:'강이 감싼 전통마을의 토(土)가 삶의 뿌리와 생활 감각을 안정시켜, 흔들린 관계와 일상의 기반을 다시 단단하게 만듭니다.',ritualTip:'흙길을 걸으며 내가 지켜야 할 생활 기반을 집, 몸, 돈 중 하나로 정리하세요.'}),
+  _energyCoordDestination({id:'earth-jeonju-hanok-village',name:'전주 한옥마을',countryType:'domestic',element:'earth',emoji:'🏠',region:'전북 전주',latitude:35.8151,longitude:127.1530,terrainTags:['한옥','골목','전통음식'],energyKeywords:['생활 안정','감각적 현실감','관계 온기'],recommendedFor:['몸과 마음을 든든히 채우고 싶은 사람','느린 골목 여행이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'one_night',description:'한옥과 골목의 토(土)가 떠 있는 마음을 생활의 온도로 끌어내려, 먹고 걷고 쉬는 단순한 리듬 속에서 안정감을 회복시킵니다.',ritualTip:'한 끼를 천천히 먹으며 내 몸이 편안해지는 속도를 관찰하세요.'}),
+  _energyCoordDestination({id:'earth-gongju-gongsanseong',name:'공주 공산성',countryType:'domestic',element:'earth',emoji:'🏰',region:'충남 공주',latitude:36.4620,longitude:127.1247,terrainTags:['성곽','언덕','역사길'],energyKeywords:['방어력','기반 구축','현실 판단'],recommendedFor:['경계가 약해진 사람','일과 관계의 선을 세워야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'성곽의 토(土)가 내 삶의 경계를 다시 느끼게 해, 지킬 것과 내어줄 것을 구분하는 현실 판단력을 강화합니다.',ritualTip:'성곽을 돌며 지금 지켜야 할 경계 하나와 열어도 되는 문 하나를 정하세요.'}),
+  _energyCoordDestination({id:'earth-suwon-hwaseong',name:'수원화성',countryType:'domestic',element:'earth',emoji:'🧱',region:'경기 수원',latitude:37.2879,longitude:127.0117,terrainTags:['성곽','도시 유산','걷기길'],energyKeywords:['구조화','계획성','지속력'],recommendedFor:['계획을 현실로 내려야 하는 사람','일정 관리가 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'정교하게 설계된 성곽의 토(土)가 생각을 구조로 바꾸고, 막연한 목표를 걸어서 확인 가능한 실행 계획으로 내려줍니다.',ritualTip:'성곽 한 구간을 걸을 때 목표를 단계별로 쪼개는 생각만 해보세요.'}),
+  _energyCoordDestination({id:'earth-daegu-modern-alley',name:'대구 근대골목',countryType:'domestic',element:'earth',emoji:'🚶',region:'대구 중구',latitude:35.8694,longitude:128.5906,terrainTags:['골목','근대건축','도시 역사'],energyKeywords:['기억 정리','현실 감각','생활 서사'],recommendedFor:['과거 경험을 현재 자산으로 바꾸고 싶은 사람','혼자 걷는 정리가 필요한 사람'],bestSeason:['봄','가을','겨울'],tripStyle:'day_trip',description:'오래된 골목의 토(土)가 지나온 시간을 발밑에 놓아주며, 흩어진 경험을 지금 써먹을 수 있는 현실 자산으로 정리합니다.',ritualTip:'골목 카페에서 지난 3년의 경험 중 앞으로 남길 것 세 가지를 적어보세요.'}),
+  _energyCoordDestination({id:'earth-iksan-mireuksaji',name:'익산 미륵사지',countryType:'domestic',element:'earth',emoji:'🪨',region:'전북 익산',latitude:36.0129,longitude:127.0316,terrainTags:['사지','석탑','평지 유적'],energyKeywords:['중심 회복','인내','재건'],recommendedFor:['무너진 계획을 다시 세우는 사람','오래 걸리는 일을 시작하는 사람'],bestSeason:['봄','가을'],tripStyle:'retreat',description:'복원과 시간이 겹친 미륵사지의 토(土)는 무너진 것을 다시 세우는 인내를 알려주며, 장기 계획의 중심을 차분히 붙잡게 합니다.',ritualTip:'석탑을 바라보며 지금 다시 쌓아야 할 일의 첫 돌 하나를 정하세요.'}),
+  _energyCoordDestination({id:'earth-ganghwa-dolmen',name:'강화도 고인돌 유적',countryType:'domestic',element:'earth',emoji:'🪨',region:'인천 강화',latitude:37.7736,longitude:126.4356,terrainTags:['고인돌','평야','선사유적'],energyKeywords:['원초적 안정','뿌리','묵직함'],recommendedFor:['마음이 너무 가벼워 불안한 사람','원점으로 돌아가야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'거석의 오래된 토(土)가 생각을 묵직하게 가라앉혀, 불안을 줄이고 삶의 원점과 기본기를 다시 확인하게 합니다.',ritualTip:'고인돌 앞에서 지금 복잡한 문제를 가장 단순한 한 문장으로 줄여보세요.'}),
+  _energyCoordDestination({id:'earth-jeju-oreum',name:'제주 오름',countryType:'domestic',element:'earth',emoji:'⛰️',region:'제주 전역',latitude:33.4070,longitude:126.5312,terrainTags:['화산오름','초지','흙길'],energyKeywords:['몸의 중심','현실 착지','완만한 상승'],recommendedFor:['몸 감각이 흐려진 사람','천천히 성취감을 회복하고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'adventure',description:'완만한 화산토의 토(土)가 몸의 중심을 되찾게 하고, 무리하지 않는 상승을 통해 작은 성취감을 현실적으로 회복시킵니다.',ritualTip:'정상까지 속도를 내지 말고, 중간에 멈춰 발바닥 감각을 세 번 확인하세요.'}),
+  _energyCoordDestination({id:'earth-pyeongchang-daegwallyeong',name:'평창 대관령',countryType:'domestic',element:'earth',emoji:'🐑',region:'강원 평창',latitude:37.6884,longitude:128.7585,terrainTags:['고원','초지','목장'],energyKeywords:['넓은 안정','생활 리듬','호흡'],recommendedFor:['답답한 현실을 넓게 보고 싶은 사람','휴식과 걷기가 모두 필요한 사람'],bestSeason:['여름','가을','겨울'],tripStyle:'slow_trip',description:'넓은 고원의 토(土)가 꽉 막힌 현실감을 넓게 펼쳐주며, 몸의 호흡과 생활 리듬을 안정적인 속도로 되돌립니다.',ritualTip:'초지에서 가장 멀리 보이는 지점을 바라보며 이번 달 우선순위 하나를 정하세요.'}),
+  _energyCoordDestination({id:'earth-yeongwol-korean-peninsula',name:'영월 한반도지형',countryType:'domestic',element:'earth',emoji:'🏞️',region:'강원 영월',latitude:37.2194,longitude:128.3485,terrainTags:['전망대','하천 지형','산길'],energyKeywords:['큰 그림','현실 지도','중심 잡기'],recommendedFor:['삶의 방향 지도가 필요한 사람','부분보다 전체를 봐야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'한눈에 들어오는 지형의 토(土)가 복잡한 현실을 하나의 지도처럼 보이게 해, 부분에 매달린 마음을 전체 방향으로 돌려줍니다.',ritualTip:'전망대에서 내 삶의 현재 위치, 목적지, 다음 길을 각각 한 단어로 정하세요.'}),
+  _energyCoordDestination({id:'earth-egypt-luxor',name:'이집트 룩소르',countryType:'global',element:'earth',emoji:'🗿',region:'이집트 룩소르',latitude:25.6872,longitude:32.6396,terrainTags:['고대신전','사막','나일 유역'],energyKeywords:['시간 축적','권위','기반'],recommendedFor:['큰 책임을 앞둔 사람','삶의 무게를 견디는 힘이 필요한 사람'],bestSeason:['겨울','초봄'],tripStyle:'adventure',description:'사막과 신전에 응축된 토(土)가 수천 년의 시간을 몸으로 느끼게 하며, 무거운 책임을 견디는 내면의 기둥을 세워줍니다.',ritualTip:'신전 기둥 앞에서 내가 오래 책임질 가치가 있는 일을 하나만 정하세요.'}),
+  _energyCoordDestination({id:'earth-peru-machu-picchu',name:'페루 마추픽추',countryType:'global',element:'earth',emoji:'🏔️',region:'페루 쿠스코',latitude:-13.1631,longitude:-72.5450,terrainTags:['고산유적','석조도시','안데스'],energyKeywords:['정상성','장기 성취','현실의 성채'],recommendedFor:['높은 목표를 현실화하려는 사람','오래 준비한 일을 완성하고 싶은 사람'],bestSeason:['건기'],tripStyle:'adventure',description:'고산 위 석조도시의 토(土)가 꿈을 공중에 띄우지 않고 발 딛는 성취로 바꾸며, 장기 목표를 견디는 힘을 줍니다.',ritualTip:'유적을 바라보며 지금 쌓고 있는 일의 마지막 모습을 구체적으로 상상하세요.'}),
+  _energyCoordDestination({id:'earth-jordan-petra',name:'요르단 페트라',countryType:'global',element:'earth',emoji:'🏜️',region:'요르단 마안',latitude:30.3285,longitude:35.4444,terrainTags:['암벽도시','협곡','사막유적'],energyKeywords:['숨은 자산','인내','현실 통로'],recommendedFor:['오래 숨겨둔 가능성을 꺼내야 하는 사람','막힌 길을 뚫고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'adventure',description:'바위를 깎아 만든 도시의 토(土)가 막힌 현실에도 통로가 있음을 보여주며, 숨은 자산을 드러내는 인내심을 강화합니다.',ritualTip:'시크 협곡을 걸으며 지금 열어야 할 닫힌 문 하나를 떠올리세요.'}),
+  _energyCoordDestination({id:'earth-turkiye-goreme',name:'터키 괴레메',countryType:'global',element:'earth',emoji:'🎈',region:'튀르키예 카파도키아',latitude:38.6431,longitude:34.8289,terrainTags:['응회암','동굴마을','고원'],energyKeywords:['적응력','현실 변형','기반 재설계'],recommendedFor:['환경 변화에 적응해야 하는 사람','새 기반을 만드는 사람'],bestSeason:['봄','가을'],tripStyle:'adventure',description:'부드러운 암석이 삶의 공간으로 바뀐 괴레메의 토(土)는 주어진 현실을 새 방식으로 활용하는 적응력과 기반 재설계 능력을 깨웁니다.',ritualTip:'동굴 공간을 보며 지금 가진 자원 중 다르게 쓸 수 있는 것을 하나 적으세요.'}),
+  _energyCoordDestination({id:'earth-china-xian',name:'중국 시안',countryType:'global',element:'earth',emoji:'🐉',region:'중국 산시성',latitude:34.3416,longitude:108.9398,terrainTags:['고도','성벽','병마용'],energyKeywords:['중심 문명','권위','기반 자산'],recommendedFor:['커리어 중심을 세우고 싶은 사람','자기 권위를 회복해야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'slow_trip',description:'중원의 오래된 토(土)가 개인의 중심성과 권위를 되살려, 흔들린 커리어 기준과 기반 자산을 다시 점검하게 합니다.',ritualTip:'성벽 위에서 내 일의 중심 기준 하나를 문장으로 정리하세요.'}),
+  _energyCoordDestination({id:'earth-italy-pompeii',name:'이탈리아 폼페이',countryType:'global',element:'earth',emoji:'🏺',region:'이탈리아 캄파니아',latitude:40.7462,longitude:14.4989,terrainTags:['고대도시','화산재','유적'],energyKeywords:['기록','교훈','현실 경고'],recommendedFor:['반복 실수를 끊고 싶은 사람','지나간 사건에서 교훈을 얻어야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'화산재에 보존된 도시의 토(土)는 지나간 시간의 교훈을 선명히 보여주며, 같은 실수를 반복하지 않는 현실 감각을 강화합니다.',ritualTip:'유적을 보며 다시 반복하지 않을 패턴 하나를 구체적으로 적으세요.'}),
+  _energyCoordDestination({id:'earth-greece-athens',name:'그리스 아테네',countryType:'global',element:'earth',emoji:'🏛️',region:'그리스 아티카',latitude:37.9838,longitude:23.7275,terrainTags:['고대유적','언덕','도시'],energyKeywords:['철학적 기반','원칙','공동체 감각'],recommendedFor:['선택의 기준이 필요한 사람','생각을 원칙으로 정리해야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'오래된 철학과 도시의 토(土)가 생각을 원칙으로 굳혀주며, 감정적 선택을 삶의 기준과 공동체 감각으로 정리하게 합니다.',ritualTip:'아크로폴리스가 보이는 곳에서 지금 내 선택 원칙 세 가지를 적어보세요.'}),
+  _energyCoordDestination({id:'earth-cambodia-angkor-wat',name:'캄보디아 앙코르와트',countryType:'global',element:'earth',emoji:'🌄',region:'캄보디아 시엠립',latitude:13.4125,longitude:103.8670,terrainTags:['사원유적','석조','정글'],energyKeywords:['신성한 기반','인내','시간성'],recommendedFor:['마음의 중심 의식이 필요한 사람','오래 걸리는 회복 중인 사람'],bestSeason:['건기'],tripStyle:'retreat',description:'석조 사원과 정글이 겹친 토(土)가 인간의 시간과 자연의 시간을 함께 느끼게 하며, 성급함을 낮추고 신성한 기반감을 회복시킵니다.',ritualTip:'사원 앞에서 지금 서두르지 않고 지켜야 할 일을 하나 떠올리세요.'}),
+  _energyCoordDestination({id:'earth-nepal-kathmandu',name:'네팔 카트만두',countryType:'global',element:'earth',emoji:'🛕',region:'네팔 바그마티',latitude:27.7172,longitude:85.3240,terrainTags:['분지','사원','골목'],energyKeywords:['영적 현실감','생활 수행','중심'],recommendedFor:['정신과 현실을 연결해야 하는 사람','생활 수행 루틴이 필요한 사람'],bestSeason:['가을','봄'],tripStyle:'retreat',description:'분지와 사원의 토(土)가 영적 감각을 공중에 띄우지 않고 생활 수행으로 내려주며, 매일 반복할 중심을 찾게 합니다.',ritualTip:'사원 근처에서 매일 10분 지속할 작은 수행 루틴을 정하세요.'}),
+  _energyCoordDestination({id:'earth-india-jaipur',name:'인도 자이푸르',countryType:'global',element:'earth',emoji:'🏰',region:'인도 라자스탄',latitude:26.9124,longitude:75.7873,terrainTags:['궁전','사막도시','핑크시티'],energyKeywords:['왕성한 기반','현실 감각','색채 안정'],recommendedFor:['자기 가치를 현실적으로 높이고 싶은 사람','감각과 생활을 함께 정리하려는 사람'],bestSeason:['겨울'],tripStyle:'creative',description:'사막 도시와 궁전의 토(土)가 자기 가치를 단단한 형식으로 세워주며, 감각적 아름다움을 현실적 자신감으로 바꿉니다.',ritualTip:'궁전에서 가장 마음에 드는 색이나 문양을 골라 내 생활에 적용할 방식 하나를 정하세요.'}),
+  _energyCoordDestination({id:'earth-bolivia-uyuni',name:'볼리비아 우유니',countryType:'global',element:'earth',emoji:'🪞',region:'볼리비아 포토시',latitude:-20.1338,longitude:-67.4891,terrainTags:['소금평원','고원','반영'],energyKeywords:['비움','현실 거울','재정렬'],recommendedFor:['복잡한 마음을 비워야 하는 사람','삶의 방향을 반사해 보고 싶은 사람'],bestSeason:['우기','건기'],tripStyle:'retreat',description:'끝없는 소금평원의 토(土)가 모든 소음을 비워내고, 하늘과 땅의 반영 속에서 지금의 현실을 거울처럼 마주하게 합니다.',ritualTip:'수평선 앞에서 지금 내려놓을 집착 하나와 남길 기준 하나를 적으세요.'}),
+  _energyCoordDestination({id:'earth-mongolia-steppe',name:'몽골 초원',countryType:'global',element:'earth',emoji:'🐎',region:'몽골 중앙 초원',latitude:47.8864,longitude:106.9057,terrainTags:['초원','고원','흙길'],energyKeywords:['넓은 기반','단순함','생존력'],recommendedFor:['삶이 과하게 복잡해진 사람','기본으로 돌아가야 하는 사람'],bestSeason:['여름','초가을'],tripStyle:'adventure',description:'넓은 초원의 토(土)가 복잡한 욕심을 단순하게 만들고, 살아가는 데 필요한 기본 체력과 현실 감각을 다시 일깨웁니다.',ritualTip:'초원에서 꼭 필요한 것과 있으면 좋은 것을 구분해 여행 가방처럼 삶도 정리해보세요.'}),
+
+  _energyCoordDestination({id:'metal-seoul-leeum-hannam',name:'서울 한남동·리움미술관',countryType:'domestic',element:'metal',emoji:'🏛️',region:'서울 용산',latitude:37.5385,longitude:126.9990,terrainTags:['미술관','도시','건축'],energyKeywords:['감각 정제','안목','절제'],recommendedFor:['취향과 기준을 정리해야 하는 사람','미적 영감이 필요한 사람'],bestSeason:['사계절'],tripStyle:'creative',description:'정제된 건축과 작품의 금(金)이 감각을 날카롭게 다듬어, 흐릿한 취향과 판단 기준을 세련된 안목으로 정리하게 합니다.',ritualTip:'가장 오래 시선이 머문 작품 앞에서 내 선택 기준 한 문장을 적어보세요.'}),
+  _energyCoordDestination({id:'metal-seoul-bukchon-samcheong',name:'서울 북촌·삼청동',countryType:'domestic',element:'metal',emoji:'🏘️',region:'서울 종로',latitude:37.5826,longitude:126.9836,terrainTags:['한옥길','갤러리','골목'],energyKeywords:['절제된 아름다움','선택 정리','감각'],recommendedFor:['복잡한 취향을 정돈하고 싶은 사람','가볍게 걷고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'한옥의 선과 갤러리의 금(金) 감각이 과한 감정을 덜어내고, 필요한 것만 남기는 절제된 아름다움을 회복시킵니다.',ritualTip:'골목에서 가장 단정하다고 느낀 장면을 보고 오늘 비울 물건 하나를 정하세요.'}),
+  _energyCoordDestination({id:'metal-seoul-ddp',name:'서울 DDP',countryType:'domestic',element:'metal',emoji:'🛸',region:'서울 중구',latitude:37.5665,longitude:127.0090,terrainTags:['현대건축','메탈릭','디자인'],energyKeywords:['미래감','결단','구조화'],recommendedFor:['아이디어를 형태로 만들고 싶은 사람','일의 구조를 새로 잡아야 하는 사람'],bestSeason:['사계절'],tripStyle:'creative',description:'유선형 금속 건축의 금(金)이 미래적 감각과 구조적 사고를 자극해, 흩어진 아이디어를 선명한 형태로 굳히게 합니다.',ritualTip:'건물 곡선을 따라 걸으며 지금 만들고 싶은 결과물의 형태를 스케치하세요.'}),
+  _energyCoordDestination({id:'metal-busan-marine-city',name:'부산 마린시티',countryType:'domestic',element:'metal',emoji:'🌉',region:'부산 해운대',latitude:35.1568,longitude:129.1455,terrainTags:['마천루','해안도시','야경'],energyKeywords:['성취감','도시 감각','목표 정렬'],recommendedFor:['커리어 자극이 필요한 사람','높은 목표를 다시 보고 싶은 사람'],bestSeason:['봄','가을','겨울'],tripStyle:'romantic',description:'해안 마천루의 금(金)이 목표를 높고 선명하게 보여주며, 느슨해진 성취 욕구를 세련된 긴장감으로 다시 조율합니다.',ritualTip:'야경을 보며 지금 올라가고 싶은 단계와 그 단계의 기준을 적어보세요.'}),
+  _energyCoordDestination({id:'metal-incheon-songdo',name:'인천 송도',countryType:'domestic',element:'metal',emoji:'🏙️',region:'인천 연수',latitude:37.3828,longitude:126.6560,terrainTags:['계획도시','고층건축','수변공원'],energyKeywords:['정리','미래 계획','업무 감각'],recommendedFor:['새 업무 시스템이 필요한 사람','삶을 현대적으로 정돈하고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'계획도시의 금(金) 질서가 산만한 생활을 정돈하고, 미래 계획을 감정이 아닌 구조와 일정으로 바꾸게 합니다.',ritualTip:'센트럴파크 주변에서 다음 주 할 일 3개를 우선순위대로 정렬하세요.'}),
+  _energyCoordDestination({id:'metal-daejeon-expo-science-park',name:'대전 엑스포 과학공원',countryType:'domestic',element:'metal',emoji:'🔬',region:'대전 유성',latitude:36.3768,longitude:127.3890,terrainTags:['과학공원','기술','전망탑'],energyKeywords:['논리','기술 감각','미래 설계'],recommendedFor:['기술적 판단이 필요한 사람','문제를 객관화해야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'과학과 기술의 금(金)이 감정적 판단을 걷어내고, 문제를 객관적인 구조와 실험 가능한 아이디어로 재정렬합니다.',ritualTip:'한빛탑 주변에서 해결할 문제를 가설, 실험, 결과 세 칸으로 나눠 적어보세요.'}),
+  _energyCoordDestination({id:'metal-cheongju-mmca',name:'청주 국립현대미술관',countryType:'domestic',element:'metal',emoji:'🖼️',region:'충북 청주',latitude:36.6468,longitude:127.4914,terrainTags:['미술관','현대미술','도시'],energyKeywords:['감각 정밀화','해석력','정리'],recommendedFor:['생각을 정교하게 다듬고 싶은 사람','새 관점이 필요한 사람'],bestSeason:['사계절'],tripStyle:'creative',description:'현대미술의 금(金) 감각이 익숙한 해석을 잘라내고, 사물을 더 정밀하고 신선하게 보는 판단력을 깨웁니다.',ritualTip:'이해 안 되는 작품 하나를 골라 내 방식으로 제목을 새로 붙여보세요.'}),
+  _energyCoordDestination({id:'metal-wonju-museum-san',name:'원주 뮤지엄 산',countryType:'domestic',element:'metal',emoji:'⛰️',region:'강원 원주',latitude:37.4133,longitude:127.8236,terrainTags:['미술관','건축','산지'],energyKeywords:['비움','절제','감각 집중'],recommendedFor:['마음을 비우고 기준을 세우려는 사람','혼자 집중 시간이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'retreat',description:'산과 건축이 만나는 금(金)의 절제가 불필요한 감각을 덜어내고, 하나의 선택에 깊게 집중할 수 있는 선명함을 줍니다.',ritualTip:'제임스 터렐 공간처럼 빛을 느끼는 순간, 지금 남길 일 하나만 정하세요.'}),
+  _energyCoordDestination({id:'metal-gangneung-haslla-art-world',name:'강릉 하슬라아트월드',countryType:'domestic',element:'metal',emoji:'🎭',region:'강원 강릉',latitude:37.6945,longitude:129.0486,terrainTags:['미술공간','해안절벽','조각'],energyKeywords:['감각 전환','표현 정리','시선'],recommendedFor:['익숙한 관점을 바꾸고 싶은 사람','예술적 자극이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'바다와 조각의 금(金)이 시선을 날카롭게 전환시켜, 막연한 감정을 형태 있는 표현과 분명한 취향으로 정리하게 합니다.',ritualTip:'조각 작품 하나를 골라 내 마음의 현재 형태라고 상상하고 이름을 붙이세요.'}),
+  _energyCoordDestination({id:'metal-jeju-bontae-museum',name:'제주 본태박물관',countryType:'domestic',element:'metal',emoji:'🏛️',region:'제주 서귀포',latitude:33.3021,longitude:126.3920,terrainTags:['미술관','건축','제주 풍경'],energyKeywords:['본질','절제된 아름다움','감각 정리'],recommendedFor:['본질을 보고 싶은 사람','감정 과잉을 줄여야 하는 사람'],bestSeason:['사계절'],tripStyle:'creative',description:'절제된 건축과 작품의 금(金)이 감정의 장식을 덜어내고, 지금 정말 중요한 본질과 아름다움을 선명하게 보여줍니다.',ritualTip:'관람 후 마음에 남은 것과 남지 않은 것을 나눠 내 취향의 기준을 적어보세요.'}),
+  _energyCoordDestination({id:'metal-paju-book-city',name:'파주 출판도시',countryType:'domestic',element:'metal',emoji:'📚',region:'경기 파주',latitude:37.7086,longitude:126.6861,terrainTags:['출판단지','책방','건축'],energyKeywords:['언어 정리','지식 구조','집중'],recommendedFor:['문장과 기획을 정리해야 하는 사람','생각을 콘텐츠로 만들고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'책과 건축의 금(金)이 생각을 문장과 구조로 다듬어, 흩어진 지식을 쓸 수 있는 콘텐츠와 계획으로 바꿔줍니다.',ritualTip:'책방에서 첫눈에 들어온 문장 하나를 오늘의 기준 문장으로 삼으세요.'}),
+  _energyCoordDestination({id:'metal-gwangju-acc',name:'광주 국립아시아문화전당',countryType:'domestic',element:'metal',emoji:'🎬',region:'광주 동구',latitude:35.1469,longitude:126.9199,terrainTags:['복합문화공간','현대건축','전시'],energyKeywords:['문화 감각','판단력','표현 구조'],recommendedFor:['작업의 형식을 찾는 사람','복합적 아이디어를 정리해야 하는 사람'],bestSeason:['사계절'],tripStyle:'creative',description:'복합문화공간의 금(金)이 다양한 감각을 하나의 형식으로 묶어주며, 아이디어를 작품과 실행 구조로 정리하게 합니다.',ritualTip:'전시 관람 후 지금 내 프로젝트에 필요한 형식 하나를 골라보세요.'}),
+  _energyCoordDestination({id:'metal-switzerland-zurich',name:'스위스 취리히',countryType:'global',element:'metal',emoji:'⌚',region:'스위스 취리히',latitude:47.3769,longitude:8.5417,terrainTags:['금융도시','호수도시','정돈된 거리'],energyKeywords:['정밀함','재정 감각','결단'],recommendedFor:['돈과 시간 관리를 정리해야 하는 사람','삶의 기준을 세련되게 다듬고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'slow_trip',description:'정돈된 도시와 금융의 금(金)이 시간과 돈의 감각을 날카롭게 다듬어, 흐릿한 계획을 수치와 기준으로 정리하게 합니다.',ritualTip:'호숫가에서 앞으로 줄일 지출 하나와 키울 투자 하나를 적으세요.'}),
+  _energyCoordDestination({id:'metal-japan-tokyo-ginza',name:'일본 도쿄 긴자',countryType:'global',element:'metal',emoji:'💎',region:'일본 도쿄',latitude:35.6717,longitude:139.7650,terrainTags:['상업지구','디자인','고급 거리'],energyKeywords:['취향 정제','선택력','브랜딩'],recommendedFor:['브랜드 감각이 필요한 사람','선택 피로를 줄이고 싶은 사람'],bestSeason:['봄','가을','겨울'],tripStyle:'creative',description:'긴자의 금(金)은 과한 선택지를 세련된 기준으로 압축해, 나에게 맞는 취향과 브랜딩 감각을 분명하게 다듬습니다.',ritualTip:'쇼윈도에서 사고 싶은 것보다 왜 끌리는지를 세 단어로 분석하세요.'}),
+  _energyCoordDestination({id:'metal-france-paris',name:'프랑스 파리',countryType:'global',element:'metal',emoji:'🗼',region:'프랑스 일드프랑스',latitude:48.8566,longitude:2.3522,terrainTags:['미술관','건축','도시 산책'],energyKeywords:['안목','미감','절제'],recommendedFor:['아름다움의 기준을 다시 세우고 싶은 사람','감각적 자극이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'미술관과 도시 선의 금(金)이 감각을 고급스럽게 정제해, 아름다움을 소비가 아니라 판단 기준으로 받아들이게 합니다.',ritualTip:'루브르나 오르세에서 가장 오래 본 작품의 공통점을 내 취향 키워드로 적으세요.'}),
+  _energyCoordDestination({id:'metal-usa-manhattan',name:'미국 뉴욕 맨해튼',countryType:'global',element:'metal',emoji:'🏙️',region:'미국 뉴욕',latitude:40.7831,longitude:-73.9712,terrainTags:['마천루','미술관','금융가'],energyKeywords:['성과','결단','도시 집중력'],recommendedFor:['커리어 승부수가 필요한 사람','높은 밀도의 자극이 필요한 사람'],avoidFor:['소음과 속도에 약한 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'마천루와 금융가의 금(金)이 경쟁 속 기준을 선명하게 만들며, 성과를 향한 집중력과 결단의 날을 세워줍니다.',ritualTip:'스카이라인을 보며 내 커리어에서 반드시 이길 영역 하나를 정하세요.'}),
+  _energyCoordDestination({id:'metal-uk-london',name:'영국 런던',countryType:'global',element:'metal',emoji:'🎩',region:'영국 잉글랜드',latitude:51.5072,longitude:-0.1276,terrainTags:['박물관','금융도시','클래식 건축'],energyKeywords:['전통과 기준','품격','판단력'],recommendedFor:['일의 품격을 높이고 싶은 사람','오래가는 기준이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'전통과 현대가 겹친 런던의 금(金)은 기준의 무게를 알려주며, 일과 관계에서 오래갈 품격과 판단력을 회복시킵니다.',ritualTip:'박물관에서 오래 남은 물건 하나를 보며 내 일에서 오래 남길 기준을 정하세요.'}),
+  _energyCoordDestination({id:'metal-singapore-marina-bay',name:'싱가포르 마리나베이',countryType:'global',element:'metal',emoji:'🌃',region:'싱가포르 마리나베이',latitude:1.2834,longitude:103.8607,terrainTags:['현대건축','수변도시','야경'],energyKeywords:['정돈된 야망','미래 설계','도시 감각'],recommendedFor:['야망을 현실 계획으로 바꿔야 하는 사람','효율적 휴식이 필요한 사람'],bestSeason:['사계절'],tripStyle:'romantic',description:'정교한 도시 설계와 야경의 금(金)이 야망을 흐릿한 욕망이 아니라 관리 가능한 미래 계획으로 바꿔줍니다.',ritualTip:'야경을 보며 내가 원하는 삶의 운영 시스템을 세 가지로 나눠 적으세요.'}),
+  _energyCoordDestination({id:'metal-hongkong-central',name:'홍콩 센트럴',countryType:'global',element:'metal',emoji:'🏦',region:'홍콩 센트럴',latitude:22.2796,longitude:114.1588,terrainTags:['금융가','고층건축','항구도시'],energyKeywords:['빠른 판단','거래 감각','결단'],recommendedFor:['비즈니스 감각을 깨우고 싶은 사람','빠른 의사결정 훈련이 필요한 사람'],bestSeason:['가을','겨울'],tripStyle:'creative',description:'금융가와 항구가 맞물린 금(金)이 빠른 판단과 거래 감각을 일깨워, 기회를 놓치지 않는 결단력을 훈련시킵니다.',ritualTip:'센트럴을 걸으며 지금 협상해야 할 것과 포기해야 할 것을 각각 하나씩 정하세요.'}),
+  _energyCoordDestination({id:'metal-austria-vienna',name:'오스트리아 빈',countryType:'global',element:'metal',emoji:'🎻',region:'오스트리아 빈',latitude:48.2082,longitude:16.3738,terrainTags:['음악도시','궁전','미술관'],energyKeywords:['격식','균형감','정제된 감성'],recommendedFor:['감정을 품격 있게 표현하고 싶은 사람','관계의 예의를 회복해야 하는 사람'],bestSeason:['봄','가을','겨울'],tripStyle:'romantic',description:'음악과 궁전의 금(金)이 감정을 절제된 형식 안에 담아, 과하지 않지만 깊이 있는 표현과 관계의 품격을 회복시킵니다.',ritualTip:'클래식 음악을 들으며 지금 정중하게 전해야 할 마음을 한 문장으로 써보세요.'}),
+  _energyCoordDestination({id:'metal-denmark-copenhagen',name:'덴마크 코펜하겐',countryType:'global',element:'metal',emoji:'🚲',region:'덴마크 수도권',latitude:55.6761,longitude:12.5683,terrainTags:['디자인도시','항구','자전거길'],energyKeywords:['실용미','정리된 생활','균형'],recommendedFor:['생활 디자인을 바꾸고 싶은 사람','단순하고 좋은 루틴이 필요한 사람'],bestSeason:['여름','초가을'],tripStyle:'slow_trip',description:'실용적 디자인과 정돈된 도시의 금(金)이 복잡한 생활을 단순하게 다듬고, 아름다움과 효율이 함께 가는 루틴을 보여줍니다.',ritualTip:'좋아 보이는 생활 장면 하나를 골라 내 방이나 일정에 적용할 방법을 정하세요.'}),
+  _energyCoordDestination({id:'metal-finland-helsinki',name:'핀란드 헬싱키',countryType:'global',element:'metal',emoji:'🏛️',region:'핀란드 우시마',latitude:60.1699,longitude:24.9384,terrainTags:['디자인','항구도시','미니멀 건축'],energyKeywords:['미니멀','선명한 기준','차분한 집중'],recommendedFor:['과한 자극을 줄이고 싶은 사람','단정한 생활 감각이 필요한 사람'],bestSeason:['여름','겨울'],tripStyle:'retreat',description:'북유럽 미니멀리즘의 금(金)이 불필요한 장식을 걷어내고, 조용하지만 선명한 생활 기준과 집중력을 회복시킵니다.',ritualTip:'하루 동안 사지 않을 것, 말하지 않을 것, 미룰 것을 각각 하나씩 정하세요.'}),
+  _energyCoordDestination({id:'metal-germany-berlin',name:'독일 베를린',countryType:'global',element:'metal',emoji:'🧱',region:'독일 베를린',latitude:52.5200,longitude:13.4050,terrainTags:['현대사','갤러리','도시건축'],energyKeywords:['절단과 재구성','새 기준','표현 구조'],recommendedFor:['과거와 현재를 새롭게 연결해야 하는 사람','작업의 날것과 구조가 모두 필요한 사람'],bestSeason:['봄','여름','가을'],tripStyle:'creative',description:'역사적 절단과 재구성의 금(金)이 지나간 상처를 새로운 구조와 표현으로 바꾸는 힘을 줍니다.',ritualTip:'벽의 흔적을 보며 내가 끊어야 할 경계와 다시 연결할 가능성을 적어보세요.'}),
+  _energyCoordDestination({id:'metal-netherlands-amsterdam-museum-quarter',name:'네덜란드 암스테르담 미술관 지구',countryType:'global',element:'metal',emoji:'🖼️',region:'네덜란드 암스테르담',latitude:52.3584,longitude:4.8811,terrainTags:['미술관','운하도시','광장'],energyKeywords:['안목','해석력','감각 정돈'],recommendedFor:['예술과 사고의 기준을 다듬고 싶은 사람','차분한 도시 산책이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'미술관 지구의 금(金)이 감상과 해석을 정교하게 만들어, 감정적 취향을 깊이 있는 안목과 판단력으로 정돈합니다.',ritualTip:'세 작품을 골라 공통으로 끌린 점을 찾아 내 취향의 문장으로 남기세요.'}),
+
+  _energyCoordDestination({id:'water-tongyeong-hallyeosudo',name:'통영 한려수도',countryType:'domestic',element:'water',emoji:'🏝️',region:'경남 통영',latitude:34.8406,longitude:128.4302,terrainTags:['다도해','섬','잔잔한 바다'],energyKeywords:['감정 안정','몰입','치유'],recommendedFor:['감정 파동이 큰 사람','조용한 회복이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'slow_trip',description:'섬 사이를 흐르는 수(水)의 낮은 진동이 과열된 마음을 식히고, 감정의 파동을 잔잔하게 만들어 깊은 몰입을 회복시킵니다.',ritualTip:'바다를 보며 오늘은 답을 내리지 않을 질문 하나를 정하고 그대로 두세요.'}),
+  _energyCoordDestination({id:'water-yeosu-odongdo',name:'여수 오동도',countryType:'domestic',element:'water',emoji:'🌊',region:'전남 여수',latitude:34.7447,longitude:127.7666,terrainTags:['섬 산책','해안','동백숲'],energyKeywords:['정서 순환','부드러운 치유','관계 회복'],recommendedFor:['감정이 막힌 사람','가볍게 걷고 싶은 사람'],bestSeason:['겨울','봄'],tripStyle:'romantic',description:'섬을 감싸는 수(水)와 동백숲의 부드러운 그늘이 감정의 막힌 흐름을 풀어, 말하지 못한 마음을 자연스럽게 순환시킵니다.',ritualTip:'섬길을 한 바퀴 돌며 마음속에서 아직 돌고 있는 감정을 이름 붙여보세요.'}),
+  _energyCoordDestination({id:'water-boseong-goheung-dadohae',name:'보성·고흥 다도해',countryType:'domestic',element:'water',emoji:'🚢',region:'전남 보성·고흥',latitude:34.6047,longitude:127.2757,terrainTags:['다도해','안개 항구','해안길'],energyKeywords:['직관','정서 안정','깊은 회복'],recommendedFor:['생각보다 느낌을 믿어야 하는 사람','낮은 자극의 여행이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'slow_trip',description:'안개 낀 다도해의 수(水)가 생각의 표면을 조용히 낮추고, 깊은 직관과 감정 안정의 결을 되찾게 합니다.',ritualTip:'안개나 바다빛을 보며 설명보다 먼저 떠오르는 느낌 하나를 기록하세요.'}),
+  _energyCoordDestination({id:'water-jeju-sehwa-seongsan-spring',name:'제주 세화·성산 용천수',countryType:'domestic',element:'water',emoji:'💧',region:'제주 동부',latitude:33.5268,longitude:126.8583,terrainTags:['용천수','해변','올레길'],energyKeywords:['정화','감정 세척','맑은 판단'],recommendedFor:['생각이 탁해진 사람','가벼운 도보 회복이 필요한 사람'],bestSeason:['봄','여름','가을'],tripStyle:'slow_trip',description:'화산 지하에서 솟는 맑은 수(水)가 탁해진 판단을 씻어내고, 과열된 감정을 투명하고 차분한 상태로 되돌립니다.',ritualTip:'용천수 근처에서 손을 씻고 오늘 놓아줄 감정 한 가지를 마음속으로 흘려보내세요.'}),
+  _energyCoordDestination({id:'water-busan-haeundae-dalmaji',name:'부산 해운대·달맞이길',countryType:'domestic',element:'water',emoji:'🌙',region:'부산 해운대',latitude:35.1587,longitude:129.1604,terrainTags:['해변','달맞이길','카페'],energyKeywords:['감정 완충','휴식','관계 온도 조절'],recommendedFor:['관계 피로가 큰 사람','바다와 도시를 함께 원하는 사람'],bestSeason:['봄','가을','겨울'],tripStyle:'romantic',description:'넓은 바다의 수(水)와 달맞이길의 완만한 흐름이 감정을 급하게 밀어붙이지 않고, 관계의 온도를 부드럽게 조절해줍니다.',ritualTip:'달맞이길에서 말하고 싶은 마음과 아직 기다릴 마음을 구분해보세요.'}),
+  _energyCoordDestination({id:'water-gangneung-gyeongpoho',name:'강릉 경포호',countryType:'domestic',element:'water',emoji:'🏞️',region:'강원 강릉',latitude:37.7956,longitude:128.8961,terrainTags:['호수','해변 인접','자전거길'],energyKeywords:['생각 정리','감정 안정','유연함'],recommendedFor:['머리가 과열된 사람','반복 생각을 끊고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'호수와 바다가 가까운 수(水)의 이중 흐름이 반복되는 생각을 식히고, 판단을 더 유연하고 길게 보게 만듭니다.',ritualTip:'호수 한 바퀴 중 절반은 생각하고 절반은 아무 결론도 내리지 않고 걸어보세요.'}),
+  _energyCoordDestination({id:'water-sokcho-yeongnangho',name:'속초 영랑호',countryType:'domestic',element:'water',emoji:'🌫️',region:'강원 속초',latitude:38.2135,longitude:128.5914,terrainTags:['석호','산 전망','호수길'],energyKeywords:['내면 안정','깊은 호흡','감정 관찰'],recommendedFor:['불안이 올라오는 사람','혼자 차분히 걷고 싶은 사람'],bestSeason:['봄','가을','겨울'],tripStyle:'day_trip',description:'산과 호수가 마주한 영랑호의 수(水)는 마음의 진폭을 낮춰, 불안을 없애려 하기보다 안전하게 바라보는 힘을 줍니다.',ritualTip:'호수 위에 비친 산을 보며 내 감정과 현실을 따로 적어보세요.'}),
+  _energyCoordDestination({id:'water-chuncheon-uiamho',name:'춘천 의암호',countryType:'domestic',element:'water',emoji:'🚣',region:'강원 춘천',latitude:37.8806,longitude:127.6945,terrainTags:['호수','자전거길','물안개'],energyKeywords:['휴식','흐름 회복','관계 완충'],recommendedFor:['가까운 물가 휴식이 필요한 사람','일상 속 몰입을 회복하려는 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'물안개와 호수길의 수(水)가 빠르게 굳은 생각을 천천히 풀어, 일상으로 돌아갈 수 있는 부드러운 흐름을 회복시킵니다.',ritualTip:'호수길에서 속도를 낮추고 이번 주 미룰 일과 할 일을 각각 하나씩 정하세요.'}),
+  _energyCoordDestination({id:'water-gapyeong-cheongpyeongho',name:'가평 청평호',countryType:'domestic',element:'water',emoji:'🛶',region:'경기 가평',latitude:37.7256,longitude:127.4201,terrainTags:['호수','수상 레저','산자락'],energyKeywords:['감정 순환','가벼운 휴식','직관'],recommendedFor:['짧은 물가 전환이 필요한 사람','감정의 답답함을 풀고 싶은 사람'],bestSeason:['봄','여름','가을'],tripStyle:'one_night',description:'산자락에 담긴 호수의 수(水)가 감정의 압력을 낮추고, 짧은 체류만으로도 마음의 흐름을 다시 부드럽게 만듭니다.',ritualTip:'호수 근처에서 지금 마음을 무겁게 하는 일을 물 위에 띄운다고 상상하세요.'}),
+  _energyCoordDestination({id:'water-ulleungdo',name:'울릉도',countryType:'domestic',element:'water',emoji:'🌊',region:'경북 울릉',latitude:37.4844,longitude:130.9057,terrainTags:['섬','절벽해안','깊은 바다'],energyKeywords:['고립 회복','깊은 직관','정화'],recommendedFor:['세상 소음에서 떨어지고 싶은 사람','강한 물 기운이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'adventure',description:'깊은 바다에 둘러싸인 섬의 수(水)가 외부 소음을 끊어내고, 내면 깊은 곳의 직관과 회복력을 강하게 끌어올립니다.',ritualTip:'파도가 크게 들리는 곳에서 지금 나에게 진짜 필요한 말 한 문장을 떠올리세요.'}),
+  _energyCoordDestination({id:'water-namhae-german-village-coast',name:'남해 독일마을 해안길',countryType:'domestic',element:'water',emoji:'🏖️',region:'경남 남해',latitude:34.7994,longitude:128.0397,terrainTags:['해안길','마을','남해 바다'],energyKeywords:['감정 완충','느린 휴식','생활 회복'],recommendedFor:['부드러운 해안 산책이 필요한 사람','삶의 속도를 낮추고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'slow_trip',description:'남해의 잔잔한 수(水)가 생활의 긴장을 부드럽게 풀어주며, 낯선 마을 풍경 속에서 감정의 속도를 낮추게 합니다.',ritualTip:'해안길에서 걷는 속도를 일부러 절반으로 낮추고 숨의 길이를 관찰하세요.'}),
+  _energyCoordDestination({id:'water-gunsan-seonyudo',name:'군산 선유도',countryType:'domestic',element:'water',emoji:'🏝️',region:'전북 군산',latitude:35.8111,longitude:126.4117,terrainTags:['섬','해수욕장','다리'],energyKeywords:['관계 흐름','휴식','감정 정리'],recommendedFor:['가벼운 섬 여행이 필요한 사람','답답한 관계를 정리하고 싶은 사람'],bestSeason:['봄','여름','가을'],tripStyle:'one_night',description:'섬과 다리가 이어진 선유도의 수(水)는 끊어진 감정 흐름을 다시 연결하게 하며, 관계의 거리감을 편안하게 조절해줍니다.',ritualTip:'다리를 건너며 다시 연결할 관계와 거리를 둘 관계를 각각 하나씩 떠올리세요.'}),
+  _energyCoordDestination({id:'water-norway-geirangerfjord',name:'노르웨이 게이랑에르 피요르드',countryType:'global',element:'water',emoji:'🏔️',region:'노르웨이 뫼레오그롬스달',latitude:62.1015,longitude:7.2056,terrainTags:['피요르드','폭포','빙하 협곡'],energyKeywords:['깊은 회복','장기 판단','감정 정화'],recommendedFor:['큰 결정을 앞둔 사람','마음의 깊이를 회복해야 하는 사람'],bestSeason:['여름'],tripStyle:'adventure',description:'빙하가 만든 깊은 수(水)의 협곡이 과열된 사고를 차갑게 식히고, 감정의 파동을 안정시켜 장기 판단력을 회복시키는 장소입니다.',ritualTip:'폭포를 보며 지금 당장 답하지 않아도 되는 문제를 하나 내려놓으세요.'}),
+  _energyCoordDestination({id:'water-italy-venice',name:'이탈리아 베네치아',countryType:'global',element:'water',emoji:'🛶',region:'이탈리아 베네토',latitude:45.4408,longitude:12.3155,terrainTags:['운하','섬도시','다리'],energyKeywords:['유연함','관계 흐름','감성'],recommendedFor:['막힌 대화를 풀고 싶은 사람','감정의 유연함이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'romantic',description:'운하 도시의 수(水)가 직선적 사고를 부드럽게 휘게 만들며, 막힌 관계와 감정을 우회하고 연결하는 유연함을 줍니다.',ritualTip:'다리 하나를 건널 때마다 고집 하나를 내려놓는다고 상상하세요.'}),
+  _energyCoordDestination({id:'water-maldives',name:'몰디브',countryType:'global',element:'water',emoji:'🏝️',region:'몰디브 인도양',latitude:3.2028,longitude:73.2207,terrainTags:['산호초','라군','휴양섬'],energyKeywords:['완전 휴식','감정 세척','치유'],recommendedFor:['강한 휴식이 필요한 사람','몸과 마음을 비워야 하는 사람'],bestSeason:['건기'],tripStyle:'retreat',description:'투명한 라군의 수(水)가 감정의 잔여물을 씻어내고, 몸의 긴장을 깊은 휴식 상태로 내려 치유력을 회복시킵니다.',ritualTip:'바다에 들어가기 전 오늘은 아무것도 증명하지 않겠다고 마음속으로 선언하세요.'}),
+  _energyCoordDestination({id:'water-switzerland-lake-lucerne',name:'스위스 루체른 호수',countryType:'global',element:'water',emoji:'🏞️',region:'스위스 루체른',latitude:47.0502,longitude:8.3093,terrainTags:['호수','알프스','구시가지'],energyKeywords:['맑은 판단','차분함','감정 균형'],recommendedFor:['생각을 차갑고 맑게 정리해야 하는 사람','고요한 여행이 필요한 사람'],bestSeason:['봄','여름','가을'],tripStyle:'slow_trip',description:'알프스 호수의 맑은 수(水)가 탁한 감정을 가라앉히고, 차분하지만 흔들리지 않는 판단의 투명도를 회복시킵니다.',ritualTip:'호수 앞에서 지금 감정과 사실을 각각 한 줄씩 나눠 적어보세요.'}),
+  _energyCoordDestination({id:'water-canada-lake-louise',name:'캐나다 레이크 루이스',countryType:'global',element:'water',emoji:'💎',region:'캐나다 앨버타',latitude:51.4254,longitude:-116.1773,terrainTags:['빙하호','산악','숲'],energyKeywords:['깊은 몰입','맑은 직관','회복'],recommendedFor:['생각의 깊이가 필요한 사람','감정 과열을 식혀야 하는 사람'],bestSeason:['여름','초가을'],tripStyle:'adventure',description:'빙하가 녹아 만든 푸른 수(水)가 마음의 열을 낮추고, 깊은 몰입과 맑은 직관을 되살리는 고요한 호수 좌표입니다.',ritualTip:'호수 색을 오래 바라보며 지금 가장 맑게 보고 싶은 문제를 하나 정하세요.'}),
+  _energyCoordDestination({id:'water-croatia-plitvice',name:'크로아티아 플리트비체',countryType:'global',element:'water',emoji:'💦',region:'크로아티아 리카센',latitude:44.8654,longitude:15.5820,terrainTags:['계단식 호수','폭포','숲'],energyKeywords:['정화','흐름 회복','감정 순환'],recommendedFor:['감정이 정체된 사람','상처를 부드럽게 흘려보내고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'adventure',description:'층층이 흐르는 호수와 폭포의 수(水)가 멈춘 감정을 단계적으로 풀어내며, 상처를 억지로 지우지 않고 흘려보내게 합니다.',ritualTip:'폭포 소리를 들으며 놓아줄 감정을 단계별로 세 가지 떠올리세요.'}),
+  _energyCoordDestination({id:'water-finland-lakeland',name:'핀란드 호수 지대',countryType:'global',element:'water',emoji:'🛶',region:'핀란드 레이크랜드',latitude:61.9241,longitude:25.7482,terrainTags:['호수군','숲','사우나'],energyKeywords:['침묵 회복','감정 안정','깊은 휴식'],recommendedFor:['말보다 침묵이 필요한 사람','신경계 휴식이 필요한 사람'],bestSeason:['여름'],tripStyle:'retreat',description:'수많은 호수의 낮은 수(水) 진동이 신경계를 고요하게 가라앉히고, 침묵 속에서 감정의 깊은 회복을 돕습니다.',ritualTip:'사우나와 호수 휴식 사이에 하루 한 번 아무 말도 하지 않는 시간을 두세요.'}),
+  _energyCoordDestination({id:'water-japan-okinawa',name:'일본 오키나와',countryType:'global',element:'water',emoji:'🐠',region:'일본 오키나와',latitude:26.2124,longitude:127.6809,terrainTags:['섬','산호바다','남국 해변'],energyKeywords:['부드러운 치유','감정 완충','휴식'],recommendedFor:['따뜻한 물 기운이 필요한 사람','관계 피로를 낮추고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'romantic',description:'따뜻한 산호 바다의 수(水)가 차갑게 식히기보다 부드럽게 감싸며, 관계 피로와 마음의 긴장을 편안하게 풀어줍니다.',ritualTip:'바다색을 보며 지금 나를 편하게 해주는 관계와 지치게 하는 관계를 구분하세요.'}),
+  _energyCoordDestination({id:'water-france-annecy',name:'프랑스 안시',countryType:'global',element:'water',emoji:'🏞️',region:'프랑스 오트사부아',latitude:45.8992,longitude:6.1294,terrainTags:['호수','운하마을','알프스'],energyKeywords:['맑은 감성','휴식','관계 순환'],recommendedFor:['고요한 낭만이 필요한 사람','생각을 예쁘게 정리하고 싶은 사람'],bestSeason:['봄','여름','가을'],tripStyle:'romantic',description:'맑은 호수와 운하의 수(水)가 감정을 투명하게 정리해, 과한 드라마 없이도 깊고 부드러운 낭만을 회복시킵니다.',ritualTip:'운하 옆에서 내 마음을 가장 맑게 만드는 사람이나 일을 한 줄로 적어보세요.'}),
+  _energyCoordDestination({id:'water-thailand-krabi',name:'태국 끄라비',countryType:'global',element:'water',emoji:'⛵',region:'태국 끄라비',latitude:8.0863,longitude:98.9063,terrainTags:['석회암 해안','섬','에메랄드 바다'],energyKeywords:['감정 해방','휴식','유연함'],recommendedFor:['갇힌 기분을 풀고 싶은 사람','몸을 물처럼 느슨하게 만들고 싶은 사람'],bestSeason:['건기'],tripStyle:'adventure',description:'석회암 절벽과 에메랄드 바다의 수(水)가 갇힌 감정을 넓게 풀어주며, 몸과 마음을 더 유연한 상태로 이끕니다.',ritualTip:'배 이동 중 멀어지는 해안을 보며 지금 벗어나고 싶은 압박 하나를 떠올리세요.'}),
+  _energyCoordDestination({id:'water-newzealand-milford-sound',name:'뉴질랜드 밀포드사운드',countryType:'global',element:'water',emoji:'🌧️',region:'뉴질랜드 피오르드랜드',latitude:-44.6414,longitude:167.8974,terrainTags:['피오르드','폭포','우림'],energyKeywords:['깊은 정화','압도적 고요','직관'],recommendedFor:['큰 감정 정화가 필요한 사람','자연 앞에서 작아지는 휴식이 필요한 사람'],bestSeason:['봄','여름','가을'],tripStyle:'adventure',description:'폭포와 피오르드의 강력한 수(水)가 마음의 과열을 압도적으로 식히고, 깊은 정화와 직관의 고요를 되찾게 합니다.',ritualTip:'비나 물안개를 맞는 순간 지금 씻겨 내려가도 되는 감정을 하나 정하세요.'}),
+  _energyCoordDestination({id:'water-indonesia-bali-nusa-dua',name:'인도네시아 발리 누사두아',countryType:'global',element:'water',emoji:'🌴',region:'인도네시아 발리',latitude:-8.8000,longitude:115.2290,terrainTags:['휴양해변','라군','리조트'],energyKeywords:['안전한 휴식','감정 완충','회복'],recommendedFor:['안정적인 물가 휴식이 필요한 사람','무리 없는 회복 여행을 원하는 사람'],bestSeason:['건기'],tripStyle:'retreat',description:'정돈된 해변과 라군의 수(水)가 강한 자극 없이 감정을 완충하고, 안전한 휴식 속에서 회복력을 천천히 채워줍니다.',ritualTip:'하루 첫 일정은 바다를 보는 침묵 시간으로 시작하고 그 뒤에만 계획을 붙이세요.'})
+];
+
+ENERGY_COORD_DB=(function(meta,destinations){
+  var grouped={};
+  ['wood','fire','earth','metal','water'].forEach(function(el){
+    var base=meta[el]||{};
+    grouped[el]={
+      direction:base.direction||'',
+      dirEmoji:base.dirEmoji||'',
+      theme:base.theme||'',
+      domestic:[],
+      global:[]
+    };
+  });
+  destinations.forEach(function(dest){
+    if(!grouped[dest.element])return;
+    if(dest.countryType==='domestic')grouped[dest.element].domestic.push(dest);
+    if(dest.countryType==='global')grouped[dest.element].global.push(dest);
+  });
+  return grouped;
+})(ENERGY_COORD_DB,ENERGY_TRAVEL_DESTINATIONS);
+
 var HEALTH_FOOD_DB = {
   wood: [
     {name:'부추무침', ingredients:'부추, 식초', reason:'간의 해독을 돕고 신맛이 목(木) 기운을 깨웁니다.'},
@@ -1274,54 +1434,54 @@ var HEALTH_FOOD_DB = {
     {name:'그린 커리', ingredients:'청양고추, 코코넛밀크', reason:'푸른 향신료의 에너지가 우울감을 날려버립니다.'},
     {name:'청사과 에이드', ingredients:'청사과, 무탄산/탄산수', reason:'청량한 신맛이 뇌를 깨우고 간의 기운을 원활하게 합니다.'},
     {name:'샐러리 스틱과 후무스', ingredients:'샐러리, 병아리콩', reason:'위로 뻗는 샐러리의 에너지가 목(木) 기운을 채워줍니다.'},
-    {name:'피스타치오 젤라또', ingredients:'피스타치오, 우유', reason:'푸른 견과류의 에너지가 목(木) 기운을 달콤하게 채웁니다.'},
-    {name:'솜땀 (풋파파야 샐러드)', ingredients:'풋파파야, 라임, 피쉬소스', reason:'아삭한 식감과 새콤한 맛이 생기를 돋웁니다.'}
+    {name:'시금치 두부무침', ingredients:'시금치, 두부, 깨', reason:'푸른 잎채소와 담백한 단백질이 목(木)의 회복 리듬을 부담 없이 돕습니다.'},
+    {name:'오이 미나리무침', ingredients:'오이, 미나리, 식초 소량', reason:'아삭한 푸른 채소와 가벼운 신맛이 목(木)의 긴장을 부드럽게 풀어줍니다.'}
   ],
   fire: [
     {name:'토마토 스튜', ingredients:'토마토, 올리브유', reason:'붉은색 라이코펜이 심장 혈관을 튼튼하게 합니다.'},
     {name:'홍삼 달인 물', ingredients:'홍삼', reason:'따뜻한 성질과 쓴맛이 심장(火)에 활력을 불어넣습니다.'},
     {name:'구기자차', ingredients:'구기자', reason:'붉은 열매가 혈액 순환을 돕고 심장 열을 다스립니다.'},
-    {name:'마라탕', ingredients:'마라 소스, 청경채', reason:'매운맛과 열기가 화(火) 에너지를 폭발적으로 끌어올립니다.'},
+    {name:'파프리카 닭가슴살찜', ingredients:'파프리카, 닭가슴살', reason:'붉은 채소의 화(火) 기운을 자극적인 향신료 없이 담백하게 보완합니다.'},
     {name:'수박 화채', ingredients:'수박, 얼음', reason:'붉은색이 심장을 돕고 수분이 과도한 열을 식혀줍니다.'},
     {name:'자몽 에이드', ingredients:'자몽, 탄산수', reason:'특유의 쓴맛이 심장(火) 기운을 안정시킵니다.'},
     {name:'소고기 육회', ingredients:'소고기, 배', reason:'붉은 살코기가 심장과 혈액에 직접적인 에너지를 줍니다.'},
     {name:'석류 주스', ingredients:'석류', reason:'붉은 빛깔과 새콤달콤함이 심장 혈관에 생기를 줍니다.'},
-    {name:'체리 타르트', ingredients:'체리, 밀가루', reason:'붉은 과일이 화(火) 기운을 부드럽게 보충합니다.'},
-    {name:'매운 떡볶이', ingredients:'고추장, 떡', reason:'강렬한 매운맛이 땀을 내어 화(火) 에너지를 순환시킵니다.'},
+    {name:'체리 토마토 샐러드', ingredients:'체리, 방울토마토, 잎채소', reason:'붉은 식재료가 화(火)의 활력을 가볍게 돕고 당류 디저트로 흐르지 않습니다.'},
+    {name:'토마토 달걀국', ingredients:'토마토, 달걀', reason:'따뜻한 붉은 국물이 화(火)의 순환감을 부드럽게 깨우고 소화 부담을 낮춥니다.'},
     {name:'팥죽', ingredients:'붉은 팥, 새알심', reason:'붉은 팥이 심장의 열을 내리고 부기를 빼줍니다.'},
     {name:'영지버섯 즙', ingredients:'영지버섯', reason:'쓴맛이 심장을 편안하게 하고 정신을 맑게 합니다.'},
-    {name:'칠리 콘 카르네', ingredients:'소고기, 칠리빈, 토마토', reason:'뜨거운 열기와 붉은 콩이 화(火) 기운을 강력하게 자극합니다.'},
+    {name:'렌틸콩 토마토수프', ingredients:'렌틸콩, 토마토, 채소', reason:'붉은 수프와 콩 단백질이 화(火)의 활력을 자극적이지 않게 보완합니다.'},
     {name:'볼로네제 파스타', ingredients:'소고기 다짐육, 토마토 소스', reason:'붉은 소스가 심혈관계를 부드럽게 돕습니다.'},
-    {name:'탄두리 치킨', ingredients:'닭고기, 붉은 향신료(파프리카 가루)', reason:'화덕의 열기와 붉은 향신료가 화(火) 에너지를 폭발시킵니다.'},
-    {name:'아라비아따 펜네', ingredients:'펜네, 토마토, 페퍼론치노', reason:'매콤하고 붉은 소스가 심장의 열정을 되찾아 줍니다.'},
+    {name:'구운 파프리카 닭안심', ingredients:'파프리카, 닭안심, 올리브유 소량', reason:'붉은 채소와 담백한 단백질이 화(火)의 활력을 무리 없이 돕습니다.'},
+    {name:'토마토 현미리조토', ingredients:'토마토, 현미, 양파', reason:'붉은 토마토와 곡물이 화(火)의 순환감과 식사 안정감을 함께 보완합니다.'},
     {name:'카카오 85% 다크초콜릿', ingredients:'카카오 매스', reason:'진한 쓴맛이 심장을 안정시키고 집중력을 높여줍니다.'},
-    {name:'에스프레소(혹은 디카페인)', ingredients:'원두', reason:'커피 특유의 쓴맛은 화(火) 기운을 깨우는 특효약입니다.'},
-    {name:'레드 와인', ingredients:'포도', reason:'적당량의 붉은 와인은 심장병을 예방하고 열을 보충합니다.'},
-    {name:'고추장 삼겹살', ingredients:'삼겹살, 고추장 양념', reason:'직화로 굽는 매콤한 고기가 심장의 에너지를 최고조로 끌어올립니다.'},
+    {name:'따뜻한 보리차', ingredients:'보리차', reason:'쓴맛과 따뜻한 수분감이 화(火)의 리듬을 차분하게 정돈합니다.'},
+    {name:'석류 알갱이', ingredients:'석류', reason:'붉은 과실이 화(火)의 생기를 가볍게 더하되 음주 없이 실천하기 좋습니다.'},
+    {name:'토마토 닭가슴살구이', ingredients:'닭가슴살, 토마토', reason:'담백한 단백질과 붉은 채소가 화(火)의 활력 리듬을 무리 없이 받쳐줍니다.'},
     {name:'가스파초 (냉토마토스프)', ingredients:'토마토, 양파, 식초', reason:'시원한 붉은색 채소가 화(火)의 긍정적인 면만 흡수하게 돕습니다.'}
   ],
   earth: [
     {name:'단호박죽', ingredients:'단호박, 찹쌀', reason:'노란색과 단맛이 비위(土)를 편안하게 감싸줍니다.'},
-    {name:'고구마 맛탕', ingredients:'고구마, 꿀', reason:'천연 단맛이 소화기를 튼튼하게 하고 에너지를 줍니다.'},
+    {name:'고구마 찜', ingredients:'고구마', reason:'정제당 없이 토(土)의 단맛을 채우며 포만감과 식이섬유를 함께 줍니다.'},
     {name:'청국장 찌개', ingredients:'청국장, 두부', reason:'발효된 콩의 흙(土) 기운이 장내 환경을 안정시킵니다.'},
     {name:'카레라이스', ingredients:'강황, 감자', reason:'노란 강황이 위장을 따뜻하게 하고 소화를 돕습니다.'},
     {name:'바나나 스무디', ingredients:'바나나, 우유', reason:'부드러운 단맛이 비위(土)의 긴장을 풀어줍니다.'},
-    {name:'옥수수 버터구이', ingredients:'옥수수, 버터', reason:'노란 알맹이가 토(土) 에너지를 든든하게 채워줍니다.'},
+    {name:'찐 옥수수', ingredients:'옥수수', reason:'노란 곡물의 토(土) 기운을 과한 버터 없이 담백하게 보완합니다.'},
     {name:'감자전', ingredients:'감자, 식용유', reason:'땅속에서 자란 감자가 비위를 보강하는 훌륭한 식재료입니다.'},
     {name:'소고기 뭇국', ingredients:'소고기, 무', reason:'소고기의 단맛이 위장을 튼튼하게 하고 기력을 올립니다.'},
     {name:'마즙', ingredients:'마, 꿀', reason:'끈적한 뮤신 성분이 위벽을 보호하고 토(土) 기운을 생장시킵니다.'},
     {name:'된장찌개', ingredients:'된장, 애호박', reason:'전통 발효 식품이 흙의 기운을 몸속 깊이 전달합니다.'},
     {name:'율무차', ingredients:'율무', reason:'비위를 튼튼하게 하고 몸의 습기를 제거하는 데 탁월합니다.'},
     {name:'꿀물', ingredients:'천연 꿀', reason:'순수한 단맛이 소화기에 즉각적인 에너지를 공급합니다.'},
-    {name:'망고 크레페', ingredients:'망고, 생크림', reason:'달콤하고 노란 과육이 위장을 부드럽게 달래줍니다.'},
-    {name:'펌킨 파이', ingredients:'호박, 시나몬', reason:'구워낸 호박의 단맛(土)이 마음을 편안하게 만듭니다.'},
-    {name:'버터 치킨 커리', ingredients:'치킨, 마크니 향신료', reason:'진하고 노란 향신료가 비위를 덥혀 에너지를 응집합니다.'},
+    {name:'바나나 귀리죽', ingredients:'바나나, 귀리', reason:'부드러운 식감과 곡물의 안정감이 토(土)의 식사 리듬을 편안하게 돕습니다.'},
+    {name:'단호박찜', ingredients:'단호박', reason:'노란 단호박이 토(土)의 중심감을 채우고 디저트보다 부담이 적습니다.'},
+    {name:'닭고기 감자국', ingredients:'닭고기, 감자, 양파', reason:'담백한 단백질과 뿌리채소가 토(土)의 회복 기반을 따뜻하게 받쳐줍니다.'},
     {name:'오므라이스', ingredients:'계란, 볶음밥', reason:'노란 계란 이불이 소화기를 부드럽게 코팅해줍니다.'},
     {name:'파에야', ingredients:'새우, 사프란, 쌀', reason:'노란 사프란과 쌀(土)이 위장을 든든하게 채웁니다.'},
-    {name:'꿀 케이크 (메도빅)', ingredients:'꿀, 스폰지케이크', reason:'꿀의 쫀득한 단맛이 체력을 급격히 끌어올립니다.'},
+    {name:'현미 누룽지죽', ingredients:'현미 누룽지, 물', reason:'따뜻하고 담백한 곡물죽이 토(土)의 중심 리듬을 편안하게 회복시킵니다.'},
     {name:'파인애플 볶음밥', ingredients:'파인애플, 밥', reason:'소화를 돕는 파인애플과 탄수화물의 이상적인 토(土) 조합입니다.'},
-    {name:'크림 브륄레', ingredients:'바닐라 빔, 달걀 노른자', reason:'노른자의 영양과 위에 올라간 설탕이 위장에 온기를 줍니다.'},
-    {name:'에그 타르트', ingredients:'계란, 페이스트리', reason:'노랗고 달콤한 디저트가 무너진 중심(土)을 잡아줍니다.'}
+    {name:'계란찜', ingredients:'계란, 물, 파 소량', reason:'따뜻하고 부드러운 단백질이 토(土)의 회복 기반을 부담 없이 보완합니다.'},
+    {name:'두부 계란찜', ingredients:'두부, 계란', reason:'부드러운 단백질과 따뜻한 조리법이 비위 리듬을 안정시키는 데 좋습니다.'}
   ],
   metal: [
     {name:'도라지 무침', ingredients:'도라지, 고추장', reason:'흰색과 매운맛이 폐(金)와 기관지를 튼튼하게 합니다.'},
@@ -1338,13 +1498,13 @@ var HEALTH_FOOD_DB = {
     {name:'연근 무침', ingredients:'연근, 흑임자', reason:'흰 뿌리채소가 폐의 진액을 보충해줍니다.'},
     {name:'크램 차우더', ingredients:'조개스프, 크림, 감자', reason:'흰 진액이 폐와 대장의 건조함을 막아줍니다.'},
     {name:'알리오 올리오 파스타', ingredients:'마늘 듬뿍, 올리브유', reason:'마늘의 매운맛(金)이 호흡기에 활력을 줍니다.'},
-    {name:'콜리플라워 퓨레', ingredients:'콜리플라워, 버터', reason:'뛰어난 흰색 채소가 묵직하게 폐를 윤택하게 합니다.'},
+    {name:'콜리플라워 두부무침', ingredients:'콜리플라워, 두부', reason:'흰색 채소와 담백한 단백질이 금(金)의 건조 신호를 부담 없이 보완합니다.'},
     {name:'까르보나라 파스타', ingredients:'치즈, 베이컨', reason:'흰 소스의 진한 에너지가 금(金)의 에너지를 다집니다.'},
-    {name:'갈릭 버터 새우', ingredients:'마늘, 새우', reason:'마늘(金)과 해산물이 결합해 면역력을 배가시킵니다.'},
-    {name:'화이트 와인', ingredients:'청포도', reason:'맑은 백포도주가 스트레스를 가라앉히고 순환을 돕습니다.'},
+    {name:'새우 무국', ingredients:'새우, 무', reason:'흰 뿌리채소와 담백한 단백질이 금(金)의 호흡 리듬을 부드럽게 돕습니다.'},
+    {name:'배 무 샐러드', ingredients:'배, 무', reason:'수분감 있는 흰색 식재료가 금(金)의 건조 신호를 가볍게 완화합니다.'},
     {name:'대구 오븐 구이', ingredients:'흰살 생선, 레몬', reason:'기름기 없는 흰 살(金)이 맑은 에너지를 공급합니다.'},
     {name:'잣죽', ingredients:'잣, 쌀', reason:'폐를 윤택하게 하는 잣(金)과 흰빛이 호흡기 최고 보약입니다.'},
-    {name:'바닐라 아이스크림', ingredients:'바닐라, 크림', reason:'부드러운 백색 단맛이 금(金) 성향의 예민함을 녹여냅니다.'}
+    {name:'두부 버섯볶음', ingredients:'두부, 버섯, 양파', reason:'흰색 식재료와 식이섬유가 금(金)의 정리 리듬을 담백하게 보완합니다.'}
   ],
   water: [
     {name:'미역국', ingredients:'미역, 소고기', reason:'검은 해조류와 짠맛이 신장(水) 기운을 강하게 보충합니다.'},
@@ -1353,16 +1513,16 @@ var HEALTH_FOOD_DB = {
     {name:'흑임자죽', ingredients:'검은깨, 쌀', reason:'검은깨가 신장의 정수(精水)를 채워 노화를 방지합니다.'},
     {name:'해물탕', ingredients:'오징어, 새우', reason:'바다의 짠맛과 에너지가 수(水) 기운을 직접적으로 공급합니다.'},
     {name:'굴 국밥', ingredients:'굴, 부추', reason:'바다의 우유라 불리며 신장의 음기를 보충하는 최고 식재료입니다.'},
-    {name:'전복 버터구이', ingredients:'전복, 버터', reason:'깊은 바다의 에너지가 수(水) 기운을 고급스럽게 채웁니다.'},
+    {name:'전복 미역국', ingredients:'전복, 미역', reason:'해조류와 담백한 해산물이 수(水)의 회복 리듬을 따뜻하게 보완합니다.'},
     {name:'다시마 쌈', ingredients:'다시마, 초장', reason:'해조류의 미네랄이 신장(水) 기능을 원활하게 합니다.'},
     {name:'김부각', ingredients:'김, 찹쌀', reason:'가볍게 즐길 수 있는 블랙푸드로 수(水) 기운을 돕습니다.'},
     {name:'오징어 먹물 파스타', ingredients:'오징어 먹물, 면', reason:'검은 먹물이 신장(水) 에너지를 시각적, 미각적으로 채웁니다.'},
     {name:'돼지고기 수육', ingredients:'돼지고기, 된장', reason:'돼지고기는 수(水)에 배속되어 신장의 진액을 보충합니다.'},
     {name:'우엉차', ingredients:'우엉', reason:'신장 기능을 도와 이뇨 작용을 원활하게 합니다.'},
-    {name:'캐비어 까나페', ingredients:'캐비어, 크래커', reason:'응축된 바다의 짠맛과 생명력이 훌륭한 수(水) 자원입니다.'},
+    {name:'다시마 두부무침', ingredients:'다시마, 두부', reason:'해조류와 담백한 단백질이 수(水)의 촉촉한 회복감을 실천하기 쉽게 돕습니다.'},
     {name:'메밀 소바', ingredients:'메밀면, 쯔유', reason:'쯔유의 짭짤함과 차가운 성질이 끓어오르는 열을 잠재웁니다.'},
     {name:'연어 스테이크', ingredients:'연어, 딜(허브)', reason:'깊은 물속을 헤엄치는 연어의 기름기가 수(水)를 채웁니다.'},
-    {name:'클램 차우더 조개찜', ingredients:'바지락, 화이트와인', reason:'조개의 감칠맛과 짠기운이 신장을 보양합니다.'},
+    {name:'바지락 미역국', ingredients:'바지락, 미역', reason:'바다 식재료와 따뜻한 국물이 수(水)의 회복 리듬을 부담 없이 채워줍니다.'},
     {name:'참치 포케', ingredients:'생참치, 간장소스, 해조류', reason:'심해의 생명력과 간장의 짠맛이 아주 좋은 조화를 이룹니다.'},
     {name:'블랙 올리브 타페나드', ingredients:'블랙 올리브, 케이퍼', reason:'짭조름한 검은 올리브 페이스트가 수(水) 에너지를 돋웁니다.'},
     {name:'아사이볼', ingredients:'아사이베리, 견과류', reason:'보랏빛/검은색 항산화 베리가 신장과 혈관을 청소해줍니다.'},
@@ -4528,71 +4688,272 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
 
     // 매력 클래스 결정
     var maxStat = Math.max(taoPct, yemPct, hwaPct);
-    var cls;
-    if(taoPct===maxStat && taoPct>=40){
-      if(dominant==='fire') cls={icon:'🔥',name:'태양 아래의 승부사',sub:'방에 들어서는 순간 공기가 바뀝니다. 당신의 존재 자체가 가장 강력한 무기입니다.'};
-      else if(dominant==='water') cls={icon:'🌊',name:'물 속의 인어',sub:'다가가기 어렵지만 한 번 빠지면 헤어나올 수 없는 치명적 매력의 소유자입니다.'};
-      else cls={icon:'🌹',name:'치명적 유혹자',sub:'원하든 원치 않든 주변을 끌어당기는 자기장이 상시 작동 중입니다.'};
-    } else if(yemPct===maxStat && yemPct>=40){
-      if(dominant==='metal') cls={icon:'⚔️',name:'경계 없는 개척자',sub:'좁은 무대에 가둘 수 없는 사람. 더 넓은 세계에서 진가를 발휘합니다.'};
-      else cls={icon:'🌪️',name:'역동적인 방랑자',sub:'멈추는 순간 매력이 반감됩니다. 에너지 자체가 당신의 가장 큰 무기입니다.'};
-    } else if(hwaPct===maxStat && hwaPct>=40){
-      if(dominant==='water') cls={icon:'🔮',name:'베일에 싸인 철학자',sub:'쉽게 읽히지 않는 깊이가 상대방을 계속 궁금하게 만드는 트랩 매력입니다.'};
-      else cls={icon:'🪷',name:'고독한 예술가',sub:'내면의 풍경이 너무 깊어 통하는 사람이 드물지만, 한 번 연결되면 강렬합니다.'};
-    } else if(dominant==='metal'){
-      cls={icon:'💎',name:'차가운 도시의 세련미',sub:'함부로 다가가기 힘든 분위기와 날카로운 안목이 당신을 희귀하게 만듭니다.'};
-    } else if(dominant==='fire'){
-      cls={icon:'🌟',name:'압도적 화려함',sub:'분위기를 바꾸는 타입. 열정과 표현력이 곧 매력입니다.'};
-    } else if(dominant==='wood'){
-      cls={icon:'🌿',name:'자연스러운 청량미',sub:'꾸미지 않아도 빛나는 순수함으로 사람들 마음에 스며드는 타입입니다.'};
-    } else if(dominant==='water'){
-      cls={icon:'💧',name:'위험한 신비로움',sub:'깊이를 알 수 없는 눈빛과 조용한 카리스마가 상대방의 경계를 무너뜨립니다.'};
-    } else {
-      cls={icon:'🗿',name:'중독성 강한 안정감',sub:'어딜 가나 묵직한 신뢰감을 주는 사람. 시간이 지날수록 매력이 진해지는 타입입니다.'};
+    var charmAxis = 'balance';
+    if(taoPct===maxStat && taoPct>=40) charmAxis = 'tao';
+    else if(yemPct===maxStat && yemPct>=40) charmAxis = 'yem';
+    else if(hwaPct===maxStat && hwaPct>=40) charmAxis = 'hwa';
+
+    var powerInfo = (typeof G_POWER !== 'undefined' && G_POWER) ? G_POWER : null;
+    var powerLabel = powerInfo && typeof powerInfo.isStrong === 'boolean' ? (powerInfo.isStrong ? '신강' : '신약') : '';
+    var dayStemName = ((GAN[p.d.g]||{}).n) || p.d.g || '';
+    var dayStemHint = dayStemName ? ' 바탕에는 ' + dayStemName + ' 일간 특유의 결도 깔려 있습니다.' : '';
+    var tenGodCounts = {};
+    if(typeof getTenGod === 'function'){
+      [p.y.g,p.y.j,p.m.g,p.m.j,p.d.j,p.h.g,p.h.j].forEach(function(c){
+        var tg = getTenGod(p.d.g, c);
+        if(tg && tg !== '?') tenGodCounts[tg] = (tenGodCounts[tg]||0) + 1;
+      });
     }
+    var dominantTenGod = Object.keys(tenGodCounts).sort(function(a,b){return tenGodCounts[b]-tenGodCounts[a];})[0] || '';
+    var titleMap = {
+      tao: {
+        fire:'첫인상 킬러',
+        water:'다가갈수록 빠져드는 미스터리형',
+        wood:'청량한 시선 강탈자',
+        metal:'무심한 듯 강렬한 시선 도둑',
+        earth:'조용한 중독형 매력가'
+      },
+      yem: {
+        fire:'낯선 곳에서 빛나는 자유로운 매력가',
+        water:'떠나는 뒷모습까지 남는 자유형',
+        wood:'새로운 장면을 여는 설렘형',
+        metal:'경계 없는 시선 도둑',
+        earth:'의외의 반전 모험가'
+      },
+      hwa: {
+        fire:'분위기 지배자',
+        water:'다가갈수록 빠져드는 미스터리형',
+        wood:'고독한 예술가형 아우라',
+        metal:'차갑게 빛나는 아트 뮤즈',
+        earth:'깊은 방의 온기를 가진 사람'
+      },
+      balance: {
+        fire:'압도적 화려함',
+        water:'위험한 신비로움',
+        wood:'자연스러운 청량미',
+        metal:'차가운 도시의 세련미',
+        earth:'중독성 강한 안정감'
+      }
+    };
+    var axisIcon = {tao:'🌹', yem:'🌪️', hwa:'🔮', balance:'💎'};
+    var titleName = (titleMap[charmAxis] && titleMap[charmAxis][dominant]) || titleMap.balance[dominant] || '치명적 유혹자';
+    var powerHint = powerLabel ? ' ' + powerLabel + ' 흐름이라 매력의 온도 조절 방식도 분명합니다.' : '';
+    var tenGodHint = dominantTenGod ? ' 특히 ' + dominantTenGod + ' 결이 섞여 말투와 선택 기준에 개성이 남습니다.' : '';
+    var summaryMap = {
+      tao: {
+        fire:'당신은 일부러 밝히지 않아도 시선이 먼저 반응하는 타입입니다. 표정, 리액션, 존재감 중 하나가 늘 사람의 기억에 선명하게 남습니다.',
+        water:'당신은 가까워질수록 감정의 깊이가 드러나는 타입입니다. 조용한 눈빛과 말 사이의 여백이 상대를 오래 머물게 만듭니다.',
+        wood:'당신은 꾸민 느낌보다 살아 있는 생기가 먼저 보이는 타입입니다. 자연스러운 웃음과 태도가 예상보다 강한 호감을 만듭니다.',
+        metal:'당신은 무심한 듯 보여도 선명한 취향과 거리감으로 시선을 붙잡는 타입입니다. 쉽게 열리지 않는 분위기가 오히려 더 궁금하게 만듭니다.',
+        earth:'당신은 자극적이지 않은데 오래 생각나는 타입입니다. 편안함 속에 묘한 중독성이 있어 시간이 지날수록 존재감이 커집니다.'
+      },
+      yem: {
+        fire:'당신은 한곳에 머물 때보다 새로운 장면으로 들어갈 때 더 빛나는 타입입니다. 움직임, 말의 속도, 도전하는 표정이 매력의 스위치입니다.',
+        water:'당신은 붙잡히지 않는 듯한 자유로움으로 마음을 흔드는 타입입니다. 다정해도 어딘가 먼 느낌이 있어 상대가 계속 따라가고 싶어집니다.',
+        wood:'당신은 같이 있으면 다음 장면이 기대되는 타입입니다. 호기심과 성장 에너지가 사람에게 산뜻한 설렘을 남깁니다.',
+        metal:'당신은 단정한데 예측 불가능한 반전이 있는 타입입니다. 정돈된 외피 뒤의 과감함이 낯선 곳에서 더 크게 드러납니다.',
+        earth:'당신은 안정적으로 보이다가도 결정적인 순간에 판을 바꾸는 타입입니다. 의외성이 매력의 핵심 반전으로 작동합니다.'
+      },
+      hwa: {
+        fire:'당신은 말보다 분위기로 먼저 공간을 장악하는 타입입니다. 뜨겁게 드러내지 않아도 내면의 장면이 주변 공기를 바꿉니다.',
+        water:'당신은 쉽게 설명되지 않는 감정선으로 사람을 끌어당기는 타입입니다. 알수록 더 알고 싶어지는 미스터리가 강합니다.',
+        wood:'당신은 섬세한 취향과 혼자만의 세계가 매력으로 번지는 타입입니다. 조용한데도 한 번 꽂히면 오래 남는 아우라가 있습니다.',
+        metal:'당신은 차갑게 빛나는 미감과 높은 기준으로 특별해지는 타입입니다. 아무에게나 맞추지 않는 태도가 고급스러운 긴장을 만듭니다.',
+        earth:'당신은 깊고 고요한 안정감 안에 독특한 세계를 품은 타입입니다. 오래 볼수록 마음을 기대고 싶게 만드는 힘이 있습니다.'
+      },
+      balance: {
+        fire:'당신은 표현력이 살아날 때 가장 매력적인 타입입니다. 웃음, 말투, 행동의 온도가 주변 분위기를 빠르게 밝힙니다.',
+        water:'당신은 조용히 스며들지만 쉽게 잊히지 않는 타입입니다. 감정선과 눈빛의 결이 상대에게 긴 여운을 남깁니다.',
+        wood:'당신은 과하게 꾸미지 않아도 산뜻하게 눈에 들어오는 타입입니다. 편안한 생기와 자연스러운 태도가 호감을 만듭니다.',
+        metal:'당신은 깔끔한 기준과 세련된 거리감으로 존재감을 만드는 타입입니다. 담백한데 선명해서 쉽게 흐려지지 않습니다.',
+        earth:'당신은 가까이 있을수록 안정감이 깊어지는 타입입니다. 반복해서 만나도 피로하지 않은 편안함이 가장 큰 매력입니다.'
+      }
+    };
+    var coreMap = {
+      tao: {
+        first:'처음 만났을 때는 평범하게 지나간 듯해도, 표정이나 눈빛 하나가 뒤늦게 떠오르는 잔상을 남깁니다.',
+        deep:'가까워질수록 단순한 외적 매력보다 말투, 반응, 감정선에서 중독성이 강해집니다.',
+        misread:'가볍게 관심을 준 것뿐인데 상대가 특별한 신호로 받아들일 수 있습니다.'
+      },
+      yem: {
+        first:'첫인상부터 정적인 사람이라기보다 어디론가 향하는 사람처럼 보입니다. 그 움직임이 호기심을 자극합니다.',
+        deep:'함께 새로운 경험을 할수록 활력과 추진력이 드러나 관계에 신선한 장면을 계속 만듭니다.',
+        misread:'자유로운 태도가 무심함이나 거리두기로 오해될 수 있어, 중요한 사람에게는 확신의 말을 남기는 것이 좋습니다.'
+      },
+      hwa: {
+        first:'처음에는 차분하거나 조용해 보여도, 이상하게 한 번 더 쳐다보게 만드는 깊은 분위기가 남습니다.',
+        deep:'오래 볼수록 취향, 생각의 깊이, 혼자만의 세계가 드러나 쉽게 대체되지 않는 매력으로 변합니다.',
+        misread:'혼자 있는 시간이 필요한 것뿐인데 상대는 마음을 닫았다고 착각하기 쉽습니다.'
+      },
+      balance: {
+        first:'과하게 튀지는 않아도 전체적인 인상이 편안하게 정돈되어 있어 부담 없이 호감을 줍니다.',
+        deep:'시간이 지날수록 상황에 맞게 매력을 조절하는 힘이 드러나 안정적인 끌림을 만듭니다.',
+        misread:'표현이 담백하면 관심이 약한 것으로 보일 수 있어, 좋아하는 것에는 조금 더 선명하게 반응해도 좋습니다.'
+      }
+    };
+    var cls = {
+      icon: axisIcon[charmAxis] || '💎',
+      name: titleName,
+      sub: ((summaryMap[charmAxis] && summaryMap[charmAxis][dominant]) || summaryMap.balance[dominant] || summaryMap.balance.earth) + powerHint + dayStemHint + tenGodHint
+    };
+    var coreCopy = coreMap[charmAxis] || coreMap.balance;
 
     // 오행 마그네티즘
     var magMeta = {
       wood: {icon:'🌿', name:'목(木) — 자연스러운 청량미', pct:Math.round((counts.wood||0)/total*100),
-             desc:'순수하고 생동감 넘치는 청춘 에너지. 상대를 편안하게 만드는 배려와 따뜻한 공감력이 핵심 매력입니다.'},
+             desc:'순수하고 생동감 넘치는 청춘 에너지. 상대를 편안하게 만드는 배려와 따뜻한 공감력이 핵심 매력입니다.',
+             keyword:'청량함, 성장감, 순수함, 자연스러움',
+             mood:'밝은 카페, 자연광, 산책, 캠퍼스, 봄 느낌',
+             style:'깔끔한 캐주얼, 밝은 색감, 자연스러운 헤어',
+             feeling:'편안함, 신뢰, 다정함',
+             field:'교육, 상담, 콘텐츠, 커뮤니티, 자기계발 브랜딩'},
       fire: {icon:'🔥', name:'화(火) — 압도적 화려함', pct:Math.round((counts.fire||0)/total*100),
-             desc:'화려하고 열정적으로 주변을 태우는 에너지. 리액션과 전달력이 뛰어나 첫인상에서 강한 호감을 남깁니다.'},
+             desc:'화려하고 열정적으로 주변을 태우는 에너지. 리액션과 전달력이 뛰어나 첫인상에서 강한 호감을 남깁니다.',
+             keyword:'화려함, 표현력, 인기, 무대성',
+             mood:'조명 있는 공간, 파티, 무대, 라이브 방송, 발표 자리',
+             style:'포인트 컬러, 선명한 인상, 자신감 있는 스타일링',
+             feeling:'설렘, 활기, 기대감',
+             field:'영상, 라이브, 강연, 마케팅, 연예/엔터테인먼트형 콘텐츠'},
       earth:{icon:'⛰️', name:'토(土) — 중독성 안정감', pct:Math.round((counts.earth||0)/total*100),
-             desc:'묵직하고 믿음직해 기댈 곳을 주는 중독성 안정감. 오래 곁에 있고 싶게 만드는 포근한 신뢰 매력입니다.'},
+             desc:'묵직하고 믿음직해 기댈 곳을 주는 중독성 안정감. 오래 곁에 있고 싶게 만드는 포근한 신뢰 매력입니다.',
+             keyword:'안정감, 포근함, 신뢰, 중독성',
+             mood:'따뜻한 실내, 조용한 대화, 편안한 식사 자리',
+             style:'부드러운 색감, 단정함, 고급스러운 기본템',
+             feeling:'안심, 의지, 오래 보고 싶은 느낌',
+             field:'상담, 고객관리, 운영, 멘토링, 장기 관계형 비즈니스'},
       metal:{icon:'🗡️', name:'금(金) — 차가운 세련미', pct:Math.round((counts.metal||0)/total*100),
-             desc:'날카롭고 세련되어 함부로 다가가기 힘든 분위기. 기준이 높아 선택받은 기분을 주는 희귀 매력입니다.'},
+             desc:'날카롭고 세련되어 함부로 다가가기 힘든 분위기. 기준이 높아 선택받은 기분을 주는 희귀 매력입니다.',
+             keyword:'세련미, 절제, 기준, 차가운 매력',
+             mood:'도시적 공간, 고급 바, 전시회, 비즈니스 미팅',
+             style:'미니멀, 블랙/화이트/실버, 날렵한 실루엣',
+             feeling:'긴장감, 존중, 선택받고 싶은 욕구',
+             field:'프리미엄 브랜딩, 전문직 이미지, 컨설팅, 디자인, 고급 서비스'},
       water:{icon:'🌊', name:'수(水) — 위험한 신비로움', pct:Math.round((counts.water||0)/total*100),
-             desc:'깊이를 알 수 없는 눈빛과 지적 아우라. 상대를 계속 궁금하게 만드는 트랩형 카리스마입니다.'}
+             desc:'깊이를 알 수 없는 눈빛과 지적 아우라. 상대를 계속 궁금하게 만드는 트랩형 카리스마입니다.',
+             keyword:'신비로움, 지성, 깊이, 묘한 중독성',
+             mood:'밤, 비 오는 날, 조용한 음악, 어두운 조명, 깊은 대화',
+             style:'차분한 색감, 흐르는 소재, 지적인 분위기',
+             feeling:'궁금증, 몰입, 감정적 여운',
+             field:'글쓰기, 상담, 심리 콘텐츠, 스토리텔링, 브랜딩, 기획'}
     };
 
-    // 팩폭
-    var bombs = [];
-    if(taoPct>=60) bombs.push('도화 기운이 넘쳐 의도치 않은 시그널을 남발하고 있진 않은지 점검하세요. 가볍게 보일 수 있습니다.');
-    if(yemPct>=60) bombs.push('역마 에너지가 강해 한 곳에 뿌리내리기 어렵습니다. 상대는 당신이 언제 떠날지 항상 불안해합니다.');
-    if(hwaPct>=60) bombs.push('화개가 강하면 현실보다 이상 세계에 빠지기 쉽습니다. 깊이는 매력이지만 소통 단절로 이어질 수 있습니다.');
-    if(dominant==='metal') bombs.push('세련된 건 알겠는데, 옆에 있으면 베일 것 같습니다. 능동적인 온기 표현이 없으면 차갑게 읽힙니다.');
-    if(dominant==='fire'&&(counts.fire||0)>=3) bombs.push('에너지가 너무 강해 상대방이 압도당하거나 지칩니다. 공간을 주는 것도 매력 천기입니다.');
-    if(dominant==='water'&&(counts.water||0)>=3) bombs.push('신비로움이 지나치면 답답함으로 읽힙니다. 먼저 열어 보이는 용기가 관계를 한 단계 깊게 합니다.');
-    if(bombs.length===0) bombs.push('치명적 약점은 없지만, 모든 매력을 풀가동하려면 자신의 색깔을 더 선명하게 드러내는 연습이 필요합니다.');
+    var axisFactPack = {
+      tao: {
+        habit:'당신은 별생각 없이 던진 말이나 짧은 리액션에도 여운이 남는 타입입니다. 특히 도화 기운이 강하면 친절과 호감의 경계가 흐려 보이기 쉽습니다. 모두에게 같은 온도를 주면 진짜 마음을 줘야 할 사람에게 신호가 흐려집니다.',
+        misread:'사람들은 당신의 자연스러운 눈맞춤이나 웃음을 특별한 초대처럼 받아들일 수 있습니다. 관심이 없는 상대에게도 분위기를 열어주면 관계가 애매하게 꼬입니다.',
+        damage:'매력을 확인받으려고 반응을 과하게 뿌리는 순간, 원래의 고급스러운 흡입력이 가벼워집니다. 좋아하는 사람과 아닌 사람의 온도를 구분해야 합니다.',
+        shine:'꾸미지 않았는데 표정, 향, 말투가 한 장면처럼 남을 때 가장 매력적입니다. 시선이 모이는 자리에서는 많이 설명하기보다 한 박자 느린 여유가 더 강합니다.',
+        fix:'오늘부터는 누구에게나 다정한 사람이 아니라, 필요한 사람에게 선명한 사람이 되세요. 호감이 있다면 애매한 리액션보다 짧고 정확한 관심 표현이 좋습니다.'
+      },
+      yem: {
+        habit:'당신은 익숙한 자리에서도 다음 장면을 상상하게 만드는 사람입니다. 가볍게 한 제안이나 이동 욕구가 상대에게는 함께 떠나고 싶은 신호처럼 보일 수 있습니다.',
+        misread:'사람들은 당신의 자유로움을 설렘으로 느끼면서도, 동시에 언제든 멀어질 사람처럼 오해할 수 있습니다. 가까운 관계일수록 약속과 방향을 말로 확인해줘야 합니다.',
+        damage:'계속 새로움만 찾으면 매력은 생동감이 아니라 산만함으로 바뀝니다. 관계와 일에서 최소한의 반복 루틴을 두어야 신뢰가 쌓입니다.',
+        shine:'낯선 장소, 새로운 프로젝트, 외부 활동에서 몸의 리듬이 살아날 때 가장 매력적입니다. 당신은 움직일수록 표정과 말투에 활기가 붙습니다.',
+        fix:'오늘부터는 떠날 자유만 보여주지 말고 돌아올 기준도 보여주세요. 중요한 사람에게는 다음 약속을 먼저 잡는 것이 매력의 안정감을 만듭니다.'
+      },
+      hwa: {
+        habit:'당신은 침묵이나 혼자만의 취향으로도 사람을 끌어당기는 타입입니다. 설명하지 않는 부분이 많을수록 상대는 더 깊이 알고 싶어 합니다.',
+        misread:'사람들은 당신의 고요함을 신비롭게 느끼지만, 때로는 차갑거나 벽이 높다고 오해합니다. 마음을 닫은 것이 아니라 몰입 중이라는 신호를 작게라도 보여줘야 합니다.',
+        damage:'너무 오래 혼자만의 세계에 머물면 깊이는 매력이 아니라 거리감이 됩니다. 중요한 관계에서는 감정의 문을 조금 더 자주 열어야 합니다.',
+        shine:'취향, 글, 음악, 생각의 결이 자연스럽게 드러나는 순간 가장 매력적입니다. 조용한데도 오래 기억되는 아우라는 억지로 밝아질 때보다 진심을 보일 때 살아납니다.',
+        fix:'오늘부터는 신비로움 뒤에 숨기보다, 좋아하는 것 하나를 분명히 말해보세요. 당신의 세계관은 감춰둘수록이 아니라 적당히 보여줄수록 강해집니다.'
+      },
+      balance: {
+        habit:'당신은 과하게 밀어붙이지 않아도 편안한 호감을 남기는 타입입니다. 작은 배려와 정돈된 태도가 상대에게는 오래 곁에 두고 싶은 신호로 읽힙니다.',
+        misread:'사람들은 당신의 담백함을 안정감으로 느끼지만, 때로는 관심이 약하다고 오해할 수 있습니다. 좋아하는 일과 사람 앞에서는 반응을 조금 더 선명하게 보여줘야 합니다.',
+        damage:'무난함 뒤에 계속 숨으면 매력의 색이 흐려집니다. 갈등을 피하려고 원하는 것을 말하지 않는 습관이 당신의 존재감을 약하게 만듭니다.',
+        shine:'상대가 불안해할 때 차분하게 중심을 잡아주는 순간 가장 매력적입니다. 튀는 장면보다 오래 믿을 수 있는 태도에서 진짜 힘이 나옵니다.',
+        fix:'오늘부터는 좋은 사람으로만 남으려 하지 말고, 내 취향과 기준을 한 가지씩 드러내세요. 부드러움 안에 선명함이 생길 때 매력이 깊어집니다.'
+      }
+    };
+    var elementCaution = {
+      wood:'목 기운은 너무 맞춰주면 착한 사람 이미지로만 굳어질 수 있습니다. 다정함 속에도 내 방향을 함께 보여주세요.',
+      fire:'화 기운은 반응이 크고 빠를수록 오해도 빨리 번집니다. 중요한 신호는 뜨겁게, 사소한 신호는 가볍게 조절하세요.',
+      earth:'토 기운은 안정감이 강한 만큼 상대가 당연하게 기대기 쉽습니다. 받아주는 것과 허용하는 것은 다르게 관리해야 합니다.',
+      metal:'금 기운은 세련된 거리감이 매력이지만, 온기가 부족하면 차갑게 읽힙니다. 마음에 드는 사람에게는 칭찬을 아끼지 마세요.',
+      water:'수 기운은 묘한 여운이 강하지만, 설명이 너무 적으면 상대를 불안하게 만듭니다. 침묵보다 한 문장의 진심이 더 깊게 남습니다.'
+    };
+    var factCopy = axisFactPack[charmAxis] || axisFactPack.balance;
+    var bombs = [
+      {label:'내가 모르는 나의 유혹 습관', text:factCopy.habit},
+      {label:'사람들이 오해하는 포인트', text:factCopy.misread + ' ' + (elementCaution[dominant] || elementCaution.earth)},
+      {label:'매력을 망치는 행동', text:factCopy.damage},
+      {label:'진짜 매력적으로 보이는 순간', text:factCopy.shine},
+      {label:'오늘부터 고칠 것', text:factCopy.fix}
+    ];
 
-    // 극대화 천기
-    var strategies = [];
-    if(taoPct>=40){
-      strategies.push('연애: 첫인상보다 꾸준한 관심 표현이 효과적입니다. 도화 매력은 시작은 강하지만 지속이 관건입니다.');
-      strategies.push('비즈니스: 얼굴이 곧 브랜드입니다. 영상 콘텐츠·강연·퍼블릭 페이스 포지셔닝이 최적의 무대입니다.');
-    }
-    if(yemPct>=40){
-      strategies.push('연애: 새로운 경험을 함께하는 데이트가 최고의 매력 발산법입니다. 일상 패턴화를 경계하세요.');
-      strategies.push('비즈니스: 해외·다분야·네트워킹 업무에서 강점이 폭발합니다. 크로스오버 커리어가 천직입니다.');
-    }
-    if(hwaPct>=40){
-      strategies.push('연애: 깊이 있는 대화와 공통 관심사(예술·철학·영성)로 연결되는 관계가 오래갑니다.');
-      strategies.push('비즈니스: 크리에이티브·상담·연구직에서 화개 에너지가 빛납니다. 독창성 자체가 경쟁력입니다.');
-    }
-    if(strategies.length===0){
-      strategies.push('오행 균형이 잡혀 있어 상황에 맞게 매력을 조절하는 카멜레온 천기가 유리합니다.');
-      strategies.push('특정 매력을 강화하려면 도화(스타일·외모) · 역마(적극성·모험) · 화개(깊이·예술) 중 하나를 의도적으로 키우세요.');
-    }
+    var stylePrescription = {
+      wood:'밝은 색감, 자연광에 잘 사는 헤어, 깔끔한 캐주얼이 좋습니다. 너무 꾸민 느낌보다 생기 있고 편안한 인상이 매력을 살립니다.',
+      fire:'포인트 컬러, 선명한 립이나 액세서리, 자신감 있는 실루엣이 좋습니다. 단, 전부 강하게 하기보다 한 곳만 주인공으로 세우세요.',
+      earth:'부드러운 색감, 고급스러운 기본템, 포근한 소재가 잘 맞습니다. 안정감 속에 은근한 디테일을 넣으면 오래 보고 싶은 분위기가 됩니다.',
+      metal:'블랙, 화이트, 실버, 미니멀한 라인이 잘 맞습니다. 차가운 세련미에 작은 온기 포인트를 더하면 접근하기 어려운 느낌이 부드러워집니다.',
+      water:'차분한 색감, 흐르는 소재, 지적인 분위기가 잘 맞습니다. 밤빛이나 비 오는 날 어울리는 무드를 활용하면 신비로운 여운이 강해집니다.'
+    };
+    var snsPrescription = {
+      tao:'프로필은 얼굴보다 분위기, 표정, 시선의 결이 보이게 잡는 것이 좋습니다. 짧은 영상이나 스토리형 콘텐츠에서 도화의 잔상이 더 잘 살아납니다.',
+      yem:'움직임이 있는 기록, 장소 변화, 새로운 시도 과정을 보여주는 콘텐츠가 좋습니다. 정적인 셀카보다 오늘의 장면과 루트가 보일 때 매력이 커집니다.',
+      hwa:'취향, 글, 음악, 생각이 묻어나는 콘텐츠가 좋습니다. 많이 노출하기보다 세계관이 느껴지는 한 장면을 꾸준히 쌓는 방식이 강합니다.',
+      balance:'편안한 루틴, 정돈된 취향, 신뢰가 느껴지는 기록이 좋습니다. 과한 연출보다 꾸준히 보고 싶어지는 톤을 만드는 것이 유리합니다.'
+    };
+    var missionText = {
+      tao:'오늘은 아무에게나 매력을 흘리지 말고, 딱 한 사람에게만 선명한 관심을 표현해보세요. 도화의 힘은 넓게 뿌릴 때보다 정확히 꽂힐 때 더 강합니다.',
+      yem:'오늘은 익숙한 동선 하나를 바꿔보세요. 새로운 장소와 움직임이 역마의 생기를 깨우고, 당신의 표정에 더 살아 있는 리듬을 만듭니다.',
+      hwa:'오늘은 좋아하는 음악, 문장, 이미지 중 하나를 누군가에게 공유해보세요. 화개의 힘은 혼자 품을 때보다 취향을 통해 연결될 때 깊어집니다.',
+      balance:'오늘은 작은 배려 하나를 선명하게 표현해보세요. 편안한 매력은 말하지 않아도 느껴지지만, 말해줄 때 더 오래 남습니다.'
+    };
+    var strategies = [
+      {
+        label:'연애 처방',
+        text:(charmAxis==='tao'
+          ? '첫 만남에서는 이미 절반의 인상이 남습니다. 그래서 더 많이 어필하기보다 상대가 궁금해할 여백을 남기는 것이 좋습니다. 마음에 드는 사람에게만 시선을 오래 두고, 관계가 시작된 뒤에는 꾸준한 관심 표현으로 도화의 지속력을 만들어야 합니다.'
+          : charmAxis==='yem'
+          ? '새로운 경험을 함께하는 데이트가 가장 잘 맞습니다. 장소, 산책, 짧은 여행처럼 장면이 바뀌면 당신의 매력이 자연스럽게 살아납니다. 다만 자유로움만 보여주면 불안해 보일 수 있으니 다음 약속을 먼저 제안하세요.'
+          : charmAxis==='hwa'
+          ? '가벼운 설렘보다 깊은 대화와 공통 취향이 관계를 오래 끌고 갑니다. 처음부터 모든 것을 열 필요는 없지만, 마음에 드는 사람에게는 당신의 세계를 조금씩 보여주는 것이 좋습니다. 침묵보다 진심 어린 한 문장이 더 강한 신호가 됩니다.'
+          : '상대가 편안하게 다가올 수 있는 안정감이 강점입니다. 다만 너무 담백하면 호감이 약해 보일 수 있으니, 좋아하는 사람에게는 반응을 한 단계 선명하게 표현하세요. 오래 가는 관계에서는 꾸준함이 가장 큰 무기입니다.')
+      },
+      {
+        label:'인간관계 처방',
+        text:'모두에게 같은 온도를 주기보다 관계의 깊이에 따라 표현을 조절하는 것이 좋습니다. 가까운 사람에게는 더 자주 확인의 말을 주고, 가벼운 관계에는 적당한 거리감을 남기세요. 당신의 매력은 경계가 선명할수록 더 고급스럽게 보입니다.'
+      },
+      {
+        label:'비즈니스 처방',
+        text:(taoPct>=40 || dominant==='fire'
+          ? '사람 앞에 서는 일이 강한 브랜드 자산이 됩니다. 발표, 상담, 영업, 영상, 라이브처럼 당신이라는 사람이 신뢰도를 높이는 구조에 잘 맞습니다. 말투와 표정, 화면 구성을 하나의 이미지로 정리하면 성과가 더 좋아집니다.'
+          : yemPct>=40
+          ? '외부 미팅, 네트워킹, 새로운 프로젝트에서 강점이 커집니다. 한 분야에만 갇히기보다 여러 사람과 장면을 연결하는 역할이 좋습니다. 움직임이 많은 업무일수록 당신의 생동감이 설득력으로 바뀝니다.'
+          : hwaPct>=40 || dominant==='water'
+          ? '상담, 기획, 브랜딩, 연구, 콘텐츠처럼 깊이와 해석이 필요한 일에서 강합니다. 조용히 쌓은 취향과 관찰력이 전문성으로 보입니다. 표면적인 인기보다 신뢰를 오래 축적하는 방식이 돈과 연결됩니다.'
+          : '운영, 고객관리, 멘토링, 교육처럼 오래 신뢰를 쌓는 일에 강합니다. 즉흥적인 화제성보다 안정적인 관계 관리가 성과로 이어집니다. 꾸준함을 시스템으로 만들면 당신의 매력이 실력처럼 보입니다.')
+      },
+      {
+        label:'스타일링 처방',
+        text:stylePrescription[dominant] || stylePrescription.earth
+      },
+      {
+        label:'SNS 처방',
+        text:(snsPrescription[charmAxis] || snsPrescription.balance) + ' 개발자용 설명처럼 기능을 나열하기보다, 당신의 분위기와 취향이 먼저 느껴지게 구성하세요.'
+      },
+      {
+        label:'금전운 연결 처방',
+        text:(taoPct>=40 || dominant==='fire' || dominant==='water'
+          ? '얼굴, 분위기, 말투, 취향이 곧 브랜드가 될 수 있습니다. 영상 콘텐츠, 상담형 서비스, 강연, 라이브, SNS 브랜딩처럼 사람 자체가 신뢰를 만드는 구조에 잘 맞습니다. 특히 궁금해서 계속 보게 되는 콘텐츠를 만들면 매력이 수익으로 이어집니다.'
+          : dominant==='metal'
+          ? '기준, 취향, 전문성을 돈으로 바꾸는 구조가 좋습니다. 컨설팅, 디자인, 프리미엄 서비스처럼 선택받는 느낌을 주는 분야에 강합니다. 싸게 많이 팔기보다 명확한 기준과 고급스러운 이미지를 먼저 세우세요.'
+          : dominant==='earth'
+          ? '안정감과 지속성이 돈이 되는 구조에 잘 맞습니다. 고객관리, 멘토링, 운영, 장기 구독형 서비스처럼 오래 관계를 유지할수록 가치가 커집니다. 한번 믿은 사람이 다시 찾게 만드는 장치가 중요합니다.'
+          : '성장감과 신뢰가 돈이 되는 구조에 잘 맞습니다. 교육, 커뮤니티, 자기계발 콘텐츠, 상담형 서비스처럼 사람을 좋은 방향으로 움직이는 분야가 유리합니다. 꾸준한 기록과 후기 축적이 금전운을 키웁니다.')
+      },
+      {
+        label:'피해야 할 환경',
+        text:'당신의 매력은 억압적이고 평가만 많은 환경에서 죽습니다. 자유롭게 표현할 수 있고, 취향과 개성을 보여줄 수 있는 곳에서 훨씬 강하게 살아납니다. 특히 감정과 리듬을 계속 숨겨야 하는 관계나 일터에서는 매력이 아니라 피로감만 쌓일 수 있습니다.'
+      },
+      {
+        label:'오늘의 매력 미션',
+        text:missionText[charmAxis] || missionText.balance
+      }
+    ];
 
     // HTML 조립
     var magRow = '';
@@ -4600,17 +4961,310 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
       var m = magMeta[e];
       var isActive = (e===dominant || e===dayEl);
       var lvl = m.pct>=33?'🔥 강함':m.pct>=20?'활성':m.pct>=10?'기본':'잠재';
+      var magDetails = [
+        {label:'매력 키워드', text:m.keyword},
+        {label:'잘 어울리는 분위기', text:m.mood},
+        {label:'잘 어울리는 스타일', text:m.style},
+        {label:'사람들에게 주는 감정', text:m.feeling},
+        {label:'활용하기 좋은 분야', text:m.field}
+      ].map(function(item){
+        return '<div class="cs-mag-item">'+
+          '<div class="cs-mag-head"><span class="cs-mag-name">'+item.label+'</span></div>'+
+          '<div class="cs-mag-desc">'+item.text+'</div>'+
+        '</div>';
+      }).join('');
       magRow += '<div class="cs-mag-item'+(isActive?' cs-active':'')+'">'+
         '<div class="cs-mag-head">'+
           '<span class="cs-mag-name">'+m.icon+' '+m.name+'</span>'+
           '<span class="cs-mag-level">'+lvl+' ('+m.pct+'%)</span>'+
         '</div>'+
         '<div class="cs-mag-desc">'+m.desc+'</div>'+
+        '<div class="cs-mag-row" style="margin-top:9px">'+magDetails+'</div>'+
       '</div>';
     });
 
-    var bombRows = bombs.map(function(f){return '<div class="cs-factbomb-item">'+f+'</div>';}).join('');
-    var stratRows = strategies.map(function(s){return '<div class="cs-strategy-item">'+s+'</div>';}).join('');
+    function sinsalLevel(pct){
+      pct = Number(pct)||0;
+      if(pct>=70) return '강하게 발동';
+      if(pct>=40) return '선명하게 활성';
+      if(pct>=20) return '은근히 작동';
+      return '잠재 매력';
+    }
+    function sinsalDetailRows(details){
+      return '<div class="cs-mag-row" style="margin-top:9px">'+details.map(function(item){
+        return '<div class="cs-mag-item">'+
+          '<div class="cs-mag-head"><span class="cs-mag-name">'+item.label+'</span></div>'+
+          '<div class="cs-mag-desc">'+item.text+'</div>'+
+        '</div>';
+      }).join('')+'</div>';
+    }
+    var sinsalRows = [
+      {
+        icon:'🌸',
+        name:'도화살(桃花殺)',
+        pct:taoPct,
+        bar:'cs-bar-taohua',
+        keyword:'치명적 존재감 · 시선 집중 · 유혹 · 인기 · 연예인 기질',
+        details:[
+          {label:'기본 매력', text:'가만히 있어도 사람의 시선을 끌어당기는 흡입력이 있습니다. 단순히 예쁘다, 잘생겼다의 문제가 아니라 분위기가 남는 사람에 가깝습니다.'},
+          {label:'발동되는 상황', text:'사진, 영상, 첫 만남, 소개팅, SNS, 발표 자리처럼 시선이 집중되는 환경에서 특히 강하게 작동합니다.'},
+          {label:'강하게 먹히는 상대', text:'감각적이고 분위기를 중요하게 보는 사람, 첫인상에 민감한 사람, 은근한 설렘을 좋아하는 사람에게 강합니다.'},
+          {label:'조심해야 할 오해', text:'친절함이 플러팅처럼 보이거나, 가벼운 리액션이 관심 표현으로 과해석될 수 있습니다.'},
+          {label:'현실 활용법', text:'프로필 사진, 영상 콘텐츠, 브랜딩, 소개팅, 영업, 상담, 강연, SNS 운영에 활용하면 좋습니다.'}
+        ]
+      },
+      {
+        icon:'🌪️',
+        name:'역마살(驛馬殺)',
+        pct:yemPct,
+        bar:'cs-bar-yemma',
+        keyword:'역동적 에너지 · 활력 · 개척자 · 글로벌 감각 · 모험',
+        details:[
+          {label:'기본 매력', text:'한곳에 고여 있지 않는 생동감이 매력입니다. 새로운 장소, 새로운 사람, 새로운 일을 만날수록 존재감이 살아납니다.'},
+          {label:'발동되는 상황', text:'여행, 이동, 외부 미팅, 행사, 커뮤니티, 해외 관련 일, 새로운 프로젝트에서 매력이 커집니다.'},
+          {label:'강하게 먹히는 상대', text:'반복되는 일상에 지친 사람, 새로운 자극을 원하는 사람, 활동적인 사람에게 강하게 어필합니다.'},
+          {label:'조심해야 할 오해', text:'자유로워 보이는 만큼 안정감이 부족해 보일 수 있습니다. 중요한 사람에게는 머무를 마음을 말로 확인해주는 편이 좋습니다.'},
+          {label:'현실 활용법', text:'여행 콘텐츠, 영업, 외부 활동, 글로벌 서비스, 이벤트 운영, 커뮤니티 리더 역할에 좋습니다.'}
+        ]
+      },
+      {
+        icon:'🔮',
+        name:'화개살(華蓋殺)',
+        pct:hwaPct,
+        bar:'cs-bar-hwagae',
+        keyword:'예술적 고독 · 신비로움 · 철학 · 직관 · 묘한 끌림',
+        details:[
+          {label:'기본 매력', text:'쉽게 읽히지 않는 깊이와 고독한 분위기가 매력입니다. 조용한데 이상하게 존재감이 남는 타입입니다.'},
+          {label:'발동되는 상황', text:'혼자 집중하는 모습, 예술적 취향, 글쓰기, 상담, 철학적 대화, 야간 분위기, 감성적인 공간에서 강해집니다.'},
+          {label:'강하게 먹히는 상대', text:'가벼운 사람보다 깊은 사람을 좋아하는 상대, 취향과 세계관을 중요하게 보는 사람에게 강합니다.'},
+          {label:'조심해야 할 오해', text:'신비로움이 지나치면 차갑거나 벽이 있는 사람처럼 보일 수 있습니다.'},
+          {label:'현실 활용법', text:'글쓰기, 예술, 상담, 브랜딩, 타로/사주/심리 콘텐츠, 고급스러운 개인 브랜드에 좋습니다.'}
+        ]
+      }
+    ].map(function(s){
+      return '<div class="cs-stat-row" style="margin-top:10px">'+
+        '<div class="cs-stat-head"><span class="cs-stat-name">'+s.icon+' '+s.name+'</span><span class="cs-stat-pct">'+s.pct+'%</span></div>'+
+        '<div class="cs-stat-keyword">'+s.keyword+' · '+sinsalLevel(s.pct)+'</div>'+
+        '<div class="cs-bar-bg"><div class="cs-bar-fill '+s.bar+'" style="width:'+s.pct+'%"></div></div>'+
+        sinsalDetailRows(s.details)+
+      '</div>';
+    }).join('');
+
+    var coreRows = [
+      {label:'첫인상 매력', text:coreCopy.first},
+      {label:'오래 볼수록 드러나는 매력', text:coreCopy.deep},
+      {label:'사람들이 착각하기 쉬운 이미지', text:coreCopy.misread}
+    ].map(function(item){
+      return '<div class="cs-mag-item cs-active">'+
+        '<div class="cs-mag-head">'+
+          '<span class="cs-mag-name">'+item.label+'</span>'+
+        '</div>'+
+        '<div class="cs-mag-desc">'+item.text+'</div>'+
+      '</div>';
+    }).join('');
+    var situationTone = {
+      love: charmAxis==='tao'
+        ? '첫 만남에서 이미 절반은 먹고 들어가는 흡입력이 켜집니다.'
+        : charmAxis==='yem'
+        ? '새로운 사람을 만나는 장면에서 활기와 호기심이 빠르게 살아납니다.'
+        : charmAxis==='hwa'
+        ? '처음엔 조용해 보여도 대화가 깊어질수록 묘한 여운이 강해집니다.'
+        : '부담 없이 호감을 주고, 대화가 이어질수록 편안한 매력이 드러납니다.',
+      long: charmAxis==='hwa'
+        ? '오래 볼수록 취향과 세계관이 열리며 대체하기 어려운 깊이가 생깁니다.'
+        : charmAxis==='tao'
+        ? '첫인상 이후에도 말투와 반응의 잔상이 남아 관계의 온도를 유지합니다.'
+        : charmAxis==='yem'
+        ? '반복되는 관계 안에서도 새로운 제안과 움직임으로 분위기를 환기합니다.'
+        : '꾸준히 볼수록 안정감과 익숙한 온기가 매력으로 쌓입니다.',
+      business: (dominant==='fire' || taoPct>=40)
+        ? '사람 앞에 설 때 강력한 브랜드 자산이 됩니다.'
+        : dominant==='metal'
+        ? '정돈된 기준과 전문적인 인상이 신뢰를 빠르게 만듭니다.'
+        : dominant==='earth'
+        ? '차분하고 책임감 있는 태도가 장기 신뢰를 만듭니다.'
+        : dominant==='water'
+        ? '깊이 있는 설명과 기획력으로 상대를 몰입시킵니다.'
+        : '성장감과 다정한 태도로 협업의 공기를 부드럽게 만듭니다.',
+      profile: (taoPct>=40 || dominant==='fire')
+        ? '얼굴, 분위기, 말투, 취향이 함께 노출될 때 매력이 커집니다.'
+        : hwaPct>=40 || dominant==='water'
+        ? '세계관과 감정선이 보이는 짧은 글, 영상, 프로필에서 여운이 깊어집니다.'
+        : '과장된 연출보다 실제 취향과 생활감이 자연스럽게 보일 때 호감이 커집니다.',
+      group: yemPct>=40
+        ? '처음 보는 사람들과 섞일수록 이동감과 활력이 살아납니다.'
+        : taoPct>=40
+        ? '사람이 많은 자리에서 시선이 먼저 반응하는 존재감이 생깁니다.'
+        : hwaPct>=40
+        ? '소란스러운 자리보다 결이 맞는 소수와 깊게 연결될 때 빛납니다.'
+        : '큰 주목보다 편안한 대화 흐름 속에서 매력이 안정적으로 전달됩니다.',
+      conflict: powerLabel==='신강'
+        ? '압박이 와도 쉽게 무너지지 않는 단단함이 드러납니다.'
+        : powerLabel==='신약'
+        ? '섬세하게 분위기를 읽고 상처를 줄이는 조율력이 드러납니다.'
+        : '감정이 올라오는 순간에도 자기 색을 잃지 않는 태도가 중요합니다.'
+    };
+    var situationRows = [
+      {
+        title:'소개팅/연애 초반',
+        items:[
+          {label:'발동되는 매력', text:situationTone.love},
+          {label:'상대가 느끼는 인상', text:'처음부터 어딘가 더 알고 싶고, 대화가 끝난 뒤에도 표정과 말투가 한 번 더 떠오르는 사람으로 남습니다.'},
+          {label:'잘 쓰는 방법', text:'마음에 드는 사람에게만 신호를 선명하게 주고, 리액션보다 질문과 눈맞춤의 밀도를 조절하세요.'},
+          {label:'조심할 점', text:'너무 많은 리액션은 상대가 빠르게 착각하게 만들 수 있으니, 모두에게 같은 온도를 주지 않는 편이 좋습니다.'}
+        ]
+      },
+      {
+        title:'오래 알고 지낸 관계',
+        items:[
+          {label:'발동되는 매력', text:situationTone.long},
+          {label:'상대가 느끼는 인상', text:'처음보다 시간이 지나면서 더 편해지고, 문득 생각나는 디테일이 많은 사람으로 느껴집니다.'},
+          {label:'잘 쓰는 방법', text:'익숙한 관계일수록 작은 취향, 챙김, 솔직한 감정을 조금씩 보여주면 매력이 다시 살아납니다.'},
+          {label:'조심할 점', text:'너무 편해진 태도는 무관심처럼 보일 수 있어, 고마움과 호감은 가볍게라도 표현하는 것이 좋습니다.'}
+        ]
+      },
+      {
+        title:'일/비즈니스 환경',
+        items:[
+          {label:'발동되는 매력', text:situationTone.business},
+          {label:'상대가 느끼는 인상', text:'설명, 발표, 상담, 영업처럼 사람이 신뢰도를 높이는 자리에서 기억에 남는 인상을 줍니다.'},
+          {label:'잘 쓰는 방법', text:'결과물만 보여주기보다 당신의 관점, 말투, 문제 해결 방식을 함께 보여주면 설득력이 커집니다.'},
+          {label:'조심할 점', text:'매력이 앞서면 실력보다 이미지로만 평가될 수 있으니, 근거와 약속 이행을 함께 남기세요.'}
+        ]
+      },
+      {
+        title:'SNS/프로필/영상',
+        items:[
+          {label:'발동되는 매력', text:situationTone.profile},
+          {label:'상대가 느끼는 인상', text:'단순한 셀카보다 취향과 세계관이 보일 때 더 오래 보고 싶은 사람으로 남습니다.'},
+          {label:'잘 쓰는 방법', text:'프로필 사진, 짧은 영상, 스토리형 콘텐츠에 표정·목소리·공간의 결을 함께 담으세요.'},
+          {label:'조심할 점', text:'과한 연출은 오히려 진짜 매력을 흐릴 수 있으니, 가장 자연스러운 장면을 선명하게 고르는 편이 좋습니다.'}
+        ]
+      },
+      {
+        title:'모임/파티/커뮤니티',
+        items:[
+          {label:'발동되는 매력', text:situationTone.group},
+          {label:'상대가 느끼는 인상', text:'처음엔 분위기에 섞여 있어도 어느 순간 대화의 중심이나 기억나는 사람으로 남습니다.'},
+          {label:'잘 쓰는 방법', text:'모두에게 잘 보이려 하기보다 결이 맞는 사람과 깊이를 만들면 매력의 밀도가 올라갑니다.'},
+          {label:'조심할 점', text:'관심이 분산되면 가볍게 보일 수 있으니, 중요한 연결에는 후속 연락과 약속을 분명히 하세요.'}
+        ]
+      },
+      {
+        title:'위기 상황 또는 갈등 상황',
+        items:[
+          {label:'발동되는 매력', text:situationTone.conflict},
+          {label:'상대가 느끼는 인상', text:'감정이 흔들리는 순간의 태도에서 진짜 품격과 신뢰도가 드러나는 사람으로 보입니다.'},
+          {label:'잘 쓰는 방법', text:'바로 결론을 내기보다 감정 확인 한 문장, 사실 정리, 다음 행동 제안 순서로 말하면 매력이 보호됩니다.'},
+          {label:'조심할 점', text:'침묵은 차가움으로, 과한 설명은 변명으로 보일 수 있으니 짧고 진심 있는 표현을 남기세요.'}
+        ]
+      }
+    ].map(function(section){
+      return '<div class="cs-mag-item cs-active">'+
+        '<div class="cs-mag-head"><span class="cs-mag-name">'+section.title+'</span></div>'+
+        '<div class="cs-mag-row" style="margin-top:9px">'+section.items.map(function(item){
+          return '<div class="cs-mag-item">'+
+            '<div class="cs-mag-head"><span class="cs-mag-name">'+item.label+'</span></div>'+
+            '<div class="cs-mag-desc">'+item.text+'</div>'+
+          '</div>';
+        }).join('')+'</div>'+
+      '</div>';
+    }).join('');
+    var stageRows = [
+      {
+        title:'연애',
+        text:(charmAxis==='tao'
+          ? '당신의 매력은 처음부터 강하게 꽂히는 타입입니다. 그래서 억지로 어필하기보다, 상대가 궁금해할 여백을 남기는 것이 더 효과적입니다. 마음에 드는 사람에게는 애매한 신호보다 꾸준한 관심 표현을 주는 것이 관계 지속에 좋습니다.'
+          : charmAxis==='yem'
+          ? '당신의 매력은 같이 있을 때 새로운 장면이 열리는 데 있습니다. 반복되는 대화보다 산책, 전시, 여행, 새로운 장소처럼 움직임이 있는 데이트에서 더 잘 살아납니다. 다만 자유로움이 거리감으로 보이지 않도록, 마음이 있는 상대에게는 다음 약속을 분명히 남기는 것이 좋습니다.'
+          : charmAxis==='hwa'
+          ? '당신의 매력은 빠른 고백보다 천천히 깊어지는 대화에서 강합니다. 취향, 음악, 책, 감정선처럼 내면을 보여주는 소재가 관계를 특별하게 만듭니다. 너무 오래 숨으면 차갑게 보일 수 있으니, 좋아하는 마음은 작은 문장으로라도 드러내는 편이 좋습니다.'
+          : '당신의 매력은 편안하게 가까워지는 데 있습니다. 처음부터 강하게 밀어붙이기보다, 안정적인 대화와 꾸준한 반응이 더 좋은 흐름을 만듭니다. 마음에 드는 사람에게는 작은 배려를 반복해 신뢰를 쌓는 방식이 잘 맞습니다.')
+      },
+      {
+        title:'인간관계',
+        text:(dominant==='wood'
+          ? '사람들과의 관계에서는 자연스럽고 다정한 태도가 가장 큰 장점입니다. 누군가를 성장하게 만들거나 분위기를 부드럽게 푸는 역할에 잘 맞습니다. 다만 모두를 챙기려 하면 에너지가 흩어질 수 있으니, 오래 갈 사람에게 더 깊게 마음을 쓰는 편이 좋습니다.'
+          : dominant==='fire'
+          ? '사람들과의 관계에서는 분위기를 띄우고 흐름을 살리는 힘이 강합니다. 모임에서 먼저 웃고 반응하는 것만으로도 사람들은 당신을 중심 인물처럼 기억합니다. 다만 에너지가 강할수록 상대가 압도될 수 있으니, 듣는 시간을 의식적으로 남기면 관계가 더 좋아집니다.'
+          : dominant==='earth'
+          ? '사람들과의 관계에서는 믿고 기대고 싶은 안정감이 강점입니다. 오래 알고 지낼수록 진가가 드러나며, 주변 사람들은 당신을 관계의 기준점처럼 느낄 수 있습니다. 다만 너무 참고 받아주기만 하면 당연한 사람으로 보일 수 있으니, 선을 부드럽게 말하는 연습이 필요합니다.'
+          : dominant==='metal'
+          ? '사람들과의 관계에서는 선명한 기준과 세련된 거리감이 매력입니다. 아무에게나 쉽게 맞추지 않는 태도 때문에 오히려 존중받는 인상이 생깁니다. 다만 차갑게 보일 수 있으니, 가까운 사람에게는 칭찬과 인정 표현을 조금 더 자주 보여주는 것이 좋습니다.'
+          : '사람들과의 관계에서는 깊이 듣고 오래 기억하는 힘이 강점입니다. 상대는 당신과 대화할 때 쉽게 말하지 못한 감정까지 꺼내게 될 수 있습니다. 다만 혼자 생각이 깊어지면 오해가 커질 수 있으니, 중요한 관계에서는 추측보다 확인 질문이 좋습니다.')
+      },
+      {
+        title:'직업/비즈니스',
+        text:(situationTone.business + ' 설명, 발표, 상담, 영업, 운영처럼 사람 자체가 결과의 신뢰도를 높이는 일에 잘 맞습니다. 당신의 말투와 태도, 문제를 바라보는 방식까지 함께 보여주면 단순한 실무자를 넘어 기억되는 사람으로 남습니다.')
+      },
+      {
+        title:'SNS/퍼스널 브랜딩',
+        text:(situationTone.profile + ' 단순히 예쁘게 보이는 것보다 어떤 분위기의 사람인지 드러나는 프로필이 더 잘 맞습니다. 짧은 영상, 스토리, 고정된 색감, 반복되는 말투처럼 사람들이 알아볼 수 있는 시그니처를 만들면 매력이 브랜드가 됩니다.')
+      },
+      {
+        title:'창작/콘텐츠',
+        text:(hwaPct>=40 || dominant==='water'
+          ? '창작에서는 감정적 여운과 세계관을 남기는 콘텐츠에 강합니다. 짧은 글, 상담형 콘텐츠, 타로/사주/심리 해석, 에세이처럼 보는 사람이 자기 이야기를 투영하는 형식이 잘 맞습니다. 설명을 많이 하기보다 한 장면, 한 문장, 한 분위기를 선명하게 남기는 방식이 효과적입니다.'
+          : taoPct>=40 || dominant==='fire'
+          ? '창작에서는 얼굴, 말투, 리액션, 분위기가 함께 보이는 콘텐츠에 강합니다. 라이브, 숏폼, 발표형 영상, 후기 콘텐츠처럼 사람 자체의 에너지가 전달되는 형식이 잘 맞습니다. 다만 자극만 강하면 빨리 소비될 수 있으니, 반복해서 보고 싶은 코너나 콘셉트를 함께 만들어야 합니다.'
+          : yemPct>=40
+          ? '창작에서는 이동, 체험, 변화가 있는 콘텐츠에 강합니다. 여행, 장소 추천, 외부 미팅 기록, 새로운 도전기처럼 장면이 바뀔수록 당신의 매력이 살아납니다. 꾸준히 기록하면 단순한 일상이 아니라 따라가고 싶은 여정으로 보일 수 있습니다.'
+          : '창작에서는 편안하고 신뢰 가는 정보형 콘텐츠에 강합니다. 루틴, 자기계발, 상담형 글, 관계 조언처럼 오래 저장하고 싶은 주제가 잘 맞습니다. 과한 자극보다 꾸준히 다시 찾게 되는 안정적인 톤을 만드는 것이 좋습니다.')
+      },
+      {
+        title:'돈이 되는 활용법',
+        text:((taoPct>=40 || dominant==='fire' || dominant==='water')
+          ? '얼굴, 분위기, 말투, 취향이 곧 브랜드가 될 수 있습니다. 영상 콘텐츠, 상담형 서비스, 강연, 라이브, SNS 브랜딩처럼 사람 자체가 신뢰를 만드는 구조에 잘 맞습니다. 특히 도화와 수 기운이 함께 살아 있으면 궁금해서 계속 보게 되는 콘텐츠에 강점이 있습니다.'
+          : dominant==='metal'
+          ? '기준, 취향, 전문성이 돈이 되는 구조에 잘 맞습니다. 프리미엄 컨설팅, 디자인, 큐레이션, 전문직 이미지, 고급 서비스처럼 선택받고 싶은 욕구를 자극하는 분야가 좋습니다. 가격보다 기준을 먼저 보여주면 당신의 세련된 이미지가 신뢰로 바뀝니다.'
+          : dominant==='earth'
+          ? '안정감과 지속성이 돈이 되는 구조에 잘 맞습니다. 고객관리, 멘토링, 운영 대행, 장기 구독형 서비스처럼 오래 관계를 이어갈수록 가치가 커지는 분야가 좋습니다. 처음부터 크게 터뜨리기보다 재구매와 추천이 쌓이는 모델에서 강합니다.'
+          : '성장감과 다정함이 돈이 되는 구조에 잘 맞습니다. 교육, 커뮤니티, 자기계발 콘텐츠, 상담형 서비스처럼 사람을 더 나은 방향으로 움직이는 분야가 좋습니다. 신뢰가 쌓일수록 브랜드가 커지므로, 꾸준한 기록과 후기가 중요한 자산이 됩니다.')
+      }
+    ].map(function(section){
+      return '<div class="cs-mag-item cs-active">'+
+        '<div class="cs-mag-head"><span class="cs-mag-name">'+section.title+'</span></div>'+
+        '<div class="cs-mag-desc">'+section.text+'</div>'+
+      '</div>';
+    }).join('');
+    function csSectionTitle(icon, title, subtitle){
+      return '<div class="cs-section-heading">'+
+        '<div class="cs-section-title"><span class="cs-section-icon">'+icon+'</span><span>'+title+'</span></div>'+
+        '<div class="cs-section-sub">'+subtitle+'</div>'+
+      '</div>';
+    }
+    var missionPack = {
+      tao: {
+        title:'오늘은 신호를 고르는 날',
+        subtitle:'모두에게 같은 온도를 주지 말고, 마음이 가는 곳에만 선명하게 빛을 남기세요.',
+        tasks:['프로필 사진이나 첫 화면에서 가장 분위기 있는 한 장을 골라보세요.','관심 있는 사람에게만 짧고 분명한 리액션을 남겨보세요.','오늘 받은 시선과 반응 중 기분 좋은 순간을 하나 기록하세요.']
+      },
+      yem: {
+        title:'오늘은 장면을 바꾸는 날',
+        subtitle:'새로운 공간과 움직임이 매력을 깨웁니다. 익숙한 루틴에 작은 이동을 넣어보세요.',
+        tasks:['평소와 다른 길, 카페, 자리에서 하루의 리듬을 시작해보세요.','대화 중 하나는 새로운 제안으로 열어보세요.','움직임이 느껴지는 사진이나 짧은 기록을 남겨보세요.']
+      },
+      hwa: {
+        title:'오늘은 깊이를 보여주는 날',
+        subtitle:'조용한 취향과 생각이 당신의 아우라를 만듭니다. 한 문장만 더 진심으로 남겨보세요.',
+        tasks:['좋아하는 음악, 문장, 이미지 중 하나를 골라 오늘의 분위기로 정하세요.','가벼운 답장 대신 진심이 담긴 한 문장을 보내보세요.','혼자 몰입하는 모습을 콘텐츠나 기록으로 남겨보세요.']
+      },
+      balance: {
+        title:'오늘은 편안함을 선명하게 만드는 날',
+        subtitle:'큰 어필보다 정돈된 태도와 작은 배려가 매력을 오래 남깁니다.',
+        tasks:['오늘 입는 색감이나 향을 하나만 정해 분위기를 통일해보세요.','고마운 사람에게 짧은 인정의 말을 보내보세요.','내가 편안해지는 루틴 하나를 사진이나 메모로 남겨보세요.']
+      }
+    };
+    var mission = missionPack[charmAxis] || missionPack.balance;
+    var missionRows = mission.tasks.map(function(task){
+      return '<div class="cs-mission-task">'+task+'</div>';
+    }).join('');
+    var bombRows = bombs.map(function(f){
+      return '<div class="cs-factbomb-item"><strong>'+f.label+'</strong><span>'+f.text+'</span></div>';
+    }).join('');
+    var stratRows = strategies.map(function(s){
+      return '<div class="cs-strategy-item"><strong>'+s.label+'</strong><span>'+s.text+'</span></div>';
+    }).join('');
 
     var musangMap={'甲':'Majestic Ancient Tree','乙':'Delicate Flower Garden','丙':'Bright Warm Sun',
       '丁':'Twinkling Candlelight','戊':'Golden High Mountain','己':'Cozy Garden Soil',
@@ -4625,38 +5279,39 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
           '<span class="cs-class-icon">'+cls.icon+'</span>'+
           '<div class="cs-class-label">나의 매력 클래스</div>'+
           '<div class="cs-class-name">'+cls.name+'</div>'+
+          '<div class="cs-class-kicker">MOONLIGHT RPG CHARM CARD</div>'+
           '<div class="cs-class-sub">'+cls.sub+'</div>'+
         '</div>'+
         '<div class="cs-divider"></div>'+
+        csSectionTitle('💘','매력 핵심 요약','첫인상, 오래 남는 결, 오해받기 쉬운 이미지를 한 번에 정리합니다.')+
+        '<div class="cs-mag-row">'+coreRows+'</div>'+
+        '<div class="cs-divider"></div>'+
+        csSectionTitle('✨','상황별 매력 발동 리포트','소개팅부터 갈등 상황까지, 언제 어떤 매력이 켜지는지 봅니다.')+
+        '<div class="cs-mag-row">'+situationRows+'</div>'+
+        '<div class="cs-divider"></div>'+
         '<div class="cs-stat-section">'+
-          '<div class="cs-stat-title">⚡ 3대 매력 신살(神殺) 스탯</div>'+
-          '<div class="cs-stat-row">'+
-            '<div class="cs-stat-head"><span class="cs-stat-name">🌸 도화살(桃花殺)</span><span class="cs-stat-pct">'+taoPct+'%</span></div>'+
-            '<div class="cs-stat-keyword">치명적 존재감 · 시선 집중 · 유혹 · 인기 · 연예인 기질</div>'+
-            '<div class="cs-bar-bg"><div class="cs-bar-fill cs-bar-taohua" style="width:'+taoPct+'%"></div></div>'+
-          '</div>'+
-          '<div class="cs-stat-row" style="margin-top:10px">'+
-            '<div class="cs-stat-head"><span class="cs-stat-name">🌪️ 역마살(驛馬殺)</span><span class="cs-stat-pct">'+yemPct+'%</span></div>'+
-            '<div class="cs-stat-keyword">역동적 에너지 · 활력 · 개척자 · 글로벌 감각 · 모험</div>'+
-            '<div class="cs-bar-bg"><div class="cs-bar-fill cs-bar-yemma" style="width:'+yemPct+'%"></div></div>'+
-          '</div>'+
-          '<div class="cs-stat-row" style="margin-top:10px">'+
-            '<div class="cs-stat-head"><span class="cs-stat-name">🔮 화개살(華蓋殺)</span><span class="cs-stat-pct">'+hwaPct+'%</span></div>'+
-            '<div class="cs-stat-keyword">예술적 고독 · 신비로움 · 철학 · 직관 · 묘한 끌림</div>'+
-            '<div class="cs-bar-bg"><div class="cs-bar-fill cs-bar-hwagae" style="width:'+hwaPct+'%"></div></div>'+
-          '</div>'+
+          csSectionTitle('⚡','3대 매력 신살 스탯','도화·역마·화개가 만드는 시선, 이동감, 신비감을 카드로 풉니다.')+
+          sinsalRows+
         '</div>'+
         '<div class="cs-divider"></div>'+
-        '<div class="cs-mag-title">🌈 오행 매력 마그네티즘(Magnetism)</div>'+
+        csSectionTitle('🌈','오행 매력 마그네티즘','목·화·토·금·수의 분위기와 스타일 활용처를 확장해서 보여줍니다.')+
         '<div class="cs-mag-row">'+magRow+'</div>'+
         '<div class="cs-divider"></div>'+
+        csSectionTitle('🎯','이 매력을 써먹기 좋은 무대','연애, 관계, 일, 브랜딩, 콘텐츠, 수익화 방향을 현실적으로 제안합니다.')+
+        '<div class="cs-mag-row">'+stageRows+'</div>'+
+        '<div class="cs-divider"></div>'+
         '<div class="cs-factbomb">'+
-          '<div class="cs-factbomb-title">💥 팩폭 — 당신이 착각하고 있는 것들</div>'+
+          '<div class="cs-factbomb-title"><span>💥</span><span>팩폭 카드</span><small>매력이 오해로 바뀌는 지점</small></div>'+
           bombRows+
         '</div>'+
         '<div class="cs-strategy">'+
-          '<div class="cs-strategy-title">🚀 매력 극대화 천기 처방전</div>'+
+          '<div class="cs-strategy-title"><span>🚀</span><span>천기 처방전 카드</span><small>오늘부터 써먹는 매력 운용법</small></div>'+
           stratRows+
+        '</div>'+
+        '<div class="cs-mission">'+
+          '<div class="cs-mission-title"><span>🌙</span><span>오늘의 매력 미션 카드</span></div>'+
+          '<div class="cs-mission-sub">'+mission.title+' · '+mission.subtitle+'</div>'+
+          '<div class="cs-mission-list">'+missionRows+'</div>'+
         '</div>'+
       '</div>'+
       '</div>';
@@ -21599,269 +22254,966 @@ function findSimilarCelebs(p){
 /* ══════════════════════════════════════════
    💀 요주의 빌런 블랙리스트 렌더
 ══════════════════════════════════════════ */
+var SAJU_VILLAIN_TEN_GOD_GROUP = {
+  '비견': '비겁', '겁재': '비겁',
+  '식신': '식상', '상관': '식상',
+  '정재': '재성', '편재': '재성',
+  '정관': '관성', '편관': '관성',
+  '정인': '인성', '편인': '인성'
+};
+
+function _sajuVillainToArray(value) {
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (value == null || value === '') return [];
+  return [value];
+}
+
+function _sajuVillainUnique(list) {
+  var seen = {};
+  var out = [];
+  (list || []).forEach(function(item) {
+    var key = String(item || '').trim();
+    if (!key || seen[key]) return;
+    seen[key] = true;
+    out.push(item);
+  });
+  return out;
+}
+
+function _sajuVillainClamp(value, min, max) {
+  var n = Number(value);
+  if (!isFinite(n)) n = min;
+  return Math.max(min, Math.min(max, n));
+}
+
+function _sajuVillainElementKo(element) {
+  var map = { wood:'목', fire:'화', earth:'토', metal:'금', water:'수' };
+  return map[element] || String(element || '');
+}
+
+function _sajuVillainElementFull(element) {
+  return (typeof EL_K === 'object' && EL_K && EL_K[element]) ? EL_K[element] : _sajuVillainElementKo(element);
+}
+
+function _sajuVillainTenGodGroupFromElement(dayElement, targetElement) {
+  var order = ['wood', 'fire', 'earth', 'metal', 'water'];
+  var dayIdx = order.indexOf(dayElement);
+  var targetIdx = order.indexOf(targetElement);
+  if (dayIdx < 0 || targetIdx < 0) return '';
+  var diff = (targetIdx - dayIdx + 5) % 5;
+  return ({ 0:'비겁', 1:'식상', 2:'재성', 3:'관성', 4:'인성' })[diff] || '';
+}
+
+function _sajuVillainNormalizeElements(raw) {
+  var source = raw && raw.ratios ? raw.ratios : raw;
+  var out = { wood:0, fire:0, earth:0, metal:0, water:0 };
+  ['wood', 'fire', 'earth', 'metal', 'water'].forEach(function(key) {
+    var n = source && source[key] != null ? Number(source[key]) : 0;
+    out[key] = isFinite(n) ? n : 0;
+  });
+  return out;
+}
+
+function _sajuVillainGetDominantElement(natal, ratios) {
+  if (natal && natal.dominant) return natal.dominant;
+  var winner = 'wood';
+  ['wood', 'fire', 'earth', 'metal', 'water'].forEach(function(key) {
+    if (Number(ratios[key] || 0) > Number(ratios[winner] || 0)) winner = key;
+  });
+  return winner;
+}
+
+function _sajuVillainBuildTenGodDistribution(p) {
+  var dayGan = p && p.d && p.d.g;
+  var slots = [
+    p && p.y && p.y.g,
+    p && p.y && p.y.j,
+    p && p.m && p.m.g,
+    p && p.m && p.m.j,
+    p && p.d && p.d.j,
+    p && p.h && p.h.g,
+    p && p.h && p.h.j
+  ].filter(Boolean);
+  var groups = { 비겁:0, 식상:0, 재성:0, 관성:0, 인성:0 };
+  var exact = { 비견:0, 겁재:0, 식신:0, 상관:0, 편재:0, 정재:0, 편관:0, 정관:0, 편인:0, 정인:0 };
+
+  slots.forEach(function(code) {
+    var tenGod = getTenGod(dayGan, code);
+    if (!tenGod || tenGod === '?') return;
+    if (exact[tenGod] == null) exact[tenGod] = 0;
+    exact[tenGod] += 1;
+    var group = SAJU_VILLAIN_TEN_GOD_GROUP[tenGod];
+    if (group) groups[group] += 1;
+  });
+
+  return { groups: groups, exact: exact, total: slots.length };
+}
+
+function _sajuVillainBuildBranchRelations(p) {
+  var slots = [
+    { key:'year', label:'년지', branch:p && p.y && p.y.j },
+    { key:'month', label:'월지', branch:p && p.m && p.m.j },
+    { key:'day', label:'일지', branch:p && p.d && p.d.j },
+    { key:'hour', label:'시지', branch:p && p.h && p.h.j }
+  ].filter(function(row) { return !!row.branch; });
+  var chongMap = {'子':'午','午':'子','丑':'未','未':'丑','寅':'申','申':'寅','卯':'酉','酉':'卯','辰':'戌','戌':'辰','巳':'亥','亥':'巳'};
+  var wonjinMap = {'子':'未','未':'子','丑':'午','午':'丑','寅':'酉','酉':'寅','卯':'申','申':'卯','辰':'亥','亥':'辰','巳':'戌','戌':'巳'};
+  var paMap = {'子':'酉','酉':'子','丑':'辰','辰':'丑','寅':'亥','亥':'寅','卯':'午','午':'卯','巳':'申','申':'巳','未':'戌','戌':'未'};
+  var haeMap = {'子':'未','未':'子','丑':'午','午':'丑','寅':'巳','巳':'寅','卯':'辰','辰':'卯','申':'亥','亥':'申','酉':'戌','戌':'酉'};
+  var conflict = [];
+  var wonjin = [];
+  var seen = {};
+
+  function pushRelation(target, type, left, right) {
+    var key = type + ':' + [left.key, right.key].sort().join('-') + ':' + [left.branch, right.branch].sort().join('-');
+    if (seen[key]) return;
+    seen[key] = true;
+    target.push({
+      type: type,
+      branches: [left.branch, right.branch],
+      positions: [left.label, right.label],
+      label: left.label + ' ' + left.branch + ' · ' + right.label + ' ' + right.branch
+    });
+  }
+
+  for (var i = 0; i < slots.length; i += 1) {
+    for (var j = i + 1; j < slots.length; j += 1) {
+      var left = slots[i], right = slots[j];
+      if (chongMap[left.branch] === right.branch) pushRelation(conflict, '충', left, right);
+      if (paMap[left.branch] === right.branch) pushRelation(conflict, '파', left, right);
+      if (haeMap[left.branch] === right.branch) pushRelation(conflict, '해', left, right);
+      if (wonjinMap[left.branch] === right.branch) pushRelation(wonjin, '원진', left, right);
+    }
+  }
+
+  function hasAll(branches) {
+    return branches.every(function(branch) {
+      return slots.some(function(row) { return row.branch === branch; });
+    });
+  }
+  if (hasAll(['寅','巳','申'])) conflict.push({ type:'형', branches:['寅','巳','申'], positions:['원국'], label:'인·사·신 형살 축' });
+  if (hasAll(['丑','未','戌'])) conflict.push({ type:'형', branches:['丑','未','戌'], positions:['원국'], label:'축·미·술 형살 축' });
+  if (hasAll(['子','卯'])) conflict.push({ type:'형', branches:['子','卯'], positions:['원국'], label:'자·묘 형살 축' });
+  ['辰','午','酉','亥'].forEach(function(branch) {
+    var repeated = slots.filter(function(row) { return row.branch === branch; });
+    if (repeated.length >= 2) conflict.push({ type:'형', branches:[branch], positions:repeated.map(function(row){return row.label;}), label:branch + ' 자형 반복' });
+  });
+
+  return { conflictRelations: conflict, wonjinRelations: wonjin };
+}
+
+function _sajuVillainExtractMajorSinsal(p) {
+  var branches = [
+    { label:'년지', branch:p && p.y && p.y.j },
+    { label:'월지', branch:p && p.m && p.m.j },
+    { label:'일지', branch:p && p.d && p.d.j },
+    { label:'시지', branch:p && p.h && p.h.j }
+  ].filter(function(row) { return !!row.branch; });
+  var dayPillar = (p && p.d && p.d.g ? p.d.g : '') + (p && p.d && p.d.j ? p.d.j : '');
+  var result = [];
+
+  function pushByBranches(id, name, targetBranches) {
+    var positions = branches.filter(function(row) { return targetBranches.indexOf(row.branch) >= 0; }).map(function(row) { return row.label; });
+    if (positions.length) result.push({ id:id, name:name, positions:positions, label:name + '(' + positions.join('·') + ')' });
+  }
+
+  pushByBranches('dohwa', '도화살', ['子','午','卯','酉']);
+  pushByBranches('yeokma', '역마살', ['寅','申','巳','亥']);
+  pushByBranches('hwagae', '화개살', ['辰','戌','丑','未']);
+  if (['甲午','丙寅','丁未','戊辰','庚戌','辛酉','壬子'].indexOf(dayPillar) >= 0) {
+    result.push({ id:'hongyeom', name:'홍염살', positions:['일주'], label:'홍염살(일주 ' + dayPillar + ')' });
+  }
+  return result;
+}
+
+function _sajuVillainNormalizeLuckFlow(input, dayElement) {
+  var currentLuckFlow = input.currentLuckFlow;
+  if (currentLuckFlow && !Array.isArray(currentLuckFlow)) {
+    return {
+      active: currentLuckFlow.active || currentLuckFlow,
+      tenGodGroups: _sajuVillainToArray(currentLuckFlow.tenGodGroups || currentLuckFlow.tenGodGroup),
+      elements: _sajuVillainToArray(currentLuckFlow.elements || currentLuckFlow.element)
+    };
+  }
+
+  var rows = Array.isArray(currentLuckFlow) ? currentLuckFlow : _sajuVillainToArray(input.daewun);
+  var currentAge = Number(input.currentAge || 0);
+  var active = null;
+  rows.forEach(function(row) {
+    if (!row) return;
+    if (!active) active = row;
+    if (currentAge && Number(row.age) <= currentAge && Number(row.age) >= Number(active.age || 0)) active = row;
+  });
+  var elements = active ? [active.gE, active.jE].filter(Boolean) : [];
+  return {
+    active: active,
+    elements: elements,
+    tenGodGroups: _sajuVillainUnique(elements.map(function(element) {
+      return _sajuVillainTenGodGroupFromElement(dayElement, element);
+    }).filter(Boolean))
+  };
+}
+
+function _sajuVillainBuildContext(input) {
+  input = input || {};
+  var p = input.pillars || input.p || {};
+  var power = input.power || {};
+  var natal = input.natal || input.fiveElementsDistribution || {};
+  var ratios = _sajuVillainNormalizeElements(natal);
+  var tenGods = input.tenGodsDistribution || _sajuVillainBuildTenGodDistribution(p);
+  var relationData = _sajuVillainBuildBranchRelations(p);
+  var dayElement = power.dayEl || (p.d && p.d.gE) || (p.d && p.d.g && GAN[p.d.g] && GAN[p.d.g].e) || '';
+  var harmfulGods = _sajuVillainUnique([]
+    .concat(_sajuVillainToArray(input.harmfulGods))
+    .concat(_sajuVillainToArray(input.kijishin))
+    .concat(_sajuVillainToArray(input.gisin))
+    .concat(_sajuVillainToArray(input.gishin))
+    .concat(_sajuVillainToArray(input.gushin))
+    .concat(_sajuVillainToArray(power.kijishin)));
+  var usefulGods = _sajuVillainToArray(input.usefulGods || input.yongshin || power.yongshin);
+  var harmfulTenGodGroups = _sajuVillainUnique(harmfulGods.map(function(element) {
+    return _sajuVillainTenGodGroupFromElement(dayElement, element);
+  }).filter(Boolean));
+  var luckFlow = _sajuVillainNormalizeLuckFlow(input, dayElement);
+  var majorSinsal = _sajuVillainToArray(input.majorSinsal || _sajuVillainExtractMajorSinsal(p));
+  var conflictRelations = _sajuVillainToArray(input.conflictRelations || relationData.conflictRelations);
+  var wonjinRelations = _sajuVillainToArray(input.wonjinRelations || relationData.wonjinRelations);
+
+  return {
+    pillars: p,
+    tenGodsDistribution: tenGods.groups || tenGods,
+    exactTenGodsDistribution: tenGods.exact || {},
+    fiveElementsDistribution: ratios,
+    dominantElement: _sajuVillainGetDominantElement(natal, ratios),
+    dayMasterStrength: input.dayMasterStrength || (typeof power.isStrong === 'boolean' ? (power.isStrong ? '신강' : '신약') : ''),
+    hasStrengthData: typeof power.isStrong === 'boolean',
+    isStrong: typeof power.isStrong === 'boolean' ? !!power.isStrong : null,
+    usefulGods: usefulGods,
+    harmfulGods: harmfulGods,
+    harmfulTenGodGroups: harmfulTenGodGroups,
+    conflictRelations: conflictRelations,
+    wonjinRelations: wonjinRelations,
+    majorSinsal: majorSinsal,
+    currentLuckFlow: luckFlow,
+    userProfileName: input.userProfileName || (typeof USER_NAME !== 'undefined' && USER_NAME ? USER_NAME : '당신')
+  };
+}
+
+function _sajuVillainHasSinsal(ctx, id) {
+  return (ctx.majorSinsal || []).some(function(item) {
+    if (!item) return false;
+    if (typeof item === 'string') return item.indexOf(id) >= 0 || item.indexOf({dohwa:'도화',hongyeom:'홍염',yeokma:'역마',hwagae:'화개'}[id] || id) >= 0;
+    return item.id === id || String(item.name || '').indexOf({dohwa:'도화',hongyeom:'홍염',yeokma:'역마',hwagae:'화개'}[id] || id) >= 0;
+  });
+}
+
+function _sajuVillainRiskRank(score) {
+  if (score >= 85) return 'S';
+  if (score >= 70) return 'A+';
+  if (score >= 55) return 'A';
+  if (score >= 40) return 'B';
+  return '관찰';
+}
+
+var SAJU_VILLAIN_SCORE_RULES = {
+  'profit-drain': {
+    tenGodGroups:['재성'],
+    weakDefenseGroups:['비겁'],
+    elements:['earth'],
+    conflictTypes:['충','파','해'],
+    sinsals:[],
+    luckTenGodGroups:['재성'],
+    riskAreas:['돈','직장/사업','친구'],
+    defenseKeyword:'계좌 분리 · 선입금 · 증빙'
+  },
+  'emotional-pressure': {
+    tenGodGroups:['관성'],
+    weakDefenseGroups:['비겁'],
+    elements:['fire'],
+    conflictTypes:['충','원진','형'],
+    sinsals:['hwagae'],
+    luckTenGodGroups:['관성'],
+    riskAreas:['연애','가족','직장/사업'],
+    defenseKeyword:'즉답 금지 · 감정 분리'
+  },
+  'verbal-confuser': {
+    tenGodGroups:['식상'],
+    weakDefenseGroups:['관성'],
+    elements:['water','fire'],
+    elementPair:['water','fire'],
+    conflictTypes:['충','파','해'],
+    sinsals:['dohwa','hongyeom'],
+    luckTenGodGroups:['식상'],
+    riskAreas:['친구','직장/사업','연애'],
+    defenseKeyword:'텍스트 기록 · 결론 재확인'
+  },
+  'dependency-drain': {
+    tenGodGroups:['인성'],
+    weakDefenseGroups:['비겁'],
+    elements:['water'],
+    conflictTypes:['원진','해'],
+    sinsals:['hwagae'],
+    luckTenGodGroups:['인성'],
+    riskAreas:['가족','친구','연애'],
+    defenseKeyword:'시간 제한 · 감정 노동 한도'
+  },
+  'competition-theft': {
+    tenGodGroups:['비겁'],
+    weakDefenseGroups:['재성'],
+    elements:['wood'],
+    conflictTypes:['충','형','파'],
+    sinsals:['yeokma'],
+    luckTenGodGroups:['비겁'],
+    riskAreas:['직장/사업','친구','돈'],
+    defenseKeyword:'역할 분리 · 성과 기록'
+  },
+  'romance-chaos': {
+    tenGodGroups:['재성','관성'],
+    weakDefenseGroups:['인성'],
+    elements:['water','fire'],
+    elementPair:['water','fire'],
+    conflictTypes:['충','원진'],
+    sinsals:['dohwa','hongyeom'],
+    luckTenGodGroups:['재성','관성'],
+    riskAreas:['연애','친구','돈'],
+    defenseKeyword:'관계 정의 · 속도 조절'
+  },
+  'authority-control': {
+    tenGodGroups:['관성'],
+    weakDefenseGroups:['식상'],
+    elements:['metal'],
+    conflictTypes:['형','충'],
+    sinsals:['hwagae'],
+    luckTenGodGroups:['관성'],
+    riskAreas:['직장/사업','가족','돈'],
+    defenseKeyword:'권한 확인 · 공식 채널'
+  }
+};
+
+function _sajuVillainRuleFor(id) {
+  return SAJU_VILLAIN_SCORE_RULES[id] || {
+    tenGodGroups:[],
+    weakDefenseGroups:[],
+    elements:[],
+    conflictTypes:[],
+    sinsals:[],
+    luckTenGodGroups:[],
+    riskAreas:['관계'],
+    defenseKeyword:'경계선 점검'
+  };
+}
+
+function _sajuVillainHasTenGodData(ctx) {
+  var dist = ctx && ctx.tenGodsDistribution ? ctx.tenGodsDistribution : {};
+  return ['비겁','식상','재성','관성','인성'].some(function(key) {
+    return Number(dist[key] || 0) > 0;
+  });
+}
+
+function _sajuVillainHasElementData(ctx) {
+  var dist = ctx && ctx.fiveElementsDistribution ? ctx.fiveElementsDistribution : {};
+  return ['wood','fire','earth','metal','water'].some(function(key) {
+    return Number(dist[key] || 0) > 0;
+  });
+}
+
+function _sajuVillainIntersects(a, b) {
+  var right = _sajuVillainToArray(b);
+  return _sajuVillainToArray(a).some(function(item) {
+    return right.indexOf(item) >= 0;
+  });
+}
+
+function _sajuVillainMatchedItems(a, b) {
+  var right = _sajuVillainToArray(b);
+  return _sajuVillainToArray(a).filter(function(item) {
+    return right.indexOf(item) >= 0;
+  });
+}
+
+function _sajuVillainCountTenGod(ctx, group) {
+  var dist = ctx && ctx.tenGodsDistribution ? ctx.tenGodsDistribution : {};
+  var n = Number(dist[group] || 0);
+  return isFinite(n) ? n : 0;
+}
+
+function _sajuVillainHasRelationSignal(ctx, relationTypes) {
+  var types = _sajuVillainToArray(relationTypes);
+  var conflict = _sajuVillainToArray(ctx && ctx.conflictRelations);
+  var wonjin = _sajuVillainToArray(ctx && ctx.wonjinRelations);
+  if (types.indexOf('원진') >= 0 && wonjin.length > 0) return true;
+  return conflict.some(function(row) {
+    return row && types.indexOf(row.type) >= 0;
+  });
+}
+
+function _sajuVillainSinsalName(id) {
+  return ({ dohwa:'도화살', hongyeom:'홍염살', yeokma:'역마살', hwagae:'화개살' })[id] || id;
+}
+
+function _sajuVillainElementSignal(ctx, rule) {
+  if (!_sajuVillainHasElementData(ctx)) return '';
+  var ratios = ctx.fiveElementsDistribution || {};
+  var harmful = _sajuVillainToArray(ctx.harmfulGods);
+  var elements = _sajuVillainToArray(rule.elements);
+  var matchedHarmful = elements.filter(function(element) { return harmful.indexOf(element) >= 0; });
+  if (matchedHarmful.length) return matchedHarmful.map(_sajuVillainElementFull).join('·') + ' 기신 오행';
+
+  var overheated = elements.filter(function(element) { return Number(ratios[element] || 0) >= 30; });
+  if (overheated.length) return overheated.map(_sajuVillainElementFull).join('·') + ' 과다';
+
+  if (rule.elementPair && rule.elementPair.length === 2) {
+    var first = Number(ratios[rule.elementPair[0]] || 0);
+    var second = Number(ratios[rule.elementPair[1]] || 0);
+    if (first >= 24 && second >= 24) {
+      return rule.elementPair.map(_sajuVillainElementFull).join('·') + ' 동시 자극';
+    }
+  }
+  return '';
+}
+
+function _sajuVillainLuckSignal(ctx, rule) {
+  var luck = (ctx && ctx.currentLuckFlow) || {};
+  var luckGroups = _sajuVillainToArray(luck.tenGodGroups);
+  var luckElements = _sajuVillainToArray(luck.elements);
+  var matchedGroups = _sajuVillainMatchedItems(rule.luckTenGodGroups || rule.tenGodGroups, luckGroups);
+  if (matchedGroups.length) return matchedGroups.join('·') + ' 대운 자극';
+  var matchedElements = _sajuVillainMatchedItems(rule.elements, luckElements);
+  if (matchedElements.length) return matchedElements.map(_sajuVillainElementFull).join('·') + ' 대운 자극';
+  return '';
+}
+
+function _sajuVillainScoreProfile(ctx, blueprint, activatedBy) {
+  var rule = _sajuVillainRuleFor(blueprint && blueprint.id);
+  var score = 0;
+
+  // 사주 엔진에서 실제로 확인된 값만 점수에 더한다. 십성·오행·대운 데이터가 없으면 해당 항목은 0점으로 둔다.
+  function add(condition, label, point) {
+    if (!condition) return;
+    var safePoint = Number(point || 0);
+    if (!isFinite(safePoint) || safePoint <= 0) return;
+    score += safePoint;
+    activatedBy.push(label + ' +' + safePoint);
+  }
+
+  var hasTenGodData = _sajuVillainHasTenGodData(ctx);
+  var harmfulMatch = _sajuVillainMatchedItems(rule.tenGodGroups, ctx && ctx.harmfulTenGodGroups);
+  add(hasTenGodData && harmfulMatch.length > 0, '기신/구신 십성 ' + harmfulMatch.join('·'), 20);
+
+  var excessiveGroups = _sajuVillainToArray(rule.tenGodGroups).filter(function(group) {
+    return _sajuVillainCountTenGod(ctx, group) >= 2;
+  });
+  add(hasTenGodData && excessiveGroups.length > 0, '과다 십성 ' + excessiveGroups.join('·'), 15);
+
+  var weakDefense = _sajuVillainToArray(rule.weakDefenseGroups).filter(function(group) {
+    return _sajuVillainCountTenGod(ctx, group) <= 0;
+  });
+  add(hasTenGodData && weakDefense.length > 0, '방어축 부족 ' + weakDefense.join('·'), 10);
+
+  var elementSignal = _sajuVillainElementSignal(ctx, rule);
+  add(!!elementSignal, '오행 충돌 ' + elementSignal, 10);
+
+  add(_sajuVillainHasRelationSignal(ctx, rule.conflictTypes), '충·원진·형·파·해 관계 피로 축', 10);
+  add(ctx && ctx.hasStrengthData && ctx.isStrong === false, '신약 경계선 피로', 10);
+
+  _sajuVillainToArray(rule.sinsals).forEach(function(id) {
+    var point = (id === 'dohwa' || id === 'hongyeom') ? 10 : 5;
+    add(_sajuVillainHasSinsal(ctx, id), '신살 자극 ' + _sajuVillainSinsalName(id), point);
+  });
+
+  var luckSignal = _sajuVillainLuckSignal(ctx, rule);
+  add(!!luckSignal, '현재 대운 흐름 ' + luckSignal, 10);
+
+  return _sajuVillainClamp(Math.round(score), 0, 100);
+}
+
+function _sajuVillainReason(profileName, blueprint, ctx, activatedBy) {
+  var signals = activatedBy.length ? activatedBy.slice(0, 4).join(' · ') : '강한 위험 신호보다 기본 관계 점검 신호';
+  var harmful = ctx.harmfulGods.length ? ctx.harmfulGods.map(_sajuVillainElementFull).join('·') : '뚜렷하게 확인된 기신 오행 없음';
+  var useful = ctx.usefulGods.length ? ctx.usefulGods.map(_sajuVillainElementFull).join('·') : '현재 화면 데이터 기준 미확인';
+  return profileName + '님의 사주 데이터에서 ' + signals + '가 감지됩니다. 용신 흐름은 ' + useful + ', 기신 흐름은 ' + harmful + '로 잡혀 있으므로 ' + blueprint.koreanName + ' 패턴을 만날 때는 초반부터 기준을 부드럽지만 분명하게 세우는 편이 좋습니다.';
+}
+
+var SAJU_VILLAIN_BLUEPRINTS = [
+  {
+    id:'profit-drain',
+    codeName:'DRAIN BROKER',
+    koreanName:'손익 흡혈형',
+    subtitle:'돈, 시간, 기회의 경계선을 흐리는 정산 교란 패턴',
+    montage:'항상 사정은 급하고 정산 이야기는 뒤로 밀립니다. 처음에는 작은 부탁처럼 보이지만, 시간이 지나면 돈·기회·노동의 경계가 한꺼번에 흐려지는 분위기를 만듭니다.',
+    approachPattern:'이 유형은 “우리 사이에 이 정도는 괜찮지?”라는 말로 들어옵니다. 호의와 거래를 섞어 판단을 흐리게 만들기 때문에, 초반부터 금액·기한·증빙을 분리해야 합니다.',
+    redFlags:['정산 날짜를 계속 미루며 분위기로 넘어가려 합니다.','공동구매·투자·기회 제안을 빠르게 결정하라고 재촉합니다.','내가 낸 돈과 상대가 낸 돈의 기준을 흐립니다.','성과가 나오면 자기 역할을 크게 말하고 손실은 함께 나누려 합니다.','계약서, 영수증, 이체 내역 이야기를 불편해합니다.'],
+    conflictTrigger:['정산일 직전','공동 지출이 생기는 날','투자·구매 제안이 들어오는 시점','성과 배분을 정해야 하는 회의'],
+    relationshipZones:{ money:'돈은 호의와 분리하세요. 계좌, 한도, 기한, 증빙이 없는 지출은 관계 테스트가 아니라 손실 신호입니다.', romance:'데이트 비용과 선물의 균형을 초반에 맞추세요. 감정이 깊어질수록 돈 기준을 말하기 어려워집니다.', work:'성과 귀속과 업무 범위를 문서로 남기세요. 말로만 정한 역할은 나중에 쉽게 흐려집니다.', family:'가족이라도 반복 지원은 한도를 정해야 합니다. 도와주는 것과 책임을 떠안는 것은 다릅니다.', friendship:'친구 사이 돈거래는 금액보다 반복성이 위험합니다. 한 번 거절해도 관계가 유지되는지 확인하세요.' },
+    defenseGuide:['계좌와 지출 항목을 분리합니다.','선입금·선정산 원칙을 세웁니다.','구두 약속 대신 문자로 남깁니다.','빌려줄 수 있는 금액보다 잃어도 되는 금액을 기준으로 정합니다.','공동 작업은 역할, 마감, 배분표를 먼저 만듭니다.'],
+    emergencyLines:['지금은 돈이 섞이는 결정은 하지 않을게요.','정산 기준을 문자로 먼저 정리한 뒤 이야기해요.','증빙 없이 진행하는 건 제 원칙과 맞지 않습니다.'],
+    checklist:['최근 부탁을 거절했을 때 죄책감보다 기준을 먼저 떠올렸다.','공동 지출은 금액과 기한을 기록해두고 있다.','투자나 구매 제안은 하루 이상 시간을 두고 결정한다.','친한 사람과도 돈 이야기를 불편해하지 않고 말할 수 있다.','내 몫과 상대 몫을 구분하는 문장을 준비해두었다.'],
+    yeoniAdvice:'마음이 약해서 손해 보는 게 아니라, 기준을 늦게 꺼내서 피곤해지는 거예요. 다정함은 남겨두되 돈의 문은 천천히 열어도 충분해요.',
+    neoAdvice:'돈 얘기 흐리면 멈춰. 숫자, 기한, 증빙 없으면 관계가 아니라 리스크다.',
+    score:function(ctx, add) {
+      add(ctx.tenGodsDistribution.재성 >= 2, '재성 축이 강하게 드러남', 22);
+      add(ctx.harmfulTenGodGroups.indexOf('재성') >= 0, '기신 오행이 재성으로 작동', 24);
+      add(ctx.currentLuckFlow.tenGodGroups.indexOf('재성') >= 0, '현재 대운 흐름에서 재성 자극', 12);
+      add(ctx.fiveElementsDistribution[ctx.dominantElement] >= 32 && ctx.harmfulGods.indexOf(ctx.dominantElement) >= 0, '강한 오행이 기신과 겹침', 10);
+      add(!ctx.isStrong, '신약 흐름이라 손익 압박에 피로가 누적되기 쉬움', 8);
+      return 24;
+    }
+  },
+  {
+    id:'emotional-pressure',
+    codeName:'GUILT PRESS',
+    koreanName:'감정 협박형',
+    subtitle:'죄책감과 압박으로 선택권을 좁히는 감정 경보 패턴',
+    montage:'대화의 온도가 갑자기 올라가고, 거절하는 순간 내가 나쁜 사람이 된 듯한 공기가 만들어집니다. 핵심은 분노가 아니라 죄책감으로 판단을 흔드는 방식입니다.',
+    approachPattern:'처음에는 서운함을 말하는 것처럼 다가오지만, 곧 “네가 나를 이해해야 한다”는 방향으로 기울어집니다. 즉답하지 않고 감정과 사실을 분리하면 휘둘림이 줄어듭니다.',
+    redFlags:['거절하면 서운함을 크게 키워 죄책감을 줍니다.','감정이 올라온 상태에서 즉시 답을 요구합니다.','사과를 했는데도 같은 사건을 반복해서 꺼냅니다.','관계를 위계처럼 만들고 내 선택을 평가합니다.','분노 뒤에 “널 위해서 그랬다”는 말을 붙입니다.'],
+    conflictTrigger:['마감 직전','피로가 누적된 밤 시간','원진·충 관계가 자극되는 만남','가족·연인 사이 책임 이야기가 나오는 순간'],
+    relationshipZones:{ money:'감정적으로 급한 송금 요청은 하루 미루세요. 급한 감정과 급한 돈은 분리해야 합니다.', romance:'사랑을 증명하라는 요구가 반복되면 속도를 늦추세요. 애정은 시험지가 아닙니다.', work:'상사의 압박과 실제 권한 범위를 구분하세요. 지시 내용은 공식 채널에 남기는 편이 안전합니다.', family:'효도나 의무라는 말로 모든 요구를 받아들이지 마세요. 가능한 범위를 먼저 말해야 오래 돕습니다.', friendship:'친구의 감정을 달래주되 내 일정을 계속 희생하지 마세요. 정서 지원에도 한도가 필요합니다.' },
+    defenseGuide:['즉답하지 않고 시간을 확보합니다.','상대 감정과 실제 요청을 분리해 적습니다.','거절 문장은 짧게 끝냅니다.','통화보다 문자 기록을 남깁니다.','반복 압박은 대화 주제를 닫고 거리두기를 실행합니다.'],
+    emergencyLines:['지금 감정이 올라와서 바로 결정하지 않겠습니다.','그 요청은 제가 감당할 수 있는 범위를 넘습니다.','이 이야기는 기록으로 정리한 뒤 다시 확인하겠습니다.'],
+    checklist:['감정적으로 압박받을 때 바로 답하지 않는다.','상대의 서운함과 내 책임을 구분할 수 있다.','거절 후에도 길게 해명하지 않는 연습을 하고 있다.','중요한 요구는 문자나 메모로 남긴다.','분노가 반복되는 관계에서는 만남 빈도를 조절한다.'],
+    yeoniAdvice:'상대의 마음을 이해하려는 태도는 아름답지만, 그 마음을 전부 책임질 필요는 없어요. 잠깐 멈추고 내 숨을 먼저 챙겨도 관계는 무너지지 않아요.',
+    neoAdvice:'죄책감으로 밀고 들어오면 답하지 마. 감정은 듣고, 결정은 나중에 해.',
+    score:function(ctx, add) {
+      add(ctx.tenGodsDistribution.관성 >= 2, '관성 압박 축이 강함', 20);
+      add(ctx.harmfulTenGodGroups.indexOf('관성') >= 0, '기신 오행이 관성으로 작동', 24);
+      add(ctx.fiveElementsDistribution.fire >= 30, '화 기운 과열 신호', 12);
+      add(ctx.conflictRelations.some(function(row){return row.type === '충';}), '원국 충 관계 감지', 12);
+      add(ctx.wonjinRelations.length > 0, '원진 관계 감지', 10);
+      add(!ctx.isStrong, '신약 흐름이라 감정 압박에 소모되기 쉬움', 10);
+      return 22;
+    }
+  },
+  {
+    id:'verbal-confuser',
+    codeName:'NOISE CUTTER',
+    koreanName:'말빨 교란형',
+    subtitle:'말을 많이 만들수록 결론이 흐려지는 대화 교란 패턴',
+    montage:'말은 빠르고 분위기는 그럴듯하지만, 대화가 끝나면 무엇을 합의했는지 남지 않습니다. 핵심은 설득력이 아니라 결론을 흐리는 속도입니다.',
+    approachPattern:'처음에는 재치와 정보력으로 끌어당깁니다. 하지만 논점이 자주 바뀐다면 대화를 멈추고 “그래서 결론이 무엇인지” 텍스트로 다시 잡아야 합니다.',
+    redFlags:['방금 한 말을 상황에 따라 다르게 설명합니다.','질문에 답하지 않고 내 태도를 문제 삼습니다.','대화가 길어질수록 처음 주제가 사라집니다.','책임 소재를 농담이나 분위기로 넘깁니다.','기록으로 남기자고 하면 갑자기 불편해합니다.'],
+    conflictTrigger:['메신저 공방','회의 후반 피로 구간','여러 사람이 보는 공개 댓글','수·화 기운이 동시에 과열되는 날'],
+    relationshipZones:{ money:'말로 약속한 정산은 약속이 아닙니다. 금액, 날짜, 입금자를 텍스트로 확정하세요.', romance:'달콤한 말보다 행동의 반복성을 보세요. 말이 많고 일정이 비면 혼란이 커집니다.', work:'회의록과 액션 아이템을 남기세요. 말 잘하는 사람이 결론까지 가져가게 두면 안 됩니다.', family:'가족 대화에서도 주제가 바뀌면 원래 요청으로 돌아오세요. 감정 설명이 사실 확인을 대신할 수 없습니다.', friendship:'친구의 말재주에 웃더라도 중요한 약속은 캡처 가능한 채널에서 확인하세요.' },
+    defenseGuide:['대화 후 결론을 한 문장으로 재확인합니다.','중요한 약속은 텍스트로 남깁니다.','논점이 바뀌면 원래 질문으로 돌아옵니다.','감정 평가보다 사실 확인 질문을 사용합니다.','길어지는 말싸움은 중단 시간을 정합니다.'],
+    emergencyLines:['지금 논점이 바뀌었어요. 원래 질문에 먼저 답해주세요.','말보다 합의 내용을 문자로 남기겠습니다.','이 대화는 여기서 멈추고 결론만 다시 확인하겠습니다.'],
+    checklist:['중요한 대화 뒤에 합의 내용을 직접 적어둔다.','상대가 논점을 바꿀 때 원래 질문으로 돌아올 수 있다.','말싸움이 길어지면 중단 시간을 선언한다.','상대의 표현보다 행동 기록을 더 신뢰한다.','공개 자리에서 나온 말은 별도로 확인한다.'],
+    yeoniAdvice:'말이 많은 관계일수록 마음이 아니라 기준이 길을 잡아줘요. 다정하게 들어주되, 마지막에는 꼭 한 문장으로 결론을 확인해보세요.',
+    neoAdvice:'말 잘하는 사람보다 기록 남기는 사람이 이긴다. 결론 없으면 대화 종료.',
+    score:function(ctx, add) {
+      add(ctx.tenGodsDistribution.식상 >= 2, '식상 표현 축이 강함', 22);
+      add(ctx.harmfulTenGodGroups.indexOf('식상') >= 0, '기신 오행이 식상으로 작동', 24);
+      add(ctx.fiveElementsDistribution.water >= 26 && ctx.fiveElementsDistribution.fire >= 26, '수·화 기운 동시 과열', 12);
+      add(ctx.exactTenGodsDistribution.상관 >= 1 && ctx.tenGodsDistribution.관성 >= 1, '상관견관성 대화 충돌 신호', 12);
+      add(_sajuVillainHasSinsal(ctx, 'dohwa') || _sajuVillainHasSinsal(ctx, 'hongyeom'), '표현성 신살 자극', 8);
+      return 22;
+    }
+  },
+  {
+    id:'dependency-drain',
+    codeName:'VELVET LEECH',
+    koreanName:'의존 기생형',
+    subtitle:'부탁과 기대기로 에너지를 천천히 소모시키는 돌봄 과부하 패턴',
+    montage:'큰 사건 없이도 계속 피곤합니다. 작은 부탁, 감정 하소연, 대신 결정해달라는 요청이 누적되며 내 하루의 여백을 가져갑니다.',
+    approachPattern:'처음에는 보호해주고 싶은 마음을 자극합니다. 하지만 반복 부탁이 생활 리듬을 침범한다면, 친절보다 시간표와 한도를 먼저 세워야 합니다.',
+    redFlags:['비슷한 부탁이 형태만 바뀌어 반복됩니다.','스스로 결정할 수 있는 일도 계속 확인받으려 합니다.','내가 바쁜 시간에도 감정 응답을 기대합니다.','도와주지 않으면 관계가 식은 것처럼 반응합니다.','문제를 해결하기보다 계속 붙잡아두는 대화를 합니다.'],
+    conflictTrigger:['컨디션이 낮은 주간','이직·이사·시험 같은 변화기','밤늦은 감정 통화','반복 부탁이 세 번째를 넘는 시점'],
+    relationshipZones:{ money:'생활비성 부탁이 반복되면 지원이 아니라 구조가 됩니다. 한 번 돕더라도 다음 기준을 함께 말하세요.', romance:'연인이 나의 모든 감정 회복 장치가 되면 관계가 무거워집니다. 각자의 회복 루틴이 필요합니다.', work:'동료의 일을 계속 대신 처리하지 마세요. 도와줄 범위와 넘길 범위를 분리해야 합니다.', family:'가족 돌봄은 지속 가능성이 핵심입니다. 내가 무너지면 도움도 오래 가지 못합니다.', friendship:'친구의 하소연을 들어주되 시간을 정하세요. 무제한 상담 모드는 우정을 지치게 합니다.' },
+    defenseGuide:['통화와 답장 가능 시간을 정합니다.','반복 부탁은 한 번에 하나만 받습니다.','도움 대신 방법을 알려주는 방식으로 바꿉니다.','감정 노동 후 회복 시간을 확보합니다.','세 번째 반복 요청부터는 명확히 거절합니다.'],
+    emergencyLines:['오늘은 여기까지만 들어줄 수 있어요.','그 일은 제가 대신 결정해줄 수 없습니다.','반복되는 부탁이라 이번에는 어렵습니다.'],
+    checklist:['연락 가능한 시간과 쉬는 시간을 구분하고 있다.','반복 부탁을 받을 때 바로 수락하지 않는다.','도움을 준 뒤 내 컨디션을 확인한다.','상대의 문제를 내 책임으로 가져오지 않는다.','거절해도 관계가 끝나지 않는다는 감각을 연습한다.'],
+    yeoniAdvice:'누군가를 아끼는 마음이 내 하루를 전부 비우라는 뜻은 아니에요. 따뜻하게 돕되, 내 에너지가 돌아올 자리도 꼭 남겨두세요.',
+    neoAdvice:'계속 기대는 사람은 네 체력을 계산하지 않는다. 시간 제한부터 걸어.',
+    score:function(ctx, add) {
+      add(ctx.tenGodsDistribution.인성 >= 2, '인성 수용 축이 강함', 22);
+      add(ctx.harmfulTenGodGroups.indexOf('인성') >= 0, '기신 오행이 인성으로 작동', 22);
+      add(ctx.tenGodsDistribution.비겁 <= 1, '비겁 방어 축이 약함', 10);
+      add(!ctx.isStrong, '신약 흐름이라 정서적 부탁에 쉽게 피로해짐', 14);
+      add(ctx.currentLuckFlow.tenGodGroups.indexOf('인성') >= 0, '현재 대운 흐름에서 인성 자극', 10);
+      return 24;
+    }
+  },
+  {
+    id:'competition-theft',
+    codeName:'MIRROR JACKER',
+    koreanName:'경쟁 탈취형',
+    subtitle:'비교와 무임승차로 성과의 경계를 흐리는 경쟁 침투 패턴',
+    montage:'처음에는 비슷한 관심사로 가까워집니다. 시간이 지나면 비교, 은근한 깎아내림, 성과 가로채기가 섞이며 관계가 경쟁장처럼 변합니다.',
+    approachPattern:'동료감과 친밀감을 앞세워 내부 정보에 접근합니다. 협업 초반부터 역할, 자료 출처, 발표 범위를 나눠두면 불필요한 감정전을 줄일 수 있습니다.',
+    redFlags:['내 아이디어를 자기 말처럼 다시 포장합니다.','비교 농담으로 자존감을 건드립니다.','힘든 일은 같이 하자고 하고 결과물은 먼저 가져갑니다.','공개 자리에서 은근히 나를 낮춥니다.','역할이 모호한 상태를 유리하게 이용합니다.'],
+    conflictTrigger:['성과 발표 전','협업 초반 친해지는 구간','역할 조정 회의','칭찬과 평가가 공개되는 자리'],
+    relationshipZones:{ money:'공동 수익은 배분 기준을 먼저 정하세요. 친분으로 시작한 일일수록 숫자가 필요합니다.', romance:'연애에서 비교와 질투가 반복되면 애정이 아니라 경쟁입니다. 반응하기보다 경계를 말하세요.', work:'업무 소유권과 파일 기록을 남기세요. 누가 무엇을 했는지 보이는 구조가 필요합니다.', family:'형제·친척 간 비교 프레임에 오래 머물지 마세요. 각자의 기준표가 다릅니다.', friendship:'친구의 경쟁심을 달래주려 내 성취를 숨기지 마세요. 축하하지 못하는 관계는 점검이 필요합니다.' },
+    defenseGuide:['역할과 산출물을 공개적으로 확인합니다.','아이디어와 파일의 작성 기록을 남깁니다.','칭찬을 축소하지 않고 그대로 받습니다.','협업 범위를 작게 나눠 테스트합니다.','비교 농담에는 웃어넘기지 말고 선을 말합니다.'],
+    emergencyLines:['그 아이디어는 제가 먼저 제안한 내용이라 출처를 명확히 해주세요.','역할 범위를 다시 확인하고 진행하겠습니다.','비교하는 방식의 농담은 불편합니다.'],
+    checklist:['협업 시작 전 역할을 문서로 나눈다.','내 성과를 작게 말하지 않고 정확히 말한다.','비교 농담이 반복되면 바로 표현한다.','공동 작업 파일과 결정 과정을 남긴다.','친밀함과 업무 소유권을 분리한다.'],
+    yeoniAdvice:'비슷한 결의 사람과 만날수록 더 잘 맞기도 하지만, 경계가 흐려지기도 쉬워요. 내 몫을 선명히 말하는 건 이기적인 게 아니라 관계를 오래 지키는 방법이에요.',
+    neoAdvice:'성과는 기록해. 친하다는 말로 네 몫이 사라지면 그건 협업이 아니다.',
+    score:function(ctx, add) {
+      add(ctx.tenGodsDistribution.비겁 >= 2, '비겁 경쟁 축이 강함', 24);
+      add(ctx.harmfulTenGodGroups.indexOf('비겁') >= 0, '기신 오행이 비겁으로 작동', 24);
+      add(ctx.tenGodsDistribution.재성 >= 1 && ctx.harmfulTenGodGroups.indexOf('재성') >= 0, '재성 손상과 경쟁 구도 동시 감지', 12);
+      add(ctx.currentLuckFlow.tenGodGroups.indexOf('비겁') >= 0, '현재 대운 흐름에서 비겁 자극', 10);
+      add(ctx.conflictRelations.length > 0, '원국 관계 충돌 축 감지', 8);
+      return 22;
+    }
+  },
+  {
+    id:'romance-chaos',
+    codeName:'MOONLIGHT FOG',
+    koreanName:'로맨스 혼란형',
+    subtitle:'애매한 신호와 감정 자극으로 관계 정의를 늦추는 로맨스 안개 패턴',
+    montage:'설렘은 있는데 관계의 이름이 늦게 붙습니다. 다정한 말과 갑작스러운 거리두기가 반복되면 마음은 커지는데 기준은 흐려질 수 있습니다.',
+    approachPattern:'강한 호감 신호로 시작하지만 책임 있는 행동은 늦게 옵니다. 감정의 속도를 따라가기보다 만남의 일관성, 약속 이행, 관계 정의를 차분히 확인해야 합니다.',
+    redFlags:['연락은 뜨겁지만 약속은 자주 흔들립니다.','관계 정의를 꺼내면 분위기를 바꿉니다.','질투를 유발하면서 책임 있는 선택은 피합니다.','갑자기 가까워졌다가 이유 없이 멀어집니다.','말은 로맨틱하지만 행동의 반복성이 낮습니다.'],
+    conflictTrigger:['도화·홍염 신호가 강하게 드러나는 만남','원진·충 관계가 자극되는 시기','재성·관성 이슈가 함께 올라오는 관계','밤늦은 감정 대화 후 결정하는 순간'],
+    relationshipZones:{ money:'썸 단계에서 돈을 크게 쓰지 마세요. 감정 증명용 지출은 관계 판단을 흐립니다.', romance:'관계 정의를 피하는 사람에게 내 시간을 무기한 맡기지 마세요. 속도보다 일관성을 보세요.', work:'업무 관계에서 로맨스 신호가 섞이면 평가와 평판 기준을 먼저 지키세요.', family:'가족에게 소개하기 전 관계의 합의가 먼저입니다. 분위기보다 책임 있는 행동을 확인하세요.', friendship:'친구와 썸의 경계가 흐리면 기대치를 말로 정리하세요. 애매함이 길어질수록 회복이 어렵습니다.' },
+    defenseGuide:['관계 정의를 부드럽지만 분명하게 묻습니다.','말보다 약속 이행률을 봅니다.','감정이 뜨거운 날 큰 결정을 미룹니다.','삼각관계 신호가 보이면 즉시 거리를 둡니다.','나의 생활 리듬을 무너뜨리는 밀당은 중단합니다.'],
+    emergencyLines:['나는 애매한 관계로 오래 머물 생각은 없어요.','말보다 앞으로의 행동을 보고 판단할게요.','지금 속도는 내 기준보다 빠르니 천천히 가겠습니다.'],
+    checklist:['호감과 관계 합의를 구분해서 보고 있다.','약속이 반복해서 깨지면 이유보다 패턴을 본다.','썸 단계에서 큰 지출을 하지 않는다.','질투 유발 대화에 바로 반응하지 않는다.','내 생활 리듬을 지키며 관계 속도를 조절한다.'],
+    yeoniAdvice:'설렘은 소중하지만, 설렘만으로 나를 맡기기엔 당신의 마음이 너무 귀해요. 천천히 확인해도 진짜 인연은 사라지지 않아요.',
+    neoAdvice:'애매함이 길면 답이다. 말 말고 행동 반복을 봐.',
+    score:function(ctx, add) {
+      add(_sajuVillainHasSinsal(ctx, 'dohwa'), '도화살 신호 감지', 14);
+      add(_sajuVillainHasSinsal(ctx, 'hongyeom'), '홍염살 신호 감지', 14);
+      add(ctx.wonjinRelations.length > 0, '원진 관계 감지', 12);
+      add(ctx.conflictRelations.some(function(row){return row.type === '충';}), '충 관계 감지', 10);
+      add(ctx.tenGodsDistribution.재성 >= 1 && ctx.tenGodsDistribution.관성 >= 1, '재관 혼재 흐름', 12);
+      add(ctx.harmfulTenGodGroups.indexOf('재성') >= 0 || ctx.harmfulTenGodGroups.indexOf('관성') >= 0, '재성·관성 중 하나가 기신으로 작동', 10);
+      return 20;
+    }
+  },
+  {
+    id:'authority-control',
+    codeName:'IRON FRAME',
+    koreanName:'권위 갑질형',
+    subtitle:'규칙과 평가를 자기 유리하게 적용하는 통제 프레임 패턴',
+    montage:'규칙을 말하지만 모두에게 같은 기준은 아닙니다. 평가, 지시, 권한의 언어로 내 선택 범위를 좁히는 공기가 만들어집니다.',
+    approachPattern:'처음에는 책임감과 기준을 강조하며 들어옵니다. 그러나 권한 범위가 불명확한 요구가 반복된다면 공식 채널과 제3자 기준을 사용해야 합니다.',
+    redFlags:['자기에게 유리한 규칙만 강조합니다.','요청 범위보다 책임을 크게 떠넘깁니다.','평가권이 있는 것처럼 말하며 압박합니다.','공식 절차보다 개인 지시를 우선하라고 합니다.','문서화를 요청하면 예민하게 반응합니다.'],
+    conflictTrigger:['보고 라인 변경','계약·평가·심사 전후','금 기운 과다로 기준이 날카로워지는 시기','상관과 관성이 함께 자극되는 대화'],
+    relationshipZones:{ money:'계약, 수수료, 위약 조건은 공식 문서로 확인하세요. 권위 있는 말투가 법적 기준을 대신하지 않습니다.', romance:'상대가 사랑을 규칙처럼 통제하면 멈춰야 합니다. 관계는 평가표가 아닙니다.', work:'업무 지시는 채널과 권한을 확인하세요. 사적인 압박을 공식 책임으로 착각하지 않아야 합니다.', family:'가족 내 권위자의 말도 내 삶의 최종 결정권을 대신할 수 없습니다. 조언과 명령을 구분하세요.', friendship:'친구 사이에서도 일방적 평가가 반복되면 거리를 두세요. 조언은 허락받고 들어와야 합니다.' },
+    defenseGuide:['상대의 권한 범위를 확인합니다.','공식 채널로 요청을 다시 받아냅니다.','기한과 책임 소재를 문서화합니다.','제3자 기준이나 규정을 함께 확인합니다.','부당한 평가는 짧게 반박하고 대화를 종료합니다.'],
+    emergencyLines:['그 요청은 공식 채널로 다시 남겨주세요.','권한과 책임 범위를 확인한 뒤 답하겠습니다.','그 평가는 동의하기 어렵고, 기준을 문서로 확인하겠습니다.'],
+    checklist:['상대의 직함과 실제 권한을 구분한다.','업무·계약 요청은 공식 채널에 남긴다.','부당한 평가를 개인 가치로 받아들이지 않는다.','책임 범위를 확인하기 전 수락하지 않는다.','제3자 기준을 활용하는 데 주저하지 않는다.'],
+    yeoniAdvice:'기준이 있는 사람은 든든하지만, 그 기준이 당신을 작게 만들면 멈춰야 해요. 공손하게 확인하고, 필요한 순간에는 공식적인 길을 선택하세요.',
+    neoAdvice:'권위 있어 보인다고 권한 있는 건 아니다. 문서로 받아.',
+    score:function(ctx, add) {
+      add(ctx.tenGodsDistribution.관성 >= 2, '관성 권위 축이 강함', 22);
+      add(ctx.harmfulTenGodGroups.indexOf('관성') >= 0, '기신 오행이 관성으로 작동', 24);
+      add(ctx.fiveElementsDistribution.metal >= 30, '금 기운 과다 신호', 10);
+      add(ctx.exactTenGodsDistribution.상관 >= 1 && ctx.tenGodsDistribution.관성 >= 1, '상관견관성 충돌 흐름', 14);
+      add(ctx.currentLuckFlow.tenGodGroups.indexOf('관성') >= 0, '현재 대운 흐름에서 관성 자극', 10);
+      return 22;
+    }
+  }
+];
+
+function buildSajuVillainBlacklist(input) {
+  var ctx = _sajuVillainBuildContext(input || {});
+  var profileName = ctx.userProfileName || '당신';
+
+  var profiles = SAJU_VILLAIN_BLUEPRINTS.map(function(blueprint, blueprintIndex) {
+    var activatedBy = [];
+    var rule = _sajuVillainRuleFor(blueprint.id);
+    var risk = _sajuVillainScoreProfile(ctx, blueprint, activatedBy);
+    if (!activatedBy.length) activatedBy.push('현재 데이터에서는 강한 위험 신호보다 기본 관계 점검 유형으로 관찰');
+
+    return {
+      id: blueprint.id,
+      rank: _sajuVillainRiskRank(risk),
+      codeName: blueprint.codeName,
+      koreanName: blueprint.koreanName,
+      subtitle: blueprint.subtitle,
+      riskScore: risk,
+      activatedBy: _sajuVillainUnique(activatedBy),
+      sajuReasonSummary: _sajuVillainReason(profileName, blueprint, ctx, activatedBy),
+      riskAreas: rule.riskAreas.slice(0, 4),
+      defenseKeyword: rule.defenseKeyword,
+      montage: blueprint.montage,
+      approachPattern: blueprint.approachPattern,
+      redFlags: blueprint.redFlags.slice(0, 5),
+      conflictTrigger: blueprint.conflictTrigger.slice(0, 5),
+      relationshipZones: {
+        money: blueprint.relationshipZones.money,
+        romance: blueprint.relationshipZones.romance,
+        work: blueprint.relationshipZones.work,
+        family: blueprint.relationshipZones.family,
+        friendship: blueprint.relationshipZones.friendship
+      },
+      defenseGuide: blueprint.defenseGuide.slice(0, 5),
+      emergencyLine: blueprint.emergencyLines[0],
+      emergencyLines: blueprint.emergencyLines.slice(0, 3),
+      checklist: blueprint.checklist.slice(0, 5),
+      yeoniAdvice: blueprint.yeoniAdvice,
+      neoAdvice: blueprint.neoAdvice,
+      _sortIndex: blueprintIndex
+    };
+  });
+
+  profiles.sort(function(a, b) {
+    if (b.riskScore !== a.riskScore) return b.riskScore - a.riskScore;
+    return a._sortIndex - b._sortIndex;
+  });
+
+  var hasActionableSignal = profiles.some(function(profile) { return profile.riskScore >= 40; });
+  var displayCount = hasActionableSignal ? 5 : 3;
+  return profiles.slice(0, displayCount).map(function(profile) {
+    delete profile._sortIndex;
+    return profile;
+  });
+}
+
+window.buildSajuVillainBlacklist = buildSajuVillainBlacklist;
+
+function _sajuVillainEscapeHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function _sajuVillainListHtml(items, className) {
+  return '<ul class="villain-v2-list ' + className + '">'
+    + (items || []).map(function(item) {
+      return '<li>' + _sajuVillainEscapeHtml(item) + '</li>';
+    }).join('')
+    + '</ul>';
+}
+
+function _sajuVillainRelationshipHtml(zones) {
+  var labels = [
+    ['money', '돈', '₩'],
+    ['romance', '연애', '♡'],
+    ['work', '직장/사업', '⌁'],
+    ['family', '가족', '⌂'],
+    ['friendship', '친구', '✦']
+  ];
+  return '<div class="villain-zone-grid">' + labels.map(function(pair) {
+    return '<div class="villain-zone-card">'
+      + '<div class="villain-zone-label"><span>' + pair[2] + '</span>' + pair[1] + '</div>'
+      + '<p>' + _sajuVillainEscapeHtml(zones[pair[0]]) + '</p>'
+      + '</div>';
+  }).join('') + '</div>';
+}
+
+function _sajuVillainRankClass(rank) {
+  if (rank === 'S') return 'is-rank-s';
+  if (rank === 'A+') return 'is-rank-ap';
+  if (rank === 'A') return 'is-rank-a';
+  if (rank === 'B') return 'is-rank-b';
+  return 'is-rank-watch';
+}
+
+function _sajuVillainRankLabel(rank) {
+  return rank === '관찰' ? '관찰 등급' : rank + '급';
+}
+
+function _sajuVillainChipHtml(items, className) {
+  return '<div class="' + className + '">'
+    + (items || []).map(function(item) {
+      return '<span>' + _sajuVillainEscapeHtml(item) + '</span>';
+    }).join('')
+    + '</div>';
+}
+
+function _sajuVillainBuildSummary(profiles, ctx) {
+  var top = profiles && profiles.length ? profiles[0] : null;
+  var weakAxis = '관계 경계선 점검';
+  if (ctx && ctx.hasStrengthData && ctx.isStrong === false) weakAxis = '신약 경계선 피로';
+  else if (ctx && ctx.harmfulTenGodGroups && ctx.harmfulTenGodGroups.length) weakAxis = ctx.harmfulTenGodGroups.join(' · ') + ' 기신 자극';
+  else if (ctx && ctx.dominantElement) weakAxis = _sajuVillainElementFull(ctx.dominantElement) + ' 오행 과점검';
+
+  var activeTenGods = (ctx && ctx.harmfulTenGodGroups && ctx.harmfulTenGodGroups.length)
+    ? ctx.harmfulTenGodGroups.join(' · ')
+    : ((ctx && ctx.currentLuckFlow && ctx.currentLuckFlow.tenGodGroups && ctx.currentLuckFlow.tenGodGroups.length)
+      ? ctx.currentLuckFlow.tenGodGroups.join(' · ')
+      : '강한 위험 십성 없음');
+
+  return {
+    topName: top ? top.koreanName + ' / ' + top.codeName : '관계 방어 점검',
+    topRisk: top ? top.riskScore : 0,
+    topRank: top ? top.rank : '관찰',
+    weakAxis: weakAxis,
+    activeTenGods: activeTenGods,
+    riskAreas: top && top.riskAreas ? top.riskAreas.join(' · ') : '돈 · 연애 · 직장/사업',
+    defenseKeyword: top && top.defenseKeyword ? top.defenseKeyword : '즉답 금지 · 기록 우선'
+  };
+}
+
+function _sajuVillainSummaryHtml(summary, profiles) {
+  var rankCounts = {};
+  (profiles || []).forEach(function(profile) {
+    rankCounts[profile.rank] = (rankCounts[profile.rank] || 0) + 1;
+  });
+  var badges = ['S','A+','A','B','관찰'].filter(function(rank) { return rankCounts[rank]; }).map(function(rank) {
+    return '<span class="villain-summary-badge ' + _sajuVillainRankClass(rank) + '">' + _sajuVillainRankLabel(rank) + ' ' + rankCounts[rank] + '</span>';
+  }).join('');
+
+  return '<div class="villain-case-header bg-slate-950 text-red-100 border-red-400/30">'
+    + '<div class="villain-case-eyebrow">MOONLIGHT CASE FILE · RELATION RISK RADAR</div>'
+    + '<div class="villain-case-title-row">'
+    + '  <div><h3>💀 요주의 빌런 블랙리스트</h3><p>사주가 감지한 관계 리스크 패턴</p></div>'
+    + '  <div class="villain-risk-badges">' + badges + '</div>'
+    + '</div>'
+    + '<p class="villain-case-notice">재미용 콘텐츠이지만, 돈·연애·직장·가족·친구 사이에서 경계선을 점검하는 실전 매뉴얼로 활용할 수 있어요.</p>'
+    + '</div>'
+    + '<div class="villain-summary-grid">'
+    + '  <div class="villain-summary-card is-top"><span>TOP 1 빌런 유형</span><strong>' + _sajuVillainEscapeHtml(summary.topName) + '</strong><em>' + _sajuVillainRankLabel(summary.topRank) + ' · ' + summary.topRisk + '/100</em></div>'
+    + '  <div class="villain-summary-card"><span>내 취약 축</span><strong>' + _sajuVillainEscapeHtml(summary.weakAxis) + '</strong></div>'
+    + '  <div class="villain-summary-card"><span>활성화된 위험 십성</span><strong>' + _sajuVillainEscapeHtml(summary.activeTenGods) + '</strong></div>'
+    + '  <div class="villain-summary-card"><span>주의해야 할 관계 영역</span><strong>' + _sajuVillainEscapeHtml(summary.riskAreas) + '</strong></div>'
+    + '  <div class="villain-summary-card is-keyword"><span>오늘의 방어 키워드</span><strong>' + _sajuVillainEscapeHtml(summary.defenseKeyword) + '</strong></div>'
+    + '</div>';
+}
+
+function _sajuVillainEmergencyHtml(profile) {
+  return '<div class="villain-emergency-panel">'
+    + '<div class="villain-section-title">긴급 차단 멘트 3개</div>'
+    + '<div class="villain-emergency-lines">'
+    + profile.emergencyLines.map(function(line) { return '<p>"' + _sajuVillainEscapeHtml(line) + '"</p>'; }).join('')
+    + '</div>'
+    + '<button type="button" class="villain-copy-btn" data-villain-copy="1" data-copy-text="' + _sajuVillainEscapeHtml(profile.emergencyLines.join('\n')) + '">긴급 멘트 복사</button>'
+    + '</div>';
+}
+
+function _sajuVillainRenderProfile(profile, idx) {
+  var checklistHtml = profile.checklist.map(function(item, checkIdx) {
+    var id = 'villainChk-' + profile.id + '-' + checkIdx;
+    return '<label class="villain-check-item" for="' + id + '">'
+      + '<input type="checkbox" class="villain-check-input" id="' + id + '">'
+      + '<span class="villain-check-text">' + _sajuVillainEscapeHtml(item) + '</span>'
+      + '</label>';
+  }).join('');
+  var rankClass = _sajuVillainRankClass(profile.rank);
+  var isOpen = idx === 0 ? ' open' : '';
+  var progressWidth = _sajuVillainClamp(profile.riskScore, 0, 100);
+
+  return ''
+    + '<article class="villain-profile-card bg-white/5 backdrop-blur-xl rounded-3xl shadow-[0_0_40px_rgba(239,68,68,0.18)] ' + rankClass + '">'
+    + '  <div class="villain-profile-top">'
+    + '    <div class="villain-radar-mark"><span></span></div>'
+    + '    <div class="villain-profile-main">'
+    + '      <div class="villain-grade-row"><span class="villain-rank-badge">' + _sajuVillainRankLabel(profile.rank) + '</span><span class="villain-risk-score">위험도 ' + progressWidth + '/100</span></div>'
+    + '      <div class="villain-progress"><span style="width:' + progressWidth + '%"></span></div>'
+    + '      <p class="villain-code-name">코드네임 ' + _sajuVillainEscapeHtml(profile.codeName) + '</p>'
+    + '      <h4>' + _sajuVillainEscapeHtml(profile.koreanName) + '</h4>'
+    + '      <p class="villain-one-line">' + _sajuVillainEscapeHtml(profile.subtitle) + '</p>'
+    + '      ' + _sajuVillainChipHtml(profile.activatedBy.slice(0, 4), 'villain-signal-chips')
+    + '    </div>'
+    + '  </div>'
+    + '  <details class="villain-accordion"' + isOpen + '>'
+    + '    <summary><span>대응 가이드 보기</span><b>' + (idx === 0 ? 'TOP 1 기본 펼침' : '클릭해서 펼치기') + '</b></summary>'
+    + '    <div class="villain-detail-grid">'
+    + '      <div class="villain-v2-section is-reason"><div class="villain-section-title">사주 기반 감지 이유</div><p>' + _sajuVillainEscapeHtml(profile.sajuReasonSummary) + '</p></div>'
+    + '      <div class="villain-v2-section"><div class="villain-section-title">몽타주/분위기 프로파일</div><p>' + _sajuVillainEscapeHtml(profile.montage) + '</p></div>'
+    + '      <div class="villain-v2-section"><div class="villain-section-title">접근 방식</div><p>' + _sajuVillainEscapeHtml(profile.approachPattern) + '</p></div>'
+    + '      <div class="villain-v2-section is-red"><div class="villain-section-title">레드 플래그 5개</div>' + _sajuVillainListHtml(profile.redFlags, 'villain-red-flags') + '</div>'
+    + '      <div class="villain-v2-section is-wide"><div class="villain-section-title">관계별 주의 구역</div>' + _sajuVillainRelationshipHtml(profile.relationshipZones) + '</div>'
+    + '      <div class="villain-v2-section"><div class="villain-section-title">충돌 트리거 타이밍</div>' + _sajuVillainListHtml(profile.conflictTrigger, 'villain-triggers') + '</div>'
+    + '      <div class="villain-v2-section is-defense"><div class="villain-section-title">실전 방어 가이드 5개</div>' + _sajuVillainListHtml(profile.defenseGuide, 'villain-defense-list') + '</div>'
+    + '      <div class="villain-v2-section is-wide">' + _sajuVillainEmergencyHtml(profile) + '</div>'
+    + '      <div class="villain-checklist-wrap is-wide" data-villain-checklist="' + _sajuVillainEscapeHtml(profile.id) + '">'
+    + '        <div class="villain-section-title">자가진단 체크리스트 5문항</div>'
+    + '        <div class="villain-checklist">' + checklistHtml + '</div>'
+    + '        <button type="button" class="villain-submit-btn" data-villain-id="' + _sajuVillainEscapeHtml(profile.id) + '">방어 상태 점검하기</button>'
+    + '        <div class="villain-feedback" aria-live="polite"></div>'
+    + '      </div>'
+    + '      <div class="villain-quotes is-wide">'
+    + '        <div class="villain-quote yeoni"><strong>연이의 조언</strong><br>"' + _sajuVillainEscapeHtml(profile.yeoniAdvice) + '"</div>'
+    + '        <div class="villain-quote neo"><strong>네오의 조언</strong><br>"' + _sajuVillainEscapeHtml(profile.neoAdvice) + '"</div>'
+    + '      </div>'
+    + '    </div>'
+    + '  </details>'
+    + '</article>';
+}
+
 function renderVillain(p, power) {
   var card = document.getElementById('villainCard');
   var resultArea = document.getElementById('villainResult');
   if(!card || !resultArea) return;
 
-  if(!power || !power.kijishin || power.kijishin.length === 0) {
+  if(!p || !p.d || !p.d.g) {
     card.style.display = 'none';
     return;
   }
 
   card.style.display = 'block';
 
-  var myDayGan = p.d.g;
-  var myDayZhi = p.d.j;
-  var badElementEng = power.kijishin[0]; // 기신 오행 (예: 'wood', 'fire', 'earth', 'metal', 'water')
-  
-  var engToKor = {
-    'wood': '목', 'fire': '화', 'earth': '토', 'metal': '금', 'water': '수'
+  var villainInput = {
+    pillars: p,
+    natal: (typeof G_NATAL !== 'undefined' ? G_NATAL : null),
+    power: power || (typeof G_POWER !== 'undefined' ? G_POWER : null),
+    johu: (typeof G_JOHU !== 'undefined' ? G_JOHU : null),
+    jong: (typeof G_JONG !== 'undefined' ? G_JONG : null),
+    daewun: (typeof window !== 'undefined' ? window.G_DAEWUN : null),
+    currentAge: (typeof CURRENT_AGE !== 'undefined' ? CURRENT_AGE : 0),
+    userProfileName: (typeof USER_NAME !== 'undefined' && USER_NAME ? USER_NAME : '당신')
   };
-  var badElement = engToKor[badElementEng];
+  var profiles = buildSajuVillainBlacklist(villainInput);
+  var villainCtx = _sajuVillainBuildContext(villainInput);
+  var summary = _sajuVillainBuildSummary(profiles, villainCtx);
 
-  var elements = ['목', '화', '토', '금', '수'];
-  var ganToElement = {
-    '갑':'목', '을':'목', '병':'화', '정':'화', '무':'토', '기':'토', '경':'금', '신':'금', '임':'수', '계':'수'
-  };
-  var myElement = ganToElement[myDayGan];
-  
-  var myGanIdx = elements.indexOf(myElement);
-  var badIdx = elements.indexOf(badElement);
-  
-  var diff = (badIdx - myGanIdx + 5) % 5;
-  var badTenGod = '';
-  if(diff === 0) badTenGod = '비겁';
-  else if(diff === 1) badTenGod = '식상';
-  else if(diff === 2) badTenGod = '재성';
-  else if(diff === 3) badTenGod = '관성';
-  else if(diff === 4) badTenGod = '인성';
+  if (!profiles.length) {
+    card.style.display = 'none';
+    return;
+  }
 
-  var appearanceMap = {
-    '목': '뻣뻣하고 고집스러워 보이는 인상, 마르고 길쭉한 체형, 묘하게 신경질적인 분위기',
-    '화': '다혈질적이고 눈빛이 매서운 인상, 화려하거나 튀는 옷차림, 감정 기복이 심해 보이는 분위기',
-    '토': '무뚝뚝하고 속을 알 수 없는 인상, 체격이 크거나 둔해 보이는 체형, 고지식하고 답답한 분위기',
-    '금': '차갑고 날카로운 인상, 창백하거나 각진 얼굴, 찔러도 피 한 방울 안 나올 것 같은 냉혹한 분위기',
-    '수': '음침하고 속을 알 수 없는 인상, 유연하지만 어딘가 음흉해 보이는 체형, 비밀이 많아 보이는 분위기'
-  };
+  resultArea.innerHTML = '<section class="villain-blacklist-v2">'
+    + _sajuVillainSummaryHtml(summary, profiles)
+    + '<div class="villain-card-grid">'
+    + profiles.map(function(profile, idx) { return _sajuVillainRenderProfile(profile, idx); }).join('')
+    + '</div>'
+    + '<p class="villain-safety-note">이 콘텐츠는 실제 사람을 단정하거나 낙인찍기 위한 기능이 아니라, 사주 구조에서 반복되기 쉬운 관계 피로 패턴을 재미있게 시각화한 것입니다. 중요한 관계 판단은 상대의 실제 행동, 반복 패턴, 기록, 나의 컨디션을 함께 보고 결정하세요.</p>'
+    + '</section>';
 
-  var behaviorMap = {
-    '비겁': '내 것을 빼앗으려 들거나, 사사건건 경쟁심을 유발하며 피곤하게 만드는 유형',
-    '식상': '말로 상처를 주거나, 내 계획을 산만하게 만들고 구설수를 일으키는 유형',
-    '재성': '돈 문제로 얽히거나, 물질적인 손해를 입히고 나의 결과를 가로채는 유형',
-    '관성': '억압하고 통제하려 들거나, 부당한 스트레스와 책임감을 강요하는 유형',
-    '인성': '지나친 간섭과 잔소리로 피곤하게 하거나, 나를 게으르고 의존적으로 만드는 유형'
-  };
-
-  var defenseMap = {
-    '비겁': '적당한 거리두기가 필수입니다. 내 패를 다 보여주지 말고, 불필요한 경쟁은 피하세요.',
-    '식상': '말려들지 마세요. 상대의 도발에 감정적으로 대응하지 말고 침묵으로 일관하는 것이 상책입니다.',
-    '재성': '금전 거래는 절대 금물입니다. 공과 사를 명확히 구분하고, 내 몫은 확실히 챙기세요.',
-    '관성': '부당한 요구에는 단호하게 "No"라고 말하는 연습이 필요합니다. 나만의 바운더리를 지키세요.',
-    '인성': '독립심을 키워야 합니다. 상대의 호의를 가장한 간섭을 끊어내고 스스로 결정하세요.'
-  };
-
-  var factBombMap = {
-    '비겁': '네가 만만해 보이니까 자꾸 선 넘는 거야. 착한 아이 콤플렉스 좀 버려.',
-    '식상': '상대방 말에 일일이 상처받지 마. 걔네는 그냥 입이 가벼운 것뿐이야. 무시가 답이야.',
-    '재성': '돈 잃고 사람 잃기 딱 좋은 호구 관상이야. 제발 돈 빌려주지 마.',
-    '관성': '왜 자꾸 남 눈치만 봐? 네 인생인데 왜 남이 조종하게 놔두냐고. 정신 차려.',
-    '인성': '언제까지 남한테 의지할래? 네가 스스로 안 서면 평생 휘둘리다 끝날 거야.'
-  };
-
-  var wonjinMap = {'子':'未', '丑':'午', '寅':'酉', '卯':'申', '辰':'亥', '巳':'戌', '午':'丑', '未':'子', '申':'卯', '酉':'寅', '戌':'巳', '亥':'辰'};
-  var chongMap = {'子':'午', '丑':'未', '寅':'申', '卯':'酉', '辰':'戌', '巳':'亥', '午':'子', '未':'丑', '申':'寅', '酉':'卯', '戌':'辰', '亥':'巳'};
-  var zhiToAnimal = {'子':'쥐', '丑':'소', '寅':'호랑이', '卯':'토끼', '辰':'용', '巳':'뱀', '午':'말', '未':'양', '申':'원숭이', '酉':'닭', '戌':'개', '亥':'돼지'};
-
-  var wonjinDescMap = {
-    '子': '서생원(쥐)이 양의 뿔을 싫어함',
-    '未': '서생원(쥐)이 양의 뿔을 싫어함',
-    '丑': '부지런한 소가 노는 말을 싫어함',
-    '午': '부지런한 소가 노는 말을 싫어함',
-    '寅': '호랑이는 닭의 울음소리를 싫어함',
-    '酉': '호랑이는 닭의 울음소리를 싫어함',
-    '卯': '토끼는 원숭이의 빨간 엉덩이를 싫어함',
-    '申': '토끼는 원숭이의 빨간 엉덩이를 싫어함',
-    '辰': '용은 돼지의 코가 자기와 닮아 싫어함',
-    '亥': '용은 돼지의 코가 자기와 닮아 싫어함',
-    '巳': '뱀은 개 짖는 소리에 깜짝 놀라 싫어함',
-    '戌': '뱀은 개 짖는 소리에 깜짝 놀라 싫어함'
-  };
-
-  var wonjinZhi = wonjinMap[myDayZhi];
-  var chongZhi = chongMap[myDayZhi];
-  var wonjinAnimal = zhiToAnimal[wonjinZhi];
-  var chongAnimal = zhiToAnimal[chongZhi];
-
-  var stars = [p.y.g, p.y.j, p.m.g, p.m.j, p.d.j, p.h.g, p.h.j]
-    .map(function(c) { return getTenGod(myDayGan, c); })
-    .filter(function(t) { return t && t !== '?'; });
-  var groupMap = {
-    '비견': '비겁', '겁재': '비겁',
-    '식신': '식상', '상관': '식상',
-    '정재': '재성', '편재': '재성',
-    '정관': '관성', '편관': '관성',
-    '정인': '인성', '편인': '인성'
-  };
-  var tgCount = { 비겁: 0, 식상: 0, 재성: 0, 관성: 0, 인성: 0 };
-  stars.forEach(function(s) {
-    var g = groupMap[s];
-    if (g) tgCount[g] += 1;
+  resultArea.querySelectorAll('[data-villain-copy]').forEach(function(copyBtn) {
+    copyBtn.onclick = function() {
+      var text = copyBtn.getAttribute('data-copy-text') || '';
+      var done = function() {
+        var prev = copyBtn.textContent;
+        copyBtn.textContent = '복사 완료';
+        copyBtn.classList.add('is-copied');
+        setTimeout(function() {
+          copyBtn.textContent = prev;
+          copyBtn.classList.remove('is-copied');
+        }, 1300);
+      };
+      if (typeof window.copyToClipboard === 'function') {
+        window.copyToClipboard(text, '긴급 차단 멘트를 복사했어요.');
+        done();
+        return;
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(function() {
+          var ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          try { document.execCommand('copy'); done(); } catch (_e) {}
+          document.body.removeChild(ta);
+        });
+        return;
+      }
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); } catch (_e) {}
+      document.body.removeChild(ta);
+    };
   });
-  var dominantGroup = Object.keys(tgCount).reduce(function(prev, cur) {
-    return tgCount[cur] > tgCount[prev] ? cur : prev;
-  }, '비겁');
-  var weakPointGroup = Object.keys(tgCount).reduce(function(prev, cur) {
-    return tgCount[cur] < tgCount[prev] ? cur : prev;
-  }, '비겁');
-  var powerTone = power && power.isStrong
-    ? '신강 흐름이라 상대 압박을 버티는 힘은 충분하지만, 고집 대 고집으로 붙으면 갈등이 장기전으로 번질 수 있습니다.'
-    : '신약 흐름이라 관계 피로를 몸으로 먼저 받기 쉬워, 초반 경계선 설정이 특히 중요합니다.';
 
-  var villainProfileMap = {
-    '비겁': {
-      tier: 'A+ 동급자 침투형',
-      codename: 'MIRROR JACKER',
-      shortDesc: '당신과 비슷한 결로 접근해 신뢰를 얻고, 성과와 에너지를 슬쩍 가져가는 타입',
-      strategy: '정보를 단계별로 공개하고, 역할·책임·성과 귀속을 문서/메모로 남기세요.'
-    },
-    '식상': {
-      tier: 'A급 여론 교란형',
-      codename: 'NOISE CUTTER',
-      shortDesc: '말과 분위기로 흐름을 흐리고, 당신의 집중력을 무너뜨리는 타입',
-      strategy: '즉답 대신 기록 후 답변 원칙을 사용하고, 논쟁이 아닌 기준표로 대화하세요.'
-    },
-    '재성': {
-      tier: 'A+ 손익 흡혈형',
-      codename: 'DRAIN BROKER',
-      shortDesc: '돈/자원/기회를 매개로 들어와 당신의 손익 밸런스를 깨는 타입',
-      strategy: '금전·계약·공동지출은 분리하고, 계좌/증빙/한도 기준을 미리 고정하세요.'
-    },
-    '관성': {
-      tier: 'A+ 통제 압박형',
-      codename: 'IRON FRAME',
-      shortDesc: '권위, 규칙, 죄책감을 이용해 당신의 선택권을 빼앗는 타입',
-      strategy: '요청의 정당성·기한·범위를 재확인하고, 부당 요구는 짧고 단호하게 거절하세요.'
-    },
-    '인성': {
-      tier: 'A급 보호자 위장형',
-      codename: 'VELVET LEASH',
-      shortDesc: '도움과 조언의 얼굴로 다가와 당신의 자율성과 판단력을 약화시키는 타입',
-      strategy: '결정권은 항상 본인에게 두고, 조언은 참고만 하되 최종 선택은 스스로 하세요.'
-    }
-  };
-
-  var profile = villainProfileMap[badTenGod] || villainProfileMap['관성'];
-  var yeoniAdviceMap = {
-    '비겁': '내 편/네 편 구도를 만들기보다, 역할과 책임을 먼저 분리하면 불필요한 경쟁이 줄어들어요.',
-    '식상': '감정적인 반박보다 사실 확인 질문을 먼저 던지면, 말의 주도권을 다시 가져올 수 있어요.',
-    '재성': '호의성 지출과 의무 지출을 분리해 적어두면, 금전 소모 패턴을 깔끔하게 끊어낼 수 있어요.',
-    '관성': '상대 권위가 커 보일수록 요청 범위를 문장으로 다시 확인해 스스로를 보호하세요.',
-    '인성': '도움받는 것과 의존하는 것은 달라요. 결정 전 마지막 선택권은 반드시 내가 가져가야 해요.'
-  };
-  var neoAdviceMap = {
-    '비겁': '성과는 숫자로 남겨. 증거 없는 호의는 결국 네 몫을 깎아먹는다.',
-    '식상': '말싸움은 체력전이다. 상대 페이스 말고 네 기준표로 판을 바꿔.',
-    '재성': '돈 얘기 흐리는 순간 게임 끝. 한도, 기한, 증빙 없으면 바로 스톱.',
-    '관성': '압박은 통할 때만 세진다. 짧고 단호한 거절 한 번이 판을 바꾼다.',
-    '인성': '친절한 통제에 길들면 네 선택근육이 죽는다. 스스로 결정해.'
-  };
-  var riskTimingMap = {
-    '비겁': '성과 발표 직전, 역할 조정 시점, 협업 초반 신뢰 형성 구간',
-    '식상': '회의 후반 피로 구간, 메신저 공방, 공개 코멘트가 많은 날',
-    '재성': '정산 주기, 공동구매/투자 제안, 급한 송금 요청이 들어올 때',
-    '관성': '마감 직전, 보고 라인 변경, 책임소재가 모호해지는 시점',
-    '인성': '이직/변화기, 컨디션 저하 시기, 결정 피로가 누적된 주간'
-  };
-  var analysisSummary = '내 사주 기준 십성 분포는 비겁 ' + tgCount.비겁 + ' · 식상 ' + tgCount.식상 + ' · 재성 ' + tgCount.재성 + ' · 관성 ' + tgCount.관성 + ' · 인성 ' + tgCount.인성 + '입니다. '
-    + '핵심 축은 ' + dominantGroup + '이고, 취약 축은 ' + weakPointGroup + '입니다. '
-    + '현재 빌런 축인 ' + badTenGod + '이 자극되면 감정 소모와 의사결정 피로가 함께 증가할 수 있습니다.';
-
-  var checklistItems = [
-    '관계 초반부터 금전/업무/감정 경계를 문장으로 명확히 해두었다.',
-    '갈등 상황에서 즉답보다 기록(메모/문자) 후 답변 원칙을 지키고 있다.',
-    '부당한 부탁을 받으면 이유를 길게 설명하지 않고 짧게 거절할 수 있다.',
-    '연락 주기와 만남 빈도를 내 컨디션 기준으로 조절하고 있다.',
-    '소모 신호(수면저하·예민함·불안)가 오면 즉시 거리두기 루틴을 실행한다.'
-  ];
-
-  var checklistHtml = checklistItems.map(function(item, idx) {
-    return '<label class="villain-check-item" for="villainChk' + idx + '">' 
-      + '<input type="checkbox" class="villain-check-input" id="villainChk' + idx + '">'
-      + '<span class="villain-check-text">' + item + '</span>'
-      + '</label>';
-  }).join('');
-
-  var html = ''
-    + '<div class="villain-container villain-container--a-grade">'
-    + '  <div class="villain-header">'
-    + '    <div class="villain-shadow-box villain-silhouette-stage">'
-    + '      <div class="villain-aura"></div>'
-    + '      <div class="villain-shadow"></div>'
-    + '      <div class="villain-silhouette-core"></div>'
-    + '    </div>'
-    + '    <div class="villain-title-area">'
-    + '      <div class="villain-grade">위험 등급: ' + profile.tier + '</div>'
-    + '      <h3 class="villain-name">코드네임: ' + profile.codename + ' · ' + badElement + badTenGod + ' 빌런</h3>'
-    + '      <p class="villain-subcopy">' + profile.shortDesc + '</p>'
-    + '    </div>'
-    + '  </div>'
-
-    + '  <div class="villain-section">'
-    + '    <div class="villain-section-title">👁️ 몽타주/분위기 프로파일</div>'
-    + '    <p class="villain-text">' + appearanceMap[badElement] + '</p>'
-    + '  </div>'
-
-    + '  <div class="villain-section red-flag">'
-    + '    <div class="villain-section-title">🚩 작동 패턴 (레드 플래그)</div>'
-    + '    <p class="villain-text">' + behaviorMap[badTenGod] + '</p>'
-    + '  </div>'
-
-    + '  <div class="villain-section">'
-    + '    <div class="villain-section-title">🎯 충돌 리스크 (원진/충)</div>'
-    + '    <p class="villain-text">특히 <b>' + wonjinAnimal + '띠</b>, <b>' + chongAnimal + '띠</b>와 결이 맞아떨어질 때 갈등 피로도가 급상승할 수 있습니다.</p>'
-    + '    <p class="villain-text" style="margin-top:8px;font-size:0.85rem;color:#ff9ea8;">※ 원진(怨嗔): ' + wonjinDescMap[myDayZhi] + '</p>'
-    + '  </div>'
-
-    + '  <div class="villain-section defense">'
-    + '    <div class="villain-section-title">🛡️ 실전 방어 가이드</div>'
-    + '    <p class="villain-text">' + defenseMap[badTenGod] + '</p>'
-    + '    <p class="villain-text" style="margin-top:8px;color:#c4b5fd;">+ A급 대응 포인트: ' + profile.strategy + '</p>'
-    + '  </div>'
-
-    + '  <div class="villain-section">'
-    + '    <div class="villain-section-title">🧠 사주 기반 리스크 해설</div>'
-    + '    <p class="villain-text">' + analysisSummary + '</p>'
-    + '    <p class="villain-text" style="margin-top:8px;color:#cbd5e1;">' + powerTone + '</p>'
-    + '  </div>'
-
-    + '  <div class="villain-section">'
-    + '    <div class="villain-section-title">⏱️ 충돌 트리거 타이밍</div>'
-    + '    <p class="villain-text">' + riskTimingMap[badTenGod] + '에 경계가 흐려지기 쉽습니다. 이 구간에는 답변 지연·기준 재확인·문서화 3단계를 우선 적용하세요.</p>'
-    + '  </div>'
-
-    + '  <div class="villain-fact-bomb"><p>"' + factBombMap[badTenGod] + '"</p></div>'
-
-    + '  <div class="villain-checklist-wrap">'
-    + '    <div class="villain-section-title">✅ A급 빌런 대처 체크리스트 (자가 진단 5문항)</div>'
-    + '    <div class="villain-checklist">' + checklistHtml + '</div>'
-    + '    <button type="button" class="villain-submit-btn" id="villainChecklistSubmit">제출하기 (결과 보기)</button>'
-    + '    <div class="villain-feedback" id="villainFeedback" aria-live="polite"></div>'
-    + '  </div>'
-
-    + '  <div class="villain-quotes">'
-    + '    <div class="villain-quote yeoni"><strong>👩 연이의 조언</strong><br>"' + yeoniAdviceMap[badTenGod] + '"</div>'
-    + '    <div class="villain-quote neo"><strong>🕶️ 네오의 조언</strong><br>"' + neoAdviceMap[badTenGod] + '"</div>'
-    + '  </div>'
-    + '</div>';
-
-  resultArea.innerHTML = html;
-
-  var submitBtn = document.getElementById('villainChecklistSubmit');
-  var feedbackEl = document.getElementById('villainFeedback');
-  if (submitBtn && feedbackEl) {
+  resultArea.querySelectorAll('.villain-submit-btn').forEach(function(submitBtn) {
     submitBtn.onclick = function() {
-      var checks = resultArea.querySelectorAll('.villain-check-input');
+      var wrap = submitBtn.closest ? submitBtn.closest('.villain-checklist-wrap') : null;
+      var feedbackEl = wrap ? wrap.querySelector('.villain-feedback') : null;
+      if (!wrap || !feedbackEl) return;
+      var checks = wrap.querySelectorAll('.villain-check-input');
       var checked = 0;
       checks.forEach(function(chk) { if (chk.checked) checked += 1; });
 
@@ -21869,17 +23221,17 @@ function renderVillain(p, power) {
       var gradeCls = 'mid';
       if (checked >= 4) {
         gradeCls = 'good';
-        msg = '훌륭한 방어태세! (' + checked + '/5) 경계선 설정과 감정 통제가 안정적입니다. 지금 페이스를 유지하세요.';
+        msg = '방어선이 꽤 안정적입니다. (' + checked + '/5) 지금처럼 기준을 문자와 행동으로 남기면 관계 피로를 크게 줄일 수 있어요.';
       } else if (checked >= 2) {
         gradeCls = 'mid';
-        msg = '조금 더 경계가 필요함 (' + checked + '/5). 대화 기록과 거리두기 루틴을 강화하면 소모를 크게 줄일 수 있습니다.';
+        msg = '경계선이 흔들릴 수 있는 구간입니다. (' + checked + '/5) 즉답을 줄이고, 부탁·돈·감정 요구는 하루 뒤 다시 판단하세요.';
       } else {
         gradeCls = 'danger';
-        msg = '위험! 당장 거리두기 필수 (' + checked + '/5). 연락/만남 빈도를 즉시 줄이고 금전·감정 경계부터 회복하세요.';
+        msg = '지금은 관계 방어 매뉴얼을 먼저 켜야 합니다. (' + checked + '/5) 연락 빈도를 낮추고, 돈·시간·감정 노동의 한도를 다시 세우세요.';
       }
 
       feedbackEl.classList.remove('is-show', 'is-good', 'is-mid', 'is-danger');
-      feedbackEl.innerHTML = '<strong>진단 결과</strong><br>' + msg;
+      feedbackEl.innerHTML = '<strong>자가진단 결과</strong><br>' + msg;
       feedbackEl.classList.add('is-show', 'is-' + gradeCls);
 
       // 모바일에서 피드백 박스 하단이 가려지지 않도록 안전하게 스크롤 보정
@@ -21889,7 +23241,7 @@ function renderVillain(p, power) {
         } catch (_e) {}
       }, 30);
     };
-  }
+  });
 }
 
 /* ══════════════════════════════════════════

@@ -30,6 +30,9 @@ export function resolvePremiumAccessReportType(featureKey = "", reason = "") {
   const reportTypeByFeatureKey = {
     "saju_life_book_pdf": "lifeBook",
     "saju_love_book_pdf": "loveSecret",
+    "premium_pdf_saju_life_book": "lifeBook",
+    "premium_pdf_saju_love_secret": "loveSecret",
+    "premium_pdf_saju_love_secret_compat": "loveSecret",
     "premium-lifebook-report": "lifeBook",
     "premium-love-secret-solo": "loveSecret",
     "premium-love-secret-couple": "loveSecret",

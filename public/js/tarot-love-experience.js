@@ -363,7 +363,7 @@
     if (token) consumeHeaders.Authorization = "Bearer " + token;
 
     if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, '결제를 확인 중입니다...');
-    return fetch("/api/fortune/pig-coin/consume", {
+    return fetch("/api/billing/coin-gate", {
       method: "POST",
       headers: consumeHeaders,
       credentials: "include",
@@ -392,6 +392,10 @@
           }
           if (!res.ok || data.ok === false) {
             window.alert(String(data.message || "코인 차감에 실패했습니다."));
+            return false;
+          }
+          if (typeof window._cdHasVerifiedServerAccess === "function" && !window._cdHasVerifiedServerAccess(data, featureKey)) {
+            window.alert("서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.");
             return false;
           }
           return true;

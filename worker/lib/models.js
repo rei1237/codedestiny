@@ -159,6 +159,24 @@ const paymentSchema = new mongoose.Schema({
   pricingSnapshot: { type: mongoose.Schema.Types.Mixed },
   paymentMethod: { type: String, trim: true, default: "unknown" },
   status: { type: String, enum: ["pending", "paid", "processing", "success", "fulfilled", "retryable", "failed", "cancelled", "refunded"], default: "pending", index: true },
+  orderState: {
+    type: String,
+    enum: [
+      "",
+      "PENDING",
+      "REDIRECTED",
+      "PAID_VERIFIED",
+      "UNLOCKED",
+      "VIRTUAL_ACCOUNT_ISSUED",
+      "FAILED",
+      "CANCELLED",
+      "PARTIAL_CANCELLED",
+      "VERIFY_FAILED",
+      "ERROR",
+    ],
+    default: "",
+    index: true,
+  },
   failureCode: { type: String, trim: true, maxlength: 80 },
   failureMessage: { type: String, trim: true, maxlength: 500 },
   failureStage: { type: String, trim: true, maxlength: 80 },
@@ -205,6 +223,63 @@ const pointHistorySchema = new mongoose.Schema({
 }, { timestamps: true });
 
 pointHistorySchema.index({ userId: 1, createdAt: -1 });
+
+export const SAJU_LOCKED_CONTENT_KEYS = Object.freeze({
+  DAEUN_ANALYSIS: "saju.daeunAnalysis",
+  FULL_READING: "saju.fullReading",
+  COMPATIBILITY: "saju.compatibility",
+});
+
+export const CONTENT_ENTITLEMENT_SERVICE_KEYS = Object.freeze({
+  SAJU: "saju",
+});
+
+export const CONTENT_ENTITLEMENT_SCOPES = Object.freeze({
+  PROFILE: "PROFILE",
+  USER: "USER",
+});
+
+export const CONTENT_ENTITLEMENT_STATUSES = Object.freeze({
+  ACTIVE: "ACTIVE",
+  REFUNDED: "REFUNDED",
+  CANCELLED: "CANCELLED",
+});
+
+export const CONTENT_ENTITLEMENT_SOURCES = Object.freeze({
+  COIN: "COIN",
+  PAYMENT: "PAYMENT",
+  PASS: "PASS",
+  ADMIN: "ADMIN",
+  BACKFILL: "BACKFILL",
+});
+
+const contentEntitlementSchema = new mongoose.Schema({
+  userId: { type: String, required: true, trim: true, index: true },
+  profileId: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  serviceId: { type: String, default: "", trim: true, maxlength: 80, index: true },
+  serviceKey: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  contentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  contentKey: { type: String, required: true, trim: true, maxlength: 120, index: true },
+  contentType: { type: String, default: "", trim: true, maxlength: 80, index: true },
+  scope: { type: String, enum: Object.values(CONTENT_ENTITLEMENT_SCOPES), required: true, default: CONTENT_ENTITLEMENT_SCOPES.PROFILE, index: true },
+  status: { type: String, enum: Object.values(CONTENT_ENTITLEMENT_STATUSES), required: true, default: CONTENT_ENTITLEMENT_STATUSES.ACTIVE, index: true },
+  source: { type: String, enum: Object.values(CONTENT_ENTITLEMENT_SOURCES), required: true },
+  unlockedBy: { type: String, default: "", trim: true, maxlength: 80, index: true },
+  orderId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  passId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  coinAmount: { type: Number, default: 0, min: 0 },
+  coinPrice: { type: Number, default: 0, min: 0 },
+  amountKRW: { type: Number, default: 0, min: 0 },
+  unlockedAt: { type: Date, required: true, default: Date.now, index: true },
+  expiresAt: { type: Date, default: null, index: true },
+}, { timestamps: true, collection: "content_entitlements" });
+
+contentEntitlementSchema.index(
+  { userId: 1, profileId: 1, serviceKey: 1, contentKey: 1, scope: 1 },
+  { unique: true },
+);
+contentEntitlementSchema.index({ userId: 1, serviceKey: 1, status: 1, expiresAt: 1 });
 
 const refreshTokenSessionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
@@ -322,10 +397,85 @@ export const User = mongoose.models.User || mongoose.model("User", userSchema);
 export const ProfileCard = mongoose.models.ProfileCard || mongoose.model("ProfileCard", profileCardSchema);
 export const Payment = mongoose.models.Payment || mongoose.model("Payment", paymentSchema);
 export const PointHistory = mongoose.models.PointHistory || mongoose.model("PointHistory", pointHistorySchema);
+export const ContentEntitlement = mongoose.models.ContentEntitlement
+  || mongoose.model("ContentEntitlement", contentEntitlementSchema);
 export const PaymentFailureLog = mongoose.models.PaymentFailureLog || mongoose.model("PaymentFailureLog", paymentFailureLogSchema);
 export const RefreshTokenSession = mongoose.models.RefreshTokenSession || mongoose.model("RefreshTokenSession", refreshTokenSessionSchema);
 export const ServiceExecutionTransaction = mongoose.models.ServiceExecutionTransaction
   || mongoose.model("ServiceExecutionTransaction", serviceExecutionTransactionSchema);
+
+const userRpgProgressSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+  profileId: { type: String, required: true, trim: true, maxlength: 120 },
+  currentLevel: { type: Number, default: 1, min: 1, index: true },
+  totalExp: { type: Number, default: 0, min: 0 },
+  currentLevelExp: { type: Number, default: 0, min: 0 },
+  nextLevelExp: { type: Number, default: 100, min: 1 },
+  unlockedSkills: { type: [String], default: [] },
+  unlockedSecretFortunes: { type: [String], default: [] },
+  unlockedMilestoneRewards: { type: [String], default: [] },
+  streakDays: { type: Number, default: 0, min: 0 },
+  longestStreakDays: { type: Number, default: 0, min: 0 },
+  lastQuestDateKst: { type: String, default: "", trim: true, maxlength: 10, index: true },
+  lastQuestCompletedAt: { type: Date, default: null },
+}, { timestamps: true, collection: "user_rpg_progresses" });
+
+userRpgProgressSchema.index({ userId: 1, profileId: 1 }, { unique: true });
+userRpgProgressSchema.index({ userId: 1, updatedAt: -1 });
+userRpgProgressSchema.index({ userId: 1, currentLevel: 1 });
+
+export const UserRpgProgress = mongoose.models.UserRpgProgress
+  || mongoose.model("UserRpgProgress", userRpgProgressSchema);
+
+const userDailyQuestLogSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+  profileId: { type: String, required: true, trim: true, maxlength: 120 },
+  questDateKst: { type: String, required: true, trim: true, maxlength: 10, index: true },
+  questId: { type: String, required: true, trim: true, maxlength: 150 },
+  questType: { type: String, default: "daily_rpg", trim: true, maxlength: 50 },
+  element: { type: String, default: "", trim: true, maxlength: 20 },
+  expReward: { type: Number, default: 0, min: 0 },
+  completedAt: { type: Date, default: null, index: true },
+  evidenceType: { type: String, default: "server_generated_quest", trim: true, maxlength: 50 },
+  status: {
+    type: String,
+    enum: ["completed", "rejected", "reversed"],
+    default: "completed",
+    index: true,
+  },
+  idempotencyKey: { type: String, default: "", trim: true, maxlength: 180 },
+  missionSnapshot: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { timestamps: true, collection: "user_daily_quest_logs" });
+
+userDailyQuestLogSchema.index({ userId: 1, profileId: 1, questDateKst: 1, questId: 1 }, { unique: true });
+userDailyQuestLogSchema.index({ userId: 1, questDateKst: 1 });
+userDailyQuestLogSchema.index({ userId: 1, profileId: 1, questDateKst: 1 });
+
+export const UserDailyQuestLog = mongoose.models.UserDailyQuestLog
+  || mongoose.model("UserDailyQuestLog", userDailyQuestLogSchema);
+
+const userRpgRewardLogSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+  profileId: { type: String, required: true, trim: true, maxlength: 120 },
+  rewardType: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 50,
+    index: true,
+  },
+  rewardKey: { type: String, required: true, trim: true, maxlength: 150 },
+  level: { type: Number, default: 0, min: 0, index: true },
+  idempotencyKey: { type: String, default: "", trim: true, maxlength: 180 },
+  meta: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { timestamps: true, collection: "user_rpg_reward_logs" });
+
+userRpgRewardLogSchema.index({ userId: 1, profileId: 1, rewardType: 1, rewardKey: 1 }, { unique: true });
+userRpgRewardLogSchema.index({ userId: 1, profileId: 1, level: 1 });
+userRpgRewardLogSchema.index({ userId: 1, createdAt: -1 });
+
+export const UserRpgRewardLog = mongoose.models.UserRpgRewardLog
+  || mongoose.model("UserRpgRewardLog", userRpgRewardLogSchema);
 
 const dailyFortuneSubscriptionSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true, match: emailRegex },

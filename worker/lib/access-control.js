@@ -1,5 +1,9 @@
 import { connectDb } from "./db.js";
-import { User, PointHistory } from "./models.js";
+import { CONTENT_ENTITLEMENT_SOURCES, User, PointHistory } from "./models.js";
+import {
+  findActivePaidContentUnlock,
+  upsertPaidContentUnlock,
+} from "./content-unlocks.js";
 import { normalizePaidFeatureKey } from "./paid-feature-registry.js";
 import { verifyPremiumAccessToken } from "./premium-access-token.js";
 
@@ -16,12 +20,144 @@ export const PREMIUM_UNLOCK_POLICY = Object.freeze({
   fptiPremium: ["premium-fpti-report"],
 });
 
+const ADMIN_TEST_USER_ID = "flower-admin";
+
 function uniqueStrings(values) {
   return Array.from(new Set(
     (Array.isArray(values) ? values : [])
       .map((value) => String(value || "").trim())
       .filter(Boolean),
   ));
+}
+
+function isAdminTestAccessValue(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  return normalized === "admin_test"
+    || normalized === "admin_bypass"
+    || normalized === "admin-test"
+    || normalized === "admin-bypass";
+}
+
+function hasAdminTestAccessContext(requestBody = {}) {
+  const payment = requestBody && typeof requestBody.payment === "object" ? requestBody.payment : {};
+  const paymentContext = requestBody && typeof requestBody._paymentContext === "object" ? requestBody._paymentContext : {};
+  const legacyPaymentContext = requestBody && typeof requestBody.paymentContext === "object" ? requestBody.paymentContext : {};
+  const consume = requestBody && typeof requestBody.consume === "object" ? requestBody.consume : {};
+  const grant = requestBody && typeof requestBody.accessGrant === "object"
+    ? requestBody.accessGrant
+    : (payment.accessGrant && typeof payment.accessGrant === "object"
+      ? payment.accessGrant
+      : (paymentContext.accessGrant && typeof paymentContext.accessGrant === "object"
+        ? paymentContext.accessGrant
+        : (legacyPaymentContext.accessGrant && typeof legacyPaymentContext.accessGrant === "object"
+          ? legacyPaymentContext.accessGrant
+          : (consume.accessGrant && typeof consume.accessGrant === "object" ? consume.accessGrant : {}))));
+
+  if (
+    requestBody.adminTestMode === true
+    || requestBody.adminBypass === true
+    || payment.adminTestMode === true
+    || payment.adminBypass === true
+    || paymentContext.adminTestMode === true
+    || paymentContext.adminBypass === true
+    || legacyPaymentContext.adminTestMode === true
+    || legacyPaymentContext.adminBypass === true
+    || consume.adminTestMode === true
+    || consume.adminBypass === true
+    || grant.adminTestMode === true
+    || grant.adminBypass === true
+  ) {
+    return true;
+  }
+
+  return [
+    requestBody.paymentMode,
+    requestBody.accessMode,
+    payment.paymentMode,
+    payment.accessMode,
+    paymentContext.paymentMode,
+    paymentContext.accessMode,
+    legacyPaymentContext.paymentMode,
+    legacyPaymentContext.accessMode,
+    consume.paymentMode,
+    consume.accessMode,
+    grant.paymentMode,
+    grant.accessMode,
+    grant.accessType,
+    grant.accessMethod,
+  ].some(isAdminTestAccessValue);
+}
+
+function extractPaidContentProfileId(source = {}) {
+  const payment = source && typeof source.payment === "object" ? source.payment : {};
+  const alt = source && typeof source._paymentContext === "object" ? source._paymentContext : {};
+  const consume = source && typeof source.consume === "object" ? source.consume : {};
+  const grant = source && typeof source.accessGrant === "object" ? source.accessGrant : {};
+  return String(
+    source.profileId
+      || source.selectedProfileId
+      || source.currentProfileId
+      || payment.profileId
+      || payment.selectedProfileId
+      || alt.profileId
+      || alt.selectedProfileId
+      || consume.profileId
+      || consume.selectedProfileId
+      || grant.profileId
+      || "",
+  ).trim();
+}
+
+function buildPremiumUnlockCandidateKeys({
+  unlockPolicy = [],
+  alternativeRules = [],
+  requiredRules = [],
+  receivedFeatureKey = "",
+} = {}) {
+  const ruleKeys = [...alternativeRules, ...requiredRules].flatMap((rule) => [
+    rule?.featureKey,
+    normalizePaidFeatureKey(rule?.featureKey || ""),
+  ]);
+  return uniqueStrings([
+    receivedFeatureKey,
+    normalizePaidFeatureKey(receivedFeatureKey),
+    ...unlockPolicy,
+    ...ruleKeys,
+  ]);
+}
+
+async function findPremiumContentEntitlement({ userId, profileId, candidateKeys = [] } = {}) {
+  for (let i = 0; i < candidateKeys.length; i += 1) {
+    const featureKey = candidateKeys[i];
+    const unlock = await findActivePaidContentUnlock({ userId, profileId, featureKey });
+    if (unlock?._id) return { unlock, featureKey };
+  }
+  return null;
+}
+
+async function upsertPremiumContentEntitlementFromEvidence({ userId, profileId, featureKey, evidence } = {}) {
+  if (!userId || !featureKey || !evidence?._id) return null;
+  const accessType = String(evidence?.metadata?.accessType || evidence?.metadata?.paymentMethod || "").toLowerCase();
+  const source = accessType.includes("pass") ? CONTENT_ENTITLEMENT_SOURCES.PASS : CONTENT_ENTITLEMENT_SOURCES.COIN;
+  return upsertPaidContentUnlock({
+    userId,
+    profileId,
+    featureKey,
+    source,
+    orderId: String(evidence?.metadata?.requestId || evidence?.metadata?.orderId || ""),
+    paymentId: String(evidence?._id || evidence?.metadata?.paymentId || evidence?.metadata?.transactionId || ""),
+    passId: source === CONTENT_ENTITLEMENT_SOURCES.PASS ? String(evidence?.metadata?.passId || evidence?._id || "") : "",
+    coinAmount: Math.abs(Number(evidence?.delta || evidence?.metadata?.chargedCoins || 0)),
+    unlockedAt: evidence?.createdAt || null,
+  }).catch((error) => {
+    console.warn("[PremiumAccessDecision] entitlement upsert failed", {
+      userId: String(userId || ""),
+      featureKey: String(featureKey || ""),
+      evidenceId: String(evidence?._id || ""),
+      code: String(error?.code || ""),
+    });
+    return null;
+  });
 }
 
 function logPremiumAccessDecision(payload = {}) {
@@ -912,6 +1048,54 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     || consume?._premiumAccessToken
     || "",
   ).trim();
+  const isAdminTestUser = String(userId || "").trim() === ADMIN_TEST_USER_ID;
+  const hasRequestedAdminBypass = hasAdminTestAccessContext(requestBody);
+  const hasAccessPolicy = Boolean(normalizedReportType && (unlockPolicy.length || alternativeRules.length || requiredRules.length));
+
+  if (isAdminTestUser && hasAccessPolicy) {
+    const allowed = {
+      ok: true,
+      accessType: hasRequestedAdminBypass ? "admin_test" : "admin_test_auth",
+      accessMethod: "ADMIN_TEST",
+      paymentMode: "admin_bypass",
+      reportType: normalizedReportType,
+      featureKey: receivedFeatureKey,
+      chargedCoins: 0,
+      adminTestMode: true,
+      adminBypass: true,
+    };
+    logPremiumAccessDecision({
+      route: requestBody?._accessRoute,
+      userId,
+      reportType: normalizedReportType,
+      featureKey: receivedFeatureKey,
+      accessSource: "admin_test",
+    });
+    logSajuAccessResolved(allowed);
+    return allowed;
+  }
+
+  if (hasRequestedAdminBypass) {
+    const denied = {
+      ok: false,
+      status: 403,
+      code: "ADMIN_VERIFICATION_FAILED",
+      message: "관리자 테스트 권한을 확인할 수 없습니다.",
+      reportType: normalizedReportType,
+      featureKey: receivedFeatureKey,
+      reason: "ADMIN_BYPASS_REQUIRES_SERVER_VERIFIED_ADMIN",
+    };
+    logPremiumAccessDecision({
+      route: requestBody?._accessRoute,
+      userId,
+      reportType: normalizedReportType,
+      featureKey: receivedFeatureKey,
+      accessSource: "admin_test_denied",
+      deniedReason: denied.reason,
+    });
+    logSajuAccessResolved(denied);
+    return denied;
+  }
 
   if (normalizedReportType === "sajuNewYear") {
     const expectedFeatureKey = String((requiredRules[0] && requiredRules[0].featureKey) || (alternativeRules[0] && alternativeRules[0].featureKey) || "saju_new_year_pdf");
@@ -934,6 +1118,31 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       userId: String(userId || ""),
       reportType: normalizedReportType,
     });
+    if (isAdminTestUser && hasAccessPolicy && tokenCheck.ok) {
+      const tokenPayload = tokenCheck.payload || {};
+      const allowed = {
+        ok: true,
+        accessType: "admin_test_token",
+        accessMethod: "ADMIN_TEST",
+        paymentMode: "admin_bypass",
+        reportType: normalizedReportType,
+        matchedTransactionId: String(tokenPayload.transactionId || requestBody?.sourceTransactionId || requestBody?.transactionId || "").trim(),
+        featureKey: String(tokenPayload.featureKey || receivedFeatureKey || "").trim(),
+        chargedCoins: 0,
+        adminTestMode: true,
+        adminBypass: true,
+      };
+      logPremiumAccessDecision({
+        route: requestBody?._accessRoute,
+        userId,
+        reportType: normalizedReportType,
+        featureKey: allowed.featureKey,
+        accessSource: "admin_test_token",
+        matchedTransactionId: allowed.matchedTransactionId,
+      });
+      logSajuAccessResolved(allowed);
+      return allowed;
+    }
     if (tokenCheck.ok && premiumTokenMatchesCurrentAccessRules(tokenCheck.payload, alternativeRules, requiredRules)) {
       const tokenPayload = tokenCheck.payload || {};
       const tokenTransactionId = String(tokenPayload.transactionId || requestBody?.sourceTransactionId || requestBody?.transactionId || "").trim();
@@ -1034,6 +1243,37 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
 
   const unlockSet = new Set(uniqueStrings(user.unlockedFeatures || []));
   const hasUnlock = unlockPolicy.some((key) => unlockSet.has(key));
+  const profileId = extractPaidContentProfileId(requestBody);
+  const entitlementCandidateKeys = buildPremiumUnlockCandidateKeys({
+    unlockPolicy,
+    alternativeRules,
+    requiredRules,
+    receivedFeatureKey,
+  });
+  const entitlementUnlock = await findPremiumContentEntitlement({
+    userId: user._id,
+    profileId,
+    candidateKeys: entitlementCandidateKeys,
+  });
+  if (entitlementUnlock?.unlock?._id) {
+    logPremiumAccessDecision({
+      route: requestBody?._accessRoute,
+      userId,
+      reportType: normalizedReportType,
+      featureKey: entitlementUnlock.featureKey,
+      accessSource: "already_unlocked",
+      entitlementId: String(entitlementUnlock.unlock._id || ""),
+    });
+    const allowed = {
+      ok: true,
+      accessType: "already_unlocked",
+      reportType: normalizedReportType,
+      entitlementId: String(entitlementUnlock.unlock._id || ""),
+      featureKey: entitlementUnlock.featureKey,
+    };
+    logSajuAccessResolved(allowed);
+    return allowed;
+  }
 
   if (requiredRules.length) {
     for (let i = 0; i < requiredRules.length; i += 1) {
@@ -1051,6 +1291,12 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
         logSajuAccessResolved(denied);
         return denied;
       }
+      await upsertPremiumContentEntitlementFromEvidence({
+        userId: user._id,
+        profileId,
+        featureKey: String(evidence?.featureKey || requiredRules[i]?.featureKey || receivedFeatureKey || ""),
+        evidence,
+      });
     }
   }
 
@@ -1075,6 +1321,12 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
 
   const tokenEvidence = await findEvidenceByPaymentTokens(user._id, requestBody, alternativeRules);
   if (tokenEvidence) {
+    await upsertPremiumContentEntitlementFromEvidence({
+      userId: user._id,
+      profileId,
+      featureKey: String(tokenEvidence?.featureKey || receivedFeatureKey || alternativeRules[0]?.featureKey || ""),
+      evidence: tokenEvidence,
+    });
     logPremiumAccessDecision({
       route: requestBody?._accessRoute,
       userId,
@@ -1099,6 +1351,12 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     for (let i = 0; i < alternativeRules.length; i += 1) {
       const evidence = await findRecentDeductionEvidence(user._id, alternativeRules[i]);
       if (!evidence) continue;
+      await upsertPremiumContentEntitlementFromEvidence({
+        userId: user._id,
+        profileId,
+        featureKey: String(evidence?.featureKey || alternativeRules[i]?.featureKey || receivedFeatureKey || ""),
+        evidence,
+      });
       logPremiumAccessDecision({
         route: requestBody?._accessRoute,
         userId,
