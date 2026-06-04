@@ -111,6 +111,20 @@ const FAMOUS_SAJU_PUBLISHED_AT = "2026-06-04T00:00:00+09:00";
 const FAMOUS_SAJU_UPDATED_AT = "2026-06-04T18:20:00+09:00";
 const FAMOUS_SAJU_OG_IMAGE = "/fuctionassets/%EC%9C%A0%EB%AA%85%EC%9D%B8%20%EC%82%AC%EC%A3%BC%20%EB%B6%84%EC%84%9D.webp";
 
+type FamousSajuNatalAnalysis = {
+  dayMaster?: unknown;
+  monthCommand?: unknown;
+  fiveElements?: unknown;
+  tenGods?: unknown;
+  usefulElements?: unknown;
+};
+
+type FamousSajuEngineResult = LocalSajuResult & {
+  natalAnalysis?: FamousSajuNatalAnalysis;
+  daewoonStartAge?: number | null;
+  daewoonDirection?: "forward" | "reverse" | string | null;
+};
+
 type FamousSajuInsightCard = {
   label: string;
   value: string;
@@ -140,7 +154,7 @@ type FamousSajuElementProfile = {
 export type FamousSajuCalculatedChart = {
   status: FamousSajuCalculationStatus;
   person: CelebritySajuSeed;
-  saju: LocalSajuResult | null;
+  saju: FamousSajuEngineResult | null;
   elementProfile: FamousSajuElementProfile;
   engineInput: {
     year?: number;
@@ -158,7 +172,7 @@ export type FamousSajuCalculatedChart = {
 export type FamousSajuArticle = {
   celebrity: CelebritySajuSeed;
   person: CelebritySajuSeed;
-  saju: LocalSajuResult | null;
+  saju: FamousSajuEngineResult | null;
   calculationStatus: FamousSajuCalculationStatus;
   dayElement: string;
   dayMasterLabel: string;
@@ -231,6 +245,14 @@ function buildElementProfile(saju: LocalSajuResult): FamousSajuElementProfile {
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function getNatalAnalysis(saju: FamousSajuEngineResult) {
+  return asRecord(saju.natalAnalysis);
+}
+
+function getDaewoonStartAge(saju: FamousSajuEngineResult) {
+  return typeof saju.daewoonStartAge === "number" ? saju.daewoonStartAge : null;
 }
 
 function recordString(record: Record<string, unknown>, key: string, fallback = "") {
@@ -354,8 +376,9 @@ function getFamousSajuImageMood(person: CelebritySajuSeed) {
   return "starry sky destiny silhouette mystical atmosphere";
 }
 
-function formatElementRanking(saju: LocalSajuResult) {
-  const fiveElements = asRecord(saju.natalAnalysis.fiveElements);
+function formatElementRanking(saju: FamousSajuEngineResult) {
+  const natalAnalysis = getNatalAnalysis(saju);
+  const fiveElements = asRecord(natalAnalysis.fiveElements);
   const ranking = fiveElements.ranking;
   if (!Array.isArray(ranking)) return "";
   return ranking
@@ -379,7 +402,7 @@ function formatTopRecordScores(record: Record<string, unknown>, limit = 3) {
     .join(" · ");
 }
 
-function buildReliabilityNotes(person: CelebritySajuSeed, saju: LocalSajuResult | null): FamousSajuReliabilityNote[] {
+function buildReliabilityNotes(person: CelebritySajuSeed, saju: FamousSajuEngineResult | null): FamousSajuReliabilityNote[] {
   if (!saju) {
     return [
       { label: "사주 계산", level: "제한", description: "사주 계산이 완료되지 않아 원국·십성·오행 해석을 생성하지 않았습니다." },
@@ -388,7 +411,8 @@ function buildReliabilityNotes(person: CelebritySajuSeed, saju: LocalSajuResult 
   }
 
   const hasTime = !saju.timeUnknown;
-  const activatedByLuck = asRecord(asRecord(saju.natalAnalysis.tenGods).activatedByLuck);
+  const natalAnalysis = getNatalAnalysis(saju);
+  const activatedByLuck = asRecord(asRecord(natalAnalysis.tenGods).activatedByLuck);
   const luckStatus = recordString(activatedByLuck, "status", "not_supplied");
   return [
     {
@@ -463,7 +487,7 @@ export function calculateFamousSaju(person: CelebritySajuSeed): FamousSajuCalcul
 
     // 사주 엔진 연결 핵심부: 유명인 데이터의 공개 생년월일만 입력하고, 시간이 검증되지 않으면 hasTime=false로 넘긴다.
     // calculateLocalSaju는 이 경우 내부 기준 시각을 계산 편의용으로만 쓰고 hourPillar를 null로 돌려주므로, 화면에는 삼주만 노출된다.
-    const saju = calculateLocalSaju(engineInput);
+    const saju = calculateLocalSaju(engineInput) as FamousSajuEngineResult;
     return {
       status: "calculated",
       person,
@@ -529,28 +553,31 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
   }
 
   const dayStem = saju.dayStem;
-  const dayMaster = asRecord(saju.natalAnalysis.dayMaster);
-  const monthCommand = asRecord(saju.natalAnalysis.monthCommand);
-  const tenGods = asRecord(saju.natalAnalysis.tenGods);
-  const usefulElements = asRecord(saju.natalAnalysis.usefulElements);
+  const natalAnalysis = getNatalAnalysis(saju);
+  const dayMaster = asRecord(natalAnalysis.dayMaster);
+  const monthCommand = asRecord(natalAnalysis.monthCommand);
+  const tenGods = asRecord(natalAnalysis.tenGods);
+  const usefulElements = asRecord(natalAnalysis.usefulElements);
   const visibleTenGods = asRecord(tenGods.visible);
   const activatedByLuck = asRecord(tenGods.activatedByLuck);
   const usefulElementKo = recordStringArray(usefulElements, "finalPriorityKo");
   const johuUseful = toEngineElementKo(recordString(usefulElements, "johuUseful"));
+  const inferredMonthElement = elementByBranch[saju.pillars.month.branch] || elementProfile.dominantElement;
   const dayElement = recordString(dayMaster, "elementKo", elementByStem[dayStem] || elementProfile.dominantElement);
-  const dayStrength = recordString(dayMaster, "strength", "강약 확인 필요");
+  const dayStrength = recordString(dayMaster, "strength", `${elementProfile.dominantElement} 기운 우세`);
   const strengthIndex = recordNumber(dayMaster, "strengthIndex");
-  const monthElement = recordString(monthCommand, "commandingElementKo", "월령 기운 확인 필요");
-  const monthSeason = recordString(monthCommand, "season", "계절 확인 필요");
-  const monthPriority = recordString(monthCommand, "priority", "월령은 사주 구조를 판단하는 핵심 기준입니다.");
+  const monthElement = recordString(monthCommand, "commandingElementKo", inferredMonthElement);
+  const monthSeason = recordString(monthCommand, "season", `${monthElement} 계절감`);
+  const monthPriority = recordString(monthCommand, "priority", "월지는 사주 전체의 계절감을 읽는 핵심 기준입니다.");
   const elementRanking = formatElementRanking(saju);
   const topTenGods = formatTopRecordScores(visibleTenGods) || "십성 점수 확인 필요";
   const luckStatus = recordString(activatedByLuck, "status", "not_supplied");
   const luckStatusText = formatLuckStatus(luckStatus);
   const dayMasterLabel = `${saju.pillars.day.ganji} 일주`;
   const hourText = saju.pillars.hour?.ganji || "출생 시간 미상";
-  const daewoonText = saju.daewoonStartAge !== null
-    ? `${saju.daewoonDirection === "forward" ? "순행" : saju.daewoonDirection === "reverse" ? "역행" : "방향 확인"} · 시작 ${saju.daewoonStartAge}세`
+  const daewoonStartAge = getDaewoonStartAge(saju);
+  const daewoonText = daewoonStartAge !== null
+    ? `${saju.daewoonDirection === "forward" ? "순행" : saju.daewoonDirection === "reverse" ? "역행" : "방향 확인"} · 시작 ${daewoonStartAge}세`
     : "대운 시작값 확인 필요";
   const usefulText = usefulElementKo.length ? usefulElementKo.join(" · ") : johuUseful ? `${johuUseful} 후보` : "용신 후보 확인 필요";
   const analysisBadge = saju.timeUnknown ? "사주 계산 기반 분석 · 출생 시간 미상 / 삼주 분석" : "사주 계산 기반 분석 · 시주 포함";
@@ -596,7 +623,7 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
       title: "운의 흐름",
       imageQuery: "night sky road time destiny",
       imageSection: "default",
-      body: saju.daewoonStartAge !== null
+      body: daewoonStartAge !== null
         ? `대운의 방향과 시작값은 ${daewoonText}로 표시됩니다. 다만 공개 자료 기준에서 개별 대운·세운의 세부 흐름은 ${luckStatusText} 상태이므로, 이 문단은 운의 큰 리듬을 참고하는 정도로만 읽는 것이 좋습니다. 출생 시간이 미상인 경우에는 운의 세부 해석 신뢰도도 함께 제한됩니다.`
         : `대운 시작값은 현재 계산 범위에서 확정하지 않습니다. 공개 자료 기준에서 개별 대운·세운의 세부 흐름은 ${luckStatusText} 상태이므로, 운의 흐름은 큰 방향을 참고하는 정도로만 읽는 것이 좋습니다. 출생 시간이 미상인 경우에는 운의 세부 해석 신뢰도도 함께 제한됩니다.`,
     },
