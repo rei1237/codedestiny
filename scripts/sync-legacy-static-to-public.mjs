@@ -149,20 +149,10 @@ function stripLeadingBom(buffer) {
 const CACHE_BUST_QUERY_RE = /\?v=[a-zA-Z0-9_-]+/g;
 const CACHE_KEY_SOURCE_FILES = [
   "index.html",
-  "js/core/index-inline-runtime.js",
-  "js/core/uiBindings.js",
-  "js/mobile-interaction-patch.js",
-  "js/noncritical-defer-loader.js",
-  "js/destiny-profile.js",
-  "js/core/kasi-calendar-service.js",
-  "js/compat-llm-prompts.js",
-  "js/saju-engine.js",
-  "js/core/saju/extremeTResult.js",
-  "js/saju-engine-tarot-sukuyo-quantum.js",
-  "js/core/saju/modalProfileState.js",
-  "js/core/saju/reportDashboard.js",
-  "js/saju-engine-continuation.js",
-  "js/entertain-engine.js",
+];
+const CACHE_KEY_SOURCE_DIRS = [
+  { dir: "js", exts: new Set([".js", ".mjs", ".cjs", ".json"]) },
+  { dir: "styles", exts: new Set([".css"]) },
 ];
 
 function normalizeForCacheKey(content) {
@@ -188,7 +178,7 @@ function resolveDeterministicCacheKey() {
 
   const hash = createHash("sha1");
   let hasSource = false;
-  for (const rel of CACHE_KEY_SOURCE_FILES) {
+  for (const rel of collectCacheKeySourceFiles()) {
     const abs = resolve(rootDir, rel);
     if (!existsSync(abs)) continue;
     hasSource = true;
@@ -202,6 +192,34 @@ function resolveDeterministicCacheKey() {
 
   if (!hasSource) return "build-static";
   return `build-${hash.digest("hex").slice(0, 12)}`;
+}
+
+function collectCacheKeySourceFiles() {
+  const files = new Set(CACHE_KEY_SOURCE_FILES);
+
+  for (const item of CACHE_KEY_SOURCE_DIRS) {
+    const baseDir = resolve(rootDir, item.dir);
+    if (!existsSync(baseDir)) continue;
+    collectCacheKeySourceFilesInDir(baseDir, item.dir, item.exts, files);
+  }
+
+  return Array.from(files).sort();
+}
+
+function collectCacheKeySourceFilesInDir(absDir, relDir, exts, files) {
+  for (const entry of readdirSync(absDir, { withFileTypes: true })) {
+    if (entry.name.startsWith(".")) continue;
+    const absPath = join(absDir, entry.name);
+    const relPath = `${relDir}/${entry.name}`;
+    if (entry.isDirectory()) {
+      collectCacheKeySourceFilesInDir(absPath, relPath, exts, files);
+      continue;
+    }
+    if (!entry.isFile()) continue;
+    const dot = entry.name.lastIndexOf(".");
+    const ext = dot >= 0 ? entry.name.slice(dot) : "";
+    if (exts.has(ext)) files.add(relPath);
+  }
 }
 
 function hasSevereMojibake(html) {
@@ -311,7 +329,7 @@ function stripLegacyPublicBlocks(html) {
 function cacheBustUiBindingsScriptRefs(source, buildTimestamp) {
   const html = String(source || "");
   return html.replace(
-    /(\/js\/(?:ziwei-book|astro-book|sukuyo-book|vedic-book|saju-new-year|life-book|love-secret-v2|tarot-year-fortune-experience|core\/index-inline-runtime|mobile-backstack-navigation)\.js\?v=)[a-zA-Z0-9_-]+/g,
+    /(\/js\/[^"'\s`)]+\.js\?v=)[a-zA-Z0-9_-]+/g,
     `$1${buildTimestamp}`,
   );
 }
@@ -319,7 +337,7 @@ function cacheBustUiBindingsScriptRefs(source, buildTimestamp) {
 function cacheBustMobileInteractionPatchScriptRefs(source, buildTimestamp) {
   const js = String(source || "");
   return js.replace(
-    /(js\/tarot-year-fortune-experience\.js\?v=)[a-zA-Z0-9_-]+/g,
+    /(js\/[^"'\s`)]+\.js\?v=)[a-zA-Z0-9_-]+/g,
     `$1${buildTimestamp}`,
   );
 }

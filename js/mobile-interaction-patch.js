@@ -673,7 +673,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=20260513-mobile-backstack-v1').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-1913aff1db24').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -682,6 +682,7 @@
     if (!actionEl) return false;
     var action = actionEl.getAttribute('data-action');
     if (!action) return false;
+    var loadToken = beginFeatureLoading(action, { minMs: 250, maxMs: 3000 });
     ensureMobileBackstackRuntime();
     try {
       if (window.__cdMobileNav && typeof window.__cdMobileNav.onActionInvoke === 'function') {
@@ -689,28 +690,34 @@
       }
     } catch (_) {}
     var fn = window[action];
-    if (typeof fn !== 'function') return false;
+    if (typeof fn !== 'function') {
+      endFeatureLoading(loadToken);
+      return false;
+    }
 
     var args = parseActionArgs(actionEl.getAttribute('data-action-args'));
     var passSelfMode = actionEl.getAttribute('data-action-pass-self');
     var passEvent = actionEl.getAttribute('data-action-pass-event') === '1';
 
     function runInvoke() {
+      var result = undefined;
       try {
         if (passSelfMode === 'append') {
-          fn.apply(window, args.concat([actionEl]));
+          result = fn.apply(window, args.concat([actionEl]));
         } else if (passSelfMode === '1' || passSelfMode === 'prepend') {
-          fn.apply(window, [actionEl].concat(args));
+          result = fn.apply(window, [actionEl].concat(args));
         } else if (passEvent) {
-          fn.call(window, sourceEvent);
+          result = fn.call(window, sourceEvent);
         } else if (args.length) {
-          fn.apply(window, args);
+          result = fn.apply(window, args);
         } else {
-          fn.call(window);
+          result = fn.call(window);
         }
+        finalizeFeatureLoading(result, loadToken);
         return true;
       } catch (err) {
         console.error('[mobile-interaction-patch] data-action invoke failed:', action, err);
+        endFeatureLoading(loadToken);
         return false;
       }
     }
@@ -753,18 +760,18 @@
     openHwatuModal: ['HwatuFortune.js'],
     // NOTE: uiBindings??`js/...` 경로??용?니?? 모바??patch???일 경로?맞춰
     // ???에??최신 ?크립트??확??로드?도??니??
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=20260414-tarot-qualityfix2'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=20260414-tarot-qualityfix2'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=20260414-tarot-qualityfix2'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-1913aff1db24'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-1913aff1db24'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-1913aff1db24'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-3c50edd0b599'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-1913aff1db24'],
     openDreamModal: ['lib/ai-engine.js', 'js/dream-ledger.js'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=20260512-quantum-v4']
+    openSibylModal: ['js/sibyl-system.js?v=build-1913aff1db24']
   };
 
   function normalizeScriptSrc(src) {
@@ -862,12 +869,15 @@
     }
     // ?�?� 코인/?�금 게이??체크 ???�?�
 
+    var loadToken = beginFeatureLoading(rule.action, { minMs: 350, maxMs: 7000 });
+
     if (rule.action === 'openNevilleMeditationPage') {
       try {
         window.location.href = '/neville-meditation.html';
         return true;
       } catch (err) {
         console.error('[mobile-interaction-patch] meditation navigation failed:', err);
+        endFeatureLoading(loadToken);
         var fallbackHref = (origin && origin.getAttribute && origin.getAttribute('data-fallback-href')) || '/neville-meditation.html';
         if (fallbackHref) {
           try {
@@ -878,6 +888,8 @@
           }
         }
       }
+      endFeatureLoading(loadToken);
+      return false;
     }
 
     if (rule.action === 'openCosmicSoulMeditation') {
@@ -886,11 +898,14 @@
         return true;
       } catch (err) {
         console.error('[mobile-interaction-patch] cosmic soul meditation navigation failed:', err);
+        endFeatureLoading(loadToken);
         var fallbackHref2 = (origin && origin.getAttribute && origin.getAttribute('data-fallback-href')) || '/cosmic-soul-meditation.html';
         if (fallbackHref2) {
           try { window.location.assign(fallbackHref2); return true; } catch (_) {}
         }
       }
+      endFeatureLoading(loadToken);
+      return false;
     }
 
     if (rule.action === 'openYogaGuru') {
@@ -899,11 +914,14 @@
         return true;
       } catch (err) {
         console.error('[mobile-interaction-patch] yoga guru navigation failed:', err);
+        endFeatureLoading(loadToken);
         var fallbackHref3 = (origin && origin.getAttribute && origin.getAttribute('data-fallback-href')) || '/yoga-guru.html';
         if (fallbackHref3) {
           try { window.location.assign(fallbackHref3); return true; } catch (_) {}
         }
       }
+      endFeatureLoading(loadToken);
+      return false;
     }
 
     if (rule.action === 'openTarotHealingModal') {
@@ -912,11 +930,14 @@
         return true;
       } catch (err) {
         console.error('[mobile-interaction-patch] tarot healing navigation failed:', err);
+        endFeatureLoading(loadToken);
         try {
           window.location.assign('/tarot/healing');
           return true;
         } catch (_) {}
       }
+      endFeatureLoading(loadToken);
+      return false;
     }
 
     dispatchFeatureTapEvent(rule, origin, sourceEvent);
@@ -940,18 +961,29 @@
           if (typeof window.__cdEnsureModalOverlaysInBody === 'function') window.__cdEnsureModalOverlaysInBody();
           var f = window[rule.action];
           if (typeof f === 'function') {
-            try { f(); } catch (err) {
+            var result;
+            try { 
+              result = f();
+              finalizeFeatureLoading(result, loadToken);
+            } catch (err) {
               console.error('[mobile-interaction-patch] post-load action failed:', rule.action, err);
+              endFeatureLoading(loadToken);
             }
+          } else {
+            endFeatureLoading(loadToken);
           }
         }).catch(function(err) {
           console.error('[mobile-interaction-patch] lazy load failed:', rule.action, err);
+          endFeatureLoading(loadToken);
         });
       });
       return true;
     }
 
-    if (typeof fn !== 'function') return false;
+    if (typeof fn !== 'function') {
+      endFeatureLoading(loadToken);
+      return false;
+    }
 
     /* 모바?? ?�기 ?�행 ??브라?��?가 ?�치 처리 �?UI ?�데?�트�?막아 ?�면 멈춤 발생. rAF�?지??*/
     var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
@@ -959,14 +991,17 @@
       raf(function() {
         if (typeof window.__cdEnsureModalOverlaysInBody === 'function') window.__cdEnsureModalOverlaysInBody();
         try {
-          fn();
+          var result = fn();
+          finalizeFeatureLoading(result, loadToken);
         } catch (err) {
           console.error('[mobile-interaction-patch] action execution failed:', rule.action, err);
+          endFeatureLoading(loadToken);
         }
       });
       return true;
     } catch (err) {
       console.error('[mobile-interaction-patch] action execution failed:', rule.action, err);
+      endFeatureLoading(loadToken);
       return false;
     }
   }
@@ -1476,6 +1511,7 @@
 
   // 기본 베다점 기능 - 프로필 데이터 전달 및 페이지 이동
   window.navigateToVedic = function(profileArg) {
+    var loadToken = beginFeatureLoading('navigateToVedic', { minMs: 650, maxMs: 9000 });
     try {
       var profile = profileArg || null;
       // 프로필이 없으면 저장소에서 읽기 시도
@@ -1526,6 +1562,7 @@
       window.location.href = '/vedic-astrology.html';
     } catch (err) {
       console.error('[navigateToVedic] Error:', err);
+      endFeatureLoading(loadToken);
       // 오류 발생 시에도 페이지 이동은 시도
       window.location.href = '/vedic-astrology.html';
     }
