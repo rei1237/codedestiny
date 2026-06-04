@@ -114,16 +114,25 @@ const projectName =
   process.env.CLOUDFLARE_PROJECT_NAME ||
   "code-destiny";
 
-const PAGES_PUBLIC_KEYS = [
+const PAGES_SECRET_KEYS = [
   "NEXT_PUBLIC_API_BASE_URL",
   "NEXT_PUBLIC_AUTH_API_BASE_URL",
   "NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH",
+  "PEXELS_API_KEY",
 ];
 
+const PAGES_SECRET_KEY_ALIASES = {
+  PEXELS_API_KEY: ["PEXELS_APIKEY", "PEXES_APIKEY"],
+};
+
 function getSecretValue(key) {
-  const raw = process.env[key];
-  if (!isUsableEnvValue(raw)) return "";
-  return String(raw).trim();
+  const candidates = [key, ...(PAGES_SECRET_KEY_ALIASES[key] || [])];
+  for (const candidate of candidates) {
+    const raw = process.env[candidate];
+    if (!isUsableEnvValue(raw)) continue;
+    return String(raw).trim();
+  }
+  return "";
 }
 
 function putPagesSecret(project, key, value) {
@@ -153,10 +162,10 @@ function putPagesSecret(project, key, value) {
   return Number.isInteger(result.status) ? result.status : 1;
 }
 
-const available = PAGES_PUBLIC_KEYS.filter((key) => getSecretValue(key));
+const available = PAGES_SECRET_KEYS.filter((key) => getSecretValue(key));
 if (available.length === 0) {
   const message =
-    "[secrets] No Pages public values found in env files (.env.cloudflare.local/.env.cloudflare/.env.local/.env).";
+    "[secrets] No Pages values found in env files (.env.cloudflare.local/.env.cloudflare/.env.local/.env).";
   if (skipEmpty) {
     console.warn(`${message} Skipping because --skip-empty was supplied.`);
     process.exit(0);

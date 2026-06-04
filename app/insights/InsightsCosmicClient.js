@@ -5,6 +5,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { getApiBaseUrl } from "../_lib/api-config";
 
 const PAGE_SIZE = 12;
+const FAMOUS_SAJU_POPULAR_KEYWORDS = [
+  { label: "이순신 사주", href: "/insights/famous-saju/yi-sun-sin" },
+  { label: "아이유 사주", href: "/insights/famous-saju/iu" },
+  { label: "BTS 사주", href: "/insights/famous-saju/bts-rm" },
+  { label: "유명인 사주 분석", href: "/insights/famous-saju" },
+  { label: "연예인 사주", href: "/insights/famous-saju" },
+  { label: "역사 인물 사주", href: "/insights/famous-saju" },
+  { label: "일간별 유명인", href: "/insights/famous-saju" },
+];
 const CATEGORY_PRIORITY = ["사주", "자미두수", "숙요점", "타로", "점성술", "베다점", "궁합", "오늘의 운세", "신년운세", "룬", "오미쿠지", "기타"];
 
 function normalizeText(value, maxLen = 6000) {
@@ -195,6 +204,7 @@ export default function InsightsCosmicClient({
   initialCategories = [],
   initialTags = [],
   initialTotalCount = 0,
+  initialFamousSajuItems = [],
 }) {
   const apiBase = useMemo(() => getApiBaseUrl(), []);
   const seedPool = useMemo(() => {
@@ -280,6 +290,13 @@ export default function InsightsCosmicClient({
   const activeTags = apiMode ? apiTags : localTags;
   const activeTotalCount = apiMode ? apiTotalCount : localFiltered.length;
   const activeHasMore = apiMode ? hasMore : localHasMore;
+  const categoryTabs = useMemo(() => {
+    const labels = Array.from(new Set(["유명인 사주", ...activeCategories].filter(Boolean)));
+    return ["", ...labels];
+  }, [activeCategories]);
+  const famousSajuItems = useMemo(() => {
+    return initialFamousSajuItems.map(normalizePost).filter((item) => item.slug && item.title).slice(0, 6);
+  }, [initialFamousSajuItems]);
 
   async function fetchList(nextPage, append) {
     const endpoint = `${apiBase || ""}/api/insights`;
@@ -406,6 +423,110 @@ export default function InsightsCosmicClient({
           </p>
           <p className="mt-3 text-xs text-slate-400">총 {activeTotalCount.toLocaleString("ko-KR")}개 글</p>
         </header>
+
+        <nav className="flex gap-2 overflow-x-auto pb-1" aria-label="운세 인사이트 카테고리">
+          {categoryTabs.map((value) => {
+            const active = category === value;
+            return (
+              <button
+                key={value || "all"}
+                type="button"
+                onClick={() => {
+                  setCategory(value);
+                  setTag("");
+                  setPage(1);
+                }}
+                className={`shrink-0 rounded-full border px-3.5 py-2 text-sm font-semibold transition ${
+                  active
+                    ? "border-amber-200 bg-amber-100/15 text-amber-50"
+                    : "border-white/15 bg-white/[0.04] text-slate-200 hover:border-amber-200/45 hover:text-amber-100"
+                }`}
+              >
+                {value || "전체"}
+              </button>
+            );
+          })}
+        </nav>
+
+        {famousSajuItems.length > 0 ? (
+          <section className="overflow-hidden rounded-3xl border border-amber-200/20 bg-[linear-gradient(135deg,rgba(251,191,36,0.11),rgba(168,85,247,0.08),rgba(15,23,42,0.08))]">
+            <div className="grid gap-5 p-4 md:p-6 lg:grid-cols-[0.85fr_1.15fr]">
+              <div className="flex min-w-0 flex-col justify-between gap-5">
+                <div>
+                  <p className="text-xs font-semibold tracking-[0.18em] text-amber-200/80">FAMOUS SAJU MAGAZINE</p>
+                  <h2 className="mt-2 text-2xl font-semibold leading-tight text-white">유명인 사주 분석</h2>
+                  <p className="mt-3 text-sm leading-7 text-slate-300">
+                    공개 생년월일과 사주 엔진 계산값을 바탕으로, 역사 인물과 대중문화 인물의 일간·오행·삼주 흐름을 블로그처럼 읽습니다.
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-amber-100">인기 키워드</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {FAMOUS_SAJU_POPULAR_KEYWORDS.map((keyword) => (
+                      <Link
+                        key={keyword.label}
+                        href={keyword.href}
+                        className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-slate-200 transition hover:border-amber-200/50 hover:text-amber-100"
+                      >
+                        {keyword.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+                <Link
+                  href="/insights/famous-saju"
+                  className="inline-flex w-fit items-center justify-center rounded-lg border border-amber-200/40 bg-amber-100/15 px-4 py-2 text-sm font-semibold text-amber-50 transition hover:bg-amber-100/25"
+                >
+                  유명인 사주 전체 보기
+                </Link>
+              </div>
+
+              <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+                {famousSajuItems.slice(0, 4).map((item) => {
+                  const image = buildCardImage(item);
+                  const href = item.serviceLink || `/insights/${item.slug}`;
+                  return (
+                    <Link
+                      key={`famous-${item.slug}`}
+                      href={href}
+                      className="group overflow-hidden rounded-2xl border border-white/10 bg-white/[0.055] transition hover:border-amber-200/45 hover:bg-white/[0.08]"
+                    >
+                      {image.url ? (
+                        <img
+                          src={image.url}
+                          alt={image.alt}
+                          loading="lazy"
+                          decoding="async"
+                          width={640}
+                          height={360}
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="h-36 w-full object-cover sm:h-32"
+                        />
+                      ) : (
+                        <div className="h-36 w-full bg-gradient-to-br from-amber-300/20 to-fuchsia-300/10 sm:h-32" />
+                      )}
+                      <div className="p-4">
+                        <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
+                          <span>{formatDate(item.publishedAt || item.updatedAt)}</span>
+                          <span>약 {Math.max(1, Number(item.readingTime || 1))}분 읽기</span>
+                        </div>
+                        <h3 className="mt-2 text-base font-semibold leading-6 text-white group-hover:text-amber-100">{item.title}</h3>
+                        <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-300">{item.excerpt}</p>
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {item.tags.slice(0, 3).map((value) => (
+                            <span key={`${item.slug}-${value}`} className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-slate-300">
+                              #{value}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 md:p-5 space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-2">

@@ -165,6 +165,7 @@ const SECRET_KEYS = [
   "PORTONE_API_BASE_URL",
   "PORTONE_API_Secret",
   "PORTONE_webhook_URL",
+  "PORTONE_webhook",
   "PORTONE_webhook_Secret",
   "PORTONE_channel",
   "PORTONE_Store",
@@ -184,6 +185,7 @@ const SECRET_KEYS = [
   "YOUTUBE_API_KEY",
   "YOUTUBE_DATA_API_KEY",
   "GOOGLE_YOUTUBE_API_KEY",
+  "PEXELS_API_KEY",
   "GEMINI_MODEL",
   "PREMIUM_GEMINI_MODEL",
   "LIFEBOOK_GEMINI_MODEL",
@@ -244,6 +246,7 @@ const SECRET_KEY_ALIASES = {
   PREMIUM_GEMINI_API_KEY3: ["GEMINIF_API_KEY3"],
   PREMIUM_GEMINI_API_KEY4: ["GEMINIF_API_KEY4"],
   PREMIUM_GEMINI_API_KEY5: ["GEMINIF_API_KEY5"],
+  PEXELS_API_KEY: ["PEXELS_APIKEY", "PEXES_APIKEY"],
 };
 
 function getSecretValue(key) {
@@ -331,7 +334,7 @@ function putWorkerSecret(key, value) {
 }
 
 const activeSecretKeys = onlyPortone
-  ? ["PORTONE_API_Secret", "PORTONE_webhook_URL", "PORTONE_webhook_Secret", "PORTONE_channel", "PORTONE_Store"]
+  ? ["PORTONE_API_Secret", "PORTONE_webhook_URL", "PORTONE_webhook", "PORTONE_webhook_Secret", "PORTONE_channel", "PORTONE_Store"]
   : SECRET_KEYS;
 
 const available = activeSecretKeys.filter((key) => getSecretValue(key));

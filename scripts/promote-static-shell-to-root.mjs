@@ -1,11 +1,13 @@
-import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
 const rootDir = process.cwd();
 const publicDir = resolve(rootDir, "public");
 const publicIndexPath = resolve(rootDir, "public", "index.html");
 const publicStaticIndexPath = resolve(rootDir, "public", "static", "index.html");
+const generatedSitemapPath = resolve(rootDir, "out", "sitemap.xml");
 const distIndexPath = resolve(rootDir, "dist", "index.html");
+const distSitemapPath = resolve(rootDir, "dist", "sitemap.xml");
 const distStaticIndexPath = resolve(rootDir, "dist", "static", "index.html");
 
 function stripLeadingBom(buffer) {
@@ -62,6 +64,11 @@ if (!existsSync(resolve(rootDir, "dist"))) {
 if (existsSync(publicDir)) {
   cpSync(publicDir, resolve(rootDir, "dist"), { recursive: true, force: true });
   console.log(`[promote-static-shell] public assets: ${publicDir} -> ${resolve(rootDir, "dist")}`);
+
+  if (existsSync(generatedSitemapPath)) {
+    copyFileSync(generatedSitemapPath, distSitemapPath);
+    console.log(`[promote-static-shell] sitemap: ${generatedSitemapPath} -> ${distSitemapPath}`);
+  }
 }
 
 writeHtml(publicIndexPath, distIndexPath, "root");

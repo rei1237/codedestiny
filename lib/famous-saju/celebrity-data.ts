@@ -1,25 +1,55 @@
 export type BirthStatus = "verified" | "public" | "uncertain" | "unknown";
 export type BirthTimeStatus = "verified" | "unknown" | "estimated_not_used";
+export type FamousSajuCategory = "historical" | "entertainer" | "sports" | "business" | "politics" | "creator" | "other";
+export type FamousSajuBirthCalendar = "solar" | "lunar" | "unknown";
+
+export type FamousSajuPerson = {
+  id: string;
+  slug: string;
+  nameKo: string;
+  nameEn?: string;
+  aliases: string[];
+  category: FamousSajuCategory;
+  birthDate: string;
+  birthCalendar: FamousSajuBirthCalendar;
+  birthTime?: string | null;
+  birthPlace?: string | null;
+  gender?: "male" | "female" | "unknown";
+  isBirthTimeKnown: boolean;
+  isHistoricalDateUncertain?: boolean;
+  seoKeywords: string[];
+  imageQueries: string[];
+  shortDescription: string;
+  published: boolean;
+};
 
 export type CelebritySajuSeed = {
   id: string;
   slug: string;
+  nameKo: string;
   name: string;
   nameEn?: string;
+  aliases: string[];
+  categoryKey: FamousSajuCategory;
   category: string;
   subCategory?: string;
   country?: string;
   birthDate: string | null;
+  birthCalendar: FamousSajuBirthCalendar;
   birthTime?: string | null;
   birthPlace?: string | null;
   calendarType?: "solar" | "lunar";
   gender?: "male" | "female" | "unknown";
   birthDateStatus: BirthStatus;
   birthTimeStatus: BirthTimeStatus;
+  isBirthTimeKnown: boolean;
+  isHistoricalDateUncertain?: boolean;
   shortBio: string;
+  shortDescription: string;
   profileImage?: string | null;
   tags: string[];
   seoKeywords: string[];
+  imageQueries: string[];
   published: boolean;
 };
 
@@ -167,28 +197,108 @@ const rawSeeds: RawCelebritySeed[] = [
 
 const baseKeywords = ["유명인 사주", "사주팔자", "일간 분석", "오행 분석", "운세 사주"];
 
-export const celebritySajuSeeds: CelebritySajuSeed[] = rawSeeds.map(([slug, name, category, country, birthDate, birthTime, tags = [], nameEn]) => ({
-  id: slug,
-  slug,
-  name,
-  nameEn,
-  category,
-  country,
-  birthDate,
-  birthTime: birthTime || null,
-  birthPlace: null,
-  calendarType: "solar",
-  gender: "unknown",
-  birthDateStatus: "public",
-  birthTimeStatus: birthTime ? "verified" : "unknown",
-  shortBio: `${name}의 공개 생년월일을 바탕으로 일간, 오행, 직업적 흐름을 살펴보는 유명인 사주 분석입니다.`,
-  profileImage: null,
-  tags,
-  seoKeywords: [...baseKeywords, `${name} 사주`, `${name} 사주풀이`, `${category} 사주`],
-  published: true,
-}));
+const extraAliasesBySlug: Record<string, string[]> = {
+  "yi-sun-sin": ["충무공", "충무공 이순신"],
+  iu: ["이지은"],
+  "bts-rm": ["RM", "알엠", "김남준", "BTS 알엠"],
+};
+
+function uniqueText(values: Array<string | null | undefined>) {
+  return Array.from(new Set(values.map((value) => String(value || "").trim()).filter(Boolean)));
+}
+
+function toFamousSajuCategory(category: string): FamousSajuCategory {
+  if (category === "역사 위인") return "historical";
+  if (category === "왕족·정치인") return "politics";
+  if (category === "스포츠") return "sports";
+  if (category === "기업인") return "business";
+  if (category === "감독·작가" || category === "사상가·예술가") return "creator";
+  if (category === "K-스타" || category === "배우" || category === "가수") return "entertainer";
+  return "other";
+}
+
+export function normalizeCelebrityLookupKey(value: string) {
+  let decoded = String(value || "").trim();
+  try {
+    decoded = decodeURIComponent(decoded);
+  } catch {
+    decoded = String(value || "").trim();
+  }
+  return decoded
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[^\p{Letter}\p{Number}]+/gu, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function buildAliases(slug: string, nameKo: string, nameEn?: string) {
+  const slugText = slug.replace(/-/g, " ");
+  return uniqueText([nameKo, nameEn, slugText, ...(extraAliasesBySlug[slug] || [])]);
+}
+
+function isDateUncertain(category: string, birthDate: string) {
+  const year = Number(birthDate.slice(0, 4));
+  return category === "역사 위인" && Number.isFinite(year) && year < 1900;
+}
+
+export const celebritySajuSeeds: CelebritySajuSeed[] = rawSeeds.map(([slug, name, category, country, birthDate, birthTime, tags = [], nameEn]) => {
+  const categoryKey = toFamousSajuCategory(category);
+  const aliases = buildAliases(slug, name, nameEn);
+  const birthCalendar: FamousSajuBirthCalendar = "solar";
+  const isBirthTimeKnown = Boolean(birthTime);
+  const shortDescription = `${name}의 공개 생년월일을 바탕으로 일간, 오행, 직업적 흐름을 살펴보는 유명인 사주 분석입니다.`;
+
+  return {
+    id: slug,
+    slug,
+    nameKo: name,
+    name,
+    nameEn,
+    aliases,
+    categoryKey,
+    category,
+    country,
+    birthDate,
+    birthCalendar,
+    birthTime: birthTime || null,
+    birthPlace: null,
+    calendarType: "solar",
+    gender: "unknown",
+    birthDateStatus: "public",
+    birthTimeStatus: isBirthTimeKnown ? "verified" : "unknown",
+    isBirthTimeKnown,
+    isHistoricalDateUncertain: isDateUncertain(category, birthDate),
+    shortBio: shortDescription,
+    shortDescription,
+    profileImage: null,
+    tags,
+    seoKeywords: [...baseKeywords, `${name} 사주`, `${name} 사주풀이`, `${category} 사주`],
+    imageQueries: [`${name} ${category} 인물`, `${category} destiny portrait`, "five elements saju"],
+    published: true,
+  };
+});
 
 export const publishedCelebritySajuSeeds = celebritySajuSeeds.filter((item) => item.published && item.birthDate);
+
+export const famousSajuPeople: FamousSajuPerson[] = publishedCelebritySajuSeeds.map((item) => ({
+  id: item.id,
+  slug: item.slug,
+  nameKo: item.nameKo,
+  nameEn: item.nameEn,
+  aliases: item.aliases,
+  category: item.categoryKey,
+  birthDate: item.birthDate || "",
+  birthCalendar: item.birthCalendar,
+  birthTime: item.birthTime,
+  birthPlace: item.birthPlace,
+  gender: item.gender,
+  isBirthTimeKnown: item.isBirthTimeKnown,
+  isHistoricalDateUncertain: item.isHistoricalDateUncertain,
+  seoKeywords: item.seoKeywords,
+  imageQueries: item.imageQueries,
+  shortDescription: item.shortDescription,
+  published: item.published,
+}));
 
 export function categoryToSlug(category: string) {
   const table: Record<string, string> = {
@@ -209,7 +319,25 @@ export function categoryToSlug(category: string) {
 }
 
 export function getCelebrityBySlug(slug: string) {
-  return publishedCelebritySajuSeeds.find((item) => item.slug === slug) || null;
+  const key = normalizeCelebrityLookupKey(slug);
+  return publishedCelebritySajuSeeds.find((item) => {
+    const keys = [item.slug, item.nameKo, item.name, item.nameEn, ...item.aliases].map((value) => normalizeCelebrityLookupKey(String(value || "")));
+    return keys.includes(key);
+  }) || null;
+}
+
+export function getCelebrityStaticSlugs() {
+  const seen = new Set<string>();
+  const slugs: string[] = [];
+  for (const item of publishedCelebritySajuSeeds) {
+    for (const value of [item.slug, item.nameKo, ...item.aliases]) {
+      const routeSlug = normalizeCelebrityLookupKey(String(value || "").trim());
+      if (!routeSlug || routeSlug.includes("/") || routeSlug.includes("\\") || seen.has(routeSlug)) continue;
+      seen.add(routeSlug);
+      slugs.push(routeSlug);
+    }
+  }
+  return slugs;
 }
 
 export function getCelebritiesByCategory(category: string) {

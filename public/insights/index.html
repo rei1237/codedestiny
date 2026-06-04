@@ -17,6 +17,29 @@
     .ins-intro { max-width: 720px; margin: 0 auto 2rem; text-align: center; color: rgba(203,195,227,0.85); line-height: 1.8; }
     .ins-section-title { font-size: 1.1rem; font-weight: 800; color: #c4b5fd; margin: 2.5rem 0 1rem; letter-spacing: 0.04em; display: flex; align-items: center; gap: 8px; }
     .ins-section-title::before { content: ''; display: block; height: 2px; width: 24px; background: var(--color-accent, #a78bfa); border-radius: 2px; }
+    .famous-saju-feature { margin: 2rem 0 2.75rem; padding: 1.25rem; border: 1px solid rgba(251,191,36,0.24); border-radius: 20px; background: linear-gradient(135deg, rgba(251,191,36,0.12), rgba(168,85,247,0.12), rgba(15,23,42,0.12)); box-shadow: 0 18px 50px rgba(0,0,0,0.22); }
+    .famous-saju-feature-head { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 1rem; align-items: end; margin-bottom: 1rem; }
+    .famous-saju-kicker { margin: 0 0 0.4rem; color: rgba(253,230,138,0.9); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.16em; }
+    .famous-saju-title { margin: 0; color: #fff7ed; font-size: clamp(1.35rem, 2.2vw, 2rem); line-height: 1.25; }
+    .famous-saju-desc { margin: 0.7rem 0 0; color: rgba(226,232,240,0.86); line-height: 1.75; }
+    .famous-saju-all { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 1rem; border: 1px solid rgba(251,191,36,0.42); border-radius: 12px; color: #fff7ed; background: rgba(251,191,36,0.13); font-weight: 800; text-decoration: none; white-space: nowrap; }
+    .famous-saju-keywords { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0 1.15rem; }
+    .famous-saju-keywords a { padding: 0.45rem 0.7rem; border: 1px solid rgba(255,255,255,0.16); border-radius: 999px; background: rgba(255,255,255,0.055); color: rgba(241,245,249,0.92); font-size: 0.82rem; text-decoration: none; }
+    .famous-saju-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 0.85rem; }
+    .famous-saju-card { display: flex; flex-direction: column; overflow: hidden; min-height: 100%; }
+    .famous-saju-card-image { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: rgba(255,255,255,0.08); }
+    .famous-saju-card-body { display: flex; flex-direction: column; flex: 1; padding: 1rem; }
+    .famous-saju-card-meta { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: auto; color: rgba(203,213,225,0.74); font-size: 0.78rem; }
+    @media (max-width: 920px) {
+      .famous-saju-feature-head { grid-template-columns: 1fr; }
+      .famous-saju-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .famous-saju-all { width: fit-content; }
+    }
+    @media (max-width: 560px) {
+      .famous-saju-feature { padding: 1rem; }
+      .famous-saju-grid { grid-template-columns: 1fr; }
+      .famous-saju-keywords a { font-size: 0.78rem; }
+    }
   </style>
   <script type="application/ld+json">
   {
@@ -35,7 +58,7 @@
     "@type": "ItemList",
     "name": "운세 인사이트 아카이브 전체 아티클",
     "url": "https://code-destiny.com/insights/",
-    "numberOfItems": 32,
+    "numberOfItems": 36,
     "itemListElement": [
       {"@type":"ListItem","position":1,"url":"https://code-destiny.com/insights/saju-four-pillars-basics","name":"사주 명리학 기초"},
       {"@type":"ListItem","position":2,"url":"https://code-destiny.com/insights/ten-heavenly-stems-practical","name":"십천간(十天干) 실전 해석 포인트"},
@@ -68,7 +91,11 @@
       {"@type":"ListItem","position":29,"url":"https://code-destiny.com/insights/saju-pallja-basic-principles-complete-guide","name":"사주팔자 원리 완전 가이드"},
       {"@type":"ListItem","position":30,"url":"https://code-destiny.com/insights/five-elements-ohang-complete-guide","name":"오행(五行) 완전 가이드"},
       {"@type":"ListItem","position":31,"url":"https://code-destiny.com/insights/tarot-major-arcana-22-complete-meanings","name":"타로 대아르카나 22장 완전 해석"},
-      {"@type":"ListItem","position":32,"url":"https://code-destiny.com/insights/ziwei-doushu-complete-beginner-guide","name":"자미두수 입문 완전 가이드"}
+      {"@type":"ListItem","position":32,"url":"https://code-destiny.com/insights/ziwei-doushu-complete-beginner-guide","name":"자미두수 입문 완전 가이드"},
+      {"@type":"ListItem","position":33,"url":"https://code-destiny.com/insights/famous-saju/yi-sun-sin","name":"이순신 사주 분석"},
+      {"@type":"ListItem","position":34,"url":"https://code-destiny.com/insights/famous-saju/iu","name":"아이유 사주 분석"},
+      {"@type":"ListItem","position":35,"url":"https://code-destiny.com/insights/famous-saju/bts-rm","name":"BTS RM 사주 분석"},
+      {"@type":"ListItem","position":36,"url":"https://code-destiny.com/insights/famous-saju/king-sejong","name":"세종대왕 사주 분석"}
     ]
   }
   </script>
@@ -98,9 +125,68 @@
     <button class="filter-btn" data-filter="사주">🔯 사주</button>
     <button class="filter-btn" data-filter="타로">🃏 타로</button>
     <button class="filter-btn" data-filter="운세">🌙 운세·실전</button>
+    <button class="filter-btn" data-filter="유명인 사주">유명인 사주</button>
     <button class="filter-btn" data-filter="자미두수">⭐ 자미두수</button>
     <button class="filter-btn" data-filter="베다">♃ 베다·숙요</button>
   </div>
+
+  <section class="famous-saju-feature">
+    <div class="famous-saju-feature-head">
+      <div>
+        <p class="famous-saju-kicker">FAMOUS SAJU MAGAZINE</p>
+        <h2 class="famous-saju-title">유명인 사주 분석</h2>
+        <p class="famous-saju-desc">공개 생년월일과 Code Destiny 사주 계산값을 바탕으로 역사 인물과 대중문화 인물의 일간·오행·삼주 흐름을 블로그처럼 읽습니다.</p>
+      </div>
+      <a class="famous-saju-all" href="/insights/famous-saju/">유명인 사주 전체 보기 →</a>
+    </div>
+    <div class="famous-saju-keywords" aria-label="유명인 사주 인기 키워드">
+      <a href="/insights/famous-saju/yi-sun-sin/">이순신 사주</a>
+      <a href="/insights/famous-saju/iu/">아이유 사주</a>
+      <a href="/insights/famous-saju/bts-rm/">BTS 사주</a>
+      <a href="/insights/famous-saju/">유명인 사주 분석</a>
+      <a href="/insights/famous-saju/">연예인 사주</a>
+      <a href="/insights/famous-saju/">역사 인물 사주</a>
+      <a href="/insights/famous-saju/">일간별 유명인</a>
+    </div>
+    <div class="famous-saju-grid">
+      <a href="/insights/famous-saju/yi-sun-sin/" class="article-card famous-saju-card" data-category="유명인 사주">
+        <img class="famous-saju-card-image" src="/fuctionassets/%EC%9C%A0%EB%AA%85%EC%9D%B8%20%EC%82%AC%EC%A3%BC%20%EB%B6%84%EC%84%9D.webp" alt="이순신 사주 분석 대표 이미지" loading="lazy" width="640" height="360">
+        <div class="famous-saju-card-body">
+          <div class="card-top"><span class="card-tag">역사 인물 사주</span></div>
+          <h2 class="card-title">이순신 사주 분석</h2>
+          <p class="card-summary">삼주 기반으로 읽는 충무공 이순신의 책임감, 절제, 위기 대응의 사주적 결을 정리했습니다.</p>
+          <div class="famous-saju-card-meta"><span>#이순신 사주</span><span>약 6분</span><span>2026-06-04</span></div>
+        </div>
+      </a>
+      <a href="/insights/famous-saju/iu/" class="article-card famous-saju-card" data-category="유명인 사주">
+        <img class="famous-saju-card-image" src="/fuctionassets/%EC%9C%A0%EB%AA%85%EC%9D%B8%20%EC%82%AC%EC%A3%BC%20%EB%B6%84%EC%84%9D.webp" alt="아이유 사주 분석 대표 이미지" loading="lazy" width="640" height="360">
+        <div class="famous-saju-card-body">
+          <div class="card-top"><span class="card-tag">연예인 사주</span></div>
+          <h2 class="card-title">아이유 사주 분석</h2>
+          <p class="card-summary">표현력과 꾸준함의 흐름을 출생 시간 미상 조건에 맞춰 삼주 중심으로 부드럽게 살펴봅니다.</p>
+          <div class="famous-saju-card-meta"><span>#아이유 사주</span><span>약 6분</span><span>2026-06-04</span></div>
+        </div>
+      </a>
+      <a href="/insights/famous-saju/bts-rm/" class="article-card famous-saju-card" data-category="유명인 사주">
+        <img class="famous-saju-card-image" src="/fuctionassets/%EC%9C%A0%EB%AA%85%EC%9D%B8%20%EC%82%AC%EC%A3%BC%20%EB%B6%84%EC%84%9D.webp" alt="BTS RM 사주 분석 대표 이미지" loading="lazy" width="640" height="360">
+        <div class="famous-saju-card-body">
+          <div class="card-top"><span class="card-tag">BTS 사주</span></div>
+          <h2 class="card-title">BTS RM 사주 분석</h2>
+          <p class="card-summary">언어, 기획, 리더십으로 드러나는 대중적 이미지를 삼주 기반 사주 흐름과 연결해 읽습니다.</p>
+          <div class="famous-saju-card-meta"><span>#BTS 사주</span><span>약 6분</span><span>2026-06-04</span></div>
+        </div>
+      </a>
+      <a href="/insights/famous-saju/king-sejong/" class="article-card famous-saju-card" data-category="유명인 사주">
+        <img class="famous-saju-card-image" src="/fuctionassets/%EC%9C%A0%EB%AA%85%EC%9D%B8%20%EC%82%AC%EC%A3%BC%20%EB%B6%84%EC%84%9D.webp" alt="세종대왕 사주 분석 대표 이미지" loading="lazy" width="640" height="360">
+        <div class="famous-saju-card-body">
+          <div class="card-top"><span class="card-tag">역사 인물 사주</span></div>
+          <h2 class="card-title">세종대왕 사주 분석</h2>
+          <p class="card-summary">역사 기록의 날짜 조건을 분명히 두고, 학문과 제도 설계의 기운을 문화 콘텐츠로 해석합니다.</p>
+          <div class="famous-saju-card-meta"><span>#역사 인물 사주</span><span>약 6분</span><span>2026-06-04</span></div>
+        </div>
+      </a>
+    </div>
+  </section>
 
   <!-- ─── 사주 기초 ─── -->
   <p class="ins-section-title">사주 기초 · 사주명리학 입문</p>

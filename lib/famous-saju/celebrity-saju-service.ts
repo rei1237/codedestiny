@@ -3,6 +3,7 @@ import {
   categoryToSlug,
   famousSajuCategories,
   getCelebrityBySlug,
+  getCelebrityStaticSlugs,
   getCelebritiesByCategory,
   publishedCelebritySajuSeeds,
   type CelebritySajuSeed,
@@ -19,6 +20,16 @@ const elementByStem: Record<string, string> = {
   辛: "금",
   壬: "수",
   癸: "수",
+  갑: "목",
+  을: "목",
+  병: "화",
+  정: "화",
+  무: "토",
+  기: "토",
+  경: "금",
+  신: "금",
+  임: "수",
+  계: "수",
 };
 
 const elementByBranch: Record<string, string> = {
@@ -34,6 +45,18 @@ const elementByBranch: Record<string, string> = {
   酉: "금",
   戌: "토",
   亥: "수",
+  자: "수",
+  축: "토",
+  인: "목",
+  묘: "목",
+  진: "토",
+  사: "화",
+  오: "화",
+  미: "토",
+  신: "금",
+  유: "금",
+  술: "토",
+  해: "수",
 };
 
 const stemTone: Record<string, string> = {
@@ -47,6 +70,16 @@ const stemTone: Record<string, string> = {
   辛: "보석처럼 정교한 감각과 기준으로 자신을 빛냅니다.",
   壬: "큰 물처럼 넓게 흐르며 판을 읽는 감각이 좋습니다.",
   癸: "비와 안개처럼 섬세하게 스며들어 깊은 통찰을 만듭니다.",
+  갑: "큰 나무처럼 방향을 세우고 앞을 향해 뻗는 힘이 강합니다.",
+  을: "덩굴과 꽃처럼 섬세하게 이어 붙이고 관계를 살리는 힘이 있습니다.",
+  병: "태양처럼 존재감이 크고 메시지를 밝히는 힘이 있습니다.",
+  정: "촛불처럼 집중된 온기로 장면을 깊게 밝히는 기운입니다.",
+  무: "산처럼 중심을 지키고 오래 버티는 힘이 있습니다.",
+  기: "기름진 흙처럼 현실을 돌보고 성과를 키우는 힘이 있습니다.",
+  경: "단단한 쇠처럼 결단과 실행이 빠르고 선명합니다.",
+  신: "보석처럼 정교한 감각과 기준으로 자신을 빛냅니다.",
+  임: "큰 물처럼 넓게 흐르며 판을 읽는 감각이 좋습니다.",
+  계: "비와 안개처럼 섬세하게 스며들어 깊은 통찰을 만듭니다.",
 };
 
 const elementTone: Record<string, string> = {
@@ -57,7 +90,92 @@ const elementTone: Record<string, string> = {
   수: "감각과 통찰의 흐름이 깊어 보이지 않는 흐름을 읽고 유연하게 움직이는 힘이 있습니다.",
 };
 
+const engineElementLabel: Record<string, string> = {
+  wood: "목",
+  fire: "화",
+  earth: "토",
+  metal: "금",
+  water: "수",
+  목: "목",
+  화: "화",
+  토: "토",
+  금: "금",
+  수: "수",
+};
+
 type ElementKey = "목" | "화" | "토" | "금" | "수";
+type ImageSectionKey = "default" | "career" | "love" | "wealth";
+type FamousSajuCalculationStatus = "calculated" | "needs_review";
+type FamousSajuReliabilityLevel = "높음" | "보통" | "제한";
+
+type FamousSajuInsightCard = {
+  label: string;
+  value: string;
+  description: string;
+};
+
+type FamousSajuReliabilityNote = {
+  label: string;
+  level: FamousSajuReliabilityLevel;
+  description: string;
+};
+
+type FamousSajuArticleSection = {
+  title: string;
+  imageQuery: string;
+  imageSection: ImageSectionKey;
+  body: string;
+};
+
+type FamousSajuElementProfile = {
+  counts: Record<ElementKey, number>;
+  ratios: Record<string, number>;
+  dominantElement: string;
+  weakElement: string;
+};
+
+export type FamousSajuCalculatedChart = {
+  status: FamousSajuCalculationStatus;
+  person: CelebritySajuSeed;
+  saju: LocalSajuResult | null;
+  elementProfile: FamousSajuElementProfile;
+  engineInput: {
+    year?: number;
+    month?: number;
+    day?: number;
+    hour?: number;
+    minute?: number;
+    hasTime: boolean;
+    calendarType: "solar" | "lunar";
+  };
+  reliabilityNotes: FamousSajuReliabilityNote[];
+  failureReason?: string;
+};
+
+export type FamousSajuArticle = {
+  celebrity: CelebritySajuSeed;
+  person: CelebritySajuSeed;
+  saju: LocalSajuResult | null;
+  calculationStatus: FamousSajuCalculationStatus;
+  dayElement: string;
+  dayMasterLabel: string;
+  hourText: string;
+  elementProfile: FamousSajuElementProfile;
+  engineInputSummary: string;
+  heroImageQuery: string;
+  heroCopy: string;
+  coreKeywords: string[];
+  analysisBadge: string;
+  timeNotice: string;
+  summary: string;
+  sections: FamousSajuArticleSection[];
+  insightCards: FamousSajuInsightCard[];
+  reliabilityNotes: FamousSajuReliabilityNote[];
+  conclusion: string;
+  seoTitle: string;
+  seoDescription: string;
+  seoKeywords: string[];
+};
 
 function parseBirthDate(birthDate: string) {
   const [year, month, day] = birthDate.split("-").map(Number);
@@ -82,7 +200,16 @@ function countPillarElements(pillar: SajuPillarLocal | null, counts: Record<Elem
   if (branchEl) counts[branchEl] += 1;
 }
 
-function buildElementProfile(saju: LocalSajuResult) {
+function buildEmptyElementProfile(): FamousSajuElementProfile {
+  return {
+    counts: { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 },
+    ratios: { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 },
+    dominantElement: "확인 필요",
+    weakElement: "확인 필요",
+  };
+}
+
+function buildElementProfile(saju: LocalSajuResult): FamousSajuElementProfile {
   const counts: Record<ElementKey, number> = { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 };
   countPillarElements(saju.pillars.year, counts);
   countPillarElements(saju.pillars.month, counts);
@@ -99,84 +226,415 @@ function buildElementProfile(saju: LocalSajuResult) {
   };
 }
 
-export function calculateCelebritySaju(celebrity: CelebritySajuSeed) {
-  if (!celebrity.birthDate) return null;
-  const birth = parseBirthDate(celebrity.birthDate);
-  const time = celebrity.birthTimeStatus === "verified" ? parseBirthTime(celebrity.birthTime) : null;
-  const saju = calculateLocalSaju({
-    ...birth,
-    hour: time?.hour,
-    minute: time?.minute,
-    hasTime: Boolean(time),
-    calendarType: celebrity.calendarType || "solar",
-  });
-  return { saju, elementProfile: buildElementProfile(saju) };
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
 
-export function buildCelebrityReading(celebrity: CelebritySajuSeed) {
-  const result = calculateCelebritySaju(celebrity);
-  if (!result) return null;
-  const { saju, elementProfile } = result;
+function recordString(record: Record<string, unknown>, key: string, fallback = "") {
+  const value = record[key];
+  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
+function recordNumber(record: Record<string, unknown>, key: string) {
+  const value = record[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function recordStringArray(record: Record<string, unknown>, key: string) {
+  const value = record[key];
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+}
+
+function uniqueKeywords(values: string[]) {
+  return Array.from(new Set(values.map((item) => item.trim()).filter(Boolean)));
+}
+
+function hasFinalConsonant(value: string) {
+  const last = value.trim().charCodeAt(value.trim().length - 1);
+  if (!Number.isFinite(last)) return false;
+  const code = last - 0xac00;
+  return code >= 0 && code <= 11171 && code % 28 !== 0;
+}
+
+function subjectParticle(value: string) {
+  return `${value}${hasFinalConsonant(value) ? "이" : "가"}`;
+}
+
+function objectParticle(value: string) {
+  return `${value}${hasFinalConsonant(value) ? "을" : "를"}`;
+}
+
+function sentence(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  return /[.!?。]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+}
+
+function toEngineElementKo(value: string) {
+  return engineElementLabel[value] || value;
+}
+
+function formatLuckStatus(value: string) {
+  if (value === "calculated") return "계산됨";
+  if (value === "not_supplied") return "운 표 미공급";
+  return value || "운 표 확인 필요";
+}
+
+function formatEngineInput(chart: FamousSajuCalculatedChart) {
+  const { engineInput } = chart;
+  if (!engineInput.year || !engineInput.month || !engineInput.day) return "계산 입력값 확인 필요";
+  const dateText = `${engineInput.year}-${String(engineInput.month).padStart(2, "0")}-${String(engineInput.day).padStart(2, "0")}`;
+  const timeText = engineInput.hasTime && typeof engineInput.hour === "number"
+    ? `${String(engineInput.hour).padStart(2, "0")}:${String(engineInput.minute || 0).padStart(2, "0")}`
+    : "출생 시간 미상 / 삼주 기반";
+  return `${engineInput.calendarType === "lunar" ? "음력 입력" : "양력 입력"} ${dateText} · ${timeText}`;
+}
+
+function buildCalendarNotice(person: CelebritySajuSeed) {
+  if (person.isHistoricalDateUncertain) {
+    return "역사 인물의 생년월일은 기록 체계와 양력 환산에 불확실성이 있을 수 있어, 공개 자료의 양력 기준 추정값으로만 읽습니다.";
+  }
+  if (person.birthCalendar === "lunar") {
+    return "공개 생년월일이 음력 기준으로 제공된 인물은 음력 변환을 거쳐 사주를 계산합니다.";
+  }
+  if (person.birthCalendar === "unknown") {
+    return "생년월일의 양력·음력 체계가 불명확한 인물은 계산 데이터 확인이 필요합니다.";
+  }
+  return "";
+}
+
+function buildContentNotice(person: CelebritySajuSeed, saju: LocalSajuResult | null, failureReason?: string) {
+  const calendarNotice = buildCalendarNotice(person);
+  const timeNotice = saju
+    ? saju.timeUnknown
+      ? "출생 시간 미상 / 삼주 기반 분석입니다. 시주는 제외하고 연주·월주·일주 중심으로 계산했습니다."
+      : `공개된 출생 시간 ${person.birthTime} 기준으로 시주(${saju.pillars.hour?.ganji})까지 함께 계산했습니다.`
+    : `계산 데이터 확인 필요 상태입니다.${failureReason ? ` ${failureReason}` : ""}`;
+  return [calendarNotice, timeNotice, "이 글은 문화/엔터테인먼트 목적의 사주 콘텐츠입니다."].filter(Boolean).join(" ");
+}
+
+function getFamousSajuImageMood(person: CelebritySajuSeed) {
+  if (person.categoryKey === "historical") return "ocean old ship leadership sunrise historical mood";
+  if (person.categoryKey === "sports") return "stadium motion spotlight victory atmosphere";
+  if (person.categoryKey === "business") return "city sunrise strategy desk leadership atmosphere";
+  if (person.categoryKey === "politics") return "conference hall light leadership public speech mood";
+  if (person.categoryKey === "entertainer" || ["K-스타", "배우", "가수"].includes(person.category)) {
+    return "stage spotlight music cinematic mood";
+  }
+  return "starry sky destiny silhouette mystical atmosphere";
+}
+
+function formatElementRanking(saju: LocalSajuResult) {
+  const fiveElements = asRecord(saju.natalAnalysis.fiveElements);
+  const ranking = fiveElements.ranking;
+  if (!Array.isArray(ranking)) return "";
+  return ranking
+    .map((row) => {
+      const item = asRecord(row);
+      const elementKo = recordString(item, "elementKo");
+      const power = recordNumber(item, "power");
+      return elementKo ? `${elementKo}${power !== null ? ` ${power}` : ""}` : "";
+    })
+    .filter(Boolean)
+    .slice(0, 5)
+    .join(" · ");
+}
+
+function formatTopRecordScores(record: Record<string, unknown>, limit = 3) {
+  return Object.entries(record)
+    .filter((entry): entry is [string, number] => typeof entry[1] === "number" && Number.isFinite(entry[1]))
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([key, value]) => `${key} ${value.toFixed(2)}`)
+    .join(" · ");
+}
+
+function buildReliabilityNotes(person: CelebritySajuSeed, saju: LocalSajuResult | null): FamousSajuReliabilityNote[] {
+  if (!saju) {
+    return [
+      { label: "사주 계산", level: "제한", description: "사주 계산이 완료되지 않아 원국·십성·오행 해석을 생성하지 않았습니다." },
+      { label: "블로그 본문", level: "제한", description: "계산값 없이 임의 해석을 만들지 않도록 계산 데이터 확인 상태만 표시합니다." },
+    ];
+  }
+
+  const hasTime = !saju.timeUnknown;
+  const activatedByLuck = asRecord(asRecord(saju.natalAnalysis.tenGods).activatedByLuck);
+  const luckStatus = recordString(activatedByLuck, "status", "not_supplied");
+  return [
+    {
+      label: "원국",
+      level: hasTime ? "높음" : "보통",
+      description: hasTime ? "연주·월주·일주·시주를 모두 계산했습니다." : "시주를 만들지 않고 연주·월주·일주만 계산했습니다.",
+    },
+    {
+      label: "십성·오행",
+      level: hasTime ? "높음" : "보통",
+      description: "일간 강약, 오행 흐름, 십성의 두드러진 결을 계산값에서 읽어 문장화했습니다.",
+    },
+    {
+      label: "격국·용신 후보",
+      level: person.isHistoricalDateUncertain || !hasTime ? "제한" : "보통",
+      description: "용신 후보 계산값과 월령 정보를 후보로만 표시하며 단정형 격국 판단은 피했습니다.",
+    },
+    {
+      label: "대운·세운",
+      level: luckStatus === "calculated" && hasTime ? "보통" : "제한",
+      description: luckStatus === "calculated" ? "운의 흐름 계산값이 있을 때만 십성의 움직임을 표시합니다." : "현재 공개 자료 기준에서는 대운·세운 해석을 제한적으로 표시합니다.",
+    },
+  ];
+}
+
+export function resolveFamousSajuSlug(rawSlug: string) {
+  return getCelebrityBySlug(rawSlug)?.slug || null;
+}
+
+export function getFamousSajuPersonBySlug(slug: string) {
+  return getCelebrityBySlug(slug);
+}
+
+export function calculateFamousSaju(person: CelebritySajuSeed): FamousSajuCalculatedChart {
+  const baseChart = {
+    status: "needs_review" as const,
+    person,
+    saju: null,
+    elementProfile: buildEmptyElementProfile(),
+    engineInput: { hasTime: false, calendarType: "solar" as const },
+  };
+
+  if (!person.birthDate) {
+    return {
+      ...baseChart,
+      reliabilityNotes: buildReliabilityNotes(person, null),
+      failureReason: "공개 생년월일이 없어 사주 계산을 구성할 수 없습니다.",
+    };
+  }
+
+  if (person.birthCalendar === "unknown" && !person.calendarType) {
+    return {
+      ...baseChart,
+      reliabilityNotes: buildReliabilityNotes(person, null),
+      failureReason: "양력·음력 기준이 불명확해 계산을 보류했습니다.",
+    };
+  }
+
+  try {
+    const birth = parseBirthDate(person.birthDate);
+    const time = person.birthTimeStatus === "verified" && person.isBirthTimeKnown ? parseBirthTime(person.birthTime) : null;
+    const calendarType = person.calendarType || (person.birthCalendar === "lunar" ? "lunar" : "solar");
+    const engineInput = {
+      ...birth,
+      hour: time?.hour,
+      minute: time?.minute,
+      hasTime: Boolean(time),
+      calendarType,
+      gender: person.gender || "unknown",
+      birthplace: person.birthPlace || undefined,
+    };
+
+    // 사주 엔진 연결 핵심부: 유명인 데이터의 공개 생년월일만 입력하고, 시간이 검증되지 않으면 hasTime=false로 넘긴다.
+    // calculateLocalSaju는 이 경우 내부 기준 시각을 계산 편의용으로만 쓰고 hourPillar를 null로 돌려주므로, 화면에는 삼주만 노출된다.
+    const saju = calculateLocalSaju(engineInput);
+    return {
+      status: "calculated",
+      person,
+      saju,
+      elementProfile: buildElementProfile(saju),
+      engineInput,
+      reliabilityNotes: buildReliabilityNotes(person, saju),
+    };
+  } catch (error) {
+    void error;
+    return {
+      ...baseChart,
+      reliabilityNotes: buildReliabilityNotes(person, null),
+      failureReason: "공개 생년월일과 날짜 기준을 다시 확인해야 합니다.",
+    };
+  }
+}
+
+export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChart = calculateFamousSaju(person)): FamousSajuArticle {
+  const { saju, elementProfile } = calculatedChart;
+  const timeNotice = buildContentNotice(person, saju, calculatedChart.failureReason);
+  const engineInputSummary = formatEngineInput(calculatedChart);
+
+  if (!saju) {
+    const heroCopy = `${person.nameKo}의 사주는 공개 생년월일 기준을 더 확인한 뒤 조심스럽게 읽어야 합니다.`;
+    const coreKeywords = uniqueKeywords(["계산 데이터 확인 필요", person.category, ...person.tags.slice(0, 3)]).slice(0, 5);
+    const analysisBadge = "사주 계산값 확인 필요";
+    const summary = `${person.nameKo}의 유명인 사주 분석은 계산 데이터 확인 필요 상태입니다. 계산값 없이 팔자·격국·용신·대운을 임의로 구성하지 않습니다. ${timeNotice}`;
+    return {
+      celebrity: person,
+      person,
+      saju: null,
+      calculationStatus: "needs_review",
+      dayElement: "확인 필요",
+      dayMasterLabel: "계산 데이터 확인 필요",
+      hourText: "계산 데이터 확인 필요",
+      elementProfile,
+      engineInputSummary,
+      heroImageQuery: "starry sky destiny silhouette mystical atmosphere",
+      heroCopy,
+      coreKeywords,
+      analysisBadge,
+      timeNotice,
+      summary,
+      sections: [
+        {
+          title: "계산 데이터 확인 필요",
+          imageQuery: "archive document candle desk",
+          imageSection: "default",
+          body: `${person.nameKo}의 공개 생년월일 또는 날짜 체계가 사주 계산 기준으로 확정되지 않았습니다. 계산값 없이 사주팔자, 격국, 용신, 대운, 성격, 직업운을 꾸며내지 않기 위해 본문 해석을 보류합니다.`,
+        },
+      ],
+      insightCards: [
+        { label: "계산 상태", value: "확인 필요", description: calculatedChart.failureReason || "사주 계산이 완료되지 않았습니다." },
+        { label: "입력 기준", value: engineInputSummary, description: "확정 가능한 입력값만 표시합니다." },
+      ],
+      reliabilityNotes: calculatedChart.reliabilityNotes,
+      conclusion: "계산이 확인되기 전까지는 조용히 비워두는 것이 가장 정직한 해석입니다.",
+      seoTitle: `${person.nameKo} 사주 분석 | 계산 데이터 확인 필요`,
+      seoDescription: `${person.nameKo} 사주 분석은 사주 계산값 확인 후 제공됩니다. 계산값 없이 임의 해석을 만들지 않습니다.`,
+      seoKeywords: uniqueKeywords([...person.seoKeywords, `${person.nameKo} 사주`, "유명인 사주", "계산 데이터 확인 필요"]),
+    };
+  }
+
   const dayStem = saju.dayStem;
-  const dayElement = elementByStem[dayStem] || elementProfile.dominantElement;
+  const dayMaster = asRecord(saju.natalAnalysis.dayMaster);
+  const monthCommand = asRecord(saju.natalAnalysis.monthCommand);
+  const tenGods = asRecord(saju.natalAnalysis.tenGods);
+  const usefulElements = asRecord(saju.natalAnalysis.usefulElements);
+  const visibleTenGods = asRecord(tenGods.visible);
+  const activatedByLuck = asRecord(tenGods.activatedByLuck);
+  const usefulElementKo = recordStringArray(usefulElements, "finalPriorityKo");
+  const johuUseful = toEngineElementKo(recordString(usefulElements, "johuUseful"));
+  const dayElement = recordString(dayMaster, "elementKo", elementByStem[dayStem] || elementProfile.dominantElement);
+  const dayStrength = recordString(dayMaster, "strength", "강약 확인 필요");
+  const strengthIndex = recordNumber(dayMaster, "strengthIndex");
+  const monthElement = recordString(monthCommand, "commandingElementKo", "월령 기운 확인 필요");
+  const monthSeason = recordString(monthCommand, "season", "계절 확인 필요");
+  const monthPriority = recordString(monthCommand, "priority", "월령은 사주 구조를 판단하는 핵심 기준입니다.");
+  const elementRanking = formatElementRanking(saju);
+  const topTenGods = formatTopRecordScores(visibleTenGods) || "십성 점수 확인 필요";
+  const luckStatus = recordString(activatedByLuck, "status", "not_supplied");
+  const luckStatusText = formatLuckStatus(luckStatus);
   const dayMasterLabel = `${saju.pillars.day.ganji} 일주`;
-  const timeNotice = saju.timeUnknown
-    ? "출생 시간이 공개되어 있지 않아 시주는 제외하고 연주·월주·일주 중심으로 분석했습니다."
-    : `공개된 출생 시간 ${celebrity.birthTime} 기준으로 시주(${saju.pillars.hour?.ganji})까지 함께 계산했습니다.`;
+  const hourText = saju.pillars.hour?.ganji || "출생 시간 미상";
+  const daewoonText = saju.daewoonStartAge !== null
+    ? `${saju.daewoonDirection === "forward" ? "순행" : saju.daewoonDirection === "reverse" ? "역행" : "방향 확인"} · 시작 ${saju.daewoonStartAge}세`
+    : "대운 시작값 확인 필요";
+  const usefulText = usefulElementKo.length ? usefulElementKo.join(" · ") : "용신 후보 확인 필요";
+  const analysisBadge = saju.timeUnknown ? "사주 계산 기반 분석 · 출생 시간 미상 / 삼주 분석" : "사주 계산 기반 분석 · 시주 포함";
+  const coreKeywords = uniqueKeywords([dayMasterLabel, `${dayElement} 일간`, `${elementProfile.dominantElement} 기운`, ...person.tags]).slice(0, 5);
+  const heroCopy = `${dayElement} 일간이 ${monthElement} 월령을 만나 ${elementProfile.dominantElement}의 색을 선명하게 드러내는 사주입니다.`;
+  const conclusion = `${person.nameKo}의 사주는 ${elementProfile.dominantElement}의 추진력 위에 ${dayElement} 일간의 기준이 서 있는 명식입니다.`;
+
+  // 블로그 본문 생성 핵심부: 아래 문단은 모두 calculateLocalSaju의 원국/natalAnalysis/대운 시작값에서 읽은 값만 사용한다.
+  // 격국·용신·대운처럼 출생 시간과 추가 운 표에 민감한 항목은 후보·참고값으로 낮춰 표현한다.
+  const summary = `${person.nameKo} 사주 분석에서 가장 흥미로운 지점은 ${dayMasterLabel}의 ${dayElement} 일간이 ${monthElement} 월령과 만나는 방식입니다. 공개 생년월일 기준 계산에서는 ${elementProfile.dominantElement}의 기운이 두드러지고, 일간 강약은 ${dayStrength}${strengthIndex !== null ? `, 지수 ${strengthIndex}` : ""} 기준으로 정리됩니다. 유명인 사주, ${person.nameKo} 사주풀이를 찾는 분들이 참고할 수 있도록 문화 콘텐츠의 톤으로 차분하게 풀었습니다. ${timeNotice}`;
+  const sections: FamousSajuArticleSection[] = [
+    {
+      title: "도입부",
+      imageQuery: getFamousSajuImageMood(person),
+      imageSection: "default",
+      body: `${objectParticle(person.nameKo)} 사주적으로 보면 먼저 ${dayMasterLabel}의 결이 눈에 들어옵니다. ${dayStem} 일간은 ${stemTone[dayStem] || "자기만의 결을 따라 움직이는 힘이 있습니다."} 이 글은 계산된 명식의 범위 안에서 ${person.nameKo}의 대중적 이미지와 활동 키워드를 부드럽게 연결해 읽습니다.`,
+    },
+    {
+      title: "원국 핵심 요약",
+      imageQuery: "season light mountain path destiny",
+      imageSection: "default",
+      body: `${saju.pillars.month.ganji} 월주는 ${monthSeason} 흐름과 ${monthElement} 기운을 품습니다. ${sentence(monthPriority.replace(/근거$/, "근거로 사용됩니다"))} 원국 기둥 기준 오행 비율은 ${subjectParticle(elementProfile.dominantElement)} 가장 강하고 ${subjectParticle(elementProfile.weakElement)} 가장 적게 나타납니다. 세부 오행 흐름은 ${elementRanking || "확인 필요"}이며, 십성 흐름에서는 ${topTenGods} 순서가 두드러집니다.`,
+    },
+    {
+      title: "성격과 대중적 이미지",
+      imageQuery: "five elements nature balance",
+      imageSection: "default",
+      body: `${elementTone[elementProfile.dominantElement] || ""} 이 흐름은 ${subjectParticle(person.nameKo)} 대중에게 남기는 인상을 설명할 때 흥미로운 단서가 됩니다. 다만 사주는 한 사람을 단정하는 도구가 아니라 기질의 상징을 읽는 언어이므로, 여기서는 “이런 결로 읽힌다”는 상담체의 해석으로만 다룹니다.`,
+    },
+    {
+      title: "재능과 커리어 코드",
+      imageQuery: person.categoryKey === "entertainer" ? "stage spotlight music performance atmosphere" : "creative career strategy success atmosphere",
+      imageSection: "career",
+      body: `${person.category} 분야에서 읽히는 재능의 코드는 ${person.tags.join(", ")}입니다. 십성 흐름에서는 ${topTenGods} 순서가 두드러져 표현력, 판단력, 리더십, 기획력 같은 키워드를 어디에 두고 읽을지 알려줍니다. 살아있는 인물에 대해서는 직업운을 단정하지 않고, 공개 활동에서 드러난 상징적 강점으로만 풀이합니다.`,
+    },
+    {
+      title: "관계성과 인간관계 패턴",
+      imageQuery: "warm relationship connection soft light",
+      imageSection: "love",
+      body: `관계성은 ${elementProfile.dominantElement}의 강한 흐름과 ${elementProfile.weakElement}의 보완 지점 사이에서 읽을 수 있습니다. 강한 기운은 사람들에게 선명한 인상을 남기고, 약한 기운은 관계의 속도와 거리감을 조절하는 숙제로 나타날 수 있습니다. 개인의 사적인 영역을 단정하지 않고, 명식이 보여주는 관계 리듬만 조심스럽게 읽습니다.`,
+    },
+    {
+      title: "운의 흐름",
+      imageQuery: "night sky road time destiny",
+      imageSection: "default",
+      body: saju.daewoonStartAge !== null
+        ? `대운의 방향과 시작값은 ${daewoonText}로 표시됩니다. 다만 공개 자료 기준에서 개별 대운·세운의 세부 흐름은 ${luckStatusText} 상태이므로, 이 문단은 운의 큰 리듬을 참고하는 정도로만 읽는 것이 좋습니다. 출생 시간이 미상인 경우에는 운의 세부 해석 신뢰도도 함께 제한됩니다.`
+        : `대운 시작값은 현재 계산 범위에서 확정하지 않습니다. 공개 자료 기준에서 개별 대운·세운의 세부 흐름은 ${luckStatusText} 상태이므로, 운의 흐름은 큰 방향을 참고하는 정도로만 읽는 것이 좋습니다. 출생 시간이 미상인 경우에는 운의 세부 해석 신뢰도도 함께 제한됩니다.`,
+    },
+    {
+      title: "Code식 한 줄 결론",
+      imageQuery: "night sky destiny stars",
+      imageSection: "default",
+      body: `${conclusion} 강한 ${elementProfile.dominantElement} 기운은 활동의 선명한 추진력을 만들고, 약한 ${elementProfile.weakElement} 기운은 균형과 휴식의 감각을 통해 보완될 때 더 맑게 흐릅니다. ${timeNotice}`,
+    },
+  ];
+
+  const insightCards: FamousSajuInsightCard[] = [
+    { label: "일간", value: `${dayElement} · ${dayMasterLabel}`, description: `${dayStrength}${strengthIndex !== null ? ` ${strengthIndex}` : ""} 기준으로 읽은 핵심 기운입니다.` },
+    { label: "월령", value: `${saju.pillars.month.ganji} · ${monthElement}`, description: `${monthSeason} 계절감이 명식의 우선 기준으로 작동합니다.` },
+    { label: "오행", value: `${elementProfile.dominantElement} 강 / ${elementProfile.weakElement} 약`, description: "연주·월주·일주·검증된 시주만 집계했습니다." },
+    { label: "용신 후보", value: usefulText, description: "용신 후보 계산값을 확정이 아닌 후보로 표시합니다." },
+    { label: "대운 참고", value: daewoonText, description: "개별 대운·세운 표는 공급된 경우에만 확장 해석합니다." },
+  ];
+  const seoKeywords = uniqueKeywords([...person.seoKeywords, `${person.nameKo} 사주`, `${dayElement} 일간`, dayMasterLabel, `${person.nameKo} 유명인 사주`, saju.timeUnknown ? "삼주 기반 분석" : "사주팔자 분석"]);
 
   return {
-    celebrity,
+    celebrity: person,
+    person,
     saju,
+    calculationStatus: "calculated",
     dayElement,
     dayMasterLabel,
-    hourText: saju.pillars.hour?.ganji || "출생 시간 미상",
+    hourText,
     elementProfile,
+    engineInputSummary,
+    heroImageQuery: getFamousSajuImageMood(person),
+    heroCopy,
+    coreKeywords,
+    analysisBadge,
     timeNotice,
-    summary: `${celebrity.name}의 사주는 ${dayMasterLabel}를 중심으로 ${elementProfile.dominantElement}의 기운이 두드러집니다. ${stemTone[dayStem] || "자신만의 결을 따라 움직이는 기운이 강합니다."}`,
-    sections: [
-      {
-        title: "일간 분석",
-        imageQuery: `${celebrity.category} portrait calm light destiny`,
-        imageSection: "destiny" as const,
-        body: `${dayStem} 일간은 ${stemTone[dayStem] || "자기만의 결을 따라 움직이는 힘"}을 품고 있습니다. 이 기운은 ${celebrity.name}의 행보에서 선택의 기준, 대중 앞의 인상, 오래 남는 개성으로 드러납니다.`,
-      },
-      {
-        title: "오행 흐름",
-        imageQuery: "five elements nature balance",
-        imageSection: "wisdom" as const,
-        body: `${elementProfile.dominantElement} 기운이 가장 강하게 나타납니다. ${elementTone[elementProfile.dominantElement] || ""} 보완이 필요한 흐름은 ${elementProfile.weakElement}이며, 휴식과 관계의 균형에서 부드럽게 채워질 때 전체 운의 안정감이 높아집니다.`,
-      },
-      {
-        title: "직업운과 재능",
-        imageQuery: `${celebrity.category} creative career success`,
-        imageSection: "career" as const,
-        body: `${celebrity.category} 분야에서 오래 남는 힘은 반복 가능한 강점에서 나옵니다. ${celebrity.tags.join(", ")} 키워드는 사주가 현실에서 표현되는 재능의 통로로 볼 수 있습니다.`,
-      },
-      {
-        title: "연애운과 관계",
-        imageQuery: "warm relationship connection soft light",
-        imageSection: "love" as const,
-        body: "관계에서는 빠른 판단보다 흐름을 읽는 감각이 중요합니다. 일간의 색이 강하게 드러날수록 상대에게 각인되는 매력이 선명해지고, 관계의 리듬 역시 분명해집니다.",
-      },
-      {
-        title: "재물운과 자산관리",
-        imageQuery: "wealth planning golden light",
-        imageSection: "wealth" as const,
-        body: "재물 흐름은 재능을 구조화할 때 안정됩니다. 강한 오행은 추진력을 주지만, 약한 오행을 보완하는 루틴이 있을 때 성과가 더 오래 갑니다.",
-      },
-      {
-        title: "종합 운세 요약",
-        imageQuery: "night sky destiny stars",
-        imageSection: "default" as const,
-        body: `${celebrity.name}의 명식은 대중에게 보이는 이미지와 내면의 선택 기준이 함께 움직이는 구조입니다. ${timeNotice}`,
-      },
-    ],
+    summary,
+    sections,
+    insightCards,
+    reliabilityNotes: calculatedChart.reliabilityNotes,
+    conclusion,
+    seoTitle: `${person.nameKo} 사주 분석 | ${dayMasterLabel} 유명인 사주 글`,
+    seoDescription: `${person.nameKo}의 공개 생년월일을 바탕으로 ${dayMasterLabel}, ${dayElement} 일간, ${elementProfile.dominantElement} 오행 흐름을 블로그 형식으로 정리했습니다.`,
+    seoKeywords,
   };
 }
 
+export function getFamousSajuSeoMetadata(person: CelebritySajuSeed, article: FamousSajuArticle) {
+  return {
+    path: `/insights/famous-saju/${person.slug}`,
+    title: article.seoTitle,
+    description: article.seoDescription,
+    keywords: article.seoKeywords,
+  };
+}
+
+export function calculateCelebritySaju(celebrity: CelebritySajuSeed) {
+  const chart = calculateFamousSaju(celebrity);
+  if (chart.status !== "calculated" || !chart.saju) return null;
+  return { saju: chart.saju, elementProfile: chart.elementProfile, chart };
+}
+
+export function buildCelebrityReading(celebrity: CelebritySajuSeed) {
+  return buildFamousSajuArticle(celebrity, calculateFamousSaju(celebrity));
+}
+
 export function getCelebritySajuPage(slug: string) {
-  const decoded = decodeURIComponent(String(slug || ""));
-  const celebrity = getCelebrityBySlug(slug) || publishedCelebritySajuSeeds.find((item) => item.name === decoded || item.nameEn === decoded) || null;
+  const celebrity = getFamousSajuPersonBySlug(slug);
   return celebrity ? buildCelebrityReading(celebrity) : null;
 }
 
@@ -188,6 +646,10 @@ export function getCelebrityRelatedList(celebrity: CelebritySajuSeed, limit = 6)
 
 export function getPublishedCelebrityRoutes() {
   return publishedCelebritySajuSeeds.map((item) => `/famous-saju/${item.slug}`);
+}
+
+export function getPublishedCelebrityStaticSlugs() {
+  return getCelebrityStaticSlugs();
 }
 
 export function getPublishedCelebrityCategoryRoutes() {
