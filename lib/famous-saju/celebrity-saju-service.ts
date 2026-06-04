@@ -107,6 +107,9 @@ type ElementKey = "목" | "화" | "토" | "금" | "수";
 type ImageSectionKey = "default" | "career" | "love" | "wealth";
 type FamousSajuCalculationStatus = "calculated" | "needs_review";
 type FamousSajuReliabilityLevel = "높음" | "보통" | "제한";
+const FAMOUS_SAJU_PUBLISHED_AT = "2026-06-04T00:00:00+09:00";
+const FAMOUS_SAJU_UPDATED_AT = "2026-06-04T18:20:00+09:00";
+const FAMOUS_SAJU_OG_IMAGE = "/fuctionassets/%EC%9C%A0%EB%AA%85%EC%9D%B8%20%EC%82%AC%EC%A3%BC%20%EB%B6%84%EC%84%9D.webp";
 
 type FamousSajuInsightCard = {
   label: string;
@@ -248,6 +251,32 @@ function recordStringArray(record: Record<string, unknown>, key: string) {
 
 function uniqueKeywords(values: string[]) {
   return Array.from(new Set(values.map((item) => item.trim()).filter(Boolean)));
+}
+
+function buildFamousSajuTitleHook(person: CelebritySajuSeed) {
+  const seededHooks: Record<string, string> = {
+    "yi-sun-sin": "강한 책임감과 전략의 운을 품은 명장 코드",
+    "king-sejong": "학문과 창조성이 제도와 만나는 군주의 사주 구조",
+    iu: "감성과 재능이 만나는 예술가의 사주 구조",
+    "bts-rm": "언어와 리더십이 무대 위에서 살아나는 창작 코드",
+    "son-heung-min": "속도와 집중이 경기장에서 빛나는 스포츠 스타의 리듬",
+  };
+  if (seededHooks[person.slug]) return seededHooks[person.slug];
+
+  const tagText = person.tags.slice(0, 2).join("과 ");
+  return tagText ? `${tagText}으로 읽는 ${person.category} 사주 구조` : `${person.category} 인물의 사주 구조`;
+}
+
+function buildFamousSajuSeoTitle(person: CelebritySajuSeed) {
+  return `${person.nameKo} 사주 분석｜${buildFamousSajuTitleHook(person)}`;
+}
+
+function buildFamousSajuSeoDescription(person: CelebritySajuSeed, article: Pick<FamousSajuArticle, "dayMasterLabel" | "dayElement" | "elementProfile" | "calculationStatus">) {
+  if (article.calculationStatus !== "calculated") {
+    return `Code:Destiny 무료 운세 인사이트의 유명인 사주 분석 콘텐츠입니다. ${person.nameKo}의 공개 생년월일 기준을 확인한 뒤 사주 엔진 계산값으로만 해석합니다.`;
+  }
+
+  return `Code:Destiny 무료 운세 인사이트의 유명인 사주 콘텐츠입니다. 사주 엔진을 바탕으로 ${person.nameKo}의 ${article.dayMasterLabel}, ${article.dayElement} 일간, ${article.elementProfile.dominantElement} 오행 흐름을 문화 콘텐츠로 해석합니다.`;
 }
 
 function hasFinalConsonant(value: string) {
@@ -493,8 +522,8 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
       ],
       reliabilityNotes: calculatedChart.reliabilityNotes,
       conclusion: "계산이 확인되기 전까지는 조용히 비워두는 것이 가장 정직한 해석입니다.",
-      seoTitle: `${person.nameKo} 사주 분석 | 계산 데이터 확인 필요`,
-      seoDescription: `${person.nameKo} 사주 분석은 사주 계산값 확인 후 제공됩니다. 계산값 없이 임의 해석을 만들지 않습니다.`,
+      seoTitle: buildFamousSajuSeoTitle(person),
+      seoDescription: `Code:Destiny 무료 운세 인사이트의 유명인 사주 분석 콘텐츠입니다. ${person.nameKo}의 사주 계산값이 확인되기 전까지 임의 해석을 만들지 않습니다.`,
       seoKeywords: uniqueKeywords([...person.seoKeywords, `${person.nameKo} 사주`, "유명인 사주", "계산 데이터 확인 필요"]),
     };
   }
@@ -523,7 +552,7 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
   const daewoonText = saju.daewoonStartAge !== null
     ? `${saju.daewoonDirection === "forward" ? "순행" : saju.daewoonDirection === "reverse" ? "역행" : "방향 확인"} · 시작 ${saju.daewoonStartAge}세`
     : "대운 시작값 확인 필요";
-  const usefulText = usefulElementKo.length ? usefulElementKo.join(" · ") : "용신 후보 확인 필요";
+  const usefulText = usefulElementKo.length ? usefulElementKo.join(" · ") : johuUseful ? `${johuUseful} 후보` : "용신 후보 확인 필요";
   const analysisBadge = saju.timeUnknown ? "사주 계산 기반 분석 · 출생 시간 미상 / 삼주 분석" : "사주 계산 기반 분석 · 시주 포함";
   const coreKeywords = uniqueKeywords([dayMasterLabel, `${dayElement} 일간`, `${elementProfile.dominantElement} 기운`, ...person.tags]).slice(0, 5);
   const heroCopy = `${dayElement} 일간이 ${monthElement} 월령을 만나 ${elementProfile.dominantElement}의 색을 선명하게 드러내는 사주입니다.`;
@@ -608,8 +637,13 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
     insightCards,
     reliabilityNotes: calculatedChart.reliabilityNotes,
     conclusion,
-    seoTitle: `${person.nameKo} 사주 분석 | ${dayMasterLabel} 유명인 사주 글`,
-    seoDescription: `${person.nameKo}의 공개 생년월일을 바탕으로 ${dayMasterLabel}, ${dayElement} 일간, ${elementProfile.dominantElement} 오행 흐름을 블로그 형식으로 정리했습니다.`,
+    seoTitle: buildFamousSajuSeoTitle(person),
+    seoDescription: buildFamousSajuSeoDescription(person, {
+      dayMasterLabel,
+      dayElement,
+      elementProfile,
+      calculationStatus: "calculated",
+    }),
     seoKeywords,
   };
 }
@@ -620,6 +654,11 @@ export function getFamousSajuSeoMetadata(person: CelebritySajuSeed, article: Fam
     title: article.seoTitle,
     description: article.seoDescription,
     keywords: article.seoKeywords,
+    image: FAMOUS_SAJU_OG_IMAGE,
+    publishedAt: FAMOUS_SAJU_PUBLISHED_AT,
+    updatedAt: FAMOUS_SAJU_UPDATED_AT,
+    articleSection: "유명인 사주 분석",
+    headline: article.seoTitle,
   };
 }
 

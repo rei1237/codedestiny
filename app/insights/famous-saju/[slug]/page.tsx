@@ -4,6 +4,43 @@ import { getPexelsSectionImage } from "../../../../lib/server/pexels";
 import { getCelebrityRelatedList, getCelebritySajuPage, getFamousSajuSeoMetadata, getPublishedCelebrityStaticSlugs, publishedCelebritySajuSeeds } from "../../../../lib/famous-saju/celebrity-saju-service";
 
 type PageProps = { params: { slug: string } };
+type FamousSajuSeoMeta = ReturnType<typeof getFamousSajuSeoMetadata>;
+
+const SITE_ORIGIN = "https://code-destiny.com";
+
+function toAbsoluteUrl(value: string) {
+  return new URL(value || "/", SITE_ORIGIN).toString();
+}
+
+function generateFamousSajuMetadata(seo: FamousSajuSeoMeta) {
+  const metadata = generatePageMetadata(seo);
+  const imageUrl = toAbsoluteUrl(seo.image || "");
+  const publishedTime = new Date(seo.publishedAt).toISOString();
+  const modifiedTime = new Date(seo.updatedAt).toISOString();
+
+  return {
+    ...metadata,
+    openGraph: {
+      ...metadata.openGraph,
+      type: "article" as const,
+      title: seo.title,
+      description: seo.description,
+      publishedTime,
+      modifiedTime,
+      authors: ["Code Destiny"],
+      section: seo.articleSection,
+      tags: seo.keywords.slice(0, 8),
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: seo.title }],
+    },
+    twitter: {
+      ...metadata.twitter,
+      card: "summary_large_image" as const,
+      title: seo.title,
+      description: seo.description,
+      images: [imageUrl],
+    },
+  };
+}
 
 export function generateStaticParams() {
   return getPublishedCelebrityStaticSlugs().map((slug) => ({ slug }));
@@ -20,7 +57,7 @@ export function generateMetadata({ params }: PageProps) {
     });
   }
 
-  return generatePageMetadata(getFamousSajuSeoMetadata(reading.celebrity, reading));
+  return generateFamousSajuMetadata(getFamousSajuSeoMetadata(reading.celebrity, reading));
 }
 
 function PillarBox({ label, value }: { label: string; value: string }) {
@@ -71,13 +108,20 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
   const reading = getCelebritySajuPage(params.slug);
   if (!reading) return <UnknownCelebrityPage slug={params.slug} />;
 
-  const { celebrity, saju, calculationStatus, dayMasterLabel, hourText, elementProfile, summary, sections, timeNotice, engineInputSummary, heroImageQuery, heroCopy, coreKeywords, analysisBadge, insightCards, reliabilityNotes } = reading;
+  const { celebrity, saju, calculationStatus, dayMasterLabel, hourText, elementProfile, summary, sections, timeNotice, engineInputSummary, heroImageQuery, heroCopy, coreKeywords, analysisBadge, insightCards, reliabilityNotes, conclusion } = reading;
   const related = getCelebrityRelatedList(celebrity);
   const heroImage = await getPexelsSectionImage(heroImageQuery, "default");
   const sectionImages = await Promise.all(
     sections.map((section) => getPexelsSectionImage(section.imageQuery, section.imageSection)),
   );
   const canonicalPath = `/insights/famous-saju/${celebrity.slug}`;
+  const canonicalUrl = toAbsoluteUrl(canonicalPath);
+  const seo = getFamousSajuSeoMetadata(celebrity, reading);
+  const heroImageUrl = toAbsoluteUrl(heroImage.src || seo.image || "");
+  const tableOfContents = sections.map((section, index) => ({
+    id: `famous-saju-section-${index + 1}`,
+    title: section.title,
+  }));
   const personJsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",
@@ -85,17 +129,40 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
     alternateName: celebrity.nameEn,
     birthDate: celebrity.birthDate,
     jobTitle: celebrity.category,
-    url: `https://code-destiny.com${canonicalPath}`,
+    url: canonicalUrl,
   };
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
-    headline: `${celebrity.nameKo} 사주 분석`,
-    description: summary,
-    mainEntityOfPage: `https://code-destiny.com${canonicalPath}`,
+    headline: seo.headline,
+    description: seo.description,
+    image: [heroImageUrl],
+    url: canonicalUrl,
+    mainEntityOfPage: canonicalUrl,
+    datePublished: new Date(seo.publishedAt).toISOString(),
+    dateModified: new Date(seo.updatedAt).toISOString(),
     author: { "@type": "Organization", name: "Code Destiny" },
     publisher: { "@type": "Organization", name: "Code Destiny" },
+    articleSection: seo.articleSection,
+    keywords: seo.keywords.join(", "),
     inLanguage: "ko-KR",
+    isAccessibleForFree: true,
+    about: {
+      "@type": "Person",
+      name: celebrity.nameKo,
+      alternateName: celebrity.nameEn,
+      birthDate: celebrity.birthDate,
+    },
+  };
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Code Destiny", item: SITE_ORIGIN },
+      { "@type": "ListItem", position: 2, name: "운세 인사이트", item: toAbsoluteUrl("/insights") },
+      { "@type": "ListItem", position: 3, name: "유명인 사주 분석", item: toAbsoluteUrl("/insights/famous-saju") },
+      { "@type": "ListItem", position: 4, name: `${celebrity.nameKo} 사주 분석`, item: canonicalUrl },
+    ],
   };
   const insightLinks = [
     { href: "/insights/saju-four-pillars-basics", title: "사주팔자 기초 가이드", description: "연주·월주·일주·시주의 기본 흐름을 먼저 이해합니다." },
@@ -142,6 +209,23 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
 
         <section className="mt-8 rounded-2xl border border-amber-200/20 bg-amber-100/[0.06] p-4 text-sm leading-7 text-amber-50/90">
           {timeNotice}
+        </section>
+
+        <section className="mt-8 grid gap-4 lg:grid-cols-[1.25fr_0.75fr]">
+          <div className="rounded-3xl border border-white/10 bg-white/[0.055] p-5 md:p-6">
+            <p className="text-sm font-semibold text-amber-100">핵심 요약</p>
+            <p className="mt-3 text-base leading-8 text-slate-200">{summary}</p>
+          </div>
+          <nav className="rounded-3xl border border-white/10 bg-white/[0.04] p-5" aria-label="본문 목차">
+            <p className="text-sm font-semibold text-amber-100">본문 목차</p>
+            <ol className="mt-3 space-y-2 text-sm text-slate-300">
+              {tableOfContents.map((item) => (
+                <li key={item.id}>
+                  <a href={`#${item.id}`} className="hover:text-amber-100">{item.title}</a>
+                </li>
+              ))}
+            </ol>
+          </nav>
         </section>
 
         <section className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -197,11 +281,17 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
           </div>
         </section>
 
+        <section className="mt-8 rounded-3xl border border-amber-200/25 bg-[linear-gradient(135deg,rgba(251,191,36,0.12),rgba(255,255,255,0.04))] p-5 md:p-6">
+          <p className="text-sm font-semibold text-amber-100">핵심 해석 박스</p>
+          <h2 className="mt-2 text-2xl font-semibold text-white">Code식 한 줄 결론</h2>
+          <p className="mt-3 text-base leading-8 text-slate-200">{conclusion}</p>
+        </section>
+
         <section className="mt-8 grid gap-5">
           {sections.map((section, index) => {
             const image = sectionImages[index];
             return (
-              <section key={section.title} className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04]">
+              <section id={tableOfContents[index]?.id} key={section.title} className="scroll-mt-24 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04]">
                 <img src={image.src} alt={image.alt} width={1200} height={627} className="h-52 w-full object-cover" loading="lazy" />
                 <div className="p-5 md:p-7">
                   <h2 className="text-xl font-semibold text-white">{section.title}</h2>
@@ -262,6 +352,7 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
       </article>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
     </main>
   );
 }
