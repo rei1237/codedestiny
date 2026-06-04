@@ -1010,14 +1010,31 @@ function selectRelationMasterGuide(relationType) {
   return RELATION_MASTER_GUIDE.기본;
 }
 
+function scoreBandLabel(score, highLabel, middleLabel, lowLabel) {
+  const n = safeNumber(score, 0);
+  if (n >= 78) return highLabel;
+  if (n >= 58) return middleLabel;
+  return lowLabel;
+}
+
+function pickFirst(values, fallback) {
+  const found = safeArray(values).map((item) => text(item)).find(Boolean);
+  return found || fallback;
+}
+
 function buildStructuredSectionBody(blocks = {}) {
   const core = sanitizeSukyoPremiumText(blocks.coreDiagnosis || "");
+  const insight = sanitizeSukyoPremiumText(blocks.masterInsight || "");
   const manifestation = sanitizeSukyoPremiumText(blocks.manifestation || "");
   const caution = sanitizeSukyoPremiumText(blocks.caution || "");
   const prescription = sanitizeSukyoPremiumText(blocks.prescription || "");
+  const moonPrescription = sanitizeSukyoPremiumText(blocks.moonPrescription || "");
   return [
     "[핵심 진단]",
     core,
+    "",
+    "[숙요 고수의 정밀 관찰]",
+    insight,
     "",
     "[관계에서 실제로 드러나는 모습]",
     manifestation,
@@ -1027,6 +1044,9 @@ function buildStructuredSectionBody(blocks = {}) {
     "",
     "[실전 처방]",
     prescription,
+    "",
+    "[달빛 처방]",
+    moonPrescription,
   ].join("\n");
 }
 
@@ -1056,8 +1076,17 @@ function buildSectionBody(localJson, chapter, sectionHeading, sectionIndex) {
   const meAction = text(localJson?.relation?.roleActionGuide?.meAction, "감정을 먼저 짧게 공유한다");
   const otherAction = text(localJson?.relation?.roleActionGuide?.otherAction, "상대의 말을 요약해 확인한 뒤 답한다");
   const resetLine = text(localJson?.relation?.roleActionGuide?.resetLine, "갈등 다음 날 안에 대화의 문을 다시 연다");
+  const elementSummary = text(localJson?.relation?.elementHarmony?.summary, "두 사람의 기질은 조율 규칙을 세울수록 상호 보완성이 커집니다.");
+  const elementRelation = text(localJson?.relation?.elementHarmony?.relation, "보완");
+  const complementSummary = text(localJson?.relation?.strengthShadowMap?.complementSummary, "서로의 강점이 상대의 그림자를 완충합니다.");
   const pastLifeTitle = text(localJson?.relation?.pastLife?.title, "오래된 약속의 인연");
   const pastLifeTask = text(localJson?.relation?.pastLife?.currentTask, "서로의 불안을 탓하지 않고 책임 있는 약속으로 바꾸는 일");
+  const pastLifeHealing = text(localJson?.relation?.pastLife?.healingKey, "작은 합의를 반복해 신뢰를 복원하는 일");
+  const selfKeyword = pickFirst(localJson?.self?.keywords, "감정의 촉");
+  const partnerKeyword = pickFirst(localJson?.partner?.keywords, "관계의 응답");
+  const emotionalBand = scoreBandLabel(emotional, "감정 파동이 깊고 빠르게 번지는 고밀도 구간", "감정 교류가 충분하지만 확인 대화가 필요한 중밀도 구간", "감정 표현의 속도 차이를 세심하게 맞춰야 하는 저밀도 구간");
+  const communicationBand = scoreBandLabel(communication, "말과 눈치가 동시에 열리는 소통 우세 구간", "표현 순서가 맞을 때 잘 풀리는 조율 구간", "침묵과 추측을 줄여야 하는 소통 보강 구간");
+  const riskBand = scoreBandLabel(conflictRisk, "감정 과열을 가장 먼저 다스려야 하는 고위험 구간", "반복 주제만 정리하면 회복되는 관리 구간", "큰 폭발보다 누적 피로를 경계해야 하는 은근한 구간");
   const guide = CHAPTER_TOPIC_GUIDE[chapterNo] || ["관계 핵심", "감정 조율", "갈등 완화", "실행 습관"];
   const relationMaster = selectRelationMasterGuide(relationType);
   const distanceMaster = DISTANCE_MASTER_GUIDE[toDistanceTier(distanceLabel)] || DISTANCE_MASTER_GUIDE.unknown;
@@ -1073,10 +1102,12 @@ function buildSectionBody(localJson, chapter, sectionHeading, sectionIndex) {
     : "";
 
   const blocks = {
-    coreDiagnosis: `${sectionTag}의 핵심 진단은 ${selfName} ${selfStar}宿과 ${partnerName} ${partnerStar}宿의 감정 운영 방식이 다르게 반응한다는 점입니다. 관계 유형 ${relationType}은 ${relationMaster.diagnosis} ${distanceLabel} 흐름에서는 ${distanceMaster.diagnosis} 관계 점수 ${relationScore}, 정서 밀도 ${emotional}, 소통 민감도 ${communication}는 끌림의 강도보다 운영 규칙의 중요성을 보여줍니다. ${guide[0]}과 ${guide[1]}은 이 장에서 가장 먼저 고정해야 할 관계 축입니다.`,
-    manifestation: `${selfName}은 ${selfProfile.love} 경향으로 애정을 표현할 때 ${meStrength}이 강하게 드러나고, 불안이 커지면 ${meShadow}로 기울 수 있습니다. ${partnerName}은 ${partnerProfile.love} 흐름으로 반응하면서 ${otherStrength}으로 관계를 지지하지만 압박을 받으면 ${otherShadow} 패턴이 나타납니다. 두 사람이 함께 있을 때 감정 온도는 ${distanceLabel} 체감 안에서 빠르게 올라갔다가 급격히 식을 수 있으므로, ${sectionHeading} 장면에서는 말의 내용보다 말이 오가는 순서가 관계 체력에 더 큰 영향을 줍니다.`,
-    caution: `${relationType} 관계의 취약 지점은 ${relationMaster.caution}이라는 구조입니다. 특히 ${sectionTag}에서는 충돌 위험도 ${conflictRisk}, 장기 지속 가능성 ${longTermPotential}, 회복 가능성 ${recoveryPotential}의 균형이 무너지면 같은 주제가 반복됩니다. ${distanceMaster.diagnosis} 특성상 상대의 침묵을 거절로 해석하거나 연락 공백을 단정하면 상처가 누적되기 쉽습니다. ${guide[2]}와 ${guide[3]}을 합의 없이 넘기면 관계 피로가 커질 수 있습니다. ${chapter10Boost} ${chapter11Boost} ${chapter14Boost}`,
+    coreDiagnosis: `${sectionTag}의 핵심 진단은 ${selfName} ${selfStar}宿과 ${partnerName} ${partnerStar}宿의 감정 운영 방식이 서로 다른 박자로 반응한다는 점입니다. 관계 유형 ${relationType}은 ${relationMaster.diagnosis} ${distanceLabel} 흐름에서는 ${distanceMaster.diagnosis} 관계 점수 ${relationScore}, 정서 밀도 ${emotional}, 소통 민감도 ${communication}는 끌림의 강도보다 운영 규칙의 정확도가 관계 품질을 좌우한다는 신호입니다. ${guide[0]}과 ${guide[1]}은 이 장에서 가장 먼저 고정해야 할 관계 축입니다.`,
+    masterInsight: `${selfStar}宿의 ${selfKeyword}은 관계를 빠르게 읽는 힘으로 작용하고, ${partnerStar}宿의 ${partnerKeyword}은 상대가 마음을 여는 방식에 깊게 스며듭니다. 이 조합은 ${relationTheme}을 품고 있어 단순히 좋고 나쁨으로 판정하기보다 언제 가까워지고 언제 물러서야 하는지를 읽어야 합니다. 오행 흐름은 ${elementRelation}으로 잡히며, ${elementSummary} ${complementSummary} 이것이 숙요 고수가 보는 이 인연의 숨은 문입니다.`,
+    manifestation: `${selfName}은 ${selfProfile.love} 경향으로 애정을 표현할 때 ${meStrength}이 강하게 드러나고, 불안이 커지면 ${meShadow}로 기울 수 있습니다. ${partnerName}은 ${partnerProfile.love} 흐름으로 반응하면서 ${otherStrength}으로 관계를 지지하지만 압박을 받으면 ${otherShadow} 패턴이 나타납니다. 현재 감정대는 ${emotionalBand}이고, 소통대는 ${communicationBand}입니다. 두 사람이 함께 있을 때 감정 온도는 ${distanceLabel} 체감 안에서 빠르게 올라갔다가 급격히 식을 수 있으므로, ${sectionHeading} 장면에서는 말의 내용보다 말이 오가는 순서가 관계 체력에 더 큰 영향을 줍니다.`,
+    caution: `${relationType} 관계의 취약 지점은 ${relationMaster.caution}이라는 구조입니다. 특히 ${sectionTag}에서는 충돌 위험도 ${conflictRisk}, 장기 지속 가능성 ${longTermPotential}, 회복 가능성 ${recoveryPotential}의 균형이 무너지면 같은 주제가 반복됩니다. 위험 흐름은 ${riskBand}으로 보이며, ${distanceMaster.diagnosis} 특성상 상대의 침묵을 거절로 해석하거나 연락 공백을 단정하면 상처가 누적되기 쉽습니다. ${guide[2]}와 ${guide[3]}을 합의 없이 넘기면 관계 피로가 커질 수 있습니다. ${chapter10Boost} ${chapter11Boost} ${chapter14Boost}`,
     prescription: `실전 처방의 핵심은 연락 빈도보다 갈등 후 다시 대화하는 방식을 먼저 정하는 것입니다. ${selfName}은 ${meAction} 원칙을 유지하고 ${partnerName}은 ${otherAction} 원칙을 지키며, 감정이 올라온 순간에는 즉시 결론 대신 ${resetLine} 규칙을 적용하세요. ${relationMaster.prescription} 또한 ${distanceMaster.prescription}을 병행하면 재회와 장기 관계 모두에서 반복 상처를 줄일 수 있습니다. ${sectionTag}에서는 ${guide[0]}을 먼저 확인하고 ${guide[3]}으로 마무리하는 순서를 두 사람이 같은 문장으로 합의해야 관계 체력이 안정적으로 누적됩니다.`,
+    moonPrescription: `${pastLifeTitle}의 결은 ${sectionHeading}에서 은근히 되살아납니다. 이 인연을 살리는 달빛 처방은 ${pastLifeTask}이며, 치유의 열쇠는 ${pastLifeHealing}입니다. 오늘부터는 감정이 커진 날에는 판정보다 기록을 먼저 남기고, 다음 대화에서는 ${sectionHeading}의 흐름을 ${guide[3]}으로 정돈하는 문장을 선택하세요.`,
   };
 
   let out = buildStructuredSectionBody(blocks);
