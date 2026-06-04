@@ -1784,6 +1784,20 @@
     return [featureKey, reason, cost].join('|');
   }
 
+  function _dpIsGenericPaidGateFeatureKey(value) {
+    var key = String(value || '').trim().toLowerCase();
+    return !key || key === 'coin-gate-per-use' || key === 'paid-service' || key === 'paid_service' || key === 'default' || key === 'service';
+  }
+
+  function _dpResolvePaidGateFeatureKey(opts, title) {
+    opts = opts || {};
+    var explicit = String(opts.featureKey || '').trim();
+    if (!_dpIsGenericPaidGateFeatureKey(explicit)) return explicit;
+    var fallback = String(opts.subFeatureKey || opts.serviceKey || opts.productId || '').trim();
+    if (!_dpIsGenericPaidGateFeatureKey(fallback)) return fallback;
+    return '';
+  }
+
   function _dpStorePaidPassGateResult(key, result) {
     if (!key || !result) return;
     __dpPaidPassGateCache[key] = { access: result, expiresAt: Date.now() + 15000 };
@@ -1822,12 +1836,12 @@
     var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
     if (!coinPrice) return { status: 'payment_required' };
     var title = String(opts.title || opts.reason || '\uC720\uB8CC \uC11C\uBE44\uC2A4').trim();
-    var featureKey = String(opts.featureKey || opts.subFeatureKey || opts.serviceKey || opts.productId || opts.reason || title || 'coin-gate-per-use').trim();
+    var featureKey = _dpResolvePaidGateFeatureKey(opts, title);
     var requestId = String(opts.requestId || '').trim() || ('pass-gate-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10));
     var cacheKey = _dpPaidPassCacheKey(opts, title, coinPrice);
     var cached = _dpTakePaidPassGateResult(cacheKey);
     if (cached && (cached.status === 'pass_applied' || cached.status === 'already_unlocked')) return cached;
-    var res = await _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify({ cost: coinPrice, coinPrice: coinPrice, reason: String(opts.reason || title), featureKey: featureKey, paymentMode: 'MEMBERSHIP_PASS', forceDeduct: true, requestId: requestId, categoryKey: opts.categoryKey || undefined, subFeatureKey: opts.subFeatureKey || undefined, productId: opts.productId || undefined, reportType: opts.reportType || undefined, serviceKey: opts.serviceKey || undefined, profileId: opts.profileId || undefined, selectedProfileId: opts.selectedProfileId || opts.profileId || undefined }) });
+    var res = await _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify({ cost: coinPrice, coinPrice: coinPrice, reason: String(opts.reason || title), featureKey: featureKey || undefined, paymentMode: 'MEMBERSHIP_PASS', forceDeduct: true, requestId: requestId, categoryKey: opts.categoryKey || undefined, subFeatureKey: opts.subFeatureKey || undefined, productId: opts.productId || undefined, reportType: opts.reportType || undefined, serviceKey: opts.serviceKey || undefined, profileId: opts.profileId || undefined, selectedProfileId: opts.selectedProfileId || opts.profileId || undefined }) });
     var payload = res && res.payload ? res.payload : res;
     var statusCode = Number((res && res.status) || (payload && payload.status) || 0);
     var code = String((payload && (payload.code || payload.errorCode)) || '').toUpperCase();
@@ -1850,9 +1864,9 @@
     var opts = options || {};
     var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
     var title = String(opts.title || opts.reason || '\uC720\uB8CC \uC11C\uBE44\uC2A4').trim();
-    var featureKey = String(opts.featureKey || opts.subFeatureKey || opts.serviceKey || opts.productId || opts.reason || title || 'coin-gate-per-use').trim();
+    var featureKey = _dpResolvePaidGateFeatureKey(opts, title);
     var requestId = String(opts.requestId || '').trim() || ('monthly-gate-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10));
-    var res = await _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify({ cost: coinPrice, coinPrice: coinPrice, reason: String(opts.reason || title), featureKey: featureKey, paymentMode: 'MONTHLY_CREDIT', forceDeduct: true, requestId: requestId, categoryKey: opts.categoryKey || undefined, subFeatureKey: opts.subFeatureKey || undefined, productId: opts.productId || undefined, reportType: opts.reportType || undefined, serviceKey: opts.serviceKey || undefined, profileId: opts.profileId || undefined, selectedProfileId: opts.selectedProfileId || opts.profileId || undefined }) });
+    var res = await _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify({ cost: coinPrice, coinPrice: coinPrice, reason: String(opts.reason || title), featureKey: featureKey || undefined, paymentMode: 'MONTHLY_CREDIT', forceDeduct: true, requestId: requestId, categoryKey: opts.categoryKey || undefined, subFeatureKey: opts.subFeatureKey || undefined, productId: opts.productId || undefined, reportType: opts.reportType || undefined, serviceKey: opts.serviceKey || undefined, profileId: opts.profileId || undefined, selectedProfileId: opts.selectedProfileId || opts.profileId || undefined }) });
     if (!res || !res.ok) throw new Error(_dpReadBillingMessage(res && res.payload, '\uC6D4\uC815\uC11D \uACB0\uC81C\uB97C \uC644\uB8CC\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.'));
     return res.payload || res;
   }
@@ -1887,7 +1901,9 @@
       var opts = options || {};
       var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
       var amountKrw = Math.max(0, Math.floor(Number(opts.amountKrw || (coinPrice * 100))));
-      if (opts.forceDirectPayment !== true && typeof window.__cdApplyMembershipPassBeforePayment === 'function') {
+      var directGateAuthorized = opts.forceDirectPayment === true && (opts.internalMainGate === true || opts.__cdPaymentGateAuthorized === true);
+      var directFeatureKey = _dpResolvePaidGateFeatureKey(opts, String(opts.title || opts.reason || ''));
+      if (!directGateAuthorized && typeof window.__cdApplyMembershipPassBeforePayment === 'function') {
         var passBeforeDirect = await window.__cdApplyMembershipPassBeforePayment(opts);
         if (passBeforeDirect && (passBeforeDirect.status === 'pass_applied' || passBeforeDirect.status === 'already_unlocked')) {
           return passBeforeDirect.payload || {};
@@ -1898,7 +1914,7 @@
         paymentMode: 'DIRECT_KRW',
         provider: 'PORTONE_V2',
         pg: 'KG_INICIS',
-        featureKey: String(opts.featureKey || '').trim(),
+        featureKey: directFeatureKey,
         reason: String(opts.reason || opts.title || '유료 서비스').trim(),
         paymentAmount: amountKrw,
         amountKrw: amountKrw,
@@ -2073,7 +2089,7 @@
       onCancel = undefined;
     }
     var optionBag = (options && typeof options === 'object') ? options : {};
-    var normalizedFeatureKey = String(optionBag.featureKey || '').trim() || 'coin-gate-per-use';
+    var normalizedFeatureKey = _dpResolvePaidGateFeatureKey(optionBag, reason);
     var now = Date.now();
     var lockAt = Number(window.__cdCoinGatePerUseLockAt || 0);
     var lockAgeMs = lockAt > 0 ? (now - lockAt) : 0;
@@ -5119,7 +5135,7 @@
         if (direct && typeof direct.focus === 'function') direct.focus();
         });
       }
-      if (opts.internalMainGate !== true && opts.skipPassProbe !== true && typeof window.__cdApplyMembershipPassBeforePayment === 'function') {
+      if (opts.internalMainGate !== true && opts.__cdPaymentGateAuthorized !== true && typeof window.__cdApplyMembershipPassBeforePayment === 'function') {
         return window.__cdApplyMembershipPassBeforePayment(opts).then(function(passResult) {
           if (passResult && (passResult.status === 'pass_applied' || passResult.status === 'already_unlocked')) return 'direct';
           return openServicePaymentChoiceModal();
@@ -5138,7 +5154,7 @@
     }
 
     var optionBag = (options && typeof options === 'object') ? options : {};
-    var normalizedFeatureKey = String(optionBag.featureKey || '').trim() || 'coin-gate-per-use';
+    var normalizedFeatureKey = _dpResolvePaidGateFeatureKey(optionBag, reason);
     var requestId = String(optionBag.requestId || '').trim().slice(0, 120);
     if (!requestId) {
       requestId = 'coin-gate-per-use-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);

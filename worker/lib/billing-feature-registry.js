@@ -85,6 +85,15 @@ function normalizeText(value) {
   return String(value || "").trim();
 }
 
+function isGenericCoinGateFeatureKey(featureKey) {
+  const key = normalizeKey(featureKey);
+  return key === "coin-gate-per-use"
+    || key === "paid-service"
+    || key === "paid_service"
+    || key === "default"
+    || key === "service";
+}
+
 function buildReasonPricingMap(pricingEntries) {
   const table = Object.create(null);
 
@@ -287,7 +296,18 @@ export function getBillingFeaturePricing(input = {}) {
     }
   }
 
-  if (normalized.featureKey) {
+  if (isGenericCoinGateFeatureKey(normalized.featureKey) && normalized.reason) {
+    const fromReason = resolveByReason(normalized.reason);
+    if (fromReason) {
+      return {
+        ok: true,
+        pricing: fromReason,
+        source: "generic-feature-reason",
+      };
+    }
+  }
+
+  if (normalized.featureKey && !isGenericCoinGateFeatureKey(normalized.featureKey)) {
     const fromFeature = resolveByFeatureKey(normalized.featureKey);
     if (fromFeature) {
       return {
