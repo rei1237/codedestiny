@@ -1903,6 +1903,72 @@
     var balanceLabel = hasBalanceSnapshot ? (Number(balance).toLocaleString('ko-KR') + '코인') : '알 수 없음';
     var membershipCoverage = _dpReadActiveMembershipCoverage(cost);
     if (!membershipCoverage) {
+      if (typeof window._cdResolvePaidContentAccess === 'function') {
+        return window._cdResolvePaidContentAccess({
+          title: reason,
+          reason: reason,
+          coinPrice: cost,
+          cost: cost,
+          featureKey: featureKey || reason || 'coin-gate-per-use',
+          requestId: requestId
+        }).then(function(access) {
+          if (access && (access.status === 'already_unlocked' || access.status === 'pass_applied')) {
+            var passPayload = access.payload || access.rawPayload || {};
+            try { passPayload.__cdPassGateResolved = true; } catch (_) {}
+            var passTransactionId = String(passPayload.transactionId || passPayload.paymentId || passPayload.purchaseId || passPayload.requestId || access.requestId || requestId);
+            if (typeof cb === 'function') cb(passTransactionId, passPayload);
+            return passPayload;
+          }
+          if (access && access.status === 'error') {
+            window.alert(access.message || '이용권 확인에 실패했습니다.');
+            if (typeof onCancel === 'function') onCancel(access);
+            return null;
+          }
+          if (typeof window._cdChooseServicePaymentMode !== 'function' || typeof window._cdRunDirectKrwCheckout !== 'function') return null;
+          return window._cdChooseServicePaymentMode({
+            title: reason,
+            coinPrice: cost,
+            cost: cost,
+            amountKrw: Number(cost || 0) * 100,
+          }).then(function(choice) {
+            if (choice !== 'direct') {
+              if (typeof onCancel === 'function') onCancel();
+              return null;
+            }
+            window._cdCoinGatePerUseInFlight = true;
+            window.__cdCoinGatePerUseLockAt = Date.now();
+            _dpSetPaymentPending(true, String(reason || '유료 서비스') + ' 단건 결제를 준비하는 중입니다...');
+            return window._cdRunDirectKrwCheckout({
+              coinPrice: cost,
+              cost: cost,
+              title: reason,
+              reason: reason,
+              featureKey: featureKey || reason || 'coin-gate-per-use',
+              requestId: requestId,
+              checkoutPayload: {
+                paymentMode: 'DIRECT_KRW',
+              },
+            });
+          });
+        }).then(function(payload) {
+          if (!payload) return null;
+          if (payload && (payload.__cdPassGateResolved === true || payload.freeBySubscription === true || String(payload.accessType || payload.transactionType || '').toLowerCase() === 'membership_pass')) return payload;
+          window._cdCoinGatePerUseInFlight = false;
+          window.__cdCoinGatePerUseLockAt = 0;
+          _dpSetPaymentPending(false);
+          var txId = String((payload && (payload.transactionId || payload.paymentId || payload.purchaseId || payload.requestId)) || requestId);
+          if (typeof cb === 'function') cb(txId, payload || {});
+          return payload;
+        }).catch(function(error) {
+          window._cdCoinGatePerUseInFlight = false;
+          window.__cdCoinGatePerUseLockAt = 0;
+          _dpSetPaymentPending(false);
+          console.error('[coin-gate-per-use-pass-first]', error);
+          window.alert(String(error && error.message || '결제를 완료하지 못했습니다. 결제 수단을 확인하고 다시 시도해 주세요.'));
+          if (typeof onCancel === 'function') onCancel(error);
+          return null;
+        });
+      }
       if (typeof window._cdChooseServicePaymentMode === 'function' && typeof window._cdRunDirectKrwCheckout === 'function') {
         return window._cdChooseServicePaymentMode({
           title: reason,
