@@ -936,6 +936,33 @@ function renderReportDashboard() {
   var dashCard  = document.getElementById('reportDashboardCard');
   if (!container || !dashCard) return;
   dashCard.style.display = '';
+  container.hidden = true;
+  container.style.display = 'none';
+
+  (function ensureDashboardToggle() {
+    var head = dashCard.querySelector('.report-dashboard-head') || dashCard;
+    var toggle = document.getElementById('reportDashboardToggle');
+    if (!toggle && head) {
+      toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.id = 'reportDashboardToggle';
+      toggle.className = 'rpt-v2-toggle-btn';
+      toggle.setAttribute('aria-controls', 'reportDashboard');
+      head.appendChild(toggle);
+    }
+    if (!toggle) return;
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.textContent = '열기';
+    if (toggle.__cdReportDashboardToggleBound) return;
+    toggle.__cdReportDashboardToggleBound = true;
+    toggle.addEventListener('click', function() {
+      var open = container.hidden || container.style.display === 'none';
+      container.hidden = !open;
+      container.style.display = open ? '' : 'none';
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      toggle.textContent = open ? '접기' : '열기';
+    });
+  })();
 
   /* ── 이전 렌더에서 컨테이너 안으로 이동된 요소를 rescue zone으로 임시 이동 ──
      두 번째 이후 계산 시 container.innerHTML 교체로 파괴되는 것을 방지한다.   */
