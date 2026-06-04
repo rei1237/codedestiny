@@ -1546,16 +1546,22 @@ function __cdReadTileLockMapForSync() {
 }
 
 function __cdNormalizeLockPayload(payload) {
-  var data = payload;
+  var data = null;
   var keys = Object.create(null);
   var list = [];
   try {
-    if (payload && payload.data && typeof payload.data === 'object') data = payload.data;
-    if (payload && payload.raw && typeof payload.raw === 'object') data = payload.raw;
     if (payload && payload.ok === false) return list;
   } catch (_) {}
 
   try {
+    if (payload && payload.data && typeof payload.data === 'object') {
+      data = payload.data;
+    } else if (payload && payload.raw && typeof payload.raw === 'object') {
+      data = payload.raw;
+    }
+
+    if (!data || typeof data !== 'object') return list;
+
     if (data && Array.isArray(data.unlockedFeatures)) {
       for (var i = 0; i < data.unlockedFeatures.length; i += 1) {
         var feature = String(data.unlockedFeatures[i] || '').trim();
@@ -1614,6 +1620,11 @@ function __cdMergeServerUnlockKeys(unlockKeys) {
   if (!Array.isArray(unlockKeys) || !unlockKeys.length) return false;
   var localMap = __cdReadTileLockMapForSync();
   var changed = false;
+  try {
+    if (!window.unlockedFeatureMap || typeof window.unlockedFeatureMap !== 'object') {
+      window.unlockedFeatureMap = Object.create(null);
+    }
+  } catch (_) {}
 
   for (var i = 0; i < unlockKeys.length; i += 1) {
     var raw = String(unlockKeys[i] || '').trim();
@@ -1682,20 +1693,6 @@ window.addEventListener('cd:auth-changed', function() {
   __cdTileLockServerSyncDone = false;
   __cdSyncTileLocksFromServer();
 });
-
-function __cdEnsureMapFromServerResultForLockSync(unlockKeys) {
-  if (!Array.isArray(unlockKeys) || !unlockKeys.length) return;
-  if (!window.unlockedFeatureMap || typeof window.unlockedFeatureMap !== 'object') {
-    window.unlockedFeatureMap = Object.create(null);
-  }
-  for (var i = 0; i < unlockKeys.length; i += 1) {
-    var raw = String(unlockKeys[i] || '').trim();
-    if (!raw) continue;
-    var aliases = __cdResolveTileLockAliasKeys(raw);
-    for (var a = 0; a < aliases.length; a += 1) {
-      window.unlockedFeatureMap[aliases[a]] = true;
-    }
-}
 
 var __cdLazyActionLoaders = {
   openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js'); },
