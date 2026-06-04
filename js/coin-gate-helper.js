@@ -224,7 +224,7 @@
 
     return {
       ok: true,
-      featureKey: LOVE_BOOK_FEATURE_KEY,
+      featureKey: String((payload && payload.featureKey) || (accessGrant && accessGrant.featureKey) || LOVE_BOOK_FEATURE_KEY),
       sessionId: sessionId || undefined,
       purchaseId: purchaseId || undefined,
       requestId: requestId || undefined,
@@ -237,11 +237,12 @@
     return {
       async purchaseFeature(input) {
         var payload = input && typeof input.payload === 'object' ? input.payload : {};
+        var requestedFeatureKey = String((input && input.featureKey) || payload.featureKey || LOVE_BOOK_FEATURE_KEY).trim() || LOVE_BOOK_FEATURE_KEY;
         var reportId = String(payload.reportId || '').trim();
         var sessionId = normalizeReportSessionId(reportId, payload);
         var requestBody = {
           categoryKey: 'premium-report',
-          featureKey: LOVE_BOOK_FEATURE_KEY,
+          featureKey: requestedFeatureKey,
           subFeatureKey: String(payload.subFeatureKey || '').trim() || undefined,
           reason: String(payload.reason || '').trim(),
           requestId: String(payload.requestId || '').trim() || undefined,
@@ -251,6 +252,129 @@
           sessionId: sessionId || undefined,
           reportSessionId: sessionId || undefined,
         };
+        var requestedCoinPrice = Math.max(0, Math.floor(Number(payload.coinPrice || payload.cost || payload.priceCoin || 0)));
+        if (!(requestedCoinPrice > 0) && requestBody.featureKey) {
+          var featureResponse = await requestJson('/api/billing/features?featureKey=' + encodeURIComponent(requestBody.featureKey), {
+            method: 'GET',
+          });
+          if (featureResponse && featureResponse.ok) {
+            var featurePayload = (featureResponse.payload && featureResponse.payload.data) || featureResponse.payload || {};
+            var pricing = featurePayload && featurePayload.pricing ? featurePayload.pricing : featurePayload;
+            requestedCoinPrice = Math.max(0, Math.floor(Number(pricing && (pricing.coinPrice || pricing.cost) || 0)));
+            if (!requestBody.reason && pricing && pricing.reason) requestBody.reason = String(pricing.reason || '').trim();
+          }
+        }
+
+        if (typeof globalThis._cdResolvePaidContentAccess === 'function') {
+          var passAccess = await globalThis._cdResolvePaidContentAccess({
+            categoryKey: requestBody.categoryKey,
+            featureKey: requestBody.featureKey,
+            subFeatureKey: requestBody.subFeatureKey,
+            title: requestBody.reason || '프리미엄 PDF',
+            reason: requestBody.reason || '프리미엄 PDF',
+            coinPrice: requestedCoinPrice,
+            cost: requestedCoinPrice,
+            requestId: requestBody.requestId,
+            reportId: requestBody.reportId,
+            sessionId: requestBody.sessionId,
+            reportSessionId: requestBody.reportSessionId,
+            actionType: 'pdf'
+          });
+          if (passAccess && (passAccess.status === 'already_unlocked' || passAccess.status === 'pass_applied')) {
+            var passData = (passAccess && (passAccess.payload || passAccess.rawPayload)) || {};
+            var passPayload = passData && passData.data && typeof passData.data === 'object' ? passData.data : passData;
+            var premiumAccessToken = String((passPayload && passPayload.premiumAccessToken) || (passData && passData.premiumAccessToken) || '').trim();
+            if (premiumAccessToken) persistPremiumAccessToken(premiumAccessToken);
+            var accessGrant = normalizeAccessGrant(passPayload, requestBody);
+            return {
+              ok: !!accessGrant,
+              status: 200,
+              message: '',
+              featureKey: requestedFeatureKey,
+              accessGrant: accessGrant,
+              purchaseId: String((accessGrant && accessGrant.purchaseId) || '').trim(),
+              premiumAccessToken: premiumAccessToken || null,
+              raw: passData || {},
+            };
+          }
+          if (passAccess && passAccess.status === 'error') {
+            return {
+              ok: false,
+              status: Number((passAccess.raw && passAccess.raw.status) || 500),
+              message: String(passAccess.message || '이용권 확인에 실패했습니다.'),
+              featureKey: requestedFeatureKey,
+              accessGrant: null,
+              purchaseId: '',
+              premiumAccessToken: null,
+              raw: passAccess.raw || {},
+            };
+          }
+        }
+
+        if (typeof globalThis._cdOpenPaidServiceGate === 'function') {
+          var gatePayload = await new Promise(function(resolve, reject) {
+            var settled = false;
+            function finish(payload) {
+              if (settled) return;
+              settled = true;
+              resolve(payload && typeof payload === 'object' ? payload : {});
+            }
+            function fail(error) {
+              if (settled) return;
+              settled = true;
+              reject(error || { status: 402, message: '결제가 취소되었습니다.' });
+            }
+            var gatePromise;
+            try {
+              gatePromise = globalThis._cdOpenPaidServiceGate({
+                categoryKey: requestBody.categoryKey,
+                featureKey: requestBody.featureKey,
+                subFeatureKey: requestBody.subFeatureKey,
+                title: requestBody.reason || '프리미엄 PDF',
+                reason: requestBody.reason || '프리미엄 PDF',
+                coinPrice: requestedCoinPrice,
+                cost: requestedCoinPrice,
+                requestId: requestBody.requestId,
+                reportId: requestBody.reportId,
+                sessionId: requestBody.sessionId,
+                reportSessionId: requestBody.reportSessionId,
+                actionType: 'pdf',
+                onGranted: function(transactionId, grantedPayload) {
+                  var nextPayload = grantedPayload && typeof grantedPayload === 'object' ? grantedPayload : {};
+                  if (!nextPayload.transactionId && transactionId) nextPayload.transactionId = String(transactionId);
+                  finish(nextPayload);
+                },
+                onPassApplied: function(access) {
+                  finish((access && (access.payload || access.rawPayload)) || access || {});
+                },
+                onCancel: fail
+              });
+            } catch (error) {
+              fail(error);
+              return;
+            }
+            if (gatePromise && typeof gatePromise.then === 'function') {
+              gatePromise.then(function(payload) {
+                if (payload === null || payload === undefined) fail({ status: 402, message: '결제가 취소되었습니다.' });
+                else finish(payload);
+              }).catch(fail);
+            }
+          });
+          var gateData = gatePayload && gatePayload.data && typeof gatePayload.data === 'object' ? gatePayload.data : gatePayload;
+          var gateToken = String((gateData && gateData.premiumAccessToken) || (gatePayload && gatePayload.premiumAccessToken) || '').trim();
+          if (gateToken) persistPremiumAccessToken(gateToken);
+          var gateAccessGrant = normalizeAccessGrant(gateData, requestBody);
+          return {
+            ok: !!gateAccessGrant,
+            status: 200,
+            message: '',
+            featureKey: requestedFeatureKey,
+            accessGrant: gateAccessGrant,
+            purchaseId: String((gateAccessGrant && gateAccessGrant.purchaseId) || '').trim(),
+            premiumAccessToken: gateToken || null,
+            raw: gatePayload || {},
+          };
+        }
 
         var response = await requestJson('/api/billing/coin-gate', {
           method: 'POST',
@@ -265,7 +389,7 @@
           ok: !!response.ok && !!accessGrant,
           status: Number(response.status || 0),
           message: String((response.payload && response.payload.message) || ''),
-          featureKey: LOVE_BOOK_FEATURE_KEY,
+          featureKey: requestedFeatureKey,
           accessGrant: accessGrant,
           purchaseId: String((accessGrant && accessGrant.purchaseId) || '').trim(),
           premiumAccessToken: premiumAccessToken || null,

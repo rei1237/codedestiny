@@ -2166,7 +2166,7 @@
           reason: reason,
           coinPrice: cost,
           cost: cost,
-          featureKey: normalizedFeatureKey || reason || 'coin-gate-per-use',
+          featureKey: normalizedFeatureKey || undefined,
           requestId: requestId
         }).then(function(access) {
           if (access && (access.status === 'already_unlocked' || access.status === 'pass_applied')) {
@@ -2187,7 +2187,8 @@
             coinPrice: cost,
             cost: cost,
             amountKrw: Number(cost || 0) * 100,
-            skipPassProbe: true,
+            reason: reason,
+            featureKey: normalizedFeatureKey || undefined,
           }).then(function(choice) {
             if (choice !== 'direct') {
               if (typeof onCancel === 'function') onCancel();
@@ -2201,9 +2202,8 @@
               cost: cost,
               title: reason,
               reason: reason,
-              featureKey: normalizedFeatureKey || reason || 'coin-gate-per-use',
+              featureKey: normalizedFeatureKey || undefined,
               requestId: requestId,
-              skipPassProbe: true,
               checkoutPayload: {
                 paymentMode: 'DIRECT_KRW',
               },
@@ -2234,7 +2234,8 @@
           coinPrice: cost,
           cost: cost,
           amountKrw: Number(cost || 0) * 100,
-            skipPassProbe: true,
+          reason: reason,
+          featureKey: normalizedFeatureKey || undefined,
           }).then(function(choice) {
           if (choice !== 'direct') {
             if (typeof onCancel === 'function') onCancel();
@@ -2248,7 +2249,7 @@
             cost: cost,
             title: reason,
             reason: reason,
-            featureKey: normalizedFeatureKey,
+            featureKey: normalizedFeatureKey || undefined,
             requestId: String(optionBag.requestId || '').trim().slice(0, 120) || undefined,
             checkoutPayload: {
               paymentMode: 'DIRECT_KRW',
@@ -2451,8 +2452,12 @@
     if (typeof window._cdChooseServicePaymentMode === 'function') {
       window._cdChooseServicePaymentMode({
         title: info.name + ' 영구 해금',
+        reason: info.name + ' ?곴뎄 ?닿툑',
         coinPrice: info.cost,
         cost: info.cost,
+        featureKey: info.key,
+        productId: unlockProductId,
+        requestId: unlockRequestId,
         currentCoins: balance,
         balanceLabel: balanceLabel
       }).then(function(choice) {
@@ -5225,7 +5230,7 @@
           return passPayload;
         }
         if (access && access.status === 'error') { window.alert(access.message || '\uC774\uC6A9\uAD8C \uD655\uC778\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.'); if (typeof onCancel === 'function') onCancel(access); return null; }
-        if (typeof window._cdChooseServicePaymentMode === 'function') { return window._cdChooseServicePaymentMode({ title: reason, coinPrice: cost, cost: cost, skipPassProbe: true }).then(function(choice) { if (choice === 'direct') return runDirectCheckout(); if (choice === 'monthly') return runMonthlyCreditGate(); if (typeof onCancel === 'function') onCancel(); return null; }); }
+        if (typeof window._cdChooseServicePaymentMode === 'function') { return window._cdChooseServicePaymentMode({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey || undefined }).then(function(choice) { if (choice === 'direct') return runDirectCheckout(); if (choice === 'monthly') return runMonthlyCreditGate(); if (typeof onCancel === 'function') onCancel(); return null; }); }
         return runMonthlyCreditGate();
       }).catch(function(error) { window.alert(String(error && error.message || '\uC774\uC6A9\uAD8C \uD655\uC778 \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.')); if (typeof onCancel === 'function') onCancel(error); return null; });
     }
@@ -5246,7 +5251,7 @@
           body: JSON.stringify({
             cost: cost,
             reason: reason,
-            featureKey: normalizedFeatureKey,
+            featureKey: normalizedFeatureKey || undefined,
             paymentMode: 'MONTHLY_CREDIT',
             forceDeduct: true,
             requestId: requestId
@@ -5338,7 +5343,9 @@
       return window._cdChooseServicePaymentMode({
         title: reason,
         coinPrice: cost,
-        cost: cost
+        cost: cost,
+        reason: reason,
+        featureKey: normalizedFeatureKey || undefined
       }).then(function(choice) {
         if (choice === 'direct') return runDirectCheckout();
         if (choice === 'monthly') return runMonthlyCreditGate();

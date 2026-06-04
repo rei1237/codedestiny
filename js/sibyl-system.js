@@ -3424,15 +3424,95 @@
     };
   }
 
+  function _isSibylMembershipPassPayload(payload) {
+    var data = _extractApiData(payload || {});
+    var consume = data && data.consume && typeof data.consume === 'object' ? data.consume : {};
+    var accessGrant = data && data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
+    var values = [
+      data && data.freeBySubscription === true ? 'membership_pass' : '',
+      data && data.alreadyUnlocked === true ? 'already_unlocked' : '',
+      data && data.__cdPassGateResolved === true ? 'membership_pass' : '',
+      data && data.accessType,
+      data && data.transactionType,
+      data && data.accessMethod,
+      data && data.paymentMethod,
+      consume.accessType,
+      consume.transactionType,
+      consume.accessMethod,
+      consume.paymentMethod,
+      accessGrant.accessType,
+      accessGrant.transactionType,
+      accessGrant.accessMethod,
+      accessGrant.paymentMethod
+    ];
+    return values.some(function(value) {
+      var key = String(value || '').toLowerCase();
+      return key === 'membership_pass' || key === 'pass' || key === 'already_unlocked';
+    });
+  }
+
   async function _runSibylCoinGate(payloadHash) {
     var pricing = await _resolveSibylPricing();
+    var requestId = _createRequestId('sibyl-coin-gate');
+
+    if (typeof window._cdOpenPaidServiceGate === 'function') {
+      return await new Promise(function(resolve, reject) {
+        var settled = false;
+        function finish(payload) {
+          if (settled) return;
+          settled = true;
+          var gatePayload = payload && typeof payload === 'object' ? payload : {};
+          resolve({
+            requestId: String(gatePayload.requestId || requestId),
+            pricing: pricing,
+            consumePayload: gatePayload,
+            bypass: _isSibylMembershipPassPayload(gatePayload)
+          });
+        }
+        function fail(error) {
+          if (settled) return;
+          settled = true;
+          reject(error || { status: 402, code: 'PAYMENT_CANCELLED', message: '결제가 취소되었습니다.' });
+        }
+        var gatePromise;
+        try {
+          gatePromise = window._cdOpenPaidServiceGate({
+            title: pricing.reason,
+            reason: pricing.reason,
+            coinPrice: pricing.cost,
+            cost: pricing.cost,
+            featureKey: pricing.featureKey,
+            requestId: requestId,
+            payloadHash: String(payloadHash || '').slice(0, 120),
+            onGranted: function(transactionId, payload) {
+              var grantedPayload = payload && typeof payload === 'object' ? payload : {};
+              if (!grantedPayload.transactionId && transactionId) grantedPayload.transactionId = String(transactionId);
+              finish(grantedPayload);
+            },
+            onPassApplied: function(access) {
+              finish((access && (access.payload || access.rawPayload)) || access || {});
+            },
+            onCancel: fail
+          });
+        } catch (error) {
+          fail(error);
+          return;
+        }
+        if (gatePromise && typeof gatePromise.then === 'function') {
+          gatePromise.then(function(payload) {
+            if (payload === null || payload === undefined) fail({ status: 402, code: 'PAYMENT_CANCELLED', message: '결제가 취소되었습니다.' });
+            else finish(payload);
+          }).catch(fail);
+        }
+      });
+    }
+
     var balance = await _resolveSibylBalance();
 
     if (balance < pricing.cost) {
       throw { status: 400, code: 'INSUFFICIENT_BALANCE', message: '코인이 부족합니다.' };
     }
 
-    var requestId = _createRequestId('sibyl-coin-gate');
     var gateRes = await _fetchApiJson('/api/billing/coin-gate', {
       method: 'POST',
       body: JSON.stringify({
