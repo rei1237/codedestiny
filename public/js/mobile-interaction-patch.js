@@ -597,6 +597,7 @@
       .filter(function(v) { return v.length > 0; });
   }
 
+  var __CD_USE_FEATURE_SPLASH = false;
   var __CD_SERVICE_SPLASH_MESSAGES = {
     openNevilleMeditationPage: '명상 화면을 준비하고 있습니다.',
     openCosmicSoulMeditation: '코스믹 소울 명상 화면을 준비하고 있습니다.',
@@ -638,6 +639,7 @@
   }
 
   function beginFeatureLoading(action, options) {
+    if (!__CD_USE_FEATURE_SPLASH) return 0;
     var serviceSplash = getServiceSplash();
     if (!serviceSplash || typeof serviceSplash.show !== 'function') return 0;
     var token = ++__cdFeatureLoadingToken;
@@ -673,7 +675,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-788ca4308217').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-8cfc753e0598').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -760,18 +762,18 @@
     openHwatuModal: ['HwatuFortune.js'],
     // NOTE: uiBindings??`js/...` 경로??용?니?? 모바??patch???일 경로?맞춰
     // ???에??최신 ?크립트??확??로드?도??니??
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-788ca4308217'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-788ca4308217'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-788ca4308217'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-8cfc753e0598'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-8cfc753e0598'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-8cfc753e0598'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-788ca4308217'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-8cfc753e0598'],
     openDreamModal: ['lib/ai-engine.js', 'js/dream-ledger.js'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-788ca4308217']
+    openSibylModal: ['js/sibyl-system.js?v=build-8cfc753e0598']
   };
 
   function normalizeScriptSrc(src) {
