@@ -483,6 +483,10 @@ function normalizePersistentUnlockKeys(values) {
   return Object.keys(map);
 }
 
+function sanitizeProfileBindingId(value) {
+  return String(value || "").trim().slice(0, 80).replace(/\s+/g, "_");
+}
+
 function toUnlockMap(unlockedFeatures) {
   const map = Object.create(null);
   const keys = normalizePersistentUnlockKeys(unlockedFeatures);
@@ -512,7 +516,21 @@ function isRepairableConsumeArrayShapeError(error) {
   return /recentConsumeRequestIds|unlockedFeatures/i.test(message);
 }
 
-async function resolvePersistedUnlockFeatures(userId, currentUnlocks) {
+async function resolvePersistedUnlockFeatures(userId, currentUnlocks, profileId = "") {
+  const scopedProfileId = sanitizeProfileBindingId(profileId);
+  if (userId && scopedProfileId) {
+    const scopedKeys = await PointHistory.distinct("featureKey", {
+      userId,
+      kind: "deduct",
+      featureKey: { $in: Array.from(PERSISTENT_UNLOCK_KEY_SET) },
+      $or: [
+        { "metadata.profileId": scopedProfileId },
+        { "metadata.selectedProfileId": scopedProfileId },
+      ],
+    });
+    return normalizePersistentUnlockKeys(scopedKeys);
+  }
+
   const fromUser = normalizePersistentUnlockKeys(currentUnlocks);
   if (fromUser.length || !userId) return fromUser;
 
@@ -814,6 +832,7 @@ async function handleBalance(auth) {
   const user = await findUserByIdRaw(auth.userId, {
     points: 1,
     unlockedFeatures: 1,
+    destinyProfilesCurrentId: 1,
   });
   if (!user) {
     return json({
@@ -830,9 +849,9 @@ async function handleBalance(auth) {
 
   let unlockedFeatures = [];
   try {
-    unlockedFeatures = await resolvePersistedUnlockFeatures(auth.userId, user.unlockedFeatures);
+    unlockedFeatures = await resolvePersistedUnlockFeatures(auth.userId, user.unlockedFeatures, user.destinyProfilesCurrentId);
   } catch (e) {
-    unlockedFeatures = normalizePersistentUnlockKeys(user.unlockedFeatures);
+    unlockedFeatures = [];
   }
   const points = Number(user.points || 0);
 

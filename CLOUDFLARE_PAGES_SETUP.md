@@ -59,8 +59,11 @@ AUTH_COOKIE_SECURE=true
 AUTH_COOKIE_SAMESITE=lax
 MONGO_URI=<MongoDB Atlas connection string>
 MONGO_DB_NAME=code_destiny
-PORTONE_API_KEY=<PortOne key>
-PORTONE_API_SECRET=<PortOne secret>
+PORTONE_API_BASE_URL=https://api.portone.io
+PORTONE_API_Secret=<PortOne API secret>
+PORTONE_Store=<PortOne Store ID>
+PORTONE_channel=<PortOne KG Inicis channel key>
+PORTONE_webhook_URL=<PortOne webhook URL>
 AUTH_SIGNUP_BONUS_POINTS=50
 MONGO_WORKER_CONNECT_GUARD_MS=8000
 ```

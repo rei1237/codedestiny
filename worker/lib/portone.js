@@ -29,11 +29,11 @@ function getPortOneApiSecret(env) {
 }
 
 export function getPortOneWebhookSecret(env) {
-  return getExactEnv(env, "PORTONE_webhook_Secret");
+  return getExactEnv(env, "PORTONE_webhook_Secret", getExactEnv(env, "PORTONE_webhook"));
 }
 
 export function getPortOneWebhookUrl(env) {
-  return getExactEnv(env, "PORTONE_webhook_URL");
+  return getExactEnv(env, "PORTONE_webhook_URL", getExactEnv(env, "PORTONE_WEBHOOK_URL"));
 }
 
 function getPortOneHeaders(env) {
@@ -128,7 +128,7 @@ export function getPortOnePublicConfig(env) {
     noticeUrl,
     currency: "CURRENCY_KRW",
     payMethod: "CARD",
-    configured: Boolean(storeId && channelKey && noticeUrl && getPortOneApiSecret(env)),
+    configured: Boolean(storeId && channelKey && getPortOneApiSecret(env)),
   };
 }
 

@@ -114,6 +114,19 @@ function emitCoinGateOverlay(open: boolean, message?: string) {
   overlayWindow._cdSetCoinGateOverlay?.(open, message);
 }
 
+function paymentModalOwnsPaidFeatureStatus(status: PaidFeatureGateStatus) {
+  return [
+    "opening",
+    "checkingEntitlement",
+    "hasEntitlement",
+    "noEntitlement",
+    "loadingProducts",
+    "readyToPay",
+    "paymentProcessing",
+    "paymentSuccess",
+  ].includes(status);
+}
+
 function nowForPaidGate() {
   if (typeof performance !== "undefined" && typeof performance.now === "function") {
     return performance.now();
@@ -178,6 +191,15 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
       closeTimerRef.current = null;
     }
 
+    if (paymentModalOwnsPaidFeatureStatus(status)) {
+      setState((prev) => {
+        if (!prev.open) return prev;
+        return { ...prev, open: false, status: "idle", message: PAID_GATE_DEFAULT_MESSAGE };
+      });
+      emitCoinGateOverlay(false);
+      return seq;
+    }
+
     markPaidGate("cd-paid-feature-gate-open-call");
     setState((prev) => {
       if (prev.open && detail.requestId && prev.requestId === detail.requestId) {
@@ -218,6 +240,17 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
   }, []);
 
   const update = useCallback((detail: PaidFeatureGateDetail) => {
+    const requestedStatus = detail.status || "checkingEntitlement";
+    if (paymentModalOwnsPaidFeatureStatus(requestedStatus)) {
+      setState((prev) => {
+        if (detail.requestId && prev.requestId && detail.requestId !== prev.requestId) return prev;
+        if (!prev.open) return prev;
+        return { ...prev, open: false, status: "idle", message: PAID_GATE_DEFAULT_MESSAGE };
+      });
+      emitCoinGateOverlay(false);
+      return;
+    }
+
     setState((prev) => {
       if (!prev.open) return prev;
       if (detail.requestId && prev.requestId && detail.requestId !== prev.requestId) return prev;

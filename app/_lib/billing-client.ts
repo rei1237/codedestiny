@@ -238,6 +238,19 @@ function runtimeNow() {
   return Date.now();
 }
 
+function paymentModalOwnsPaidFeatureStatus(status: string) {
+  return [
+    "opening",
+    "checkingEntitlement",
+    "hasEntitlement",
+    "noEntitlement",
+    "loadingProducts",
+    "readyToPay",
+    "paymentProcessing",
+    "paymentSuccess",
+  ].includes(status);
+}
+
 function emitPaidFeatureGate(action: "open" | "update" | "close", detail: PaidFeatureGateRuntimeDetail) {
   if (typeof window === "undefined") return;
   const featureId = toText(detail.featureId || detail.featureKey) || "paid-feature";
@@ -268,6 +281,11 @@ function emitPaidFeatureGate(action: "open" | "update" | "close", detail: PaidFe
     }
   } catch (_) {}
   const runtimeWindow = window as RuntimeApiWindow;
+  if (action !== "close" && paymentModalOwnsPaidFeatureStatus(status)) {
+    runtimeWindow._cdSetCoinGateOverlay?.(false);
+    runtimeWindow.__cdPaidFeatureGate?.close?.(payload.requestId);
+    return;
+  }
   if (action === "close") {
     if (typeof runtimeWindow._cdSetCoinGateOverlay === "function") {
       runtimeWindow._cdSetCoinGateOverlay(false);

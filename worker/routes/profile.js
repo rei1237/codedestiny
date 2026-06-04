@@ -1,11 +1,16 @@
 import { connectDb } from "../lib/db.js";
 import { requireUserFromRequest } from "../lib/auth.js";
-import { ProfileCard, User } from "../lib/models.js";
+import { PointHistory, ProfileCard, User } from "../lib/models.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
+import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 
 const MAX_PROFILE_ID_LEN = 80;
 const MAX_NAME_LEN = 80;
+const PROFILE_CARD_MANAGE_FEATURE_KEY = "profile-card-manage";
+const PROFILE_CARD_MANAGE_COST = 50;
+const PROFILE_CARD_MANAGE_AMOUNT_KRW = 5000;
+const PROFILE_CARD_MANAGE_MEMBERSHIP_COST = calculateMembershipCreditCost(PROFILE_CARD_MANAGE_COST);
 
 function sanitizeString(value, maxLen) {
   return String(value || "").trim().slice(0, maxLen);
@@ -251,7 +256,7 @@ function resolveCurrentId(rawCurrentId, profiles) {
 
 function resolveSingleProfileAccess(user, profiles, subscription) {
   const profileLimit = Number(subscription?.profileLimit || 1);
-  const isSingleMode = !subscription?.isActive || !Number.isFinite(profileLimit) || profileLimit <= 1;
+  const isSingleMode = false;
   const savedCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profiles[0]?.id || "";
 
   if (!isSingleMode) {
@@ -316,6 +321,129 @@ async function listUserProfiles(userId) {
   return docs.map(toClientProfile);
 }
 
+function buildProfilePaymentRequestId(action, profileId) {
+  return `profile-card:${String(action || "manage").trim()}:${sanitizeProfileId(profileId) || Date.now().toString(36)}`.slice(0, 120);
+}
+
+function profilePaymentRequiredResponse(action, requestId) {
+  const reason = action === "delete" ? "프로필 카드 삭제" : "프로필 카드 추가";
+  return json({
+    ok: false,
+    success: false,
+    code: "PAYMENT_REQUIRED",
+    message: "프로필 카드 추가/삭제는 50코인 또는 5,000원 결제 후 가능합니다.",
+    pricing: {
+      featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+      reason,
+      cost: PROFILE_CARD_MANAGE_COST,
+      coinPrice: PROFILE_CARD_MANAGE_COST,
+      membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
+      amountKRW: PROFILE_CARD_MANAGE_AMOUNT_KRW,
+      cashPrice: PROFILE_CARD_MANAGE_AMOUNT_KRW,
+      forceDeduct: true,
+    },
+    checkout: {
+      endpoint: "/api/billing/checkout",
+      payload: {
+        paymentType: "digital_content",
+        featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+        reason,
+        paymentAmount: PROFILE_CARD_MANAGE_AMOUNT_KRW,
+        coinPrice: PROFILE_CARD_MANAGE_COST,
+        membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
+        requestId,
+      },
+    },
+  }, { status: 402 });
+}
+
+async function seedProfileLegacyCreditIfNeeded(authUserId) {
+  const user = await User.findById(authUserId)
+    .select("points profileSubscription")
+    .lean();
+  const legacyPoints = Math.floor(Number(user?.points || 0));
+  const sub = user?.profileSubscription || {};
+  if (!user?._id || sub?.legacyCoinCreditSeeded || legacyPoints <= 0) return user;
+
+  const legacyCredit = calculateMembershipCreditCost(legacyPoints);
+  return User.findOneAndUpdate(
+    { _id: authUserId, "profileSubscription.legacyCoinCreditSeeded": { $ne: true } },
+    {
+      $inc: {
+        "profileSubscription.membershipCreditBalance": legacyCredit,
+        "profileSubscription.membershipCreditGranted": legacyCredit,
+      },
+      $set: {
+        "profileSubscription.legacyCoinCreditSeeded": true,
+        "profileSubscription.legacyCoinCreditSeededAt": new Date(),
+        "profileSubscription.legacyCoinCreditSeededPoints": legacyPoints,
+      },
+    },
+    { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
+  ).lean();
+}
+
+async function ensureProfileMutationPayment(auth, { action, profileId, requestId }) {
+  const paymentRequestId = sanitizeString(requestId, 120) || buildProfilePaymentRequestId(action, profileId);
+  const reason = action === "delete" ? "프로필 카드 삭제" : "프로필 카드 추가";
+
+  const existing = await PointHistory.findOne({
+    userId: auth.userId,
+    kind: "deduct",
+    featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+    $or: [
+      { "metadata.requestId": paymentRequestId },
+      { "metadata.profilePaymentKey": paymentRequestId },
+    ],
+  }).lean();
+  if (existing) return { ok: true, requestId: paymentRequestId, idempotent: true };
+
+  await seedProfileLegacyCreditIfNeeded(auth.userId);
+
+  const updatedUser = await User.findOneAndUpdate(
+    {
+      _id: auth.userId,
+      "profileSubscription.membershipCreditBalance": { $gte: PROFILE_CARD_MANAGE_MEMBERSHIP_COST },
+    },
+    {
+      $inc: {
+        "profileSubscription.membershipCreditBalance": -PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
+        "profileSubscription.membershipCreditUsed": PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
+      },
+    },
+    { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
+  ).lean();
+  if (!updatedUser) {
+    return { ok: false, response: profilePaymentRequiredResponse(action, paymentRequestId) };
+  }
+
+  await PointHistory.create({
+    userId: auth.userId,
+    kind: "deduct",
+    delta: -PROFILE_CARD_MANAGE_COST,
+    balanceAfter: Number(updatedUser.points || 0),
+    reason,
+    featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+    metadata: {
+      accessType: "membership_credit",
+      accessMethod: "MONTHLY",
+      paymentMethod: "MONTHLY",
+      purpose: "profile_card_manage",
+      forceDeduct: true,
+      requestId: paymentRequestId,
+      profilePaymentKey: paymentRequestId,
+      profileAction: action,
+      profileId,
+      coinPrice: PROFILE_CARD_MANAGE_COST,
+      membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
+      remainingMembershipCredit: Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0),
+      paidAmount: PROFILE_CARD_MANAGE_AMOUNT_KRW,
+    },
+  });
+
+  return { ok: true, requestId: paymentRequestId, idempotent: false };
+}
+
 async function handleGetProfiles(auth) {
   const user = await User.findById(auth.userId)
     .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
@@ -353,7 +481,7 @@ async function handleGetProfiles(auth) {
     currentId,
     subscription,
     profileAccess: access.profileAccess,
-    canCreateMore: profiles.length < subscription.profileLimit && !access.profileAccess.selectionRequired,
+    canCreateMore: true,
   });
 }
 
@@ -369,18 +497,6 @@ async function handleCreateProfile(request, auth) {
 
     const subscription = resolveSubscriptionPolicy(user);
     const count = await ProfileCard.countDocuments({ userId: auth.userId });
-    const profileLimit = Number(subscription.profileLimit);
-    const hasLimit = Number.isFinite(profileLimit) && profileLimit > 0;
-
-    if (hasLimit && count >= profileLimit) {
-      const exceededMessage = subscription.tier === "free" ? "LIMIT_EXCEEDED_FREE" : "LIMIT_EXCEEDED_PREMIUM";
-      return json({
-        ok: false,
-        success: false,
-        message: exceededMessage,
-        subscription,
-      }, { status: 403 });
-    }
 
     const body = await readJson(request);
     const rawProfile = body?.profile || body;
@@ -399,6 +515,15 @@ async function handleCreateProfile(request, auth) {
     const duplicated = await ProfileCard.findOne({ userId: auth.userId, profileId: normalized.profileId }).lean();
     if (duplicated) {
       return json({ ok: false, success: false, message: "이미 존재하는 프로필 ID입니다." }, { status: 409 });
+    }
+
+    if (count > 0) {
+      const payment = await ensureProfileMutationPayment(auth, {
+        action: "create",
+        profileId: normalized.profileId,
+        requestId: body?.requestId || body?.payment?.requestId || body?.consume?.requestId || body?.accessGrant?.requestId,
+      });
+      if (!payment.ok) return payment.response;
     }
 
     const created = await ProfileCard.create({
@@ -425,7 +550,7 @@ async function handleCreateProfile(request, auth) {
       profile,
       currentId: nextCurrentId,
       subscription,
-      canCreateMore: hasLimit ? (count + 1 < profileLimit) : true,
+      canCreateMore: true,
     }, { status: 201 });
   } catch (error) {
     const status = Number(error?.status || 0);
@@ -481,7 +606,7 @@ async function handleUpdateCurrent(request, auth) {
   const subscription = resolveSubscriptionPolicy(user);
   const profiles = await listUserProfiles(auth.userId);
   const profileLimit = Number(subscription.profileLimit || 1);
-  const isSingleMode = !subscription.isActive || !Number.isFinite(profileLimit) || profileLimit <= 1;
+  const isSingleMode = false;
   const lockedId = resolveCurrentId(user.destinyProfilesLockedCurrentId, profiles);
 
   if (isSingleMode && lockedId && requestedCurrentId !== lockedId) {
@@ -551,9 +676,20 @@ async function handlePatchProfile(request, auth, profileIdRaw) {
   return json({ ok: true, profile: toClientProfile(updated) });
 }
 
-async function handleDeleteProfile(auth, profileIdRaw) {
+async function handleDeleteProfile(request, auth, profileIdRaw) {
   const profileId = sanitizeProfileId(profileIdRaw);
   if (!profileId) return json({ ok: false, message: "유효한 profileId가 필요합니다." }, { status: 400 });
+
+  const existingProfile = await ProfileCard.findOne({ userId: auth.userId, profileId }).lean();
+  if (!existingProfile) return json({ ok: false, message: "?꾨줈??移대뱶瑜?李얠쓣 ???놁뒿?덈떎." }, { status: 404 });
+
+  const body = await readJson(request).catch(() => ({}));
+  const payment = await ensureProfileMutationPayment(auth, {
+    action: "delete",
+    profileId,
+    requestId: body?.requestId || body?.payment?.requestId || body?.consume?.requestId || body?.accessGrant?.requestId,
+  });
+  if (!payment.ok) return payment.response;
 
   const deleted = await ProfileCard.findOneAndDelete({ userId: auth.userId, profileId }).lean();
   if (!deleted) return json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
@@ -564,7 +700,7 @@ async function handleDeleteProfile(auth, profileIdRaw) {
 
   await User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } });
 
-  return json({ ok: true, deletedProfileId: profileId, profiles, currentId: nextCurrentId });
+  return json({ ok: true, deletedProfileId: profileId, profiles, currentId: nextCurrentId, canCreateMore: true });
 }
 
 export async function handleProfileRoutes(request, env) {
@@ -584,7 +720,7 @@ export async function handleProfileRoutes(request, env) {
       return await handlePatchProfile(request, auth, profileMatch[1]);
     }
     if (profileMatch && method === "DELETE") {
-      return await handleDeleteProfile(auth, profileMatch[1]);
+      return await handleDeleteProfile(request, auth, profileMatch[1]);
     }
 
     if (["GET", "POST", "PATCH", "DELETE"].includes(method)) return notFound();

@@ -196,7 +196,7 @@ export default function MePage() {
     setProfiles(nextProfiles);
     setCurrentId(nextCurrentId);
     setSubscription(nextSubscription);
-    setCanCreateMore(payload.canCreateMore !== false && nextProfiles.length < Math.max(1, nextSubscription.profileLimit));
+    setCanCreateMore(payload.canCreateMore !== false);
     emitDestinyProfileChanged(nextProfiles, nextCurrentId);
   }, []);
 
@@ -362,7 +362,7 @@ export default function MePage() {
 
       setProfiles(nextProfiles);
       setCurrentId(nextCurrentId);
-      setCanCreateMore(nextProfiles.length < profileLimit);
+      setCanCreateMore(true);
       emitDestinyProfileChanged(nextProfiles, nextCurrentId);
       setAuthNotice("");
     } catch (e) {

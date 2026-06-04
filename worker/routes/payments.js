@@ -527,7 +527,7 @@ async function createDigitalContentAccessEvidence({ userId, payment, body = {}, 
   const existing = await existingQuery.lean();
   if (existing) return existing;
 
-  const userQuery = User.findById(userId).select("points");
+  const userQuery = User.findById(userId).select("points destinyProfilesCurrentId");
   if (session) userQuery.session(session);
   const user = await userQuery.lean();
   const currentPoints = Number(user?.points || 0);
@@ -535,6 +535,14 @@ async function createDigitalContentAccessEvidence({ userId, payment, body = {}, 
   const requestId = String(payment?.requestId || body?.requestId || "").trim();
   const reportId = String(payment?.reportId || body?.reportId || "").trim();
   const sessionId = String(payment?.sessionId || body?.sessionId || body?.reportSessionId || "").trim();
+  const profileId = String(
+    body?.profileId
+    || body?.selectedProfileId
+    || payment?.pricingSnapshot?.profileId
+    || payment?.pricingSnapshot?.selectedProfileId
+    || user?.destinyProfilesCurrentId
+    || "",
+  ).trim().slice(0, 80).replace(/\s+/g, "_");
 
   const docs = [{
     userId,
@@ -555,6 +563,8 @@ async function createDigitalContentAccessEvidence({ userId, payment, body = {}, 
       reportId,
       sessionId,
       reportSessionId: sessionId,
+      profileId,
+      selectedProfileId: profileId,
       featureKey,
       coinPrice,
       paidAmount: Number(payment?.paymentAmount || 0),
@@ -1434,6 +1444,7 @@ async function handleDigitalContentPrepare(request, auth, body) {
   const requestId = String(body?.requestId || "").trim().slice(0, 120);
   const reportId = String(body?.reportId || "").trim().slice(0, 120);
   const sessionId = String(body?.sessionId || body?.reportSessionId || "").trim().slice(0, 120);
+  const profileId = String(body?.profileId || body?.selectedProfileId || "").trim().slice(0, 80).replace(/\s+/g, "_");
   const membershipCreditCost = Number(resolved.pricing?.membershipCreditCost || calculateMembershipCreditCost(resolved.coinPrice));
 
   if (idempotencyKey) {
@@ -1488,7 +1499,7 @@ async function handleDigitalContentPrepare(request, auth, body) {
     requestId,
     reportId,
     sessionId,
-    pricingSnapshot: resolved.pricing,
+    pricingSnapshot: { ...resolved.pricing, profileId, selectedProfileId: profileId },
     paymentMethod,
     status: "pending",
     source: "prepare",
@@ -1507,6 +1518,7 @@ async function handleDigitalContentPrepare(request, auth, body) {
       membershipCreditCost,
       featureKey,
       accessType: "single_purchase",
+      profileId,
       productName,
       pricing: resolved.pricing,
     },
@@ -2625,14 +2637,13 @@ async function handlePointsMe(auth, env) {
 
 function handlePaymentConfig(env) {
   const config = getPortOnePublicConfig(env);
-  if (!config.storeId || !config.channelKey || !config.noticeUrl) {
+  if (!config.storeId || !config.channelKey) {
     return json({
       message: "PortOne V2 KG Inicis public payment config is missing.",
       code: "PORTONE_V2_PUBLIC_CONFIG_MISSING",
       missing: {
         storeId: !config.storeId,
         channelKey: !config.channelKey,
-        noticeUrl: !config.noticeUrl,
       },
     }, { status: 503 });
   }
@@ -2667,8 +2678,11 @@ export async function handlePaymentRoutes(request, env) {
       portoneApiSecretConfigured: Boolean(env?.PORTONE_API_Secret || globalThis.process?.env?.PORTONE_API_Secret),
       portoneStoreIdConfigured: Boolean(env?.PORTONE_Store || globalThis.process?.env?.PORTONE_Store),
       portoneChannelKeyConfigured: Boolean(env?.PORTONE_channel || globalThis.process?.env?.PORTONE_channel),
-      portoneWebhookUrlConfigured: Boolean(env?.PORTONE_webhook_URL || globalThis.process?.env?.PORTONE_webhook_URL),
-      portoneWebhookSecretConfigured: Boolean(env?.PORTONE_webhook_Secret || globalThis.process?.env?.PORTONE_webhook_Secret),
+      portoneWebhookUrlConfigured: Boolean(env?.PORTONE_webhook_URL || globalThis.process?.env?.PORTONE_webhook_URL || env?.PORTONE_WEBHOOK_URL || globalThis.process?.env?.PORTONE_WEBHOOK_URL),
+      portoneWebhookSecretConfigured: Boolean(
+        env?.PORTONE_webhook_Secret || env?.PORTONE_webhook ||
+        globalThis.process?.env?.PORTONE_webhook_Secret || globalThis.process?.env?.PORTONE_webhook
+      ),
     },
   };
 

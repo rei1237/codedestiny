@@ -26,16 +26,19 @@ const secretNamePatterns = [
   /\bGEMINIF_API_KEY\d*\b/i,
   /\bANTHROPIC_API_KEY\b/i,
   /\bDEEPL_API_KEY\b/i,
-  /\bPORTONE_API_KEY\b/i,
-  /\bPORTONE_API_SECRET\b/i,
   /\bJWT_SECRET\b/i,
   /\bADMIN_SECRET_HASH\b/i,
+  /\bPORTONE_API_Secret\b/i,
+  /\bPORTONE_Store\b/i,
+  /\bPORTONE_channel\b/i,
+  /\bPORTONE_webhook_URL\b/i,
+  /\bPORTONE_webhook_Secret\b/i,
   /\b[A-Z0-9_]*(?:API[_-]?KEY|SECRET|TOKEN|PASSWORD|PRIVATE[_-]?KEY)\b/i,
 ];
 
 // Artifact leak signatures (key assignment with inline string-like value).
 const secretAssignmentPatterns = [
-  /\b(?:GEMINIF_API_KEY\d*|ANTHROPIC_API_KEY|DEEPL_API_KEY|PORTONE_API_KEY|PORTONE_API_SECRET|JWT_SECRET|ADMIN_SECRET_HASH)\b\s*[:=]\s*["'`][^"'`\n]{1,}["'`]/i,
+  /\b(?:GEMINIF_API_KEY\d*|ANTHROPIC_API_KEY|DEEPL_API_KEY|PORTONE_API_Secret|PORTONE_Store|PORTONE_channel|PORTONE_webhook_URL|PORTONE_webhook_Secret|JWT_SECRET|ADMIN_SECRET_HASH)\b\s*[:=]\s*["'`][^"'`\n]{1,}["'`]/i,
   /\b[A-Z][A-Z0-9_]{2,}(?:API[_-]?KEY|SECRET|TOKEN|PASSWORD|PRIVATE[_-]?KEY)\b\s*[:=]\s*["'`][^"'`\n]{8,}["'`]/,
   /AIza[0-9A-Za-z\-_]{20,}/,
 ];

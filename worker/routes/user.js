@@ -1,12 +1,17 @@
 import { connectDb } from "../lib/db.js";
-import { ProfileCard, User } from "../lib/models.js";
+import { PointHistory, ProfileCard, User } from "../lib/models.js";
 import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
+import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 
 const MAX_SYNC_PROFILES = 30;
 const MAX_PROFILE_ID_LEN = 80;
 const MAX_NAME_LEN = 80;
+const PROFILE_CARD_MANAGE_FEATURE_KEY = "profile-card-manage";
+const PROFILE_CARD_MANAGE_COST = 50;
+const PROFILE_CARD_MANAGE_AMOUNT_KRW = 5000;
+const PROFILE_CARD_MANAGE_MEMBERSHIP_COST = calculateMembershipCreditCost(PROFILE_CARD_MANAGE_COST);
 
 function buildErrorDetails(stage, error, extras = {}) {
   return {
@@ -176,7 +181,7 @@ function resolveCurrentId(rawCurrentId, profiles) {
 
 function resolveSingleProfileAccess(user, profiles, subscription) {
   const profileLimit = Number(subscription?.profileLimit || 1);
-  const isSingleMode = !subscription?.isActive || !Number.isFinite(profileLimit) || profileLimit <= 1;
+  const isSingleMode = false;
   const savedCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profiles[0]?.id || "";
 
   if (!isSingleMode) {
@@ -241,6 +246,107 @@ async function listUserProfiles(userId) {
   return docs.map(toClientProfile);
 }
 
+function profilePaymentRequiredResponse(requestId) {
+  return json({
+    ok: false,
+    code: "PAYMENT_REQUIRED",
+    message: "프로필 카드 추가/삭제는 50코인 또는 5,000원 결제 후 가능합니다.",
+    pricing: {
+      featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+      reason: "프로필 카드 추가/삭제",
+      coinPrice: PROFILE_CARD_MANAGE_COST,
+      membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
+      amountKRW: PROFILE_CARD_MANAGE_AMOUNT_KRW,
+      forceDeduct: true,
+    },
+    checkout: {
+      endpoint: "/api/billing/checkout",
+      payload: {
+        paymentType: "digital_content",
+        featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+        reason: "프로필 카드 추가/삭제",
+        paymentAmount: PROFILE_CARD_MANAGE_AMOUNT_KRW,
+        coinPrice: PROFILE_CARD_MANAGE_COST,
+        membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
+        requestId,
+      },
+    },
+  }, { status: 402 });
+}
+
+async function ensureSyncProfileMutationPayment(auth, requestId) {
+  const paymentRequestId = sanitizeString(requestId, 120) || `profile-card:sync:${Date.now().toString(36)}`;
+  const existing = await PointHistory.findOne({
+    userId: auth.userId,
+    kind: "deduct",
+    featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+    $or: [
+      { "metadata.requestId": paymentRequestId },
+      { "metadata.profilePaymentKey": paymentRequestId },
+    ],
+  }).lean();
+  if (existing) return { ok: true };
+
+  const seedUser = await User.findById(auth.userId).select("points profileSubscription").lean();
+  const legacyPoints = Math.floor(Number(seedUser?.points || 0));
+  if (seedUser?._id && !seedUser?.profileSubscription?.legacyCoinCreditSeeded && legacyPoints > 0) {
+    const legacyCredit = calculateMembershipCreditCost(legacyPoints);
+    await User.updateOne(
+      { _id: auth.userId, "profileSubscription.legacyCoinCreditSeeded": { $ne: true } },
+      {
+        $inc: {
+          "profileSubscription.membershipCreditBalance": legacyCredit,
+          "profileSubscription.membershipCreditGranted": legacyCredit,
+        },
+        $set: {
+          "profileSubscription.legacyCoinCreditSeeded": true,
+          "profileSubscription.legacyCoinCreditSeededAt": new Date(),
+          "profileSubscription.legacyCoinCreditSeededPoints": legacyPoints,
+        },
+      },
+    );
+  }
+
+  const updatedUser = await User.findOneAndUpdate(
+    {
+      _id: auth.userId,
+      "profileSubscription.membershipCreditBalance": { $gte: PROFILE_CARD_MANAGE_MEMBERSHIP_COST },
+    },
+    {
+      $inc: {
+        "profileSubscription.membershipCreditBalance": -PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
+        "profileSubscription.membershipCreditUsed": PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
+      },
+    },
+    { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
+  ).lean();
+  if (!updatedUser) return { ok: false, response: profilePaymentRequiredResponse(paymentRequestId) };
+
+  await PointHistory.create({
+    userId: auth.userId,
+    kind: "deduct",
+    delta: -PROFILE_CARD_MANAGE_COST,
+    balanceAfter: Number(updatedUser.points || 0),
+    reason: "프로필 카드 추가/삭제",
+    featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+    metadata: {
+      accessType: "membership_credit",
+      accessMethod: "MONTHLY",
+      paymentMethod: "MONTHLY",
+      purpose: "profile_card_manage",
+      requestId: paymentRequestId,
+      profilePaymentKey: paymentRequestId,
+      profileAction: "sync",
+      coinPrice: PROFILE_CARD_MANAGE_COST,
+      membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
+      remainingMembershipCredit: Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0),
+      paidAmount: PROFILE_CARD_MANAGE_AMOUNT_KRW,
+    },
+  });
+
+  return { ok: true };
+}
+
 async function handleGetDestinyProfiles(auth) {
   let user = null;
   try {
@@ -297,7 +403,7 @@ async function handleGetDestinyProfiles(auth) {
     currentId,
     subscription,
     profileAccess: access.profileAccess,
-    canCreateMore: profiles.length < subscription.profileLimit && !access.profileAccess.selectionRequired,
+    canCreateMore: true,
   });
 }
 
@@ -319,8 +425,17 @@ async function handleSyncDestinyProfiles(request, auth) {
   const subscription = resolveSubscriptionPolicy(user);
   const normalizedProfiles = normalizeProfileList(body?.profiles || []);
   const requestedCurrentId = sanitizeProfileId(body?.currentId);
+  const existingProfiles = await listUserProfiles(auth.userId);
+  const existingIds = new Set(existingProfiles.map((profile) => String(profile?.profileId || profile?.id || "")));
+  const nextIdSet = new Set(normalizedProfiles.map((profile) => String(profile?.profileId || "")));
+  const hasProfileAddition = normalizedProfiles.some((profile) => !existingIds.has(String(profile?.profileId || "")));
+  const hasProfileDeletion = existingProfiles.some((profile) => !nextIdSet.has(String(profile?.profileId || profile?.id || "")));
+  if (hasProfileAddition || hasProfileDeletion) {
+    const payment = await ensureSyncProfileMutationPayment(auth, body?.requestId || body?.payment?.requestId || body?.consume?.requestId || body?.accessGrant?.requestId);
+    if (!payment.ok) return payment.response;
+  }
 
-  if (!subscription.isActive && normalizedProfiles.length > 1) {
+  if (false && !subscription.isActive && normalizedProfiles.length > 1) {
     const lockedId = sanitizeProfileId(user.destinyProfilesLockedCurrentId);
     const hasLockedProfile = lockedId && normalizedProfiles.some((profile) => profile.profileId === lockedId);
     const hasRequestedProfile = requestedCurrentId && normalizedProfiles.some((profile) => profile.profileId === requestedCurrentId);
@@ -343,7 +458,7 @@ async function handleSyncDestinyProfiles(request, auth) {
     }, { status: 409 });
   }
 
-  if (normalizedProfiles.length > subscription.profileLimit) {
+  if (false && normalizedProfiles.length > subscription.profileLimit) {
     return json({
       ok: false,
       code: "PROFILE_LIMIT_EXCEEDED",
@@ -389,14 +504,11 @@ async function handleSyncDestinyProfiles(request, auth) {
 
   const profiles = await listUserProfiles(auth.userId);
   const currentId = resolveCurrentId(requestedCurrentId, profiles) || profiles[0]?.id || "";
-  const updateSet = { destinyProfilesCurrentId: currentId };
-  if (subscription.isActive) {
-    updateSet.destinyProfilesLockedCurrentId = "";
-    updateSet.destinyProfilesLockedAt = null;
-  } else if (currentId) {
-    updateSet.destinyProfilesLockedCurrentId = currentId;
-    updateSet.destinyProfilesLockedAt = new Date();
-  }
+  const updateSet = {
+    destinyProfilesCurrentId: currentId,
+    destinyProfilesLockedCurrentId: "",
+    destinyProfilesLockedAt: null,
+  };
 
   await User.updateOne(
     { _id: auth.userId },
@@ -410,7 +522,7 @@ async function handleSyncDestinyProfiles(request, auth) {
     currentId: access.currentId,
     subscription,
     profileAccess: access.profileAccess,
-    canCreateMore: profiles.length < subscription.profileLimit && !access.profileAccess.selectionRequired,
+    canCreateMore: true,
   });
 }
 

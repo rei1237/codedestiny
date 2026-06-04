@@ -38,7 +38,7 @@ function decision({ pass = null, coinCost, monthlyBalance = 0 }) {
     {
       coinPrice: coinCost,
       cost: coinCost,
-      membershipCreditCost: coinCost,
+      membershipCreditCost: coinCost * 10,
       featureKey: `test-${coinCost}`,
     },
     { membershipCreditBalance: monthlyBalance },
@@ -118,7 +118,7 @@ function assertBefore(source, first, second, label) {
 const bronze30 = decision({
   pass: activePass(PASS_TIERS.BRONZE),
   coinCost: 30,
-  monthlyBalance: 100,
+  monthlyBalance: 300,
 });
 assert.equal(canUseByPass(activePass(PASS_TIERS.BRONZE), 30), true, "BRONZE covers 30 coins");
 assertPassFree(bronze30, "BRONZE 30");
@@ -128,14 +128,14 @@ assertFinalPass(bronze30, "card", "BRONZE 30 requested card");
 const bronze50 = decision({
   pass: activePass(PASS_TIERS.BRONZE),
   coinCost: 50,
-  monthlyBalance: 100,
+  monthlyBalance: 500,
 });
 assertPaidFallback(bronze50, "BRONZE 50");
 
 const silver50 = decision({
   pass: activePass(PASS_TIERS.SILVER),
   coinCost: 50,
-  monthlyBalance: 100,
+  monthlyBalance: 500,
 });
 assertPassFree(silver50, "SILVER 50");
 assertFinalPass(silver50, "monthly", "SILVER 50 requested monthly");
@@ -143,7 +143,7 @@ assertFinalPass(silver50, "monthly", "SILVER 50 requested monthly");
 const gold100 = decision({
   pass: activePass(PASS_TIERS.GOLD),
   coinCost: 100,
-  monthlyBalance: 200,
+  monthlyBalance: 1000,
 });
 assertPassFree(gold100, "GOLD 100");
 assertFinalPass(gold100, "card", "GOLD 100 requested card");
@@ -151,7 +151,7 @@ assertFinalPass(gold100, "card", "GOLD 100 requested card");
 const gold200 = decision({
   pass: activePass(PASS_TIERS.GOLD),
   coinCost: 200,
-  monthlyBalance: 300,
+  monthlyBalance: 2000,
 });
 assertPaidFallback(gold200, "GOLD 200");
 
@@ -159,14 +159,14 @@ const expiredPass = activePass(PASS_TIERS.GOLD, pastDate());
 const expiredGold50 = decision({
   pass: expiredPass,
   coinCost: 50,
-  monthlyBalance: 100,
+  monthlyBalance: 500,
 });
 assert.equal(canUseByPass(expiredPass, 50), false, "expired pass must not cover");
 assertPaidFallback(expiredGold50, "expired GOLD 50");
 
 const noPassMonthly = decision({
   coinCost: 30,
-  monthlyBalance: 30,
+  monthlyBalance: 300,
 });
 assert.equal(noPassMonthly.canUseByPass, false, "no pass monthly regression: pass unavailable");
 assert.equal(noPassMonthly.canUseByMonthly, true, "no pass monthly regression: monthly usable");
@@ -242,6 +242,10 @@ assertContains(indexSource, "이용권으로 바로 이용하기", "covered pass
 assertContains(indexSource, "현재 이용권 한도 초과", "over-limit pass card");
 assertContains(indexSource, "달빛 이용권으로 더 편하게 이용하기", "empty pass card");
 assertContains(indexSource, "차감 없음", "no deduction label");
+assertContains(indexSource, "스탠다드 달빛 이용권", "standard pass label");
+assertContains(indexSource, "프리미엄 달빛 이용권", "premium pass label");
+assertContains(indexSource, "VVIP 달빛 이용권", "vvip pass label");
+assertContains(indexSource, "월정석 잔량 부족", "monthly option remains visible when unavailable");
 assertContains(indexSource, 'border-color:rgba(180,83,9,.50)', "BRONZE style");
 assertContains(indexSource, 'border-color:rgba(226,232,240,.50)', "SILVER style");
 assertContains(indexSource, 'border-color:rgba(253,224,71,.60)', "GOLD style");

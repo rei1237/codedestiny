@@ -266,6 +266,7 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
 
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const sessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || "").trim();
+  const profileId = cleanProfileId(body?.profileId || body?.selectedProfileId);
   const history = await PointHistory.create({
     userId: authUserId,
     kind: "deduct",
@@ -282,6 +283,8 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
       reportId,
       sessionId,
       reportSessionId: sessionId,
+      profileId,
+      selectedProfileId: profileId,
       featureKey,
       coinPrice,
       membershipCreditCost: requiredCredit,
@@ -336,6 +339,7 @@ async function recordPassAccessIfNeeded(env, authUserId, pricing, requestId, bod
   const user = await User.findById(authUserId).select("points").lean();
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const sessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || "").trim();
+  const profileId = cleanProfileId(body?.profileId || body?.selectedProfileId);
   const coinCost = Math.max(0, Math.floor(Number(pricing?.coinPrice || pricing?.cost || 0)));
 
   return PointHistory.create({
@@ -354,6 +358,8 @@ async function recordPassAccessIfNeeded(env, authUserId, pricing, requestId, bod
       reportId,
       sessionId,
       reportSessionId: sessionId,
+      profileId,
+      selectedProfileId: profileId,
       featureKey,
       coinCost,
       coinPrice: coinCost,
@@ -409,11 +415,48 @@ function success(data, message = "요청이 성공했습니다.", init = {}) {
   return json({ ok: true, data, message }, init);
 }
 
+function cleanProfileId(value) {
+  return String(value || "").trim().slice(0, 80).replace(/\s+/g, "_");
+}
+
+async function resolveBillingProfileId(authUserId, body = {}) {
+  const explicit = cleanProfileId(body?.profileId || body?.selectedProfileId || body?.profile?.profileId || body?.profile?.id);
+  if (explicit || !authUserId) return explicit;
+  const user = await User.findById(authUserId).select("destinyProfilesCurrentId").lean();
+  return cleanProfileId(user?.destinyProfilesCurrentId);
+}
+
+function isProfileScopedUnlockKey(featureKey) {
+  const key = String(featureKey || "").trim();
+  if (!key) return false;
+  return Boolean(UNLOCK_PRODUCT_BY_FEATURE_KEY[key]) || /^section_(daewun|summary|compat)$/.test(key);
+}
+
+async function resolveProfileScopedUnlocks(authUserId, profileId) {
+  if (!authUserId || !profileId) return { unlockedFeatures: [], unlockMap: {} };
+  const keys = await PointHistory.distinct("featureKey", {
+    userId: authUserId,
+    kind: "deduct",
+    featureKey: { $ne: "" },
+    $or: [
+      { "metadata.profileId": profileId },
+      { "metadata.selectedProfileId": profileId },
+    ],
+  });
+  const unlockedFeatures = Array.from(new Set(
+    keys.map((key) => String(key || "").trim()).filter(isProfileScopedUnlockKey),
+  ));
+  const unlockMap = Object.create(null);
+  for (const key of unlockedFeatures) unlockMap[key] = true;
+  return { unlockedFeatures, unlockMap };
+}
+
 async function successWithPremiumAccess(env, authUserId, data, message = "요청이 성공했습니다.") {
   const pricing = data?.pricing || {};
   const consume = data?.consume || {};
   const featureKey = String(pricing?.featureKey || consume?.featureKey || data?.accessGrant?.featureKey || "").trim();
   const reason = String(pricing?.reason || "").trim();
+  const profileId = cleanProfileId(data?.accessGrant?.profileId || consume?.profileId || data?.profileId);
   const transactionId = String(
     consume?.transactionId
       || data?.accessGrant?.evidenceId
@@ -458,6 +501,7 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
     transactionId,
     freeBySubscription: data?.freeBySubscription === true || consume?.accessType === "membership_pass",
     premiumAccessToken: premiumAccessToken || data?.premiumAccessToken || null,
+    profileId: profileId || undefined,
     unlockedFeatures,
     unlockMap,
   }, message, premiumAccessToken ? { headers: responseHeaders } : {});
@@ -920,15 +964,20 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   const forceDeduct = forceDeductRaw === undefined
     ? true
     : (forceDeductRaw === true || String(forceDeductRaw).toLowerCase() === "true");
+  const forceDeductRequested = forceDeductRaw !== undefined
+    && (forceDeductRaw === true || String(forceDeductRaw).toLowerCase() === "true");
   const requestedPaymentMode = String(body?.paymentMode || body?.accessMode || "").trim().toLowerCase();
   const membershipPassOnly = requestedPaymentMode === "membership_pass" || requestedPaymentMode === "membership";
   const monthlyBalanceRequested = requestedPaymentMode === "monthly_credit"
     || requestedPaymentMode === "monthly"
     || requestedPaymentMode === "membership_credit"
     || (!requestedPaymentMode && forceDeduct);
+  const singleOrMonthlyOnly = forceDeductRequested || pricing?.forceDeduct === true;
 
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const reportSessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || (reportId ? `love-book:${reportId}` : requestId)).trim();
+  const profileId = authCheck?.auth?.userId ? await resolveBillingProfileId(authCheck.auth.userId, body) : "";
+  const scopedBody = profileId ? { ...body, profileId, selectedProfileId: profileId } : body;
   let paymentDecision = buildPassPaymentDecision(null, pricing, null);
 
   if (authCheck?.auth?.userId) {
@@ -939,9 +988,9 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       pricing,
       subscriptionPass.profileSubscription,
     );
-    if (paymentDecision.canUseByPass) {
+    if (paymentDecision.canUseByPass && !singleOrMonthlyOnly) {
       const passEvidence = await recordPassAccessIfNeeded(env, authCheck.auth.userId, pricing, requestId, {
-        ...body,
+        ...scopedBody,
         reportId,
         sessionId: reportSessionId,
         reportSessionId,
@@ -974,6 +1023,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           purchaseId: requestId,
           evidenceId: String(passEvidence?._id || `membership:${subscriptionPass.tier}:${requestId}`),
           reportId: reportId || undefined,
+          profileId: profileId || undefined,
           paidAt: new Date().toISOString(),
           accessMethod: "PASS",
         },
@@ -1009,7 +1059,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     if (monthlyBalanceRequested) {
       try {
       const membershipConsume = await consumeMembershipCreditIfAvailable(env, authCheck.auth.userId, pricing, requestId, {
-        ...body,
+        ...scopedBody,
         reportId,
         sessionId: reportSessionId,
         reportSessionId,
@@ -1034,6 +1084,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
             paymentMethod: "MONTHLY",
             requestId,
             featureKey: String(pricing.featureKey || ""),
+            profileId: profileId || undefined,
             coinPrice: membershipConsume.coinPrice,
             chargedCoins: Number(membershipConsume.coinPrice || 0),
             membershipCreditCost: membershipConsume.membershipCreditCost,
@@ -1050,6 +1101,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
             purchaseId: requestId,
             evidenceId: membershipConsume.transactionId || "",
             reportId: reportId || undefined,
+            profileId: profileId || undefined,
             paidAt: new Date().toISOString(),
             accessMethod: "MONTHLY",
           },
@@ -1072,7 +1124,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     }
     }
 
-    const usagePassConsume = await consumeUsagePassIfAvailable(env, authCheck.auth.userId, pricing, requestId);
+    const usagePassConsume = singleOrMonthlyOnly ? null : await consumeUsagePassIfAvailable(env, authCheck.auth.userId, pricing, requestId);
     if (usagePassConsume) {
       return await successWithPremiumAccess(env, authCheck.auth.userId, {
         pricing,
@@ -1090,11 +1142,12 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         accessGrant: {
           ok: true,
           featureKey: String(pricing.featureKey || ""),
-          sessionId: reportSessionId || undefined,
-          requestId,
-          reportId: reportId || undefined,
-          paidAt: new Date().toISOString(),
-        },
+        sessionId: reportSessionId || undefined,
+        requestId,
+        reportId: reportId || undefined,
+        profileId: profileId || undefined,
+        paidAt: new Date().toISOString(),
+      },
         balance: Number(usagePassConsume?.user?.points || 0),
         user: usagePassConsume.user,
       }, "이용권 회차를 사용해 서비스를 열었습니다.");
@@ -1121,6 +1174,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         requestId,
         reportId: reportId || undefined,
         sessionId: reportSessionId || undefined,
+        profileId: profileId || undefined,
       },
     },
   });
@@ -1304,16 +1358,20 @@ async function handleBalance(request, env) {
   const balance = Number(payload?.user?.points ?? payload?.balance ?? 0);
   let membershipCreditBalance = 0;
   let membership = null;
+  let scopedProfileId = "";
+  let scopedUnlocks = null;
   try {
     const auth = await getOptionalUserFromRequest(request, env);
     if (auth?.userId) {
       await connectDb(env);
       await seedMembershipCreditForExistingPassIfNeeded(auth.userId);
       const user = await User.findById(auth.userId)
-        .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt points")
+        .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt points destinyProfilesCurrentId")
         .lean();
       const sub = user?.profileSubscription || {};
       const entitlement = normalizeHoneyPassEntitlement(user || {});
+      scopedProfileId = cleanProfileId(user?.destinyProfilesCurrentId);
+      scopedUnlocks = await resolveProfileScopedUnlocks(auth.userId, scopedProfileId);
       membershipCreditBalance = Number(sub?.membershipCreditBalance || 0);
       membership = {
         tier: entitlement.isActive ? entitlement.tier : String(sub?.tier || "free"),
@@ -1344,9 +1402,10 @@ async function handleBalance(request, env) {
     legacyCoinBalance: Number.isFinite(balance) ? balance : 0,
     membershipCreditBalance,
     membership,
+    currentProfileId: scopedProfileId || undefined,
     user: payload?.user || null,
-    unlockedFeatures: Array.isArray(payload?.unlockedFeatures) ? payload.unlockedFeatures : [],
-    unlockMap: payload?.unlockMap && typeof payload.unlockMap === "object" ? payload.unlockMap : {},
+    unlockedFeatures: scopedUnlocks ? scopedUnlocks.unlockedFeatures : [],
+    unlockMap: scopedUnlocks ? scopedUnlocks.unlockMap : {},
     raw: payload,
   }, "이용 가능 혜택을 조회했습니다.");
 }
