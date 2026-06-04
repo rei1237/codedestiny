@@ -418,6 +418,7 @@ try {
   runE2EStaticTests();
   assertContains(portoneSource, "Authorization: `PortOne ${apiSecret}`", "PortOne REST authorization header");
   assertContains(portoneSource, "noticeUrl: getPortOneWebhookUrl(env)", "PortOne public config should expose webhook notice URL");
+  assert.equal(portoneMod.getPortOnePublicConfig(ENV).noticeUrl, "https://code-destiny.test/api/webhooks/portone", "PortOne public config should derive a default notice URL from SITE_BASE_URL");
   console.log("[verify-portone-single-payment-regression] PASS");
 } finally {
   restoreMocks();

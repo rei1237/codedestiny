@@ -83,7 +83,11 @@ export function getPortOneWebhookSecret(env) {
 }
 
 export function getPortOneWebhookUrl(env) {
-  return getExactEnvWithAlias(env, "PORTONE_webhook_URL", ["PORTONE_WEBHOOK_URL"]);
+  const configuredUrl = getExactEnvWithAlias(env, "PORTONE_webhook_URL", ["PORTONE_WEBHOOK_URL"]);
+  if (configuredUrl) return configuredUrl;
+
+  const siteBaseUrl = getEnv(env, "SITE_BASE_URL", getEnv(env, "AUTH_FRONTEND_BASE_URL", "")).replace(/\/+$/, "");
+  return siteBaseUrl ? `${siteBaseUrl}/api/webhooks/portone` : "";
 }
 
 function getPortOneHeaders(env) {
