@@ -59,6 +59,13 @@
         isActive: !!user.profileSubscription.isActive,
         expiresAt: user.profileSubscription.expiresAt || null,
       };
+      var passLimit = Number(user.profileSubscription.passLimit || user.profileSubscription.freeLimit || user.profileSubscription.maxFreeCoinLimit || user.profileSubscription.maxCoveredCoin);
+      if (Number.isFinite(passLimit) && passLimit > 0) {
+        safe.profileSubscription.passLimit = Math.floor(passLimit);
+        safe.profileSubscription.freeLimit = Math.floor(passLimit);
+        safe.profileSubscription.maxCoveredCoin = Math.floor(passLimit);
+      }
+      if (user.profileSubscription.passTier) safe.profileSubscription.passTier = String(user.profileSubscription.passTier);
     }
     return Object.keys(safe).length ? safe : null;
   }
