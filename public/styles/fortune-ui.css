@@ -3618,7 +3618,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 /* ── 즐겨찾기 버튼 (모드별 꽃/별 컨셉) ── */
 .btn-favorite{
   padding:14px;
-  border:2px solid rgba(255,201,186,.55);
+  border:2px solid rgba(125,211,252,.46);
   border-radius:13px;
   font-size:.92rem;
   font-weight:700;
@@ -3628,14 +3628,14 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   justify-content:center;
   gap:8px;
   font-family:inherit;
-  transition:all .3s;
+  transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease;
   grid-column:span 2;
   position:relative;
   overflow:hidden;
   isolation:isolate;
-  background:linear-gradient(135deg,#ffe3ed 0%,#fff4dc 48%,#f5deff 100%);
-  color:#633a5f;
-  box-shadow:0 8px 22px rgba(255,139,167,.18);
+  background:linear-gradient(135deg,rgba(15,47,102,.96) 0%,rgba(21,94,117,.92) 58%,rgba(14,116,144,.88) 100%);
+  color:#effcff;
+  box-shadow:0 8px 22px rgba(14,116,144,.18);
 }
 .btn-favorite::before{
   content:'';
@@ -3643,11 +3643,11 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   inset:0;
   z-index:-1;
   opacity:0;
-  background:radial-gradient(circle at 15% 20%,rgba(255,255,255,.65),transparent 42%),radial-gradient(circle at 82% 78%,rgba(255,255,255,.38),transparent 48%);
-  transition:opacity .3s;
+  background:linear-gradient(135deg,rgba(186,230,253,.20),transparent 48%,rgba(103,232,249,.12));
+  transition:opacity .18s ease;
 }
 .btn-favorite:hover::before{opacity:1}
-.btn-favorite:hover{transform:translateY(-2px)}
+.btn-favorite:hover{transform:translateY(-2px);border-color:rgba(186,230,253,.72);box-shadow:0 10px 24px rgba(14,116,144,.24)}
 .btn-favorite:active{transform:translateY(0)}
 
 .btn-favorite-icon{
@@ -3656,33 +3656,25 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   align-items:center;
   justify-content:center;
   width:1.2em;
+  animation:none!important;
+  filter:none!important;
 }
 
 body.theme-pig .btn-favorite{
-  border-color:rgba(255,174,197,.9);
-  background:linear-gradient(135deg,#ffd9ea 0%,#fff2d7 46%,#edd9ff 100%);
-  color:#5f3758;
-  box-shadow:0 8px 24px rgba(255,139,167,.22);
+  border-color:rgba(125,211,252,.46);
+  background:linear-gradient(135deg,rgba(15,47,102,.96) 0%,rgba(21,94,117,.92) 58%,rgba(14,116,144,.88) 100%);
+  color:#effcff;
+  box-shadow:0 8px 22px rgba(14,116,144,.18);
 }
-body.theme-pig .btn-favorite .btn-favorite-icon{animation:favoriteBloom 1.8s ease-in-out infinite}
+body.theme-pig .btn-favorite .btn-favorite-icon{animation:none!important}
 
 body.theme-neo .btn-favorite{
-  border-color:rgba(255,223,144,.65);
-  background:linear-gradient(135deg,#191c33 0%,#22345b 55%,#2d2347 100%);
-  color:#ffe9b8;
-  box-shadow:0 10px 26px rgba(8,11,20,.5),0 0 20px rgba(255,215,0,.16);
+  border-color:rgba(125,211,252,.46);
+  background:linear-gradient(135deg,rgba(10,28,66,.96) 0%,rgba(15,74,104,.92) 58%,rgba(8,89,110,.88) 100%);
+  color:#effcff;
+  box-shadow:0 8px 22px rgba(14,116,144,.20);
 }
-body.theme-neo .btn-favorite .btn-favorite-icon{animation:favoriteStarTwinkle 1.6s ease-in-out infinite}
-
-@keyframes favoriteBloom{
-  0%,100%{transform:scale(1) rotate(0deg);filter:drop-shadow(0 0 0 rgba(255,120,188,0))}
-  50%{transform:scale(1.12) rotate(-5deg);filter:drop-shadow(0 0 6px rgba(255,120,188,.45))}
-}
-
-@keyframes favoriteStarTwinkle{
-  0%,100%{transform:scale(1) rotate(0deg);filter:drop-shadow(0 0 0 rgba(255,215,0,0))}
-  50%{transform:scale(1.16) rotate(10deg);filter:drop-shadow(0 0 7px rgba(255,215,0,.6))}
-}
+body.theme-neo .btn-favorite .btn-favorite-icon{animation:none!important}
 
 .btn-favorite.saved{
   pointer-events:none;
@@ -6059,12 +6051,62 @@ body:not(.neo-mode) #reportDashboardCard .rpt-v2-note{
 
 /* 카드(썸네일+텍스트) 가로 폭을 조금 더 슬림하게 */
 #reportDashboardCard .rpt-v2-block{
-  max-width: 680px;
-  margin-left: auto;
-  margin-right: auto;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
 }
 @media (max-width: 768px){
   #reportDashboardCard .rpt-v2-block{ max-width: 100%; }
+}
+
+#reportDashboardCard{
+  background:linear-gradient(145deg,rgba(255,255,255,.9),rgba(255,247,252,.82));
+  border:1px solid rgba(236,72,153,.16);
+  box-shadow:0 18px 48px rgba(15,23,42,.12);
+}
+body.neo-mode #reportDashboardCard{
+  background:linear-gradient(145deg,rgba(10,8,28,.94),rgba(30,20,58,.9));
+  border-color:rgba(255,255,255,.12);
+  box-shadow:0 18px 54px rgba(0,0,0,.44);
+}
+#reportDashboardCard .report-dashboard-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:18px;
+}
+#reportDashboardCard .report-dashboard-title{
+  margin:0;
+  color:#be185d;
+  letter-spacing:-.2px;
+}
+body.neo-mode #reportDashboardCard .report-dashboard-title{color:#fff1f2}
+#reportDashboardCard .rpt-v2-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px;
+}
+#reportDashboardCard .rpt-v2-block.fortune-section{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  height:100%;
+  border-radius:20px;
+}
+#reportDashboardCard .rpt-v2-img-row{
+  flex:0 0 auto;
+}
+#reportDashboardCard .rpt-v2-head{
+  flex:1 1 auto;
+}
+#reportDashboardCard .rpt-v2-toggle-btn{
+  margin-top:auto;
+}
+@media (max-width: 768px){
+  #reportDashboardCard{padding:16px 14px}
+  #reportDashboardCard .report-dashboard-head{margin-bottom:14px}
+  #reportDashboardCard .rpt-v2-grid{grid-template-columns:1fr;gap:16px}
 }
 
 /* 빌런 블랙리스트 */

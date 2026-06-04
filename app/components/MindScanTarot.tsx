@@ -704,7 +704,7 @@ interface ResultStageProps {
   drawnSub: Record<string, number>;
   reading: ReadingResult;
   onRestart: () => void;
-  reportRef: React.RefObject<HTMLDivElement | null>;
+  reportRef: React.RefObject<HTMLDivElement>;
 }
 
 function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultStageProps) {
@@ -1325,7 +1325,7 @@ export default function MindScanTarot() {
   const [reading, setReading] = useState<ReadingResult | null>(null);
   const [readingLoading, setReadingLoading] = useState(false);
   const [readingError, setReadingError] = useState("");
-  const reportRef = useRef<HTMLDivElement | null>(null);
+  const reportRef = useRef<HTMLDivElement>(null);
   const usedRef = useRef<Set<number>>(new Set());
   const drawnRef = useRef<Record<string, number>>({});
   const drawnSubRef = useRef<Record<string, number>>({});

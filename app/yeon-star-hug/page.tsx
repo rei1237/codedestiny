@@ -1998,7 +1998,7 @@ export default function YeonStarHugPage() {
           </motion.article>
 
           <div className="flex min-w-0 flex-col gap-4">
-            {!reading ? (
+            {!consultation || !reading ? (
               <motion.article
                 initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
                 animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}

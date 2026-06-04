@@ -3413,7 +3413,7 @@ function buildShinsalAnalysis(
     { name: "공망", branches: getGongMangBranches(pillars.day), category: "공백·지연", meaning: "해당 궁의 작용이 비거나 지연되는 보조 신호다.", manifestation: "기대와 현실의 간극, 지연, 무형화, 정신적 거리감으로 나타난다." },
   ];
   const locationOf = (row: Record<string, unknown>) => `${row.source || "원국"} ${row.scope || ""} ${row.label || ""}`.trim();
-  const useStateForElements = (elements: ElementKey[]) => elements.some((element) => usefulElements.includes(element))
+  const resolveStateForElements = (elements: ElementKey[]) => elements.some((element) => usefulElements.includes(element))
     ? "용신 연결"
     : elements.some((element) => gisin.includes(element))
       ? "기신 연결"
@@ -3444,7 +3444,7 @@ function buildShinsalAnalysis(
         match?.branch ? BRANCH_MAIN_ELEMENT[match.branch as BranchKr] : null,
       ]);
       const fallbackElements = uniqueElements((definition.branches || []).map((branch) => BRANCH_MAIN_ELEMENT[branch]));
-      const state = useStateForElements(elements.length ? elements : fallbackElements);
+      const state = resolveStateForElements(elements.length ? elements : fallbackElements);
       rows.push({
         shinsalName: definition.name,
         category: definition.category,
@@ -3480,7 +3480,7 @@ function buildShinsalAnalysis(
         if (!left.branch || !right.branch) continue;
         if (definition.pairs.has(pairKey(left.branch, right.branch, BRANCHES))) {
           const elements = uniqueElements([BRANCH_MAIN_ELEMENT[left.branch], BRANCH_MAIN_ELEMENT[right.branch]]);
-          const state = useStateForElements(elements);
+          const state = resolveStateForElements(elements);
           pairRows.push({
             shinsalName: definition.name,
             category: definition.category,
@@ -3517,7 +3517,7 @@ function buildShinsalAnalysis(
   interactions.punishments.forEach((row) => {
     const branches = (row.branches as BranchKr[] | undefined) || [];
     const elements = uniqueElements(branches.map((branch) => BRANCH_MAIN_ELEMENT[branch]));
-    const state = useStateForElements(elements);
+    const state = resolveStateForElements(elements);
     rows.push({
       shinsalName: "형살",
       category: "기타 기존 엔진 신살",

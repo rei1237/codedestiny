@@ -96,7 +96,7 @@ function toRecord(value: unknown): Record<string, unknown> {
 }
 
 function toStageResult(pillar: PillarKey, stage: TwelveStage, source: StageSource): TwelveStageResult {
-  const stageKey = STAGE_LABEL_TO_KEY[stage];
+  const stageKey = STAGE_LABEL_TO_KEY[stage] || "jangsaeng";
   return {
     key: stageKey,
     labelKo: stage,
@@ -266,7 +266,10 @@ function selectRepresentativeStage(stages: Partial<Record<PillarKey, TwelveStage
   return winner || values[0];
 }
 
-export function validateTwelveStageInput(dayStem: unknown, branch: unknown) {
+export function validateTwelveStageInput(
+  dayStem: unknown,
+  branch: unknown,
+): { ok: true; dayStem: StemKo; branch: BranchKo } | { ok: false; error: string } {
   const stem = normalizeStem(dayStem);
   const normalizedBranch = normalizeBranch(branch);
 

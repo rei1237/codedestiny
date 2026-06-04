@@ -414,7 +414,7 @@ export default function NumerologyTarotClient() {
 
   const freeProfile = useMemo<FreeProfile | null>(() => {
     const lifePath = Number(numerology?.lifePathNumber || 0);
-    if (!lifePath) return null;
+    if (!numerology || !lifePath) return null;
     const base = FREE_TALENT_MAP[lifePath] || FREE_TALENT_MAP[(lifePath % 9) || 9] || FREE_TALENT_MAP[9];
     const topicFocusMap: Record<TopicKey, string> = {
       love: "지금 관계의 온도와 진심을 읽는 흐름에 맞춘 해석입니다.",
@@ -958,7 +958,7 @@ export default function NumerologyTarotClient() {
                           open ? (
                             <Image
                               src={getCardImageUrl(picked.card.id)}
-                              alt={picked.card.nameKr || picked.card.name}
+                              alt={picked.card.nameKr || picked.card.name || "Tarot card"}
                               width={70}
                               height={112}
                               className={styles.miniCardImage}

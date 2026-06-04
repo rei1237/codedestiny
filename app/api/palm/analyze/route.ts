@@ -739,9 +739,14 @@ async function extractPalmAstroCandidatesFromImage(
   }
 }
 
+type GeminiInlineDataPart = { inline_data: { mime_type: string; data: string } };
+type GeminiTextPart = { text: string };
+type GeminiTrainingImage = GeminiTextPart & GeminiInlineDataPart;
+type GeminiVisionPart = GeminiTextPart | GeminiInlineDataPart;
+
 // Few-shot learning images
-function getTrainingImages() {
-  const results = [];
+function getTrainingImages(): GeminiTrainingImage[] {
+  const results: GeminiTrainingImage[] = [];
   try {
     const p1 = "C:\\Users\\Neo\\Desktop\\손금\\images.jpg";
     if (fs.existsSync(p1)) {
@@ -879,7 +884,7 @@ async function analyzeHandWithGeminiVision(
   const userPrompt = `이 사진은 ${declaredSide === "right" ? "오른손" : "왼손"} 바닥입니다. 사용자의 분석 목적은 '${purposeText}'입니다. 이 목적에 맞춰 각 손금 영역을 깊이 있게 풀이하세요. 결과는 단순한 키워드 나열이 아니라, 전문가가 직접 대면 상담하듯 매우 길고 구체적이며 심층적인 문장으로 작성해야 합니다. 또한 반드시 우세선, 곡률 기반 손금 유형, 커리어 변화 지표 3가지를 명시하세요. 결과는 JSON으로만 응답하세요.`;
 
   const trainingImages = getTrainingImages();
-  const parts = [
+  const parts: GeminiVisionPart[] = [
     { text: PALM_VISION_SYSTEM_PROMPT },
     ...trainingImages.flatMap(img => [{ text: img.text }, { inline_data: img.inline_data }]),
     { text: userPrompt },

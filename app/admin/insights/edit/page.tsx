@@ -6,7 +6,7 @@ import InsightEditorPage from "../_components/InsightEditorPage";
 
 function AdminInsightsEditInner() {
   const searchParams = useSearchParams();
-  const insightId = String(searchParams.get("id") || "");
+  const insightId = String(searchParams?.get("id") || "");
   return <InsightEditorPage mode="edit" insightId={insightId} />;
 }
 

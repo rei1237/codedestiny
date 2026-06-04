@@ -112,7 +112,7 @@ type LocalTypeResult = {
   axes: FptiAxisResult[];
   topAxes: FptiAxisResult[];
   lowAxes: FptiAxisResult[];
-  source: FptiAnalysisResult["source"];
+  source: FptiAnalysisResult["source"] | undefined;
 };
 
 type NarrativeSeed = {

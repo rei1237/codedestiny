@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback } from "react";
 import Image from "next/image";
 import GuardianAnimalSprite from "@/components/fortune/GuardianAnimalSprite";
 import { calculateLocalSaju } from "@/app/saju/animal-destiny/engine/localSajuCalculator";
@@ -308,20 +308,9 @@ function ResultCard({
   }
 
   const result = data.result!;
-  const resolvedGanji = useMemo(
-    () => normalizeGanji(data.resolvedGanji),
-    [data],
-  );
-
-  const guardianCopy = useMemo(
-    () => (resolvedGanji ? getGuardianCopy(resolvedGanji) : null),
-    [resolvedGanji],
-  );
-
-  const stemTheme = useMemo(
-    () => (resolvedGanji ? getStemElement(resolvedGanji) : null),
-    [resolvedGanji],
-  );
+  const resolvedGanji = normalizeGanji(data.resolvedGanji);
+  const guardianCopy = resolvedGanji ? getGuardianCopy(resolvedGanji) : null;
+  const stemTheme = resolvedGanji ? getStemElement(resolvedGanji) : null;
 
   const animalEmoji = ANIMAL_EMOJI[result.mainAnimal] ?? "🐾";
   const elementEmoji = ELEMENT_EMOJI[result.dominantElement] ?? "✨";
@@ -349,14 +338,14 @@ function ResultCard({
     },
   ];
 
-  const handleCopy = useCallback(async () => {
+  const handleCopy = async () => {
     const headline = guardianCopy?.title || result.headlineKo;
     const text = `${headline}\n\n${personalityLines.join(" ")}`;
     await navigator.clipboard.writeText(text).catch(() => {});
     alert("요약 문구를 복사했어요 📋");
-  }, [guardianCopy?.title, personalityLines, result.headlineKo]);
+  };
 
-  const handleShare = useCallback(async () => {
+  const handleShare = async () => {
     const headline = guardianCopy?.title || result.headlineKo;
     const text = `${headline}\n\n${personalityLines.join(" ")}\n\n🔮 코드 데스티니에서 나의 동물을 알아보세요! https://code-destiny.com/saju-picture`;
     if (navigator.share) {
@@ -369,7 +358,7 @@ function ResultCard({
       await navigator.clipboard.writeText(text).catch(() => {});
       alert("클립보드에 복사됐어요! 📋");
     }
-  }, [guardianCopy?.title, personalityLines, result.headlineKo]);
+  };
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-[#fff7ed] via-[#fff1f2] to-[#eef2ff] px-4 pb-14 pt-6">

@@ -52,7 +52,7 @@ export type DestinyBiasCardSvgModel = {
   };
 };
 
-function trimText(value: string, fallback = "") {
+function trimText(value: unknown, fallback = "") {
   const text = String(value || "").trim();
   return text || fallback;
 }

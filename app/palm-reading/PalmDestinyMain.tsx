@@ -632,12 +632,12 @@ function readPathValue(value: unknown): string | null {
   return null;
 }
 
-function pickPathByAliases(source: Record<string, unknown>, aliases: string[]): string | null {
+function pickPathByAliases(source: Record<string, unknown>, aliases: string[]): string | undefined {
   for (const alias of aliases) {
     const val = readPathValue(source[alias]);
     if (val) return val;
   }
-  return null;
+  return undefined;
 }
 
 function extractOverlayPaths(payload: unknown): OverlayPathMap {
@@ -1663,8 +1663,8 @@ export default function PalmDestinyMain() {
   const renderHandUploader = (
     side: HandSide,
     state: HandImageState,
-    uploadRef: React.RefObject<HTMLInputElement | null>,
-    cameraRef: React.RefObject<HTMLInputElement | null>,
+    uploadRef: React.RefObject<HTMLInputElement>,
+    cameraRef: React.RefObject<HTMLInputElement>,
     title: string,
   ) => {
     const hasPreview = Boolean(state.previewUrl);
