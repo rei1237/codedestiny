@@ -51,6 +51,15 @@ const FAMOUS_SAJU_ROUTE_ENTRIES: SitemapRouteEntry[] = [
   ...FAMOUS_SAJU_CATEGORY_ROUTE_ENTRIES,
 ];
 
+const FAMOUS_SAJU_INSIGHT_ROUTE_ENTRIES: SitemapRouteEntry[] = [
+  { path: "/insights/famous-saju", changeFrequency: "weekly", priority: 0.89 },
+  ...publishedCelebritySajuSeeds.map((item) => ({
+    path: `/insights/famous-saju/${item.slug}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.78,
+  })),
+];
+
 export const ROUTES: SitemapRouteEntry[] = [
   // ── 홈 (최우선) ──────────────────────────────────────────────
   { path: "/", changeFrequency: "daily", priority: 1.0 },
@@ -98,6 +107,7 @@ export const ROUTES: SitemapRouteEntry[] = [
   { path: "/insights/vedic", changeFrequency: "weekly", priority: 0.85 },
   { path: "/insights/dream", changeFrequency: "weekly", priority: 0.84 },
   { path: "/insights/compatibility", changeFrequency: "weekly", priority: 0.84 },
+  ...FAMOUS_SAJU_INSIGHT_ROUTE_ENTRIES,
   ...FAMOUS_SAJU_ROUTE_ENTRIES,
   { path: "/high-value",  changeFrequency: "weekly", priority: 0.88 },
 

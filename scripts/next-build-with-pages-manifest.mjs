@@ -1,19 +1,77 @@
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { dirname, join, relative, resolve, sep } from "node:path";
 
 const rootDir = process.cwd();
 const manifestPath = resolve(rootDir, ".next", "server", "pages-manifest.json");
-const appPathsManifestPath = resolve(rootDir, ".next", "server", "app-paths-manifest.json");
+const pagesDir = resolve(rootDir, ".next", "server", "pages");
+const export500Path = resolve(rootDir, ".next", "export", "500.html");
 const nextCli = resolve(rootDir, "node_modules", "next", "dist", "bin", "next");
 
-function ensurePagesManifest() {
-  if (!existsSync(appPathsManifestPath)) return;
-  mkdirSync(dirname(manifestPath), { recursive: true });
-  if (!existsSync(manifestPath)) writeFileSync(manifestPath, "{}\n", "utf8");
+function readManifestKeys() {
+  if (!existsSync(manifestPath)) return [];
+  try {
+    const parsed = JSON.parse(readFileSync(manifestPath, "utf8"));
+    return Object.keys(parsed || {});
+  } catch {
+    return [];
+  }
 }
 
-const timer = setInterval(ensurePagesManifest, 250);
+function collectPagesManifestEntries(dir = pagesDir, entries = {}) {
+  if (!existsSync(dir)) return entries;
+
+  for (const item of readdirSync(dir)) {
+    const fullPath = join(dir, item);
+    const stat = statSync(fullPath);
+
+    if (stat.isDirectory()) {
+      collectPagesManifestEntries(fullPath, entries);
+      continue;
+    }
+
+    if (!item.endsWith(".js")) continue;
+
+    const relativeFile = relative(pagesDir, fullPath).split(sep).join("/");
+    const route = `/${relativeFile.replace(/\.js$/, "").replace(/\/index$/, "")}` || "/";
+    entries[route === "" ? "/" : route] = `pages/${relativeFile}`;
+  }
+
+  return entries;
+}
+
+function ensureExport500Fallback() {
+  if (!existsSync(join(pagesDir, "500.js"))) return;
+  if (!existsSync(dirname(export500Path))) return;
+  if (existsSync(export500Path)) return;
+
+  writeFileSync(
+    export500Path,
+    "<!doctype html><html><head><meta charset=\"utf-8\"><title>500</title></head><body><main>500</main></body></html>\n",
+    "utf8",
+  );
+}
+
+function ensurePagesManifest() {
+  if (readManifestKeys().length > 0) {
+    ensureExport500Fallback();
+    return;
+  }
+
+  const entries = collectPagesManifestEntries();
+  if (Object.keys(entries).length === 0) return;
+
+  try {
+    mkdirSync(dirname(manifestPath), { recursive: true });
+    writeFileSync(manifestPath, `${JSON.stringify(entries, null, 2)}\n`, "utf8");
+    ensureExport500Fallback();
+  } catch (error) {
+    if (error?.code === "ENOENT") return;
+    throw error;
+  }
+}
+
+const timer = setInterval(ensurePagesManifest, 100);
 const child = spawn(process.execPath, [nextCli, "build"], {
   cwd: rootDir,
   stdio: "inherit",
