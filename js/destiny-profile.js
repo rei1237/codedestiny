@@ -4643,11 +4643,16 @@
 
     if (typeof window._cdResolvePaidContentAccess === 'function') {
       return window._cdResolvePaidContentAccess({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey, requestId: requestId, reportType: optionBag.reportType, serviceKey: optionBag.serviceKey, profileId: optionBag.profileId, selectedProfileId: optionBag.selectedProfileId }).then(function(access) {
-        if (access && (access.status === 'already_unlocked' || access.status === 'pass_applied')) { var data = access.payload || access.rawPayload || {}; var txId = String(data.transactionId || data.requestId || requestId); if (typeof cb === 'function') cb(txId, data); return data; }
-        if (access && access.status === 'error') { window.alert(access.message || '이용권 확인에 실패했습니다.'); if (typeof onCancel === 'function') onCancel(access); return null; }
+        if (access && (access.status === 'already_unlocked' || access.status === 'pass_applied')) {
+          var passPayload = access.payload || access.rawPayload || {};
+          var passTransactionId = String(passPayload.transactionId || passPayload.paymentId || passPayload.purchaseId || passPayload.requestId || access.requestId || requestId);
+          if (typeof cb === 'function') cb(passTransactionId, passPayload);
+          return passPayload;
+        }
+        if (access && access.status === 'error') { window.alert(access.message || '\uC774\uC6A9\uAD8C \uD655\uC778\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.'); if (typeof onCancel === 'function') onCancel(access); return null; }
         if (typeof window._cdChooseServicePaymentMode === 'function') { return window._cdChooseServicePaymentMode({ title: reason, coinPrice: cost, cost: cost }).then(function(choice) { if (choice === 'direct') return runDirectCheckout(); if (choice === 'monthly') return runMonthlyCreditGate(); if (typeof onCancel === 'function') onCancel(); return null; }); }
         return runMonthlyCreditGate();
-      }).catch(function(error) { window.alert(String(error && error.message || '이용권 확인 중 오류가 발생했습니다.')); if (typeof onCancel === 'function') onCancel(error); return null; });
+      }).catch(function(error) { window.alert(String(error && error.message || '\uC774\uC6A9\uAD8C \uD655\uC778 \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.')); if (typeof onCancel === 'function') onCancel(error); return null; });
     }
 
     function runMonthlyCreditGate() {
