@@ -225,7 +225,7 @@ type PortOnePaymentRequest = {
   channelKey: string;
   paymentId: string;
   orderName: string;
-  amount: number;
+  totalAmount: number;
   currency: string;
   payMethod: string;
   redirectUrl: string;
@@ -643,6 +643,43 @@ function savePendingSubscriptionOrder(order: PendingSubscriptionOrder) {
 function clearPendingSubscriptionOrder() {
   if (typeof window === "undefined") return;
   localStorage.removeItem("fortune_pending_subscription_order");
+  localStorage.removeItem("fortune_pending_subscription_pass");
+}
+
+type PendingSubscriptionPass = {
+  merchantUid: string;
+  tier: "free" | "standard" | "premium" | "vvip";
+  profileLimit: number;
+  startedAt: number;
+};
+
+function getPendingSubscriptionProfileLimit(tier: PendingSubscriptionPass["tier"]) {
+  if (tier === "standard") return 3;
+  if (tier === "premium") return 7;
+  if (tier === "vvip") return 15;
+  return 1;
+}
+
+function savePendingSubscriptionPass(tier: PendingSubscriptionPass["tier"], merchantUid: string) {
+  if (typeof window === "undefined") return;
+  const payload: PendingSubscriptionPass = {
+    merchantUid,
+    tier,
+    profileLimit: getPendingSubscriptionProfileLimit(tier),
+    startedAt: Date.now(),
+  };
+  localStorage.setItem("fortune_pending_subscription_pass", JSON.stringify(payload));
+}
+
+function readPendingSubscriptionPass() {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem("fortune_pending_subscription_pass");
+    if (!raw) return null;
+    return JSON.parse(raw) as PendingSubscriptionPass;
+  } catch {
+    return null;
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -1511,6 +1548,16 @@ export default function PointsPage() {
   /* ── 이용권 상태 로드 ─────────────────────────────────────────────── */
   useEffect(() => {
     if (isBooting) return;
+    const pendingPass = readPendingSubscriptionPass();
+    if (pendingPass && pendingPass.tier !== "free") {
+      setSubscription((prev) => prev.isActive ? prev : ({
+        ...prev,
+        tier: pendingPass.tier,
+        isActive: true,
+        profileLimit: pendingPass.profileLimit,
+        lowBalanceWarning: false,
+      }));
+    }
     const isAdminSession = authUser?.role === "admin" && isFlowerAdminSessionClient();
     const flowerAdminToken = isAdminSession ? getFlowerAdminTokenClient() : "";
     const adminHeaders = flowerAdminToken ? {
@@ -1555,6 +1602,9 @@ export default function PointsPage() {
           cancelRequestedAt,
           freeLimit: typeof d.freeLimit === "number" ? d.freeLimit : 0,
         });
+        if (d.isActive) {
+          localStorage.removeItem("fortune_pending_subscription_pass");
+        }
       })
       .catch(() => {});
   }, [isBooting, apiBase, adminTestTier, authUser]);
@@ -1947,7 +1997,7 @@ export default function PointsPage() {
         channelKey: paymentConfig.channelKey,
         paymentId: order.merchantUid,
         orderName: order.productName,
-        amount: order.paymentAmount,
+        totalAmount: order.paymentAmount,
         currency: paymentConfig.currency || "CURRENCY_KRW",
         payMethod: paymentConfig.payMethod || "CARD",
         redirectUrl: redirectUrl.toString(),
@@ -2096,7 +2146,7 @@ export default function PointsPage() {
         channelKey: paymentConfig.channelKey,
         paymentId: order.merchantUid,
         orderName: order.productName,
-        amount: order.paymentAmount,
+        totalAmount: order.paymentAmount,
         currency: paymentConfig.currency || "CURRENCY_KRW",
         payMethod: paymentConfig.payMethod || "CARD",
         redirectUrl: redirectUrl.toString(),
@@ -2122,6 +2172,7 @@ export default function PointsPage() {
         durationMonths: plan.durationMonths,
         paymentMethod: selectedMethod || "card_general",
       });
+      savePendingSubscriptionPass(plan.tier, order.merchantUid);
 
       const rsp = await window.PortOne.requestPayment(requestData);
       const paymentId = String(rsp?.paymentId || order.merchantUid || "").trim();

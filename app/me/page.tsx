@@ -107,7 +107,7 @@ type PortOnePaymentRequest = {
   channelKey: string;
   paymentId: string;
   orderName: string;
-  amount: number;
+  totalAmount: number;
   currency: string;
   payMethod: string;
   redirectUrl: string;
@@ -629,7 +629,7 @@ export default function MePage() {
       channelKey: paymentConfig.channelKey,
       paymentId: order.merchantUid,
       orderName: order.productName || productName,
-      amount: Number(order.paymentAmount || PROFILE_CARD_ACTION_COST_KRW),
+      totalAmount: Number(order.paymentAmount || PROFILE_CARD_ACTION_COST_KRW),
       currency: paymentConfig.currency || "CURRENCY_KRW",
       payMethod: paymentConfig.payMethod || "CARD",
       redirectUrl: redirectUrl.toString(),
