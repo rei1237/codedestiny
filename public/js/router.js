@@ -72,13 +72,13 @@ function ensureRoot() {
   root.hidden = true;
   root.innerHTML = `
     <div class="static-service-runner__head">
-      <div class="static-service-runner__title">/static ?�비???�행 ?�역</div>
+      <div class="static-service-runner__title">/static 서비스 실행 영역</div>
       <div class="static-service-runner__actions">
-        <button type="button" class="static-service-runner__btn" data-service-nav="tarot">?��?/button>
-        <button type="button" class="static-service-runner__btn" data-service-nav="hwatu-life">?�투 ?�생 ??/button>
-        <button type="button" class="static-service-runner__btn" data-service-nav="stonehenge-rune">?�톤?��? �?/button>
-        <button type="button" class="static-service-runner__btn" data-service-nav="pig-oracle">?��? 주석??/button>
-        <button type="button" class="static-service-runner__btn" data-service-close>?�기</button>
+        <button type="button" class="static-service-runner__btn" data-service-nav="tarot">타로</button>
+        <button type="button" class="static-service-runner__btn" data-service-nav="hwatu-life">화투 인생 패</button>
+        <button type="button" class="static-service-runner__btn" data-service-nav="stonehenge-rune">스톤헨지 룬</button>
+        <button type="button" class="static-service-runner__btn" data-service-nav="pig-oracle">돼지 주석점</button>
+        <button type="button" class="static-service-runner__btn" data-service-close>닫기</button>
       </div>
     </div>
     <div class="static-service-runner__body" data-service-body></div>
@@ -198,7 +198,9 @@ if (document.readyState === "loading") {
   init();
 }
 
-// ?�역 ?�수: coin gate?�서 _cdInvokeActionDirect("openRuneOracle") ?�출 ???�용
+// global delegation: route coin-gate calls through _cdInvokeActionDirect("openRuneOracle").
 window.openRuneOracle = function () {
   window.location.assign("/oracle/rune/");
 };
+
+

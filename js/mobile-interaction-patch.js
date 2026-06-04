@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  /* 모바???�치: direct tap only (스크롤/이동/롱터치 차단) */
+  /* mobile touch: direct tap only (scroll/move/long-press blocked) */
   var TAP_MAX_DX = 8;
   var TAP_MAX_DY = 8;
   var TAP_MOVE_DETECT_PX = 2;
@@ -69,7 +69,7 @@
     }
   }
 
-  /* INP: index-inline-runtime / uiBindings �??�일 ??무거??data-action ?�기 ?�출???�음 ?�스?�로 */
+  /* INP: defer heavy data-action handlers in index-inline-runtime / uiBindings to the next task. */
   var __CD_DEFER_INP_ACTIONS = {
     checkPrivacyAndCalculate: 1,
     agreeAndCalculate: 1,
@@ -503,7 +503,7 @@
     return null;
   }
 
-  /* 모바?? touchend ??event.target??부?�확??경우 elementFromPoint�??�제 ?�치 ?�치???�소 ?�인 */
+  /* When touchend event.target is unreliable, re-scan the actual target with elementFromPoint. */
   function findRuleFromPoint(x, y) {
     if (!document.elementFromPoint || !Number.isFinite(x) || !Number.isFinite(y)) return null;
     var el = document.elementFromPoint(x, y);
@@ -675,7 +675,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-02065110067f').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-d3c00b5becc7').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -760,20 +760,20 @@
       'js/animal-totem-experience.js'
     ],
     openHwatuModal: ['HwatuFortune.js'],
-    // NOTE: uiBindings??`js/...` 경로??용?니?? 모바??patch???일 경로?맞춰
-    // ???에??최신 ?크립트??확??로드?도??니??
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-02065110067f'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-02065110067f'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-02065110067f'],
+    // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
+    // ensure the latest script is loaded on launch.
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-d3c00b5becc7'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-d3c00b5becc7'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-d3c00b5becc7'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-02065110067f'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-d3c00b5becc7'],
     openDreamModal: ['lib/ai-engine.js', 'js/dream-ledger.js'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-02065110067f']
+    openSibylModal: ['js/sibyl-system.js?v=build-d3c00b5becc7']
   };
 
   function normalizeScriptSrc(src) {
@@ -832,29 +832,29 @@
         window.__cdMobileNav.onActionInvoke(rule.action, origin || null);
       }
     } catch (_) {}
-    // Preview CTA?�서 data-pvw-bypass�??�클�?��??경우???�상 ?�속 ?�로?�이므�?    // dedupe??걸리지 ?�게 ?�야 ?�리미엄 ?�션??무반?�으�??�모?��? ?�는??
+    // Preview CTA with data-pvw-bypass is a normal direct path.
     var _fromPreviewBypass = false;
     if (origin && typeof origin.closest === 'function') {
       _fromPreviewBypass = !!origin.closest('[data-pvw-bypass]');
     }
     if (!_fromPreviewBypass && shouldSkipDuplicateAction(rule.action)) return true;
 
-    // ?�?� 코인/?�금 게이??체크 ?�?�
-    // ?�치 ?�벤?��? 코인/?�금 게이?��? ?�회?��? ?�도�? ?�당 ?�성??가�??�?��?
-    // ?�리�??�널???�임???�상?�인 게이???�름??거치�??�다.
-    // ?? pvw-bypass ?�성???�는 경우(Preview CTA?�서 직접 ?�릭)??게이??건너?�
+    // Coin/payment gate checks
+    // Prevent touch events from bypassing the coin/payment gate into premium actions.
+    // Premium panels still need to pass through the upstream gate flow.
+    // If pvw-bypass is active (direct click from Preview CTA), skip the gate.
     var _coinGateTile = null;
     if (origin && typeof origin.closest === 'function') {
       _coinGateTile = origin.closest('[data-tile-lock-key],[data-coin-cost]');
     }
-    // pvw-bypass ?�정???�?��? ?��? Preview CTA�??�과??것이므�?게이???�킵
+    // When pvw-bypass is set, Preview CTA direct entry should skip the gate.
     if (_coinGateTile && _coinGateTile.getAttribute('data-pvw-bypass')) _coinGateTile = null;
     if (!_coinGateTile) {
       _coinGateTile = document.querySelector(
         '[data-action="' + rule.action + '"][data-tile-lock-key],' +
         '[data-action="' + rule.action + '"][data-coin-cost]'
       );
-      // fallback?�로 찾�? ?�?�도 pvw-bypass 체크
+      // Fallback tile also needs the pvw-bypass check
       if (_coinGateTile && _coinGateTile.getAttribute('data-pvw-bypass')) _coinGateTile = null;
     }
     if (_coinGateTile) {
@@ -869,7 +869,7 @@
         return false;
       }
     }
-    // ?�?� 코인/?�금 게이??체크 ???�?�
+    // Coin/payment gate check complete.
 
     var loadToken = beginFeatureLoading(rule.action, { minMs: 350, maxMs: 7000 });
 
@@ -951,7 +951,7 @@
       return true;
     }
 
-    /* lazy-load: ?�크립트 미로????로드 ???�호�?*/
+    /* lazy-load: keep routing through even if the script is not ready yet. */
     if (typeof fn !== 'function' && lazyPaths && lazyPaths.length) {
       var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
       raf(function() {
@@ -987,7 +987,7 @@
       return false;
     }
 
-    /* 모바?? ?�기 ?�행 ??브라?��?가 ?�치 처리 �?UI ?�데?�트�?막아 ?�면 멈춤 발생. rAF�?지??*/
+    /* If a heavy browser gets stuck while handling touch, defer with rAF. */
     var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
     try {
       raf(function() {
@@ -1036,7 +1036,7 @@
     }
 
     // 코인 게이트가 필요한 액션은 전역 핸들러로 전달한다.
-    // ?�역 ?�릭 ?�들?�로 ?�겨 Preview/게이?��? ?�상 경유?�킨??
+    // Route through the global click handler to keep Preview/gates stable.
     var isPremGateAction = (
       action === 'gotoNamingPremium'
     );
@@ -1087,7 +1087,7 @@
       '.tarot-tile--meditation .tarot-tile__img-wrap, .tarot-tile--meditation .tarot-tile__img, .tarot-tile--meditation .tarot-tile__badge, .tarot-tile--meditation .tarot-tile__body, .tarot-tile--meditation .tarot-tile__title, .tarot-tile--meditation .tarot-tile__desc,',
       '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"], [data-action="openKemetModal"], [data-action="openDreamModal"], [data-action="openPsychoDreamModal"], [data-action="openTarotHealingModal"], [data-action="openTarotYearFortuneModal"], [data-action="openTarotLoveModal"], [data-action="openTarotSelfEsteemModal"], [data-action="openTarotReunionModal"], [data-action="openRoyalTeaOracle"],',
       '[data-action="openAnimalTotemModal"], [data-action="openSajuAnimalPage"], [data-action="openDestinyFlowerStudio"], [data-action="openAstrologyFlowerStudio"], [data-action="openJamidusuFlowerStudio"], [data-action="openSukuyoFlowerStudio"], [data-action="openNevilleMeditationPage"], [data-action="navigateToVedic"], [data-action="openOlympusOracleModal"], [data-action="openGeomancyOracle"],',
-      '/* ?�생??�?�??�빌???�스???�크�?최적??*/',
+      '/* Reader/service tile touch optimization */',
       '.lifebook-tile, .lovebible-tile, .lovesim-tile, .sibyl-entry-tile,',
       '.lifebook-tile__inner, .lovebible-tile__inner, .lovesim-tile__inner, .sibyl-entry-inner,',
       '.lifebook-tile__img-wrap, .lifebook-tile__img, .lifebook-tile__body, .lifebook-tile__title, .lifebook-tile__desc, .lifebook-tile__features, .lifebook-tile__cta,',
@@ -1221,7 +1221,7 @@
         }
       }
 
-      /* 모바???�백: touchCtx ?�거??처리 ?�패 ??elementFromPoint�??�치 ?�치???�소�??�인 (?�니멀 ?�템 ?? */
+      /* Mobile callback: re-scan with elementFromPoint when touchCtx delayed handling fails (minimal fallback). */
       if (lastTouchStart) {
         var touchAge = Date.now() - (lastTouchStart.at || 0);
         if (touchAge > MAX_TAP_DURATION_MS || lastTouchHadMove) {
@@ -1267,7 +1267,7 @@
       }
     }, { passive: true, capture: true });
 
-    /* pointer ?�벤???�백: ?��? 모바??브라?��??�서 touch ?�??pointer ?�용 */
+    /* pointer event callback: allow pointer input on touch browsers too. */
     root.addEventListener('pointerdown', function (event) {
       if (event.pointerType !== 'touch') return;
       var pt = getPoint(event);
@@ -1437,7 +1437,7 @@
       }
     })();
 
-    // 글로벌 ?�크�??�태 추적
+    // Global scroll state tracking.
     window.addEventListener('scroll', function() {
       lastScrollAt = Date.now();
       markCardScrollLock(160);
@@ -1570,3 +1570,4 @@
     }
   };
 })();
+
