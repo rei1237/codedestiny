@@ -1,0 +1,1170 @@
+import { createHash } from "node:crypto";
+import { Solar } from "lunar-javascript";
+
+import { connectDb, mongoose } from "../lib/db.js";
+import {
+  ProfileCard,
+  User,
+  UserDailyQuestLog,
+  UserRpgProgress,
+  UserRpgRewardLog,
+} from "../lib/models.js";
+import { requireAuth } from "../lib/auth.js";
+import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
+
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+const KST_DAY_MS = 24 * 60 * 60 * 1000;
+const QUEST_SLOT_ORDER = ["easy-1", "easy-2", "normal-1", "normal-2", "core-1"];
+const BASE_LEVEL_EXP = 100;
+const LEVEL_EXP_GROWTH = 25;
+const INTERNAL_LEVEL_REWARDS = [
+  {
+    level: 3,
+    rewardType: "secret_unlock",
+    rewardKey: "secret_fortune_level_3",
+    title: "Lv.3 비밀 운세 해금",
+    description: "첫 번째 비밀 운세가 해금됩니다.",
+    storeIn: "unlockedSecretFortunes",
+  },
+  {
+    level: 5,
+    rewardType: "milestone_unlock",
+    rewardKey: "personality_title_level_5",
+    title: "Lv.5 성향 칭호 해금",
+    description: "성향을 드러내는 칭호 1개가 해금됩니다.",
+    storeIn: "unlockedMilestoneRewards",
+  },
+  {
+    level: 7,
+    rewardType: "milestone_unlock",
+    rewardKey: "passive_expand_level_7",
+    title: "Lv.7 고유 패시브 확장",
+    description: "나의 고유 패시브 설명이 더 깊어집니다.",
+    storeIn: "unlockedMilestoneRewards",
+  },
+  {
+    level: 10,
+    rewardType: "milestone_unlock",
+    rewardKey: "job_class_expand_level_10",
+    title: "Lv.10 운명 직업군 확장",
+    description: "나의 운명 직업군 해석이 확장됩니다.",
+    storeIn: "unlockedMilestoneRewards",
+  },
+  {
+    level: 15,
+    rewardType: "milestone_unlock",
+    rewardKey: "growth_report_preview_level_15",
+    title: "Lv.15 30일 성장 리포트 미리보기",
+    description: "30일 성장 리포트의 일부를 미리 볼 수 있습니다.",
+    storeIn: "unlockedMilestoneRewards",
+  },
+  {
+    level: 20,
+    rewardType: "milestone_unlock",
+    rewardKey: "master_skill_phrase_level_20",
+    title: "Lv.20 마스터 스킬 강화 문구",
+    description: "마스터 스킬을 더 강하게 만드는 문구가 해금됩니다.",
+    storeIn: "unlockedMilestoneRewards",
+  },
+];
+const STREAK_SECRET_MILESTONES = [3, 7, 14, 30];
+
+const ELEMENT_LABELS = {
+  wood: "목",
+  fire: "화",
+  earth: "토",
+  metal: "금",
+  water: "수",
+};
+
+const ELEMENT_EMOJIS = {
+  wood: "🌿",
+  fire: "🔥",
+  earth: "🪨",
+  metal: "⚔️",
+  water: "💧",
+};
+
+const STEM_TO_ELEMENT = {
+  甲: "wood",
+  乙: "wood",
+  丙: "fire",
+  丁: "fire",
+  戊: "earth",
+  己: "earth",
+  庚: "metal",
+  辛: "metal",
+  壬: "water",
+  癸: "water",
+};
+
+const ELEMENT_LIBRARY = {
+  wood: {
+    easy: [
+      "오늘 떠오른 생각 3개를 짧게 적기",
+      "관계에 먼저 안부 한 번 보내기",
+      "책상 위 한 곳을 5분만 정리하기",
+    ],
+    normal: [
+      "미뤄둔 작은 시작 하나를 10분만 해보기",
+      "내일을 위해 해야 할 일을 3줄로 정리하기",
+      "오늘의 계획을 순서대로 다시 써보기",
+    ],
+    core: [
+      "오늘 시작한 일 하나를 끝까지 마무리하기",
+      "관계 한 곳에 진심을 담아 메시지 보내기",
+      "새로운 계획 하나를 실제 일정에 넣기",
+    ],
+  },
+  fire: {
+    easy: [
+      "기분을 한 단어로 적고 소리 내어 읽기",
+      "가볍게 몸을 풀며 5분 움직이기",
+      "오늘의 감정 한 줄을 말로 꺼내기",
+    ],
+    normal: [
+      "짧은 글이나 기록을 5분 동안 완성하기",
+      "몸이 달아오를 만큼 가볍게 운동하기",
+      "누군가에게 칭찬 한 문장 보내기",
+    ],
+    core: [
+      "내가 가장 밝아지는 일 하나를 직접 표현하기",
+      "미루던 감정 표현을 솔직하게 전달하기",
+      "오늘의 나를 대표하는 한 문장을 남기기",
+    ],
+  },
+  earth: {
+    easy: [
+      "방 한 구석을 5분 정리하기",
+      "오늘 먹을 식사 시간을 정해두기",
+      "지출 메모를 한 번 확인하기",
+    ],
+    normal: [
+      "하루 루틴을 3칸으로 나누어 적기",
+      "건강한 선택 하나를 오늘 안에 고정하기",
+      "오늘의 지출이나 일정 하나를 점검하기",
+    ],
+    core: [
+      "내일의 나를 위해 생활의 기준 하나를 확정하기",
+      "흐트러진 루틴 하나를 다시 세우기",
+      "몸과 마음이 쉬는 시간을 캘린더에 박아두기",
+    ],
+  },
+  metal: {
+    easy: [
+      "할 일 하나를 과감히 삭제하기",
+      "정리할 파일이나 물건 하나를 치우기",
+      "미뤄둔 결정을 하나 메모하기",
+    ],
+    normal: [
+      "오늘 꼭 지킬 기준 한 줄을 적기",
+      "불필요한 연락이나 알림 하나 정리하기",
+      "지금 필요한 것과 아닌 것을 나눠 적기",
+    ],
+    core: [
+      "끝내야 할 일 하나를 오늘 안에 마무리하기",
+      "불필요한 습관 하나를 공식적으로 끊어내기",
+      "내 기준을 지키는 선택 하나를 실행하기",
+    ],
+  },
+  water: {
+    easy: [
+      "물 한 잔 마시고 감정 한 단어 적기",
+      "조용히 3분 숨을 고르기",
+      "오늘의 생각을 한 줄만 적기",
+    ],
+    normal: [
+      "감정이 올라온 이유를 3줄로 적기",
+      "10분 동안 마음을 가만히 살펴보기",
+      "머릿속 걱정 하나를 글로 내려놓기",
+    ],
+    core: [
+      "오늘 꼭 알고 싶은 것 하나를 끝까지 파고들기",
+      "감정의 매듭 하나를 정직하게 풀어쓰기",
+      "조용한 시간 속에서 내 선택의 이유를 분명히 적기",
+    ],
+  },
+};
+
+let rpgIndexReadyPromise = null;
+
+function createInternalError(message, code = "INTERNAL_SERVER_ERROR", status = 500) {
+  const error = new Error(message);
+  error.code = code;
+  error.status = status;
+  return error;
+}
+
+function toSafeString(value, maxLength = 120) {
+  const text = String(value ?? "").trim().replace(/[\u0000-\u001F\u007F]/g, "");
+  return text.slice(0, maxLength);
+}
+
+function toSafeNumber(value, fallback = 0) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
+}
+
+function uniqueStrings(values = []) {
+  return Array.from(new Set(values.map((value) => toSafeString(value)).filter(Boolean)));
+}
+
+function kstNow() {
+  return new Date(Date.now() + KST_OFFSET_MS);
+}
+
+function kstDateKey(date = kstNow()) {
+  const kst = date instanceof Date ? date : new Date(date);
+  return `${kst.getUTCFullYear()}-${String(kst.getUTCMonth() + 1).padStart(2, "0")}-${String(kst.getUTCDate()).padStart(2, "0")}`;
+}
+
+function kstDateShift(days = 0) {
+  return new Date(Date.now() + KST_OFFSET_MS + (days * KST_DAY_MS));
+}
+
+function yesterdayKstDateKey() {
+  return kstDateKey(kstDateShift(-1));
+}
+
+function stableHash(input) {
+  return createHash("sha256").update(String(input || "")).digest("hex");
+}
+
+function hashIndex(input, length) {
+  if (!length || length < 1) return 0;
+  const hex = stableHash(input);
+  const chunk = hex.slice(0, 8);
+  const numeric = Number.parseInt(chunk, 16);
+  if (!Number.isFinite(numeric)) return 0;
+  return numeric % length;
+}
+
+function normalizeElementKey(raw) {
+  const text = toSafeString(raw, 40).toLowerCase();
+  const lookup = {
+    wood: "wood",
+    목: "wood",
+    갑: "wood",
+    甲: "wood",
+    "갑목": "wood",
+    fire: "fire",
+    화: "fire",
+    병: "fire",
+    丙: "fire",
+    丁: "fire",
+    earth: "earth",
+    토: "earth",
+    무: "earth",
+    己: "earth",
+    戊: "earth",
+    metal: "metal",
+    금: "metal",
+    경: "metal",
+    庚: "metal",
+    辛: "metal",
+    water: "water",
+    수: "water",
+    임: "water",
+    壬: "water",
+    癸: "water",
+  };
+  return lookup[text] || lookup[toSafeString(raw, 40)] || "";
+}
+
+function normalizeElementList(raw) {
+  if (!raw) return [];
+  if (Array.isArray(raw)) {
+    return uniqueStrings(raw.map((item) => {
+      if (typeof item === "string" || typeof item === "number") {
+        return normalizeElementKey(item) || toSafeString(item, 40);
+      }
+      if (item && typeof item === "object") {
+        return normalizeElementKey(item.element || item.key || item.name || item.label || item.id || item.type)
+          || toSafeString(item.element || item.key || item.name || item.label || item.id || item.type, 40);
+      }
+      return "";
+    }));
+  }
+  if (typeof raw === "string") {
+    const key = normalizeElementKey(raw) || toSafeString(raw, 40);
+    return key ? [key] : [];
+  }
+  if (typeof raw === "object") {
+    const entries = Object.entries(raw)
+      .sort((a, b) => toSafeNumber(b[1]) - toSafeNumber(a[1]))
+      .map(([key]) => normalizeElementKey(key) || toSafeString(key, 40))
+      .filter(Boolean);
+    return uniqueStrings(entries);
+  }
+  return [];
+}
+
+function normalizeTextList(raw) {
+  if (!raw) return [];
+  if (Array.isArray(raw)) {
+    return uniqueStrings(raw.map((item) => {
+      if (typeof item === "string" || typeof item === "number") {
+        return toSafeString(item, 40);
+      }
+      if (item && typeof item === "object") {
+        return toSafeString(item.key || item.name || item.label || item.id || item.type || item.value, 40);
+      }
+      return "";
+    }));
+  }
+  if (typeof raw === "string" || typeof raw === "number") {
+    const key = toSafeString(raw, 40);
+    return key ? [key] : [];
+  }
+  if (typeof raw === "object") {
+    return uniqueStrings(Object.entries(raw)
+      .sort((a, b) => toSafeNumber(b[1]) - toSafeNumber(a[1]))
+      .map(([key]) => toSafeString(key, 40))
+      .filter(Boolean));
+  }
+  return [];
+}
+
+function getOppositeElement(element) {
+  const map = {
+    wood: "metal",
+    fire: "water",
+    earth: "wood",
+    metal: "fire",
+    water: "earth",
+  };
+  return map[element] || "";
+}
+
+function getTodayDayPillar() {
+  const now = kstNow();
+  const solar = Solar.fromYmdHms(
+    now.getUTCFullYear(),
+    now.getUTCMonth() + 1,
+    now.getUTCDate(),
+    12,
+    0,
+    0,
+  );
+  const lunar = solar.getLunar();
+  const eightChar = lunar.getEightChar();
+  const stem = String(eightChar.getDayGan() || "");
+  const branch = String(eightChar.getDayZhi() || "");
+
+  return {
+    stem,
+    branch,
+    element: STEM_TO_ELEMENT[stem] || "earth",
+  };
+}
+
+function normalizeProfileId(rawProfileId) {
+  return toSafeString(rawProfileId, 120);
+}
+
+function buildProfileSignature(profile) {
+  const payload = {
+    name: toSafeString(profile?.name, 80),
+    gender: toSafeString(profile?.gender, 20),
+    calendarType: toSafeString(profile?.calendarType, 40),
+    timezone: toSafeString(profile?.timezone || profile?.birth?.timezone || "Asia/Seoul", 40),
+    birth: profile?.birth || {},
+    location: profile?.location || {},
+    hourPillarTimePolicy: toSafeString(profile?.hourPillarTimePolicy || profile?.birth?.hourPillarTimePolicy || "TRUE_SOLAR_TIME", 40),
+    dayChangePolicy: toSafeString(profile?.dayChangePolicy || profile?.birth?.dayChangePolicy || "MIDNIGHT", 40),
+  };
+  return stableHash(JSON.stringify(payload)).slice(0, 12);
+}
+
+function buildSajuContext(profile) {
+  try {
+    const location = profile?.location && typeof profile.location === "object" ? profile.location : {};
+    const saju = buildSajuProfile({
+      name: profile?.name,
+      gender: profile?.gender,
+      birth: profile?.birth,
+      calendarType: profile?.calendarType,
+      timezone: profile?.timezone || profile?.birth?.timezone || "Asia/Seoul",
+      location: {
+        name: toSafeString(location.name || profile?.birth?.birthPlace || "서울", 80) || "서울",
+        latitude: Number.isFinite(Number(location.latitude)) ? Number(location.latitude) : Number(profile?.birth?.latitude || 37.5665),
+        longitude: Number.isFinite(Number(location.longitude)) ? Number(location.longitude) : Number(profile?.birth?.longitude || 126.978),
+        timezone: toSafeString(location.timezone || profile?.birth?.timezone || profile?.timezone || "Asia/Seoul", 40) || "Asia/Seoul",
+      },
+      hourPillarTimePolicy: toSafeString(profile?.hourPillarTimePolicy || profile?.birth?.hourPillarTimePolicy || "TRUE_SOLAR_TIME", 40) || "TRUE_SOLAR_TIME",
+      dayChangePolicy: toSafeString(profile?.dayChangePolicy || profile?.birth?.dayChangePolicy || "MIDNIGHT", 40) || "MIDNIGHT",
+    });
+
+    const dayMasterElement = normalizeElementKey(saju?.dayMaster?.element || saju?.dayMaster?.elementKo) || "earth";
+    const weakElements = normalizeElementList(saju?.fiveElements?.lacking);
+    const strongElements = normalizeElementList(saju?.fiveElements?.dominant);
+    const rankedElements = normalizeElementList(saju?.fiveElements?.ranked);
+    const yongElements = normalizeElementList(saju?.usefulGods?.yong);
+    const heeElements = normalizeElementList(saju?.usefulGods?.hee);
+    const giElements = normalizeElementList(saju?.usefulGods?.gi);
+    const tenGodsDominant = normalizeTextList(saju?.tenGods?.dominant);
+    const todayDayPillar = getTodayDayPillar();
+
+    const scores = saju?.fiveElements?.scores && typeof saju.fiveElements.scores === "object"
+      ? Object.entries(saju.fiveElements.scores)
+          .map(([key, value]) => [normalizeElementKey(key) || key, toSafeNumber(value)])
+          .filter(([key]) => Boolean(key))
+          .sort((a, b) => b[1] - a[1])
+      : [];
+
+    const fallbackStrong = scores.slice(0, 2).map(([key]) => key);
+    const safeStrong = uniqueStrings([...strongElements, ...rankedElements, ...fallbackStrong]).filter(Boolean);
+
+    return {
+      saju,
+      dayMasterElement,
+      weakElements,
+      strongElements: safeStrong,
+      yongElements: uniqueStrings(yongElements),
+      heeElements: uniqueStrings(heeElements),
+      giElements: uniqueStrings(giElements),
+      tenGodsDominant: uniqueStrings(tenGodsDominant),
+      todayDayPillar,
+      profileSignature: buildProfileSignature(profile),
+    };
+  } catch (error) {
+    console.error("[RPG][SajuContextFailed]", {
+      message: String(error?.message || error || ""),
+      profileId: String(profile?.profileId || ""),
+    });
+    return null;
+  }
+}
+
+function chooseQuestText(element, tier, seed, usedTexts) {
+  const safeElement = ELEMENT_LIBRARY[element] ? element : "earth";
+  const pool = ELEMENT_LIBRARY[safeElement][tier] || ELEMENT_LIBRARY.earth[tier];
+  if (!pool || !pool.length) {
+    return `${ELEMENT_EMOJIS[safeElement] || "✨"} 운명의 흐름을 따르는 오늘의 미션`;
+  }
+
+  const baseIndex = hashIndex(`${seed}:${safeElement}:${tier}`, pool.length);
+  for (let offset = 0; offset < pool.length; offset += 1) {
+    const candidate = `${ELEMENT_EMOJIS[safeElement] || "✨"} ${pool[(baseIndex + offset) % pool.length]}`;
+    if (!usedTexts.has(candidate)) {
+      usedTexts.add(candidate);
+      return candidate;
+    }
+  }
+
+  const fallback = `${ELEMENT_EMOJIS[safeElement] || "✨"} ${pool[baseIndex % pool.length]}`;
+  usedTexts.add(fallback);
+  return fallback;
+}
+
+function buildQuestId({ dateKey, profileId, profileSignature, slotKey }) {
+  const profileKey = stableHash(profileId).slice(0, 8);
+  return `rpg-${dateKey}-${profileKey}-${profileSignature}-${slotKey}`;
+}
+
+function buildQuestReason({ slotKey, element, dayMasterElement, yongElements, weakElements, todayElement }) {
+  const label = ELEMENT_LABELS[element] || element;
+  const dayMasterLabel = ELEMENT_LABELS[dayMasterElement] || dayMasterElement;
+  if (slotKey === "easy-1") {
+    return `부족한 ${label} 기운을 가볍게 채우는 미션`;
+  }
+  if (slotKey === "easy-2") {
+    return `${dayMasterLabel}의 본래 힘을 부드럽게 깨우는 미션`;
+  }
+  if (slotKey === "normal-1") {
+    return `오늘의 일진(${ELEMENT_LABELS[todayElement] || todayElement})에 몸을 맞추는 미션`;
+  }
+  if (slotKey === "normal-2") {
+    return `과하거나 막힌 흐름을 정돈하는 미션`;
+  }
+  if (yongElements.includes(element) || weakElements.includes(element)) {
+    return `용신과 희신을 살리는 핵심 미션`;
+  }
+  return `${label} 기운의 균형을 바로 세우는 핵심 미션`;
+}
+
+function buildAfterCompleteMessage({
+  slotKey,
+  element,
+  dayMasterElement,
+  yongElements,
+  weakElements,
+  todayElement,
+}) {
+  const label = ELEMENT_LABELS[element] || element;
+  const dayMasterLabel = ELEMENT_LABELS[dayMasterElement] || dayMasterElement;
+  const todayLabel = ELEMENT_LABELS[todayElement] || todayElement;
+  const elementInsight = {
+    wood: "성장과 연결의 문을 조금 더 넓히는 흐름입니다.",
+    fire: "감정과 표현의 흐름을 다시 살아나게 합니다.",
+    earth: "흩어진 기운을 한곳에 모아 중심을 세웁니다.",
+    metal: "불필요한 것을 덜어 내고 기준을 분명히 합니다.",
+    water: "생각의 소음을 가라앉히고 회복을 돕습니다.",
+  }[element] || "오늘의 흐름을 부드럽게 바로잡는 행동입니다.";
+
+  const slotInsight = {
+    "easy-1": "작은 실천이지만, 오늘의 운을 여는 첫 문이 됩니다.",
+    "easy-2": "부담 없이 시작할수록 기운의 반응은 더 선명해집니다.",
+    "normal-1": "일진의 흐름과 맞물려 하루의 리듬을 정돈합니다.",
+    "normal-2": "조금 더 깊은 정리로 흐름의 막힘을 풀어 줍니다.",
+    "core-1": "오늘의 중심축을 바로 세우는 핵심 전환점입니다.",
+  }[slotKey] || "오늘의 기운을 조화롭게 움직이는 행동입니다.";
+
+  const supportInsight = yongElements.includes(element)
+    ? "용신과 맞닿아 있어, 운의 문이 조금 더 쉽게 열립니다."
+    : (weakElements.includes(element)
+      ? `지금 가장 필요한 ${label} 기운을 채워 균형을 회복합니다.`
+      : `${dayMasterLabel}의 본래 힘과 ${todayLabel}의 결을 함께 다듬습니다.`);
+
+  return `오늘의 ${label} 미션은 단순한 행동이 아니라, ${elementInsight} ${slotInsight} ${supportInsight}`;
+}
+
+function buildQuestExp({ slotKey, element, dayMasterElement, yongElements, weakElements, todayElement }) {
+  if (slotKey === "easy-1" || slotKey === "easy-2") return 10;
+  if (slotKey === "normal-1" || slotKey === "normal-2") return 20;
+
+  let score = 0;
+  if (yongElements.includes(element)) score += 2;
+  if (weakElements.includes(element)) score += 1;
+  if (element === dayMasterElement) score += 1;
+  if (element === todayElement) score += 1;
+  return 25 + Math.min(2, score) * 5;
+}
+
+function buildQuestSet({ profile, profileId, userId, dateKey, context }) {
+  const seed = stableHash(`${userId}:${profileId}:${dateKey}:${context.profileSignature}`);
+  const usedTexts = new Set();
+  const dayMasterElement = context.dayMasterElement;
+  const weakElements = context.weakElements.length > 0 ? context.weakElements : [getOppositeElement(dayMasterElement)].filter(Boolean);
+  const strongElements = context.strongElements.length > 0 ? context.strongElements : [dayMasterElement];
+  const yongElements = context.yongElements.length > 0 ? context.yongElements : [dayMasterElement];
+  const heeElements = context.heeElements.length > 0 ? context.heeElements : [];
+  const todayElement = context.todayDayPillar.element || dayMasterElement;
+
+  const slotElements = [
+    weakElements[0] || dayMasterElement,
+    weakElements[1] || dayMasterElement,
+    todayElement,
+    strongElements[0] || heeElements[0] || dayMasterElement,
+    yongElements[0] || heeElements[0] || weakElements[0] || dayMasterElement,
+  ];
+
+  const quests = QUEST_SLOT_ORDER.map((slotKey, index) => {
+    const tier = slotKey.startsWith("easy")
+      ? "easy"
+      : slotKey.startsWith("normal")
+        ? "normal"
+        : "core";
+    const element = normalizeElementKey(slotElements[index]) || dayMasterElement;
+    const text = chooseQuestText(element, tier, `${seed}:${slotKey}`, usedTexts);
+    const expReward = buildQuestExp({
+      slotKey,
+      element,
+      dayMasterElement,
+      yongElements,
+      weakElements,
+      todayElement,
+    });
+    const questId = buildQuestId({
+      dateKey,
+      profileId,
+      profileSignature: context.profileSignature,
+      slotKey,
+    });
+
+    return {
+      questId,
+      slotKey,
+      questType: `daily_rpg_${tier}`,
+      tier,
+      element,
+      expReward,
+      text,
+      reason: buildQuestReason({
+        slotKey,
+        element,
+        dayMasterElement,
+        yongElements,
+        weakElements,
+        todayElement,
+      }),
+      afterCompleteMessage: buildAfterCompleteMessage({
+        slotKey,
+        element,
+        dayMasterElement,
+        yongElements,
+        weakElements,
+        todayElement,
+      }),
+    };
+  });
+
+  return {
+    quests,
+    todayMaxExp: quests.reduce((sum, quest) => sum + toSafeNumber(quest.expReward), 0),
+    generationMeta: {
+      dayMaster: context.saju?.dayMaster || null,
+      fiveElements: {
+        scores: context.saju?.fiveElements?.scores || null,
+        dominant: context.saju?.fiveElements?.dominant || null,
+        lacking: context.saju?.fiveElements?.lacking || null,
+      },
+      tenGods: {
+        counts: context.saju?.tenGods?.counts || null,
+        dominant: context.saju?.tenGods?.dominant || null,
+      },
+      usefulGods: context.saju?.usefulGods || null,
+      todayDayPillar: context.todayDayPillar,
+      profileSignature: context.profileSignature,
+    },
+  };
+}
+
+function calculateLevelState(totalExp) {
+  const safeTotalExp = Math.max(0, toSafeNumber(totalExp));
+  let currentLevel = 1;
+  let remainingExp = safeTotalExp;
+
+  while (remainingExp >= getExpToNextLevel(currentLevel)) {
+    remainingExp -= getExpToNextLevel(currentLevel);
+    currentLevel += 1;
+    if (currentLevel >= 999) break;
+  }
+
+  return {
+    currentLevel,
+    totalExp: safeTotalExp,
+    currentLevelExp: remainingExp,
+    nextLevelExp: getExpToNextLevel(currentLevel),
+  };
+}
+
+function getExpToNextLevel(level) {
+  const safeLevel = Math.max(1, toSafeNumber(level, 1));
+  return BASE_LEVEL_EXP + Math.max(0, safeLevel - 1) * LEVEL_EXP_GROWTH;
+}
+
+function normalizeRewardKeyList(values = []) {
+  return uniqueStrings(values);
+}
+
+function buildRewardLabel(element, level) {
+  const elementLabel = ELEMENT_LABELS[element] || "운명";
+  return `${elementLabel} ${level}레벨 스킬`;
+}
+
+function buildRewardDescription(element, level) {
+  const elementLabel = ELEMENT_LABELS[element] || "운명";
+  return `${elementLabel} 기운과 공명하는 잠재력이 ${level}레벨에서 열립니다.`;
+}
+
+function buildRewardEvents({
+  previousProgress,
+  previousLevel,
+  nextProgress,
+  dayMasterElement,
+  prevStreakDays,
+  nextStreakDays,
+}) {
+  const rewardEvents = [];
+  const nextSkills = new Set(normalizeRewardKeyList(previousProgress?.unlockedSkills || []));
+  const nextSecrets = new Set(normalizeRewardKeyList(previousProgress?.unlockedSecretFortunes || []));
+  const nextMilestones = new Set(normalizeRewardKeyList(previousProgress?.unlockedMilestoneRewards || []));
+
+  for (let level = toSafeNumber(previousLevel, 1) + 1; level <= nextProgress.currentLevel; level += 1) {
+    rewardEvents.push({
+      rewardType: "level_up",
+      rewardKey: `level_${level}`,
+      level,
+      title: `${level}레벨 달성`,
+      description: "운명의 층이 한 겹 더 깊어집니다.",
+    });
+
+    for (const rewardTemplate of INTERNAL_LEVEL_REWARDS) {
+      if (rewardTemplate.level !== level) continue;
+      const targetSet = rewardTemplate.storeIn === "unlockedSecretFortunes" ? nextSecrets : nextMilestones;
+      if (targetSet.has(rewardTemplate.rewardKey)) continue;
+      targetSet.add(rewardTemplate.rewardKey);
+      rewardEvents.push({
+        rewardType: rewardTemplate.rewardType,
+        rewardKey: rewardTemplate.rewardKey,
+        level,
+        title: rewardTemplate.title,
+        description: rewardTemplate.description,
+      });
+    }
+  }
+
+  for (const milestone of STREAK_SECRET_MILESTONES) {
+    if (prevStreakDays < milestone && nextStreakDays >= milestone) {
+      const secretKey = `secret_streak_${milestone}`;
+      if (!nextSecrets.has(secretKey)) {
+        nextSecrets.add(secretKey);
+        rewardEvents.push({
+          rewardType: "secret_unlock",
+          rewardKey: secretKey,
+          level: milestone,
+          title: `${milestone}일 연속 출석`,
+          description: "비밀 운세가 새롭게 해금됩니다.",
+        });
+      }
+    }
+  }
+
+  return {
+    rewardEvents,
+    unlockedSkills: Array.from(nextSkills),
+    unlockedSecretFortunes: Array.from(nextSecrets),
+    unlockedMilestoneRewards: Array.from(nextMilestones),
+  };
+}
+
+async function ensureRpgIndexes() {
+  if (!rpgIndexReadyPromise) {
+    rpgIndexReadyPromise = Promise.all([
+      UserRpgProgress.init(),
+      UserDailyQuestLog.init(),
+      UserRpgRewardLog.init(),
+    ]).catch((error) => {
+      rpgIndexReadyPromise = null;
+      throw error;
+    });
+  }
+  return rpgIndexReadyPromise;
+}
+
+async function resolveRpgProfile(auth, requestedProfileId) {
+  const rawRequestedProfileId = typeof requestedProfileId === "string" ? requestedProfileId : "";
+  const hasRequestedProfileId = Boolean(rawRequestedProfileId.trim());
+  const profileId = normalizeProfileId(rawRequestedProfileId || "");
+  if (hasRequestedProfileId && !profileId) {
+    return { error: json({ ok: false, message: "유효한 profileId가 필요합니다." }, { status: 400 }) };
+  }
+
+  const user = await User.findById(auth.userId)
+    .select("destinyProfilesCurrentId destinyProfilesLockedCurrentId")
+    .lean();
+
+  if (!user) {
+    return { error: json({ ok: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 }) };
+  }
+
+  let profile = null;
+  let resolvedProfileId = profileId || normalizeProfileId(user.destinyProfilesCurrentId);
+
+  if (resolvedProfileId) {
+    profile = await ProfileCard.findOne({ userId: auth.userId, profileId: resolvedProfileId }).lean();
+    if (!profile && hasRequestedProfileId) {
+      return { error: json({ ok: false, message: "프로필이 없습니다." }, { status: 404 }) };
+    }
+  }
+
+  if (!profile) {
+    profile = await ProfileCard.findOne({ userId: auth.userId }).sort({ createdAt: 1 }).lean();
+    if (!profile) {
+      return { error: json({ ok: false, message: "프로필이 없습니다." }, { status: 404 }) };
+    }
+    resolvedProfileId = normalizeProfileId(profile.profileId || profile.id || "");
+  }
+
+  return {
+    user,
+    profile,
+    profileId: resolvedProfileId || normalizeProfileId(profile.profileId || profile.id || ""),
+  };
+}
+
+async function loadRpgProgress(userId, profileId, session = null) {
+  const query = UserRpgProgress.findOne({ userId, profileId });
+  if (session) query.session(session);
+  const progress = await query.lean();
+  if (progress) {
+    return progress;
+  }
+
+  const now = new Date();
+  const createdDoc = {
+    userId,
+    profileId,
+    currentLevel: 1,
+    totalExp: 0,
+    currentLevelExp: 0,
+    nextLevelExp: getExpToNextLevel(1),
+    unlockedSkills: [],
+    unlockedSecretFortunes: [],
+    unlockedMilestoneRewards: [],
+    streakDays: 0,
+    longestStreakDays: 0,
+    lastQuestDateKst: "",
+    lastQuestCompletedAt: null,
+    createdAt: now,
+    updatedAt: now,
+  };
+  const created = session
+    ? await UserRpgProgress.create([createdDoc], { session })
+    : await UserRpgProgress.create([createdDoc]);
+
+  return created[0]?.toObject ? created[0].toObject() : created[0];
+}
+
+function buildProgressResponse(progressDoc) {
+  const nextState = calculateLevelState(progressDoc?.totalExp);
+  return {
+    currentLevel: nextState.currentLevel,
+    totalExp: nextState.totalExp,
+    currentLevelExp: nextState.currentLevelExp,
+    nextLevelExp: nextState.nextLevelExp,
+    streakDays: toSafeNumber(progressDoc?.streakDays, 0),
+    longestStreakDays: toSafeNumber(progressDoc?.longestStreakDays, 0),
+    lastQuestDateKst: toSafeString(progressDoc?.lastQuestDateKst, 10),
+    unlockedSkills: normalizeRewardKeyList(progressDoc?.unlockedSkills || []),
+    unlockedSecretFortunes: normalizeRewardKeyList(progressDoc?.unlockedSecretFortunes || []),
+    unlockedMilestoneRewards: normalizeRewardKeyList(progressDoc?.unlockedMilestoneRewards || []),
+  };
+}
+
+async function getDailyRpgStatus(request, env) {
+  const auth = await requireAuth(request, env);
+  await connectDb(env);
+  await ensureRpgIndexes();
+
+  const url = new URL(request.url);
+  const requestedProfileId = url.searchParams.get("profileId") || "";
+  const resolved = await resolveRpgProfile(auth, requestedProfileId);
+  if (resolved.error) return resolved.error;
+
+  const dateKey = kstDateKey();
+  const context = buildSajuContext(resolved.profile);
+  if (!context) {
+    return json({ ok: false, message: "사주 프로필 계산에 필요한 정보가 부족합니다." }, { status: 422 });
+  }
+
+  const questSet = buildQuestSet({
+    profile: resolved.profile,
+    profileId: resolved.profileId,
+    userId: auth.userId,
+    dateKey,
+    context,
+  });
+
+  const progress = await loadRpgProgress(auth.userId, resolved.profileId);
+  const logs = await UserDailyQuestLog.find({
+    userId: auth.userId,
+    profileId: resolved.profileId,
+    questDateKst: dateKey,
+  }).sort({ createdAt: 1 }).lean();
+
+  const completedQuestSet = new Set(logs.map((log) => String(log.questId || "")).filter(Boolean));
+  const completedQuestIds = questSet.quests
+    .filter((quest) => completedQuestSet.has(quest.questId))
+    .map((quest) => quest.questId);
+  const todayEarnedExp = logs.reduce((sum, log) => sum + toSafeNumber(log.expReward), 0);
+
+  return json({
+    ok: true,
+    profileId: resolved.profileId,
+    questDateKst: dateKey,
+    todayMaxExp: questSet.todayMaxExp,
+    todayEarnedExp,
+    completedQuestIds,
+    quests: questSet.quests.map((quest) => ({
+      ...quest,
+      completed: completedQuestSet.has(quest.questId),
+    })),
+    generationMeta: questSet.generationMeta,
+    ...buildProgressResponse(progress),
+    message: "오늘의 운명 퀘스트가 열렸습니다.",
+  });
+}
+
+async function completeDailyQuest(request, env) {
+  const auth = await requireAuth(request, env);
+  await connectDb(env);
+  await ensureRpgIndexes();
+
+  const body = await readJson(request);
+  const requestedProfileId = String(body?.profileId || "");
+  const requestedQuestId = normalizeProfileId(body?.questId || "");
+  if (!requestedQuestId) {
+    return json({ ok: false, message: "questId가 필요합니다." }, { status: 400 });
+  }
+
+  const resolved = await resolveRpgProfile(auth, requestedProfileId);
+  if (resolved.error) return resolved.error;
+
+  const dateKey = kstDateKey();
+  const context = buildSajuContext(resolved.profile);
+  if (!context) {
+    return json({ ok: false, message: "사주 프로필 계산에 필요한 정보가 부족합니다." }, { status: 422 });
+  }
+
+  const questSet = buildQuestSet({
+    profile: resolved.profile,
+    profileId: resolved.profileId,
+    userId: auth.userId,
+    dateKey,
+    context,
+  });
+
+  const questMap = new Map(questSet.quests.map((quest) => [quest.questId, quest]));
+  const selectedQuest = questMap.get(requestedQuestId);
+  if (!selectedQuest) {
+    return json({ ok: false, message: "오늘 생성된 미션이 아닙니다." }, { status: 400 });
+  }
+
+  const todayMaxExp = questSet.todayMaxExp;
+  const session = await mongoose.startSession();
+  const now = new Date();
+
+  try {
+    let nextProgress = null;
+    let leveledUp = false;
+    let unlockedRewards = [];
+
+    await session.withTransaction(async () => {
+      const progress = await UserRpgProgress.findOne({ userId: auth.userId, profileId: resolved.profileId }).session(session);
+      const isExistingProgress = Boolean(progress);
+      const progressDoc = progress || new UserRpgProgress({
+        userId: auth.userId,
+        profileId: resolved.profileId,
+        currentLevel: 1,
+        totalExp: 0,
+        currentLevelExp: 0,
+        nextLevelExp: getExpToNextLevel(1),
+        unlockedSkills: [],
+        unlockedSecretFortunes: [],
+        unlockedMilestoneRewards: [],
+        streakDays: 0,
+        longestStreakDays: 0,
+        lastQuestDateKst: "",
+        lastQuestCompletedAt: null,
+      });
+
+      const existingQuestLog = await UserDailyQuestLog.findOne({
+        userId: auth.userId,
+        profileId: resolved.profileId,
+        questDateKst: dateKey,
+        questId: selectedQuest.questId,
+      }).session(session);
+
+      if (existingQuestLog) {
+        throw createInternalError("이미 완료한 미션입니다.", "DAILY_QUEST_ALREADY_COMPLETED", 409);
+      }
+
+      const logs = await UserDailyQuestLog.find({
+        userId: auth.userId,
+        profileId: resolved.profileId,
+        questDateKst: dateKey,
+      }).session(session);
+      const todayEarnedExp = logs.reduce((sum, log) => sum + toSafeNumber(log.expReward), 0);
+      if (todayEarnedExp + toSafeNumber(selectedQuest.expReward) > todayMaxExp) {
+        throw createInternalError("오늘 최대 EXP 한도를 초과했습니다.", "DAILY_QUEST_EXP_CAP_REACHED", 400);
+      }
+
+      const prevProgress = progressDoc.toObject ? progressDoc.toObject() : progressDoc;
+      const prevLevel = calculateLevelState(prevProgress.totalExp).currentLevel;
+      const prevStreakDays = toSafeNumber(prevProgress.streakDays, 0);
+      const yesterdayKey = yesterdayKstDateKey();
+      let nextStreakDays = prevStreakDays;
+
+      if (toSafeString(prevProgress.lastQuestDateKst, 10) !== dateKey) {
+        if (toSafeString(prevProgress.lastQuestDateKst, 10) === yesterdayKey) {
+          nextStreakDays = Math.max(1, prevStreakDays + 1);
+        } else {
+          nextStreakDays = 1;
+        }
+      }
+
+      const nextTotalExp = toSafeNumber(prevProgress.totalExp) + toSafeNumber(selectedQuest.expReward);
+      const nextLevelState = calculateLevelState(nextTotalExp);
+      leveledUp = nextLevelState.currentLevel > prevLevel;
+
+      const rewardPlan = buildRewardEvents({
+        previousProgress: prevProgress,
+        previousLevel: prevLevel,
+        nextProgress: nextLevelState,
+        dayMasterElement: context.dayMasterElement,
+        prevStreakDays,
+        nextStreakDays,
+      });
+
+      const isDailyQuestCompleted = (logs.length + 1) >= questSet.quests.length;
+      if (isDailyQuestCompleted) {
+        const dailySecretKey = `daily_complete_${dateKey}`;
+        const dailySecretExists = normalizeRewardKeyList(rewardPlan.unlockedSecretFortunes || []).includes(dailySecretKey)
+          || normalizeRewardKeyList(prevProgress?.unlockedSecretFortunes || []).includes(dailySecretKey);
+        if (!dailySecretExists) {
+          rewardPlan.rewardEvents.push({
+            rewardType: "secret_unlock",
+            rewardKey: dailySecretKey,
+            level: nextLevelState.currentLevel,
+            title: "오늘의 성장 메시지",
+            description: "오늘의 미션을 모두 완료했습니다. 비밀 운세가 해금됩니다.",
+          });
+          rewardPlan.unlockedSecretFortunes = uniqueStrings([
+            ...(rewardPlan.unlockedSecretFortunes || []),
+            dailySecretKey,
+          ]);
+        }
+      }
+
+      const rewardLogs = rewardPlan.rewardEvents.map((reward) => ({
+        userId: auth.userId,
+        profileId: resolved.profileId,
+        rewardType: reward.rewardType,
+        rewardKey: reward.rewardKey,
+        level: reward.level,
+        idempotencyKey: `${dateKey}:${resolved.profileId}:${reward.rewardType}:${reward.rewardKey}`,
+        meta: {
+          dateKey,
+          questId: selectedQuest.questId,
+          questType: selectedQuest.questType,
+          element: selectedQuest.element,
+          expReward: selectedQuest.expReward,
+          reason: selectedQuest.reason,
+          title: reward.title,
+          description: reward.description,
+        },
+      }));
+
+      await UserDailyQuestLog.create([{
+        userId: auth.userId,
+        profileId: resolved.profileId,
+        questDateKst: dateKey,
+        questId: selectedQuest.questId,
+        questType: selectedQuest.questType,
+        element: selectedQuest.element,
+        expReward: selectedQuest.expReward,
+        completedAt: now,
+        evidenceType: "server_generated_quest",
+        status: "completed",
+        idempotencyKey: `${dateKey}:${resolved.profileId}:${selectedQuest.questId}`,
+        missionSnapshot: {
+          ...selectedQuest,
+          dateKey,
+          todayMaxExp,
+          generationMeta: questSet.generationMeta,
+        },
+      }], { session });
+
+      if (rewardLogs.length > 0) {
+        await UserRpgRewardLog.create(rewardLogs, { session });
+      }
+
+      const progressUpdate = {
+        currentLevel: nextLevelState.currentLevel,
+        totalExp: nextLevelState.totalExp,
+        currentLevelExp: nextLevelState.currentLevelExp,
+        nextLevelExp: nextLevelState.nextLevelExp,
+        streakDays: nextStreakDays,
+        longestStreakDays: Math.max(toSafeNumber(prevProgress.longestStreakDays, 0), nextStreakDays),
+        lastQuestDateKst: dateKey,
+        lastQuestCompletedAt: now,
+        unlockedSkills: rewardPlan.unlockedSkills,
+        unlockedSecretFortunes: rewardPlan.unlockedSecretFortunes,
+        unlockedMilestoneRewards: rewardPlan.unlockedMilestoneRewards,
+        updatedAt: now,
+      };
+
+      if (isExistingProgress) {
+        await UserRpgProgress.updateOne(
+          { _id: progressDoc._id },
+          { $set: progressUpdate },
+          { session },
+        );
+      } else {
+        progressDoc.set(progressUpdate);
+        await progressDoc.save({ session });
+      }
+
+      const nextProgressDoc = {
+        ...prevProgress,
+        ...progressUpdate,
+      };
+      nextProgress = nextProgressDoc;
+      unlockedRewards = rewardLogs.map((reward) => ({
+        rewardType: reward.rewardType,
+        rewardKey: reward.rewardKey,
+        level: reward.level,
+        title: reward.meta?.title || "",
+        description: reward.meta?.description || "",
+      }));
+    });
+
+    const refreshedProgress = await UserRpgProgress.findOne({
+      userId: auth.userId,
+      profileId: resolved.profileId,
+    }).lean();
+
+    const refreshedLogs = await UserDailyQuestLog.find({
+      userId: auth.userId,
+      profileId: resolved.profileId,
+      questDateKst: dateKey,
+    }).sort({ createdAt: 1 }).lean();
+
+    const completedSet = new Set(refreshedLogs.map((log) => String(log.questId || "")).filter(Boolean));
+    const completedQuestIds = questSet.quests
+      .filter((quest) => completedSet.has(quest.questId))
+      .map((quest) => quest.questId);
+    const todayEarnedExp = refreshedLogs.reduce((sum, log) => sum + toSafeNumber(log.expReward), 0);
+
+    return json({
+      ok: true,
+      profileId: resolved.profileId,
+      questId: selectedQuest.questId,
+      questDateKst: dateKey,
+      todayMaxExp,
+      todayEarnedExp,
+      completedQuestIds,
+      quests: questSet.quests.map((quest) => ({
+        ...quest,
+        completed: completedSet.has(quest.questId),
+      })),
+      leveledUp,
+      newLevel: toSafeNumber(refreshedProgress?.currentLevel || nextProgress?.currentLevel || 1, 1),
+      unlockedRewards,
+      ...buildProgressResponse(refreshedProgress || nextProgress),
+      message: leveledUp
+        ? "미션이 완료되며 운명의 레벨이 상승했습니다."
+        : "미션이 완료되었습니다.",
+    });
+  } catch (error) {
+    if (String(error?.code || "") === "DAILY_QUEST_ALREADY_COMPLETED") {
+      return json({ ok: false, message: "이미 완료한 미션입니다." }, { status: 409 });
+    }
+    if (String(error?.code || "") === "DAILY_QUEST_EXP_CAP_REACHED") {
+      return json({ ok: false, message: "오늘 최대 EXP 한도를 초과했습니다." }, { status: 400 });
+    }
+    if (Number(error?.status) === 409) {
+      return json({ ok: false, message: "이미 완료한 미션입니다." }, { status: 409 });
+    }
+    if (String(error?.code || "").includes("11000")) {
+      return json({ ok: false, message: "이미 완료한 미션입니다." }, { status: 409 });
+    }
+    throw error;
+  } finally {
+    session.endSession();
+  }
+}
+
+export async function handleRpgRoutes(request, env) {
+  let path = "";
+  try {
+    const method = request.method.toUpperCase();
+    path = getRoutePath(request, "/api/rpg");
+
+    if (method === "GET" && (path === "" || path === "/" || path === "/status" || path === "/daily/status" || path === "/me")) {
+      return await getDailyRpgStatus(request, env);
+    }
+
+    if (method === "POST" && (path === "" || path === "/" || path === "/complete" || path === "/daily/complete")) {
+      return await completeDailyQuest(request, env);
+    }
+
+    if (["GET", "POST"].includes(method)) return notFound();
+    return methodNotAllowed();
+  } catch (error) {
+    return handleRouteError(error);
+  }
+}

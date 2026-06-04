@@ -82,6 +82,97 @@ const CONTROLLING_ELEMENT: Record<LoveCharacter["element"], LoveCharacter["eleme
   metal: "wood",
 };
 
+const ELEMENT_LOVE_NARRATIVE: Record<LoveCharacter["element"], { label: string; atmosphere: string; harmony: string; shadow: string; datePulse: string }> = {
+  wood: {
+    label: "목",
+    atmosphere: "새 가지가 빛을 향해 뻗듯 마음이 천천히 자라나는 기운",
+    harmony: "상대가 꿈과 성장을 응원해줄 때 궁합의 숨이 길어집니다",
+    shadow: "재촉과 평가가 섞이면 아직 여린 감정이 쉽게 움츠러듭니다",
+    datePulse: "산책, 작은 계획, 함께 배우는 시간",
+  },
+  fire: {
+    label: "화",
+    atmosphere: "불빛이 어둠을 밀어내듯 설렘과 표현이 먼저 살아나는 기운",
+    harmony: "따뜻한 반응과 분명한 호감 표현이 관계의 온도를 빠르게 올립니다",
+    shadow: "차가운 침묵이나 애매한 태도는 불안을 과열시킬 수 있습니다",
+    datePulse: "햇빛, 무대, 웃음이 터지는 활동형 데이트",
+  },
+  earth: {
+    label: "토",
+    atmosphere: "흙이 씨앗을 품듯 관계를 오래 지키고 현실로 눌러 앉히는 기운",
+    harmony: "반복되는 배려와 생활의 안정감이 신뢰의 궁을 단단하게 만듭니다",
+    shadow: "가벼운 약속 파기와 감정 기복은 마음의 문을 천천히 닫게 합니다",
+    datePulse: "따뜻한 식사, 익숙한 동네, 오래 머무는 대화",
+  },
+  metal: {
+    label: "금",
+    atmosphere: "맑은 금속처럼 기준과 예의, 선명한 선택을 요구하는 기운",
+    harmony: "정중한 태도와 일관된 약속이 호감보다 먼저 신뢰를 세웁니다",
+    shadow: "무례함과 즉흥적인 압박은 관계의 결을 차갑게 굳힙니다",
+    datePulse: "전시, 정돈된 공간, 취향이 보이는 선물",
+  },
+  water: {
+    label: "수",
+    atmosphere: "깊은 물처럼 말보다 여백과 기억으로 마음을 흐르게 하는 기운",
+    harmony: "조용한 질문과 감정의 속도를 존중하는 태도가 오래 남습니다",
+    shadow: "답을 강요하거나 속내를 들춰내려 하면 물길이 금세 멀어집니다",
+    datePulse: "밤길, 비 오는 카페, 오래 남는 문장",
+  },
+};
+
+const DAY_MASTER_LOVE_NARRATIVE: Record<LoveCharacter["dayMaster"], { core: string; attraction: string; caution: string }> = {
+  갑목: {
+    core: "갑목은 큰 나무처럼 관계 안에서 방향과 성장의 의미를 찾습니다",
+    attraction: "함께 앞으로 나아가자는 말, 성실한 응원, 미래를 가꾸는 대화에 마음을 엽니다",
+    caution: "성장을 막는 냉소와 책임 없는 즉흥에는 실망이 빠릅니다",
+  },
+  을목: {
+    core: "을목은 덩굴과 꽃처럼 작은 온기와 섬세한 눈빛을 오래 기억합니다",
+    attraction: "부드러운 배려와 구체적인 관심이 쌓일수록 사랑의 결이 깊어집니다",
+    caution: "무심한 말투와 거친 단정은 마음의 잎을 접게 만듭니다",
+  },
+  병화: {
+    core: "병화는 태양처럼 좋아하는 마음을 숨기기보다 드러내며 관계를 밝힙니다",
+    attraction: "응원, 인정, 밝은 리액션이 들어오면 설렘이 단숨에 살아납니다",
+    caution: "모호한 밀당과 차가운 무반응은 자존심과 불안을 동시에 건드립니다",
+  },
+  정화: {
+    core: "정화는 촛불처럼 가까운 사람에게만 오래 가는 온기를 건넵니다",
+    attraction: "장난 속의 진심, 섬세한 칭찬, 마음을 알아봐주는 말에 흔들립니다",
+    caution: "가벼운 농담으로 진심을 흘려보내면 서운함이 조용히 쌓입니다",
+  },
+  기토: {
+    core: "기토는 정원 흙처럼 관계를 돌보고, 불안한 마음을 생활 속 안정으로 바꿉니다",
+    attraction: "천천히 맞춰주는 태도와 감사의 표현이 궁합의 뿌리를 깊게 만듭니다",
+    caution: "성급한 고백보다 지키지 못할 말이 더 큰 균열을 남깁니다",
+  },
+  경금: {
+    core: "경금은 단단한 검처럼 사랑에서도 기준, 책임, 태도의 정확성을 봅니다",
+    attraction: "예의 있는 직진과 흔들리지 않는 약속이 신뢰의 문을 엽니다",
+    caution: "무계획한 감정 표현과 선을 넘는 장난은 단번에 거리를 만듭니다",
+  },
+  신금: {
+    core: "신금은 보석처럼 미묘한 분위기와 말의 결을 예민하게 비춥니다",
+    attraction: "취향을 기억하는 세심함, 정돈된 표현, 조용한 존중에 마음이 반짝입니다",
+    caution: "거친 표현과 무심한 태도는 오래 남는 흠집처럼 느껴질 수 있습니다",
+  },
+  임수: {
+    core: "임수는 큰 바다처럼 넓은 생각과 고독한 자유를 함께 품습니다",
+    attraction: "깊은 대화와 간섭 없는 신뢰가 흐를 때 관계의 물길이 넓어집니다",
+    caution: "붙잡으려는 집착과 얕은 단정은 멀어지고 싶은 파도를 만듭니다",
+  },
+  계수: {
+    core: "계수는 안개비처럼 조용히 스며들고, 쉽게 말하지 않은 마음을 오래 간직합니다",
+    attraction: "비밀을 지켜주는 태도, 작은 기억, 부드러운 질문에 마음이 열립니다",
+    caution: "감정을 추궁하거나 속도를 강요하면 말없이 뒤로 물러납니다",
+  },
+};
+
+const YIN_YANG_LOVE_NARRATIVE: Record<LoveCharacter["yinYang"], string> = {
+  yang: "양의 리듬이 강해 마음이 움직이면 먼저 방향을 만들고, 관계의 흐름을 밖으로 드러내려 합니다",
+  yin: "음의 리듬이 깊어 마음이 움직여도 먼저 살피고, 안전하다고 느낄 때 속내를 보여줍니다",
+};
+
 type ProfileCrop = {
   x: number;
   y: number;
@@ -360,9 +451,51 @@ function createFallbackChoice(character: LoveCharacter, chapter: number, index: 
     id: `fallback-${chapter}-${index}-${tone}`,
     text: toneText,
     effects: effectsByTone[tone],
-    response: `${character.name}는 잠깐 시선을 내렸다가 다시 당신을 바라본다. "${tone === "warm" ? "그런 말은 쉽게 잊히지 않네요." : tone === "curious" ? "그걸 물어봐 주는 사람은 많지 않았어요." : "이 정도 속도라면, 나도 조금은 편해질 것 같아요."}"`,
-    insight: `${character.name}형은 ${character.bestApproach}`,
+    response: `${character.name}는 잠깐 시선을 내렸다가 다시 당신을 바라본다. "${tone === "warm" ? "그런 말은 쉽게 잊히지 않네요. 마음이 급하게 뜨는 게 아니라, 조용히 따뜻해지는 느낌이에요." : tone === "curious" ? "그걸 물어봐 주는 사람은 많지 않았어요. 대답보다 질문의 결이 먼저 닿을 때가 있네요." : "이 정도 속도라면, 나도 조금은 편해질 것 같아요. 가까워지는 일에도 숨 쉴 틈은 필요하니까."}"`,
+    insight: `${character.name}형은 ${character.bestApproach} ${ELEMENT_LOVE_NARRATIVE[character.element].harmony}`,
   };
+}
+
+function getCharacterTenGodLine(character: LoveCharacter) {
+  const hints = character.sajuMatchProfile?.tenGodHints?.slice(0, 3) ?? [];
+  if (hints.length === 0) return "십성의 힌트는 아직 조용하지만, 일간과 오행의 결이 관계의 첫 단서를 만듭니다.";
+
+  return `${hints.join("·")}의 십성 힌트가 사랑에서 원하는 역할, 책임, 표현 방식을 은근히 드러냅니다.`;
+}
+
+function buildMyeongliSceneArc(character: LoveCharacter, scene: Pick<LoveScene, "chapter" | "location">) {
+  const element = ELEMENT_LOVE_NARRATIVE[character.element];
+  const dayMaster = DAY_MASTER_LOVE_NARRATIVE[character.dayMaster];
+  const chapterIndex = Math.max(scene.chapter - 1, 0);
+  const affection = character.affectionTriggers[chapterIndex % character.affectionTriggers.length] ?? character.profileLine;
+  const trust = character.trustTriggers[chapterIndex % character.trustTriggers.length] ?? character.bestApproach;
+  const topic = character.likes.topics[chapterIndex % character.likes.topics.length] ?? character.archetype;
+  const behavior = character.dislikes.behaviors[chapterIndex % character.dislikes.behaviors.length] ?? "성급한 태도";
+
+  return {
+    affection,
+    behavior,
+    dayMaster,
+    element,
+    tenGods: getCharacterTenGodLine(character),
+    topic,
+    trust,
+    yinYang: YIN_YANG_LOVE_NARRATIVE[character.yinYang],
+  };
+}
+
+function buildMyeongliResultCoda(character: LoveCharacter) {
+  const element = ELEMENT_LOVE_NARRATIVE[character.element];
+  const dayMaster = DAY_MASTER_LOVE_NARRATIVE[character.dayMaster];
+
+  return `${dayMaster.core}. ${element.label} 기운은 ${element.atmosphere}이라서, ${element.harmony}. ${getCharacterTenGodLine(character)} 이 캐릭터와의 궁합은 단순한 호감 점수보다 "어떤 속도로 다가가고, 어떤 방식으로 안심시키는가"에서 성패가 갈립니다.`;
+}
+
+function buildMyeongliRiskCoda(character: LoveCharacter) {
+  const element = ELEMENT_LOVE_NARRATIVE[character.element];
+  const dayMaster = DAY_MASTER_LOVE_NARRATIVE[character.dayMaster];
+
+  return `${element.shadow}. ${dayMaster.caution}. 피해야 할 흐름은 ${character.dislikes.behaviors.join(", ")}이며, 이 신호가 반복되면 ${character.conflictPattern}`;
 }
 
 function createSupplementalScene(character: LoveCharacter, chapter: number): LoveScene {
@@ -370,6 +503,7 @@ function createSupplementalScene(character: LoveCharacter, chapter: number): Lov
   const topic = character.likes.topics[(chapter - 1) % character.likes.topics.length] ?? "서로의 마음";
   const trigger = character.affectionTriggers[(chapter - 1) % character.affectionTriggers.length] ?? character.profileLine;
   const trust = character.trustTriggers[(chapter - 1) % character.trustTriggers.length] ?? "천천히 쌓는 신뢰";
+  const arc = buildMyeongliSceneArc(character, { chapter, location: place });
 
   return {
     id: `${character.id}-supplement-${chapter}`,
@@ -377,8 +511,8 @@ function createSupplementalScene(character: LoveCharacter, chapter: number): Lov
     chapter,
     location: place,
     title: `${character.archetype}의 깊어지는 장면`,
-    situation: `${place}의 공기가 천천히 가라앉는다. ${character.name}는 ${topic}에 대해 쉽게 끝나지 않는 이야기를 꺼내고, 대화는 가벼운 안부에서 서로의 관계 속도와 마음의 기준으로 이어진다. ${character.personality} 지금은 성급하게 답을 고르는 순간이 아니라, 이 사람이 어떤 방식으로 호감을 확인하고 불안을 감추는지 바라봐야 하는 장면이다.`,
-    dialogue: `${trigger}. 그리고 ${trust}. 나는 그런 흐름이 오래 남는 편이에요.`,
+    situation: `${place}의 공기가 천천히 가라앉는다. ${character.name}는 ${topic}에 대해 쉽게 끝나지 않는 이야기를 꺼내고, 대화는 가벼운 안부에서 서로의 관계 속도와 마음의 기준으로 이어진다. ${arc.dayMaster.core}. ${arc.element.label}의 기운은 ${arc.element.atmosphere}이라, 이 장면의 끌림은 눈에 띄는 사건보다 작은 반응과 반복되는 태도에서 깊어진다. ${arc.tenGods} 지금은 성급하게 답을 고르는 순간이 아니라, 이 사람이 어떤 방식으로 호감을 확인하고 불안을 감추는지 바라봐야 하는 장면이다.`,
+    dialogue: `${trigger}. ${arc.dayMaster.attraction}. 그리고 ${trust}. 나는 그런 흐름이 오래 남는 편이에요.`,
     choices: [
       createFallbackChoice(character, chapter, 1, "warm"),
       createFallbackChoice(character, chapter, 2, "curious"),
@@ -395,6 +529,7 @@ function createExpandedSupplementalScene(character: LoveCharacter, chapter: numb
   const trigger = character.affectionTriggers[chapterIndex % character.affectionTriggers.length] ?? character.profileLine;
   const trust = character.trustTriggers[chapterIndex % character.trustTriggers.length] ?? character.bestApproach;
   const behavior = character.dislikes.behaviors[chapterIndex % character.dislikes.behaviors.length] ?? "성급한 확신";
+  const arc = buildMyeongliSceneArc(character, { chapter, location: place });
 
   return {
     id: `${character.id}-expanded-supplement-${chapter}`,
@@ -402,8 +537,8 @@ function createExpandedSupplementalScene(character: LoveCharacter, chapter: numb
     chapter,
     location: place || legacyScene.location,
     title: `${character.archetype}의 마음이 깊어지는 밤`,
-    situation: `${place}의 공기가 천천히 가라앉는다. ${character.name}은 ${topic}에 대한 이야기를 꺼내다가 문득 당신의 반응을 오래 바라본다. 가벼운 농담처럼 시작된 대화는 어느새 서로의 속도와 마음을 확인하는 밤으로 이어진다. ${character.personality} 그래서 지금은 답을 고르는 시간이 아니라, 이 사람이 어떤 방식으로 애정을 확인하고 불안을 감추는지 바라봐야 하는 장면이다.`,
-    dialogue: `${trigger}. 그리고 ${trust}. 나는 그런 흐름을 오래 기억하는 편이야.`,
+    situation: `${place}의 공기가 천천히 가라앉는다. ${character.name}은 ${topic}에 대한 이야기를 꺼내다가 문득 당신의 반응을 오래 바라본다. 가벼운 농담처럼 시작된 대화는 어느새 서로의 속도와 마음을 확인하는 밤으로 이어진다. ${arc.dayMaster.core}. ${arc.yinYang}. ${arc.element.label}의 연애 결은 ${arc.element.harmony} 그래서 지금은 답을 고르는 시간이 아니라, 이 사람이 어떤 방식으로 애정을 확인하고 불안을 감추는지 읽어야 하는 장면이다. ${arc.tenGods}`,
+    dialogue: `${trigger}. ${arc.dayMaster.attraction}. 그리고 ${trust}. 나는 그런 흐름을 오래 기억하는 편이야.`,
     choices: [
       {
         ...createFallbackChoice(character, chapter, 1, "warm"),
@@ -428,15 +563,12 @@ function createExpandedSupplementalScene(character: LoveCharacter, chapter: numb
 }
 
 function buildScenePrelude(character: LoveCharacter, scene: LoveScene) {
-  const chapterIndex = Math.max(scene.chapter - 1, 0);
-  const affection = character.affectionTriggers[chapterIndex % character.affectionTriggers.length] ?? character.profileLine;
-  const trust = character.trustTriggers[chapterIndex % character.trustTriggers.length] ?? character.bestApproach;
-  const topic = character.likes.topics[chapterIndex % character.likes.topics.length] ?? character.archetype;
-  const behavior = character.dislikes.behaviors[chapterIndex % character.dislikes.behaviors.length] ?? "성급한 태도";
+  const arc = buildMyeongliSceneArc(character, scene);
 
   return [
-    `${character.name}의 ${character.dayMaster} 기운은 이 장면에서 ${character.archetype}의 결로 드러납니다. ${topic}을 이야기하는 동안에도 마음의 방향은 쉽게 단정되지 않고, 당신이 어떤 속도로 다가오는지를 조용히 살핍니다.`,
-    `${affection}은 관계의 온도를 올리고, ${trust}은 닫혀 있던 마음을 조금 더 안전하게 만듭니다. 반대로 ${behavior}이 느껴지면 ${character.conflictPattern} 그래서 지금 필요한 것은 정답 같은 말보다, 이 사람의 리듬을 놓치지 않는 태도입니다.`,
+    `${character.name}의 ${character.dayMaster} 일간은 ${arc.dayMaster.core}. ${scene.location}에서 시작된 이 장면은 ${arc.element.label} 기운의 ${arc.element.atmosphere}으로 번지고, ${arc.topic}을 이야기하는 동안에도 마음의 방향은 쉽게 단정되지 않습니다.`,
+    `${arc.yinYang}. ${arc.affection}은 관계의 온도를 올리고, ${arc.trust}은 닫혀 있던 마음을 조금 더 안전하게 만듭니다. ${arc.tenGods}`,
+    `궁합에서 지금 중요한 포인트는 ${arc.element.harmony} 반대로 ${arc.behavior}이 느껴지면 ${character.conflictPattern} 그래서 지금 필요한 것은 정답 같은 말보다, 이 사람의 리듬을 놓치지 않는 태도입니다.`,
   ];
 }
 
@@ -870,7 +1002,7 @@ export const LoveSimulationEngine: React.FC = () => {
         day,
         hour: Number(targetInput.hour) || 12,
       });
-      const results = matchLoveCharactersFromSaju(sajuResult, LOVE_CHARACTERS);
+      const results = matchLoveCharactersFromSaju(sajuResult, LOVE_CHARACTERS, targetInput.gender);
 
       if (results.length === 0) throw new Error("empty love character match result");
       setMatchResults(results);
@@ -993,7 +1125,7 @@ export const LoveSimulationEngine: React.FC = () => {
               <div className="mb-5">
                 <span className="text-xs font-black uppercase tracking-[0.24em] text-rose-100/86">LOVE MATCH</span>
                 <h2 className="mt-3 text-3xl font-black text-white">상대 정보 입력 매칭</h2>
-                <p className="mt-3 text-sm font-semibold leading-6 text-white/62">이름과 생년월일을 남기면 가장 닮은 러브 코드 상대가 열립니다.</p>
+                <p className="mt-3 text-sm font-semibold leading-6 text-white/62">이름과 생년월일을 남기면 선택한 성별 안에서 가장 닮은 러브 코드 상대가 열립니다.</p>
               </div>
 
               <div className="grid gap-4">
@@ -1104,7 +1236,7 @@ export const LoveSimulationEngine: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-black text-white/90">성별</label>
+                  <label className="mb-2 block text-sm font-black text-white/90">상대 성별</label>
                   <div className="grid grid-cols-2 gap-3">
                     {[
                       ["female", "♀ 여성"],
@@ -1329,6 +1461,12 @@ export const LoveSimulationEngine: React.FC = () => {
 
   if (screen === "result" && character) {
     const result = resolveResult(stats);
+    const choiceAnalysis = analyzeChoiceLogs(choiceLog);
+    const characterResultSummary = CHARACTER_RESULT_SUMMARIES[character.id];
+    const customAdvice = buildCustomAdvice(character, choiceAnalysis);
+    const myeongliCoda = buildMyeongliResultCoda(character);
+    const riskCoda = buildMyeongliRiskCoda(character);
+    const sajuEntrySummary = buildSajuEntrySummary(entryMode, character);
 
     return (
       <section className={`min-h-[100svh] bg-gradient-to-br ${character.palette.shell} text-white`}>
@@ -1363,6 +1501,9 @@ export const LoveSimulationEngine: React.FC = () => {
               </div>
 
               <p className="text-base leading-8 text-white/75">{result.body}</p>
+              <p className="mt-4 text-sm font-semibold leading-8 text-rose-50/76">
+                {characterResultSummary} {myeongliCoda}
+              </p>
 
               <div className="mt-7 grid gap-4 sm:grid-cols-3">
                 {metrics.map((metric) => (
@@ -1370,22 +1511,27 @@ export const LoveSimulationEngine: React.FC = () => {
                 ))}
               </div>
 
-              <div className="mt-8 grid gap-5 lg:grid-cols-2">
+              <div className="mt-8 grid gap-5 lg:grid-cols-3">
                 <div className="rounded-lg border border-white/10 bg-white/10 p-4">
                   <h3 className="mb-3 text-sm font-bold text-white">사주 성향 요약</h3>
                   <p className="text-sm leading-7 text-white/70">
-                    {character.name}는 {character.dayMaster}의 결을 가진 {character.archetype}입니다. {character.bestApproach}
+                    {sajuEntrySummary}
                   </p>
                 </div>
                 <div className="rounded-lg border border-white/10 bg-white/10 p-4">
+                  <h3 className="mb-3 text-sm font-bold text-white">명리 궁합 포인트</h3>
+                  <p className="text-sm leading-7 text-white/70">{customAdvice}</p>
+                </div>
+                <div className="rounded-lg border border-white/10 bg-white/10 p-4">
                   <h3 className="mb-3 text-sm font-bold text-white">피해야 할 흐름</h3>
-                  <p className="text-sm leading-7 text-white/70">{character.dislikes.behaviors.join(", ")}</p>
+                  <p className="text-sm leading-7 text-white/70">{riskCoda}</p>
                 </div>
               </div>
 
               <div className="mt-6 rounded-lg border border-white/10 bg-white/10 p-4">
                 <h3 className="mb-3 text-sm font-bold text-white">대화 선택 기반 분석</h3>
                 <div className="grid gap-3">
+                  <p className="text-sm leading-7 text-white/76">{choiceAnalysis.summary}</p>
                   {choiceLog.slice(-3).map((log, index) => (
                     <div key={`${log.sceneId}-${log.choiceId}`} className="border-b border-white/10 pb-3 last:border-b-0 last:pb-0">
                       <p className="text-xs font-semibold text-white/50">선택 {choiceLog.length - choiceLog.slice(-3).length + index + 1}</p>
@@ -1394,6 +1540,7 @@ export const LoveSimulationEngine: React.FC = () => {
                       </p>
                     </div>
                   ))}
+                  <p className="text-xs font-bold leading-6 text-rose-100/68">{choiceAnalysis.nextHint}</p>
                 </div>
               </div>
 

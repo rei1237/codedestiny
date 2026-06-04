@@ -571,7 +571,7 @@ export default function KkulkkulManseryukMain() {
     if (isPaymentLoading || unlockingRef.current) return;
     unlockingRef.current = true;
 
-    startPayment("잠금 해제 중입니다...");
+    startPayment("이용 권한 확인 중입니다...");
     try {
       const productId = UNLOCK_PRODUCT_BY_KEY[key];
       const requestId = `unlock:${productId || key}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9);
@@ -615,9 +615,9 @@ export default function KkulkkulManseryukMain() {
         return next;
       });
       setSparkleTarget(key);
-      setPaymentMessage("잠금 해제가 완료되었습니다. 결과를 열고 있습니다...");
+      setPaymentMessage("이용 권한 확인이 완료되었습니다. 결과를 열고 있습니다...");
       await new Promise(r => setTimeout(r, 1000));
-      showToast(`🎉 해금이 완료되었습니다! 바로 확인해 보세요.`, "success");
+      showToast(`🎉 이용 준비가 완료되었습니다! 바로 확인해 보세요.`, "success");
     } catch (e) {
       console.error('[unlockByCoins]', e);
       alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');

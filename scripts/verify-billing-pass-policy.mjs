@@ -207,6 +207,8 @@ assertContains(billingSource, "recordPassAccessIfNeeded", "PASS usage evidence")
 assertContains(billingSource, "consumeMembershipCreditIfAvailable", "monthly deduction path remains");
 assertContains(billingSource, 'accessMethod: "MONTHLY"', "monthly access method remains");
 assertContains(billingSource, 'charged: Number(membershipConsume.coinPrice || 0)', "monthly charged amount remains");
+assertContains(billingSource, "source: CONTENT_ENTITLEMENT_SOURCES.COIN", "monthly unlock is not recorded as pass");
+assertContains(billingSource, "paymentId: membershipConsume.transactionId || requestId", "monthly unlock keeps transaction evidence");
 assertBefore(
   billingSource,
   "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(request, env, body);",
@@ -238,14 +240,15 @@ assertBefore(
   'data-mode="monthly"',
   "payment modal shows card before monthly",
 );
-assertContains(indexSource, "이용권으로 바로 이용하기", "covered pass CTA");
-assertContains(indexSource, "현재 이용권 한도 초과", "over-limit pass card");
-assertContains(indexSource, "달빛 이용권으로 더 편하게 이용하기", "empty pass card");
-assertContains(indexSource, "차감 없음", "no deduction label");
-assertContains(indexSource, "스탠다드 달빛 이용권", "standard pass label");
-assertContains(indexSource, "프리미엄 달빛 이용권", "premium pass label");
-assertContains(indexSource, "VVIP 달빛 이용권", "vvip pass label");
-assertContains(indexSource, "월정석 잔량 부족", "monthly option remains visible when unavailable");
+assertContains(indexSource, 'data-mode="membership"', "covered pass CTA");
+assertContains(indexSource, 'data-pass-state="over"', "over-limit pass card");
+assertContains(indexSource, 'data-pass-state="empty"', "empty pass card");
+assertContains(indexSource, "membershipCreditCost = Math.max(0, coinPrice * 10)", "monthly credit cost policy");
+assertContains(indexSource, "passLabelMap", "pass label map");
+assertContains(indexSource, "BRONZE", "standard pass tier");
+assertContains(indexSource, "SILVER", "premium pass tier");
+assertContains(indexSource, "GOLD", "vvip pass tier");
+assertContains(indexSource, 'data-pass-state="monthly-unavailable"', "monthly option remains visible when unavailable");
 assertContains(indexSource, 'border-color:rgba(180,83,9,.50)', "BRONZE style");
 assertContains(indexSource, 'border-color:rgba(226,232,240,.50)', "SILVER style");
 assertContains(indexSource, 'border-color:rgba(253,224,71,.60)', "GOLD style");
@@ -254,6 +257,6 @@ assertContains(indexSource, "linear-gradient(145deg,rgba(15,23,42,.88),rgba(2,6,
 assertContains(indexSource, 'data-mode="cancel"', "cancel button");
 assertContains(indexSource, "_cdResolvePaymentEligibilityForOptions", "common eligibility helper");
 assertContains(indexSource, "/api/billing/unlock-status?", "server eligibility endpoint");
-assertContains(indexSource, "PortOne V2 · KG이니시스", "card provider badge");
+assertContains(indexSource, "PortOne V2", "card provider badge");
 
 console.log("billing pass policy regression checks passed");

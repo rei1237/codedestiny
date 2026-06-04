@@ -85,6 +85,7 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "rpt_villainCard",
   "rpt_luckSyncDiaryEntryCard",
   "rpt_secretHouseEntryCard",
+  "fun.quantumLotto.ritualReport",
 ];
 
 export const COIN_GATE_PER_USE_REASON_COSTS = Object.freeze({
@@ -212,6 +213,7 @@ export const FEATURE_KEY_PRICE_TABLE = Object.freeze({
   rpt_villainCard: { cost: 50, reason: "빌런 블랙리스트 영구 해금" },
   rpt_luckSyncDiaryEntryCard: { cost: 100, reason: "사주 다이어리 영구 해금" },
   rpt_secretHouseEntryCard: { cost: 50, reason: "시크릿 하우스 영구 해금" },
+  "fun.quantumLotto.ritualReport": { cost: 50, reason: "달빛 럭키 리추얼 리포트" },
 });
 
 export const PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({

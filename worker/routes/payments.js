@@ -1,5 +1,17 @@
 import { connectDb, mongoose } from "../lib/db.js";
-import { Payment, PaymentFailureLog, PointHistory, User } from "../lib/models.js";
+import {
+  CONTENT_ENTITLEMENT_SCOPES,
+  CONTENT_ENTITLEMENT_SERVICE_KEYS,
+  CONTENT_ENTITLEMENT_SOURCES,
+  CONTENT_ENTITLEMENT_STATUSES,
+  ContentEntitlement,
+  Payment,
+  PaymentFailureLog,
+  PointHistory,
+  ProfileCard,
+  SAJU_LOCKED_CONTENT_KEYS,
+  User,
+} from "../lib/models.js";
 import { requireAuth } from "../lib/auth.js";
 import { cancelPortOnePayment, fetchPortOnePayment, getPortOnePublicConfig, getPortOneWebhookSecret } from "../lib/portone.js";
 import { resolveChargePointsByAmount, validatePointChargePayload } from "../lib/validation.js";
@@ -9,6 +21,35 @@ import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-healt
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
+
+const SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
+  section_daewun: SAJU_LOCKED_CONTENT_KEYS.DAEUN_ANALYSIS,
+  section_summary: SAJU_LOCKED_CONTENT_KEYS.FULL_READING,
+  section_compat: SAJU_LOCKED_CONTENT_KEYS.COMPATIBILITY,
+});
+
+const PORTONE_SINGLE_PAYMENT_METHODS = new Set(["CARD", "TRANSFER", "VIRTUAL_ACCOUNT", "MOBILE", "EASY_PAY"]);
+const SINGLE_PAYMENT_UNLOCKED_STATUSES = ["paid", "success", "fulfilled"];
+const PORTONE_WEBHOOK_EVENTS = Object.freeze({
+  PAID: "Transaction.Paid",
+  VIRTUAL_ACCOUNT_ISSUED: "Transaction.VirtualAccountIssued",
+  FAILED: "Transaction.Failed",
+  CANCELLED: "Transaction.Cancelled",
+  PARTIAL_CANCELLED: "Transaction.PartialCancelled",
+});
+const PORTONE_WEBHOOK_PAYMENT_EVENTS = new Set(Object.values(PORTONE_WEBHOOK_EVENTS));
+const SINGLE_PAYMENT_ORDER_STATES = Object.freeze({
+  PENDING: "PENDING",
+  REDIRECTED: "REDIRECTED",
+  PAID_VERIFIED: "PAID_VERIFIED",
+  UNLOCKED: "UNLOCKED",
+  VIRTUAL_ACCOUNT_ISSUED: "VIRTUAL_ACCOUNT_ISSUED",
+  FAILED: "FAILED",
+  CANCELLED: "CANCELLED",
+  PARTIAL_CANCELLED: "PARTIAL_CANCELLED",
+  VERIFY_FAILED: "VERIFY_FAILED",
+  ERROR: "ERROR",
+});
 
 function toDateFromUnixSeconds(value) {
   const unixSeconds = Number(value);
@@ -445,6 +486,7 @@ function formatPaymentResponse(payment) {
     paymentType: payment.paymentType || "point_charge",
     subscriptionTier: payment.subscriptionTier || "",
     status: payment.status,
+    orderState: String(payment.orderState || ""),
     paidAt: payment.paidAt,
     failureCode: payment.failureCode,
     failureMessage: payment.failureMessage,
@@ -508,6 +550,1273 @@ async function getUserPoints(userId) {
   return Number(user?.points || 0);
 }
 
+function resolveSajuProfileUnlockContentKey(featureKey) {
+  return SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[String(featureKey || "").trim()] || "";
+}
+
+function cleanProfileId(value) {
+  return String(value || "").trim().slice(0, 80).replace(/\s+/g, "_");
+}
+
+function sanitizeAsciiPaymentSegment(value, fallback = "x") {
+  const normalized = String(value || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 24);
+  return normalized || fallback;
+}
+
+function randomAsciiToken(length = 8) {
+  const bytes = new Uint8Array(Math.max(4, Math.ceil(length * 0.75)));
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes)
+    .map((byte) => byte.toString(36).padStart(2, "0"))
+    .join("")
+    .slice(0, length);
+}
+
+function buildSinglePaymentId(userId) {
+  const userTag = sanitizeAsciiPaymentSegment(String(userId || "").slice(-10), "guest");
+  return `cd-single-${userTag}-${Date.now()}-${randomAsciiToken(8)}`;
+}
+
+function sanitizeReturnPath(value) {
+  const raw = String(value || "/").trim();
+  if (!raw) return "/";
+  try {
+    if (/^https?:\/\//i.test(raw)) {
+      const parsed = new URL(raw);
+      return `${parsed.pathname || "/"}${parsed.search || ""}${parsed.hash || ""}`.slice(0, 700);
+    }
+  } catch (_) {}
+  if (!raw.startsWith("/")) return "/";
+  if (raw.startsWith("//")) return "/";
+  return raw.slice(0, 700);
+}
+
+function trimUtf8Bytes(value, maxBytes) {
+  const encoder = new TextEncoder();
+  let output = "";
+  for (const char of Array.from(String(value || ""))) {
+    const next = `${output}${char}`;
+    if (encoder.encode(next).length > maxBytes) break;
+    output = next;
+  }
+  return output.trim();
+}
+
+function resolveSinglePaymentFeatureKey(body = {}) {
+  return String(
+    body?.featureKey
+      || body?.contentId
+      || body?.subFeatureKey
+      || body?.productId
+      || "",
+  ).trim().slice(0, 80);
+}
+
+function resolveSinglePayMethod(value) {
+  const normalized = String(value || "CARD").trim().toUpperCase();
+  return PORTONE_SINGLE_PAYMENT_METHODS.has(normalized) ? normalized : "CARD";
+}
+
+function getFrontendBaseUrl(env, request) {
+  const configured = getEnv(env, "SITE_BASE_URL")
+    || getEnv(env, "AUTH_FRONTEND_BASE_URL")
+    || getEnv(env, "NEXT_PUBLIC_SITE_URL");
+  const fallback = new URL(request.url).origin;
+  return String(configured || fallback).replace(/\/+$/, "");
+}
+
+function buildSinglePaymentRedirectUrl({ env, request, returnPath, paymentId }) {
+  const redirectUrl = new URL(sanitizeReturnPath(returnPath), getFrontendBaseUrl(env, request));
+  redirectUrl.searchParams.set("portone_redirect", "1");
+  redirectUrl.searchParams.set("payment_id", paymentId);
+  redirectUrl.searchParams.set("merchant_uid", paymentId);
+  redirectUrl.searchParams.set("returnPath", sanitizeReturnPath(returnPath));
+  return redirectUrl.toString();
+}
+
+function pickFirstText(values = []) {
+  for (const value of values) {
+    const text = String(value || "").trim();
+    if (text) return text;
+  }
+  return "";
+}
+
+function sanitizeCustomerEmail(value, userId) {
+  const email = String(value || "").trim().toLowerCase();
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return email.slice(0, 120);
+  return `buyer-${sanitizeAsciiPaymentSegment(String(userId || "").slice(-10), "guest")}@code-destiny.com`;
+}
+
+function sanitizeCustomerPhone(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length >= 8 && digits.length <= 15) return digits;
+  return "01000000000";
+}
+
+function buildSinglePaymentCustomer(user, userId) {
+  const fullName = pickFirstText([user?.fullName, user?.name, user?.displayName, user?.username, "Code Destiny 고객"]).slice(0, 40);
+  return {
+    fullName,
+    email: sanitizeCustomerEmail(user?.email, userId),
+    phoneNumber: sanitizeCustomerPhone(user?.phoneNumber || user?.phone),
+  };
+}
+
+async function verifySinglePaymentProfileOwner(userId, profileId) {
+  const profile = await ProfileCard.findOne({ userId, profileId }).select("_id profileId").lean();
+  if (profile) return profile;
+  return null;
+}
+
+async function hasExistingSinglePaymentUnlock({ userId, profileId, featureKey }) {
+  const contentKey = resolveSajuProfileUnlockContentKey(featureKey);
+  if (contentKey) {
+    // 결제창 호출 전에 프로필 단위 잠금 해제 이력을 먼저 확인해 중복 결제를 차단한다.
+    const entitlement = await ContentEntitlement.findOne({
+      userId: String(userId),
+      profileId: String(profileId),
+      serviceKey: CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
+      contentKey,
+      scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
+      status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
+      $or: [{ expiresAt: null }, { expiresAt: { $gt: new Date() } }],
+    }).select("_id unlockedAt orderId paymentId").lean();
+    if (entitlement) return { source: "content_entitlement", entitlement };
+  }
+
+  // 영구 유료 콘텐츠는 결제 성공 주문도 보조 근거로 본다. Webhook/confirm 재시도 중에도 같은 콘텐츠 재결제를 막기 위함이다.
+  const paidPayment = await Payment.findOne({
+    userId,
+    paymentType: "digital_content",
+    accessType: "single_purchase",
+    featureKey,
+    status: { $in: SINGLE_PAYMENT_UNLOCKED_STATUSES },
+    $or: [
+      { "pricingSnapshot.profileId": String(profileId) },
+      { "pricingSnapshot.selectedProfileId": String(profileId) },
+    ],
+  }).sort({ createdAt: -1 }).lean();
+  if (paidPayment) return { source: "payment", payment: paidPayment };
+  return null;
+}
+
+function resolveSinglePaymentPricing(body = {}) {
+  const featureKey = resolveSinglePaymentFeatureKey(body);
+  if (!featureKey) {
+    return {
+      ok: false,
+      status: 400,
+      message: "contentId is required.",
+      code: "CONTENT_ID_REQUIRED",
+    };
+  }
+
+  const resolved = getBillingFeaturePricing({
+    categoryKey: body?.categoryKey || body?.contentType,
+    subFeatureKey: body?.subFeatureKey,
+    featureKey,
+    reason: body?.productName || body?.reason,
+    mode: body?.mode,
+    reportMode: body?.reportMode,
+  });
+
+  if (!resolved?.ok || !resolved.pricing) {
+    return {
+      ok: false,
+      status: 400,
+      message: resolved?.message || "Payment product price was not found.",
+      code: "PRICE_NOT_FOUND",
+    };
+  }
+
+  const pricing = resolved.pricing;
+  const coinPrice = Number(pricing.coinPrice || pricing.cost || 0);
+  if (!Number.isInteger(coinPrice) || coinPrice <= 0) {
+    return {
+      ok: false,
+      status: 400,
+      message: "Payment product coin price is invalid.",
+      code: "INVALID_PRODUCT_PRICE",
+    };
+  }
+
+  return {
+    ok: true,
+    pricing,
+    featureKey: String(pricing.featureKey || featureKey).trim(),
+    coinPrice,
+    amountKRW: coinPrice * 100,
+    source: resolved.source || "pricing",
+  };
+}
+
+function buildSinglePaymentOrderResponse({ config, paymentId, orderName, amountKRW, coinPrice, payMethod, redirectUrl, customer, profileId, serviceId, contentId, contentType, featureKey, returnPath }) {
+  return {
+    storeId: config.storeId,
+    channelKey: config.channelKey,
+    paymentId,
+    merchantUid: paymentId,
+    orderName,
+    totalAmount: amountKRW,
+    paymentAmount: amountKRW,
+    amountKRW,
+    currency: config.currency || "CURRENCY_KRW",
+    payMethod,
+    redirectUrl,
+    customer,
+    profileId,
+    serviceId,
+    contentId,
+    contentType,
+    featureKey,
+    coinPrice,
+    returnPath,
+    orderState: SINGLE_PAYMENT_ORDER_STATES.PENDING,
+  };
+}
+
+function normalizeSingleCompletePaymentId(value) {
+  return String(value || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 160);
+}
+
+function extractPortOneRawPaymentId(portOnePayment = {}) {
+  const raw = portOnePayment?.rawV2 && typeof portOnePayment.rawV2 === "object" ? portOnePayment.rawV2 : portOnePayment;
+  return String(
+    raw?.paymentId
+      || raw?.id
+      || raw?.transaction?.paymentId
+      || "",
+  ).trim();
+}
+
+function extractPortOneStoreId(portOnePayment = {}) {
+  const raw = portOnePayment?.rawV2 && typeof portOnePayment.rawV2 === "object" ? portOnePayment.rawV2 : portOnePayment;
+  return String(
+    raw?.storeId
+      || raw?.store?.id
+      || raw?.store?.storeId
+      || portOnePayment?.storeId
+      || "",
+  ).trim();
+}
+
+function isPortOnePendingStatus(status) {
+  const normalized = String(status || "").trim().toLowerCase();
+  return ["ready", "pay_pending", "virtual_account_issued", "pending"].includes(normalized);
+}
+
+function buildSingleCompleteAccessGrant({ payment, entitlement, profileId, contentId, contentType, serviceId, paidAt }) {
+  return {
+    ok: true,
+    accessType: "single_purchase",
+    purchaseId: String(payment?._id || ""),
+    merchantUid: String(payment?.merchantUid || ""),
+    paymentId: String(payment?.merchantUid || ""),
+    featureKey: String(payment?.featureKey || contentId || ""),
+    serviceId,
+    contentId,
+    contentType,
+    evidenceId: String(entitlement?._id || ""),
+    profileId,
+    paidAt: paidAt ? new Date(paidAt).toISOString() : null,
+  };
+}
+
+function isAdminPaymentAuth(auth = {}) {
+  const role = String(auth?.role || "").trim().toLowerCase();
+  return role === "admin" || auth?.isAdmin === true;
+}
+
+function readPositiveInteger(value) {
+  if (value === undefined || value === null || value === "") return undefined;
+  const number = Number(value);
+  if (!Number.isInteger(number) || number <= 0) return NaN;
+  return number;
+}
+
+function extractPortOneCancelStatus(cancelResult = {}) {
+  const raw = cancelResult?.rawV2 && typeof cancelResult.rawV2 === "object" ? cancelResult.rawV2 : cancelResult;
+  const cancellations = Array.isArray(raw?.cancellations) ? raw.cancellations : [];
+  return String(
+    raw?.cancellation?.status
+      || raw?.cancel?.status
+      || cancellations[0]?.status
+      || raw?.status
+      || cancelResult?.status
+      || "",
+  ).trim().toUpperCase();
+}
+
+function isPortOneCancelSucceeded(cancelResult = {}) {
+  const status = extractPortOneCancelStatus(cancelResult);
+  return ["SUCCEEDED", "SUCCESS", "CANCELLED", "CANCELED", "PARTIAL_CANCELLED"].includes(status);
+}
+
+function isPartialSingleCancel({ requestedAmount, paidAmount, cancelResult }) {
+  const cancelStatus = extractPortOneCancelStatus(cancelResult);
+  if (cancelStatus === "PARTIAL_CANCELLED") return true;
+  return Number.isInteger(requestedAmount) && requestedAmount > 0 && requestedAmount < Number(paidAmount || 0);
+}
+
+async function handleSinglePaymentCancel(request, env, auth) {
+  /*
+   * 운영 정책: KG이니시스 PG사 관리자 페이지에서 직접 취소하지 말고
+   * 포트원 대시보드 또는 이 서버 API를 통해서만 취소 상태를 동기화한다.
+   * 디지털 콘텐츠 unlock은 정책 확정 전까지 자동 회수하지 않고 관리자 검토 플래그만 남긴다.
+   */
+  if (!isAdminPaymentAuth(auth)) {
+    return json({ ok: false, message: "Admin permission is required.", code: "FORBIDDEN_ADMIN_REQUIRED" }, { status: 403 });
+  }
+
+  const body = await readJson(request);
+  const paymentId = normalizeSingleCompletePaymentId(body?.paymentId || body?.merchantUid || body?.merchant_uid);
+  const reason = String(body?.reason || "Admin single payment cancellation").trim().slice(0, 120);
+  const requestedAmount = readPositiveInteger(body?.amount ?? body?.cancelAmount);
+  const currentCancellableAmount = readPositiveInteger(body?.currentCancellableAmount);
+  if (!paymentId) {
+    return json({ ok: false, message: "paymentId is required.", code: "PAYMENT_ID_REQUIRED" }, { status: 400 });
+  }
+  if (Number.isNaN(requestedAmount)) {
+    return json({ ok: false, message: "amount must be a positive integer.", code: "INVALID_CANCEL_AMOUNT" }, { status: 400 });
+  }
+  if (requestedAmount !== undefined && Number.isNaN(currentCancellableAmount)) {
+    return json({ ok: false, message: "currentCancellableAmount must be a positive integer for partial cancellation.", code: "INVALID_CURRENT_CANCELLABLE_AMOUNT" }, { status: 400 });
+  }
+  if (requestedAmount !== undefined && currentCancellableAmount === undefined) {
+    return json({ ok: false, message: "currentCancellableAmount is required for partial cancellation.", code: "CURRENT_CANCELLABLE_AMOUNT_REQUIRED" }, { status: 400 });
+  }
+
+  const paymentRecord = await Payment.findOne({
+    merchantUid: paymentId,
+    paymentType: "digital_content",
+    accessType: "single_purchase",
+  }).lean();
+  if (!paymentRecord) {
+    await writeFailureLog({
+      request,
+      userId: auth.userId,
+      merchantUid: paymentId,
+      source: "system",
+      stage: "single_cancel_order_lookup",
+      code: "single_payment_order_not_found",
+      message: "Single payment order was not found for cancellation.",
+      status: 404,
+      payload: { paymentId, securityEvent: true },
+    });
+    return json({ ok: false, message: "Single payment order was not found.", code: "ORDER_NOT_FOUND" }, { status: 404 });
+  }
+
+  if (paymentRecord.status === "cancelled" || paymentRecord.orderState === SINGLE_PAYMENT_ORDER_STATES.CANCELLED) {
+    return json({
+      ok: true,
+      idempotent: true,
+      status: SINGLE_PAYMENT_ORDER_STATES.CANCELLED,
+      unlockRevoked: false,
+      adminReviewRequired: true,
+      payment: formatPaymentResponse(paymentRecord),
+    });
+  }
+
+  const paidAmount = Number(paymentRecord.paymentAmount || 0);
+  if (requestedAmount !== undefined && requestedAmount > paidAmount) {
+    return json({ ok: false, message: "Cancel amount exceeds paid amount.", code: "CANCEL_AMOUNT_EXCEEDS_PAID_AMOUNT" }, { status: 400 });
+  }
+
+  const cancelResult = await cancelPortOnePayment(env, {
+    merchantUid: paymentId,
+    reason,
+    amount: requestedAmount,
+    currentCancellableAmount,
+  });
+  if (!isPortOneCancelSucceeded(cancelResult)) {
+    await Payment.findByIdAndUpdate(paymentRecord._id, {
+      $set: {
+        orderState: SINGLE_PAYMENT_ORDER_STATES.ERROR,
+        rawPortOne: cancelResult,
+        failureCode: "portone_cancel_not_succeeded",
+        failureMessage: "PortOne cancellation response was not successful.",
+        failureStage: "single_cancel_portone",
+        lastErrorAt: new Date(),
+      },
+      $inc: { confirmAttempts: 1 },
+    }).catch(() => {});
+    return json({ ok: false, message: "PortOne cancellation was not successful.", code: "PORTONE_CANCEL_NOT_SUCCEEDED" }, { status: 502 });
+  }
+
+  const partial = isPartialSingleCancel({ requestedAmount, paidAmount, cancelResult });
+  const orderState = partial ? SINGLE_PAYMENT_ORDER_STATES.PARTIAL_CANCELLED : SINGLE_PAYMENT_ORDER_STATES.CANCELLED;
+  const status = partial ? "refunded" : "cancelled";
+  const updatedPayment = await Payment.findByIdAndUpdate(paymentRecord._id, {
+    $set: {
+      status,
+      orderState,
+      source: "system",
+      rawPortOne: cancelResult,
+      "pricingSnapshot.cancellationReviewRequired": true,
+      "pricingSnapshot.unlockRevoked": false,
+      "pricingSnapshot.cancelledBy": String(auth.userId || "admin"),
+      "pricingSnapshot.cancelReason": reason,
+      "pricingSnapshot.cancelAmount": requestedAmount || paidAmount,
+      "pricingSnapshot.cancelledAt": new Date().toISOString(),
+      failureCode: partial ? "partial_cancel_admin_review" : "cancel_admin_review",
+      failureMessage: partial
+        ? "Partial cancellation completed. Unlock is not revoked automatically."
+        : "Cancellation completed. Unlock is not revoked automatically.",
+      failureStage: "single_cancel_admin_review",
+      lastErrorAt: new Date(),
+    },
+    $inc: { confirmAttempts: 1 },
+  }, { returnDocument: "after" }).lean();
+
+  return json({
+    ok: true,
+    idempotent: false,
+    status: orderState,
+    unlockRevoked: false,
+    adminReviewRequired: true,
+    payment: formatPaymentResponse(updatedPayment),
+  });
+}
+
+async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
+  const profileId = cleanProfileId(payment?.pricingSnapshot?.profileId || payment?.pricingSnapshot?.selectedProfileId);
+  const serviceId = String(payment?.pricingSnapshot?.serviceId || payment?.productId || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU).trim().slice(0, 80);
+  const contentId = String(payment?.pricingSnapshot?.contentId || payment?.featureKey || "").trim().slice(0, 160);
+  const contentType = String(payment?.pricingSnapshot?.contentType || payment?.pricingSnapshot?.categoryKey || "digital_content").trim().slice(0, 80);
+  const contentKey = resolveSajuProfileUnlockContentKey(payment?.featureKey) || contentId;
+  const coinPrice = Math.max(0, Math.floor(Number(payment?.coinPrice || payment?.expectedChargedPoints || 0)));
+  const amountKRW = Math.max(0, Math.floor(Number(payment?.paymentAmount || payment?.pricingSnapshot?.amountKRW || 0)));
+  if (!profileId || !contentId || !contentKey) {
+    const error = new Error("Single payment unlock target is missing.");
+    error.code = "INVALID_UNLOCK_TARGET";
+    throw error;
+  }
+
+  const now = new Date();
+  const effectiveUnlockedAt = paidAt ? new Date(paidAt) : now;
+  // 결제 완료 API는 여러 번 호출될 수 있으므로 profileId + contentKey 단위로 upsert해 중복 unlock 생성을 막는다.
+  return ContentEntitlement.findOneAndUpdate(
+    {
+      userId: String(payment.userId),
+      profileId,
+      serviceKey: CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
+      contentKey,
+      scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
+    },
+    {
+      $set: {
+        serviceId,
+        contentId,
+        contentType,
+        status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
+        source: CONTENT_ENTITLEMENT_SOURCES.PAYMENT,
+        unlockedBy: "single_payment",
+        orderId: String(payment?.merchantUid || ""),
+        paymentId: String(payment?.merchantUid || ""),
+        coinAmount: coinPrice,
+        coinPrice,
+        amountKRW,
+        expiresAt: null,
+        updatedAt: now,
+      },
+      $setOnInsert: {
+        userId: String(payment.userId),
+        profileId,
+        serviceKey: CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
+        contentKey,
+        scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
+        unlockedAt: Number.isNaN(effectiveUnlockedAt.getTime()) ? now : effectiveUnlockedAt,
+        createdAt: now,
+      },
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true },
+  ).lean();
+}
+
+function buildSafePortOneLookupLog(portOnePayment = {}) {
+  const raw = portOnePayment?.rawV2 && typeof portOnePayment.rawV2 === "object" ? portOnePayment.rawV2 : portOnePayment;
+  const amountNode = raw?.amount && typeof raw.amount === "object" ? raw.amount : {};
+  return {
+    status: String(raw?.status || portOnePayment?.status || ""),
+    hasPaymentId: Boolean(raw?.paymentId),
+    hasId: Boolean(raw?.id),
+    hasStoreId: Boolean(raw?.storeId || raw?.store?.id || raw?.store?.storeId),
+    amountTotal: Number(amountNode?.total ?? portOnePayment?.amount ?? 0),
+    currency: String(raw?.currency || amountNode?.currency || portOnePayment?.currency || ""),
+  };
+}
+
+function extractPortOneTotalAmount(portOnePayment = {}) {
+  const raw = portOnePayment?.rawV2 && typeof portOnePayment.rawV2 === "object" ? portOnePayment.rawV2 : portOnePayment;
+  const amountNode = raw?.amount && typeof raw.amount === "object" ? raw.amount : {};
+  const total = Number(amountNode?.total ?? portOnePayment?.amount);
+  return Number.isFinite(total) ? total : 0;
+}
+
+function extractPortOneCurrency(portOnePayment = {}) {
+  const raw = portOnePayment?.rawV2 && typeof portOnePayment.rawV2 === "object" ? portOnePayment.rawV2 : portOnePayment;
+  const amountNode = raw?.amount && typeof raw.amount === "object" ? raw.amount : {};
+  return normalizePortOneCurrency(raw?.currency || amountNode?.currency || portOnePayment?.currency);
+}
+
+async function handleSinglePaymentComplete(request, env, auth) {
+  const body = await readJson(request);
+  const paymentId = normalizeSingleCompletePaymentId(body?.paymentId || body?.merchantUid || body?.merchant_uid);
+  if (!paymentId) {
+    return json({ message: "paymentId is required.", code: "PAYMENT_ID_REQUIRED" }, { status: 400 });
+  }
+
+  const order = await Payment.findOne({
+    merchantUid: paymentId,
+    paymentType: "digital_content",
+    accessType: "single_purchase",
+  }).lean();
+
+  if (!order) {
+    await writeFailureLog({
+      request,
+      userId: auth.userId,
+      merchantUid: paymentId,
+      source: "confirm",
+      stage: "single_order_lookup",
+      code: "single_payment_order_not_found",
+      message: "Single payment order was not found.",
+      status: 404,
+      payload: { paymentId, securityEvent: true },
+    });
+    return json({ ok: false, message: "Single payment order was not found.", code: "ORDER_NOT_FOUND" }, { status: 404 });
+  }
+
+  if (String(order.userId) !== String(auth.userId)) {
+    return json({ ok: false, message: "Only your own payment can be completed.", code: "FORBIDDEN_PAYMENT_OWNER" }, { status: 403 });
+  }
+
+  if (order.status === "success" || order.status === "fulfilled") {
+    const paidAt = order.paidAt ? new Date(order.paidAt) : new Date();
+    let entitlement;
+    try {
+      entitlement = await upsertSinglePaymentUnlockRecord({ payment: order, paidAt });
+    } catch (error) {
+      await Payment.findByIdAndUpdate(order._id, {
+        $set: {
+          orderState: SINGLE_PAYMENT_ORDER_STATES.ERROR,
+          failureCode: "unlock_upsert_failed",
+          failureMessage: String(error?.message || "Unlock upsert failed."),
+          failureStage: "single_unlock_upsert",
+          lastErrorAt: new Date(),
+        },
+      }).catch(() => {});
+      throw error;
+    }
+    await Payment.findByIdAndUpdate(order._id, {
+      $set: { orderState: SINGLE_PAYMENT_ORDER_STATES.UNLOCKED },
+    }).catch(() => {});
+    return json({
+      ok: true,
+      idempotent: true,
+      alreadyCompleted: true,
+      status: SINGLE_PAYMENT_ORDER_STATES.UNLOCKED,
+      payment: formatPaymentResponse(order),
+      accessGrant: buildSingleCompleteAccessGrant({
+        payment: order,
+        entitlement,
+        profileId: String(entitlement?.profileId || order.pricingSnapshot?.profileId || ""),
+        contentId: String(entitlement?.contentId || order.pricingSnapshot?.contentId || order.featureKey || ""),
+        contentType: String(entitlement?.contentType || order.pricingSnapshot?.contentType || "digital_content"),
+        serviceId: String(entitlement?.serviceId || order.pricingSnapshot?.serviceId || order.productId || ""),
+        paidAt,
+      }),
+    });
+  }
+
+  if (order.status === "failed" || order.status === "cancelled" || order.status === "refunded") {
+    return json({
+      ok: false,
+      idempotent: true,
+      status: String(order.orderState || order.status || "").toUpperCase(),
+      message: "Payment order is not completable.",
+      payment: formatPaymentResponse(order),
+    }, { status: 409 });
+  }
+
+  let portOnePayment;
+  try {
+    portOnePayment = await fetchPortOnePayment(env, paymentId);
+  } catch (error) {
+    await Payment.findByIdAndUpdate(order._id, {
+      $set: {
+        orderState: SINGLE_PAYMENT_ORDER_STATES.ERROR,
+        failureCode: "portone_fetch_failed",
+        failureMessage: error?.message || "PortOne payment lookup failed.",
+        failureStage: "single_portone_fetch",
+        lastErrorAt: new Date(),
+      },
+      $inc: { confirmAttempts: 1 },
+    }).catch(() => {});
+    await writeFailureLog({
+      request,
+      userId: auth.userId,
+      merchantUid: paymentId,
+      source: "confirm",
+      stage: "single_portone_fetch",
+      code: "portone_fetch_failed",
+      message: error?.message || "PortOne payment lookup failed.",
+      status: 502,
+      payload: { paymentId },
+    });
+    return json({ ok: false, message: "Payment lookup failed. Please try again.", code: "PORTONE_FETCH_FAILED" }, { status: 502 });
+  }
+
+  const config = getPortOnePublicConfig(env);
+  const rawPaymentId = extractPortOneRawPaymentId(portOnePayment);
+  const portOneStatus = String(portOnePayment?.status || "").trim().toLowerCase();
+  const portOneStoreId = extractPortOneStoreId(portOnePayment);
+  const portOneAmount = extractPortOneTotalAmount(portOnePayment);
+  const portOneCurrency = extractPortOneCurrency(portOnePayment);
+  const expectedAmount = Number(order.paymentAmount || order.pricingSnapshot?.amountKRW || 0);
+  const safePortOneLog = buildSafePortOneLookupLog(portOnePayment);
+
+  if (!rawPaymentId || rawPaymentId !== paymentId) {
+    await markPaymentFailure(order, {
+      status: "failed",
+      orderState: SINGLE_PAYMENT_ORDER_STATES.VERIFY_FAILED,
+      paymentMethod: order.paymentMethod,
+      failureCode: "portone_payment_id_mismatch",
+      failureMessage: "PortOne payment id does not match internal paymentId.",
+      failureStage: "single_payment_id_validate",
+      incrementAttempt: true,
+    });
+    await writeFailureLog({
+      request,
+      userId: auth.userId,
+      merchantUid: paymentId,
+      source: "confirm",
+      stage: "single_payment_id_validate",
+      code: "portone_payment_id_mismatch",
+      message: "PortOne payment id does not match internal paymentId.",
+      status: 400,
+      payload: { paymentId, portOne: safePortOneLog, securityEvent: true },
+    });
+    return json({ ok: false, message: "Payment id verification failed.", code: "PORTONE_PAYMENT_ID_MISMATCH" }, { status: 400 });
+  }
+
+  if (config.storeId && portOneStoreId !== config.storeId) {
+    await markPaymentFailure(order, {
+      status: "failed",
+      orderState: SINGLE_PAYMENT_ORDER_STATES.VERIFY_FAILED,
+      paymentMethod: order.paymentMethod,
+      failureCode: "store_id_mismatch",
+      failureMessage: "PortOne storeId does not match configured store.",
+      failureStage: "single_store_validate",
+      incrementAttempt: true,
+    });
+    await writeFailureLog({
+      request,
+      userId: auth.userId,
+      merchantUid: paymentId,
+      source: "confirm",
+      stage: "single_store_validate",
+      code: "store_id_mismatch",
+      message: "PortOne storeId does not match configured store.",
+      status: 400,
+      payload: { paymentId, portOne: safePortOneLog, securityEvent: true },
+    });
+    return json({ ok: false, message: "Payment store verification failed.", code: "STORE_ID_MISMATCH" }, { status: 400 });
+  }
+
+  if (!Number.isInteger(portOneAmount) || portOneAmount !== expectedAmount) {
+    await markPaymentFailure(order, {
+      status: "failed",
+      orderState: SINGLE_PAYMENT_ORDER_STATES.VERIFY_FAILED,
+      paymentMethod: order.paymentMethod,
+      failureCode: "amount_mismatch",
+      failureMessage: "PortOne amount.total does not match internal order amount.",
+      failureStage: "single_amount_validate",
+      incrementAttempt: true,
+    });
+    await writeFailureLog({
+      request,
+      userId: auth.userId,
+      merchantUid: paymentId,
+      source: "confirm",
+      stage: "single_amount_validate",
+      code: "amount_mismatch",
+      message: "PortOne amount.total does not match internal order amount.",
+      status: 400,
+      expectedAmount,
+      portOneAmount,
+      payload: { paymentId, portOne: safePortOneLog, securityEvent: true },
+    });
+    return json({ ok: false, message: "Payment amount verification failed.", code: "AMOUNT_MISMATCH" }, { status: 400 });
+  }
+
+  if (!isPortOneKrwCurrency(portOneCurrency)) {
+    await markPaymentFailure(order, {
+      status: "failed",
+      orderState: SINGLE_PAYMENT_ORDER_STATES.VERIFY_FAILED,
+      paymentMethod: order.paymentMethod,
+      failureCode: "currency_mismatch",
+      failureMessage: "PortOne currency must be KRW.",
+      failureStage: "single_currency_validate",
+      incrementAttempt: true,
+    });
+    await writeFailureLog({
+      request,
+      userId: auth.userId,
+      merchantUid: paymentId,
+      source: "confirm",
+      stage: "single_currency_validate",
+      code: "currency_mismatch",
+      message: "PortOne currency must be KRW.",
+      status: 400,
+      payload: { paymentId, portOne: safePortOneLog, securityEvent: true },
+    });
+    return json({ ok: false, message: "Payment currency verification failed.", code: "CURRENCY_MISMATCH" }, { status: 400 });
+  }
+
+  if (portOneStatus !== "paid") {
+    const nextStatus = portOneStatus === "cancelled" || portOneStatus === "failed"
+      ? (portOneStatus === "cancelled" ? "cancelled" : "failed")
+      : "pending";
+    const nextOrderState = portOneStatus === "cancelled"
+      ? SINGLE_PAYMENT_ORDER_STATES.CANCELLED
+      : (portOneStatus === "failed"
+        ? SINGLE_PAYMENT_ORDER_STATES.FAILED
+        : (portOneStatus === "virtual_account_issued"
+          ? SINGLE_PAYMENT_ORDER_STATES.VIRTUAL_ACCOUNT_ISSUED
+          : SINGLE_PAYMENT_ORDER_STATES.PENDING));
+    await Payment.findByIdAndUpdate(order._id, {
+      $set: {
+        status: nextStatus,
+        orderState: nextOrderState,
+        rawPortOne: portOnePayment,
+        failureCode: nextStatus === "pending" ? null : "payment_not_paid",
+        failureMessage: nextStatus === "pending" ? null : "Payment is not in paid status.",
+        failureStage: nextStatus === "pending" ? null : "single_status_validate",
+        lastErrorAt: nextStatus === "pending" ? null : new Date(),
+      },
+      $inc: { confirmAttempts: 1 },
+    }).catch(() => {});
+    return json({
+      ok: false,
+      pending: isPortOnePendingStatus(portOneStatus),
+      status: portOneStatus ? portOneStatus.toUpperCase() : "UNKNOWN",
+      orderState: nextOrderState,
+      message: isPortOnePendingStatus(portOneStatus)
+        ? "Payment is still pending."
+        : "Payment is not in paid status.",
+      code: isPortOnePendingStatus(portOneStatus) ? "PAYMENT_PENDING" : "PAYMENT_NOT_PAID",
+    }, { status: isPortOnePendingStatus(portOneStatus) ? 202 : 400 });
+  }
+
+  const existingUnlock = await hasExistingSinglePaymentUnlock({
+    userId: order.userId,
+    profileId: order.pricingSnapshot?.profileId,
+    featureKey: order.featureKey,
+  });
+  const paidAt = toDateFromUnixSeconds(portOnePayment.paid_at);
+
+  const completedPayment = await Payment.findOneAndUpdate(
+    { _id: order._id, status: { $nin: ["success", "fulfilled"] } },
+    {
+      $set: {
+        impUid: paymentId,
+        merchantUid: paymentId,
+        paymentAmount: expectedAmount,
+        expectedChargedPoints: Number(order.expectedChargedPoints || order.coinPrice || 0),
+        chargedPoints: 0,
+        coinPrice: Number(order.coinPrice || order.expectedChargedPoints || 0),
+        membershipCreditCost: calculateMembershipCreditCost(Number(order.coinPrice || order.expectedChargedPoints || 0)),
+        accessType: "single_purchase",
+        status: "success",
+        orderState: SINGLE_PAYMENT_ORDER_STATES.PAID_VERIFIED,
+        paidAt,
+        source: "confirm",
+        rawPortOne: portOnePayment,
+        failureCode: null,
+        failureMessage: null,
+        failureStage: null,
+        lastErrorAt: null,
+      },
+      $inc: { confirmAttempts: 1 },
+    },
+    { returnDocument: "after" },
+  ).lean();
+
+  const finalPayment = completedPayment || await Payment.findById(order._id).lean();
+  let entitlement = existingUnlock?.entitlement || null;
+  if (!entitlement) {
+    try {
+      entitlement = await upsertSinglePaymentUnlockRecord({ payment: finalPayment, paidAt });
+    } catch (error) {
+      await Payment.findByIdAndUpdate(finalPayment._id, {
+        $set: {
+          orderState: SINGLE_PAYMENT_ORDER_STATES.ERROR,
+          failureCode: "unlock_upsert_failed",
+          failureMessage: String(error?.message || "Unlock upsert failed."),
+          failureStage: "single_unlock_upsert",
+          lastErrorAt: new Date(),
+        },
+      }).catch(() => {});
+      throw error;
+    }
+  }
+  const unlockedPayment = await Payment.findByIdAndUpdate(finalPayment._id, {
+    $set: { orderState: SINGLE_PAYMENT_ORDER_STATES.UNLOCKED },
+  }, { returnDocument: "after" }).lean();
+  const responsePayment = unlockedPayment || { ...finalPayment, orderState: SINGLE_PAYMENT_ORDER_STATES.UNLOCKED };
+
+  return json({
+    ok: true,
+    idempotent: !completedPayment || Boolean(existingUnlock),
+    alreadyUnlocked: Boolean(existingUnlock),
+    status: SINGLE_PAYMENT_ORDER_STATES.UNLOCKED,
+    payment: formatPaymentResponse(responsePayment),
+    accessGrant: buildSingleCompleteAccessGrant({
+      payment: responsePayment,
+      entitlement,
+      profileId: String(entitlement?.profileId || responsePayment?.pricingSnapshot?.profileId || ""),
+      contentId: String(entitlement?.contentId || responsePayment?.pricingSnapshot?.contentId || responsePayment?.featureKey || ""),
+      contentType: String(entitlement?.contentType || responsePayment?.pricingSnapshot?.contentType || "digital_content"),
+      serviceId: String(entitlement?.serviceId || responsePayment?.pricingSnapshot?.serviceId || responsePayment?.productId || ""),
+      paidAt,
+    }),
+  });
+}
+
+function extractPortOneWebhookType(body = {}) {
+  return String(
+    body?.type
+      || body?.eventType
+      || body?.webhookType
+      || body?.data?.type
+      || body?.data?.eventType
+      || "",
+  ).trim();
+}
+
+function extractPortOneWebhookPaymentId(body = {}) {
+  return normalizeSingleCompletePaymentId(
+    body?.data?.paymentId
+      || body?.paymentId
+      || body?.imp_uid
+      || body?.impUid
+      || body?.data?.imp_uid
+      || body?.data?.id
+      || "",
+  );
+}
+
+async function runSinglePaymentCompleteFromWebhook(request, env, paymentId, body) {
+  const order = await Payment.findOne({
+    merchantUid: paymentId,
+    paymentType: "digital_content",
+    accessType: "single_purchase",
+  }).select("userId merchantUid status paymentType accessType").lean();
+
+  if (!order) {
+    await writeFailureLog({
+      request,
+      merchantUid: paymentId,
+      source: "webhook",
+      stage: "single_order_lookup",
+      code: "single_payment_order_not_found",
+      message: "Single payment order was not found for webhook.",
+      status: 404,
+      payload: { paymentId, type: extractPortOneWebhookType(body), securityEvent: true },
+    });
+    return json({ ok: false, message: "Single payment order was not found.", code: "ORDER_NOT_FOUND" }, { status: 404 });
+  }
+
+  // Transaction.Paid 웹훅은 body 자체를 신뢰하지 않고 Phase 5 complete 경로를 재사용해 포트원 단건 조회로 다시 검증한다.
+  const completeRequest = new Request(request.url, {
+    method: "POST",
+    headers: request.headers,
+    body: JSON.stringify({ paymentId }),
+  });
+  return handleSinglePaymentComplete(completeRequest, env, { userId: order.userId });
+}
+
+async function markVirtualAccountIssuedFromWebhook({ request, paymentId, body }) {
+  const updated = await Payment.findOneAndUpdate(
+    {
+      merchantUid: paymentId,
+      paymentType: "digital_content",
+      accessType: "single_purchase",
+      status: { $nin: ["success", "fulfilled"] },
+    },
+    {
+      $set: {
+        status: "pending",
+        orderState: SINGLE_PAYMENT_ORDER_STATES.VIRTUAL_ACCOUNT_ISSUED,
+        paymentMethod: "VIRTUAL_ACCOUNT",
+        source: "webhook",
+        rawPortOne: body,
+        failureCode: null,
+        failureMessage: null,
+        failureStage: null,
+        lastErrorAt: null,
+      },
+      $inc: { confirmAttempts: 1 },
+    },
+    { returnDocument: "after" },
+  ).lean();
+
+  return json({
+    ok: true,
+    idempotent: !updated,
+    status: "PENDING",
+    pendingReason: "VIRTUAL_ACCOUNT_ISSUED",
+    paymentId,
+  });
+}
+
+async function markPaymentFailedFromWebhook({ request, paymentId, body }) {
+  const updated = await Payment.findOneAndUpdate(
+    {
+      merchantUid: paymentId,
+      paymentType: "digital_content",
+      accessType: "single_purchase",
+      status: { $nin: ["success", "fulfilled"] },
+    },
+    {
+      $set: {
+        status: "failed",
+        orderState: SINGLE_PAYMENT_ORDER_STATES.FAILED,
+        source: "webhook",
+        rawPortOne: body,
+        failureCode: "transaction_failed",
+        failureMessage: "PortOne Transaction.Failed webhook received.",
+        failureStage: "webhook_failed",
+        lastErrorAt: new Date(),
+      },
+      $inc: { confirmAttempts: 1 },
+    },
+    { returnDocument: "after" },
+  ).lean();
+
+  return json({
+    ok: true,
+    idempotent: !updated,
+    status: updated ? "FAILED" : "UNCHANGED",
+    paymentId,
+  });
+}
+
+async function markPaymentCancellationForAdminReview({ request, paymentId, body, partial = false }) {
+  const current = await Payment.findOne({
+    merchantUid: paymentId,
+    paymentType: "digital_content",
+    accessType: "single_purchase",
+  }).select("_id status").lean();
+  if (!current) {
+    await writeFailureLog({
+      request,
+      merchantUid: paymentId,
+      source: "webhook",
+      stage: "cancel_order_lookup",
+      code: "single_payment_order_not_found",
+      message: "Single payment order was not found for cancellation webhook.",
+      status: 404,
+      payload: { paymentId, type: extractPortOneWebhookType(body) },
+    });
+    return json({ ok: true, ignored: true, reason: "ORDER_NOT_FOUND", paymentId });
+  }
+
+  const completed = current.status === "success" || current.status === "fulfilled";
+  const nextStatus = completed ? current.status : (partial ? "refunded" : "cancelled");
+  const nextOrderState = partial
+    ? SINGLE_PAYMENT_ORDER_STATES.PARTIAL_CANCELLED
+    : SINGLE_PAYMENT_ORDER_STATES.CANCELLED;
+  await Payment.findByIdAndUpdate(current._id, {
+    $set: {
+      status: nextStatus,
+      orderState: nextOrderState,
+      source: "webhook",
+      rawPortOne: body,
+      failureCode: partial ? "partial_cancel_admin_review" : "cancel_admin_review",
+      failureMessage: partial
+        ? "Partial cancellation webhook received. Unlock is not revoked automatically."
+        : "Cancellation webhook received. Unlock is not revoked automatically.",
+      failureStage: "webhook_cancel_admin_review",
+      lastErrorAt: new Date(),
+    },
+    $inc: { confirmAttempts: 1 },
+  }).catch(() => {});
+
+  return json({
+    ok: true,
+    idempotent: false,
+    status: completed ? "ADMIN_REVIEW_REQUIRED" : nextOrderState,
+    paymentId,
+    unlockRevoked: false,
+  });
+}
+
+async function handleSinglePaymentStart(request, env, auth) {
+  const body = await readJson(request);
+  const profileId = cleanProfileId(body?.profileId || body?.selectedProfileId);
+  if (!profileId) {
+    return json({ message: "profileId is required.", code: "PROFILE_ID_REQUIRED" }, { status: 400 });
+  }
+
+  const ownedProfile = await verifySinglePaymentProfileOwner(auth.userId, profileId);
+  if (!ownedProfile) {
+    return json({ message: "Profile not found.", code: "PROFILE_NOT_FOUND" }, { status: 404 });
+  }
+
+  const resolved = resolveSinglePaymentPricing(body);
+  if (!resolved.ok) {
+    return json({ message: resolved.message, code: resolved.code || "PRICE_NOT_FOUND" }, { status: resolved.status || 400 });
+  }
+
+  const clientCoinPrice = body?.coinPrice === undefined || body?.coinPrice === null ? undefined : Number(body.coinPrice);
+  if (clientCoinPrice !== undefined && clientCoinPrice !== resolved.coinPrice) {
+    return json({
+      message: "Client coinPrice does not match server product price.",
+      code: "CLIENT_COIN_PRICE_MISMATCH",
+      expectedCoinPrice: resolved.coinPrice,
+      clientCoinPrice,
+    }, { status: 400 });
+  }
+
+  const unlockEvidence = await hasExistingSinglePaymentUnlock({
+    userId: auth.userId,
+    profileId,
+    featureKey: resolved.featureKey,
+  });
+  if (unlockEvidence) {
+    return json({
+      ok: true,
+      alreadyUnlocked: true,
+      profileId,
+      serviceId: String(body?.serviceId || resolved.pricing?.serviceId || "").trim().slice(0, 80),
+      contentId: String(body?.contentId || resolved.featureKey).trim().slice(0, 120),
+      contentType: String(body?.contentType || resolved.pricing?.categoryKey || "digital_content").trim().slice(0, 80),
+      featureKey: resolved.featureKey,
+      unlockSource: unlockEvidence.source,
+    });
+  }
+
+  const config = getPortOnePublicConfig(env);
+  if (!config.configured) {
+    return json({
+      message: "PortOne V2 KG Inicis payment config is missing.",
+      code: "PORTONE_V2_CONFIG_MISSING",
+      missing: {
+        storeId: !config.storeId,
+        channelKey: !config.channelKey,
+        serverVerification: !config.configured,
+      },
+    }, { status: 503 });
+  }
+
+  const idempotencyKey = resolveIdempotencyKey(request, body);
+  const serviceId = String(body?.serviceId || resolved.pricing?.serviceId || "code-destiny").trim().slice(0, 80);
+  const contentId = String(body?.contentId || resolved.featureKey).trim().slice(0, 120);
+  const contentType = String(body?.contentType || resolved.pricing?.categoryKey || "digital_content").trim().slice(0, 80);
+  const returnPath = sanitizeReturnPath(body?.returnPath);
+  const payMethod = resolveSinglePayMethod(body?.payMethod || body?.paymentMethod);
+  const productName = buildDigitalProductName(body, resolved.pricing);
+  const orderName = trimUtf8Bytes(productName || "Code Destiny 운세", 40) || "Code Destiny";
+  const user = await User.findById(auth.userId).select("name email phone phoneNumber fullName displayName username").lean();
+  const customer = buildSinglePaymentCustomer(user, auth.userId);
+
+  if (idempotencyKey) {
+    const existing = await Payment.findOne({
+      userId: auth.userId,
+      idempotencyKey,
+      paymentType: "digital_content",
+    }).sort({ createdAt: -1 }).lean();
+
+    if (existing) {
+      const existingAmount = Number(existing.paymentAmount || 0);
+      const existingCoins = Number(existing.coinPrice || existing.expectedChargedPoints || 0);
+      const existingProfileId = String(existing.pricingSnapshot?.profileId || existing.pricingSnapshot?.selectedProfileId || "");
+      const existingContentId = String(existing.pricingSnapshot?.contentId || existing.featureKey || "");
+      if (existingAmount !== resolved.amountKRW || existingCoins !== resolved.coinPrice || existingProfileId !== profileId || existingContentId !== contentId) {
+        return json({
+          message: "Idempotency key conflict. Request payload does not match existing single payment order.",
+          code: "IDEMPOTENCY_CONFLICT",
+        }, { status: 409 });
+      }
+
+      const existingPaymentId = String(existing.merchantUid || "");
+      const redirectUrl = buildSinglePaymentRedirectUrl({ env, request, returnPath, paymentId: existingPaymentId });
+      return json({
+        ok: true,
+        alreadyUnlocked: false,
+        idempotent: true,
+        order: buildSinglePaymentOrderResponse({
+          config,
+          paymentId: existingPaymentId,
+          orderName,
+          amountKRW: existingAmount,
+          coinPrice: existingCoins,
+          payMethod,
+          redirectUrl,
+          customer,
+          profileId,
+          serviceId,
+          contentId,
+          contentType,
+          featureKey: resolved.featureKey,
+          returnPath,
+        }),
+      });
+    }
+  }
+
+  const paymentId = buildSinglePaymentId(auth.userId);
+  const redirectUrl = buildSinglePaymentRedirectUrl({ env, request, returnPath, paymentId });
+
+  // 내부 주문을 먼저 PENDING으로 저장한다. 이후 confirm/webhook에서 포트원 단건 조회로 금액/상태를 검증한 뒤 unlock을 저장한다.
+  await Payment.create({
+    userId: auth.userId,
+    merchantUid: paymentId,
+    idempotencyKey,
+    paymentAmount: resolved.amountKRW,
+    expectedChargedPoints: resolved.coinPrice,
+    chargedPoints: 0,
+    featureKey: resolved.featureKey,
+    productId: serviceId,
+    coinPrice: resolved.coinPrice,
+    membershipCreditCost: calculateMembershipCreditCost(resolved.coinPrice),
+    accessType: "single_purchase",
+    pricingSnapshot: {
+      ...resolved.pricing,
+      userId: String(auth.userId || ""),
+      profileId,
+      selectedProfileId: profileId,
+      serviceId,
+      contentId,
+      contentType,
+      coinPrice: resolved.coinPrice,
+      amountKRW: resolved.amountKRW,
+      paymentId,
+      status: "PENDING",
+      createdAt: new Date().toISOString(),
+      returnPath,
+      orderName,
+      payMethod,
+      pricingSource: resolved.source,
+    },
+    paymentMethod: payMethod,
+    status: "pending",
+    orderState: SINGLE_PAYMENT_ORDER_STATES.PENDING,
+    source: "prepare",
+    paymentType: "digital_content",
+    subscriptionTier: "",
+  });
+
+  return json({
+    ok: true,
+    alreadyUnlocked: false,
+    idempotent: false,
+    order: buildSinglePaymentOrderResponse({
+      config,
+      paymentId,
+      orderName,
+      amountKRW: resolved.amountKRW,
+      coinPrice: resolved.coinPrice,
+      payMethod,
+      redirectUrl,
+      customer,
+      profileId,
+      serviceId,
+      contentId,
+      contentType,
+      featureKey: resolved.featureKey,
+      returnPath,
+    }),
+  }, { status: 201 });
+}
+
+function resolveDigitalContentProfileId({ payment, body = {}, accessEvidence = null }) {
+  return cleanProfileId(
+    body?.profileId
+      || body?.selectedProfileId
+      || payment?.pricingSnapshot?.profileId
+      || payment?.pricingSnapshot?.selectedProfileId
+      || accessEvidence?.metadata?.profileId
+      || accessEvidence?.metadata?.selectedProfileId
+      || "",
+  );
+}
+
+function createUnlockEntitlementSaveError(error) {
+  const wrapped = new Error(String(error?.message || "Unlock entitlement save failed."));
+  wrapped.code = String(error?.code || "UNLOCK_ENTITLEMENT_SAVE_FAILED");
+  wrapped.cause = error;
+  return wrapped;
+}
+
+async function upsertSajuPaymentUnlockEntitlement({
+  userId,
+  profileId,
+  payment,
+  body = {},
+  accessEvidence = null,
+  paidAt = null,
+  session = null,
+}) {
+  const featureKey = String(payment?.featureKey || body?.featureKey || body?.subFeatureKey || "").trim();
+  const contentKey = resolveSajuProfileUnlockContentKey(featureKey);
+  if (!contentKey) return null;
+  if (!userId || !profileId) {
+    const error = new Error("Profile id is required for profile-scoped unlock entitlement.");
+    error.code = "MISSING_PROFILE_ID";
+    throw error;
+  }
+
+  const now = new Date();
+  const effectiveUnlockedAt = paidAt ? new Date(paidAt) : now;
+  const query = ContentEntitlement.findOneAndUpdate(
+    {
+      userId: String(userId),
+      profileId: String(profileId),
+      serviceKey: CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
+      contentKey,
+      scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
+    },
+    {
+      $set: {
+        status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
+        source: CONTENT_ENTITLEMENT_SOURCES.PAYMENT,
+        orderId: String(payment?.merchantUid || body?.merchantUid || body?.merchant_uid || ""),
+        paymentId: String(payment?._id || accessEvidence?.metadata?.paymentId || ""),
+        coinAmount: Math.max(0, Math.floor(Number(payment?.coinPrice || payment?.expectedChargedPoints || body?.coinPrice || 0))),
+        expiresAt: null,
+        updatedAt: now,
+      },
+      $setOnInsert: {
+        userId: String(userId),
+        profileId: String(profileId),
+        serviceKey: CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
+        contentKey,
+        scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
+        unlockedAt: Number.isNaN(effectiveUnlockedAt.getTime()) ? now : effectiveUnlockedAt,
+        createdAt: now,
+      },
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true },
+  );
+  if (session) query.session(session);
+  return query.lean().catch((error) => {
+    throw createUnlockEntitlementSaveError(error);
+  });
+}
+
+async function ensureSajuPaymentUnlockEntitlement(args) {
+  const profileId = resolveDigitalContentProfileId(args);
+  const unlockEntitlement = await upsertSajuPaymentUnlockEntitlement({
+    ...args,
+    profileId,
+  });
+  return { profileId, unlockEntitlement };
+}
+
 async function createDigitalContentAccessEvidence({ userId, payment, body = {}, source, paidAt, session = null }) {
   const featureKey = String(payment?.featureKey || body?.featureKey || body?.subFeatureKey || "").trim();
   const paymentId = String(payment?._id || "").trim();
@@ -543,6 +1852,45 @@ async function createDigitalContentAccessEvidence({ userId, payment, body = {}, 
     || user?.destinyProfilesCurrentId
     || "",
   ).trim().slice(0, 80).replace(/\s+/g, "_");
+  const productType = String(
+    body?.productType
+    || body?.serviceType
+    || payment?.pricingSnapshot?.productType
+    || payment?.pricingSnapshot?.serviceType
+    || "",
+  ).trim().slice(0, 80);
+  const serviceType = String(
+    body?.serviceType
+    || body?.productType
+    || payment?.pricingSnapshot?.serviceType
+    || payment?.pricingSnapshot?.productType
+    || "",
+  ).trim().slice(0, 80);
+  const actionType = String(body?.actionType || payment?.pricingSnapshot?.actionType || "").trim().slice(0, 80);
+  const profileCardId = String(
+    body?.profileCardId
+    || body?.profileId
+    || body?.selectedProfileId
+    || payment?.pricingSnapshot?.profileCardId
+    || payment?.pricingSnapshot?.profileId
+    || profileId
+    || "",
+  ).trim().slice(0, 80).replace(/\s+/g, "_");
+  const costCoins = Number(payment?.pricingSnapshot?.costCoins || body?.costCoins || coinPrice || 0);
+  const amountKrw = Number(payment?.pricingSnapshot?.amountKrw || body?.amountKrw || payment?.paymentAmount || 0);
+  const idempotencyKey = String(
+    body?.idempotencyKey
+    || payment?.pricingSnapshot?.idempotencyKey
+    || payment?.idempotencyKey
+    || "",
+  ).trim().slice(0, 120);
+  const orderId = String(
+    body?.orderId
+    || payment?.pricingSnapshot?.orderId
+    || idempotencyKey
+    || requestId
+    || "",
+  ).trim().slice(0, 120);
 
   const docs = [{
     userId,
@@ -565,9 +1913,17 @@ async function createDigitalContentAccessEvidence({ userId, payment, body = {}, 
       reportSessionId: sessionId,
       profileId,
       selectedProfileId: profileId,
+      profileCardId,
+      productType,
+      serviceType,
+      actionType,
       featureKey,
       coinPrice,
+      costCoins,
       paidAmount: Number(payment?.paymentAmount || 0),
+      amountKrw,
+      idempotencyKey,
+      orderId,
       paidAt: paidAt ? paidAt.toISOString() : null,
     },
   }];
@@ -584,6 +1940,7 @@ async function markPaymentFailure(paymentRecord, patch = {}) {
   await Payment.findByIdAndUpdate(paymentRecord._id, {
     $set: {
       status: patch.status || "failed",
+      ...(patch.orderState ? { orderState: patch.orderState } : {}),
       paymentMethod: patch.paymentMethod || paymentRecord.paymentMethod || "unknown",
       rawPortOne: patch.rawPortOne,
       failureCode: patch.failureCode,
@@ -767,14 +2124,37 @@ async function settlePaymentByImpUid({
 
   if (paymentRecord.status === "success") {
     const paidAt = paymentRecord.paidAt ? new Date(paymentRecord.paidAt) : null;
+    let accessEvidence = null;
+    let profileId = "";
+    let unlockEntitlement = null;
     if (isDigitalContentPayment) {
-      await createDigitalContentAccessEvidence({
+      accessEvidence = await createDigitalContentAccessEvidence({
         userId: ownerUserId,
         payment: paymentRecord,
         body,
         source,
         paidAt,
       }).catch(() => null);
+      try {
+        const entitlementResult = await ensureSajuPaymentUnlockEntitlement({
+          userId: ownerUserId,
+          payment: paymentRecord,
+          body,
+          accessEvidence,
+          paidAt,
+        });
+        profileId = entitlementResult.profileId;
+        unlockEntitlement = entitlementResult.unlockEntitlement;
+      } catch (error) {
+        return {
+          ok: false,
+          status: error?.code === "MISSING_PROFILE_ID" ? 403 : 500,
+          code: "UNLOCK_ENTITLEMENT_SAVE_FAILED",
+          message: "Unlock entitlement could not be saved for an already processed payment.",
+          payment: formatPaymentResponse(paymentRecord),
+          pendingUnlock: true,
+        };
+      }
     }
     return {
       ok: true,
@@ -793,6 +2173,8 @@ async function settlePaymentByImpUid({
         requestId: String(paymentRecord.requestId || body?.requestId || ""),
         reportId: String(paymentRecord.reportId || body?.reportId || ""),
         sessionId: String(paymentRecord.sessionId || body?.sessionId || body?.reportSessionId || ""),
+        evidenceId: String(unlockEntitlement?._id || accessEvidence?._id || ""),
+        profileId: profileId || undefined,
         paidAt: paymentRecord.paidAt ? new Date(paymentRecord.paidAt).toISOString() : null,
       } : null,
     };
@@ -1099,6 +2481,36 @@ async function settlePaymentByImpUid({
         source,
         paidAt,
       });
+      let profileId = "";
+      let unlockEntitlement = null;
+      try {
+        const entitlementResult = await ensureSajuPaymentUnlockEntitlement({
+          userId: ownerUserId,
+          payment: finalizedPayment,
+          body,
+          accessEvidence,
+          paidAt,
+        });
+        profileId = entitlementResult.profileId;
+        unlockEntitlement = entitlementResult.unlockEntitlement;
+      } catch (error) {
+        await Payment.findByIdAndUpdate(finalizedPayment._id, {
+          $set: {
+            failureCode: "unlock_entitlement_save_failed",
+            failureMessage: String(error?.message || "Unlock entitlement save failed."),
+            failureStage: "unlock_entitlement",
+            lastErrorAt: new Date(),
+          },
+        }).catch(() => {});
+        return {
+          ok: false,
+          status: error?.code === "MISSING_PROFILE_ID" ? 403 : 500,
+          code: "UNLOCK_ENTITLEMENT_SAVE_FAILED",
+          message: "Unlock entitlement could not be saved after payment verification.",
+          payment: formatPaymentResponse(finalizedPayment),
+          pendingUnlock: true,
+        };
+      }
       return {
         ok: true,
         idempotent: false,
@@ -1114,7 +2526,8 @@ async function settlePaymentByImpUid({
           requestId: String(finalizedPayment.requestId || body?.requestId || ""),
           reportId: String(finalizedPayment.reportId || body?.reportId || ""),
           sessionId: String(finalizedPayment.sessionId || body?.sessionId || body?.reportSessionId || ""),
-          evidenceId: String(accessEvidence?._id || ""),
+          evidenceId: String(unlockEntitlement?._id || accessEvidence?._id || ""),
+          profileId: profileId || undefined,
           paidAt: paidAt.toISOString(),
         },
       };
@@ -1228,6 +2641,16 @@ async function settlePaymentByImpUid({
             paidAt,
             session,
           });
+          const entitlementResult = await ensureSajuPaymentUnlockEntitlement({
+            userId: ownerUserId,
+            payment: finalizedPayment,
+            body,
+            accessEvidence,
+            paidAt,
+            session,
+          });
+          const profileId = entitlementResult.profileId;
+          const unlockEntitlement = entitlementResult.unlockEntitlement;
           txResult = {
             ok: true,
             idempotent: false,
@@ -1243,7 +2666,8 @@ async function settlePaymentByImpUid({
               requestId: String(finalizedPayment.requestId || body?.requestId || ""),
               reportId: String(finalizedPayment.reportId || body?.reportId || ""),
               sessionId: String(finalizedPayment.sessionId || body?.sessionId || body?.reportSessionId || ""),
-              evidenceId: String(accessEvidence?._id || ""),
+              evidenceId: String(unlockEntitlement?._id || accessEvidence?._id || ""),
+              profileId: profileId || undefined,
               paidAt: paidAt.toISOString(),
             },
           };
@@ -1288,8 +2712,19 @@ async function settlePaymentByImpUid({
   try {
     settlementResult = await runSettlementWithTransaction();
   } catch (error) {
-    if (!isTransactionUnsupported(error)) throw error;
-    settlementResult = await runSettlementWithoutTransaction();
+    if (error?.code === "UNLOCK_ENTITLEMENT_SAVE_FAILED" || error?.code === "MISSING_PROFILE_ID") {
+      settlementResult = {
+        ok: false,
+        status: error?.code === "MISSING_PROFILE_ID" ? 403 : 500,
+        code: "UNLOCK_ENTITLEMENT_SAVE_FAILED",
+        message: "Unlock entitlement could not be saved after payment verification.",
+        pendingUnlock: true,
+      };
+    } else if (!isTransactionUnsupported(error)) {
+      throw error;
+    } else {
+      settlementResult = await runSettlementWithoutTransaction();
+    }
   }
 
   if (!settlementResult?.ok) {
@@ -1314,7 +2749,42 @@ async function settlePaymentByImpUid({
 }
 
 async function handleWebhook(request, env) {
+  /*
+   * PortOne 관리자 콘솔 설정:
+   * 결제 연동 → 연동 관리 → 결제알림(Webhook) 관리
+   * 웹훅 버전: 결제모듈 V2, 최신 웹훅 버전 사용, Content-Type: application/json
+   * Endpoint URL: https://<배포도메인>/api/webhooks/portone
+   * 웹훅 시크릿은 환경별로 분리해 PORTONE_webhook에 저장한다.
+   */
   const rawBody = await request.text();
+  const webhookSecret = getPortOneWebhookSecret(env);
+  if (!webhookSecret) {
+    await writeFailureLog({
+      request,
+      source: "webhook",
+      stage: "webhook_auth",
+      code: "missing_webhook_secret",
+      message: "PORTONE_webhook is required.",
+      status: 503,
+      payload: { rawBodyBytes: new TextEncoder().encode(rawBody).length },
+    });
+    return json({ message: "Webhook verification is not configured." }, { status: 503 });
+  }
+
+  const verifiedWebhook = await verifyPortOneWebhookSignature(webhookSecret, rawBody, request.headers);
+  if (!verifiedWebhook) {
+    await writeFailureLog({
+      request,
+      source: "webhook",
+      stage: "webhook_auth",
+      code: "invalid_webhook_signature",
+      message: "Webhook signature mismatch.",
+      status: 400,
+      payload: { rawBodyBytes: new TextEncoder().encode(rawBody).length },
+    });
+    return json({ message: "Invalid webhook request." }, { status: 400 });
+  }
+
   let body = {};
   try {
     body = rawBody.trim() ? JSON.parse(rawBody) : {};
@@ -1331,52 +2801,13 @@ async function handleWebhook(request, env) {
     return json({ message: "Webhook body must be valid JSON." }, { status: 400 });
   }
 
-  const webhookSecret = getPortOneWebhookSecret(env);
-  if (!webhookSecret) {
-    await writeFailureLog({
-      request,
-      source: "webhook",
-      stage: "webhook_auth",
-      code: "missing_webhook_secret",
-      message: "PORTONE_webhook_Secret is required.",
-      status: 503,
-      payload: body,
-    });
-    return json({ message: "Webhook verification is not configured." }, { status: 503 });
+  const eventType = extractPortOneWebhookType(body);
+  if (!PORTONE_WEBHOOK_PAYMENT_EVENTS.has(eventType)) {
+    return json({ ok: true, ignored: true, type: eventType || "unknown" });
   }
 
-  const verifiedWebhook = await verifyPortOneWebhookSignature(webhookSecret, rawBody, request.headers);
-  if (!verifiedWebhook) {
-    await writeFailureLog({
-      request,
-      source: "webhook",
-      stage: "webhook_auth",
-      code: "invalid_webhook_signature",
-      message: "Webhook signature mismatch.",
-      status: 401,
-      payload: body,
-    });
-    return json({ message: "Invalid webhook request." }, { status: 401 });
-  }
-
-  const impUid = String(
-    body?.data?.paymentId
-      || body?.paymentId
-      || body?.imp_uid
-      || body?.impUid
-      || body?.data?.imp_uid
-      || "",
-  ).trim();
-
-  const merchantUid = String(
-    body?.merchant_uid
-      || body?.merchantUid
-      || body?.data?.paymentId
-      || body?.data?.merchant_uid
-      || "",
-  ).trim();
-
-  if (!impUid) {
+  const paymentId = extractPortOneWebhookPaymentId(body);
+  if (!paymentId) {
     await writeFailureLog({
       request,
       source: "webhook",
@@ -1389,25 +2820,28 @@ async function handleWebhook(request, env) {
     return json({ message: "Webhook body must include paymentId." }, { status: 400 });
   }
 
-  const settled = await settlePaymentByImpUid({
-    env,
-    impUid,
-    merchantUidHint: merchantUid || undefined,
-    source: "webhook",
-    strictAmountMatch: false,
-    request,
-    body,
-  });
-
-  if (!settled.ok) {
-    return json({ ok: false, message: settled.message });
+  if (eventType === PORTONE_WEBHOOK_EVENTS.PAID) {
+    return runSinglePaymentCompleteFromWebhook(request, env, paymentId, body);
   }
 
-  return json({
-    ok: true,
-    idempotent: Boolean(settled.idempotent),
-    payment: settled.payment,
-  });
+  if (eventType === PORTONE_WEBHOOK_EVENTS.VIRTUAL_ACCOUNT_ISSUED) {
+    return markVirtualAccountIssuedFromWebhook({ request, paymentId, body });
+  }
+
+  if (eventType === PORTONE_WEBHOOK_EVENTS.FAILED) {
+    return markPaymentFailedFromWebhook({ request, paymentId, body });
+  }
+
+  if (eventType === PORTONE_WEBHOOK_EVENTS.CANCELLED || eventType === PORTONE_WEBHOOK_EVENTS.PARTIAL_CANCELLED) {
+    return markPaymentCancellationForAdminReview({
+      request,
+      paymentId,
+      body,
+      partial: eventType === PORTONE_WEBHOOK_EVENTS.PARTIAL_CANCELLED,
+    });
+  }
+
+  return json({ ok: true, ignored: true, type: eventType });
 }
 
 async function handleDigitalContentPrepare(request, auth, body) {
@@ -1445,6 +2879,11 @@ async function handleDigitalContentPrepare(request, auth, body) {
   const reportId = String(body?.reportId || "").trim().slice(0, 120);
   const sessionId = String(body?.sessionId || body?.reportSessionId || "").trim().slice(0, 120);
   const profileId = String(body?.profileId || body?.selectedProfileId || "").trim().slice(0, 80).replace(/\s+/g, "_");
+  const productType = String(body?.productType || body?.serviceType || "").trim().slice(0, 80);
+  const serviceType = String(body?.serviceType || body?.productType || "").trim().slice(0, 80);
+  const actionType = String(body?.actionType || "").trim().slice(0, 80);
+  const profileCardId = String(body?.profileCardId || body?.profileId || body?.selectedProfileId || "").trim().slice(0, 80).replace(/\s+/g, "_");
+  const orderId = String(body?.orderId || idempotencyKey || requestId || "").trim().slice(0, 120);
   const membershipCreditCost = Number(resolved.pricing?.membershipCreditCost || calculateMembershipCreditCost(resolved.coinPrice));
 
   if (idempotencyKey) {
@@ -1499,7 +2938,19 @@ async function handleDigitalContentPrepare(request, auth, body) {
     requestId,
     reportId,
     sessionId,
-    pricingSnapshot: { ...resolved.pricing, profileId, selectedProfileId: profileId },
+    pricingSnapshot: {
+      ...resolved.pricing,
+      productType,
+      serviceType,
+      actionType,
+      profileCardId,
+      profileId,
+      selectedProfileId: profileId,
+      costCoins: resolved.coinPrice,
+      amountKrw: resolved.paymentAmount,
+      idempotencyKey,
+      orderId,
+    },
     paymentMethod,
     status: "pending",
     source: "prepare",
@@ -1519,6 +2970,14 @@ async function handleDigitalContentPrepare(request, auth, body) {
       featureKey,
       accessType: "single_purchase",
       profileId,
+      profileCardId,
+      productType,
+      serviceType,
+      actionType,
+      costCoins: resolved.coinPrice,
+      amountKrw: resolved.paymentAmount,
+      idempotencyKey,
+      orderId,
       productName,
       pricing: resolved.pricing,
     },
@@ -2129,6 +3588,8 @@ async function handleConfirm(request, env, auth) {
   if (!settled.ok) {
     return json({
       message: settled.message,
+      ...(settled.code ? { code: settled.code } : {}),
+      ...(settled.pendingUnlock ? { pendingUnlock: true } : {}),
       ...(settled.clientAmount !== undefined ? { clientAmount: settled.clientAmount } : {}),
       ...(settled.portOneAmount !== undefined ? { portOneAmount: settled.portOneAmount } : {}),
       ...(settled.expectedAmount !== undefined ? { expectedAmount: settled.expectedAmount } : {}),
@@ -2637,13 +4098,14 @@ async function handlePointsMe(auth, env) {
 
 function handlePaymentConfig(env) {
   const config = getPortOnePublicConfig(env);
-  if (!config.storeId || !config.channelKey) {
+  if (!config.configured) {
     return json({
       message: "PortOne V2 KG Inicis public payment config is missing.",
       code: "PORTONE_V2_PUBLIC_CONFIG_MISSING",
       missing: {
         storeId: !config.storeId,
         channelKey: !config.channelKey,
+        serverVerification: !config.configured,
       },
     }, { status: 503 });
   }
@@ -2654,7 +4116,6 @@ function handlePaymentConfig(env) {
     pg: config.pg,
     storeId: config.storeId,
     channelKey: config.channelKey,
-    noticeUrl: config.noticeUrl || "",
     currency: config.currency,
     payMethod: config.payMethod,
   });
@@ -2679,10 +4140,7 @@ export async function handlePaymentRoutes(request, env) {
       portoneStoreIdConfigured: Boolean(env?.PORTONE_Store || globalThis.process?.env?.PORTONE_Store),
       portoneChannelKeyConfigured: Boolean(env?.PORTONE_channel || globalThis.process?.env?.PORTONE_channel),
       portoneWebhookUrlConfigured: Boolean(env?.PORTONE_webhook_URL || globalThis.process?.env?.PORTONE_webhook_URL || env?.PORTONE_WEBHOOK_URL || globalThis.process?.env?.PORTONE_WEBHOOK_URL),
-      portoneWebhookSecretConfigured: Boolean(
-        env?.PORTONE_webhook_Secret || env?.PORTONE_webhook ||
-        globalThis.process?.env?.PORTONE_webhook_Secret || globalThis.process?.env?.PORTONE_webhook
-      ),
+      portoneWebhookSecretConfigured: Boolean(env?.PORTONE_webhook || globalThis.process?.env?.PORTONE_webhook),
     },
   };
 
@@ -2710,6 +4168,9 @@ export async function handlePaymentRoutes(request, env) {
     await connectDb(env);
     trace.dbConnected = true;
 
+    if (method === "POST" && path === "/single/start") return await handleSinglePaymentStart(request, env, auth);
+    if (method === "POST" && path === "/single/complete") return await handleSinglePaymentComplete(request, env, auth);
+    if (method === "POST" && path === "/single/cancel") return await handleSinglePaymentCancel(request, env, auth);
     if (method === "POST" && path === "/prepare") return await handlePrepare(request, env, auth);
     if (method === "POST" && path === "/subscription/prepare") return await handleSubscriptionPrepare(request, auth);
     if (method === "POST" && path === "/confirm") return await handleConfirm(request, env, auth);
@@ -2731,7 +4192,12 @@ export async function handlePaymentRoutes(request, env) {
 
 export const __paymentsTestUtils = {
   handlePrepare,
+  handleSinglePaymentStart,
+  handleSinglePaymentComplete,
+  handleWebhook,
   handleSubscriptionPrepare,
   resolveIdempotencyKey,
   normalizeIdempotencyKey,
+  signStandardWebhookPayload,
+  verifyPortOneWebhookSignature,
 };

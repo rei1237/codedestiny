@@ -45,6 +45,7 @@ type DestinyProfile = {
 
 type ProfileSubscription = {
   tier: "free" | "standard" | "premium" | "vvip";
+  rawTier?: "free" | "standard" | "premium" | "vvip";
   isActive: boolean;
   profileLimit: number;
   expiresAt: string | null;
@@ -71,6 +72,158 @@ type PremiumPdfArchiveItem = {
   canDownload?: boolean;
   pdfUrl?: string;
 };
+
+type ProfileActionType = "edit" | "delete";
+
+type ProfileActionStage = "" | "payment" | "coin" | "saving" | "deleting";
+
+type ProfileActionDraft = {
+  name: string;
+  gender: "M" | "F" | "OTHER";
+  birthDate: string;
+  birthTime: string;
+};
+
+type PortOnePaymentResponse = {
+  paymentId?: string;
+  transactionType?: string;
+  code?: string;
+  message?: string;
+  error_msg?: string;
+  errorMsg?: string;
+};
+
+type PortOnePaymentConfig = {
+  storeId: string;
+  channelKey: string;
+  noticeUrl?: string;
+  currency?: string;
+  payMethod?: string;
+  message?: string;
+};
+
+type PortOnePaymentRequest = {
+  storeId: string;
+  channelKey: string;
+  paymentId: string;
+  orderName: string;
+  amount: number;
+  currency: string;
+  payMethod: string;
+  redirectUrl: string;
+  customer: {
+    customerId: string;
+    fullName: string;
+    phoneNumber?: string;
+    email: string;
+  };
+  customData: Record<string, unknown>;
+  noticeUrls?: string[];
+};
+
+declare global {
+  interface Window {
+    PortOne?: {
+      requestPayment: (request: PortOnePaymentRequest) => Promise<PortOnePaymentResponse>;
+    };
+  }
+}
+
+const PROFILE_CARD_ACTION_COST_COINS = 50;
+const PROFILE_CARD_ACTION_COST_KRW = 5000;
+const PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST = PROFILE_CARD_ACTION_COST_COINS * 10;
+const PROFILE_CARD_ACTION_FEATURE_KEY = "profile-card-manage";
+const PROFILE_CARD_ACTION_SERVICE_TYPE = "profile_card_action";
+
+async function safeParseJson<T>(response: Response): Promise<T & { message?: string; ok?: boolean }> {
+  try {
+    return await response.json();
+  } catch (_) {
+    return {} as T & { message?: string; ok?: boolean };
+  }
+}
+
+function profileActionLabel(action: ProfileActionType) {
+  return action === "edit" ? "수정" : "삭제";
+}
+
+function profileActionProductName(action: ProfileActionType) {
+  return `프로필 카드 ${profileActionLabel(action)}`;
+}
+
+function profileActionButtonLabel(action: ProfileActionType, isVvipFree: boolean, coinBalance: number) {
+  const label = profileActionLabel(action);
+  if (isVvipFree) return `${label} · VVIP 무료`;
+  if (coinBalance >= PROFILE_CARD_ACTION_COST_COINS) return `${label} · ${PROFILE_CARD_ACTION_COST_COINS}코인`;
+  return `${label} · ${PROFILE_CARD_ACTION_COST_KRW.toLocaleString("ko-KR")}원`;
+}
+
+function profileActionPrimaryLabel(action: ProfileActionType, isVvipFree: boolean, coinBalance: number) {
+  if (isVvipFree) return `VVIP 무료 ${profileActionLabel(action)}`;
+  if (coinBalance >= PROFILE_CARD_ACTION_COST_COINS) return `${PROFILE_CARD_ACTION_COST_COINS}코인 사용`;
+  return `${PROFILE_CARD_ACTION_COST_KRW.toLocaleString("ko-KR")}원 결제`;
+}
+
+function profileActionProgressLabel(action: ProfileActionType, stage: ProfileActionStage) {
+  if (stage === "payment") return "결제창을 여는 중입니다.";
+  if (stage === "coin") return "코인을 차감하는 중입니다.";
+  if (stage === "saving") return "수정 내용을 저장하는 중입니다.";
+  if (stage === "deleting") return "프로필 카드를 삭제하는 중입니다.";
+  return action === "edit" ? "수정 처리 중입니다." : "삭제 처리 중입니다.";
+}
+
+function buildProfileActionRequestId(action: ProfileActionType, profileId: string) {
+  return `profile-card:${action}:${profileId}:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`.slice(0, 120);
+}
+
+function getProfileBirthDate(profile: DestinyProfile) {
+  const anyProfile = profile as DestinyProfile & { birthDate?: string; birthIso?: string };
+  const direct = String(anyProfile.birthDate || "").trim();
+  if (direct) return direct.slice(0, 10);
+  const iso = String(anyProfile.birthIso || "").trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(iso)) return iso.slice(0, 10);
+  const birth = profile.birth || {};
+  if (!birth.year || !birth.month || !birth.day) return "";
+  return `${birth.year}-${String(birth.month).padStart(2, "0")}-${String(birth.day).padStart(2, "0")}`;
+}
+
+function getProfileBirthTime(profile: DestinyProfile) {
+  const anyProfile = profile as DestinyProfile & { birthTime?: string; birthIso?: string };
+  const direct = String(anyProfile.birthTime || "").trim();
+  if (/^\d{2}:\d{2}$/.test(direct)) return direct;
+  const iso = String(anyProfile.birthIso || "").trim();
+  const match = iso.match(/\s(\d{2}:\d{2})/);
+  if (match) return match[1];
+  const birth = profile.birth || {};
+  return `${String(Number(birth.hour || 0)).padStart(2, "0")}:${String(Number(birth.minute || 0)).padStart(2, "0")}`;
+}
+
+function buildEditDraft(profile: DestinyProfile): ProfileActionDraft {
+  return {
+    name: String(profile.name || "").trim(),
+    gender: profile.gender || "OTHER",
+    birthDate: getProfileBirthDate(profile),
+    birthTime: getProfileBirthTime(profile),
+  };
+}
+
+function buildPortOneCustomer(user: AuthUser | null, paymentId: string) {
+  const merged = { ...((readSanitizedAuthUser() as AuthUser | null) || {}), ...(user || {}) } as AuthUser;
+  const email = String(merged.email || "").trim();
+  if (!/^[^@\s]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new Error("결제에 사용할 이메일을 확인해 주세요.");
+  }
+  return {
+    customerId: String(merged.id || merged.userId || merged.uid || merged._id || paymentId).trim(),
+    fullName: String(merged.name || "회원").trim(),
+    email,
+  };
+}
+
+function mapPaymentErrorMessage(message?: string) {
+  const text = String(message || "").trim();
+  return text || "결제가 완료되지 않았습니다.";
+}
 
 function readCachedUser(): AuthUser | null {
   return readSanitizedAuthUser() as AuthUser | null;
@@ -119,6 +272,7 @@ function formatMonthlyStoneBalance(points?: number) {
 function fallbackSubscription(): ProfileSubscription {
   return {
     tier: "free",
+    rawTier: "free",
     isActive: false,
     profileLimit: 1,
     expiresAt: null,
@@ -171,11 +325,33 @@ export default function MePage() {
   const [archiveItems, setArchiveItems] = useState<PremiumPdfArchiveItem[]>([]);
   const [archiveLoading, setArchiveLoading] = useState(false);
   const [archiveNotice, setArchiveNotice] = useState("");
+  const [membershipCreditBalance, setMembershipCreditBalance] = useState(0);
+  const [editTarget, setEditTarget] = useState<DestinyProfile | null>(null);
+  const [editDraft, setEditDraft] = useState<ProfileActionDraft>({
+    name: "",
+    gender: "OTHER",
+    birthDate: "",
+    birthTime: "00:00",
+  });
+  const [deleteTarget, setDeleteTarget] = useState<DestinyProfile | null>(null);
+  const [profileActionStage, setProfileActionStage] = useState<ProfileActionStage>("");
 
   const currentProfile = profiles.find((profile) => profile.id === currentId) || profiles[0] || null;
   const profileLimit = subscription.profileLimit > 0 ? subscription.profileLimit : 1;
   const slotPercent = Math.min(100, Math.round((profiles.length / profileLimit) * 100));
   const monthlyStoneBalance = formatMonthlyStoneBalance(user?.points);
+  const profileActionCoinBalance = Math.max(0, Math.floor(Number(membershipCreditBalance || 0) / 10));
+  const isVvipProfileActionFree = subscription.isActive && subscription.tier === "vvip" && profiles.length <= profileLimit;
+  const hasStoredVvipPass = subscription.rawTier === "vvip" || subscription.tier === "vvip";
+  const isExpiredVvipProfileAction = hasStoredVvipPass && !subscription.isActive;
+  const isVvipProfileLimitExceeded = subscription.isActive && subscription.tier === "vvip" && profiles.length > profileLimit;
+  const profileActionPolicyNotice = isVvipProfileActionFree
+    ? "VVIP 혜택 적용 중 · 한도 내 무료 관리"
+    : isExpiredVvipProfileAction
+      ? "이용권이 만료되어 50코인이 필요합니다."
+      : isVvipProfileLimitExceeded
+        ? "VVIP 프로필 카드 한도를 넘어 50코인이 필요합니다."
+        : "프로필 카드 수정/삭제는 1회 50코인입니다.";
 
   const applyProfilePayload = useCallback((payload: ProfileStatePayload | null) => {
     if (!payload || payload.ok !== true) return;
@@ -185,11 +361,12 @@ export default function MePage() {
       ? payload.currentId
       : (nextProfiles[0]?.id || "");
     const nextSubscription = payload.subscription && typeof payload.subscription === "object"
-      ? {
-          tier: (payload.subscription.tier || "free") as ProfileSubscription["tier"],
-          isActive: !!payload.subscription.isActive,
-          profileLimit: Number(payload.subscription.profileLimit || 1),
-          expiresAt: payload.subscription.expiresAt || null,
+        ? {
+            tier: (payload.subscription.tier || "free") as ProfileSubscription["tier"],
+            rawTier: (payload.subscription.rawTier || payload.subscription.tier || "free") as ProfileSubscription["rawTier"],
+            isActive: !!payload.subscription.isActive,
+            profileLimit: Number(payload.subscription.profileLimit || 1),
+            expiresAt: payload.subscription.expiresAt || null,
         }
       : fallbackSubscription();
 
@@ -199,6 +376,36 @@ export default function MePage() {
     setCanCreateMore(payload.canCreateMore !== false);
     emitDestinyProfileChanged(nextProfiles, nextCurrentId);
   }, []);
+
+  const refreshProfileActionBalance = useCallback(async () => {
+    try {
+      const response = await authFetch(`${apiBase}/api/billing/balance`, {
+        method: "GET",
+        cache: "no-store",
+      }, {
+        retryOn401: true,
+        apiBase,
+      });
+      const payload = await safeParseJson<{
+        data?: {
+          membershipCreditBalance?: number;
+          membership?: { membershipCreditBalance?: number };
+          legacyCoinBalance?: number;
+          balance?: number;
+        };
+        user?: { points?: number };
+      }>(response);
+      const data = payload.data || {};
+      const credit = Number(data.membershipCreditBalance ?? data.membership?.membershipCreditBalance ?? 0);
+      setMembershipCreditBalance(Number.isFinite(credit) ? Math.max(0, Math.floor(credit)) : 0);
+      const nextPoints = Number(data.legacyCoinBalance ?? data.balance ?? payload.user?.points ?? user?.points ?? 0);
+      if (Number.isFinite(nextPoints)) {
+        setUser((prev) => prev ? { ...prev, points: Math.max(0, Math.floor(nextPoints)) } : prev);
+      }
+    } catch (_) {
+      setMembershipCreditBalance(0);
+    }
+  }, [apiBase, user?.points]);
 
   const loadProfileState = useCallback(async () => {
     const response = await authFetch(`${apiBase}/api/profile`, {
@@ -287,6 +494,7 @@ export default function MePage() {
 
         if (mounted) {
           await loadProfileState();
+          await refreshProfileActionBalance();
           await loadPdfArchive();
         }
       } catch (error) {
@@ -309,7 +517,181 @@ export default function MePage() {
     return () => {
       mounted = false;
     };
-  }, [apiBase, loadPdfArchive, loadProfileState, router]);
+  }, [apiBase, loadPdfArchive, loadProfileState, refreshProfileActionBalance, router]);
+
+  const ensurePortoneSdk = useCallback(() => new Promise<void>((resolve, reject) => {
+    if (typeof window === "undefined") {
+      reject(new Error("브라우저 환경에서만 결제를 진행할 수 있습니다."));
+      return;
+    }
+    if (window.PortOne?.requestPayment) {
+      resolve();
+      return;
+    }
+    const scriptId = "portone-v2-sdk";
+    const existingScript = document.getElementById(scriptId) as HTMLScriptElement | null;
+    if (existingScript) {
+      existingScript.addEventListener("load", () => {
+        if (window.PortOne?.requestPayment) resolve();
+        else reject(new Error("포트원 V2 SDK가 초기화되지 않았습니다."));
+      }, { once: true });
+      existingScript.addEventListener("error", () => reject(new Error("결제 SDK를 불러오지 못했습니다.")), { once: true });
+      return;
+    }
+    const script = document.createElement("script");
+    script.id = scriptId;
+    script.src = "https://cdn.portone.io/v2/browser-sdk.js";
+    script.async = true;
+    script.onload = () => {
+      if (window.PortOne?.requestPayment) resolve();
+      else reject(new Error("포트원 V2 SDK가 초기화되지 않았습니다."));
+    };
+    script.onerror = () => reject(new Error("결제 SDK를 불러오지 못했습니다."));
+    document.body.appendChild(script);
+  }), []);
+
+  const fetchPortOnePaymentConfig = useCallback(async (): Promise<PortOnePaymentConfig> => {
+    const response = await authFetch(`${apiBase}/api/payments/config`, {
+      method: "GET",
+      credentials: "include",
+    }, {
+      retryOn401: true,
+      apiBase,
+    });
+    const payload = await safeParseJson<PortOnePaymentConfig>(response);
+    if (!response.ok || !payload.storeId || !payload.channelKey) {
+      throw new Error(payload.message || "포트원 V2 결제 설정을 확인할 수 없습니다.");
+    }
+    return {
+      storeId: String(payload.storeId || "").trim(),
+      channelKey: String(payload.channelKey || "").trim(),
+      noticeUrl: payload.noticeUrl,
+      currency: payload.currency || "CURRENCY_KRW",
+      payMethod: payload.payMethod || "CARD",
+    };
+  }, [apiBase]);
+
+  const runProfileActionCardPayment = useCallback(async (action: ProfileActionType, profile: DestinyProfile, requestId: string) => {
+    const productName = profileActionProductName(action);
+    const productId = `profile-card-action-${action}`;
+    const prepareResponse = await authFetch(`${apiBase}/api/payments/prepare`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        paymentType: "digital_content",
+        productType: PROFILE_CARD_ACTION_SERVICE_TYPE,
+        serviceType: PROFILE_CARD_ACTION_SERVICE_TYPE,
+        productId,
+        featureKey: PROFILE_CARD_ACTION_FEATURE_KEY,
+        reason: productName,
+        productName,
+        paymentAmount: PROFILE_CARD_ACTION_COST_KRW,
+        coinPrice: PROFILE_CARD_ACTION_COST_COINS,
+        membershipCreditCost: PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST,
+        actionType: action,
+        profileCardId: profile.id,
+        profileId: profile.id,
+        selectedProfileId: profile.id,
+        userId: user?.id || user?.userId || user?._id || user?.uid,
+        requestId,
+        idempotencyKey: requestId,
+        orderId: requestId,
+        paymentMethod: "card",
+      }),
+    }, {
+      retryOn401: true,
+      apiBase,
+    });
+
+    const preparePayload = await safeParseJson<{
+      order?: {
+        merchantUid: string;
+        paymentAmount: number;
+        coinPrice?: number;
+        productName?: string;
+      };
+    }>(prepareResponse);
+    const order = preparePayload.order;
+    if (!prepareResponse.ok || !order?.merchantUid) {
+      throw new Error(preparePayload.message || "결제 준비에 실패했습니다.");
+    }
+
+    await ensurePortoneSdk();
+    if (!window.PortOne?.requestPayment) throw new Error("포트원 V2 결제 SDK가 초기화되지 않았습니다.");
+
+    const paymentConfig = await fetchPortOnePaymentConfig();
+    const redirectUrl = new URL("/me", window.location.origin);
+    redirectUrl.searchParams.set("portone_redirect", "1");
+
+    const paymentRequest: PortOnePaymentRequest = {
+      storeId: paymentConfig.storeId,
+      channelKey: paymentConfig.channelKey,
+      paymentId: order.merchantUid,
+      orderName: order.productName || productName,
+      amount: Number(order.paymentAmount || PROFILE_CARD_ACTION_COST_KRW),
+      currency: paymentConfig.currency || "CURRENCY_KRW",
+      payMethod: paymentConfig.payMethod || "CARD",
+      redirectUrl: redirectUrl.toString(),
+      customer: buildPortOneCustomer(user, order.merchantUid),
+      customData: {
+        productType: PROFILE_CARD_ACTION_SERVICE_TYPE,
+        serviceType: PROFILE_CARD_ACTION_SERVICE_TYPE,
+        actionType: action,
+        profileCardId: profile.id,
+        profileId: profile.id,
+        costCoins: PROFILE_CARD_ACTION_COST_COINS,
+        amountKrw: PROFILE_CARD_ACTION_COST_KRW,
+        requestId,
+        idempotencyKey: requestId,
+        userId: user?.id || user?.userId || user?._id || user?.uid,
+      },
+    };
+    if (paymentConfig.noticeUrl) paymentRequest.noticeUrls = [paymentConfig.noticeUrl];
+
+    const rsp = await window.PortOne.requestPayment(paymentRequest);
+    const paymentId = String(rsp?.paymentId || order.merchantUid || "").trim();
+    if (!rsp || rsp.code || !paymentId) {
+      throw new Error(mapPaymentErrorMessage(rsp?.message || rsp?.error_msg || rsp?.errorMsg));
+    }
+
+    const confirmResponse = await authFetch(`${apiBase}/api/payments/confirm`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        impUid: paymentId,
+        merchantUid: order.merchantUid,
+        paymentAmount: Number(order.paymentAmount || PROFILE_CARD_ACTION_COST_KRW),
+        chargePoints: Number(order.coinPrice || PROFILE_CARD_ACTION_COST_COINS),
+        paymentType: "digital_content",
+        productType: PROFILE_CARD_ACTION_SERVICE_TYPE,
+        serviceType: PROFILE_CARD_ACTION_SERVICE_TYPE,
+        productId,
+        featureKey: PROFILE_CARD_ACTION_FEATURE_KEY,
+        productName,
+        actionType: action,
+        profileCardId: profile.id,
+        profileId: profile.id,
+        selectedProfileId: profile.id,
+        requestId,
+        idempotencyKey: requestId,
+        orderId: requestId,
+        paymentMethod: "card",
+      }),
+    }, {
+      retryOn401: true,
+      apiBase,
+    });
+    const confirmPayload = await safeParseJson<{ accessGrant?: Record<string, unknown>; payment?: Record<string, unknown> }>(confirmResponse);
+    if (!confirmResponse.ok) throw new Error(confirmPayload.message || "서버 결제 검증에 실패했습니다.");
+    return {
+      accessGrant: confirmPayload.accessGrant || null,
+      payment: confirmPayload.payment || null,
+      merchantUid: order.merchantUid,
+      paymentId,
+    };
+  }, [apiBase, ensurePortoneSdk, fetchPortOnePaymentConfig, user]);
 
   const activateProfile = async (profileId: string) => {
     setBusyAction(`activate:${profileId}`);
@@ -339,37 +721,108 @@ export default function MePage() {
     }
   };
 
-  const deleteProfile = async (profileId: string) => {
-    if (!window.confirm("이 프로필 카드를 삭제할까요?")) return;
+  const executeProfileAction = useCallback(async (
+    action: ProfileActionType,
+    profile: DestinyProfile,
+    requestId: string,
+    paymentContext: Record<string, unknown> | null,
+    draft?: ProfileActionDraft,
+  ) => {
+    const body: Record<string, unknown> = {
+      requestId,
+      productType: PROFILE_CARD_ACTION_SERVICE_TYPE,
+      serviceType: PROFILE_CARD_ACTION_SERVICE_TYPE,
+      actionType: action,
+      profileCardId: profile.id,
+      profileId: profile.id,
+      selectedProfileId: profile.id,
+      costCoins: PROFILE_CARD_ACTION_COST_COINS,
+      amountKrw: PROFILE_CARD_ACTION_COST_KRW,
+      ...(paymentContext || {}),
+    };
+    if (action === "edit" && draft) {
+      body.name = draft.name;
+      body.gender = draft.gender;
+      body.birthDate = draft.birthDate;
+      body.birthTime = draft.birthTime;
+    }
 
-    setBusyAction(`delete:${profileId}`);
-    try {
-      const response = await authFetch(`${apiBase}/api/profile/${encodeURIComponent(profileId)}`, {
-        method: "DELETE",
-      }, {
-        retryOn401: true,
-        apiBase,
-      });
+    const response = await authFetch(`${apiBase}/api/profile/${encodeURIComponent(profile.id)}`, {
+      method: action === "edit" ? "PATCH" : "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }, {
+      retryOn401: true,
+      apiBase,
+    });
+    const payload = await safeParseJson<{ profiles?: DestinyProfile[]; currentId?: string; profile?: DestinyProfile }>(response);
+    if (!response.ok || !payload?.ok) throw new Error(payload?.message || `${profileActionProductName(action)}에 실패했습니다.`);
 
-      const payload = await response.json().catch(() => null);
-      if (!response.ok || !payload?.ok) {
-        setAuthNotice(String(payload?.message || "프로필 삭제에 실패했습니다."));
-        return;
-      }
-
-      const nextProfiles = Array.isArray(payload?.profiles) ? payload.profiles as DestinyProfile[] : [];
-      const nextCurrentId = typeof payload?.currentId === "string" ? payload.currentId : (nextProfiles[0]?.id || "");
-
+    if (action === "delete") {
+      const nextProfiles = Array.isArray(payload.profiles) ? payload.profiles : [];
+      const nextCurrentId = typeof payload.currentId === "string" ? payload.currentId : (nextProfiles[0]?.id || "");
       setProfiles(nextProfiles);
       setCurrentId(nextCurrentId);
       setCanCreateMore(true);
       emitDestinyProfileChanged(nextProfiles, nextCurrentId);
-      setAuthNotice("");
-    } catch (e) {
-      setAuthNotice("프로필 삭제 중 오류가 발생했습니다.");
+    } else if (payload.profile) {
+      const nextProfiles = profiles.map((item) => item.id === profile.id ? payload.profile as DestinyProfile : item);
+      setProfiles(nextProfiles);
+      if (profile.id === currentId) emitDestinyProfileChanged(nextProfiles, currentId);
+    }
+    await refreshProfileActionBalance();
+  }, [apiBase, currentId, profiles, refreshProfileActionBalance]);
+
+  const runProfileActionFlow = useCallback(async (action: ProfileActionType, profile: DestinyProfile, draft?: ProfileActionDraft) => {
+    const label = profileActionLabel(action);
+    const requestId = buildProfileActionRequestId(action, profile.id);
+    const hasCoinBalance = profileActionCoinBalance >= PROFILE_CARD_ACTION_COST_COINS;
+    setBusyAction(`${action}:${profile.id}`);
+    try {
+      let paymentContext: Record<string, unknown> | null = null;
+      if (!isVvipProfileActionFree && !hasCoinBalance) {
+        setProfileActionStage("payment");
+        const payment = await runProfileActionCardPayment(action, profile, requestId);
+        paymentContext = {
+          accessGrant: payment.accessGrant || undefined,
+          payment: payment.payment || undefined,
+          merchantUid: payment.merchantUid,
+          paymentId: payment.paymentId,
+        };
+      } else if (!isVvipProfileActionFree) {
+        setProfileActionStage("coin");
+      }
+      if (isVvipProfileActionFree || paymentContext) {
+        setProfileActionStage(action === "edit" ? "saving" : "deleting");
+      }
+      await executeProfileAction(action, profile, requestId, paymentContext, draft);
+      setAuthNotice(isVvipProfileActionFree
+        ? `VVIP 이용권 혜택으로 무료 ${label} 완료`
+        : `${profileActionProductName(action)}이 완료되었습니다.`);
+      if (action === "edit") setEditTarget(null);
+      if (action === "delete") setDeleteTarget(null);
+    } catch (error) {
+      setAuthNotice(error instanceof Error ? error.message : `${profileActionProductName(action)} 중 오류가 발생했습니다.`);
     } finally {
       setBusyAction("");
+      setProfileActionStage("");
     }
+  }, [executeProfileAction, isVvipProfileActionFree, profileActionCoinBalance, runProfileActionCardPayment]);
+
+  const openEditProfile = (profile: DestinyProfile) => {
+    setEditTarget(profile);
+    setEditDraft(buildEditDraft(profile));
+    setAuthNotice("");
+  };
+
+  const deleteProfile = async (profileId: string) => {
+    const profile = profiles.find((item) => item.id === profileId);
+    if (!profile) {
+      setAuthNotice("삭제할 프로필 카드를 찾을 수 없습니다.");
+      return;
+    }
+    setDeleteTarget(profile);
+    setAuthNotice("");
   };
 
   const handleAddProfileClick = () => {
@@ -534,7 +987,9 @@ export default function MePage() {
                 profiles.map((profile) => {
                   const active = profile.id === currentId;
                   const activating = busyAction === `activate:${profile.id}`;
+                  const editing = busyAction === `edit:${profile.id}`;
                   const deleting = busyAction === `delete:${profile.id}`;
+                  const actionHint = profileActionPolicyNotice;
 
                   return (
                     <div key={profile.id} className={`rounded-lg border p-3 ${active ? "border-amber-300/45 bg-amber-300/10" : "border-white/10 bg-black/10"}`}>
@@ -542,25 +997,34 @@ export default function MePage() {
                         <div className="min-w-0">
                           <p className="truncate font-semibold text-white">{profile.name}</p>
                           <p className="mt-1 text-xs text-slate-400">{formatProfileBirth(profile)}</p>
+                          <p className="mt-1 text-[11px] font-semibold text-amber-200">{actionHint}</p>
                         </div>
                         {active ? <span className="rounded-full bg-amber-300 px-2 py-0.5 text-[11px] font-bold text-slate-950">활성</span> : null}
                       </div>
-                      <div className="mt-3 flex gap-2">
+                      <div className="mt-3 grid gap-2 sm:grid-cols-3">
                         <button
                           type="button"
                           onClick={() => void activateProfile(profile.id)}
-                          disabled={active || activating || deleting || !!busyAction}
-                          className="rounded-md border border-white/15 px-3 py-1.5 text-xs font-semibold text-slate-200 disabled:opacity-45"
+                          disabled={active || activating || editing || deleting || !!busyAction}
+                          className="min-h-[44px] rounded-md border border-white/15 px-3 py-2 text-xs font-semibold text-slate-200 disabled:opacity-45"
                         >
                           {activating ? "처리중..." : "사용"}
                         </button>
                         <button
                           type="button"
-                          onClick={() => void deleteProfile(profile.id)}
-                          disabled={deleting || activating || !!busyAction}
-                          className="rounded-md border border-rose-300/25 px-3 py-1.5 text-xs font-semibold text-rose-200 disabled:opacity-35"
+                          onClick={() => openEditProfile(profile)}
+                          disabled={editing || deleting || activating || !!busyAction}
+                          className="min-h-[44px] rounded-md border border-amber-300/35 bg-amber-300/10 px-3 py-2 text-xs font-semibold text-amber-100 disabled:opacity-35"
                         >
-                          {deleting ? "삭제중..." : "삭제"}
+                          {editing ? profileActionProgressLabel("edit", profileActionStage) : profileActionButtonLabel("edit", isVvipProfileActionFree, profileActionCoinBalance)}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void deleteProfile(profile.id)}
+                          disabled={deleting || editing || activating || !!busyAction}
+                          className="min-h-[44px] rounded-md border border-rose-300/35 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-100 disabled:opacity-35"
+                        >
+                          {deleting ? profileActionProgressLabel("delete", profileActionStage) : profileActionButtonLabel("delete", isVvipProfileActionFree, profileActionCoinBalance)}
                         </button>
                       </div>
                     </div>
@@ -634,6 +1098,145 @@ export default function MePage() {
           )}
         </section>
       </div>
+
+      {editTarget ? (
+        <div className="fixed inset-0 z-[1200] flex items-end justify-center bg-black/75 px-0 sm:items-center sm:px-4">
+          <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-amber-300/35 bg-[#171a34]/95 p-5 shadow-2xl shadow-black/50 backdrop-blur-xl sm:rounded-xl">
+            <h3 className="text-lg font-bold text-amber-100">프로필 카드 수정</h3>
+            <p className="mt-2 rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-sm font-semibold text-amber-100">
+              {profileActionPolicyNotice}
+            </p>
+            <p className="mt-2 text-sm leading-6 text-slate-200">
+              {isVvipProfileActionFree
+                ? "VVIP 이용권 혜택으로 현재 프로필 카드 한도 내에서는 무료로 수정할 수 있습니다."
+                : "프로필 카드 수정은 1회 50코인이 필요합니다. 코인이 부족한 경우 5,000원 결제로 진행됩니다."}
+            </p>
+            <div className="mt-3 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2">
+              <p className="truncate text-sm font-semibold text-white">{editTarget.name}</p>
+              <p className="mt-1 text-xs text-slate-400">{formatProfileBirth(editTarget)}</p>
+            </div>
+            {busyAction === `edit:${editTarget.id}` ? (
+              <div className="mt-3 rounded-lg border border-amber-300/35 bg-amber-300/10 px-3 py-2 text-sm font-semibold text-amber-100">
+                {profileActionProgressLabel("edit", profileActionStage)}
+              </div>
+            ) : null}
+            {authNotice ? (
+              <div className="mt-3 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm leading-6 text-slate-200">
+                {authNotice}
+              </div>
+            ) : null}
+            <div className="mt-4 grid gap-3">
+              <label className="grid gap-1 text-xs font-semibold text-slate-300">
+                이름
+                <input
+                  value={editDraft.name}
+                  onChange={(event) => setEditDraft((prev) => ({ ...prev, name: event.target.value }))}
+                  className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
+                />
+              </label>
+              <label className="grid gap-1 text-xs font-semibold text-slate-300">
+                성별
+                <select
+                  value={editDraft.gender}
+                  onChange={(event) => setEditDraft((prev) => ({ ...prev, gender: event.target.value as ProfileActionDraft["gender"] }))}
+                  className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
+                >
+                  <option value="OTHER">미선택</option>
+                  <option value="M">남성</option>
+                  <option value="F">여성</option>
+                </select>
+              </label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="grid gap-1 text-xs font-semibold text-slate-300">
+                  생년월일
+                  <input
+                    type="date"
+                    value={editDraft.birthDate}
+                    onChange={(event) => setEditDraft((prev) => ({ ...prev, birthDate: event.target.value }))}
+                    className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
+                  />
+                </label>
+                <label className="grid gap-1 text-xs font-semibold text-slate-300">
+                  출생시간
+                  <input
+                    type="time"
+                    value={editDraft.birthTime}
+                    onChange={(event) => setEditDraft((prev) => ({ ...prev, birthTime: event.target.value }))}
+                    className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
+                  />
+                </label>
+              </div>
+            </div>
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setEditTarget(null)}
+                disabled={!!busyAction}
+                className="min-h-[44px] rounded-md border border-white/20 px-3 py-2 text-sm font-semibold text-slate-200 disabled:opacity-45"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={() => editTarget && void runProfileActionFlow("edit", editTarget, editDraft)}
+                disabled={!editDraft.name.trim() || !editDraft.birthDate || !editDraft.birthTime || !!busyAction}
+                className="min-h-[44px] rounded-md bg-amber-300 px-3 py-2 text-sm font-bold text-slate-900 disabled:opacity-45"
+              >
+                {busyAction === `edit:${editTarget.id}` ? profileActionProgressLabel("edit", profileActionStage) : profileActionPrimaryLabel("edit", isVvipProfileActionFree, profileActionCoinBalance)}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {deleteTarget ? (
+        <div className="fixed inset-0 z-[1200] flex items-end justify-center bg-black/75 px-0 sm:items-center sm:px-4">
+          <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-rose-300/35 bg-[#171a34]/95 p-5 shadow-2xl shadow-black/50 backdrop-blur-xl sm:rounded-xl">
+            <h3 className="text-lg font-bold text-rose-100">프로필 카드 삭제</h3>
+            <p className="mt-2 rounded-lg border border-rose-300/25 bg-rose-500/10 px-3 py-2 text-sm font-semibold text-rose-100">
+              {profileActionPolicyNotice}
+            </p>
+            <p className="mt-2 text-sm leading-6 text-slate-200">
+              {isVvipProfileActionFree
+                ? "VVIP 이용권 혜택으로 현재 프로필 카드 한도 내에서는 무료로 삭제할 수 있습니다."
+                : "프로필 카드 삭제는 1회 50코인이 필요합니다. 삭제 후 복구가 어려울 수 있습니다."}
+            </p>
+            <div className="mt-4 rounded-lg border border-rose-300/20 bg-rose-500/10 px-3 py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-rose-200">삭제 대상</p>
+              <p className="mt-1 truncate text-base font-bold text-white">{deleteTarget.name}</p>
+              <p className="mt-1 text-xs text-slate-300">{formatProfileBirth(deleteTarget)}</p>
+            </div>
+            {busyAction === `delete:${deleteTarget.id}` ? (
+              <div className="mt-3 rounded-lg border border-rose-300/35 bg-rose-500/10 px-3 py-2 text-sm font-semibold text-rose-100">
+                {profileActionProgressLabel("delete", profileActionStage)}
+              </div>
+            ) : null}
+            {authNotice ? (
+              <div className="mt-3 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm leading-6 text-slate-200">
+                {authNotice}
+              </div>
+            ) : null}
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                disabled={!!busyAction}
+                className="min-h-[44px] rounded-md border border-white/20 px-3 py-2 text-sm font-semibold text-slate-200 disabled:opacity-45"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={() => void runProfileActionFlow("delete", deleteTarget)}
+                disabled={!!busyAction}
+                className="min-h-[44px] rounded-md bg-rose-400 px-3 py-2 text-sm font-bold text-slate-950 shadow-lg shadow-rose-950/30 disabled:opacity-45"
+              >
+                {busyAction === `delete:${deleteTarget.id}` ? profileActionProgressLabel("delete", profileActionStage) : profileActionPrimaryLabel("delete", isVvipProfileActionFree, profileActionCoinBalance)}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {showUpgradeModal ? (
         <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/70 px-4">

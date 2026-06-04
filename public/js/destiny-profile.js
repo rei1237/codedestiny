@@ -4469,18 +4469,18 @@
       var style = document.createElement('style');
       style.id = 'cdDirectPaymentStyles';
       style.textContent = [
-        '.cd-direct-payment-modal{position:fixed;inset:0;z-index:100260;display:none;align-items:center;justify-content:center;padding:22px;background:radial-gradient(circle at 72% 8%,rgba(180,206,255,.28),transparent 19%),radial-gradient(ellipse at 48% 106%,rgba(103,130,220,.28),transparent 45%),linear-gradient(145deg,#020817 0%,#071633 42%,#11103a 100%);backdrop-filter:blur(14px);overflow:hidden}',
+        '.cd-direct-payment-modal{position:fixed;inset:0;z-index:100260;display:none;align-items:flex-end;justify-content:center;padding:max(14px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) max(14px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));background:radial-gradient(circle at 72% 8%,rgba(254,240,138,.20),transparent 22%),linear-gradient(180deg,rgba(2,6,23,.62),rgba(2,6,23,.82));backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);overflow:hidden}',
         '.cd-direct-payment-modal.is-open{display:flex}',
-        '.cd-direct-payment-dialog{width:min(490px,100%);border:1px solid rgba(237,229,198,.38);border-radius:22px;background:linear-gradient(145deg,rgba(9,18,42,.82),rgba(24,29,62,.76));color:#fff7e6;box-shadow:0 24px 78px rgba(0,0,0,.52),inset 0 1px 0 rgba(255,255,255,.18);padding:24px;position:relative;overflow:hidden}',
+        '.cd-direct-payment-dialog{width:min(490px,100%);max-height:min(82dvh,calc(100dvh - 28px - env(safe-area-inset-top,0px)));border:1px solid rgba(237,229,198,.38);border-radius:8px;background:linear-gradient(145deg,rgba(9,18,42,.82),rgba(24,29,62,.76));color:#fff7e6;box-shadow:0 24px 78px rgba(0,0,0,.52),inset 0 1px 0 rgba(255,255,255,.18);padding:24px 24px calc(24px + env(safe-area-inset-bottom,0px));position:relative;overflow:auto;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}',
         '.cd-direct-payment-dialog::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 18% 34%,rgba(255,255,255,.12),transparent 24%),radial-gradient(circle at 92% 84%,rgba(250,204,21,.12),transparent 20%);pointer-events:none}',
         '.cd-direct-payment-dialog::after{content:"";position:absolute;right:18px;top:18px;width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 38% 35%,#fff7d8 0 13%,#d9e1ef 14% 34%,#68799b 48%,rgba(18,31,59,.08) 64%,transparent 72%);box-shadow:0 0 24px rgba(225,234,255,.32);pointer-events:none}',
         '.cd-direct-payment-title{position:relative;z-index:1;margin:0 96px 10px 0;font-family:Georgia,"Times New Roman","Noto Serif KR",serif;font-size:23px;font-weight:800;line-height:1.35;color:#f4f0e7;text-shadow:0 2px 18px rgba(0,0,0,.62)}',
         '.cd-direct-payment-sub{position:relative;z-index:1;margin:0 84px 16px 0;color:#eee8de;font-size:14px;line-height:1.65;text-shadow:0 1px 10px rgba(0,0,0,.56)}',
-        '.cd-direct-payment-note{position:relative;z-index:1;margin:0 0 14px;padding:15px 92px 15px 16px;border-radius:16px;background:linear-gradient(135deg,rgba(255,255,255,.20),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.30);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 12px 28px rgba(0,0,0,.24);color:#f8f1df;font-size:13px;line-height:1.55;backdrop-filter:blur(16px);overflow:hidden}',
+        '.cd-direct-payment-note{position:relative;z-index:1;margin:0 0 14px;padding:15px 92px 15px 16px;border-radius:8px;background:linear-gradient(135deg,rgba(255,255,255,.20),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.30);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 12px 28px rgba(0,0,0,.24);color:#f8f1df;font-size:13px;line-height:1.55;backdrop-filter:blur(16px);overflow:hidden}',
         '.cd-direct-payment-note::after{content:"";position:absolute;right:18px;top:18px;width:58px;height:72px;opacity:.22;background:linear-gradient(90deg,transparent 0 20%,rgba(255,255,255,.8) 21% 22%,transparent 23%),radial-gradient(circle at 48% 43%,transparent 0 28%,rgba(255,255,255,.95) 29% 31%,transparent 32%);border:1px solid rgba(255,255,255,.38);border-radius:10px;transform:rotate(5deg);pointer-events:none}',
         '.cd-direct-payment-note strong{display:block;margin-bottom:5px;color:#fff8df;font-size:17px;line-height:1.35;text-shadow:0 1px 10px rgba(0,0,0,.52)}',
         '.cd-direct-payment-options,.cd-direct-payment-choice-grid{display:grid;grid-template-columns:1fr;gap:12px;position:relative;z-index:1}',
-        '.cd-direct-payment-option{width:100%;min-height:auto;margin:0;padding:16px;border:1px solid rgba(255,255,255,.30);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(72,91,140,.24));color:inherit;text-align:left;cursor:pointer;position:relative;z-index:1;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 12px 28px rgba(0,0,0,.24);backdrop-filter:blur(16px)}',
+        '.cd-direct-payment-option{width:100%;min-height:auto;margin:0;padding:16px;border:1px solid rgba(255,255,255,.30);border-radius:8px;background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(72,91,140,.24));color:inherit;text-align:left;cursor:pointer;position:relative;z-index:1;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 12px 28px rgba(0,0,0,.24);backdrop-filter:blur(16px)}',
         '.cd-direct-payment-option::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(135deg,rgba(255,255,255,.18),transparent 38%,rgba(255,255,255,.06));pointer-events:none}',
         '.cd-direct-payment-option[data-mode="direct"]{border-color:rgba(248,222,140,.62);background:linear-gradient(145deg,rgba(255,255,255,.18),rgba(34,45,88,.40))}',
         '.cd-direct-payment-option[data-mode="monthly"]{border-color:rgba(198,190,255,.58);background:linear-gradient(145deg,rgba(212,219,255,.18),rgba(28,43,91,.46))}',
@@ -4492,7 +4492,8 @@
         '.cd-direct-payment-metric b{color:#fff7d1}',
         '.cd-direct-payment-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;position:relative;z-index:1}',
         '.cd-direct-payment-cancel{border:1px solid rgba(255,255,255,.38);border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,.18),rgba(255,255,255,.05));color:#f6efe4;padding:10px 16px;cursor:pointer;font-weight:800}',
-        '@media(max-width:560px){.cd-direct-payment-dialog{padding:20px 16px;border-radius:22px}.cd-direct-payment-title{margin-right:78px;font-size:21px}.cd-direct-payment-sub{margin-right:74px}.cd-direct-payment-note{padding-right:76px}.cd-direct-payment-option{min-height:0}}'
+        '@media(min-width:561px){.cd-direct-payment-modal{align-items:center}}',
+        '@media(max-width:560px){.cd-direct-payment-modal{padding:0 0 env(safe-area-inset-bottom,0px)}.cd-direct-payment-dialog{width:100%;padding:20px 16px calc(22px + env(safe-area-inset-bottom,0px));border-radius:8px 8px 0 0}.cd-direct-payment-title{margin-right:78px;font-size:21px}.cd-direct-payment-sub{margin-right:74px}.cd-direct-payment-note{padding-right:76px}.cd-direct-payment-option{min-height:0}}'
       ].join('');
       document.head.appendChild(style);
     }
@@ -4503,7 +4504,7 @@
       var title = String(opts.title || '유료 서비스').trim();
       var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
       var amountKrw = Math.max(0, Math.floor(Number(opts.amountKrw || (coinPrice * 100))));
-      var requiredMonthlyCredits = Math.max(0, coinPrice);
+      var requiredMonthlyCredits = Math.max(0, coinPrice * 10);
       var monthlyBalance = _dpGetMonthlyCreditBalance();
       var canUseMonthly = monthlyBalance >= requiredMonthlyCredits && requiredMonthlyCredits > 0;
       var monthlyShortage = Math.max(0, requiredMonthlyCredits - monthlyBalance);
@@ -4522,15 +4523,15 @@
         modal.innerHTML =
           '<div class="cd-direct-payment-dialog">' +
             '<h2 class="cd-direct-payment-title">달빛 결제 방식 선택</h2>' +
-            '<p class="cd-direct-payment-sub">코인은 콘텐츠 가치 단위이며 1코인 = 100원입니다. 단건 결제는 원화로, 월정석은 이벤트 잔량으로 처리됩니다.</p>' +
+            '<p class="cd-direct-payment-sub">이 콘텐츠만 한 번 구매하고, 구매 후 이 프로필에서는 계속 열람할 수 있어요.</p>' +
             '<div class="cd-direct-payment-note"><strong>' + escapeHtml(title) + '</strong>단건 결제: ' + coinPrice.toLocaleString('ko-KR') + '코인 · ' + amountKrw.toLocaleString('ko-KR') + '원<br>월정석 결제: 필요 월정석 ' + requiredMonthlyCredits.toLocaleString('ko-KR') + '개 · 현재 보유 월정석 ' + monthlyBalance.toLocaleString('ko-KR') + '</div>' +
             '<div class="cd-direct-payment-options">' +
               '<button type="button" class="cd-direct-payment-option" data-mode="direct">' +
                 '<em class="cd-direct-payment-mode">PortOne V2 · KG이니시스</em>' +
                 '<strong>단건 결제</strong>' +
-                '<span>PortOne V2 KG이니시스 보안 결제창에서 카드 또는 간편결제를 선택해 결제합니다.</span>' +
-                '<span class="cd-direct-payment-metric"><span>결제 금액</span><b>' + amountKrw.toLocaleString('ko-KR') + '원</b></span>' +
-                '<span class="cd-direct-payment-metric"><span>코인 기준</span><b>' + coinPrice.toLocaleString('ko-KR') + '코인</b></span>' +
+                '<span>이 콘텐츠만 한 번 구매하고, 구매 후 이 프로필에서는 계속 열람할 수 있어요.</span>' +
+                '<span class="cd-direct-payment-metric"><span>결제 금액</span><b>' + coinPrice.toLocaleString('ko-KR') + '코인 · ' + amountKrw.toLocaleString('ko-KR') + '원</b></span>' +
+                '<span class="cd-direct-payment-metric"><span>확인 방식</span><b>서버 안전 확인</b></span>' +
               '</button>' +
               '<button type="button" class="cd-direct-payment-option' + (canUseMonthly ? '' : ' is-disabled') + '" data-mode="' + (canUseMonthly ? 'monthly' : 'monthly-disabled') + '">' +
                 '<em class="cd-direct-payment-mode">보유 월정석</em>' +

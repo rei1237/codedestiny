@@ -2305,7 +2305,8 @@ function renderLetter(p){
 function renderEnergyCoord(natal){
   var area=document.getElementById('energyCoordSection');
   var card=document.getElementById('energyCoordCard');
-  if(!area||!card||!natal)return;
+  if(!area||!card)return;
+  natal=natal||{counts:{wood:0,fire:0,earth:0,metal:0,water:0}};
 
   var pw=G_POWER,jg=G_JONG;
   var counts=natal.counts||{wood:0,fire:0,earth:0,metal:0,water:0};
@@ -2329,15 +2330,24 @@ function renderEnergyCoord(natal){
   els.forEach(function(e){total+=(counts[e]||0);});
   var lacking=total>0?Math.round((1-(counts[target]||0)/total)*100):80;
   if(lacking>97)lacking=97;
+  var targetRatio=total>0?Math.round(((counts[target]||0)/total)*100):0;
+  var strongestEl=els.slice().sort(function(a,b){return (counts[b]||0)-(counts[a]||0);})[0];
+  var weakestEl=els.slice().sort(function(a,b){return (counts[a]||0)-(counts[b]||0);})[0];
 
-  var yongText = yongshinList[0] ? EL_E[yongshinList[0]]+EL_K[yongshinList[0]] : '없음';
-  var heeText = yongshinList[1] ? EL_E[yongshinList[1]]+EL_K[yongshinList[1]] : '없음';
-  var giText = kijishinList[0] ? EL_E[kijishinList[0]]+EL_K[kijishinList[0]] : '없음';
-  var gooText = kijishinList[1] ? EL_E[kijishinList[1]]+EL_K[kijishinList[1]] : '없음';
+  function elText(el){ return el ? ((EL_E[el]||'')+(EL_K[el]||el)) : '없음'; }
+  var yongText = elText(yongshinList[0]);
+  var heeText = elText(yongshinList[1]);
+  var giText = elText(kijishinList[0]);
+  var gooText = elText(kijishinList[1]);
 
   var avoidDirs = kijishinList.map(function(e){ return ENERGY_COORD_DB[e] ? ENERGY_COORD_DB[e].direction : ''; }).filter(Boolean).join(', ');
-  if(!avoidDirs) avoidDirs = '특별히 없음';
-  var analysisBasis = yongshinList.length ? '용신/희신 중심 해석' : '원국 오행 결핍도 중심 해석';
+  if(!avoidDirs) avoidDirs = '뚜렷한 경고 없음';
+  var avoidDirNarrative = avoidDirs==='뚜렷한 경고 없음'
+    ? '현재 원국에서는 특정 방위보다 일정 강도와 회복 시간을 조절하는 쪽이 더 중요합니다.'
+    : avoidDirs+' 방향성은 장거리 이동에서 에너지상 피로도가 커질 수 있으니, 절대 금지가 아니라 일정·동선·회복 시간을 넉넉히 두는 조절 포인트로 보세요.';
+  var analysisBasis = yongshinList.length
+    ? '용신과 희신이 먼저 길을 열고, 부족한 오행의 빈자리를 함께 살폈습니다.'
+    : '타고난 오행의 빈자리와 오늘의 계절 흐름을 중심으로 읽었습니다.';
 
   var today = new Date();
   function getSeasonNeed(month){
@@ -2348,9 +2358,21 @@ function renderEnergyCoord(natal){
     return {el:'water',label:'겨울(12~2월)',note:'저장·회복 기운이 커져 수(水) 보강 체감이 큽니다.'};
   }
   var seasonNeed = getSeasonNeed(today.getMonth()+1);
-  var primaryNeedText = (EL_E[target]||'') + (EL_K[target]||target);
-  var seasonNeedText = (EL_E[seasonNeed.el]||'') + (EL_K[seasonNeed.el]||seasonNeed.el);
-  var timingNarrative = seasonNeed.el===target
+  var primaryNeedText = elText(target);
+  var seasonNeedText = elText(seasonNeed.el);
+  var strongestText = elText(strongestEl);
+  var weakestText = elText(weakestEl);
+  var seasonConflictsKijishin = kijishinList.indexOf(seasonNeed.el)>=0;
+  var seasonModeLabel = seasonConflictsKijishin ? '시기 조절 오행' : '시기 보완 오행';
+  var seasonConflictAction = seasonNeed.el==='fire'
+    ? '화(火)의 과열을 조절하고 필요한 만큼만 튜닝'
+    : seasonNeedText+'의 과밀을 낮추고 필요한 만큼만 튜닝';
+  var seasonNeedGuide = seasonConflictsKijishin
+    ? seasonNeedText+'가 기신/구신 축과 겹칩니다. 이번 달은 '+seasonConflictAction+'하는 방식이 더 안전합니다.'
+    : seasonNeed.note;
+  var timingNarrative = seasonConflictsKijishin
+    ? '사주 원국의 기본 보완축은 '+primaryNeedText+'입니다. 현재 시기에는 '+seasonNeedText+'가 강하게 올라오지만 기신/구신과 충돌하므로, '+primaryNeedText+'로 중심을 세우고 '+seasonConflictAction+'하세요.'
+    : seasonNeed.el===target
     ? '사주 원국의 필요 오행과 현재 시기 오행이 일치합니다. 같은 기운을 집중 보완하면 운의 체감 상승 속도가 빠릅니다.'
     : '사주 원국의 기본 보완축은 '+primaryNeedText+', 현재 시기 미세조정축은 '+seasonNeedText+'입니다. 기본 체력은 '+primaryNeedText+'로 채우고, 월간 컨디션은 '+seasonNeedText+'로 튜닝하는 이중 전략이 유리합니다.';
 
@@ -2387,90 +2409,761 @@ function renderEnergyCoord(natal){
   for(var i=0;i<seedStr.length;i++){
     seed += seedStr.charCodeAt(i);
   }
-  
-  function shuffle(array, s) {
-    var arr = array.slice();
-    var m = arr.length, t, i;
-    while (m) {
-      i = Math.floor(Math.abs(Math.sin(s++)) * m--);
-      t = arr[m];
-      arr[m] = arr[i];
-      arr[i] = t;
+  seed += Math.floor(Date.now()/60000);
+
+  function destinationKey(dest){
+    return dest && (dest.id || (dest.element+'|'+dest.countryType+'|'+dest.name));
+  }
+  function seededNoise(key, s){
+    var str=String(key||'')+'|'+s;
+    var h=0;
+    for(var n=0;n<str.length;n++)h=((h<<5)-h)+str.charCodeAt(n);
+    return Math.abs(Math.sin(h))*7;
+  }
+  function readRecentDestinationIds(){
+    try{
+      var raw=localStorage.getItem('energyCoordRecentDestinationsV1');
+      var parsed=raw?JSON.parse(raw):[];
+      return Array.isArray(parsed)?parsed.slice(0,60):[];
+    }catch(_e){return [];}
+  }
+  function rememberRecentDestinations(list){
+    try{
+      var ids=list.map(destinationKey).filter(Boolean);
+      var prev=readRecentDestinationIds();
+      var next=ids.concat(prev.filter(function(id){return ids.indexOf(id)<0;})).slice(0,60);
+      localStorage.setItem('energyCoordRecentDestinationsV1',JSON.stringify(next));
+    }catch(_e){}
+  }
+  function hashEnergyRouletteKey(raw){
+    var str=String(raw||'anonymous');
+    var h=2166136261;
+    for(var idx=0;idx<str.length;idx++){
+      h^=str.charCodeAt(idx);
+      h+=(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24);
     }
-    return arr;
+    return (h>>>0).toString(36);
+  }
+  function getEnergyRouletteStorageKey(){
+    var raw='';
+    try{
+      var manager=window.DestinyProfileManager&&window.DestinyProfileManager.storage;
+      var current=manager&&typeof manager.current==='function'?manager.current():null;
+      if(current&&current.id)raw='profile|'+current.id;
+    }catch(_e){}
+    if(!raw){
+      try{
+        var active=window.__cdActiveBirthProfile||{};
+        var b=active.birth||{};
+        var activeGender=(typeof GENDER!=='undefined'?GENDER:'')||((typeof window!=='undefined'&&window._gender)||'');
+        raw=['birth',b.year||'',b.month||'',b.day||'',b.hour||'',b.minute||'',active.gender||activeGender].join('|');
+      }catch(_e2){}
+    }
+    if(!raw){
+      var birthDate=(document.getElementById('birthDate')||{}).value||'';
+      var birthHour=(document.getElementById('birthHour')||{}).value||'';
+      var birthMinute=(document.getElementById('birthMinute')||{}).value||'';
+      var safeGender=(typeof GENDER!=='undefined'?GENDER:'')||((typeof window!=='undefined'&&window._gender)||'');
+      raw=['form',birthDate,birthHour,birthMinute,safeGender].join('|');
+    }
+    return 'code-destiny-energy-roulette-'+hashEnergyRouletteKey(raw);
+  }
+  var rouletteStorageKey=getEnergyRouletteStorageKey();
+  function readRouletteRecentIds(){
+    try{
+      var raw=localStorage.getItem(rouletteStorageKey);
+      var parsed=raw?JSON.parse(raw):[];
+      return Array.isArray(parsed)?parsed.slice(0,7):[];
+    }catch(_e){return [];}
+  }
+  function rememberRouletteDestination(dest){
+    try{
+      var id=destinationKey(dest);
+      if(!id)return;
+      var prev=readRouletteRecentIds();
+      var next=[id].concat(prev.filter(function(rowId){return rowId!==id;})).slice(0,7);
+      localStorage.setItem(rouletteStorageKey,JSON.stringify(next));
+    }catch(_e){}
+  }
+  var recentIds=readRecentDestinationIds();
+  var supportElements=[];
+  function addSupportElement(el){
+    if(!el||el===target||kijishinList.indexOf(el)>=0||supportElements.indexOf(el)>=0)return;
+    supportElements.push(el);
+  }
+  addSupportElement(yongshinList[1]);
+  addSupportElement(weakestEl);
+  if(!seasonConflictsKijishin)addSupportElement(seasonNeed.el);
+  els.forEach(function(el){if(supportElements.length<2)addSupportElement(el);});
+
+  var preferredTripStylesByElement={
+    wood:['slow_trip','retreat','creative'],
+    fire:['romantic','creative','adventure'],
+    earth:['slow_trip','retreat','one_night'],
+    metal:['creative','day_trip','slow_trip'],
+    water:['retreat','slow_trip','romantic']
+  };
+  var preferredTripStyles=preferredTripStylesByElement[target]||['slow_trip','retreat'];
+  function elementDeficiencyBonus(el){
+    var ratio=total>0?((counts[el]||0)/total):0;
+    var bonus=Math.round((1-ratio)*24);
+    if(el===weakestEl)bonus+=16;
+    return bonus;
+  }
+  function allDestinations(countryType){
+    var key=countryType==='domestic'?'domestic':'global';
+    var rows=[];
+    els.forEach(function(el){
+      var bucket=(ENERGY_COORD_DB[el]&&ENERGY_COORD_DB[el][key])||[];
+      bucket.forEach(function(dest){rows.push(dest);});
+    });
+    return rows;
+  }
+  function fallbackDestinations(countryType){
+    var key=countryType==='domestic'?'domestic':'global';
+    var primary=((ENERGY_COORD_DB[target]||{})[key]||[]);
+    var water=((ENERGY_COORD_DB.water||{})[key]||[]);
+    return primary.concat(water).filter(function(dest,idx,arr){
+      var id=destinationKey(dest);
+      return id&&arr.findIndex(function(row){return destinationKey(row)===id;})===idx;
+    });
+  }
+  function scoreDestination(dest, countryType, offset){
+    var el=dest.element||target;
+    var baseElementMatchScore=el===target?70:(supportElements.indexOf(el)>=0?30:8);
+    var yongshinBonus=el===yongshinList[0]?28:0;
+    var heeshinBonus=el===yongshinList[1]?18:0;
+    var deficiencyBonus=elementDeficiencyBonus(el);
+    var seasonalAdjustment=el===seasonNeed.el?(seasonConflictsKijishin?-18:14):0;
+    var tripStyleMatchBonus=preferredTripStyles.indexOf(dest.tripStyle)>=0?9:0;
+    var gishinPenalty=el===kijishinList[0]?90:0;
+    var gushinPenalty=el===kijishinList[1]?60:0;
+    var recentlyShownPenalty=recentIds.indexOf(destinationKey(dest))>=0?42:0;
+    var score=baseElementMatchScore+yongshinBonus+heeshinBonus+deficiencyBonus+seasonalAdjustment+tripStyleMatchBonus-gishinPenalty-gushinPenalty-recentlyShownPenalty+seededNoise(destinationKey(dest),seed+offset);
+    var reason=[];
+    if(el===target)reason.push('가장 먼저 채울 회복축');
+    else if(supportElements.indexOf(el)>=0)reason.push('중심을 부드럽게 받치는 보조축');
+    if(el===yongshinList[0])reason.push('용신의 숨을 살리는 자리');
+    if(el===yongshinList[1])reason.push('희신이 뒤에서 받쳐주는 자리');
+    if(el===weakestEl)reason.push('비어 있는 기운을 채우는 자리');
+    if(el===seasonNeed.el)reason.push(seasonConflictsKijishin?'계절 기운을 과하게 밀지 않고 조율할 자리':'지금 계절과 호흡이 맞는 자리');
+    if(gishinPenalty||gushinPenalty)reason.push('강하게 오래 머물기보다 짧고 가볍게 다룰 자리');
+    if(recentlyShownPenalty)reason.push('최근에 이미 열린 좌표라 다른 곳을 먼저 보아도 좋은 자리');
+    return Object.assign({},dest,{
+      score:Math.round(score),
+      matchLabel:reason.join(' · ')||'균형을 조용히 받쳐주는 자리',
+      scoreParts:{
+        baseElementMatchScore:baseElementMatchScore,
+        yongshinBonus:yongshinBonus,
+        heeshinBonus:heeshinBonus,
+        deficiencyBonus:deficiencyBonus,
+        seasonalAdjustment:seasonalAdjustment,
+        tripStyleMatchBonus:tripStyleMatchBonus,
+        gishinPenalty:gishinPenalty,
+        gushinPenalty:gushinPenalty,
+        recentlyShownPenalty:recentlyShownPenalty
+      },
+      countryType:countryType
+    });
+  }
+  function pickEnergyDestinations(countryType, offset){
+    var rows=allDestinations(countryType);
+    if(!rows.length)rows=fallbackDestinations(countryType);
+    var scored=rows.map(function(dest){return scoreDestination(dest,countryType,offset);}).sort(function(a,b){return b.score-a.score;});
+    var primary=scored.filter(function(dest){return dest.element===target&&dest.score>-20;});
+    var support=scored.filter(function(dest){return dest.element!==target&&supportElements.indexOf(dest.element)>=0&&dest.score>-20;});
+    var picked=[];
+    function push(dest){
+      if(!dest)return;
+      var id=destinationKey(dest);
+      if(!id||picked.some(function(row){return destinationKey(row)===id;}))return;
+      picked.push(dest);
+    }
+    primary.slice(0,2).forEach(push);
+    support.slice(0,1).forEach(push);
+    primary.slice(2,4).forEach(push);
+    support.slice(1,2).forEach(push);
+    scored.forEach(function(dest){if(picked.length<6)push(dest);});
+    if(picked.length<5){
+      fallbackDestinations(countryType).map(function(dest){return scoreDestination(dest,countryType,offset+200);}).forEach(function(dest){if(picked.length<6)push(dest);});
+    }
+    return picked.slice(0,Math.max(5,Math.min(6,picked.length)));
   }
 
-  var domList = shuffle(db.domestic, seed).slice(0,3);
-  var globList = shuffle(db.global, seed+100).slice(0,3);
+  var domList = pickEnergyDestinations('domestic', 11);
+  var globList = pickEnergyDestinations('global', 101);
+  rememberRecentDestinations(domList.concat(globList));
   var envPlan = ENERGY_ENV_PLAN[target] || ENERGY_ENV_PLAN.water;
   var benefitHtml = (envPlan.benefits||[]).map(function(b){
     return '<li style="margin:2px 0;">'+b+'</li>';
   }).join('');
   var focusDomestic = domList.length ? domList.map(function(l){return l.name;}).join(' · ') : '가까운 자연 환경';
   var focusGlobal = globList.length ? globList.map(function(l){return l.name;}).join(' · ') : '해외 자연/도시 에너지 포인트';
+  var expeditionPlaybook = {
+    wood:['첫 코스는 숲길·정원처럼 초록 밀도가 높은 곳으로 잡기','오전에는 걷고 오후에는 카페/서점에서 아이디어 정리하기','사진은 수직선·나무·새싹처럼 성장감 있는 장면 위주로 남기기'],
+    fire:['낮에는 햇빛을 받되 무리한 일정은 피하고 물 휴식 끼워넣기','저녁에는 야경·공연·시장처럼 사람 온기가 있는 곳으로 이동하기','감정이 들뜨면 즉흥 소비보다 짧은 체험 하나만 선택하기'],
+    earth:['한 번에 많이 이동하기보다 한 지역을 깊게 머무르기','식사·온천·한옥·흙길 산책처럼 몸이 안정되는 코스 넣기','여행 중 결정은 기록하고 다음날 한 번 더 확인하기'],
+    metal:['동선을 짧고 선명하게 짜고 예약/시간표를 먼저 정리하기','미술관·건축·전망대처럼 구조가 또렷한 공간을 우선하기','짐과 사진을 바로 정리해 머릿속까지 가볍게 만들기'],
+    water:['물가·호수·해안처럼 시야가 트이는 곳에서 오래 머무르기','일정 사이에 혼자 조용히 걷는 시간을 반드시 넣기','밤에는 과한 자극보다 음악·독서·따뜻한 음료로 회복하기']
+  };
+  var playbookItems = (expeditionPlaybook[target] || expeditionPlaybook.water).slice();
+  if(seasonConflictsKijishin){
+    playbookItems.unshift(seasonConflictAction+'을 원정의 안전장치로 먼저 세우기');
+  }
+  var playbookHtml = playbookItems.slice(0,3).map(function(item){
+    return '<li style="margin:2px 0;">'+item+'</li>';
+  }).join('');
 
-  function locCard(loc,tagClass,tagLabel){
-    return '<div class="ec-loc-item">'+
-      '<div class="ec-loc-top">'+
-        '<span class="ec-loc-icon">'+loc.icon+'</span>'+
-        '<div>'+
-          '<div class="ec-loc-name">'+loc.name+'</div>'+
-          '<div class="ec-loc-coord">📐 '+loc.coord+'</div>'+
+  function escapeHtml(value){
+    return String(value==null?'':value).replace(/[&<>"']/g,function(ch){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];
+    });
+  }
+  function formatDestinationCoord(dest){
+    if(dest.coord)return dest.coord;
+    if(Number.isFinite(Number(dest.latitude))&&Number.isFinite(Number(dest.longitude))){
+      return Math.abs(Number(dest.latitude)).toFixed(4)+'°'+(Number(dest.latitude)>=0?'N':'S')+' '+Math.abs(Number(dest.longitude)).toFixed(4)+'°'+(Number(dest.longitude)>=0?'E':'W');
+    }
+    return '좌표 미기록';
+  }
+  var tripStyleLabels={
+    day_trip:'당일 회복 산책',
+    one_night:'하룻밤 리셋 여행',
+    slow_trip:'느린 호흡의 체류',
+    retreat:'고요한 회복 리트릿',
+    adventure:'움직이며 여는 원정',
+    romantic:'감정을 데우는 동행',
+    creative:'영감을 깨우는 창작 여행'
+  };
+  var elementUiPalette={
+    wood:{soft:'rgba(16,185,129,.14)',mid:'rgba(5,150,105,.28)',deep:'rgba(6,78,59,.88)',line:'rgba(167,243,208,.36)',text:'#d1fae5',chip:'#a7f3d0'},
+    fire:{soft:'rgba(251,113,133,.14)',mid:'rgba(249,115,22,.24)',deep:'rgba(127,29,29,.84)',line:'rgba(254,205,211,.36)',text:'#ffe4e6',chip:'#fecdd3'},
+    earth:{soft:'rgba(245,158,11,.14)',mid:'rgba(120,113,108,.24)',deep:'rgba(69,48,28,.84)',line:'rgba(253,230,138,.34)',text:'#fef3c7',chip:'#fde68a'},
+    metal:{soft:'rgba(148,163,184,.16)',mid:'rgba(100,116,139,.28)',deep:'rgba(39,39,42,.88)',line:'rgba(226,232,240,.34)',text:'#f8fafc',chip:'#e2e8f0'},
+    water:{soft:'rgba(56,189,248,.14)',mid:'rgba(99,102,241,.24)',deep:'rgba(30,41,59,.9)',line:'rgba(186,230,253,.36)',text:'#e0f2fe',chip:'#bae6fd'}
+  };
+  var uiPalette=elementUiPalette[target]||elementUiPalette.water;
+  var rouletteAvoidByElement={
+    wood:'목표 없이 코스를 계속 늘리며 체력을 흩뜨리는 행동',
+    fire:'들뜬 기분으로 밤 일정을 과열시키거나 즉흥 소비를 키우는 행동',
+    earth:'한 자리에서 너무 오래 머물며 몸의 흐름을 무겁게 만드는 행동',
+    metal:'계획과 평가에만 매달려 장소의 감각을 놓치는 행동',
+    water:'생각을 끝없이 깊게 파고들며 결론 없는 걱정으로 빠지는 행동'
+  };
+  function rouletteAvoidAction(dest){
+    if(dest.avoidFor&&dest.avoidFor.length)return dest.avoidFor[0];
+    return rouletteAvoidByElement[dest.element]||'몸이 피곤한데도 일정을 밀어붙이는 행동';
+  }
+  function scoreRouletteDestination(dest, offset, rouletteRecentIds){
+    var countryType=dest.countryType==='global'?'global':'domestic';
+    var scored=scoreDestination(dest,countryType,offset);
+    var el=scored.element||target;
+    var id=destinationKey(scored);
+    var isRecent=rouletteRecentIds.indexOf(id)>=0;
+    var isKijishin=kijishinList.indexOf(el)>=0;
+    var weight=Math.max(4,scored.score+96);
+    if(el===yongshinList[0])weight*=1.45;
+    if(el===yongshinList[1])weight*=1.28;
+    if(el===weakestEl)weight*=1.35;
+    if(isKijishin)weight*=seasonNeed.el===el?0.22:0.1;
+    if(isRecent)weight*=0.18;
+    var reason=scored.matchLabel||'사주 흐름과 지형의 결이 차분히 맞닿는 자리';
+    if(isKijishin)reason='오늘은 이 기운을 크게 보강하기보다, 짧게 스치며 과열과 피로를 조율하는 방식이 어울립니다.';
+    if(isRecent)reason+=' 이미 가까운 시간에 한 번 열린 좌표라면, 이번에는 일정의 강도를 낮춰 가볍게 받아들이세요.';
+    return Object.assign({},scored,{
+      rouletteWeight:Math.max(1,Math.round(weight)),
+      rouletteReason:reason
+    });
+  }
+  function getRouletteRows(mode){
+    if(mode==='domestic')return allDestinations('domestic');
+    if(mode==='global')return allDestinations('global');
+    return allDestinations('domestic').concat(allDestinations('global'));
+  }
+  function pickRouletteDestination(mode){
+    var rows=getRouletteRows(mode);
+    if(!rows.length)rows=domList.concat(globList);
+    var rouletteRecentIds=readRouletteRecentIds();
+    var scored=rows.map(function(dest,idx){
+      return scoreRouletteDestination(dest,idx+(mode==='global'?700:mode==='mixed'?1200:300),rouletteRecentIds);
+    });
+    if(!scored.length)return null;
+    var hasFresh=scored.some(function(dest){return rouletteRecentIds.indexOf(destinationKey(dest))<0;});
+    function weightedPick(){
+      var totalWeight=scored.reduce(function(sum,dest){return sum+(dest.rouletteWeight||1);},0);
+      var ticket=Math.random()*totalWeight;
+      for(var idx=0;idx<scored.length;idx++){
+        ticket-=scored[idx].rouletteWeight||1;
+        if(ticket<=0)return scored[idx];
+      }
+      return scored[0];
+    }
+    for(var attempt=0;attempt<8;attempt++){
+      var picked=weightedPick();
+      if(!hasFresh||rouletteRecentIds.indexOf(destinationKey(picked))<0)return picked;
+    }
+    scored=scored.slice().sort(function(a,b){
+      var ar=rouletteRecentIds.indexOf(destinationKey(a))>=0?1:0;
+      var br=rouletteRecentIds.indexOf(destinationKey(b))>=0?1:0;
+      return ar-br||(b.rouletteWeight||0)-(a.rouletteWeight||0);
+    });
+    return scored[0];
+  }
+  function rouletteResultField(label,value){
+    return '<div style="border:1px solid rgba(148,163,184,.22);border-radius:12px;background:rgba(15,23,42,.46);padding:10px 11px;min-width:0;">'+
+      '<div style="font-size:.68rem;font-weight:800;letter-spacing:.08em;color:#bae6fd;text-transform:uppercase;margin-bottom:4px;">'+escapeHtml(label)+'</div>'+
+      '<div style="font-size:.82rem;line-height:1.55;color:#f8fafc;">'+escapeHtml(value)+'</div>'+
+    '</div>';
+  }
+  function renderRouletteResult(dest,mode){
+    var result=document.getElementById('energyRouletteResult');
+    if(!result||!dest)return;
+    var countryLabel=dest.countryType==='global'?'해외':'국내';
+    var modeLabel=mode==='domestic'?'국내 좌표':mode==='global'?'해외 좌표':'완전 랜덤 원정';
+    result.innerHTML=
+      '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-bottom:10px;">'+
+        '<div style="min-width:0;flex:1 1 220px;">'+
+          '<div style="font-size:.74rem;font-weight:800;letter-spacing:.1em;color:#c4b5fd;text-transform:uppercase;">'+escapeHtml(modeLabel)+'</div>'+
+          '<div style="font-size:1.08rem;font-weight:900;color:#fff;margin-top:3px;line-height:1.35;">'+escapeHtml((dest.emoji||dest.icon||'📍')+' '+dest.name)+'</div>'+
+        '</div>'+
+        '<span style="border:1px solid rgba(251,191,36,.34);background:rgba(251,191,36,.12);color:#fde68a;border-radius:999px;padding:6px 10px;font-size:.74rem;font-weight:800;white-space:nowrap;">'+escapeHtml(countryLabel+' · '+(EL_E[dest.element]||'')+(EL_K[dest.element]||dest.element))+'</span>'+
+      '</div>'+
+      '<div class="energy-roulette-result-grid grid grid-cols-1 gap-2 sm:grid-cols-2">'+
+        rouletteResultField('좌표',formatDestinationCoord(dest))+
+        rouletteResultField('추천 이유',dest.rouletteReason||dest.matchLabel||'사주 흐름과 지형 에너지가 안정적으로 맞물립니다.')+
+        rouletteResultField('여행 방식',tripStyleLabels[dest.tripStyle]||dest.tripStyle||'느린 회복 여행')+
+        rouletteResultField('1일 미션',dest.ritualTip||'도착 후 첫 10분은 말수를 줄이고 장소의 기운을 천천히 받아들이세요.')+
+        rouletteResultField('피하면 좋은 행동',rouletteAvoidAction(dest))+
+      '</div>'+
+      '<button type="button" data-energy-roulette-reroll="'+escapeHtml(mode||'mixed')+'" class="mt-3 rounded-full bg-white/10 px-3 py-2 text-xs font-bold text-slate-50 ring-1 ring-white/20" style="appearance:none;margin-top:12px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.1);color:#f8fafc;border-radius:999px;padding:8px 12px;font-size:.74rem;font-weight:800;cursor:pointer;">다시 뽑기</button>';
+  }
+  function ensureEnergyRouletteStyles(){
+    try{
+      if(!document||!document.createElement||!document.head||document.getElementById('energyRouletteStyles'))return;
+      var style=document.createElement('style');
+      style.id='energyRouletteStyles';
+      style.textContent=[
+        '.energy-expedition-root{position:relative;overflow:hidden;border-radius:22px;background:radial-gradient(circle at 12% 4%,rgba(255,255,255,.16),transparent 24%),radial-gradient(circle at 86% 10%,rgba(186,230,253,.16),transparent 22%),linear-gradient(145deg,rgba(8,13,31,.96),rgba(18,27,54,.92) 48%,rgba(8,13,31,.96));border:1px solid rgba(226,232,240,.16);box-shadow:0 24px 70px rgba(2,6,23,.36),inset 0 1px 0 rgba(255,255,255,.12)}',
+        '.energy-expedition-hero{position:relative;display:grid;gap:12px;padding:18px;border:1px solid rgba(255,255,255,.14);border-radius:18px;background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.04));backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);margin-bottom:14px}',
+        '.energy-dashboard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:8px}',
+        '.energy-section-card{border-radius:16px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}',
+        '.ec-loc-grid{display:grid!important;grid-template-columns:1fr!important;gap:10px!important}',
+        '.ec-loc-item{border-radius:16px!important;border:1px solid rgba(226,232,240,.22)!important;box-shadow:0 12px 28px rgba(15,23,42,.08)!important;overflow:hidden}',
+        '.ec-loc-item:hover{transform:translateY(-2px)!important}',
+        '.energy-mission-row{display:flex;align-items:flex-start;gap:9px;border:1px solid rgba(148,163,184,.22);border-radius:12px;background:rgba(255,255,255,.82);padding:10px 11px;color:#1e293b}',
+        '.energy-mission-check{flex:0 0 auto;width:18px;height:18px;border-radius:6px;border:1px solid rgba(14,165,233,.36);background:linear-gradient(135deg,rgba(186,230,253,.68),rgba(255,255,255,.82));box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}',
+        '.energy-roulette-layout{display:grid;grid-template-columns:minmax(132px,178px) minmax(0,1fr);gap:14px;align-items:center}',
+        '.energy-roulette-wheel{transition:transform .72s cubic-bezier(.16,1,.3,1),filter .2s ease;will-change:transform}',
+        '.energy-roulette-wheel.is-spinning{filter:drop-shadow(0 0 18px rgba(186,230,253,.42))}',
+        '.energy-roulette-deck.is-shuffling .energy-roulette-chip:nth-child(1){transform:translate3d(7px,-5px,0) rotate(-3deg)}',
+        '.energy-roulette-deck.is-shuffling .energy-roulette-chip:nth-child(2){transform:translate3d(-6px,6px,0) rotate(2deg)}',
+        '.energy-roulette-deck.is-shuffling .energy-roulette-chip:nth-child(3){transform:translate3d(5px,5px,0) rotate(4deg)}',
+        '.energy-roulette-result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}',
+        '@media(min-width:720px){.ec-loc-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}',
+        '@media(min-width:1080px){.ec-loc-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}',
+        '@media(max-width:560px){.energy-expedition-hero{padding:15px}.energy-roulette-layout{grid-template-columns:1fr}.energy-roulette-wheel-wrap{margin:0 auto}.energy-roulette-result-grid{grid-template-columns:1fr}}',
+        '@media(prefers-reduced-motion:reduce){.energy-roulette-wheel,.energy-roulette-chip{transition:none!important}}'
+      ].join('\n');
+      document.head.appendChild(style);
+    }catch(_e){}
+  }
+  function energyRouletteHtml(){
+    var chipRows=domList.slice(0,3).concat(globList.slice(0,3));
+    var chipHtml=chipRows.map(function(dest){
+      return '<span class="energy-roulette-chip inline-flex items-center rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-xs text-slate-100" style="display:inline-flex;align-items:center;gap:4px;border:1px solid rgba(255,255,255,.16);border-radius:999px;background:rgba(255,255,255,.10);padding:5px 9px;font-size:.72rem;color:#f8fafc;transition:transform .28s ease;">'+escapeHtml((dest.emoji||dest.icon||'✦')+' '+dest.name)+'</span>';
+    }).join('');
+    return '<div id="energyRouletteCard" class="energy-roulette-card relative overflow-hidden rounded-2xl border border-white/15 bg-slate-950/80 p-4 text-slate-50 shadow-2xl backdrop-blur-xl" style="position:relative;overflow:hidden;border:1px solid rgba(226,232,240,.18);border-radius:18px;background:radial-gradient(circle at 18% 8%,rgba(216,180,254,.24),transparent 26%),radial-gradient(circle at 88% 18%,rgba(125,211,252,.18),transparent 24%),linear-gradient(145deg,rgba(8,13,31,.94),rgba(30,41,79,.82));box-shadow:0 20px 54px rgba(2,6,23,.42),inset 0 1px 0 rgba(255,255,255,.14);padding:16px;margin:16px 0;color:#f8fafc;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);">'+
+      '<div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.12),transparent 32%),radial-gradient(circle at 50% 0%,rgba(254,249,195,.12),transparent 36%);"></div>'+
+      '<div style="position:relative;display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;">'+
+        '<div style="min-width:0;flex:1 1 240px;">'+
+          '<h4 style="margin:0;font-size:1.02rem;font-weight:900;letter-spacing:0;color:#fff;">🎡 오늘의 에너지 룰렛</h4>'+
+          '<p style="margin:5px 0 0;font-size:.82rem;line-height:1.55;color:#dbeafe;">당신의 사주가 오늘 끌어당기는 회복 좌표</p>'+
+        '</div>'+
+        '<span style="border:1px solid rgba(196,181,253,.32);background:rgba(109,40,217,.18);color:#ede9fe;border-radius:999px;padding:6px 10px;font-size:.7rem;font-weight:800;white-space:nowrap;">별빛 추첨</span>'+
+      '</div>'+
+      '<div class="energy-roulette-layout" style="position:relative;">'+
+        '<div class="energy-roulette-wheel-wrap" style="position:relative;width:min(164px,48vw);aspect-ratio:1;">'+
+          '<div id="energyRouletteWheel" class="energy-roulette-wheel rounded-full" style="position:absolute;inset:0;border-radius:999px;background:conic-gradient(from 12deg,rgba(34,197,94,.92),rgba(34,197,94,.92) 0 20%,rgba(248,113,113,.92) 20% 40%,rgba(250,204,21,.92) 40% 60%,rgba(148,163,184,.94) 60% 80%,rgba(56,189,248,.92) 80% 100%);border:1px solid rgba(255,255,255,.28);box-shadow:inset 0 0 22px rgba(255,255,255,.22),0 12px 34px rgba(15,23,42,.42);">'+
+            '<div style="position:absolute;inset:18%;border-radius:999px;background:radial-gradient(circle at 35% 30%,#fff7ed,#c7d2fe 48%,rgba(15,23,42,.94) 70%);box-shadow:0 0 28px rgba(191,219,254,.42);display:flex;align-items:center;justify-content:center;font-size:1.28rem;">✦</div>'+
+          '</div>'+
+          '<div style="position:absolute;right:-4px;top:50%;transform:translateY(-50%);width:0;height:0;border-top:9px solid transparent;border-bottom:9px solid transparent;border-left:15px solid #fef3c7;filter:drop-shadow(0 0 8px rgba(254,243,199,.5));"></div>'+
+        '</div>'+
+        '<div style="min-width:0;">'+
+          '<div id="energyRouletteDeck" class="energy-roulette-deck flex flex-wrap gap-2" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px;">'+chipHtml+'</div>'+
+          '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+
+            '<button type="button" data-energy-roulette-mode="domestic" class="rounded-full bg-sky-400/15 px-3 py-2 text-xs font-bold text-sky-50 ring-1 ring-sky-200/25" style="appearance:none;border:1px solid rgba(125,211,252,.32);background:rgba(14,165,233,.16);color:#f0f9ff;border-radius:999px;padding:9px 12px;font-size:.76rem;font-weight:800;cursor:pointer;">오늘의 국내 좌표 뽑기</button>'+
+            '<button type="button" data-energy-roulette-mode="global" class="rounded-full bg-violet-400/15 px-3 py-2 text-xs font-bold text-violet-50 ring-1 ring-violet-200/25" style="appearance:none;border:1px solid rgba(196,181,253,.34);background:rgba(124,58,237,.17);color:#f5f3ff;border-radius:999px;padding:9px 12px;font-size:.76rem;font-weight:800;cursor:pointer;">오늘의 해외 좌표 뽑기</button>'+
+            '<button type="button" data-energy-roulette-mode="mixed" class="rounded-full bg-amber-300/15 px-3 py-2 text-xs font-bold text-amber-50 ring-1 ring-amber-200/25" style="appearance:none;border:1px solid rgba(253,230,138,.34);background:rgba(245,158,11,.16);color:#fffbeb;border-radius:999px;padding:9px 12px;font-size:.76rem;font-weight:800;cursor:pointer;">완전 랜덤 원정 뽑기</button>'+
+          '</div>'+
         '</div>'+
       '</div>'+
-      '<div class="ec-loc-desc">'+loc.desc+'</div>'+
-      '<span class="ec-loc-tag '+tagClass+'">'+tagLabel+'</span>'+
+      '<div id="energyRouletteResult" style="position:relative;margin-top:14px;border:1px dashed rgba(186,230,253,.34);border-radius:14px;background:rgba(15,23,42,.38);padding:13px;font-size:.82rem;color:#dbeafe;line-height:1.62;">별빛 원판이 멈추면 오늘의 회복 좌표가 열립니다.</div>'+
+    '</div>';
+  }
+  function setupEnergyRoulette(){
+    ensureEnergyRouletteStyles();
+    var roulette=document.getElementById('energyRouletteCard');
+    if(!roulette||!roulette.querySelectorAll)return;
+    var wheel=document.getElementById('energyRouletteWheel');
+    var deck=document.getElementById('energyRouletteDeck');
+    var result=document.getElementById('energyRouletteResult');
+    var buttons=roulette.querySelectorAll('[data-energy-roulette-mode]');
+    var spinCount=0;
+    function bindRerollButton(){
+      if(!result||!result.querySelector)return;
+      var reroll=result.querySelector('[data-energy-roulette-reroll]');
+      if(!reroll)return;
+      reroll.addEventListener('click',function(){
+        spinRoulette(reroll.getAttribute('data-energy-roulette-reroll')||'mixed');
+      });
+    }
+    function spinRoulette(mode){
+      var picked=pickRouletteDestination(mode);
+      if(!picked)return;
+      spinCount+=1;
+      var rotate=720+(spinCount*137)+Math.round(seededNoise(destinationKey(picked),seed+spinCount)*48);
+      if(wheel){
+        wheel.classList.add('is-spinning');
+        wheel.style.transform='rotate('+rotate+'deg)';
+      }
+      if(deck)deck.classList.add('is-shuffling');
+      Array.prototype.forEach.call(buttons,function(row){row.disabled=true;row.style.opacity='.72';});
+      setTimeout(function(){
+        renderRouletteResult(picked,mode);
+        rememberRouletteDestination(picked);
+        bindRerollButton();
+        if(wheel)wheel.classList.remove('is-spinning');
+        if(deck)deck.classList.remove('is-shuffling');
+        Array.prototype.forEach.call(buttons,function(row){row.disabled=false;row.style.opacity='1';});
+      },520);
+    }
+    Array.prototype.forEach.call(buttons,function(btn){
+      btn.addEventListener('click',function(){
+        spinRoulette(btn.getAttribute('data-energy-roulette-mode')||'mixed');
+      });
+    });
+  }
+
+  var energyTravelStory={
+    wood:{
+      needed:'숲과 정원처럼 살아 있는 초록의 리듬이 필요합니다.',
+      why:'목(木)은 시작, 성장, 관계 확장, 창작의 첫 호흡을 맡습니다. 이 기운이 약하면 마음은 알고 있어도 몸이 앞으로 나가지 못하고, 계획은 많지만 실행의 줄기가 가늘어집니다.',
+      deficient:'컨디션으로는 아침 무기력, 결정 지연, 감정의 답답함, 아이디어 고갈, 관계 회피처럼 나타나기 쉽습니다.',
+      travel:'나무가 많은 곳을 걷는 여행은 몸의 호흡을 위로 열고, 닫혀 있던 의지와 상상력을 자연스럽게 다시 자라게 합니다.',
+      fill:'초록 밀도가 높은 숲길이나 수목원에서 천천히 걷고, 새로 키울 계획을 한 문장으로 정리하세요.',
+      yong:'용신이 목(木)일 때는 새 프로젝트, 공부, 관계 확장과 연결되는 장소를 고르면 운의 체감이 빠릅니다.',
+      hee:'희신이 목(木)일 때는 메인 일정 사이에 정원 산책을 넣어 마음의 방향을 부드럽게 보조하세요.',
+      mission:['숲길이나 정원에서 30분 이상 걷기','새로 시작할 일 한 가지를 여행 노트에 적기','초록 풍경을 보며 들숨 5초, 날숨 7초 호흡하기']
+    },
+    fire:{
+      needed:'빛, 온기, 일출과 야경처럼 마음을 깨우는 발산 에너지가 필요합니다.',
+      why:'화(火)는 표현력, 자신감, 사회적 존재감, 결단의 열을 담당합니다. 이 기운이 약하면 마음이 식고, 말과 행동이 늦어지며, 사람 앞에서 자신을 드러내는 힘이 줄어듭니다.',
+      deficient:'컨디션으로는 냉한 무기력, 의욕 저하, 발표 부담, 낮은 존재감, 기분의 침체처럼 나타나기 쉽습니다.',
+      travel:'빛이 좋은 장소와 활기 있는 야간 풍경은 꺼진 불씨를 다시 데우고, 표현의 용기를 안전하게 끌어올립니다.',
+      fill:'일출이나 전망대처럼 빛이 열리는 장소를 고르되, 과열되지 않도록 물 휴식과 조용한 회복 시간을 함께 두세요.',
+      yong:'용신이 화(火)일 때는 무대, 전망, 축제성 있는 풍경이 자신감과 실행력을 살립니다.',
+      hee:'희신이 화(火)일 때는 짧은 야경 산책이나 따뜻한 카페 시간을 보조 처방으로 쓰면 좋습니다.',
+      mission:['아침 햇빛을 15분 이상 받기','일몰 전 휴대폰을 잠시 끄고 하늘 보기','오늘 표현하고 싶은 마음 한 문장을 소리 내지 않고 정리하기']
+    },
+    earth:{
+      needed:'흙길, 고궁, 유적, 사찰처럼 몸과 마음을 중심에 붙드는 안정 에너지가 필요합니다.',
+      why:'토(土)는 루틴, 현실감, 소화력, 생활의 중심축을 맡습니다. 이 기운이 약하면 마음이 떠 있고, 결정은 흔들리며, 몸의 리듬이 쉽게 무너집니다.',
+      deficient:'컨디션으로는 소화 부담, 수면 불규칙, 걱정 반복, 일정 지연, 현실감 저하처럼 나타나기 쉽습니다.',
+      travel:'오래된 장소와 흙의 지형을 밟는 여행은 흩어진 생각을 몸으로 끌어내리고, 현재의 생활 감각을 회복시킵니다.',
+      fill:'이동지를 줄이고 한 지역에 오래 머무르며 식사, 산책, 휴식 시간을 일정하게 고정하세요.',
+      yong:'용신이 토(土)일 때는 역사 지구나 고원처럼 안정된 장소가 재정비와 현실 판단을 돕습니다.',
+      hee:'희신이 토(土)일 때는 여행 중 식사와 수면 시간을 고정해 전체 운의 중심을 잡으세요.',
+      mission:['흙길이나 오래된 골목을 20분 이상 걷기','오늘의 식사 시간을 흔들지 않기','불안한 생각을 현실 행동 1개로 바꿔 적기']
+    },
+    metal:{
+      needed:'미술관, 건축, 도시 전망, 설산처럼 선명한 구조와 정리의 에너지가 필요합니다.',
+      why:'금(金)은 판단, 절제, 정리, 기준, 감각의 밀도를 담당합니다. 이 기운이 약하면 경계가 흐려지고, 우선순위가 무너지고, 결정의 칼날이 무뎌집니다.',
+      deficient:'컨디션으로는 산만함, 물건과 생각의 과적, 관계 정리 지연, 기준 혼란, 호흡의 답답함처럼 나타나기 쉽습니다.',
+      travel:'정돈된 도시와 예술 공간은 감각을 날카롭게 닦아주고, 불필요한 것을 덜어내는 결단을 부드럽게 돕습니다.',
+      fill:'일정과 짐을 가볍게 하고, 미술관이나 건축 공간에서 내가 지킬 기준 한 가지를 선명하게 정하세요.',
+      yong:'용신이 금(金)일 때는 미술관, 전망대, 현대 건축처럼 구조가 분명한 장소가 판단력을 살립니다.',
+      hee:'희신이 금(金)일 때는 여행 중 사진과 메모를 정리하며 생각의 잡음을 줄이는 방식이 좋습니다.',
+      mission:['가방에서 필요 없는 물건 하나 덜어내기','미술관이나 건축물 앞에서 내 기준 한 문장 쓰기','사진은 9장만 남기고 바로 정리하기']
+    },
+    water:{
+      needed:'바다, 호수, 강, 섬, 안개처럼 마음을 낮추고 깊게 만드는 회복 에너지가 필요합니다.',
+      why:'수(水)는 휴식, 직관, 장기 판단, 감정의 깊은 순환을 맡습니다. 이 기운이 약하면 생각은 뜨겁게 돌지만 결론은 얕아지고, 마음의 파동이 쉽게 흔들립니다.',
+      deficient:'컨디션으로는 불면, 불안, 과열된 사고, 감정 기복, 몰입력 저하, 깊은 휴식의 어려움처럼 나타나기 쉽습니다.',
+      travel:'물가 여행은 과열된 머리를 낮추고 감정의 파동을 안정시켜, 오래 보고 깊게 결정하는 힘을 회복시킵니다.',
+      fill:'물가에 오래 머무르고 일정을 비워두세요. 답을 빨리 내리기보다 마음의 온도가 내려가는 시간을 확보하는 것이 핵심입니다.',
+      yong:'용신이 수(水)일 때는 바다와 호수처럼 깊고 낮은 장소가 직관과 회복력을 가장 잘 살립니다.',
+      hee:'희신이 수(水)일 때는 저녁 물가 산책이나 디지털 디톡스를 보조축으로 쓰면 좋습니다.',
+      mission:['물가 산책 30분 하기','잠들기 전 화면을 30분 먼저 끄기','여행 노트에 오늘의 감정과 사실을 한 줄씩 나누어 쓰기']
+    }
+  };
+  var targetStory=energyTravelStory[target]||energyTravelStory.water;
+  function softCard(title,body,tone){
+    var bg=tone==='dark'
+      ? 'radial-gradient(circle at 12% 0%,'+uiPalette.soft+',transparent 34%),linear-gradient(135deg,rgba(15,23,42,.88),rgba(30,41,59,.78))'
+      : 'radial-gradient(circle at 90% 0%,'+uiPalette.soft+',transparent 34%),linear-gradient(135deg,rgba(255,255,255,.94),rgba(241,245,249,.9))';
+    var color=tone==='dark'?'#e2e8f0':'#1e293b';
+    var border=tone==='dark'?'rgba(125,211,252,.26)':'rgba(148,163,184,.34)';
+    return '<div class="energy-section-card rounded-2xl border bg-white/80 p-4 shadow-sm backdrop-blur-xl" style="border:1px solid '+border+';border-radius:16px;background:'+bg+';padding:14px;margin:12px 0;color:'+color+';line-height:1.72;font-size:.88rem;box-shadow:0 10px 28px rgba(15,23,42,.08);">'+
+      '<div style="font-size:.78rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:'+(tone==='dark'?'#bae6fd':'#475569')+';margin-bottom:8px;">'+title+'</div>'+
+      body+
+    '</div>';
+  }
+  function summaryChip(label,value){
+    return '<div class="rounded-xl border border-slate-200/60 bg-white/85 p-3 shadow-sm" style="border:1px solid rgba(148,163,184,.28);border-radius:12px;background:rgba(255,255,255,.88);padding:10px 11px;min-width:0;">'+
+      '<div style="font-size:.68rem;font-weight:900;letter-spacing:.08em;color:#64748b;text-transform:uppercase;margin-bottom:4px;">'+label+'</div>'+
+      '<div style="font-size:.84rem;font-weight:800;color:#0f172a;line-height:1.45;">'+value+'</div>'+
+    '</div>';
+  }
+  var todayCorePrescription=seasonConflictsKijishin
+    ? primaryNeedText+'로 중심을 세우고, '+seasonNeedText+'는 보강보다 과열 조절과 미세 튜닝으로 다루세요.'
+    : primaryNeedText+'를 중심축으로 채우고, '+seasonNeedText+'를 오늘의 컨디션 미세 조정에 부드럽게 더하세요.';
+  function energySummaryHtml(){
+    return softCard('오행 에너지 대시보드',
+      '<div class="energy-dashboard-grid grid grid-cols-2 gap-2 md:grid-cols-3" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:8px;">'+
+        summaryChip('보충 필요 오행',primaryNeedText)+
+        summaryChip('결핍도',lacking+'%')+
+        summaryChip('용신 / 희신',yongText+' · '+heeText)+
+        summaryChip('기신 / 구신',giText+' · '+gooText)+
+        summaryChip('현재 계절 보완축',seasonModeLabel+' · '+seasonNeedText)+
+        summaryChip('추천 방위',db.dirEmoji+' '+db.direction)+
+      '</div>'+
+      '<div style="margin-top:12px;border-left:3px solid rgba(14,165,233,.55);padding-left:10px;color:#0f172a;font-weight:800;">오늘의 핵심 처방: '+todayCorePrescription+'</div>',
+      'light');
+  }
+  function neededTravelEnergyHtml(){
+    return softCard('나에게 필요한 여행 에너지',
+      '<div style="display:grid;gap:10px;">'+
+        '<div><b style="color:#bfdbfe;">왜 이 오행이 필요한가요?</b><br>'+targetStory.why+'</div>'+
+        '<div><b style="color:#bfdbfe;">부족할 때 나타나는 컨디션</b><br>'+targetStory.deficient+'</div>'+
+        '<div><b style="color:#bfdbfe;">여행으로 보완하면 좋은 이유</b><br>'+targetStory.travel+'</div>'+
+      '</div>',
+      'dark');
+  }
+  var stayTimeByElement={
+    wood:'오전 9~11시, 빛이 부드럽고 숲의 호흡이 살아나는 시간',
+    fire:'일출 직후 또는 해 질 무렵, 빛의 방향이 선명한 시간',
+    earth:'오전 10시~오후 2시, 식사와 산책 리듬을 안정시키기 좋은 시간',
+    metal:'오후 2~5시, 감각과 판단이 또렷해지는 시간',
+    water:'해 질 무렵부터 초저녁, 마음의 파동이 낮아지는 시간'
+  };
+  var destinationActionByElement={
+    wood:'걷는 동안 새로 키울 계획을 한 문장으로 적어보세요.',
+    fire:'빛이 좋은 지점에서 오늘 표현하고 싶은 마음을 조용히 정리하세요.',
+    earth:'식사 시간을 지키고, 걷는 속도를 평소보다 한 단계 낮추세요.',
+    metal:'사진과 메모를 바로 정리하며 지금 필요한 기준 하나를 고르세요.',
+    water:'물가를 바라보며 감정과 사실을 분리해서 한 줄씩 적어보세요.'
+  };
+  var difficultyByTripStyle={
+    day_trip:'낮음 · 짧은 일정으로도 체감이 빠릅니다.',
+    one_night:'보통 · 하룻밤 머물 때 회복감이 깊어집니다.',
+    slow_trip:'보통 · 일정 밀도를 낮출수록 효과가 좋습니다.',
+    retreat:'낮음~보통 · 조용한 체류에 적합합니다.',
+    adventure:'높음 · 이동과 체력 배분을 넉넉히 잡으세요.',
+    romantic:'보통 · 동행의 속도와 감정 온도를 맞추면 좋습니다.',
+    creative:'보통 · 기록 도구를 챙기면 영감 회수가 좋습니다.'
+  };
+  var travelerTypeByElement={
+    wood:'새 출발, 관계 회복, 창작 루틴을 다시 열고 싶은 여행자',
+    fire:'자신감, 표현력, 활기를 되살리고 싶은 여행자',
+    earth:'생활 리듬, 안정감, 현실 판단을 회복하고 싶은 여행자',
+    metal:'정리, 결단, 감각의 선명도를 되찾고 싶은 여행자',
+    water:'휴식, 직관, 감정 안정, 깊은 몰입이 필요한 여행자'
+  };
+  function destinationLongText(loc,scope){
+    var el=loc.element||target;
+    var desc=loc.description||loc.desc||'';
+    var reason=(loc.matchLabel||'균형을 조용히 받쳐주는 자리')+'입니다.';
+    var stay=tripStyleLabels[loc.tripStyle]||'느린 회복 여행';
+    var time=stayTimeByElement[el]||stayTimeByElement[target];
+    var action=loc.ritualTip||destinationActionByElement[el]||destinationActionByElement[target];
+    if(scope==='global'){
+      return desc+' '+reason+' 난이도는 '+(difficultyByTripStyle[loc.tripStyle]||'보통 · 일정과 체력을 여유 있게 잡으면 좋습니다.')+' 머무는 방식은 '+stay+'이 잘 맞고, '+(travelerTypeByElement[el]||travelerTypeByElement[target])+'에게 특히 깊게 닿습니다.';
+    }
+    return desc+' '+reason+' 머무는 방식은 '+stay+'이 어울리고, '+time+'에 찾으면 장소의 결이 더 부드럽게 열립니다. 함께 하면 좋은 행동은 '+action;
+  }
+  function locMetaRow(label,value){
+    return '<div style="border:1px solid rgba(148,163,184,.18);border-radius:10px;background:rgba(248,250,252,.72);padding:8px 9px;">'+
+      '<span style="display:block;font-size:.68rem;font-weight:900;letter-spacing:.06em;color:#64748b;text-transform:uppercase;margin-bottom:3px;">'+label+'</span>'+
+      '<span style="font-size:.78rem;line-height:1.5;color:#334155;">'+value+'</span>'+
+    '</div>';
+  }
+  function prescriptionHtml(){
+    var weakStory=energyTravelStory[weakestEl]||targetStory;
+    var yongStory=energyTravelStory[yongshinList[0]]||targetStory;
+    var heeStory=energyTravelStory[yongshinList[1]]||targetStory;
+    return softCard('오행별 여행 처방',
+      '<div style="display:grid;gap:9px;">'+
+        '<div><b style="color:#fef3c7;">부족 오행을 채우는 여행법</b><br>'+weakestText+' 축은 '+weakStory.fill+'</div>'+
+        '<div><b style="color:#fef3c7;">용신을 살리는 여행법</b><br>'+yongStory.yong+'</div>'+
+        '<div><b style="color:#fef3c7;">희신을 보조로 쓰는 여행법</b><br>'+heeStory.hee+'</div>'+
+        '<div><b style="color:#fef3c7;">기신/구신을 피하는 여행법</b><br>'+avoidDirNarrative+'</div>'+
+      '</div>',
+      'dark');
+  }
+  function bestByStyle(styles, pool){
+    var rows=(pool&&pool.length?pool:domList.concat(globList)).filter(function(dest){
+      return styles.indexOf(dest.tripStyle)>=0&&kijishinList.indexOf(dest.element)<0;
+    });
+    if(!rows.length)rows=domList.concat(globList);
+    rows=rows.slice().sort(function(a,b){return (b.score||0)-(a.score||0);});
+    return rows[0]||domList[0]||globList[0]||{};
+  }
+  function typeCard(label,styles,pool,tip){
+    var pick=bestByStyle(styles,pool);
+    return locMetaRow(label,(pick.name||'가까운 회복 좌표')+' · '+(tripStyleLabels[pick.tripStyle]||'회복 여행')+' · '+tip);
+  }
+  function travelTypeHtml(){
+    return softCard('여행 타입별 추천',
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;">'+
+        typeCard('당일치기',['day_trip'],domList,'가볍게 다녀와도 기운 전환이 선명합니다.')+
+        typeCard('1박 2일',['one_night','slow_trip'],domList,'하룻밤 자고 오면 몸의 리듬이 더 잘 바뀝니다.')+
+        typeCard('혼자 가기 좋은 여행',['retreat','slow_trip'],domList.concat(globList),'말수를 줄이고 내면의 속도를 회복하세요.')+
+        typeCard('연인과 가기 좋은 여행',['romantic'],domList.concat(globList),'감정의 온도를 부드럽게 맞추는 동행에 좋습니다.')+
+        typeCard('창작/공부/리셋용 여행',['creative','day_trip'],domList.concat(globList),'기록과 정리를 곁들이면 영감 회수가 좋아집니다.')+
+        typeCard('번아웃 회복용 여행',['retreat','slow_trip'],domList.concat(globList),'일정을 비우고 회복 시간을 길게 잡으세요.')+
+      '</div>',
+      'light');
+  }
+  function missionHtml(){
+    var missions=(targetStory.mission||[]).slice(0,3);
+    while(missions.length<3)missions.push('여행 노트에 오늘의 감정과 몸 상태를 한 줄씩 기록하기');
+    return softCard('에너지 충전 미션',
+      '<div style="display:grid;gap:8px;">'+missions.map(function(item){
+        return '<div class="energy-mission-row">'+
+          '<span class="energy-mission-check" aria-hidden="true"></span>'+
+          '<span style="font-size:.86rem;line-height:1.55;">'+item+'</span>'+
+        '</div>';
+      }).join('')+'</div>',
+      'light');
+  }
+  var gijishinAvoidPattern={
+    wood:'목(木)이 기신/구신으로 강하게 작동할 때는 계속 더 걷고, 더 만나고, 더 시작하려는 흐름이 몸을 먼저 지치게 합니다. 숲과 정원은 짧게 숨을 고르는 정도로 쓰고, 새 약속을 늘리기보다 이미 품은 계획 하나만 정리하세요.',
+    fire:'화(火)가 부담이 되는 사람에게 과한 야간 일정, 빽빽한 인증샷 코스, 소음 많은 축제형 여행은 기운을 밝히기보다 태워버릴 수 있습니다. 대신 해가 낮게 기우는 시간대의 산책, 조용한 전망대, 짧고 선명한 일정이 더 잘 맞습니다.',
+    earth:'토(土)가 무겁게 작동하면 오래 앉아 먹고 머무르는 일정이 안정이 아니라 정체감으로 느껴질 수 있습니다. 유적과 고궁은 한두 곳만 깊게 보고, 식사 뒤에는 짧은 흙길 산책으로 몸의 흐름을 다시 열어주세요.',
+    metal:'금(金)이 날카롭게 피로를 만들 때는 완벽한 동선, 비교가 많은 쇼핑, 사진 결과물에 집착하는 도시 여행이 마음을 더 조일 수 있습니다. 미술관이나 건축 공간은 오래 평가하기보다 한 장면만 고르고, 나머지는 가볍게 지나가도 충분합니다.',
+    water:'수(水)가 과해지기 쉬운 흐름에서는 고립된 섬, 밤늦은 감정 대화, 결론 없는 물가 사색이 마음을 너무 깊은 곳으로 데려갈 수 있습니다. 물가를 찾더라도 낮 시간에 걷고, 생각은 노트 한 페이지 안에서만 마무리하세요.'
+  };
+  function avoidPatternHtml(){
+    var patterns=kijishinList.map(function(el){return gijishinAvoidPattern[el];}).filter(Boolean);
+    if(!patterns.length)patterns=['오늘은 특정 오행보다 과밀 일정, 수면 부족, 이동 욕심을 줄이는 것이 가장 안전합니다.'];
+    return softCard('피해야 할 여행 패턴',
+      '<div>'+patterns.map(function(item){return '<p style="margin:0 0 8px;">'+item+'</p>';}).join('')+
+      '<p style="margin:0;color:#fecaca;">피해야 할 방향과 장소는 절대 금지가 아니라, 에너지상 피로도가 커질 수 있는 조건으로 이해하고 회복 시간을 충분히 붙이면 됩니다.</p></div>',
+      'dark');
+  }
+  function finalConclusionHtml(){
+    return softCard('한 줄 결론',
+      '<div style="font-size:.94rem;font-weight:800;color:#0f172a;">오늘의 여행은 멀리 떠나는 것보다 '+primaryNeedText+'의 결을 몸에 다시 익히는 작은 회복 의식입니다. 당신에게 맞는 속도로 움직이면, 운은 조용히 다시 숨을 고릅니다.</div>',
+      'light');
+  }
+
+  function locCard(loc,tagClass,tagLabel,scope){
+    var coord=loc.coord||((loc.latitude&&loc.longitude)?(Math.abs(loc.latitude).toFixed(4)+'°'+(loc.latitude>=0?'N':'S')+' '+Math.abs(loc.longitude).toFixed(4)+'°'+(loc.longitude>=0?'E':'W')):'좌표 미기록');
+    var desc=destinationLongText(loc,scope);
+    var keywords=(loc.energyKeywords||[]).slice(0,3).join(' · ');
+    var terrains=(loc.terrainTags||[]).slice(0,3).join(' · ');
+    var ritual=loc.ritualTip||'도착 후 첫 10분은 말수를 줄이고 장소의 기운을 천천히 받아들이세요.';
+    var score=typeof loc.score==='number'?loc.score:'-';
+    var matchLabel=loc.matchLabel||'균형을 조용히 받쳐주는 자리';
+    var el=loc.element||target;
+    var locPalette=elementUiPalette[el]||uiPalette;
+    var meta=scope==='global'
+      ? locMetaRow('여행 난이도',difficultyByTripStyle[loc.tripStyle]||'보통 · 일정과 체력을 여유 있게 잡으면 좋습니다.')+
+        locMetaRow('추천 체류 방식',tripStyleLabels[loc.tripStyle]||'느린 회복 여행')+
+        locMetaRow('어울리는 여행자 유형',travelerTypeByElement[el]||travelerTypeByElement[target])
+      : locMetaRow('추천 체류 방식',tripStyleLabels[loc.tripStyle]||'느린 회복 여행')+
+        locMetaRow('추천 시간대',stayTimeByElement[el]||stayTimeByElement[target])+
+        locMetaRow('함께 하면 좋은 행동',ritual);
+    return '<div class="ec-loc-item rounded-2xl border bg-white/90 p-4 shadow-sm" style="background:radial-gradient(circle at 100% 0%,'+locPalette.soft+',transparent 36%),linear-gradient(145deg,rgba(255,255,255,.96),rgba(248,250,252,.9));border-color:'+locPalette.line+';">'+
+      '<div class="ec-loc-top">'+
+        '<span class="ec-loc-icon">'+(loc.icon||loc.emoji||'📍')+'</span>'+
+        '<div>'+
+          '<div class="ec-loc-name">'+loc.name+'</div>'+
+          '<div class="ec-loc-coord">📐 '+coord+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="ec-loc-desc">'+desc+'</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:7px;margin-top:9px;">'+meta+'</div>'+
+      '<div style="margin-top:8px;font-size:.78rem;color:#475569;line-height:1.55;">'+
+        '<div>✦ 에너지 결 · '+matchLabel+'</div>'+
+        (terrains?'<div>🗺️ '+terrains+'</div>':'')+
+        (keywords?'<div>✨ '+keywords+'</div>':'')+
+        '<div style="margin-top:4px;color:#0f766e;">🔮 '+ritual+'</div>'+
+      '</div>'+
+      '<span class="ec-loc-tag '+tagClass+'">'+tagLabel+' · '+(EL_E[loc.element]||'')+(EL_K[loc.element]||'')+'</span>'+
     '</div>';
   }
 
   var html=
-    '<div class="ec-card">'+
-      '<div class="ec-header">'+
-        '<span class="ec-icon">🧭</span>'+
-        '<div class="ec-title-wrap">'+
-          '<h3>에너지 원정 리포트</h3>'+
-          '<p>부족한 오행 기운을 지형학적으로 충전하는 최적 좌표</p>'+
+    '<div class="ec-card energy-expedition-root rounded-3xl border border-white/15 bg-slate-950/90 p-4 text-slate-50 shadow-2xl">'+
+      '<div class="energy-expedition-hero">'+
+        '<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;position:relative;">'+
+          '<div style="min-width:0;flex:1 1 240px;">'+
+            '<div style="font-size:.72rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:'+uiPalette.chip+';margin-bottom:6px;">달빛 원정대 · 별빛 지도</div>'+
+            '<h3 style="margin:0;font-size:clamp(1.18rem,4vw,1.72rem);line-height:1.22;color:#fff;font-weight:950;letter-spacing:0;">에너지 원정 리포트</h3>'+
+            '<p style="margin:7px 0 0;font-size:.9rem;line-height:1.65;color:#dbeafe;">부족한 오행 기운을 지형학적으로 충전하는 최적 좌표</p>'+
+          '</div>'+
+          '<div style="border:1px solid '+uiPalette.line+';background:linear-gradient(135deg,'+uiPalette.soft+',rgba(255,255,255,.08));color:'+uiPalette.text+';border-radius:16px;padding:10px 12px;min-width:142px;box-shadow:inset 0 1px 0 rgba(255,255,255,.14);">'+
+            '<div style="font-size:.68rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;opacity:.82;">핵심 보완 오행</div>'+
+            '<div style="font-size:1rem;font-weight:950;margin-top:3px;">'+(EL_E[target]||'')+' '+(EL_K[target]||'')+'</div>'+
+            '<div style="font-size:.75rem;margin-top:2px;color:#e2e8f0;">결핍도 '+lacking+'%</div>'+
+          '</div>'+
         '</div>'+
       '</div>'+
-      '<div class="ec-element-badge '+badgeClass+'">'+
+      '<div class="ec-element-badge '+badgeClass+'" style="background:linear-gradient(135deg,'+uiPalette.mid+','+uiPalette.deep+');border:1px solid '+uiPalette.line+';color:'+uiPalette.text+';">'+
         (EL_E[target]||'')+' 보충 필요: '+(EL_K[target]||'')+' &nbsp;|&nbsp; 결핍도 '+lacking+'%'+
       '</div>'+
+      energySummaryHtml()+
       '<div style="background:rgba(248,250,252,0.94);border:1px solid rgba(148,163,184,0.36);border-radius:10px;padding:13px;margin-bottom:16px;font-size:0.9rem;color:#1f2937;line-height:1.68;">'+
         '<div>🌟 <b>나를 돕는 기운:</b> 용신('+yongText+') · 희신('+heeText+')</div>'+
         '<div>🚧 <b>나를 힘들게 하는 기운:</b> 기신('+giText+') · 구신('+gooText+')</div>'+
-        '<div style="margin-top:6px;color:#b91c1c;">⚠️ <b>피해야 할 방향:</b> '+avoidDirs+'</div>'+
+        '<div style="margin-top:6px;color:#b91c1c;">⚠️ <b>피로도가 커질 수 있는 방향성:</b> '+avoidDirNarrative+'</div>'+
       '</div>'+
       '<div style="background:linear-gradient(135deg,rgba(14,26,48,0.88),rgba(15,23,42,0.8));border:1px solid rgba(125,211,252,0.42);border-radius:10px;padding:14px;margin-bottom:14px;font-size:0.9rem;color:#e2e8f0;line-height:1.72;text-shadow:0 1px 0 rgba(0,0,0,0.35);">'+
-        '<div>🧾 <b>분석 기준:</b> '+analysisBasis+'</div>'+
+        '<div>🧾 <b>읽어낸 흐름:</b> '+analysisBasis+'</div>'+
+        '<div>📊 <b>타고난 기운의 지형:</b> 강한 축은 '+strongestText+', 약한 축은 '+weakestText+'입니다. '+primaryNeedText+'는 지금 몸과 마음에서 약 '+targetRatio+'% 정도만 드러나 있어 더 섬세한 보살핌이 필요합니다.</div>'+
+        '<div>🪫 <b>회복 우선도:</b> '+lacking+' / 100</div>'+
         '<div>🧬 <b>현재 사주 핵심 보완 오행:</b> '+primaryNeedText+'</div>'+
-        '<div>⏳ <b>시기 보완 오행 ('+seasonNeed.label+'):</b> '+seasonNeedText+'</div>'+
-        '<div style="margin-top:5px;color:#bfdbfe;">• '+seasonNeed.note+'</div>'+
+        '<div>🧭 <b>여행 리듬:</b> 중심 기운을 70%로 두고, 보조 기운 30%를 곁들입니다. 함께 살필 축은 '+(supportElements.map(elText).join(' · ')||'무리 없는 수(水) 회복축')+'입니다.</div>'+
+        '<div>✦ <b>좌표를 고를 때 본 것:</b> 나를 살리는 기운은 앞쪽에 두고, 지치기 쉬운 기운과 최근에 자주 만난 장소는 조금 뒤로 물렸습니다.</div>'+
+        '<div>⏳ <b>'+seasonModeLabel+' ('+seasonNeed.label+'):</b> '+seasonNeedText+'</div>'+
+        '<div style="margin-top:5px;color:#bfdbfe;">• '+seasonNeedGuide+'</div>'+
         '<div style="margin-top:7px;color:#f8fafc;font-weight:500;">'+timingNarrative+'</div>'+
       '</div>'+
+      neededTravelEnergyHtml()+
       '<div style="background:linear-gradient(135deg,rgba(2,44,34,0.9),rgba(6,78,59,0.82));border:1px solid rgba(52,211,153,0.5);border-radius:10px;padding:14px;margin-bottom:16px;font-size:0.9rem;color:#dcfce7;line-height:1.72;text-shadow:0 1px 0 rgba(0,0,0,0.28);">'+
         '<div>🌍 <b>국가/장소 보완 루트:</b> 국내 '+focusDomestic+' · 해외 '+focusGlobal+'</div>'+
         '<div style="margin-top:5px;">🏡 <b>환경 처방:</b> '+envPlan.env+'</div>'+
         '<div style="margin-top:6px;">⚡ <b>'+primaryNeedText+' 보충 시 기대되는 장점</b></div>'+
         '<ul style="margin:6px 0 0 18px;padding:0;">'+benefitHtml+'</ul>'+
         '<div style="margin-top:7px;color:#bbf7d0;">'+envPlan.tip+'</div>'+
+        '<div style="margin-top:10px;">🧭 <b>오늘의 원정 운영법</b></div>'+
+        '<ul style="margin:6px 0 0 18px;padding:0;">'+playbookHtml+'</ul>'+
       '</div>'+
       '<div class="ec-direction">'+
         '<span class="ec-dir-label">🚩 타겟 에너지 방위 &nbsp;</span>'+
         '<span class="ec-dir-value">'+db.dirEmoji+' '+db.direction+'</span>'+
         '<span style="font-size:.78rem;color:#cbd5e1">— '+db.theme+'</span>'+
       '</div>'+
-      '<div class="ec-section-title">📍 오늘의 국내 에너지 좌표</div>'+
-      '<div class="ec-loc-grid">'+
-        domList.map(function(l){return locCard(l,'ec-tag-domestic','국내');}).join('')+
+      '<div class="ec-section-title">📍 국내 에너지 좌표</div>'+
+      '<div class="ec-loc-grid grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">'+
+        domList.map(function(l){return locCard(l,'ec-tag-domestic','국내','domestic');}).join('')+
       '</div>'+
-      '<div class="ec-section-title">🌍 오늘의 글로벌 에너지 좌표</div>'+
-      '<div class="ec-loc-grid">'+
-        globList.map(function(l){return locCard(l,'ec-tag-global','해외');}).join('')+
+      '<div class="ec-section-title">🌍 해외 에너지 좌표</div>'+
+      '<div class="ec-loc-grid grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">'+
+        globList.map(function(l){return locCard(l,'ec-tag-global','해외','global');}).join('')+
       '</div>'+
+      energyRouletteHtml()+
+      prescriptionHtml()+
+      travelTypeHtml()+
+      missionHtml()+
+      avoidPatternHtml()+
+      finalConclusionHtml()+
     '</div>';
 
   area.innerHTML=html;
   card.style.display='block';
+  setupEnergyRoulette();
 }
 
 // Export tarot handlers to `window` so `uiBindings` can route `data-action` safely
@@ -2494,15 +3187,16 @@ function renderTTest(p, natal, johu, pw) {
 
   var tScore = 0;
   var counts = natal.counts || {wood:0,fire:0,earth:0,metal:0,water:0};
-  
-  // Rule 1: Gold element (10 points per metal)
   var metalScore = counts.metal || 0;
   tScore += metalScore * 10;
-  
+
   var baziArr = [p.y.g, p.y.j, p.m.g, p.m.j, p.d.j, p.h.g, p.h.j];
   var dg = p.d.g;
+  var dayGanInfo = GAN[dg] || {};
+  var dayMasterName = dayGanInfo.n || dg || '일간';
+  var dayElement = dayGanInfo.e || 'earth';
 
-  // Rule 2: Gwan (Authority - Strict admin)
+  // 기존 점수식은 유지하고, 이 값들만 조합해서 해석 층을 더 풍부하게 만든다.
   var gwanCount = 0;
   for(var i=0; i<baziArr.length; i++) {
     var tg = getTenGod(dg, baziArr[i]);
@@ -2510,14 +3204,13 @@ function renderTTest(p, natal, johu, pw) {
   }
   tScore += (gwanCount * 15);
 
-  // Rule 3: Metal/Earth Sik-sang (Debugging expert)
   var ssCount = 0;
   var isMetalEarthSS = false;
-  for(var i=0; i<baziArr.length; i++) {
-    var tg = getTenGod(dg, baziArr[i]);
-    if(tg==='식신' || tg==='상관') {
+  for(var j=0; j<baziArr.length; j++) {
+    var ssTenGod = getTenGod(dg, baziArr[j]);
+    if(ssTenGod==='식신' || ssTenGod==='상관') {
       ssCount++;
-      var charObj = GAN[baziArr[i]] || JI[baziArr[i]];
+      var charObj = GAN[baziArr[j]] || JI[baziArr[j]];
       if(charObj && (charObj.e === 'metal' || charObj.e === 'earth')) {
         isMetalEarthSS = true;
       }
@@ -2525,89 +3218,659 @@ function renderTTest(p, natal, johu, pw) {
   }
   if(isMetalEarthSS) tScore += 20;
 
-  // Rule 4: Johu (Cold/Dry - 0% humidity, absolute zero logic)
   var isColdDry = false;
   if(johu && (johu.temp==='Cold' || johu.wet==='Dry' || johu.temp==='Cool')) {
     isColdDry = true;
     tScore += 25;
   }
 
-  // Cap Score 
   var finalScore = Math.min(tScore, 100);
+  var tTier = finalScore >= 80
+    ? '[ WARNING: EMOTION MODULE OFFLINE ]'
+    : finalScore >= 50
+      ? '[ STATUS: COLD STEEL LOGIC ]'
+      : finalScore >= 20
+        ? '[ STATUS: HYBRID PROCESSING ]'
+        : '[ FATAL_ERROR: EXTREME EMPATHY DETECTED ]';
 
-  // Tier logic
-  var tTier = '';
-  var tDesc = '';
-  if(finalScore >= 80) {
-    tTier = '[ WARNING: EMOTION MODULE OFFLINE ]';
-    tDesc = '<span style="color:#00ff41;font-weight:bold;">[장점 스캔] 극강의 이성과 문제 해결력</span><br>' +
-            '위기 상황에서도 감정에 흔들리지 않고 가장 확률 높고 완벽한 솔루션을 찾아내는 인간 알파고입니다. 복잡하게 꼬인 문제도 단숨에 핵심을 파악하여 해결해 내는 압도적인 능력을 갖추었습니다.<br><br>' +
-            '<span style="color:#ff4757;font-weight:bold;">[치명적 버그] 공감 스크립트 실종</span><br>' +
-            '하지만 그 완벽한 논리가 때로는 타인에게 날카로운 칼날이 됩니다. 누군가 위로를 바라는 순간에도 ‘팩트’와 ‘해결책’만 고집하여, 피도 눈물도 없는 완벽한 사이보그라는 오해를 받곤 합니다.<br><br>' +
-            '<span style="color:#feca57;font-weight:bold;">[디버깅 권장]</span> 때로는 완벽한 해결책보다 "그랬구나"라는 영혼 없는 리액션 출력값 하나가 관계의 치명적 오류를 막는 최고의 패치일 수 있습니다. 수동으로라도 공감 모듈의 전원을 켜보세요.';
-  } else if(finalScore >= 50) {
-    tTier = '[ STATUS: COLD STEEL LOGIC ]';
-    tDesc = '<span style="color:#00ff41;font-weight:bold;">[장점 스캔] 흔들림 없는 합리적 판단</span><br>' +
-            '상황 판단이 빠르고 현실적인 대안을 제시하는 유능한 전문가입니다. 공과 사의 구분이 확실하며, 불필요한 감정 소모 없이 인간관계와 업무를 깔끔하고 효율적으로 쳐내는 든든한 기둥입니다.<br><br>' +
-            '<span style="color:#ff4757;font-weight:bold;">[치명적 버그] 기계적 텐션의 부작용</span><br>' +
-            '친구가 서운함을 토로할 때 "그래서 근본 원인이 뭔데?"라고 접근해 본의 아니게 분위기를 급속 냉각시킵니다. 합리적이지 않은 감정적 투정을 견디지 못하고 은근히 선을 긋는 쌀쌀맞음이 엿보입니다.<br><br>' +
-            '<span style="color:#feca57;font-weight:bold;">[디버깅 권장]</span> 세상의 모든 일이 인과관계로만 돌아가지는 않습니다. 상대를 고쳐쓰려 하기보다는, 비효율적인 감정의 교류도 인간적인 매력 데이터로 저장하는 여유 공간을 할당해 보세요.';
-  } else if(finalScore >= 20) {
-    tTier = '[ STATUS: HYBRID PROCESSING ]';
-    tDesc = '<span style="color:#00ff41;font-weight:bold;">[장점 스캔] 이성/감성 듀얼 코어 장착</span><br>' +
-            '논리 회로와 공감 모듈이 완벽한 밸런스로 병렬 처리 중입니다. 분석이 필요할 때는 냉철하게 상황을 통찰하지만, 평소에는 사회적 알고리즘에 의해 유연하고 따뜻한 리액션을 선출하는 뛰어난 융통성의 소유자입니다.<br><br>' +
-            '<span style="color:#ff4757;font-weight:bold;">[치명적 버그] 선택적 딜레마</span><br>' +
-            '이성과 감성을 모두 충족시키려다 보니, 팩트를 차갑게 짚고 넘어가야 할 타이밍을 놓치거나, 이도 저도 아닌 미적지근한 태도로 확실한 결단력을 보여주지 못할 때가 생깁니다.<br><br>' +
-            '<span style="color:#feca57;font-weight:bold;">[디버깅 권장]</span> 확실한 선 긋기나 팩트 체크가 필요한 순간에는 주저하지 말고 T의 차가운 스위치를 최대치로 올려주세요. 평소의 따뜻함이 방화벽 역할을 해주니 단호해져도 괜찮습니다.';
-  } else {
-    tTier = '[ FATAL_ERROR: EXTREME EMPATHY DETECTED ]';
-    tDesc = '<span style="color:#00ff41;font-weight:bold;">[장점 스캔] 무한한 공감과 따뜻한 난로</span><br>' +
-            '뼛속까지 감정 데이터가 뇌를 지배하는 강력한 F형. 인간적인 따뜻함과 폭풍 공감 능력을 기본 탑재한 치유자입니다. 부드러운 화법과 세심한 배려 덕분에 항상 주변 사람들에게 편안함과 안식처를 제공합니다.<br><br>' +
-            '<span style="color:#ff4757;font-weight:bold;">[치명적 버그] 논리 회로 침수</span><br>' +
-            '감정 데이터가 이성을 완전히 덮어버려, 중요한 결정이나 맺고 끊음 앞에서 정에 휩쓸려 비합리적인 손해를 보기 쉽습니다. 타인의 슬픔이나 부정적 감정을 필터 없이 흡수해 성궁 진법에 과부하가 종종 옵니다.<br><br>' +
-            '<span style="color:#feca57;font-weight:bold;">[디버깅 권장]</span> 타인의 과도한 감정 데이터 전송을 차단하는 개인 방화벽 장착이 시급합니다. 가끔은 차갑고 건조한 \'금속성 팩트\'를 방패 삼아 본인의 에너지를 지키는 법을 터득하세요.';
+  var EL_NAME_MAP = { wood:'목(木)', fire:'화(火)', earth:'토(土)', metal:'금(金)', water:'수(水)' };
+  var TEMP_LABEL_MAP = { Cold:'차갑게 식은 편', Cool:'차분하게 식어 있는 편', Warm:'따뜻하게 반응하는 편', Hot:'빠르게 달아오르는 편' };
+  var WET_LABEL_MAP = { Dry:'건조하고 단호한 결', Wet:'촉촉하고 감정 흡수가 빠른 결' };
+
+  function pickScoreBand(score) {
+    if(score >= 80) return 'extreme_t';
+    if(score >= 60) return 'logic_first';
+    if(score >= 40) return 'balanced_realist';
+    if(score >= 20) return 'hybrid';
+    return 'empathy_first';
   }
 
-  var tMission = finalScore >= 80
-    ? {
-        title: '냉정 모드 디버깅 미션',
-        items: ['대화 1회는 해결책 대신 공감 한 줄 먼저 출력', '피드백에 좋았던 점 1개를 먼저 제시', '결론 제시 전 상대 의도 확인 질문 1회']
-      }
-    : finalScore >= 50
-      ? {
-          title: '로직 밸런스 미션',
-          items: ['팩트 2개 + 배려 문장 1개 조합으로 말하기', '불필요한 논쟁 1건 스킵해 에너지 절약', '피로 누적 시 10분 산책 후 의사결정']
-        }
-      : finalScore >= 20
-        ? {
-            title: '하이브리드 미션',
-            items: ['감정/논리 중 오늘의 우선 모드 하나 고정', '결정 지연 과제 1건은 데드라인 설정', '좋은 판단 1건을 자기 피드백으로 기록']
-          }
-        : {
-            title: '공감형 방화벽 미션',
-            items: ['요청 1건은 생각해볼게요로 즉답 차단', '감정 소모 대화 후 물 1잔+호흡 1분', '오늘의 손해 패턴 1개 메모 후 차단 규칙 작성']
-          };
+  function toLevel(value, strongCut, midCut) {
+    if(value >= strongCut) return '강함';
+    if(value >= midCut) return '보통';
+    return '낮음';
+  }
 
-  var missionHtml = '<div style="margin-top:14px;border:1px solid rgba(0,255,65,.35);background:rgba(0,255,65,.06);border-radius:8px;padding:10px 12px;">'
-    + '<div style="font-size:.82rem;font-weight:800;color:#86efac;margin-bottom:6px;">🧪 ' + tMission.title + '</div>'
-    + '<ul style="margin:0;padding-left:18px;font-size:.78rem;line-height:1.55;color:#d1fae5;">'
-    + tMission.items.map(function(item){ return '<li style="margin-bottom:4px;">' + item + '</li>'; }).join('')
-    + '</ul>'
-    + '</div>';
+  function renderParagraphs(items) {
+    return items.map(function(text){
+      return '<p class="t-copy-paragraph">' + text + '</p>';
+    }).join('');
+  }
+
+  function renderInfoRows(rows) {
+    return rows.map(function(row){
+      return '<div class="t-info-row">'
+        + '<div class="t-info-title">' + row.title + '</div>'
+        + '<div class="t-info-text">' + row.text + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  function renderBulletList(items, color) {
+    return '<ul class="t-bullet-list" style="--t-bullet-color:' + (color || '#d1fae5') + ';">'
+      + items.map(function(item){ return '<li style="margin-bottom:4px;">' + item + '</li>'; }).join('')
+      + '</ul>';
+  }
+
+  function renderSection(title, bodyHtml, accent) {
+    return '<section class="t-panel" style="--t-panel-accent:' + accent + ';">'
+      + '<div class="t-panel-title">' + title + '</div>'
+      + bodyHtml
+      + '</section>';
+  }
+
+  // 극T 결과 문장 생성은 별도 로컬 빌더로 분리하고,
+  // 이 함수는 화면 조립과 표시만 담당한다.
+  if (typeof buildExtremeTResult === 'function') {
+    var builtResult = buildExtremeTResult({
+      p: p,
+      natal: natal,
+      johu: johu,
+      pw: pw
+    });
+
+    if (builtResult) {
+      var stats = builtResult.stats || {};
+      var mission = builtResult.mission || { title: '오늘의 미션', items: [] };
+      var sajuRows = Array.isArray(builtResult.sajuRows) ? builtResult.sajuRows : [];
+
+      var missionHtmlFromBuilder = '<section class="t-mission-card">'
+        + '<div class="t-mission-title">🧪 ' + mission.title + '</div>'
+        + renderBulletList(mission.items || [], '#d1fae5')
+        + '</section>';
+
+      var topSummaryHtmlFromBuilder = '<section class="t-hero-card">'
+        + '<div class="t-hero-grid">'
+        + '<div class="t-hero-copy"><div class="t-kicker">TYPE PROFILE</div>'
+        + '<div class="t-type-name">' + builtResult.typeName + '</div>'
+        + '<div class="t-type-state">' + builtResult.headline + ' · ' + builtResult.stateMessage + '</div></div>'
+        + '<div class="t-score-box"><div class="t-score-label">T SCORE</div>'
+        + '<div class="t-score-value">' + builtResult.finalScore + '<span class="t-score-unit">점</span></div></div>'
+        + '</div>'
+        + '<div class="t-score-gauge"><span class="t-score-gauge-fill" style="width:' + builtResult.finalScore + '%;"></span></div>'
+        + '<div class="t-catchphrase">"' + builtResult.catchphrase + '"</div>'
+        + '</section>';
+
+      var sajuBaseHtmlFromBuilder = renderSection(
+        '[사주 기반 극T 해석] 논리 회로가 켜지는 이유',
+        '<div class="t-saju-stack">'
+          + sajuRows.map(function(row){
+            return '<div class="t-saju-row"><b>' + row.title + '</b><br>' + row.text + '</div>';
+          }).join('')
+          + '</div>',
+        'rgba(129,140,248,.28)'
+      );
+
+      var detailedAnalysisHtmlFromBuilder = renderSection(
+        '[장점 스캔] 지금의 당신을 만드는 회로',
+        renderParagraphs(builtResult.detailParagraphs || []),
+        'rgba(52,211,153,.28)'
+      );
+      var relationshipHtmlFromBuilder = renderSection(
+        '[관계 회로] 가까운 사람에게 더 솔직해지는 타입',
+        renderInfoRows(builtResult.relationshipRows || []),
+        'rgba(96,165,250,.28)'
+      );
+      var loveHtmlFromBuilder = renderSection(
+        '[연애 알고리즘] 좋아할수록 더 현실적으로 계산하는 사람',
+        renderInfoRows(builtResult.loveRows || []),
+        'rgba(244,114,182,.28)'
+      );
+      var workMoneyHtmlFromBuilder = renderSection(
+        '[현실 처리 능력] 감정보다 구조를 먼저 보는 생산형 두뇌',
+        renderInfoRows(builtResult.workMoneyRows || []),
+        'rgba(250,204,21,.24)'
+      );
+      var fatalBugHtmlFromBuilder = renderSection(
+        '[치명적 버그] 가까워질수록 드러나는 오류 패턴',
+        renderInfoRows(builtResult.bugRows || []),
+        'rgba(248,113,113,.28)'
+      );
+      var prescriptionHtmlFromBuilder = renderSection(
+        '[디버깅 처방전] 바로 써먹는 관계 패치',
+        renderInfoRows(builtResult.prescriptionRows || []),
+        'rgba(251,191,36,.28)'
+      );
+
+      var summaryCardHtmlFromBuilder = '<section class="t-summary-card">'
+        + '<div class="t-summary-title">🧊 나의 극T 요약 카드</div>'
+        + '<div class="t-summary-grid">'
+        + '<div class="t-summary-chip"><div class="t-summary-chip-label">극T 타입</div><div class="t-summary-chip-value">' + builtResult.typeName + '</div></div>'
+        + '<div class="t-summary-chip"><div class="t-summary-chip-label">T 점수</div><div class="t-summary-chip-value">' + builtResult.finalScore + '점</div></div>'
+        + '<div class="t-summary-chip"><div class="t-summary-chip-label">논리 온도</div><div class="t-summary-chip-value">' + builtResult.summaryMood + '</div></div>'
+        + '<div class="t-summary-chip"><div class="t-summary-chip-label">감정 표현</div><div class="t-summary-chip-value">' + builtResult.emotionSpeed + '</div></div>'
+        + '<div class="t-summary-chip"><div class="t-summary-chip-label">말투 위험도</div><div class="t-summary-chip-value">' + builtResult.toneRisk + '</div></div>'
+        + '<div class="t-summary-chip"><div class="t-summary-chip-label">연애 난이도</div><div class="t-summary-chip-value">' + builtResult.loveDifficulty + '</div></div>'
+        + '</div><div class="t-summary-foot"><div class="t-summary-foot-label">인간관계 팁</div><div class="t-summary-foot-copy">' + builtResult.summaryTip + '</div></div>'
+        + '<div class="t-summary-foot"><div class="t-summary-foot-label">오늘의 미션</div>' + renderBulletList((mission.items || []).slice(0, 1), '#d1fae5') + '</div>'
+        + '</section>';
+
+      var builderHtml = '<div class="t-test-wrapper">';
+      builderHtml += '<div class="t-scan-line">INITIATING T-BAL-NOM SCAN...</div>';
+      builderHtml += '<div class="t-test-score"><span class="t-test-val">' + builtResult.finalScore + '</span><span class="t-test-pct">%</span></div>';
+      builderHtml += '<div class="t-test-tier">' + builtResult.tTier + '</div>';
+      builderHtml += topSummaryHtmlFromBuilder;
+      builderHtml += '<div class="t-test-grid">';
+      builderHtml += '<div class="t-test-item"><div class="t-stat-label">[金] 금속성 하드웨어</div><div class="t-val">' + (stats.metalScorePercent || 0) + '%</div></div>';
+      builderHtml += '<div class="t-test-item"><div class="t-stat-label">[관성] 강제 통제 수호 의식</div><div class="t-val">' + (stats.gwanScorePercent || 0) + '%</div></div>';
+      builderHtml += '<div class="t-test-item"><div class="t-stat-label">[식상] 팩트폭행 디버깅</div><div class="t-val">' + (stats.ssValue || '비활성') + '</div></div>';
+      builderHtml += '<div class="t-test-item"><div class="t-stat-label">[조후] 냉각/건조 성궁 진법</div><div class="t-val">' + (stats.johuValue || '정지') + '</div></div>';
+      builderHtml += '</div>';
+      builderHtml += detailedAnalysisHtmlFromBuilder;
+      builderHtml += '<div class="t-panel-grid">' + relationshipHtmlFromBuilder + loveHtmlFromBuilder + workMoneyHtmlFromBuilder + '</div>';
+      builderHtml += '<div class="t-panel-grid t-panel-grid--support">' + sajuBaseHtmlFromBuilder + fatalBugHtmlFromBuilder + prescriptionHtmlFromBuilder + '</div>';
+      builderHtml += missionHtmlFromBuilder;
+      builderHtml += summaryCardHtmlFromBuilder;
+      builderHtml += '</div>';
+
+      area.innerHTML = builderHtml;
+      card.style.display = 'block';
+      if (typeof syncReportHeightFromNode === 'function') {
+        syncReportHeightFromNode(card);
+        setTimeout(function(){ syncReportHeightFromNode(card); }, 200);
+      }
+      return;
+    }
+  }
+
+  // 점수, 오행, 관성, 식상, 조후를 조합해 각 섹션 문장을 만든다.
+  // 먼저 점수 구간별로 톤 패키지를 분리하고, 그다음 사주 요소를 보정값처럼 얹는다.
+  var scoreBandKey = pickScoreBand(finalScore);
+  var metalLevel = toLevel(metalScore, 3, 1);
+  var gwanLevel = toLevel(gwanCount, 2, 1);
+  var ssLevel = isMetalEarthSS || ssCount >= 2 ? '강함' : (ssCount >= 1 ? '보통' : '낮음');
+  var johuTone = TEMP_LABEL_MAP[(johu && johu.temp) || ''] || (isColdDry ? '차갑고 건조한 편' : '중간 온도');
+  var johuTexture = WET_LABEL_MAP[(johu && johu.wet) || ''] || (isColdDry ? '건조하게 선을 긋는 결' : '과하게 메마르지 않은 결');
+  var metalDriven = metalScore >= 2;
+  var gwanDriven = gwanCount >= 2;
+  var expressiveDriven = isMetalEarthSS || ssCount >= 1;
+  var warmDriven = !isColdDry && finalScore < 60;
+  var dayElementLabel = EL_NAME_MAP[dayElement] || dayElement;
+  var toneRisk = finalScore >= 80 ? '상' : (finalScore >= 40 ? '중' : '중하');
+  var loveDifficulty = finalScore >= 80 ? '높음' : (finalScore >= 60 ? '중상' : (finalScore >= 20 ? '중간' : '낮음'));
+  var emotionSpeed = finalScore >= 60 ? '느리지만 단단한 편' : (finalScore >= 20 ? '상황 따라 다름' : '빠르고 따뜻한 편');
+  var logicTemperature = isColdDry ? '차갑고 선명한 편' : (finalScore >= 60 ? '차분한 냉정형' : '차분하지만 과냉각은 아님');
+  var tContext = {
+    finalScore: finalScore,
+    dayMasterName: dayMasterName,
+    dayElementLabel: dayElementLabel,
+    metalLevel: metalLevel,
+    gwanLevel: gwanLevel,
+    ssLevel: ssLevel,
+    johuTone: johuTone,
+    johuTexture: johuTexture,
+    metalDriven: metalDriven,
+    gwanDriven: gwanDriven,
+    expressiveDriven: expressiveDriven,
+    warmDriven: warmDriven,
+    isColdDry: isColdDry
+  };
+
+  var SCORE_BAND_CONTENT = {
+    empathy_first: {
+      typeName: '말랑공감형 감성 OS',
+      stateMessage: '공감 회로 우세 · 감정 수신 감도 높음',
+      headline: '따뜻한 반응형',
+      catchphrase: function(ctx) {
+        return ctx.isColdDry
+          ? '당신은 기본값이 다정한 사람입니다. 다만 마음을 오래 끌어안다가 지치면 갑자기 차가워질 만큼, 감정의 무게를 깊게 받아들이는 타입입니다.'
+          : '당신은 차갑지 않아서 약한 것이 아니라, 사람의 마음을 먼저 지키도록 설정된 감성형 운영체제에 가깝습니다.';
+      },
+      detailParagraphs: function(ctx) {
+        return [
+          '당신의 판단은 정답보다 먼저 사람의 표정과 분위기를 읽는 쪽에서 시작됩니다. "' + ctx.dayMasterName + '" 일간의 중심은 분명히 있지만, 지금 장면에서 누가 더 힘든지, 어떤 말이 덜 상처가 되는지부터 먼저 살핍니다. 그래서 극T 테스트 안에서도 당신은 냉정형보다 공감 회로가 훨씬 강하게 잡히는 결과로 읽힙니다.',
+          '말투는 직선적으로 꽂아 넣기보다, 상대가 받아들일 수 있는 온도를 먼저 맞추는 편입니다. 조후가 ' + ctx.johuTone + '로 잡혀 있어도 기본 반응은 부드럽고, 식상 흐름이 ' + ctx.ssLevel + '하더라도 표현을 세게 밀기보다 감정을 다치지 않게 전달하려는 경향이 큽니다. 그래서 주변에서는 당신을 "말을 예쁘게 하는 사람" 또는 "편하게 기대게 되는 사람"으로 기억하기 쉽습니다.',
+          '일을 처리할 때도 무조건 느린 것은 아닙니다. 다만 당신은 효율보다 납득, 속도보다 관계를 함께 보려는 사람입니다. 누군가를 도와줄 때도 정답을 툭 던지기보다, 그 사람이 지금 어떤 마음인지 먼저 정리해주려 합니다. 그래서 위로 능력은 뛰어나지만, 현실적으로 끊어야 할 순간까지 오래 안고 가는 일이 생기기도 합니다.',
+          '오해받기 쉬운 지점은 "착해서 판단이 약하다"는 식의 오판입니다. 실제로는 판단이 없는 것이 아니라, 상처를 최소화하는 쪽을 먼저 선택하는 것입니다. 다만 너무 오래 참으면 스스로가 지치고, 그 뒤에 갑자기 냉각되는 반응이 나와 상대도 본인도 놀라게 될 수 있습니다.'
+        ];
+      },
+      relationshipRows: function(ctx) {
+        return [
+          { title:'[친구 관계] 편을 먼저 들어주는 사람', text:'친구가 힘들다고 하면 원인보다 기분부터 받아줍니다. 그래서 사람들은 당신 앞에서 유난히 마음을 쉽게 풀지만, 정작 당신은 타인의 감정을 오래 떠안아 피곤해질 수 있습니다.' },
+          { title:'[연애 관계] 다정함이 기본 장착된 타입', text:'좋아하는 사람에게는 티를 크게 안 내도 분위기와 감정을 세심하게 챙깁니다. 다만 상대가 서운할까 봐 싫은 것을 늦게 말해, 오히려 마음이 쌓이는 패턴이 생길 수 있습니다.' },
+          { title:'[가족 관계] 익숙할수록 더 많이 참는 편', text:'가족에게는 내 감정보다 집안 분위기를 먼저 생각하는 경우가 많습니다. 그래서 속상해도 넘기다가 한 번 지치면 갑자기 거리를 두는 식의 반응이 나올 수 있습니다.' },
+          { title:'[직장/팀 관계] 분위기를 부드럽게 만드는 사람', text:'팀에서는 갈등 완충 장치 역할을 잘합니다. 다만 기준을 강하게 세우는 사람 옆에 있으면 본인 의견을 뒤로 미루는 일이 생길 수 있으니, 필요한 순간엔 선명한 말도 연습해야 합니다.' },
+          { title:'[말투 위험 구간] 너무 괜찮은 척하는 버릇', text:'상대 기분을 생각해 괜찮다고 넘기지만, 그 말이 반복되면 당신 속마음은 아무도 모르게 됩니다. 따뜻함이 침묵으로 굳어지지 않게 주의할 필요가 있습니다.' },
+          { title:'[관계 회로 디버깅] 조심하면 좋아지는 포인트', text:'공감은 이미 충분합니다. 이제는 "나는 이 부분이 힘들어"라는 자기 감정 문장을 한 줄 더하는 것이 관계를 더 건강하게 만듭니다.' }
+        ];
+      },
+      loveRows: function(ctx) {
+        return [
+          { title:'좋아하는 사람 앞에서의 태도', text:'호감이 생기면 배려가 먼저 커집니다. 잘해주고 싶고 편하게 해주고 싶지만, 본인 마음을 선명하게 드러내는 데는 시간이 걸립니다.' },
+          { title:'연락 스타일', text:'연락은 성실하고 다정한 편입니다. 다만 상대 리듬에 맞추려다 본인 페이스를 잃으면, 나중에 혼자 지쳐버릴 수 있습니다.' },
+          { title:'서운함을 처리하는 방식', text:'서운해도 곧바로 따지기보다 스스로 정리하려고 합니다. 그 과정에서 "내가 예민한가?"를 먼저 의심해 감정을 늦게 꺼낼 가능성이 큽니다.' },
+          { title:'싸울 때의 패턴', text:'크게 몰아붙이기보다 속으로 오래 앓습니다. 겉으로는 괜찮아 보여도 마음속 로그는 계속 쌓이기 때문에, 나중에 한꺼번에 터질 수 있습니다.' },
+          { title:'상대가 느끼는 장점', text:'함께 있으면 편안하고, 판단받는 느낌이 적습니다. 상대 감정을 세심하게 받아주는 힘이 커서 정서적 안정감을 주는 연애를 합니다.' },
+          { title:'상대가 느끼는 단점', text:'좋고 싫음의 기준이 늦게 드러나서, 상대는 당신 속마음을 읽기 어렵다고 느낄 수 있습니다. 결국 문제는 차가움이 아니라 표현 지연입니다.' },
+          { title:'연애 조언', text:'상대를 배려하는 마음만큼 자기 감정도 같은 비중으로 다뤄주세요. 당신이 솔직해질수록 연애는 더 편안하고 오래 갑니다.' }
+        ];
+      },
+      workMoneyRows: function(ctx) {
+        return [
+          { title:'업무 스타일', text:'일에서는 사람을 고려한 조율 능력이 강합니다. 다만 기준보다 분위기를 먼저 보면 본인 에너지가 예상보다 빨리 빠질 수 있습니다.' },
+          { title:'돈 관리 성향', text:'돈도 현실적으로 아예 못 보는 편은 아니지만, 사람 마음이나 상황을 고려하다 지출 기준이 흐려질 수 있습니다. 특히 부탁에 약해질 가능성을 봐야 합니다.' },
+          { title:'위기 대응', text:'위기 때도 감정이 먼저 흔들리기보다, 주변 사람 상태를 먼저 챙기는 쪽으로 움직입니다. 그만큼 본인 회복은 뒤로 밀릴 수 있습니다.' },
+          { title:'결정력과 루틴', text:'결정은 가능하지만 충분히 납득될 때 더 잘 움직입니다. 루틴은 "나를 위한 규칙"보다 "지켜야 하는 약속"이 있을 때 더 강해집니다.' },
+          { title:'너무 계산적으로 보일 수 있는 지점', text:'이 구간은 계산적으로 보이기보다 오히려 너무 양보하는 쪽이 문제입니다. 손해를 봐도 티를 늦게 내는 습관이 더 큰 리스크가 됩니다.' }
+        ];
+      },
+      bugRows: function(ctx) {
+        return [
+          { title:'감정 번역 오류', text:'남의 감정은 잘 읽는데 자기 감정은 늦게 번역합니다. 그래서 괜찮다고 넘긴 뒤 뒤늦게 지치는 일이 생깁니다.' },
+          { title:'말투 과냉각 현상', text:'평소엔 거의 없지만, 참을 만큼 참은 뒤에는 갑자기 말이 짧아지고 차가워질 수 있습니다. 상대는 온도차 때문에 더 놀라게 됩니다.' },
+          { title:'결정 지연 또는 과잉 분석', text:'상대 입장까지 다 고려하느라 결정이 늦어질 수 있습니다. 모두를 덜 다치게 하려다 오히려 본인만 지치는 패턴입니다.' },
+          { title:'공감 타이밍 누락', text:'공감은 충분하지만 자기 감정을 설명하는 타이밍이 자주 누락됩니다. 당신 마음이 빠지면 관계는 한쪽만 편안해집니다.' },
+          { title:'혼자 결론 내리는 습관', text:'상대를 배려하느라 "내가 그냥 참자"로 결론 내릴 수 있습니다. 이 결론은 조용하지만 오래 가는 피로를 남깁니다.' }
+        ];
+      },
+      prescriptionRows: function(ctx) {
+        return [
+          { title:'오늘 바로 해볼 것', text:'오늘 한 번만 "괜찮아" 대신 "나는 이 부분이 조금 걸려"라고 말해보세요. 당신의 감정도 같은 무게로 다뤄져야 합니다.' },
+          { title:'대화할 때 조심할 것', text:'상대 입장만 정리하지 말고, 내 입장도 한 문장으로 붙이세요. 배려가 자기 소거로 이어지면 관계 균형이 무너집니다.' },
+          { title:'연애에서 써먹을 것', text:'서운함이 생기면 참다가 식지 말고, "나는 이런 상황에서 불안해져"라고 감정 언어로 먼저 설명하세요.' },
+          { title:'일할 때 써먹을 것', text:'도와주기 전에 내 시간과 에너지를 먼저 확인하세요. 당신의 친절은 기준이 있을 때 더 오래 갑니다.' },
+          { title:'멘탈이 흔들릴 때 쓸 것', text:'감정이 과하게 쌓이면 바로 결정하지 말고, 지금 내 기분을 세 줄로 적어보세요. 당신은 감정을 글로 정리할 때 스스로를 더 잘 지킬 수 있습니다.' }
+        ];
+      },
+      mission: { title:'공감형 방화벽 미션', items:['오늘 한 번은 괜찮다는 말 대신 내 기분을 정확히 말하기', '부탁 하나에는 바로 답하지 말고 생각할 시간을 두기', '감정 소모가 큰 대화 뒤에는 혼자 회복 시간 10분 확보'] },
+      summaryTip: '내 감정도 상대 감정만큼 같은 무게로 말하기.',
+      summaryMood: '따뜻하지만 쉽게 지치는 편'
+    },
+    hybrid: {
+      typeName: '듀얼 코어 해석자',
+      stateMessage: '이성/감성 병렬 처리 · 내부 회의 많음',
+      headline: '하이브리드 분석형',
+      catchphrase: function(ctx) {
+        return ctx.warmDriven
+          ? '당신은 공감도 하고 분석도 합니다. 다만 두 회로가 동시에 돌아가서, 남들은 모르게 속으로 더 많은 생각을 하는 사람입니다.'
+          : '당신은 겉으로는 유연해 보여도 중요한 순간에는 팩트를 놓치지 않는, 은근히 강한 듀얼 코어 타입입니다.';
+      },
+      detailParagraphs: function(ctx) {
+        return [
+          '이 구간의 당신은 극T라기보다 "공감과 판단이 같이 돌아가는 사람"에 가깝습니다. 누가 힘들다고 말하면 마음도 움직이지만, 동시에 왜 이런 일이 생겼는지 구조도 함께 봅니다. 그래서 반응이 얕은 것이 아니라 오히려 처리해야 할 정보가 많아 속이 더 바쁘게 돌아갑니다.',
+          '말투는 장면에 따라 꽤 달라집니다. 평소에는 부드럽고 유연한데, 기준이 필요한 순간에는 갑자기 핵심을 정확히 짚습니다. 식상 흐름이 ' + ctx.ssLevel + '하고 금 기운이 ' + ctx.metalLevel + '하게 작동하면 "생각보다 팩트형"이라는 말을 듣기 쉽고, 반대로 조후가 ' + ctx.johuTone + '이더라도 정이 없는 사람처럼 보이지는 않습니다.',
+          '일을 처리할 때는 사람과 현실을 둘 다 놓치고 싶지 않아 내부 회의가 길어지기도 합니다. 다만 한번 방향이 정리되면 실행력은 꽤 괜찮고, 누군가를 도와줄 때도 위로만 하지 않고 실질적인 기준을 곁들일 줄 압니다. 그래서 상대는 당신에게 안정감과 해설 둘 다를 기대하게 됩니다.',
+          '오해받는 포인트는 애매함입니다. 당신은 우유부단해서가 아니라, 이성과 감성 모두를 만족시키고 싶어서 판단이 늦어질 수 있습니다. 결국 이 구간의 핵심 과제는 "좋은 사람"과 "분명한 사람"을 동시에 가져가는 연습입니다.'
+        ];
+      },
+      relationshipRows: function(ctx) {
+        return [
+          { title:'[친구 관계] 공감도 하고 정리도 해주는 친구', text:'친구 입장에서는 가장 만능형에 가깝습니다. 위로도 해주고, 필요할 때는 현실적인 조언도 주기 때문에 오래 찾게 되는 사람입니다.' },
+          { title:'[연애 관계] 좋아할수록 생각이 많아지는 타입', text:'감정이 커질수록 더 가볍게 굴지 않으려 합니다. 그래서 표현은 느려질 수 있지만, 함부로 대하지 않는다는 점에서 신뢰를 줍니다.' },
+          { title:'[가족 관계] 이해와 현실 체크를 번갈아 쓰는 편', text:'가족에게는 감정적으로 받아주다가도 생활 습관, 돈, 건강 문제에서는 의외로 현실적인 말을 꺼냅니다. 그래서 다정한데도 한마디는 세다는 인상을 줄 수 있습니다.' },
+          { title:'[직장/팀 관계] 조율자이자 정리자', text:'팀에서는 분위기를 깨지 않으면서도 기준을 세울 줄 압니다. 다만 모두를 만족시키려다 본인 판단을 늦추면 리더십이 흐려질 수 있습니다.' },
+          { title:'[말투 위험 구간] 완충어 뒤에 팩트가 바로 오는 패턴', text:'"이해는 하는데" 뒤에 현실 판단이 바로 붙으면 상대는 앞 문장을 거의 못 듣습니다. 순서를 조금만 바꾸면 훨씬 부드럽게 전달됩니다.' },
+          { title:'[관계 회로 디버깅] 조심하면 좋아지는 포인트', text:'이성과 감성 둘 다 챙기려 할수록 답이 늦어질 수 있습니다. 지금 장면에서 먼저 필요한 것이 공감인지 판단인지 하나만 먼저 정하면 훨씬 매끄러워집니다.' }
+        ];
+      },
+      loveRows: function(ctx) {
+        return [
+          { title:'좋아하는 사람 앞에서의 태도', text:'편안하게 대해주면서도 속으로는 상대 반응을 세심하게 읽습니다. 마음이 커질수록 감정도 보지만 현실성 체크도 같이 늘어납니다.' },
+          { title:'연락 스타일', text:'연락은 감정형처럼 완전히 흘러가지도, T형처럼 기능적이지도 않습니다. 다정함과 효율이 섞여 있어 답장 톤이 상황 따라 달라질 수 있습니다.' },
+          { title:'서운함을 처리하는 방식', text:'서운함이 생기면 바로 터뜨리기보다 해석을 먼저 합니다. 그래서 말을 꺼내는 데 시간이 걸리고, 그 사이 상대는 당신 마음을 헷갈릴 수 있습니다.' },
+          { title:'싸울 때의 패턴', text:'싸울 때도 감정만 밀어붙이지 않고 왜 이런 패턴이 반복되는지 보려 합니다. 다만 너무 중간 지점을 찾다 보면 결정적인 문제를 흐릴 수 있습니다.' },
+          { title:'상대가 느끼는 장점', text:'함께 있으면 차갑지 않은데, 필요할 때는 똑똑하게 정리해주는 안정감이 있습니다. 관계를 가볍게 소비하지 않는다는 신뢰도 큽니다.' },
+          { title:'상대가 느끼는 단점', text:'속으로 생각이 많아 반응이 늦을 수 있고, 뚜렷한 입장을 바로 안 보여 답답하게 느껴질 수 있습니다.' },
+          { title:'연애 조언', text:'모든 걸 한 번에 맞추려 하지 말고, 지금은 공감 모드인지 판단 모드인지 먼저 정하세요. 그 구분만 있어도 연애 피로가 훨씬 줄어듭니다.' }
+        ];
+      },
+      workMoneyRows: function(ctx) {
+        return [
+          { title:'업무 스타일', text:'일에서는 해석력과 조율력이 같이 작동합니다. 문제를 풀면서도 사람 반응을 고려하기 때문에, 혼자 하는 일보다 협업에서 강점이 잘 드러납니다.' },
+          { title:'돈 관리 성향', text:'돈은 현실적으로 보려고 하지만, 완전 냉정하게만 굴지는 않습니다. 가치 있는 소비와 정서적 소비 사이에서 나름의 기준을 만들 필요가 있습니다.' },
+          { title:'위기 대응', text:'위기 상황에서는 생각이 많아지지만 쉽게 무너지지는 않습니다. 상황 파악과 정서 조절을 동시에 하려 하기 때문에 초반 반응이 약간 느릴 수 있습니다.' },
+          { title:'결정력과 루틴', text:'결정은 늦을 수 있어도 한 번 정하면 꽤 단단히 갑니다. 루틴은 "왜 이걸 해야 하는지"가 납득될 때 더 오래 유지됩니다.' },
+          { title:'너무 계산적으로 보일 수 있는 지점', text:'이 구간의 문제는 계산적임보다 애매함입니다. 모두를 반영하려다 명확한 메시지가 늦어지는 것이 더 큰 리스크입니다.' }
+        ];
+      },
+      bugRows: function(ctx) {
+        return [
+          { title:'감정 번역 오류', text:'상대 마음도 이해하고 문제도 보이는데, 어느 쪽부터 말해야 할지 망설이다 타이밍을 놓칠 수 있습니다.' },
+          { title:'말투 과냉각 현상', text:'평소엔 부드럽지만 기준을 세워야 할 순간에는 말이 갑자기 딱딱해질 수 있습니다. 이 온도차가 상대를 당황하게 만듭니다.' },
+          { title:'결정 지연 또는 과잉 분석', text:'공감과 현실을 동시에 만족시키려다 내부 회의가 길어집니다. 그래서 결정 미루기가 반복되면 스스로도 피곤해집니다.' },
+          { title:'공감 타이밍 누락', text:'공감 능력은 있지만, 설명과 공감이 동시에 나오다 보니 상대가 감정을 충분히 받았다고 느끼지 못할 수 있습니다.' },
+          { title:'혼자 결론 내리는 습관', text:'혼자 생각을 많이 정리한 뒤 말하기 때문에, 상대는 당신의 중간 과정을 몰라 갑자기 결론만 통보받는 느낌을 받을 수 있습니다.' }
+        ];
+      },
+      prescriptionRows: function(ctx) {
+        return [
+          { title:'오늘 바로 해볼 것', text:'오늘 미뤄둔 결정 하나에 마감 시간을 붙이세요. 생각의 품질보다 실행 시점을 정하는 것이 지금의 당신에게 더 큰 디버깅입니다.' },
+          { title:'대화할 때 조심할 것', text:'공감과 판단을 한 문장에 같이 넣지 말고 순서를 분리하세요. 먼저 받아주고, 그다음 정리하면 훨씬 전달력이 좋아집니다.' },
+          { title:'연애에서 써먹을 것', text:'서운함이 생기면 혼자 결론 내리기 전에 "나는 지금 생각이 많아졌어"라고 먼저 알려주세요. 상대는 당신의 침묵을 덜 불안하게 느낍니다.' },
+          { title:'일할 때 써먹을 것', text:'회의나 협업에서는 내 기준을 한 줄로 먼저 말한 뒤 조율을 시작하세요. 당신의 장점은 조율력이지 자기 기준 소거가 아닙니다.' },
+          { title:'멘탈이 흔들릴 때 쓸 것', text:'지금 장면에서 가장 중요한 한 가지를 적어보세요. 모든 요소를 한 번에 만족시키려는 압박을 줄이는 것이 핵심입니다.' }
+        ];
+      },
+      mission: { title:'하이브리드 미션', items:['감정/논리 중 오늘의 우선 모드 하나 고정', '결정 지연 과제 1건은 데드라인 설정', '좋은 판단 1건을 자기 피드백으로 기록'] },
+      summaryTip: '공감과 판단을 한 문장에 동시에 넣지 않기.',
+      summaryMood: '따뜻하지만 속으로 계산이 많은 편'
+    },
+    balanced_realist: {
+      typeName: '현실형 팩트 밸런서',
+      stateMessage: '공감과 현실 판단 균형 · 상황 적응형',
+      headline: '현실 조율형',
+      catchphrase: function(ctx) {
+        return ctx.expressiveDriven
+          ? '당신은 부드럽게 웃고 있어도 속에서는 이미 사실, 우선순위, 손해 여부를 동시에 정리하고 있는 사람입니다.'
+          : '당신은 감정에 휩쓸리지 않으면서도 사람을 놓치지 않으려는, 현실 감각 있는 밸런서에 가깝습니다.';
+      },
+      detailParagraphs: function(ctx) {
+        return [
+          '이 구간의 당신은 T처럼 보일 때도 있고 F처럼 보일 때도 있습니다. 하지만 핵심은 둘 중 하나가 아니라, 장면에 따라 가장 필요한 쪽으로 회로를 옮길 줄 안다는 점입니다. 누군가 힘들어하면 공감부터 해줄 수 있고, 일이 꼬이면 빠르게 구조를 세울 수도 있습니다.',
+          '말투는 지나치게 차갑지도, 지나치게 감정적이지도 않은 편입니다. 금 기운이 ' + ctx.metalLevel + '하게 작동하면 정리력이 살아나고, 관성 기운이 ' + ctx.gwanLevel + '하면 기준을 세우는 힘도 분명해집니다. 그래서 사람들은 당신을 "선 넘지 않으면서도 현실적인 사람"으로 읽기 쉽습니다.',
+          '일 처리 방식도 안정적입니다. 공감에만 머무르지 않고 실제 해결로 연결하는 힘이 있고, 반대로 효율만 밀어붙이지도 않습니다. 가까운 사람을 도와줄 때도 무작정 감싸거나 무작정 잘라내기보다, 상황과 사람 둘 다 살리는 쪽을 택하려 합니다.',
+          '오해받기 쉬운 부분은 일관성보다 유연성입니다. 어떤 날은 따뜻하고 어떤 날은 딱 잘라 말할 수 있어, 상대는 가끔 "도대체 어느 쪽이 진짜지?"라고 느낄 수 있습니다. 하지만 그건 가면이 아니라 상황 판단력이 살아 있다는 뜻입니다.'
+        ];
+      },
+      relationshipRows: function(ctx) {
+        return [
+          { title:'[친구 관계] 공감도 현실도 챙기는 중재형', text:'친구들 사이에서는 정리자이자 중재자 역할을 자주 맡습니다. 한쪽 편만 들기보다 전체 그림을 보며 분위기를 정리하는 능력이 좋습니다.' },
+          { title:'[연애 관계] 따뜻하지만 허술하진 않은 타입', text:'좋아하는 사람에게는 다정하지만, 관계의 현실성도 함께 봅니다. 그래서 설렘만으로 달리지 않고 오래 갈 수 있는지를 같이 체크합니다.' },
+          { title:'[가족 관계] 애정과 기준이 함께 있는 편', text:'가족에게도 마음은 따뜻하지만, 반복되는 문제는 그냥 넘기지 않습니다. 그래서 챙김과 잔소리 사이를 오가는 인상으로 읽힐 수 있습니다.' },
+          { title:'[직장/팀 관계] 신뢰감 있는 실무형 조율자', text:'팀에서는 감정 정리와 실무 정리를 동시에 할 수 있어 유용한 사람으로 보입니다. 다만 모두를 잘 맞추려다 본인 피로가 누적될 수 있습니다.' },
+          { title:'[말투 위험 구간] 부드럽지만 판단은 분명한 문장', text:'완곡하게 말해도 결론이 분명한 편이라, 듣는 사람은 생각보다 세게 받아들일 수 있습니다. 톤보다 내용의 직선성을 점검할 필요가 있습니다.' },
+          { title:'[관계 회로 디버깅] 조심하면 좋아지는 포인트', text:'당신은 이미 균형이 좋은 편입니다. 다만 상황 적응이 빠른 만큼, 내 기준을 한 번 더 말해줘야 상대가 당신을 더 안정적으로 이해합니다.' }
+        ];
+      },
+      loveRows: function(ctx) {
+        return [
+          { title:'좋아하는 사람 앞에서의 태도', text:'호감이 생기면 감정 표현도 하지만, 관계가 현실적으로 건강한지도 함께 봅니다. 그래서 설레면서도 쉽게 무너지지 않는 연애를 지향합니다.' },
+          { title:'연락 스타일', text:'연락은 적당히 따뜻하고 적당히 실용적입니다. 필요한 때는 센스 있게 챙기고, 의미 없는 소모전에는 잘 안 빠집니다.' },
+          { title:'서운함을 처리하는 방식', text:'서운함이 생기면 바로 감정으로만 반응하지 않고, 왜 그런지 해석하려 합니다. 덕분에 대화는 비교적 성숙하지만 감정의 생생함은 살짝 늦게 나올 수 있습니다.' },
+          { title:'싸울 때의 패턴', text:'싸울 때도 문제 해결과 관계 유지 두 축을 같이 봅니다. 그래서 감정이 폭주하기보다, 무엇을 조정해야 하는지 찾는 방향으로 흘러가기 쉽습니다.' },
+          { title:'상대가 느끼는 장점', text:'함께 있을 때 편안한데도 흐트러지지 않는 안정감이 있습니다. 감정만 있는 사람도 아니고, 차갑기만 한 사람도 아니라 오래 만날수록 신뢰가 커집니다.' },
+          { title:'상대가 느끼는 단점', text:'생각보다 현실 감각이 분명해서, 마냥 로맨틱한 흐름만 기대한 상대에게는 "의외로 냉정하다"는 인상을 줄 수 있습니다.' },
+          { title:'연애 조언', text:'지금처럼 균형감은 큰 장점입니다. 다만 관계가 애매해질 때는 너무 잘 조율하려 하기보다, 내 마음의 방향을 조금 더 선명하게 말해주는 편이 좋습니다.' }
+        ];
+      },
+      workMoneyRows: function(ctx) {
+        return [
+          { title:'업무 스타일', text:'현실 판단과 협업 감각이 모두 좋아 실무형 밸런서로 강합니다. 감정 소모 없이도 사람을 불편하게 만들지 않는 편이라 조직 적응력이 좋습니다.' },
+          { title:'돈 관리 성향', text:'돈은 감정 소비보다 기준을 세우는 편에 가깝습니다. 다만 너무 빡빡하게 조이지 않아, 필요한 곳에는 잘 쓰는 현실형 소비 패턴으로 읽힙니다.' },
+          { title:'위기 대응', text:'위기가 오면 감정에 휩쓸리지 않고 우선순위를 세웁니다. 동시에 사람 상태도 보기 때문에, 수습 과정에서 신뢰를 얻기 쉽습니다.' },
+          { title:'결정력과 루틴', text:'결정은 무난하게 안정적이고, 루틴도 지나치게 경직되지 않게 유지합니다. 꾸준함과 유연함을 같이 가져갈 수 있는 편입니다.' },
+          { title:'너무 계산적으로 보일 수 있는 지점', text:'균형이 좋을수록 때로는 계산적으로 보이기보다 "감정선이 분명하진 않다"는 인상을 줄 수 있습니다. 그래서 진심 표현을 살짝 더해주면 더 좋습니다.' }
+        ];
+      },
+      bugRows: function(ctx) {
+        return [
+          { title:'감정 번역 오류', text:'감정은 이해하지만, 때로는 너무 빠르게 정리하려 들어 상대가 "내 기분이 충분히 머물지 못했다"고 느낄 수 있습니다.' },
+          { title:'말투 과냉각 현상', text:'극단적으로 차갑진 않지만, 기준을 세워야 할 장면에서는 문장이 예상보다 딱 떨어질 수 있습니다.' },
+          { title:'결정 지연 또는 과잉 분석', text:'기본적으로는 안정적이지만, 모두에게 무난한 답을 찾으려다 선택이 늦어질 수 있습니다.' },
+          { title:'공감 타이밍 누락', text:'공감은 있으나 짧게 지나가고 바로 정리 단계로 넘어갈 수 있습니다. 상대가 정서적으로는 덜 받아들여졌다고 느낄 수 있습니다.' },
+          { title:'혼자 결론 내리는 습관', text:'상황 판단이 빠른 편이라, 속으로는 이미 방향을 정했는데 대화는 아직 그 단계에 못 온 경우가 있습니다.' }
+        ];
+      },
+      prescriptionRows: function(ctx) {
+        return [
+          { title:'오늘 바로 해볼 것', text:'오늘 한 번은 결론을 말하기 전에 "이 부분에서 네가 어떤 기분이었는지 알 것 같아"를 먼저 붙여보세요.' },
+          { title:'대화할 때 조심할 것', text:'너무 빨리 정리해주려 하지 마세요. 당신의 해석력은 이미 충분하니, 감정이 머무를 틈을 조금만 더 주면 훨씬 좋습니다.' },
+          { title:'연애에서 써먹을 것', text:'상대가 서운함을 말할 때 해결책보다 "그럴 만했어"를 먼저 주면, 당신의 현실 감각이 더 따뜻하게 받아들여집니다.' },
+          { title:'일할 때 써먹을 것', text:'중간 조율을 잘하는 만큼, 최종 결론도 명확히 말해주는 연습이 필요합니다. 균형감이 리더십으로 이어지는 지점입니다.' },
+          { title:'멘탈이 흔들릴 때 쓸 것', text:'사람과 현실을 동시에 챙기느라 피곤해지면, 지금 당장 내가 책임질 것과 아닌 것을 구분해서 적어보세요.' }
+        ];
+      },
+      mission: { title:'현실 밸런스 미션', items:['오늘 대화 1회는 공감 후 결론 순서로 말하기', '미뤄둔 현실 체크 1건을 오늘 안에 정리하기', '내 입장을 한 문장으로 먼저 말해보기'] },
+      summaryTip: '공감 뒤에 결론을 두는 순서 지키기.',
+      summaryMood: '차분하지만 과냉각은 아닌 편'
+    },
+    logic_first: {
+      typeName: '냉정한 문제 해결자',
+      stateMessage: '논리 우선형 · 효율/팩트 체크 강함',
+      headline: '고정밀 해결형',
+      catchphrase: function(ctx) {
+        return ctx.gwanDriven
+          ? '당신은 아무 말 없이 지나치지 않습니다. 기준이 무너질 것 같으면, 관계가 어색해져도 현실적인 답을 먼저 꺼내는 사람입니다.'
+          : '당신은 따뜻함이 없는 사람이 아니라, 소중한 것을 망치지 않으려고 가장 안전한 결론부터 찾는 사람입니다.';
+      },
+      detailParagraphs: function(ctx) {
+        return [
+          '이 구간의 당신은 감정이 없는 사람이 아니라, 문제를 봤을 때 해결 회로가 먼저 켜지는 사람입니다. 누가 힘들다고 하면 왜 그런지, 어디서 끊을 수 있는지, 지금 제일 효율적인 길이 무엇인지부터 빠르게 스캔합니다. 그래서 위기 상황에서는 유난히 강한 쪽으로 드러납니다.',
+          '말투는 대체로 명확하고 군더더기가 적습니다. 금 기운이 ' + ctx.metalLevel + '하고 관성 흐름이 ' + ctx.gwanLevel + '하면 특히 더 그렇습니다. 당신은 말을 세게 하려는 것이 아니라, 애매한 상태를 오래 두지 않으려는 편입니다. 하지만 상대는 그 빠른 정리력을 차가움으로 느낄 수 있습니다.',
+          '일 처리 능력은 확실한 강점입니다. 문제의 핵심을 빨리 찾고, 해야 할 것과 버릴 것을 빠르게 나누며, 쓸데없는 감정 소모를 줄이는 데 능합니다. 누군가를 도와줄 때도 실질적인 기준과 해결책을 건네기 때문에, 곁에 있으면 믿음직하다는 평을 듣기 쉽습니다.',
+          '오해받는 지점은 "냉정함"보다 "순서"입니다. 당신은 상대를 무시해서 해결책을 먼저 말하는 것이 아니라, 빨리 수습해주고 싶은 마음이 논리 쪽으로 발현되는 것입니다. 다만 감정이 아직 한가운데 있는 사람에게는 그 선의가 바로 전달되지 않을 수 있습니다.'
+        ];
+      },
+      relationshipRows: function(ctx) {
+        return [
+          { title:'[친구 관계] 현실 조언이 먼저 나오는 친구', text:'친구가 힘들다고 하면 위로만 하기보다 왜 반복되는지와 어디서 끊어야 하는지부터 짚어줍니다. 그래서 진짜 도움은 되지만, 타이밍이 어긋나면 차갑게 들릴 수 있습니다.' },
+          { title:'[연애 관계] 좋아할수록 더 허술하지 않으려는 사람', text:'감정이 커질수록 더 신중해지고, 관계를 망치지 않으려 현실 체크를 많이 합니다. 그래서 표현은 느릴 수 있어도 관계를 가볍게 다루지는 않습니다.' },
+          { title:'[가족 관계] 챙김과 통제가 붙어 보일 수 있음', text:'가족에게는 책임감이 강해서 생활, 돈, 건강 문제를 그냥 지나치지 못합니다. 당신은 걱정이지만, 듣는 사람은 잔소리나 통제로 느낄 수 있습니다.' },
+          { title:'[직장/팀 관계] 기준을 세워주는 실전형', text:'팀에서는 역할, 마감, 우선순위를 선명하게 보며 수습 능력도 좋습니다. 덕분에 신뢰를 얻지만, 속도가 빠를수록 상대 의견을 덜 들었다는 인상도 생길 수 있습니다.' },
+          { title:'[말투 위험 구간] 사실 확인이 차단 통보처럼 들리는 순간', text:'"그래서 결론이 뭐야", "그건 비효율적이야", "애초에 그렇게 하면 안 됐어" 같은 문장은 당신에게는 정리지만, 상대에게는 감정 차단처럼 들릴 수 있습니다.' },
+          { title:'[관계 회로 디버깅] 조심하면 좋아지는 포인트', text:'해결 능력은 이미 충분합니다. 이제는 결론 전에 감정 확인 한 문장만 붙이면, 같은 말도 훨씬 덜 차갑고 더 신뢰감 있게 전달됩니다.' }
+        ];
+      },
+      loveRows: function(ctx) {
+        return [
+          { title:'좋아하는 사람 앞에서의 태도', text:'호감이 생길수록 더 가볍게 굴지 않습니다. 마음이 커질수록 말과 행동을 더 신중히 고르고, 괜한 기대를 주지 않으려 현실적인 태도를 유지합니다.' },
+          { title:'연락 스타일', text:'연락은 의미 없이 길게 끌기보다 내용이 분명한 쪽을 선호합니다. 필요한 순간 챙김은 분명하지만, 감정적인 잡담만 오래 이어가는 건 피로하게 느낄 수 있습니다.' },
+          { title:'서운함을 처리하는 방식', text:'서운하면 바로 울컥하기보다 왜 서운했는지 내부 정리부터 합니다. 그래서 말이 늦어지고, 그 사이 상대는 갑자기 차가워졌다고 느낄 수 있습니다.' },
+          { title:'싸울 때의 패턴', text:'말다툼이 시작되면 감정전보다 반복 패턴, 원인, 해결 조건을 먼저 찾습니다. 그래서 싸움이 보고서처럼 흘러가 상대가 심문받는 느낌을 받을 수 있습니다.' },
+          { title:'상대가 느끼는 장점', text:'흔들리지 않고, 말한 것을 행동으로 옮기는 신뢰감이 큽니다. 연애를 운영의 문제로도 보기 때문에 막상 만나면 생각보다 든든하고 책임감 있다는 인상을 줍니다.' },
+          { title:'상대가 느끼는 단점', text:'마음을 표현하기 전에 정리부터 해서 거리감 있게 보일 수 있습니다. 특히 과열된 감정을 바로 받아주지 않으면 "나보다 문제 해결이 더 중요하나?"라는 오해를 만들 수 있습니다.' },
+          { title:'연애 조언', text:'당신의 논리는 충분히 매력적입니다. 다만 그 논리가 사랑으로 전달되려면, 먼저 "나는 네 편이야"라는 감정 문장이 앞에 와야 합니다.' }
+        ];
+      },
+      workMoneyRows: function(ctx) {
+        return [
+          { title:'업무 스타일', text:'일할 때는 감정보다 구조를 먼저 봅니다. 순서, 기준, 리스크, 반복 오류를 빨리 읽어내기 때문에 엉킨 일을 정리하는 역할에 강합니다.' },
+          { title:'돈 관리 성향', text:'돈은 기분보다 구조로 관리하려는 편입니다. "지금 좋다"보다 "지속 가능한가"를 먼저 따져, 소비에도 나름의 기준과 선이 분명합니다.' },
+          { title:'위기 대응', text:'위기 상황일수록 오히려 더 또렷해집니다. 감정 소음을 줄이고 수습 순서를 짜는 능력이 강해, 남들이 흔들릴 때 중심축 역할을 하기 쉽습니다.' },
+          { title:'결정력과 루틴', text:'결정은 느려 보여도 기준이 잡히면 빠릅니다. 루틴과 계획도 한 번 설정하면 쉽게 무너지지 않아 장기전에서 강합니다.' },
+          { title:'너무 계산적으로 보일 수 있는 지점', text:'당신은 계산만 하는 사람이 아니라 손해를 줄이는 사람에 가깝습니다. 다만 감정이 섞인 자리에서도 효율 언어를 그대로 쓰면, 배려보다 계산이 먼저인 사람처럼 보일 수 있습니다.' }
+        ];
+      },
+      bugRows: function(ctx) {
+        return [
+          { title:'감정 번역 오류', text:'상대의 "속상해"를 감정 신호보다 문제 제기로 받아들여, 공감보다 원인 분석 단계로 먼저 넘어갈 가능성이 큽니다.' },
+          { title:'말투 과냉각 현상', text:'금 기운이 살아 있고 논리 회로가 빨라질수록 문장은 짧고 선명해집니다. 문제는 그 선명함이 피곤한 날에는 칼날처럼 들릴 수 있다는 점입니다.' },
+          { title:'결정 지연 또는 과잉 분석', text:'빠른 결론형처럼 보여도, 속에서는 이미 여러 경우의 수를 오래 돌렸을 수 있습니다. 그래서 확신 없는 장면에서는 오히려 더 깊게 파고듭니다.' },
+          { title:'공감 타이밍 누락', text:'공감 능력이 없는 것이 아니라, 말의 순서에서 밀리는 것입니다. 한마디만 먼저 붙였어도 덜 차가웠을 장면이 많습니다.' },
+          { title:'혼자 결론 내리는 습관', text:'책임감과 기준 의식이 강할수록 "내가 정리해야 한다"는 압박으로 혼자 판단을 완료할 수 있습니다. 그 결과 상대는 대화에서 이미 배제됐다고 느낄 수 있습니다.' }
+        ];
+      },
+      prescriptionRows: function(ctx) {
+        return [
+          { title:'오늘 바로 해볼 것', text:'대화 한 번만이라도 해결책보다 "그때 많이 답답했겠다"를 먼저 붙이세요. 당신의 논리는 그 한 문장 뒤에 나올 때 훨씬 덜 차갑고 더 설득력 있어집니다.' },
+          { title:'대화할 때 조심할 것', text:'"그래서", "근데", "현실적으로"를 문장 첫머리에 바로 올리지 마세요. 먼저 상대 감정이나 의도를 한 줄로 받아주면 같은 내용도 훨씬 부드럽게 전해집니다.' },
+          { title:'연애에서 써먹을 것', text:'서운할 때는 분석을 시작하기 전에 "나는 지금 서운해서 말이 차가워질 수 있어"라고 먼저 알려주세요. 그 한마디가 상대를 방어 모드로 보내지 않게 해줍니다.' },
+          { title:'일할 때 써먹을 것', text:'지적이나 수정 요청을 할 때는 기준만 말하지 말고, "이렇게 하면 더 좋아진다"는 방향까지 함께 주세요. 당신의 냉정함이 신뢰로 남는 방식입니다.' },
+          { title:'멘탈이 흔들릴 때 쓸 것', text:'마음이 메마른 느낌이 들면 바로 결론 내리지 말고, 물 한 잔과 10분 호흡 뒤에 다시 판단하세요. 건조한 상태의 논리는 정확해 보여도 관계를 더 차갑게 만들 수 있습니다.' }
+        ];
+      },
+      mission: { title:'로직 밸런스 미션', items:['팩트 2개 + 배려 문장 1개 조합으로 말하기', '불필요한 논쟁 1건 스킵해 에너지 절약', '피로 누적 시 10분 산책 후 의사결정'] },
+      summaryTip: '결론보다 공감 한 문장을 먼저 두기.',
+      summaryMood: '차분한 냉정형'
+    },
+    extreme_t: {
+      typeName: '빙결 논리 절대자',
+      stateMessage: '극T 고농도 · 감정도 분석 대상으로 처리',
+      headline: '극한 냉정형',
+      catchphrase: function(ctx) {
+        return ctx.metalDriven
+          ? '당신은 차갑게 보이지만, 사실은 무너진 상황을 가장 빨리 복구하기 위해 감정보다 구조를 먼저 세우는 사람입니다.'
+          : '당신은 감정이 없어서 냉정한 것이 아니라, 감정이 번지기 전에 문제를 봉합하려고 머릿속 시뮬레이션을 먼저 끝내는 사람입니다.';
+      },
+      detailParagraphs: function(ctx) {
+        return [
+          '이 구간의 당신은 흔한 T형이 아니라 극T 고농도 타입에 가깝습니다. 중요한 장면에서 감정조차 하나의 데이터처럼 분해해 보고, 지금 무엇이 문제이며 어디를 고치면 되는지부터 생각합니다. 그래서 당황하거나 흔들리는 대신, 오히려 머리가 더 맑아지는 순간이 많습니다.',
+          '말투는 군더더기보다 핵심을 선호합니다. 금 기운이 ' + ctx.metalLevel + '하고 관성 흐름이 ' + ctx.gwanLevel + '하면 특히 더 기준 중심으로 움직이며, 상대가 느끼는 답답함을 빨리 끝내주고 싶어 합니다. 당신에게 중요한 것은 상처를 주는 것이 아니라, 시간 낭비와 구조 붕괴를 줄이는 것입니다.',
+          '일 처리 능력은 매우 강합니다. 복잡한 문제도 빠르게 정리하고, 무엇을 버리고 무엇을 살릴지 선명하게 나누며, 위기에서 오히려 침착함이 올라옵니다. 사람을 도와줄 때도 감정 위로보다 실행 가능한 기준을 건네기 때문에, 실제 현장에서는 큰 신뢰를 얻기 쉽습니다.',
+          '하지만 이 강점은 관계 안에서 오해를 부르기도 합니다. 당신은 감정을 무시하는 것이 아니라, 감정도 관리와 해석의 대상으로 보기 때문에 상대는 "내 마음이 검토 대상이 된 것 같다"고 느낄 수 있습니다. 결국 이 구간의 핵심 과제는 공감 능력 부족이 아니라, 공감 표현의 선행 배치입니다.'
+        ];
+      },
+      relationshipRows: function(ctx) {
+        return [
+          { title:'[친구 관계] 위기에서 가장 믿음직한 사람', text:'친구가 무너질 때 감정에 같이 휩쓸리기보다, 지금 뭘 해야 하는지부터 빠르게 정리합니다. 그래서 진짜 필요할 때 가장 찾게 되는 친구가 되지만, 위로가 필요한 날에는 너무 차갑게 느껴질 수 있습니다.' },
+          { title:'[연애 관계] 좋아할수록 더 현실 검증이 심해지는 타입', text:'감정이 클수록 오히려 더 분석적으로 움직입니다. 관계가 오래 갈 수 있는지, 감정이 아니라 실제로 맞는 사람인지까지 같이 보려 하기 때문입니다.' },
+          { title:'[가족 관계] 책임감이 통제로 읽힐 수 있음', text:'가족 문제를 보면 그냥 지나치지 못합니다. 당신에게는 관리와 보호지만, 듣는 사람에게는 판단과 간섭으로 느껴질 가능성이 큽니다.' },
+          { title:'[직장/팀 관계] 냉정한 수습형 리더 자질', text:'팀에서는 문제가 커질수록 더 강해집니다. 감정에 휘둘리지 않고 우선순위를 세우는 능력이 탁월해, 어려운 상황에서 중심축 역할을 맡기 쉽습니다.' },
+          { title:'[말투 위험 구간] 사실은 맞지만 체감은 너무 셈', text:'당신의 말은 대체로 틀리지 않습니다. 다만 맞는 말이 곧바로 받아들여지는 것은 아니며, 상대는 내용보다 온도 때문에 먼저 다칠 수 있습니다.' },
+          { title:'[관계 회로 디버깅] 조심하면 좋아지는 포인트', text:'정답을 바로 주는 능력은 큰 장점입니다. 하지만 관계에서는 정답보다 먼저 "나는 네 감정을 무시하지 않는다"는 신호가 필요합니다.' }
+        ];
+      },
+      loveRows: function(ctx) {
+        return [
+          { title:'좋아하는 사람 앞에서의 태도', text:'감정이 커질수록 더 허술해지고 싶지 않아, 오히려 말과 행동을 더 조심합니다. 그래서 좋아하는데도 무심하거나 냉정해 보일 수 있습니다.' },
+          { title:'연락 스타일', text:'연락은 기능적이고 분명한 편입니다. 의미 없는 감정 소모를 줄이려 하고, 필요한 순간 챙김은 확실하지만 일상적인 감정 교류는 생략될 수 있습니다.' },
+          { title:'서운함을 처리하는 방식', text:'서운함이 생기면 감정에 잠기기보다 이유와 패턴을 먼저 찾습니다. 그래서 마음이 식은 게 아니라 분석 중인데, 상대는 이미 멀어졌다고 오해할 수 있습니다.' },
+          { title:'싸울 때의 패턴', text:'싸우면 감정전보다 구조 분석으로 들어갑니다. 무엇이 반복됐는지, 어느 부분이 비효율적인지 정리하다 보니 상대는 사랑싸움이 아니라 평가받는 느낌을 받을 수 있습니다.' },
+          { title:'상대가 느끼는 장점', text:'불필요하게 흔들리지 않고, 문제를 실제로 해결해주는 힘이 큽니다. 감정이 지나간 뒤에도 관계를 운영할 수 있는 현실감이 강한 편입니다.' },
+          { title:'상대가 느끼는 단점', text:'따뜻함이 없어서가 아니라, 따뜻함이 잘 보이지 않는 방식으로 표현됩니다. 상대는 "나를 좋아하는데 왜 이렇게 분석적이지?"라는 혼란을 느낄 수 있습니다.' },
+          { title:'연애 조언', text:'당신의 사랑은 깊지만 표현 방식이 너무 구조적일 수 있습니다. 사랑하는 사람 앞에서는 해결보다 공감, 분석보다 안심을 먼저 주는 연습이 필요합니다.' }
+        ];
+      },
+      workMoneyRows: function(ctx) {
+        return [
+          { title:'업무 스타일', text:'문제 해결, 효율, 팩트 체크 능력이 매우 강합니다. 복잡한 일을 쪼개고 다시 묶는 능력이 뛰어나 실무나 리더 역할에서 강한 편입니다.' },
+          { title:'돈 관리 성향', text:'돈은 거의 감정보다 구조와 지속성으로 판단합니다. 손익 계산이 빠르고 낭비를 싫어해, 재정 관리에서는 상당히 안정적인 편입니다.' },
+          { title:'위기 대응', text:'위기 상황일수록 감정이 아니라 시스템이 켜집니다. 그래서 혼란한 자리에서 가장 침착한 사람으로 보이기 쉽습니다.' },
+          { title:'결정력과 루틴', text:'기준이 명확해지면 결정이 빠르고, 계획도 크게 흔들리지 않습니다. 꾸준함과 통제력이 강해 장기 실행력에서도 장점이 큽니다.' },
+          { title:'너무 계산적으로 보일 수 있는 지점', text:'당신은 계산적이라기보다 손실 관리가 빠른 사람입니다. 다만 감정의 장면에서도 같은 언어를 쓰면, 인간적인 결이 빠진 사람처럼 보일 수 있습니다.' }
+        ];
+      },
+      bugRows: function(ctx) {
+        return [
+          { title:'감정 번역 오류', text:'상대의 감정 신호를 곧바로 해결 과제로 바꿔 읽기 쉽습니다. 그래서 감정이 충분히 머물기 전에 수리 모드로 넘어갑니다.' },
+          { title:'말투 과냉각 현상', text:'문장이 짧고 선명해질수록 상대는 칼날을 먼저 느낍니다. 당신에게는 정리지만, 상대에게는 판정처럼 들릴 수 있습니다.' },
+          { title:'결정 지연 또는 과잉 분석', text:'겉으로는 결론이 빨라 보여도, 속에서는 이미 많은 시뮬레이션을 돌립니다. 그래서 확신이 부족한 장면에서는 오히려 분석이 길어질 수 있습니다.' },
+          { title:'공감 타이밍 누락', text:'공감이 없는 것이 아니라 순서에서 밀립니다. 문제를 너무 빨리 봉합하려다, 관계 회복에 필요한 감정 확인이 생략될 수 있습니다.' },
+          { title:'혼자 결론 내리는 습관', text:'내가 더 빨리 구조를 볼 수 있다는 자신감이 커질수록, 대화 없이 결론을 완료할 가능성도 커집니다. 상대는 이해받기보다 관리당한다고 느낄 수 있습니다.' }
+        ];
+      },
+      prescriptionRows: function(ctx) {
+        return [
+          { title:'오늘 바로 해볼 것', text:'오늘 대화 한 번만이라도 해결책보다 공감 한 줄을 먼저 출력하세요. "그랬구나" 한 문장이 당신의 논리를 차갑지 않게 만들어줍니다.' },
+          { title:'대화할 때 조심할 것', text:'맞는 말을 바로 던지기 전에 상대 감정을 먼저 확인하세요. 정답은 이미 충분하니, 지금 필요한 건 전달 순서의 조정입니다.' },
+          { title:'연애에서 써먹을 것', text:'서운할 때는 원인 분석 전에 "나는 지금 네 마음이 먼저 궁금해"라는 문장을 써보세요. 그 한 문장이 관계의 체감 온도를 바꿉니다.' },
+          { title:'일할 때 써먹을 것', text:'기준을 제시할 때 상대가 따라올 이유도 같이 말해주세요. 냉정한 기준이 설명을 만나면 더 강한 리더십이 됩니다.' },
+          { title:'멘탈이 흔들릴 때 쓸 것', text:'머릿속 시뮬레이션이 과열되면 결론을 잠시 보류하고, 사실/추측/감정을 나눠 적어보세요. 당신은 분리해서 볼 때 훨씬 안정됩니다.' }
+        ];
+      },
+      mission: { title:'냉정 모드 디버깅 미션', items:['대화 1회는 해결책 대신 공감 한 줄 먼저 출력', '피드백에 좋았던 점 1개를 먼저 제시', '결론 제시 전 상대 의도 확인 질문 1회'] },
+      summaryTip: '정답보다 먼저 감정 확인 한 줄 붙이기.',
+      summaryMood: '차갑고 선명한 편'
+    }
+  };
+
+  var scoreBand = SCORE_BAND_CONTENT[scoreBandKey] || SCORE_BAND_CONTENT.hybrid;
+  var catchphrase = scoreBand.catchphrase(tContext);
+  var detailParagraphs = scoreBand.detailParagraphs(tContext);
+  var relationshipRows = scoreBand.relationshipRows(tContext);
+  var loveRows = scoreBand.loveRows(tContext);
+  var workMoneyRows = scoreBand.workMoneyRows(tContext);
+  var bugRows = scoreBand.bugRows(tContext);
+  var prescriptionRows = scoreBand.prescriptionRows(tContext);
+
+  var metalInterpretation = metalLevel === '강함'
+    ? '기준과 정리력이 강해 판단의 칼날이 선명합니다. 말투도 직선적이기 쉬워 답답한 상황을 빨리 잘라내지만, 상대 마음까지 함께 잘리지 않도록 완충어가 필요합니다.'
+    : metalLevel === '보통'
+      ? '필요한 순간에는 선을 긋고 정리하지만 늘 차갑게 굴지는 않습니다. 상황 따라 유연하게 기준을 꺼낼 수 있어 밸런스가 괜찮은 편입니다.'
+      : '본래부터 차가운 사람이라기보다, 필요할 때만 기준 회로를 꺼내는 타입입니다. 그래서 오히려 감정적인 장면에서 더 따뜻하게 읽히기도 합니다.';
+
+  var gwanInterpretation = gwanLevel === '강함'
+    ? '책임감, 규칙 의식, 자기 통제가 강하게 작동합니다. 사회적 눈치도 없는 편이 아니라 "이 장면에서 내가 정리해야 한다"는 압박을 스스로 크게 느끼는 편입니다.'
+    : gwanLevel === '보통'
+      ? '필요한 상황에서는 책임을 잡아내고 선을 세웁니다. 기준은 있지만 숨 막히게 통제하지는 않아, 사람과 현실 사이를 비교적 잘 조율합니다.'
+      : '통제보다 분위기와 흐름을 더 많이 보는 편입니다. 그래서 관계는 부드럽지만, 확실히 끊어야 할 장면에서 망설일 수도 있습니다.';
+
+  var ssInterpretation = ssLevel === '강함'
+    ? '표현력이 살아 있고 말빨도 센 편입니다. 팩트 체크가 빠르고 농담이나 드립도 구조적으로 잘 던지지만, 예민한 순간엔 그 재치가 팩트폭행으로 들릴 수 있습니다.'
+    : ssLevel === '보통'
+      ? '할 말은 하는 편이지만, 늘 세게 밀어붙이지는 않습니다. 상황을 보고 표현 강도를 조절하는 능력이 있어 대화 체감이 너무 차갑지만은 않습니다.'
+      : '표현은 신중하고, 확신이 있을 때만 문장을 세게 꺼냅니다. 그래서 말수는 적어 보여도 한마디의 밀도는 의외로 높은 편입니다.';
+
+  var johuInterpretation = isColdDry
+    ? '감정 온도는 서늘하고 건조한 쪽에 가깝습니다. 인간관계에서는 깔끔하고 선명한 분위기로 읽히며, 논리와 감정의 온도차가 벌어질수록 상대는 "차갑다"보다 "쉽게 못 들어가겠다"는 느낌을 받을 수 있습니다.'
+    : '감정 온도는 과하게 메마르지 않고, 논리와 감정의 온도차도 비교적 완만합니다. 그래서 현실적인 말도 조금 더 부드럽게 들릴 여지가 있습니다.';
+
+  var tMission = scoreBand.mission;
+
+  var missionHtml = '<section class="t-mission-card">'
+    + '<div class="t-mission-title">🧪 ' + tMission.title + '</div>'
+    + renderBulletList(tMission.items, '#d1fae5')
+    + '</section>';
+
+  var topSummaryHtml = '<section class="t-hero-card">'
+    + '<div class="t-hero-grid">'
+    + '<div class="t-hero-copy"><div class="t-kicker">TYPE PROFILE</div>'
+    + '<div class="t-type-name">' + scoreBand.typeName + '</div>'
+    + '<div class="t-type-state">' + scoreBand.headline + ' · ' + scoreBand.stateMessage + '</div></div>'
+    + '<div class="t-score-box"><div class="t-score-label">T SCORE</div>'
+    + '<div class="t-score-value">' + finalScore + '<span class="t-score-unit">점</span></div></div>'
+    + '</div>'
+    + '<div class="t-score-gauge"><span class="t-score-gauge-fill" style="width:' + finalScore + '%;"></span></div>'
+    + '<div class="t-catchphrase">"' + catchphrase + '"</div>'
+    + '</section>';
+
+  var sajuBaseHtml = renderSection(
+    '[사주 기반 극T 해석] 논리 회로가 켜지는 이유',
+    '<div class="t-saju-stack">'
+      + '<div class="t-saju-row"><b>금 오행 · ' + metalLevel + '</b><br>' + metalInterpretation + '</div>'
+      + '<div class="t-saju-row"><b>관성 · ' + gwanLevel + '</b><br>' + gwanInterpretation + '</div>'
+      + '<div class="t-saju-row"><b>식상 · ' + ssLevel + '</b><br>' + ssInterpretation + '</div>'
+      + '<div class="t-saju-row"><b>조후 · ' + johuTone + ' / ' + johuTexture + '</b><br>' + johuInterpretation + '</div>'
+      + '</div>',
+    'rgba(129,140,248,.28)'
+  );
+
+  var detailedAnalysisHtml = renderSection('[장점 스캔] 지금의 당신을 만드는 회로', renderParagraphs(detailParagraphs), 'rgba(52,211,153,.28)');
+  var relationshipHtml = renderSection('[관계 회로] 가까운 사람에게 더 솔직해지는 타입', renderInfoRows(relationshipRows), 'rgba(96,165,250,.28)');
+  var loveHtml = renderSection('[연애 알고리즘] 좋아할수록 더 현실적으로 계산하는 사람', renderInfoRows(loveRows), 'rgba(244,114,182,.28)');
+  var workMoneyHtml = renderSection('[현실 처리 능력] 감정보다 구조를 먼저 보는 생산형 두뇌', renderInfoRows(workMoneyRows), 'rgba(250,204,21,.24)');
+  var fatalBugHtml = renderSection('[치명적 버그] 가까워질수록 드러나는 오류 패턴', renderInfoRows(bugRows), 'rgba(248,113,113,.28)');
+  var prescriptionHtml = renderSection('[디버깅 처방전] 바로 써먹는 관계 패치', renderInfoRows(prescriptionRows), 'rgba(251,191,36,.28)');
+
+  var summaryCardHtml = '<section class="t-summary-card">'
+    + '<div class="t-summary-title">🧊 나의 극T 요약 카드</div>'
+    + '<div class="t-summary-grid">'
+    + '<div class="t-summary-chip"><div class="t-summary-chip-label">극T 타입</div><div class="t-summary-chip-value">' + scoreBand.typeName + '</div></div>'
+    + '<div class="t-summary-chip"><div class="t-summary-chip-label">T 점수</div><div class="t-summary-chip-value">' + finalScore + '점</div></div>'
+    + '<div class="t-summary-chip"><div class="t-summary-chip-label">논리 온도</div><div class="t-summary-chip-value">' + scoreBand.summaryMood + '</div></div>'
+    + '<div class="t-summary-chip"><div class="t-summary-chip-label">감정 표현</div><div class="t-summary-chip-value">' + emotionSpeed + '</div></div>'
+    + '<div class="t-summary-chip"><div class="t-summary-chip-label">말투 위험도</div><div class="t-summary-chip-value">' + toneRisk + '</div></div>'
+    + '<div class="t-summary-chip"><div class="t-summary-chip-label">연애 난이도</div><div class="t-summary-chip-value">' + loveDifficulty + '</div></div>'
+    + '</div><div class="t-summary-foot"><div class="t-summary-foot-label">인간관계 팁</div><div class="t-summary-foot-copy">' + scoreBand.summaryTip + '</div></div>'
+    + '<div class="t-summary-foot"><div class="t-summary-foot-label">오늘의 미션</div>' + renderBulletList([tMission.items[0]], '#d1fae5') + '</div>'
+    + '</section>';
 
   var html = '<div class="t-test-wrapper">';
-  html += '<div style="font-size:0.75rem; color:#00ff41; margin-bottom:5px;">INITIATING T-BAL-NOM SCAN...</div>';
+  html += '<div class="t-scan-line">INITIATING T-BAL-NOM SCAN...</div>';
   html += '<div class="t-test-score"><span class="t-test-val">' + finalScore + '</span><span class="t-test-pct">%</span></div>';
   html += '<div class="t-test-tier">' + tTier + '</div>';
-  html += '<div class="t-test-desc">' + tDesc + '</div>';
-  
+  html += topSummaryHtml;
   html += '<div class="t-test-grid">';
-  html += '<div class="t-test-item"><div>> [金] 금속성 하드웨어</div><div class="t-val">' + (metalScore * 10) + '%</div></div>';
-  html += '<div class="t-test-item"><div>> [관성] 강제 통제 수호 의식</div><div class="t-val">' + (gwanCount * 15) + '%</div></div>';
-  html += '<div class="t-test-item"><div>> [식상] 팩트폭행 디버깅</div><div class="t-val">' + (isMetalEarthSS ? '활성(+20%)' : '비활성') + '</div></div>';
-  html += '<div class="t-test-item"><div>> [조후] 냉각/건조 성궁 진법</div><div class="t-val">' + (isColdDry ? '가동(+25%)' : '정지') + '</div></div>';
+  html += '<div class="t-test-item"><div class="t-stat-label">[金] 금속성 하드웨어</div><div class="t-val">' + (metalScore * 10) + '%</div></div>';
+  html += '<div class="t-test-item"><div class="t-stat-label">[관성] 강제 통제 수호 의식</div><div class="t-val">' + (gwanCount * 15) + '%</div></div>';
+  html += '<div class="t-test-item"><div class="t-stat-label">[식상] 팩트폭행 디버깅</div><div class="t-val">' + (isMetalEarthSS ? '활성(+20%)' : '비활성') + '</div></div>';
+  html += '<div class="t-test-item"><div class="t-stat-label">[조후] 냉각/건조 성궁 진법</div><div class="t-val">' + (isColdDry ? '가동(+25%)' : '정지') + '</div></div>';
   html += '</div>';
+  html += detailedAnalysisHtml;
+  html += '<div class="t-panel-grid">' + relationshipHtml + loveHtml + workMoneyHtml + '</div>';
+  html += '<div class="t-panel-grid t-panel-grid--support">' + sajuBaseHtml + fatalBugHtml + prescriptionHtml + '</div>';
   html += missionHtml;
+  html += summaryCardHtml;
   html += '</div>';
 
   area.innerHTML = html;
@@ -3025,18 +4288,352 @@ var LOTTO_EL_TAG={
 };
 var LOTTO_PAIR={water:'fire',fire:'water',wood:'metal',metal:'wood',earth:'fire'};
 var LOTTO_REASON={
-  water:['하도낙서(河圖洛書)에서 1·6은 水의 생수·성수입니다. 수(水)의 공명 주파수는 지혜·유통·흐름의 에너지로, 숫자 흐름이 가장 부드럽게 연결됩니다.','현재 년운·월운의 水 기운이 이 숫자들의 에너지 밀도를 증폭시켜 공명 구간을 형성합니다.','북방 壬癸 수기(水氣)는 은밀하게 작동하는 행운 주파수로, 조용하고 깊은 에너지가 잠재된 번호입니다.'],
-  fire:['하도낙서에서 2·7은 火의 생수·성수입니다. 불꽃처럼 폭발적으로 번지는 열정의 에너지 코드가 담긴 번호입니다.','남방 丙丁 화기(火氣)와 현재 대운이 교차하는 구간에서 이 숫자들의 공명 진폭이 최대치로 상승합니다.','직관과 열기의 에너지가 집중된 구간으로, 즉각적이고 강렬한 파동이 형성됩니다.'],
-  wood:['3·8은 木의 생수·성수. 봄철 새싹이 솟아오르듯 상승 에너지가 강하며, 시작과 성장의 주파수가 담긴 번호입니다.','동방 甲乙 목기(木氣)는 현재 대운의 용신 에너지와 공명하여 번호의 파동 강도가 강화됩니다.','수직 상승하는 목 에너지 특성상 이 번호들은 상승장에서 강하게 반응하는 구조를 형성합니다.'],
-  metal:['4·9는 金의 생수·성수. 서방 庚辛의 냉철하고 결단력 있는 에너지가 번호에 응축되어 있습니다.','금속이 단단하게 결정되듯, 이 번호들의 에너지는 흔들리지 않는 안정적 파동 구조를 가집니다.','현재 년운과의 금수상관(金水相關) 구간이 이 번호들의 에너지 동기화 확률을 극대화합니다.'],
-  earth:['5·10은 土의 생수·성수. 중앙 戊己의 안정·중재 에너지가 번호 조합에 균형 파동을 형성합니다.','대지가 모든 것을 품듯, 토 에너지 번호는 다른 오행 에너지와 연결 고리 역할을 합니다.','현재 일진의 土 기운이 이 번호들의 에너지 밀도를 중심축으로 수렴시키는 구조입니다.']
+  water:['하도낙서(河圖洛書)에서 1·6은 水의 생수·성수로 읽힙니다. 수(水)는 흐름과 정리, 관찰의 상징이라 이번 번호에는 차분한 수리 무드가 담깁니다.','현재 사주 흐름에서 水 기운은 지출과 감정의 속도를 낮추고, 작은 선택을 기록하는 루틴과 잘 어울립니다.','북방 壬癸 수기(水氣)는 조용히 쌓이는 감각을 상징합니다. 이 번호는 오락용 상징 번호로만 가볍게 즐겨주세요.'],
+  fire:['하도낙서에서 2·7은 火의 생수·성수로 읽힙니다. 화(火)는 직감과 환기, 기분 전환의 상징이라 번호에 밝은 움직임을 더합니다.','남방 丙丁 화기(火氣)는 기대감이 커질 때 한도를 먼저 정하라는 신호로 해석합니다.','즉흥성이 올라오기 쉬운 무드라, 복권은 정해둔 한도 안에서 소액으로 즐기는 루틴이 가장 중요합니다.'],
+  wood:['3·8은 木의 생수·성수입니다. 목(木)은 시작과 성장, 작은 기회를 돌보는 상징으로 번호의 분위기를 부드럽게 엽니다.','동방 甲乙 목기(木氣)는 오늘의 선택을 무리하게 키우기보다, 가볍게 시도하고 기록하는 흐름과 어울립니다.','이 번호는 상승을 약속하는 값이 아니라 사주 기반 상징 번호입니다. 재미와 자기성찰의 소재로만 받아들여 주세요.'],
+  metal:['4·9는 金의 생수·성수입니다. 금(金)은 기준, 절제, 정리의 상징이라 번호에 차분한 선 긋기 무드를 더합니다.','금속이 단단하게 다듬어지듯, 이번 조합은 지출 한도와 구매 전 체크리스트를 세우는 루틴과 잘 맞습니다.','현재 흐름은 결과보다 기준을 지키는 태도를 강조합니다. 생성된 번호는 통계적·과학적 당첨 예측값이 아닙니다.'],
+  earth:['5·10은 土의 생수·성수입니다. 토(土)는 안정, 중재, 생활 리듬의 상징이라 번호 조합에 균형 무드를 만듭니다.','대지가 모든 것을 품듯, 토 에너지 번호는 기대감을 생활의 작은 즐거움으로 내려놓는 루틴과 어울립니다.','오늘의 핵심은 과몰입을 줄이고 한도를 지키는 것입니다. 걱정이 커지면 구매를 멈추고 도움을 요청해 주세요.']
 };
-var LOTTO_GAME_NAMES=['⚡ 레조넌스 넘버 A','💎 공명 파동 B','🌀 에너지 서지 C','✨ 하도낙서 D','🔥 파이널 웨이브 E'];
+var LOTTO_GAME_NAMES=['흐름형','안정형','반전형','직감형','균형형'];
+var LOTTO_RITUAL_FEATURE_KEY='fun.quantumLotto.ritualReport';
 
 /* 로또 회차 카운터 — 매 회차 새로운 시드 */
 var _lottoDrawCount = 0;
 /* 지금까지 뽑은 전체 게임 번호셋 기록 (중복 방지) */
 var _lottoHistory = [];
+var _lottoRitualCanvasLoader = null;
+
+function lottoEsc(value){
+  if(typeof syCanonicalEsc==='function') return syCanonicalEsc(value);
+  return String(value==null?'':value)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+function lottoElementText(el){
+  var tag=LOTTO_EL_TAG[el]||LOTTO_EL_TAG.water;
+  var elEmoji=(typeof EL_E!=='undefined'&&EL_E&&EL_E[el])?EL_E[el]+' ':'';
+  var elName=(typeof EL_K!=='undefined'&&EL_K&&EL_K[el])?EL_K[el]:'수';
+  return elEmoji+elName+' — '+tag.label;
+}
+
+function lottoElementByNumber(num){
+  var found='earth';
+  Object.keys(LOTTO_POOL).some(function(el){
+    if(LOTTO_POOL[el].indexOf(num)>=0){found=el;return true;}
+    return false;
+  });
+  return found;
+}
+
+function lottoWeekKey(date){
+  var d=new Date(date||new Date());
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate()+4-((d.getDay()||7)));
+  var yearStart=new Date(d.getFullYear(),0,1);
+  var week=Math.ceil((((d-yearStart)/86400000)+1)/7);
+  return d.getFullYear()+'-W'+String(week).padStart(2,'0');
+}
+
+function lottoReadAuthUser(){
+  try{
+    if(typeof readAuthUser==='function') return readAuthUser()||{};
+  }catch(_e){}
+  try{
+    return JSON.parse(localStorage.getItem('fortune_auth_user')||'null')||{};
+  }catch(_e2){
+    return {};
+  }
+}
+
+function lottoUserId(){
+  var user=lottoReadAuthUser()||{};
+  return String(user.id||user.userId||user.uid||user._id||'guest').trim().replace(/\s+/g,'_')||'guest';
+}
+
+function lottoProfileId(){
+  try{
+    if(typeof _cdResolveCurrentProfileIdForAccess==='function'){
+      var resolved=_cdResolveCurrentProfileIdForAccess();
+      if(resolved) return String(resolved).trim().replace(/\s+/g,'_').slice(0,80);
+    }
+  }catch(_e){}
+  try{
+    if(window.DestinyProfileManager&&window.DestinyProfileManager.storage&&typeof window.DestinyProfileManager.storage.current==='function'){
+      var profile=window.DestinyProfileManager.storage.current()||{};
+      var pid=String(profile.profileId||profile.id||'').trim();
+      if(pid) return pid.replace(/\s+/g,'_').slice(0,80);
+    }
+  }catch(_e2){}
+  try{
+    var stored=String(localStorage.getItem('FORTUNE_APP_USER_PROFILES.current')||'').trim();
+    if(stored) return stored.replace(/\s+/g,'_').slice(0,80);
+  }catch(_e3){}
+  return 'local-profile';
+}
+
+function lottoSavedReportsKey(){
+  return 'CODE_DESTINY_LOTTO_RITUAL_REPORTS_V1::'+lottoUserId()+'::'+lottoProfileId();
+}
+
+function lottoLoadSavedReports(){
+  try{
+    var parsed=JSON.parse(localStorage.getItem(lottoSavedReportsKey())||'[]');
+    return Array.isArray(parsed)?parsed:[];
+  }catch(_e){
+    return [];
+  }
+}
+
+function lottoFindSavedReport(weekKey){
+  var key=String(weekKey||lottoWeekKey(new Date())).trim();
+  return lottoLoadSavedReports().filter(function(item){return item&&item.weekKey===key;}).slice(-1)[0]||null;
+}
+
+function lottoStoreReport(state){
+  var reports=lottoLoadSavedReports();
+  var payload={
+    id:'lotto-ritual-'+state.weekKey+'-'+Date.now(),
+    userId:lottoUserId(),
+    profileId:lottoProfileId(),
+    generatedAt:state.generatedAt||new Date().toISOString(),
+    weekKey:state.weekKey,
+    freeGames:state.games||[],
+    paidSummary:state.report&&state.report.shareCard?state.report.shareCard.ritualSummary:'',
+    unlockState:true,
+    report:state.report||null
+  };
+  reports=reports.filter(function(item){return !(item&&item.weekKey===payload.weekKey);});
+  reports.push(payload);
+  localStorage.setItem(lottoSavedReportsKey(),JSON.stringify(reports.slice(-24)));
+  return payload;
+}
+
+function buildLottoRitualReport(state){
+  var element=state.primary||'water';
+  var elementName=lottoElementText(element);
+  var luckyColorMap={water:'깊은 남청색',fire:'부드러운 촛불색',wood:'맑은 잎새색',metal:'은빛 회백색',earth:'따뜻한 황토색'};
+  var moneyMoodMap={
+    water:'기대가 올라오는 순간일수록 먼저 멈추고 적는 흐름입니다. 작은 금액도 기록하면 감정 소비가 낮아집니다.',
+    fire:'기분 전환 욕구가 커질 수 있습니다. 재미는 짧게 열고, 결제 전 한 번 더 숨을 고르는 루틴이 좋습니다.',
+    wood:'작은 시도와 정돈이 함께 오는 흐름입니다. 새 지출보다 이미 가진 것의 쓰임을 다시 보는 쪽이 안정적입니다.',
+    metal:'기준을 세우는 힘이 강한 흐름입니다. 한도, 시간, 목적을 미리 정하면 마음의 소음이 줄어듭니다.',
+    earth:'생활 리듬을 지키는 것이 중심입니다. 기대감을 크게 키우기보다 소소한 즐거움으로 내려놓는 태도가 좋습니다.'
+  };
+  var numberMeaning={
+    water:'흐름을 낮추고 기록을 남기는 숫자',
+    fire:'기분을 환기하고 즉흥성을 다루는 숫자',
+    wood:'작은 시작과 가벼운 시도를 여는 숫자',
+    metal:'기준과 절제를 세우는 숫자',
+    earth:'균형과 생활 리듬을 되찾는 숫자'
+  };
+  var actionWords=['한도 적기','영수증 정리','기분 환기','장바구니 비우기','소액 선언','구매 전 쉼표','기록 남기기'];
+  var nums=(state.firstGameNums||[]).slice(0,6);
+  var numberInsights=nums.map(function(num,idx){
+    var el=lottoElementByNumber(num);
+    return {
+      number:num,
+      element:lottoElementText(el),
+      meaning:numberMeaning[el]||numberMeaning.earth,
+      action:actionWords[(num+idx)%actionWords.length]
+    };
+  });
+  var ritualSummary=(luckyColorMap[element]||luckyColorMap.water)+'을 곁에 두고, 복권은 정해둔 한도 안에서 소액으로만 즐기기';
+  return {
+    title:'달빛 럭키 리추얼 리포트',
+    priceCoins:50,
+    moneyCondition:{
+      title:'이번 주 금전운 컨디션',
+      body:(moneyMoodMap[element]||moneyMoodMap.water)+' 용신/희신 축은 '+lottoElementText(state.primary)+'과 '+lottoElementText(state.secondary)+'로 읽습니다.',
+      points:['충동 지출은 메모 후 하루 미루기','작은 기회는 크게 기대하지 않고 관찰하기','정리해야 할 소비 패턴 하나만 고르기']
+    },
+    numberInsights:numberInsights,
+    ritualCard:{
+      luckyColor:luckyColorMap[element]||luckyColorMap.water,
+      cleanup:'이번 주 정리하면 좋은 지출: 자동결제, 장바구니, 중복 구독',
+      avoid:'피하면 좋은 소비 패턴: 기대감이 커졌을 때 금액을 늘리는 행동',
+      limit:'소액으로 즐기기 위한 한도 선언: 오늘 정한 금액 이상 쓰지 않기',
+      action:'기분 전환용 행운 액션: 결제 전 물 한 잔, 깊은 호흡, 금액 메모'
+    },
+    reflectionQuestions:[
+      '이번 주 나는 충동 지출을 줄였는가?',
+      '내가 정한 한도를 지켰는가?',
+      '기대감에 휘둘리지 않고 재미로 즐겼는가?'
+    ],
+    shareCard:{
+      title:'나의 이번 주 수리 파동',
+      subtitle:'사주 오행과 수리 상징으로 보는 재미용 행운 루틴',
+      luckyElement:elementName,
+      luckyNumbers:nums,
+      ritualSummary:ritualSummary,
+      disclaimer:'오락용 콘텐츠 · 당첨 비보장'
+    },
+    disclaimer:'본 콘텐츠는 오락 및 자기성찰용 콘텐츠입니다. 복권 당첨을 예측하거나 보장하지 않습니다. 생성된 번호는 통계적·과학적 당첨 예측값이 아닙니다.'
+  };
+}
+
+function renderLottoRitualReport(state){
+  var area=document.getElementById('lottoRitualReportArea');
+  var card=document.getElementById('lottoCard');
+  if(!area)return;
+  var source=state||window.__cdLottoRitualState||{};
+  if(!source.report) source.report=buildLottoRitualReport(source);
+  window.__cdLottoRitualState=source;
+  var report=source.report;
+  var share=report.shareCard||{};
+  var saved=lottoFindSavedReport(source.weekKey);
+  area.hidden=false;
+  area.innerHTML=
+    '<section class="lr-wrap" aria-label="달빛 럭키 리추얼 리포트">'+
+      '<div class="lr-head">'+
+        '<span class="lr-kicker">50코인 디지털 리포트</span>'+
+        '<h4>'+lottoEsc(report.title)+'</h4>'+
+        '<p>더 좋은 번호가 아니라, 번호별 상징 해석과 이번 주 금전 루틴을 여는 달빛 리포트입니다.</p>'+
+      '</div>'+
+      '<div class="lr-grid">'+
+        '<article class="lr-panel lr-panel--wide">'+
+          '<h5>'+lottoEsc(report.moneyCondition.title)+'</h5>'+
+          '<p>'+lottoEsc(report.moneyCondition.body)+'</p>'+
+          '<ul>'+report.moneyCondition.points.map(function(item){return '<li>'+lottoEsc(item)+'</li>';}).join('')+'</ul>'+
+        '</article>'+
+        '<article class="lr-panel">'+
+          '<h5>행운 루틴 카드</h5>'+
+          '<dl class="lr-ritual-list">'+
+            '<div><dt>이번 주 행운 색상</dt><dd>'+lottoEsc(report.ritualCard.luckyColor)+'</dd></div>'+
+            '<div><dt>정리하면 좋은 지출</dt><dd>'+lottoEsc(report.ritualCard.cleanup)+'</dd></div>'+
+            '<div><dt>피하면 좋은 소비 패턴</dt><dd>'+lottoEsc(report.ritualCard.avoid)+'</dd></div>'+
+            '<div><dt>한도 선언</dt><dd>'+lottoEsc(report.ritualCard.limit)+'</dd></div>'+
+            '<div><dt>행운 액션</dt><dd>'+lottoEsc(report.ritualCard.action)+'</dd></div>'+
+          '</dl>'+
+        '</article>'+
+      '</div>'+
+      '<article class="lr-panel lr-number-panel">'+
+        '<h5>번호별 상징 해석</h5>'+
+        '<div class="lr-number-list">'+
+          report.numberInsights.map(function(item){
+            return '<div class="lr-number-item">'+
+              '<span class="lr-number-chip">'+lottoEsc(item.number)+'</span>'+
+              '<div><strong>'+lottoEsc(item.element)+'</strong><p>'+lottoEsc(item.meaning)+'</p><em>'+lottoEsc(item.action)+'</em></div>'+
+            '</div>';
+          }).join('')+
+        '</div>'+
+      '</article>'+
+      '<article class="lr-share-card" id="lottoRitualShareCard">'+
+        '<span class="lr-share-brand">CODE DESTINY · MOON RITUAL</span>'+
+        '<h5>'+lottoEsc(share.title||'나의 이번 주 수리 파동')+'</h5>'+
+        '<p>'+lottoEsc(share.subtitle||'사주 기반 상징 번호')+'</p>'+
+        '<strong>'+lottoEsc(share.luckyElement||lottoElementText(source.primary))+'</strong>'+
+        '<div class="lr-share-numbers">'+(share.luckyNumbers||source.firstGameNums||[]).map(function(n){return '<span>'+lottoEsc(n)+'</span>';}).join('')+'</div>'+
+        '<p class="lr-share-summary">'+lottoEsc(share.ritualSummary||'정해둔 한도 안에서 소액으로 즐기기')+'</p>'+
+        '<small>'+lottoEsc(share.disclaimer||'오락용 콘텐츠 · 당첨 비보장')+'</small>'+
+      '</article>'+
+      '<article class="lr-panel lr-reflection">'+
+        '<h5>회차 후 회고</h5>'+
+        report.reflectionQuestions.map(function(q){return '<label><input type="checkbox"> <span>'+lottoEsc(q)+'</span></label>';}).join('')+
+      '</article>'+
+      '<div class="lr-actions">'+
+        '<button type="button" class="lr-btn" onclick="saveLottoRitualReport()">이번 주 리포트 저장</button>'+
+        '<button type="button" class="lr-btn lr-btn--shine" onclick="saveLottoRitualShareCard()">공유 카드 이미지 저장</button>'+
+        '<button type="button" class="lr-btn" onclick="shareLottoRitualText()">공유 문구 복사</button>'+
+      '</div>'+
+      '<p class="lr-status" id="lottoRitualSaveStatus">'+(saved?'저장된 이번 주 리포트가 있어요.':'구매 후 저장하면 같은 브라우저에서 이번 주 리포트를 다시 볼 수 있어요.')+'</p>'+
+      '<div class="lr-next">다음 회차에는 새 번호를 부추기지 않고, 다음 주의 수리 파동을 다시 보는 흐름으로 안내합니다.</div>'+
+      '<p class="lr-safe">본 콘텐츠는 오락 및 자기성찰용 콘텐츠입니다. 복권 당첨을 예측하거나 보장하지 않습니다. 생성된 번호는 통계적·과학적 당첨 예측값이 아닙니다. 복권은 정해둔 한도 안에서 소액으로 즐겨주세요. 과몰입이 걱정된다면 구매를 멈추고 도움을 요청하세요.</p>'+
+    '</section>';
+  if(card&&typeof syncReportHeightFromNode==='function'){
+    syncReportHeightFromNode(card);
+    requestAnimationFrame(function(){syncReportHeightFromNode(card);});
+    setTimeout(function(){syncReportHeightFromNode(card);},220);
+  }
+}
+
+function lottoEnsureCanvasLib(){
+  if(window.html2canvas)return Promise.resolve(window.html2canvas);
+  if(_lottoRitualCanvasLoader)return _lottoRitualCanvasLoader;
+  _lottoRitualCanvasLoader=new Promise(function(resolve,reject){
+    var script=document.createElement('script');
+    script.src='https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+    script.async=true;
+    script.onload=function(){resolve(window.html2canvas);};
+    script.onerror=function(){reject(new Error('html2canvas load failed'));};
+    document.head.appendChild(script);
+  });
+  return _lottoRitualCanvasLoader;
+}
+
+window.openLottoRitualReport=function(){
+  var unlocked=typeof window.isTileKeyUnlocked==='function'&&window.isTileKeyUnlocked(LOTTO_RITUAL_FEATURE_KEY);
+  if(!unlocked){
+    var btn=document.querySelector('[data-action="openLottoRitualReport"][data-tile-lock-key="'+LOTTO_RITUAL_FEATURE_KEY+'"]');
+    if(btn&&document.activeElement!==btn){btn.click();return;}
+    alert('달빛 럭키 리추얼 리포트는 잠금 해제 후 열람할 수 있습니다.');
+    return;
+  }
+  var state=window.__cdLottoRitualState||{};
+  var saved=lottoFindSavedReport(state.weekKey||lottoWeekKey(new Date()));
+  if(saved&&saved.report&&!state.report){
+    state.report=saved.report;
+    state.games=saved.freeGames||state.games||[];
+    state.weekKey=saved.weekKey;
+  }
+  renderLottoRitualReport(state);
+};
+
+window.saveLottoRitualReport=function(){
+  var status=document.getElementById('lottoRitualSaveStatus');
+  var state=window.__cdLottoRitualState;
+  if(!state||!state.report){
+    if(status)status.textContent='저장할 리포트가 아직 열리지 않았어요.';
+    return;
+  }
+  lottoStoreReport(state);
+  if(status)status.textContent='이번 주 리포트를 저장했어요. 같은 프로필과 이번 주 기준으로 다시 열 수 있습니다.';
+};
+
+window.saveLottoRitualShareCard=function(){
+  var status=document.getElementById('lottoRitualSaveStatus');
+  var capture=document.getElementById('lottoRitualShareCard');
+  if(!capture)return;
+  lottoEnsureCanvasLib().then(function(html2canvas){
+    return html2canvas(capture,{scale:Math.max(2,Math.min(3,window.devicePixelRatio||2)),backgroundColor:null,useCORS:true,logging:false});
+  }).then(function(canvas){
+    var link=document.createElement('a');
+    link.download='code-destiny-lotto-ritual-'+Date.now()+'.png';
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+    if(status)status.textContent='공유용 이미지 카드를 저장했어요.';
+  }).catch(function(){
+    if(status)status.textContent='이미지 저장을 준비하지 못했어요. 잠시 뒤 다시 시도해 주세요.';
+  });
+};
+
+window.shareLottoRitualText=function(){
+  var state=window.__cdLottoRitualState||{};
+  var report=state.report||buildLottoRitualReport(state);
+  var share=report.shareCard||{};
+  var text=[
+    '나의 이번 주 수리 파동',
+    share.luckyElement||lottoElementText(state.primary||'water'),
+    '대표 번호: '+(share.luckyNumbers||state.firstGameNums||[]).join(', '),
+    share.ritualSummary||'정해둔 한도 안에서 소액으로 즐기기',
+    '오락용 콘텐츠 · 당첨 비보장'
+  ].join('\n');
+  if(navigator.share){
+    navigator.share({title:'Code Destiny 달빛 럭키 리추얼',text:text}).catch(function(){});
+    return;
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){
+      var status=document.getElementById('lottoRitualSaveStatus');
+      if(status)status.textContent='공유 문구를 복사했어요.';
+    }).catch(function(){alert(text);});
+  }else{
+    alert(text);
+  }
+};
 
 function renderLottoNumbers(natal, bazi){
   var area=document.getElementById('lottoSection');
@@ -3184,61 +4781,88 @@ function renderLottoNumbers(natal, bazi){
   var tag=LOTTO_EL_TAG[primary]||LOTTO_EL_TAG.water;
   var resonanceNums=LOTTO_POOL[primary]?LOTTO_POOL[primary].slice(0,5).join(', ')+' …':'1, 6, 11…';
 
-  var GAME_NAMES_EX=[
-    '⚡ 레조넌스 넘버 A','💎 공명 파동 B','🌀 에너지 서지 C','✨ 하도낙서 D','🔥 파이널 웨이브 E'
-  ];
-
   /* 5게임 생성 & 기록 */
   var firstGameNums = [];
+  var games=[];
   var gamesHTML='';
   for(var gi=0;gi<5;gi++){
     var nums=pickGame(gi);
     _lottoHistory.push(nums.join(','));
     if(gi === 0) firstGameNums = nums;
+    games.push({index:gi+1,tag:LOTTO_GAME_NAMES[gi]||'균형형',nums:nums.slice()});
     gamesHTML+=
       '<div class="lc-game">'+
         '<div class="lc-game-top">'+
           '<span class="lc-game-num">GAME '+(gi+1)+'</span>'+
-          '<span class="lc-game-tag" style="background:'+tag.bg+';color:'+tag.color+';border-color:'+tag.color+'33">'+GAME_NAMES_EX[gi]+'</span>'+
+          '<span class="lc-game-tag" style="background:'+tag.bg+';color:'+tag.color+';border-color:'+tag.color+'33">'+lottoEsc(LOTTO_GAME_NAMES[gi]||'균형형')+'</span>'+
         '</div>'+
         '<div class="lc-balls">'+nums.map(ballHTML).join('')+'</div>'+
       '</div>';
   }
 
   var reasons=LOTTO_REASON[primary]||LOTTO_REASON.water;
+  var weekKey=lottoWeekKey(new Date());
+  var ritualState={
+    natal:natal,
+    bazi:bazi,
+    primary:primary,
+    secondary:secondary,
+    tertiary:tertiary,
+    tag:tag,
+    weekKey:weekKey,
+    generatedAt:new Date().toISOString(),
+    games:games,
+    firstGameNums:firstGameNums.slice(),
+    resonanceNums:resonanceNums,
+    drawCount:_lottoDrawCount+1
+  };
+  ritualState.report=buildLottoRitualReport(ritualState);
+  window.__cdLottoRitualState=ritualState;
 
   var drawCountLabel = _lottoDrawCount > 0 ? ' ('+(_lottoDrawCount+1)+'회차 — 새 에너지 파동)' : '';
 
   var html=
     '<div class="lc-wrap">'+
       '<div class="lc-header">'+
-        '<span class="lc-icon">🎱</span>'+
+        '<span class="lc-icon">☾</span>'+
         '<div class="lc-title-wrap">'+
-          '<h3>수리 에너지 &times; 사주 명리 로또 번호 생성기</h3>'+
-          '<p>하도낙서 수리 공명 &times; 사주 용신 오행으로 도출한 이번 주기 번호'+drawCountLabel+'</p>'+
+          '<h3>퀀텀 로또 리포트</h3>'+
+          '<p>사주 오행과 수리 상징으로 뽑아보는 재미용 행운 번호'+drawCountLabel+'</p>'+
         '</div>'+
       '</div>'+
+      '<p class="lc-safe-note">본 콘텐츠는 오락 및 자기성찰용 콘텐츠입니다. 복권 당첨을 예측하거나 보장하지 않습니다.</p>'+
       
-      '<button id="lottoDrawBtn" class="lotto-draw-btn">운명의 로또 번호 뽑기 🎯</button>'+
+      '<button id="lottoDrawBtn" class="lotto-draw-btn">이번 주 상징 번호 열기</button>'+
       '<div id="lottoMachine" class="lotto-machine-container">'+
-        '<div class="lotto-machine-title">✨ 퀀텀 에너지 공명 중... ✨</div>'+
+        '<div class="lotto-machine-title">수리 상징 번호를 여는 중...</div>'+
         '<div id="lottoDrawBalls" class="lotto-draw-balls"></div>'+
       '</div>'+
 
       '<div id="lottoResultArea" class="lotto-result-area">'+
         '<div class="lc-wave-box">'+
-          '<div class="lc-wave-label">⚡ 현재 당신의 수리 파동</div>'+
-          '<span class="lc-resonance" style="color:'+tag.color+'">'+(EL_E[primary]||'')+' '+(EL_K[primary]||'')+' — '+tag.label+'</span>'+
-          '<span style="font-size:.78rem;color:#a08040"> &nbsp;|&nbsp; 공명 번호축: '+resonanceNums+'</span>'+
+          '<div class="lc-wave-label">현재 수리 파동</div>'+
+          '<span class="lc-resonance" style="color:'+tag.color+'">'+lottoEsc(lottoElementText(primary))+'</span>'+
+          '<span style="font-size:.78rem;color:#a08040"> &nbsp;|&nbsp; 용신/희신 기반 숫자 축: '+lottoEsc(resonanceNums)+'</span>'+
         '</div>'+
         '<div class="lc-games">'+gamesHTML+'</div>'+
         '<div class="lc-reason">'+
-          '<div class="lc-reason-title">📝 수리적 근거 — 이 번호들이 당신과 동기화되는 이유</div>'+
-          reasons.map(function(r){return '<div class="lc-reason-item">'+r+'</div>';}).join('')+
+          '<div class="lc-reason-title">수리적 해석</div>'+
+          reasons.map(function(r){return '<div class="lc-reason-item">'+lottoEsc(r)+'</div>';}).join('')+
         '</div>'+
-        '<button id="lottoRedrawBtn" class="lotto-redraw-btn">🔄 다시 로또번호 뽑기 — 새로운 오행 에너지 공명</button>'+
+        '<div class="lc-ritual-cta">'+
+          '<span>더 좋은 번호가 아닌 더 깊은 리포트입니다</span>'+
+          '<strong>달빛 럭키 리추얼 리포트</strong>'+
+          '<p>번호별 상징 해석과 이번 주 금전 루틴을 확인해보세요.</p>'+
+          '<button type="button" class="lc-ritual-cta-btn" data-action="openLottoRitualReport" data-tile-lock-key="'+LOTTO_RITUAL_FEATURE_KEY+'" data-tile-lock-cost="50">'+
+            '<span class="tarot-tile__title">달빛 럭키 리추얼 리포트</span>'+
+            '<small>50코인으로 달빛 럭키 리추얼 열기</small>'+
+          '</button>'+
+          '<em>구매 즉시 열람되는 디지털 콘텐츠이며, 복권 결과를 예측하거나 보장하지 않습니다.</em>'+
+        '</div>'+
+        '<div id="lottoRitualReportArea" class="lc-ritual-report-area" hidden></div>'+
+        '<button id="lottoRedrawBtn" class="lotto-redraw-btn">다시 상징 번호 보기</button>'+
         '<div class="lotto-history-count" id="lottoHistCount"></div>'+
-        '<div class="lc-disclaimer">※ 본 번호는 명리학·수비학적 수리 에너지를 바탕으로 한 참고용입니다.<br>로또는 법적으로 확률에 의한 순수 게임임을 인지하세요. 🐷</div>'+
+        '<div class="lc-disclaimer">본 콘텐츠는 오락 및 자기성찰용 콘텐츠입니다. 생성된 번호는 통계적·과학적 당첨 예측값이 아닙니다.<br>복권은 정해둔 한도 안에서 소액으로 즐겨주세요. 과몰입이 걱정된다면 구매를 멈추고 도움을 요청하세요.</div>'+
       '</div>'+ // end lottoResultArea
     '</div>';
 
@@ -3249,7 +4873,7 @@ function renderLottoNumbers(natal, bazi){
   /* 히스토리 카운트 표시 */
   var histEl=document.getElementById('lottoHistCount');
   if(histEl && _lottoHistory.length>0){
-    histEl.innerHTML='<span>🎲 총 '+Math.floor(_lottoHistory.length/5)+'회 뽑기 완료 · '+_lottoHistory.length+'게임 생성 (모두 중복 없는 고유 번호)</span>';
+    histEl.innerHTML='<span>총 '+Math.floor(_lottoHistory.length/5)+'회 열람 · '+_lottoHistory.length+'게임 생성</span>';
   }
 
   // Animation Logic
@@ -3264,7 +4888,7 @@ function renderLottoNumbers(natal, bazi){
   
   function runDrawAnimation(){
     drawBtn.disabled = true;
-    drawBtn.innerHTML = '에너지 동기화 중... 🌀';
+    drawBtn.innerHTML = '수리 무드를 여는 중...';
     machine.classList.add('active');
     drawBallsBox.innerHTML = '';
     resultArea.classList.remove('show');

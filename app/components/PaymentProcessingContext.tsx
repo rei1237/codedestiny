@@ -93,8 +93,8 @@ function resolveProcessingCopy(message: string) {
 
   if (isUnlockFlow) {
     return {
-      title: "잠금 해제 중입니다...",
-      description: "우주 결제 게이트를 확인하고 해금 권한을 적용하고 있습니다. 잠시만 기다려 주세요.",
+      title: "이용 권한 확인 중입니다...",
+      description: "결제 게이트를 확인하고 이용 권한을 적용하고 있습니다. 잠시만 기다려 주세요.",
     };
   }
 

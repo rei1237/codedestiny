@@ -268,8 +268,96 @@
   function loadDiary() {
     try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch (e) { return {}; }
   }
+
+  function showDiaryToast(message) {
+    try {
+      var host = document.getElementById('luckSyncDiaryModal') || document.body;
+      if (!host) return;
+      var toast = document.getElementById('lsdDiaryToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'lsdDiaryToast';
+        toast.className = 'lsd-diary-toast';
+        toast.setAttribute('role', 'status');
+        toast.setAttribute('aria-live', 'polite');
+        host.appendChild(toast);
+      }
+      toast.textContent = message;
+      toast.classList.add('is-show');
+      clearTimeout(toast.__lsdTimer);
+      toast.__lsdTimer = setTimeout(function () {
+        toast.classList.remove('is-show');
+      }, 2400);
+    } catch (_) {}
+  }
+
+  function showDiaryConfirm(message, onConfirm) {
+    try {
+      var host = document.getElementById('luckSyncDiaryModal') || document.body;
+      if (!host) return;
+      var old = document.getElementById('lsdConfirmOverlay');
+      if (old && old.parentNode) old.parentNode.removeChild(old);
+      var overlay = document.createElement('div');
+      overlay.id = 'lsdConfirmOverlay';
+      overlay.className = 'lsd-confirm-overlay';
+      overlay.innerHTML = ''
+        + '<div class="lsd-confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="lsdConfirmTitle" aria-describedby="lsdConfirmDesc">'
+        + '<p id="lsdConfirmTitle" class="lsd-confirm-title">기록을 삭제할까요?</p>'
+        + '<p id="lsdConfirmDesc" class="lsd-confirm-copy">' + escHtml(message) + '</p>'
+        + '<div class="lsd-confirm-actions">'
+        + '<button type="button" class="lsd-confirm-cancel">취소</button>'
+        + '<button type="button" class="lsd-confirm-delete">삭제</button>'
+        + '</div></div>';
+      host.appendChild(overlay);
+      var close = function () {
+        if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      };
+      overlay.querySelector('.lsd-confirm-cancel').onclick = close;
+      overlay.querySelector('.lsd-confirm-delete').onclick = function () {
+        close();
+        if (typeof onConfirm === 'function') onConfirm();
+      };
+      overlay.addEventListener('click', function (ev) {
+        if (ev.target === overlay) close();
+      });
+    } catch (_) {}
+  }
+
+  function showDiaryPwaGuide() {
+    try {
+      var host = document.getElementById('luckSyncDiaryModal') || document.body;
+      if (!host) return;
+      var old = document.getElementById('lsdPwaGuideOverlay');
+      if (old && old.parentNode) old.parentNode.removeChild(old);
+      var overlay = document.createElement('div');
+      overlay.id = 'lsdPwaGuideOverlay';
+      overlay.className = 'lsd-confirm-overlay';
+      overlay.innerHTML = ''
+        + '<div class="lsd-confirm-card" role="dialog" aria-modal="true" aria-labelledby="lsdPwaGuideTitle" aria-describedby="lsdPwaGuideDesc">'
+        + '<p id="lsdPwaGuideTitle" class="lsd-confirm-title">홈 화면에 추가하기</p>'
+        + '<p id="lsdPwaGuideDesc" class="lsd-confirm-copy">' + escHtml(getLsdHomeGuideText()) + '<br><br>기록은 서버가 아닌 사용자님의 기기에만 저장됩니다.</p>'
+        + '<div class="lsd-confirm-actions"><button type="button" class="lsd-confirm-cancel">확인</button></div></div>';
+      host.appendChild(overlay);
+      var close = function () {
+        if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      };
+      overlay.querySelector('.lsd-confirm-cancel').onclick = close;
+      overlay.addEventListener('click', function (ev) {
+        if (ev.target === overlay) close();
+      });
+    } catch (_) {}
+  }
+
   function saveDiary(data) {
-    try { localStorage.setItem(LS_KEY, JSON.stringify(data)); } catch (e) {}
+    // 운기·기일 다이어리 기록은 서버 API로 전송하지 않고 사용자 기기 내부 localStorage에만 저장한다.
+    // 체크리스트, 감정 태그, 명상 로그, 회고 메모가 모두 같은 LS_KEY 아래에 묶여 보관된다.
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(data));
+      return true;
+    } catch (e) {
+      showDiaryToast('기기 저장소가 가득 차 기록을 저장하지 못했습니다.');
+      return false;
+    }
   }
   function getTodayKey() {
     var now = new Date();
@@ -313,6 +401,168 @@
     }
     ensureEntryShape(diary[key]);
     return diary[key];
+  }
+
+  function isLuckSyncDiaryUnlocked() {
+    var map = window.unlockedFeatureMap || window.__UNLOCKED_FEATURES__ || {};
+    var keys = [
+      'luckSyncDiaryEntryCard',
+      'openLuckSyncDiary',
+      'luckSyncDiary',
+      'sajuDiary',
+      'saju-diary',
+      'godlifeDiary',
+      'allPaidSaju'
+    ];
+    for (var i = 0; i < keys.length; i++) {
+      if (map && map[keys[i]]) return true;
+      try {
+        if (localStorage.getItem('unlocked_' + keys[i]) === '1') return true;
+      } catch (_) {}
+      try {
+        if (localStorage.getItem('cd_unlock_feature_' + keys[i]) === '1') return true;
+      } catch (_) {}
+    }
+    try {
+      for (var j = 0; j < localStorage.length; j++) {
+        var storageKey = localStorage.key(j) || '';
+        if (storageKey.indexOf('cd_tile_locks_v2') !== 0 && storageKey !== 'cd_tile_locks') continue;
+        var parsed = JSON.parse(localStorage.getItem(storageKey) || '{}');
+        for (var k = 0; k < keys.length; k++) {
+          if (parsed && parsed[keys[k]] === true) return true;
+        }
+      }
+    } catch (_) {
+      return false;
+    }
+    return false;
+  }
+
+  var _lsdPwaPrompt = null;
+  var _lsdPwaInstalled = false;
+
+  function isLsdStandaloneMode() {
+    try {
+      return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function getLsdPwaPrompt() {
+    // 다이어리 전용 prompt를 우선 사용하되, 기존 공통 PWA 스크립트가 보관한 prompt도 재사용한다.
+    return _lsdPwaPrompt || window._pwaPrompt || null;
+  }
+
+  function getLsdHomeGuideText() {
+    var ua = String(navigator.userAgent || '').toLowerCase();
+    var isIOS = /iphone|ipad|ipod/.test(ua);
+    var isSafari = /safari/.test(ua) && !/chrome|crios|android/.test(ua);
+    if (isIOS || isSafari) {
+      return '공유 버튼을 누른 뒤 홈 화면에 추가를 선택하면 개인 다이어리처럼 열 수 있습니다.';
+    }
+    return '브라우저 주소창 또는 메뉴의 앱 설치/홈 화면에 추가를 선택하면 바로가기처럼 사용할 수 있습니다.';
+  }
+
+  function updateDiaryPwaInstallUI() {
+    // 잠금 해제 여부, 설치 가능 이벤트, 이미 설치된 상태를 조합해 버튼과 안내 문구만 분기한다.
+    // 실제 접근 권한 판단은 기존 unlock 저장소를 읽기만 하며, 결제/권한 로직은 새로 만들지 않는다.
+    var card = document.getElementById('lsdPwaInstallCard');
+    if (!card) return;
+    var unlocked = isLuckSyncDiaryUnlocked();
+    var prompt = getLsdPwaPrompt();
+    var installed = _lsdPwaInstalled || isLsdStandaloneMode();
+    var actionWrap = document.getElementById('lsdPwaInstallActions');
+    var status = document.getElementById('lsdPwaInstallStatus');
+    var guide = document.getElementById('lsdPwaInstallGuide');
+    var installBtn = document.getElementById('lsdPwaInstallBtn');
+    var guideBtn = document.getElementById('lsdPwaGuideBtn');
+
+    card.classList.toggle('is-locked', !unlocked);
+    card.classList.toggle('is-installed', installed);
+    if (installBtn) installBtn.style.display = (unlocked && !installed && prompt) ? 'inline-flex' : 'none';
+    if (guideBtn) guideBtn.style.display = (unlocked && !installed && !prompt) ? 'inline-flex' : 'none';
+    if (actionWrap) actionWrap.style.display = unlocked ? 'flex' : 'none';
+
+    if (!unlocked) {
+      if (status) status.textContent = '잠금 해제 후 개인 다이어리처럼 사용할 수 있어요.';
+      if (guide) guide.textContent = '운기·기일 다이어리를 잠금 해제하면 이 기능을 내 기기에 따로 설치해, 개인 일기장처럼 사용할 수 있습니다.';
+      return;
+    }
+    if (installed) {
+      if (status) status.textContent = '이미 기기에 설치된 상태입니다.';
+      if (guide) guide.textContent = '기록은 서버가 아닌 사용자님의 기기에만 저장됩니다.';
+      return;
+    }
+    if (prompt) {
+      if (status) status.textContent = '설치 가능한 브라우저입니다.';
+      if (guide) guide.textContent = '운기·기일 다이어리를 잠금 해제하면 이 기능을 내 기기에 따로 설치해, 개인 일기장처럼 사용할 수 있습니다.';
+    } else {
+      if (status) status.textContent = '홈 화면에 추가 안내';
+      if (guide) guide.textContent = getLsdHomeGuideText();
+    }
+  }
+
+  function requestDiaryPwaInstall() {
+    // 설치 가능한 브라우저는 beforeinstallprompt를 실행하고, 지원하지 않는 환경은 홈 화면 추가 안내로 대체한다.
+    // 기록 저장 위치는 그대로 로컬 저장소이며, 설치 버튼은 라우팅이나 서버 저장 정책을 변경하지 않는다.
+    if (!isLuckSyncDiaryUnlocked()) {
+      showDiaryToast('잠금 해제 후 개인 다이어리처럼 사용할 수 있습니다.');
+      updateDiaryPwaInstallUI();
+      return;
+    }
+    if (_lsdPwaInstalled || isLsdStandaloneMode()) {
+      showDiaryToast('이미 기기에 설치되어 있습니다.');
+      updateDiaryPwaInstallUI();
+      return;
+    }
+    var prompt = getLsdPwaPrompt();
+    if (!prompt || typeof prompt.prompt !== 'function') {
+      showDiaryPwaGuide();
+      updateDiaryPwaInstallUI();
+      return;
+    }
+    _lsdPwaPrompt = null;
+    try {
+      if (window._pwaPrompt === prompt) window._pwaPrompt = null;
+    } catch (_) {}
+    try {
+      prompt.prompt();
+      Promise.resolve(prompt.userChoice).then(function (result) {
+        if (result && result.outcome === 'accepted') {
+          _lsdPwaInstalled = true;
+          showDiaryToast('기기에 다이어리 바로가기를 설치하는 중입니다.');
+        } else {
+          showDiaryToast('설치를 취소했습니다. 필요할 때 다시 시도할 수 있습니다.');
+        }
+        updateDiaryPwaInstallUI();
+      }, function () {
+        showDiaryPwaGuide();
+        updateDiaryPwaInstallUI();
+      });
+    } catch (_) {
+      showDiaryPwaGuide();
+      updateDiaryPwaInstallUI();
+    }
+  }
+
+  if (!window.__lsdPwaInstallBound) {
+    window.__lsdPwaInstallBound = true;
+    _lsdPwaInstalled = isLsdStandaloneMode();
+    window.addEventListener('beforeinstallprompt', function (ev) {
+      try {
+        // 브라우저 기본 설치 배너를 즉시 띄우지 않고, 잠금 해제 사용자 카드의 버튼에서 호출한다.
+        if (ev && ev.preventDefault) ev.preventDefault();
+        _lsdPwaPrompt = ev;
+        updateDiaryPwaInstallUI();
+      } catch (_) {}
+    });
+    window.addEventListener('appinstalled', function () {
+      _lsdPwaInstalled = true;
+      _lsdPwaPrompt = null;
+      updateDiaryPwaInstallUI();
+      showDiaryToast('기기에 다이어리 바로가기를 설치했습니다.');
+    });
   }
 
   function ensureMzStyles() {
@@ -380,17 +630,17 @@
       wrap.id = 'lsdMzVisualCard';
       wrap.className = 'lsd-mz-card lsd-theme-fx';
       wrap.innerHTML = ''
-        + '<p class="lsd-mz-title">🎨 MZ 다꾸 존</p>'
-        + '<p class="lsd-mz-sub">오행 컬러 테마 + 에너지 흐름 + 만세력 스티커로 오늘 페이지를 꾸며봐!</p>'
+        + '<p class="lsd-mz-title">오늘의 다이어리 꾸미기</p>'
+        + '<p class="lsd-mz-sub">오늘의 오행 흐름과 스티커를 조용히 엮어 나만의 사주 페이지로 정리합니다.</p>'
         + '<div class="lsd-graph-wrap" id="lsdEnergyFlowGraph"></div>'
-        + '<div style="margin-top:10px"><p class="lsd-mz-sub" style="margin-bottom:6px">✨ 만세력 커스텀 스티커</p><div id="lsdStickerTray"></div></div>'
+        + '<div style="margin-top:10px"><p class="lsd-mz-sub" style="margin-bottom:6px">오늘 운기 스티커</p><div id="lsdStickerTray"></div></div>'
         + '<div class="lsd-grid-2" style="margin-top:6px">'
         + '  <div class="lsd-mini-box" id="lsdGoldenTimeBox"></div>'
         + '  <div class="lsd-mini-box" id="lsdBoostMissionBox"></div>'
         + '</div>'
         + '<div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
-        + '  <button id="lsdShareCardBtn" type="button" class="lsd-share-btn">📸 오늘 운세 카드 저장</button>'
-        + '  <span style="font-size:.68rem;color:#6b7280">인스타 스토리(1080x1920) 규격</span>'
+        + '  <button id="lsdShareCardBtn" type="button" class="lsd-share-btn">오늘 운기 카드 저장</button>'
+        + '  <span style="font-size:.68rem;color:#6b7280">세로형 공유 카드 규격</span>'
         + '</div>'
         + '<div class="lsd-grid-2" style="margin-top:8px">'
         + '  <input id="lsdShareNick" type="text" placeholder="카드 닉네임 (선택)" style="border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.73rem">'
@@ -414,8 +664,8 @@
       c.id = 'lsdEmotionCard';
       c.className = 'lsd-mz-card';
       c.innerHTML = ''
-        + '<p class="lsd-mz-title">📝 감정 태그 & 운세 챌린지 배지</p>'
-        + '<p class="lsd-mz-sub">오늘 감정을 태그하면 십성별 감정 통계를 자동으로 집계해줘.</p>'
+        + '<p class="lsd-mz-title">기분 태그</p>'
+        + '<p class="lsd-mz-sub">하루의 감정 결을 남기면 저장된 기록에서 반복되는 운기 패턴을 볼 수 있습니다.</p>'
         + '<div id="lsdEmotionTags"></div>'
         + '<div class="lsd-mini-box" id="lsdEmotionStats" style="margin-top:8px"></div>'
         + '<div style="margin-top:8px" id="lsdBadgeShelf"></div>';
@@ -428,9 +678,9 @@
       n.id = 'lsdReviewCard';
       n.className = 'lsd-mz-card';
       n.innerHTML = ''
-        + '<p class="lsd-mz-title">🌙 Night Action Memo</p>'
-        + '<p class="lsd-mz-sub">야간 회고는 적중률 체크가 아니라, 오늘 실천한 개운 루틴을 기록하고 내일 운 설계를 만드는 공간으로 개편되었어요.</p>'
-        + '<div class="lsd-mini-box">체크리스트 완료율 + 실천 메모 + AI Luck Coach를 조합하면 운의 흐름을 능동적으로 설계할 수 있어요.</div>';
+        + '<p class="lsd-mz-title">오늘의 실천 회고</p>'
+        + '<p class="lsd-mz-sub">밤 회고는 오늘 해낸 루틴을 차분히 돌아보고 내일의 흐름을 준비하는 공간입니다.</p>'
+        + '<div class="lsd-mini-box">오운완 완료율과 회고 메모를 바탕으로 내일의 작은 설계를 정리합니다.</div>';
       night.appendChild(n);
     }
 
@@ -439,11 +689,11 @@
       h.id = 'lsdMemoCard';
       h.className = 'lsd-mz-card';
       h.innerHTML = ''
-        + '<p class="lsd-mz-title">🗂️ 사주 메모장 (Notion vibe)</p>'
-        + '<textarea id="lsdMemoInput" class="lsd-note-box" placeholder="오늘 중요한 사건 기록: 누굴 만났는지, 어떤 결정이 있었는지, 결과는 어땠는지"></textarea>'
+        + '<p class="lsd-mz-title">나만의 운기 메모</p>'
+        + '<textarea id="lsdMemoInput" class="lsd-note-box" placeholder="오늘 기억하고 싶은 흐름, 만남, 선택을 짧게 남겨보세요."></textarea>'
         + '<div style="margin-top:8px"><button id="lsdSaveMemoBtn" type="button" class="lsd-plain-btn">메모 저장</button></div>'
         + '<hr style="border:none;border-top:1px solid #eef2ff;margin:12px 0">'
-        + '<p class="lsd-mz-title" style="margin-top:0">🤝 궁합 다이어리 (Full Sync)</p>'
+        + '<p class="lsd-mz-title" style="margin-top:0">관계 흐름 메모</p>'
         + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
         + '  <input id="lsdPartnerName" type="text" placeholder="상대 이름" style="flex:1;min-width:120px;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.75rem">'
         + '  <input id="lsdPartnerBirthDate" type="date" style="width:150px;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.75rem">'
@@ -457,9 +707,9 @@
         + '    <option value="love">연애</option><option value="friend">친구</option><option value="business">비즈니스</option>'
         + '  </select>'
         + '  <input id="lsdPartnerYear" type="number" min="1900" max="2100" placeholder="연도(보조)" style="width:110px;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.75rem">'
-        + '  <button id="lsdCompatBtn" type="button" class="lsd-plain-btn">궁합 연동 보기</button>'
+        + '  <button id="lsdCompatBtn" type="button" class="lsd-plain-btn">관계 메모 정리</button>'
         + '</div>'
-        + '<div id="lsdCompatResult" class="lsd-mini-box" style="margin-top:8px">상대 정보를 입력하면 기존 궁합 엔진 + 다이어리 흐름을 함께 보여줄게.</div>';
+        + '<div id="lsdCompatResult" class="lsd-mini-box" style="margin-top:8px">상대 정보를 입력하면 관계 흐름을 조용히 메모로 정리합니다.</div>';
       historyPanel.appendChild(h);
     }
   }
@@ -470,7 +720,7 @@
     var e = ELEM[luckyEl] || ELEM.earth;
     var header = modal.querySelector('header');
     if (header) {
-      header.style.background = 'linear-gradient(135deg,' + e.color + ',#4f46e5 65%,#0ea5e9)';
+      header.style.background = 'linear-gradient(135deg,#eff6ff 0%,' + e.bg + ' 52%,#ffffff 100%)';
     }
     var themed = modal.querySelectorAll('.lsd-theme-fx');
     themed.forEach(function (el) {
@@ -490,24 +740,24 @@
       Number(scores && scores.love) || 50
     ];
     var avg = Math.round(values.reduce(function (a, b) { return a + b; }, 0) / values.length);
-    var phase = avg >= 68 ? '🚀 치고 나가기 모드' : (avg >= 52 ? '🌿 안정 성장 모드' : '🧘 존버/정비 모드');
-    var w = 260, h = 86;
-    var points = values.map(function (v, i) {
-      var x = Math.round((w - 12) * (i / (values.length - 1)) + 6);
-      var y = Math.round(h - (v / 100) * (h - 14) - 7);
-      return x + ',' + y;
-    }).join(' ');
+    var phase = avg >= 68 ? '상승 흐름' : (avg >= 52 ? '안정 흐름' : '정비 흐름');
+    var labels = ['회복', '집중', '재물', '성과', '관계'];
     var t = ELEM[todayEl] || ELEM.earth;
     box.innerHTML = ''
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
-      + '  <strong style="font-size:.73rem;color:#111827">📈 일운 에너지 그래프</strong>'
+      + '  <strong style="font-size:.73rem;color:#111827">일운 에너지 밸런스</strong>'
       + '  <span style="font-size:.68rem;font-weight:800;color:' + t.color + '">' + phase + '</span>'
       + '</div>'
-      + '<svg viewBox="0 0 ' + w + ' ' + h + '" width="100%" height="86" aria-label="일운 흐름 그래프">'
-      + '  <polyline fill="none" stroke="#cbd5e1" stroke-width="1" points="6,70 254,70"></polyline>'
-      + '  <polyline fill="none" stroke="' + t.color + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="' + points + '"></polyline>'
-      + '</svg>'
-      + '<p style="margin:4px 0 0;font-size:.67rem;color:#6b7280">아침 → 점심 → 오후 → 저녁 → 밤 흐름으로 읽어줘.</p>';
+      + '<div style="display:grid;gap:7px">'
+      + values.map(function (v, i) {
+        return '<div style="display:grid;grid-template-columns:42px 1fr 28px;gap:7px;align-items:center">'
+          + '<span style="font-size:.66rem;font-weight:800;color:#64748b">' + labels[i] + '</span>'
+          + '<span style="height:8px;border-radius:999px;background:#e2e8f0;overflow:hidden"><i style="display:block;width:' + _clamp(v, 0, 100) + '%;height:100%;border-radius:999px;background:' + t.color + '"></i></span>'
+          + '<b style="font-size:.66rem;color:#475569;text-align:right">' + v + '</b>'
+          + '</div>';
+      }).join('')
+      + '</div>'
+      + '<p style="margin:8px 0 0;font-size:.67rem;color:#6b7280">높은 축은 살리고 낮은 축은 루틴 하나로 보완합니다.</p>';
   }
 
   function _relScore(a, b) {
@@ -887,9 +1137,9 @@
 
     var stickerTray = document.getElementById('lsdStickerTray');
     if (stickerTray) {
-      var daySticker = (pillars && pillars.d && pillars.d.g) ? ('🧿 ' + (GAN_KO[pillars.d.g] || pillars.d.g) + ' 요정') : '🧿 일간 요정';
-      var tenSticker = mainTenStar ? ('⭐ ' + mainTenStar + ' 치즈냥') : '⭐ 십성 미정 고양이';
-      var stickerPool = [daySticker, tenSticker, '🌈 행운 하트', '🫧 오운완 반짝이', '🧋 오늘도 좋은 리듬'];
+      var daySticker = (pillars && pillars.d && pillars.d.g) ? ((GAN_KO[pillars.d.g] || pillars.d.g) + ' 일간') : '일간 기록';
+      var tenSticker = mainTenStar ? (mainTenStar + ' 흐름') : '십성 흐름';
+      var stickerPool = [daySticker, tenSticker, '행운 오행', '오운완 완료', '좋은 리듬'];
       stickerTray.innerHTML = stickerPool.map(function (name) {
         var on = (entry.stickers || []).indexOf(name) >= 0;
         return '<button type="button" class="lsd-chip' + (on ? ' is-on' : '') + '" data-sticker="' + escHtml(name) + '">' + escHtml(name) + '</button>';
@@ -926,7 +1176,7 @@
 
     var emotionTags = document.getElementById('lsdEmotionTags');
     if (emotionTags) {
-      var pool = ['기쁨', '설렘', '빡침', '우울', '차분', '불안', '몰입'];
+      var pool = ['기쁨', '설렘', '답답함', '우울', '차분', '불안', '몰입'];
       emotionTags.innerHTML = pool.map(function (name) {
         var on = (entry.emotionTags || []).indexOf(name) >= 0;
         return '<button type="button" class="lsd-chip' + (on ? ' is-on' : '') + '" data-emotion="' + name + '">#' + name + '</button>';
@@ -1051,7 +1301,7 @@
     ctx.font = '900 66px "Noto Sans KR", sans-serif';
     ctx.fillText('오늘의 사주 다이어리', 88, 180);
     ctx.font = '700 42px "Noto Sans KR", sans-serif';
-    ctx.fillText('Luck-Sync MZ Fortune Card', 88, 242);
+    ctx.fillText('Luck-Sync Diary Card', 88, 242);
 
     var iljin = _lsdCtx.todayGZ ? (_lsdCtx.todayGZ.g + _lsdCtx.todayGZ.j) : '—';
     ctx.font = '800 52px "Noto Sans KR", sans-serif';
@@ -1103,7 +1353,7 @@
     ctx.font = '900 48px "Noto Sans KR", sans-serif';
     ctx.fillText('code-destiny', 88, 1780);
     ctx.font = '600 28px "Noto Sans KR", sans-serif';
-    ctx.fillText((shareCaption || '#사주다이어리 #운기리딩 #행운아이템'), 88, 1830);
+    ctx.fillText((shareCaption || '#사주다이어리 #운기기록 #오늘의루틴'), 88, 1830);
 
     var a = document.createElement('a');
     a.href = c.toDataURL('image/png');
@@ -1124,7 +1374,7 @@
       by = Number(String(bdate).split('-')[0] || 0);
     }
     if (!name || !isFinite(by) || by < 1900 || by > 2100) {
-      box.innerHTML = '상대 이름 + 생년월일/시간을 넣어주면 기존 궁합 엔진과 연결해서 보여줄게.';
+      box.innerHTML = '상대 이름과 생년월일을 입력하면 관계 흐름을 메모로 정리합니다.';
       return;
     }
 
@@ -1144,14 +1394,14 @@
       if (typeof window.computeZiweiCompatLite === 'function' && meBirth) {
         var z = window.computeZiweiCompatLite(meBirth, partnerBirth);
         if (z && typeof z.score === 'number') {
-          nativeCompatLine += '기존 궁합엔진(자미두수 Lite): <b>' + Math.round(z.score) + '점</b><br>';
+          nativeCompatLine += '관계 흐름 참고(자미두수 Lite): <b>' + Math.round(z.score) + '점</b><br>';
           bridged = true;
         }
       }
       if (typeof window.computeAstroCompatLite === 'function' && meBirth) {
         var a = window.computeAstroCompatLite(meBirth, partnerBirth);
         if (a && typeof a.score === 'number') {
-          nativeCompatLine += '기존 궁합엔진(점성 Lite): <b>' + Math.round(a.score) + '점</b><br>';
+          nativeCompatLine += '관계 흐름 참고(점성 Lite): <b>' + Math.round(a.score) + '점</b><br>';
           bridged = true;
         }
       }
@@ -1169,7 +1419,7 @@
           if (compatBirthHour) compatBirthHour.value = ph;
           if (compatBirthMinute) compatBirthMinute.value = pmin;
           if (compatType) compatType.value = ctype;
-          nativeCompatLine += '기존 궁합 입력폼 연동 준비 완료 (상세 리포트는 메인 궁합 섹션에서 확인 가능)<br>';
+          nativeCompatLine += '상세 관계 리포트는 메인 궁합 섹션에서 이어서 확인할 수 있습니다.<br>';
           bridged = true;
         } catch (linkErr) {}
       }
@@ -1187,7 +1437,7 @@
       }
     }
     var dStr = best.date.getMonth() + 1 + '/' + best.date.getDate();
-    var vibe = best.score >= 3 ? '찰떡합' : (best.score >= 1 ? '무난합' : '조심합');
+    var vibe = best.score >= 3 ? '잘 맞는 흐름' : (best.score >= 1 ? '편안한 흐름' : '천천히 맞출 흐름');
     var relationScore = _relScore(_lsdCtx.dEl, partnerEl);
     var typeLabel = ctype === 'business' ? '비즈니스' : (ctype === 'friend' ? '친구' : '연애');
     var strengths = [];
@@ -1195,14 +1445,14 @@
     var boostTips = [];
 
     if (relationScore >= 1) {
-      strengths.push('기본 오행 궁합이 자연스럽게 맞물려 대화가 빠르게 통합니다.');
+      strengths.push('기본 오행 흐름이 자연스럽게 맞물려 대화가 부드럽게 이어질 수 있습니다.');
       strengths.push('의사결정 타이밍이 비슷해 함께 움직일 때 속도가 납니다.');
     } else if (relationScore === 0) {
       strengths.push('서로 역할이 달라 보완 시너지가 나기 좋은 조합입니다.');
       cautions.push('속도감 차이가 있을 수 있어 중요한 결정은 템포 합의가 필요합니다.');
     } else {
       strengths.push('관점이 달라 아이디어 폭이 넓어지는 조합입니다.');
-      cautions.push('감정 반응 포인트가 달라 오해가 누적되기 쉬우니 중간 확인이 중요합니다.');
+      cautions.push('느끼는 속도가 다를 수 있으니 중간에 의도를 한 번 확인해 보세요.');
     }
 
     if (best.score >= 3) {
@@ -1235,13 +1485,13 @@
       return items.slice(0, 3).map(function (txt) { return '• ' + escHtml(txt); }).join('<br>');
     }
 
-    box.innerHTML = (nativeCompatLine ? nativeCompatLine : '다이어리 Lite 궁합으로 계산 중<br>')
-      + (bridged ? '' : '엔진 연동 정보가 제한돼 Lite 결과를 우선 보여줘.<br>')
-      + '💞 <b>' + escHtml(name) + '</b> 님과의 추천일: <b>' + dStr + '</b> (' + (best.gz ? best.gz.g + best.gz.j : '—') + ')<br>'
-      + '[' + typeLabel + ' 궁합] 오늘부터 7일 중 <b>' + vibe + '</b> 흐름! 대화/데이트는 저녁 시간대가 좋아.<br>'
-      + '<div style="margin-top:6px"><b>✅ 좋은 점</b><br>' + toBullets(strengths) + '</div>'
-      + '<div style="margin-top:6px"><b>⚠️ 주의할 점</b><br>' + toBullets(cautions) + '</div>'
-      + '<div style="margin-top:6px"><b>🍀 운 상승 포인트</b><br>' + toBullets(boostTips) + '</div>'
+    box.innerHTML = (nativeCompatLine ? nativeCompatLine : '관계 메모를 정리하는 중<br>')
+      + (bridged ? '' : '상세 정보가 부족해 간단 메모로 정리합니다.<br>')
+      + '<b>' + escHtml(name) + '</b> 님과의 추천일: <b>' + dStr + '</b> (' + (best.gz ? best.gz.g + best.gz.j : '—') + ')<br>'
+      + '[' + typeLabel + ' 관계 흐름] 오늘부터 7일 중 <b>' + vibe + '</b>입니다. 대화는 저녁 시간대에 천천히 열어보세요.<br>'
+      + '<div style="margin-top:6px"><b>부드러운 흐름</b><br>' + toBullets(strengths) + '</div>'
+      + '<div style="margin-top:6px"><b>조율할 점</b><br>' + toBullets(cautions) + '</div>'
+      + '<div style="margin-top:6px"><b>작은 실천</b><br>' + toBullets(boostTips) + '</div>'
       + '<span style="font-size:.65rem;color:#64748b">입력 기준: ' + escHtml((bdate || (by + '-01-01')) + ' ' + btime + ' · ' + bcity + ' · ' + ctype) + '</span>';
   }
 
@@ -1411,14 +1661,6 @@
     { id: 'focus', label: '집중/성과 모드', icon: '🎯' }
   ];
 
-  var AI_COACH_ENGINE_PROMPT = [
-    'Role: AI Luck Coach based on Gaewoon principles.',
-    'Input: completed actions, pending actions, reflection memo, ten-star, lucky element, tomorrow theme.',
-    'Output: data-based luck design guide in Korean.',
-    'Style: Avoid generic praise. Use pattern "오늘 ~를 실천하셨으니, 내일은 ~한 기운이 들어올 때 ~ 행동으로 시너지를 키우세요."',
-    'Rule: Keep it practical and specific.'
-  ].join(' ');
-
   function calcNightEffort(entry) {
     var total = Number(entry && entry.challengeTotalToday) || ((entry && entry.challengeCatalog && entry.challengeCatalog.length) || 0);
     var done = (entry && entry.challenges && entry.challenges.length) ? entry.challenges.length : 0;
@@ -1550,10 +1792,58 @@
   var _lsdSatsPlaylistMeta = { lofi: null, theta: null };
   var _lsdSatsNowPlaying = { mode: '', videoId: '' };
   var _lsdSatsLoadPending = { lofi: null, theta: null };
+  var _lsdSatsPlayerApiPromise = null;
+  var _lsdSatsPlayer = null;
+  var _lsdSatsPlayerBoundVideo = '';
   var LSD_SATS_SOURCE_META = {
-    lofi: { label: 'LoFi 집중', query: 'creative commons lofi meditation instrumental no copyright -live -radio' },
-    theta: { label: 'Theta 안정', query: 'creative commons theta binaural beats meditation no copyright -live -radio' }
+    lofi: { label: 'LoFi 집중', query: 'creative commons lofi meditation instrumental free to use license -live -radio' },
+    theta: { label: 'Theta 안정', query: 'creative commons theta binaural beats meditation free to use license -live -radio' }
   };
+  var LSD_SATS_FAILED_KEY = 'cd.luckSyncDiary.failedSatsVideos';
+  var _lsdSatsFailedVideos = {};
+  var LSD_SATS_LICENSE_NOTICE = '음악은 YouTube에서 제공되는 공개 영상 중 Creative Commons 또는 무료 사용 가능 조건을 우선으로 추천합니다. 실제 사용 조건은 각 영상과 채널의 안내를 확인해 주세요.';
+
+  try {
+    var failedSeed = '[]';
+    try { failedSeed = localStorage.getItem(LSD_SATS_FAILED_KEY) || failedSeed; } catch (_) {}
+    try { failedSeed = failedSeed === '[]' ? (sessionStorage.getItem(LSD_SATS_FAILED_KEY) || failedSeed) : failedSeed; } catch (_) {}
+    JSON.parse(failedSeed).forEach(function (id) {
+      if (id) _lsdSatsFailedVideos[String(id)] = true;
+    });
+  } catch (_) {}
+
+  function rememberFailedSatsVideo(videoId) {
+    if (!videoId) return;
+    _lsdSatsFailedVideos[String(videoId)] = true;
+    try {
+      var failedPayload = JSON.stringify(Object.keys(_lsdSatsFailedVideos).slice(-80));
+      localStorage.setItem(LSD_SATS_FAILED_KEY, failedPayload);
+      sessionStorage.setItem(LSD_SATS_FAILED_KEY, failedPayload);
+    } catch (_) {}
+  }
+
+  function getFailedSatsVideoIds() {
+    return Object.keys(_lsdSatsFailedVideos).filter(function (id) { return !!id; }).slice(-80);
+  }
+
+  function isPlayableSatsCandidate(item) {
+    if (!item || !item.videoId || _lsdSatsFailedVideos[String(item.videoId)]) return false;
+    var text = String((item.title || '') + ' ' + (item.channel || '')).toLowerCase();
+    if (/(private video|deleted video|unavailable|removed|blocked|\bshorts\b|#shorts)/i.test(text)) return false;
+    if (item.sourceTier === 'backup') return true;
+    return !/(24\/7|24\/?7|live radio|livestream|\blive\b|\bradio\b|실시간|라이브|라디오)/i.test(text);
+  }
+
+  function filterPlayableSatsItems(items) {
+    var seen = {};
+    return (Array.isArray(items) ? items : []).filter(function (item) {
+      if (!isPlayableSatsCandidate(item)) return false;
+      var id = String(item.videoId);
+      if (seen[id]) return false;
+      seen[id] = true;
+      return true;
+    });
+  }
 
   function getTomorrowLuckKeyword(entry) {
     var byTheme = {
@@ -1721,8 +2011,76 @@
     }
   }
 
+  function handleSatsPlaybackFailure(mode, videoId) {
+    if (!videoId) return;
+    rememberFailedSatsVideo(videoId);
+    var frame = document.getElementById('lsdSatsYoutubeFrame');
+    var holder = document.getElementById('lsdSatsPlayerPlaceholder');
+    var nowTitle = document.getElementById('lsdSatsNowPlayingTitle');
+    if (frame) {
+      frame.removeAttribute('src');
+      frame.style.display = 'none';
+    }
+    if (holder) holder.style.display = 'flex';
+    if (nowTitle) nowTitle.textContent = '재생 실패 · 다른 음악을 추천했어요';
+    _lsdSatsNowPlaying.mode = '';
+    _lsdSatsNowPlaying.videoId = '';
+    _lsdSatsYouTubeCache[mode] = filterPlayableSatsItems(_lsdSatsYouTubeCache[mode] || []);
+    showDiaryToast('이 트랙은 재생할 수 없어 다른 음악을 추천했어요.');
+    renderSatsPlaylist(mode, _lsdSatsYouTubeCache[mode], '재생 실패로 제외됨 · 다른 음악을 추천했어요.', _lsdSatsPlaylistMeta[mode] || null);
+  }
+
+  function ensureSatsYoutubeIframeApi() {
+    if (window.YT && typeof window.YT.Player === 'function') return Promise.resolve(window.YT);
+    if (_lsdSatsPlayerApiPromise) return _lsdSatsPlayerApiPromise;
+    _lsdSatsPlayerApiPromise = new Promise(function (resolve) {
+      var prevReady = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = function () {
+        if (typeof prevReady === 'function') {
+          try { prevReady(); } catch (_) {}
+        }
+        resolve(window.YT || null);
+      };
+      if (!document.getElementById('lsd-youtube-iframe-api')) {
+        var s = document.createElement('script');
+        s.id = 'lsd-youtube-iframe-api';
+        s.src = 'https://www.youtube.com/iframe_api';
+        s.async = true;
+        s.onerror = function () { resolve(null); };
+        document.head.appendChild(s);
+      }
+      setTimeout(function () {
+        if (window.YT && typeof window.YT.Player === 'function') resolve(window.YT);
+      }, 2400);
+    });
+    return _lsdSatsPlayerApiPromise;
+  }
+
+  function attachSatsPlayerErrorHandler(mode, videoId) {
+    var frame = document.getElementById('lsdSatsYoutubeFrame');
+    if (!frame || !videoId) return;
+    _lsdSatsPlayerBoundVideo = videoId;
+    ensureSatsYoutubeIframeApi().then(function (yt) {
+      if (!yt || !yt.Player || _lsdSatsNowPlaying.videoId !== videoId) return;
+      if (_lsdSatsPlayer) return;
+      try {
+        _lsdSatsPlayer = new yt.Player('lsdSatsYoutubeFrame', {
+          events: {
+            onError: function () {
+              handleSatsPlaybackFailure(_lsdSatsNowPlaying.mode || mode, _lsdSatsNowPlaying.videoId || _lsdSatsPlayerBoundVideo);
+            }
+          }
+        });
+      } catch (_) {}
+    });
+  }
+
   function buildYouTubeProxyUrl(mode, force) {
-    return '/api/youtube/search?mode=' + encodeURIComponent(mode || 'lofi') + (force ? '&force=true' : '');
+    var failed = getFailedSatsVideoIds();
+    return '/api/youtube/search?mode=' + encodeURIComponent(mode || 'lofi')
+      + '&lang=en'
+      + (force ? '&force=true' : '')
+      + (failed.length ? '&exclude=' + encodeURIComponent(failed.join(',')) : '');
   }
 
   function buildSatsExternalSearchUrl(mode) {
@@ -1745,7 +2103,11 @@
         videoId: String(id),
         title: String(item.title || '제목 없음'),
         channel: String(item.channel || 'YouTube'),
-        thumb: String(item.thumb || '')
+        thumb: String(item.thumb || ''),
+        durationSeconds: Number(item.durationSeconds || 0),
+        verified: item.verified === true,
+        sourceTier: String(item.sourceTier || (item.verified ? 'cc' : 'backup')),
+        licenseLabel: String(item.licenseLabel || '')
       };
     }).filter(Boolean);
   }
@@ -1763,7 +2125,8 @@
             items: items,
             message: String(json.message || ''),
             source: String(json.source || 'youtube-api'),
-            licensePolicy: String(json.licensePolicy || 'creative-commons-priority')
+            licensePolicy: String(json.licensePolicy || 'creative-commons-priority'),
+            excludedFailedCount: Number(json.excludedFailedCount || 0)
           };
         });
       });
@@ -1778,14 +2141,16 @@
     }
     return fetchSatsPlaylistViaProxy(mode, force)
       .then(function (payload) {
-        _lsdSatsYouTubeCache[mode] = payload.items;
+        var playableItems = filterPlayableSatsItems(payload.items);
+        _lsdSatsYouTubeCache[mode] = playableItems;
         _lsdSatsPlaylistMeta[mode] = {
           message: payload.message || '',
           source: payload.source || 'youtube-api',
-          licensePolicy: payload.licensePolicy || 'creative-commons-priority'
+          licensePolicy: payload.licensePolicy || 'creative-commons-priority',
+          excludedFailedCount: Number(payload.excludedFailedCount || 0)
         };
         return {
-          items: payload.items,
+          items: playableItems,
           meta: _lsdSatsPlaylistMeta[mode]
         };
       });
@@ -1798,24 +2163,28 @@
     var openBtn = document.getElementById('lsdSatsOpenYoutube');
     var modeMeta = LSD_SATS_SOURCE_META[mode] || LSD_SATS_SOURCE_META.lofi;
     var source = String((meta && meta.source) || 'youtube-api');
-    var sourceLabel = /^youtube-api/.test(source) ? 'YouTube API' : '백업 소스';
+    var sourceLabel = source === 'youtube-api-verified' ? 'CC 우선 추천' : (/backup|fallback/.test(source) ? '백업 소스' : 'YouTube API');
     var license = String((meta && meta.licensePolicy) || 'creative-commons-priority');
     var statusText = message || '';
+    var failedCount = Number(meta && meta.excludedFailedCount) || getFailedSatsVideoIds().length;
 
     if (!statusText) {
       if (itemsLength > 0) {
-        statusText = modeMeta.label + ' 트랙 ' + itemsLength + '곡 준비 완료 · CC 필터 우선 결과입니다.';
+        statusText = modeMeta.label + ' 트랙 ' + itemsLength + '곡 준비 완료 · ' + LSD_SATS_LICENSE_NOTICE;
       } else {
         statusText = modeMeta.label + ' 트랙을 찾지 못했습니다. 새로고침하거나 YouTube에서 직접 확인해 주세요.';
       }
+    }
+    if (failedCount > 0) {
+      statusText += ' 재생 실패로 제외됨 ' + failedCount + '개.';
     }
 
     if (status) status.textContent = statusText;
     if (sourceBadge) sourceBadge.textContent = sourceLabel;
     if (licenseBadge) {
-      licenseBadge.textContent = (license === 'creative-commons-priority')
-        ? 'CC 우선 필터'
-        : '라이선스 확인 필요';
+      licenseBadge.textContent = (license === 'creative-commons-verified')
+        ? '재생 가능 확인됨'
+        : (sourceLabel === '백업 소스' ? '백업 소스' : '조건 확인 필요');
     }
     if (openBtn) {
       openBtn.setAttribute('data-sats-search-url', buildSatsExternalSearchUrl(mode));
@@ -1825,11 +2194,12 @@
   function renderSatsPlaylist(mode, items, message, meta) {
     var list = document.getElementById('lsdSatsPlaylist');
     if (!list) return;
-    var safeItems = Array.isArray(items) ? items : [];
+    var safeItems = filterPlayableSatsItems(items);
+    _lsdSatsYouTubeCache[mode] = safeItems;
     renderSatsPlaylistMeta(mode, meta || _lsdSatsPlaylistMeta[mode] || null, safeItems.length, message || '');
 
     if (!safeItems.length) {
-      list.innerHTML = '<div class="lsd-sats-empty">조건에 맞는 트랙이 없어 비어 있습니다. 모드를 바꾸거나 새로고침해 주세요.</div>';
+      list.innerHTML = '<div class="lsd-sats-empty">재생 가능한 트랙만 남기니 목록이 비었습니다. 모드를 바꾸거나 새로고침해 주세요.</div>';
       return;
     }
 
@@ -1844,10 +2214,10 @@
         + '<div class="lsd-sats-meta">'
         + '  <p class="lsd-sats-track-title">' + escHtml(String(idx + 1) + '. ' + item.title) + '</p>'
         + '  <p class="lsd-sats-track-channel">' + escHtml(item.channel) + '</p>'
+        + '  <p class="lsd-sats-track-license">' + escHtml(item.licenseLabel || (item.sourceTier === 'backup' ? '백업 소스 · 조건 확인 필요' : 'CC 우선 추천 · 재생 가능 확인됨')) + '</p>'
         + '</div>'
         + '<div class="lsd-sats-track-actions">'
         + '  <button type="button" class="lsd-sats-play-btn" data-sats-play="' + escHtml(item.videoId) + '">▶ 재생</button>'
-        + '  <button type="button" class="lsd-sats-link-btn" data-sats-open="' + escHtml(item.videoId) + '" aria-label="유튜브에서 열기">↗</button>'
         + '</div>'
         + '</div>';
     }).join('');
@@ -1874,14 +2244,20 @@
     }
     if (!frame || !picked) return;
     if (zone) zone.classList.add('is-dark');
+    frame.onerror = function () {
+      handleSatsPlaybackFailure(mode, videoId);
+    };
+    var origin = '';
+    try { origin = '&origin=' + encodeURIComponent(window.location.origin); } catch (_) {}
     frame.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(videoId)
-      + '?autoplay=1&rel=0&modestbranding=1&playsinline=1';
+      + '?autoplay=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1' + origin;
     frame.style.display = 'block';
     if (holder) holder.style.display = 'none';
     if (nowTitle) nowTitle.textContent = '재생 중 · ' + picked.title + ' · ' + picked.channel;
     _lsdSatsNowPlaying.mode = mode;
     _lsdSatsNowPlaying.videoId = videoId;
     markSatsPlaying(videoId);
+    attachSatsPlayerErrorHandler(mode, videoId);
 
     var d = loadDiary();
     var e = getTodayEntry(d);
@@ -1912,7 +2288,7 @@
     var list = document.getElementById('lsdSatsPlaylist');
     var modeMeta = LSD_SATS_SOURCE_META[mode] || LSD_SATS_SOURCE_META.lofi;
     renderSatsPlaylistMeta(mode, null, 0, 'YouTube API에서 ' + modeMeta.label + ' 트랙을 수집하고 있어요...');
-    if (list) list.innerHTML = '<div class="lsd-sats-empty">잠시만요, 저작권 필터를 통과한 트랙을 정리하고 있습니다...</div>';
+    if (list) list.innerHTML = '<div class="lsd-sats-empty">CC 우선 추천과 백업 소스를 나누어 재생 가능한 음악만 정리하고 있습니다...</div>';
     return fetchSatsPlaylist(mode, !!force)
       .then(function (payload) {
         var meta = payload && payload.meta ? payload.meta : null;
@@ -1992,11 +2368,27 @@
 
     container.innerHTML = allChallenges.map(function (c) {
       var checked = (entry.challenges || []).indexOf(c.id) >= 0;
-      return '<label class="lsd-challenge-item' + (checked ? ' is-done' : '') + '" data-challenge-id="' + c.id + '">' +
-        '<span class="lsd-check-box">' + (checked ? '✔' : '') + '</span>' +
-        '<span class="lsd-challenge-text">' + c.text + '</span>' +
+      return '<label class="lsd-challenge-item' + (checked ? ' is-done' : '') + '" data-challenge-id="' + c.id + '" role="checkbox" aria-checked="' + (checked ? 'true' : 'false') + '" tabindex="0">' +
+        '<span class="lsd-check-box">' + (checked ? '✓' : '') + '</span>' +
+        '<span class="lsd-challenge-text">' + escHtml(cleanDiaryToneText(c.text)) + '</span>' +
         '</label>';
     }).join('');
+
+    function updateRoutineProgress(entryData) {
+      var doneCount = 0;
+      var ids = (entryData && entryData.challenges) || [];
+      allChallenges.forEach(function (c) {
+        if (ids.indexOf(c.id) >= 0) doneCount++;
+      });
+      var total = allChallenges.length || 1;
+      var pct = Math.round((doneCount / total) * 100);
+      var scoreEl = document.getElementById('lsdRoutineScore');
+      var doneEl = document.getElementById('lsdRoutineDoneText');
+      var fillEl = document.getElementById('lsdRoutineProgressFill');
+      if (scoreEl) scoreEl.textContent = String(pct);
+      if (doneEl) doneEl.textContent = doneCount + '/' + allChallenges.length + ' 완료';
+      if (fillEl) fillEl.style.width = pct + '%';
+    }
 
     function refreshChallengeCongrats(entryData) {
       var congratsEl = document.getElementById('lsdChallengeCongrats');
@@ -2010,8 +2402,8 @@
       if (doneCount >= Math.max(5, Math.floor(allChallenges.length * 0.75)) && allChallenges.length > 0) {
         var luckyInfo = ELEM[luckyEl] || ELEM.earth;
         var ts = (mainTenStar && TENSTAR_GUIDE[mainTenStar]) ? TENSTAR_GUIDE[mainTenStar] : null;
-        congratsEl.innerHTML = '🎉 오운완 클리어! 오늘은 <b style="color:' + luckyInfo.neon + '">' + luckyInfo.cn + '</b> 기운이 활짝 열렸어요.'
-          + (ts ? ' <br>✨ ' + mainTenStar + ' 흐름에 맞춰 <b>' + ts.vibe + '</b>를 내일도 이어가면 운이 더 빨리 붙습니다.' : ' <br>✨ 지금 루틴을 1개만 더 이어가면 내일 운세 상승폭이 커져요.');
+        congratsEl.innerHTML = '운기 실천 기록이 충분히 쌓였습니다. 오늘은 <b style="color:' + luckyInfo.neon + '">' + luckyInfo.cn + '</b> 기운을 몸에 남긴 날이에요.'
+          + (ts ? ' <br>' + mainTenStar + ' 흐름에 맞춰 <b>' + ts.vibe + '</b>를 내일도 작은 행동으로 이어가 보세요.' : ' <br>지금의 루틴을 하나만 더 이어가면 내일의 시작이 한결 가벼워집니다.');
         congratsEl.style.display = 'block';
       } else {
         congratsEl.style.display = 'none';
@@ -2019,6 +2411,7 @@
     }
 
     refreshChallengeCongrats(entry);
+    updateRoutineProgress(entry);
 
     // 클릭 이벤트
     container.querySelectorAll('.lsd-challenge-item').forEach(function (item) {
@@ -2035,11 +2428,18 @@
         } else {
           if (e.challenges.indexOf(id) < 0) e.challenges.push(id);
           item.classList.add('is-done');
-          item.querySelector('.lsd-check-box').textContent = '✔';
+          item.querySelector('.lsd-check-box').textContent = '✓';
         }
+        item.setAttribute('aria-checked', item.classList.contains('is-done') ? 'true' : 'false');
         saveDiary(d);
+        updateRoutineProgress(e);
         refreshChallengeCongrats(e);
         renderNightPracticeBoard(e);
+      });
+      item.addEventListener('keydown', function (ev) {
+        if (ev.key !== 'Enter' && ev.key !== ' ') return;
+        ev.preventDefault();
+        item.click();
       });
     });
   }
@@ -2283,9 +2683,17 @@
     var keys = Object.keys(diary).sort().reverse();
     _ensureMonthCalendarState();
     var monthPrefix = _lsdMonthCalendarState.year + '-' + _pad2(_lsdMonthCalendarState.month + 1) + '-';
-    var monthKeys = keys.filter(function (k) { return k.indexOf(monthPrefix) === 0; });
+    var monthKeys = keys.filter(function (k) {
+      return k.indexOf(monthPrefix) === 0 && _hasDiaryRecord(diary[k]);
+    });
     if (monthKeys.length === 0) {
-      list.innerHTML = '<p class="lsd-empty">선택한 달에는 기록이 아직 없어요. 좋은 날/주의 날을 참고해 미리 기록해보세요.</p>';
+      list.innerHTML = ''
+        + '<div class="lsd-empty-state">'
+        + '<div class="lsd-empty-state-mark">✦</div>'
+        + '<p class="lsd-empty-state-title">아직 저장된 기록이 없습니다.</p>'
+        + '<p class="lsd-empty-state-copy">오늘의 운기를 지나치지 말고, 한 줄 회고로 첫 페이지를 열어보세요.</p>'
+        + '<button id="lsdHistoryTodayCta" type="button" class="lsd-empty-state-btn">오늘 첫 기록을 남겨보세요</button>'
+        + '</div>';
       return;
     }
     var blueprintMap = {
@@ -2306,11 +2714,11 @@
       return '<div class="lsd-history-item">' +
         '<div class="lsd-history-date">' + k + ' ' + mood + '</div>' +
         '<div class="lsd-history-meta">' +
-          (effort.total > 0 ? '<span class="lsd-history-tag">📈 실천 ' + effort.pct + '%</span>' : '') +
-          (medPts > 0 ? '<span class="lsd-history-tag">🧘 명상 ' + medPts + 'pt</span>' : '') +
-          (lotto ? '<span class="lsd-history-tag">🎱 ' + lotto + '</span>' : '') +
-          (bp ? '<span class="lsd-history-tag">🧭 ' + bp + '</span>' : '') +
-          (doneCount > 0 ? '<span class="lsd-history-tag">✅ 미션 ' + doneCount + '완</span>' : '') +
+          (effort.total > 0 ? '<span class="lsd-history-tag">실천 ' + effort.pct + '%</span>' : '') +
+          (medPts > 0 ? '<span class="lsd-history-tag">명상 ' + medPts + 'pt</span>' : '') +
+          (lotto ? '<span class="lsd-history-tag">' + lotto + '</span>' : '') +
+          (bp ? '<span class="lsd-history-tag">' + bp + '</span>' : '') +
+          (doneCount > 0 ? '<span class="lsd-history-tag">미션 ' + doneCount + '완</span>' : '') +
         '</div>' +
         (memo ? '<div class="lsd-history-log">"' + escHtml(memo) + '"</div>' : '') +
       '</div>';
@@ -2321,9 +2729,16 @@
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  function cleanDiaryToneText(text) {
+    return String(text || '')
+      .replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]\uFE0F?\s*/u, '')
+      .replace(/\s*\(타이머 ON\)/g, '')
+      .replace(/\bGO~?\b/g, '')
+      .trim();
+  }
+
   var LSD_PANEL_MAP = {
     dashboard: 'lsdPanelDashboard',
-    lotto: 'lsdPanelLotto',
     challenge: 'lsdPanelChallenge',
     night: 'lsdPanelNight',
     meditation: 'lsdPanelMeditation',
@@ -2394,12 +2809,12 @@
     var result  = document.getElementById('lsdLottoResult');
     var ticker  = document.getElementById('lsdLottoTicker');
     var btn     = document.getElementById('lsdLottoBtn');
-    var spinPool = ['🌱', '🔥', '🤎', '⚡', '💧', '🍀', '✨', '🎯', '🧿', '💎'];
+    var spinPool = ['木', '火', '土', '金', '水', '정리', '회고', '집중'];
     var spinFrames = 0;
     if (!globe || !btn || !machine) { _gachaRunning = false; return; }
 
     btn.disabled = true;
-    btn.textContent = '🎰 뽑는 중...';
+    btn.textContent = '고르는 중...';
     if (result) result.style.display = 'none';
     if (_lottoSpinTimer) {
       clearInterval(_lottoSpinTimer);
@@ -2424,7 +2839,7 @@
       machine.classList.remove('is-drawing');
       globe.classList.remove('is-spinning');
       btn.disabled = false;
-      btn.textContent = '🎱 오늘의 행운 아이템 뽑기';
+      btn.textContent = '오늘의 작은 행동 고르기';
       _gachaRunning = false;
 
       var pool = LUCKY_ITEMS[_luckyEl] || LUCKY_ITEMS.wood;
@@ -2467,21 +2882,24 @@
     var container = document.getElementById('lsdScoreBars');
     if (!container) return;
     var items = [
-      { key: 'wealth', label: '재물 💰', color: '#fbbf24' },
-      { key: 'love',   label: '애정 💕', color: '#f472b6' },
-      { key: 'fame',   label: '명예 👑', color: '#a78bfa' },
-      { key: 'health', label: '건강 💚', color: '#4ade80' },
-      { key: 'study',  label: '학습 📚', color: '#60a5fa' }
+      { key: 'wealth', label: '재물', color: '#f59e0b' },
+      { key: 'love',   label: '관계', color: '#ec4899' },
+      { key: 'fame',   label: '성과', color: '#8b5cf6' },
+      { key: 'health', label: '회복', color: '#10b981' },
+      { key: 'study',  label: '집중', color: '#3b82f6' }
     ];
-    container.innerHTML = items.map(function (item) {
+    var total = 0;
+    items.forEach(function (item) { total += Number(scores && scores[item.key]) || 0; });
+    var avg = Math.round(total / items.length);
+    container.innerHTML = '<div class="lsd-score-summary"><span>오늘 운기 점수</span><b>' + avg + '</b></div>' + items.map(function (item) {
       var val = scores[item.key] || 0;
-      return '<div>' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">' +
-          '<span style="font-size:.74rem;font-weight:700;color:#374151">' + item.label + '</span>' +
-          '<span style="font-size:.74rem;font-weight:900;color:' + item.color + '">' + val + '</span>' +
+      return '<div class="lsd-score-row">' +
+        '<div class="lsd-score-row-head">' +
+          '<span>' + item.label + '</span>' +
+          '<b style="color:' + item.color + '">' + val + '</b>' +
         '</div>' +
-        '<div style="height:8px;border-radius:999px;background:#f3f4f6;overflow:hidden">' +
-          '<div class="lsd-score-bar-fill" style="width:0%" data-target="' + val + '%"></div>' +
+        '<div class="lsd-score-track">' +
+          '<div class="lsd-score-bar-fill" style="width:0%;background:' + item.color + '" data-target="' + val + '%"></div>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -2538,11 +2956,11 @@
     }
 
     var yongLine = yons.length
-      ? '용신 포인트: <b>' + yons.join(', ') + '</b> 오행 활동(색상/장소/소품)을 1개라도 선택하세요.'
-      : '용신 정보가 없어도 오늘 행운 오행 활동 1개를 실행하면 운세 체감이 빨라집니다.';
+      ? '용신 포인트: <b>' + yons.join(', ') + '</b> 오행과 맞는 색상, 장소, 소품 중 하나를 가볍게 골라보세요.'
+      : '용신 정보가 없어도 오늘의 행운 오행과 맞는 작은 행동 하나면 충분합니다.';
     var kiLine = kis.length
-      ? '기신 주의: <b>' + kis.join(', ') + '</b> 관련 과소비/과로 패턴을 오늘만큼은 줄여보세요.'
-      : '기신 경고가 약한 날이니, 과감한 시도 1건을 넣기 좋은 타이밍입니다.';
+      ? '균형 메모: <b>' + kis.join(', ') + '</b> 흐름이 과해지지 않도록 과소비와 과로만 조금 낮춰보세요.'
+      : '오늘은 부담을 키우기보다 작은 시도 한 가지를 편하게 넣기 좋은 흐름입니다.';
 
     var todayTime = keyMap[bestKey].time || '오전';
     var todayElemTime = timeByElement[todayEl] || '13:00-17:00';
@@ -2615,8 +3033,8 @@
     };
 
     var cautionList = [];
-    if (kis.indexOf(todayEl) >= 0) cautionList.push('기신 오행이 강해 감정 반응이 커질 수 있어요. 답변은 10초 숨 고르고 보내세요.');
-    if (KE[todayEl] === dEl) cautionList.push('압박을 크게 느끼기 쉬운 날이라 멀티태스킹보다 단일 작업이 안전해요.');
+    if (kis.indexOf(todayEl) >= 0) cautionList.push('오늘은 감정 반응이 조금 빨라질 수 있으니, 중요한 답장은 10초만 쉬고 보내보세요.');
+    if (KE[todayEl] === dEl) cautionList.push('압박을 크게 느낄 수 있으니, 멀티태스킹보다 단일 작업으로 리듬을 지켜보세요.');
     if (KE[dEl] === todayEl) cautionList.push('의견을 밀어붙이기 쉬우니 제안형 문장("어떨까요?")으로 톤을 조절해보세요.');
     if (!cautionList.length) cautionList.push('큰 이슈는 오전 1회, 저녁 1회로 나눠 처리하면 피로 누적을 줄일 수 있어요.');
 
@@ -2633,7 +3051,7 @@
     var cautionTop = cautionList[0] || '속도보다 리듬을 지키는 운영이 더 유리해요.';
 
     box.innerHTML = ''
-      + '<p style="margin:0 0 8px;font-size:.78rem;font-weight:900;color:#111827">🔮 하루 균형 리딩</p>'
+      + '<p style="margin:0 0 8px;font-size:.78rem;font-weight:900;color:#111827">하루 균형 리딩</p>'
       + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:.72rem;line-height:1.5">'
       + '  <div style="border:1px solid #e2e8f0;border-radius:10px;padding:8px;background:#fff">'
       + '    <p style="margin:0 0 4px;font-weight:900;color:#0f172a">🧭 행동 가이드</p>'
@@ -2653,15 +3071,15 @@
       + '  </div>'
       + '</div>'
       + '<div style="margin-top:8px;border:1px solid #fde68a;background:#fffbeb;border-radius:10px;padding:9px 10px;font-size:.72rem;line-height:1.5;color:#92400e">'
-      + '  <p style="margin:0 0 4px;font-weight:900">⚠️ 주의할 흐름</p>'
+      + '  <p style="margin:0 0 4px;font-weight:900">오늘의 보완점</p>'
       + '  <p style="margin:0">' + cautionTop + '</p>'
       + '</div>'
       + '<div style="margin-top:8px;border:1px solid #dbeafe;background:#eff6ff;border-radius:10px;padding:9px 10px;font-size:.72rem;line-height:1.55;color:#1e3a8a">'
-      + '  <p style="margin:0 0 4px;font-weight:900">⏰ 운 상승 타이밍</p>'
+      + '  <p style="margin:0 0 4px;font-weight:900">운기 타이밍</p>'
       + '  <p style="margin:0">핵심 행동 시간: <b>' + todayTime + '</b> · 오행 부스팅: <b>' + todayElemTime + '</b><br>일진: <b style="color:' + todayInfo.neon + '">' + todayGZ.g + todayGZ.j + '</b> (' + todayInfo.cn + ')</p>'
       + '</div>'
       + '<div style="margin-top:10px;padding:10px 12px;border-radius:10px;background:#eef2ff;border:1px solid #c7d2fe;font-size:.73rem;color:#3730a3;line-height:1.55">'
-      + '<p style="margin:0 0 6px;font-weight:900">🌅 내일 아침 3줄 플랜 · ' + ((tomorrowGZ && tomorrowGZ.g) || '—') + ((tomorrowGZ && tomorrowGZ.j) || '') + ' (' + tomorrowInfo.cn + ')</p>'
+      + '<p style="margin:0 0 6px;font-weight:900">내일의 작은 설계 · ' + ((tomorrowGZ && tomorrowGZ.g) || '—') + ((tomorrowGZ && tomorrowGZ.j) || '') + ' (' + tomorrowInfo.cn + ')</p>'
       + '<p style="margin:0">1) ' + tomorrowTime + ' 전에 내일의 핵심 목표 1가지를 짧게 적어두기</p>'
       + '<p style="margin:0">2) ' + tomorrowFocus + '</p>'
       + '<p style="margin:0">3) ' + tomorrowCaution + '</p>'
@@ -2669,7 +3087,7 @@
       + '<div style="margin-top:8px;padding:9px 10px;border:1px dashed #cbd5e1;border-radius:10px;background:#f8fafc;font-size:.71rem;color:#475569;line-height:1.55">'
       + '<b>추가 리딩</b><br>' + tenstarLine + '<br>' + yongLine + '<br>' + kiLine
       + '</div>'
-      + '<div style="margin-top:8px;font-size:.71rem;color:#475569;line-height:1.55"><b>오늘 체크리스트</b><br>' + loveCheck + '<br>' + wealthCheck + '<br>' + healthCheck + '<br>' + workCheck + '</div>';
+      + '<div style="margin-top:8px;font-size:.71rem;color:#475569;line-height:1.55"><b>운기 실천 기록</b><br>' + loveCheck + '<br>' + wealthCheck + '<br>' + healthCheck + '<br>' + workCheck + '</div>';
   }
 
   /* ─── 모달 HTML 생성 ─────────────────────────────────────── */
@@ -2702,11 +3120,12 @@
         '.lsd-lotto-machine.is-drawing .lsd-spin-ring--outer{animation-duration:1.2s}',
         '.lsd-lotto-machine.is-drawing .lsd-spin-ring--inner{animation-duration:.9s}',
         '.lsd-lotto-ticker{display:inline-flex;align-items:center;justify-content:center;min-width:120px;padding:4px 12px;border-radius:999px;border:1px solid #ddd6fe;background:#f5f3ff;color:#6d28d9;font-size:.68rem;font-weight:800;letter-spacing:.05em;margin-bottom:10px}',
-        '.lsd-tab{background:transparent;color:#6b7280;border:1.5px solid transparent;transition:all .2s;white-space:nowrap;flex:none;min-height:42px;padding:9px 15px;border-radius:999px;font-size:.76rem;font-weight:800;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}',
+        '.lsd-tab{background:transparent;color:#6b7280;border:1.5px solid transparent;transition:all .2s;white-space:nowrap;flex:none;min-height:42px;min-width:max-content;padding:9px 15px;border-radius:999px;font-size:.76rem;font-weight:800;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}',
         '.lsd-tab:hover{background:rgba(124,58,237,.08);color:#7c3aed}',
         '.lsd-tab.is-active{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;box-shadow:0 4px 14px rgba(99,102,241,.35)}',
         '.lsd-tab:focus-visible{outline:2px solid #a78bfa;outline-offset:2px}',
         '.lsd-panel{padding:14px 14px 16px;animation:lsdSlideUp .24s ease}',
+        '.lsd-panel-intro{background:linear-gradient(135deg,#eef2ff,#ecfeff);border:1px solid #dbeafe;border-radius:14px;padding:10px 12px;margin-bottom:12px;color:#334155;font-size:.78rem;font-weight:800;line-height:1.45}',
         '.lsd-score-bar-fill{background:linear-gradient(90deg,#34d399,#60a5fa,#a78bfa);transition:width .8s ease;height:100%;border-radius:999px;box-shadow:0 0 8px rgba(96,165,250,.3)}',
         '.lsd-challenge-item{display:flex;align-items:center;gap:12px;padding:14px 0;cursor:pointer;border-bottom:1px solid #f3f4f6}',
         '.lsd-challenge-item:last-child{border-bottom:none}',
@@ -2825,6 +3244,36 @@
         '.lsd-sats-breath{font-size:.74rem;line-height:1.5;color:#0f172a;padding:8px 10px;border-radius:10px;background:rgba(224,242,254,.62);animation:lsdBreathText 7s ease-in-out infinite;opacity:.9;margin-bottom:8px}',
         '.lsd-sats-zone.is-dark .lsd-sats-breath{color:#e0e7ff;background:rgba(30,41,59,.4)}',
         '.lsd-iam-card{font-size:.78rem;line-height:1.5;color:#0f172a;background:linear-gradient(135deg,#ecfeff,#eef2ff);border:1px solid #bae6fd;border-radius:12px;padding:10px 11px;font-weight:800;margin-bottom:8px}',
+        '.lsd-shell{position:relative;width:100%;max-width:980px;background:linear-gradient(180deg,#f8fbff 0%,#f6f3ff 42%,#ffffff 100%);border-radius:26px;box-shadow:0 24px 60px rgba(15,23,42,.22),0 8px 24px rgba(79,70,229,.12);max-height:94vh;display:flex;flex-direction:column;overflow:hidden;margin:0 auto;color:#0f172a}',
+        '.lsd-drag-handle{display:flex;justify-content:center;padding:10px 0 4px;flex-shrink:0}.lsd-drag-handle span{width:36px;height:4px;border-radius:2px;background:rgba(15,23,42,.13)}',
+        '.lsd-close-btn{position:absolute;top:12px;right:14px;z-index:20;width:34px;height:34px;border-radius:999px;border:1px solid rgba(148,163,184,.28);background:rgba(255,255,255,.84);color:#64748b;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}',
+        '.lsd-close-btn:hover{background:#fff1f2;color:#e11d48;transform:rotate(90deg)}',
+        '.lsd-hero{padding:16px 18px 15px;background:linear-gradient(135deg,#eff6ff 0%,#f5f3ff 52%,#ffffff 100%);border-bottom:1px solid rgba(203,213,225,.62);position:relative;overflow:hidden;flex-shrink:0}',
+        '.lsd-hero:before{content:"";position:absolute;inset:auto -28px -36px auto;width:130px;height:130px;border-radius:999px;background:radial-gradient(circle,rgba(129,140,248,.22),transparent 68%);pointer-events:none}',
+        '.lsd-hero-grid{position:relative;display:grid;gap:12px}.lsd-hero-main{display:flex;align-items:flex-start;gap:13px;min-width:0}.lsd-hero-icon{width:52px;height:52px;border-radius:16px;overflow:hidden;flex:none;border:1px solid rgba(129,140,248,.24);box-shadow:0 8px 24px rgba(79,70,229,.12)}.lsd-hero-icon img{width:100%;height:100%;object-fit:cover}',
+        '.lsd-hero-kicker{font-size:.62rem;letter-spacing:.16em;color:#6366f1;margin:0 0 4px;font-weight:900;text-transform:uppercase}.lsd-hero-title{font-size:1.15rem;font-weight:950;color:#0f172a;margin:0;line-height:1.22}.lsd-hero-date{font-size:.75rem;color:#64748b;margin:4px 0 0;font-weight:700}',
+        '.lsd-hero-stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.lsd-hero-stat{border:1px solid rgba(203,213,225,.7);background:rgba(255,255,255,.78);border-radius:14px;padding:9px 10px;min-width:0}.lsd-hero-stat span{display:block;font-size:.63rem;font-weight:800;color:#64748b;margin-bottom:3px}.lsd-hero-stat b{display:block;font-size:.8rem;font-weight:950;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+        '.lsd-hero-line{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;border:1px solid rgba(191,219,254,.82);background:rgba(255,255,255,.74);border-radius:16px;padding:10px 11px;color:#1e293b;font-size:.78rem;line-height:1.48;font-weight:800}.lsd-device-badge{display:none;align-items:center;justify-content:center;white-space:nowrap;border:1px solid rgba(14,165,233,.28);background:#ecfeff;color:#0369a1;border-radius:999px;padding:6px 9px;font-size:.66rem;font-weight:900}',
+        '.lsd-tabs{display:flex;gap:7px;padding:10px 14px;overflow-x:auto;background:rgba(255,255,255,.92);border-bottom:1px solid #e2e8f0;flex-shrink:0;scrollbar-width:none;-ms-overflow-style:none}.lsd-tabs::-webkit-scrollbar{display:none}',
+        '.lsd-scroll-area{flex:1;overflow-y:auto;background:linear-gradient(180deg,#f8fafc,#f5f3ff 58%,#fff);scrollbar-width:thin}.lsd-panel{padding:14px;animation:lsdSlideUp .24s ease}.lsd-panel-intro{background:rgba(255,255,255,.74);border:1px solid #dbeafe;border-radius:16px;padding:11px 13px;margin-bottom:12px;color:#334155;font-size:.78rem;font-weight:800;line-height:1.45}',
+        '.lsd-card{background:rgba(255,255,255,.92);border:1px solid #e2e8f0;border-radius:18px;padding:14px 15px;margin-bottom:12px;box-shadow:0 10px 26px rgba(15,23,42,.06)}.lsd-card-title{font-size:.88rem;font-weight:950;color:#0f172a;margin:0 0 3px}.lsd-card-sub{font-size:.72rem;color:#64748b;margin:0 0 12px;line-height:1.45}.lsd-card-soft{background:linear-gradient(135deg,#ffffff,#f8fbff);border:1px solid #dbeafe;border-radius:18px;padding:14px 15px;margin-bottom:12px;box-shadow:0 10px 24px rgba(59,130,246,.07)}',
+        '.lsd-mini-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}.lsd-mini-card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:11px 12px;min-height:76px;box-shadow:0 6px 16px rgba(15,23,42,.04)}.lsd-mini-card span{display:block;font-size:.65rem;font-weight:900;color:#64748b;margin-bottom:6px}.lsd-mini-card b{display:block;font-size:.95rem;font-weight:950;color:#0f172a;line-height:1.22}.lsd-mini-card small{display:block;margin-top:4px;font-size:.68rem;color:#64748b;line-height:1.35}',
+        '.lsd-energy-card{background:linear-gradient(135deg,#eef2ff,#ecfeff);border:1px solid #c7d2fe;border-radius:20px;padding:15px 16px;margin-bottom:12px;color:#0f172a;position:relative;overflow:hidden;box-shadow:0 12px 30px rgba(79,70,229,.1)}.lsd-energy-kicker{font-size:.62rem;font-weight:900;letter-spacing:.15em;text-transform:uppercase;color:#6366f1;margin:0 0 8px}.lsd-energy-main{font-size:.96rem;font-weight:900;margin-bottom:5px;color:#111827}.lsd-energy-star{font-size:.78rem;font-weight:800;color:#475569;margin-bottom:9px}.lsd-energy-guide{font-size:.78rem;color:#334155;background:rgba(255,255,255,.72);border:1px solid rgba(191,219,254,.74);border-radius:13px;padding:9px 11px;line-height:1.5}',
+        '.lsd-score-summary{display:flex;align-items:center;justify-content:space-between;border:1px solid #dbeafe;background:linear-gradient(135deg,#eff6ff,#f5f3ff);border-radius:15px;padding:10px 12px;margin-bottom:11px}.lsd-score-summary span{font-size:.72rem;font-weight:900;color:#475569}.lsd-score-summary b{font-size:1.6rem;color:#4f46e5;line-height:1}.lsd-score-row{display:grid;gap:5px}.lsd-score-row-head{display:flex;justify-content:space-between;align-items:center}.lsd-score-row-head span,.lsd-score-row-head b{font-size:.73rem;font-weight:900}.lsd-score-track{height:9px;border-radius:999px;background:#eef2f7;overflow:hidden}.lsd-score-bar-fill{transition:width .8s ease;height:100%;border-radius:999px;box-shadow:none}',
+        '.lsd-routine-head{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid #dbeafe;background:linear-gradient(135deg,#f8fbff,#f5f3ff);border-radius:16px;padding:11px 12px;margin-bottom:10px}.lsd-routine-score-label{font-size:.68rem;font-weight:900;color:#64748b}.lsd-routine-score{font-size:1.55rem;font-weight:950;color:#4f46e5;line-height:1}.lsd-routine-score small{font-size:.8rem}.lsd-routine-done{font-size:.7rem;font-weight:900;color:#64748b}.lsd-routine-progress{height:10px;border-radius:999px;background:#e2e8f0;overflow:hidden;min-width:120px;flex:1}.lsd-routine-progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,#38bdf8,#6366f1,#a78bfa);border-radius:999px;transition:width .45s ease}',
+        '.lsd-challenge-item{display:flex;align-items:center;gap:12px;padding:12px 11px;cursor:pointer;border:1px solid #e2e8f0;border-radius:15px;background:#fff;margin-bottom:8px;min-height:56px;box-sizing:border-box;transition:transform .18s ease,border-color .2s ease,background .2s ease}.lsd-challenge-item:hover{border-color:#bfdbfe;background:#f8fbff}.lsd-challenge-item.is-done{background:linear-gradient(135deg,#ecfeff,#f5f3ff);border-color:#a5b4fc}.lsd-challenge-item.is-done .lsd-check-box{background:#6366f1;border-color:#6366f1;color:#fff;animation:lsdSoftCheck .32s ease}.lsd-challenge-item.is-done .lsd-challenge-text{text-decoration:none;color:#475569}.lsd-check-box{width:34px;height:34px;border-radius:12px;border:2px solid #c4b5fd;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:950;color:#6366f1;flex-shrink:0;transition:all .2s}.lsd-challenge-text{font-size:.84rem;color:#334155;flex:1;line-height:1.45;font-weight:800}',
+        '.lsd-mood-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.lsd-mood-btn{font-size:1.32rem;min-height:54px;border-radius:15px;border:1px solid #e2e8f0;background:#fff;cursor:pointer;transition:all .2s;box-shadow:0 5px 14px rgba(15,23,42,.04)}.lsd-mood-btn:hover{transform:translateY(-1px);border-color:#c4b5fd}.lsd-mood-btn.is-active{transform:none;background:linear-gradient(135deg,#eef2ff,#ecfeff);border-color:#818cf8;box-shadow:0 8px 20px rgba(99,102,241,.16)}',
+        '.lsd-diary-lines{background:#fff;line-height:1.7;padding:11px 12px;box-shadow:inset 0 0 0 1px rgba(226,232,240,.6)}.lsd-save-row{padding-top:4px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.lsd-save-night-btn{padding:10px 18px;border:none;border-radius:999px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;font-size:.76rem;font-weight:900;cursor:pointer;box-shadow:0 8px 18px rgba(14,165,233,.24);transition:all .2s}.lsd-save-night-btn:hover{transform:translateY(-1px)}',
+        '.lsd-sats-playlist{display:grid;gap:8px;max-height:248px;overflow:auto;padding-right:2px;scrollbar-width:thin}.lsd-sats-track{display:grid;grid-template-columns:56px minmax(0,1fr) auto;align-items:center;gap:10px;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:8px;transition:all .2s}.lsd-sats-thumb{width:56px;height:42px;flex-shrink:0;border-radius:10px;object-fit:cover;background:#0f172a}.lsd-sats-track-title{font-size:.72rem;font-weight:900;color:#0f172a;margin:0;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.lsd-sats-track-channel{font-size:.64rem;color:#64748b;margin:3px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lsd-sats-track-license{font-size:.6rem;color:#4f46e5;margin:3px 0 0;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lsd-sats-play-btn{border:1px solid #cbd5e1;background:#fff;border-radius:999px;padding:7px 10px;font-size:.66rem;font-weight:900;color:#0f172a;cursor:pointer;flex-shrink:0}',
+        '.lsd-month-card{background:#fff;border-radius:18px;padding:14px 14px 12px;box-shadow:0 10px 24px rgba(15,23,42,.05);border:1px solid #e2e8f0;margin-bottom:12px}.lsd-month-guide{margin:10px 0 10px;font-size:.78rem;color:#475569;line-height:1.5}.lsd-month-legend{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.lsd-month-pill{border-radius:999px;padding:6px 10px;font-size:.66rem;font-weight:900;line-height:1}.lsd-month-pill.vg,.lsd-month-pill.g,.lsd-month-pill.n,.lsd-month-pill.b,.lsd-month-pill.vb{background:#f1f5f9;color:#475569}.lsd-month-pill.record{background:#eef2ff;color:#4f46e5}.lsd-month-cell{height:40px;border-radius:12px;border:1px solid #e2e8f0;background:#fff;color:#0f172a}.lsd-month-cell.is-very-good{background:#ecfdf5;color:#047857}.lsd-month-cell.is-good{background:#eff6ff;color:#1d4ed8}.lsd-month-cell.is-normal{background:#f8fafc;color:#475569}.lsd-month-cell.is-bad{background:#fff7ed;color:#c2410c}.lsd-month-cell.is-very-bad{background:#fff1f2;color:#be123c}.lsd-month-cell.is-selected{box-shadow:0 0 0 2px #93c5fd}.lsd-month-cell.is-recorded .lsd-month-record-dot{opacity:1}.lsd-month-record-dot{background:#6366f1}',
+        '.lsd-empty-state{text-align:center;border:1px dashed #cbd5e1;background:linear-gradient(135deg,#ffffff,#f8fbff);border-radius:18px;padding:28px 18px;color:#475569}.lsd-empty-state-mark{width:44px;height:44px;border-radius:999px;background:#eef2ff;color:#4f46e5;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-weight:950}.lsd-empty-state-title{margin:0 0 5px;font-size:.9rem;font-weight:950;color:#0f172a}.lsd-empty-state-copy{margin:0 auto 14px;max-width:300px;font-size:.76rem;line-height:1.5}.lsd-empty-state-btn{border:none;border-radius:999px;padding:10px 15px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;font-size:.76rem;font-weight:900;cursor:pointer;box-shadow:0 9px 20px rgba(14,165,233,.23)}',
+        '.lsd-local-policy{margin:14px 14px 0;border:1px solid #bfdbfe;background:linear-gradient(135deg,#ffffff,#eff6ff 60%,#f5f3ff);border-radius:18px;padding:12px 13px;box-shadow:0 8px 22px rgba(59,130,246,.07);color:#334155}.lsd-local-policy-title{margin:0 0 5px;font-size:.76rem;font-weight:950;color:#1d4ed8}.lsd-local-policy-copy{margin:0;font-size:.72rem;line-height:1.55;font-weight:750}.lsd-local-policy-note{display:block;margin-top:5px;color:#64748b;font-weight:800}',
+        '.lsd-pwa-card{margin:10px 14px 0;border:1px solid #c7d2fe;background:linear-gradient(135deg,#ffffff,#f5f3ff 62%,#ecfeff);border-radius:18px;padding:13px;box-shadow:0 10px 24px rgba(99,102,241,.08);color:#1e293b}.lsd-pwa-card.is-locked{background:#fff;border-style:dashed;color:#64748b}.lsd-pwa-card.is-installed{border-color:#99f6e4;background:linear-gradient(135deg,#f0fdfa,#ffffff)}.lsd-pwa-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.lsd-pwa-title{margin:0;font-size:.78rem;font-weight:950;color:#312e81}.lsd-pwa-status{display:inline-flex;align-items:center;border-radius:999px;background:#eef2ff;color:#4338ca;padding:5px 9px;font-size:.64rem;font-weight:950;white-space:nowrap}.lsd-pwa-card.is-locked .lsd-pwa-title{color:#64748b}.lsd-pwa-card.is-locked .lsd-pwa-status{background:#f1f5f9;color:#64748b}.lsd-pwa-copy{margin:7px 0 0;font-size:.73rem;line-height:1.55;font-weight:800;color:#334155}.lsd-pwa-note{margin:5px 0 0;font-size:.7rem;line-height:1.45;color:#64748b;font-weight:800}.lsd-pwa-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.lsd-pwa-install-btn,.lsd-pwa-guide-btn{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:9px 13px;font-size:.72rem;font-weight:950;cursor:pointer}.lsd-pwa-install-btn{border:none;background:linear-gradient(135deg,#4f46e5,#0ea5e9);color:#fff;box-shadow:0 9px 18px rgba(79,70,229,.22)}.lsd-pwa-guide-btn{border:1px solid #bfdbfe;background:#fff;color:#1d4ed8}',
+        '.lsd-diary-toast{position:absolute;left:50%;bottom:68px;z-index:35;max-width:min(320px,calc(100% - 32px));transform:translate(-50%,12px);opacity:0;pointer-events:none;border:1px solid rgba(99,102,241,.22);background:rgba(15,23,42,.92);color:#f8fafc;border-radius:999px;padding:10px 14px;font-size:.74rem;font-weight:900;line-height:1.35;box-shadow:0 16px 32px rgba(15,23,42,.22);transition:opacity .2s ease,transform .2s ease}.lsd-diary-toast.is-show{opacity:1;transform:translate(-50%,0)}',
+        '.lsd-confirm-overlay{position:absolute;inset:0;z-index:34;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.42);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}.lsd-confirm-card{width:min(340px,100%);border-radius:20px;border:1px solid #e2e8f0;background:#fff;padding:18px;box-shadow:0 24px 56px rgba(15,23,42,.28)}.lsd-confirm-title{margin:0 0 6px;font-size:.95rem;font-weight:950;color:#0f172a}.lsd-confirm-copy{margin:0;font-size:.78rem;line-height:1.55;color:#475569;font-weight:750}.lsd-confirm-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}.lsd-confirm-cancel,.lsd-confirm-delete{border-radius:999px;padding:9px 14px;font-size:.74rem;font-weight:900;cursor:pointer}.lsd-confirm-cancel{border:1px solid #cbd5e1;background:#fff;color:#475569}.lsd-confirm-delete{border:1px solid #fecaca;background:#fff1f2;color:#e11d48}',
+        '@keyframes lsdSoftCheck{0%{transform:scale(.78)}70%{transform:scale(1.12)}100%{transform:scale(1)}}',
+        '@media (min-width:760px){.lsd-hero-grid{grid-template-columns:minmax(0,1.05fr) minmax(280px,.95fr);align-items:start}.lsd-panel{padding:16px 18px 18px}.lsd-mini-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.lsd-hero-title{font-size:1.28rem}.lsd-mood-grid{grid-template-columns:repeat(6,minmax(0,1fr))}.lsd-sats-player{height:230px}}',
+        '@media (max-width:420px){.lsd-hero-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.lsd-hero-line{display:block}.lsd-device-badge{margin-top:8px;width:max-content;max-width:100%}.lsd-routine-head{display:grid}.lsd-mini-grid{grid-template-columns:1fr 1fr}.lsd-sats-track{grid-template-columns:52px minmax(0,1fr);align-items:start}.lsd-sats-track-actions{grid-column:2}.lsd-sats-play-btn{width:100%}}',
         '.lsd-confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:1000001}',
         '.lsd-confetti-bit{position:absolute;top:42vh;width:8px;height:14px;border-radius:2px;opacity:.9;animation:lsdConfettiDrop .95s ease-out forwards}',
         '@keyframes lsdConfettiDrop{0%{transform:translate3d(0,0,0) rotate(0deg);opacity:1}100%{transform:translate3d(calc((var(--x,0) - 30) * 1px),220px,0) rotate(420deg);opacity:0}}',
@@ -2842,130 +3291,165 @@
     modal.style.cssText = 'display:none;position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:10px;box-sizing:border-box;overflow-y:auto';
 
     modal.innerHTML = [
-      '<div style="position:relative;width:100%;max-width:920px;background:#fff;border-radius:24px;box-shadow:0 24px 60px rgba(0,0,0,.2),0 8px 24px rgba(124,58,237,.1);max-height:94vh;display:flex;flex-direction:column;overflow:hidden;margin:0 auto">',
-      '<div style="display:flex;justify-content:center;padding:10px 0 4px;flex-shrink:0"><div style="width:36px;height:4px;border-radius:2px;background:rgba(0,0,0,.1)"></div></div>',
-      '<button style="position:absolute;top:12px;right:14px;z-index:20;width:32px;height:32px;border-radius:50%;border:none;background:rgba(0,0,0,.06);color:#6b7280;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s" onmouseover="this.style.background=\'rgba(239,68,68,.15)\';this.style.color=\'#ef4444\';this.style.transform=\'rotate(90deg)\'" onmouseout="this.style.background=\'rgba(0,0,0,.06)\';this.style.color=\'#6b7280\';this.style.transform=\'rotate(0deg)\'" data-action="closeLuckSyncDiary" aria-label="닫기">✕</button>',
-      '<header style="padding:12px 20px 14px;background:linear-gradient(135deg,#7c3aed 0%,#6d28d9 45%,#4f46e5 100%);position:relative;overflow:hidden;flex-shrink:0">',
-      '<div style="position:absolute;top:-30px;right:-20px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.07)"></div>',
-      '<div style="position:absolute;bottom:-40px;left:35%;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,.05)"></div>',
-      '<div style="display:flex;align-items:center;gap:14px;position:relative">',
-      '<div style="width:52px;height:52px;border-radius:14px;overflow:hidden;flex-shrink:0;border:2px solid rgba(255,255,255,.35);box-shadow:0 4px 16px rgba(0,0,0,.25)"><img src="/fuctionassets/godlife.webp" alt="" style="width:100%;height:100%;object-fit:cover" width="52" height="52" loading="lazy" decoding="async"></div>',
-      '<div style="flex:1;min-width:0"><p style="font-size:.58rem;letter-spacing:.2em;color:rgba(255,255,255,.65);margin:0 0 2px;font-weight:700;text-transform:uppercase">❆ Luck-Sync Diary ❆</p><h2 style="font-size:1.08rem;font-weight:900;color:#fff;margin:0 0 2px;line-height:1.2">운기·기일 다이어리</h2><p style="font-size:.75rem;color:rgba(255,255,255,.8);margin:0" id="lsdTodayDate"></p></div>',
+      '<div class="lsd-shell">',
+      '<div class="lsd-drag-handle"><span></span></div>',
+      '<button class="lsd-close-btn" data-action="closeLuckSyncDiary" aria-label="닫기">✕</button>',
+      '<header class="lsd-hero">',
+      '<div class="lsd-hero-grid">',
+      '<div class="lsd-hero-main">',
+      '<div class="lsd-hero-icon"><img src="/fuctionassets/godlife.webp" alt="" width="52" height="52" loading="lazy" decoding="async"></div>',
+      '<div style="flex:1;min-width:0"><p class="lsd-hero-kicker">Luck-Sync Diary</p><h2 class="lsd-hero-title">운기·기일 다이어리</h2><p class="lsd-hero-date" id="lsdTodayDate"></p></div>',
+      '</div>',
+      '<div class="lsd-hero-side">',
+      '<div class="lsd-hero-stat-grid">',
+      '<div class="lsd-hero-stat"><span>현재 날짜</span><b id="lsdHeaderDate">—</b></div>',
+      '<div class="lsd-hero-stat"><span>오늘 일진</span><b id="lsdHeaderIljin">—</b></div>',
+      '<div class="lsd-hero-stat"><span>핵심 오행</span><b id="lsdHeaderElement">—</b></div>',
+      '</div>',
+      '<div class="lsd-hero-line" style="margin-top:8px"><span id="lsdHeaderOneLine">오늘의 운기 문장을 준비하고 있습니다.</span><span id="lsdDeviceBadge" class="lsd-device-badge">내 기기에 저장되는 개인 다이어리</span></div>',
+      '</div>',
       '</div></header>',
-      '<nav style="display:flex;gap:6px;padding:10px 14px;overflow-x:auto;background:#fff;border-bottom:1px solid #f3f4f6;flex-shrink:0;scrollbar-width:none;-ms-overflow-style:none" role="tablist" aria-label="운기 다이어리 탭">',
-      '<button type="button" class="lsd-tab is-active" role="tab" id="lsdTabDashboard" data-tab="dashboard" aria-selected="true" aria-controls="lsdPanelDashboard" tabindex="0">📊 오늘 리딩</button>',
-      '<button type="button" class="lsd-tab" role="tab" id="lsdTabLotto" data-tab="lotto" aria-selected="false" aria-controls="lsdPanelLotto" tabindex="-1">🎰 럭키 뽑기</button>',
-      '<button type="button" class="lsd-tab" role="tab" id="lsdTabChallenge" data-tab="challenge" aria-selected="false" aria-controls="lsdPanelChallenge" tabindex="-1">✅ 오운완</button>',
-      '<button type="button" class="lsd-tab" role="tab" id="lsdTabNight" data-tab="night" aria-selected="false" aria-controls="lsdPanelNight" tabindex="-1">🌙 밤 리플렉션</button>',
-      '<button type="button" class="lsd-tab" role="tab" id="lsdTabMeditation" data-tab="meditation" aria-selected="false" aria-controls="lsdPanelMeditation" tabindex="-1">🧘 명상 루틴</button>',
-      '<button type="button" class="lsd-tab" role="tab" id="lsdTabHistory" data-tab="history" aria-selected="false" aria-controls="lsdPanelHistory" tabindex="-1">📅 기록</button>',
+      '<nav class="lsd-tabs" role="tablist" aria-label="운기 다이어리 탭">',
+      '<button type="button" class="lsd-tab is-active" role="tab" id="lsdTabDashboard" data-tab="dashboard" aria-selected="true" aria-controls="lsdPanelDashboard" tabindex="0">☀ 오늘 운기</button>',
+      '<button type="button" class="lsd-tab" role="tab" id="lsdTabChallenge" data-tab="challenge" aria-selected="false" aria-controls="lsdPanelChallenge" tabindex="-1">✓ 운기 루틴</button>',
+      '<button type="button" class="lsd-tab" role="tab" id="lsdTabNight" data-tab="night" aria-selected="false" aria-controls="lsdPanelNight" tabindex="-1">◐ 밤 회고</button>',
+      '<button type="button" class="lsd-tab" role="tab" id="lsdTabMeditation" data-tab="meditation" aria-selected="false" aria-controls="lsdPanelMeditation" tabindex="-1">♪ 명상 사운드</button>',
+      '<button type="button" class="lsd-tab" role="tab" id="lsdTabHistory" data-tab="history" aria-selected="false" aria-controls="lsdPanelHistory" tabindex="-1">□ 기록장</button>',
       '</nav>',
-      '<div style="flex:1;overflow-y:auto;background:#f9fafb;scrollbar-width:thin">',
+      '<div class="lsd-scroll-area">',
+      '<div class="lsd-local-policy">',
+      '<p class="lsd-local-policy-title">로컬 저장 안내</p>',
+      '<p class="lsd-local-policy-copy">이 다이어리의 기록은 서버에 저장되지 않고, 사용자님의 기기 안에만 보관됩니다. 민감한 감정 기록도 외부로 전송되지 않으니 안심하고 사용하셔도 됩니다.<span class="lsd-local-policy-note">기기를 바꾸거나 브라우저 데이터를 삭제하면 기록이 사라질 수 있습니다.</span></p>',
+      '</div>',
+      '<div id="lsdPwaInstallCard" class="lsd-pwa-card is-locked">',
+      '<div class="lsd-pwa-head"><p class="lsd-pwa-title">개인 다이어리처럼 설치하기</p><span id="lsdPwaInstallStatus" class="lsd-pwa-status">잠금 해제 후 사용</span></div>',
+      '<p id="lsdPwaInstallGuide" class="lsd-pwa-copy">운기·기일 다이어리를 잠금 해제하면 이 기능을 내 기기에 따로 설치해, 개인 일기장처럼 사용할 수 있습니다.</p>',
+      '<p class="lsd-pwa-note">기록은 서버가 아닌 사용자님의 기기에만 저장됩니다.</p>',
+      '<div id="lsdPwaInstallActions" class="lsd-pwa-actions" style="display:none">',
+      '<button id="lsdPwaInstallBtn" type="button" class="lsd-pwa-install-btn" style="display:none">내 기기에 설치하기</button>',
+      '<button id="lsdPwaGuideBtn" type="button" class="lsd-pwa-guide-btn" style="display:none">홈 화면 추가 방법 보기</button>',
+      '</div>',
+      '</div>',
       '<section class="lsd-panel" id="lsdPanelDashboard" role="tabpanel" aria-labelledby="lsdTabDashboard" aria-hidden="false" style="display:block">',
-      '<div id="lsdSajuWidget" style="background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,.06);border:1px solid #f3f4f6">',
-      '<p style="font-size:.6rem;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.16em;margin:0 0 8px">❆ 오늘의 운기 요약</p>',
+      '<div class="lsd-panel-intro">오늘의 운기가 조용히 펼쳐집니다. 일진, 일간, 오행, 십성, 점수를 한눈에 정리하세요.</div>',
+      '<div class="lsd-mini-grid" aria-label="오늘 운기 미니 카드">',
+      '<div class="lsd-mini-card"><span>일진</span><b id="lsdMiniIljin">—</b><small id="lsdMiniIljinSub">오늘의 천간·지지</small></div>',
+      '<div class="lsd-mini-card"><span>십성</span><b id="lsdMiniTenstar">—</b><small id="lsdMiniTenstarSub">일간 기준 흐름</small></div>',
+      '<div class="lsd-mini-card"><span>행운 오행</span><b id="lsdMiniLuckyElement">—</b><small id="lsdMiniLuckySub">오늘 보충할 기운</small></div>',
+      '<div class="lsd-mini-card"><span>주의 오행</span><b id="lsdMiniCautionElement">—</b><small id="lsdMiniCautionSub">과해지기 쉬운 기운</small></div>',
+      '</div>',
+      '<div id="lsdSajuWidget" class="lsd-card-soft">',
+      '<p style="font-size:.6rem;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.16em;margin:0 0 8px">오늘의 일진 · 일간 운기</p>',
       '<div id="lsdDayMaster" style="font-size:1.4rem;font-weight:900;color:#111827;margin-bottom:8px">—</div>',
       '<div id="lsdElemBadges" style="display:flex;flex-wrap:wrap;gap:6px"></div>',
       '<div id="lsdSajuInsightTabBar" class="lsd-saju-tab-row"></div>',
       '<div id="lsdSajuInsightBody" class="lsd-saju-card"><p style="margin:0;font-size:.74rem;color:#6b7280;line-height:1.6">사주 리딩을 준비하고 있습니다.</p></div>',
       '</div>',
-      '<div id="lsdEnergyCard" style="background:linear-gradient(135deg,#6d28d9,#4f46e5);border-radius:20px;padding:16px 18px;margin-bottom:12px;color:#fff;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 28px rgba(109,40,217,.28)">',
-      '<div style="position:absolute;top:-16px;right:-16px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.07)"></div>',
-      '<p style="font-size:.6rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.65);margin:0 0 8px">⚡ 오늘의 에너지</p>',
-      '<div id="lsdEnergyIljin" style="font-size:.95rem;font-weight:800;margin-bottom:4px">오늘의 일진 로딩 중...</div>',
-      '<div id="lsdEnergyStar" style="font-size:.8rem;font-weight:700;color:rgba(255,255,255,.88);margin-bottom:10px">십성: —</div>',
-      '<div id="lsdEnergyGuide" style="font-size:.78rem;color:rgba(255,255,255,.85);background:rgba(255,255,255,.12);border-radius:10px;padding:8px 12px;line-height:1.5">사주 리딩을 완료하면 더 정확한 에너지 가이드를 받을 수 있어요!</div></div>',
-      '<div style="background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 1px 6px rgba(0,0,0,.06);border:1px solid #f3f4f6">',
-      '<p style="font-size:.85rem;font-weight:900;color:#111827;margin:0 0 2px">💫 오늘의 운기 점수</p>',
-      '<p style="font-size:.7rem;color:#9ca3af;margin:0 0 14px">사주 오행 흐름 기반 5축 리딩</p>',
+      '<div id="lsdEnergyCard" class="lsd-energy-card">',
+      '<p class="lsd-energy-kicker">오늘의 에너지</p>',
+      '<div id="lsdEnergyIljin" class="lsd-energy-main">오늘의 일진 로딩 중...</div>',
+      '<div id="lsdEnergyStar" class="lsd-energy-star">십성: —</div>',
+      '<div id="lsdEnergyGuide" class="lsd-energy-guide">사주 리딩을 완료하면 더 정확한 에너지 가이드를 받을 수 있어요.</div></div>',
+      '<div class="lsd-card">',
+      '<p class="lsd-card-title">오늘의 운기 점수</p>',
+      '<p class="lsd-card-sub">사주 오행 흐름 기반 5축 리딩</p>',
       '<div id="lsdScoreBars" style="display:flex;flex-direction:column;gap:10px"></div>',
       '<div id="lsdLuckElemRow" style="margin-top:12px;font-size:.74rem;color:#6b7280;text-align:center;font-weight:600"></div>',
       '<div id="lsdFortuneDetail" style="margin-top:10px;padding:10px 12px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0"></div>',
-      '</div></section>',
-      '<section class="lsd-panel" id="lsdPanelLotto" role="tabpanel" aria-labelledby="lsdTabLotto" aria-hidden="true" hidden="hidden" style="display:none">',
-      '<div style="background:#fff;border-radius:16px;padding:16px 14px;box-shadow:0 1px 6px rgba(0,0,0,.06);border:1px solid #f3f4f6;text-align:center">',
-      '<h3 style="font-size:.88rem;font-weight:900;color:#111827;margin:0 0 2px">🎰 오늘의 행운 아이템 리딩</h3>',
-      '<p style="font-size:.72rem;color:#9ca3af;margin:0 0 20px;line-height:1.5">오늘의 오행 흐름에 맞는 아이템을 가볍게 확인해보세요.</p>',
+      '</div>',
+      '<div class="lsd-card" style="text-align:center">',
+      '<h3 style="font-size:.88rem;font-weight:900;color:#111827;margin:0 0 2px">오늘의 핵심 행동 가이드</h3>',
+      '<p style="font-size:.72rem;color:#64748b;margin:0 0 20px;line-height:1.5">오늘의 오행 흐름에 맞는 개운 아이템과 작은 행동을 뽑아보세요.</p>',
       '<div id="lsdLottoMachine" class="lsd-lotto-machine" aria-live="polite">',
       '<div class="lsd-spin-ring lsd-spin-ring--outer animate-spin-slow" aria-hidden="true"></div>',
       '<div class="lsd-spin-ring lsd-spin-ring--inner animate-spin-reverse" aria-hidden="true"></div>',
       '<div style="width:128px;height:128px;border-radius:50%;background:linear-gradient(135deg,#ede9fe,#ddd6fe);border:4px solid #c4b5fd;margin:0 auto 10px;position:relative;overflow:hidden;box-shadow:inset 0 4px 14px rgba(124,58,237,.18),0 6px 24px rgba(124,58,237,.2)">',
-      '<div id="lsdGlobeInner" class="lsd-globe-inner" style="position:absolute;inset:8px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:2px;font-size:1.5rem;user-select:none">🌱 🔥 🤎 ⚡ 💧</div>',
+      '<div id="lsdGlobeInner" class="lsd-globe-inner" style="position:absolute;inset:8px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;font-size:1.2rem;font-weight:900;color:#5b21b6;user-select:none">木 火 土 金 水</div>',
       '<div style="position:absolute;top:10px;left:14px;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.55);filter:blur(3px)"></div></div>',
       '<div id="lsdLottoTicker" class="lsd-lotto-ticker animate-pulse">READY</div>',
       '<div style="width:48px;height:7px;border-radius:4px;background:#c4b5fd;margin:0 auto 12px;opacity:.5"></div>',
       '<div id="lsdLuckyElemHint" style="font-size:.74rem;font-weight:700;color:#7c3aed;margin-bottom:14px;min-height:18px"></div>',
-      '<button id="lsdLottoBtn" type="button" class="animate-pulse" style="padding:12px 24px;border:none;border-radius:999px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-size:.85rem;font-weight:900;cursor:pointer;box-shadow:0 4px 18px rgba(124,58,237,.4);transition:all .2s" onmouseover="this.style.transform=\'scale(1.05)\';this.style.boxShadow=\'0 8px 26px rgba(124,58,237,.5)\'" onmouseout="this.style.transform=\'scale(1)\';this.style.boxShadow=\'0 4px 18px rgba(124,58,237,.4)\'"">🎱 오늘의 행운 아이템 뽑기</button></div>',
+      '<button id="lsdLottoBtn" type="button" class="animate-pulse" style="padding:12px 24px;border:none;border-radius:999px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-size:.85rem;font-weight:900;cursor:pointer;box-shadow:0 4px 18px rgba(124,58,237,.4);transition:all .2s" onmouseover="this.style.transform=\'scale(1.05)\';this.style.boxShadow=\'0 8px 26px rgba(124,58,237,.5)\'" onmouseout="this.style.transform=\'scale(1)\';this.style.boxShadow=\'0 4px 18px rgba(124,58,237,.4)\'"">오늘의 작은 행동 고르기</button></div>',
       '<div id="lsdLottoResult" style="display:none;margin-top:18px">',
       '<div style="display:inline-flex;flex-direction:column;align-items:center;gap:8px;background:linear-gradient(135deg,#faf5ff,#ede9fe);border-radius:20px;padding:22px 36px;border:1px solid #c4b5fd;width:100%;box-sizing:border-box">',
       '<div id="lsdResultBall" style="width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:900;color:#fff;box-shadow:0 4px 16px rgba(124,58,237,.4)"></div>',
       '<div id="lsdResultEmoji" style="font-size:3rem;line-height:1;margin:-4px 0"></div>',
       '<div id="lsdResultName" style="font-size:1rem;font-weight:900;color:#1f1035"></div>',
       '<div id="lsdResultTip" style="font-size:.76rem;color:#6b7280;text-align:center;line-height:1.55;max-width:200px"></div>',
-      '<p style="font-size:.72rem;font-weight:700;color:#7c3aed;margin:0">오늘의 행운 아이템 확인 완료 ✨</p>',
-      '<button id="lsdRedrawBtn" type="button" style="padding:7px 18px;border-radius:999px;border:1.5px solid #c4b5fd;background:transparent;font-size:.72rem;font-weight:700;color:#7c3aed;cursor:pointer;transition:all .2s" onmouseover="this.style.background=\'#ede9fe\'" onmouseout="this.style.background=\'transparent\'">🔄 다시 뽑기</button>',
+      '<p style="font-size:.72rem;font-weight:700;color:#7c3aed;margin:0">오늘의 행동 가이드가 준비됐어요.</p>',
+      '<button id="lsdRedrawBtn" type="button" style="padding:7px 18px;border-radius:999px;border:1.5px solid #c4b5fd;background:transparent;font-size:.72rem;font-weight:700;color:#7c3aed;cursor:pointer;transition:all .2s" onmouseover="this.style.background=\'#ede9fe\'" onmouseout="this.style.background=\'transparent\'">다시 고르기</button>',
       '</div></div></div></section>',
       '<section class="lsd-panel" id="lsdPanelChallenge" role="tabpanel" aria-labelledby="lsdTabChallenge" aria-hidden="true" hidden="hidden" style="display:none">',
-      '<div style="background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,.06);border:1px solid #f3f4f6">',
-      '<h3 style="font-size:.88rem;font-weight:900;color:#111827;margin:0 0 2px">✅ 오운완 실천 루틴</h3>',
-      '<p style="font-size:.72rem;color:#9ca3af;margin:0 0 12px;line-height:1.4">오늘 꼭 챙길 행동을 체크하며 운기 흐름을 쌓아보세요.</p>',
+      '<div class="lsd-panel-intro">작은 루틴이 오늘의 운기를 몸에 남깁니다.</div>',
+      '<div class="lsd-card">',
+      '<h3 class="lsd-card-title">오운완 체크리스트</h3>',
+      '<p class="lsd-card-sub">스타일, 건강, 집중, 정리, 소비 점검을 오늘의 개운 미션으로 연결합니다.</p>',
+      '<div class="lsd-routine-head">',
+      '<div><div class="lsd-routine-score-label">오늘의 실천 지수</div><div class="lsd-routine-score"><span id="lsdRoutineScore">0</span><small>/100</small></div></div>',
+      '<div class="lsd-routine-progress" aria-hidden="true"><span id="lsdRoutineProgressFill"></span></div>',
+      '<div id="lsdRoutineDoneText" class="lsd-routine-done">0/0 완료</div>',
+      '</div>',
       '<div id="lsdChallenges"></div></div>',
       '<div id="lsdChallengeCongrats" style="display:none;background:linear-gradient(135deg,#ecfeff,#f5f3ff);border:1px solid #c4b5fd;color:#4c1d95;border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:.78rem;font-weight:700;line-height:1.5"></div>',
-      '<div style="background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 1px 6px rgba(0,0,0,.06);border:1px solid #f3f4f6">',
-      '<p style="font-size:.85rem;font-weight:900;color:#111827;margin:0 0 14px">지금 나의 기분은? 🫶</p>',
-      '<div id="lsdMoodEmojis" style="display:flex;justify-content:space-around">',
+      '</section>',
+      '<section class="lsd-panel" id="lsdPanelNight" role="tabpanel" aria-labelledby="lsdTabNight" aria-hidden="true" hidden="hidden" style="display:none">',
+      '<div class="lsd-panel-intro">하루의 끝에서 오늘의 실천을 부드럽게 접어둡니다.</div>',
+      '<div class="lsd-card">',
+      '<h3 class="lsd-card-title">밤의 운기 회고</h3>',
+      '<p class="lsd-card-sub" style="margin-bottom:0">잘한 것과 보완할 것을 나누어 Tomorrow Blueprint로 이어갑니다.</p>',
+      '</div>',
+      '<div class="lsd-card">',
+      '<p class="lsd-card-title">기분 태그</p>',
+      '<p class="lsd-card-sub">오늘 마음의 결을 하나 골라 밤 회고에 함께 남깁니다.</p>',
+      '<div id="lsdMoodEmojis" class="lsd-mood-grid">',
       '<button type="button" class="lsd-mood-btn" data-emoji="🔥">🔥</button>',
       '<button type="button" class="lsd-mood-btn" data-emoji="😊">😊</button>',
       '<button type="button" class="lsd-mood-btn" data-emoji="😌">😌</button>',
       '<button type="button" class="lsd-mood-btn" data-emoji="😐">😐</button>',
       '<button type="button" class="lsd-mood-btn" data-emoji="😔">😔</button>',
       '<button type="button" class="lsd-mood-btn" data-emoji="🥱">🥱</button>',
-      '</div></div></section>',
-      '<section class="lsd-panel" id="lsdPanelNight" role="tabpanel" aria-labelledby="lsdTabNight" aria-hidden="true" hidden="hidden" style="display:none">',
-      '<div style="background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,.06);border:1px solid #f3f4f6">',
-      '<h3 style="font-size:.9rem;font-weight:900;color:#0f172a;margin:0 0 2px">🌙 운 개선 실천 회고</h3>',
-      '<p style="font-size:.72rem;color:#64748b;margin:0;line-height:1.45">적중률 체크 대신, 오늘 실천한 개운 루틴을 기록하고 내일의 운 설계를 만듭니다.</p>',
-      '</div>',
-      '<div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.06);border:1px solid #f3f4f6;padding:12px 12px 14px">',
+      '</div></div>',
+      '<div class="lsd-card" style="overflow:hidden">',
       '<div class="lsd-night-section">',
       '<div>',
-      '<p style="margin:0 0 7px;font-size:.74rem;font-weight:900;color:#0f172a">1) Tomorrow Blueprint</p>',
+      '<p style="margin:0 0 7px;font-size:.74rem;font-weight:900;color:#0f172a">Tomorrow Blueprint</p>',
       '<div id="lsdTomorrowBlueprintBtns" style="display:flex;gap:6px;flex-wrap:wrap">',
       BLUEPRINT_THEMES.map(function (t) { return '<button type="button" class="lsd-blueprint-btn" data-blueprint="' + t.id + '">' + t.icon + ' ' + t.label + '</button>'; }).join(''),
       '</div>',
       '</div>',
       '<div class="lsd-mini-box" id="lsdTomorrowFocusSummary"></div>',
       '<div>',
-      '<p style="margin:0 0 7px;font-size:.74rem;font-weight:900;color:#0f172a">2) 내일 실행 3단계</p>',
+      '<p style="margin:0 0 7px;font-size:.74rem;font-weight:900;color:#0f172a">내일 보완할 것</p>',
       '<div id="lsdTomorrowPlanList" style="display:grid;gap:7px"></div>',
       '</div>',
       '<div>',
-      '<p style="margin:0 0 7px;font-size:.74rem;font-weight:900;color:#0f172a">3) 설계 메모</p>',
-      '<textarea id="lsdPracticeNoteInput" class="lsd-diary-lines" maxlength="500" rows="5" style="width:100%;background:transparent;padding:8px 10px 10px;font-size:.82rem;color:#1f2937;resize:vertical;outline:none;border:1px solid #e2e8f0;border-radius:12px;font-family:inherit;box-sizing:border-box;display:block" placeholder="예: 오전엔 집중이 안 됐지만, 저녁에 디지털 디톡스를 하니 생각이 맑아졌다."></textarea>',
+      '<p style="margin:0 0 7px;font-size:.74rem;font-weight:900;color:#0f172a">오늘 가장 잘한 것</p>',
+      '<textarea id="lsdPracticeNoteInput" class="lsd-diary-lines" maxlength="500" rows="5" style="width:100%;font-size:.82rem;color:#1f2937;resize:vertical;outline:none;border:1px solid #e2e8f0;border-radius:12px;font-family:inherit;box-sizing:border-box;display:block" placeholder="예: 오전엔 집중이 안 됐지만, 저녁에 디지털 디톡스를 하니 생각이 맑아졌다."></textarea>',
       '<div style="display:flex;justify-content:flex-end;margin-top:4px;font-size:.69rem;color:#94a3b8"><span id="lsdPracticeCharCount">0</span>/500</div>',
       '</div>',
       '<div>',
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px">',
-      '<p style="margin:0;font-size:.74rem;font-weight:900;color:#0f172a">4) AI Tomorrow Coach</p>',
-      '<button id="lsdGenerateAiCoachBtn" type="button" class="lsd-plain-btn" style="border-color:#93c5fd;color:#0c4a6e">🧠 AI 코칭 생성</button>',
+      '<p style="margin:0;font-size:.74rem;font-weight:900;color:#0f172a">내일 운기 코치</p>',
+      '<button id="lsdGenerateAiCoachBtn" type="button" class="lsd-plain-btn" style="border-color:#93c5fd;color:#0c4a6e">작은 설계 생성</button>',
       '</div>',
       '<div id="lsdAiLuckCoach" class="lsd-ai-coach-card">오늘 실천 데이터를 바탕으로 내일 운 설계 가이드를 제안합니다.</div>',
       '</div>',
-      '<div style="padding-top:4px;display:flex;align-items:center;justify-content:space-between;gap:8px">',
+      '<div class="lsd-save-row">',
       '<span style="font-size:.7rem;color:#64748b">야간 회고는 내일 운 설계에만 집중합니다.</span>',
-      '<button id="lsdSaveNightBtn" type="button" style="padding:9px 18px;border:none;border-radius:999px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;font-size:.74rem;font-weight:800;cursor:pointer;box-shadow:0 6px 16px rgba(14,165,233,.28);transition:all .2s" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'">🗓️ 내일 설계 저장</button>',
+      '<button id="lsdSaveNightBtn" type="button" class="lsd-save-night-btn">내일 설계 저장</button>',
       '</div>',
-      '<div id="lsdSaveFeedback" style="display:none;font-size:.78rem;font-weight:700;color:#0891b2">✅ 오늘의 운 설계 기록이 저장됐어요!</div>',
+      '<div id="lsdSaveFeedback" style="display:none;font-size:.78rem;font-weight:700;color:#0891b2">오늘의 운 설계 기록이 저장됐어요.</div>',
       '</div>',
       '</div></section>',
       '<section class="lsd-panel" id="lsdPanelMeditation" role="tabpanel" aria-labelledby="lsdTabMeditation" aria-hidden="true" hidden="hidden" style="display:none">',
+      '<div class="lsd-panel-intro">소리는 낮게, 마음은 선명하게 정돈합니다.</div>',
       '<div style="background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,.06);border:1px solid #f3f4f6">',
-      '<h3 style="font-size:.9rem;font-weight:900;color:#0f172a;margin:0 0 3px">🧘 운명 개척 명상 가이드</h3>',
-      '<p style="font-size:.72rem;color:#64748b;margin:0;line-height:1.45">네빌 고다드의 Revision, SATS, I AM 루틴을 오늘 운세 실천 지수와 연결합니다.</p>',
+      '<h3 style="font-size:.9rem;font-weight:900;color:#0f172a;margin:0 0 3px">조용한 명상 사운드</h3>',
+      '<p style="font-size:.72rem;color:#64748b;margin:0;line-height:1.45">Revision, SATS, I AM 선언과 명상 타이머를 오늘 운기와 연결합니다.</p>',
       '</div>',
       '<div class="lsd-meditation-shell">',
       '<div class="lsd-meditation-card">',
-      '<p class="lsd-meditation-title">1) 수정의 가위 (Nightly Revision)</p>',
+      '<p class="lsd-meditation-title">Revision</p>',
       '<label class="lsd-mini-label" for="lsdRevisionOriginal">오늘의 부정적 사건</label>',
       '<textarea id="lsdRevisionOriginal" class="lsd-meditation-input" rows="2" maxlength="220" placeholder="예: 중요한 미팅에서 긴장해 말이 꼬였다."></textarea>',
       '<label class="lsd-mini-label" for="lsdRevisionImagined">원하는 전개로 수정한 장면</label>',
@@ -2979,30 +3463,30 @@
       '</div>',
 
       '<div class="lsd-meditation-card lsd-sats-zone" id="lsdSatsZone">',
-      '<p class="lsd-meditation-title">2) SATS 시각화</p>',
+      '<p class="lsd-meditation-title">SATS</p>',
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">',
       '<span style="font-size:.72rem;color:#475569">내일 키워드: <b id="lsdSatsKeyword" style="color:#0ea5e9">로딩중</b></span>',
-      '<button id="lsdGenerateSatsScene" type="button" class="lsd-plain-btn">✨ 장면 추천</button>',
+      '<button id="lsdGenerateSatsScene" type="button" class="lsd-plain-btn">장면 추천</button>',
       '</div>',
       '<div id="lsdSatsScene" class="lsd-sats-scene">당신이 이미 원하는 결과를 이룬 단 하나의 장면이 표시됩니다.</div>',
       '<div class="lsd-sats-breath" id="lsdSatsBreathText">당신은 이미 이루어진 상태입니다. 소리, 촉감, 기분에만 집중하세요.</div>',
       '<div class="lsd-sats-tabs" id="lsdSatsTabs" role="tablist" aria-label="명상 플레이리스트 모드">',
-      '<button type="button" class="lsd-sats-tab is-on" data-sats-tab="lofi" role="tab" aria-selected="true">🌙 LoFi 집중</button>',
-      '<button type="button" class="lsd-sats-tab" data-sats-tab="theta" role="tab" aria-selected="false">🧠 Theta 안정</button>',
+      '<button type="button" class="lsd-sats-tab is-on" data-sats-tab="lofi" role="tab" aria-selected="true">LoFi 집중</button>',
+      '<button type="button" class="lsd-sats-tab" data-sats-tab="theta" role="tab" aria-selected="false">Theta 안정</button>',
       '</div>',
       '<div class="lsd-sats-toolbar">',
       '<div class="lsd-sats-badges">',
-      '<span id="lsdSatsSourceBadge" class="lsd-sats-badge">YouTube API</span>',
-      '<span id="lsdSatsLicenseBadge" class="lsd-sats-badge">CC 우선 필터</span>',
+      '<span id="lsdSatsSourceBadge" class="lsd-sats-badge">CC 우선 추천</span>',
+      '<span id="lsdSatsLicenseBadge" class="lsd-sats-badge">재생 가능 확인됨</span>',
       '</div>',
       '<div class="lsd-sats-toolbar-actions">',
-      '<button id="lsdStartSatsMode" type="button" class="lsd-plain-btn" style="border-color:#818cf8;color:#3730a3">🎧 자동 불러오기</button>',
-      '<button id="lsdShuffleSatsPlaylist" type="button" class="lsd-plain-btn">🎲 랜덤 재생</button>',
-      '<button id="lsdRefreshSatsPlaylist" type="button" class="lsd-plain-btn">🔄 새로고침</button>',
-      '<button id="lsdStopSatsMode" type="button" class="lsd-plain-btn">⏹️ 정지</button>',
+      '<button id="lsdStartSatsMode" type="button" class="lsd-plain-btn" style="border-color:#818cf8;color:#3730a3">자동 불러오기</button>',
+      '<button id="lsdShuffleSatsPlaylist" type="button" class="lsd-plain-btn">랜덤 재생</button>',
+      '<button id="lsdRefreshSatsPlaylist" type="button" class="lsd-plain-btn">새로고침</button>',
+      '<button id="lsdStopSatsMode" type="button" class="lsd-plain-btn">정지</button>',
       '</div>',
       '</div>',
-      '<div id="lsdSatsPlaylistStatus" class="lsd-sats-empty" style="margin-top:8px">명상 탭 진입 시 CC 우선 플레이리스트를 자동으로 불러옵니다.</div>',
+      '<div id="lsdSatsPlaylistStatus" class="lsd-sats-empty" style="margin-top:8px">음악은 YouTube에서 제공되는 공개 영상 중 Creative Commons 또는 무료 사용 가능 조건을 우선으로 추천합니다. 실제 사용 조건은 각 영상과 채널의 안내를 확인해 주세요.</div>',
       '<div class="lsd-sats-player" style="margin-top:8px">',
       '<div id="lsdSatsPlayerPlaceholder" class="lsd-sats-player-placeholder">재생 버튼을 누르기 전까지 소리는 나오지 않습니다.<br>목록에서 원하는 트랙의 ▶ 재생을 눌러주세요.</div>',
       '<iframe id="lsdSatsYoutubeFrame" title="SATS YouTube Player" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe>',
@@ -3017,12 +3501,12 @@
       '</div>',
 
       '<div class="lsd-meditation-card">',
-      '<p class="lsd-meditation-title">3) 아침 I AM 선언</p>',
+      '<p class="lsd-meditation-title">I AM 선언</p>',
       '<div id="lsdIamCard" class="lsd-iam-card">나는 오늘 운의 흐름을 선택하는 사람이다.</div>',
       '<input id="lsdIamInput" type="text" class="lsd-meditation-input" placeholder="위 문장을 타이핑하거나 소리 내어 읽어보세요.">',
       '<div style="display:flex;gap:8px;flex-wrap:wrap">',
       '<button id="lsdRegenerateIam" type="button" class="lsd-plain-btn">🔁 문구 새로고침</button>',
-      '<button id="lsdConfirmIam" type="button" class="lsd-plain-btn" style="border-color:#34d399;color:#065f46">✅ 선언 완료</button>',
+      '<button id="lsdConfirmIam" type="button" class="lsd-plain-btn" style="border-color:#34d399;color:#065f46">선언 완료</button>',
       '</div>',
       '</div>',
 
@@ -3040,20 +3524,21 @@
       '</div>',
       '</section>',
       '<section class="lsd-panel" id="lsdPanelHistory" role="tabpanel" aria-labelledby="lsdTabHistory" aria-hidden="true" hidden="hidden" style="display:none">',
+      '<div class="lsd-panel-intro">저장된 하루들이 조용한 기록장이 됩니다.</div>',
       '<div class="lsd-month-card">',
       '<div class="lsd-month-head">',
       '<button id="lsdPrevMonthBtn" type="button" class="lsd-month-nav" aria-label="이전 달">‹</button>',
       '<div class="lsd-month-title" id="lsdMonthLabel">26년 5월</div>',
       '<button id="lsdNextMonthBtn" type="button" class="lsd-month-nav" aria-label="다음 달">›</button>',
       '</div>',
-      '<p class="lsd-month-guide">아래의 <strong>좋은 날/주의 날</strong>을 미리 확인해 일정 리듬을 준비하세요.</p>',
+      '<p class="lsd-month-guide">기록이 있는 날짜와 하루 흐름을 단순하게 살펴봅니다.</p>',
       '<div class="lsd-month-legend">',
-      '<span class="lsd-month-pill record">운세기록</span>',
-      '<span class="lsd-month-pill vg">좋은 날</span>',
+      '<span class="lsd-month-pill record">기록</span>',
+      '<span class="lsd-month-pill vg">맑음</span>',
       '<span class="lsd-month-pill g">양호</span>',
       '<span class="lsd-month-pill n">보통</span>',
-      '<span class="lsd-month-pill b">강함</span>',
-      '<span class="lsd-month-pill vb">아주강함</span>',
+      '<span class="lsd-month-pill b">주의</span>',
+      '<span class="lsd-month-pill vb">강한 주의</span>',
       '</div>',
       '<div class="lsd-month-week"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>',
       '<div id="lsdMonthCalendarGrid" class="lsd-month-grid"></div>',
@@ -3136,7 +3621,7 @@
         var isYong = yons.indexOf(el) >= 0;
         var isKi   = power && power.kijishin && power.kijishin.indexOf(el) >= 0;
         return '<span class="lsd-elem-badge' + (isYong ? ' is-yong' : '') + (isKi ? ' is-ki' : '') + '" ' +
-          'style="background:' + ei.bg + ';border-color:' + ei.color + ';color:' + ei.neon + '">' +
+          'style="background:#fff;border-color:#e2e8f0;color:#334155">' +
           ei.badge + ei.short + ' <b>' + cnt[el] + '</b>' +
           (isYong ? '<span class="lsd-badge-tag">용신</span>' : '') +
           (isKi   ? '<span class="lsd-badge-tag lsd-badge-tag--ki">기신</span>' : '') +
@@ -3166,7 +3651,7 @@
       var tsInfo = TENSTAR_GUIDE[mainTenStar] || {};
       var tsEmoji = (window.TS_DB && window.TS_DB[mainTenStar]) ? window.TS_DB[mainTenStar].emoji : '✨';
       if (starEl)  starEl.innerHTML  = '오늘의 십성 <b style="color:' + (tsInfo.color||'#a78bfa') + '">' + mainTenStar + '</b> ' + tsEmoji;
-      if (guideEl) guideEl.textContent = tsInfo.guide || '오늘의 에너지를 최대한 활용해봐~!';
+      if (guideEl) guideEl.textContent = tsInfo.guide || '오늘의 에너지를 차분히 실천으로 옮기기 좋은 날입니다.';
       if (energyCard) energyCard.style.borderColor = tsInfo.color || '#6366f1';
     } else if (guideEl) {
       guideEl.textContent = '사주 리딩을 완료하면 더 정확한 에너지 가이드를 받을 수 있어요!';
@@ -3189,6 +3674,44 @@
       var ei2 = ELEM[_luckyEl] || ELEM.earth;
       hintEl.innerHTML = '🎯 오늘의 행운 오행: <b style="color:' + ei2.neon + '">' + ei2.badge + ' ' + ei2.cn + '</b>';
     }
+
+    var headerDate = document.getElementById('lsdHeaderDate');
+    var headerIljin = document.getElementById('lsdHeaderIljin');
+    var headerElement = document.getElementById('lsdHeaderElement');
+    var headerOneLine = document.getElementById('lsdHeaderOneLine');
+    var deviceBadge = document.getElementById('lsdDeviceBadge');
+    var miniIljin = document.getElementById('lsdMiniIljin');
+    var miniIljinSub = document.getElementById('lsdMiniIljinSub');
+    var miniTenstar = document.getElementById('lsdMiniTenstar');
+    var miniTenstarSub = document.getElementById('lsdMiniTenstarSub');
+    var miniLucky = document.getElementById('lsdMiniLuckyElement');
+    var miniLuckySub = document.getElementById('lsdMiniLuckySub');
+    var miniCaution = document.getElementById('lsdMiniCautionElement');
+    var miniCautionSub = document.getElementById('lsdMiniCautionSub');
+    var luckyInfo = ELEM[_luckyEl] || ELEM.earth;
+    var cautionList = _normalizeElementList(power && power.kijishin);
+    var cautionEl = cautionList[0] || '';
+    var cautionInfo = cautionEl ? (ELEM[cautionEl] || null) : null;
+    var tenInfo = mainTenStar ? (TENSTAR_GUIDE[mainTenStar] || {}) : {};
+
+    if (headerDate) headerDate.textContent = (now.getMonth() + 1) + '월 ' + now.getDate() + '일 ' + days[now.getDay()] + '요일';
+    if (headerIljin) headerIljin.textContent = todayGZ ? (todayGZ.g + todayGZ.j) : '—';
+    if (headerElement) headerElement.textContent = (tInfo ? tInfo.cn : '—');
+    if (headerOneLine) {
+      headerOneLine.textContent = mainTenStar && tenInfo.vibe
+        ? '오늘은 ' + tenInfo.vibe + ' 감각을 조용히 실천으로 옮기기 좋은 날입니다.'
+        : '오늘은 작은 루틴 하나가 하루의 결을 바꾸는 날입니다.';
+    }
+    if (deviceBadge) deviceBadge.style.display = isLuckSyncDiaryUnlocked() ? 'inline-flex' : 'none';
+    if (miniIljin) miniIljin.textContent = todayGZ ? (todayGZ.g + todayGZ.j) : '—';
+    if (miniIljinSub) miniIljinSub.textContent = tInfo ? (tInfo.badge + ' ' + tInfo.cn + ' 기운') : '오늘의 일진';
+    if (miniTenstar) miniTenstar.textContent = mainTenStar || '—';
+    if (miniTenstarSub) miniTenstarSub.textContent = tenInfo.vibe || '일간 기준 흐름';
+    if (miniLucky) miniLucky.textContent = luckyInfo.cn || '—';
+    if (miniLuckySub) miniLuckySub.textContent = (luckyInfo.lotto || '오늘의 보충 기운') + ' 중심';
+    if (miniCaution) miniCaution.textContent = cautionInfo ? cautionInfo.cn : '균형';
+    if (miniCautionSub) miniCautionSub.textContent = cautionInfo ? '과소비·과로를 낮게' : '과한 흐름은 잠시 멈춤';
+    updateDiaryPwaInstallUI();
 
     renderFortuneDetail(pillars, power, todayGZ, scores, mainTenStar, _luckyEl);
 
@@ -3302,6 +3825,12 @@
       ensureSatsPlaylistReady('lofi', false);
     }
 
+    var pwaInstallBtn = document.getElementById('lsdPwaInstallBtn');
+    if (pwaInstallBtn) pwaInstallBtn.onclick = requestDiaryPwaInstall;
+    var pwaGuideBtn = document.getElementById('lsdPwaGuideBtn');
+    if (pwaGuideBtn) pwaGuideBtn.onclick = showDiaryPwaGuide;
+    updateDiaryPwaInstallUI();
+
     /* 기분 이모지 */
     var moodBtns = modal.querySelectorAll('.lsd-mood-btn');
     var diary0 = loadDiary();
@@ -3371,14 +3900,14 @@
         var noteEl = document.getElementById('lsdPracticeNoteInput');
         e.practiceNote = noteEl ? noteEl.value : e.practiceNote;
         e.nightLog = e.practiceNote;
-        e.aiLuckCoach = buildAiLuckCoachAdvice(e) + '<div class="lsd-ai-foot">프롬프트 컨셉: ' + escHtml(AI_COACH_ENGINE_PROMPT.slice(0, 72)) + '...</div>';
+        e.aiLuckCoach = buildAiLuckCoachAdvice(e) + '<div class="lsd-ai-foot">오늘의 실천 회고를 바탕으로 정리했습니다.</div>';
         e.aiCoachUpdatedAt = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
         saveDiary(d);
         coachCard.classList.remove('is-loading');
         renderNightPracticeBoard(e);
         renderMeditationBoard(e, d);
         aiBtn.disabled = false;
-        aiBtn.textContent = '🧠 AI 코칭 생성';
+        aiBtn.textContent = '작은 설계 생성';
       }, 1150);
     };
 
@@ -3486,13 +4015,6 @@
         var videoId = playBtn.getAttribute('data-sats-play') || '';
         if (!videoId) return;
         playSatsVideo(satsMode, videoId);
-        return;
-      }
-      var openBtn = ev.target && ev.target.closest('[data-sats-open]');
-      if (openBtn) {
-        var openVideoId = openBtn.getAttribute('data-sats-open') || '';
-        if (!openVideoId) return;
-        openSatsVideoInYoutube(openVideoId);
       }
     };
 
@@ -3584,6 +4106,15 @@
       renderHistory();
     };
 
+    var historyList = document.getElementById('lsdHistoryList');
+    if (historyList) historyList.onclick = function (ev) {
+      var todayCta = ev.target && ev.target.closest('#lsdHistoryTodayCta');
+      if (!todayCta) return;
+      switchTab('night', modal);
+      var noteInput = document.getElementById('lsdPracticeNoteInput');
+      if (noteInput && noteInput.focus) noteInput.focus();
+    };
+
     var predictBtn = document.getElementById('lsdPredictFromCalendarBtn');
     if (predictBtn) predictBtn.onclick = function () {
       _ensureMonthCalendarState();
@@ -3597,10 +4128,16 @@
     /* 전체 삭제 버튼 */
     var clearBtn = document.getElementById('lsdClearBtn');
     if (clearBtn) clearBtn.onclick = function () {
-      if (window.confirm('모든 운구 기일 기록을 삭제할까요? 되돌릴 수 없어요!')) {
-        localStorage.removeItem(LS_KEY);
-        renderHistory();
-      }
+      showDiaryConfirm('모든 운기·기일 다이어리 기록을 삭제합니다. 이 작업은 되돌릴 수 없습니다.', function () {
+        try {
+          // 삭제도 서버 호출 없이 사용자 기기 내부 localStorage의 다이어리 키만 제거한다.
+          localStorage.removeItem(LS_KEY);
+          renderHistory();
+          showDiaryToast('기기 안의 다이어리 기록을 삭제했습니다.');
+        } catch (e) {
+          showDiaryToast('기록 삭제에 실패했습니다. 브라우저 저장소 권한을 확인해 주세요.');
+        }
+      });
     };
 
     if (!modal.__lsdMzSelectionDelegated) {
@@ -3648,7 +4185,7 @@
       var memoEl = document.getElementById('lsdMemoInput');
       e.memoNote = memoEl ? memoEl.value : '';
       saveDiary(d);
-      alert('사주 메모장 저장 완료!');
+      alert('운기 메모를 저장했어요.');
     };
 
     var shareBtn = document.getElementById('lsdShareCardBtn');

@@ -383,11 +383,17 @@ function scoreCharacter(character: LoveCharacter, sajuProfile: ExtractedSajuProf
   };
 }
 
-export function matchLoveCharactersFromSaju(sajuResult: unknown, characters: LoveCharacter[]): LoveCharacterMatchResult[] {
+export function matchLoveCharactersFromSaju(
+  sajuResult: unknown,
+  characters: LoveCharacter[],
+  targetGender?: LoveCharacter["gender"],
+): LoveCharacterMatchResult[] {
   const sajuProfile = extractSajuProfile(sajuResult);
   if (!sajuProfile.dayMaster && !sajuProfile.dayElement && sajuProfile.strongElements.length === 0) return [];
+  const candidateCharacters = targetGender ? characters.filter((character) => character.gender === targetGender) : characters;
+  if (candidateCharacters.length === 0) return [];
 
-  return characters
+  return candidateCharacters
     .map((character) => scoreCharacter(character, sajuProfile))
     .sort((a, b) => b.score - a.score)
     .slice(0, 3)

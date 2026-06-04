@@ -64,6 +64,43 @@ describe("Billing access decision", () => {
     expect(decision.reason).toBe(utils.ACCESS_DECISION_REASONS.ALREADY_UNLOCKED);
   });
 
+  test("공통 유료 콘텐츠 판정은 already_unlocked에서 결제 선택창을 열지 않아야 한다", () => {
+    const decision = utils.buildPaidContentAccessDecision({
+      accessGranted: true,
+      reason: "already_unlocked",
+      shouldOpenPaymentSelector: true,
+      unlockId: "unlock_1",
+      priceCoin: 50,
+    });
+
+    expect(decision).toEqual({
+      accessGranted: true,
+      reason: "already_unlocked",
+      shouldOpenPaymentSelector: false,
+      availableMethods: ["pass", "one_time", "monthly"],
+      unlockId: "unlock_1",
+      priceCoin: 50,
+    });
+  });
+
+  test("공통 유료 콘텐츠 판정은 payment_required에서만 결제 선택창을 열어야 한다", () => {
+    const passCovered = utils.buildPaidContentAccessDecision({
+      accessGranted: true,
+      reason: "pass_covered",
+      shouldOpenPaymentSelector: true,
+      priceCoin: 50,
+    });
+    const paymentRequired = utils.buildPaidContentAccessDecision({
+      reason: "payment_required",
+      shouldOpenPaymentSelector: true,
+      priceCoin: 50,
+    });
+
+    expect(passCovered.shouldOpenPaymentSelector).toBe(false);
+    expect(paymentRequired.shouldOpenPaymentSelector).toBe(true);
+    expect(paymentRequired.availableMethods).toEqual(["pass", "one_time", "monthly"]);
+  });
+
   test("구독 무료 한도 내 기능은 subscription_active 이어야 한다", () => {
     const decision = utils.buildAccessDecision({
       pricing: { featureKey: "tarot-mindscan", cost: 50 },
