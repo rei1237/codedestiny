@@ -1909,7 +1909,7 @@
           reason: reason,
           coinPrice: cost,
           cost: cost,
-          featureKey: featureKey || reason || 'coin-gate-per-use',
+          featureKey: normalizedFeatureKey || reason || 'coin-gate-per-use',
           requestId: requestId
         }).then(function(access) {
           if (access && (access.status === 'already_unlocked' || access.status === 'pass_applied')) {
@@ -1930,6 +1930,7 @@
             coinPrice: cost,
             cost: cost,
             amountKrw: Number(cost || 0) * 100,
+            skipPassProbe: true,
           }).then(function(choice) {
             if (choice !== 'direct') {
               if (typeof onCancel === 'function') onCancel();
@@ -1943,8 +1944,9 @@
               cost: cost,
               title: reason,
               reason: reason,
-              featureKey: featureKey || reason || 'coin-gate-per-use',
+              featureKey: normalizedFeatureKey || reason || 'coin-gate-per-use',
               requestId: requestId,
+              skipPassProbe: true,
               checkoutPayload: {
                 paymentMode: 'DIRECT_KRW',
               },
@@ -1975,7 +1977,8 @@
           coinPrice: cost,
           cost: cost,
           amountKrw: Number(cost || 0) * 100,
-        }).then(function(choice) {
+            skipPassProbe: true,
+          }).then(function(choice) {
           if (choice !== 'direct') {
             if (typeof onCancel === 'function') onCancel();
             return null;
@@ -2010,10 +2013,7 @@
         });
       }
     }
-    var requestId = String(optionBag.requestId || '').trim().slice(0, 120);
-    if (!requestId) {
-      requestId = 'coin-gate-per-use-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
-    }
+
     var consumeHeaders = { 'Content-Type': 'application/json' };
     if (token) consumeHeaders.Authorization = 'Bearer ' + token;
     window._cdCoinGatePerUseInFlight = true;
@@ -4715,10 +4715,7 @@
     }
     dedupeMap[dedupeKey] = now;
 
-    var requestId = String(optionBag.requestId || '').trim().slice(0, 120);
-    if (!requestId) {
-      requestId = 'coin-gate-per-use-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
-    }
+
 
     if (typeof window._cdResolvePaidContentAccess === 'function') {
       return window._cdResolvePaidContentAccess({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey, requestId: requestId, reportType: optionBag.reportType, serviceKey: optionBag.serviceKey, profileId: optionBag.profileId, selectedProfileId: optionBag.selectedProfileId }).then(function(access) {
@@ -4729,7 +4726,7 @@
           return passPayload;
         }
         if (access && access.status === 'error') { window.alert(access.message || '\uC774\uC6A9\uAD8C \uD655\uC778\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.'); if (typeof onCancel === 'function') onCancel(access); return null; }
-        if (typeof window._cdChooseServicePaymentMode === 'function') { return window._cdChooseServicePaymentMode({ title: reason, coinPrice: cost, cost: cost }).then(function(choice) { if (choice === 'direct') return runDirectCheckout(); if (choice === 'monthly') return runMonthlyCreditGate(); if (typeof onCancel === 'function') onCancel(); return null; }); }
+        if (typeof window._cdChooseServicePaymentMode === 'function') { return window._cdChooseServicePaymentMode({ title: reason, coinPrice: cost, cost: cost, skipPassProbe: true }).then(function(choice) { if (choice === 'direct') return runDirectCheckout(); if (choice === 'monthly') return runMonthlyCreditGate(); if (typeof onCancel === 'function') onCancel(); return null; }); }
         return runMonthlyCreditGate();
       }).catch(function(error) { window.alert(String(error && error.message || '\uC774\uC6A9\uAD8C \uD655\uC778 \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.')); if (typeof onCancel === 'function') onCancel(error); return null; });
     }

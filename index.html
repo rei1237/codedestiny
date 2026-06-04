@@ -1325,67 +1325,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
 }
 </style>
-<!-- Google AdSense Auto Ads -->
-<!-- Google AdSense Auto Ads (deferred for mobile stability/perf) -->
-<script>
-(function(){
-  var loaded = false;
-  var delayedTimer = 0;
-
-  function injectAds(){
-    if (loaded) return;
-    loaded = true;
-    clearTimeout(delayedTimer);
-    delayedTimer = 0;
-    var s = document.createElement('script');
-    s.async = true;
-    s.crossOrigin = 'anonymous';
-    s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828';
-    s.setAttribute('data-cd-adsense','1');
-    document.head.appendChild(s);
-    detachIntentListeners();
-  }
-
-  function detachIntentListeners() {
-    window.removeEventListener('pointerdown', onIntent, true);
-    window.removeEventListener('touchstart', onIntent, true);
-    window.removeEventListener('keydown', onIntent, true);
-    window.removeEventListener('scroll', onIntent, true);
-  }
-
-  function scheduleInject(delayMs){
-    if (loaded || delayedTimer) return;
-    delayedTimer = window.setTimeout(function(){
-      delayedTimer = 0;
-      if (loaded) return;
-      var idle = window.requestIdleCallback;
-      if (typeof idle === 'function') {
-        idle(injectAds, { timeout: 1200 });
-      } else {
-        injectAds();
-      }
-    }, Math.max(0, Number(delayMs) || 0));
-  }
-
-  function onIntent(){
-    if (loaded) return;
-    scheduleInject(0);
-  }
-
-  window.addEventListener('pointerdown', onIntent, true);
-  window.addEventListener('touchstart', onIntent, true);
-  window.addEventListener('keydown', onIntent, true);
-  window.addEventListener('scroll', onIntent, true);
-
-  if (document.visibilityState === 'visible') {
-    scheduleInject(6500);
-  } else {
-    document.addEventListener('visibilitychange', function(){
-      if (document.visibilityState === 'visible') scheduleInject(1200);
-    }, { once: true });
-  }
-})();
-</script>
 <!-- PERF: reduced-motion detect -->
 <script>(function(){try{if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches){document.documentElement.classList.add("cd-reduced-motion");document.addEventListener("DOMContentLoaded",function(){document.body&&document.body.classList.add("cd-reduced-motion");},{once:true});}}catch(e){}}());</script>
 </head>
