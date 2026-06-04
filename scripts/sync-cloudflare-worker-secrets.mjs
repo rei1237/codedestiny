@@ -293,6 +293,15 @@ function isBindingNameInUseError(outputText) {
     && text.includes("code: 10053");
 }
 
+function isAliasRelatedKey(keyA, keyB) {
+  const keysA = new Set([keyA, ...(SECRET_KEY_ALIASES[keyA] || [])]);
+  const keysB = new Set([keyB, ...(SECRET_KEY_ALIASES[keyB] || [])]);
+  for (const key of keysA) {
+    if (keysB.has(key)) return true;
+  }
+  return false;
+}
+
 function putWorkerSecret(key, value) {
   if (isDryRun) {
     console.log(`[dry-run] npx wrangler secret put ${key} --name ${workerName} --config worker/wrangler.toml`);
@@ -337,7 +346,22 @@ const activeSecretKeys = onlyPortone
   ? ["PORTONE_API_Secret", "PORTONE_webhook_URL", "PORTONE_webhook", "PORTONE_webhook_Secret", "PORTONE_channel", "PORTONE_Store"]
   : SECRET_KEYS;
 
-const available = activeSecretKeys.filter((key) => getSecretValue(key));
+const available = [];
+for (const key of activeSecretKeys) {
+  const value = getSecretValue(key);
+  if (!value) continue;
+
+  const duplicate = available.find(
+    (entry) => entry.value === value && isAliasRelatedKey(entry.key, key)
+  );
+  if (duplicate) {
+    console.warn(`[worker-secrets] Skipping ${key}: duplicate value already synced via alias ${duplicate.key}.`);
+    continue;
+  }
+
+  available.push({ key, value });
+}
+
 if (available.length === 0) {
   const message = "[worker-secrets] No usable secret values found in env files.";
   if (skipEmpty) {
@@ -349,10 +373,10 @@ if (available.length === 0) {
 }
 
 console.log(`[worker-secrets] Target Worker: ${workerName}`);
-console.log(`[worker-secrets] ${isDryRun ? "Dry-run" : "Apply"} keys: ${available.join(", ")}`);
+console.log(`[worker-secrets] ${isDryRun ? "Dry-run" : "Apply"} keys: ${available.map((entry) => entry.key).join(", ")}`);
 
-for (const key of available) {
-  const code = putWorkerSecret(key, getSecretValue(key));
+for (const { key, value } of available) {
+  const code = putWorkerSecret(key, value);
   if (code !== 0) {
     console.error(`[worker-secrets] Failed while setting ${key}. Stopping.`);
     process.exit(code);
