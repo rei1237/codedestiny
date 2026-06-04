@@ -1591,6 +1591,18 @@
     return (payload.data && typeof payload.data === 'object') ? payload.data : payload;
   }
 
+  function _dpFindCheckoutOrder(payload) {
+    if (!payload || typeof payload !== "object") return null;
+    if (payload.order && typeof payload.order === "object") return payload.order;
+    if (payload.payment && typeof payload.payment === "object") {
+      if (payload.payment.order && typeof payload.payment.order === "object") return payload.payment.order;
+      if (payload.payment.merchantUid || payload.payment.paymentId || payload.payment.orderId) return payload.payment;
+    }
+    if (payload.data && typeof payload.data === "object") return _dpFindCheckoutOrder(payload.data);
+    if (payload.payload && typeof payload.payload === "object") return _dpFindCheckoutOrder(payload.payload);
+    return null;
+  }
+
   function _dpReadBillingMessage(payload, fallback) {
     if (payload && typeof payload === 'object') {
       if (payload.message) return String(payload.message);
@@ -1677,9 +1689,25 @@
       if (!checkoutRes.ok) throw new Error(_dpReadBillingMessage(checkoutRes.payload, '결제 준비에 실패했습니다.'));
 
       var checkoutData = _dpExtractBillingData(checkoutRes.payload);
-      var order = checkoutData && typeof checkoutData.order === 'object' ? checkoutData.order : null;
+      var order = _dpFindCheckoutOrder(checkoutData);
       if (!order) {
-        throw new Error('\uacb0\uc81c \uc8fc\ubb38 \uc815\ubcf4\ub97c \ud655\uc778\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4.');
+        var accessGrant = checkoutData && checkoutData.accessGrant && typeof checkoutData.accessGrant === 'object' ? checkoutData.accessGrant : null;
+        var consume = checkoutData && checkoutData.consume && typeof checkoutData.consume === 'object' ? checkoutData.consume : null;
+        var freeTxHint = String(
+          (accessGrant && (accessGrant.evidenceId || accessGrant.purchaseId || accessGrant.transactionId || accessGrant.requestId)) ||
+          (consume && (consume.transactionId || consume.requestId)) ||
+          checkoutPayload.requestId ||
+          '',
+        ).trim();
+        if (accessGrant || consume || checkoutData.freeBySubscription === true || checkoutData.freeBySubscription === 'true') {
+          var freePaymentPayload = Object.assign({}, checkoutData, {
+            transactionId: freeTxHint,
+            paymentId: freeTxHint || checkoutPayload.requestId || undefined,
+          });
+          if (typeof cb === 'function') cb(freeTxHint || checkoutPayload.requestId || '', freePaymentPayload);
+          return freePaymentPayload;
+        }
+        throw new Error(_dpReadBillingMessage(checkoutData, '결제 주문 정보를 확인할 수 없습니다.'));
       }
       var merchantUid = String(order.merchantUid || order.paymentId || order.orderId || '').trim();
       var orderAmount = Number(order.paymentAmount || order.amountKRW || order.amount || 0);
@@ -4611,6 +4639,15 @@
     var requestId = String(optionBag.requestId || '').trim().slice(0, 120);
     if (!requestId) {
       requestId = 'coin-gate-per-use-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+    }
+
+    if (typeof window._cdResolvePaidContentAccess === 'function') {
+      return window._cdResolvePaidContentAccess({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey, requestId: requestId, reportType: optionBag.reportType, serviceKey: optionBag.serviceKey, profileId: optionBag.profileId, selectedProfileId: optionBag.selectedProfileId }).then(function(access) {
+        if (access && (access.status === 'already_unlocked' || access.status === 'pass_applied')) { var data = access.payload || access.rawPayload || {}; var txId = String(data.transactionId || data.requestId || requestId); if (typeof cb === 'function') cb(txId, data); return data; }
+        if (access && access.status === 'error') { window.alert(access.message || '이용권 확인에 실패했습니다.'); if (typeof onCancel === 'function') onCancel(access); return null; }
+        if (typeof window._cdChooseServicePaymentMode === 'function') { return window._cdChooseServicePaymentMode({ title: reason, coinPrice: cost, cost: cost }).then(function(choice) { if (choice === 'direct') return runDirectCheckout(); if (choice === 'monthly') return runMonthlyCreditGate(); if (typeof onCancel === 'function') onCancel(); return null; }); }
+        return runMonthlyCreditGate();
+      }).catch(function(error) { window.alert(String(error && error.message || '이용권 확인 중 오류가 발생했습니다.')); if (typeof onCancel === 'function') onCancel(error); return null; });
     }
 
     function runMonthlyCreditGate() {
