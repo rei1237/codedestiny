@@ -16,6 +16,8 @@
   var KEY_LIST_PREFIX = NS + '.list::';
   var KEY_CURR_PREFIX = NS + '.current::';
   var _dpScopedStorageReadyScope = '';
+  var PROFILE_CARD_MANAGE_FEATURE_KEY = 'profile-card-manage';
+  var PROFILE_CARD_MANAGE_COST = 50;
 
   function _dpReadAuthUser() {
     try {
@@ -2493,11 +2495,14 @@
     var btn = document.getElementById('dpSaveBtn');
     if (!btn) return;
 
+    var hasProfiles = DPStorage.list().length > 0;
     btn.disabled = false;
-    btn.textContent = '✦ 프로필 저장';
+    btn.textContent = hasProfiles ? ('✦ 프로필 카드 추가 생성 · ' + PROFILE_CARD_MANAGE_COST + '코인') : '✦ 이 정보를 나의 운명 카드에 저장';
     btn.style.opacity = '';
     btn.style.cursor = '';
-    btn.title = '저장 시 로그인/구독 상태를 서버에서 최종 확인합니다.';
+    btn.title = hasProfiles
+      ? '추가 생성 시 서버에서 50코인 또는 5,000원 결제를 확인합니다.'
+      : '저장 시 로그인/구독 상태를 서버에서 최종 확인합니다.';
   }
 
   function _resolveEventElement(target) {
@@ -2756,12 +2761,83 @@
     };
   }
 
+  function _dpEscapeJsString(value) {
+    return String(value == null ? '' : value).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  }
+
+  function _dpBuildProfileManageRequestId(action, profileId) {
+    return ('profile-card:' + action + ':' + String(profileId || 'new') + ':' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8)).slice(0, 120);
+  }
+
+  function _dpEnsureProfileActionMenuStyles() {
+    if (document.getElementById('dpProfileActionMenuStyles')) return;
+    var style = document.createElement('style');
+    style.id = 'dpProfileActionMenuStyles';
+    style.textContent = ''
+      + '.dp-mc-action-wrap{position:relative;z-index:8;display:flex;align-items:flex-start;}'
+      + '.dp-mc-action-menu{position:absolute;right:0;top:calc(100% + 8px);width:min(230px,72vw);display:none;gap:6px;padding:8px;border-radius:8px;background:linear-gradient(145deg,rgba(8,13,32,.98),rgba(37,29,78,.96));border:1px solid rgba(255,215,0,.32);box-shadow:0 18px 46px rgba(0,0,0,.45),0 0 24px rgba(255,215,0,.12);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}'
+      + '.dp-mc-action-wrap.is-open .dp-mc-action-menu{display:grid;}'
+      + '.dp-mc-action-menu__item{width:100%;min-height:42px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:rgba(255,255,255,.06);color:#f8fafc;padding:10px 12px;text-align:left;font-size:.78rem;font-weight:900;line-height:1.25;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;}'
+      + '.dp-mc-action-menu__item span{font-size:.68rem;font-weight:800;color:rgba(226,232,240,.72);white-space:nowrap;}'
+      + '.dp-mc-action-menu__item:active{transform:translateY(1px);}'
+      + '.dp-mc-action-menu__item--danger{border-color:rgba(251,113,133,.42);background:rgba(127,29,29,.24);color:#fecdd3;}'
+      + '.dp-mc-action-menu__item--danger span{color:#fbbf24;}';
+    document.head.appendChild(style);
+  }
+
+  function _dpCloseProfileMenu() {
+    var wrap = document.querySelector('#dpMasterCard .dp-mc-action-wrap.is-open');
+    if (!wrap) return;
+    wrap.classList.remove('is-open');
+    var btn = wrap.querySelector('.dp-mc-menu-btn');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+
+  function _dpRunProfileManageGate(action, profileId, requestId) {
+    return new Promise(function(resolve, reject) {
+      if (typeof window._cdCoinGatePerUse !== 'function') {
+        reject(new Error('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.'));
+        return;
+      }
+      var reason = action === 'delete' ? '프로필 카드 삭제' : '프로필 카드 추가';
+      window._cdCoinGatePerUse(PROFILE_CARD_MANAGE_COST, reason, function(transactionId, payload) {
+        var data = (payload && typeof payload === 'object') ? payload : {};
+        var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
+        var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
+        resolve({
+          requestId: requestId,
+          transactionId: String(transactionId || data.transactionId || data.paymentId || data.purchaseId || requestId),
+          payment: data,
+          accessGrant: accessGrant,
+          consume: consume,
+          _paymentContext: {
+            requestId: requestId,
+            transactionId: String(transactionId || data.transactionId || data.paymentId || data.purchaseId || requestId),
+            featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+            profileId: profileId || ''
+          }
+        });
+      }, function(error) {
+        if (error) reject(error);
+        else resolve(null);
+      }, {
+        featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+        requestId: requestId,
+        profileId: profileId || '',
+        selectedProfileId: profileId || '',
+        serviceKey: action === 'delete' ? 'profile_card_delete' : 'profile_card_create',
+        reportType: action === 'delete' ? 'profile_card_delete' : 'profile_card_create'
+      });
+    });
+  }
+
   /* ──────────────────────────────────────────
      5. UI — Master Destiny Card (상단 카드)
   ────────────────────────────────────────── */
   function renderMasterCard(profile) {
     var el = document.getElementById('dpMasterCard');
     if (!el) return;
+    _dpEnsureProfileActionMenuStyles();
 
     if (!profile) {
       el.innerHTML = _emptyCard();
@@ -2815,9 +2891,15 @@
                 : '<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(244,114,182,0.18);border:1px solid rgba(244,114,182,0.45);color:#f9a8d4;font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.5px;">&#9792; 여성</span>')
             + '</div>'
           + '</div>'
-          + '<button class="dp-mc-list-btn" onclick="dpOpenList()" aria-label="프로필 목록" style="touch-action:manipulation">'
-            + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>'
-          + '</button>'
+          + '<div class="dp-mc-action-wrap">'
+            + '<button class="dp-mc-list-btn dp-mc-menu-btn" onclick="dpToggleProfileMenu(event)" aria-label="프로필 카드 메뉴" aria-expanded="false" style="touch-action:manipulation">'
+              + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>'
+            + '</button>'
+            + '<div class="dp-mc-action-menu" role="menu" aria-label="프로필 카드 관리">'
+              + '<button type="button" class="dp-mc-action-menu__item" role="menuitem" onclick="dpOpenList(); dpCloseProfileMenu();">프로필 목록<span>전환</span></button>'
+              + '<button type="button" class="dp-mc-action-menu__item dp-mc-action-menu__item--danger" role="menuitem" onclick="dpDeleteProfile(\'' + _dpEscapeJsString(profile.id) + '\'); dpCloseProfileMenu();">프로필 카드 삭제<span>' + PROFILE_CARD_MANAGE_COST + '코인</span></button>'
+            + '</div>'
+          + '</div>'
         + '</div>'
         + '<div class="dp-mc-divider"></div>'
         + '<div class="dp-mc-info">'
@@ -2864,8 +2946,8 @@
         + '<circle cx="60" cy="60" r="5" fill="currentColor" opacity="0.5"/>'
       + '</svg>'
       + '<div class="dp-mc-empty-title">나의 운명 카드</div>'
-      + '<div class="dp-mc-empty-desc">아래 정보를 입력하고 저장하면<br>이곳에 나타납니다</div>'
-      + '<div class="dp-mc-empty-hint">↓ 아래에서 운명을 새기세요</div>'
+      + '<div class="dp-mc-empty-desc">프로필 카드를 새로 작성해<br>운명의 지도를 다시 열어보세요</div>'
+      + '<div class="dp-mc-empty-hint">↓ 아래에서 프로필 카드 작성</div>'
     + '</div>';
   }
 
@@ -3299,7 +3381,7 @@
         var lockedNotice = selectionRequired
           ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">이용권 혜택이 종료되었습니다. 계속 사용할 프로필 카드 1개를 선택하면 다음 이용권 결제 전까지 해당 카드만 사용할 수 있습니다.</div>'
           : (isFreeUser
-          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">🔒 프로필 카드는 한 번 생성하면 수정/삭제가 불가능합니다. 생성 전에 정보를 꼭 확인해 주세요.</div>'
+          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">프로필 카드 추가 생성/삭제는 서버 확인 후 50코인으로 처리됩니다.</div>'
           : '');
 
     container.innerHTML = list.map(function(p, idx) {
@@ -3395,7 +3477,12 @@
       alert('이름과 생년월일을 입력해주세요.');
       return;
     }
-    if (!confirm('새 프로필 카드를 생성할까요?\n한 번 생성된 프로필 카드는 수정 및 삭제가 불가능합니다.\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.')) return;
+    var hasProfiles = DPStorage.list().length > 0;
+    var createRequestId = _dpBuildProfileManageRequestId('create', data && data.name);
+    var createConfirm = hasProfiles
+      ? '프로필 카드를 추가 생성할까요?\n추가 생성은 서버에서 50코인 또는 5,000원 결제 확인 후 저장됩니다.\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.'
+      : '새 프로필 카드를 생성할까요?\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.';
+    if (!confirm(createConfirm)) return;
     var btn = document.getElementById('dpSaveBtn');
     var savingCardVisible = false;
     function restoreCardAfterSaveAttempt() {
@@ -3415,14 +3502,31 @@
       if (!ok) {
         throw new Error('AUTH_REQUIRED');
       }
-      return _dpFetchJsonWithFallback('/api/profile', {
-        method: 'POST',
-        credentials: 'include',
-        cache: 'no-store',
-        headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ profile: data })
+      function postProfile(paymentContext) {
+        return _dpFetchJsonWithFallback('/api/profile', {
+          method: 'POST',
+          credentials: 'include',
+          cache: 'no-store',
+          headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify(Object.assign({ profile: data, requestId: createRequestId }, paymentContext || {}))
+        });
+      }
+      return postProfile().then(function(result) {
+        var payload = result && result.data ? result.data : null;
+        var code = String((payload && payload.code) || '').trim().toUpperCase();
+        if (result && result.status === 402 && code === 'PAYMENT_REQUIRED') {
+          return _dpRunProfileManageGate('create', '', createRequestId).then(function(paymentContext) {
+            if (!paymentContext) {
+              restoreCardAfterSaveAttempt();
+              return null;
+            }
+            return postProfile(paymentContext);
+          });
+        }
+        return result;
       });
     }).then(function(result) {
+      if (!result) return null;
       if (!result || !result.ok) {
         var payload = result && result.data ? result.data : null;
         var code = String((payload && payload.code) || '').trim().toUpperCase();
@@ -3613,8 +3717,68 @@
     _toast('✦ ' + (p ? _esc(p.name) : '') + ' · 프로필 활성화', 'success');
   };
 
+  window.dpToggleProfileMenu = function(event) {
+    if (event && event.preventDefault) event.preventDefault();
+    if (event && event.stopPropagation) event.stopPropagation();
+    var btn = event && event.currentTarget ? event.currentTarget : document.querySelector('#dpMasterCard .dp-mc-menu-btn');
+    var wrap = btn && btn.closest ? btn.closest('.dp-mc-action-wrap') : null;
+    if (!wrap) return;
+    var willOpen = !wrap.classList.contains('is-open');
+    _dpCloseProfileMenu();
+    wrap.classList.toggle('is-open', willOpen);
+    btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+  };
+
+  window.dpCloseProfileMenu = _dpCloseProfileMenu;
+
   window.dpDeleteProfile = function(id) {
-    alert('프로필 카드는 한 번 생성하면 수정 및 삭제가 불가능합니다.\n생성 전에 입력 정보를 꼭 다시 확인해 주세요.');
+    var profileId = String(id || '').trim();
+    var list = DPStorage.list();
+    var profile = list.find(function(item) { return item && String(item.id || '') === profileId; });
+    if (!profile) {
+      alert('삭제할 프로필 카드를 찾을 수 없습니다.');
+      return;
+    }
+    if (!confirm((profile.name || '선택한 프로필') + ' 프로필 카드를 삭제할까요?\n삭제 비용은 50코인이며, 삭제 후 복구가 어렵습니다.')) return;
+
+    var requestId = _dpBuildProfileManageRequestId('delete', profileId);
+    _dpRunProfileManageGate('delete', profileId, requestId).then(function(paymentContext) {
+      if (!paymentContext) return null;
+      _dpSetPaymentPending(true, '프로필 카드를 삭제하는 중입니다...');
+      return _dpFetchJsonWithFallback('/api/profile/' + encodeURIComponent(profileId), {
+        method: 'DELETE',
+        credentials: 'include',
+        cache: 'no-store',
+        headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify(paymentContext)
+      }, {
+        retryOn401: true,
+        timeoutMs: _DP_FETCH_TIMEOUT_MS
+      });
+    }).then(function(result) {
+      _dpSetPaymentPending(false);
+      if (!result) return;
+      if (!result.ok || !result.data || result.data.ok === false) {
+        throw new Error((result.data && result.data.message) || '프로필 카드 삭제에 실패했습니다.');
+      }
+      var payload = result.data || {};
+      if (Array.isArray(payload.profiles)) {
+        _dpWriteProfilesToLocal(_dpGetProfileScope(), payload.profiles, payload.currentId || '');
+      } else {
+        DPStorage.remove(profileId);
+      }
+      var current = DPStorage.current();
+      renderMasterCard(current);
+      renderProfileList();
+      broadcastProfileChange(current || null);
+      _dpUpdateSaveBtn();
+      spawnStardust(document.getElementById('dpMasterCard'));
+      _toast('프로필 카드가 삭제되었습니다.', 'success');
+      return null;
+    }).catch(function(error) {
+      _dpSetPaymentPending(false);
+      alert(String(error && error.message || '프로필 카드 삭제 중 오류가 발생했습니다.'));
+    });
   };
 
   /** 베다점 등 외부 페이지로 넘길 현재 프로필 (저장된 현재 선택 프로필 또는 폼 데이터) */
@@ -4268,7 +4432,16 @@
 
     /* ESC 키로 시트 닫기 */
     document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') dpCloseList();
+      if (e.key === 'Escape') {
+        dpCloseList();
+        _dpCloseProfileMenu();
+      }
+    });
+
+    document.addEventListener('click', function(e) {
+      var targetEl = _resolveEventElement(e.target);
+      if (targetEl && targetEl.closest && targetEl.closest('#dpMasterCard .dp-mc-action-wrap')) return;
+      _dpCloseProfileMenu();
     });
 
     /* 오버레이 클릭으로 시트 닫기 */
@@ -4374,10 +4547,10 @@
         if (!_dpIsStableTouchTap(cardTouchState, e, { moveX: 14, moveY: 20, recentScrollBlockMs: 260 })) return;
         var targetEl = _resolveEventElement(e.target);
         if (!targetEl) return;
-        var menuBtn = targetEl.closest('.dp-mc-list-btn');
+        var menuBtn = targetEl.closest('.dp-mc-menu-btn');
         if (menuBtn) {
           if (e.cancelable) e.preventDefault();
-          dpOpenList();
+          dpToggleProfileMenu({ currentTarget: menuBtn, preventDefault: function(){}, stopPropagation: function(){} });
           return;
         }
         var loadBtn = targetEl.closest('.dp-mc-load-btn');

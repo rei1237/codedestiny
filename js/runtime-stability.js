@@ -112,6 +112,32 @@
     }, { once: true });
   }
 
+  function getErrorText(reason) {
+    try {
+      if (typeof reason === 'string') return reason;
+      if (reason && reason.message) return String(reason.message || '');
+      return String(reason || '');
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function isWalletExtensionError(reason) {
+    return /metamask|ethereum|wallet extension|extension not found|failed to connect to metamask/i.test(getErrorText(reason));
+  }
+
+  function isRecoverableSessionRestoreError(reason) {
+    return /restore session|restoring session|restoresession|session restore/i.test(getErrorText(reason));
+  }
+
+  function isExtensionSource(src) {
+    return /^(chrome|moz|safari)-extension:\/\//i.test(String(src || ''));
+  }
+
+  function preventRuntimeDefault(e) {
+    try { if (e && typeof e.preventDefault === 'function') e.preventDefault(); } catch (_) {}
+  }
+
   function patchGlobalHandlers() {
     window.addEventListener('error', function (e) {
       try {
@@ -119,6 +145,11 @@
         var tag = e && e.target && e.target.tagName ? String(e.target.tagName).toUpperCase() : '';
         var pageRoot = '';
         try { pageRoot = String(location.origin || '') + '/'; } catch (__) { pageRoot = ''; }
+        if (isExtensionSource(src) || isWalletExtensionError(e && (e.error || e.message)) || isRecoverableSessionRestoreError(e && (e.error || e.message))) {
+          preventRuntimeDefault(e);
+          ensureMainUiVisible();
+          return;
+        }
         if (src) {
           if (tag === 'IMG') {
             // Some themes probe the page root as an image URL; ignore this noisy false-positive.
@@ -136,6 +167,11 @@
     }, true);
 
     window.addEventListener('unhandledrejection', function (e) {
+      if (isWalletExtensionError(e && e.reason) || isRecoverableSessionRestoreError(e && e.reason)) {
+        preventRuntimeDefault(e);
+        ensureMainUiVisible();
+        return;
+      }
       try { console.error('[runtime-stability] unhandled rejection:', e.reason); } catch(ex) {}
       stopBlockingOverlays('promise-rejection');
       ensureMainUiVisible();
