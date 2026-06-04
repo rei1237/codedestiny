@@ -107,6 +107,10 @@ function assertContains(source, marker, label) {
   assert.ok(source.includes(marker), label || marker);
 }
 
+function assertNotContains(source, marker, label) {
+  assert.ok(!source.includes(marker), label || marker);
+}
+
 function assertBefore(source, first, second, label) {
   const firstIndex = source.indexOf(first);
   const secondIndex = source.indexOf(second);
@@ -230,33 +234,20 @@ assertContains(paymentsSource, 'accessMethod: "CARD"', "card access method remai
 
 assertBefore(
   indexSource,
-  'data-pass-state="covered"',
-  'data-mode="direct"',
-  "payment modal shows pass card before card payment",
-);
-assertBefore(
-  indexSource,
   'data-mode="direct"',
   'data-mode="monthly"',
   "payment modal shows card before monthly",
 );
-assertContains(indexSource, 'data-mode="membership"', "covered pass CTA");
-assertContains(indexSource, 'data-pass-state="over"', "over-limit pass card");
-assertContains(indexSource, 'data-pass-state="empty"', "empty pass card");
-assertContains(indexSource, "membershipCreditCost = Math.max(0, coinPrice * 10)", "monthly credit cost policy");
-assertContains(indexSource, "passLabelMap", "pass label map");
-assertContains(indexSource, "BRONZE", "standard pass tier");
-assertContains(indexSource, "SILVER", "premium pass tier");
-assertContains(indexSource, "GOLD", "vvip pass tier");
-assertContains(indexSource, 'data-pass-state="monthly-unavailable"', "monthly option remains visible when unavailable");
-assertContains(indexSource, 'border-color:rgba(180,83,9,.50)', "BRONZE style");
-assertContains(indexSource, 'border-color:rgba(226,232,240,.50)', "SILVER style");
-assertContains(indexSource, 'border-color:rgba(253,224,71,.60)', "GOLD style");
-assertContains(indexSource, "min-height:118px", "mobile touch target height");
-assertContains(indexSource, "linear-gradient(145deg,rgba(15,23,42,.88),rgba(2,6,23,.72))", "dark modal backdrop");
+assertContains(indexSource, 'class="cd-direct-payment-option" data-mode="direct"', "single payment CTA");
+assertContains(indexSource, 'class="cd-direct-payment-option" data-mode="monthly"', "monthly payment CTA");
+assertContains(indexSource, "monthlyBalance >= coinPrice", "simple frontend monthly balance check");
+assertContains(indexSource, "cd-direct-payment-dialog", "legacy direct payment dialog");
+assertContains(indexSource, "width:min(490px,100%)", "legacy modal width");
+assertContains(indexSource, "min-height:auto", "legacy option height");
+assertNotContains(indexSource, 'data-mode="membership"', "payment modal hides pass CTA");
+assertNotContains(indexSource, "membershipButtonHtml", "payment modal removes pass card HTML");
+assertNotContains(indexSource, "_cdResolvePaymentEligibilityForOptions", "payment modal avoids server eligibility helper");
 assertContains(indexSource, 'data-mode="cancel"', "cancel button");
-assertContains(indexSource, "_cdResolvePaymentEligibilityForOptions", "common eligibility helper");
-assertContains(indexSource, "/api/billing/unlock-status?", "server eligibility endpoint");
 assertContains(indexSource, "PortOne V2", "card provider badge");
 
 console.log("billing pass policy regression checks passed");
