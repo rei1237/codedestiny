@@ -4135,6 +4135,7 @@ function handlePaymentConfig(env) {
     channelKey: config.channelKey,
     currency: config.currency,
     payMethod: config.payMethod,
+    noticeUrl: config.noticeUrl,
   });
 }
 
