@@ -42,6 +42,11 @@
 - 최종 보고에는 어떤 키워드로 어떤 파일을 좁혀서 찾았는지 한 줄로 남겨, 추적 가능한 작업 근거를 유지해라.
 - 세션에 터미널/파일 검색/파일 읽기 도구가 제공되어 있으면 해당 도구를 사용해 진행하고, 도구 부재를 이유로 중단하기 전 실제 가용 도구를 먼저 확인해라.
 
+## 1.5 대규모 삭제 후 모지바케 검증 규칙 (Must Follow)
+- 1000줄 이상 삭제되는 변경(재작성/교체 포함)은 모지바케 재발 가능성이 높으므로 변경 완료 즉시 진입점 인코딩 무결성 점검을 의무화한다.
+- 점검은 `node scripts/verify-entry-encoding.mjs --strict-core` 또는 동치 동작 명령(`npm run verify:entry-encoding -- --strict-core`)으로 실행한다.
+- 실패 항목이 있으면 원인 파일을 즉시 격리 조사 후 재생성/동기화하고, 패스될 때까지 반복한다.
+
 ## 2) Source of Truth (Edit These)
 - Worker runtime API: `worker/**`
 - Next.js app/runtime UI: `app/**`, `components/**`, top-level runtime modules imported by app routes (for example `StonehengeRune.jsx`)
@@ -108,15 +113,8 @@
 - Do not ask for "continue" to resume normal work unless a hard blocker requires user input/decision.
 
 ## 10) Premium PDF Execution Order (All Services)
-- All premium PDF services must follow this exact execution order:
-	1. Payment/access verification
-	2. User input acquisition
-	3. Local calculation engine execution
-	4. PDF-ready JSON payload generation
-	5. Fixed chapter/category skeleton generation
-	6. LLM call
-	7. Per-chapter validation
-	8. Regenerate missing chapters only or apply local deterministic reinforcement
-	9. PDF rendering
-- Never skip a prior step to execute a later step.
-- If a chapter fails validation, do not block the entire report immediately: attempt targeted chapter regeneration first, then deterministic local reinforcement for only missing/failed chapters.
+- 인생의 책 PDF는 아래 흐름만 유지한다.
+	1. 결제/접근 권한 확인
+	2. 사용자 입력 수집 및 로컬 계산 엔진 실행으로 PDF JSON 정합성 확보
+	3. 검증된 JSON 기반으로 LLM 생성(필요 장은 보강)
+	4. PDF 렌더 후 다운로드 버튼 제공

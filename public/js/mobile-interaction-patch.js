@@ -683,7 +683,7 @@
     openTarotReunionModal: ['js/tarot-reunion-experience.js?v=20260414-tarot-qualityfix2'],
     openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=20260414-tarot-qualityfix2'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-989126a12fb9'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-c4a7d0314c34'],
     openDreamModal: ['lib/ai-engine.js', 'js/dream-ledger.js'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js'],
