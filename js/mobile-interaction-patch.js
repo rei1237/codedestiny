@@ -597,6 +597,80 @@
       .filter(function(v) { return v.length > 0; });
   }
 
+  var __CD_SERVICE_SPLASH_MESSAGES = {
+    openNevilleMeditationPage: '명상 화면을 준비하고 있습니다.',
+    openCosmicSoulMeditation: '코스믹 소울 명상 화면을 준비하고 있습니다.',
+    openYogaGuru: '요가 가이드 화면을 준비하고 있습니다.',
+    openTarotHealingModal: '타로 힐링 화면을 준비하고 있습니다.',
+    openTarotLoveModal: '타로 결과 화면을 준비하고 있습니다.',
+    openTarotReunionModal: '타로 결과 화면을 준비하고 있습니다.',
+    openTarotSelfEsteemModal: '타로 결과 화면을 준비하고 있습니다.',
+    openTarotYearFortuneModal: '타로 연간 운세 화면을 준비하고 있습니다.',
+    openDreamModal: '꿈 해몽 분석 화면을 준비하고 있습니다.',
+    openPsychoDreamModal: '심리 해석 화면을 준비하고 있습니다.',
+    openKemetModal: '오라클 분석 화면을 준비하고 있습니다.',
+    openRoyalTeaOracle: '로얄티 오라클 화면을 준비하고 있습니다.',
+    openGeomancyOracle: '지맨시 분석 화면을 준비하고 있습니다.',
+    openSibylModal: '사이빌 화면을 준비하고 있습니다.',
+    openAnimalTotemModal: '동물 토템 화면을 준비하고 있습니다.',
+    openHwatuModal: '화투 분석 화면을 준비하고 있습니다.',
+    openSajuguiModal: '사주 동물 분석 화면을 준비하고 있습니다.',
+    openAstrologyFlowerStudio: '꽃 스튜디오 화면을 준비하고 있습니다.',
+    openDestinyFlowerStudio: '꽃 스튜디오 화면을 준비하고 있습니다.',
+    openJamidusuFlowerStudio: '꽃 스튜디오 화면을 준비하고 있습니다.',
+    openSukuyoFlowerStudio: '꽃 스튜디오 화면을 준비하고 있습니다.',
+    openSajuAnimalPage: '동물 심리 화면을 준비하고 있습니다.',
+    openLoveSimulation: '연애 시뮬레이션 화면을 준비하고 있습니다.',
+    navigateToVedic: '별자리 차트 화면을 준비하고 있습니다.',
+    gotoNamingPremium: '유료 기능 화면을 준비하고 있습니다.'
+  };
+  var __cdFeatureLoadingToken = 0;
+
+  function getServiceSplash() {
+    if (window.__cdServiceSplash) return window.__cdServiceSplash;
+    if (typeof window.__cdShowServiceSplash === 'function' || typeof window.__cdHideServiceSplash === 'function') {
+      return {
+        show: window.__cdShowServiceSplash,
+        hide: window.__cdHideServiceSplash
+      };
+    }
+    return null;
+  }
+
+  function beginFeatureLoading(action, options) {
+    var serviceSplash = getServiceSplash();
+    if (!serviceSplash || typeof serviceSplash.show !== 'function') return 0;
+    var token = ++__cdFeatureLoadingToken;
+    var message = (options && options.message) || __CD_SERVICE_SPLASH_MESSAGES[action] || '서비스 화면을 준비하고 있습니다.';
+    var shown = serviceSplash.show(message, {
+      forceMobile: true,
+      minMs: options && typeof options.minMs === 'number' ? options.minMs : 400,
+      maxMs: options ? options.maxMs : undefined
+    });
+    return shown ? token : 0;
+  }
+
+  function endFeatureLoading(token) {
+    if (!token || token !== __cdFeatureLoadingToken) return;
+    var serviceSplash = getServiceSplash();
+    if (serviceSplash && typeof serviceSplash.hide === 'function') {
+      serviceSplash.hide();
+    }
+  }
+
+  function finalizeFeatureLoading(result, token) {
+    if (!token) return;
+    if (result && typeof result.then === 'function') {
+      result.then(function () {
+        endFeatureLoading(token);
+      }).catch(function () {
+        endFeatureLoading(token);
+      });
+      return;
+    }
+    endFeatureLoading(token);
+  }
+
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
     loadScript('/js/mobile-backstack-navigation.js?v=20260513-mobile-backstack-v1').catch(function(err) {
@@ -683,7 +757,7 @@
     openTarotReunionModal: ['js/tarot-reunion-experience.js?v=20260414-tarot-qualityfix2'],
     openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=20260414-tarot-qualityfix2'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-8e79a73da9ea'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-3c50edd0b599'],
     openDreamModal: ['lib/ai-engine.js', 'js/dream-ledger.js'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js'],

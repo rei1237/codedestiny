@@ -1,59 +1,112 @@
-(function(){
-  var _splashDone = false;
-  var splashStartedAt = Date.now();
+(function () {
   var isMobile = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
-
-  // 모바일은 초기 페인트/LCP 우선: 스플래시를 즉시 제거해 렌더 지연을 없앤다.
-  if (isMobile) {
-    var mobileSplash = document.getElementById('codeSplash');
-    if (mobileSplash && mobileSplash.parentNode) {
-      mobileSplash.style.display = 'none';
-      mobileSplash.parentNode.removeChild(mobileSplash);
-    }
-    return;
-  }
-
-  /* prefers-reduced-motion: 접근성 배려 + 저사양 기기 보호 */
   var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var MIN_VISIBLE_MS = isMobile ? (prefersReduced ? 180 : 360) : (prefersReduced ? 450 : 1800);
   var MAX_VISIBLE_MS = isMobile ? 2500 : 5000;
 
-  /* -- 별빛 캔버스 (reduced-motion 비활성) -- */
-  var cvs = document.getElementById('splashCanvas');
-  var rafId, _frame = 0;
-  if (cvs && !prefersReduced && !isMobile) {
-    var ctx = cvs.getContext('2d');
-    cvs.width = window.innerWidth; cvs.height = window.innerHeight;
+  var splashTemplate = null;
+  var splashParent = null;
+  var splashStartedAt = Date.now();
+  var activeSession = 0;
+  var rafId = null;
+  var msgTimer = null;
+  var barTimer = null;
+  var hideTimer = null;
+  var hardHideTimer = null;
+  var stars = null;
+  var msgIdx = 0;
+  var splashStarted = false;
 
-    /* 색상 팔레트 (RGB 문자열 사전 생성 — 매 프레임 문자열 연산 없음) */
-    var palette = ['200,215,255','225,235,255','255,245,210','220,200,255','255,255,255'];
+  var msgs = [
+    '운명의 정렬을 계산 중입니다.',
+    '별자리가 지금의 길을 정돈하고 있습니다.',
+    '신호가 열릴 때까지 잠시만 기다려 주세요.',
+    '기능 로딩을 준비하고 있습니다.',
+    '부드러운 전환으로 다음 화면으로 이동합니다.',
+    '서비스 화면 진입 중입니다. 잠시만요...'
+  ];
 
-    /* 별 56개 — 코어/글로우/스파클 3단 구성 */
-    var stars = Array.from({length: 56}, function() {
+  var initSplash = document.getElementById('codeSplash');
+  if (initSplash) {
+    splashTemplate = initSplash.outerHTML;
+    splashParent = initSplash.parentNode || document.body;
+  }
+
+  function getSplash() {
+    var current = document.getElementById('codeSplash');
+    if (current) return current;
+    if (!splashTemplate || !splashParent) return null;
+
+    var wrapper = document.createElement('div');
+    wrapper.innerHTML = splashTemplate;
+    var node = wrapper.firstElementChild;
+    if (!node) return null;
+    splashParent.appendChild(node);
+    return node;
+  }
+
+  function getNodes() {
+    var splash = getSplash();
+    if (!splash) return { splash: null, msg: null, bar: null, canvas: null };
+    return {
+      splash: splash,
+      msg: splash.querySelector('#splashMsg'),
+      bar: splash.querySelector('#splashBar'),
+      canvas: splash.querySelector('#splashCanvas')
+    };
+  }
+
+  function stopStarLoop() {
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+  }
+
+  function clearTimers() {
+    clearInterval(msgTimer);
+    msgTimer = null;
+    clearInterval(barTimer);
+    barTimer = null;
+    clearTimeout(hideTimer);
+    hideTimer = null;
+    clearTimeout(hardHideTimer);
+    hardHideTimer = null;
+  }
+
+  function startStars(canvas) {
+    if (!canvas || isMobile || prefersReduced || !canvas.getContext) return;
+    var ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    stars = Array.from({ length: 56 }, function () {
+      var palette = ['200,215,255', '225,235,255', '255,245,210', '220,200,255', '255,255,255'];
       var c = palette[Math.floor(Math.random() * palette.length)];
       return {
-        x: Math.random() * cvs.width,
-        y: Math.random() * cvs.height,
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
         r: Math.random() * 1.45 + 0.25,
         a: Math.random() * Math.PI * 2,
         spd: Math.random() * 0.013 + 0.003,
         phase: Math.random() * Math.PI * 2,
         phaseSpd: Math.random() * 0.018 + 0.004,
         base: Math.random() * 0.35 + 0.18,
-        rng:  Math.random() * 0.34 + 0.12,
+        rng: Math.random() * 0.34 + 0.12,
         glow: Math.random() * 2.2 + 1.2,
         spike: Math.random() < 0.22,
         drift: Math.random() * 0.25 + 0.05,
-        col:  c
+        col: c
       };
     });
 
+    var frame = 0;
     function drawStars() {
-      _frame++;
-      /* 2프레임에 1번 실제 렌더 → 효과적 30fps, CPU 절반 */
-      if (_frame & 1) { rafId = requestAnimationFrame(drawStars); return; }
-
-      ctx.clearRect(0, 0, cvs.width, cvs.height);
+      frame++;
+      if (frame & 1) {
+        rafId = requestAnimationFrame(drawStars);
+        return;
+      }
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       for (var i = 0; i < stars.length; i++) {
         var s = stars[i];
         s.a += s.spd;
@@ -61,26 +114,21 @@
         var alpha = s.base + Math.sin(s.a) * s.rng + Math.sin(s.phase) * 0.16;
         if (alpha < 0.04) alpha = 0.04;
         if (alpha > 0.95) alpha = 0.95;
-
-        /* 미세 드리프트로 정적인 느낌 완화 */
         var dx = Math.sin((s.a + i) * 0.5) * s.drift;
         var dy = Math.cos((s.phase + i) * 0.45) * s.drift;
 
-        /* 외곽 글로우 */
         ctx.globalAlpha = alpha * 0.28;
         ctx.beginPath();
         ctx.arc(s.x + dx, s.y + dy, s.r + s.glow, 0, 6.2832);
         ctx.fillStyle = 'rgb(' + s.col + ')';
         ctx.fill();
 
-        /* 코어 */
         ctx.globalAlpha = alpha;
         ctx.beginPath();
         ctx.arc(s.x + dx, s.y + dy, s.r, 0, 6.2832);
         ctx.fillStyle = 'rgb(' + s.col + ')';
         ctx.fill();
 
-        /* 일부 별에만 십자 스파클 추가 */
         if (s.spike && alpha > 0.55) {
           var spikeLen = s.r * 2.6;
           ctx.globalAlpha = alpha * 0.45;
@@ -98,86 +146,137 @@
       rafId = requestAnimationFrame(drawStars);
     }
     drawStars();
-  } else if (cvs) {
-    /* 모바일 / reduced-motion: 캔버스 비활성화 */
-    cvs.style.display = 'none';
   }
 
-  /* -- 안내 문구 순환 -- */
-  var msgs = [
-    '하늘의 별자리를 조용히 정렬하는 중...',
-    '오행의 흐름을 부드럽게 맞추는 중...',
-    '당신의 운명 좌표를 분석하는 중...',
-    '타로 카드가 전할 이야기를 준비하는 중...',
-    '오늘의 행운과 조언을 정리하는 중...',
-    '잠시만요, 결과 화면을 곧 열어드릴게요...'
-  ];
-  var mi = 0;
-  var msgEl = document.getElementById('splashMsg');
-  var msgTimer = null;
-  if (!isMobile) {
-    msgTimer = setInterval(function() {
-      if (!msgEl) return;
-      mi = (mi + 1) % msgs.length;
-      msgEl.style.opacity = '0';
-      msgEl.style.transition = 'opacity 0.35s';
-      setTimeout(function() {
-        if (msgEl) {
-          msgEl.textContent = msgs[mi];
-          msgEl.style.opacity = '1';
-        }
-      }, 350);
-    }, 1800);
-  }
-
-  /* -- 로딩 바 진행 -- */
-  var bar = document.getElementById('splashBar');
-  var barVal = 0;
-  var barTimer = null;
-  if (isMobile) {
-    if (bar) bar.style.width = '90%';
-  } else {
-    barTimer = setInterval(function() {
-      barVal = Math.min(barVal + Math.random() * 18 + 5, 90);
-      if (bar) bar.style.width = barVal + '%';
-      if (barVal >= 90) clearInterval(barTimer);
-    }, 350);
-  }
-
-  /* -- 초기 로딩 완료 -> 스플래시 숨김 -- */
-  function hideSplash() {
-    if (_splashDone) return;
-    _splashDone = true;
-    clearInterval(msgTimer);
-    clearInterval(barTimer);
+  function hideSplash(force) {
+    var nodes = getNodes();
+    var splash = nodes.splash;
+    var bar = nodes.bar;
+    if (!splash) return;
+    if (!force && !splashStarted) return;
+    clearTimers();
+    stopStarLoop();
     if (bar) bar.style.width = '100%';
-    var splash = document.getElementById('codeSplash');
-    if (splash) {
-      splash.style.display = 'none';
-      if (splash.parentNode) splash.parentNode.removeChild(splash);
+    splash.style.display = 'none';
+    splash.setAttribute('aria-hidden', 'true');
+    splashStarted = false;
+  }
+
+  function scheduleHideSplash(sessionId, minMs, maxMs) {
+    clearTimeout(hideTimer);
+    clearTimeout(hardHideTimer);
+    hideTimer = setTimeout(function () {
+      if (sessionId !== activeSession) return;
+      hideSplash(true);
+    }, Math.max(0, (minMs || MIN_VISIBLE_MS) - (Date.now() - splashStartedAt)));
+    if (maxMs) {
+      hardHideTimer = setTimeout(function () {
+        if (sessionId !== activeSession) return;
+        hideSplash(true);
+      }, maxMs);
     }
-    if (rafId) cancelAnimationFrame(rafId);
   }
 
-  function scheduleHideSplash() {
-    if (_splashDone) return;
-    var elapsed = Date.now() - splashStartedAt;
-    var waitMs = Math.max(0, MIN_VISIBLE_MS - elapsed);
-    setTimeout(hideSplash, waitMs);
+  function showSplash(message, options) {
+    options = options || {};
+    if (isMobile && !options.forceMobile) return false;
+
+    var nodes = getNodes();
+    var splash = nodes.splash;
+    var msgEl = nodes.msg;
+    var bar = nodes.bar;
+    var canvas = nodes.canvas;
+    if (!splash) return false;
+
+    activeSession += 1;
+    splashStartedAt = Date.now();
+    splashStarted = true;
+
+    clearTimers();
+    stopStarLoop();
+
+    if (canvas && !isMobile && !prefersReduced) {
+      startStars(canvas);
+    } else if (canvas) {
+      canvas.style.display = 'none';
+    }
+
+    if (bar) {
+      bar.style.width = '0%';
+      if (!isMobile) {
+        var barVal = 0;
+        barTimer = setInterval(function () {
+          barVal = Math.min(barVal + Math.random() * 18 + 5, 90);
+          bar.style.width = barVal + '%';
+          if (barVal >= 90) clearInterval(barTimer);
+        }, 350);
+      } else {
+        bar.style.width = '90%';
+      }
+    }
+
+    if (!isMobile && msgEl) {
+      msgIdx = 0;
+      if (typeof message === 'string' && message.length) {
+        msgEl.textContent = message;
+      }
+      msgTimer = setInterval(function () {
+        if (!msgEl) return;
+        msgIdx = (msgIdx + 1) % msgs.length;
+        msgEl.style.opacity = '0';
+        msgEl.style.transition = 'opacity 0.35s';
+        setTimeout(function () {
+          if (!msgEl) return;
+          msgEl.textContent = msgs[msgIdx];
+          msgEl.style.opacity = '1';
+        }, 350);
+      }, 1800);
+    }
+
+    splash.style.display = 'flex';
+    splash.removeAttribute('aria-hidden');
+    scheduleHideSplash(activeSession, options.minMs, options.maxMs);
+    return true;
   }
 
-  /* 무한 체류 방지 안전장치 */
-  setTimeout(hideSplash, MAX_VISIBLE_MS);
+  function hideSplashNow() {
+    hideSplash(true);
+  }
 
-  if (document.readyState === 'complete' || (isMobile && document.readyState !== 'loading')) {
-    scheduleHideSplash();
-  } else if (isMobile) {
-    document.addEventListener('DOMContentLoaded', scheduleHideSplash, { once: true });
+  function showFeatureSplash(message, options) {
+    return showSplash(message, options);
+  }
+
+  window.__cdServiceSplash = {
+    show: showFeatureSplash,
+    hide: hideSplashNow,
+    isVisible: function () {
+      var cur = getNodes().splash;
+      return !!(cur && cur.style && cur.style.display !== 'none');
+    }
+  };
+  window.__cdShowServiceSplash = showFeatureSplash;
+  window.__cdHideServiceSplash = hideSplashNow;
+
+  if (isMobile) {
+    var mobileSplash = getNodes().splash;
+    if (mobileSplash) {
+      mobileSplash.style.display = 'none';
+    }
   } else {
-    window.addEventListener('load', scheduleHideSplash, { once: true });
+    showSplash(msgs[0], { minMs: MIN_VISIBLE_MS, maxMs: MAX_VISIBLE_MS });
+
+    if (document.readyState === 'complete') {
+      scheduleHideSplash(activeSession, MIN_VISIBLE_MS, MAX_VISIBLE_MS);
+    } else {
+      window.addEventListener('load', function () {
+        scheduleHideSplash(activeSession, MIN_VISIBLE_MS, MAX_VISIBLE_MS);
+      }, { once: true });
+    }
   }
 
-  window.addEventListener('pageshow', function() {
-    scheduleHideSplash();
+  window.addEventListener('pageshow', function () {
+    if (!isMobile) scheduleHideSplash(activeSession, MIN_VISIBLE_MS, MAX_VISIBLE_MS);
   }, { once: true });
 })();
+

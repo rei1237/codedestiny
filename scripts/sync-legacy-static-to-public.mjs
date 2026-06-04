@@ -154,8 +154,15 @@ const CACHE_KEY_SOURCE_FILES = [
   "js/mobile-interaction-patch.js",
   "js/noncritical-defer-loader.js",
   "js/destiny-profile.js",
+  "js/core/kasi-calendar-service.js",
+  "js/compat-llm-prompts.js",
   "js/saju-engine.js",
+  "js/core/saju/extremeTResult.js",
   "js/saju-engine-tarot-sukuyo-quantum.js",
+  "js/core/saju/modalProfileState.js",
+  "js/core/saju/reportDashboard.js",
+  "js/saju-engine-continuation.js",
+  "js/entertain-engine.js",
 ];
 
 function normalizeForCacheKey(content) {
